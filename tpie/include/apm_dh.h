@@ -1,4 +1,4 @@
-// file: apm_dh.h 
+// File: apm_dh.h 
 
 #ifndef _APM_DH_H
 #define _APM_DH_H
@@ -10,7 +10,7 @@
 // *  used in several of TPIE's sorting variants                            *
 // *                                                                        *
 // **************************************************************************
-// 	$Id: apm_dh.h,v 1.9 2002-01-03 07:06:22 tavi Exp $	
+// 	$Id: apm_dh.h,v 1.10 2002-01-14 16:14:26 tavi Exp $	
 
 #include <math.h>		// For log(), etc  to compute tree heights.
 #include <sys/time.h>
@@ -18,7 +18,6 @@
 #include <fstream.h>
 
 #include <ami_stream.h>
-#include <ami_ptr.h>
 #include <mergeheap_dh.h>	   //For templated heaps
 #include <quicksort.h>		//For templated qsort_items
 
@@ -41,7 +40,7 @@ makeName (char *prepre, char *pre, int id, char *dest)
 // *   A M I _ s i n g l e _ m e r g e _ d h                                *
 // *                                                                        *
 // * This is a common merge routine for all of the AMI_merge, AMI_ptr_merge *
-// * and AMI_key_merge entry points. It ia also used by the sort entry      *
+// * and AMI_key_merge entry points. It is also used by the sort entry      *
 // * points AMI_sort, AMI_ptr_sort and AMI_key_sort and by the routine      *
 // * AMI_partition_and_merge.  Differences are encapsulated within the      *
 // * merge heap object 'MergeHeap'. It is assumed that MergeHeap.allocate   *
@@ -56,7 +55,7 @@ AMI_single_merge_dh (AMI_STREAM < T > **inStreams, arity_t arity,
 {
 
    unsigned int i;
-   AMI_err      ami_err;
+   AMI_err ami_err;
 
    //Pointers to current leading elements of streams
    T *in_objects[arity + 1];
@@ -142,20 +141,18 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
    LOG_DEBUG_ID ("AMI_partition_and_merge START");
 
    // Figure out how much memory we've got to work with.
-
    sz_avail = MM_manager.memory_available ();
 
-   //Conservatively assume that the memory for buffers for 
-   //the two streams is unallocated; so we need to subtract.
-
+   // Conservatively assume that the memory for buffers for 
+   // the two streams is unallocated; so we need to subtract.
    if ((ae = inStream->main_memory_usage 
             (&szStream,MM_STREAM_USAGE_MAXIMUM)) != AMI_ERROR_NO_ERROR) {
-      LOG_DEBUG_ID ("Error returned from main_memory_usage(.,MM_STREAM_USAGE_MAXIMUM");
+      LOG_DEBUG_ID ("Error returned from main_memory_usage");
       return ae; // LOG_FATAL was reported in main_memory_usage
    }
    if ((ae = inStream->main_memory_usage 
             (&szSubstream,MM_STREAM_USAGE_OVERHEAD)) != AMI_ERROR_NO_ERROR) {
-      LOG_DEBUG_ID ("Error returned from inStream->main_memory_usage");
+      LOG_DEBUG_ID ("Error returned from main_memory_usage");
       return ae;
    }
    sz_avail -= 2 * szStream;
@@ -183,58 +180,44 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
       mgmt_obj.main_mem_operate_cleanup ();
 
       return AMI_ERROR_NO_ERROR;
-   };				// else 
+   };
 
    // ******************************************************************
    // * Input stream too large for main memory, use general merge sort *
    // ******************************************************************
 
-   LOG_DEBUG_ID( "Beginning general merge sort." );
+   LOG_DEBUG_ID ("Beginning general merge sort.");
 
    // The number of substreams that the original input stream
    // will be split into.
-
    arity_t origSubstreams;
 
    // The length, in terms of stream objects of type T, of the
    // original substreams of the input stream.  The last one may
    // be shorter than this.
-
    size_t szOrigSubstream;
 
    // The initial temporary stream, to which substreams of the
    // original input stream are written.
-
    AMI_STREAM < T > **initialTmpStream;
 
    // The number of substreams that can be merged together at once.
-
    arity_t mrgArity;
 
-   // A pointer to the buffer in main memory to read a memory load into.
-
-   //T *mmStream;
-
-   // Loop variables:
-
    // The stream being read at the current level.
-
    AMI_STREAM < T > **currInput;
 
    // The output stream for the current level if it is not outStream.
-
    AMI_STREAM < T > **tmpStream;
 
-   //RAKESH  FIX THIS: Need to generate random strings using
-   //tmpname() or something like that.
    char *prefixName[] = { "_0_", "_1_" };
 
    // The size of substreams of *currInput that are being
    // merged.  The last one may be smaller.  This value should be
    // szOrigSubstream * (mrgArity ** mrgHgt) where mrgHgt is the
-   // number of iterations the loop has gone through.
-   
-   unsigned int mrgHgt;                 //Merge Level
+   // number of iterations the loop has gone through.   
+   unsigned int mrgHgt;
+
    off_t        sub_start, sub_end;
 
    // How many substreams will there be?  The main memory
@@ -279,9 +262,9 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
    size_t chunkSize = inStream->chunk_size ();
    // 2001/04/23 dh. was : szOrigSubstream = chunkSize *
    //                      ((szOrigSubstream + chunkSize-1) / chunkSize);
-   szOrigSubstream = chunkSize *(szOrigSubstream / chunkSize);
+   szOrigSubstream = chunkSize * (szOrigSubstream / chunkSize);
 
-   if (szOrigSubstream==0) {
+   if (szOrigSubstream == 0) {
       LOG_FATAL_ID ("Insufficient Memory for AMI_partition_and_merge.");
       return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
    }
@@ -291,14 +274,14 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
    // otherwise why are we doing it externally?
    tp_assert (origSubstreams > 1, "Less than two runs to merge!");
    
-   //Available memory for input stream objects is given by 
-   //sz_avail minus the space occupied by output stream objects.
+   // Available memory for input stream objects is given by 
+   // sz_avail minus the space occupied by output stream objects.
    size_t sz_avail_during_merge = sz_avail - szStream - szSubstream;
 
-   //This counts the per-input stream memory cost.
+   // This counts the per-input stream memory cost.
    size_t szPerInputStream = szStream + szSubstream + sizeof(heap_element<T>);
 
-   //Compute merge arity
+   // Compute merge arity
    mrgArity = sz_avail_during_merge / szPerInputStream;
 
    // Make sure that the AMI is willing to provide us with the
@@ -327,7 +310,7 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
       return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
    }
 
-//#define MINIMIZE_INITIAL_SUBSTREAM_LENGTH
+   //#define MINIMIZE_INITIAL_SUBSTREAM_LENGTH
 #ifdef MINIMIZE_INITIAL_SUBSTREAM_LENGTH
    LOG_DEBUG_ID ("Minimizing initial run lengths without increasing" <<
 		    "the height of the merge tree.");
@@ -336,25 +319,18 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
 
    // The tree height is the ceiling of the log base mrgArity of the
    // number of original substreams.
-
    double tree_height = log((double)origSubstreams) / log((double)mrgArity);
-
    tp_assert (tree_height > 0, "Negative or zero tree height!");
-
    tree_height = ceil (tree_height);
 
    // See how many substreams we could possibly fit in the
    // tree without increasing the height.
-
    double maxOrigSubstreams = pow ((double) mrgArity, tree_height);
-
    tp_assert (maxOrigSubstreams >= origSubstreams,
 		 "Number of permitted substreams was reduced.");
 
    // How big will such substreams be?
-
    double new_szOrigSubstream = ceil ((double) max lenOrigSubstreams);
-
    tp_assert (new_szOrigSubstream <= szOrigSubstream,
 		 "Size of original streams increased.");
 
@@ -367,7 +343,7 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
 
    LOG_DEBUG_ID ("Tree height constraints set original substreams = "
 		    << origSubstreams << '\n');
-#endif				// MINIMIZE_INITIAL_SUBSTREAM_LENGTH
+#endif	// MINIMIZE_INITIAL_SUBSTREAM_LENGTH
 
    // Create a temporary stream, then iterate through the
    // substreams, processing each one and writing it to the
@@ -393,7 +369,7 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
                 MM_manager.memory_available () );
    initialTmpStream = new (AMI_STREAM < T > *)[mrgArity];
 
-   if ((ae= mgmt_obj.main_mem_operate_init(szOrigSubstream)) !=
+   if ((ae = mgmt_obj.main_mem_operate_init(szOrigSubstream)) !=
 	    AMI_ERROR_NO_ERROR) {
       LOG_FATAL_ID ("main_mem_operate_init failed");
       return ae;
@@ -410,7 +386,7 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
    int    currStream            = mrgArity - 1;
    int    runsInCurrStream      = 0;
    int    reqdRuns [mrgArity];
-   char   newName [BTE_PATH_NAME_LEN];
+   char   newName [BTE_STREAM_PATH_NAME_LEN];
 
    //For the first stream:
    for (iiStreams = 0; iiStreams < mrgArity; iiStreams++) {
@@ -453,7 +429,6 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
 
 	    // If it is an exact multiple, then the mod will come out
 	    // 0, which is wrong.
-
 	    if (!mm_len) {
 	       mm_len = szOrigSubstream;
 	    }
@@ -507,10 +482,6 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
       initialTmpStream[currStream] = NULL;
    }
 
-   //if (mmStream) {
-   //   delete[]mmStream;
-   //   mmStream = NULL;
-   //}
    mgmt_obj.main_mem_operate_cleanup ();
 
    // Make sure the total length of the temporary stream is the
@@ -559,7 +530,13 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
 		 "\n\tcurrInput->stream_len() = " <<
 		 check_size << ".");
 
-      check_size = 0;
+      // [tavi, 01/05/02] Commented this assignment out, since it
+      // causes the above assert to fail when input size is much
+      // higher than the memory (because the number of iterations of
+      // this for loop executed is at least 2). check_size doesn't
+      // seem to be used anywhere else in this loop.
+
+      //  check_size = 0;
 
       // Do we have enough main memory to merge all the
       // substreams on the current level into the output stream?
@@ -718,7 +695,7 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
 	    //Open the new substream
 	    currInput[ssx]-> new_substream 
                      ( AMI_READ_STREAM, sub_start, sub_end,
-		       (AMI_base_stream < T > **) (theSubstreams + jj) );
+		       (AMI_stream_base < T > **) (theSubstreams + jj) );
 
             // ***********************************************************
 	    // * The substreams are read-once.  If we've got all we can  *
