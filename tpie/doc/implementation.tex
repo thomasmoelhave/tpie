@@ -1,5 +1,5 @@
 %%
-%% $Id: implementation.tex,v 1.1 1999-03-04 00:32:51 tavi Exp $
+%% $Id: implementation.tex,v 1.2 1999-06-12 15:49:48 rbarve Exp $
 %%
 \chapter{The Implementation of TPIE}
 
@@ -73,7 +73,7 @@ to data.
 \index{AMI|see{access method interface}}
 \label{sec:ref-ami}
 To use TPIE, the programmer has to create, modify or delete items each of
-which belongs to a \emph{stream}. From the programmer's perspective,
+which belongs to a stream. From the programmer's perspective,
 computation simply requires her to \emph{choreograph the movement of
 items in various streams}: The I/O operations, the buffering required
 and memory management are performed in TPIE itself. In order to specify
@@ -93,160 +93,69 @@ methods to further ease implementation of indexing data structures is
 currently ongoing.
 
 Each datum in TPIE is an item of a certain type.
-How then does the programmer access data? She does so by using the
+The programmer can access data by using the
 \emph{Access Method Interface (AMI)} to access items in 
-\emph{AMI\_STREAM}s. Items of type T constitute an AMI\_STREAM of 
-type T. Each AMI\_STREAM is a warapper around  what is known
-as a \emph{BTE\_STREAM}, where BTE stands for \emph{block transfer
-engine.} Each BTE\_STREAM is a stream built on top of a Unix file, with 
+\verb|AMI_STREAM|s. Items of type T constitute an AMI\_STREAM of 
+type T. Each \verb|AMI_STREAM| is a wrapper around  what is known
+as a \verb|BTE_STREAM|, where BTE stands for \emph{block transfer
+engine.} Each \verb|BTE_STREAM| is a stream built on top of a Unix file, with 
 additional features such as typing,  and automatic, efficient,
 ``under-the-hoods'' I/O and buffering so that the programmer does
 not bear this burden. TPIE can be configured to use one of three
-different BTE\_STREAM implementations: The implementations vary
+different \verb|BTE_STREAM| implementations: The implementations vary
 fundamentally in the way they do buffering and I/O. The implementation
 of choice depends, to some extent, on the operating system on which 
 TPIE runs. Later we describe the different BTE implementations and
 how to determine the best implementation on any given system; for now,
-we focus on the AMI\_STREAM interface since that is most directly
+we focus on the \verb|AMI_STREAM| interface since that is most directly
 relevant to a programmer/user.
 
 
-Note that the string ``AMI\_STREAM'' has
- been ``\#define''d to be the string ``AMI\_stream\_single'' in the
- header file ``ami\_imps.h'' to facilitate alternative implementations
-of AMI\_STREAM if necessary in the future.
-The AMI\_STREAM class,
-templated on the type T of its items,  consists of the following
-public member functions defined in the file ``ami\_single.h'';
+Note that the string \verb|AMI_STREAM| has
+ been \verb|#define|d to be the string \verb|AMI_stream_single| in the
+ header file \verb|ami_imps.h| to facilitate alternative implementations
+of \verb|AMI_STREAM| if necessary in the future.
+The member functions of the \verb|AMI_STREAM| class,
+templated on the type T of its items,  are defined in the file \verb|ami_single.h|;
 some important related enumerated types that the user will be
- concerned with have been defined in ``ami\_base.h''.
-
-\begin{itemize}
-\item{Constructors and Destructor} An AMI\_STREAM$<$T$>$ can be constructed 
-with a \emph{filename} argument
-to the constructor, or with the \emph{filename} and \emph{streamtype}
-arguments to the constructor, or  without any
-arguments given to the constructor (in which case a randomly generated
-\emph{filename} and the default \emph{streamtype} is used)
-with the usual semantics. Here,
-\emph{filename} specifies the name of the Unix file ``backing'' the
-AMI\_STREAM and is also the name of the AMI\_STREAM itself. The
-\emph{streamtype} specifies whether the AMI\_STREAM is to be a 
-read-only or read-write or append-only or write stream (See the header file
-``ami\_base.h'' for semantics.) The default  \emph{streamtype} is read-write. 
-The Unix file backing the AMI\_STREAM is opened by the constructor.
+ concerned with have been defined in \verb|ami_base.h|.
 
 
-An important consequence of the construction of an AMI\_STREAM is a
+An important consequence of the construction of an \verb|AMI_STREAM| is a
 reduction in the total amount of memory that the user has at her
 disposal since a certain amount of memory is consumed now by buffers
-dedicated to that AMI\_STREAM and its related data
+dedicated to that \verb|AMI_STREAM| and its related data
 structures.\footnote{The total amount of memory that the user has
-available, divided by the memory consumed by every AMI\_STREAM thus
-is an upper bound on the maximum number of AMI\_STREAMs that the user
-can have.} When an AMI\_STREAM is destroyed using a destructor, that
-amount of memory becomes is added to the available memory for the
-user. The Unix file backing the AMI\_STREAM is closed by the
-destructor; it may also be deleted from disk 
-depending on the \emph{persistence} flag of
-the AMI\_STREAM; see below.
-
-
-\item {Other constructor-like functions}
-The user may also construct an AMI\_STREAM$<$T$>$ corresponding to a
-pre-existing BTE\_STREAM$<$T$>$ using a constructor while
-specifying a pointer to the BTE\_STREAM$<$T$>$ as an argument.
-
-Using a ``sub-stream constructor'',
-a TPIE user can specify an address range [i,j]
-of an AMI\_STREAM$<$T$>$ and access items in that address range
-as an AMI\_STREAM$<$T$>$ of j-i+1 items: Destroying the sub-stream
-does not destroy the parent AMI\_STREAM$<$T$>$. The parent
-AMI\_STREAM$<$T$>$ can itself be a sub-stream. The motivation behind 
-supporting the sub-stream concept is that in some situations
-having too many open Unix files can cause problems: 
-Having too many open Unix files 
-sometimes can cause a performance problem\footnote{Such
-problems can occur in some situations, on some systems,
-when the number of open files exceeds some threshold.} or
-less frequently, can exceed the maximum possible number\footnote{The
-system call \emph{getrusage()} can be used to ascertain this number.}
-of Unix files that a user process is allowed thus causing a
-Unix error. See ``ami\_single.h'' for syntax.
-
-
-\item{Reading and Writing} AMI\_STREAMs have a notion of \emph{current
-item} in the stream of items. The \emph{read\_item(T **elt)} function
-returns with *elt pointing to the current item of the AMI\_STREAM$<$T$>$
-(so there is actually no copying of an item during a
-\emph{read\_item()} call) and the  \emph{write\_item(T elt)} function 
-returns after setting the current item of AMI\_STREAM$<$T$>$ to the value 
-elt. Appropriate error values (defined in``ami\_base.h'') are returned 
-in case of errors.
-
-Since it was deemed useful to read or write many items at a time
-from or to an AMI\_STREAM, TPIE provides the \emph{read\_array(T
-*mm\_space, off\_t *len)} and the 
-\emph{write\_array(const T *mm\_space, off\_t len)} to read
-(resp. write) \emph{*len} (resp. \emph{len}) items into (resp. from) 
-array \emph{mm\_space} of items of type T from (resp. into) the
-current locations of the AMI\_STREAM$<$T$>$.
-
-\item{Name and Length}
-AMI\_STREAM$<$T$>$ member functions \emph{name()} and \emph{stream\_len()}
-can be used by the user to get the name and length of the
-AMI\_STREAM$<$T$>$; see ``ami\_single.h'' for syntax.
-
-\item{Seeking and Truncating}
-Analogous to Unix files, AMI\_STREAM$<$T$>$s have \emph{seek()} and
-\emph{truncate()} member functions, both of which take an 
-\emph{offset} (within the AMI\_STREAM$<$T$>$) as an argument. The 
-\emph{offset} is in units of items of type T. The \emph{seek()}
-function is necessary whenever the user needs to access items
-in a stream in a non-sequential manner.
-
-
-\item{Memory Usage}
+available, divided by the memory consumed by every \verb|AMI_STREAM| thus
+is an upper bound on the maximum number of \verb|AMI_STREAM|s that the user
+can have.}
+ 
 In order to effectively utilize memory, the user needs to keep track
 of the amount of memory she has at her disposal: Sometimes, 
 when one of several algorithms may be usable to solve a given problem,
 it may be useful to choose the algorithm depending on the problem
 size and available memory size. The total amount of memory consumed
-by an AMI\_STREAM$<$T$>$ often plays an important role while making such 
-a choice. The  \emph{main\_memory\_usage()} member function of
-AMI\_STREAM can be used to determine various memory usages
-such a buffer space, overheads because of stream-related (meta)
-data structures or net total usage corresponding to the AMI\_STREAM;
-see ``ami\_single.h'' and ``mm\_base.h'' for syntax.
+by an \verb|AMI_STREAM| often plays an important role while making such 
+a choice. The memory manager \verb|mm.h| is responsible for keeping
+track of the amount of memory avaoable to the user at any time.
 
-\item{Persistence of Unix file}
-An AMI\_STREAM is backed up by a Unix file on disk. Sometimes the
-items in an AMI\_STREAM will never be used  once the AMI\_STREAM is
-destructed whereas sometimes an ``idle'' AMI\_STREAM may be destroyed 
+When an \verb|AMI_STREAM| is destroyed using a destructor, that
+amount of memory becomes is added to the available memory for the
+user. 
+
+
+Sometimes the
+items in an \verb|AMI_STREAM| will never be used  once the \verb|AMI_STREAM| is
+destructed whereas sometimes an ``idle'' \verb|AMI_STREAM| may be destroyed 
 to prevent it from hogging memory only to be constructed later on
 when really required. In the former case, it is desirable to 
-destroy or delete the Unix file backing the AMI\_STREAM to save
+destroy or delete the Unix file backing the \verb|AMI_STREAM| to save
 disk space whereas in the latter case we need the Unix file backing
-the AMI\_STREAM to exist on disk even when the AMI\_STREAM is
-destroyed. A user can specify this \emph{persistence} of the
-Unix file backing the AMI\_STREAM using the \emph{persist()} member
-function; see  ``ami\_single.h'' and ``ami\_base.h'' for syntax.
+the \verb|AMI_STREAM| to exist on disk even when the \verb|AMI_STREAM| is
+destroyed. The  \verb|AMI_STREAM| destructor looks at the persistence 
+flag to decide whether it need only close the backing Unix file or
+delete it from disk.
 
-
-\item{Miscellaneous member functions}
-As mentioned earlier, some systems do not allow a user process
-to exceed a certain threshold number of opened Unix files at any time
-forcing an upper bound on the number of AMI\_STREAMs a user can 
-have at any time.  The member function \emph{available\_streams()} can
-be used to determine how many AMI\_STREAMs more the user can construct
-at any time.
-
-The member function \emph{chunk\_size()} returns with the size,
-in items of type T, of a data-buffer of an AMI\_STREAM$<$T$>$. (Depending
-on the BTE\_STREAM implementation and its configuration parameters, each 
-AMI\_STREAM$<$T$>$ may have one or two data-buffers.) 
-
-\end{itemize}
 
 
 \index{access method interface|)}
@@ -262,15 +171,86 @@ AMI\_STREAM$<$T$>$ may have one or two data-buffers.)
 
 \subsection{Merging}
 \label{sec:ref-imp-ami-merge}
-
-
 \index{merging|(}
+
+\subsubsection{Merge Management Objects}
+Merge management objects based on the super class \verb|AMI_merge_base| 
+defined in the file \verb|ami_merge.h| can be used conveniently by
+appropriately defining the member functions of the class.
+
+\subsubsection{External Merging using Merge Management Objects}
+The external merging routine \verb|AMI_single_merge()|
+and related functions (see Section~\ref{sec:ref-ami-merge}) 
+that are based on merge management objects are in the \verb|ami_merge.h| file.
+
+The implementation of  \verb|AMI_single_merge()| is simple: The merge management
+object's \verb|operate()| function
+is repeatedly used to output the smallest (or largest, depending on the desired
+merge order) item of the set of items consisting of the leading item of each input 
+stream. A priority queue implementation, in the file \verb|pqueue_heap.h|, is
+used by the merge management object for this purpose. The output of the  \verb|operate()| 
+function function is repeatedly appended to the output stream. Since the \verb|AMI_STREAM| interface ensures that the current block of each stream is buffered in memory, it results 
+in an efficient merging implementation.
+
+The implementation of  \verb|AMI_partition_and_merge()| first involves 
+a ``run-formation'' stage in which a memory-load of the input stream is 
+read into memory, sorted in memory and then written as a substream into
+an intermediate stream. The merge management object uses an appropriate 
+quicksort implementation from the file \veb|quicksort.h| to do the internal
+memory sorting. Thereafter, the \verb|AMI_partition_and_merge()| repeatedly
+merges together the maximum possible number of sub-streams at a time using the 
+\verb|AMI_single_merge()| function. An important point is that all the
+substreams input to \verb|AMI_single_merge()| during the execution of 
+\verb|AMI_partition_and_merge()| all originate from the same underlying
+parent \verb|AMI_STREAM|; thus filesystem accesses are inherently non-sequential.
+Throughout the execution of \verb|AMI_partition_and_merge()|, there are only
+two active \verb|AMI_STREAM|s at any time: One which stores the substreams
+being merged at that stage and one which stores the substreams output by
+that stage.
+
+\subsubsection{External Merging without Merge Management Objects}
+The entry points \verb|MIAMI_single_merge_*()| described in Section~\ref{sec:ref-ami-merge} 
+do not use merge management objects. Instead  these merge functions, in file
+\verb|optimized_merge.h|,  directly use appropriate simple heap implementations 
+defined in file \verb|mergeheap.h|. The heap implementations are somewhat less general
+than the priority queue implementations in \verb|pqueue_heap.h|. The 
+\verb|MIAMI_single_merge_Key()| function ensures that the heap is used to
+store and process the key values as opposed to using the entire items. When
+the item size is large compared to key size, performance improvement on account
+of this technique is often tangible.
+
+The three \verb|AMI_partition_and_merge_*()| implementations (See Section~\ref{sec:ref-ami-merge}, one corresponding to each one of the \verb|MIAMI_single_merge_*()| functions) are
+fundamentally  different from the \verb|AMI_partition_and_merge()| function in the way they store
+their  sub-streams. As before, the number, say $R$,  of streams being merged together 
+at any time is the maximum possible for that amount of memory. In contrast to the 
+\verb|AMI_partition_and_merge()| function which has two \verb|AMI_STREAM|s active at
+any time, the \verb|AMI_partition_and_merge_*()| implementations have $R$  \verb|AMI_STREAM|s 
+active at any time: While the $R$ sub-streams
+sent for merging by the \verb|AMI_partition_and_merge()| function at any time 
+all have the same parent stream, the $R$ sub-streams sent for merging  by the 
+ \verb|AMI_partition_and_merge_*()| implementations all reside in different
+parent streams. Thus, each stream involved is accessed in a sequential manner.
+The in-memory sorting routines used during run-formation are once more the 
+quicksort routines in \verb|quicksort.h|. During run-formation, for each memoryload, 
+the \verb|AMI_partition_and_merge_Key()| routine 
+first extricates the keys from the items in a separate table and then sorts them 
+in memory and then permutes in memory the items based on the sorted order.
+
 \index{merging|)}
 
 \subsection{Comparison Sorting}
 \label{sec:ref-imp-ami-sort}
 
 \index{sorting!comparison|(}
+The comparison sorts \verb|AMI_sort()| are defined in the file \verb|ami_sort_single.h|.
+They are implemented using the \verb|AMI_partition_ane_merge()| routine of 
+\verb|ami_merge.h| and the corresponding merge management objects.
+
+The comparison sorts \verb|AMI_partition_and_merge_stream()|, \verb|AMI_partition_and_merge_Key()| and  \verb|AMI_partition_and_merge_stream_cmp()| are defined in the file
+\verb|optimized_merge.h|, and are implemented as described in the previous 
+Section.
+
+
 \index{sorting!comparison|)}
 
 \subsection{Key Bucket Sorting}
