@@ -5,14 +5,12 @@
 //
 // Blocked kd-tree definition and implementation.
 //
-// $Id: ami_kdtree.h,v 1.12 2003-09-12 01:46:18 jan Exp $
+// $Id: ami_kdtree.h,v 1.13 2003-09-13 23:15:36 tavi Exp $
 //
 
 #ifndef _AMI_KDTREE_H
 #define _AMI_KDTREE_H
 
-// For strcpy(), strcat().
-#include <strings.h>
 // Get definitions for working with Unix and Windows
 #include <portability.h>
 // For ostream.
@@ -37,7 +35,7 @@
 #include <tpie_stats_tree.h>
 // The cache manager.
 #include <ami_cache.h>
-// The Point/Record classes.
+// The AMI_point/AMI_record classes.
 #include <ami_point.h>
 // Supporting types: AMI_kdtree_status, AMI_kdtree_params, etc.
 #include <ami_kd_base.h>
@@ -57,9 +55,9 @@ template<class coord_t, size_t dim, class Bin_node=AMI_kdtree_bin_node_default<c
 class AMI_kdtree {
 public:
 
-  typedef Record<coord_t, size_t, dim> point_t;
-  typedef Record<coord_t, size_t, dim> record_t;
-  typedef Point<coord_t, dim> key_t;
+  typedef AMI_record<coord_t, size_t, dim> point_t;
+  typedef AMI_record<coord_t, size_t, dim> record_t;
+  typedef AMI_point<coord_t, dim> key_t;
   typedef AMI_STREAM<point_t> stream_t;
   typedef AMI_collection_single<BTECOLL> collection_t;
   typedef AMI_kdtree_node<coord_t, dim, Bin_node, BTECOLL> node_t;
@@ -467,15 +465,15 @@ struct _AMI_kdtree_leaf_info {
 #endif
 };
 
-// A kdtree leaf is a block of Point's. The info field contains the
+// A kdtree leaf is a block of AMI_point's. The info field contains the
 // number of points actually stored (ie, the size) and the id of
 // another leaf. All leaves in a tree are threaded this way.
 template<class coord_t, size_t dim, class BTECOLL> 
-class AMI_kdtree_leaf: public AMI_block<Record<coord_t, size_t, dim>, _AMI_kdtree_leaf_info, BTECOLL> 
+class AMI_kdtree_leaf: public AMI_block<AMI_record<coord_t, size_t, dim>, _AMI_kdtree_leaf_info, BTECOLL> 
 {
 public:
 
-  typedef Record<coord_t, size_t, dim> point_t;
+  typedef AMI_record<coord_t, size_t, dim> point_t;
   typedef AMI_STREAM<point_t> stream_t;
   typedef AMI_collection_single<BTECOLL> collection_t;
   typedef _AMI_kdtree_leaf_info info_t;
@@ -540,7 +538,7 @@ template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
 class AMI_kdtree_node: public AMI_block<Bin_node, _AMI_kdtree_node_info, BTECOLL> {
 public:
 
-  typedef Record<coord_t, size_t, dim> point_t;
+  typedef AMI_record<coord_t, size_t, dim> point_t;
   typedef AMI_STREAM<point_t> stream_t;
   typedef AMI_collection_single<BTECOLL> collection_t;
 
@@ -583,7 +581,7 @@ public:
 #define AMI_KDTREE_LEAF  AMI_kdtree_leaf<coord_t, dim, BTECOLL>
 #define AMI_KDTREE_NODE  AMI_kdtree_node<coord_t, dim, Bin_node, BTECOLL>
 #define AMI_KDTREE       AMI_kdtree<coord_t, dim, Bin_node, BTECOLL>
-#define POINT            Record<coord_t, size_t, dim>
+#define POINT            AMI_record<coord_t, size_t, dim>
 #define POINT_STREAM     AMI_STREAM< POINT >
 
 #define MEM_AVAIL 
@@ -612,7 +610,7 @@ public:
 //// *AMI_kdtree_leaf::el_capacity* ////
 template<class coord_t, size_t dim, class BTECOLL>
 size_t AMI_KDTREE_LEAF::el_capacity(size_t block_size) {
-  return AMI_block<Record<coord_t, size_t, dim>, _AMI_kdtree_leaf_info, BTECOLL>::el_capacity(block_size, 0);
+  return AMI_block<AMI_record<coord_t, size_t, dim>, _AMI_kdtree_leaf_info, BTECOLL>::el_capacity(block_size, 0);
 }
 
 //// *AMI_kdtree_leaf::AMI_kdtree_leaf* ////
@@ -697,7 +695,7 @@ size_t AMI_KDTREE_LEAF::window_query(const POINT &lop, const POINT &hip,
 template<class coord_t, size_t dim, class BTECOLL>
 void AMI_KDTREE_LEAF::sort(size_t d) {
   typename POINT::cmp cmpd(d);
-  sort(&el[0], &el[0] + size(), cmpd);
+  std::sort(&el[0], &el[0] + size(), cmpd);
 }
 
 //// *AMI_kdtree_leaf::find_median* ////
@@ -2552,7 +2550,7 @@ AMI_KDTREE::grid::grid(size_t t_all, POINT_STREAM** in_streams) {
   
   point_count = in_streams[0]->stream_len();
   size_t i, j, off;
-  Record<coord_t, size_t, dim> *p1, ap;
+  AMI_record<coord_t, size_t, dim> *p1, ap;
   AMI_err err;
 
   // Determine the grid lines.
@@ -2805,8 +2803,8 @@ typename AMI_KDTREE::grid_matrix* AMI_KDTREE::grid_matrix::split(size_t s, const
   size_t median_strip = gl[d] + s; // refers to the big grid!
   TPLOG("    median strip in grid: "<<median_strip<<"\n");
 #if AMI_KDTREE_USE_EXACT_SPLIT
-  hi[d] = pair<Record<coord_t, size_t, dim>, bool>(p, true);
-  gmx->lo[d] = pair<Record<coord_t, size_t, dim>, bool>(p, true);
+  hi[d] = pair<AMI_record<coord_t, size_t, dim>, bool>(p, true);
+  gmx->lo[d] = pair<AMI_record<coord_t, size_t, dim>, bool>(p, true);
 #else
   hi[d] = pair<coord_t, bool>(p[d], true);
   gmx->lo[d] = pair<coord_t, bool>(p[d], true);
@@ -3199,7 +3197,7 @@ AMI_KDTREE::sample::sample(size_t _sz, POINT_STREAM* _in_stream) {
   }
 
   // Sort the sampled offsets.
-  sort(offsets, offsets + sz);
+  std::sort(offsets, offsets + sz);
 
   // Eliminate duplicates.
   if ((new_last = unique(offsets, offsets + sz)) != offsets + sz) {
