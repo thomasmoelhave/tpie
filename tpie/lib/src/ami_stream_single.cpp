@@ -5,9 +5,8 @@
 //
 
 #include <versions.h>
-VERSION(ami_single_cpp,"$Id: ami_stream_single.cpp,v 1.2 2002-02-02 18:11:27 tavi Exp $");
+VERSION(ami_single_cpp,"$Id: ami_stream_single.cpp,v 1.3 2003-04-17 20:47:57 jan Exp $");
 
-#include <unistd.h>
 #include "lib_config.h"
 
 // Don't bother defining any BTE implementation, since this is library
@@ -43,7 +42,7 @@ AMI_stream_single_base_device_initializer::
 
         // Try to initialize from TMP_DIR
         ae = AMI_stream_single_base::
-            default_device.read_environment(TMP_DIR_ENV);
+            default_device.read_environment(TMPDIR_ENV);
 
         if (ae == AMI_ERROR_NO_ERROR) {
             return;
@@ -51,7 +50,7 @@ AMI_stream_single_base_device_initializer::
 
         // Try to initialize to a default path
         ae = AMI_stream_single_base::
-            default_device.set_to_path(TMP_DIR ":" TMP_DIR);
+            default_device.set_to_path(TMP_DIR "|" TMP_DIR);
 
         if (ae != AMI_ERROR_NO_ERROR) {
             LOG_WARNING_ID("Unable to initialize the default device description for AMI single streams.");
