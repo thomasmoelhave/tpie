@@ -3,7 +3,7 @@
 // Created: 2002/10/30
 // Authors: Joerg Rotthowe, Jan Vahrenhold, Markus Vogel
 //
-// $Id: portability.h,v 1.13 2003-09-14 16:36:08 jan Exp $
+// $Id: portability.h,v 1.14 2003-09-14 21:04:34 tavi Exp $
 //
 // This header-file offers macros for independent use on Win and Unix systems.
 
@@ -703,6 +703,12 @@ inline int TPIE_OS_MSYNC(char* addr, size_t len,int flags) {
 
 
 #ifdef _WIN32
+
+#ifdef BTE_COLLECTION_USE_FTRUNCATE
+#undef BTE_COLLECTION_USE_FTRUNCATE
+#endif
+#define BTE_COLLECTION_USE_FTRUNCATE 1
+
 inline int TPIE_OS_FTRUNCATE(TPIE_OS_FILE_DESCRIPTOR& fd, LONG length) {
     if (fd.useFileMapping == TPIE_OS_FLAG_USE_MAPPING_TRUE) {
 	    CloseHandle(fd.mapFileHandle);	
