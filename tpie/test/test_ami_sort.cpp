@@ -6,19 +6,6 @@
 //
 // A test for AMI_sort().
 
-static char test_ami_sort_id[] = "$Id: test_ami_sort.cpp,v 1.17 1999-10-19 21:36:17 tavi Exp $";
-
-// This is just to avoid an error message since the string above is never
-// refereneced.  Note that a self referential structure must be defined to
-// avoid passing the problem further.
-static struct ___test_ami_sort_id_compiler_fooler {
-    char *pc;
-    ___test_ami_sort_id_compiler_fooler *next;
-} the___test_ami_sort_id_compiler_fooler = {
-    test_ami_sort_id,
-    &the___test_ami_sort_id_compiler_fooler
-};
-
 #define DEBUG_ASSERTIONS 1
 
 #include <sys/types.h>
@@ -36,6 +23,7 @@ static struct ___test_ami_sort_id_compiler_fooler {
 
 // Define it all.
 #include <ami.h>
+VERSION(test_ami_sort_cpp,"$Id: test_ami_sort.cpp,v 1.18 1999-12-16 16:41:49 hutchins Exp $");
 
 #include <ami_kb_sort.h>
 
@@ -229,7 +217,7 @@ main(int argc, char **argv)
     scan_diff<int> sd(-1);
     
     ae = AMI_partition_and_merge(&amis1, &amis2,
-				 (AMI_merge_base<int> *)&mr);
+				 (merge_random<int> *)&mr);
     
     ae = AMI_sort(&amis2, &amis3, cc_int_cmp);
     
