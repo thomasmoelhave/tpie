@@ -6,8 +6,18 @@
 //
 // A test for AMI_partition_and_merge().
 
+static char test_ami_pmerge_id[] = "$Id: test_ami_pmerge.cpp,v 1.7 1994-10-07 15:39:45 darrenv Exp $";
 
-static char partition_and_merge_id[] = "$Id: test_ami_pmerge.cpp,v 1.6 1994-10-07 13:56:10 darrenv Exp $";
+// This is just to avoid an error message since the string above is never
+// referenced.  Note that a self referential structure must be defined to
+// avoid passing the problem further.
+static struct ___test_ami_pmerge_id_compiler_fooler {
+    char *pc;
+    ___test_ami_pmerge_id_compiler_fooler *next;
+} the___test_ami_pmerge_id_compiler_fooler = {
+    test_ami_pmerge_id,
+    &the___test_ami_pmerge_id_compiler_fooler
+};
 
 #include <tpqueue.h>
 
@@ -261,7 +271,7 @@ int main(int argc, char **argv)
         cout << "Stream length = " << amis0.stream_len() << '\n';
     }
 
-    // Streams for reporting random vand/or sorted values to ascii
+    // Streams for reporting random and/or sorted values to ascii
     // streams.
     
     ofstream *oss;
@@ -283,28 +293,19 @@ int main(int argc, char **argv)
         ae = AMI_scan((AMI_base_stream<int> *)&amis0, rptr);
     }
 
-#if 10    
     s_merge_manager sm;
-#endif
     
     getrusage(RUSAGE_SELF, &ru0);
 
-#if 10    
     ae = AMI_partition_and_merge(&amis0, &amis1,
                                  (AMI_merge_base<int> *)&sm);
-#else
-    ae = AMI_sort(&amis0, &amis1, cc_int_cmp);
-#endif
     
     getrusage(RUSAGE_SELF, &ru1);
 
-#if 0    
     if (verbose) {
         cout << "Sorted them.\n";
         cout << "Sorted stream length = " << amis1.stream_len() << '\n';
-        cout << "sm.operate called " << sm.called << " times.\n";
     }
-#endif
     
     if (report_results_sorted) {
         ae = AMI_scan((AMI_base_stream<int> *)&amis1, rpts);
