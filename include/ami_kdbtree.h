@@ -5,14 +5,15 @@
 //
 // K-D-B-tree definition and implementation. 
 //
-// $Id: ami_kdbtree.h,v 1.1 2003-01-02 19:43:58 tavi Exp $
+// $Id: ami_kdbtree.h,v 1.2 2003-01-27 03:00:47 tavi Exp $
 //
 
 #ifndef _KDBTREE_H
 #define _KDBTREE_H
 
-#include "ami_kdtree.h"
-#include "ami_kdbtree_base.h"
+#include <ami_point.h>
+#include <ami_kdtree.h>
+#include <ami_kdbtree_base.h>
 
 
 #define KDBTREE_HEADER_MAGIC_NUMBER 0xA9542F
