@@ -15,7 +15,7 @@
 
 // Define it all.
 #include <ami.h>
-VERSION(test_ami_pmerge_cpp,"$Id: test_ami_pmerge.cpp,v 1.21 2003-09-11 18:58:29 tavi Exp $");
+VERSION(test_ami_pmerge_cpp,"$Id: test_ami_pmerge.cpp,v 1.22 2003-09-11 19:26:00 tavi Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -172,8 +172,8 @@ AMI_err s_merge_manager::main_mem_operate(int* mm_stream, size_t len)
 }
 
 
-static char def_srf[] = "/var/tmp/oss.txt";
-static char def_rrf[] = "/var/tmp/osr.txt";
+static char def_srf[] = "oss.txt";
+static char def_rrf[] = "osr.txt";
 
 static char *sorted_results_filename = def_srf;
 static char *rand_results_filename = def_rrf;
