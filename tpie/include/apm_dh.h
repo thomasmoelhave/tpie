@@ -10,7 +10,7 @@
 // *  used in several of TPIE's sorting variants                            *
 // *                                                                        *
 // **************************************************************************
-// 	$Id: apm_dh.h,v 1.4 2000-11-14 04:40:22 hutchins Exp $	
+// 	$Id: apm_dh.h,v 1.5 2001-03-01 15:20:42 hutchins Exp $	
 
 #include <math.h>		// For log(), etc  to compute tree heights.
 #include <sys/time.h>
@@ -43,6 +43,13 @@ makeName (char *prepre, char *pre, int id, char *dest)
 // *                                                                        *
 // *   A M I _ s i n g l e _ m e r g e _ d h                                *
 // *                                                                        *
+// * This is a common merge routine for all of the AMI_merge, AMI_ptr_merge *
+// * and AMI_key_merge entry points. It ia also used by the sort entry      *
+// * points AMI_sort, AMI_ptr_sort and AMI_key_sort and by the routine      *
+// * AMI_partition_and_merge.  Differences are encapsulated within the      *
+// * merge heap object 'MergeHeap'. It is assumed that MergeHeap.allocate   *
+// * was called before entering AMI_single_merge_dh.                        *
+// *                                                                        *
 // **************************************************************************
 
 template < class T, class M >
@@ -60,12 +67,13 @@ AMI_single_merge_dh (AMI_STREAM < T > **inStreams, arity_t arity,
    // **************************************************************
    // * Rewind each input stream and read its first element.       *
    // **************************************************************
-
+   printf("APM\n");
    for (i = 0; i < arity; i++) {
 
       if ((ami_err = inStreams[i]->seek (0)) != AMI_ERROR_NO_ERROR) {
 	 return ami_err;
       }
+   printf("APM2\n");
       if ((ami_err = inStreams[i]->read_item (&(in_objects[i]))) !=
 	  AMI_ERROR_NO_ERROR) {
 	 if (ami_err == AMI_ERROR_END_OF_STREAM) {
@@ -74,7 +82,9 @@ AMI_single_merge_dh (AMI_STREAM < T > **inStreams, arity_t arity,
 	    return ami_err;
 	 }
       } else {
-         MergeHeap.insert( in_objects[i], i );
+        printf("APMinserting\n");
+        MergeHeap.insert( in_objects[i], i );
+        printf("APMinserting done\n");
       }
    }
 
@@ -82,7 +92,9 @@ AMI_single_merge_dh (AMI_STREAM < T > **inStreams, arity_t arity,
    // * Build a heap from the smallest items of each stream   *
    // *********************************************************
 
+   printf("APMinit start\n");
    MergeHeap.initialize ( );
+   printf("APMinit done\n");
 
    // *********************************************************
    // * Perform the merge until the inputs are exhausted.     *
