@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/30/94
 //
-// $Id: mm_register.h,v 1.5 2000-03-14 01:45:26 rajiv Exp $
+// $Id: mm_register.h,v 1.6 2000-03-25 06:40:09 rajiv Exp $
 //
 #ifndef _MM_REGISTER_H
 #define _MM_REGISTER_H
@@ -40,7 +40,7 @@ private:
 
     //#ifndef MM_BACKWARD_COMPATIBLE
     // flag indicates whether we are keeping track of memory or not
-    static int register_new;
+    static MM_mode register_new;
     //#endif
 
 public:
