@@ -4,10 +4,13 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 8/22/93
 //
-// $Id: ami_device.h,v 1.1 1994-09-29 13:06:50 darrenv Exp $
+// $Id: ami_device.h,v 1.2 2003-04-17 12:15:49 jan Exp $
 //
 #ifndef _AMI_DEVICE_H
 #define _AMI_DEVICE_H
+
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 #include <iostream.h>
 

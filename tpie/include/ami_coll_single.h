@@ -3,12 +3,15 @@
 // File:   ami_coll_single.h
 // Author: Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_coll_single.h,v 1.10 2003-04-04 20:33:13 tavi Exp $
+// $Id: ami_coll_single.h,v 1.11 2003-04-17 12:13:54 jan Exp $
 //
 // AMI collection entry points implemented on top of a single BTE.
 //
 #ifndef _AMI_COLL_SINGLE_H
 #define _AMI_COLL_SINGLE_H
+
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 // For persist type.
 #include <persist.h>

@@ -3,7 +3,7 @@
 // File:    ami_cache.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_cache.h,v 1.6 2003-03-16 02:38:34 tavi Exp $
+// $Id: ami_cache.h,v 1.7 2003-04-17 12:09:49 jan Exp $
 //
 // Declaration and definition of AMI_CACHE_MANAGER
 // implementation(s).
@@ -11,10 +11,10 @@
 
 #ifndef _AMI_CACHE_H
 #define _AMI_CACHE_H
-
  
-// STL header, for class pair.
-#include <utility>
+// Get definitions for working with Unix and Windows
+#include <portability.h>
+
 // The b_vector class.
 #include <b_vector.h>
 
@@ -50,9 +50,8 @@ template<class T, class W>
 class AMI_cache_manager_lru: public AMI_cache_manager_base {
 protected:
 
-  // The type of the item stored. Pair of key and T.
-  typedef std::pair<size_t,T> item_type_;
-
+  typedef TPIE_OS_STL_PAIR<size_t,T> item_type_;
+	
   // The array of items.
   item_type_ * pdata_;
 
@@ -110,9 +109,10 @@ AMI_cache_manager_lru<T,W>::AMI_cache_manager_lru(size_t capacity, size_t assoc)
     
     // Initialize the array (mark all positions empty).
     pdata_ = new item_type_[capacity_];
-    for (i = 0; i < capacity_; i++)
-      pdata_[i].first = 0;
-
+    for (i = 0; i < capacity_; i++) {
+        pdata_[i].first = 0; 
+    }
+    
   } else {
 
     pdata_ = NULL;
@@ -133,10 +133,11 @@ inline bool AMI_cache_manager_lru<T,W>::read(size_t k, T& item) {
   b_vector<item_type_> set(&pdata_[(k % sets_) * assoc_], assoc_);
 
   // Find the item using the key.
-  for (i = 0; i < assoc_; i++)
-    if (set[i].first == k)
-      break;
-
+  for (i = 0; i < assoc_; i++) {
+      if (set[i].first == k)
+	  break;
+  }
+  
   if (i == assoc_)
     return false;
 
@@ -174,10 +175,11 @@ inline bool AMI_cache_manager_lru<T,W>::write(size_t k, const T& item) {
     }
     
     // Insert in the first position.
-    if (assoc_ > 1)
-      set.insert(item_type_(k, item), 0);
-    else
-      set[0] = item_type_(k, item);
+      if (assoc_ > 1)
+	  set.insert(item_type_(k, item), 0);
+      else {
+	  set[0] = item_type_(k, item);
+      }
   }
 
   return true;
@@ -193,9 +195,10 @@ bool AMI_cache_manager_lru<T,W>::erase(size_t k) {
   b_vector<item_type_> set(&pdata_[(k % sets_) * assoc_], assoc_);
 
   // Find the item using the key.
-  for (i = 0; i < set.capacity(); i++)
-    if (set[i].first == k)
-      break;
+  for (i = 0; i < set.capacity(); i++) {
+      if (set[i].first == k)
+	  break;
+  }
 
   // If not found, return false.
   if (i == set.capacity())
@@ -226,8 +229,9 @@ void AMI_cache_manager_lru<T,W>::flush() {
 template<class T, class W>
 AMI_cache_manager_lru<T,W>::~AMI_cache_manager_lru() {
   flush();
-  if (capacity_ > 0)
-    delete [] pdata_;
+  if (capacity_ > 0) {
+      delete [] pdata_;
+  }
 }
 
 #endif // _AMI_CACHE_H
