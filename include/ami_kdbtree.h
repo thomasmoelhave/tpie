@@ -5,7 +5,7 @@
 //
 // K-D-B-tree definition and implementation. 
 //
-// $Id: ami_kdbtree.h,v 1.8 2003-05-20 05:46:35 tavi Exp $
+// $Id: ami_kdbtree.h,v 1.9 2003-06-02 16:55:51 tavi Exp $
 //
 
 #ifndef _AMI_KDBTREE_H
@@ -15,7 +15,7 @@
 #include <portability.h>
 #include <ami_point.h>
 #include <ami_kdtree.h>
-#include <ami_kdbtree_base.h>
+#include <ami_kd_base.h>
 
 #define AMI_KDBTREE_HEADER_MAGIC_NUMBER 0xA9542F
 
@@ -95,7 +95,7 @@ public:
   void release_node(node_t* q);
   void release_leaf(leaf_t* q);
 
-  class header_type {
+  class header_t {
   public:
     unsigned int magic_number;
     point_t mbr_lo;
@@ -104,12 +104,11 @@ public:
     size_t size;
     link_type_t root_type;
     
-    header_type():
+    header_t():
       magic_number(AMI_KDBTREE_HEADER_MAGIC_NUMBER), mbr_lo(0), mbr_hi(0), 
       root_bid(0), root_type(BLOCK_LEAF), size(0) {}
   };
 
-  typedef header_type header_t;
 
 protected:
 
@@ -137,7 +136,7 @@ protected:
 
   // Critical information: root bid and type, mbr, size (will be
   // stored into the header of the nodes collection).
-  header_type header_;
+  header_t header_;
 
   // The status.
   AMI_kdbtree_status status_;
@@ -445,7 +444,7 @@ void AMI_KDBTREE::shared_init(const char* base_file_name, AMI_collection_type ty
       status_ = AMI_KDBTREE_STATUS_KDTREE;
     } else if (magic == AMI_KDBTREE_HEADER_MAGIC_NUMBER) {
       status_ = AMI_KDBTREE_STATUS_VALID;
-      //      header_ = *((header_type *) pcoll_nodes_->user_data());
+      //      header_ = *((header_t *) pcoll_nodes_->user_data());
       memcpy((void *)(&header_), pcoll_nodes_->user_data(), sizeof(header_));
       // TODO: sanity checks on the header.
     } else {
@@ -1236,7 +1235,7 @@ AMI_KDBTREE::~AMI_kdbtree() {
   
   if (status_ == AMI_KDBTREE_STATUS_VALID) {
     // Write initialization info into the pcoll_nodes_ header.
-    //    *((header_type *) pcoll_nodes_->user_data()) = header_;
+    //    *((header_t *) pcoll_nodes_->user_data()) = header_;
     memcpy(pcoll_nodes_->user_data(), (void *)(&header_), sizeof(header_));
   }
 
