@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/4/94
 //
-// $Id: pqueue_heap.h,v 1.2 1994-10-10 13:10:20 darrenv Exp $
+// $Id: pqueue_heap.h,v 1.3 1994-11-02 22:03:30 darrenv Exp $
 //
 // A priority queue class implemented as a binary heap.
 //
@@ -62,6 +62,13 @@ static inline unsigned int parent(unsigned int index) {
     return index >> 1;
 }
 
+template <class T, class P>
+struct q_elt {
+    T elt;
+    P priority;
+};
+
+
 // A base class for priority queues that use heaps.
 
 template <class T, class P>
@@ -69,10 +76,7 @@ class pqueue_heap : public pqueue<T,P>
 {
 protected:
     // A pointer to the array of elements and their priorities.
-    struct q_elt {
-        T elt;
-        P priority;
-    } * elements;
+    q_elt<T,P> * elements;
 
     // The number currently in the queue.
 
@@ -108,7 +112,7 @@ public:
 template <class T, class P>
 pqueue_heap<T,P>::pqueue_heap(unsigned int size)
 {
-    elements = new q_elt[max_elts = size];
+    elements = new q_elt<T,P>[max_elts = size];
     cur_elts = 0;
 }
 
@@ -217,7 +221,7 @@ void pqueue_heap_cmp<T,P>::heapify(unsigned int root) {
     }
 
     if (min_index != root) {
-        q_elt tmp_q = elements[min_index];
+        q_elt<T,P> tmp_q = elements[min_index];
 
         elements[min_index] = elements[root];
         elements[root] = tmp_q;
@@ -288,7 +292,7 @@ void pqueue_heap_op<T,P>::heapify(unsigned int root) {
     }
 
     if (min_index != root) {
-        q_elt tmp_q = elements[min_index];
+        q_elt<T,P> tmp_q = elements[min_index];
 
         elements[min_index] = elements[root];
         elements[root] = tmp_q;
@@ -400,5 +404,26 @@ void pqueue_array<T,P>::min(T& elt, P& prio)
     prio = elements[min].thing;
 }
 
+#ifdef NO_IMPLICIT_TEMPLATES
+
+#define TEMPLATE_INSTANTIATE_PQUEUE_HEAP(T,P)				\
+template struct q_elt<T,P>;						\
+template class pqueue<T,P>;						\
+template class pqueue_heap<T,P>;					
+
+#define TEMPLATE_INSTANTIATE_PQUEUE_HEAP_CMP(T,P)			\
+TEMPLATE_INSTANTIATE_PQUEUE_HEAP(T,P)					\
+template class pqueue_heap_cmp<T,P>;					
+
+#define TEMPLATE_INSTANTIATE_PQUEUE_HEAP_OP(T,P)			\
+TEMPLATE_INSTANTIATE_PQUEUE_HEAP(T,P)					\
+template class pqueue_heap_op<T,P>;					
+
+#define TEMPLATE_INSTANTIATE_PQUEUE_HEAP_BOTH(T,P)			\
+TEMPLATE_INSTANTIATE_PQUEUE_HEAP(T,P)					\
+template class pqueue_heap_cmp<T,P>;					\
+template class pqueue_heap_op<T,P>;					
+
+#endif
 
 #endif // _PQUEUE_HEAP_H 

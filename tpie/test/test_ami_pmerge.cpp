@@ -6,7 +6,7 @@
 //
 // A test for AMI_partition_and_merge().
 
-static char test_ami_pmerge_id[] = "$Id: test_ami_pmerge.cpp,v 1.10 1994-10-31 20:07:23 darrenv Exp $";
+static char test_ami_pmerge_id[] = "$Id: test_ami_pmerge.cpp,v 1.11 1994-11-02 21:53:15 darrenv Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -349,3 +349,24 @@ int main(int argc, char **argv)
     return 0;
 }
     
+
+// Instantiate all the templates we have used.
+
+#ifdef NO_IMPLICIT_TEMPLATES
+
+// Instantiate templates for streams of objects.
+TEMPLATE_INSTANTIATE_STREAMS(int)
+
+// Instantiate templates for I/O using C++ streams.
+TEMPLATE_INSTANTIATE_OSTREAM(int)
+
+// Instantiate priority queue templates.
+TEMPLATE_INSTANTIATE_PQUEUE_HEAP_OP(arity_t,int)
+
+// Templated scan/merge management objects used by this program.
+TEMPLATE_INSTANTIATE_SCAN_RANDOM
+
+TEMPLATE_INSTANTIATE_MERGE(int)
+
+#endif
+
