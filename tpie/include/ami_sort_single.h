@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 9/28/94
 //
-// $Id: ami_sort_single.h,v 1.5 1994-11-02 22:01:09 darrenv Exp $
+// $Id: ami_sort_single.h,v 1.6 1994-12-16 21:12:37 darrenv Exp $
 //
 // Merge sorting for the AMI_IMP_SINGLE implementation.
 //
@@ -80,6 +80,7 @@ AMI_err merge_sort_manager<T>::initialize(arity_t arity, CONST T * CONST *in,
     
     if (pq != NULL) {
         delete pq;
+        pq = NULL;
     }
     new_pqueue(arity);
     
@@ -133,6 +134,11 @@ AMI_err merge_sort_manager<T>::operate(CONST T * CONST *in,
                   ", output_count = " << output_count << '.');
 #endif        
 
+        // Delete the queue, which may take up a lot of main memory.
+        tp_assert(pq != NULL, "pq == NULL");
+        delete pq;
+        pq = NULL;
+        
         return AMI_MERGE_DONE;
 
     } else {

@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/4/94
 //
-// $Id: pqueue_heap.h,v 1.3 1994-11-02 22:03:30 darrenv Exp $
+// $Id: pqueue_heap.h,v 1.4 1994-12-16 21:13:23 darrenv Exp $
 //
 // A priority queue class implemented as a binary heap.
 //
@@ -118,7 +118,7 @@ pqueue_heap<T,P>::pqueue_heap(unsigned int size)
 
 template <class T, class P>
 pqueue_heap<T,P>::~pqueue_heap() {
-    delete elements;
+    delete [] elements;
     cur_elts = 0;
     max_elts = 0;
     return;
