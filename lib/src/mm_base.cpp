@@ -7,11 +7,13 @@
 
 
 
-static char mm_base_id[] = "$Id: mm_base.cpp,v 1.3 1997-10-28 20:04:44 jan Exp $";
+static char mm_base_id[] = "$Id: mm_base.cpp,v 1.4 1999-01-31 16:37:50 rbarve Exp $";
 
 
 
 #include <mm_base.h>
+
+#include <tpie_log.h>
 
 // A pointer to the memory manager currently being used.
 
@@ -43,6 +45,10 @@ void * operator new (size_t sz) {
     
     if ((register_new) && (MM_manager.register_allocation(sz+SIZE_SPACE)
                            != MM_ERROR_NO_ERROR)) {
+        LOG_FATAL("Requested memory allocation \"");
+	   LOG_FATAL(sz+SIZE_SPACE);
+   	   LOG_FATAL("\" was not available.\n");
+        LOG_FLUSH_LOG;
         return (void *)0;
     }
     
