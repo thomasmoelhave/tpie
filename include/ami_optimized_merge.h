@@ -15,7 +15,7 @@
 // a quicksort using only keys of the items; there is a provision to 
 // to use templated heaps to implement the merge.
 
-// 	$Id: ami_optimized_merge.h,v 1.13 1999-03-26 00:08:40 rbarve Exp $	
+// 	$Id: ami_optimized_merge.h,v 1.14 1999-03-26 05:13:05 rbarve Exp $	
 //TO DO: substream_count setting; don't depend on current_stream_len
 
 #ifndef _OPT_AMI_MERGE_H
@@ -131,6 +131,7 @@ static inline void stream_name_generator(char *prepre, char * pre, int id, char 
   sprintf(tmparray,"%d",id);
   strcat(dest,tmparray);
 }
+
 
 
 
@@ -681,14 +682,17 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
                   "\n\tinstream->stream_len() = " << instream->stream_len() <<
                   "\n\tinitial_tmp_stream->stream_len() = " <<
                   check_size << ".\n");
+ 
+
+	   //We now delete the input stream. Note that if instream has
+	   //its persistence member set to PERSIST_DELETE, instream will
+	   //be deleted from disk.
+
+        delete instream;
+
 
         // Set up the loop invariants for the first iteration of hte
         // main loop.
-
-
-        //instream->persist(PERSIST_PERSISTENT);
-	   //delete instream;
-
 
 
         current_input = initial_tmp_stream;
@@ -1750,13 +1754,15 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
                   "\n\tinitial_tmp_stream->stream_len() = " <<
                   check_size << ".\n");
 
+        //We now delete the instream; note that it will be wiped off
+	   //disk if instream->persistence is set to PERSIST_DELETE
+        delete instream;
+
         // Set up the loop invariants for the first iteration of hte
         // main loop.
 
 
-        //instream->persist(PERSIST_PERSISTENT);
-	   //ATTENTION: You were deleting this, but you shdnt be.
-        //delete instream;
+
 
 
 
@@ -2648,11 +2654,14 @@ AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
                   "\n\tinitial_tmp_stream->stream_len() = " <<
                   check_size << ".\n");
 
+        //We now delete the instream; note that it will be wiped off
+	   //disk if instream->persistence is set to PERSIST_DELETE
+        delete instream;
+
         // Set up the loop invariants for the first iteration of the
         // main loop.
 
-        //instream->persist(PERSIST_PERSISTENT);
-	   //delete instream;
+
 
 
         current_input = new (AMI_STREAM<T> *)[merge_arity]; 
@@ -3585,4 +3594,11 @@ return AMI_ERROR_NO_ERROR;
 //                                        AMI_STREAM<T> *outstream,          \
 //                                        int keyoffset, T dummykey);
 //#endif
+
 #endif
+
+
+
+
+
+
