@@ -61,12 +61,12 @@
 
 #ifdef WIN32
 
-extern char *optarg;
+extern "C" char *optarg;
 extern int optreset;
 extern int optind;
 extern int opterr;
 extern int optopt;
-int getopt(int argc, char* const *argv, const char *optstr);
+extern "C" int getopt(int argc, char* const *argv, const char *optstr);
 
 #endif /* WIN32 */
 
