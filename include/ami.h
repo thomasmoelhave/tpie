@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/19/94
 //
-// $Id: ami.h,v 1.7 1994-11-02 21:54:38 darrenv Exp $
+// $Id: ami.h,v 1.8 1995-01-10 16:41:54 darrenv Exp $
 //
 #ifndef _AMI_H
 #define _AMI_H
@@ -46,6 +46,9 @@ TEMPLATE_INSTANTIATE_BTE_STREAMS(T)
 
 // Get templates for general permutation.
 #include <ami_gen_perm.h>
+
+// Get templates for bit permuting.
+#include <ami_bit_permute.h>
 
 // Get templates for AMI_distribution_sweep().
 #include <ami_dist_sweep.h>
