@@ -9,7 +9,7 @@
 // AMI_kdbtree_status, AMI_kdbtree_params, 
 // region_t, kdb_item_t, path_stack_item_t.
 //
-// $Id: ami_kd_base.h,v 1.8 2004-08-12 12:35:30 jan Exp $
+// $Id: ami_kd_base.h,v 1.9 2005-02-12 20:29:10 tavi Exp $
 //
 
 #ifndef _AMI_KD_BASE_H
@@ -549,6 +549,7 @@ enum split_heuristic_t {
 class AMI_kdbtree_params: public AMI_kdtree_params {
 public:
   AMI_kdbtree_params(): AMI_kdtree_params(), split_heuristic(LONGEST_SPAN) {}
+  AMI_kdbtree_params(AMI_kdtree_params p): AMI_kdtree_params(p), split_heuristic(LONGEST_SPAN) {}
   split_heuristic_t split_heuristic;
 };
 
