@@ -7,7 +7,7 @@
 
 
 
-static char mm_base_id[] = "$Id: mm_base.cpp,v 1.15 1999-05-21 04:50:36 rajiv Exp $";
+static char mm_base_id[] = "$Id: mm_base.cpp,v 1.16 1999-09-21 21:45:49 hutchins Exp $";
 
 #include "lib_config.h"
 #include <mm_base.h>
@@ -64,7 +64,7 @@ void * operator new (size_t sz) {
       LOG_FLUSH_LOG;
       perror("mm_base::new malloc");
       exit(1);
-	  return 0;
+      //  return 0;
     }
     *((size_t *)p) = sz;
     return ((char *)p) + SIZE_SPACE;
