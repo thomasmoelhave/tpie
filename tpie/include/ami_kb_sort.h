@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 3/12/95
 //
-// $Id: ami_kb_sort.h,v 1.4 1999-02-03 17:21:45 tavi Exp $
+// $Id: ami_kb_sort.h,v 1.5 2000-01-11 00:38:04 hutchins Exp $
 //
 
 // This header file can be included in one of two ways, either with a
@@ -94,9 +94,7 @@ AMI_err _AMI_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
     
     // Check whether the problem fits in main memory.
 
-    if (MM_manager.available(&sz_avail) != MM_ERROR_NO_ERROR) {
-        return AMI_ERROR_MM_ERROR;
-    }
+    sz_avail = MM_manager.memory_available ();
 
     instream.main_memory_usage(&sz_stream, MM_STREAM_USAGE_MAXIMUM);
 
@@ -355,9 +353,7 @@ AMI_err _AMI_MM_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
     
     // Check available main memory.
 
-    if (MM_manager.available(&sz_avail) != MM_ERROR_NO_ERROR) {
-        return AMI_ERROR_MM_ERROR;
-    }
+    sz_avail = MM_manager.memory_available ();
     
     // How long is the input stream?
 

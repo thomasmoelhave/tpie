@@ -1,3 +1,6 @@
+#include <versions.h>
+VERSION(sample_pgm_cpp,"$Id: sample_pgm.cpp,v 1.6 2000-01-11 00:46:09 hutchins Exp $");	
+
 #include <iostream.h>
 #include <stdlib.h>
 #include <sys/time.h>
@@ -20,7 +23,7 @@
 #include <quicksort.h>
 
 //variable which is used to set up TPIE memory accounting
-extern int register_new;
+//extern int register_new;
 
 //This program writes out an AMI_STREAM of random integers of
 //user-specified length, and then, based on 7 partitioning elements
@@ -45,9 +48,9 @@ main(int argc, char *argv[]) {
    long test_mm_size = atol(argv[2]);
    
    //Set the size of memory the application is allowed to use
-   MM_manager.resize_heap(test_mm_size);
+   MM_manager.set_memory_limit(test_mm_size);
    //enable TPIE memory accounting
-   register_new = 1;
+   //register_new = 1;
    
    //the source stream of ints
    AMI_STREAM<int> source;

@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 3/11/95
 //
-// $Id: ami_kb_dist.h,v 1.4 1999-02-03 17:20:29 tavi Exp $
+// $Id: ami_kb_dist.h,v 1.5 2000-01-11 00:37:43 hutchins Exp $
 //
 // Radix based distribution for single or striped AMI layers.
 //
@@ -70,10 +70,8 @@ AMI_err _AMI_KB_DIST(KB_KEY)(AMI_STREAM<T> &instream,
     unsigned int ii;
     
     // How much main memory do we have?
-    if (MM_manager.available(&sz_avail) != MM_ERROR_NO_ERROR) {
-        return AMI_ERROR_MM_ERROR;
-    }
-    
+    sz_avail = MM_manager.memory_available ();
+
     // How much memory does a single stream need in the worst case?
     if ((ae = instream.main_memory_usage(&single_stream_usage,
                                          MM_STREAM_USAGE_MAXIMUM)) !=
