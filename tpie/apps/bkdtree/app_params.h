@@ -6,7 +6,7 @@
 // Runtime parameters for the kd-tree, K-D-B-tree and B-tree test
 // suite.
 //
-// $Id: app_params.h,v 1.2 2003-05-05 01:33:20 tavi Exp $
+// $Id: app_params.h,v 1.3 2003-06-02 17:03:37 tavi Exp $
 //
 
 #ifndef _APP_PARAMS_H
@@ -22,9 +22,8 @@
 // TPIE tree statistics.
 #include <tpie_stats_tree.h>
 // For AMI_KDTREE_GRID_SIZE, AMI_KDTREE_LOAD_SORT, AMI_KDTREE_LOAD_GRID.
-#include <ami_kdtree_base.h>
 // For split_heuristic_t.
-#include <ami_kdbtree_base.h>
+#include <ami_kd_base.h>
 
 #define MAX_PATH_LENGTH 122
 #define MAX_VALUE 1000000000
