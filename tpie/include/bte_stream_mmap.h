@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/13/94
 //
-// $Id: bte_stream_mmap.h,v 1.9 2003-04-21 04:01:44 tavi Exp $
+// $Id: bte_stream_mmap.h,v 1.10 2003-04-23 00:05:47 tavi Exp $
 //
 // Memory mapped streams.  This particular implementation explicitly manages
 // blocks, and only ever maps in one block at a time.
@@ -142,8 +142,8 @@ private:
 
     inline BTE_err advance_current ();
 
-    inline TPIE_OS_OFFSET item_off_to_file_off (TPIE_OS_OFFSET item_off);
-    inline TPIE_OS_OFFSET file_off_to_item_off (TPIE_OS_OFFSET item_off);
+    inline TPIE_OS_OFFSET item_off_to_file_off (TPIE_OS_OFFSET item_off) const;
+    inline TPIE_OS_OFFSET file_off_to_item_off (TPIE_OS_OFFSET item_off) const;
 
 #ifdef COLLECT_STATS
     long stats_hits;
@@ -180,13 +180,16 @@ public:
     BTE_err main_memory_usage (size_t * usage, MM_stream_usage usage_type);
 
     // Return the number of items in the stream.
-    TPIE_OS_OFFSET stream_len ();
+    TPIE_OS_OFFSET stream_len () const;
 
     // Return the path name in newly allocated space.
     BTE_err name (char **stream_name);
 
     // Move to a specific position in the stream.
     BTE_err seek (TPIE_OS_OFFSET offset);
+
+    // Return the current position in the stream.
+    TPIE_OS_OFFSET tell() const;
 
     // Truncate the stream.
     BTE_err truncate (TPIE_OS_OFFSET offset);
@@ -197,7 +200,7 @@ public:
     B_INLINE BTE_err read_item (T ** elt);
     B_INLINE BTE_err write_item (const T & elt);
 
-    TPIE_OS_OFFSET chunk_size ();
+    TPIE_OS_OFFSET chunk_size () const;
 
     void print (char *pref = "");
     inline BTE_err grow_file (off_t block_offset);
@@ -859,8 +862,8 @@ BTE_err BTE_stream_mmap < T >::main_memory_usage (size_t * usage,
 };
 
 // Return the number of items in the stream.
-template < class T > TPIE_OS_OFFSET BTE_stream_mmap < T >::stream_len (void)
-{
+template < class T > 
+TPIE_OS_OFFSET BTE_stream_mmap < T >::stream_len () const {
     return file_off_to_item_off (f_eos) - file_off_to_item_off (f_bos);
 };
 
@@ -884,7 +887,8 @@ BTE_err BTE_stream_mmap < T >::name (char **stream_name)
 };
 
 // Move to a specific position.
-template < class T > BTE_err BTE_stream_mmap < T >::seek (TPIE_OS_OFFSET offset) {
+template < class T > 
+BTE_err BTE_stream_mmap < T >::seek (TPIE_OS_OFFSET offset) {
 
     BTE_err be;
     TPIE_OS_OFFSET new_offset;
@@ -938,8 +942,14 @@ template < class T > BTE_err BTE_stream_mmap < T >::seek (TPIE_OS_OFFSET offset)
     return BTE_ERROR_NO_ERROR;
 }
 
+template < class T > 
+TPIE_OS_OFFSET BTE_stream_mmap < T >::tell() const {
+  return file_off_to_item_off(f_offset);
+}
+
 // Truncate the stream.
-template < class T > BTE_err BTE_stream_mmap < T >::truncate (TPIE_OS_OFFSET offset)
+template < class T > 
+BTE_err BTE_stream_mmap < T >::truncate (TPIE_OS_OFFSET offset)
 {
     BTE_err be;
     TPIE_OS_OFFSET new_offset;
@@ -1386,9 +1396,7 @@ BTE_stream_mmap < T >::grow_file (TPIE_OS_OFFSET block_offset)
 
 
 template < class T >
-inline TPIE_OS_OFFSET BTE_stream_mmap <
-    T >::item_off_to_file_off (TPIE_OS_OFFSET item_off)
-{
+TPIE_OS_OFFSET BTE_stream_mmap < T >::item_off_to_file_off (TPIE_OS_OFFSET item_off) const {
     TPIE_OS_OFFSET file_off;
 
     // Move past the header.
@@ -1408,9 +1416,7 @@ inline TPIE_OS_OFFSET BTE_stream_mmap <
 }
 
 template < class T >
-inline TPIE_OS_OFFSET BTE_stream_mmap <
-    T >::file_off_to_item_off (TPIE_OS_OFFSET file_off)
-{
+TPIE_OS_OFFSET BTE_stream_mmap < T >::file_off_to_item_off (TPIE_OS_OFFSET file_off) const {
     TPIE_OS_OFFSET item_off;
 
     // Subtract off the header.
@@ -1426,15 +1432,15 @@ inline TPIE_OS_OFFSET BTE_stream_mmap <
     return item_off;
 }
 
-template < class T > TPIE_OS_OFFSET BTE_stream_mmap < T >::chunk_size (void)
-{
+template < class T > 
+TPIE_OS_OFFSET BTE_stream_mmap < T >::chunk_size () const {
     return header->block_size / sizeof (T);
 }
 
 #ifdef BTE_STREAM_MMAP_READ_AHEAD
 
-template < class T > void BTE_stream_mmap < T >::read_ahead (void)
-{
+template < class T > 
+void BTE_stream_mmap < T >::read_ahead () {
 
     TPIE_OS_OFFSET f_curr_block;
 
