@@ -6,7 +6,7 @@
 //
 // A test for AMI_sort().
 
-static char test_ami_sort_id[] = "$Id: test_ami_sort.cpp,v 1.2 1994-10-10 13:02:07 darrenv Exp $";
+static char test_ami_sort_id[] = "$Id: test_ami_sort.cpp,v 1.3 1994-10-11 12:55:06 dev Exp $";
 
 // This is just to avoid an error message since the string above is never
 // refereneced.  Note that a self referential structure must be defined to
@@ -100,11 +100,13 @@ int cc_int_cmp(int &i1, int &i2)
 }
 
 static void ___dummy_1() {
-    AMI_STREAM<int> *s1, *s2;
+    AMI_STREAM<int> *s1 = NULL, *s2 = NULL;
     
     AMI_err ae;
 
     ae = AMI_sort(s1,s2,cc_int_cmp);
+
+    ___dummy_1();
 }
 
 int main(int argc, char **argv)
@@ -112,7 +114,9 @@ int main(int argc, char **argv)
 
     AMI_err ae;
 
+#if !(defined(__sun__) && defined(__svr4__))
     rusage ru0, ru1;
+#endif
 
     parse_args(argc,argv,as_opts,parse_app_opt);
 
@@ -145,9 +149,9 @@ int main(int argc, char **argv)
     // streams.
     
     ofstream *oss;
-    cxx_ostream_scan<int> *rpts;
+    cxx_ostream_scan<int> *rpts = NULL;
     ofstream *osr;
-    cxx_ostream_scan<int> *rptr;
+    cxx_ostream_scan<int> *rptr = NULL;
     
     if (report_results_random) {
         osr = new ofstream(rand_results_filename);
@@ -163,11 +167,15 @@ int main(int argc, char **argv)
         ae = AMI_scan((AMI_base_stream<int> *)&amis0, rptr);
     }
 
+#if !(defined(__sun__) && defined(__svr4__))
     getrusage(RUSAGE_SELF, &ru0);
+#endif
 
     ae = AMI_sort(&amis0, &amis1, cc_int_cmp);
     
+#if !(defined(__sun__) && defined(__svr4__))
     getrusage(RUSAGE_SELF, &ru1);
+#endif
 
     if (verbose) {
         cout << "Sorted them.\n";
@@ -178,6 +186,7 @@ int main(int argc, char **argv)
         ae = AMI_scan((AMI_base_stream<int> *)&amis1, rpts);
     }
 
+#if !(defined(__sun__) && defined(__svr4__))
     REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_utime.tv_sec);
     REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_utime.tv_usec);
 
@@ -199,6 +208,7 @@ int main(int argc, char **argv)
     REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_nsignals);
     REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_nvcsw);
     REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_nivcsw);
+#endif
 
     cout << '\n';
 

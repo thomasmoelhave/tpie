@@ -6,7 +6,7 @@
 //
 // A test for AMI_partition_and_merge().
 
-static char test_ami_pmerge_id[] = "$Id: test_ami_pmerge.cpp,v 1.7 1994-10-07 15:39:45 darrenv Exp $";
+static char test_ami_pmerge_id[] = "$Id: test_ami_pmerge.cpp,v 1.8 1994-10-11 12:54:55 dev Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -216,6 +216,7 @@ void parse_app_opt(char c, char *optarg)
     }
 }
 
+#if !(defined(__sun__) && defined(__svr4__))
 #define REPORT_RUSAGE(os, ru, x)				\
 {								\
     if (verbose) {						\
@@ -233,6 +234,7 @@ void parse_app_opt(char c, char *optarg)
     	os << ' ' << ru1.x - ru0.x;				\
     }								\
 }
+#endif
 
 extern int register_new;
 
@@ -242,7 +244,9 @@ int main(int argc, char **argv)
 
     AMI_err ae;
 
+#if !(defined(__sun__) && defined(__svr4__))
     rusage ru0, ru1;
+#endif
 
     parse_args(argc,argv,as_opts,parse_app_opt);
 
@@ -275,9 +279,9 @@ int main(int argc, char **argv)
     // streams.
     
     ofstream *oss;
-    cxx_ostream_scan<int> *rpts;
+    cxx_ostream_scan<int> *rpts = NULL;
     ofstream *osr;
-    cxx_ostream_scan<int> *rptr;
+    cxx_ostream_scan<int> *rptr = NULL;
     
     if (report_results_random) {
         osr = new ofstream(rand_results_filename);
@@ -295,12 +299,16 @@ int main(int argc, char **argv)
 
     s_merge_manager sm;
     
+#if !(defined(__sun__) && defined(__svr4__))
     getrusage(RUSAGE_SELF, &ru0);
+#endif
 
     ae = AMI_partition_and_merge(&amis0, &amis1,
                                  (AMI_merge_base<int> *)&sm);
     
+#if !(defined(__sun__) && defined(__svr4__))
     getrusage(RUSAGE_SELF, &ru1);
+#endif
 
     if (verbose) {
         cout << "Sorted them.\n";
@@ -311,6 +319,7 @@ int main(int argc, char **argv)
         ae = AMI_scan((AMI_base_stream<int> *)&amis1, rpts);
     }
 
+#if !(defined(__sun__) && defined(__svr4__))
     REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_utime.tv_sec);
     REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_utime.tv_usec);
 
@@ -332,6 +341,7 @@ int main(int argc, char **argv)
     REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_nsignals);
     REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_nvcsw);
     REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_nivcsw);
+#endif
 
     cout << '\n';
 
