@@ -6,8 +6,8 @@
 // Runtime parameters for the kd-tree, K-D-B-tree and B-tree test
 // suite.
 //
-// $Id: app_params.h,v 1.4 2003-09-13 23:11:22 tavi Exp $
-//
+// $Id: app_params.h,v 1.5 2003-09-17 02:34:44 tavi Exp $
+
 
 #ifndef _APP_PARAMS_H
 #define _APP_PARAMS_H
@@ -30,9 +30,8 @@
 
 // Default dimension.
 #ifndef DIM
-#  define DIM 2
+#define DIM 2
 #endif
-
 
 // Runtime parameters.
 class app_params_t {
@@ -88,7 +87,7 @@ public:
   size_t B_for_LMB;
   stream_t *in_stream;
   stream_t *streams_sorted[DIM];
-  ostrstream stats;
+  ostringstream stats;
   split_heuristic_t split_heuristic;
 
 
@@ -123,8 +122,8 @@ public:
     query_type = 0;
     wquery_count = 0; // refers to the random window queries.
     grid_size = AMI_KDTREE_GRID_SIZE;
-    leaf_block_factor = max(16384/TPIE_OS_BLOCKSIZE(), 1);
-    node_block_factor = max(16384/TPIE_OS_BLOCKSIZE(), 1);
+    leaf_block_factor = max(16384l/TPIE_OS_BLOCKSIZE(), 1l);
+    node_block_factor = max(16384l/TPIE_OS_BLOCKSIZE(), 1l);
     // For the EPS-tree catalog nodes. A value of 0 means 2*node_block_factor.
     catalog_block_factor = 0;
     leaf_size_max = 0;
