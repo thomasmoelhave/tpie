@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/4/94
 //
-// $Id: pqueue_heap.h,v 1.9 2003-04-20 07:55:56 tavi Exp $
+// $Id: pqueue_heap.h,v 1.10 2005-01-14 18:36:24 tavi Exp $
 //
 // A priority queue class implemented as a binary heap.
 //
@@ -72,15 +72,12 @@ protected:
     q_elt<T,P> * elements;
 
     // The number currently in the queue.
-
     unsigned int cur_elts;
 
     // The maximum number the queue can hold.
-
     unsigned int max_elts;
 
-    // Fix up the heap after a deletion.
-    
+    // Fix up the heap after a deletion.    
     /* virtual void heapify(unsigned int root) = 0; */
 
 public:
@@ -148,8 +145,15 @@ class pqueue_heap_op : public pqueue_heap<T,P>
 {
 private:
     void heapify(unsigned int root);
+protected:
+    using pqueue_heap<T,P>::cur_elts;
+    using pqueue_heap<T,P>::max_elts;
+    using pqueue_heap<T,P>::elements;
     
 public:
+    using pqueue_heap<T,P>::full;
+    using pqueue_heap<T,P>::num_elts;
+    
     pqueue_heap_op(unsigned int size);
     virtual ~pqueue_heap_op(void) {};
 
@@ -231,6 +235,14 @@ class pqueue_heap_obj : public pqueue_heap<T,P>
 private:
     CMPR *cmp_o;
     void heapify(unsigned int root);
+ protected:
+    using pqueue_heap<T,P>::cur_elts;
+    using pqueue_heap<T,P>::max_elts;    
+    using pqueue_heap<T,P>::elements;
+
+ public:
+    using pqueue_heap<T,P>::full;
+    using pqueue_heap<T,P>::num_elts;
 
 public:
     pqueue_heap_obj(unsigned int size, CMPR *cmp);
@@ -312,6 +324,133 @@ void pqueue_heap_obj<T,P,CMPR>::heapify(unsigned int root) {
 
 
 // Comment: (jan) You must not use this version anymore.
+
+template <class T, class P>
+class pqueue_heap_cmp : public pqueue_heap<T,P>
+{
+  
+ private:
+  // A pointer to the function used to compare the priorities of
+  // elements.
+  int (*cmp_f)(const P&, const P&);
+  void heapify(unsigned int root);
+ protected:
+  using pqueue_heap<T,P>::cur_elts;
+  using pqueue_heap<T,P>::max_elts;  
+  using pqueue_heap<T,P>::elements;
+ public:
+  using pqueue_heap<T,P>::full;  
+  using pqueue_heap<T,P>::num_elts;
+                                                                                                                            
+ public:
+  pqueue_heap_cmp(unsigned int size, int (*cmp)(const P&, const P&));
+  virtual ~pqueue_heap_cmp(void) {}                                                                                 
+  // Insert
+  bool insert(const T& elt, const P& prio);
+  // Extract min.
+  bool extract_min(T& elt, P& prio);  
+};
+
+                                                                                                                            
+template <class T, class P>
+bool pqueue_heap_cmp<T,P>::extract_min(T& elt, P& prio) 
+{
+  
+  if (!cur_elts) {
+      return false;
+  }
+  
+  elt = elements->elt;
+  prio = elements->priority;
+  elements[0] = elements[--cur_elts];
+  heapify(0);                                                                                       
+  return true;
+  
+}
+
+                                                                                                                            
+template <class T, class P>
+pqueue_heap_cmp<T,P>::pqueue_heap_cmp(unsigned int size,
+                                      int (*cmp)(const P&, const P&)) :
+  pqueue_heap<T,P>(size) {
+  cmp_f = cmp;
+}
+
+                                                                                                                            
+                                                                                                                            
+template <class T, class P>
+bool pqueue_heap_cmp<T,P>::insert(const T& elt, const P& prio) 
+{
+  unsigned int ii;                                                                                                              
+  if (full()) {
+      return false;
+  }
+  
+                                                                                                                            
+  for (ii = cur_elts++;
+       ii && (cmp_f(elements[parent(ii)].priority, prio) > 0);
+       ii = parent(ii)) 
+    {
+      
+      elements[ii] = elements[parent(ii)];
+      
+    }
+  
+  elements[ii].priority = prio;
+  
+  elements[ii].elt = elt;
+  
+                                                                                                                            
+  return true;
+  
+}
+
+                                                                                                                            
+template <class T, class P>
+void pqueue_heap_cmp<T,P>::heapify(unsigned int root) 
+{
+  
+  unsigned int min_index = root;
+  
+  unsigned int lc = lchild(root);
+  
+  unsigned int rc = rchild(root);
+  
+                                                                                                                            
+  if ((lc < cur_elts) && (cmp_f(elements[lc].priority,
+				elements[min_index].priority) < 0)) 
+    {
+      
+      min_index = lc;
+      
+    }
+  
+  if ((rc < cur_elts) && (cmp_f(elements[rc].priority,
+				elements[min_index].priority) < 0)) 
+    {
+      
+      min_index = rc;
+      
+    }
+  
+                                                                                                                            
+  if (min_index != root) 
+    {
+      
+      q_elt<T,P> tmp_q = elements[min_index];
+      
+                                                                                                                            
+      elements[min_index] = elements[root];
+      
+      elements[root] = tmp_q;
+      
+                                                                                                                            
+      heapify(min_index);
+    }
+  
+}
+
+
 
 // // A priority queue that simply uses an array.
 
