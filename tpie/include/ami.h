@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/19/94
 //
-// $Id: ami.h,v 1.14 1999-02-03 17:03:48 tavi Exp $
+// $Id: ami.h,v 1.15 1999-02-09 02:29:37 laura Exp $
 //
 #ifndef _AMI_H
 #define _AMI_H
@@ -19,7 +19,7 @@
 // Some basic constants
 
 // The name of the environment variable pointing to a tmp directory.
-#define TMP_DIR_ENV "TMP"
+#define TMP_DIR_ENV "TMPDIR"
 
 // The name of a tmp directory to use if the env variable is not set.
 #define TMP_DIR "/var/tmp"
