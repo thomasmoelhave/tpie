@@ -2,7 +2,7 @@
 // File: bte_stream_ufs.h (formerly bte_ufs.h)
 // Author: Rakesh Barve <rbarve@cs.duke.edu>
 //
-// $Id: bte_stream_ufs.h,v 1.4 2002-01-27 23:26:19 tavi Exp $
+// $Id: bte_stream_ufs.h,v 1.5 2002-08-01 01:31:20 tavi Exp $
 //
 // BTE streams with blocks I/Oed using read()/write().  This particular
 // implementation explicitly manages blocks, and only ever maps in one
@@ -34,13 +34,13 @@
 // style or more directly. Using it directly will probably be better,
 // but right now that is not supported. (Solaris and Digital/FreeBSD
 // use different aio interfaces.
-#if BTE_UFS_READ_AHEAD	
+#if BTE_STREAM_UFS_READ_AHEAD	
 #  if !USE_LIBAIO && !UFS_DOUBLE_BUFFER
-#    error BTE_UFS_READ_AHEAD requested, but no double buff mechanism in config.
+#    error BTE_STREAM_UFS_READ_AHEAD requested, but no double buff mechanism in config.
 #  endif
-#  define BTE_UFS_MM_BUFFERS 2
+#  define BTE_STREAM_UFS_MM_BUFFERS 2
 #else
-#  define BTE_UFS_MM_BUFFERS 1
+#  define BTE_STREAM_UFS_MM_BUFFERS 1
 #endif
 
 #if UFS_DOUBLE_BUFFER
@@ -169,7 +169,7 @@ private:
   aio_result_t aio_results[BTE_STREAM_UFS_BLOCK_FACTOR];
 #endif	/* USE_LIBAIO */
 
-#if BTE_UFS_READ_AHEAD
+#if BTE_STREAM_UFS_READ_AHEAD
    // Read ahead into the next logical block.
   void read_ahead (void);
 #endif
@@ -845,21 +845,21 @@ template < class T >
 	   (((header == NULL) || substream_level) ? 0 : os_block_size_));
       break;
    case MM_STREAM_USAGE_BUFFER:
-      *usage = BTE_UFS_MM_BUFFERS * header->block_size;
+      *usage = BTE_STREAM_UFS_MM_BUFFERS * header->block_size;
       break;
    case MM_STREAM_USAGE_CURRENT:
       *usage =
 	  (sizeof (*this) +
 	   (((header == NULL) || substream_level) ? 0 : os_block_size_) +
-	   ((curr_block == NULL) ? 0 : BTE_UFS_MM_BUFFERS *
+	   ((curr_block == NULL) ? 0 : BTE_STREAM_UFS_MM_BUFFERS *
 	    header->block_size));
       break;
    case MM_STREAM_USAGE_MAXIMUM:
-      *usage = (sizeof (*this) + BTE_UFS_MM_BUFFERS * header->block_size +
+      *usage = (sizeof (*this) + BTE_STREAM_UFS_MM_BUFFERS * header->block_size +
 		(substream_level ? 0 : os_block_size_));
       break;
    case MM_STREAM_USAGE_SUBSTREAM:
-      *usage = (sizeof (*this) + BTE_UFS_MM_BUFFERS * header->block_size);
+      *usage = (sizeof (*this) + BTE_STREAM_UFS_MM_BUFFERS * header->block_size);
       break;
    }
 
@@ -1258,7 +1258,7 @@ template < class T > BTE_err BTE_stream_ufs < T >::map_current (void) {
    curr_block_file_offset = block_offset;
    block_dirty = 0;
 
-#if BTE_UFS_READ_AHEAD
+#if BTE_STREAM_UFS_READ_AHEAD
    // Start the asyncronous read of the next logical block.
    read_ahead ();
 #endif
@@ -1389,7 +1389,7 @@ template < class T > off_t BTE_stream_ufs < T >::chunk_size (void)
 }
 
 
-#if BTE_UFS_READ_AHEAD
+#if BTE_STREAM_UFS_READ_AHEAD
 
 template < class T > void BTE_stream_ufs < T >::read_ahead (void)
 {
@@ -1445,8 +1445,8 @@ template < class T > void BTE_stream_ufs < T >::read_ahead (void)
 #endif
 }
 
-#endif	/* BTE_UFS_READ_AHEAD */
+#endif	/* BTE_STREAM_UFS_READ_AHEAD */
 
-#undef BTE_UFS_MM_BUFFERS
+#undef BTE_STREAM_UFS_MM_BUFFERS
 
 #endif // _BTE_STREAM_UFS_H
