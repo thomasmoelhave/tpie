@@ -12,7 +12,7 @@
 // function AMI_single_merge(), which uses a merge management object
 // and a priority queue class to carry out internal memory merging
 // computation, now has a "pure C" alternative that seems to perform
-// better by a huge margin: THis function is called AMI_single_merge()
+// better by a huge margin: This function is called AMI_single_merge()
 // (a polymorph, without merge management object) and is based on a
 // simple heap data structure straight out of CLR (Introduction to
 // ALgorithms) in mergeheap.h There is also a merge using
@@ -21,7 +21,7 @@
 // keys of the items; there is a provision to to use templated heaps
 // to implement the merge.
 
-// $Id: ami_optimized_merge.h,v 1.48 2002-01-03 07:03:12 tavi Exp $
+// $Id: ami_optimized_merge.h,v 1.49 2002-01-14 15:59:42 tavi Exp $
 
 // TO DO: substream_count setting; don't depend on current_stream_len
 
@@ -33,31 +33,19 @@
 #ifndef _AMI_OPTIMIZED_MERGE_H
 #define _AMI_OPTIMIZED_MERGE_H
 
-#include <math.h>		// For log() and such as needed to compute tree heights.
+// For log() and such as needed to compute tree heights.
+#include <math.h>
+
 #include <sys/time.h>
 #include <assert.h>
 #include <fstream.h>
 
 #include <ami_stream.h>
-#include <ami_ptr.h>
 #include <mergeheap.h>		//For templated heaps
 #include <quicksort.h>		//For templated qsort_items
 
 typedef int AMI_merge_flag;
 typedef unsigned int arity_t;
-
-#ifdef BTE_IMP_STDIO
-#define BTE_PATH_NAME_LEN BTE_STDIO_PATH_NAME_LEN
-#endif
-#ifdef BTE_IMP_UFS
-#define BTE_PATH_NAME_LEN BTE_UFS_PATH_NAME_LEN
-#endif
-#ifdef BTE_IMP_MMB
-#define BTE_PATH_NAME_LEN BTE_MMB_PATH_NAME_LEN
-#endif
-#ifdef BTE_IMP_USER_DEFINED
-#define BTE_PATH_NAME_LEN BTE_STRIPED_PATH_NAME_LEN
-#endif
 
 //enable debugging messages in AMI_partition_and_merge(..)
 // #define XXX LOG_DEBUG_ID("AMI_partition_and_merge_stream");
@@ -880,7 +868,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
       int runs_in_current_stream = 0;
       int *desired_runs_in_stream = new int[merge_arity];
-      char new_stream_name[BTE_PATH_NAME_LEN];
+      char new_stream_name[BTE_STREAM_PATH_NAME_LEN];
 
       //For the first stream:
       for (ii_streams = 0; ii_streams < merge_arity; ii_streams++) {
@@ -1312,7 +1300,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 	       current_input[merge_arity - 1 -
 			     jj]->new_substream (AMI_READ_STREAM,
 						 sub_start, sub_end,
-						 (AMI_base_stream < T > **)
+						 (AMI_stream_base < T > **)
 						 (the_substreams + jj));
 
 	       // The substreams are read-once.
@@ -1795,7 +1783,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
       int runs_in_current_stream = 0;
       int *desired_runs_in_stream = new int[merge_arity];
-      char new_stream_name[BTE_PATH_NAME_LEN];
+      char new_stream_name[BTE_STREAM_PATH_NAME_LEN];
 
       //For the first stream:
 
@@ -2232,7 +2220,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 	       current_input[merge_arity - 1 -
 			     jj]->new_substream (AMI_READ_STREAM,
 						 sub_start, sub_end,
-						 (AMI_base_stream < T > **)
+						 (AMI_stream_base < T > **)
 						 (the_substreams + jj));
 
 	       // The substreams are read-once.
@@ -2759,7 +2747,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
       int runs_in_current_stream = 0;
       int *desired_runs_in_stream = new int[merge_arity];
-      char new_stream_name[BTE_PATH_NAME_LEN];
+      char new_stream_name[BTE_STREAM_PATH_NAME_LEN];
 
       //For the first stream:
 
@@ -3202,7 +3190,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 	       current_input[merge_arity - 1 -
 			     jj]->new_substream (AMI_READ_STREAM,
 						 sub_start, sub_end,
-						 (AMI_base_stream < T > **)
+						 (AMI_stream_base < T > **)
 						 (the_substreams + jj));
 
 	       // The substreams are read-once.
@@ -3646,8 +3634,8 @@ template < class T, class KEY >
 
       size_t check_size = 0;
 
-      char computed_prefix[BTE_PATH_NAME_LEN];
-      char new_stream_name[BTE_PATH_NAME_LEN];
+      char computed_prefix[BTE_STREAM_PATH_NAME_LEN];
+      char new_stream_name[BTE_STREAM_PATH_NAME_LEN];
 
       //Compute a prefix that will be sent to the run formation function,
       //since that is where the initial runs are formed.
@@ -3986,7 +3974,7 @@ template < class T, class KEY >
 	       current_input[merge_arity - 1 -
 			     jj]->new_substream (AMI_READ_STREAM,
 						 sub_start, sub_end,
-						 (AMI_base_stream < T > **)
+						 (AMI_stream_base < T > **)
 						 (the_substreams + jj));
 
 	       // If we've got all we can handle or we've seen
@@ -4146,7 +4134,7 @@ Run_Formation_Algo_R_Key (AMI_STREAM < T > *instream,
 			  KEY dummykey)
 {
 
-   char local_copy[BTE_PATH_NAME_LEN];
+   char local_copy[BTE_STREAM_PATH_NAME_LEN];
 
    strcpy (local_copy, computed_prefix);
 
@@ -4175,7 +4163,7 @@ Run_Formation_Algo_R_Key (AMI_STREAM < T > *instream,
 //stream arity-2, and so on in a round robin manner.
    int current_stream = arity - 1;
 
-   char int_to_string[5], new_stream_name[BTE_PATH_NAME_LEN];
+   char int_to_string[5], new_stream_name[BTE_STREAM_PATH_NAME_LEN];
 
    outstreams = new (AMI_STREAM < T > *)[arity];
 
