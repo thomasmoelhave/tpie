@@ -7,7 +7,7 @@
 // A basic implementation of quicksort for use in core by AMI_sort() on
 // streams or substreams that are small enough.
 //
-// $Id: quicksort.h,v 1.19 1999-12-14 19:23:10 hutchins Exp $
+// $Id: quicksort.h,v 1.20 2000-04-14 22:19:15 hutchins Exp $
 //
 #ifndef _QUICKSORT_H
 #define _QUICKSORT_H
@@ -206,7 +206,8 @@ void partition_op(T *data, size_t len, size_t &part_index)
 
         do {
             q--;
-        } while (*q > tpart);
+            //} while (*q > tpart); dh. changed to limit operators required
+        } while (tpart < *q );
         do {
             p++;
         } while (*p < tpart);
@@ -240,7 +241,8 @@ void insertion_sort_op(T *data, size_t len)
     T *p, *q, test;
 
     for (p = data + 1; p < data + len; p++) {
-        for (q = p - 1, test = *p; *q > test; q--) {
+        //for (q = p - 1, test = *p; *q > test; q--) { dh
+        for (q = p - 1, test = *p; test < *q; q--) {
             *(q+1) = *q;
             if (q == data) {
 	      q--; // to make assignment below correct
