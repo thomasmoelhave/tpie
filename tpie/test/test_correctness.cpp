@@ -5,7 +5,7 @@
 //
 // An extensive test suite for TPIE functionality.
 //
-// $Id: test_correctness.cpp,v 1.3 2003-05-04 23:08:25 tavi Exp $
+// $Id: test_correctness.cpp,v 1.4 2003-05-08 22:29:50 tavi Exp $
 //
 
 using namespace std;
@@ -224,7 +224,7 @@ void print_cfg() {
   fprintf(stdout, "\n");
   fprintf(stdout, "    TPIE Memory limit: %d KB\n", MM_manager.memory_limit()/1024);
 #if TP_LOG_APPS
-  fprintf(stdout, "    Logging in file %s\n", theLogName());
+  fprintf(stdout, "    Logging in file %s\n", tpie_log_name());
 #else
   fprintf(stdout, "    Logging is OFF\n");
 #endif
