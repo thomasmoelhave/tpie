@@ -7,9 +7,9 @@
 
 
 
-static char mm_base_id[] = "$Id: mm_base.cpp,v 1.8 1999-03-11 03:33:30 laura Exp $";
+static char mm_base_id[] = "$Id: mm_base.cpp,v 1.9 1999-04-22 17:34:24 rajiv Exp $";
 
-
+#include <config.h>
 #include <mm_base.h>
 #include <tpie_log.h>
 
