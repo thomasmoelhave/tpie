@@ -3,7 +3,7 @@
 // Created: 2002/10/30
 // Authors: Joerg Rotthowe, Jan Vahrenhold, Markus Vogel
 //
-// $Id: portability.h,v 1.18 2003-09-24 22:24:09 tavi Exp $
+// $Id: portability.h,v 1.19 2003-09-28 02:48:38 tavi Exp $
 //
 // This header-file offers macros for independent use on Win and Unix systems.
 
@@ -50,12 +50,14 @@
 
 // for reading command line parameter //
 #ifdef _WIN32
-//#include <strstrea.h>  // 8-letter file name(!)
 #include <sstream>
 using std::ostringstream;
-//using std::basic_ostringstream;
+#else
+#if (__GNUC__ == 2)
+#include <strstream>
 #else
 #include <sstream>
+#endif
 #endif
 
 // for class logstream
