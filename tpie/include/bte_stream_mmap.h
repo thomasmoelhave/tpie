@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/13/94
 //
-// $Id: bte_stream_mmap.h,v 1.7 2003-04-17 15:31:10 jan Exp $
+// $Id: bte_stream_mmap.h,v 1.8 2003-04-20 23:55:11 tavi Exp $
 //
 // Memory mapped streams.  This particular implementation explicitly manages
 // blocks, and only ever maps in one block at a time.
@@ -1351,10 +1351,12 @@ inline BTE_err BTE_stream_mmap < T >::advance_current (void) {
 template < class T > inline BTE_err
 BTE_stream_mmap < T >::grow_file (TPIE_OS_OFFSET block_offset)
 {
-    // can't grow substreams (except if called for the
-    // last substream in a stream. this may happen if map_current
-    // maps in the last block of a (sub-)stream).
-    assert (ignoreSubstream || !substream_level);
+   // can't grow substreams (except if called for the
+   // last substream in a stream. this may happen if map_current
+   // maps in the last block of a (sub-)stream).
+   // (tavi) I took this out since ignoreSubstream is not declared...
+   //    assert (ignoreSubstream || !substream_level);
+   assert(!substream_level);
 
     // Rajiv    
     // make a note of the new file length
