@@ -2,7 +2,7 @@
 #
 # The Makefile for the TPIE library.
 #
-# $Id: Makefile.in,v 1.3 1994-10-13 17:02:28 darrenv Exp $
+# $Id: Makefile.in,v 1.4 1994-10-31 19:58:05 darrenv Exp $
 #
 
 LIBRARY = libtpie.a
@@ -24,7 +24,6 @@ $(LIBRARY): $(LIBSRCPATH)$(LIBRARY)
 
 clean:
 	-rm $(LIBRARY)
-	-rm $(UP_TO_DATE)
 	$(MAKE) -C $(LIBSRCPATH) $@
 
 
