@@ -4,14 +4,10 @@
 // Created: 12/11/94
 //
 
+#include <portability.h>
+
 #include <versions.h>
-VERSION(test_ami_matrix_cpp,"$Id: test_ami_matrix_pad.cpp,v 1.7 2003-04-20 23:51:40 tavi Exp $");
-
-#include <iostream>
-#include <fstream>
-
-using std::cout;
-using std::ofstream;
+VERSION(test_ami_matrix_cpp,"$Id: test_ami_matrix_pad.cpp,v 1.8 2003-09-12 00:25:40 tavi Exp $");
 
 #include "app_config.h"        
 #include "parse_args.h"
@@ -23,16 +19,14 @@ using std::ofstream;
 #include <ami_scan_utils.h>
 
 // Get some scanners.
-
 #include "scan_count.h"
 
 // Get matrices.
-
 #include <ami_matrix.h>
 
-static char def_crf[] = "/var/tmp/osc.txt";
-static char def_irf[] = "/var/tmp/osi.txt";
-static char def_frf[] = "/var/tmp/osf.txt";
+static char def_crf[] = "osc.txt";
+static char def_irf[] = "osi.txt";
+static char def_frf[] = "osf.txt";
 
 static char *count_results_filename = def_crf;
 static char *intermediate_results_filename = def_irf;
@@ -71,9 +65,9 @@ int main(int argc, char **argv)
     parse_args(argc,argv,as_opts,parse_app_opt);
 
     if (verbose) {
-        cout << "test_size = " << test_size << ".\n";
-        cout << "test_mm_size = " << test_mm_size << ".\n";
-        cout << "random_seed = " << random_seed << ".\n";
+      cout << "test_size = " << test_size << "." << endl;
+      cout << "test_mm_size = " << test_mm_size << "." << endl;
+      cout << "random_seed = " << random_seed << "." << endl;
     } else {
         cout << test_size << ' ' << test_mm_size << ' ' << random_seed;
     }
@@ -113,10 +107,11 @@ int main(int argc, char **argv)
     ae = AMI_scan(&sc, (AMI_STREAM<int> *)&em0);
 
     if (verbose) {
-        cout << "Wrote the initial sequence of values.\n";
+      cout << "Wrote the initial sequence of values." << endl;
         cout << "Stopped (didn't write) with ii = "
-             << sc.ii << ". operate() called " << sc.called << " times.\n";
-        cout << "Stream length = " << em0.stream_len() << '\n';
+             << sc.ii << ". operate() called " 
+	     << sc.called << " times." << endl;
+        cout << "Stream length = " << em0.stream_len() << endl;
     }
 
     if (report_results_count) {
