@@ -1,22 +1,27 @@
 //
-// File: optimized_ami_merge.h
-// Author: Rakesh Barve
+// File: optimized_ami_merge.h Author: Rakesh Barve 
+
+//cleaned up: laura (tried to..) TO DO: the 3 polymorphs of
+//AMI_partition-and_merge() have each 1100 lines of code and are
+//almost identical; similarly, the 3 polymorphs of AMI_single_merge()
+//differ in one line..
 //
 // Function: AMI_partition_and_merge() was modified from Darren's
-// original version, so as to ensure "sequential access."
-// The function AMI_single_merge(), which uses a merge management 
-// object and a priority queue class to carry out internal memory
-// merging computation, now has a "pure C" alternative that seems to
-// perform better by a huge margin: THis function is called 
-// MIAMI_single_merge() and is based on a simple heap data structure
-// straight out of CLR (Introduction to ALgorithms) in Simple_Heap.h
-// There is also a merge using  replacement selection based run formation.
-// There is also a provision to use a run formation that uses 
-// a quicksort using only keys of the items; there is a provision to 
-// to use templated heaps to implement the merge.
+// original version, so as to ensure "sequential access."  The
+// function AMI_single_merge(), which uses a merge management object
+// and a priority queue class to carry out internal memory merging
+// computation, now has a "pure C" alternative that seems to perform
+// better by a huge margin: THis function is called AMI_single_merge()
+// (a polymorph, without merge management object) and is based on a
+// simple heap data structure straight out of CLR (Introduction to
+// ALgorithms) in Simple_Heap.h There is also a merge using
+// replacement selection based run formation.  There is also a
+// provision to use a run formation that uses a quicksort using only
+// keys of the items; there is a provision to to use templated heaps
+// to implement the merge.
 
-// 	$Id: ami_optimized_merge.h,v 1.37 1999-06-25 19:53:09 rajiv Exp $	
-//TO DO: substream_count setting; don't depend on current_stream_len
+// $Id: ami_optimized_merge.h,v 1.38 1999-06-27 00:48:44 laura Exp $	
+// TO DO: substream_count setting; don't depend on current_stream_len
 
 
 //COMMENT REGARDING BTE_IMP_USER_DEFINED: USER_DEFINED is what is
@@ -28,45 +33,26 @@
 #ifndef _OPT_AMI_MERGE_H
 #define _OPT_AMI_MERGE_H
 
-#include <ami.h>
-#include <ami_ptr.h>
-#include <fstream.h>
-
-// For log() and such as needed to compute tree heights.
-#include <math.h>
-
+#include <math.h> // For log() and such as needed to compute tree heights.
 #include <sys/time.h>
 #include <assert.h>
+#include <fstream.h>
+
+#include <ami.h>
+#include <ami_ptr.h>
+#include <mergeheap.h>  //For templated heaps
+#include <quicksort.h>  //For templated qsort_items
+#include <ami_base.h>   // Get the base class, enums, etc...
+#include <ami_device.h> // Get the device description class
+#include <ami_imps.h>   // Get an implementation definition
+
 
 typedef int AMI_merge_flag;
 typedef unsigned int arity_t;
 
-//Defined at the end of the file, declared here.
-
-
-
-
-
-
-
-
-//For templated heaps
-#include <mergeheap.h>
-
-//For templated qsort_items
-#include <quicksort.h>
-
-// Get the base class, enums, etc...
-#include <ami_base.h>
-
-// Get the device description class
-#include <ami_device.h>
-
-// Get an implementation definition
-#include <ami_imps.h>
-
-
-
+// #define XXX LOG_DEBUG_ID("AMI_partition_and_merge_stream");
+#define XXX
+#define XXX_PRINT 0
 
 #ifdef BTE_IMP_STDIO
 #define BTE_PATH_NAME_LEN BTE_STDIO_PATH_NAME_LEN
@@ -82,66 +68,372 @@ typedef unsigned int arity_t;
 #endif
 
 
+// FUNCTIONS DEFINED IN THIS MODULE
+//------------------------------------------------------------
 
 
-template<class KEY> class run_formation_item
-{
+//This is a polymorph of AMI_single_merge in ami_merge.h; merge input
+//streams using a 'hardwired' heap, without using a merge-management
+//object
+template<class T> 
+AMI_err AMI_single_merge(AMI_STREAM<T> **, arity_t , AMI_STREAM<T> *);
+
+
+//This is a polymorph of AMI_single_merge in ami_merge.h; merge input
+//streams using a 'hardwired' heap, without using a merge-management
+//object, but the user can specify a comparison function
+template<class T> 
+AMI_err AMI_single_merge(AMI_STREAM<T> **, arity_t , AMI_STREAM<T> *, 
+			 int (*cmp)(CONST T&, CONST T&) );
+
+
+//This is a polymorph of AMI_single_merge in ami_merge.h; merge input
+//streams using a 'hardwired' heap, without using a merge-management
+//object; it makes use of the explicit knowledge of the key of the
+//user-defined records
+template<class T, class KEY> 
+AMI_err AMI_single_merge(AMI_STREAM<T> **, arity_t , 
+			       AMI_STREAM<T> *, int , KEY);
+
+
+//This is a polymorph of AMI_partition_and_merge in ami_merge.h;divide
+//the input stream in substreams, merge each substream recursively,
+//and merge them together using AMI_single_merge(AMI_STREAM<T> **,
+//arity_t , AMI_STREAM<T> *);
+template<class T>
+AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
+                                AMI_STREAM<T> *outstream);
+
+//This is a polymorph of AMI_partition_and_merge in ami_merge.h;divide
+//the input stream in substreams, merge each substream recursively,
+//and merge them together using AMI_single_merge(AMI_STREAM<T> **,
+//arity_t , AMI_STREAM<T> *, int (*cmp)(CONST T&, CONST T&) );
+template<class T>
+AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
+				AMI_STREAM<T> *outstream,
+				int (*cmp)(CONST T&, CONST T&));
+
+//This is a polymorph of AMI_partition_and_merge in ami_merge.h;divide
+//the input stream in substreams, merge each substream recursively,
+//and merge them together using AMI_single_merge(AMI_STREAM<T> **,
+//arity_t , AMI_STREAM<T> *, int , KEY)
+template<class T, class KEY>
+AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
+				AMI_STREAM<T> *outstream, 
+                                int keyoffset, KEY dummykey);
+
+//------------------------------------------------------------
+//static functions
+
+//class describing a run formation item
+//static template<class KEY> class run_formation_item;
+
+
+template<class T, class KEY> 
+static AMI_err 
+Run_Formation_Algo_R_Key(AMI_STREAM<T>*, arity_t , AMI_STREAM<T> **, char * , 
+			 size_t , int * , int ** , int , int , int, KEY);
+
+template<class T, class KEY>
+static AMI_err 
+AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
+					AMI_STREAM<T> *outstream, 
+					int keyoffset, KEY dummykey);
+
+static inline void 
+stream_name_generator(char *prepre, char * pre, int id, char * dest);
+//------------------------------------------------------------
+
+
+
+
+
+
+
+//------------------------------------------------------------
+//class describing a run formation item
+template<class KEY> 
+class run_formation_item {
 public:
-KEY Key;
-unsigned int RecordPtr;
-unsigned int Loser; 
-short RunNumber;
-unsigned int ParentExt;      
-unsigned int ParentInt;
+  KEY Key;
+  unsigned int RecordPtr;
+  unsigned int Loser; 
+  short RunNumber;
+  unsigned int ParentExt;      
+  unsigned int ParentInt;
 
-friend int operator==(const run_formation_item &x, const run_formation_item &y)
-             {return  (x.Key ==  y.Key);};
+public:  
+  friend int operator == (const run_formation_item &x, 
+			  const run_formation_item &y)
+    { return  (x.Key ==  y.Key);};
 
-friend int operator!=(const run_formation_item &x, const run_formation_item &y)
-             {return  (x.Key !=  y.Key);}  ; 
+  friend int operator != (const run_formation_item &x, 
+			  const run_formation_item &y)
+    { return  (x.Key !=  y.Key);}; 
+  
+  friend int operator <= (const run_formation_item &x, 
+			  const run_formation_item &y)
+    { return  (x.Key <=  y.Key);};
+  
+  friend int operator >= (const run_formation_item &x, 
+			  const run_formation_item &y)
+    { return  (x.Key >=  y.Key);};
+  
+  friend int operator < (const run_formation_item &x, 
+			 const run_formation_item &y)
+    { return  (x.Key <  y.Key);};
 
-friend int operator<=(const run_formation_item &x, const run_formation_item &y)
-             {return  (x.Key <=  y.Key);};
-
-friend int operator>=(const run_formation_item &x, const run_formation_item &y)
-            {return  (x.Key >=  y.Key);};
-
-friend int operator<(const run_formation_item &x, const run_formation_item &y)
-             {return  (x.Key <  y.Key);};
-
-friend int operator>(const run_formation_item &x, const run_formation_item &y)
-             {return  (x.Key >  y.Key);};
-
- };
-
-
-
-template<class T, class KEY> AMI_err Run_Formation_Algo_R_Key( AMI_STREAM<T>
-*, arity_t , AMI_STREAM<T> **, char * , size_t , int * , int ** , int ,
-int , int, KEY);
-
-//This is the merging routine that makes use of the explicit knowledge of 
-//the key of the user-defined records.
-template<class T, class KEY> AMI_err MIAMI_single_merge_Key(AMI_STREAM<T> **,
- arity_t , AMI_STREAM<T> *, int , KEY);
-
-//This is equivalent to AMI_single_merge in ami_merge.h
-template<class T> AMI_err MIAMI_single_merge(AMI_STREAM<T> **,
- arity_t , AMI_STREAM<T> *);
-
-//This is like MIAMI_single_merge except that the user can
-//specify a comparison function.
-template<class T> AMI_err MIAMI_single_merge_cmp(AMI_STREAM<T> **,
- arity_t , AMI_STREAM<T> *, int (*cmp)(CONST T&, CONST T&) );
+  friend int operator > (const run_formation_item &x, 
+			 const run_formation_item &y)
+    { return  (x.Key >  y.Key);};
+  
+};
 
 
 
-static inline void stream_name_generator(char *prepre, char * pre, int id, char * dest)
-{
+
+//------------------------------------------------------------
+//This is polymorph to AMI_single_merge in ami_merge.h; merge input
+//streams using a 'hardwired' heap, without using a merge-management
+//object
+template<class T> 
+AMI_err 
+AMI_single_merge(AMI_STREAM<T> **instreams, arity_t arity, 
+		   AMI_STREAM<T> *outstream) {
+
+  unsigned int j;
+  AMI_err ami_err;
+  T merge_out;
+
+  //the mergeheap
+  class merge_heap_element<T> * K_Array = new (merge_heap_element<T>)[arity+1];
+  
+  //Pointers to current leading elements of streams
+  T * in_objects[arity+1]; 
+  
+  //The number of actual heap elements at any time: can change even
+  //after the merge begins because whenever some stream gets
+  //completely depleted, heapsize decremnents by one.
+  int heapsize_H;
+  
+  
+  // Rewind and read the first item from every stream.
+  j = 1;
+  for (i = 0; i < arity ; i++ ) {
+    
+    if ((ami_err = instreams[i]->seek(0)) != AMI_ERROR_NO_ERROR) {
+      return ami_err;
+    }
+    if ((ami_err = instreams[i]->read_item(&(in_objects[i]))) !=
+	AMI_ERROR_NO_ERROR) {
+      if (ami_err == AMI_ERROR_END_OF_STREAM) {
+	in_objects[i] = NULL;
+      } else {
+	return ami_err;
+      }
+    } else {
+      //read_item succesful: Set the taken flags to 0 before we call
+      //intialize()
+      K_Array[j].key = *in_objects[i];
+      K_Array[j].run_id = i;
+      j++; 
+    }
+  }
+  
+  //build a heap from the smallest items of each stream
+  unsigned int NonEmptyRuns = j-1;
+  merge_heap<T> Main_Merge_Heap(K_Array, NonEmptyRuns);
+  
+  while (Main_Merge_Heap.sizeofheap()) {
+    i = Main_Merge_Heap.get_min_run_id();
+    if ((ami_err = outstream->write_item(*in_objects[i]))
+	!= AMI_ERROR_NO_ERROR) {
+      return ami_err;
+    }
+    if ((ami_err = instreams[i]->read_item(&(in_objects[i])))
+	!= AMI_ERROR_NO_ERROR) {
+      if (ami_err != AMI_ERROR_END_OF_STREAM) {
+	return ami_err;
+      }
+    }
+    if (ami_err == AMI_ERROR_END_OF_STREAM) {
+      Main_Merge_Heap.delete_min_and_insert((T *)NULL);
+    } else {
+      Main_Merge_Heap.delete_min_and_insert(in_objects[i]);
+    } 
+  } //while
+  
+  return AMI_ERROR_NO_ERROR;
+}
+
+
+
+
+
+
+//------------------------------------------------------------
+//This is a polymorph of AMI_single_merge in ami_merge.h; merge input
+//streams using a 'hardwired' heap, without using a merge-management
+//object, but the user can specify a comparison function.
+template<class T> 
+AMI_err 
+AMI_single_merge(AMI_STREAM<T> **instreams, arity_t arity, 
+		 AMI_STREAM<T> *outstream,  
+		 int (*cmp)(CONST T&, CONST T&)) {
+
+  unsigned int i,j;
+  AMI_err ami_err;
+  T merge_out;
+
+  // Pointers to current leading elements of streams
+  T * in_objects[arity+1];
+  
+  //the mergeheap
+  class merge_heap_element<T> * K_Array = new (merge_heap_element<T>)[arity+1];
+
+  //The number of actual heap elements at any time: can change even
+  //after the merge begins because whenever some stream gets
+  //completely depleted, heapsize decremnents by one.
+  int heapsize_H;
+  
+  // Rewind and read the first item from every stream.
+  j = 1;
+  for (i = 0; i < arity ; i++ ) {
+    if ((ami_err = instreams[i]->seek(0)) != AMI_ERROR_NO_ERROR) {
+      return ami_err;
+    }
+    if ((ami_err = instreams[i]->read_item(&(in_objects[i]))) !=
+	AMI_ERROR_NO_ERROR) {
+      if (ami_err == AMI_ERROR_END_OF_STREAM) {
+	in_objects[i] = NULL;
+      } else {
+	return ami_err;
+      }
+    } else {
+      //read_item succesful: Set the taken flags to 0 before we call
+      //intialize()
+      K_Array[j].key = *in_objects[i];
+      K_Array[j].run_id = i;
+      j++; 
+    }
+  }
+
+  //build a heap from the smallest items of each stream
+  unsigned int NonEmptyRuns = j-1;
+  merge_heap_cmp<T> Main_Merge_Heap(K_Array, NonEmptyRuns,cmp);
+  
+  while (Main_Merge_Heap.sizeofheap()) {
+    
+    i = Main_Merge_Heap.get_min_run_id();
+    if ((ami_err = outstream->write_item(*in_objects[i]))
+	!= AMI_ERROR_NO_ERROR) {
+      return ami_err;
+    }
+    if ((ami_err = instreams[i]->read_item(&(in_objects[i])))
+                                       != AMI_ERROR_NO_ERROR) {
+      if (ami_err != AMI_ERROR_END_OF_STREAM) {
+	return ami_err;
+      }
+    }
+    if (ami_err == AMI_ERROR_END_OF_STREAM) {
+      Main_Merge_Heap.delete_min_and_insert((T *)NULL);
+    } else  {
+      Main_Merge_Heap.delete_min_and_insert(in_objects[i]);
+    } 
+  } //while
+
+  return AMI_ERROR_NO_ERROR;
+}
+
+
+
+
+//------------------------------------------------------------
+//This is a polymorph of AMI_single_merge in ami_merge.h; merge input
+//streams using a 'hardwired' heap, without using a merge-management
+//object; it makes use of the explicit knowledge of the key of the
+//user-defined records
+template<class T, class KEY> 
+AMI_err 
+AMI_single_merge(AMI_STREAM<T> **instreams, arity_t arity, 
+		       AMI_STREAM<T> *outstream, int keyoffset, KEY dummykey) {
+
+
+  unsigned int i,j;
+  AMI_err ami_err;
+  T merge_out;
+
+  //The number of actual heap elements at any time: can change even
+  //after the merge begins because whenever some stream gets completely
+  //depleted, heapsize decremnents by one.
+  int heapsize_H;
+  
+  //the mergeheap
+  class merge_heap_element<KEY>* K_Array=new(merge_heap_element<KEY>)[arity+1];
+  
+  //Pointers to current leading elements of streams
+  T * in_objects[arity+1];
+  
+  // Rewind and read the first item from every stream.
+  j = 1;
+  for (i = 0; i < (int)arity ; i++ ) {
+    
+    if ((ami_err = instreams[i]->seek(0)) != AMI_ERROR_NO_ERROR) {
+      return ami_err;
+    }
+    if ((ami_err = instreams[i]->read_item(&(in_objects[i]))) !=
+	AMI_ERROR_NO_ERROR) {
+      if (ami_err == AMI_ERROR_END_OF_STREAM) {
+	in_objects[i] = NULL;
+      } else {
+	return ami_err;
+      }
+    } else {
+      // Set the taken flags to 0 before we call intialize()
+      K_Array[j].key = *(KEY *)((char *)in_objects[i]+keyoffset);
+      K_Array[j].run_id = i;
+      j++; 
+    }
+  }
+
+  //build a heap from the smallest items of each stream
+  unsigned int NonEmptyRuns = j-1;
+  merge_heap<KEY> Main_Merge_Heap(K_Array, NonEmptyRuns);
+  
+  while (Main_Merge_Heap.sizeofheap()) {
+    
+    i = Main_Merge_Heap.get_min_run_id();
+    if ((ami_err = outstream->write_item(*in_objects[i])) 
+	!= AMI_ERROR_NO_ERROR) {
+      return ami_err;
+    }
+    if ((ami_err = instreams[i]->read_item(&(in_objects[i])))
+	!= AMI_ERROR_NO_ERROR) {
+      if (ami_err != AMI_ERROR_END_OF_STREAM) {
+	return ami_err;
+      }
+    }
+    if (ami_err == AMI_ERROR_END_OF_STREAM) {
+      Main_Merge_Heap.delete_min_and_insert((KEY *)NULL);
+    } else {
+      Main_Merge_Heap.delete_min_and_insert((KEY *)
+					    ((char *)in_objects[i]+keyoffset));
+    } 
+  } //while
+
+  return AMI_ERROR_NO_ERROR;
+}
+
+
+
+
+
+//------------------------------------------------------------
+static inline void 
+stream_name_generator(char *prepre, char * pre, int id, char * dest) {
+
   char tmparray[5];
-
   strcpy(dest,prepre);
-  //  if (strcmp(dest,"") != 0) strcat(dest,"/");
   strcat(dest,pre);
   sprintf(tmparray,"%d",id);
   strcat(dest,tmparray);
@@ -149,21 +441,21 @@ static inline void stream_name_generator(char *prepre, char * pre, int id, char 
 
 
 
-
-// #define XXX LOG_DEBUG_ID("AMI_partition_and_merge_stream");
-#define XXX
-
-
-// Recursive division of a stream and then merging back together.
+    
+//------------------------------------------------------------
+//This is a polymorph of AMI_partition_and_merge in ami_merge.h;divide
+//the input stream in substreams, merge each substream recursively,
+//and merge them together using AMI_single_merge(AMI_STREAM<T> **,
+//arity_t , AMI_STREAM<T> *);
 template<class T>
-AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
-                                AMI_STREAM<T> *outstream)
-{ 
-    AMI_err ae;
-    off_t len;
-    size_t sz_avail, sz_stream;
-    size_t sz_substream;
-
+AMI_err 
+AMI_partition_and_merge(AMI_STREAM<T> *instream,
+			AMI_STREAM<T> *outstream) { 
+  AMI_err ae;
+  off_t len;
+  size_t sz_avail, sz_stream;
+  size_t sz_substream;
+  
 
     unsigned int ii, jj, kk;
     int ii_streams;
@@ -759,7 +1051,7 @@ XXX
 
         
         T dummykey;   // This is for the last arg to 
-	                 // MIAMI_single_merge_Key()
+	                 // AMI_single_merge()
 	                 // which necessitated due to type unificatuon problems
 
         // The number of substreams to be processed at any merge level.
@@ -840,7 +1132,7 @@ XXX
 
                 // Merge them into the output stream.
 
-                ae = MIAMI_single_merge(
+                ae = AMI_single_merge(
                                   (current_input+merge_arity-substream_count),
                                    substream_count,
 				               outstream);
@@ -848,10 +1140,10 @@ XXX
 XXX
 
                 if (ae != AMI_ERROR_NO_ERROR) {
-				  LOG_DEBUG_ID("MIAMI_single_merge error");			   
+				  LOG_DEBUG_ID("AMI_single_merge error");			   
 				  LOG_FATAL("AMI_ERROR ");
 				  LOG_FATAL(ae);
-				  LOG_FATAL(" returned by  MIAMI_single_merge()");
+				  LOG_FATAL(" returned by  AMI_single_merge()");
 				  LOG_FLUSH_LOG; 
 				  return ae;
                 }
@@ -1119,13 +1411,13 @@ XXX
                        }
 				}
 
-                      ae = MIAMI_single_merge(the_substreams,
+                      ae = AMI_single_merge(the_substreams,
                                        jj+1,
                                        intermediate_tmp_stream[current_stream]);
 
                         
                       if (ae != AMI_ERROR_NO_ERROR) {
-						LOG_DEBUG_ID("MIAMI_single_merge error");
+						LOG_DEBUG_ID("AMI_single_merge error");
 						return ae;
 					  }
                    
@@ -1209,29 +1501,34 @@ XXX
    
 	}
 	LOG_DEBUG_ID("AMI_partition_and_merge_stream END");
-}
+} 
+ 
+
+ 
 
 
-
-// Recursive division of a stream and then merging back together.
+//------------------------------------------------------------
+//This is a polymorph of AMI_partition_and_merge in ami_merge.h;divide
+//the input stream in substreams, merge each substream recursively,
+//and merge them together using AMI_single_merge(AMI_STREAM<T> **,
+//arity_t , AMI_STREAM<T> *, int (*cmp)(CONST T&, CONST T&) );
 template<class T>
-AMI_err AMI_partition_and_merge_stream_cmp(AMI_STREAM<T> *instream,
-                                           AMI_STREAM<T> *outstream,
-                                           int (*cmp)(CONST T&, CONST T&)
-                                           )
-{ 
-    AMI_err ae;
-    off_t len;
-    size_t sz_avail, sz_stream;
-    size_t sz_substream;
-
-
-    unsigned int ii, jj, kk;
-    unsigned int ii_streams;
-
+AMI_err 
+AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
+			       AMI_STREAM<T> *outstream,
+			       int (*cmp)(CONST T&, CONST T&)) { 
+  AMI_err ae;
+  off_t len;
+  size_t sz_avail, sz_stream;
+  size_t sz_substream;
+   
+   
+   unsigned int ii, jj, kk;
+   unsigned int ii_streams;
+   
     char *working_disk;
-	
-	LOG_DEBUG_ID("AMI_partition_and_merge_cmp START");
+    
+    LOG_DEBUG_ID("AMI_partition_and_merge_cmp START");
 
     // Figure out how much memory we've got to work with.
 
@@ -1239,7 +1536,7 @@ AMI_err AMI_partition_and_merge_stream_cmp(AMI_STREAM<T> *instream,
 	  LOG_DEBUG_ID("memory error");
 	  return AMI_ERROR_MM_ERROR;
     }
-XXX
+if(XXX_PRINT) XXX;
     //Conservatively assume that the memory for buffers for 
     //the two streams is unallocated; so we need to subtract.
 
@@ -1249,7 +1546,7 @@ XXX
 	  LOG_DEBUG_ID("memory error");
 	  return ae;
 	}                                     
-XXX
+if(XXX_PRINT) XXX;
     if ((ae = instream->main_memory_usage(&sz_substream, 
 										  MM_STREAM_USAGE_OVERHEAD)) !=
 		AMI_ERROR_NO_ERROR) {
@@ -1257,7 +1554,7 @@ XXX
 	  LOG_DEBUG_ID("memory error");
 	  return ae;
 	}   
-XXX
+if(XXX_PRINT) XXX;
     sz_avail -= 2*sz_stream;
 
 
@@ -1273,25 +1570,25 @@ XXX
     len = instream->stream_len();
     instream->seek(0);
 
-XXX
+if(XXX_PRINT) XXX;
     if ((len * sizeof(T)) <= sz_avail) 
 
           {
            
            T * next_item;
            T * mm_stream = new T[len];
-XXX
+if(XXX_PRINT) XXX;
            for (int i = 0; i <  len; i++)
            {
             if ((ae =  instream->read_item(&next_item)) != AMI_ERROR_NO_ERROR)
 			  {
-XXX
+if(XXX_PRINT) XXX;
 				LOG_DEBUG_ID("read error");
 				return ae;
 			  }
             mm_stream[i] = *next_item;
            }
-XXX
+if(XXX_PRINT) XXX;
   cout << "qsorting in all in-memory-sort\n";
            quicker_sort_cmp((T *)mm_stream,len,cmp);
 		 cout << "returned from qsorting\n";
@@ -1311,7 +1608,7 @@ XXX
             return AMI_ERROR_NO_ERROR;
 
     } else {
-XXX
+if(XXX_PRINT) XXX;
         // The number of substreams that the original input stream
         // will be split into.
         
@@ -1341,7 +1638,7 @@ XXX
 
         // The stream being read at the current level.
         
-XXX
+if(XXX_PRINT) XXX;
         //RAKESH
         AMI_STREAM<T> **current_input;
 
@@ -1395,7 +1692,7 @@ XXX
 	   //To support a binary merge, need space for max_stream_usage
 	   //for at least three stream objects.
 
-XXX
+if(XXX_PRINT) XXX;
          if (sz_avail <= 3*(sz_stream + sz_substream 
                             + sizeof(merge_heap_element<T>))
 
@@ -1406,7 +1703,7 @@ XXX
 		   return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
          }
  
-XXX
+if(XXX_PRINT) XXX;
        sz_original_substream = (sz_avail)/sizeof(T);
 
         // Round the original substream length off to an integral
@@ -1444,7 +1741,7 @@ XXX
             merge_arity = sz_avail_during_merge/sz_stream_during_merge;
 
         }
-XXX
+if(XXX_PRINT) XXX;
         // Make sure that the AMI is willing to provide us with the
         // number of substreams we want.  It may not be able to due to
         // operating system restrictions, such as on the number of
@@ -1479,7 +1776,7 @@ XXX
 
         return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
         }
-XXX
+if(XXX_PRINT) XXX;
  
 //#define MINIMIZE_INITIAL_SUBSTREAM_LENGTH
 #ifdef MINIMIZE_INITIAL_SUBSTREAM_LENGTH
@@ -1555,7 +1852,7 @@ XXX
 
        initial_tmp_stream = new (AMI_STREAM<T> *)[merge_arity];
        mm_stream = new T[sz_original_substream];
-XXX
+if(XXX_PRINT) XXX;
        
         tp_assert(mm_stream != NULL, "Misjudged available main memory.");
 
@@ -1586,7 +1883,7 @@ XXX
      char new_stream_name[BTE_PATH_NAME_LEN];
 
      //For the first stream:
-XXX
+if(XXX_PRINT) XXX;
     for (ii_streams = 0; ii_streams < merge_arity; ii_streams ++)
     {
 
@@ -1614,7 +1911,7 @@ XXX
     //directory in which the temporary/intermediate streams will be made.
     //By default, I think we shd 
 
-XXX
+if(XXX_PRINT) XXX;
       stream_name_generator(working_disk, 
                            prefix_name[0], 
                            current_stream, 
@@ -1632,7 +1929,7 @@ XXX
 
         initial_tmp_stream[current_stream] = new AMI_STREAM<T>(
                                                 new_stream_name);
-XXX
+if(XXX_PRINT) XXX;
         initial_tmp_stream[current_stream]->persist(PERSIST_PERSISTENT); 
 
 
@@ -1665,7 +1962,7 @@ XXX
 
             // Read a memory load out of the input stream one item at a time,
 		  // fill up the key array at the same time.
-XXX
+if(XXX_PRINT) XXX;
            {
            T * next_item;
            for (int i = 0; i <  mm_len; i++)
@@ -1677,7 +1974,7 @@ XXX
 			  }
             mm_stream[i] = *next_item;
            }
-XXX
+if(XXX_PRINT) XXX;
 		 //Sort the array.
 
   cout << "quicksorting\n";
@@ -1718,7 +2015,7 @@ XXX
                 // We do not want old streams hanging around
                 // occuping memory. We know how to get the streams
                 // since we can generate their names
-XXX
+if(XXX_PRINT) XXX;
 
               if (initial_tmp_stream[current_stream])
                       { 
@@ -1755,7 +2052,7 @@ XXX
                 initial_tmp_stream[current_stream] =
                            new AMI_STREAM<T>(new_stream_name);
 
-XXX
+if(XXX_PRINT) XXX;
 
                 
                 initial_tmp_stream[current_stream]->persist(PERSIST_PERSISTENT);
@@ -1786,7 +2083,7 @@ XXX
         // Make sure the total length of the temporary stream is the
         // same as the total length of the original input stream.
 
-XXX
+if(XXX_PRINT) XXX;
         tp_assert(instream->stream_len() == check_size,
                   "Stream lengths do not match:" <<
                   "\n\tinstream->stream_len() = " << instream->stream_len() <<
@@ -1838,7 +2135,7 @@ XXX
 		{
 
 
-XXX
+if(XXX_PRINT) XXX;
             // Set up to process a given level.
 //RAKESH
             tp_assert(len == check_size,
@@ -1905,19 +2202,19 @@ XXX
                 // Merge them into the output stream.
 
 
-                ae = MIAMI_single_merge_cmp(
+                ae = AMI_single_merge(
                                   (current_input+merge_arity-substream_count),
                                    substream_count,
 				               outstream,
                                    cmp);
 
-XXX
+if(XXX_PRINT) XXX;
 
                 if (ae != AMI_ERROR_NO_ERROR) {
-				  LOG_DEBUG_ID("MIAMI_single_merge_cmp error");			   
+				  LOG_DEBUG_ID("AMI_single_merge error");			   
 				  LOG_FATAL("AMI_ERROR ");
 				  LOG_FATAL(ae);
-				  LOG_FATAL(" returned by  MIAMI_single_merge_cmp()");
+				  LOG_FATAL(" returned by  AMI_single_merge()");
 				  LOG_FLUSH_LOG; 
 				  return ae;
                 }
@@ -1965,7 +2262,7 @@ XXX
 //         The names of these streams (storing the input runs)
 //         can be constructed from  prefix_name[k % 2]
 
-XXX
+if(XXX_PRINT) XXX;
 		for (ii=0; ii < merge_arity; ii++)
                 	{
 
@@ -2030,7 +2327,7 @@ XXX
 #endif 
 
 
-XXX
+if(XXX_PRINT) XXX;
 
          intermediate_tmp_stream[current_stream] = new
                                     AMI_STREAM<T>(new_stream_name);
@@ -2069,7 +2366,7 @@ XXX
                runs_in_current_stream = 0;
                unsigned int merge_number = 0;
 
-XXX
+if(XXX_PRINT) XXX;
                
 
                 // Loop through the substreams of the current stream,
@@ -2172,7 +2469,7 @@ XXX
 
                         intermediate_tmp_stream[current_stream] = new
                                     AMI_STREAM<T>(new_stream_name);
-XXX
+if(XXX_PRINT) XXX;
 
 
                         intermediate_tmp_stream[current_stream]->persist(
@@ -2182,13 +2479,13 @@ XXX
 				}
 
 
-                      ae = MIAMI_single_merge_cmp(the_substreams,
+                      ae = AMI_single_merge(the_substreams,
                                        jj+1,
                                      intermediate_tmp_stream[current_stream],
                                      cmp);
 				                          
                       if (ae != AMI_ERROR_NO_ERROR) {
-						LOG_DEBUG_ID("MIAMI_single_merge_cmp error");
+						LOG_DEBUG_ID("AMI_single_merge error");
 						return ae;
 					  }
                      
@@ -2261,7 +2558,7 @@ XXX
 
         }
 
-XXX
+if(XXX_PRINT) XXX; 
 	   //Monitoring prints.
 
         LOG_DEBUG_INFO("Number of passes incl run formation is " << k+1 << "\n");
@@ -2278,16 +2575,17 @@ XXX
 
 
 
-
-
-
-// Recursive division of a stream and then merging back together.
+//------------------------------------------------------------
+//This is a polymorph of AMI_partition_and_merge in ami_merge.h;divide
+//the input stream in substreams, merge each substream recursively,
+//and merge them together using AMI_single_merge(AMI_STREAM<T> **,
+//arity_t , AMI_STREAM<T> *, int , KEY)
 template<class T, class KEY>
-AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
-                                AMI_STREAM<T> *outstream, 
-                                int keyoffset, KEY dummykey)
-{ 
-    AMI_err ae;
+AMI_err 
+AMI_partition_and_merge(AMI_STREAM<T> *instream,
+			AMI_STREAM<T> *outstream, 
+			int keyoffset, KEY dummykey) { 
+  AMI_err ae;
     off_t len;
     size_t sz_avail, sz_stream;
     size_t sz_substream;
@@ -2999,7 +3297,7 @@ LOG_DEBUG_ID("post delete");
                 // Merge them into the output stream.
 
 
-                ae = MIAMI_single_merge_Key(
+                ae = AMI_single_merge(
                                   (current_input+merge_arity-substream_count),
                                    substream_count,
 				               outstream,
@@ -3013,7 +3311,7 @@ LOG_DEBUG_ID("post delete");
 			   
                    LOG_FATAL("AMI_ERROR ");
                    LOG_FATAL(ae);
-                   LOG_FATAL(" returned by  MIAMI_single_merge_Key()");
+                   LOG_FATAL(" returned by  AMI_single_merge()");
                    LOG_FLUSH_LOG; 
                    return ae;
                 }
@@ -3274,7 +3572,7 @@ LOG_DEBUG_ID("post delete");
 
 
 
-                      ae = MIAMI_single_merge_Key(the_substreams,
+                      ae = AMI_single_merge(the_substreams,
                                        jj+1,
                                        intermediate_tmp_stream[current_stream],
                                        keyoffset,
@@ -3366,11 +3664,14 @@ LOG_DEBUG_ID("post delete");
 
 
 
+
+
+//------------------------------------------------------------
 template<class T, class KEY>
 AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
-                                AMI_STREAM<T> *outstream, int keyoffset,
-                                KEY dummykey)
-{
+						AMI_STREAM<T> *outstream, 
+						int keyoffset,
+						KEY dummykey) {
     AMI_err ae;
     off_t len;
     size_t sz_avail, sz_stream;
@@ -3875,7 +4176,7 @@ LOG_DEBUG_ID("post delete");
                 // Merge them into the output stream.
 
 
-                ae = MIAMI_single_merge_Key(
+                ae = AMI_single_merge(
                                       (current_input+ merge_arity-run_count),
                                       run_count,
                                        outstream,
@@ -3888,7 +4189,7 @@ LOG_DEBUG_ID("post delete");
                 if (ae != AMI_ERROR_NO_ERROR) {
                     LOG_FATAL("AMI Error ");
                     LOG_FATAL(ae);
-                    LOG_FATAL("MIAMI_single_merge_Key()");
+                    LOG_FATAL("AMI_single_merge()");
                     return ae;
                 }
 
@@ -4185,7 +4486,7 @@ LOG_DEBUG_ID("post delete");
                         // AMI_single_merge() does not rewind the
                         // output before merging.
 
-                      ae = MIAMI_single_merge_Key(the_substreams,
+                      ae = AMI_single_merge(the_substreams,
                                               jj+1,
                                        intermediate_tmp_stream[current_stream],
                                        keyoffset,
@@ -4195,7 +4496,7 @@ LOG_DEBUG_ID("post delete");
                       if (ae != AMI_ERROR_NO_ERROR) {
 	                        LOG_FATAL("AMI Error ");
                              LOG_FATAL(ae);
-                             LOG_FATAL("MIAMI_single_merge_Key()");	
+                             LOG_FATAL("AMI_single_merge()");	
                              return ae;
                                                     }
 
@@ -4285,300 +4586,26 @@ LOG_DEBUG_ID("post delete");
 
 
 
-
-
-template<class T, class KEY> AMI_err MIAMI_single_merge_Key(AMI_STREAM<T> **instreams, arity_t arity, AMI_STREAM<T> *outstream, int keyoffset, KEY dummykey)
-{
-
-
-// Pointers to current leading elements of streams
-T * in_objects[arity+1];
-int i,j;
-AMI_err ami_err;
-
-//The number of actual heap elements at any time: can change even 
-//after the merge begins because
-// whenever some stream gets completely depleted, heapsize decremnents by one.
-
-int heapsize_H;
-
-class merge_heap_element<KEY> * K_Array = 
-                            new (merge_heap_element<KEY>)[arity+1];
-
-T merge_out;
-
-    // Rewind and read the first item from every stream.
-
-    j = 1;
-    for (i = 0; i < (int)arity ; i++ ) {
-        if ((ami_err = instreams[i]->seek(0)) != AMI_ERROR_NO_ERROR) {
-            return ami_err;
-        }
-
-        if ((ami_err = instreams[i]->read_item(&(in_objects[i]))) !=
-            AMI_ERROR_NO_ERROR) {
-            if (ami_err == AMI_ERROR_END_OF_STREAM) {
-                in_objects[i] = NULL;
-             
-            } else {
-               return ami_err;
-            }
-            // Set the taken flags to 0 before we call intialize()
-        } else {
-         
-         K_Array[j].key = *(KEY *)((char *)in_objects[i]+keyoffset);
-         K_Array[j].run_id = i;
-         j++; 
-
-
-        
-        }
-    }
-
-    unsigned int NonEmptyRuns = j-1;
-
-
-    merge_heap<KEY> Main_Merge_Heap(K_Array, NonEmptyRuns);
-
-    while (Main_Merge_Heap.sizeofheap())
-    {
-    i = Main_Merge_Heap.get_min_run_id();
-    if ((ami_err = outstream->write_item(*in_objects[i])) 
-                                    != AMI_ERROR_NO_ERROR)
-                   {
-                    return ami_err;
-                   }
-
-    if ((ami_err = instreams[i]->read_item(&(in_objects[i])))
-                                       != AMI_ERROR_NO_ERROR)
-                   {
-                   if (ami_err != AMI_ERROR_END_OF_STREAM)
-                     {
-                     return ami_err;
-		           }
-                   }
-
-    if (ami_err == AMI_ERROR_END_OF_STREAM)
-                  {
-                   Main_Merge_Heap.delete_min_and_insert((KEY *)NULL);
-                  }
-    else 
-	   	        {
-                   Main_Merge_Heap.delete_min_and_insert(
-                                 (KEY *)((char *)in_objects[i]+keyoffset)
-                                                        );
-                 } 
-    }
-
-    return AMI_ERROR_NO_ERROR;
-
-}
-
-
-
-
-template<class T> AMI_err MIAMI_single_merge(AMI_STREAM<T> **instreams, arity_t arity, AMI_STREAM<T> *outstream)
-{
-
-
-// Pointers to current leading elements of streams
-T * in_objects[arity+1];
-int i,j;
-AMI_err ami_err;
-
-//The number of actual heap elements at any time: can change even 
-//after the merge begins because
-// whenever some stream gets completely depleted, heapsize decremnents by one.
-
-int heapsize_H;
-
-class merge_heap_element<T> * K_Array = 
-                            new (merge_heap_element<T>)[arity+1];
-
-T merge_out;
-
-    // Rewind and read the first item from every stream.
-
-    j = 1;
-    for (i = 0; i < (int)arity ; i++ ) {
-        if ((ami_err = instreams[i]->seek(0)) != AMI_ERROR_NO_ERROR) {
-            return ami_err;
-        }
-
-        if ((ami_err = instreams[i]->read_item(&(in_objects[i]))) !=
-            AMI_ERROR_NO_ERROR) {
-            if (ami_err == AMI_ERROR_END_OF_STREAM) {
-                in_objects[i] = NULL;
-             
-            } else {
-               return ami_err;
-            }
-            // Set the taken flags to 0 before we call intialize()
-        } else {
-         
-         K_Array[j].key = *in_objects[i];
-         K_Array[j].run_id = i;
-         j++; 
-
-
-        
-        }
-    }
-
-    unsigned int NonEmptyRuns = j-1;
-
-
-    merge_heap<T> Main_Merge_Heap(K_Array, NonEmptyRuns);
-
-    while (Main_Merge_Heap.sizeofheap())
-    {
-    i = Main_Merge_Heap.get_min_run_id();
-    if ((ami_err = outstream->write_item(*in_objects[i])) 
-                                    != AMI_ERROR_NO_ERROR)
-                   {
-                    return ami_err;
-                   }
-
-    if ((ami_err = instreams[i]->read_item(&(in_objects[i])))
-                                       != AMI_ERROR_NO_ERROR)
-                   {
-                   if (ami_err != AMI_ERROR_END_OF_STREAM)
-                     {
-                     return ami_err;
-		           }
-                   }
-
-    if (ami_err == AMI_ERROR_END_OF_STREAM)
-                  {
-                   Main_Merge_Heap.delete_min_and_insert((T *)NULL);
-                  }
-    else 
-	   	        {
-                   Main_Merge_Heap.delete_min_and_insert(
-                                                        in_objects[i]
-                                                        );
-                 } 
-    }
-
-    return AMI_ERROR_NO_ERROR;
-
-}
-
-
-template<class T> AMI_err MIAMI_single_merge_cmp(AMI_STREAM<T> **instreams, arity_t arity, AMI_STREAM<T> *outstream,  int (*cmp)(CONST T&, CONST T&))
-{
-
-
-// Pointers to current leading elements of streams
-T * in_objects[arity+1];
-int i,j;
-AMI_err ami_err;
-
-//The number of actual heap elements at any time: can change even 
-//after the merge begins because
-// whenever some stream gets completely depleted, heapsize decremnents by one.
-
-int heapsize_H;
-
-class merge_heap_element<T> * K_Array = 
-                            new (merge_heap_element<T>)[arity+1];
-
-T merge_out;
-
-    // Rewind and read the first item from every stream.
-
-    j = 1;
-    for (i = 0; i < (int)arity ; i++ ) {
-        if ((ami_err = instreams[i]->seek(0)) != AMI_ERROR_NO_ERROR) {
-            return ami_err;
-        }
-
-        if ((ami_err = instreams[i]->read_item(&(in_objects[i]))) !=
-            AMI_ERROR_NO_ERROR) {
-            if (ami_err == AMI_ERROR_END_OF_STREAM) {
-                in_objects[i] = NULL;
-             
-            } else {
-               return ami_err;
-            }
-            // Set the taken flags to 0 before we call intialize()
-        } else {
-         
-         K_Array[j].key = *in_objects[i];
-         K_Array[j].run_id = i;
-         j++; 
-
-
-        
-        }
-    }
-
-    unsigned int NonEmptyRuns = j-1;
-
-
-    merge_heap_cmp<T> Main_Merge_Heap(K_Array, NonEmptyRuns,cmp);
-
-    while (Main_Merge_Heap.sizeofheap())
-    {
-    i = Main_Merge_Heap.get_min_run_id();
-    if ((ami_err = outstream->write_item(*in_objects[i])) 
-                                    != AMI_ERROR_NO_ERROR)
-                   {
-                    return ami_err;
-                   }
-
-    if ((ami_err = instreams[i]->read_item(&(in_objects[i])))
-                                       != AMI_ERROR_NO_ERROR)
-                   {
-                   if (ami_err != AMI_ERROR_END_OF_STREAM)
-                     {
-                     return ami_err;
-		           }
-                   }
-
-    if (ami_err == AMI_ERROR_END_OF_STREAM)
-                  {
-                   Main_Merge_Heap.delete_min_and_insert((T *)NULL);
-                  }
-    else 
-	   	        {
-                   Main_Merge_Heap.delete_min_and_insert(
-                                                        in_objects[i]
-                                                        );
-                 } 
-    }
-
-    return AMI_ERROR_NO_ERROR;
-
-}
-
-
-
-
-
-
-
-
+//------------------------------------------------------------
 template<class T, class KEY> 
-AMI_err Run_Formation_Algo_R_Key( AMI_STREAM<T> *instream, 
-                                                arity_t arity, 
-                                                AMI_STREAM<T> **outstreams,
-                                               char * computed_prefix, 
-                                                size_t available_mem,                      
-                                                int * LRunsInStream,
-                                                int ** LRunLengths,
-                                                int dim2_LRunLengths,                                                          int offset_to_key,
-                                                KEY dummykey)
-                                      
-{
-
-
-char local_copy[BTE_PATH_NAME_LEN];
-
-strcpy(local_copy,computed_prefix);
-
-AMI_err ami_err;
-
+AMI_err 
+Run_Formation_Algo_R_Key( AMI_STREAM<T> *instream, 
+			  arity_t arity, 
+			  AMI_STREAM<T> **outstreams,
+			  char * computed_prefix, 
+			  size_t available_mem,                      
+			  int * LRunsInStream,
+			  int ** LRunLengths,
+			  int dim2_LRunLengths,                                                          int offset_to_key,
+			  KEY dummykey)  {
+  
+  
+  char local_copy[BTE_PATH_NAME_LEN];
+  
+  strcpy(local_copy,computed_prefix);
+  
+  AMI_err ami_err;
+  
 //For now we are assuming that the key is of type int 
 //and that the offset of the key within an item of type
 //T is offset_to_key=0
