@@ -2,7 +2,7 @@
 // File:    bte_coll_ufs.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: bte_coll_ufs.h,v 1.9 2003-04-29 05:29:42 tavi Exp $
+// $Id: bte_coll_ufs.h,v 1.10 2003-09-14 21:04:22 tavi Exp $
 //
 // BTE_collection_ufs class definition.
 //
@@ -35,7 +35,7 @@ public:
   BTE_err new_block(BIDT &bid, void * &place) {
     BTE_err err;
     // Get a block id.
-    if ((err = new_block_getid_specific(bid)) != BTE_ERROR_NO_ERROR)
+    if ((err = new_block_getid(bid)) != BTE_ERROR_NO_ERROR)
       return err;
     // We have a bid, so we can call the get_block routine.
     if ((err = new_block_internals(bid, place)) != BTE_ERROR_NO_ERROR)
@@ -98,7 +98,7 @@ public:
 protected:
 
   BTE_err new_block_internals(BIDT bid, void *&place);
-  BTE_err new_block_getid_specific(BIDT& bid);
+  //  BTE_err new_block_getid_specific(BIDT& bid);
   BTE_err get_block_internals(BIDT bid, void *&place);
   BTE_err put_block_internals(BIDT bid, void* place, char dirty);
 };
@@ -114,6 +114,7 @@ BTE_err BTE_collection_ufs<BIDT>::new_block_internals(BIDT bid, void* &place) {
   return BTE_ERROR_NO_ERROR;
 }
 
+#if 0
 template<class BIDT>
 BTE_err BTE_collection_ufs<BIDT>::new_block_getid_specific(BIDT& bid) {
     BIDT *lbn;
@@ -171,7 +172,7 @@ BTE_err BTE_collection_ufs<BIDT>::new_block_getid_specific(BIDT& bid) {
     }
     return BTE_ERROR_NO_ERROR;
 }
-
+#endif
 
 template<class BIDT>
 BTE_err BTE_collection_ufs<BIDT>::get_block_internals(BIDT bid, void * &place) {
