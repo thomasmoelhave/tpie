@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/6/94
 //
-// $Id: scan_random.h,v 1.5 1995-06-30 21:09:30 darrenv Exp $
+// $Id: scan_random.h,v 1.6 1999-02-03 22:13:53 tavi Exp $
 //
 #ifndef _SCAN_RANDOM_H
 #define _SCAN_RANDOM_H
@@ -25,14 +25,7 @@ public:
     scan_random(unsigned int count = 1000, int seed = 17);
     virtual ~scan_random(void);
     AMI_err initialize(void);
-    AMI_err operate(int *out1, AMI_SCAN_FLAG *sf);
+    inline AMI_err operate(int *out1, AMI_SCAN_FLAG *sf);
 };
-
-#ifdef NO_IMPLICIT_TEMPLATES
-
-#define TEMPLATE_INSTANTIATE_SCAN_RANDOM		\
-template AMI_err AMI_scan(scan_random *, AMI_STREAM<int> *);
-
-#endif
 
 #endif // _SCAN_RANDOM_H 
