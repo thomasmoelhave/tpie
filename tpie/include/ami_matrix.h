@@ -4,10 +4,13 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/9/94
 //
-// $Id: ami_matrix.h,v 1.9 2000-01-11 00:51:53 hutchins Exp $
+// $Id: ami_matrix.h,v 1.10 2003-04-17 12:46:56 jan Exp $
 //
 #ifndef _AMI_MATRIX_H
 #define _AMI_MATRIX_H
+
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 //#define QUICK_MATRIX_MULT 1
 #define AGGARWAL_MATRIX_MULT 1
