@@ -3,7 +3,7 @@
 // File:    ami_block_base.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_block_base.h,v 1.2 2001-05-28 18:56:19 tavi Exp $
+// $Id: ami_block_base.h,v 1.3 2001-12-10 22:05:26 tavi Exp $
 //
 // Definition of the AMI_block_base class.
 //
@@ -119,4 +119,4 @@ public:
 };
 
 
-#endif _AMI_BLOCK_BASE_H
+#endif //_AMI_BLOCK_BASE_H
