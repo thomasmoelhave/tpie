@@ -5,10 +5,8 @@
 // Created: 8/22/93
 //
 
-
-
-static char ami_device_id[] = "$Id: ami_device.cpp,v 1.6 1999-11-23 17:42:47 tavi Exp $";
-
+#include "versions.h"
+VERSION(ami_device_cpp,"$Id: ami_device.cpp,v 1.7 2000-01-10 22:08:02 hutchins Exp $");
 
 #include "lib_config.h"
 

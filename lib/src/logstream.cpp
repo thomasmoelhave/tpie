@@ -7,12 +7,10 @@
 
 // This will go into a library whne it is ready.
 
-
-static char logstream_id[] = "$Id: logstream.cpp,v 1.9 1999-07-05 05:35:29 rajiv Exp $";
-
-
+#include <versions.h>
 #include <logstream.h>
 
+VERSION(logstream_cpp,"$Id: logstream.cpp,v 1.10 2000-01-10 22:04:44 hutchins Exp $");
 
 // Contructor
 
