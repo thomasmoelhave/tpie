@@ -4,14 +4,12 @@
 // Created: 6/2/94
 //
 
+#include <portability.h>
+
 #include <versions.h>
-VERSION(test_ami_merge_cpp,"$Id: test_ami_merge.cpp,v 1.15 2003-04-20 23:51:40 tavi Exp $");
+VERSION(test_ami_merge_cpp,"$Id: test_ami_merge.cpp,v 1.16 2003-09-11 18:45:11 jan Exp $");
 
 #include <iostream>
-#include <fstream>
-
-using std::cout;
-using std::ofstream;
 
 #include "app_config.h"        
 #include "parse_args.h"
@@ -31,9 +29,9 @@ using std::ofstream;
 
 #include "merge_interleave.h"
 
-static char def_crf[] = "/var/tmp/osc.txt";
-static char def_irf[] = "/var/tmp/osi.txt";
-static char def_frf[] = "/var/tmp/osf.txt";
+static char def_crf[] = "osc.txt";
+static char def_irf[] = "osi.txt";
+static char def_frf[] = "osf.txt";
 
 static char *count_results_filename = def_crf;
 static char *interleave_results_filename = def_irf;
@@ -164,10 +162,11 @@ int main(int argc, char **argv)
 
     // Divide the stream into two substreams, and interleave them.
 
-    ae = amis2.new_substream(AMI_READ_STREAM, 0, test_size-1, 
-			     &((AMI_stream_base<int> *)(amirs[0])));
-    ae = amis2.new_substream(AMI_READ_STREAM, test_size, 2*test_size-1,
-                             &((AMI_stream_base<int> *)(amirs[1])));
+    AMI_stream_base<int>* amirs0 = amirs[0]; 
+    AMI_stream_base<int>* amirs1 = amirs[1]; 
+
+    ae = amis2.new_substream(AMI_READ_STREAM, 0, test_size-1, &amirs0);
+    ae = amis2.new_substream(AMI_READ_STREAM, 0, 2*test_size-1, &amirs1);
 
     if (verbose) {
         cout << "Created substreams; lengths = " <<
