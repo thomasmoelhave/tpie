@@ -1,5 +1,5 @@
 %%
-%% $Id: implementation.tex,v 1.15 2001-04-26 23:11:37 hutchins Exp $
+%% $Id: implementation.tex,v 1.16 2001-04-27 14:52:54 hutchins Exp $
 %%
 \chapter{The Implementation of TPIE}
 \plabel{cha:implementation}
@@ -1157,11 +1157,11 @@ files:
 \index{scanning|(}
 
 The file \myv{include/ami\_scan.h} defines the scanning
-functionality provided by TPIE. This file is a concatenation
-of the files \myv{include/ami_scan.h.head},
-\myv{include/ami_scan_mac.h}, and
-\myv{include/ami_scan.h.tail}, and is mechanically generated
-by \myv{make} when TPIE is compiled and built (for more
+functionality provided by TPIE. This file is mechanically generated
+by \myv{make} when TPIE is compiled and built. It is essentially a concatenation
+of the files \myv{include/ami\_scan.h.head},
+\myv{include/ami\_scan\_mac.h}, and
+\myv{include/ami\_scan.h.tail} -- for more
 details, see the file \myv{include/Makefile}. It is not
 intended that \myv{include/ami\_scan.h} be modified
 manually.
