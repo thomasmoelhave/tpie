@@ -4,7 +4,7 @@
 // Authors: Octavian Procopiuc <tavi@cs.duke.edu>
 //          (using some code by Rakesh Barve)
 //
-// $Id: bte_coll_base.h,v 1.6 2001-06-22 20:39:40 tavi Exp $
+// $Id: bte_coll_base.h,v 1.7 2001-12-29 05:19:24 tavi Exp $
 //
 // BTE_collection_base class and various basic definitions.
 //
@@ -28,18 +28,8 @@
 #include <stdio_stack.h>
 // For BTE_err.
 #include <bte_base_stream.h>
-// For Statistics.
-#include <statistics.h>
-
-// Statistics.
-#define BC_STATS_COUNT 5
-enum BC_stats {
-  BC_GET = 0,
-  BC_PUT,
-  BC_NEW,
-  BC_DELETE,
-  BC_SYNC
-};
+// For class tpie_stats_coll.
+#include <tpie_stats_coll.h>
 
 // BTE_COLLECTION types passed to constructors.
 enum BTE_collection_type {
@@ -139,7 +129,7 @@ protected:
   // Number of blocks from this collection that are currently in memory
   size_t in_memory_blocks_;
 
-  statistics<BC_STATS_COUNT> stats_;
+  tpie_stats_coll stats_;
 
 private:
   // Helper functions. We don't want them inherited.
@@ -178,7 +168,7 @@ protected:
   }
 
   off_t bid_to_file_offset(off_t bid) const 
-  { return header_.os_block_size + header_.block_size * (bid-1); }//ch
+  { return header_.os_block_size + header_.block_size * (bid-1); }
 
   void create_stack();
 
@@ -207,9 +197,9 @@ protected:
 	// 16 (only by 1 the first time around to be gentle with very
 	// small coll's).
 	if (header_.total_blocks == 1)
-	  header_.total_blocks += 1;
-	else if (header_.total_blocks <= 340)
-	  header_.total_blocks += 16;
+	  header_.total_blocks += 2;
+	else if (header_.total_blocks <= 161)
+	  header_.total_blocks += 8;
 	else
 	  header_.total_blocks += 64;
 #if USE_FTRUNCATE
@@ -280,7 +270,7 @@ public:
 
   void *user_data() { return (void *) header_.user_data; }
 
-  const statistics<BC_STATS_COUNT>& stats() const { return stats_; }
+  const tpie_stats_coll& stats() const { return stats_; }
 
   // Destructor.
   ~BTE_collection_base(); 
