@@ -3,10 +3,13 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 6/10/94
 //
-// $Id: ami_sort.h,v 1.9 2002-01-14 16:04:13 tavi Exp $
+// $Id: ami_sort.h,v 1.10 2003-04-17 13:59:20 jan Exp $
 //
 #ifndef _AMI_SORT_H
 #define _AMI_SORT_H
+
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 #define CONST const
 
