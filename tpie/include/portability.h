@@ -3,7 +3,7 @@
 // Created: 2002/10/30
 // Authors: Joerg Rotthowe, Jan Vahrenhold, Markus Vogel
 //
-// $Id: portability.h,v 1.29 2004-10-20 13:39:54 jan Exp $
+// $Id: portability.h,v 1.30 2004-11-17 22:43:19 adanner Exp $
 //
 // This header-file offers macros for independent use on Win and Unix systems.
 
@@ -486,11 +486,7 @@ inline FILE* TPIE_OS_FOPEN(const char* filename,
 #else
 inline FILE* TPIE_OS_FOPEN(const char* filename,
 			   const char* mode) {
-#ifdef _LARGEFILE_SOURCE
-    return fopen64(filename,mode);
-#else
     return fopen(filename,mode);
-#endif
 }
 #endif
 
@@ -505,11 +501,7 @@ inline int TPIE_OS_FSEEK(FILE* file, TPIE_OS_OFFSET offset, int whence) {
 }
 #else
 inline int TPIE_OS_FSEEK(FILE* file, TPIE_OS_OFFSET offset, int whence) {
-#ifdef _LARGEFILE_SOURCE
-    return fseeko64(file, offset, whence);
-#else
     return fseek(file, offset, whence);
-#endif
 }
 #endif
 
@@ -521,11 +513,7 @@ inline TPIE_OS_LONG TPIE_OS_FTELL(FILE* file) {
 }
 #else
 inline TPIE_OS_LONG TPIE_OS_FTELL(FILE* file) {
-#ifdef _LARGEFILE_SOURCE
-    return ftell64(file);
-#else
     return ftell(file);
-#endif
 }
 #endif
 
@@ -642,11 +630,7 @@ inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_ORDONLY(const char* name,TPIE_OS_MAP
 }
 #else
 inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_ORDONLY(const char* name,TPIE_OS_MAPPING_FLAG mappingFlag = TPIE_OS_FLAG_USE_MAPPING_FALSE) {
-#ifdef _LARGEFILE_SOURCE
-    return ::open64(name, O_RDONLY);
-#else
     return ::open(name, O_RDONLY);
-#endif
 }
 #endif
 
@@ -657,11 +641,7 @@ inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_OEXCL(const char* name, TPIE_OS_MAPP
 }
 #else
 inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_OEXCL(const char* name, TPIE_OS_MAPPING_FLAG mappingFlag = TPIE_OS_FLAG_USE_MAPPING_FALSE) {
-#ifdef _LARGEFILE_SOURCE
-    return ::open64(name, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
-#else
     return ::open(name, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
-#endif
 }
 #endif
 
@@ -672,11 +652,7 @@ inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_ORDWR(const char* name, TPIE_OS_MAPP
 }
 #else
 inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_ORDWR(const char* name, TPIE_OS_MAPPING_FLAG mappingFlag = TPIE_OS_FLAG_USE_MAPPING_FALSE) {
-#ifdef _LARGEFILE_SOURCE
-    return ::open64(name, O_RDWR);
-#else
     return ::open(name, O_RDWR);
-#endif
 }
 #endif
 
@@ -764,11 +740,7 @@ inline LPVOID TPIE_OS_MMAP(LPVOID addr,
 }
 #else	
 inline void* TPIE_OS_MMAP(void* addr, size_t len, int prot, int flags, TPIE_OS_FILE_DESCRIPTOR fildes, TPIE_OS_OFFSET off) {
-#ifdef _LARGEFILE_SOURCE
-    return mmap64((caddr_t)addr, len, prot, flags, fildes, off);
-#else
     return mmap((caddr_t)addr, len, prot, flags, fildes, off);
-#endif
 }
 #endif
 
@@ -828,11 +800,7 @@ inline int TPIE_OS_FTRUNCATE(TPIE_OS_FILE_DESCRIPTOR& fd, TPIE_OS_OFFSET length)
 }
 #else							
 inline int TPIE_OS_FTRUNCATE(TPIE_OS_FILE_DESCRIPTOR& fd, TPIE_OS_OFFSET length) {
-#ifdef _LARGEFILE_SOURCE
-    return ftruncate64(fd, length);
-#else
     return ftruncate(fd, length);
-#endif
 }
 #endif
 
