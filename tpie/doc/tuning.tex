@@ -1,5 +1,5 @@
 %%
-%% $Id: tuning.tex,v 1.3 1999-07-02 16:31:46 large Exp $
+%% $Id: tuning.tex,v 1.4 1999-10-22 23:02:29 tavi Exp $
 %%
 \chapter{Configuration and Performance Tuning}
 \label{sec:tuning}
@@ -417,23 +417,30 @@ creates a log file\index{log file} in \verb|/tmp/TPLOG_XXXXXX|, where
 \verb|XXXXXX| is a unique system dependent identifier. TPIE writes into
 this file using a \verb|logstream| class, which is derived from
 \verb|ofstream| and has the additional functionality of setting a priority
-and a threshold for logging. If the priority of a message is smaller
-than the threshold, the message is not logged. There are three priority
+and a threshold for logging. If the priority of a message is below
+ the threshold, the message is not logged. There are four priority
 levels defined in TPIE, as follows.
 \begin{description}
 \item[\verb|TP\_LOG\_FATAL|] is the highest level and is used for all kinds
 of errors that would normally impair subsequent computations. Errors are
 always logged;
 \item[\verb|TP\_LOG\_WARNING|] is the next lowest and is used for warnings.
-\item[\verb|TP\_LOG\_DEBUG\_INFO|] is the lowest level and is used for debugging information and any other information that might be useful for the developer.
+\item[\verb|TP\_LOG\_APP\_DEBUG|] is used by applications built on top of TPIE, for logging debugging information.
+\item[\verb|TP\_LOG\_DEBUG\_INFO|] is the lowest level and is used by the TPIE library for logging debugging information.
 \end{description}
-By default, the threshold of the log is set to the lowest level, \verb|TP_LOG_DEBUG_INFO|.
+By default, the threshold of the log is set to the lowest level, \verb|TP_LOG_DEBUG_INFO|. To change the threshold level, the following macro is provided:
+\begin{quote}
+\verb|LOG_SET_THRESHOLD(|{\em level}\verb|)|
+\end{quote}
+The threshold level can be reset as many times as needed in a program. This enables the developer to focus the debugging effort on a certain part of the program.
 
-Three macros are provided for writing into the log:
+Four macros are provided for writing into the log:
 \begin{quote}
 \verb|LOG_FATAL|({\em msg})
 
 \verb|LOG_WARNING|({\em msg})
+
+\verb|LOG_APP_DEBUG|({\em msg})
 
 \verb|LOG_DEBUG_INFO|({\em msg}),
 \end{quote}
