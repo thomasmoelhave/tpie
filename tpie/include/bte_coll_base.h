@@ -4,7 +4,7 @@
 // Authors: Octavian Procopiuc <tavi@cs.duke.edu>
 //          (using some code by Rakesh Barve)
 //
-// $Id: bte_coll_base.h,v 1.24 2004-05-05 14:31:56 adanner Exp $
+// $Id: bte_coll_base.h,v 1.25 2004-06-08 23:23:29 tavi Exp $
 //
 // BTE_collection_base class and various basic definitions.
 
@@ -277,7 +277,7 @@ public:
     typedef BIDT block_id_t;
 
     BTE_collection_base(const char *base_name, BTE_collection_type ct, 
-			size_t logical_block_factor, TPIE_OS_MAPPING_FLAG mapping = TPIE_OS_MAPPING_FALSE);
+			size_t logical_block_factor, TPIE_OS_MAPPING_FLAG mapping = TPIE_OS_FLAG_USE_MAPPING_FALSE);
 
     // Return the total number of used blocks.
     size_t size() const { return header_.used_blocks; }
