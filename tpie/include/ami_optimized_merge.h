@@ -15,7 +15,7 @@
 // a quicksort using only keys of the items; there is a provision to 
 // to use templated heaps to implement the merge.
 
-// 	$Id: ami_optimized_merge.h,v 1.23 1999-04-20 20:49:08 rbarve Exp $	
+// 	$Id: ami_optimized_merge.h,v 1.24 1999-04-23 20:27:09 rajiv Exp $	
 //TO DO: substream_count setting; don't depend on current_stream_len
 
 
@@ -35,7 +35,7 @@
 #include <math.h>
 
 #include <sys/time.h>
-
+#include <assert.h>
 
 typedef int AMI_merge_flag;
 typedef unsigned int arity_t;
@@ -1241,6 +1241,8 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
 
     char *working_disk;
     
+	
+	LOG_DEBUG_ID("AMI_partition_and_merge_Key: start");
 
     // Figure out how much memory we've got to work with.
 
@@ -1353,7 +1355,8 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
           if (qs_array) { delete [] qs_array; qs_array = NULL;}
 	    }
           
-          return AMI_ERROR_NO_ERROR;
+		   LOG_DEBUG_ID("AMI_partition_and_merge_Key: done");
+		   return AMI_ERROR_NO_ERROR;
 
     } else {
 
@@ -2301,10 +2304,13 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
         LOG_DEBUG_INFO("Number of passes incl run formation is " << k+1 << "\n");
 
         
+		LOG_DEBUG_ID("AMI_partition_and_merge_Key: done");
         return AMI_ERROR_NO_ERROR;
    
 	   }
-    }
+
+	assert(0);					// no return value - die - R..
+}
  
 
 
