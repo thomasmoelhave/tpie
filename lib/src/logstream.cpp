@@ -8,7 +8,7 @@
 // This will go into a library whne it is ready.
 
 
-static char logstream_id[] = "$Id: logstream.cpp,v 1.6 1999-04-09 19:24:35 rajiv Exp $";
+static char logstream_id[] = "$Id: logstream.cpp,v 1.7 1999-04-09 19:28:35 rajiv Exp $";
 
 
 #include <logstream.h>
@@ -30,7 +30,7 @@ logstream::logstream(const char *fname,
 logstream& logstream::operator<<(const T x)		\
 {												\
     if (priority <= threshold) {				\
-	ofstream::operator<<(x)<<endl;				\
+	ofstream::operator<<(x);    				\
     }											\
     return *this;								\
 }
