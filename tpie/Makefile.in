@@ -2,12 +2,14 @@
 #
 # The Makefile for the complete TPIE system.
 #
-# $Id: Makefile.in,v 1.8 1994-10-11 12:52:05 dev Exp $
+# $Id: Makefile.in,v 1.9 1994-10-13 14:03:33 darrenv Exp $
 #
 
 ########################################################################
 # FLAGS TO CONTROL SYSTEM PARAMETERS.
 ########################################################################
+
+MY_DEFS = @DEFS@
 
 # Define if the library functions should write to the log.
 #LOG_LIBRARY = 1
@@ -19,7 +21,7 @@
 OPTIMIZE_LIBRARY = 1
 
 # Define if the library code should be profilable.
-PROFILE_LIBRARY = 1
+#PROFILE_LIBRARY = 1
 
 # Define if the apps should write to the log.
 #LOG_APPS = 1
@@ -31,7 +33,7 @@ PROFILE_LIBRARY = 1
 OPTIMIZE_APPS = 1
 
 # Define if the apps should be profilable.
-PROFILE_APPS = 1
+#PROFILE_APPS = 1
 
 ########################################################################
 # END OF USER SETTABLE FLAGS.
@@ -91,5 +93,6 @@ clean:
 	$(MAKE) -C $(APPSPATH) $@
 	$(MAKE) -C $(LIBPATH) $@
 	$(MAKE) -C $(INCPATH) $@
+
 
 

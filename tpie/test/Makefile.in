@@ -1,11 +1,13 @@
 # Copyright (c) 1994 Darren Erik Vengroff
 
-# $Id: Makefile.in,v 1.9 1994-10-11 12:52:50 dev Exp $
+# $Id: Makefile.in,v 1.10 1994-10-13 14:01:46 darrenv Exp $
 
 # Makefile for TPIE test applications.
 
 # Use gmake on this Makefile.  It relies on the default rules, and 
 # Use gmake -p to see the default rules.
+
+CXX = @CXX@
 
 TPIEINC = ../include
 
@@ -35,7 +37,7 @@ CXXFLAGS += -gstabs+
 CFLAGS += -gstabs
 endif
 
-CPPFLAGS = -I$(TPIEINC) 
+CPPFLAGS = -I$(TPIEINC) @DEFS@
 
 ifdef LOG_APPS
 CPPFLAGS += -DTPL_LOGGING
