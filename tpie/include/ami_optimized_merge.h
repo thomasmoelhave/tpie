@@ -20,7 +20,7 @@
 // keys of the items; there is a provision to to use templated heaps
 // to implement the merge.
 
-// $Id: ami_optimized_merge.h,v 1.42 1999-10-21 22:57:46 tavi Exp $	
+// $Id: ami_optimized_merge.h,v 1.43 2000-01-13 21:21:34 tavi Exp $	
 
 // TO DO: substream_count setting; don't depend on current_stream_len
 
@@ -221,7 +221,7 @@ AMI_err
 AMI_single_merge(AMI_STREAM<T> **instreams, arity_t arity, 
 		   AMI_STREAM<T> *outstream) {
 
-  unsigned int j;
+  unsigned int i, j;
   AMI_err ami_err;
   T merge_out;
 
