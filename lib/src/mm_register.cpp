@@ -7,7 +7,7 @@
 
 // A simple registration based memory manager.
 
-static char mm_register_id[] = "$Id: mm_register.cpp,v 1.6 1999-04-09 22:15:01 rajiv Exp $";
+static char mm_register_id[] = "$Id: mm_register.cpp,v 1.7 1999-04-22 17:23:14 rajiv Exp $";
 
 #include <assert.h>
 #include "lib_config.h"
@@ -42,7 +42,8 @@ MM_register::~MM_register(void)
 MM_err MM_register::register_allocation(size_t sz)
 {
     if (sz > remaining) {
-        return MM_ERROR_INSUFFICIENT_SPACE;
+	  LOG_DEBUG_ID("out of mm memory");
+	  return MM_ERROR_INSUFFICIENT_SPACE;
     }
 
     remaining -= sz;
