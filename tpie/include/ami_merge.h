@@ -8,7 +8,7 @@
 // lower level streams will use appropriate levels of buffering.  This
 // will be more critical for parallel disk implementations.
 //
-// $Id: ami_merge.h,v 1.10 1994-11-02 21:55:40 darrenv Exp $
+// $Id: ami_merge.h,v 1.11 1994-12-16 21:11:36 darrenv Exp $
 //
 #ifndef _AMI_MERGE_H
 #define _AMI_MERGE_H
@@ -327,7 +327,7 @@ AMI_err AMI_main_mem_merge(AMI_STREAM<T> *instream,
             return ae;
         }
 
-        delete mm_stream;
+        delete [] mm_stream;
 
         return AMI_ERROR_NO_ERROR;
 
@@ -624,7 +624,7 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
             }            
         }
 
-        delete mm_stream;
+        delete [] mm_stream;
 
         // Make sure the total length of the temporary stream is the
         // same as the total length of the original input stream.
@@ -846,6 +846,8 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
 
         }
 
+        delete [] the_substreams;
+        
         return AMI_ERROR_NO_ERROR;
     }
 }
