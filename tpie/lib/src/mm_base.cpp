@@ -7,7 +7,7 @@
 
 
 
-static char mm_base_id[] = "$Id: mm_base.cpp,v 1.1 1994-10-31 21:46:06 darrenv Exp $";
+static char mm_base_id[] = "$Id: mm_base.cpp,v 1.2 1994-12-16 21:14:29 darrenv Exp $";
 
 
 
@@ -31,24 +31,32 @@ extern MM_register MM_manager;
 
 int register_new = 0;
 
+// This is to ensure alignment on quad word boundaries.  It may be
+// possible to check whether a machine needs this at configuration
+// time or if dword alignment is ok.  On the HP 9000, bus errors occur
+// when loading doubles that are not qword aligned.
+
+#define SIZE_SPACE (sizeof(size_t) > 8 ? sizeof(size_t) : 8)
+
 void * operator new (size_t sz) {
     void *p;
     
-    if ((register_new) && (MM_manager.register_allocation(sz+sizeof(size_t))
+    if ((register_new) && (MM_manager.register_allocation(sz+SIZE_SPACE)
                            != MM_ERROR_NO_ERROR)) {
         return (void *)0;
     }
     
-    p = malloc(sz + sizeof(size_t));
+    p = malloc(sz + SIZE_SPACE);
     *((size_t *)p) = sz;
-    return ((size_t *)p) + 1;
+    return ((char *)p) + SIZE_SPACE;
 }
 
 void operator delete (void *ptr) {
     if (register_new) {
-        MM_manager.register_deallocation(*((size_t *)ptr - 1) +
-                                         sizeof(size_t));
+        MM_manager.register_deallocation(*((size_t *)
+                                           (((char *)ptr) - SIZE_SPACE)) +
+                                         SIZE_SPACE);
     }
-    free(((char *)ptr) - sizeof(size_t));
+    free(((char *)ptr) - SIZE_SPACE);
 }
     
