@@ -3,7 +3,7 @@
 // Created: 2002/10/30
 // Authors: Joerg Rotthowe, Jan Vahrenhold, Markus Vogel
 //
-// $Id: portability.h,v 1.15 2003-09-16 14:58:02 tavi Exp $
+// $Id: portability.h,v 1.16 2003-09-16 15:03:31 tavi Exp $
 //
 // This header-file offers macros for independent use on Win and Unix systems.
 
@@ -338,7 +338,7 @@ typedef unsigned int TPIE_BLOCK_ID_TYPE;
 // Generate 31 random bits using rand(), which normally generates only
 // 15 random bits.
 inline int TPIE_OS_RANDOM() {
-  return rand() % 0x7fff + (rand() % 0x7fff << 15) + (rand() % 0x2 << 30);
+  return rand() % 0x8000 + (rand() % 0x8000 << 15) + (rand() % 0x2 << 30);
 }
 #else
 inline long TPIE_OS_RANDOM() {
