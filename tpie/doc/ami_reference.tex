@@ -1,5 +1,5 @@
 %%
-%% $Id: ami_reference.tex,v 1.2 1999-06-12 15:45:42 rbarve Exp $
+%% $Id: ami_reference.tex,v 1.3 1999-06-12 16:18:07 rbarve Exp $
 %%
 \chapter{AMI Programmers' Reference}
 
@@ -102,14 +102,14 @@ elt.
 
 Since it was deemed useful to read or write many items at a time
 from or to an AMI\_STREAM, TPIE provides the 
-\verb|read_array(T *mm_space, off_t *len)| and the 
+\verb|read_array(T *mm_space, off_t *len)| and the \\
 \verb|write_array(const T *mm_space, off_t len)| to read
 (resp. write) *len (resp. len) items into (resp. from) 
 array \verb|mm_space| of items of type T from (resp. into) the
 current locations of the \verb|AMI_STREAM<T>|.
 
 
-\item{seek}
+\item{Seek:}
 In order to seek within a stream, the user can:
 \begin{verbatim}
     AMI_err seek(off_t offset);
@@ -117,7 +117,7 @@ In order to seek within a stream, the user can:
 Seeks to the item offset in the stream.
 
 
-\subsubsection{truncate}
+\item{Truncate:}
 \begin{verbatim}
     AMI_err truncate(off_t offset);
 \end{verbatim}
@@ -125,7 +125,7 @@ Truncate/extend the stream to the specified number of items. The file
 pointer will be moved to the end of the stream.
 
 
-\subsubsection{Get main\_memory\_usage}
+\item{Get main\_memory\_usage}
 In order to obtain the total number of bytes taken up by a stream, the user can
 query using:
 \begin{verbatim}
@@ -172,6 +172,7 @@ Sets the persistence of the stream to one of the following:
 
 By default, all streams are deleted at destruction time
 (\verb|PERSIST_DELETE|).  
+\end{itemize}
 
 \section{AMI Errors}
 \label{sec:ami-errors}
@@ -642,7 +643,7 @@ information while merging and sorting, as indicated above.
 
 \index{sorting!comparison|(}
 
-\subsubsection{External Sorting based on \verb|AMI_partition_and_merge()|}
+\subsubsection{External Sorting based on AMI\_partition\_and\_merge()}
 
 In order to provide maximum flaxibility to programmers, comparison
 sorting a set of objects in a stream can be done in three different
@@ -700,7 +701,7 @@ illustrates the use of multiple comparison functions to sort streams
 of objects in different ways.
 
 
-\subsubsection{External Sorting based on \verb|MIAMI_single_merge_*()|}
+\subsubsection{External Sorting based on MIAMI\_single\_merge\_*()}
 In situations wherein merge management objects are sought to be avoided 
 (see Section~\ref{sec:ref-ami-merge}), the programmer may use the 
 \verb|AMI_partition_and_merge_stream()|, \verb|AMI_partition_and_merge_Key()|,
