@@ -3,7 +3,7 @@
 // Authors: Octavian Procopiuc <tavi@cs.duke.edu>
 //          (using some code by Rakesh Barve)
 //
-// $Id: bte_coll_base.h,v 1.18 2003-09-08 14:58:29 tavi Exp $
+// $Id: bte_coll_base.h,v 1.19 2003-09-13 18:36:24 tavi Exp $
 //
 // BTE_collection_base class and various basic definitions.
 //
@@ -519,8 +519,15 @@ BTE_err BTE_collection_base<BIDT>::read_header(char* bcc_name) {
   TPIE_OS_OFFSET lseek_retval;
   // Some more error checking.
   if ((lseek_retval = TPIE_OS_LSEEK(bcc_fd_, 0, TPIE_OS_FLAG_SEEK_END)) != bid_to_file_offset(header_.total_blocks)) {
-    LOG_FATAL_ID("Header field total_blocks incompatible with Unix file length in file:");
+    LOG_FATAL_ID("File length mismatch for:");
     LOG_FATAL_ID(bcc_name);
+    LOG_FATAL("\tReturn value of seek (to end): ");
+    LOG_FATAL(lseek_retval);
+    LOG_FATAL("\n\tReturn value of bid_to_file_offset(header_.total_blocks): ");
+    LOG_FATAL(bid_to_file_offset(header_.total_blocks));
+    LOG_FATAL("\n\theader_.total_blocks: ");
+    LOG_FATAL(header_.total_blocks);
+    LOG_FATAL("\n");
     return BTE_ERROR_BAD_HEADER;
   }
 
@@ -550,6 +557,9 @@ BTE_err BTE_collection_base<BIDT>::write_header(char *bcc_name) {
   }
 
   file_pointer = os_block_size_;
+
+  LOG_APP_DEBUG_ID("header_.total_blocks: ");
+  LOG_APP_DEBUG_ID(header_.total_blocks);
 
   delete [] tmp_buffer;
   return BTE_ERROR_NO_ERROR;
