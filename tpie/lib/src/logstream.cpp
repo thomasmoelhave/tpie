@@ -4,13 +4,13 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/12/94
 //
-
-// This will go into a library whne it is ready.
+// The logstream class, for writing to the log.
+//
 
 #include <versions.h>
-#include <logstream.h>
+VERSION(logstream_cpp,"$Id: logstream.cpp,v 1.13 2001-06-16 20:31:56 tavi Exp $");
 
-VERSION(logstream_cpp,"$Id: logstream.cpp,v 1.12 2001-06-07 17:07:40 tavi Exp $");
+#include <logstream.h>
 
 // Contructor.
 logstream::logstream(const char *fname, 
