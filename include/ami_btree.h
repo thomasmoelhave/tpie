@@ -3,10 +3,14 @@
 // File:    ami_btree.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_btree.h,v 1.34 2005-01-14 19:15:49 tavi Exp $
+// $Id: ami_btree.h,v 1.35 2005-01-27 21:13:35 tavi Exp $
 //
 // AMI_btree declaration and implementation.
 //
+
+/** @file ami_btree.h
+    A templated implementation of a B+-tree.
+*/
 
 #ifndef _AMI_BTREE_H
 #define _AMI_BTREE_H
@@ -18,6 +22,7 @@
 #include <vector>
 #include <functional>
 #include <fstream>
+#include <string>
 
 // Get a stream implementation.
 #include <ami_stream.h>
@@ -34,26 +39,26 @@
 // The tpie_tempnam() function
 #include <tpie_tempnam.h>
 
-// Determines how elements are stored in a leaf. If set to 0, elements are
-// stored in the order in which they are inserted, which may results in
-// slower queries. If set to 1, elements are stored in a sorted list, which
-// may result in slower insertions when allowing duplicate keys (see
-// below).
+/// Determines how elements are stored in a leaf. If set to 0, elements are
+/// stored in the order in which they are inserted, which may results in
+/// slower queries. If set to 1, elements are stored in a sorted list, which
+/// may result in slower insertions when allowing duplicate keys (see
+/// below).
 #ifndef AMI_BTREE_LEAF_ELEMENTS_SORTED
 #  define AMI_BTREE_LEAF_ELEMENTS_SORTED 1
 #endif
 
-// Determines whether to allow duplicate keys when inserting and bulk
-// loading. Support for duplicate keys is incomplete, so you might
-// experience errors when setting this to 0.
+/// Determines whether to allow duplicate keys when inserting and bulk
+/// loading. Support for duplicate keys is incomplete, so you might
+/// experience errors when setting this to 0.
 #ifndef AMI_BTREE_UNIQUE_KEYS
 # define AMI_BTREE_UNIQUE_KEYS 1
 #endif
 
-// Determines whether "previous" pointers are maintained for leaves.
-// Don't set to 0! There is good reason to maintain prev pointers:
-// computing predecessor queries. Unless maintaining previous pointers
-// proves costly, we keep them.
+/// Determines whether "previous" pointers are maintained for leaves.
+/// Don't set to 0! There is good reason to maintain prev pointers:
+/// computing predecessor queries. Unless maintaining previous pointers
+/// proves costly, we keep them.
 #ifndef AMI_BTREE_LEAF_PREV_POINTER
 #  define AMI_BTREE_LEAF_PREV_POINTER 1
 #endif
@@ -63,28 +68,38 @@ enum AMI_btree_status {
   AMI_BTREE_STATUS_INVALID
 };
 
-// Parameters for the AMI_btree. Passed to the AMI_btree constructor.
+/// Parameters for the AMI_btree. Passed to the AMI_btree constructor.
 class AMI_btree_params {
 public:
 
-  // Min number of Value's in a leaf. 0 means use default B-tree behavior.
+  /// Min number of Value's in a leaf. 0 means use default B-tree behavior.
   TPIE_OS_SIZE_T leaf_size_min;
-  // Min number of Key's in a node. 0 means use default B-tree behavior.
+  /// Min number of Key's in a node. 0 means use default B-tree behavior.
   TPIE_OS_SIZE_T node_size_min;
-  // Max number of Value's in a leaf. 0 means use all available capacity.
+  /// Max number of Value's in a leaf. 0 means use all available capacity.
   TPIE_OS_SIZE_T leaf_size_max;
-  // Max number of Key's in a node. 0 means use all available capacity.
+  /// Max number of Key's in a node. 0 means use all available capacity.
   TPIE_OS_SIZE_T node_size_max;
-  // How much bigger is the leaf logical block than the system block.
+  /// How much bigger is the leaf logical block than the system block.
   TPIE_OS_SIZE_T leaf_block_factor;
-  // How much bigger is the node logical block than the system block.
+  /// How much bigger is the node logical block than the system block.
   TPIE_OS_SIZE_T node_block_factor;
-  // The max number of leaves cached.
+  /// The max number of leaves cached.
   TPIE_OS_SIZE_T leaf_cache_size;
-  // The max number of nodes cached.
+  /// The max number of nodes cached.
   TPIE_OS_SIZE_T node_cache_size;
 
-  // The default parameter values.
+  /// Set default parameter values.
+  /// <table>
+  /// <tr><td>leaf_size_min</td><td>0</td><td>(default B-tree behavior; true value is set during B-tree construction)</td></tr>
+  /// <tr><td>node_size_min</td><td>0</td><td>(default B-tree behavior; true value is set during B-tree construction)</td></tr>
+  /// <tr><td>leaf_size_max</td><td>0</td><td>(default B-tree behavior; true value is set during B-tree construction)</td></tr>
+  /// <tr><td>node_size_max</td><td>0</td><td>(default B-tree behavior; true value is set during B-tree construction)</td></tr>
+  /// <tr><td>leaf_block_factor</td><td>1</td><td></td></tr>
+  /// <tr><td>node_block_factor</td><td>1</td><td></td></tr>
+  /// <tr><td>leaf_cache_size</td><td>32</td><td></td></tr>
+  /// <tr><td>node_cache_size</td><td>64</td><td></td></tr>
+  /// </table>
   AMI_btree_params(): 
     leaf_size_min(0), node_size_min(0), 
     leaf_size_max(0), node_size_max(0),
@@ -92,7 +107,7 @@ public:
     leaf_cache_size(32), node_cache_size(64) {}
 };
 
-// A global object storing the default parameter values.
+/// A global object storing the default parameter values.
 const AMI_btree_params btree_params_default = AMI_btree_params();
 
 // Forward references.
@@ -101,8 +116,26 @@ class AMI_btree_leaf;
 template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL> 
 class AMI_btree_node;
 
-// The AMI_btree class.
-template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL = BTE_COLLECTION >
+/** 
+  An implementation of the B<sup>+</sup>-tree.
+  The AMI_btree class implements the
+  behavior of a dynamic B<sup>+</sup>-tree or (a,b)-tree storing fixed-size data
+  items. All data elements (of type <em>Value</em>) are stored in the leaves of
+  the tree, with internal nodes containing keys (of type <em>Key</em>) and links
+  to other nodes. The keys are ordered using the Compare function
+  object, which should define a strict weak ordering (as in the STL sorting
+  algorithms). Keys are extracted from the <em>Value</em> data elements using
+  the <em>KeyOfValue</em> function object.
+
+  @param Key The key type.
+  @param Value The type of the data elements.
+  @param Compare A function object which defines a strict weak ordering for the keys.
+  @param KeyOfValue A function object for extracting a <em>Key</em> from a <em>Value</em>.
+  @param BTECOLL The underlying BTE collection type. It defaults to <em>BTE_COLLECTION</em>.
+
+  Example of usage: test_ami_btree.cpp
+*/
+template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL = BTE_COLLECTION>
 class AMI_btree {
 public:
 
@@ -113,70 +146,176 @@ public:
   typedef Value record_t;
   typedef AMI_btree_params params_t;
 
-  // Pass-through filter for range queries.
+  /** 
+      Default filter for range queries.
+      This is a function object that returns true 
+      (i.e., it lets every result of the query pass through).
+  */
   class dummy_filter_t {
   public:
     bool operator()(const Value& v) const { return true; }
   };
 
-  // Construct an empty B-tree.
+
+  /** Construct an empty B-tree using temporary storage.
+      The tree is stored in a
+   directory given by the <em>AMI_SINGLE_DEVICE</em> environment variable 
+   (or "/var/tmp/" if that variable is not set). The persistency flag is set to
+   <em>PERSIST_DELETE</em>. The <em>params</em> object contains the
+   user-definable parameters.
+
+   @see AMI_btree_params.
+   */
   AMI_btree(const AMI_btree_params &params = btree_params_default);
 
-  // Constructor. Initialize a AMI_btree from the given leaves and nodes.
+
+  /** Construct a B-tree from the given leaves and nodes.
+      The files
+   created/used by a Btree instance are outlined in the following
+   table.
+   <table>
+     <tr><td>".l.blk"</td><td>Contains the leaves block collection.</td></tr>
+     <tr><td>".l.stk"</td><td>Contains the free blocks stack for the leaves block collection.</td></tr>
+     <tr><td>".n.blk"</td><td>Contains the nodes block collection.</td></tr>
+     <tr><td>".n.stk"</td><td>Contains the free block stack for the nodes block collection.</td></tr>
+   </table>
+   The persistency flag is
+   set to <em>PERSIST_PERSISTENT</em>. The <em>params</em> object contains the
+   user-definable parameters.
+
+   @see AMI_btree_params, persist().
+  */
   AMI_btree(const char *base_file_name,
 	AMI_collection_type type = AMI_WRITE_COLLECTION,
 	const AMI_btree_params &params = btree_params_default);
 
-  // Sort in_stream and place the result in out_stream. If out_stream
-  // is NULL, a new temporary stream is created.
+  /**
+     @overload
+   */
+  AMI_btree(const string& base_file_name,
+	AMI_collection_type type = AMI_WRITE_COLLECTION,
+	const AMI_btree_params &params = btree_params_default);
+
+  /** Sort <em>in_stream</em> and place the result in <em>out_stream</em>.
+      This is a convenience function, used as an initial step in bulk loading.
+
+      If out_stream is NULL, a new temporary stream is created and <em>out_stream</em> 
+      points to it.
+
+      @see load().
+  */
   AMI_err sort(AMI_STREAM<Value>* in_stream, AMI_STREAM<Value>* &out_stream);
 
-  // Bulk load from sorted stream.
+
+  /** 
+      Bulk load the tree from a sorted stream. 
+      Leaves are filled to <em>leaf_fill</em> times capacity, and nodes are filled to 
+      <em>node_fill</em> times capacity.
+  */
   AMI_err load_sorted(AMI_STREAM<Value>* stream_s, 
-		      float leaf_fill = .75, float node_fill = .6);
+		      float leaf_fill = .75, float node_fill = .60);
 
-  // Bulk load from given stream. Calls sort and then load_sorted.
+  /** 
+      Bulk load from given stream. 
+      Calls sort() and then load_sorted(). 
+      Leaves are filled to <em>leaf_fill</em> times capacity, and nodes are filled to 
+      <em>node_fill</em> times capacity.
+  */
   AMI_err load(AMI_STREAM<Value>* s, 
-	       float leaf_fill = .75, float node_fill = .6);
+	       float leaf_fill = .75, float node_fill = .60);
 
-  // Write all elements stored in the tree to the given stream.
+
+  /** 
+      Write all elements stored in the tree to the given stream, in sorted order.
+      No changes are performed on the tree.
+  */
   AMI_err unload(AMI_STREAM<Value>* s);
 
-  // Bulk load from another AMI_btree.
-  AMI_err load(AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>* bt,
-	       float leaf_fill = .7, float node_fill = .5);
 
-  // Traverse the tree in dfs preorder. Return next node and its level
-  // (root is on level 0). Start the process by calling this with
-  // level=-1.
+  /** 
+      Bulk load from another B-tree.
+      This is a means of reoganizing a
+      B-tree after a lot of updates. A newly loaded structure may use less
+      space and may answer range queries faster. 
+      Leaves are filled to <em>leaf_fill</em> times capacity, and nodes are filled to 
+      <em>node_fill</em> times capacity.
+  */
+  AMI_err load(AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>* bt,
+	       float leaf_fill = .75, float node_fill = .60);
+
+
+  /**
+     Traverse the tree in depth-first-search preorder.
+     Returns a pair containing the next node to be visited and its level (root is on level 0). 
+     To initiate the process, the function should be called with -1 for <em>level</em>.
+  */
   pair<AMI_bid, Key> dfs_preorder(int& level);
 
-  // Insert an element.
+
+  /**
+     Insert the given element into the tree.
+     Returns <em>true</em> if the insertion succeeded, <em>false</em> otherwise 
+     (duplicate key)
+  */
   bool insert(const Value& v);
 
-  // Modify an element. Insert if not present
-  // Equivalent to erase followed by insert, but a single search
+
+  /**
+     Modify a given element.
+     If the given element is not found in the tree, it is inserted.
+     Equivalent to erase() followed by insert(), but using a single search operation.
+  */
   bool modify(const Value& v);
 
-  // Erase an element based on key.
+
+  /**
+     Delete the element with the given key from the tree.
+     If an element was found and deleted, the function returns <em>true</em>.
+     Otherwise, it returns <em>false</em>.
+  */
   bool erase(const Key& k);
 
-  // Find an element based on key. If found, return true and store the element in v.
+
+  /** 
+      Find an element based on the given key. 
+      If found, return <em>true</em> and store the element in <em>v</em>.
+      Otherwise, return false.
+  */
   bool find(const Key& k, Value& v);
 
-  // Find a predecessor based on key.
+
+  /**
+    Find the highest element stored in the tree whose key is lower than the given key. 
+    If such an element exists, the function returns <em>true</em> and stores the result in
+    <em>v</em>. Otherwise, it returns <em>false</em>.
+
+    @see succ()
+  */ 
   bool pred(const Key& k, Value& v);
 
-  // Find a successor based on key.
+
+  /**
+    Find the lowest element stored in the tree whose key is higher than the given key. 
+    If such an element exists, the function returns <em>true</em> and stores the result in
+    <em>v</em>. Otherwise, it returns <em>false</em>.
+
+    @see pred()
+  */
   bool succ(const Key& k, Value& v);
-    
-  // Report all values in the range determined by keys k1 and k2.
+
+
+  /**
+     Find all elements within the given range.
+     If <em>s</em> is not <em>NULL</em>, the elements found are stored 
+     in the stream and the number of elements found is returned. 
+     Otherwise, the results are not stored, only the count is returned.
+  */
   // This method is inlined such as to comply with MSVC++ "requirements".
   template<class Filter>
   size_t range_query(const Key& k1, const Key& k2, 
 		     AMI_STREAM<Value>* s, const Filter& filter_through)
 {
-
+  
   Key kmin = comp_(k1, k2) ? k1: k2;
   Key kmax = comp_(k1, k2) ? k2: k1;
 
@@ -271,47 +410,152 @@ public:
   return result;
 }
 
-TPIE_OS_OFFSET range_query(const Key& k1, const Key& k2, AMI_STREAM<Value>* s)
+
+  /**
+     Find all elements within the given range.
+     If <em>s</em> is not <em>NULL</em>, the elements found are stored 
+     in the stream and the number of elements found is returned. 
+     Otherwise, the results are not stored, only the count is returned.
+  */
+  TPIE_OS_OFFSET range_query(const Key& k1, const Key& k2, AMI_STREAM<Value>* s)
   { return range_query(k1, k2, s, dummy_filter_t()); }
 
+
+  /**
+     Same as range_query().
+   */
   template<class Filter>
   size_t window_query(const Key& k1, const Key& k2, 
 		      AMI_STREAM<Value>* s, const Filter& f) 
   { return range_query(k1, k2, s, f); }
+
+
+  /**
+     Same as range_query().
+   */
   TPIE_OS_OFFSET window_query(const Key& k1, const Key& k2, AMI_STREAM<Value>* s)
   { return range_query(k1, k2, s, dummy_filter_t()); }
 
-  // Return the number of Value elements stored.
+
+  /** 
+     Inquire the number of elements stored in the leaves of this tree.
+  */
   TPIE_OS_OFFSET size() const { return header_.size; }
 
+
+  /**
+     Inquire the number of leaf nodes of this tree.
+   */
   TPIE_OS_OFFSET leaf_count() const { return pcoll_leaves_->size(); }
+
+
+  /**
+     Inquire the number of internal (non-leaf) nodes of this tree.
+  */
   TPIE_OS_OFFSET node_count() const { return pcoll_nodes_->size(); }
+
 
   TPIE_OS_OFFSET os_block_count() const { 
     return pcoll_leaves_->size() * params_.leaf_block_factor + 
            pcoll_nodes_->size() * params_.node_block_factor; 
   }
 
+
   // Return the bid of the root. Make this protected or remove it.
   AMI_bid root_bid() const { return header_.root_bid; }
 
-  // Return the height.
+  /**
+     Return the height of the tree, including the leaf level. 
+     A value of 0 represents an empty tree. 
+     A value of 1 represents a tree with only one leaf node (which is also the root node).
+  */
   TPIE_OS_SIZE_T height() const { return header_.height; }
 
-  // Set the persistence. It passes per along to the two block collections.
+
+  /**
+     Set the persistency flag of the B-tree. 
+     The persistency flag dictates the behavior of the destructor of
+     this <em>AMI_btree</em> instance. 
+     If <em>per</em> is <em>PERSIST_DELETE</em>, all files
+     associated with the tree will be removed, and all the elements stored in
+     the tree will be lost after the destruction of this <em>AMI_btree</em> instance. 
+     If <em>per</em> is <em>PERSIST_PERSISTENT</em>, all files associated with the tree
+     will be closed during the destruction, and all the
+     information needed to reopen this tree will be saved.
+  */
   void persist(persistence per);
 
-  // Inquire the (real) parameters.
+
+  /**
+     Return a const
+     reference to the <em>AMI_btree_params</em> object used by the B-tree. 
+     This object contains the true values of all parameters (unlike the object
+     passed to the constructor, which may contain 0-valued parameters to
+     indicate default behavior).
+
+     @see AMI_btree_params
+  */
   const AMI_btree_params& params() const { return params_; }
 
-  // Inquire the status.
+
+  /**
+     Return the status of the collection. 
+     The result is either
+     <em>AMI_BTREE_STATUS_VALID</em> or
+     <em>AMI_BTREE_STATUS_INVALID</em>. The only operation that can leave
+     the tree invalid is the constructor (if that happens, the log file
+     contains more information).
+
+     @see is_valid()
+  */
   AMI_btree_status status() const { return status_; }
+
+
+  /**
+     Return <em>true</em> if the status
+     of the tree is <em>AMI_BTREE_STATUS_VALID</em>, <em>false</em>
+     otherwise.
+
+     @see status()
+  */
   bool is_valid() const { return status_ == AMI_BTREE_STATUS_VALID; }
 
-  // Flush the caches and return a const reference to a tree_stats object.
+
+  /**
+     Return an object containing the statistics of this B-tree.
+     The following statistics are collected:
+     <table>
+     <tr><td>BLOCK_GET</td><td>Number of block reads</td></tr>
+     <tr><td>BLOCK_PUT</td><td>Number of block writes</td></tr>
+     <tr><td>BLOCK_DELETE</td><td>Number of block deletes</td></tr>
+     <tr><td>BLOCK_SYNC</td><td>Number of block sync operations</td></tr>
+     <tr><td>COLLECTION_OPEN</td><td>Number of collection open operations</td></tr>
+     <tr><td>COLLECTION_CLOSE</td><td>Number of collection close operations</td></tr>
+     <tr><td>COLLECTION_CREATE</td><td>Number of collection create operations</td></tr>
+     <tr><td>COLLECTION_DELETE</td><td>Number of collection delete operations</td></tr>
+     </table>
+     The statistics refer to this B-tree instance only.
+     
+     @see gstats()
+   */
   const tpie_stats_tree &stats();
 
-  // Destructor. Flush the caches and close the collections.
+  /** 
+      Inquire the base path name.
+      This is the name of the B-tree, determined during construction. 
+
+      @see AMI_btree()
+  */
+  const string& name() const { return name_; }
+
+
+  /**
+     Close (and potentially destroy) this B-tree.
+     If the persistency flag is <em>PERSIST_DELETE</em>, all files
+     associated with the tree will be removed.
+
+     @see persist()
+  */
   ~AMI_btree();
 
 protected:
@@ -353,11 +597,9 @@ protected:
   AMI_btree_params params_;
 
   // The collection storing the leaves.
-  //  AMI_COLLECTION * pcoll_leaves_;
   collection_t* pcoll_leaves_;
 
   // The collection storing the internal nodes (could be the same).
-  //  AMI_COLLECTION * pcoll_nodes_;
   collection_t* pcoll_nodes_;
 
   // Comparison object.
@@ -388,6 +630,9 @@ protected:
 
   // Use this to obtain keys from Value elements.
   KeyOfValue kov_;
+
+  // Base path name.
+  string name_;
 
   // Insert helpers.
   bool insert_split(const Value& v, 
@@ -461,10 +706,15 @@ public:
   void release_node(node_t* p);
 };
 
+
+
+
 // Define shortcuts. They are undefined at the end of the file.
 #define AMI_BTREE_NODE AMI_btree_node<Key, Value, Compare, KeyOfValue, BTECOLL>
 #define AMI_BTREE_LEAF AMI_btree_leaf<Key, Value, Compare, KeyOfValue, BTECOLL>
 #define AMI_BTREE      AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>
+
+
 
 // The Info element of a leaf.
 struct _AMI_btree_leaf_info {
@@ -1027,17 +1277,18 @@ AMI_BTREE_NODE::~AMI_btree_node() {
   // TODO: is there anything to do here?
 }
 
-///////////////////////////
+///////////////////////////////
 //////// **AMI_btree** ////////
-///////////////////////////
+///////////////////////////////
 
 
 //// *AMI_btree::AMI_btree* ////
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-AMI_BTREE::AMI_btree(const AMI_btree_params &params): header_(), params_(params), 
+AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::AMI_btree(const AMI_btree_params &params): header_(), params_(params), 
   status_(AMI_BTREE_STATUS_VALID) {
 
   char *base_name = tpie_tempnam("AMI_BTREE");
+  name_ = base_name;
   shared_init(base_name, AMI_WRITE_COLLECTION);
   if (status_ == AMI_BTREE_STATUS_VALID) {
     persist(PERSIST_DELETE);
@@ -1046,9 +1297,9 @@ AMI_BTREE::AMI_btree(const AMI_btree_params &params): header_(), params_(params)
 
 //// *AMI_btree::AMI_btree* ////
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-AMI_BTREE::AMI_btree(const char *base_file_name, AMI_collection_type type, 
+AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::AMI_btree(const char *base_file_name, AMI_collection_type type, 
 	     const AMI_btree_params &params):
-  header_(), params_(params), status_(AMI_BTREE_STATUS_VALID), stats_(), kov_() {
+  header_(), params_(params), status_(AMI_BTREE_STATUS_VALID), stats_(), kov_(), name_(base_file_name) {
 
   shared_init(base_file_name, type);
 
@@ -1062,10 +1313,27 @@ AMI_BTREE::AMI_btree(const char *base_file_name, AMI_collection_type type,
   }
 }
 
+//// *AMI_btree::AMI_btree* ////
+template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
+AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::AMI_btree(const string& base_file_name, AMI_collection_type type, 
+	     const AMI_btree_params &params):
+  header_(), params_(params), status_(AMI_BTREE_STATUS_VALID), stats_(), kov_(), name_(base_file_name) {
+
+  shared_init(base_file_name.c_str(), type);
+
+  if (status_ == AMI_BTREE_STATUS_VALID) {
+    if (pcoll_leaves_->size() > 0) {
+      // Read root bid, height and size from header.
+      header_ = *((header_t *) pcoll_nodes_->user_data());
+      // TODO: sanity checks.
+    }
+    persist(PERSIST_PERSISTENT);
+  }
+}
 
 //// *AMI_btree::shared_init* ////
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-void AMI_BTREE::shared_init(const char* base_file_name, AMI_collection_type type) {
+void AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::shared_init(const char* base_file_name, AMI_collection_type type) {
 
   if (base_file_name == NULL) {
     status_ = AMI_BTREE_STATUS_INVALID;
@@ -1133,7 +1401,7 @@ void AMI_BTREE::shared_init(const char* base_file_name, AMI_collection_type type
 
 //// *AMI_btree::sort* ////
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-AMI_err AMI_BTREE::sort(AMI_STREAM<Value>* in_stream, AMI_STREAM<Value>* &out_stream) {
+AMI_err AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::sort(AMI_STREAM<Value>* in_stream, AMI_STREAM<Value>* &out_stream) {
 
   if (status_ != AMI_BTREE_STATUS_VALID) {
     TP_LOG_FATAL_ID("sort: tree is invalid.");
@@ -1175,7 +1443,7 @@ AMI_err AMI_BTREE::sort(AMI_STREAM<Value>* in_stream, AMI_STREAM<Value>* &out_st
 
 //// *AMI_btree::load_sorted* ////
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-AMI_err AMI_BTREE::load_sorted(AMI_STREAM<Value>* s, float leaf_fill, float node_fill) {
+AMI_err AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::load_sorted(AMI_STREAM<Value>* s, float leaf_fill, float node_fill) {
 
   if (status_ != AMI_BTREE_STATUS_VALID) {
     TP_LOG_FATAL_ID("load: tree is invalid.");
@@ -1220,7 +1488,7 @@ AMI_err AMI_BTREE::load_sorted(AMI_STREAM<Value>* s, float leaf_fill, float node
 
 //// *AMI_btree::load* ////
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-AMI_err AMI_BTREE::load(AMI_STREAM<Value>* s, float leaf_fill, float node_fill) {
+AMI_err AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::load(AMI_STREAM<Value>* s, float leaf_fill, float node_fill) {
 
   AMI_err err;
   AMI_STREAM<Value>* stream_s = new AMI_STREAM<Value>;
@@ -1238,7 +1506,7 @@ AMI_err AMI_BTREE::load(AMI_STREAM<Value>* s, float leaf_fill, float node_fill) 
 
 //// *AMI_btree::unload* ////
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-AMI_err AMI_BTREE::unload(AMI_STREAM<Value>* s) {
+AMI_err AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::unload(AMI_STREAM<Value>* s) {
 
   if (status_ != AMI_BTREE_STATUS_VALID) {
     TP_LOG_WARNING_ID("unload: tree is invalid. unload aborted.");
@@ -1268,7 +1536,7 @@ AMI_err AMI_BTREE::unload(AMI_STREAM<Value>* s) {
 
 //// *AMI_btree::load* ////
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-AMI_err AMI_BTREE::load(AMI_BTREE* bt, float leaf_fill, float node_fill) {
+AMI_err AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::load(AMI_BTREE* bt, float leaf_fill, float node_fill) {
 
   if (!is_valid()) {
     TP_LOG_WARNING_ID("load: tree is invalid.");
@@ -1320,7 +1588,7 @@ AMI_err AMI_BTREE::load(AMI_BTREE* bt, float leaf_fill, float node_fill) {
 
 //// *AMI_btree::dfs_preorder* ////
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-pair<AMI_bid, Key> AMI_BTREE::dfs_preorder(int& level) {
+pair<AMI_bid, Key> AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::dfs_preorder(int& level) {
 
   Key k;
   if (level == -1) {
@@ -1371,7 +1639,7 @@ pair<AMI_bid, Key> AMI_BTREE::dfs_preorder(int& level) {
 
 //// *AMI_btree::find* ////
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-bool AMI_BTREE::find(const Key& k, Value& v) {
+bool AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::find(const Key& k, Value& v) {
 
   bool ans;
   size_t idx;
@@ -1403,7 +1671,7 @@ bool AMI_BTREE::find(const Key& k, Value& v) {
 
 //// *AMI_btree::pred* ////
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-bool AMI_BTREE::pred(const Key& k, Value& v) {
+bool AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::pred(const Key& k, Value& v) {
 
   bool ans = false;
   AMI_BTREE_LEAF * pl;
@@ -1445,7 +1713,7 @@ bool AMI_BTREE::pred(const Key& k, Value& v) {
 
 //// *AMI_btree::succ* ////
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-bool AMI_BTREE::succ(const Key& k, Value& v) {
+bool AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::succ(const Key& k, Value& v) {
 
   bool ans = false;
   AMI_BTREE_LEAF * pl;
@@ -1483,7 +1751,7 @@ bool AMI_BTREE::succ(const Key& k, Value& v) {
 
 //// *AMI_btree::insert* ////
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-bool AMI_BTREE::insert(const Value& v) {
+bool AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::insert(const Value& v) {
 
   bool ans = true;
 
@@ -1526,7 +1794,7 @@ bool AMI_BTREE::insert(const Value& v) {
 
 //// *AMI_btree::modify* ////
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-bool AMI_BTREE::modify(const Value& v) {
+bool AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::modify(const Value& v) {
                                                                                 
   bool ans = true;
                                                                                 
@@ -1578,7 +1846,7 @@ bool AMI_BTREE::modify(const Value& v) {
 
 //// *AMI_btree::insert_load* ////
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-inline bool AMI_BTREE::insert_load(const Value& v, AMI_BTREE_LEAF* &lcl) {
+inline bool AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::insert_load(const Value& v, AMI_BTREE_LEAF* &lcl) {
 
   AMI_BTREE_LEAF *p;
   bool ans = false;
@@ -1626,7 +1894,7 @@ inline bool AMI_BTREE::insert_load(const Value& v, AMI_BTREE_LEAF* &lcl) {
 
 //// *AMI_btree::insert_empty* ////
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-bool AMI_BTREE::insert_empty(const Value& v) {
+bool AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::insert_empty(const Value& v) {
   bool ans;
   assert(header_.size == 0);
 
@@ -1658,7 +1926,7 @@ bool AMI_BTREE::insert_empty(const Value& v) {
 
 //// *AMI_btree::insert_split* ////
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-bool AMI_BTREE::insert_split(const Value& v, AMI_BTREE_LEAF* p, AMI_bid& leaf_id, bool loading) {
+bool AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::insert_split(const Value& v, AMI_BTREE_LEAF* p, AMI_bid& leaf_id, bool loading) {
 
   AMI_BTREE_LEAF *q, *r;
   pair<AMI_bid, size_t> top;
@@ -1773,7 +2041,7 @@ bool AMI_BTREE::insert_split(const Value& v, AMI_BTREE_LEAF* p, AMI_bid& leaf_id
 
 //// *AMI_btree::find_leaf* ////
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-AMI_bid AMI_BTREE::find_leaf(const Key& k) {
+AMI_bid AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::find_leaf(const Key& k) {
 
   AMI_BTREE_NODE * p;
   AMI_bid bid = header_.root_bid;
@@ -1803,7 +2071,7 @@ AMI_bid AMI_BTREE::find_leaf(const Key& k) {
 
 //// *AMI_btree::find_min_leaf* ////
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-AMI_bid AMI_BTREE::find_min_leaf() {
+AMI_bid AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::find_min_leaf() {
   AMI_BTREE_NODE* p;
   AMI_bid bid = header_.root_bid;
   int level;
@@ -1821,19 +2089,19 @@ AMI_bid AMI_BTREE::find_min_leaf() {
 
 //// *AMI_btree::underflow_leaf* ////
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-bool AMI_BTREE::underflow_leaf(AMI_BTREE_LEAF *p) const {
+bool AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::underflow_leaf(AMI_BTREE_LEAF *p) const {
   return p->size() <= cutoff_leaf(p);
 }
 
 //// *AMI_btree::underflow_node* ////
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-bool AMI_BTREE::underflow_node(AMI_BTREE_NODE *p) const {
+bool AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::underflow_node(AMI_BTREE_NODE *p) const {
   return p->size() <= cutoff_node(p);
 }
 
 //// *AMI_btree::cutoff_leaf* ////
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-size_t AMI_BTREE::cutoff_leaf(AMI_BTREE_LEAF *p) const {
+size_t AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::cutoff_leaf(AMI_BTREE_LEAF *p) const {
   // Be careful how you test for the root (thanks, Andrew).
   return (p->bid() == header_.root_bid && header_.height == 1) ? 0 
     : params_.leaf_size_min - 1;
@@ -1841,25 +2109,25 @@ size_t AMI_BTREE::cutoff_leaf(AMI_BTREE_LEAF *p) const {
 
 //// *AMI_btree::cutoff_node* ////
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-size_t AMI_BTREE::cutoff_node(AMI_BTREE_NODE *p) const {
+size_t AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::cutoff_node(AMI_BTREE_NODE *p) const {
   return (p->bid() == header_.root_bid) ? 0 : params_.node_size_min - 1;
 }
 
 //// *AMI_btree::full_leaf* ////
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-bool AMI_BTREE::full_leaf(const AMI_BTREE_LEAF *p) const {
+bool AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::full_leaf(const AMI_BTREE_LEAF *p) const {
   return (p->size() == params_.leaf_size_max); 
 }
 
 //// *AMI_btree::full_node* ////
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-bool AMI_BTREE::full_node(const AMI_BTREE_NODE *p) const {
+bool AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::full_node(const AMI_BTREE_NODE *p) const {
   return (p->size() == params_.node_size_max);
 }
 
 //// *AMI_btree::balance_node* ////
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-bool AMI_BTREE::balance_node(AMI_BTREE_NODE *f, AMI_BTREE_NODE *p, size_t pos) {
+bool AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::balance_node(AMI_BTREE_NODE *f, AMI_BTREE_NODE *p, size_t pos) {
 
   bool ans = false;
   AMI_BTREE_NODE *sib;
@@ -1905,7 +2173,7 @@ bool AMI_BTREE::balance_node(AMI_BTREE_NODE *f, AMI_BTREE_NODE *p, size_t pos) {
 
 //// *AMI_btree::balance_leaf* ////
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-bool AMI_BTREE::balance_leaf(AMI_BTREE_NODE *f, AMI_BTREE_LEAF *p, size_t pos) {
+bool AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::balance_leaf(AMI_BTREE_NODE *f, AMI_BTREE_LEAF *p, size_t pos) {
 
   bool ans = false;
   AMI_BTREE_LEAF *sib;
@@ -1957,7 +2225,7 @@ bool AMI_BTREE::balance_leaf(AMI_BTREE_NODE *f, AMI_BTREE_LEAF *p, size_t pos) {
 
 //// *AMI_btree::merge_leaf* ////
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-void AMI_BTREE::merge_leaf(AMI_BTREE_NODE* f, AMI_BTREE_LEAF* &p, size_t pos) {
+void AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::merge_leaf(AMI_BTREE_NODE* f, AMI_BTREE_LEAF* &p, size_t pos) {
 
   AMI_BTREE_LEAF * sib, *r;
 
@@ -2009,7 +2277,7 @@ void AMI_BTREE::merge_leaf(AMI_BTREE_NODE* f, AMI_BTREE_LEAF* &p, size_t pos) {
 
 //// *AMI_btree::merge_node* ////
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-void AMI_BTREE::merge_node(AMI_BTREE_NODE* f, AMI_BTREE_NODE* &p, size_t pos) {
+void AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::merge_node(AMI_BTREE_NODE* f, AMI_BTREE_NODE* &p, size_t pos) {
 
   AMI_BTREE_NODE * sib;
 
@@ -2035,7 +2303,7 @@ void AMI_BTREE::merge_node(AMI_BTREE_NODE* f, AMI_BTREE_NODE* &p, size_t pos) {
 
 //// *AMI_btree::erase* ////
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-bool AMI_BTREE::erase(const Key& k) {
+bool AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::erase(const Key& k) {
 
   bool ans;
 
@@ -2147,13 +2415,13 @@ bool AMI_BTREE::erase(const Key& k) {
 }
 
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-void AMI_BTREE::persist(persistence per) {
+void AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::persist(persistence per) {
   pcoll_leaves_->persist(per);
   pcoll_nodes_->persist(per);
 }
 
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-AMI_BTREE::~AMI_btree() {
+AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::~AMI_btree() {
   if (status_ == AMI_BTREE_STATUS_VALID) {
     // Write initialization info into the pcoll_nodes_ header.
     *((header_t *) pcoll_nodes_->user_data()) = header_;
@@ -2167,7 +2435,7 @@ AMI_BTREE::~AMI_btree() {
 }
 
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-AMI_BTREE_NODE* AMI_BTREE::fetch_node(AMI_bid bid) {
+AMI_BTREE_NODE* AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::fetch_node(AMI_bid bid) {
   AMI_BTREE_NODE* q;
   stats_.record(NODE_FETCH);
   // Warning: using short-circuit evaluation. Order is important.
@@ -2178,7 +2446,7 @@ AMI_BTREE_NODE* AMI_BTREE::fetch_node(AMI_bid bid) {
 }
 
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-AMI_BTREE_LEAF* AMI_BTREE::fetch_leaf(AMI_bid bid) {
+AMI_BTREE_LEAF* AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::fetch_leaf(AMI_bid bid) {
   AMI_BTREE_LEAF* q;
   stats_.record(LEAF_FETCH);
   // Warning: using short-circuit evaluation. Order is important.
@@ -2189,7 +2457,7 @@ AMI_BTREE_LEAF* AMI_BTREE::fetch_leaf(AMI_bid bid) {
 }
 
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-void AMI_BTREE::release_node(AMI_BTREE_NODE *p) {
+void AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::release_node(AMI_BTREE_NODE *p) {
   stats_.record(NODE_RELEASE);
   if (p->persist() == PERSIST_DELETE)
     delete p;
@@ -2198,7 +2466,7 @@ void AMI_BTREE::release_node(AMI_BTREE_NODE *p) {
 }
 
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-void AMI_BTREE::release_leaf(AMI_BTREE_LEAF *p) {
+void AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::release_leaf(AMI_BTREE_LEAF *p) {
   stats_.record(LEAF_RELEASE);
   if (p->persist() == PERSIST_DELETE)
     delete p;
@@ -2207,7 +2475,7 @@ void AMI_BTREE::release_leaf(AMI_BTREE_LEAF *p) {
 }
 
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-const tpie_stats_tree& AMI_BTREE::stats() {
+const tpie_stats_tree& AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::stats() {
   node_cache_->flush();
   leaf_cache_->flush();
   stats_.set(LEAF_READ, pcoll_leaves_->stats().get(BLOCK_GET));
