@@ -7,17 +7,15 @@
 // A basic implementation of quicksort for use in core by AMI_sort() on
 // streams or substreams that are small enough.
 //
-// $Id: quicksort.h,v 1.21 2002-06-27 01:13:18 tavi Exp $
+// $Id: quicksort.h,v 1.22 2003-04-17 19:54:53 jan Exp $
 //
 #ifndef _QUICKSORT_H
 #define _QUICKSORT_H
  
-//extern "C" long int random(void);
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 #include <comparator.h>
-
-#define CONST const
-
 
 //A simple class that facilitates doing key sorting followed 
 //by in-memory permuting to sort items in-memory. This is 
@@ -52,107 +50,13 @@ class qsort_item {
   };
 
 
-// A version that uses a comparison function.  This is useful for
-// sorting objects with multiple data members based on a particular
-// member or combination of members.
+// Comment (jan): This version must no be used anymore!
 
-template<class T>
-void partition_cmp(T *data, size_t len, size_t &partition,
-               int (*cmp)(CONST T&, CONST T&));
+// // A version that uses a comparison function.  This is useful for
+// // sorting objects with multiple data members based on a particular
+// // member or combination of members.
 
-template<class T>
-void __quick_sort_cmp(T *data, size_t len,
-                    int (*cmp)(CONST T&, CONST T&),
-                    size_t min_file_len = 2)
-{
-    // On return from partition(), everything at or below this index
-    // will be less that or equal to everything above it.
-    // Furthermore, it will not be 0 since this will leave us to
-    // recurse on the whole array again.
-    
-    size_t part_index;
-    
-    if (len < min_file_len) {
-        return;
-    }
-    
-    partition_cmp(data, len, part_index, cmp);
-
-    __quick_sort_cmp(data, part_index + 1, cmp, min_file_len);
-    __quick_sort_cmp(data + part_index + 1, len - part_index - 1, 
-		     cmp, min_file_len);
-}
-
-template<class T>
-void partition_cmp(T *data, size_t len, size_t &part_index,
-                   int (*cmp)(CONST T&, CONST T&))
-{
-    T *ptpart, tpart;
-    T *p, *q;
-    T t0;
-
-    // Try to get a good partition value and avoid being bitten by already
-    // sorted input.
-
-    ptpart = data + (random() % len);
-
-    tpart = *ptpart;
-    *ptpart = data[0];
-    data[0] = tpart;
-
-    // Walk through the array and partition them.
-
-    for (p = data - 1, q = data + len; ; ) {
-
-        do {
-            q--;
-        } while (cmp(*q, tpart) > 0);
-        do {
-            p++;
-        } while (cmp(*p, tpart) < 0);
-
-        if (p < q) {
-            t0 = *p;
-            *p = *q;
-            *q = t0;
-        } else {
-            part_index = q - data;            
-            break;
-        }
-    }
-}
-
-
-template<class T>
-void insertion_sort_cmp(T *data, size_t len,
-                        int (*cmp)(CONST T&, CONST T&));
-
-template<class T>
-void quick_sort_cmp(T *data, size_t len,
-                      int (*cmp)(CONST T&, CONST T&),
-                      size_t min_file_len = 20)
-{
-    __quick_sort_cmp(data, len, cmp, min_file_len);
-    insertion_sort_cmp(data, len, cmp);
-}
-
-template<class T>
-void insertion_sort_cmp(T *data, size_t len,
-                        int (*cmp)(CONST T&, CONST T&))
-{
-    T *p, *q, test;
-
-    for (p = data + 1; p < data + len; p++) {
-        for (q = p - 1, test = *p; cmp(*q, test) > 0; q--) {
-            *(q+1) = *q;
-            if (q == data) {
-	      q--; // to make assignment below correct
-	      break;
-            }
-        }
-        *(q+1) = test;
-    }
-}
+// End Comment.
 
 
 // A version that uses the < operator.  This should be faster for
@@ -194,7 +98,7 @@ void partition_op(T *data, size_t len, size_t &part_index)
     // Try to get a good partition value and avoid being bitten by already
     // sorted input.
 
-    ptpart = data + (random() % len);
+    ptpart = data + (TPIE_OS_RANDOM() % len);
 
     tpart = *ptpart;
     *ptpart = data[0];
@@ -291,7 +195,7 @@ void partition_obj(T *data, size_t len, size_t &part_index,
     // Try to get a good partition value and avoid being bitten by already
     // sorted input.
 
-    ptpart = data + (random() % len);
+    ptpart = data + (TPIE_OS_RANDOM() % len);
 
     tpart = *ptpart;
     *ptpart = data[0];
