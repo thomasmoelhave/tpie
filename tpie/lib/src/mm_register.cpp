@@ -8,7 +8,7 @@
 // A simple registration based memory manager.
 
 #include <versions.h>
-VERSION(mm_register_cpp,"$Id: mm_register.cpp,v 1.12 2000-01-14 19:20:34 hutchins Exp $");
+VERSION(mm_register_cpp,"$Id: mm_register.cpp,v 1.13 2000-03-25 06:40:22 rajiv Exp $");
 
 #include <assert.h>
 #include "lib_config.h"
@@ -185,10 +185,10 @@ size_t MM_register::memory_limit()
 
 // Instantiate the actual memory manager, and allocate the 
 // its static data members
-
 MM_register MM_manager;
-int MM_register::instances    = 0; // Number of instances. 
-int MM_register::register_new = 1; // TPIE's "register memory requests" flag
+int MM_register::instances = 0; // Number of instances. (init)
+// TPIE's "register memory requests" flag
+MM_mode MM_register::register_new = MM_ABORT_ON_MEMORY_EXCEEDED; 
 
 
 // The counter of mm_register_init instances.  It is implicity set to 0.
