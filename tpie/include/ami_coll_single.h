@@ -3,7 +3,7 @@
 // File:   ami_coll_single.h
 // Author: Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_coll_single.h,v 1.9 2002-03-14 20:24:02 tavi Exp $
+// $Id: ami_coll_single.h,v 1.10 2003-04-04 20:33:13 tavi Exp $
 //
 // AMI collection entry points implemented on top of a single BTE.
 //
@@ -89,8 +89,7 @@ AMI_collection_single<BTECOLL>::AMI_collection_single(size_t lbf) {
 
 template <class BTECOLL>
 AMI_collection_single<BTECOLL>::AMI_collection_single(char* path_name,
-		       AMI_collection_type ct = AMI_READ_WRITE_COLLECTION,
-		       size_t lbf) {
+		       AMI_collection_type ct, size_t lbf) {
 
   BTE_collection_type btect;
 
