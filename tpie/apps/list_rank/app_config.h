@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/6/94
 //
-// $Id: app_config.h,v 1.14 1999-03-28 04:21:10 rbarve Exp $
+// $Id: app_config.h,v 1.15 1999-04-09 03:07:08 rajiv Exp $
 //
 #ifndef _APP_CONFIG_H
 #define _APP_CONFIG_H
@@ -165,8 +165,8 @@
 /********************************************************************/
 
 // Set up some defaults for the apps.
-#define DEFAULT_TEST_SIZE (1024 * 1024 * 8)
-#define DEFAULT_TEST_MM_SIZE (1024 * 1024 * 2)
+#define DEFAULT_TEST_SIZE (1024 * 1024 * 16)
+#define DEFAULT_TEST_MM_SIZE (1024 * 1024 * 8)
 
 extern bool verbose;
 extern size_t test_mm_size;
