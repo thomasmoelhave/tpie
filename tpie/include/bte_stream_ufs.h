@@ -2,7 +2,7 @@
 // File: bte_stream_ufs.h (formerly bte_ufs.h)
 // Author: Rakesh Barve <rbarve@cs.duke.edu>
 //
-// $Id: bte_stream_ufs.h,v 1.12 2004-05-07 10:03:26 adanner Exp $
+// $Id: bte_stream_ufs.h,v 1.13 2004-05-31 19:29:57 tavi Exp $
 //
 // BTE streams with blocks I/Oed using read()/write().  This particular
 // implementation explicitly manages blocks, and only ever maps in one
@@ -373,12 +373,14 @@ BTE_stream_ufs < T >::BTE_stream_ufs (const char *dev_path,
 	    if ((header->block_size % os_block_size_ != 0) || 
 		(header->block_size == 0)) {
 		status_ = BTE_STREAM_STATUS_INVALID;
-		LOG_FATAL_ID ("header: incorrect logical block size;");
-		LOG_FATAL_ID ("expected multiple of OS block size.");
+		LOG_FATAL_ID("Header: incorrect logical block size;");
+		LOG_FATAL_ID("Expected multiple of OS block size.");
 		return;
 	    }
 	    if (header->block_size != BTE_STREAM_UFS_BLOCK_FACTOR * os_block_size_) {
-		LOG_WARNING_ID("Stream has different block factor than the default.");
+		LOG_WARNING_ID("Stream has different block factor than the default;");
+		LOG_WARNING_ID("\tStream block factor: " << header->block_size/os_block_size_);
+		LOG_WARNING_ID("\tDefault block factor: " << BTE_STREAM_UFS_BLOCK_FACTOR);
 		LOG_WARNING_ID("This may cause problems in some existing applications.");
 	    }
 
