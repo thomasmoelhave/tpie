@@ -5,7 +5,7 @@
 // Created: 11/4/94
 //
 
-static char test_bit_matrix_id[] = "$Id: test_bit_matrix.cpp,v 1.2 1995-01-10 16:48:20 darrenv Exp $";
+static char test_bit_matrix_id[] = "$Id: test_bit_matrix.cpp,v 1.3 1995-01-10 19:59:13 dev Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -22,8 +22,6 @@ static struct ___test_bit_matrix_id_compiler_fooler {
 #include <iostream.h>
 
 #include <bit_matrix.h>
-
-TEMPLATE_INSTANTIATE_BIT_MATRIX
 
 int main(int argc, char **argv)
 {

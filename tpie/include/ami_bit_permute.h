@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 1/9/95
 //
-// $Id: ami_bit_permute.h,v 1.1 1995-01-10 16:49:08 darrenv Exp $
+// $Id: ami_bit_permute.h,v 1.2 1995-01-10 19:58:35 dev Exp $
 //
 // For the momemnt this is done in terms of general permutations.
 // This will obviously change in the future.
@@ -117,7 +117,6 @@ AMI_err AMI_BMMC_permute(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
 #ifdef NO_IMPLICIT_TEMPLATES
 
 #define TEMPLATE_INSTANTIATE_BIT_PERM(T)				\
-TEMPLATE_INSTANTIATE_BIT_MATRIX						\
 TEMPLATE_INSTANTIATE_GEN_PERM(T)					\
 template class bmmc_as_gen_po<T>;					\
 template AMI_err AMI_BMMC_permute(AMI_STREAM<T> *instream,		\
