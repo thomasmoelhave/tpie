@@ -8,7 +8,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_sort24_cpp,"$Id: test_ami_sort24.cpp,v 1.10 2003-09-12 02:37:10 jan Exp $");
+VERSION(test_ami_sort24_cpp,"$Id: test_ami_sort24.cpp,v 1.11 2003-09-12 02:38:25 jan Exp $");
 
 // Get information on the configuration to test.
 #include "app_config.h"
@@ -59,7 +59,7 @@ scan_random_so::scan_random_so(unsigned int count, int seed) {
     LOG_APP_DEBUG(seed);
     LOG_APP_DEBUG('\n');
 
-    srandom(seed);
+    TPIE_OS_SRANDOM(seed);
 }
 
 scan_random_so::~scan_random_so(void)
