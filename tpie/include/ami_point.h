@@ -5,7 +5,7 @@
 //
 // The AMI_point and AMI_record classes.
 //
-// $Id: ami_point.h,v 1.8 2004-08-12 12:35:31 jan Exp $
+// $Id: ami_point.h,v 1.9 2005-01-21 16:55:29 tavi Exp $
 //
 
 #ifndef AMI_POINT_H_
@@ -83,7 +83,10 @@ infinity_t<coord_t> AMI_point_base<coord_t, dim>::Inf = infinity_t<coord_t>();
 // The AMI_point class.
 template <class coord_t, size_t dim>
 class AMI_point: public AMI_point_base<coord_t, dim> {
-public:
+ protected:
+  using AMI_point_base<coord_t, dim>::coords_;
+  
+ public:
   bool operator==(const AMI_point<coord_t, dim>& p) const {
     size_t i = 0;
     while (i < dim) {
@@ -146,7 +149,10 @@ ostream& operator<<(ostream& s, const AMI_point<coord_t, dim>& p) {
 // Partial specialization of AMI_point for 2 dimensions.
 template <class coord_t>
 class AMI_point<coord_t, 2>: public AMI_point_base<coord_t, 2> {
-public:
+ protected:
+  using AMI_point_base<coord_t, 2>::coords_;
+  
+ public:
 
   AMI_point() {}
   AMI_point(coord_t _x, coord_t _y) { coords_[0] = _x; coords_[1] = _y; }
