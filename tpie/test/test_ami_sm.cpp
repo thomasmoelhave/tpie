@@ -8,15 +8,13 @@
 
 #include <portability.h>
 
-#include <strstream>
-
 #include "app_config.h"        
 #include "parse_args.h"
 
 // Define it all.
 #include <ami.h>
 
-VERSION(test_ami_sm_cpp,"$Id: test_ami_sm.cpp,v 1.7 2003-09-12 02:29:40 tavi Exp $");
+VERSION(test_ami_sm_cpp,"$Id: test_ami_sm.cpp,v 1.8 2003-09-12 02:31:40 tavi Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
