@@ -3,7 +3,7 @@
 // File:    ami_btree.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_btree.h,v 1.14 2002-07-21 22:55:44 tavi Exp $
+// $Id: ami_btree.h,v 1.15 2002-07-23 01:45:50 tavi Exp $
 //
 // AMI_btree declaration and implementation.
 //
@@ -1026,7 +1026,7 @@ AMI_err AMI_BTREE::load_sorted(AMI_STREAM<Value>* s, float leaf_fill, float node
   AMI_err err = AMI_ERROR_NO_ERROR;
   AMI_btree_params params_saved = params_;
   params_.leaf_size_max = ::min(params_.leaf_size_max, size_t(leaf_fill*params_.leaf_size_max));
-  params_.node_size_max = ::min(params_.leaf_size_max, size_t(node_fill*params_.node_size_max));
+  params_.node_size_max = ::min(params_.node_size_max, size_t(node_fill*params_.node_size_max));
 
   AMI_BTREE_LEAF* lcl = NULL; // locally cached leaf.
 
