@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/12/94
 //
-// $Id: logstream.h,v 1.6 1999-02-03 02:58:10 jan Exp $
+// $Id: logstream.h,v 1.7 1999-02-03 18:02:58 tavi Exp $
 //
 #ifndef _LOGSTREAM_H
 #define _LOGSTREAM_H
@@ -64,14 +64,5 @@ logstream& operator<<(logstream& o, const logmanip<TP>& m)
 
 logmanip<unsigned int> setpriority(unsigned int p);
 logmanip<unsigned int> setthreshold(unsigned int p);
-
-#ifdef NO_IMPLICIT_TEMPLATES
-
-#define TEMPLATE_INSTANTIATE_LOGMANIP					\
-template class logmanip<unsigned int>;					\
-template logstream& operator<<(logstream& o,				\
-                               const logmanip<unsigned int>& m);
-
-#endif
 
 #endif // _LOGSTREAM_H 
