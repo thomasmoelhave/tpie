@@ -7,9 +7,11 @@
 
 
 
-static char parse_args_id[] = "$Id: parse_args.cpp,v 1.6 1999-04-28 20:24:27 rbarve Exp $";
+static char parse_args_id[] = "$Id: parse_args.cpp,v 1.7 1999-05-02 19:05:53 tavi Exp $";
 
 //#include <GetOpt.h>
+#include <stdlib.h>
+#include <strings.h>
 #include <strstream.h>
 #include <ctype.h>
 #include <unistd.h>
