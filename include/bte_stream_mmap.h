@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/13/94
 //
-// $Id: bte_stream_mmap.h,v 1.3 2002-01-17 02:17:35 tavi Exp $
+// $Id: bte_stream_mmap.h,v 1.4 2002-06-24 02:55:59 tavi Exp $
 //
 // Memory mapped streams.  This particular implementation explicitly manages
 // blocks, and only ever maps in one block at a time.
@@ -72,8 +72,8 @@ extern "C" int ftruncate (int fd, off_t length);
 #  define BTE_STREAM_MMAP_BLOCK_FACTOR 8
 #endif
 
-// figure out the block offset for an offset (pos) in file
-// os_block_size_ is assumed to be the header size
+// Figure out the block offset for an offset (pos) in file.
+// os_block_size_ is assumed to be the header size.
 #define BLOCK_OFFSET(pos) \
  ((((pos) - os_block_size_) / header->block_size) \
  * header->block_size + os_block_size_)
@@ -147,20 +147,20 @@ private:
 
 #ifdef BTE_MMB_READ_AHEAD
   // Read ahead into the next logical block.
-  void read_ahead (void);
+  void read_ahead ();
 #endif
 
   void initialize ();
 
-  BTE_stream_header *map_header (void);
-  void unmap_header (void);
+  BTE_stream_header *map_header ();
+  void unmap_header ();
 
-  inline BTE_err validate_current (void);
-  BTE_err map_current (void);
-  inline BTE_err invalidate_current (void);
-  BTE_err unmap_current (void);
+  inline BTE_err validate_current ();
+  BTE_err map_current ();
+  inline BTE_err invalidate_current ();
+  BTE_err unmap_current ();
 
-  inline BTE_err advance_current (void);
+  inline BTE_err advance_current ();
 
   inline off_t item_off_to_file_off (off_t item_off);
   inline off_t file_off_to_item_off (off_t item_off);
@@ -177,16 +177,14 @@ public:
   // [tavi 01/09/02] Careful with the lbf (logical block factor)
   // parameter. I introduced it in order to avoid errors when reading
   // a stream having a different block factor from the default, but
-  // this make cause errors in applications. For example, the
+  // this may cause errors in applications. For example,
   // AMI_partition_and merge computes memory requirements of temporary
-  // streams based on the memory usage of the INPUT stream, However,
+  // streams based on the memory usage of the INPUT stream. However,
   // the input stream may have different block size from the temporary
   // streams created later. Until these issues are addressed, the
   // usage of lbf is discouraged.
   BTE_stream_mmap (const char *dev_path, BTE_stream_type st, 
 		   size_t lbf = BTE_STREAM_MMAP_BLOCK_FACTOR);
-
-   //   BTE_stream_mmap (BTE_stream_mmap < T > &s);
 
    // A substream constructor.
    BTE_stream_mmap (BTE_stream_mmap * super_stream,
@@ -202,7 +200,7 @@ public:
    BTE_err main_memory_usage (size_t * usage, MM_stream_usage usage_type);
 
    // Return the number of items in the stream.
-   off_t stream_len (void);
+   off_t stream_len ();
 
    // Return the path name in newly allocated space.
    BTE_err name (char **stream_name);
@@ -214,12 +212,12 @@ public:
    BTE_err truncate (off_t offset);
 
    // Destructor
-   ~BTE_stream_mmap (void);
+   ~BTE_stream_mmap ();
 
    B_INLINE BTE_err read_item (T ** elt);
    B_INLINE BTE_err write_item (const T & elt);
 
-   off_t chunk_size (void);
+   off_t chunk_size ();
 
    void print (char *pref = "");
    inline BTE_err grow_file (off_t block_offset);
@@ -636,25 +634,30 @@ template < class T > BTE_stream_mmap < T >::~BTE_stream_mmap (void) {
    assert (substream_level ||
 	   header->item_logical_eof == file_off_to_item_off (f_eos));
 
-   // free the header unless we are in a substream
-   if (!substream_level) {
-      unmap_header ();
-      free (header);
-   }
    // Unmap the current block if necessary.
    if (block_mapped) {
-      unmap_current ();
+      unmap_current();
    }
    // If this is not a substream then close the file.
    if (!substream_level) {
-      // Rajiv
-      // make sure the length of the file is correct
-      if ((f_filelen > f_eos) &&
-	  (ftruncate (fd, BLOCK_OFFSET (f_eos) + header->block_size) < 0)) {
+     // [Rajiv] make sure the length of the file is correct
+     // [tavi 06/23/02] and file is not read-only! 
+     if ((f_filelen > f_eos) && (!r_only) &&
+	  (ftruncate (fd, BLOCK_OFFSET(f_eos) + header->block_size) < 0)) {
 	 os_errno = errno;
 	 LOG_FATAL_ID("Failed to ftruncate() to the new end of " << path);
+	 LOG_FATAL_ID("f_filelen:" << f_filelen << ", f_eos:" << f_eos);
+	 LOG_FATAL_ID("argument to ftruncate:" << BLOCK_OFFSET(f_eos) + header->block_size);
 	 LOG_FATAL_ID(strerror (os_errno));
       }
+
+      // Unmap the header.
+      // [tavi 06/23/02] Added test for r_only. 
+      if (!r_only)
+	unmap_header();
+      // Free the in-memory header (previously allocated with malloc).
+      free (header);
+      // Close the file.
       if (::close (fd)) {
 	 os_errno = errno;
 	 LOG_WARNING_ID("Failed to close() " << path);
