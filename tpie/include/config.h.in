@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/13/94
 //
-// $Id: config.h.in,v 1.7 2002-01-14 16:26:22 tavi Exp $
+// $Id: config.h.in,v 1.8 2003-04-17 18:51:20 jan Exp $
 //
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -32,8 +32,13 @@
 #define HAVE_STRINGS_H 0
 
 // Where is unistd.h?
+#ifdef _WIN32
 #define HAVE_UNISTD_H 0
 #define HAVE_SYS_UNISTD_H 0
+#else
+#define HAVE_UNISTD_H 1
+#define HAVE_SYS_UNISTD_H 1
+#endif
 
 // Are we on a hacked kernel that supports zero()?
 #define HAVE_ZERO 0
