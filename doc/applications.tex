@@ -1,5 +1,5 @@
 %%
-%% $Id: applications.tex,v 1.7 1999-11-17 20:54:54 tavi Exp $
+%% $Id: applications.tex,v 1.8 2000-09-29 18:49:28 hutchins Exp $
 %%
 \chapter{Test and Sample Applications}
 
@@ -18,7 +18,7 @@ initialization and argument parsing code.  They all include the header file
 \myverb{app\_config.h}, which selects a particular implementation of streams
 at the AMI and BTE levels. They also all use the same argument parsing
 function \myverb{parse\_args()}, which parses certain default arguments and
-then uses a callback function for arguments specific to one particular
+then uses a callback function for arguments specific to the particular
 application.
 
 Much of the functionality provided by the common initialization and
@@ -40,23 +40,24 @@ this information will be provided by the operating system.
 The following is a summary of the common command line arguments that
 are parsed by \myverb{parse\_args()}.
 \begin{description}
-\item[\myverb{-t testsize}]
-Set the size of the test to be run to \myverb{testsize}.  Typically this
-is the number of objects to be put into the application produced input
-stream.  In matrix tests, however, it is the number of rows and
-columns is the test matrices.  If this argument is not passed, then
-the default value of 8 Meg is used.
-\item[\myverb{-m memsize}]
-The number of bytes of main memory that the application is permitted to
-use.  The MM\index{memory manager} will ensure that no more than this amount is
-used.  If this option is not specified, then a default value of 2 Mb
-is used.
-\item[\myverb{-z randomseed}]
-Seed the random number generator with the value \myverb{randomseed}.
-This is useful for debugging or testing, when we want several runs of
-the application to rely on the same series of pseudo-random numbers.
-For applications that do not generate test data randomly, this has no
-effect. 
+    \item[\myverb{-t testsize}] Set the size of the test to
+    be run to \myverb{testsize}.  Typically this is the
+    number of objects to be put into the application
+    produced input stream.  In matrix tests, however, it is
+    the number of rows and columns in the test matrices.  If
+    this argument is not provided, then a default value of
+    8 MB is used.
+    \item[\myverb{-m memsize}] The number of bytes of main
+    memory that the application is permitted to use.  The
+    TPIE Memory Manager\index{memory manager} will ensure
+    that no more than this amount is used.  If this option
+    is not specified, then a default value of 2 MB is used.
+    \item[\myverb{-z randomseed}] Seed the random number
+    generator with the value \myverb{randomseed}.  This is
+    useful for debugging or testing, when we want several
+    runs of the application to rely on the same series of
+    pseudo-random numbers.  For applications that do not
+    generate test data randomly, this has no effect.
 \item[\myverb{-v}]
 Turns on verbose mode.  When running in verbose mode, report major
 actions of the running program to \myverb{stdout}.
