@@ -3,7 +3,7 @@
 // File:    ami_btree.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_btree.h,v 1.29 2003-09-14 21:03:57 tavi Exp $
+// $Id: ami_btree.h,v 1.30 2003-09-17 02:55:44 tavi Exp $
 //
 // AMI_btree declaration and implementation.
 //
@@ -729,7 +729,7 @@ inline bool AMI_BTREE_LEAF::insert(const Value& v) {
   if (pos < size())
     if (!comp_(KeyOfValue()(v), KeyOfValue()(el[pos])) && 
 	!comp_(KeyOfValue()(el[pos]), KeyOfValue()(v))) {
-      LOG_WARNING_ID("Attempting to insert duplicate key.");
+      LOG_WARNING_ID("Attempting to insert duplicate key. Ignoring insert.");
       return false;
     }
 #endif
@@ -1495,7 +1495,7 @@ bool AMI_BTREE::insert(const Value& v) {
     if (pos < p->size() && 
 	!comp_(kov_(v), kov_(p->el[pos])) &&  
 	!comp_(kov_(p->el[pos]), kov_(v))) { 
-      LOG_WARNING_ID("Attempting to insert duplicate key."); 
+      LOG_WARNING_ID("Attempting to insert duplicate key. Ignoring insert.");
       ans = false; 
     } else {
       ans = insert_split(v, p, bid);
