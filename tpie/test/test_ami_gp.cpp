@@ -10,8 +10,10 @@
 // the same integers, in reverse order.
 //
 
+#include <portability.h>
+
 #include <versions.h>
-VERSION(test_ami_gp_cpp,"$Id: test_ami_gp.cpp,v 1.11 2003-04-20 23:51:40 tavi Exp $");
+VERSION(test_ami_gp_cpp,"$Id: test_ami_gp.cpp,v 1.12 2003-09-11 21:35:13 tavi Exp $");
 
 // Get the application defaults.
 #include "app_config.h"
@@ -19,20 +21,13 @@ VERSION(test_ami_gp_cpp,"$Id: test_ami_gp.cpp,v 1.11 2003-04-20 23:51:40 tavi Ex
 // Define it all.
 #include <ami.h>
 
-// Utitlities for ascii output.
-#include <iostream>
-#include <fstream>
-
-using std::cout;
-using std::ofstream;
-
 #include <ami_scan_utils.h>
 
 #include "parse_args.h"
 #include "scan_count.h"
 
-static char def_irf[] = "/var/tmp/osi.txt";
-static char def_frf[] = "/var/tmp/osf.txt";
+static char def_irf[] = "osi.txt";
+static char def_frf[] = "osf.txt";
 
 static char *initial_results_filename = def_irf;
 static char *final_results_filename = def_frf;
@@ -79,9 +74,9 @@ int main(int argc, char **argv)
     parse_args(argc,argv,as_opts,parse_app_opt);
 
     if (verbose) {
-        cout << "test_size = " << test_size << ".\n";
-        cout << "test_mm_size = " << test_mm_size << ".\n";
-        cout << "random_seed = " << random_seed << ".\n";
+      cout << "test_size = " << test_size << "." << endl;
+        cout << "test_mm_size = " << test_mm_size << "." << endl;
+        cout << "random_seed = " << random_seed << "." << endl;
     } else {
         cout << test_size << ' ' << test_mm_size << ' ' << random_seed;
     }
@@ -117,7 +112,7 @@ int main(int argc, char **argv)
     ae = AMI_scan(&my_scan_count, &amis0);
 
     if (verbose) {
-        cout << "Initial stream length = " << amis0.stream_len() << '\n';
+        cout << "Initial stream length = " << amis0.stream_len() << endl;
     }
     
     if (report_results_initial) {
@@ -131,8 +126,8 @@ int main(int argc, char **argv)
     ae = AMI_general_permute(&amis0, &amis1, (AMI_gen_perm_object *)&ro);
 
     if (verbose) {
-        cout << "After reversal, stream length = " << amis1.stream_len() <<
-            '\n';
+        cout << "After reversal, stream length = " 
+	     << amis1.stream_len() << endl;
     }
 
     if (report_results_final) {
