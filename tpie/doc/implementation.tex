@@ -1,5 +1,5 @@
 %%
-%% $Id: implementation.tex,v 1.14 2001-02-14 20:23:49 tavi Exp $
+%% $Id: implementation.tex,v 1.15 2001-04-26 23:11:37 hutchins Exp $
 %%
 \chapter{The Implementation of TPIE}
 \plabel{cha:implementation}
@@ -62,7 +62,7 @@ a consistent, object-oriented interface to application programs.
 %distribution will be done somewhat differently on a parallel disk machine
 %than on a single disk machine. The AMI abstracts this fact away, allowing
 %an application program that calls a function such as
-%\myverb{AMI\_partition\_and\_merge()}\index{AMI\_partition\_and\_merge@{\tt
+%\myv{AMI\_partition\_and\_merge()}\index{AMI\_partition\_and\_merge@{\tt
 %AMI\\_partition\\_and\_merge}} to work correctly regardless of the underlying
 %I/O system.
 The key to keeping the AMI simple and flexible is the fact that its
@@ -136,25 +136,25 @@ access primitives. \comment{%
 Version \version~of TPIE supports the following three BTE
 implementations:
 \begin{enumerate}
-    \item \myverb{BTE\_stdio}, which uses the
-    UNIX \myverb{stdio} library as its file access method.
+    \item \myv{BTE\_stdio}, which uses the
+    UNIX \myv{stdio} library as its file access method.
     
-    \item \myverb{BTE\_ufs}, which performs I/O via UNIX {\tt
+    \item \myv{BTE\_ufs}, which performs I/O via UNIX {\tt
        read/write} calls,
     
-    \item \myverb{BTE\_mmb}, which uses the UNIX
-    \myverb{mmap} call to perform I/O
+    \item \myv{BTE\_mmb}, which uses the UNIX
+    \myv{mmap} call to perform I/O
 \end{enumerate}
 
 The choice of BTE in a given application is controlled by
-compile-time variables in the \myverb{app\_config.h} file.
-The UNIX \myverb{stdio} implementation is selected by
-defining the variable \myverb{BTE\_IMP\_STDIO}, the
-\myverb{read/write} implementation by defining
-\myverb{BTE\_IMP\_UFS}, and the memory mapped implementation
-by defining \myverb{BTE\_IMP\_MMB}.  For example, the
-following code (taken from \myverb{app\_config.h} selects
-the \myverb{BTE\_ufs} Block Transfer Engine (and does not
+compile-time variables in the \myv{app\_config.h} file.
+The UNIX \myv{stdio} implementation is selected by
+defining the variable \myv{BTE\_IMP\_STDIO}, the
+\myv{read/write} implementation by defining
+\myv{BTE\_IMP\_UFS}, and the memory mapped implementation
+by defining \myv{BTE\_IMP\_MMB}.  For example, the
+following code (taken from \myv{app\_config.h} selects
+the \myv{BTE\_ufs} Block Transfer Engine (and does not
 select the others):
 
 \begin{verbatim}
@@ -181,7 +181,7 @@ Section~\ref{sec:choosingbte} discuss how to choose an
 appropriate BTE (also refer to the more detailed
 descriptions of the BTE's in the next three subsections). If
 none of the available BTEs is selected,
-\myverb{BTE\_IMP\_STDIO}\comment{DH: We should change the default
+\myv{BTE\_IMP\_STDIO}\comment{DH: We should change the default
    to BTE\_IMP\_UFS} is defined by default and a warning
 is generated at compile time.
 
@@ -198,8 +198,8 @@ Sections~\ref{sec:ref-bte-stdio},\ref{sec:ref-bte-mmb}, and
 \plabel{sec:imp-bte-base}
 
 All BTE stream implementations inherit from class
-\myverb{BTE\_base\_stream} (in file
-\myverb{bte\_base\_stream.h}) and must support the member
+\myv{BTE\_base\_stream} (in file
+\myv{bte\_base\_stream.h}) and must support the member
 functions listed below. 
 
 
@@ -213,25 +213,25 @@ functions listed below.
 %access methods for such a file. 
 
 Since the details of each access method (ie
-\myverb{BTE\_ufs}, \myverb{BTE\_stdio} or \myverb{BTE\_mmb} are
+\myv{BTE\_ufs}, \myv{BTE\_stdio} or \myv{BTE\_mmb} are
 different, the BTEs generally have different member function
 implementations, including constructors (construction
 involves opening the appropriate stream file, etc.).
-The \myverb{BTE\_ufs}, \myverb{BTE\_stdio}, and
-\myverb{BTE\_mmb} implementations are defined in the
-respective files \myverb{include/bte\_ufs.h},
-\myverb{include/bte\_stdio}, and \myverb{include/bte\_mmb.h}.
+The \myv{BTE\_ufs}, \myv{BTE\_stdio}, and
+\myv{BTE\_mmb} implementations are defined in the
+respective files \myv{include/bte\_ufs.h},
+\myv{include/bte\_stdio}, and \myv{include/bte\_mmb.h}.
 \comment{LA: Some note about construction being BTE
 dependent - why are they? DH: DONE}
 Functionally, the member functions for each BTE are similar.
 
 The common BTE member functions\footnote{%
-   These functions can be defined as \myverb{virtual} to
+   These functions can be defined as \myv{virtual} to
    assist in debugging a new BTE if the compile-time
-   variable \myverb{BTE\_VIRTUAL\_BASE} is defined to be
-   non-zero (see also file \myverb{app\_config.h}). For best
+   variable \myv{BTE\_VIRTUAL\_BASE} is defined to be
+   non-zero (see also file \myv{app\_config.h}). For best
    run-time performance, the default value for
-   \myverb{BTE\_VIRTUAL\_BASE} is zero.  } 
+   \myv{BTE\_VIRTUAL\_BASE} is zero.  } 
 and their usage are outlined below:
 
 \subsubsection{Stream Constructors}
@@ -242,21 +242,21 @@ and their usage are outlined below:
 \end{verbatim}
 
 These constructors each create a stream which is backed by
-the file whose path is pointed to by \myverb{dev\_path}.  The
+the file whose path is pointed to by \myv{dev\_path}.  The
 stream can be opened in one of several modes, depending on
-the value of \myverb{st}:
+the value of \myv{st}:
 
 \begin{itemize}
 
-    \item \myverb{BTE\_READ\_STREAM}: the stream can be read,
+    \item \myv{BTE\_READ\_STREAM}: the stream can be read,
     but not written. The underlying file must have been
     created previously in this case.
-    \item \myverb{BTE\_WRITE\_STREAM} or
-    \myverb{BTE\_WRITEONLY\_STREAM}: the stream can be
+    \item \myv{BTE\_WRITE\_STREAM} or
+    \myv{BTE\_WRITEONLY\_STREAM}: the stream can be
     written, but not read. This will allow a new stream to
     be created or overwrite a previously-created one.
 
-    \item \myverb{BTE\_APPEND\_STREAM}: the stream is opened,
+    \item \myv{BTE\_APPEND\_STREAM}: the stream is opened,
     and positioned to the end of stream so that new data can
     be appended. This is valid only if the stream was
     previously created. 
@@ -273,29 +273,29 @@ Constructs a substream of the current stream.  A substream
 is a logical contiguous subset of a stream, i.e. from the
 implementation point of view, it is a contiguous subset of
 the data elements in a file.  The parameters of
-\myverb{new\_substream()} are as follows:
+\myv{new\_substream()} are as follows:
 \begin{itemize}
-    \item \myverb{sub\_begin} and \myverb{sub\_end} are
+    \item \myv{sub\_begin} and \myv{sub\_end} are
     object offsets into the current stream, indicating the
     limits of the new substream.
     
-    \item \myverb{st} is the stream type of the new
+    \item \myv{st} is the stream type of the new
     substream. Please refer to the discussion of substream
     constructors above for a list of the valid (sub)stream
     types.
 
-    \item \myverb{sub\_stream} will be given the address of
+    \item \myv{sub\_stream} will be given the address of
     a pointer to the new substream.
 \end{itemize}
 
 While it might seem logical to explicitly define a substream
 in TPIE as inheriting (in the C++ sense) from a stream, this
 would imply a need for both to have a constructor, and hence
-for the stream constructor to be \myverb{virtual}. This is a
+for the stream constructor to be \myv{virtual}. This is a
 problem in C++, and so the ``pseudo-constructor'' approach
 described here is used instead.\comment{LA: Extend like in
    AMI ref.  Stream type?}
-Because \myverb{new\_substream()} is not a constructor, but rather a
+Because \myv{new\_substream()} is not a constructor, but rather a
 function each particular implementation of which calls an appropriate
 constructor, it can be a pure virtual function in the stream base class,
 which forces it to be defined for all actual stream
@@ -308,7 +308,7 @@ implementations.
     BTE_err read_item(T **elt);
 \end{verbatim}
 Returns the address of a pointer to the next element in the
-stream in \myverb{elt}. Since the application data elements are blocked,
+stream in \myv{elt}. Since the application data elements are blocked,
 this often does not require a physical I/O operation. If the
 current block has been exhausted, the first element of the
 next block will be accessed. In some cases the BTE will
@@ -320,12 +320,12 @@ details about prefetching or read-ahead.)
 \begin{verbatim}
     BTE_err write_item(const T &elt);
 \end{verbatim}
-Writes the data element pointed to by \myverb{elt} to the
+Writes the data element pointed to by \myv{elt} to the
 current position in the stream. Streams are normally written
 in sequential order, and so the current position is usually
 directly after the previous element written. The current
 position (which we will refer to as the value of the
-\emphd{file pointer}) can be modified via the \myverb{seek}
+\emphd{file pointer}) can be modified via the \myv{seek}
 command below.  \comment{LA: Extend! DH:DONE}
 
 
@@ -334,7 +334,7 @@ command below.  \comment{LA: Extend! DH:DONE}
     BTE_err seek(off_t offset);
 \end{verbatim}
 Seeks to the object offset \noiverb{offset} in the
-stream. The BTE \myverb{seek} member function is similar to
+stream. The BTE \myv{seek} member function is similar to
 and utilizes the \noiverb{seek} function supported by the
 underlying file I/O system being used. The difference is
 that TPIE performs a seek to the requested application data
@@ -350,8 +350,8 @@ Truncates/extends the stream to the specified number of
 application data elements. The file
 pointer\comment{LA: ? DH: defined above} will be moved to
 the end of the stream. This is analogous to the
-\myverb{truncate} function of the underlying file access
-method. Note: \myverb{truncate} is not supported for substreams.
+\myv{truncate} function of the underlying file access
+method. Note: \myv{truncate} is not supported for substreams.
 
 \subsubsection{main\_memory\_usage}
 \index{main_memory_usage()@{\tt main\_memory\_usage()}!BTE}
@@ -360,24 +360,24 @@ method. Note: \myverb{truncate} is not supported for substreams.
                               MM_stream_usage usage_type);
 \end{verbatim}
 Queries how much memory is used by the stream for
-\myverb{usage\_type} purposes. On return, \myverb{usage}
-points to the value used. The valid values for \myverb{usage\_type}
+\myv{usage\_type} purposes. On return, \myv{usage}
+points to the value used. The valid values for \myv{usage\_type}
 are as follows:\comment{LA: ? DH: DONE}
 \begin{itemize}
-\item \myverb{MM\_STREAM\_USAGE\_OVERHEAD}: the size in
+\item \myv{MM\_STREAM\_USAGE\_OVERHEAD}: the size in
 bytes of the stream object plus, if this is not a substream,
 the stream header block.
-\item \myverb{MM\_STREAM\_USAGE\_BUFFER}: the number of
+\item \myv{MM\_STREAM\_USAGE\_BUFFER}: the number of
 bytes consumed by block buffers (blocks of elements in main memory).
-\item \myverb{MM\_STREAM\_USAGE\_CURRENT}:
-\myverb{MM\_STREAM\_USAGE\_OVERHEAD} plus the number of
+\item \myv{MM\_STREAM\_USAGE\_CURRENT}:
+\myv{MM\_STREAM\_USAGE\_OVERHEAD} plus the number of
 bytes currently consumed by block buffers for this stream. 
-\item \myverb{MM\_STREAM\_USAGE\_MAXIMUM}:
-\myverb{MM\_STREAM\_USAGE\_OVERHEAD} plus the maximum number of
+\item \myv{MM\_STREAM\_USAGE\_MAXIMUM}:
+\myv{MM\_STREAM\_USAGE\_OVERHEAD} plus the maximum number of
 bytes that will be consumed by block buffers for this
 stream.
-\item \myverb{MM\_STREAM\_USAGE\_SUBSTREAM}:
-The same as \myverb{MM\_STREAM\_USAGE\_OVERHEAD} but assumes
+\item \myv{MM\_STREAM\_USAGE\_SUBSTREAM}:
+The same as \myv{MM\_STREAM\_USAGE\_OVERHEAD} but assumes
 that this is a substream.
 \end{itemize}
 
@@ -390,19 +390,19 @@ of the following values:\comment{LA: Is this really used
    anywhere? DH: Yes, appears in the code.}
 \index{BTE\_STREAM\_STATUS_*@{\tt BTE\_STREAM\_STATUS\_*}}
 \begin{itemize}
-\item \myverb{BTE\_STREAM\_STATUS\_NO\_STATUS}: No status
+\item \myv{BTE\_STREAM\_STATUS\_NO\_STATUS}: No status
 information exists for the stream.  
-\item \myverb{BTE\_STREAM\_STATUS\_INVALID}: An error was
+\item \myv{BTE\_STREAM\_STATUS\_INVALID}: An error was
 encountered while manipulating the stream and the stream
 can no longer be used.
-%UNUSED \item \myverb{BTE\_STREAM\_STATUS\_EOS\_ON\_NEXT\_CALL}:
-\item \myverb{BTE\_STREAM\_STATUS\_END\_OF\_STREAM}: The end
+%UNUSED \item \myv{BTE\_STREAM\_STATUS\_EOS\_ON\_NEXT\_CALL}:
+\item \myv{BTE\_STREAM\_STATUS\_END\_OF\_STREAM}: The end
 of stream was encountered.
 \end{itemize}
-The \myverb{get\_status} member function is one of the few
-that is implemented in \myverb{bte\_base\_stream.h} and its
+The \myv{get\_status} member function is one of the few
+that is implemented in \myv{bte\_base\_stream.h} and its
 implementation is therefore common to all BTEs. The status
-is stored in the private variable \myverb{status} of a BTE object. 
+is stored in the private variable \myv{status} of a BTE object. 
 
 \subsubsection{stream\_len}\index{stream_len()@{\tt stream\_len()}!BTE}
 \begin{verbatim}
@@ -452,15 +452,15 @@ a logical block of the current stream.\comment{LA: ?}
     void persist(persistence);
 \end{verbatim}
 Sets the persistence attribute of the current stream to the
-value of \myverb{persistence}. This may be one of the
+value of \myv{persistence}. This may be one of the
 following values:
 \begin{itemize}
-\item \myverb{PERSIST\_DELETE}: Delete the stream from the
+\item \myv{PERSIST\_DELETE}: Delete the stream from the
 disk when the stream 
   destructor is called.
-\item \myverb{PERSIST\_PERSISTENT}: Do not delete the stream from the disk when
+\item \myv{PERSIST\_PERSISTENT}: Do not delete the stream from the disk when
   the stream destructor is called.
-%\item \myverb{PERSIST\_READ\_ONCE}: Delete each block of data from the disk as
+%\item \myv{PERSIST\_READ\_ONCE}: Delete each block of data from the disk as
 %  it is read.
 \end{itemize}
 
@@ -473,13 +473,13 @@ are called.
 
 The \emphd{stdio} BTE is implemented by the class
 \myv{BTE\_stream\_stdio}, defined in file
-\myverb{/include/bte\_stdio.h}.  \myverb{BTE\_stream\_stdio}
+\myv{/include/bte\_stdio.h}.  \myv{BTE\_stream\_stdio}
 streams are stored as ordinary UNIX files which are
 manipulated via the \emphd{stdio} file access method, i.e.
-via the standard \myverb{C} I/O library. The read/write
-primitives of \myverb{BTE\_stream\_stdio} streams are
-implemented using the system calls \myverb{fread} and
-\myverb{fwrite}. The underlying operating system blocking
+via the standard \myv{C} I/O library. The read/write
+primitives of \myv{BTE\_stream\_stdio} streams are
+implemented using the system calls \myv{fread} and
+\myv{fwrite}. The underlying operating system blocking
 and prefetching assure that stream accesses are done in
 blocks and so both blocking and prefetching are therefore
 automatic and invisible to the TPIE developer.  Note that
@@ -490,9 +490,9 @@ through kernel level buffer space on its way to user space.
 \comment{LA: Extend. Also something about no logical block size
 concept.}
 
-The \myverb{BTE\_stream\_stdio} class inherits from
-\myverb{BTE\_base\_stream} (in file
-\myverb{/include/bte\_base\_stream.h}):\index{BTE_base_stream@{\tt
+The \myv{BTE\_stream\_stdio} class inherits from
+\myv{BTE\_base\_stream} (in file
+\myv{/include/bte\_base\_stream.h}):\index{BTE_base_stream@{\tt
       BTE\_base\_stream}}
 \begin{verbatim}
 class BTE_stream_stdio : public BTE_base_stream {
@@ -503,12 +503,12 @@ class BTE_stream_stdio : public BTE_base_stream {
 }  
 \end{verbatim}
 
-\myverb{BTE\_stream\_stdio} defines the public member
-functions defined for \myverb{BTE\_base\_stream} (please
+\myv{BTE\_stream\_stdio} defines the public member
+functions defined for \myv{BTE\_base\_stream} (please
 see Section~\ref{sec:imp-bte-base} for a list of these
 member functions and their semantics).  \comment{LA: Extend
    - discuss implementation!} In addition to these,
-\myverb{BTE\_stream\_stdio} defines its own
+\myv{BTE\_stream\_stdio} defines its own
 constructors:\index{BTE\_stream\_stdio@{\tt BTE\_stream\_stdio}!constructors}
 
 \begin{verbatim}
@@ -544,73 +544,73 @@ typedef struct BTE_stdio_header_v1 {
 
 The \emphd{mmb} BTE is implemented by the class
 \myv{BTE\_stream\_mmb}, defined in file
-\myverb{/include/bte\_stdio.h}.  \myverb{BTE\_stream\_mmb}
+\myv{/include/bte\_stdio.h}.  \myv{BTE\_stream\_mmb}
 streams are stored as ordinary UNIX files.  The TPIE
-\myverb{BTE\_stream\_mmb} implementation uses the Unix
-\myverb{mmap} and \myverb{munmap} calls to perform I/O. The
-UNIX \myverb{mmap} call allows a part of a file to be
+\myv{BTE\_stream\_mmb} implementation uses the Unix
+\myv{mmap} and \myv{munmap} calls to perform I/O. The
+UNIX \myv{mmap} call allows a part of a file to be
 associated with a corresponding section of internal memory.
 When the memory is accessed, the corresponding portion of
 the file is copied directly into that memory buffer. The
-\myverb{BTE\_stream\_mmb} primitives explicitly maintain the
+\myv{BTE\_stream\_mmb} primitives explicitly maintain the
 currently accessed block of the file mapped into memory.
 When an object outside the current block boundaries is
 requested, the current block is unmapped and a new one is
 mapped from the source file.
 
-The \myverb{BTE\_stream\_mmb} is not limited to mapping in
+The \myv{BTE\_stream\_mmb} is not limited to mapping in
 blocks of size equal to the physical block size of the OS
 (typically 8K bytes). Often improved performance can be
 obtained by mapping blocks of much larger size (for example
 256KB\footnote{We use the notation KB to mean kilobytes.}).
 This is typically due to (track) buffering and prefetching
 performed in the disk controller. The (logical) block size
-used by \myverb{BTE\_stream\_mmb} can be set using the macro
-\myverb{BTE\_MMB\_LOGICAL\_BLOCKSIZE\_FACTOR} in the
-\myverb{app\_config.h} file. However, choosing a large
+used by \myv{BTE\_stream\_mmb} can be set using the macro
+\myv{BTE\_MMB\_LOGICAL\_BLOCKSIZE\_FACTOR} in the
+\myv{app\_config.h} file. However, choosing a large
 (logical) block size limits the amount of main memory
 available for an application program and thus the (logical)
 block size should be chosen very carefully in order to
 obtain maximal performance.
 
-Unlike in \myverb{BTE\_stream\_stdio}, where a function call
+Unlike in \myv{BTE\_stream\_stdio}, where a function call
 is incurred every time a stream object is accessed, the
-\myverb{BTE\_stream\_mmb} only incurs such a call on every
+\myv{BTE\_stream\_mmb} only incurs such a call on every
 (logical) block. This can lead to improved performance,
 especially on systems with a relatively slow CPU compared to
 the disk.  However, while prefetching of disk blocks is
 implicitly done by the operating system in
-\myverb{BTE\_stream\_stdio}, \myverb{BTE\_stream\_mmb} has
+\myv{BTE\_stream\_stdio}, \myv{BTE\_stream\_mmb} has
 to implement its own prefetching scheme. (Note on the other
-hand that unlike in \myverb{BTE\_stream\_stdio} objects does
+hand that unlike in \myv{BTE\_stream\_stdio} objects does
 not pass through the kernel level buffer space on its way to
-user space).  \myverb{BTE\_stream\_mmb} prefetching can be
+user space).  \myv{BTE\_stream\_mmb} prefetching can be
 turned on by defining the macro
-\myverb{BTE\_MMB\_READ\_AHEAD} in the \myverb{app\_config.h}
+\myv{BTE\_MMB\_READ\_AHEAD} in the \myv{app\_config.h}
 file. If this compile-time variable is defined,
-\myverb{BTE\_stream\_mmb} optimize for sequential read speed
+\myv{BTE\_stream\_mmb} optimize for sequential read speed
 by reading (mapping) blocks into main memory before the data
 they contain is actually needed. Two methods of read-ahead
 is provided:
 
 \begin{itemize}
 
-    \item If the \myverb{USE\_LIBAIO} macro is undefined
-    (and \myverb{BTE\_MMB\_READ\_AHEAD} is set), read ahead
-    is done using \myverb{mmap} calls.
+    \item If the \myv{USE\_LIBAIO} macro is undefined
+    (and \myv{BTE\_MMB\_READ\_AHEAD} is set), read ahead
+    is done using \myv{mmap} calls.
 
-    \item If the \myverb{USE\_LIBAIO} macro is defined (and
-    \myverb{BTE\_MMB\_READ\_AHEAD} is set), read ahead is
+    \item If the \myv{USE\_LIBAIO} macro is defined (and
+    \myv{BTE\_MMB\_READ\_AHEAD} is set), read ahead is
     done using the asynchronous I/O library. This feature
     requires the asynchronous I/O library {\tt
        libaio}.\index{libaio library@{\tt libaio} library.}
 
 \end{itemize}
-By default \myverb{BTE\_MMB\_READ\_AHEAD} is defined,
-\myverb{USE\_LIBAIO} is not.\comment{LA: Discuss the two and
+By default \myv{BTE\_MMB\_READ\_AHEAD} is defined,
+\myv{USE\_LIBAIO} is not.\comment{LA: Discuss the two and
    how they differ.}
 
-\myverb{BTE\_stream\_mmb} class inherits from \myverb{BTE\_base\_stream}:\index{BTE_base_stream@{\tt BTE\_base\_stream}}
+\myv{BTE\_stream\_mmb} class inherits from \myv{BTE\_base\_stream}:\index{BTE_base_stream@{\tt BTE\_base\_stream}}
 \begin{verbatim}
 class BTE_stream_mmb : public BTE_base_stream {
   private:
@@ -622,8 +622,8 @@ class BTE_stream_mmb : public BTE_base_stream {
 }  
 \end{verbatim}
 
-\myverb{BTE\_stream\_mmb} defines the public member
-functions defined for \myverb{BTE\_base\_stream} (please see
+\myv{BTE\_stream\_mmb} defines the public member
+functions defined for \myv{BTE\_base\_stream} (please see
 Section~\ref{sec:imp-bte-base} for a list of these member
 functions and their semantics).  In addition to these it
 defines its own constructors: 
@@ -641,7 +641,7 @@ defines its own constructors:
                  off_t sub_begin, off_t sub_end);
 \end{verbatim}
 
-The \myverb{BTE\_stream\_mmb} header\index{BTE_stream_mmb@{\tt
+The \myv{BTE\_stream\_mmb} header\index{BTE_stream_mmb@{\tt
       BTE\_stream\_mmb}!header}\index{streams!header block}
 structure is as follows:
 
@@ -671,45 +671,45 @@ struct mmap_stream_header {
 (!!! CHECK COMMENTS) 
 The \emphd{ufs} BTE is implemented by the class
 \myv{BTE\_stream\_ufs}, defined in file
-\myverb{/include/bte\_stdio.h}.  \myverb{BTE\_stream\_ufs}
+\myv{/include/bte\_stdio.h}.  \myv{BTE\_stream\_ufs}
 streams are stored as ordinary UNIX files.
-\myverb{BTE\_ufs} streams use
-\myverb{read()}/\myverb{write()} calls to implement their
+\myv{BTE\_ufs} streams use
+\myv{read()}/\myv{write()} calls to implement their
 I/O.
 
 
-% The motivation behind implementing \myverb{BTE\_ufs} streams
+% The motivation behind implementing \myv{BTE\_ufs} streams
 % is an empirically observed inefficiency\footnote{The
 %    inefficiency can occur on account of various reasons. On
-%    one system, \myverb{mmap()} calls were implemented on top
-%    of the \myverb{stdio} interface instead of a direct I/O
+%    one system, \myv{mmap()} calls were implemented on top
+%    of the \myv{stdio} interface instead of a direct I/O
 %    implementation, resulting in extra overhead.} of
-% \myverb{mmap()} implementations in some systems.\comment{LA:
+% \myv{mmap()} implementations in some systems.\comment{LA:
 %    Say that its Solaris?} In such situations, another stream
-% implementation that, like \myverb{BTE\_stream\_mmb} streams,
+% implementation that, like \myv{BTE\_stream\_mmb} streams,
 % have the potential of exploiting large sized blocks and
 % buffers is needed.
 
-% The \myverb{BTE\_ufs} stream implementation simulates the
-% \myverb{BTE\_stream\_mmb} stream implementation: Whenever the latter
+% The \myv{BTE\_ufs} stream implementation simulates the
+% \myv{BTE\_stream\_mmb} stream implementation: Whenever the latter
 % maps in a new block, the former reads in a new block (via
-% \myverb{read()}) and whenever the latter unmaps a block, the
-% latter attains the same result via a \myverb{write()} call.
-% But the \myverb{BTE\_ufs} implementation involves explicitly
+% \myv{read()}) and whenever the latter unmaps a block, the
+% latter attains the same result via a \myv{write()} call.
+% But the \myv{BTE\_ufs} implementation involves explicitly
 % keeping track in the BTE code various things which are
-% ``under the hood'' in \myverb{mmap()}
+% ``under the hood'' in \myv{mmap()}
 % implementations.\comment{LA: Like what?} In fact, the code
-% in the \myverb{BTE\_ufs} implementation can be said to
-% amount to a (very rudimentary) \myverb{mmap()}
+% in the \myv{BTE\_ufs} implementation can be said to
+% amount to a (very rudimentary) \myv{mmap()}
 % implementation. 
 
-Like in the case of \myverb{BTE\_stream\_mmb} the
+Like in the case of \myv{BTE\_stream\_mmb} the
 (logical) block size can be controlled using the macro
-\myverb{BTE\_UFS\_LOGICAL\_BLOCKSIZE\_FACTOR}.
-\myverb{BTE\_stream\_ufs} also has the same advantage as
-\myverb{BTE\_stream\_mmb} over \myverb{BTE\_stdio} of only incurring
-one kernel call per block. However, unlike \myverb{BTE\_stream\_mmb}
-(but like \myverb{BTE\_stdio}), prefetching is done
+\myv{BTE\_UFS\_LOGICAL\_BLOCKSIZE\_FACTOR}.
+\myv{BTE\_stream\_ufs} also has the same advantage as
+\myv{BTE\_stream\_mmb} over \myv{BTE\_stdio} of only incurring
+one kernel call per block. However, unlike \myv{BTE\_stream\_mmb}
+(but like \myv{BTE\_stdio}), prefetching is done
 implicitly by the filesystem underlying TPIE (and objects
 have to pass through kernel level buffer space)
 %In fact, nowadays, in the case of sequential accesses, most filesystems
@@ -718,14 +718,14 @@ have to pass through kernel level buffer space)
 %acceses, the next block to be accessed is more often than not dependent on
 %the processing of the contents of the current block, so prefetching is
 %difficult to implement or impossible.)
-In \myverb{BTE\_ufs} streams, when the asynchronous I/O library
-\myverb{libaio}\index{libaio library@{\tt libaio} library.} is available,
-there is a provision to do (user-level) prefetching within \myverb{BTE\_ufs}
+In \myv{BTE\_ufs} streams, when the asynchronous I/O library
+\myv{libaio}\index{libaio library@{\tt libaio} library.} is available,
+there is a provision to do (user-level) prefetching within \myv{BTE\_ufs}
 streams but we do not recommend its use on account of the implicit
 filesystem prefetching.
 
-\myverb{BTE\_stream\_ufs} class inherits from
-\myverb{BTE\_base\_stream}:\comment{LA: Why called
+\myv{BTE\_stream\_ufs} class inherits from
+\myv{BTE\_base\_stream}:\comment{LA: Why called
    BTE\_single\_disk and not BTE\_stream\_ufs?? DH: Yes,
    this documentation is wrong, but the code should be fixed!!!}
 \begin{verbatim}
@@ -737,8 +737,8 @@ class BTE_single_disk : public BTE_base_stream {
      the stream.  mmap_stream_header *header; ...  }
 \end{verbatim}
 
-\myverb{BTE\_stream\_ufs} defines the public member
-functions defined for \myverb{BTE\_base\_stream} (please see
+\myv{BTE\_stream\_ufs} defines the public member
+functions defined for \myv{BTE\_base\_stream} (please see
 Section~\ref{sec:imp-bte-base} for a list of these member
 functions and their semantics).  In addition to these it
 defines its own constructors: 
@@ -754,7 +754,7 @@ defines its own constructors:
                  BTE_stream_type st,
                  off_t sub_begin, off_t sub_end);
 \end{verbatim}
-The \myverb{BTE\_ufs} header structure is as follows:
+The \myv{BTE\_ufs} header structure is as follows:
 \index{BTE\_stream\_ufs@{\tt BTE\_stream\_ufs}!header}\index{streams!header block}
 \begin{verbatim}
 struct ufs_stream_header { 
@@ -785,7 +785,7 @@ The Memory Manager components of TPIE provide services related to
 the management of internal memory:
 \begin{itemize}
 \item allocation and deallocation of (internal)
-memory as requested by the \myverb{new} and \myverb{delete} operators,
+memory as requested by the \myv{new} and \myv{delete} operators,
 \item accounting of memory usage (when required),
 \item enforcing of the user-specified internal memory usage
 limit (when required),
@@ -793,9 +793,9 @@ limit (when required),
 \end{itemize}
 
 In version \version of TPIE, the memory manager
-\myverb{MM\_manager}, is built from the source files
-\myverb{mm\_register.cpp}, \myverb{mm\_base.cpp},
-\myverb{mm\_register.h}, and \myverb{mm\_base.h}.  The memory
+\myv{MM\_manager}, is built from the source files
+\myv{mm\_register.cpp}, \myv{mm\_base.cpp},
+\myv{mm\_register.h}, and \myv{mm\_base.h}.  The memory
 manager traps memory allocation and deallocation requests in
 order to monitor and enforce memory usage limits. It
 provides a number of user-callable functions and services,
@@ -911,10 +911,10 @@ services are accessed:\comment{DH: There may be a better
     Section~\ref{sec:tut-compiling}.
 \end{itemize} 
 
-\subsubsection{File: \myverb{include/ami.h}} This C++ include
+\subsubsection{File: \myv{include/ami.h}} This C++ include
 file inputs the various include files required for
 compilation of an application program with TPIE. The relevant portion
-of \myverb{include/ami.h} is included below:
+of \myv{include/ami.h} is included below:
 
 \begin{verbatim}
 // Get the base class, enums, etc...
@@ -948,22 +948,22 @@ follow.
 \subsection{Creation of Streams}
 
 AMI stream objects are created in a TPIE program via the
-\myv{AMI\_STREAM} keyword.  \myverb{AMI\_STREAM} is a macro
+\myv{AMI\_STREAM} keyword.  \myv{AMI\_STREAM} is a macro
 that resolves to a class template invocation appropriate to
 the declared target I/O architecture. This involves the
 declared AMI implementation (see Section~\ref{sec:ref-ami}),
 BTE implementation\index{block transfer engine} (see
 Section~\ref{sec:ref-bte}) and whether one or multiple disks
 are used.  In the current version of TPIE an
-\myverb{AMI\_STREAM} is stored in a standard UNIX file on a
+\myv{AMI\_STREAM} is stored in a standard UNIX file on a
 single disk. For most applications, an \myv{AMI\_STREAM}
 will have type \myv{AMI\_stream\_single}, which is the TPIE
 base class for a stream backed by a single file (normally on
-a single disk). The string \myverb{AMI\_STREAM} is
-\myverb{\#define}'d to be the string
-\myverb{AMI\_stream\_single} in the header file
-\myverb{ami\_imps.h}. This arrangement is intended to permit
-alternative implementations of \myverb{AMI\_STREAM} if
+a single disk). The string \myv{AMI\_STREAM} is
+\myv{\#define}'d to be the string
+\myv{AMI\_stream\_single} in the header file
+\myv{ami\_imps.h}. This arrangement is intended to permit
+alternative implementations of \myv{AMI\_STREAM} if
 necessary in the future.
 
 The TPIE code associated with the creation and manipulation
@@ -1048,11 +1048,11 @@ files:
 \end{itemize}
 
 
-% The public member functions of the \myverb{AMI\_STREAM}
+% The public member functions of the \myv{AMI\_STREAM}
 % class are defined in the file ``ami\_single.h''. Some
 % important related enumerated types that the user will be
 % concerned with are defined in ``ami\_base.h''.
-% \myverb{AMI\_STREAM} is a macro that resolves to a class
+% \myv{AMI\_STREAM} is a macro that resolves to a class
 % template declared to match the underlying semantics of the
 % target I/O architecture by using an appropriate AMI
 % implementation (see section~\ref{sec:ref-ami}), BTE
@@ -1088,36 +1088,36 @@ files:
 % Each datum in TPIE is an item of a certain type.  The
 % programmer normally manipulates the data via the services of
 % the \emphd{Access Method Interface (AMI)}, which accesses
-% data elements stored in \myverb{AMI\_STREAM}s.  An
-% \myverb{AMI\_STREAM} can be viewed as simply a wrapper
-% around a \myverb{BTE\_STREAM} (See
+% data elements stored in \myv{AMI\_STREAM}s.  An
+% \myv{AMI\_STREAM} can be viewed as simply a wrapper
+% around a \myv{BTE\_STREAM} (See
 % Section~\ref{BTEinterface} for a discussion of the BTE
 % interface).
 
-%as a \myverb{BTE\_STREAM}, where BTE stands for \emphd{block transfer
-%engine.} Each \myverb{BTE\_STREAM} is a stream built on top
+%as a \myv{BTE\_STREAM}, where BTE stands for \emphd{block transfer
+%engine.} Each \myv{BTE\_STREAM} is a stream built on top
 %of a Unix file, with  
 %additional features such as typing,  and automatic, efficient,
 % I/O and buffering so that the programmer does
 %not bear this burden. TPIE can be configured to use one of three
-%different \myverb{BTE\_STREAM} implementations: The implementations vary
+%different \myv{BTE\_STREAM} implementations: The implementations vary
 %fundamentally in the way they do buffering and I/O. The implementation
 %of choice depends, to some extent, on the operating system on which 
 %TPIE runs. Later we describe the different BTE implementations and
 %how to determine the best implementation on any given system; for now,
-%we focus on the \myverb{AMI\_STREAM} interface since that
+%we focus on the \myv{AMI\_STREAM} interface since that
 %is most directly 
 %relevant to a programmer/user.
 
-%The member functions of the \myverb{AMI\_STREAM} class,
-%templated on the type T of its items,  are defined in the file \myverb{ami\_single.h};
+%The member functions of the \myv{AMI\_STREAM} class,
+%templated on the type T of its items,  are defined in the file \myv{ami\_single.h};
 %some important related enumerated types that the user will be
-% concerned with have been defined in \myverb{ami\_base.h}.
+% concerned with have been defined in \myv{ami\_base.h}.
 
-%An important consequence of the construction of an \myverb{AMI\_STREAM} is a
+%An important consequence of the construction of an \myv{AMI\_STREAM} is a
 %reduction in the total amount of memory that the user has at her
 %disposal since a certain amount of memory is consumed now by buffers
-%dedicated to that \myverb{AMI\_STREAM} and its related data
+%dedicated to that \myv{AMI\_STREAM} and its related data
 %structures.\footnote{The total amount of memory that the user has
 %available, divided by the memory consumed by every AMI\_STREAM thus
 %is an upper bound on the maximum number of AMI\_STREAMs that the user
@@ -1128,38 +1128,45 @@ files:
 %when one of several algorithms may be usable to solve a given problem,
 %it may be useful to choose the algorithm depending on the problem
 %size and available memory size. The total amount of memory consumed
-%by an \myverb{AMI\_STREAM} often plays an important role while making such 
-%a choice. The memory manager \myverb{mm.h} is responsible for keeping
+%by an \myv{AMI\_STREAM} often plays an important role while making such 
+%a choice. The memory manager \myv{mm.h} is responsible for keeping
 %track of the amount of memory avaoable to the user at any time.
 
-%When an \myverb{AMI\_STREAM} is destroyed using a destructor, that
+%When an \myv{AMI\_STREAM} is destroyed using a destructor, that
 %amount of memory becomes is added to the available memory for the
 %user. 
 
 
 %Sometimes the
-%items in an \myverb{AMI\_STREAM} will never be used  once
-%the \myverb{AMI\_STREAM} is 
+%items in an \myv{AMI\_STREAM} will never be used  once
+%the \myv{AMI\_STREAM} is 
 %destructed whereas sometimes an ``idle''
-%\myverb{AMI\_STREAM} may be destroyed  
+%\myv{AMI\_STREAM} may be destroyed  
 %to prevent it from hogging memory only to be constructed later on
 %when really required. In the former case, it is desirable to 
-%destroy or delete the Unix file backing the \myverb{AMI\_STREAM} to save
+%destroy or delete the Unix file backing the \myv{AMI\_STREAM} to save
 %disk space whereas in the latter case we need the Unix file backing
-%the \myverb{AMI\_STREAM} to exist on disk even when the
-%   \myverb{AMI\_STREAM} is 
-%destroyed. The  \myverb{AMI\_STREAM} destructor looks at the persistence 
+%the \myv{AMI\_STREAM} to exist on disk even when the
+%   \myv{AMI\_STREAM} is 
+%destroyed. The  \myv{AMI\_STREAM} destructor looks at the persistence 
 %flag to decide whether it need only close the backing Unix file or
 %delete it from disk.
 
 
 \subsection{Scanning}
 \index{scanning|(}
+
+The file \myv{include/ami\_scan.h} defines the scanning
+functionality provided by TPIE. This file is a concatenation
+of the files \myv{include/ami_scan.h.head},
+\myv{include/ami_scan_mac.h}, and
+\myv{include/ami_scan.h.tail}, and is mechanically generated
+by \myv{make} when TPIE is compiled and built (for more
+details, see the file \myv{include/Makefile}. It is not
+intended that \myv{include/ami\_scan.h} be modified
+manually.
+
 \index{scanning|)}
-
-\tobeextended
-
-\myverb{ami\_scan.h}
 
 \subsection{Merging}
 \plabel{sec:imp-ami-merge}
@@ -1168,37 +1175,37 @@ files:
 
 \tobeextended
 
-\myverb{ami\_merge\_base.h}
+\myv{ami\_merge\_base.h}
 
 %\subsubsection{Merge Management Objects}
 %
-%Merge management objects based on the super class \myverb{AMI\_merge\_base} 
-%defined in the file \myverb{ami\_merge.h} can be used conveniently by
+%Merge management objects based on the super class \myv{AMI\_merge\_base} 
+%defined in the file \myv{ami\_merge.h} can be used conveniently by
 %appropriately defining the member functions of the class.
 
 \subsubsection{Generalized Merging: using Merge Management Objects}
 
 \tobeextended
 
-\myverb{ami\_merge.h}\comment{LA: Remember something about ami\_merge really
+\myv{ami\_merge.h}\comment{LA: Remember something about ami\_merge really
 called ami\_single\_merge.}
 
 \subsubsection{Specialized Merging: without Merge Management Objects}
 
 \tobeextended
 
-The \myverb{AMI\_merge()} polymorphs (defined in file
-\myverb{ami\_optimized\_merge.h}) work without a merge
+The \myv{AMI\_merge()} polymorphs (defined in file
+\myv{ami\_optimized\_merge.h}) work without a merge
 management object and perform standard (total
 order/comparison based) merging. The elimination of the
 merge management object object results in one less level of
 function calls and thus in improved efficiency over a
 similar comparison based merging based on a merge management
 object. The merge is controlled by a priority queue (defined
-in file \myverb{include/mergeheap.h}) which exploits the
-fact that \myverb{delete-min} and \myverb{insert} are always
+in file \myv{include/mergeheap.h}) which exploits the
+fact that \myv{delete-min} and \myv{insert} are always
 performed together. This improves efficiency. In
- \myverb{AMI\_key\_merge()} the heap stores the
+ \myv{AMI\_key\_merge()} the heap stores the
 key and not the entire object. When the object size is large
 compared to the key size, this often leads to further
 performance improvement.\comment{LA: Extend this stuff so it
@@ -1208,14 +1215,14 @@ performance improvement.\comment{LA: Extend this stuff so it
 
 \tobeextended
 
-\myverb{AMI\_partition\_and\_merge()} repeatedly merges together the maximum
-possible number of sub-streams using \myverb{AMI\_merge()}. An important point
-is that the substreams input to \myverb{AMI\_merge()} during the execution of
-\myverb{AMI\_partition\_and\_merge()} all originate from the same underlying
-parent \myverb{AMI\_STREAM}; thus filesystem accesses are inherently
+\myv{AMI\_partition\_and\_merge()} repeatedly merges together the maximum
+possible number of sub-streams using \myv{AMI\_merge()}. An important point
+is that the substreams input to \myv{AMI\_merge()} during the execution of
+\myv{AMI\_partition\_and\_merge()} all originate from the same underlying
+parent \myv{AMI\_STREAM}; thus filesystem accesses are inherently
 non-sequential. Throughout the execution of
-\myverb{AMI\_partition\_and\_merge()}, there are only two active
-\myverb{AMI\_STREAM}s at any time: One which stores the substreams being
+\myv{AMI\_partition\_and\_merge()}, there are only two active
+\myv{AMI\_STREAM}s at any time: One which stores the substreams being
 merged at that stage and one which stores the substreams output by that
 stage.\comment{LA: Extend this stuff so that it becomes readable!}
 
@@ -1274,27 +1281,27 @@ AMI_err AMI_sort_V1 ( AMI_STREAM<T> *instream,
 
     
     The version 1 merge sort polymorphs of
-    \myverb{AMI\_sort\_V1()} are implemented using
-    \myverb{AMI\_partition\_and\_merge()} and a merge
-    management object. The \myverb{merge\_sort\_manager}
+    \myv{AMI\_sort\_V1()} are implemented using
+    \myv{AMI\_partition\_and\_merge()} and a merge
+    management object. The \myv{merge\_sort\_manager}
     class, a base class for merge management objects needed in
-    \myverb{AMI\_sort\_V1()}, is also defined in file
+    \myv{AMI\_sort\_V1()}, is also defined in file
     \myv{include/ami\_sort\_single.h}.  The member functions
-    \myverb{main\_mem\_operate()}, \myverb{initialize()},
-    and \myverb{operate()} of the merge management object
+    \myv{main\_mem\_operate()}, \myv{initialize()},
+    and \myv{operate()} of the merge management object
     provide the sorting-specific details required for merge
     sorting:
     \begin{itemize}
-        \item \myverb{main\_mem\_operate()} is simply an
+        \item \myv{main\_mem\_operate()} is simply an
         in-memory sorting algorithm based on quicksort (in
-        file \myverb{quicksort.h}).
+        file \myv{quicksort.h}).
         
-        \item Member function \myverb{operate()} selects the
+        \item Member function \myv{operate()} selects the
         next output element during the merging of runs using
         a standard priority queue (in file
-        \myverb{pqueue\_heap.h}).
+        \myv{pqueue\_heap.h}).
         
-        \item Member function \myverb{initialize()} just
+        \item Member function \myv{initialize()} just
         initializes this priority queue.\comment{LA: extend/rewrite?}
     \end{itemize}
     
@@ -1369,40 +1376,40 @@ details or options required.
         comparison object).
     \end{itemize}
 
-All \myverb{sort\_manager} objects contain the following
+All \myv{sort\_manager} objects contain the following
 member functions:
 \begin{itemize}
-    \item member function \myv{sort\_fits\_in\_memory}
-    returns TRUE if there is sufficient internal memory to
-    sort the input stream without external merging.
-
-    \item member function \myv{main\_mem\_operate\_init}
-    initializes any internal memory data structures needed
-    for internal sorting (e.g. an array of pointers in the
-    case of \myv{AMI\_ptr\_sort} and an array of keys in the
-    case
-    of \myv{AMI\_key\_sort}).
-
-    \item member function \myv{main\_mem\_operate} performs
-    an internal sort of the appropriate type (e.g. quicksort
-    of records, quicksort of pointers to records, or
-    quicksort of keys)
-
-    \item member function \myv{main\_mem\_operate\_cleanup}
-    cleans up after \myv{main\_mem\_operate} (e.g. frees the
-    data structures used after an internal memory sort).
-
-    \item member function \myv{single\_merge} merges a set
-    of input streams into an output stream. This resolves
-    to a call to \myv{AMI\_single\_merge\_dh} in all
-    cases. However the merge heap object used in that call
-    is customized according to which sort template was
-    invoked by
-    the application programmer.
+    \item member function \myv{sort\_fits\_in\_memory},
+    which returns TRUE if there is sufficient internal
+    memory to sort the input stream without external
+    merging.
+    
+    \item member function \myv{main\_mem\_operate\_init},
+    which initializes any internal memory data structures
+    needed for internal sorting (e.g. an array of pointers
+    in the case of \myv{AMI\_ptr\_sort} and an array of keys
+    in the case of \myv{AMI\_key\_sort}).
+    
+    \item member function \myv{main\_mem\_operate}, which
+    performs an internal sort of the appropriate type (e.g.
+    quicksort of records, quicksort of pointers to records,
+    or quicksort of keys)
+    
+    \item member function \myv{main\_mem\_operate\_cleanup},
+    which cleans up after \myv{main\_mem\_operate} (e.g.
+    frees the data structures used after an internal memory
+    sort).
+    
+    \item member function \myv{single\_merge}, which merges
+    a set of input streams into an output stream. This
+    resolves to a call to \myv{AMI\_single\_merge\_dh} in
+    all cases. However the merge heap object used in that
+    call is customized according to which sort template was
+    invoked by the application programmer.
 
 \end{itemize}
 
-All \myverb{sort\_manager} objects also contain a
+All \myv{sort\_manager} objects also contain a
 \emphd{merge heap} object, which is custom-chosen by the
 particular sort template selected by the application
 programmer. The merge heap classes are defined in file
@@ -1528,18 +1535,18 @@ The merge sorting algorithm used by
        \step{(a.)} { \myv{single\_merge} }
     until only a single output stream remains.}}}
 
-One important difference between the \myverb{AMI\_sort\_V1()}
-and the \myverb{AMI\_sort()}, \myverb{AMI\_ptr\_sort()}, and
-\myverb{AMI\_key\_sort()} implementations is in the way they
+One important difference between the \myv{AMI\_sort\_V1()}
+and the \myv{AMI\_sort()}, \myv{AMI\_ptr\_sort()}, and
+\myv{AMI\_key\_sort()} implementations is in the way they
 store the (sub-) streams to be merged after the initial
 in-memory sorting is performed. The number, say $R$, of
 streams (files) being merged together at any time is the maximum
 possible for the amount of memory available. In contrast to
-the \myverb{AMI\_sort\_V1()} implementations which only have
+the \myv{AMI\_sort\_V1()} implementations which only have
 two streams (files) active at any time with the $R$ substreams
 stored 'inside' them, the newer implementations have $R$
 files active. While the $R$ sub-streams sent
-for merging by the \myverb{AMI\_sort()} function all have
+for merging by the \myv{AMI\_sort()} function all have
 the same parent stream (file), the $R$ sub-streams sent for merging
 by the new implementations all reside in different parent
 streams (files). Thus, each stream (file) involved is accessed in a
@@ -1552,29 +1559,29 @@ streams (files).\comment{LA: This section really needs to be
 
 % One final difference between the two sorting algorithm
 % implementation is that during the initial main memory sort
-% the \myverb{AMI\_optimized\_sort()} polymorph which relies
+% the \myv{AMI\_optimized\_sort()} polymorph which relies
 % on the objects having a special key field first extracts the
 % keys from the objects and sorts them to obtain the order of
 % the objects in memory. The full objects are then permuted to
 % reflect this order. Again this result in improved efficiency
 % if the keys are much smaller than the objects.
 
-% As the \myverb{AMI\_sort()} polymorphs are based on
-% \myverb{AMI\_partition\_and\_merge()} which in turn are
-% based on \myverb{AMI\_merge()} and a merge management
-% object, the \myverb{AMI\_optimized\_sort()} polymorphs are
-% based on the \myverb{AMI\_merge()} polymorphs that do not
+% As the \myv{AMI\_sort()} polymorphs are based on
+% \myv{AMI\_partition\_and\_merge()} which in turn are
+% based on \myv{AMI\_merge()} and a merge management
+% object, the \myv{AMI\_optimized\_sort()} polymorphs are
+% based on the \myv{AMI\_merge()} polymorphs that do not
 % use a standard (as described in
 % Section~\ref{sec:ref-ami-merge}) TPIE merge management
-% object. Thus \myverb{AMI\_optimized\_sort()} benefits from
+% object. Thus \myv{AMI\_optimized\_sort()} benefits from
 % the efficiency improvement obtained in
-% \myverb{AMI\_optimized\_merge()} relative to
-% \myverb{AMI\_merge()}. \myverb{AMI\_optimized\_sort()} is a
+% \myv{AMI\_optimized\_merge()} relative to
+% \myv{AMI\_merge()}. \myv{AMI\_optimized\_sort()} is a
 % merge sort implemented along the lines of
-% \myverb{AMI\_partition\_and\_merge()} (in fact the
-% implementation of \myverb{AMI\_optimized\_sort()} really is
-% an \myverb{AMI\_partition\_and\_merge()} polymorphs defined
-% in the file \myverb{ami\_optimized\_merge.h}).
+% \myv{AMI\_partition\_and\_merge()} (in fact the
+% implementation of \myv{AMI\_optimized\_sort()} really is
+% an \myv{AMI\_partition\_and\_merge()} polymorphs defined
+% in the file \myv{ami\_optimized\_merge.h}).
 
 \subsubsection{File: \myv{include/mergeheap\_dh.h}}
 
