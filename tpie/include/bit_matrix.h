@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 11/4/94
 //
-// $Id: bit_matrix.h,v 1.9 2003-04-17 14:43:24 jan Exp $
+// $Id: bit_matrix.h,v 1.10 2003-04-20 06:38:39 tavi Exp $
 //
 #ifndef _BIT_MATRIX_H
 #define _BIT_MATRIX_H
@@ -41,6 +41,6 @@ public:
 bit_matrix operator+(const bit_matrix &op1, const bit_matrix &op2);
 bit_matrix operator*(const bit_matrix &op1, const bit_matrix &op2);
 
-ostream &operator<<(ostream &s, bit_matrix &bm);
+std::ostream &operator<<(std::ostream &s, bit_matrix &bm);
 
 #endif // _BIT_MATRIX_H 

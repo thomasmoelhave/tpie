@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/12/94
 //
-// $Id: tpie_assert.h,v 1.6 2003-04-17 19:59:11 jan Exp $
+// $Id: tpie_assert.h,v 1.7 2003-04-20 06:38:39 tavi Exp $
 //
 
 #ifndef _TPIE_ASSERT_H
@@ -15,7 +15,7 @@
 
 #include <tpie_log.h>
 #include <assert.h>
-#include <iostream.h>
+#include <iostream>
 
 #if DEBUG_ASSERTIONS
 
@@ -23,7 +23,7 @@
   if (!(condition)) { \
     LOG_FATAL_ID("Assertion failed:"); \
     LOG_FATAL_ID(message); \
-    cerr << "Assertion failed: " << message << endl; \
+    std::cerr << "Assertion failed: " << message << "\n"; \
     assert(0); \
   } \
 }
