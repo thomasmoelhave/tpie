@@ -1,3 +1,26 @@
+Mon Jan 14 12:09:41 2002
+	* this file is now ChangeLog instead of Changelog.
+
+	* Makefile.in: removed those ugly .d files. Introduced depend
+	target, which makes a file called Makefile.depend containing all
+	dependencies.
+
+	* ami_single.cpp: deprecated; renamed ami_stream_single.cpp
+	
+	* bte_stdio.cpp. bte_ufs.cpp, bte_mmb.cpp: deprecated
+	* bte_coll_mmb.cpp: deprecated; renamed bte_coll_mmap.cpp
+	* counter.cpp: deprecated
+	
+	* bte_stream_base.cpp: initial revision, containing consolidated
+	code from bte_ufs.cpp, bte_mmb.cpp, bte_stdio.cpp
+
+	* cpu_timer.cpp: now contains methods to query the timings, not just
+	to print them
+
+Thu May 17 19:29:14 2001 Octavian Procopiuc (tavi)
+	* bte_coll_base.cpp, bte_coll_mmb.cpp, bte_coll_ufs.cpp: initial
+	revision
+
 Thu May 22 22:42 1997 Lars Arge (large)
 
 	* We should describe changed to file in this dir in this file!
