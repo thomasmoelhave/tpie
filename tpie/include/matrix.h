@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 11/4/94
 //
-// $Id: matrix.h,v 1.5 1999-02-03 03:01:52 jan Exp $
+// $Id: matrix.h,v 1.6 1999-02-03 18:04:00 tavi Exp $
 //
 #ifndef MATRIX_H
 #define MATRIX_H
@@ -901,63 +901,5 @@ void aggarwal_matrix_mult_add_in_place(const matrix<T> &op1,
     delete [] temp;
 
 }
-
-
-
-#ifdef NO_IMPLICIT_TEMPLATES
-
-#define TEMPLATE_INSTANTIATE_MAT_DUMMY_OP(T,TM1,TM2,OP)			\
-template matrix<T> operator OP (const TM1 &op1, const TM2 &op2);
-
-#define TEMPLATE_INSTANTIATE_MATRIX(T)					\
-template class matrix_base<T>;						\
-template class colref<T>;						\
-template class rowref<T>;						\
-template class submatrix<T>;						\
-template class matrix<T>;						\
-									\
-TEMPLATE_INSTANTIATE_MAT_DUMMY_OP(T,matrix_base<T>,matrix_base<T>,+)	\
-									\
-TEMPLATE_INSTANTIATE_MAT_DUMMY_OP(T,matrix<T>,matrix<T>,+)		\
-TEMPLATE_INSTANTIATE_MAT_DUMMY_OP(T,matrix<T>,submatrix<T>,+)		\
-TEMPLATE_INSTANTIATE_MAT_DUMMY_OP(T,submatrix<T>,matrix<T>,+)		\
-TEMPLATE_INSTANTIATE_MAT_DUMMY_OP(T,submatrix<T>,submatrix<T>,+)	\
-									\
-TEMPLATE_INSTANTIATE_MAT_DUMMY_OP(T,matrix_base<T>,matrix_base<T>,*)	\
-									\
-TEMPLATE_INSTANTIATE_MAT_DUMMY_OP(T,matrix<T>,matrix<T>,*)		\
-TEMPLATE_INSTANTIATE_MAT_DUMMY_OP(T,matrix<T>,submatrix<T>,*)		\
-TEMPLATE_INSTANTIATE_MAT_DUMMY_OP(T,submatrix<T>,matrix<T>,*)		\
-TEMPLATE_INSTANTIATE_MAT_DUMMY_OP(T,submatrix<T>,submatrix<T>,*)	\
-									\
-template void perform_mult_in_place(const matrix_base<T> &op1,		\
-                                    const matrix_base<T> &op2,		\
-                                    matrix_base<T> &res);		\
-									\
-template void perform_mult_add_in_place(matrix_base<T> &op1,		\
-                                        matrix_base<T> &op2,		\
-                                        matrix_base<T> &res);		\
-									\
-template void quick_matrix_mult_in_place(const matrix<T> &op1,		\
-                                         const matrix<T> &op2,		\
-                                         matrix<T> &res);		\
-									\
-template void quick_matrix_mult_add_in_place(const matrix<T> &op1,	\
-                                             const matrix<T> &op2,	\
-                                             matrix<T> &res);		\
-									\
-template void aggarwal_matrix_mult_in_place(const matrix<T> &op1,	\
-                                            const matrix<T> &op2,	\
-                                            matrix<T> &res);		\
-									\
-template void aggarwal_matrix_mult_add_in_place(const matrix<T> &op1,	\
-                                                const matrix<T> &op2,	\
-                                                matrix<T> &res);	\
-									\
-template ostream &operator<<(ostream &s, matrix_base<T> &m);		\
-template ostream &operator<<(ostream &s, matrix<T> &m);			\
-template ostream &operator<<(ostream &s, submatrix<T> &m);
-
-#endif
 
 #endif // MATRIX_H 
