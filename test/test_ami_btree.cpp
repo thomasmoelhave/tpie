@@ -9,7 +9,8 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_btree_cpp, "$Id: test_ami_btree.cpp,v 1.18 2003-09-14 21:45:02 tavi Exp $");
+VERSION(test_ami_btree_cpp, "$Id: test_ami_btree.cpp,v 1.19 2003-09-14 21:46:25 tavi Exp $");
+#include <app_params.h>
 
 #include <cpu_timer.h>
 #include <ami_btree.h>
