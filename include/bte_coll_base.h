@@ -4,7 +4,7 @@
 // Authors: Octavian Procopiuc <tavi@cs.duke.edu>
 //          (using some code by Rakesh Barve)
 //
-// $Id: bte_coll_base.h,v 1.22 2003-09-17 02:11:38 tavi Exp $
+// $Id: bte_coll_base.h,v 1.23 2004-02-05 17:36:52 jan Exp $
 //
 // BTE_collection_base class and various basic definitions.
 
@@ -160,7 +160,7 @@ private:
     // Helper functions. We don't want them inherited.
 
     // Initialization common to all constructors.
-    void shared_init(BTE_collection_type type, size_t logical_block_factor);
+    void shared_init(BTE_collection_type type, size_t logical_block_factor, TPIE_OS_MAPPING_FLAG mapping);
 
     // Read header from disk.
     BTE_err read_header(char *bcc_name);
@@ -277,7 +277,7 @@ public:
     typedef BIDT block_id_t;
 
     BTE_collection_base(const char *base_name, BTE_collection_type ct, 
-			size_t logical_block_factor);
+			size_t logical_block_factor, TPIE_OS_MAPPING_FLAG mapping = TPIE_OS_MAPPING_FALSE);
 
     // Return the total number of used blocks.
     size_t size() const { return header_.used_blocks; }
@@ -348,7 +348,7 @@ void BTE_collection_base<BIDT>::remove_stack_file() {
 
 template<class BIDT>
 BTE_collection_base<BIDT>::BTE_collection_base(const char *base_name, 
-		 BTE_collection_type type, size_t logical_block_factor):
+		 BTE_collection_type type, size_t logical_block_factor, TPIE_OS_MAPPING_FLAG mapping):
   header_(), freeblock_stack_(NULL) {
 
   if (base_name == NULL) {
@@ -362,13 +362,13 @@ BTE_collection_base<BIDT>::BTE_collection_base(const char *base_name,
   // A collection with a given name is not deleted upon destruction.
   per_ = PERSIST_PERSISTENT;
 
-  shared_init(type, logical_block_factor);
+  shared_init(type, logical_block_factor, mapping);
 }
 
 
 template<class BIDT>
 void BTE_collection_base<BIDT>::shared_init(BTE_collection_type type,
-				      size_t logical_block_factor) {
+				      size_t logical_block_factor, TPIE_OS_MAPPING_FLAG mapping) {
   read_only_ = (type == BTE_READ_COLLECTION);
   status_ = BTE_COLLECTION_STATUS_VALID;
   in_memory_blocks_ = 0;
@@ -382,7 +382,7 @@ void BTE_collection_base<BIDT>::shared_init(BTE_collection_type type,
 
   if (read_only_) {
 
-    if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(bcc_fd_ = TPIE_OS_OPEN_ORDONLY(bcc_name, TPIE_OS_FLAG_USE_MAPPING_FALSE))) {
+    if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(bcc_fd_ = TPIE_OS_OPEN_ORDONLY(bcc_name, mapping))) {
       status_ = BTE_COLLECTION_STATUS_INVALID;
       LOG_FATAL_ID("open() failed to open read-only file: ");
       LOG_FATAL_ID(bcc_name);	
@@ -416,10 +416,10 @@ void BTE_collection_base<BIDT>::shared_init(BTE_collection_type type,
     // it with the O_EXCL flag set.  This will fail if the file
     // already exists.  If this is the case, we will call open()
     // again without it and read in the header block.
-    if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(bcc_fd_ = TPIE_OS_OPEN_OEXCL(bcc_name,TPIE_OS_FLAG_USE_MAPPING_FALSE))) {
+    if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(bcc_fd_ = TPIE_OS_OPEN_OEXCL(bcc_name,mapping))) {
 			
       // Try again, hoping the file already exists.
-      if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(bcc_fd_ = TPIE_OS_OPEN_ORDWR(bcc_name,TPIE_OS_FLAG_USE_MAPPING_FALSE))) {
+      if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(bcc_fd_ = TPIE_OS_OPEN_ORDWR(bcc_name,mapping))) {
         status_ = BTE_COLLECTION_STATUS_INVALID;        
         LOG_FATAL_ID("open() failed to open file:");
 	LOG_FATAL_ID(bcc_name);

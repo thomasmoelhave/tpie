@@ -2,7 +2,7 @@
 // File:    bte_coll_mmap.h (formerly bte_coll_mmb.h)
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: bte_coll_mmap.h,v 1.9 2003-04-29 05:29:42 tavi Exp $
+// $Id: bte_coll_mmap.h,v 1.10 2004-02-05 17:36:34 jan Exp $
 //
 // BTE_collection_mmap class definition.
 //
@@ -35,7 +35,7 @@ public:
   BTE_collection_mmap(const char *base_file_name,
 		     BTE_collection_type type = BTE_WRITE_COLLECTION,
 		     size_t logical_block_factor = 1):
-    BTE_collection_base<BIDT>(base_file_name, type, logical_block_factor) {
+    BTE_collection_base<BIDT>(base_file_name, type, logical_block_factor, TPIE_OS_FLAG_USE_MAPPING_TRUE) {
     header_.type = BTE_COLLECTION_MMAP_ID;
   }
 
