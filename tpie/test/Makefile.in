@@ -1,6 +1,6 @@
 # Copyright (c) 1994 Darren Erik Vengroff
 
-# $Id: Makefile.in,v 1.21 1997-05-20 22:03:04 vengroff Exp $
+# $Id: Makefile.in,v 1.22 1999-02-03 21:41:18 tavi Exp $
 
 # Makefile for TPIE test applications.
 
@@ -30,14 +30,6 @@ GCXX = 1
 endif
 ifeq ($(firstword $(CXX)),c++)
 GCXX = 1
-endif
-
-# Use -fno-implicit-templates with the GNU compiler.  This is necessary 
-# until it starts using a seperate pass to instantiate template functions. 
-
-ifeq ($(GCXX),1)
-override CXXFLAGS += -fno-implicit-templates
-override CPPFLAGS += -DNO_IMPLICIT_TEMPLATES
 endif
 
 # Try GNU's exception handler.
