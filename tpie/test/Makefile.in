@@ -1,6 +1,6 @@
 # Copyright (c) 1994 Darren Erik Vengroff
 
-# $Id: Makefile.in,v 1.20 1995-06-30 21:10:49 darrenv Exp $
+# $Id: Makefile.in,v 1.21 1997-05-20 22:03:04 vengroff Exp $
 
 # Makefile for TPIE test applications.
 
@@ -20,7 +20,7 @@ LOG_APPS = 1
 ASSERT_DEBUG_APPS = 1
 endif
 
-CXXFLAGS = -Wall 
+CXXFLAGS = 
 
 # Set GCXX to 1 if we are using the GNU compiler, and 0 otherwise.
 
