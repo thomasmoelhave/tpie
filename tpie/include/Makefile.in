@@ -2,7 +2,7 @@
 #
 # The Makefile for the TPIE include directory.
 #
-# $Id: Makefile.in,v 1.3 1994-08-31 19:03:10 darrenv Exp $
+# $Id: Makefile.in,v 1.4 1994-09-29 12:57:28 darrenv Exp $
 #
 
 INDENT=indent
@@ -33,7 +33,7 @@ $(UP_TO_DATE): ami_scan.h
 # C preprocessor to expand all of the macros in the source file.
 
 ami_scan.h: ami_scan_mac.cpp ami_scan_mac.h ami_scan.h.head ami_scan.h.tail
-	$(CP) ami_scan.h.head $@
+	$(CAT) ami_scan.h.head > $@
 	$(CXX) -E $< | $(INDENT) -st $(INDENTFLAGS) - | grep -v "^#" | \
 	    $(PERL) -e \
 	    'while (<>) { print "\n" if /template/; print if /.+/; }' >> $@
