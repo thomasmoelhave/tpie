@@ -6,7 +6,7 @@
 //
 // A test for AMI_sort().
 
-static char test_ami_sort_id[] = "$Id";
+static char test_ami_sort_id[] = "$Id: test_ami_sort.cpp,v 1.2 1994-10-10 13:02:07 darrenv Exp $";
 
 // This is just to avoid an error message since the string above is never
 // refereneced.  Note that a self referential structure must be defined to
@@ -39,6 +39,8 @@ static struct ___test_ami_sort_id_compiler_fooler {
 #include <ami_scan_utils.h>
 
 #include "scan_random.h"
+#include "scan_diff.h"
+#include "merge_random.h"
 
 static char def_srf[] = "/var/tmp/oss.txt";
 static char def_rrf[] = "/var/tmp/osr.txt";
@@ -49,7 +51,9 @@ static char *rand_results_filename = def_rrf;
 static bool report_results_random = false;
 static bool report_results_sorted = false;
 
-static const char as_opts[] = "R:S:rs";
+static bool sort_again = false;
+
+static const char as_opts[] = "R:S:rsa";
 void parse_app_opt(char c, char *optarg)
 {
     switch (c) {
@@ -62,6 +66,9 @@ void parse_app_opt(char c, char *optarg)
             sorted_results_filename = optarg;
         case 's':
             report_results_sorted = true;
+            break;
+        case 'a':
+            sort_again = !sort_again;
             break;
     }
 }
@@ -195,6 +202,32 @@ int main(int argc, char **argv)
 
     cout << '\n';
 
+    if (sort_again) {
+        
+        AMI_STREAM<int> amis2((unsigned int)0, test_size);
+        AMI_STREAM<int> amis3((unsigned int)0, test_size);
+        AMI_STREAM<scan_diff_out<int> > amisd((unsigned int)0, test_size);
+        
+        merge_random<int> mr;
+        scan_diff<int> sd(-1);
+
+        ae = AMI_partition_and_merge(&amis1, &amis2,
+                                     (AMI_merge_base<int> *)&mr);
+
+        ae = AMI_sort(&amis2, &amis3, cc_int_cmp);
+        
+        ae = AMI_scan((AMI_base_stream<int> *)&amis1,
+                      (AMI_base_stream<int> *)&amis3, &sd,
+                      (AMI_base_stream<scan_diff_out<int> > *)&amisd);
+
+        if (verbose) {
+            cout << "Length of diff stream = " <<
+                amisd.stream_len() << ".\n";
+        }
+    }
+    
     return 0;
 }
     
+
+
