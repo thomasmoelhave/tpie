@@ -2,7 +2,7 @@
 // File:    bte_coll_mmap.h (formerly bte_coll_mmb.h)
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: bte_coll_mmap.h,v 1.8 2003-04-17 14:52:52 jan Exp $
+// $Id: bte_coll_mmap.h,v 1.9 2003-04-29 05:29:42 tavi Exp $
 //
 // BTE_collection_mmap class definition.
 //
@@ -11,20 +11,23 @@
 
 // Get definitions for working with Unix and Windows
 #include <portability.h>
-
-// For header's type field (77 == 'M').
-#define BTE_COLLECTION_MMAP 77
-
-// Define write behavior.
-// Allowed values:
-//  0    (synchronous writes)
-//  1    (asynchronous writes using MS_ASYNC - see msync(2)) [default]
-//  2    (asynchronous bulk writes)
-#define BTE_COLLECTION_MMAP_LAZY_WRITE 2
-
+// Get the base class.
 #include <bte_coll_base.h>
 
-class BTE_collection_mmap: public BTE_collection_base {
+// For header's type field (77 == 'M').
+#define BTE_COLLECTION_MMAP_ID 77
+
+// Define write behavior, if not already defined by the user.
+// Allowed values:
+//  0    (synchronous writes)
+//  1    (asynchronous writes using MS_ASYNC - see msync(2))
+//  2    (asynchronous bulk writes) [default]
+#ifndef BTE_COLLECTION_MMAP_LAZY_WRITE 
+#  define BTE_COLLECTION_MMAP_LAZY_WRITE 2
+#endif
+
+template<class BIDT = TPIE_BLOCK_ID_TYPE>
+class BTE_collection_mmap: public BTE_collection_base<BIDT> {
 public:
 
   // Constructor. Read and verify the header of the
@@ -32,14 +35,14 @@ public:
   BTE_collection_mmap(const char *base_file_name,
 		     BTE_collection_type type = BTE_WRITE_COLLECTION,
 		     size_t logical_block_factor = 1):
-    BTE_collection_base(base_file_name, type, logical_block_factor) {
-    header_.type = BTE_COLLECTION_MMAP;
+    BTE_collection_base<BIDT>(base_file_name, type, logical_block_factor) {
+    header_.type = BTE_COLLECTION_MMAP_ID;
   }
 
   // Allocate a new block in block collection and then map that block
   // into memory, allocating and returning an appropriately
   // initialized Block. Main memory usage increases.
-  BTE_err new_block(bid_t &bid, void * &place) {
+  BTE_err new_block(BIDT &bid, void * &place) {
     BTE_err err;
     // Get a block id.
     if ((err = new_block_getid(bid)) != BTE_ERROR_NO_ERROR)
@@ -60,7 +63,7 @@ public:
   // check is made if the bid is an invalid or previously unallocated bid,
   // which will introduce erroneous entries in the stdio_stack of free
   // blocks. Main memory usage goes down.
-  BTE_err delete_block(bid_t bid, void * place) {
+  BTE_err delete_block(BIDT bid, void * place) {
     BTE_err err;
     if ((err = put_block_internals(bid, place, 1)) != BTE_ERROR_NO_ERROR)  
       return err; 
@@ -77,7 +80,7 @@ public:
   // to ensure that the bid requested corresponds to a valid block and so
   // on; no checks made here to ensure that that is indeed the case. Main
   // memory usage increases.
-  BTE_err get_block(bid_t bid, void * &place) {
+  BTE_err get_block(BIDT bid, void * &place) {
     BTE_err err;
     if ((err = get_block_internals(bid, place)) != BTE_ERROR_NO_ERROR)
       return err;
@@ -89,7 +92,7 @@ public:
   // Unmap a currently mapped in block. NOTE once more that it is the user's
   // onus to ensure that the bid is correct and so on; no checks made here
   // to ensure that that is indeed the case. Main memory usage decreases.
-  BTE_err put_block(bid_t bid, void * place, char dirty = 1) {
+  BTE_err put_block(BIDT bid, void * place, char dirty = 1) {
     BTE_err err;
     if ((err = put_block_internals(bid, place, dirty)) != BTE_ERROR_NO_ERROR)
       return err;
@@ -99,11 +102,100 @@ public:
   }
 
   // Synchronize the in-memory block with the on-disk block.
-  BTE_err sync_block(bid_t bid, void* place, char dirty = 1);
+  BTE_err sync_block(BIDT bid, void* place, char dirty = 1);
 
 protected:
-  BTE_err get_block_internals(bid_t bid, void *&place);
-  BTE_err put_block_internals(bid_t bid, void* place, char dirty);
+  BTE_err get_block_internals(BIDT bid, void *&place);
+  BTE_err put_block_internals(BIDT bid, void* place, char dirty);
 };
+
+
+template<class BIDT>
+BTE_err BTE_collection_mmap<BIDT>::get_block_internals(BIDT bid, void * &place) {
+
+  place = TPIE_OS_MMAP(NULL, header_.block_size,
+	       read_only_ ? TPIE_OS_FLAG_PROT_READ : 
+	       TPIE_OS_FLAG_PROT_READ | TPIE_OS_FLAG_PROT_WRITE, 
+#ifdef SYSTYPE_BSD
+	       MAP_FILE | MAP_VARIABLE | MAP_NOSYNC |
+#endif
+	       TPIE_OS_FLAG_MAP_SHARED, bcc_fd_, bid_to_file_offset(bid));
+
+  if (place == (void *)(-1)) {
+    LOG_FATAL_ID("mmap() failed to map in a block from file.");
+    LOG_FATAL_ID(strerror(errno));
+    return BTE_ERROR_MEMORY_ERROR;
+  }
+
+  //  madvise(place, header_.block_size, MADV_RANDOM);
+
+  // Register the memory allocation since mmapped memory is
+  // not accounted for otherwise.
+  register_memory_allocation(header_.block_size);
+
+  in_memory_blocks_++;
+  return BTE_ERROR_NO_ERROR;
+}
+
+
+template<class BIDT>
+BTE_err BTE_collection_mmap<BIDT>::put_block_internals(BIDT bid, void* place, char dirty) {
+  
+  // The dirty parameter is not used in this implemetation.
+
+  if ((bid <= 0) || (bid >= header_.last_block)) {
+    LOG_FATAL_ID("Incorrect bid in placeholder.");
+    return BTE_ERROR_INVALID_PLACEHOLDER;
+  }
+
+#if (BTE_COLLECTION_MMAP_LAZY_WRITE < 2)
+  if (!read_only_) {
+    if (TPIE_OS_MSYNC((char*)place, header_.block_size, 
+#  if (BTE_COLLECTION_MMAP_LAZY_WRITE == 1)
+	      TPIE_OS_FLAG_MS_ASYNC
+#  else
+	      TPIE_OS_FLAG_MS_SYNC
+#  endif
+	      ) == -1) {
+      LOG_FATAL_ID("Failed to msync() block to file.");
+      LOG_FATAL_ID(strerror(errno));
+      return BTE_ERROR_IO_ERROR;
+    }    
+  }
+#endif
+
+  if (TPIE_OS_MUNMAP((char*)place, header_.block_size) == -1) {
+    LOG_FATAL_ID("Failed to unmap() block of file.");
+    LOG_FATAL_ID(strerror(errno));
+    return BTE_ERROR_IO_ERROR;
+  }
+
+  register_memory_deallocation(header_.block_size);
+
+  in_memory_blocks_--;
+  return BTE_ERROR_NO_ERROR;
+}
+ 
+
+template<class BIDT>
+BTE_err BTE_collection_mmap<BIDT>::sync_block(BIDT bid, void* place, char dirty) {
+
+  if ((bid <= 0) || (bid >= header_.last_block)) {
+    LOG_FATAL_ID("Incorrect bid in placeholder.");
+    return BTE_ERROR_INVALID_PLACEHOLDER;
+  }
+  
+  if (!read_only_) {
+    if (TPIE_OS_MSYNC((char*)place, header_.block_size, TPIE_OS_FLAG_MS_SYNC)) {
+      LOG_FATAL_ID("Failed to msync() block to file.");
+      LOG_FATAL_ID(strerror(errno));
+      return BTE_ERROR_IO_ERROR;
+    }
+  }
+
+  stats_.record(BLOCK_SYNC);
+  gstats_.record(BLOCK_SYNC);
+  return BTE_ERROR_NO_ERROR;
+}
 
 #endif //_BTE_COLL_MMAP_H

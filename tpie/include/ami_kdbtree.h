@@ -5,7 +5,7 @@
 //
 // K-D-B-tree definition and implementation. 
 //
-// $Id: ami_kdbtree.h,v 1.5 2003-04-21 04:07:26 tavi Exp $
+// $Id: ami_kdbtree.h,v 1.6 2003-04-29 05:29:42 tavi Exp $
 //
 
 #ifndef _KDBTREE_H
@@ -23,7 +23,7 @@ template<class coord_t, size_t dim, class BTECOLL> class Kdbtree_node;
 template<class coord_t, size_t dim, class BTECOLL> class Kdbtree_leaf;
 
 // The Kdbtree class. 
-template<class coord_t, size_t dim, class Bin_node=Bin_node_default<coord_t, dim>, class BTECOLL = BTE_COLLECTION>
+template<class coord_t, size_t dim, class Bin_node=Bin_node_default<coord_t, dim>, class BTECOLL = BTE_COLLECTION > 
 class Kdbtree {
 public:
 
