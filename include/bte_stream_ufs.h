@@ -2,7 +2,7 @@
 // File: bte_stream_ufs.h (formerly bte_ufs.h)
 // Author: Rakesh Barve <rbarve@cs.duke.edu>
 //
-// $Id: bte_stream_ufs.h,v 1.5 2002-08-01 01:31:20 tavi Exp $
+// $Id: bte_stream_ufs.h,v 1.6 2002-08-13 17:59:06 tavi Exp $
 //
 // BTE streams with blocks I/Oed using read()/write().  This particular
 // implementation explicitly manages blocks, and only ever maps in one
@@ -448,6 +448,7 @@ BTE_stream_ufs < T >::BTE_stream_ufs (const char *dev_path,
 	 
 	 f_eos = os_block_size_;
 	 gstats_.record(STREAM_CREATE);
+	 stats_.record(STREAM_CREATE);
       }
 
       break;
@@ -475,6 +476,7 @@ BTE_stream_ufs < T >::BTE_stream_ufs (const char *dev_path,
    file_pointer = f_filelen;
    register_memory_allocation (sizeof (BTE_stream_ufs < T >));
    gstats_.record(STREAM_OPEN);
+   stats_.record(STREAM_OPEN);
 }
 
 
@@ -602,6 +604,8 @@ BTE_stream_ufs < T >::BTE_stream_ufs (BTE_stream_ufs * super_stream,
    register_memory_allocation (sizeof (BTE_stream_ufs < T >));
    gstats_.record(STREAM_OPEN);
    gstats_.record(SUBSTREAM_CREATE);
+   stats_.record(STREAM_OPEN);
+   stats_.record(SUBSTREAM_CREATE);
 }
 
 // A psuedo-constructor for substreams.  This serves as a wrapper for
@@ -645,6 +649,7 @@ template < class T > BTE_stream_ufs < T >::~BTE_stream_ufs (void) {
       remaining_streams++;
    }
    gstats_.record(STREAM_DELETE);
+   stats_.record(STREAM_DELETE);
 
    // If this is writable and not a substream, then put the logical
    // eos back into the header before unmapping it.
@@ -707,10 +712,12 @@ template < class T > BTE_stream_ufs < T >::~BTE_stream_ufs (void) {
 	 LOG_WARNING_ID (strerror (os_errno));
        } else {
 	 gstats_.record(STREAM_DELETE);
+	 stats_.record(STREAM_DELETE);
        }
      }
    } else {				// end of if (!substream_level) 
      gstats_.record(SUBSTREAM_DELETE);
+     stats_.record(SUBSTREAM_DELETE);
    }
 
    if (curr_block) {
@@ -735,6 +742,7 @@ template < class T > BTE_stream_ufs < T >::~BTE_stream_ufs (void) {
 
    register_memory_deallocation (sizeof (BTE_stream_ufs < T >));
    gstats_.record(STREAM_CLOSE);
+   stats_.record(STREAM_CLOSE);
 }
 
 template < class T >
@@ -761,6 +769,7 @@ B_INLINE BTE_err BTE_stream_ufs < T >::read_item (T ** elt) {
 	      "current is before the begining of the current block");
 
    gstats_.record(ITEM_READ);
+   stats_.record(ITEM_READ);
 
    // Read
    *elt = current;
@@ -804,6 +813,7 @@ B_INLINE BTE_err BTE_stream_ufs < T >::write_item (const T & elt) {
 	      "current is before the begining of the current block");
 
    gstats_.record(ITEM_WRITE);
+   stats_.record(ITEM_WRITE);
 
    // Write.
    *current = elt;
@@ -929,6 +939,7 @@ template < class T > BTE_err BTE_stream_ufs < T >::seek (off_t offset) {
    f_offset = new_offset;
 
    gstats_.record(ITEM_SEEK);
+   stats_.record(ITEM_SEEK);
    return BTE_ERROR_NO_ERROR;
 }
 
@@ -1273,6 +1284,7 @@ template < class T > BTE_err BTE_stream_ufs < T >::map_current (void) {
    current = curr_block + internal_block_offset;
 
    gstats_.record(BLOCK_READ);
+   stats_.record(BLOCK_READ);
    return BTE_ERROR_NO_ERROR;
 }
 
@@ -1317,6 +1329,7 @@ BTE_err BTE_stream_ufs < T >::unmap_current (void) {
    curr_block_file_offset = 0;
 
    gstats_.record(BLOCK_WRITE);
+   stats_.record(BLOCK_WRITE);
    return BTE_ERROR_NO_ERROR;
 }
 
