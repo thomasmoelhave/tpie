@@ -3,7 +3,7 @@
 // File:    ami_cache.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_cache.h,v 1.1 2001-05-17 19:30:54 tavi Exp $
+// $Id: ami_cache.h,v 1.2 2001-05-29 15:41:08 tavi Exp $
 //
 // Declaration and definition of AMI_CACHE_MANAGER
 // implementation(s).
@@ -70,6 +70,9 @@ public:
   // Erase an item from the cache based on the key k. The item is
   // written out first.
   bool erase(size_t k);
+
+  // Write out all items in the cache.
+  void flush();
 
   ~AMI_cache_manager_lru();
 };
@@ -187,13 +190,19 @@ bool AMI_cache_manager_lru<T,W>::erase(size_t k) {
 }
 
 template<class T, class W>
-AMI_cache_manager_lru<T,W>::~AMI_cache_manager_lru() {
+void AMI_cache_manager_lru<T,W>::flush() {
   size_t i;
-  // Write out all items still in the cache.
   for (i = 0; i < capacity_; i++) {
-    if (pdata_[i].first != 0) 
+    if (pdata_[i].first != 0) {
       writeout_(pdata_[i].second);
+      pdata_[i].first = 0;
+    }
   }
+}
+
+template<class T, class W>
+AMI_cache_manager_lru<T,W>::~AMI_cache_manager_lru() {
+  flush();
 }
 
 #endif // _AMI_CACHE_H
