@@ -27,7 +27,7 @@ using std::ofstream;
 #include <ami_scan.h>
 #include <ami_sort.h>
 #include <cpu_timer.h>
-VERSION(test_ami_sort_cpp,"$Id: test_ami_sort.cpp,v 1.26 2003-04-21 02:12:35 tavi Exp $");
+VERSION(test_ami_sort_cpp,"$Id: test_ami_sort.cpp,v 1.27 2003-05-04 23:04:08 tavi Exp $");
 
 #include <ami_kb_sort.h>
 
@@ -124,10 +124,9 @@ int main(int argc, char **argv)
   long elapsed;
   AMI_err ae;
 
-  // Don't log library debugging info.
-  LOG_SET_THRESHOLD(TP_LOG_APP_DEBUG);
-  //  LOG_SET_THRESHOLD(TP_LOG_DEBUG);
-
+  // Log debugging info from the application, but not from the library. 
+  tpie_log_init(TPIE_LOG_APP_DEBUG); 
+ 
   test_size = 0;
   parse_args(argc, argv, as_opts, parse_app_opt);
   if (test_size == 0) {

@@ -6,7 +6,7 @@
 //
 
 #include <versions.h>
-VERSION(test_ami_btree_cpp, "$Id: test_ami_btree.cpp,v 1.11 2003-04-29 05:31:40 tavi Exp $");
+VERSION(test_ami_btree_cpp, "$Id: test_ami_btree.cpp,v 1.12 2003-05-04 23:04:08 tavi Exp $");
 
 #include <iostream>
 #include <fstream>
@@ -72,7 +72,9 @@ int main(int argc, char **argv) {
   cpu_timer wt;
   char *base_file = NULL;
 
-  LOG_SET_THRESHOLD(TP_LOG_APP_DEBUG);
+  // Log debugging info from the application, but not from the library. 
+  tpie_log_init(TPIE_LOG_APP_DEBUG); 
+ 
   MM_manager.set_memory_limit(64*1024*1024);
   MM_manager.enforce_memory_limit();
 
