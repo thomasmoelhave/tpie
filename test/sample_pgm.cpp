@@ -1,5 +1,5 @@
 #include <versions.h>
-VERSION(sample_pgm_cpp,"$Id: sample_pgm.cpp,v 1.6 2000-01-11 00:46:09 hutchins Exp $");	
+VERSION(sample_pgm_cpp,"$Id: sample_pgm.cpp,v 1.7 2000-01-11 01:59:37 hutchins Exp $");	
 
 #include <iostream.h>
 #include <stdlib.h>
@@ -21,9 +21,6 @@ VERSION(sample_pgm_cpp,"$Id: sample_pgm.cpp,v 1.6 2000-01-11 00:46:09 hutchins E
 
 //Include TPIE's internal memory sorting routines.
 #include <quicksort.h>
-
-//variable which is used to set up TPIE memory accounting
-//extern int register_new;
 
 //This program writes out an AMI_STREAM of random integers of
 //user-specified length, and then, based on 7 partitioning elements
@@ -49,8 +46,6 @@ main(int argc, char *argv[]) {
    
    //Set the size of memory the application is allowed to use
    MM_manager.set_memory_limit(test_mm_size);
-   //enable TPIE memory accounting
-   //register_new = 1;
    
    //the source stream of ints
    AMI_STREAM<int> source;
