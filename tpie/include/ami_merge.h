@@ -8,7 +8,7 @@
 // lower level streams will use appropriate levels of buffering.  This
 // will be more critical for parallel disk implementations.
 //
-// $Id: ami_merge.h,v 1.8 1994-10-10 13:04:06 darrenv Exp $
+// $Id: ami_merge.h,v 1.9 1994-10-31 21:10:49 darrenv Exp $
 //
 #ifndef _AMI_MERGE_H
 #define _AMI_MERGE_H
@@ -445,6 +445,20 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
 
         sz_original_substream = sz_avail / sizeof(T);
 
+        // Round the original substream length off to an integral
+        // number of chunks.  This is for systems like HP-UX that
+        // cannot map in overlapping regions.  It is also usefull for
+        // BTE's that are capable of freeing chunks as they are
+        // read.
+
+        {
+            size_t sz_chunk_size = instream->chunk_size();
+            
+            sz_original_substream = sz_chunk_size *
+                ((sz_original_substream + sz_chunk_size - 1) /
+                 sz_chunk_size);
+        }
+
         original_substreams = (len + sz_original_substream - 1) /
             sz_original_substream;
         
@@ -684,7 +698,14 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
                 tp_assert((sub_start >= len) &&
                           (sub_start < len + current_substream_len),
                           "Loop ended in wrong location.");
-                          
+
+                // Fool the OS into unmapping the current block of the
+                // input stream so that blocks of the substreams can
+                // be mapped in without overlapping it.  This is
+                // needed for correct execution on HP-UX.
+
+                current_input->seek(0);
+                
                 // Merge them into the output stream.
 
                 ae = AMI_single_merge((pp_AMI_bs<T>)the_substreams,
@@ -712,7 +733,14 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
                 // Create the next intermediate stream.
 
                 intermediate_tmp_stream = new AMI_STREAM<T>(1,len);
-                
+
+                // Fool the OS into unmapping the current block of the
+                // input stream so that blocks of the substreams can
+                // be mapped in without overlapping it.  This is
+                // needed for correct execution on HU-UX.
+
+                current_input->seek(0);
+
                 // Loop through the substreams of the current stream,
                 // merging as many as we can at a time until all are
                 // done with.
