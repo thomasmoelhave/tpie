@@ -3,25 +3,22 @@
 // File:    ami_block_base.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_block_base.h,v 1.3 2001-12-10 22:05:26 tavi Exp $
+// $Id: ami_block_base.h,v 1.4 2001-12-29 05:21:41 tavi Exp $
 //
-// Definition of the AMI_block_base class.
+// Definition of the AMI_block_base class and supporting types:
+// AMI_bid, AMI_block_status.
 //
 
 #ifndef _AMI_BLOCK_BASE_H
 #define _AMI_BLOCK_BASE_H
 
+// The AMI_COLLECTION class.
 #include <ami_coll.h>
-
-// The Block_stats class.
-#include <ami_block_stats.h>
 
 // AMI block id type.
 typedef off_t AMI_bid;
 
-//
-// Block status type
-//
+// Block status type.
 enum AMI_block_status {
   AMI_BLOCK_STATUS_VALID = 0,
   AMI_BLOCK_STATUS_INVALID = 1,
