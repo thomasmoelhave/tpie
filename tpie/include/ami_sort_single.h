@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 9/28/94
 //
-// $Id: ami_sort_single.h,v 1.15 2000-08-14 23:28:11 hutchins Exp $
+// $Id: ami_sort_single.h,v 1.16 2000-11-14 04:44:11 hutchins Exp $
 //
 // Merge sorting for the AMI_IMP_SINGLE implementation.
 // 
@@ -406,7 +406,7 @@ AMI_err AMI_sort_V1(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
 {
     merge_sort_manager_cmp<T,pqueue_heap_cmp<arity_t,T> > msm(cmp);
 
-    return AMI_partition_and_merge(instream, outstream,
+    return AMI_generalized_partition_and_merge(instream, outstream,
            (merge_sort_manager_cmp<T, pqueue_heap_cmp<arity_t,T> > *)&msm);
 }
 
@@ -418,7 +418,7 @@ AMI_err AMI_sort_V1(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream)
 {
     merge_sort_manager_op<T,pqueue_heap_op<arity_t,T> > msm;
 
-    return AMI_partition_and_merge(instream, outstream,
+    return AMI_generalized_partition_and_merge(instream, outstream,
            (merge_sort_manager_op<T,pqueue_heap_op<arity_t,T> > *)&msm);
 }
 
@@ -434,7 +434,7 @@ AMI_err AMI_sort_V1(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
 {
     merge_sort_manager_obj<T,pqueue_heap_obj<arity_t,T,CMPR>,CMPR > msm(cmp);
 
-    return AMI_partition_and_merge (instream, outstream,
+    return AMI_generalized_partition_and_merge (instream, outstream,
      (merge_sort_manager_obj<T,pqueue_heap_obj<arity_t,T,CMPR>,CMPR> *)&msm);
 }
                           
