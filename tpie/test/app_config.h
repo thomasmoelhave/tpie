@@ -5,7 +5,7 @@
 //
 // Created: 10/6/94
 //
-// $Id: app_config.h,v 1.32 2003-09-17 02:57:07 tavi Exp $
+// $Id: app_config.h,v 1.33 2003-09-27 05:24:53 tavi Exp $
 //
 #ifndef _APP_CONFIG_H
 #define _APP_CONFIG_H
@@ -106,9 +106,9 @@ extern int random_seed;
  // Define logical blocksize factor (default is 32)
 #ifndef BTE_STREAM_UFS_BLOCK_FACTOR
 #ifdef _WIN32
-#define BTE_STREAM_UFS_BLOCK_FACTOR 32
-#else
 #define BTE_STREAM_UFS_BLOCK_FACTOR 4
+#else
+#define BTE_STREAM_UFS_BLOCK_FACTOR 32
 #endif
 #endif
 
