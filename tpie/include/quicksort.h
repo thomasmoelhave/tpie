@@ -7,7 +7,7 @@
 // A basic implementation of quicksort for use in core by AMI_sort() on
 // streams or substreams that are small enough.
 //
-// $Id: quicksort.h,v 1.17 1999-10-19 20:57:25 tavi Exp $
+// $Id: quicksort.h,v 1.18 1999-10-22 23:16:22 tavi Exp $
 //
 #ifndef _QUICKSORT_H
 #define _QUICKSORT_H
@@ -130,7 +130,7 @@ void insertion_sort_cmp(T *data, size_t len,
 template<class T>
 void quicker_sort_cmp(T *data, size_t len,
                       int (*cmp)(CONST T&, CONST T&),
-                      size_t min_file_len = 24)
+                      size_t min_file_len = 20)
 {
     quick_sort_cmp(data, len, cmp, min_file_len);
     insertion_sort_cmp(data, len, cmp);
@@ -228,7 +228,7 @@ void insertion_sort_op(T *data, size_t len);
 
 template<class T>
 void quicker_sort_op(T *data, size_t len,
-                     size_t min_file_len = 24)
+                     size_t min_file_len = 20)
 {
     quick_sort_op(data, len, min_file_len);
     insertion_sort_op(data, len);
@@ -326,7 +326,7 @@ void insertion_sort_obj(T *data, size_t len,
 template<class T>
 void quicker_sort_obj(T *data, size_t len,
                       comparator<T> *cmp,
-                      size_t min_file_len = 24)
+                      size_t min_file_len = 20)
 {
     quick_sort_obj(data, len, cmp, min_file_len);
     insertion_sort_obj(data, len, cmp);
