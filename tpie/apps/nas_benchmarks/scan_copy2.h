@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 3/23/95
 //
-// $Id: scan_copy2.h,v 1.1 1995-04-03 13:17:22 dev Exp $
+// $Id: scan_copy2.h,v 1.2 1997-05-20 22:11:32 vengroff Exp $
 //
 #ifndef _SCAN_COPY2_H
 #define _SCAN_COPY2_H
@@ -21,7 +21,7 @@ public:
     inline AMI_err operate(const T &in, AMI_SCAN_FLAG *sfin,
                            T *out1, T *out2, AMI_SCAN_FLAG *sfout)
     {
-        if (sfout[0] = sfout[1] = *sfin) {
+        if ((sfout[0] = sfout[1] = *sfin)) {
             *out1 = *out2 = in;
             return AMI_SCAN_CONTINUE;
         } else {

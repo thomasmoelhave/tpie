@@ -5,7 +5,7 @@
 // Created: 3/24/95
 //
 
-static char nas_is_id[] = "$Id: nas_is.cpp,v 1.2 1995-06-20 20:26:55 darrenv Exp $";
+static char nas_is_id[] = "$Id: nas_is.cpp,v 1.3 1997-05-20 22:11:15 vengroff Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -261,7 +261,7 @@ inline AMI_err scan_nas_psuedo_rand::operate(key_triple *out, AMI_SCAN_FLAG *sf)
 
     unsigned int ii;
         
-    if (*sf = remaining--) {
+    if ((*sf = remaining--)) {
 
         // Generate and add up four random deviates.
 
@@ -317,7 +317,7 @@ public:
     inline AMI_err operate(const key_triple &in, AMI_SCAN_FLAG *sfin,
                            key_triple *out, AMI_SCAN_FLAG *sfout)
     {
-        if (*sfout = *sfin) {
+        if ((*sfout = *sfin)) {
             *out = in;
             out->r = curr_rank++;
             return AMI_SCAN_CONTINUE;
@@ -369,9 +369,9 @@ static char *rand_results_filename = def_rrf;
 static bool report_results_random = false;
 static bool report_results_sorted = false;
 
-static bool sort_again = false;
+//static bool sort_again = false;
 
-static bool use_operator = false;
+//static bool use_operator = false;
 
 static bool kb_sort = true;
 

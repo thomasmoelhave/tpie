@@ -5,7 +5,7 @@
 // Created: 3/24/95
 //
 
-static char test_ami_sort24_id[] = "$Id: test_ami_sort24.cpp,v 1.3 1995-06-30 21:09:46 darrenv Exp $";
+static char test_ami_sort24_id[] = "$Id: test_ami_sort24.cpp,v 1.4 1997-05-20 22:13:01 vengroff Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -92,7 +92,7 @@ AMI_err scan_random_so::initialize(void)
 
 AMI_err scan_random_so::operate(sort_obj *out1, AMI_SCAN_FLAG *sf)
 {
-    if (*sf = remaining--) {
+    if ((*sf = remaining--)) {
         out1->key_val = random();
         return AMI_SCAN_CONTINUE;
     } else {
@@ -110,10 +110,6 @@ static char *rand_results_filename = def_rrf;
 
 static bool report_results_random = false;
 static bool report_results_sorted = false;
-
-static bool sort_again = false;
-
-static bool use_operator = false;
 
 static bool kb_sort = false;
 
