@@ -1,0 +1,67 @@
+%%
+%% File: cache.tex
+%% Author: Octavian Procopiuc <tavi@cs.duke.edu>
+%% Created: Sep 26, 2000
+%%
+%% Last updated on: Sep 26, 2000
+%% by: Octavian Procopiuc <tavi@cs.duke.edu>
+%%
+
+\documentclass[11pt]{article}
+
+\usepackage{fullpage}
+\usepackage{verbatim}
+\usepackage{epsfig}
+%\usepackage{times}
+
+\begin{document}
+
+\title{\bf The {\tt CACHE\_MANAGER} Class}
+\date{Draft of \today}
+\author{}
+\maketitle
+
+\section{Overview}
+\label{cache:overview}
+
+\section{Class Declaration}
+
+   \begin{tabbing}
+   \hspace*{.3in} \= \hspace{.5in} \= \\
+
+   \> {\tt template<class T, class W> class CACHE\_MANAGER;}
+   \end{tabbing}
+
+\section{Constructors and Destructor}
+   \begin{tabbing}
+   \hspace*{.3in} \= \hspace{.5in} \= \\
+
+   \> {\tt CACHE\_MANAGER(size\_t capacity)}\\ 
+   \>\>\parbox[t]{5.5in}{Construct a fully-associative cache manager with the given capacity.}\\[3mm]
+
+   \> {\tt CACHE\_MANAGER(size\_t capacity, size\_t assoc)}\\ 
+   \>\>\parbox[t]{5.5in}{Construct a cache manager with the given capacity and associativity.}\\[3mm]
+
+   \> {\tt \verb|~|CACHE\_MANAGER()}\\ 
+   \>\>\parbox[t]{5.5in}{Destructor. Write out all items still in the cache.}\\[3mm]
+
+   \end{tabbing}
+
+\section{Member functions}
+   \begin{tabbing}
+   \hspace*{.3in} \= \hspace{.5in} \= \\ 
+
+   \> {\tt  bool read(size\_t k, T \& item);}\\ 
+   \>\>\parbox[t]{5.5in}{Read an item from the cache based on key {\tt k} and store it in {\tt item}. If found, the item is removed from the cache. Return true if the key was found.}\\[3mm]
+
+   \> {\tt  bool write(size\_t k, const T \& item);}\\ 
+   \>\>\parbox[t]{5.5in}{Write an item in the cache based on the given key {\tt k}. If the cache was full, the least recently used item is writen out using the {\tt W} function object, and it is removed from the cache.}\\[3mm]
+
+   \> {\tt  bool erase(size\_t k);}\\ 
+   \>\>\parbox[t]{5.5in}{Erase an item from the cache based on the given key {\tt k}. Return true if the key was found.}\\[3mm]
+   \end{tabbing}
+
+\section{Implementation Details}
+
+The cache is an array of pairs (key, item of type {\tt T}). The array is divided into (capacity/assoc) sets, and inside a set item are inserted in position 0 and deleted from the last position. This insures LRU behavior.
+\end{document}
