@@ -10,16 +10,15 @@
 // *  used in several of TPIE's sorting variants                            *
 // *                                                                        *
 // **************************************************************************
-// 	$Id: apm_dh.h,v 1.13 2003-04-17 14:38:49 jan Exp $	
+// 	$Id: apm_dh.h,v 1.14 2003-04-20 08:08:04 tavi Exp $	
 
 // Get definitions for working with Unix and Windows
 #include <portability.h>
 
 #include <math.h>		// For log(), etc  to compute tree heights.
 
-//#include <sys/time.h>
 #include <assert.h>
-#include <fstream.h>
+#include <fstream>
 
 #include <ami_stream.h>
 #include <mergeheap_dh.h>	   //For templated heaps

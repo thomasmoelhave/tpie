@@ -24,7 +24,7 @@
 // keys of the items; there is a provision to to use templated heaps
 // to implement the merge.
 
-// $Id: ami_optimized_merge.h,v 1.54 2003-04-17 13:06:57 jan Exp $
+// $Id: ami_optimized_merge.h,v 1.55 2003-04-20 08:08:04 tavi Exp $
 
 // TO DO: substream_count setting; don't depend on current_stream_len
 
@@ -42,10 +42,8 @@
 // For log() and such as needed to compute tree heights.
 #include <math.h>
 
-
-//#include <sys/time.h>
 #include <assert.h>
-#include <fstream.h>
+#include <fstream>
 
 #include <ami_stream.h>
 #include <mergeheap.h>		//For templated heaps
