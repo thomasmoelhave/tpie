@@ -4,11 +4,12 @@
 // Created: 02/02/02
 //
 #include <versions.h>
-VERSION(tpie_tempnam_cpp,"$Id: tpie_tempnam.cpp,v 1.2 2002-07-20 21:31:10 tavi Exp $");
+VERSION(tpie_tempnam_cpp,"$Id: tpie_tempnam.cpp,v 1.3 2002-07-28 16:41:08 tavi Exp $");
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 #include "lib_config.h"
 #include <tpie_tempnam.h>
 
