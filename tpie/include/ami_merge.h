@@ -1,4 +1,3 @@
-// Copyright (c) 1994 Darren Erik Vengroff
 //
 // File: ami_merge.h
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
@@ -8,15 +7,13 @@
 // lower level streams will use appropriate levels of buffering.  This
 // will be more critical for parallel disk implementations.
 //
-// $Id: ami_merge.h,v 1.32 2001-06-16 19:45:44 tavi Exp $
+// $Id: ami_merge.h,v 1.33 2002-01-14 15:56:56 tavi Exp $
 //
 #ifndef _AMI_MERGE_H
 #define _AMI_MERGE_H
 
-#include <ami_ptr.h>
-
-#include <math.h>  //For log() and such as needed to compute tree heights
-
+// For log() and such as needed to compute tree heights.
+#include <math.h>
 
 enum AMI_merge_output_type {
     AMI_MERGE_OUTPUT_OVERWRITE = 1,
@@ -652,7 +649,7 @@ AMI_err AMI_generalized_partition_and_merge(AMI_STREAM<T> *instream,
 	  sub_end = len - 1;
 	}
 	current_input->new_substream(AMI_READ_STREAM, sub_start, sub_end,
-				     (AMI_base_stream<T> **)
+				     (AMI_stream_base<T> **)
 				     (the_substreams + ii));
 	// The substreams are read-once.
 	the_substreams[ii]->persist(PERSIST_READ_ONCE);
@@ -710,7 +707,7 @@ AMI_err AMI_generalized_partition_and_merge(AMI_STREAM<T> *instream,
 	  sub_end = len - 1;
 	}
 	current_input->new_substream(AMI_READ_STREAM, sub_start, sub_end,
-				     (AMI_base_stream<T> **)
+				     (AMI_stream_base<T> **)
 				     (the_substreams + jj));
 	// The substreams are read-once.
 	the_substreams[jj]->persist(PERSIST_READ_ONCE);
@@ -791,6 +788,5 @@ AMI_err AMI_generalized_partition_and_merge(AMI_STREAM<T> *instream,
   return AMI_ERROR_NO_ERROR;
 
 }
-
 
 #endif
