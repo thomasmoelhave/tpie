@@ -13,15 +13,19 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_gp_cpp,"$Id: test_ami_gp.cpp,v 1.13 2003-09-12 01:17:56 tavi Exp $");
+VERSION(test_ami_gp_cpp,"$Id: test_ami_gp.cpp,v 1.14 2003-09-27 07:10:42 tavi Exp $");
 
 // Get the application defaults.
 #include "app_config.h"
 
-// Define it all.
-#include <ami.h>
-
+// Get AMI_scan().
+#include <ami_scan.h>
+// Get ASCII scan objects.
 #include <ami_scan_utils.h>
+// Get AMI_gen_perm_object.
+#include <ami_gen_perm_object.h>
+// Get AMI_general_permute().
+#include <ami_gen_perm.h>
 
 #include "parse_args.h"
 #include "scan_count.h"

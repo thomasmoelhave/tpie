@@ -13,9 +13,11 @@
 #include "app_config.h"
 #include "parse_args.h"
 
-// Define it all.
-#include <ami.h>
-VERSION(test_ami_pmerge_cpp,"$Id: test_ami_pmerge.cpp,v 1.25 2003-09-12 01:17:01 jan Exp $");
+#include <ami_merge.h>
+#include <pqueue_heap.h>
+
+#include <versions.h>
+VERSION(test_ami_pmerge_cpp,"$Id: test_ami_pmerge.cpp,v 1.26 2003-09-27 07:10:42 tavi Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>

@@ -8,15 +8,13 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_sort24_cpp,"$Id: test_ami_sort24.cpp,v 1.12 2003-09-23 06:58:45 tavi Exp $");
+VERSION(test_ami_sort24_cpp,"$Id: test_ami_sort24.cpp,v 1.13 2003-09-27 07:10:42 tavi Exp $");
 
 // Get information on the configuration to test.
 #include "app_config.h"
 #include "parse_args.h"
 
-// Define it all.
-#include <ami.h>
-
+#include <ami_sort.h>
 #include <ami_kb_sort.h>
 
 // Utitlities for ascii output.
@@ -117,7 +115,9 @@ void parse_app_opt(char c, char *optarg)
     }
 }
 
+#if 0
 #include <signal.h>
+#endif
 
 int main(int argc, char **argv)
 {
@@ -126,13 +126,9 @@ int main(int argc, char **argv)
     {
         // What's going on with SIGIO?
         int sa;
-
         struct sigaction old_action;
-
         sa = sigaction(SIGIO, NULL, &old_action);
-
         cout << sa;
-        
     }
 #endif
     

@@ -9,9 +9,8 @@
 // Get information on the configuration to test.
 #include "app_config.h"
 
-// Define it all.
-#include <ami.h>
-VERSION(scan_uniform_sm_cpp,"$Id: scan_uniform_sm.cpp,v 1.5 2003-09-12 02:29:04 tavi Exp $");
+#include <versions.h>
+VERSION(scan_uniform_sm_cpp,"$Id: scan_uniform_sm.cpp,v 1.6 2003-09-27 07:10:42 tavi Exp $");
 
 #include "scan_uniform_sm.h"
 
