@@ -6,7 +6,7 @@
 @c Author: Darren Vengroff <darrenv@eecs.umich.edu>
 @c Created: 12/9/94
 @c
-@c $Id: tpie.texi,v 1.3 1995-01-10 16:41:28 darrenv Exp $
+@c $Id: tpie.texi,v 1.4 1995-03-07 14:45:00 darrenv Exp $
 @c
 @comment %**start of header
 
@@ -1128,9 +1128,144 @@ void f()
 @section Bit Permuting
 @cindex Bit Permuting
 
-Bit permuting is on temporary hold pending a fix to eliminate a bug in
-the compiler.  Once the bug is fixed, bit permuting will be
-implemented in short order.
+Bit permuting is a permutation technique in which the destination
+address of a given item is computed by manipulating the bits of its
+source address.  The particular class of bit permutations that TPIE
+supports is the set of bit matrix multiply complement (BMMC)
+permutations.  These permutations are defined on sets of objects whose
+size is a power of 2.
+
+Suppose we have an input consisting of
+@iftex 
+@math{N = 2^n}
+@end iftex
+@ifinfo
+@var{N = 2^n}
+@end ifinfo
+@ifset html
+@var{N = 2^n}
+@end ifset
+objects.
+A BMMC permutation on the input is defined by a nonsingular
+@iftex
+@math{n @times n}
+@end iftex
+@ifinfo
+@var{n} by @var{n}
+@end ifinfo
+@ifset html
+@var{n} by @var{n}
+@end ifset
+bit matrix 
+@iftex
+@math{A}
+@end iftex
+@ifinfo
+@var{A}
+@end ifinfo
+@ifset html
+@var{A}
+@end ifset
+and an 
+@iftex
+@math{n}
+@end iftex
+@ifinfo
+@var{n}
+@end ifinfo
+@ifset html
+@var{n}
+@end ifset
+element column vector 
+@iftex
+@math{c}
+@end iftex
+@ifinfo
+@var{c}
+@end ifinfo
+@ifset html
+@var{c}
+@end ifset
+of bits.
+Source and destination addresses are iterpreted as column vectors of
+bits, with the low order bit of the address at the top. 
+The destination address 
+@iftex
+@math{x'}
+@end iftex
+@ifinfo
+@var{x'}
+@end ifinfo
+@ifset html
+@var{x'}
+@end ifset
+correspoinding to a given source address 
+@iftex
+@math{x}
+@end iftex
+@ifinfo
+@var{x}
+@end ifinfo
+@ifset html
+@var{x}
+@end ifset
+is computed as
+@iftex
+@math{x' = Ax + c}
+@end iftex
+@ifinfo
+@var{x' = Ax + c}
+@end ifinfo
+@ifset html
+@var{x' = Ax + c}
+@end ifset
+where addition and multiplication of matrix elements is done over
+GF(2).
+For a detailed description of BMMC permutations, refer to
+@ifset html
+<A HREF="ftp://cs.dartmouth.edu:/pub/CS-techreports/TR94-223.ps.Z">Dartmouch College Technical Report PCS-TR94-223</A>
+@end ifset
+@ifclear html
+Dartmouch College Technical Report PCS-TR94-223
+@end ifclear
+ by Cormen, Sundquist, and Wisneiwski.
+@ifclear html
+A postscript version of this report is available by anonymous ftp from
+@code{cs.dartmouth.edu} as @code{/pub/CS-techreports/TR94-223.ps.Z}.
+@end ifclear
+
+Routing BMMC permutations in TPIE is done using the
+@code{AMI_BMMC_permute()} entry point, which takes an input stream,
+and output stream, and a pointer to a bit permutation managmement
+object.  In the following example, we route a permutation that simply
+reverss the order of the source address bits to produce the
+destination address.
+
+First, we construct the matrices the permutation will use.
+@smallexample
+    bit_matrix A(n,n);
+    bit_matrix c(n,1);
+
+    @{
+        unsigned int ii,jj;
+
+        for (ii = n; ii--; ) @{
+            c[ii][0] = 0;
+            for (jj = n; jj--; ) @{
+                A[n-1-ii][jj] = (ii == jj);
+            @}
+        @}
+    @}
+@end smallexample
+Now we simply construct a permutation management object from the
+matrices and perform the permutation.
+@smallexample
+    AMI_bit_perm_object bpo(A,c);
+    
+    ae = AMI_BMMC_permute(&amis0, &amis1, (AMI_bit_perm_object *)&bpo);
+@end smallexample
+
+
 
 @node Sorting, Basic Matrix Operations, Bit Permuting, Tutorial
 @comment  node-name,  next,  previous,  up
