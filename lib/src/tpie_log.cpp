@@ -6,7 +6,7 @@
 //
 
 #include <versions.h>
-VERSION(tpie_log_cpp,"$Id: tpie_log.cpp,v 1.7 2001-02-19 20:52:24 tavi Exp $");
+VERSION(tpie_log_cpp,"$Id: tpie_log.cpp,v 1.8 2001-06-16 19:43:16 tavi Exp $");
 
 // We are logging
 #define TPL_LOGGING	1
@@ -19,9 +19,9 @@ extern "C" char *mktemp(char *);
 
 #define TP_LOG_NAME	"/tmp/TPLOG_XXXXXX"
 
-// tavi: 02/19/2001 deleted all of Darren's stuff b/c was giving seg faults.
+// tavi (02/19/2001): deleted all of Darren's stuff b/c it was giving seg faults.
 logstream &theLog() {
   static char tpl_name[] = TP_LOG_NAME;
-  static logstream log(mktemp(tpl_name),TP_LOG_DEBUG_INFO, TP_LOG_DEBUG_INFO);
+  static logstream log(mktemp(tpl_name),TP_LOG_DEBUG, TP_LOG_DEBUG);
   return log;
 }
