@@ -7,11 +7,11 @@
 // A basic implementation of quicksort for use in core by AMI_sort() on
 // streams or substreams that are small enough.
 //
-// $Id: quicksort.h,v 1.18 1999-10-22 23:16:22 tavi Exp $
+// $Id: quicksort.h,v 1.19 1999-12-14 19:23:10 hutchins Exp $
 //
 #ifndef _QUICKSORT_H
 #define _QUICKSORT_H
-
+ 
 //extern "C" long int random(void);
 
 #include <comparator.h>
@@ -253,13 +253,12 @@ void insertion_sort_op(T *data, size_t len)
 
 
 // A version that uses a comparison object.
-
-template<class T>
+template<class T, class CMPR>
 void partition_obj(T *data, size_t len, size_t &partition,
-                   comparator<T> *cmp);
+                   CMPR  *cmp);
 
-template<class T>
-void quick_sort_obj(T *data, size_t len, comparator<T> *cmp,
+template<class T, class CMPR>
+void quick_sort_obj(T *data, size_t len, CMPR *cmp,
                     size_t min_file_len = 2)
 {
     // On return from partition(), everything at or below this index
@@ -279,9 +278,9 @@ void quick_sort_obj(T *data, size_t len, comparator<T> *cmp,
     quick_sort_obj(data + part_index + 1, len - part_index - 1, cmp, min_file_len);
 }
 
-template<class T>
+template<class T, class CMPR>
 void partition_obj(T *data, size_t len, size_t &part_index,
-                   comparator<T> *cmp)
+                   CMPR *cmp)
 {
     T *ptpart, tpart;
     T *p, *q;
@@ -319,22 +318,22 @@ void partition_obj(T *data, size_t len, size_t &part_index,
 }
 
 
-template<class T>
+template<class T, class CMPR>
 void insertion_sort_obj(T *data, size_t len,
-                        comparator<T> *cmp);
+                        CMPR *cmp);
 
-template<class T>
+template<class T, class CMPR>
 void quicker_sort_obj(T *data, size_t len,
-                      comparator<T> *cmp,
+                      CMPR *cmp,
                       size_t min_file_len = 20)
 {
     quick_sort_obj(data, len, cmp, min_file_len);
     insertion_sort_obj(data, len, cmp);
 }
 
-template<class T>
+template<class T, class CMPR>
 void insertion_sort_obj(T *data, size_t len,
-                        comparator<T> *cmp)
+                        CMPR *cmp)
 {
     T *p, *q, test;
 
