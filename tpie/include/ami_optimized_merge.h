@@ -15,7 +15,7 @@
 // a quicksort using only keys of the items; there is a provision to 
 // to use templated heaps to implement the merge.
 
-// 	$Id: ami_optimized_merge.h,v 1.30 1999-04-25 01:19:44 rajiv Exp $	
+// 	$Id: ami_optimized_merge.h,v 1.31 1999-04-25 01:21:00 rajiv Exp $	
 //TO DO: substream_count setting; don't depend on current_stream_len
 
 
@@ -28,6 +28,7 @@
 #ifndef _OPT_AMI_MERGE_H
 #define _OPT_AMI_MERGE_H
 
+#include <ami.h>
 #include <ami_ptr.h>
 #include <fstream.h>
 
