@@ -17,7 +17,7 @@
 
 // Define it all.
 #include <ami.h>
-VERSION(lr_cpp,"$Id: lr.cpp,v 1.16 2000-01-11 01:39:09 hutchins Exp $");
+VERSION(lr_cpp,"$Id: lr.cpp,v 1.17 2000-11-14 18:16:21 hutchins Exp $");
 
 // Utitlities for ascii output.
 #include <iostream.h>
@@ -792,7 +792,7 @@ int main(int argc, char **argv)
 
         pamis1 = new AMI_STREAM<edge>;
         
-        ae = AMI_partition_and_merge(&amis0, pamis1,
+        ae = AMI_generalized_partition_and_merge(&amis0, pamis1,
                                  (merge_random<edge> *)&mr);
         
         if (verbose) {
