@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/11/94
 //
-// $Id: ami_matrix_pad.h,v 1.4 1997-05-20 22:14:42 vengroff Exp $
+// $Id: ami_matrix_pad.h,v 1.5 1999-02-03 17:24:56 tavi Exp $
 //
 #ifndef _AMI_MATRIX_PAD_H
 #define _AMI_MATRIX_PAD_H
@@ -165,19 +165,5 @@ AMI_err AMI_matrix_unpad<T>::operate(const T &in, AMI_SCAN_FLAG *sfin,
 
     return ae;        
 }
-
-
-#ifdef NO_IMPLICIT_TEMPLATES
-
-#define TEMPLATE_INSTANTIATE_AMI_MATRIX_PAD(T)				\
-template class AMI_matrix_pad<T>;					\
-template AMI_err AMI_scan(AMI_STREAM<T> *, AMI_matrix_pad<T> *,	\
-  	                  AMI_STREAM<T> *);			\
-template class AMI_matrix_unpad<T>;					\
-template AMI_err AMI_scan(AMI_STREAM<T> *, AMI_matrix_unpad<T> *,	\
-  	                  AMI_STREAM<T> *);
-
-#endif
-
 
 #endif // _AMI_MATRIX_PAD_H 
