@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/11/94
 //
-// $Id: bte_stream_stdio.h,v 1.4 2002-01-25 23:25:55 tavi Exp $
+// $Id: bte_stream_stdio.h,v 1.5 2002-08-14 23:50:00 tavi Exp $
 //
 #ifndef _BTE_STREAM_STDIO_H
 #define _BTE_STREAM_STDIO_H
@@ -202,6 +202,7 @@ BTE_stream_stdio < T >::BTE_stream_stdio (const char *dev_path,
 	 }
 
 	 gstats_.record(STREAM_CREATE);
+	 stats_.record(STREAM_CREATE);
 
       } else {
 	 // File exists - read and check header
@@ -251,6 +252,7 @@ BTE_stream_stdio < T >::BTE_stream_stdio (const char *dev_path,
    // user space. TODO.
    register_memory_allocation (os_block_size_ * 2);
    gstats_.record(STREAM_OPEN);
+   stats_.record(STREAM_OPEN);
 }
 
 // A psuedo-constructor for substreams.  This allows us to get around
@@ -304,6 +306,7 @@ BTE_err BTE_stream_stdio < T >::new_substream (BTE_stream_type st,
        (per == PERSIST_READ_ONCE) ? PERSIST_READ_ONCE : PERSIST_PERSISTENT;
    *sub_stream = (BTE_stream_base < T > *)sub;
 
+   gstats_.record(SUBSTREAM_CREATE);
    stats_.record(SUBSTREAM_CREATE);
    return BTE_ERROR_NO_ERROR;
 }
@@ -343,11 +346,14 @@ template < class T > BTE_stream_stdio < T >::~BTE_stream_stdio (void) {
 	LOG_WARNING_ID("Failed to unlink() file:");
 	LOG_WARNING_ID(path);
 	LOG_WARNING_ID(strerror(os_errno));
-      } else
+      } else {
 	gstats_.record(STREAM_DELETE);
+	stats_.record(STREAM_DELETE);
+      }
     }
   } else {
     gstats_.record(SUBSTREAM_DELETE);
+    stats_.record(SUBSTREAM_DELETE);
   }
   // Register memory deallocation before returning.
   register_memory_deallocation (sizeof (BTE_stream_stdio < T >));
@@ -360,6 +366,7 @@ template < class T > BTE_stream_stdio < T >::~BTE_stream_stdio (void) {
     remaining_streams++;
   }
   gstats_.record(STREAM_CLOSE);
+  stats_.record(STREAM_CLOSE);
 }
 
 template < class T > BTE_err BTE_stream_stdio < T >::read_item (T ** elt)
@@ -387,6 +394,7 @@ template < class T > BTE_err BTE_stream_stdio < T >::read_item (T ** elt)
    }
 
    gstats_.record(ITEM_READ);
+   stats_.record(ITEM_READ);
    return ret;
 }
 
@@ -414,6 +422,7 @@ BTE_err BTE_stream_stdio < T >::write_item (const T & elt) {
       }
    }
    gstats_.record(ITEM_WRITE);
+   stats_.record(ITEM_WRITE);
    return ret;
 }
 
@@ -518,6 +527,7 @@ template < class T > BTE_err BTE_stream_stdio < T >::seek (off_t offset) {
 
    f_offset = file_position;
    gstats_.record(ITEM_SEEK);
+   stats_.record(ITEM_SEEK);
    return BTE_ERROR_NO_ERROR;
 }
 
