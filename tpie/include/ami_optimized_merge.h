@@ -15,7 +15,7 @@
 // a quicksort using only keys of the items; there is a provision to 
 // to use templated heaps to implement the merge.
 
-// 	$Id: ami_optimized_merge.h,v 1.15 1999-03-26 05:30:40 rbarve Exp $	
+// 	$Id: ami_optimized_merge.h,v 1.16 1999-04-05 16:45:20 laura Exp $	
 //TO DO: substream_count setting; don't depend on current_stream_len
 
 #ifndef _OPT_AMI_MERGE_H
@@ -1562,7 +1562,7 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
 
      //For the first stream:
      
-    for (ii_streams = 0; ii_streams < merge_arity; ii_streams ++)
+    for (ii_streams = 0; ii_streams < (int)merge_arity; ii_streams ++)
     {
 
  //Figure out how many runs go in each one of merge_arity streams?
@@ -1570,7 +1570,7 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
  //three get 2 and the last two  get 3 runs 
 
 
-    if (ii_streams < (merge_arity - (original_substreams % merge_arity)) )   
+    if (ii_streams < (int)(merge_arity - (original_substreams % merge_arity)) )   
       desired_runs_in_stream[ii_streams] = original_substreams/merge_arity;
      
     else 
@@ -1693,7 +1693,7 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
                     { delete initial_tmp_stream[current_stream];
 				initial_tmp_stream[current_stream] = NULL;}
 
-              if (check_size < instream->stream_len())  {
+              if ((int)check_size < instream->stream_len())  {
                             
                   current_stream = (current_stream + merge_arity - 1) 
                                     % merge_arity;
@@ -2006,13 +2006,13 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
 			  (substream_count +  merge_arity - 1)/merge_arity;
 
 
-                for (ii_streams = 0; ii_streams < merge_arity; ii_streams ++)
+                for (ii_streams = 0; ii_streams < (int)merge_arity; ii_streams ++)
                 {
 	            // If there are 12 runs to be distributed among 5 streams, 
                  // the first three get 2 and the last two  get 3 runs   
 
     		       if (ii_streams < 
-                    (merge_arity - 
+                   (int) (merge_arity - 
                     (remaining_number_of_output_runs % merge_arity)) )   
                    
 		            desired_runs_in_stream[ii_streams] = 
@@ -2158,7 +2158,7 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
                             return ae;
                                                     }
                      
-                      for (ii_streams = 0; ii_streams < jj+1; ii_streams++)
+                      for (ii_streams = 0; ii_streams < (int)jj+1; ii_streams++)
                       run_lengths[(k+1)%2][current_stream]
                                   [runs_in_current_stream]+= 
                                   the_substreams[ii_streams]->stream_len();
@@ -3171,7 +3171,7 @@ T merge_out;
     // Rewind and read the first item from every stream.
 
     j = 1;
-    for (i = 0; i < arity ; i++ ) {
+    for (i = 0; i < (int)arity ; i++ ) {
         if ((ami_err = instreams[i]->seek(0)) != AMI_ERROR_NO_ERROR) {
             return ami_err;
         }
