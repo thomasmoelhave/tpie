@@ -4,11 +4,13 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 3/11/95
 //
-// $Id: ami_kb_dist.h,v 1.5 2000-01-11 00:37:43 hutchins Exp $
+// $Id: ami_kb_dist.h,v 1.6 2003-04-17 12:27:37 jan Exp $
 //
 // Radix based distribution for single or striped AMI layers.
 //
 
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 // If we have not already seen this file with KB_KEY undefined or
 // KB_KEY is defined, we will process the file.
@@ -138,7 +140,7 @@ AMI_err _AMI_KB_DIST(KB_KEY)(AMI_STREAM<T> &instream,
             return ae;
         }
 
-        k = (unsigned int)(KB_KEY(*in));
+        k = (unsigned int)KB_KEY(*in);
 
 #ifdef AMI_RADIX_POWER_OF_TWO
         // Do it with shifting and masking.
