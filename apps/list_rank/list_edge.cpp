@@ -5,18 +5,8 @@
 // Created: 10/27/94
 //
 
-static char list_edge_id[] = "$Id: list_edge.cpp,v 1.2 1999-02-03 02:56:35 jan Exp $";
-
-// This is just to avoid an error message since the string above is never
-// referenced.  Note that a self referential structure must be defined to
-// avoid passing the problem further.
-static struct ___list_edge_id_compiler_fooler {
-    char *pc;
-    ___list_edge_id_compiler_fooler *next;
-} the___list_edge_id_compiler_fooler = {
-    list_edge_id,
-    &the___list_edge_id_compiler_fooler
-};
+#include <versions.h>
+VERSION(list_edge_cpp,"$Id: list_edge.cpp,v 1.3 2000-01-11 01:37:29 hutchins Exp $");
 
 // A hack for now until const handling improves.
 #define CONST const

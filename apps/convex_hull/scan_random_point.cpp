@@ -5,24 +5,13 @@
 // Created: 12/19/94
 //
 
-static char scan_random_point_id[] = "$Id: scan_random_point.cpp,v 1.5 1999-11-02 17:03:17 tavi Exp $";
-
-// This is just to avoid an error message since the string above is never
-// referenced.  Note that a self referential structure must be defined to
-// avoid passing the problem further.
-static struct ___scan_random_point_id_compiler_fooler {
-    char *pc;
-    ___scan_random_point_id_compiler_fooler *next;
-} the___scan_random_point_id_compiler_fooler = {
-    scan_random_point_id,
-    &the___scan_random_point_id_compiler_fooler
-};
-
 // Get information on the configuration to test.
 #include "app_config.h"
 
 // Define it all.
 #include <ami.h>
+
+VERSION(scan_random_point_cpp,"$Id: scan_random_point.cpp,v 1.6 2000-01-11 01:46:44 hutchins Exp $");
 
 #include "scan_random_point.h"
 
