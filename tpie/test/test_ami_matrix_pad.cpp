@@ -5,7 +5,7 @@
 // Created: 12/11/94
 //
 
-static char test_ami_matrix_id[] = "$Id: test_ami_matrix_pad.cpp,v 1.1 1994-12-16 21:20:27 darrenv Exp $";
+static char test_ami_matrix_id[] = "$Id: test_ami_matrix_pad.cpp,v 1.2 1995-06-20 20:15:47 darrenv Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -122,7 +122,7 @@ int main(int argc, char **argv)
     // Write some ints.
     scan_count sc(test_size*test_size);
 
-    ae = AMI_scan(&sc, (AMI_base_stream<int> *)&em0);
+    ae = AMI_scan(&sc, (AMI_STREAM<int> *)&em0);
 
     if (verbose) {
         cout << "Wrote the initial sequence of values.\n";
@@ -132,7 +132,7 @@ int main(int argc, char **argv)
     }
 
     if (report_results_count) {
-        ae = AMI_scan((AMI_base_stream<int> *)&em0, rptc);
+        ae = AMI_scan((AMI_STREAM<int> *)&em0, rptc);
     }
 
     {
@@ -143,8 +143,7 @@ int main(int argc, char **argv)
         AMI_matrix<int> em1(7 * ((em0.rows() - 1)/7 + 1),
                             7 * ((em0.cols() - 1)/7 + 1));
 
-        ae = AMI_scan((AMI_base_stream<int> *)&em0, &smp,
-                      (AMI_base_stream<int> *)&em1);
+        ae = AMI_scan((AMI_STREAM<int> *)&em0, &smp, (AMI_STREAM<int> *)&em1);
 
         
         // Block permute the matrix.
@@ -161,7 +160,7 @@ int main(int argc, char **argv)
                                  (AMI_gen_perm_object *)&pmib1); 
 
         if (report_results_intermediate) {
-            ae = AMI_scan((AMI_base_stream<int> *)&em1p, rpti);
+            ae = AMI_scan((AMI_STREAM<int> *)&em1p, rpti);
         }
         
         // Un block permute it.
@@ -189,11 +188,11 @@ int main(int argc, char **argv)
 
         AMI_matrix<int> em3(em0.rows(), em0.cols());
 
-        ae = AMI_scan((AMI_base_stream<int> *)&em2, &smup,
-                      (AMI_base_stream<int> *)&em3);
+        ae = AMI_scan((AMI_STREAM<int> *)&em2, &smup,
+                      (AMI_STREAM<int> *)&em3);
 
         if (report_results_final) {
-            ae = AMI_scan((AMI_base_stream<int> *)&em3, rptf);
+            ae = AMI_scan((AMI_STREAM<int> *)&em3, rptf);
         }
 
     }
@@ -216,7 +215,7 @@ TEMPLATE_INSTANTIATE_OSTREAM(int)
 TEMPLATE_INSTANTIATE_AMI_MATRIX(int)
 
 // Calls to AMI_scan using various object types.
-template AMI_err AMI_scan(scan_count *, AMI_base_stream<int> *);
+template AMI_err AMI_scan(scan_count *, AMI_STREAM<int> *);
 
 
 #endif

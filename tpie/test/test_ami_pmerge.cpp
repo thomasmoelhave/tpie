@@ -6,7 +6,7 @@
 //
 // A test for AMI_partition_and_merge().
 
-static char test_ami_pmerge_id[] = "$Id: test_ami_pmerge.cpp,v 1.12 1995-06-20 19:03:46 darrenv Exp $";
+static char test_ami_pmerge_id[] = "$Id: test_ami_pmerge.cpp,v 1.13 1995-06-20 20:15:49 darrenv Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -215,25 +215,6 @@ void parse_app_opt(char c, char *optarg)
     }
 }
 
-#if HAVE_GETRUSAGE
-#define REPORT_RUSAGE(os, ru, x)				\
-{								\
-    if (verbose) {						\
-    	os << #x " = " << ru.x << ".\n";			\
-    } else {							\
-    	os << ' ' << ru.x;					\
-    }								\
-}
-
-#define REPORT_RUSAGE_DIFFERENCE(os, ru0, ru1, x)		\
-{								\
-    if (verbose) {						\
-    	os << #x " = " << ru1.x - ru0.x << ".\n";		\
-    } else {							\
-    	os << ' ' << ru1.x - ru0.x;				\
-    }								\
-}
-#endif
 
 extern int register_new;
 
@@ -242,10 +223,6 @@ int main(int argc, char **argv)
 {
 
     AMI_err ae;
-
-#if HAVE_GETRUSAGE
-    rusage ru0, ru1;
-#endif
 
     parse_args(argc,argv,as_opts,parse_app_opt);
 
@@ -267,7 +244,7 @@ int main(int argc, char **argv)
     // Write some ints.
     scan_random rnds(test_size,random_seed);
     
-    ae = AMI_scan(&rnds, (AMI_base_stream<int> *)&amis0);
+    ae = AMI_scan(&rnds, &amis0);
 
     if (verbose) {
         cout << "Wrote the random values.\n";
@@ -293,54 +270,22 @@ int main(int argc, char **argv)
     }
     
     if (report_results_random) {
-        ae = AMI_scan((AMI_base_stream<int> *)&amis0, rptr);
+        ae = AMI_scan(&amis0, rptr);
     }
 
     s_merge_manager sm;
     
-#if HAVE_GETRUSAGE
-    getrusage(RUSAGE_SELF, &ru0);
-#endif
-
     ae = AMI_partition_and_merge(&amis0, &amis1,
                                  (AMI_merge_base<int> *)&sm);
     
-#if HAVE_GETRUSAGE
-    getrusage(RUSAGE_SELF, &ru1);
-#endif
-
     if (verbose) {
         cout << "Sorted them.\n";
         cout << "Sorted stream length = " << amis1.stream_len() << '\n';
     }
     
     if (report_results_sorted) {
-        ae = AMI_scan((AMI_base_stream<int> *)&amis1, rpts);
-    }
-    
-#if HAVE_GETRUSAGE
-    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_utime.tv_sec);
-    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_utime.tv_usec);
-
-    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_stime.tv_sec);
-    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_stime.tv_usec);
-
-    REPORT_RUSAGE(cout, ru1, ru_maxrss);
-    REPORT_RUSAGE(cout, ru1, ru_ixrss);
-    REPORT_RUSAGE(cout, ru1, ru_idrss);
-    REPORT_RUSAGE(cout, ru1, ru_isrss);
-
-    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_minflt);
-    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_majflt);
-    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_nswap);
-    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_inblock);
-    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_oublock);
-    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_msgsnd);
-    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_msgrcv);
-    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_nsignals);
-    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_nvcsw);
-    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_nivcsw);
-#endif
+        ae = AMI_scan(&amis1, rpts);
+    }    
 
     cout << '\n';
 

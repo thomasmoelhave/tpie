@@ -5,7 +5,7 @@
 // Created: 12/15/94
 //
 
-static char test_ami_stack_id[] = "$Id: test_ami_stack.cpp,v 1.1 1994-12-16 21:21:48 darrenv Exp $";
+static char test_ami_stack_id[] = "$Id: test_ami_stack.cpp,v 1.2 1995-06-20 20:15:53 darrenv Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -128,7 +128,7 @@ int main(int argc, char **argv)
     }
         
     if (report_results_count) {
-        ae = AMI_scan((AMI_base_stream<double> *)&amis0, rptc);
+        ae = AMI_scan((AMI_STREAM<double> *)&amis0, rptc);
     }
 
     // Pop them all off.

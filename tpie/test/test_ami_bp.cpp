@@ -5,7 +5,7 @@
 // Created: 1/9/95
 //
 
-static char test_ami_bp_id[] = "$Id: test_ami_bp.cpp,v 1.1 1995-03-07 15:15:54 darrenv Exp $";
+static char test_ami_bp_id[] = "$Id: test_ami_bp.cpp,v 1.2 1995-06-20 20:15:44 darrenv Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -124,14 +124,14 @@ int main(int argc, char **argv)
 
     scan_count my_scan_count(test_size);
 
-    ae = AMI_scan(&my_scan_count, (AMI_base_stream<int> *)&amis0);
+    ae = AMI_scan(&my_scan_count, &amis0);
 
     if (verbose) {
         cout << "Initial stream length = " << amis0.stream_len() << '\n';
     }
     
     if (report_results_initial) {
-        ae = AMI_scan((AMI_base_stream<int> *)&amis0, rpti);
+        ae = AMI_scan(&amis0, rpti);
     }
 
     amis0.seek(0);
@@ -165,7 +165,7 @@ int main(int argc, char **argv)
     }
 
     if (report_results_final) {
-        ae = AMI_scan((AMI_base_stream<int> *)&amis1, rptf);
+        ae = AMI_scan(&amis1, rptf);
     }
 
     return 0;
@@ -186,7 +186,7 @@ TEMPLATE_INSTANTIATE_OSTREAM(int)
 TEMPLATE_INSTANTIATE_BIT_PERM(int)
 
 // Calls to AMI_scan using various object types.
-template AMI_err AMI_scan(scan_count *, AMI_base_stream<int> *);
+template AMI_err AMI_scan(scan_count *, AMI_STREAM<int> *);
 
 #endif
 

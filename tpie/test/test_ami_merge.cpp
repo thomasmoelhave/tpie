@@ -5,7 +5,7 @@
 // Created: 6/2/94
 //
 
-static char test_ami_merge_id[] = "$Id: test_ami_merge.cpp,v 1.6 1994-11-02 21:52:42 darrenv Exp $";
+static char test_ami_merge_id[] = "$Id: test_ami_merge.cpp,v 1.7 1995-06-20 20:15:48 darrenv Exp $";
 
 // This is just to avoid an error message since the string above is never
 // refereneced.  Note that a self referential structure must be defined to
@@ -123,7 +123,7 @@ int main(int argc, char **argv)
     // Write some ints.
     scan_count sc(test_size);
 
-    ae = AMI_scan(&sc, (AMI_base_stream<int> *)&amis0);
+    ae = AMI_scan(&sc, &amis0);
 
     if (verbose) {
         cout << "Wrote the initial sequence of values.\n";
@@ -133,14 +133,13 @@ int main(int argc, char **argv)
     }
 
     if (report_results_count) {
-        ae = AMI_scan((AMI_base_stream<int> *)&amis0, rptc);
+        ae = AMI_scan(&amis0, rptc);
     }
     
     // Square them.
     scan_square<int> ss;
         
-    ae = AMI_scan((AMI_base_stream<int> *)&amis0, &ss,
-                      (AMI_base_stream<int> *)&amis1);
+    ae = AMI_scan(&amis0, &ss, &amis1);
 
     if (verbose) {
         cout << "Squared them; last squared was ii = "
@@ -158,8 +157,7 @@ int main(int argc, char **argv)
     amirs[0] = &amis0;
     amirs[1] = &amis1;
     
-    ae = AMI_single_merge((pp_AMI_bs<int>)amirs, arity,
-                          (AMI_base_stream<int> *)&amis2,
+    ae = AMI_single_merge((AMI_STREAM<int> **)amirs, arity, &amis2,
                           (AMI_merge_base<int> *)&im);
 
     if (verbose) {
@@ -169,7 +167,7 @@ int main(int argc, char **argv)
     }
 
     if (report_results_interleave) {
-        ae = AMI_scan((AMI_base_stream<int> *)&amis2, rpti);
+        ae = AMI_scan(&amis2, rpti);
     }
 
     // Divide the stream into two substreams, and interleave them.
@@ -180,8 +178,8 @@ int main(int argc, char **argv)
 
     if (verbose) {
         cout << "Created substreams; lengths = " <<
-            amirs[0]->stream_len() << " and " <<
-                amirs[1]->stream_len() << '\n';
+            ((AMI_STREAM<int> *)(amirs[0]))->stream_len() << " and " <<
+                ((AMI_STREAM<int> *)(amirs[1]))->stream_len() << '\n';
     }
 
     // Get around the OS (HP_UX in particular) when using BTE_IMP_MMB
@@ -189,8 +187,7 @@ int main(int argc, char **argv)
     // block written to be unmapped.
     ae = amis2.seek(0);
     
-    ae = AMI_single_merge((pp_AMI_bs<int>)amirs, arity,
-                          (AMI_base_stream<int> *)&amis3,
+    ae = AMI_single_merge((AMI_STREAM<int> **)amirs, arity, &amis3,
                           (AMI_merge_base<int> *)&im);
 
     if (verbose) {
@@ -200,7 +197,7 @@ int main(int argc, char **argv)
     }
     
     if (report_results_final) {
-        ae = AMI_scan((AMI_base_stream<int> *)&amis3, rptf);
+        ae = AMI_scan(&amis3, rptf);
     }
 
     delete amirs[0];
@@ -226,9 +223,9 @@ template class scan_square<int>;
 template class merge_interleave<int>;
 
 // Calls to AMI_scan using various object types.
-template AMI_err AMI_scan(scan_count *, AMI_base_stream<int> *);
-template AMI_err AMI_scan(AMI_base_stream<int> *, scan_square<int> *,
-                          AMI_base_stream<int> *);
+template AMI_err AMI_scan(scan_count *, AMI_STREAM<int> *);
+template AMI_err AMI_scan(AMI_STREAM<int> *, scan_square<int> *,
+                          AMI_STREAM<int> *);
 
 TEMPLATE_INSTANTIATE_MERGE(int)
 

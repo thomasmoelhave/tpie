@@ -6,7 +6,7 @@
 //
 // A test for AMI_sort().
 
-static char test_ami_sort_id[] = "$Id: test_ami_sort.cpp,v 1.9 1995-06-20 19:00:39 darrenv Exp $";
+static char test_ami_sort_id[] = "$Id: test_ami_sort.cpp,v 1.10 1995-06-20 20:15:53 darrenv Exp $";
 
 // This is just to avoid an error message since the string above is never
 // refereneced.  Note that a self referential structure must be defined to
@@ -83,25 +83,6 @@ void parse_app_opt(char c, char *optarg)
     }
 }
 
-#if HAVE_GETRUSAGE
-#define REPORT_RUSAGE(os, ru, x)				\
-{								\
-    if (verbose) {						\
-    	os << #x " = " << ru.x << ".\n";			\
-    } else {							\
-    	os << ' ' << ru.x;					\
-    }								\
-}
-
-#define REPORT_RUSAGE_DIFFERENCE(os, ru0, ru1, x)		\
-{								\
-    if (verbose) {						\
-    	os << #x " = " << ru1.x - ru0.x << ".\n";		\
-    } else {							\
-    	os << ' ' << ru1.x - ru0.x;				\
-    }								\
-}
-#endif
 
 extern int register_new;
 
@@ -127,10 +108,6 @@ int main(int argc, char **argv)
 {
 
     AMI_err ae;
-
-#if HAVE_GETRUSAGE
-    rusage ru0, ru1;
-#endif
 
     parse_args(argc,argv,as_opts,parse_app_opt);
 
@@ -181,10 +158,6 @@ int main(int argc, char **argv)
         ae = AMI_scan(&amis0, rptr);
     }
 
-#if HAVE_GETRUSAGE
-    getrusage(RUSAGE_SELF, &ru0);
-#endif
-
     if (kb_sort) {
         key_range range(KEY_MIN, KEY_MAX);
         ae = AMI_kb_sort(amis0, amis1, range);
@@ -196,10 +169,6 @@ int main(int argc, char **argv)
         }
     }
     
-#if HAVE_GETRUSAGE
-    getrusage(RUSAGE_SELF, &ru1);
-#endif
-
     if (verbose) {
         cout << "Sorted them.\n";
         cout << "Sorted stream length = " << amis1.stream_len() << '\n';
@@ -208,30 +177,6 @@ int main(int argc, char **argv)
     if (report_results_sorted) {
         ae = AMI_scan(&amis1, rpts);
     }
-
-#if HAVE_GETRUSAGE
-    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_utime.tv_sec);
-    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_utime.tv_usec);
-
-    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_stime.tv_sec);
-    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_stime.tv_usec);
-
-    REPORT_RUSAGE(cout, ru1, ru_maxrss);
-    REPORT_RUSAGE(cout, ru1, ru_ixrss);
-    REPORT_RUSAGE(cout, ru1, ru_idrss);
-    REPORT_RUSAGE(cout, ru1, ru_isrss);
-
-    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_minflt);
-    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_majflt);
-    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_nswap);
-    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_inblock);
-    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_oublock);
-    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_msgsnd);
-    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_msgrcv);
-    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_nsignals);
-    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_nvcsw);
-    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_nivcsw);
-#endif
 
     cout << '\n';
 
@@ -280,7 +225,6 @@ TEMPLATE_INSTANTIATE_OSTREAM(int)
 TEMPLATE_INSTANTIATE_SCAN_RANDOM
 TEMPLATE_INSTANTIATE_SCAN_DIFF(int)
 TEMPLATE_INSTANTIATE_MERGE_RANDOM(int)
-
 
 TEMPLATE_INSTANTIATE_KB_SORT(int)
 

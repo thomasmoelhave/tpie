@@ -5,7 +5,7 @@
 // Created: 3/2/95
 //
 
-static char test_ami_sm_id[] = "$Id: test_ami_sm.cpp,v 1.1 1995-03-07 15:16:30 darrenv Exp $";
+static char test_ami_sm_id[] = "$Id: test_ami_sm.cpp,v 1.2 1995-06-20 20:15:53 darrenv Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -197,10 +197,10 @@ int main(int argc, char **argv)
     if (!read_banded_matrix) {
         scan_uniform_sm susm(test_size, test_size, density, random_seed);
     
-        ae = AMI_scan(&susm, (AMI_base_stream< AMI_sm_elem<double> > *)&esm0);
+        ae = AMI_scan(&susm, (AMI_STREAM< AMI_sm_elem<double> > *)&esm0);
 
         if (report_results_count) {
-            ae = AMI_scan((AMI_base_stream< AMI_sm_elem<double> > *)&esm0,
+            ae = AMI_scan((AMI_STREAM< AMI_sm_elem<double> > *)&esm0,
                           rptc);
         }
     }
@@ -235,7 +235,7 @@ int main(int argc, char **argv)
 
             // Read in the banded order matrix from an input file.            
             size_t file_test_mm_size, file_test_size;
-            unsigned int file_rows, file_rows_per_band;
+            unsigned int file_rows_per_band;
 
             *isb >> file_test_mm_size >> file_test_size
                 >> file_rows_per_band;
@@ -243,7 +243,7 @@ int main(int argc, char **argv)
             rows_per_band = file_rows_per_band;
             
             ae = AMI_scan(readb,
-                          (AMI_base_stream< AMI_sm_elem<double> > *)&esm0b);
+                          (AMI_STREAM< AMI_sm_elem<double> > *)&esm0b);
 
             cput1.stop();
 
@@ -275,7 +275,7 @@ int main(int argc, char **argv)
         if (report_results_intermediate) {
             *osi << test_mm_size << ' ' << test_size << ' '
                  << rows_per_band << '\n';
-            ae = AMI_scan((AMI_base_stream< AMI_sm_elem<double> > *)&esm0b,
+            ae = AMI_scan((AMI_STREAM< AMI_sm_elem<double> > *)&esm0b,
                           rpti);
         }
 
@@ -302,7 +302,7 @@ int main(int argc, char **argv)
     }
     
     if (report_results_final) {
-        ae = AMI_scan((AMI_base_stream<double> *)&ev1, rptf);
+        ae = AMI_scan((AMI_STREAM<double> *)&ev1, rptf);
     }
     
     return 0;

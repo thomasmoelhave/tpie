@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/5/94
 //
-// $Id: merge_random.h,v 1.3 1995-05-02 00:56:45 dev Exp $
+// $Id: merge_random.h,v 1.4 1995-06-20 20:15:28 darrenv Exp $
 //
 // A merge managment object that reorders the input stream in a random
 // way.
@@ -13,9 +13,9 @@
 #define _MERGE_RANDOM_H
 
 extern "C" void srandom(unsigned int);
-// Linux defiens this random as a macro.
+// Linux defines this random as a macro.
 #ifndef random
-extern "C" int random(void);
+extern "C" long int random(void);
 #endif
 
 template<class T>
@@ -175,7 +175,7 @@ size_t merge_random<T>::space_usage_per_stream(void)
 
 #define TEMPLATE_INSTANTIATE_MERGE_RANDOM(T)		\
 template class merge_random<T>;				\
-TEMPLATE_INSNTIATE_PQUEUE_HEAP_OP(arity_t,int)
+TEMPLATE_INSTANTIATE_PQUEUE_HEAP_OP(arity_t,int)
 
 #endif
 
