@@ -15,7 +15,7 @@
 // a quicksort using only keys of the items; there is a provision to 
 // to use templated heaps to implement the merge.
 
-// 	$Id: ami_optimized_merge.h,v 1.25 1999-04-24 19:07:41 rajiv Exp $	
+// 	$Id: ami_optimized_merge.h,v 1.26 1999-04-24 20:04:33 rbarve Exp $	
 //TO DO: substream_count setting; don't depend on current_stream_len
 
 
@@ -1021,7 +1021,7 @@ XXX
 
                 for (sub_start = 0, ii = 0, jj = 0;
                      ii < substream_count;
-                     ii++, jj++) {
+                     ii++){
 
                      if (run_lengths[k % 2][merge_arity-1-jj][merge_number]!=0)
 				  {                    
@@ -1153,29 +1153,27 @@ XXX
   			      remaining_number_of_output_runs--;
                         
                         // Delete input substreams. jj is currently the index
-                        // of the largest, so we want to bump it up before the
-                        // idiomatic loop.
+                        // of the largest.
 
 
-                  for (jj++; jj--; ) {
-				if (the_substreams[merge_arity-1-jj]){
-                          delete the_substreams[merge_arity-1-jj];
-                          the_substreams[merge_arity-1-jj] = NULL;}
+
+                  for (ii_streams = 0; ii_streams < jj+1; ii_streams++ ) {
+				if (the_substreams[ii_streams]){
+                          delete the_substreams[ii_streams];
+                          the_substreams[ii_streams] = NULL;}
                           }
 
 
    
-                        // Now jj should be -1 so that it gets bumped
-                        // back up to 0 before the next iteration of
-                        // the outer loop.
-                        tp_assert((jj == -1), "Index not reduced to -1.");
+                  jj = 0;
                         
 //RAKESH		The number of runs in the current_stream
 //			goes up by 1.
 
                    runs_in_current_stream ++;
                         
-                   }               
+				}    
+				else {jj++;}          
 
                 }
 
@@ -2128,7 +2126,7 @@ LOG_DEBUG_ID("post delete");
 
                 for (sub_start = 0, ii = 0, jj = 0;
                      ii < substream_count;
-                     ii++, jj++) {
+                     ii++){
 
                      if (run_lengths[k % 2][merge_arity-1-jj][merge_number]!=0)
 				  {                    
@@ -2261,28 +2259,25 @@ LOG_DEBUG_ID("post delete");
   			      remaining_number_of_output_runs--;
                         
                         // Delete input substreams. jj is currently the index
-                        // of the largest, so we want to bump it up before the
-                        // idiomatic loop.
+                        // of the largest.
 
 
-                  for (jj++; jj--; ) {
-                          if (the_substreams[merge_arity-1-jj])
+                  for (ii_streams = 0; ii_streams < (int)jj+1; ii_streams++) {
+                          if (the_substreams[ii_streams])
 					   {
-                             delete the_substreams[merge_arity-1-jj];
-                             the_substreams[merge_arity-1-jj] = NULL;}
+                             delete the_substreams[ii_streams];
+                             the_substreams[ii_streams] = NULL;}
                           }
 
-                        // Now jj should be -1 so that it gets bumped
-                        // back up to 0 before the next iteration of
-                        // the outer loop.
-                        tp_assert((jj == -1), "Index not reduced to -1.");
+                  jj = 0;
                         
 //RAKESH		The number of runs in the current_stream
 //			goes up by 1.
 
                    runs_in_current_stream ++;
                         
-                   }               
+                   }  
+				else {jj++;}             
 
                 }
 
