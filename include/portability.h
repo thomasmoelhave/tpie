@@ -3,7 +3,7 @@
 // Created: 2002/10/30
 // Authors: Joerg Rotthowe, Jan Vahrenhold, Markus Vogel
 //
-// $Id: portability.h,v 1.10 2003-09-12 02:20:20 tavi Exp $
+// $Id: portability.h,v 1.11 2003-09-12 18:38:16 jan Exp $
 //
 // This header-file offers macros for independent use on Win and Unix systems.
 
@@ -63,8 +63,13 @@
 
 #ifdef _WIN32
 #include <stack>
-using std::pair;
 using std::stack;
+using std::pair;
+#include <functional>
+using std::less;
+#include <algorithm>
+using std::lower_bound;
+using std::upper_bound;
 #else
 using namespace std;
 #endif
