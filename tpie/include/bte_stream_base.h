@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/11/94
 //
-// $Id: bte_stream_base.h,v 1.8 2005-01-14 18:37:04 tavi Exp $
+// $Id: bte_stream_base.h,v 1.9 2005-01-26 20:12:53 tavi Exp $
 //
 #ifndef _BTE_STREAM_BASE_H
 #define _BTE_STREAM_BASE_H
@@ -179,16 +179,25 @@ int BTE_stream_base<T>::check_header(BTE_stream_header* ph) {
     }
 
     if (ph->magic_number != BTE_STREAM_HEADER_MAGIC_NUMBER) {
-	TP_LOG_FATAL_ID ("header: magic number mismatch (expected/actual):");
+	TP_LOG_FATAL_ID ("header: magic number mismatch (expected/obtained):");
 	TP_LOG_FATAL_ID (BTE_STREAM_HEADER_MAGIC_NUMBER);
 	TP_LOG_FATAL_ID (ph->magic_number);
 	return -1;
     }
 
-    if ((ph->version != 2) ||
-	(ph->header_length != sizeof (*ph))) {
-	TP_LOG_FATAL_ID ("header: incorrect version (expecting 2).");
-	return -1;
+    if (ph->header_length != sizeof (*ph)) {
+      TP_LOG_FATAL_ID ("header: incorrect header length; (expected/obtained):");
+      TP_LOG_FATAL_ID (sizeof (BTE_stream_header));
+      TP_LOG_FATAL_ID (ph->header_length);
+      TP_LOG_FATAL_ID ("This could be due to a stream written without 64-bit support.");
+      return -1;
+    }
+
+    if (ph->version != 2) {
+      TP_LOG_FATAL_ID ("header: incorrect version (expected/obtained):");
+      TP_LOG_FATAL_ID (2);
+      TP_LOG_FATAL_ID (ph->version);
+      return -1;
     }
 
     if (ph->type == 0) {
@@ -197,14 +206,14 @@ int BTE_stream_base<T>::check_header(BTE_stream_header* ph) {
     }
 
     if (ph->item_size != sizeof (T)) {
-	TP_LOG_FATAL_ID ("header: incorrect item size (expected/actual):");
+	TP_LOG_FATAL_ID ("header: incorrect item size (expected/obtained):");
 	TP_LOG_FATAL_ID (sizeof(T));
 	TP_LOG_FATAL_ID ((TPIE_OS_LONGLONG)ph->item_size);
 	return -1;
     }
 
     if (ph->os_block_size != os_block_size()) {
-	TP_LOG_FATAL_ID ("header: incorrect OS block size (expected/actual):");
+	TP_LOG_FATAL_ID ("header: incorrect OS block size (expected/obtained):");
 	TP_LOG_FATAL_ID ((TPIE_OS_LONGLONG)os_block_size());
 	TP_LOG_FATAL_ID ((TPIE_OS_LONGLONG)ph->os_block_size);
 	return -1;
