@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/30/94
 //
-// $Id: mm_register.h,v 1.3 2000-01-14 19:12:58 hutchins Exp $
+// $Id: mm_register.h,v 1.4 2000-03-14 01:43:37 rajiv Exp $
 //
 #ifndef _MM_REGISTER_H
 #define _MM_REGISTER_H
@@ -31,7 +31,6 @@ private:
     size_t   remaining;
 
     // The user-specified limit on memory. 
-
     size_t   user_limit;
     
     // the amount that has been allocated.
@@ -70,8 +69,8 @@ public:
 
 
 // The default amount of memory we will allow to be allocated.
-
-#define MM_DEFAULT_MM_SIZE (4 * 1024 * 1024)	// 4 Meg.
+// 40MB
+#define MM_DEFAULT_MM_SIZE (40<<20)
 
 
 // Here is the single memory management object.
