@@ -22,6 +22,7 @@
 
 @string{survey = "ACM Computing Surveys"}
 @string{jcss =  "Journal of Computer and System Sciences"}
+@string{ipps =  "International Parallel Processing Symposium"}
 @string{jacm =  "Journal of the ACM"}
 @string{ipl  =  "Information Processing Letters"}
 @string{transcomp = "IEEE Transactions on Computers"}
@@ -32,6 +33,7 @@
 @string{computer = "IEEE Computer"}
 @string{alg = "Algorithmica"}
 @string{transknow ="IEEE Transactions on Knowledge and Data Engineering"}
+@string{parallel    = "Parallel Computing"}
 
 @article{aggarwal:optimal, 
   author =	{A. Aggarwal
@@ -3099,19 +3101,6 @@ Management of Data (SIGMOD '98)},
  year =	1998
 }
 
-@incollection{vitter:dimacssurvey,
-author = {J. S. Vitter},
-title  = {External Memory Algorithms and Data Structures},
-editor = {J. Abello and J. S. Vitter},
-booktitle  = {External Memory Algorithms and Visualization},
-journal = {DIMACS Series in Discrete Mathematics and 
-           Theoretical Computer Science}, 
-  publisher = {American Mathematical Society Press},
-  address = {Providence, RI},
-year = {1999},
-note = {Available at \texttt{http://www.cs.duke.edu/\~{}jsv/}}
-}
-
 @Misc{vahrenhold:fast,
   author = 	 {J. Vahrenhold and K. S. Hinrichs},
   title = 	 {Fast and Simple External-Memory Planar Point-Location},
@@ -3455,4 +3444,62 @@ year = {1999}
   title = 	 {Online Data Structures in External Memory},
   booktitle = 	 icalp,
   year = 	 {1999},
+}
+
+@incollection{vitter:dimacssurvey,
+author = {J. S. Vitter},
+editor = {J. Abello and J. S. Vitter},
+title  = {External Memory Algorithms and Data Structures},
+booktitle  = {External Memory Algorithms and Visualization},
+url = {http://www.cs.duke.edu/~jsv/Papers/Vit98.IO_survey.ps.gz},
+journal = {DIMACS Series in Discrete Mathematics and 
+           Theoretical Computer Science}, 
+  publisher = {American Mathematical Society Press},
+  address = {Providence, RI},
+year = {1999},
+note = {Available via the author's web page
+\texttt{http://www.cs.duke.edu/\~{}jsv/}. 
+Earlier shorter versions entitled "External Memory Algorithms"
+appear as an invited tutorial in 
+\emph{Proceedings of the 17th ACM Symposium on Principles of
+Database Systems}, Seattle, WA, June 1998, 119--128, and as an invited 
+paper in \emph{Proceedings of the 6th Annual European Symposium on Algorithms}, 
+Venice, Italy, August 1998, 1--25, published in Lecture Notes in Computer
+Science, \textbf{1461}, Springer-Verlag, Berlin}
+}
+
+@inproceedings{dehne:reducing,
+  author = {F. Dehne and D. Hutchinson and A. Maheshwari}, 
+  title = {Reducing {I/O} complexity by simulating coarse grained 
+           parallel algorithms},
+  booktitle = ipps,
+  pages = {14--20},
+  month = {April},
+  year = {1999}
+}		    
+@article{cormen:challenge,
+  author =      {T. H. Cormen and M. T. Goodrich},
+
+  title =       {{P}osition {S}tatement, {ACM} {W}orkshop on
+		  {S}trategic {D}irections in {C}omputing {R}esearch:
+		  {W}orking {G}roup on {S}torage {I}/{O} for
+		  {L}arge-{S}cale {C}omputing},  
+
+  year =        1996,
+  month =       dec,
+  volume =      {28A(4)}, 
+  journal =     survey,
+  pages =       {},
+  URL =        {{\tt http://www.cs.dartmouth.edu/$\sim$thc/SDCR96/CormenModel/index.html}}   
+} 
+
+@article{cormen:ffts,
+  author = 	 {Thomas H. Cormen and David M. Nicol}, 
+  title = 	 {{Performing Out-of-Core FFTs on Parallel Disk Systems}}, 
+  journal =      parallel,
+  number =       {1},
+  volume =       {24},
+  pages =        {5-20},
+  year  =        1998,
+  annote =	 "Journal version of Dartmouth:TR96-294.",
 }
