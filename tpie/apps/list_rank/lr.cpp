@@ -7,7 +7,7 @@
 // A sample piece of code that does list ranking in the TPIE system.
 //
 
-static char lr_id[] = "$Id: lr.cpp,v 1.5 1994-11-02 21:48:46 darrenv Exp $";
+static char lr_id[] = "$Id: lr.cpp,v 1.6 1994-12-16 21:16:02 darrenv Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -45,447 +45,447 @@ static struct ___lr_id_compiler_fooler {
 //
 ////////////////////////////////////////////////////////////////////////
 
-int main_mem_list_rank(edge *edges, size_t count)
-{
-    edge *edges_copy;
-    unsigned int ii,jj,kk;
-    unsigned int head_index, tail_index;
-    unsigned long int head_node, tail_node;
-    long int total_weight;
+// int main_mem_list_rank(edge *edges, size_t count)
+// {
+//     edge *edges_copy;
+//     unsigned int ii,jj,kk;
+//     unsigned int head_index, tail_index;
+//     unsigned long int head_node, tail_node;
+//     long int total_weight;
     
-    // Copy the array.
-    edges_copy = new edge[count];
-    for (ii = count; ii--; ) {
-        edges_copy[ii] = edges[ii];
-    }
+//     // Copy the array.
+//     edges_copy = new edge[count];
+//     for (ii = count; ii--; ) {
+//         edges_copy[ii] = edges[ii];
+//     }
     
-    // Sort the original set by the from fields.
-    quicker_sort_cmp(edges, count, edgefromcmp); 
+//     // Sort the original set by the from fields.
+//     quicker_sort_cmp(edges, count, edgefromcmp); 
     
-    // Sort the copy by to.
-    quicker_sort_cmp(edges_copy, count, edgetocmp); 
+//     // Sort the copy by to.
+//     quicker_sort_cmp(edges_copy, count, edgetocmp); 
 
-    // Find the head of this list, which is the unique node number
-    // that appears in the list sorted by from but not by to.  At the
-    // same time, we can find the tail.
-    {
-        bool head_found = false, tail_found = false;
+//     // Find the head of this list, which is the unique node number
+//     // that appears in the list sorted by from but not by to.  At the
+//     // same time, we can find the tail.
+//     {
+//         bool head_found = false, tail_found = false;
         
-        for (ii = kk = 0; (ii < count) || (kk < count); ) {
-            tp_assert((ii - kk <= 1) || (kk - ii <= 1),
-                      "Indeces more than 1 out of sync.");            
-            if (edges[ii].from == edges_copy[kk].to) {
-                ii++; kk++;
-            } else if (ii == count) {
-                tp_assert(head_found, "We should have found the head by now.");
-                tp_assert(!tail_found, "We already found the tail.");
-                tp_assert(kk == count-1, "kk is too far behind.");
-                tail_index = kk;
-                tail_node = edges_copy[kk++].to;
-                tail_found = true;
-                break;
-            } else if (kk == count) {
-                tp_assert(tail_found, "We should have found the head by now.");
-                tp_assert(!head_found, "We already found the tail.");
-                tp_assert(ii == count-1, "ii is too far behind.");
-                head_index = ii;
-                head_node = edges[ii++].to;
-                head_found = true;
-                break;
-            } else if (edges[ii].from < edges_copy[kk].to) {
-                // ii is the index of the head of the list.
-                tp_assert(!head_found, "We already found the head.");
-                head_index = ii;
-                head_node = edges[ii++].from;
-                if ((head_found = true) && tail_found)
-                    break;
-            } else if (edges[ii].from > edges_copy[kk].to) {
-                // kk is the index of the tail of the list.
-                tp_assert(!tail_found, "We already found the tail.");
-                tail_index = kk;
-                tail_node = edges_copy[kk++].to;
-                if ((tail_found = true) && head_found)
-                    break;
-            }
-        }
+//         for (ii = kk = 0; (ii < count) || (kk < count); ) {
+//             tp_assert((ii - kk <= 1) || (kk - ii <= 1),
+//                       "Indeces more than 1 out of sync.");            
+//             if (edges[ii].from == edges_copy[kk].to) {
+//                 ii++; kk++;
+//             } else if (ii == count) {
+//                 tp_assert(head_found, "We should have found the head by now.");
+//                 tp_assert(!tail_found, "We already found the tail.");
+//                 tp_assert(kk == count-1, "kk is too far behind.");
+//                 tail_index = kk;
+//                 tail_node = edges_copy[kk++].to;
+//                 tail_found = true;
+//                 break;
+//             } else if (kk == count) {
+//                 tp_assert(tail_found, "We should have found the head by now.");
+//                 tp_assert(!head_found, "We already found the tail.");
+//                 tp_assert(ii == count-1, "ii is too far behind.");
+//                 head_index = ii;
+//                 head_node = edges[ii++].to;
+//                 head_found = true;
+//                 break;
+//             } else if (edges[ii].from < edges_copy[kk].to) {
+//                 // ii is the index of the head of the list.
+//                 tp_assert(!head_found, "We already found the head.");
+//                 head_index = ii;
+//                 head_node = edges[ii++].from;
+//                 if ((head_found = true) && tail_found)
+//                     break;
+//             } else if (edges[ii].from > edges_copy[kk].to) {
+//                 // kk is the index of the tail of the list.
+//                 tp_assert(!tail_found, "We already found the tail.");
+//                 tail_index = kk;
+//                 tail_node = edges_copy[kk++].to;
+//                 if ((tail_found = true) && head_found)
+//                     break;
+//             }
+//         }
 
-        tp_assert(head_found, "Head of list not found.");
-        tp_assert(tail_found, "Tail of list not found.");
-    }
+//         tp_assert(head_found, "Head of list not found.");
+//         tp_assert(tail_found, "Tail of list not found.");
+//     }
 
-    // Reduce the to fields to integers in the range [0...count-1].
-    // After this is done, we will resort by source, and then we can
-    // walk through the list starting at head_index.
+//     // Reduce the to fields to integers in the range [0...count-1].
+//     // After this is done, we will resort by source, and then we can
+//     // walk through the list starting at head_index.
 
-    // There are two problems, however, one related to each end of the
-    // list.  These problems arise from the fact that what we are
-    // actually indexing into is an array of edges, not of nodes.  One
-    // node, the head, appears only once, as a source.  Another node,
-    // the tail, appears only once, as a destination.  All other nodes
-    // appear exactly twice, once as a source and once as a
-    // destination.
+//     // There are two problems, however, one related to each end of the
+//     // list.  These problems arise from the fact that what we are
+//     // actually indexing into is an array of edges, not of nodes.  One
+//     // node, the head, appears only once, as a source.  Another node,
+//     // the tail, appears only once, as a destination.  All other nodes
+//     // appear exactly twice, once as a source and once as a
+//     // destination.
 
-    // The first edge (the one whose source is the head) of the list
-    // will be embedded somewhere in the middle of the array.  If k is
-    // smaller than the index of the head edge in the array sorted by
-    // source then the k'th largest destination is index k - 1.  If,
-    // however, k is greater than or equal to the index of the head,
-    // then the k'th largest destination is index k.  This is because
-    // there is no edge whose destination is the head of the list.
+//     // The first edge (the one whose source is the head) of the list
+//     // will be embedded somewhere in the middle of the array.  If k is
+//     // smaller than the index of the head edge in the array sorted by
+//     // source then the k'th largest destination is index k - 1.  If,
+//     // however, k is greater than or equal to the index of the head,
+//     // then the k'th largest destination is index k.  This is because
+//     // there is no edge whose destination is the head of the list.
 
-    // The tail of the list it the i'th largest destination for some
-    // value of i.  This means that for j >= 0, the (i + j)'th
-    // destination is actually the source of the edge in position (i +
-    // j - 1) when the edges are sorted by source.
+//     // The tail of the list it the i'th largest destination for some
+//     // value of i.  This means that for j >= 0, the (i + j)'th
+//     // destination is actually the source of the edge in position (i +
+//     // j - 1) when the edges are sorted by source.
 
-    // The situation is even a slight bit more complicated than it is
-    // described in the preceding paragraphs, since the two end
-    // effects can interact.  Luckily, however, their effects are
-    // simply additive.
+//     // The situation is even a slight bit more complicated than it is
+//     // described in the preceding paragraphs, since the two end
+//     // effects can interact.  Luckily, however, their effects are
+//     // simply additive.
     
-    for (ii = count; ii--; ) { 
-        edges_copy[ii].to = ii;
-        if (ii >= head_index) {
-            edges_copy[ii].to++;
-        }
-        if (ii >= tail_index) {
-            edges_copy[ii].to--;
-        }            
-    }
+//     for (ii = count; ii--; ) { 
+//         edges_copy[ii].to = ii;
+//         if (ii >= head_index) {
+//             edges_copy[ii].to++;
+//         }
+//         if (ii >= tail_index) {
+//             edges_copy[ii].to--;
+//         }            
+//     }
 
-    // Sort the copy back by source edge.
+//     // Sort the copy back by source edge.
     
-    quicker_sort_cmp(edges_copy, count, edgefromcmp); 
+//     quicker_sort_cmp(edges_copy, count, edgefromcmp); 
 
-    // Traverse the reduced copy by taking count - 1 steps, starting
-    // from the index of the head.  We use jj to keep track of the
-    // number of iterations.
-    for (ii = head_index, jj = count, total_weight = 0;
-         jj--; ii = edges_copy[ii].to) {
+//     // Traverse the reduced copy by taking count - 1 steps, starting
+//     // from the index of the head.  We use jj to keep track of the
+//     // number of iterations.
+//     for (ii = head_index, jj = count, total_weight = 0;
+//          jj--; ii = edges_copy[ii].to) {
 
-        tp_assert(ii < count, "ii (= " << ii <<
-                  ") out of range (jj = " << jj << ").");
+//         tp_assert(ii < count, "ii (= " << ii <<
+//                   ") out of range (jj = " << jj << ").");
 
-        tp_assert((ii != head_index) || !total_weight || (ii == tail_node),
-                  "Cycled back to the head somehow (jj = " << jj << ").");
+//         tp_assert((ii != head_index) || !total_weight || (ii == tail_node),
+//                   "Cycled back to the head somehow (jj = " << jj << ").");
         
-        // The original array edges is sorted by source node, thus the
-        // edges are in the same positions within the array as the
-        // reduced copies in edge_copy.  All we have to to is add the
-        // weight of all edges before this one to this one.
+//         // The original array edges is sorted by source node, thus the
+//         // edges are in the same positions within the array as the
+//         // reduced copies in edge_copy.  All we have to to is add the
+//         // weight of all edges before this one to this one.
 
-        total_weight = (edges[ii].weight += total_weight);
+//         total_weight = (edges[ii].weight += total_weight);
         
-    }
+//     }
 
-    // We should have ended up at the tail of the list.
-    tp_assert(ii = tail_node,
-              "Did not end up at the tail of the list.");
+//     // We should have ended up at the tail of the list.
+//     tp_assert(ii = tail_node,
+//               "Did not end up at the tail of the list.");
     
-    // Free the copy.
-    delete edges_copy;
+//     // Free the copy.
+//     delete edges_copy;
 
-    // Done 
-    return 0;  
-}
+//     // Done 
+//     return 0;  
+// }
 
 
 
-////////////////////////////////////////////////////////////////////////
-// random_flag_scan
-//
-// This is a class of scan management objects that operates by flipping
-// a fair coin for each edge and setting the edge's flag accordingly.
-//
-// There is a single instance of this class, called my_random_flag.
-////////////////////////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////////////////////////
+// // random_flag_scan
+// //
+// // This is a class of scan management objects that operates by flipping
+// // a fair coin for each edge and setting the edge's flag accordingly.
+// //
+// // There is a single instance of this class, called my_random_flag.
+// ////////////////////////////////////////////////////////////////////////
 
-class random_flag_scan : AMI_scan_object {
-public:
-    AMI_err initialize(void);  
-    AMI_err operate(const edge &in, AMI_SCAN_FLAG *sfin,
-                    edge *out, AMI_SCAN_FLAG *sfout);
-};
+// class random_flag_scan : AMI_scan_object {
+// public:
+//     AMI_err initialize(void);  
+//     AMI_err operate(const edge &in, AMI_SCAN_FLAG *sfin,
+//                     edge *out, AMI_SCAN_FLAG *sfout);
+// };
 
-AMI_err random_flag_scan::initialize(void) {
-    return AMI_ERROR_NO_ERROR;
-}
+// AMI_err random_flag_scan::initialize(void) {
+//     return AMI_ERROR_NO_ERROR;
+// }
 
-AMI_err random_flag_scan::operate(const edge &in, AMI_SCAN_FLAG *sfin,
-                                  edge *out, AMI_SCAN_FLAG *sfout)
-{ 
-    if (!(sfout[0] = *sfin)) {
-        return AMI_SCAN_DONE;
-    }
-    *out = in;
-    out->flag = (random() & 1);
+// AMI_err random_flag_scan::operate(const edge &in, AMI_SCAN_FLAG *sfin,
+//                                   edge *out, AMI_SCAN_FLAG *sfout)
+// { 
+//     if (!(sfout[0] = *sfin)) {
+//         return AMI_SCAN_DONE;
+//     }
+//     *out = in;
+//     out->flag = (random() & 1);
     
-    return AMI_SCAN_CONTINUE;
-}
+//     return AMI_SCAN_CONTINUE;
+// }
 
-////////////////////////////////////////////////////////////////////////
-// seperate_active_from_cancel
-//
-// A class of scan object that takes two edges, one to a node and one 
-// from it, and writes an active edge and possibly a canceled edge.
-//
-// Let e1 = (x,y,w1,f1) be the first edge and e2 = (y,z,w2,f2) the second.
-// If e1's flag (f1) is set and e2's (f2) is not, then we write 
-// (x,z,w1+w2,?) to the active list and e2 to the cancel list.  The
-// effect of this is to bridge over the node y with the new active edge.
-// f2, which was the second half of the bridge, is saved in the cancellation
-// list so that it can be ranked later after the active list is recursively 
-// ranked.
-//
-// Since all the flags should have been set randomly before this function
-// is called, the expected size of the active list is 3/4 the size of the
-// original list.
-////////////////////////////////////////////////////////////////////////
-class seperate_active_from_cancel : AMI_scan_object {
-public:
-    AMI_err initialize(void);
-    AMI_err operate(CONST edge &e1, CONST edge &e2, AMI_SCAN_FLAG *sfin,
-                    edge *active, edge *cancel, AMI_SCAN_FLAG *sfout);
-};
+// ////////////////////////////////////////////////////////////////////////
+// // separate_active_from_cancel
+// //
+// // A class of scan object that takes two edges, one to a node and one 
+// // from it, and writes an active edge and possibly a canceled edge.
+// //
+// // Let e1 = (x,y,w1,f1) be the first edge and e2 = (y,z,w2,f2) the second.
+// // If e1's flag (f1) is set and e2's (f2) is not, then we write 
+// // (x,z,w1+w2,?) to the active list and e2 to the cancel list.  The
+// // effect of this is to bridge over the node y with the new active edge.
+// // f2, which was the second half of the bridge, is saved in the cancellation
+// // list so that it can be ranked later after the active list is recursively 
+// // ranked.
+// //
+// // Since all the flags should have been set randomly before this function
+// // is called, the expected size of the active list is 3/4 the size of the
+// // original list.
+// ////////////////////////////////////////////////////////////////////////
+// class separate_active_from_cancel : AMI_scan_object {
+// public:
+//     AMI_err initialize(void);
+//     AMI_err operate(CONST edge &e1, CONST edge &e2, AMI_SCAN_FLAG *sfin,
+//                     edge *active, edge *cancel, AMI_SCAN_FLAG *sfout);
+// };
 
-AMI_err seperate_active_from_cancel::initialize(void)
-{
-    return AMI_ERROR_NO_ERROR;
-}
+// AMI_err separate_active_from_cancel::initialize(void)
+// {
+//     return AMI_ERROR_NO_ERROR;
+// }
 
-// e1 is from the list of edges sorted by where they are from.
-// e2 is from the list of edges sorted by where they are to.
-AMI_err seperate_active_from_cancel::operate(CONST edge &e1,
-                                             CONST edge &e2, 
-                                             AMI_SCAN_FLAG *sfin,
-                                             edge *active, edge *cancel, 
-                                             AMI_SCAN_FLAG *sfout)
-{
-    // If we have both inputs.
-    if (sfin[0] && sfin[1]) {
-        // If they have a node in common we may be in a bridging situation.
-        if (e2.to == e1.from) {
-            // We will write to the active list no matter what.
-            sfout[0] = 1;
-            *active = e2;
-            if (sfout[1] = (e2.flag && !e1.flag)) {
-                // Bridge.  Put e1 on the cancel list and add its
-                // weight to the active output.
-                active->to = e1.to;
-                active->weight += e1.weight;
-                *cancel = e1;
-                sfout[1] = 1;
-            } else {
-                // No bridge.
-                sfout[1] = 0;
-            }
-        } else {
-            // They don't have a node in common, so one of them needs
-            // to catch up with the other.  What happened is that
-            // either e2 is the very last edge in the list or e1 is
-            // the very first or we just missed a bridge because of
-            // flags.
-            sfout[1] = 0;                
-            if (e2.to > e1.from) {
-                // e1 is behind, so just skip it.
-                sfin[1] = 0;
-                sfout[0] = 0;
-            } else {
-                // e2 is behind, so put it on the active list.
-                sfin[0] = 0;
-                sfout[0] = 1;
-                *active = e2;
-            }
-        }
-        return AMI_SCAN_CONTINUE;
-    } else {
-        // If we only have one input, either just leave it active.
-        if (sfin[0]) {
-            *active = e1;
-            sfout[0] = 1;
-            sfout[1] = 0;
-            return AMI_SCAN_CONTINUE;
-        } else if (sfin[1]) {
-            *active = e2;
-            sfout[0] = 1;
-            sfout[1] = 0;
-            return AMI_SCAN_CONTINUE;
-        } else {
-            // We have no inputs, so we're done.
-            sfout[0] = sfout[1] = 0;            
-            return AMI_SCAN_DONE;
-        }
-    }
-}
+// // e1 is from the list of edges sorted by where they are from.
+// // e2 is from the list of edges sorted by where they are to.
+// AMI_err separate_active_from_cancel::operate(CONST edge &e1,
+//                                              CONST edge &e2, 
+//                                              AMI_SCAN_FLAG *sfin,
+//                                              edge *active, edge *cancel, 
+//                                              AMI_SCAN_FLAG *sfout)
+// {
+//     // If we have both inputs.
+//     if (sfin[0] && sfin[1]) {
+//         // If they have a node in common we may be in a bridging situation.
+//         if (e2.to == e1.from) {
+//             // We will write to the active list no matter what.
+//             sfout[0] = 1;
+//             *active = e2;
+//             if (sfout[1] = (e2.flag && !e1.flag)) {
+//                 // Bridge.  Put e1 on the cancel list and add its
+//                 // weight to the active output.
+//                 active->to = e1.to;
+//                 active->weight += e1.weight;
+//                 *cancel = e1;
+//                 sfout[1] = 1;
+//             } else {
+//                 // No bridge.
+//                 sfout[1] = 0;
+//             }
+//         } else {
+//             // They don't have a node in common, so one of them needs
+//             // to catch up with the other.  What happened is that
+//             // either e2 is the very last edge in the list or e1 is
+//             // the very first or we just missed a bridge because of
+//             // flags.
+//             sfout[1] = 0;                
+//             if (e2.to > e1.from) {
+//                 // e1 is behind, so just skip it.
+//                 sfin[1] = 0;
+//                 sfout[0] = 0;
+//             } else {
+//                 // e2 is behind, so put it on the active list.
+//                 sfin[0] = 0;
+//                 sfout[0] = 1;
+//                 *active = e2;
+//             }
+//         }
+//         return AMI_SCAN_CONTINUE;
+//     } else {
+//         // If we only have one input, either just leave it active.
+//         if (sfin[0]) {
+//             *active = e1;
+//             sfout[0] = 1;
+//             sfout[1] = 0;
+//             return AMI_SCAN_CONTINUE;
+//         } else if (sfin[1]) {
+//             *active = e2;
+//             sfout[0] = 1;
+//             sfout[1] = 0;
+//             return AMI_SCAN_CONTINUE;
+//         } else {
+//             // We have no inputs, so we're done.
+//             sfout[0] = sfout[1] = 0;            
+//             return AMI_SCAN_DONE;
+//         }
+//     }
+// }
 
-// A scan management object to take an active list and remove the
-// smaller weighted edge of each pair of consecutive edges with the
-// same destination.  The purpose of this is to strip edges out of the
-// active list that were sent to the cancel list.
-class strip_cancel_from_active : AMI_scan_object {
-private:
-    bool holding;
-    edge hold;
-public:
-    AMI_err initialize(void);  
-    AMI_err operate(const edge &active, AMI_SCAN_FLAG *sfin,
-                    edge *out, AMI_SCAN_FLAG *sfout);
-};
+// // A scan management object to take an active list and remove the
+// // smaller weighted edge of each pair of consecutive edges with the
+// // same destination.  The purpose of this is to strip edges out of the
+// // active list that were sent to the cancel list.
+// class strip_cancel_from_active : AMI_scan_object {
+// private:
+//     bool holding;
+//     edge hold;
+// public:
+//     AMI_err initialize(void);  
+//     AMI_err operate(const edge &active, AMI_SCAN_FLAG *sfin,
+//                     edge *out, AMI_SCAN_FLAG *sfout);
+// };
 
-AMI_err strip_cancel_from_active::initialize(void) {
-    holding = false;
-    return AMI_ERROR_NO_ERROR;
-}
+// AMI_err strip_cancel_from_active::initialize(void) {
+//     holding = false;
+//     return AMI_ERROR_NO_ERROR;
+// }
 
-// Edges should be sorted by destination before being processed by
-// this object.
-AMI_err strip_cancel_from_active::operate(const edge &active,
-                                  AMI_SCAN_FLAG *sfin,
-                                  edge *out, AMI_SCAN_FLAG *sfout)
-{
-    // If no input then we're done, except that we might still be
-    // holding one.
-    if (!*sfin) {
-        if (holding) {
-            *sfout = 1;
-            *out = hold;
-            holding = false;
-            return AMI_SCAN_CONTINUE;
-        } else {
-            *sfout = 0;
-            return AMI_SCAN_DONE;
-        }
-    }
+// // Edges should be sorted by destination before being processed by
+// // this object.
+// AMI_err strip_cancel_from_active::operate(const edge &active,
+//                                   AMI_SCAN_FLAG *sfin,
+//                                   edge *out, AMI_SCAN_FLAG *sfout)
+// {
+//     // If no input then we're done, except that we might still be
+//     // holding one.
+//     if (!*sfin) {
+//         if (holding) {
+//             *sfout = 1;
+//             *out = hold;
+//             holding = false;
+//             return AMI_SCAN_CONTINUE;
+//         } else {
+//             *sfout = 0;
+//             return AMI_SCAN_DONE;
+//         }
+//     }
 
-    if (!holding) {
-        // If we are not holding anything, then just hold the current
-        // input.
-        hold = active;
-        holding = true;
-        *sfout = 0;
-    } else {
-        tp_assert(active.to >= hold.to, "Out of order inputs.");
+//     if (!holding) {
+//         // If we are not holding anything, then just hold the current
+//         // input.
+//         hold = active;
+//         holding = true;
+//         *sfout = 0;
+//     } else {
+//         tp_assert(active.to >= hold.to, "Out of order inputs.");
 
-        *sfout = 1;
+//         *sfout = 1;
         
-        if (active.to == hold.to) {
-            tp_assert(active.from != hold.from, "Same edge.");
-            tp_assert(active.weight != hold.weight, "Same weights.");
+//         if (active.to == hold.to) {
+//             tp_assert(active.from != hold.from, "Same edge.");
+//             tp_assert(active.weight != hold.weight, "Same weights.");
 
-            if (active.weight > hold.weight) {
-                *out = active;
-            } else {
-                *out = hold;
-            }
+//             if (active.weight > hold.weight) {
+//                 *out = active;
+//             } else {
+//                 *out = hold;
+//             }
 
-            holding = false;
-        } else {
-            *out = hold;
-            hold = active;
-        }
-    }
+//             holding = false;
+//         } else {
+//             *out = hold;
+//             hold = active;
+//         }
+//     }
 
-    return AMI_SCAN_CONTINUE;
-}
+//     return AMI_SCAN_CONTINUE;
+// }
 
 
-////////////////////////////////////////////////////////////////////////
-// interleave_active_cancel
-//
-// This is a class of merge object that merges two lists of edges
-// based on their to fields.  The first list of edges should be active
-// edges, while the second should be cancelled edges.  When we see two
-// edges with the same to field, we know that the second was cancelled
-// when the first was made active.  We then fix up the weights and
-// output the two of them, one in the current call and one in the next
-// call.
-//
-// The streams this operates on should be sorted by their terminal
-// (to) nodes before AMI_scan() is called.
-// 
-////////////////////////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////////////////////////
+// // interleave_active_cancel
+// //
+// // This is a class of merge object that merges two lists of edges
+// // based on their to fields.  The first list of edges should be active
+// // edges, while the second should be cancelled edges.  When we see two
+// // edges with the same to field, we know that the second was cancelled
+// // when the first was made active.  We then fix up the weights and
+// // output the two of them, one in the current call and one in the next
+// // call.
+// //
+// // The streams this operates on should be sorted by their terminal
+// // (to) nodes before AMI_scan() is called.
+// // 
+// ////////////////////////////////////////////////////////////////////////
 
-class patch_active_cancel : AMI_scan_object {
-private:
-    bool holding;
-    edge hold;
-public:
-    AMI_err initialize(void);
-    AMI_err operate(CONST edge &active, CONST edge &cancel,
-                    AMI_SCAN_FLAG *sfin,
-                    edge *patch, AMI_SCAN_FLAG *sfout);
-};
+// class patch_active_cancel : AMI_scan_object {
+// private:
+//     bool holding;
+//     edge hold;
+// public:
+//     AMI_err initialize(void);
+//     AMI_err operate(CONST edge &active, CONST edge &cancel,
+//                     AMI_SCAN_FLAG *sfin,
+//                     edge *patch, AMI_SCAN_FLAG *sfout);
+// };
 
-AMI_err patch_active_cancel::initialize(void)
-{
-    holding = false;
-    return AMI_ERROR_NO_ERROR;
-}
+// AMI_err patch_active_cancel::initialize(void)
+// {
+//     holding = false;
+//     return AMI_ERROR_NO_ERROR;
+// }
 
-AMI_err patch_active_cancel::operate(CONST edge &active, CONST edge &cancel,
-                                     AMI_SCAN_FLAG *sfin,
-                                     edge *patch, AMI_SCAN_FLAG *sfout)
-{
-    // Handle the special cases that occur when holding an edge and/or
-    // completely out of input.
-    if (holding) {
-        sfin[0] = sfin[1] = 0;
-        *patch = hold;
-        holding = false;
-        *sfout = 1;
-        return AMI_SCAN_CONTINUE;
-    } else if (!sfin[0]) {
-        tp_assert(!sfin[1], "We have cancel but no active");
-        *sfout = 0;
-        return AMI_SCAN_DONE;
-    }
+// AMI_err patch_active_cancel::operate(CONST edge &active, CONST edge &cancel,
+//                                      AMI_SCAN_FLAG *sfin,
+//                                      edge *patch, AMI_SCAN_FLAG *sfout)
+// {
+//     // Handle the special cases that occur when holding an edge and/or
+//     // completely out of input.
+//     if (holding) {
+//         sfin[0] = sfin[1] = 0;
+//         *patch = hold;
+//         holding = false;
+//         *sfout = 1;
+//         return AMI_SCAN_CONTINUE;
+//     } else if (!sfin[0]) {
+//         tp_assert(!sfin[1], "We have cancel but no active");
+//         *sfout = 0;
+//         return AMI_SCAN_DONE;
+//     }
 
-    tp_assert(sfin[0], "No active input.");
+//     tp_assert(sfin[0], "No active input.");
     
-    if (!sfin[1]) {
-        // If there is no cancel edge (i.e. all have been processed)
-        // then just pass the active edge through.
-        *patch = active;
-    } else {
-        tp_assert(active.to <= cancel.to, "Out of sync, or not sorted.");
+//     if (!sfin[1]) {
+//         // If there is no cancel edge (i.e. all have been processed)
+//         // then just pass the active edge through.
+//         *patch = active;
+//     } else {
+//         tp_assert(active.to <= cancel.to, "Out of sync, or not sorted.");
     
-        if (holding = (active.to == cancel.to)) {
-            patch->from = active.from;
-            patch->to = cancel.from;
-            patch->weight = active.weight - cancel.weight;
-            hold.from = cancel.from;
-            hold.to = active.to;
-            hold.weight = active.weight;
-        } else {
-            *patch = active;
-            sfin[1] = 0;
-        }
-    }
+//         if (holding = (active.to == cancel.to)) {
+//             patch->from = active.from;
+//             patch->to = cancel.from;
+//             patch->weight = active.weight - cancel.weight;
+//             hold.from = cancel.from;
+//             hold.to = active.to;
+//             hold.weight = active.weight;
+//         } else {
+//             *patch = active;
+//             sfin[1] = 0;
+//         }
+//     }
 
-    *sfout = 1;
-    return AMI_SCAN_CONTINUE;
+//     *sfout = 1;
+//     return AMI_SCAN_CONTINUE;
 
-}
-
-
-
-////////////////////////////////////////////////////////////////////////
-// Until the ANSI standards committee resolves the issue of type
-// conversion in function template matching, these declarations are
-// required to force the compiler to define the appropriate template
-// functions.
-////////////////////////////////////////////////////////////////////////
+// }
 
 
-////////////////////////////////////////////////////////////////////////
-// list_rank()
-//
-// This is the actual recursive function that gets the job done.
-// We assume that all weigths are 1 when the initial call is made to
-// this function.
-//
-// Returns 0 on success, nonzero otherwise.
-////////////////////////////////////////////////////////////////////////
+
+// ////////////////////////////////////////////////////////////////////////
+// // Until the ANSI standards committee resolves the issue of type
+// // conversion in function template matching, these declarations are
+// // required to force the compiler to define the appropriate template
+// // functions.
+// ////////////////////////////////////////////////////////////////////////
+
+
+// ////////////////////////////////////////////////////////////////////////
+// // list_rank()
+// //
+// // This is the actual recursive function that gets the job done.
+// // We assume that all weigths are 1 when the initial call is made to
+// // this function.
+// //
+// // Returns 0 on success, nonzero otherwise.
+// ////////////////////////////////////////////////////////////////////////
 
 int list_rank(AMI_base_stream<edge> *istream, AMI_base_stream<edge> *ostream)
 {
@@ -506,7 +506,7 @@ int list_rank(AMI_base_stream<edge> *istream, AMI_base_stream<edge> *ostream)
 
     // Scan/merge management objects.
     random_flag_scan my_random_flag_scan;
-    seperate_active_from_cancel my_seperate_active_from_cancel;
+    separate_active_from_cancel my_separate_active_from_cancel;
     strip_cancel_from_active my_strip_cancel_from_active;
     patch_active_cancel my_patch_active_cancel;
     
@@ -560,7 +560,7 @@ int list_rank(AMI_base_stream<edge> *istream, AMI_base_stream<edge> *ostream)
 
     ae = AMI_scan((AMI_base_stream<edge> *)edges_from_s,
                   (AMI_base_stream<edge> *)edges_rand,
-                  &my_seperate_active_from_cancel,
+                  &my_separate_active_from_cancel,
                   (AMI_base_stream<edge> *)active,
                   (AMI_base_stream<edge> *)cancel);
 
@@ -818,7 +818,7 @@ template AMI_err AMI_scan(AMI_base_stream<edge> *, random_flag_scan *,
                           AMI_base_stream<edge> *);
 
 template AMI_err AMI_scan(AMI_base_stream<edge> *, AMI_base_stream<edge> *,
-                          seperate_active_from_cancel *,
+                          separate_active_from_cancel *,
                           AMI_base_stream<edge> *, AMI_base_stream<edge> *);
 
 template AMI_err AMI_scan(AMI_base_stream<edge> *, strip_cancel_from_active *,
