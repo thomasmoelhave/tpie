@@ -5,7 +5,7 @@
 // Created: 03/22/97
 // Last Modified: 02/04/99
 //
-// $Id: rectangle.h,v 1.1 2003-11-21 17:26:02 tavi Exp $
+// $Id: rectangle.h,v 1.2 2004-02-05 17:54:14 jan Exp $
 //
 // rectangle and pair_of_rectangles classes for rectangle intersection
 //
@@ -22,7 +22,7 @@
 // Class rectangle:
 // An abstraction of a 2-dim. rectangle.
 //
-template <class coord_t, class oid_t>
+template <typename coord_t, typename oid_t>
 class rectangle {
 public:
   oid_t   id;

@@ -4,7 +4,7 @@
 //  Created:         05.11.1998
 //  Author:          Jan Vahrenhold
 //  mail:            jan.vahrenhold@math.uni-muenster.de
-//  $Id: rstartree.h,v 1.1 2003-11-21 17:26:02 tavi Exp $
+//  $Id: rstartree.h,v 1.2 2004-02-05 17:54:14 jan Exp $
 //  Copyright (C) 1997-2001 by  
 // 
 //  Jan Vahrenhold
@@ -892,7 +892,7 @@ AMI_err RStarTree<coord_t, BTECOLL>::reinsert(RStarNode<coord_t, BTECOLL>* n, co
 				       fanOut_);
     newNode->setFlag(n->getFlag());
 
-    typename vector<pair<unsigned short, coord_t> >::iterator vi = sortVector.begin();
+    typename std::vector<pair<unsigned short, coord_t> >::iterator vi = sortVector.begin();
 
     //  Copy the entries into the new node.
     for(counter = 0; counter < (n->numberOfChildren() * 70) / 100; ++counter, ++vi) {
