@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/9/94
 //
-// $Id: ami_matrix.h,v 1.6 1995-06-30 21:08:38 darrenv Exp $
+// $Id: ami_matrix.h,v 1.7 1999-01-31 16:56:06 rbarve Exp $
 //
 #ifndef _AMI_MATRIX_H
 #define _AMI_MATRIX_H
@@ -360,6 +360,15 @@ AMI_err AMI_matrix_mult(AMI_matrix<T> &op1, AMI_matrix<T> &op2,
         // one in main memory and then written out.
         
         {
+
+		//Sometimes the mm_matrix_extent value is such that 
+		//it is too large for the available amount of memory
+		//to permit the allocation for the matrices below. I suspect 
+		//that there is a bug in the way mm_matrix_extent is assigned
+		//a value; sz_avail needs to be correctly taken into account.
+		//But the bug doesn't always take place. Need looking at.
+		//--Rakesh on mm_matrix_extent.
+ 
             matrix<T> mm_op1(mm_matrix_extent, mm_matrix_extent);
             matrix<T> mm_op2(mm_matrix_extent, mm_matrix_extent);
             matrix<T> mm_accum(mm_matrix_extent, mm_matrix_extent);
