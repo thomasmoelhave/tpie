@@ -10,20 +10,17 @@
 #  define BTE_STATS 0
 #endif
 
+#include <portability.h>
+
 // Get the application defaults.
 #include "app_config.h"
 
 // Define it all.
 #include <ami.h>
-VERSION(lr_cpp,"$Id: lr.cpp,v 1.21 2003-06-03 16:56:31 tavi Exp $");
+VERSION(lr_cpp,"$Id: lr.cpp,v 1.22 2003-09-12 01:01:19 tavi Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
-#include <iostream>
-#include <fstream>
-
-using std::cout;
-using std::ofstream;
 
 // Timers.
 #include <wall_timer.h>
@@ -537,7 +534,7 @@ int list_rank(AMI_STREAM<edge> *istream, AMI_STREAM<edge> *ostream,
 
     if (verbose) {
         cout << "Random flag list is of length " <<
-            edges_rand->stream_len() << ".\n";
+	  edges_rand->stream_len() << "." << endl;
     }
 
     if (rec_level) {
@@ -553,7 +550,7 @@ int list_rank(AMI_STREAM<edge> *istream, AMI_STREAM<edge> *ostream,
 
     if (verbose) {
         cout << "Sorted from list is of length " <<
-            edges_from_s->stream_len() << ".\n";
+	  edges_from_s->stream_len() << "." << endl;
     }
     
     // Scan to produce and active list and a cancel list.
@@ -574,9 +571,9 @@ int list_rank(AMI_STREAM<edge> *istream, AMI_STREAM<edge> *ostream,
 
     if (verbose) {
         cout << "Cancel list is of length " <<
-            cancel->stream_len() << ".\n";
+	  cancel->stream_len() << "." << endl;
         cout << "Active list is of length " <<
-            active->stream_len() << ".\n";
+	  active->stream_len() << "." << endl;
     }
 
     active_s = new AMI_STREAM<edge>;
@@ -587,7 +584,7 @@ int list_rank(AMI_STREAM<edge> *istream, AMI_STREAM<edge> *ostream,
 
     if (verbose) {
         cout << "Sorted active list is of length " <<
-            active_s->stream_len() << ".\n";
+	  active_s->stream_len() << "." << endl;
     }
 
     active_2 = new AMI_STREAM<edge>;
@@ -600,7 +597,7 @@ int list_rank(AMI_STREAM<edge> *istream, AMI_STREAM<edge> *ostream,
 
     if (verbose) {
         cout << "After stripping, active list is of length " <<
-            active_2->stream_len() << ".\n";
+	  active_2->stream_len() << "." << endl;
     }
     
     // Recurse on the active list.  The list we pass in is sorted by
@@ -618,7 +615,7 @@ int list_rank(AMI_STREAM<edge> *istream, AMI_STREAM<edge> *ostream,
 
     if (verbose) {
         cout << "After recursion, ranked active list is of length " <<
-            ranked_active->stream_len() << ".\n";
+	  ranked_active->stream_len() << "." << endl;
     }
 
     cancel_s = new AMI_STREAM<edge>;
@@ -629,7 +626,7 @@ int list_rank(AMI_STREAM<edge> *istream, AMI_STREAM<edge> *ostream,
 
     if (verbose) {
         cout << "Sorted cancel list is of length " <<
-            cancel_s->stream_len() << ".\n";
+	  cancel_s->stream_len() << "." << endl;
     }
 
     // The output of the recursive call is not necessarily sorted by
@@ -651,7 +648,7 @@ int list_rank(AMI_STREAM<edge> *istream, AMI_STREAM<edge> *ostream,
 
     if (verbose) {
         cout << "After patching in canceled edges, list is of length " <<
-            ostream->stream_len() << ".\n";
+	  ostream->stream_len() << "." << endl;
     }
     
     delete ranked_active_s;
@@ -661,9 +658,9 @@ int list_rank(AMI_STREAM<edge> *istream, AMI_STREAM<edge> *ostream,
 }
 
 
-static char def_irf[] = "/var/tmp/osi.txt";
-static char def_rrf[] = "/var/tmp/osr.txt";
-static char def_frf[] = "/var/tmp/osf.txt";
+static char def_irf[] = "osi.txt";
+static char def_rrf[] = "osr.txt";
+static char def_frf[] = "osf.txt";
 
 static char *initial_results_filename = def_irf;
 static char *rand_results_filename = def_rrf;
@@ -706,32 +703,32 @@ int main(int argc, char **argv)
     cpu_timer ct0;
     
     if (argc == 1){
-        cout << "This program performs list ranking on a randomly generated list\n";
-        cout << "The program generates a series of sequential list elements, \n";
-        cout << "randomly permutes them, then performs list ranking to \n";
-        cout << "restore the original order.\n";
-        cout << "Usage:\n";
-        cout << "       lr [-virf] [-I ifid] [-m mem] [-t size] [-z seed] [-R rfid] [-F ffid]\n";
-        cout << "Options:\n";
-        cout << "       v       be verbose\n";
-        cout << "       size    number of items in the test data set\n";
-        cout << "       mem     main memory size to use (bytes)\n";
-        cout << "       seed    seed for the random number generator\n";
-        cout << "       i       write initial list to an ascii file (default /var/tmp/osi.txt)\n";
-        cout << "       r       write randomized list to ascii file (default /var/tmp/rsi.txt)\n";
-        cout << "       f       write final ordered list to ascii file (def. /var/tmp/fsi.txt)\n";        
-        cout << "       ifid    file to which initial list is written\n";
-        cout << "       rfid    file to which randomized list is written\n";
-        cout << "       ffile   file to which final ordered list is written\n\n";
+      cout << "This program performs list ranking on a randomly generated list" << endl;
+      cout << "The program generates a series of sequential list elements, " << endl;
+      cout << "randomly permutes them, then performs list ranking to" << endl;
+      cout << "restore the original order." << endl;
+      cout << "Usage:" << endl;
+      cout << "       lr [-virf] [-I ifid] [-m mem] [-t size] [-z seed] [-R rfid] [-F ffid]" << endl;
+      cout << "Options:" << endl;
+      cout << "       v       be verbose" << endl;
+      cout << "       size    number of items in the test data set" << endl;
+      cout << "       mem     main memory size to use (bytes)" << endl;
+      cout << "       seed    seed for the random number generator" << endl;
+      cout << "       i       write initial list to an ascii file (default /var/tmp/osi.txt)" << endl;
+      cout << "       r       write randomized list to ascii file (default /var/tmp/rsi.txt)" << endl;
+      cout << "       f       write final ordered list to ascii file (def. /var/tmp/fsi.txt)" << endl;  
+      cout << "       ifid    file to which initial list is written" << endl;
+      cout << "       rfid    file to which randomized list is written" << endl;
+      cout << "       ffile   file to which final ordered list is written" << endl << endl;
 
     }
     parse_args(argc,argv,as_opts,parse_app_opt);
 
     if (verbose) {
-        cout << "test_size = " << test_size << ".\n";
-        cout << "test_mm_size = " << test_mm_size << ".\n";
-        cout << "random_seed = " << random_seed << ".\n";
-        cout << "sizeof(edge) = " << sizeof(edge) << ".\n";
+      cout << "test_size = " << test_size << "." << endl;
+      cout << "test_mm_size = " << test_mm_size << "." << endl;
+      cout << "random_seed = " << random_seed << "." << endl;
+      cout << "sizeof(edge) = " << sizeof(edge) << "." << endl;
     } else {
         cout << test_size << ' ' << test_mm_size << ' ' << random_seed;
     }
@@ -782,11 +779,11 @@ int main(int argc, char **argv)
         ae = AMI_scan(&sl, &amis0);
 
         if (verbose) {
-            cout << "Wrote the initial sequence of edges.\n";
+	  cout << "Wrote the initial sequence of edges." << endl;
             cout << "Stopped (didn't write) with last_to = "
                  << sl.last_to << ". operate() called " << sl.called
-                 << " times.\n";
-            cout << "Stream length = " << amis0.stream_len() << '\n';
+                 << " times." << endl;
+            cout << "Stream length = " << amis0.stream_len() << endl;
         }
 
         if (report_results_initial) {
@@ -803,8 +800,8 @@ int main(int argc, char **argv)
                                  (merge_random<edge> *)&mr);
         
         if (verbose) {
-            cout << "Randomly ordered the initial sequence of edges.\n";
-            cout << "Stream length = " << pamis1->stream_len() << '\n';
+	  cout << "Randomly ordered the initial sequence of edges." << endl;
+            cout << "Stream length = " << pamis1->stream_len() << endl;
         }
 
         if (report_results_random) {
@@ -815,11 +812,11 @@ int main(int argc, char **argv)
     // Rank them.  Note that we should sort by destination before
     // calling the recursive list ranking function.
 
-    LOG_APP_DEBUG("About to start timers.\n");
+    LOG_APP_DEBUG_ID("About to start timers.");
     
 #if BTE_STATS
     BTE_stream_mmap_base::reset_stats();
-    cout << BTE_stream_mmap_base::statistics() << '\n';
+    cout << BTE_stream_mmap_base::statistics() << endl;
     BTE_stream_mmap_base::stats_on();
 #endif
         
@@ -843,15 +840,15 @@ int main(int argc, char **argv)
     wt0.stop();
     ct0.stop();
 
-    cout << "Wall time: " <<  wt0 << '\n';
-    cout << "CPU time: " <<  ct0 << '\n';
+    cout << "Wall time: " <<  wt0 << endl;
+    cout << "CPU time: " <<  ct0 << endl;
 
 #if BTE_STATS
     BTE_stream_mmap_base::stats_off();
-    cout << BTE_stream_mmap_base::statistics() << '\n';
+    cout << BTE_stream_mmap_base::statistics() << endl;
 #endif
 
-    LOG_APP_DEBUG("Stopped timers.\n");
+    LOG_APP_DEBUG_ID("Stopped timers.");
 
     if (report_results_final) {
         // Sort by rank before output, to make it easier for humans to
