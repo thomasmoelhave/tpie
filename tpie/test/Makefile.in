@@ -1,6 +1,6 @@
 # Copyright (c) 1994 Darren Erik Vengroff
 
-# $Id: Makefile.in,v 1.22 1999-02-03 21:41:18 tavi Exp $
+# $Id: Makefile.in,v 1.23 1999-04-23 01:34:51 rajiv Exp $
 
 # Makefile for TPIE test applications.
 
@@ -98,10 +98,10 @@ CSRC = int_cmp.c
 #	$(LINK.cc) $< $(LOADLIBES) $(LDLIBS) -o $@
 
 %.d:%.cpp
-	$(SHELL) -ec '$(CXX) -M $(CPPFLAGS) $< | sed '\''s/$*.o/& $@/g'\'' > $@'
+	$(SHELL) -ec '$(CXX) -M $(CPPFLAGS) $< | sed '\''s/$*\.o/& $@/g'\'' > $@'
 
 %.d:%.c
-	$(SHELL) -ec '$(CC) -M $(CPPFLAGS) $< | sed '\''s/$*.o/& $@/g'\'' > $@'
+	$(SHELL) -ec '$(CC) -M $(CPPFLAGS) $< | sed '\''s/$*\.o/& $@/g'\'' > $@'
 
 # Specific dependencies, explicit and automatic.
 
