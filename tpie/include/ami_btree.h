@@ -3,7 +3,7 @@
 // File:    ami_btree.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_btree.h,v 1.21 2003-05-04 21:48:01 tavi Exp $
+// $Id: ami_btree.h,v 1.22 2003-05-05 01:30:27 tavi Exp $
 //
 // AMI_btree declaration and implementation.
 //
@@ -345,7 +345,7 @@ protected:
 #define LEAF_PREV_POINTER 1
 
 // The Info element of a leaf.
-struct __AMI_btree_leaf_info {
+struct _AMI_btree_leaf_info {
   size_t size;
   AMI_bid prev;
   AMI_bid next;
@@ -354,7 +354,7 @@ struct __AMI_btree_leaf_info {
 // The AMI_btree_leaf class.
 // Stores size() elements of type Value.
 template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL = BTE_COLLECTION >
-class AMI_btree_leaf: public AMI_block<Value, __AMI_btree_leaf_info, BTECOLL> {
+class AMI_btree_leaf: public AMI_block<Value, _AMI_btree_leaf_info, BTECOLL> {
 
   Compare comp_;
 
@@ -506,13 +506,13 @@ public:
 
 template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
 size_t AMI_BTREE_LEAF::el_capacity(size_t block_size) {
-  return AMI_block<Value, __AMI_btree_leaf_info, BTECOLL>::el_capacity(block_size, 0);
+  return AMI_block<Value, _AMI_btree_leaf_info, BTECOLL>::el_capacity(block_size, 0);
 }
 
 //// *AMI_btree_leaf::AMI_btree_leaf* ////
 template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
 AMI_BTREE_LEAF::AMI_btree_leaf(AMI_collection_single<BTECOLL>* pcoll, AMI_bid lbid)
-              : AMI_block<Value, __AMI_btree_leaf_info, BTECOLL>(pcoll, 0, lbid) {
+              : AMI_block<Value, _AMI_btree_leaf_info, BTECOLL>(pcoll, 0, lbid) {
   if (lbid == 0) {
     size() = 0;
     next() = 0;
