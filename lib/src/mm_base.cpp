@@ -6,29 +6,40 @@
 //
 
 #include <versions.h>
-VERSION(mm_base_cpp,"$Id: mm_base.cpp,v 1.20 2000-03-25 05:48:18 rajiv Exp $");
+VERSION(mm_base_cpp,"$Id: mm_base.cpp,v 1.21 2000-03-26 00:44:24 rajiv Exp $");
 
 #include "lib_config.h"
 #include <mm_base.h>
 #include <tpie_log.h>
 #include <mm_register.h>
 
+#if(0)
+// deadcode
+// this is already in mm_register.h -RW
+
 // The actual memory manager.  This is currently a total hack.  The
 // proper thing to do is to go through the pointer mm_manager for all
 // references to the memory manager.
 
 extern MM_register MM_manager;
+#endif
+
+
+#if(0)
+// deadcode
+// not being used. -RW
 
 // A pointer to the memory manager currently being used.
 
 MM_manager_base *mm_manager;
-
+#endif
 
 #include <iostream.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 
+// support for dmalloc (for tracking memory leaks)
 #ifdef USE_DMALLOC
 #define DMALLOC_DISABLE
 #include <dmalloc.h>
@@ -43,7 +54,7 @@ int   register_new = MM_IGNORE_MEMORY_EXCEEDED;
 // possible to check whether a machine needs this at configuration
 // time or if dword alignment is ok.  On the HP 9000, bus errors occur
 // when loading doubles that are not qword aligned.
-#define SIZE_SPACE (sizeof(size_t) > 8 ? sizeof(size_t) : 8)
+static const size_t SIZE_SPACE=(sizeof(size_t) > 8 ? sizeof(size_t) : 8);
 
 void *operator new (size_t sz)
 {
@@ -56,32 +67,35 @@ void *operator new (size_t sz)
    if ((MM_manager.register_new != MM_IGNORE_MEMORY_EXCEEDED)
        && (MM_manager.register_allocation (sz + SIZE_SPACE) !=
 	   MM_ERROR_NO_ERROR)) {
-      if (MM_manager.register_new == MM_ABORT_ON_MEMORY_EXCEEDED) {
-	 LOG_FATAL_ID ("In operator new() - allocation request \"");
-	 LOG_FATAL (sz + SIZE_SPACE);
-	 LOG_FATAL ("\" plus previous allocation \"");
-	 LOG_FATAL (MM_manager.memory_used () - (sz + SIZE_SPACE));
-	 LOG_FATAL ("\" exceeds user-defined limit \"");
-	 LOG_FATAL (MM_manager.memory_limit ());
-	 LOG_FATAL ("\" \n");
-	 LOG_FLUSH_LOG;
-	 fprintf (stderr,
-		  "memory manager: memory allocation limit exceeded\n");
-	 assert (0);		// core dump if debugging
-	 exit (1);
-      } else {
-	 // MM_WARN_ON_MEMORY_EXCEEDED
-	 LOG_WARNING_ID ("In operator new() - allocation request \"");
-	 LOG_WARNING (sz + SIZE_SPACE);
-	 LOG_WARNING ("\" plus previous allocation \"");
-	 LOG_WARNING (MM_manager.memory_used () - (sz + SIZE_SPACE));
-	 LOG_WARNING ("\" exceeds user-defined limit \"");
-	 LOG_WARNING (MM_manager.memory_limit ());
-	 LOG_WARNING ("\" \n");
-	 LOG_FLUSH_LOG;
-
-	 cerr << "memory manager: memory allocation limit exceeded "
-		  << "while allocating " << sz << " bytes" << endl;
+      switch(MM_manager.register_new) {
+	  case MM_ABORT_ON_MEMORY_EXCEEDED:
+		LOG_FATAL_ID ("In operator new() - allocation request \"");
+		LOG_FATAL (sz + SIZE_SPACE);
+		LOG_FATAL ("\" plus previous allocation \"");
+		LOG_FATAL (MM_manager.memory_used () - (sz + SIZE_SPACE));
+		LOG_FATAL ("\" exceeds user-defined limit \"");
+		LOG_FATAL (MM_manager.memory_limit ());
+		LOG_FATAL ("\" \n");
+		LOG_FLUSH_LOG;
+		cerr << "memory manager: memory allocation limit exceeded "
+			 << "while allocating " << sz << " bytes" << endl;
+		assert (0);		// core dump if debugging
+		exit (1);
+		break;
+	  case MM_WARN_ON_MEMORY_EXCEEDED:
+		LOG_WARNING_ID ("In operator new() - allocation request \"");
+		LOG_WARNING (sz + SIZE_SPACE);
+		LOG_WARNING ("\" plus previous allocation \"");
+		LOG_WARNING (MM_manager.memory_used () - (sz + SIZE_SPACE));
+		LOG_WARNING ("\" exceeds user-defined limit \"");
+		LOG_WARNING (MM_manager.memory_limit ());
+		LOG_WARNING ("\" \n");
+		LOG_FLUSH_LOG;
+		cerr << "memory manager: memory allocation limit exceeded "
+			 << "while allocating " << sz << " bytes" << endl;
+		break;
+	  case MM_IGNORE_MEMORY_EXCEEDED:
+		break;
       }
    }
 
