@@ -1,5 +1,5 @@
 %%
-%% $Id: implementation.tex,v 1.13 2000-10-05 19:27:24 hutchins Exp $
+%% $Id: implementation.tex,v 1.14 2001-02-14 20:23:49 tavi Exp $
 %%
 \chapter{The Implementation of TPIE}
 \plabel{cha:implementation}
@@ -754,10 +754,10 @@ defines its own constructors:
                  BTE_stream_type st,
                  off_t sub_begin, off_t sub_end);
 \end{verbatim}
-The \myverb{BTE\_ufs} header structure as follows:
+The \myverb{BTE\_ufs} header structure is as follows:
 \index{BTE\_stream\_ufs@{\tt BTE\_stream\_ufs}!header}\index{streams!header block}
 \begin{verbatim}
-struct mmap_stream_header { 
+struct ufs_stream_header { 
   public:
     unsigned int magic_number;  // Set to UFS_HEADER_MAGIC_NUMBER
     unsigned int version;       // Should be 1 for current version.
