@@ -14,7 +14,7 @@
 // Define it all.
 #include <ami_scan.h>
 
-VERSION(test_ami_sm_cpp,"$Id: test_ami_sm.cpp,v 1.10 2003-09-27 07:10:42 tavi Exp $");
+VERSION(test_ami_sm_cpp,"$Id: test_ami_sm.cpp,v 1.11 2004-08-12 15:15:12 jan Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -94,12 +94,12 @@ int main(int argc, char **argv)
 
     if (verbose) {
       cout << "test_size = " << test_size << "." << endl;
-      cout << "test_mm_size = " << test_mm_size << "." << endl;
+      cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << endl;
       cout << "random_seed = " << random_seed << "." << endl;
       cout << "density = " << density << "." << endl;
       cout << "Call mult directly = " << call_mult << "." << endl;
     } else {
-        cout << test_size << ' ' << test_mm_size << ' ' << random_seed;
+        cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << random_seed;
     }
     
     // Set the amount of main memory:
@@ -180,7 +180,8 @@ int main(int argc, char **argv)
 
         cpu_timer cput0, cput1;
         
-        unsigned int rows_per_band, total_bands;
+		TPIE_OS_SIZE_T rows_per_band;
+        TPIE_OS_OFFSET total_bands;
         
         if (read_banded_matrix) {
 
@@ -193,8 +194,9 @@ int main(int argc, char **argv)
             }
 
             // Read in the banded order matrix from an input file.            
-            size_t file_test_mm_size, file_test_size;
-            unsigned int file_rows_per_band;
+            TPIE_OS_SIZE_T file_test_mm_size;
+			TPIE_OS_OFFSET file_test_size;
+            TPIE_OS_SIZE_T file_rows_per_band;
 
             *isb >> file_test_mm_size >> file_test_size
                 >> file_rows_per_band;
@@ -232,8 +234,8 @@ int main(int argc, char **argv)
         }
         
         if (report_results_intermediate) {
-            *osi << test_mm_size << ' ' << test_size << ' '
-                 << rows_per_band << endl;
+            *osi << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << test_size << ' '
+                 << static_cast<TPIE_OS_OUTPUT_SIZE_T>(rows_per_band) << endl;
             ae = AMI_scan((AMI_STREAM< AMI_sm_elem<double> > *)&esm0b,
                           rpti);
         }

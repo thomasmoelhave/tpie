@@ -8,7 +8,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_sort24_cpp,"$Id: test_ami_sort24.cpp,v 1.13 2003-09-27 07:10:42 tavi Exp $");
+VERSION(test_ami_sort24_cpp,"$Id: test_ami_sort24.cpp,v 1.14 2004-08-12 15:15:12 jan Exp $");
 
 // Get information on the configuration to test.
 #include "app_config.h"
@@ -41,21 +41,21 @@ union sort_obj
 // A scan object to generate random keys.
 class scan_random_so : AMI_scan_object {
 private:
-    unsigned int max, remaining;
+    TPIE_OS_OFFSET max, remaining;
 public:
-    scan_random_so(unsigned int count = 1000, int seed = 17);
+    scan_random_so(TPIE_OS_OFFSET count = 1000, int seed = 17);
     virtual ~scan_random_so(void);
     AMI_err initialize(void);
     AMI_err operate(sort_obj *out1, AMI_SCAN_FLAG *sf);
 };
 
 
-scan_random_so::scan_random_so(unsigned int count, int seed) {
+scan_random_so::scan_random_so(TPIE_OS_OFFSET count, int seed) {
     this->max = count;
     this->remaining = count;
-    LOG_APP_DEBUG("scan_random_so seed = ");
-    LOG_APP_DEBUG(seed);
-    LOG_APP_DEBUG('\n');
+    TP_LOG_APP_DEBUG("scan_random_so seed = ");
+    TP_LOG_APP_DEBUG(seed);
+    TP_LOG_APP_DEBUG('\n');
 
     TPIE_OS_SRANDOM(seed);
 }
@@ -74,7 +74,7 @@ AMI_err scan_random_so::initialize(void)
 
 AMI_err scan_random_so::operate(sort_obj *out1, AMI_SCAN_FLAG *sf)
 {
-    if ((*sf = remaining--)) {
+    if ((*sf = (remaining-- >0))) {
         out1->key_val = TPIE_OS_RANDOM();
         return AMI_SCAN_CONTINUE;
     } else {
@@ -140,10 +140,10 @@ int main(int argc, char **argv)
 
     if (verbose) {
       cout << "test_size = " << test_size << "." << endl;
-      cout << "test_mm_size = " << test_mm_size << "." << endl;
+      cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << endl;
       cout << "random_seed = " << random_seed << "." << endl;
     } else {
-        cout << test_size << ' ' << test_mm_size << ' ' << random_seed << ' ';
+        cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << random_seed << ' ';
     }
     
     // Set the amount of main memory:
