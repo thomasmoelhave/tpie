@@ -1,5 +1,5 @@
 %%
-%% $Id: implementation.tex,v 1.7 1999-10-25 17:54:13 tavi Exp $
+%% $Id: implementation.tex,v 1.8 1999-10-25 21:52:00 tavi Exp $
 %%
 \chapter{The Implementation of TPIE}
 \label{cha:implementation}
@@ -93,8 +93,9 @@ support the merging, distribution, and scanning paradigms,
 the several BTEs provides stream-oriented input and output
 of data blocks.  To further improve performance, some BTE
 implementations move data from disk directly into user space
-rather than using a kernel-level buffer cache\index{buffer
-   cache}.  This saves both main memory space and copying
+rather than using a kernel-level 
+buffer cache\index{buffer cache}. 
+ This saves both main memory space and copying
 time. In the future, TPIE will also provide a BTE
 implementation with support for random-access to disk
 blocks. Such functionality is useful when implementing
@@ -146,7 +147,8 @@ All BTE stream implementations inherit from class \verb|BTE_base_stream|
 member functions:\comment{LA: Some note about construction being BTE
 dependent - why are they?}
 
-\subsubsection{new\_substream}\index{new_substream@{\tt new\_substream}}
+\subsubsection{new\_substream}\index{new_substream()@{\tt new\_substream()}}
+\index{substreams!of BTE streams}
 \begin{verbatim}
     BTE_err new_substream(BTE_stream_type st, off_t sub_begin, off_t
                           sub_end, BTE_base_stream<T> **sub_stream);
@@ -156,28 +158,28 @@ A virtual pseudo-constructor for substreams. The arguments \verb|sub_begin| and
 ref. Stream type?}
 
 
-\subsubsection{read\_item}\index{read_item@{\tt read\_item}!BTE}
+\subsubsection{read\_item}\index{read_item()@{\tt read\_item()}!BTE}
 \begin{verbatim}
     BTE_err read_item(T **elt);
 \end{verbatim}
 Read the next object from the stream. If block boundaries are crossed the
 read ahead mechanism\comment{LA: ?} is called.\comment{LA: Extend!}
 
-\subsubsection{write\_item}\index{write_item@{\tt write\_item}!BTE}
+\subsubsection{write\_item}\index{write_item()@{\tt write\_item()}!BTE}
 \begin{verbatim}
     BTE_err write_item(const T &elt);
 \end{verbatim}
 Write the object to stream.\comment{LA: Extend!}
 
 
-\subsubsection{seek}\index{seek@{\tt seek}!BTE}
+\subsubsection{seek}\index{seek()@{\tt seek()}!BTE}
 \begin{verbatim}
     BTE_err seek(off_t offset);
 \end{verbatim}
 Seek to the object offset in the stream.
 
 
-\subsubsection{truncate}\index{truncate@{\tt truncate}!BTE}
+\subsubsection{truncate}\index{truncate()@{\tt truncate()}!BTE}
 \begin{verbatim}
     BTE_err truncate(off_t offset);
 \end{verbatim}
@@ -185,7 +187,8 @@ Truncate/extend the stream to the specified number of items. The file
 pointer\comment{LA: ?} will be moved to the end of the stream.
 
 
-\subsubsection{main\_memory\_usage}\index{main_memory_usage@{\tt main\_memory\_usage}!BTE}
+\subsubsection{main\_memory\_usage}
+\index{main_memory_usage()@{\tt main\_memory\_usage()}!BTE}
 \begin{verbatim}
     BTE_err main_memory_usage(size_t *usage,
                               MM_stream_usage usage_type);
@@ -194,12 +197,13 @@ Query memory usage.\comment{LA: ?}
 
 
 
-\subsubsection{get\_status}\index{get_status@{\tt get\_status}}
+\subsubsection{get\_status}\index{get_status()@{\tt get\_status()}}
 \begin{verbatim}
     BTE_stream_status get_status(void);
 \end{verbatim}
 Returns the status of the stream as one
 of the following:\comment{LA: Is this really used anywhere?}
+\index{BTE_STREAM_STATUS_*@{\tt BTE\_STREAM\_STATUS\_*}}
 \begin{itemize}
 \item \verb|BTE_STREAM_STATUS_NO_STATUS|
 \item \verb|BTE_STREAM_STATUS_INVALID|
@@ -208,14 +212,14 @@ of the following:\comment{LA: Is this really used anywhere?}
 \end{itemize}
 
 
-\subsubsection{stream\_len}\index{stream_len@{\tt stream\_len}!BTE}
+\subsubsection{stream\_len}\index{stream_len()@{\tt stream\_len()}!BTE}
 \begin{verbatim}
     off_t stream_len(void);
 \end{verbatim}
 Returns the current number of items in the stream.
 
 
-\subsubsection{name}\index{name@{\tt name}!BTE}
+\subsubsection{name}\index{name()@{\tt name()}!BTE}
 \begin{verbatim}
     BTE_err name(char **stream_name);
 \end{verbatim}
@@ -223,14 +227,15 @@ Returns the path name of the file backing the stream. The name will be
 stored in newly allocated space.
 
 
-\subsubsection{read\_only}\index{read_only@{\tt read\_only}}
+\subsubsection{read\_only}\index{read_only()@{\tt read\_only()}}
 \begin{verbatim}
     int read_only(void);
 \end{verbatim}
 Returns true if the stream is read\_only.\comment{LA: ?}
 
     
-\subsubsection{available\_streams}\index{available_streams@{\tt available\_streams}!BTE}
+\subsubsection{available\_streams}
+\index{available_streams()@{\tt available\_streams()}!BTE}
 \begin{verbatim}
     int available_streams(void);    
 \end{verbatim}
@@ -244,7 +249,7 @@ Returns the number of currently available streams.\comment{LA: Extend}
 Returns the number of elements that fit in a logical block.\comment{LA: ?}
 
 \subsubsection{persist}\index{persistence!BTE}
-\index{persist@{\tt persist}|see{persistence}}
+\index{persist()@{\tt persist()}|see{persistence}}
 \begin{verbatim}
     void persist(persistence);
 \end{verbatim}
