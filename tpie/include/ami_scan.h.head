@@ -11,10 +11,18 @@
 // generating this file.  The header, stored in ami_scan.h.head, may be
 // edited if necessary.
 //
-// $Id: ami_scan.h.head,v 1.1 1994-05-25 19:33:06 dev Exp $
+// $Id: ami_scan.h.head,v 1.2 1994-05-27 19:26:34 dev Exp $
 //
 //
 #ifndef _AMI_SCAN_H
 #define _AMI_SCAN_H
+
+typedef int AMI_SCAN_FLAG;
+
+// The base class for scan objects.
+class AMI_scan_object {
+public:
+    virtual AMI_err initialize(void) = 0;
+};
 
 // BEGIN MECHANICALLY GENERATED CODE.
