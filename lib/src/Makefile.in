@@ -1,7 +1,7 @@
 # Makefile for TPIE library.
 # Use GNU make on this Makefile. It relies on the default rules.
 # Use (GNU) "make -p" to see the default rules.
-# $Id: Makefile.in,v 1.33 2002-02-02 18:16:03 tavi Exp $
+# $Id: Makefile.in,v 1.34 2003-04-29 05:33:48 tavi Exp $
 
 ARFLAGS = rv
 CXX = @CXX@
@@ -45,9 +45,6 @@ SRC =	logstream.cpp \
 	cpu_timer.cpp \
 	ami_key.cpp \
 	ami_optimized_merge.cpp \
-	bte_coll_base.cpp \
-	bte_coll_mmap.cpp \
-	bte_coll_ufs.cpp \
 	tpie_tempnam.cpp
 
 OBJ =	$(SRC:.cpp=.o)
