@@ -6,7 +6,7 @@
 //
 
 #include <versions.h>
-VERSION(mm_base_cpp,"$Id: mm_base.cpp,v 1.19 2000-03-08 03:12:54 rajiv Exp $");
+VERSION(mm_base_cpp,"$Id: mm_base.cpp,v 1.20 2000-03-25 05:48:18 rajiv Exp $");
 
 #include "lib_config.h"
 #include <mm_base.h>
@@ -29,6 +29,12 @@ MM_manager_base *mm_manager;
 #include <stdlib.h>
 #include <assert.h>
 
+#ifdef USE_DMALLOC
+#define DMALLOC_DISABLE
+#include <dmalloc.h>
+#include <return.h>
+#endif
+
 #ifdef MM_BACKWARD_COMPATIBLE
 int   register_new = MM_IGNORE_MEMORY_EXCEEDED;
 #endif
@@ -42,6 +48,10 @@ int   register_new = MM_IGNORE_MEMORY_EXCEEDED;
 void *operator new (size_t sz)
 {
    void *p;
+#ifdef USE_DMALLOC
+	char	*file;
+	GET_RET_ADDR(file);
+#endif
 
    if ((MM_manager.register_new != MM_IGNORE_MEMORY_EXCEEDED)
        && (MM_manager.register_allocation (sz + SIZE_SPACE) !=
@@ -75,7 +85,11 @@ void *operator new (size_t sz)
       }
    }
 
-   p = malloc (sz + SIZE_SPACE);
+#ifdef USE_DMALLOC
+   p = _malloc_leap(file, 0, sz + SIZE_SPACE);
+#else
+   p = malloc(sz + SIZE_SPACE);
+#endif
    if (!p) {
       LOG_FATAL_ID ("Out of memory. Cannot continue.");
       LOG_FLUSH_LOG;
@@ -102,7 +116,14 @@ void operator delete (void *ptr)
 	 LOG_WARNING_ID("In operator delete - MM_manager.register_deallocation failed");
       }
    }
-   free (((char *) ptr) - SIZE_SPACE);
+   void *p = ((char *)ptr) - SIZE_SPACE;
+#ifdef USE_DMALLOC
+	char	*file;
+	GET_RET_ADDR(file);
+	_free_leap(file, 0, p);    
+#else
+    free(p);
+#endif
 }
 
 void operator delete[] (void *ptr) {
@@ -118,7 +139,14 @@ void operator delete[] (void *ptr) {
 	 LOG_WARNING_ID("In operator delete [] - MM_manager.register_deallocation failed");
       }
    }
-   free (((char *) ptr) - SIZE_SPACE);
+   void *p = ((char *)ptr) - SIZE_SPACE;
+#ifdef USE_DMALLOC
+	char	*file;
+	GET_RET_ADDR(file);
+	_free_leap(file, 0, p);    
+#else
+    free(p);
+#endif
 }
 
 // return the overhead on each memory allocation request 
