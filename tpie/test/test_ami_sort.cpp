@@ -22,8 +22,10 @@
 #include "parse_args.h"
 
 // Define it all.
-#include <ami.h>
-VERSION(test_ami_sort_cpp,"$Id: test_ami_sort.cpp,v 1.21 2001-02-11 22:25:27 hutchins Exp $");
+#include <ami_stream.h>
+#include <ami_scan.h>
+#include <ami_sort.h>
+VERSION(test_ami_sort_cpp,"$Id: test_ami_sort.cpp,v 1.22 2002-01-03 18:20:15 tavi Exp $");
 
 #include <ami_kb_sort.h>
 
