@@ -3,7 +3,7 @@
 // Created: 2002/10/30
 // Authors: Joerg Rotthowe, Jan Vahrenhold, Markus Vogel
 //
-// $Id: portability.h,v 1.22 2004-02-05 19:25:25 jan Exp $
+// $Id: portability.h,v 1.23 2004-05-05 14:31:56 adanner Exp $
 //
 // This header-file offers macros for independent use on Win and Unix systems.
 
@@ -521,7 +521,8 @@ inline TPIE_OS_FILE_DESCRIPTOR portabilityInternalOpen(LPCTSTR name, int flag, T
 	internalHandle.FileHandle =	CreateFile(	
 	    name,
 	    GENERIC_READ, 
-	    0, 0,					      
+		FILE_SHARE_READ | FILE_SHARE_WRITE,
+		0,
 	    OPEN_EXISTING, 
 	    0, 0);
 	break;
@@ -530,7 +531,8 @@ inline TPIE_OS_FILE_DESCRIPTOR portabilityInternalOpen(LPCTSTR name, int flag, T
 	internalHandle.FileHandle =	CreateFile(	
 	    name,
 	    GENERIC_READ | GENERIC_WRITE, 
-	    0, 0,
+		FILE_SHARE_READ | FILE_SHARE_WRITE,
+		0,
 	    CREATE_NEW, 
 	    0, 0);
 	break;
@@ -539,7 +541,8 @@ inline TPIE_OS_FILE_DESCRIPTOR portabilityInternalOpen(LPCTSTR name, int flag, T
 	internalHandle.FileHandle =	CreateFile(	
 	    name,
 	    GENERIC_READ | GENERIC_WRITE, 
-	    0, 0,
+        FILE_SHARE_READ | FILE_SHARE_WRITE,
+		0,
 	    OPEN_EXISTING, 
 	    0, 0);
 	break;
@@ -548,7 +551,8 @@ inline TPIE_OS_FILE_DESCRIPTOR portabilityInternalOpen(LPCTSTR name, int flag, T
 	internalHandle.FileHandle =	CreateFile(	
 	    name,
 	    GENERIC_READ, 
-	    0, 0,
+		FILE_SHARE_READ | FILE_SHARE_WRITE,
+		0,
 	    OPEN_EXISTING, 
 	    0, 0);
     };
