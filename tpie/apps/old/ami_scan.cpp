@@ -7,8 +7,7 @@
 
 
 
-static char ami_scan_id[] = "$Id: ami_scan.cpp,v 1.1 1994-05-27 19:57:52 dev Exp $";
-
+static char ami_scan_id[] = "$Id: ami_scan.cpp,v 1.2 1994-05-31 20:34:03 dev Exp $";
 
 #include <iostream.h>
 
@@ -81,8 +80,6 @@ int main(int argc, char **argv);
 
 int main(int argc, char **argv)
 {
-    init_tpie_logs();
-
     AMI_err ae;
 
     // Write some ints.
