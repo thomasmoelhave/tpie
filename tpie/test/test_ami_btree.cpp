@@ -6,7 +6,7 @@
 //
 
 #include <versions.h>
-VERSION(test_ami_btree_cpp, "$Id: test_ami_btree.cpp,v 1.8 2002-01-25 23:24:10 tavi Exp $");
+VERSION(test_ami_btree_cpp, "$Id: test_ami_btree.cpp,v 1.9 2002-06-25 21:03:04 tavi Exp $");
 
 #include <fstream>
 #include <functional>
@@ -14,7 +14,7 @@ VERSION(test_ami_btree_cpp, "$Id: test_ami_btree.cpp,v 1.8 2002-01-25 23:24:10 t
 #include <cpu_timer.h>
 #include <ami_btree.h>
 
-#define SIZE_OF_STRUCTURE 148
+#define SIZE_OF_STRUCTURE 128
 
 // Key type.
 typedef long bkey_t;
@@ -31,10 +31,19 @@ struct key_from_el {
   bkey_t operator()(const el_t& v) const { return v.key_; }
 };
 
-typedef AMI_btree_node<bkey_t,el_t,less<bkey_t>,key_from_el> btree_node_t;
-typedef AMI_btree_leaf<bkey_t,el_t,less<bkey_t>,key_from_el> btree_leaf_t;
-typedef AMI_btree<bkey_t,el_t,less<bkey_t>,key_from_el> btree_t;
+typedef AMI_btree<bkey_t,el_t,less<bkey_t>,key_from_el,BTE_collection_ufs> u_btree_t;
+typedef AMI_btree<bkey_t,el_t,less<bkey_t>,key_from_el,BTE_collection_mmap> m_btree_t;
 typedef AMI_STREAM<el_t> stream_t;
+
+// Template instantiations (to get meaningful output from gprof)
+//template class AMI_btree_node<bkey_t,el_t,less<bkey_t>,key_from_el>;
+//template class AMI_btree_leaf<bkey_t,el_t,less<bkey_t>,key_from_el>;
+template class AMI_btree<bkey_t,el_t,less<bkey_t>,key_from_el,BTE_collection_ufs>;
+template class AMI_btree<bkey_t,el_t,less<bkey_t>,key_from_el,BTE_collection_mmap>;
+template class AMI_STREAM<el_t>;
+template class AMI_collection_single<BTE_collection_ufs>;
+template class AMI_collection_single<BTE_collection_mmap>;
+
 
 // This is 2**31-1, the max value returned by random().
 #define MAX_RANDOM ((double)0x7fffffff)
@@ -54,11 +63,10 @@ int main(int argc, char **argv) {
   int i;
   el_t s[DELETE_COUNT], ss;
   cpu_timer wt;
-  btree_t *btree;
   char *base_file = NULL;
 
   LOG_SET_THRESHOLD(TP_LOG_APP_DEBUG);
-  MM_manager.set_memory_limit(32*1024*1024);
+  MM_manager.set_memory_limit(64*1024*1024);
   MM_manager.enforce_memory_limit();
 
   if (argc > 1) {
@@ -70,19 +78,6 @@ int main(int argc, char **argv) {
     exit(1);
   }
 
-  AMI_btree_params params;
-  params.node_block_factor = 2;
-  params.leaf_block_factor = 2;
-
-  btree = (base_file == NULL) ? new btree_t(params): 
-    new btree_t(base_file, AMI_WRITE_COLLECTION, params);
-  
-  if (btree->status() == AMI_BTREE_STATUS_INVALID) {
-    cerr << argv[0] << ": Error initializing AMI_btree. Aborting.\n";
-    delete btree;
-    exit(1);
-  }
-
   cout << "\n";
   cout << "Element size: " << sizeof(el_t) << " bytes. "
        << "Key size: " << sizeof(bkey_t) << " bytes.\n";
@@ -90,7 +85,8 @@ int main(int argc, char **argv) {
 
   // Timing stream write.
   cout << "BEGIN Stream write\n";
-  stream_t* is = new stream_t;
+  stream_t* is = (base_file == NULL) ? new stream_t:
+    new stream_t(base_file);
   cout << "\tCreating stream with " << bulk_load_count << " random elements.\n";
   wt.start();
   for (size_t j = 0; j < bulk_load_count; j++) {
@@ -100,36 +96,74 @@ int main(int argc, char **argv) {
   cout << "END Stream write " << wt << "\n";
   wt.reset();
 
-  // Testing Bulk loading.
-  if (btree->size() == 0) {
+
+  //////  Testing Bulk loading. ///////
+
+  u_btree_t *u_btree;
+  AMI_btree_params params;
+  params.node_block_factor = 4;
+  params.leaf_block_factor = 4;
+  params.leaf_cache_size = 32;
+  params.node_cache_size = 64;
+
+  u_btree = (base_file == NULL) ? new u_btree_t(params): 
+    new u_btree_t(base_file, AMI_WRITE_COLLECTION, params);
+  
+  if (!u_btree->is_valid()) {
+    cerr << argv[0] << ": Error initializing btree. Aborting.\n";
+    delete u_btree;
+    exit(1);
+  }
+
+  if (u_btree->size() == 0) {
     cout << "BEGIN Bulk Load\n";
     //    cout << "\tBulk loading from the stream created.\n";
     cout << "\tSorting... " << flush;
     wt.start();
     stream_t *os = new stream_t;
-    if (btree->sort(is, os) != AMI_ERROR_NO_ERROR)
+    if (u_btree->sort(is, os) != AMI_ERROR_NO_ERROR)
       cerr << argv[0] << ": Error during sort.\n";
     else {
+      wt.stop();
       cout << "Done. " << wt << endl;
+      wt.reset();
+      wt.start();
       cout << "\tLoading... " << flush;
-      if (btree->load_sorted(os) != AMI_ERROR_NO_ERROR)
+      if (u_btree->load_sorted(os) != AMI_ERROR_NO_ERROR)
 	cerr << argv[0] << ": Error during bulk loading.\n";
       else
-	cout << "Done. " << endl;
+	cout << "Done. " << wt << endl;
+      wt.stop();
     }
     os->persist(PERSIST_DELETE);
     delete os;
-    wt.stop();
-    cout << "END Bulk Load " << wt << "\n";
+    ///    wt.stop();
+    cout << "END Bulk Load " /*<< wt*/ << "\n";
   }
 
   delete is;
 
-  cout << "Tree size: " << btree->size() << " elements. Tree height: " 
-       << btree->height() << ".\n";
+  cout << "Tree size: " << u_btree->size() << " elements. Tree height: " 
+       << u_btree->height() << ".\n";
   wt.reset();
 
-  // Testing insertion.
+  delete u_btree;
+
+  //////  Testing insertion.  //////
+
+  m_btree_t *m_btree;
+  params.leaf_cache_size = 64;
+  params.node_cache_size = 64;
+
+  m_btree = (base_file == NULL) ? new m_btree_t(params): 
+    new m_btree_t(base_file, AMI_WRITE_COLLECTION, params);
+
+  if (!m_btree->is_valid()) {
+    cerr << argv[0] << ": Error reinitializing btree. Aborting.\n";
+    delete m_btree;
+    exit(1);
+  }
+
   cout << "BEGIN Insert\n";
   cout << "\tInserting " << insert_count << " elements.\n";
   cout << "\t" << flush;
@@ -139,7 +173,7 @@ int main(int argc, char **argv) {
       s[i-1] = ss = el_t(i+100000);
     else
       ss = el_t(long((random()/MAX_RANDOM) * MAX_VALUE));
-    btree->insert(ss);
+    m_btree->insert(ss);
     if (i % (insert_count/10) == 0)
       cout << i << " " << flush;
   }
@@ -147,30 +181,34 @@ int main(int argc, char **argv) {
   wt.stop();
   cout << "END Insert " << wt << "\n";
   
-  cout << "Tree size: " << btree->size() << " elements. Tree height: " 
-       << btree->height() << ".\n";
+  cout << "Tree size: " << m_btree->size() << " elements. Tree height: " 
+       << m_btree->height() << ".\n";
   wt.reset();
 
-  // Testing range query.
+
+  //////  Testing range query.  ///////
+
   cout << "BEGIN Search\n";
   cout << "\tSearching with range [" << range_search_lo << ", " 
        << range_search_hi << "]\n";
 
   stream_t* os = new stream_t;
   wt.start();
-  btree->range_query(range_search_lo, range_search_hi, os);
+  m_btree->range_query(range_search_lo, range_search_hi, os);
   wt.stop();
   cout << "\tFound " << os->stream_len() << " elements.\n";
   delete os;
   cout << "END Search " << wt << "\n";
 
-  // Testing erase.
+
+  ///////  Testing erase.  ///////
+
   cout << "BEGIN Delete\n";
   cout << "\tDeleting " << key_from_el()(s[0]) << " through " 
        <<  key_from_el()(s[DELETE_COUNT-1]) << ": \n";
   int j = 0;
   for (i = 0; i < DELETE_COUNT ; i++) {
-    if (btree->erase(key_from_el()(s[i])))
+    if (m_btree->erase(key_from_el()(s[i])))
       j++;
   }
 
@@ -181,24 +219,24 @@ int main(int argc, char **argv) {
     cout << "(Potential problem!)\n";
   
   cout << "\tDeleting " << (long)-1 << flush;
-  if (btree->erase((long)-1))
+  if (m_btree->erase((long)-1))
     cout << ": found. (Potential problem!)\n";
   else
     cout << ": not found. (OK)\n";
 
   cout << "\tDeleting " <<  key_from_el()(s[0]) << flush;
-  if (btree->erase(key_from_el()(s[0])))
+  if (m_btree->erase(key_from_el()(s[0])))
     cout << ": found. (Potential problem!)\n";
   else
     cout << ": not found. (OK)\n";
   cout << "END Delete\n";
   
 
-  cout << "Tree size: " << btree->size() << " elements. Tree height: " 
-       << btree->height() << ".\n";
+  cout << "Tree size: " << m_btree->size() << " elements. Tree height: " 
+       << m_btree->height() << ".\n";
 
-  tpie_stats_tree bts = btree->stats();
-  delete btree;
+  tpie_stats_tree bts = m_btree->stats();
+  delete m_btree;
   
   cout << "Block collection statistics (global):\n"
        << "\tGET BLOCK:    "
