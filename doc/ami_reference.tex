@@ -1,5 +1,5 @@
 %%
-%% $Id: ami_reference.tex,v 1.10 2000-10-05 19:27:12 hutchins Exp $
+%% $Id: ami_reference.tex,v 1.11 2000-11-08 17:24:30 hutchins Exp $
 %%
 \chapter{TPIE Programmer's Reference}
 \plabel{cha:reference}
@@ -1221,10 +1221,37 @@ It requires a sort management object with member functions
                            KeySortMgr *smo );
 \end{verbatim}
 
-The third argument of \myverb{AMI\_key\_sort()} is a a
-dummy argument having the same type as the key field, and
-the fourth argument is the sort management
-object.
+The \noiv{dummyKey} argument of \myverb{AMI\_key\_sort()} is a a
+dummy argument having the same type as the user key, and
+\noiv{*smo} is the sort management
+object, having user-defined \myverb{compare} and
+\myverb{copy} member functions as described below.
+
+The \myverb{compare} member function has the following
+prototype:
+\begin{verbatim}
+   inline int compare (const KEY & k1, const KEY & k2);
+\end{verbatim}
+
+The user-written \myverb{compare} function computes the
+order of the two user-defined keys \noiv{&k1} and
+\noiv{&k2}, and returns $-1$, $0$, or $+1$ to indicate that
+$&k1<&k2$, $&k1==&k2$, or $&k1>&k2$ respectively.
+It will be called by the internals of \noiv{AMI_key_sort} to
+determine the relative order of records during the sort.
+
+The \myverb{copy} member function has the following
+prototype:
+\begin{verbatim}
+   inline void copy (KEY *key, const T &record);
+\end{verbatim}
+
+The user-written \myverb{copy} function constructs the
+user-defined key \noiv{*key} from the contents of the
+user-defined record \noiv{&record}. It will be called by the
+internals of \noiv{AMI_key_sort} to make copies of record
+keys as necessary during the sort.
+
 \index{sorting!merge|)} 
 
 % \noindent{\bf The old writeup of the sort functions:}
