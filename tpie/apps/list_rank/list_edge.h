@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/27/94
 //
-// $Id: list_edge.h,v 1.2 2003-04-20 23:51:40 tavi Exp $
+// $Id: list_edge.h,v 1.3 2003-06-03 16:56:24 tavi Exp $
 //
 // The edge class.  This is what our list ranking function will work on.
 //
@@ -28,9 +28,17 @@ public:
 // Helper functions used to compare to edges to sort them either by 
 // the node they are from or the node they are to.
 
-extern int edgefromcmp(CONST edge &s, CONST edge &t);
-extern int edgetocmp(CONST edge &s, CONST edge &t);
-extern int edgeweightcmp(CONST edge &s, CONST edge &t);
+//extern int edgefromcmp(CONST edge &s, CONST edge &t);
+//extern int edgetocmp(CONST edge &s, CONST edge &t);
+//extern int edgeweightcmp(CONST edge &s, CONST edge &t);
 
-
+struct edgefromcmp {
+  int compare(CONST edge &s, CONST edge &t);
+};
+struct edgetocmp {
+  int compare(CONST edge &s, CONST edge &t);
+};
+struct edgeweightcmp {
+  int compare(CONST edge &s, CONST edge &t);
+};
 #endif // _LIST_EDGE_H 
