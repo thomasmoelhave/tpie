@@ -5,19 +5,10 @@
 // Created: 3/24/95
 //
 
+#include <portability.h>
+
 #include <versions.h>
-VERSION(test_ami_sort24_cpp,"$Id: test_ami_sort24.cpp,v 1.8 2003-04-20 23:51:40 tavi Exp $");
-
-#include <stdlib.h>
-#include <sys/time.h>
-#include <sys/resource.h>
-// For cout.
-#include <iostream>
-// For ofstream.
-#include <fstream>
-
-using std::cout;
-using std::ofstream;
+VERSION(test_ami_sort24_cpp,"$Id: test_ami_sort24.cpp,v 1.9 2003-09-12 01:54:21 tavi Exp $");
 
 // Get information on the configuration to test.
 #include "app_config.h"
@@ -30,7 +21,6 @@ using std::ofstream;
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
-
 
 #include <cpu_timer.h>
 
@@ -96,8 +86,8 @@ AMI_err scan_random_so::operate(sort_obj *out1, AMI_SCAN_FLAG *sf)
 
 
 
-static char def_srf[] = "/var/tmp/oss.txt";
-static char def_rrf[] = "/var/tmp/osr.txt";
+static char def_srf[] = "oss.txt";
+static char def_rrf[] = "osr.txt";
 
 static char *sorted_results_filename = def_srf;
 static char *rand_results_filename = def_rrf;
@@ -153,9 +143,9 @@ int main(int argc, char **argv)
     parse_args(argc,argv,as_opts,parse_app_opt);
 
     if (verbose) {
-        cout << "test_size = " << test_size << ".\n";
-        cout << "test_mm_size = " << test_mm_size << ".\n";
-        cout << "random_seed = " << random_seed << ".\n";
+      cout << "test_size = " << test_size << "." << endl;
+      cout << "test_mm_size = " << test_mm_size << "." << endl;
+      cout << "random_seed = " << random_seed << "." << endl;
     } else {
         cout << test_size << ' ' << test_mm_size << ' ' << random_seed << ' ';
     }
@@ -172,8 +162,8 @@ int main(int argc, char **argv)
     ae = AMI_scan(&rnds, &amis0);
 
     if (verbose) {
-        cout << "Wrote the random values.\n";
-        cout << "Stream length = " << amis0.stream_len() << '\n';
+      cout << "Wrote the random values." << endl;
+        cout << "Stream length = " << amis0.stream_len() << endl;
     }
 
     // Streams for reporting random vand/or sorted values to ascii
@@ -222,9 +212,9 @@ int main(int argc, char **argv)
 #endif
     
     if (verbose) {
-        cout << "Sorted them.\n";
-        cout << "ae = " << ae << '\n';
-        cout << "Sorted stream length = " << amis1.stream_len() << '\n';
+      cout << "Sorted them." << endl;
+        cout << "ae = " << ae << endl;
+        cout << "Sorted stream length = " << amis1.stream_len() << endl;
     }
 
     cout << cput;
@@ -232,7 +222,7 @@ int main(int argc, char **argv)
     if (report_results_sorted) {
         ae = AMI_scan(&amis1, rpts);
     }
-    cout << '\n';
+    cout << endl;
     
     return 0;
 }
