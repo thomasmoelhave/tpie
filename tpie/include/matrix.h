@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 11/4/94
 //
-// $Id: matrix.h,v 1.3 1997-05-20 22:14:49 vengroff Exp $
+// $Id: matrix.h,v 1.4 1998-12-11 18:22:58 tavi Exp $
 //
 #ifndef MATRIX_H
 #define MATRIX_H
@@ -12,6 +12,7 @@
 #include <iostream.h>
 
 #include <tpie_assert.h>
+
 
 // Enable exceptions if the compiler supports them.
 #ifndef HANDLE_EXCEPTIONS
@@ -46,7 +47,7 @@ public:
     unsigned int cols(void) const;
     
     // Access to the contents of the matrix.
-    virtual T &elt(unsigned int row, unsigned int col)  = 0;
+    virtual T &elt(unsigned int row, unsigned int col) const  = 0;
 
     rowref<T> row(unsigned int row) ;
     colref<T> col(unsigned int col) ;
@@ -54,12 +55,12 @@ public:
     rowref<T> operator[](unsigned int row) ;
         
     // Assignement.
-    matrix_base<T> &operator=(matrix_base<T> &rhs);
-    matrix_base<T> &operator=(rowref<T> &rhs);
-    matrix_base<T> &operator=(colref<T> &rhs);
+    matrix_base<T> &operator=(const matrix_base<T> &rhs);
+    matrix_base<T> &operator=(const rowref<T> &rhs);
+    matrix_base<T> &operator=(const colref<T> &rhs);
     
     // Addition in place.
-    matrix_base<T> &operator+=(matrix_base<T> &rhs);
+    matrix_base<T> &operator+=(const matrix_base<T> &rhs);
 };
 
 
@@ -74,7 +75,7 @@ public:
     rowref(matrix_base<T> &matrix, unsigned int row);
     ~rowref(void);
 
-    T &operator[](unsigned int col) ;
+    T &operator[](const unsigned int col) const;
 
     friend class matrix_base<T>;
     friend class matrix<T>;
@@ -90,7 +91,7 @@ public:
     colref(matrix_base<T> &matrix, unsigned int col);
     ~colref(void);
 
-    T &operator[](unsigned int col) ;
+    T &operator[](const unsigned int col) const;
 
     friend class matrix_base<T>;
     friend class matrix<T>;
@@ -159,7 +160,7 @@ rowref<T> matrix_base<T>::operator[](unsigned int row)
 
 
 template<class T>
-matrix_base<T> &matrix_base<T>::operator=(matrix_base<T> &rhs)
+matrix_base<T> &matrix_base<T>::operator=(const matrix_base<T> &rhs)
 {
     if ((rows() != rhs.rows()) || (cols() != rhs.cols())) {
 #if HANDLE_EXCEPTIONS    
@@ -183,7 +184,7 @@ matrix_base<T> &matrix_base<T>::operator=(matrix_base<T> &rhs)
 
 
 template<class T>
-matrix_base<T> &matrix_base<T>::operator=(rowref<T> &rhs)
+matrix_base<T> &matrix_base<T>::operator=(const rowref<T> &rhs)
 {
     if ((rows() != 1) || (cols() != rhs.m.cols())) {
 #if HANDLE_EXCEPTIONS    
@@ -204,7 +205,7 @@ matrix_base<T> &matrix_base<T>::operator=(rowref<T> &rhs)
 
 
 template<class T>
-matrix_base<T> &matrix_base<T>::operator=(colref<T> &rhs)
+matrix_base<T> &matrix_base<T>::operator=(const colref<T> &rhs)
 {
     if ((cols() != 1) || (rows() != rhs.m.rows())) {
 #if HANDLE_EXCEPTIONS    
@@ -228,7 +229,7 @@ matrix_base<T> &matrix_base<T>::operator=(colref<T> &rhs)
 
 template<class T>
 matrix_base<T> &matrix_base<T>::
-        operator+=(matrix_base<T> &rhs)
+        operator+=(const matrix_base<T> &rhs)
 {
     if ((rows() != rhs.rows()) || (cols() != rhs.cols())) {
 #if HANDLE_EXCEPTIONS        
@@ -243,7 +244,7 @@ matrix_base<T> &matrix_base<T>::
     
     for (ii = rows(); ii--; ) {
         for (jj = cols(); jj--; ) {
-            elt(ii,jj) += rhs.elt(ii,jj);
+            elt(ii,jj) = elt(ii,jj) + rhs.elt(ii,jj);
         }
     }
     
@@ -252,8 +253,8 @@ matrix_base<T> &matrix_base<T>::
 
 
 template<class T>
-matrix<T> operator+( matrix_base<T> &op1,
-                          matrix_base<T> &op2)
+matrix<T> operator+(const matrix_base<T> &op1,
+                    const matrix_base<T> &op2)
 {
     if ((op1.rows() != op2.rows()) || (op1.cols() != op2.cols())) {
 #if HANDLE_EXCEPTIONS        
@@ -271,8 +272,8 @@ matrix<T> operator+( matrix_base<T> &op1,
 
 
 template<class T>
-void perform_mult_in_place(matrix_base<T> &op1,
-                           matrix_base<T> &op2,
+void perform_mult_in_place(const matrix_base<T> &op1,
+                           const matrix_base<T> &op2,
                            matrix_base<T> &res)
 {
     if ((op1.cols() != op2.rows()) ||
@@ -339,8 +340,8 @@ void perform_mult_add_in_place(matrix_base<T> &op1,
 
 
 template<class T>
-matrix<T> operator*(matrix_base<T> &op1,
-                    matrix_base<T> &op2)
+matrix<T> operator*(const matrix_base<T> &op1,
+                    const matrix_base<T> &op2)
 {
     if (op1.cols() != op2.rows()) {
 #if HANDLE_EXCEPTIONS        
@@ -391,7 +392,7 @@ rowref<T>::~rowref(void)
 }
 
 template<class T>
-T &rowref<T>::operator[](unsigned int col) 
+T &rowref<T>::operator[](const unsigned int col) const
 {
     return m.elt(r,col);
 }
@@ -409,7 +410,7 @@ colref<T>::~colref(void)
 }
 
 template<class T>
-T &colref<T>::operator[](unsigned int row) 
+T &colref<T>::operator[](const unsigned int row) const
 {
     return m.elt(row,c);
 }
@@ -439,7 +440,7 @@ public:
     submatrix<T> &operator=(const matrix<T> &rhs);
     
     // Access to elements.
-    T& elt(unsigned int row, unsigned int col) ;
+    T& elt(unsigned int row, unsigned int col) const;
 };
 
 template<class T>
@@ -480,7 +481,7 @@ submatrix<T> &submatrix<T>::operator=(const matrix<T> &rhs)
 }
 
 template<class T>
-T& submatrix<T>::elt(unsigned int row, unsigned int col) 
+T& submatrix<T>::elt(unsigned int row, unsigned int col) const 
 {
     if ((row >= rows()) || (col >= cols())) {
 #if HANDLE_EXCEPTIONS
@@ -519,7 +520,7 @@ public:
     matrix<T> &operator=(const submatrix<T> &rhs);
     
     // Access to elements.
-    T &elt(unsigned int row, unsigned int col) ;
+    T &elt(unsigned int row, unsigned int col) const;
 
     // Friends that need direct access to data for fast multiplication.
     friend void quick_matrix_mult_in_place(const matrix<T> &op1,
@@ -634,7 +635,7 @@ matrix<T> &matrix<T>::operator=(const submatrix<T> &rhs)
 
 
 template<class T>
-T& matrix<T>::elt(unsigned int row, unsigned int col) 
+T& matrix<T>::elt(unsigned int row, unsigned int col) const
 {
     if ((row >= rows()) || (col >= cols())) {
 #if HANDLE_EXCEPTIONS
@@ -906,24 +907,22 @@ template class rowref<T>;						\
 template class submatrix<T>;						\
 template class matrix<T>;						\
 									\
-TEMPLATE_INSTANTIATE_MAT_DUMMY_OP(T,matrix_base<T>,			\
-                                  matrix_base<T>,+)			\
+TEMPLATE_INSTANTIATE_MAT_DUMMY_OP(T,matrix_base<T>,matrix_base<T>,+)	\
 									\
 TEMPLATE_INSTANTIATE_MAT_DUMMY_OP(T,matrix<T>,matrix<T>,+)		\
 TEMPLATE_INSTANTIATE_MAT_DUMMY_OP(T,matrix<T>,submatrix<T>,+)		\
 TEMPLATE_INSTANTIATE_MAT_DUMMY_OP(T,submatrix<T>,matrix<T>,+)		\
 TEMPLATE_INSTANTIATE_MAT_DUMMY_OP(T,submatrix<T>,submatrix<T>,+)	\
 									\
-TEMPLATE_INSTANTIATE_MAT_DUMMY_OP(T,matrix_base<T>,			\
-                                  matrix_base<T>,*)			\
+TEMPLATE_INSTANTIATE_MAT_DUMMY_OP(T,matrix_base<T>,matrix_base<T>,*)	\
 									\
 TEMPLATE_INSTANTIATE_MAT_DUMMY_OP(T,matrix<T>,matrix<T>,*)		\
 TEMPLATE_INSTANTIATE_MAT_DUMMY_OP(T,matrix<T>,submatrix<T>,*)		\
 TEMPLATE_INSTANTIATE_MAT_DUMMY_OP(T,submatrix<T>,matrix<T>,*)		\
 TEMPLATE_INSTANTIATE_MAT_DUMMY_OP(T,submatrix<T>,submatrix<T>,*)	\
 									\
-template void perform_mult_in_place(matrix_base<T> &op1,		\
-                                    matrix_base<T> &op2,		\
+template void perform_mult_in_place(const matrix_base<T> &op1,		\
+                                    const matrix_base<T> &op2,		\
                                     matrix_base<T> &res);		\
 									\
 template void perform_mult_add_in_place(matrix_base<T> &op1,		\
