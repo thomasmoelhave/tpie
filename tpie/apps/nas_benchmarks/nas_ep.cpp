@@ -5,11 +5,7 @@
 // Created: 3/22/95
 //
 
-#include <iostream>
-#include <fstream>
-
-using std::cout;
-using std::ofstream;
+#include <portability.h>
 
 // Get information on the configuration to test.
 #include "app_config.h"
@@ -17,7 +13,7 @@ using std::ofstream;
 
 // Define it all.
 #include <ami.h>
-VERSION(nas_ep_cpp,"$Id: nas_ep.cpp,v 1.7 2003-04-20 23:51:40 tavi Exp $");
+VERSION(nas_ep_cpp,"$Id: nas_ep.cpp,v 1.8 2003-09-12 01:44:52 tavi Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -212,8 +208,8 @@ inline AMI_err scan_gauss::operate(const double &r, AMI_SCAN_FLAG *sfin,
 //
 //
 
-static char def_rrf[] = "/var/tmp/osr.txt";
-static char def_frf[] = "/var/tmp/osf.txt";
+static char def_rrf[] = "osr.txt";
+static char def_frf[] = "osf.txt";
 
 static char *rand_results_filename = def_rrf;
 static char *filtered_results_filename = def_frf;
@@ -267,10 +263,10 @@ int main(int argc, char **argv)
     }
 
     if (verbose) {
-        cout << "test_size = " << test_size << ".\n";
-        cout << "test_mm_size = " << test_mm_size << ".\n";
+      cout << "test_size = " << test_size << "." << endl;
+      cout << "test_mm_size = " << test_mm_size << "." << endl;
     } else {
-        cout << test_size << ' ' << test_mm_size << '\n';
+        cout << test_size << ' ' << test_mm_size << endl;
     }
 
     // Set the amount of main memory:
@@ -289,7 +285,7 @@ int main(int argc, char **argv)
 
     if (verbose) {
         cout << "Wrote psuedo-random numbers; " <<
-            "stream length = " << amis_r.stream_len() << '\n';
+            "stream length = " << amis_r.stream_len() << endl;
     }
     
     if (report_results_random) {
@@ -314,22 +310,23 @@ int main(int argc, char **argv)
     if (verbose) {
         cout << "Wrote Gaussians; " <<
             "stream lengths = " << amis_x.stream_len() <<
-            " and " << amis_y.stream_len() << '\n';        
+            " and " << amis_y.stream_len() << endl;        
     }    
 
-    cout << "No. pairs: " << amis_x.stream_len() << '\n';
+    cout << "No. pairs: " << amis_x.stream_len() << endl;
     
     cout.precision(15);
     
-    cout << "Sums: " << sg.sumx << ' ' << sg.sumy << "\nCounts:\n" ;
+    cout << "Sums: " << sg.sumx << ' ' << sg.sumy << endl
+	 << "Counts:" << endl;
 
     for (unsigned int ii = 0; ii < 10; ii++) {
-        cout << ii << '\t' << sg.annulus[ii] << '\n';
+        cout << ii << '\t' << sg.annulus[ii] << endl;
     }
 
     cput.stop();
 
-    cout << cput << '\n';
+    cout << cput << endl;
     
     return 0;
 }

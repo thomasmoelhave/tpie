@@ -5,8 +5,10 @@
 // Created: 3/24/95
 //
 
+#include <portability.h>
+
 #include <versions.h>
-VERSION(nas_is_cpp,"$Id: nas_is.cpp,v 1.7 2003-04-21 04:50:42 tavi Exp $");
+VERSION(nas_is_cpp,"$Id: nas_is.cpp,v 1.8 2003-09-12 01:52:20 tavi Exp $");
 
 // Benchmark constants.
 #define IMAX 10
@@ -22,20 +24,6 @@ VERSION(nas_is_cpp,"$Id: nas_is.cpp,v 1.7 2003-04-21 04:50:42 tavi Exp $");
 #define TWO_TO_MINUS_46 (1.0 / TWO_TO_46)
 
 #define INPUT_FILENAME "K.8"
-
-#include <stdlib.h>
-#include <sys/time.h>
-#include <sys/resource.h>
-#include <iostream>
-#include <fstream>
-#include <strstream>
-
-using std::cout;
-using std::ofstream;
-using std::ifstream;
-using std::istream;
-using std::ostream;
-using std::istrstream;
 
 // Get information on the configuration to test.
 #include "app_config.h"
@@ -326,8 +314,8 @@ static unsigned int imax = IMAX;
 static double nas_s = NAS_S;
 static double nas_a = NAS_A;
 
-static char def_srf[] = "/var/tmp/oss.txt";
-static char def_rrf[] = "/var/tmp/osr.txt";
+static char def_srf[] = "oss.txt";
+static char def_rrf[] = "osr.txt";
 
 static char *sorted_results_filename = def_srf;
 static char *rand_results_filename = def_rrf;
@@ -419,7 +407,7 @@ int main(int argc, char **argv)
 #endif
     
     if (verbose) {
-        cout << "test_mm_size = " << test_mm_size << ".\n";
+      cout << "test_mm_size = " << test_mm_size << "." << endl;
     } else {
         cout.precision(15);
         cout << test_mm_size << ' ' << test_size << ' ' << kb_sort << ' '
@@ -479,9 +467,9 @@ int main(int argc, char **argv)
     i_range = key_range(0, key_triple::input_index);
 
     if (verbose) {
-        cout << "Input stream length = " << keys.stream_len() << '\n';
+        cout << "Input stream length = " << keys.stream_len() << endl;
         cout << "Key range = (" << k_range.min << ", " <<
-            k_range.max << ")\n";
+	  k_range.max << ")" << endl;
     }
 
     // Part of the point of this benchmark is that we can't make any
@@ -521,7 +509,7 @@ int main(int argc, char **argv)
     for (unsigned int ii = 1; ii <= imax; ii++) {
 
         if (verbose) {
-            cout << "Iteration " << ii << '\n';
+            cout << "Iteration " << ii << endl;
         }
         
         // Modify the key sequence.
@@ -545,7 +533,7 @@ int main(int argc, char **argv)
         
         if (verbose) {
             cout << "Sorted by value; stream len = " <<
-                keys_by_value.stream_len() << '\n';
+                keys_by_value.stream_len() << endl;
         }
 
         // Put in the ranks.
@@ -554,7 +542,7 @@ int main(int argc, char **argv)
         
         if (verbose) {
             cout << "Assigned ranks; stream len = " <<
-                ranked_keys.stream_len() << '\n';
+                ranked_keys.stream_len() << endl;
         }
 
         // Sort back into initial order, using the initial index as
@@ -565,7 +553,7 @@ int main(int argc, char **argv)
         
         if (verbose) {
             cout << "Sorted by index; stream len = " <<
-                keys.stream_len() << '\n';
+                keys.stream_len() << endl;
         }
 
 #if 0        
@@ -580,7 +568,7 @@ int main(int argc, char **argv)
 
     cput.stop();
 
-    cout << cput << '\n';
+    cout << cput << endl;
 
     if (report_results_sorted) {
         ae = AMI_scan(&keys, rpts);

@@ -14,15 +14,7 @@
 // The file to read A from.
 #define A_INPUT_FILENAME "A.sample.txt"
 
-#include <iostream>
-#include <fstream>
-#include <strstream>
-
-using std::cout;
-using std::cerr;
-using std::ofstream;
-using std::ifstream;
-using std::istrstream;
+#include <portability.h>
 
 #include <cpu_timer.h>
 
@@ -32,7 +24,7 @@ using std::istrstream;
 
 // Define it all.
 #include <ami.h>
-VERSION(nas_cg_cpp,"$Id: nas_cg.cpp,v 1.4 2003-04-20 23:51:40 tavi Exp $");
+VERSION(nas_cg_cpp,"$Id: nas_cg.cpp,v 1.5 2003-09-12 01:49:07 tavi Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -262,7 +254,7 @@ int main(int argc, char **argv)
 
     n = problem_size;
     
-    cout << test_mm_size << ' ' << n << '\n';
+    cout << test_mm_size << ' ' << n << endl;
     
     AMI_matrix<double> x(n, 1);
     AMI_matrix<double> z(n, 1);
@@ -294,7 +286,7 @@ int main(int argc, char **argv)
     }
 
     if (verbose) {
-        cerr << "Read raw A; stream length = " << A_raw.stream_len() << '\n';
+        cerr << "Read raw A; stream length = " << A_raw.stream_len() << endl;
     }
 
     // Preprocess A into band(s).
@@ -304,9 +296,9 @@ int main(int argc, char **argv)
     ae = AMI_sparse_bandify(A_raw, A, rpb);
     
     if (verbose) {
-        cerr << "Banded A; stream length = " << A.stream_len() << '\n';
-        cerr << "Rows per band = " << rpb << '\n';
-        cerr << "Total bands = " << tb << '\n';
+        cerr << "Banded A; stream length = " << A.stream_len() << endl;
+        cerr << "Rows per band = " << rpb << endl;
+        cerr << "Total bands = " << tb << endl;
     }
 
     // High precision output.
@@ -320,7 +312,7 @@ int main(int argc, char **argv)
     for (unsigned int ii = 1; ii <= niter; ii++ ) {
 
         if (verbose) {
-            cerr << "Iteration " << ii << '\n';
+            cerr << "Iteration " << ii << endl;
         }
         
         ae = solve_system(A, z, x, rnorm, n, rpb);
@@ -330,7 +322,7 @@ int main(int argc, char **argv)
 
         zeta = lambda + 1.0 / sip.result();
 
-        cout << ii << ' ' << rnorm << ' ' << zeta << '\n';
+        cout << ii << ' ' << rnorm << ' ' << zeta << endl;
 
         ae = AMI_scan((AMI_STREAM<double> *)&z, &sss);
 
@@ -344,11 +336,11 @@ int main(int argc, char **argv)
 
     cput.stop();
     
-    cout << "zeta = " << zeta << '\n';
-    cout << "ref. = " << zeta_ref << '\n';
-    cout << "diff = " << zeta - zeta_ref << '\n';
+    cout << "zeta = " << zeta << endl;
+    cout << "ref. = " << zeta_ref << endl;
+    cout << "diff = " << zeta - zeta_ref << endl;
 
-    cout << cput << '\n';
+    cout << cput << endl;
     
     return 0;
     
