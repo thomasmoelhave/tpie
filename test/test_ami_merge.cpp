@@ -5,354 +5,198 @@
 // Created: 6/2/94
 //
 
-static char test_ami_merge_id[] = "$Id: test_ami_merge.cpp,v 1.2 1994-09-22 15:18:15 darrenv Exp $";
+static char test_ami_merge_id[] = "$Id: test_ami_merge.cpp,v 1.3 1994-10-07 15:39:07 darrenv Exp $";
 
-#define BTE_MMB_LOGICAL_BLOCKSIZE_FACTOR 32
-#define TEST_SIZE 1000
+// This is just to avoid an error message since the string above is never
+// refereneced.  Note that a self referential structure must be defined to
+// avoid passing the problem further.
+static struct ___test_ami_merge_id_compiler_fooler {
+    char *pc;
+    ___test_ami_merge_id_compiler_fooler *next;
+} the___test_ami_merge_id_compiler_fooler = {
+    test_ami_merge_id,
+    &the___test_ami_merge_id_compiler_fooler
+};
 
 #include <iostream.h>
 
-// Use logs.
-#define TPL_LOGGING 1
-#include <tpie_log.h>
-
-// Use the single BTE stream version of AMI streams.
-#define AMI_IMP_SINGLE
-
-// Pick a version of BTE streams.
-#define BTE_IMP_MMB
-//#define BTE_IMP_STDIO
-//#define BTE_IMP_UFS
+#include "app_config.h"        
+#include "parse_args.h"
 
 // Define it all.
 #include <ami.h>
 
+// Utitlities for ascii output.
+#include <ami_scan_utils.h>
 
-// A scan object to generate output.
-class count_scan : AMI_scan_object {
-private:
-    int maximum;
-public:
-    int ii;
-    unsigned long int called;
+// Get some scanners and a merger.
 
-    count_scan(int max = 1000) : maximum(max), ii(0) {};
-    AMI_err initialize(void);
-    AMI_err operate(int *out1, AMI_SCAN_FLAG *sf);
-};
+#include "scan_square.h"
+#include "scan_count.h"
 
-AMI_err count_scan::initialize(void)
+#include "merge_interleave.h"
+
+static char def_crf[] = "/var/tmp/osc.txt";
+static char def_irf[] = "/var/tmp/osi.txt";
+static char def_frf[] = "/var/tmp/osf.txt";
+
+static char *count_results_filename = def_crf;
+static char *interleave_results_filename = def_irf;
+static char *final_results_filename = def_frf;
+
+static bool report_results_count = false;
+static bool report_results_interleave = false;
+static bool report_results_final = false;
+
+static const char as_opts[] = "C:I:F:cif";
+void parse_app_opt(char c, char *optarg)
 {
-    called = 0;
-    ii = 0;
-    return AMI_ERROR_NO_ERROR;
-};
-
-AMI_err count_scan::operate(int *out1, AMI_SCAN_FLAG *sf)
-{
-    called++;
-    *out1 = ++ii;
-    return (*sf = (ii <= maximum)) ? AMI_SCAN_CONTINUE : AMI_SCAN_DONE;
-};
-
-// A dummy function to force g++ to actually define an appropriate
-// version of AMI_scan() and not just declare it.
-#if 0 // __GNUG__
-static void _____dummy_cs(void) {
-    count_scan *cs;
-    AMI_base_stream<int> *abs;
-    tp_assert(0, "We should never *EVER* call this dummy function; "
-              "seg fault imminent.");
-    AMI_err ae = AMI_scan(cs, abs);
-    ae = ae;
-}
-#endif
-
-// g++ 2.5.2 seems to misbehave on this, treating it only as a
-// declaration, but not defining it based on the template from
-// <ami_scan.h>.  The dummy function above is designed to force the
-// code to actually be generated.
-AMI_err AMI_scan(count_scan *, AMI_base_stream<int> *);
-
-
-// A scan object to square numeric types.
-template<class T> class square_scan : AMI_scan_object {
-public:
-    T ii;
-    unsigned long int called;
-    AMI_err initialize(void);
-    AMI_err operate(const T &in, AMI_SCAN_FLAG *sfin,
-                    T *out, AMI_SCAN_FLAG *sfout);
-};
-
-template<class T>
-AMI_err square_scan<T>::initialize(void)
-{
-    ii = 0;
-    called = 0;
-    return AMI_ERROR_NO_ERROR;
-};
-
-template<class T>
-AMI_err square_scan<T>::operate(const T &in, AMI_SCAN_FLAG *sfin,
-                                T *out, AMI_SCAN_FLAG *sfout)
-{
-    called++;
-    if (*sfout = *sfin) {
-        ii = in;
-        *out = in * in;
-        return AMI_SCAN_CONTINUE;
-    } else {
-        return AMI_SCAN_DONE;
+    switch (c) {
+        case 'C':
+            count_results_filename = optarg;
+        case 'c':
+            report_results_count = true;
+            break;
+        case 'I':
+            interleave_results_filename = optarg;
+        case 'i':
+            report_results_interleave = true;
+            break;
+        case 'F':
+            final_results_filename = optarg;
+        case 'f':
+            report_results_final = true;
+            break;
     }
-};
-
-
-// A dummy function to force g++ to actually define an appropriate
-// version of AMI_scan() and not just declare it.  See the comment at
-// the first dummy function above.
-#if 0 // __GNUG__
-static void _____dummy_ss(void) {
-    square_scan<int> *ss;
-    AMI_base_stream<int> *abs0, *abs1;
-    tp_assert(0, "We should never *EVER* call this dummy function; "
-              "seg fault imminent.");
-    AMI_err ae = AMI_scan(abs0, ss, abs1);
-    ae = ae;
 }
-#endif
 
-AMI_err AMI_scan(AMI_base_stream<int> *,
-                 square_scan<int> *,
-                 AMI_base_stream<int> *);
-
-
-// A merge object to interleave two streams.
-template<class T> class interleave_merge : AMI_merge_base<T> {
-private:
-    T hold;
-
-    // States are :
-    //  1 - hold was read from in[0].
-    //  2 - hold was read from in[1].
-    // -1 - hold was read from in[0] and in[1] is empty.
-    // -2 - hold was read from in[1] and in[0] is empty.
-    //  0 - both in[0] and in[1] are empty.
-    int state;
-
-public:
-    unsigned long int called;
-    
-    AMI_err initialize(arity_t arity, T **in, AMI_merge_flag *taken_flags);
-    AMI_err operate(const T **in, AMI_merge_flag *taken_flags, T *out);
-};
-
-template<class T>
-AMI_err interleave_merge<T>::initialize(arity_t arity, T **in,
-                                        AMI_merge_flag *taken_flags)
-{
-    called = 0;
-    
-    if (arity != 2) {
-        return AMI_ERROR_OBJECT_INITIALIZATION;
-    }
-
-    hold = *in[0];
-    state = 1;
-    taken_flags[0] = 1;
-    taken_flags[1] = 0;
-
-    return AMI_ERROR_NO_ERROR;
-};
-
-
-
-template<class T>
-AMI_err interleave_merge<T>::operate(const T **in,
-                                     AMI_merge_flag *taken_flags,
-                                     T *out)
-{
-    called++;
-    
-    // This should actually be changed to interleave any number of
-    // input streams, and use a mod operator on the state to determine
-    // next state and which in[] to take from.
-    
-    switch (state) {
-        case 1:
-            *out = hold;
-            if (in[1] == NULL) {
-                if (in[0] == NULL) {                
-                    state = 0;
-                } else {
-                    hold = *in[0];
-                    taken_flags[0] = 1;
-                    state = -1;
-                }
-            } else {
-                hold = *in[1];
-                taken_flags[1] = 1;
-                state = 2;
-            }
-            return AMI_MERGE_OUTPUT;
-        case 2:
-            *out = hold;
-            if (in[0] == NULL) {
-                if (in[1] == NULL) {                
-                    state = 0;
-                } else {
-                    hold = *in[1];
-                    taken_flags[1] = 1;
-                    state = -2;
-                }
-            } else {
-                hold = *in[0];
-                taken_flags[0] = 1;
-                state = 1;
-            }
-            return AMI_MERGE_OUTPUT;
-        case -1:
-            *out = hold;
-            if (in[0] == NULL) {                
-                state = 0;
-            } else {
-                hold = *in[0];
-                taken_flags[0] = 1;
-                state = -1;
-            }
-            return AMI_MERGE_OUTPUT;
-        case -2:
-            *out = hold;
-            if (in[1] == NULL) {                
-                state = 0;
-            } else {
-                hold = *in[1];
-                taken_flags[1] = 1;
-                state = -2;
-            }
-            return AMI_MERGE_OUTPUT;
-        case 0:
-            return AMI_MERGE_DONE;
-    }
-    // Just to keep the compiler happy, since it does not like a
-    // non-void function to end without returning.
-    tp_assert(0, "Control should never reach this point.");
-    return AMI_MERGE_DONE;
-};
-
-
-// A dummy function to force g++ to actually define an appropriate
-// version of AMI_scan() and not just declare it.  See the comment at
-// the first dummy function above.
-#if  0 // __GNUG__
-static void _____dummy_int(void) {
-    interleave_merge<int> *im;
-    arity_t arity;
-    pp_AMI_bs<int> aabs;
-    AMI_base_stream<int> *abs;
-    tp_assert(0, "We should never *EVER* call this dummy function; "
-              "seg fault imminent.");
-    AMI_err ae = AMI_merge(aabs, arity, abs, im);
-    ae = ae;
-}
-#endif
-
-AMI_err AMI_merge(pp_AMI_bs<int>, arity_t,
-                  AMI_base_stream<int> *, interleave_merge<int> *);
-
-
-
-int main(int argc, char **argv);
+extern int register_new;
 
 int main(int argc, char **argv)
 {
-#if TPL_LOGGING
-    *tpl << setthreshold(TP_LOG_DATA_ERROR);
-#endif
-
     AMI_err ae;
 
-    // Write some ints.
-    {
-        count_scan cs(TEST_SIZE);
+    parse_args(argc,argv,as_opts,parse_app_opt);
+
+    if (verbose) {
+        cout << "test_size = " << test_size << ".\n";
+        cout << "test_mm_size = " << test_mm_size << ".\n";
+        cout << "random_seed = " << random_seed << ".\n";
+    } else {
+        cout << test_size << ' ' << test_mm_size << ' ' << random_seed;
+    }
     
-        BTE_STREAM<int> btes("./TEST_SCAN0", BTE_WRITE_STREAM);
-        AMI_STREAM<int> amis((BTE_base_stream<int> *)&btes);
+    // Set the amount of main memory:
+    MM_manager.resize_heap(test_mm_size);
+    register_new = 1;
+        
+    AMI_STREAM<int> amis0((unsigned int)1, test_size);
+    AMI_STREAM<int> amis1((unsigned int)1, test_size);
+    AMI_STREAM<int> amis2((unsigned int)1, 2 * test_size);
+    AMI_STREAM<int> amis3((unsigned int)1, 2 * test_size);
 
-        ae = AMI_scan(&cs, (AMI_base_stream<int> *)&amis);
+    // Streams for reporting values to ascii streams.
+    
+    ofstream *osc;
+    ofstream *osi;
+    ofstream *osf;
+    cxx_ostream_scan<int> *rptc;
+    cxx_ostream_scan<int> *rpti;
+    cxx_ostream_scan<int> *rptf;
+    
+    if (report_results_count) {
+        osc = new ofstream(count_results_filename);
+        rptc = new cxx_ostream_scan<int>(osc);
+    }
+    
+    if (report_results_interleave) {
+        osi = new ofstream(interleave_results_filename);
+        rpti = new cxx_ostream_scan<int>(osi);
+    }
+    
+    if (report_results_final) {
+        osf = new ofstream(final_results_filename);
+        rptf = new cxx_ostream_scan<int>(osf);
+    }
+    
+    // Write some ints.
+    scan_count sc(test_size);
 
-        cout << "Wrote them; stopped (didn't write) with ii = "
-             << cs.ii << ". operate() called " << cs.called << " times.\n";
+    ae = AMI_scan(&sc, (AMI_base_stream<int> *)&amis0);
+
+    if (verbose) {
+        cout << "Wrote the initial sequence of values.\n";
+        cout << "Stopped (didn't write) with ii = "
+             << sc.ii << ". operate() called " << sc.called << " times.\n";
+        cout << "Stream length = " << amis0.stream_len() << '\n';
     }
 
-
+    if (report_results_count) {
+        ae = AMI_scan((AMI_base_stream<int> *)&amis0, rptc);
+    }
+    
     // Square them.
-    {
-        square_scan<int> ss;
+    scan_square<int> ss;
         
-        BTE_STREAM<int> bters("./TEST_SCAN0", BTE_READ_STREAM);
-        AMI_STREAM<int> amirs((BTE_base_stream<int> *)&bters);
+    ae = AMI_scan((AMI_base_stream<int> *)&amis0, &ss,
+                      (AMI_base_stream<int> *)&amis1);
 
-        BTE_STREAM<int> btews("./TEST_SCAN1", BTE_WRITE_STREAM);
-        AMI_STREAM<int> amiws((BTE_base_stream<int> *)&btews);
-        
-        ae = AMI_scan((AMI_base_stream<int> *)&amirs, &ss,
-                      (AMI_base_stream<int> *)&amiws);
-
+    if (verbose) {
         cout << "Squared them; last squared was ii = "
              << ss.ii << ". operate() called " << ss.called << " times.\n";
+        cout << "Stream length = " << amis1.stream_len() << '\n';
     }
     
-
     // Interleave the streams.
-    {
-        interleave_merge<int> im;
+    merge_interleave<int> im;
 
-        arity_t arity = 2;
+    arity_t arity = 2;
         
-        AMI_STREAM<int> *amirs[2];
+    AMI_base_stream<int> *amirs[2];
 
-        BTE_STREAM<int> bters0("./TEST_SCAN0", BTE_READ_STREAM);
-        amirs[0] = new AMI_STREAM<int>((BTE_base_stream<int> *)&bters0);
+    amirs[0] = &amis0;
+    amirs[1] = &amis1;
+    
+    ae = AMI_single_merge((pp_AMI_bs<int>)amirs, arity,
+                          (AMI_base_stream<int> *)&amis2, &im);
 
-        BTE_STREAM<int> bters1("./TEST_SCAN1", BTE_READ_STREAM);
-        amirs[1] = new AMI_STREAM<int>((BTE_base_stream<int> *)&bters1);
-        
-        BTE_STREAM<int> btews("./TEST_MERGE0", BTE_WRITE_STREAM);
-        AMI_STREAM<int> amiws((BTE_base_stream<int> *)&btews);
-
-        ae = AMI_merge((pp_AMI_bs<int>)amirs, arity,
-                       (AMI_base_stream<int> *)&amiws, &im);
-
+    if (verbose) {
         cout << "Interleaved them; operate() called " << im.called 
              << " times.\n";
+        cout << "Stream length = " << amis2.stream_len() << '\n';
+    }
+
+    if (report_results_interleave) {
+        ae = AMI_scan((AMI_base_stream<int> *)&amis2, rpti);
     }
 
     // Divide the stream into two substreams, and interleave them.
-    {
-        interleave_merge<int> im;
 
-        arity_t arity = 2;
+    ae = amis2.new_substream(AMI_READ_STREAM, 0, test_size-1, &(amirs[0]));
+    ae = amis2.new_substream(AMI_READ_STREAM, test_size, 2*test_size-1,
+                             &(amirs[1]));
 
-        BTE_STREAM<int> bterss("./TEST_MERGE0", BTE_READ_STREAM);
-
-        BTE_STREAM<int> btews("./TEST_MERGE1", BTE_WRITE_STREAM);
-        AMI_STREAM<int> amiws((BTE_base_stream<int> *)&btews);
-
-        AMI_base_stream<int> *amirs[2];
-
-        AMI_STREAM<int> amirss(&bterss);
-        
-        ae = amirss.new_substream(AMI_READ_STREAM, 0, TEST_SIZE, &(amirs[0]));
-        ae = amirss.new_substream(AMI_READ_STREAM, TEST_SIZE, 2*TEST_SIZE,
-                                  &(amirs[1]));
-
-        ae = AMI_merge((pp_AMI_bs<int>)amirs, arity,
-                       (AMI_base_stream<int> *)&amiws, &im);
-
-        cout << "Interleaved them; operate() called " << im.called 
-             << " times.\n";
+    if (verbose) {
+        cout << "Created substreams; lengths = " <<
+            amirs[0]->stream_len() << " and " <<
+                amirs[1]->stream_len() << '\n';
     }
+
+    ae = AMI_single_merge((pp_AMI_bs<int>)amirs, arity,
+                          (AMI_base_stream<int> *)&amis3, &im);
+
+    if (verbose) {
+        cout << "Interleaved them; operate() called " << im.called 
+             << " times.\n";        
+        cout << "Stream length = " << amis3.stream_len() << '\n';
+    }
+    
+    if (report_results_final) {
+        ae = AMI_scan((AMI_base_stream<int> *)&amis3, rptf);
+    }
+
+    delete amirs[0];
+    delete amirs[1];
     
     return 0;
 }
