@@ -2,7 +2,7 @@
 // File:   ami_coll.h
 // Author: Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_coll.h,v 1.3 2002-01-28 15:33:42 tavi Exp $
+// $Id: ami_coll.h,v 1.4 2002-01-28 15:40:36 tavi Exp $
 //
 // Front end for the AMI_COLLECTION implementations.
 //
@@ -15,6 +15,8 @@
 
 // AMI_collection_single is the only implementation, so make it easy
 // to get to.
-#define AMI_COLLECTION AMI_collection_single<BTE_COLLECTION>
+#ifdef BTE_COLLECTION
+#  define AMI_COLLECTION AMI_collection_single<BTE_COLLECTION>
+#endif
 
 #endif // _AMI_COLL_H
