@@ -3,7 +3,7 @@
 // Created: 2002/10/30
 // Authors: Joerg Rotthowe, Jan Vahrenhold, Markus Vogel
 //
-// $Id: portability.h,v 1.9 2003-09-12 01:46:38 jan Exp $
+// $Id: portability.h,v 1.10 2003-09-12 02:20:20 tavi Exp $
 //
 // This header-file offers macros for independent use on Win and Unix systems.
 
@@ -48,11 +48,11 @@
 
 
 // for reading command line parameter //
-//#ifdef _WIN32
-//#include <strstrea.h>  // 8-letter file name(!)
-//#else
-//#include <strstream.h>
-//#endif
+#ifdef _WIN32
+#include <strstrea.h>  // 8-letter file name(!)
+#else
+#include <strstream>
+#endif
 
 // for class logstream
 #ifdef _WIN32
