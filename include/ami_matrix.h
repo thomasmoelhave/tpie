@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/9/94
 //
-// $Id: ami_matrix.h,v 1.3 1995-03-25 14:07:18 darrenv Exp $
+// $Id: ami_matrix.h,v 1.4 1995-04-03 13:09:22 dev Exp $
 //
 #ifndef _AMI_MATRIX_H
 #define _AMI_MATRIX_H
@@ -347,15 +347,12 @@ AMI_err AMI_matrix_mult(AMI_matrix<T> &op1, AMI_matrix<T> &op2,
         delete op2p;
 
 #ifdef INTERNAL_TIMING
-        // Get ready to time the multiplication itself, ignoring the pre
-        // and post processing permutations.
 
-        // This is a hack wich assumes times() rather than getrusage().
+        cpu_timer cput_internal;
 
-        tms t0;
-        clock_t ct0;
-
-        ct0 = times(&t0);        
+        cput_internal.reset();
+        cput_internal.start();
+        
 #endif
         
         // Now run the standard matrix multiplication algorithm over
@@ -461,16 +458,9 @@ AMI_err AMI_matrix_mult(AMI_matrix<T> &op1, AMI_matrix<T> &op2,
 
 #ifdef INTERNAL_TIMING
 
-        tms t1;
-        clock_t ct1;
+        cput_internal.stop();
+        cout << cput_internal << ' ';
 
-        ct1 = times(&t1);
-
-        long clk_tck = sysconf(_SC_CLK_TCK);
-        
-        cout << double(t1.tms_utime - t0.tms_utime) / clk_tck << ' '
-             << double(t1.tms_stime - t0.tms_stime) / clk_tck << ' '
-             << double(ct1 - ct0) / clk_tck << '\n';
 #endif        
         
         // We are done with the padded and permuted operators.
