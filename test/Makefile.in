@@ -1,6 +1,6 @@
 # Copyright (c) 1994 Darren Erik Vengroff
 
-# $Id: Makefile.in,v 1.18 1995-03-25 14:09:14 darrenv Exp $
+# $Id: Makefile.in,v 1.19 1995-04-03 13:11:10 dev Exp $
 
 # Makefile for TPIE test applications.
 
@@ -72,7 +72,8 @@ CCFLAGS = $(CXXFLAGS)
 APPS := test_ami_pmerge test_ami_sort test_ami_merge test_ami_gp	\
 	test_matrix test_bit_matrix test_ami_arith test_ami_matrix	\
 	test_ami_matrix_pad test_ami_stack test_ami_bp lr ch2		\
-	test_ami_sm nas_ep nas_cg nas_is test_ami_sort24
+	test_ami_sm nas_ep nas_ep2 nas_cg nas_is test_ami_sort24	\
+	nas_ep_mm smooth
 
 # Sources to the test applications.
 
@@ -151,12 +152,17 @@ test_ami_sm: test_ami_sm.o scan_uniform_sm.o $(COMMONOBJ)
 
 nas_ep: nas_ep.o $(COMMONOBJ)
 
+nas_ep2: nas_ep2.o $(COMMONOBJ)
+
 nas_cg: nas_cg.o $(COMMONOBJ)
 
 nas_is: nas_is.o $(COMMONOBJ)
 
+nas_ep_mm: nas_ep_mm.o 
+
 test_ami_sort24: test_ami_sort24.o $(COMMONOBJ)
 
+smooth: smooth.o scan_build_smoother.o  $(COMMONOBJ)
 
 .PHONY : clean all
 
