@@ -7,7 +7,7 @@
 
 // A simple registration based memory manager.
 
-static char mm_register_id[] = "$Id: mm_register.cpp,v 1.4 1994-10-31 21:19:28 darrenv Exp $";
+static char mm_register_id[] = "$Id: mm_register.cpp,v 1.5 1999-04-09 20:15:38 rajiv Exp $";
 
 #include "lib_config.h"
 
@@ -46,11 +46,11 @@ MM_err MM_register::register_allocation(size_t sz)
 
     remaining -= sz;
 
-    LOG_INFO("Allocated ");
-    LOG_INFO((unsigned int)sz);
-    LOG_INFO("; ");
-    LOG_INFO((unsigned int)remaining);
-    LOG_INFO(" remaining.\n");
+    LOG_DEBUG_INFO("Allocated ");
+    LOG_DEBUG_INFO((unsigned int)sz);
+    LOG_DEBUG_INFO("; ");
+    LOG_DEBUG_INFO((unsigned int)remaining);
+    LOG_DEBUG_INFO(" remaining.\n");
     
     return MM_ERROR_NO_ERROR;
 }
@@ -64,11 +64,11 @@ MM_err MM_register::register_deallocation(size_t sz)
 
     remaining += sz;
 
-    LOG_INFO("De-allocated ");
-    LOG_INFO((unsigned int)sz);
-    LOG_INFO("; ");
-    LOG_INFO((unsigned int)remaining);
-    LOG_INFO(" now available.\n");
+    LOG_DEBUG_INFO("De-allocated ");
+    LOG_DEBUG_INFO((unsigned int)sz);
+    LOG_DEBUG_INFO("; ");
+    LOG_DEBUG_INFO((unsigned int)remaining);
+    LOG_DEBUG_INFO(" now available.\n");
     
     return MM_ERROR_NO_ERROR;
 }
