@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/12/94
 //
-// $Id: logstream.h,v 1.14 2003-04-17 18:54:20 jan Exp $
+// $Id: logstream.h,v 1.15 2003-04-20 06:38:39 tavi Exp $
 //
 
 #ifndef _LOGSTREAM_H
@@ -13,7 +13,7 @@
 // Get definitions for working with Unix and Windows
 #include <portability.h>
 
-#include <fstream.h>
+#include <fstream>
 
 // For size_t
 #include <sys/types.h>
@@ -27,7 +27,7 @@
 // Otherwise, it does not.  Lower numbers have higher priority; 0 is
 // the highest.  1 is the default if not 
 
-class logstream : public ofstream {
+class logstream : public std::ofstream {
 
   public:
     static bool log_initialized;
