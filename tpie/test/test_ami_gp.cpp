@@ -5,7 +5,7 @@
 // Created: 11/1/94
 //
 
-static char test_ami_gp_id[] = "$Id: test_ami_gp.cpp,v 1.1 1994-11-02 22:08:32 darrenv Exp $";
+static char test_ami_gp_id[] = "$Id: test_ami_gp.cpp,v 1.2 1994-12-16 21:16:39 darrenv Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -70,11 +70,18 @@ void parse_app_opt(char c, char *optarg)
 }
 
 
-off_t reverse_order(CONST off_t source)
-{
-    return test_size - 1 - source;
-}
-
+class reverse_order : public AMI_gen_perm_object {
+private:
+    off_t total_size;
+public:
+    AMI_err initialize(off_t ts) {
+        total_size = ts;
+        return AMI_ERROR_NO_ERROR;
+    };
+    off_t destination(off_t source) {
+        return total_size - 1 - source;
+    };
+};
 
 extern int register_new;
 
@@ -132,8 +139,10 @@ int main(int argc, char **argv)
     }
 
     amis0.seek(0);
+
+    reverse_order ro;
     
-    ae = AMI_general_permute(&amis0, &amis1, reverse_order);
+    ae = AMI_general_permute(&amis0, &amis1, (AMI_gen_perm_object *)&ro);
 
     if (verbose) {
         cout << "After reversal, stream length = " << amis1.stream_len() <<
