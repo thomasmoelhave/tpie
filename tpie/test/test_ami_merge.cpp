@@ -5,7 +5,7 @@
 // Created: 6/2/94
 //
 
-static char test_ami_merge_id[] = "$Id: test_ami_merge.cpp,v 1.9 1999-02-03 22:24:18 tavi Exp $";
+static char test_ami_merge_id[] = "$Id: test_ami_merge.cpp,v 1.10 1999-12-16 16:57:40 hutchins Exp $";
 
 // This is just to avoid an error message since the string above is never
 // refereneced.  Note that a self referential structure must be defined to
@@ -158,7 +158,7 @@ int main(int argc, char **argv)
     amirs[1] = &amis1;
     
     ae = AMI_single_merge((AMI_STREAM<int> **)amirs, arity, &amis2,
-                          (AMI_merge_base<int> *)&im);
+                          (merge_interleave<int> *)&im);
 
     if (verbose) {
         cout << "Interleaved them; operate() called " << im.called 
@@ -188,7 +188,7 @@ int main(int argc, char **argv)
     ae = amis2.seek(0);
     
     ae = AMI_single_merge((AMI_STREAM<int> **)amirs, arity, &amis3,
-                          (AMI_merge_base<int> *)&im);
+                          (merge_interleave<int> *)&im);
 
     if (verbose) {
         cout << "Interleaved them; operate() called " << im.called 
