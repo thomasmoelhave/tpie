@@ -2,7 +2,7 @@
 // File: ami_stream.h (formerly part of ami.h and ami_imps.h)
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 //
-// $Id: ami_stream.h,v 1.5 2003-04-17 14:22:53 jan Exp $
+// $Id: ami_stream.h,v 1.6 2003-05-08 22:30:48 tavi Exp $
 //
 #ifndef _AMI_STREAM_H
 #define _AMI_STREAM_H
@@ -66,6 +66,7 @@
 // class.
 #ifdef AMI_STREAM_IMP_MULTI_IMP
 #  define AMI_STREAM AMI_stream_base
+#  define AMI_stream AMI_stream_base
 #endif
 
 // Now include the definitions of each implementation that will be
@@ -91,6 +92,7 @@
    // If this is the only implementation, then make it easier to get to.
 #  ifndef AMI_STREAM_IMP_MULTI_IMP
 #    define AMI_STREAM AMI_stream_single
+#    define AMI_stream AMI_stream_single
 #  endif // AMI_STREAM_IMP_MULTI_IMP
 #endif // defined(AMI_STREAM_IMP_SINGLE)
 
