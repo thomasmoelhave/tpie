@@ -10,10 +10,14 @@
 // *  used in several of TPIE's sorting variants                            *
 // *                                                                        *
 // **************************************************************************
-// 	$Id: apm_dh.h,v 1.12 2002-07-25 22:36:29 tavi Exp $	
+// 	$Id: apm_dh.h,v 1.13 2003-04-17 14:38:49 jan Exp $	
+
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 #include <math.h>		// For log(), etc  to compute tree heights.
-#include <sys/time.h>
+
+//#include <sys/time.h>
 #include <assert.h>
 #include <fstream.h>
 
@@ -59,7 +63,7 @@ AMI_single_merge_dh (AMI_STREAM < T > **inStreams, arity_t arity,
    AMI_err ami_err;
 
    //Pointers to current leading elements of streams
-   T *in_objects[arity + 1];
+   T** in_objects = new T*[arity + 1];
 
    // **************************************************************
    // * Rewind each input stream and read its first element.       *
@@ -68,7 +72,8 @@ AMI_single_merge_dh (AMI_STREAM < T > **inStreams, arity_t arity,
    for (i = 0; i < arity; i++) {
 
       if ((ami_err = inStreams[i]->seek (0)) != AMI_ERROR_NO_ERROR) {
-	 return ami_err;
+	  delete[] in_objects;
+	  return ami_err;
       }
 
       if ((ami_err = inStreams[i]->read_item (&(in_objects[i]))) !=
@@ -76,7 +81,8 @@ AMI_single_merge_dh (AMI_STREAM < T > **inStreams, arity_t arity,
 	 if (ami_err == AMI_ERROR_END_OF_STREAM) {
 	    in_objects[i] = NULL;
 	 } else {
-	    return ami_err;
+	     delete[] in_objects;
+	     return ami_err;
 	 }
       } else {
         MergeHeap.insert( in_objects[i], i );
@@ -98,13 +104,15 @@ AMI_single_merge_dh (AMI_STREAM < T > **inStreams, arity_t arity,
  
       if ((ami_err = outStream->write_item (*in_objects[i]))
 	  != AMI_ERROR_NO_ERROR) {
-	 return ami_err;
+	  delete[] in_objects;
+	  return ami_err;
       }
 
       if ((ami_err = inStreams[i]->read_item (&(in_objects[i])))
 	  != AMI_ERROR_NO_ERROR) {
 	 if (ami_err != AMI_ERROR_END_OF_STREAM) {
-	    return ami_err;
+	     delete[] in_objects;
+	     return ami_err;
 	 }
       }
 
@@ -129,10 +137,10 @@ template < class T, class M >
 AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
 			    AMI_STREAM < T > *outStream, M mgmt_obj)
 {
-   AMI_err      ae;
-   off_t        len;
-   size_t       sz_avail, szStream;
-   size_t       szSubstream;
+   AMI_err         ae;
+   TPIE_OS_OFFSET  len;
+   size_t          sz_avail, szStream;
+   size_t          szSubstream;
 
    unsigned int ii, jj;
    unsigned int iiStreams;
@@ -219,7 +227,7 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
    // number of iterations the loop has gone through.   
    unsigned int mrgHgt;
 
-   off_t        sub_start, sub_end;
+   TPIE_OS_OFFSET sub_start, sub_end;
 
    // How many substreams will there be?  The main memory
    // available to us is the total amount available, minus what
@@ -350,8 +358,8 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
    // substreams, processing each one and writing it to the
    // corresponding substream of the temporary stream.
 
-   unsigned int runLens[2][mrgArity][(origSubstreams+mrgArity-1) / mrgArity];
-   int          Sub_Start[mrgArity];
+   VarArray3D<unsigned int> runLens(2,mrgArity,(origSubstreams+mrgArity-1) / mrgArity);
+   VarArray1D<int>          Sub_Start(mrgArity);
 
    // for (int i = 0; i < 2; i++)
    //    for (int j = 0; j < mrgArity; j++)
@@ -360,15 +368,19 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
    //            k1++)
    //          runLens[i][j][k1] = 0;                      
 
-   memset ((void *) runLens, 0,
-   	   2 * mrgArity * ((origSubstreams + mrgArity - 1) /
-   			      mrgArity) * sizeof (unsigned int));
+   // Comment: (jan) Initialization is done in the VarArray3D constructor.
+
+   // // memset ((void *) runLens, 0,
+   // //   	   2 * mrgArity * ((origSubstreams + mrgArity - 1) /
+   // //   			      mrgArity) * sizeof (unsigned int));
+
+   // End Comment.
 
    LOG_DEBUG_ID("Allocating " << sizeof(AMI_STREAM<T>*)*mrgArity << 
                 " bytes for " << mrgArity <<
                 " initialTmpStream pointers. Mem. avail. is " << 
                 MM_manager.memory_available () );
-   initialTmpStream = new (AMI_STREAM < T > *)[mrgArity];
+   initialTmpStream = new AMI_STREAM<T>* [mrgArity];
 
    if ((ae = mgmt_obj.main_mem_operate_init(szOrigSubstream)) !=
 	    AMI_ERROR_NO_ERROR) {
@@ -383,11 +395,12 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
    tp_assert (len - (origSubstreams - 1) * szOrigSubstream <= szOrigSubstream,
 	      "Total substream length too short or too few.");
 
-   size_t check_size            = 0;
+   TPIE_OS_OFFSET check_size            = 0;
    int    currStream            = mrgArity - 1;
    int    runsInCurrStream      = 0;
-   int    reqdRuns [mrgArity];
    char   newName [BTE_STREAM_PATH_NAME_LEN];
+
+   VarArray1D<int>  reqdRuns(mrgArity);
 
    //For the first stream:
    for (iiStreams = 0; iiStreams < mrgArity; iiStreams++) {
@@ -397,9 +410,9 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
       // streams, the first three get 2 and the last two get 3 runs
 
       if (iiStreams < (mrgArity - (origSubstreams % mrgArity)))
-	 reqdRuns[iiStreams] = origSubstreams / mrgArity;
+	 reqdRuns(iiStreams) = origSubstreams / mrgArity;
       else
-	 reqdRuns[iiStreams] = (origSubstreams + mrgArity - 1) / mrgArity;
+	 reqdRuns(iiStreams) = (origSubstreams + mrgArity - 1) / mrgArity;
    }
 
 #ifdef BTE_IMP_USER_DEFINED
@@ -418,13 +431,13 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
 
    ii = 0;
    while (ii < origSubstreams) {
-      off_t mm_len;
+      TPIE_OS_OFFSET mm_len;
 
       // ****************************************************************
       // * Make sure that the current stream is supposed to get a run   *
       // ****************************************************************
 
-      if (reqdRuns[currStream] > runsInCurrStream) {
+      if (reqdRuns(currStream) > runsInCurrStream) {
 	 if (ii == origSubstreams - 1) {
 	    mm_len = len % szOrigSubstream;
 
@@ -443,12 +456,12 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
 	    return ae;
          }
 
-         runLens[0][currStream][runsInCurrStream] = mm_len;
+         runLens(0,currStream,runsInCurrStream) = mm_len;
 	 runsInCurrStream++;
 	 ii++;
-      } // end  if (reqdRuns[currStream] > runsInCurrStream)
+      } // end  if (reqdRuns(currStream) > runsInCurrStream)
 
-      if (runsInCurrStream == reqdRuns[currStream]) {
+      if (runsInCurrStream == reqdRuns(currStream)) {
 
 	 check_size += initialTmpStream[currStream]->stream_len ();
 
@@ -475,7 +488,7 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
 	    initialTmpStream[currStream]->persist (PERSIST_PERSISTENT);
 	    runsInCurrStream = 0;
 	 }
-      } // end if (runsInCurrStream == reqdRuns[currStream])
+      } // end if (runsInCurrStream == reqdRuns(currStream))
    } // end while (ii < origSubstreams)
 
    if (initialTmpStream[currStream]) {
@@ -502,7 +515,7 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
                 " bytes for " << mrgArity <<
                 " theSubstreams pointers. Mem. avail. is " << 
                 MM_manager.memory_available () );
-   AMI_STREAM < T > **theSubstreams = new (AMI_STREAM < T > *)[mrgArity];
+   AMI_STREAM <T> **theSubstreams = new AMI_STREAM<T>* [mrgArity];
 
    mrgHgt = 0;
    currInput = initialTmpStream;
@@ -605,7 +618,7 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
                 " bytes for " << mrgArity <<
                 " tmpStream pointers. Mem. avail. is " << 
                 MM_manager.memory_available () );
-	 tmpStream = new (AMI_STREAM < T > *)[mrgArity];
+	 tmpStream = new AMI_STREAM<T>* [mrgArity];
 
          // Open up the mrgArity streams in which the
          // the runs input to the current merge level are packed
@@ -657,11 +670,11 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
 	    // the first three get 2 and the last two  get 3 runs   
 
 	    if (iiStreams < (mrgArity - (outRunsLeft % mrgArity)))
-	       reqdRuns[iiStreams] = outRunsLeft / mrgArity;
+	       reqdRuns(iiStreams) = outRunsLeft / mrgArity;
 	    else
-	       reqdRuns[iiStreams] = (outRunsLeft + mrgArity-1) / mrgArity;
+	       reqdRuns(iiStreams) = (outRunsLeft + mrgArity-1) / mrgArity;
 
-	    Sub_Start[iiStreams] = 0;
+	    Sub_Start(iiStreams) = 0;
 	 }
 
 	 unsigned int mergeNo = 0;
@@ -682,13 +695,13 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
 	 for (ii = 0, sub_start = 0, jj = 0; ii < ssCount; ii++) {
 
             int ssx = mrgArity - 1 - jj;
-	    if (runLens[mrgHgt % 2][ssx][mergeNo]!= 0) {
-	       sub_start       = Sub_Start[ssx];
-	       sub_end         = sub_start + runLens[mrgHgt%2][ssx][mergeNo] - 1;
-	       Sub_Start[ssx] += runLens[mrgHgt % 2][ssx][mergeNo];
-	       runLens[mrgHgt % 2][ssx][mergeNo] = 0;
+	    if (runLens(mrgHgt % 2,ssx,mergeNo)!= 0) {
+	       sub_start       = Sub_Start(ssx);
+	       sub_end         = sub_start + runLens(mrgHgt%2,ssx,mergeNo) - 1;
+	       Sub_Start(ssx) += runLens(mrgHgt % 2,ssx,mergeNo);
+	       runLens(mrgHgt % 2,ssx,mergeNo) = 0;
 	    } else {
-	       sub_end   = Sub_Start[ssx] - 1;
+	       sub_end   = Sub_Start(ssx) - 1;
 	       sub_start = sub_end + 1;
 	       ii--;
 	    }
@@ -711,7 +724,7 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
 	       //being packed has got its share of runs. If yes,
 	       //'delete' that stream and construct a new stream
 
-	       if (reqdRuns[currStream] == runsInCurrStream) {
+	       if (reqdRuns(currStream) == runsInCurrStream) {
 
 		  //Make sure that the deleted stream persists on disk.
 		  tmpStream[currStream]->persist (PERSIST_PERSISTENT);
@@ -748,7 +761,7 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
 	       }
 
 	       for (iiStreams = 0; iiStreams < jj + 1; iiStreams++)
-		  runLens[(mrgHgt + 1) % 2][currStream][runsInCurrStream] 
+		   runLens((mrgHgt + 1) % 2,currStream,runsInCurrStream)
                       += theSubstreams[iiStreams]->stream_len ();
 
 	       mergeNo++;
