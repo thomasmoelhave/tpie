@@ -5,7 +5,7 @@
 // Created: 12/10/94
 //
 
-static char test_ami_arith_id[] = "$Id: test_ami_arith.cpp,v 1.1 1994-12-16 21:19:19 darrenv Exp $";
+static char test_ami_arith_id[] = "$Id: test_ami_arith.cpp,v 1.2 1995-06-20 20:15:43 darrenv Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -127,7 +127,7 @@ int main(int argc, char **argv)
     // Write some ints.
     scan_count sc(test_size);
 
-    ae = AMI_scan(&sc, (AMI_base_stream<int> *)&amis0);
+    ae = AMI_scan(&sc, &amis0);
 
     if (verbose) {
         cout << "Wrote the initial sequence of values.\n";
@@ -137,14 +137,13 @@ int main(int argc, char **argv)
     }
 
     if (report_results_count) {
-        ae = AMI_scan((AMI_base_stream<int> *)&amis0, rptc);
+        ae = AMI_scan(&amis0, rptc);
     }
     
     // Square them.
     scan_square<int> ss;
         
-    ae = AMI_scan((AMI_base_stream<int> *)&amis0, &ss,
-                      (AMI_base_stream<int> *)&amis1);
+    ae = AMI_scan(&amis0, &ss, &amis1);
 
     if (verbose) {
         cout << "Squared them; last squared was ii = "
@@ -159,9 +158,7 @@ int main(int argc, char **argv)
 #else
     AMI_scan_div<int> sd;
     
-    ae = AMI_scan((AMI_base_stream<int> *)&amis1,
-                  (AMI_base_stream<int> *)&amis0,
-                  &sd, (AMI_base_stream<int> *)&amis2);
+    ae = AMI_scan(&amis1, &amis0, &sd, &amis2);
 #endif
         
     if (verbose) {
@@ -170,7 +167,7 @@ int main(int argc, char **argv)
     }
     
     if (report_results_final) {
-        ae = AMI_scan((AMI_base_stream<int> *)&amis2, rptf);
+        ae = AMI_scan(&amis2, rptf);
     }
     
     return 0;
@@ -191,9 +188,9 @@ TEMPLATE_INSTANTIATE_OSTREAM(int)
 template class scan_square<int>;
 
 // Calls to AMI_scan using various object types.
-template AMI_err AMI_scan(scan_count *, AMI_base_stream<int> *);
-template AMI_err AMI_scan(AMI_base_stream<int> *, scan_square<int> *,
-                          AMI_base_stream<int> *);
+template AMI_err AMI_scan(scan_count *, AMI_STREAM<int> *);
+template AMI_err AMI_scan(AMI_STREAM<int> *, scan_square<int> *,
+                          AMI_STREAM<int> *);
 
 // Instantiate stream arithmatic.
 TEMPLATE_INSTANTIATE_STREAM_DIV(int)
