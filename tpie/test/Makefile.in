@@ -1,6 +1,6 @@
 # Copyright (c) 1994 Darren Erik Vengroff
 
-# $Id: Makefile.in,v 1.27 2001-02-08 04:52:23 tavi Exp $
+# $Id: Makefile.in,v 1.28 2001-05-17 20:01:45 tavi Exp $
 
 # Makefile for TPIE test applications.
 
@@ -14,6 +14,8 @@ TPIEINC = ../include
 TPIELIBDIR = ../lib
 
 TPIELIB = $(TPIELIBDIR)/libtpie.a
+
+MINUSG = 0
 
 ifdef DEBUG_APPS
 LOG_APPS = 1
@@ -39,8 +41,11 @@ endif
 # endif
 
 # Get the proper include path and DEFS from the configure script.
+ifeq ($(MINUSG),1)
+override CPPFLAGS += -I$(TPIEINC) @DEFS@ -g
+else
 override CPPFLAGS += -I$(TPIEINC) @DEFS@ -O3
-
+endif
 
 # The loader in OSF 1.x is flakey.  Using -lm generates an executable
 # that /bin/loader refuses to load, so we just load the library
@@ -51,9 +56,9 @@ override CPPFLAGS += -I$(TPIEINC) @DEFS@ -O3
 
 OSF1 := @OSF1@
 ifeq ($(OSF1),1)
-LDLIBS =  -L$(TPIELIBDIR) -ltpie -liberty @LIBS@ /usr/lib/libm.a
+LDLIBS =  -L$(TPIELIBDIR) -ltpie @LIBS@ /usr/lib/libm.a #-liberty
 else
-LDLIBS =  -L$(TPIELIBDIR) -ltpie -liberty -lm @LIBS@
+LDLIBS =  -L$(TPIELIBDIR) -ltpie -lm @LIBS@ #-liberty
 endif
 
 CC = @CC@
@@ -65,7 +70,7 @@ APPS := test_ami_pmerge test_ami_sort test_ami_merge test_ami_gp	\
 	test_matrix test_bit_matrix test_ami_arith test_ami_matrix	\
 	test_ami_matrix_pad test_ami_stack test_ami_bp lr ch2		\
 	test_ami_sm nas_ep nas_ep2 nas_cg nas_is test_ami_sort24	\
-	nas_ep_mm smooth sample_pgm test_btree
+	nas_ep_mm smooth sample_pgm test_ami_btree
 
 # Sources to the test applications.
 
@@ -158,7 +163,7 @@ smooth: smooth.o scan_build_smoother.o  $(COMMONOBJ)
 
 sample_pgm: sample_pgm.o $(COMMONOBJ)
 
-test_btree: test_btree.o
+test_ami_btree: test_ami_btree.o
 
 .PHONY : clean all
 
