@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/9/94
 //
-// $Id: ami_matrix.h,v 1.8 1999-02-03 17:23:15 tavi Exp $
+// $Id: ami_matrix.h,v 1.9 2000-01-11 00:51:53 hutchins Exp $
 //
 #ifndef _AMI_MATRIX_H
 #define _AMI_MATRIX_H
@@ -113,9 +113,7 @@ AMI_err AMI_matrix_mult(AMI_matrix<T> &op1, AMI_matrix<T> &op2,
     }
     
     // Check available main memory.
-    if (MM_manager.available(&sz_avail) != MM_ERROR_NO_ERROR) {
-        return AMI_ERROR_MM_ERROR;
-    }
+    sz_avail = MM_manager.memory_available ();
     
     // How much memory does a single streamneed in the worst case?
     
