@@ -32,6 +32,7 @@
 //     versions of the merge heap that maintain pointers to the
 //     current records at the head of the streams being merged. The
 //     previous versions kept the entire corresponding record in the heap.
+// 	$Id: mergeheap_dh.h,v 1.2 2000-04-17 01:50:53 hutchins Exp $	
 
 #ifndef _MERGE_HEAP_DH_H
 #define _MERGE_HEAP_DH_H
