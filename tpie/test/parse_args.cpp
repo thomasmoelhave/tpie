@@ -5,7 +5,7 @@
 //
 
 #include <versions.h>
-VERSION(parse_args.cpp,"$Id: parse_args.cpp,v 1.16 2004-08-17 16:49:27 jan Exp $");
+VERSION(parse_args,"$Id: parse_args.cpp,v 1.17 2004-10-20 08:57:51 jan Exp $");
 
 #include <portability.h>
 
