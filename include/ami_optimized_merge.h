@@ -15,7 +15,7 @@
 // a quicksort using only keys of the items; there is a provision to 
 // to use templated heaps to implement the merge.
 
-// 	$Id: ami_optimized_merge.h,v 1.2 1999-02-05 22:12:52 rbarve Exp $	
+// 	$Id: ami_optimized_merge.h,v 1.3 1999-02-05 23:50:50 rbarve Exp $	
 //TO DO: substream_count setting; don't depend on current_stream_len
 
 #ifndef _OPT_AMI_MERGE_H
@@ -3906,48 +3906,48 @@ return AMI_ERROR_NO_ERROR;
 
 
 
-#ifdef NO_IMPLICIT_TEMPLATES
-
-#define TEMPLATE_INSTANTIATE_CACHE_PERF_SORT(T,KEY)			\
-template class run_formation_item<KEY>;                         \
-TEMPLATE_INSTANTIATE_QSORT_ITEM(KEY)                             \
-TEMPLATE_INSTANTIATE_QUICKER_SORT_OP(qsort_item<KEY>)            \
-TEMPLATE_INSTANTIATE_QUICKER_SORT_OP(T)                          \
-TEMPLATE_INSTANTIATE_MERGE_HEAP(KEY)                             \
-template AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *,	\
-                                         AMI_STREAM<T> *,		\
-                                         int, KEY);              \
-template AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *, \
-                                                     AMI_STREAM<T> *,   \
-                                                     int, KEY);           \
-template AMI_err Run_Formation_Algo_R_Key( AMI_STREAM<T> *instream,     \
-                                                arity_t arity,          \
-                                             AMI_STREAM<T> **outstreams,\
-                                               char *,                  \
-                                                size_t available_mem,   \
-                                                int *RunsInStream,      \
-                                                int **RunLengths,       \
-				                            int dim2_RunLengths,    \
-                                                int offset_to_key,      \
-                                                KEY dummykey);          \
-template AMI_err MIAMI_single_merge_Key_scan(AMI_STREAM<T> **instreams,  \
-                                  arity_t arity,                        \
-                                  AMI_STREAM<T> *outstream,             \
-                                   int keyoffset, KEY dummykey);        \
-template AMI_err MIAMI_single_merge_Key(AMI_STREAM<T> **instreams,      \
-                                  arity_t arity,                        \
-                                  AMI_STREAM<T> *outstream,             \
-                                  int keyoffset, KEY dummykey);
-
-
-#define TEMPLATE_INSTANTIATE_MERGE_STREAMS(T)                     \
-TEMPLATE_INSTANTIATE_QUICKER_SORT_OP(T)                          \
-TEMPLATE_INSTANTIATE_MERGE_HEAP(T)                               \
-template AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,   \
-                                                AMI_STREAM<T> *outstream); \
-template AMI_err MIAMI_single_merge_Key(AMI_STREAM<T> **instreams,         \
-                                        arity_t arity,                     \
-                                        AMI_STREAM<T> *outstream,          \
-                                        int keyoffset, T dummykey);
-#endif
+//#ifdef NO_IMPLICIT_TEMPLATES
+//
+//#define TEMPLATE_INSTANTIATE_CACHE_PERF_SORT(T,KEY)			\
+//template class run_formation_item<KEY>;                         \
+//TEMPLATE_INSTANTIATE_QSORT_ITEM(KEY)                             \
+//TEMPLATE_INSTANTIATE_QUICKER_SORT_OP(qsort_item<KEY>)            \
+//TEMPLATE_INSTANTIATE_QUICKER_SORT_OP(T)                          \
+//TEMPLATE_INSTANTIATE_MERGE_HEAP(KEY)                             \
+//template AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *,	\
+//                                         AMI_STREAM<T> *,		\
+//                                         int, KEY);              \
+//template AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *, \
+//                                                     AMI_STREAM<T> *,   \
+//                                                     int, KEY);           \
+//template AMI_err Run_Formation_Algo_R_Key( AMI_STREAM<T> *instream,     \
+//                                                arity_t arity,          \
+//                                             AMI_STREAM<T> **outstreams,\
+//                                               char *,                  \
+//                                                size_t available_mem,   \
+//                                                int *RunsInStream,      \
+//                                                int **RunLengths,       \
+//				                            int dim2_RunLengths,    \
+//                                                int offset_to_key,      \
+//                                                KEY dummykey);          \
+//template AMI_err MIAMI_single_merge_Key_scan(AMI_STREAM<T> **instreams,  \
+//                                  arity_t arity,                        \
+//                                  AMI_STREAM<T> *outstream,             \
+//                                   int keyoffset, KEY dummykey);        \
+//template AMI_err MIAMI_single_merge_Key(AMI_STREAM<T> **instreams,      \
+//                                  arity_t arity,                        \
+//                                  AMI_STREAM<T> *outstream,             \
+//                                  int keyoffset, KEY dummykey);
+//
+//
+//#define TEMPLATE_INSTANTIATE_MERGE_STREAMS(T)                     \
+//TEMPLATE_INSTANTIATE_QUICKER_SORT_OP(T)                          \
+//TEMPLATE_INSTANTIATE_MERGE_HEAP(T)                               \
+//template AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,   \
+//                                                AMI_STREAM<T> *outstream); \
+//template AMI_err MIAMI_single_merge_Key(AMI_STREAM<T> **instreams,         \
+//                                        arity_t arity,                     \
+//                                        AMI_STREAM<T> *outstream,          \
+//                                        int keyoffset, T dummykey);
+//#endif
 #endif
