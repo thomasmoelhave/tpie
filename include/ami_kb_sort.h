@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 3/12/95
 //
-// $Id: ami_kb_sort.h,v 1.1 1995-06-20 20:25:40 darrenv Exp $
+// $Id: ami_kb_sort.h,v 1.2 1995-06-30 21:08:28 darrenv Exp $
 //
 
 // This header file can be included in one of two ways, either with a
@@ -67,6 +67,8 @@ class AMI_bucket_list_elem
 public:
     T data;
     AMI_bucket_list_elem<T> *next;
+    AMI_bucket_list_elem() : next(0) {};
+    ~AMI_bucket_list_elem() {};
 };
 
 #endif
@@ -121,7 +123,7 @@ AMI_err _AMI_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
     // Create streams of temporary file names.
     AMI_STREAM<char> *name_stream, *name_stream2 = NULL;
 
-    name_stream = new (AMI_STREAM<char>)((unsigned int)0, 10000);
+    name_stream = new AMI_STREAM<char>;
 
     // Do the first level distribution.
 
@@ -144,7 +146,7 @@ AMI_err _AMI_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
 
         // Create a new stream of temporary stream names.
         tp_assert(name_stream2 == NULL, "Non-null target name stream.");
-        name_stream2 = new (AMI_STREAM<char>)((unsigned int)0, 10000);       
+        name_stream2 = new AMI_STREAM<char>;       
 
         // Is this the last (special) iteration.
         bool last_iteration = !some_stream_is_large;
@@ -224,7 +226,7 @@ AMI_err _AMI_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
                 
                     some_stream_is_large = true;
                     
-                    AMI_STREAM<T> curr_stream(stream_name, stream_len);
+                    AMI_STREAM<T> curr_stream(stream_name);
                 
                     // We only need to read the intermediate stream once.
 
@@ -272,7 +274,7 @@ AMI_err _AMI_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
 
                 // Open the stream.
 
-                AMI_STREAM<T> curr_stream(stream_name, stream_len);
+                AMI_STREAM<T> curr_stream(stream_name);
 
                 // We only need to read the intermediate stream once.
 
@@ -502,8 +504,14 @@ AMI_err _AMI_MM_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
 
 #ifdef NO_IMPLICIT_TEMPLATES
 
+#ifndef TEMPLATE_INSTANTIATE_BUCKET_LIST_ELEM
+#define TEMPLATE_INSTANTIATE_BUCKET_LIST_ELEM(T)		\
+template class AMI_bucket_list_elem<T>;
+#endif
+
 #ifdef _HAVE_TEMP_KB_KEY_DEFINITION_
 #define TEMPLATE_INSTANTIATE_KB_SORT(T)				\
+TEMPLATE_INSTANTIATE_BUCKET_LIST_ELEM(T)			\
 TEMPLATE_INSTANTIATE_KB_DIST(T)					\
 TEMPLATE_INSTANTIATE_STREAMS(char)				\
 template AMI_err AMI_kb_sort(AMI_STREAM<T> &instream,		\
@@ -514,6 +522,7 @@ template AMI_err AMI_mm_kb_sort(AMI_STREAM<T> &instream,	\
                                 const key_range &range);
 #else
 #define TEMPLATE_INSTANTIATE_KB_SORT_KEY(T,K)			\
+TEMPLATE_INSTANTIATE_BUCKET_LIST_ELEM(T)			\
 TEMPLATE_INSTANTIATE_KB_DIST_KEY(T,K)				\
 TEMPLATE_INSTANTIATE_STREAMS(char)				\
 template AMI_err AMI_kb_sort_ ## K(AMI_STREAM<T> &instream,	\

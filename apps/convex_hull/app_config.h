@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/6/94
 //
-// $Id: app_config.h,v 1.9 1995-05-02 00:56:42 dev Exp $
+// $Id: app_config.h,v 1.10 1995-06-30 21:09:08 darrenv Exp $
 //
 #ifndef _APP_CONFIG_H
 #define _APP_CONFIG_H
@@ -15,13 +15,11 @@
 // for size_t
 #include <sys/types.h>
 
+
 // Many apps use random numbers.
-#if 0
-extern "C" void srandom(int);
+
+extern "C" void srandom(unsigned int);
 extern "C" long int random(void);
-#else
-#include <stdlib.h>
-#endif
 
 // Use logs if requested.
 #if TP_LOG_APPS

@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/15/94
 //
-// $Id: ami_stack.h,v 1.1 1994-12-16 21:47:13 darrenv Exp $
+// $Id: ami_stack.h,v 1.2 1995-06-30 21:08:49 darrenv Exp $
 //
 #ifndef _AMI_STACK_H
 #define _AMI_STACK_H
@@ -12,8 +12,7 @@
 template<class T>
 class AMI_stack : public AMI_STREAM<T> {
 public:
-    AMI_stack(unsigned int device = 0,
-              off_t max_len = 0); 
+    AMI_stack(); 
     ~AMI_stack(void);
     AMI_err push(const T &t);
     AMI_err pop(T **t);
@@ -21,9 +20,8 @@ public:
 
 
 template<class T>
-AMI_stack<T>::AMI_stack(unsigned int device = 0,
-                        off_t max_len = 0) :
-                                AMI_STREAM<T>(device, max_len)
+AMI_stack<T>::AMI_stack() :
+        AMI_STREAM<T>()
 {
 }
 

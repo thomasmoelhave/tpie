@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 11/4/94
 //
-// $Id: bit_matrix.h,v 1.2 1995-01-10 16:43:57 darrenv Exp $
+// $Id: bit_matrix.h,v 1.3 1995-06-30 21:08:51 darrenv Exp $
 //
 #ifndef _BIT_MATRIX_H
 #define _BIT_MATRIX_H
@@ -30,6 +30,8 @@ public:
     bit_matrix(unsigned int rows, unsigned int cols);
     virtual ~bit_matrix(void);
 
+    bit_matrix operator=(const bit_matrix &rhs);
+    
     // We can assign from an offset, which is typically a source
     // address for a BMMC permutation.
     bit_matrix &operator=(const off_t &rhs);

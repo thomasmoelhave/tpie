@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 11/1/94
 //
-// $Id: ami_gen_perm.h,v 1.2 1995-03-25 14:06:50 darrenv Exp $
+// $Id: ami_gen_perm.h,v 1.3 1995-06-30 21:07:33 darrenv Exp $
 //
 // General permutation.
 //
@@ -88,8 +88,8 @@ AMI_err AMI_general_permute(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
     AMI_err ae;
     gen_perm_add_dest<T> gpad(gpo);
     gen_perm_strip_dest<T> gpsd;
-    AMI_STREAM< dest_obj<T> > sdo_in((unsigned int)0, instream->stream_len());
-    AMI_STREAM< dest_obj<T> > sdo_out((unsigned int)0, instream->stream_len());
+    AMI_STREAM< dest_obj<T> > sdo_in;
+    AMI_STREAM< dest_obj<T> > sdo_out;
 
     // Initialize
     ae = gpo->initialize(instream->stream_len());

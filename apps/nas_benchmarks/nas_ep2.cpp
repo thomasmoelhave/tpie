@@ -5,7 +5,7 @@
 // Created: 3/25/95
 //
 
-static char nas_ep2_id[] = "$Id: nas_ep2.cpp,v 1.1 1995-04-03 13:15:33 dev Exp $";
+static char nas_ep2_id[] = "$Id: nas_ep2.cpp,v 1.2 1995-06-30 21:09:26 darrenv Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -252,8 +252,8 @@ int main(int argc, char **argv)
     MM_manager.resize_heap(test_mm_size);
     register_new = 1;
         
-    AMI_STREAM<double> amis_x((unsigned int)1, test_size);
-    AMI_STREAM<double> amis_y((unsigned int)1, test_size);
+    AMI_STREAM<double> amis_x;
+    AMI_STREAM<double> amis_y;
 
     cput.reset();
     cput.start();

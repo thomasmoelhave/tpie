@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/5/94
 //
-// $Id: merge_random.h,v 1.4 1995-06-20 20:15:28 darrenv Exp $
+// $Id: merge_random.h,v 1.5 1995-06-30 21:09:16 darrenv Exp $
 //
 // A merge managment object that reorders the input stream in a random
 // way.
@@ -12,10 +12,12 @@
 #ifndef _MERGE_RANDOM_H
 #define _MERGE_RANDOM_H
 
+#if 0
 extern "C" void srandom(unsigned int);
 // Linux defines this random as a macro.
 #ifndef random
 extern "C" long int random(void);
+#endif
 #endif
 
 template<class T>

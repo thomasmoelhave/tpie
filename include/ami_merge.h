@@ -8,7 +8,7 @@
 // lower level streams will use appropriate levels of buffering.  This
 // will be more critical for parallel disk implementations.
 //
-// $Id: ami_merge.h,v 1.13 1995-05-02 00:55:15 dev Exp $
+// $Id: ami_merge.h,v 1.14 1995-06-30 21:08:42 darrenv Exp $
 //
 #ifndef _AMI_MERGE_H
 #define _AMI_MERGE_H
@@ -416,17 +416,6 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
 
         off_t sub_start, sub_end;
 
-        // The number of devices available for temporary streams.
-        // This whole idea should be rolled into a lower level,
-        // i.e. in a constructor for temporary streams that cycles
-        // through the devices.
-        
-        unsigned int device_arity;
-
-        // The current device to use for the next temporary stream.
-
-        unsigned int current_device;
-        
         // How many substreams will there be?  The main memory
         // available to us is the total amount available, minus what
         // is needed for the input stream and the temporary stream.
@@ -555,17 +544,8 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
         // Create a temporary stream, then iterate through the
         // substreams, processing each one and writing it to the
         // corresponding substream of the temporary stream.
-
-        // This only works for the AMI_stream_single<T> type for the
-        // moment.  The solution is to push the default device up into
-        // a base class of all stream implementations, which will be
-        // done when another one is written.
-
-        device_arity = AMI_stream_single_base::default_device.arity();
-        current_device = 0;
         
-        initial_tmp_stream = new AMI_STREAM<T>(current_device,len);
-        current_device = (current_device + 1) % device_arity;
+        initial_tmp_stream = new AMI_STREAM<T>;
         
         mm_stream = new T[sz_original_substream];
 
@@ -737,7 +717,7 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
 
                 // Create the next intermediate stream.
 
-                intermediate_tmp_stream = new AMI_STREAM<T>(1,len);
+                intermediate_tmp_stream = new AMI_STREAM<T>;
 
                 // Fool the OS into unmapping the current block of the
                 // input stream so that blocks of the substreams can

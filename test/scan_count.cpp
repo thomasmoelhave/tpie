@@ -8,7 +8,7 @@
 //
 
 
-static char scan_count_id[] = "$Id: scan_count.cpp,v 1.1 1994-10-07 15:47:01 darrenv Exp $";
+static char scan_count_id[] = "$Id: scan_count.cpp,v 1.2 1995-06-30 21:09:28 darrenv Exp $";
 
 #include "app_config.h"
 
@@ -21,6 +21,12 @@ AMI_err scan_count::initialize(void)
     called = 0;
     ii = 0;
     return AMI_ERROR_NO_ERROR;
+};
+
+scan_count::scan_count(int max) :
+        maximum(max),
+        ii(0)
+{
 };
 
 AMI_err scan_count::operate(int *out1, AMI_SCAN_FLAG *sf)
