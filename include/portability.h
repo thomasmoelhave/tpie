@@ -3,7 +3,7 @@
 // Created: 2002/10/30
 // Authors: Joerg Rotthowe, Jan Vahrenhold, Markus Vogel
 //
-// $Id: portability.h,v 1.19 2003-09-28 02:48:38 tavi Exp $
+// $Id: portability.h,v 1.20 2004-02-05 17:38:02 jan Exp $
 //
 // This header-file offers macros for independent use on Win and Unix systems.
 
@@ -52,6 +52,7 @@
 #ifdef _WIN32
 #include <sstream>
 using std::ostringstream;
+using std::istringstream;
 #else
 #if (__GNUC__ == 2)
 #include <strstream>
@@ -77,10 +78,14 @@ using std::less;
 using std::lower_bound;
 using std::upper_bound;
 using std::unique;
+using std::sort;
 #include <vector>
 using std::vector;
 #include <queue>
 using std::queue;
+using std::priority_queue;
+#include <list>
+using std::list;
 #else
 using namespace std;
 #endif
@@ -184,10 +189,13 @@ typedef off_t TPIE_OS_OFFSET;
 #endif	
 
 #ifdef _WIN32
+typedef long TPIE_OS_LONG;
+typedef __int64 TPIE_OS_LONGLONG;
+typedef unsigned __int64 TPIE_OS_ULONGLONG;
 #else
-typedef long LONG;
-typedef long long int LONGLONG;
-typedef unsigned long long int ULONGLONG;
+typedef long TPIE_OS_LONG;
+typedef long long int TPIE_OS_LONGLONG;
+typedef unsigned long long int TPIE_OS_ULONGLONG;
 #endif	
 
 #ifdef _WIN32
