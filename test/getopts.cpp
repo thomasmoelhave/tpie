@@ -69,11 +69,11 @@ int getopts_usage(char *progName, struct options opts[])
           cmd = (char*) calloc(1, strlen(opts[count].name) + strlen(opts[count].shortName) + 15);
           if (opts[count].args)
             {
-              sprintf(cmd, "--%s,\t-%s <args>\t\t", opts[count].name, opts[count].shortName);
+              sprintf(cmd, "--%s, -%s <args>\t\t", opts[count].name, opts[count].shortName);
             }
           else
             {
-              sprintf(cmd, "--%s,\t-%s\t\t\t", opts[count].name, opts[count].shortName);
+              sprintf(cmd, "--%s, -%s\t\t\t", opts[count].name, opts[count].shortName);
             }
         }
       else if (opts[count].name) 
