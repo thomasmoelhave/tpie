@@ -4,12 +4,15 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 8/31/94
 //
-// $Id: ami_scan_utils.h,v 1.5 1999-02-03 17:31:21 tavi Exp $
+// $Id: ami_scan_utils.h,v 1.6 2003-04-17 13:57:10 jan Exp $
 //
 #ifndef _AMI_SCAN_UTILS_H
 #define _AMI_SCAN_UTILS_H
 
 #include <iostream.h>
+
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 // A scan object class template for reading the contents of an
 // ordinary C++ input stream into a TPIE stream.  It works with
