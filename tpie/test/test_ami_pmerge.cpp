@@ -6,18 +6,6 @@
 //
 // A test for AMI_partition_and_merge().
 
-static char test_ami_pmerge_id[] = "$Id: test_ami_pmerge.cpp,v 1.16 1999-02-03 22:24:54 tavi Exp $";
-
-// This is just to avoid an error message since the string above is never
-// referenced.  Note that a self referential structure must be defined to
-// avoid passing the problem further.
-static struct ___test_ami_pmerge_id_compiler_fooler {
-    char *pc;
-    ___test_ami_pmerge_id_compiler_fooler *next;
-} the___test_ami_pmerge_id_compiler_fooler = {
-    test_ami_pmerge_id,
-    &the___test_ami_pmerge_id_compiler_fooler
-};
 
 #include <stdlib.h>
 #include <sys/time.h>
@@ -32,6 +20,7 @@ static struct ___test_ami_pmerge_id_compiler_fooler {
 
 // Define it all.
 #include <ami.h>
+VERSION(test_ami_pmerge_cpp,"$Id: test_ami_pmerge.cpp,v 1.17 1999-12-16 17:07:04 hutchins Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -276,7 +265,7 @@ int main(int argc, char **argv)
     s_merge_manager sm;
     
     ae = AMI_partition_and_merge(&amis0, &amis1,
-                                 (AMI_merge_base<int> *)&sm);
+                                 (s_merge_manager *)&sm);
     
     if (verbose) {
         cout << "Sorted them.\n";
