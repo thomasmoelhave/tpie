@@ -1,4 +1,4 @@
-%       $Id: errorcodes.tex,v 1.3 1999-10-25 18:04:09 tavi Exp $    
+%       $Id: errorcodes.tex,v 1.4 2002-06-25 18:27:46 tavi Exp $    
 
 \chapter{TPIE Error Codes}
 
@@ -70,11 +70,12 @@ replaced by exceptions.
 
 More information on the precise semantics of these values appears in
 Section~\ref{sec:ref-ami-scan}.
-\begin{description}\index{AMI_SCAN_*@{\tt AMI\_SCAN\_*}}
-\item[{\tt AMI\_SCAN\_CONTINUE}] Tells \verb|AMI_scan()|\index{AMI_scan()@{\tt AMI\_scan()}} to continue
+\begin{description}
+\item[{\tt AMI\_SCAN\_CONTINUE}] \index{AMI_SCAN_CONTINUE@{\tt
+AMI\_SCAN\_CONTINUE}} Tells \verb|AMI_scan()|\index{AMI_scan()@{\tt AMI\_scan()}} to continue
   to call the \verb|operate()| member function of the scan management
   object with more data.
-\item[{\tt AMI\_SCAN\_DONE}] Tells \verb|AMI_scan()| that the scan is
+\item[{\tt AMI\_SCAN\_DONE}] \index{AMI_SCAN_DONE@{\tt AMI\_SCAN\_DONE}} Tells \verb|AMI_scan()| that the scan is
   complete. 
 \end{description}
 
