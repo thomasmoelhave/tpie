@@ -4,13 +4,14 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/4/94
 //
-// $Id: pqueue_heap.h,v 1.4 1994-12-16 21:13:23 darrenv Exp $
+// $Id: pqueue_heap.h,v 1.5 1995-03-07 14:51:27 darrenv Exp $
 //
 // A priority queue class implemented as a binary heap.
 //
 #ifndef _PQUEUE_HEAP_H
 #define _PQUEUE_HEAP_H
 
+#include <comparator.h>
 
 // The virtual base class that defines what priority queues must do.
 template <class T, class P>
@@ -301,6 +302,80 @@ void pqueue_heap_op<T,P>::heapify(unsigned int root) {
     }
 }   
 
+// A priority queue that uses a comparison object.
+
+template <class T, class P>
+class pqueue_heap_obj : public pqueue_heap<T,P>
+{
+private:
+    comparator<P> *cmp_o;
+    void heapify(unsigned int root);
+
+public:
+    pqueue_heap_obj(unsigned int size, comparator<P> *cmp);
+    virtual ~pqueue_heap_obj(void) {};
+
+    // Insert
+    bool insert(const T& elt, const P& prio);
+};
+
+
+template <class T, class P>
+pqueue_heap_obj<T,P>::pqueue_heap_obj(unsigned int size, comparator<P> *cmp)
+        : pqueue_heap<T,P>(size)
+
+{
+    cmp_o = cmp;
+}
+
+
+template <class T, class P>
+bool pqueue_heap_obj<T,P>::insert(const T& elt, const P& prio) {
+    unsigned int ii;
+    
+    if (full()) {
+        return false;
+    }
+
+    for (ii = cur_elts++;
+         ii && (cmp_o->compare(elements[parent(ii)].priority, prio) > 0);
+         ii = parent(ii)) {
+        elements[ii] = elements[parent(ii)];
+    }
+    elements[ii].priority = prio;
+    elements[ii].elt = elt;
+
+    return true;
+}                                       
+
+template <class T, class P>
+void pqueue_heap_obj<T,P>::heapify(unsigned int root) {
+    unsigned int min_index = root;
+    unsigned int lc = lchild(root);
+    unsigned int rc = rchild(root);
+    
+    if ((lc < cur_elts) &&
+        (cmp_o->compare(elements[lc].priority,
+                        elements[min_index].priority) < 0)) {
+        min_index = lc;
+    }
+    if ((rc < cur_elts) &&
+        (cmp_o->compare(elements[rc].priority,
+                        elements[min_index].priority) < 0)) {
+        min_index = rc;
+    }
+
+    if (min_index != root) {
+        q_elt<T,P> tmp_q = elements[min_index];
+
+        elements[min_index] = elements[root];
+        elements[root] = tmp_q;
+
+        heapify(min_index);
+    }
+}   
+
+
 
 
 
@@ -415,13 +490,18 @@ template class pqueue_heap<T,P>;
 TEMPLATE_INSTANTIATE_PQUEUE_HEAP(T,P)					\
 template class pqueue_heap_cmp<T,P>;					
 
+#define TEMPLATE_INSTANTIATE_PQUEUE_HEAP_OBJ(T,P)			\
+TEMPLATE_INSTANTIATE_PQUEUE_HEAP(T,P)					\
+template class pqueue_heap_obj<T,P>;					
+
 #define TEMPLATE_INSTANTIATE_PQUEUE_HEAP_OP(T,P)			\
 TEMPLATE_INSTANTIATE_PQUEUE_HEAP(T,P)					\
 template class pqueue_heap_op<T,P>;					
 
-#define TEMPLATE_INSTANTIATE_PQUEUE_HEAP_BOTH(T,P)			\
+#define TEMPLATE_INSTANTIATE_PQUEUE_HEAP_ALL(T,P)			\
 TEMPLATE_INSTANTIATE_PQUEUE_HEAP(T,P)					\
 template class pqueue_heap_cmp<T,P>;					\
+template class pqueue_heap_obj<T,P>;					\
 template class pqueue_heap_op<T,P>;					
 
 #endif
