@@ -21,7 +21,7 @@
 // keys of the items; there is a provision to to use templated heaps
 // to implement the merge.
 
-// $Id: ami_optimized_merge.h,v 1.51 2002-06-26 22:40:23 tavi Exp $
+// $Id: ami_optimized_merge.h,v 1.52 2002-07-25 22:35:50 tavi Exp $
 
 // TO DO: substream_count setting; don't depend on current_stream_len
 
@@ -589,7 +589,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
    }
    sz_avail -= 2 * sz_stream;
 
-   working_disk = tpie_tempnam ("Temp");
+   working_disk = tpie_tempnam("AMI");
 
    // If the whole input can fit in main memory then just call
    // AMI_main_mem_merge() to deal with it by loading it once and
@@ -1490,7 +1490,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
    sz_avail -= 2 * sz_stream;
 
-   working_disk = tpie_tempnam ("Temp");
+   working_disk = tpie_tempnam("AMI");
 
    // If the whole input can fit in main memory then just call
    // AMI_main_mem_merge() to deal with it by loading it once and
@@ -2408,7 +2408,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
    sz_avail -= 2 * sz_stream;
 
-   working_disk = tpie_tempnam ("Temp");
+   working_disk = tpie_tempnam ("AMI");
    //LOG_DEBUG_ID(working_disk);
 
    // If the whole input can fit in main memory then just call
@@ -3362,7 +3362,7 @@ template < class T, class KEY >
    sz_avail = MM_manager.memory_available ();
 
 #ifndef BTE_IMP_USER_DEFINED
-   working_disk = tpie_tempnam ("Temp");
+   working_disk = tpie_tempnam ("AMI");
    //LOG_DEBUG_ID(working_disk);
 #endif
 

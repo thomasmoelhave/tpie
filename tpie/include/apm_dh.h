@@ -10,7 +10,7 @@
 // *  used in several of TPIE's sorting variants                            *
 // *                                                                        *
 // **************************************************************************
-// 	$Id: apm_dh.h,v 1.11 2002-03-14 20:29:55 tavi Exp $	
+// 	$Id: apm_dh.h,v 1.12 2002-07-25 22:36:29 tavi Exp $	
 
 #include <math.h>		// For log(), etc  to compute tree heights.
 #include <sys/time.h>
@@ -158,7 +158,7 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
    }
    sz_avail -= 2 * szStream;
 
-   working_disk = tpie_tempnam ("Temp");
+   working_disk = tpie_tempnam("AMI");
 
    // ***************************************************************
    // * If the input stream fits into main memory, special case     *
