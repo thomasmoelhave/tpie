@@ -15,8 +15,15 @@
 // a quicksort using only keys of the items; there is a provision to 
 // to use templated heaps to implement the merge.
 
-// 	$Id: ami_optimized_merge.h,v 1.18 1999-04-12 00:33:51 rbarve Exp $	
+// 	$Id: ami_optimized_merge.h,v 1.19 1999-04-12 01:01:59 rbarve Exp $	
 //TO DO: substream_count setting; don't depend on current_stream_len
+
+
+//COMMENT REGARDING BTE_IMP_USER_DEFINED: USER_DEFINED is what is
+//currently the name for STRIPED_BTE. As of now, STRIPED_BTE is not
+//part of TPIE distribution. Once it becomes partof TPIE distribution
+//the BTE_IMP_USER_DEFINED flag will begin to be used.
+
 
 #ifndef _OPT_AMI_MERGE_H
 #define _OPT_AMI_MERGE_H
@@ -35,12 +42,10 @@ typedef unsigned int arity_t;
 
 //Defined at the end of the file, declared here.
 
-#define RF_VERIFY_OPT 0
-#define SORT_VERIFY_OPT 0
-#define WANT_AMI_READ_STREAMS 0
-#define WANT_AMI_WRITEONLY_STREAMS 0
-#define TRY_SYSTEM_QSORT_INTS 0
-#define  ALT_DISK_CONFIG  0
+
+
+
+
 
 
 
@@ -3306,17 +3311,6 @@ int current_stream = arity - 1;
 char int_to_string[5], new_stream_name[BTE_PATH_NAME_LEN];
 
 
-// In the case we opt to go in for an alt_disk_config,
-// currently we aasume that there are four disks and that 
-// the input stream is on disks 2 and 3 
-#if ALT_DISK_CONFIG
-    int blocks_in_a_stripe = MAX_BLOCKS_IN_A_STRIPE;
-    int disk_arrays[2][2];
-    disk_arrays[0][0] = 0;
-    disk_arrays[0][1] = 1;
-    disk_arrays[1][0] = 2;
-    disk_arrays[1][1] = 3;
-#endif
 
 
 outstreams = new (AMI_STREAM<T> *)[arity];
@@ -3380,32 +3374,13 @@ Step_R2:
 
 #ifdef BTE_IMP_USER_DEFINED
 
-#if ALT_DISK_CONFIG   //*********************************************************
+		  outstreams[current_stream] =      new AMI_STREAM<T>(new_stream_name                                   		                     );
 
-                  outstreams[current_stream] =      new AMI_STREAM<T>(new_stream_name,
-                                                                     AMI_WRITEONLY_STREAM,
-                                 		                     blocks_in_a_stripe,
-                                                  		     disk_arrays[0]);
 
-#else // ************************************************************************
-
-		  outstreams[current_stream] =      new AMI_STREAM<T>(new_stream_name
-
-#if WANT_AMI_WRITEONLY_STREAMS
-                 		                                     ,AMI_WRITEONLY_STREAM
-#endif 
-                                   		                     );
-
-#endif //****************************************************************************
 
 #else  //! BTE_IMP_USER_DEFINED******************************************************
 
-                  outstreams[current_stream] =        new AMI_STREAM<T>(new_stream_name
-
-#if WANT_AMI_WRITEONLY_STREAMS
-                 		                                       ,AMI_WRITEONLY_STREAM
-#endif
-                                 		                        );
+                  outstreams[current_stream] =        new AMI_STREAM<T>(new_stream_name                                 		                        );
 
 #endif //****************************************************************************
 
