@@ -5,21 +5,14 @@
 // Test file for class AMI_btree.
 //
 
-#include <versions.h>
-VERSION(test_ami_btree_cpp, "$Id: test_ami_btree.cpp,v 1.12 2003-05-04 23:04:08 tavi Exp $");
+#include <portability.h>
 
-#include <iostream>
-#include <fstream>
-// For less.
-#include <functional>
+#include <versions.h>
+VERSION(test_ami_btree_cpp, "$Id: test_ami_btree.cpp,v 1.13 2003-09-12 18:51:05 jan Exp $");
+
 #include "app_config.h"
 #include <cpu_timer.h>
 #include <ami_btree.h>
-
-using std::less;
-using std::cerr;
-using std::cout;
-using std::flush;
 
 #define SIZE_OF_STRUCTURE 128
 
@@ -90,7 +83,7 @@ int main(int argc, char **argv) {
   cout << "\n";
   cout << "Element size: " << sizeof(el_t) << " bytes. "
        << "Key size: " << sizeof(bkey_t) << " bytes.\n";
-  srandom(time(NULL));
+  TPIE_OS_SRANDOM(time(NULL));
 
   // Timing stream write.
   cout << "BEGIN Stream write\n";
@@ -99,7 +92,7 @@ int main(int argc, char **argv) {
   cout << "\tCreating stream with " << bulk_load_count << " random elements.\n";
   wt.start();
   for (size_t j = 0; j < bulk_load_count; j++) {
-    is->write_item(el_t(long((random()/MAX_RANDOM) * MAX_VALUE)));
+    is->write_item(el_t(long((TPIE_OS_RANDOM()/MAX_RANDOM) * MAX_VALUE)));
   }
   wt.stop();
   cout << "END Stream write " << wt << "\n";
@@ -181,7 +174,7 @@ int main(int argc, char **argv) {
     if (i <= DELETE_COUNT)
       s[i-1] = ss = el_t(i+100000);
     else
-      ss = el_t(long((random()/MAX_RANDOM) * MAX_VALUE));
+      ss = el_t(long((TPIE_OS_RANDOM()/MAX_RANDOM) * MAX_VALUE));
     m_btree->insert(ss);
     if (i % (insert_count/10) == 0)
       cout << i << " " << flush;
@@ -215,7 +208,6 @@ int main(int argc, char **argv) {
   cout << "BEGIN Delete\n";
   cout << "\tDeleting " << key_from_el()(s[0]) << " through " 
        <<  key_from_el()(s[DELETE_COUNT-1]) << ": \n";
-  int j = 0;
   for (i = 0; i < DELETE_COUNT ; i++) {
     if (m_btree->erase(key_from_el()(s[i])))
       j++;
