@@ -1,5 +1,7 @@
 // File: ami_sort_single_dh.h
 //
+// 	$Id: ami_sort_single_dh.h,v 1.2 2000-04-17 02:00:28 hutchins Exp $	
+
 // 
 // 
 #ifndef _AMI_SORT_SINGLE_DH_H
