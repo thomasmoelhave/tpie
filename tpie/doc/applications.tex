@@ -1,23 +1,23 @@
 %%
-%% $Id: applications.tex,v 1.6 1999-10-13 21:05:41 hutchins Exp $
+%% $Id: applications.tex,v 1.7 1999-11-17 20:54:54 tavi Exp $
 %%
 \chapter{Test and Sample Applications}
 
 \section{General Structure and Operation}
 
 The test and sample applications distributed with TPIE are in the
-\verb|test| directory.  The test programs are designed primarily to
+\myverb{test} directory.  The test programs are designed primarily to
 test the operation of the system to verify that it has been installed
 correctly and is as bug free as possible.  These applications all have
-names of the form \verb|test_*|.  The sample applications are designed
+names of the form \myverb{test\_*}.  The sample applications are designed
 to demonstrate the use of TPIE in the solution of non-trivial
 problems.
 
 The test and sample applications all share a small amount of common
 initialization and argument parsing code.  They all include the header file
-\verb|app_config.h|, which selects a particular implementation of streams
+\myverb{app\_config.h}, which selects a particular implementation of streams
 at the AMI and BTE levels. They also all use the same argument parsing
-function \verb|parse_args()|, which parses certain default arguments and
+function \myverb{parse\_args()}, which parses certain default arguments and
 then uses a callback function for arguments specific to one particular
 application.
 
@@ -30,7 +30,7 @@ number is reasonable and does not exceed the true amount of main
 memory available to the application.  In the future, it is hoped that
 this information will be provided by the operating system.
 
-\verb|parse_args()| is declared as follows:
+\myverb{parse\_args()} is declared as follows:
 
 \begin{verbatim}
     parse_args();
@@ -38,51 +38,51 @@ this information will be provided by the operating system.
 
 
 The following is a summary of the common command line arguments that
-are parsed by \verb|parse_args()|.
+are parsed by \myverb{parse\_args()}.
 \begin{description}
-\item[\verb|-t testsize|]
-Set the size of the test to be run to \verb|testsize|.  Typically this
+\item[\myverb{-t testsize}]
+Set the size of the test to be run to \myverb{testsize}.  Typically this
 is the number of objects to be put into the application produced input
 stream.  In matrix tests, however, it is the number of rows and
 columns is the test matrices.  If this argument is not passed, then
 the default value of 8 Meg is used.
-\item[\verb|-m memsize|]
+\item[\myverb{-m memsize}]
 The number of bytes of main memory that the application is permitted to
 use.  The MM\index{memory manager} will ensure that no more than this amount is
 used.  If this option is not specified, then a default value of 2 Mb
 is used.
-\item[\verb|-z randomseed|]
-Seed the random number generator with the value \verb|randomseed|.
+\item[\myverb{-z randomseed}]
+Seed the random number generator with the value \myverb{randomseed}.
 This is useful for debugging or testing, when we want several runs of
 the application to rely on the same series of pseudo-random numbers.
 For applications that do not generate test data randomly, this has no
 effect. 
-\item[\verb|-v|]
+\item[\myverb{-v}]
 Turns on verbose mode.  When running in verbose mode, report major
-actions of the running program to verb|stdout|.
+actions of the running program to \myverb{stdout}.
 \end{description}
 
 Each application specific argument appears in the string pointed to by
-\verb|aso| as a single character, possibly followed by the single
-character `\verb|:|', indicating that the argument requires a value.
-For example, if \verb|aso| pointed to the string ``\verb|ax:z|'' then the
+\myverb{aso} as a single character, possibly followed by the single
+character `\myverb{:}', indicating that the argument requires a value.
+For example, if \myverb{aso} pointed to the string ``\myverb{ax:z}'' then the
 following command line arguments would all be parsed correctly:
 \begin{description}
-\item[\verb|-a|]
-\item[\verb|-x 123|]
-\item[\verb|-a -x 123|]
-\item[\verb|-ax123|]
-\item[\verb|-x123 -a|]
+\item[\myverb{-a}]
+\item[\myverb{-x 123}]
+\item[\myverb{-a -x 123}]
+\item[\myverb{-ax123}]
+\item[\myverb{-x123 -a}]
 \end{description}
-In each case, \verb|parse_app()| would be called to take some
+In each case, \myverb{parse\_app()} would be called to take some
 application specific action for each of the arguments.  It would be
-called once with \verb|opt| set to `\verb|a|' and \verb|optarg| set to
-\verb|NULL|, and/or once with \verb|opt| set to `\verb|x|' and
-\verb|optarg| pointing to the string ``\verb|123|.''  When multiple arguments
+called once with \myverb{opt} set to `\myverb{a}' and \myverb{optarg} set to
+\myverb{NULL}, and/or once with \myverb{opt} set to `\myverb{x}' and
+\myverb{optarg} pointing to the string ``\myverb{123}.''  When multiple arguments
 are present on the command line, they are parsed from left to right.
 
 The following is an example of how a test application, in this case
-\verb|test_ami_sort|, can use application specific command line
+\myverb{test\_ami\_sort}, can use application specific command line
 arguments to set up it's global state.
 
 \begin{verbatim}
@@ -125,42 +125,42 @@ The test programs include with TPIE are as follows:\comment{LA: Is this
 still correct?}
 
 \begin{description}
-\item[\verb|test\_ami\_merge|] Test fixed way merging with direct
-  calls to \verb|AMI_merge()|, as described in 
+\item[\myverb{test\_ami\_merge}] Test fixed way merging with direct
+  calls to \myverb{AMI\_merge()}, as described in 
   Section~\ref{sec:ref-ami-merge}.
-\item[\verb|test\_ami\_pmerge|] Test many-way merging using 
-  \verb|AMI_partition_and_merge()|, as described in 
+\item[\myverb{test\_ami\_pmerge}] Test many-way merging using 
+  \myverb{AMI\_partition\_and\_merge()}, as described in 
   Section~\ref{sec:ref-ami-merge}.
-\item[\verb|test\_ami\_sort|] Test sorting using \verb|AMI_sort()| as
+\item[\myverb{test\_ami\_sort}] Test sorting using \myverb{AMI\_sort()} as
   described in Section~\ref{sec:ref-ami-sort}.
-\item[\verb|test\_ami\_gp|] Test general permutation using
-  \verb|AMI_general_permute()| as described in Section~\ref{sec:ref-ami-gp}.
+\item[\myverb{test\_ami\_gp}] Test general permutation using
+  \myverb{AMI\_general\_permute()} as described in Section~\ref{sec:ref-ami-gp}.
 The program generates an input stream
 consisting of sequential integers, and outputs a stream consisting of 
 the same integers, in reverse order.
-\item[\verb|test\_ami\_bp|] Test bit permutations using
-  \verb|AMI_BMMC_permute()| as described in
+\item[\myverb{test\_ami\_bp}] Test bit permutations using
+  \myverb{AMI\_BMMC\_permute()} as described in
   Section~\ref{sec:ref-ami-bp}. The program generates an input stream
 consisting of sequential integers, and outputs a stream consisting of 
 a permutation of these integers, as described in the example given in the Tutorial, Section~\ref{sec:bit-permuting}.
-\item[\verb|test\_matrix|]
-\item[\verb|test\_bit\_matrix|] Test main memory matrix manipulation
+\item[\myverb{test\_matrix}]
+\item[\myverb{test\_bit\_matrix}] Test main memory matrix manipulation
   and arithmetic.  This is used both by the bit permuting code
   described in Section~\ref{sec:ref-ami-bp} and the dense matrix
   multiplication code described in Section~\ref{sec:ref-ami-matrix}
   for internal manipulation of sub-matrices of external memory
   matrices.
-\item[\verb|test\_ami\_matrix\_pad|] Test padding of external
+\item[\myverb{test\_ami\_matrix\_pad}] Test padding of external
   matrices.  This is the preprocessing step for the external dense
   matrix multiplication algorithm TPIE uses, which is described in 
   Section~\ref{sec:ref-ami-matrix}. 
-\item[\verb|test\_ami\_matrix|] Test external dense matrix arithmetic
+\item[\myverb{test\_ami\_matrix}] Test external dense matrix arithmetic
   as described in Section~\ref{sec:ref-ami-matrix}.
-\item[\verb|test\_ami\_sm|] Test external sparse matrix arithmetic
+\item[\myverb{test\_ami\_sm}] Test external sparse matrix arithmetic
   as described in Section~\ref{sec:ref-ami-sm}.
-\item[\verb|test\_ami\_stack|] Test external memory stacks as
+\item[\myverb{test\_ami\_stack}] Test external memory stacks as
   described in Section~\ref{sec:ref-ami-stack}.
-\item[\verb|test\_ami\_arith|] Test element-wise arithmetic on
+\item[\myverb{test\_ami\_arith}] Test element-wise arithmetic on
   external memory streams as described in Section~\ref{sec:ref-ami-arith}.
 The program generates an input stream
 consisting of sequential integers, squares them, and performs 
@@ -172,19 +172,19 @@ elementwise division between the resulting stream and the input stream.
 The sample applications included with TPIE are as follows:
 
 \begin{description}
-\item[\verb|ch2|] Two dimensional convex hull\index{convex hull}
+\item[\myverb{ch2}] Two dimensional convex hull\index{convex hull}
   program using Graham's scan.  It is implemented using a scan
   management object that maintains the upper and lower hull internally
   as external memory stacks.  Much of the code in this application
   appears in Section~\ref{sec:convex-hull}.
-\item[\verb|lr|] An implementation of an asymptotically optimal list
+\item[\myverb{lr}] An implementation of an asymptotically optimal list
   ranking \index{list ranking} algorithm.  The idea of geometrically
   decreasing computation is used.  Much of the code in this
   application appears in Section~\ref{sec:list-ranking}.
-\item[\verb|nas\_ep|] An I/O-efficient implementation of the NAS EP
+\item[\myverb{nas\_ep}] An I/O-efficient implementation of the NAS EP
   parallel benchmark.  This benchmark generates pairs of independent
   Gaussian random variates.
-\item[\verb|nas\_is|] An I/O-efficient implementation of the NAS IS
+\item[\myverb{nas\_is}] An I/O-efficient implementation of the NAS IS
   parallel benchmark.  This benchmark sorts integers using one of a
   variety of approaches.
 \end{description}
@@ -193,7 +193,7 @@ Detailed descriptions of the NAS parallel benchmarks are available
 from the \htmladdnormallink{NAS Parallel Benchmark Home Page}%
 {http://www.nas.nasa.gov/NAS/NPB/}
 \begin{latexonly}
-at URL \verb|http://www.nas.nasa.gov/NAS/NPB/|.
+at URL \myverb{http://www.nas.nasa.gov/NAS/NPB/}.
 \end{latexonly}
 
 %%% Local Variables: 
