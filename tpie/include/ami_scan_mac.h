@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/24/94
 //
-// $Id: ami_scan_mac.h,v 1.7 1997-05-22 22:31:44 large Exp $
+// $Id: ami_scan_mac.h,v 1.8 2003-02-25 06:37:13 tavi Exp $
 //
 #ifndef _AMI_SCAN_MAC_H
 #define _AMI_SCAN_MAC_H
@@ -78,9 +78,9 @@ if (f[n-1]) {								    \
 #define __STS_READ_2(t,ts,f,g,e) __STS_READ_1(t,ts,f,g,e)		    \
         __STSR_BASE(t,ts,f,g,e,2)
 #define __STS_READ_3(t,ts,f,g,e) __STS_READ_2(t,ts,f,g,e)		    \
-        __STSR_BASE(t,ts,f,g,e,2)
+        __STSR_BASE(t,ts,f,g,e,3)
 #define __STS_READ_4(t,ts,f,g,e) __STS_READ_3(t,ts,f,g,e)		    \
-        __STSR_BASE(t,ts,f,g,e,2)
+        __STSR_BASE(t,ts,f,g,e,4)
 
 // Write outputs.  Only write if the flag is set.  If there is an
 // error during the write, then break out of the scan loop.
