@@ -7,7 +7,7 @@
 // Description: Templates classes for one-, two-, and 
 //              three-dimensional arrays. 
 //
-// $Id: vararray.h,v 1.2 2004-08-12 12:35:32 jan Exp $
+// $Id: vararray.h,v 1.3 2004-11-17 22:31:59 adanner Exp $
 //
 #ifndef _VARARRAY_H
 #define _VARARRAY_H
@@ -204,8 +204,8 @@ VarArray2D<T>& VarArray2D<T>::operator=(const VarArray2D& other) {
 	data = new T[dim[0] * dim[1]];
 	
 	//  Copy objects.
-	int dim = dim[0] * dim[1];
-	for(int i = 0; i < dim; i++) {
+	int len = dim[0] * dim[1];
+	for(int i = 0; i < len; i++) {
 	    data[i] = other.data[i];
 	}
 
@@ -287,8 +287,8 @@ VarArray3D<T>& VarArray3D<T>::operator=(const VarArray3D& other) {
 	data = new T[dim[0] * dim[1] * dim[2]];
 	
 	//  Copy objects.
-	int dim = dim[0] * dim[1] * dim[2];
-	for(int i = 0; i < dim; i++) {
+	int len = dim[0] * dim[1] * dim[2];
+	for(int i = 0; i < len; i++) {
 	    data[i] = other.data[i];
 	}
 
