@@ -4,12 +4,15 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/12/94
 //
-// $Id: logstream.h,v 1.3 1994-05-12 21:01:54 dev Exp $
+// $Id: logstream.h,v 1.4 1994-08-31 19:28:03 darrenv Exp $
 //
 #ifndef _LOGSTREAM_H
 #define _LOGSTREAM_H
 
 #include <fstream.h>
+
+// For size_t
+#include <sys/types.h>
 
 // A macro for declaring output operators for log streams.
 #define _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(T)	\
@@ -21,7 +24,7 @@
 // Otherwise, it does not.  Lower numbers have higher priority; 0 is
 // the highest.  1 is the default if not 
 
-class logstream : ofstream {
+class logstream : public ofstream {
 
   public:
     unsigned int priority;
@@ -32,9 +35,11 @@ class logstream : ofstream {
     // Output operators
 
     _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const char *);
-    _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(char);
-    _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(int);
-    _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(unsigned int);
+    _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const char);
+    _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const int);
+    _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const unsigned int);
+    _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const long int);
+    _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const long unsigned int);
 
 };
 
@@ -49,7 +54,7 @@ public:
     logmanip(logstream& (*f)(logstream&, TP), TP a) : _f(f), _a(a) {}
     //
     friend
-      logstream& operator<<(logstream& o, logmanip<TP>& m)
+      logstream& operator<<(logstream& o, const logmanip<TP>& m)
 	{ return (*m._f)(o, m._a); }
 };
 

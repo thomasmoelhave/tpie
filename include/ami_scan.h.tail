@@ -5,7 +5,38 @@
 // generating this file.  The tail, stored in ami_scan.h.tail, may be
 // edited if necessary.
 //
-// $Id: ami_scan.h.tail,v 1.1 1994-05-25 19:32:13 dev Exp $
+// $Id: ami_scan.h.tail,v 1.2 1994-08-31 19:28:03 darrenv Exp $
+
+// A class template for copying streams by scanning.
+template<class T>
+class AMI_identity_scan : public AMI_scan_object {
+public:
+    AMI_err initialize(void) { return AMI_ERROR_NO_ERROR; }
+    AMI_err operate(const T &in, AMI_SCAN_FLAG *sfin,
+                    T *out, AMI_SCAN_FLAG *sfout);
+};
+
+template<class T>
+AMI_err AMI_identity_scan<T>::operate(const T &in, AMI_SCAN_FLAG *sfin,
+                                      T *out, AMI_SCAN_FLAG *sfout)
+{
+    if (*sfout = *sfin) {
+        *out = in;
+        return AMI_SCAN_CONTINUE;
+    } else {
+        return AMI_SCAN_DONE;
+    }
+};
+
+
+// A copy function for streams
+template<class T>
+AMI_err AMI_copy_stream(AMI_base_stream<T> *t, AMI_base_stream<T> *s)
+{
+    AMI_identity_scan<T> id;
+
+    return AMI_scan(t, &id, s);
+}
 
 #endif // _AMI_SCAN_H 
 

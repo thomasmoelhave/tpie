@@ -4,13 +4,13 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/24/94
 //
-// $Id: ami_scan_mac.h,v 1.2 1994-05-27 19:40:42 dev Exp $
+// $Id: ami_scan_mac.h,v 1.3 1994-08-31 19:28:03 darrenv Exp $
 //
 #ifndef _AMI_SCAN_MAC_H
 #define _AMI_SCAN_MAC_H
 
 // Macros for defining parameters to AMI_scan()
-#define __SPARM_BASE(T,io,n) AMI_STREAM< T ## n > *io ## n
+#define __SPARM_BASE(T,io,n) AMI_base_stream< T ## n > *io ## n
 #define __SPARM_1(T,io) __SPARM_BASE(T,io,1)  
 #define __SPARM_2(T,io) __SPARM_BASE(T,io,2), __SPARM_1(T,io)
 #define __SPARM_3(T,io) __SPARM_BASE(T,io,3), __SPARM_2(T,io)
@@ -32,6 +32,18 @@
 
 // An array of flags.
 #define __FSPACE(f,n) AMI_SCAN_FLAG f[n]
+
+// Rewind the streams prior to performing the scan.
+#define __REW_BASE(T,n) {						\
+    if ((_ami_err_ = T ## n -> seek(0)) != AMI_ERROR_NO_ERROR) {	\
+        return _ami_err_;						\
+    }									\
+}									\
+
+#define __REWIND_1(T) __REW_BASE(T,1)
+#define __REWIND_2(T) __REW_BASE(T,2); __REWIND_1(T)
+#define __REWIND_3(T) __REW_BASE(T,3); __REWIND_2(T)
+#define __REWIND_4(T) __REW_BASE(T,4); __REWIND_3(T)
 
 // Read inputs into temporary space.  Set the flag based on whether the
 // read was succesful or not.  If it was unsuccessful for any reason other
@@ -93,13 +105,22 @@ if (f[n-1] && (e = us ## n -> write_item(u ## n)) != AMI_ERROR_NO_ERROR) {  \
 #define __SCALL_OP_4_4(t,if,sop,u,of) __SCALL_BASE(t,4,if,sop,u,4,of)
 
 // Handle the no input case.
-#define __SCALL_BASE_0(sop,u,nu,of) \
+#define __SCALL_BASE_O(sop,u,nu,of) \
     sop->operate(__SCALL_ARGS_ ## nu (&u), of)
 
-#define __SCALL_OP_0_1(sop,u,of) __SCALL_BASE_0(sop,u,1,of)
-#define __SCALL_OP_0_2(sop,u,of) __SCALL_BASE_0(sop,u,2,of)
-#define __SCALL_OP_0_3(sop,u,of) __SCALL_BASE_0(sop,u,3,of)
-#define __SCALL_OP_0_4(sop,u,of) __SCALL_BASE_0(sop,u,4,of)
+#define __SCALL_OP_O_1(sop,u,of) __SCALL_BASE_O(sop,u,1,of)
+#define __SCALL_OP_O_2(sop,u,of) __SCALL_BASE_O(sop,u,2,of)
+#define __SCALL_OP_O_3(sop,u,of) __SCALL_BASE_O(sop,u,3,of)
+#define __SCALL_OP_O_4(sop,u,of) __SCALL_BASE_O(sop,u,4,of)
+
+// Handle the no output case.
+#define __SCALL_BASE_I(t,nt,if,sop) \
+    sop->operate(__SCALL_ARGS_ ## nt (*t), if)
+
+#define __SCALL_OP_I_1(t,if,sop) __SCALL_BASE_I(t,1,if,sop)
+#define __SCALL_OP_I_2(t,if,sop) __SCALL_BASE_I(t,2,if,sop)
+#define __SCALL_OP_I_3(t,if,sop) __SCALL_BASE_I(t,3,if,sop)
+#define __SCALL_OP_I_4(t,if,sop) __SCALL_BASE_I(t,4,if,sop)
 
 
 // The template for the whole AMI_scan(), with inputs and outputs.
@@ -115,6 +136,9 @@ AMI_err AMI_scan( __SPARM_ ## in_arity (T,_ts_),			    \
     __FSPACE(_of_,out_arity);						    \
 	    								    \
     AMI_err _op_err_, _ami_err_;					    \
+	    								    \
+    __REWIND_ ## in_arity (_ts_);					    \
+    __REWIND_ ## out_arity (_us_);					    \
 	    								    \
     soper->initialize();						    \
 	    								    \
@@ -141,7 +165,7 @@ AMI_err AMI_scan( __SPARM_ ## in_arity (T,_ts_),			    \
 // based on __STEMPLATE_() and could be merged into one big macro at
 // the expense of having to define multiple versions of __STEMP_N()
 // and __SPARM_N() to handle the case N = 0.
-#define __STEMPLATE_0(out_arity)					    \
+#define __STEMPLATE_O(out_arity)					    \
 template< class SC, __STEMP_ ## out_arity (U) >				    \
 AMI_err AMI_scan( SC *soper, __SPARM_ ## out_arity (U,_us_))		    \
 {	    								    \
@@ -151,12 +175,13 @@ AMI_err AMI_scan( SC *soper, __SPARM_ ## out_arity (U,_us_))		    \
 	    								    \
     AMI_err _op_err_, _ami_err_;					    \
 	    								    \
+    __REWIND_ ## out_arity (_us_);					    \
+	    								    \
     soper->initialize();						    \
 	    								    \
     do {	    							    \
 	    								    \
-        _op_err_ = __SCALL_OP_0_ ##					    \
-            out_arity(soper,_u_,_of_);					    \
+        _op_err_ = __SCALL_OP_O_ ## out_arity(soper,_u_,_of_);		    \
 	    								    \
         __STS_WRITE_ ## out_arity(_u_,_us_,_of_,_ami_err_)		    \
             								    \
@@ -170,12 +195,47 @@ AMI_err AMI_scan( SC *soper, __SPARM_ ## out_arity (U,_us_))		    \
     return _op_err_;							    \
 }
 
+// The template for the whole AMI_scan(), with no outputs.
+#define __STEMPLATE_I(in_arity)						    \
+template< __STEMP_ ## in_arity (T), class SC >				    \
+AMI_err AMI_scan( __SPARM_ ## in_arity (T,_ts_), SC *soper)		    \
+{	    								    \
+    __STSPACE_ ## in_arity (T,*_t_);					    \
+	    								    \
+    __FSPACE(_if_,in_arity);						    \
+	    								    \
+    AMI_err _op_err_, _ami_err_;					    \
+	    								    \
+    __REWIND_ ## in_arity (_ts_);					    \
+	    								    \
+    soper->initialize();						    \
+	    								    \
+    do {	    							    \
+	    								    \
+        __STS_READ_ ## in_arity (_t_,_ts_,_if_,_ami_err_)		    \
+            								    \
+        _op_err_ = __SCALL_OP_I_ ## in_arity (_t_,_if_,soper);		    \
+	    								    \
+    } while (_op_err_ == AMI_SCAN_CONTINUE);				    \
+	    								    \
+    if ((_ami_err_ != AMI_ERROR_NO_ERROR) &&				    \
+        (_ami_err_ != AMI_ERROR_END_OF_STREAM)) {			    \
+        return _ami_err_;						    \
+    }	    								    \
+    	    								    \
+    return _op_err_;							    \
+}
+
+
 // Finally, the templates themsleves.
-__STEMPLATE_0(1); __STEMPLATE_0(2); __STEMPLATE_0(3); __STEMPLATE_0(4);
 
 __STEMPLATE(1,1); __STEMPLATE(1,2); __STEMPLATE(1,3); __STEMPLATE(1,4);
 __STEMPLATE(2,1); __STEMPLATE(2,2); __STEMPLATE(2,3); __STEMPLATE(2,4);
 __STEMPLATE(3,1); __STEMPLATE(3,2); __STEMPLATE(3,3); __STEMPLATE(3,4);
 __STEMPLATE(4,1); __STEMPLATE(4,2); __STEMPLATE(4,3); __STEMPLATE(4,4);
+
+__STEMPLATE_O(1); __STEMPLATE_O(2); __STEMPLATE_O(3); __STEMPLATE_O(4);
+
+__STEMPLATE_I(1); __STEMPLATE_I(2); __STEMPLATE_I(3); __STEMPLATE_I(4);
 
 #endif // _AMI_SCAN_MAC_H 
