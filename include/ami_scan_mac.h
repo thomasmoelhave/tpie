@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/24/94
 //
-// $Id: ami_scan_mac.h,v 1.8 2003-02-25 06:37:13 tavi Exp $
+// $Id: ami_scan_mac.h,v 1.9 2003-04-24 20:48:33 tavi Exp $
 //
 #ifndef _AMI_SCAN_MAC_H
 #define _AMI_SCAN_MAC_H
@@ -33,8 +33,10 @@
 // An array of flags.
 #define __FSPACE(f,n) AMI_SCAN_FLAG f[n]
 
-// Rewind the streams prior to performing the scan.
+// Rewind the streams prior to performing the scan and chack stream validity.
 #define __REW_BASE(T,n) {						\
+    if (T ## n == NULL || T ## n -> status() != AMI_STREAM_STATUS_VALID)\
+        return AMI_ERROR_GENERIC_ERROR;                                 \
     if ((_ami_err_ = T ## n -> seek(0)) != AMI_ERROR_NO_ERROR) {	\
         return _ami_err_;						\
     }									\
