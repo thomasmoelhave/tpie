@@ -4,10 +4,20 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/9/94
 //
-// $Id: ami_matrix.h,v 1.1 1994-12-16 21:46:50 darrenv Exp $
+// $Id: ami_matrix.h,v 1.2 1995-03-07 14:46:00 darrenv Exp $
 //
 #ifndef _AMI_MATRIX_H
 #define _AMI_MATRIX_H
+
+//#define QUICK_MATRIX_MULT 1
+#define AGGARWAL_MATRIX_MULT 1
+
+#define INTERNAL_TIMING 1
+
+#ifdef INTERNAL_TIMING
+#include <unistd.h>
+#include <sys/times.h>
+#endif
 
 #include <matrix.h>
 
@@ -157,11 +167,17 @@ AMI_err AMI_matrix_mult(AMI_matrix<T> &op1, AMI_matrix<T> &op2,
                     mm_op2[ii][jj] = *tmp_read;
                 }
             }
-            
+
+#if QUICK_MATRIX_MULT
+            quick_matrix_mult_in_place(mm_op1, mm_op2, mm_res);
+#elif defined(AGGARWAL_MATRIX_MULT)
+            aggarwal_matrix_mult_in_place(mm_op1, mm_op2, mm_res);
+#else            
             perform_mult_in_place((matrix_base<T> &)mm_op1,
                                   (matrix_base<T> &)mm_op2,
                                   (matrix_base<T> &)mm_res);
-                        
+#endif
+            
             // Write out the result.
             res.seek(0);
             for (ii = 0; ii < res.rows(); ii++ ) {
@@ -201,10 +217,57 @@ AMI_err AMI_matrix_mult(AMI_matrix<T> &op1, AMI_matrix<T> &op2,
         mm_matrix_space = sz_avail - num_active_streams * single_stream_usage;
 
         mm_matrix_space /= 3;
-            
+
+#ifdef AGGARWAL_MATRIX_MULT_IN_PLACE
+        // Recall that a temporary vector is used, so we solve x^2 + x = m
+        // for x, instead of the usual x^2 = m.
+        mm_matrix_extent = (unsigned int)(sqrt(1.0 +
+                                               4 * (double)mm_matrix_space /
+                                               sizeof(T)) / 2) - 1;
+#else        
         mm_matrix_extent = (unsigned int)sqrt((double)mm_matrix_space /
                                               sizeof(T));    
+#endif
+        // How many rows and columns of chunks in each matrix?
+        
+        unsigned int chunkrows1 = ((op1.rows() - 1) /
+                                   mm_matrix_extent) + 1;
+        unsigned int chunkcols1 = ((op1.cols() - 1) /
+                                   mm_matrix_extent) + 1;
+        unsigned int chunkrows2 = ((op2.rows() - 1) /
+                                   mm_matrix_extent) + 1;
+        unsigned int chunkcols2 = ((op2.cols() - 1) /
+                                   mm_matrix_extent) + 1;
+        
+        // Now shrink the main memory matrix extent as much as possible
+        // given the constraint that the number of chunk rows and cols
+        // in each matrix cannot decrease.
 
+        unsigned int min_rows_per_chunk1 = ((op1.rows() + chunkrows1 - 1) /
+                                            chunkrows1);
+        unsigned int min_cols_per_chunk1 = ((op1.cols() + chunkcols1 - 1) /
+                                            chunkcols1);
+        
+        unsigned int min_rows_per_chunk2 = ((op2.rows() + chunkrows2 - 1) /
+                                            chunkrows2);
+        unsigned int min_cols_per_chunk2 = ((op2.cols() + chunkcols2 - 1) /
+                                            chunkcols2);
+        
+        // Adjust the main memory matrix extent so that an integral
+        // multiple of it is just a little bit larger than the inputs.
+
+        // Note that we are still assuming square chunks.  We can do
+        // better than this in some cases if we are willing to allow
+        // non-square matrices.
+        
+        mm_matrix_extent = min_rows_per_chunk1;
+        if (mm_matrix_extent < min_rows_per_chunk2)
+            mm_matrix_extent = min_rows_per_chunk2; 
+        if (mm_matrix_extent < min_cols_per_chunk1)
+            mm_matrix_extent = min_cols_per_chunk1; 
+        if (mm_matrix_extent < min_cols_per_chunk2)
+            mm_matrix_extent = min_cols_per_chunk2; 
+        
         // How many rows and cols in padded matrices.
         
         unsigned int rowsp1 = mm_matrix_extent * (((op1.rows() - 1) /
@@ -216,6 +279,14 @@ AMI_err AMI_matrix_mult(AMI_matrix<T> &op1, AMI_matrix<T> &op2,
                                                    mm_matrix_extent) + 1);
         unsigned int colsp2 = mm_matrix_extent * (((op2.cols() - 1) /
                                                    mm_matrix_extent) + 1);
+
+#if 0
+        // Very temporary hack to get info on where to plot points.
+        cerr << "chunk rows = " << chunkrows1 << '\n';
+        cerr << "Padding M1 to " << rowsp1 << "x" << colsp1 << '\n';
+        cerr << "Padding M2 to " << rowsp2 << "x" << colsp2 << '\n';
+        exit(0);
+#endif
         
         // Padded matrices.
 
@@ -274,7 +345,19 @@ AMI_err AMI_matrix_mult(AMI_matrix<T> &op1, AMI_matrix<T> &op2,
 
         delete op1p;
         delete op2p;
-            
+
+#ifdef INTERNAL_TIMING
+        // Get ready to time the multiplication itself, ignoring the pre
+        // and post processing permutations.
+
+        // This is a hack wich assumes times() rather than getrusage().
+
+        tms t0;
+        clock_t ct0;
+
+        ct0 = times(&t0);        
+#endif
+        
         // Now run the standard matrix multiplication algorithm over
         // the blocks.  To multiply two blocks, we read them into main
         // memory.  The blocks of the result are accumulated one by
@@ -348,9 +431,17 @@ AMI_err AMI_matrix_mult(AMI_matrix<T> &op1, AMI_matrix<T> &op2,
 
                         // Multiply in MM and add to the running sum.
                         
+#if QUICK_MATRIX_MULT
+                        quick_matrix_mult_add_in_place(mm_op1, mm_op2,
+                                                       mm_accum);
+#elif defined(AGGARWAL_MATRIX_MULT)
+                        aggarwal_matrix_mult_add_in_place(mm_op1, mm_op2,
+                                                          mm_accum);
+#else                        
                         perform_mult_add_in_place((matrix_base<T> &)mm_op1,
                                                   (matrix_base<T> &)mm_op2,
                                                   (matrix_base<T> &)mm_accum);
+#endif                    
                     }
 
                     // We now have the complete result for a block of
@@ -368,6 +459,20 @@ AMI_err AMI_matrix_mult(AMI_matrix<T> &op1, AMI_matrix<T> &op2,
             }            
         }
 
+#ifdef INTERNAL_TIMING
+
+        tms t1;
+        clock_t ct1;
+
+        ct1 = times(&t1);
+
+        long clk_tck = sysconf(_SC_CLK_TCK);
+        
+        cout << double(t1.tms_utime - t0.tms_utime) / clk_tck << ' '
+             << double(t1.tms_stime - t0.tms_stime) / clk_tck << ' '
+             << double(ct1 - ct0) / clk_tck << '\n';
+#endif        
+        
         // We are done with the padded and permuted operators.
 
         delete op1pp;
