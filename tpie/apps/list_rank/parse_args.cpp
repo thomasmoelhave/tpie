@@ -7,7 +7,7 @@
 
 
 
-static char parse_args_id[] = "$Id: parse_args.cpp,v 1.7 1999-05-02 19:05:53 tavi Exp $";
+static char parse_args_id[] = "$Id: parse_args.cpp,v 1.8 1999-07-05 03:04:18 rajiv Exp $";
 
 //#include <GetOpt.h>
 #include <stdlib.h>
@@ -67,7 +67,7 @@ void parse_args(int argc, char **argv, const char *as_opts,
     while((c = getopt(argc, argv, all_opts)) != -1) {
         switch (c) {
             case 'v':
-                verbose = !verbose;
+                verbose = 1;
                 break;
             case 'm':
 	     test_mm_size = parse_number(optarg);
