@@ -4,10 +4,10 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 9/28/94
 //
-// $Id: ami_sort_single.h,v 1.13 1999-12-16 19:22:21 hutchins Exp $
+// $Id: ami_sort_single.h,v 1.14 2000-01-20 16:28:11 hutchins Exp $
 //
 // Merge sorting for the AMI_IMP_SINGLE implementation.
-//
+// 
 #ifndef _AMI_SORT_SINGLE_H
 #define _AMI_SORT_SINGLE_H
 
