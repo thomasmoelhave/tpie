@@ -1,12 +1,12 @@
 %%
-%% $Id: applications.tex,v 1.2 1999-05-02 19:20:21 tavi Exp $
+%% $Id: applications.tex,v 1.3 1999-06-25 15:50:41 large Exp $
 %%
 \chapter{Test and Sample Applications}
 
 \section{General Structure and Operation}
 
 The test and sample applications distributed with TPIE are in the
-verb|test| directory.  The test programs are designed primarily to
+\verb|test| directory.  The test programs are designed primarily to
 test the operation of the system to verify that it has been installed
 correctly and is as bug free as possible.  These applications all have
 names of the form \verb|test_*|.  The sample applications are designed
@@ -14,12 +14,12 @@ to demonstrate the use of TPIE in the solution of non-trivial
 problems.
 
 The test and sample applications all share a small amount of common
-initialization and argument parsing code.  They all include the header
-file \verb|app_config.h|, which selects a particular implementation of
-streams at the AMI and BTE levels.  They
-also all use the same argument parsing function \verb|parse_args()|,
-which parses certain default arguments and then uses a callback
-function for arguments specific to one particular application.
+initialization and argument parsing code.  They all include the header file
+\verb|app_config.h|, which selects a particular implementation of streams
+at the AMI and BTE levels. They also all use the same argument parsing
+function \verb|parse_args()|, which parses certain default arguments and
+then uses a callback function for arguments specific to one particular
+application.
 
 Much of the functionality provided by the common initialization and
 argument passing code is intended to eventually be subsumed by
