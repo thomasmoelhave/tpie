@@ -6,7 +6,7 @@
 //
 
 #include <versions.h>
-VERSION(tpie_log_cpp,"$Id: tpie_log.cpp,v 1.13 2003-05-04 23:07:02 tavi Exp $");
+VERSION(tpie_log_cpp,"$Id: tpie_log.cpp,v 1.14 2003-05-31 15:50:45 tavi Exp $");
 
 // We are logging
 #define TPL_LOGGING	1
@@ -38,6 +38,6 @@ logstream &tpie_log() {
   return log;
 }
 
-void tpie_log_init(TPIE_LOG_LEVEL level = TPIE_LOG_WARNING) {
+void tpie_log_init(TPIE_LOG_LEVEL level) {
   LOG_SET_THRESHOLD(level);
 }
