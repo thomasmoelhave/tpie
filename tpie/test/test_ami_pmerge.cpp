@@ -6,7 +6,7 @@
 //
 // A test for AMI_partition_and_merge().
 
-static char test_ami_pmerge_id[] = "$Id: test_ami_pmerge.cpp,v 1.11 1994-11-02 21:53:15 darrenv Exp $";
+static char test_ami_pmerge_id[] = "$Id: test_ami_pmerge.cpp,v 1.12 1995-06-20 19:03:46 darrenv Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -18,8 +18,6 @@ static struct ___test_ami_pmerge_id_compiler_fooler {
     test_ami_pmerge_id,
     &the___test_ami_pmerge_id_compiler_fooler
 };
-
-#include <tpqueue.h>
 
 #include <stdlib.h>
 #include <sys/time.h>
