@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 1/9/95
 //
-// $Id: ami_bit_permute.h,v 1.3 1997-05-20 22:14:33 vengroff Exp $
+// $Id: ami_bit_permute.h,v 1.4 1998-12-11 18:43:57 tavi Exp $
 //
 // For the momemnt this is done in terms of general permutations.
 // This will obviously change in the future.
@@ -12,7 +12,11 @@
 #ifndef _AMI_BIT_PERMUTE_H
 #define _AMI_BIT_PERMUTE_H
 
+// For bit_matrix.
 #include <bit_matrix.h>
+
+// For AMI_gen_perm_object.
+#include <ami_gen_perm_object.h>
 
 class AMI_bit_perm_object
 {
