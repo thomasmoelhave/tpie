@@ -11,13 +11,13 @@
 // a meta data structure accessed no more than once every block
 // is created or destroyed. 
 //
-// 	$Id: stdio_stack.h,v 1.4 2000-08-06 15:13:26 tavi Exp $	
+// $Id: stdio_stack.h,v 1.5 2002-01-06 18:43:31 tavi Exp $
 //
 
 #ifndef _STDIO_STACK_H
 #define _STDIO_STACK_H
 
-#include <bte_stdio.h>
+#include <bte_stream_stdio.h>
 
 template<class T>
 class stdio_stack : public BTE_stream_stdio<T> {
