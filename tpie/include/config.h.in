@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/13/94
 //
-// $Id: config.h.in,v 1.6 1995-05-02 00:56:09 dev Exp $
+// $Id: config.h.in,v 1.7 2002-01-14 16:26:22 tavi Exp $
 //
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -38,24 +38,24 @@
 // Are we on a hacked kernel that supports zero()?
 #define HAVE_ZERO 0
 
-// On Solaris, _SC_PAGE_SIZE is called _SC_PAGE_SIZE.  Here's a quick
-// fix.
-
 #if HAVE_UNISTD_H
 #include <unistd.h>
 #elif HAVE_SYS_UNISTD_H
 #include <sys/unistd.h>
 #endif
+
+// On Solaris, _SC_PAGE_SIZE is called _SC_PAGE_SIZE.  Here's a quick
+// fix.
 #if !defined(_SC_PAGE_SIZE) && defined(_SC_PAGESIZE)
 #define _SC_PAGE_SIZE _SC_PAGESIZE
 #endif
 
 // Flags to enable or disable various features of the system.
 
-#define TP_ASSERT_APPS 0
-#define TP_ASSERT_LIB 0
+#define TP_ASSERT_APPS 1
+#define TP_ASSERT_LIB 1
 
-#define TP_LOG_APPS 0
-#define TP_LOG_LIB 0
+#define TP_LOG_APPS 1
+#define TP_LOG_LIB 1
 
 #endif // _CONFIG_H 
