@@ -5,7 +5,7 @@
 //
 // The Point and IdPoint classes.
 //
-// $Id: ami_point.h,v 1.5 2003-09-12 01:46:18 jan Exp $
+// $Id: ami_point.h,v 1.6 2003-09-12 15:21:43 tavi Exp $
 //
 
 #ifndef AMI_POINT_H_
@@ -17,12 +17,20 @@
 // This is a hack. It works for integer types only.
 template<class coord_t>
 class infinity_t {
-  static const coord_t minf = (1 << (8*sizeof(coord_t) - 1));
-  static const coord_t pinf = ~minf;
+  static coord_t minf;// = (1 << (8*sizeof(coord_t) - 1));
+  static coord_t pinf;// = ~minf;
 public:
   int operator+() const { return pinf; }
   int operator-() const { return minf; }
 };
+
+template<class coord_t>
+coord_t infinity_t<coord_t>::minf = (1 << (8*sizeof(coord_t) - 1));
+template<class coord_t>
+coord_t infinity_t<coord_t>::pinf = ~(1 << (8*sizeof(coord_t) - 1));
+
+//int infinity_t<int>::minf = (1 << (8*sizeof(int) - 1));
+//int infinity_t<int>::pinf = ~(1 << (8*sizeof(int) - 1));
 
 // The base class for Point.
 template<class coord_t, size_t dim>
