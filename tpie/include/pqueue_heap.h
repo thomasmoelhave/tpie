@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/4/94
 //
-// $Id: pqueue_heap.h,v 1.8 2003-04-17 19:50:32 jan Exp $
+// $Id: pqueue_heap.h,v 1.9 2003-04-20 07:55:56 tavi Exp $
 //
 // A priority queue class implemented as a binary heap.
 //
@@ -308,7 +308,7 @@ void pqueue_heap_obj<T,P,CMPR>::heapify(unsigned int root) {
 
         heapify(min_index);
     }
-}   a
+}
 
 
 // Comment: (jan) You must not use this version anymore.
