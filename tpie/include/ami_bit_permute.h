@@ -4,9 +4,9 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 1/9/95
 //
-// $Id: ami_bit_permute.h,v 1.4 1998-12-11 18:43:57 tavi Exp $
+// $Id: ami_bit_permute.h,v 1.5 1999-02-03 17:11:23 tavi Exp $
 //
-// For the momemnt this is done in terms of general permutations.
+// For the moment this is done in terms of general permutations.
 // This will obviously change in the future.
 //
 #ifndef _AMI_BIT_PERMUTE_H
@@ -118,17 +118,5 @@ AMI_err AMI_BMMC_permute(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
 }
 
 #endif // ndef TPIE_LIBRARY
-
-#ifdef NO_IMPLICIT_TEMPLATES
-
-#define TEMPLATE_INSTANTIATE_BIT_PERM(T)				\
-TEMPLATE_INSTANTIATE_GEN_PERM(T)					\
-template class bmmc_as_gen_po<T>;					\
-template AMI_err AMI_BMMC_permute(AMI_STREAM<T> *instream,		\
-                                  AMI_STREAM<T> *outstream,		\
-                                  AMI_bit_perm_object *bpo);
-
-
-#endif
 
 #endif // _AMI_BIT_PERMUTE_H 
