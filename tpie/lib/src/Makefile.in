@@ -1,6 +1,6 @@
 # Copyright (c) 1994 Darren Erik Vengroff
 
-# $Id: Makefile.in,v 1.14 1994-12-16 21:13:50 darrenv Exp $
+# $Id: Makefile.in,v 1.15 1995-01-10 16:45:25 darrenv Exp $
 
 # Makefile for TPIE libraries.
 
@@ -35,14 +35,16 @@ override CXXFLAGS += -fno-implicit-templates
 override CPPFLAGS += -DNO_IMPLICIT_TEMPLATES
 endif
 
-CXXFLAGS = -Wall
+# This is library code.
+override CPPFLAGS += -DTPIE_LIBRARY
 
 # Get the proper include path and DEFS from the configure script.
 override CPPFLAGS += -I$(TPIEINC) @DEFS@
 
 SRC =	logstream.cpp tpie_log.cpp mm_register.cpp ami_device.cpp	\
 	ami_single.cpp mm_base.cpp bte_mmb.cpp bte_stdio.cpp		\
-	bte_block_collection.cpp bit.cpp ami_matrix_blocks.cpp
+	bte_block_collection.cpp bit.cpp bit_matrix.cpp		\
+	ami_matrix_blocks.cpp ami_bit_permute.cpp
 
 OBJ = $(SRC:.cpp=.o)
 
