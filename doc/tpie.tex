@@ -7,7 +7,7 @@
 %%
 %% Copies and modified from tpie.texi.
 %%
-%% $Id: tpie.tex,v 1.5 1999-02-08 16:55:50 laura Exp $
+%% $Id: tpie.tex,v 1.6 1999-02-08 17:11:27 rbarve Exp $
 %%
 
 \documentstyle[11pt,html,makeidx]{book}
@@ -2934,6 +2934,114 @@ appear in the TPIE distribution.
 \index{operation management objects!merge|)}
 \index{merging|)}
 
+
+\subsubsection{AMI merging without Merge Management Objects}
+\label{sec:ref-miami-merge}
+Sometimes it may be undesirable to have to use merge management
+objects during external sorting or external merging. One avenue
+we provide the programmer is to then use the entry point below.
+Using the approach below is often more efficient, albeit it can
+be less flexible, than using merge management objects and the 
+\verb|AMI_single_merge()| function above.
+
+The entry point assumes that the items of type T in the streams being
+merged include a field KEY with well-defined (possibly by means of
+overloading)  \verb| < | and \verb| > | operators at compile time; and
+furthermore that the ordering of the T type items is to based on the
+total order of their KEY fields. If these assumptions hold, the
+programmer can use the function,
+
+\begin{verbatim}
+
+AMI_err MIAMI_single_merge_Key(AMI_STREAM<T> **instreams, 
+                               arity_t arity, 
+                               AMI_STREAM<T> *outstream, 
+                               int keyoffset, 
+                               KEY dummykey)
+\end{verbatim}
+
+to merge {\tt arity} streams of type T. Here, {\tt keyoffset} is the
+offset with respect to the start of an item of type T of the field KEY
+within T. The motivation behind providing such a function is to 
+exploit the fact that the KEY field is often much smaller than the
+T type item: For instance, if T is a rectangle, each item may be of 
+size approximately 40 bytes or so, whereas if one is interested in
+sorting along the X co-ordinate, the KEY may be of size 8 bytes.
+If such information is known to the programmer, itcan be leveraged to 
+sometimes significantly improve the internal memory performance of 
+merging and sorting by using some very simple techniques. The return
+values of the above function are  similar to those of
+\verb|AMI_single_merge()|. 
+
+If the operators \verb| < | and \verb| > |  are defined for type T,
+then sometimes it makes sense to use \verb|MIAMI_single_merge_Key()|
+with {\tt keyoffset} set to 0 and KEY ``set to'' type T, 
+in order to carry out the merge
+because of the difference in merging implementation from
+\verb|AMI_single_merge()|. Note that the {\tt dummykey} argument
+to \verb|MIAMI_single_merge_Key()| is simply any item of type 
+KEY; it is not used in the implementation.
+
+We also provide analogues of \verb|AMI_partition_and_merge()|
+that do not require merge management objects and 
+that utilize  \verb|MIAMI_single_merge_Key()| the way 
+\verb|AMI_partition_and_merge()| uses \verb|AMI_single_merge()|.
+The functions below are  smarter than
+\verb|AMI_partition_and_merge()|  in the way  they manage
+intermediate streams required during sorting: The functions below are
+designed with the guarantee that any stream used during the sort is 
+always accessed sequentially; which results in performance improvements.
+
+
+The function
+\begin{verbatim}
+template<class T>
+AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
+                                       AMI_STREAM<T> *outstream)
+\end{verbatim}
+provides the exact same functionality as the
+\verb|AMI_partition_and_merge()| function except that it requires 
+the type T to have well defined  \verb| < | and \verb| > | operators.
+(This function uses \verb|MIAMI_single_merge_Key()| with 
+ {\tt keyoffset} set to 0 and KEY ``set to'' type T as described
+above.)
+
+The function 
+\begin{verbatim}
+template<class T, class KEY>
+AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
+                                   AMI_STREAM<T> *outstream, 
+                                              int keyoffset, 
+                                               KEY dummykey)
+\end{verbatim}
+provides similar functionality as \verb|AMI_partition_and_merge()|
+except that it is somewhat smarter in the way it manages intermediate
+streams required during sorting, and uses KEY and {\tt keyoffset}
+information to improve internal memory performance. 
+
+The function
+\begin{verbatim}
+template<class T, class KEY>
+AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
+                                               AMI_STREAM<T> *outstream, 
+                                               int keyoffset,
+                                               KEY dummykey)
+\end{verbatim}
+is the same as \verb|AMI_partition_and_merge_Key()| above, except that
+it uses a fundamentally different run formation algorithm. The 
+\verb|AMI_replacement_selection_and_merge_Key()| function uses
+the replacement selection (Algorithm R in Knuth's Vol 3, Section 5.4.1)
+technique to form runs. This technique is known to produce runs that
+are twice as long and half as many as the ordinary run formation
+technique used in  \verb|AMI_partition_and_merge_Key()| on average,
+and so has the potential of reducing the number of merge passes.
+But the internal memory performance of replacement selection may
+be a little worse than the internal memory performance of the ordinary
+run formation technique; so what is eventually better could very well
+depend on various parameters.
+
+
+
 \subsection{Comparison Sorting}
 \label{sec:ref-ami-sort}
 
@@ -2991,6 +3099,23 @@ Section~\ref{sec:cmp-sorting} as well as in the test applications that
 appear in the TPIE distribution.  Section~\ref{sec:list-ranking}
 illustrates the use of multiple comparison functions to sort streams
 of objects in different ways.
+
+
+\subsubsection{Alternative external mergesort implementations available}
+
+The \verb|AMI_partition_and_merge_Key()|,
+\verb|AMI_partition_and_merge()| and
+\verb|AMI_replacement_selection_and_merge_Key()| 
+functions defined in Section~\ref{sec:ref-miami-merge} above 
+can also be used as entry points for comparison based 
+sorting. As mentioned in Section~\ref{sec:ref-miami-merge},
+these functions are programmed to have somewhat more efficient
+stream access patterns and are capable of exploiting information
+regarding keys to improve performance; albeit the user has 
+to specify a key field (having well-defined \verb|<| and \verb|>|
+operators at compile time) and an offset to that key field from
+the start of the item beings sorted.
+
 \index{sorting!comparison|)}
 
 \subsection{Key Bucket Sorting}
@@ -3182,9 +3307,183 @@ to data.
 \index{access method interface|(}
 \index{AMI|see{access method interface}}
 \label{sec:ref-ami}
+To use TPIE, the programmer has to create, modify or delete items each of
+which belongs to a \emph{stream}. From the programmer's perspective,
+computation simply requires her to \emph{choreograph the movement of
+items in various streams}: The I/O operations, the buffering required
+and memory management are performed in TPIE itself. In order to specify
+the choreography of streams, the user can make heavy use of inbuilt
+TPIE templates and functions; it is not often that the user has to write
+special-purpose custom-made TPIE functions. The reason why TPIE's unique
+approach is attractive for external memory computation is the well
+known fact that most external memory algorithms consist of sewing
+together a small number of paradigms such as \emph{scanning},
+\emph{merging}, \emph{distributing}, in a well-coordinated manner
+exploiting all available memory and I/O bandwidth. A large variety of 
+indexing data structures and methods related to those data structures 
+can be implemented using the above paradigms in conjunction with a 
+basic tree template: While indexing data structures have been
+implemented using TPIE streams, work on tree templates and related
+methods to further ease implementation of indexing data structures is
+currently ongoing.
 
-Talk about AMI streams and the member functions an implementation must
-support. 
+Each datum in TPIE is an item of a certain type.
+How then does the programmer access data? She does so by using the
+\emph{Access Method Interface (AMI)} to access items in 
+\emph{AMI\_STREAM}s. Items of type T constitute an AMI\_STREAM of 
+type T. Each AMI\_STREAM is a warapper around  what is known
+as a \emph{BTE\_STREAM}, where BTE stands for \emph{block transfer
+engine.} Each BTE\_STREAM is a stream built on top of a Unix file, with 
+additional features such as typing,  and automatic, efficient,
+``under-the-hoods'' I/O and buffering so that the programmer does
+not bear this burden. TPIE can be configured to use one of three
+different BTE\_STREAM implementations: The implementations vary
+fundamentally in the way they do buffering and I/O. The implementation
+of choice depends, to some extent, on the operating system on which 
+TPIE runs. Later we describe the different BTE implementations and
+how to determine the best implementation on any given system; for now,
+we focus on the AMI\_STREAM interface since that is most directly
+relevant to a programmer/user.
+
+
+Note that the string ``AMI\_STREAM'' has
+ been ``\#define''d to be the string ``AMI\_stream\_single'' in the
+ header file ``ami\_imps.h'' to facilitate alternative implementations
+of AMI\_STREAM if necessary in the future.
+The AMI\_STREAM class,
+templated on the type T of its items,  consists of the following
+public member functions defined in the file ``ami\_single.h'';
+some important related enumerated types that the user will be
+ concerned with have been defined in ``ami\_base.h''.
+
+\begin{itemize}
+\item{Constructors and Destructor} An AMI\_STREAM$<$T$>$ can be constructed 
+with a \emph{filename} argument
+to the constructor, or with the \emph{filename} and \emph{streamtype}
+arguments to the constructor, or  without any
+arguments given to the constructor (in which case a randomly generated
+\emph{filename} and the default \emph{streamtype} is used)
+with the usual semantics. Here,
+\emph{filename} specifies the name of the Unix file ``backing'' the
+AMI\_STREAM and is also the name of the AMI\_STREAM itself. The
+\emph{streamtype} specifies whether the AMI\_STREAM is to be a 
+read-only or read-write or append-only or write stream (See the header file
+``ami\_base.h'' for semantics.) The default  \emph{streamtype} is read-write. 
+The Unix file backing the AMI\_STREAM is opened by the constructor.
+
+
+An important consequence of the construction of an AMI\_STREAM is a
+reduction in the total amount of memory that the user has at her
+disposal since a certain amount of memory is consumed now by buffers
+dedicated to that AMI\_STREAM and its related data
+structures.\footnote{The total amount of memory that the user has
+available, divided by the memory consumed by every AMI\_STREAM thus
+is an upper bound on the maximum number of AMI\_STREAMs that the user
+can have.} When an AMI\_STREAM is destroyed using a destructor, that
+amount of memory becomes is added to the available memory for the
+user. The Unix file backing the AMI\_STREAM is closed by the
+destructor; it may also be deleted from disk 
+depending on the \emph{persistence} flag of
+the AMI\_STREAM; see below.
+
+
+\item {Other constructor-like functions}
+The user may also construct an AMI\_STREAM$<$T$>$ corresponding to a
+pre-existing BTE\_STREAM$<$T$>$ using a constructor while
+specifying a pointer to the BTE\_STREAM$<$T$>$ as an argument.
+
+Using a ``sub-stream constructor'',
+a TPIE user can specify an address range [i,j]
+of an AMI\_STREAM$<$T$>$ and access items in that address range
+as an AMI\_STREAM$<$T$>$ of j-i+1 items: Destroying the sub-stream
+does not destroy the parent AMI\_STREAM$<$T$>$. The parent
+AMI\_STREAM$<$T$>$ can itself be a sub-stream. The motivation behind 
+supporting the sub-stream concept is that in some situations
+having too many open Unix files can cause problems: 
+Having too many open Unix files 
+sometimes can cause a performance problem\footnote{Such
+problems can occur in some situations, on some systems,
+when the number of open files exceeds some threshold.} or
+less frequently, can exceed the maximum possible number\footnote{The
+system call \emph{getrusage()} can be used to ascertain this number.}
+of Unix files that a user process is allowed thus causing a
+Unix error. See ``ami\_single.h'' for syntax.
+
+
+\item{Reading and Writing} AMI\_STREAMs have a notion of \emph{current
+item} in the stream of items. The \emph{read\_item(T **elt)} function
+returns with *elt pointing to the current item of the AMI\_STREAM$<$T$>$
+(so there is actually no copying of an item during a
+\emph{read\_item()} call) and the  \emph{write\_item(T elt)} function 
+returns after setting the current item of AMI\_STREAM$<$T$>$ to the value 
+elt. Appropriate error values (defined in``ami\_base.h'') are returned 
+in case of errors.
+
+Since it was deemed useful to read or write many items at a time
+from or to an AMI\_STREAM, TPIE provides the \emph{read\_array(T
+*mm\_space, off\_t *len)} and the 
+\emph{write\_array(const T *mm\_space, off\_t len)} to read
+(resp. write) \emph{*len} (resp. \emph{len}) items into (resp. from) 
+array \emph{mm\_space} of items of type T from (resp. into) the
+current locations of the AMI\_STREAM$<$T$>$.
+
+\item{Name and Length}
+AMI\_STREAM$<$T$>$ member functions \emph{name()} and \emph{stream\_len()}
+can be used by the user to get the name and length of the
+AMI\_STREAM$<$T$>$; see ``ami\_single.h'' for syntax.
+
+\item{Seeking and Truncating}
+Analogous to Unix files, AMI\_STREAM$<$T$>$s have \emph{seek()} and
+\emph{truncate()} member functions, both of which take an 
+\emph{offset} (within the AMI\_STREAM$<$T$>$) as an argument. The 
+\emph{offset} is in units of items of type T. The \emph{seek()}
+function is necessary whenever the user needs to access items
+in a stream in a non-sequential manner.
+
+
+\item{Memory Usage}
+In order to effectively utilize memory, the user needs to keep track
+of the amount of memory she has at her disposal: Sometimes, 
+when one of several algorithms may be usable to solve a given problem,
+it may be useful to choose the algorithm depending on the problem
+size and available memory size. The total amount of memory consumed
+by an AMI\_STREAM$<$T$>$ often plays an important role while making such 
+a choice. The  \emph{main\_memory\_usage()} member function of
+AMI\_STREAM can be used to determine various memory usages
+such a buffer space, overheads because of stream-related (meta)
+data structures or net total usage corresponding to the AMI\_STREAM;
+see ``ami\_single.h'' and ``mm\_base.h'' for syntax.
+
+\item{Persistence of Unix file}
+An AMI\_STREAM is backed up by a Unix file on disk. Sometimes the
+items in an AMI\_STREAM will never be used  once the AMI\_STREAM is
+destructed whereas sometimes an ``idle'' AMI\_STREAM may be destroyed 
+to prevent it from hogging memory only to be constructed later on
+when really required. In the former case, it is desirable to 
+destroy or delete the Unix file backing the AMI\_STREAM to save
+disk space whereas in the latter case we need the Unix file backing
+the AMI\_STREAM to exist on disk even when the AMI\_STREAM is
+destroyed. A user can specify this \emph{persistence} of the
+Unix file backing the AMI\_STREAM using the \emph{persist()} member
+function; see  ``ami\_single.h'' and ``ami\_base.h'' for syntax.
+
+
+\item{Miscellaneous member functions}
+As mentioned earlier, some systems do not allow a user process
+to exceed a certain threshold number of opened Unix files at any time
+forcing an upper bound on the number of AMI\_STREAMs a user can 
+have at any time.  The member function \emph{available\_streams()} can
+be used to determine how many AMI\_STREAMs more the user can construct
+at any time.
+
+The member function \emph{chunk\_size()} returns with the size,
+in items of type T, of a data-buffer of an AMI\_STREAM$<$T$>$. (Depending
+on the BTE\_STREAM implementation and its configuration parameters, each 
+AMI\_STREAM$<$T$>$ may have one or two data-buffers.) 
+
+\end{itemize}
+
+
 \index{access method interface|)}
 
 \section{AMI Entry Points}
@@ -3198,6 +3497,7 @@ support.
 
 \subsection{Merging}
 \label{sec:ref-imp-ami-merge}
+
 
 \index{merging|(}
 \index{merging|)}
@@ -3542,9 +3842,247 @@ needed. This version provides two methods of read-ahead:
 By default \verb|BTE_MMB_READ_AHEAD| is set, \verb|USE_LIBAIO| is not set.
 
 
-
-
 \subsection{BTE\_UFS}
+
+In addition to \verb|BTE_stdio| and  \verb|BTE_mmb| implementations,
+TPIE provides another implementation for BTE streams, called
+\verb|BTE_ufs|. As in the previously described BTE stream
+implementations, \verb|BTE_ufs| streams are essentially Unix files
+that have been specially formated to facilitate TPIE-specific stream
+operations. Actually, barring the value of one certain header field, the 
+stream format of \verb|BTE_ufs| streams is identical to
+\verb|BTE_mmb| streams. \verb|BTE_ufs| streams differ from 
+\verb|BTE_mmb| streams in the particular system calls used to
+implement I/O and buffering: While \verb|BTE_mmb| streams use the memory
+map paradigm to implement I/O,  \verb|BTE_ufs| streams use 
+\verb|read()|/\verb|write()| calls to implement their I/O. The
+motivation behind implementing  \verb|BTE_ufs| streams is because of
+empirically observed inefficiency\footnote{The inefficiency can occur
+on account of various reasons. On one system,  \verb|mmap()| calls
+were implemented on top of  \verb|stdio| interface instead of a direct
+I/O implementation, resulting in extra overhead.} 
+in \verb|mmap()|-based (and hence
+\verb|BTE_mmb| stream) implementations on some systems. 
+In such situations, a stream implementation that,
+like  \verb|BTE_mmb| streams, have the potential of  
+exploiting large sized blocks and buffers is needed.
+
+
+Actually speaking, the \verb|BTE_ufs| stream implementation simulates
+the \verb|BTE_mmb| stream implementation: Whenever the latter maps in
+(via  \verb|mmap()|) a new block, the former reads in a new block (via
+\verb|read()|) and whenver the latter unmaps a block (via
+\verb|munmap()|), the latter attains the same result as unmapping via
+a \verb|write()| call. But  the \verb|BTE_ufs| implementation involves
+explicitly keeping track in the BTE code various things which are 
+``under the hood'' in \verb|mmap()| implementations. In fact, the code
+in the  \verb|BTE_ufs| implementation can be said to amount to a
+(very rudimentary) \verb|mmap()| implementation.
+
+The name of the class implementing  \verb|BTE_ufs| is \verb|BTE_single_disk|.
+
+The \verb|BTE_ufs| header structure is identical to the \verb|BTE_mmb|
+one:
+\begin{verbatim}
+struct mmap_stream_header { 
+  public:
+    unsigned int magic_number;  // Set to UFS_HEADER_MAGIC_NUMBER
+    unsigned int version;       // Should be 1 for current version.
+    unsigned int length;        // # of bytes in this structure.
+    off_t item_logical_eof;     // The number of items in the stream.
+    size_t item_size;           // The size of each item in the stream.
+    size_t block_size;          // The size of a physical block on the device
+                                // where this stream resides.
+    unsigned int items_per_block;
+};
+\end{verbatim}
+
+\verb|BTE_ufs| class inherits from \verb|BTE_base_stream|:
+\begin{verbatim}
+class BTE_single_disk : public BTE_base_stream {
+  private:
+     // descriptor of the mapped file.  
+     int fd;   
+     // A pointer to the mapped in header block for the stream. 
+     mmap_stream_header *header;
+     ...
+}  
+\end{verbatim}
+
+\verb|BTE_ufs| defines the abstract methods inherited from
+\verb|BTE_base_stream| presented in a previous section. In addition to
+these it defines its own constructors:
+\begin{verbatim}
+  BTE_single_disk(const char *dev_path, BTE_stream_type st); 
+  BTE_single_disk(BTE_stream_type st); 
+  BTE_single_disk(BTE_single_disk<T> &s); 
+  
+  // A substream constructor.
+  BTE_single_disk(BTE_single_disk *super_stream,
+                 BTE_stream_type st,
+                 off_t sub_begin, off_t sub_end);
+\end{verbatim}
+
+For implementation details please consult the code in
+\verb|/include/bte_ufs.h|.
+
+As in  \verb|BTE_stdio|, prefetching can be done implicitly by the
+filesystem underlying TPIE. In fact, nowadays, in the case of 
+sequential accesses, most filesystems almost surely implement
+readahead prefetching, which should suffice for the purpose of
+streaming operations in TPIE. (In the case of non-sequential acceses,
+the next block to be accessed is more often than not dependent on
+the processing of the contents of the current block, so prefetching
+is difficult to implement or impossible.) In \verb|BTE_ufs|
+streams, when the asynchronous I/O library {\tt libaio}\index{libaio
+library@{\tt libaio} library.} is available, there is a provision
+to do (user-level) prefetching within \verb|BTE_ufs| streams but we
+do not recommend its use on account of the implicit filesystem readahead.
+
+
+Following is a description of the portion relevant to  \verb|BTE_ufs|
+streams in  the header file {\tt
+tpie-\version/test/app\_config.h}.\index{app_config@{\tt app\_config.h}}.
+
+
+\begin{verbatim}
+/* ********************************************************************** */
+/* BTE_UFS configuration options */
+/* ********************************************************************** */
+
+#ifdef BTE_IMP_UFS
+
+// The blocksize (corresp to the theoretical I/O model) is 
+// BTE_UFS_LOGICAL_BLOCKSIZE_FACTOR * os blocksize 
+#ifndef BTE_UFS_LOGICAL_BLOCKSIZE_FACTOR
+#define BTE_UFS_LOGICAL_BLOCKSIZE_FACTOR 32
+#endif
+
+//In the current version of TPIE, BTE_UFS_READ_AHEAD should be
+//defined as 0 and DOUBLE_BUFFER should be defined 0. 
+#define BTE_UFS_READ_AHEAD 0
+#define DOUBLE_BUFFER 0
+
+// USE_LIBAIO can be set to 1 to trigger off a certain kind of 
+// readahead on Solaris machines, but we suggest keeping this 0 as well.
+#define USE_LIBAIO 0
+
+// Very often bte_ufs will be used to sequentially access a file;
+//for instance this happens with mergesort and scanning. Typical
+//filesystems in such situations tend to carryout sequential readahead.
+//When BTE_IMPLICIT_FS_READAHEAD is set to 1, we try to account for the
+//amount of memory used up by the read-ahead portion (in the filesystem
+//buffer cache) by assuming (quick and dirty guess) that the amount of
+//read-ahead at any time is equal to the blocksize (corresp to theoretical
+//I/O model). If set to 0, we essentially cheat by not accounting at all
+//for memory used by readahead. So in applications in which you sequentially
+//access streams, BTE_IMPLICIT_FS_READAHEAD shd be set to 1; otherwise for
+//tree-like accesses etc. it should be set to 0.
+
+#define BTE_IMPLICIT_FS_READAHEAD 1
+#endif
+\end{verbatim}
+
+
+\subsection{Choosing a BTE Implementation and Setting Parameters}
+
+Choosing the appropriate BTE implementation is more often than
+not system dependent; and setting up BTE parameters is 
+application dependent. We describe here some simple approaches
+to determine these; one of the approaches involves using the
+\verb|bte_test.c| programs in the test directory.
+
+One criterion that should be carefully considered while setting BTE 
+parameters is the \verb|BTE_LOGICAL_BLOCKSIZE_FACTOR|. This parameter
+determines the unit of I/O and buffering used by the BTE stream
+implementation. In case of \verb|BTE_mmb| or \verb|BTE_ufs|
+implementations,  the amount of memory dedicated to a stream is 
+either \verb|BTE_LOGICAL_BLOCKSIZE_FACTOR| times the operating system 
+blocksize (no prefeteching) or twice  
+\verb|BTE_LOGICAL_BLOCKSIZE_FACTOR| times the operating system  blocksize
+(in the presence of prefetching). So the value of the
+\verb|BTE_LOGICAL_BLOCKSIZE_FACTOR| parameter, together with available
+memory, determines the number of BTE streams (and hence AMI streams)
+that can be active or ``alive'' at any time. This is an upper bound on
+the arity of a multi-way merge or a multi-way distribution operation
+that can be undertaken by a TPIE application; which can have a crucial
+impact on (say, the number of passes required in external sorting and
+hence the) net running time. The size of each buffer and the size of
+each I/O in the BTE stream is \verb|BTE_LOGICAL_BLOCKSIZE_FACTOR|
+times the operating system  blocksize, so this (very) roughly
+corresponds to the amount of data brought in or written out at the
+cost of a single disk operation.  The latter observation suggests
+that \verb|BTE_LOGICAL_BLOCKSIZE_FACTOR| should be set to a high
+value; but a high value for this parameter inhibits the number of 
+streams active at a time and hence can result in an increase in the
+number of passes required in sorting. In the case of external memory
+indexing data structures based on trees, the value of the 
+\verb|BTE_LOGICAL_BLOCKSIZE_FACTOR| for any BTE stream (or BTE block
+collection, in future TPIE versions) like structure used to implement 
+the external memory data structure should be made as close to the size
+of the tree node as possible.
+
+In order to decide an appropriate \verb|BTE_LOGICAL_BLOCKSIZE_FACTOR|
+or in fact to decide which one of the three BTE implementations 
+should be chosen, we also present in the test directory, a C program
+called \verb|bte_test.cpp|.
+  
+
+This file contains a program that can be used to determine the 
+streaming speeds attained by \verb|BTE_stdio|, \verb|BTE_mmb|, and
+\verb|BTE_ufs| 
+streams on a given system. The performance of these implementations
+can vary significantly from system to system; and the information 
+that can be attained  can be used to decide which implementation
+is appropriate for a given system. 
+
+The C program simulates the buffering and I/O mechanisms/used by each 
+one of the BTE stream implementations so that the ``raw'' (only in the 
+sense that there is no TPIE layer between
+the program and the filesystem) streaming speed of an 
+I/O-buffering mechanism combination.
+
+To use the program,  \verb|#define| one of  \verb|MMAP_TEST|,
+\verb|READ_WRITE_TEST| or  \verb|STDIO_TEST|
+ to be 1 depending on whether you want to test the streaming
+speed of  \verb|BTE_mmb|, \verb|BTE_ufs| or  \verb|BTE_stdio|;
+\verb|#define|  the other two 
+flags to 0. Also \verb|#define| the \verb|BLOCKSIZE_BASE|
+ parameter to be equal to the underlying operating system blocksize. 
+
+NOTE: The \verb|BTE_mmb| stream being simulated here is one that has 
+an \verb|mmap()| based prefetching; this configuration is typically expected
+to be the best possible \verb|mmap()|-based BTE implementation. The \verb|ftruncate()|
+necessary while appending data to an to a file is done once every
+twenty \verb|mmaps()|.  
+
+The program is to be compiled using a C compiler. In order to test the streaming 
+performance of  BTE streams of any type T (of size ItemSize), the program 
+first writes out some specified number NumStreams of BTE streams containing 
+a specified number NumItems of items of size ItemSize. Then, it carries
+out a perfect NumStreams-way interleaving of the streams via a simple
+merge like process, writing the output to an output stream. During the 
+computation, each of the NumStreams streams input to the merge and 
+the stream being output by the merge uses either one (when \verb|READ_WRITE_TEST|
+or \verb|STDIO_TEST| are set to 1)  or two (when \verb|MMAP_TEST| 
+is set to 1) buffers.
+In case of \verb|STDIO_TEST|, the buffers are not maintained in the program
+but by the stdio library. In the case of \verb|MMAP_TEST| or \verb|READ_WRITE_TEST|,
+each buffer is set to be of size \verb|BLOCK_FACTOR| times \verb|BLOCKSIZE_BASE|, and
+each I/O operation corresponds to a buffer-sized operation. 
+
+In order to test the streaming performance of a BTE stream with 
+\verb|items_in_block| items of size ItemSize in each block (that is, the
+block corresponding to the theoretical I/O model), the command line 
+sequence is:
+
+\begin{verbatim}
+bte_test NumItems ItemSize NumStreams BLOCK_FACTOR items_in_block DataFile 
+\end{verbatim}
+
+The output of the program (streaming speed) is appended to the file
+DataFile. The streaming speed, alternatively called I/O Bandwidth,
+is given in units of MB/s.
 
 
 \index{block transfer engine|)}
