@@ -3,7 +3,7 @@
 // File:    ami_btree.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_btree.h,v 1.17 2002-07-23 21:07:08 tavi Exp $
+// $Id: ami_btree.h,v 1.18 2003-04-21 02:54:46 tavi Exp $
 //
 // AMI_btree declaration and implementation.
 //
@@ -249,7 +249,7 @@ protected:
   AMI_btree_status status_;
 
   // Stack to store the path to a leaf.
-  stack<pair<AMI_bid, size_t> > path_stack_;
+  std::stack<std::pair<AMI_bid, size_t> > path_stack_;
 
   // Statistics.
   tpie_stats_tree stats_;
@@ -1492,7 +1492,7 @@ template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL
 bool AMI_BTREE::insert_split(const Value& v, AMI_BTREE_LEAF* p, AMI_bid& leaf_id, bool loading) {
 
   AMI_BTREE_LEAF *q, *r;
-  pair<AMI_bid, size_t> top;
+  std::pair<AMI_bid, size_t> top;
   AMI_bid bid;
   bool ans;
 
@@ -1618,7 +1618,7 @@ AMI_bid AMI_BTREE::find_leaf(const Key& k) {
     // Find the position of the link to the child node.
     pos = p->find(k);
     // Push the current node and position on the path stack.
-    path_stack_.push(pair<AMI_bid, size_t>(bid, pos));
+    path_stack_.push(std::pair<AMI_bid, size_t>(bid, pos));
     // Find the actual block id of the child node.
     bid = p->lk[pos];
     // Release the node.
@@ -1891,7 +1891,7 @@ bool AMI_BTREE::erase(const Key& k) {
   }
 
   AMI_BTREE_NODE * q;
-  pair<AMI_bid, size_t> top;
+  std::pair<AMI_bid, size_t> top;
 
   // Underflow. Balance or merge up the tree.
   // Treat the first iteration separately since it deals with leaves.
