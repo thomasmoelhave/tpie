@@ -3,7 +3,7 @@
 // Created: 2002/10/30
 // Authors: Joerg Rotthowe, Jan Vahrenhold, Markus Vogel
 //
-// $Id: portability.h,v 1.14 2003-09-14 21:04:34 tavi Exp $
+// $Id: portability.h,v 1.15 2003-09-16 14:58:02 tavi Exp $
 //
 // This header-file offers macros for independent use on Win and Unix systems.
 
@@ -40,7 +40,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>
-
+// For time()
+#include <time.h>
 
 // Get random functions //
 #include <stdlib.h>
@@ -334,8 +335,10 @@ typedef unsigned int TPIE_BLOCK_ID_TYPE;
 //    non-tpie specific functions	    //
 
 #ifdef _WIN32
+// Generate 31 random bits using rand(), which normally generates only
+// 15 random bits.
 inline int TPIE_OS_RANDOM() {
-    return rand();
+  return rand() % 0x7fff + (rand() % 0x7fff << 15) + (rand() % 0x2 << 30);
 }
 #else
 inline long TPIE_OS_RANDOM() {
@@ -704,27 +707,33 @@ inline int TPIE_OS_MSYNC(char* addr, size_t len,int flags) {
 
 #ifdef _WIN32
 
+// Force the use of truncate to lengthen a collection under WIN32, due
+// to mapping issues.
 #ifdef BTE_COLLECTION_USE_FTRUNCATE
 #undef BTE_COLLECTION_USE_FTRUNCATE
 #endif
 #define BTE_COLLECTION_USE_FTRUNCATE 1
 
 inline int TPIE_OS_FTRUNCATE(TPIE_OS_FILE_DESCRIPTOR& fd, LONG length) {
-    if (fd.useFileMapping == TPIE_OS_FLAG_USE_MAPPING_TRUE) {
-	    CloseHandle(fd.mapFileHandle);	
-	}
-    LONG highOrderOff = getHighOrderOff(length);
-    int x = ((((fd).RDWR == false) 	|| 
-	      (SetFilePointer((fd).FileHandle,getLowOrderOff(length),&highOrderOff,FILE_BEGIN) == 0xFFFFFFFF)	|| 
-	      (SetEndOfFile((fd).FileHandle) == 0)) ? -1 : 0);
-    if (fd.useFileMapping == TPIE_OS_FLAG_USE_MAPPING_TRUE) {
-	     fd.mapFileHandle= CreateFileMapping( (fd).FileHandle,
+  // Save the offset
+  TPIE_OS_OFFSET so = TPIE_OS_LSEEK(fd, 0, TPIE_OS_FLAG_SEEK_CUR);
+  if (fd.useFileMapping == TPIE_OS_FLAG_USE_MAPPING_TRUE) {
+    CloseHandle(fd.mapFileHandle);	
+  }
+  LONG highOrderOff = getHighOrderOff(length);
+  int x = ((((fd).RDWR == false) 	|| 
+	    (SetFilePointer((fd).FileHandle,getLowOrderOff(length),&highOrderOff,FILE_BEGIN) == 0xFFFFFFFF)	|| 
+	    (SetEndOfFile((fd).FileHandle) == 0)) ? -1 : 0);
+  if (fd.useFileMapping == TPIE_OS_FLAG_USE_MAPPING_TRUE) {
+    fd.mapFileHandle= CreateFileMapping( (fd).FileHandle,
 					 0,
 					 ((fd).RDWR ? PAGE_READWRITE : PAGE_READONLY),	
 					 0, 0,
 					 NULL);
-	}
-    return x;
+  }
+  // Restore the offset, mimicking the ftruncate() behavior.
+  TPIE_OS_LSEEK(fd, so, TPIE_OS_FLAG_SEEK_SET);
+  return x;
 }
 #else							
 inline int TPIE_OS_FTRUNCATE(TPIE_OS_FILE_DESCRIPTOR& fd, LONG length) {
