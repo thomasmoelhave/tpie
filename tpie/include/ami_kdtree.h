@@ -5,7 +5,7 @@
 //
 // Blocked kd-tree definition and implementation.
 //
-// $Id: ami_kdtree.h,v 1.5 2003-04-20 09:22:15 tavi Exp $
+// $Id: ami_kdtree.h,v 1.6 2003-04-21 04:10:59 tavi Exp $
 //
 
 #ifndef _KDTREE_H
@@ -29,6 +29,7 @@
 // For time()
 #include <time.h>
 // STL stuff.
+#include <iostream>
 #include <utility>
 #include <stack>
 #include <algorithm>
@@ -594,7 +595,7 @@ public:
 
 #define TPLOG(msg) 
 //  (LOG_APP_DEBUG(msg),LOG_FLUSH_LOG)
-#define DBG(msg)      cerr << msg << flush
+#define DBG(msg)      std::cerr << msg << flush
 
 // Shortcuts for my convenience.
 #define KDTREE_LEAF  Kdtree_leaf<coord_t, dim, BTECOLL>
@@ -965,7 +966,7 @@ void KDTREE::create_bin_node(KDTREE_NODE *b, bn_context ctx,
     in_streams[i] = NULL;
   }
   
-  ///DBG("create_bin_node: p=(" << ap[0] << "," << ap[1] << ") d=" << ctx.d << " pc_lo=" << lo_streams[0]->stream_len() << " pc_hi=" << hi_streams[0]->stream_len() << endl);
+  ///DBG("create_bin_node: p=(" << ap[0] << "," << ap[1] << ") d=" << ctx.d << " pc_lo=" << lo_streams[0]->stream_len() << " pc_hi=" << hi_streams[0]->stream_len() << "\n");
 
   ///assert(lo_streams[0]->stream_len() % 2 == 0);
 
@@ -1540,10 +1541,10 @@ void KDTREE::build_lower_tree_g(grid* g) {
       gc->streams[i] = new POINT_STREAM(gc->stream_names[i]);
       gc->streams[i]->persist(PERSIST_DELETE);
       if (gc->streams[i]->status() == AMI_STREAM_STATUS_INVALID) {
-	cerr << "Kdtree bulk loading internal error.\n" 
+	std::cerr << "Kdtree bulk loading internal error.\n" 
 	     << "[invalid stream restored from file "
 	     << gc->stream_names[i] << "].\n";
-	cerr << "Aborting.\n";
+	std::cerr << "Aborting.\n";
 	delete gc->streams[i];
 	exit(1);
       }
@@ -1581,7 +1582,7 @@ void KDTREE::build_lower_tree_g(grid* g) {
       else
 	b->el[gc->ctx.i].set_high_child(next_free_el++, BIN_NODE);
       TPLOG("  b("<<b->bid()<<")->el["<<gc->ctx.i<<"].?: ("<<next_free_el-1<<", BIN_NODE)\n");
-      ///DBG("create_grid: sz=" << sz << endl); 
+      ///DBG("create_grid: sz=" << sz << "\n"); 
       create_bin_node_mm(b, bn_context(next_free_el - 1, gc->ctx.h + 1, 
 				       (gc->ctx.d + 1) % dim),
 			 streams_mm, sz, next_free_el, next_free_lk);
@@ -1732,7 +1733,7 @@ void KDTREE::create_bin_node_g(KDTREE_NODE *b, bn_context ctx, grid_matrix *gmx,
    // Initialize the binary node.
    b->el[ctx.i].initialize(p.key, ctx.d);
 
-   ///DBG("create_bin_node_g: p=(" << p[0] << "," << p[1] << ") d=" << ctx.d << " pc_lo=" << gmx->point_count << " pc_hi=" << gmx_hi->point_count << endl);
+   ///DBG("create_bin_node_g: p=(" << p[0] << "," << p[1] << ") d=" << ctx.d << " pc_lo=" << gmx->point_count << " pc_hi=" << gmx_hi->point_count << "\n");
 
    ///assert(gmx->point_count % 2 == 0);
 #define USE_GRID_MORE 0
@@ -2008,7 +2009,7 @@ AMI_err KDTREE::load_sample(POINT_STREAM* s) {
   if (header_.size <= params_.leaf_size_max) {
 
     header_.root_type = BLOCK_LEAF;
-    cerr << "Size too small. Not implemented.\n";
+    std::cerr << "Size too small. Not implemented.\n";
     err = AMI_ERROR_GENERIC_ERROR;
     //    create_leaf(header_.root_bid, 0, s);
 
@@ -2478,7 +2479,7 @@ void KDTREE::print(ostream& s) {
     }
   } else
     s << " Root is leaf.\n";
-  s << endl;
+  s << "\n";
 }
 
 //// *Kdtree::~Kdtree* ////
@@ -3024,9 +3025,9 @@ void KDTREE::build_lower_tree_s(sample* s) {
     sc->stream = new POINT_STREAM(sc->stream_name);
     sc->stream->persist(PERSIST_DELETE);
     if (!sc->stream->is_valid()) {
-      cerr << "Kdtree bulk loading internal error.\n"
+      std::cerr << "Kdtree bulk loading internal error.\n"
 	   << "[invalid stream restored from file]\n";
-      cerr << "Skipping.\n";
+      std::cerr << "Skipping.\n";
       delete sc->stream;
       sc->stream = NULL;
       continue;
@@ -3035,9 +3036,9 @@ void KDTREE::build_lower_tree_s(sample* s) {
     sc->stream_name = NULL;
 
     if (!can_do_mm(sc->stream->stream_len())) {
-      cerr << "Temp stream too big: " 
+      std::cerr << "Temp stream too big: " 
 	   << sc->stream->stream_len() << " items.\n";
-      cerr << "Aborting.\n";
+      std::cerr << "Aborting.\n";
       exit(1);
     }
     copy_to_mm(sc->stream, streams_mm, sz);
@@ -3073,7 +3074,7 @@ void KDTREE::build_lower_tree_s(sample* s) {
       else
 	b->el[sc->ctx.i].set_high_child(next_free_el++, BIN_NODE);
       TPLOG("  b("<<b->bid()<<")->el["<<sc->ctx.i<<"].?: ("<<next_free_el-1<<", BIN_NODE)\n");
-      ///DBG("create_grid: sz=" << sz << endl); 
+      ///DBG("create_grid: sz=" << sz << "\n"); 
       create_bin_node_mm(b, bn_context(next_free_el - 1, sc->ctx.h + 1, 
 				       (sc->ctx.d + 1) % dim),
 			 streams_mm, sz, next_free_el, next_free_lk);
@@ -3170,10 +3171,10 @@ KDTREE::sample::sample(size_t _sz, POINT_STREAM* _in_stream) {
 
   // Eliminate duplicates.
   if ((new_last = std::unique(offsets, offsets + sz)) != offsets + sz) {
-    cerr << "    Warning: Duplicate samples found! Decreasing sample size accordingly.\n";
+    std::cerr << "    Warning: Duplicate samples found! Decreasing sample size accordingly.\n";
     // Adjust sample size sz.
     sz = new_last - offsets;
-    cerr << "    New sample size: " << sz << "\n";
+    std::cerr << "    New sample size: " << sz << "\n";
   }
 
   // Make space for one in-memory array (more later).
