@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/30/94
 //
-// $Id: mm_register.h,v 1.2 1994-09-22 14:57:09 darrenv Exp $
+// $Id: mm_register.h,v 1.3 2000-01-14 19:12:58 hutchins Exp $
 //
 #ifndef _MM_REGISTER_H
 #define _MM_REGISTER_H
@@ -28,22 +28,44 @@ private:
     static int instances;
 
     // The amount of space remaining to be allocated.
-    size_t remaining;
+    size_t   remaining;
 
-    // The total amount that can ever be allocated.
-    size_t max_sz;
+    // The user-specified limit on memory. 
+
+    size_t   user_limit;
     
+    // the amount that has been allocated.
+    size_t   used;
+
+    //#ifndef MM_BACKWARD_COMPATIBLE
+    // flag indicates whether we are keeping track of memory or not
+    static int register_new;
+    //#endif
+
 public:
     MM_register();
     ~MM_register(void);
 
-    MM_err register_allocation(size_t sz);
+    MM_err register_allocation  (size_t sz);
     MM_err register_deallocation(size_t sz);
-    MM_err available(size_t *sz);
-
-    MM_err resize_heap(size_t sz);
-    
+#ifdef MM_BACKWARD_COMPATIBLE
+// retained for backward compatibility
+    MM_err available        (size_t *sz);
+    MM_err resize_heap      (size_t sz);
+#endif
+    MM_err set_memory_limit(size_t sz); // dh.
+    void   enforce_memory_limit ();     // dh.
+    void   ignore_memory_limit ();      // dh.
+    void   warn_memory_limit ();        // dh.
+    size_t memory_available ();         // dh.
+    size_t memory_used ();              // dh.
+    size_t memory_limit ();             // dh.
+    int    space_overhead ();           // dh.
+        
     friend class mm_register_init;
+    friend void * operator new(size_t);
+    friend void operator delete(void *);
+    friend void operator delete[](void *);
 };
 
 
