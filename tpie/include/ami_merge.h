@@ -8,7 +8,7 @@
 // lower level streams will use appropriate levels of buffering.  This
 // will be more critical for parallel disk implementations.
 //
-// $Id: ami_merge.h,v 1.26 1999-07-06 02:58:44 rajiv Exp $
+// $Id: ami_merge.h,v 1.27 1999-07-06 02:59:22 rajiv Exp $
 //
 #ifndef _AMI_MERGE_H
 #define _AMI_MERGE_H
@@ -789,7 +789,7 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
   }
 
   //Monitoring prints.
-  cout << "Number of passes incl run formation is " << k+1 << "\n";
+  LOG_DEBUG_INFO("Number of passes incl run formation is " << k+1 << "\n");
   
   delete [] the_substreams;
   return AMI_ERROR_NO_ERROR;
