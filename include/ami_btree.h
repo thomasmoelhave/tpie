@@ -3,7 +3,7 @@
 // File:    ami_btree.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_btree.h,v 1.22 2003-05-05 01:30:27 tavi Exp $
+// $Id: ami_btree.h,v 1.23 2003-06-21 07:47:25 tavi Exp $
 //
 // AMI_btree declaration and implementation.
 //
@@ -122,6 +122,11 @@ public:
   AMI_err load(AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>* bt,
 	       float leaf_fill = .7, float node_fill = .5);
 
+  // Traverse the tree in dfs preorder. Return next node and its level
+  // (root is on level 0). Start the process by calling this with
+  // level=-1.
+  std::pair<AMI_bid, Key> dfs_preorder(int& level);
+
   // Insert an element.
   bool insert(const Value& v);
 
@@ -201,18 +206,18 @@ protected:
   typedef AMI_CACHE_MANAGER<node_t*, remove_node> node_cache_t;
   typedef AMI_CACHE_MANAGER<leaf_t*, remove_leaf> leaf_cache_t;
 
-  class header_type {
+  class header_t {
   public:
     AMI_bid root_bid;
     size_t height;
     size_t size;
 
-    header_type(): root_bid(0), height(0), size(0) {}
+    header_t(): root_bid(0), height(0), size(0) {}
   };
 
   // Critical information: root bid, height, size (will be stored into
   // the header of the nodes collection).
-  header_type header_;
+  header_t header_;
 
   // The node cache.
   node_cache_t* node_cache_;
@@ -248,6 +253,10 @@ protected:
 
   // Stack to store the path to a leaf.
   std::stack<std::pair<AMI_bid, size_t> > path_stack_;
+
+  // Stack to store path during dfspreorder traversal. Each element is
+  // a pair: block id and link index.
+  std::stack<std::pair<AMI_bid, size_t> > dfs_stack_;
 
   // Statistics.
   tpie_stats_tree stats_;
@@ -319,6 +328,7 @@ protected:
   void merge_node(node_t *f, 
 		  node_t* &p, size_t pos);
 
+public:
   node_t* fetch_node(AMI_bid bid = 0);
   leaf_t* fetch_leaf(AMI_bid bid = 0);
 
@@ -820,6 +830,7 @@ void AMI_BTREE_NODE::insert_pos(const Key& k, AMI_bid l, size_t k_pos, size_t l_
     el[k_pos] = k;
   else
     el.insert(k, k_pos);
+
   if (l_pos == size() + 1)
     lk[l_pos] = l;
   else
@@ -886,7 +897,7 @@ void AMI_BTREE_NODE::merge(const AMI_BTREE_NODE &right, const Key& k) {
 //// *AMI_btree_node::find* ////
 template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
 size_t AMI_BTREE_NODE::find(const Key& k) {
-  return std::lower_bound(&el[0], &el[size()-1] + 1, k, comp_) - &el[0];
+  return (size() == 0) ? 0: (std::lower_bound(&el[0], &el[size()-1] + 1, k, comp_) - &el[0]);
 }
 
 //// *AMI_btree_node::~AMI_btree_node* ////
@@ -923,7 +934,7 @@ AMI_BTREE::AMI_btree(const char *base_file_name, AMI_collection_type type,
   if (status_ == AMI_BTREE_STATUS_VALID) {
     if (pcoll_leaves_->size() > 0) {
       // Read root bid, height and size from header.
-      header_ = *((header_type *) pcoll_nodes_->user_data());
+      header_ = *((header_t *) pcoll_nodes_->user_data());
       // TODO: sanity checks.
     }
     persist(PERSIST_PERSISTENT);
@@ -972,6 +983,8 @@ void AMI_BTREE::shared_init(const char* base_file_name, AMI_collection_type type
   size_t leaf_capacity = AMI_BTREE_LEAF::el_capacity(pcoll_leaves_->block_size());
   if (params_.leaf_size_max == 0 || params_.leaf_size_max > leaf_capacity)
     params_.leaf_size_max = leaf_capacity;
+  if (params_.leaf_size_max == 1)
+    params_.leaf_size_max == 2;
 
   if (params_.leaf_size_min == 0)
     params_.leaf_size_min = params_.leaf_size_max / 2;
@@ -979,6 +992,8 @@ void AMI_BTREE::shared_init(const char* base_file_name, AMI_collection_type type
   size_t node_capacity = AMI_BTREE_NODE::el_capacity(pcoll_nodes_->block_size());
   if (params_.node_size_max == 0 || params_.node_size_max > node_capacity)
     params_.node_size_max = node_capacity;
+  if (params_.node_size_max == 1 || params_.node_size_max == 2)
+    params_.node_size_max = 3;
 
   if (params_.node_size_min == 0)
     params_.node_size_min = params_.node_size_max / 2;
@@ -1043,6 +1058,10 @@ AMI_err AMI_BTREE::load_sorted(AMI_STREAM<Value>* s, float leaf_fill, float node
     LOG_FATAL_ID("load: attempting to load with NULL stream pointer.");
     return AMI_ERROR_GENERIC_ERROR;
   }
+  if (!s->is_valid()) {
+    LOG_FATAL_ID("load: attempting to load with invalid input stream.");
+    return AMI_ERROR_GENERIC_ERROR;
+  }
 
   Value* pv;
   AMI_err err = AMI_ERROR_NO_ERROR;
@@ -1055,6 +1074,7 @@ AMI_err AMI_BTREE::load_sorted(AMI_STREAM<Value>* s, float leaf_fill, float node
   err = s->seek(0);
   assert(err == AMI_ERROR_NO_ERROR);
 
+  // Repeatedly insert items in sorted order.
   while ((err = s->read_item(&pv)) == AMI_ERROR_NO_ERROR) {
     insert_load(*pv, lcl);
   }
@@ -1167,6 +1187,58 @@ AMI_err AMI_BTREE::load(AMI_BTREE* bt, float leaf_fill, float node_fill) {
     release_leaf(lcl);
   params_ = params_saved;
   return err;
+}
+
+
+//// *AMI_btree::dfs_preorder* ////
+template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
+std::pair<AMI_bid, Key> AMI_BTREE::dfs_preorder(int& level) {
+
+  Key k;
+  if (level == -1) {
+    // Empty the stack. This allows restarts in the middle of a
+    // traversal. All previous state information is lost.
+    while (!dfs_stack_.empty())
+      dfs_stack_.pop();
+    // Push the root on the stack.
+    dfs_stack_.push(std::pair<AMI_bid, size_t>(header_.root_bid, 0));
+
+    level = dfs_stack_.size() - 1;
+    return std::pair<AMI_bid, Key>(header_.root_bid, k);
+  } else {
+    AMI_BTREE_NODE* bn;
+    AMI_bid id = 0;
+    // If the top of the stack is a node
+    if (dfs_stack_.size() < header_.height) {
+      // Fetch the node ...
+      bn = fetch_node(dfs_stack_.top().first);
+      // ... and get the appropriate child.
+      id = bn->lk[dfs_stack_.top().second];
+      dfs_stack_.push(std::pair<AMI_bid, size_t>(id, 0));
+      release_node(bn);
+    } else { // top of the stack is leaf
+      dfs_stack_.pop();
+      bool done = false;
+      while (!dfs_stack_.empty() && !done) {
+	// Fetch the node ...
+	bn = fetch_node(dfs_stack_.top().first);
+	// Increment the link index.
+	(dfs_stack_.top().second)++;
+	// Check the link index for validity.
+	if (dfs_stack_.top().second < bn->size() + 1) {
+	  id = bn->lk[dfs_stack_.top().second];
+	  k = bn->el[dfs_stack_.top().second-1];
+	  dfs_stack_.push(std::pair<AMI_bid, size_t>(id, 0));
+	  done = true;
+	} else
+	  dfs_stack_.pop();
+
+	release_node(bn);
+      }
+    }
+    level = dfs_stack_.size() - 1;
+    return std::pair<AMI_bid, Key>(id, k);
+  }
 }
 
 //// *AMI_btree::find* ////
@@ -1422,7 +1494,7 @@ inline bool AMI_BTREE::insert_load(const Value& v, AMI_BTREE_LEAF* &lcl) {
 
   // Check for empty tree.
   if (header_.height == 0) {
-    ans =  insert_empty(v);
+    ans = insert_empty(v);
     lcl = fetch_leaf(header_.root_bid);
     return ans;
   }
@@ -1565,10 +1637,13 @@ bool AMI_BTREE::insert_split(const Value& v, AMI_BTREE_LEAF* p, AMI_bid& leaf_id
       
       // Split fq.
       qq = fetch_node();
-      fmid_key = fq->split(*qq);
-	
+      fmid_key = loading ? mid_key: fq->split(*qq);
+      
       // Insert in the appropriate node.
-      (comp_(fmid_key, mid_key) ? qq: fq)->insert(mid_key, bid);
+      if (loading)
+	qq->lk[0] = bid; // TODO: this is ugly. qq has no keys now. 
+      else
+	(comp_(fmid_key, mid_key) ? qq: fq)->insert(mid_key, bid);
       
       // Prepare for next iteration.
       mid_key = fmid_key;
@@ -1989,7 +2064,7 @@ template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL
 AMI_BTREE::~AMI_btree() {
   if (status_ == AMI_BTREE_STATUS_VALID) {
     // Write initialization info into the pcoll_nodes_ header.
-    *((header_type *) pcoll_nodes_->user_data()) = header_;
+    *((header_t *) pcoll_nodes_->user_data()) = header_;
   }
   delete node_cache_;
   delete leaf_cache_;
