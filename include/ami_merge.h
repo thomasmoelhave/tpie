@@ -7,10 +7,13 @@
 // lower level streams will use appropriate levels of buffering.  This
 // will be more critical for parallel disk implementations.
 //
-// $Id: ami_merge.h,v 1.34 2002-01-15 03:23:24 tavi Exp $
+// $Id: ami_merge.h,v 1.35 2003-04-17 12:59:44 jan Exp $
 //
 #ifndef _AMI_MERGE_H
 #define _AMI_MERGE_H
+
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 // For log() and such as needed to compute tree heights.
 #include <math.h>
@@ -170,11 +173,11 @@ AMI_generalized_single_merge(AMI_STREAM<T> **instreams, arity_t arity,
   AMI_err ami_err;
   
   // Create an array of pointers for the input.
-  T *in_objects[arity];
+  T* *in_objects = new T*[arity];
   
   // Create an array of flags the merge object can use to ask for more
   // input from specific streams.
-  AMI_merge_flag taken_flags[arity];
+  AMI_merge_flag* taken_flags  = new AMI_merge_flag[arity];
   
   // An index to speed things up when the merge object takes only from
   // one index.
@@ -191,7 +194,9 @@ AMI_generalized_single_merge(AMI_STREAM<T> **instreams, arity_t arity,
   // number of non-null items read
   for (ii = arity; ii--; ) {
     if ((ami_err = instreams[ii]->seek(0)) != AMI_ERROR_NO_ERROR) {
-      return ami_err;
+	delete[] in_objects;
+	delete[] taken_flags;
+	return ami_err;
     }
     if ((ami_err = instreams[ii]->read_item(&(in_objects[ii]))) !=
 	AMI_ERROR_NO_ERROR) {
@@ -199,6 +204,8 @@ AMI_generalized_single_merge(AMI_STREAM<T> **instreams, arity_t arity,
    if (ami_err == AMI_ERROR_END_OF_STREAM) {
 	in_objects[ii] = NULL;
       } else {
+	delete[] in_objects;
+	delete[] taken_flags;
 	return ami_err;
       }
       // Set the taken flags to 0 before we call intialize()
@@ -230,7 +237,9 @@ AMI_generalized_single_merge(AMI_STREAM<T> **instreams, arity_t arity,
 	    if (ami_err == AMI_ERROR_END_OF_STREAM) {
 	      in_objects[ii] = NULL;
 	    } else {
-	      return ami_err;
+		delete[] in_objects;
+		delete[] taken_flags;
+		return ami_err;
 	    }
 	  } else {
 #if DEBUG_PERFECT_MERGE                    
@@ -250,7 +259,9 @@ AMI_generalized_single_merge(AMI_STREAM<T> **instreams, arity_t arity,
 	  if (ami_err == AMI_ERROR_END_OF_STREAM) {
 	    in_objects[taken_index] = NULL;
 	  } else {
-	    return ami_err;
+	      delete[] in_objects;
+	      delete[] taken_flags;
+	      return ami_err;
 	  }
 	} else {
 #if DEBUG_PERFECT_MERGE                    
@@ -270,11 +281,15 @@ AMI_generalized_single_merge(AMI_STREAM<T> **instreams, arity_t arity,
 #endif                    
       if ((ami_err = outstream->write_item(merge_out)) !=
 	  AMI_ERROR_NO_ERROR) {
-	return ami_err;
+	  delete[] in_objects;
+	  delete[] taken_flags;
+	  return ami_err;
       }            
     } else if ((ami_err != AMI_MERGE_CONTINUE) &&
 	       (ami_err != AMI_MERGE_READ_MULTIPLE)) {
-      return ami_err;
+	delete[] in_objects;
+	delete[] taken_flags;
+	return ami_err;
     }
   }
   
@@ -283,7 +298,10 @@ AMI_generalized_single_merge(AMI_STREAM<T> **instreams, arity_t arity,
 	    "Merge done, input_count = " << input_count <<
 	    ", output_count = " << output_count << '.');
 #endif
-  
+
+  delete[] in_objects;
+  delete[] taken_flags;
+
   return AMI_ERROR_NO_ERROR;
 };
 
@@ -303,7 +321,7 @@ AMI_err AMI_main_mem_merge(AMI_STREAM<T> *instream,
                            AMI_STREAM<T> *outstream, M *m_obj)  {
 
   AMI_err ae;
-  off_t len;
+  TPIE_OS_OFFSET len;
   size_t sz_avail;
   
   // How much memory is available?
@@ -322,7 +340,7 @@ AMI_err AMI_main_mem_merge(AMI_STREAM<T> *instream,
     // parallel buffer allocation.  It will not work with anything
     // other than a registration based memory manager.
     T *mm_stream;
-    off_t len1;
+    TPIE_OS_OFFSET len1;
     //allocate and read input stream in memory
     if ((mm_stream = new T[len]) == NULL) {
       return AMI_ERROR_MM_ERROR;
@@ -377,7 +395,7 @@ AMI_err AMI_generalized_partition_and_merge(AMI_STREAM<T> *instream,
                                 AMI_STREAM<T> *outstream, M *m_obj) {
 
   AMI_err ae;
-  off_t len;
+  TPIE_OS_OFFSET len;
   size_t sz_avail, sz_stream;
   unsigned int ii;
   int jj;
@@ -433,7 +451,7 @@ AMI_err AMI_generalized_partition_and_merge(AMI_STREAM<T> *instream,
   // correct.
   unsigned int k;
   
-  off_t sub_start, sub_end;
+  TPIE_OS_OFFSET sub_start, sub_end;
   
   
   
@@ -555,7 +573,7 @@ AMI_err AMI_generalized_partition_and_merge(AMI_STREAM<T> *instream,
   
   for (ii = 0; ii++ < nb_orig_substr; ) {
     
-    off_t mm_len;
+    TPIE_OS_OFFSET mm_len;
     if (ii == nb_orig_substr) {
       mm_len = len % sz_orig_substr;
       // If it is an exact multiple, then the mod will come out 0,
@@ -567,7 +585,7 @@ AMI_err AMI_generalized_partition_and_merge(AMI_STREAM<T> *instream,
       mm_len = sz_orig_substr;
     }
 #if DEBUG_ASSERTIONS
-    off_t mm_len_bak = mm_len;
+    TPIE_OS_OFFSET mm_len_bak = mm_len;
 #endif
     
     // Read a memory load out of the input stream.
@@ -606,7 +624,7 @@ AMI_err AMI_generalized_partition_and_merge(AMI_STREAM<T> *instream,
   current_substream_len = sz_orig_substr;
   
   // Pointers to the substreams that will be merged.
-  AMI_STREAM<T> **the_substreams = new (AMI_STREAM<T> *)[merge_arity];
+  AMI_STREAM<T>* *the_substreams = new AMI_STREAM<T>*[merge_arity];
   
   //Monitoring prints.
   LOG_DEBUG_ID("Number of runs from run formation is "
