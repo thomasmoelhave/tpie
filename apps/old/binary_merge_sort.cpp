@@ -7,15 +7,15 @@
 
 
 
-static char binary_merge_sort_id[] = "$Id: binary_merge_sort.cpp,v 1.1 1994-08-31 18:57:37 darrenv Exp $";
+static char binary_merge_sort_id[] = "$Id: binary_merge_sort.cpp,v 1.2 1994-09-16 13:17:20 darrenv Exp $";
 
 // If you actually want to see all the ints in the stream.
 //#define REPORT_RESULTS
 
-//#define BTE_MMB_LOGICAL_BLOCKSIZE_FACTOR 32
+#define BTE_MMB_LOGICAL_BLOCKSIZE_FACTOR 32
 #define TEST_SIZE 1024 * 1024 
 
-#define MIN_RECURSE_LEN 8192 
+#define MIN_RECURSE_LEN 1024 * 256
 
 #include <stdlib.h>
 #include <iostream.h>
