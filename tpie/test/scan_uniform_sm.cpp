@@ -5,26 +5,13 @@
 // Created: 3/6/95
 //
 
-static char scan_uniform_sm_id[] = "$Id: scan_uniform_sm.cpp,v 1.3 1999-11-02 17:05:44 tavi Exp $";
-
-// This is just to avoid an error message since the string above is never
-// referenced.  Note that a self referential structure must be defined to
-// avoid passing the problem further.
-static struct ___scan_uniform_sm_id_compiler_fooler {
-    char *pc;
-    ___scan_uniform_sm_id_compiler_fooler *next;
-} the___scan_uniform_sm_id_compiler_fooler = {
-    scan_uniform_sm_id,
-    &the___scan_uniform_sm_id_compiler_fooler
-};
-
-
 
 // Get information on the configuration to test.
 #include "app_config.h"
 
 // Define it all.
 #include <ami.h>
+VERSION(scan_uniform_sm_cpp,"$Id: scan_uniform_sm.cpp,v 1.4 2000-01-11 02:12:01 hutchins Exp $");
 
 #include "scan_uniform_sm.h"
 
