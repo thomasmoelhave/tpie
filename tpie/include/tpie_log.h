@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/12/94
 //
-// $Id: tpie_log.h,v 1.14 2001-02-19 20:53:20 tavi Exp $
+// $Id: tpie_log.h,v 1.15 2001-06-07 17:06:00 tavi Exp $
 //
 #ifndef _TPIE_LOG_H
 #define _TPIE_LOG_H
@@ -23,21 +23,22 @@ enum {
 
 #include <logstream.h>
 
-// Defined in tpie_log.cpp
+// Serves double duty: initilizes the log on the first call, and
+// returns the only logstream object. Defined in tpie_log.cpp
 logstream& theLog();
 
 // Macros to simplify logging.  The argument to the macro can be any type
 // that log streams have an output operator for.
 
-#define LOG_FLUSH_LOG (theLog().ofstream::flush())
+#define LOG_FLUSH_LOG (!logstream::log_initialized || theLog().ofstream::flush())
 
 // eg: LOG_FATAL(LOG_ID_MSG)
 #define LOG_ID_MSG __FILE__ << " line " << __LINE__ << ": "
 
-#define LOG_FATAL(msg) (theLog() << setpriority(TP_LOG_FATAL) << msg)
-#define LOG_WARNING(msg)  (theLog() << setpriority(TP_LOG_WARNING) << msg)
-#define LOG_APP_DEBUG(msg)  (theLog() << setpriority(TP_LOG_APP_DEBUG)  << msg)
-#define LOG_DEBUG_INFO(msg)  (theLog() << setpriority(TP_LOG_DEBUG_INFO)  << msg)
+#define LOG_FATAL(msg) (!logstream::log_initialized || theLog() << setpriority(TP_LOG_FATAL) << msg)
+#define LOG_WARNING(msg)  (!logstream::log_initialized || theLog() << setpriority(TP_LOG_WARNING) << msg)
+#define LOG_APP_DEBUG(msg)  (!logstream::log_initialized || theLog() << setpriority(TP_LOG_APP_DEBUG)  << msg)
+#define LOG_DEBUG_INFO(msg)  (!logstream::log_initialized || theLog() << setpriority(TP_LOG_DEBUG_INFO)  << msg)
 
 #define LOG_FATAL_ID(msg)  \
   (LOG_FATAL(LOG_ID_MSG << msg << "\n"), LOG_FLUSH_LOG)
