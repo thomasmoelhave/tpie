@@ -20,7 +20,7 @@
 // keys of the items; there is a provision to to use templated heaps
 // to implement the merge.
 
-// $Id: ami_optimized_merge.h,v 1.46 2000-03-05 19:47:00 hutchins Exp $	
+// $Id: ami_optimized_merge.h,v 1.47 2001-06-16 21:19:11 hutchins Exp $	
 
 // TO DO: substream_count setting; don't depend on current_stream_len
 
@@ -477,10 +477,11 @@ AMI_merge (AMI_STREAM < T > **instreams, arity_t arity,
    //make sure all streams fit in available memory
    sz_avail = count_stream_overhead (instreams, arity);
    if (sz_needed >= sz_avail) {
-      LOG_ERROR ("Insuficent main memory to perform a merge.\n");
+      LOG_FATAL_ID ("Insufficent main memory to perform a merge.");
       return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
    }
-   assert (sz_needed < sz_avail);
+   // assert (sz_needed < sz_avail); just checked this.. dh
+
    //should count the space overhead used by merge..merge should
    //implement a function which returns it; for the moment just rely on
    //the merge routine that it returns an error
@@ -504,10 +505,11 @@ AMI_merge (AMI_STREAM < T > **instreams, arity_t arity,
    //make sure all streams fit in available memory
    sz_avail = count_stream_overhead (instreams, arity);
    if (sz_needed >= sz_avail) {
-      LOG_ERROR ("Insuficent main memory to perform a merge.\n");
+       LOG_FATAL_ID ("Insufficent main memory to perform a merge.");
       return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
    }
-   assert (sz_needed < sz_avail);
+   // assert (sz_needed < sz_avail); just checked this .. dh
+
    //should count the space overhead used by merge..merge should
    //implement a function which returns it; for the moment just rely on
    //the merge routine that it returns an error
@@ -531,10 +533,11 @@ AMI_merge (AMI_STREAM < T > **instreams, arity_t arity,
    //make sure all streams fit in available memory
    sz_avail = count_stream_overhead (instreams, arity);
    if (sz_needed >= sz_avail) {
-      LOG_ERROR ("Insuficent main memory to perform a merge.\n");
+      LOG_FATAL_ID ("Insuficent main memory to perform a merge.");
       return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
    }
-   assert (sz_needed < sz_avail);
+   // assert (sz_needed < sz_avail); just checked this .. dh
+
    //should count the space overhead used by merge..merge should
    //implement a function which returns it; for the moment just rely on
    //the merge routine that it returns an error
@@ -717,7 +720,6 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 			   + sizeof (merge_heap_element < T >)) ) {
 	 LOG_FATAL_ID
 	     ("Insufficient Memory for AMI_partition_and_merge_stream()");
-	 LOG_FLUSH_LOG;
 	 return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
       }
 
@@ -766,28 +768,26 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
 	 if (ami_available_streams != -1) {
 	    if (ami_available_streams <= 5) {
-	       LOG_DEBUG_ID ("out of streams");
-	       LOG_FLUSH_LOG;
+	       LOG_FATAL_ID ("out of streams");
 	       return AMI_ERROR_INSUFFICIENT_AVAILABLE_STREAMS;
 	    }
 
 	    if (merge_arity > (arity_t) ami_available_streams - 2) {
 	       merge_arity = ami_available_streams - 2;
-	       LOG_DEBUG_INFO
-		   ("Reduced merge arity due to AMI restrictions.\n");
+	       LOG_DEBUG_ID
+		   ("Reduced merge arity due to AMI restrictions.");
 
 	    }
 	 }
       }
 
-      LOG_DEBUG_INFO ("AMI_partition_and_merge(): merge arity = " <<
-		      merge_arity << ".\n");
+      LOG_DEBUG_ID ("AMI_partition_and_merge(): merge arity = " <<
+		      merge_arity );
 
       if (merge_arity < 2) {
 
 	 LOG_FATAL_ID
 	     ("Insufficient memory for AMI_partition_and_merge_stream()");
-	 LOG_FLUSH_LOG;
 
 	 return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
       }
@@ -863,8 +863,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
       tp_assert (mm_stream != NULL, "Misjudged available main memory.");
 
       if (mm_stream == NULL) {
-	 LOG_DEBUG_INFO ("internal error");
-	 LOG_FLUSH_LOG;
+	 LOG_FATAL_ID ("internal error");
 	 return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
       }
 
@@ -1075,9 +1074,9 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
       //Monitoring prints.
 
-      LOG_DEBUG_INFO ("Number of runs from run formation is " <<
-		      original_substreams << "\n");
-      LOG_DEBUG_INFO ("Merge arity is " << merge_arity << "\n");
+      LOG_DEBUG_ID ("Number of runs from run formation is " <<
+		      original_substreams );
+      LOG_DEBUG_ID ("Merge arity is " << merge_arity );
 
       // Pointers to the substreams that will be merged.
 //RAKESH        
@@ -1156,11 +1155,8 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 				   outstream);
 
 	    if (ae != AMI_ERROR_NO_ERROR) {
-	       LOG_DEBUG_ID ("AMI_single_merge error");
-	       LOG_FATAL ("AMI_ERROR ");
-	       LOG_FATAL (ae);
-	       LOG_FATAL (" returned by  AMI_single_merge()");
-	       LOG_FLUSH_LOG;
+                LOG_FATAL_ID ("AMI_single_merge error " <<
+                              ae << " returned by  AMI_single_merge()");
 	       return ae;
 	    }
 	    // Delete the streams input to the above merge.
@@ -1187,7 +1183,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
 	 } else {
 
-	    LOG_DEBUG_ID ("Merging substreams to intermediate streams.\n");
+	    LOG_DEBUG_ID ("Merging substreams to intermediate streams.");
 
 	    // Create the array of merge_arity stream pointers that
 	    // will each point to a stream containing runs output
@@ -1452,8 +1448,8 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
       }
 
       //Monitoring prints.
-      LOG_DEBUG_INFO ("Number of passes incl run formation is " << k +
-		      1 << "\n");
+      LOG_DEBUG_ID ("Number of passes incl run formation is " << k +
+		      1 );
 
       return AMI_ERROR_NO_ERROR;
 
@@ -1533,9 +1529,9 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 	 mm_stream[i] = *next_item;
       }
 
-      cout << "qsorting in all in-memory-sort\n";
+      cout << "qsorting in all in-memory-sort";
       quicker_sort_cmp ((T *) mm_stream, len, cmp);
-      cout << "returned from qsorting\n";
+      cout << "returned from qsorting";
 
       for (int i = 0; i < len; i++) {
 	 if ((ae = outstream->write_item (mm_stream[i]))
@@ -1633,7 +1629,6 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 	  ) {
 	 LOG_FATAL_ID
 	     ("Insufficient Memory for AMI_partition_and_merge_cmp()");
-	 LOG_FLUSH_LOG;
 	 return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
       }
 
@@ -1690,21 +1685,20 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
 	    if (merge_arity > (arity_t) ami_available_streams - 2) {
 	       merge_arity = ami_available_streams - 2;
-	       LOG_DEBUG_INFO
-		   ("Reduced merge arity due to AMI restrictions.\n");
+	       LOG_DEBUG_ID
+		   ("Reduced merge arity due to AMI restrictions.");
 
 	    }
 	 }
       }
 
-      LOG_DEBUG_INFO ("AMI_partition_and_merge(): merge arity = " <<
-		      merge_arity << ".\n");
+      LOG_DEBUG_ID ("AMI_partition_and_merge(): merge arity = " <<
+		      merge_arity );
 
       if (merge_arity < 2) {
 
 	 LOG_FATAL_ID
 	     ("Insufficient memory for AMI_partition_and_merge_cmp()");
-	 LOG_FLUSH_LOG;
 
 	 return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
       }
@@ -1784,8 +1778,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
       tp_assert (mm_stream != NULL, "Misjudged available main memory.");
 
       if (mm_stream == NULL) {
-	 LOG_DEBUG_INFO ("internal error");
-	 LOG_FLUSH_LOG;
+	 LOG_FATAL_ID ("internal error");
 	 return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
       }
 
@@ -1893,7 +1886,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
 	       //Sort the array.
 
-	       //cout << "quicksorting\n";
+	       //cout << "quicksorting";
 
 	       quicker_sort_cmp ((T *) mm_stream, mm_len, cmp);
 
@@ -2005,9 +1998,9 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
       //Monitoring prints.
 
-      LOG_DEBUG_INFO ("Number of runs from run formation is " <<
-		      original_substreams << "\n");
-      LOG_DEBUG_INFO ("Merge arity is " << merge_arity << "\n");
+      LOG_DEBUG_ID ("Number of runs from run formation is " <<
+		      original_substreams );
+      LOG_DEBUG_ID ("Merge arity is " << merge_arity );
 
       // Pointers to the substreams that will be merged.
 //RAKESH        
@@ -2081,11 +2074,8 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 				   outstream, cmp);
 
 	    if (ae != AMI_ERROR_NO_ERROR) {
-	       LOG_DEBUG_ID ("AMI_single_merge error");
-	       LOG_FATAL ("AMI_ERROR ");
-	       LOG_FATAL (ae);
-	       LOG_FATAL (" returned by  AMI_single_merge()");
-	       LOG_FLUSH_LOG;
+               LOG_FATAL_ID ("AMI_single_merge error " <<
+                             ae << " returned by  AMI_single_merge()");
 	       return ae;
 	    }
 	    // Delete the streams input to the above merge.
@@ -2112,7 +2102,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
 	 } else {
 
-	    LOG_DEBUG_ID ("Merging substreams to intermediate streams.\n");
+	    LOG_DEBUG_ID ("Merging substreams to intermediate streams.");
 
 	    // Create the array of merge_arity stream pointers that
 	    // will each point to a stream containing runs output
@@ -2379,8 +2369,8 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
       //Monitoring prints.
 
-      LOG_DEBUG_INFO ("Number of passes incl run formation is " << k +
-		      1 << "\n");
+      LOG_DEBUG_ID ("Number of passes incl run formation is " << k +
+		      1 );
 
       return AMI_ERROR_NO_ERROR;
 
@@ -2597,9 +2587,8 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 	  //+ sz_stream + sizeof(merge_heap_element<KEY>)
 	  ) {
 
-	 LOG_FATAL
+	 LOG_FATAL_ID
 	     ("Insufficient memory in AMI_partition_and_merge_Key()");
-	 LOG_FLUSH_LOG;
 	 return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
       }
 
@@ -2656,20 +2645,19 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 	    if (merge_arity > (arity_t) ami_available_streams - 2) {
 	       merge_arity = ami_available_streams - 2;
 	       LOG_DEBUG_ID
-		   ("Reduced merge arity due to AMI restrictions.\n");
+		   ("Reduced merge arity due to AMI restrictions.");
 
 	    }
 	 }
       }
 
       LOG_DEBUG_ID ("AMI_partition_and_merge_Key(): merge arity = " <<
-		    merge_arity << ".\n");
+		    merge_arity );
 
       if (merge_arity < 2) {
 
-	 LOG_FATAL
+	 LOG_FATAL_ID
 	     ("Insufficient memory for AMI_partition_and_merge_Key()");
-	 LOG_FLUSH_LOG;
 
 	 return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
       }
@@ -2992,9 +2980,9 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
       //Monitoring prints.
 
-      LOG_DEBUG_INFO ("Number of runs from run formation is " <<
-		      original_substreams << "\n");
-      LOG_DEBUG_INFO ("Merge arity is " << merge_arity << "\n");
+      LOG_DEBUG_ID ("Number of runs from run formation is " <<
+		      original_substreams );
+      LOG_DEBUG_ID ("Merge arity is " << merge_arity );
 
       for (substream_count = original_substreams;
 	   substream_count > 1;
@@ -3055,10 +3043,8 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
 	    if (ae != AMI_ERROR_NO_ERROR) {
 
-	       LOG_FATAL ("AMI_ERROR ");
-	       LOG_FATAL (ae);
-	       LOG_FATAL (" returned by  AMI_single_merge()");
-	       LOG_FLUSH_LOG;
+                LOG_FATAL_ID ("AMI_ERROR " << 
+                              ae << " returned by  AMI_single_merge()");
 	       return ae;
 	    }
 	    // Delete the streams input to the above merge.
@@ -3085,7 +3071,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
 	 } else {
 
-	    LOG_DEBUG_ID ("Merging substreams to intermediate streams.\n");
+	    LOG_DEBUG_ID ("Merging substreams to intermediate streams.");
 
 	    // Create the array of merge_arity stream pointers that
 	    // will each point to a stream containing runs output
@@ -3355,8 +3341,8 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
       //Monitoring prints.
 
-      LOG_DEBUG_INFO ("Number of passes incl run formation is " << k +
-		      1 << "\n");
+      LOG_DEBUG_ID ("Number of passes incl run formation is " << k +
+		      1 );
 
       LOG_DEBUG_ID ("AMI_partition_and_merge_Key: done");
       return AMI_ERROR_NO_ERROR;
@@ -3588,9 +3574,8 @@ template < class T, class KEY >
 	  //+ sz_stream + sizeof(merge_heap_element<KEY>)
 	  ) {
 
-	 LOG_FATAL
+	 LOG_FATAL_ID
 	     ("Insufficient Memory for AMI_replacement_selection_and_merge_Key()");
-	 LOG_FLUSH_LOG;
 	 return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
       }
       // Round the original substream length off to an integral
@@ -3641,19 +3626,18 @@ template < class T, class KEY >
 	    if (merge_arity > (arity_t) ami_available_streams - 2) {
 	       merge_arity = ami_available_streams - 2;
 	       LOG_DEBUG_ID
-		   ("Reduced merge arity due to AMI restrictions.\n");
+		   ("Reduced merge arity due to AMI restrictions.");
 
 	    }
 	 }
       }
 
       LOG_DEBUG_ID ("AMI_replacement_selection_and_merge(): merge arity = "
-		    << merge_arity << ".\n");
+		    << merge_arity );
 
       if (merge_arity < 2) {
-	 LOG_FATAL
+	 LOG_FATAL_ID
 	     ("Insufficient Memory for AMI_replacement_selection_and_merge_Key()");
-	 LOG_FLUSH_LOG;
 	 return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
       }
       // Create a temporary stream, then iterate through the
@@ -3717,10 +3701,8 @@ template < class T, class KEY >
 					  (MaxRuns + merge_arity -
 					   1) / merge_arity, keyoffset,
 					  dummykey)) != AMI_ERROR_NO_ERROR) {
-	 LOG_FATAL ("AMI Error ");
-	 LOG_FATAL (ae);
-	 LOG_FATAL (" in  Run_Formation_Algo_R_Key()");
-	 LOG_FLUSH_LOG;
+          LOG_FATAL_ID ("AMI Error " << 
+                        ae << " in  Run_Formation_Algo_R_Key()");
 	 return ae;
 
       }
@@ -3739,9 +3721,8 @@ template < class T, class KEY >
       }
 
       if (check_size != instream->stream_len ()) {
-	 LOG_FATAL
+	 LOG_FATAL_ID
 	     ("Run_Formation_Algo_R_Key() output different from input stream in length");
-	 LOG_FLUSH_LOG;
 	 return AMI_ERROR_IO_ERROR;
       }
 
@@ -3823,7 +3804,7 @@ template < class T, class KEY >
 				   keyoffset, dummykey);
 
 	    if (ae != AMI_ERROR_NO_ERROR) {
-	       LOG_FATAL ("AMI Error ");
+	       LOG_FATAL_ID ("AMI Error ");
 	       LOG_FATAL (ae);
 	       LOG_FATAL ("AMI_single_merge()");
 	       return ae;
@@ -3855,7 +3836,7 @@ template < class T, class KEY >
 	 } else {
 
 	    LOG_DEBUG_ID
-		("Merging substreams to an intermediate stream.\n");
+		("Merging substreams to an intermediate stream.");
 
 	    // Create the array of merge_arity stream pointers that
 	    // will each point to a stream containing runs output
@@ -4077,7 +4058,7 @@ template < class T, class KEY >
 					 dummykey);
 
 		  if (ae != AMI_ERROR_NO_ERROR) {
-		     LOG_FATAL ("AMI Error ");
+		     LOG_FATAL_ID ("AMI Error ");
 		     LOG_FATAL (ae);
 		     LOG_FATAL ("AMI_single_merge()");
 		     return ae;
