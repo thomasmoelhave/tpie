@@ -1,5 +1,5 @@
 %%
-%% $Id: ami_reference.tex,v 1.15 2002-08-30 03:15:38 tavi Exp $
+%% $Id: ami_reference.tex,v 1.16 2003-11-20 15:49:50 tavi Exp $
 %%
 \chapter{TPIE Programmer's Reference}
 \plabel{cha:reference}
@@ -976,7 +976,7 @@ keys as necessary during the sort.
 
 \subsection{Files}
   \btabb
-	\entry{\#include <quicksort.h>} {}
+        \entry{\#include <quicksort.h>} {}
   \etabb
 
 \subsection{Function Declarations}
@@ -1014,12 +1014,12 @@ The three polymorphs use different comparison methods:
 
 \subsection{Files}
   \btabb
-	\entry{\#include <ami\_stack.h>} {}
+        \entry{\#include <ami\_stack.h>} {}
   \etabb
 
 \subsection{Class Declaration}
    \btabb
-	\entry{template<class T> class \textbf{AMI\_stack};} {}
+        \entry{template<class T> class \textbf{AMI\_stack};} {}
    \etabb
 
 \subsection{Description}
@@ -1051,16 +1051,16 @@ constructors. See Section~\ref{sec:ref-ami-stream}.
 
 \subsection{Files}
   \btabb
-	\entry{\#include <ami\_block.h>} {}
+        \entry{\#include <ami\_block.h>} {}
   \etabb
 
 \subsection{Class Declaration}
    \btabb
-	\entry{template<class E, class I> class \textbf{AMI\_block}; }{The types
-	{\tt E} and {\tt I} should have a default constructor, a copy
-	constructor and an assignment operator. The size returned by {\tt
-	sizeof(E)} and {\tt sizeof(I)} should be the total size of the
-	items copied by the copy constructor/assignment operator.}
+        \entry{template<class E, class I> class \textbf{AMI\_block}; }{The types
+        {\tt E} and {\tt I} should have a default constructor, a copy
+        constructor and an assignment operator. The size returned by {\tt
+        sizeof(E)} and {\tt sizeof(I)} should be the total size of the
+        items copied by the copy constructor/assignment operator.}
 
    \etabb
 
@@ -1101,23 +1101,23 @@ block\_size} - (\mbox{\tt sizeof}(I) + \mbox{\tt sizeof(AMI\_bid)} *
 
    \btabb 
 
-	\entry{\textbf{AMI\_block}(AMI\_COLLECTION *pcoll, unsigned int l, AMI\_bid
-	bid);} {{\em Read the block} with id {\tt bid} from block collection
-	{\tt *pcoll} in newly allocated memory and format it using the
-	template types and the maximum number of links {\tt l}. Persistency
-	is set to {\tt PERSIST\_PERSISTENT}.}
+        \entry{\textbf{AMI\_block}(AMI\_COLLECTION *pcoll, unsigned int l, AMI\_bid
+        bid);} {{\em Read the block} with id {\tt bid} from block collection
+        {\tt *pcoll} in newly allocated memory and format it using the
+        template types and the maximum number of links {\tt l}. Persistency
+        is set to {\tt PERSIST\_PERSISTENT}.}
 
-	\entry{\textbf{AMI\_block}(AMI\_COLLECTION *pcoll, unsigned int l);} {{\em
-	Create a new block} in collection {\tt *pcoll}, allocate memory for
-	it, and format it using the template types and the maximum number
-	of links {\tt l}. Persistency is set to {\tt
-	PERSIST\_PERSISTENT}. The id of the block can be inquired using the
-	access member function {\tt bid()}.}
+        \entry{\textbf{AMI\_block}(AMI\_COLLECTION *pcoll, unsigned int l);} {{\em
+        Create a new block} in collection {\tt *pcoll}, allocate memory for
+        it, and format it using the template types and the maximum number
+        of links {\tt l}. Persistency is set to {\tt
+        PERSIST\_PERSISTENT}. The id of the block can be inquired using the
+        access member function {\tt bid()}.}
 
-	\entry{\textbf{$\sim$AMI\_block}();} {Destructor. If persistency 
-	is {\tt PERSIST\_DELETE}, remove the block from the collection. 
-	If it is {\tt PERSIST\_PERSISTENT}, write the block to the 
-	collection. Deallocate the memory.}
+        \entry{\textbf{$\sim$AMI\_block}();} {Destructor. If persistency 
+        is {\tt PERSIST\_DELETE}, remove the block from the collection. 
+        If it is {\tt PERSIST\_PERSISTENT}, write the block to the 
+        collection. Deallocate the memory.}
 
    \etabb
 
@@ -1125,48 +1125,67 @@ block\_size} - (\mbox{\tt sizeof}(I) + \mbox{\tt sizeof(AMI\_bid)} *
 
    \btabb
 
-	\entry{b\_vector<E> \textbf{el};} {Access to the elements is done through
-	this object, using the public methods of the {\tt b\_vector} class
-	(described below).}
+        \entry{b\_vector<E> \textbf{el};} {Access to the elements is done through
+        this object, using the public methods of the {\tt b\_vector} class
+        (described below).}
 
-	\entry{b\_vector<AMI\_bid> \textbf{lk};} {Access to the links is done
-	through this object, using the public methods of the {\tt
-	b\_vector} class (described below).}
+        \entry{b\_vector<AMI\_bid> \textbf{lk};} {Access to the links is done
+        through this object, using the public methods of the {\tt
+        b\_vector} class (described below).}
 
    \etabb
 
-\subsection{Member Functions}
+\subsection{Public Member Functions}
 
    \btabb
-	
-	\entry{I *\textbf{info}();} {Return a pointer to the info element.}
+        
+        \entry{AMI\_block<E,I>\& \textbf{operator=}(AMI\_block<E,I>\& B);} {Copy
+        block {\tt B} into the current block, if both blocks are associated
+        with the same collection. Returns a reference to this block.}
 
-	\entry{AMI\_block<E,I>\& \textbf{operator=}(AMI\_block<E,I>\& B);} {Copy
-	block {\tt B} into the current block, if both blocks are associated
-	with the same collection. Returns a reference to this block.}
+        \entry{bool \textbf{operator!}() const;} {Return {\tt true} if the block's status 
+        is not {\tt AMI\_BLOCK\_STATUS\_VALID}. See also {\tt is\_valid()} and 
+        {\tt status()}.}
 
-	\entry{AMI\_bid \textbf{bid}() const;} {Return the block id.}
+        \entry{AMI\_bid \textbf{bid}() const;} {Return the block id.}
 
-	\entry{char\& \textbf{dirty}();} {Return a reference to the dirty bit. The
-	dirty bit is used to optimize writing in some implementations of
-	the block collection class. It should be set to $1$ whenever the
-	block data is modified. See the implementation details for more.}
+        \entry{size\_t \textbf{block\_size}() const;} {Return the size of this block
+        in bytes.}
 
-	\entry{void \textbf{persist}(persistence p);} {Set the persistency flag to
-	{\tt p}. The possible values for {\tt p} are {\tt
-	PERSIST\_PERSISTENT} and {\tt PERSIST\_DELETE}.}
+        \entry{char\& \textbf{dirty}();} {Return a reference to the dirty bit. The
+        dirty bit is used to optimize writing in some implementations of
+        the block collection class. It should be set to $1$ whenever the
+        block data is modified. See the implementation details for more.}
 
-	\entry{AMI\_block\_status \textbf{status}() const;} {Return the status of the
-	block. The result is either {\tt AMI\_BLOCK\_STATUS\_VALID} or {\tt
-	AMI\_BLOCK\_STATUS\_INVALID}. The status of an {\tt AMI\_block}
-	instance is set during construction. The methods of an invalid
-	block can give erroneous results or fail.}
+        \entry{char \textbf{dirty}() const;} {Return the value of the dirty bit.}
 
-	\entry{size\_t \textbf{block\_size}() const;} {Return the size of this block
-	in bytes.}
+        \entry{static size\_t \textbf{el\_capacity}(size\_t bsz, size\_t l);} 
+        {Return the capacity of the {\tt el} vector of a block with size 
+        {\tt bsz} and number of links {\tt l}.}
 
-	\entry{AMI\_err \textbf{sync}();} {Synchronize the in-memory image of the
-	block with the one stored in external storage.}
+        \entry{I *\textbf{info}();} {Return a pointer to the info element.}
+        
+        \entry{const I* \textbf{info}() const;} {Return a const pointer to the 
+        info element.}
+
+        \entry{bool \textbf{is\_valid}() const;} {Return {\tt true} if the block's 
+        status is {\tt AMI\_BLOCK\_STATUS\_VALID}. See also {\tt status()}.}
+
+        \entry{void \textbf{persist}(persistence p);} {Set the persistency flag to
+        {\tt p}. The possible values for {\tt p} are {\tt
+        PERSIST\_PERSISTENT} and {\tt PERSIST\_DELETE}.}
+
+        \entry{persistence \textbf{persist}() const;} {Return the value of the 
+        persistency flag.} 
+
+        \entry{AMI\_block\_status \textbf{status}() const;} {Return the status of the
+        block. The result is either {\tt AMI\_BLOCK\_STATUS\_VALID} or {\tt
+        AMI\_BLOCK\_STATUS\_INVALID}. The status of an {\tt AMI\_block}
+        instance is set during construction. The methods of an invalid
+        block can give erroneous results or fail.}
+
+        \entry{AMI\_err \textbf{sync}();} {Synchronize the in-memory image of the
+        block with the one stored in external storage.}
 
    \etabb
 
@@ -1180,9 +1199,9 @@ interface). The items stored can be accessed through the array operator.
 
 \subsubsection{Class Declaration}
    \btabb 
-	\entry{template<class T> class \textbf{b\_vector};} {The type {\tt T}
-	should have a default constructor, as well as copy constructor and
-	assignment operator.}
+        \entry{template<class T> class \textbf{b\_vector};} {The type {\tt T}
+        should have a default constructor, as well as copy constructor and
+        assignment operator.}
    \etabb
 
 %\subsection{Constructors and Destructor}
@@ -1244,7 +1263,7 @@ interface). The items stored can be accessed through the array operator.
 \subsection{Class declaration}
 
    \btabb
-	\entry{class \textbf{AMI\_COLLECTION};} {}
+        \entry{class \textbf{AMI\_COLLECTION};} {}
    \etabb
 
 \subsection{Description}
@@ -1255,31 +1274,31 @@ collection is identified by a block ID, of type \myverb{AMI\_bid}.
 \subsection{Constructors and Destructor}
 
    \btabb
-	
-	\entry{\textbf{AMI\_COLLECTION}(size\_t lbf = 1);} {Create a {\em new}
-	collection with access type {\tt AMI\_WRITE\_COLLECTION} using
-	temporary file names. The files are created in a directory given by
-	the {\tt AMI\_SINGLE\_DEVICE} environment variable (or {\tt
-	``/var/tmp/''} if that variable is not set).  The {\tt lbf}
-	(logical block factor) parameter determines the size of the blocks
-	stored (the block size is {\tt lbf} times the operating system
-	page size). The persistency of the collection is set to {\tt
-	PERSIST\_DELETE}.}
+        
+        \entry{\textbf{AMI\_COLLECTION}(size\_t lbf = 1);} {Create a {\em new}
+        collection with access type {\tt AMI\_WRITE\_COLLECTION} using
+        temporary file names. The files are created in a directory given by
+        the {\tt AMI\_SINGLE\_DEVICE} environment variable (or {\tt
+        ``/var/tmp/''} if that variable is not set).  The {\tt lbf}
+        (logical block factor) parameter determines the size of the blocks
+        stored (the block size is {\tt lbf} times the operating system
+        page size). The persistency of the collection is set to {\tt
+        PERSIST\_DELETE}.}
 
-	\entry{\textbf{AMI\_COLLECTION}(char *base\_file\_name,
-	AMI\_collection\_type t = AMI\_READ\_WRITE\_COLLECTION, size\_t lbf
+        \entry{\textbf{AMI\_COLLECTION}(char *base\_file\_name,
+        AMI\_collection\_type t = AMI\_READ\_WRITE\_COLLECTION, size\_t lbf
 = 1);} {Create a new or open an 
-	existing collection using {\tt base\_file\_name} to find the
-	necessary files. The access type is set to {\tt t}. It has one of
-	the following values:
-	\begin{itemize} 
+        existing collection using {\tt base\_file\_name} to find the
+        necessary files. The access type is set to {\tt t}. It has one of
+        the following values:
+        \begin{itemize} 
           \item[]{\tt AMI\_READ\_COLLECTION} Open an existing collection
           read-only;
           \item[]{\tt AMI\_WRITE\_COLLECTION} If the files specified by
           {\tt base\_file\_name} exist, open a collection using those files
           for reading and writing. If the files do not exist, create a new
           collection with read and write acces;
-	\end{itemize}
+        \end{itemize}
         The {\tt lbf} (logical block factor) parameter determines the size
         of the blocks stored (the block size is {\tt lbf} times the
         operating system page size). The persistency of the collection is
@@ -1298,61 +1317,64 @@ collection is identified by a block ID, of type \myverb{AMI\_bid}.
 
    \btabb
 
-	\entry{bool \textbf{operator!}() const;} {Return \noiverb{true} if
-	the status of the collection is not
-	\myverb{AMI\_COLLECTION\_STATUS\_VALID}, \noiverb{false}
-	otherwise. See also \myverb{is\_valid()} and \myverb{status()}.}
+        \entry{bool \textbf{operator!}() const;} {Return \noiverb{true} if
+        the status of the collection is not
+        \myverb{AMI\_COLLECTION\_STATUS\_VALID}, \noiverb{false}
+        otherwise. See also \myverb{is\_valid()} and \myverb{status()}.}
 
-	\entry{size\_t \textbf{block\_factor}() const;} {Return the logical
-	block factor. The block size is obtained by multiplying the
-	operating system page size by this value.}
+        \entry{size\_t \textbf{block\_factor}() const;} {Return the logical
+        block factor. The block size is obtained by multiplying the
+        operating system page size by this value.}
 
-	\entry{size\_t \textbf{block\_size}() const;} {Return the size of a block
-	stored in this collection, in bytes (all blocks in a collection
-	have the same size).}
+        \entry{size\_t \textbf{block\_size}() const;} {Return the size of a block
+        stored in this collection, in bytes (all blocks in a collection
+        have the same size).}
 
-	\entry{static const tpie\_stats\_collection\& \textbf{gstats}();}
-	{Return an object containing the statistics of all collections
-	opened by the application (global statistics). See also
-	\myverb{stats()}.}
+        \entry{static const tpie\_stats\_collection\& \textbf{gstats}();}
+        {Return an object containing the statistics of all collections
+        opened by the application (global statistics). See also
+        \myverb{stats()}.}
 
-	\entry{bool \textbf{is\_valid}() const;} {Return \noiverb{true} if the status
-	of the collection is \myverb{AMI\_COLLECTION\_STATUS\_VALID}, \noiverb{false}
-	otherwise. See also \myverb{status()}.}
+        \entry{bool \textbf{is\_valid}() const;} {Return \noiverb{true} if the status
+        of the collection is \myverb{AMI\_COLLECTION\_STATUS\_VALID}, \noiverb{false}
+        otherwise. See also \myverb{status()}.}
 
-	\entry{void \textbf{persist}(persistence p);} {Set the persistency flag to
-	{\tt p}. The possible values for {\tt p} are {\tt
-	PERSIST\_PERSISTENT} and {\tt PERSIST\_DELETE}.}
+        \entry{void \textbf{persist}(persistence p);} {Set the persistency flag to
+        {\tt p}. The possible values for {\tt p} are {\tt
+        PERSIST\_PERSISTENT} and {\tt PERSIST\_DELETE}.}
 
-	\entry{size\_t \textbf{size}() const;} {Return the number of blocks in the
-	collection.}
+        \entry{persistence \textbf{persist}() const;} {Return the value of the 
+        persistency flag.}
 
-	\entry{const tpie\_stats\_collection\& \textbf{stats}() const;}
-	{Return an object containing the statistics of this collection. The
-	types of statistics computed for a collection are tabulated
-	below. See also \myverb{gstats()}.\\[1mm] \begin{tabular}{|l|l|} \hline \myverb{BLOCK\_GET} & Number
-	of block reads\\ \myverb{BLOCK\_PUT} & Number of block writes \\
-	\myverb{BLOCK\_NEW} & Number of block creates\\
-	\myverb{BLOCK\_DELETE} & Number of block deletes\\
-	\myverb{BLOCK\_SYNC} & Number of block sync operations\\
-	\myverb{COLLECTION\_OPEN} & Number of collection open operations\\
-	\myverb{COLLECTION\_CLOSE} & Number of collection close
-	operations\\ \myverb{COLLECTION\_CREATE} & Number of collection
-	create operations\\ \myverb{COLLECTION\_DELETE} & Number of
-	collection delete operations\\ \hline \end{tabular} }
+        \entry{size\_t \textbf{size}() const;} {Return the number of blocks in the
+        collection.}
 
-	\entry{AMI\_collection\_status \textbf{status}() const;} {Return
-	the status of the collection. The result is either
-	\myverb{AMI\_COLLECTION\_STATUS\_VALID} or
-	\myverb{AMI\_COLLECTION\_STATUS\_INVALID}. The only operation that
-	can leave the collection invalid is the constructor (if that
-	happens, the log file contains more information). No blocks should
-	be read from or written to an invalid collection.}
+        \entry{const tpie\_stats\_collection\& \textbf{stats}() const;}
+        {Return an object containing the statistics of this collection. The
+        types of statistics computed for a collection are tabulated
+        below. See also \myverb{gstats()}.\\[1mm] \begin{tabular}{|l|l|} \hline \myverb{BLOCK\_GET} & Number
+        of block reads\\ \myverb{BLOCK\_PUT} & Number of block writes \\
+        \myverb{BLOCK\_NEW} & Number of block creates\\
+        \myverb{BLOCK\_DELETE} & Number of block deletes\\
+        \myverb{BLOCK\_SYNC} & Number of block sync operations\\
+        \myverb{COLLECTION\_OPEN} & Number of collection open operations\\
+        \myverb{COLLECTION\_CLOSE} & Number of collection close
+        operations\\ \myverb{COLLECTION\_CREATE} & Number of collection
+        create operations\\ \myverb{COLLECTION\_DELETE} & Number of
+        collection delete operations\\ \hline \end{tabular} }
 
-	\entry{void *\textbf{user\_data}();} {Return a pointer to a 512-byte array
-	stored in the header of the collection. This can be used by the
-	application to store initialization information (e.g., the id of
-	the block containing the root of a B-tree).}
+        \entry{AMI\_collection\_status \textbf{status}() const;} {Return
+        the status of the collection. The result is either
+        \myverb{AMI\_COLLECTION\_STATUS\_VALID} or
+        \myverb{AMI\_COLLECTION\_STATUS\_INVALID}. The only operation that
+        can leave the collection invalid is the constructor (if that
+        happens, the log file contains more information). No blocks should
+        be read from or written to an invalid collection.}
+
+        \entry{void *\textbf{user\_data}();} {Return a pointer to a 512-byte array
+        stored in the header of the collection. This can be used by the
+        application to store initialization information (e.g., the id of
+        the block containing the root of a B-tree).}
 
    \etabb
 \index{AMI_COLLECTION@{\tt AMI\_COLLECTION}|)}
