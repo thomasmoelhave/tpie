@@ -4,13 +4,15 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/5/94
 //
-// $Id: merge_random.h,v 1.8 2001-02-10 23:50:03 hutchins Exp $
+// $Id: merge_random.h,v 1.9 2003-09-11 17:51:27 jan Exp $
 //
 // A merge managment object that reorders the input stream in a random
 // way.
 
 #ifndef _MERGE_RANDOM_H
 #define _MERGE_RANDOM_H
+
+#include <portability.h>
 
 #if 0
 extern "C" void srandom(unsigned int);
@@ -45,7 +47,7 @@ template<class T>
 merge_random<T>::merge_random(int seed)
 {
     if (seed) {
-        srandom(seed);
+        TPIE_OS_SRANDOM(seed);
     }
     pq = NULL;
 }
