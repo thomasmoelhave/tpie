@@ -17,7 +17,7 @@
 
 // Define it all.
 #include <ami.h>
-VERSION(lr_cpp,"$Id: lr.cpp,v 1.22 2003-09-12 01:01:19 tavi Exp $");
+VERSION(lr_cpp,"$Id: lr.cpp,v 1.23 2003-09-12 01:23:26 tavi Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -215,7 +215,7 @@ AMI_err random_flag_scan::operate(const edge &in, AMI_SCAN_FLAG *sfin,
         return AMI_SCAN_DONE;
     }
     *out = in;
-    out->flag = (random() & 1);
+    out->flag = (TPIE_OS_RANDOM() & 1);
     
     return AMI_SCAN_CONTINUE;
 }
@@ -733,7 +733,7 @@ int main(int argc, char **argv)
         cout << test_size << ' ' << test_mm_size << ' ' << random_seed;
     }
 
-    srandom(random_seed);
+    TPIE_OS_SRANDOM(random_seed);
     
     // Set the amount of main memory:
     MM_manager.set_memory_limit (test_mm_size);
