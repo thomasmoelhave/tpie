@@ -5,20 +5,6 @@
 // Created: 3/2/95
 //
 
-static char test_ami_sm_id[] = "$Id: test_ami_sm.cpp,v 1.3 1999-02-03 22:25:33 tavi Exp $";
-
-// This is just to avoid an error message since the string above is never
-// referenced.  Note that a self referential structure must be defined to
-// avoid passing the problem further.
-static struct ___test_ami_sm_id_compiler_fooler {
-    char *pc;
-    ___test_ami_sm_id_compiler_fooler *next;
-} the___test_ami_sm_id_compiler_fooler = {
-    test_ami_sm_id,
-    &the___test_ami_sm_id_compiler_fooler
-};
-
-
 #include <iostream.h>
 #include <fstream.h>
 
@@ -29,6 +15,8 @@ static struct ___test_ami_sm_id_compiler_fooler {
 
 // Define it all.
 #include <ami.h>
+
+VERSION(test_ami_sm_cpp,"$Id: test_ami_sm.cpp,v 1.4 2000-01-11 01:48:41 hutchins Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -100,8 +88,6 @@ void parse_app_opt(char c, char *optarg)
     }
 }
 
-extern int register_new;
-
 int main(int argc, char **argv)
 {
     AMI_err ae;
@@ -119,8 +105,7 @@ int main(int argc, char **argv)
     }
     
     // Set the amount of main memory:
-    MM_manager.resize_heap(test_mm_size);
-    register_new = 1;
+    MM_manager.set_memory_limit (test_mm_size);
 
     // A sparse matrix.
     

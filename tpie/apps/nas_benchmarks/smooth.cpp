@@ -5,11 +5,6 @@
 // Created: 3/29/95
 //
 
-static char smooth_id[] = "$Id: smooth.cpp,v 1.3 1999-02-03 22:18:39 tavi Exp $";
-
-
-
-
 #include <iostream.h>
 #include <fstream.h>
 
@@ -20,6 +15,7 @@ static char smooth_id[] = "$Id: smooth.cpp,v 1.3 1999-02-03 22:18:39 tavi Exp $"
 
 // Define it all.
 #include <ami.h>
+VERSION(smooth_cpp,"$Id: smooth.cpp,v 1.4 2000-01-11 01:57:34 hutchins Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -169,7 +165,6 @@ void parse_app_opt(char c, char *optarg)
     }
 }
 
-extern int register_new;
 
 int main(int argc, char **argv)
 {
@@ -191,8 +186,7 @@ int main(int argc, char **argv)
     }
     
     // Set the amount of main memory:
-    MM_manager.resize_heap(test_mm_size);
-    register_new = 1;
+    MM_manager.set_memory_limit (test_mm_size);
 
     // A sparse matrix smoother.
     
