@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/19/94
 //
-// $Id: ami_stream_single.h,v 1.6 2002-08-13 17:58:24 tavi Exp $
+// $Id: ami_stream_single.h,v 1.7 2003-04-04 20:43:18 tavi Exp $
 //
 // AMI entry points implemented on top of a single BTE.  This is useful
 // for single CPU, single disk machines.
@@ -199,8 +199,7 @@ AMI_stream_single<T>::AMI_stream_single(unsigned int device) {
 // location specified by the path name.
 template<class T>
 AMI_stream_single<T>::AMI_stream_single(const char *path_name,
-					AMI_stream_type st = 
-					AMI_READ_WRITE_STREAM) {
+					AMI_stream_type st) {
 
   // Decide BTE stream type
   BTE_stream_type bst;
