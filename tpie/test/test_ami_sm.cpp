@@ -14,7 +14,7 @@
 // Define it all.
 #include <ami_scan.h>
 
-VERSION(test_ami_sm_cpp,"$Id: test_ami_sm.cpp,v 1.11 2004-08-12 15:15:12 jan Exp $");
+VERSION(test_ami_sm_cpp,"$Id: test_ami_sm.cpp,v 1.12 2005-02-15 00:23:06 tavi Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -53,44 +53,58 @@ static bool call_mult = false;
 
 static double density = 0.10;
 
-static const char as_opts[] = "B:C:I:F:bcifd:D";
-void parse_app_opt(char c, char *optarg)
+struct options app_opts[] = {
+  { 10, "count-results-filename", "", "C", 1 },
+  { 11, "report-results-count", "", "c", 0 },
+  { 12, "intermediate-results-filename", "", "I", 1 },
+  { 13, "report-results-intermediate", "", "i", 0 },
+  { 14, "final-results-filename", "", "F", 1 },
+  { 15, "report-results-final", "", "f", 0 },
+  { 16, "density", "", "d", 1 },
+  { 17, "call-multiply-directly", "", "D", 0 },
+  { 20, "banded-read-filename", "", "B", 1 },
+  { 21, "read_banded_matrix", "", "b", 0 },
+  { 0, NULL, NULL, NULL, 0 }
+};
+
+void parse_app_opts(int idx, char *opt_arg)
 {
-    switch (c) {
-        case 'B':
-            banded_read_filename = optarg;
-        case 'b':
-            read_banded_matrix = true;
-            break;
-        case 'C':
-            count_results_filename = optarg;
-        case 'c':
-            report_results_count = true;
-            break;
-        case 'I':
-            intermediate_results_filename = optarg;
-        case 'i':
-            report_results_intermediate = true;
-            break;
-        case 'F':
-            final_results_filename = optarg;
-        case 'f':
-            report_results_final = true;
-            break;
-        case 'd':
-	    density = atof(optarg);
-            break;
-        case 'D':
-            call_mult = true;
-            break;
+    switch (idx) {
+    case 20:
+      banded_read_filename = opt_arg;
+    case 21:
+      read_banded_matrix = true;
+      break;
+    case 10:
+      count_results_filename = opt_arg;
+    case 11:
+      report_results_count = true;
+      break;
+    case 12:
+      intermediate_results_filename = opt_arg;
+    case 13:
+      report_results_intermediate = true;
+      break;
+    case 14:
+      final_results_filename = opt_arg;
+    case 15:
+      report_results_final = true;
+      break;
+    case 16:
+      density = atof(opt_arg);
+      break;
+    case 17:
+      call_mult = true;
+      break;      
     }
 }
+
 
 int main(int argc, char **argv)
 {
     AMI_err ae;
 
-    parse_args(argc,argv,as_opts,parse_app_opt);
+    parse_args(argc, argv, app_opts, parse_app_opts);
 
     if (verbose) {
       cout << "test_size = " << test_size << "." << endl;
