@@ -4,13 +4,24 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/19/94
 //
-// $Id: ami.h,v 1.3 1994-06-03 13:25:18 dev Exp $
+// $Id: ami.h,v 1.4 1994-08-31 19:11:51 darrenv Exp $
 //
 #ifndef _AMI_H
 #define _AMI_H
 
+// Some basic constants
+
+// The name of the environment variable pointing to a tmp directory.
+#define TMP_DIR_ENV "TMP"
+
+// The name of a tmp directory to use if the env variable is not set.
+#define TMP_DIR "/var/tmp"
+
 // Get the base class, enums, etc...
 #include <ami_base.h>
+
+// Get the device description class
+#include <ami_device.h>
 
 // Get an implementation definition
 #include <ami_imps.h>
@@ -20,5 +31,11 @@
 
 // Get templates for ami_merge().
 #include <ami_merge.h>
+
+// Get templates for ami_sort().
+#include <ami_sort.h>
+
+// Get the size of main memory.
+extern size_t AMI_mem_size(void);
 
 #endif // _AMI_H 
