@@ -1,33 +1,79 @@
 # Copyright (c) 1994 Darren Erik Vengroff
 
-# $Id: Makefile.in,v 1.2 1994-06-03 13:34:39 dev Exp $
+# $Id: Makefile.in,v 1.3 1994-08-31 19:37:31 darrenv Exp $
 
 # Makefile for TPIE libraries.
 
-# Use gmake on this Makefile.  It relies on the default rules, and 
-# Use gmake -p to see the default rules.
+# Use GNU make on this Makefile.  It relies on the default rules.
+# Use (GNU) "make -p" to see the default rules.
 
 TPIEINC = ../../include
 
 LIBRARY = libtpie.a
 
-CXXFLAGS = -g 
 
-CPPFLAGS = -I$(TPIEINC) -DDEBUG_ASSERTIONS=1 -DDEBUG_STR=1  
+
+ifdef DEBUG_APPS
+LOG_APPS = 1
+ASSERT_DEBUG_APPS = 1
+endif
+
+CXXFLAGS = -Wall
+
+ifdef OPTIMIZE_APPS
+CXXFLAGS += -O
+endif
+
+ifdef SYM_DEBUG_APPS
+CXXFLAGS += -gstabs+
+endif
+
+CPPFLAGS = -I$(TPIEINC) 
+
+ifdef LOG_APPS
+CPPFLAGS += -DTPL_LOGGING
+endif
+
+ifdef ASSERT_DEBUG_APPS
+CPPFLAGS += -DDEBUG_ASSERTIONS -DDEBUG_STR -DDEBUG_CERR
+endif
+
+
+UP_TO_DATE = .up_to_date
+
+$(UP_TO_DATE): $(LIBRARY)
+	touch $@
 
 (%): %
 	$(AR) $(ARFLAGS) $@ $<
 
-
-#ALL: $(LIBRARY)(logstream.o) $(LIBRARY)(tpie_log.o)
-
 $(LIBRARY): $(LIBRARY)(logstream.o) $(LIBRARY)(tpie_log.o)	\
-	    $(LIBRARY)(mm_register.o)
+	    $(LIBRARY)(mm_register.o) $(LIBRARY)(ami_device.o)	\
+	    $(LIBRARY)(ami_single.o)
 
 $(LIBRARY)(logstream.o): logstream.o
 
 $(LIBRARY)(tpie_log.o): tpie_log.o
 
 $(LIBRARY)(mm_register.o): mm_register.o
+
+$(LIBRARY)(ami_device.o): ami_device.o
+
+$(LIBRARY)(ami_single.o): ami_single.o
+
+%.o: $(TPIEINC)$(UP_TO_DATE)
+
+$(TPIEINC)$(UP_TO_DATE): $(TPIEINC)*
+	$(MAKE) -C $(TPIEINC) $(UP_TO_DATE)
+
+.PHONY : clean
+
+clean:
+	-rm *.o
+	-rm $(LIBRARY)
+	-rm $(UP_TO_DATE)
+
+
+
 
 
