@@ -7,28 +7,28 @@
 
 // A simple registration based memory manager.
 
-static char mm_register_id[] = "$Id: mm_register.cpp,v 1.11 1999-04-24 04:26:48 laura Exp $";
+#include <versions.h>
+VERSION(mm_register_cpp,"$Id: mm_register.cpp,v 1.12 2000-01-14 19:20:34 hutchins Exp $");
 
 #include <assert.h>
 #include "lib_config.h"
 
 #define MM_IMP_REGISTER
 #include <mm.h>
+#include <mm_register.h>
 
+#ifdef MM_BACKWARD_COMPATIBLE
+extern int register_new;
+#endif
 
 MM_register::MM_register()
 {
     instances++;
 
-    //*tpl << setpriority(TP_LOG_ASSERT);
-
     tp_assert(instances == 1,
               "Only 1 instance of MM_register_base should exist.");
-
-    // Why does this cause seg faults?
-    // LOG_INFO("Created MM_register object.\n");
 }
-
+ 
 
 MM_register::~MM_register(void)
 {
@@ -38,102 +38,172 @@ MM_register::~MM_register(void)
     instances--;
 }
 
+// check that new allocation request is below user-defined limit.
+// This should be a private method, only called by operator new.
 
-MM_err MM_register::register_allocation(size_t sz)
+MM_err MM_register::register_allocation(size_t request)
 {
-    if (sz > remaining) {
-      LOG_DEBUG_INFO("request: ");
-      LOG_DEBUG_INFO(sz);
-      LOG_DEBUG_ID(": out of mm memory");
-      return MM_ERROR_INSUFFICIENT_SPACE;
+    used      += request;     
+
+    if (request > remaining) {
+       LOG_WARNING("Memory allocation request: ");
+       LOG_WARNING(request);
+       LOG_WARNING(": User-specified memory limit exceeded.");
+       LOG_FLUSH_LOG;
+       remaining = 0;
+       return MM_ERROR_INSUFFICIENT_SPACE;
     }
-    
-    remaining -= sz;
+
+    remaining -= request;
 
     LOG_DEBUG_INFO("mm_register Allocated ");
-    LOG_DEBUG_INFO((unsigned int)sz);
+    LOG_DEBUG_INFO((unsigned int)request);
     LOG_DEBUG_INFO("; ");
     LOG_DEBUG_INFO((unsigned int)remaining);
     LOG_DEBUG_INFO(" remaining.\n");
-	LOG_FLUSH_LOG;
+    LOG_FLUSH_LOG;
     
     return MM_ERROR_NO_ERROR;
 }
 
+// do the accounting for a memory deallocation request.
+// This should be a private method, only called by operators 
+// delete and delete [].
 
 MM_err MM_register::register_deallocation(size_t sz)
 {
-  if (sz + remaining > max_sz) {
-  	  LOG_WARNING("Error in deallocation sz=");
-	  LOG_WARNING(sz);
-	  LOG_WARNING(", remaining=");
-	  LOG_WARNING(remaining);
-	  LOG_WARNING(", max_sz=");
-	  LOG_WARNING(max_sz);
-	  LOG_WARNING("\n");
-	  LOG_FLUSH_LOG;
-	  return MM_ERROR_UNDERFLOW;
+    remaining += sz;
+
+    if (sz > used) {
+       LOG_WARNING("Error in deallocation sz=");
+       LOG_WARNING(sz);
+       LOG_WARNING(", remaining=");
+       LOG_WARNING(remaining);
+       LOG_WARNING(", user_limit=");
+       LOG_WARNING(user_limit);
+       LOG_WARNING("\n");
+       LOG_FLUSH_LOG;
+       used = 0;
+       return MM_ERROR_UNDERFLOW;
     }
 
-    remaining += sz;
+    used      -= sz;    
 
     LOG_DEBUG_INFO("mm_register De-allocated ");
     LOG_DEBUG_INFO((unsigned int)sz);
     LOG_DEBUG_INFO("; ");
     LOG_DEBUG_INFO((unsigned int)remaining);
     LOG_DEBUG_INFO(" now available.\n");
-	LOG_FLUSH_LOG;
+    LOG_FLUSH_LOG;
     
     return MM_ERROR_NO_ERROR;
 }
 
+#ifdef MM_BACKWARD_COMPATIBLE
+// (Old) way to query how much memory is available
 
-MM_err MM_register::available(size_t *sz)
+MM_err MM_register::available (size_t *sz)
 {
     *sz = remaining;
     return MM_ERROR_NO_ERROR;    
 }
 
+// resize_heap has the same purpose as set_memory_limit.
+// It is retained for backward compatibility. 
+// dh. 1999 09 29
 
 MM_err MM_register::resize_heap(size_t sz)
 {
-    if (max_sz - remaining > sz) {
+   return set_memory_limit(sz);
+}
+#endif
+
+
+// User-callable method to set allowable memory size
+
+MM_err MM_register::set_memory_limit (size_t new_limit)
+{
+    // by default, we keep track and abort if memory limit exceeded
+    if (register_new == MM_IGNORE_MEMORY_EXCEEDED){
+       register_new = MM_ABORT_ON_MEMORY_EXCEEDED;
+    }
+    // dh. unless the user indicates otherwise
+    if (new_limit == 0){
+       register_new = MM_IGNORE_MEMORY_EXCEEDED;
+       remaining = used = user_limit = 0;
+       return MM_ERROR_NO_ERROR;
+    } 
+
+    if (used > new_limit) {
         return MM_ERROR_EXCESSIVE_ALLOCATION;
     } else {
         // These are unsigned, so be careful.
-        if (sz < max_sz) {
-            remaining -= max_sz - sz;
+        if (new_limit < user_limit) {
+            remaining -= user_limit - new_limit;
         } else {
-            remaining += sz - max_sz;
+            remaining += new_limit - user_limit;
         }
-        max_sz = sz;
+        user_limit = new_limit;
         return MM_ERROR_NO_ERROR;
     }
 }
 
+// dh. only warn if memory limit exceeded
+void MM_register::warn_memory_limit()
+{
+    register_new = MM_WARN_ON_MEMORY_EXCEEDED;
+}
 
+// dh. abort if memory limit exceeded
+void MM_register::enforce_memory_limit()
+{
+    register_new = MM_ABORT_ON_MEMORY_EXCEEDED;
+}
 
-// The number of instances.  Implicitly set to zero.
-int MM_register::instances;
+// dh. ignore memory limit accounting
+void MM_register::ignore_memory_limit()
+{
+    register_new = MM_IGNORE_MEMORY_EXCEEDED;
+}
 
-// The actual memory manager.
+// dh. return the amount of memory available before user-specified 
+// memory limit exceeded 
+size_t MM_register::memory_available()
+{
+    return remaining;    
+}
+
+size_t MM_register::memory_used()
+{
+    return used;    
+}
+
+size_t MM_register::memory_limit()
+{
+    return user_limit;    
+}
+
+// Instantiate the actual memory manager, and allocate the 
+// its static data members
+
 MM_register MM_manager;
+int MM_register::instances    = 0; // Number of instances. 
+int MM_register::register_new = 1; // TPIE's "register memory requests" flag
+
 
 // The counter of mm_register_init instances.  It is implicity set to 0.
 unsigned int mm_register_init::count;
 
-// The constructor and destructor that ensure that the log files are
+// The constructor and destructor that ensure that the memory manager is
 // created exactly once, and destroyed when appropriate.
 mm_register_init::mm_register_init(void)
 {
     if (count++ == 0) {
-        MM_manager.remaining = MM_manager.max_sz = MM_DEFAULT_MM_SIZE;
+        MM_manager.remaining = MM_manager.user_limit = MM_DEFAULT_MM_SIZE;
     }
 }
-
 
 mm_register_init::~mm_register_init(void)
 {
     --count;
 }
-
