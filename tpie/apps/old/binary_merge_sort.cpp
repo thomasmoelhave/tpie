@@ -7,7 +7,7 @@
 
 
 
-static char binary_merge_sort_id[] = "$Id: binary_merge_sort.cpp,v 1.3 1995-06-30 21:09:09 darrenv Exp $";
+static char binary_merge_sort_id[] = "$Id: binary_merge_sort.cpp,v 1.4 1999-11-02 17:04:25 tavi Exp $";
 
 // If you actually want to see all the ints in the stream.
 //#define REPORT_RESULTS
@@ -56,9 +56,9 @@ public:
 random_scan::random_scan(unsigned int count, int seed) :
 max(count), remaining(count)
 {
-    LOG_INFO("random_scan seed = ");
-    LOG_INFO(seed);
-    LOG_INFO('\n');
+    LOG_APP_DEBUG("random_scan seed = ");
+    LOG_APP_DEBUG(seed);
+    LOG_APP_DEBUG('\n');
 
     srandom(seed);
 }

@@ -5,7 +5,7 @@
 // Created: 12/19/94
 //
 
-static char scan_random_point_id[] = "$Id: scan_random_point.cpp,v 1.4 1999-02-03 22:15:07 tavi Exp $";
+static char scan_random_point_id[] = "$Id: scan_random_point.cpp,v 1.5 1999-11-02 17:03:17 tavi Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -29,9 +29,9 @@ static struct ___scan_random_point_id_compiler_fooler {
 scan_random_point::scan_random_point(unsigned int count, int seed) :
 max(count), remaining(count)
 {
-    LOG_INFO("scan_random_point seed = ");
-    LOG_INFO(seed);
-    LOG_INFO('\n');
+    LOG_APP_DEBUG("scan_random_point seed = ");
+    LOG_APP_DEBUG(seed);
+    LOG_APP_DEBUG('\n');
 
     srandom(seed);
 }
