@@ -6,7 +6,7 @@
 //
 
 #include "versions.h"
-VERSION(ami_device_cpp,"$Id: ami_device.cpp,v 1.8 2000-03-09 02:43:15 rajiv Exp $");
+VERSION(ami_device_cpp,"$Id: ami_device.cpp,v 1.9 2001-06-16 19:45:36 tavi Exp $");
 
 #include "lib_config.h"
 
@@ -20,7 +20,7 @@ VERSION(ami_device_cpp,"$Id: ami_device.cpp,v 1.8 2000-03-09 02:43:15 rajiv Exp 
 
 AMI_device::AMI_device(void)
 {
-    LOG_DEBUG_INFO("In AMI_device(void).\n");
+    LOG_DEBUG_ID("In AMI_device(void).");
 }
 
 
@@ -146,5 +146,3 @@ ostream &operator<<(ostream &os, const AMI_device &dev)
     
     return os;
 }
-
-
