@@ -1,5 +1,5 @@
 %%
-%% $Id: ami_reference.tex,v 1.13 2002-06-25 18:25:38 tavi Exp $
+%% $Id: ami_reference.tex,v 1.14 2002-06-26 23:17:42 tavi Exp $
 %%
 \chapter{TPIE Programmer's Reference}
 \plabel{cha:reference}
@@ -947,8 +947,45 @@ user-defined record \noiv{record}. It will be called by the
 internals of \noiv{AMI\_key\_sort} to make copies of record
 keys as necessary during the sort.
 
-\index{AMI__key_sort@{\tt AMI\_key\_sort}|)}
+\index{AMI_key_sort@{\tt AMI\_key\_sort}|)}
 \index{sorting!merge|)} 
+
+%%%%%%%%% Internal Memory Sorting %%%%%%%%
+\mysection{Internal Memory Sorting}
+\plabel{sec:ref-ami-memsort}
+\index{sorting!internal memory|(}
+
+\subsection{Files}
+  \btabb
+	\entry{\#include <quicksort.h>} {}
+  \etabb
+
+\subsection{Function Declarations}
+
+  \btabb
+     \entry{template<class T>\\
+     void \textbf{quick\_sort\_op}(T *data, size\_t len);} {}
+
+     \entry{template<class T>\\
+     void \textbf{quick\_sort\_cmp}(T *data, size\_t len, 
+     int (*cmp)(const T\&, const T\&));} {}
+
+     \entry{template<class T>\\
+     void \textbf{quick\_sort\_obj}(T *data, size\_t len, 
+     CMPR *cmp);} {}
+  \etabb
+
+\subsection{Description}
+
+These are internal memory in-place sorting routines that implement the
+quicksort\index{quicksort} algorithm (randomized).  These routines are used by the external
+memory sorting routines (see Section~\ref{sec:ref-ami-sort}) on streams
+that are small enough to fit in memory.
+The three polymorphs use different comparison methods:
+\noiverb{quick\_sort\_op} uses the comparison operator $<$,
+\noiverb{quick\_sort\_cmp} uses the comparison function \noiverb{cmp}, and
+\noiverb{quick\_sort\_obj} uses a comparison object of type \noiverb{CMPR}.
+\index{sorting!internal memory|)}
 
 %%%%%%%%% Stacks %%%%%%%%%
 \mysection{Stacks}
