@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/13/94
 //
-// $Id: bte_stream_mmap.h,v 1.5 2002-08-01 01:32:06 tavi Exp $
+// $Id: bte_stream_mmap.h,v 1.6 2002-08-13 18:06:01 tavi Exp $
 //
 // Memory mapped streams.  This particular implementation explicitly manages
 // blocks, and only ever maps in one block at a time.
@@ -448,6 +448,7 @@ BTE_stream_mmap < T >::BTE_stream_mmap (const char *dev_path,
 	 // Set the type.
 	 header->type = BTE_STREAM_MMAP;
 	 gstats_.record(STREAM_CREATE);
+	 stats_.record(STREAM_CREATE);
       }
       break;
    }
@@ -484,6 +485,7 @@ BTE_stream_mmap < T >::BTE_stream_mmap (const char *dev_path,
    register_memory_allocation (sizeof (BTE_stream_mmap < T >));
    register_memory_allocation (BTE_STREAM_MMAP_MM_BUFFERS * header->block_size);
    gstats_.record(STREAM_OPEN);
+   stats_.record(STREAM_OPEN);
 
 #ifdef VERBOSE
    // Rajiv
@@ -577,6 +579,8 @@ BTE_stream_mmap < T >::BTE_stream_mmap (BTE_stream_mmap * super_stream,
    strncpy (path, super_stream->path, BTE_STREAM_PATH_NAME_LEN);
    gstats_.record(STREAM_OPEN);
    gstats_.record(SUBSTREAM_CREATE);
+   stats_.record(STREAM_OPEN);
+   stats_.record(SUBSTREAM_CREATE);
 
    // substreams are considered to have no memory overhead!
 }
@@ -673,6 +677,7 @@ template < class T > BTE_stream_mmap < T >::~BTE_stream_mmap (void) {
 	  LOG_WARNING_ID (strerror (os_errno));
 	} else {
 	  gstats_.record(STREAM_DELETE);
+	  stats_.record(STREAM_DELETE);
 	}
       }
       
@@ -683,9 +688,11 @@ template < class T > BTE_stream_mmap < T >::~BTE_stream_mmap (void) {
 				    header->block_size);
    } else {
      gstats_.record(SUBSTREAM_DELETE);
+     stats_.record(SUBSTREAM_DELETE);
    }
 
    gstats_.record(STREAM_CLOSE);
+   stats_.record(STREAM_CLOSE);
 
 #ifdef VERBOSE
    if (verbose) {
@@ -751,6 +758,7 @@ B_INLINE BTE_err BTE_stream_mmap < T >::read_item (T ** elt) {
 	      "current is before the begining of the current block");
 
    gstats_.record(ITEM_READ);
+   stats_.record(ITEM_READ);
 
    *elt = current;		// Read
    advance_current ();		// move ptr to next elt
@@ -799,6 +807,7 @@ B_INLINE BTE_err BTE_stream_mmap < T >::write_item (const T & elt) {
    assert (current);
 
    gstats_.record(ITEM_WRITE);
+   stats_.record(ITEM_WRITE);
 
    *current = elt;		// write
    advance_current ();		// Advance the current pointer.
@@ -935,6 +944,7 @@ template < class T > BTE_err BTE_stream_mmap < T >::seek (off_t offset) {
    f_offset = new_offset;
 
    gstats_.record(ITEM_SEEK);
+   stats_.record(ITEM_SEEK);
    return BTE_ERROR_NO_ERROR;
 }
 
@@ -1290,6 +1300,7 @@ template < class T > BTE_err BTE_stream_mmap < T >::map_current (void)
    assert (current);
 
    gstats_.record(BLOCK_READ);
+   stats_.record(BLOCK_READ);
    return BTE_ERROR_NO_ERROR;
 }
 
@@ -1328,6 +1339,7 @@ template < class T > BTE_err BTE_stream_mmap < T >::unmap_current (void) {
 #endif
 
    gstats_.record(BLOCK_READ);
+   stats_.record(BLOCK_READ);
    return BTE_ERROR_NO_ERROR;
 }
 
