@@ -15,7 +15,7 @@
 // a quicksort using only keys of the items; there is a provision to 
 // to use templated heaps to implement the merge.
 
-// 	$Id: ami_optimized_merge.h,v 1.14 1999-03-26 05:13:05 rbarve Exp $	
+// 	$Id: ami_optimized_merge.h,v 1.15 1999-03-26 05:30:40 rbarve Exp $	
 //TO DO: substream_count setting; don't depend on current_stream_len
 
 #ifndef _OPT_AMI_MERGE_H
@@ -38,7 +38,7 @@ typedef unsigned int arity_t;
 #define RF_VERIFY_OPT 0
 #define SORT_VERIFY_OPT 0
 #define WANT_AMI_READ_STREAMS 0
-#define WANT_AMI_WRITEONLY_STREAMS 1
+#define WANT_AMI_WRITEONLY_STREAMS 0
 #define TRY_SYSTEM_QSORT_INTS 0
 #define  ALT_DISK_CONFIG  0
 
