@@ -17,7 +17,7 @@
 
 // Define it all.
 #include <ami.h>
-VERSION(lr_cpp,"$Id: lr.cpp,v 1.14 1999-12-16 17:15:12 hutchins Exp $");
+VERSION(lr_cpp,"$Id: lr.cpp,v 1.15 2000-01-11 01:35:50 hutchins Exp $");
 
 // Utitlities for ascii output.
 #include <iostream.h>
@@ -690,7 +690,6 @@ void parse_app_opt(char c, char *optarg)
     }
 }
 
-extern int register_new;
 
 int main(int argc, char **argv)
 {
@@ -733,8 +732,7 @@ int main(int argc, char **argv)
     srandom(random_seed);
     
     // Set the amount of main memory:
-    MM_manager.resize_heap(test_mm_size);
-    register_new = 1;
+    MM_manager.set_memory_limit (test_mm_size);
         
     AMI_STREAM<edge> *pamis1;
     AMI_STREAM<edge> *pamis2;
