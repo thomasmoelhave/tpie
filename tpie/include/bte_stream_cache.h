@@ -3,12 +3,15 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 9/19/94
 //
-// $Id: bte_stream_cache.h,v 1.2 2002-01-14 16:22:40 tavi Exp $
+// $Id: bte_stream_cache.h,v 1.3 2003-04-17 15:06:32 jan Exp $
 //
 // BTE streams for main memory caches.
 //
 #ifndef _BTE_STREAM_CACHE_H
 #define _BTE_STREAM_CACHE_H
+
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 // Include the registration based memory manager.
 #define MM_IMP_REGISTER
@@ -46,11 +49,11 @@ private:
 public:
 
     // Constructors
-    BTE_stream_cache(const char *path, BTE_stream_type st, off_t max_len); 
+    BTE_stream_cache(const char *path, BTE_stream_type st, TPIE_OS_OFFSET max_len); 
 
     // A psuedo-constructor for substreams.
-    BTE_err new_substream(BTE_stream_type st, off_t sub_begin,
-                          off_t sub_end, BTE_stream_base<T> **sub_stream);
+    BTE_err new_substream(BTE_stream_type st, TPIE_OS_OFFSET sub_begin,
+                          TPIE_OS_OFFSET sub_end, BTE_stream_base<T> **sub_stream);
     
 
     // Query memory usage
@@ -58,10 +61,10 @@ public:
                               MM_stream_usage usage_type);
 
     // Return the number of items in the stream.
-    off_t stream_len(void);
+    TPIE_OS_OFFSET stream_len(void);
 
     // Move to a specific position in the stream.
-    BTE_err seek(off_t offset);
+    BTE_err seek(TPIE_OS_OFFSET offset);
     
     // Destructor
     ~BTE_stream_cache(void);
@@ -72,7 +75,7 @@ public:
 
     int available_streams(void) { return -1; };    
 
-    off_t chunk_size(void);
+    TPIE_OS_OFFSET chunk_size(void);
 };
 
 
@@ -83,7 +86,7 @@ BTE_stream_cache<T>::BTE_stream_cache(void)
 
 template<class T>
 BTE_stream_cache<T>::BTE_stream_cache(const char *path, BTE_stream_type st,
-                                      off_t max_len) {
+                                      TPIE_OS_OFFSET max_len) {
 
     // A stream being created out of the blue must be writable, so we
     // return an error if it is not.
@@ -115,8 +118,8 @@ BTE_stream_cache<T>::BTE_stream_cache(const char *path, BTE_stream_type st,
 
 
 template<class T>
-BTE_err BTE_stream_cache<T>::new_substream(BTE_stream_type st, off_t sub_begin,
-                                           off_t sub_end,
+BTE_err BTE_stream_cache<T>::new_substream(BTE_stream_type st, TPIE_OS_OFFSET sub_begin,
+                                           TPIE_OS_OFFSET sub_end,
                                            BTE_stream_base<T> **sub_stream)
 {
     BTE_stream_cache *ss;
@@ -164,7 +167,7 @@ BTE_err BTE_stream_cache<T>::main_memory_usage(size_t *usage,
 
 
 template<class T>
-off_t BTE_stream_cache<T>::stream_len(void)
+TPIE_OS_OFFSET BTE_stream_cache<T>::stream_len(void)
 {
     return data_max - data;
 };
@@ -172,7 +175,7 @@ off_t BTE_stream_cache<T>::stream_len(void)
 
 
 template<class T>
-BTE_err BTE_stream_cache<T>::seek(off_t offset)
+BTE_err BTE_stream_cache<T>::seek(TPIE_OS_OFFSET offset)
 {
     if (offset > data_hard_end - data) {
         return BTE_ERROR_OFFSET_OUT_OF_RANGE;
@@ -221,7 +224,7 @@ BTE_err BTE_stream_cache<T>::write_item(const T &elt)
 
 
 template<class T>
-off_t BTE_stream_cache<T>::chunk_size(void)
+TPIE_OS_OFFSET BTE_stream_cache<T>::chunk_size(void)
 {
     return BTE_STREAM_CACHE_LINE_SIZE / sizeof(T);
 }

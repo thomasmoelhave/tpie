@@ -4,10 +4,13 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 11/4/94
 //
-// $Id: bit_matrix.h,v 1.8 1999-07-05 20:24:54 rajiv Exp $
+// $Id: bit_matrix.h,v 1.9 2003-04-17 14:43:24 jan Exp $
 //
 #ifndef _BIT_MATRIX_H
 #define _BIT_MATRIX_H
+
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 #include <bit.h>
 #include <matrix.h>
@@ -27,9 +30,9 @@ public:
     
     // We can assign from an offset, which is typically a source
     // address for a BMMC permutation.
-    bit_matrix &operator=(const off_t &rhs);
+    bit_matrix &operator=(const TPIE_OS_OFFSET &rhs);
 
-    operator off_t(void);
+    operator TPIE_OS_OFFSET(void);
 
     friend bit_matrix operator+(const bit_matrix &op1, const bit_matrix &op2);
     friend bit_matrix operator*(const bit_matrix &op1, const bit_matrix &op2);
