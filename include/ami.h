@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/19/94
 //
-// $Id: ami.h,v 1.8 1995-01-10 16:41:54 darrenv Exp $
+// $Id: ami.h,v 1.9 1995-03-21 16:46:25 dev Exp $
 //
 #ifndef _AMI_H
 #define _AMI_H
@@ -23,8 +23,8 @@
 // A macro to instantiate all the templates for streams for a given
 // type of object.
 #define TEMPLATE_INSTANTIATE_STREAMS(T) \
-TEMPLATE_INSTANTIATE_AMI_STREAMS(T) \
-TEMPLATE_INSTANTIATE_BTE_STREAMS(T)
+TEMPLATE_INSTANTIATE_BTE_STREAMS(T) \
+TEMPLATE_INSTANTIATE_AMI_STREAMS(T)
 
 // Get the base class, enums, etc...
 #include <ami_base.h>
