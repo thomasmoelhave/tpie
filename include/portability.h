@@ -3,14 +3,14 @@
 // Created: 2002/10/30
 // Authors: Joerg Rotthowe, Jan Vahrenhold, Markus Vogel
 //
-// $Id: portability.h,v 1.27 2004-08-17 16:48:17 jan Exp $
+// $Id: portability.h,v 1.28 2004-10-20 08:57:08 jan Exp $
 //
 // This header-file offers macros for independent use on Win and Unix systems.
 
 #ifndef _PORTABILITY_H
 #define _PORTABILITY_H
 
-//#define _TPIE_SMALL_MEMORY
+#define _TPIE_SMALL_MEMORY
 
 #ifdef _WIN32
 #pragma warning (disable : 4018) // signed/unsigned comparison mismatch
@@ -497,7 +497,10 @@ inline FILE* TPIE_OS_FOPEN(const char* filename,
 //but for later adaptation to other systems it maybe useful
 #ifdef _WIN32
 inline int TPIE_OS_FSEEK(FILE* file, TPIE_OS_OFFSET offset, int whence) {
-    return fseek(file, offset, whence);
+	//  Please note that the second parameter should be TPIE_OS_OFFSET
+	//  instead of int. This is due to the fact that VS2003 does not
+	//  support large files with fopen/fseek etc.
+    return fseek(file, static_cast<int>(offset), whence);
 }
 #else
 inline int TPIE_OS_FSEEK(FILE* file, TPIE_OS_OFFSET offset, int whence) {
@@ -612,7 +615,7 @@ inline TPIE_OS_FILE_DESCRIPTOR portabilityInternalOpen(LPCTSTR name, int flag, T
     DWORD dwFileSize = GetFileSize(internalHandle.FileHandle,NULL);
     if (dwFileSize == 0) {
 	SetFilePointer(internalHandle.FileHandle,
-		       TPIE_OS_BLOCKSIZE(),0,FILE_BEGIN);
+		       static_cast<LONG>(TPIE_OS_BLOCKSIZE()),0,FILE_BEGIN);
 	SetEndOfFile(internalHandle.FileHandle);
     };
     if (internalHandle.useFileMapping == TPIE_OS_FLAG_USE_MAPPING_TRUE) {
