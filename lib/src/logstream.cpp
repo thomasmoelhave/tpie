@@ -8,7 +8,7 @@
 // This will go into a library whne it is ready.
 
 
-static char logstream_id[] = "$Id: logstream.cpp,v 1.1 1994-08-31 19:39:09 darrenv Exp $";
+static char logstream_id[] = "$Id: logstream.cpp,v 1.2 1995-03-07 14:53:11 darrenv Exp $";
 
 
 #include <logstream.h>
@@ -78,3 +78,6 @@ logmanip<unsigned int> setthreshold(unsigned int p)
 } 
 
 
+#ifdef NO_IMPLICIT_TEMPLATES
+TEMPLATE_INSTANTIATE_LOGMANIP
+#endif
