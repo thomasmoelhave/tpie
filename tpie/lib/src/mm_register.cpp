@@ -8,7 +8,7 @@
 // A simple registration based memory manager.
 
 #include <versions.h>
-VERSION(mm_register_cpp,"$Id: mm_register.cpp,v 1.20 2004-08-12 12:53:43 jan Exp $");
+VERSION(mm_register_cpp,"$Id: mm_register.cpp,v 1.21 2004-08-17 16:48:59 jan Exp $");
 
 //#include <assert.h>
 #include "lib_config.h"
@@ -59,7 +59,7 @@ MM_err MM_register::register_allocation(TPIE_OS_SIZE_T request)
 
     if (request > remaining) {
        TP_LOG_WARNING("Memory allocation request: ");
-       TP_LOG_WARNING((LONG)request);
+       TP_LOG_WARNING(static_cast<TPIE_OS_OUTPUT_SIZE_T>(request));
        TP_LOG_WARNING(": User-specified memory limit exceeded.");
        TP_LOG_FLUSH_LOG;
        remaining = 0;
@@ -69,9 +69,9 @@ MM_err MM_register::register_allocation(TPIE_OS_SIZE_T request)
     remaining -= request; 
 
     TP_LOG_DEBUG("mm_register Allocated ");
-    TP_LOG_DEBUG((unsigned int)request);
+    TP_LOG_DEBUG(static_cast<TPIE_OS_OUTPUT_SIZE_T>(request));
     TP_LOG_DEBUG("; ");
-    TP_LOG_DEBUG((unsigned int)remaining);
+    TP_LOG_DEBUG(static_cast<TPIE_OS_OUTPUT_SIZE_T>(remaining));
     TP_LOG_DEBUG(" remaining.\n");
     TP_LOG_FLUSH_LOG;
 

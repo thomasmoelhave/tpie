@@ -5,7 +5,7 @@
 //
 // Created: 10/6/94
 //
-// $Id: app_config.h,v 1.35 2004-08-12 15:15:11 jan Exp $
+// $Id: app_config.h,v 1.36 2004-08-17 16:49:16 jan Exp $
 //
 #ifndef _APP_CONFIG_H
 #define _APP_CONFIG_H
@@ -49,8 +49,8 @@ extern int random_seed;
 // <><><><><><><><><><><><><><><><><><><><><><> //
 
 // Define only one (default is BTE_STREAM_IMP_UFS)
-//#define BTE_STREAM_IMP_UFS
-#define BTE_STREAM_IMP_MMAP
+#define BTE_STREAM_IMP_UFS
+//#define BTE_STREAM_IMP_MMAP
 //#define BTE_STREAM_IMP_STDIO
 //#define BTE_STREAM_IMP_USER_DEFINED
 

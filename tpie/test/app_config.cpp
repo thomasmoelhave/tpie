@@ -5,7 +5,8 @@
 // Created: 10/7/94
 //
 
-static char app_config_id[] = "$Id: app_config.cpp,v 1.7 2004-08-12 15:15:11 jan Exp $";
+#include <versions.h>
+VERSION(app_config.cpp,"$Id: app_config.cpp,v 1.8 2004-08-17 16:49:12 jan Exp $");
 
 #include "app_config.h"
 

@@ -8,7 +8,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_arith_cpp,"$Id: test_ami_arith.cpp,v 1.11 2004-08-12 15:15:11 jan Exp $");
+VERSION(test_ami_arith_cpp,"$Id: test_ami_arith.cpp,v 1.12 2004-08-17 16:49:35 jan Exp $");
 
 #include "app_config.h"        
 #include "parse_args.h"
@@ -78,32 +78,32 @@ int main(int argc, char **argv)
     // Set the amount of main memory:
     MM_manager.set_memory_limit (test_mm_size);
         
-    AMI_STREAM<int> amis0;
-    AMI_STREAM<int> amis1;
-    AMI_STREAM<int> amis2;
+    AMI_STREAM<TPIE_OS_OFFSET> amis0;
+    AMI_STREAM<TPIE_OS_OFFSET> amis1;
+    AMI_STREAM<TPIE_OS_OFFSET> amis2;
 
     // Streams for reporting values to ascii streams.
     
     ofstream *osc;
     ofstream *osi;
     ofstream *osf;
-    cxx_ostream_scan<int> *rptc = NULL;
-    cxx_ostream_scan<int> *rpti = NULL;
-    cxx_ostream_scan<int> *rptf = NULL;
+    cxx_ostream_scan<TPIE_OS_OFFSET> *rptc = NULL;
+    cxx_ostream_scan<TPIE_OS_OFFSET> *rpti = NULL;
+    cxx_ostream_scan<TPIE_OS_OFFSET> *rptf = NULL;
     
     if (report_results_count) {
         osc = new ofstream(count_results_filename);
-        rptc = new cxx_ostream_scan<int>(osc);
+        rptc = new cxx_ostream_scan<TPIE_OS_OFFSET>(osc);
     }
     
     if (report_results_intermediate) {
         osi = new ofstream(intermediate_results_filename);
-        rpti = new cxx_ostream_scan<int>(osi);
+        rpti = new cxx_ostream_scan<TPIE_OS_OFFSET>(osi);
     }
     
     if (report_results_final) {
         osf = new ofstream(final_results_filename);
-        rptf = new cxx_ostream_scan<int>(osf);
+        rptf = new cxx_ostream_scan<TPIE_OS_OFFSET>(osf);
     }
     
     // Write some ints.
@@ -124,7 +124,7 @@ int main(int argc, char **argv)
     }
     
     // Square them.
-    scan_square<int> ss;
+    scan_square<TPIE_OS_OFFSET> ss;
         
     ae = AMI_scan(&amis0, &ss, &amis1);
 
@@ -135,7 +135,7 @@ int main(int argc, char **argv)
         cout << "Stream length = " << amis1.stream_len() << endl;
     }
     
-    AMI_scan_div<int> sd;
+    AMI_scan_div<TPIE_OS_OFFSET> sd;
     
     ae = AMI_scan(&amis1, &amis0, &sd, &amis2);
         
