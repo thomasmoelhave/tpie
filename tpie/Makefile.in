@@ -2,7 +2,7 @@
 #
 # The Makefile for the complete TPIE system.
 #
-# $Id: Makefile.in,v 1.7 1994-10-10 13:15:06 darrenv Exp $
+# $Id: Makefile.in,v 1.8 1994-10-11 12:52:05 dev Exp $
 #
 
 ########################################################################
@@ -10,39 +10,34 @@
 ########################################################################
 
 # Define if the library functions should write to the log.
-LOG_LIBRARY = 1
+#LOG_LIBRARY = 1
 
 # Define if the library functions should include debugging code.
-DEBUG_LIBRARY = 1
+#DEBUG_LIBRARY = 1
 
 # Define if the library code should be optimized.
-#OPTIMIZE_LIBRARY = 1
+OPTIMIZE_LIBRARY = 1
 
 # Define if the library code should be profilable.
-#PROFILE_LIBRARY = 1
+PROFILE_LIBRARY = 1
 
 # Define if the apps should write to the log.
-LOG_APPS = 1
+#LOG_APPS = 1
 
 # Define if the apps should include debugging code.
-DEBUG_APPS = 1
+#DEBUG_APPS = 1
 
 # Define if the apps should be optimized.
-#OPTIMIZE_APPS = 1
+OPTIMIZE_APPS = 1
 
 # Define if the apps should be profilable.
-#PROFILE_APPS = 1
+PROFILE_APPS = 1
 
 ########################################################################
 # END OF USER SETTABLE FLAGS.
 ########################################################################
 
 SHELL = /bin/csh
-
-# A file that is touched when a directory is rebuilt.  We can look at
-# this file form a higher level to see if we need to rebuild the
-# directory.
-UP_TO_DATE = .up_to_date
 
 # Define the two different kinds of debugging: symbolic, and
 # assertion.  Normally both are turned on and off, but they can
@@ -88,20 +83,6 @@ lib:
 apps: 
 	$(MAKE) -C $(APPSPATH) all
 
-
-$(UP_TO_DATE): $(INCPATH)$(UP_TO_DATE) $(LIBPATH)$(UP_TO_DATE) 	\
-	       $(APPSPATH)$(UP_TO_DATE)
-	touch $@
-
-$(APPSPATH)$(UP_TO_DATE): $(APPSPATH)*.cpp $(LIBPATH)$(UP_TO_DATE)	\
-	                  $(INCPATH)$(UP_TO_DATE)
-	$(MAKE) -C $(APPSPATH) $(UP_TO_DATE)
-
-$(LIBPATH)$(UP_TO_DATE): $(LIBPATH)* $(INCPATH)$(UP_TO_DATE)
-	$(MAKE) -C $(LIBPATH) $(UP_TO_DATE)
-
-$(INCPATH)$(UP_TO_DATE): $(INCPATH)*
-	$(MAKE) -C $(INCPATH) $(UP_TO_DATE)
 
 .PHONY : clean lib inc apps usage all
 
