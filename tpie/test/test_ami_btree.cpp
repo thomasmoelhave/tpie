@@ -6,7 +6,7 @@
 //
 
 #include <versions.h>
-VERSION(test_ami_btree_cpp, "$Id: test_ami_btree.cpp,v 1.10 2003-04-21 04:28:49 tavi Exp $");
+VERSION(test_ami_btree_cpp, "$Id: test_ami_btree.cpp,v 1.11 2003-04-29 05:31:40 tavi Exp $");
 
 #include <iostream>
 #include <fstream>
@@ -38,18 +38,18 @@ struct key_from_el {
   bkey_t operator()(const el_t& v) const { return v.key_; }
 };
 
-typedef AMI_btree<bkey_t,el_t,less<bkey_t>,key_from_el,BTE_collection_ufs> u_btree_t;
-typedef AMI_btree<bkey_t,el_t,less<bkey_t>,key_from_el,BTE_collection_mmap> m_btree_t;
-typedef AMI_STREAM<el_t> stream_t;
+typedef AMI_btree< bkey_t,el_t,less<bkey_t>,key_from_el,BTE_COLLECTION_UFS > u_btree_t;
+typedef AMI_btree< bkey_t,el_t,less<bkey_t>,key_from_el,BTE_COLLECTION_MMAP > m_btree_t;
+typedef AMI_STREAM< el_t > stream_t;
 
 // Template instantiations (to get meaningful output from gprof)
 //template class AMI_btree_node<bkey_t,el_t,less<bkey_t>,key_from_el>;
 //template class AMI_btree_leaf<bkey_t,el_t,less<bkey_t>,key_from_el>;
-template class AMI_btree<bkey_t,el_t,less<bkey_t>,key_from_el,BTE_collection_ufs>;
-template class AMI_btree<bkey_t,el_t,less<bkey_t>,key_from_el,BTE_collection_mmap>;
-template class AMI_STREAM<el_t>;
-template class AMI_collection_single<BTE_collection_ufs>;
-template class AMI_collection_single<BTE_collection_mmap>;
+template class AMI_btree< bkey_t,el_t,less<bkey_t>,key_from_el,BTE_COLLECTION_UFS >;
+template class AMI_btree< bkey_t,el_t,less<bkey_t>,key_from_el,BTE_COLLECTION_MMAP >;
+template class AMI_STREAM< el_t >;
+template class AMI_collection_single< BTE_COLLECTION_UFS >;
+template class AMI_collection_single< BTE_COLLECTION_MMAP >;
 
 
 // This is 2**31-1, the max value returned by random().
@@ -108,8 +108,8 @@ int main(int argc, char **argv) {
 
   u_btree_t *u_btree;
   AMI_btree_params params;
-  params.node_block_factor = 4;
-  params.leaf_block_factor = 4;
+  params.node_block_factor = 1;
+  params.leaf_block_factor = 1;
   params.leaf_cache_size = 32;
   params.node_cache_size = 64;
 
