@@ -8,7 +8,7 @@
 //stacks related to block collections since such a stack is only
 // a meta data structure accessed no more than once every block
 // is created or destroyed. 
-//// 	$Id: stdio_stack.h,v 1.2 1999-03-28 04:15:59 rbarve Exp $	
+//// 	$Id: stdio_stack.h,v 1.3 1999-09-30 16:09:52 tavi Exp $	
 
 
 #ifndef _STDIO_STACK_H
@@ -64,28 +64,17 @@ BTE_err stdio_stack<T>::pop(T **t)
     off_t slen;
 
     slen = stream_len();
-
     ae = seek(slen-1);
     if (ae != BTE_ERROR_NO_ERROR) {
-        return ae;
+      return ae;
     }
 
     ae = read_item(t);
     if (ae != BTE_ERROR_NO_ERROR) {
-        return ae;
+      return ae;
     }
 
     return truncate(slen-1);
 }
 
-#ifdef NO_IMPLICIT_TEMPLATES
-
-#define TEMPLATE_INSTANTIATE_STDIO_STACK(T)					\
-template class stdio_stack<T>;
-
-#endif
-
 #endif // _stdio_stack_H 
-
-
-
