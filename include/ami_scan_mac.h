@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/24/94
 //
-// $Id: ami_scan_mac.h,v 1.4 1994-10-10 13:05:07 darrenv Exp $
+// $Id: ami_scan_mac.h,v 1.5 1994-10-31 21:11:57 darrenv Exp $
 //
 #ifndef _AMI_SCAN_MAC_H
 #define _AMI_SCAN_MAC_H
@@ -12,23 +12,23 @@
 // Macros for defining parameters to AMI_scan()
 #define __SPARM_BASE(T,io,n) AMI_base_stream< T ## n > *io ## n
 #define __SPARM_1(T,io) __SPARM_BASE(T,io,1)  
-#define __SPARM_2(T,io) __SPARM_BASE(T,io,2), __SPARM_1(T,io)
-#define __SPARM_3(T,io) __SPARM_BASE(T,io,3), __SPARM_2(T,io)
-#define __SPARM_4(T,io) __SPARM_BASE(T,io,4), __SPARM_3(T,io)
+#define __SPARM_2(T,io) __SPARM_1(T,io), __SPARM_BASE(T,io,2)
+#define __SPARM_3(T,io) __SPARM_2(T,io), __SPARM_BASE(T,io,3)
+#define __SPARM_4(T,io) __SPARM_3(T,io), __SPARM_BASE(T,io,4)
 
 // Macros for defining types in a template for AMI_scan()
 #define __STEMP_BASE(T,n) class T ## n
 #define __STEMP_1(T) __STEMP_BASE(T,1)  
-#define __STEMP_2(T) __STEMP_BASE(T,2), __STEMP_1(T)
-#define __STEMP_3(T) __STEMP_BASE(T,3), __STEMP_2(T)
-#define __STEMP_4(T) __STEMP_BASE(T,4), __STEMP_3(T)
+#define __STEMP_2(T) __STEMP_1(T), __STEMP_BASE(T,2)
+#define __STEMP_3(T) __STEMP_2(T), __STEMP_BASE(T,3)
+#define __STEMP_4(T) __STEMP_3(T), __STEMP_BASE(T,4)
 
 // Temporary space used within AMI_scan
 #define __STS_BASE(T,t,n) T ## n t ## n 
 #define __STSPACE_1(T,t) __STS_BASE(T,t,1)
-#define __STSPACE_2(T,t) __STS_BASE(T,t,2) ; __STSPACE_1(T,t)
-#define __STSPACE_3(T,t) __STS_BASE(T,t,3) ; __STSPACE_2(T,t)
-#define __STSPACE_4(T,t) __STS_BASE(T,t,4) ; __STSPACE_3(T,t)
+#define __STSPACE_2(T,t) __STSPACE_1(T,t) ; __STS_BASE(T,t,2) 
+#define __STSPACE_3(T,t) __STSPACE_2(T,t) ; __STS_BASE(T,t,3) 
+#define __STSPACE_4(T,t) __STSPACE_3(T,t) ; __STS_BASE(T,t,4) 
 
 // An array of flags.
 #define __FSPACE(f,n) AMI_SCAN_FLAG f[n]
@@ -41,24 +41,46 @@
 }									\
 
 #define __REWIND_1(T) __REW_BASE(T,1)
-#define __REWIND_2(T) __REW_BASE(T,2); __REWIND_1(T)
-#define __REWIND_3(T) __REW_BASE(T,3); __REWIND_2(T)
-#define __REWIND_4(T) __REW_BASE(T,4); __REWIND_3(T)
+#define __REWIND_2(T) __REWIND_1(T) __REW_BASE(T,2)
+#define __REWIND_3(T) __REWIND_2(T) __REW_BASE(T,3)
+#define __REWIND_4(T) __REWIND_3(T) __REW_BASE(T,4)
 
-// Read inputs into temporary space.  Set the flag based on whether the
-// read was succesful or not.  If it was unsuccessful for any reason other
-// than EOS, then break out of the scan loop.
-#define __STSR_BASE(t,ts,f,e,n)						    \
-if (!(f[n-1] = ((e = ts ## n->read_item(&t ## n)) == AMI_ERROR_NO_ERROR))) {\
-    if (e != AMI_ERROR_END_OF_STREAM) {					    \
-        break;								    \
+
+// Set the input flags to true before entering the do loop so that the
+// initial values will be read.
+#define __SET_IF_BASE(f,n) f[n-1] = 1
+
+#define __SET_IF_1(f) __SET_IF_BASE(f,1)
+#define __SET_IF_2(f) __SET_IF_1(f); __SET_IF_BASE(f,2)
+#define __SET_IF_3(f) __SET_IF_2(f); __SET_IF_BASE(f,3)
+#define __SET_IF_4(f) __SET_IF_3(f); __SET_IF_BASE(f,4)
+
+// If the flag is set, then read inputs into temporary space.  Set the
+// flag based on whether the read was succesful or not.  If it was
+// unsuccessful for any reason other than EOS, then break out of the
+// scan loop.  If the flag is not currently set, then either the scan
+// management object did not take the last input or the last time we
+// tried to read from this file we failed.  If we read successfully
+// last time, then reset the flag.
+#define __STSR_BASE(t,ts,f,g,e,n)					    \
+if (f[n-1]) {								    \
+    if (!(f[n-1] = g[n-1] =						    \
+          ((e = ts ## n->read_item(&t ## n)) == AMI_ERROR_NO_ERROR))) {	    \
+        if (e != AMI_ERROR_END_OF_STREAM) {				    \
+            break;							    \
+        }								    \
     }									    \
+} else {								    \
+    f[n-1] = g[n-1];							    \
 }
 
-#define __STS_READ_1(t,ts,f,e) __STSR_BASE(t,ts,f,e,1) 
-#define __STS_READ_2(t,ts,f,e) __STSR_BASE(t,ts,f,e,2) __STS_READ_1(t,ts,f,e)
-#define __STS_READ_3(t,ts,f,e) __STSR_BASE(t,ts,f,e,3) __STS_READ_2(t,ts,f,e)
-#define __STS_READ_4(t,ts,f,e) __STSR_BASE(t,ts,f,e,4) __STS_READ_3(t,ts,f,e)
+#define __STS_READ_1(t,ts,f,g,e) __STSR_BASE(t,ts,f,g,e,1) 
+#define __STS_READ_2(t,ts,f,g,e) __STS_READ_1(t,ts,f,g,e)		    \
+        __STSR_BASE(t,ts,f,g,e,2)
+#define __STS_READ_3(t,ts,f,g,e) __STS_READ_2(t,ts,f,g,e)		    \
+        __STSR_BASE(t,ts,f,g,e,2)
+#define __STS_READ_4(t,ts,f,g,e) __STS_READ_3(t,ts,f,g,e)		    \
+        __STSR_BASE(t,ts,f,g,e,2)
 
 // Write outputs.  Only write if the flag is set.  If there is an
 // error during the write, then break out of the scan loop.
@@ -68,17 +90,17 @@ if (f[n-1] && (e = us ## n -> write_item(u ## n)) != AMI_ERROR_NO_ERROR) {  \
 }
 
 #define __STS_WRITE_1(u,us,f,e) __STSW_BASE(u,us,f,e,1)
-#define __STS_WRITE_2(u,us,f,e) __STSW_BASE(u,us,f,e,2) __STS_WRITE_1(u,us,f,e)
-#define __STS_WRITE_3(u,us,f,e) __STSW_BASE(u,us,f,e,3) __STS_WRITE_2(u,us,f,e)
-#define __STS_WRITE_4(u,us,f,e) __STSW_BASE(u,us,f,e,4) __STS_WRITE_3(u,us,f,e)
+#define __STS_WRITE_2(u,us,f,e) __STS_WRITE_1(u,us,f,e) __STSW_BASE(u,us,f,e,2)
+#define __STS_WRITE_3(u,us,f,e) __STS_WRITE_2(u,us,f,e) __STSW_BASE(u,us,f,e,3)
+#define __STS_WRITE_4(u,us,f,e) __STS_WRITE_3(u,us,f,e) __STSW_BASE(u,us,f,e,4)
 
 
 // Arguments to the operate() call
 #define __SCA_BASE(t,n) t ## n
 #define __SCALL_ARGS_1(t) __SCA_BASE(t,1)
-#define __SCALL_ARGS_2(t) __SCA_BASE(t,2), __SCALL_ARGS_1(t)
-#define __SCALL_ARGS_3(t) __SCA_BASE(t,3), __SCALL_ARGS_2(t)
-#define __SCALL_ARGS_4(t) __SCA_BASE(t,4), __SCALL_ARGS_3(t)
+#define __SCALL_ARGS_2(t) __SCALL_ARGS_1(t), __SCA_BASE(t,2) 
+#define __SCALL_ARGS_3(t) __SCALL_ARGS_2(t), __SCA_BASE(t,3) 
+#define __SCALL_ARGS_4(t) __SCALL_ARGS_3(t), __SCA_BASE(t,4) 
 
 // Operate on the inputs to produce the outputs.
 #define __SCALL_BASE(t,nt,if,sop,u,nu,of) \
@@ -133,6 +155,7 @@ AMI_err AMI_scan( __SPARM_ ## in_arity (T,_ts_),			    \
     __STSPACE_ ## out_arity (U,_u_);					    \
 	    								    \
     __FSPACE(_if_,in_arity);						    \
+    __FSPACE(_lif_,in_arity);						    \
     __FSPACE(_of_,out_arity);						    \
 	    								    \
     AMI_err _op_err_, _ami_err_;					    \
@@ -141,10 +164,12 @@ AMI_err AMI_scan( __SPARM_ ## in_arity (T,_ts_),			    \
     __REWIND_ ## out_arity (_us_);					    \
 	    								    \
     soper->initialize();						    \
+                                                                            \
+    __SET_IF_ ## in_arity (_if_);					    \
+                                                                            \
+    do {	    						    	    \
 	    								    \
-    do {	    							    \
-	    								    \
-        __STS_READ_ ## in_arity (_t_,_ts_,_if_,_ami_err_)		    \
+        __STS_READ_ ## in_arity (_t_,_ts_,_if_,_lif_,_ami_err_)		    \
             								    \
         _op_err_ = __SCALL_OP_ ## in_arity ## _ ##			    \
             out_arity(_t_,_if_,soper,_u_,_of_);				    \
@@ -203,16 +228,19 @@ AMI_err AMI_scan( __SPARM_ ## in_arity (T,_ts_), SC *soper)		    \
     __STSPACE_ ## in_arity (T,*_t_);					    \
 	    								    \
     __FSPACE(_if_,in_arity);						    \
+    __FSPACE(_lif_,in_arity);						    \
 	    								    \
     AMI_err _op_err_, _ami_err_;					    \
 	    								    \
     __REWIND_ ## in_arity (_ts_);					    \
 	    								    \
     soper->initialize();						    \
-	    								    \
+                                                                            \
+    __SET_IF_ ## in_arity (_if_);					    \
+                                                                            \
     do {	    							    \
 	    								    \
-        __STS_READ_ ## in_arity (_t_,_ts_,_if_,_ami_err_)		    \
+        __STS_READ_ ## in_arity (_t_,_ts_,_if_,_lif_,_ami_err_)		    \
             								    \
         _op_err_ = __SCALL_OP_I_ ## in_arity (_t_,_if_,soper);		    \
 	    								    \
