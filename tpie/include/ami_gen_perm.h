@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 11/1/94
 //
-// $Id: ami_gen_perm.h,v 1.3 1995-06-30 21:07:33 darrenv Exp $
+// $Id: ami_gen_perm.h,v 1.4 1998-12-11 18:42:36 tavi Exp $
 //
 // General permutation.
 //
@@ -13,24 +13,8 @@
 
 #include <ami_gen_perm_object.h>
 
-template<class T>
-class gen_perm_strip_dest;
-
-template<class T>
-class dest_obj {
-private:
-    T t;
-    off_t dest;
-public:
-    dest_obj(void) {};
-    dest_obj(T t_in, off_t d) : t(t_in), dest(d) {};
-    ~dest_obj(void) {};
-    friend int operator<(const dest_obj<T> &s, const dest_obj<T> &t);
-    friend int operator>(const dest_obj<T> &s, const dest_obj<T> &t);
-    friend gen_perm_strip_dest<T>::operate(const dest_obj<T> &in,
-                                           AMI_SCAN_FLAG *sfin, T *out,
-                                           AMI_SCAN_FLAG *sfout);
-};
+// (tavi) moved dest_obj declaration down due to error in gcc 2.8.1
+template<class T> class dest_obj;
 
 // A comparison operator that simply compares destinations (for sorting).
 template<class T>
@@ -79,6 +63,23 @@ public:
         *out = in.t;
         return AMI_SCAN_CONTINUE;
     }
+};
+
+
+template<class T>
+class dest_obj {
+private:
+    T t;
+    off_t dest;
+public:
+    dest_obj(void) {};
+    dest_obj(T t_in, off_t d) : t(t_in), dest(d) {};
+    ~dest_obj(void) {};
+    friend int operator<(const dest_obj<T> &s, const dest_obj<T> &t);
+    friend int operator>(const dest_obj<T> &s, const dest_obj<T> &t);
+    friend gen_perm_strip_dest<T>::operate(const dest_obj<T> &in,
+                                           AMI_SCAN_FLAG *sfin, T *out,
+                                           AMI_SCAN_FLAG *sfout);
 };
 
 template<class T>
