@@ -1,5 +1,5 @@
 %%
-%% $Id: user_manual.tex,v 1.1 1999-03-04 00:30:52 tavi Exp $
+%% $Id: user_manual.tex,v 1.2 1999-05-02 19:19:17 tavi Exp $
 %%
 \chapter{Overview}
 
@@ -1308,7 +1308,7 @@ objects for which the appropriate arithmetic operators (i.e. {\tt +},
 Elementwise arithmetic is done with scan management objects
 \index{operation management objects!scan} of the classes
 \verb|AMI_scan_add|, \verb|AMI_scan_sub|, \verb|AMI_scan_mult| and
-\verb|AMI_scan_div|, which are defined in the header file
+\verb|AMI_scan_div|, which are defined in the file
 \verb|AMI_stream_arith.h|.  Here is an example that performs
 elementwise division on the elements of two streams.
 
@@ -1320,6 +1320,8 @@ void foo()
     AMI_STREAM<int> amis0;
     AMI_STREAM<int> amis1;
     AMI_STREAM<int> amis2;
+
+    AMI_scan_div<int> sd;
 
     // Divide each element of amis0 by the corresponding element of
     // amis1 and put the result in amis2.
