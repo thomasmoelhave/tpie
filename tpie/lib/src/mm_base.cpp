@@ -7,10 +7,9 @@
 
 
 
-static char mm_base_id[] = "$Id: mm_base.cpp,v 1.7 1999-03-11 03:15:39 laura Exp $";
+static char mm_base_id[] = "$Id: mm_base.cpp,v 1.8 1999-03-11 03:33:30 laura Exp $";
 
 
-#include <iostream.h>
 #include <mm_base.h>
 #include <tpie_log.h>
 
@@ -28,6 +27,7 @@ extern MM_register MM_manager;
 
 // My very own new and delete operators.
 
+#include <stdio.h>
 #include <stdlib.h>
 
 int register_new = 0;
@@ -55,7 +55,7 @@ void * operator new (size_t sz) {
     if(!p) {
       LOG_FATAL("Out of Memory");
       LOG_FLUSH_LOG;
-      cerr << "Out of Memory" << endl;
+      perror("mm_base::new malloc");
       exit(1);
     }
     *((size_t *)p) = sz;
