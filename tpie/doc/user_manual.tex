@@ -1,5 +1,5 @@
 %%
-%% $Id: user_manual.tex,v 1.7 1999-06-18 20:35:13 laura Exp $
+%% $Id: user_manual.tex,v 1.8 1999-06-20 04:35:09 rajiv Exp $
 %%
 \chapter{Overview}
 
@@ -74,86 +74,67 @@ version 2.  A copy of this license appears in Appendix~\ref{app:gpl}.
 The latest version of TPIE, \version, is an alpha test version.  It is
 available through the \htmladdnormallink{TPIE WWW Home Page}{%
 \begin{rawhtml}
-http://www.cs.duke.edu/~dev/tpie_home_page.html
+http://www.cs.duke.edu/TPIE/
 \end{rawhtml}%
 }%
 \begin{latexonly}
-at URL \verb|http://www.cs.duke.edu/~dev/tpie_home_page.html|.
+at URL \verb|http://www.cs.duke.edu/TPIE/|.
 \end{latexonly}
 
 To obtain the TPIE source distribution\index{source distribution}, follow the
-pointers form the home page to the distribution itself, which consists
+pointers from the home page to the distribution itself, which consists
 of a gzipped tar file named {\tt tpie-\version.tar.gz}.  Your Web
 browser should be capable of downloading this file to your local
 machine.
 
 \section{Prerequisites}
-
 \index{GNU software}
 \label{sec:gnu-software}
 
-TPIE relies heavily on GNU software distributed by the Free Software
-Foundation\index{Free Software Federation}.  In particular, programs
-and library listed below are required.  Note that version numbers
-indicate the versions used in the development of TPIE version 0.5a.
-Later versions of the GNU tools should work as well, though no
-guarantees can be made about earlier versions.  This is particularly
-true of \verb|g++|.  If you already have the required programs but are
-not sure what version they are, try invoking each with the single
-command line argument \verb|--version|.
+To uncompress and unarchive the distribution, you will need either the GNU
+\verb|tar| utility, or \verb|gzip| and a \verb|tar| program. (the GNU
+version can decompress and untar at the same time with the '\verb|z|' option).
 
-\begin{description}
-\item[\verb|g++|] The GNU C++ compiler,
-  \index{g++@{\tt g++}}\index{GNU software!gcc@{\tt g++}}
-  version \gxxversion.  This is distributed as part of \verb|gcc|, the GNU C
-  compiler.
-  \index{gcc@{\tt gcc}}\index{GNU software!gcc@{\tt gcc}}
-\item[\verb|libg++|] The GNU C++ library,
-  \index{libg++@{\tt libg++}}\index{GNU software!libg++@{\tt libg++}}
-  version 2.7.  This is not a program, but rather run-time support for
-  programs compiled with \verb|g++|.  It is distributed separately
-  from \verb|g++|, but if you have one you probably have the other.
-\item[\verb|make|] The GNU Make utility, 
-  \index{make@{\tt make}}\index{GNU software!make@{\tt make}}
-  version 3.71.
-\item[\verb|gzip|] The GNU compression/decompression utility, 
-  \index{gzip@{\tt gzip}}\index{GNU software!gzip@{\tt gzip}}
-  version  1.2.4.  This is needed to uncompress the TPIE 
-  distribution.
-\item[\verb|tar|] The GNU tape archive utility, 
-  \index{tar@{\tt tar}}\index{GNU software!tar@{\tt tar}}
-  version 1.11.2.  This
-  is needed to extract the components of the TPIE package from the
-  source distribution.
-\end{description}
+TPIE is dependent on the compiler used, mainly because of the template
+syntax. It currently requires the GNU C++ compiler, \verb|g++|,
+version~\gxxversion. We
+expect that it will also be compatible with future version of this
+compiler.  TPIE has also been successfully compiled using
+\verb|egcs|, version 2.91.66.
 
+The GNU \verb|make| utility is required. This is usually located in
+\verb|/usr/local/bin/make|, or is called \verb|gmake|.
+
+In general, invoking the tools with the single command line argument 
+\verb|--version| will indicate whether they are compatible.
 Information on where and how to obtain and install GUN software is
-available via FTP from 
-\htmladdnormallink{{\tt ftp://prep.ai.mit.edu:/pub/gnu/GNUinfo/FTP}}%
-{ftp://prep.ai.mit.edu:/pub/gnu/GNUinfo/FTP}
-For a variety of information about GNU software and how it is written
-and distributed, 
-consult the various other files in the directory
-\htmladdnormallink{{\tt ftp://prep.ai.mit.edu:/pub/gnu/GNUinfo/}}%
-{ftp://prep.ai.mit.edu:/pub/gnu/GNUinfo/}.
+available from 
+{\tt http://www.gnu.org/software/software.html}.
 
 \section{Installation}
-
 \index{installation}
+
 Once you have obtained the TPIE source distribution file
 {\tt tpie-\version.tar.gz}, you must decide where to install it.
 \verb|/usr/local/tpie/| is a typical place.
 
-Place {\tt tpie-\version.tar.gz} in the directory in which TPIE is to
+Place {\tt tpie-\version.tgz} in the directory in which TPIE is to
 be installed, \verb|cd| into that directory, and execute the command
 
 \begin{verbatim}
-tar czf tpie.tar.gz
+tar czf tpie-\version.tgz
 \end{verbatim}
 
+or
+
+\begin{verbatim}
+gunzip -c tpie-\version.tgz | tar cf -
+\end{verbatim}
+
+
 This will produce a directory {\tt tpie-\version} with subdirectories
-\verb|inc|, \verb|lib|, \verb|test|, and \verb|apps|.  Enter the
-directory \verb|tpie|.  You must now configure TPIE for your
+\verb|include|, \verb|lib|, \verb|test|, and \verb|doc|.  Enter the
+directory {\tt tpie-\version}.  You must now configure TPIE for your
 particular system.  To do this, use the command
 
 \begin{verbatim}
@@ -162,8 +143,9 @@ particular system.  To do this, use the command
 
 \index{configuration}The configuration program will take some time to
 examine the parameters of your system.  Once it has done so, it will
-produce the various makefiles and configuration files required to
-build TPIE on your system.  When this is done, simply type
+produce the various Makefiles and configuration files required to
+build TPIE on your system.  When this is done, simply invoke your version
+of GNU \verb|make|:
 
 \begin{verbatim}
 make all
@@ -173,7 +155,7 @@ to build the complete TPIE system.  This will build the following
 components:
 
 \begin{description}
-\item[\verb|inc|] The TPIE header files.\index{header files}
+\item[\verb|include|] The TPIE header files.\index{header files}
 \item[\verb|lib|] The TPIE library.  This is relatively small, as most
   of the TPIE system remains in the form of templated header
   files.\index{library}
@@ -182,17 +164,16 @@ components:
   code to the example applications described in
   Chapter~\ref{ch:examples}.\index{test applications}
 \item[\verb|doc|] Complete documentation for TPIE, consisting of the
-  document you are reading right now in various formats: HTML for
-  viewing with Mosaic and similar programs; and DVI and Postscript(TM)
-  for printing.\index{documentation}
+  document you are reading right now in various formats: HTML, and DVI and
+  Postscript(TM) for printing.\index{documentation}
 \end{description}
 
-Alternatively, individual components can be built one at a time.  For
-example, to build only the header files, type 
 
-\begin{verbatim}
-make inc
-\end{verbatim}
+
+
+
+\section{Customization}
+\index{Customization}
 
 It is possible to customize the installation by providing arguments to
 the {\tt configure} script.\index{configuration:options} None of these
@@ -208,17 +189,18 @@ follows:
   This is useful for debugging the TPIE library, but slows it down.
   This option works by defining \verb|TPL_LOGGING|
   \index{TPL_LOGGING@{\tt TPL\_LOGGING}} (see Section~\ref{sec:macros})
-  when compiling the library.
+  when compiling the library. 
+  Section \ref{sec:logging} discusses TPIE logging.
 \item[\verb|--enable-assert-lib|]  
   \index{enable-assert-lib@{\tt --enable-assert-lib}}
   Enable assertions in the TPIE library code for debugging purposes.
   This can also be accomplished at compile time by defining the macro
-  \verb|TP_ASSERT_LIB| using the syntax \verb|make lib TP_LOG_LIB=1|.
+  \verb|TP_ASSERT_LIB| using the syntax \verb|make lib TP_ASSERT_LIB=1|.
   This option works by defining \verb|DEBUG_ASSERTIONS|
   \index{DEBUG_ASSERTIONS@{\tt DEBUG\_ASSERTIONS}} 
   (see Section~\ref{sec:macros})
   when compiling the library.
-\item[\verb|--enable-log-apps|] 
+\item[\verb|--enable-log-apps|]  and
 \item[\verb|--enable-assert-apps|]  
   \index{enable-assert-apps@{\tt --enable-assert-apps}}
   \index{enable-log-apps@{\tt --enable-log-apps}}
@@ -228,7 +210,7 @@ follows:
   accomplishes the same thing.
 \item[\verb|--enable-expand-ami-scan|]  Expand the macros in the file
   \verb|ami_scan.h| when making the include directory with the
-command {\tt make inc} (or {\tt make all}).  This is mainly useful for
+command {\tt make include} (or {\tt make all}).  This is mainly useful for
 debugging the code in \verb|ami_scan.h| itself, and is not normally
 needed by TPIE programmers.  It may make compilation of TPIE programs
 slightly faster because the macro processor of the C++ compiler will
@@ -239,7 +221,7 @@ in Section~\ref{sec:gnu-software}, this requires \verb|perl|.
   \verb|--disable-expand-ami-scan|. 
 \end{description}
 
-\chapter{A Taste of TPIE Via a Sample Program}
+\chapter{A Taste of TPIE via a Sample Program}
 \label{ch:samplepgm}
 \input{samplepgm.tex}
 
