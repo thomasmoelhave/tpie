@@ -8,7 +8,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_btree_cpp, "$Id: test_ami_btree.cpp,v 1.15 2003-09-14 21:03:50 tavi Exp $");
+VERSION(test_ami_btree_cpp, "$Id: test_ami_btree.cpp,v 1.16 2003-09-14 21:30:01 tavi Exp $");
 
 #include "app_config.h"
 #include <cpu_timer.h>
@@ -31,7 +31,7 @@ struct key_from_el {
   bkey_t operator()(const el_t& v) const { return v.key_; }
 };
 
-typedef AMI_btree< bkey_t,el_t,less<bkey_t>,key_from_el > u_btree_t;
+typedef AMI_btree< bkey_t,el_t,less<bkey_t>,key_from_el,BTE_COLLECTION_UFS > u_btree_t;
 //typedef AMI_btree< bkey_t,el_t,less<bkey_t>,key_from_el,BTE_COLLECTION_MMAP > m_btree_t;
 typedef AMI_STREAM< el_t > stream_t;
 
