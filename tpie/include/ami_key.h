@@ -4,11 +4,13 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 3/12/95
 //
-// $Id: ami_key.h,v 1.1 1995-06-20 18:47:18 darrenv Exp $
+// $Id: ami_key.h,v 1.2 2003-04-17 12:34:44 jan Exp $
 //
 #ifndef _AMI_KEY_H
 #define _AMI_KEY_H
 
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 // Temporary until the configuration script is edited to determine word
 // size.
