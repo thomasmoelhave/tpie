@@ -4,7 +4,7 @@
 //
 // Definition of the b_vector class.
 //
-// $Id: b_vector.h,v 1.3 2001-05-08 16:45:53 tavi Exp $
+// $Id: b_vector.h,v 1.4 2001-05-17 20:10:19 tavi Exp $
 //
 
 #ifndef _B_VECTOR_H
@@ -35,7 +35,7 @@ public:
   // element s_start, to this block, starting with element start. 
   // Return the number of elements copied. Source can be *this.
   size_t copy(size_t start, size_t length,
-	      b_vector<T>& source, size_t s_start = 0);
+	      const b_vector<T>& source, size_t s_start = 0);
 
   // Copy from an array of elements.
   size_t copy(size_t start, size_t length, const T* source);
@@ -59,7 +59,7 @@ public:
 //// *b_vector::copy* ////
 template<class T>
 size_t b_vector<T>::copy(size_t start, size_t length,
-	      b_vector<T>& source, size_t s_start = 0) {
+	      const b_vector<T>& source, size_t s_start = 0) {
   
   // copy_length will store the actual number of items that can be copied.
   size_t copy_length = length;
