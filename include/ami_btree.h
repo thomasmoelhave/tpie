@@ -3,7 +3,7 @@
 // File:    ami_btree.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_btree.h,v 1.25 2003-07-22 06:14:23 tavi Exp $
+// $Id: ami_btree.h,v 1.26 2003-07-23 05:38:36 tavi Exp $
 //
 // AMI_btree declaration and implementation.
 //
@@ -1472,7 +1472,7 @@ size_t AMI_BTREE::range_query(const Key& k1, const Key& k2,
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
 bool AMI_BTREE::insert(const Value& v) {
 
-  bool ans;
+  bool ans = true;
 
   // Check for empty tree.
   if (header_.height == 0) {
@@ -1488,7 +1488,20 @@ bool AMI_BTREE::insert(const Value& v) {
     ans = p->insert(v);
     release_leaf(p);
   } else {
+#if AMI_BTREE_UNIQUE_KEYS
+    size_t pos = p->find(kov_(v));
+    // Check for duplicate key. 
+    if (pos < p->size() && 
+	!comp_(kov_(v), kov_(p->el[pos])) &&  
+	!comp_(kov_(p->el[pos]), kov_(v))) { 
+      LOG_WARNING_ID("Attempting to insert duplicate key."); 
+      ans = false; 
+    } else {
+      ans = insert_split(v, p, bid);
+    }
+#else
     ans = insert_split(v, p, bid);
+#endif
   }
 
   empty_stack();
