@@ -1,7 +1,7 @@
 # Makefile for TPIE test applications.
 # Use gmake on this Makefile.  It relies on the default rules, and 
 # Use gmake -p to see the default rules.
-# $Id: Makefile.in,v 1.35 2003-09-24 21:42:39 tavi Exp $
+# $Id: Makefile.in,v 1.36 2003-11-21 16:22:45 tavi Exp $
 
 CXX = @CXX@
 CC = @CC@
@@ -64,14 +64,13 @@ APPS := test_ami_pmerge \
 APPSRC = $(patsubst %,%.cpp,$(APPS))
 
 # Other C++ sources for common support routines.
-COMMONCXXSRC = parse_args.cpp app_config.cpp
+COMMONCXXSRC = parse_args.cpp app_config.cpp getopts.cpp
 
 COMMONCSRC = getopt.c
 
 OTHERCXXSRC = scan_random.cpp \
 	scan_count.cpp \
-	scan_uniform_sm.cpp \
-        getopts.cpp
+	scan_uniform_sm.cpp 
 
 CXXSRC = $(APPSRC) $(COMMONCXXSRC) $(OTHERCXXSRC)
 
