@@ -4,11 +4,11 @@
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 // Created: May 2003 
 //
-// $Id: visualize_btree.cpp,v 1.1 2003-11-21 16:29:55 tavi Exp $
+// $Id: visualize_btree.cpp,v 1.2 2004-02-05 17:51:50 jan Exp $
 //
 #include <portability.h>
 #include <versions.h>
-VERSION(visualize_btree_cpp, "$Id: visualize_btree.cpp,v 1.1 2003-11-21 16:29:55 tavi Exp $");                            
+VERSION(visualize_btree_cpp, "$Id: visualize_btree.cpp,v 1.2 2004-02-05 17:51:50 jan Exp $");                            
 
 // For std::less.
 #include <functional>
@@ -22,6 +22,7 @@ VERSION(visualize_btree_cpp, "$Id: visualize_btree.cpp,v 1.1 2003-11-21 16:29:55
 #include <ami_btree.h>
 #include "getopts.h"
 
+/*
 using std::ifstream;
 using std::less;
 using std::cerr;
@@ -30,6 +31,7 @@ using std::flush;
 using std::max;
 using std::pair;
 using std::stack;
+*/
 
 template <class T>
 struct ident {
@@ -202,6 +204,7 @@ int main(int argc, char **argv) {
   float avg_fanout = 0.0;
   pair<AMI_bid, long> idkey = btree->dfs_preorder(level);
   stack<AMI_bid> stk;
+	int i;
 
   cout << "\n";
 
@@ -222,10 +225,10 @@ int main(int argc, char **argv) {
       if (prevlevel != 0) {
 	if (html) {
 	  cout << "<tr>";
-	  for (int i = 0; i < level - 1; i++)
+	  for (i = 0; i < level - 1; i++)
 	    cout << "<td class=node" << i+fc << "></td>";
 	  cout << "<td class=key" << level-1+fc << ">" << idkey.second << "</td>";
-	  for (int i = level; i < btree->height(); i++)
+	  for (i = level; i < btree->height(); i++)
 	    cout << "<td></td>";
 	  cout << "</tr>\n";
 	} else
@@ -234,7 +237,7 @@ int main(int argc, char **argv) {
       // Start the row.
       if (html) cout << "<tr>";
       // Insert some empty cells.
-      for (int i = 0; i < level; i++) {
+      for (i = 0; i < level; i++) {
 	if (html)
 	  cout << "<td class=node" << i+fc << "></td>";
 	else
