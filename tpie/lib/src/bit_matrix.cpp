@@ -5,7 +5,7 @@
 // Created: 1/9/95
 //
 
-static char bit_matrix_id[] = "$Id: bit_matrix.cpp,v 1.1 1995-01-10 16:55:46 darrenv Exp $";
+static char bit_matrix_id[] = "$Id: bit_matrix.cpp,v 1.2 1995-01-10 19:58:52 dev Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -95,3 +95,6 @@ ostream &operator<<(ostream &s, const bit_matrix &bm)
 }
 
 
+#ifdef NO_IMPLICIT_TEMPLATES
+TEMPLATE_INSTANTIATE_BIT_MATRIX
+#endif
