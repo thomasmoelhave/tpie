@@ -3,7 +3,7 @@
 // File:    ami_cache.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_cache.h,v 1.3 2002-01-03 20:36:12 tavi Exp $
+// $Id: ami_cache.h,v 1.4 2002-02-04 05:58:36 tavi Exp $
 //
 // Declaration and definition of AMI_CACHE_MANAGER
 // implementation(s).
@@ -106,7 +106,7 @@ AMI_cache_manager_lru<T,W>::AMI_cache_manager_lru(size_t capacity, size_t assoc)
 }
 
 template<class T, class W>
-bool AMI_cache_manager_lru<T,W>::read(size_t k, T& item) {
+inline bool AMI_cache_manager_lru<T,W>::read(size_t k, T& item) {
   
   size_t i;
   if (capacity_ == 0)
@@ -139,7 +139,7 @@ bool AMI_cache_manager_lru<T,W>::read(size_t k, T& item) {
 }
 
 template<class T, class W>
-bool AMI_cache_manager_lru<T,W>::write(size_t k, const T& item) {
+inline bool AMI_cache_manager_lru<T,W>::write(size_t k, const T& item) {
 
   assert(k != 0);
 
@@ -209,6 +209,8 @@ void AMI_cache_manager_lru<T,W>::flush() {
 template<class T, class W>
 AMI_cache_manager_lru<T,W>::~AMI_cache_manager_lru() {
   flush();
+  if (capacity_ > 0)
+    delete [] pdata_;
 }
 
 #endif // _AMI_CACHE_H
