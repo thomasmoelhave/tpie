@@ -2,16 +2,16 @@
 #
 # The Makefile for the TPIE include directory.
 #
-# $Id: Makefile.in,v 1.5 1994-10-10 13:02:18 darrenv Exp $
+# $Id: Makefile.in,v 1.6 1994-12-16 21:10:31 darrenv Exp $
 #
 
-INDENT=indent
-INDENTFLAGS= -kr
+INDENT=@INDENT@
+INDENTFLAGS=@INDENTFLAGS@
 
 CAT=cat
 CP=cp
 
-PERL=perl
+PERL=@PERL@
 
 ETAGS=etags
 
@@ -29,13 +29,24 @@ all: ami_scan.h
 # Build the header file that will actually be used by using the
 # C preprocessor to expand all of the macros in the source file.
 
+# We can either use the macro definitions directly, or expand them and
+# filter the results through GNU indent.  The latter approach makes 
+# them more readable for debugging purposes, but since most people don't
+# have GNU indent, the configure script turns it off by default.
+
+EXPAND_AMI_SCAN_H = @EXPAND_AMI_SCAN_H@
+
+ifeq ($(EXPAND_AMI_SCAN_H),yes)
 ami_scan.h: ami_scan_mac.cpp ami_scan_mac.h ami_scan.h.head ami_scan.h.tail
 	$(CAT) ami_scan.h.head > $@
-	$(CXX) -E $< | $(INDENT) -st $(INDENTFLAGS) - | grep -v "^#" | \
+	$(CXX) -E $< | $(INDENT) $(INDENTFLAGS) - | grep -v "^#" | \
 	    $(PERL) -e \
 	    'while (<>) { print "\n" if /template/; print if /.+/; }' >> $@
 	$(CAT) ami_scan.h.tail >> $@
-
+else
+ami_scan.h: ami_scan_mac.h ami_scan.h.head ami_scan.h.tail
+	cat ami_scan.h.head ami_scan_mac.h ami_scan.h.tail > $@
+endif
 
 # Build a new tags file for emacs to use.
 TAGS: $(TAG_FILES)
