@@ -1,6 +1,6 @@
 # Copyright (c) 1994 Darren Erik Vengroff
 
-# $Id: Makefile.in,v 1.25 1999-09-23 00:16:33 hutchins Exp $
+# $Id: Makefile.in,v 1.26 1999-11-08 21:14:41 hutchins Exp $
 
 # Makefile for TPIE test applications.
 
@@ -39,7 +39,7 @@ endif
 # endif
 
 # Get the proper include path and DEFS from the configure script.
-override CPPFLAGS += -I$(TPIEINC) @DEFS@
+override CPPFLAGS += -I$(TPIEINC) @DEFS@ -O3
 
 
 # The loader in OSF 1.x is flakey.  Using -lm generates an executable
