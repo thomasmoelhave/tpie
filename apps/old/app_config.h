@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/6/94
 //
-// $Id: app_config.h,v 1.24 2002-06-22 18:10:22 tavi Exp $
+// $Id: app_config.h,v 1.25 2002-06-22 18:12:24 tavi Exp $
 //
 #ifndef _APP_CONFIG_H
 #define _APP_CONFIG_H
@@ -35,8 +35,8 @@ extern int random_seed;
 // <><><><><><><><><><><><><><><><><><><><><><> //
 
 // Define only one (default is BTE_COLLECTION_IMP_MMAP)
-//#define BTE_COLLECTION_IMP_MMAP
-#define BTE_COLLECTION_IMP_UFS
+#define BTE_COLLECTION_IMP_MMAP
+//#define BTE_COLLECTION_IMP_UFS
 //#define BTE_COLLECTION_IMP_USER_DEFINED
 
 
