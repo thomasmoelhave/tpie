@@ -1,7 +1,7 @@
 //
 // File: mergeheap_dh.h
 // 
-// $Id: mergeheap_dh.h,v 1.5 2003-04-17 19:37:22 jan Exp $	
+// $Id: mergeheap_dh.h,v 1.6 2004-02-05 17:28:47 jan Exp $	
 
 // This file contains several merge heap templates. 
 // Originally written by Rakesh Barve.  
@@ -566,10 +566,10 @@ inline void merge_heap_dh_op<REC>::Heapify(unsigned int i) {
 	r = Right(i);
     
 	smallest = ((l <= Heapsize) && 
-		    (Heaparray[l].key < Heaparray[i].key))? l : i;
+		(Heaparray[l].key < Heaparray[i].key))? l : i;
     
 	smallest =  ((r <= Heapsize) && 
-		     (Heaparray[r].key < Heaparray[smallest].key))? r : smallest;
+		(Heaparray[r].key < Heaparray[smallest].key))? r : smallest;
     }
 }
 
