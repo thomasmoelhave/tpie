@@ -6,7 +6,7 @@
 //
 // A test for AMI_partition_and_merge().
 
-static char test_ami_pmerge_id[] = "$Id: test_ami_pmerge.cpp,v 1.9 1994-10-13 17:03:16 darrenv Exp $";
+static char test_ami_pmerge_id[] = "$Id: test_ami_pmerge.cpp,v 1.10 1994-10-31 20:07:23 darrenv Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -123,7 +123,7 @@ AMI_err s_merge_manager::initialize(arity_t arity, CONST int * CONST *in,
 
 size_t s_merge_manager::space_usage_overhead(void)
 {
-    return sizeof(PQUEUE<arity_t,int>);
+    return sizeof(pqueue_heap_op<arity_t,int>);
 }
 
 
