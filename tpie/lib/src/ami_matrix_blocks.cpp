@@ -5,18 +5,8 @@
 // Created: 12/11/94
 //
 
-static char ami_matrix_blocks_id[] = "$Id: ami_matrix_blocks.cpp,v 1.2 1999-11-23 17:43:42 tavi Exp $";
-
-// This is just to avoid an error message since the string above is never
-// referenced.  Note that a self referential structure must be defined to
-// avoid passing the problem further.
-static struct ___ami_matrix_blocks_id_compiler_fooler {
-    char *pc;
-    ___ami_matrix_blocks_id_compiler_fooler *next;
-} the___ami_matrix_blocks_id_compiler_fooler = {
-    ami_matrix_blocks_id,
-    &the___ami_matrix_blocks_id_compiler_fooler
-};
+#include <versions.h>
+VERSION(ami_matrix_blocks_cpp,"$Id: ami_matrix_blocks.cpp,v 1.3 2000-01-10 22:28:45 hutchins Exp $");
 
 #include <sys/types.h>
 #include <ami_base.h>

@@ -5,20 +5,8 @@
 // Created: 1/9/95
 //
 
-static char ami_bit_permute_id[] = "$Id: ami_bit_permute.cpp,v 1.1 1995-01-10 16:54:15 darrenv Exp $";
-
-// This is just to avoid an error message since the string above is never
-// referenced.  Note that a self referential structure must be defined to
-// avoid passing the problem further.
-static struct ___ami_bit_permute_id_compiler_fooler {
-    char *pc;
-    ___ami_bit_permute_id_compiler_fooler *next;
-} the___ami_bit_permute_id_compiler_fooler = {
-    ami_bit_permute_id,
-    &the___ami_bit_permute_id_compiler_fooler
-};
-
-
+#include <versions.h>
+VERSION(ami_bit_permute_cpp,"$Id: ami_bit_permute.cpp,v 1.2 2000-01-10 22:29:57 hutchins Exp $");
 
 #include <ami_bit_permute.h>
 

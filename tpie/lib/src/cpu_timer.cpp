@@ -5,19 +5,8 @@
 // Created: 1/11/95
 //
 
-static char cpu_timer_id[] = "$Id: cpu_timer.cpp,v 1.2 1995-03-25 14:08:54 darrenv Exp $";
-
-// This is just to avoid an error message since the string above is never
-// referenced.  Note that a self referential structure must be defined to
-// avoid passing the problem further.
-static struct ___cpu_timer_id_compiler_fooler {
-    char *pc;
-    ___cpu_timer_id_compiler_fooler *next;
-} the___cpu_timer_id_compiler_fooler = {
-    cpu_timer_id,
-    &the___cpu_timer_id_compiler_fooler
-};
-
+#include <versions.h>
+VERSION(cpu_timer_cpp,"$Id: cpu_timer.cpp,v 1.3 2000-01-10 22:32:26 hutchins Exp $");
 
 #include <unistd.h>
 #include <sys/times.h>
