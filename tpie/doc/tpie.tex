@@ -3,7 +3,7 @@
 %%
 %% File: tpie.tex
 %%
-%% $Id: tpie.tex,v 1.24 2000-09-29 18:48:26 hutchins Exp $
+%% $Id: tpie.tex,v 1.25 2000-10-05 19:26:52 hutchins Exp $
 %%
  
 \documentclass[11pt]{book}
@@ -19,13 +19,17 @@
 
 % use this instead of \verb, which is not allowed as parameter [tavi]
 %app_config@{\tt app\_config.h}}
-\newcommand{\myverb}[1]{\texttt{#1}\index{#1@{\tt #1}}}
-\newcommand{\myv}[1]{\texttt{#1}\index{#1@{\tt #1}}}
+%\newcommand{\myverb}[1]{\texttt{#1}\index{#1@{\tt #1}}}
+%\newcommand{\myv}[1]{\texttt{#1}\index{#1@{\tt #1}}}
+\newcommand{\myverb}[1]{\noiv{#1}\index{#1@{\small\tt #1}}}
+\newcommand{\myv}[1]{\noiv{#1}\index{#1@{\small\tt #1}}}
 
 % use this instead of \myverb if you don't want its
 % parameter in the index
-\newcommand{\noiverb}[1]{\texttt{#1}}
-\newcommand{\noiv}[1]{\texttt{#1}}
+%\newcommand{\noiverb}[1]{\texttt{#1}}
+%\newcommand{\noiv}[1]{\texttt{#1}}
+\newcommand{\noiverb}[1]{{\small \tt #1}}
+\newcommand{\noiv}[1]{{\small \tt #1}}
 
 % emphasize and put into index
 \newcommand{\emphd}[1]{\emph{#1}\index{#1}}

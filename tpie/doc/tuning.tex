@@ -1,5 +1,5 @@
 %%
-%% $Id: tuning.tex,v 1.9 2000-09-29 18:48:03 hutchins Exp $
+%% $Id: tuning.tex,v 1.10 2000-10-05 19:27:35 hutchins Exp $
 %%
 \chapter{Configuration and Performance Tuning}
 \plabel{sec:tuning}\index{Configuration}\plabel{sec:configuration}
@@ -26,7 +26,7 @@ applications.
 It is possible to customize certain TPIE behaviours by
 providing arguments to the {configure} script when TPIE is
 first installed (see Section
-\ref{sec:installation}.\index{configuration:options} None of
+\ref{sec:tut-installation}.\index{configuration:options} None of
 these arguments are necessary and the first time you build
 TPIE you should not need any of them. The arguments
 recognized are as follows:
@@ -73,7 +73,7 @@ recognized are as follows:
     compilation of TPIE programs slightly faster because the
     macro processor of the C++ compiler will have less work
     to do.  In addition to the standard GNU tools mentioned
-    in Section~\ref{sec:gnu-software}, this requires
+    in Section~\ref{sec:tut-gnu-software}, this requires
     \myverb{perl}.
     
     \item[\myverb{--disable-*}] Any of the options above can
@@ -529,7 +529,7 @@ a TPIE application.
     \item[Memory size] To insure that no disk swapping is
     done by the OS, the size of main memory used by TPIE
     (set by \myverb{MM\_manager.set\_memory\_limit()}, see
-    Section~\ref{sec:compiling} and Section~\ref{sec:mm-ref})
+    Section~\ref{sec:tut-compiling} and Section~\ref{sec:mm-ref})
     should be set to a realistic value. The best value is
     usually much smaller than the size of the memory
     installed in the computer (due to memory use of
