@@ -7,14 +7,38 @@
 
 
 
-static char parse_args_id[] = "$Id: parse_args.cpp,v 1.2 1995-01-10 16:47:10 darrenv Exp $";
+static char parse_args_id[] = "$Id: parse_args.cpp,v 1.3 1999-01-21 23:04:34 rajiv Exp $";
 
 #include <GetOpt.h>
 #include <strstream.h>
+#include <ctype.h>
 
 #include "app_config.h"
 
 #include "parse_args.h"
+
+static size_t
+parse_number(char *s) {
+  size_t n, mult=1;
+  int len = strlen(s);
+  if(isalpha(s[len-1])) {
+    switch(s[len-1]) {
+    case 'M':
+      mult = 1 << 20;
+      break;
+    case 'K':
+      mult = 1 << 10;
+      break;
+    default:
+      cerr << "bad number format: " << s << endl;
+      exit(-1);
+      break;
+    }
+    s[len-1] = '\0';
+  }
+  n = atol(s);
+  return n * mult;
+}
 
 void parse_args(int argc, char **argv, const char *as_opts,
                 void (*parse_app_opt)(char opt, char *optarg))
@@ -42,13 +66,15 @@ void parse_args(int argc, char **argv, const char *as_opts,
                 verbose = !verbose;
                 break;
             case 'm':
-                istrstream(go.optarg,strlen(go.optarg)) >> test_mm_size;
+	     test_mm_size = parse_number(go.optarg);
+	     //istrstream(go.optarg,strlen(go.optarg)) >> test_mm_size;
                 break;                
             case 't':
-                istrstream(go.optarg,strlen(go.optarg)) >> test_size;
+	      test_size = parse_number(go.optarg);
+	      //istrstream(go.optarg,strlen(go.optarg)) >> test_size;
                 break;
             case 'z':
-                istrstream(go.optarg,strlen(go.optarg)) >> random_seed;
+	      istrstream(go.optarg,strlen(go.optarg)) >> random_seed;
                 break;
             default:
                 parse_app_opt(c, go.optarg);
