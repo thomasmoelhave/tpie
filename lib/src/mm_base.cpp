@@ -6,7 +6,7 @@
 //
 
 #include <versions.h>
-VERSION(mm_base_cpp,"$Id: mm_base.cpp,v 1.21 2000-03-26 00:44:24 rajiv Exp $");
+VERSION(mm_base_cpp,"$Id: mm_base.cpp,v 1.22 2000-03-26 05:15:17 rajiv Exp $");
 
 #include "lib_config.h"
 #include <mm_base.h>
@@ -79,7 +79,10 @@ void *operator new (size_t sz)
 		LOG_FLUSH_LOG;
 		cerr << "memory manager: memory allocation limit exceeded "
 			 << "while allocating " << sz << " bytes" << endl;
+#ifdef USE_DMALLOC
+		dmalloc_shutdown();
 		assert (0);		// core dump if debugging
+#endif
 		exit (1);
 		break;
 	  case MM_WARN_ON_MEMORY_EXCEEDED:
