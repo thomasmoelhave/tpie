@@ -5,7 +5,7 @@
 // Created: 1/20/95
 //
 
-static char lru_sim_id[] = "$Id: lru_sim.cpp,v 1.1 1995-03-07 15:11:06 darrenv Exp $";
+static char lru_sim_id[] = "$Id: lru_sim.cpp,v 1.2 1999-06-19 01:19:32 tavi Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -21,12 +21,13 @@ static struct ___lru_sim_id_compiler_fooler {
 
 #include <strstream.h>
 #include <iostream.h>
-#include <GetOpt.h>
+#include <stdlib.h>
+///#include <GetOpt.h>
 
 #include "lru_sim.h"
 
-extern "C" int srandom(int);
-extern "C" int random(void);
+///extern "C" int srandom(int);
+///extern "C" int random(void);
 
 static int random_seed = 17;
 static int mem_size = MAIN_MEM_OBJECTS;
@@ -42,26 +43,32 @@ int main(int argc, char **argv)
 
     static char opts[] = "z:t:vp:m:";
     
-    GetOpt go(argc, argv, opts);
+    ///GetOpt go(argc, argv, opts);
     char c;
 
-    while ((c = go()) != -1) {
+    ///while ((c = go()) != -1) {
+    optarg = NULL;
+    while((c = getopt(argc, argv, opts)) != -1) {
         switch (c) {
             case 'v':
-                verbose = !verbose;
-                break;
+	      verbose = !verbose;
+	      break;
             case 't':  // Test size in objects.
-                istrstream(go.optarg,strlen(go.optarg)) >> test_size;
-                break;
+	      ///istrstream(go.optarg,strlen(go.optarg)) >> test_size;
+	      istrstream(optarg, strlen(optarg)) >> test_size;
+	      break;
             case 'm':  // Mem size in objects.
-                istrstream(go.optarg,strlen(go.optarg)) >> mem_size;
-                break;
+	      ///istrstream(go.optarg,strlen(go.optarg)) >> mem_size;
+	      istrstream(optarg, strlen(optarg)) >> mem_size;
+	      break;
             case 'p':  // Page size in objects.
-                istrstream(go.optarg,strlen(go.optarg)) >> page_size;
-                break;                
+	      ///istrstream(go.optarg,strlen(go.optarg)) >> page_size;
+              istrstream(optarg, strlen(optarg)) >> page_size;
+	      break;                
             case 'z':
-                istrstream(go.optarg,strlen(go.optarg)) >> random_seed;
-                break;
+	      ///istrstream(go.optarg,strlen(go.optarg)) >> random_seed;
+	      istrstream(optarg, strlen(optarg)) >> random_seed;
+	      break;
         }
     }
 
