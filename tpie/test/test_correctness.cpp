@@ -5,7 +5,7 @@
 //
 // An extensive test suite for TPIE functionality.
 //
-// $Id: test_correctness.cpp,v 1.5 2003-09-12 18:33:17 jan Exp $
+// $Id: test_correctness.cpp,v 1.6 2004-02-05 17:48:53 jan Exp $
 //
 
 #include <portability.h>
@@ -229,7 +229,10 @@ int test_stream() {
   AMI_STREAM<foo_t<40> >* s;
   int failed = 0;
   AMI_err err;
-  char fn[] = "/var/tmp/tpie00.stream";
+  char *fn  = new char[strlen(TMP_DIR)+strlen("tpie00.stream")+1];
+  strcpy(fn,TMP_DIR);
+  strcpy(fn+strlen(fn),"tpie00.stream");
+
   char *pfn = NULL; // Pointer to a file name.
   foo_t<40> afoo = thefoo;
   foo_t<40> *pafoo;
@@ -412,6 +415,7 @@ int test_stream() {
   
   print_status(EMPTY);
 
+  delete[] fn;
   return (failed ? 1: 0);
 }
 
@@ -536,6 +540,18 @@ int test_scan_cxx() {
   int i;
   AMI_STREAM< pair<int,int> >* ts;
 
+  char *fns  = new char[strlen(TMP_DIR)+strlen("tpie00.stream")+1];
+  strcpy(fns,TMP_DIR);
+  strcpy(fns+strlen(fns),"tpie00.stream");
+
+  char *fnt0  = new char[strlen(TMP_DIR)+strlen("tpie00.txt")+1];
+  strcpy(fnt0,TMP_DIR);
+  strcpy(fnt0+strlen(fnt0),"tpie00.txt");
+
+  char *fnt1  = new char[strlen(TMP_DIR)+strlen("tpie01.txt")+1];
+  strcpy(fnt1,TMP_DIR);
+  strcpy(fnt1+strlen(fnt1),"tpie01.txt");
+
   // Print the test heading.
   print_msg("Testing AMI_scan with C++ streams", 0);
   if (been_here) {
@@ -547,12 +563,12 @@ int test_scan_cxx() {
 
   print_msg("Creating an ASCII file with 5m pairs of integers", INDENT);
   if (status != SKIP) {
-    unlink("/var/tmp/tpie00.txt");
-    unlink("/var/tmp/tpie00.stream");
+    unlink(fnt0);
+    unlink(fns);
     ofstream xos;
-    xos.open("/var/tmp/tpie00.txt");
+    xos.open(fnt0);
     if (!xos) {
-      LOG_APP_DEBUG_ID("Could not open C++ stream for writing to /var/tmp/tpie00.txt");
+      LOG_APP_DEBUG_ID("Could not open C++ stream for writing to tpie00.txt");
       status = FAIL;
     } else {
       for (i = 0; i < 5000000; i++) {
@@ -567,20 +583,20 @@ int test_scan_cxx() {
   print_msg("Running AMI_scan with cxx_istream_scan", INDENT);
   if (status != SKIP) {
     ifstream xis;    
-    xis.open("/var/tmp/tpie00.txt");
+    xis.open(fnt0);
     if (!xis) {
-      LOG_APP_DEBUG_ID("Could not open C++ stream for reading from /var/tmp/tpie00.txt");
+      LOG_APP_DEBUG_ID("Could not open C++ stream for reading from tpie00.txt");
       status = FAIL;
     }
     cxx_istream_scan< pair<int,int> > so(&xis);
-    ts = new AMI_STREAM< pair<int,int> >("/var/tmp/tpie00.stream");
+    ts = new AMI_STREAM< pair<int,int> >(fns);
     if (!ts->is_valid()) {
-      LOG_APP_DEBUG_ID("Could not open TPIE stream for writing in /var/tmp/tpie00.stream");
+      LOG_APP_DEBUG_ID("Could not open TPIE stream for writing in tpie00.stream");
       status = FAIL;
     } 
     if (status != FAIL) {
       err = AMI_scan(&so, ts);
-      LOG_APP_DEBUG_ID("Length of TPIE stream in /var/tmp/tpie00.stream:");
+      LOG_APP_DEBUG_ID("Length of TPIE stream in tpie00.stream:");
       LOG_APP_DEBUG_ID(ts->stream_len());
       status = (err == AMI_ERROR_NO_ERROR && ts->stream_len() == 5000000 ? PASS: FAIL);
     }
@@ -593,15 +609,15 @@ int test_scan_cxx() {
   print_msg("Running AMI_scan with cxx_ostream_scan", INDENT);
   if (status != SKIP) {
     ofstream xos;
-    xos.open("/var/tmp/tpie01.txt");
+    xos.open(fnt1);
     if (!xos) {
-      LOG_APP_DEBUG_ID("Could not open C++ stream for writing to /var/tmp/tpie01.txt");
+      LOG_APP_DEBUG_ID("Could not open C++ stream for writing to tpie01.txt");
       status = FAIL;
     }
     cxx_ostream_scan< pair<int,int> > so(&xos);
-    ts = new AMI_STREAM< pair<int,int> >("/var/tmp/tpie00.stream", AMI_READ_STREAM);
+    ts = new AMI_STREAM< pair<int,int> >(fns, AMI_READ_STREAM);
     if (!ts->is_valid() || ts->stream_len() != 5000000) {
-      LOG_APP_DEBUG_ID("Error while re-opening stream from /var/tmp/tpie00.stream");
+      LOG_APP_DEBUG_ID("Error while re-opening stream from tpie00.stream");
       status = FAIL;
     }
     if (status != FAIL) {
@@ -613,9 +629,9 @@ int test_scan_cxx() {
   }
   print_status(status); if (status == FAIL) failed++;
   
-  unlink("/var/tmp/tpie00.stream");
-  unlink("/var/tmp/tpie00.txt");
-  unlink("/var/tmp/tpie01.txt");
+  unlink(fns); delete[] fns;
+  unlink(fnt0); delete[] fnt0;
+  unlink(fnt1); delete[] fnt1;
   print_status(EMPTY); // New line.
   return (failed ? 1: 0);
 }
