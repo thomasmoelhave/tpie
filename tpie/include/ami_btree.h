@@ -3,7 +3,7 @@
 // File:    ami_btree.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_btree.h,v 1.30 2003-09-17 02:55:44 tavi Exp $
+// $Id: ami_btree.h,v 1.31 2004-05-05 14:31:56 adanner Exp $
 //
 // AMI_btree declaration and implementation.
 //
@@ -153,6 +153,10 @@ public:
 
   // Insert an element.
   bool insert(const Value& v);
+
+  // Modify an element. Insert if not present
+  // Equivalent to erase followed by insert, but a single search
+  bool modify(const Value& v);
 
   // Erase an element based on key.
   bool erase(const Key& k);
@@ -1036,7 +1040,7 @@ AMI_BTREE::AMI_btree(const AMI_btree_params &params): header_(), params_(params)
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
 AMI_BTREE::AMI_btree(const char *base_file_name, AMI_collection_type type, 
 	     const AMI_btree_params &params):
-  header_(), params_(params), stats_(), kov_(), status_(AMI_BTREE_STATUS_VALID) {
+  header_(), params_(params), status_(AMI_BTREE_STATUS_VALID), stats_(), kov_() {
 
   shared_init(base_file_name, type);
 
@@ -1512,6 +1516,57 @@ bool AMI_BTREE::insert(const Value& v) {
   return ans;
 }
 
+//// *AMI_btree::modify* ////
+template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
+bool AMI_BTREE::modify(const Value& v) {
+                                                                                
+  bool ans = true;
+                                                                                
+  // Check for empty tree.
+  if (header_.height == 0) {
+    return insert_empty(v);
+  }
+                                                                                
+  // Find the leaf where v should be inserted and fetch it.
+  AMI_bid bid = find_leaf(kov_(v));
+  AMI_BTREE_LEAF *p = fetch_leaf(bid);
+                                                                                
+  if(p->erase(kov_(v))){
+    // Item was present, can insert without overflow
+    ans = p->insert(v);
+    release_leaf(p);
+  }
+  else{
+    // Item was not present, do a standard insert
+    // If the leaf is not full, insert v into it.
+    if (!full_leaf(p)) {
+      ans = p->insert(v);
+      release_leaf(p);
+    }
+    else {
+#if AMI_BTREE_UNIQUE_KEYS
+      size_t pos = p->find(kov_(v));
+      // Check for duplicate key.
+      if (pos < p->size() &&
+                !comp_(kov_(v), kov_(p->el[pos])) &&
+                !comp_(kov_(p->el[pos]), kov_(v))) {
+        LOG_WARNING_ID("Attempting to insert duplicate key. Ignoring insert.");
+        ans = false;
+      }
+      else {
+        ans = insert_split(v, p, bid);
+      }
+#else
+      ans = insert_split(v, p, bid);
+#endif
+    }
+  }
+                                                                               
+  empty_stack();
+                                                                               
+  // Return answer.
+  return ans;
+}
 
 //// *AMI_btree::insert_load* ////
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
