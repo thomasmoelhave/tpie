@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/12/94
 //
-// $Id: fill_upper_tri.h,v 1.3 1995-06-20 20:15:06 darrenv Exp $
+// $Id: fill_upper_tri.h,v 1.4 1997-05-20 22:06:01 vengroff Exp $
 //
 #ifndef _FILL_UPPER_TRI_H
 #define _FILL_UPPER_TRI_H
@@ -18,7 +18,7 @@ private:
 public:
     fill_upper_tri(T t) : val(t) {};
     virtual ~fill_upper_tri() {};
-    AMI_err initialize(unsigned int rows, unsigned int cols)
+    AMI_err initialize(unsigned int /*rows*/, unsigned int /*cols*/)
     {
         return AMI_ERROR_NO_ERROR;
     };
