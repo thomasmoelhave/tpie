@@ -3,7 +3,7 @@
 // File:    ami_btree.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_btree.h,v 1.10 2001-12-29 05:14:56 tavi Exp $
+// $Id: ami_btree.h,v 1.11 2002-01-03 07:02:24 tavi Exp $
 //
 // AMI_btree declaration and implementation.
 //
@@ -19,18 +19,20 @@
 #include <functional>
 #include <fstream>
 
-// TPIE streams.
-#include <ami.h>
-// The triple class.
-#include <triple.h>
-// The AMI_COLLECTION class.
+// Get a stream implementation.
+#include <ami_stream.h>
+// Get templates for AMI_sort.
+#include <ami_sort.h>
+// Get a collection implementation.
 #include <ami_coll.h>
-// The AMI_block class.
+// Get a block implementation.
 #include <ami_block.h>
 // The cache manager.
 #include <ami_cache.h>
 // The tpie_stats_tree class for tree statistics.
 #include <tpie_stats_tree.h>
+// The triple class.
+#include <triple.h>
 
 enum AMI_btree_status {
   AMI_BTREE_STATUS_VALID,
