@@ -7,7 +7,7 @@
 // A sample piece of code that does list ranking in the TPIE system.
 //
 
-static char lr_id[] = "$Id: lr.cpp,v 1.8 1995-03-07 14:54:57 darrenv Exp $";
+static char lr_id[] = "$Id: lr.cpp,v 1.9 1995-06-20 20:15:14 darrenv Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -21,7 +21,7 @@ static struct ___lr_id_compiler_fooler {
 };
 
 #ifndef BTE_STATS
-#define BTE_STATS 1
+#define BTE_STATS 0
 #endif
 
 // Get the application defaults.
@@ -487,7 +487,7 @@ AMI_err patch_active_cancel::operate(CONST edge &active, CONST edge &cancel,
 // Returns 0 on success, nonzero otherwise.
 ////////////////////////////////////////////////////////////////////////
 
-int list_rank(AMI_base_stream<edge> *istream, AMI_base_stream<edge> *ostream,
+int list_rank(AMI_STREAM<edge> *istream, AMI_STREAM<edge> *ostream,
               unsigned int rec_level = 0)
 {
     AMI_err ae;
@@ -539,8 +539,7 @@ int list_rank(AMI_base_stream<edge> *istream, AMI_base_stream<edge> *ostream,
 
     edges_rand = new AMI_STREAM<edge>((unsigned int)0, stream_len);
     
-    AMI_scan((AMI_base_stream<edge> *)istream, &my_random_flag_scan,
-             (AMI_base_stream<edge> *)edges_rand);
+    AMI_scan(istream, &my_random_flag_scan, edges_rand);
 
     if (verbose) {
         cout << "Random flag list is of length " <<
@@ -568,11 +567,11 @@ int list_rank(AMI_base_stream<edge> *istream, AMI_base_stream<edge> *ostream,
     active = new AMI_STREAM<edge>((unsigned int)0, stream_len);
     cancel = new AMI_STREAM<edge>((unsigned int)0, stream_len);
 
-    ae = AMI_scan((AMI_base_stream<edge> *)edges_from_s,
-                  (AMI_base_stream<edge> *)edges_rand,
+    ae = AMI_scan(edges_from_s,
+                  edges_rand,
                   &my_separate_active_from_cancel,
-                  (AMI_base_stream<edge> *)active,
-                  (AMI_base_stream<edge> *)cancel);
+                  active,
+                  cancel);
 
     delete edges_from_s;
     delete edges_rand;
@@ -599,9 +598,9 @@ int list_rank(AMI_base_stream<edge> *istream, AMI_base_stream<edge> *ostream,
 
     active_2 = new AMI_STREAM<edge>((unsigned int)0, stream_len);
 
-    ae = AMI_scan((AMI_base_stream<edge> *)active_s,
+    ae = AMI_scan(active_s,
                   &my_strip_cancel_from_active,
-                  (AMI_base_stream<edge> *)active_2);
+                  active_2);
 
     delete active_s;
 
@@ -651,10 +650,10 @@ int list_rank(AMI_base_stream<edge> *istream, AMI_base_stream<edge> *ostream,
     
     // Now merge the recursively ranked active list and the sorted cancel list.
 
-    ae = AMI_scan((AMI_base_stream<edge> *)ranked_active_s,
-                  (AMI_base_stream<edge> *)cancel_s,
+    ae = AMI_scan(ranked_active_s,
+                  cancel_s,
                   &my_patch_active_cancel,
-                  (AMI_base_stream<edge> *)ostream);
+                  ostream);
 
     if (verbose) {
         cout << "After patching in canceled edges, list is of length " <<
@@ -766,7 +765,7 @@ int main(int argc, char **argv)
 
         scan_list sl(test_size);
 
-        ae = AMI_scan(&sl, (AMI_base_stream<edge> *)&amis0);
+        ae = AMI_scan(&sl, &amis0);
 
         if (verbose) {
             cout << "Wrote the initial sequence of edges.\n";
@@ -777,7 +776,7 @@ int main(int argc, char **argv)
         }
 
         if (report_results_initial) {
-            ae = AMI_scan((AMI_base_stream<edge> *)&amis0, rpti);
+            ae = AMI_scan(&amis0, rpti);
         }
         
         // Randomly order them.
@@ -795,7 +794,7 @@ int main(int argc, char **argv)
         }
 
         if (report_results_random) {
-            ae = AMI_scan((AMI_base_stream<edge> *)pamis1, rptr);
+            ae = AMI_scan(pamis1, rptr);
         }
     }
     
@@ -804,7 +803,7 @@ int main(int argc, char **argv)
 
     LOG_INFO("About to start timers.\n");
     
-#ifdef BTE_STATS
+#if BTE_STATS
     BTE_stream_mmb_base::reset_stats();
     cout << BTE_stream_mmb_base::statistics() << '\n';
     BTE_stream_mmb_base::stats_on();
@@ -822,8 +821,8 @@ int main(int argc, char **argv)
 
     delete pamis1;
     
-    list_rank((AMI_base_stream<edge> *)pamis2,
-              (AMI_base_stream<edge> *)&amis3, 1);
+    list_rank(pamis2,
+              &amis3, 1);
 
     delete pamis2;
 
@@ -833,7 +832,7 @@ int main(int argc, char **argv)
     cout << "Wall time: " <<  wt0 << '\n';
     cout << "CPU time: " <<  ct0 << '\n';
 
-#ifdef BTE_STATS
+#if BTE_STATS
     BTE_stream_mmb_base::stats_off();
     cout << BTE_stream_mmb_base::statistics() << '\n';
 #endif
@@ -845,7 +844,7 @@ int main(int argc, char **argv)
         // read.
         ae = AMI_sort(&amis3, &amis4, edgeweightcmp);
     
-        ae = AMI_scan((AMI_base_stream<edge> *)&amis4, rptf);
+        ae = AMI_scan(&amis4, rptf);
     }
         
     return 0;
@@ -869,22 +868,22 @@ TEMPLATE_INSTANTIATE_OSTREAM(edge)
 TEMPLATE_INSTANTIATE_MERGE_RANDOM(edge);
 
 // Calls to AMI_scan using various object types.
-template AMI_err AMI_scan(AMI_base_stream<edge> *, random_flag_scan *,
-                          AMI_base_stream<edge> *);
+template AMI_err AMI_scan(AMI_STREAM<edge> *, random_flag_scan *,
+                          AMI_STREAM<edge> *);
 
-template AMI_err AMI_scan(AMI_base_stream<edge> *, AMI_base_stream<edge> *,
+template AMI_err AMI_scan(AMI_STREAM<edge> *, AMI_STREAM<edge> *,
                           separate_active_from_cancel *,
-                          AMI_base_stream<edge> *, AMI_base_stream<edge> *);
+                          AMI_STREAM<edge> *, AMI_STREAM<edge> *);
 
-template AMI_err AMI_scan(AMI_base_stream<edge> *, strip_cancel_from_active *,
-                          AMI_base_stream<edge> *);
+template AMI_err AMI_scan(AMI_STREAM<edge> *, strip_cancel_from_active *,
+                          AMI_STREAM<edge> *);
 
 
-template AMI_err AMI_scan(AMI_base_stream<edge> *, AMI_base_stream<edge> *,
+template AMI_err AMI_scan(AMI_STREAM<edge> *, AMI_STREAM<edge> *,
                           patch_active_cancel *,
-                          AMI_base_stream<edge> *);
+                          AMI_STREAM<edge> *);
 
-template AMI_err AMI_scan(scan_list *, AMI_base_stream<edge> *);
+template AMI_err AMI_scan(scan_list *, AMI_STREAM<edge> *);
 
 
 #endif
