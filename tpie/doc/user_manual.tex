@@ -1,5 +1,5 @@
 %%
-%% $Id: user_manual.tex,v 1.21 2000-08-08 04:57:52 hutchins Exp $
+%% $Id: user_manual.tex,v 1.22 2000-09-29 18:47:43 hutchins Exp $
 %%
 \chapter{Overview}
 
@@ -9,13 +9,13 @@ reside on disk. Thus communication between internal and external memory,
 and not actual computation time, often becomes the bottleneck in the
 computation. This is due to the huge difference in access time of fast
 internal memory and slower external memory such as disks. While typical
-accSess time of main memory is measured in nanoseconds, a typical access
+access time of main memory is measured in nanoseconds, a typical access
 time of a disk is on the order of milliseconds~\cite{cockcroft:sun}. So
-roughly speaking there is a factor of a million in difference in the access
+roughly speaking there is a factor of a million difference in the access
 time of internal and external memory. A good example of an applications
 involving massive amounts of geometric data is NASA's Earth Observation
 System (EOS)~\cite{cromp,kobler:nasa}, which is expected to manipulate
-petabytes (thousands of terabytes, or million of gigabytes) of data.
+petabytes (thousands of terabytes, or millions of gigabytes) of data.
 
 The goal of theoretical work in the area of {\em external
    memory (EM) algorithms\/} (also called {\em I/O
@@ -341,12 +341,12 @@ high-level coordination of data movement interspersed with
 appropriate internal memory computing, with the low level I/O
 details being transparent, or ``under the hood''.
 TPIE provides various classes of ``management objects'',
-(e.g. \emph{scan management
-   objects}, \emph{merge management objects}, etc.) that
+(e.g. \emphd{scan management
+   objects}, \emphd{merge management objects}, etc.) that
 allow the user to specify sophisticated data movement
-operations on \emph{streams} of data in a simple and
+operations on \emphd{streams} of data in a simple and
 straightforward manner. These management object classes are
-built on top of a simple \emph{stream interface} called
+built on top of a simple \emphd{stream interface} called
 \myverb{AMI\_STREAM}. The tutorial in the next chapter explains
 how to specify and use such management object classes.
 
@@ -393,7 +393,7 @@ In this section we discuss the simple simple C++ sample
 program shown in the previous section. The file
 \myverb{app\_config.h} is the TPIE configuration file. TPIE's
 \myverb{AMI\_STREAM} stream I/O operations are carried out
-transparently by one of three possible \emph{block transfer
+transparently by one of three possible \emphd{block transfer
    engines (BTEs)}. Briefly, the file \myverb{app\_config.h} chooses
 a specific BTE, and the amount of internal memory used as
 buffer space for each \myverb{AMI\_STREAM}. The
@@ -448,7 +448,7 @@ used by the operating system and other programs running on
 the machine.
 
 %In the case of the present program, it is desirable to
-%ensure that the program is allowed enough memory to comfortably accomodate
+%ensure that the program is allowed enough memory to comfortably accommodate
 %the buffer space required by each one of the nine \myverb{AMI\_STREAM}s
 %involved in the computation. The amount of buffer space required per
 %\myverb{AMI\_STREAM} depends on the BTE implementation chosen in the
@@ -486,7 +486,7 @@ For the sake of brevity, much of the code presented in this tutorial is
 incomplete, in the sense that necessary header files \index{header files}
 and macros\index{macros} are omitted. Details concerning how to write your
 own complete TPIE code is presented at the end of the tutorial in
-Section~\ref{sec:compiling} (see also Section~\ref{ch:samplepgmr} and
+Section~\ref{tut:compiling} (see also Sections~\ref{ch:samplepgmr} and
 \ref{sec:choosingbte})\comment{LA: Maybe we should talk briefly about AMI,
 BTE, MM somewhere around here - we talk about main memory issues in merging
 and compiling sections.}
@@ -514,22 +514,90 @@ Some of the basic concepts required for understanding the
 discussion of I/O issues and external memory algorithms in
 this manual are outlined in Section~\ref{tut:concepts}.
 
-\section{Basic External Memory Concepts}\plabel{tut:concepts}
+\section{Basic Concepts}\plabel{tut:concepts}
 \index{concepts}\index{basic concepts}
-Stuff there should maybe be something about: substreams,
-persistence, read/write primitives, etc. 
-We start talking about memory
+\comment{Stuff there should maybe be something about: substreams,
+persistence, read/write primitives, etc.} 
+\comment{We start talking about memory
    constraints - there should be a general intro to blocks
-   and stuff somewhere.
+   and stuff somewhere.}
+   
+Roughly speaking there is a factor of a million difference
+in the access time of internal and external memory.  In
+order to cope with the high cost of accessing
+externally-stored data, efficient EM algorithms exploit
+locality in their design.  They access a large \emphd{block}
+of $B$ contiguous data elements at a time and perform the
+necessary algorithmic steps on the elements in the block
+while it is in the high-speed memory. The speedup can be
+considerable.  A second effective strategy for EM algorithms
+is the use of multiple parallel disks; whenever an
+input/output operation is performed, $D$ blocks are
+transferred in parallel between memory and each of the $D$
+disks (one block per disk).
+
+The performance of an EM algorithm on a given set of data is
+affected directly by how much internal memory is available
+for its use. We use $M$ to denote the number of application
+data elements that fit into the internal memory available to
+the algorithm, and $m=M/B$ denotes the number of blocks that
+fit into the available internal memory. Such a block is more precisely
+called a \emphd{logical block} because it may be a different
+size (usually larger) than either the physical block size or
+the system block size. We will reserve the term
+\emphd{physical block} size to mean the 
+block size used by a disk controller to communicate with
+a physical disk, and the \emphd{system block} size will be the
+size of block used within the operating system for I/O
+operations on disk devices. In EM algorithms we will assume
+that the logical block size is a multiple of the system
+block size. In TPIE, for instance, this factor is currently
+set to 32 if not changed by the user.
+
+TPIE is implemented as a set of templated classes and
+functions in C++, and employs an object-oriented abstraction
+to EM computation. TPIE provides C++ templates of various
+optimal EM computation \emphd{patterns} or \emphd{paradigms}.
+Examples of such paradigms are the EM algorithms for merge
+sorting, distribution sweeping, time forward processing,
+etc. (see \cite{vitter:survey}). In a TPIE program, the
+application programmer provides application-specific details
+of the specific computation paradigm used, such as C++
+object definitions of the application data records, and code
+for application-specific sub-computations at critical points
+in the computation pattern, but TPIE provides the
+application-independent parts of the pattern.  
+
+The definition of an application data element (or record) is
+provided by the user as a class definition.  Such a class
+definition is typically used as a template parameter in a
+TPIE code fragment (e.g. a templated function). Other
+template parameters may be instantiated by choices the user
+makes between algorithm options (e.g. between sorting
+variants) or between operating system interfaces (e.g. the
+choice of BTE) for instance. These user selections allow a
+pattern replesented by a templated C++ code fragment to be
+instantiated as an actual piece of executable code, tailored
+to the data types required by the user's application.
+
+Application-dependent sub-computations (e.g. a comparison
+function used to determine the order of two application data
+elements during a sort) are typically structured as methods
+of an \emphd{operation management object}. TPIE dictates the
+names and required functionality of each method of an
+operation management object, but the details of the
+computation performed by a specific method are
+application-specific and thus are the responsibility of the
+application programmer. 
 
 
 \section{Streams}\plabel{tut:streams}
 \index{stream}\index{structure!of streams}
-
 \comment{LA: Stuff there should maybe be something about: substreams,
-persistence, read/write primitives, ect.}
+persistence, read/write primitives, ect. DH: See above.}
 
-In TPIE, a \emph{stream} is an ordered collection of objects
+
+In TPIE, a \emphd{stream} is an ordered collection of objects
 of a particular type, stored in external memory, and
 accessed in sequential order. Streams can be thought of as
 fundamental TPIE objects which map volatile, typed
@@ -540,7 +608,7 @@ files in Unix and support a number of primitive file-like
 operations such as read(), write(), truncate(), etc. 
 %See Section \ref{implementationofstreams} for more
 %information.
-TPIE also supports the concept of a \emph{substream}, which
+TPIE also supports the concept of a \emphd{substream}, which
 permits a contiguous subset of the elements in a stream to
 accessed sequentially. Multiple substreams can be created on
 streams and even on other substreams. 
@@ -550,34 +618,33 @@ streams and even on other substreams.
 Various paradigms of external memory computation are
 supported on streams (and substreams) in TPIE, including
 scanning (see Section \ref{tut:scanning}), merging (see
-Section \ref{tut:merging}), sorting (see Section
+Section \ref{tut:merging}), and sorting (see Section
 \ref{tut:sorting}). TPIE reduces the programming effort
 required to perform an external sort, merge, etc., by
-providing the high level
-flow of control within each paradigm, and therefore
-structuring this part of the computation so that it will be
-I/O efficient. The programmer is left with the task of
-providing what amount to ``event handlers'', specifying the
-application-specific details of the computation. For
-instance in sorting, the programmer defines a stream of
-input data, a comparison function (the event handler for the
-task of comparing two application data elements), and an
-output stream for the results. In TPIE terminology, the
-collection of necessary event handlers for a particular EM
-computational paradigm is contained in an {\em operation management
-   object},\index{operation management object}. Operation
-management objects differ according to which paradigm is
-used.  See Section \ref{tut:sorting} for a discussion of the
-details of sort management objects, Section \ref{tut:scanning}
-for a discussion of scan management objects, and Section
-\ref{tut:merging} for a discussion of merge management objects.
+providing the high level flow of control within each
+paradigm, and therefore structuring this part of the
+computation so that it will be I/O efficient. The programmer
+is left with the task of providing what amount to ``event
+handlers'', specifying the application-specific details of
+the computation. For instance in sorting, the programmer
+defines a stream of input data, a comparison function (the
+event handler for the task of comparing two application data
+elements), and an output stream for the results. In TPIE
+terminology, the collection of necessary event handlers for
+a particular EM computational paradigm is contained in an
+\emphd{operation management object}. Operation management objects differ
+according to which paradigm is used.  See Section
+\ref{tut:scanning} for a discussion of scan management
+objects, Section \ref{tut:merging} for a discussion of merge
+management objects, and Section \ref{tut:sorting} for a
+discussion of sort management objects.
 
 Creating a stream of objects in TPIE is very much like
 creating any other object in C++. The only difference is
 that the data placed in the stream is stored in external
 memory (on disk). 
 %In some respects this aspect of TPIE can
-%be viewed as an implementation of \emph{persistent objects}
+%be viewed as an implementation of \emphd{persistent objects}
 %(see Section~\ref{BCCstuff} for more discussion of persistent objects).
 For example, to create an (empty) stream \myverb{stream0}
 capable of storing integers, we could use the following:
@@ -591,7 +658,7 @@ AMI_STREAM<applrec> *p = new AMI_STREAM<applrec>;
 \end{verbatim}
 
 The {\tt AMI} prefix in {\tt AMI\_STREAM} stands for
-\emph{Access Method Interface}\index{Access Method Interface
+\emphd{Access Method Interface}\index{Access Method Interface
    (AMI)}\index{AMI}. This layer of TPIE contains the
 services and functionality which a normal user of TPIE will
 require.  {\tt AMI\_STREAM} is actually a compile-time macro
@@ -1424,7 +1491,7 @@ AMI_err MergeMgr::operate(const int * const *in,
 
 
 \section{Sorting}
-
+\label{tut:sorting}
 \subsection{Comparison Sorting} \plabel{tut:cmp-sorting}
 
 \index{sorting!comparison|(} 
@@ -1452,11 +1519,11 @@ achieve I/O optimality, and how it is done internally by
 TPIE's merge sort services.
 
 \noindent
-\emph{Merge sort} consists of two phases: the run formation
-phase and the merging phase.  During the \emph{run formation
-   phase}, the $N$ input elements are input $M$ (one \emph{memory-load})
+\emphd{Merge sort} consists of two phases: the run formation
+phase and the merging phase.  During the \emphd{run formation
+   phase}, the $N$ input elements are input $M$ (one \emphd{memory-load})
 at a time; each memory-load is sorted and written to the
-disks as a ``run''.  In the \emph{merge phase}, the sorted
+disks as a ``run''.  In the \emphd{merge phase}, the sorted
 runs are merged together approximately $M/B$ at a time (where $M$
 is the internal memory size and $B$ is the block size) in a
 round-robin manner until a single sorted run remains.
@@ -1510,18 +1577,20 @@ choices are described in detail for \myverb{AMI\_sort}, below.
 \subsubsection{AMI\_sort()}
 \myverb{AMI\_sort()} has three polymorphs, described below.
 We will refer to these as the (1) comparison operator, (2)
-comparison function, and (3) comparison class versions of
+comparison function, and (3) comparison object versions of
 \myverb{AMI\_sort}. The comparison operator version tends to
 be the fastest and most straightforward to use. The
-comparison class version is comparable in speed (maybe
+comparison object version is comparable in speed (maybe
 slightly slower), but somewhat more flexible, as it can support
 multiple, different sorts on the same keys. The comparison
 function version is slightly easier to use than the
 comparison object version, but typically it is measureably slower.
 
 \noindent{\bf Comparison operator version:} This version works on streams of
-objects for which the operator \myverb{<} is defined. It is invoked as
-follows:
+objects for which the operator \myverb{<} is defined. For
+example, the following code would sort a stream
+\noiv{instream} of \noiv{int} objects, creating the sorted
+stream \noiv{outstream}.
 
 \begin{verbatim}
 AMI_STREAM<int> instream;
@@ -1573,7 +1642,7 @@ void f()
 }
 \end{verbatim}
 
-\noindent{\bf Comparison class version:} 
+\noindent{\bf Comparison object version:} 
 This version of \myverb{AMI\_sort()} is similar to the
 comparison function version, except that the comparison
 function is now a method of a user-defined comparison class. This polymorph of \myverb{AMI\_sort} expects an object

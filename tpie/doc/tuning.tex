@@ -1,5 +1,5 @@
 %%
-%% $Id: tuning.tex,v 1.8 2000-08-08 04:54:53 hutchins Exp $
+%% $Id: tuning.tex,v 1.9 2000-09-29 18:48:03 hutchins Exp $
 %%
 \chapter{Configuration and Performance Tuning}
 \plabel{sec:tuning}\index{Configuration}\plabel{sec:configuration}
@@ -513,7 +513,7 @@ a TPIE application.
     lackluster performance of an application, since
     \myverb{operate()} is called once for every object in a
     stream being scanned. Inlining of \myverb{operate()} is,
-    of course, just a suggestion to the compiler, which can
+    however, just a suggestion to the compiler, which can
     choose to ignore it. In order to maximize the likelihood
     of inlining, it is a good idea to keep the function
     short and simple. One way of doing this is to wrap
@@ -529,7 +529,7 @@ a TPIE application.
     \item[Memory size] To insure that no disk swapping is
     done by the OS, the size of main memory used by TPIE
     (set by \myverb{MM\_manager.set\_memory\_limit()}, see
-    Section\ref{sec:compiling} and Section~\ref{sec:mm-ref})
+    Section~\ref{sec:compiling} and Section~\ref{sec:mm-ref})
     should be set to a realistic value. The best value is
     usually much smaller than the size of the memory
     installed in the computer (due to memory use of

@@ -3,7 +3,7 @@
 %%
 %% File: tpie.tex
 %%
-%% $Id: tpie.tex,v 1.23 2000-08-08 04:53:10 hutchins Exp $
+%% $Id: tpie.tex,v 1.24 2000-09-29 18:48:26 hutchins Exp $
 %%
  
 \documentclass[11pt]{book}
@@ -26,6 +26,9 @@
 % parameter in the index
 \newcommand{\noiverb}[1]{\texttt{#1}}
 \newcommand{\noiv}[1]{\texttt{#1}}
+
+% emphasize and put into index
+\newcommand{\emphd}[1]{\emph{#1}\index{#1}}
 
 % used for algorithms
 \newcommand{\step}[2] {\begin{enumerate}\item[#1]#2\end{enumerate}}

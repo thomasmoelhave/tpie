@@ -410,7 +410,7 @@ edges by their sources (using \verb|edgefromcmp|) and sort another copy by
 their destinations (using \verb|edgetocmp|).  We then call
 \verb|AMI_scan()| to scan the two lists and produce an active list and
 a cancel list.  A scan management object of class
-\verb|separate_active_from_cancel|, which is defined below, is used.
+\verb|separate_active_from_cancel| is used.
 
 \begin{verbatim}
 ////////////////////////////////////////////////////////////////////////
@@ -710,7 +710,7 @@ int list_rank(AMI_STREAM<edge> *istream, AMI_STREAM<edge> *ostream)
     {
         size_t mm_avail;
         
-        MM_manager.available(&mm_avail);
+        mm_avail = MM_manager.memory_available();
 
         if (stream_len * sizeof(edge) < mm_avail / 2) {
             edge *mm_buf = new edge[stream_len];
