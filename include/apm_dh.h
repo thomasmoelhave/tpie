@@ -10,7 +10,7 @@
 // *  used in several of TPIE's sorting variants                            *
 // *                                                                        *
 // **************************************************************************
-// 	$Id: apm_dh.h,v 1.15 2004-08-12 12:35:31 jan Exp $	
+// 	$Id: apm_dh.h,v 1.16 2004-10-20 08:55:18 jan Exp $	
 
 // Get definitions for working with Unix and Windows
 #include <portability.h>
@@ -58,7 +58,7 @@ AMI_single_merge_dh (AMI_STREAM < T > **inStreams, arity_t arity,
 		     AMI_STREAM < T > *outStream,  M MergeHeap  )
 {
 
-   unsigned int i;
+   TPIE_OS_SIZE_T i;
    AMI_err ami_err;
 
    //Pointers to current leading elements of streams
