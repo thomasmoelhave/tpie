@@ -8,13 +8,15 @@
 // lower level streams will use appropriate levels of buffering.  This
 // will be more critical for parallel disk implementations.
 //
-// $Id: ami_merge.h,v 1.4 1994-09-22 14:52:29 darrenv Exp $
+// $Id: ami_merge.h,v 1.5 1994-09-26 19:24:08 darrenv Exp $
 //
 #ifndef _AMI_MERGE_H
 #define _AMI_MERGE_H
 
 #include <ami_ptr.h>
 
+// For log() and such as needed to compute tree heights.
+#include <math.h>
 
 enum AMI_merge_output_type {
     AMI_MERGE_OUTPUT_OVERWRITE = 1,
@@ -378,6 +380,76 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
 
         original_substreams = (len + sz_original_substream - 1) /
             sz_original_substream;
+        
+        // Account for the space that a merge object will use.
+
+        {
+            size_t sz_avail_during_merge = sz_avail -
+                m_obj->space_usage_overhead();
+            size_t sz_stream_during_merge =sz_stream +
+                m_obj->space_usage_per_stream();
+           
+            merge_arity = (sz_avail_during_merge +
+                           sz_stream_during_merge - 1) /
+                sz_stream_during_merge;
+
+        }
+
+        LOG_INFO("AMI_partition_and_merge(): merge arity = " <<
+                 merge_arity << ".\n");
+        
+        if (merge_arity < 2) {
+            return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
+        }
+
+#define MINIMIZE_INITIAL_SUBSTREAM_LENGTH
+#ifdef MINIMIZE_INITIAL_SUBSTREAM_LENGTH
+        
+        // Make the substreams as small as possible without increasing
+        // the height of the merge tree.
+
+        {
+            // The tree height is the ceiling of the log base merge_arity
+            // of the number of original substreams.
+            
+            double tree_height = log((double)original_substreams) /
+                log((double)merge_arity);
+
+            tp_assert(tree_height > 0,
+                      "Negative or zero tree height!");
+           
+            tree_height = ceil(tree_height);
+
+            // See how many substreams we could possibly fit in the
+            // tree without increasing the height.
+
+            double max_original_substreams = pow((double)merge_arity,
+                                                 tree_height);
+
+            tp_assert(max_original_substreams >= original_substreams,
+                      "Number of permitted substreams was reduced.");
+
+            // How big will such substreams be?
+
+            double new_sz_original_substream = ceil((double)len /
+                                                    max_original_substreams);
+
+            tp_assert(new_sz_original_substream <= sz_original_substream,
+                      "Size of original streams increased.");
+
+            sz_original_substream = (size_t)new_sz_original_substream;
+
+            LOG_INFO("Memory constraints set original substreams = " <<
+                     original_substreams << '\n');
+            
+            original_substreams = (len + sz_original_substream - 1) /
+                sz_original_substream;
+
+            LOG_INFO("Tree height constraints set original substreams = " <<
+                     original_substreams << '\n');
+        }
+                
+#endif // MINIMIZE_INITIAL_SUBSTREAM_LENGTH
 
         // Create a temporary stream, then iterate through the
         // substreams, processing each one and writing it to the
@@ -394,11 +466,29 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
         }
 
         instream->seek(0);
-        
-        for (ii = 0; ii++ < original_substreams; ) {
-            off_t mm_len = (ii == original_substreams) ?
-                len % sz_original_substream : sz_original_substream;
 
+        tp_assert(original_substreams * sz_original_substream - len <
+                  sz_original_substream,
+                  "Total substream length too long or too many.");
+
+        tp_assert(len - (original_substreams - 1) * sz_original_substream <=
+                  sz_original_substream,
+                  "Total substream length too short or too few.");        
+            
+        for (ii = 0; ii++ < original_substreams; ) {
+            off_t mm_len;
+
+            if (ii == original_substreams) {
+                mm_len = len % sz_original_substream;
+                // If it is an exact multiple, then the mod will come
+                // out 0, which is wrong.
+                if (!mm_len) {
+                    mm_len = sz_original_substream;
+                }
+            } else {
+                mm_len = sz_original_substream;
+            }
+            
 #if DEBUG_ASSERTIONS
             off_t mm_len_bak = mm_len;
 #endif
@@ -440,20 +530,6 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
 
         current_input = initial_tmp_stream;
         current_substream_len = sz_original_substream;
-
-        // Account for the space that a merge object will use.
-
-        sz_avail -= m_obj->space_usage_overhead();
-        sz_stream += m_obj->space_usage_per_stream();
-           
-        merge_arity = (sz_avail + sz_stream - 1) / sz_stream;
-
-        LOG_INFO("AMI_partition_and_merge(): merge arity = " <<
-                 merge_arity << ".\n");
-        
-        if (merge_arity < 2) {
-            return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
-        }
 
         // Pointers to the substreams that will be merged.
         
@@ -573,7 +649,7 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
                         // Check the lengths before the merge.
                         
                         size_t sz_output, sz_output_after_merge;
-                        size_t sz_substream, sz_substream_total;
+                        size_t sz_substream_total;
 
                         {
                             unsigned int kk;
