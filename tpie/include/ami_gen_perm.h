@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 11/1/94
 //
-// $Id: ami_gen_perm.h,v 1.11 2003-04-17 12:20:59 jan Exp $
+// $Id: ami_gen_perm.h,v 1.12 2003-04-20 23:59:53 tavi Exp $
 //
 // General permutation.
 //
@@ -13,6 +13,8 @@
 
 // Get definitions for working with Unix and Windows
 #include <portability.h>
+// Get the AMI_scan_object definition.
+#include <ami_scan.h>
 
 #include <ami_gen_perm_object.h>
 

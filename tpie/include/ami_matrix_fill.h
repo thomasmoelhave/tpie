@@ -4,13 +4,15 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/12/94
 //
-// $Id: ami_matrix_fill.h,v 1.5 2003-04-17 12:52:39 jan Exp $
+// $Id: ami_matrix_fill.h,v 1.6 2003-04-20 23:59:53 tavi Exp $
 //
 #ifndef _AMI_MATRIX_FILL_H
 #define _AMI_MATRIX_FILL_H
 
 // Get definitions for working with Unix and Windows
 #include <portability.h>
+// Get the AMI_scan_object definition.
+#include <ami_scan.h>
 
 template<class T>
 class AMI_matrix_filler {
