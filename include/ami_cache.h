@@ -3,7 +3,7 @@
 // File:    ami_cache.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_cache.h,v 1.4 2002-02-04 05:58:36 tavi Exp $
+// $Id: ami_cache.h,v 1.5 2002-07-21 22:57:26 tavi Exp $
 //
 // Declaration and definition of AMI_CACHE_MANAGER
 // implementation(s).
@@ -28,12 +28,18 @@ protected:
   // Associativity.
   size_t assoc_;
 
+  // Behavior.
+  int behavior_;
+
   // Constructor. Protected to prevent instantiation of this class.
   AMI_cache_manager_base(size_t capacity, size_t assoc):
-    capacity_(capacity), assoc_(assoc) {}
+    capacity_(capacity), assoc_(assoc), behavior_(0) {}
 
 public:
-
+  // Set behavior. TODO: Expand.
+  int behavior(int b) { behavior_ = b; return behavior_; }
+  // Inquire behavior.
+  int behavior() const { return behavior_; }
 };
 
 // Implementation using an LRU replacement policy.
@@ -85,10 +91,16 @@ AMI_cache_manager_lru<T,W>::AMI_cache_manager_lru(size_t capacity, size_t assoc)
 
   if (capacity_ != 0) {
     if (assoc_ > capacity_) {
-      LOG_WARNING_ID("Associativity too big. Reduced to capacity.");
+      LOG_WARNING_ID("Associativity too big.");
+      LOG_WARNING_ID("Associativity reduced to capacity.");
       assoc_ = capacity_;
     }
-    assert(capacity_ % assoc_ == 0);
+
+    if (capacity_ % assoc_ != 0) {
+      LOG_WARNING_ID("Capacity is not multiple of associativity.");
+      LOG_WARNING_ID("Capacity reduced.");
+      capacity_ = (capacity_ / assoc_) * assoc_;
+    }
     
     // The number of cache lines.
     sets_ = capacity_ / assoc_;
@@ -118,10 +130,11 @@ inline bool AMI_cache_manager_lru<T,W>::read(size_t k, T& item) {
   b_vector<item_type_> set(&pdata_[(k % sets_) * assoc_], assoc_);
 
   // Find the item using the key.
-  for (i = 0; i < set.capacity(); i++)
+  for (i = 0; i < assoc_; i++)
     if (set[i].first == k)
       break;
-  if (i == set.capacity())
+
+  if (i == assoc_)
     return false;
 
   //  memcpy(&item, &set[i].second, sizeof(T));
@@ -129,11 +142,11 @@ inline bool AMI_cache_manager_lru<T,W>::read(size_t k, T& item) {
 
   // Erase the item from the cache.
   // NB: We don't write it out because we pass it up to the user.
-  if (set.capacity() > 1)
+  if (assoc_ > 1)
     set.erase(i);
 
   // Mark the last item empty.
-  set[set.capacity() - 1].first = 0;
+  set[assoc_ - 1].first = 0;
 
   return true;
 }
@@ -153,11 +166,12 @@ inline bool AMI_cache_manager_lru<T,W>::write(size_t k, const T& item) {
     b_vector<item_type_> set(&pdata_[(k % sets_) * assoc_], assoc_);
     
     // Write out the item in the last position.
-    if (set[assoc_ - 1].first != 0)
+    if (set[assoc_ - 1].first != 0) {
       writeout_(set[assoc_ - 1].second);
+    }
     
     // Insert in the first position.
-    if (set.capacity() > 1)
+    if (assoc_ > 1)
       set.insert(item_type_(k, item), 0);
     else
       set[0] = item_type_(k, item);
