@@ -1,7 +1,7 @@
 # Makefile for TPIE test applications.
 # Use gmake on this Makefile.  It relies on the default rules, and 
 # Use gmake -p to see the default rules.
-# $Id: Makefile.in,v 1.31 2002-02-02 18:19:17 tavi Exp $
+# $Id: Makefile.in,v 1.32 2003-04-24 23:59:53 tavi Exp $
 
 CXX = @CXX@
 CC = @CC@
@@ -62,7 +62,8 @@ APPS := test_ami_pmerge \
 	nas_ep_mm \
 	smooth \
 	sample_pgm \
-	test_ami_btree
+	test_ami_btree \
+        test_correctness
 
 # Sources to the test applications.
 APPSRC = $(patsubst %,%.cpp,$(APPS))
@@ -76,7 +77,9 @@ OTHERCXXSRC = scan_random.cpp \
 	scan_list.cpp \
 	list_edge.cpp \
 	scan_random_point.cpp \
-	scan_uniform_sm.cpp
+	scan_uniform_sm.cpp \
+        scan_universal.cpp \
+        getopts.cpp
 
 CXXSRC = $(APPSRC) $(COMMONCXXSRC) $(OTHERCXXSRC)
 
@@ -130,6 +133,7 @@ test_ami_sort24: test_ami_sort24.o $(COMMONOBJ)
 smooth: smooth.o scan_build_smoother.o  $(COMMONOBJ)
 sample_pgm: sample_pgm.o $(COMMONOBJ)
 test_ami_btree: test_ami_btree.o
+test_correctness: test_correctness.o scan_universal.o getopts.o
 
 include Makefile.depend
 
