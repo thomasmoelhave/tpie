@@ -4,7 +4,7 @@
 //  Created:         27.01.1999
 //  Author:          Jan Vahrenhold
 //  mail:            jan@math.uni-muenster.de
-//  $Id: bulkloader.h,v 1.1 2003-11-21 17:26:02 tavi Exp $
+//  $Id: bulkloader.h,v 1.2 2004-02-05 17:53:35 jan Exp $
 //  Copyright (C) 1999-2001 by  
 // 
 //  Jan Vahrenhold
@@ -24,9 +24,6 @@
 #include <iostream>        //  Debugging output.
 #include <fstream>         //  Reading the MBR metafile.
 #include <stdlib.h>        //  strlen / strcpy
-#include <algorithm>       //  Sorting algorithm.
-#include <queue>           //  STL class "priority_queue".
-#include <utility>         //  STL class "pair".
 #include <ami_scan.h>      //  for AMI_scan 
 #include <ami_sort.h>      //  for AMI_sort
 #include "rectangle.h"     //  Data.
@@ -38,8 +35,10 @@
 //  "reversed" as the priority queue sorts by "decreasing" order.
 template<class coord_t, class BTECOLL>
 struct hilbertPriority {
-    inline bool operator()(const pair<RStarNode<coord_t, BTECOLL>*, long long>& t1, const pair<RStarNode<coord_t, BTECOLL>*, long long>& t2) const {
-	return (t1.second > t2.second);
+    inline bool operator()(const pair<RStarNode<coord_t, BTECOLL>*, TPIE_OS_LONGLONG>& t1, 
+		                   const pair<RStarNode<coord_t, BTECOLL>*, TPIE_OS_LONGLONG>& t2) const {
+	//return (static_cast<TPIE_OS_LONGLONG>(t1.second) > static_cast<TPIE_OS_LONGLONG>(t2.second));
+		return t1.second > t2.second;
     }
 };
 
@@ -65,7 +64,7 @@ public:
     };
     
     AMI_err operate(const rectangle<coord_t, AMI_bid>& in, AMI_SCAN_FLAG* sfin,
-                    pair<rectangle<coord_t, AMI_bid>, long long>* out, AMI_SCAN_FLAG* sfout) {
+                    pair<rectangle<coord_t, AMI_bid>, TPIE_OS_LONGLONG>* out, AMI_SCAN_FLAG* sfout) {
 	//  Write nothing to the output stream.
 	*sfout = false;
         if (*sfin) {
@@ -92,26 +91,26 @@ private:
     coord_t   xOffset_;
     coord_t   yOffset_;
     coord_t   factor_;
-    long long side_;
+    TPIE_OS_LONGLONG  side_;
 
 public:
     
-    scan_scaleAndComputeHilbertValue(coord_t xOffset, coord_t yOffset, coord_t factor, long long side) : xOffset_(xOffset), yOffset_(yOffset), factor_(factor), side_(side) {};
+    scan_scaleAndComputeHilbertValue(coord_t xOffset, coord_t yOffset, coord_t factor, TPIE_OS_LONGLONG side) : xOffset_(xOffset), yOffset_(yOffset), factor_(factor), side_(side) {};
     
     AMI_err initialize() {
 	return AMI_ERROR_NO_ERROR;
     }
     
     AMI_err operate(const rectangle<coord_t, AMI_bid>& in, AMI_SCAN_FLAG* sfin,
-                    pair<rectangle<coord_t, AMI_bid>, long long>* out, AMI_SCAN_FLAG* sfout) {
+                    pair<rectangle<coord_t, AMI_bid>, TPIE_OS_LONGLONG>* out, AMI_SCAN_FLAG* sfout) {
         if (*sfout = *sfin) {
 
 	    //  Translate the rectangle by the given offset and
 	    //  compute the midpoint in scaled integer coordinates.
-	    long long x = (long long)(factor_ * (long long)((in.left() + in.right()) / 2.0 - xOffset_));
-	    long long y = (long long)(factor_ * (long long)((in.lower() + in.upper()) / 2.0 - yOffset_));
+	    TPIE_OS_LONGLONG x = (LONGLONG)(factor_ * (LONGLONG)((in.left() + in.right()) / 2.0 - xOffset_));
+	    TPIE_OS_LONGLONG y = (LONGLONG)(factor_ * (LONGLONG)((in.lower() + in.upper()) / 2.0 - yOffset_));
 
-	    *out = pair<rectangle<coord_t, AMI_bid>, long long>(in, computeHilbertValue(x, y, side_));
+	    *out = pair<rectangle<coord_t, AMI_bid>, TPIE_OS_LONGLONG>(in, computeHilbertValue(x, y, side_));
 
             return AMI_SCAN_CONTINUE;
         } 
@@ -169,14 +168,14 @@ protected:
 
     coord_t        xOffset_;      //  Minimun x-coordinate of data set.
     coord_t        yOffset_;      //  Minimun y-coordinate of data set.
-    long long      factor_;       //  Scaling factor for coordinates.
-    long long      size_;         //  Size of the integer grid.
+    TPIE_OS_LONGLONG       factor_;       //  Scaling factor for coordinates.
+    TPIE_OS_LONGLONG       size_;         //  Size of the integer grid.
 
     RStarTree<coord_t, BTECOLL>*     tree_;         //  Output object.
     bool           statistics_;   //  Whether to record stats or not.
 
-    priority_queue< pair<RStarNode<coord_t, BTECOLL>*, long long>, 
-	vector<pair<RStarNode<coord_t, BTECOLL>*, long long> >, 
+    priority_queue< pair<RStarNode<coord_t, BTECOLL>*, TPIE_OS_LONGLONG>, 
+	vector<pair<RStarNode<coord_t, BTECOLL>*, TPIE_OS_LONGLONG> >, 
 	hilbertPriority<coord_t, BTECOLL> >   cachedNodes_; //  Cache
 
     //  Choosing the best split axis and index for R*-tree node 
@@ -237,16 +236,6 @@ inline void BulkLoader<coord_t, BTECOLL>::show_stats() {
     if (tree_) {
 	tree_->show_stats();
     }
-}
-
-template<class coord_t>
-inline bool operator<(const pair<rectangle<coord_t, AMI_bid>, long long>& t1, const pair<rectangle<coord_t, AMI_bid>, long long>& t2) {
-    return (t1.second < t2.second);
-}
-
-template<class coord_t>
-inline bool operator>(const pair<rectangle<coord_t, AMI_bid>, long long>& t1, const pair<rectangle<coord_t, AMI_bid>, long long>& t2) {
-    return (t1.second > t2.second);
 }
 
 
@@ -350,8 +339,8 @@ pair<vector<rectangle<coord_t, AMI_bid> >*, unsigned short>  BulkLoader<coord_t,
     sortedVector[1] = sortedVector1;
 
     //  Sort vectors according to the coordinates.
-    sort(sortedVector[0]->begin(), sortedVector[0]->end(), sortBoxesAlongXAxis<coord_t>());
-    sort(sortedVector[1]->begin(), sortedVector[1]->end(), sortBoxesAlongYAxis<coord_t>());
+	sort(sortedVector[0]->begin(), sortedVector[0]->end(), sortBoxesAlongXAxis<coord_t>());
+	sort(sortedVector[1]->begin(), sortedVector[1]->end(), sortBoxesAlongYAxis<coord_t>());
     
     unsigned short children_ = sortedVector[1]->size();
 
@@ -364,9 +353,9 @@ pair<vector<rectangle<coord_t, AMI_bid> >*, unsigned short>  BulkLoader<coord_t,
     //                 margin[bb(second group)]
     //  overlap-value: area[bb(first group) \cap bb(second group)]
 
-    coord_t areaValue[2][distributions];
-    coord_t marginValue[2][distributions];
-    coord_t overlapValue[2][distributions];
+    VarArray2D<coord_t> areaValue(2,distributions);
+    VarArray2D<coord_t> marginValue(2,distributions);
+    VarArray2D<coord_t> overlapValue(2,distributions);
 
     //  "For each axis 
     //     Sort the entries by their lower then by their upper 
@@ -412,13 +401,13 @@ pair<vector<rectangle<coord_t, AMI_bid> >*, unsigned short>  BulkLoader<coord_t,
 	}
 	
 	//  Compute area-value, margin-value and overlap-value.
-	areaValue[0][counter] = group[0].area() + group[1].area();
-	marginValue[0][counter] = group[0].width() + group[0].height()+
+	areaValue(0,counter) = group[0].area() + group[1].area();
+	marginValue(0,counter) = group[0].width() + group[0].height()+
 	    group[1].width() + group[1].height();
-	overlapValue[0][counter] = group[0].overlapArea(group[1]);
+	overlapValue(0,counter) = group[0].overlapArea(group[1]);
 
 	//  Update S.
-	S[0] += marginValue[0][counter];
+	S[0] += marginValue(0,counter);
     }
     
     //  Process y-axis.
@@ -454,13 +443,13 @@ pair<vector<rectangle<coord_t, AMI_bid> >*, unsigned short>  BulkLoader<coord_t,
 	
 
 	//  Compute area-value, margin-value and overlap-value.
-	areaValue[1][counter] = group[0].area() + group[1].area();
-	marginValue[1][counter] = group[0].width() + group[0].height()+
+	areaValue(1,counter) = group[0].area() + group[1].area();
+	marginValue(1,counter) = group[0].width() + group[0].height()+
 	    group[1].width() + group[1].height();
-	overlapValue[1][counter] = group[0].overlapArea(group[1]);
+	overlapValue(1,counter) = group[0].overlapArea(group[1]);
 
 	//  Update S.
-	S[1] += marginValue[1][counter];
+	S[1] += marginValue(1,counter);
     }
 
     
@@ -478,9 +467,9 @@ pair<vector<rectangle<coord_t, AMI_bid> >*, unsigned short>  BulkLoader<coord_t,
     //   minimum area-value."
 
     for(counter = 1; counter < distributions; ++counter) {
-	if ((overlapValue[splitAxis][counter] < overlapValue[splitAxis][bestSoFar]) ||
-	    ((overlapValue[splitAxis][counter] == overlapValue[splitAxis][bestSoFar]) && 
-	     (areaValue[splitAxis][counter] < areaValue[splitAxis][bestSoFar]))) {
+	if ((overlapValue(splitAxis,counter) < overlapValue(splitAxis,bestSoFar)) ||
+	    ((overlapValue(splitAxis,counter) == overlapValue(splitAxis,bestSoFar)) && 
+	     (areaValue(splitAxis,counter) < areaValue(splitAxis,bestSoFar)))) {
 	    bestSoFar = counter;
 	}
     }
@@ -503,14 +492,14 @@ void BulkLoader<coord_t, BTECOLL>::repackCachedNodes(RStarNode<coord_t, BTECOLL>
 
     //  Translate the rectangle by the given offset and
     //  compute the midpoint in scaled integer coordinates.
-    long long x = factor_ * (long long)((newBB.left() + newBB.right()) / 2.0 - xOffset_);
-    long long y = factor_ * (long long)((newBB.lower() + newBB.upper()) / 2.0 - yOffset_);
+    TPIE_OS_LONGLONG x = factor_ * (LONGLONG)((newBB.left() + newBB.right()) / 2.0 - xOffset_);
+    TPIE_OS_LONGLONG y = factor_ * (LONGLONG)((newBB.lower() + newBB.upper()) / 2.0 - yOffset_);
     
     //  Compute and set the Hilbert value.
-    long long hv = computeHilbertValue(x, y, size_);
+    TPIE_OS_LONGLONG hv = computeHilbertValue(x, y, size_);
 
     //  Add the last node to the stream.
-    cachedNodes_.push(pair<RStarNode<coord_t, BTECOLL>*, long long>(*lastNode, hv));
+    cachedNodes_.push(pair<RStarNode<coord_t, BTECOLL>*, TPIE_OS_LONGLONG>(*lastNode, hv));
     *lastNode = NULL;
 
     //  Wait until there are three or more entries in the cache.
@@ -519,7 +508,7 @@ void BulkLoader<coord_t, BTECOLL>::repackCachedNodes(RStarNode<coord_t, BTECOLL>
     }
     
     vector<rectangle<coord_t, AMI_bid> >* toSort[2];
-    typename vector<rectangle<coord_t, AMI_bid> >::iterator vi;
+    typename std::vector<rectangle<coord_t, AMI_bid> >::iterator vi;
 
     toSort[0] = new vector<rectangle<coord_t, AMI_bid> >;
     toSort[1] = new vector<rectangle<coord_t, AMI_bid> >;
@@ -651,14 +640,14 @@ void BulkLoader<coord_t, BTECOLL>::repackCachedNodes(RStarNode<coord_t, BTECOLL>
 
 	    //  Translate the rectangle by the given offset and
 	    //  compute the midpoint in scaled integer coordinates.
-	    x = factor_ * (long long)((newBB.left() + newBB.right()) / 2.0 - xOffset_);
-	    y = factor_ * (long long)((newBB.lower() + newBB.upper()) / 2.0 - yOffset_);
+	    x = factor_ * (LONGLONG)((newBB.left() + newBB.right()) / 2.0 - xOffset_);
+	    y = factor_ * (LONGLONG)((newBB.lower() + newBB.upper()) / 2.0 - yOffset_);
 
 	    //  Compute and set the Hilbert value.
 	    hv = computeHilbertValue(x, y, size_);
 
 	    //  Cache the new node.
-	    cachedNodes_.push(pair<RStarNode<coord_t, BTECOLL>*, long long>(newNode, hv));
+	    cachedNodes_.push(pair<RStarNode<coord_t, BTECOLL>*, TPIE_OS_LONGLONG>(newNode, hv));
 
 	    //  Do not delete this node.
 	    newNode = NULL;	    
@@ -698,14 +687,14 @@ void BulkLoader<coord_t, BTECOLL>::repackCachedNodes(RStarNode<coord_t, BTECOLL>
 
 	    //  Translate the rectangle by the given offset and
 	    //  compute the midpoint in scaled integer coordinates.
-	    long long x = factor_ * (long long)((newBB.left() + newBB.right()) / 2.0 - xOffset_);
-	    long long y = factor_ * (long long)((newBB.lower() + newBB.upper()) / 2.0 - yOffset_);
+	    TPIE_OS_LONGLONG x = factor_ * (LONGLONG)((newBB.left() + newBB.right()) / 2.0 - xOffset_);
+	    TPIE_OS_LONGLONG y = factor_ * (LONGLONG)((newBB.lower() + newBB.upper()) / 2.0 - yOffset_);
 
 	    //  Compute and set the Hilbert value.
-	    long long hv = computeHilbertValue(x, y, size_);
+	    TPIE_OS_LONGLONG hv = computeHilbertValue(x, y, size_);
 
 	    //  Cache the new node.
-	    cachedNodes_.push(pair<RStarNode<coord_t, BTECOLL>*, long long>(newNode, hv));
+	    cachedNodes_.push(pair<RStarNode<coord_t, BTECOLL>*, TPIE_OS_LONGLONG>(newNode, hv));
 
 	    //  Do not delete this node.
 	    newNode = NULL;	    
@@ -756,13 +745,15 @@ AMI_err BulkLoader<coord_t, BTECOLL>::createHilbertRTree(RStarTree<coord_t, BTEC
     
     AMI_err result = AMI_ERROR_NO_ERROR;
 
-    char treeName[strlen(getInputStream()) + strlen(".hrtree") + 1];
+    char* treeName = new char[strlen(getInputStream()) + strlen(".hrtree") + 1];
     strcpy(treeName, getInputStream());
     strcat(treeName, ".hrtree");
 
     //  Create a new tree object.
     tree_ = new RStarTree<coord_t, BTECOLL>(treeName, fanOut_);
 	
+	delete[] treeName;
+
     if (tree_->readTreeInfo()) {
 
 	//  Copy the pointer to the tree.
@@ -774,8 +765,8 @@ AMI_err BulkLoader<coord_t, BTECOLL>::createHilbertRTree(RStarTree<coord_t, BTEC
 
 
     AMI_STREAM<rectangle<coord_t, AMI_bid> > amis(getInputStream());
-    AMI_STREAM<pair<rectangle<coord_t, AMI_bid>, long long> >* boxUnsorted = new AMI_STREAM<pair<rectangle<coord_t, AMI_bid>, long long> >("unsorted.boxes");
-    AMI_STREAM<pair<rectangle<coord_t, AMI_bid>, long long> >* boxSorted = new AMI_STREAM<pair<rectangle<coord_t, AMI_bid>, long long> >("sorted.boxes");
+    AMI_STREAM<pair<rectangle<coord_t, AMI_bid>, TPIE_OS_LONGLONG> >* boxUnsorted = new AMI_STREAM<pair<rectangle<coord_t, AMI_bid>, TPIE_OS_LONGLONG> >("unsorted.boxes");
+    AMI_STREAM<pair<rectangle<coord_t, AMI_bid>, TPIE_OS_LONGLONG> >* boxSorted = new AMI_STREAM<pair<rectangle<coord_t, AMI_bid>, TPIE_OS_LONGLONG> >("sorted.boxes");
 
     amis.persist(PERSIST_PERSISTENT);
     boxUnsorted->persist(PERSIST_PERSISTENT);
@@ -814,7 +805,7 @@ AMI_err BulkLoader<coord_t, BTECOLL>::createHilbertRTree(RStarTree<coord_t, BTEC
 #endif
 
     coord_t maxExtent = max(xMax-xOffset_, yMax-yOffset_) * scaleFactor;
-    size_ = (long long)(pow((float)2, (int)((log((float)maxExtent)/log((float)2)) + 1.0)));
+    size_ = (LONGLONG)(pow((float)2, (int)((log((float)maxExtent)/log((float)2)) + 1.0)));
     scan_scaleAndComputeHilbertValue<coord_t> ssb(xOffset_, yOffset_, scaleFactor, size_);
 
     //  Scan data to scale the midpoint of each MBR such that it fits
@@ -837,13 +828,13 @@ AMI_err BulkLoader<coord_t, BTECOLL>::createHilbertRTree(RStarTree<coord_t, BTEC
     unsigned short              counter = 0;
     unsigned short              childCounter = 0;
     unsigned short              nodesCreated = 0;
-    pair<rectangle<coord_t, AMI_bid>, long long>* currentObject = NULL;
-    AMI_bid                       parentID;
+    pair<rectangle<coord_t, AMI_bid>, TPIE_OS_LONGLONG>* currentObject = NULL;
+//    AMI_bid                       parentID;
     rectangle<coord_t, AMI_bid>                   bb;
     RStarNode<coord_t, BTECOLL>*                  currentNode = tree_->readNode(nextFreeBlock);
 
-    AMI_STREAM<pair<rectangle<coord_t, AMI_bid>, long long> >* currentLevel_ = boxSorted;
-    AMI_STREAM<pair<rectangle<coord_t, AMI_bid>, long long> >* nextLevel_;
+    AMI_STREAM<pair<rectangle<coord_t, AMI_bid>, TPIE_OS_LONGLONG> >* currentLevel_ = boxSorted;
+    AMI_STREAM<pair<rectangle<coord_t, AMI_bid>, TPIE_OS_LONGLONG> >* nextLevel_;
 
     off_t minimumPacking = (fanOut_ * 3) / 4;
     double increaseRatio = 1.20;
@@ -864,7 +855,7 @@ AMI_err BulkLoader<coord_t, BTECOLL>::createHilbertRTree(RStarTree<coord_t, BTEC
 	currentLevel_->seek(0);
 
 	//  Create a repository for the next level.
-	nextLevel_   = new AMI_STREAM<pair<rectangle<coord_t, AMI_bid>, long long> >;
+	nextLevel_   = new AMI_STREAM<pair<rectangle<coord_t, AMI_bid>, TPIE_OS_LONGLONG> >;
 	childCounter = 0;
 
 	//  Scan the current level and group up to 'fanOut_' items 
@@ -894,7 +885,7 @@ AMI_err BulkLoader<coord_t, BTECOLL>::createHilbertRTree(RStarTree<coord_t, BTEC
 		currentNode->setCoveringRectangle(bb);
 		
 		//  Write the bounding box to the next level's stream.
-		nextLevel_->write_item(pair<rectangle<coord_t, AMI_bid>, long long>(bb,0));
+		nextLevel_->write_item(pair<rectangle<coord_t, AMI_bid>, TPIE_OS_LONGLONG>(bb,0));
 
 		//  Save the node in the tree.
 		delete currentNode;
@@ -935,7 +926,7 @@ AMI_err BulkLoader<coord_t, BTECOLL>::createHilbertRTree(RStarTree<coord_t, BTEC
 	    currentNode->setCoveringRectangle(bb);
 	    
 	    //  Write the bounding box to the next level's stream
-	    nextLevel_->write_item(pair<rectangle<coord_t, AMI_bid>, long long>(bb,0));
+	    nextLevel_->write_item(pair<rectangle<coord_t, AMI_bid>, TPIE_OS_LONGLONG>(bb,0));
 	    
 	    //  Save the node in the tree.
 	    delete currentNode;
@@ -997,13 +988,15 @@ AMI_err BulkLoader<coord_t, BTECOLL>::createRStarTree(RStarTree<coord_t, BTECOLL
     
     AMI_err result = AMI_ERROR_NO_ERROR;
 
-    char treeName[strlen(getInputStream()) + strlen(".rstree") + 1];
+    char* treeName = new char[strlen(getInputStream()) + strlen(".rstree") + 1];
     strcpy(treeName, getInputStream());
     strcat(treeName, ".rstree");
 
     //  Create a new tree object.
     tree_ = new RStarTree<coord_t, BTECOLL>(treeName, fanOut_);	
     
+	delete[] treeName;
+
     if (tree_->readTreeInfo()) {
 
 	//  Copy the pointer to the tree.
@@ -1015,8 +1008,8 @@ AMI_err BulkLoader<coord_t, BTECOLL>::createRStarTree(RStarTree<coord_t, BTECOLL
 
 
     AMI_STREAM<rectangle<coord_t, AMI_bid> > amis(getInputStream());
-    AMI_STREAM<pair<rectangle<coord_t, AMI_bid>, long long> >* boxUnsorted = new AMI_STREAM<pair<rectangle<coord_t, AMI_bid>, long long> >("unsorted.boxes");
-    AMI_STREAM<pair<rectangle<coord_t, AMI_bid>, long long> >* boxSorted = new AMI_STREAM<pair<rectangle<coord_t, AMI_bid>, long long> >("sorted.boxes");
+    AMI_STREAM<pair<rectangle<coord_t, AMI_bid>, TPIE_OS_LONGLONG> >* boxUnsorted = new AMI_STREAM<pair<rectangle<coord_t, AMI_bid>, TPIE_OS_LONGLONG> >("unsorted.boxes");
+    AMI_STREAM<pair<rectangle<coord_t, AMI_bid>, TPIE_OS_LONGLONG> >* boxSorted = new AMI_STREAM<pair<rectangle<coord_t, AMI_bid>, TPIE_OS_LONGLONG> >("sorted.boxes");
 
     amis.persist(PERSIST_PERSISTENT);
     boxUnsorted->persist(PERSIST_PERSISTENT);
@@ -1055,7 +1048,7 @@ AMI_err BulkLoader<coord_t, BTECOLL>::createRStarTree(RStarTree<coord_t, BTECOLL
 #endif
 
     coord_t maxExtent = max(xMax-xOffset_, yMax-yOffset_) * scaleFactor;
-    size_ = (long long)(pow((float)2, (int)((log((float)maxExtent)/log((float)2)) + 1.0)));
+    size_ = (LONGLONG)(pow((float)2, (int)((log((float)maxExtent)/log((float)2)) + 1.0)));
 
     scan_scaleAndComputeHilbertValue<coord_t> ssb(xOffset_, yOffset_, scaleFactor, size_);
 
@@ -1079,13 +1072,13 @@ AMI_err BulkLoader<coord_t, BTECOLL>::createRStarTree(RStarTree<coord_t, BTECOLL
     unsigned short          counter = 0;
     unsigned short          childCounter = 0;
     unsigned short          nodesCreated = 0;
-    pair<rectangle<coord_t, AMI_bid>, long long>* currentObject = NULL;
+    pair<rectangle<coord_t, AMI_bid>, TPIE_OS_LONGLONG>* currentObject = NULL;
     AMI_bid                    parentID = 0;
     rectangle<coord_t, AMI_bid>               bb;
     RStarNode<coord_t, BTECOLL>*              currentNode = tree_->readNode(nextFreeBlock);
 
-    AMI_STREAM<pair<rectangle<coord_t, AMI_bid>, long long> >* currentLevel_ = boxSorted;
-    AMI_STREAM<pair<rectangle<coord_t, AMI_bid>, long long> >* nextLevel_;
+    AMI_STREAM<pair<rectangle<coord_t, AMI_bid>, TPIE_OS_LONGLONG> >* currentLevel_ = boxSorted;
+    AMI_STREAM<pair<rectangle<coord_t, AMI_bid>, TPIE_OS_LONGLONG> >* nextLevel_;
 
     off_t minimumPacking = (fanOut_ * 3) / 4;
     double increaseRatio = 1.20;
@@ -1105,7 +1098,7 @@ AMI_err BulkLoader<coord_t, BTECOLL>::createRStarTree(RStarTree<coord_t, BTECOLL
 	currentLevel_->seek(0);
 
 	//  Create a repository for the next level.
-	nextLevel_   = new AMI_STREAM<pair<rectangle<coord_t, AMI_bid>, long long> >;
+	nextLevel_   = new AMI_STREAM<pair<rectangle<coord_t, AMI_bid>, TPIE_OS_LONGLONG> >;
 	childCounter = 0;
 
 	//  Scan the current level and group up to 'fanOut_' items 
@@ -1151,7 +1144,7 @@ AMI_err BulkLoader<coord_t, BTECOLL>::createRStarTree(RStarTree<coord_t, BTECOLL
 		    tempNode->setCoveringRectangle(bb);
 		    
 		    //  Write the bounding box to the next level's stream.
-		    nextLevel_->write_item(pair<rectangle<coord_t, AMI_bid>, long long>(bb,0));
+		    nextLevel_->write_item(pair<rectangle<coord_t, AMI_bid>, TPIE_OS_LONGLONG>(bb,0));
 
 		    //  Save the node in the tree.
 		    tempNode->persist(PERSIST_PERSISTENT);
@@ -1212,7 +1205,7 @@ AMI_err BulkLoader<coord_t, BTECOLL>::createRStarTree(RStarTree<coord_t, BTECOLL
 		tempNode->setCoveringRectangle(bb);
 		
 		//  Write the bounding box to the next level's stream.
-		nextLevel_->write_item(pair<rectangle<coord_t, AMI_bid>, long long>(bb,0));
+		nextLevel_->write_item(pair<rectangle<coord_t, AMI_bid>, TPIE_OS_LONGLONG>(bb,0));
 		
 		//  Save the node in the tree.
 		tempNode->persist(PERSIST_PERSISTENT);

@@ -4,7 +4,7 @@
 //  Created:         02.02.1998
 //  Author:          Jan Vahrenhold
 //  mail:            jan.vahrenhold@math.uni-muenster.de
-//  $Id: hilbert.h,v 1.1 2003-11-21 17:26:02 tavi Exp $
+//  $Id: hilbert.h,v 1.2 2004-02-05 17:53:53 jan Exp $
 //  Copyright (C) 1998 by  
 // 
 //  Jan Vahrenhold
@@ -18,6 +18,8 @@
 #ifndef HILBERT_H
 #define HILBERT_H
 
-long long computeHilbertValue(long long x, long long y, long long side);
+#include <portability.h>
+
+TPIE_OS_LONGLONG computeHilbertValue(TPIE_OS_LONGLONG x, TPIE_OS_LONGLONG y, TPIE_OS_LONGLONG side);
 
 #endif
