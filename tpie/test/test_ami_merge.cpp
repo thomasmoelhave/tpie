@@ -1,4 +1,3 @@
-// Copyright (c) 1994 Darren Erik Vengroff
 //
 // File: test_ami_merge.cpp
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
@@ -6,7 +5,7 @@
 //
 
 #include <versions.h>
-VERSION(test_ami_merge_cpp,"$Id: test_ami_merge.cpp,v 1.13 2000-11-14 18:17:18 hutchins Exp $");
+VERSION(test_ami_merge_cpp,"$Id: test_ami_merge.cpp,v 1.14 2002-01-14 17:43:33 tavi Exp $");
 
 #include <iostream.h>
 #include <fstream.h>
@@ -15,7 +14,9 @@ VERSION(test_ami_merge_cpp,"$Id: test_ami_merge.cpp,v 1.13 2000-11-14 18:17:18 h
 #include "parse_args.h"
 
 // Define it all.
-#include <ami.h>
+#include <ami_stream.h>
+#include <ami_scan.h>
+#include <ami_merge.h>
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -140,12 +141,12 @@ int main(int argc, char **argv)
 
     arity_t arity = 2;
         
-    AMI_base_stream<int> *amirs[2];
+    AMI_STREAM<int> *amirs[2];
 
     amirs[0] = &amis0;
     amirs[1] = &amis1;
     
-    ae = AMI_generalized_single_merge((AMI_STREAM<int> **)amirs, arity, &amis2,
+    ae = AMI_generalized_single_merge(amirs, arity, &amis2,
                           (merge_interleave<int> *)&im);
 
     if (verbose) {
@@ -160,9 +161,10 @@ int main(int argc, char **argv)
 
     // Divide the stream into two substreams, and interleave them.
 
-    ae = amis2.new_substream(AMI_READ_STREAM, 0, test_size-1, &(amirs[0]));
+    ae = amis2.new_substream(AMI_READ_STREAM, 0, test_size-1, 
+			     &((AMI_stream_base<int> *)(amirs[0])));
     ae = amis2.new_substream(AMI_READ_STREAM, test_size, 2*test_size-1,
-                             &(amirs[1]));
+                             &((AMI_stream_base<int> *)(amirs[1])));
 
     if (verbose) {
         cout << "Created substreams; lengths = " <<

@@ -1,4 +1,3 @@
-// Copyright (c) 1994 Darren Erik Vengroff
 //
 // File: lr.cpp
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
@@ -17,7 +16,7 @@
 
 // Define it all.
 #include <ami.h>
-VERSION(lr_cpp,"$Id: lr.cpp,v 1.17 2000-11-14 18:16:21 hutchins Exp $");
+VERSION(lr_cpp,"$Id: lr.cpp,v 1.18 2002-01-14 17:44:34 tavi Exp $");
 
 // Utitlities for ascii output.
 #include <iostream.h>
@@ -811,9 +810,9 @@ int main(int argc, char **argv)
     LOG_APP_DEBUG("About to start timers.\n");
     
 #if BTE_STATS
-    BTE_stream_mmb_base::reset_stats();
-    cout << BTE_stream_mmb_base::statistics() << '\n';
-    BTE_stream_mmb_base::stats_on();
+    BTE_stream_mmap_base::reset_stats();
+    cout << BTE_stream_mmap_base::statistics() << '\n';
+    BTE_stream_mmap_base::stats_on();
 #endif
         
     wt0.reset();
@@ -840,8 +839,8 @@ int main(int argc, char **argv)
     cout << "CPU time: " <<  ct0 << '\n';
 
 #if BTE_STATS
-    BTE_stream_mmb_base::stats_off();
-    cout << BTE_stream_mmb_base::statistics() << '\n';
+    BTE_stream_mmap_base::stats_off();
+    cout << BTE_stream_mmap_base::statistics() << '\n';
 #endif
 
     LOG_APP_DEBUG("Stopped timers.\n");
