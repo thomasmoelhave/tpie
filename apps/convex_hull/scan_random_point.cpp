@@ -11,7 +11,7 @@
 // Define it all.
 #include <ami.h>
 
-VERSION(scan_random_point_cpp,"$Id: scan_random_point.cpp,v 1.6 2000-01-11 01:46:44 hutchins Exp $");
+VERSION(scan_random_point_cpp,"$Id: scan_random_point.cpp,v 1.7 2003-09-12 01:36:18 tavi Exp $");
 
 #include "scan_random_point.h"
 
@@ -22,7 +22,7 @@ max(count), remaining(count)
     LOG_APP_DEBUG(seed);
     LOG_APP_DEBUG('\n');
 
-    srandom(seed);
+    TPIE_OS_SRANDOM(seed);
 }
 
 scan_random_point::~scan_random_point(void)
@@ -41,8 +41,8 @@ AMI_err scan_random_point::operate(point<int> *out1, AMI_SCAN_FLAG *sf)
 {
     if ((*sf = remaining--)) {
         do {
-        out1->x = random() & 0xFFFF;
-        out1->y = random() & 0xFFFF;
+        out1->x = TPIE_OS_RANDOM() & 0xFFFF;
+        out1->y = TPIE_OS_RANDOM() & 0xFFFF;
         } while (((out1->x - 0x7FFF) * (out1->x - 0x7FFF) +
                   (out1->y - 0x7FFF) * (out1->y - 0x7FFF)) > 0x7000 * 0x7000);
         return AMI_SCAN_CONTINUE;
