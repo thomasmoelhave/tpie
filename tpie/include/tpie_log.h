@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/12/94
 //
-// $Id: tpie_log.h,v 1.9 1999-10-19 20:59:31 tavi Exp $
+// $Id: tpie_log.h,v 1.10 1999-10-22 23:04:54 tavi Exp $
 //
 #ifndef _TPIE_LOG_H
 #define _TPIE_LOG_H
@@ -19,7 +19,7 @@
 enum {
   TP_LOG_FATAL = 0,	// Fatal errors are always logged no matter what;
   TP_LOG_WARNING,	// Warning about some internal condition;
-  TP_LOG_APP_DEBUG_INFO,// Debugging info for the application only;
+  TP_LOG_APP_DEBUG,     // Debugging info for the application only;
   TP_LOG_DEBUG_INFO,	// Debugging info.
 };
 
@@ -38,7 +38,7 @@ void init_tpie_logs(void);
 
 #define LOG_FATAL(msg) (*tpl << setpriority(TP_LOG_FATAL) << msg)
 #define LOG_WARNING(msg)  (*tpl << setpriority(TP_LOG_WARNING) << msg)
-#define LOG_APP_DEBUG_INFO(msg)  (*tpl << setpriority(TP_LOG_APP_DEBUG_INFO)  << msg)
+#define LOG_APP_DEBUG(msg)  (*tpl << setpriority(TP_LOG_APP_DEBUG_INFO)  << msg)
 #define LOG_DEBUG_INFO(msg)  (*tpl << setpriority(TP_LOG_DEBUG_INFO)  << msg)
 
 #define LOG_FATAL_ID(msg)  \
@@ -50,14 +50,7 @@ void init_tpie_logs(void);
 #define LOG_DEBUG_ID(msg)  \
   (LOG_DEBUG_INFO(LOG_ID_MSG << msg << "\n"), LOG_FLUSH_LOG)
 
-// Keep these a little longer, to avoid errors. 
-// All references to them should be replaced by one of the macros above.
-//#define LOG_ERROR(msg) 
-//#define LOG_ASSERT(msg) 
-//#define LOG_OS_ERROR(msg) 
-//#define LOG_DATA_ERROR(msg) 
-//#define LOG_INFO(msg) 
-
+#define LOG_SET_THRESHOLD(level) (*tpl << setthreshold(level))
 
 // We want to make sure that our logs get constructed before they can
 // possibly be used.  In order to do this, we use the trick Scott
@@ -95,15 +88,6 @@ static log_init source_file_log_init;
 #define LOG_WARNING_ID(msg)
 #define LOG_APP_DEBUG_ID(msg)
 #define LOG_DEBUG_ID(msg)
-
-
-// Keep these a little longer, to avoid errors. 
-// All references to them should be replaced by one of the macros above.
-//#define LOG_ERROR(msg) 
-//#define LOG_ASSERT(msg) 
-//#define LOG_OS_ERROR(msg) 
-//#define LOG_DATA_ERROR(msg) 
-//#define LOG_INFO(msg) 
 
 #define LOG_FLUSH_LOG {}
 
