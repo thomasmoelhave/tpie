@@ -10,7 +10,7 @@
 // *  used in several of TPIE's sorting variants                            *
 // *                                                                        *
 // **************************************************************************
-// 	$Id: apm_dh.h,v 1.5 2001-03-01 15:20:42 hutchins Exp $	
+// 	$Id: apm_dh.h,v 1.6 2001-03-05 17:32:03 hutchins Exp $	
 
 #include <math.h>		// For log(), etc  to compute tree heights.
 #include <sys/time.h>
@@ -67,13 +67,13 @@ AMI_single_merge_dh (AMI_STREAM < T > **inStreams, arity_t arity,
    // **************************************************************
    // * Rewind each input stream and read its first element.       *
    // **************************************************************
-   printf("APM\n");
+
    for (i = 0; i < arity; i++) {
 
       if ((ami_err = inStreams[i]->seek (0)) != AMI_ERROR_NO_ERROR) {
 	 return ami_err;
       }
-   printf("APM2\n");
+
       if ((ami_err = inStreams[i]->read_item (&(in_objects[i]))) !=
 	  AMI_ERROR_NO_ERROR) {
 	 if (ami_err == AMI_ERROR_END_OF_STREAM) {
@@ -82,9 +82,7 @@ AMI_single_merge_dh (AMI_STREAM < T > **inStreams, arity_t arity,
 	    return ami_err;
 	 }
       } else {
-        printf("APMinserting\n");
         MergeHeap.insert( in_objects[i], i );
-        printf("APMinserting done\n");
       }
    }
 
@@ -92,9 +90,7 @@ AMI_single_merge_dh (AMI_STREAM < T > **inStreams, arity_t arity,
    // * Build a heap from the smallest items of each stream   *
    // *********************************************************
 
-   printf("APMinit start\n");
    MergeHeap.initialize ( );
-   printf("APMinit done\n");
 
    // *********************************************************
    // * Perform the merge until the inputs are exhausted.     *
