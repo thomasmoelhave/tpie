@@ -32,12 +32,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  *
 */
-#ifndef __GET_OPT_H__
-#define __GET_OPT_H__
-
+#ifndef _GETOPTS_H_
+#define _GETOPTS_H_
+/*
 #ifdef __cplusplus
 extern "C" {
 #endif
+*/
 
 extern int option_index;
 
@@ -52,9 +53,9 @@ struct options
 
 int getopts(int argc, char **argv, struct options opts[], char **args);
 int getopts_usage(char *progName, struct options opts[]);
-
+/*
 #ifdef __cplusplus
 }
 #endif
-
-#endif 		/* __GET_OPT_H__ */
+*/
+#endif 		/* _GETOPTS_H_ */
