@@ -1,5 +1,5 @@
 %%
-%% $Id: implementation.tex,v 1.10 2000-08-08 04:55:19 hutchins Exp $
+%% $Id: implementation.tex,v 1.11 2000-09-29 18:48:44 hutchins Exp $
 %%
 \chapter{The Implementation of TPIE}
 \plabel{cha:implementation}
@@ -121,7 +121,7 @@ on multiple disks.
 Streams in TPIE are implemented as sequentially accessed
 files, and each BTE offers public member functions that are
 analogous to, and implemented via corresponding functions
-available in the underlying \emph{file access method}. The main
+available in the underlying \emphd{file access method}. The main
 difference is that TPIE maintains a typed view of streams,
 where user-defined data elements (i.e. objects) are accessed
 in a stream, rather than the untyped view of the data
@@ -154,7 +154,7 @@ defining the variable \myverb{BTE\_IMP\_STDIO}, the
 \myverb{BTE\_IMP\_UFS}, and the memory mapped implementation
 by defining \myverb{BTE\_IMP\_MMB}.  For example, the
 following code (taken from \myverb{app\_config.h} selects
-the \myverb{BTE\_ufs} Block transfer Engine (and does not
+the \myverb{BTE\_ufs} Block Transfer Engine (and does not
 select the others):
 
 \begin{verbatim}
@@ -163,10 +163,10 @@ select the others):
 #define BTE_IMP_UFS
 \end{verbatim}
 
-Currently, only one implementation can be supported by TPIE
-at a time.
-%multiple implementations are allowed to coexist, with some
-%restrictions.
+% If the including module did not explicitly ask for multiple
+% implementations but requested more than one implementation,
+% issue a warning.  Currently, only one implementation can be
+% supported by TPIE at a time.
 \comment{LA: This needs to be extended somewhere.}
 \comment{DH: I don't think it works with multiple impl., but
    I don't see why we need both MMB and UFS for instance.
@@ -183,7 +183,7 @@ is generated at compile time.
 
 
 The first block in a TPIE stream, referred to as the
-\emph{header block}\index{streams!header block}, contains
+\emphd{header block}\index{streams!header block}, contains
 contextual information for the stream. Currently, the format
 of the header block is BTE-dependent. Please refer to the
 descriptions of the individual BTEs in
@@ -196,12 +196,13 @@ Sections~\ref{sec:ref-bte-stdio},\ref{sec:ref-bte-mmb}, and
 All BTE stream implementations inherit from class
 \myverb{BTE\_base\_stream} (in file
 \myverb{bte\_base\_stream.h}) and must support the member
-functions listed below. These functions can be defined as
-\myverb{virtual} to assist in debugging a new BTE if the
-compile-time variable \myverb{BTE\_VIRTUAL\_BASE} is defined
-to be non-zero (see also file \myverb{app\_config.h}). For
-best run-time performance, the default value for
-\myverb{BTE\_VIRTUAL\_BASE} is zero. 
+functions listed below. 
+
+Multiple implementations are allowed to coexist, with some
+restrictions.  Declarations of streams must use explicit subclasses
+of \myv{AMI\_base\_stream} to specify what type of streams they
+are. Please refer to Section~\ref{sec:imp-ami-stream} for
+more discussion of multiple implementations.
 
 %In addition to the data elements stored in a stream, a TPIE
 %stream contains a ``header block'' which contains
@@ -224,8 +225,15 @@ respective files \myverb{include/bte\_ufs.h},
 \comment{LA: Some note about construction being BTE
 dependent - why are they? DH: DONE}
 Functionally, the member functions for each BTE are similar.
-The common BTE member functions and their usage are outlined
-below:
+
+The common BTE member functions\footnote{%
+   These functions can be defined as \myverb{virtual} to
+   assist in debugging a new BTE if the compile-time
+   variable \myverb{BTE\_VIRTUAL\_BASE} is defined to be
+   non-zero (see also file \myverb{app\_config.h}). For best
+   run-time performance, the default value for
+   \myverb{BTE\_VIRTUAL\_BASE} is zero.  } 
+and their usage are outlined below:
 
 \subsubsection{Stream Constructors}
 \begin{verbatim}
@@ -318,7 +326,7 @@ current position in the stream. Streams are normally written
 in sequential order, and so the current position is usually
 directly after the previous element written. The current
 position (which we will refer to as the value of the
-\emph{file pointer}) can be modified via the \myverb{seek}
+\emphd{file pointer}) can be modified via the \myverb{seek}
 command below.  \comment{LA: Extend! DH:DONE}
 
 
@@ -460,15 +468,15 @@ disk when the stream
 By default, all streams are deleted when their destructors
 are called.
 
-\subsection{BTE \emph{stdio}}
+\subsection{BTE \emphd{stdio}}
 \index{BTE stdio|see \tt{BTE\_stream\_stdio}}
 \plabel{sec:ref-bte-stdio}
 
-The \emph{stdio} BTE is implemented by the class
+The \emphd{stdio} BTE is implemented by the class
 \myv{BTE\_stream\_stdio}, defined in file
 \myverb{/include/bte\_stdio.h}.  \myverb{BTE\_stream\_stdio}
 streams are stored as ordinary UNIX files which are
-manipulated via the \emph{stdio} file access method, i.e.
+manipulated via the \emphd{stdio} file access method, i.e.
 via the standard \myverb{C} I/O library. The read/write
 primitives of \myverb{BTE\_stream\_stdio} streams are
 implemented using the system calls \myverb{fread} and
@@ -510,7 +518,7 @@ constructors:\index{BTE\_stream\_stdio@{\tt BTE\_stream\_stdio}!constructors}
      BTE_stream_stdio(const BTE_stream_stdio<T> &s);
 \end{verbatim}
 
-The first block of a TPIE \emph{stdio} stream is a header
+The first block of a TPIE \emphd{stdio} stream is a header
 block\index{BTE_stream_stdio@{\tt BTE\_stream\_stdio}!header}
 \index{streams!header block} with the following structure:
 
@@ -530,12 +538,12 @@ typedef struct BTE_stdio_header_v1 {
 
 
 \index{BTE_stream_mmb@{\tt BTE\_stream\_mmb}|(} 
-\subsection{BTE \emph{mmb}}
+\subsection{BTE \emphd{mmb}}
 \plabel{sec:ref-bte-mmb}
 \index{BTE mmb|see {\tt BTE\_stream\_mmb}}
 \comment{LA: Why not called BTE\_mmp?}
 
-The \emph{mmb} BTE is implemented by the class
+The \emphd{mmb} BTE is implemented by the class
 \myv{BTE\_stream\_mmb}, defined in file
 \myverb{/include/bte\_stdio.h}.  \myverb{BTE\_stream\_mmb}
 streams are stored as ordinary UNIX files.  The TPIE
@@ -657,12 +665,12 @@ struct mmap_stream_header {
 
 \index{BTE_stream_ufs@{\tt BTE\_stream\_ufs}|(}
 
-\subsection{BTE \emph{ufs}}
+\subsection{BTE \emphd{ufs}}
 \plabel{sec:ref-bte-ufs}
 \index{BTE ufs|see {\tt BTE\_stream\_ufs}}
 
 (!!! CHECK COMMENTS) 
-The \emph{ufs} BTE is implemented by the class
+The \emphd{ufs} BTE is implemented by the class
 \myv{BTE\_stream\_ufs}, defined in file
 \myverb{/include/bte\_stdio.h}.  \myverb{BTE\_stream\_ufs}
 streams are stored as ordinary UNIX files.
@@ -829,7 +837,7 @@ that come up in attempting to make it more robust.)
 \section{The Access Method Interface (AMI)}
 \index{access method interface|(}
 \index{AMI|see{access method interface}}
-\plabel{sec:ref-ami}
+\plabel{sec:imp-ami}
 
 The AMI-level entry points provided by TPIE are documented
 in the Reference section of this manual (see
@@ -848,6 +856,25 @@ each service the relevant source files are itemized
 (alphabetically) and discussed. The index of this manual
 provides a more direct way to find the documentation for a
 particular source file.
+
+\subsection{Using Multiple BTE Implementations}
+\plabel{sec:imp-multi-imp}
+
+
+For instance, if a single implementation is needed, it is
+sufficient for the application code to create a stream of
+\noiv{int} as follows:
+\begin{verbatim}
+AMI_STREAM<int> aStream;
+\end{verbatim}
+However, if different implementations, say a \myv{ufs} and
+an \myv{mmb} stream are desired, the code would be similar
+to the following:
+\begin{verbatim}
+    BTE_stream_mmb   firstStream( const char *dev_path, BTE_stream_type st );
+    BTE_stream_stdio secondStream( const char *dev_path, BTE_stream_type st );
+
+\end{verbatim}
 
 \subsection{General Considerations}
 
@@ -1049,8 +1076,8 @@ files:
 %special-purpose custom-made TPIE functions. The reason why TPIE's unique
 %approach is attractive for external memory computation is the well
 %known fact that most external memory algorithms consist of sewing
-%together a small number of paradigms such as \emph{scanning},
-%\emph{merging}, \emph{distributing}, in a well-coordinated manner
+%together a small number of paradigms such as \emphd{scanning},
+%\emphd{merging}, \emphd{distributing}, in a well-coordinated manner
 %exploiting all available memory and I/O bandwidth. A large variety of 
 %indexing data structures and methods related to those data structures 
 %can be implemented using the above paradigms in conjunction with a 
@@ -1061,14 +1088,14 @@ files:
 
 % Each datum in TPIE is an item of a certain type.  The
 % programmer normally manipulates the data via the services of
-% the \emph{Access Method Interface (AMI)}, which accesses
+% the \emphd{Access Method Interface (AMI)}, which accesses
 % data elements stored in \myverb{AMI\_STREAM}s.  An
 % \myverb{AMI\_STREAM} can be viewed as simply a wrapper
 % around a \myverb{BTE\_STREAM} (See
 % Section~\ref{BTEinterface} for a discussion of the BTE
 % interface).
 
-%as a \myverb{BTE\_STREAM}, where BTE stands for \emph{block transfer
+%as a \myverb{BTE\_STREAM}, where BTE stands for \emphd{block transfer
 %engine.} Each \myverb{BTE\_STREAM} is a stream built on top
 %of a Unix file, with  
 %additional features such as typing,  and automatic, efficient,
@@ -1377,7 +1404,7 @@ member functions:
 \end{itemize}
 
 All \myverb{sort\_manager} objects also contain a
-\emph{merge heap} object, which is custom-chosen by the
+\emphd{merge heap} object, which is custom-chosen by the
 particular sort template selected by the application
 programmer. The merge heap classes are defined in file
 \myv{include/mergeheap\_dh.h}. The following table shows the
@@ -1403,7 +1430,7 @@ Template & Variant    & Mgmt Object   & Mgmt Object    \\
 \myv{AMI\_key\_sort} &   & \myv{sort\_manager\_kobj} & \myv{merge\_heap\_dh\_kobj} \\
 \hline
 \end{tabular}}
-\caption{\plabel{fig:components} Customization of Arguments
+\caption{\plabel{fig:imp-sort-variants} Customization of Arguments
    to \myv{AMI\_partition\_and\_merge\_dh}.}
 \end{minipage}
 \end{center}
