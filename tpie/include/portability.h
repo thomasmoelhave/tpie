@@ -3,6 +3,8 @@
 // Created: 2002/10/30
 // Authors: Joerg Rotthowe, Jan Vahrenhold, Markus Vogel
 //
+// $Id: portability.h,v 1.2 2003-04-17 20:27:05 jan Exp $
+//
 // This header-file offers macros for independent use on Win and Unix systems.
 
 #ifndef _PORTABILITY_H
