@@ -2,7 +2,7 @@
 #
 # The Makefile for the complete TPIE system.
 #
-# $Id: Makefile.in,v 1.6 1994-10-10 13:00:28 darrenv Exp $
+# $Id: Makefile.in,v 1.7 1994-10-10 13:15:06 darrenv Exp $
 #
 
 ########################################################################
@@ -107,8 +107,8 @@ $(INCPATH)$(UP_TO_DATE): $(INCPATH)*
 
 clean:
 	-rm $(UP_TO_DATE)
-	$(MAKE) -C $(INCPATH) $@
-	$(MAKE) -C $(LIBPATH) $@
 	$(MAKE) -C $(APPSPATH) $@
+	$(MAKE) -C $(LIBPATH) $@
+	$(MAKE) -C $(INCPATH) $@
 
 
