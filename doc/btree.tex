@@ -3,8 +3,8 @@
 %% File: btree.tex
 %% Author: Octavian Procopiuc <tavi@cs.duke.edu>
 %%
-%% Btree documentation.
-%% $Id: btree.tex,v 1.4 2001-05-11 19:01:26 tavi Exp $
+%% AMI_btree documentation.
+%% $Id: btree.tex,v 1.5 2001-05-17 20:17:30 tavi Exp $
 %%
 
 \documentclass[11pt]{article}
@@ -20,7 +20,7 @@
 
 \begin{document}
 
-\title{\bf The {\tt Btree} Class}
+\title{\bf The {\tt AMI\_btree} Class}
 \date{Draft of \today}
 \author{}
 \maketitle
@@ -28,7 +28,7 @@
 \section{Overview}
 \label{btree:overview}
 
-The {\tt Btree<Key, Value, Compare, KeyOfValue>} class implements the
+The {\tt AMI\_btree<Key, Value, Compare, KeyOfValue>} class implements the
 behavior of a dynamic B+-tree or $(a,b)$-tree storing fixed-size data
 items. All data elements (of type {\tt Value}) are stored in the leaves of
 the tree, with internal nodes containing keys (of type {\tt Key}) and links
@@ -79,7 +79,7 @@ public:
 };
 
 // Constructing a B-tree.
-Btree<tKey, tValue, less<tKey>, tKeyOfValue> tree("/var/tmp/btree");
+AMI_btree<tKey, tValue, less<tKey>, tKeyOfValue> tree("/var/tmp/btree");
 \end{verbatim}
 }
 
@@ -88,7 +88,7 @@ Btree<tKey, tValue, less<tKey>, tKeyOfValue> tree("/var/tmp/btree");
 \btabb
 
    \> {\tt template<class Key, class Value, class Compare, class
-   KeyOfValue> class Btree;}
+   KeyOfValue> class AMI\_btree;}
 
 \etabb
 
@@ -96,17 +96,17 @@ Btree<tKey, tValue, less<tKey>, tKeyOfValue> tree("/var/tmp/btree");
 
 \btabb
 
-   \entry{Btree(const Btree\_params \&params = btree\_params\_default)}
-   {Construct an empty Btree using temporary files. The tree is stored in a
+   \entry{AMI\_btree(const AMI\_btree\_params \&params = btree\_params\_default)}
+   {Construct an empty AMI\_btree using temporary files. The tree is stored in a
    directory given by the {\tt AMI\_SINGLE\_DEVICE} environment variable (or {\tt
    "/var/tmp/"} if that variable is not set). The persistency flag is set to
    {\tt PERSIST\_DELETE}. The {\tt params} object contains the
    user-definable parameters (see Appendix for an explanation of the {\tt
-   Btree\_params} class and the default values).}
+   AMI\_btree\_params} class and the default values).}
 
-   \entry{Btree(const char *bfn, BTE\_collection\_type t =
+   \entry{AMI\_btree(const char *bfn, BTE\_collection\_type t =
    BTE\_WRITE\_COLLECTION, } { {\tt\qquad\qquad\qquad\qquad const
-   Btree\_params \&params = btree\_params\_default)}\\ Construct a Btree
+   AMI\_btree\_params \&params = btree\_params\_default)}\\ Construct a B-tree
    using the files given by {\tt bfn} (base file name).  The files
    created/used by a Btree instance are outlined in the following
    table.\\[1mm] \begin{tabular}{|l|l|} \hline {\em bfn}{\tt .l.blk} &
@@ -117,9 +117,9 @@ Btree<tKey, tValue, less<tKey>, tKeyOfValue> tree("/var/tmp/btree");
    block collection.\\ \hline \end{tabular}\\[2mm] The persistency flag is
    set to {\tt PERSIST\_PERSISTENT}. The {\tt params} object contains the
    user-definable parameters (see Appendix for an explanation of the {\tt
-   Btree\_params} class and the default values).}
+   AMI\_btree\_params} class and the default values).}
 
-   \entry{$\sim$Btree()} {Destructor. Either remove or close the supporting
+   \entry{$\sim$AMI\_btree()} {Destructor. Either remove or close the supporting
    files, depending on the persistency flag (see method {\tt persist()}).}
 
 \etabb
@@ -128,26 +128,26 @@ Btree<tKey, tValue, less<tKey>, tKeyOfValue> tree("/var/tmp/btree");
 
 \btabb
 
-   \entry{void load(AMI\_STREAM<Value>* is, float lf = 0.7, float nf = 0.5)}
+   \entry{AMI\_err load(AMI\_STREAM<Value>* is, float lf = 0.7, float nf = 0.5)}
    {Bulk load from the stream {\tt is} of elements. Leaves are filled to {\tt
    lf}$\times$capacity, and nodes are filled to {\tt nf}$\times$capacity.}
 
-   \entry{void load\_sorted(AMI\_STREAM<Value>* is, float lf = 0.7, float nf =
+   \entry{AMI\_err load\_sorted(AMI\_STREAM<Value>* is, float lf = 0.7, float nf =
    0.5)} {Same as {\tt load()} above, but bypasses the expensive sorting
    step, by assuming that the stream {\tt is} is sorted.}
 
-   \entry{void sort(AMI\_STREAM<Value>* is, AMI\_STREAM<Value>* \&os)} {As a
+   \entry{AMI\_err sort(AMI\_STREAM<Value>* is, AMI\_STREAM<Value>* \&os)} {As a
    convenience, this function sorts the stream {\tt is} and stores the
    result in {\tt os}. If the value of {\tt os} passed to the function is
    {\tt NULL}, a new stream is created and {\tt os} points to it.}
 
-   \entry{void load(Btree<Key, Value, Compare, KeyOfValue>* bt,}
+   \entry{AMI\_err load(AMI\_btree<Key, Value, Compare, KeyOfValue>* bt,}
    {{\tt\qquad\qquad\qquad\qquad float leaf\_fill = .7, float node\_fill =
-   .5)} \\ Bulk load from another Btree. This is a means of reoganizing a
-   Btree after a lot of updates. A newly loaded structure may use less
+   .5)} \\ Bulk load from another B-tree. This is a means of reoganizing a
+   B-tree after a lot of updates. A newly loaded structure may use less
    space and may answer range queries faster.}
 
-   \entry{void unload(AMI\_STREAM<Value>* s)} {Write all elements stored in
+   \entry{AMI\_err unload(AMI\_STREAM<Value>* s)} {Write all elements stored in
    this tree to the given stream, in sorted order. No changes are performed
    on the tree.}
 
@@ -179,15 +179,15 @@ Btree<tKey, tValue, less<tKey>, tKeyOfValue> tree("/var/tmp/btree");
 
    \entry{void persist(persistence p)} {Set the persistency flag to {\tt
    p}. The persistency flag dictates the behavior of the destructor of
-   this Btree object. If {\tt p} is {\tt PERSIST\_DELETE}, all files
+   this AMI\_btree object. If {\tt p} is {\tt PERSIST\_DELETE}, all files
    associated with the tree will be removed, and all the elements stored in
-   the tree will be lost after the destruction of this Btree object. If
+   the tree will be lost after the destruction of this AMI\_btree object. If
    {\tt p} is {\tt PERSIST\_PERSISTENT}, all files associated with the tree
-   will be closed during the destruction of this Btree object, and all the
+   will be closed during the destruction of this AMI\_btree object, and all the
    information needed to reopen this tree will be saved.}
 
-   \entry{const Btree\_params\& get\_params() const} {Return a const
-   reference to the {\tt Btree\_params} object used by the Btree. This
+   \entry{const AMI\_btree\_params\& get\_params() const} {Return a const
+   reference to the {\tt AMI\_btree\_params} object used by the B-tree. This
    object contains the true values of all parameters (unlike the object
    passed to the constructor, which may contain $0$-valued parameters to
    indicate default behavior; see Appendix).}
@@ -195,10 +195,10 @@ Btree<tKey, tValue, less<tKey>, tKeyOfValue> tree("/var/tmp/btree");
 
 \section{Implementation Details}
 
-In addition to the {\tt Btree} class itself, the implementation uses two
-more classes, {\tt Btree\_node} and {\tt Btree\_leaf}, representing
+In addition to the {\tt AMI\_btree} class itself, the implementation uses two
+more classes, {\tt AMI\_btree\_node} and {\tt AMI\_btree\_leaf}, representing
 the internal nodes, and leaf nodes, respectively. Both inherit from
-the Block class, allowing transparent read/write operations. In
+the AMI\_block class, allowing transparent read/write operations. In
 addition, these two classes implement technical operations needed for
 keeping the tree in balance: merge and split. 
 
@@ -210,17 +210,17 @@ The fanout of the tree is given by the block size chosen for the
 internal nodes. To search for a key inside a node, STL's binary search
 is used.
 
-A Btree instance can be created from a previously-saved instance. This
+A B-tree instance can be created from a previously-saved instance. This
 consists of four files, two for each collection (the blocks file and
 the stack file). In the user part of the nodes collection's header,
-the Btree stores some initialization information: the id of the root
+the B-tree stores some initialization information: the id of the root
 node, the height and the size of the tree. Note that the id of the
 root may not be
 from the node collection: if the height is 1, the root is a leaf.
 
-\section{Appendix: The {\tt Btree\_params} Class}
+\section{Appendix: The {\tt AMI\_btree\_params} Class}
 
-The {\tt Btree\_params} class encapsulates all user-definable Btree
+The {\tt AMI\_btree\_params} class encapsulates all user-definable B-tree
 parameters. These parameters dictate the layout of the tree and its
 behavior under insertions and deletions. An instance of the class created
 using the default constructor gives default values to all parameters. Each
@@ -230,7 +230,7 @@ paramter can then be changed independently.
 
 \btabb
 
-  \entry{class Btree\_params;} {}
+  \entry{class AMI\_btree\_params;} {}
 
 \etabb
 
@@ -238,7 +238,7 @@ paramter can then be changed independently.
 
 \btabb
 
-  \entry{Btree\_params()} {Initialize a {\tt Btree\_params} object with
+  \entry{AMI\_btree\_params()} {Initialize a {\tt Btree\_params} object with
   default values. The default values are given in the following table.\\[1mm]
   \begin{tabular}{|l|c|}
     \hline
@@ -250,7 +250,7 @@ paramter can then be changed independently.
     {\tt leaf\_block\_factor} & 1 \\ \hline
     {\tt node\_block\_factor} & 1 \\ \hline
     {\tt leaf\_cache\_size} & 5 \\ \hline
-    {\tt node\_cache\_size} & 5 \\ \hline
+    {\tt node\_cache\_size} & 10 \\ \hline
   \end{tabular}
   }
 
