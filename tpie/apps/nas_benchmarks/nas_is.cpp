@@ -6,7 +6,7 @@
 //
 
 #include <versions.h>
-VERSION(nas_is_cpp,"$Id: nas_is.cpp,v 1.6 2003-04-20 23:51:40 tavi Exp $");
+VERSION(nas_is_cpp,"$Id: nas_is.cpp,v 1.7 2003-04-21 04:50:42 tavi Exp $");
 
 // Benchmark constants.
 #define IMAX 10
@@ -33,6 +33,8 @@ VERSION(nas_is_cpp,"$Id: nas_is.cpp,v 1.6 2003-04-20 23:51:40 tavi Exp $");
 using std::cout;
 using std::ofstream;
 using std::ifstream;
+using std::istream;
+using std::ostream;
 using std::istrstream;
 
 // Get information on the configuration to test.
