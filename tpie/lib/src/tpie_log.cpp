@@ -6,7 +6,7 @@
 //
 
 #include <versions.h>
-VERSION(tpie_log_cpp,"$Id: tpie_log.cpp,v 1.14 2003-05-31 15:50:45 tavi Exp $");
+VERSION(tpie_log_cpp,"$Id: tpie_log.cpp,v 1.15 2003-09-13 18:11:57 tavi Exp $");
 
 // We are logging
 #define TPL_LOGGING	1
@@ -23,7 +23,8 @@ VERSION(tpie_log_cpp,"$Id: tpie_log.cpp,v 1.14 2003-05-31 15:50:45 tavi Exp $");
 static char *__tpie_log_name() {
   static char tln[128];
   TPIE_OS_SRANDOM(time(NULL));
-  strncpy(tln, tpie_tempnam(TPLOGPFX, TPLOGDIR), 128);
+  strncpy(tln, tpie_tempnam(TPLOGPFX, TPLOGDIR), 124);
+  strcat(tln, ".txt");
   return tln;
 }
 
