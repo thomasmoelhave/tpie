@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/15/94
 //
-// $Id: ami_stack.h,v 1.2 1995-06-30 21:08:49 darrenv Exp $
+// $Id: ami_stack.h,v 1.3 1999-02-03 17:39:05 tavi Exp $
 //
 #ifndef _AMI_STACK_H
 #define _AMI_STACK_H
@@ -70,12 +70,5 @@ AMI_err AMI_stack<T>::pop(T **t)
 
     return truncate(slen-1);
 }
-
-#ifdef NO_IMPLICIT_TEMPLATES
-
-#define TEMPLATE_INSTANTIATE_STACK(T)					\
-template class AMI_stack<T>;
-
-#endif
 
 #endif // _AMI_STACK_H 
