@@ -7,7 +7,7 @@
 // A sample piece of code that does list ranking in the TPIE system.
 //
 
-static char lr_id[] = "$Id: lr.cpp,v 1.2 1994-09-22 15:16:41 darrenv Exp $";
+static char lr_id[] = "$Id: lr.cpp,v 1.3 1994-09-29 13:23:54 darrenv Exp $";
 
 // Use the single BTE stream version of AMI streams.
 #define AMI_IMP_SINGLE
@@ -22,12 +22,12 @@ static char lr_id[] = "$Id: lr.cpp,v 1.2 1994-09-22 15:16:41 darrenv Exp $";
 // The edge class.  This is what our list ranking function will work on.
 ////////////////////////////////////////////////////////////////////////
 
-class edge {
+struct edge {
 public:
   long int from;        // Node it is from
   long int to;          // Node it is to
   long int weight;      // Position when ranked.
-  int flag;             // A flag used to randomly select some edges.
+  bool flag;            // A flag used to randomly select some edges.
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -55,10 +55,6 @@ AMI_err random_flag_scan::operate(const edge &in, AMI_SCAN_FLAG *sfin,
     *out = in;
     out->flag = flip_coin();
 }
-
-// Generate the proper function from the AMI_scan() function template.
-AMI_err AMI_scan(AMI_base_stream<edge> *, random_flag_scan *,
-                 AMI_base_stream<edge> *);
 
 static random_flag_scan my_random_flag;
 
