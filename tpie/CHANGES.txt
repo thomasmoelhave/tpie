@@ -1,5 +1,17 @@
 THIS IS THE TPIE CHANGE LOG
 
+New release :     082902
+Previous release: 062702
+Changes:
+
+      * Better temporary name generation for streams, collection and logs.
+
+      * New stats() method in AMI_STREAM
+
+      * Updates in the manual.
+
+      * Various bugfixes.
+
 New release :     062702
 Previos release:  0.9.01b
 Changes:
