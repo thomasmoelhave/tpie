@@ -3,7 +3,7 @@
 // File:   ami_coll_single.h
 // Author: Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_coll_single.h,v 1.1 2001-05-17 19:33:10 tavi Exp $
+// $Id: ami_coll_single.h,v 1.2 2001-05-28 18:56:50 tavi Exp $
 //
 // AMI collection entry points implemented on top of a single BTE.
 //
@@ -12,9 +12,6 @@
 
 // For persist type.
 #include <persist.h>
-
-// For tp_assert().
-#include <tpie_assert.h>
 
 // Get an appropriate BTE collection.
 #include <bte_coll.h>
@@ -25,12 +22,14 @@
 // For ami_single_temp_name().
 #include <ami_single.h>
 
+template<class BTECOLL=BTE_COLLECTION>
 class AMI_collection_single {
 public:
 
-  // A temporary collection.
+  // Initialize a temporary collection.
   AMI_collection_single(size_t logical_block_factor = 1);
 
+  // Initialize a named collection.
   AMI_collection_single(char* path_name,
 			AMI_collection_type ct = AMI_READ_WRITE_COLLECTION,
 			size_t logical_block_factor = 1);
@@ -47,6 +46,7 @@ public:
   // Set the persistence flag. 
   void persist(persistence p) { btec_->persist(p); }
 
+  // Inquire the status.
   AMI_collection_status status() const { return status_; }
 
   // User data to be stored in the header.
@@ -55,16 +55,52 @@ public:
   // Destructor.
   ~AMI_collection_single() { delete btec_; }
 
+  BTECOLL* bte() { return btec_; }
+
 private:
 
-  BTE_COLLECTION *btec_;
+  BTECOLL *btec_;
   AMI_collection_status status_;
 
-  BTE_COLLECTION* bte() { return btec_; }
-
-  friend class AMI_block_base;
+  // Allow AMI_block base direct access to the BTE_COLLECTION.
+  //  friend class AMI_block_base;
 };
 
+template <class BTECOLL>
+AMI_collection_single<BTECOLL>::AMI_collection_single(size_t lbf) {
 
+  char *temp_path = ami_single_temp_name("AMI");
+
+  btec_ = new BTECOLL(temp_path, BTE_WRITE_COLLECTION, lbf);
+  tp_assert(btec_ != NULL, "new failed to create a new BTE_COLLECTION.");
+  btec_->persist(PERSIST_DELETE);
+
+  if (btec_->status() == BTE_COLLECTION_STATUS_VALID)
+    status_ = AMI_COLLECTION_STATUS_VALID;
+  else
+    status_ = AMI_COLLECTION_STATUS_INVALID;
+}
+
+template <class BTECOLL>
+AMI_collection_single<BTECOLL>::AMI_collection_single(char* path_name,
+		       AMI_collection_type ct = AMI_READ_WRITE_COLLECTION,
+		       size_t lbf) {
+
+  BTE_collection_type btect;
+
+  if (ct == AMI_READ_COLLECTION)
+    btect = BTE_READ_COLLECTION;
+  else
+    btect = BTE_WRITE_COLLECTION;
+   
+  btec_ = new BTECOLL(path_name, btect, lbf);
+  tp_assert(btec_ != NULL, "new failed to create a new BTE_COLLECTION.");
+  btec_->persist(PERSIST_PERSISTENT);
+
+  if (btec_->status() == BTE_COLLECTION_STATUS_VALID)
+    status_ = AMI_COLLECTION_STATUS_VALID;
+  else
+    status_ = AMI_COLLECTION_STATUS_INVALID;
+}
 
 #endif // _AMI_COLL_SINGLE_H
