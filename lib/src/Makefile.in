@@ -1,6 +1,6 @@
 # Copyright (c) 1994 Darren Erik Vengroff
 
-# $Id: Makefile.in,v 1.10 1994-10-31 20:01:15 darrenv Exp $
+# $Id: Makefile.in,v 1.11 1994-11-02 22:07:13 darrenv Exp $
 
 # Makefile for TPIE libraries.
 
@@ -19,7 +19,7 @@ CXX = @CXX@
 
 CXXFLAGS = -Wall
 
-CPPFLAGS = -I$(TPIEINC) @DEFS@
+override CPPFLAGS += -I$(TPIEINC) @DEFS@
 
 SRC =	logstream.cpp tpie_log.cpp mm_register.cpp ami_device.cpp	\
 	ami_single.cpp mm_base.cpp bte_mmb.cpp bte_stdio.cpp		\
