@@ -4,16 +4,10 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 3/6/95
 //
-// $Id: scan_uniform_sm.h,v 1.5 1999-07-05 04:47:29 rajiv Exp $
+// $Id: scan_uniform_sm.h,v 1.6 2003-09-12 14:59:06 tavi Exp $
 //
 #ifndef _SCAN_UNIFORM_SM_H
 #define _SCAN_UNIFORM_SM_H
-
-#if(0)
-// not needed in FreeBSD,
-extern "C" void srandom(unsigned int);
-extern "C" long int random(void);
-#endif
 
 #include <ami_sparse_matrix.h>
 
