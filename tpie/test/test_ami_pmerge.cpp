@@ -7,11 +7,7 @@
 // A test for AMI_partition_and_merge().
 
 
-static char partition_and_merge_id[] = "$Id: test_ami_pmerge.cpp,v 1.1 1994-09-22 14:59:14 darrenv Exp $";
-
-// Use a LEDA priority queue.
-//#define MERGE_VIA_LEDA_PRIORITY_QUEUE
-//#define LEDA_PQ_IMP k_heap
+static char partition_and_merge_id[] = "$Id: test_ami_pmerge.cpp,v 1.2 1994-09-26 19:22:03 darrenv Exp $";
 
 // Use Owen's priority queue code.
 #define MERGE_VIA_TPQUEUE
@@ -20,48 +16,37 @@ static char partition_and_merge_id[] = "$Id: test_ami_pmerge.cpp,v 1.1 1994-09-2
 #include <tpqueue.h>
 #endif // MERGE_VIA_TPQUEUE
 
-#ifdef MERGE_VIA_LEDA_PRIORITY_QUEUE
-// Get a priority queue from LEDA
-#include <LEDA/prio.h>
-#ifdef LEDA_PQ_IMP
-#include <LEDA/impl/k_heap.h>
-#endif // LEDA_PQ_IMP
-#endif // MERGE_VIA_LEDA_PRIORITY_QUEUE
 
-// If you actually want to see all the ints in the stream.
-//#define REPORT_RESULTS_RANDOM
-//#define REPORT_RESULTS_OUTPUT
+#ifdef BTE_IMP_MMB
+#define BTE_MMB_LOGICAL_BLOCKSIZE_FACTOR 4
+#endif
 
+#ifdef BTE_IMP_CACHE
+#define BTE_MMB_CACHE_LINE_SIZE 256
+#endif
 
-//#define BTE_MMB_LOGICAL_BLOCKSIZE_FACTOR 32
+#define DEFAULT_TEST_SIZE (1024 * 1024 * 8)
 
-//#define TEST_SIZE (1024 * 256)
-//#define TEST_SIZE (1024 * 1024)
-#define TEST_SIZE (1024 * 1024 * 8)
+#define DEFAULT_TEST_MM_SIZE (1024 * 1024 * 2)
 
-//#define TEST_MM_SIZE (1024 * 128)
-//#define TEST_MM_SIZE (1024 * 256)
-//#define TEST_MM_SIZE (1024 * 512)
-//#define TEST_MM_SIZE (1024 * 1024)
-//#define TEST_MM_SIZE (1024 * 1024 * 2)
-//#define TEST_MM_SIZE (1024 * 1024 * 3)
-#define TEST_MM_SIZE (1024 * 1024 * 4)
-//#define TEST_MM_SIZE (1024 * 1024 * 6)
-//#define TEST_MM_SIZE (1024 * 1024 * 36)
 
 #include <stdlib.h>
+#include <sys/resource.h>
 #include <iostream.h>
+#include <strstream.h>
+
+#include <GetOpt.h>
 
 // Use logs.
-#define TPL_LOGGING 1
+//#define TPL_LOGGING 1
 #include <tpie_log.h>
 
 // Use the single BTE stream version of AMI streams.
 #define AMI_IMP_SINGLE
 
 // Pick a version of BTE streams.
-//#define BTE_IMP_MMB
-#define BTE_IMP_CACHE
+#define BTE_IMP_MMB
+//#define BTE_IMP_CACHE
 //#define BTE_IMP_STDIO
 //#define BTE_IMP_UFS
 
@@ -69,9 +54,14 @@ static char partition_and_merge_id[] = "$Id: test_ami_pmerge.cpp,v 1.1 1994-09-2
 #include <ami.h>
 
 
-#if defined(REPORT_RESULTS_RANDOM) || defined(REPORT_RESULTS_OUTPUT)
+// Utitlities for ascii output.
 #include <ami_scan_utils.h>
-#endif //REPORT_RESULTS
+
+
+// Some defaults.
+static size_t test_mm_size = DEFAULT_TEST_MM_SIZE;
+static size_t test_size = DEFAULT_TEST_SIZE;
+static int random_seed = 17;
 
 
 // My very own new and delete operators.  The idea is that these should be
@@ -153,28 +143,12 @@ AMI_err random_scan::operate(int *out1, AMI_SCAN_FLAG *sf)
 };
 
 
-#ifdef MERGE_VIA_LEDA_PRIORITY_QUEUE
-// Basic operations the priority queue needs.
-inline void Clear(arity_t)    {}
-inline GenPtr Copy(arity_t x)    { return *(GenPtr*)&x; }
-inline void Print(arity_t x, ostream& out = cout)         { out << x; }
-inline GenPtr Convert(arity_t x)      { return GenPtr(x); }
-#endif // MERGE_VIA_LEDA_PRIORITY_QUEUE
-
 
 // A merge object to merge sorted streams.
 
 class sort_merge : public AMI_merge_base<int> {
 private:
     arity_t input_arity;
-#ifdef MERGE_VIA_LEDA_PRIORITY_QUEUE
-#ifdef LEDA_PQ_IMP
-    _priority_queue<arity_t,int,LEDA_PQ_IMP> pq;
-#else
-    priority_queue<arity_t,int> pq;
-#endif
-#endif // MERGE_VIA_LEDA_PRIORITY_QUEUE
-
 #ifdef MERGE_VIA_TPQUEUE
     PQueue<arity_t> *pq;
 #endif // MERGE_VIA_TPQUEUE
@@ -183,7 +157,7 @@ public:
     unsigned long int called;
 
     sort_merge(void);
-    ~sort_merge(void);
+    virtual ~sort_merge(void);
     AMI_err initialize(arity_t arity, int **in, AMI_merge_flag *taken_flags);
     AMI_err operate(const int **in, AMI_merge_flag *taken_flags, int *out);
     AMI_err main_mem_operate(int* mm_stream, size_t len);
@@ -237,14 +211,6 @@ AMI_err sort_merge::initialize(arity_t arity, int **in,
 
     tp_assert(arity > 0, "Input arity is 0.");
     
-#ifdef MERGE_VIA_LEDA_PRIORITY_QUEUE
-#ifdef LEDA_PQ_IMP
-    pq._priority_queue<arity_t,int,LEDA_PQ_IMP>::clear();
-#else
-    pq.clear();
-#endif
-#endif
-
 #ifdef MERGE_VIA_TPQUEUE
     if (pq != NULL) {
         delete pq;
@@ -252,15 +218,11 @@ AMI_err sort_merge::initialize(arity_t arity, int **in,
     pq = new PQueue<arity_t>(arity);
 #endif // MERGE_VIA_TPQUEUE
 
-#if defined(MERGE_VIA_TPQUEUE) || defined(MERGE_VIA_LEDA_PRIORITY_QUEUE)    
+#ifdef MERGE_VIA_TPQUEUE
     for (ii = arity; ii--; ) {
         if (in[ii] != NULL) {
             taken_flags[ii] = 1;
-#ifdef MERGE_VIA_TPQUEUE
             pq->Insert(ii,*in[ii]);
-#else            
-            pq.insert(ii,*in[ii]);
-#endif            
         } else {
             taken_flags[ii] = 0;
         }
@@ -269,7 +231,7 @@ AMI_err sort_merge::initialize(arity_t arity, int **in,
     for (ii = arity; ii--; ) {
         taken_flags[ii] = 0;
     }
-#endif // MERGE_VIA_LEDA_PRIORITY_QUEUE
+#endif // MERGE_VIA_TPQUEUE
 
     return AMI_ERROR_NO_ERROR;
 }
@@ -278,33 +240,14 @@ AMI_err sort_merge::initialize(arity_t arity, int **in,
 AMI_err sort_merge::operate(const int **in, AMI_merge_flag *taken_flags,
                             int *out)
 {
-    int ii, ii_min;
-    int min;
-
+    int ii;
+#ifndef MERGE_VIA_TPQUEUE        
+    int min, ii_min;
+#endif // !MERGE_VIA_TPQUEUE
+    
     called++;
     
-#ifdef MERGE_VIA_LEDA_PRIORITY_QUEUE
-    // If the queue is empty, we are done.  There should be no more
-    // inputs.
-    if (pq.empty()) {
-#if DEBUG_ASSERTIONS        
-        for (ii = input_arity; ii--; ) {
-            tp_assert(in[ii] == NULL, "Empty queue but more input.");
-        }
-#endif        
-        return AMI_MERGE_DONE;
-    } else {
-        pq_item it = pq.find_min();
-        *out = pq.inf(it);
-        ii_min = pq.key(it);
-        pq.del_item(it);
-        if (in[ii_min] != NULL) {
-            pq.insert(ii_min,*in[ii_min]);
-            taken_flags[ii_min] = 1;
-        }
-        return AMI_MERGE_OUTPUT;
-    }
-#elif defined(MERGE_VIA_TPQUEUE)
+#ifdef MERGE_VIA_TPQUEUE
     // If the queue is empty, we are done.  There should be no more
     // inputs.
     if (!pq->NumElts()) {
@@ -360,7 +303,7 @@ AMI_err sort_merge::operate(const int **in, AMI_merge_flag *taken_flags,
     }
 
     return AMI_MERGE_OUTPUT;
-#endif // !MERGE_VIA_LEDA_PRIORITY_QUEUE
+#endif // !MERGE_VIA_TPQUEUE
 }
 
 
@@ -372,60 +315,170 @@ AMI_err sort_merge::main_mem_operate(int* mm_stream, size_t len)
     return AMI_ERROR_NO_ERROR;
 }
 
+static bool verbose = false;
 
+static char def_srf[] = "/var/tmp/oss.txt";
+static char def_rrf[] = "/var/tmp/osr.txt";
 
+static char *sorted_results_filename = def_srf;
+static char *rand_results_filename = def_rrf;
+
+static bool report_results_random = false;
+static bool report_results_sorted = false;
+
+void parse_args(int argc, char **argv)
+{
+    GetOpt go(argc, argv, "m:t:z:vbR:rS:s");
+    char c;
+    
+    while ((c = go()) != -1) {
+        switch (c) {
+            case 'v':
+                verbose = true;
+                break;
+            case 'b':
+                verbose = false;
+                break;
+            case 'm':
+                istrstream(go.optarg,strlen(go.optarg)) >> test_mm_size;
+                break;                
+            case 't':
+                istrstream(go.optarg,strlen(go.optarg)) >> test_size;
+                break;
+            case 'z':
+                istrstream(go.optarg,strlen(go.optarg)) >> random_seed;
+                break;
+            case 'R':
+                rand_results_filename = go.optarg;
+            case 'r':
+                report_results_random = true;
+                break;
+            case 'S':
+                sorted_results_filename = go.optarg;
+            case 's':
+                report_results_sorted = true;
+                break;
+        }
+    }
+}
+
+#define REPORT_RUSAGE(os, ru, x)				\
+{								\
+    if (verbose) {						\
+    	os << #x " = " << ru.x << ".\n";			\
+    } else {							\
+    	os << ' ' << ru.x;					\
+    }								\
+}
+
+#define REPORT_RUSAGE_DIFFERENCE(os, ru0, ru1, x)		\
+{								\
+    if (verbose) {						\
+    	os << #x " = " << ru1.x - ru0.x << ".\n";		\
+    } else {							\
+    	os << ' ' << ru1.x - ru0.x;				\
+    }								\
+}
 
 int main(int argc, char **argv)
 {
+
     AMI_err ae;
 
+    rusage ru0, ru1;
+
+    parse_args(argc,argv);
+
+    if (verbose) {
+        cout << "test_size = " << test_size << ".\n";
+        cout << "test_mm_size = " << test_mm_size << ".\n";
+        cout << "random_seed = " << random_seed << ".\n";
+    } else {
+        cout << test_size << ' ' << test_mm_size << ' ' << random_seed;
+    }
+    
     // Set the amount of main memory:
-    MM_manager.resize_heap(TEST_MM_SIZE);
+    MM_manager.resize_heap(test_mm_size);
     register_new = 1;
         
-    AMI_STREAM<int> amis0((unsigned int)0, TEST_SIZE);
-    AMI_STREAM<int> amis1((unsigned int)0, TEST_SIZE);
+    AMI_STREAM<int> amis0((unsigned int)0, test_size);
+    AMI_STREAM<int> amis1((unsigned int)0, test_size);
         
     // Write some ints.
-    random_scan rnds(TEST_SIZE);
+    random_scan rnds(test_size,random_seed);
     
     ae = AMI_scan(&rnds, (AMI_base_stream<int> *)&amis0);
 
-    cout << "Wrote the random values.\n";
+    if (verbose) {
+        cout << "Wrote the random values.\n";
+        cout << "Stream length = " << amis0.stream_len() << '\n';
+    }
 
-    cout << "Stream length = " << amis0.stream_len() << '\n';
-
-#ifdef REPORT_RESULTS_RANDOM
-    ofstream osr("/var/tmp/osr.ascii");
-    cxx_ostream_scan<int> rptr(&osr);
-#endif
-#ifdef REPORT_RESULTS_OUTPUT
-    ofstream oss("/var/tmp/oss.ascii");
-    cxx_ostream_scan<int> rpts(&oss);
-#endif    
+    // Streams for reporting random vand/or sorted values to ascii
+    // streams.
     
-#ifdef REPORT_RESULTS_RANDOM
-    ae = AMI_scan((AMI_base_stream<int> *)&amis0, &rptr);
-#endif // REPORT_RESULTS_RANDOM
+    ofstream *oss;
+    cxx_ostream_scan<int> *rpts;
+    ofstream *osr;
+    cxx_ostream_scan<int> *rptr;
+    
+    if (report_results_random) {
+        osr = new ofstream(rand_results_filename);
+        rptr = new cxx_ostream_scan<int>(osr);
+    }
+    
+    if (report_results_sorted) {
+        oss = new ofstream(sorted_results_filename);
+        rpts = new cxx_ostream_scan<int>(oss);
+    }
+    
+    if (report_results_random) {
+        ae = AMI_scan((AMI_base_stream<int> *)&amis0, rptr);
+    }
     
     sort_merge sm;
 
+    getrusage(RUSAGE_SELF, &ru0);
+    
     ae = AMI_partition_and_merge(&amis0, &amis1,
                                  (AMI_merge_base<int> *)&sm);
 
+    getrusage(RUSAGE_SELF, &ru1);
 
-    cout << "Sorted them.\n";
-
-    cout << "Sorted stream length = " << amis1.stream_len() << '\n';
-
-    cout << "sm.operate called " << sm.called << " times.\n";
+    if (verbose) {
+        cout << "Sorted them.\n";
+        cout << "Sorted stream length = " << amis1.stream_len() << '\n';
+        cout << "sm.operate called " << sm.called << " times.\n";
+    }
     
-#ifdef REPORT_RESULTS_OUTPUT
-    ae = AMI_scan((AMI_base_stream<int> *)&amis1, &rpts);    
-#endif // REPORT_RESULTS_OUTPUT
+    if (report_results_sorted) {
+        ae = AMI_scan((AMI_base_stream<int> *)&amis1, rpts);
+    }
+
+    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_utime.tv_sec);
+    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_utime.tv_usec);
+
+    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_stime.tv_sec);
+    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_stime.tv_usec);
+
+    REPORT_RUSAGE(cout, ru1, ru_maxrss);
+    REPORT_RUSAGE(cout, ru1, ru_ixrss);
+    REPORT_RUSAGE(cout, ru1, ru_idrss);
+    REPORT_RUSAGE(cout, ru1, ru_isrss);
+
+    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_minflt);
+    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_majflt);
+    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_nswap);
+    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_inblock);
+    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_oublock);
+    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_msgsnd);
+    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_msgrcv);
+    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_nsignals);
+    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_nvcsw);
+    REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_nivcsw);
 
     cout << '\n';
-    
+
     return 0;
 }
     
