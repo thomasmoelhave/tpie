@@ -3,7 +3,7 @@
 // File:    ami_btree.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_btree.h,v 1.13 2002-03-14 20:21:40 tavi Exp $
+// $Id: ami_btree.h,v 1.14 2002-07-21 22:55:44 tavi Exp $
 //
 // AMI_btree declaration and implementation.
 //
@@ -87,6 +87,9 @@ public:
   typedef AMI_btree_node<Key, Value, Compare, KeyOfValue, BTECOLL> node_t;
   typedef AMI_btree_leaf<Key, Value, Compare, KeyOfValue, BTECOLL> leaf_t;
   typedef AMI_collection_single<BTECOLL> collection_t;
+  typedef Key key_t;
+  typedef Value record_t;
+  typedef AMI_btree_params params_t;
 
   // Construct an empty B-tree.
   AMI_btree(const AMI_btree_params &params = btree_params_default);
