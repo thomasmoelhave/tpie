@@ -6,7 +6,7 @@
 //
 // A test for AMI_sort().
 
-static char test_ami_sort_id[] = "$Id: test_ami_sort.cpp,v 1.12 1997-05-20 22:12:54 vengroff Exp $";
+static char test_ami_sort_id[] = "$Id: test_ami_sort.cpp,v 1.13 1999-01-21 22:46:06 rajiv Exp $";
 
 // This is just to avoid an error message since the string above is never
 // refereneced.  Note that a self referential structure must be defined to
@@ -21,12 +21,14 @@ static struct ___test_ami_sort_id_compiler_fooler {
 
 #define DEBUG_ASSERTIONS 1
 
+#include <sys/types.h>
 #include <stdlib.h>
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <iostream.h>
 #include <fstream.h>
 #include <strstream.h>
+#include <assert.h>
 
 // Get information on the configuration to test.
 #include "app_config.h"
@@ -43,6 +45,7 @@ static struct ___test_ami_sort_id_compiler_fooler {
 #include "scan_random.h"
 #include "scan_diff.h"
 #include "merge_random.h"
+#include "wall_timer.h"
 
 static char def_srf[] = "/var/tmp/oss.txt";
 static char def_rrf[] = "/var/tmp/osr.txt";
@@ -106,19 +109,32 @@ static void ___dummy_1() {
     ___dummy_1();
 }
 
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
-
+    wall_timer wt;
+    long elapsed;
     AMI_err ae;
 
     parse_args(argc,argv,as_opts,parse_app_opt);
 
     if (verbose) {
+	  cout << "FLAGS: ";
+#ifdef BTE_IMP_MMB
+	  cout << "BTE_IMP_MMB ";
+#endif
+#ifdef BTE_IMP_STDIO
+	  cout << "BTE_IMP_STDIO ";
+#endif
+#ifdef BTE_MMB_READ_AHEAD
+	  cout << "BTE_MMB_READ_AHEAD ";	  
+#endif
+ 	  cout << "\n";
         cout << "test_size = " << test_size << ".\n";
         cout << "test_mm_size = " << test_mm_size << ".\n";
         cout << "random_seed = " << random_seed << ".\n";
     } else {
-        cout << test_size << ' ' << test_mm_size << ' ' << random_seed;
+	  cout << test_size << ' ' << test_mm_size << ' ' << random_seed << "\n";
     }
     
     // Set the amount of main memory:
@@ -132,6 +148,7 @@ int main(int argc, char **argv)
     scan_random rnds(test_size,random_seed);
     
     ae = AMI_scan(&rnds, &amis0);
+	assert(ae == BTE_ERROR_NO_ERROR);
 
     if (verbose) {
         cout << "Wrote the random values.\n";
@@ -158,26 +175,39 @@ int main(int argc, char **argv)
     
     if (report_results_random) {
         ae = AMI_scan(&amis0, rptr);
+		assert(ae == BTE_ERROR_NO_ERROR);
     }
+
+    wt.start();
 
     if (kb_sort) {
         key_range range(KEY_MIN, KEY_MAX);
         ae = AMI_kb_sort(amis0, amis1, range);
+		assert(ae == BTE_ERROR_NO_ERROR);
     } else {
         if (use_operator) {
             ae = AMI_sort(&amis0, &amis1);
+			assert(ae == BTE_ERROR_NO_ERROR);
         } else {
             ae = AMI_sort(&amis0, &amis1, cc_int_cmp);
+			assert(ae == BTE_ERROR_NO_ERROR);
         }
     }
+	wt.stop();
+	elapsed = wt.seconds();
+    wt.reset();
     
     if (verbose) {
         cout << "Sorted them.\n";
         cout << "Sorted stream length = " << amis1.stream_len() << '\n';
-    }
+		cout << "Time taken: " << elapsed << " seconds.\n";		
+	}
+	cout << "\nDATA test_size " << test_size << 
+	  " time_taken " << elapsed << "\n";		
     
     if (report_results_sorted) {
         ae = AMI_scan(&amis1, rpts);
+		assert(ae == BTE_ERROR_NO_ERROR);
     }
 
     cout << '\n';
