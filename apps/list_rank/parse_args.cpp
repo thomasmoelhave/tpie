@@ -7,14 +7,14 @@
 
 
 
-static char parse_args_id[] = "$Id: parse_args.cpp,v 1.3 1999-01-21 23:04:34 rajiv Exp $";
+static char parse_args_id[] = "$Id: parse_args.cpp,v 1.4 1999-04-11 22:38:04 tavi Exp $";
 
-#include <GetOpt.h>
+//#include <GetOpt.h>
 #include <strstream.h>
 #include <ctype.h>
+#include <unistd.h>
 
 #include "app_config.h"
-
 #include "parse_args.h"
 
 static size_t
@@ -57,27 +57,29 @@ void parse_args(int argc, char **argv, const char *as_opts,
         all_opts = standard_opts;
     }
 
-    GetOpt go(argc, argv, all_opts);
+    //    GetOpt go(argc, argv, all_opts);
     char c;
 
-    while ((c = go()) != -1) {
+    // while ((c = go()) != -1) {
+    optarg = NULL;
+    while((c = getopt(argc, argv, all_opts)) != -1) {
         switch (c) {
             case 'v':
                 verbose = !verbose;
                 break;
             case 'm':
-	     test_mm_size = parse_number(go.optarg);
+	     test_mm_size = parse_number(optarg);
 	     //istrstream(go.optarg,strlen(go.optarg)) >> test_mm_size;
                 break;                
             case 't':
-	      test_size = parse_number(go.optarg);
+	      test_size = parse_number(optarg);
 	      //istrstream(go.optarg,strlen(go.optarg)) >> test_size;
                 break;
             case 'z':
-	      istrstream(go.optarg,strlen(go.optarg)) >> random_seed;
+	      istrstream(go.optarg,strlen(optarg)) >> random_seed;
                 break;
             default:
-                parse_app_opt(c, go.optarg);
+                parse_app_opt(c, optarg);
                 break;
         }
     }
