@@ -4,7 +4,7 @@
 // Created: 02/02/02
 //
 #include <versions.h>
-VERSION(tpie_tempnam_cpp,"$Id: tpie_tempnam.cpp,v 1.5 2004-04-16 21:34:06 adanner Exp $");
+VERSION(tpie_tempnam_cpp,"$Id: tpie_tempnam.cpp,v 1.6 2004-08-12 12:53:43 jan Exp $");
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -50,8 +50,8 @@ char *tpie_mktemp(char *str) {
     'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 
     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
   const int chars_count = 62;
-  static int counter = time(NULL) % (chars_count * chars_count); 
-  int pos = strlen(str) - 6;
+  static TPIE_OS_TIME_T counter = time(NULL) % (chars_count * chars_count); 
+  TPIE_OS_SIZE_T pos = (TPIE_OS_SIZE_T)strlen(str) - 6;
 
   str[pos++] = chars[counter/chars_count];
   str[pos++] = chars[counter%chars_count];

@@ -5,7 +5,7 @@
 //
 
 #include <versions.h>
-VERSION(ami_matrix_blocks_cpp,"$Id: ami_matrix_blocks.cpp,v 1.5 2003-04-17 20:45:15 jan Exp $");
+VERSION(ami_matrix_blocks_cpp,"$Id: ami_matrix_blocks.cpp,v 1.6 2004-08-12 12:53:42 jan Exp $");
 #include "lib_config.h"
 
 #include <sys/types.h>
@@ -14,9 +14,9 @@ VERSION(ami_matrix_blocks_cpp,"$Id: ami_matrix_blocks.cpp,v 1.5 2003-04-17 20:45
 #include <ami_gen_perm_object.h>
 #include <ami_matrix_blocks.h>
 
-perm_matrix_into_blocks::perm_matrix_into_blocks(unsigned int rows,
-                                                 unsigned int cols,
-                                                 unsigned int block_extent) :
+perm_matrix_into_blocks::perm_matrix_into_blocks(TPIE_OS_OFFSET rows,
+                                                 TPIE_OS_OFFSET cols,
+                                                 TPIE_OS_OFFSET block_extent) :
                                                          r(rows),
                                                          c(cols),
                                                          be(block_extent)
@@ -29,7 +29,7 @@ perm_matrix_into_blocks::~perm_matrix_into_blocks()
 
 AMI_err perm_matrix_into_blocks::initialize(TPIE_OS_OFFSET len)
 {
-    return ((TPIE_OS_OFFSET) (r * c) == len) ? AMI_ERROR_NO_ERROR : AMI_MATRIX_BOUNDS;
+    return static_cast<TPIE_OS_OUTPUT_SIZE_T>( (r * c) == len) ? AMI_ERROR_NO_ERROR : AMI_MATRIX_BOUNDS;
 }
 
 TPIE_OS_OFFSET perm_matrix_into_blocks::destination(TPIE_OS_OFFSET source)
@@ -68,9 +68,9 @@ TPIE_OS_OFFSET perm_matrix_into_blocks::destination(TPIE_OS_OFFSET source)
 }
 
 
-perm_matrix_outof_blocks::perm_matrix_outof_blocks(unsigned int rows,
-                                                   unsigned int cols,
-                                                   unsigned int block_extent) :
+perm_matrix_outof_blocks::perm_matrix_outof_blocks(TPIE_OS_OFFSET rows,
+                                                   TPIE_OS_OFFSET cols,
+                                                   TPIE_OS_OFFSET block_extent) :
                                                            r(rows),
                                                            c(cols),
                                                            be(block_extent)
@@ -83,7 +83,7 @@ perm_matrix_outof_blocks::~perm_matrix_outof_blocks()
 
 AMI_err perm_matrix_outof_blocks::initialize(TPIE_OS_OFFSET len)
 {
-    return ((TPIE_OS_OFFSET) (r * c) == len) ? AMI_ERROR_NO_ERROR : AMI_MATRIX_BOUNDS;
+    return static_cast<TPIE_OS_OUTPUT_SIZE_T>( (r * c) == len) ? AMI_ERROR_NO_ERROR : AMI_MATRIX_BOUNDS;
 }
 
 TPIE_OS_OFFSET perm_matrix_outof_blocks::destination(TPIE_OS_OFFSET source)

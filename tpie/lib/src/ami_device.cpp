@@ -5,7 +5,7 @@
 //
 
 #include "versions.h"
-VERSION(ami_device_cpp,"$Id: ami_device.cpp,v 1.13 2003-09-12 18:42:21 jan Exp $");
+VERSION(ami_device_cpp,"$Id: ami_device.cpp,v 1.14 2004-08-12 12:53:42 jan Exp $");
 
 #include "lib_config.h"
 
@@ -18,7 +18,7 @@ VERSION(ami_device_cpp,"$Id: ami_device.cpp,v 1.13 2003-09-12 18:42:21 jan Exp $
 
 AMI_device::AMI_device(void)
 {
-    LOG_DEBUG_ID("In AMI_device(void).");
+    TP_LOG_DEBUG_ID("In AMI_device(void).");
 }
 
 
@@ -106,7 +106,7 @@ AMI_err AMI_device::set_to_path(const char *path)
         argv[ii][s - t] = '\0';
 
 		// make sure there is no trailing /
-		for(int i=s-t-1; i && argv[ii][i] == '/'; i--) {
+		for(TPIE_OS_LONGLONG i=s-t-1; i && (argv[ii][i]) == '/'; i--) {
 		  argv[ii][i] = '\0';
 		}
 		tp_assert(strlen(argv[ii]) > 0, "non-null path specified");
