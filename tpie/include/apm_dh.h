@@ -10,7 +10,7 @@
 // *  used in several of TPIE's sorting variants                            *
 // *                                                                        *
 // **************************************************************************
-// 	$Id: apm_dh.h,v 1.6 2001-03-05 17:32:03 hutchins Exp $	
+// 	$Id: apm_dh.h,v 1.7 2001-04-24 17:41:46 hutchins Exp $	
 
 #include <math.h>		// For log(), etc  to compute tree heights.
 #include <sys/time.h>
@@ -266,17 +266,34 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
       return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
    }
 
+   LOG_DEBUG_ID ("Each object of size " << sizeof(T) << 
+       " has overhead of " << mgmt_obj.space_usage_overhead () << " bytes." );
    szOrigSubstream = (sz_avail) / (sizeof (T) + mgmt_obj.space_usage_overhead ());
 
-   // Round the original substream length up to an integral number of
+   // ** modified 2001/04/23 dh : round DOWN instead of UP
+   // otherwise we might attempt an external sort with only one 
+   // input stream to the merge.
+
+   // Round the original substream length down to an integral number of
    // chunks.  This is for systems like HP-UX that cannot map in
    // overlapping regions.  It is also required for BTE's that are
    // capable of freeing chunks as they are read.
 
    size_t chunkSize = inStream->chunk_size ();
-   szOrigSubstream = chunkSize *((szOrigSubstream + chunkSize-1) / chunkSize);
-   origSubstreams = (len + szOrigSubstream - 1) / szOrigSubstream;
+   // 2001/04/23 dh. was : szOrigSubstream = chunkSize *
+   //                      ((szOrigSubstream + chunkSize-1) / chunkSize);
+   szOrigSubstream = chunkSize *(szOrigSubstream / chunkSize);
 
+   if (szOrigSubstream==0) {
+      LOG_FATAL_ID ("Insufficient Memory for AMI_partition_and_merge.");
+      return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
+   }
+
+   origSubstreams = (len + szOrigSubstream - 1) / szOrigSubstream;
+   // We should always end up with at least two runs 
+   // otherwise why are we doing it externally?
+   tp_assert (origSubstreams > 1, "Less than two runs to merge!");
+   
    //Available memory for input stream objects is given by 
    //sz_avail minus the space occupied by output stream objects.
    size_t sz_avail_during_merge = sz_avail - szStream - szSubstream;
