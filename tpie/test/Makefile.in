@@ -1,6 +1,6 @@
 # Copyright (c) 1994 Darren Erik Vengroff
 
-# $Id: Makefile.in,v 1.12 1994-10-31 19:56:26 darrenv Exp $
+# $Id: Makefile.in,v 1.13 1994-11-02 22:06:16 darrenv Exp $
 
 # Makefile for TPIE test applications.
 
@@ -22,7 +22,26 @@ endif
 
 CXXFLAGS = -Wall 
 
-CPPFLAGS = -I$(TPIEINC) @DEFS@
+# Set GCXX to 1 if we are using the GNU compiler, and 0 otherwise.
+
+GCXX = 0
+ifeq ($(firstword $(CXX)),g++)
+GCXX = 1
+endif
+ifeq ($(firstword $(CXX)),c++)
+GCXX = 1
+endif
+
+# Use -fno-implicit-templates with the GNU compiler.  This is necessary 
+# until it starts using a seperate pass to instantiate template functions. 
+
+ifeq ($(GCXX),1)
+override CXXFLAGS += -fno-implicit-templates
+override CPPFLAGS += -DNO_IMPLICIT_TEMPLATES
+endif
+
+# Get the proper include path and DEFS from the configure script.
+override CPPFLAGS += -I$(TPIEINC) @DEFS@
 
 
 # The loader in OSF 1.x is flakey.  Using -lm generates an executable
@@ -40,17 +59,23 @@ CCFLAGS = $(CXXFLAGS)
 
 # The various test applications.
 
-APPS = test_ami_pmerge test_ami_sort test_ami_merge lr # dist_sweep_test
+APPS := test_ami_pmerge test_ami_sort test_ami_merge lr test_ami_gp
+       # Not done yet.
+       # dist_sweep_test
+       # Broken under g++ 2.6.0 due to template function problems. 
+       # test_ami_gp
+
 
 # Sources to the test applications.
 
 APPSRC = $(patsubst %,%.cpp,$(APPS))
 
+
 # Other C++ sources for common support routines.
 
 COMMONCXXSRC = parse_args.cpp app_config.cpp
 
-OTHERCXXSRC = scan_random.cpp scan_count.cpp scan_list.cpp list_edge.cpp mm_lr.cpp
+OTHERCXXSRC = scan_random.cpp scan_count.cpp scan_list.cpp list_edge.cpp 
 
 CXXSRC=$(APPSRC) $(COMMONCXXSRC) $(OTHERCXXSRC)
 
@@ -67,8 +92,8 @@ CSRC = int_cmp.c
 %:%.o
 	$(LINK.cc) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
-%:%.cpp
-	$(LINK.cc) $< $(LOADLIBES) $(LDLIBS) -o $@
+#%:%.cpp
+#	$(LINK.cc) $< $(LOADLIBES) $(LDLIBS) -o $@
 
 %.d:%.cpp
 	$(SHELL) -ec '$(CXX) -M $(CPPFLAGS) $< | sed '\''s/$*.o/& $@/g'\'' > $@'
@@ -95,8 +120,9 @@ test_ami_merge: test_ami_merge.o scan_count.o $(COMMONOBJ)
 
 dist_sweep_test: dist_sweep_test.o
 
-lr: lr.o list_edge.o scan_list.o mm_lr.o $(COMMONOBJ)
+lr: lr.o list_edge.o scan_list.o $(COMMONOBJ)
 
+test_ami_gp: test_ami_gp.o scan_count.o $(COMMONOBJ)
 
 .PHONY : clean all
 
