@@ -8,7 +8,7 @@
 // A simple registration based memory manager.
 
 #include <versions.h>
-VERSION(mm_register_cpp,"$Id: mm_register.cpp,v 1.16 2000-04-22 04:07:56 rajiv Exp $");
+VERSION(mm_register_cpp,"$Id: mm_register.cpp,v 1.17 2001-06-16 19:45:07 tavi Exp $");
 
 #include <assert.h>
 #include "lib_config.h"
@@ -66,11 +66,11 @@ MM_err MM_register::register_allocation(size_t request)
 
     remaining -= request;
 
-    LOG_DEBUG_INFO("mm_register Allocated ");
-    LOG_DEBUG_INFO((unsigned int)request);
-    LOG_DEBUG_INFO("; ");
-    LOG_DEBUG_INFO((unsigned int)remaining);
-    LOG_DEBUG_INFO(" remaining.\n");
+    LOG_DEBUG("mm_register Allocated ");
+    LOG_DEBUG((unsigned int)request);
+    LOG_DEBUG("; ");
+    LOG_DEBUG((unsigned int)remaining);
+    LOG_DEBUG(" remaining.\n");
     LOG_FLUSH_LOG;
 
 #ifdef REPORT_LARGE_MEMOPS
@@ -106,11 +106,11 @@ MM_err MM_register::register_deallocation(size_t sz)
 
     used      -= sz;    
 
-    LOG_DEBUG_INFO("mm_register De-allocated ");
-    LOG_DEBUG_INFO((unsigned int)sz);
-    LOG_DEBUG_INFO("; ");
-    LOG_DEBUG_INFO((unsigned int)remaining);
-    LOG_DEBUG_INFO(" now available.\n");
+    LOG_DEBUG("mm_register De-allocated ");
+    LOG_DEBUG((unsigned int)sz);
+    LOG_DEBUG("; ");
+    LOG_DEBUG((unsigned int)remaining);
+    LOG_DEBUG(" now available.\n");
     LOG_FLUSH_LOG;
     
 #ifdef REPORT_LARGE_MEMOPS
