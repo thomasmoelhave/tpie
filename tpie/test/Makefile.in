@@ -1,6 +1,6 @@
 # Copyright (c) 1994 Darren Erik Vengroff
 
-# $Id: Makefile.in,v 1.15 1994-12-16 21:14:47 darrenv Exp $
+# $Id: Makefile.in,v 1.16 1995-01-10 16:45:51 darrenv Exp $
 
 # Makefile for TPIE test applications.
 
@@ -71,7 +71,7 @@ CCFLAGS = $(CXXFLAGS)
 
 APPS := test_ami_pmerge test_ami_sort test_ami_merge test_ami_gp	\
 	test_matrix test_bit_matrix test_ami_arith test_ami_matrix	\
-	test_ami_matrix_pad test_ami_stack lr
+	test_ami_matrix_pad test_ami_stack test_ami_bp lr ch2
 
 
 # Sources to the test applications.
@@ -84,7 +84,7 @@ APPSRC = $(patsubst %,%.cpp,$(APPS))
 COMMONCXXSRC = parse_args.cpp app_config.cpp
 
 OTHERCXXSRC = scan_random.cpp scan_count.cpp scan_list.cpp list_edge.cpp 	\
-	perm_matrix_blocks.cpp
+	scan_random_point.cpp
 
 CXXSRC=$(APPSRC) $(COMMONCXXSRC) $(OTHERCXXSRC)
 
@@ -129,6 +129,8 @@ test_ami_merge: test_ami_merge.o scan_count.o $(COMMONOBJ)
 
 test_ami_gp: test_ami_gp.o scan_count.o $(COMMONOBJ)
 
+test_ami_bp: test_ami_bp.o scan_count.o $(COMMONOBJ)
+
 test_util_matrix: test_util_matrix.o
 
 test_bit_matrix: test_bit_matrix.o
@@ -136,14 +138,16 @@ test_bit_matrix: test_bit_matrix.o
 test_ami_arith: test_ami_arith.o scan_count.o $(COMMONOBJ)
 
 test_ami_matrix_pad: test_ami_matrix_pad.o scan_count.o			\
-	perm_matrix_blocks.o $(COMMONOBJ)
+	$(COMMONOBJ)
 
 test_ami_matrix: test_ami_matrix.o scan_count.o 			\
-	perm_matrix_blocks.o $(COMMONOBJ)
+	$(COMMONOBJ)
 
 test_ami_stack: test_ami_stack.o $(COMMONOBJ)
 
 lr: lr.o list_edge.o scan_list.o $(COMMONOBJ)
+
+ch2: ch2.o scan_random_point.o $(COMMONOBJ)
 
 .PHONY : clean all
 
