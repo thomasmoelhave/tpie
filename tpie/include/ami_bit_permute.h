@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 1/9/95
 //
-// $Id: ami_bit_permute.h,v 1.6 2003-04-17 12:01:35 jan Exp $
+// $Id: ami_bit_permute.h,v 1.7 2003-09-27 06:18:05 tavi Exp $
 //
 // For the moment this is done in terms of general permutations.
 // This will obviously change in the future.
@@ -15,14 +15,15 @@
 // Get definitions for working with Unix and Windows
 #include <portability.h>
 
-// For bit_matrix.
+// Get bit_matrix.
 #include <bit_matrix.h>
 
-// For AMI_gen_perm_object.
+// Get AMI_gen_perm_object.
 #include <ami_gen_perm_object.h>
+// Get the AMI_general_permute().
+#include <ami_gen_perm.h>
 
-class AMI_bit_perm_object
-{
+class AMI_bit_perm_object {
 private:
     // The matrices that define the permutation.
     bit_matrix mA;
