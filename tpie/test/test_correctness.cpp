@@ -5,25 +5,10 @@
 //
 // An extensive test suite for TPIE functionality.
 //
-// $Id: test_correctness.cpp,v 1.4 2003-05-08 22:29:50 tavi Exp $
+// $Id: test_correctness.cpp,v 1.5 2003-09-12 18:33:17 jan Exp $
 //
 
-using namespace std;
-
-#include <stdlib.h>
-// For stat()
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-// For strlen()
-#include <string.h>
-// For ofstream
-#include <fstream>
-// For pair
-#include <utility>
-
-using std::pair;
-using std::ofstream;
+#include <portability.h>
 
 // TPIE configuration: choose BTE, block size, etc.
 
@@ -646,7 +631,7 @@ int test_scan() {
   static bool been_here = false;
   status_t status = EMPTY;
   int failed = 0;
-  AMI_STREAM<foo_t<40> > *s;
+//  AMI_STREAM<foo_t<40> > *s;
   AMI_STREAM<int> *ps[9];
   AMI_err err;
   int i;
