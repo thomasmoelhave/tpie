@@ -6,14 +6,14 @@
 //
 
 #include <versions.h>
-VERSION(mm_base_cpp,"$Id: mm_base.cpp,v 1.25 2003-04-19 11:55:04 jan Exp $");
+VERSION(mm_base_cpp,"$Id: mm_base.cpp,v 1.26 2003-04-20 06:44:01 tavi Exp $");
 
 #include "lib_config.h"
 #include <mm_base.h>
 #include <tpie_log.h>
 #include <mm_register.h>
 
-#include <iostream.h>
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -56,9 +56,9 @@ void *operator new (size_t sz)
 		LOG_FATAL (MM_manager.memory_limit ());
 		LOG_FATAL ("\" \n");
 		LOG_FLUSH_LOG;
-		cerr << "memory manager: memory allocation limit " << 
+		std::cerr << "memory manager: memory allocation limit " << 
                          MM_manager.memory_limit () << " exceeded "
-			 << "while allocating " << sz << " bytes" << endl;
+			 << "while allocating " << sz << " bytes" << "\n";
 #ifdef USE_DMALLOC
 		dmalloc_shutdown();
 #endif
@@ -74,9 +74,9 @@ void *operator new (size_t sz)
 		LOG_WARNING (MM_manager.memory_limit ());
 		LOG_WARNING ("\" \n");
 		LOG_FLUSH_LOG;
-		cerr << "memory manager: memory allocation limit " << 
+		std::cerr << "memory manager: memory allocation limit " << 
                          MM_manager.memory_limit () << " exceeded "
-			 << "while allocating " << sz << " bytes" << endl;
+			 << "while allocating " << sz << " bytes" << "\n";
 		break;
 	  case MM_IGNORE_MEMORY_EXCEEDED:
 		break;
@@ -91,7 +91,7 @@ void *operator new (size_t sz)
    if (!p) {
       LOG_FATAL_ID ("Out of memory. Cannot continue.");
       LOG_FLUSH_LOG;
-	  cerr << "out of memory while allocating " << sz << " bytes" << endl;
+	  std::cerr << "out of memory while allocating " << sz << " bytes" << "\n";
       perror ("mm_base::new malloc");
 	  assert(0);
       exit (1);
