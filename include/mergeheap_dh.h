@@ -1,7 +1,7 @@
 //
 // File: mergeheap_dh.h
 // 
-// $Id: mergeheap_dh.h,v 1.7 2004-10-15 15:32:28 jan Exp $	
+// $Id: mergeheap_dh.h,v 1.8 2004-10-20 08:54:15 jan Exp $	
 
 // This file contains several merge heap templates. 
 // Originally written by Rakesh Barve.  
@@ -59,7 +59,7 @@ template<class KEY>
 class heap_element {
 public:
     KEY            key;
-    unsigned short run_id;
+    TPIE_OS_SIZE_T run_id;
 };
 
 // This is a record pointer element. Encapsulates the record pointer,
@@ -70,7 +70,7 @@ template<class REC>
 class heap_ptr {
 public:
     REC            *recptr;
-    unsigned short run_id;
+    TPIE_OS_SIZE_T run_id;
 };
 
 // ********************************************************************
@@ -465,7 +465,7 @@ class merge_heap_dh_obj{
     inline void Exchange(TPIE_OS_SIZE_T i, TPIE_OS_SIZE_T j) {
 
 	REC tmpkey;
-	unsigned short tmpid;
+	TPIE_OS_SIZE_T tmpid;
 
 	tmpkey = Heaparray[i].key;
 	tmpid = Heaparray[i].run_id;
@@ -506,7 +506,7 @@ public:
     };
 
     // Return the run with the minimum key.
-    inline unsigned short get_min_run_id(void) {return Heaparray[1].run_id;};
+    inline TPIE_OS_SIZE_T get_min_run_id(void) {return Heaparray[1].run_id;};
 
     // The initialize member function heapify's an initial array of
     // elements
@@ -592,7 +592,7 @@ class merge_heap_dh_op{
     inline void Exchange(TPIE_OS_SIZE_T i, TPIE_OS_SIZE_T j) {
 
 	REC tmpkey;
-	unsigned short tmpid;
+	TPIE_OS_SIZE_T tmpid;
 
 	tmpkey = Heaparray[i].key;
 	tmpid = Heaparray[i].run_id;
@@ -626,7 +626,7 @@ public:
     };
 
     // Return the run with the minimum key.
-    inline unsigned short get_min_run_id(void) {return Heaparray[1].run_id;};
+    inline TPIE_OS_SIZE_T get_min_run_id(void) {return Heaparray[1].run_id;};
 
     // The initialize member function heapify's an initial array of
     // elements
