@@ -1,6 +1,6 @@
 // File: ami_sort_single_dh.h
 //
-// 	$Id: ami_sort_single_dh.h,v 1.6 2001-02-20 03:56:58 hutchins Exp $	
+// 	$Id: ami_sort_single_dh.h,v 1.7 2001-02-22 16:58:24 hutchins Exp $	
 
 // 
 // 
@@ -198,7 +198,7 @@ class sort_manager_obj   : public sort_manager<T,Q>  {
 private:
     CMPR         *cmp_o;
 public:
-                 sort_manager_obj(CMPR cmp);
+                 sort_manager_obj(CMPR *cmp);
                  ~sort_manager_obj(void);    
     Q            MergeHeap;
     AMI_err      main_mem_operate(
@@ -208,9 +208,9 @@ public:
 };   
 
 template<class T, class Q, class CMPR>
-sort_manager_obj<T,Q,CMPR>::sort_manager_obj(CMPR cmp)
+sort_manager_obj<T,Q,CMPR>::sort_manager_obj(CMPR *cmp)
 {
-    cmp_o = &cmp;
+    cmp_o = cmp;
 }
 
 template<class T, class Q, class CMPR>
@@ -483,7 +483,7 @@ private:
     qsort_item<KEY> *qs_array;
     size_t          item_overhead; // space overhead per item
 public:
-                    sort_manager_kobj(CMPR);    
+                    sort_manager_kobj(CMPR *);    
                     ~sort_manager_kobj(void);    
     CMPR            *UsrObject;             
     Q               MergeHeap;
@@ -497,8 +497,8 @@ public:
 };    
 
 template<class T,class Q,class KEY,class CMPR>
-sort_manager_kobj<T,Q,KEY,CMPR>::sort_manager_kobj(CMPR cmp) : item_overhead(sizeof(qsort_item<KEY>)){
-    UsrObject = &cmp;
+sort_manager_kobj<T,Q,KEY,CMPR>::sort_manager_kobj(CMPR *cmp) : item_overhead(sizeof(qsort_item<KEY>)){
+    UsrObject = cmp;
 }
 
 template<class T,class Q,class KEY,class CMPR>
@@ -645,7 +645,7 @@ AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
                  CMPR *cmp)
 {
     return AMI_partition_and_merge_dh( instream, outstream,
-     sort_manager_obj<T,merge_heap_dh_obj<T,CMPR>,CMPR>( CMPR() ) );
+     sort_manager_obj<T,merge_heap_dh_obj<T,CMPR>,CMPR>( cmp ) );
 }
 
 // A version of AMI_sort that takes an input stream of elements of
@@ -684,7 +684,7 @@ AMI_err
 AMI_key_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
 	 KEY dummykey, CMPR *cmp) {
     return AMI_partition_and_merge_dh( instream, outstream, 
-       sort_manager_kobj<T,merge_heap_dh_kobj<T,KEY,CMPR>,KEY,CMPR>( CMPR() ) );
+       sort_manager_kobj<T,merge_heap_dh_kobj<T,KEY,CMPR>,KEY,CMPR>( cmp ) );
 }
                           
 // ********************************************************************
@@ -722,7 +722,7 @@ AMI_err AMI_ptr_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
                  CMPR *cmp)
 {
     return AMI_partition_and_merge_dh (instream, outstream,
-     sort_manager_obj<T,merge_heap_pdh_obj<T,CMPR>,CMPR> (CMPR()) );
+     sort_manager_obj<T,merge_heap_pdh_obj<T,CMPR>,CMPR> (cmp) );
 }
 
                           
