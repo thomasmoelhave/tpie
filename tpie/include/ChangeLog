@@ -1,3 +1,7 @@
+Wed Feb  3 13:14:55 EST 1999 Octavian Procopiuc (tavi)
+
+	* almost_all_files: Removed template instantiations and related macros.
+	
 Sun Oct 26 18:13 1997 Lars Arge (large)
 
 	* bte_mmb.h: Same bug as in seek() fixed in truncate().
