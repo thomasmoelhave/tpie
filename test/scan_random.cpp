@@ -11,7 +11,7 @@
 #include "app_config.h"
 
 #include <versions.h>
-VERSION(scan_random_cpp,"$Id: scan_random.cpp,v 1.7 2003-04-21 02:32:11 tavi Exp $");
+VERSION(scan_random_cpp,"$Id: scan_random.cpp,v 1.8 2003-04-21 02:47:47 tavi Exp $");
 
 #include "scan_random.h"
 
@@ -37,7 +37,7 @@ AMI_err scan_random::initialize(void)
     return AMI_ERROR_NO_ERROR;
 };
 
-inline AMI_err scan_random::operate(int *out1, AMI_SCAN_FLAG *sf)
+AMI_err scan_random::operate(int *out1, AMI_SCAN_FLAG *sf)
 {
     if ((*sf = (remaining-- != 0))) {
         *out1 = random();
