@@ -3,7 +3,7 @@
 // File:    ami_btree.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_btree.h,v 1.12 2002-01-27 23:43:24 tavi Exp $
+// $Id: ami_btree.h,v 1.13 2002-03-14 20:21:40 tavi Exp $
 //
 // AMI_btree declaration and implementation.
 //
@@ -31,6 +31,8 @@
 #include <ami_cache.h>
 // The tpie_stats_tree class for tree statistics.
 #include <tpie_stats_tree.h>
+// The tpie_tempnam() function
+#include <tpie_tempnam.h>
 // The triple class.
 #include <triple.h>
 
@@ -156,7 +158,8 @@ public:
   const AMI_btree_params& params() const { return params_; }
 
   // Inquire the status.
-  AMI_btree_status status() { return status_; }
+  AMI_btree_status status() const { return status_; }
+  bool is_valid() const { return status_ == AMI_BTREE_STATUS_VALID; }
 
   // Flush the caches and return a const reference to a tree_stats object.
   const tpie_stats_tree &stats();
@@ -877,10 +880,8 @@ template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL
 AMI_BTREE::AMI_btree(const AMI_btree_params &params): header_(), params_(params), 
   status_(AMI_BTREE_STATUS_VALID) {
 
-  char *base_name = ami_single_temp_name("AMI_BTREE");
-
+  char *base_name = tpie_tempnam("AMI_BTREE");
   shared_init(base_name, AMI_WRITE_COLLECTION);
-
   if (status_ == AMI_BTREE_STATUS_VALID) {
     persist(PERSIST_DELETE);
   }
@@ -927,12 +928,12 @@ void AMI_BTREE::shared_init(const char* base_file_name, AMI_collection_type type
   pcoll_leaves_ = new collection_t(lcollname, type, params_.leaf_block_factor);
   pcoll_nodes_ = new collection_t(ncollname, type, params_.node_block_factor);
 
-  if (pcoll_leaves_->status() != AMI_COLLECTION_STATUS_VALID) {
+  if (!pcoll_leaves_->is_valid()) {
     status_ = AMI_BTREE_STATUS_INVALID;
     LOG_WARNING_ID("AMI_btree::AMI_btree: Could not open leaves collection.");
     return;
   }
-  if (pcoll_nodes_->status() != AMI_COLLECTION_STATUS_VALID) {
+  if (!pcoll_nodes_->is_valid()) {
     status_ = AMI_BTREE_STATUS_INVALID;
     LOG_WARNING_ID("AMI_btree::AMI_btree: Could not open nodes collection.");
     return;
@@ -968,15 +969,15 @@ template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL
 AMI_err AMI_BTREE::sort(AMI_STREAM<Value>* in_stream, AMI_STREAM<Value>* &out_stream) {
 
   if (status_ != AMI_BTREE_STATUS_VALID) {
-    LOG_WARNING_ID("sort: tree is invalid.");
+    LOG_FATAL_ID("sort: tree is invalid.");
     return AMI_ERROR_GENERIC_ERROR;
   }
   if (in_stream == NULL) {
-    LOG_WARNING_ID("sort: attempting to sort a NULL stream pointer.");
+    LOG_FATAL_ID("sort: attempting to sort a NULL stream pointer.");
     return AMI_ERROR_GENERIC_ERROR;
   }  
   if (in_stream->stream_len() == 0) {
-    LOG_WARNING_ID("sort: attempting to sort an empty stream.");
+    LOG_FATAL_ID("sort: attempting to sort an empty stream.");
     return AMI_ERROR_GENERIC_ERROR;
   }
 
@@ -985,6 +986,11 @@ AMI_err AMI_BTREE::sort(AMI_STREAM<Value>* in_stream, AMI_STREAM<Value>* &out_st
   
   if (out_stream == NULL) {
     out_stream = new AMI_STREAM<Value>;
+    if (!out_stream->is_valid()) {
+      LOG_FATAL_ID("sort: error initializing temporary stream.");
+      delete out_stream;
+      return AMI_ERROR_OBJECT_INITIALIZATION;
+    }
     out_stream->persist(PERSIST_DELETE);
   }
   
@@ -1005,11 +1011,11 @@ template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL
 AMI_err AMI_BTREE::load_sorted(AMI_STREAM<Value>* s, float leaf_fill, float node_fill) {
 
   if (status_ != AMI_BTREE_STATUS_VALID) {
-    LOG_WARNING_ID("load: tree is invalid.");
+    LOG_FATAL_ID("load: tree is invalid.");
     return AMI_ERROR_GENERIC_ERROR;
   }
   if (s == NULL) {
-    LOG_WARNING_ID("load: attempting to load with NULL stream pointer.");
+    LOG_FATAL_ID("load: attempting to load with NULL stream pointer.");
     return AMI_ERROR_GENERIC_ERROR;
   }
 
@@ -1029,7 +1035,7 @@ AMI_err AMI_BTREE::load_sorted(AMI_STREAM<Value>* s, float leaf_fill, float node
   }
 
   if (err != AMI_ERROR_END_OF_STREAM)
-    LOG_WARNING_ID("load: error occured while reading the input stream.");
+    LOG_FATAL_ID("load: error occured while reading the input stream.");
   else
     err = AMI_ERROR_NO_ERROR;
 
@@ -1091,7 +1097,7 @@ AMI_err AMI_BTREE::unload(AMI_STREAM<Value>* s) {
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
 AMI_err AMI_BTREE::load(AMI_BTREE* bt, float leaf_fill, float node_fill) {
 
-  if (status_ != AMI_BTREE_STATUS_VALID) {
+  if (!is_valid()) {
     LOG_WARNING_ID("load: tree is invalid.");
     return AMI_ERROR_GENERIC_ERROR;
   }
@@ -1099,8 +1105,8 @@ AMI_err AMI_BTREE::load(AMI_BTREE* bt, float leaf_fill, float node_fill) {
     LOG_WARNING_ID("load: NULL btree pointer.");
     return AMI_ERROR_GENERIC_ERROR;
   }
-  if (bt->status() != AMI_BTREE_STATUS_VALID) {
-    LOG_WARNING_ID("load: provided tree is invalid.");
+  if (!bt->is_valid()) {
+    LOG_WARNING_ID("load: input tree is invalid.");
     return AMI_ERROR_GENERIC_ERROR;
   }
 
