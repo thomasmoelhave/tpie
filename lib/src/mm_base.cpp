@@ -7,7 +7,7 @@
 
 
 
-static char mm_base_id[] = "$Id: mm_base.cpp,v 1.2 1994-12-16 21:14:29 darrenv Exp $";
+static char mm_base_id[] = "$Id: mm_base.cpp,v 1.3 1997-10-28 20:04:44 jan Exp $";
 
 
 
@@ -52,6 +52,7 @@ void * operator new (size_t sz) {
 }
 
 void operator delete (void *ptr) {
+    if (!ptr) return;
     if (register_new) {
         MM_manager.register_deallocation(*((size_t *)
                                            (((char *)ptr) - SIZE_SPACE)) +
