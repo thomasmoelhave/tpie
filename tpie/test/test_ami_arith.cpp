@@ -5,7 +5,7 @@
 // Created: 12/10/94
 //
 
-static char test_ami_arith_id[] = "$Id: test_ami_arith.cpp,v 1.4 1999-02-03 22:19:46 tavi Exp $";
+static char test_ami_arith_id[] = "$Id: test_ami_arith.cpp,v 1.5 1999-05-02 19:24:35 tavi Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -32,12 +32,10 @@ static struct ___test_ami_arith_id_compiler_fooler {
 #include <ami_scan_utils.h>
 
 // Get some scanners.
-
 #include "scan_square.h"
 #include "scan_count.h"
 
 // Get stream arithmatic.
-
 #include <ami_stream_arith.h>
 
 static char def_crf[] = "/var/tmp/osc.txt";
@@ -151,15 +149,9 @@ int main(int argc, char **argv)
         cout << "Stream length = " << amis1.stream_len() << '\n';
     }
     
-    // Add the two int streams.
-
-#if 0    
-    amis2 = amis0 + amis1;
-#else
     AMI_scan_div<int> sd;
     
     ae = AMI_scan(&amis1, &amis0, &sd, &amis2);
-#endif
         
     if (verbose) {
         cout << "Divided them.\n"
