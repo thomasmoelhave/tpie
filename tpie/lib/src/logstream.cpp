@@ -8,7 +8,7 @@
 //
 
 #include <versions.h>
-VERSION(logstream_cpp,"$Id: logstream.cpp,v 1.19 2004-08-12 12:53:43 jan Exp $");
+VERSION(logstream_cpp,"$Id: logstream.cpp,v 1.20 2004-08-17 16:48:53 jan Exp $");
 
 #include <logstream.h>
 
@@ -88,8 +88,4 @@ logmanip<unsigned long> setthreshold(unsigned long p)
    return logmanip<unsigned long>(&manip_threshold, p);
 } 
 
-logstream& operator<< (logstream& o, const logmanip<unsigned long>& m)
-{
-  (*m._f)(o, m._a); return o;
-}
 

@@ -1,7 +1,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(sample_pgm_cpp,"$Id: sample_pgm.cpp,v 1.15 2003-10-09 01:08:40 tavi Exp $");	
+VERSION(sample_pgm_cpp,"$Id: sample_pgm.cpp,v 1.16 2004-08-17 16:49:31 jan Exp $");	
 
 // Include the file that sets application configuration: It sets what
 // kind of BTE (Block Transfer Engine) to use and where applicable,
@@ -39,6 +39,10 @@ int main(int argc, char *argv[]) {
    int Gen_Stream_Length = atoi(argv[1]);
    long test_mm_size = atol(argv[2]);
    
+   //Tell the memory manager to abort if the allocated 
+   //internal memory exceeds the specified amount
+   MM_manager.enforce_memory_limit();
+
    //Set the size of memory the application is allowed to use
    MM_manager.set_memory_limit(test_mm_size);
    

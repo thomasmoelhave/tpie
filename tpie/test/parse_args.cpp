@@ -4,7 +4,8 @@
 // Created: 10/7/94
 //
 
-static char parse_args_id[] = "$Id: parse_args.cpp,v 1.15 2004-08-12 15:15:11 jan Exp $";
+#include <versions.h>
+VERSION(parse_args.cpp,"$Id: parse_args.cpp,v 1.16 2004-08-17 16:49:27 jan Exp $");
 
 #include <portability.h>
 
@@ -77,7 +78,7 @@ void parse_args(int argc, char **argv, struct options *application_opts,
   size_t l_all_o = l_app_o + l_std_o + 1; // add 1 for the null option.
 
   all_opts = new struct options[l_all_o];
-  int i;
+  size_t i;
   for (i = 0; i < l_std_o; i++) {
     all_opts[i] = standard_opts[i];
   }
