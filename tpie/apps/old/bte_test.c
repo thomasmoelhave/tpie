@@ -3,10 +3,10 @@
 //
 //COMMENT: This program may need to be modified if we want to use
 //         munmap() operations during MMAP_TEST.
-///* 	$Id: bte_test.c,v 1.2 1999-02-08 14:12:58 rbarve Exp $	 */
+///* 	$Id: bte_test.c,v 1.3 1999-07-02 13:35:37 rbarve Exp $	 */
 
 #ifndef lint
-static char vcid[] = "$Id: bte_test.c,v 1.2 1999-02-08 14:12:58 rbarve Exp $";
+static char vcid[] = "$Id: bte_test.c,v 1.3 1999-07-02 13:35:37 rbarve Exp $";
 #endif /* lint */
 
 //This file contains a program that can be used to determine the 
@@ -95,7 +95,7 @@ int ItemSize = atoi(argv[2]);
 int NumStreams = atoi(argv[3]);
 int blocksize = atoi(argv[4])*BLOCKSIZE_BASE;
 int items_in_block = blocksize/ItemSize;
-char *Datafilename = argv[5];
+char *testdir = argv[5];
 
 /*FILE *fileptr[MAX_STREAMS];*/
 FILE **fileptr, *outfileptr, *datafile;
@@ -118,7 +118,7 @@ char *outcurr_item = NULL;
 char *Item;
 long starttime,endtime;
 double dendtime, dum1,dum2,dum3;
-char *envdir = getenv("TMP");
+char *envdir = testdir;
 
 /* int fd[MAX_STREAMS];*/
 int *fd, outfd;
@@ -162,6 +162,7 @@ f_filelen = (int *)malloc(NumStreams*sizeof(int));
 Filename = (char **)malloc(NumStreams*sizeof(char *));
 
 strcpy(outFilename,envdir);
+
 strcat(outFilename,"/ShuffleOut");
 
 
