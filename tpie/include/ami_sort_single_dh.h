@@ -39,7 +39,7 @@
 // heap class" and instantiate an object of that type. These classes
 // can be found in file mergeheap_dh.h.
 
-// 	$Id: ami_sort_single_dh.h,v 1.8 2001-03-05 17:31:19 hutchins Exp $	
+// 	$Id: ami_sort_single_dh.h,v 1.9 2001-04-23 19:33:12 hutchins Exp $	
 // TODO:
 //      (1) 'space_usage_overhead' is really overhead per item. Let's
 //      change it to 'space_usage_per_item' which is consistent with
@@ -103,7 +103,8 @@ sort_manager<T,Q>::~sort_manager(void)
 template<class T,class Q>
 inline bool sort_manager<T,Q>::sort_fits_in_memory (AMI_STREAM <T> *instream, size_t sz_avail) {
     // See if we have enough room to sort in memory
-    if (instream->stream_len()*(sizeof(T)+MM_manager.space_overhead()+item_overhead) <= sz_avail){
+    //    if (instream->stream_len()*(sizeof(T)+MM_manager.space_overhead()+item_overhead) <= sz_avail){ 2001/04/22 dh
+    if (instream->stream_len()*(sizeof(T)+item_overhead) <= sz_avail){
         LOG_DEBUG_ID("sort_manager.sort_fits_in_memory: sort fits in mem");
         return true;
     }
