@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 3/12/95
 //
-// $Id: ami_kb_sort.h,v 1.6 2003-04-17 12:33:10 jan Exp $
+// $Id: ami_kb_sort.h,v 1.7 2003-04-21 03:20:16 tavi Exp $
 //
 
 // This header file can be included in one of two ways, either with a
@@ -19,6 +19,8 @@
 // KB_KEY is defined, we will process the file.
 
 #if !(defined(_AMI_KB_SORT_H)) || defined(KB_KEY)
+
+#include <iostream>
 
 // Get definitions for working with Unix and Windows
 #include <portability.h>
@@ -355,22 +357,17 @@ AMI_err _AMI_MM_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
     unsigned int ii,jj;
     
     // Check available main memory.
-
     sz_avail = MM_manager.memory_available ();
     
     // How long is the input stream?
-
     stream_len = instream.stream_len();
 
-    // cerr << "in mm: " << stream_len << '\n';
-    
     // Verify that we have enough memory.
-
     if (sz_avail < stream_len * (sizeof(T) +
                                  sizeof(AMI_bucket_list_elem<T> *) + 
                                  sizeof(AMI_bucket_list_elem<T>))) {
-        cerr << '\n' << sz_avail << ' ' << stream_len << '\n';
-        cerr << sizeof(T) << ' ' << sizeof(AMI_bucket_list_elem<T> *) <<
+        std::cerr << '\n' << sz_avail << ' ' << stream_len << '\n';
+        std::cerr << sizeof(T) << ' ' << sizeof(AMI_bucket_list_elem<T> *) <<
             ' ' << sizeof(AMI_bucket_list_elem<T>);
 
         return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
@@ -469,9 +466,9 @@ AMI_err _AMI_MM_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
     }
     
 #if VERIFY_OCCUPANCY
-    cerr << "Max occupancy = " << max_occupancy << '\n';
-    cerr << "Buckets occupied = " << buckets_occupied << '\n';
-    cerr << "Stream length = " << stream_len << '\n';
+    std::cerr << "Max occupancy = " << max_occupancy << '\n';
+    std::cerr << "Buckets occupied = " << buckets_occupied << '\n';
+    std::cerr << "Stream length = " << stream_len << '\n';
 #endif
     
     // Do an insertion sort across the whole data set.
