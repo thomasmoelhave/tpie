@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/15/94
 //
-// $Id: ami_stack.h,v 1.8 2005-01-14 22:04:49 adanner Exp $
+// $Id: ami_stack.h,v 1.9 2005-01-21 16:52:39 tavi Exp $
 //
 #ifndef _AMI_STACK_H
 #define _AMI_STACK_H
@@ -16,12 +16,11 @@
 
 template<class T>
 class AMI_stack : public AMI_STREAM<T> {
-  protected:
+  public:
     using AMI_STREAM<T>::seek;
     using AMI_STREAM<T>::truncate;
-
-  public:
     using AMI_STREAM<T>::stream_len;
+
     AMI_stack(); 
     AMI_stack(const char* path, 
         AMI_stream_type type = AMI_READ_WRITE_STREAM);
