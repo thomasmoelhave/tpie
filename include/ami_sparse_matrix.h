@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 3/2/95
 //
-// $Id: ami_sparse_matrix.h,v 1.5 1999-02-03 17:38:20 tavi Exp $
+// $Id: ami_sparse_matrix.h,v 1.6 1999-12-15 22:24:45 hutchins Exp $
 //
 #ifndef AMI_SPARSE_MATRIX_H
 #define AMI_SPARSE_MATRIX_H
@@ -113,7 +113,7 @@ AMI_err AMI_sparse_bandify(AMI_sparse_matrix<T> &sm,
 
     ae = AMI_sort((AMI_STREAM< AMI_sm_elem<T> > *)&sm,
                   (AMI_STREAM< AMI_sm_elem<T> > *)&bsm,
-                  (comparator< AMI_sm_elem<T> > *)&cmp);
+                  (sm_band_comparator<T> *)&cmp);
 
     return ae;
 }
