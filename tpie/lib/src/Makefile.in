@@ -1,6 +1,6 @@
 # Copyright (c) 1994 Darren Erik Vengroff
 
-# $Id: Makefile.in,v 1.8 1994-10-10 13:12:05 darrenv Exp $
+# $Id: Makefile.in,v 1.9 1994-10-11 12:56:24 dev Exp $
 
 # Makefile for TPIE libraries.
 
@@ -25,7 +25,7 @@ CXXFLAGS += -O
 endif
 
 ifdef PROFILE_APPS
-CXXFLAGS += -p
+CXXFLAGS += -pg
 endif
 
 ifdef SYM_DEBUG_APPS
