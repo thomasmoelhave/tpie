@@ -6,7 +6,7 @@
 //
 
 #include <versions.h>
-VERSION(bit_matrix_cpp,"$Id: bit_matrix.cpp,v 1.12 2003-04-20 06:44:01 tavi Exp $");
+VERSION(bit_matrix_cpp,"$Id: bit_matrix.cpp,v 1.13 2003-09-12 18:47:14 jan Exp $");
 
 #include <bit_matrix.h>
 
@@ -85,7 +85,7 @@ bit_matrix operator*(const bit_matrix &op1, const bit_matrix &op2)
     return prod;
 }
 
-std::ostream &operator<<(std::ostream &s, bit_matrix &bm)
+ostream &operator<<(ostream &s, bit_matrix &bm)
 {
     return s << (matrix<bit> &)bm;
 }
