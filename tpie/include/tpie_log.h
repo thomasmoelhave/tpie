@@ -4,8 +4,9 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/12/94
 //
-// $Id: tpie_log.h,v 1.17 2001-06-16 19:46:56 tavi Exp $
+// $Id: tpie_log.h,v 1.18 2003-04-17 20:03:53 jan Exp $
 //
+
 #ifndef _TPIE_LOG_H
 #define _TPIE_LOG_H
 
@@ -17,11 +18,14 @@ enum {
   TP_LOG_DEBUG,		// Debugging info.
 };
 
-#if TPL_LOGGING		
-
 // We are logging.
 
+// Get definitions for working with Unix and Windows
+#include <portability.h>
+
 #include <logstream.h>
+
+#if TPL_LOGGING		
 
 // Serves double duty: initilizes the log on the first call, and
 // returns the only logstream object. Defined in tpie_log.cpp

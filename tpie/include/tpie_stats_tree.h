@@ -3,11 +3,14 @@
 // File:    tpie_stats_tree.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: tpie_stats_tree.h,v 1.1 2001-12-29 05:17:24 tavi Exp $
+// $Id: tpie_stats_tree.h,v 1.2 2003-04-17 20:07:23 jan Exp $
 //
 //
 #ifndef _TPIE_STATS_TREE_H
 #define _TPIE_STATS_TREE_H
+
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 #include <tpie_stats.h>
 

@@ -2,12 +2,15 @@
 // File:    tpie_stats_stream.h
 // Authors: Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: tpie_stats_stream.h,v 1.1 2002-01-14 16:25:02 tavi Exp $
+// $Id: tpie_stats_stream.h,v 1.2 2003-04-17 20:06:24 jan Exp $
 //
 // Statistics for streams.
 
 #ifndef _TPIE_STATS_STREAM_H
 #define _TPIE_STATS_STREAM_H
+
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 #include <tpie_stats.h>
 

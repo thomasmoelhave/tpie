@@ -4,11 +4,14 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/12/94
 //
-// $Id: tpie_assert.h,v 1.5 2001-05-08 21:13:20 tavi Exp $
+// $Id: tpie_assert.h,v 1.6 2003-04-17 19:59:11 jan Exp $
 //
 
 #ifndef _TPIE_ASSERT_H
 #define _TPIE_ASSERT_H
+
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 #include <tpie_log.h>
 #include <assert.h>
