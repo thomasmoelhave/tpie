@@ -7,18 +7,6 @@
 // A sample piece of code that does list ranking in the TPIE system.
 //
 
-static char lr_id[] = "$Id: lr.cpp,v 1.13 1999-11-01 23:49:27 tavi Exp $";
-
-// This is just to avoid an error message since the string above is never
-// referenced.  Note that a self referential structure must be defined to
-// avoid passing the problem further.
-static struct ___lr_id_compiler_fooler {
-    char *pc;
-    ___lr_id_compiler_fooler *next;
-} the___lr_id_compiler_fooler = {
-    lr_id,
-    &the___lr_id_compiler_fooler
-};
 
 #ifndef BTE_STATS
 #define BTE_STATS 0
@@ -29,6 +17,7 @@ static struct ___lr_id_compiler_fooler {
 
 // Define it all.
 #include <ami.h>
+VERSION(lr_cpp,"$Id: lr.cpp,v 1.14 1999-12-16 17:15:12 hutchins Exp $");
 
 // Utitlities for ascii output.
 #include <iostream.h>
@@ -710,6 +699,26 @@ int main(int argc, char **argv)
     wall_timer wt0;
     cpu_timer ct0;
     
+    if (argc == 1){
+        cout << "This program performs list ranking on a randomly generated list\n";
+        cout << "The program generates a series of sequential list elements, \n";
+        cout << "randomly permutes them, then performs list ranking to \n";
+        cout << "restore the original order.\n";
+        cout << "Usage:\n";
+        cout << "       lr [-virf] [-I ifid] [-m mem] [-t size] [-z seed] [-R rfid] [-F ffid]\n";
+        cout << "Options:\n";
+        cout << "       v       be verbose\n";
+        cout << "       size    number of items in the test data set\n";
+        cout << "       mem     main memory size to use (bytes)\n";
+        cout << "       seed    seed for the random number generator\n";
+        cout << "       i       write initial list to an ascii file (default /var/tmp/osi.txt)\n";
+        cout << "       r       write randomized list to ascii file (default /var/tmp/rsi.txt)\n";
+        cout << "       f       write final ordered list to ascii file (def. /var/tmp/fsi.txt)\n";        
+        cout << "       ifid    file to which initial list is written\n";
+        cout << "       rfid    file to which randomized list is written\n";
+        cout << "       ffile   file to which final ordered list is written\n\n";
+
+    }
     parse_args(argc,argv,as_opts,parse_app_opt);
 
     if (verbose) {
@@ -786,7 +795,7 @@ int main(int argc, char **argv)
         pamis1 = new AMI_STREAM<edge>;
         
         ae = AMI_partition_and_merge(&amis0, pamis1,
-                                 (AMI_merge_base<edge> *)&mr);
+                                 (merge_random<edge> *)&mr);
         
         if (verbose) {
             cout << "Randomly ordered the initial sequence of edges.\n";
