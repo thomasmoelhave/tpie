@@ -6,23 +6,14 @@
 //
 
 #include <versions.h>
-VERSION(cpu_timer_cpp,"$Id: cpu_timer.cpp,v 1.4 2002-01-03 20:21:54 tavi Exp $");
-
-#include <unistd.h>
-#include <sys/times.h>
+VERSION(cpu_timer_cpp,"$Id: cpu_timer.cpp,v 1.5 2003-04-17 20:59:23 jan Exp $");
 
 #include <cpu_timer.h>
-
 
 cpu_timer::cpu_timer() :
         running(false)
 {
-    clock_tick = sysconf(_SC_CLK_TCK);
-    
-    elapsed.tms_utime = 0;
-    elapsed.tms_stime = 0;
-    elapsed.tms_cutime = 0;
-    elapsed.tms_cstime = 0;
+    TPIE_OS_SET_CLOCK_TICK;
 
     elapsed_real = 0;
 }
@@ -33,15 +24,11 @@ cpu_timer::~cpu_timer()
 
 void cpu_timer::sync()
 {
-    tms current;
     clock_t current_real;
-    
-    current_real = times(&current);
 
-    elapsed.tms_utime += current.tms_utime - last_sync.tms_utime;
-    elapsed.tms_stime += current.tms_stime - last_sync.tms_stime;
-    elapsed.tms_cutime += current.tms_cutime - last_sync.tms_cutime;
-    elapsed.tms_cstime += current.tms_cstime - last_sync.tms_cstime;
+    TPIE_OS_TIME current;
+    TPIE_OS_SET_CURRENT_TIME(current);
+    TPIE_OS_UNIX_ONLY_SET_ELAPSED_TIME(current);
 
     elapsed_real += current_real - last_sync_real;
 
@@ -53,8 +40,8 @@ void cpu_timer::sync()
 void cpu_timer::start()
 {
     if (!running) {
-        last_sync_real = times(&last_sync);
-        running = true;
+	TPIE_OS_LAST_SYNC_REAL_DECLARATION;
+	running = true;
     }
 }
 
@@ -68,26 +55,22 @@ void cpu_timer::stop()
 
 void cpu_timer::reset()
 {
-    if (running) {
-        last_sync_real = times(&last_sync);
+    if (running) {		
+	TPIE_OS_LAST_SYNC_REAL_DECLARATION;
     }
     
-    elapsed.tms_utime = 0;
-    elapsed.tms_stime = 0;
-    elapsed.tms_cutime = 0;
-    elapsed.tms_cstime = 0;
-
+    TPIE_OS_SET_CLOCK_TICK;	
     elapsed_real = 0;
 }
 
 double cpu_timer::user_time() {
   if (running) sync();
-  return double(elapsed.tms_utime) / double(clock_tick);
+  TPIE_OS_USER_TIME_BODY;
 }
 
 double cpu_timer::system_time() {
   if (running) sync();
-  return double(elapsed.tms_stime) / double(clock_tick);
+  TPIE_OS_USER_TIME_BODY;
 }
 
 double cpu_timer::wall_time() {
@@ -100,10 +83,8 @@ ostream &operator<<(ostream &s, cpu_timer &wt)
     if (wt.running) {
         wt.sync();
     }
-
-    return s << double(wt.elapsed.tms_utime) / double(wt.clock_tick) << "u " <<
-        double(wt.elapsed.tms_stime) / double(wt.clock_tick) << "s " <<
-        double(wt.elapsed_real) / double(wt.clock_tick);
+    
+    TPIE_OS_OPERATOR_OVERLOAD;
 }
 
 

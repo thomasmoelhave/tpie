@@ -8,7 +8,7 @@
 // A simple registration based memory manager.
 
 #include <versions.h>
-VERSION(mm_register_cpp,"$Id: mm_register.cpp,v 1.17 2001-06-16 19:45:07 tavi Exp $");
+VERSION(mm_register_cpp,"$Id: mm_register.cpp,v 1.18 2003-04-17 21:02:30 jan Exp $");
 
 #include <assert.h>
 #include "lib_config.h"
@@ -24,6 +24,8 @@ VERSION(mm_register_cpp,"$Id: mm_register.cpp,v 1.17 2001-06-16 19:45:07 tavi Ex
 #ifdef MM_BACKWARD_COMPATIBLE
 extern int register_new;
 #endif
+
+#include <stdlib.h>
 
 MM_register::MM_register()
 {
@@ -219,7 +221,6 @@ MM_register MM_manager;
 int MM_register::instances = 0; // Number of instances. (init)
 // TPIE's "register memory requests" flag
 MM_mode MM_register::register_new = MM_ABORT_ON_MEMORY_EXCEEDED; 
-
 
 // The counter of mm_register_init instances.  It is implicity set to 0.
 unsigned int mm_register_init::count;
