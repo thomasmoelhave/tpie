@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 11/1/94
 //
-// $Id: ami_gen_perm.h,v 1.9 1999-07-03 03:38:09 rajiv Exp $
+// $Id: ami_gen_perm.h,v 1.10 1999-07-03 20:43:26 rajiv Exp $
 //
 // General permutation.
 //
@@ -82,7 +82,7 @@ public:
     friend int operator< (const dest_obj<T> &s, const dest_obj<T> &t);
     friend int operator> (const dest_obj<T> &s, const dest_obj<T> &t);
 #endif
-    friend gen_perm_strip_dest<T>::operate(const dest_obj<T> &in,
+    friend AMI_err gen_perm_strip_dest<T>::operate(const dest_obj<T> &in,
                                            AMI_SCAN_FLAG *sfin, T *out,
                                            AMI_SCAN_FLAG *sfout);
 };
