@@ -5,18 +5,22 @@
 // Created: 3/2/95
 //
 
-#include <iostream.h>
-#include <fstream.h>
+#include <iostream>
+#include <fstream>
+#include <strstream>
+
+using std::istrstream;
+using std::cout;
+using std::istream;
+using std::ofstream;
 
 #include "app_config.h"        
 #include "parse_args.h"
 
-#include <strstream.h>
-
 // Define it all.
 #include <ami.h>
 
-VERSION(test_ami_sm_cpp,"$Id: test_ami_sm.cpp,v 1.4 2000-01-11 01:48:41 hutchins Exp $");
+VERSION(test_ami_sm_cpp,"$Id: test_ami_sm.cpp,v 1.5 2003-04-20 23:51:40 tavi Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>

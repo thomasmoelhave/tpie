@@ -8,25 +8,19 @@
 #define MAX_BLOCKS_IN_A_STRIPE 2
 #define PI_STREAM_MMB_LOGICAL_BLOCKSIZE_FACTOR 32
 
-#define DEBUG_ASSERTIONS 0
 #include <stdlib.h>
 #include <sys/time.h>
 #include <sys/resource.h>
-#include <iostream.h>
-#include <fstream.h>
-#include <strstream.h>
+#include <iostream>
+
+using std::cout;
 
 // Get information on the configuration to test.
-
-
 #include "app_config.h"
-
 #include "parse_args.h"
-
 
 #define SCANBLOCKSIZE 144 
  
-
 class scanstruct {
        public:
        unsigned long long keyval;
@@ -48,9 +42,8 @@ class scanstruct {
              {return  (x.keyval <  y.keyval);}
   
        friend int operator>(const scanstruct &x, const scanstruct &y)
-             {return  (x.keyval >  y.keyval);}
-  
-     };
+             {return  (x.keyval >  y.keyval);}  
+};
 
 
 typedef scanstruct scantype;
@@ -72,11 +65,8 @@ static char *rand_results_filename = def_rrf;
 
 static bool report_results_random = false;
 static bool report_results_sorted = false;
-
 static bool sort_again = false;
-
 static bool use_operator = false;
-
 static bool kb_sort = false;
 
 static const char as_opts[] = "R:S:rsaok";
@@ -105,30 +95,8 @@ void parse_app_opt(char c, char *optarg)
     }
 }
 
+//extern int register_new;
 
-extern int register_new;
-
-//int cc_int_cmp(const int &i1, const int &i2)
-int cc_int_cmp(scantype &i1, scantype &i2)
-{
-    return *((int *)&i1) - *((int *)&i2);
-
-}
-
-/*
-static void ___dummy_1() {
-    AMI_STREAM<scantype> *s1 = NULL, *s2 = NULL;
-    
-    AMI_err ae;
-    PI_err pe;
-
-    ae = AMI_sort(s1,s2,cc_int_cmp);
-#if 0    
-    ae = AMI_sort(s1,s2);
-#endif
-    ___dummy_1();
-}
-*/
 
 int main(int argc, char **argv)
 {
@@ -150,7 +118,7 @@ int main(int argc, char **argv)
     // Set the amount of main memory:
     MM_manager.resize_heap(test_mm_size);
 
-    register_new = 1;
+    //register_new = 1;
 
 #ifdef BTE_IMP_USER_DEFINED
 

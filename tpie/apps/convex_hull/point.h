@@ -4,12 +4,15 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/16/94
 //
-// $Id: point.h,v 1.4 1999-07-05 20:44:24 rajiv Exp $
+// $Id: point.h,v 1.5 2003-04-20 23:51:40 tavi Exp $
 //
 #ifndef _POINT_H
 #define _POINT_H
 
-#include <iostream.h>
+#include <iostream>
+
+using std::ostream;
+using std::istream;
 
 template<class T>
 class point {

@@ -5,9 +5,11 @@
 // Created: 3/25/95
 //
 
-#include <iostream.h>
-#include <fstream.h>
+#include <iostream>
+#include <fstream>
 
+using std::cout;
+using std::ofstream;
 
 // Get information on the configuration to test.
 #include "app_config.h"
@@ -15,7 +17,7 @@
 
 // Define it all.
 #include <ami.h>
-VERSION(nas_ep2_cpp,"$Id: nas_ep2.cpp,v 1.4 2000-01-11 01:52:59 hutchins Exp $");
+VERSION(nas_ep2_cpp,"$Id: nas_ep2.cpp,v 1.5 2003-04-20 23:51:40 tavi Exp $");
 
 
 // Utitlities for ascii output.

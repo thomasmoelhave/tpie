@@ -1,11 +1,13 @@
 #include <versions.h>
-VERSION(sample_pgm_cpp,"$Id: sample_pgm.cpp,v 1.8 2002-06-26 22:39:35 tavi Exp $");	
+VERSION(sample_pgm_cpp,"$Id: sample_pgm.cpp,v 1.9 2003-04-20 23:51:40 tavi Exp $");	
 
-#include <iostream.h>
 #include <stdlib.h>
 #include <sys/time.h>
-#include <limits.h> //for INT_MAX
- 
+#include <limits.h> // For INT_MAX.
+#include <iostream> // For cout.
+
+using std::cout;
+
 //Include the file that sets application configuration: It sets what
 //kind of BTE (Block Transfer Engine) to use and where applicable,
 //what should be the size of the logical block (the logical block size
@@ -72,7 +74,7 @@ main(int argc, char *argv[]) {
       
    }
    //print stream length
-   cout << "source stream is of length " << source.stream_len() << endl;
+   cout << "source stream is of length " << source.stream_len() << "\n";
    
    //************************************************************
    //pick the first 7 integers in source stream as partitioning elements
@@ -163,7 +165,8 @@ main(int argc, char *argv[]) {
    
    //stop timer
    wt.stop();
-   cout << "Time taken to partition is " << wt.seconds() << " seconds" << endl;
+   cout << "Time taken to partition is " << wt.seconds() 
+	<< " seconds" << "\n";
    
    //delete the file corresponding to the source stream when source
    //stream gets destructed (this is the default, so this call is not
@@ -175,6 +178,6 @@ main(int argc, char *argv[]) {
    for (int i = 0; i < 8; i++) {
       buckets[i].persist(PERSIST_PERSISTENT);
       cout << "Length of bucket " << i << " is " 
-             << buckets[i].stream_len() << endl;
+	   << buckets[i].stream_len() << "\n";
    }  
 }

@@ -5,32 +5,28 @@
 // Created: 8/29/94
 //
 
-
-
-static char binary_merge_sort_id[] = "$Id: binary_merge_sort.cpp,v 1.4 1999-11-02 17:04:25 tavi Exp $";
+static char binary_merge_sort_id[] = "$Id: binary_merge_sort.cpp,v 1.5 2003-04-20 23:51:40 tavi Exp $";
 
 // If you actually want to see all the ints in the stream.
 //#define REPORT_RESULTS
 
 #define BTE_MMB_LOGICAL_BLOCKSIZE_FACTOR 32
 #define TEST_SIZE 1024 * 1024 
-
 #define MIN_RECURSE_LEN 1024 * 256
 
 #include <stdlib.h>
-#include <iostream.h>
+#include <iostream>
+using std::cout;
 
 // Use logs.
 #define TPL_LOGGING 1
 #include <tpie_log.h>
 
-// Use the single BTE stream version of AMI streams.
-#define AMI_IMP_SINGLE
 
 // Pick a version of BTE streams.
-#define BTE_IMP_MMB
-//#define BTE_IMP_STDIO
-//#define BTE_IMP_UFS
+#define BTE_STREAM_IMP_MMAP
+//#define BTE_STREAM_IMP_STDIO
+//#define BTE_STREAM_IMP_UFS
 
 // Define it all.
 #include <ami.h>
