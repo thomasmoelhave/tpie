@@ -1,5 +1,5 @@
 %%
-%% $Id: ami_reference.tex,v 1.14 2002-06-26 23:17:42 tavi Exp $
+%% $Id: ami_reference.tex,v 1.15 2002-08-30 03:15:38 tavi Exp $
 %%
 \chapter{TPIE Programmer's Reference}
 \plabel{cha:reference}
@@ -186,8 +186,12 @@ An \myverb{AMI\_STREAM<T>} object can have one of four different types:
     \myverb{AMI\_STREAM\_STATUS\_VALID}, \noiverb{false} otherwise. See
     also \myverb{is\_valid()} and \myverb{status()}.}
 
-    \entry{off\_t chunk\_size() const;} {Return the maximum number of items (of type
-    \noiverb{T}) that can be stored in one block.}
+    \entry{off\_t \textbf{chunk\_size}() const;} {Return the maximum number
+    of items (of type \noiverb{T}) that can be stored in one block.}
+
+    \entry{static const tpie\_stats\_stream\& \textbf{gstats}();}
+    {Return an object containing the statistics of all streams opened by the
+    application (global statistics). See also \myverb{stats()}.}
 
     \entry{bool \textbf{is\_valid}() const;} {Return \noiverb{true} if the
     status of the stream is \myverb{AMI\_STREAM\_STATUS\_VALID},
@@ -240,6 +244,21 @@ the last item in the stream, return \myverb{AMI\_ERROR\_END\_OF\_STREAM}.}
     \index{seek()@{\tt seek()}!AMI|(}
     \entry{AMI\_err \textbf{seek}(off\_t off);} {Move the current position to \noiv{off}.}
     \index{seek()@{\tt seek()}!AMI|)}
+
+    \entry{const tpie\_stats\_stream\& \textbf{stats}() const;} {Return an
+    object containing the statistics of this stream. The types of
+    statistics computed for a collection are tabulated below. See also
+    \myverb{gstats()}.\\[1mm] \begin{tabular}{|l|l|} \hline \myverb{BLOCK\_READ}
+    & Number of block reads\\ \myverb{BLOCK\_WRITE} & Number of block
+    writes \\ \myverb{ITEM\_READ} & Number of item reads\\
+    \myverb{ITEM\_WRITE} & Number of item writes\\ \myverb{ITEM\_SEEK} &
+    Number of item seek operations\\ \myverb{STREAM\_OPEN} & Number of
+    stream open operations\\ \myverb{STREAM\_CLOSE} & Number of stream
+    close operations \\ \myverb{STREAM\_CREATE} & Number of stream create
+    operations\\ \myverb{STREAM\_DELETE} & Number of stream delete
+    operations \\ \myverb{SUBSTREAM\_CREATE} & Number of substream create
+    operations\\ \myverb{SUBSTREAM\_DELETE} & Number of substream delete
+    operations \\ \hline \end{tabular} }
 
     \entry{AMI\_stream\_status \textbf{status}() const;} {Return the status
     of the stream instance. The result is either
@@ -1292,6 +1311,11 @@ collection is identified by a block ID, of type \myverb{AMI\_bid}.
 	stored in this collection, in bytes (all blocks in a collection
 	have the same size).}
 
+	\entry{static const tpie\_stats\_collection\& \textbf{gstats}();}
+	{Return an object containing the statistics of all collections
+	opened by the application (global statistics). See also
+	\myverb{stats()}.}
+
 	\entry{bool \textbf{is\_valid}() const;} {Return \noiverb{true} if the status
 	of the collection is \myverb{AMI\_COLLECTION\_STATUS\_VALID}, \noiverb{false}
 	otherwise. See also \myverb{status()}.}
@@ -1304,14 +1328,18 @@ collection is identified by a block ID, of type \myverb{AMI\_bid}.
 	collection.}
 
 	\entry{const tpie\_stats\_collection\& \textbf{stats}() const;}
-	{Return an object containing the statistics of this instance of the
-	collection. The types of statistics computed for a collection are
-	tabulated below.\\ \begin{tabular}{|l|l|} \hline \myverb{BLOCK\_GET}
-	& Number of block reads\\ \myverb{BLOCK\_PUT} & Number of block
-	writes \\ \myverb{BLOCK\_NEW} & Number of block creates\\
+	{Return an object containing the statistics of this collection. The
+	types of statistics computed for a collection are tabulated
+	below. See also \myverb{gstats()}.\\[1mm] \begin{tabular}{|l|l|} \hline \myverb{BLOCK\_GET} & Number
+	of block reads\\ \myverb{BLOCK\_PUT} & Number of block writes \\
+	\myverb{BLOCK\_NEW} & Number of block creates\\
 	\myverb{BLOCK\_DELETE} & Number of block deletes\\
-	\myverb{BLOCK\_SYNC} & Number of block sync operations\\ \hline
-	\end{tabular} }
+	\myverb{BLOCK\_SYNC} & Number of block sync operations\\
+	\myverb{COLLECTION\_OPEN} & Number of collection open operations\\
+	\myverb{COLLECTION\_CLOSE} & Number of collection close
+	operations\\ \myverb{COLLECTION\_CREATE} & Number of collection
+	create operations\\ \myverb{COLLECTION\_DELETE} & Number of
+	collection delete operations\\ \hline \end{tabular} }
 
 	\entry{AMI\_collection\_status \textbf{status}() const;} {Return
 	the status of the collection. The result is either
