@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/12/94
 //
-// $Id: tpie_log.h,v 1.5 1994-06-03 13:25:36 dev Exp $
+// $Id: tpie_log.h,v 1.6 1998-12-11 18:51:17 tavi Exp $
 //
 #ifndef _TPIE_LOG_H
 #define _TPIE_LOG_H
@@ -17,22 +17,13 @@
 
 // Logging levels, from higest priority to lowest.
 enum {
-    TP_LOG_FATAL = 0,	// Fatal problems are always logged no matter what.
-    TP_LOG_ERROR,	// An internal error
-    TP_LOG_WARNING,	// Warning about some internal condition	
-    TP_LOG_ASSERT,	// Assertion failure information
-    TP_LOG_DEBUG_INFO,	// Debugging information
-    TP_LOG_OS_ERROR,	// An error came back from the OS.
-    TP_LOG_DATA_ERROR,	// Inconsistent data in a stream.
-    TP_LOG_INFO		// General information
+  TP_LOG_FATAL = 0,	// Fatal errors are always logged no matter what.
+  TP_LOG_WARNING,	// Warning about some internal condition	
+  TP_LOG_DEBUG_INFO,	// Debugging information
 };
 
 // The main tpie log to which all logging information goes.
 extern logstream *tpl;
-
-// The performance log, if there is one.  This can be set up by
-// the application to moniter performance.
-extern logstream *tp_perfl;
 
 void init_tpie_logs(void);
 
@@ -42,13 +33,17 @@ void init_tpie_logs(void);
 #define LOG_FLUSH_LOG (tpl->ofstream::flush())
 
 #define LOG_FATAL(msg) (*tpl << setpriority(TP_LOG_FATAL) << msg)
-#define LOG_ERROR(msg) (*tpl << setpriority(TP_LOG_ERROR) << msg)
 #define LOG_WARNING(msg)  (*tpl << setpriority(TP_LOG_WARNING) << msg)
-#define LOG_ASSERT(msg)  (*tpl << setpriority(TP_LOG_ASSERT)  << msg)
 #define LOG_DEBUG_INFO(msg)  (*tpl << setpriority(TP_LOG_DEBUG_INFO)  << msg)
-#define LOG_OS_ERROR(msg)  (*tpl << setpriority(TP_LOG_OS_ERROR) << msg)
-#define LOG_DATA_ERROR(msg)  (*tpl << setpriority(TP_LOG_DATA_ERROR) << msg)
-#define LOG_INFO(msg)  (*tpl << setpriority(TP_LOG_INFO) << msg)
+
+// Keep these a little longer, to avoid errors. 
+// All references to them should be replaced by one of the macros above.
+#define LOG_ERROR(msg) 
+#define LOG_ASSERT(msg) 
+#define LOG_OS_ERROR(msg) 
+#define LOG_DATA_ERROR(msg) 
+#define LOG_INFO(msg) 
+
 
 // We want to make sure that our logs get constructed before they can
 // possibly be used.  In order to do this, we use the trick Scott
@@ -78,16 +73,18 @@ static log_init source_file_log_init;
 // the logging macros.
 
 #define LOG_FATAL(msg) 
-#define LOG_ERROR(msg) 
 #define LOG_WARNING(msg) 
-#define LOG_ASSERT(msg) 
 #define LOG_DEBUG_INFO(msg) 
+
+// Keep these a little longer, to avoid errors. 
+// All references to them should be replaced by one of the macros above.
+#define LOG_ERROR(msg) 
+#define LOG_ASSERT(msg) 
 #define LOG_OS_ERROR(msg) 
 #define LOG_DATA_ERROR(msg) 
 #define LOG_INFO(msg) 
 
 #define LOG_FLUSH_LOG {}
-
 
 #endif // TPL_LOGGING
 
