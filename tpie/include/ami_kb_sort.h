@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 3/12/95
 //
-// $Id: ami_kb_sort.h,v 1.8 2003-07-01 16:03:48 tavi Exp $
+// $Id: ami_kb_sort.h,v 1.9 2003-09-12 01:45:22 jan Exp $
 //
 
 // This header file can be included in one of two ways, either with a
@@ -367,8 +367,8 @@ AMI_err _AMI_MM_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
     if (sz_avail < stream_len * (sizeof(T) +
                                  sizeof(AMI_bucket_list_elem<T> *) + 
                                  sizeof(AMI_bucket_list_elem<T>))) {
-        std::cerr << '\n' << sz_avail << ' ' << stream_len << '\n';
-        std::cerr << sizeof(T) << ' ' << sizeof(AMI_bucket_list_elem<T> *) <<
+        cerr << '\n' << sz_avail << ' ' << stream_len << '\n';
+        cerr << sizeof(T) << ' ' << sizeof(AMI_bucket_list_elem<T> *) <<
             ' ' << sizeof(AMI_bucket_list_elem<T>);
 
         return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
@@ -467,9 +467,9 @@ AMI_err _AMI_MM_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
     }
     
 #if VERIFY_OCCUPANCY
-    std::cerr << "Max occupancy = " << max_occupancy << '\n';
-    std::cerr << "Buckets occupied = " << buckets_occupied << '\n';
-    std::cerr << "Stream length = " << stream_len << '\n';
+    cerr << "Max occupancy = " << max_occupancy << '\n';
+    cerr << "Buckets occupied = " << buckets_occupied << '\n';
+    cerr << "Stream length = " << stream_len << '\n';
 #endif
     
     // Do an insertion sort across the whole data set.

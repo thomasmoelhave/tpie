@@ -3,7 +3,7 @@
 // File:    ami_logmethod.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_logmethod.h,v 1.5 2003-06-03 23:16:32 tavi Exp $
+// $Id: ami_logmethod.h,v 1.6 2003-09-12 01:46:18 jan Exp $
 //
 // Logmethod_base, Logmethod2 and LogmethodB declarations and
 // definitions.
@@ -22,9 +22,9 @@
 #include <errno.h>
 // For strerror().
 #include <string.h>
-// For std::vector
+// For vector
 #include <vector>
-// For std::pair
+// For pair
 #include <utility>
 // TPIE stuff.
 #include <ami_stream.h>
@@ -80,7 +80,7 @@ public:
   size_t window_query(const Key &lop, const Key &hip, stream_t* os);
   void persist(persistence per);
   // Inquire the mbr.
-  const std::pair<Value, Value> &mbr();
+  const pair<Value, Value> &mbr();
   // Inquire the size.
   size_t size() const { return header_.size; }
   // Inquire the run-time parameters.
@@ -110,13 +110,13 @@ protected:
   // The first tree.
   T0 *tree0_;
   // The vector of trees, in increasing size.
-  std::vector<T *> trees_;
+  vector<T *> trees_;
   // The base name of all trees.
   char base_file_name_[LM_PATH_NAME_LENGTH];
   // String used for constructing tree names.
   char temp_name_[LM_PATH_NAME_LENGTH];
   // Minimum bounding rectangle.
-  std::pair<Value, Value> mbr_;
+  pair<Value, Value> mbr_;
   bool mbr_is_set_;
   // Persistence flag.
   persistence per_;
@@ -301,7 +301,7 @@ LOGMETHOD_BASE::~Logmethod_base() {
 
 //// *Logmethod_base::mbr* ////
 template<class Key, class Value, class T, class Tp, class T0, class T0p>
-const std::pair<Value, Value>& LOGMETHOD_BASE::mbr() {
+const pair<Value, Value>& LOGMETHOD_BASE::mbr() {
   size_t i;
   if (!mbr_is_set_) {
     if (tree0_->size() > 0) {
