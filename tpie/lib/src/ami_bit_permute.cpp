@@ -5,10 +5,10 @@
 // Created: 1/9/95
 //
 
-#include <iostream.h>
+#include <iostream>
 
 #include <versions.h>
-VERSION(ami_bit_permute_cpp,"$Id: ami_bit_permute.cpp,v 1.3 2003-04-17 20:38:19 jan Exp $");
+VERSION(ami_bit_permute_cpp,"$Id: ami_bit_permute.cpp,v 1.4 2003-04-20 06:44:01 tavi Exp $");
 
 #include <ami_bit_permute.h>
 
