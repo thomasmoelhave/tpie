@@ -6,7 +6,7 @@
 // Runtime parameters for the kd-tree, K-D-B-tree and B-tree test
 // suite.
 //
-// $Id: app_params.cpp,v 1.2 2003-05-05 01:33:20 tavi Exp $
+// $Id: app_params.cpp,v 1.3 2003-06-02 17:03:37 tavi Exp $
 
 using namespace std;
 
@@ -16,8 +16,7 @@ using namespace std;
 #include <algorithm>
 
 #include "app_config.h"
-#include <ami_kdtree_base.h>
-#include <ami_kdbtree_base.h>
+#include <ami_kd_base.h>
 #include "app_params.h"
 #include <ami_stream.h>
 #include <ami_scan.h>
