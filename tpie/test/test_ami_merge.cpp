@@ -5,7 +5,7 @@
 // Created: 6/2/94
 //
 
-static char test_ami_merge_id[] = "$Id: test_ami_merge.cpp,v 1.5 1994-10-31 20:05:50 darrenv Exp $";
+static char test_ami_merge_id[] = "$Id: test_ami_merge.cpp,v 1.6 1994-11-02 21:52:42 darrenv Exp $";
 
 // This is just to avoid an error message since the string above is never
 // refereneced.  Note that a self referential structure must be defined to
@@ -159,7 +159,8 @@ int main(int argc, char **argv)
     amirs[1] = &amis1;
     
     ae = AMI_single_merge((pp_AMI_bs<int>)amirs, arity,
-                          (AMI_base_stream<int> *)&amis2, &im);
+                          (AMI_base_stream<int> *)&amis2,
+                          (AMI_merge_base<int> *)&im);
 
     if (verbose) {
         cout << "Interleaved them; operate() called " << im.called 
@@ -189,7 +190,8 @@ int main(int argc, char **argv)
     ae = amis2.seek(0);
     
     ae = AMI_single_merge((pp_AMI_bs<int>)amirs, arity,
-                          (AMI_base_stream<int> *)&amis3, &im);
+                          (AMI_base_stream<int> *)&amis3,
+                          (AMI_merge_base<int> *)&im);
 
     if (verbose) {
         cout << "Interleaved them; operate() called " << im.called 
@@ -209,9 +211,25 @@ int main(int argc, char **argv)
 
 
 
+// Instantiate all the templates we have used.
 
+#ifdef NO_IMPLICIT_TEMPLATES
 
+// Instantiate templates for streams of objects.
+TEMPLATE_INSTANTIATE_STREAMS(int)
 
+// Instantiate templates for I/O using C++ streams.
+TEMPLATE_INSTANTIATE_OSTREAM(int)
 
+// Templated scan/merge management objects used by this program.
+template class scan_square<int>;
+template class merge_interleave<int>;
 
+// Calls to AMI_scan using various object types.
+template AMI_err AMI_scan(scan_count *, AMI_base_stream<int> *);
+template AMI_err AMI_scan(AMI_base_stream<int> *, scan_square<int> *,
+                          AMI_base_stream<int> *);
 
+TEMPLATE_INSTANTIATE_MERGE(int)
+
+#endif

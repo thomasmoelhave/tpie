@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/7/94
 //
-// $Id: scan_diff.h,v 1.1 1994-10-31 21:34:57 darrenv Exp $
+// $Id: scan_diff.h,v 1.2 1994-11-02 21:51:17 darrenv Exp $
 //
 // A scanner to diff two streams of the same type of object, to verify that
 // they are the same.
@@ -85,5 +85,17 @@ AMI_err scan_diff<T>::operate(const T &in1, const T &in2,
     return ret;
 }   
 
+
+#ifdef NO_IMPLICIT_TEMPLATES
+
+#define TEMPLATE_INSTANTIATE_SCAN_DIFF(T)				\
+template class scan_diff<T>;						\
+template struct scan_diff_out<T>;					\
+TEMPLATE_INSTANTIATE_STREAMS(scan_diff_out<T>)				\
+template AMI_err AMI_scan(AMI_base_stream<int> *,			\
+                          AMI_base_stream<int> *, scan_diff<T> *,	\
+                          AMI_base_stream<scan_diff_out<T> > *);
+
+#endif
 
 #endif // _SCAN_DIFF_H 
