@@ -6,12 +6,12 @@
 //
 
 #include <versions.h>
-VERSION(bit_matrix_cpp,"$Id: bit_matrix.cpp,v 1.14 2004-08-12 12:53:43 jan Exp $");
+VERSION(bit_matrix_cpp,"$Id: bit_matrix.cpp,v 1.15 2005-01-14 18:42:24 tavi Exp $");
 
 #include <bit_matrix.h>
 
-bit_matrix::bit_matrix(TPIE_OS_SIZE_T rows, TPIE_OS_SIZE_T cols) :
-        matrix<bit>(rows, cols)
+bit_matrix::bit_matrix(TPIE_OS_SIZE_T arows, TPIE_OS_SIZE_T acols) :
+        matrix<bit>(arows, acols)
 {
 }
 
