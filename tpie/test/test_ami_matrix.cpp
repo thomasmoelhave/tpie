@@ -5,14 +5,10 @@
 // Created: 12/11/94
 //
 
+#include <portability.h>
+
 #include <versions.h>
-VERSION(test_ami_matrix_cpp,"$Id: test_ami_matrix.cpp,v 1.8 2003-04-20 23:51:40 tavi Exp $");
-
-#include <iostream>
-#include <fstream>
-
-using std::cout;
-using std::ofstream;
+VERSION(test_ami_matrix_cpp,"$Id: test_ami_matrix.cpp,v 1.9 2003-09-12 00:22:58 tavi Exp $");
 
 #include "app_config.h"        
 #include "parse_args.h"
@@ -30,9 +26,9 @@ using std::ofstream;
 
 #include <cpu_timer.h>
 
-static char def_crf[] = "/var/tmp/osc.txt";
-static char def_irf[] = "/var/tmp/osi.txt";
-static char def_frf[] = "/var/tmp/osf.txt";
+static char def_crf[] = "osc.txt";
+static char def_irf[] = "osi.txt";
+static char def_frf[] = "osf.txt";
 
 static char *count_results_filename = def_crf;
 static char *intermediate_results_filename = def_irf;
@@ -72,9 +68,9 @@ int main(int argc, char **argv)
     parse_args(argc,argv,as_opts,parse_app_opt);
 
     if (verbose) {
-        cout << "test_size = " << test_size << ".\n";
-        cout << "test_mm_size = " << test_mm_size << ".\n";
-        cout << "random_seed = " << random_seed << ".\n";
+      cout << "test_size = " << test_size << "." << endl;
+      cout << "test_mm_size = " << test_mm_size << "." << endl;
+      cout << "random_seed = " << random_seed << "." << endl;
     } else {
         cout << test_size << ' ' << test_mm_size << ' ';
     }
@@ -119,12 +115,12 @@ int main(int argc, char **argv)
         ae = AMI_matrix_fill(&em0, (AMI_matrix_filler<double> *)&fut);
 
         if (verbose) {
-            cout << "Wrote the initial sequence of values.\n";
+	  cout << "Wrote the initial sequence of values." << endl;
         }
         
         if (report_results_count) {
             ae = AMI_scan((AMI_STREAM<double> *)&em0, rptc);
-            cout << "Stream length = " << em0.stream_len() << '\n';
+            cout << "Stream length = " << em0.stream_len() << endl;
         }
     }
 
@@ -132,8 +128,8 @@ int main(int argc, char **argv)
         ae = AMI_matrix_fill(&em1, (AMI_matrix_filler<double> *)&fut);
 
         if (verbose) {
-            cout << "Wrote the second sequence of values.\n";
-            cout << "Stream length = " << em1.stream_len() << '\n';
+	  cout << "Wrote the second sequence of values." << endl;
+            cout << "Stream length = " << em1.stream_len() << endl;
         }
         
         if (report_results_intermediate) {
@@ -156,8 +152,8 @@ int main(int argc, char **argv)
     cout << cput << '\n';
     
     if (verbose) {
-        cout << "Multiplied them.\n";
-        cout << "Stream length = " << em2.stream_len() << '\n';
+      cout << "Multiplied them." << endl;
+        cout << "Stream length = " << em2.stream_len() << endl;
     }
     
     if (report_results_final) {
