@@ -15,7 +15,7 @@
 // a quicksort using only keys of the items; there is a provision to 
 // to use templated heaps to implement the merge.
 
-// 	$Id: ami_optimized_merge.h,v 1.32 1999-04-28 15:14:15 rbarve Exp $	
+// 	$Id: ami_optimized_merge.h,v 1.33 1999-04-28 21:29:25 rbarve Exp $	
 //TO DO: substream_count setting; don't depend on current_stream_len
 
 
@@ -2394,7 +2394,7 @@ LOG_DEBUG_ID("post new");
                                                  return ae;
            }
 LOG_DEBUG_ID("pre delete");
-           if (mm_stream) { delete [] mm_stream;
+           if (mm_stream) { delete mm_stream;
 		                  mm_stream = NULL;}
 LOG_DEBUG_ID("post delete");
 		}
@@ -2425,8 +2425,8 @@ LOG_DEBUG_ID("post new");
                                            return ae;
             }
 LOG_DEBUG_ID("pre delete");
-          if (mm_stream) { delete [] mm_stream; mm_stream = NULL;}
-          if (qs_array) { delete [] qs_array; qs_array = NULL;}
+          if (mm_stream) { delete mm_stream; mm_stream = NULL;}
+          if (qs_array) { delete  qs_array; qs_array = NULL;}
 LOG_DEBUG_ID("post delete");
 	    }
           
@@ -2892,8 +2892,8 @@ LOG_DEBUG_ID("post new");
                      { delete initial_tmp_stream[current_stream];
 				 initial_tmp_stream[current_stream] = NULL;}
 LOG_DEBUG_ID("pre delete");
-        if (mm_stream) { delete  [] mm_stream; mm_stream = NULL;}
-        if (qs_array) { delete [] qs_array; qs_array = NULL;}
+        if (mm_stream) { delete   mm_stream; mm_stream = NULL;}
+        if (qs_array) { delete  qs_array; qs_array = NULL;}
 LOG_DEBUG_ID("post delete");
 
         // Make sure the total length of the temporary stream is the
@@ -3058,9 +3058,9 @@ LOG_DEBUG_ID("post delete");
 
                 }
 
-                if (current_input) {delete[] current_input; current_input = NULL;}
+                if (current_input) {delete current_input; current_input = NULL;}
 
-                if (the_substreams) { delete[] the_substreams; the_substreams = NULL;}
+                if (the_substreams) { delete the_substreams; the_substreams = NULL;}
 
                 
             } else {
@@ -3363,7 +3363,7 @@ LOG_DEBUG_ID("post delete");
                 for (ii = 0; ii < merge_arity; ii++) 
                           if (current_input[ii]) delete current_input[ii];
  
-                if (current_input)  {delete[] current_input; current_input = NULL;}   
+                if (current_input)  {delete current_input; current_input = NULL;}   
                     
                 current_input = (AMI_STREAM<T> **) intermediate_tmp_stream;
             	    
