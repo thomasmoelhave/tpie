@@ -3,7 +3,7 @@
 // File:    ami_cache.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_cache.h,v 1.2 2001-05-29 15:41:08 tavi Exp $
+// $Id: ami_cache.h,v 1.3 2002-01-03 20:36:12 tavi Exp $
 //
 // Declaration and definition of AMI_CACHE_MANAGER
 // implementation(s).
@@ -129,7 +129,8 @@ bool AMI_cache_manager_lru<T,W>::read(size_t k, T& item) {
 
   // Erase the item from the cache.
   // NB: We don't write it out because we pass it up to the user.
-  set.erase(i);
+  if (set.capacity() > 1)
+    set.erase(i);
 
   // Mark the last item empty.
   set[set.capacity() - 1].first = 0;
@@ -143,7 +144,9 @@ bool AMI_cache_manager_lru<T,W>::write(size_t k, const T& item) {
   assert(k != 0);
 
   if (capacity_ == 0) {
+
     writeout_(item);
+
   } else {
 
     // The cache line, based on the key k.
@@ -154,7 +157,10 @@ bool AMI_cache_manager_lru<T,W>::write(size_t k, const T& item) {
       writeout_(set[assoc_ - 1].second);
     
     // Insert in the first position.
-    set.insert(item_type_(k, item), 0);
+    if (set.capacity() > 1)
+      set.insert(item_type_(k, item), 0);
+    else
+      set[0] = item_type_(k, item);
   }
 
   return true;
