@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/15/94
 //
-// $Id: ami_stack.h,v 1.6 2003-09-17 02:54:55 tavi Exp $
+// $Id: ami_stack.h,v 1.7 2004-08-12 12:35:31 jan Exp $
 //
 #ifndef _AMI_STACK_H
 #define _AMI_STACK_H
@@ -47,7 +47,7 @@ template<class T>
 AMI_err AMI_stack<T>::push(const T &t)
 {
     AMI_err ae;
-    off_t slen;
+    TPIE_OS_OFFSET slen;
     
     ae = truncate((slen = stream_len())+1);
     if (ae != AMI_ERROR_NO_ERROR) {

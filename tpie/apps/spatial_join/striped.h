@@ -5,10 +5,12 @@
 // Created:      01/24/99
 // Description:  
 //
-// $Id: striped.h,v 1.1 2003-11-21 17:01:09 tavi Exp $
+// $Id: striped.h,v 1.2 2004-08-12 12:38:53 jan Exp $
 //
 #ifndef _STRIPED_H
 #define _STRIPED_H
+
+#include <portability.h>
 
 #define MAX_STRIPS     128       /* max number of strips */
 
@@ -25,7 +27,7 @@
 
 typedef struct _ch {
   _ch *next; 
-  int num;
+  TPIE_OS_OFFSET num;
   rectangle rects[C_SIZE];    /* array of rectangles */
 } chunk;
 

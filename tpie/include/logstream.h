@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/12/94
 //
-// $Id: logstream.h,v 1.18 2004-05-31 19:31:07 tavi Exp $
+// $Id: logstream.h,v 1.19 2004-08-12 12:35:32 jan Exp $
 //
 
 #ifndef _LOGSTREAM_H
@@ -73,7 +73,7 @@ logstream& operator<< (logstream& o, const logmanip<TP>& m)
   (*m._f)(o, m._a); return o;
 }
 
-logmanip<unsigned int> setpriority(unsigned int p);
-logmanip<unsigned int> setthreshold(unsigned int p);
+logmanip<unsigned long> setpriority(unsigned long p);
+logmanip<unsigned long> setthreshold(unsigned long p);
 
 #endif // _LOGSTREAM_H 

@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/11/94
 //
-// $Id: bte_stream_stdio.h,v 1.9 2004-05-05 15:59:35 adanner Exp $
+// $Id: bte_stream_stdio.h,v 1.10 2004-08-12 12:35:31 jan Exp $
 //
 #ifndef _BTE_STREAM_STDIO_H
 #define _BTE_STREAM_STDIO_H
@@ -120,8 +120,8 @@ BTE_stream_stdio < T >::BTE_stream_stdio (const char *dev_path,
    // Cache the path name
    if (strlen (dev_path) > BTE_STREAM_PATH_NAME_LEN - 1) {
       status_ = BTE_STREAM_STATUS_INVALID;
-      LOG_FATAL_ID("Path name too long:");
-      LOG_FATAL_ID(dev_path);
+     TP_LOG_FATAL_ID("Path name too long:");
+     TP_LOG_FATAL_ID(dev_path);
       return;
    }
    strncpy (path, dev_path, BTE_STREAM_PATH_NAME_LEN);
@@ -179,8 +179,8 @@ BTE_stream_stdio < T >::BTE_stream_stdio (const char *dev_path,
 	 //file does not  exist - create it
 	 if ((file = TPIE_OS_FOPEN (dev_path, "wb+")) == NULL) {
 	    status_ = BTE_STREAM_STATUS_INVALID;
-	    LOG_FATAL_ID("Failed to open file:");
-	    LOG_FATAL_ID(dev_path);
+	   TP_LOG_FATAL_ID("Failed to open file:");
+	   TP_LOG_FATAL_ID(dev_path);
 	    return;
 	 }
 	 // Create and write the header
@@ -189,20 +189,20 @@ BTE_stream_stdio < T >::BTE_stream_stdio (const char *dev_path,
 
 	 if (TPIE_OS_FWRITE ((char *) &header, sizeof (header), 1, file) != 1) {
 	    status_ = BTE_STREAM_STATUS_INVALID;
-	    LOG_FATAL_ID("Failed to write header to file:");
-	    LOG_FATAL_ID(dev_path);
+	   TP_LOG_FATAL_ID("Failed to write header to file:");
+	   TP_LOG_FATAL_ID(dev_path);
 	    return;
 	 }
 
 	 // Truncate the file to header block
 	 if ((berr = this->truncate (0)) != BTE_ERROR_NO_ERROR) {
-	    LOG_FATAL_ID("Cannot truncate in file:");
-	    LOG_FATAL_ID(dev_path);
+	   TP_LOG_FATAL_ID("Cannot truncate in file:");
+	   TP_LOG_FATAL_ID(dev_path);
 	    return;
 	 }
 	 if ((berr = this->seek (0)) != BTE_ERROR_NO_ERROR) {
-	    LOG_FATAL_ID("Cannot seek in file:");
-	    LOG_FATAL_ID(dev_path);
+	   TP_LOG_FATAL_ID("Cannot seek in file:");
+	   TP_LOG_FATAL_ID(dev_path);
 	    return;
 	 }
 
@@ -212,29 +212,29 @@ BTE_stream_stdio < T >::BTE_stream_stdio (const char *dev_path,
       } else {
 	 // File exists - read and check header
 	 if (readcheck_header () == -1) {
-	    LOG_FATAL_ID("Bad header in file:");
-	    LOG_FATAL_ID(dev_path);
+	   TP_LOG_FATAL_ID("Bad header in file:");
+	   TP_LOG_FATAL_ID(dev_path);
 	    return;
 	 }
 	 // Seek to the end of the stream  if BTE_APPEND_STREAM
 	 if (st == BTE_APPEND_STREAM) {
 	    if (TPIE_OS_FSEEK (file, 0, TPIE_OS_FLAG_SEEK_END)) {
 	       status_ = BTE_STREAM_STATUS_INVALID;
-	       LOG_FATAL_ID("Failed to go to EOF of file:");
-	       LOG_FATAL_ID(dev_path);
+	      TP_LOG_FATAL_ID("Failed to go to EOF of file:");
+	      TP_LOG_FATAL_ID(dev_path);
 	       return;
 	    }
 	    // Make sure there was at least a full block there to pass.
 	    if (TPIE_OS_FTELL (file) < (long)os_block_size_) {
-	      LOG_FATAL_ID("File too short:");
-	      LOG_FATAL_ID(dev_path);
+	     TP_LOG_FATAL_ID("File too short:");
+	     TP_LOG_FATAL_ID(dev_path);
 	      status_ = BTE_STREAM_STATUS_INVALID;
 	    }
 	 } else {
 	    // seek to 0 if  BTE_WRITE_STREAM
 	    if ((berr = this->seek (0)) != BTE_ERROR_NO_ERROR) {
-	       LOG_FATAL_ID("Cannot seek in file:");
-	       LOG_FATAL_ID(dev_path);
+	      TP_LOG_FATAL_ID("Cannot seek in file:");
+	      TP_LOG_FATAL_ID(dev_path);
 	       return;
 	    }
 	 }
@@ -244,7 +244,7 @@ BTE_stream_stdio < T >::BTE_stream_stdio (const char *dev_path,
    default:
       // Either a bad value or a case that has not been implemented
       // yet.
-      LOG_WARNING_ID("Bad or unimplemented case.");
+     TP_LOG_WARNING_ID("Bad or unimplemented case.");
       status_ = BTE_STREAM_STATUS_INVALID;
       break;
    }
@@ -323,20 +323,20 @@ template < class T > BTE_stream_stdio < T >::~BTE_stream_stdio (void) {
     header.item_logical_eof = file_off_to_item_off(f_eof);
     if (TPIE_OS_FSEEK (file, 0, TPIE_OS_FLAG_SEEK_SET) == -1) {
       status_ = BTE_STREAM_STATUS_INVALID;
-      LOG_WARNING_ID("Failed to seek in file:");
-      LOG_WARNING_ID(path);
+     TP_LOG_WARNING_ID("Failed to seek in file:");
+     TP_LOG_WARNING_ID(path);
     } else if (TPIE_OS_FWRITE ((char *) &header, sizeof (header), 1, file) != 1) {
       status_ = BTE_STREAM_STATUS_INVALID;
-      LOG_WARNING_ID("Failed to write header to file:");
-      LOG_WARNING_ID(path);
+     TP_LOG_WARNING_ID("Failed to write header to file:");
+     TP_LOG_WARNING_ID(path);
       //      return;
     }
   }
 
   if (TPIE_OS_FCLOSE (file) != 0) {
     status_ = BTE_STREAM_STATUS_INVALID;
-    LOG_WARNING_ID("Failed to close file:");
-    LOG_WARNING_ID(path);
+   TP_LOG_WARNING_ID("Failed to close file:");
+   TP_LOG_WARNING_ID(path);
   }
 
   // Get rid of the file if not persistent and if not substream.
@@ -524,9 +524,9 @@ template < class T > BTE_err BTE_stream_stdio < T >::seek (TPIE_OS_OFFSET offset
    }
 
    if (TPIE_OS_FSEEK (file, file_position, TPIE_OS_FLAG_SEEK_SET)) {
-      LOG_FATAL("fseek failed to go to position " << file_position << 
+     TP_LOG_FATAL("fseek failed to go to position " << file_position << 
                    " of \"" << "\"\n");
-      LOG_FLUSH_LOG;
+     TP_LOG_FLUSH_LOG;
       return BTE_ERROR_OS_ERROR;
    }
 
@@ -592,8 +592,8 @@ template<class T> int BTE_stream_stdio < T >::readcheck_header ()
    // Read the header.
    if ((TPIE_OS_FREAD ((char *) &header, sizeof (header), 1, file)) != 1) {
       status_ = BTE_STREAM_STATUS_INVALID;
-      LOG_FATAL_ID("Failed to read header from file:");
-      LOG_FATAL_ID(path);
+     TP_LOG_FATAL_ID("Failed to read header from file:");
+     TP_LOG_FATAL_ID(path);
       return -1;
    }
    if (check_header(&header) < 0) {

@@ -13,7 +13,7 @@
 
 // Define it all.
 #include <ami.h>
-VERSION(nas_ep_cpp,"$Id: nas_ep.cpp,v 1.9 2003-09-12 14:13:57 jan Exp $");
+VERSION(nas_ep_cpp,"$Id: nas_ep.cpp,v 1.10 2004-08-12 12:37:04 jan Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -32,7 +32,7 @@ VERSION(nas_ep_cpp,"$Id: nas_ep.cpp,v 1.9 2003-09-12 14:13:57 jan Exp $");
 #define TWO_TO_MINUS_23 (1.0 / TWO_TO_23)
 #define TWO_TO_MINUS_46 (1.0 / TWO_TO_46)
 
-// The scan managemnt object that writes the random numbers.
+// The scan management object that writes the random numbers.
 
 class scan_nas_psuedo_rand : AMI_scan_object {
 private:
@@ -45,10 +45,10 @@ private:
     // A cache for the multiplicative factor a.
     double a1, a2;
     
-    unsigned int max, remaining;
+    TPIE_OS_OFFSET max, remaining;
 public:
     scan_nas_psuedo_rand(double seed = NAS_S,
-                         unsigned int count = COUNT,
+                         TPIE_OS_OFFSET count = COUNT,
                          double a = NAS_A);
                          
     virtual ~scan_nas_psuedo_rand(void);
@@ -58,7 +58,7 @@ public:
 
 
 scan_nas_psuedo_rand::scan_nas_psuedo_rand(double seed,
-                                           unsigned int count,
+                                           TPIE_OS_OFFSET count,
                                            double a) 
 {
     s = seed;
@@ -85,7 +85,7 @@ inline AMI_err scan_nas_psuedo_rand::operate(double *out, AMI_SCAN_FLAG *sf)
     register double b1, b2;
     register double t1, t2, t3, t4, t5;
 
-    if ((*sf = remaining--)) {
+    if ((*sf = (remaining-- > 0))) {
         b1 = floor(TWO_TO_MINUS_23 * x);
         b2 = x - TWO_TO_23 * b1;
 
@@ -122,7 +122,7 @@ public:
     double sumx, sumy;
 
     // Annulus counts.
-    unsigned int annulus[10];
+    TPIE_OS_OFFSET annulus[10];
 
     scan_gauss();
     virtual ~scan_gauss();
@@ -264,9 +264,9 @@ int main(int argc, char **argv)
 
     if (verbose) {
       cout << "test_size = " << test_size << "." << endl;
-      cout << "test_mm_size = " << test_mm_size << "." << endl;
+      cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << endl;
     } else {
-        cout << test_size << ' ' << test_mm_size << endl;
+        cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << endl;
     }
 
     // Set the amount of main memory:

@@ -3,7 +3,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 1/11/95
 //
-// $Id: cpu_timer.h,v 1.6 2003-09-12 01:46:38 jan Exp $
+// $Id: cpu_timer.h,v 1.7 2004-08-12 12:35:32 jan Exp $
 //
 // A timer measuring user time, system time and wall clock time.  The
 // timer can be start()'ed, stop()'ed, and queried. Querying can be
@@ -22,8 +22,8 @@ class cpu_timer : public timer {
 private:
   long clock_tick;
 
-  TPIE_OS_TIME last_sync;
-  TPIE_OS_TIME elapsed;
+  TPIE_OS_TIME_T last_sync;
+  TPIE_OS_TIME_T elapsed;
 
   clock_t last_sync_real;
   clock_t elapsed_real;

@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 3/2/95
 //
-// $Id: ami_sparse_matrix.h,v 1.12 2003-09-12 01:46:38 jan Exp $
+// $Id: ami_sparse_matrix.h,v 1.13 2004-08-12 12:35:31 jan Exp $
 //
 #ifndef AMI_SPARSE_MATRIX_H
 #define AMI_SPARSE_MATRIX_H
@@ -22,8 +22,8 @@
 template <class T>
 class AMI_sm_elem {
 public:
-    unsigned int er;
-    unsigned int ec;
+    TPIE_OS_OFFSET er;
+    TPIE_OS_OFFSET ec;
     T val;
 };
 
@@ -45,16 +45,16 @@ template<class T>
 class AMI_sparse_matrix : public AMI_STREAM< AMI_sm_elem<T> > {
 private:
     // How many rows and columns.
-    unsigned int r,c;
+    TPIE_OS_OFFSET r,c;
 public:
-    AMI_sparse_matrix(unsigned int row, unsigned int col);
+    AMI_sparse_matrix(TPIE_OS_OFFSET row, TPIE_OS_OFFSET col);
     ~AMI_sparse_matrix(void);
-    unsigned int rows();
-    unsigned int cols();
+    TPIE_OS_OFFSET rows();
+    TPIE_OS_OFFSET cols();
 };
 
 template<class T>
-AMI_sparse_matrix<T>::AMI_sparse_matrix(unsigned int row, unsigned int col) :
+AMI_sparse_matrix<T>::AMI_sparse_matrix(TPIE_OS_OFFSET row, TPIE_OS_OFFSET col) :
         r(row), c(col), AMI_STREAM< AMI_sm_elem<T> >()
 {
 }
@@ -65,13 +65,13 @@ AMI_sparse_matrix<T>::~AMI_sparse_matrix(void)
 }
 
 template<class T>
-unsigned int AMI_sparse_matrix<T>::rows(void)
+TPIE_OS_OFFSET AMI_sparse_matrix<T>::rows(void)
 {
     return r;
 }
 
 template<class T>
-unsigned int AMI_sparse_matrix<T>::cols(void)
+TPIE_OS_OFFSET AMI_sparse_matrix<T>::cols(void)
 {
     return c;
 }
@@ -86,9 +86,9 @@ template<class T>
 class sm_band_comparator : public comparator< AMI_sm_elem<T> >
 {
 private:
-    unsigned int rpb;
+    TPIE_OS_SIZE_T rpb;
 public:
-    sm_band_comparator(unsigned int rows_per_band) :
+    sm_band_comparator(TPIE_OS_SIZE_T rows_per_band) :
             rpb(rows_per_band) {};
     virtual ~sm_band_comparator(void) {};
     // If they are in the same band, compare columns, otherwise,
@@ -108,7 +108,7 @@ public:
 template<class T>
 AMI_err AMI_sparse_bandify(AMI_sparse_matrix<T> &sm,
                            AMI_sparse_matrix<T> &bsm,
-                           unsigned int rows_per_band)
+                           TPIE_OS_SIZE_T rows_per_band)
 {
     AMI_err ae;
 
@@ -126,12 +126,12 @@ AMI_err AMI_sparse_bandify(AMI_sparse_matrix<T> &sm,
 
 template<class T>
 AMI_err AMI_sparse_band_info(AMI_sparse_matrix<T> &opm,
-                             unsigned int &rows_per_band,
-                             unsigned int &total_bands)
+                             TPIE_OS_SIZE_T &rows_per_band,
+                             TPIE_OS_OFFSET &total_bands)
 {
-    size_t sz_avail, single_stream_usage;
+    TPIE_OS_SIZE_T sz_avail, single_stream_usage;
 
-    unsigned int rows = opm.rows();
+    TPIE_OS_OFFSET rows = opm.rows();
     
     AMI_err ae;
     
@@ -153,7 +153,7 @@ AMI_err AMI_sparse_band_info(AMI_sparse_matrix<T> &opm,
     rows_per_band = (sz_avail - single_stream_usage * 5) / sizeof(T);
 
     if (rows_per_band > rows) {
-        rows_per_band = rows;
+        rows_per_band = (TPIE_OS_SIZE_T)rows;
     }
     
     total_bands = (rows + rows_per_band - 1) / rows_per_band;
@@ -170,14 +170,14 @@ AMI_err AMI_sparse_band_info(AMI_sparse_matrix<T> &opm,
 template<class T>
 AMI_err AMI_sparse_mult_scan_banded(AMI_sparse_matrix<T> &banded_opm,
                                     AMI_matrix<T> &opv, AMI_matrix<T> &res,
-                                    unsigned int rows, unsigned int /*cols*/,
-                                    unsigned int rows_per_band)
+                                    TPIE_OS_OFFSET rows, TPIE_OS_OFFSET /*cols*/,
+                                    TPIE_OS_SIZE_T rows_per_band)
 {
     AMI_err ae;
     
     AMI_sm_elem<T> *sparse_current;
     T *vec_current;
-    unsigned int vec_row;
+    TPIE_OS_OFFSET vec_row;
 
     banded_opm.seek(0);
     ae = banded_opm.read_item(&sparse_current);
@@ -194,12 +194,12 @@ AMI_err AMI_sparse_mult_scan_banded(AMI_sparse_matrix<T> &banded_opm,
 
     res.seek(0);
 
-    unsigned int next_band_start = rows_per_band;
+    TPIE_OS_OFFSET next_band_start = rows_per_band;
 
-    unsigned int ii;
+    TPIE_OS_OFFSET ii;
     
-    unsigned int curr_band_start = 0;
-    unsigned int rows_in_current_band = rows_per_band;
+    TPIE_OS_OFFSET curr_band_start = 0;
+    TPIE_OS_SIZE_T rows_in_current_band = rows_per_band;
 
     bool sparse_done = false;
 
@@ -269,7 +269,7 @@ AMI_err AMI_sparse_mult_scan_banded(AMI_sparse_matrix<T> &banded_opm,
                 // The final band may not have exactly rows_per_band
                 // rows due to roundoff.  We make the appropropriate
                 // adjustments here.
-                rows_in_current_band = rows - curr_band_start; 
+                rows_in_current_band = (TPIE_OS_SIZE_T)(rows - curr_band_start); 
                 next_band_start = rows;                
             } else {
                 rows_in_current_band = rows_per_band;
@@ -322,11 +322,11 @@ template<class T>
 AMI_err AMI_sparse_mult(AMI_sparse_matrix<T> &opm, AMI_matrix<T> &opv,
                         AMI_matrix<T> &res)
 {
-    unsigned int rows_per_band;
-    unsigned int total_bands;
+    TPIE_OS_SIZE_T rows_per_band;
+    TPIE_OS_OFFSET total_bands;
 
-    unsigned int rows;
-    unsigned int cols;
+    TPIE_OS_OFFSET rows;
+    TPIE_OS_OFFSET cols;
 
     // size_t sz_avail, single_stream_usage;
 

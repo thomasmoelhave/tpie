@@ -2,7 +2,7 @@
 // File:    bte_coll_mmap.h (formerly bte_coll_mmb.h)
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: bte_coll_mmap.h,v 1.10 2004-02-05 17:36:34 jan Exp $
+// $Id: bte_coll_mmap.h,v 1.11 2004-08-12 12:35:31 jan Exp $
 //
 // BTE_collection_mmap class definition.
 //
@@ -122,8 +122,8 @@ BTE_err BTE_collection_mmap<BIDT>::get_block_internals(BIDT bid, void * &place) 
 	       TPIE_OS_FLAG_MAP_SHARED, bcc_fd_, bid_to_file_offset(bid));
 
   if (place == (void *)(-1)) {
-    LOG_FATAL_ID("mmap() failed to map in a block from file.");
-    LOG_FATAL_ID(strerror(errno));
+   TP_LOG_FATAL_ID("mmap() failed to map in a block from file.");
+   TP_LOG_FATAL_ID(strerror(errno));
     return BTE_ERROR_MEMORY_ERROR;
   }
 
@@ -144,7 +144,7 @@ BTE_err BTE_collection_mmap<BIDT>::put_block_internals(BIDT bid, void* place, ch
   // The dirty parameter is not used in this implemetation.
 
   if ((bid <= 0) || (bid >= header_.last_block)) {
-    LOG_FATAL_ID("Incorrect bid in placeholder.");
+   TP_LOG_FATAL_ID("Incorrect bid in placeholder.");
     return BTE_ERROR_INVALID_PLACEHOLDER;
   }
 
@@ -157,16 +157,16 @@ BTE_err BTE_collection_mmap<BIDT>::put_block_internals(BIDT bid, void* place, ch
 	      TPIE_OS_FLAG_MS_SYNC
 #  endif
 	      ) == -1) {
-      LOG_FATAL_ID("Failed to msync() block to file.");
-      LOG_FATAL_ID(strerror(errno));
+     TP_LOG_FATAL_ID("Failed to msync() block to file.");
+     TP_LOG_FATAL_ID(strerror(errno));
       return BTE_ERROR_IO_ERROR;
     }    
   }
 #endif
 
   if (TPIE_OS_MUNMAP((char*)place, header_.block_size) == -1) {
-    LOG_FATAL_ID("Failed to unmap() block of file.");
-    LOG_FATAL_ID(strerror(errno));
+   TP_LOG_FATAL_ID("Failed to unmap() block of file.");
+   TP_LOG_FATAL_ID(strerror(errno));
     return BTE_ERROR_IO_ERROR;
   }
 
@@ -181,14 +181,14 @@ template<class BIDT>
 BTE_err BTE_collection_mmap<BIDT>::sync_block(BIDT bid, void* place, char dirty) {
 
   if ((bid <= 0) || (bid >= header_.last_block)) {
-    LOG_FATAL_ID("Incorrect bid in placeholder.");
+   TP_LOG_FATAL_ID("Incorrect bid in placeholder.");
     return BTE_ERROR_INVALID_PLACEHOLDER;
   }
   
   if (!read_only_) {
     if (TPIE_OS_MSYNC((char*)place, header_.block_size, TPIE_OS_FLAG_MS_SYNC)) {
-      LOG_FATAL_ID("Failed to msync() block to file.");
-      LOG_FATAL_ID(strerror(errno));
+     TP_LOG_FATAL_ID("Failed to msync() block to file.");
+     TP_LOG_FATAL_ID(strerror(errno));
       return BTE_ERROR_IO_ERROR;
     }
   }

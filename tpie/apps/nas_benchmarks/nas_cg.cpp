@@ -24,7 +24,7 @@
 
 // Define it all.
 #include <ami.h>
-VERSION(nas_cg_cpp,"$Id: nas_cg.cpp,v 1.7 2003-09-13 18:15:40 jan Exp $");
+VERSION(nas_cg_cpp,"$Id: nas_cg.cpp,v 1.8 2004-08-12 12:37:04 jan Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -45,8 +45,8 @@ VERSION(nas_cg_cpp,"$Id: nas_cg.cpp,v 1.7 2003-09-13 18:15:40 jan Exp $");
 AMI_err solve_system(AMI_sparse_matrix<double> &A,
                      AMI_matrix<double> &z,
                      AMI_matrix<double> &x,
-                     double &rnorm, unsigned int n,
-                     unsigned int rpb)
+                     double &rnorm, TPIE_OS_OFFSET n,
+                     TPIE_OS_SIZE_T rpb)
 {
     AMI_err ae;
     
@@ -243,7 +243,7 @@ void parse_app_opt(char c, char *optarg)
 
 int main(int argc, char **argv)
 {
-    unsigned int n;
+    TPIE_OS_OFFSET n;
     
     AMI_err ae;
 
@@ -256,7 +256,7 @@ int main(int argc, char **argv)
 
     n = problem_size;
     
-    cout << test_mm_size << ' ' << n << endl;
+    cout << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << n << endl;
     
     AMI_matrix<double> x(n, 1);
     AMI_matrix<double> z(n, 1);
@@ -266,7 +266,8 @@ int main(int argc, char **argv)
     scan_inner_product<double> sip;
     scan_square_sum<double> sss;
 
-    unsigned int rpb, tb;
+    TPIE_OS_SIZE_T rpb;
+	TPIE_OS_OFFSET tb;
     
     double rnorm, zeta;
     
@@ -304,7 +305,7 @@ int main(int argc, char **argv)
     
     if (verbose) {
         cerr << "Banded A; stream length = " << A.stream_len() << endl;
-        cerr << "Rows per band = " << rpb << endl;
+        cerr << "Rows per band = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(rpb) << endl;
         cerr << "Total bands = " << tb << endl;
     }
 

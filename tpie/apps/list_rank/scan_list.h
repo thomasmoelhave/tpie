@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/27/94
 //
-// $Id: scan_list.h,v 1.1 1994-10-31 21:36:27 darrenv Exp $
+// $Id: scan_list.h,v 1.2 2004-08-12 12:36:45 jan Exp $
 //
 // A scan management object that produces a linked list in order.
 //
@@ -15,12 +15,12 @@
 
 class scan_list : AMI_scan_object {
 private:
-    unsigned long int maximum;
+    TPIE_OS_OFFSET maximum;
 public:
-    unsigned long int last_to;
-    unsigned long int called;
+    TPIE_OS_OFFSET last_to;
+    TPIE_OS_OFFSET called;
 
-    scan_list(unsigned long int max = 1000);
+    scan_list(TPIE_OS_OFFSET max = 1000);
     AMI_err initialize(void);
     AMI_err operate(edge *out1, AMI_SCAN_FLAG *sf);
 };

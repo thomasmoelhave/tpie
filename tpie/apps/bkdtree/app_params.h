@@ -6,7 +6,7 @@
 // Runtime parameters for the kd-tree, K-D-B-tree and B-tree test
 // suite.
 //
-// $Id: app_params.h,v 1.5 2003-09-17 02:34:44 tavi Exp $
+// $Id: app_params.h,v 1.6 2004-08-12 12:36:04 jan Exp $
 
 
 #ifndef _APP_PARAMS_H
@@ -44,9 +44,9 @@ public:
 
   record_t mbr_lo;
   record_t mbr_hi;
-  int point_count;
+  TPIE_OS_OFFSET point_count;
   int load_method;
-  size_t memory_limit;
+  TPIE_OS_SIZE_T memory_limit;
   char base_file_name[MAX_PATH_LENGTH];
   char base_file_name_s[MAX_PATH_LENGTH];
   char base_file_name_t[MAX_PATH_LENGTH];
@@ -72,19 +72,19 @@ public:
   double wquery_size_y;
   float child_cache_fill;
   float bulk_load_fill;
-  size_t query_type;
-  size_t wquery_count;
-  size_t grid_size;
-  size_t leaf_block_factor;
-  size_t node_block_factor;
-  size_t catalog_block_factor;
-  size_t leaf_size_max;
-  size_t node_size_max;
-  size_t max_intraroot_height;
-  size_t cached_blocks;
-  size_t node_cache_size;
-  size_t leaf_cache_size;
-  size_t B_for_LMB;
+  TPIE_OS_SIZE_T query_type;
+  TPIE_OS_OFFSET wquery_count;
+  TPIE_OS_SIZE_T grid_size;
+  TPIE_OS_SIZE_T leaf_block_factor;
+  TPIE_OS_SIZE_T node_block_factor;
+  TPIE_OS_SIZE_T catalog_block_factor;
+  TPIE_OS_SIZE_T leaf_size_max;
+  TPIE_OS_SIZE_T node_size_max;
+  TPIE_OS_SIZE_T max_intraroot_height;
+  TPIE_OS_SIZE_T cached_blocks;
+  TPIE_OS_SIZE_T node_cache_size;
+  TPIE_OS_SIZE_T leaf_cache_size;
+  TPIE_OS_SIZE_T B_for_LMB;
   stream_t *in_stream;
   stream_t *streams_sorted[DIM];
   ostringstream stats;
@@ -141,56 +141,56 @@ public:
 
   void write_block_stats(const tpie_stats_tree& bts) {
     // Shortcuts.
-    size_t lbf = leaf_block_factor;
-    size_t nbf = node_block_factor;
+    TPIE_OS_SIZE_T lbf = leaf_block_factor;
+    TPIE_OS_SIZE_T nbf = node_block_factor;
     stats << "BLOCKS:READ           " 
 	  << bts.get(LEAF_READ) * lbf + bts.get(NODE_READ)  * nbf
 	  << "\t l" << bts.get(LEAF_READ) 
-	  << " x" << lbf
+	  << " x" << (TPIE_OS_OFFSET)lbf
 	  << "\t n" << bts.get(NODE_READ)
-	  << " x" << nbf
+	  << " x" << (TPIE_OS_OFFSET)nbf
 	  << endl
 	  << "BLOCKS:CREATE         " 
 	  << bts.get(LEAF_CREATE) * lbf + bts.get(NODE_CREATE) *nbf
 	  << "\t l" << bts.get(LEAF_CREATE) 
-	  << " x" << lbf
+	  << " x" << (TPIE_OS_OFFSET)lbf
 	  << "\t n" << bts.get(NODE_CREATE) 
-	  << " x" << nbf
+	  << " x" << (TPIE_OS_OFFSET)nbf
 	  << endl
 	  << "BLOCKS:FETCH          " 
 	  << bts.get(LEAF_FETCH) * lbf + bts.get(NODE_FETCH) * nbf
 	  << "\t l" << bts.get(LEAF_FETCH) 
-	  << " x" << lbf
+	  << " x" << (TPIE_OS_OFFSET)lbf
 	  << "\t n" << bts.get(NODE_FETCH)
-	  << " x" << nbf
+	  << " x" << (TPIE_OS_OFFSET)nbf
 	  << endl
 	  << "BLOCKS:WRITE          " 
 	  << bts.get(LEAF_WRITE) * lbf + bts.get(NODE_WRITE) * nbf 
 	  << "\t l" << bts.get(LEAF_WRITE) 
-	  << " x" << lbf
+	  << " x" << (TPIE_OS_OFFSET)lbf
 	  << "\t n" << bts.get(NODE_WRITE)
-	  << " x" << nbf
+	  << " x" << (TPIE_OS_OFFSET)nbf
 	  << endl
 	  << "BLOCKS:DELETE         " 
 	  << bts.get(LEAF_DELETE) * lbf + bts.get(NODE_DELETE)  * nbf
 	  << "\t l" << bts.get(LEAF_DELETE) 
-	  << " x" << lbf
+	  << " x" << (TPIE_OS_OFFSET)lbf
 	  << "\t n" << bts.get(NODE_DELETE)
-	  << " x" << nbf
+	  << " x" << (TPIE_OS_OFFSET)nbf
 	  << endl
 	  << "BLOCKS:RELEASE        " 
 	  << bts.get(LEAF_RELEASE) * lbf + bts.get(NODE_RELEASE) * nbf 
 	  << "\t l" << bts.get(LEAF_RELEASE)
-	  << " x" << lbf
+	  << " x" << (TPIE_OS_OFFSET)lbf
 	  << "\t n" << bts.get(NODE_RELEASE)
-	  << " x" << nbf
+	  << " x" << (TPIE_OS_OFFSET)nbf
 	  << endl
 	  << "BLOCKS:COUNT          "
 	  << bts.get(LEAF_COUNT) * lbf + bts.get(NODE_COUNT) * nbf
 	  << "\t l" << bts.get(LEAF_COUNT)
-	  << " x" << lbf
+	  << " x" << (TPIE_OS_OFFSET)lbf
 	  << "\t n" << bts.get(NODE_COUNT)
-	  << " x" << nbf
+	  << " x" << (TPIE_OS_OFFSET)nbf
 	  << endl
       ;
   }
@@ -205,8 +205,8 @@ void print_statistics(ostream& os = cerr);
 void parse_args(int argc, char** argv);
 
 template<class T> 
-void add_to_stats(size_t width, const char* header, T value) {
-  params.stats << header << " " << value << endl;
+void add_to_stats(TPIE_OS_SIZE_T width, const char* header, T value) {
+  params.stats << header << " " << (TPIE_OS_OFFSET)value << endl;
 }
 
 

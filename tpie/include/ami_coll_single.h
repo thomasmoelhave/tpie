@@ -3,7 +3,7 @@
 // File:   ami_coll_single.h
 // Author: Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_coll_single.h,v 1.13 2003-05-08 21:30:01 tavi Exp $
+// $Id: ami_coll_single.h,v 1.14 2004-08-12 12:35:30 jan Exp $
 //
 // AMI collection entry points implemented on top of a single BTE.
 //
@@ -29,21 +29,21 @@ class AMI_collection_single {
 public:
 
   // Initialize a temporary collection.
-  AMI_collection_single(size_t logical_block_factor = 1);
+  AMI_collection_single(TPIE_OS_SIZE_T logical_block_factor = 1);
 
   // Initialize a named collection.
   AMI_collection_single(char* path_name,
 			AMI_collection_type ct = AMI_READ_WRITE_COLLECTION,
-			size_t logical_block_factor = 1);
+			TPIE_OS_SIZE_T logical_block_factor = 1);
 
   // Return the total number of used blocks.
-  size_t size() const { return btec_->size(); }
+  TPIE_OS_OFFSET size() const { return btec_->size(); }
 
   // Return the logical block size in bytes.
-  size_t block_size() const { return btec_->block_size(); }
+  TPIE_OS_SIZE_T block_size() const { return btec_->block_size(); }
 
   // Return the logical block factor.
-  size_t block_factor() const { return btec_->block_factor(); }
+  TPIE_OS_SIZE_T block_factor() const { return btec_->block_factor(); }
 
   // Set the persistence flag. 
   void persist(persistence p) { btec_->persist(p); }
@@ -79,7 +79,7 @@ private:
 };
 
 template <class BTECOLL>
-AMI_collection_single<BTECOLL>::AMI_collection_single(size_t lbf) {
+AMI_collection_single<BTECOLL>::AMI_collection_single(TPIE_OS_SIZE_T lbf) {
 
   char *temp_path = tpie_tempnam("AMI");
 
@@ -95,7 +95,7 @@ AMI_collection_single<BTECOLL>::AMI_collection_single(size_t lbf) {
 
 template <class BTECOLL>
 AMI_collection_single<BTECOLL>::AMI_collection_single(char* path_name,
-		       AMI_collection_type ct, size_t lbf) {
+		       AMI_collection_type ct, TPIE_OS_SIZE_T lbf) {
 
   BTE_collection_type btect;
 

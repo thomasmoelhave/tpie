@@ -7,7 +7,7 @@
 // constructing, querying, printing and benchmarking them. 
 // It uses the run-time parameters from app_params.cpp
 //
-// $Id: build_kdbtree.cpp,v 1.1 2003-09-25 17:45:15 tavi Exp $
+// $Id: build_kdbtree.cpp,v 1.2 2004-08-12 12:36:05 jan Exp $
 
 #include <portability.h>
 
@@ -93,7 +93,7 @@ int main(int argc, char** argv) {
   cout << "Node size: " 
        << TPIE_OS_BLOCKSIZE()*params.node_block_factor 
        << " bytes. Node capacity: " 
-       << KDBTREEint2::node_t::el_capacity(TPIE_OS_BLOCKSIZE()*params.node_block_factor) 
+       << static_cast<TPIE_OS_OUTPUT_SIZE_T>(KDBTREEint2::node_t::el_capacity(TPIE_OS_BLOCKSIZE()*params.node_block_factor))
        << " elements." << "\n";
 
 
@@ -134,7 +134,7 @@ int main(int argc, char** argv) {
     }
 
     cerr << "Inserting..." << flush;
-    size_t i = 0;
+    TPIE_OS_OFFSET i = 0;
     atimer.start();
     params.in_stream->seek(0);
     while (params.in_stream->read_item(&pp) == AMI_ERROR_NO_ERROR) {
@@ -181,7 +181,7 @@ int main(int argc, char** argv) {
     if (!ifs) {
       cerr << argv[0] << ": Error opening window query file " << params.file_name_wquery << "\n";
     } else {
-      size_t count = 0, result = 0;
+      TPIE_OS_OFFSET count = 0, result = 0;
       KDBTREEint2::point_t lop, hip;
       AMI_STREAM<KDBTREEint2::point_t> *tempstr = 
 	(params.do_query_count_only ? NULL: new AMI_STREAM<KDBTREEint2::point_t>);

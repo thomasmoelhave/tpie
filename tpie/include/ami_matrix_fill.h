@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/12/94
 //
-// $Id: ami_matrix_fill.h,v 1.6 2003-04-20 23:59:53 tavi Exp $
+// $Id: ami_matrix_fill.h,v 1.7 2004-08-12 12:35:30 jan Exp $
 //
 #ifndef _AMI_MATRIX_FILL_H
 #define _AMI_MATRIX_FILL_H
@@ -17,19 +17,19 @@
 template<class T>
 class AMI_matrix_filler {
 public:
-    virtual AMI_err initialize(unsigned int rows, unsigned int cols) = 0;
-    virtual T element(unsigned int row, unsigned int col) = 0;
+    virtual AMI_err initialize(TPIE_OS_OFFSET rows, TPIE_OS_OFFSET cols) = 0;
+    virtual T element(TPIE_OS_OFFSET row, TPIE_OS_OFFSET col) = 0;
 };
 
 template<class T>
 class AMI_matrix_fill_scan : AMI_scan_object {
 private:
-    unsigned int r, c;
-    unsigned int cur_row, cur_col;
+    TPIE_OS_OFFSET r, c;
+    TPIE_OS_OFFSET cur_row, cur_col;
     AMI_matrix_filler<T> *pemf;
 public:
     AMI_matrix_fill_scan(AMI_matrix_filler<T> *pem_filler,
-                         unsigned int rows, unsigned int cols) :
+                         TPIE_OS_OFFSET rows, TPIE_OS_OFFSET cols) :
             r(rows), c(cols),
             pemf(pem_filler)
     {

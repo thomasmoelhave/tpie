@@ -6,7 +6,7 @@
 // Created:      01/24/99
 // Description:  Join two sets using sort and sweep.
 //
-// $Id: sssj.cpp,v 1.1 2003-11-21 17:01:09 tavi Exp $
+// $Id: sssj.cpp,v 1.2 2004-08-12 12:38:53 jan Exp $
 //
 #include <iostream>
 using std::cout;
@@ -32,7 +32,8 @@ static char *input_filename_blue = def_if_blue;
 static char *output_filename = def_of;
 
 bool verbose = false;
-size_t test_mm_size = 64*1024*1024; // Default mem. size.
+TPIE_OS_SIZE_T test_mm_size = 64*1024*1024; // Default mem. size.
+TPIE_OS_OFFSET test_size = 0; // Not used.
 int random_seed = 17;
 
 
@@ -81,7 +82,7 @@ AMI_err join() {
   sort_sweep* sweeper;
   AMI_STREAM<pair_of_rectangles>* output_stream;
   AMI_err err;
-  size_t sz_avail;
+  TPIE_OS_SIZE_T sz_avail;
 
   // Create the output stream.
   output_stream = new AMI_STREAM<pair_of_rectangles>(output_filename);
@@ -89,13 +90,13 @@ AMI_err join() {
 
   JoinLog jl("SRTS", input_filename_red,  0, input_filename_blue, 0);
   sz_avail = MM_manager.memory_available();
-  cerr << "Beginning. Avail. mem: " << sz_avail << endl;
+  cerr << "Beginning. Avail. mem: " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(sz_avail) << endl;
   jl.UsageStart();
 
   sweeper = new sort_sweep(input_filename_red, input_filename_blue,
 			   output_stream);
   sz_avail = MM_manager.memory_available();
-  cerr << "Finished sorting. Avail. memory: " << sz_avail << endl;
+  cerr << "Finished sorting. Avail. memory: " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(sz_avail) << endl;
 
   err = sweeper->run();
 

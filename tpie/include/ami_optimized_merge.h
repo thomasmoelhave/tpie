@@ -24,7 +24,7 @@
 // keys of the items; there is a provision to to use templated heaps
 // to implement the merge.
 
-// $Id: ami_optimized_merge.h,v 1.55 2003-04-20 08:08:04 tavi Exp $
+// $Id: ami_optimized_merge.h,v 1.56 2004-08-12 12:35:30 jan Exp $
 
 // TO DO: substream_count setting; don't depend on current_stream_len
 
@@ -54,7 +54,7 @@ typedef int AMI_merge_flag;
 typedef unsigned int arity_t;
 
 //enable debugging messages in AMI_partition_and_merge(..)
-// #define XXX LOG_DEBUG_ID("AMI_partition_and_merge_stream");
+// #define XXX TP_LOG_DEBUG_ID("AMI_partition_and_merge_stream");
 #define XXX
 
 //------------------------------------------------------------
@@ -277,17 +277,17 @@ AMI_single_merge (AMI_STREAM < T > **instreams, arity_t arity,
     AMI_err ami_err;
     T merge_out;
 
-    //The number of actual heap elements at any time: can change even
+/*    //The number of actual heap elements at any time: can change even
     //after the merge begins because whenever some stream gets completely
     //depleted, heapsize decremnents by one.
     int heapsize_H;
-
+*/
     //the mergeheap
     class merge_heap_element < KEY > *K_Array =
-	new (merge_heap_element < KEY >)[arity + 1];
+	new merge_heap_element<KEY>[arity + 1];
 
     //Pointers to current leading elements of streams
-    T* *in_objects = new (T*)[arity + 1];
+    T* *in_objects = new T*[arity + 1];
 
     // Rewind and read the first item from every stream.
     j = 1;
@@ -307,7 +307,7 @@ AMI_single_merge (AMI_STREAM < T > **instreams, arity_t arity,
 	    }
 	} else {
 	    // Set the taken flags to 0 before we call intialize()
-	    K_Array[j].key = *(KEY *) ((char *) in_objects[i] + keyoffset);
+	    K_Array[j].key = *((KEY*)((char *) in_objects[i] + keyoffset));
 	    K_Array[j].run_id = i;
 	    j++;
 	}
@@ -468,7 +468,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
     char *working_disk;
 
-    LOG_DEBUG_ID ("AMI_partition_and_merge_stream START");
+   TP_LOG_DEBUG_ID ("AMI_partition_and_merge_stream START");
 
     // Figure out how much memory we've got to work with.
 
@@ -479,7 +479,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
     if ((ae = instream->main_memory_usage (&sz_stream,
 					   MM_STREAM_USAGE_MAXIMUM)) !=
 	AMI_ERROR_NO_ERROR) {
-	LOG_DEBUG_ID ("memory error");
+	TP_LOG_DEBUG_ID ("memory error");
 	return ae;
     }
 
@@ -487,7 +487,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 					   MM_STREAM_USAGE_OVERHEAD)) !=
 	AMI_ERROR_NO_ERROR) {
 
-	LOG_DEBUG_ID ("memory error");
+	TP_LOG_DEBUG_ID ("memory error");
 	return ae;
     }
     sz_avail -= 2 * sz_stream;
@@ -508,7 +508,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
 	for (int i = 0; i < len; i++) {
 	    if ((ae = instream->read_item (&next_item)) != AMI_ERROR_NO_ERROR) {
-		LOG_DEBUG_ID ("read error");
+		TP_LOG_DEBUG_ID ("read error");
 		return ae;
 	    }
 	    mm_stream[i] = *next_item;
@@ -518,7 +518,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 	for (int i = 0; i < len; i++) {
 	    if ((ae = outstream->write_item (mm_stream[i]))
 		!= AMI_ERROR_NO_ERROR) {
-		LOG_DEBUG_ID ("write error");
+		TP_LOG_DEBUG_ID ("write error");
 		if (mm_stream) 
 		    delete[] mm_stream;
 		return ae;
@@ -608,7 +608,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
 	if (sz_avail <= 3 * (sz_stream + sz_substream
 			     + sizeof (merge_heap_element < T >)) ) {
-	    LOG_FATAL_ID
+	   TP_LOG_FATAL_ID
 		("Insufficient Memory for AMI_partition_and_merge_stream()");
 	    return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
 	}
@@ -658,25 +658,25 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
 	    if (ami_available_streams != -1) {
 		if (ami_available_streams <= 5) {
-		    LOG_FATAL_ID ("out of streams");
+		   TP_LOG_FATAL_ID ("out of streams");
 		    return AMI_ERROR_INSUFFICIENT_AVAILABLE_STREAMS;
 		}
 
 		if (merge_arity > (arity_t) ami_available_streams - 2) {
 		    merge_arity = ami_available_streams - 2;
-		    LOG_DEBUG_ID
+		   TP_LOG_DEBUG_ID
 			("Reduced merge arity due to AMI restrictions.");
 
 		}
 	    }
 	}
 
-	LOG_DEBUG_ID ("AMI_partition_and_merge(): merge arity = " <<
+	TP_LOG_DEBUG_ID ("AMI_partition_and_merge(): merge arity = " <<
 		      merge_arity );
 
 	if (merge_arity < 2) {
 
-	    LOG_FATAL_ID
+	   TP_LOG_FATAL_ID
 		("Insufficient memory for AMI_partition_and_merge_stream()");
 
 	    return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
@@ -714,13 +714,13 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
 	    sz_original_substream = (size_t) new_sz_original_substream;
 
-	    LOG_DEBUG_ID ("Memory constraints set original substreams = " <<
+	   TP_LOG_DEBUG_ID ("Memory constraints set original substreams = " <<
 			  original_substreams << '\n');
 
 	    original_substreams = (len + sz_original_substream - 1) /
 		sz_original_substream;
 
-	    LOG_DEBUG_ID ("Tree height constraints set original substreams = "
+	   TP_LOG_DEBUG_ID ("Tree height constraints set original substreams = "
 			  << original_substreams << '\n');
 	}
 
@@ -758,7 +758,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 	tp_assert (mm_stream != NULL, "Misjudged available main memory.");
 
 	if (mm_stream == NULL) {
-	    LOG_FATAL_ID ("internal error");
+	   TP_LOG_FATAL_ID ("internal error");
 	    return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
 	}
 
@@ -855,7 +855,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 		    for (int i = 0; i < mm_len; i++) {
 			if ((ae = instream->read_item (&next_item)) !=
 			    AMI_ERROR_NO_ERROR) {
-			    LOG_DEBUG_ID ("read error");
+			   TP_LOG_DEBUG_ID ("read error");
 			    return ae;
 			}
 			mm_stream[i] = *next_item;
@@ -869,7 +869,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 			    (ae =
 			     initial_tmp_stream[current_stream]->write_item
 			     (mm_stream[i])) != AMI_ERROR_NO_ERROR) {
-			    LOG_DEBUG_ID ("write error");
+			   TP_LOG_DEBUG_ID ("write error");
 			    return ae;
 			}
 
@@ -969,9 +969,9 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
 	//Monitoring prints.
 
-	LOG_DEBUG_ID ("Number of runs from run formation is " <<
+	TP_LOG_DEBUG_ID ("Number of runs from run formation is " <<
 		      original_substreams );
-	LOG_DEBUG_ID ("Merge arity is " << merge_arity );
+	TP_LOG_DEBUG_ID ("Merge arity is " << merge_arity );
 
 	// Pointers to the substreams that will be merged.
 //RAKESH        
@@ -1050,7 +1050,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 		    outstream);
 
 		if (ae != AMI_ERROR_NO_ERROR) {
-		    LOG_FATAL_ID ("AMI_single_merge error " <<
+		   TP_LOG_FATAL_ID ("AMI_single_merge error " <<
 				  ae << " returned by  AMI_single_merge()");
 		    return ae;
 		}
@@ -1078,7 +1078,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
 	    } else {
 
-		LOG_DEBUG_ID ("Merging substreams to intermediate streams.");
+		TP_LOG_DEBUG_ID ("Merging substreams to intermediate streams.");
 
 		// Create the array of merge_arity stream pointers that
 		// will each point to a stream containing runs output
@@ -1276,7 +1276,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 					       [current_stream]);
 
 			if (ae != AMI_ERROR_NO_ERROR) {
-			    LOG_DEBUG_ID ("AMI_single_merge error");
+			   TP_LOG_DEBUG_ID ("AMI_single_merge error");
 			    return ae;
 			}
 
@@ -1343,13 +1343,13 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 	}
 
 	//Monitoring prints.
-	LOG_DEBUG_ID ("Number of passes incl run formation is " << k +
+	TP_LOG_DEBUG_ID ("Number of passes incl run formation is " << k +
 		      1 );
 
 	return AMI_ERROR_NO_ERROR;
 
     }
-    LOG_DEBUG_ID ("AMI_partition_and_merge_stream END");
+   TP_LOG_DEBUG_ID ("AMI_partition_and_merge_stream END");
 }
 
 //------------------------------------------------------------
@@ -1369,12 +1369,12 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
     size_t sz_avail, sz_stream;
     size_t sz_substream;
 
-    unsigned int ii, jj, kk;
+    unsigned int ii, jj;
     int ii_streams;
 
     char *working_disk;
 
-    LOG_DEBUG_ID ("AMI_partition_and_merge_Key: start");
+   TP_LOG_DEBUG_ID ("AMI_partition_and_merge_Key: start");
 
     // Figure out how much memory we've got to work with.
 
@@ -1399,7 +1399,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
     sz_avail -= 2 * sz_stream;
 
     working_disk = tpie_tempnam ("AMI");
-    //LOG_DEBUG_ID(working_disk);
+    //TP_LOG_DEBUG_ID(working_disk);
 
     // If the whole input can fit in main memory then just call
     // AMI_main_mem_merge() to deal with it by loading it once and
@@ -1417,10 +1417,10 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
 	    T *next_item;
 
-	    LOG_DEBUG_ID ("pre new");
-	    T *mm_stream = new T[len];
+	   TP_LOG_DEBUG_ID ("pre new");
+	    T *mm_stream = new T[(TPIE_OS_SIZE_T)len];
 
-	    LOG_DEBUG_ID ("post new");
+	   TP_LOG_DEBUG_ID ("post new");
 
 	    for (int i = 0; i < len; i++) {
 		if ((ae = instream->read_item (&next_item)) !=
@@ -1428,26 +1428,26 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 		mm_stream[i] = *next_item;
 	    }
 
-	    quick_sort_op ((T *) mm_stream, len);
+	    quick_sort_op ((T *) mm_stream, (TPIE_OS_SIZE_T)len);
 
 	    for (int i = 0; i < len; i++) {
 		if ((ae = outstream->write_item (mm_stream[i]))
 		    != AMI_ERROR_NO_ERROR)
 		    return ae;
 	    }
-	    LOG_DEBUG_ID ("pre delete");
+	   TP_LOG_DEBUG_ID ("pre delete");
 	    if (mm_stream) {
 		delete[]mm_stream;
 		mm_stream = NULL;
 	    }
-	    LOG_DEBUG_ID ("post delete");
+	   TP_LOG_DEBUG_ID ("post delete");
 	} else {
 	    //Use qsort on keys followed by permuting
-	    LOG_DEBUG_ID ("pre new");
-	    T *mm_stream = new T[len];
+	   TP_LOG_DEBUG_ID ("pre new");
+	    T *mm_stream = new T[(TPIE_OS_SIZE_T)len];
 
-	    qsort_item < KEY > *qs_array = new (qsort_item < KEY >)[len];
-	    LOG_DEBUG_ID ("post new");
+	    qsort_item < KEY > *qs_array = new qsort_item <KEY>[(TPIE_OS_SIZE_T)len];
+	   TP_LOG_DEBUG_ID ("post new");
 	    T *next_item;
 
 	    for (int i = 0; i < len; i++) {
@@ -1458,7 +1458,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 		qs_array[i].source = i;
 	    }
 
-	    quick_sort_op ((qsort_item < KEY > *)qs_array, len);
+	    quick_sort_op ((qsort_item < KEY > *)qs_array, (TPIE_OS_SIZE_T)len);
 
 	    for (int i = 0; i < len; i++) {
 		if (
@@ -1466,7 +1466,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 		     outstream->write_item (mm_stream[qs_array[i].source])) !=
 		    AMI_ERROR_NO_ERROR) return ae;
 	    }
-	    LOG_DEBUG_ID ("pre delete");
+	   TP_LOG_DEBUG_ID ("pre delete");
 	    if (mm_stream) {
 		delete[]mm_stream;
 		mm_stream = NULL;
@@ -1475,10 +1475,10 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 		delete[]qs_array;
 		qs_array = NULL;
 	    }
-	    LOG_DEBUG_ID ("post delete");
+	   TP_LOG_DEBUG_ID ("post delete");
 	}
 
-	LOG_DEBUG_ID ("AMI_partition_and_merge_Key: done");
+	TP_LOG_DEBUG_ID ("AMI_partition_and_merge_Key: done");
 	return AMI_ERROR_NO_ERROR;
 
     } else {
@@ -1492,7 +1492,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 	// original substreams of the input stream.  The last one may
 	// be shorter than this.
 
-	size_t sz_original_substream;
+	TPIE_OS_OFFSET sz_original_substream;
 
 	// The initial temporary stream, to which substreams of the
 	// original input stream are written.
@@ -1522,7 +1522,6 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 	//RAKESH  FIX THIS: Need to generate random strings using
 	//tmpname() or something like that.
 	char *prefix_name[] = { "_0_", "_1_" };
-	char itoa_str[5];
 
 	// The size of substreams of *current_input that are being
 	// merged.  The last one may be smaller.  This value should be
@@ -1561,7 +1560,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 	    //+ sz_stream + sizeof(merge_heap_element<KEY>)
 	    ) {
 
-	    LOG_FATAL_ID
+	   TP_LOG_FATAL_ID
 		("Insufficient memory in AMI_partition_and_merge_Key()");
 	    return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
 	}
@@ -1576,30 +1575,30 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 	// read.
 
 	{
-	    size_t sz_chunk_size = instream->chunk_size ();
+	    TPIE_OS_OFFSET sz_chunk_size = instream->chunk_size ();
 
 	    sz_original_substream = sz_chunk_size *
 		((sz_original_substream + sz_chunk_size - 1) / sz_chunk_size);
 	}
 
-	original_substreams = (len + sz_original_substream - 1) /
-	    sz_original_substream;
+	original_substreams = static_cast<arity_t>((len + sz_original_substream - 1) /
+	    sz_original_substream);
 
 	// Account for the space that a merge object will use.
 
 	{
 	    //Availabe memory for input stream objects is given by 
 	    //sz_avail minus the space occupied by output stream objects.
-	    size_t sz_avail_during_merge = sz_avail -
+	    TPIE_OS_SIZE_T sz_avail_during_merge = sz_avail -
 
 		sz_stream - sz_substream;
 
 	    //This conts the per-input stream memory cost.
-	    size_t sz_stream_during_merge = sz_stream + sz_substream +
+	    TPIE_OS_SIZE_T sz_stream_during_merge = sz_stream + sz_substream +
 		sizeof (merge_heap_element < KEY >);
 
 	    //Compute merge arity
-	    merge_arity = sz_avail_during_merge / sz_stream_during_merge;
+	    merge_arity = static_cast<arity_t>(sz_avail_during_merge / sz_stream_during_merge);
 
 	}
 
@@ -1618,19 +1617,19 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
 		if (merge_arity > (arity_t) ami_available_streams - 2) {
 		    merge_arity = ami_available_streams - 2;
-		    LOG_DEBUG_ID
+		   TP_LOG_DEBUG_ID
 			("Reduced merge arity due to AMI restrictions.");
 
 		}
 	    }
 	}
 
-	LOG_DEBUG_ID ("AMI_partition_and_merge_Key(): merge arity = " <<
+	TP_LOG_DEBUG_ID ("AMI_partition_and_merge_Key(): merge arity = " <<
 		      merge_arity );
 
 	if (merge_arity < 2) {
 
-	    LOG_FATAL_ID
+	   TP_LOG_FATAL_ID
 		("Insufficient memory for AMI_partition_and_merge_Key()");
 
 	    return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
@@ -1672,13 +1671,13 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
 	    sz_original_substream = (size_t) new_sz_original_substream;
 
-	    LOG_DEBUG_ID ("Memory constraints set original substreams = " <<
+	   TP_LOG_DEBUG_ID ("Memory constraints set original substreams = " <<
 			  original_substreams << '\n');
 
 	    original_substreams = (len + sz_original_substream - 1) /
 		sz_original_substream;
 
-	    LOG_DEBUG_ID ("Tree height constraints set original substreams = "
+	   TP_LOG_DEBUG_ID ("Tree height constraints set original substreams = "
 			  << original_substreams << '\n');
 	}
 
@@ -1696,11 +1695,11 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
 	//  End Comment.
 
-	VarArray3D<unsigned int> 
+	VarArray3D<TPIE_OS_OFFSET> 
 	    run_lengths(2, merge_arity,
 			(original_substreams + merge_arity - 1) / merge_arity);
 
-	VarArray1D<int> Sub_Start(merge_arity);
+	VarArray1D<TPIE_OS_OFFSET> Sub_Start(merge_arity);
 
 	//  Comment: (jan) initialization is done by the VarArray constructor.
 
@@ -1710,13 +1709,13 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
 	//  End Comment.
 
-	initial_tmp_stream = new (AMI_STREAM < T > *)[merge_arity];
-	LOG_DEBUG_ID ("pre new");
-	mm_stream = new T[sz_original_substream];
+	initial_tmp_stream = new AMI_STREAM<T>*[merge_arity];
+	TP_LOG_DEBUG_ID ("pre new");
+	mm_stream = new T[(TPIE_OS_SIZE_T)sz_original_substream];
 
 	qsort_item < KEY > *qs_array =
-	    new (qsort_item < KEY >)[sz_original_substream];
-	LOG_DEBUG_ID ("post new");
+	    new qsort_item<KEY>[(TPIE_OS_SIZE_T)sz_original_substream];
+	TP_LOG_DEBUG_ID ("post new");
 
 	tp_assert (mm_stream != NULL, "Misjudged available main memory.");
 
@@ -1736,7 +1735,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 		   "Total substream length too short or too few.");
 
 //RAKESH
-	size_t check_size = 0;
+	TPIE_OS_OFFSET check_size = 0;
 	int current_stream = merge_arity - 1;
 
 	int runs_in_current_stream = 0;
@@ -1789,23 +1788,23 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
 	ii = 0;
 	while (ii < original_substreams) {
-	    TPIE_OS_OFFSET mm_len;
+	    TPIE_OS_SIZE_T mm_len;
 
 	    // Make sure that the current_stream is supposed to get a run
 
 	    if (desired_runs_in_stream[current_stream] >
 		runs_in_current_stream) {
 		if (ii == original_substreams - 1) {
-		    mm_len = len % sz_original_substream;
+		    mm_len = static_cast<TPIE_OS_SIZE_T>(len % sz_original_substream);
 
 		    // If it is an exact multiple, then the mod will come
 		    // out 0, which is wrong.
 
 		    if (!mm_len) {
-			mm_len = sz_original_substream;
+			mm_len = static_cast<TPIE_OS_SIZE_T>(sz_original_substream);
 		    }
 		} else {
-		    mm_len = sz_original_substream;
+		    mm_len = static_cast<TPIE_OS_SIZE_T>(sz_original_substream);
 		}
 
 #if DEBUG_ASSERTIONS
@@ -1909,7 +1908,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
 	    initial_tmp_stream[current_stream] = NULL;
 	}
-	LOG_DEBUG_ID ("pre delete");
+	TP_LOG_DEBUG_ID ("pre delete");
 	if (mm_stream) {
 	    delete[]mm_stream;
 	    mm_stream = NULL;
@@ -1918,7 +1917,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 	    delete[]qs_array;
 	    qs_array = NULL;
 	}
-	LOG_DEBUG_ID ("post delete");
+	TP_LOG_DEBUG_ID ("post delete");
 
 	// Make sure the total length of the temporary stream is the
 	// same as the total length of the original input stream.
@@ -1941,7 +1940,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 	// Pointers to the substreams that will be merged.
 //RAKESH        
 	AMI_STREAM < T > **the_substreams =
-	    new (AMI_STREAM < T > *)[merge_arity];
+	    new AMI_STREAM<T>*[merge_arity];
 
 	k = 0;
 
@@ -1959,9 +1958,9 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
 	//Monitoring prints.
 
-	LOG_DEBUG_ID ("Number of runs from run formation is " <<
+	TP_LOG_DEBUG_ID ("Number of runs from run formation is " <<
 		      original_substreams );
-	LOG_DEBUG_ID ("Merge arity is " << merge_arity );
+	TP_LOG_DEBUG_ID ("Merge arity is " << merge_arity );
 
 	for (substream_count = original_substreams;
 	     substream_count > 1;
@@ -2022,7 +2021,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
 		if (ae != AMI_ERROR_NO_ERROR) {
 
-		    LOG_FATAL_ID ("AMI_ERROR " << 
+		   TP_LOG_FATAL_ID ("AMI_ERROR " << 
 				  ae << " returned by  AMI_single_merge()");
 		    return ae;
 		}
@@ -2050,14 +2049,13 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
 	    } else {
 
-		LOG_DEBUG_ID ("Merging substreams to intermediate streams.");
+		TP_LOG_DEBUG_ID ("Merging substreams to intermediate streams.");
 
 		// Create the array of merge_arity stream pointers that
 		// will each point to a stream containing runs output
 		// at the current level k. 
 
-		intermediate_tmp_stream = new (AMI_STREAM < T > *)
-		    [merge_arity];
+		intermediate_tmp_stream = new AMI_STREAM<T>*[merge_arity];
 
 //RAKESH   Open up the merge_arity streams in which the
 //         the runs input to the current merge level are packed
@@ -2320,10 +2318,10 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
 	//Monitoring prints.
 
-	LOG_DEBUG_ID ("Number of passes incl run formation is " << k +
+	TP_LOG_DEBUG_ID ("Number of passes incl run formation is " << k +
 		      1 );
 
-	LOG_DEBUG_ID ("AMI_partition_and_merge_Key: done");
+	TP_LOG_DEBUG_ID ("AMI_partition_and_merge_Key: done");
 	return AMI_ERROR_NO_ERROR;
 
     }
@@ -2358,7 +2356,7 @@ AMI_err AMI_replacement_selection_and_merge_Key (AMI_STREAM < T >
 
 #ifndef BTE_IMP_USER_DEFINED
     working_disk = tpie_tempnam ("AMI");
-    //LOG_DEBUG_ID(working_disk);
+    //TP_LOG_DEBUG_ID(working_disk);
 #endif
 
     // If the whole input can fit in main memory then just call
@@ -2377,10 +2375,10 @@ AMI_err AMI_replacement_selection_and_merge_Key (AMI_STREAM < T >
 
 	    T *next_item;
 
-	    LOG_DEBUG_ID ("pre new");
+	   TP_LOG_DEBUG_ID ("pre new");
 	    T *mm_stream = new T[len];
 
-	    LOG_DEBUG_ID ("post new");
+	   TP_LOG_DEBUG_ID ("post new");
 
 	    for (int i = 0; i < len; i++) {
 		if ((ae = instream->read_item (&next_item)) !=
@@ -2395,21 +2393,21 @@ AMI_err AMI_replacement_selection_and_merge_Key (AMI_STREAM < T >
 		    != AMI_ERROR_NO_ERROR)
 		    return ae;
 	    }
-	    LOG_DEBUG_ID ("pre delete");
+	   TP_LOG_DEBUG_ID ("pre delete");
 	    if (mm_stream) {
 		delete[]mm_stream;
 		mm_stream = NULL;
 	    }
-	    LOG_DEBUG_ID ("post delete");
+	   TP_LOG_DEBUG_ID ("post delete");
 	} else {
 	    //Use qsort on keys followed by permuting
 
-	    LOG_DEBUG_ID ("pre new");
+	   TP_LOG_DEBUG_ID ("pre new");
 	    T *mm_stream = new T[len];
 
-	    LOG_DEBUG_ID ("post new");
+	   TP_LOG_DEBUG_ID ("post new");
 	    qsort_item < KEY > *qs_array = new (qsort_item < KEY >)[len];
-	    LOG_DEBUG_ID ("post new");
+	   TP_LOG_DEBUG_ID ("post new");
 	    T *next_item;
 
 	    for (int i = 0; i < len; i++) {
@@ -2428,17 +2426,17 @@ AMI_err AMI_replacement_selection_and_merge_Key (AMI_STREAM < T >
 		     outstream->write_item (mm_stream[qs_array[i].source])) !=
 		    AMI_ERROR_NO_ERROR) return ae;
 	    }
-	    LOG_DEBUG_ID ("pre delete");
+	   TP_LOG_DEBUG_ID ("pre delete");
 	    if (mm_stream) {
 		delete[]mm_stream;
 		mm_stream = NULL;
 	    }
-	    LOG_DEBUG_ID ("post delete");
+	   TP_LOG_DEBUG_ID ("post delete");
 	    if (qs_array) {
 		delete[]qs_array;
 		qs_array = NULL;
 	    }
-	    LOG_DEBUG_ID ("post delete");
+	   TP_LOG_DEBUG_ID ("post delete");
 	}
 
 	return AMI_ERROR_NO_ERROR;
@@ -2553,7 +2551,7 @@ AMI_err AMI_replacement_selection_and_merge_Key (AMI_STREAM < T >
 	    //+ sz_stream + sizeof(merge_heap_element<KEY>)
 	    ) {
 
-	    LOG_FATAL_ID
+	   TP_LOG_FATAL_ID
 		("Insufficient Memory for AMI_replacement_selection_and_merge_Key()");
 	    return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
 	}
@@ -2604,18 +2602,18 @@ AMI_err AMI_replacement_selection_and_merge_Key (AMI_STREAM < T >
 
 		if (merge_arity > (arity_t) ami_available_streams - 2) {
 		    merge_arity = ami_available_streams - 2;
-		    LOG_DEBUG_ID
+		   TP_LOG_DEBUG_ID
 			("Reduced merge arity due to AMI restrictions.");
 
 		}
 	    }
 	}
 
-	LOG_DEBUG_ID ("AMI_replacement_selection_and_merge(): merge arity = "
+	TP_LOG_DEBUG_ID ("AMI_replacement_selection_and_merge(): merge arity = "
 		      << merge_arity );
 
 	if (merge_arity < 2) {
-	    LOG_FATAL_ID
+	   TP_LOG_FATAL_ID
 		("Insufficient Memory for AMI_replacement_selection_and_merge_Key()");
 	    return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
 	}
@@ -2679,7 +2677,7 @@ AMI_err AMI_replacement_selection_and_merge_Key (AMI_STREAM < T >
 					    (MaxRuns + merge_arity -
 					     1) / merge_arity, keyoffset,
 					    dummykey)) != AMI_ERROR_NO_ERROR) {
-	    LOG_FATAL_ID ("AMI Error " << 
+	   TP_LOG_FATAL_ID ("AMI Error " << 
 			  ae << " in  Run_Formation_Algo_R_Key()");
 	    return ae;
 
@@ -2699,7 +2697,7 @@ AMI_err AMI_replacement_selection_and_merge_Key (AMI_STREAM < T >
 	}
 
 	if (check_size != instream->stream_len ()) {
-	    LOG_FATAL_ID
+	   TP_LOG_FATAL_ID
 		("Run_Formation_Algo_R_Key() output different from input stream in length");
 	    return AMI_ERROR_IO_ERROR;
 	}
@@ -2782,9 +2780,9 @@ AMI_err AMI_replacement_selection_and_merge_Key (AMI_STREAM < T >
 		    keyoffset, dummykey);
 
 		if (ae != AMI_ERROR_NO_ERROR) {
-		    LOG_FATAL_ID ("AMI Error ");
-		    LOG_FATAL (ae);
-		    LOG_FATAL ("AMI_single_merge()");
+		   TP_LOG_FATAL_ID ("AMI Error ");
+		   TP_LOG_FATAL (ae);
+		   TP_LOG_FATAL ("AMI_single_merge()");
 		    return ae;
 		}
 		// Delete the substreams.
@@ -2813,7 +2811,7 @@ AMI_err AMI_replacement_selection_and_merge_Key (AMI_STREAM < T >
 
 	    } else {
 
-		LOG_DEBUG_ID
+		TP_LOG_DEBUG_ID
 		    ("Merging substreams to an intermediate stream.");
 
 		// Create the array of merge_arity stream pointers that
@@ -3036,9 +3034,9 @@ AMI_err AMI_replacement_selection_and_merge_Key (AMI_STREAM < T >
 					       dummykey);
 
 			if (ae != AMI_ERROR_NO_ERROR) {
-			    LOG_FATAL_ID ("AMI Error ");
-			    LOG_FATAL (ae);
-			    LOG_FATAL ("AMI_single_merge()");
+			   TP_LOG_FATAL_ID ("AMI Error ");
+			   TP_LOG_FATAL (ae);
+			   TP_LOG_FATAL ("AMI_single_merge()");
 			    return ae;
 			}
 

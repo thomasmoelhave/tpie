@@ -8,7 +8,7 @@
 // A main memory version that generates and tabulates but does not maintain
 // the values it generates.
 
-static char nas_ep_mm_id[] = "$Id: nas_ep_mm.cpp,v 1.7 2003-09-13 18:25:30 jan Exp $";
+static char nas_ep_mm_id[] = "$Id: nas_ep_mm.cpp,v 1.8 2004-08-12 12:37:04 jan Exp $";
 
 #include <portability.h>
 
@@ -50,7 +50,8 @@ inline double next_xlc(double xlc, double a1, double a2)
         return (t4 - TWO_TO_46 * t5);
 }
 
-static size_t test_size;
+// We are running the test in main memory.
+static TPIE_OS_SIZE_T test_size;
 
 static bool use_array = false;
 
@@ -78,7 +79,7 @@ int main(int argc, char **argv)
 
     parse_args(argc, argv);
 
-    cout << test_size << ' ' << use_array << '\n';
+    cout << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_size) << ' ' << use_array << '\n';
     
     unsigned int pairs = 0;
     unsigned int ii;
@@ -88,9 +89,9 @@ int main(int argc, char **argv)
     double s;
     double xlc1, xlc2;
     double a1, a2;
-    unsigned int max, remaining;
+    TPIE_OS_SIZE_T max, remaining;
     double sumx, sumy;
-    unsigned int annulus[10];
+    TPIE_OS_OFFSET annulus[10];
 
     // The following was done at construction time in the scan object.
 

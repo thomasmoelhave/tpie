@@ -4,7 +4,7 @@
 //  Created:         05.11.1998
 //  Author:          Jan Vahrenhold
 //  mail:            jan@math.uni-muenster.de
-//  $Id: rstarnode.h,v 1.2 2004-02-05 17:54:14 jan Exp $
+//  $Id: rstarnode.h,v 1.3 2004-08-12 12:37:24 jan Exp $
 //  Copyright (C) 1997-2001 by  
 // 
 //  Jan Vahrenhold
@@ -18,6 +18,8 @@
 //  Prevent multiple includes.
 #ifndef RSTARNODE_H
 #define RSTARNODE_H
+
+#include <portability.h>
 
 //  Include <iostream.h> for output operator.
 #include <iostream>
@@ -49,9 +51,11 @@ const double MIN_FANOUT_FACTOR = 2.5;
 //  Forward declaration of R-Tree base class.
 template<class coord_t, class BTECOLL> class RStarTree;
 
+typedef TPIE_OS_SIZE_T children_count_t;
+
 struct _RStarNode_info {
   AMI_bid parent;
-  unsigned short children;
+  children_count_t children;
   unsigned short flag;
 };
 
@@ -67,7 +71,7 @@ public:
 	    RStarTree<coord_t, BTECOLL>*          tree, 
 	    AMI_bid            parent, 
 	    AMI_bid            ID, 
-	    unsigned short      maxChildren);
+	    children_count_t     maxChildren);
 
   RStarNode(const RStarNode<coord_t, BTECOLL>& other);
   RStarNode<coord_t, BTECOLL>& operator=(const RStarNode<coord_t, BTECOLL>& other);
@@ -97,7 +101,7 @@ public:
   //. The parent node (given by its block ID) can be set and inquired.
 
   //- addChild, setChild, getChild, isParent, findChild, removeChild
-  void setChild(unsigned short   index, const rectangle<coord_t, AMI_bid>& bb) {
+  void setChild(children_count_t index, const rectangle<coord_t, AMI_bid>& bb) {
     assert(index < maxChildren_+1);  
     // The node is allowed to _temporarily_ overflow.
     el[index] = bb;    
@@ -106,14 +110,14 @@ public:
     setChild(numberOfChildren(), bb);
     ++info()->children;
   }
-  const rectangle<coord_t, AMI_bid>& getChild(unsigned short index) const {
+  const rectangle<coord_t, AMI_bid>& getChild(children_count_t index) const {
     assert(index < numberOfChildren());
     return el[index]; 
   }
   bool isParent(const RStarNode<coord_t, BTECOLL>* other) const;
-  unsigned short findChild(AMI_bid ID) const;
-  unsigned short removeChild(const rectangle<coord_t, AMI_bid>& r);
-  unsigned short removeChild(unsigned short ID);
+  children_count_t findChild(AMI_bid ID) const;
+  children_count_t removeChild(const rectangle<coord_t, AMI_bid>& r);
+  children_count_t removeChild(children_count_t ID);
     //. A bounding box can be added as a child of the actual node. 
     //. Precondition: There must be room for the new child.
     //. The bounding box associated with an index can be set and inquired.
@@ -138,7 +142,7 @@ public:
     //. The interpretation of the attribute depends of the kind of node.
 
     //- route
-    unsigned short route(const rectangle<coord_t, AMI_bid>& bb);
+    children_count_t route(const rectangle<coord_t, AMI_bid>& bb);
     //. Find the index of the child whose bounding box needs least enlargement
     //. to include the given bounding box and adjust that child to include
     //. the given box as well.
@@ -151,7 +155,7 @@ public:
     //. adjust the bounding box of the child to include the given object.
 
     //- numberOfChildren, showChildren, updateChildrenParent
-  unsigned short numberOfChildren() const { return info()->children; }
+  children_count_t numberOfChildren() const { return info()->children; }
   void showChildren() const;
     void updateChildrenParent() const;
     //. The number of children can be inquired. A debugging output of the
@@ -166,7 +170,7 @@ public:
   rectangle<coord_t, AMI_bid> getCoveringRectangle() {
     if (coveringRectangle_.getID() != bid()) {
       coveringRectangle_ = getChild(0);
-      for(unsigned short c = 1; c < numberOfChildren(); ++c) {
+      for(children_count_t c = 1; c < numberOfChildren(); ++c) {
 	coveringRectangle_.extend(getChild(c));
       }
       coveringRectangle_.setID(bid());
@@ -211,7 +215,7 @@ public:
     void findNode(
 	AMI_bid             nodeID,
 	AMI_stack<AMI_bid>* candidates, 
-	off_t&               candidatesCounter) const;
+	TPIE_OS_OFFSET&     candidatesCounter) const;
     //. This method realized a depth-first search looking for a node
     //. with a given ID and prints all its contents. For a more detailed
     //. description see "findOverlappingChildren". 
@@ -232,14 +236,14 @@ public:
     void checkChildren(
 	const rectangle<coord_t, AMI_bid>&                  bb, 
 	list<pair<AMI_bid, rectangle<coord_t, AMI_bid> > >& l, 
-	off_t&                            objectCounter);
+	TPIE_OS_OFFSET&                                     objectCounter);
     //. This method is called as a subroutine from the tree-checking
     //. procedure and appends the ID and the bounding box of the
     //. current node to the given list (in main-memory).
     //. This method is used for debugging purposes.
 
     //- chooseSplitAxisAndIndex
-    pair<vector<rectangle<coord_t, AMI_bid> >*, unsigned short> chooseSplitAxisAndIndex() const;
+    pair<vector<rectangle<coord_t, AMI_bid> >*, children_count_t> chooseSplitAxisAndIndex() const;
     //. This method returns the axis perpendicular to which the split
     //. will be performed and the index of the distribution (according to 
     //. [BKSS90] (p.326).)
@@ -250,10 +254,10 @@ protected:
   RStarTree<coord_t, BTECOLL>* tree_;               
   //  Pointer to the tree.
 
-  unsigned short               maxChildren_;        
+  children_count_t               maxChildren_;        
   //  Maximum number of children allowed ofr this node.
 
-  rectangle<coord_t, AMI_bid>                    coveringRectangle_;  
+  rectangle<coord_t, AMI_bid>  coveringRectangle_;  
   //  Can be set by user.
 
 private:
@@ -289,7 +293,7 @@ RStarNode<coord_t, BTECOLL>::RStarNode() {
     cerr << "     RStarTree*          tree," << "\n";
     cerr << "     AMI_bid            parent," << "\n";
     cerr << "     AMI_bid            ID," << "\n";
-    cerr << "     unsigned short      maxChildren)" << "\n";
+    cerr << "     children_count_t      maxChildren)" << "\n";
     cerr << "\n";
     abort();
 }
@@ -300,7 +304,7 @@ RStarNode<coord_t, BTECOLL>::RStarNode(AMI_collection_single<BTECOLL>* pcoll,
 					      RStarTree<coord_t, BTECOLL>* tree, 
 					      AMI_bid parent, 
 					      AMI_bid ID, 
-					      unsigned short maxChildren): 
+					      children_count_t maxChildren): 
   tree_(tree), AMI_block<rectangle<coord_t, AMI_bid>, _RStarNode_info, BTECOLL>(pcoll, 0, ID) {
     
   //  Initialize the four info fields.
@@ -314,7 +318,7 @@ RStarNode<coord_t, BTECOLL>::RStarNode(AMI_collection_single<BTECOLL>* pcoll,
   //  this number fits into the block and is not equal to zero.
   maxChildren_ = el.capacity();
   if (maxChildren <= maxChildren_) {
-    maxChildren_ = max((unsigned short) 2, maxChildren);
+    maxChildren_ = max((children_count_t) 2, maxChildren);
   }
 }
 
@@ -329,9 +333,9 @@ RStarNode<coord_t, BTECOLL>& RStarNode<coord_t, BTECOLL>::operator=(const RStarN
 }
 
 template<class coord_t, class BTECOLL>
-unsigned short RStarNode<coord_t, BTECOLL>::findChild(AMI_bid ID) const {
-  unsigned short counter;
-  unsigned short returnValue_ = maxChildren_;
+children_count_t RStarNode<coord_t, BTECOLL>::findChild(AMI_bid ID) const {
+  children_count_t counter;
+  children_count_t returnValue_ = maxChildren_;
   
   //  Check all children to find the index of the child with 
   //  given ID.
@@ -347,8 +351,8 @@ unsigned short RStarNode<coord_t, BTECOLL>::findChild(AMI_bid ID) const {
 
 template<class coord_t, class BTECOLL>
 bool RStarNode<coord_t, BTECOLL>::isParent(const RStarNode<coord_t, BTECOLL>* other) const {
-  unsigned short counter;
-  unsigned short returnValue_ = maxChildren_;
+  children_count_t counter;
+  children_count_t returnValue_ = maxChildren_;
   AMI_bid  ID = other->bid();
   
   //  Check all children to find the index of the child with 
@@ -369,7 +373,7 @@ void RStarNode<coord_t, BTECOLL>::adjustBoundingRectangle(AMI_bid ID, const rect
   
   //  Search the child with the matching ID and adjust its bounding
   //  rectangle to include the given bounding box.
-  for(unsigned short c = 0; c < numberOfChildren(); ++c) {
+  for(children_count_t c = 0; c < numberOfChildren(); ++c) {
     // [tavi] commented out the temporary.
     //	tempBox = el[c];
     if (el[c].getID() == ID) {
@@ -382,16 +386,16 @@ void RStarNode<coord_t, BTECOLL>::adjustBoundingRectangle(AMI_bid ID, const rect
 template<class coord_t, class BTECOLL>
 void RStarNode<coord_t, BTECOLL>::showChildren() const {
   //  Print all children.
-  for(unsigned short c = 0; c < numberOfChildren(); ++c)
+  for(children_count_t c = 0; c < numberOfChildren(); ++c)
     cout << "  " << el[c] << "\n";
 }
 
 template<class coord_t, class BTECOLL>
-unsigned short RStarNode<coord_t, BTECOLL>::removeChild(const rectangle<coord_t, AMI_bid>& r) {
-  unsigned short childFound = numberOfChildren();
+children_count_t RStarNode<coord_t, BTECOLL>::removeChild(const rectangle<coord_t, AMI_bid>& r) {
+  children_count_t childFound = numberOfChildren();
 
   //  Find the child to be deleted. 
-  for(unsigned short c = 0; c < numberOfChildren(); ++c) {
+  for(children_count_t c = 0; c < numberOfChildren(); ++c) {
     if (el[c] == r) {
       childFound = c;
       break;
@@ -410,7 +414,7 @@ unsigned short RStarNode<coord_t, BTECOLL>::removeChild(const rectangle<coord_t,
 }
 
 template<class coord_t, class BTECOLL>
-unsigned short RStarNode<coord_t, BTECOLL>::removeChild(unsigned short idx) {
+children_count_t RStarNode<coord_t, BTECOLL>::removeChild(children_count_t idx) {
 
   if (idx < numberOfChildren()) {
     if (idx < numberOfChildren() -1)
@@ -423,13 +427,13 @@ unsigned short RStarNode<coord_t, BTECOLL>::removeChild(unsigned short idx) {
 }
 
 template<class coord_t, class BTECOLL>
-void RStarNode<coord_t, BTECOLL>::checkChildren(const rectangle<coord_t, AMI_bid>& bb, list<pair<AMI_bid, rectangle<coord_t, AMI_bid> > >& l, off_t& objectCounter) {
+void RStarNode<coord_t, BTECOLL>::checkChildren(const rectangle<coord_t, AMI_bid>& bb, list<pair<AMI_bid, rectangle<coord_t, AMI_bid> > >& l, TPIE_OS_OFFSET& objectCounter) {
   rectangle<coord_t, AMI_bid> toCompare = el[0];
   toCompare.setID(bid());
   
   //  Compute the bounding box of all children. If the child is the root
   //  of a non-trivial subtree, push its ID on the stack.
-  for( unsigned short c = 0; c < numberOfChildren(); ++c) {
+  for( children_count_t c = 0; c < numberOfChildren(); ++c) {
     toCompare.extend(el[c]);
     if (!isLeaf()) {
       l.push_back(pair<AMI_bid, rectangle<coord_t, AMI_bid> >(el[c].getID(), el[c]));
@@ -458,7 +462,7 @@ void RStarNode<coord_t, BTECOLL>::updateChildrenParent() const {
   
   //  Updating is not possible on leaf-node level.
   if (isLeaf() == false) {
-    for(unsigned short c = 0; c < numberOfChildren(); ++c) {
+    for(children_count_t c = 0; c < numberOfChildren(); ++c) {
       childID = el[c].getID();
       
       //  Read the child 'counter'.
@@ -484,7 +488,7 @@ void RStarNode<coord_t, BTECOLL>::query(const rectangle<coord_t, AMI_bid>& bb, A
   if (isLeaf()) {
     //  If the current node is a leaf, write all children that overlap
     //  the given rectangle 'bb' to the output stream 'matches'.
-    for(unsigned short c = 0; c < numberOfChildren(); ++c) {
+    for(children_count_t c = 0; c < numberOfChildren(); ++c) {
       rb = el[c];
       ++leafCounter;
       if (bb.intersects(rb)) {
@@ -497,7 +501,7 @@ void RStarNode<coord_t, BTECOLL>::query(const rectangle<coord_t, AMI_bid>& bb, A
     //  Increment the size counter of the stack accordingly.
     //  If the flag 'bruteForce' is true, push all children onto the
     //  stack, i.e. perform a depth-first traversal of the tree.
-    for(unsigned short c = 0; c < numberOfChildren(); ++c) {
+    for(children_count_t c = 0; c < numberOfChildren(); ++c) {
       rb = el[c];
       if ((bruteForce) || (bb.intersects(rb))) {
 	candidates->push(rb.getID());
@@ -514,7 +518,7 @@ AMI_bid RStarNode<coord_t, BTECOLL>::findLeaf(const rectangle<coord_t, AMI_bid>&
   if (isLeaf()) {
     //  If the current node is a leaf, write all children that overlap
     //  the given rectangle 'bb' to the output stream 'matches'.
-    for(unsigned short c = 0; c < numberOfChildren(); ++c) {
+    for(children_count_t c = 0; c < numberOfChildren(); ++c) {
       if (el[c] == r) {
 	return bid();
       }
@@ -525,7 +529,7 @@ AMI_bid RStarNode<coord_t, BTECOLL>::findLeaf(const rectangle<coord_t, AMI_bid>&
     //  Increment the size counter of the stack accordingly.
     //  If the flag 'bruteForce' is true, push all children onto the
     //  stack, i.e. perform a depth-first traversal of the tree.
-    for(unsigned short c = 0; c < numberOfChildren(); ++c) {
+    for(children_count_t c = 0; c < numberOfChildren(); ++c) {
       rb = el[c];
       if (r.intersects(rb)) {
 	candidates->push_front(rb.getID());
@@ -538,7 +542,7 @@ AMI_bid RStarNode<coord_t, BTECOLL>::findLeaf(const rectangle<coord_t, AMI_bid>&
 
 
 template<class coord_t, class BTECOLL>
-void RStarNode<coord_t, BTECOLL>::findNode(AMI_bid nodeID, AMI_stack<AMI_bid>* candidates, off_t& candidatesCounter) const {
+void RStarNode<coord_t, BTECOLL>::findNode(AMI_bid nodeID, AMI_stack<AMI_bid>* candidates, TPIE_OS_OFFSET& candidatesCounter) const {
 
   if (isLeaf()) {
     //  If the current node is a leaf, check whether its ID matches
@@ -552,7 +556,7 @@ void RStarNode<coord_t, BTECOLL>::findNode(AMI_bid nodeID, AMI_stack<AMI_bid>* c
     //  one of its children matches the ID in question. Push all 
     //  children onto the stack and adjust the size counter of the
     //  stack accordingly (perform a depth-first traversal of the tree).
-    for(unsigned short c = 0; c < numberOfChildren(); ++c) {
+    for(children_count_t c = 0; c < numberOfChildren(); ++c) {
       rectangle<coord_t, AMI_bid> rb = el[c];
       if (rb.getID() == nodeID) {
 	cout << rb << "\n";
@@ -565,8 +569,8 @@ void RStarNode<coord_t, BTECOLL>::findNode(AMI_bid nodeID, AMI_stack<AMI_bid>* c
 
 
 template<class coord_t, class BTECOLL>
-unsigned short RStarNode<coord_t, BTECOLL>::route(const rectangle<coord_t, AMI_bid>& bb) {
-    unsigned short returnValue_ = 0;
+children_count_t RStarNode<coord_t, BTECOLL>::route(const rectangle<coord_t, AMI_bid>& bb) {
+    children_count_t returnValue_ = 0;
     coord_t        area;
     coord_t        perimeter;
     coord_t        otherArea;
@@ -580,7 +584,7 @@ unsigned short RStarNode<coord_t, BTECOLL>::route(const rectangle<coord_t, AMI_b
     area      = el[0].extendedArea(bb) - el[0].area();
     perimeter = el[0].width() + el[0].height();
     
-    for(unsigned short c = 1; c < numberOfChildren(); ++c) {
+    for(children_count_t c = 1; c < numberOfChildren(); ++c) {
       otherArea      = el[c].extendedArea(bb) - el[c].area();
       otherPerimeter = el[c].width() + el[c].height();
       
@@ -628,13 +632,13 @@ struct sortBoxesAlongYAxis {
 };
 
 template<class coord_t, class BTECOLL>
-pair<vector<rectangle<coord_t, AMI_bid> >*, unsigned short> 
+pair<vector<rectangle<coord_t, AMI_bid> >*, children_count_t> 
 RStarNode<coord_t, BTECOLL>::chooseSplitAxisAndIndex() const {
 
     const unsigned short dim = 2;
     vector<rectangle<coord_t, AMI_bid> >* toSort[dim];
-    unsigned short     c;
-    unsigned short     c2;
+    children_count_t     c;
+    children_count_t     c2;
     unsigned short     dimC;
 
     coord_t S[dim];
@@ -649,10 +653,10 @@ RStarNode<coord_t, BTECOLL>::chooseSplitAxisAndIndex() const {
     }
 
 
-    unsigned short firstGroupMinSize = (unsigned short)(maxChildren_ / MIN_FANOUT_FACTOR);
-    unsigned short distributions = maxChildren_ - 2*firstGroupMinSize + 1;
-//    unsigned short distributions = numberOfChildren() - (unsigned short)(maxChildren_ / MIN_FANOUT_FACTOR) + 2;
-//    unsigned short firstGroupMinSize = (unsigned short)(maxChildren_ / MIN_FANOUT_FACTOR);
+    children_count_t firstGroupMinSize = (children_count_t)(maxChildren_ / MIN_FANOUT_FACTOR);
+    children_count_t distributions = maxChildren_ - 2*firstGroupMinSize + 1;
+//    children_count_t distributions = numberOfChildren() - (children_count_t)(maxChildren_ / MIN_FANOUT_FACTOR) + 2;
+//    children_count_t firstGroupMinSize = (children_count_t)(maxChildren_ / MIN_FANOUT_FACTOR);
 
     //  area-value:    area[bb(first group)] +
     //                 area[bb(second group)]
@@ -731,7 +735,7 @@ RStarNode<coord_t, BTECOLL>::chooseSplitAxisAndIndex() const {
     
     //  "Choose the axis with the minimum S as split axis."
     unsigned short splitAxis = 0;
-    unsigned short bestSoFar = 0;
+    children_count_t bestSoFar = 0;
     coord_t minS = S[0];
 
     for (dimC = 1; dimC < dim; ++dimC) {
@@ -761,7 +765,7 @@ RStarNode<coord_t, BTECOLL>::chooseSplitAxisAndIndex() const {
 	}
     }
 
-    return pair<vector<rectangle<coord_t, AMI_bid> >*, unsigned short>(toSort[splitAxis], bestSoFar);
+    return pair<vector<rectangle<coord_t, AMI_bid> >*, children_count_t>(toSort[splitAxis], bestSoFar);
 }
 
 

@@ -5,7 +5,7 @@
 // Created: 3/29/95
 //
 
-static char scan_build_smoother_id[] = "$Id: scan_build_smoother.cpp,v 1.1 1995-04-03 13:16:56 dev Exp $";
+static char scan_build_smoother_id[] = "$Id: scan_build_smoother.cpp,v 1.2 2004-08-12 12:37:04 jan Exp $";
 
 
 // Get information on the configuration to test.
@@ -25,7 +25,7 @@ double scan_build_smoother::coeffs[27] = {
 };
 
 
-scan_build_smoother::scan_build_smoother(unsigned int dim) :
+scan_build_smoother::scan_build_smoother(TPIE_OS_OFFSET dim) :
         n(dim)
 {
 }

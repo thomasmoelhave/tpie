@@ -5,21 +5,24 @@
 // Created:      01/24/99
 // Description:  
 //
-// $Id: joinlog.h,v 1.1 2003-11-21 17:01:09 tavi Exp $
+// $Id: joinlog.h,v 1.2 2004-08-12 12:39:44 jan Exp $
 //
 #ifndef JOINLOG_H
 #define JOINLOG_H
 
+#include <portability.h>
+
+// Most of the statistics do not work on WIN32 platforms.
+#ifndef _WIN32
+
 #include <sys/types.h>
 #include <sys/signal.h>
-//#include <sys/fault.h>
+#include <sys/fault.h>
 #include <sys/syscall.h>
 #include <sys/procfs.h>
-#include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <stdio.h>
-#include <sys/time.h>
 #include <sys/resource.h>
 #include <unistd.h>
 #ifdef __FreeBSD__
@@ -48,6 +51,8 @@ struct    rusage {
 };
 #endif
 
+#endif // ifndef _WIN32
+
 //  Do not remove this #include !!!
 #include "app_config.h"
 
@@ -63,9 +68,9 @@ public:
     JoinLog(
 	const char*    program, 
 	const char*    redName, 
-	off_t          redLength, 
+	TPIE_OS_OFFSET redLength, 
 	const char*    blueName, 
-	off_t          blueLength, 
+	TPIE_OS_OFFSET blueLength, 
 	unsigned short fanOut = 0);
     ~JoinLog();
     //.  The constructor expects the identifier of the program from which it
@@ -76,14 +81,14 @@ public:
     void UsageStart();
     void UsageEnd(
 	const char*   where = NULL,
-	unsigned long resultLength = 0);
+	TPIE_OS_OFFSET resultLength = 0);
     void UsageEndBrief(const char* where = NULL);
     //.  UsageStart starts recording statistics, whereas UsageEnd and 
     //.  UsageEndBrief stop recording and print the statistics.
 
     //- setRedLength, setBlueLength
-    void setRedLength(off_t redSize);
-    void setBlueLength(off_t redSize);
+    void setRedLength(TPIE_OS_OFFSET redSize);
+    void setBlueLength(TPIE_OS_OFFSET redSize);
     //.  The size of the input data can be explicitly set. This is 
     //.  necessary for working with "sortjoin".
 
@@ -96,20 +101,20 @@ protected:
 
     char*          program_;     //  Identifier of the program.
     char*          redName_;     //  Red input stream.
-    off_t          redLength_;   //  Number of red objects.
+    TPIE_OS_OFFSET redLength_;   //  Number of red objects.
     char*          blueName_;    //  Blue input stream.
-    off_t          blueLength_;  //  Number of blue objects.
+    TPIE_OS_OFFSET blueLength_;  //  Number of blue objects.
     unsigned short fanOut_;      //  Fanout of the tree.
 
 private:
 
 };
 
-inline void JoinLog::setRedLength(off_t redLength) {
+inline void JoinLog::setRedLength(TPIE_OS_OFFSET redLength) {
     redLength_ = redLength;
 }
 
-inline void JoinLog::setBlueLength(off_t blueLength) {
+inline void JoinLog::setBlueLength(TPIE_OS_OFFSET blueLength) {
     blueLength_ = blueLength;
 }
 

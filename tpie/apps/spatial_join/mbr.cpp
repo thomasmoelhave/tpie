@@ -4,7 +4,7 @@
 // Author: Octavian Procopiuc <tavi@cs.duke.edu>
 // Created: 01/27/99
 //
-// $Id: mbr.cpp,v 1.1 2003-11-21 17:01:09 tavi Exp $
+// $Id: mbr.cpp,v 1.2 2004-08-12 12:39:44 jan Exp $
 //
 // Performs a scan of a stream of rectangles to find their minimum
 // bounding rectangle (MBR). The MBR is written on cout, as well as in
@@ -18,6 +18,11 @@
 #include "app_config.h"
 #include <ami.h>
 #include "rectangle.h"
+
+TPIE_OS_SIZE_T test_mm_size = 0; // Not used.
+TPIE_OS_OFFSET test_size = 0; // Not used.
+bool verbose = false; // Not used.
+int random_seed = 17; // Not used.
 
 class MBRScanner: AMI_scan_object {
 protected:
@@ -33,6 +38,7 @@ public:
   }
 
   AMI_err initialize() {
+	  return AMI_ERROR_NO_ERROR;
   }
 
     AMI_err operate(const rectangle &in, AMI_SCAN_FLAG *sfin) {

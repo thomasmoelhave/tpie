@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 11/1/94
 //
-// $Id: ami_gen_perm.h,v 1.13 2003-09-27 06:18:05 tavi Exp $
+// $Id: ami_gen_perm.h,v 1.14 2004-08-12 12:35:30 jan Exp $
 //
 // General permutation.
 //
@@ -57,6 +57,7 @@ public:
     }
 };
     
+
 template<class T>
 class gen_perm_strip_dest : AMI_scan_object {
 public:
@@ -82,17 +83,20 @@ public:
     dest_obj(void) {};
     dest_obj(T t_in, TPIE_OS_OFFSET d) : t(t_in), dest(d) {};
     ~dest_obj(void) {};
-#if (__GNUC__ > 2) || (__GNUC__ == 2 &&  __GNUC_MINOR__ >= 8)
+
+	// The second alternative caused problems on Win32 (jv)
+//#if (__GNUC__ > 2) || (__GNUC__ == 2 &&  __GNUC_MINOR__ >= 8)
     friend int operator< <> (const dest_obj<T> &s, const dest_obj<T> &t);
     friend int operator> <> (const dest_obj<T> &s, const dest_obj<T> &t);
-#else
-    friend int operator< (const dest_obj<T> &s, const dest_obj<T> &t);
-    friend int operator> (const dest_obj<T> &s, const dest_obj<T> &t);
-#endif
+//#else
+//    friend int operator< (const dest_obj<T> &s, const dest_obj<T> &t);
+//    friend int operator> (const dest_obj<T> &s, const dest_obj<T> &t);
+//#endif
     friend AMI_err gen_perm_strip_dest<T>::operate(const dest_obj<T> &in,
                                            AMI_SCAN_FLAG *sfin, T *out,
                                            AMI_SCAN_FLAG *sfout);
 };
+
 
 template<class T>
 AMI_err AMI_general_permute(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,

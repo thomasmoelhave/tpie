@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/12/94
 //
-// $Id: tpie_assert.h,v 1.8 2003-09-12 01:46:38 jan Exp $
+// $Id: tpie_assert.h,v 1.9 2004-08-12 12:35:32 jan Exp $
 //
 
 #ifndef _TPIE_ASSERT_H
@@ -21,8 +21,8 @@
 
 #define tp_assert(condition,message) { \
   if (!(condition)) { \
-    LOG_FATAL_ID("Assertion failed:"); \
-    LOG_FATAL_ID(message); \
+   TP_LOG_FATAL_ID("Assertion failed:"); \
+   TP_LOG_FATAL_ID(message); \
     cerr << "Assertion failed: " << message << "\n"; \
     assert(0); \
   } \

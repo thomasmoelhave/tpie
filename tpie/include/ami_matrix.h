@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/9/94
 //
-// $Id: ami_matrix.h,v 1.13 2003-09-27 06:18:05 tavi Exp $
+// $Id: ami_matrix.h,v 1.14 2004-08-12 12:35:30 jan Exp $
 //
 #ifndef _AMI_MATRIX_H
 #define _AMI_MATRIX_H
@@ -33,16 +33,16 @@
 template<class T>
 class AMI_matrix : public AMI_STREAM<T> {
 private:
-    unsigned int r,c;
+    TPIE_OS_OFFSET r,c;
 public:
-    AMI_matrix(unsigned int row, unsigned int col);
+    AMI_matrix(TPIE_OS_OFFSET row, TPIE_OS_OFFSET col);
     ~AMI_matrix(void);
-    unsigned int rows();
-    unsigned int cols();
+    TPIE_OS_OFFSET rows();
+    TPIE_OS_OFFSET cols();
 };
 
 template<class T>
-AMI_matrix<T>::AMI_matrix(unsigned int row, unsigned int col) :
+AMI_matrix<T>::AMI_matrix(TPIE_OS_OFFSET row, TPIE_OS_OFFSET col) :
         r(row), c(col), AMI_STREAM<T>()
 {
 }
@@ -53,13 +53,13 @@ AMI_matrix<T>::~AMI_matrix(void)
 }
 
 template<class T>
-unsigned int AMI_matrix<T>::rows(void)
+TPIE_OS_OFFSET AMI_matrix<T>::rows(void)
 {
     return r;
 }
 
 template<class T>
-unsigned int AMI_matrix<T>::cols(void)
+TPIE_OS_OFFSET AMI_matrix<T>::cols(void)
 {
     return c;
 }
@@ -108,9 +108,9 @@ AMI_err AMI_matrix_mult(AMI_matrix<T> &op1, AMI_matrix<T> &op2,
 {
     AMI_err ae;
     
-    size_t sz_avail;
-    size_t mm_matrix_extent;
-    size_t single_stream_usage;    
+    TPIE_OS_SIZE_T sz_avail;
+    TPIE_OS_SIZE_T mm_matrix_extent;
+    TPIE_OS_SIZE_T single_stream_usage;    
     
     // Check bounds on the matrices to make sure they match up.
     if ((op1.cols() != op2.rows()) || (res.rows() != op1.rows()) ||
@@ -132,20 +132,20 @@ AMI_err AMI_matrix_mult(AMI_matrix<T> &op1, AMI_matrix<T> &op2,
     // Will the problem fit in main memory?
 
     {
-        size_t sz_op1 = op1.rows() * op1.cols() * sizeof(T);
-        size_t sz_op2 = op2.rows() * op2.cols() * sizeof(T);
-        size_t sz_res = res.rows() * res.cols() * sizeof(T);
+        TPIE_OS_OFFSET sz_op1 = op1.rows() * op1.cols() * sizeof(T);
+        TPIE_OS_OFFSET sz_op2 = op2.rows() * op2.cols() * sizeof(T);
+        TPIE_OS_OFFSET sz_res = res.rows() * res.cols() * sizeof(T);
     
         if (sz_avail > sz_op1 + sz_op2 + sz_res + 3 * single_stream_usage +
             3 * sizeof(matrix<T>)) {
 
-            unsigned int ii,jj;
+            TPIE_OS_SIZE_T ii,jj;
             T *tmp_read;
             
             // Main memory copies of the matrices.
-            matrix<T> mm_op1(op1.rows(), op1.cols());
-            matrix<T> mm_op2(op2.rows(), op2.cols());
-            matrix<T> mm_res(res.rows(), res.cols());
+            matrix<T> mm_op1((TPIE_OS_SIZE_T)op1.rows(), (TPIE_OS_SIZE_T)op1.cols());
+            matrix<T> mm_op2((TPIE_OS_SIZE_T)op2.rows(), (TPIE_OS_SIZE_T)op2.cols());
+            matrix<T> mm_res((TPIE_OS_SIZE_T)res.rows(), (TPIE_OS_SIZE_T)res.cols());
             
             // Read in the matrices and solve in main memory.
 
@@ -201,9 +201,9 @@ AMI_err AMI_matrix_mult(AMI_matrix<T> &op1, AMI_matrix<T> &op2,
 
     {
                     
-        unsigned int num_active_streams = 4 + 4;
-        size_t mm_matrix_space;
-        size_t single_stream_usage;
+        TPIE_OS_SIZE_T num_active_streams = 4 + 4;
+        TPIE_OS_SIZE_T mm_matrix_space;
+        TPIE_OS_SIZE_T single_stream_usage;
     
         // What is the maximum extent of any matrix we will try to
         // load into memory?  We may have up to four in memory at any
@@ -224,36 +224,36 @@ AMI_err AMI_matrix_mult(AMI_matrix<T> &op1, AMI_matrix<T> &op2,
 #ifdef AGGARWAL_MATRIX_MULT_IN_PLACE
         // Recall that a temporary vector is used, so we solve x^2 + x = m
         // for x, instead of the usual x^2 = m.
-        mm_matrix_extent = (unsigned int)(sqrt(1.0 +
+        mm_matrix_extent = (TPIE_OS_SIZE_T)(sqrt(1.0 +
                                                4 * (double)mm_matrix_space /
                                                sizeof(T)) / 2) - 1;
 #else        
-        mm_matrix_extent = (unsigned int)sqrt((double)mm_matrix_space /
+        mm_matrix_extent = (TPIE_OS_SIZE_T)sqrt((double)mm_matrix_space /
                                               sizeof(T));    
 #endif
         // How many rows and columns of chunks in each matrix?
         
-        unsigned int chunkrows1 = ((op1.rows() - 1) /
+        TPIE_OS_OFFSET chunkrows1 = ((op1.rows() - 1) /
                                    mm_matrix_extent) + 1;
-        unsigned int chunkcols1 = ((op1.cols() - 1) /
+        TPIE_OS_OFFSET chunkcols1 = ((op1.cols() - 1) /
                                    mm_matrix_extent) + 1;
-        unsigned int chunkrows2 = ((op2.rows() - 1) /
+        TPIE_OS_OFFSET chunkrows2 = ((op2.rows() - 1) /
                                    mm_matrix_extent) + 1;
-        unsigned int chunkcols2 = ((op2.cols() - 1) /
+        TPIE_OS_OFFSET chunkcols2 = ((op2.cols() - 1) /
                                    mm_matrix_extent) + 1;
         
         // Now shrink the main memory matrix extent as much as possible
         // given the constraint that the number of chunk rows and cols
         // in each matrix cannot decrease.
 
-        unsigned int min_rows_per_chunk1 = ((op1.rows() + chunkrows1 - 1) /
+        TPIE_OS_SIZE_T min_rows_per_chunk1 = (TPIE_OS_SIZE_T)((op1.rows() + chunkrows1 - 1) /
                                             chunkrows1);
-        unsigned int min_cols_per_chunk1 = ((op1.cols() + chunkcols1 - 1) /
+        TPIE_OS_SIZE_T min_cols_per_chunk1 = (TPIE_OS_SIZE_T)((op1.cols() + chunkcols1 - 1) /
                                             chunkcols1);
         
-        unsigned int min_rows_per_chunk2 = ((op2.rows() + chunkrows2 - 1) /
+        TPIE_OS_SIZE_T min_rows_per_chunk2 = (TPIE_OS_SIZE_T)((op2.rows() + chunkrows2 - 1) /
                                             chunkrows2);
-        unsigned int min_cols_per_chunk2 = ((op2.cols() + chunkcols2 - 1) /
+        TPIE_OS_SIZE_T min_cols_per_chunk2 = (TPIE_OS_SIZE_T)((op2.cols() + chunkcols2 - 1) /
                                             chunkcols2);
         
         // Adjust the main memory matrix extent so that an integral
@@ -273,14 +273,14 @@ AMI_err AMI_matrix_mult(AMI_matrix<T> &op1, AMI_matrix<T> &op2,
         
         // How many rows and cols in padded matrices.
         
-        unsigned int rowsp1 = mm_matrix_extent * (((op1.rows() - 1) /
+        TPIE_OS_OFFSET rowsp1 = mm_matrix_extent * (((op1.rows() - 1) /
                                                    mm_matrix_extent) + 1);
-        unsigned int colsp1 = mm_matrix_extent * (((op1.cols() - 1) /
+        TPIE_OS_OFFSET colsp1 = mm_matrix_extent * (((op1.cols() - 1) /
                                                   mm_matrix_extent) + 1);
 
-        unsigned int rowsp2 = mm_matrix_extent * (((op2.rows() - 1) /
+        TPIE_OS_OFFSET rowsp2 = mm_matrix_extent * (((op2.rows() - 1) /
                                                    mm_matrix_extent) + 1);
-        unsigned int colsp2 = mm_matrix_extent * (((op2.cols() - 1) /
+        TPIE_OS_OFFSET colsp2 = mm_matrix_extent * (((op2.cols() - 1) /
                                                    mm_matrix_extent) + 1);
 
         
@@ -370,7 +370,7 @@ AMI_err AMI_matrix_mult(AMI_matrix<T> &op1, AMI_matrix<T> &op2,
             matrix<T> mm_op2(mm_matrix_extent, mm_matrix_extent);
             matrix<T> mm_accum(mm_matrix_extent, mm_matrix_extent);
             
-            unsigned int ii,jj,kk;
+            TPIE_OS_OFFSET ii,jj,kk;
             T *tmp_read;
 
             respp->seek(0);
@@ -385,7 +385,7 @@ AMI_err AMI_matrix_mult(AMI_matrix<T> &op1, AMI_matrix<T> &op2,
 
                     // These are for looping over rows and cols of MM
                     // matrices.
-                    unsigned int ii1,jj1;
+                    TPIE_OS_SIZE_T ii1,jj1;
 
                     // Clear the temporary result.
                     for (ii1 = 0; ii1 < mm_matrix_extent; ii1++ ) {

@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 3/29/95
 //
-// $Id: scan_build_smoother.h,v 1.2 1999-02-03 22:03:22 tavi Exp $
+// $Id: scan_build_smoother.h,v 1.3 2004-08-12 12:37:04 jan Exp $
 //
 #ifndef _SCAN_BUILD_SMOOTHER_H
 #define _SCAN_BUILD_SMOOTHER_H
@@ -29,11 +29,11 @@ class scan_build_smoother : public AMI_scan_object
 {
 private:
     static double coeffs[27];
-    unsigned int n;
-    unsigned int x,y,z;
+    TPIE_OS_OFFSET n;
+    TPIE_OS_OFFSET x,y,z;
     int ii,jj,kk;
 public:
-    scan_build_smoother(unsigned int dim);
+    scan_build_smoother(TPIE_OS_OFFSET dim);
     virtual ~scan_build_smoother();
     AMI_err initialize();
     AMI_err operate(AMI_sm_elem<double> *out, AMI_SCAN_FLAG *sf);
