@@ -2,12 +2,15 @@
 // File:    bte_coll_ufs.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: bte_coll_ufs.h,v 1.4 2002-01-15 03:02:31 tavi Exp $
+// $Id: bte_coll_ufs.h,v 1.5 2002-01-25 21:46:00 tavi Exp $
 //
 // BTE_collection_ufs class definition.
 //
 #ifndef _BTE_COLL_UFS_H
 #define _BTE_COLL_UFS_H
+
+// For header's type field (85 == 'U').
+#define BTE_COLLECTION_UFS 85
 
 #include <bte_coll_base.h>
 
@@ -18,7 +21,9 @@ public:
   BTE_collection_ufs(const char *base_file_name,
 		     BTE_collection_type type = BTE_WRITE_COLLECTION,
 		     size_t logical_block_factor = 1):
-    BTE_collection_base(base_file_name, type, logical_block_factor) {}
+    BTE_collection_base(base_file_name, type, logical_block_factor) {
+    header_.type = BTE_COLLECTION_UFS;
+  }
 
   // Allocate a new block in block collection and then read that block into
   // memory, allocating and returning an appropriately initialized
