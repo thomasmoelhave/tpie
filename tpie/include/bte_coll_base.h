@@ -3,7 +3,7 @@
 // Authors: Octavian Procopiuc <tavi@cs.duke.edu>
 //          (using some code by Rakesh Barve)
 //
-// $Id: bte_coll_base.h,v 1.10 2002-01-15 03:00:58 tavi Exp $
+// $Id: bte_coll_base.h,v 1.11 2002-01-25 21:47:23 tavi Exp $
 //
 // BTE_collection_base class and various basic definitions.
 //
@@ -70,6 +70,14 @@ public:
   unsigned int magic_number;
   // Should be 1 for current version.
   unsigned int version;
+  // The type of BTE_COLLECTION that created this header. Setting this
+  // field is optional and is mostly for information purposes and
+  // similarity with stream header. The current implementations all
+  // use the same file format; it's not important to differentiate
+  // among them, since they can all read each other's collections. If
+  // used, it should be set to a non-zero value (zero is reserved for
+  // the base class).
+  unsigned int type;
   // The number of bytes in this structure.
   size_t header_length;
   // The number of blocks consumed by this collection, plus 1.
