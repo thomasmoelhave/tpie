@@ -20,7 +20,7 @@
 // keys of the items; there is a provision to to use templated heaps
 // to implement the merge.
 
-// $Id: ami_optimized_merge.h,v 1.40 1999-06-27 21:50:13 laura Exp $	
+// $Id: ami_optimized_merge.h,v 1.41 1999-07-06 02:59:55 rajiv Exp $	
 // TO DO: substream_count setting; don't depend on current_stream_len
 
 
@@ -1684,7 +1684,7 @@ AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
 	  LOG_DEBUG_ID("memory error");
 	  return AMI_ERROR_MM_ERROR;
     }
-if(XXX_PRINT) XXX;
+
     //Conservatively assume that the memory for buffers for 
     //the two streams is unallocated; so we need to subtract.
 
@@ -1694,7 +1694,7 @@ if(XXX_PRINT) XXX;
 	  LOG_DEBUG_ID("memory error");
 	  return ae;
 	}                                     
-if(XXX_PRINT) XXX;
+
     if ((ae = instream->main_memory_usage(&sz_substream, 
 										  MM_STREAM_USAGE_OVERHEAD)) !=
 		AMI_ERROR_NO_ERROR) {
@@ -1702,7 +1702,7 @@ if(XXX_PRINT) XXX;
 	  LOG_DEBUG_ID("memory error");
 	  return ae;
 	}   
-if(XXX_PRINT) XXX;
+
     sz_avail -= 2*sz_stream;
 
 
@@ -1718,25 +1718,25 @@ if(XXX_PRINT) XXX;
     len = instream->stream_len();
     instream->seek(0);
 
-if(XXX_PRINT) XXX;
+
     if ((len * sizeof(T)) <= sz_avail) 
 
           {
            
            T * next_item;
            T * mm_stream = new T[len];
-if(XXX_PRINT) XXX;
+
            for (int i = 0; i <  len; i++)
            {
             if ((ae =  instream->read_item(&next_item)) != AMI_ERROR_NO_ERROR)
 			  {
-if(XXX_PRINT) XXX;
+
 				LOG_DEBUG_ID("read error");
 				return ae;
 			  }
             mm_stream[i] = *next_item;
            }
-if(XXX_PRINT) XXX;
+
   cout << "qsorting in all in-memory-sort\n";
            quicker_sort_cmp((T *)mm_stream,len,cmp);
 		 cout << "returned from qsorting\n";
@@ -1756,7 +1756,7 @@ if(XXX_PRINT) XXX;
             return AMI_ERROR_NO_ERROR;
 
     } else {
-if(XXX_PRINT) XXX;
+
         // The number of substreams that the original input stream
         // will be split into.
         
@@ -1786,7 +1786,7 @@ if(XXX_PRINT) XXX;
 
         // The stream being read at the current level.
         
-if(XXX_PRINT) XXX;
+
         //RAKESH
         AMI_STREAM<T> **current_input;
 
@@ -1840,7 +1840,7 @@ if(XXX_PRINT) XXX;
 	   //To support a binary merge, need space for max_stream_usage
 	   //for at least three stream objects.
 
-if(XXX_PRINT) XXX;
+
          if (sz_avail <= 3*(sz_stream + sz_substream 
                             + sizeof(merge_heap_element<T>))
 
@@ -1851,7 +1851,7 @@ if(XXX_PRINT) XXX;
 		   return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
          }
  
-if(XXX_PRINT) XXX;
+
        sz_original_substream = (sz_avail)/sizeof(T);
 
         // Round the original substream length off to an integral
@@ -1889,7 +1889,7 @@ if(XXX_PRINT) XXX;
             merge_arity = sz_avail_during_merge/sz_stream_during_merge;
 
         }
-if(XXX_PRINT) XXX;
+
         // Make sure that the AMI is willing to provide us with the
         // number of substreams we want.  It may not be able to due to
         // operating system restrictions, such as on the number of
@@ -1924,7 +1924,7 @@ if(XXX_PRINT) XXX;
 
         return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
         }
-if(XXX_PRINT) XXX;
+
  
 //#define MINIMIZE_INITIAL_SUBSTREAM_LENGTH
 #ifdef MINIMIZE_INITIAL_SUBSTREAM_LENGTH
@@ -2000,7 +2000,7 @@ if(XXX_PRINT) XXX;
 
        initial_tmp_stream = new (AMI_STREAM<T> *)[merge_arity];
        mm_stream = new T[sz_original_substream];
-if(XXX_PRINT) XXX;
+
        
         tp_assert(mm_stream != NULL, "Misjudged available main memory.");
 
@@ -2031,7 +2031,7 @@ if(XXX_PRINT) XXX;
      char new_stream_name[BTE_PATH_NAME_LEN];
 
      //For the first stream:
-if(XXX_PRINT) XXX;
+
     for (ii_streams = 0; ii_streams < merge_arity; ii_streams ++)
     {
 
@@ -2059,7 +2059,7 @@ if(XXX_PRINT) XXX;
     //directory in which the temporary/intermediate streams will be made.
     //By default, I think we shd 
 
-if(XXX_PRINT) XXX;
+
       stream_name_generator(working_disk, 
                            prefix_name[0], 
                            current_stream, 
@@ -2077,7 +2077,7 @@ if(XXX_PRINT) XXX;
 
         initial_tmp_stream[current_stream] = new AMI_STREAM<T>(
                                                 new_stream_name);
-if(XXX_PRINT) XXX;
+
         initial_tmp_stream[current_stream]->persist(PERSIST_PERSISTENT); 
 
 
@@ -2110,7 +2110,7 @@ if(XXX_PRINT) XXX;
 
             // Read a memory load out of the input stream one item at a time,
 		  // fill up the key array at the same time.
-if(XXX_PRINT) XXX;
+
            {
            T * next_item;
            for (int i = 0; i <  mm_len; i++)
@@ -2122,7 +2122,7 @@ if(XXX_PRINT) XXX;
 			  }
             mm_stream[i] = *next_item;
            }
-if(XXX_PRINT) XXX;
+
 		 //Sort the array.
 
   cout << "quicksorting\n";
@@ -2163,7 +2163,7 @@ if(XXX_PRINT) XXX;
                 // We do not want old streams hanging around
                 // occuping memory. We know how to get the streams
                 // since we can generate their names
-if(XXX_PRINT) XXX;
+
 
               if (initial_tmp_stream[current_stream])
                       { 
@@ -2200,7 +2200,7 @@ if(XXX_PRINT) XXX;
                 initial_tmp_stream[current_stream] =
                            new AMI_STREAM<T>(new_stream_name);
 
-if(XXX_PRINT) XXX;
+
 
                 
                 initial_tmp_stream[current_stream]->persist(PERSIST_PERSISTENT);
@@ -2231,7 +2231,7 @@ if(XXX_PRINT) XXX;
         // Make sure the total length of the temporary stream is the
         // same as the total length of the original input stream.
 
-if(XXX_PRINT) XXX;
+
         tp_assert(instream->stream_len() == check_size,
                   "Stream lengths do not match:" <<
                   "\n\tinstream->stream_len() = " << instream->stream_len() <<
@@ -2283,7 +2283,7 @@ if(XXX_PRINT) XXX;
 		{
 
 
-if(XXX_PRINT) XXX;
+
             // Set up to process a given level.
 //RAKESH
             tp_assert(len == check_size,
@@ -2356,7 +2356,7 @@ if(XXX_PRINT) XXX;
 				               outstream,
                                    cmp);
 
-if(XXX_PRINT) XXX;
+
 
                 if (ae != AMI_ERROR_NO_ERROR) {
 				  LOG_DEBUG_ID("AMI_single_merge error");			   
@@ -2410,7 +2410,7 @@ if(XXX_PRINT) XXX;
 //         The names of these streams (storing the input runs)
 //         can be constructed from  prefix_name[k % 2]
 
-if(XXX_PRINT) XXX;
+
 		for (ii=0; ii < merge_arity; ii++)
                 	{
 
@@ -2475,7 +2475,7 @@ if(XXX_PRINT) XXX;
 #endif 
 
 
-if(XXX_PRINT) XXX;
+
 
          intermediate_tmp_stream[current_stream] = new
                                     AMI_STREAM<T>(new_stream_name);
@@ -2514,7 +2514,7 @@ if(XXX_PRINT) XXX;
                runs_in_current_stream = 0;
                unsigned int merge_number = 0;
 
-if(XXX_PRINT) XXX;
+
                
 
                 // Loop through the substreams of the current stream,
@@ -2617,7 +2617,7 @@ if(XXX_PRINT) XXX;
 
                         intermediate_tmp_stream[current_stream] = new
                                     AMI_STREAM<T>(new_stream_name);
-if(XXX_PRINT) XXX;
+
 
 
                         intermediate_tmp_stream[current_stream]->persist(
@@ -2706,7 +2706,7 @@ if(XXX_PRINT) XXX;
 
         }
 
-if(XXX_PRINT) XXX; 
+ 
 	   //Monitoring prints.
 
         LOG_DEBUG_INFO("Number of passes incl run formation is " << k+1 << "\n");
