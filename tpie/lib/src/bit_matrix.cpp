@@ -5,7 +5,7 @@
 // Created: 1/9/95
 //
 
-static char bit_matrix_id[] = "$Id: bit_matrix.cpp,v 1.4 1997-05-20 22:04:13 vengroff Exp $";
+static char bit_matrix_id[] = "$Id: bit_matrix.cpp,v 1.5 1998-11-08 22:42:51 tavi Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -45,7 +45,7 @@ bit_matrix & bit_matrix::operator=(const off_t &rhs)
     unsigned int rows = this->rows();
     unsigned int ii;
 
-    if (this.cols() != 1) {
+    if (this->cols() != 1) {
 #if HANDLE_EXCEPTIONS
         throw matrix_base<bit>::range();
 #else
@@ -67,7 +67,7 @@ bit_matrix::operator off_t(void)
     unsigned int rows = this->rows();
     unsigned int ii;
 
-    if (this.cols() != 1) {
+    if (this->cols() != 1) {
 #if HANDLE_EXCEPTIONS
         throw matrix_base<bit>::range();
 #else
