@@ -15,7 +15,7 @@
 // a quicksort using only keys of the items; there is a provision to 
 // to use templated heaps to implement the merge.
 
-// 	$Id: ami_optimized_merge.h,v 1.22 1999-04-16 21:37:48 rbarve Exp $	
+// 	$Id: ami_optimized_merge.h,v 1.23 1999-04-20 20:49:08 rbarve Exp $	
 //TO DO: substream_count setting; don't depend on current_stream_len
 
 
@@ -188,9 +188,26 @@ XXX
     sz_avail -= 2*sz_stream;
 
 
-    //working_disk = getenv("TMP");
 
-    working_disk = tempnam(NULL, "Temp");
+
+    char * temp_string;
+    temp_string = getenv(AMI_SINGLE_DEVICE_ENV);
+     if (temp_string == NULL){
+	    temp_string = getenv(TMP_DIR_ENV);
+      if (temp_string == NULL)
+	    {
+            temp_string = getenv(TMP_DIR); 
+            working_disk = tempnam(temp_string,"Temp");
+	    }
+       else
+             working_disk = tempnam(temp_string,"Temp");
+    }
+    else
+	 { 
+        working_disk = tempnam(temp_string,"Temp");
+	 }
+
+
 
     // If the whole input can fit in main memory then just call
     // AMI_main_mem_merge() to deal with it by loading it once and
@@ -1250,10 +1267,26 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
 
     sz_avail -= 2*sz_stream;
 
+    char * temp_string;
+    temp_string = getenv(AMI_SINGLE_DEVICE_ENV);
+     if (temp_string == NULL){
+	    temp_string = getenv(TMP_DIR_ENV);
+      if (temp_string == NULL)
+	    {
+            temp_string = getenv(TMP_DIR); 
+            working_disk = tempnam(temp_string,"Temp");
+	    }
+       else
+             working_disk = tempnam(temp_string,"Temp");
+    }
+    else
+	 { 
+        working_disk = tempnam(temp_string,"Temp");
+	 }
 
-    //working_disk = getenv("TMP");
 
-    working_disk = tempnam(NULL, "Temp");
+
+
 
     // If the whole input can fit in main memory then just call
     // AMI_main_mem_merge() to deal with it by loading it once and
@@ -2304,8 +2337,21 @@ AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
 
 
 #ifndef BTE_IMP_USER_DEFINED
-    //    working_disk = getenv("TMP");
-    working_disk = tempnam(NULL, "Temp");
+    temp_string = getenv(AMI_SINGLE_DEVICE_ENV);
+     if (temp_string == NULL){
+	    temp_string = getenv(TMP_DIR_ENV);
+      if (temp_string == NULL)
+	    {
+            temp_string = getenv(TMP_DIR); 
+            working_disk = tempnam(temp_string,"Temp");
+	    }
+       else
+             working_disk = tempnam(temp_string,"Temp");
+    }
+    else
+	 { 
+        working_disk = tempnam(temp_string,"Temp");
+	 }
 #endif
 
     // If the whole input can fit in main memory then just call
