@@ -6,13 +6,20 @@
 //
 
 #include <versions.h>
-VERSION(test_ami_btree_cpp, "$Id: test_ami_btree.cpp,v 1.9 2002-06-25 21:03:04 tavi Exp $");
+VERSION(test_ami_btree_cpp, "$Id: test_ami_btree.cpp,v 1.10 2003-04-21 04:28:49 tavi Exp $");
 
+#include <iostream>
 #include <fstream>
+// For less.
 #include <functional>
 #include "app_config.h"
 #include <cpu_timer.h>
 #include <ami_btree.h>
+
+using std::less;
+using std::cerr;
+using std::cout;
+using std::flush;
 
 #define SIZE_OF_STRUCTURE 128
 
@@ -125,14 +132,14 @@ int main(int argc, char **argv) {
       cerr << argv[0] << ": Error during sort.\n";
     else {
       wt.stop();
-      cout << "Done. " << wt << endl;
+      cout << "Done. " << wt << "\n";
       wt.reset();
       wt.start();
       cout << "\tLoading... " << flush;
       if (u_btree->load_sorted(os) != AMI_ERROR_NO_ERROR)
 	cerr << argv[0] << ": Error during bulk loading.\n";
       else
-	cout << "Done. " << wt << endl;
+	cout << "Done. " << wt << "\n";
       wt.stop();
     }
     os->persist(PERSIST_DELETE);
@@ -240,39 +247,39 @@ int main(int argc, char **argv) {
   
   cout << "Block collection statistics (global):\n"
        << "\tGET BLOCK:    "
-       << AMI_COLLECTION::gstats().get(BLOCK_GET) << endl
+       << AMI_COLLECTION::gstats().get(BLOCK_GET) << "\n"
        << "\tPUT BLOCK:    "
-       << AMI_COLLECTION::gstats().get(BLOCK_PUT) << endl
+       << AMI_COLLECTION::gstats().get(BLOCK_PUT) << "\n"
        << "\tNEW BLOCK     "
-       << AMI_COLLECTION::gstats().get(BLOCK_NEW) << endl
+       << AMI_COLLECTION::gstats().get(BLOCK_NEW) << "\n"
        << "\tDELETE BLOCK: "
-       << AMI_COLLECTION::gstats().get(BLOCK_DELETE) << endl
+       << AMI_COLLECTION::gstats().get(BLOCK_DELETE) << "\n"
     ;
   cout << "Tree statistics:\n"
        << "\tREAD (LEAF+NODE):    " 
-       << bts.get(LEAF_READ) + bts.get(NODE_READ) << endl
+       << bts.get(LEAF_READ) + bts.get(NODE_READ) << "\n"
        << "\tCREATE (LEAF+NODE):  " 
-       << bts.get(LEAF_CREATE) + bts.get(NODE_CREATE) << endl
+       << bts.get(LEAF_CREATE) + bts.get(NODE_CREATE) << "\n"
        << "\tFETCH (LEAF+NODE):   " 
-       << bts.get(LEAF_FETCH) + bts.get(NODE_FETCH) << endl
+       << bts.get(LEAF_FETCH) + bts.get(NODE_FETCH) << "\n"
        << "\tWRITE (LEAF+NODE):   " 
-       << bts.get(LEAF_WRITE) + bts.get(NODE_WRITE) << endl
+       << bts.get(LEAF_WRITE) + bts.get(NODE_WRITE) << "\n"
        << "\tDELETE (LEAF+NODE):  " 
-       << bts.get(LEAF_DELETE) + bts.get(NODE_DELETE) << endl
+       << bts.get(LEAF_DELETE) + bts.get(NODE_DELETE) << "\n"
        << "\tRELEASE (LEAF+NODE): " 
-       << bts.get(LEAF_RELEASE) + bts.get(NODE_RELEASE) << endl
+       << bts.get(LEAF_RELEASE) + bts.get(NODE_RELEASE) << "\n"
     ;
   cout << "Stream statistics (global):\n"
        << "\tREAD ITEM:    "
-       << stream_t::gstats().get(ITEM_READ) << endl
+       << stream_t::gstats().get(ITEM_READ) << "\n"
        << "\tWRITE ITEM:   "
-       << stream_t::gstats().get(ITEM_WRITE) << endl
+       << stream_t::gstats().get(ITEM_WRITE) << "\n"
        << "\tSEEK ITEM:    "
-       << stream_t::gstats().get(ITEM_SEEK) << endl
+       << stream_t::gstats().get(ITEM_SEEK) << "\n"
        << "\tREAD BLOCK:   "
-       << stream_t::gstats().get(BLOCK_READ) << endl
+       << stream_t::gstats().get(BLOCK_READ) << "\n"
        << "\tWRITE BLOCK:  "
-       << stream_t::gstats().get(BLOCK_WRITE) << endl
+       << stream_t::gstats().get(BLOCK_WRITE) << "\n"
     ;
 
   return 0;
