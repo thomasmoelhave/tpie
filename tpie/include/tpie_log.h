@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/12/94
 //
-// $Id: tpie_log.h,v 1.19 2003-04-20 06:38:39 tavi Exp $
+// $Id: tpie_log.h,v 1.20 2003-04-23 07:50:12 tavi Exp $
 //
 
 #ifndef _TPIE_LOG_H
@@ -25,11 +25,15 @@ enum {
 
 #include <logstream.h>
 
-#if TPL_LOGGING		
+// The file name of the log stream.
+char *theLogName();
 
 // Serves double duty: initilizes the log on the first call, and
 // returns the only logstream object. Defined in tpie_log.cpp
 logstream& theLog();
+
+
+#if TPL_LOGGING		
 
 // Macros to simplify logging.  The argument to the macro can be any type
 // that log streams have an output operator for.
