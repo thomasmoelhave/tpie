@@ -3,7 +3,7 @@
 // Authors: Octavian Procopiuc <tavi@cs.duke.edu>
 //          (using some code by Rakesh Barve)
 //
-// $Id: bte_coll_base.h,v 1.16 2003-04-29 05:29:42 tavi Exp $
+// $Id: bte_coll_base.h,v 1.17 2003-05-08 21:30:01 tavi Exp $
 //
 // BTE_collection_base class and various basic definitions.
 //
@@ -303,6 +303,9 @@ public:
 
     // Set the persistence flag. 
     void persist(persistence p) { per_ = p; }
+
+    // Inquire the persistence status.
+    persistence persist() const { return per_; }
 
     const char *base_file_name() const { return base_file_name_; }
 
