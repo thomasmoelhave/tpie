@@ -1,3 +1,7 @@
+Fri Jun 10 16:57:39 1994  dev  (dev@lazyboy)
+
+	* lr.cpp: Initial revision
+
 Tue Jun  7 13:19:07 1994  Darren Erik Vengroff  (dev@rhine.cs.duke.edu)
 
 	* test_ami_merge.cpp (main): Now tests substreams.
