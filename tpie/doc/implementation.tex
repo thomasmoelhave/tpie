@@ -1,5 +1,5 @@
 %%
-%% $Id: implementation.tex,v 1.5 1999-07-02 16:32:23 large Exp $
+%% $Id: implementation.tex,v 1.6 1999-10-13 21:09:54 hutchins Exp $
 %%
 \chapter{The Implementation of TPIE}
 \label{cha:implementation}
@@ -9,37 +9,33 @@
 %additional platforms or implement similar systems.
 
 \section{The Structure of TPIE}
-\index{structure!of TPIE}
-\index{components!of TPIE}
+\index{structure!of TPIE} \index{components!of TPIE} TPIE
+has three main components, the Access Method Interface
+(AMI)\index{access method interface}, a Block Transfer
+Engine (BTE)\index{block transfer engine} component, and a
+Memory Manager (MM)\index{memory manager} component.
+Various Block Transfer Engines (BTEs) can be chosen for
+handling disk block transfers, perhaps more than one in a
+single application.  The MM component provides low level
+memory management services such as allocating, deallocating,
+and accounting of internal memory. The AMI works on top of
+the Memory Manager and one or more BTEs to provide a uniform
+interface for application programs. Applications that use
+this interface are portable across hardware platforms, since
+they never have to deal with the underlying details of how
+I/O is performed on a particular machine. This Chapter
+describes the design decisions, algorithms, and
+implementation decisions that were used to build the MM, BTE
+and AMI components of TPIE. The Reference Section of this
+manual contains a description of the AMI and Memory Manager
+entry points that an application programmer might normally
+use. Typically, an application programmer will not request
+services from a BTE directly. For this reason, the BTE
+services are not presented in the Reference Section of this
+manual, but are presented here for those readers who wish to
+understand the implementation details of TPIE.
 
-TPIE has three main components, the Access Method Interface
-(AMI)\index{access method interface}, the Block Transfer Engine
-(BTE)\index{block transfer engine}, and the Memory Manager
-(MM)\index{memory manager}.  The BTE handles disk block transfers
-%for a single processor.
-and the MM performs low level memory management.
-%across all the processors in the system.
-The AMI works on top of the MM and one or more BTEs
-%each running on a single processor
-to provide a uniform interface for application programs. Applications that
-use this interface are portable across hardware platforms, since they never
-have to deal with the underlying details of how I/O is performed on a
-particular machine.
 
-The BTE is intended to bridge the gap between the I/O hardware and the rest
-of our system.  It works alongside the traditional buffer
-cache\index{buffer cache} in a UNIX system.  Unlike the buffer
-cache\index{buffer cache}, which must support concurrent access to files
-from multiple address spaces, the BTE is specifically designed to support
-high throughput processing of data from secondary memory through a single
-user level address space.  In order to efficiently support the merging,
-distribution, and scanning paradigms, the BTE provides stream oriented
-buffer replacement policies.\comment{LA: Does the reader know what this
-is?} To further improve performance, some implementations of the BTE move
-data from disk directly into user space rather than using a kernel level
-buffer cache\index{buffer cache}.  This saves both main memory space and
-copying time.\comment{LA: Something about currently on single disk but more
-to come?}
 %Although the BTE runs on a single processor, it can support concurrent
 %access to multiple disks\index{parallel disks}, allocating and managing
 %buffer space for all of them concurrently.
@@ -48,14 +44,16 @@ The MM\index{memory manager} manages random access memory on behalf of
 TPIE.
 %It is the most architecture-dependent component of the
 %system. 
-Currently, TPIE is only distributed with a MM for a single processor (or
-multiprocessor) system with a single global address space. This MM is
+Currently, TPIE is distributed with an MM designed for a single processor, or
+multiprocessor system with a single global address space. This MM is
 relatively simple; its task is to allocate and manage the physical memory
-used by the BTE. On a distributed memory system, the MM will have the
-additional task of coordinating communication between processors and memory
-modules in order to support the primitives that the AMI provides.
+used by the BTE component. 
 
-The AMI\index{access method interface} is a layer between the BTE and user
+%On a distributed memory system, the MM will have the
+%additional task of coordinating communication between processors and memory
+%modules in order to support the primitives that the AMI provides.
+
+The AMI\index{access method interface} is an interface layer between the BTE and user
 level processes.  It implements fundamental access methods, such as
 scanning, permutation routing, merging, and distribution. It also provides
 a consistent, object-oriented interface to application programs.
@@ -79,19 +77,40 @@ to data.
 \index{block transfer engine|(}
 \index{BTE|see{block transfer engine}}
 
-\tobeextended
+\tobeextended 
 
-The\comment{LA: This whole section needs an overhaul - discuss
-implementation!} BTE is the lowest layer of TPIE. It is the layer that is
-ultimately responsible for moving blocks of data from physical disk devices
-to main memory and back.
+The BTE component is intended to bridge the gap between the
+I/O hardware and the rest of the system. It is the layer
+that is ultimately responsible for moving blocks of data
+from physical disk devices to main memory and back. It works
+alongside the traditional buffer cache\index{buffer cache}
+in a UNIX system.  Unlike the buffer cache, which must
+support concurrent access to files from multiple address
+spaces, the BTE is specifically designed to support high
+throughput processing of data from secondary memory through
+a single, user level address space.  In order to efficiently
+support the merging, distribution, and scanning paradigms,
+the several BTEs provides stream-oriented input and output
+of data blocks.  To further improve performance, some BTE
+implementations move data from disk directly into user space
+rather than using a kernel-level buffer cache\index{buffer
+   cache}.  This saves both main memory space and copying
+time. In the future, TPIE will also provide a BTE
+implementation with support for random-access to disk
+blocks. Such functionality is useful when implementing
+external data structures (indexes).  Currently, all TPIE
+BTEs are designed for processing streams on a single disk.
+Planned BTE implementations will be responsible for
+maintaining the integrity of streams striped across multiple
+disks attached to a single CPU.
+
+\comment{LA: This whole section needs an overhaul - discuss
+   implementation!}
 %We hope that in most cases it will be possible for the BTE to work with
 %device drivers provided by the machine vendor's operating system.  In some
 %cases, however, new drivers may have to be written.
-Currently, TPIE is only distributed with BTE's for processing streams on a
-single disk. Future BTEs will also be responsible for maintaining the
-integrity of streams striped across multiple disks attached to a single
-CPU. The BTEs will not, however, be responsible for coordinating the
+\begin{comment}
+ The BTEs will not, however, be responsible for coordinating the
 actions of multiple CPU's and the disks attached to them. In such cases, a
 separate instance of a BTE will run on each such CPU, and their actions
 will be coordinated by a single multi-threaded MM running at a higher
@@ -99,9 +118,8 @@ level. The reason for the functional split between the two levels is that
 it will likely be advantageous to be able to use a single BTE written for a
 specific piece of hardware with more than one MM, for example, one MM
 written for a homogeneous environment and one for a heterogeneous
-environment. In the future, TPIE will also provide a BTE with support for
-random-access to disk blocks. Such functionality is useful when
-implementing external data structures (indexes).
+environment. 
+\end{comment}
 
 Version \version~of TPIE is distributed with three BTE implementations ; An
 implementation based on the UNIX \verb|stdio| library (\verb|BTE_stdio|),
@@ -314,7 +332,7 @@ outside the current block boundaries is requested, the current block is
 unmapped and a new one is mapped from the source file.
 
 The \verb|BTE_mmb| is not limited to mapping in blocks of size equal to the
-physical block size of the OS (typically 8Kbytes). Often improved
+physical block size of the OS (typically 8K bytes). Often improved
 performance can be obtained by mapping blocks of much larger size (for
 example 256Kbytes). This is typically due to (track) buffering and
 prefetching performed in the disk controller. The (logical) block size used
@@ -493,6 +511,26 @@ these it defines its own constructors:
 \label{sec:ref-mm}
 \index{memory manager|(}
 \index{MM|see{memory manager}}
+
+The Memory Manager components of TPIE provide services related to
+the management of internal memory:
+\begin{itemize}
+\item allocation and deallocation of (internal)
+memory as requested by the \verb|new| and \verb|delete| operators,
+\item accounting of memory usage (when required),
+\item enforcing of the user-specified internal memory usage
+limit (when required),
+\item logging of memory allocation requests (when required).
+\end{itemize}
+
+In version \version of TPIE, the memory manager
+\verb|MM_manager|, is built from the source files
+\verb|mm_register.cpp|, \verb|mm_base.cpp|,
+\verb|mm_register.h|, and \verb|mm\_base.h|.  The memory
+manager traps memory allocation and deallocation requests in
+order to monitor and enforce memory usage limits. It
+provides a number of user-callable functions and services,
+which are documented in Chapter \ref{cha:reference}.
 
 \tobewritten
 
@@ -811,3 +849,8 @@ rewritten.}
 
 \index{elementwise arithmetic|(}
 \index{elementwise arithmetic|)}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 
