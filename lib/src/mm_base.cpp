@@ -7,7 +7,7 @@
 
 
 
-static char mm_base_id[] = "$Id: mm_base.cpp,v 1.9 1999-04-22 17:34:24 rajiv Exp $";
+static char mm_base_id[] = "$Id: mm_base.cpp,v 1.10 1999-04-22 17:37:00 rajiv Exp $";
 
 #include <config.h>
 #include <mm_base.h>
@@ -29,6 +29,7 @@ extern MM_register MM_manager;
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 int register_new = 0;
 
@@ -44,11 +45,16 @@ void * operator new (size_t sz) {
     
     if ((register_new) && (MM_manager.register_allocation(sz+SIZE_SPACE)
                            != MM_ERROR_NO_ERROR)) {
-        LOG_FATAL("Requested memory allocation \"");
-	   LOG_FATAL(sz+SIZE_SPACE);
-   	   LOG_FATAL("\" could not be made by new() operator.\n");
-        LOG_FLUSH_LOG;
-        return (void *)0;
+	  LOG_FATAL("Requested memory allocation \"");
+	  LOG_FATAL(sz+SIZE_SPACE);
+	  LOG_FATAL("\" could not be made by new() operator.\n");
+	  LOG_FLUSH_LOG;
+
+	  fprintf(stderr, "memory manager: memory allocation limit exceeded\n");
+	  assert(0);				// core dump if debugging
+	  exit(1);
+
+	  // return (void *)0;		// this is evil - causes failure elsewhere
     }
     
     p = malloc(sz + SIZE_SPACE);
