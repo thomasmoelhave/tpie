@@ -1,6 +1,6 @@
 # Copyright (c) 1994 Darren Erik Vengroff
 
-# $Id: Makefile.in,v 1.5 1994-09-22 15:20:54 darrenv Exp $
+# $Id: Makefile.in,v 1.6 1994-09-29 13:24:38 darrenv Exp $
 
 # Makefile for TPIE libraries.
 
@@ -49,7 +49,8 @@ $(UP_TO_DATE): $(LIBRARY)
 
 $(LIBRARY): $(LIBRARY)(logstream.o) $(LIBRARY)(tpie_log.o)	\
 	    $(LIBRARY)(mm_register.o) $(LIBRARY)(ami_device.o)	\
-	    $(LIBRARY)(ami_single.o) $(LIBRARY)(mm_base.o)
+	    $(LIBRARY)(ami_single.o) $(LIBRARY)(mm_base.o)	\
+	    $(LIBRARY)(bte_mmb.o)
 
 $(LIBRARY)(logstream.o): logstream.o
 
@@ -62,6 +63,9 @@ $(LIBRARY)(mm_register.o): mm_register.o
 $(LIBRARY)(ami_device.o): ami_device.o
 
 $(LIBRARY)(ami_single.o): ami_single.o
+
+$(LIBRARY)(bte_mmb.o): bte_mmb.o
+
 
 %.o: $(TPIEINC)$(UP_TO_DATE)
 
