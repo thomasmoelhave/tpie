@@ -2,7 +2,7 @@
 // File: bte_stream_ufs.h (formerly bte_ufs.h)
 // Author: Rakesh Barve <rbarve@cs.duke.edu>
 //
-// $Id: bte_stream_ufs.h,v 1.9 2003-09-17 02:31:57 tavi Exp $
+// $Id: bte_stream_ufs.h,v 1.10 2003-09-22 18:43:08 tavi Exp $
 //
 // BTE streams with blocks I/Oed using read()/write().  This particular
 // implementation explicitly manages blocks, and only ever maps in one
@@ -654,8 +654,10 @@ template < class T > BTE_stream_ufs < T >::~BTE_stream_ufs (void) {
 
     // If this is not a substream then close the file.
     if (!substream_level) {
-	// If a writeable stream, write back the header.
-	if (!r_only) {
+      // If a writeable stream, write back the header.  But only if
+      // the stream is persistent. Otherwise, don't waste time with
+      // the system calls.
+	if (!r_only && per != PERSIST_DELETE) {
 	    if (TPIE_OS_LSEEK(fd, 0, TPIE_OS_FLAG_SEEK_SET) != 0) {
 		status_ = BTE_STREAM_STATUS_INVALID;
 		os_errno = errno;
@@ -698,18 +700,18 @@ template < class T > BTE_stream_ufs < T >::~BTE_stream_ufs (void) {
 	if (per == PERSIST_DELETE) {
 	    if (r_only) {
 		LOG_WARNING_ID("PERSIST_DELETE for read-only stream in " << path);
-            }
-	    else  {
-               if (TPIE_OS_UNLINK (path)) {
+            } else  {
+	      if (TPIE_OS_UNLINK (path)) {
 		os_errno = errno;
-		LOG_WARNING_ID ("unlink() failed during destruction of " << path);
+		LOG_WARNING_ID ("unlink failed during destruction of:");
+		LOG_WARNING_ID (path);
 		LOG_WARNING_ID (strerror (os_errno));
-	    } else {
+	      } else {
 		gstats_.record(STREAM_DELETE);
 		stats_.record(STREAM_DELETE);
+	      }
 	    }
 	}
-  }
     } else {				// end of if (!substream_level) 
 	gstats_.record(SUBSTREAM_DELETE);
 	stats_.record(SUBSTREAM_DELETE);
@@ -1030,11 +1032,13 @@ BTE_stream_header * BTE_stream_ufs < T >::map_header (void) {
 
 	    char *tmp_buffer = new char[os_block_size_];
 
-	    if (TPIE_OS_LSEEK(fd, 0, TPIE_OS_FLAG_SEEK_SET) != 0) {
+	    if (file_end != 0) {
+	      if (TPIE_OS_LSEEK(fd, 0, TPIE_OS_FLAG_SEEK_SET) != 0) {
 		os_errno = errno;
 		LOG_FATAL_ID ("Failed to lseek() in stream " << path);
 		LOG_FATAL_ID (strerror (os_errno));
 		return NULL;
+	      }
 	    }
 
 	    if (TPIE_OS_WRITE (fd, tmp_buffer, os_block_size_) !=
