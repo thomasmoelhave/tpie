@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/6/94
 //
-// $Id: app_config.h,v 1.12 1999-02-05 22:21:50 rajiv Exp $
+// $Id: app_config.h,v 1.13 1999-02-05 23:35:50 rbarve Exp $
 //
 #ifndef _APP_CONFIG_H
 #define _APP_CONFIG_H
@@ -89,6 +89,44 @@
 
 
 /* ********************************************************************** */
+/* BTE_UFS configuration options */
+/* ********************************************************************** */
+
+#ifdef BTE_IMP_UFS
+
+// The blocksize (corresp to the theoretical I/O model) is 
+// BTE_UFS_LOGICAL_BLOCKSIZE_FACTOR * os blocksize 
+#ifndef BTE_UFS_LOGICAL_BLOCKSIZE_FACTOR
+#define BTE_UFS_LOGICAL_BLOCKSIZE_FACTOR 32
+#endif
+
+//In the current version of TPIE, BTE_UFS_READ_AHEAD should be
+//defined as 0 and DOUBLE_BUFFER should be defined 0. 
+#define BTE_UFS_READ_AHEAD 0
+#define DOUBLE_BUFFER 0
+
+// USE_LIBAIO can be set to 1 to trigger off a certain kind of 
+// readahead on Solaris machines, but we suggest keeping this 0 as well.
+#define USE_LIBAIO 0
+
+// Very often bte_ufs will be used to sequentially access a file;
+//for instance this happens with mergesort and scanning. Typical
+//filesystems in such situations tend to carryout sequential readahead.
+//When BTE_IMPLICIT_FS_READAHEAD is set to 1, we try to account for the
+//amount of memory used up by the read-ahead portion (in the filesystem
+//buffer cache) by assuming (quick and dirty guess) that the amount of
+//read-ahead at any time is equal to the blocksize (corresp to theoretical
+// I/O model). If set to 0, we essentially cheat by not accounting at all
+//for memory used by readahead. So in applications in which you sequentially
+//access streams, BTE_IMPLICIT_FS_READAHEAD shd be set to 1; otherwise for
+//tree accesses etc. it should be set to 0.
+
+#define BTE_IMPLICIT_FS_READAHEAD 1
+#endif
+
+
+
+/* ********************************************************************** */
 /* BTE_CACHE configuration options */
 /* ********************************************************************** */
 #ifdef BTE_IMP_CACHE
@@ -110,4 +148,5 @@ extern int random_seed;
 
 
 #endif
+
 
