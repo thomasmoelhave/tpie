@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/9/94
 //
-// $Id: ami_matrix.h,v 1.4 1995-04-03 13:09:22 dev Exp $
+// $Id: ami_matrix.h,v 1.5 1995-06-20 20:16:53 darrenv Exp $
 //
 #ifndef _AMI_MATRIX_H
 #define _AMI_MATRIX_H
@@ -15,8 +15,7 @@
 #define INTERNAL_TIMING 1
 
 #ifdef INTERNAL_TIMING
-#include <unistd.h>
-#include <sys/times.h>
+#include <cpu_timer.h>
 #endif
 
 #include <matrix.h>
