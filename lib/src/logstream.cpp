@@ -8,7 +8,7 @@
 // This will go into a library whne it is ready.
 
 
-static char logstream_id[] = "$Id: logstream.cpp,v 1.5 1999-04-08 01:39:03 rajiv Exp $";
+static char logstream_id[] = "$Id: logstream.cpp,v 1.6 1999-04-09 19:24:35 rajiv Exp $";
 
 
 #include <logstream.h>
@@ -26,13 +26,13 @@ logstream::logstream(const char *fname,
 
 // A macro to define a log stream output operator for a given type.
 // The type can be any type that has an ofstream output operator.
-#define _DEFINE_LOGSTREAM_OUTPUT_OPERATOR(T)				\
-logstream& logstream::operator<<(const T x)				\
-{									\
-    if (priority <= threshold) {					\
-	ofstream::operator<<(x);					\
-    } 									\
-    return *this;							\
+#define _DEFINE_LOGSTREAM_OUTPUT_OPERATOR(T)	\
+logstream& logstream::operator<<(const T x)		\
+{												\
+    if (priority <= threshold) {				\
+	ofstream::operator<<(x)<<endl;				\
+    }											\
+    return *this;								\
 }
 
 
