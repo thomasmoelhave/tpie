@@ -3,7 +3,7 @@
 // Authors: Octavian Procopiuc <tavi@cs.duke.edu>
 //          (using some code by Rakesh Barve)
 //
-// $Id: bte_coll_base.h,v 1.11 2002-01-25 21:47:23 tavi Exp $
+// $Id: bte_coll_base.h,v 1.12 2002-01-27 23:34:26 tavi Exp $
 //
 // BTE_collection_base class and various basic definitions.
 //
@@ -136,6 +136,9 @@ protected:
   // Number of blocks from this collection that are currently in memory
   size_t in_memory_blocks_;
 
+  // File pointer position. A value of -1 signals unknown position.
+  off_t file_pointer;
+
   // Statistics for this object.
   tpie_stats_collection stats_;
 
@@ -184,7 +187,7 @@ protected:
   void create_stack();
 
   // Common code for all new_block implementations. Inlined.
-  BTE_err new_block_shared(off_t& bid) {
+  BTE_err new_block_getid(off_t& bid) {
     // We try getting a free bid from the stack first. If there aren't
     // any there, we will try to get one after last_block; if there are
     // no blocks past last_block, we will ftruncate() some more blocks
@@ -222,15 +225,16 @@ protected:
 #else
 	off_t curr_off;
 	char* tbuf = new char[header_.os_block_size];
-	if ((curr_off = lseek(bcc_fd_, 0, SEEK_END)) == (off_t)-1) {
+	if ((curr_off = ::lseek(bcc_fd_, 0, SEEK_END)) == (off_t)-1) {
 	  LOG_FATAL_ID("Failed to lseek() to the end of file.");
 	  LOG_FATAL_ID(strerror(errno));
 	  return BTE_ERROR_OS_ERROR;
 	}
 	while (curr_off < bid_to_file_offset(header_.total_blocks)) {
-	  write(bcc_fd_, tbuf, header_.os_block_size);
+	  ::write(bcc_fd_, tbuf, header_.os_block_size);
 	  curr_off += header_.os_block_size;
 	}
+	file_pointer = curr_off;
 	delete [] tbuf;
 #endif
       }
