@@ -1,6 +1,7 @@
-// file: mergeheap_dh.h
-
-// 	$Id: mergeheap_dh.h,v 1.3 2001-03-05 17:29:12 hutchins Exp $	
+//
+// File: mergeheap_dh.h
+// 
+// $Id: mergeheap_dh.h,v 1.4 2002-01-14 16:27:58 tavi Exp $	
 
 // This file contains several merge heap templates. 
 // Originally written by Rakesh Barve.  
