@@ -6,33 +6,12 @@
 //
 
 #include <versions.h>
-VERSION(mm_base_cpp,"$Id: mm_base.cpp,v 1.24 2000-04-06 20:40:56 hutchins Exp $");
+VERSION(mm_base_cpp,"$Id: mm_base.cpp,v 1.25 2003-04-19 11:55:04 jan Exp $");
 
 #include "lib_config.h"
 #include <mm_base.h>
 #include <tpie_log.h>
 #include <mm_register.h>
-
-#if(0)
-// deadcode
-// this is already in mm_register.h -RW
-
-// The actual memory manager.  This is currently a total hack.  The
-// proper thing to do is to go through the pointer mm_manager for all
-// references to the memory manager.
-
-extern MM_register MM_manager;
-#endif
-
-
-#if(0)
-// deadcode
-// not being used. -RW
-
-// A pointer to the memory manager currently being used.
-
-MM_manager_base *mm_manager;
-#endif
 
 #include <iostream.h>
 #include <stdio.h>
@@ -136,6 +115,7 @@ void operator delete (void *ptr)
       }
    }
    void *p = ((char *)ptr) - SIZE_SPACE;
+
 #ifdef USE_DMALLOC
 	char	*file;
 	GET_RET_ADDR(file);
@@ -173,3 +153,6 @@ int   MM_register::space_overhead ()
 {
    return SIZE_SPACE;
 }
+
+TPIE_OS_SPACE_OVERHEAD_BODY
+
