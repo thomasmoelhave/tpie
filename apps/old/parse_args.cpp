@@ -4,15 +4,14 @@
 // Created: 10/7/94
 //
 
-static char parse_args_id[] = "$Id: parse_args.cpp,v 1.12 2003-04-21 02:30:12 tavi Exp $";
+static char parse_args_id[] = "$Id: parse_args.cpp,v 1.13 2003-09-11 17:50:57 jan Exp $";
+
+#include <portability.h>
 
 #include <stdlib.h>
-#include <strings.h>
 #include <string.h>
 #include <ctype.h>
-#include <unistd.h>
 #include <iostream>
-using std::cerr;
 
 #include "app_config.h"
 #include "parse_args.h"

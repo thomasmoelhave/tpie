@@ -6,17 +6,11 @@
 //
 // A test for AMI_sort().
 //
-#include <sys/types.h>
-#include <stdlib.h>
-#include <sys/time.h>
-#include <sys/resource.h>
-#include <iostream>
-#include <fstream>
 
-using std::cout;
-using std::cerr;
-using std::flush;
-using std::ofstream;
+// Get definitions for working with Unix and Windows
+#include <portability.h>
+
+#include <stdlib.h>
 
 // Get information on the configuration to test.
 #include "app_config.h"
@@ -27,7 +21,7 @@ using std::ofstream;
 #include <ami_scan.h>
 #include <ami_sort.h>
 #include <cpu_timer.h>
-VERSION(test_ami_sort_cpp,"$Id: test_ami_sort.cpp,v 1.28 2003-09-11 17:18:55 tavi Exp $");
+VERSION(test_ami_sort_cpp,"$Id: test_ami_sort.cpp,v 1.29 2003-09-11 17:51:20 jan Exp $");
 
 #include <ami_kb_sort.h>
 
@@ -35,7 +29,7 @@ VERSION(test_ami_sort_cpp,"$Id: test_ami_sort.cpp,v 1.28 2003-09-11 17:18:55 tav
 #include <ami_scan_utils.h>
 
 #include "scan_random.h"
-#include "scan_diff.h"
+#include "scan_diff.h" 
 #include "merge_random.h"
 
 enum comparison_mode_t {
@@ -43,8 +37,8 @@ enum comparison_mode_t {
   COMPARISON_CLASS
 };
 
-static char def_srf[] = "/var/tmp/sorted.txt";
-static char def_rrf[] = "/var/tmp/unsorted.txt";
+static char def_srf[] = "sorted.txt";
+static char def_rrf[] = "unsorted.txt";
 
 static char istr_name[128]; 
 static char ostr_name[128];
@@ -132,7 +126,6 @@ int main(int argc, char **argv)
 {
   int_cmp_class int_cmp_obj;
   cpu_timer timer;
-  long elapsed;
   AMI_err ae;
   istr_name[0] = ostr_name[0] = '\0';
 

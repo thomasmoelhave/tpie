@@ -11,18 +11,19 @@
 #include "app_config.h"
 
 #include <versions.h>
-VERSION(scan_random_cpp,"$Id: scan_random.cpp,v 1.8 2003-04-21 02:47:47 tavi Exp $");
+VERSION(scan_random_cpp,"$Id: scan_random.cpp,v 1.9 2003-09-11 17:51:20 jan Exp $");
 
 #include "scan_random.h"
 
-scan_random::scan_random(unsigned int count, int seed) :
-max(count), remaining(count)
-{
+scan_random::scan_random(unsigned int count, int seed) {
+    this->max = count;
+    this->remaining = count;
+
     LOG_APP_DEBUG("scan_random seed = ");
     LOG_APP_DEBUG(seed);
     LOG_APP_DEBUG('\n');
 
-    srandom(seed);
+    TPIE_OS_SRANDOM(seed);
 }
 
 scan_random::~scan_random(void)
@@ -32,15 +33,15 @@ scan_random::~scan_random(void)
 
 AMI_err scan_random::initialize(void)
 {
-    remaining = max;
+    this->remaining = this->max;
 
     return AMI_ERROR_NO_ERROR;
 };
 
 AMI_err scan_random::operate(int *out1, AMI_SCAN_FLAG *sf)
 {
-    if ((*sf = (remaining-- != 0))) {
-        *out1 = random();
+    if ((*sf = ((this->remaining)-- != 0))) {
+        *out1 = TPIE_OS_RANDOM();
         return AMI_SCAN_CONTINUE;
     } else {
         return AMI_SCAN_DONE;
