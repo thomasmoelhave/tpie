@@ -3,7 +3,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/31/94
 //
-// $Id: lib_config.h,v 1.3 2002-01-14 17:29:03 tavi Exp $
+// $Id: lib_config.h,v 1.4 2003-04-17 21:00:01 jan Exp $
 //
 #ifndef _LIB_CONFIG_H
 #define _LIB_CONFIG_H
@@ -24,3 +24,4 @@
 
 
 #endif // _LIB_CONFIG_H 
+ 

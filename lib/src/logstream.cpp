@@ -8,11 +8,11 @@
 //
 
 #include <versions.h>
-VERSION(logstream_cpp,"$Id: logstream.cpp,v 1.13 2001-06-16 20:31:56 tavi Exp $");
+VERSION(logstream_cpp,"$Id: logstream.cpp,v 1.14 2003-04-17 21:01:10 jan Exp $");
 
 #include <logstream.h>
 
-// Contructor.
+// Constructor.
 logstream::logstream(const char *fname, 
 		     unsigned int p,
 		     unsigned int tp) 
@@ -60,8 +60,8 @@ _DEFINE_LOGSTREAM_OUTPUT_OPERATOR(long int)
 _DEFINE_LOGSTREAM_OUTPUT_OPERATOR(long unsigned int)
 _DEFINE_LOGSTREAM_OUTPUT_OPERATOR(float)
 _DEFINE_LOGSTREAM_OUTPUT_OPERATOR(double)
-_DEFINE_LOGSTREAM_OUTPUT_OPERATOR(long long);
 
+TPIE_OS_UNIX_ONLY_DEFINE_LOGSTREAM_OUPUT_OPERATOR
 
 // Setting priority and threshold on the fly with manipulators.
 
