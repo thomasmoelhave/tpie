@@ -8,12 +8,9 @@
 //
 
 
-static char scan_count_id[] = "$Id: scan_count.cpp,v 1.2 1995-06-30 21:09:28 darrenv Exp $";
+static char scan_count_id[] = "$Id: scan_count.cpp,v 1.3 2003-04-21 02:54:11 tavi Exp $";
 
 #include "app_config.h"
-
-#include <ami.h>
-
 #include "scan_count.h"
 
 AMI_err scan_count::initialize(void)
