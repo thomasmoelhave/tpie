@@ -1,26 +1,86 @@
 %%
-%% $Id: tuning.tex,v 1.5 1999-10-25 17:53:58 tavi Exp $
+%% $Id: tuning.tex,v 1.6 1999-11-15 18:01:30 hutchins Exp $
 %%
 \chapter{Configuration and Performance Tuning}
-\label{sec:tuning}
+\label{sec:tuning}\index{Configuration}\label{sec:configuration}
 
 \comment{LA: Should there be something about compiling in this chapter (and
 about e.g including ami.h)?}
 
-\section{TPIE Configuration}\index{configuration|(}
-\label{sec:configuration}
+\section{TPIE Configuration}
+Certain behaviours of TPIE at run-time are controlled by
+compile-time variables, whose values should be defined
+before including any TPIE headers. Depending on the options
+desired, the values of these
+variables can be specified as early as when TPIE is
+installed, or as late as when an individual application
+program is compiled. Section \ref{sec:customization}
+described the options available at installation
+time. Section \ref{sec:appconfig} describes how TPIE can be
+configured differently for individual
+TPIE applications.
 
-\index{Configuration}
+\subsection{Installation Options}
+\index{Customization} \label{sec:customization}
 
-The exact behavior or TPIE at run time is controlled by several macros
-defined before including any TPIE headers. The macros are normally defined
-in the file \verb|app_config.h|\index{app_config.h@{\tt app\_config.h}}
-which is then included in an application
-program. A typical example of such a file can be found in the \verb|test|
-directory and the (interesting parts of the) file is shown below. After
-the file we discuss the different macros.\comment{LA: Something general
-about TPIE configuration as set up by the configure-script needs to be
-included here (e.g. discuss config.h file).}
+\comment{LA: We need to change this when we change logging}
+It is possible to customize the TPIE by providing
+arguments to the {\tt configure}
+script when TPIE is first installed (see Section \ref{sec:installation}.\index{configuration:options} None of these
+ arguments are necessary and the first time you build TPIE
+ you should not need any of them. The arguments
+recognized are as follows:
+\begin{description}
+\item[\verb|--enable-log-lib|] 
+  \index{enable-log-lib@{\tt --enable-log-lib}}
+  Enable logging in TPIE library code.
+  This can also be accomplished at compile time by defining the macro
+  \verb|TP_LOG_LIB| using the syntax \verb|make lib TP_LOG_LIB=1|.
+  This is useful for debugging the TPIE library, but slows it down.
+  This option works by defining \verb|TPL_LOGGING|
+  \index{TPL_LOGGING@{\tt TPL\_LOGGING}}
+  when compiling the library. 
+  Section \ref{sec:logging} discusses TPIE logging.
+\item[\verb|--enable-assert-lib|]  
+  \index{enable-assert-lib@{\tt --enable-assert-lib}}
+  Enable assertions in the TPIE library code for debugging purposes.
+  This can also be accomplished at compile time by defining the macro
+  \verb|TP_ASSERT_LIB| using the syntax \verb|make lib TP_ASSERT_LIB=1|.
+  This option works by defining \verb|DEBUG_ASSERTIONS|
+  \index{DEBUG_ASSERTIONS@{\tt DEBUG\_ASSERTIONS}} 
+  when compiling the library.
+\item[\verb|--enable-log-apps|]  and
+\item[\verb|--enable-assert-apps|]  
+  \index{enable-assert-apps@{\tt --enable-assert-apps}}
+  \index{enable-log-apps@{\tt --enable-log-apps}}
+  Similar to {\tt --enable-log-lib} and {\tt --enable-assert-lib}, but
+  they apply to the test application code.  Running \verb|make test|
+  with the options \verb|TP_LOG_APPS=1| and/or \verb|TP_ASSERT_APPS=1|
+  accomplishes the same thing.
+\item[\verb|--enable-expand-ami-scan|]  Expand the macros in the file
+  \verb|ami_scan.h| when making the include directory with the
+command {\tt make include} (or {\tt make all}).  This is mainly useful for
+debugging the code in \verb|ami_scan.h| itself, and is not normally
+needed by TPIE programmers.  It may make compilation of TPIE programs
+slightly faster because the macro processor of the C++ compiler will
+have less work to do.  In addition to the standard GNU tools mentioned
+in Section~\ref{sec:gnu-software}, this requires \verb|perl|.
+\item[\verb|--disable-*|]  Any of the options above can be explicitly
+  disabled  by using this syntax.  For example
+  \verb|--disable-expand-ami-scan|. 
+\end{description}
+
+\subsection{Configuring TPIE for Individual Applications}\label{sec:appconfig}
+
+Certain TPIE configuration options can be selected by
+setting compile-time variables in the file
+\verb|app_config.h|\index{app_config.h@{\tt app\_config.h}}
+which is then included in an application program. A typical
+example of this file can be found in the \verb|test|
+directory. Selected parts of the file are shown
+and discussed below. \comment{LA: Something general about TPIE
+   configuration as set up by the configure-script needs to
+   be included here (e.g. discuss config.h file).}
 
 \subsection{app\_config.h}
 
@@ -265,7 +325,7 @@ size of the log dramatically.
 
 
 \subsection{Environment Variables}
-\index{Environment variables}
+\index{Environment variables}\label{sec:environment}
 
 In version \version~of TPIE there is only one environment variable. The
 variable is called \verb|AMI_SINGLE_DEVICE| and defines where TPIE places
@@ -571,3 +631,8 @@ stream.
 %and the types of the operands to the \verb|operate()| member function
 %of the class \verb|my_scan_class|.
 %\index{templates!instantiation|)}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 
