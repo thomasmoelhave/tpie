@@ -12,7 +12,7 @@
 
 // Define it all.
 #include <ami.h>
-VERSION(smooth_cpp,"$Id: smooth.cpp,v 1.7 2003-09-12 14:55:33 jan Exp $");
+VERSION(smooth_cpp,"$Id: smooth.cpp,v 1.8 2003-09-13 18:29:18 jan Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -154,7 +154,7 @@ void parse_app_opt(char c, char *optarg)
             report_results_final = true;
             break;
         case 'N':
-            istrstream(optarg,strlen(optarg)) >> niter;
+	    niter = (unsigned int)atol(optarg);
             break;
     }
 }
