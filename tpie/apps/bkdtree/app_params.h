@@ -6,15 +6,14 @@
 // Runtime parameters for the kd-tree, K-D-B-tree and B-tree test
 // suite.
 //
-// $Id: app_params.h,v 1.3 2003-06-02 17:03:37 tavi Exp $
+// $Id: app_params.h,v 1.4 2003-09-13 23:11:22 tavi Exp $
 //
 
 #ifndef _APP_PARAMS_H
 #define _APP_PARAMS_H
 
-// For getpagesize()
-#include <unistd.h>
-#include <strstream>
+#include <portability.h>
+
 // For STL's max()
 #include <algorithm>
 // TPIE streams.
@@ -39,10 +38,10 @@
 class app_params_t {
 public:
   typedef int coord_t;
-  typedef AMI_STREAM<Record<coord_t, size_t, DIM> > stream_t;
-  typedef Point<coord_t, DIM> point_t;
-  typedef Record<coord_t, size_t, DIM> record_t;
-  typedef Record_key<coord_t, size_t, DIM> record_key_t;
+  typedef AMI_STREAM<AMI_record<coord_t, size_t, DIM> > stream_t;
+  typedef AMI_point<coord_t, DIM> point_t;
+  typedef AMI_record<coord_t, size_t, DIM> record_t;
+  typedef AMI_record_key<coord_t, size_t, DIM> record_key_t;
 
   record_t mbr_lo;
   record_t mbr_hi;
@@ -116,16 +115,16 @@ public:
     wquery_size_x = 1.0;
     wquery_size_y = 1.0;
     // EPS-tree child cache fill factor.
-    child_cache_fill = 1.0;
+    child_cache_fill = (float)1.0;
     // Bulk load fill factor. Applies to both leaves and nodes.
-    bulk_load_fill = 0.998;
+    bulk_load_fill = (float)0.998;
     // Query type. If 0, use native query, ie, 4-sided for kdtree,
     // 3-sided for epstree, 2-sided for Btree.
     query_type = 0;
     wquery_count = 0; // refers to the random window queries.
     grid_size = AMI_KDTREE_GRID_SIZE;
-    leaf_block_factor = max(16384/getpagesize(), 1);
-    node_block_factor = max(16384/getpagesize(), 1);
+    leaf_block_factor = max(16384/TPIE_OS_BLOCKSIZE(), 1);
+    node_block_factor = max(16384/TPIE_OS_BLOCKSIZE(), 1);
     // For the EPS-tree catalog nodes. A value of 0 means 2*node_block_factor.
     catalog_block_factor = 0;
     leaf_size_max = 0;
