@@ -6,7 +6,7 @@
 //
 
 #include <versions.h>
-VERSION(bit_cpp,"$Id: bit.cpp,v 1.2 2000-01-10 22:24:52 hutchins Exp $");
+VERSION(bit_cpp,"$Id: bit.cpp,v 1.3 2003-04-17 20:49:35 jan Exp $");
 
 #include <bit.h>
 
@@ -31,7 +31,7 @@ bit::bit(long int i)
 
 bit::operator bool(void)
 {
-    return data;
+    return (data != 0);
 }
         
 bit::operator int(void)
