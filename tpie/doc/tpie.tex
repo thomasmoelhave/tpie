@@ -3,7 +3,7 @@
 %%
 %% File: tpie.tex
 %%
-%% $Id: tpie.tex,v 1.19 1999-11-07 21:48:58 hutchins Exp $
+%% $Id: tpie.tex,v 1.20 1999-11-15 17:59:48 hutchins Exp $
 %%
  
 \documentstyle[11pt,html,makeidx]{book}
@@ -59,9 +59,13 @@
 %\def\seealso#1#2{{\em \seename\ \alsoname\/} #1}
 %\makeatother
 
-\newcommand{\edition}{0.9.01a}
-\newcommand{\version}{0.9.01a~}
+% This manual applies to the following version of TPIE
+\newcommand{\edition}{0.9.01b}
+\newcommand{\version}{0.9.01b}
+% minimum GNU release required
 \newcommand{\gxxversion}{2.8.1}
+% current GNU release we use for development
+\newcommand{\gxxcurrent}{2.95}
 
 \newcommand{\tobewritten}{\vspace{\baselineskip}$<$TO BE WRITTEN$>$\vspace{\baselineskip}}
 \newcommand{\tobeextended}{\vspace{\baselineskip}$<$TO BE EXTENDED$>$\vspace{\baselineskip}}
@@ -121,17 +125,18 @@ Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 \chapter*{Introduction}
 \addcontentsline{toc}{chapter}{Introduction}
 
-This manual describes TPIE, a Transparent Parallel I/O Environment,
-designed to allow programmers to write high performance I/O-efficient
-programs for a variety of platforms.\comment{LA: Something about LEDA-SM
-somewhere?}
+This manual describes TPIE, a Transparent Parallel I/O
+Environment, designed to assist programmers in writing high
+performance I/O-efficient programs for a variety of
+platforms.
+\comment{LA: Something about LEDA-SM somewhere?}
 
-{\bf This manual, like the whole of the TPIE project, is work in
-  progress.} The authors are making it available in its current state
+{ \em This manual, like the whole of the TPIE project, is work in
+  progress. The authors are making it available in its current state
   in the hopes that it will be useful, but without any warranty
   whatsoever. Refer to the copyright page at the beginning of this
   manual for full details. Please send comments, bug reports\index{bug reports}, etc., to
-  \verb|tpie@cs.duke.edu|.
+  \verb|tpie@cs.duke.edu|.}
 
 \input{acknowledgements} % Chapter: Acknowledgments
 
@@ -151,6 +156,7 @@ somewhere?}
 \bibliographystyle{abbrv}
 \addcontentsline{toc}{part}{Bibliography}
 \bibliography{tpie}
+\newpage
 \addcontentsline{toc}{part}{Index}
 \printindex
 \end{document}
