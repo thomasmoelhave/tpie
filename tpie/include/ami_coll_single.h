@@ -3,7 +3,7 @@
 // File:   ami_coll_single.h
 // Author: Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_coll_single.h,v 1.12 2003-04-29 05:29:42 tavi Exp $
+// $Id: ami_coll_single.h,v 1.13 2003-05-08 21:30:01 tavi Exp $
 //
 // AMI collection entry points implemented on top of a single BTE.
 //
@@ -47,6 +47,9 @@ public:
 
   // Set the persistence flag. 
   void persist(persistence p) { btec_->persist(p); }
+
+  // Inquire the persistence status.
+  persistence persist() const { return btec_->persist(); }
 
   // Inquire the status.
   AMI_collection_status status() const { return status_; }
