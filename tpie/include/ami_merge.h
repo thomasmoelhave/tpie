@@ -8,7 +8,7 @@
 // lower level streams will use appropriate levels of buffering.  This
 // will be more critical for parallel disk implementations.
 //
-// $Id: ami_merge.h,v 1.28 1999-10-19 15:05:23 tavi Exp $
+// $Id: ami_merge.h,v 1.29 1999-12-15 22:17:46 hutchins Exp $
 //
 #ifndef _AMI_MERGE_H
 #define _AMI_MERGE_H
@@ -81,6 +81,8 @@ AMI_err AMI_main_mem_merge(AMI_STREAM<T> *instream,
 template<class T>
 class AMI_merge_base {
 public:
+
+#if AMI_VIRTUAL_BASE
   virtual AMI_err initialize(arity_t arity,
 			     CONST T * CONST * in,
 			     AMI_merge_flag *taken_flags,
@@ -92,6 +94,8 @@ public:
   virtual AMI_err main_mem_operate(T* mm_stream, size_t len) = 0;
   virtual size_t space_usage_overhead(void) = 0;
   virtual size_t space_usage_per_stream(void) = 0;
+#endif // AMI_VIRTUAL_BASE
+
 };
 
 
