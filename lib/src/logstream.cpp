@@ -8,7 +8,7 @@
 // This will go into a library whne it is ready.
 
 
-static char logstream_id[] = "$Id: logstream.cpp,v 1.7 1999-04-09 19:28:35 rajiv Exp $";
+static char logstream_id[] = "$Id: logstream.cpp,v 1.8 1999-04-25 04:32:05 rajiv Exp $";
 
 
 #include <logstream.h>
@@ -19,8 +19,11 @@ static char logstream_id[] = "$Id: logstream.cpp,v 1.7 1999-04-09 19:28:35 rajiv
 logstream::logstream(const char *fname, 
 		     unsigned int p,
 		     unsigned int tp) 
+#ifdef UNIFIED_LOGGING
+: ofstream(2), priority(p), threshold(tp) {} 
+#else
 : ofstream(fname), priority(p), threshold(tp) {} 
-  
+#endif
 
 // Output operators.
 
