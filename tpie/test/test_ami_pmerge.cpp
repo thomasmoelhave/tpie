@@ -15,7 +15,7 @@
 
 // Define it all.
 #include <ami.h>
-VERSION(test_ami_pmerge_cpp,"$Id: test_ami_pmerge.cpp,v 1.23 2003-09-11 19:30:47 tavi Exp $");
+VERSION(test_ami_pmerge_cpp,"$Id: test_ami_pmerge.cpp,v 1.24 2003-09-11 19:45:51 tavi Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -212,9 +212,9 @@ int main(int argc, char **argv)
     parse_args(argc,argv,as_opts,parse_app_opt);
 
     if (verbose) {
-        cout << "test_size = " << test_size << ".\n";
-        cout << "test_mm_size = " << test_mm_size << ".\n";
-        cout << "random_seed = " << random_seed << ".\n";
+      cout << "test_size = " << test_size << "." << endl;
+      cout << "test_mm_size = " << test_mm_size << "." << endl;
+      cout << "random_seed = " << random_seed << "." << endl;
     } else {
         cout << test_size << ' ' << test_mm_size << ' ' << random_seed;
     }
@@ -231,8 +231,8 @@ int main(int argc, char **argv)
     ae = AMI_scan(&rnds, &amis0);
 
     if (verbose) {
-        cout << "Wrote the random values.\n";
-        cout << "Stream length = " << amis0.stream_len() << '\n';
+      cout << "Wrote the random values." << endl;
+        cout << "Stream length = " << amis0.stream_len() << endl;
     }
 
     // Streams for reporting random and/or sorted values to ascii
@@ -263,15 +263,15 @@ int main(int argc, char **argv)
                                  (s_merge_manager *)&sm);
     
     if (verbose) {
-        cout << "Sorted them.\n";
-        cout << "Sorted stream length = " << amis1.stream_len() << '\n';
+      cout << "Sorted them."<< endl;
+        cout << "Sorted stream length = " << amis1.stream_len() << endl;
     }
     
     if (report_results_sorted) {
         ae = AMI_scan(&amis1, rpts);
     }    
 
-    cout << '\n';
+    cout << endl;
 
     return 0;
 }
