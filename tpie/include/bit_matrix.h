@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 11/4/94
 //
-// $Id: bit_matrix.h,v 1.3 1995-06-30 21:08:51 darrenv Exp $
+// $Id: bit_matrix.h,v 1.4 1997-05-20 22:14:46 vengroff Exp $
 //
 #ifndef _BIT_MATRIX_H
 #define _BIT_MATRIX_H
@@ -25,7 +25,7 @@ TEMPLATE_INSTANTIATE_MATRIX(bit)
 
 class bit_matrix : public matrix<bit> {
 private:
-    bit_matrix::bit_matrix(const matrix<bit> &mb);
+    bit_matrix::bit_matrix(matrix<bit> &mb);
 public:
     bit_matrix(unsigned int rows, unsigned int cols);
     virtual ~bit_matrix(void);
@@ -38,14 +38,14 @@ public:
 
     operator off_t(void);
 
-    friend bit_matrix operator+(const bit_matrix &op1, const bit_matrix &op2);
-    friend bit_matrix operator*(const bit_matrix &op1, const bit_matrix &op2);
+    friend bit_matrix operator+(bit_matrix &op1, bit_matrix &op2);
+    friend bit_matrix operator*(bit_matrix &op1, bit_matrix &op2);
 };
 
-bit_matrix operator+(const bit_matrix &op1, const bit_matrix &op2);
-bit_matrix operator*(const bit_matrix &op1, const bit_matrix &op2);
+bit_matrix operator+(bit_matrix &op1, bit_matrix &op2);
+bit_matrix operator*(bit_matrix &op1, bit_matrix &op2);
 
-ostream &operator<<(ostream &s, const bit_matrix &bm);
+ostream &operator<<(ostream &s, bit_matrix &bm);
 
 
 #ifdef NO_IMPLICIT_TEMPLATES

@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 3/2/95
 //
-// $Id: ami_sparse_matrix.h,v 1.3 1995-06-30 21:08:48 darrenv Exp $
+// $Id: ami_sparse_matrix.h,v 1.4 1997-05-20 22:14:45 vengroff Exp $
 //
 #ifndef AMI_SPARSE_MATRIX_H
 #define AMI_SPARSE_MATRIX_H
@@ -169,7 +169,7 @@ AMI_err AMI_sparse_band_info(AMI_sparse_matrix<T> &opm,
 template<class T>
 AMI_err AMI_sparse_mult_scan_banded(AMI_sparse_matrix<T> &banded_opm,
                                     AMI_matrix<T> &opv, AMI_matrix<T> &res,
-                                    unsigned int rows, unsigned int cols,
+                                    unsigned int rows, unsigned int /*cols*/,
                                     unsigned int rows_per_band)
 {
     AMI_err ae;

@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 1/9/95
 //
-// $Id: ami_bit_permute.h,v 1.2 1995-01-10 19:58:35 dev Exp $
+// $Id: ami_bit_permute.h,v 1.3 1997-05-20 22:14:33 vengroff Exp $
 //
 // For the momemnt this is done in terms of general permutations.
 // This will obviously change in the future.
@@ -45,7 +45,7 @@ public:
         src_bits = new bit_matrix(c.rows(),1);
     };
     
-    AMI_err initialize(off_t stream_len) {
+    AMI_err initialize(off_t /*stream_len*/) {
         return AMI_ERROR_NO_ERROR;
     }
     
@@ -53,7 +53,8 @@ public:
         
         *src_bits = input_offset;
 
-        bit_matrix res = A * *src_bits + c;
+        bit_matrix r1 = A * *src_bits;
+        bit_matrix res = r1 + c;
 
         return off_t(res);
     }

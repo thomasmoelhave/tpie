@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 3/11/95
 //
-// $Id: ami_kb_dist.h,v 1.2 1995-06-30 21:08:12 darrenv Exp $
+// $Id: ami_kb_dist.h,v 1.3 1997-05-20 22:14:39 vengroff Exp $
 //
 // Radix based distribution for single or striped AMI layers.
 //
@@ -93,9 +93,9 @@ AMI_err _AMI_KB_DIST(KB_KEY)(AMI_STREAM<T> &instream,
 
     // Make sure we don't use more streams than are available.
     {
-        int available_streams = instream.available_streams();
+        unsigned available_streams = instream.available_streams();
 
-        if ((available_streams != -1) &&
+        if ((available_streams != (unsigned)-1) &&
             (available_streams < output_streams)) {
             output_streams = available_streams;
         }
@@ -175,7 +175,7 @@ AMI_err _AMI_KB_DIST(KB_KEY)(AMI_STREAM<T> &instream,
             
             // Is it the biggest one so far?
 
-            if (stream_len > max_size) {
+            if (stream_len > (size_t)max_size) {
                 max_size = stream_len;
             }
 
