@@ -5,7 +5,7 @@
 //
 // Blocked kd-tree definition and implementation.
 //
-// $Id: ami_kdtree.h,v 1.13 2003-09-13 23:15:36 tavi Exp $
+// $Id: ami_kdtree.h,v 1.14 2003-09-17 02:26:38 tavi Exp $
 //
 
 #ifndef _AMI_KDTREE_H
@@ -13,8 +13,6 @@
 
 // Get definitions for working with Unix and Windows
 #include <portability.h>
-// For ostream.
-#include <iostream>
 // For pair.
 #include <utility>
 // For stack.
@@ -48,6 +46,9 @@ template<class coord_t, size_t dim, class Bin_node, class BTECOLL> class AMI_kdt
 const AMI_kdtree_params _AMI_kdtree_params_default = AMI_kdtree_params();
 
 #define AMI_KDTREE_HEADER_MAGIC_NUMBER 0xA9420E
+
+#define TPLOG(msg) 
+//  (LOG_APP_DEBUG(msg),LOG_FLUSH_LOG)
 
 
 // The AMI_kdtree class.
@@ -287,19 +288,332 @@ protected:
 #endif
 
     // Construct a grid_matrix.
-    grid_matrix(size_t* tt, grid *gg);
-    grid_matrix(const grid_matrix& x);
+    grid_matrix(size_t* tt, grid *gg) {
+      size_t i;
+      sz = 1;
+      for (i = 0; i < dim; i++) {
+	gt[i] = tt[i];
+	gl[i] = 0;
+	sz *= gt[i];
+	lo[i].second = false;
+	hi[i].second = false;
+      }
+      g = gg;
+      point_count = g->point_count;
+      c = NULL;
+    }
+    
+    // Copy constructor.
+    grid_matrix(const grid_matrix& x) {
+      size_t i;
+      sz = 1;
+      for (i = 0; i < dim; i++) {
+	gt[i] = x.gt[i];
+	gl[i] = x.gl[i];
+	lo[i] = x.lo[i];
+	hi[i] = x.hi[i];
+      }
+      sz = x.sz;
+      g = x.g;
+      c = NULL;
+    }
+
     // Split along strip s orthogonal to dimension d. The lower
     // coordinates are kept here, and the high ones are returned in a
     // newly created object.
-    grid_matrix* split(size_t s, const point_t& p, size_t d);
+    grid_matrix* split(size_t s, const point_t& p, size_t d) {
+      TPLOG("  ::grid_matrix::split Entering\n");
+      
+      assert(d < dim);
+      assert(s < gt[d]);
+      size_t i, j, ni;
+      
+      // The high matrix will be returned in gmx.
+      grid_matrix* gmx = new grid_matrix(*this);
+      // The no. of strips is the same on all dimensions except d.
+      gmx->gt[d] = gt[d] - s;
+      // The grid lines are the same on all dimensions except d, where
+      // we have to advance the pointer by s.
+      gmx->gl[d] = gl[d] + s;
+      
+      // Splitting the count matrix is much trickier. All this uglyness
+      // should be highly optimized by the compiler for 2 dimensions.
+      
+      // Multipliers for this matrix.
+      size_t mult[dim+1]; // mult[i] = t[0] * .. * t[i-1]
+      mult[0] = 1;
+      for (i = 1; i <= dim; i++)
+	mult[i] = mult[i-1] * gt[i-1];
+      assert(mult[dim] == sz);
+      TPLOG("    initial size: "<<sz<<"\n");
+      
+      // This matrix will become the low matrix. Update the number of
+      // strips on dimension d. No need to update the grid lines.
+      gt[d] = s + 1;
+      
+      // Multipliers for the low matrix.
+      size_t lo_mult[dim+1];
+      lo_mult[0] = 1;
+      for (i = 1; i <= dim; i++)
+	lo_mult[i] = lo_mult[i-1] * gt[i-1];
+      // The low matrix. Will replace matrix c later, when we're done with it.
+      size_t* lo_c = new size_t[lo_mult[dim]];
+      // The new size.
+      sz = lo_mult[dim];
+      TPLOG("    low size: "<<sz<<"\n");
+      
+      // Multipliers for the high matrix.
+      size_t hi_mult[dim+1];
+      hi_mult[0] = 1;
+      for (i = 1; i <= dim; i++)
+	hi_mult[i] = hi_mult[i-1] * gmx->gt[i-1];
+      // The high matrix.
+      gmx->c = new size_t[hi_mult[dim]];
+      // The size of gmx.
+      gmx->sz = hi_mult[dim];
+      TPLOG("    high size: "<<gmx->sz<<"\n");
+      
+      // i is i_0*mult[0] + i_1*mult[1] + ...
+      // For each element in the matrix, decide whether it goes in the
+      // low or in the high matrix.
+      for (i = 0; i < mult[dim]; i++) {
+	ni = 0;
+	
+	// Check on which side of strip s the cell given by i falls. Don't
+	// need the ones on the boundary strip, since those will get new
+	// values later.
+	if ((i % mult[d+1]) / mult[d] < s) {
+	  // Compute the index in the lo_c array.
+	  for (j = 0; j < dim; j++)
+	    ni += ((i % mult[j+1]) / mult[j]) * lo_mult[j];
+	  // Fill in the corresponding position in lo_c.
+	  lo_c[ni] = c[i];
+	} else if ((i % mult[d+1]) / mult[d] > s) {
+	  // Compute the index in the gmx->c array.
+	  for (j = 0; j < dim; j++)
+	    ni += ((i % mult[j+1]) / mult[j] - (j==d ? s: 0)) * hi_mult[j];
+	  // Fill in the corresponding position in the gmx->c array.
+	  gmx->c[ni] = c[i];
+	} else { // boundary. initialize these to 0.
+	  // Compute the index position in the lo_c array.
+	  for (j = 0; j < dim; j++)
+	    ni += ((i % mult[j+1]) / mult[j]) * lo_mult[j];
+	  // Initialize to 0.
+	  lo_c[ni] = 0;
+	  
+	  ni = 0;
+	  // Compute the index position in the gmx->c array.
+	  for (j = 0; j < dim; j++)
+	    ni += ((i % mult[j+1]) / mult[j] - (j==d ? s: 0)) * hi_mult[j];
+	  // Initialize to 0.
+	  gmx->c[ni] = 0;
+	}
+      }
+      
+      delete [] c;
+      c = lo_c;
+      
+      AMI_err err;
+      point_t* p1;
+      size_t i_i, m;
+      size_t median_strip = gl[d] + s; // refers to the big grid!
+      TPLOG("    median strip in grid: "<<median_strip<<"\n");
+#if AMI_KDTREE_USE_EXACT_SPLIT
+      hi[d] = pair<AMI_record<coord_t, size_t, dim>, bool>(p, true);
+      gmx->lo[d] = pair<AMI_record<coord_t, size_t, dim>, bool>(p, true);
+#else
+      hi[d] = pair<coord_t, bool>(p[d], true);
+      gmx->lo[d] = pair<coord_t, bool>(p[d], true);
+#endif
+      size_t off = g->o[d][median_strip];
+      TPLOG("    stream offset of first pnt in median strip: "<<off<<"\n");
+      g->streams[d]->seek(off);
+      
+      // Compute the counts for the cells on the rightmost strip in this
+      // matrix and for the cells on the leftmost strip in the gmx matrix.
+      
+      while ((err = g->streams[d]->read_item(&p1)) == AMI_ERROR_NO_ERROR) {
+	// Stop when reaching the offset of the next strip.
+	if (median_strip < g->t[d] - 1 && off >= g->o[d][median_strip + 1])
+	  break;
+	
+	// This test is using the new values for hi.
+	if (is_inside(*p1)) {
+	  m = 1;
+	  ni = 0;
+	  for (i = 0; i < dim; i++) {
+	    i_i = upper_bound(g->l[i] + gl[i], g->l[i] + (gl[i] + gt[i]-1), (*p1)[i]) 
+	      - (g->l[i] + gl[i]);
+	    // On dimension d, we should have s.
+	    assert(i != d || i_i == s);
+	    assert(i_i < gt[i]);
+	    ni += i_i * m;
+	    m *= gt[i];
+	  }
+	  assert(ni < sz);
+	  c[ni]++;
+	  assert(!gmx->is_inside(*p1));
+	}
+	if (gmx->is_inside(*p1)) {
+	  m = 1;
+	  ni = 0;
+	  for (i = 0; i < dim; i++) {
+	    i_i = upper_bound(g->l[i] + gmx->gl[i], g->l[i] + (gmx->gl[i] + gmx->gt[i]-1), (*p1)[i]) 
+	      - (g->l[i] + gmx->gl[i]);
+	    // On dimension d, we should have 0.
+	    assert(i != d || i_i == 0);
+	    assert(i_i < gmx->gt[i]);
+	    ni += i_i * m;
+	    m *= gmx->gt[i];
+	  }
+	  assert(ni < gmx->sz);
+	  gmx->c[ni]++;
+	  assert(!is_inside(*p1));
+	}
+	off++;
+      }  
+      TPLOG("  ::grid_matrix::split Exiting\n");
+      return gmx;
+    }
+
+
     // Find the median point, store it in p, split according to the
     // median point, and return the "high" sub-grid.
-    grid_matrix* find_median_and_split(point_t& p, size_t d, size_t median_pos);
-    // return true if given point is inside the box defined by hi and lo.
-    bool is_inside(const point_t& p);
+    grid_matrix* find_median_and_split(point_t& p, size_t d, size_t median_pos) {
+      TPLOG("  ::grid_matrix::find_median_and_split Entering dim="<<d<<"\n");
+      size_t s = 0, acc = 0, i;
+      grid_matrix* gmx;
+      AMI_err err;
+      
+      // Preparation: compute point counts for each strip orthogonal to d.
+      size_t *strip_count = new size_t[gt[d]];
+      for (i = 0; i < gt[d]; i++)
+	strip_count[i] = 0;
+      size_t mult[dim+1]; // mult[i] = t[0] * .. * t[i-1]
+      mult[0] = 1;
+      for (i = 1; i <= dim; i++)
+	mult[i] = mult[i-1] * gt[i-1];
+      for (i = 0; i < sz; i++) {
+	strip_count[(i % mult[d+1]) / mult[d]] += c[i];
+      }
+      // Find median strip s on dimension d based on the strip counts.
+      for (i = 0; i < gt[d]; i++) {
+	if (acc + strip_count[i] >= median_pos + 1)
+	  break;
+	else
+	  acc += strip_count[i];
+      }
+      assert(acc < point_count);
+      assert(acc <= median_pos);
+      assert(i < gt[d]);
+      // Store the index of the median strip in s.
+      s = i;
+      
+      size_t offset_in_strip = median_pos - acc; // refers to this subgrid.
+      assert(offset_in_strip < strip_count[s]);
+      delete [] strip_count;
+      
+      TPLOG("    median strip: "<<s<<"\n");
+      TPLOG("    offset in median strip: "<<offset_in_strip<<"\n");
+      
+      // Find the exact median point. Tricky.
+      point_t* p1, ap;
+      i = 0;
+      g->streams[d]->seek(g->o[d][gl[d]+s]);
+      err = g->streams[d]->read_item(&p1);
+      
+      while (err == AMI_ERROR_NO_ERROR) {
+	assert((*p1)[d] >= g->l[d][gl[d]+(s-1)]);
+	assert((*p1)[d] <  g->l[d][gl[d]+s]);
+	
+	if (is_inside(*p1)) {
+	  if (i == offset_in_strip) {
+	    ap = *p1;
+	    break;
+	  }
+	  // Count only points inside.
+	  i++;
+	}
+	err = g->streams[d]->read_item(&p1);
+      }
+      
+      assert(i == offset_in_strip);
+      TPLOG("    preliminary median point: ("<<ap[0]<<","<<ap[1]<<")\n");
+      assert(err == AMI_ERROR_NO_ERROR);
+      
+      err = g->streams[d]->read_item(&p1);
+      
+#if AMI_KDTREE_USE_EXACT_SPLIT
+      while (err == AMI_ERROR_NO_ERROR && ap == (*p1)) {
+#else
+      // Keep reading until the coordinate on dimension d is different.
+      while (err == AMI_ERROR_NO_ERROR && ap[d] == (*p1)[d]) {
+#endif
+	if (is_inside(*p1)) {
+	  offset_in_strip++;
+	  ap = *p1;
+	  TPLOG("    advanced offset_in_strip. new point: ("<<ap[0]<<","<<ap[1]<<")\n");
+	}
+	err = g->streams[d]->read_item(&p1);
+      }
+      
+      // The point we are looking for is ap.
+      
+      TPLOG("    new offset in median strip: "<<offset_in_strip<<"\n");
+      TPLOG("    final median point: ("<<ap[0]<<","<<ap[1]<<")\n");
+      
+      // Split the matrix.
+      gmx = split(s, ap, d);
+      
+      // This matrix is now the low matrix and gmx is the high matrix.
+      assert(is_inside(ap));
+      
+      // Update point_count for the high matrix.
+      gmx->point_count = point_count - (offset_in_strip + acc + 1);
+      TPLOG("    high matrix point count: "<<gmx->point_count<<"\n");
+      
+      // Update point_count for the low matrix.
+      point_count = offset_in_strip + acc + 1;
+      TPLOG("    low matrix point count: "<<point_count<<"\n");
+      
+      p = ap;
+      
+      TPLOG("  ::grid_matrix::find_median_and_split Exiting p=("<<p[0]<<","<<p[1]<<")\n");
+      // Return.
+      return gmx;
+    }
+      
+
+    // Return true if given point is inside the box defined by hi and lo.
+    bool is_inside(const point_t& p) {
+      bool ans = true;
+      size_t i;
+      for (i = 0; i < dim; i++) {
+#if AMI_KDTREE_USE_EXACT_SPLIT
+	if (lo[i].second && point_t::cmp(i).compare(p, lo[i].first) <= 0) {
+	  ans = false;
+	  break;
+	} else if (hi[i].second && point_t::cmp(i).compare(p, hi[i].first) > 0) {
+	  ans = false;
+	  break;
+	}
+#else
+	if (lo[i].second && p[i] <= lo[i].first) {
+	  ans = false;
+	  break;
+	} else if (hi[i].second && p[i] > hi[i].first) {
+	  ans = false;
+	  break;
+	}
+#endif
+      }
+      return ans;
+    }
+
     // Destructor. Delete c.
-    ~grid_matrix();
+    ~grid_matrix() {
+      delete [] c;
+    }
   };
 
   class grid_context {
@@ -341,10 +655,129 @@ protected:
     // The queue of unfinished business.
     vector<grid_context> q;
 
-    grid(size_t t_all, stream_t** in_streams);
-    ~grid();
-    grid_matrix* create_matrix();
+    // Constructor.
+    grid(size_t t_all, stream_t** in_streams) {
+
+      streams = in_streams;
+      
+      point_count = in_streams[0]->stream_len();
+      size_t i, j, off;
+      AMI_record<coord_t, size_t, dim> *p1, ap;
+      AMI_err err;
+      
+      // Determine the grid lines.
+      for (i = 0; i < dim; i++) {
+	t[i] = t_all;
+	l[i] = new coord_t[t[i] - 1];
+	o[i] = new size_t[t[i]];
+	assert(point_count > 2 * t[i]); // TODO: make this more meaningful.
+	o[i][0] = 0;
+	for (j = 0; j < t[i]-1; j++) {
+	  off = (j + 1) * (point_count / t[i]) - 1;
+	  in_streams[i]->seek(off);
+	  err = in_streams[i]->read_item(&p1);
+	  assert(err == AMI_ERROR_NO_ERROR);
+	  ap = *p1;
+	  err = in_streams[i]->read_item(&p1);
+	  while (err == AMI_ERROR_NO_ERROR && (*p1)[i] == ap[i]) {
+	    ap = *p1;
+	    err = in_streams[i]->read_item(&p1);
+	    off++;
+	  }
+	  assert(err == AMI_ERROR_NO_ERROR);
+	  // The first point with a different value on the i'th dimension.
+	  l[i][j] = (*p1)[i];
+	  o[i][j+1] = off + 1;
+	}
+      }
+    }
+
+
+    // Destructor
+    ~grid() {
+      size_t i;
+      for (i = 0; i < dim; i++) {
+	delete [] l[i];
+	delete [] o[i];
+      }
+      q.clear();
+      //  assert(q.size() == 0);
+    }
+
+
+    grid_matrix* create_matrix() {
+      
+      size_t i, j;
+      AMI_err err;
+      
+      size_t len, half;
+      coord_t* middle, *first, val;
+      
+      grid_matrix* gmx = new grid_matrix(t, this);
+      
+      gmx->c = new size_t[gmx->sz];
+      for (j = 0; j < gmx->sz; j++)
+	gmx->c[j] = 0;
+      
+      size_t mult = 1; // multiplier.
+      size_t ni = 0, i_i, i_0 = 0;
+      point_t* p2;
+      coord_t oldvalue;
+      
+      streams[0]->seek(0);
+      err = streams[0]->read_item(&p2);
+      oldvalue = (*p2)[0];
+      
+      // Compute the counts. Loop over all points.
+      while (err == AMI_ERROR_NO_ERROR) {
+	
+	// Since streams[0] is sorted on the first dimension, there's no
+	// need for binary search on this dimension.
+	if (i_0 < t[0] - 1)
+	  if (l[0][i_0] == (*p2)[0] && (*p2)[0] > oldvalue) {
+	    i_0++;
+	    oldvalue = (*p2)[0];
+	  }
+	ni = i_0;
+	///    mult = t[0];
+	mult = 1;
+	
+	for (i = 1; i < dim; i++) {
+	  val = (*p2)[i];
+	  mult *= t[i-1]; ///
+	  // Do binary search with (*p2)[i] over the lines in l[i] to
+	  // find the i'th coordinate.
+	  
+	  ///      i_i = upper_bound(l[i], l[i] + (t[i]-1), (*p2)[i]) - l[i];
+	  // START New code, taken from the stl library (stl_algo.h).
+	  len = t[i]-1;
+	  first = l[i];
+	  while (len > 0) {
+	    half = len >> 1;
+	    middle = first + half;
+	    if (val < *middle)
+	      len = half;
+	    else {
+	      first = middle + 1;
+	      len -= half + 1;
+	    }
+	  }
+	  i_i = first - l[i];
+	  // END New code.
+	  
+	  assert(i_i < t[i]);
+	  ni += i_i * mult;
+	  ///      mult *= t[i];
+	}
+	//    assert(ni < gmx->sz);
+	gmx->c[ni]++;
+	err = streams[0]->read_item(&p2);
+      }
+      return gmx;
+    }
+
   };
+
 
   // Used by the sample bulk loader. Similar to grid_context. 
   class sample_context {
@@ -370,11 +803,83 @@ protected:
     size_t sz;
     // The queue of unfinished business.
     vector<sample_context> q;
+
     // Construct a sample.
-    sample(size_t _sz, stream_t* _in_stream);
+    sample(size_t _sz, stream_t* _in_stream) {
+#define MAX_RANDOM ((double)0x7fffffff)
+
+      // Preliminary sample size.
+      sz = _sz;
+      in_stream = _in_stream;
+      size_t input_sz = in_stream->stream_len();
+      assert(sz > 0 && sz < input_sz);
+      
+      TPIE_OS_OFFSET* offsets = new TPIE_OS_OFFSET[sz];
+      TPIE_OS_OFFSET* new_last;
+      point_t *p;
+      size_t i;
+
+      TPIE_OS_SRANDOM(10);
+      
+      // Sample sz offsets in the interval [0, input_sz].
+      for (i = 0; i < sz; i++) {
+	offsets[i] = TPIE_OS_OFFSET((TPIE_OS_RANDOM()/MAX_RANDOM) * input_sz);
+      }
+      
+      // Sort the sampled offsets.
+      std::sort(offsets, offsets + sz);
+      
+      // Eliminate duplicates.
+      if ((new_last = unique(offsets, offsets + sz)) != offsets + sz) {
+	cerr << "    Warning: Duplicate samples found! Decreasing sample size accordingly.\n";
+	// Adjust sample size sz.
+	sz = new_last - offsets;
+	cerr << "    New sample size: " << sz << "\n";
+      }
+      
+      // Make space for one in-memory array (more later).
+      mm_streams[0] = new point_t[sz];
+      
+      // Read the sample points.
+      for (i = 0; i < sz; i++) {
+	assert(offsets[i] < input_sz);
+	in_stream->seek(offsets[i]);
+	in_stream->read_item(&p);
+	mm_streams[0][i] = *p;
+      }
+      
+      // Delete the offsets array.
+      delete [] offsets;
+      
+      // Make space for the other (d-1) in-memory arrays and copy the
+      // points from the existing array.
+      for (i = 1; i < dim; i++) {
+	mm_streams[i] = new point_t[sz];
+	for (size_t j = 0; j < sz; j ++)
+	  mm_streams[i][j] = mm_streams[0][j];
+      }
+      
+      // Sort the d in-memory arrays on each dimension.
+      typename point_t::cmp* comp_obj;
+      for (i = 0; i < dim; i++) {
+	comp_obj = new typename point_t::cmp(i);
+	quick_sort_obj(mm_streams[i], sz, comp_obj);
+	delete comp_obj;
+      }
+    }
+    
     // Remove the sample points.
-    void cleanup();
-    ~sample();
+    void cleanup() {
+      size_t i;
+      for (i = 0; i < dim; i++) {
+	delete [] mm_streams[i];
+	mm_streams[i] = NULL;
+      }
+    }
+
+    ~sample() {
+      cleanup();
+    }
   };
 
   // Pair of dim flags. Used in window_query.
@@ -573,8 +1078,6 @@ public:
 ///////////////     ***Implementation***    ////////////////
 ////////////////////////////////////////////////////////////
 
-#define TPLOG(msg) 
-//  (LOG_APP_DEBUG(msg),LOG_FLUSH_LOG)
 #define DBG(msg)      cerr << msg << flush
 
 // Shortcuts for my convenience.
@@ -677,7 +1180,7 @@ template<class coord_t, size_t dim, class BTECOLL>
 size_t AMI_KDTREE_LEAF::window_query(const POINT &lop, const POINT &hip, 
 				 POINT_STREAM* stream) const {
   TPLOG("AMI_kdtree_leaf::window_query Entering "<<"\n");
-  size_t i, di, result = 0;
+  size_t i, result = 0;
   for (i = 0; i < size(); i++) {
     // Test on all dimensions.
     if (lop < el[i] && el[i] < hip) {
@@ -1143,16 +1646,17 @@ void AMI_KDTREE::create_leaf(AMI_bid& bid, size_t d,
   // Copy points from stream to leaf. This should be an array copy,
   // but we don't have the mechanism...
   POINT *p;
-  for (size_t i = 0; i < l->size(); i++) {
+  size_t i;
+  for (i = 0; i < l->size(); i++) {
     in_streams[d]->read_item(&p);
     l->el[i] = *p;
   }
 
   // Remove the input streams.
-  for (size_t i = 0; i < dim; i++) {
+  for (i = 0; i < dim; i++) {
     delete in_streams[i];
     in_streams[i] = NULL;
-  }  
+  }
 
   HEIGHTDISPLAY_OUT
   TPLOG("AMI_kdtree::create_leaf Exiting bid="<<bid<<", dim="<<d<<"\n");
@@ -1235,7 +1739,7 @@ void AMI_KDTREE::create_bin_node_mm(AMI_KDTREE_NODE *b, bn_context ctx,
   lo_sz = read_pos;
 
   // Create the output streams by distributing the input streams.
-  for (size_t i = 0; i < dim; i++) {
+  for (i = 0; i < dim; i++) {
 
     lo_streams[i] = new POINT[lo_sz];
     hi_streams[i] = new POINT[sz - lo_sz];
@@ -1412,12 +1916,12 @@ void AMI_KDTREE::create_node_mm(AMI_bid& bid, size_t d,
 //// *AMI_kdtree::can_do_mm* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
 bool AMI_KDTREE::can_do_mm(size_t sz) {
-  bool ans = ((unsigned long long) sz * sizeof(POINT) * size_t(dim + 1) + 
+  bool ans = ((ULONGLONG) sz * sizeof(POINT) * size_t(dim + 1) + 
 	  pcoll_nodes_->block_size() * params_.node_cache_size +
 	  pcoll_leaves_->block_size() * params_.leaf_cache_size +
-	  size_t(8192 * 4) < (unsigned long long) MM_manager.memory_available());
+	  size_t(8192 * 4) < (ULONGLONG) MM_manager.memory_available());
   TPLOG("AMI_kdtree::can_do_mm needed = " << 
-      (long long int) ((unsigned long long) sz * sizeof(POINT) * size_t(dim + 1) + 
+      (LONGLONG) ((ULONGLONG) sz * sizeof(POINT) * size_t(dim + 1) + 
        pcoll_nodes_->block_size() * params_.node_cache_size +
        pcoll_leaves_->block_size() * params_.leaf_cache_size +
        size_t(8192 * 4)) << ", avail = " << 
@@ -1455,7 +1959,7 @@ void AMI_KDTREE::copy_to_mm(POINT_STREAM* in_stream, POINT** streams_mm, size_t&
   sz = in_stream->stream_len();
   size_t i, j;
   POINT* p;
-  bool set_mbr;
+  //  bool set_mbr;
 
   // Read from disk into the first in-memory stream.
   streams_mm[0] = new POINT[sz];
@@ -1529,9 +2033,9 @@ void AMI_KDTREE::build_lower_tree_g(grid* g) {
 
   grid_context *gc;
   size_t sz, i, j;
-  POINT* p;
+  //  POINT* p;
   POINT* streams_mm[dim];
-  AMI_err err;
+  //  AMI_err err;
   size_t next_free_el, next_free_lk;
   AMI_KDTREE_NODE* b;
 
@@ -2109,6 +2613,7 @@ size_t AMI_KDTREE::k_nn_query(const POINT &p,
   //  }  
 
   TPLOG("AMI_kdtree::k_nn_query Exiting "<<"\n");
+  return result;
 }
 
 //// *AMI_kdtree::window_query* ////
@@ -2119,6 +2624,7 @@ size_t AMI_KDTREE::window_query(const POINT &p1, const POINT& p2,
   POINT lop, hip;
   // The number of points found.
   size_t result = 0;
+  size_t i;
 
   // Do some error checking.
   if (status_ != AMI_KDTREE_STATUS_VALID) {
@@ -2127,7 +2633,7 @@ size_t AMI_KDTREE::window_query(const POINT &p1, const POINT& p2,
   }
 
   // Determine the low and high bounds of the box.
-  for (size_t i = 0; i < dim; i++) {
+  for (i = 0; i < dim; i++) {
     lop[i] = min(p1[i], p2[i]);
     hip[i] = max(p1[i], p2[i]);
     if (p1[i] == p2[i])
@@ -2142,7 +2648,7 @@ size_t AMI_KDTREE::window_query(const POINT &p1, const POINT& p2,
   stack<inner_stack_elem> ss;
 
   podf allfalse;
-  for (size_t i = 0; i < dim; i++) {
+  for (i = 0; i < dim; i++) {
     allfalse.first[i] = false; // ie, low boundary of current box, on dim. i, is outside the query window.
     allfalse.second[i] = false; // ie, high boundary on dim. i is outside the query window.
   }
@@ -2316,7 +2822,7 @@ AMI_bid AMI_KDTREE::find_leaf(const POINT &p) {
   pair<AMI_bid, link_type_t> n = 
     pair<AMI_bid, link_type_t>(header_.root_bid, header_.root_type);
   AMI_KDTREE_NODE* bn;
-  bool ans;
+  //  bool ans;
 
   // Go down the tree until the appropriate leaf is found.
   while (n.second == BLOCK_NODE) {
@@ -2537,468 +3043,6 @@ AMI_KDTREE::~AMI_kdtree() {
   TPLOG("AMI_kdtree::~AMI_kdtree Exiting status="<<status_<<"\n");
 }
 
-
-/////////////////////////////////////////
-/////////// **AMI_kdtree::grid** ////////////
-/////////////////////////////////////////
-
-//// *AMI_kdtree::grid::grid* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-AMI_KDTREE::grid::grid(size_t t_all, POINT_STREAM** in_streams) {
-
-  streams = in_streams;
-  
-  point_count = in_streams[0]->stream_len();
-  size_t i, j, off;
-  AMI_record<coord_t, size_t, dim> *p1, ap;
-  AMI_err err;
-
-  // Determine the grid lines.
-  for (i = 0; i < dim; i++) {
-    t[i] = t_all;
-    l[i] = new coord_t[t[i] - 1];
-    o[i] = new size_t[t[i]];
-    assert(point_count > 2 * t[i]); // TODO: make this more meaningful.
-    o[i][0] = 0;
-    for (j = 0; j < t[i]-1; j++) {
-      off = (j + 1) * (point_count / t[i]) - 1;
-      in_streams[i]->seek(off);
-      err = in_streams[i]->read_item(&p1);
-      assert(err == AMI_ERROR_NO_ERROR);
-      ap = *p1;
-      err = in_streams[i]->read_item(&p1);
-      while (err == AMI_ERROR_NO_ERROR && (*p1)[i] == ap[i]) {
-	ap = *p1;
-	err = in_streams[i]->read_item(&p1);
-	off++;
-      }
-      assert(err == AMI_ERROR_NO_ERROR);
-      // The first point with a different value on the i'th dimension.
-      l[i][j] = (*p1)[i];
-      o[i][j+1] = off + 1;
-    }
-  }
-}
-
-//// *AMI_kdtree::grid::~grid* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-AMI_KDTREE::grid::~grid() {
-  size_t i;
-  for (i = 0; i < dim; i++) {
-    delete [] l[i];
-    delete [] o[i];
-  }
-  q.clear();
-  //  assert(q.size() == 0);
-}
-
-//// *AMI_kdtree::grid::create_matrix* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-typename AMI_KDTREE::grid_matrix* AMI_KDTREE::grid::create_matrix() {
-
-  size_t i, j;
-  AMI_err err;
-
-  size_t len, half;
-  coord_t* middle, *first, *last, val;
-
-  grid_matrix* gmx = new grid_matrix(t, this);
-
-  gmx->c = new size_t[gmx->sz];
-  for (j = 0; j < gmx->sz; j++)
-    gmx->c[j] = 0;
-  
-  size_t mult = 1; // multiplier.
-  size_t ni = 0, i_i, i_0 = 0;
-  POINT* p2;
-  coord_t oldvalue;
-
-  streams[0]->seek(0);
-  err = streams[0]->read_item(&p2);
-  oldvalue = (*p2)[0];
-
-  // Compute the counts. Loop over all points.
-  while (err == AMI_ERROR_NO_ERROR) {
-
-    // Since streams[0] is sorted on the first dimension, there's no
-    // need for binary search on this dimension.
-    if (i_0 < t[0] - 1)
-      if (l[0][i_0] == (*p2)[0] && (*p2)[0] > oldvalue) {
-        i_0++;
-	oldvalue = (*p2)[0];
-      }
-    ni = i_0;
-    ///    mult = t[0];
-    mult = 1;
-
-    for (i = 1; i < dim; i++) {
-      val = (*p2)[i];
-      mult *= t[i-1]; ///
-      // Do binary search with (*p2)[i] over the lines in l[i] to
-      // find the i'th coordinate.
-
-      ///      i_i = upper_bound(l[i], l[i] + (t[i]-1), (*p2)[i]) - l[i];
-      // START New code, taken from the stl library (stl_algo.h).
-      len = t[i]-1;
-      first = l[i];
-      while (len > 0) {
-	half = len >> 1;
-	middle = first + half;
-	if (val < *middle)
-	  len = half;
-	else {
-	  first = middle + 1;
-	  len -= half + 1;
-	}
-      }
-      i_i = first - l[i];
-      // END New code.
-
-      assert(i_i < t[i]);
-      ni += i_i * mult;
-      ///      mult *= t[i];
-    }
-    //    assert(ni < gmx->sz);
-    gmx->c[ni]++;
-    err = streams[0]->read_item(&p2);
-  }
-  return gmx;
-}
-
-
-/////////////////////////////////////////
-//////// **AMI_kdtree::grid_matrix** ////////
-/////////////////////////////////////////
-
-//// *AMI_kdtree::grid_matrix::grid_matrix* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-AMI_KDTREE::grid_matrix::grid_matrix(const grid_matrix& x) {
-  size_t i;
-  sz = 1;
-  for (i = 0; i < dim; i++) {
-    gt[i] = x.gt[i];
-    gl[i] = x.gl[i];
-    lo[i] = x.lo[i];
-    hi[i] = x.hi[i];
-  }
-  sz = x.sz;
-  g = x.g;
-  c = NULL;
-}
-
-//// *AMI_kdtree::grid_matrix::grid_matrix* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-AMI_KDTREE::grid_matrix::grid_matrix(size_t* tt, grid *gg) {
-  size_t i;
-  sz = 1;
-  for (i = 0; i < dim; i++) {
-    gt[i] = tt[i];
-    gl[i] = 0;
-    sz *= gt[i];
-    lo[i].second = false;
-    hi[i].second = false;
-  }
-  g = gg;
-  point_count = g->point_count;
-  c = NULL;
-}
-
-//// *AMI_kdtree::grid_matrix::split* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-typename AMI_KDTREE::grid_matrix* AMI_KDTREE::grid_matrix::split(size_t s, const POINT& p, size_t d) {
-  TPLOG("  ::grid_matrix::split Entering\n");
-
-  assert(d < dim);
-  assert(s < gt[d]);
-  size_t i, j, ni;
-  
-  // The high matrix will be returned in gmx.
-  grid_matrix* gmx = new grid_matrix(*this);
-  // The no. of strips is the same on all dimensions except d.
-  gmx->gt[d] = gt[d] - s;
-  // The grid lines are the same on all dimensions except d, where
-  // we have to advance the pointer by s.
-  gmx->gl[d] = gl[d] + s;
-  
-  // Splitting the count matrix is much trickier. All this uglyness
-  // should be highly optimized by the compiler for 2 dimensions.
-  
-  // Multipliers for this matrix.
-  size_t mult[dim+1]; // mult[i] = t[0] * .. * t[i-1]
-  mult[0] = 1;
-  for (i = 1; i <= dim; i++)
-    mult[i] = mult[i-1] * gt[i-1];
-  assert(mult[dim] == sz);
-  TPLOG("    initial size: "<<sz<<"\n");
-  
-  // This matrix will become the low matrix. Update the number of
-  // strips on dimension d. No need to update the grid lines.
-  gt[d] = s + 1;
-  
-  // Multipliers for the low matrix.
-  size_t lo_mult[dim+1];
-  lo_mult[0] = 1;
-  for (i = 1; i <= dim; i++)
-    lo_mult[i] = lo_mult[i-1] * gt[i-1];
-  // The low matrix. Will replace matrix c later, when we're done with it.
-  size_t* lo_c = new size_t[lo_mult[dim]];
-  // The new size.
-  sz = lo_mult[dim];
-  TPLOG("    low size: "<<sz<<"\n");
-  
-  // Multipliers for the high matrix.
-  size_t hi_mult[dim+1];
-  hi_mult[0] = 1;
-  for (i = 1; i <= dim; i++)
-    hi_mult[i] = hi_mult[i-1] * gmx->gt[i-1];
-  // The high matrix.
-  gmx->c = new size_t[hi_mult[dim]];
-  // The size of gmx.
-  gmx->sz = hi_mult[dim];
-  TPLOG("    high size: "<<gmx->sz<<"\n");
-
-  // i is i_0*mult[0] + i_1*mult[1] + ...
-  // For each element in the matrix, decide whether it goes in the
-  // low or in the high matrix.
-  for (i = 0; i < mult[dim]; i++) {
-    ni = 0;
-
-    // Check on which side of strip s the cell given by i falls. Don't
-    // need the ones on the boundary strip, since those will get new
-    // values later.
-    if ((i % mult[d+1]) / mult[d] < s) {
-      // Compute the index in the lo_c array.
-      for (j = 0; j < dim; j++)
-	ni += ((i % mult[j+1]) / mult[j]) * lo_mult[j];
-      // Fill in the corresponding position in lo_c.
-      lo_c[ni] = c[i];
-    } else if ((i % mult[d+1]) / mult[d] > s) {
-      // Compute the index in the gmx->c array.
-      for (j = 0; j < dim; j++)
-	ni += ((i % mult[j+1]) / mult[j] - (j==d ? s: 0)) * hi_mult[j];
-      // Fill in the corresponding position in the gmx->c array.
-      gmx->c[ni] = c[i];
-    } else { // boundary. initialize these to 0.
-      // Compute the index position in the lo_c array.
-      for (j = 0; j < dim; j++)
-	ni += ((i % mult[j+1]) / mult[j]) * lo_mult[j];
-      // Initialize to 0.
-      lo_c[ni] = 0;
-
-      ni = 0;
-      // Compute the index position in the gmx->c array.
-      for (j = 0; j < dim; j++)
-	ni += ((i % mult[j+1]) / mult[j] - (j==d ? s: 0)) * hi_mult[j];
-      // Initialize to 0.
-      gmx->c[ni] = 0;
-    }
-  }
-  
-  delete [] c;
-  c = lo_c;
-
-  AMI_err err;
-  POINT* p1;
-  size_t i_i, m;
-  size_t median_strip = gl[d] + s; // refers to the big grid!
-  TPLOG("    median strip in grid: "<<median_strip<<"\n");
-#if AMI_KDTREE_USE_EXACT_SPLIT
-  hi[d] = pair<AMI_record<coord_t, size_t, dim>, bool>(p, true);
-  gmx->lo[d] = pair<AMI_record<coord_t, size_t, dim>, bool>(p, true);
-#else
-  hi[d] = pair<coord_t, bool>(p[d], true);
-  gmx->lo[d] = pair<coord_t, bool>(p[d], true);
-#endif
-  size_t off = g->o[d][median_strip];
-  TPLOG("    stream offset of first pnt in median strip: "<<off<<"\n");
-  g->streams[d]->seek(off);
-
-  // Compute the counts for the cells on the rightmost strip in this
-  // matrix and for the cells on the leftmost strip in the gmx matrix.
-
-  while ((err = g->streams[d]->read_item(&p1)) == AMI_ERROR_NO_ERROR) {
-    // Stop when reaching the offset of the next strip.
-    if (median_strip < g->t[d] - 1 && off >= g->o[d][median_strip + 1])
-      break;
-    
-    // This test is using the new values for hi.
-    if (is_inside(*p1)) {
-      m = 1;
-      ni = 0;
-      for (i = 0; i < dim; i++) {
-	i_i = upper_bound(g->l[i] + gl[i], g->l[i] + (gl[i] + gt[i]-1), (*p1)[i]) 
-	  - (g->l[i] + gl[i]);
-	// On dimension d, we should have s.
-	assert(i != d || i_i == s);
-	assert(i_i < gt[i]);
-	ni += i_i * m;
-	m *= gt[i];
-      }
-      assert(ni < sz);
-      c[ni]++;
-      assert(!gmx->is_inside(*p1));
-    }
-    if (gmx->is_inside(*p1)) {
-      m = 1;
-      ni = 0;
-      for (i = 0; i < dim; i++) {
-	i_i = upper_bound(g->l[i] + gmx->gl[i], g->l[i] + (gmx->gl[i] + gmx->gt[i]-1), (*p1)[i]) 
-	  - (g->l[i] + gmx->gl[i]);
-	// On dimension d, we should have 0.
-	assert(i != d || i_i == 0);
-	assert(i_i < gmx->gt[i]);
-	ni += i_i * m;
-	m *= gmx->gt[i];
-      }
-      assert(ni < gmx->sz);
-      gmx->c[ni]++;
-      assert(!is_inside(*p1));
-    }
-    off++;
-  }  
-  TPLOG("  ::grid_matrix::split Exiting\n");
-  return gmx;
-}
-
-//// *AMI_kdtree::grid_matrix::find_median_and_split* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-typename AMI_KDTREE::grid_matrix* AMI_KDTREE::grid_matrix::find_median_and_split(POINT& p, size_t d, size_t median_pos) {
-  TPLOG("  ::grid_matrix::find_median_and_split Entering dim="<<d<<"\n");
-  size_t s = 0, acc = 0, i;
-  grid_matrix* gmx;
-  AMI_err err;
-
-  // Preparation: compute point counts for each strip orthogonal to d.
-  size_t *strip_count = new size_t[gt[d]];
-  for (i = 0; i < gt[d]; i++)
-    strip_count[i] = 0;
-  size_t mult[dim+1]; // mult[i] = t[0] * .. * t[i-1]
-  mult[0] = 1;
-  for (i = 1; i <= dim; i++)
-    mult[i] = mult[i-1] * gt[i-1];
-  for (i = 0; i < sz; i++) {
-    strip_count[(i % mult[d+1]) / mult[d]] += c[i];
-  }
-  // Find median strip s on dimension d based on the strip counts.
-  for (i = 0; i < gt[d]; i++) {
-    if (acc + strip_count[i] >= median_pos + 1)
-      break;
-    else
-      acc += strip_count[i];
-  }
-  assert(acc < point_count);
-  assert(acc <= median_pos);
-  assert(i < gt[d]);
-  // Store the index of the median strip in s.
-  s = i;
-
-  size_t offset_in_strip = median_pos - acc; // refers to this subgrid.
-  assert(offset_in_strip < strip_count[s]);
-  delete [] strip_count;
-
-  TPLOG("    median strip: "<<s<<"\n");
-  TPLOG("    offset in median strip: "<<offset_in_strip<<"\n");
-
-  // Find the exact median point. Tricky.
-  POINT* p1, ap;
-  i = 0;
-  g->streams[d]->seek(g->o[d][gl[d]+s]);
-  err = g->streams[d]->read_item(&p1);
-
-  while (err == AMI_ERROR_NO_ERROR) {
-    assert((*p1)[d] >= g->l[d][gl[d]+(s-1)]);
-    assert((*p1)[d] <  g->l[d][gl[d]+s]);
-
-    if (is_inside(*p1)) {
-      if (i == offset_in_strip) {
-	ap = *p1;
-	break;
-      }
-      // Count only points inside.
-      i++;
-    }
-    err = g->streams[d]->read_item(&p1);
-  }
-
-  assert(i == offset_in_strip);
-  TPLOG("    preliminary median point: ("<<ap[0]<<","<<ap[1]<<")\n");
-  assert(err == AMI_ERROR_NO_ERROR);
-
-  err = g->streams[d]->read_item(&p1);
-
-#if AMI_KDTREE_USE_EXACT_SPLIT
-  while (err == AMI_ERROR_NO_ERROR && ap == (*p1)) {
-#else
-  // Keep reading until the coordinate on dimension d is different.
-  while (err == AMI_ERROR_NO_ERROR && ap[d] == (*p1)[d]) {
-#endif
-    if (is_inside(*p1)) {
-      offset_in_strip++;
-      ap = *p1;
-      TPLOG("    advanced offset_in_strip. new point: ("<<ap[0]<<","<<ap[1]<<")\n");
-    }
-    err = g->streams[d]->read_item(&p1);
-  }
-
-  // The point we are looking for is ap.
-
-  TPLOG("    new offset in median strip: "<<offset_in_strip<<"\n");
-  TPLOG("    final median point: ("<<ap[0]<<","<<ap[1]<<")\n");
-
-  // Split the matrix.
-  gmx = split(s, ap, d);
-
-  // This matrix is now the low matrix and gmx is the high matrix.
-  assert(is_inside(ap));
-
-  // Update point_count for the high matrix.
-  gmx->point_count = point_count - (offset_in_strip + acc + 1);
-  TPLOG("    high matrix point count: "<<gmx->point_count<<"\n");
-
-  // Update point_count for the low matrix.
-  point_count = offset_in_strip + acc + 1;
-  TPLOG("    low matrix point count: "<<point_count<<"\n");
-
-  p = ap;
-
-  TPLOG("  ::grid_matrix::find_median_and_split Exiting p=("<<p[0]<<","<<p[1]<<")\n");
-  // Return.
-  return gmx;
-}
-
-//// *AMI_kdtree::grid_matrix::is_inside* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-bool AMI_KDTREE::grid_matrix::is_inside(const POINT& p) {
-  bool ans = true;
-  size_t i;
-  for (i = 0; i < dim; i++) {
-#if AMI_KDTREE_USE_EXACT_SPLIT
-    if (lo[i].second && POINT::cmp(i).compare(p, lo[i].first) <= 0) {
-      ans = false;
-      break;
-    } else if (hi[i].second && POINT::cmp(i).compare(p, hi[i].first) > 0) {
-      ans = false;
-      break;
-    }
-#else
-    if (lo[i].second && p[i] <= lo[i].first) {
-      ans = false;
-      break;
-    } else if (hi[i].second && p[i] > hi[i].first) {
-      ans = false;
-      break;
-    }
-#endif
-  }
-  return ans;
-}
-
-//// *AMI_kdtree::grid_matrix::~grid_matrix* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-AMI_KDTREE::grid_matrix::~grid_matrix() {
-  delete [] c;
-}
-
 //// *AMI_kdtree::create_sample* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
 void AMI_KDTREE::create_sample(AMI_bid& bid, size_t d, POINT_STREAM* in_stream) {
@@ -3036,8 +3080,8 @@ void AMI_KDTREE::create_sample(AMI_bid& bid, size_t d, POINT_STREAM* in_stream) 
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
 void AMI_KDTREE::build_lower_tree_s(sample* s) {
   sample_context* sc;
-  size_t i, j;
-  POINT* p;
+  size_t j;
+  //  POINT* p;
   AMI_KDTREE_NODE* b;
   size_t next_free_el, next_free_lk, sz;
   POINT* streams_mm[dim];
@@ -3153,7 +3197,7 @@ void AMI_KDTREE::distribute_s(AMI_bid bid, size_t d, sample* s) {
       n = fetch_node(nbid);
       a = n->find_index(*p);
       if (a.second == BLOCK_NODE)
-	nbid == n->lk[a.first];
+	nbid = n->lk[a.first];
       release_node(n);
     }
 
@@ -3173,85 +3217,7 @@ void AMI_KDTREE::distribute_s(AMI_bid bid, size_t d, sample* s) {
   }
 }
 
-//// *AMI_kdtree::sample::sample* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-AMI_KDTREE::sample::sample(size_t _sz, POINT_STREAM* _in_stream) {
-  
-#define MAX_RANDOM ((double)0x7fffffff)
 
-  // Preliminary sample size.
-  sz = _sz;
-  in_stream = _in_stream;
-  size_t input_sz = in_stream->stream_len();
-  assert(sz > 0 && sz < input_sz);
-
-  TPIE_OS_OFFSET* offsets = new TPIE_OS_OFFSET[sz];
-  TPIE_OS_OFFSET* new_last;
-  POINT *p;
-
-  TPIE_OS_SRANDOM(10);
-
-  // Sample sz offsets in the interval [0, input_sz].
-  for (size_t i = 0; i < sz; i++) {
-    offsets[i] = TPIE_OS_OFFSET((TPIE_OS_RANDOM()/MAX_RANDOM) * input_sz);
-  }
-
-  // Sort the sampled offsets.
-  std::sort(offsets, offsets + sz);
-
-  // Eliminate duplicates.
-  if ((new_last = unique(offsets, offsets + sz)) != offsets + sz) {
-    cerr << "    Warning: Duplicate samples found! Decreasing sample size accordingly.\n";
-    // Adjust sample size sz.
-    sz = new_last - offsets;
-    cerr << "    New sample size: " << sz << "\n";
-  }
-
-  // Make space for one in-memory array (more later).
-  mm_streams[0] = new POINT[sz];
-
-  // Read the sample points.
-  for (size_t i = 0; i < sz; i++) {
-    assert(offsets[i] < input_sz);
-    in_stream->seek(offsets[i]);
-    in_stream->read_item(&p);
-    mm_streams[0][i] = *p;
-  }
-
-  // Delete the offsets array.
-  delete [] offsets;
-
-  // Make space for the other (d-1) in-memory arrays and copy the
-  // points from the existing array.
-  for (size_t i = 1; i < dim; i++) {
-    mm_streams[i] = new POINT[sz];
-    for (size_t j = 0; j < sz; j ++)
-      mm_streams[i][j] = mm_streams[0][j];
-  }
-
-  // Sort the d in-memory arrays on each dimension.
-  typename POINT::cmp* comp_obj;
-  for (size_t i = 0; i < dim; i++) {
-    comp_obj = new typename POINT::cmp(i);
-    quick_sort_obj(mm_streams[i], sz, comp_obj);
-    delete comp_obj;
-  }
-}
-
-//// *AMI_kdtree::sample::~sample* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-AMI_KDTREE::sample::~sample() {
-  cleanup();
-}
-
-//// *AMI_kdtree::sample::cleanup* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-void AMI_KDTREE::sample::cleanup() {
-  for (size_t i = 0; i < dim; i++) {
-    delete [] mm_streams[i];
-    mm_streams[i] = NULL;
-  }
-}
 
 #undef AMI_KDTREE_LEAF
 #undef AMI_KDTREE_NODE
