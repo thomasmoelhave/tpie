@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 3/11/95
 //
-// $Id: ami_kb_dist.h,v 1.9 2003-09-27 07:00:48 tavi Exp $
+// $Id: ami_kb_dist.h,v 1.10 2004-08-12 12:35:30 jan Exp $
 //
 // Radix based distribution for single or striped AMI layers.
 //
@@ -82,8 +82,8 @@ AMI_err _AMI_KB_DIST(KB_KEY)(AMI_STREAM<T> &instream,
 
     // How many output streams can we buffer in that amount of space?
     // Recall that we also need a pointer and a range for each stream.
-    output_streams = (sz_avail - 2 * single_stream_usage) /
-        (single_stream_usage + sizeof(AMI_STREAM<T> *) + sizeof(range));
+    output_streams = (unsigned int)((sz_avail - 2 * single_stream_usage) /
+        (single_stream_usage + sizeof(AMI_STREAM<T> *) + sizeof(range)));
     
     // We need at least two output streams.
     if (output_streams < 2) {

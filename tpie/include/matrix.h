@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 11/4/94
 //
-// $Id: matrix.h,v 1.9 2003-09-12 01:46:38 jan Exp $
+// $Id: matrix.h,v 1.10 2004-08-12 12:35:32 jan Exp $
 //
 #ifndef MATRIX_H
 #define MATRIX_H
@@ -35,27 +35,27 @@ template<class T> class submatrix;
 template<class T> class matrix_base
 {
 protected:
-    unsigned int r,c;
+    TPIE_OS_SIZE_T r,c;
 public:
 #if HANDLE_EXCEPTIONS    
     // Exception class.
     class range { };
 #endif
 
-    matrix_base(unsigned int rows, unsigned int cols);
+    matrix_base(TPIE_OS_SIZE_T rows, TPIE_OS_SIZE_T cols);
     virtual ~matrix_base(void);
 
     // What is the size of the matrix?
-    unsigned int rows(void) const;
-    unsigned int cols(void) const;
+    TPIE_OS_SIZE_T rows(void) const;
+    TPIE_OS_SIZE_T cols(void) const;
     
     // Access to the contents of the matrix.
-    virtual T &elt(unsigned int row, unsigned int col) const  = 0;
+    virtual T &elt(TPIE_OS_SIZE_T row, TPIE_OS_SIZE_T col) const  = 0;
 
-    rowref<T> row(unsigned int row) ;
-    colref<T> col(unsigned int col) ;
+    rowref<T> row(TPIE_OS_SIZE_T row) ;
+    colref<T> col(TPIE_OS_SIZE_T col) ;
 
-    rowref<T> operator[](unsigned int row) ;
+    rowref<T> operator[](TPIE_OS_SIZE_T row) ;
         
     // Assignement.
     matrix_base<T> &operator=(const matrix_base<T> &rhs);
@@ -73,12 +73,12 @@ class rowref
 {
 private:
     matrix_base<T> &m;
-    unsigned int r;
+    TPIE_OS_SIZE_T r;
 public:
-    rowref(matrix_base<T> &amatrix, unsigned int row);
+    rowref(matrix_base<T> &amatrix, TPIE_OS_SIZE_T row);
     ~rowref(void);
 
-    T &operator[](const unsigned int col) const;
+    T &operator[](const TPIE_OS_SIZE_T col) const;
 
     friend class matrix_base<T>;
     friend class matrix<T>;
@@ -89,12 +89,12 @@ class colref
 {
 private:
     matrix_base<T> &m;
-    unsigned int c;
+    TPIE_OS_SIZE_T c;
 public:
-    colref(matrix_base<T> &amatrix, unsigned int col);
+    colref(matrix_base<T> &amatrix, TPIE_OS_SIZE_T col);
     ~colref(void);
 
-    T &operator[](const unsigned int col) const;
+    T &operator[](const TPIE_OS_SIZE_T col) const;
 
     friend class matrix_base<T>;
     friend class matrix<T>;
@@ -102,7 +102,7 @@ public:
 
 
 template<class T>
-matrix_base<T>::matrix_base(unsigned int rows, unsigned int cols) :
+matrix_base<T>::matrix_base(TPIE_OS_SIZE_T rows, TPIE_OS_SIZE_T cols) :
         r(rows),
         c(cols)
 {
@@ -114,19 +114,19 @@ matrix_base<T>::~matrix_base(void)
 }
 
 template<class T>
-unsigned int matrix_base<T>::rows(void) const
+TPIE_OS_SIZE_T matrix_base<T>::rows(void) const
 {
     return r;
 }
 
 template<class T>
-unsigned int matrix_base<T>::cols(void) const
+TPIE_OS_SIZE_T matrix_base<T>::cols(void) const
 {
     return c;
 }
 
 template<class T>
-rowref<T> matrix_base<T>::row(unsigned int row) 
+rowref<T> matrix_base<T>::row(TPIE_OS_SIZE_T row) 
 {
     if (row >= r) {
 #if HANDLE_EXCEPTIONS    
@@ -141,7 +141,7 @@ rowref<T> matrix_base<T>::row(unsigned int row)
 }
 
 template<class T>
-colref<T> matrix_base<T>::col(unsigned int col) 
+colref<T> matrix_base<T>::col(TPIE_OS_SIZE_T col) 
 {
     if (col >= c) {
 #if HANDLE_EXCEPTIONS        
@@ -156,7 +156,7 @@ colref<T> matrix_base<T>::col(unsigned int col)
 }
 
 template<class T>
-rowref<T> matrix_base<T>::operator[](unsigned int row) 
+rowref<T> matrix_base<T>::operator[](TPIE_OS_SIZE_T row) 
 {
     return this->row(row);
 }
@@ -174,7 +174,7 @@ matrix_base<T> &matrix_base<T>::operator=(const matrix_base<T> &rhs)
     }
 
     
-    unsigned int ii,jj;
+    TPIE_OS_SIZE_T ii,jj;
     
     for (ii = rows(); ii--; ) {
         for (jj = cols(); jj--; ) {
@@ -197,7 +197,7 @@ matrix_base<T> &matrix_base<T>::operator=(const rowref<T> &rhs)
 #endif
     }
     
-    unsigned int ii;
+    TPIE_OS_SIZE_T ii;
     
     for (ii = cols(); ii--; ) {
         elt(0,ii) = rhs[ii];
@@ -218,7 +218,7 @@ matrix_base<T> &matrix_base<T>::operator=(const colref<T> &rhs)
 #endif
     }
 
-    unsigned int ii;
+    TPIE_OS_SIZE_T ii;
     T t;
     
     for (ii = rows(); ii--; ) {
@@ -243,7 +243,7 @@ matrix_base<T> &matrix_base<T>::
     }
 
     
-    unsigned int ii,jj;
+    TPIE_OS_SIZE_T ii,jj;
     
     for (ii = rows(); ii--; ) {
         for (jj = cols(); jj--; ) {
@@ -289,7 +289,7 @@ void perform_mult_in_place(const matrix_base<T> &op1,
 #endif
     }
 
-    unsigned int ii,jj,kk;
+    TPIE_OS_SIZE_T ii,jj,kk;
     T t;
     
     // Iterate over rows of op1.
@@ -323,7 +323,7 @@ void perform_mult_add_in_place(matrix_base<T> &op1,
 #endif
     }
 
-    unsigned int ii,jj,kk;
+    TPIE_OS_SIZE_T ii,jj,kk;
     T t;
     
     // Iterate over rows of op1.
@@ -364,7 +364,7 @@ matrix<T> operator*(const matrix_base<T> &op1,
 template<class T>
 ostream &operator<<(ostream &s, matrix_base<T> &m)
 {
-    unsigned int ii,jj;
+    TPIE_OS_SIZE_T ii,jj;
     
     // Iterate over rows
     for (ii = 0; ii < m.rows(); ii++) {
@@ -383,7 +383,7 @@ ostream &operator<<(ostream &s, matrix_base<T> &m)
 // Member functions for row and column reference classes.
 
 template<class T>
-rowref<T>::rowref(matrix_base<T> &amatrix, unsigned int row) :
+rowref<T>::rowref(matrix_base<T> &amatrix, TPIE_OS_SIZE_T row) :
         m(amatrix),
         r(row)
 {
@@ -395,13 +395,13 @@ rowref<T>::~rowref(void)
 }
 
 template<class T>
-T &rowref<T>::operator[](const unsigned int col) const
+T &rowref<T>::operator[](const TPIE_OS_SIZE_T col) const
 {
     return m.elt(r,col);
 }
 
 template<class T>
-colref<T>::colref(matrix_base<T> &amatrix, unsigned int col) :
+colref<T>::colref(matrix_base<T> &amatrix, TPIE_OS_SIZE_T col) :
         m(amatrix),
         c(col)
 {
@@ -413,7 +413,7 @@ colref<T>::~colref(void)
 }
 
 template<class T>
-T &colref<T>::operator[](const unsigned int row) const
+T &colref<T>::operator[](const TPIE_OS_SIZE_T row) const
 {
     return m.elt(row,c);
 }
@@ -425,12 +425,12 @@ class submatrix : public matrix_base<T>
 {
 private:
     matrix_base<T> &m;
-    unsigned int r1,r2,c1,c2;
+    TPIE_OS_SIZE_T r1,r2,c1,c2;
 public:
     // Construction/destruction.
     submatrix(matrix_base<T> &amatrix,
-                 unsigned int row1, unsigned int row2,
-                 unsigned int col1, unsigned int col2);
+                 TPIE_OS_SIZE_T row1, TPIE_OS_SIZE_T row2,
+                 TPIE_OS_SIZE_T col1, TPIE_OS_SIZE_T col2);
 
     virtual ~submatrix(void);
 
@@ -443,13 +443,13 @@ public:
     submatrix<T> &operator=(const matrix<T> &rhs);
     
     // Access to elements.
-    T& elt(unsigned int row, unsigned int col) const;
+    T& elt(TPIE_OS_SIZE_T row, TPIE_OS_SIZE_T col) const;
 };
 
 template<class T>
 submatrix<T>::submatrix(matrix_base<T> &amatrix,
-                              unsigned int row1, unsigned int row2,
-                              unsigned int col1, unsigned int col2) :
+                              TPIE_OS_SIZE_T row1, TPIE_OS_SIZE_T row2,
+                              TPIE_OS_SIZE_T col1, TPIE_OS_SIZE_T col2) :
                                       matrix_base<T>(row2 - row1 + 1,
                                                           col2 - col1 + 1),
                                       m(amatrix),
@@ -484,7 +484,7 @@ submatrix<T> &submatrix<T>::operator=(const matrix<T> &rhs)
 }
 
 template<class T>
-T& submatrix<T>::elt(unsigned int row, unsigned int col) const 
+T& submatrix<T>::elt(TPIE_OS_SIZE_T row, TPIE_OS_SIZE_T col) const 
 {
     if ((row >= rows()) || (col >= cols())) {
 #if HANDLE_EXCEPTIONS
@@ -505,7 +505,7 @@ private:
     T *data;
 public:
     // Construction/destruction.
-    matrix(unsigned int rows, unsigned int cols);
+    matrix(TPIE_OS_SIZE_T rows, TPIE_OS_SIZE_T cols);
     matrix(const matrix<T> &rhs);
     matrix(const matrix_base<T> &rhs);
     matrix(const submatrix<T> &rhs);
@@ -523,7 +523,7 @@ public:
     matrix<T> &operator=(const submatrix<T> &rhs);
     
     // Access to elements.
-    T &elt(unsigned int row, unsigned int col) const;
+    T &elt(TPIE_OS_SIZE_T row, TPIE_OS_SIZE_T col) const;
 
     // Friends that need direct access to data for fast multiplication.
 //     friend void quick_matrix_mult_in_place(const matrix<T> &op1,
@@ -543,7 +543,7 @@ public:
 
 
 template<class T>
-matrix<T>::matrix(unsigned int rows, unsigned int cols) :
+matrix<T>::matrix(TPIE_OS_SIZE_T rows, TPIE_OS_SIZE_T cols) :
         matrix_base<T>(rows,cols)
 {
     data = new T[rows * cols];
@@ -556,7 +556,7 @@ template<class T>
 matrix<T>::matrix(const matrix<T> &rhs) :
         matrix_base<T>(rhs.rows(), rhs.cols())
 {
-    unsigned int ii;
+    TPIE_OS_SIZE_T ii;
     
     data = new T[r*c];
 
@@ -569,7 +569,7 @@ template<class T>
 matrix<T>::matrix(const matrix_base<T> &rhs) :
         matrix_base<T>(rhs.rows(), rhs.cols())
 {
-    unsigned int ii,jj;
+    TPIE_OS_SIZE_T ii,jj;
     
     data = new T[r*c];
 
@@ -584,7 +584,7 @@ template<class T>
 matrix<T>::matrix(const submatrix<T> &rhs) :
         matrix_base<T>(rhs.rows(), rhs.cols())
 {
-    unsigned int ii,jj;
+    TPIE_OS_SIZE_T ii,jj;
     
     data = new T[r*c];
 
@@ -641,7 +641,7 @@ matrix<T> &matrix<T>::operator=(const submatrix<T> &rhs)
 
 
 template<class T>
-T& matrix<T>::elt(unsigned int row, unsigned int col) const
+T& matrix<T>::elt(TPIE_OS_SIZE_T row, TPIE_OS_SIZE_T col) const
 {
     if ((row >= rows()) || (col >= cols())) {
 #if HANDLE_EXCEPTIONS
@@ -711,8 +711,8 @@ void quick_matrix_mult_in_place(const matrix<T> &op1,
 #endif
     }
 
-    unsigned int ii,jj,kk;
-    unsigned int r1,r2,c1,c2,cres;
+    TPIE_OS_SIZE_T ii,jj,kk;
+    TPIE_OS_SIZE_T r1,r2,c1,c2,cres;
     T t;
 
     r1 = op1.rows();
@@ -757,8 +757,8 @@ void quick_matrix_mult_add_in_place(const matrix<T> &op1,
 #endif
     }
 
-    unsigned int ii,jj,kk;
-    unsigned int r1,r2,c1,c2,cres;
+    TPIE_OS_SIZE_T ii,jj,kk;
+    TPIE_OS_SIZE_T r1,r2,c1,c2,cres;
     T t;
 
     r1 = op1.rows();
@@ -804,8 +804,8 @@ void aggarwal_matrix_mult_in_place(const matrix<T> &op1,
 #endif
     }
 
-    unsigned int ii,jj,kk;
-    unsigned int r1,r2,c1,c2,cres;
+    TPIE_OS_SIZE_T ii,jj,kk;
+    TPIE_OS_SIZE_T r1,r2,c1,c2,cres;
 
     r1 = op1.rows();
     r2 = op2.rows();
@@ -864,8 +864,8 @@ void aggarwal_matrix_mult_add_in_place(const matrix<T> &op1,
 #endif
     }
 
-    unsigned int ii,jj,kk;
-    unsigned int r1,r2,c1,c2,cres;
+    TPIE_OS_SIZE_T ii,jj,kk;
+    TPIE_OS_SIZE_T r1,r2,c1,c2,cres;
 
     r1 = op1.rows();
     r2 = op2.rows();

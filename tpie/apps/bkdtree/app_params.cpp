@@ -6,7 +6,7 @@
 // Runtime parameters for the kd-tree, K-D-B-tree and B-tree test
 // suite.
 //
-// $Id: app_params.cpp,v 1.6 2003-09-17 02:47:26 tavi Exp $
+// $Id: app_params.cpp,v 1.7 2004-08-12 12:36:04 jan Exp $
 
 
 #include <portability.h>
@@ -72,7 +72,7 @@ void print_statistics(ostream& os) {
 
 void print_configuration(ostream& os) {
 
-  os   << "MEMORY_SIZE:          " << params.memory_limit/(1024*1024) << " MB\n" 
+  os   << "MEMORY_SIZE:          " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(params.memory_limit/(1024*1024)) << " MB\n" 
        << "POINT_COUNT:          " << params.point_count << "\n"
        << "DATA_STRUCTURE:       " << params.structure_name << (params.do_logmethod ? " + LOG.METHOD": "") << endl
        << "OPERATION:            " << (params.do_insert ? "INSERT": (params.do_load ? "BULK_LOAD" : (params.do_wquery_from_file || params.wquery_count ? "WINDOW_QUERY" : "UNKNOWN"))) << endl;
@@ -97,21 +97,22 @@ void print_configuration(ostream& os) {
 #else
        << "UNKNOWN"
 #endif
-       << " L" << params.leaf_block_factor << " N" << params.node_block_factor << endl;
+       << " L" << static_cast<TPIE_OS_OUTPUT_SIZE_T>(params.leaf_block_factor) << " N" 
+	   << static_cast<TPIE_OS_OUTPUT_SIZE_T>(params.node_block_factor) << endl;
 
   if (params.do_logmethod) {
-    os << "Cached os blocks:     " << params.cached_blocks << endl;
+    os << "Cached os blocks:     " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(params.cached_blocks) << endl;
     if (params.B_for_LMB != 0)
-      os << "B (for LogMethodB)    " << params.B_for_LMB << endl;
+      os << "B (for LogMethodB)    " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(params.B_for_LMB) << endl;
   }
 
 #if (defined(__sun__) && defined(BTE_COLLECTION_IMP_UFS))
   os << "Directio bcc:         " << (params.direct_io_bcc ? "ON": "OFF") << endl;
 #endif
   os << "BLOCK_CACHE:          " 
-     << params.leaf_cache_size + params.node_cache_size 
-     << " \tL" << params.leaf_cache_size 
-     << " \tN" << params.node_cache_size << endl;
+     << static_cast<TPIE_OS_OUTPUT_SIZE_T>((params.leaf_cache_size + params.node_cache_size))
+     << " \tL" << static_cast<TPIE_OS_OUTPUT_SIZE_T>(params.leaf_cache_size) 
+     << " \tN" << static_cast<TPIE_OS_OUTPUT_SIZE_T>(params.node_cache_size) << endl;
 
 }
 
@@ -158,7 +159,7 @@ void parse_args(int argc, char** argv) {
       break;
     case 'b':
       if (argv[i][2] == 'l')
-	params.bulk_load_fill = min(atof(argv[++i]), 1.0);
+	params.bulk_load_fill = (float)min(atof(argv[++i]), 1.0);
       else
 	params.load_method = AMI_KDTREE_LOAD_SORT|AMI_KDTREE_LOAD_BINARY;
       break;
@@ -378,7 +379,7 @@ void parse_args(int argc, char** argv) {
 	params.cached_blocks = atoi(argv[++i]);
 	break;
       case 'c':
-	params.child_cache_fill = atof(argv[++i]);
+	params.child_cache_fill = (float)atof(argv[++i]);
 	break;
       }
       break;

@@ -8,7 +8,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(nas_is_cpp,"$Id: nas_is.cpp,v 1.10 2003-09-13 18:24:43 jan Exp $");
+VERSION(nas_is_cpp,"$Id: nas_is.cpp,v 1.11 2004-08-12 12:37:04 jan Exp $");
 
 // Benchmark constants.
 #define IMAX 10
@@ -191,14 +191,14 @@ private:
     // A cache for the multiplicative factor a.
     double a1, a2;
     
-    unsigned int max, remaining;
+    TPIE_OS_OFFSET max, remaining;
 
-    unsigned int bmax;
+    kb_key bmax;
 public:
     scan_nas_psuedo_rand(double seed = NAS_S,
-                         unsigned int count = COUNT,
+                         TPIE_OS_OFFSET count = COUNT,
                          double a = NAS_A,
-                         unsigned long bm = BMAX);
+                         kb_key bm = BMAX);
                          
     virtual ~scan_nas_psuedo_rand(void);
     AMI_err initialize(void);
@@ -207,8 +207,8 @@ public:
 
 
 scan_nas_psuedo_rand::scan_nas_psuedo_rand(double seed,
-                                           unsigned int count,
-                                           double a, unsigned long bm) {
+                                           TPIE_OS_OFFSET count,
+                                           double a, kb_key bm) {
     this->s = seed;
     this->max = count;
     this->bmax = bm;
@@ -238,11 +238,11 @@ inline AMI_err scan_nas_psuedo_rand::operate(key_triple *out, AMI_SCAN_FLAG *sf)
 
     register double dev_sum;
 
-    unsigned int out_key_val;
+    kb_key out_key_val;
 
     unsigned int ii;
         
-    if ((*sf = remaining--)) {
+    if ((*sf = (remaining-- > 0))) {
 
         // Generate and add up four random deviates.
 
@@ -263,7 +263,7 @@ inline AMI_err scan_nas_psuedo_rand::operate(key_triple *out, AMI_SCAN_FLAG *sf)
             dev_sum += x * TWO_TO_MINUS_46;
         }
 
-        out_key_val = (unsigned int)(bmax * dev_sum / 4);
+        out_key_val = (kb_key)(bmax * dev_sum / 4);
         
         if (out_key_val > key_triple::input_range.max) {
             key_triple::input_range.max = out_key_val;
@@ -406,10 +406,10 @@ int main(int argc, char **argv)
 #endif
     
     if (verbose) {
-      cout << "test_mm_size = " << test_mm_size << "." << endl;
+      cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << endl;
     } else {
         cout.precision(15);
-        cout << test_mm_size << ' ' << test_size << ' ' << kb_sort << ' '
+        cout << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << test_size << ' ' << kb_sort << ' '
              << use_cdf << ' ' << imax << ' ' << bmax << ' ' << nas_a << ' '
              << nas_s << ' ';
     }

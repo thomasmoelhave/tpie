@@ -5,12 +5,12 @@
 // Created: 10/7/94
 //
 
-static char app_config_id[] = "$Id: app_config.cpp,v 1.4 2002-01-14 17:39:56 tavi Exp $";
+static char app_config_id[] = "$Id: app_config.cpp,v 1.5 2004-08-12 12:37:04 jan Exp $";
 
 #include "app_config.h"
 
 bool verbose = true;
-size_t test_mm_size = DEFAULT_TEST_MM_SIZE;
-size_t test_size = DEFAULT_TEST_SIZE;
+TPIE_OS_SIZE_T test_mm_size = DEFAULT_TEST_MM_SIZE;
+TPIE_OS_OFFSET test_size = DEFAULT_TEST_SIZE;
 int random_seed = 17;
 

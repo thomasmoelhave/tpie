@@ -13,7 +13,7 @@
 
 // Define it all.
 #include <ami.h>
-VERSION(nas_ep2_cpp,"$Id: nas_ep2.cpp,v 1.8 2003-09-12 14:21:36 jan Exp $");
+VERSION(nas_ep2_cpp,"$Id: nas_ep2.cpp,v 1.9 2004-08-12 12:37:04 jan Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -46,7 +46,7 @@ private:
     // A cache for the multiplicative factor a.
     double a1, a2;
     
-    unsigned int max, remaining;
+    TPIE_OS_OFFSET max, remaining;
 public:
     // The sums of the x and y values output so far.
     double sumx, sumy;
@@ -55,7 +55,7 @@ public:
     unsigned int annulus[10];
 
     scan_both(double seed = NAS_S,
-              unsigned int count = COUNT,
+              TPIE_OS_OFFSET count = COUNT,
               double a = NAS_A);
                          
     virtual ~scan_both(void);
@@ -64,7 +64,7 @@ public:
 };
 
 
-scan_both::scan_both(double seed, unsigned int count, double a) {
+scan_both::scan_both(double seed, TPIE_OS_OFFSET count, double a) {
     this->s = seed; 
     this->max = count;
     a1 = floor(TWO_TO_MINUS_23 * a);
@@ -226,9 +226,9 @@ int main(int argc, char **argv)
 
     if (verbose) {
       cout << "test_size = " << test_size << "." << endl;
-      cout << "test_mm_size = " << test_mm_size << "." << endl;
+      cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << endl;
     } else {
-        cout << test_size << ' ' << test_mm_size << endl;
+        cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << endl;
     }
 
     // Set the amount of main memory:

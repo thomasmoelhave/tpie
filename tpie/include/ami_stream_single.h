@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/19/94
 //
-// $Id: ami_stream_single.h,v 1.10 2003-04-23 00:05:47 tavi Exp $
+// $Id: ami_stream_single.h,v 1.11 2004-08-12 12:35:31 jan Exp $
 //
 // AMI entry points implemented on top of a single BTE.  This is useful
 // for single CPU, single disk machines.
@@ -178,15 +178,15 @@ AMI_stream_single<T>::AMI_stream_single(unsigned int device) {
   // Get a unique name.
   char *path = tpie_tempnam("AMI", default_device[device]);
   
-  LOG_DEBUG_ID("Temporary stream in file: ");
-  LOG_DEBUG_ID(path);
+ TP_LOG_DEBUG_ID("Temporary stream in file: ");
+ TP_LOG_DEBUG_ID(path);
   
   // Create the BTE stream.
   btes = new BTE_STREAM<T>(path, BTE_WRITE_STREAM);
   
   // (Short circuit evaluation...)
   if (btes == NULL || btes->status() == BTE_STREAM_STATUS_INVALID) {
-    LOG_FATAL_ID("BTE returned invalid or NULL stream.");
+   TP_LOG_FATAL_ID("BTE returned invalid or NULL stream.");
     status_ = AMI_STREAM_STATUS_INVALID;
     return;
   }
@@ -194,7 +194,7 @@ AMI_stream_single<T>::AMI_stream_single(unsigned int device) {
   btes->persist(PERSIST_DELETE);
   
   if (seek(0) != AMI_ERROR_NO_ERROR) {
-    LOG_FATAL_ID("seek(0) returned error.");
+   TP_LOG_FATAL_ID("seek(0) returned error.");
     status_ = AMI_STREAM_STATUS_INVALID;
     return;
   }
@@ -224,8 +224,8 @@ AMI_stream_single<T>::AMI_stream_single(const char *path_name,
  //write; this is inconsistent and should be modified..
     break;
   default:
-    LOG_WARNING_ID("Unknown stream type passed to constructor;");
-    LOG_WARNING_ID("Defaulting to AMI_READ_WRITE_STREAM.");
+   TP_LOG_WARNING_ID("Unknown stream type passed to constructor;");
+   TP_LOG_WARNING_ID("Defaulting to AMI_READ_WRITE_STREAM.");
     bst = BTE_WRITE_STREAM;
     break;
   }
@@ -237,7 +237,7 @@ AMI_stream_single<T>::AMI_stream_single(const char *path_name,
   btes = new BTE_STREAM<T>(path_name, bst);
   // (Short circuit evaluation...)
   if (btes == NULL || btes->status() == BTE_STREAM_STATUS_INVALID) {
-    LOG_FATAL_ID("BTE returned invalid or NULL stream.");
+   TP_LOG_FATAL_ID("BTE returned invalid or NULL stream.");
     status_ = AMI_STREAM_STATUS_INVALID;
     return;
   }
@@ -247,7 +247,7 @@ AMI_stream_single<T>::AMI_stream_single(const char *path_name,
   // If an APPEND stream, the BTE constructor seeks to its end;
   if (st != AMI_APPEND_STREAM) {
     if (seek(0) != AMI_ERROR_NO_ERROR) {
-      LOG_FATAL_ID("seek(0) returned error.");
+     TP_LOG_FATAL_ID("seek(0) returned error.");
       status_ = AMI_STREAM_STATUS_INVALID;
       return;
     }
@@ -264,7 +264,7 @@ AMI_stream_single<T>::AMI_stream_single(BTE_STREAM<T> *bs) {
 
   btes = bs;
   if (btes == NULL || btes->status() == BTE_STREAM_STATUS_INVALID) {
-    LOG_FATAL_ID("BTE returned invalid or NULL stream.");
+   TP_LOG_FATAL_ID("BTE returned invalid or NULL stream.");
     status_ = AMI_STREAM_STATUS_INVALID;
     return;
   }
@@ -285,7 +285,7 @@ AMI_err AMI_stream_single<T>::new_substream(AMI_stream_type st,
     // allowed if r_only is set.
     if ((st != AMI_READ_STREAM) && ((st != AMI_WRITE_STREAM) || r_only)) {
         *sub_stream = NULL;
-		LOG_DEBUG_ID("permission denied");		
+		TP_LOG_DEBUG_ID("permission denied");		
         return AMI_ERROR_PERMISSION_DENIED;
     }
     
@@ -295,7 +295,7 @@ AMI_err AMI_stream_single<T>::new_substream(AMI_stream_type st,
                              BTE_WRITE_STREAM),
                              sub_begin, sub_end,
                              &bte_ss) != BTE_ERROR_NO_ERROR) {
-	  LOG_DEBUG_ID("new_substream failed");		
+	 TP_LOG_DEBUG_ID("new_substream failed");		
 	  *sub_stream = NULL;
 	  return AMI_ERROR_BTE_ERROR;
     }
@@ -332,7 +332,7 @@ AMI_err AMI_stream_single<T>::name(char **stream_name)
 {
     BTE_err be = btes->name(stream_name);
     if (be != BTE_ERROR_NO_ERROR) {
-	  LOG_WARNING_ID("bte error");
+	 TP_LOG_WARNING_ID("bte error");
 	  return AMI_ERROR_BTE_ERROR;
     } else {
 	  return AMI_ERROR_NO_ERROR;
@@ -344,7 +344,7 @@ template<class T>
 AMI_err AMI_stream_single<T>::seek(TPIE_OS_OFFSET offset)
 {
     if (btes->seek(offset) != BTE_ERROR_NO_ERROR) {
-	  LOG_WARNING_ID("bte error");		
+	 TP_LOG_WARNING_ID("bte error");		
 	  return AMI_ERROR_BTE_ERROR;
     }
 
@@ -356,7 +356,7 @@ template<class T>
 AMI_err AMI_stream_single<T>::truncate(TPIE_OS_OFFSET offset)
 {
     if (btes->truncate(offset) != BTE_ERROR_NO_ERROR) {
-	  LOG_WARNING_ID("bte error");
+	 TP_LOG_WARNING_ID("bte error");
 	  return AMI_ERROR_BTE_ERROR;
     }
 
@@ -369,7 +369,7 @@ AMI_err AMI_stream_single<T>::main_memory_usage(size_t *usage,
                                                 MM_stream_usage usage_type)
 {
     if (btes->main_memory_usage(usage, usage_type) != BTE_ERROR_NO_ERROR) {
-	  LOG_WARNING_ID("bte error");		
+	 TP_LOG_WARNING_ID("bte error");		
 	  return AMI_ERROR_BTE_ERROR;
     }
 
@@ -410,11 +410,11 @@ A_INLINE AMI_err AMI_stream_single<T>::read_item(T **elt)
 	  ae = AMI_ERROR_NO_ERROR;
 	  break;
 	case BTE_ERROR_END_OF_STREAM:
-	  LOG_DEBUG_ID("eos in read_item");
+	 TP_LOG_DEBUG_ID("eos in read_item");
 	  ae = AMI_ERROR_END_OF_STREAM;
 	  break;
 	default:
-	  LOG_DEBUG_ID("bte error in read_item");
+	 TP_LOG_DEBUG_ID("bte error in read_item");
 	  ae = AMI_ERROR_BTE_ERROR;
 	  break;
 	}
@@ -425,7 +425,7 @@ template<class T>
 A_INLINE AMI_err AMI_stream_single<T>::write_item(const T &elt)
 {
     if (btes->write_item(elt) != BTE_ERROR_NO_ERROR) {
-	  LOG_WARNING_ID("bte error");
+	 TP_LOG_WARNING_ID("bte error");
 	  return AMI_ERROR_BTE_ERROR;
     }
 	return AMI_ERROR_NO_ERROR;
@@ -437,7 +437,7 @@ A_INLINE AMI_err AMI_stream_single<T>::read_array(T *mm_space, TPIE_OS_OFFSET *l
 {
     BTE_err be;
     T *read;
-    unsigned int ii;
+    TPIE_OS_OFFSET ii;
     
     // How long is it.
     TPIE_OS_OFFSET str_len = *len;
@@ -463,7 +463,7 @@ template<class T>
 A_INLINE AMI_err AMI_stream_single<T>::write_array(const T *mm_space, TPIE_OS_OFFSET len)
 {
     BTE_err be;
-    unsigned int ii;
+    TPIE_OS_OFFSET ii;
     
     for (ii = len; ii--; ) {
         if ((be = btes->write_item(*mm_space++)) != BTE_ERROR_NO_ERROR) {

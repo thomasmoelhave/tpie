@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 3/12/95
 //
-// $Id: ami_kb_sort.h,v 1.9 2003-09-12 01:45:22 jan Exp $
+// $Id: ami_kb_sort.h,v 1.10 2004-08-12 12:35:30 jan Exp $
 //
 
 // This header file can be included in one of two ways, either with a
@@ -355,7 +355,7 @@ AMI_err _AMI_MM_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
     size_t sz_avail;
     TPIE_OS_OFFSET stream_len;
 
-    unsigned int ii,jj;
+    TPIE_OS_OFFSET ii,jj;
     
     // Check available main memory.
     sz_avail = MM_manager.memory_available ();
@@ -367,7 +367,7 @@ AMI_err _AMI_MM_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
     if (sz_avail < stream_len * (sizeof(T) +
                                  sizeof(AMI_bucket_list_elem<T> *) + 
                                  sizeof(AMI_bucket_list_elem<T>))) {
-        cerr << '\n' << sz_avail << ' ' << stream_len << '\n';
+        cerr << '\n' << (TPIE_OS_LONGLONG)sz_avail << ' ' << (TPIE_OS_LONGLONG)stream_len << '\n';
         cerr << sizeof(T) << ' ' << sizeof(AMI_bucket_list_elem<T> *) <<
             ' ' << sizeof(AMI_bucket_list_elem<T>);
 
@@ -375,14 +375,14 @@ AMI_err _AMI_MM_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
     }
     
     // Allocate the space for the data and for the bucket list elements.
-    
-    T *indata = new T[stream_len];
+    // We know that stream_len items fit in main memory, so it is safe to cast.
+    T *indata = new T[(TPIE_OS_SIZE_T)stream_len];
     
     AMI_bucket_list_elem<T> **buckets =
-        new AMI_bucket_list_elem<T>*[stream_len];
+        new AMI_bucket_list_elem<T>*[(TPIE_OS_SIZE_T)stream_len];
 
     AMI_bucket_list_elem<T> *list_space =
-        new AMI_bucket_list_elem<T>[stream_len];
+        new AMI_bucket_list_elem<T>[(TPIE_OS_SIZE_T)stream_len];
 
     // Read the input stream.
 
@@ -408,8 +408,8 @@ AMI_err _AMI_MM_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
 
     AMI_bucket_list_elem<T> *list_elem;
     
-    unsigned int bucket_index_denom = ((range.max - range.min) /
-                                       stream_len) + 1;
+    unsigned int bucket_index_denom = (unsigned int)(((range.max - range.min) /
+                                       stream_len) + 1);
 
     if (!bucket_index_denom) {
         bucket_index_denom = 1;

@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/11/94
 //
-// $Id: ami_matrix_pad.h,v 1.7 2003-04-20 23:59:53 tavi Exp $
+// $Id: ami_matrix_pad.h,v 1.8 2004-08-12 12:35:30 jan Exp $
 //
 #ifndef _AMI_MATRIX_PAD_H
 #define _AMI_MATRIX_PAD_H
@@ -22,12 +22,12 @@
 template<class T>
 class AMI_matrix_pad : AMI_scan_object {
 private:
-    unsigned int cur_row, cur_col;
-    unsigned int orig_rows, orig_cols;
-    unsigned int final_rows, final_cols;
+    TPIE_OS_OFFSET cur_row, cur_col;
+    TPIE_OS_OFFSET orig_rows, orig_cols;
+    TPIE_OS_OFFSET final_rows, final_cols;
 public:
-    AMI_matrix_pad(unsigned int rows, unsigned int cols,
-                    unsigned int block_extent);
+    AMI_matrix_pad(TPIE_OS_OFFSET rows, TPIE_OS_OFFSET cols,
+                    TPIE_OS_OFFSET block_extent);
     virtual ~AMI_matrix_pad();
     AMI_err initialize(void);
     AMI_err operate(const T &in, AMI_SCAN_FLAG *sfin,
@@ -35,8 +35,8 @@ public:
 };
 
 template<class T>
-AMI_matrix_pad<T>::AMI_matrix_pad(unsigned int rows, unsigned int cols,
-                                  unsigned int block_extent)
+AMI_matrix_pad<T>::AMI_matrix_pad(TPIE_OS_OFFSET rows, TPIE_OS_OFFSET cols,
+                                  TPIE_OS_OFFSET block_extent)
 
 {
     orig_rows = rows;
@@ -101,12 +101,12 @@ AMI_err AMI_matrix_pad<T>::operate(const T &in, AMI_SCAN_FLAG *sfin,
 template<class T>
 class AMI_matrix_unpad : AMI_scan_object {
 private:
-    unsigned int cur_row, cur_col;
-    unsigned int orig_rows, orig_cols;
-    unsigned int final_rows, final_cols;
+    TPIE_OS_OFFSET cur_row, cur_col;
+    TPIE_OS_OFFSET orig_rows, orig_cols;
+    TPIE_OS_OFFSET final_rows, final_cols;
 public:
-    AMI_matrix_unpad(unsigned int rows, unsigned int cols,
-                      unsigned int block_extent);
+    AMI_matrix_unpad(TPIE_OS_OFFSET rows, TPIE_OS_OFFSET cols,
+                      TPIE_OS_OFFSET block_extent);
     virtual ~AMI_matrix_unpad();
     AMI_err initialize(void);
     AMI_err operate(const T &in, AMI_SCAN_FLAG *sfin,
@@ -114,8 +114,8 @@ public:
 };
 
 template<class T>
-AMI_matrix_unpad<T>::AMI_matrix_unpad(unsigned int rows, unsigned int cols,
-                                      unsigned int block_extent)
+AMI_matrix_unpad<T>::AMI_matrix_unpad(TPIE_OS_OFFSET rows, TPIE_OS_OFFSET cols,
+                                      TPIE_OS_OFFSET block_extent)
 
 {
     orig_rows = rows;

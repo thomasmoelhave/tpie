@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/5/94
 //
-// $Id: merge_random.h,v 1.11 2003-09-12 01:30:19 tavi Exp $
+// $Id: merge_random.h,v 1.12 2004-08-12 12:36:45 jan Exp $
 //
 // A merge managment object that reorders the input stream in a random
 // way.
@@ -143,9 +143,9 @@ template<class T>
 AMI_err merge_random<T>::main_mem_operate(T* mm_stream,
                                           size_t len)
 {
-    size_t ii;
+    TPIE_OS_SIZE_T ii;
     T temp;
-    int rand_index;
+    TPIE_OS_SIZE_T rand_index;
     
     for (ii = 0; ii < len - 1; ii++) {
         rand_index = ii + (TPIE_OS_RANDOM() % (len - ii));

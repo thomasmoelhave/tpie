@@ -4,7 +4,7 @@
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
 //
-// $Id: build_btree.cpp,v 1.1 2003-09-25 17:45:22 tavi Exp $
+// $Id: build_btree.cpp,v 1.2 2004-08-12 12:36:05 jan Exp $
 //
 
 #define DIRECTIO_STREAMS 0
@@ -125,7 +125,7 @@ int main(int argc, char **argv) {
 
   if (params.do_verify_sorting && err == AMI_ERROR_NO_ERROR) {
     app_params_t::record_t p1;
-    size_t ii = 0;
+    TPIE_OS_OFFSET ii = 0;
     app_params_t::record_t::cmp comp;
     cerr << "Verifying sorting..." << endl;
     params.streams_sorted[0]->seek(0);
@@ -203,7 +203,7 @@ int main(int argc, char **argv) {
       cerr << argv[0] << ": Error opening window queries file " 
 	   << params.file_name_wquery << endl;
     } else {
-      size_t count = 0;
+      TPIE_OS_OFFSET count = 0;
       app_params_t::point_t lop, hip;
       app_params_t::stream_t *tempstr = new app_params_t::stream_t;
       cerr << "Window queries from file " 
@@ -252,7 +252,7 @@ int main(int argc, char **argv) {
     cerr << "  width: " << params.wquery_size_x << "% of " << mbrdx
 	 << ", height: " << params.wquery_size_y << "% of " << mbrdy << endl;
     app_params_t::stream_t* tempstr = new app_params_t::stream_t;
-    TPIE_OS_SRANDOM(time(NULL));
+    TPIE_OS_SRANDOM((unsigned int)TPIE_OS_TIME(NULL));
 
     atimer.start();  
     for (i = 0; i < params.wquery_count; i++) {
@@ -287,8 +287,8 @@ int main(int argc, char **argv) {
     cerr << "Begin stress test." << endl;
     app_params_t::record_t p;
     app_params_t::record_t pa[100];
-    size_t insert_count = 50000;
-    cerr << "\tInserting " << insert_count << " random points..." << flush;
+    TPIE_OS_SIZE_T insert_count = 50000;
+    cerr << "\tInserting " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(insert_count) << " random points..." << flush;
     for (i = 0; i < insert_count; i++) {
       p[0] = TPIE_OS_RANDOM() % MAX_VALUE;
       p[1] = TPIE_OS_RANDOM() % MAX_VALUE;

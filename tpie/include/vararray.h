@@ -7,10 +7,12 @@
 // Description: Templates classes for one-, two-, and 
 //              three-dimensional arrays. 
 //
-// $Id: vararray.h,v 1.1 2003-04-17 20:20:03 jan Exp $
+// $Id: vararray.h,v 1.2 2004-08-12 12:35:32 jan Exp $
 //
 #ifndef _VARARRAY_H
 #define _VARARRAY_H
+
+#include <portability.h>
 
 #include <assert.h>
 #include <stdlib.h>
@@ -23,20 +25,20 @@ template <class T> class VarArray1D {
 public:
     //  There is no default constructor.
 
-    VarArray1D(unsigned int dim0);
+    VarArray1D(TPIE_OS_SIZE_T dim0);
     VarArray1D(const VarArray1D& other);
     ~VarArray1D();
 
     VarArray1D<T>& operator=(const VarArray1D<T>& other);
 
-    const T& operator()(size_t index0) const;
-    T& operator()(size_t index0);
+    const T& operator()(TPIE_OS_SIZE_T index0) const;
+    T& operator()(TPIE_OS_SIZE_T index0);
 
-    size_t size() const;
+    TPIE_OS_SIZE_T size() const;
       
 protected:
-    T*           data;
-    unsigned int dim;
+    T*             data;
+    TPIE_OS_SIZE_T dim;
     
 private:
     VarArray1D<T>() {}
@@ -49,21 +51,21 @@ template <class T> class VarArray2D {
 
 public:
     //  There is no default constructor.
-    VarArray2D(unsigned int dim0, unsigned int dim1);
+    VarArray2D(TPIE_OS_SIZE_T dim0, TPIE_OS_SIZE_T dim1);
     VarArray2D(const VarArray2D& other);
     ~VarArray2D();
 
     VarArray2D& operator=(const VarArray2D& other);
 
-    const T& operator()(size_t index0, size_t index1) const;
-    T& operator()(size_t index0, size_t index1);
+    const T& operator()(TPIE_OS_SIZE_T index0, TPIE_OS_SIZE_T index1) const;
+    T& operator()(TPIE_OS_SIZE_T index0, TPIE_OS_SIZE_T index1);
 
-    size_t size() const;
-    size_t size(size_t d) const;
+    TPIE_OS_SIZE_T size() const;
+    TPIE_OS_SIZE_T size(TPIE_OS_SIZE_T d) const;
       
 protected:
     T*           data;
-    unsigned int dim[2];
+    TPIE_OS_SIZE_T dim[2];
     
 private:
     VarArray2D() {}
@@ -76,21 +78,21 @@ template <class T> class VarArray3D {
 
 public:
     //  There is no default constructor.
-    VarArray3D(unsigned int dim0, unsigned int dim1, unsigned int dim2);
+    VarArray3D(TPIE_OS_SIZE_T dim0, TPIE_OS_SIZE_T dim1, TPIE_OS_SIZE_T dim2);
     VarArray3D(const VarArray3D& other);
     ~VarArray3D();
 
     VarArray3D& operator=(const VarArray3D& other);
 
-    const T& operator()(size_t index0, size_t index1, size_t index2) const;
-    T& operator()(size_t index0, size_t index1, size_t index2);
+    const T& operator()(TPIE_OS_SIZE_T index0, TPIE_OS_SIZE_T index1, TPIE_OS_SIZE_T index2) const;
+    T& operator()(TPIE_OS_SIZE_T index0, TPIE_OS_SIZE_T index1, TPIE_OS_SIZE_T index2);
 
-    size_t size() const;
-    size_t size(size_t d) const;
+    TPIE_OS_SIZE_T size() const;
+    TPIE_OS_SIZE_T size(TPIE_OS_SIZE_T d) const;
       
 protected:
     T*           data;
-    unsigned int dim[3];
+    TPIE_OS_SIZE_T dim[3];
     
 private:
     VarArray3D() {}
@@ -101,7 +103,7 @@ private:
 //----------------------------------------------------------------------
 
 template <class T>
-VarArray1D<T>::VarArray1D(unsigned int dim) {
+VarArray1D<T>::VarArray1D(TPIE_OS_SIZE_T dim) {
     this->dim = dim;
     
     //  Allocate memory for dim0 elements of type/class T.
@@ -147,28 +149,28 @@ VarArray1D<T>& VarArray1D<T>::operator=(const VarArray1D<T>& other) {
 }
 
 template <class T>
-const T& VarArray1D<T>::operator()(size_t index0) const {
+const T& VarArray1D<T>::operator()(TPIE_OS_SIZE_T index0) const {
     assert(index0 < size());
     
     return data[index0];
 }
 
 template <class T>
-T& VarArray1D<T>::operator()(size_t index0) {
+T& VarArray1D<T>::operator()(TPIE_OS_SIZE_T index0) {
     assert(index0 < size());
     
     return data[index0];
 }
 
 template <class T>
-size_t VarArray1D<T>::size() const {
+TPIE_OS_SIZE_T VarArray1D<T>::size() const {
     return dim;
 }
 
 //----------------------------------------------------------------------
 
 template <class T>  
-VarArray2D<T>::VarArray2D(unsigned int dim0, unsigned int dim1) {
+VarArray2D<T>::VarArray2D(TPIE_OS_SIZE_T dim0, TPIE_OS_SIZE_T dim1) {
     this->dim[0] = dim0;
     this->dim[1] = dim1;
     
@@ -217,7 +219,7 @@ VarArray2D<T>& VarArray2D<T>::operator=(const VarArray2D& other) {
 }
 
 template <class T>  
-T& VarArray2D<T>::operator()(size_t index0, size_t index1) {
+T& VarArray2D<T>::operator()(TPIE_OS_SIZE_T index0, TPIE_OS_SIZE_T index1) {
     assert(index0 < size(0));
     assert(index1 < size(1));
     
@@ -225,7 +227,7 @@ T& VarArray2D<T>::operator()(size_t index0, size_t index1) {
 }
 
 template <class T>  
-const T& VarArray2D<T>::operator()(size_t index0, size_t index1) const {
+const T& VarArray2D<T>::operator()(TPIE_OS_SIZE_T index0, TPIE_OS_SIZE_T index1) const {
     assert(index0 < size(0));
     assert(index1 < size(1));
     
@@ -233,13 +235,13 @@ const T& VarArray2D<T>::operator()(size_t index0, size_t index1) const {
 }
 
 template <class T>  
-size_t VarArray2D<T>::size() const {
+TPIE_OS_SIZE_T VarArray2D<T>::size() const {
 
     return dim[0] * dim[1];
 }
 
 template <class T>  
-size_t VarArray2D<T>::size(size_t d) const {
+TPIE_OS_SIZE_T VarArray2D<T>::size(TPIE_OS_SIZE_T d) const {
     assert(d<2);
     
     return dim[d];
@@ -249,7 +251,7 @@ size_t VarArray2D<T>::size(size_t d) const {
 //----------------------------------------------------------------------
 
 template <class T>  
-VarArray3D<T>::VarArray3D(unsigned int dim0, unsigned int dim1, unsigned int dim2) {
+VarArray3D<T>::VarArray3D(TPIE_OS_SIZE_T dim0, TPIE_OS_SIZE_T dim1, TPIE_OS_SIZE_T dim2) {
     this->dim[0] = dim0;
     this->dim[1] = dim1;
     this->dim[2] = dim2;
@@ -300,7 +302,7 @@ VarArray3D<T>& VarArray3D<T>::operator=(const VarArray3D& other) {
 }
 
 template <class T>  
-T& VarArray3D<T>::operator()(size_t index0, size_t index1, size_t index2) {
+T& VarArray3D<T>::operator()(TPIE_OS_SIZE_T index0, TPIE_OS_SIZE_T index1, TPIE_OS_SIZE_T index2) {
     assert(index0 < size(0));
     assert(index1 < size(1));
     assert(index2 < size(2));
@@ -309,7 +311,7 @@ T& VarArray3D<T>::operator()(size_t index0, size_t index1, size_t index2) {
 }
 
 template <class T>  
-const T& VarArray3D<T>::operator()(size_t index0, size_t index1, size_t index2) const {
+const T& VarArray3D<T>::operator()(TPIE_OS_SIZE_T index0, TPIE_OS_SIZE_T index1, TPIE_OS_SIZE_T index2) const {
     assert(index0 < size(0));
     assert(index1 < size(1));
     assert(index2 < size(2));
@@ -318,13 +320,13 @@ const T& VarArray3D<T>::operator()(size_t index0, size_t index1, size_t index2) 
 }
 
 template <class T>  
-size_t VarArray3D<T>::size() const {
+TPIE_OS_SIZE_T VarArray3D<T>::size() const {
     
     return dim[0] * dim[1] * dim[2];
 }
 
 template <class T>  
-size_t VarArray3D<T>::size(size_t d) const {
+TPIE_OS_SIZE_T VarArray3D<T>::size(TPIE_OS_SIZE_T d) const {
     assert(d<3);
     
     return dim[d];

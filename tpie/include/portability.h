@@ -3,12 +3,14 @@
 // Created: 2002/10/30
 // Authors: Joerg Rotthowe, Jan Vahrenhold, Markus Vogel
 //
-// $Id: portability.h,v 1.25 2004-05-06 16:01:30 adanner Exp $
+// $Id: portability.h,v 1.26 2004-08-12 12:35:32 jan Exp $
 //
 // This header-file offers macros for independent use on Win and Unix systems.
 
 #ifndef _PORTABILITY_H
 #define _PORTABILITY_H
+
+//#define _TPIE_SMALL_MEMORY
 
 #ifdef _WIN32
 #pragma warning (disable : 4018) // signed/unsigned comparison mismatch
@@ -43,16 +45,26 @@
 // For time()
 #include <time.h>
 
+
+
 // Get random functions //
 #include <stdlib.h>
 #include <assert.h>
 
+#ifdef _WIN32
+#if _MSC_VER < 1300
+#include <fstream.h>
+#else
+#include <fstream>
+using namespace std;
+#endif
+#else
+#include <fstream>
+#endif
 
 // for reading command line parameter //
 #ifdef _WIN32
 #include <sstream>
-using std::ostringstream;
-using std::istringstream;
 #else
 #if (__GNUC__ == 2)
 #include <strstream>
@@ -61,31 +73,31 @@ using std::istringstream;
 #endif
 #endif
 
-// for class logstream
 #ifdef _WIN32
-#include <fstream.h>
-#else
-#include <fstream>
+#include <stack>
+#include <functional>
+#include <algorithm>
+#include <vector>
+#include <queue>
+#include <list>
 #endif
 
 #ifdef _WIN32
-#include <stack>
+#if _MSC_VER < 1300
+using std::ostringstream;
+using std::istringstream;
 using std::stack;
 using std::pair;
-#include <functional>
 using std::less;
-#include <algorithm>
 using std::lower_bound;
 using std::upper_bound;
 using std::unique;
 using std::sort;
-#include <vector>
 using std::vector;
-#include <queue>
+using std::list;
 using std::queue;
 using std::priority_queue;
-#include <list>
-using std::list;
+#endif
 #else
 using namespace std;
 #endif
@@ -96,10 +108,6 @@ using namespace std;
 #else
 #include <sys/times.h>
 #endif
-
-// for ANSI conform arrays.
-#include <vararray.h>
-
 
 #ifdef _WIN32 
 #include <io.h>
@@ -176,11 +184,23 @@ using namespace std;
 //////////////////////////////////////////////
 
 #ifdef _WIN32
-typedef time_t TPIE_OS_TIME;
+#ifdef _WIN64
+typedef __time64_t TPIE_OS_TIME_T;
+inline TPIE_OS_TIME_T TPIE_OS_TIME(TPIE_OS_TIME_T* timep) {
+	return _time64(timep);
+}
 #else
-typedef tms TPIE_OS_TIME;
-#endif	
-
+typedef time_t TPIE_OS_TIME_T;
+inline TPIE_OS_TIME_T TPIE_OS_TIME(TPIE_OS_TIME_T* timep) {
+	return time(timep);
+}
+#endif
+#else
+typedef tms TPIE_OS_TIME_T;
+inline TPIE_OS_TIME_T TPIE_OS_TIME(TPIE_OS_TIME_T* timep) {
+	return time(timep);
+}
+#endif
 
 #ifdef _WIN32
 typedef LONGLONG TPIE_OS_OFFSET;
@@ -192,7 +212,9 @@ typedef off_t TPIE_OS_OFFSET;
 //windows doesn't have a default way
 //of printing 64 bit integers
 //printf doesn't work either with %d, use %I64d in Win32
+#if _MSC_VER < 1300
 extern ostream& operator<<(ostream& s, const TPIE_OS_OFFSET x);
+#endif
 #endif
 
 #ifdef _WIN32
@@ -206,9 +228,18 @@ typedef unsigned long long int TPIE_OS_ULONGLONG;
 #endif	
 
 #ifdef _WIN32
-typedef long TPIE_OS_SSIZE_T;
+typedef SSIZE_T TPIE_OS_SSIZE_T;
+#ifdef _TPIE_SMALL_MAIN_MEMORY
+typedef unsigned __int32 TPIE_OS_SIZE_T;
+#define TPIE_OS_OUTPUT_SIZE_T TPIE_OS_SIZE_T
+#else
+#define TPIE_OS_OUTPUT_SIZE_T TPIE_OS_OFFSET
+typedef size_t TPIE_OS_SIZE_T;
+#endif
 #else
 typedef ssize_t TPIE_OS_SSIZE_T;
+typedef size_t TPIE_OS_SIZE_T;
+#define TPIE_OS_OUTPUT_SIZE_T TPIE_OS_OFFSET
 #endif
 
 #ifdef _WIN32
@@ -261,7 +292,7 @@ typedef int TPIE_OS_FILE_DESCRIPTOR;
 
 
 // Default block id type
-typedef unsigned int TPIE_BLOCK_ID_TYPE;
+typedef TPIE_OS_OFFSET TPIE_BLOCK_ID_TYPE;
 
 
 //////////////////////////////////////////////
@@ -349,9 +380,8 @@ typedef unsigned int TPIE_BLOCK_ID_TYPE;
 #define TPIE_OS_OPERATOR_OVERLOAD return s << double(wt.elapsed.tms_utime) / double(wt.clock_tick) << "u " << double(wt.elapsed.tms_stime) / double(wt.clock_tick) << "s " << double(wt.elapsed_real) / double(wt.clock_tick);	
 #endif
 
-
-
-
+// for ANSI conform arrays.
+#include <vararray.h>
 
 //////////////////////////////////////////////
 // functions				    //
@@ -386,14 +416,14 @@ inline void TPIE_OS_SRANDOM(unsigned int seed) {
 #ifdef _WIN32
 // Win32 File Seeks use high/low order offsets 
 // Getting Highorder 32 Bit OFFSET
-inline TPIE_OS_OFFSET getHighOrderOff(TPIE_OS_OFFSET off) {
+inline LONG getHighOrderOff(TPIE_OS_OFFSET off) {
     //Be careful with sign bits. 
     return (LONG)((ULONGLONG)(off)>>32);
 }
  
      
 // Getting Loworder 32 Bit OFFSET
-inline TPIE_OS_OFFSET getLowOrderOff(TPIE_OS_OFFSET off) {
+inline LONG getLowOrderOff(TPIE_OS_OFFSET off) {
     return (LONG)((ULONGLONG)(off) % 0x000100000000);
 }
 #endif
@@ -655,7 +685,7 @@ inline TPIE_OS_OFFSET TPIE_OS_LSEEK(TPIE_OS_FILE_DESCRIPTOR &fd,TPIE_OS_OFFSET o
 	  return -1;
 	}
 	else{
-      return (TPIE_OS_OFFSET)((((ULONGLONG) highOrderOff)<<32)+(ULONGLONG) x);
+      return TPIE_OS_OUTPUT_SIZE_T((((ULONGLONG) highOrderOff)<<32)+(ULONGLONG) x);
 	}
 }
 #else
@@ -666,10 +696,10 @@ inline TPIE_OS_OFFSET TPIE_OS_LSEEK(TPIE_OS_FILE_DESCRIPTOR &fd,TPIE_OS_OFFSET o
 
     
 #ifdef _WIN32
-inline TPIE_OS_SSIZE_T TPIE_OS_WRITE(TPIE_OS_FILE_DESCRIPTOR fd, const void* buffer, unsigned int count) {
+inline TPIE_OS_SSIZE_T TPIE_OS_WRITE(TPIE_OS_FILE_DESCRIPTOR fd, const void* buffer, TPIE_OS_SIZE_T count) {
     DWORD bytesWritten = 0;
-    WriteFile(fd.FileHandle, buffer, count, &bytesWritten, 0);
-    return (bytesWritten > 0 ? bytesWritten : -1);
+	::WriteFile(fd.FileHandle, buffer, (DWORD)count, &bytesWritten, 0);
+    return (TPIE_OS_SSIZE_T)(bytesWritten > 0 ? bytesWritten : -1);
 }
 #else
 inline TPIE_OS_SSIZE_T TPIE_OS_WRITE(TPIE_OS_FILE_DESCRIPTOR fd, const void* buffer, size_t count) {
@@ -678,9 +708,9 @@ inline TPIE_OS_SSIZE_T TPIE_OS_WRITE(TPIE_OS_FILE_DESCRIPTOR fd, const void* buf
 #endif
 
 #ifdef _WIN32
-inline TPIE_OS_SSIZE_T TPIE_OS_READ(TPIE_OS_FILE_DESCRIPTOR fd, void* buffer, unsigned int count) {
+inline TPIE_OS_SSIZE_T TPIE_OS_READ(TPIE_OS_FILE_DESCRIPTOR fd, void* buffer, TPIE_OS_SIZE_T count) {
     DWORD bytesRead = 0;
-    ReadFile(fd.FileHandle, buffer, count, &bytesRead, 0);
+    ReadFile(fd.FileHandle, buffer, (DWORD)count, &bytesRead, 0);
     return (bytesRead > 0 ? bytesRead : -1);
 }
 #else
@@ -688,7 +718,6 @@ inline TPIE_OS_SSIZE_T TPIE_OS_READ(TPIE_OS_FILE_DESCRIPTOR fd, void* buffer, si
     return ::read(fd,buffer,count);
 }
 #endif
-
 
 #ifdef _WIN32
 // The suggested starting address of the mmap call has to be
@@ -754,6 +783,7 @@ inline int TPIE_OS_FTRUNCATE(TPIE_OS_FILE_DESCRIPTOR& fd, TPIE_OS_OFFSET length)
   int x = ((((fd).RDWR == false) 	|| 
 	    (SetFilePointer((fd).FileHandle,getLowOrderOff(length),&highOrderOff,FILE_BEGIN) == 0xFFFFFFFF)	|| 
 	    (SetEndOfFile((fd).FileHandle) == 0)) ? -1 : 0);
+
   if (fd.useFileMapping == TPIE_OS_FLAG_USE_MAPPING_TRUE) {
     fd.mapFileHandle= CreateFileMapping( (fd).FileHandle,
 					 0,
@@ -762,7 +792,7 @@ inline int TPIE_OS_FTRUNCATE(TPIE_OS_FILE_DESCRIPTOR& fd, TPIE_OS_OFFSET length)
 					 NULL);
   }
   // Restore the offset, mimicking the ftruncate() behavior.
-  TPIE_OS_LSEEK(fd, so, TPIE_OS_FLAG_SEEK_SET);
+  TPIE_OS_LSEEK(fd, (so < length ? so : length), TPIE_OS_FLAG_SEEK_SET);
   return x;
 }
 #else							
@@ -909,7 +939,8 @@ inline int TPIE_OS_TRUNCATE(FILE* file, const char* path, TPIE_OS_OFFSET offset)
 //    TPIE_OS_LONG highOrderOff = getHighOrderOff(offset);	
 //    DWORD x = SetFilePointer(fd.FileHandle,getLowOrderOff(offset),&highOrderOff, FILE_BEGIN);
 //	return SetEndOfFile(fd.FileHandle);
-	return _chsize(file->_file, offset);
+	// Check for  64-bit file length! (jv)
+	return _chsize(file->_file, (LONG)offset);
 }
 #else
 inline int TPIE_OS_TRUNCATE(FILE* file, const char* path, TPIE_OS_OFFSET offset) {
@@ -923,16 +954,16 @@ LOG_FATAL_ID("_WIN32 does not support truncate() for "); \
 LOG_FATAL_ID(path); \
 return BTE_ERROR_OS_ERROR 
 #else
-#define TPIE_OS_TRUNCATE_STREAM_TEMPLATE_CLASS_BODY off_t file_position; if (substream_level) { return BTE_ERROR_STREAM_IS_SUBSTREAM; } if (offset < 0) {   return BTE_ERROR_OFFSET_OUT_OF_RANGE; } file_position = offset * sizeof (T) + os_block_size_; if (::truncate (path, file_position)) {   os_errno = errno;   LOG_FATAL_ID("Failed to truncate() to the new end of file:");   LOG_FATAL_ID(path);   LOG_FATAL_ID(strerror (os_errno));   return BTE_ERROR_OS_ERROR; } if (fseek (file, file_position, SEEK_SET)) { LOG_FATAL("fseek failed to go to position " << file_position << " of \"" << "\"\n"); LOG_FLUSH_LOG;  return BTE_ERROR_OS_ERROR; } f_offset = file_position; f_eof = file_position; return BTE_ERROR_NO_ERROR
+#define TPIE_OS_TRUNCATE_STREAM_TEMPLATE_CLASS_BODY off_t file_position; if (substream_level) { return BTE_ERROR_STREAM_IS_SUBSTREAM; } if (offset < 0) {   return BTE_ERROR_OFFSET_OUT_OF_RANGE; } file_position = offset * sizeof (T) + os_block_size_; if (::truncate (path, file_position)) {   os_errno = errno;  TP_LOG_FATAL_ID("Failed to truncate() to the new end of file:");  TP_LOG_FATAL_ID(path);  TP_LOG_FATAL_ID(strerror (os_errno));   return BTE_ERROR_OS_ERROR; } if (fseek (file, file_position, SEEK_SET)) { LOG_FATAL("fseek failed to go to position " << file_position << " of \"" << "\"\n"); LOG_FLUSH_LOG;  return BTE_ERROR_OS_ERROR; } f_offset = file_position; f_eof = file_position; return BTE_ERROR_NO_ERROR
 #endif 
 
-
+/*
 #ifdef _WIN32	
 #define TPIE_OS_WIN_ONLY_TEMPLATE_MERGE_HEAP_ELEMENT_COMPILER_FOOLER template<> class merge_heap_element<int>{};	
 #else
 #define TPIE_OS_WIN_ONLY_TEMPLATE_MERGE_HEAP_ELEMENT_COMPILER_FOOLER	
 #endif
-
+*/
 
 
 
@@ -1015,7 +1046,8 @@ logstream& logstream::operator<<(const LONGLONG x)\
     //  	*
     //		******************************************************************************* /
 
-#ifdef _WIN32							
+#ifdef _WIN32	
+#ifndef NDEBUG
 #define TPIE_OS_SPACE_OVERHEAD_BODY \
 void * __cdecl _nh_malloc_dbg ( size_t, int, int, const char *,	int );\
 void * operator new(\
@@ -1030,26 +1062,26 @@ void * operator new(\
       && (MM_manager.register_allocation (cb + SIZE_SPACE) !=	MM_ERROR_NO_ERROR)) {\
     switch(MM_manager.register_new) {\
     case MM_ABORT_ON_MEMORY_EXCEEDED:\
-        LOG_FATAL_ID("In operator new() - allocation request ");\
-        LOG_FATAL(cb + SIZE_SPACE);\
-        LOG_FATAL(" plus previous allocation ");\
-        LOG_FATAL(MM_manager.memory_used() - (cb + SIZE_SPACE));\
-        LOG_FATAL(" exceeds user-defined limit ");\
-        LOG_FATAL(MM_manager.memory_limit());\
-        LOG_FATAL(" ");\
-        cerr << "memory manager: memory allocation limit " << MM_manager.memory_limit() << " exceeded while allocating " << cb << " bytes" << endl;\
+       TP_LOG_FATAL_ID("In operator new() - allocation request ");\
+       TP_LOG_FATAL((TPIE_OS_LONG)(cb + SIZE_SPACE));\
+       TP_LOG_FATAL(" plus previous allocation ");\
+       TP_LOG_FATAL((TPIE_OS_LONG)(MM_manager.memory_used() - (cb + SIZE_SPACE)));\
+       TP_LOG_FATAL(" exceeds user-defined limit ");\
+       TP_LOG_FATAL((TPIE_OS_LONG)(MM_manager.memory_limit()));\
+       TP_LOG_FATAL(" ");\
+        cerr << "memory manager: memory allocation limit " << (TPIE_OS_LONG)MM_manager.memory_limit() << " exceeded while allocating " << (TPIE_OS_LONG)cb << " bytes" << endl;\
         exit(1);\
         break;\
     case MM_WARN_ON_MEMORY_EXCEEDED: \
-       LOG_WARNING_ID("In operator new() - allocation request \"");\
-       LOG_WARNING(cb + SIZE_SPACE);\
-       LOG_WARNING("\" plus previous allocation \"");\
-       LOG_WARNING(MM_manager.memory_used () - (cb + SIZE_SPACE));\
-       LOG_WARNING("\" exceeds user-defined limit \"");\
-       LOG_WARNING(MM_manager.memory_limit ());\
-       LOG_WARNING("\" \n");\
-       LOG_FLUSH_LOG;\
-       cerr << "memory manager: memory allocation limit " << MM_manager.memory_limit () << " exceeded " << "while allocating " << cb << " bytes" << endl;\
+      TP_LOG_WARNING_ID("In operator new() - allocation request \"");\
+      TP_LOG_WARNING((TPIE_OS_LONG)(cb + SIZE_SPACE));\
+      TP_LOG_WARNING("\" plus previous allocation \"");\
+      TP_LOG_WARNING((TPIE_OS_LONG)(MM_manager.memory_used () - (cb + SIZE_SPACE)));\
+      TP_LOG_WARNING("\" exceeds user-defined limit \"");\
+      TP_LOG_WARNING((TPIE_OS_LONG)(MM_manager.memory_limit ()));\
+      TP_LOG_WARNING("\" \n");\
+      TP_LOG_FLUSH_LOG;\
+       cerr << "memory manager: memory allocation limit " << (TPIE_OS_LONG)MM_manager.memory_limit () << " exceeded " << "while allocating " << (TPIE_OS_LONG)cb << " bytes" << endl;\
        break;\
    case MM_IGNORE_MEMORY_EXCEEDED:\
        break;\
@@ -1057,9 +1089,9 @@ void * operator new(\
    }\
    p = malloc (cb+SIZE_SPACE);\
    if (!p) {\
-       LOG_FATAL_ID("Out of memory. Cannot continue.");\
-       LOG_FLUSH_LOG;\
-       cerr << "out of memory while allocating " << cb << " bytes" << endl;\
+      TP_LOG_FATAL_ID("Out of memory. Cannot continue.");\
+      TP_LOG_FLUSH_LOG;\
+       cerr << "out of memory while allocating " << (TPIE_OS_LONG)cb << " bytes" << endl;\
        perror ("mm_base::new malloc");\
        assert(0);\
        exit (1);\
@@ -1067,8 +1099,9 @@ void * operator new(\
    *((size_t *) p) = cb;\
    return ((char *) p) + SIZE_SPACE;\
 };
-#else									      
-#define TPIE_OS_SPACE_OVERHEAD_BODY
+#endif
+#else							
+#define TPIE_OS_SPACE_OVERHEAD_BODY {};
 #endif
 
 #endif 

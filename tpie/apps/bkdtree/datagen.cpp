@@ -4,7 +4,7 @@
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
 //
-// $Id: datagen.cpp,v 1.1 2003-09-25 17:45:29 tavi Exp $
+// $Id: datagen.cpp,v 1.2 2004-08-12 12:36:05 jan Exp $
 
 #include <portability.h>
 
@@ -172,7 +172,7 @@ int main(int argc, char **argv) {
   char* base_file_name = NULL;
   vector<char*> inputs;
   char* input_file_name = NULL;
-  int point_count = 10000;
+  TPIE_OS_OFFSET point_count = 10000;
   // The size of the box as a percentage of the max box (should be
   // between 0.0 and 100.0)
   double box_size = 0.0;
@@ -352,7 +352,7 @@ int main(int argc, char **argv) {
 
   point_t p;
   cpu_timer atimer;
-  TPIE_OS_SRANDOM(time(NULL));
+  TPIE_OS_SRANDOM((unsigned int)TPIE_OS_TIME(NULL));
 
   if (output_type == OUTPUT_UNDEFINED) {
     cerr << argv[0] << ": " << "No output file specified.\n";
@@ -439,7 +439,7 @@ int main(int argc, char **argv) {
       cout << hip[j] << ",";
     cout << "\b]\n";
 
-    TPIE_OS_SRANDOM(time(NULL));
+    TPIE_OS_SRANDOM((unsigned int)TPIE_OS_TIME(NULL));
     atimer.start();
     for (i = 0; i < point_count; i++) {
       switch (distribution) {

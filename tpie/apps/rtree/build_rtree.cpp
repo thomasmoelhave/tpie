@@ -3,7 +3,7 @@
 //  Created:         09.02.1999
 //  Author:          Jan Vahrenhold
 //  mail:            jan.vahrenhold@math.uni-muenster.de
-//  $Id: build_rtree.cpp,v 1.1 2003-11-21 17:26:02 tavi Exp $
+//  $Id: build_rtree.cpp,v 1.2 2004-08-12 12:37:24 jan Exp $
 //
 //  Copyright (C) 1999-2001 by  
 // 
@@ -52,7 +52,7 @@ int main(int argc, char** argv) {
 	}
 	cerr << "-Tree (fanout=" << atol(argv[2]) << ") for " << argv[1] << "...";
 
-	BulkLoader<double> bl(argv[1], atol(argv[2]));
+	BulkLoader<double> bl(argv[1], (unsigned short)atol(argv[2]));
 	AMI_err result = AMI_ERROR_NO_ERROR;
 
 	if (!strcmp(argv[3], "H")) {

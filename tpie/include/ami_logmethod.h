@@ -3,7 +3,7 @@
 // File:    ami_logmethod.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_logmethod.h,v 1.7 2003-09-17 02:54:14 tavi Exp $
+// $Id: ami_logmethod.h,v 1.8 2004-08-12 12:35:30 jan Exp $
 //
 // Logmethod_base, Logmethod2 and LogmethodB declarations and
 // definitions.
@@ -69,12 +69,12 @@ public:
   // Point query.
   bool find(const Value& p);
   // Window query. Report results in stream os.
-  size_t window_query(const Key &lop, const Key &hip, stream_t* os);
+  TPIE_OS_OFFSET window_query(const Key &lop, const Key &hip, stream_t* os);
   void persist(persistence per);
   // Inquire the mbr.
   const pair<Value, Value> &mbr();
   // Inquire the size.
-  size_t size() const { return header_.size; }
+  TPIE_OS_OFFSET size() const { return header_.size; }
   // Inquire the run-time parameters.
   const Logmethod_params<Tp, T0p>& params() const { return params_; }
   // Inquire the statistics. 
@@ -90,8 +90,8 @@ protected:
 
   class header_type {
   public:
-    size_t size; // The total number of elements stored in the structure.
-    size_t last_tree; // the index of the last tree in the trees_ vector
+    TPIE_OS_OFFSET size; // The total number of elements stored in the structure.
+    TPIE_OS_SIZE_T last_tree; // the index of the last tree in the trees_ vector
     header_type(): size(0), last_tree(0) {}
   };
 
@@ -168,7 +168,7 @@ LOGMETHOD_BASE::Logmethod_base(const char *base_file_name,
   // Try to open header file read-only.
   if (TPIE_OS_IS_VALID_FILE_DESCRIPTOR(fd = TPIE_OS_OPEN_ORDONLY(base_file_name_))) {
     if (TPIE_OS_READ(fd, &header_, sizeof(header_)) != sizeof(header_)) {
-      LOG_WARNING_ID("Corrupt header file.");
+     TP_LOG_WARNING_ID("Corrupt header file.");
       assert(0);
     }
     TPIE_OS_CLOSE(fd);
@@ -185,7 +185,7 @@ LOGMETHOD_BASE::Logmethod_base(const char *base_file_name,
     if (i >= 1)
       params_.tree_params = trees_[1]->params();
   } else {
-    LOG_APP_DEBUG_ID("Creating new logmethod structure.");
+   TP_LOG_APP_DEBUG_ID("Creating new logmethod structure.");
     // Bogus entry in the trees_ vector.
     trees_.insert(trees_.end(), NULL);
     // Create tree0_.
@@ -238,10 +238,10 @@ bool LOGMETHOD_BASE::find(const Value& p) {
 
 //// *Logmethod_base::window_query* ////
 template<class Key, class Value, class T, class Tp, class T0, class T0p>
-size_t LOGMETHOD_BASE::window_query(const Key &lop, const Key &hip, 
+TPIE_OS_OFFSET LOGMETHOD_BASE::window_query(const Key &lop, const Key &hip, 
 				    AMI_STREAM<Value>* stream) {
-  size_t i, result = 0;
-
+  TPIE_OS_OFFSET result = 0;
+	TPIE_OS_SIZE_T i;
   if (tree0_->size() > 0)
     result += tree0_->window_query(lop, hip, stream);
 
@@ -273,8 +273,8 @@ LOGMETHOD_BASE::~Logmethod_base() {
       // Try again, hoping it exists.
       if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(fd = TPIE_OS_OPEN_ORDWR(base_file_name_, TPIE_OS_FLAG_USE_MAPPING_FALSE))) {
 	//      if ((fd = open(base_file_name_, O_RDWR)) == -1) {
-	LOG_WARNING_ID("Error creating header file.");
-	LOG_WARNING_ID(strerror(errno));
+	TP_LOG_WARNING_ID("Error creating header file.");
+	TP_LOG_WARNING_ID(strerror(errno));
 	assert(0);
       }
     }
@@ -283,14 +283,14 @@ LOGMETHOD_BASE::~Logmethod_base() {
   }
 
   if (TPIE_OS_CLOSE(fd)) {
-    LOG_FATAL_ID("Failed to close() ");
-    LOG_FATAL_ID(base_file_name_);
+   TP_LOG_FATAL_ID("Failed to close() ");
+   TP_LOG_FATAL_ID(base_file_name_);
   }
 
   if (per_ == PERSIST_DELETE) {
     if (TPIE_OS_UNLINK(base_file_name_)) {
-      LOG_FATAL_ID("Failed to unlink() ");
-      LOG_FATAL_ID(base_file_name_);
+     TP_LOG_FATAL_ID("Failed to unlink() ");
+     TP_LOG_FATAL_ID(base_file_name_);
     }
   }
 
@@ -337,10 +337,10 @@ const pair<Value, Value>& LOGMETHOD_BASE::mbr() {
 
 //// *Logmethod_base::create_tree* ////
 template<class Key, class Value, class T, class Tp, class T0, class T0p>
-void LOGMETHOD_BASE::create_tree(size_t idx) {
-  size_t i = strlen(base_file_name_);
-  temp_name_[i  ] = '0' + (idx/10) % 10;
-  temp_name_[i+1] = '0' + idx % 10;
+void LOGMETHOD_BASE::create_tree(TPIE_OS_SIZE_T idx) {
+  TPIE_OS_SIZE_T i = strlen(base_file_name_);
+  temp_name_[i  ] = '0' + (char)((idx/10) % 10);
+  temp_name_[i+1] = '0' + (char)(idx % 10);
   temp_name_[i+2] = '\0';
   if (idx == 0) {
     if (sizeof(T0p) == 0)
@@ -482,7 +482,7 @@ bool LOGMETHODB::insert(const Value& p) {
 
     // Now unload all relevant trees to stream.
     fi = 0;
-    size_t b_to_fi = stream->stream_len();
+    TPIE_OS_OFFSET b_to_fi = stream->stream_len();
 
     while (stream->stream_len() >= b_to_fi) {
       fi++;

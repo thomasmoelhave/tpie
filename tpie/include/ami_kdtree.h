@@ -5,7 +5,7 @@
 //
 // Blocked kd-tree definition and implementation.
 //
-// $Id: ami_kdtree.h,v 1.14 2003-09-17 02:26:38 tavi Exp $
+// $Id: ami_kdtree.h,v 1.15 2004-08-12 12:35:30 jan Exp $
 //
 
 #ifndef _AMI_KDTREE_H
@@ -39,8 +39,8 @@
 #include <ami_kd_base.h>
 
 // Forward references.
-template<class coord_t, size_t dim, class BTECOLL> class AMI_kdtree_leaf;
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL> class AMI_kdtree_node;
+template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL> class AMI_kdtree_leaf;
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL> class AMI_kdtree_node;
 
 // A global object storing the default parameter values.
 const AMI_kdtree_params _AMI_kdtree_params_default = AMI_kdtree_params();
@@ -52,7 +52,7 @@ const AMI_kdtree_params _AMI_kdtree_params_default = AMI_kdtree_params();
 
 
 // The AMI_kdtree class.
-template<class coord_t, size_t dim, class Bin_node=AMI_kdtree_bin_node_default<coord_t, dim>, class BTECOLL = BTE_COLLECTION >
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node=AMI_kdtree_bin_node_default<coord_t, dim>, class BTECOLL = BTE_COLLECTION >
 class AMI_kdtree {
 public:
 
@@ -94,14 +94,14 @@ public:
   AMI_err unload(stream_t* s);
 
   // Report the k nearest neighbors of point p.
-  size_t k_nn_query(const point_t &p, stream_t* stream, size_t k);
+  TPIE_OS_OFFSET k_nn_query(const point_t &p, stream_t* stream, TPIE_OS_OFFSET k);
 
   // Report all points inside the window determined by p1 and p2. If
   // stream is NULL, only *count* the points inside the window. NB:
   // Counting is much faster than reporting, because (a) no points are
   // written out, and (b) the weights of nodes and leaves are used to
   // speed up the search.
-  size_t window_query(const point_t& p1, const point_t& p2, stream_t* stream);
+  TPIE_OS_OFFSET window_query(const point_t& p1, const point_t& p2, stream_t* stream);
 
   // Find a point. Return true if found, false otherwise.
   bool find(const point_t& p);
@@ -115,7 +115,7 @@ public:
   bool erase(const point_t& p);
 
   // Return the number of points stored in the tree.
-  size_t size() const { return header_.size; }
+  TPIE_OS_OFFSET size() const { return header_.size; }
 
   // Set the persistence. It passes per along to the two block
   // collections.
@@ -144,7 +144,7 @@ public:
   ~AMI_kdtree();
 
   // Inquire the number of Bin_node's.
-  size_t bin_node_count() const { return bin_node_count_; }
+  TPIE_OS_OFFSET bin_node_count() const { return bin_node_count_; }
 
   class header_t {
   public:
@@ -152,7 +152,7 @@ public:
     point_t mbr_lo;
     point_t mbr_hi;
     AMI_bid root_bid;
-    size_t size;
+    TPIE_OS_OFFSET size;
     link_type_t root_type;
     unsigned char store_weights;
     unsigned char use_exact_split;
@@ -220,16 +220,17 @@ protected:
   tpie_stats_tree stats_;
 
   // The total number of bin nodes.
-  size_t bin_node_count_;
+  TPIE_OS_OFFSET bin_node_count_;
 
 
   // Various initialization common to all constructors.
   void shared_init(const char* base_file_name, AMI_collection_type type);
 
-  size_t real_median(size_t sz) { return (sz - 1) / 2; }
+  TPIE_OS_OFFSET real_median(TPIE_OS_OFFSET sz) { return (sz - 1) / 2; }
+  TPIE_OS_SIZE_T real_median(TPIE_OS_SIZE_T sz) { return (sz - 1) / 2; }
 
   // Return the position of the median point.
-  size_t median(size_t sz) {
+  TPIE_OS_OFFSET median(TPIE_OS_OFFSET sz) {
 #if AMI_KDTREE_USE_REAL_MEDIAN
     return real_median(sz);
 #else
@@ -241,7 +242,20 @@ protected:
 #endif
   }
 
-  size_t max_intranode_height(AMI_bid bid) {
+  // Return the position of the median point.
+  TPIE_OS_SIZE_T median(TPIE_OS_SIZE_T sz) {
+#if AMI_KDTREE_USE_REAL_MEDIAN
+    return real_median(sz);
+#else
+    int i = 0;
+    while ((1 << i) < ((sz + params_.leaf_size_max - 1) / 
+		       params_.leaf_size_max)) 
+      i++;
+    return  (1 << (i-1)) * params_.leaf_size_max - 1;
+#endif
+  }
+
+  TPIE_OS_SIZE_T max_intranode_height(AMI_bid bid) {
     return (bid == header_.root_bid ? 
 	    params_.max_intraroot_height: 
 	    params_.max_intranode_height);
@@ -251,11 +265,11 @@ protected:
   class bn_context {
   public:
     bn_context() {}
-    bn_context(size_t _i, size_t _h, size_t _d): 
+    bn_context(TPIE_OS_SIZE_T _i, TPIE_OS_SIZE_T _h, TPIE_OS_SIZE_T _d): 
       i(_i), h(_h), d(_d) {}
-    size_t i; // the index of the current bin node.
-    size_t h; // the depth (height) of the current bin node.
-    size_t d; // the split dimension of the current bin node.
+    TPIE_OS_SIZE_T i; // the index of the current bin node.
+    TPIE_OS_SIZE_T h; // the depth (height) of the current bin node.
+    TPIE_OS_SIZE_T d; // the split dimension of the current bin node.
   };
 
   // Forward reference.
@@ -267,16 +281,16 @@ protected:
     // The grid to which this matrix refers to. 
     grid* g;
     // The number of strips in g spanned by this sub-grid.
-    size_t gt[dim];
+    TPIE_OS_SIZE_T gt[dim];
     // The coordinates of the grid lines relative to g. The real
     // coordinates: g->l[i][gl[i]]
-    size_t gl[dim];
+    TPIE_OS_SIZE_T gl[dim];
     // The grid counts. It's an array of length sz (the number of cells).
-    size_t* c;
+    TPIE_OS_SIZE_T* c;
     // Total number of cells: gt[0] * gt[1] *...* gt[dim-1].
-    size_t sz;
+    TPIE_OS_SIZE_T sz;
     // Total number of points represented by this sub-grid.
-    size_t point_count;
+    TPIE_OS_OFFSET point_count;
     // The low and high coordinates. The boolean bit is false iff the
     // value is unbounded on that dimension.
 #if AMI_KDTREE_USE_EXACT_SPLIT
@@ -288,7 +302,7 @@ protected:
 #endif
 
     // Construct a grid_matrix.
-    grid_matrix(size_t* tt, grid *gg) {
+    grid_matrix(TPIE_OS_SIZE_T* tt, grid *gg) {
       size_t i;
       sz = 1;
       for (i = 0; i < dim; i++) {
@@ -321,12 +335,12 @@ protected:
     // Split along strip s orthogonal to dimension d. The lower
     // coordinates are kept here, and the high ones are returned in a
     // newly created object.
-    grid_matrix* split(size_t s, const point_t& p, size_t d) {
+    grid_matrix* split(TPIE_OS_SIZE_T s, const point_t& p, TPIE_OS_SIZE_T d) {
       TPLOG("  ::grid_matrix::split Entering\n");
       
       assert(d < dim);
       assert(s < gt[d]);
-      size_t i, j, ni;
+      TPIE_OS_SIZE_T i, j, ni;
       
       // The high matrix will be returned in gmx.
       grid_matrix* gmx = new grid_matrix(*this);
@@ -357,18 +371,18 @@ protected:
       for (i = 1; i <= dim; i++)
 	lo_mult[i] = lo_mult[i-1] * gt[i-1];
       // The low matrix. Will replace matrix c later, when we're done with it.
-      size_t* lo_c = new size_t[lo_mult[dim]];
+      TPIE_OS_SIZE_T* lo_c = new TPIE_OS_SIZE_T[lo_mult[dim]];
       // The new size.
       sz = lo_mult[dim];
       TPLOG("    low size: "<<sz<<"\n");
       
       // Multipliers for the high matrix.
-      size_t hi_mult[dim+1];
+      TPIE_OS_SIZE_T hi_mult[dim+1];
       hi_mult[0] = 1;
       for (i = 1; i <= dim; i++)
 	hi_mult[i] = hi_mult[i-1] * gmx->gt[i-1];
       // The high matrix.
-      gmx->c = new size_t[hi_mult[dim]];
+      gmx->c = new TPIE_OS_SIZE_T[hi_mult[dim]];
       // The size of gmx.
       gmx->sz = hi_mult[dim];
       TPLOG("    high size: "<<gmx->sz<<"\n");
@@ -415,17 +429,17 @@ protected:
       
       AMI_err err;
       point_t* p1;
-      size_t i_i, m;
-      size_t median_strip = gl[d] + s; // refers to the big grid!
+      TPIE_OS_SIZE_T i_i, m;
+      TPIE_OS_OFFSET median_strip = gl[d] + s; // refers to the big grid!
       TPLOG("    median strip in grid: "<<median_strip<<"\n");
 #if AMI_KDTREE_USE_EXACT_SPLIT
-      hi[d] = pair<AMI_record<coord_t, size_t, dim>, bool>(p, true);
-      gmx->lo[d] = pair<AMI_record<coord_t, size_t, dim>, bool>(p, true);
+      hi[d] = pair<AMI_record<coord_t, TPIE_OS_SIZE_T, dim>, bool>(p, true);
+      gmx->lo[d] = pair<AMI_record<coord_t, TPIE_OS_SIZE_T, dim>, bool>(p, true);
 #else
       hi[d] = pair<coord_t, bool>(p[d], true);
       gmx->lo[d] = pair<coord_t, bool>(p[d], true);
 #endif
-      size_t off = g->o[d][median_strip];
+      TPIE_OS_OFFSET off = g->o[d][median_strip];
       TPLOG("    stream offset of first pnt in median strip: "<<off<<"\n");
       g->streams[d]->seek(off);
       
@@ -479,17 +493,18 @@ protected:
 
     // Find the median point, store it in p, split according to the
     // median point, and return the "high" sub-grid.
-    grid_matrix* find_median_and_split(point_t& p, size_t d, size_t median_pos) {
+    grid_matrix* find_median_and_split(point_t& p, TPIE_OS_SIZE_T d, TPIE_OS_OFFSET median_pos) {
       TPLOG("  ::grid_matrix::find_median_and_split Entering dim="<<d<<"\n");
-      size_t s = 0, acc = 0, i;
+      TPIE_OS_SIZE_T s = 0, i;
+	  TPIE_OS_OFFSET acc = 0;
       grid_matrix* gmx;
       AMI_err err;
       
       // Preparation: compute point counts for each strip orthogonal to d.
-      size_t *strip_count = new size_t[gt[d]];
+      TPIE_OS_OFFSET *strip_count = new TPIE_OS_OFFSET[gt[d]];
       for (i = 0; i < gt[d]; i++)
 	strip_count[i] = 0;
-      size_t mult[dim+1]; // mult[i] = t[0] * .. * t[i-1]
+      TPIE_OS_OFFSET mult[dim+1]; // mult[i] = t[0] * .. * t[i-1]
       mult[0] = 1;
       for (i = 1; i <= dim; i++)
 	mult[i] = mult[i-1] * gt[i-1];
@@ -509,7 +524,7 @@ protected:
       // Store the index of the median strip in s.
       s = i;
       
-      size_t offset_in_strip = median_pos - acc; // refers to this subgrid.
+      TPIE_OS_OFFSET offset_in_strip = median_pos - acc; // refers to this subgrid.
       assert(offset_in_strip < strip_count[s]);
       delete [] strip_count;
       
@@ -587,7 +602,7 @@ protected:
     // Return true if given point is inside the box defined by hi and lo.
     bool is_inside(const point_t& p) {
       bool ans = true;
-      size_t i;
+      TPIE_OS_SIZE_T i;
       for (i = 0; i < dim; i++) {
 #if AMI_KDTREE_USE_EXACT_SPLIT
 	if (lo[i].second && point_t::cmp(i).compare(p, lo[i].first) <= 0) {
@@ -641,7 +656,7 @@ protected:
     // tic-tac-toe board has t[0]=t[1]=3. There should be at least 2
     // strips on each dimension. The leftmost and rightmost strips on
     // each dimension are unbounded.
-    size_t t[dim];
+    TPIE_OS_SIZE_T t[dim];
     // Pointer to an array of dim streams containing the points. These
     // are neither initialized nor destroyed here.
     stream_t** streams;
@@ -650,18 +665,19 @@ protected:
     coord_t* l[dim]; 
     // o[i][j] is the offset in streams[i] of the point that defines
     // grid line l[i][j-1]. o[i] is an array of length t[i].
-    size_t* o[dim];
-    size_t point_count;
+    TPIE_OS_OFFSET *o[dim];
+    TPIE_OS_OFFSET point_count;
     // The queue of unfinished business.
     vector<grid_context> q;
 
     // Constructor.
-    grid(size_t t_all, stream_t** in_streams) {
+    grid(TPIE_OS_SIZE_T t_all, stream_t** in_streams) {
 
       streams = in_streams;
       
       point_count = in_streams[0]->stream_len();
-      size_t i, j, off;
+	TPIE_OS_SIZE_T i, j;
+	TPIE_OS_OFFSET off;
       AMI_record<coord_t, size_t, dim> *p1, ap;
       AMI_err err;
       
@@ -669,7 +685,7 @@ protected:
       for (i = 0; i < dim; i++) {
 	t[i] = t_all;
 	l[i] = new coord_t[t[i] - 1];
-	o[i] = new size_t[t[i]];
+	o[i] = new TPIE_OS_OFFSET[t[i]];
 	assert(point_count > 2 * t[i]); // TODO: make this more meaningful.
 	o[i][0] = 0;
 	for (j = 0; j < t[i]-1; j++) {
@@ -715,7 +731,7 @@ protected:
       
       grid_matrix* gmx = new grid_matrix(t, this);
       
-      gmx->c = new size_t[gmx->sz];
+      gmx->c = new TPIE_OS_SIZE_T[gmx->sz];
       for (j = 0; j < gmx->sz; j++)
 	gmx->c[j] = 0;
       
@@ -800,24 +816,24 @@ protected:
     // The in-memory streams containing the sampled points.
     point_t* mm_streams[dim];
     // The number of sample points.
-    size_t sz;
+    TPIE_OS_SIZE_T sz;
     // The queue of unfinished business.
     vector<sample_context> q;
 
     // Construct a sample.
-    sample(size_t _sz, stream_t* _in_stream) {
+    sample(TPIE_OS_SIZE_T _sz, stream_t* _in_stream) {
 #define MAX_RANDOM ((double)0x7fffffff)
 
       // Preliminary sample size.
       sz = _sz;
       in_stream = _in_stream;
-      size_t input_sz = in_stream->stream_len();
+      TPIE_OS_OFFSET input_sz = in_stream->stream_len();
       assert(sz > 0 && sz < input_sz);
       
       TPIE_OS_OFFSET* offsets = new TPIE_OS_OFFSET[sz];
       TPIE_OS_OFFSET* new_last;
       point_t *p;
-      size_t i;
+      TPIE_OS_SIZE_T i;
 
       TPIE_OS_SRANDOM(10);
       
@@ -834,7 +850,7 @@ protected:
 	cerr << "    Warning: Duplicate samples found! Decreasing sample size accordingly.\n";
 	// Adjust sample size sz.
 	sz = new_last - offsets;
-	cerr << "    New sample size: " << sz << "\n";
+	cerr << "    New sample size: " << (TPIE_OS_OFFSET)sz << "\n";
       }
       
       // Make space for one in-memory array (more later).
@@ -909,43 +925,43 @@ protected:
   void create_bin_node(node_t *b, bn_context ctx, 
 		  stream_t** in_streams, 
 		  size_t& next_free_el, size_t& next_free_lk);
-  void create_node(AMI_bid& bid, size_t d,
+  void create_node(AMI_bid& bid, TPIE_OS_SIZE_T d,
 	      stream_t** in_streams);
-  void create_leaf(AMI_bid& bid, size_t d,
+  void create_leaf(AMI_bid& bid, TPIE_OS_SIZE_T d,
 	      stream_t** in_streams);
 
   // Helpers for in-memory bulk loading.
-  bool can_do_mm(size_t sz);
+  bool can_do_mm(TPIE_OS_OFFSET sz);
   // Copy the given sorted streams into newly created in-memory
   // streams. The input streams are deleted.
   void copy_to_mm(stream_t** in_streams, 
-		  point_t** mm_streams, size_t& sz);
+		  point_t** mm_streams, TPIE_OS_SIZE_T& sz);
   // Copy the given stream in memory, make dim copy of it, and sort
   // them on the dim dimensions.
   void copy_to_mm(stream_t* in_stream, 
-		  point_t** mm_streams, size_t& sz);
+		  point_t** mm_streams, TPIE_OS_SIZE_T& sz);
   void create_bin_node_mm(node_t *b, bn_context ctx, 
-			  point_t** in_streams, size_t sz,
+			  point_t** in_streams, TPIE_OS_SIZE_T sz,
 			  size_t& next_free_el, size_t& next_free_lk);
-  void create_node_mm(AMI_bid& bid, size_t d,
-		      point_t** in_streams, size_t sz);
-  void create_leaf_mm(AMI_bid& bid, size_t d,
-		      point_t** in_streams, size_t sz);
+  void create_node_mm(AMI_bid& bid, TPIE_OS_SIZE_T d,
+		      point_t** in_streams, TPIE_OS_SIZE_T sz);
+  void create_leaf_mm(AMI_bid& bid, TPIE_OS_SIZE_T d,
+		      point_t** in_streams, TPIE_OS_SIZE_T sz);
 
   // Helpers for grid-based bulk loading.
   void create_bin_node_g(node_t *b, bn_context ctx, 
 			 grid_matrix *gmx, size_t& next_free_el, size_t& next_free_lk);
-  void create_node_g(AMI_bid& bid, size_t d, grid_matrix* gmx);
-  void create_grid(AMI_bid& bid, size_t d, stream_t** in_streams, size_t t);
-  void distribute_g(AMI_bid bid, size_t d, grid* g);
+  void create_node_g(AMI_bid& bid, TPIE_OS_SIZE_T d, grid_matrix* gmx);
+  void create_grid(AMI_bid& bid, TPIE_OS_SIZE_T d, stream_t** in_streams, TPIE_OS_SIZE_T t);
+  void distribute_g(AMI_bid bid, TPIE_OS_SIZE_T d, grid* g);
   void build_lower_tree_g(grid* g);
 
   // Helpers for sample-based bulk loading. 
   bool points_are_sample;
   // Global sample object.
   sample* gso;
-  void create_sample(AMI_bid& bid, size_t d, stream_t* in_stream);
-  void distribute_s(AMI_bid bid, size_t d, sample* s);
+  void create_sample(AMI_bid& bid, TPIE_OS_SIZE_T d, stream_t* in_stream);
+  void distribute_s(AMI_bid bid, TPIE_OS_SIZE_T d, sample* s);
   void build_lower_tree_s(sample* s);
 
   // Find the leaf where p might be.
@@ -963,37 +979,37 @@ protected:
 
 
 struct _AMI_kdtree_leaf_info {
-  size_t size;
+  TPIE_OS_SIZE_T size;
   AMI_bid next;
 #if AMI_KDTREE_USE_KDBTREE_LEAF
-  size_t split_dim;
+  TPIE_OS_SIZE_T split_dim;
 #endif
 };
 
 // A kdtree leaf is a block of AMI_point's. The info field contains the
 // number of points actually stored (ie, the size) and the id of
 // another leaf. All leaves in a tree are threaded this way.
-template<class coord_t, size_t dim, class BTECOLL> 
-class AMI_kdtree_leaf: public AMI_block<AMI_record<coord_t, size_t, dim>, _AMI_kdtree_leaf_info, BTECOLL> 
+template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL> 
+class AMI_kdtree_leaf: public AMI_block<AMI_record<coord_t, TPIE_OS_SIZE_T, dim>, _AMI_kdtree_leaf_info, BTECOLL> 
 {
 public:
 
-  typedef AMI_record<coord_t, size_t, dim> point_t;
+  typedef AMI_record<coord_t, TPIE_OS_SIZE_T, dim> point_t;
   typedef AMI_STREAM<point_t> stream_t;
   typedef AMI_collection_single<BTECOLL> collection_t;
   typedef _AMI_kdtree_leaf_info info_t;
 
-  static size_t el_capacity(size_t block_size);
+  static TPIE_OS_SIZE_T el_capacity(TPIE_OS_SIZE_T block_size);
 
   AMI_kdtree_leaf(collection_t* pcoll, AMI_bid bid = 0);
 
   // Number of points stored in this leaf.
-  size_t& size() { return info()->size; }
-  const size_t& size() const { return info()->size; }
+  TPIE_OS_SIZE_T& size() { return info()->size; }
+  const TPIE_OS_SIZE_T& size() const { return info()->size; }
 
   // The weight of a leaf is the size. Just for symmetry with the
   // nodes.
-  const size_t& weight() const { return info()->size; }
+  const TPIE_OS_OFFSET& weight() const { return info()->size; }
 
   // Next leaf. All leaves of a tree are chained togther for easy
   // retrieval.
@@ -1001,18 +1017,18 @@ public:
   AMI_bid& next() { return info()->next; }
 
 #if AMI_KDTREE_USE_KDBTREE_LEAF
-  size_t& split_dim() { return info()->split_dim; }
-  const size_t& split_dim() const { return info()->split_dim; }
+  TPIE_OS_SIZE_T& split_dim() { return info()->split_dim; }
+  const TPIE_OS_SIZE_T& split_dim() const { return info()->split_dim; }
 #endif 
 
   // Maximum number of points that can be stored in this leaf.
-  size_t capacity() const { return el.capacity(); }
+  TPIE_OS_SIZE_T capacity() const { return el.capacity(); }
 
   // Find a point. Return the index of the point found in the el
   // vector (if not found, return size()).
-  size_t find(const point_t &p) const;
+  TPIE_OS_SIZE_T find(const point_t &p) const;
 
-  size_t window_query(const point_t &lop, 
+  TPIE_OS_OFFSET window_query(const point_t &lop, 
 		    const point_t &hip, 
 		    stream_t* stream) const;
 
@@ -1022,55 +1038,55 @@ public:
   bool erase(const point_t &p);
 
   // Sort points on the given dimension.
-  void sort(size_t d);
+  void sort(TPIE_OS_SIZE_T d);
 
   // Find median point on the given dimension. Return the index of the
   // median in the el vector.
-  size_t find_median(size_t d);
+  TPIE_OS_SIZE_T find_median(TPIE_OS_SIZE_T d);
 };
 
 
 struct _AMI_kdtree_node_info {
-  size_t size;
-  size_t weight;
+  TPIE_OS_SIZE_T size;
+  TPIE_OS_OFFSET weight;
 };
 
 // A kdtree node is a block of binary kdtree nodes (of templated type
 // Bin_node). The info field contains the number of Bin_node's
 // actually stored and the weight of the node (ie, the number of
 // points stored in the subtree rooted on this node).
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 class AMI_kdtree_node: public AMI_block<Bin_node, _AMI_kdtree_node_info, BTECOLL> {
 public:
 
-  typedef AMI_record<coord_t, size_t, dim> point_t;
+  typedef AMI_record<coord_t, TPIE_OS_SIZE_T, dim> point_t;
   typedef AMI_STREAM<point_t> stream_t;
   typedef AMI_collection_single<BTECOLL> collection_t;
 
   // Compute the capacity of the lk vector STATICALLY (but you have to
   // give it the correct logical block size!).
-  static size_t lk_capacity(size_t block_size);
+  static TPIE_OS_SIZE_T lk_capacity(TPIE_OS_SIZE_T block_size);
   // Compute the capacity of the el vector STATICALLY.
-  static size_t el_capacity(size_t block_size);
+  static TPIE_OS_SIZE_T el_capacity(TPIE_OS_SIZE_T block_size);
 
   AMI_kdtree_node(collection_t* pcoll, AMI_bid bid = 0);
 
   // Number of binary nodes stored in this node.
-  size_t& size() { return info()->size; }
-  const size_t& size() const { return info()->size; }
+  TPIE_OS_SIZE_T& size() { return info()->size; }
+  const TPIE_OS_SIZE_T& size() const { return info()->size; }
 
-  size_t& weight() { return info()->weight; }
-  const size_t& weight() const { return info()->weight; }
+  TPIE_OS_OFFSET& weight() { return info()->weight; }
+  const TPIE_OS_OFFSET& weight() const { return info()->weight; }
 
   // Maximum number of binary nodes that can be stored in this node.
-  size_t capacity() const { return el.capacity(); }
+  TPIE_OS_SIZE_T capacity() const { return el.capacity(); }
 
   // Find the child node that leads to p. The second
   // entry in the pair tells whether that pointer is a leaf AMI_bid
   // or a node AMI_bid.
   pair<AMI_bid, link_type_t> find(const point_t &p) const;
 
-  pair<size_t, link_type_t> find_index(const point_t &p) const;
+  pair<TPIE_OS_SIZE_T, link_type_t> find_index(const point_t &p) const;
 };
 
 
@@ -1084,7 +1100,7 @@ public:
 #define AMI_KDTREE_LEAF  AMI_kdtree_leaf<coord_t, dim, BTECOLL>
 #define AMI_KDTREE_NODE  AMI_kdtree_node<coord_t, dim, Bin_node, BTECOLL>
 #define AMI_KDTREE       AMI_kdtree<coord_t, dim, Bin_node, BTECOLL>
-#define POINT            AMI_record<coord_t, size_t, dim>
+#define POINT            AMI_record<coord_t, TPIE_OS_SIZE_T, dim>
 #define POINT_STREAM     AMI_STREAM< POINT >
 
 #define MEM_AVAIL 
@@ -1111,13 +1127,13 @@ public:
 ////////////////////////////////
 
 //// *AMI_kdtree_leaf::el_capacity* ////
-template<class coord_t, size_t dim, class BTECOLL>
-size_t AMI_KDTREE_LEAF::el_capacity(size_t block_size) {
-  return AMI_block<AMI_record<coord_t, size_t, dim>, _AMI_kdtree_leaf_info, BTECOLL>::el_capacity(block_size, 0);
+template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL>
+TPIE_OS_SIZE_T AMI_KDTREE_LEAF::el_capacity(TPIE_OS_SIZE_T block_size) {
+  return AMI_block<AMI_record<coord_t, TPIE_OS_SIZE_T, dim>, _AMI_kdtree_leaf_info, BTECOLL>::el_capacity(block_size, 0);
 }
 
 //// *AMI_kdtree_leaf::AMI_kdtree_leaf* ////
-template<class coord_t, size_t dim, class BTECOLL>
+template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL>
 AMI_KDTREE_LEAF::AMI_kdtree_leaf(AMI_collection_single<BTECOLL>* pcoll, AMI_bid bid):
   AMI_block<POINT, _AMI_kdtree_leaf_info, BTECOLL>(pcoll, 0, bid) {
   TPLOG("AMI_kdtree_leaf::AMI_kdtree_leaf Entering bid="<<bid<<"\n");
@@ -1128,10 +1144,10 @@ AMI_KDTREE_LEAF::AMI_kdtree_leaf(AMI_collection_single<BTECOLL>* pcoll, AMI_bid 
 }
 
 //// *AMI_kdtree_leaf::find* ////
-template<class coord_t, size_t dim, class BTECOLL>
-size_t AMI_KDTREE_LEAF::find(const POINT &p) const {
+template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL>
+TPIE_OS_SIZE_T AMI_KDTREE_LEAF::find(const POINT &p) const {
   TPLOG("AMI_kdtree_leaf::find Entering bid="<<bid()<<" size="<<size()<<"\n");
-  size_t i = 0;
+  TPIE_OS_SIZE_T i = 0;
   while (i < size()) {
     if (p == el[i])
       break;
@@ -1142,7 +1158,7 @@ size_t AMI_KDTREE_LEAF::find(const POINT &p) const {
 }
 
 //// *AMI_kdtree_leaf::insert* ////
-template<class coord_t, size_t dim, class BTECOLL>
+template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL>
 bool AMI_KDTREE_LEAF::insert(const POINT &p) {
   TPLOG("AMI_kdtree_leaf::insert Entering "<<"\n");
   assert(size() < el.capacity());
@@ -1155,11 +1171,11 @@ bool AMI_KDTREE_LEAF::insert(const POINT &p) {
 }
 
 //// *AMI_kdtree_leaf::erase* ////
-template<class coord_t, size_t dim, class BTECOLL>
+template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL>
 bool AMI_KDTREE_LEAF::erase(const POINT &p) {
   TPLOG("AMI_kdtree_leaf::erase Entering "<<"\n");
   bool ans = false;
-  size_t idx;
+  TPIE_OS_SIZE_T idx;
   if ((idx = find(p)) < size()) {
     if (idx < size() - 1) {
       // Copy the last item indo pos idx. We could use el.erase() as
@@ -1176,11 +1192,12 @@ bool AMI_KDTREE_LEAF::erase(const POINT &p) {
 }
 
 //// *AMI_kdtree_leaf::window_query* ////
-template<class coord_t, size_t dim, class BTECOLL>
-size_t AMI_KDTREE_LEAF::window_query(const POINT &lop, const POINT &hip, 
+template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL>
+TPIE_OS_OFFSET AMI_KDTREE_LEAF::window_query(const POINT &lop, const POINT &hip, 
 				 POINT_STREAM* stream) const {
   TPLOG("AMI_kdtree_leaf::window_query Entering "<<"\n");
-  size_t i, result = 0;
+  TPIE_OS_SIZE_T i;
+  TPIE_OS_OFFSET result = 0;
   for (i = 0; i < size(); i++) {
     // Test on all dimensions.
     if (lop < el[i] && el[i] < hip) {
@@ -1195,15 +1212,15 @@ size_t AMI_KDTREE_LEAF::window_query(const POINT &lop, const POINT &hip,
 }
 
 //// *AMI_kdtree_leaf::sort* ////
-template<class coord_t, size_t dim, class BTECOLL>
-void AMI_KDTREE_LEAF::sort(size_t d) {
+template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL>
+void AMI_KDTREE_LEAF::sort(TPIE_OS_SIZE_T d) {
   typename POINT::cmp cmpd(d);
   std::sort(&el[0], &el[0] + size(), cmpd);
 }
 
 //// *AMI_kdtree_leaf::find_median* ////
-template<class coord_t, size_t dim, class BTECOLL>
-size_t AMI_KDTREE_LEAF::find_median(size_t d) {
+template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL>
+size_t AMI_KDTREE_LEAF::find_median(TPIE_OS_SIZE_T d) {
   typename POINT::cmp cmpd(d);
   sort(d);
   size_t ans = (size() - 1) / 2; // preliminary median.
@@ -1218,7 +1235,7 @@ size_t AMI_KDTREE_LEAF::find_median(size_t d) {
 ////////////////////////////////
 
 //// *AMI_kdtree_node::lk_capacity* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 size_t AMI_KDTREE_NODE::lk_capacity(size_t block_size) {
   return (size_t) ((block_size - sizeof(pair<size_t, size_t>) - 
 		    sizeof(AMI_bid)) / 
@@ -1226,7 +1243,7 @@ size_t AMI_KDTREE_NODE::lk_capacity(size_t block_size) {
 }
 
 //// *AMI_kdtree_node::el_capacity* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 size_t AMI_KDTREE_NODE::el_capacity(size_t block_size) {
   TPLOG("AMI_kdtree_node::el_capacity Entering\n");
   TPLOG("  AMI_block<Bin_node, _AMI_kdtree_node_info>::el_capacity(block_size, lk_capacity(block_size))="<<(AMI_block<Bin_node, _AMI_kdtree_node_info, BTECOLL>::el_capacity(block_size, lk_capacity(block_size)))<<"\n");
@@ -1239,7 +1256,7 @@ size_t AMI_KDTREE_NODE::el_capacity(size_t block_size) {
 }
 
 //// *AMI_kdtree_node::AMI_kdtree_node* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 AMI_KDTREE_NODE::AMI_kdtree_node(AMI_collection_single<BTECOLL>* pcoll, AMI_bid bid):
   AMI_block<Bin_node, _AMI_kdtree_node_info, BTECOLL>(pcoll, 
 		     lk_capacity(pcoll->block_size()), bid) {
@@ -1248,10 +1265,10 @@ AMI_KDTREE_NODE::AMI_kdtree_node(AMI_collection_single<BTECOLL>* pcoll, AMI_bid 
 }
 
 //// *AMI_kdtree_node::find_index* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-inline pair<size_t, link_type_t> AMI_KDTREE_NODE::find_index(const POINT &p) const {
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+inline pair<TPIE_OS_SIZE_T, link_type_t> AMI_KDTREE_NODE::find_index(const POINT &p) const {
   TPLOG("AMI_kdtree_node::find_index Entering "<<"\n");
-  size_t idx1 = 0, idx2; // the root bin node is always in pos 0.
+  TPIE_OS_SIZE_T idx1 = 0, idx2; // the root bin node is always in pos 0.
   link_type_t idx_type = BIN_NODE;
   while (idx_type == BIN_NODE) {
     //    assert(idx1 < el.capacity());
@@ -1264,11 +1281,11 @@ inline pair<size_t, link_type_t> AMI_KDTREE_NODE::find_index(const POINT &p) con
     idx1 = idx2;
   }
   TPLOG("AMI_kdtree_node::find_index Exiting "<<"\n");
-  return pair<size_t, link_type_t>(idx1, idx_type);
+  return pair<TPIE_OS_SIZE_T, link_type_t>(idx1, idx_type);
 }
 
 //// *AMI_kdtree_node::find* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 pair<AMI_bid, link_type_t> AMI_KDTREE_NODE::find(const POINT &p) const {
   TPLOG("AMI_kdtree_node::find Entering bid="<<bid()<<"\n");
   pair<size_t, link_type_t> ans = find_index(p);
@@ -1283,7 +1300,7 @@ pair<AMI_bid, link_type_t> AMI_KDTREE_NODE::find(const POINT &p) const {
 //////////////////////////////////////
 
 //// *AMI_kdtree::AMI_kdtree* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 AMI_KDTREE::AMI_kdtree(const char *base_file_name, AMI_collection_type type, 
 	       const AMI_kdtree_params& params): header_(), params_(params), points_are_sample(false) {
   TPLOG("AMI_kdtree::AMI_kdtree Entering base_file_name="<<base_file_name<<"\n");
@@ -1295,7 +1312,7 @@ AMI_KDTREE::AMI_kdtree(const char *base_file_name, AMI_collection_type type,
 
 
 //// *AMI_kdtree::shared_init* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 void AMI_KDTREE::shared_init(const char* base_file_name, AMI_collection_type type) {
   TPLOG("AMI_kdtree::shared_init Entering "<<"\n");
 
@@ -1303,7 +1320,7 @@ void AMI_KDTREE::shared_init(const char* base_file_name, AMI_collection_type typ
 
   if (base_file_name == NULL) {
     status_ = AMI_KDTREE_STATUS_INVALID;
-    LOG_WARNING_ID("NULL pointer passed to AMI_kdtree constructor.");
+   TP_LOG_WARNING_ID("NULL pointer passed to AMI_kdtree constructor.");
     return;
   }
 
@@ -1331,34 +1348,34 @@ void AMI_KDTREE::shared_init(const char* base_file_name, AMI_collection_type typ
     memcpy((void *)(&header_), pcoll_nodes_->user_data(), sizeof(header_));
     if (header_.magic_number != AMI_KDTREE_HEADER_MAGIC_NUMBER) {
       status_ = AMI_KDTREE_STATUS_INVALID;
-      LOG_WARNING_ID("Invalid magic number in kdtree file.");
+     TP_LOG_WARNING_ID("Invalid magic number in kdtree file.");
       delete pcoll_nodes_;
       delete pcoll_leaves_;
       return;
     }
     if (header_.store_weights != AMI_KDTREE_STORE_WEIGHTS) {
       status_ = AMI_KDTREE_STATUS_INVALID;
-      LOG_WARNING_ID("Invalid kdtree. Mismatch for AMI_KDTREE_STORE_WEIGHTS.");
+     TP_LOG_WARNING_ID("Invalid kdtree. Mismatch for AMI_KDTREE_STORE_WEIGHTS.");
       delete pcoll_nodes_;
       delete pcoll_leaves_;
       return;
     }
     if (header_.use_exact_split != AMI_KDTREE_USE_EXACT_SPLIT) {
       status_ = AMI_KDTREE_STATUS_INVALID;
-      LOG_WARNING_ID("Invalid kdtree. Mismatch for AMI_KDTREE_USE_EXACT_SPLIT.");
+     TP_LOG_WARNING_ID("Invalid kdtree. Mismatch for AMI_KDTREE_USE_EXACT_SPLIT.");
       delete pcoll_nodes_;
       delete pcoll_leaves_;
       return;
     }
     if (header_.use_kdbtree_leaf != AMI_KDTREE_USE_KDBTREE_LEAF) {
       status_ = AMI_KDTREE_STATUS_INVALID;
-      LOG_WARNING_ID("Invalid kdtree. Mismatch for AMI_KDTREE_USE_KDBTREE_LEAF.");
+     TP_LOG_WARNING_ID("Invalid kdtree. Mismatch for AMI_KDTREE_USE_KDBTREE_LEAF.");
       delete pcoll_nodes_;
       delete pcoll_leaves_;
       return;
     }
     if (header_.use_real_median != AMI_KDTREE_USE_REAL_MEDIAN) {
-      LOG_WARNING_ID("Warning: Mismatch for AMI_KDTREE_USE_REAL_MEDIAN");
+     TP_LOG_WARNING_ID("Warning: Mismatch for AMI_KDTREE_USE_REAL_MEDIAN");
     }
     // TODO: more sanity checks on the header.
   }
@@ -1412,7 +1429,7 @@ void AMI_KDTREE::shared_init(const char* base_file_name, AMI_collection_type typ
 }
 
 //// *AMI_kdtree::create_bin_node* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 void AMI_KDTREE::create_bin_node(AMI_KDTREE_NODE *b, bn_context ctx, 
 			     POINT_STREAM** in_streams, 
 			     size_t& next_free_el, size_t& next_free_lk) {
@@ -1426,7 +1443,7 @@ void AMI_KDTREE::create_bin_node(AMI_KDTREE_NODE *b, bn_context ctx,
 
  
   POINT *p1, ap;
-  size_t len = in_streams[ctx.d]->stream_len();
+  TPIE_OS_OFFSET len = in_streams[ctx.d]->stream_len();
   assert(len > params_.leaf_size_max);
   TPLOG("  AMI_kdtree::create_bin_node in_len="<<len<<"\n");
   
@@ -1583,8 +1600,8 @@ void AMI_KDTREE::create_bin_node(AMI_KDTREE_NODE *b, bn_context ctx,
 
 
 //// *AMI_kdtree::create_node* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-void AMI_KDTREE::create_node(AMI_bid& bid, size_t d, 
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+void AMI_KDTREE::create_node(AMI_bid& bid, TPIE_OS_SIZE_T d, 
 			 POINT_STREAM** in_streams) {
   TPLOG("AMI_kdtree::create_node Entering dim="<<d<<"\n");
 
@@ -1619,8 +1636,8 @@ void AMI_KDTREE::create_node(AMI_bid& bid, size_t d,
 
 
 //// *AMI_kdtree::create_leaf* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-void AMI_KDTREE::create_leaf(AMI_bid& bid, size_t d, 
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+void AMI_KDTREE::create_leaf(AMI_bid& bid, TPIE_OS_SIZE_T d, 
 			 POINT_STREAM** in_streams) {
   TPLOG("AMI_kdtree::create_leaf Entering "<<"\n");
   HEIGHTDISPLAY_IN(" O ")
@@ -1633,7 +1650,9 @@ void AMI_KDTREE::create_leaf(AMI_bid& bid, size_t d,
   in_streams[d]->seek(0);
   assert(in_streams[d]->stream_len() <= params_.leaf_size_max);
   
-  l->size() = in_streams[d]->stream_len();
+  // We are constructing a leaf, so we know that we have
+  // little enough points to safely cast.
+  l->size() = (TPIE_OS_SIZE_T)in_streams[d]->stream_len();
 
   if (previous_leaf_ == NULL) {
     first_leaf_id_ = l->bid();
@@ -1663,9 +1682,9 @@ void AMI_KDTREE::create_leaf(AMI_bid& bid, size_t d,
 }
 
 //// *AMI_kdtree::create_bin_node_mm* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 void AMI_KDTREE::create_bin_node_mm(AMI_KDTREE_NODE *b, bn_context ctx, 
-				POINT** in_streams, size_t sz,
+				POINT** in_streams, TPIE_OS_SIZE_T sz,
 				size_t& next_free_el, size_t& next_free_lk) {
   TPLOG("AMI_kdtree::create_bin_node_mm Entering bid="<<b->bid()<<", dim="<<ctx.d<<", idx="<<ctx.i<<"\n");
   MEMDISPLAY;
@@ -1674,12 +1693,12 @@ void AMI_KDTREE::create_bin_node_mm(AMI_KDTREE_NODE *b, bn_context ctx,
   POINT* lo_streams[dim];
   POINT* hi_streams[dim];
   POINT* current_stream;
-  size_t lo_sz;
+  TPIE_OS_SIZE_T lo_sz;
 
   assert(sz > params_.leaf_size_max);
   POINT *p1, *p2, ap;
-  size_t read_pos;
-  size_t hi_j, lo_j, i, j;
+  TPIE_OS_SIZE_T read_pos;
+  TPIE_OS_SIZE_T hi_j, lo_j, i, j;
 
   if (points_are_sample)
     // Get the real median. There's no point in doing anything fancy
@@ -1847,9 +1866,9 @@ void AMI_KDTREE::create_bin_node_mm(AMI_KDTREE_NODE *b, bn_context ctx,
 }
 
 //// *AMI_kdtree::create_leaf_mm* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-void AMI_KDTREE::create_leaf_mm(AMI_bid& bid, size_t d, 
-			 POINT** in_streams, size_t sz) {
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+void AMI_KDTREE::create_leaf_mm(AMI_bid& bid, TPIE_OS_SIZE_T d, 
+			 POINT** in_streams, TPIE_OS_SIZE_T sz) {
   TPLOG("AMI_kdtree::create_leaf_mm Entering "<<"\n");
 
   // Brand new leaf.
@@ -1884,9 +1903,9 @@ void AMI_KDTREE::create_leaf_mm(AMI_bid& bid, size_t d,
 
 
 //// *AMI_kdtree::create_node_mm* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-void AMI_KDTREE::create_node_mm(AMI_bid& bid, size_t d, 
-			 POINT** in_streams, size_t sz) {
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+void AMI_KDTREE::create_node_mm(AMI_bid& bid, TPIE_OS_SIZE_T d, 
+			 POINT** in_streams, TPIE_OS_SIZE_T sz) {
   TPLOG("AMI_kdtree::create_node_mm Entering dim="<<d<<"\n");
 
   // New node.
@@ -1914,27 +1933,29 @@ void AMI_KDTREE::create_node_mm(AMI_bid& bid, size_t d,
 }
 
 //// *AMI_kdtree::can_do_mm* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-bool AMI_KDTREE::can_do_mm(size_t sz) {
-  bool ans = ((ULONGLONG) sz * sizeof(POINT) * size_t(dim + 1) + 
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+bool AMI_KDTREE::can_do_mm(TPIE_OS_OFFSET sz) {
+  bool ans = ((TPIE_OS_OFFSET) sz * sizeof(POINT) * TPIE_OS_OFFSET(dim + 1) + 
 	  pcoll_nodes_->block_size() * params_.node_cache_size +
 	  pcoll_leaves_->block_size() * params_.leaf_cache_size +
-	  size_t(8192 * 4) < (ULONGLONG) MM_manager.memory_available());
+	  TPIE_OS_OFFSET(8192 * 4) < (TPIE_OS_OFFSET) MM_manager.memory_available());
   TPLOG("AMI_kdtree::can_do_mm needed = " << 
-      (LONGLONG) ((ULONGLONG) sz * sizeof(POINT) * size_t(dim + 1) + 
+      (TPIE_OS_OFFSET) ((TPIE_OS_OFFSET) sz * sizeof(POINT) * TPIE_OS_OFFSET(dim + 1) + 
        pcoll_nodes_->block_size() * params_.node_cache_size +
        pcoll_leaves_->block_size() * params_.leaf_cache_size +
-       size_t(8192 * 4)) << ", avail = " << 
+       TPIE_OS_OFFSET(8192 * 4)) << ", avail = " << 
       MM_manager.memory_available() << " ans = " << ans << "\n");
   return ans;
 }
 
 //// *AMI_kdtree::copy_to_mm* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-void AMI_KDTREE::copy_to_mm(POINT_STREAM** in_streams, POINT** mm_streams, size_t& sz) {
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+void AMI_KDTREE::copy_to_mm(POINT_STREAM** in_streams, POINT** mm_streams, TPIE_OS_SIZE_T& sz) {
   TPLOG("AMI_kdtree::copy_to_mm Entering "<<"\n");
-  sz = in_streams[0]->stream_len();
-  size_t i, j;
+  // The call to this method should have been preceeded by a call
+  // to can_do_mm, so casting should be o.k.
+  sz = (TPIE_OS_SIZE_T)in_streams[0]->stream_len();
+  TPIE_OS_SIZE_T i, j;
   POINT* p;
    
   for (i = 0; i < dim; i++) {
@@ -1953,11 +1974,13 @@ void AMI_KDTREE::copy_to_mm(POINT_STREAM** in_streams, POINT** mm_streams, size_
 }
 
 //// *AMI_kdtree::copy_to_mm* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-void AMI_KDTREE::copy_to_mm(POINT_STREAM* in_stream, POINT** streams_mm, size_t& sz) {
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+void AMI_KDTREE::copy_to_mm(POINT_STREAM* in_stream, POINT** streams_mm, TPIE_OS_SIZE_T& sz) {
   TPLOG("AMI_kdtree::copy_to_mm Entering "<<"\n");
-  sz = in_stream->stream_len();
-  size_t i, j;
+  // This method call should have been preceeded by a call to can_do_mm
+  // so casting should be o.k.
+  sz = (TPIE_OS_SIZE_T)in_stream->stream_len();
+  TPIE_OS_SIZE_T i, j;
   POINT* p;
   //  bool set_mbr;
 
@@ -2000,12 +2023,12 @@ void AMI_KDTREE::copy_to_mm(POINT_STREAM* in_stream, POINT** streams_mm, size_t&
 }
 
 //// *AMI_kdtree::create_grid* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-void AMI_KDTREE::create_grid(AMI_bid& bid, size_t d, POINT_STREAM** in_streams, size_t t) {
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+void AMI_KDTREE::create_grid(AMI_bid& bid, TPIE_OS_SIZE_T d, POINT_STREAM** in_streams, TPIE_OS_SIZE_T t) {
   TPLOG("AMI_kdtree::create_grid Entering "<<"\n");
   // Note: only one grid level implemented.
 
-  DBG("  Computing grid lines [" << dim*t << " (random seek + read)]...\n");
+  DBG("  Computing grid lines [" << (TPIE_OS_OFFSET)dim*t << " (random seek + read)]...\n");
   grid *g = new grid(t, in_streams);
 
   DBG("  Creating matrix [1 linear scan]...\n");
@@ -2016,10 +2039,10 @@ void AMI_KDTREE::create_grid(AMI_bid& bid, size_t d, POINT_STREAM** in_streams, 
   create_node_g(header_.root_bid, 0, gmx);
 
   // Distribute the points.
-  DBG("  Distributing in " << g->q.size() << "x" << dim << " streams [" << dim << " linear scans, distribution writing]...\n");
+  DBG("  Distributing in " << (TPIE_OS_OFFSET)g->q.size() << "x" << (TPIE_OS_OFFSET)dim << " streams [" << (TPIE_OS_OFFSET)dim << " linear scans, distribution writing]...\n");
   distribute_g(header_.root_bid, 0, g);
 
-  DBG("  Building lower levels [" << g->q.size() << "x" << dim << " small linear scans, lots of block writes]...\n");
+  DBG("  Building lower levels [" << (TPIE_OS_OFFSET)g->q.size() << "x" << (TPIE_OS_OFFSET)dim << " small linear scans, lots of block writes]...\n");
   build_lower_tree_g(g);
 
   delete g;
@@ -2027,7 +2050,7 @@ void AMI_KDTREE::create_grid(AMI_bid& bid, size_t d, POINT_STREAM** in_streams, 
 }
 
 //// *AMI_kdtree::build_lower_tree_g* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 void AMI_KDTREE::build_lower_tree_g(grid* g) {
   TPLOG("AMI_kdtree::build_lower_tree_g Entering "<<"\n");
 
@@ -2036,7 +2059,8 @@ void AMI_KDTREE::build_lower_tree_g(grid* g) {
   //  POINT* p;
   POINT* streams_mm[dim];
   //  AMI_err err;
-  size_t next_free_el, next_free_lk;
+  TPIE_OS_SIZE_T next_free_el;
+  TPIE_OS_SIZE_T next_free_lk;
   AMI_KDTREE_NODE* b;
 
   for (j = 0; j < g->q.size(); j++) {
@@ -2044,7 +2068,7 @@ void AMI_KDTREE::build_lower_tree_g(grid* g) {
     gc = &(g->q[j]);
     b = fetch_node(gc->bid);
     next_free_el = b->size();
-    next_free_lk = b->lk[b->lk.capacity()-1];
+    next_free_lk = (TPIE_OS_SIZE_T)b->lk[b->lk.capacity()-1];
     b->lk[b->lk.capacity()-1] = 0;
 
     // Create the streams and load them into memory.
@@ -2067,7 +2091,7 @@ void AMI_KDTREE::build_lower_tree_g(grid* g) {
     copy_to_mm(gc->streams, streams_mm, sz);
 
     // Build the subtree.
-    DBG("B"<<sz);
+    DBG("B"<<(TPIE_OS_OFFSET)sz);
     if (sz <= params_.leaf_size_max) {
 
       if (gc->low)
@@ -2113,11 +2137,12 @@ void AMI_KDTREE::build_lower_tree_g(grid* g) {
 }
 
 //// *AMI_kdtree::distribute_g* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-void AMI_KDTREE::distribute_g(AMI_bid bid, size_t d, grid* g) {
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+void AMI_KDTREE::distribute_g(AMI_bid bid, TPIE_OS_SIZE_T d, grid* g) {
   TPLOG("AMI_KDTREE::distribute_g Entering\n");
   AMI_err err;
-  size_t i, j, jj, sz;
+  TPIE_OS_SIZE_T i, j, jj;
+  TPIE_OS_OFFSET sz;
   POINT* p1;
 
   TPLOG("  Queue size: " << g->q.size());
@@ -2137,7 +2162,7 @@ void AMI_KDTREE::distribute_g(AMI_bid bid, size_t d, grid* g) {
     g->streams[i]->seek(0);
     while ((err = g->streams[i]->read_item(&p1)) == AMI_ERROR_NO_ERROR) {
       if (jj % 200000 == 0)
-	DBG("\b\b\b"<<size_t(((float)jj / sz) * 100.0)<<"%");
+	DBG("\b\b\b"<<TPIE_OS_OFFSET(((float)jj / sz) * 100.0)<<"%");
       jj++;
 
       for (j = 0; j < g->q.size(); j++) {
@@ -2203,8 +2228,8 @@ void AMI_KDTREE::distribute_g(AMI_bid bid, size_t d, grid* g) {
 }
 
 //// *AMI_kdtree::create_node_g* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-void AMI_KDTREE::create_node_g(AMI_bid& bid, size_t d, grid_matrix* gmx) {
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+void AMI_KDTREE::create_node_g(AMI_bid& bid, TPIE_OS_SIZE_T d, grid_matrix* gmx) {
   TPLOG("AMI_kdtree::create_node_g Entering "<<"\n");
   
   AMI_KDTREE_NODE *n = fetch_node();
@@ -2232,7 +2257,7 @@ void AMI_KDTREE::create_node_g(AMI_bid& bid, size_t d, grid_matrix* gmx) {
 } 
 
 //// *AMI_kdtree::create_bin_node_g* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 void AMI_KDTREE::create_bin_node_g(AMI_KDTREE_NODE *b, bn_context ctx, grid_matrix *gmx, 
 			       size_t& next_free_el, size_t& next_free_lk) {
    TPLOG("AMI_kdtree::create_bin_node_g Entering "<<"\n");
@@ -2320,12 +2345,12 @@ void AMI_KDTREE::create_bin_node_g(AMI_KDTREE_NODE *b, bn_context ctx, grid_matr
 }
 
 //// *AMI_kdtree::sort* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 AMI_err AMI_KDTREE::sort(POINT_STREAM* in_stream, POINT_STREAM* out_streams[]) {
   TPLOG("AMI_kdtree::sort Entering"<<"\n");
 
   if (in_stream == NULL) {
-    LOG_WARNING_ID("Attempting to sort a NULL stream pointer. Sorting Aborted.");
+   TP_LOG_WARNING_ID("Attempting to sort a NULL stream pointer. Sorting Aborted.");
     return AMI_ERROR_OBJECT_INITIALIZATION;
   }
 
@@ -2349,7 +2374,7 @@ AMI_err AMI_KDTREE::sort(POINT_STREAM* in_stream, POINT_STREAM* out_streams[]) {
 
   }
   if (err != AMI_ERROR_NO_ERROR) {
-    LOG_WARNING_ID("Sorting returned error.");
+   TP_LOG_WARNING_ID("Sorting returned error.");
   }
 
   TPLOG("AMI_kdtree::sort Exiting err="<<err<<"\n");
@@ -2357,7 +2382,7 @@ AMI_err AMI_KDTREE::sort(POINT_STREAM* in_stream, POINT_STREAM* out_streams[]) {
 }
 
 //// *AMI_kdtree::load_sorted* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 AMI_err AMI_KDTREE::load_sorted(POINT_STREAM* streams_s[], 
 			    float lfill, float nfill, int load_method) {
   TPLOG("AMI_kdtree::load_sorted Entering"<<"\n");
@@ -2365,15 +2390,15 @@ AMI_err AMI_KDTREE::load_sorted(POINT_STREAM* streams_s[],
 
   // Some error checking.
   if (header_.size > 0) {
-    LOG_WARNING_ID("AMI_kdtree already loaded. Nothing done in load.");
+   TP_LOG_WARNING_ID("AMI_kdtree already loaded. Nothing done in load.");
     return AMI_ERROR_GENERIC_ERROR;
   }
   if (status_ == AMI_KDTREE_STATUS_INVALID) {
-    LOG_WARNING_ID("AMI_kdtree is invalid. Nothing done in load.");
+   TP_LOG_WARNING_ID("AMI_kdtree is invalid. Nothing done in load.");
     return AMI_ERROR_OBJECT_INITIALIZATION;
   }
   if (streams_s[0] == NULL) {
-    LOG_WARNING_ID("Attempting to load with a NULL stream pointer. Aborted.");
+   TP_LOG_WARNING_ID("Attempting to load with a NULL stream pointer. Aborted.");
     return AMI_ERROR_OBJECT_INITIALIZATION;
   }
 
@@ -2440,7 +2465,7 @@ AMI_err AMI_KDTREE::load_sorted(POINT_STREAM* streams_s[],
     header_.root_type = BLOCK_NODE;
     if (can_do_mm(header_.size)) {
       POINT* streams_mm[dim];
-      size_t sz;
+      TPIE_OS_SIZE_T sz;
       copy_to_mm(streams_s, streams_mm, sz);
       create_node_mm(header_.root_bid, 0, streams_mm, sz);
     } else if (load_method & AMI_KDTREE_LOAD_BINARY) {
@@ -2450,8 +2475,8 @@ AMI_err AMI_KDTREE::load_sorted(POINT_STREAM* streams_s[],
       // Build the tree using the grid method.
       create_grid(header_.root_bid, 0, streams_s, params_.grid_size);
     } else {
-      LOG_WARNING_ID("No other loading method implemented.");
-      LOG_WARNING_ID("Loading aborted.");
+     TP_LOG_WARNING_ID("No other loading method implemented.");
+     TP_LOG_WARNING_ID("Loading aborted.");
       err = AMI_ERROR_GENERIC_ERROR;
     }
   }
@@ -2480,7 +2505,7 @@ AMI_err AMI_KDTREE::load_sorted(POINT_STREAM* streams_s[],
 
 
 //// *AMI_kdtree::load* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 AMI_err AMI_KDTREE::load(POINT_STREAM* s, float lfill, float nfill, int load_method) {
   TPLOG("AMI_kdtree::load Entering "<<"\n");
   POINT_STREAM* streams_s[dim];
@@ -2502,7 +2527,7 @@ AMI_err AMI_KDTREE::load(POINT_STREAM* s, float lfill, float nfill, int load_met
 }
 
 //// *AMI_kdtree::load_sample* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 AMI_err AMI_KDTREE::load_sample(POINT_STREAM* s) {
   TPLOG("AMI_kdtree::load_sample Entering"<<"\n");
 
@@ -2562,7 +2587,7 @@ AMI_err AMI_KDTREE::load_sample(POINT_STREAM* s) {
 }
 
 //// *AMI_kdtree::unload* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 AMI_err AMI_KDTREE::unload(POINT_STREAM* s) {
   TPLOG("AMI_kdtree::unload Entering "<<"\n");
   AMI_bid lid = first_leaf_id_;
@@ -2572,11 +2597,11 @@ AMI_err AMI_KDTREE::unload(POINT_STREAM* s) {
   ///DBG("  first_leaf_id_=" << first_leaf_id_ << "\n");
 
   if (s == NULL) {
-    LOG_WARNING_ID("  unload: null stream pointer. unload aborted.");
+   TP_LOG_WARNING_ID("  unload: null stream pointer. unload aborted.");
     return AMI_ERROR_OBJECT_INITIALIZATION;
   }
   if (status_ != AMI_KDTREE_STATUS_VALID) {
-    LOG_WARNING_ID("  unload: tree is invalid or not loaded. unload aborted.");
+   TP_LOG_WARNING_ID("  unload: tree is invalid or not loaded. unload aborted.");
     return AMI_ERROR_OBJECT_INITIALIZATION;
   }
   assert(lid != 0);
@@ -2593,20 +2618,20 @@ AMI_err AMI_KDTREE::unload(POINT_STREAM* s) {
 }
 
 //// *AMI_kdtree::k_nn_query* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-size_t AMI_KDTREE::k_nn_query(const POINT &p, 
-			      POINT_STREAM* stream, size_t k) {
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+TPIE_OS_OFFSET AMI_KDTREE::k_nn_query(const POINT &p, 
+			      POINT_STREAM* stream, TPIE_OS_OFFSET k) {
   TPLOG("AMI_kdtree::k_nn_query Entering "<<"\n");
-  size_t result = 0;
+  TPIE_OS_OFFSET result = 0;
 
   // Do some error checking.
   if (status_ != AMI_KDTREE_STATUS_VALID) {
-    LOG_WARNING_ID("  k_nn_query: tree is invalid or not loaded. query aborted.");
+   TP_LOG_WARNING_ID("  k_nn_query: tree is invalid or not loaded. query aborted.");
     return result;
   }
 
   cerr << "k_nn_query: NOT IMPLEMENTED YET!\n";
-  LOG_WARNING_ID("  k_nn_query: NOT IMPLEMENTED YET!");
+ TP_LOG_WARNING_ID("  k_nn_query: NOT IMPLEMENTED YET!");
   //  priority_queue<nn_pq_elem> q;
   //  nn_pq_elem cur((coord_t) 0, header_.root_bid, header_.root_type);
   //  while (cur.type != BLOCK_LEAF) {
@@ -2617,18 +2642,18 @@ size_t AMI_KDTREE::k_nn_query(const POINT &p,
 }
 
 //// *AMI_kdtree::window_query* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-size_t AMI_KDTREE::window_query(const POINT &p1, const POINT& p2, 
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+TPIE_OS_OFFSET AMI_KDTREE::window_query(const POINT &p1, const POINT& p2, 
 			    POINT_STREAM* stream) {
   TPLOG("AMI_kdtree::window_query Entering "<<"\n");
   POINT lop, hip;
   // The number of points found.
-  size_t result = 0;
-  size_t i;
+  TPIE_OS_OFFSET result = 0;
+  TPIE_OS_SIZE_T i;
 
   // Do some error checking.
   if (status_ != AMI_KDTREE_STATUS_VALID) {
-    LOG_WARNING_ID("  window_query: tree is invalid or not loaded. query aborted.");
+   TP_LOG_WARNING_ID("  window_query: tree is invalid or not loaded. query aborted.");
     return result;
   }
 
@@ -2637,7 +2662,7 @@ size_t AMI_KDTREE::window_query(const POINT &p1, const POINT& p2,
     lop[i] = min(p1[i], p2[i]);
     hip[i] = max(p1[i], p2[i]);
     if (p1[i] == p2[i])
-      LOG_WARNING_ID("  window_query: points have one identical coordinate.");
+     TP_LOG_WARNING_ID("  window_query: points have one identical coordinate.");
   }
 
   // A stack for the search (no recursive calls here :). 
@@ -2658,7 +2683,7 @@ size_t AMI_KDTREE::window_query(const POINT &p1, const POINT& p2,
 
   pair<AMI_bid,link_type_t> top;
   podf topflags, tempflags;
-  size_t child;
+  TPIE_OS_SIZE_T child;
   link_type_t childtype;
   AMI_KDTREE_NODE *bn, *bn2;
   AMI_KDTREE_LEAF *bl;
@@ -2816,7 +2841,7 @@ size_t AMI_KDTREE::window_query(const POINT &p1, const POINT& p2,
 }
 
 //// *AMI_kdtree::find_leaf* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 AMI_bid AMI_KDTREE::find_leaf(const POINT &p) {
   TPLOG("AMI_kdtree::find_leaf Entering "<<"\n");
   pair<AMI_bid, link_type_t> n = 
@@ -2837,7 +2862,7 @@ AMI_bid AMI_KDTREE::find_leaf(const POINT &p) {
 }
 
 //// *AMI_kdtree::find* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 bool AMI_KDTREE::find(const POINT &p) {
 
   TPLOG("AMI_kdtree::find Entering "<<"\n");
@@ -2853,7 +2878,7 @@ bool AMI_KDTREE::find(const POINT &p) {
 }
 
 //// *AMI_kdtree::insert* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 bool AMI_KDTREE::insert(const POINT& p) {
   TPLOG("AMI_kdtree::insert Entering "<<"\n");
   bool ans = false;
@@ -2871,7 +2896,7 @@ bool AMI_KDTREE::insert(const POINT& p) {
 }
 
 //// *AMI_kdtree::erase* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 bool AMI_KDTREE::erase(const POINT& p) {
   TPLOG("AMI_kdtree::erase Entering "<<"\n");
   bool ans;
@@ -2886,7 +2911,7 @@ bool AMI_KDTREE::erase(const POINT& p) {
 }
 
 //// *AMI_kdtree::persist* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 void AMI_KDTREE::persist(persistence per) {
   TPLOG("AMI_kdtree::persist Entering "<<"\n");
 
@@ -2897,7 +2922,7 @@ void AMI_KDTREE::persist(persistence per) {
 }
 
 //// *AMI_kdtree::fetch_node* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 AMI_KDTREE_NODE* AMI_KDTREE::fetch_node(AMI_bid bid) {
   AMI_KDTREE_NODE* q;
   stats_.record(NODE_FETCH);
@@ -2909,7 +2934,7 @@ AMI_KDTREE_NODE* AMI_KDTREE::fetch_node(AMI_bid bid) {
 }
 
 //// *AMI_kdtree::fetch_leaf* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 AMI_KDTREE_LEAF* AMI_KDTREE::fetch_leaf(AMI_bid bid) {
   AMI_KDTREE_LEAF* q;
   stats_.record(LEAF_FETCH);
@@ -2921,7 +2946,7 @@ AMI_KDTREE_LEAF* AMI_KDTREE::fetch_leaf(AMI_bid bid) {
 }
 
 //// *AMI_kdtree::release_node* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 void AMI_KDTREE::release_node(AMI_KDTREE_NODE* q) {
   stats_.record(NODE_RELEASE);
   if (q->persist() == PERSIST_DELETE)
@@ -2931,7 +2956,7 @@ void AMI_KDTREE::release_node(AMI_KDTREE_NODE* q) {
 }
 
 //// *AMI_kdtree::release_leaf* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 void AMI_KDTREE::release_leaf(AMI_KDTREE_LEAF* q) {
   stats_.record(LEAF_RELEASE);
   if (q->persist() == PERSIST_DELETE)
@@ -2941,7 +2966,7 @@ void AMI_KDTREE::release_leaf(AMI_KDTREE_LEAF* q) {
 }
 
 //// *AMI_kdtree::stats* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 const tpie_stats_tree &AMI_KDTREE::stats() {
   node_cache_->flush();
   leaf_cache_->flush();
@@ -2959,7 +2984,7 @@ const tpie_stats_tree &AMI_KDTREE::stats() {
 }
 
 //// *AMI_kdtree::print* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 void AMI_KDTREE::print(ostream& s) {
   s << "AMI_kdtree nodes: ";
   if (header_.root_type == BLOCK_NODE) {
@@ -2982,7 +3007,7 @@ void AMI_KDTREE::print(ostream& s) {
 	i = iq.front();
 	iq.pop();
 
-	s << "B/" << bn->el[i].get_discriminator_dim() << " " 
+	s << "B/" << (TPIE_OS_OFFSET)bn->el[i].get_discriminator_dim() << " " 
 	  << bn->el[i].get_discriminator_val() << "/ ";
 	bn->el[i].get_low_child(idx, idx_type);
 	if (idx_type == BIN_NODE) {
@@ -3010,7 +3035,7 @@ void AMI_KDTREE::print(ostream& s) {
 	  s << " ";
 	}
       }
-      s << "\b) fo=" << fo << "]\n";
+      s << "\b) fo=" << (TPIE_OS_OFFSET)fo << "]\n";
       release_node(bn);
     }
   } else
@@ -3019,7 +3044,7 @@ void AMI_KDTREE::print(ostream& s) {
 }
 
 //// *AMI_kdtree::~AMI_kdtree* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 AMI_KDTREE::~AMI_kdtree() {
   TPLOG("AMI_kdtree::~AMI_kdtree Entering status="<<status_<<"\n");
 
@@ -3044,8 +3069,8 @@ AMI_KDTREE::~AMI_kdtree() {
 }
 
 //// *AMI_kdtree::create_sample* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-void AMI_KDTREE::create_sample(AMI_bid& bid, size_t d, POINT_STREAM* in_stream) {
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+void AMI_KDTREE::create_sample(AMI_bid& bid, TPIE_OS_SIZE_T d, POINT_STREAM* in_stream) {
 
   // New sample.
   DBG("  Sampling [" << 20000 << " (random seek + read)]...\n");
@@ -3067,7 +3092,7 @@ void AMI_KDTREE::create_sample(AMI_bid& bid, size_t d, POINT_STREAM* in_stream) 
   points_are_sample = false;
   gso->cleanup();
 
-  DBG("  Distributing into " << gso->q.size() << " streams...\n");
+  DBG("  Distributing into " << (TPIE_OS_OFFSET)gso->q.size() << " streams...\n");
   distribute_s(header_.root_bid, 0, gso);
 
   DBG("  Building lower levels...\n");
@@ -3077,13 +3102,14 @@ void AMI_KDTREE::create_sample(AMI_bid& bid, size_t d, POINT_STREAM* in_stream) 
 }
 
 //// *AMI_kdtree::build_lower_tree_s* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 void AMI_KDTREE::build_lower_tree_s(sample* s) {
   sample_context* sc;
   size_t j;
   //  POINT* p;
   AMI_KDTREE_NODE* b;
-  size_t next_free_el, next_free_lk, sz;
+  TPIE_OS_SIZE_T next_free_el, next_free_lk;
+  TPIE_OS_SIZE_T sz;
   POINT* streams_mm[dim];
 
   for (j = 0; j < s->q.size(); j++) {
@@ -3092,7 +3118,7 @@ void AMI_KDTREE::build_lower_tree_s(sample* s) {
 
     b = fetch_node(sc->bid);
     next_free_el = b->size();
-    next_free_lk = b->lk[b->lk.capacity()-1];
+    next_free_lk = (TPIE_OS_SIZE_T)b->lk[b->lk.capacity()-1];
     b->lk[b->lk.capacity()-1] = 0;
 
     DBG("L");
@@ -3119,7 +3145,7 @@ void AMI_KDTREE::build_lower_tree_s(sample* s) {
     delete sc->stream;
     sc->stream = NULL;
 
-    DBG("B" << sz);
+    DBG("B" << (TPIE_OS_OFFSET)sz);
     // Build the subtree.
 
     if (sz <= params_.leaf_size_max) {
@@ -3167,14 +3193,15 @@ void AMI_KDTREE::build_lower_tree_s(sample* s) {
 }
 
 //// *AMI_kdtree::distribute_s* ////
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-void AMI_KDTREE::distribute_s(AMI_bid bid, size_t d, sample* s) {
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+void AMI_KDTREE::distribute_s(AMI_bid bid, TPIE_OS_SIZE_T d, sample* s) {
 
   AMI_KDTREE_NODE* n, *r = fetch_node(bid);
   AMI_bid nbid;
   POINT* p;
   pair<size_t, link_type_t> a;
-  int j, sz;
+  int j;
+  TPIE_OS_OFFSET sz;
 
   // Create all streams. Could we run out of memory here?
   for (j = 0; j < s->q.size(); j++) {
@@ -3188,7 +3215,7 @@ void AMI_KDTREE::distribute_s(AMI_bid bid, size_t d, sample* s) {
   sz = s->in_stream->stream_len();
   while ((s->in_stream->read_item(&p)) == AMI_ERROR_NO_ERROR) {
     if (j % 200000 == 0)
-      DBG("\b\b\b"<<size_t(((float)j / sz) * 100.0)<<"%");
+      DBG("\b\b\b"<<TPIE_OS_OFFSET(((float)j / sz) * 100.0)<<"%");
     j++;
     a = r->find_index(*p);
     if (a.second == BLOCK_NODE)

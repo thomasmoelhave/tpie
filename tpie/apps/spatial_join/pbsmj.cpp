@@ -5,7 +5,7 @@
 // Created: 03/30/97
 // Last Modified: 01/28/99
 //
-// $Id: pbsmj.cpp,v 1.1 2003-11-21 17:01:09 tavi Exp $
+// $Id: pbsmj.cpp,v 1.2 2004-08-12 12:39:23 jan Exp $
 //
 // Rectangle intersection using the alg. of Patel and DeWitt.
 //
@@ -20,8 +20,6 @@ using std::cerr;
 using std::cout;
 using std::endl;
 #include <stdlib.h>
-#include <sys/time.h>
-#include <sys/resource.h>
 #include <string.h>
 
 #include "app_config.h"
@@ -38,7 +36,8 @@ using std::endl;
 #endif
 
 bool verbose = false;
-size_t test_mm_size = 64*1024*1024; // Default mem. size.
+TPIE_OS_SIZE_T test_mm_size = 64*1024*1024; // Default mem. size.
+TPIE_OS_OFFSET test_size = 0; // Not used.
 int random_seed = 17;
  
 
@@ -59,7 +58,7 @@ static char *input_filename_blue = def_if_blue;
 static char *output_filename = def_of;
 
 extern int register_new;
-static int part_count;
+static TPIE_OS_SIZE_T part_count;
 
 // Default sweeping algorithm.
 static int algorithm = ORIGINAL;
@@ -158,10 +157,10 @@ public:
   }
 
   // method to scan from an array.
-  unsigned long inMemoryScan(rectangle* red_a, unsigned long red_l, 
-		    rectangle* blue_a, unsigned long blue_l)
+  TPIE_OS_OFFSET inMemoryScan(rectangle* red_a, TPIE_OS_OFFSET red_l, 
+		    rectangle* blue_a, TPIE_OS_OFFSET blue_l)
   {
-    unsigned long red_i, blue_i;
+    TPIE_OS_OFFSET red_i, blue_i;
     rectangle r;
     if (inter0 != NULL)
       delete inter0;
@@ -209,17 +208,17 @@ public:
 class Distributor : AMI_scan_object {
   AMI_STREAM<rectangle> **red_parts;
   AMI_STREAM<rectangle> **blue_parts;
-  int tile_count_row, tile_count_col, part_count;
+  TPIE_OS_SIZE_T tile_count_row, tile_count_col, part_count;
   double  tile_height, tile_width;
   rectangle mbr, tile;
   bool *written;
 public:
   Distributor(rectangle ambr, 
-	      int tcr, int tcc, int pc) :mbr(ambr)
+	      TPIE_OS_SIZE_T tcr, TPIE_OS_SIZE_T tcc, TPIE_OS_SIZE_T pc) :mbr(ambr)
   {
     tile_count_row = tcr; tile_count_col = tcc;  part_count = pc;
-    red_parts = new (AMI_STREAM<rectangle> *)[pc];
-    blue_parts = new (AMI_STREAM<rectangle> *)[pc];
+    red_parts = new AMI_STREAM<rectangle>*[pc];
+    blue_parts = new AMI_STREAM<rectangle>*[pc];
     tile_height = (double) (mbr.yhi - mbr.ylo) / tile_count_row;
     tile_width = (double) (mbr.xhi - mbr.xlo) / tile_count_col;
     written = new bool[part_count];
@@ -227,7 +226,7 @@ public:
 
   ~Distributor()
   {
-    int i;
+    TPIE_OS_SIZE_T i;
     delete [] written; 
     for (i = 0; i < part_count; i++) {
       delete red_parts[i];
@@ -241,15 +240,15 @@ public:
   {
     // round robin.
     
-    int i, j, rowLow, colLow, rowHigh, colHigh;
+    TPIE_OS_SIZE_T i, j, rowLow, colLow, rowHigh, colHigh;
     for (i=0; i<part_count; i++)
       written[i] = false;
-    rowLow = (int) ceil((r.ylo - mbr.ylo) / tile_height) - 1;
+    rowLow = (TPIE_OS_SIZE_T) ceil((r.ylo - mbr.ylo) / tile_height) - 1;
     rowLow = (rowLow > 0) ? rowLow: 0;
-    rowHigh = (int) floor((r.yhi - mbr.ylo) / tile_height);
-    colLow = (int) ceil((r.xlo - mbr.xlo) / tile_width) - 1;
+    rowHigh = (TPIE_OS_SIZE_T) floor((r.yhi - mbr.ylo) / tile_height);
+    colLow = (TPIE_OS_SIZE_T) ceil((r.xlo - mbr.xlo) / tile_width) - 1;
     colLow = (colLow > 0) ? colLow : 0;
-    colHigh = (int) floor((r.xhi - mbr.xlo) / tile_width);
+    colHigh = (TPIE_OS_SIZE_T) floor((r.xhi - mbr.xlo) / tile_width);
     for (i = rowLow; i <= rowHigh; i++) {
       //cout << "i:" << i << endl;
       for (j = i*tile_count_row+colLow; j <= i*tile_count_row+colHigh; j++) {
@@ -283,11 +282,12 @@ public:
       }
     }
     */
+	return AMI_ERROR_NO_ERROR;
   }
     
   AMI_err initialize(void) 
   {
-    int i;
+    TPIE_OS_SIZE_T i;
     for (i = 0; i < part_count; i++) {
       red_parts[i] = new AMI_STREAM<rectangle>;
       red_parts[i]->persist(PERSIST_PERSISTENT);
@@ -355,12 +355,12 @@ public:
 
 // Implements the original PBSM sweeping algorithms.
 // Returns the number of intersections found.
-unsigned long pseudoScan(rectangle* red_a, unsigned long red_l, 
-			 rectangle* blue_a, unsigned long blue_l,
+TPIE_OS_OFFSET pseudoScan(rectangle* red_a, TPIE_OS_OFFSET red_l, 
+			 rectangle* blue_a, TPIE_OS_OFFSET blue_l,
 			 AMI_STREAM<pair_of_rectangles> *outStream) 
 {
   rectangle rr, br;
-  unsigned long i, red_st, blue_st, intersection_count;
+  TPIE_OS_OFFSET i, red_st, blue_st, intersection_count;
   pair_of_rectangles intersection;
   red_st = blue_st = intersection_count = 0;
   while (red_st < red_l && blue_st < blue_l) {
@@ -412,12 +412,13 @@ void getMbr(char *input_filename, rectangle *mbr) {
   delete [] mbr_filename;
 }
 
-int computePartitionCount(unsigned int rect_count) {
-  int p;
-  size_t sz_avail, sz_of_all_rects;
+TPIE_OS_SIZE_T computePartitionCount(TPIE_OS_OFFSET rect_count) {
+  TPIE_OS_SIZE_T p;
+  TPIE_OS_SIZE_T sz_avail;
+  TPIE_OS_OFFSET sz_of_all_rects;
   sz_avail = MM_manager.memory_available();
   //  MM_manager.available(&sz_avail);
-  long space_needed, prev_space_needed = 0;
+  TPIE_OS_OFFSET space_needed, prev_space_needed = 0;
 
   sz_of_all_rects = sizeof(rectangle) * (rect_count);
   for (p = 1; 1; p++) {
@@ -444,13 +445,13 @@ void pbsmJoin()
   rectangle mbr_red, mbr_blue, mbr;
   Distributor *distributor;
   Reader *reader;
-  size_t sz_avail;
-  int tile_count_row, tile_count_col, i, p;
+  TPIE_OS_SIZE_T sz_avail;
+  TPIE_OS_SIZE_T tile_count_row, tile_count_col, i;
  
   cerr << "*******\tPBSM Join (" 
        << (algorithm==STRIPED?"STRIPED":(algorithm==ORIGINAL?"ORIGINAL":"TREE")) 
        << ")\t*******\n";
-  cerr << "Memory size set to " << test_mm_size << " bytes.\n";
+  cerr << "Memory size set to " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << " bytes.\n";
 
   // Create the input streams.
   input_stream_red = new AMI_STREAM<rectangle>(input_filename_red, AMI_READ_STREAM);
@@ -487,7 +488,7 @@ void pbsmJoin()
   part_count = computePartitionCount(input_stream_red->stream_len() +
 				     input_stream_blue->stream_len());
   
-  cerr << "Partitions: " << part_count << endl;
+  cerr << "Partitions: " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(part_count) << endl;
   //  cout << "Avail. Mem. Before Distribution: " << sz_avail << endl;
   if (part_count > 1) {
 
@@ -496,8 +497,8 @@ void pbsmJoin()
     AMI_scan(input_stream_red, input_stream_blue, distributor);
 
     // Get the names of the partition files.
-    name_array_red = new (char *)[part_count];
-    name_array_blue = new (char *)[part_count];
+    name_array_red = new char*[part_count];
+    name_array_blue = new char*[part_count];
     red_parts = distributor->get_red_parts();
     blue_parts = distributor->get_blue_parts();
     for (i = 0; i < part_count; i++) {
@@ -517,15 +518,15 @@ void pbsmJoin()
   }
   sz_avail = MM_manager.memory_available();
   //  MM_manager.available(&sz_avail);
-  cerr << "Finished distribution. Avail. mem: " << sz_avail << endl;
+  cerr << "Finished distribution. Avail. mem: " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(sz_avail) << endl;
 
   // *******************************************************//
 
   rectangle *red_array, *blue_array;
-  unsigned long red_length, blue_length;
+  TPIE_OS_OFFSET red_length, blue_length;
   AMI_STREAM<pair_of_rectangles> *outStream;
   inter_rect *interObj;
-  unsigned long intersection_count = 0;
+  TPIE_OS_OFFSET intersection_count = 0;
  
   outStream = new AMI_STREAM<pair_of_rectangles>(output_filename);
   outStream->persist(PERSIST_PERSISTENT);
@@ -540,13 +541,13 @@ void pbsmJoin()
 
   reader = new Reader;
   if (part_count > 1) {
-    red_parts = new (AMI_STREAM<rectangle> *)[part_count];
-    blue_parts = new (AMI_STREAM<rectangle> *)[part_count];
+    red_parts = new AMI_STREAM<rectangle>*[part_count];
+    blue_parts = new AMI_STREAM<rectangle>*[part_count];
   }
 
   // Loop thru the partitions.
   for (i = 0; i < part_count; i++) {
-    cerr << "loading partition " << i << endl;
+    cerr << "loading partition " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(i) << endl;
     // Get the 2 streams for the ith partition.
     if (part_count > 1) {
       red_parts[i] = new AMI_STREAM<rectangle>(name_array_red[i]);
@@ -557,14 +558,14 @@ void pbsmJoin()
     cerr << "opened the streams " << name_array_red[i] << " and " << name_array_blue[i] << endl;
     // Read red rectangles into red_array
     red_length = red_parts[i]->stream_len();
-    red_array = new rectangle[red_length];
+    red_array = new rectangle[(TPIE_OS_SIZE_T)red_length];
     reader->setArray(red_array);
     AMI_scan(red_parts[i], reader);
     delete red_parts[i];
 
     // Read blue rectangles into red_array
     blue_length = blue_parts[i]->stream_len();
-    blue_array = new rectangle[blue_length];
+    blue_array = new rectangle[(TPIE_OS_SIZE_T)blue_length];
     reader->setArray(blue_array);
     AMI_scan(blue_parts[i], reader);
     delete blue_parts[i];
@@ -574,8 +575,8 @@ void pbsmJoin()
     sort(red_array, red_array+red_length);
     sort(blue_array, blue_array+blue_length);
 #else
-    quick_sort_op(red_array, red_length);
-    quick_sort_op(blue_array, blue_length);
+    quick_sort_op(red_array, (TPIE_OS_SIZE_T)red_length);
+    quick_sort_op(blue_array, (TPIE_OS_SIZE_T)blue_length);
 #endif
 
     if (algorithm == ORIGINAL) {

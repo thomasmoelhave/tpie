@@ -5,7 +5,7 @@
 // Created:      01/24/99
 // Description:  
 //
-// $Id: joinlog.cpp,v 1.1 2003-11-21 17:01:09 tavi Exp $
+// $Id: joinlog.cpp,v 1.2 2004-08-12 12:39:44 jan Exp $
 //
 
 #include <string.h>
@@ -24,14 +24,15 @@
          strcpy(target, source);                          \
       };
 
+#ifndef _WIN32
 static struct rusage Usage;
 static struct timeval UsageTime;
-
+#endif
 
 JoinLog::JoinLog() : program_(NULL), redName_(NULL), blueName_(NULL), redLength_(0), blueLength_(0), fanOut_(0) {
 }
 
-JoinLog::JoinLog(const char* program, const char* redName, off_t redLength, const char* blueName, off_t blueLength, unsigned short fanOut) {
+JoinLog::JoinLog(const char* program, const char* redName, TPIE_OS_OFFSET redLength, const char* blueName, TPIE_OS_OFFSET blueLength, unsigned short fanOut) {
     COPYSTRING(program_,program);
 
     COPYSTRING(blueName_,blueName);
@@ -50,23 +51,28 @@ JoinLog::~JoinLog() {
 }
 
 void JoinLog::UsageStart() {
+#ifndef _WIN32
   gettimeofday(&UsageTime,NULL);
   getrusage(RUSAGE_SELF, &Usage);
   MemUsageStart();
+#endif
 }
 
 void JoinLog::subtimeval(struct timeval* diff, struct timeval* t1, struct timeval* t2) {
+#ifndef _WIN32
     diff->tv_sec = t1->tv_sec - t2->tv_sec;
     diff->tv_usec = t1->tv_usec - t2->tv_usec;
     if (diff->tv_usec < 0)  {
 	diff->tv_usec += 1000000;
 	diff->tv_sec--;
     }
+#endif
 }
 
-void JoinLog::UsageEnd(const char *where, unsigned long resultLength) {
+void JoinLog::UsageEnd(const char *where, TPIE_OS_OFFSET resultLength) {
 
-  struct rusage usage;
+#ifndef _WIN32
+	struct rusage usage;
   struct timeval diff;
   struct timeval now;
   double sys_time, user_time, wall_time;
@@ -148,9 +154,15 @@ void JoinLog::UsageEnd(const char *where, unsigned long resultLength) {
   usage.ru_nivcsw -= Usage.ru_nivcsw;
   cerr << usage.ru_nivcsw << " -- invol ctx sw" << endl;
   MemUsageEnd();
+#else
+	cerr << "UsageEnd(const char*, TPIE_OS_OFFSET) is not implemented for this platform." << endl;
+#endif
 }
 
 void JoinLog::UsageEndBrief(const char* where) {
+
+#ifndef _WIN32
+
   struct rusage usage;
   struct timeval diff;
   struct timeval now;
@@ -165,11 +177,17 @@ void JoinLog::UsageEndBrief(const char* where) {
   }
   cerr << diff.tv_sec << setw(6) << diff.tv_usec << setw(0) << " -- elapsed time" << endl;
   MemUsageEnd();
+#else
+	cerr << "UsageEndBrief(const char*) is not implemented for this platform." << endl;
+#endif
 }
 
-static prstatus_t mystatus;
+/* static prstatus_t mystatus;
 static int procfd = 0;
+*/
+#ifndef _WIN32
 static unsigned long initialBrkValue;
+#endif 
 
 /*
 void JoinLog::getMemUsage() {
@@ -196,7 +214,10 @@ void JoinLog::MemUsageStart() {
 
   retval = ioctl(procfd, PIOCSTATUS, &mystatus);
   */
+
+#ifndef _WIN32
   initialBrkValue = (unsigned long) sbrk(0);  
+#endif 
 }
 
 void JoinLog::MemUsageEnd() {
@@ -208,7 +229,10 @@ void JoinLog::MemUsageEnd() {
   fprintf(stdout, "Heap grew by %d bytes\n", newstatus.pr_brksize -
       mystatus.pr_brksize);
   */
+
+#ifndef _WIN32
   unsigned long diff = (unsigned long) sbrk(0) - initialBrkValue;
   cerr << "Heap grew by " << diff << " bytes\n";
+#endif
 }
 

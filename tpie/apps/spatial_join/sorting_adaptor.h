@@ -5,10 +5,12 @@
 // Created:      01/24/99
 // Description:  
 //
-// $Id: sorting_adaptor.h,v 1.1 2003-11-21 17:01:09 tavi Exp $
+// $Id: sorting_adaptor.h,v 1.2 2004-08-12 12:39:09 jan Exp $
 //
 #ifndef SORTINGADAPTOR_H
 #define SORTINGADAPTOR_H
+
+#include <portability.h>
 
 #include <assert.h>
 #include <stdlib.h>
@@ -44,7 +46,7 @@ public:
     //.  Checks whether both priority queues are empty.
 
     //- size
-    off_t size() const;
+    TPIE_OS_OFFSET size() const;
     //.  Returns the size of the input stream.
 
 protected:
@@ -53,7 +55,7 @@ protected:
     rectangle*             currentRect_;  //  Current rectangle.
     rectangle*             nextRect_;     //  Next rectangle.
     bool                   empty_;
-    off_t                  size_;
+    TPIE_OS_OFFSET         size_;
 
 private:
 
@@ -66,7 +68,7 @@ inline bool SortingAdaptor::empty() const {
     return (nextRect_ == NULL);
 }
 
-inline off_t SortingAdaptor::size() const {
+inline TPIE_OS_OFFSET SortingAdaptor::size() const {
     return size_;
 }
 

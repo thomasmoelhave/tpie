@@ -2,7 +2,7 @@
 // File: bte_stream_ufs.h (formerly bte_ufs.h)
 // Author: Rakesh Barve <rbarve@cs.duke.edu>
 //
-// $Id: bte_stream_ufs.h,v 1.13 2004-05-31 19:29:57 tavi Exp $
+// $Id: bte_stream_ufs.h,v 1.14 2004-08-12 12:35:32 jan Exp $
 //
 // BTE streams with blocks I/Oed using read()/write().  This particular
 // implementation explicitly manages blocks, and only ever maps in one
@@ -133,7 +133,7 @@ private:
     // underlying Unix file.
     TPIE_OS_OFFSET curr_block_file_offset;	
 
-    unsigned int blocksize_items;
+    TPIE_OS_SIZE_T blocksize_items;
 
     // A place to cache OS error values. It is normally set after each
     // call to the OS.
@@ -239,14 +239,14 @@ BTE_stream_ufs < T >::BTE_stream_ufs (const char *dev_path,
     // yet, since we may encounter an error.
     if (remaining_streams <= 0) {
 	status_ = BTE_STREAM_STATUS_INVALID;
-	LOG_FATAL_ID ("BTE internal error: cannot open more streams.");
+	TP_LOG_FATAL_ID ("BTE internal error: cannot open more streams.");
 	return;
     }
 
     // Cache the path name
     if (strlen (dev_path) > BTE_STREAM_PATH_NAME_LEN - 1) {
 	status_ = BTE_STREAM_STATUS_INVALID;
-	LOG_FATAL_ID ("Path name \"" << dev_path << "\" too long.");
+	TP_LOG_FATAL_ID ("Path name \"" << dev_path << "\" too long.");
 	return;
     }
 
@@ -281,8 +281,8 @@ BTE_stream_ufs < T >::BTE_stream_ufs (const char *dev_path,
 	if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(fd = TPIE_OS_OPEN_ORDONLY(path))) {
 	    status_ = BTE_STREAM_STATUS_INVALID;
 	    os_errno = errno;
-	    LOG_FATAL_ID ("open() failed to open " << path);
-	    LOG_FATAL_ID (strerror (os_errno));
+	   TP_LOG_FATAL_ID ("open() failed to open " << path);
+	   TP_LOG_FATAL_ID (strerror (os_errno));
 	    // [tavi 01/07/02] Commented this out. Just because the file is
 	    // unreadable is no reason to crash.
 	    //assert (0); 
@@ -296,19 +296,19 @@ BTE_stream_ufs < T >::BTE_stream_ufs (const char *dev_path,
 	}
 	// Some more checking, specific to this stream type.
 	if (header->type != BTE_STREAM_UFS) {
-	    LOG_WARNING_ID("Using UFS stream implem. on another type of stream.");
-	    LOG_WARNING_ID("Stream implementations may not be compatible.");
+	   TP_LOG_WARNING_ID("Using UFS stream implem. on another type of stream.");
+	   TP_LOG_WARNING_ID("Stream implementations may not be compatible.");
 	}
 	if ((header->block_size % os_block_size_ != 0) || 
 	    (header->block_size == 0)) {
 	    status_ = BTE_STREAM_STATUS_INVALID;
-	    LOG_FATAL_ID ("header: incorrect logical block size;");
-	    LOG_FATAL_ID ("expected multiple of OS block size.");
+	   TP_LOG_FATAL_ID ("header: incorrect logical block size;");
+	   TP_LOG_FATAL_ID ("expected multiple of OS block size.");
 	    return;
 	}
 	if (header->block_size != BTE_STREAM_UFS_BLOCK_FACTOR * os_block_size_) {
-	    LOG_WARNING_ID("Stream has different block factor than the default.");
-	    LOG_WARNING_ID("This may cause problems in some existing applications.");
+	   TP_LOG_WARNING_ID("Stream has different block factor than the default.");
+	   TP_LOG_WARNING_ID("This may cause problems in some existing applications.");
 	}
 
 	blocksize_items = header->block_size / sizeof (T);
@@ -355,8 +355,8 @@ BTE_stream_ufs < T >::BTE_stream_ufs (const char *dev_path,
 	    if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(fd = TPIE_OS_OPEN_ORDWR(path))) {
 		status_ = BTE_STREAM_STATUS_INVALID;
 		os_errno = errno;
-		LOG_FATAL_ID ("open() failed to open " << path);
-		LOG_FATAL_ID (strerror (os_errno));
+		TP_LOG_FATAL_ID ("open() failed to open " << path);
+		TP_LOG_FATAL_ID (strerror (os_errno));
 		return;
 	    }
 	    // The file already exists, so read the header.
@@ -367,21 +367,21 @@ BTE_stream_ufs < T >::BTE_stream_ufs (const char *dev_path,
 	    }
 	    // Some more checking, specific to this stream.
 	    if (header->type != BTE_STREAM_UFS) {
-		LOG_WARNING_ID("Using UFS stream implem. on another type of stream.");
-		LOG_WARNING_ID("Stream implementations may not be compatible.");
+		TP_LOG_WARNING_ID("Using UFS stream implem. on another type of stream.");
+		TP_LOG_WARNING_ID("Stream implementations may not be compatible.");
 	    }
 	    if ((header->block_size % os_block_size_ != 0) || 
 		(header->block_size == 0)) {
 		status_ = BTE_STREAM_STATUS_INVALID;
-		LOG_FATAL_ID("Header: incorrect logical block size;");
-		LOG_FATAL_ID("Expected multiple of OS block size.");
+ 		TP_LOG_FATAL_ID("Header: incorrect logical block size;");
+		TP_LOG_FATAL_ID("Expected multiple of OS block size.");
 		return;
 	    }
 	    if (header->block_size != BTE_STREAM_UFS_BLOCK_FACTOR * os_block_size_) {
-		LOG_WARNING_ID("Stream has different block factor than the default;");
-		LOG_WARNING_ID("\tStream block factor: " << header->block_size/os_block_size_);
-		LOG_WARNING_ID("\tDefault block factor: " << BTE_STREAM_UFS_BLOCK_FACTOR);
-		LOG_WARNING_ID("This may cause problems in some existing applications.");
+		TP_LOG_WARNING_ID("Stream has different block factor than the default;");
+		TP_LOG_WARNING_ID("\tStream block factor: " << (TPIE_OS_LONGLONG)header->block_size/os_block_size_);
+		TP_LOG_WARNING_ID("\tDefault block factor: " << BTE_STREAM_UFS_BLOCK_FACTOR);
+		TP_LOG_WARNING_ID("This may cause problems in some existing applications.");
 	    }
 
 	    blocksize_items = header->block_size / sizeof (T);
@@ -428,7 +428,7 @@ BTE_stream_ufs < T >::BTE_stream_ufs (const char *dev_path,
 
 	    if (lbf == 0) {
 		lbf = 1;
-		LOG_WARNING_ID("Block factor 0 requested. Using 1 instead.");
+		TP_LOG_WARNING_ID("Block factor 0 requested. Using 1 instead.");
 	    }
 	    // Set the logical block size.
 	    header->block_size = lbf * os_block_size_;
@@ -449,9 +449,9 @@ BTE_stream_ufs < T >::BTE_stream_ufs (const char *dev_path,
     // We can't handle streams of large objects.
     if (sizeof (T) > header->block_size) {
 	status_ = BTE_STREAM_STATUS_INVALID;
-	LOG_FATAL_ID ("Object is too big (object size/block size):");
-	LOG_FATAL_ID (sizeof(T));
-	LOG_FATAL_ID (header->block_size);
+	TP_LOG_FATAL_ID ("Object is too big (object size/block size):");
+	TP_LOG_FATAL_ID (sizeof(T));
+	TP_LOG_FATAL_ID ((TPIE_OS_LONGLONG)header->block_size);
 	return;
     }
 
@@ -490,19 +490,19 @@ BTE_stream_ufs < T >::BTE_stream_ufs (BTE_stream_ufs * super_stream,
     // Reduce the number of streams avaialble.
     if (remaining_streams <= 0) {
 	status_ = BTE_STREAM_STATUS_INVALID;
-	LOG_FATAL_ID ("BTE error: cannot open more streams.");
+	TP_LOG_FATAL_ID ("BTE error: cannot open more streams.");
 	return;
     }
 
     if (super_stream->status_ == BTE_STREAM_STATUS_INVALID) {
 	status_ = BTE_STREAM_STATUS_INVALID;
-	LOG_FATAL_ID ("BTE error: super stream is invalid.");
+	TP_LOG_FATAL_ID ("BTE error: super stream is invalid.");
 	return;
     }
 
     if (super_stream->r_only && (st != BTE_READ_STREAM)) {
 	status_ = BTE_STREAM_STATUS_INVALID;
-	LOG_FATAL_ID
+	TP_LOG_FATAL_ID
 	    ("BTE error: super stream is read only and substream is not.");
 	return;
     }
@@ -519,7 +519,7 @@ BTE_stream_ufs < T >::BTE_stream_ufs (BTE_stream_ufs * super_stream,
 
 	if (super_stream->status_ == BTE_STREAM_STATUS_INVALID) {
 	    status_ = BTE_STREAM_STATUS_INVALID;
-	    LOG_FATAL_ID ("BTE internal error: super stream is invalid.");
+	   TP_LOG_FATAL_ID ("BTE internal error: super stream is invalid.");
 	    return;
 	}
     }
@@ -549,15 +549,15 @@ BTE_stream_ufs < T >::BTE_stream_ufs (BTE_stream_ufs * super_stream,
 		break;
 	  default:
 	    status_ = BTE_STREAM_STATUS_INVALID;
-	    LOG_FATAL_ID ("BTE internal error: Invalid subtream type.");
+	   TP_LOG_FATAL_ID ("BTE internal error: Invalid subtream type.");
 	    return;
     }
 
 	if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(fd)) {
 	  status_ = BTE_STREAM_STATUS_INVALID;
 	  os_errno = errno;
-	  LOG_FATAL_ID ("open() failed to open " << path);
-	  LOG_FATAL_ID (strerror (os_errno));
+	 TP_LOG_FATAL_ID ("open() failed to open " << path);
+	 TP_LOG_FATAL_ID (strerror (os_errno));
 	  assert(0);
 	  return;
 	}
@@ -600,7 +600,7 @@ BTE_stream_ufs < T >::BTE_stream_ufs (BTE_stream_ufs * super_stream,
 
     if (f_eos > super_stream->f_eos) {
 	status_ = BTE_STREAM_STATUS_INVALID;
-	LOG_FATAL_ID ("BTE internal error: reached beyond super stream eof.");
+	TP_LOG_FATAL_ID ("BTE internal error: reached beyond super stream eof.");
 	return;
     }
 
@@ -657,7 +657,7 @@ template < class T > BTE_stream_ufs < T >::~BTE_stream_ufs (void) {
     // If the stream is already invalid for some reason, then don't
     // worry about anything.
     if (status_ == BTE_STREAM_STATUS_INVALID) {
-	LOG_WARNING_ID ("BTE internal error: invalid stream in destructor.");
+	TP_LOG_WARNING_ID ("BTE internal error: invalid stream in destructor.");
 	return;
     }
 
@@ -688,8 +688,8 @@ template < class T > BTE_stream_ufs < T >::~BTE_stream_ufs (void) {
 	    if (TPIE_OS_LSEEK(fd, 0, TPIE_OS_FLAG_SEEK_SET) != 0) {
 		status_ = BTE_STREAM_STATUS_INVALID;
 		os_errno = errno;
-		LOG_FATAL_ID ("lseek() failed to move past header of " << path);
-		LOG_FATAL_ID (strerror (os_errno));
+		TP_LOG_FATAL_ID ("lseek() failed to move past header of " << path);
+		TP_LOG_FATAL_ID (strerror (os_errno));
 		// [tavi 01/07/02] Commented this out. Why panic?
 		//assert (0);
 		// TODO: Should we really return? If we do, we have memory leaks.
@@ -699,9 +699,9 @@ template < class T > BTE_stream_ufs < T >::~BTE_stream_ufs (void) {
 		!= sizeof (BTE_stream_header)) {
 		status_ = BTE_STREAM_STATUS_INVALID;
 		os_errno = errno;
-		LOG_FATAL_ID ("write() failed during stream destruction for "
+		TP_LOG_FATAL_ID ("write() failed during stream destruction for "
 			      << path);
-		LOG_FATAL_ID (strerror (os_errno));
+		TP_LOG_FATAL_ID (strerror (os_errno));
 		// [tavi 01/07/02] Commented this out. Why panic?
 		//assert (0);
 		// TODO: Should we really return? If we do, we have memory leaks.
@@ -716,8 +716,8 @@ template < class T > BTE_stream_ufs < T >::~BTE_stream_ufs (void) {
 
 	if (TPIE_OS_CLOSE (fd)) {
 	    os_errno = errno;
-	    LOG_FATAL_ID ("Failed to close() " << path);
-	    LOG_FATAL_ID (strerror (os_errno));
+	   TP_LOG_FATAL_ID ("Failed to close() " << path);
+	   TP_LOG_FATAL_ID (strerror (os_errno));
 	    // [tavi 01/07/02] Commented this out. Why panic?
 	    //assert (0);
 	    return;
@@ -726,13 +726,13 @@ template < class T > BTE_stream_ufs < T >::~BTE_stream_ufs (void) {
 	// If it should not persist, unlink the file.
 	if (per == PERSIST_DELETE) {
 	    if (r_only) {
-		LOG_WARNING_ID("PERSIST_DELETE for read-only stream in " << path);
+		TP_LOG_WARNING_ID("PERSIST_DELETE for read-only stream in " << path);
             } else  {
 	      if (TPIE_OS_UNLINK (path)) {
 		os_errno = errno;
-		LOG_WARNING_ID ("unlink failed during destruction of:");
-		LOG_WARNING_ID (path);
-		LOG_WARNING_ID (strerror (os_errno));
+		TP_LOG_WARNING_ID ("unlink failed during destruction of:");
+		TP_LOG_WARNING_ID (path);
+		TP_LOG_WARNING_ID (strerror (os_errno));
 	      } else {
 		gstats_.record(STREAM_DELETE);
 		stats_.record(STREAM_DELETE);
@@ -743,8 +743,8 @@ template < class T > BTE_stream_ufs < T >::~BTE_stream_ufs (void) {
 		//Each substream has its own file descriptor so close it. 
 	  if (TPIE_OS_CLOSE (fd)) {
 	    os_errno = errno;
-	    LOG_FATAL_ID ("Failed to close() substream" << path);
-	    LOG_FATAL_ID (strerror (os_errno));
+	   TP_LOG_FATAL_ID ("Failed to close() substream" << path);
+	   TP_LOG_FATAL_ID (strerror (os_errno));
 	    return;
 		}
 	  gstats_.record(SUBSTREAM_DELETE);
@@ -917,7 +917,7 @@ TPIE_OS_OFFSET BTE_stream_ufs < T >::stream_len (void) const {
 template < class T >
 BTE_err BTE_stream_ufs < T >::name (char **stream_name) {
 
-    int len = strlen (path);
+    TPIE_OS_SIZE_T len = strlen (path);
 
     tp_assert (len < BTE_STREAM_PATH_NAME_LEN, "Path length is too long.");
 
@@ -939,10 +939,10 @@ BTE_err BTE_stream_ufs < T >::seek (TPIE_OS_OFFSET offset) {
     if ((offset < 0) ||
 	(offset > file_off_to_item_off (f_eos) - 
 	 file_off_to_item_off (f_bos))) {
-	LOG_WARNING_ID ("seek() out of range (off/bos/eos)");
-	LOG_WARNING_ID (offset);
-	LOG_WARNING_ID (file_off_to_item_off (f_bos));
-	LOG_WARNING_ID (file_off_to_item_off (f_eos));
+	TP_LOG_WARNING_ID ("seek() out of range (off/bos/eos)");
+	TP_LOG_WARNING_ID (offset);
+	TP_LOG_WARNING_ID (file_off_to_item_off (f_bos));
+	TP_LOG_WARNING_ID (file_off_to_item_off (f_eos));
 	return BTE_ERROR_OFFSET_OUT_OF_RANGE;
     }
 
@@ -1022,8 +1022,8 @@ BTE_err BTE_stream_ufs < T >::truncate (TPIE_OS_OFFSET offset) {
 	f_filelen = block_offset + header->block_size;
 	if (TPIE_OS_FTRUNCATE (fd, block_offset + header->block_size)) {
 	    os_errno = errno;
-	    LOG_FATAL_ID ("Failed to ftruncate() to the new end of " << path);
-	    LOG_FATAL_ID (strerror (os_errno));
+	   TP_LOG_FATAL_ID ("Failed to ftruncate() to the new end of " << path);
+	   TP_LOG_FATAL_ID (strerror (os_errno));
 	    return BTE_ERROR_OS_ERROR;
 	}
 	// Invalidate the file pointer.
@@ -1050,7 +1050,7 @@ BTE_stream_header * BTE_stream_ufs < T >::map_header (void) {
     if ((file_end = TPIE_OS_LSEEK(fd, 0, TPIE_OS_FLAG_SEEK_END)) < (TPIE_OS_OFFSET) os_block_size_) {
 	if (r_only) {
 	    status_ = BTE_STREAM_STATUS_INVALID;
-	    LOG_FATAL_ID ("No header block in read only stream " << path);
+	   TP_LOG_FATAL_ID ("No header block in read only stream " << path);
 	    return NULL;
 	} else {
 
@@ -1069,8 +1069,8 @@ BTE_stream_header * BTE_stream_ufs < T >::map_header (void) {
 	    if (file_end != 0) {
 	      if (TPIE_OS_LSEEK(fd, 0, TPIE_OS_FLAG_SEEK_SET) != 0) {
 		os_errno = errno;
-		LOG_FATAL_ID ("Failed to lseek() in stream " << path);
-		LOG_FATAL_ID (strerror (os_errno));
+		TP_LOG_FATAL_ID ("Failed to lseek() in stream " << path);
+		TP_LOG_FATAL_ID (strerror (os_errno));
 		return NULL;
 	      }
 	    }
@@ -1078,8 +1078,8 @@ BTE_stream_header * BTE_stream_ufs < T >::map_header (void) {
 	    if (TPIE_OS_WRITE (fd, tmp_buffer, os_block_size_) !=
 		(TPIE_OS_SSIZE_T) os_block_size_) {
 		os_errno = errno;
-		LOG_FATAL_ID ("Failed to write() in stream " << path);
-		LOG_FATAL_ID (strerror (os_errno));
+		TP_LOG_FATAL_ID ("Failed to write() in stream " << path);
+		TP_LOG_FATAL_ID (strerror (os_errno));
 		return NULL;
 	    }
 
@@ -1091,8 +1091,8 @@ BTE_stream_header * BTE_stream_ufs < T >::map_header (void) {
 		return ptr_to_header;
 	    } else {
 		os_errno = errno;
-		LOG_FATAL_ID ("Failed to alloc space for header.");
-		LOG_FATAL_ID (strerror (os_errno));
+		TP_LOG_FATAL_ID ("Failed to alloc space for header.");
+		TP_LOG_FATAL_ID (strerror (os_errno));
 		status_ = BTE_STREAM_STATUS_INVALID;
 		return NULL;
 	    }
@@ -1111,16 +1111,16 @@ BTE_stream_header * BTE_stream_ufs < T >::map_header (void) {
 
     if (TPIE_OS_LSEEK(fd, 0, TPIE_OS_FLAG_SEEK_SET) != 0) {
 	os_errno = errno;
-	LOG_FATAL_ID ("Failed to lseek() in stream " << path);
-	LOG_FATAL_ID (strerror (os_errno));
+	TP_LOG_FATAL_ID ("Failed to lseek() in stream " << path);
+	TP_LOG_FATAL_ID (strerror (os_errno));
 	return NULL;
     }
 
     if (TPIE_OS_READ (fd, (char *) tmp_buffer, os_block_size_) !=
 	(TPIE_OS_SSIZE_T) os_block_size_) {
 	os_errno = errno;
-	LOG_FATAL_ID ("Failed to read() in stream " << path);
-	LOG_FATAL_ID (strerror (os_errno));
+	TP_LOG_FATAL_ID ("Failed to read() in stream " << path);
+	TP_LOG_FATAL_ID (strerror (os_errno));
 	return NULL;
     }
     
@@ -1145,8 +1145,8 @@ inline BTE_err BTE_stream_ufs < T >::validate_current (void) {
     // enough room in the block for a full item, we are fine.  If it is
     // valid but there is not enough room, unmap it.
     if (block_valid) {
-	if ((block_space = header->block_size -
-	     ((char *) current - (char *) curr_block)) >= sizeof (T)) {
+	if ((block_space = (unsigned int)header->block_size -
+	     ((char *) current - (char *) curr_block)) >= (unsigned int)sizeof (T)) {
 	    return BTE_ERROR_NO_ERROR;
 	} else {			// Not enough room left.
 	    if ((bte_err = unmap_current ()) != BTE_ERROR_NO_ERROR) {
@@ -1274,9 +1274,9 @@ template < class T > BTE_err BTE_stream_ufs < T >::map_current (void) {
 	    if (TPIE_OS_LSEEK(fd, block_offset, TPIE_OS_FLAG_SEEK_SET) != block_offset) {
 		status_ = BTE_STREAM_STATUS_INVALID;
 		os_errno = errno;
-		LOG_FATAL_ID ("seek failed in file:");
-		LOG_FATAL_ID (path);
-		LOG_FATAL_ID(strerror(os_errno));
+		TP_LOG_FATAL_ID ("seek failed in file:");
+		TP_LOG_FATAL_ID (path);
+		TP_LOG_FATAL_ID(strerror(os_errno));
 		return BTE_ERROR_OS_ERROR;
 	    }
 	}
@@ -1295,9 +1295,9 @@ template < class T > BTE_err BTE_stream_ufs < T >::map_current (void) {
 	    (TPIE_OS_SSIZE_T) header->block_size) {
 	    status_ = BTE_STREAM_STATUS_INVALID;
 	    os_errno = errno;
-	    LOG_FATAL_ID ("read failed in file ");
-	    LOG_FATAL_ID(path);
-	    LOG_FATAL_ID(strerror(os_errno));
+	   TP_LOG_FATAL_ID ("read failed in file ");
+	   TP_LOG_FATAL_ID(path);
+	   TP_LOG_FATAL_ID(strerror(os_errno));
 	    return BTE_ERROR_OS_ERROR;
 	}
 
@@ -1344,21 +1344,23 @@ BTE_err BTE_stream_ufs < T >::unmap_current (void) {
 		curr_block_file_offset) {
 		status_ = BTE_STREAM_STATUS_INVALID;
 		os_errno = errno;
-		LOG_FATAL_ID ("lseek() failed while unmapping current block.");
-		LOG_FATAL_ID (strerror(os_errno));
+		TP_LOG_FATAL_ID ("lseek() failed while unmapping current block.");
+		TP_LOG_FATAL_ID (strerror(os_errno));
 		return BTE_ERROR_OS_ERROR;
 	    }
 	}
 
 	if (curr_block_file_offset == f_filelen)
 	    f_filelen += header->block_size;
-     
-	if (TPIE_OS_WRITE (fd, (char *) curr_block, header->block_size) !=
-	    (TPIE_OS_SSIZE_T) header->block_size) {
+     TPIE_OS_OFFSET bla = 0;
+	if ((bla = TPIE_OS_WRITE (fd, (char *) curr_block, header->block_size)) !=
+	     header->block_size) {
 	    status_ = BTE_STREAM_STATUS_INVALID;
 	    os_errno = errno;
-	    LOG_FATAL_ID ("write() failed to unmap current block.");
-	    LOG_FATAL_ID (strerror(os_errno));
+	   TP_LOG_FATAL_ID ("write() failed to unmap current block.");
+	   TP_LOG_FATAL_ID (bla);
+	   TP_LOG_FATAL_ID ((TPIE_OS_OFFSET)header->block_size);
+	   TP_LOG_FATAL_ID (strerror(os_errno));
 	    return BTE_ERROR_OS_ERROR;
 	}
 	// Advance file pointer.
@@ -1486,8 +1488,8 @@ template < class T > void BTE_stream_ufs < T >::read_ahead (void)
 			   aio_results + ii)) {
 
 		os_errno = errno;
-		LOG_FATAL_ID ("aioread() failed to read ahead");
-		LOG_FATAL_ID (strerror (os_errno));
+		TP_LOG_FATAL_ID ("aioread() failed to read ahead");
+		TP_LOG_FATAL_ID (strerror (os_errno));
 	    }
 	}
     }

@@ -10,7 +10,7 @@
 // *  used in several of TPIE's sorting variants                            *
 // *                                                                        *
 // **************************************************************************
-// 	$Id: apm_dh.h,v 1.14 2003-04-20 08:08:04 tavi Exp $	
+// 	$Id: apm_dh.h,v 1.15 2004-08-12 12:35:31 jan Exp $	
 
 // Get definitions for working with Unix and Windows
 #include <portability.h>
@@ -138,15 +138,15 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
 {
    AMI_err         ae;
    TPIE_OS_OFFSET  len;
-   size_t          sz_avail, szStream;
-   size_t          szSubstream;
+   TPIE_OS_SIZE_T          sz_avail, szStream;
+   TPIE_OS_SIZE_T          szSubstream;
 
    unsigned int ii, jj;
    unsigned int iiStreams;
 
    char         *working_disk;
 
-   LOG_DEBUG_ID ("AMI_partition_and_merge START");
+  TP_LOG_DEBUG_ID ("AMI_partition_and_merge START");
 
    // Figure out how much memory we've got to work with.
    sz_avail = MM_manager.memory_available ();
@@ -155,12 +155,12 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
    // the two streams is unallocated; so we need to subtract.
    if ((ae = inStream->main_memory_usage 
             (&szStream,MM_STREAM_USAGE_MAXIMUM)) != AMI_ERROR_NO_ERROR) {
-      LOG_DEBUG_ID ("Error returned from main_memory_usage");
+     TP_LOG_DEBUG_ID ("Error returned from main_memory_usage");
       return ae; // LOG_FATAL was reported in main_memory_usage
    }
    if ((ae = inStream->main_memory_usage 
             (&szSubstream,MM_STREAM_USAGE_OVERHEAD)) != AMI_ERROR_NO_ERROR) {
-      LOG_DEBUG_ID ("Error returned from main_memory_usage");
+     TP_LOG_DEBUG_ID ("Error returned from main_memory_usage");
       return ae;
    }
    sz_avail -= 2 * szStream;
@@ -175,14 +175,17 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
    inStream->seek (0);
 
    if (mgmt_obj.sort_fits_in_memory (inStream, sz_avail)){
-      if ((ae= mgmt_obj.main_mem_operate_init (len) ) !=
+	   // We may cast len to a TPIE_OS_SIZE_T as we now know there will be
+	   // no loss of precision. (jv)
+      if ((ae= mgmt_obj.main_mem_operate_init ((TPIE_OS_SIZE_T)len) ) !=
 	       AMI_ERROR_NO_ERROR) {
-         LOG_FATAL_ID ("main_mem_operate_init failed");
+        TP_LOG_FATAL_ID ("main_mem_operate_init failed");
          return ae;
       }
-      if ((ae = mgmt_obj.main_mem_operate (inStream, outStream, len)) !=
+	   // Casting len to TPIE_OS_SIZE_T (see above, jv)
+      if ((ae = mgmt_obj.main_mem_operate (inStream, outStream, (TPIE_OS_SIZE_T)len)) !=
 	 AMI_ERROR_NO_ERROR) {
-	 LOG_FATAL_ID ("main_mem_operate failed");
+	 TP_LOG_FATAL_ID ("main_mem_operate failed");
 	 return ae;
       }
       mgmt_obj.main_mem_operate_cleanup ();
@@ -194,7 +197,7 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
    // * Input stream too large for main memory, use general merge sort *
    // ******************************************************************
 
-   LOG_DEBUG_ID ("Beginning general merge sort.");
+  TP_LOG_DEBUG_ID ("Beginning general merge sort.");
 
    // The number of substreams that the original input stream
    // will be split into.
@@ -203,7 +206,7 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
    // The length, in terms of stream objects of type T, of the
    // original substreams of the input stream.  The last one may
    // be shorter than this.
-   size_t szOrigSubstream;
+   TPIE_OS_OFFSET szOrigSubstream;
 
    // The initial temporary stream, to which substreams of the
    // original input stream are written.
@@ -250,12 +253,12 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
    //for at least three stream objects.
 
    if (sz_avail <= 3 *(szStream + szSubstream + sizeof(heap_element < T >))) {
-      LOG_FATAL_ID ("Insufficient Memory for AMI_partition_and_merge");
+     TP_LOG_FATAL_ID ("Insufficient Memory for AMI_partition_and_merge");
       return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
    }
 
-   LOG_DEBUG_ID ("Each object of size " << sizeof(T) << 
-       " has overhead of " << mgmt_obj.space_usage_overhead () << " bytes." );
+  TP_LOG_DEBUG_ID ("Each object of size " << (TPIE_OS_LONGLONG)sizeof(T) << 
+       " has overhead of " << (TPIE_OS_LONGLONG)mgmt_obj.space_usage_overhead () << " bytes." );
    szOrigSubstream = (sz_avail) / (sizeof (T) + mgmt_obj.space_usage_overhead ());
 
    // ** modified 2001/04/23 dh : round DOWN instead of UP
@@ -267,30 +270,30 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
    // overlapping regions.  It is also required for BTE's that are
    // capable of freeing chunks as they are read.
 
-   size_t chunkSize = inStream->chunk_size ();
+   TPIE_OS_OFFSET chunkSize = inStream->chunk_size ();
    // 2001/04/23 dh. was : szOrigSubstream = chunkSize *
    //                      ((szOrigSubstream + chunkSize-1) / chunkSize);
    szOrigSubstream = chunkSize * (szOrigSubstream / chunkSize);
 
    if (szOrigSubstream == 0) {
-      LOG_FATAL_ID ("Insufficient Memory for AMI_partition_and_merge.");
+     TP_LOG_FATAL_ID ("Insufficient Memory for AMI_partition_and_merge.");
       return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
    }
 
-   origSubstreams = (len + szOrigSubstream - 1) / szOrigSubstream;
+   origSubstreams = (arity_t)((len + szOrigSubstream - 1) / szOrigSubstream);
    // We should always end up with at least two runs 
    // otherwise why are we doing it externally?
    tp_assert (origSubstreams > 1, "Less than two runs to merge!");
    
    // Available memory for input stream objects is given by 
    // sz_avail minus the space occupied by output stream objects.
-   size_t sz_avail_during_merge = sz_avail - szStream - szSubstream;
+   TPIE_OS_SIZE_T sz_avail_during_merge = sz_avail - szStream - szSubstream;
 
    // This counts the per-input stream memory cost.
-   size_t szPerInputStream = szStream + szSubstream + sizeof(heap_element<T>);
+   TPIE_OS_SIZE_T szPerInputStream = szStream + szSubstream + sizeof(heap_element<T>);
 
    // Compute merge arity
-   mrgArity = sz_avail_during_merge / szPerInputStream;
+   mrgArity = (arity_t)(sz_avail_during_merge / szPerInputStream);
 
    // Make sure that the AMI is willing to provide us with the
    // number of substreams we want.  It may not be able to due to
@@ -301,26 +304,26 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
 
    if (availableStreams != -1) {
       if (availableStreams <= 5) {
-	 LOG_FATAL_ID ("Not enough substreams available to perform merge.");
+	 TP_LOG_FATAL_ID ("Not enough substreams available to perform merge.");
 	 return AMI_ERROR_INSUFFICIENT_AVAILABLE_STREAMS;
       }
 
       if (mrgArity > (arity_t) availableStreams - 2) {
 	 mrgArity = availableStreams - 2;
-	 LOG_WARNING_ID ("Reduced merge arity due to AMI restrictions.");
+	 TP_LOG_WARNING_ID ("Reduced merge arity due to AMI restrictions.");
       }
    }
 
-   LOG_DEBUG_ID ("merge arity = " << mrgArity << ".");
+  TP_LOG_DEBUG_ID ("merge arity = " << mrgArity << ".");
 
    if (mrgArity < 2) {
-      LOG_FATAL_ID ("Merge arity < 2! Insufficient memory for a merge.");
+     TP_LOG_FATAL_ID ("Merge arity < 2! Insufficient memory for a merge.");
       return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
    }
 
    //#define MINIMIZE_INITIAL_SUBSTREAM_LENGTH
 #ifdef MINIMIZE_INITIAL_SUBSTREAM_LENGTH
-   LOG_DEBUG_ID ("Minimizing initial run lengths without increasing" <<
+  TP_LOG_DEBUG_ID ("Minimizing initial run lengths without increasing" <<
 		    "the height of the merge tree.");
    // Make the substreams as small as possible without increasing
    // the height of the merge tree.
@@ -342,14 +345,14 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
    tp_assert (new_szOrigSubstream <= szOrigSubstream,
 		 "Size of original streams increased.");
 
-   szOrigSubstream = (size_t) new_szOrigSubstream;
+   szOrigSubstream = (TPIE_OS_SIZE_T) new_szOrigSubstream;
 
-   LOG_DEBUG_ID ("Memory constraints set original substreams = " <<
+  TP_LOG_DEBUG_ID ("Memory constraints set original substreams = " <<
 		    origSubstreams << '\n');
 
    origSubstreams = (len + szOrigSubstream - 1) / szOrigSubstream;
 
-   LOG_DEBUG_ID ("Tree height constraints set original substreams = "
+  TP_LOG_DEBUG_ID ("Tree height constraints set original substreams = "
 		    << origSubstreams << '\n');
 #endif	// MINIMIZE_INITIAL_SUBSTREAM_LENGTH
 
@@ -357,8 +360,8 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
    // substreams, processing each one and writing it to the
    // corresponding substream of the temporary stream.
 
-   VarArray3D<unsigned int> runLens(2,mrgArity,(origSubstreams+mrgArity-1) / mrgArity);
-   VarArray1D<int>          Sub_Start(mrgArity);
+   VarArray3D<TPIE_OS_OFFSET> runLens(2,mrgArity,(origSubstreams+mrgArity-1) / mrgArity);
+   VarArray1D<TPIE_OS_OFFSET>          Sub_Start(mrgArity);
 
    // for (int i = 0; i < 2; i++)
    //    for (int j = 0; j < mrgArity; j++)
@@ -375,15 +378,15 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
 
    // End Comment.
 
-   LOG_DEBUG_ID("Allocating " << sizeof(AMI_STREAM<T>*)*mrgArity << 
-                " bytes for " << mrgArity <<
+  TP_LOG_DEBUG_ID("Allocating " << (TPIE_OS_LONGLONG)sizeof(AMI_STREAM<T>*)*mrgArity << 
+                " bytes for " << (TPIE_OS_LONGLONG)mrgArity <<
                 " initialTmpStream pointers. Mem. avail. is " << 
-                MM_manager.memory_available () );
+                (TPIE_OS_LONGLONG)MM_manager.memory_available () );
    initialTmpStream = new AMI_STREAM<T>* [mrgArity];
 
-   if ((ae = mgmt_obj.main_mem_operate_init(szOrigSubstream)) !=
+   if ((ae = mgmt_obj.main_mem_operate_init((size_t)szOrigSubstream)) !=
 	    AMI_ERROR_NO_ERROR) {
-      LOG_FATAL_ID ("main_mem_operate_init failed");
+     TP_LOG_FATAL_ID ("main_mem_operate_init failed");
       return ae;
    }
    
@@ -422,14 +425,15 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
    makeName (working_disk, prefixName[0], currStream, newName);
 #endif
 
-   LOG_DEBUG_ID("Allocating " << sizeof(AMI_STREAM<T>) <<
+  TP_LOG_DEBUG_ID("Allocating " << (TPIE_OS_LONGLONG)sizeof(AMI_STREAM<T>) <<
                 " bytes for initialTmpStream[" << currStream <<
-            "]. Mem. avail. is " << MM_manager.memory_available () );
+            "]. Mem. avail. is " << (TPIE_OS_LONGLONG)MM_manager.memory_available () );
    initialTmpStream[currStream] = new AMI_STREAM < T > (newName);
    initialTmpStream[currStream]->persist (PERSIST_PERSISTENT);
 
    ii = 0;
    while (ii < origSubstreams) {
+	   //  Changed back to TPIE_OS_OFFSET to resolve precision conflicts (jv)
       TPIE_OS_OFFSET mm_len;
 
       // ****************************************************************
@@ -449,9 +453,9 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
 	    mm_len = szOrigSubstream;
 	 }
 
-         if ((ae = mgmt_obj.main_mem_operate (inStream, initialTmpStream[currStream], mm_len)) !=
+         if ((ae = mgmt_obj.main_mem_operate (inStream, initialTmpStream[currStream], (size_t)mm_len)) !=
 	    AMI_ERROR_NO_ERROR) {
-	    LOG_FATAL_ID ("main_mem_operate failed");
+	   TP_LOG_FATAL_ID ("main_mem_operate failed");
 	    return ae;
          }
 
@@ -480,9 +484,9 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
 #else
 	    makeName (working_disk, prefixName[0], currStream, newName);
 #endif
-            LOG_DEBUG_ID("Allocating " << sizeof(AMI_STREAM<T>) <<
+           TP_LOG_DEBUG_ID("Allocating " << (TPIE_OS_LONGLONG)sizeof(AMI_STREAM<T>) <<
               " bytes  for initialTmpStream[" << currStream <<
-              "]. Mem. avail. is " << MM_manager.memory_available () );
+              "]. Mem. avail. is " << (TPIE_OS_LONGLONG)MM_manager.memory_available () );
 	    initialTmpStream[currStream] = new AMI_STREAM < T > (newName);
 	    initialTmpStream[currStream]->persist (PERSIST_PERSISTENT);
 	    runsInCurrStream = 0;
@@ -505,15 +509,15 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
 	      << "\n\tinitialTmpStream->stream_len() = " << check_size
 	      << ".");
 
-   LOG_DEBUG_ID ("Initial number of runs " << origSubstreams );
-   LOG_DEBUG_ID ("Merge arity is " << mrgArity );
+  TP_LOG_DEBUG_ID ("Initial number of runs " << origSubstreams );
+  TP_LOG_DEBUG_ID ("Merge arity is " << mrgArity );
 
    // Pointers to the substreams that will be merged.
       
-   LOG_DEBUG_ID("Allocating " << sizeof(AMI_STREAM<T>*)*mrgArity << 
-                " bytes for " << mrgArity <<
+  TP_LOG_DEBUG_ID("Allocating " << (TPIE_OS_LONGLONG)sizeof(AMI_STREAM<T>*)*mrgArity << 
+                " bytes for " << (TPIE_OS_LONGLONG)mrgArity <<
                 " theSubstreams pointers. Mem. avail. is " << 
-                MM_manager.memory_available () );
+                (TPIE_OS_LONGLONG)MM_manager.memory_available () );
    AMI_STREAM <T> **theSubstreams = new AMI_STREAM<T>* [mrgArity];
 
    mrgHgt = 0;
@@ -571,9 +575,9 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
 #else
 	    makeName (working_disk, prefixName[mrgHgt % 2], (int) ii, newName);
 #endif
-            LOG_DEBUG_ID("Allocating " << sizeof(AMI_STREAM<T>) <<
-              " bytes  for currInput[" << ii <<
-              "]. Mem. avail. is " << MM_manager.memory_available () );
+           TP_LOG_DEBUG_ID("Allocating " << (TPIE_OS_LONGLONG)sizeof(AMI_STREAM<T>) <<
+              " bytes  for currInput[" << (TPIE_OS_LONGLONG)ii <<
+              "]. Mem. avail. is " << (TPIE_OS_LONGLONG)MM_manager.memory_available () );
 	    currInput[ii] = new AMI_STREAM < T > (newName);
 	    currInput[ii]->persist (PERSIST_DELETE);
 	 }
@@ -585,7 +589,7 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
                                     ssCount, outStream );
 
 	 if (ae != AMI_ERROR_NO_ERROR) {
-            LOG_FATAL_ID ("AMI_ERROR " << ae << " returned by single_merge");
+           TP_LOG_FATAL_ID ("AMI_ERROR " << ae << " returned by single_merge");
 	    return ae;
 	 }
 
@@ -607,16 +611,16 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
 
       } else { // (ssCount > mrgArity)
 
-	 LOG_DEBUG_ID ("Merging substreams to intermediate streams.");
+	 TP_LOG_DEBUG_ID ("Merging substreams to intermediate streams.");
 
 	 // Create the array of mrgArity stream pointers that
 	 // will each point to a stream containing runs output
 	 // at the current level mrgHgt. 
 
-         LOG_DEBUG_ID("Allocating " << sizeof(AMI_STREAM<T>*)*mrgArity << 
-                " bytes for " << mrgArity <<
+        TP_LOG_DEBUG_ID("Allocating " << (TPIE_OS_LONGLONG)sizeof(AMI_STREAM<T>*)*mrgArity << 
+                " bytes for " << (TPIE_OS_LONGLONG)mrgArity <<
                 " tmpStream pointers. Mem. avail. is " << 
-                MM_manager.memory_available () );
+                (TPIE_OS_LONGLONG)MM_manager.memory_available () );
 	 tmpStream = new AMI_STREAM<T>* [mrgArity];
 
          // Open up the mrgArity streams in which the
@@ -630,9 +634,9 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
 #else
 	    makeName (working_disk, prefixName[mrgHgt % 2], (int) ii, newName);
 #endif
-            LOG_DEBUG_ID("Allocating " << sizeof(AMI_STREAM<T>) <<
-              " bytes  for currInput[" << ii <<
-              "]. Mem. avail. is " << MM_manager.memory_available () );
+           TP_LOG_DEBUG_ID("Allocating " << (TPIE_OS_LONGLONG)sizeof(AMI_STREAM<T>) <<
+              " bytes  for currInput[" << (TPIE_OS_LONGLONG)ii <<
+              "]. Mem. avail. is " << (TPIE_OS_LONGLONG)MM_manager.memory_available () );
 	    currInput[ii] = new AMI_STREAM < T > (newName);
 	    currInput[ii]->persist (PERSIST_DELETE);
 	 }
@@ -655,9 +659,9 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
 	 makeName(working_disk, prefixName[(mrgHgt + 1) % 2], currStream, newName);
 #endif
 
-         LOG_DEBUG_ID("Allocating " << sizeof(AMI_STREAM<T>) <<
+        TP_LOG_DEBUG_ID("Allocating " << (TPIE_OS_LONGLONG)sizeof(AMI_STREAM<T>) <<
               " bytes  for tmpStream[" << currStream <<
-              "]. Mem. avail. is " << MM_manager.memory_available () );
+              "]. Mem. avail. is " << (TPIE_OS_LONGLONG)MM_manager.memory_available () );
 	 tmpStream[currStream] = new AMI_STREAM< T >(newName);
 	 tmpStream[currStream]->persist (PERSIST_PERSISTENT);
 
@@ -742,10 +746,10 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
 		     makeName (working_disk, prefixName[(mrgHgt + 1) % 2],
 				       (int) currStream, newName);
 #endif
-                     LOG_DEBUG_ID("Allocating " << sizeof(AMI_STREAM<T>) <<
+                    TP_LOG_DEBUG_ID("Allocating " << (TPIE_OS_LONGLONG)sizeof(AMI_STREAM<T>) <<
                                  " bytes  for tmpStream[" << currStream <<
                                  "]. Mem. avail. is " << 
-                                 MM_manager.memory_available () );
+                                 (TPIE_OS_LONGLONG)MM_manager.memory_available () );
 		     tmpStream[currStream] = new AMI_STREAM < T > (newName);
 		     tmpStream[currStream]->persist(PERSIST_PERSISTENT);
 		     runsInCurrStream = 0;
@@ -755,7 +759,7 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
 	       ae = mgmt_obj.single_merge ( theSubstreams, jj + 1,
 		     tmpStream [currStream] );
 	       if (ae != AMI_ERROR_NO_ERROR) {
-                   LOG_FATAL_ID ("AMI_single_merge error" << ae);
+                  TP_LOG_FATAL_ID ("AMI_single_merge error" << ae);
 		  return ae;
 	       }
 
@@ -810,8 +814,8 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
    mgmt_obj.MergeHeap.deallocate( );
 
    //Monitoring prints.
-   LOG_DEBUG_ID ("Number of passes incl run formation is " << mrgHgt+1 );
-   LOG_DEBUG_ID ("AMI_partition_and_merge END");
+  TP_LOG_DEBUG_ID ("Number of passes incl run formation is " << mrgHgt+1 );
+  TP_LOG_DEBUG_ID ("AMI_partition_and_merge END");
    return AMI_ERROR_NO_ERROR;
 }
 #endif //_APM_DH_H

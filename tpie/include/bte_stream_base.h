@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/11/94
 //
-// $Id: bte_stream_base.h,v 1.6 2003-04-22 08:45:30 tavi Exp $
+// $Id: bte_stream_base.h,v 1.7 2004-08-12 12:35:31 jan Exp $
 //
 #ifndef _BTE_STREAM_BASE_H
 #define _BTE_STREAM_BASE_H
@@ -65,13 +65,13 @@ public:
     // various implementations.
     unsigned int type;
     // The number of bytes in this structure.
-    size_t header_length;
+    TPIE_OS_SIZE_T header_length;
     // The size of each item in the stream.
-    size_t item_size;
+    TPIE_OS_SIZE_T item_size;
     // The size of a physical block on the device this stream resides.
-    size_t os_block_size;
+    TPIE_OS_SIZE_T os_block_size;
     // Size in bytes of each logical block, if applicable.
-    size_t block_size;
+    TPIE_OS_SIZE_T block_size;
     // For all intents and purposes, the length of the stream in number
     // of items.
     TPIE_OS_OFFSET item_logical_eof;
@@ -114,8 +114,8 @@ protected:
     // Initialize the header with as much information as is known here.
     void init_header(BTE_stream_header* ph);
 
-    inline BTE_err register_memory_allocation (size_t sz);
-    inline BTE_err register_memory_deallocation (size_t sz);
+    inline BTE_err register_memory_allocation (TPIE_OS_SIZE_T sz);
+    inline BTE_err register_memory_deallocation (TPIE_OS_SIZE_T sz);
 
 public:
     BTE_stream_base() {};
@@ -131,7 +131,7 @@ public:
     BTE_stream_status status() const { return status_; }
 
     // Inquire the OS block size.
-    size_t os_block_size () const;
+    TPIE_OS_SIZE_T os_block_size () const;
 
     const tpie_stats_stream& stats() const { return stats_; }
 
@@ -147,7 +147,7 @@ public:
     virtual B_INLINE BTE_err write_item(const T &elt) = 0;
 
     // Query memory usage
-    virtual BTE_err main_memory_usage(size_t *usage,
+    virtual BTE_err main_memory_usage(TPIE_OS_SIZE_T *usage,
                                       MM_stream_usage usage_type) = 0;
 
     virtual TPIE_OS_OFFSET stream_len(void) = 0;
@@ -171,39 +171,39 @@ template<class T>
 int BTE_stream_base<T>::check_header(BTE_stream_header* ph) {
 
     if (ph == NULL) {
-	LOG_FATAL_ID ("Could not map header.");
+	TP_LOG_FATAL_ID ("Could not map header.");
 	return -1;
     }
 
     if (ph->magic_number != BTE_STREAM_HEADER_MAGIC_NUMBER) {
-	LOG_FATAL_ID ("header: magic number mismatch (expected/actual):");
-	LOG_FATAL_ID (BTE_STREAM_HEADER_MAGIC_NUMBER);
-	LOG_FATAL_ID (ph->magic_number);
+	TP_LOG_FATAL_ID ("header: magic number mismatch (expected/actual):");
+	TP_LOG_FATAL_ID (BTE_STREAM_HEADER_MAGIC_NUMBER);
+	TP_LOG_FATAL_ID (ph->magic_number);
 	return -1;
     }
 
     if ((ph->version != 2) ||
 	(ph->header_length != sizeof (*ph))) {
-	LOG_FATAL_ID ("header: incorrect version (expecting 2).");
+	TP_LOG_FATAL_ID ("header: incorrect version (expecting 2).");
 	return -1;
     }
 
     if (ph->type == 0) {
-	LOG_FATAL_ID ("header: type is 0 (reserved for base class).");
+	TP_LOG_FATAL_ID ("header: type is 0 (reserved for base class).");
 	return -1;
     }
 
     if (ph->item_size != sizeof (T)) {
-	LOG_FATAL_ID ("header: incorrect item size (expected/actual):");
-	LOG_FATAL_ID (sizeof(T));
-	LOG_FATAL_ID (ph->item_size);
+	TP_LOG_FATAL_ID ("header: incorrect item size (expected/actual):");
+	TP_LOG_FATAL_ID (sizeof(T));
+	TP_LOG_FATAL_ID ((TPIE_OS_LONGLONG)ph->item_size);
 	return -1;
     }
 
     if (ph->os_block_size != os_block_size()) {
-	LOG_FATAL_ID ("header: incorrect OS block size (expected/actual):");
-	LOG_FATAL_ID (os_block_size());
-	LOG_FATAL_ID (ph->os_block_size);
+	TP_LOG_FATAL_ID ("header: incorrect OS block size (expected/actual):");
+	TP_LOG_FATAL_ID ((TPIE_OS_LONGLONG)os_block_size());
+	TP_LOG_FATAL_ID ((TPIE_OS_LONGLONG)ph->os_block_size);
 	return -1;
     }
 
@@ -224,29 +224,29 @@ void BTE_stream_base<T>::init_header (BTE_stream_header* ph) {
 }
 
 template<class T>
-BTE_err BTE_stream_base<T>::register_memory_allocation (size_t sz) {
+BTE_err BTE_stream_base<T>::register_memory_allocation (TPIE_OS_SIZE_T sz) {
 
     if (MM_manager.register_allocation(sz) != MM_ERROR_NO_ERROR) {
 	status_ = BTE_STREAM_STATUS_INVALID;
-	LOG_FATAL_ID("Memory manager error in allocation.");
+	TP_LOG_FATAL_ID("Memory manager error in allocation.");
 	return BTE_ERROR_MEMORY_ERROR;
     }
     return BTE_ERROR_NO_ERROR;
 }
 
 template<class T>
-BTE_err BTE_stream_base<T>::register_memory_deallocation (size_t sz) {
+BTE_err BTE_stream_base<T>::register_memory_deallocation (TPIE_OS_SIZE_T sz) {
 
     if (MM_manager.register_deallocation (sz) != MM_ERROR_NO_ERROR) {
 	status_ = BTE_STREAM_STATUS_INVALID;
-	LOG_FATAL_ID("Memory manager error in deallocation.");
+	TP_LOG_FATAL_ID("Memory manager error in deallocation.");
 	return BTE_ERROR_MEMORY_ERROR;
     }
     return BTE_ERROR_NO_ERROR;
 }
 
 template<class T>
-size_t BTE_stream_base<T>::os_block_size () const {
+TPIE_OS_SIZE_T BTE_stream_base<T>::os_block_size () const {
     return TPIE_OS_BLOCKSIZE();
 }
 

@@ -5,7 +5,7 @@
 //
 // The AMI_point and AMI_record classes.
 //
-// $Id: ami_point.h,v 1.7 2003-09-13 23:13:58 tavi Exp $
+// $Id: ami_point.h,v 1.8 2004-08-12 12:35:31 jan Exp $
 //
 
 #ifndef AMI_POINT_H_
@@ -323,9 +323,9 @@ public:
 
 template<class coord_t, class data_t, size_t dim>
 ostream& operator<<(ostream& s, const AMI_record<coord_t, data_t, dim>& p) {
-  for (size_t i = 0; i < dim; i++)
+  for (TPIE_OS_TIME_T i = 0; i < dim; i++)
     s << p[i] << " ";
-  return s << p.id();
+  return s << (TPIE_OS_OFFSET)p.id();
 }
 
 #ifdef _WIN32

@@ -4,7 +4,7 @@
 // Authors: Octavian Procopiuc <tavi@cs.duke.edu>
 //          (using some code by Rakesh Barve)
 //
-// $Id: bte_coll_base.h,v 1.25 2004-06-08 23:23:29 tavi Exp $
+// $Id: bte_coll_base.h,v 1.26 2004-08-12 12:35:31 jan Exp $
 //
 // BTE_collection_base class and various basic definitions.
 
@@ -88,18 +88,18 @@ public:
     // the base class).
     unsigned int type;
     // The number of bytes in this structure.
-    size_t header_length;
+    TPIE_OS_SIZE_T header_length;
     // The number of blocks consumed by this collection, plus 1.
-    size_t total_blocks;
+    TPIE_OS_OFFSET total_blocks;
     // The highest bid any block of this block collection has, PLUS 1
     // (always <= total_blocks).
-    size_t last_block; 
+    TPIE_OS_OFFSET last_block; 
     // The number of valid blocks in this block collection.
-    size_t used_blocks;
+    TPIE_OS_OFFSET used_blocks;
     // The size of a physical block on the device this stream resides.
-    size_t os_block_size;
+    TPIE_OS_SIZE_T os_block_size;
     // Size in bytes of each logical block.
-    size_t block_size;
+    TPIE_OS_SIZE_T block_size;
     // Some data to be filled by the user of the collection.
     char user_data[BTE_COLLECTION_USER_DATA_LEN];
   
@@ -132,7 +132,7 @@ protected:
 
     char base_file_name_[BTE_COLLECTION_PATH_NAME_LEN];
 
-    size_t os_block_size_;
+    TPIE_OS_SIZE_T os_block_size_;
 
     // Persistency flag. Set during construction and using the persist()
     // method.
@@ -145,7 +145,7 @@ protected:
     bool read_only_;
 
     // Number of blocks from this collection that are currently in memory
-    size_t in_memory_blocks_;
+    TPIE_OS_SIZE_T in_memory_blocks_;
 
     // File pointer position. A value of -1 signals unknown position.
     TPIE_OS_OFFSET file_pointer;
@@ -173,20 +173,20 @@ private:
 protected:
 
     // Needs to be inlined!
-    BTE_err register_memory_allocation(size_t sz) {
+    BTE_err register_memory_allocation(TPIE_OS_SIZE_T sz) {
 	if (MM_manager.register_allocation(sz) != MM_ERROR_NO_ERROR) {
 	    status_ = BTE_COLLECTION_STATUS_INVALID;
-	    LOG_FATAL_ID("Memory manager error in allocation.");
+	   TP_LOG_FATAL_ID("Memory manager error in allocation.");
 	    return BTE_ERROR_MEMORY_ERROR;
 	}
 	return BTE_ERROR_NO_ERROR;
     }
 
     // Needs to be inlined!
-    BTE_err register_memory_deallocation(size_t sz) {
+    BTE_err register_memory_deallocation(TPIE_OS_SIZE_T sz) {
 	if (MM_manager.register_deallocation(sz) != MM_ERROR_NO_ERROR) {
 	    status_ = BTE_COLLECTION_STATUS_INVALID;
-	    LOG_FATAL_ID("Memory manager error in deallocation.");
+	   TP_LOG_FATAL_ID("Memory manager error in deallocation.");
 	    return BTE_ERROR_MEMORY_ERROR;
 	}
 	return BTE_ERROR_NO_ERROR;
@@ -209,7 +209,7 @@ protected:
 	    tp_assert(freeblock_stack_ != NULL, 
 		      "BTE_collection_ufs internal error: NULL stack pointer");
 	    // TODO: this is a costly operation. improve!
-	    size_t slen = freeblock_stack_->stream_len();
+	    TPIE_OS_OFFSET slen = freeblock_stack_->stream_len();
 	    tp_assert(slen > 0, "BTE_collection_ufs internal error: empty stack");
 	    if ((err = freeblock_stack_->pop(&lbn)) != BTE_ERROR_NO_ERROR)
 		return err;
@@ -231,7 +231,7 @@ protected:
 
 #if BTE_COLLECTION_USE_FTRUNCATE
 		if (TPIE_OS_FTRUNCATE(bcc_fd_, bid_to_file_offset(header_.total_blocks))) {
-		    LOG_FATAL_ID("Failed to truncate to the new end of file.");
+		   TP_LOG_FATAL_ID("Failed to truncate to the new end of file.");
 		    //LOG_FATAL_ID(strerror(errno));
 		    return BTE_ERROR_OS_ERROR;
 		}
@@ -240,7 +240,7 @@ protected:
 		TPIE_OS_OFFSET curr_off;
 
 		if ((curr_off = TPIE_OS_LSEEK(bcc_fd_, 0, TPIE_OS_FLAG_SEEK_END)) == (TPIE_OS_OFFSET)(-1)) {
-		    LOG_FATAL_ID("Failed to seek to the end of file.");
+		   TP_LOG_FATAL_ID("Failed to seek to the end of file.");
 		    //LOG_FATAL_ID(strerror(errno));
 		    return BTE_ERROR_OS_ERROR;
 		}
@@ -280,16 +280,16 @@ public:
 			size_t logical_block_factor, TPIE_OS_MAPPING_FLAG mapping = TPIE_OS_FLAG_USE_MAPPING_FALSE);
 
     // Return the total number of used blocks.
-    size_t size() const { return header_.used_blocks; }
+	TPIE_OS_OFFSET size() const { return header_.used_blocks; }
                           	
     // Return the total number of blocks consumed by the block collection.
-    size_t file_size() const { return header_.total_blocks - 1; }
+	TPIE_OS_OFFSET file_size() const { return header_.total_blocks - 1; }
 
     // Return the logical block size in bytes.
-    size_t block_size() const { return header_.block_size; }
+	TPIE_OS_SIZE_T block_size() const { return header_.block_size; }
 
     // Return the logical block factor.
-    size_t block_factor() const 
+	TPIE_OS_SIZE_T block_factor() const 
 	{ return header_.block_size / header_.os_block_size; }
 
     // Return the status of the collection.
@@ -353,7 +353,7 @@ BTE_collection_base<BIDT>::BTE_collection_base(const char *base_name,
 
   if (base_name == NULL) {
     status_ = BTE_COLLECTION_STATUS_INVALID;
-    LOG_FATAL_ID("NULL file name passed to constructor");
+   TP_LOG_FATAL_ID("NULL file name passed to constructor");
     return;
   }
   
@@ -368,7 +368,7 @@ BTE_collection_base<BIDT>::BTE_collection_base(const char *base_name,
 
 template<class BIDT>
 void BTE_collection_base<BIDT>::shared_init(BTE_collection_type type,
-				      size_t logical_block_factor, TPIE_OS_MAPPING_FLAG mapping) {
+				      TPIE_OS_SIZE_T logical_block_factor, TPIE_OS_MAPPING_FLAG mapping) {
   read_only_ = (type == BTE_READ_COLLECTION);
   status_ = BTE_COLLECTION_STATUS_VALID;
   in_memory_blocks_ = 0;
@@ -384,8 +384,8 @@ void BTE_collection_base<BIDT>::shared_init(BTE_collection_type type,
 
     if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(bcc_fd_ = TPIE_OS_OPEN_ORDONLY(bcc_name, mapping))) {
       status_ = BTE_COLLECTION_STATUS_INVALID;
-      LOG_FATAL_ID("open() failed to open read-only file: ");
-      LOG_FATAL_ID(bcc_name);	
+     TP_LOG_FATAL_ID("open() failed to open read-only file: ");
+     TP_LOG_FATAL_ID(bcc_name);	
       return;
     }
 
@@ -421,8 +421,8 @@ void BTE_collection_base<BIDT>::shared_init(BTE_collection_type type,
       // Try again, hoping the file already exists.
       if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(bcc_fd_ = TPIE_OS_OPEN_ORDWR(bcc_name,mapping))) {
         status_ = BTE_COLLECTION_STATUS_INVALID;        
-        LOG_FATAL_ID("open() failed to open file:");
-	LOG_FATAL_ID(bcc_name);
+       TP_LOG_FATAL_ID("open() failed to open file:");
+	TP_LOG_FATAL_ID(bcc_name);
         return;
       }
       
@@ -484,14 +484,14 @@ BTE_err BTE_collection_base<BIDT>::read_header(char* bcc_name) {
   char * tmp_buffer = new char[os_block_size_];
 
   if (TPIE_OS_LSEEK(bcc_fd_, 0, TPIE_OS_FLAG_SEEK_SET) != 0) {
-    LOG_FATAL_ID("Failed to lseek in file:");
-    LOG_FATAL_ID(bcc_name);
+   TP_LOG_FATAL_ID("Failed to lseek in file:");
+   TP_LOG_FATAL_ID(bcc_name);
     return BTE_ERROR_IO_ERROR;
   }
 
   if (TPIE_OS_READ(bcc_fd_, (char *)tmp_buffer, os_block_size_) != (int)os_block_size_) {
-    LOG_FATAL_ID("Failed to read() in file:");
-    LOG_FATAL_ID(bcc_name);
+   TP_LOG_FATAL_ID("Failed to read() in file:");
+   TP_LOG_FATAL_ID(bcc_name);
     return BTE_ERROR_IO_ERROR;
   }
 
@@ -505,23 +505,23 @@ BTE_err BTE_collection_base<BIDT>::read_header(char* bcc_name) {
   // it has the correct header version, block size etc.
   if (header_.magic_number != BTE_COLLECTION_HEADER_MAGIC_NUMBER || 
       header_.os_block_size != os_block_size_) {
-    LOG_FATAL_ID("Invalid header in file: ");
-    LOG_FATAL_ID(bcc_name);
+   TP_LOG_FATAL_ID("Invalid header in file: ");
+   TP_LOG_FATAL_ID(bcc_name);
     return BTE_ERROR_BAD_HEADER;
   }
     
   TPIE_OS_OFFSET lseek_retval;
   // Some more error checking.
   if ((lseek_retval = TPIE_OS_LSEEK(bcc_fd_, 0, TPIE_OS_FLAG_SEEK_END)) != bid_to_file_offset(header_.total_blocks)) {
-    LOG_FATAL_ID("File length mismatch for:");
-    LOG_FATAL_ID(bcc_name);
-    LOG_FATAL("\tReturn value of seek (to end): ");
-    LOG_FATAL(lseek_retval);
-    LOG_FATAL("\n\tReturn value of bid_to_file_offset(header_.total_blocks): ");
-    LOG_FATAL(bid_to_file_offset(header_.total_blocks));
-    LOG_FATAL("\n\theader_.total_blocks: ");
-    LOG_FATAL(header_.total_blocks);
-    LOG_FATAL("\n");
+   TP_LOG_FATAL_ID("File length mismatch for:");
+   TP_LOG_FATAL_ID(bcc_name);
+   TP_LOG_FATAL("\tReturn value of seek (to end): ");
+   TP_LOG_FATAL(lseek_retval);
+   TP_LOG_FATAL("\n\tReturn value of bid_to_file_offset(header_.total_blocks): ");
+   TP_LOG_FATAL(bid_to_file_offset(header_.total_blocks));
+   TP_LOG_FATAL("\n\theader_.total_blocks: ");
+   TP_LOG_FATAL(header_.total_blocks);
+   TP_LOG_FATAL("\n");
     return BTE_ERROR_BAD_HEADER;
   }
 
@@ -539,21 +539,21 @@ BTE_err BTE_collection_base<BIDT>::write_header(char *bcc_name) {
 	 sizeof(BTE_collection_header));
 
   if (TPIE_OS_LSEEK(bcc_fd_, 0, TPIE_OS_FLAG_SEEK_SET) != 0) {
-    LOG_FATAL_ID("Failed to lseek() in file:");
-    LOG_FATAL_ID(bcc_name);
+   TP_LOG_FATAL_ID("Failed to lseek() in file:");
+   TP_LOG_FATAL_ID(bcc_name);
     return BTE_ERROR_IO_ERROR;
   }
 
   if (TPIE_OS_WRITE(bcc_fd_, tmp_buffer, os_block_size_) != (int)os_block_size_) {
-    LOG_FATAL_ID("Failed to write() in file:");
-    LOG_FATAL_ID(bcc_name);
+   TP_LOG_FATAL_ID("Failed to write() in file:");
+   TP_LOG_FATAL_ID(bcc_name);
     return BTE_ERROR_IO_ERROR;
   }
 
   file_pointer = os_block_size_;
 
-  //  LOG_APP_DEBUG_ID("header_.total_blocks: ");
-  //  LOG_APP_DEBUG_ID(header_.total_blocks);
+  // TP_LOG_APP_DEBUG_ID("header_.total_blocks: ");
+  // TP_LOG_APP_DEBUG_ID(header_.total_blocks);
 
   delete [] tmp_buffer;
   return BTE_ERROR_NO_ERROR;
@@ -570,8 +570,8 @@ BTE_collection_base<BIDT>::~BTE_collection_base() {
 
   // No block should be in memory at the time of destruction.
   if (in_memory_blocks_) {
-    LOG_WARNING_ID("In memory blocks when closing collection in:");
-    LOG_WARNING_ID(base_file_name_);
+   TP_LOG_WARNING_ID("In memory blocks when closing collection in:");
+   TP_LOG_WARNING_ID(base_file_name_);
   }
 
 #if defined(__sun__) 
@@ -591,22 +591,22 @@ BTE_collection_base<BIDT>::~BTE_collection_base() {
 
   // Close the blocks file.
   if (TPIE_OS_CLOSE(bcc_fd_)) {            
-    LOG_FATAL_ID("Failed to close() ");
-    LOG_FATAL_ID(bcc_name);
+   TP_LOG_FATAL_ID("Failed to close() ");
+   TP_LOG_FATAL_ID(bcc_name);
     return;
   }
   
   // If necessary, remove the blocks file.
   if (per_ == PERSIST_DELETE) {
     if (read_only_) {
-      LOG_WARNING_ID("Read-only collection is PERSIST_DELETE");
-      LOG_WARNING_ID(bcc_name);
+     TP_LOG_WARNING_ID("Read-only collection is PERSIST_DELETE");
+     TP_LOG_WARNING_ID(bcc_name);
       return;
     } 
 
     if (TPIE_OS_UNLINK(bcc_name)) {
-      LOG_FATAL_ID("Failed to unlink() ");
-      LOG_FATAL_ID(bcc_name);
+     TP_LOG_FATAL_ID("Failed to unlink() ");
+     TP_LOG_FATAL_ID(bcc_name);
       return;
     } else {
       gstats_.record(COLLECTION_DELETE);
