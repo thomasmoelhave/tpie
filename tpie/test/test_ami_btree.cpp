@@ -3,10 +3,11 @@
 // File:    test_ami_btree.cpp
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: test_ami_btree.cpp,v 1.2 2001-05-29 15:22:02 tavi Exp $
+// Test file for class AMI_btree.
 //
-// Test file for AMI_btree.
-//
+
+#include <versions.h>
+VERSION(test_ami_btree_cpp, "$Id: test_ami_btree.cpp,v 1.3 2001-06-16 20:19:55 tavi Exp $");
 
 #include <fstream>
 
@@ -35,7 +36,11 @@ struct key_from_structure {
 #define AMI_BTREE_LEAF_INT  AMI_btree_leaf<key_type, structure, less<key_type>, key_from_structure>
 #define AMI_BTREE_INT  AMI_btree<key_type, structure, less<key_type>, key_from_structure>
 
-#define MAX_RANDOM_VALUE 500000000
+// This is 2**31-1, the max value returned by random().
+#define MAX_RANDOM ((double)0x7fffffff)
+// This is the max value that we want.
+#define MAX_RANDOM_VALUE 1000000000
+// The number of deletions to perform.
 #define DELETE_COUNT 100
 
 size_t bulk_load_count = 1000000;
@@ -54,8 +59,12 @@ int main(int argc, char **argv) {
   MM_manager.enforce_memory_limit();
 
   AMI_BTREE_INT *btree;
-  if (argc > 1)
+  if (argc > 1) {
     bulk_load_count = atol(argv[1]);
+  } else {
+    cerr << "Usage: " << argv[0] << " <point_count>\n";
+    exit(1);
+  }
 
   AMI_btree_params params;
   params.node_block_factor = 2;
@@ -81,7 +90,7 @@ int main(int argc, char **argv) {
   cout << "\tCreating stream with " << bulk_load_count << " random elements.\n";
   wt.start();
   for (size_t j = 0; j < bulk_load_count; j++) {
-    is->write_item(structure(random()%MAX_RANDOM_VALUE));
+    is->write_item(structure(long((random()/MAX_RANDOM) * MAX_RANDOM_VALUE)));
   }
   wt.stop();
   cout << "END Stream write " << wt << "\n";
@@ -121,7 +130,7 @@ int main(int argc, char **argv) {
     if (i <= DELETE_COUNT)
       s[i-1] = ss = structure(i+100000);
     else
-      ss = structure(random()%MAX_RANDOM_VALUE);
+      ss = structure(long((random()/MAX_RANDOM) * MAX_RANDOM_VALUE));
     btree->insert(ss);
     if (i % (insert_count/10) == 0)
       cout << i << " " << flush;
