@@ -27,6 +27,9 @@ Changes:
 
       * New statistics mechanism.
 
+      * New file magic_tpie in the test directory for testing TPIE file
+        types using the UNIX 'file' utility.
+
 New release :     0.9.01b
 Previous Release: 0.9.01a
 Changes:
