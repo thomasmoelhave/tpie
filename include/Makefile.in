@@ -2,7 +2,7 @@
 #
 # The Makefile for the TPIE include directory.
 #
-# $Id: Makefile.in,v 1.1 1994-05-25 19:32:28 dev Exp $
+# $Id: Makefile.in,v 1.2 1994-05-27 19:49:27 dev Exp $
 #
 
 INDENT=gindent
@@ -13,6 +13,15 @@ CP=cp
 
 PERL=perl
 
+ETAGS=etags
+
+AMI_FILES=ami.h ami_base.h ami_imps.h ami_scan.h ami_single.h
+
+BTE_FILES=bte.h bte_base_stream.h bte_mmb.h bte_stdio.h
+
+LOG_FILES=logstream.h tpie_log.h tpie_assert.h
+
+TAG_FILES=$(AMI_FILES) $(BTE_FILES) $(LOG_FILES) 
 
 # Build the header file that will actually be used by using the
 # C preprocessor to expand all of the macros in the source file.
@@ -24,6 +33,10 @@ ami_scan.h: ami_scan_mac.cpp ami_scan_mac.h ami_scan.h.head ami_scan.h.tail
 	    'while (<>) { print "\n" if /template/; print if /.+/; }' >> $@
 	$(CAT) ami_scan.h.tail >> $@
 
+
+# Build a new tags file for emacs to use.
+TAGS: $(TAG_FILES)
+	$(ETAGS) $(TAG_FILES)
 
 
 
