@@ -7,7 +7,7 @@
 
 
 
-static char ami_device_id[] = "$Id: ami_device.cpp,v 1.1 1994-08-31 19:39:09 darrenv Exp $";
+static char ami_device_id[] = "$Id: ami_device.cpp,v 1.2 1994-09-29 13:25:28 darrenv Exp $";
 
 
 #include <unistd.h>
@@ -55,6 +55,10 @@ const char * AMI_device::operator[](unsigned int index)
     return argv[index];
 }
 
+unsigned int AMI_device::arity()
+{
+    return argc;
+}
 
 void AMI_device::dispose_contents(void)
 {
