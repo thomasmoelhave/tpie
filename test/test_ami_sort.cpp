@@ -6,7 +6,7 @@
 //
 // A test for AMI_sort().
 
-static char test_ami_sort_id[] = "$Id: test_ami_sort.cpp,v 1.6 1994-11-02 21:53:28 darrenv Exp $";
+static char test_ami_sort_id[] = "$Id: test_ami_sort.cpp,v 1.7 1995-03-21 16:44:44 dev Exp $";
 
 // This is just to avoid an error message since the string above is never
 // refereneced.  Note that a self referential structure must be defined to
@@ -35,6 +35,8 @@ static struct ___test_ami_sort_id_compiler_fooler {
 // Define it all.
 #include <ami.h>
 
+#include <ami_kb_sort.h>
+
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
 
@@ -55,7 +57,9 @@ static bool sort_again = false;
 
 static bool use_operator = false;
 
-static const char as_opts[] = "R:S:rsao";
+static bool kb_sort = false;
+
+static const char as_opts[] = "R:S:rsaok";
 void parse_app_opt(char c, char *optarg)
 {
     switch (c) {
@@ -74,6 +78,9 @@ void parse_app_opt(char c, char *optarg)
             break;
         case 'o':
             use_operator = !use_operator;
+            break;
+        case 'k':
+            kb_sort = !kb_sort;
             break;
     }
 }
@@ -180,10 +187,15 @@ int main(int argc, char **argv)
     getrusage(RUSAGE_SELF, &ru0);
 #endif
 
-    if (use_operator) {
-        ae = AMI_sort(&amis0, &amis1);
+    if (kb_sort) {
+        key_range range(KEY_MIN, KEY_MAX);
+        ae = AMI_kb_sort(amis0, amis1, range);
     } else {
-        ae = AMI_sort(&amis0, &amis1, cc_int_cmp);
+        if (use_operator) {
+            ae = AMI_sort(&amis0, &amis1);
+        } else {
+            ae = AMI_sort(&amis0, &amis1, cc_int_cmp);
+        }
     }
     
 #if HAVE_GETRUSAGE
@@ -272,6 +284,9 @@ TEMPLATE_INSTANTIATE_OSTREAM(int)
 TEMPLATE_INSTANTIATE_SCAN_RANDOM
 TEMPLATE_INSTANTIATE_SCAN_DIFF(int)
 TEMPLATE_INSTANTIATE_MERGE_RANDOM(int)
+
+
+TEMPLATE_INSTANTIATE_KB_SORT(int)
 
 
 #endif
