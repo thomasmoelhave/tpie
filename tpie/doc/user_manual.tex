@@ -1,5 +1,5 @@
 %%
-%% $Id: user_manual.tex,v 1.9 1999-06-20 17:09:31 tavi Exp $
+%% $Id: user_manual.tex,v 1.10 1999-06-21 00:30:51 rajiv Exp $
 %%
 \chapter{Overview}
 
@@ -83,7 +83,7 @@ at URL \verb|http://www.cs.duke.edu/TPIE/|.
 
 To obtain the TPIE source distribution\index{source distribution}, follow the
 pointers from the home page to the distribution itself, which consists
-of a gzipped tar file named {\tt tpie-\version.tar.gz}.  Your Web
+of a gzipped tar file named {\tt tpie-\version.tgz}.  Your Web
 browser should be capable of downloading this file to your local
 machine.
 
@@ -115,21 +115,16 @@ available from
 \index{installation}
 
 Once you have obtained the TPIE source distribution file
-{\tt tpie-\version.tar.gz}, you must decide where to install it.
+{\tt tpie-\version.tgz}, you must decide where to install it.
 \verb|/usr/local/tpie/| is a typical place.
 
-Place {\tt tpie-\version.tar.gz} in the directory in which TPIE is to
+Place {\tt tpie-\version.tgz} in the directory in which TPIE is to
 be installed, \verb|cd| into that directory, and execute the command
 
-%\begin{verbatim}
-%tar czf tpie-\version.tar.gz
-%\end{verbatim}
-%
-%or
-
-\begin{verbatim}
-gunzip -c tpie-\version.tar.gz | tar xvf -
-\end{verbatim}
+\begin{flushleft}
+{\tt tar xzf tpie-\version.tgz}
+(or {\tt gunzip -c tpie-\version.tgz | tar xvf -} )  
+\end{flushleft}
 
 
 This will produce a directory {\tt tpie-\version} with subdirectories
