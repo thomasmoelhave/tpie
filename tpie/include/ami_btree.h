@@ -3,7 +3,7 @@
 // File:    ami_btree.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_btree.h,v 1.16 2002-07-23 20:13:52 tavi Exp $
+// $Id: ami_btree.h,v 1.17 2002-07-23 21:07:08 tavi Exp $
 //
 // AMI_btree declaration and implementation.
 //
@@ -237,10 +237,11 @@ protected:
 
   class comp_for_sort {
     Compare comp_;
+    KeyOfValue kov_;
   public:
     int compare(const Value& v1, const Value& v2) {
-      return (comp_(KeyOfValue()(v1), KeyOfValue()(v2)) ? -1: 
-	      (comp_(KeyOfValue()(v2), KeyOfValue()(v1)) ? 1: 0));
+      return (comp_(kov_(v1), kov_(v2)) ? -1: 
+	      (comp_(kov_(v2), kov_(v1)) ? 1: 0));
     }
   }; 
 
