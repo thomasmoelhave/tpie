@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/6/94
 //
-// $Id: merge_interleave.h,v 1.3 1998-11-08 22:14:44 tavi Exp $
+// $Id: merge_interleave.h,v 1.4 2000-01-12 20:57:25 hutchins Exp $
 //
 // A merge object to interleave two streams.
 //
@@ -12,7 +12,7 @@
 #define _MERGE_INTERLEAVE_H
 
 
-template<class T> class merge_interleave : AMI_merge_base<T> {
+template<class T> class merge_interleave /*: AMI_merge_base<T> */{
 private:
     T hold;
 
