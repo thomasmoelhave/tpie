@@ -1,7 +1,7 @@
 # Makefile for TPIE library.
 # Use GNU make on this Makefile. It relies on the default rules.
 # Use (GNU) "make -p" to see the default rules.
-# $Id: Makefile.in,v 1.32 2002-01-14 15:35:31 tavi Exp $
+# $Id: Makefile.in,v 1.33 2002-02-02 18:16:03 tavi Exp $
 
 ARFLAGS = rv
 CXX = @CXX@
@@ -12,8 +12,6 @@ RANLIB = @RANLIB@
 TPIEINC = ../../include
 # The name of the library.
 LIBRARY = libtpie.a
-# To compile with debugging symbols, set this to 1.
-MINUSG = 0
 
 # CPPFLAGS is used by the default rules. Using "override" and "+="
 # allows the user to prepend things to CPPFLAGS on the command line.
@@ -25,6 +23,10 @@ ifeq ($(MINUSG),1)
 override CPPFLAGS += -g
 else
 override CPPFLAGS += -O3# -DNDEBUG 
+endif
+
+ifeq ($(MINUSPG),1)
+override CPPFLAGS += -pg
 endif
 
 # All sources must be listed here.
@@ -45,7 +47,8 @@ SRC =	logstream.cpp \
 	ami_optimized_merge.cpp \
 	bte_coll_base.cpp \
 	bte_coll_mmap.cpp \
-	bte_coll_ufs.cpp
+	bte_coll_ufs.cpp \
+	tpie_tempnam.cpp
 
 OBJ =	$(SRC:.cpp=.o)
 
