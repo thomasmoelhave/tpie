@@ -1,5 +1,5 @@
 %%
-%% $Id: user_manual.tex,v 1.5 1999-05-12 13:52:32 rbarve Exp $
+%% $Id: user_manual.tex,v 1.6 1999-06-12 16:56:17 rbarve Exp $
 %%
 \chapter{Overview}
 
@@ -1138,6 +1138,7 @@ provides a single function \verb|AMI_sort()|, which selects an
 appropriate algorithm based on the underlying hardware
 characteristics.
 
+\subsubsection{AMI\_sort()}
 \verb|AMI_sort()| has two polymorphs.  The first works on streams of
 objects for which the operator \verb|<| is defined.  It is invoked as
 follows:
@@ -1190,6 +1191,78 @@ void f()
     AMI_sort(&instream, &outstream_im, compare_im);
 }
 \end{verbatim}
+
+\subsubsection{Other Sorting Functions}
+TPIE also offers three other sorting functions, with different approaches used
+in implementation. Section~\ref{sec:ref-ami-merge} and Section~\ref{sec:ref-imp-ami-sort}
+provide more details with regards to the difference in the implementation details.
+
+The first function called \verb|AMI_partition_and_merge_stream()| provides input
+and functionality identical to the first \verb|AMI_sort()| polymorph mentioned above,
+that is it assumes that the input items have a well-defined \verb| <| operator.
+So we can sort by
+\begin{verbatim}
+AMI_STREAM<int> instream;
+AMI_STREAM<int> outstream;
+
+void f()
+{
+    AMI_partition_and_merge_stream(&instream, &outstream);
+}
+\end{verbatim}
+
+The second function,  \verb|AMI_partition_and_merge_stream_cmp()|
+on the other hand is identical in functionality to the second \verb|AMI_sort()| 
+polymorph mentioned above, and as in that case, uses an explicit function to
+determine the relative order of two objects in the input stream. Thus with 
+the class \verb|complex|, the functions \verb|compare_re| and \verb|compare_im|,
+and streams \verb|instream|, \verb|outstream_re| and \verb|outstream_im| as 
+defined above, we'd do a 
+\begin{verbatim}}
+
+void f()
+{
+    AMI_partition_and_merge_stream_cmp(&instream, &outstream_re, compare_re);
+    AMI_partition_and_merge_stream_cmp(&instream, &outstream_im, compare_im);
+}
+\end{verbatim}
+to  perform the same operations.
+
+The last function is based on the assumption that the items being sorted have 
+a KEY field with  well-defined (possibly via overloading) \verb| <|, \verb| >|,
+operators etc. and the items are to be sorted in the order imposed on them
+by the KEY fields. So for instance consider the class \verb|rectangle|
+below meant for axis parallel rectangles:
+\begin{verbatim}}
+class rectangle{
+double northEast_x;
+double northEast_y;
+double southWest_x;
+double southWest_y;
+}
+\end{verbatim}
+and suppose that we want to sort a stream of rectangles in descending order according
+to their \verb|southWest_y| co-ordinate. Then assuming that the size of each 
+\verb|double| is 8 bytes, we simply sort a stream \verb|instream| of rectangles as
+follows:
+ 
+\begin{verbatim}
+AMI_STREAM<rectangle> instream;
+AMI_STREAM<rectangle> outstream;
+double dummyKey;
+void f()
+{
+    AMI_partition_and_merge_Key(&instream, &outstream, 24, dummyKey );
+}
+\end{verbatim}
+
+The third argument above is basically the offset into the item of the field
+\verb|southWest_y| which is the KEY according to which the stream is to be sorted.
+The third argument is the offset within the item of the key according to which the items are to
+be sorted. And the fourth argument is a dummy argument having the same type as the
+KEY.
+
+
 
 \index{sorting!comparison|)}
 
