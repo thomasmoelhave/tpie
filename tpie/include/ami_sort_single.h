@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 9/28/94
 //
-// $Id: ami_sort_single.h,v 1.21 2004-10-15 15:33:24 jan Exp $
+// $Id: ami_sort_single.h,v 1.22 2005-01-14 18:40:35 tavi Exp $
 //
 // Merge sorting for the AMI_STREAM_IMP_SINGLE implementation.
 // 
@@ -19,7 +19,6 @@
 
 // For use in core by main_mem_operate().
 #include <quicksort.h>
-
 #include <pqueue_heap.h>
 
 #include <ami_merge.h>
@@ -134,6 +133,14 @@ template <class T, class Q>
 class merge_sort_manager_op : public merge_sort_manager<T,Q> {
 private:
     Q *new_pqueue(arity_t arity);
+protected:
+    using merge_sort_manager<T,Q>::pq;
+    using merge_sort_manager<T,Q>::input_arity;
+#if DEBUG_ASSERTIONS
+    using merge_sort_manager<T,Q>::input_count;
+    using merge_sort_manager<T,Q>::output_count;
+#endif
+
 public:
     merge_sort_manager_op(void);    
     virtual ~merge_sort_manager_op(void);    
@@ -220,6 +227,14 @@ class merge_sort_manager_obj : public merge_sort_manager<T,Q> {
 private:
     CMPR *cmp_o;
     Q *new_pqueue(arity_t arity);
+protected:
+    using merge_sort_manager<T,Q>::pq;
+    using merge_sort_manager<T,Q>::input_arity;
+#if DEBUG_ASSERTIONS
+    using merge_sort_manager<T,Q>::input_count;
+    using merge_sort_manager<T,Q>::output_count;
+#endif
+
 public:
     merge_sort_manager_obj(CMPR *cmp);
     virtual ~merge_sort_manager_obj(void);    
@@ -309,6 +324,14 @@ class merge_sort_manager_cmp : public merge_sort_manager<T,Q> {
 private:
     int (*cmp_f)(CONST T&, CONST T&);
     Q *new_pqueue(arity_t arity);
+protected:
+    using merge_sort_manager<T,Q>::pq;
+    using merge_sort_manager<T,Q>::input_arity;
+#if DEBUG_ASSERTIONS
+    using merge_sort_manager<T,Q>::input_count;
+    using merge_sort_manager<T,Q>::output_count;
+#endif
+
 public:
     merge_sort_manager_cmp(int (*cmp)(CONST T&, CONST T&));
     virtual ~merge_sort_manager_cmp(void);    

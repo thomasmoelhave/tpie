@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/11/94
 //
-// $Id: bte_stream_base.h,v 1.7 2004-08-12 12:35:31 jan Exp $
+// $Id: bte_stream_base.h,v 1.8 2005-01-14 18:37:04 tavi Exp $
 //
 #ifndef _BTE_STREAM_BASE_H
 #define _BTE_STREAM_BASE_H
@@ -97,6 +97,9 @@ public:
 // UN*X file system streams, and kernel streams).
 template<class T> class BTE_stream_base: public BTE_stream_base_generic {
 protected:
+  using BTE_stream_base_generic::remaining_streams;
+  using BTE_stream_base_generic::gstats_;
+  
     // The persistence status of this stream.
     persistence per;
     // The status (integrity) of this stream.
