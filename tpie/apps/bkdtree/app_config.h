@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/6/94
 //
-// $Id: app_config.h,v 1.10 1995-06-30 21:09:08 darrenv Exp $
+// $Id: app_config.h,v 1.11 1998-11-26 21:59:35 rajiv Exp $
 //
 #ifndef _APP_CONFIG_H
 #define _APP_CONFIG_H
@@ -18,13 +18,18 @@
 
 // Many apps use random numbers.
 
-extern "C" void srandom(unsigned int);
-extern "C" long int random(void);
+#include <stdlib.h>
+// extern "C" void srandom(unsigned int);
+// extern "C" long int random(void);
 
 // Use logs if requested.
 #if TP_LOG_APPS
-#define TPL_LOGGING 1
+//#define TPL_LOGGING 1
 #endif
+// R..
+#undef TP_LOG_LIB
+#undef TP_LOG_APPS
+
 #include <tpie_log.h>
 
 // Enable assertions if requested.
@@ -53,23 +58,36 @@ extern "C" long int random(void);
 #define AMI_IMP_SINGLE
 
 // Pick a version of BTE streams.
-//#define BTE_IMP_MMB
+#define BTE_IMP_MMB
 //#define BTE_IMP_CACHE
-#define BTE_IMP_STDIO
+//#define BTE_IMP_STDIO
 //#define BTE_IMP_UFS
 //#define BTE_IMP_BCS
+
+
+
 
 #ifdef BTE_IMP_MMB
 
 #ifndef BTE_MMB_LOGICAL_BLOCKSIZE_FACTOR
-#define BTE_MMB_LOGICAL_BLOCKSIZE_FACTOR 2
+#define BTE_MMB_LOGICAL_BLOCKSIZE_FACTOR 16
 #endif
 
-#if HAVE_LIBAIO
+/* enable/disable read ahead */
 #define BTE_MMB_READ_AHEAD 1
-#endif
 
-#endif
+/* prefetch (read ahead) method:
+ * USE_LIBAIO - use asynchronous IO
+ * else - use mmap
+ */
+//#  define USE_LIBAIO
+
+
+#endif // BTE_IMP_MMB
+
+
+
+
 
 #ifdef BTE_IMP_CACHE
 #define BTE_MMB_CACHE_LINE_SIZE 256
@@ -81,6 +99,5 @@ extern size_t test_mm_size;
 extern size_t test_size;
 extern int random_seed;
 
+#endif
 
-
-#endif // _APP_CONFIG_H 
