@@ -7,7 +7,7 @@
 
 
 
-static char ami_device_id[] = "$Id: ami_device.cpp,v 1.3 1994-10-31 21:19:05 darrenv Exp $";
+static char ami_device_id[] = "$Id: ami_device.cpp,v 1.4 1999-04-25 02:13:55 rajiv Exp $";
 
 
 #include "lib_config.h"
@@ -105,6 +105,14 @@ AMI_err AMI_device::set_to_path(const char *path)
         argv[ii] = new char[s - t + 1];
         strncpy(argv[ii], t, s - t);
         argv[ii][s - t] = '\0';
+
+		// make sure there is no trailing /
+		for(int i=s-t-1; i && argv[ii][i] == '/'; i++) {
+		  argv[ii][i] = '\0';
+		}
+		tp_assert(strlen(argv[ii]) > 0, "non-null path specified");
+		tp_assert(strlen(argv[ii]) == 1 ||
+				  argv[ii][strlen(argv[ii])] != '/', "no / suffix");
     }
 
     return AMI_ERROR_NO_ERROR;
