@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/12/94
 //
-// $Id: logstream.h,v 1.16 2003-09-12 01:46:38 jan Exp $
+// $Id: logstream.h,v 1.17 2004-05-06 16:02:14 adanner Exp $
 //
 
 #ifndef _LOGSTREAM_H
@@ -46,8 +46,8 @@ class logstream : public ofstream {
     _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const float);
     _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const double);
     
-    //  WIN32 does not support data type "long long".
-    TPIE_OS_UNIX_ONLY_DATA_TYPE_LONG_LONG
+    //  Unix "long long", Win32 "LONGLONG".
+    TPIE_OS_DECLARE_LOGSTREAM_LONGLONG
 };
 
 
