@@ -7,13 +7,15 @@
 // lower level streams will use appropriate levels of buffering.  This
 // will be more critical for parallel disk implementations.
 //
-// $Id: ami_merge.h,v 1.33 2002-01-14 15:56:56 tavi Exp $
+// $Id: ami_merge.h,v 1.34 2002-01-15 03:23:24 tavi Exp $
 //
 #ifndef _AMI_MERGE_H
 #define _AMI_MERGE_H
 
 // For log() and such as needed to compute tree heights.
 #include <math.h>
+
+#include <ami_stream.h>
 
 enum AMI_merge_output_type {
     AMI_MERGE_OUTPUT_OVERWRITE = 1,
