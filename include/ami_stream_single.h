@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/19/94
 //
-// $Id: ami_stream_single.h,v 1.4 2002-03-14 20:29:03 tavi Exp $
+// $Id: ami_stream_single.h,v 1.5 2002-07-20 21:35:20 tavi Exp $
 //
 // AMI entry points implemented on top of a single BTE.  This is useful
 // for single CPU, single disk machines.
@@ -20,7 +20,6 @@
 #include <stdio.h>
 
 // For free()
-// #include <malloc.h>
 #include <stdlib.h>
 
 // To make assertions.
@@ -157,7 +156,7 @@ public:
 template<class T>
 AMI_stream_single<T>::AMI_stream_single(unsigned int device) {
 
-  // (tavi) Trick to fix an error that appears in gcc 2.8.1
+  // [tavi] Hack to fix an error that appears in gcc 2.8.1
   if (device == UINT_MAX) {
     device = (device_index = ((device_index + 1) % default_device.arity()));
   }
@@ -166,16 +165,7 @@ AMI_stream_single<T>::AMI_stream_single(unsigned int device) {
   destruct_bte = 1;
   
   // Get a unique name.
-  char tmp_path[BUFSIZ];
-  char *path;
-  sprintf(tmp_path, "%s/AMI_XXXXXX", default_device[device]);
-  path = mktemp(tmp_path);
-  if (path == NULL) {
-    LOG_FATAL_ID("No temporary path name returned on device:");
-    LOG_FATAL_ID(default_device[device]);
-    status_ = AMI_STREAM_STATUS_INVALID;
-    return;
-  }
+  char *path = tpie_tempnam("AMI", default_device[device]);
   
   LOG_DEBUG_ID("Temporary stream in file: ");
   LOG_DEBUG_ID(path);
