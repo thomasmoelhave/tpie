@@ -1,4 +1,15 @@
+
+Thu May 17 19:29:14 2001 Octavian Procopiuc (tavi)
+
+	* ami_block.h, ami_block_base.h: Initial revision.
+
+	* bte_coll.h, bte_coll_mmb.h, bte_coll_base.h, bte_coll_ufs.h: 
+	Initial revision.
+
+	* ami_coll.h, ami_coll_base.h, ami_coll_single.h: Initial revision.
+
 Fri Oct 22 19:12:08 1999 Octavian Procopiuc (tavi)
+
 	* tpie_log.h: added LOG_APP_DEBUG level and corresponding macros, 
 	for messages logged by applications. Also added LOG_SET_THRESHOLD 
 	macro, for changing the threshold level.
@@ -7,6 +18,10 @@ Fri Oct 22 19:12:08 1999 Octavian Procopiuc (tavi)
 	to go all the way down, instead of stopping at a preset value, after 
 	which insertion_sort would be called). Also changed the value where 
 	quicksort bottoms out to 20, based on experiments on various machines.
+
+Sun Mar 28 04:15:34 1999 Rakesh Barve (rbarve)
+
+	* stdio_stack.h: Initial revision.
 	
 Wed Feb  3 13:14:55 1999 Octavian Procopiuc (tavi)
 
