@@ -7,13 +7,13 @@
 // A scan management object to write a stream of random integers.
 //
 
-static char scan_random_id[] = "$Id: scan_random.cpp,v 1.5 1999-11-02 17:07:47 tavi Exp $";
-
 // Get information on the configuration to test.
 #include "app_config.h"
 
 // Define it all.
 #include <ami.h>
+
+VERSION(scan_random_cpp,"$Id: scan_random.cpp,v 1.6 2000-01-11 01:45:02 hutchins Exp $");
 
 #include "scan_random.h"
 
