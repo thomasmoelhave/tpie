@@ -3,7 +3,7 @@
 // File:    bte_coll_ufs.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: bte_coll_ufs.h,v 1.1 2001-05-17 19:47:37 tavi Exp $
+// $Id: bte_coll_ufs.h,v 1.2 2001-06-16 20:18:10 tavi Exp $
 //
 // BTE_collection_ufs class definition.
 //
@@ -25,7 +25,18 @@ public:
   // Allocate a new block in block collection and then read that block into
   // memory, allocating and returning an appropriately initialized
   // Block. Main memory usage increases.
-  BTE_err new_block(off_t &bid, void * &place);
+  BTE_err new_block(off_t &bid, void * &place) {
+    BTE_err err;
+    stats_.record(BC_NEW);
+    // Get a block id.
+    if ((err = new_block_shared(bid)) != BTE_ERROR_NO_ERROR)
+      return err;
+    // We have a bid, so we can call the get_block routine.
+    if ((err = get_block_internals(bid, place)) != BTE_ERROR_NO_ERROR)
+      return err;
+    header_.used_blocks++;
+    return BTE_ERROR_NO_ERROR;
+  }
 
   // Delete a previously created, currently in-memory BLOCK. This causes
   // the number of free blocks in the collection to increase by 1, the bid
@@ -34,23 +45,42 @@ public:
   // correct. No check is made if the bid is an invalid or previously
   // unallocated bid, which will introduce erroneous entries in the
   // stdio_stack of free blocks. Main memory usage goes down.
-  BTE_err delete_block(off_t bid, void * place);
+  BTE_err delete_block(off_t bid, void * place) {
+    BTE_err err;
+    stats_.record(BC_DELETE);
+    if ((err = put_block_internals(bid, place, 1)) != BTE_ERROR_NO_ERROR)  
+      return err; 
+    if ((err = delete_block_shared(bid)) != BTE_ERROR_NO_ERROR)
+      return err;
+    header_.used_blocks--;
+    return BTE_ERROR_NO_ERROR;
+  }
 
   // Read the block with the indicated bid and allocate and initialize a
   // corresponding placeholder. NOTE once more that it is the user's onus
   // to ensure that the bid requested corresponds to a valid block and so
   // on; no checks made here to ensure that that is indeed the case. Main
   // memory usage increases.
-  BTE_err get_block(off_t bid, void * &place);
+  BTE_err get_block(off_t bid, void * &place) {
+    stats_.record(BC_GET);
+    return get_block_internals(bid, place);
+  }
 
   // Write a currently in-memory block. NOTE once more that it is the
   // user's onus to ensure that the bid is correct and so on; no checks
   // made here to ensure that that is indeed the case. Main memory usage
   // decreases.
-  BTE_err put_block(off_t bid, void * place, char dirty = 1);
+  BTE_err put_block(off_t bid, void * place, char dirty = 1) {
+    stats_.record(BC_PUT);
+    return put_block_internals(bid, place, dirty);
+  }
 
   // Synchronize the in-memory block with the on-disk block.
   BTE_err sync_block(off_t bid, void* place, char dirty = 1);
+
+protected:
+  BTE_err get_block_internals(off_t bid, void *&place);
+  BTE_err put_block_internals(off_t bid, void* place, char dirty);
 };
 
 #endif // _BTE_COLL_UFS_H
