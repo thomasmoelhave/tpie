@@ -1,0 +1,19 @@
+Thu Sep 29 12:54:06 1994  Darren Erik Vengroff  (darrenv@lazyboy)
+
+	* Makefile:
+	Misc. changes.  The overall organization of the makefiles could still
+	use some work, such as finding out exactly whaty header files things
+	are dependent on and building when those change.
+
+Thu Sep 22 15:22:39 1994  Darren Erik Vengroff  (darrenv@lazyboy)
+
+	* Makefile: Trying to integrate with the other Makefiles.
+
+Fri Sep 16 13:14:02 1994  Darren Erik Vengroff  (darrenv@lazyboy)
+
+	* Makefile: Checking in for transfer to and work at Duke.
+
+Wed May 25 19:46:14 1994  dev  (dev@lazyboy)
+
+	* meta-log.txt, Makefile: Initial revision
+
