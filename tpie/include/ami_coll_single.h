@@ -3,7 +3,7 @@
 // File:   ami_coll_single.h
 // Author: Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_coll_single.h,v 1.7 2002-01-15 03:01:31 tavi Exp $
+// $Id: ami_coll_single.h,v 1.8 2002-01-28 16:50:35 tavi Exp $
 //
 // AMI collection entry points implemented on top of a single BTE.
 //
@@ -51,7 +51,8 @@ public:
 
   // Inquire the status.
   AMI_collection_status status() const { return status_; }
-
+  bool is_valid() const { return status_ == AMI_COLLECTION_STATUS_VALID; }
+  
   // User data to be stored in the header.
   void *user_data() { return btec_->user_data(); }
 
