@@ -15,7 +15,7 @@
 // a quicksort using only keys of the items; there is a provision to 
 // to use templated heaps to implement the merge.
 
-// 	$Id: ami_optimized_merge.h,v 1.28 1999-04-25 01:08:04 rajiv Exp $	
+// 	$Id: ami_optimized_merge.h,v 1.29 1999-04-25 01:19:05 rajiv Exp $	
 //TO DO: substream_count setting; don't depend on current_stream_len
 
 
@@ -1262,20 +1262,13 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
 
     char * temp_string;
     temp_string = getenv(AMI_SINGLE_DEVICE_ENV);
-     if (temp_string == NULL){
-	    temp_string = getenv(TMP_DIR_ENV);
-      if (temp_string == NULL)
-	    {
-            temp_string = getenv(TMP_DIR); 
-            working_disk = tempnam(temp_string,"Temp");
-	    }
-       else
-             working_disk = tempnam(temp_string,"Temp");
+	if (temp_string == NULL){
+	  temp_string = getenv(TMP_DIR_ENV);
+      if (temp_string == NULL) {
+            temp_string = TMP_DIR;
+	  }
     }
-    else
-	 { 
-        working_disk = tempnam(temp_string,"Temp");
-	 }
+	working_disk = tempnam(temp_string,"Temp");
 
 
 
