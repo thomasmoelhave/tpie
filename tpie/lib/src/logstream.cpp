@@ -10,18 +10,24 @@
 #include <versions.h>
 #include <logstream.h>
 
-VERSION(logstream_cpp,"$Id: logstream.cpp,v 1.11 2000-07-29 16:20:58 tavi Exp $");
+VERSION(logstream_cpp,"$Id: logstream.cpp,v 1.12 2001-06-07 17:07:40 tavi Exp $");
 
-// Contructor
-
+// Contructor.
 logstream::logstream(const char *fname, 
 		     unsigned int p,
 		     unsigned int tp) 
 #ifdef UNIFIED_LOGGING
-: ofstream(2), priority(p), threshold(tp) {} 
+: ofstream(2), priority(p), threshold(tp) { log_initialized = true; } 
 #else
-: ofstream(fname), priority(p), threshold(tp) {} 
+: ofstream(fname), priority(p), threshold(tp) { log_initialized = true; } 
 #endif
+
+bool logstream::log_initialized = false;
+
+// Destructor.
+logstream::~logstream() {
+  log_initialized = false;
+}
 
 // Output operators.
 
