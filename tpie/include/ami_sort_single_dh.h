@@ -1,4 +1,7 @@
+//
 // File: ami_sort_single_dh.h
+//
+// $Id: ami_sort_single_dh.h,v 1.10 2002-01-14 16:07:04 tavi Exp $
 //
 // This file contains the templated routines
 //     1) AMI_sort:
@@ -39,7 +42,6 @@
 // heap class" and instantiate an object of that type. These classes
 // can be found in file mergeheap_dh.h.
 
-// 	$Id: ami_sort_single_dh.h,v 1.9 2001-04-23 19:33:12 hutchins Exp $	
 // TODO:
 //      (1) 'space_usage_overhead' is really overhead per item. Let's
 //      change it to 'space_usage_per_item' which is consistent with
@@ -48,8 +50,8 @@
 #ifndef _AMI_SORT_SINGLE_DH_H
 #define _AMI_SORT_SINGLE_DH_H
 
-#ifndef AMI_IMP_SINGLE
-#warning Including __FILE__ when AMI_IMP_SINGLE undefined.
+#ifndef AMI_STREAM_IMP_SINGLE
+#warning Including __FILE__ when AMI_STREAM_IMP_SINGLE undefined.
 #endif
 
 // For use in core by main_mem_operate().
