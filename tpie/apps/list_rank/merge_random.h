@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/5/94
 //
-// $Id: merge_random.h,v 1.10 2003-09-12 01:17:16 jan Exp $
+// $Id: merge_random.h,v 1.11 2003-09-12 01:30:19 tavi Exp $
 //
 // A merge managment object that reorders the input stream in a random
 // way.
@@ -14,13 +14,6 @@
 
 #include <portability.h>
 
-#if 0
-extern "C" void srandom(unsigned int);
-// Linux defines this random as a macro.
-#ifndef random
-extern "C" long int random(void);
-#endif
-#endif
 
 template<class T>
 class merge_random : public AMI_generalized_merge_base<T> {
@@ -80,7 +73,7 @@ AMI_err merge_random<T>::initialize(arity_t arity,
     // Insert an element with random priority for each non-empty stream.
     for (ii = arity; ii--; ) {
         if (in[ii] != NULL) {
-            pq->insert(ii,random());
+            pq->insert(ii,TPIE_OS_RANDOM());
         }
     }
     
@@ -130,7 +123,7 @@ AMI_err merge_random<T>::operate(CONST T * CONST *in,
 
         if (in[min_source] != NULL) {
             *out = *(in[min_source]);
-            pqret = pq->insert(min_source, random());
+            pqret = pq->insert(min_source, TPIE_OS_RANDOM());
             tp_assert(pqret, "pq->insert() failed.");
             taken_index = min_source;
             return AMI_MERGE_OUTPUT;
@@ -155,7 +148,7 @@ AMI_err merge_random<T>::main_mem_operate(T* mm_stream,
     int rand_index;
     
     for (ii = 0; ii < len - 1; ii++) {
-        rand_index = ii + (random() % (len - ii));
+        rand_index = ii + (TPIE_OS_RANDOM() % (len - ii));
         temp = mm_stream[ii];
         mm_stream[ii] = mm_stream[rand_index];
         mm_stream[rand_index] = temp;
