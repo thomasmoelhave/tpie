@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 3/6/95
 //
-// $Id: scan_uniform_sm.h,v 1.3 1995-06-30 21:09:32 darrenv Exp $
+// $Id: scan_uniform_sm.h,v 1.4 1999-02-03 22:17:08 tavi Exp $
 //
 #ifndef _SCAN_UNIFORM_SM_H
 #define _SCAN_UNIFORM_SM_H
@@ -25,14 +25,5 @@ public:
     AMI_err initialize(void);
     AMI_err operate(AMI_sm_elem<double> *out, AMI_SCAN_FLAG *sf);
 };
-
-#ifdef NO_IMPLICIT_TEMPLATES
-
-#define TEMPLATE_INSTANTIATE_SCAN_UNIFORM_SM				\
-template AMI_err AMI_scan(scan_uniform_sm *,				\
-                          AMI_STREAM< AMI_sm_elem<double> > *);
-
-#endif
-
 
 #endif // _SCAN_UNIFORM_SM_H 

@@ -5,7 +5,7 @@
 // Created: 3/29/95
 //
 
-static char smooth_id[] = "$Id: smooth.cpp,v 1.2 1997-05-20 22:12:27 vengroff Exp $";
+static char smooth_id[] = "$Id: smooth.cpp,v 1.3 1999-02-03 22:18:39 tavi Exp $";
 
 
 
@@ -129,34 +129,6 @@ inline AMI_err scan_nas_psuedo_rand::operate(double *out, AMI_SCAN_FLAG *sf)
 
 // End of the uniform scanner.
 
-
-// Instantiate all the templates we will use.
-
-#ifdef NO_IMPLICIT_TEMPLATES
-
-// Instantiate templates for streams of objects.
-TEMPLATE_INSTANTIATE_STREAMS(double)
-
-// Instantiate templates for I/O using C++ streams.
-TEMPLATE_INSTANTIATE_OSTREAM(double)
-TEMPLATE_INSTANTIATE_OSTREAM(AMI_sm_elem<double>)
-TEMPLATE_INSTANTIATE_ISTREAM(AMI_sm_elem<double>)
-
-// Instantiate external matrices
-TEMPLATE_INSTANTIATE_AMI_MATRIX(double)
-
-// Instantiate external sparse matrices
-TEMPLATE_INSTANTIATE_AMI_SPARSE_MATRIX(double)
-
-// Matrix fillers
-// TEMPLATE_INSTANTIATE_FILL_VALUE(double)
-
-template AMI_err AMI_scan(scan_nas_psuedo_rand *, AMI_STREAM<double> *);
-
-//
-TEMPLATE_INSTANTIATE_SBS
-
-#endif
 
 static char def_srf[] = "/var/tmp/osc.txt";
 static char def_brf[] = "/var/tmp/osi.txt";

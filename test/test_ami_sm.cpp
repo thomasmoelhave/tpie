@@ -5,7 +5,7 @@
 // Created: 3/2/95
 //
 
-static char test_ami_sm_id[] = "$Id: test_ami_sm.cpp,v 1.2 1995-06-20 20:15:53 darrenv Exp $";
+static char test_ami_sm_id[] = "$Id: test_ami_sm.cpp,v 1.3 1999-02-03 22:25:33 tavi Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -44,30 +44,6 @@ static struct ___test_ami_sm_id_compiler_fooler {
 #include "scan_uniform_sm.h"
 
 #include <cpu_timer.h>
-
-// Instantiate all the templates we will.
-
-#ifdef NO_IMPLICIT_TEMPLATES
-
-// Instantiate templates for streams of objects.
-TEMPLATE_INSTANTIATE_STREAMS(double)
-
-// Instantiate templates for I/O using C++ streams.
-TEMPLATE_INSTANTIATE_OSTREAM(double)
-TEMPLATE_INSTANTIATE_OSTREAM(AMI_sm_elem<double>)
-TEMPLATE_INSTANTIATE_ISTREAM(AMI_sm_elem<double>)
-
-// Instantiate external matrices
-TEMPLATE_INSTANTIATE_AMI_MATRIX(double)
-
-// Instantiate external sparse matrices
-TEMPLATE_INSTANTIATE_AMI_SPARSE_MATRIX(double)
-
-// Matrix fillers
-TEMPLATE_INSTANTIATE_SCAN_UNIFORM_SM
-TEMPLATE_INSTANTIATE_FILL_VALUE(double)
-
-#endif
 
 static char def_crf[] = "/var/tmp/osc.txt";
 static char def_irf[] = "/var/tmp/osi.txt";
@@ -307,5 +283,3 @@ int main(int argc, char **argv)
     
     return 0;
 }
-
-

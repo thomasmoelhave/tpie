@@ -5,7 +5,7 @@
 // Created: 12/11/94
 //
 
-static char test_ami_matrix_id[] = "$Id: test_ami_matrix_pad.cpp,v 1.2 1995-06-20 20:15:47 darrenv Exp $";
+static char test_ami_matrix_id[] = "$Id: test_ami_matrix_pad.cpp,v 1.3 1999-02-03 22:23:38 tavi Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -199,26 +199,3 @@ int main(int argc, char **argv)
     
     return 0;
 }
-
-
-// Instantiate all the templates we have used.
-
-#ifdef NO_IMPLICIT_TEMPLATES
-
-// Instantiate templates for streams of objects.
-TEMPLATE_INSTANTIATE_STREAMS(int)
-
-// Instantiate templates for I/O using C++ streams.
-TEMPLATE_INSTANTIATE_OSTREAM(int)
-
-// Instantiate external matrices
-TEMPLATE_INSTANTIATE_AMI_MATRIX(int)
-
-// Calls to AMI_scan using various object types.
-template AMI_err AMI_scan(scan_count *, AMI_STREAM<int> *);
-
-
-#endif
-
-
-

@@ -5,7 +5,7 @@
 // Created: 11/4/94
 //
 
-static char test_matrix_id[] = "$Id: test_matrix.cpp,v 1.1 1994-12-16 21:26:25 darrenv Exp $";
+static char test_matrix_id[] = "$Id: test_matrix.cpp,v 1.2 1999-02-03 22:28:55 tavi Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -24,13 +24,6 @@ static struct ___test_matrix_id_compiler_fooler {
 #include "app_config.h"
 
 #include <matrix.h>
-
-#ifdef NO_IMPLICIT_TEMPLATES
-
-TEMPLATE_INSTANTIATE_MATRIX(int)
-TEMPLATE_INSTANTIATE_MATRIX(double)
-
-#endif
 
 int main(int argc, char **argv)
 {
