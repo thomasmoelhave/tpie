@@ -13,6 +13,7 @@ using std::istrstream;
 using std::cout;
 using std::istream;
 using std::ofstream;
+using std::ifstream;
 
 #include "app_config.h"        
 #include "parse_args.h"
@@ -20,7 +21,7 @@ using std::ofstream;
 // Define it all.
 #include <ami.h>
 
-VERSION(test_ami_sm_cpp,"$Id: test_ami_sm.cpp,v 1.5 2003-04-20 23:51:40 tavi Exp $");
+VERSION(test_ami_sm_cpp,"$Id: test_ami_sm.cpp,v 1.6 2003-04-21 03:16:20 tavi Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
