@@ -7,7 +7,7 @@
 // lower level streams will use appropriate levels of buffering.  This
 // will be more critical for parallel disk implementations.
 //
-// $Id: ami_merge.h,v 1.36 2004-08-12 12:35:30 jan Exp $
+// $Id: ami_merge.h,v 1.37 2005-01-14 18:38:34 tavi Exp $
 //
 #ifndef _AMI_MERGE_H
 #define _AMI_MERGE_H
@@ -145,7 +145,7 @@ AMI_generalized_merge(AMI_STREAM<T> **instreams, arity_t arity,
                
   //streams and m_obj must fit in memory!
   if (sz_needed >= (TPIE_OS_OFFSET)sz_avail) {
-   TP_LOG_ERROR("Insuficent main memory to perform a merge.\n");
+   TP_LOG_WARNING("Insuficent main memory to perform a merge.\n");
     return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
   }
   assert(sz_needed < sz_avail);
