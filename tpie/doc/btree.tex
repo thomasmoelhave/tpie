@@ -4,30 +4,12 @@
 %% Author: Octavian Procopiuc <tavi@cs.duke.edu>
 %%
 %% AMI_btree documentation.
-%% $Id: btree.tex,v 1.6 2001-05-29 15:39:39 tavi Exp $
+%% $Id: btree.tex,v 1.7 2001-12-19 21:19:50 tavi Exp $
 %%
 
-\documentclass[11pt]{article}
-
-\newcommand{\entry}[2]{\> {\tt #1}\\ \>\>\parbox[t]{5.5in}{#2}\\[3mm]}
-\newcommand{\btabb}{\begin{tabbing} \hspace*{.3in} \= \hspace{.5in}\=\\ }
-\newcommand{\etabb}{\end{tabbing}}
-
-\usepackage{fullpage}
-\usepackage{verbatim}
-\usepackage{epsfig}
-%\usepackage{times}
-
-\begin{document}
-
-\title{\bf The {\tt AMI\_btree} Class}
-\date{Draft of \today}
-\author{}
-\maketitle
-
-\section{Overview}
+\chapter{B-tree: User's guide}
 \label{btree:overview}
-
+\index{AMI_btree@{\tt AMI\_btree}|(}
 The {\tt AMI\_btree<Key, Value, Compare, KeyOfValue>} class implements the
 behavior of a dynamic B+-tree or $(a,b)$-tree storing fixed-size data
 items. All data elements (of type {\tt Value}) are stored in the leaves of
@@ -59,7 +41,7 @@ The following main operations are supported:
 Note that elements with duplicate keys are not allowed.
 
 
-\subsection{Example}
+\section{Example}
 {\small
 \begin{verbatim}
 // The Key type.
@@ -82,9 +64,12 @@ public:
 AMI_btree<tKey, tValue, less<tKey>, tKeyOfValue> tree("/var/tmp/btree");
 \end{verbatim}
 }
+\index{AMI_btree@{\tt AMI\_btree}|)}
+
+\chapter{B-tree: Programmer's Reference}
 
 \section{Class Declaration}
-
+\index{AMI_btree@{\tt AMI\_btree}|(}
 \btabb
 
    \> {\tt template<class Key, class Value, class Compare, class
@@ -193,33 +178,8 @@ AMI_btree<tKey, tValue, less<tKey>, tKeyOfValue> tree("/var/tmp/btree");
    indicate default behavior; see Appendix).}
 \etabb
 
-\section{Implementation Details}
-
-In addition to the {\tt AMI\_btree} class itself, the implementation uses two
-more classes, {\tt AMI\_btree\_node} and {\tt AMI\_btree\_leaf}, representing
-the internal nodes, and leaf nodes, respectively. Both inherit from
-the AMI\_block class, allowing transparent read/write operations. In
-addition, these two classes implement technical operations needed for
-keeping the tree in balance: merge and split. 
-
-The tree grows from the top, by splitting the root node. All the
-internal nodes except the root must be at least half full. This holds
-true for the leaves as well.
-
-The fanout of the tree is given by the block size chosen for the
-internal nodes. To search for a key inside a node, STL's binary search
-is used.
-
-A B-tree instance can be created from a previously-saved instance. This
-consists of four files, two for each collection (the blocks file and
-the stack file). In the user part of the nodes collection's header,
-the B-tree stores some initialization information: the id of the root
-node, the height and the size of the tree. Note that the id of the
-root may not be
-from the node collection: if the height is 1, the root is a leaf.
-
-\section{Appendix: The {\tt AMI\_btree\_params} Class}
-
+\section{The {\tt AMI\_btree\_params} Class}
+\index{AMI_btree_params@{\tt AMI\_btree\_params}|(}
 The {\tt AMI\_btree\_params} class encapsulates all user-definable B-tree
 parameters. These parameters dictate the layout of the tree and its
 behavior under insertions and deletions. An instance of the class created
@@ -291,5 +251,32 @@ paramter can then be changed independently.
   the node block cache. The cache implements an LRU replacement policy.}
 
 \etabb
+\index{AMI_btree_params@{\tt AMI\_btree\_params}|)}
+\index{AMI_btree@{\tt AMI\_btree}|)}
 
-\end{document}
+\chapter{B-tree: Implementation Details}
+\index{AMI_btree@{\tt AMI\_btree}!implementation|(}
+In addition to the {\tt AMI\_btree} class itself, the implementation uses two
+more classes, {\tt AMI\_btree\_node} and {\tt AMI\_btree\_leaf}, representing
+the internal nodes, and leaf nodes, respectively. Both inherit from
+the AMI\_block class, allowing transparent read/write operations. In
+addition, these two classes implement technical operations needed for
+keeping the tree in balance: merge and split. 
+
+The tree grows from the top, by splitting the root node. All the
+internal nodes except the root must be at least half full. This holds
+true for the leaves as well.
+
+The fanout of the tree is given by the block size chosen for the
+internal nodes. To search for a key inside a node, STL's binary search
+is used.
+
+A B-tree instance can be created from a previously-saved instance. This
+consists of four files, two for each collection (the blocks file and
+the stack file). In the user part of the nodes collection's header,
+the B-tree stores some initialization information: the id of the root
+node, the height and the size of the tree. Note that the id of the
+root may not be
+from the node collection: if the height is 1, the root is a leaf.
+\index{AMI_btree@{\tt AMI\_btree}!implementation|)}
+

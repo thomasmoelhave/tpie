@@ -3,23 +3,10 @@
 %% Author: Octavian Procopiuc <tavi@cs.duke.edu>
 %% Created: Sep 26, 2000
 %%
-%% Last updated on: Sep 26, 2000
-%% by: Octavian Procopiuc <tavi@cs.duke.edu>
+%% $Id: cache.tex,v 1.2 2001-12-19 21:18:30 tavi Exp $
 %%
 
-\documentclass[11pt]{article}
-
-\usepackage{fullpage}
-\usepackage{verbatim}
-\usepackage{epsfig}
-%\usepackage{times}
-
-\begin{document}
-
-\title{\bf The {\tt CACHE\_MANAGER} Class}
-\date{Draft of \today}
-\author{}
-\maketitle
+\chapter{The Cache Manager}
 
 \section{Overview}
 \label{cache:overview}
@@ -29,20 +16,20 @@
    \begin{tabbing}
    \hspace*{.3in} \= \hspace{.5in} \= \\
 
-   \> {\tt template<class T, class W> class CACHE\_MANAGER;}
+   \> {\tt template<class T, class W> class AMI\_CACHE\_MANAGER;}
    \end{tabbing}
 
 \section{Constructors and Destructor}
    \begin{tabbing}
    \hspace*{.3in} \= \hspace{.5in} \= \\
 
-   \> {\tt CACHE\_MANAGER(size\_t capacity)}\\ 
+   \> {\tt AMI\_CACHE\_MANAGER(size\_t capacity)}\\ 
    \>\>\parbox[t]{5.5in}{Construct a fully-associative cache manager with the given capacity.}\\[3mm]
 
-   \> {\tt CACHE\_MANAGER(size\_t capacity, size\_t assoc)}\\ 
+   \> {\tt AMI\_CACHE\_MANAGER(size\_t capacity, size\_t assoc)}\\ 
    \>\>\parbox[t]{5.5in}{Construct a cache manager with the given capacity and associativity.}\\[3mm]
 
-   \> {\tt \verb|~|CACHE\_MANAGER()}\\ 
+   \> {\tt $\sim$AMI\_CACHE\_MANAGER()}\\ 
    \>\>\parbox[t]{5.5in}{Destructor. Write out all items still in the cache.}\\[3mm]
 
    \end{tabbing}
@@ -63,5 +50,8 @@
 
 \section{Implementation Details}
 
-The cache is an array of pairs (key, item of type {\tt T}). The array is divided into (capacity/assoc) sets, and inside a set item are inserted in position 0 and deleted from the last position. This insures LRU behavior.
-\end{document}
+{\tt AMI\_CACHE\_MANAGER} is a macro definition which resolves to {\tt
+AMI\_cache\_manager\_lru}, an LRU cache manager, the only implementation.
+The cache is an array of pairs (key, item of type {\tt T}). The array is
+divided into (capacity/assoc) sets, and inside a set item are inserted in
+position 0 and deleted from the last position. This insures LRU behavior.
