@@ -7,7 +7,7 @@
 
 
 
-static char parse_args_id[] = "$Id: parse_args.cpp,v 1.4 1999-04-11 22:38:04 tavi Exp $";
+static char parse_args_id[] = "$Id: parse_args.cpp,v 1.5 1999-04-28 20:08:49 rbarve Exp $";
 
 //#include <GetOpt.h>
 #include <strstream.h>
@@ -76,7 +76,7 @@ void parse_args(int argc, char **argv, const char *as_opts,
 	      //istrstream(go.optarg,strlen(go.optarg)) >> test_size;
                 break;
             case 'z':
-	      istrstream(go.optarg,strlen(optarg)) >> random_seed;
+		    //istrstream(go.optarg,strlen(optarg)) >> random_seed;
                 break;
             default:
                 parse_app_opt(c, optarg);
