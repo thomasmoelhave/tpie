@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/24/94
 //
-// $Id: ami_scan_mac.h,v 1.9 2003-04-24 20:48:33 tavi Exp $
+// $Id: ami_scan_mac.h,v 1.10 2003-04-25 00:06:56 tavi Exp $
 //
 #ifndef _AMI_SCAN_MAC_H
 #define _AMI_SCAN_MAC_H
@@ -33,14 +33,26 @@
 // An array of flags.
 #define __FSPACE(f,n) AMI_SCAN_FLAG f[n]
 
-// Rewind the streams prior to performing the scan and chack stream validity.
-#define __REW_BASE(T,n) {						\
-    if (T ## n == NULL || T ## n -> status() != AMI_STREAM_STATUS_VALID)\
+
+// Check stream validity.
+#define __CHK_BASE(T,n) {                                               \
+    if (T ## n == NULL || T ## n -> status() != AMI_STREAM_STATUS_VALID) {\
         return AMI_ERROR_GENERIC_ERROR;                                 \
+    }                                                                   \
+}
+
+#define __CHKSTR_1(T) __CHK_BASE(T,1)
+#define __CHKSTR_2(T) __CHKSTR_1(T) __CHK_BASE(T,2)
+#define __CHKSTR_3(T) __CHKSTR_2(T) __CHK_BASE(T,3)
+#define __CHKSTR_4(T) __CHKSTR_3(T) __CHK_BASE(T,4)
+
+
+// Rewind the input streams prior to performing the scan.
+#define __REW_BASE(T,n) {						\
     if ((_ami_err_ = T ## n -> seek(0)) != AMI_ERROR_NO_ERROR) {	\
         return _ami_err_;						\
     }									\
-}									\
+}
 
 #define __REWIND_1(T) __REW_BASE(T,1)
 #define __REWIND_2(T) __REWIND_1(T) __REW_BASE(T,2)
@@ -162,7 +174,9 @@ AMI_err AMI_scan( __SPARM_ ## in_arity (T,_ts_),			    \
 	    								    \
     AMI_err _op_err_, _ami_err_;					    \
 	    								    \
-    __REWIND_ ## in_arity (_ts_);					    \
+    __CHKSTR_ ## in_arity (_ts_)                                            \
+    __CHKSTR_ ## out_arity (_us_)                                           \
+    __REWIND_ ## in_arity (_ts_)					    \
     soper->initialize();						    \
                                                                             \
     __SET_IF_ ## in_arity (_if_);					    \
@@ -199,6 +213,8 @@ AMI_err AMI_scan( SC *soper, __SPARM_ ## out_arity (U,_us_))		    \
     __FSPACE(_of_,out_arity);						    \
 	    								    \
     AMI_err _op_err_, _ami_err_;					    \
+                                                                            \
+    __CHKSTR_ ## out_arity (_us_)                                           \
     soper->initialize();						    \
 	    								    \
     do {	    							    \
@@ -229,6 +245,7 @@ AMI_err AMI_scan( __SPARM_ ## in_arity (T,_ts_), SC *soper)		    \
 	    								    \
     AMI_err _op_err_, _ami_err_;					    \
 	    								    \
+    __CHKSTR_ ## in_arity (_ts_)                                            \
     __REWIND_ ## in_arity (_ts_);					    \
 	    								    \
     soper->initialize();						    \
