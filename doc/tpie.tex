@@ -7,7 +7,7 @@
 %%
 %% Copies and modified from tpie.texi.
 %%
-%% $Id: tpie.tex,v 1.4 1999-01-31 03:35:54 rajiv Exp $
+%% $Id: tpie.tex,v 1.5 1999-02-08 16:55:50 laura Exp $
 %%
 
 \documentstyle[11pt,html,makeidx]{book}
@@ -3121,17 +3121,16 @@ or implement similar systems.
 \index{structure!of TPIE}
 \index{components!of TPIE}
 
-TPIE has three main components, the The Access Method Interface
+TPIE has three main components, the Access Method Interface
 (AMI)\index{access method interface}, the Block Transfer Engine
 (BTE)\index{block transfer engine}, and the Memory Manager
-(MM)\index{memory manager}.  The BTE handles block transfer for a
-single processor.  The MM performs low level memory management across
-all the processors in the system.  The AMI works on top of the MM and
-one or more BTEs, each running on a single processor, to provide a
-uniform interface for application programs.  Applications that use
-this interface are portable across hardware platforms, since they
-never have to deal with the underlying details of how I/O is performed
-on a particular machine.
+(MM)\index{memory manager}.  The BTE handles block transfer for a single
+processor.  The MM performs low level memory management across all the
+processors in the system.  The AMI works on top of the MM and one or more
+BTEs, each running on a single processor, to provide a uniform interface
+for application programs.  Applications that use this interface are
+portable across hardware platforms, since they never have to deal with the
+underlying details of how I/O is performed on a particular machine.
 
 The BTE is intended to bridge the gap between the I/O hardware and the
 rest of our system.  It works alongside the traditional buffer
@@ -3257,28 +3256,296 @@ support.
 \index{BTE|see{block transfer engine}}
 
 The BTE is lowest layer of TPIE.  It is the layer that is ultimately
-responsible for moving blocks of data from physical disk devices to
-main memory and back.  We hope that in most cases it will be possible
-for the BTE to work with device drivers provided by the machine
-vendor's operating system.  In some cases, however, new drivers will
-undoubtedly have to be written.  The BTE is also responsible for
-maintaining the integrity of streams striped across multiple disks
-attached to a single CPU, which it will do as described
-in\cite{vitter:parmem1}.  The BTE is not, however, responsible for
-coordinating the actions of multiple CPU's and the disks attached to
-them.  A separate instance of the BTE will run on each such CPU, and
-their actions will be coordinated by a single multi-threaded MM
-running at a higher level.  The reason for the functional split
-between the two levels is that it will likely be advantageous to be
-able to use a single BTE written for a specific piece of hardware with
-more than one MM, for example, one MM written for a homogeneous
-environment and one for a heterogeneous environment.
+responsible for moving blocks of data from physical disk devices to main
+memory and back.  We hope that in most cases it will be possible for the
+BTE to work with device drivers provided by the machine vendor's operating
+system.  In some cases, however, new drivers may have to be written.  The
+BTE is also responsible for maintaining the integrity of streams striped
+across multiple disks attached to a single CPU, which it will do as
+described in \cite{vitter:parmem1}.  The BTE is not, however, responsible
+for coordinating the actions of multiple CPU's and the disks attached to
+them.  A separate instance of the BTE will run on each such CPU, and their
+actions will be coordinated by a single multi-threaded MM running at a
+higher level.  The reason for the functional split between the two levels
+is that it will likely be advantageous to be able to use a single BTE
+written for a specific piece of hardware with more than one MM, for
+example, one MM written for a homogeneous environment and one for a
+heterogeneous environment.
+
+The user should set one of the flags in \verb|app_config.h| corresponding
+to the BTE that he wants to use for the application.  Multiple
+implementations are allowed to coexist, with some restrictions. Version
+\version of TPIE is distributed with three BTE implementations and the
+flags used to select them are as follows:
+
+An implementation based on the UNIX {\tt stdio} library \index{stdio (UNIX
+  library)@{\tt stdio} (UNIX library)} is selected by setting {\tt
+  BTE\_IMP\_STDIO}.  \index{implementation!BTE!{\tt stdio} library}
+ 
+An implementation based on blocked UNIX {\tt read/write} calls \index{read
+  write} is selected by setting {\tt BTE\_IMP\_UFS}.
+\index{implementation!BTE!read!write}
+
+An implementation based on memory mapped I/O\index{memory mapped I/O} is
+selected by setting {\tt BTE\_IMP\_MMB}.  \index{implementation!BTE!memory
+  mapped I/O}
+
+If none of the above flags is specified {\tt BTE\_IMP\_STDIO} is used by
+default and a warning is generated.
 
 Implementations of BTE streams are written as subclasses of the class
-\verb|BTE_stream|, which is defined as follows:
+\verb|BTE_base_stream|, which contains the following abstract public methods:
 
-BTE stream implementations must support the following member
-functions:
+
+\subsubsection{new\_substream}
+\begin{verbatim}
+    BTE_err new_substream(BTE_stream_type st,
+                          off_t sub_begin, off_t sub_end,
+                          BTE_base_stream<T> **sub_stream);
+\end{verbatim}
+A virtual psuedo-constructor for substreams. The arguments \verb|sub_begin| and
+\verb|sub_end| are item offsets.
+
+
+\subsubsection{read\_item}
+\begin{verbatim}
+    BTE_err read_item(T **elt);
+\end{verbatim}
+Read the next item from the stream. If block boundaries are crossed the
+read ahead mechanism is called, but this is invisible to the user.
+
+\subsubsection{write\_item}
+\begin{verbatim}
+    BTE_err write_item(const T &elt);
+\end{verbatim}
+Write the item to stream.
+
+
+\subsubsection{seek}
+\begin{verbatim}
+    BTE_err seek(off_t offset);
+\end{verbatim}
+Seek to the item offset in the stream.
+
+
+\subsubsection{truncate}
+\begin{verbatim}
+    BTE_err truncate(off_t offset);
+\end{verbatim}
+Truncate/extend the stream to the specified number of items. The file
+pointer will be moved to the end of the stream.
+
+
+\subsubsection{main\_memory\_usage}
+\begin{verbatim}
+    BTE_err main_memory_usage(size_t *usage,
+                              MM_stream_usage usage_type);
+\end{verbatim}
+Query memory usage.
+
+
+
+\subsubsection{get\_status}
+\begin{verbatim}
+    BTE_stream_status get_status(void);
+\end{verbatim}
+Returns the status of the stream as one
+of the following:
+\begin{itemize}
+\item \verb|BTE_STREAM_STATUS_NO_STATUS|
+\item \verb|BTE_STREAM_STATUS_INVALID|
+\item \verb|BTE_STREAM_STATUS_EOS_ON_NEXT_CALL|
+\item \verb|BTE_STREAM_STATUS_END_OF_STREAM|
+\end{itemize}
+
+
+\subsubsection{stream\_len}
+\begin{verbatim}
+    off_t stream_len(void);
+\end{verbatim}
+Returns the current number of items in the stream.
+
+
+\subsubsection{name}
+\begin{verbatim}
+    BTE_err name(char **stream_name);
+\end{verbatim}
+Returns the path name of the file backing the stream. The name will be
+stored in newly allocated space.
+
+
+\subsubsection{read\_only}
+\begin{verbatim}
+    int read_only(void);
+\end{verbatim}
+Returns true if the stream is read\_only.
+
+    
+\subsubsection{available\_streams}
+\begin{verbatim}
+    int available_streams(void);    
+\end{verbatim}
+Returns the number of currently available streams.
+
+\subsubsection{chunk\_size}
+\begin{verbatim}
+    off_t chunk_size(void);
+\end{verbatim}
+Not clear what this does...
+
+
+\subsubsection{persistence}
+\begin{verbatim}
+    void persist(persistence);
+\end{verbatim}
+Set the persistence of the stream to one of the following:
+\begin{itemize}
+\item \verb|PERSIST_DELETE:| Delete the stream from the disk when it is
+  destructed.
+\item \verb|PERSIST_PERSISTENT:| Do not delete the stream from the disk when
+  it is destructed.
+\item \verb|PERSIST_READ_ONCE:| Delete each block of data from the disk as
+  it is read.
+\end{itemize}
+
+By default, all streams are deleted at destruction time
+(\verb|PERSIST_DELETE|).  
+\\ \\
+All BTE stream implementations inherit from class \verb|BTE_base_stream|
+and must support all the abstract member functions as declared above.
+
+
+
+
+\subsection{BTE\_stdio}
+
+\verb|BTE_stdio| streams are streams in a special format that are designed
+to be stored as ordinary files in a UNIX file system.  The read/write
+primitives of \verb|BTE_stdio| streams are implemened using system calls
+\verb|fread| and \verb|fwrite|. The underlying operating system blocking
+and prefetching assure that stream accesses are done in blocks and
+prefetching is therefore automatic and invisible to the TPIE developer.
+
+\verb|BTE_stdio| streams are stored as ordinary UNIX files with a header
+with the following structure:
+
+\begin{verbatim}
+typedef struct BTE_stdio_header_v1 { 
+    unsigned int magic_number;  // Set to BTE_STDIO_HEADER_MAGIC_NUMBER
+    unsigned int version;       // Should be 1 for current version.
+    unsigned int length;        // # of bytes in this structure.
+    unsigned int block_length;  // # of bytes in a block.
+    size_t item_size;           // The size of each item in the stream.
+} BTE_stdio_header;
+\end{verbatim}
+
+\verb|BTE_stdio| class inherits from \verb|BTE_base_stream|:
+\begin{verbatim}
+class BTE_stream_stdio : public BTE_base_stream {
+  private:
+     FILE  *file;          
+     BTE_stdio_header      header;
+     ...
+}  
+\end{verbatim}
+
+\verb|BTE_stdio| defines the abstract methods inherited from
+\verb|BTE_base_stream| presented in the previous section. In addition to
+these it defines its own constructors:
+\begin{verbatim}
+     BTE_stream_stdio(const char *dev_path, const BTE_stream_type st); 
+     BTE_stream_stdio(const BTE_stream_type st); 
+     BTE_stream_stdio(const BTE_stream_stdio<T> &s);
+\end{verbatim}
+
+For implementation details please consult the code in
+\verb|/include/bte_stdio.h|.
+
+
+
+\subsection{BTE\_mmb}
+
+Just like \verb|BTE_stdio| streams presented in previous section,
+\verb|BTE_mmb| streams are streams in a special format that are designed to
+be stored as ordinary files in a UNIX file system. What distinguishes them
+from the \verb|BTE_stdio| streams is the way stream input/output is
+implemented. The \verb|BTE_mmb| uses the memory map paradigm which allows
+the user to memory map (\verb|mmap|) blocks of a file and work on them as
+if the file were in memory. The \verb|BTE_mmb| primitives maintain the
+currently accessed block of the file \verb|mmaped| in memory. When a file
+offset ouside current block boundaries is requested, the current block is
+unmapped and a new one is mapped from the source file.
+
+The \verb|BTE_mmb| header structure is very similar to the \verb|BTE_stdio|
+one:
+\begin{verbatim}
+struct mmap_stream_header { 
+  public:
+    unsigned int magic_number;  // Set to MMB_HEADER_MAGIC_NUMBER
+    unsigned int version;       // Should be 1 for current version.
+    unsigned int length;        // # of bytes in this structure.
+    off_t item_logical_eof;     // The number of items in the stream.
+    size_t item_size;           // The size of each item in the stream.
+    size_t block_size;          // The size of a physical block on the device
+                                // where this stream resides.
+    unsigned int items_per_block;
+};
+\end{verbatim}
+
+\verb|BTE_mmb| class inherits from \verb|BTE_base_stream|:
+\begin{verbatim}
+class BTE_stream_mmb : public BTE_base_stream {
+  private:
+     // descriptor of the mapped file.  
+     int fd;   
+     // A pointer to the mapped in header block for the stream. 
+     mmap_stream_header *header;
+     ...
+}  
+\end{verbatim}
+
+\verb|BTE_mmb| defines the abstract methods inherited from
+\verb|BTE_base_stream| presented in a previous section. In addition to
+these it defines its own constructors:
+\begin{verbatim}
+  BTE_stream_mmb(const char *dev_path, BTE_stream_type st); 
+  BTE_stream_mmb(BTE_stream_type st); 
+  BTE_stream_mmb(BTE_stream_mmb<T> &s); 
+  
+  // A substream constructor.
+  BTE_stream_mmb(BTE_stream_mmb *super_stream,
+                 BTE_stream_type st,
+                 off_t sub_begin, off_t sub_end);
+\end{verbatim}
+
+For implementaion details please consult the code in
+\verb|/include/bte_mmb.h|.
+
+While with \verb|BTE_stdio| prefetching is implicitely done by the
+operating system, \verb|BTE_mmb| has to implement its own prefething
+scheme. \verb|BTE_mmb| prefetching can be turned on by setting the flag
+\verb|BTE_MMB_READ_AHEAD| in the header file {\tt
+  tpie-\version/test/app\_config.h}.\index{app_config@{\tt app\_config.h}}.
+Setting this flag tells the BTE to optimize for sequential read speed by
+reading blocks into main memory before the data they contain is actually
+needed. This version provides two methods of read-ahead:
+\begin{itemize}
+\item If the \verb|USE_LIBAIO| flag is set (and \verb|BTE_MMB_READ_AHEAD|
+  is set), read ahead is done using the asynchronous I/O library.  This
+  feature requires the asynchronous I/O library {\tt libaio}.\index{libaio
+    library@{\tt libaio} library.}
+\item If the \verb|USE_LIBAIO| flag is not set (and
+  \verb|BTE_MMB_READ_AHEAD| is set), read ahead is done using \verb|mmap|
+  calls to map the next block of the source file in memory.
+\end{itemize}
+
+By default \verb|BTE_MMB_READ_AHEAD| is set, \verb|USE_LIBAIO| is not set.
+
+
+
+
+\subsection{BTE\_UFS}
+
 
 \index{block transfer engine|)}
 
