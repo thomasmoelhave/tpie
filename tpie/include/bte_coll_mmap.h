@@ -2,12 +2,15 @@
 // File:    bte_coll_mmap.h (formerly bte_coll_mmb.h)
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: bte_coll_mmap.h,v 1.2 2002-01-15 03:02:15 tavi Exp $
+// $Id: bte_coll_mmap.h,v 1.3 2002-01-25 21:46:38 tavi Exp $
 //
 // BTE_collection_mmap class definition.
 //
 #ifndef _BTE_COLL_MMAP_H
 #define _BTE_COLL_MMAP_H
+
+// For header's type field (77 == 'M').
+#define BTE_COLLECTION_MMAP 77
 
 #include <bte_coll_base.h>
 
@@ -19,7 +22,9 @@ public:
   BTE_collection_mmap(const char *base_file_name,
 		     BTE_collection_type type = BTE_WRITE_COLLECTION,
 		     size_t logical_block_factor = 1):
-    BTE_collection_base(base_file_name, type, logical_block_factor) {}
+    BTE_collection_base(base_file_name, type, logical_block_factor) {
+    header_.type = BTE_COLLECTION_MMAP;
+  }
 
   // Allocate a new block in block collection and then map that block
   // into memory, allocating and returning an appropriately
