@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/6/94
 //
-// $Id: app_config.h,v 1.8 1995-04-06 21:13:02 darrenv Exp $
+// $Id: app_config.h,v 1.9 1995-05-02 00:56:42 dev Exp $
 //
 #ifndef _APP_CONFIG_H
 #define _APP_CONFIG_H
@@ -16,8 +16,12 @@
 #include <sys/types.h>
 
 // Many apps use random numbers.
-extern "C" int srandom(int);
-extern "C" int random(void);
+#if 0
+extern "C" void srandom(int);
+extern "C" long int random(void);
+#else
+#include <stdlib.h>
+#endif
 
 // Use logs if requested.
 #if TP_LOG_APPS
@@ -39,9 +43,13 @@ extern "C" int random(void);
 
 #define DEFAULT_TEST_MM_SIZE (1024 * 1024 * 2)
 
-// Don't use virtual interface.
-#define AMI_VIRTUAL_BASE 1
-#define BTE_VIRTUAL_BASE 1
+// Don't use virtual interface.  Overridable on the command line with -D
+#ifndef AMI_VIRTUAL_BASE
+#define AMI_VIRTUAL_BASE 0
+#endif
+#ifndef BTE_VIRTUAL_BASE 
+#define BTE_VIRTUAL_BASE 0
+#endif
 
 // Use the single BTE stream version of AMI streams.
 #define AMI_IMP_SINGLE
