@@ -1,3 +1,8 @@
+Sun Jun 23 22:15:58 2002 Octavian Procopiuc (tavi)
+	
+	* bte_stream_mmap.h: fixed a bug that was causing core dump when
+	closing a read-only stream.
+	
 Mon Jan 14 11:33:13 2002 Octavian Procopiuc (tavi)
 
 	* general: new naming convention: all files dealing with bte
