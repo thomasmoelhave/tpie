@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/19/94
 //
-// $Id: ami_stream_single.h,v 1.8 2003-04-17 14:31:23 jan Exp $
+// $Id: ami_stream_single.h,v 1.9 2003-04-22 08:44:52 tavi Exp $
 //
 // AMI entry points implemented on top of a single BTE.  This is useful
 // for single CPU, single disk machines.
@@ -152,6 +152,9 @@ public:
   
   void persist(persistence p);
   
+  persistence persist() const
+  { return btes->persist(); }
+
   char *sprint();
 };
 
