@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/13/94
 //
-// $Id: bte_stream_mmap.h,v 1.4 2002-06-24 02:55:59 tavi Exp $
+// $Id: bte_stream_mmap.h,v 1.5 2002-08-01 01:32:06 tavi Exp $
 //
 // Memory mapped streams.  This particular implementation explicitly manages
 // blocks, and only ever maps in one block at a time.
@@ -30,10 +30,10 @@
 #  include <sys/asynch.h>
 #endif
 
-#ifdef BTE_MMB_READ_AHEAD
-#  define BTE_MMB_MM_BUFFERS 2
+#ifdef BTE_STREAM_MMAP_READ_AHEAD
+#  define BTE_STREAM_MMAP_MM_BUFFERS 2
 #else
-#  define BTE_MMB_MM_BUFFERS 1
+#  define BTE_STREAM_MMAP_MM_BUFFERS 1
 #endif
 
 // Get the BTE_stream_base class and other definitions.
@@ -145,7 +145,7 @@ private:
   aio_result_t aio_results[BTE_STREAM_MMAP_BLOCK_FACTOR];
 #endif
 
-#ifdef BTE_MMB_READ_AHEAD
+#ifdef BTE_STREAM_MMAP_READ_AHEAD
   // Read ahead into the next logical block.
   void read_ahead ();
 #endif
@@ -482,7 +482,7 @@ BTE_stream_mmap < T >::BTE_stream_mmap (const char *dev_path,
    // Register memory usage before returning.
    register_memory_allocation (sizeof (BTE_stream_header));
    register_memory_allocation (sizeof (BTE_stream_mmap < T >));
-   register_memory_allocation (BTE_MMB_MM_BUFFERS * header->block_size);
+   register_memory_allocation (BTE_STREAM_MMAP_MM_BUFFERS * header->block_size);
    gstats_.record(STREAM_OPEN);
 
 #ifdef VERBOSE
@@ -679,7 +679,7 @@ template < class T > BTE_stream_mmap < T >::~BTE_stream_mmap (void) {
       // Register memory deallocation before returning.
       register_memory_deallocation (sizeof (BTE_stream_header)); // for the header.
       register_memory_deallocation (sizeof (BTE_stream_mmap < T >));
-      register_memory_deallocation (BTE_MMB_MM_BUFFERS *
+      register_memory_deallocation (BTE_STREAM_MMAP_MM_BUFFERS *
 				    header->block_size);
    } else {
      gstats_.record(SUBSTREAM_DELETE);
@@ -703,7 +703,7 @@ template < class T > BTE_stream_mmap < T >::~BTE_stream_mmap (void) {
 template < class T > void BTE_stream_mmap < T >::print (char *pref) {
 
 #ifdef COLLECT_STATS
-#ifdef BTE_MMB_READ_AHEAD
+#ifdef BTE_STREAM_MMAP_READ_AHEAD
    fprintf (stdout, "%sPFSTATS %d %d %d %d (fd=%d)\n",
 	    pref, stats_hits, stats_misses,
 	    stats_compulsory - stats_misses, stats_eos, fd);
@@ -838,21 +838,21 @@ template < class T >
 		 os_block_size_));
       break;
    case MM_STREAM_USAGE_BUFFER:
-      *usage = BTE_MMB_MM_BUFFERS * header->block_size;
+      *usage = BTE_STREAM_MMAP_MM_BUFFERS * header->block_size;
       break;
    case MM_STREAM_USAGE_CURRENT:
       *usage = (sizeof (*this) +
 		(((header == NULL) || substream_level) ? 0 :
 		 os_block_size_) +
 		((curr_block == NULL) ? 0 :
-		 BTE_MMB_MM_BUFFERS * header->block_size));
+		 BTE_STREAM_MMAP_MM_BUFFERS * header->block_size));
       break;
    case MM_STREAM_USAGE_MAXIMUM:
-      *usage = (sizeof (*this) + BTE_MMB_MM_BUFFERS * header->block_size +
+      *usage = (sizeof (*this) + BTE_STREAM_MMAP_MM_BUFFERS * header->block_size +
 		(substream_level ? 0 : os_block_size_));
       break;
    case MM_STREAM_USAGE_SUBSTREAM:
-      *usage = (sizeof (*this) + BTE_MMB_MM_BUFFERS * header->block_size);
+      *usage = (sizeof (*this) + BTE_STREAM_MMAP_MM_BUFFERS * header->block_size);
       break;
    }
 
@@ -1218,7 +1218,7 @@ template < class T > BTE_err BTE_stream_mmap < T >::map_current (void)
    // the beginning of the second.
 
    // Map it in either r/w or read only.  
-#ifdef BTE_MMB_READ_AHEAD
+#ifdef BTE_STREAM_MMAP_READ_AHEAD
    if (have_next_block && (block_offset == f_next_block)) {
       T *temp;
 
@@ -1273,7 +1273,7 @@ template < class T > BTE_err BTE_stream_mmap < T >::map_current (void)
 
    block_valid = 1;
 
-#ifdef BTE_MMB_READ_AHEAD
+#ifdef BTE_STREAM_MMAP_READ_AHEAD
    // Start the asyncronous read of the next logical block.
    read_ahead ();
 #endif
@@ -1424,7 +1424,7 @@ template < class T > off_t BTE_stream_mmap < T >::chunk_size (void)
    return header->block_size / sizeof (T);
 }
 
-#ifdef BTE_MMB_READ_AHEAD
+#ifdef BTE_STREAM_MMAP_READ_AHEAD
 
 template < class T > void BTE_stream_mmap < T >::read_ahead (void)
 {
@@ -1514,8 +1514,8 @@ template < class T > void BTE_stream_mmap < T >::read_ahead (void)
 #endif				// USE_LIBAIO
 }
 
-#endif				// BTE_MMB_READ_AHEAD
+#endif				// BTE_STREAM_MMAP_READ_AHEAD
 
-#undef BTE_MMB_MM_BUFFERS
+#undef BTE_STREAM_MMAP_MM_BUFFERS
 
 #endif	// _BTE_STREAM_MMAP_H
