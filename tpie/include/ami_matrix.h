@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/9/94
 //
-// $Id: ami_matrix.h,v 1.10 2003-04-17 12:46:56 jan Exp $
+// $Id: ami_matrix.h,v 1.11 2003-04-21 03:56:04 tavi Exp $
 //
 #ifndef _AMI_MATRIX_H
 #define _AMI_MATRIX_H
@@ -18,7 +18,8 @@
 #define INTERNAL_TIMING 1
 
 #ifdef INTERNAL_TIMING
-#include <cpu_timer.h>
+#  include <cpu_timer.h>
+#  include <iostream>
 #endif
 
 #include <matrix.h>
@@ -280,13 +281,6 @@ AMI_err AMI_matrix_mult(AMI_matrix<T> &op1, AMI_matrix<T> &op2,
         unsigned int colsp2 = mm_matrix_extent * (((op2.cols() - 1) /
                                                    mm_matrix_extent) + 1);
 
-#if 0
-        // Very temporary hack to get info on where to plot points.
-        cerr << "chunk rows = " << chunkrows1 << '\n';
-        cerr << "Padding M1 to " << rowsp1 << "x" << colsp1 << '\n';
-        cerr << "Padding M2 to " << rowsp2 << "x" << colsp2 << '\n';
-        exit(0);
-#endif
         
         // Padded matrices.
 
@@ -468,7 +462,7 @@ AMI_err AMI_matrix_mult(AMI_matrix<T> &op1, AMI_matrix<T> &op2,
 #ifdef INTERNAL_TIMING
 
         cput_internal.stop();
-        cout << cput_internal << ' ';
+        std::cout << cput_internal << ' ';
 
 #endif        
         
