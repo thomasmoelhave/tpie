@@ -5,21 +5,9 @@
 // Created: 10/30/94
 //
 
-static char mm_lr_id[] = "$Id: mm_lr.cpp,v 1.1 1994-10-31 21:25:30 darrenv Exp $";
-
-// This is just to avoid an error message since the string above is never
-// referenced.  Note that a self referential structure must be defined to
-// avoid passing the problem further.
-static struct ___mm_lr_id_compiler_fooler {
-    char *pc;
-    ___mm_lr_id_compiler_fooler *next;
-} the___mm_lr_id_compiler_fooler = {
-    mm_lr_id,
-    &the___mm_lr_id_compiler_fooler
-};
-
 #include "app_config.h"
 #include <ami.h>
+VERSION(mm_lr_cpp,"$Id: mm_lr.cpp,v 1.2 2000-01-11 02:17:02 hutchins Exp $");
 
 #include "list_edge.h"
 #include "mm_lr.h"

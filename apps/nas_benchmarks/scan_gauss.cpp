@@ -5,26 +5,12 @@
 // Created: 3/22/95
 //
 
-static char scan_gauss_id[] = "$Id: scan_gauss.cpp,v 1.1 1995-04-03 13:17:39 dev Exp $";
-
-// This is just to avoid an error message since the string above is never
-// referenced.  Note that a self referential structure must be defined to
-// avoid passing the problem further.
-static struct ___scan_gauss_id_compiler_fooler {
-    char *pc;
-    ___scan_gauss_id_compiler_fooler *next;
-} the___scan_gauss_id_compiler_fooler = {
-    scan_gauss_id,
-    &the___scan_gauss_id_compiler_fooler
-};
-
-
 // Get information on the configuration to test.
 #include "app_config.h"
 
 // Define it all.
 #include <ami.h>
-
+VERSION(scan_gauss_cpp,"$Id: scan_gauss.cpp,v 1.2 2000-01-11 02:14:45 hutchins Exp $");
 
 #include "scan_gauss.h"
 
