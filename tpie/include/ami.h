@@ -4,10 +4,13 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/19/94
 //
-// $Id: ami.h,v 1.5 1994-10-04 19:07:18 darrenv Exp $
+// $Id: ami.h,v 1.6 1994-10-13 17:00:27 darrenv Exp $
 //
 #ifndef _AMI_H
 #define _AMI_H
+
+// Include the configuration header.
+#include <config.h>
 
 // Some basic constants
 
