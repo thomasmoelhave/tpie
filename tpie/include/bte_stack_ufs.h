@@ -6,7 +6,7 @@
 // A stack implemented using BTE_stream_ufs. It is used by
 // BTE_collection_base to implement deletions.  
 //
-// $Id: bte_stack_ufs.h,v 1.1 2003-09-16 15:14:01 tavi Exp $
+// $Id: bte_stack_ufs.h,v 1.2 2005-01-14 18:47:22 tavi Exp $
 //
 
 #ifndef _BTE_STACK_UFS_H
@@ -20,6 +20,10 @@
 template<class T>
 class BTE_stack_ufs : public BTE_stream_ufs<T> {
 public:
+  using BTE_stream_ufs<T>::stream_len;
+  using BTE_stream_ufs<T>::seek;
+  using BTE_stream_ufs<T>::truncate;
+  
   // Construct a new stack with the given name and access type.
   BTE_stack_ufs(char *path, BTE_stream_type type = BTE_WRITE_STREAM); 
   // Destroy this object.
