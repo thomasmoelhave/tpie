@@ -15,7 +15,7 @@
 // a quicksort using only keys of the items; there is a provision to 
 // to use templated heaps to implement the merge.
 
-// 	$Id: ami_optimized_merge.h,v 1.24 1999-04-23 20:27:09 rajiv Exp $	
+// 	$Id: ami_optimized_merge.h,v 1.25 1999-04-24 19:07:41 rajiv Exp $	
 //TO DO: substream_count setting; don't depend on current_stream_len
 
 
@@ -1307,7 +1307,9 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
           {
            
            T * next_item;
+LOG_DEBUG_ID("pre new");
            T * mm_stream = new T[len];
+LOG_DEBUG_ID("post new");
 
            for (int i = 0; i <  len; i++)
            {
@@ -1324,14 +1326,18 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
                                      != AMI_ERROR_NO_ERROR)
                                                  return ae;
            }
+LOG_DEBUG_ID("pre delete");
            if (mm_stream) { delete [] mm_stream;
 		                  mm_stream = NULL;}
+LOG_DEBUG_ID("post delete");
 		}
          else
          {
          //Use qsort on keys followed by permuting
+LOG_DEBUG_ID("pre new");
          T * mm_stream = new T[len];
          qsort_item<KEY> *qs_array = new (qsort_item<KEY>)[len];
+LOG_DEBUG_ID("post new");
          T * next_item;
 
          for (int i = 0; i <  len; i++)
@@ -1351,8 +1357,10 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
                                            != AMI_ERROR_NO_ERROR)
                                            return ae;
             }
+LOG_DEBUG_ID("pre delete");
           if (mm_stream) { delete [] mm_stream; mm_stream = NULL;}
           if (qs_array) { delete [] qs_array; qs_array = NULL;}
+LOG_DEBUG_ID("post delete");
 	    }
           
 		   LOG_DEBUG_ID("AMI_partition_and_merge_Key: done");
@@ -1600,9 +1608,11 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
 
 
        initial_tmp_stream = new (AMI_STREAM<T> *)[merge_arity];
+LOG_DEBUG_ID("pre new");
        mm_stream = new T[sz_original_substream];
 
        qsort_item<KEY> * qs_array = new (qsort_item<KEY>)[sz_original_substream];
+LOG_DEBUG_ID("post new");
 
 
 
@@ -1814,8 +1824,10 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
         if (initial_tmp_stream[current_stream]) 
                      { delete initial_tmp_stream[current_stream];
 				 initial_tmp_stream[current_stream] = NULL;}
+LOG_DEBUG_ID("pre delete");
         if (mm_stream) { delete  [] mm_stream; mm_stream = NULL;}
         if (qs_array) { delete [] qs_array; qs_array = NULL;}
+LOG_DEBUG_ID("post delete");
 
         // Make sure the total length of the temporary stream is the
         // same as the total length of the original input stream.
@@ -2376,7 +2388,9 @@ AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
           {
            
            T * next_item;
+LOG_DEBUG_ID("pre new");
            T * mm_stream = new T[len];
+LOG_DEBUG_ID("post new");
 
            for (int i = 0; i <  len; i++)
            {
@@ -2393,14 +2407,19 @@ AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
                                      != AMI_ERROR_NO_ERROR)
                                                  return ae;
            }
+LOG_DEBUG_ID("pre delete");
 		  if (mm_stream) { delete [] mm_stream; mm_stream = NULL;}
+LOG_DEBUG_ID("post delete");
 		}
          else
          {
          //Use qsort on keys followed by permuting
 
+LOG_DEBUG_ID("pre new");
          T * mm_stream = new T[len];
+LOG_DEBUG_ID("post new");
          qsort_item<KEY> *qs_array = new (qsort_item<KEY>)[len];
+LOG_DEBUG_ID("post new");
          T * next_item;
 
          for (int i = 0; i <  len; i++)
@@ -2420,8 +2439,11 @@ AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
                                            != AMI_ERROR_NO_ERROR)
                                            return ae;
             }
+LOG_DEBUG_ID("pre delete");
           if (mm_stream) { delete [] mm_stream; mm_stream = NULL;}
+LOG_DEBUG_ID("post delete");
           if (qs_array) { delete [] qs_array; qs_array = NULL;}
+LOG_DEBUG_ID("post delete");
           }
           
           return AMI_ERROR_NO_ERROR;
