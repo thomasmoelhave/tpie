@@ -2,13 +2,16 @@
 // File:    tpie_stats.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: tpie_stats.h,v 1.3 2002-01-15 03:07:07 tavi Exp $
+// $Id: tpie_stats.h,v 1.4 2003-04-17 20:14:48 jan Exp $
 //
 // The tpie_stats class for recording statistics. The parameter C is
 // the number of statistics to be recorded.
 //
 #ifndef _TPIE_STATS_H
 #define _TPIE_STATS_H
+
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 template<int C>
 class tpie_stats {
