@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/19/94
 //
-// $Id: ami.h,v 1.10 1995-03-22 16:22:35 dev Exp $
+// $Id: ami.h,v 1.11 1995-06-20 18:44:41 darrenv Exp $
 //
 #ifndef _AMI_H
 #define _AMI_H
@@ -55,7 +55,7 @@ TEMPLATE_INSTANTIATE_AMI_STREAMS(T)
 #include <ami_bit_permute.h>
 
 // Get templates for AMI_distribution_sweep().
-#include <ami_dist_sweep.h>
+//#include <ami_dist_sweep.h>
 
 // Get the size of main memory.
 extern size_t AMI_mem_size(void);
