@@ -5,15 +5,10 @@
 // Created: 3/2/95
 //
 
-#include <iostream>
-#include <fstream>
-#include <strstream>
 
-using std::istrstream;
-using std::cout;
-using std::istream;
-using std::ofstream;
-using std::ifstream;
+#include <portability.h>
+
+#include <strstream>
 
 #include "app_config.h"        
 #include "parse_args.h"
@@ -21,7 +16,7 @@ using std::ifstream;
 // Define it all.
 #include <ami.h>
 
-VERSION(test_ami_sm_cpp,"$Id: test_ami_sm.cpp,v 1.6 2003-04-21 03:16:20 tavi Exp $");
+VERSION(test_ami_sm_cpp,"$Id: test_ami_sm.cpp,v 1.7 2003-09-12 02:29:40 tavi Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -38,11 +33,11 @@ VERSION(test_ami_sm_cpp,"$Id: test_ami_sm.cpp,v 1.6 2003-04-21 03:16:20 tavi Exp
 
 #include <cpu_timer.h>
 
-static char def_crf[] = "/var/tmp/osc.txt";
-static char def_irf[] = "/var/tmp/osi.txt";
-static char def_frf[] = "/var/tmp/osf.txt";
+static char def_crf[] = "osc.txt";
+static char def_irf[] = "osi.txt";
+static char def_frf[] = "osf.txt";
 
-static char def_brf[] = "./isb.txt";
+static char def_brf[] = "isb.txt";
 
 static char *count_results_filename = def_crf;
 static char *intermediate_results_filename = def_irf;
@@ -100,11 +95,11 @@ int main(int argc, char **argv)
     parse_args(argc,argv,as_opts,parse_app_opt);
 
     if (verbose) {
-        cout << "test_size = " << test_size << ".\n";
-        cout << "test_mm_size = " << test_mm_size << ".\n";
-        cout << "random_seed = " << random_seed << ".\n";
-        cout << "density = " << density << ".\n";
-        cout << "Call mult directly = " << call_mult << ".\n";
+      cout << "test_size = " << test_size << "." << endl;
+      cout << "test_mm_size = " << test_mm_size << "." << endl;
+      cout << "random_seed = " << random_seed << "." << endl;
+      cout << "density = " << density << "." << endl;
+      cout << "Call mult directly = " << call_mult << "." << endl;
     } else {
         cout << test_size << ' ' << test_mm_size << ' ' << random_seed;
     }
@@ -196,7 +191,7 @@ int main(int argc, char **argv)
 
             if (verbose) {
                 cout << "Reading banded matrix from \""
-                    << banded_read_filename << "\"\n";
+		     << banded_read_filename << "\"" << endl;
             }
 
             // Read in the banded order matrix from an input file.            
@@ -213,12 +208,12 @@ int main(int argc, char **argv)
 
             cput1.stop();
 
-            cout << cput1 << '\n';
+            cout << cput1 << endl;
             
         } else {
 
             if (verbose) {
-                cout << "Generating banded matrix.\n";
+	      cout << "Generating banded matrix." << endl;
             }
 
             cput0.reset();
@@ -234,13 +229,13 @@ int main(int argc, char **argv)
 
             cput0.stop();
 
-            cout << cput0 << '\n';
+            cout << cput0 << endl;
             
         }
         
         if (report_results_intermediate) {
             *osi << test_mm_size << ' ' << test_size << ' '
-                 << rows_per_band << '\n';
+                 << rows_per_band << endl;
             ae = AMI_scan((AMI_STREAM< AMI_sm_elem<double> > *)&esm0b,
                           rpti);
         }
@@ -257,14 +252,14 @@ int main(int argc, char **argv)
 
         if (read_banded_matrix) {
             cput1.stop();
-            cout << cput1 << '\n';
+            cout << cput1 << endl;
         }
                 
     }
     
     if (verbose) {
-        cout << "Multiplied them.\n";
-        cout << "Stream length = " << ev1.stream_len() << '\n';
+      cout << "Multiplied them." << endl;
+        cout << "Stream length = " << ev1.stream_len() << endl;
     }
     
     if (report_results_final) {
