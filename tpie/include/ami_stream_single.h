@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/19/94
 //
-// $Id: ami_stream_single.h,v 1.3 2002-02-02 18:11:52 tavi Exp $
+// $Id: ami_stream_single.h,v 1.4 2002-03-14 20:29:03 tavi Exp $
 //
 // AMI entry points implemented on top of a single BTE.  This is useful
 // for single CPU, single disk machines.
@@ -215,18 +215,19 @@ AMI_stream_single<T>::AMI_stream_single(const char *path_name,
   case AMI_READ_STREAM: 
     bst = BTE_READ_STREAM;
     break;
-  case  AMI_APPEND_STREAM:
+  case AMI_APPEND_STREAM:
     bst = BTE_APPEND_STREAM;
     break;
-  case    AMI_WRITE_STREAM:
+  case AMI_WRITE_STREAM:
   case AMI_READ_WRITE_STREAM:
     bst = BTE_WRITE_STREAM; //BTE_WRITE_STREAM means both read and
  //write; this is inconsistent and should be modified..
     break;
   default:
-    fprintf(stderr, "internal error %s:%d\n", __FILE__, __LINE__);
-    assert(0);
-    exit(1);
+    LOG_WARNING_ID("Unknown stream type passed to constructor;");
+    LOG_WARNING_ID("Defaulting to AMI_READ_WRITE_STREAM.");
+    bst = BTE_WRITE_STREAM;
+    break;
   }
   
   r_only = ((st == AMI_READ_STREAM)? 1 : 0);
