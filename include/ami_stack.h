@@ -4,10 +4,13 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/15/94
 //
-// $Id: ami_stack.h,v 1.3 1999-02-03 17:39:05 tavi Exp $
+// $Id: ami_stack.h,v 1.4 2003-04-17 14:20:36 jan Exp $
 //
 #ifndef _AMI_STACK_H
 #define _AMI_STACK_H
+
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 template<class T>
 class AMI_stack : public AMI_STREAM<T> {
@@ -54,7 +57,7 @@ template<class T>
 AMI_err AMI_stack<T>::pop(T **t)
 {
     AMI_err ae;
-    off_t slen;
+    TPIE_OS_OFFSET slen;
 
     slen = stream_len();
 
