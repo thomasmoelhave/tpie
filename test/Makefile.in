@@ -1,7 +1,7 @@
 # Makefile for TPIE test applications.
 # Use gmake on this Makefile.  It relies on the default rules, and 
 # Use gmake -p to see the default rules.
-# $Id: Makefile.in,v 1.38 2004-10-27 18:19:53 adanner Exp $
+# $Id: Makefile.in,v 1.39 2004-11-17 22:14:44 adanner Exp $
 
 CXX = @CXX@
 CC = @CC@
@@ -57,7 +57,8 @@ APPS := test_ami_pmerge \
 	test_ami_sm \
 	test_ami_sort24	\
 	test_ami_btree \
-	test_correctness
+	test_correctness \
+	test_big_scan
 
 
 # Sources to the test applications.
@@ -115,6 +116,7 @@ test_ami_sm: test_ami_sm.o scan_uniform_sm.o $(COMMONOBJ)
 test_ami_sort24: test_ami_sort24.o $(COMMONOBJ)
 test_ami_btree: test_ami_btree.o
 test_correctness: test_correctness.o getopts.o
+test_big_scan: test_big_scan.o getopts.o
 
 include Makefile.depend
 
