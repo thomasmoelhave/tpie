@@ -3,7 +3,7 @@
 // File:    ami_cache.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_cache.h,v 1.8 2003-04-23 05:35:58 tavi Exp $
+// $Id: ami_cache.h,v 1.9 2003-09-12 01:43:39 jan Exp $
 //
 // Declaration and definition of AMI_CACHE_MANAGER
 // implementation(s).
@@ -51,7 +51,7 @@ template<class T, class W>
 class AMI_cache_manager_lru: public AMI_cache_manager_base {
 protected:
 
-  typedef std::pair<size_t,T> item_type_;
+  typedef pair<size_t,T> item_type_;
 	
   // The array of items.
   item_type_ * pdata_;

@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 11/4/94
 //
-// $Id: bit.h,v 1.4 2003-04-20 06:38:39 tavi Exp $
+// $Id: bit.h,v 1.5 2003-09-12 01:46:38 jan Exp $
 //
 #ifndef _BIT_H
 #define _BIT_H
@@ -36,7 +36,7 @@ public:
     friend bit operator+(bit op1, bit op2);
     friend bit operator*(bit op1, bit op2);
 
-    friend std::ostream &operator<<(std::ostream &s, bit b);
+    friend ostream &operator<<(ostream &s, bit b);
 };
 
 #endif // _BIT_H 

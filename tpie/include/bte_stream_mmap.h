@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/13/94
 //
-// $Id: bte_stream_mmap.h,v 1.10 2003-04-23 00:05:47 tavi Exp $
+// $Id: bte_stream_mmap.h,v 1.11 2003-09-12 01:46:38 jan Exp $
 //
 // Memory mapped streams.  This particular implementation explicitly manages
 // blocks, and only ever maps in one block at a time.
@@ -406,7 +406,7 @@ BTE_stream_mmap < T >::BTE_stream_mmap (const char *dev_path,
 
 #ifdef VERBOSE
 	    if (verbose)
-		std::cout << "CONS created file: " << path << "\n";
+		cout << "CONS created file: " << path << "\n";
 #endif
 
 	    // what does this do??? Rajiv
@@ -461,7 +461,7 @@ BTE_stream_mmap < T >::BTE_stream_mmap (const char *dev_path,
 #ifdef VERBOSE
     // Rajiv
     if (verbose)
-	std::cout << "CONS logical eof=" << header->item_logical_eof << "\n";
+	cout << "CONS logical eof=" << header->item_logical_eof << "\n";
 #endif
 
     // By default, all streams are deleted at destruction time.
@@ -480,13 +480,13 @@ BTE_stream_mmap < T >::BTE_stream_mmap (const char *dev_path,
     if (verbose) {
 	switch (st) {
 	case BTE_READ_STREAM:
-	    std::cout << "CONS read stream\n";
+	    cout << "CONS read stream\n";
 	    break;
 	case BTE_WRITE_STREAM:
-	    std::cout << "CONS read/write stream\n";
+	    cout << "CONS read/write stream\n";
 	    break;
 	default:
-	    std::cout << "CONS someother stream\n";
+	    cout << "CONS someother stream\n";
 	    break;
 	}
 	print ("CONS ");
@@ -620,7 +620,7 @@ template < class T > BTE_stream_mmap < T >::~BTE_stream_mmap (void) {
 #ifdef VERBOSE
     // Rajiv
     if (verbose) {
-	std::cout << "DELE logical eof=" << header->item_logical_eof << "\n";
+	cout << "DELE logical eof=" << header->item_logical_eof << "\n";
     }
 #endif
     assert (substream_level ||
@@ -690,9 +690,9 @@ template < class T > BTE_stream_mmap < T >::~BTE_stream_mmap (void) {
 #ifdef VERBOSE
     if (verbose) {
 	if (per == PERSIST_DELETE)
-	    std::cout << "DELE unlinked file\n";
+	    cout << "DELE unlinked file\n";
 	if (substream_level) {
-	    std::cout << "DELE substream destructor\n";
+	    cout << "DELE substream destructor\n";
 	}
 	print ("DELE ");
     }
@@ -707,7 +707,7 @@ template < class T > void BTE_stream_mmap < T >::print (char *pref) {
     fprintf (stdout, "%sPFSTATS %d %d %d %d (fd=%d)\n",
 	     pref, stats_hits, stats_misses,
 	     stats_compulsory - stats_misses, stats_eos, fd);
-    std::cout << pref << stats << " RWMUSCD\n";
+    cout << pref << stats << " RWMUSCD\n";
 #endif
 #endif
     fprintf (stdout, "%sfile=%s", pref, path);
@@ -728,7 +728,7 @@ B_INLINE BTE_err BTE_stream_mmap < T >::read_item (T ** elt) {
     if (w_only) {
 #ifdef VERBOSE
 	if (verbose)
-	    std::cerr << "ERROR read on a write-only stream\n";
+	    cerr << "ERROR read on a write-only stream\n";
 #endif
 	return BTE_ERROR_WRITE_ONLY;
     }
@@ -1170,7 +1170,7 @@ inline BTE_err BTE_stream_mmap < T >::validate_current (void)
 #ifdef VERBOSE
     // Rajiv
     if (verbose && bte_err != BTE_ERROR_NO_ERROR)
-	std::cerr << "validate_current failed\n";
+	cerr << "validate_current failed\n";
 #endif
 
     // Rajiv
@@ -1387,7 +1387,7 @@ BTE_stream_mmap < T >::grow_file (TPIE_OS_OFFSET block_offset)
 	LOG_FATAL ('\n');
 	LOG_FLUSH_LOG;
 	// Rajiv
-	//std::cerr << "map_current: ftruncate\n";
+	//cerr << "map_current: ftruncate\n";
 	return BTE_ERROR_END_OF_STREAM;	// generate an error Rajiv
     }
      assert (TPIE_OS_LSEEK(fd, 0, TPIE_OS_FLAG_SEEK_END) == f_filelen);
@@ -1474,7 +1474,7 @@ void BTE_stream_mmap < T >::read_ahead () {
 	    (f_curr_block + 2 * header->block_size > f_filelen)) {
 #ifdef VERBOSE
 	    if (verbose)
-		std::cout << "growing file (fd" << fd << ") in advance\n";
+		cout << "growing file (fd" << fd << ") in advance\n";
 #endif
 	    grow_file (f_curr_block);
 	}

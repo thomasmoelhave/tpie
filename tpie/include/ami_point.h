@@ -5,13 +5,13 @@
 //
 // The Point and IdPoint classes.
 //
-// $Id: ami_point.h,v 1.4 2003-06-03 23:16:32 tavi Exp $
+// $Id: ami_point.h,v 1.5 2003-09-12 01:46:18 jan Exp $
 //
 
 #ifndef AMI_POINT_H_
 #define AMI_POINT_H_
 
-// For std::ostream.
+// For ostream.
 #include <iostream>
 
 // This is a hack. It works for integer types only.
@@ -51,12 +51,12 @@ public:
 
   void set_min(const Point_base<coord_t, dim>& p) {
     for (size_t j = 0; j < dim; j++)
-      coords_[j] = std::min(coords_[j], p[j]);
+      coords_[j] = min(coords_[j], p[j]);
   }
 
   void set_max(const Point_base<coord_t, dim>& p) {
     for (size_t j = 0; j < dim; j++)
-      coords_[j] = std::max(coords_[j], p[j]);
+      coords_[j] = max(coords_[j], p[j]);
   }
 
   // Scalar product.
@@ -126,7 +126,7 @@ public:
 };
 
 template<class coord_t, size_t dim>
-std::ostream& operator<<(std::ostream& s, const Point<coord_t, dim>& p) {
+ostream& operator<<(ostream& s, const Point<coord_t, dim>& p) {
   for (size_t i = 0; i < dim-1; i++)
     s << p[i] << " ";
   return s << p[dim-1];
@@ -205,7 +205,7 @@ public:
 
 
 template<class coord_t>
-std::ostream& operator<<(std::ostream& s, const Point<coord_t, 2>& p) {
+ostream& operator<<(ostream& s, const Point<coord_t, 2>& p) {
   return s << p[0] << " " << p[1];
 }
 
@@ -245,12 +245,12 @@ public:
 
   void set_min(const Record_base<coord_t, data_t, dim>& p) {
     for (size_t j = 0; j < dim; j++)
-      key[j] = std::min(key[j], p[j]);
+      key[j] = min(key[j], p[j]);
   }
 
   void set_max(const Record_base<coord_t, data_t, dim>& p) {
     for (size_t j = 0; j < dim; j++)
-      key[j] = std::max(key[j], p[j]);
+      key[j] = max(key[j], p[j]);
   }
 
   // Scalar product.
@@ -312,7 +312,7 @@ public:
 };
 
 template<class coord_t, class data_t, size_t dim>
-std::ostream& operator<<(std::ostream& s, const Record<coord_t, data_t, dim>& p) {
+ostream& operator<<(ostream& s, const Record<coord_t, data_t, dim>& p) {
   for (size_t i = 0; i < dim; i++)
     s << p[i] << " ";
   return s << p.id();
@@ -405,7 +405,7 @@ public:
 };
 
 template<class coord_t, class data_t>
-std::ostream& operator<<(std::ostream& s, const Record<coord_t, data_t, 2>& p) {
+ostream& operator<<(ostream& s, const Record<coord_t, data_t, 2>& p) {
   return s << p[0] << " " << p[1] << " " << p.id();
 }
 

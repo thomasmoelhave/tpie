@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 3/2/95
 //
-// $Id: ami_sparse_matrix.h,v 1.11 2003-04-21 04:46:01 tavi Exp $
+// $Id: ami_sparse_matrix.h,v 1.12 2003-09-12 01:46:38 jan Exp $
 //
 #ifndef AMI_SPARSE_MATRIX_H
 #define AMI_SPARSE_MATRIX_H
@@ -29,13 +29,13 @@ public:
 
 
 template <class T>
-std::ostream &operator<<(std::ostream& s, const AMI_sm_elem<T> &a)
+ostream &operator<<(ostream& s, const AMI_sm_elem<T> &a)
 {
     return s << a.er << ' ' << a.ec << ' ' << a.val;
 };
 
 template <class T>
-std::istream &operator>>(std::istream& s, AMI_sm_elem<T> &a)
+istream &operator>>(istream& s, AMI_sm_elem<T> &a)
 {
     return s >> a.er >> a.ec >> a.val;
 };

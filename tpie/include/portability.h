@@ -3,7 +3,7 @@
 // Created: 2002/10/30
 // Authors: Joerg Rotthowe, Jan Vahrenhold, Markus Vogel
 //
-// $Id: portability.h,v 1.8 2003-09-11 18:56:40 jan Exp $
+// $Id: portability.h,v 1.9 2003-09-12 01:46:38 jan Exp $
 //
 // This header-file offers macros for independent use on Win and Unix systems.
 
@@ -55,11 +55,17 @@
 //#endif
 
 // for class logstream
-
 #ifdef _WIN32
 #include <fstream.h>
 #else
 #include <fstream>
+#endif
+
+#ifdef _WIN32
+#include <stack>
+using std::pair;
+using std::stack;
+#else
 using namespace std;
 #endif
 
@@ -521,14 +527,17 @@ inline TPIE_OS_FILE_DESCRIPTOR portabilityInternalOpen(LPCTSTR name, int flag, T
 	SetEndOfFile(internalHandle.FileHandle);
     };
     if (internalHandle.useFileMapping == TPIE_OS_FLAG_USE_MAPPING_TRUE) {
-    internalHandle.mapFileHandle = 
-	CreateFileMapping( 
-	    internalHandle.FileHandle,
-	    0,  
-	    (internalHandle.RDWR ? PAGE_READWRITE : PAGE_READONLY),	
-	    0, 0,
-	    NULL);
-	}
+	internalHandle.mapFileHandle = 
+	    CreateFileMapping( 
+		internalHandle.FileHandle,
+		0,  
+		(internalHandle.RDWR ? PAGE_READWRITE : PAGE_READONLY),	
+		0, 0,
+		NULL);
+    }
+    else {
+	internalHandle.mapFileHandle = (void*)1;
+    }
     return internalHandle;
 }
 #endif
@@ -930,7 +939,6 @@ return BTE_ERROR_OS_ERROR
     //		******************************************************************************* /
 
 #ifdef _WIN32							
-#ifdef _DEBUG
 #define TPIE_OS_SPACE_OVERHEAD_BODY \
 void * __cdecl _nh_malloc_dbg ( size_t, int, int, const char *,	int );\
 void * operator new(\
@@ -945,25 +953,25 @@ void * operator new(\
       && (MM_manager.register_allocation (cb + SIZE_SPACE) !=	MM_ERROR_NO_ERROR)) {\
     switch(MM_manager.register_new) {\
     case MM_ABORT_ON_MEMORY_EXCEEDED:\
-        LOG_FATAL_ID("In operator new() - allocation request ")\
-        LOG_FATAL(cb + SIZE_SPACE)\
-        LOG_FATAL(" plus previous allocation ")\
-        LOG_FATAL(MM_manager.memory_used() - (cb + SIZE_SPACE))\
-        LOG_FATAL(" exceeds user-defined limit ")\
-        LOG_FATAL(MM_manager.memory_limit())\
-        LOG_FATAL(" ")\
+        LOG_FATAL_ID("In operator new() - allocation request ");\
+        LOG_FATAL(cb + SIZE_SPACE);\
+        LOG_FATAL(" plus previous allocation ");\
+        LOG_FATAL(MM_manager.memory_used() - (cb + SIZE_SPACE));\
+        LOG_FATAL(" exceeds user-defined limit ");\
+        LOG_FATAL(MM_manager.memory_limit());\
+        LOG_FATAL(" ");\
         cerr << "memory manager: memory allocation limit " << MM_manager.memory_limit() << " exceeded while allocating " << cb << " bytes" << endl;\
         exit(1);\
         break;\
     case MM_WARN_ON_MEMORY_EXCEEDED: \
-       LOG_WARNING_ID("In operator new() - allocation request \"")\
-       LOG_WARNING(cb + SIZE_SPACE)\
-       LOG_WARNING("\" plus previous allocation \"")\
-       LOG_WARNING(MM_manager.memory_used () - (cb + SIZE_SPACE))\
-       LOG_WARNING("\" exceeds user-defined limit \"")\
-       LOG_WARNING(MM_manager.memory_limit ())\
-       LOG_WARNING("\" \n")\
-       LOG_FLUSH_LOG\
+       LOG_WARNING_ID("In operator new() - allocation request \"");\
+       LOG_WARNING(cb + SIZE_SPACE);\
+       LOG_WARNING("\" plus previous allocation \"");\
+       LOG_WARNING(MM_manager.memory_used () - (cb + SIZE_SPACE));\
+       LOG_WARNING("\" exceeds user-defined limit \"");\
+       LOG_WARNING(MM_manager.memory_limit ());\
+       LOG_WARNING("\" \n");\
+       LOG_FLUSH_LOG;\
        cerr << "memory manager: memory allocation limit " << MM_manager.memory_limit () << " exceeded " << "while allocating " << cb << " bytes" << endl;\
        break;\
    case MM_IGNORE_MEMORY_EXCEEDED:\
@@ -972,8 +980,8 @@ void * operator new(\
    }\
    p = malloc (cb+SIZE_SPACE);\
    if (!p) {\
-       LOG_FATAL_ID("Out of memory. Cannot continue.")\
-       LOG_FLUSH_LOG\
+       LOG_FATAL_ID("Out of memory. Cannot continue.");\
+       LOG_FLUSH_LOG;\
        cerr << "out of memory while allocating " << cb << " bytes" << endl;\
        perror ("mm_base::new malloc");\
        assert(0);\
@@ -982,12 +990,10 @@ void * operator new(\
    *((size_t *) p) = cb;\
    return ((char *) p) + SIZE_SPACE;\
 };
-#else
-#define TPIE_OS_SPACE_OVERHEAD_BODY	
-#endif
 #else									      
 #define TPIE_OS_SPACE_OVERHEAD_BODY
 #endif
 
 #endif 
+
 // _portability_H  //

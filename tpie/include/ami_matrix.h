@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/9/94
 //
-// $Id: ami_matrix.h,v 1.11 2003-04-21 03:56:04 tavi Exp $
+// $Id: ami_matrix.h,v 1.12 2003-09-12 01:46:18 jan Exp $
 //
 #ifndef _AMI_MATRIX_H
 #define _AMI_MATRIX_H
@@ -462,7 +462,7 @@ AMI_err AMI_matrix_mult(AMI_matrix<T> &op1, AMI_matrix<T> &op2,
 #ifdef INTERNAL_TIMING
 
         cput_internal.stop();
-        std::cout << cput_internal << ' ';
+        cout << cput_internal << ' ';
 
 #endif        
         

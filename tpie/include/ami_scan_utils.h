@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 8/31/94
 //
-// $Id: ami_scan_utils.h,v 1.9 2003-04-21 02:00:56 tavi Exp $
+// $Id: ami_scan_utils.h,v 1.10 2003-09-12 01:46:38 jan Exp $
 //
 #ifndef _AMI_SCAN_UTILS_H
 #define _AMI_SCAN_UTILS_H
@@ -23,15 +23,15 @@
 
 template<class T> class cxx_istream_scan : AMI_scan_object {
 private:
-    std::istream *is;
+    istream *is;
 public:
-    cxx_istream_scan(std::istream *instr = &std::cin);
+    cxx_istream_scan(istream *instr = &cin);
     AMI_err initialize(void);
     AMI_err operate(T *out, AMI_SCAN_FLAG *sfout);
 };
 
 template<class T>
-cxx_istream_scan<T>::cxx_istream_scan(std::istream *instr) : is(instr)
+cxx_istream_scan<T>::cxx_istream_scan(istream *instr) : is(instr)
 {
 };
 
@@ -62,15 +62,15 @@ AMI_err cxx_istream_scan<T>::operate(T *out, AMI_SCAN_FLAG *sfout)
 
 template<class T> class cxx_ostream_scan : AMI_scan_object {
 private:
-    std::ostream *os;
+    ostream *os;
 public:
-    cxx_ostream_scan(std::ostream *outstr = &std::cout);
+    cxx_ostream_scan(ostream *outstr = &cout);
     AMI_err initialize(void);
     AMI_err operate(const T &in, AMI_SCAN_FLAG *sfin);
 };
 
 template<class T>
-cxx_ostream_scan<T>::cxx_ostream_scan(std::ostream *outstr) : os(outstr)
+cxx_ostream_scan<T>::cxx_ostream_scan(ostream *outstr) : os(outstr)
 {
 };
 
