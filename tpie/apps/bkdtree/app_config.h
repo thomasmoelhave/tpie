@@ -1,16 +1,17 @@
 //
 // File: app_config.h
-// Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
+// Authors: Darren Erik Vengroff
+//          Octavian Procopiuc <tavi@cs.duke.edu>
+//
 // Created: 10/6/94
 //
-// $Id: app_config.h,v 1.28 2002-07-21 19:43:05 tavi Exp $
+// $Id: app_config.h,v 1.29 2002-08-01 01:30:08 tavi Exp $
 //
 #ifndef _APP_CONFIG_H
 #define _APP_CONFIG_H
 
 // Get the configuration as set up by the TPIE configure script.
 #include <config.h>
-
 
 // <><><><><><><><><><><><><><><><><><><><><><> //
 // <><><><><><><> Developer use  <><><><><><><> //
@@ -75,8 +76,8 @@ extern int random_seed;
    // Define logical blocksize factor (default is 32)
 #  define BTE_STREAM_MMAP_BLOCK_FACTOR 32
    // Enable/disable TPIE read ahead; default is enabled (set to 1)
-#  define BTE_MMB_READ_AHEAD 1
-   /* read ahead method, ignored unless BTE_MMB_READ_AHEAD is set to 1;
+#  define BTE_STREAM_MMAP_READ_AHEAD 1
+   /* read ahead method, ignored unless BTE_STREAM_MMAP_READ_AHEAD is set to 1;
    if USE_LIBAIO is enabled, use asynchronous IO read ahead; otherwise
    use use mmap-based read ahead; default is mmap-based read ahead
    (USE_LIBAIO not defined) */
@@ -92,8 +93,8 @@ extern int random_seed;
    // Define logical blocksize factor (default is 32)
 #  define BTE_STREAM_UFS_BLOCK_FACTOR 32
    // Enable/disable TPIE read ahead; default is disabled (set to 0)
-#  define BTE_UFS_READ_AHEAD 0
-   /* read ahead method, ignored unless BTE_UFS_READ_AHEAD is set to 1;
+#  define BTE_STREAM_UFS_READ_AHEAD 0
+   /* read ahead method, ignored unless BTE_STREAM_UFS_READ_AHEAD is set to 1;
    if USE_LIBAIO is set to 1, use asynchronous IO read ahead;
    otherwise no TPIE read ahead is done; default is disabled (set to
    0) */
@@ -101,13 +102,13 @@ extern int random_seed;
 #endif
 
 
+// <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><> //
+//                   logging and assertions;                    //
+//            this should NOT be modified by user!!!            //
+//   in order to enable/disable library/application logging,    //
+//     run tpie configure script with appropriate options       //
+// <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><> //
 
-/********************************************************************/
-/*                     logging and assertions;                      */
-/*              this should NOT be modified by user!!!              */
-/*       in order to enable/disable library/application logging,    */
-/*     run tpie configure script with appropriate options           */
-/********************************************************************/
 // Use logs if requested.
 #if TP_LOG_APPS
 #define TPL_LOGGING 1
