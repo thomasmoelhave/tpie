@@ -7,7 +7,7 @@
 // A basic implementation of quicksort for use in core by AMI_sort() on
 // streams or substreams that are small enough.
 //
-// $Id: quicksort.h,v 1.6 1995-03-07 14:51:36 darrenv Exp $
+// $Id: quicksort.h,v 1.7 1995-03-21 16:47:42 dev Exp $
 //
 #ifndef _QUICKSORT_H
 #define _QUICKSORT_H
@@ -300,11 +300,9 @@ void insertion_sort_obj(T *data, size_t len,
     T *p, *q, test;
 
     for (p = data + 1; p < data + len; p++) {
-        for (q = p - 1, test = *p; cmp->compare(*q, test) > 0; q--) {
+        for (q = p - 1, test = *p;
+             (q >= data) && (cmp->compare(*q, test) > 0); q--) {
             *(q+1) = *q;
-            if (q == data) {
-                break;
-            }
         }
         *(q+1) = test;
     }
