@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/12/94
 //
-// $Id: tpie_log.h,v 1.10 1999-10-22 23:04:54 tavi Exp $
+// $Id: tpie_log.h,v 1.11 1999-10-29 02:56:14 tavi Exp $
 //
 #ifndef _TPIE_LOG_H
 #define _TPIE_LOG_H
@@ -46,7 +46,7 @@ void init_tpie_logs(void);
 #define LOG_WARNING_ID(msg)  \
   (LOG_WARNING(LOG_ID_MSG << msg << "\n"), LOG_FLUSH_LOG)
 #define LOG_APP_DEBUG_ID(msg) \
-  (LOG_APP_DEBUG_INFO(LOG_ID_MSG << msg << "\n"), LOG_FLUSH_LOG)
+  (LOG_APP_DEBUG(LOG_ID_MSG << msg << "\n"), LOG_FLUSH_LOG)
 #define LOG_DEBUG_ID(msg)  \
   (LOG_DEBUG_INFO(LOG_ID_MSG << msg << "\n"), LOG_FLUSH_LOG)
 
@@ -81,7 +81,7 @@ static log_init source_file_log_init;
 
 #define LOG_FATAL(msg) 
 #define LOG_WARNING(msg) 
-#define LOG_APP_DEBUG_INFO(msg)
+#define LOG_APP_DEBUG(msg)
 #define LOG_DEBUG_INFO(msg) 
 
 #define LOG_FATAL_ID(msg)
