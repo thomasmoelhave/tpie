@@ -4,7 +4,7 @@
 // Authors: Octavian Procopiuc <tavi@cs.duke.edu>
 //          (using some code by Rakesh Barve)
 //
-// $Id: bte_coll_base.h,v 1.7 2001-12-29 05:19:24 tavi Exp $
+// $Id: bte_coll_base.h,v 1.8 2001-12-30 04:11:33 tavi Exp $
 //
 // BTE_collection_base class and various basic definitions.
 //
@@ -27,7 +27,7 @@
 // For stdio_stack.
 #include <stdio_stack.h>
 // For BTE_err.
-#include <bte_base_stream.h>
+#include <bte_err.h>
 // For class tpie_stats_coll.
 #include <tpie_stats_coll.h>
 
