@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/5/94
 //
-// $Id: merge_random.h,v 1.7 1999-02-03 21:53:41 tavi Exp $
+// $Id: merge_random.h,v 1.8 2001-02-10 23:50:03 hutchins Exp $
 //
 // A merge managment object that reorders the input stream in a random
 // way.
@@ -21,7 +21,7 @@ extern "C" long int random(void);
 #endif
 
 template<class T>
-class merge_random : public AMI_merge_base<T> {
+class merge_random : public AMI_generalized_merge_base<T> {
 private:
     arity_t input_arity;
     pqueue_heap_op<arity_t,int> *pq;
