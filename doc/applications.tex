@@ -1,5 +1,5 @@
 %%
-%% $Id: applications.tex,v 1.1 1999-03-04 00:34:03 tavi Exp $
+%% $Id: applications.tex,v 1.2 1999-05-02 19:20:21 tavi Exp $
 %%
 \chapter{Test and Sample Applications}
 
@@ -134,9 +134,14 @@ The test programs include with TPIE are as follows:
   described in Section~\ref{sec:ref-ami-sort}.
 \item[\verb|test\_ami\_gp|] Test general permutation using
   \verb|AMI_general_permute()| as described in Section~\ref{sec:ref-ami-gp}.
+The program generates an input stream
+consisting of sequential integers, and outputs a stream consisting of 
+the same integers, in reverse order.
 \item[\verb|test\_ami\_bp|] Test bit permutations using
-  \verb|AMI_bit_permute()| as described in
-  Section~\ref{sec:ref-ami-bp}.
+  \verb|AMI_BMMC_permute()| as described in
+  Section~\ref{sec:ref-ami-bp}. The program generates an input stream
+consisting of sequential integers, and outputs a stream consisting of 
+a permutation of these integers, as described in the example given in the Tutorial, Section~\ref{sec:bit-permuting}.
 \item[\verb|test\_matrix|]
 \item[\verb|test\_bit\_matrix|] Test main memory matrix manipulation
   and arithmetic.  This is used both by the bit permuting code
@@ -156,6 +161,9 @@ The test programs include with TPIE are as follows:
   described in Section~\ref{sec:ref-ami-stack}.
 \item[\verb|test\_ami\_arith|] Test element-wise arithmetic on
   external memory streams as described in Section~\ref{sec:ref-ami-arith}.
+The program generates an input stream
+consisting of sequential integers, squares them, and performs 
+elementwise division between the resulting stream and the input stream.
 \end{description}
 
 \section{Sample Applications}
