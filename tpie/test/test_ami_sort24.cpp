@@ -8,7 +8,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_sort24_cpp,"$Id: test_ami_sort24.cpp,v 1.11 2003-09-12 02:38:25 jan Exp $");
+VERSION(test_ami_sort24_cpp,"$Id: test_ami_sort24.cpp,v 1.12 2003-09-23 06:58:45 tavi Exp $");
 
 // Get information on the configuration to test.
 #include "app_config.h"
@@ -204,12 +204,7 @@ int main(int argc, char **argv)
 
     cput.stop();
 
-#if 0    
-    // Make the input stream persist, so we can see how many blocks it
-    // contains when the program exits.
-
-    amis0.persist(PERSIST_PERSISTENT);
-#endif
+    amis0.persist(PERSIST_DELETE);
     
     if (verbose) {
       cout << "Sorted them." << endl;
