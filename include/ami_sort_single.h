@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 9/28/94
 //
-// $Id: ami_sort_single.h,v 1.7 1995-03-07 14:48:34 darrenv Exp $
+// $Id: ami_sort_single.h,v 1.8 1997-05-20 22:14:45 vengroff Exp $
 //
 // Merge sorting for the AMI_IMP_SINGLE implementation.
 //
@@ -112,7 +112,7 @@ size_t merge_sort_manager<T>::space_usage_per_stream(void)
 
 template<class T>
 AMI_err merge_sort_manager<T>::operate(CONST T * CONST *in,
-                                       AMI_merge_flag *taken_flags,
+                                       AMI_merge_flag */*taken_flags*/,
                                        int &taken_index,
                                        T *out)
 {

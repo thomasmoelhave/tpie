@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 3/12/95
 //
-// $Id: ami_kb_sort.h,v 1.2 1995-06-30 21:08:28 darrenv Exp $
+// $Id: ami_kb_sort.h,v 1.3 1997-05-20 22:14:40 vengroff Exp $
 //
 
 // This header file can be included in one of two ways, either with a
@@ -445,7 +445,7 @@ AMI_err _AMI_MM_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
         unsigned int max_occupancy = 0;
         unsigned int buckets_occupied = 0;
 #endif        
-    for (ii = 0, jj = 0; ii < stream_len; ii++) {
+    for (ii = 0, jj = 0; ii < (unsigned)stream_len; ii++) {
 #if VERIFY_OCCUPANCY
         unsigned int cur_occupancy = 0;
 #endif        

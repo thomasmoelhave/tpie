@@ -8,7 +8,7 @@
 // lower level streams will use appropriate levels of buffering.  This
 // will be more critical for parallel disk implementations.
 //
-// $Id: ami_merge.h,v 1.14 1995-06-30 21:08:42 darrenv Exp $
+// $Id: ami_merge.h,v 1.15 1997-05-20 22:14:45 vengroff Exp $
 //
 #ifndef _AMI_MERGE_H
 #define _AMI_MERGE_H
@@ -478,7 +478,7 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
                     return AMI_ERROR_INSUFFICIENT_AVAILABLE_STREAMS;
                 }
                 
-                if (merge_arity > ami_available_streams - 2) {
+                if (merge_arity > (arity_t)ami_available_streams - 2) {
                     merge_arity = ami_available_streams - 2;
                     LOG_INFO("Reduced merge arity due to AMI restrictions.\n");
                 }
@@ -631,7 +631,7 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
         // levels of the merge tree.  Typically this will be very
         // small, e.g. 1-3.
 
-        for( ; current_substream_len < len;
+        for( ; current_substream_len < (size_t)len;
                current_substream_len *= merge_arity) {
 
             // The number of substreams to be processed at this level.

@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/12/94
 //
-// $Id: ami_matrix_fill.h,v 1.2 1995-04-03 13:10:01 dev Exp $
+// $Id: ami_matrix_fill.h,v 1.3 1997-05-20 22:14:41 vengroff Exp $
 //
 #ifndef _AMI_MATRIX_FILL_H
 #define _AMI_MATRIX_FILL_H
@@ -36,7 +36,7 @@ public:
     };
     AMI_err operate(T *out, AMI_SCAN_FLAG *sf)
     {
-        if (*sf = (cur_row < r)) {
+        if ((*sf = (cur_row < r))) {
             *out = pemf->element(cur_row,cur_col);
             if (!(cur_col = (cur_col+1) % c)) {
                 cur_row++;
