@@ -4,60 +4,30 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/12/94
 //
-// $Id: tpie_assert.h,v 1.4 1998-12-11 18:49:28 tavi Exp $
+// $Id: tpie_assert.h,v 1.5 2001-05-08 21:13:20 tavi Exp $
 //
-// This code is based on 
-// 	myassert.h
-//	Darren Erik Vengroff [dev@cs.brown.edu]
-//
-
 
 #ifndef _TPIE_ASSERT_H
 #define _TPIE_ASSERT_H
 
 #include <tpie_log.h>
-
-#if DEBUG_CERR
+#include <assert.h>
 #include <iostream.h>
-#define CERR_OUT(s) {cerr << s; cerr.flush();}
-#else
-#define CERR_OUT(s)
-#endif
-
-#define QUOTE(x) # x
-
-#define QUOTEMACRORESULT(x) QUOTE(x)
 
 #if DEBUG_ASSERTIONS
 
-#ifndef DEBUG_STR
-#define DEBUG_STR	1
-#endif
-
-#define tp_assert(c, msg)						\
-{									\
-    if (!(c)) {								\
-	LOG_FATAL(__FILE__ ":" QUOTEMACRORESULT(__LINE__)		\
-                   ": Assertion failed: ");				\
-        LOG_FATAL(msg);						\
-    	LOG_FATAL('\n');						\
-	LOG_FLUSH_LOG;							\
-	CERR_OUT(__FILE__ ":" QUOTEMACRORESULT(__LINE__)		\
-                 ": Assertion failed: ");				\
-        CERR_OUT(msg);							\
-        CERR_OUT('\n');							\
-    }									\
+#define tp_assert(condition,message) { \
+  if (!(condition)) { \
+    LOG_FATAL_ID("Assertion failed:"); \
+    LOG_FATAL_ID(message); \
+    cerr << "Assertion failed: " << message << endl; \
+    assert(0); \
+  } \
 }
-#else
-#define tp_assert(c,msg)
-#endif
 
-#if DEBUG_STR
-#define TP_DEBUG_OUT(s) LOG_DEBUG_INFO(s); LOG_FLUSH_LOG; CERR_OUT(s)
 #else
-#define TP_DEBUG_OUT(s)
+#define tp_assert(condition,message)
 #endif
-	
 
 #endif // _TPIE_ASSERT_H
 
