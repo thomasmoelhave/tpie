@@ -3,7 +3,7 @@
 %%
 %% File: tpie.tex
 %%
-%% $Id: tpie.tex,v 1.11 1999-06-18 17:28:13 rajiv Exp $
+%% $Id: tpie.tex,v 1.12 1999-07-02 16:29:42 large Exp $
 %%
 
 \documentstyle[11pt,html,makeidx]{book}
@@ -14,6 +14,37 @@
 \setlength{\evensidemargin}{.1in} % distance from left edge of page to text
 \setlength{\textwidth}{6.3in}
 \setlength{\textheight}{9in}
+
+% *****************************
+% COMMENTS
+% *****************************
+
+%% Macro for writing in the margin comments on what is left to be done.
+%% Use \withcomments in the preamble if you want comments to appear.
+\def\comment#1{}
+\def\withcomments{
+% Set \marginparwidth to ensure comment does not runs off the end of the page. 
+\setlength{\marginparwidth}{8.5in}
+\addtolength{\marginparwidth}{-1.0in}
+\addtolength{\marginparwidth}{-\oddsidemargin}
+\addtolength{\marginparwidth}{-\textwidth}
+\addtolength{\marginparwidth}{-2.0\marginparsep} 
+% To get the same space on both sides of the margin text
+% because duke printers use weird margins:
+\addtolength{\marginparwidth}{-0.125in}
+\newcounter{mycomments}
+\def\comment##1{\refstepcounter{mycomments}%
+\ifhmode%
+\unskip%
+{\dimen1=\baselineskip \divide\dimen1 by 2 %
+\raise\dimen1\llap{\tiny -\themycomments-}}\fi%
+\marginpar{\tiny [\themycomments]: ##1}}%
+}
+
+%% Comment this out to produce distribution version of manual.
+%% Also remember of fix date below!
+\withcomments
+
 
 \makeindex
 
@@ -29,6 +60,9 @@
 \newcommand{\version}{0.9.01a}
 \newcommand{\gxxversion}{2.8.1}
 
+\newcommand{\tobewritten}{\vspace{\baselineskip}$<$TO BE WRITTEN$>$\vspace{\baselineskip}}
+\newcommand{\tobeextended}{\vspace{\baselineskip}$<$TO BE EXTENDED$>$\vspace{\baselineskip}}
+
 %% Commands to mimic some that latexinfo has:
 
 %% End of LaTeXinfo-like commands.
@@ -38,16 +72,16 @@
 \title{TPIE User Manual and Reference}
 \author{Lars Arge \and Rakesh Barve \and Octavian Procopiuc \and Laura
 Toma\and 
-        Darren Erik Vengroff \and Rajiv Wickeremesinghe.}
+        Darren Erik Vengroff \and Rajiv Wickeremesinghe}
 \date{{\bf DRAFT} of \today}
+%% IF DISTRIBUTION - comment out above line and use the one below!
+%\date{{\bf DRAFT} of July 2, 1999}
 
 \maketitle
 
 \begin{titlepage}
 
-\vspace*{5 ex}
-
-\centerline{\Large {\bf DRAFT} of \today}
+\mbox{ }
 
 \vspace{\fill}
 
@@ -58,7 +92,9 @@ Toma\and
 
 \vspace{2 ex}
 
-\noindent Copyright \copyright 1994, 1995 Darren Erik Vengroff
+\noindent Copyright \copyright 1994, 1995 Darren Erik Vengroff, 1999 Lars
+Arge, Rakesh Barve, Octavian Procopiuc, Laura Toma, Darren Erik
+Vengroff, Rajiv Wickeremesinghe.
 
 \vspace{2 ex}
 
@@ -85,13 +121,15 @@ Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 This manual describes TPIE, a Transparent Parallel I/O Environment,
 designed to allow programmers to write high performance I/O-efficient
-programs for a variety of platforms.
+programs for a variety of platforms.\comment{LA: Something about LEDA-SM
+somewhere?}
 
-{\bf This manual, like the whole of the TPIE project, is a work in
-  progress.}  The author is making it available in in its current state
-in the hopes that it will be useful, but without any warrantee
-whatsoever.  Please refer to the copyright page at the beginning of
-this manual for full details.
+{\bf This manual, like the whole of the TPIE project, is work in
+  progress.} The authors are making it available in its current state
+  in the hopes that it will be useful, but without any warranty
+  whatsoever. Refer to the copyright page at the beginning of this
+  manual for full details. Please send comments, bug report, ect., to
+  \verb|tpie@cs.duke.edu|.
 
 \part{User Manual}
   \input{user_manual}
@@ -101,7 +139,7 @@ this manual for full details.
   \input{implementation} % Chapter: The Implementation of TPIE
   \input{tuning} % Chapter: TPIE Performance Tuning
   \input{applications} %  Chapter: Test and Sample Applications
-  \input{acknowledgements} % Chapter: Acknowledgements
+  \input{acknowledgements} % Chapter: Acknowledgments
 
 \bibliographystyle{abbrv}
 \bibliography{tpie}
