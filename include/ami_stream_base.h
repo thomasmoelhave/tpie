@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/19/94
 //
-// $Id: ami_stream_base.h,v 1.2 2002-01-28 16:50:03 tavi Exp $
+// $Id: ami_stream_base.h,v 1.3 2002-03-14 20:25:59 tavi Exp $
 //
 #ifndef _AMI_STREAM_BASE_H
 #define _AMI_STREAM_BASE_H
@@ -42,8 +42,12 @@ protected:
 public:
 
   AMI_stream_base(void) { status_ = AMI_STREAM_STATUS_INVALID; }
+
+  // Inquire the status.
   AMI_stream_status status() const { return status_; }
   bool is_valid() const { return status_ == AMI_STREAM_STATUS_VALID; }
+  bool operator!() const { return !is_valid(); }
+
   // TODO: Does this need to be virtual?
   virtual ~AMI_stream_base(void) {}
   
