@@ -1,5 +1,5 @@
 # Makefile for the complete TPIE system.
-# $Id: Makefile.in,v 1.23 2004-11-17 22:16:21 adanner Exp $
+# $Id: Makefile.in,v 1.24 2005-01-14 15:31:56 tavi Exp $
 
 # To compile with debugging symbols, set this to 1.
 MINUSG = 0
@@ -47,8 +47,8 @@ clean:
 	rm -f $(TESTPATH)/Makefile.depend; touch $(TESTPATH)/Makefile.depend
 	$(MAKE) -C $(TESTPATH) $@
 	$(MAKE) -C $(LIBPATH) $@
-	$(MAKE) -C $(INCPATH) $@
 	$(foreach dir, $(appdirs),($(MAKE) -C $(APPSPATH)$(dir) $@);)
+	$(MAKE) -C $(INCPATH) $@
 
 dirs := ./ $(TESTPATH) $(LIBPATH) $(LIBSRCPATH) $(INCPATH)
 					 
