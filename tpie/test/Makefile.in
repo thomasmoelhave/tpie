@@ -1,6 +1,6 @@
 # Copyright (c) 1994 Darren Erik Vengroff
 
-# $Id: Makefile.in,v 1.6 1994-10-04 19:00:15 darrenv Exp $
+# $Id: Makefile.in,v 1.7 1994-10-07 15:41:54 darrenv Exp $
 
 # Makefile for TPIE test applications.
 
@@ -59,59 +59,63 @@ CCFLAGS = $(CXXFLAGS)
 
 # The various test applications.
 
-FSCAT=bte_fs_cat
+APPS = test_ami_pmerge test_ami_sort test_ami_merge  # dist_sweep_test
 
-MMAP_TEST = mmb_stream_test
+# Sources to the test applications.
 
-AMI_SCAN = ami_scan
+APPSRC = $(patsubst %,%.cpp,$(APPS))
 
-AMI_MERGE = test_ami_merge
+# Other C++ sources for common support routines.
 
-BMS = binary_merge_sort
+OTHERCXXSRC = scan_random.cpp scan_count.cpp parse_args.cpp app_config.cpp
 
-PM = partition_and_merge
+CXXSRC=$(APPSRC) $(OTHERCXXSRC)
 
-QS = qsort_test
+# C sources.
 
-DST = dist_sweep_test
+CSRC = int_cmp.c
 
-APPS=$(PM) #$(DST) #$(QS) #$(BMS) #(AMI_SCAN) $(AMI_MERGE) $(BMS)
-
-UP_TO_DATE = .up_to_date
-
-$(UP_TO_DATE): $(APPS)
-	touch $@
+// Translation rules:
 
 %:%.o
-	$(LINK.cc) $< $(LOADLIBES) $(LDLIBS) -o $@
+	$(LINK.cc) $^ $(LOADLIBES) $(LDLIBS) -o $@
 	
 %:%.cpp
 	$(LINK.cc) $< $(LOADLIBES) $(LDLIBS) -o $@
 
-%: $(TPIEINC)$(UP_TO_DATE) $(TPIELIBDIR)$(UP_TO_DATE)
+%.d:%.cpp
+	$(SHELL) -ec '$(CXX) -M $(CPPFLAGS) $< | sed '\''s/$*.o/& $@/g'\'' > $@'
 
-$(TPIEINC)$(UP_TO_DATE): $(TPIEINC)*
-	$(MAKE) -C $(TPIEINC) $(UP_TO_DATE)
+%.d:%.c
+	$(SHELL) -ec '$(CC) -M $(CPPFLAGS) $< | sed '\''s/$*.o/& $@/g'\'' > $@'
 
-$(TPIELIBDIR)$(UP_TO_DATE): $(TPIELIBDIR)*
-	$(MAKE) -C $(TPIELIBDIR) $(UP_TO_DATE)
+# Specific dependencies, explicit and automatic.
 
-$(BMS): $(BMS).cpp int_cmp.o
-	$(LINK.cc) $^ $(LOADLIBES) $(LDLIBS) -o $@
+all: $(APPS)
 
-$(PM): $(PM).o int_cmp.o
-	$(LINK.cc) $^ $(LOADLIBES) $(LDLIBS) -o $@
+include $(CSRC:.c=.d)
 
-$(QS): $(QS).cpp int_cmp.o
-	$(LINK.cc) $^ $(LOADLIBES) $(LDLIBS) -o $@
+include $(CXXSRC:.cpp=.d)
 
-$(DST): $(DST).o
-	$(LINK.cc) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
-.PHONY : clean
+# What objects each of the apps acually need.
+
+test_ami_pmerge: test_ami_pmerge.o scan_random.o 	\
+	int_cmp.o parse_args.o app_config.o
+
+test_ami_sort: test_ami_sort.o scan_random.o parse_args.o app_config.o
+
+test_ami_merge: test_ami_merge.o scan_count.o parse_args.o app_config.o
+
+dist_sweep_test: dist_sweep_test.o
+
+
+
+.PHONY : clean all
 
 clean:
-	-rm *.o
+	-rm *.o *.d
 	-rm $(APPS)
 	-rm $(UP_TO_DATE)
+
 
