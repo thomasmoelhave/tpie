@@ -6,7 +6,7 @@
 //
 // A test for AMI_sort().
 
-static char test_ami_sort_id[] = "$Id: test_ami_sort.cpp,v 1.14 1999-02-18 19:51:16 rajiv Exp $";
+static char test_ami_sort_id[] = "$Id: test_ami_sort.cpp,v 1.15 1999-04-08 01:33:25 rajiv Exp $";
 
 // This is just to avoid an error message since the string above is never
 // refereneced.  Note that a self referential structure must be defined to
@@ -91,12 +91,12 @@ void parse_app_opt(char c, char *optarg)
 
 extern int register_new;
 
-//int cc_int_cmp(const int &i1, const int &i2)
-int cc_int_cmp(int &i1, int &i2)
+int cc_int_cmp(CONST int &i1, CONST int &i2)
 {
     return i1 - i2;
 }
 
+#if(0)
 static void ___dummy_1() {
     AMI_STREAM<int> *s1 = NULL, *s2 = NULL;
     
@@ -108,6 +108,8 @@ static void ___dummy_1() {
 #endif
     ___dummy_1();
 }
+#endif
+
 
 int
 main(int argc, char **argv)
