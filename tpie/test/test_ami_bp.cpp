@@ -9,7 +9,7 @@
 //
 
 #include <versions.h>
-VERSION(test_ami_bp_cpp,"$Id: test_ami_bp.cpp,v 1.6 2000-01-11 01:33:54 hutchins Exp $");
+VERSION(test_ami_bp_cpp,"$Id: test_ami_bp.cpp,v 1.7 2003-04-20 23:51:40 tavi Exp $");
 
 // Get the application defaults.
 #include "app_config.h"
@@ -18,8 +18,12 @@ VERSION(test_ami_bp_cpp,"$Id: test_ami_bp.cpp,v 1.6 2000-01-11 01:33:54 hutchins
 #include <ami.h>
 
 // Utitlities for ascii output.
-#include <iostream.h>
-#include <fstream.h>
+#include <iostream>
+#include <fstream>
+
+using std::cout;
+using std::ofstream;
+
 #include <ami_scan_utils.h>
 
 #include "parse_args.h"

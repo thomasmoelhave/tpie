@@ -5,7 +5,8 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <math.h>
-#include <strstream.h>
+#include <iostream>
+using std::cout;
 
 #include "app_config.h"
 #include <ami.h>  

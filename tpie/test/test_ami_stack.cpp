@@ -6,24 +6,24 @@
 //
 
 #include <versions.h>
-VERSION(test_ami_stack_cpp,"$Id: test_ami_stack.cpp,v 1.5 2000-01-11 01:19:02 hutchins Exp $");
+VERSION(test_ami_stack_cpp,"$Id: test_ami_stack.cpp,v 1.6 2003-04-20 23:51:40 tavi Exp $");
 
-#include <iostream.h>
-#include <fstream.h>
+// For std::cout
+#include <iostream>
+// For std::ofstream
+#include <fstream>
+
+using std::cout;
+using std::ofstream;
 
 #include "app_config.h"        
 #include "parse_args.h"
 
-// Define it all.
-#include <ami.h>
+// Get the AMI_stack definition.
+#include <ami_stack.h>
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
-
-// Get stacks
-
-#include <ami_stack.h>
-
 
 static char def_crf[] = "/var/tmp/osc.txt";
 static char def_irf[] = "/var/tmp/osi.txt";
@@ -79,8 +79,7 @@ int main(int argc, char **argv)
     AMI_stack<double> amis0;
 
     // Streams for reporting values to ascii streams.
-    
-    ofstream *osc;
+        ofstream *osc;
     ofstream *osi;
     ofstream *osf;
     cxx_ostream_scan<double> *rptc = NULL;
@@ -103,9 +102,7 @@ int main(int argc, char **argv)
     }
     
     // Push values.
-
     double ii;
-    
     for (ii = test_size; ii--; ) {
         amis0.push(ii+0.01);
     }

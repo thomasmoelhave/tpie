@@ -14,9 +14,15 @@
 // The file to read A from.
 #define A_INPUT_FILENAME "A.sample.txt"
 
-#include <iostream.h>
-#include <fstream.h>
-#include <strstream.h>
+#include <iostream>
+#include <fstream>
+#include <strstream>
+
+using std::cout;
+using std::cerr;
+using std::ofstream;
+using std::ifstream;
+using std::istrstream;
 
 #include <cpu_timer.h>
 
@@ -26,7 +32,7 @@
 
 // Define it all.
 #include <ami.h>
-VERSION(nas_cg_cpp,"$Id: nas_cg.cpp,v 1.3 2000-01-11 01:55:04 hutchins Exp $");
+VERSION(nas_cg_cpp,"$Id: nas_cg.cpp,v 1.4 2003-04-20 23:51:40 tavi Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>

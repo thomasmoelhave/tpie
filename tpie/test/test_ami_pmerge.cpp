@@ -1,6 +1,6 @@
 // Copyright (c) 1994 Darren Erik Vengroff
 //
-// File: partition_and_merge.cpp
+// File: test_ami_pmerge.cpp
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 9/17/94
 //
@@ -10,9 +10,11 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include <sys/resource.h>
-#include <iostream.h>
-#include <fstream.h>
-#include <strstream.h>
+#include <iostream>
+#include <fstream>
+
+using std::cout;
+using std::ofstream;
 
 // Get information on the configuration to test.
 #include "app_config.h"
@@ -20,7 +22,7 @@
 
 // Define it all.
 #include <ami.h>
-VERSION(test_ami_pmerge_cpp,"$Id: test_ami_pmerge.cpp,v 1.19 2000-11-14 04:54:37 hutchins Exp $");
+VERSION(test_ami_pmerge_cpp,"$Id: test_ami_pmerge.cpp,v 1.20 2003-04-20 23:51:40 tavi Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -33,7 +35,6 @@ extern "C" int c_int_cmp(const void *, const void *);
 // A merge object to merge sorted streams.  This code looks a lot like
 // what is included as part of the TPIE system for sorting in
 // ami_sort_single.h.
-
 
 class s_merge_manager : public AMI_generalized_merge_base<int> {
 private:

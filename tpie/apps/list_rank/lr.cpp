@@ -6,9 +6,8 @@
 // A sample piece of code that does list ranking in the TPIE system.
 //
 
-
 #ifndef BTE_STATS
-#define BTE_STATS 0
+#  define BTE_STATS 0
 #endif
 
 // Get the application defaults.
@@ -16,12 +15,15 @@
 
 // Define it all.
 #include <ami.h>
-VERSION(lr_cpp,"$Id: lr.cpp,v 1.19 2002-06-26 22:39:54 tavi Exp $");
+VERSION(lr_cpp,"$Id: lr.cpp,v 1.20 2003-04-20 23:51:40 tavi Exp $");
 
 // Utitlities for ascii output.
-#include <iostream.h>
-#include <fstream.h>
 #include <ami_scan_utils.h>
+#include <iostream>
+#include <fstream>
+
+using std::cout;
+using std::ofstream;
 
 // Timers.
 #include <wall_timer.h>

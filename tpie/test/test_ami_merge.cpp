@@ -5,10 +5,13 @@
 //
 
 #include <versions.h>
-VERSION(test_ami_merge_cpp,"$Id: test_ami_merge.cpp,v 1.14 2002-01-14 17:43:33 tavi Exp $");
+VERSION(test_ami_merge_cpp,"$Id: test_ami_merge.cpp,v 1.15 2003-04-20 23:51:40 tavi Exp $");
 
-#include <iostream.h>
-#include <fstream.h>
+#include <iostream>
+#include <fstream>
+
+using std::cout;
+using std::ofstream;
 
 #include "app_config.h"        
 #include "parse_args.h"

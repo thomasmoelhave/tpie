@@ -6,10 +6,13 @@
 //
 
 #include <versions.h>
-VERSION(test_ami_arith_cpp,"$Id: test_ami_arith.cpp,v 1.7 2000-01-11 02:01:04 hutchins Exp $");
+VERSION(test_ami_arith_cpp,"$Id: test_ami_arith.cpp,v 1.8 2003-04-20 23:51:40 tavi Exp $");
 
-#include <iostream.h>
-#include <fstream.h>
+#include <iostream>
+#include <fstream>
+
+using std::cout;
+using std::ofstream;
 
 #include "app_config.h"        
 #include "parse_args.h"

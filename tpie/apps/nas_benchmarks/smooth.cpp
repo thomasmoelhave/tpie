@@ -5,17 +5,20 @@
 // Created: 3/29/95
 //
 
-#include <iostream.h>
-#include <fstream.h>
+#include <iostream>
+#include <fstream>
+#include <strstream>
+
+using std::cout;
+using std::ofstream;
+using std::istrstream;
 
 #include "app_config.h"        
 #include "parse_args.h"
 
-#include <strstream.h>
-
 // Define it all.
 #include <ami.h>
-VERSION(smooth_cpp,"$Id: smooth.cpp,v 1.4 2000-01-11 01:57:34 hutchins Exp $");
+VERSION(smooth_cpp,"$Id: smooth.cpp,v 1.5 2003-04-20 23:51:40 tavi Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>

@@ -6,12 +6,14 @@
 //
 
 #include <versions.h>
-VERSION(lru_sim_cpp,"$Id: lru_sim.cpp,v 1.3 2000-01-11 02:15:59 hutchins Exp $");
+VERSION(lru_sim_cpp,"$Id: lru_sim.cpp,v 1.4 2003-04-20 23:51:40 tavi Exp $");
 
-#include <strstream.h>
-#include <iostream.h>
 #include <stdlib.h>
-///#include <GetOpt.h>
+#include <strstream>
+#include <iostream>
+
+using std::istrstream;
+using std::cout;
 
 #include "lru_sim.h"
 
