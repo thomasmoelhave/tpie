@@ -5,7 +5,7 @@
 //
 // An extensive test suite for TPIE functionality.
 //
-// $Id: test_correctness.cpp,v 1.2 2003-04-26 06:43:16 tavi Exp $
+// $Id: test_correctness.cpp,v 1.3 2003-05-04 23:08:25 tavi Exp $
 //
 
 using namespace std;
@@ -111,8 +111,9 @@ int main(int argc, char **argv) {
   int idx;
   int fail = 0;
 
-  // Initialize the log.
-  LOG_SET_THRESHOLD(TP_LOG_APP_DEBUG);
+  // Log debugging info from the application, but not from the library. 
+  tpie_log_init(TPIE_LOG_APP_DEBUG); 
+ 
   MM_manager.set_memory_limit(40*1024*1024);
   MM_manager.enforce_memory_limit();
 
