@@ -5,8 +5,8 @@
 // Created: 12/11/94
 //
 
-#input <versions.h>
-VERSION(test_ami_matrix_cpp,"$Id: test_ami_matrix.cpp,v 1.5 2000-01-11 01:11:43 hutchins Exp $");
+#include <versions.h>
+VERSION(test_ami_matrix_cpp,"$Id: test_ami_matrix.cpp,v 1.6 2000-01-11 01:13:02 hutchins Exp $");
 
 #include <iostream.h>
 #include <fstream.h>
