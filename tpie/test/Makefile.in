@@ -1,7 +1,7 @@
 # Makefile for TPIE test applications.
 # Use gmake on this Makefile.  It relies on the default rules, and 
 # Use gmake -p to see the default rules.
-# $Id: Makefile.in,v 1.40 2004-11-18 19:27:14 adanner Exp $
+# $Id: Makefile.in,v 1.41 2005-02-15 00:18:47 tavi Exp $
 
 CXX = @CXX@
 CC = @CC@
@@ -67,7 +67,7 @@ APPSRC = $(patsubst %,%.cpp,$(APPS))
 # Other C++ sources for common support routines.
 COMMONCXXSRC = parse_args.cpp app_config.cpp getopts.cpp
 
-COMMONCSRC = getopt.c
+COMMONCSRC = 
 
 OTHERCXXSRC = scan_random.cpp \
 	scan_count.cpp \
@@ -79,7 +79,7 @@ CXXSRC = $(APPSRC) $(COMMONCXXSRC) $(OTHERCXXSRC)
 COMMONOBJ = $(COMMONCXXSRC:.cpp=.o) $(COMMONCSRC:.c=.o)
 
 # C sources.
-CSRC = getopt.c
+CSRC = 
 
 # Translation rules:
 
