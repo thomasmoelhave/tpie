@@ -5,7 +5,7 @@
 //
 // Blocked kd-tree definition and implementation.
 //
-// $Id: ami_kdtree.h,v 1.15 2004-08-12 12:35:30 jan Exp $
+// $Id: ami_kdtree.h,v 1.16 2005-01-21 16:54:35 tavi Exp $
 //
 
 #ifndef _AMI_KDTREE_H
@@ -605,10 +605,10 @@ protected:
       TPIE_OS_SIZE_T i;
       for (i = 0; i < dim; i++) {
 #if AMI_KDTREE_USE_EXACT_SPLIT
-	if (lo[i].second && point_t::cmp(i).compare(p, lo[i].first) <= 0) {
+	if (lo[i].second && typename point_t::cmp(i).compare(p, lo[i].first) <= 0) {
 	  ans = false;
 	  break;
-	} else if (hi[i].second && point_t::cmp(i).compare(p, hi[i].first) > 0) {
+	} else if (hi[i].second && typename point_t::cmp(i).compare(p, hi[i].first) > 0) {
 	  ans = false;
 	  break;
 	}
@@ -992,8 +992,11 @@ struct _AMI_kdtree_leaf_info {
 template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL> 
 class AMI_kdtree_leaf: public AMI_block<AMI_record<coord_t, TPIE_OS_SIZE_T, dim>, _AMI_kdtree_leaf_info, BTECOLL> 
 {
-public:
-
+ public:
+  using AMI_block<AMI_record<coord_t, TPIE_OS_SIZE_T, dim>, _AMI_kdtree_leaf_info, BTECOLL>::info;
+  using AMI_block<AMI_record<coord_t, TPIE_OS_SIZE_T, dim>, _AMI_kdtree_leaf_info, BTECOLL>::el;
+  using AMI_block<AMI_record<coord_t, TPIE_OS_SIZE_T, dim>, _AMI_kdtree_leaf_info, BTECOLL>::dirty;
+  
   typedef AMI_record<coord_t, TPIE_OS_SIZE_T, dim> point_t;
   typedef AMI_STREAM<point_t> stream_t;
   typedef AMI_collection_single<BTECOLL> collection_t;
@@ -1009,9 +1012,9 @@ public:
 
   // The weight of a leaf is the size. Just for symmetry with the
   // nodes.
-  const TPIE_OS_OFFSET& weight() const { return info()->size; }
+  const TPIE_OS_OFFSET weight() const { return info()->size; }
 
-  // Next leaf. All leaves of a tree are chained togther for easy
+  // Next leaf. All leaves of a tree are chained together for easy
   // retrieval.
   const AMI_bid& next() const { return info()->next; }
   AMI_bid& next() { return info()->next; }
@@ -1057,8 +1060,12 @@ struct _AMI_kdtree_node_info {
 // points stored in the subtree rooted on this node).
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 class AMI_kdtree_node: public AMI_block<Bin_node, _AMI_kdtree_node_info, BTECOLL> {
-public:
-
+ public:
+  using AMI_block<Bin_node, _AMI_kdtree_node_info, BTECOLL>::info;
+  using AMI_block<Bin_node, _AMI_kdtree_node_info, BTECOLL>::el;
+  using AMI_block<Bin_node, _AMI_kdtree_node_info, BTECOLL>::lk;
+  using AMI_block<Bin_node, _AMI_kdtree_node_info, BTECOLL>::dirty;
+  
   typedef AMI_record<coord_t, TPIE_OS_SIZE_T, dim> point_t;
   typedef AMI_STREAM<point_t> stream_t;
   typedef AMI_collection_single<BTECOLL> collection_t;
@@ -1076,7 +1083,7 @@ public:
   const TPIE_OS_SIZE_T& size() const { return info()->size; }
 
   TPIE_OS_OFFSET& weight() { return info()->weight; }
-  const TPIE_OS_OFFSET& weight() const { return info()->weight; }
+  const TPIE_OS_OFFSET weight() const { return info()->weight; }
 
   // Maximum number of binary nodes that can be stored in this node.
   TPIE_OS_SIZE_T capacity() const { return el.capacity(); }

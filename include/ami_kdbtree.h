@@ -5,7 +5,7 @@
 //
 // K-D-B-tree definition and implementation. 
 //
-// $Id: ami_kdbtree.h,v 1.13 2004-08-12 12:35:30 jan Exp $
+// $Id: ami_kdbtree.h,v 1.14 2005-01-21 16:54:24 tavi Exp $
 //
 
 #ifndef _AMI_KDBTREE_H
@@ -188,6 +188,10 @@ struct _AMI_kdbtree_leaf_info {
 template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL>
 class AMI_kdbtree_leaf: public AMI_block<AMI_record<coord_t, TPIE_OS_SIZE_T, dim>, _AMI_kdbtree_leaf_info, BTECOLL> {
 public:
+  using AMI_block<AMI_record<coord_t, TPIE_OS_SIZE_T, dim>, _AMI_kdbtree_leaf_info, BTECOLL>::info;
+  using AMI_block<AMI_record<coord_t, TPIE_OS_SIZE_T, dim>, _AMI_kdbtree_leaf_info, BTECOLL>::el;
+  using AMI_block<AMI_record<coord_t, TPIE_OS_SIZE_T, dim>, _AMI_kdbtree_leaf_info, BTECOLL>::dirty;
+  
   typedef AMI_record<coord_t, TPIE_OS_SIZE_T, dim> point_t;
   typedef AMI_record<coord_t, TPIE_OS_SIZE_T, dim> record_t;
   typedef AMI_STREAM<point_t> stream_t;
@@ -308,6 +312,10 @@ struct _AMI_kdbtree_node_info {
 template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL>
 class AMI_kdbtree_node: public AMI_block<kdb_item_t<coord_t, dim>, _AMI_kdbtree_node_info, BTECOLL> {
 public:
+  using AMI_block<kdb_item_t<coord_t, dim>, _AMI_kdbtree_node_info, BTECOLL>::info;
+  using AMI_block<kdb_item_t<coord_t, dim>, _AMI_kdbtree_node_info, BTECOLL>::el;
+  using AMI_block<kdb_item_t<coord_t, dim>, _AMI_kdbtree_node_info, BTECOLL>::lk;
+  using AMI_block<kdb_item_t<coord_t, dim>, _AMI_kdbtree_node_info, BTECOLL>::dirty;
   
   typedef AMI_record<coord_t, TPIE_OS_SIZE_T, dim> point_t;
   typedef AMI_STREAM<point_t> stream_t;

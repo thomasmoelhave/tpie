@@ -3,7 +3,7 @@
 // File:    ami_logmethod.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_logmethod.h,v 1.8 2004-08-12 12:35:30 jan Exp $
+// $Id: ami_logmethod.h,v 1.9 2005-01-21 16:55:48 tavi Exp $
 //
 // Logmethod_base, Logmethod2 and LogmethodB declarations and
 // definitions.
@@ -123,7 +123,16 @@ protected:
 
 template<class Key, class Value, class T, class Tp, class T0, class T0p>
 class Logmethod2: public Logmethod_base<Key, Value, T, Tp, T0, T0p> {
-public:
+ protected:
+  using Logmethod_base<Key, Value, T, Tp, T0, T0p>::tree0_;
+  using Logmethod_base<Key, Value, T, Tp, T0, T0p>::trees_;
+  using Logmethod_base<Key, Value, T, Tp, T0, T0p>::params_;
+  using Logmethod_base<Key, Value, T, Tp, T0, T0p>::stats_;
+  using Logmethod_base<Key, Value, T, Tp, T0, T0p>::header_;
+  
+ public:
+  using Logmethod_base<Key, Value, T, Tp, T0, T0p>::create_tree;
+  
   Logmethod2(const char *base_file_name, const Logmethod_params<Tp, T0p> &params);
   bool insert(const Value& p);
 };
@@ -131,7 +140,16 @@ public:
 
 template<class Key, class Value, class T, class Tp, class T0, class T0p>
 class LogmethodB: public Logmethod_base<Key, Value, T, Tp, T0, T0p> {
-public:
+ protected:
+  using Logmethod_base<Key, Value, T, Tp, T0, T0p>::tree0_;
+  using Logmethod_base<Key, Value, T, Tp, T0, T0p>::trees_;
+  using Logmethod_base<Key, Value, T, Tp, T0, T0p>::params_;
+  using Logmethod_base<Key, Value, T, Tp, T0, T0p>::stats_;
+  using Logmethod_base<Key, Value, T, Tp, T0, T0p>::header_;
+
+ public:
+  using Logmethod_base<Key, Value, T, Tp, T0, T0p>::create_tree;
+
   LogmethodB(const char *base_file_name, const Logmethod_params<Tp, T0p> &params);
   bool insert(const Value& p);
   static size_t B;
