@@ -7,7 +7,7 @@
 // A basic implementation of quicksort for use in core by AMI_sort() on
 // streams or substreams that are small enough.
 //
-// $Id: quicksort.h,v 1.11 1998-12-11 18:47:34 tavi Exp $
+// $Id: quicksort.h,v 1.12 1999-02-03 18:12:28 tavi Exp $
 //
 #ifndef _QUICKSORT_H
 #define _QUICKSORT_H
@@ -312,48 +312,5 @@ void insertion_sort_obj(T *data, size_t len,
         *(q+1) = test;
     }
 }
-
-
-
-
-#ifdef NO_IMPLICIT_TEMPLATES
-
-#define TEMPLATE_INSTANTIATE_QUICKER_SORT_CMP(T)			\
-template void partition_cmp(T *data, size_t len,			\
-                            size_t &partition,				\
-                            int (*cmp)(CONST T&, CONST T&));		\
-template void quick_sort_cmp(T *data, size_t len,			\
-                             int (*cmp)(CONST T&, CONST T&),		\
-                             size_t min_file_len);			\
-template void insertion_sort_cmp(T *data, size_t len,			\
-                                 int (*cmp)(CONST T&, CONST T&));	\
-template void quicker_sort_cmp(T *data, size_t len,			\
-                               int (*cmp)(CONST T&, CONST T&),		\
-                               size_t min_file_len);		
-
-#define TEMPLATE_INSTANTIATE_QUICKER_SORT_OP(T)				\
-template void partition_op(T *data, size_t len,				\
-                            size_t &partition);				\
-template void quick_sort_op(T *data, size_t len,			\
-                             size_t min_file_len);			\
-template void insertion_sort_op(T *data, size_t len);			\
-template void quicker_sort_op(T *data, size_t len,			\
-                               size_t min_file_len);		
-
-#define TEMPLATE_INSTANTIATE_QUICKER_SORT_OBJ(T)			\
-template void partition_obj(T *data, size_t len,			\
-                            size_t &partition,				\
-                            comparator<T> *cmp);			\
-template void quick_sort_obj(T *data, size_t len,			\
-                             comparator<T> *cmp,			\
-                             size_t min_file_len);			\
-template void insertion_sort_obj(T *data, size_t len,			\
-                                 comparator<T> *cmp);			\
-template void quicker_sort_obj(T *data, size_t len,			\
-                               comparator<T> *cmp,			\
-                               size_t min_file_len);
-
-
-#endif
 
 #endif // _QUICKSORT_H 
