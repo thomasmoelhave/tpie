@@ -5,13 +5,14 @@
 //
 // K-D-B-tree definition and implementation. 
 //
-// $Id: ami_kdbtree.h,v 1.7 2003-05-05 01:30:20 tavi Exp $
+// $Id: ami_kdbtree.h,v 1.8 2003-05-20 05:46:35 tavi Exp $
 //
 
 #ifndef _AMI_KDBTREE_H
 #define _AMI_KDBTREE_H
 
 #include <iostream>
+#include <portability.h>
 #include <ami_point.h>
 #include <ami_kdtree.h>
 #include <ami_kdbtree_base.h>
@@ -23,7 +24,7 @@ template<class coord_t, size_t dim, class BTECOLL> class AMI_kdbtree_node;
 template<class coord_t, size_t dim, class BTECOLL> class AMI_kdbtree_leaf;
 
 // The AMI_kdbtree class. 
-template<class coord_t, size_t dim, class Bin_node=Bin_node_default<coord_t, dim>, class BTECOLL = BTE_COLLECTION > 
+template<class coord_t, size_t dim, class Bin_node=AMI_kdtree_bin_node_default<coord_t, dim>, class BTECOLL = BTE_COLLECTION > 
 class AMI_kdbtree {
 public:
 
@@ -100,8 +101,8 @@ public:
     point_t mbr_lo;
     point_t mbr_hi;
     AMI_bid root_bid;
-    Node_type root_type;
     size_t size;
+    link_type_t root_type;
     
     header_type():
       magic_number(AMI_KDBTREE_HEADER_MAGIC_NUMBER), mbr_lo(0), mbr_hi(0), 
@@ -575,7 +576,7 @@ void AMI_KDBTREE::kd2kdb(const KDB_ITEM& ki, b_vector<KDB_ITEM >& bv) {
 
   AMI_kdtree_node<coord_t, dim, Bin_node, BTECOLL> *bno;
   AMI_KDBTREE_NODE *bn;
-  Node_type ni_type;
+  link_type_t ni_type;
   bno = new AMI_kdtree_node<coord_t, dim, Bin_node, BTECOLL>(pcoll_nodes_, ki.bid);
   if (bno->size() + 1 > params_.node_size_max) {
     LOG_FATAL_ID("  kd2kdb: wrong kdtree node size;");
@@ -616,7 +617,7 @@ void AMI_KDBTREE::kd2kdb_node(AMI_kdtree_node<coord_t, dim, Bin_node, BTECOLL> *
 
   REGION ni_r;
   size_t ni;
-  Node_type ni_type;
+  link_type_t ni_type;
 
   ni_r = r;
   bn->el[i].get_low_child(ni, ni_type);
@@ -940,7 +941,7 @@ bool AMI_KDBTREE::split_leaf_and_insert(const STACK_ITEM& top, AMI_KDBTREE_LEAF*
   else if (params_.split_heuristic == LONGEST_SPAN)
     d = split_dim_longest_span(top);   
   else if (params_.split_heuristic == RANDOM)
-    d = random() % dim;
+    d = TPIE_OS_RANDOM() % dim;
   size_t med = bl->find_median(d); // the index of the median point in bl->el.
   POINT sp = bl->el[med];
 
@@ -1067,7 +1068,7 @@ void AMI_KDBTREE::find_split_position(const STACK_ITEM& top, coord_t& sp, size_t
   else if (params_.split_heuristic == LONGEST_SPAN)
     d = split_dim_longest_span(top);   
   else if (params_.split_heuristic == RANDOM)
-    d = random() % dim;
+    d = TPIE_OS_RANDOM() % dim;
 #else
   d = bn->split_dim();
 #endif
