@@ -1,0 +1,7 @@
+Thu May 22 22:42 1997 Lars Arge (large)
+
+	* We should describe changed to file in this dir in this file!
+
+Tue Oct 28 15:05 1997 Jan Vahrenhold (jan)
+
+	* Added check whether pointer passed to ::operator new is NULL.
