@@ -7,8 +7,9 @@
 
 // A simple registration based memory manager.
 
-static char mm_register_id[] = "$Id: mm_register.cpp,v 1.5 1999-04-09 20:15:38 rajiv Exp $";
+static char mm_register_id[] = "$Id: mm_register.cpp,v 1.6 1999-04-09 22:15:01 rajiv Exp $";
 
+#include <assert.h>
 #include "lib_config.h"
 
 #define MM_IMP_REGISTER
@@ -51,6 +52,7 @@ MM_err MM_register::register_allocation(size_t sz)
     LOG_DEBUG_INFO("; ");
     LOG_DEBUG_INFO((unsigned int)remaining);
     LOG_DEBUG_INFO(" remaining.\n");
+	LOG_FLUSH_LOG;
     
     return MM_ERROR_NO_ERROR;
 }
@@ -58,8 +60,16 @@ MM_err MM_register::register_allocation(size_t sz)
 
 MM_err MM_register::register_deallocation(size_t sz)
 {
-    if (sz + remaining > max_sz) {
-        return MM_ERROR_UNDERFLOW;
+  if (sz + remaining > max_sz) {
+  	  LOG_WARNING("Error in deallocation sz=");
+	  LOG_WARNING(sz);
+	  LOG_WARNING(", remaining=");
+	  LOG_WARNING(remaining);
+	  LOG_WARNING(", max_sz=");
+	  LOG_WARNING(max_sz);
+	  LOG_WARNING("\n");
+	  LOG_FLUSH_LOG;
+	  return MM_ERROR_UNDERFLOW;
     }
 
     remaining += sz;
@@ -69,6 +79,7 @@ MM_err MM_register::register_deallocation(size_t sz)
     LOG_DEBUG_INFO("; ");
     LOG_DEBUG_INFO((unsigned int)remaining);
     LOG_DEBUG_INFO(" now available.\n");
+	LOG_FLUSH_LOG;
     
     return MM_ERROR_NO_ERROR;
 }
