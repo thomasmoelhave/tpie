@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/11/94
 //
-// $Id: bte_stream_stdio.h,v 1.10 2004-08-12 12:35:31 jan Exp $
+// $Id: bte_stream_stdio.h,v 1.11 2004-09-29 14:07:10 jan Exp $
 //
 #ifndef _BTE_STREAM_STDIO_H
 #define _BTE_STREAM_STDIO_H
@@ -148,13 +148,13 @@ BTE_stream_stdio < T >::BTE_stream_stdio (const char *dev_path,
       if ((file = TPIE_OS_FOPEN(dev_path, "rb")) == NULL) {
 
 	 status_ = BTE_STREAM_STATUS_INVALID;
-	 LOG_FATAL_ID("Failed to open file:");
-	 LOG_FATAL_ID(dev_path);
+	 TP_LOG_FATAL_ID("Failed to open file:");
+	 TP_LOG_FATAL_ID(dev_path);
 	 return;
       }
       // Read and check header
       if (readcheck_header () == -1) {
-	 LOG_FATAL_ID("Bad header.");
+	 TP_LOG_FATAL_ID("Bad header.");
 	 return;
       }
       // Seek past the end of the first block.
@@ -164,8 +164,8 @@ BTE_stream_stdio < T >::BTE_stream_stdio (const char *dev_path,
       //return;
       //}
       if ((berr = this->seek (0)) != BTE_ERROR_NO_ERROR) {
-	LOG_FATAL_ID("Cannot seek in file:");
-	LOG_FATAL_ID(dev_path);
+	TP_LOG_FATAL_ID("Cannot seek in file:");
+	TP_LOG_FATAL_ID(dev_path);
 	return;
       }
       break;
@@ -343,14 +343,14 @@ template < class T > BTE_stream_stdio < T >::~BTE_stream_stdio (void) {
   if (!substream_level) {
     if (per == PERSIST_DELETE) {
       if (r_only) {
-	LOG_WARNING_ID("Read only stream is PERSIST_DELETE:");
-	LOG_WARNING_ID(path);
-	LOG_WARNING_ID("Ignoring persistency request.");
+	TP_LOG_WARNING_ID("Read only stream is PERSIST_DELETE:");
+	TP_LOG_WARNING_ID(path);
+	TP_LOG_WARNING_ID("Ignoring persistency request.");
       } else if (unlink (path)) {
 	os_errno = errno;
-	LOG_WARNING_ID("Failed to unlink() file:");
-	LOG_WARNING_ID(path);
-	LOG_WARNING_ID(strerror(os_errno));
+	TP_LOG_WARNING_ID("Failed to unlink() file:");
+	TP_LOG_WARNING_ID(path);
+	TP_LOG_WARNING_ID(strerror(os_errno));
       } else {
 	gstats_.record(STREAM_DELETE);
 	stats_.record(STREAM_DELETE);
@@ -376,7 +376,7 @@ template < class T > BTE_stream_stdio < T >::~BTE_stream_stdio (void) {
 
 template < class T > BTE_err BTE_stream_stdio < T >::read_item (T ** elt)
 {
-   int stdio_ret;
+   TPIE_OS_SIZE_T stdio_ret;
    BTE_err ret;
 
    if ((logical_eos >= 0) && (TPIE_OS_FTELL (file) >= logical_eos)) {
@@ -406,7 +406,7 @@ template < class T > BTE_err BTE_stream_stdio < T >::read_item (T ** elt)
 template < class T > 
 BTE_err BTE_stream_stdio < T >::write_item (const T & elt) {
 
-   int stdio_ret;
+   TPIE_OS_SIZE_T stdio_ret;
    BTE_err ret;
 
    if ((logical_eos >= 0) && (TPIE_OS_FTELL (file) > logical_eos)) {
@@ -421,7 +421,7 @@ BTE_err BTE_stream_stdio < T >::write_item (const T & elt) {
          f_offset += sizeof(T);
 	 ret = BTE_ERROR_NO_ERROR;
       } else {
-	 LOG_FATAL_ID("write_item failed.");
+	 TP_LOG_FATAL_ID("write_item failed.");
 	 status_ = BTE_STREAM_STATUS_INVALID;
 	 ret = BTE_ERROR_IO_ERROR;
       }
@@ -561,15 +561,15 @@ BTE_err BTE_stream_stdio < T >::truncate (TPIE_OS_OFFSET offset) {
 //	if (::truncate (path, file_position)) {   
 	if (TPIE_OS_TRUNCATE(file, path, file_position) == -1) {   
 		os_errno = errno;   
-		LOG_FATAL_ID("Failed to truncate() to the new end of file:");   
-		LOG_FATAL_ID(path);   
-		LOG_FATAL_ID(strerror (os_errno));   
+		TP_LOG_FATAL_ID("Failed to truncate() to the new end of file:");   
+		TP_LOG_FATAL_ID(path);   
+		TP_LOG_FATAL_ID(strerror (os_errno));   
 		return BTE_ERROR_OS_ERROR; 
 	} 
 	
 	if (TPIE_OS_FSEEK(file, file_position, SEEK_SET) == -1) { 
-		LOG_FATAL("fseek failed to go to position " << file_position << " of \"" << "\"\n"); 
-		LOG_FLUSH_LOG;  
+		TP_LOG_FATAL("fseek failed to go to position " << file_position << " of \"" << "\"\n"); 
+		TP_LOG_FLUSH_LOG;  
 		return BTE_ERROR_OS_ERROR; 
 	} 
 	
