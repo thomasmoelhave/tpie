@@ -1,0 +1,2445 @@
+%%
+%% $Id: user_manual.tex,v 1.1 1999-03-04 00:30:52 tavi Exp $
+%%
+\chapter{Overview}
+
+As of today, gigabyte computer systems exist on desktops, and terabyte
+systems are not unheard of.  In the not too distant future, systems
+designed to manage petabytes of information
+will come on-line.  The most important characteristic of such vast
+amounts of data is that they cannot possibly be stored in the primary
+memories of even the most powerful computers.  Instead, they must be
+stored on secondary memory, such as magnetic disks, or tertiary
+memory, such as tapes and optical memory.  Compared to CPUs and solid
+state random access memory, these devices are extraordinarily slow;
+the difference in access time is typically 2 to 5 orders of magnitude.
+Because of the low speed of secondary storage, good performance in the
+Input/Output (I/O) system that links secondary storage to main memory
+and the CPU or CPUs is critical if good performance is to be achieved
+overall.  Performance can be further improved if many disks can be
+efficiently used in parallel.  Unfortunately, existing I/O systems
+generally do not perform adequately~\cite{patt:computer}.
+
+In recent years, computer science theorists have studied the problem
+of efficiently using parallel disks\index{parallel disks}
+\index{disks!parallel|see{parallel disks}} to solve a variety
+of computational problems.  At the same time, a number of parallel I/O
+systems have become available, though in most cases they have failed
+to take adequate advantage of the insights theorists have had to offer
+\cite{cormen:integrate-tr}.  TPIE, a transparent parallel I/O
+environment, is designed to bridge the gap between the theory and
+practice of parallel I/O systems.  It is intended to demonstrate that
+a parallel I/O system can do all of the following simultaneously:
+\begin{itemize}
+\item Abstract away the details of how I/O is performed so that
+  programmers need only deal with a simple high level interface.
+\item Implement I/O-optimal paradigms for large scale computation that
+  are efficient not only in theory, but also in practice.
+\item Remain flexible, allowing programmers to specify the functional
+  details of computation taking place within the supported paradigms.
+  This will allow a wide variety of algorithms to be implemented
+  within the system.
+\item Be portable across a variety hardware platforms.
+\item Be extensible, so that new features can be easily added later.
+\end{itemize}
+
+TPIE is implemented as a set of templated classes and functions in
+C++.\index{C++} It also includes a small library and a set of test and
+sample applications.
+
+\section{Hardware Platforms}
+\index{hardware platforms}
+
+TPIE has been tested on a variety of hardware platforms with a variety
+of flavors of UNIX operating systems.  Combinations that have been
+tested include:
+\begin{itemize}
+\item Sun Sparcstation/SunOS 4.x 
+\item Sun Sparcstation/Solaris 5.x
+\item DEC Alpha/OSF/1 1.x and 2.x
+\item HP 9000/HP-UX
+\item Intel Pentium/Linux 1.x
+\end{itemize}
+
+\chapter{Obtaining and Installing TPIE}
+
+\section{Licensing}
+
+TPIE is available under the terms of the GNU General Public License,
+\index{license}
+version 2.  A copy of this license appears in Appendix~\ref{app:gpl}.
+
+\section{Where to get TPIE}
+
+The latest version of TPIE, \version, is an alpha test version.  It is
+available through the \htmladdnormallink{TPIE WWW Home Page}{%
+\begin{rawhtml}
+http://www.cs.duke.edu/~dev/tpie_home_page.html
+\end{rawhtml}%
+}%
+\begin{latexonly}
+at URL \verb|http://www.cs.duke.edu/~dev/tpie_home_page.html|.
+\end{latexonly}
+
+To obtain the TPIE source distribution\index{source distribution}, follow the
+pointers form the home page to the distribution itself, which consists
+of a gzipped tar file named {\tt tpie-\version.tar.gz}.  Your Web
+browser should be capable of downloading this file to your local
+machine.
+
+\section{Prerequisites}
+
+\index{GNU software}
+\label{sec:gnu-software}
+
+TPIE relies heavily on GNU software distributed by the Free Software
+Foundation\index{Free Software Federation}.  In particular, programs
+and library listed below are required.  Note that version numbers
+indicate the versions used in the development of TPIE version 0.5a.
+Later versions of the GNU tools should work as well, though no
+guarantees can be made about earlier versions.  This is particularly
+true of \verb|g++|.  If you already have the required programs but are
+not sure what version they are, try invoking each with the single
+command line argument \verb|--version|.
+
+\begin{description}
+\item[\verb|g++|] The GNU C++ compiler,
+  \index{g++@{\tt g++}}\index{GNU software!gcc@{\tt g++}}
+  version \gxxversion.  This is distributed as part of \verb|gcc|, the GNU C
+  compiler.
+  \index{gcc@{\tt gcc}}\index{GNU software!gcc@{\tt gcc}}
+\item[\verb|libg++|] The GNU C++ library,
+  \index{libg++@{\tt libg++}}\index{GNU software!libg++@{\tt libg++}}
+  version 2.7.  This is not a program, but rather run-time support for
+  programs compiled with \verb|g++|.  It is distributed separately
+  from \verb|g++|, but if you have one you probably have the other.
+\item[\verb|make|] The GNU Make utility, 
+  \index{make@{\tt make}}\index{GNU software!make@{\tt make}}
+  version 3.71.
+\item[\verb|gzip|] The GNU compression/decompression utility, 
+  \index{gzip@{\tt gzip}}\index{GNU software!gzip@{\tt gzip}}
+  version  1.2.4.  This is needed to uncompress the TPIE 
+  distribution.
+\item[\verb|tar|] The GNU tape archive utility, 
+  \index{tar@{\tt tar}}\index{GNU software!tar@{\tt tar}}
+  version 1.11.2.  This
+  is needed to extract the components of the TPIE package from the
+  source distribution.
+\end{description}
+
+Information on where and how to obtain and install GUN software is
+available via FTP from 
+\htmladdnormallink{{\tt ftp://prep.ai.mit.edu:/pub/gnu/GNUinfo/FTP}}%
+{ftp://prep.ai.mit.edu:/pub/gnu/GNUinfo/FTP}
+For a variety of information about GNU software and how it is written
+and distributed, 
+consult the various other files in the directory
+\htmladdnormallink{{\tt ftp://prep.ai.mit.edu:/pub/gnu/GNUinfo/}}%
+{ftp://prep.ai.mit.edu:/pub/gnu/GNUinfo/}.
+
+\section{Installation}
+
+\index{installation}
+Once you have obtained the TPIE source distribution file
+{\tt tpie-\version.tar.gz}, you must decide where to install it.
+\verb|/usr/local/tpie/| is a typical place.
+
+Place {\tt tpie-\version.tar.gz} in the directory in which TPIE is to
+be installed, \verb|cd| into that directory, and execute the command
+
+\begin{verbatim}
+tar czf tpie.tar.gz
+\end{verbatim}
+
+This will produce a directory {\tt tpie-\version} with subdirectories
+\verb|inc|, \verb|lib|, \verb|test|, and \verb|apps|.  Enter the
+directory \verb|tpie|.  You must now configure TPIE for your
+particular system.  To do this, use the command
+
+\begin{verbatim}
+./configure
+\end{verbatim}
+
+\index{configuration}The configuration program will take some time to
+examine the parameters of your system.  Once it has done so, it will
+produce the various makefiles and configuration files required to
+build TPIE on your system.  When this is done, simply type
+
+\begin{verbatim}
+make all
+\end{verbatim}
+
+to build the complete TPIE system.  This will build the following
+components:
+
+\begin{description}
+\item[\verb|inc|] The TPIE header files.\index{header files}
+\item[\verb|lib|] The TPIE library.  This is relatively small, as most
+  of the TPIE system remains in the form of templated header
+  files.\index{library}
+\item[\verb|test|] A series of test applications designed to verify
+  that TPIE is operating correctly.  This directory also includes the
+  code to the example applications described in
+  Chapter~\ref{ch:examples}.\index{test applications}
+\item[\verb|doc|] Complete documentation for TPIE, consisting of the
+  document you are reading right now in various formats: HTML for
+  viewing with Mosaic and similar programs; and DVI and Postscript(TM)
+  for printing.\index{documentation}
+\end{description}
+
+Alternatively, individual components can be built one at a time.  For
+example, to build only the header files, type 
+
+\begin{verbatim}
+make inc
+\end{verbatim}
+
+It is possible to customize the installation by providing arguments to
+the {\tt configure} script.\index{configuration:options} None of these
+arguments are necessary, and the first time you build TPIE, you should
+probably not need any of them.  The arguments recognized are as
+follows:
+\begin{description}
+\item[\verb|--enable-log-lib|] 
+  \index{enable-log-lib@{\tt --enable-log-lib}}
+  Enable logging in TPIE library code.
+  This can also be accomplished at compile time by defining the macro
+  \verb|TP_LOG_LIB| using the syntax \verb|make lib TP_LOG_LIB=1|.
+  This is useful for debugging the TPIE library, but slows it down.
+  This option works by defining \verb|TPL_LOGGING|
+  \index{TPL_LOGGING@{\tt TPL\_LOGGING}} (see Section~\ref{sec:macros})
+  when compiling the library.
+\item[\verb|--enable-assert-lib|]  
+  \index{enable-assert-lib@{\tt --enable-assert-lib}}
+  Enable assertions in the TPIE library code for debugging purposes.
+  This can also be accomplished at compile time by defining the macro
+  \verb|TP_ASSERT_LIB| using the syntax \verb|make lib TP_LOG_LIB=1|.
+  This option works by defining \verb|DEBUG_ASSERTIONS|
+  \index{DEBUG_ASSERTIONS@{\tt DEBUG\_ASSERTIONS}} 
+  (see Section~\ref{sec:macros})
+  when compiling the library.
+\item[\verb|--enable-log-apps|] 
+\item[\verb|--enable-assert-apps|]  
+  \index{enable-assert-apps@{\tt --enable-assert-apps}}
+  \index{enable-log-apps@{\tt --enable-log-apps}}
+  Similar to {\tt --enable-log-lib} and {\tt --enable-assert-lib}, but
+  they apply to the test application code.  Running \verb|make test|
+  with the options \verb|TP_LOG_APPS=1| and/or \verb|TP_ASSERT_APPS=1|
+  accomplishes the same thing.
+\item[\verb|--enable-expand-ami-scan|]  Expand the macros in the file
+  \verb|ami_scan.h| when making the include directory with the
+command {\tt make inc} (or {\tt make all}).  This is mainly useful for
+debugging the code in \verb|ami_scan.h| itself, and is not normally
+needed by TPIE programmers.  It may make compilation of TPIE programs
+slightly faster because the macro processor of the C++ compiler will
+have less work to do.  In addition to the standard GNU tools mentioned
+in Section~\ref{sec:gnu-software}, this requires \verb|perl|.
+\item[\verb|--disable-*|]  Any of the options above can be explicitly
+  disabled  by using this syntax.  For example
+  \verb|--disable-expand-ami-scan|. 
+\end{description}
+
+
+\chapter{Tutorial}
+\label{ch:tutorial}
+
+\section{Introduction}
+
+This tutorial is designed to introduce new users to the TPIE system.
+It introduces the fundamental paradigms of computation that TPIE
+supports, giving source code examples of each.  The majority of the
+code presented in the tutorial is available in the test
+applications\index{test applications} directory of the distribution, 
+{\tt tpie-\version/test/}.
+
+For the sake of brevity, much of the code presented in this tutorial
+is incomplete, in the sense that necessary header files 
+\index{header files} and macros\index{macros} are omitted.  Details 
+concerning how to write your own complete TPIE code is presented at
+the end of the tutorial in Section~\ref{sec:complete}.
+
+\section{C++}
+
+If you would like the use TPIE but are not familiar with the
+C++\index{C++} language, a number of good books are available.  If you
+are familiar with C\index{C}, \cite{pohl:c++} is a good place to
+start.  A more basic, but very comprehensive book
+is~\cite{deitel:c++}.  Once you have mastered the basics,
+\cite{meyers:effective} an excellent source of information on
+intermediate and advanced C++.  Finally, \cite{ellis:arm} is the
+definitive book on C++, though not necessarily the bast place for new
+programmers to start.
+
+
+\section{Streams}
+
+\index{stream}\index{structure!of streams}
+Conceptually, TPIE programs work with streams of data stored on
+external memory.  A stream is an ordered collection of objects of a
+particular type.  Various paradigms of computation are defined on
+these streams, though the functional details of the computation
+performed within these paradigms is left to the TPIE programmer to
+specify.  These details are specified using an operation management
+object,\index{operation management object} which is an object with
+member functions designed to work with the particular paradigm being
+used.  Operation management objects are also known as operation
+managers.\index{operation manager|see{operation management object}}.
+
+Creating a stream of objects in TPIE is very much like creating any other
+object in C++.  The only difference is that data placed in the stream,
+whether explicitly, or as is more commonly the case, implicitly, is
+stored on disk.  For example, to create a stream of integers, we could
+use either of the following:
+\begin{verbatim}
+AMI_STREAM<int> stream0;
+
+AMI_STREAM<int> *pstream0 = new AMI_STREAM<int>;
+\end{verbatim}
+
+The {\tt AMI} in {\tt AMI\_STREAM} stands for Access Method
+Interface\index{access method interface}, which is the level of TPIE
+that most applications interact with.  
+{\tt AMI\_STREAM} is actually a macro that evaluates to the name of a
+particular implementation of streams at the AMI level, but for now it
+is safe to assume that it is simply a class.
+
+The {\tt AMI\_STREAM} constructor does not actually put anything into
+the stream; it simply creates the necessary data structures to keep
+track of the contents of the stream when data is actually put into it.
+Data is typically put into streams using \verb|AMI_scan()|, which is
+described in the next section.
+
+\section{Scanning}
+\label{sec:scanning}
+
+\index{scanning|(} \index{AMI_scan()@{\tt AMI\_scan()}}
+The simplest paradigm available in TPIE is scanning.  Scanning can be
+used to produce streams, examine the contents of streams, or transform
+streams.  
+
+\subsection{Basic Scanning}
+
+The most basic thing a scan can do is write a series of objects to a
+stream.  In the following example, we create a stream of integers
+consisting of the first 10000 natural numbers.
+
+\begin{verbatim}
+class scan_count : AMI_scan_object {
+private:
+    int maximum;
+public:
+    int ii;
+
+    scan_count(int max = 1000) : maximum(max), ii(0) {};
+
+    AMI_err initialize(void) 
+    {
+        ii = 0;
+        return AMI_ERROR_NO_ERROR;
+    };
+
+    AMI_err operate(int *out1, AMI_SCAN_FLAG *sf)
+    {
+        *out1 = ++ii;
+        return (*sf = (ii <= maximum)) ? AMI_SCAN_CONTINUE : 
+            AMI_SCAN_DONE;
+    };
+};
+
+scan_count sc(10000);
+AMI_STREAM<int> amis0;    
+
+void f()
+{
+    AMI_scan(&sc, &amis0);
+}
+\end{verbatim}
+
+The class \verb|scan_count| is a class of scan management
+object\index{operation management object!scan}.  It has two member
+functions, \verb|initialize()| and \verb|operate()|, which TPIE calls
+when asked to perform a scan.  The first member function,
+\verb|initialize()| is called at the beginning of the scan.  TPIE
+expects that a call to this member function will cause the object to
+initialize any internal state it may maintain in preparation for
+performing a scan.  The second member function, \verb|operate()|, is
+called repeatedly during the scan to create objects to go into the
+output stream.  \verb|operate()| sets the flag \verb|*sf| to indicate
+whether it generated output or not.  Only when \verb|operate()|
+returns either an error or \verb|AMI_SCAN_DONE| does TPIE stop calling
+it.
+
+The call to \verb|AMI_scan| behaves as the following pseudo-code:
+
+\begin{verbatim} 
+AMI_err AMI_scan(scan_count &sc, AMI_STREAM<int> *pamis)
+{
+    int ii;
+    AMI_err ae;    
+    AMI_SCAN_FLAG sf;
+
+    sc.initialize();    
+    while ((ae = sc.operate(&ii, &sf)) == AMI_SCAN_CONTINUE) {
+        if (sf) {
+            write ii to *pamis;
+        }
+    }
+
+    if (ae != AMI_SCAN_DONE) {
+        handle error conditions;
+    }
+
+    return AMI_ERROR_NO_ERROR;
+}
+\end{verbatim}
+
+Thus, after the function \verb|f()| in the original example code is
+called, the stream \verb|amis0| contains the integers from 1 to 10000
+in order.
+
+Now that we have produced a stream, there are a variety of things we
+can do with it.  One of the simplest things we can do with a stream of
+objects is scan it in order to transform it in some way.  As an
+example, suppose we wanted to square every integer in the stream
+\verb|amis0|.  We could do so using the following code:
+
+\begin{verbatim}
+class scan_square : AMI_scan_object {
+public:
+    AMI_err initialize(void)
+    {
+        return AMI_ERROR_NO_ERROR;
+    };
+
+    AMI_err operate(const int &in, AMI_SCAN_FLAG *sfin,
+                    int *out, AMI_SCAN_FLAG *sfout)
+    {
+        if (*sfout = *sfin) {
+            *out = in * in;
+            return AMI_SCAN_CONTINUE;
+        } else {
+            return AMI_SCAN_DONE;
+        }
+    };
+};
+
+scan_square ss;
+AMI_STREAM<int> amis1;    
+
+void g() 
+{
+    AMI_scan(&amis0, &ss, &amis1);
+}
+\end{verbatim}
+
+Notice that the call to \verb|AMI_scan()| in \verb|g()| differs from
+the one we used in \verb|f()| in that it takes two stream pointers and
+a scan management object.  By convention, the stream \verb|amis0| is
+an input stream, because it appears before the scan management object
+\verb|ss| in the argument list.  By similar convention, \verb|amis1|
+is an output stream.  Because the call to \verb|AMI_scan| has one
+input stream and one output stream, TPIE expects the \verb|operate()|
+member function of \verb|ss| to have one input argument (which is
+called \verb|in| in the example above) and one output argument (called
+\verb|out| in the example above).  Note that the \verb|operate()|
+member function of the class \verb|square_scan| also takes two
+pointers to flags, one for input (\verb|sfin|) and one for output
+(\verb|sfout|).  \verb|*sfin| is set by TPIE to indicate that there is
+more input to be processed.  \verb|*sfout| is set by the scan
+management object to indicate when output is generated.
+If a scan management object has no polymorph of \verb|operate()| that
+takes the appropriate type number of arguments for the invocation of
+\verb|AMI_scan()| that uses it then a compile-time error is generated.
+
+A call to \verb|AMI_scan| with one input stream and one output stream
+behaves as the following pseudo-code:
+
+\begin{verbatim} 
+AMI_err AMI_scan(AMI_STREAM<int> *instream, scan_square &ss, 
+        AMI_STREAM<int> *outstream)
+{
+    int in, out;
+    AMI_err ae;    
+    AMI_SCAN_FLAG sfin, sfout;
+
+    sc.initialize();
+
+    while (1) {
+        {
+             read in from *instream;
+             sfin = (read succeeded);
+        }
+        if ((ae = ss.operate(in, &sfin, &out, &sf)) == 
+            AMI_SCAN_CONTINUE) {
+            if (sfout) {
+                write out to *outstream;
+            }
+            if (ae == AMI_SCAN_DONE) {
+                return AMI_ERROR_NO_ERROR;
+            }
+            if (ae != AMI_SCAN_CONTINUE) {
+                handle error conditions;
+            }
+        }
+    }
+}
+\end{verbatim}
+
+More complicated invocations of \verb|AMI_scan()| can operate on up
+to four input streams and four output streams.  Here is an example
+that takes two input streams of values, \verb|x| and \verb|y|, and
+produces four output streams, 
+one consisting of the running sum of the
+\verb|x| values,
+one consisting of the running sum of the
+\verb|y| values,
+one consisting of the running sum of the
+squares of the \verb|x| values,
+and
+one consisting of the running sum of the
+squares of the \verb|y| values.
+
+\begin{verbatim}
+class scan_sum : AMI_scan_object {
+private:
+    double sumx, sumx2, sumy, sumy2;
+public:
+    AMI_err initialize(void)
+    {
+        sumx = sumy = sumx2 = sumy2 = 0.0;
+        return AMI_ERROR_NO_ERROR;
+    };
+
+    AMI_err operate(const double &x, const double &y, 
+                    AMI_SCAN_FLAG *sfin,
+                    double *sx, double *sy, 
+                    double *sx2, double *sy2, 
+                    AMI_SCAN_FLAG *sfout)
+    {
+        if (sfout[0] = sfout[2] = sfin[0]) {
+            *sx = (sumx += x);
+            *sx2 = (sumx2 += x * x);
+        }
+        if (sfout[1] = sfout[3] = sfin[1]) {
+            *sy = (sumx += y);
+            *sy2 = (sumy2 += y * y);
+        }        
+        return (sfin[0] || sfin[1]) ? AMI_SCAN_CONTINUE : AMI_SCAN_DONE;
+    };
+};
+
+AMI_STREAM<double> xstream, ystream;
+
+AMI_STREAM<double> sum_xstream, sum_ystream, sum_x2stream, sum_y2stream;
+
+scan_sum ss;
+
+void h()
+{
+    AMI_scan(&xstream, &ystream, &ss, 
+             &sum_xstream, &sum_ystream, &sum_x2stream, &sum_y2stream);
+}
+\end{verbatim}
+
+\subsection{ASCII Input/Output} \label{sec:ascii-io}
+
+\index{ASCII I/O|see{scanning, ASCII I/O}}
+\index{scanning!ASCII I/O|(}
+TPIE provides a number of predefined scan management objects.  Among
+the most useful are instances of the template classes
+\verb|cxx_ostream_scan<T>| and \verb|cxx_ostream_scan<T>|, which are
+used for reading ASCII data into streams and writing the contents of
+streams in ASCII respectively.  This is done in conjunction with the
+\verb|iostream| facilities provided in the standard C++ library.  Any
+class \verb|T| for which the operators \verb|ostream
+&operator<<(ostream &s, T &t)| and \verb|istream &operator>>(T &t)|
+are defined can be used with this mechanism.
+
+As an example, suppose we have a file called \verb|input_nums.txt|
+containing one integer per line, such as
+
+\begin{verbatim}
+17
+289
+4195835
+3145727
+.
+.
+.
+\end{verbatim}
+
+To read this file into a TPIE stream of integers, square each, and
+write them out to the file \verb|output_nums.txt| we could use the
+following code:
+
+\begin{verbatim}
+void f()
+{
+    ifstream in_ascii("input_nums.txt");
+    ofstream out_ascii("input_nums.txt");
+    cxx_istream_scan<int> in_scan(in_ascii);
+    cxx_ostream_scan<int> out_scan(out_ascii);
+    AMI_STREAM<int> in_ami, out_ami;
+    scan_square ss;    
+
+    // Read them.
+    AMI_scan(&in_scan, &in_ami);
+
+    // Square them.
+    AMI_scan(&in_ami, &ss, &out_scan);
+    
+    // Write them.
+    AMI_scan(&out_ami, out_scan);
+
+}    
+\end{verbatim}
+
+In order to read from an input file using the scan object
+\verb|in_scan|, \verb|AMI_scan()| repeatedly calls
+\verb|in_scan->operate()|, just as it would for any scan object.  Each
+time \verb|in_scan->operate()| is called, it uses the \verb|>>|
+operator to read a single integer from the input file.  When the input
+file is exhausted, \verb|in_scan->operate()| returns
+\verb|AMI_SCAN_DONE|, and \verb|AMI_scan()| returns to its caller.
+The behaviour of \verb|out_scan| is similar to that of \verb|in_scan|,
+except that it writes to a file instead of reading from one.
+\index{scanning!ASCII I/O|)}
+
+\subsection{Multi-Type Scanning}
+
+\index{scanning!multi-type|(}
+
+In all of the examples presented up to this point, scanning has been
+done on streams of objects that are all of the same type.
+\verb|AMI_scan()| is not limited to such scans, however.  In the
+following example, we have a scan management class that takes two
+streams of \verb|double|s and returns a stream of complex numbers.
+
+\begin{verbatim}
+class complex {
+public:
+    complex(double real_part, imaginary_part);
+    ...
+};
+
+class scan_build_complex : AMI_scan_object {
+public:
+    AMI_err initialize(void) {};
+    AMI_err operate(const double &r, const double &i, 
+                    AMI_SCAN_FLAG *sfin,
+                    complex *out, AMI_SCAN_FLAG *sfout)
+    {
+        if (*sfout = (sfin[0] || sfin[1])) {
+            *out = complex((sfin[0] ? r : 0.0), (sfin[1] ? i : 0.0));
+            return AMI_SCAN_CONTINUE;
+        } else {
+            return AMI_SCAN_DONE;
+        }   
+    };
+};
+\end{verbatim}
+\index{scanning!multi-type|)}
+
+\subsection{Out of Step Scanning}
+\label{sec:out-of-step}
+
+\index{scanning!out of step|(}
+In all the examples up to this point, every call to the
+\verb|operate()| member function of a scan management object has been
+called with each object in the input stream(s) exactly once.  In this
+section, we introduce the concept of out of step scanning, which
+allows a scan management object to reject certain inputs and ask that
+they be resubmitted in subsequent calls to the \verb|operate()| member
+function.
+
+Suppose we have two streams of integers, each of which we know is
+sorted in ascending order.  We would like to merge the two streams
+into a single output stream consisting of all the integers in the two
+input streams, in sorted order.  In order to do this with a scan, we
+must have the ability to look at the next integer from each stream,
+choose the smaller of the two and write it to the output stream, and
+then ask for the next number from the stream from which it was taken.
+Luckily, there is a simple mechanism for doing this.  The same flags
+that TPIE uses to tell the scan management object which inputs are
+available can be used by the scan management object to indicate which
+inputs were used and which should be presented again.
+
+Consider the following example of a scan management object class which
+performs exactly the sort of binary
+merge\index{merge!binary}\index{merge sort!binary} described in the
+preceding paragraph:
+
+\begin{verbatim}
+class scan_binary_merge : AMI_scan_object {
+public:
+    AMI_err initialize(void) {};
+    
+    AMI_err operate(const int &in0, const int &in1, AMI_SCAN_FLAG *sfin,
+                    int *out, AMI_SCAN_FLAG *sfout) 
+    {
+        if (sfin[0] && sfin[1]) {
+            if (in0 < in1) {
+                sfin[1] = false;
+                *out = in0;
+            } else {
+                sfin[0] = 0;
+                *out = in1;
+            }
+        } else if (!sfin[0]) {
+            if (!sfin[1]) {
+                *sfout = 0;
+                return AMI_SCAN_DONE;
+            } else {
+                *out = in1;
+            }
+        } else {
+            *out = in0;
+        }
+        *sfout = 1;
+        return AMI_SCAN_CONTINUE;
+    }    
+};
+\end{verbatim}
+
+In the operate method, we first check that both inputs are valid by
+looking at the flags pointed to by \verb|sfin|.  If both are valid,
+then we select the smaller of the inputs and copy it to the output.
+We then clear the other input flag to let TPIE know that we did not
+use that input, but we will need it later and it should be resubmitted
+on the next call to operate.  The remainder of the function handles
+the cases when one of more of the input streams in empty.
+\index{scanning!out of step|)}
+\index{scanning|)}
+
+\section{Merging} \label{sec:merging}
+\index{merging|(}
+
+The binary merging scan management class presented in the previous
+section could be used recursively to implement a merge
+sorting\index{merge sorting!binary} algorithm.  We could simply divide
+the input stream into sub-streams small enough to fit into main
+memory, read each sub-stream into memory and sort it, and then merge
+pairs of streams, then pairs of merged pairs of streams, and so on,
+until we had merged all the input back into one completely sorted
+stream.  While this approach would correctly sort the input, it would
+not be nearly as efficient as possible on most machines.  The reason
+is that we typically have enough main memory available to merge many
+streams together at one time.
+
+Taking advantage of all available main memory can be difficult, since
+we must explicitly keep track to the space needed for input blocks
+form each of the streams being merged, as well as the overhead of any
+data structures needed for the merge.  Luckily, TPIE provides a
+mechanism that does most of the work for us.  The function
+\verb|AMI_partition_and_merge()| divides an input stream into
+sub-streams just small enough to fit into main memory, operates on
+each in main memory, then merges them back into a single output
+stream, using intermediate streams if memory constraints dictate.  As
+was the case with \verb|AMI_scan()|, the functional details of
+\verb|AMI_partition_and_merge()| are specified via an operation
+management object,\index{operation management object} as shown in the
+following example:
+
+\begin{verbatim}
+class my_merger : AMI_merge_manager {
+public:
+    AMI_err initialize(arity_t arity, const T * const *in,
+                       AMI_merge_flag *taken_flags,
+                       int &taken_index);
+    AMI_err operate(const T * const *in, AMI_merge_flag *taken_flags,
+                    int &taken_index, T *out);
+    AMI_err main_mem_operate(T* mm_stream, size_t len);
+    size_t space_usage_overhead(void);
+    size_t space_usage_per_stream(void);
+};
+
+AMI_STREAM<T> instream, outstream;
+
+void f() 
+{
+    my_merger mm;    
+    AMI_partition_and_merge(&instream, &outstream, &mm);
+}
+\end{verbatim}
+
+The class members are as follows:
+
+\begin{description}
+\item[\verb|initialize()|] Tells the object how many streams it should
+  merge (\verb|arity|) and what the first item from each stream is
+  (\verb|in|).  \verb|taken_flags| and \verb|taken_index| provide two
+  mechanisms for the merge manager to tell TPIE what objects it took
+  from the input streams.  These are discussed in more detail in 
+  the context of a merge sorting example in Section~\ref{sec:mergesort}.
+\item[\verb|operate()|]
+Just as in scanning, this member function is called repeatedly to process input objects.
+\item[\verb|main\_mem\_operate()|]
+Operates on an array of data in main memory when a sub-stream is small enough to fit entirely in main memory.
+\item[\verb|space\_usage\_overhead()|]
+Called by TPIE prior to initialization to asses how much main memory this object will use.
+\item[\verb|space\_usage\_per\_item()|]
+Called by TPIE prior to initialization to asses how much main memory may be used per input stream.  Merge management objects are allowed to use main memory space linear in the number of input streams.
+\end{description}
+
+\verb|AMI_partition_and_merge()| behaves as indicated by the following
+pseudo-code.  Note that for simplicity of presentation, boundary
+conditions are not covered.
+
+\begin{verbatim}
+AMI_err AMI_partition_and_merge(instream, outstream, mm)
+{
+    max_ss = max # of items that can fit in main memory;
+    partition instream into num_substreams substreams of size max_ss;
+
+    foreach substream[i] {
+        read substream[i] into main memory;
+        mm->main_mem_operate(substream[i]);
+        write substream[i];
+    }
+
+    call mm->space_usage_overhead() and mm->space_usage_per_stream;
+    
+    compute merge_arity; // Maximum # of streams we can merge.     
+
+    while (num_substreams > 1) {
+        for (i = 0; i < num_substreams; i += merge_arity) {
+            merge substream[i] .. substream[i+merge_arity-1];
+        }
+        num_substreams /= merge_arity;
+        max_ss *= merge_arity;
+    }
+
+    write single remaining substream to outstream;
+        
+    return AMI_ERROR_NO_ERROR;
+}
+\end{verbatim}
+
+\subsection{Implementing Mergesort: An Extended Example}
+\label{sec:mergesort}
+
+Here is an example of the implementation and use of a merge management
+object for merge sorting integers.  First, we declare the class:
+
+\begin{verbatim}
+class s_merge_manager : public AMI_merge_base<int> {
+private:
+    arity_t input_arity;
+    pqueue *pq;
+public:
+    s_merge_manager(void);
+    virtual ~s_merge_manager(void);
+    AMI_err initialize(arity_t arity, const int * const *in,
+                       AMI_merge_flag *taken_flags,
+                       int &taken_index);
+    AMI_err operate(const int * const *in, AMI_merge_flag *taken_flags,
+                    int &taken_index, int *out);
+    AMI_err main_mem_operate(int* mm_stream, size_t len);
+    size_t space_usage_overhead(void);
+    size_t space_usage_per_stream(void);
+};
+\end{verbatim}
+
+In addition to the standard class members for a merge management
+object, we have the following:
+
+\begin{description}
+\item[\verb|input\_arity|]
+The number of input streams the merge management object must handle.
+\item[\verb|pq|]
+A priority queue into which items will be placed.
+\item[\verb|s\_merge\_manger()|]
+A constructor.
+\item[\verb|~s\_merge\_manger()|]
+A destructor.
+\end{description}
+
+Construction and destruction are fairly straightforward.  At
+construction time, we have no priority queue because we do not yet
+know how big the priority queue should be.  \verb|pq| will be set up
+when \verb|initialize| is called.  The destructor checks whether
+\verb|pq| is valid, and deletes it if it is.  The constructor and
+destructor are implemented as follows:
+
+\begin{verbatim}
+s_merge_manager::s_merge_manager(void)
+{
+    pq = NULL;
+}
+
+s_merge_manager::~s_merge_manager(void)
+{
+    if (pq != NULL) {
+        delete pq;
+    }
+}
+\end{verbatim}
+
+When \verb|AMI_merge()| is called with a merge management object of
+type \verb|s_merge_manager|, the first member functions called are
+\verb|space_usage_overhead()| and \verb|space_usage_per_stream()|.
+These return the number of bytes of main memory that the merge
+management object will allocate when initialized.  
+\verb|space_usage_overhead()|'s return value indicates that space will
+be needed for a priority
+queue.  
+\verb|space_usage_per_stream()|'s return value indicates that for each
+input stream, space (which is to be allocated when the priority
+queue is constructed) will be needed for an integer and an arity type.
+
+\begin{verbatim}
+size_t s_merge_manager::space_usage_overhead(void)
+{
+    return sizeof(pqueue<arity_t,int>);
+}
+
+
+size_t s_merge_manager::space_usage_per_stream(void)
+{
+    return sizeof(arity_t) + sizeof(int);
+}
+\end{verbatim}
+
+The next member function called by \verb|AMI_merge()| is
+\verb|main_mem_operate()|, which is called to handle the initial
+substreams that are small enough to fit in main
+memory.  Since we are sorting, we will simply use
+quicksort.
+
+\begin{verbatim}
+AMI_err s_merge_manager::main_mem_operate(int* mm_stream, size_t len)
+{
+    qsort(mm_stream, len, sizeof(int), c_int_cmp);
+    return AMI_ERROR_NO_ERROR;
+}
+\end{verbatim}
+
+Having sorted all of the initial substreams, \verb|AMI_merge()| begins
+to merge them.  Before merging a set of substreams, the merge
+management object's member function \verb|initialize()| is called to
+inform the merge management object of the number of streams it should
+be prepared to merge.  The object is also provided with the first
+object from each of the streams to be merged.  For objects of the
+class \verb|s_merge_manager|, the \verb|initialize()| member function
+is as follows:
+
+\begin{verbatim}
+AMI_err s_merge_manager::initialize(arity_t arity, CONST int * CONST *in,
+                                          AMI_merge_flag *taken_flags,
+                                          int &taken_index)
+{
+    arity_t ii;
+
+    input_arity = arity;
+
+    if (pq != NULL) {
+        delete pq;
+    }
+
+    // Construct a priority queue that can hold arity items.
+    pq = new pqueue_heap_op(arity);
+
+    for (ii = arity; ii--; ) {
+        if (in[ii] != NULL) {
+            taken_flags[ii] = 1;
+            pq->insert(ii,*in[ii]);
+        } else {
+            taken_flags[ii] = 0;
+        }
+    }
+
+    taken_index = -1;
+    return AMI_MERGE_READ_MULTIPLE;
+}
+\end{verbatim}
+
+Note the use of the return value \verb|AMI_MERGE_READ_MULTIPLE|.  This
+indicates that the flags pointed to by \verb|*taken_flags| are set to
+indicate which of the inputs were used and should not be presented
+again.  This is very similar to the use of input flags to indicate
+which inputs were used by a scan management object as described in
+Section~\ref{sec:out-of-step}.  The reason that we have a special
+return value to indicate when these flags are used to increase
+performance.  In order for \verb|AMI_scan()| to determine which inputs
+were taken, it must examine all the flags.  In a many way merge, this
+might be time consuming.  In cases where only one item is taken, its
+index can be returned in \verb|taken_index| in order to save the time
+that would be spent scanning the flags.  This technique is used in the
+\verb|operate()| member function, whose implementation is as follows:
+
+\begin{verbatim}
+AMI_err s_merge_manager::operate(CONST int * CONST *in,
+                                       AMI_merge_flag *taken_flags,
+                                       int &taken_index,
+                                       int *out)
+{
+    // If the queue is empty, we are done.  There should be no more
+    // inputs.
+    if (!pq->num_elts()) {
+        return AMI_MERGE_DONE;
+    } else {
+        arity_t min_source;
+        int min_t;
+
+        pq->extract_min(min_source,min_t);
+        *out = min_t;
+        if (in[min_source] != NULL) {
+            pq->insert(min_source,*in[min_source]);
+            taken_index = min_source;
+        } else {
+            taken_index = -1;
+        }
+        return AMI_MERGE_OUTPUT;
+    }
+}
+\end{verbatim}
+\index{merging|)}
+
+\section{Distribution} \label{sec:distribution}
+
+Distribution has not been implemented in the current version of TPIE.
+It is primarily useful for parallel disks, and will be implemented in
+the parallel disk version of TPIE.  On a single disk, merging should
+be adequate for all applications where distribution might be
+considered.
+
+On a single disk, distribution will tend to result in algorithms that
+take roughly twice as long as similar algorithms that use merging.
+This is because distribution is done to the square root of the number
+of streams that can be buffered in main memory rather than the full
+number.  This results in recursion that is twice as deep.
+
+\section{Permutation}
+
+\subsection{General Permutation}
+
+Permutation is a basic building block for many I/O algorithms.
+Routing a general permutation in the I/O model is asymptotically as
+complex as sorting, though for some important classes of permutations,
+such as BMMC permutations (See Section~\ref{sec:bit-permuting}) faster
+algorithms are possible.  In this section, we discuss
+\verb|AMI_general_permute()|, which routes arbitrary permutations, but
+always takes as long as sorting, regardless of whether the particular
+permutation can be done more quickly or not.
+
+General permutations are routed using the function
+\verb|AMI_general_permute()|.  Like other AMI functions,
+\verb|AMI_general_permute()| relies on an operation management
+object\index{operation management object} to determine its precise
+behavior.  Unlike functions covered up to now, however, the type of
+the operation management object\index{operation management object}
+need not depend on the type of object in the stream being permuted.
+
+A general permutation management object must provide two member
+functions, \verb|initialize()| and \verb|destination|.
+\verb|initialize()| is called to inform the general permutation object
+of the length of the stream to be permuted.  \verb|destination()| is
+then called repeatedly to determine the destination for each object in
+the stream based on it's initial position.
+
+Here is an example of using general permutation to reverse the order
+of the items in a stream.
+
+\begin{verbatim}
+class reverse_order : public AMI_gen_perm_object {
+private:
+    off_t total_size;
+public:
+    AMI_error initialize(off_t ts) { 
+        total_size = ts; 
+        return AMI_ERROR_NO_ERROR;
+    };
+    off_t destination(off_t source) {
+        return total_size - 1 - source;
+    };
+};
+
+AMI_STREAM<int> amis0, amis1;    
+
+void f()
+{
+    reverse_order ro;
+
+    AMI_general_permute(&amis0, &amis1, (AMI_gen_perm_object *)&ro);
+}
+\end{verbatim}
+
+\subsection{Bit Permutation}
+\label{sec:bit-permuting}
+
+Bit permuting is a permutation technique in which the destination
+address of a given item is computed by manipulating the bits of its
+source address.  The particular class of bit permutations that TPIE
+supports is the set of bit matrix multiply complement (BMMC)
+permutations.  These permutations are defined on sets of objects whose
+size is a power of 2.
+
+Suppose we have an input consisting of $N = 2^n$ objects.  A BMMC
+permutation on the input is defined by a nonsingular $n @times n$ bit
+matrix $A$ and an $n$ element column vector $c$ of bits.  Source and
+destination addresses are interpreted as column vectors of bits, with
+the low order bit of the address at the top.  The destination address
+$x'$ corresponding to a given source address $x$ is computed as
+$$x' = Ax + c$$ where addition and multiplication of matrix elements
+is done over GF(2).  For a detailed description of BMMC permutations,
+see~\cite{cormen:integrate-tr}.
+%\htmladdnormallink{Dartmouth College Technical Report PCS-TR94-223}%
+%{ftp://cs.dartmouth.edu:/pub/CS-techreports/TR94-223.ps.Z}.
+
+Routing BMMC permutations in TPIE is done using the
+\verb|AMI_BMMC_permute()| entry point, which takes an input stream,
+and output stream, and a pointer to a bit permutation management
+object.  In the following example, we route a permutation that simply
+reverses the order of the source address bits to produce the
+destination address.
+
+First, we construct the matrices the permutation will use.
+\index{bit_matrix@{\tt bit\_matrix}}
+\begin{verbatim}
+    bit_matrix A(n,n);
+    bit_matrix c(n,1);
+
+    {
+        unsigned int ii,jj;
+
+        for (ii = n; ii--; ) {
+            c[ii][0] = 0;
+            for (jj = n; jj--; ) {
+                A[n-1-ii][jj] = (ii == jj);
+            }
+        }
+    }
+\end{verbatim}
+Now we simply construct a permutation management object from the
+matrices and perform the permutation.
+\begin{verbatim}
+    AMI_bit_perm_object bpo(A,c);
+    
+    ae = AMI_BMMC_permute(&amis0, &amis1, (AMI_bit_perm_object *)&bpo);
+\end{verbatim}
+
+
+\section{Sorting}
+
+\subsection{Comparison Sorting} \label{sec:cmp-sorting}
+
+\index{sorting!comparison|(}
+Sorting is a common primitive operation in many algorithms.  It can be
+performed in a variety of ways, such as by merging (See
+Section~\ref{sec:merging}), distribution (See
+Section~\ref{sec:distribution}), Sharesort~\cite{aggarwal:optimal},
+which combines elements of both along with simple bit permutations
+(See Section~\ref{sec:bit-permuting}).  Because the best choice of
+sorting algorithm varies from one I/O system to the next, TPIE
+provides a single function \verb|AMI_sort()|, which selects an
+appropriate algorithm based on the underlying hardware
+characteristics.
+
+\verb|AMI_sort()| has two polymorphs.  The first works on streams of
+objects for which the operator \verb|<| is defined.  It is invoked as
+follows:
+
+\begin{verbatim}
+AMI_STREAM<int> instream;
+AMI_STREAM<int> outstream;
+
+void f()
+{
+    AMI_sort(&instream, &outstream);
+}
+\end{verbatim}
+
+The second polymorph of \verb|AMI_sort()| uses an explicit function to
+determine the relative order of two objects in the input stream.  This
+is useful in cases where we may want to sort a stream of objects in
+several different ways.  For example, the following code sorts a
+stream of complex numbers in two ways, by their real parts and by
+their imaginary parts.
+
+\begin{verbatim}
+class complex {
+public:
+    complex(double real_part, imaginary_part);
+    double re(void);
+    double im(void);
+    ...
+};
+
+int compare_re(const complex &c1, const complex &c2)
+{
+    return (c1.re() < c2.re()) ? -1 :
+           ((c1.re() > c2.re()) ? 1 : 0);
+}
+
+int compare_im(const complex &c1, const complex &c2)
+{
+    return (c1.im() < c2.im()) ? -1 :
+           ((c1.im() > c2.im()) ? 1 : 0);
+}
+
+AMI_STREAM<complex> instream;
+AMI_STREAM<complex> outstream_re;
+AMI_STREAM<complex> outstream_im;
+
+void f()
+{
+    AMI_sort(&instream, &outstream_re, compare_re);
+    AMI_sort(&instream, &outstream_im, compare_im);
+}
+\end{verbatim}
+
+\index{sorting!comparison|)}
+
+\subsection{Key Bucket Sorting}
+\label{sec:kb-sorting}
+
+\index{sorting!key bucket|(}
+\index{sorting!key bucket|)}
+
+\section{Matrix Operations}
+\label{sec:matrix}
+
+\index{matrices|(}
+
+In addition to streams, which are linearly ordered collections of
+objects, the AMI provides a mechanism for storing large matrices in
+external memory.  Matrices are a subclass of streams, and thus can be
+used with any of the stream operations discussed above.  When a matrix
+is treated as a stream its elements appear in row major order.  In
+addition to stream operations, matrices support three simple
+arithmetic operations, addition, subtraction, and multiplication.
+
+It is assumed that the class \verb|T| of the elements in a matrix
+forms a quasiring with the operators \verb|+| and \verb|*|.
+Furthermore, the object \verb|T((int)0)| is assumed to be an identity
+for \verb|+|.  At the moment, it is not assumed that the operator
+\verb|-| in an inverse of \verb|+|, and therefore no reduced
+complexity matrix multiplication algorithms analogous to Strassen's
+algorithm are used.
+
+There are two different classes of matrices that TPIE provides, dense,
+and sparse.
+
+\subsection{Dense Matrix Operations}
+\label{sec:dense-mat}
+
+\index{matrices!dense|(}
+
+Dense matrices are implemented by the templated class
+\verb|AMI_matrix|,\index{AMI_matrix@{\tt AMI\_matrix}}
+ which is a subclass of
+\verb|AMI_STREAM|.\index{AMI_STREAM@{\tt AMI\_STREAM}}
+
+Dense matrices can be filled using \verb|AMI_scan()|, though typically
+they are filled using the function \verb|AMI_matrix_fill()|, which
+uses a scan management object that is given the row and column of each
+element of the matrix and asked to fill them in.  In the following
+example, we create a 1000 by 1000 upper triangular matrix of ones and
+zeroes:
+
+\begin{verbatim}
+template<class T>
+class fill_upper_tri : public AMI_matrix_filler<T> {
+    AMI_err initialize(unsigned int rows, unsigned int cols)
+    {
+        return AMI_ERROR_NO_ERROR;
+    };
+    T element(unsigned int row, unsigned int col)
+    {
+        return (row <= col) ? T(1) : T(0);
+    };
+};
+
+AMI_matrix m(1000, 1000);
+
+void f()
+{
+    fill_upper_tri<double> fut;
+
+    AMI_matrix_fill(&em, (AMI_matrix_filler<T> *)&fut);
+}
+\end{verbatim}
+
+Arithmetic on dense matrices is performed in a straightforward way
+using the functions \verb|AMI_matrix_add()|,
+\verb|AMI_matrix_subtract()|, and \verb|AMI_matrix_multiply()|, as is
+the following example:
+
+\begin{verbatim}
+AMI_matrix m0(1000, 500), m1(500, 2000), m2(1000, 2000);
+AMI_matrix m3(1000, 500), m4(1000, 500);
+
+void f()
+{
+    // Add m3 to m4 and put the result in m0.
+    AMI_matrix_add(em3, em4, em0);
+   
+    // Multiply m0 by em1 to get m2.
+    AMI_matrix_mult(em0, em1, em2);
+
+    // Subtract m4 from m3 and put the result in m0.
+    AMI_matrix_subtract(em3, em4, em0);        
+}
+\end{verbatim}
+
+\index{matrices!dense|)}
+
+\subsection{Sparse Matrices}
+\label{sec:sparse-mat}
+
+\index{matrices!sparse|(}
+\index{matrices!sparse|)}
+
+\subsection{Elementwise Arithmetic}
+\label{sec:elementwise}
+
+\index{arithmetic!elementwise|see{elementwise arithmetic}}
+\index{elementwise arithmetic|(} 
+The functions \verb|AMI_matrix_add()|
+and \verb|AMI_matrix_subtract()| defined in
+Section~\ref{sec:dense-mat} perform elementwise arithmetic on
+matrices.  At times, we might also wish to perform elementwise
+multiplication or division, or perform a scalar arithmetic operation
+on all elements of a matrix.  TPIE provides mechanisms for doing this
+not only on matrices, but on arbitrary streams, so long as they are of
+objects for which the appropriate arithmetic operators (i.e. {\tt +},
+{\tt -}, {\tt *}, {\tt /}) are defined.
+
+Elementwise arithmetic is done with scan management objects
+\index{operation management objects!scan} of the classes
+\verb|AMI_scan_add|, \verb|AMI_scan_sub|, \verb|AMI_scan_mult| and
+\verb|AMI_scan_div|, which are defined in the header file
+\verb|AMI_stream_arith.h|.  Here is an example that performs
+elementwise division on the elements of two streams.
+
+\begin{verbatim}
+#include <ami_stream_arith.h>
+
+void foo()
+{
+    AMI_STREAM<int> amis0;
+    AMI_STREAM<int> amis1;
+    AMI_STREAM<int> amis2;
+
+    // Divide each element of amis0 by the corresponding element of
+    // amis1 and put the result in amis2.
+    AMI_scan(&amis0, &amis1, &sd, &amis2);
+}
+\end{verbatim}
+\index{elementwise arithmetic|)}
+
+\index{matrices|)}
+
+\section{Writing and Executing Complete TPIE Programs}
+\label{sec:complete}
+\index{complete TPIE programs}
+
+The fragments of code presented in this tutorial are valuable for
+instructive purposes; however, they are incomplete.  In order to
+successfully compile, link, and run TPIE applications, some additional
+code and appropriate compilation and run-time environments are needed.
+These are discussed below.  The best way for a novice TPIE programmer
+to begin is probably to look directly at the source code provided in
+the {\tt test} directory.  It incorporates all of the necessary
+components discussed below.
+
+\subsection{Configuring TPIE for the Application}
+\label{sec:macros}
+\index{macros|(}
+
+The exact behavior or TPIE at run time is controlled be several macros
+that can be defined before including any TPIE headers.  In the test
+application code\index{test applications} distributed with TPIE, these
+are set in the header file {\tt
+  tpie-\version/test/app\_config.h}.\index{app_config@{\tt app\_config.h}}
+The macros are as follows:
+\begin{description}
+\item[{\verb|TPL\_LOGGING|}] \index{TPL_LOGGING@{\tt TPL\_LOGGING}} Set
+  to a non-zero value to enable logging of TPIE's internal behavior.
+  By default, information is logged to the log file\index{log file}
+  \verb|/tmp/TPLOG_XXXXXX| where \verb|XXXXXX| is a unique system
+  dependent identifier.  Typically it encodes the process ID of the
+  TPIE process that produced it in some way.  See
+  Section~\ref{sec:logging} of the reference manual for information on
+  exactly what TPIE writes to the log file.
+\item[{\verb|DEBUG\_ASSERTIONS|}] 
+  \index{DEBUG_ASSERTIONS@{\tt DEBUG\_ASSERTIONS}}
+  \index{debugging!TPIE}
+  Set to a non-zero value to enable
+  TPIE assertions.  These assertions check for inconsistent or
+  erroneous conditions within TPIE itself.  They are primarily
+  intended to aid in the debugging of TPIE.  Some overhead is added to
+  programs compiled with this macro set.
+\item[{\verb|DEBUG\_CERR|}] \index{DEBUG_CERR@{\tt DEBUG\_CERR}}
+  \index{debugging!TPIE} Setting this macro to a non-zero value tells
+  TPIE to write all internal debugging messages to the C++ standard
+  error stream \verb|cerr| in addition to the TPIE log file.
+\item[{\verb|DEBUG\_STR|}] 
+  \index{DEBUG_STR@{\tt DEBUG\_STR}} \index{debugging!TPIE}
+  Setting this macro to a non-zero value enables certain debugging
+  messages that report on the internal behavior of TPIE but do not
+  necessarily indicate error conditions.  In some cases this can
+  increase the size of the log dramatically.
+\item[{\verb|AMI\_VIRTUAL\_BASE|}] 
+  \index{AMI_VIRTUAL_BASE@{\tt AMI\_VIRTUAL\_BASE}}
+  \index{virtual base class!AMI} Setting this macro to a non-zero
+  value makes the base class declares a large number of virtual
+  functions for the class \verb|AMI_base_stream|, which is the base
+  class of all implementations of AMI streams.  This is useful for
+  debugging new AMI stream implementations, but many compilers cannot
+  properly inline virtual functions, so it slows the system down
+  significantly.  Normally, TPIE applications programmers would never
+  set this flag.
+\item[{\verb|BTE\_VIRTUAL\_BASE|}] 
+  \index{BTE_VIRTUAL_BASE@{\tt BTE\_VIRTUAL\_BASE}}
+  \index{virtual base class!BTE}  Similar to
+  \verb|AMI_VIRTUAL_BASE|, but for the BTE layer.
+  Normally, TPIE applications programmers would never
+  set this flag.
+
+\item[{\verb|AMI\_IMP\_*|}]
+  \index{AMI_IMP_*@{\tt AMI\_IMP\_*}}
+  \index{access method interface!implementation}
+  \index{implementation!AMI}
+  A macro of this form is used to tell TPIE which of the available
+  access method interface implementations to use.  Version \version of
+  TPIE is distributed only one AMI implementation, which stores the
+  contents of a given stream on a single disk.  This implementation is
+  selected by setting 
+  {\tt AMI\_IMP\_SINGLE}.
+  \index{implementation!AMI!single disk}
+
+\item[{\verb|BTE\_IMP\_*|}]
+  \index{BTE_IMP_*@{\tt BTE\_IMP\_*}}
+  \index{block transfer engine!implementation}
+  \index{implementation!BTE}
+  These are important macros for the TPIE user.
+  The macros of this form are used to tell TPIE which of the available
+  block transfer engine implementations to use.  Version \version of
+  TPIE is distributed with three implementations.  
+  %
+  An implementation
+  based on the UNIX {\tt stdio} library
+  \index{stdio (UNIX library)@{\tt stdio} (UNIX library)} is selected
+  by setting {\tt BTE\_IMP\_STDIO}.  
+  \index{implementation!BTE!{\tt stdio} library}
+  %
+  An implementation based on blocked UNIX {\tt read/write} calls 
+  \index{read write} is selected by setting 
+  {\tt BTE\_IMP\_UFS}.
+  \index{implementation!BTE!read!write}
+  %
+  An implementation based on memory
+  mapped I/O\index{memory mapped I/O} is selected by setting 
+  {\tt BTE\_IMP\_MMB}.
+  \index{implementation!BTE!memory mapped I/O}
+
+\end{description}
+
+The following flags are only used by the memory mapped I/O BTE (BTE\_MMB).
+
+\begin{description}
+
+\item[{\verb|BTE\_MMB\_READ\_AHEAD|}]
+  \index{BTE_MMB_READ_AHEAD@{\tt BTE\_MMB\_READ\_AHEAD}}
+  \index{read ahead}
+  When the memory mapped I/O implementation of the BTE layer is
+  selected, setting this flag tells the BTE to optimize for sequential
+  read speed by reading blocks into main memory before the
+  data they contain is actually needed. This version provides two methods
+  of read-ahead. The default behaviour uses {\tt mmap}. If the USE\_LIBAIO
+  flag is also set, read ahead is done using the asynchronous I/O library.
+\item[{\verb|USE\_LIBAIO|}]
+  \index{USE\_LIBAIO}
+  If the BTE\_MMB\_READ\_AHEAD flag is also set, setting this flag
+  performs read ahead using the  asynchronous I/O library.
+  This feature requires the
+  asynchronous I/O library {\tt libaio}.\index{libaio library@{\tt
+      libaio} library.}
+\end{description}
+\index{macros|)}
+
+\index{header files|(}
+One the appropriate macros have been set, TPIE's templated classes and
+functions are included by including the header file {\tt ami.h} from
+the {\tt include} directory.  Normally, this directory is pointed to
+by a {\tt -I} argument to the compiler.  This and other compiler flags
+are discussed in more detail in Section~\ref{sec:comp-flags} and are
+illustrated by their use un the {\tt Makefile} in the
+{\tt test} directory.
+\index{header files|)}
+ 
+%\subsection{Template Instantiation}
+
+%{\bf Important Note:} Much of the information in this section is
+%likely to change as the template instantiation mechanism of the 
+%{\tt g++}\index{g++@{\tt g++}} compiler improves.  If you are
+%interested in the nitty gritty details of template instantiation,
+%consult~\cite{ellis:arm} or one of the frequent discussions on the
+%topic in the newsgroup {\tt comp.lang.c++}
+%\index{comp.lang.c++@{\tt comp.lang.c++}}.
+
+%\index{templates!instantiation|(}
+%\noindent Most of the classes and functions TPIE defines are
+%templated.  Furthermore, many user written operation management
+%object\index{operation management objects!user supplied} classes are
+%likely to be templated; many of those supplied with the test and
+%sample applications are.
+
+%Unfortunately, many C++\index{C++} compilers do not properly implement
+%templated function and/or classes.  In particular, the GNU C++
+%compiler, {\tt g++}\index{g++@{\tt g++}}, version \gxxversion, which
+%was used in the development of TPIE has some deficiencies when it
+%comes to template instantiation.  It also has a well defined mechanism
+%for working around these deficiencies, which TPIE takes significant
+%advantage of.  This mechanism prevents the compiler from implicitly
+%instantiating any template.  Thus, all templates used by a program
+%must be explicitly instantiated at compile time or they will not be
+%available at link time and linking will fail.
+
+%In order to tell {\tt g++}\index{g++@{\tt g++}} not to implicitly
+%instantiate any templates, the {\tt -fno-implicit-templates} flag is
+%used.  Additionally, the macro {\tt NO\_IMPLICIT\_TEMPLATES} should be
+%defined on the command line, using {\tt -D}.  This macro informs TPIE
+%that it should not rely on the presence of implicit template
+%instantiation.  In response to the fact that this macro is set, TPIE
+%defines a series of new macros with names of the form {\tt
+%  TEMPLATE\_INSTANTIATE\_*}.  
+%\index{TEMPLATE_INSTANTIATE_*@{\tt TEMPLATE\_INSTANTIATE\_*}|(}
+%Each of these macros can be used to
+%actually instantiate some set of functions and/or classes that TPIE
+%needs to provide a given operation.  These macros should be used at
+%the end of your source file in order to perform the proper
+%instantiations.
+
+%The {\tt TEMPLATE\_INSTANTIATE\_*} macros likely to be needed by TPIE
+%programmers are as follows:
+%\begin{description}
+%\item[{\tt TEMPLATE\_INSTANTIATE\_STREAMS(T)}] Instantiate AMI and
+%  BTE level streams of objects of type {\tt T}.  If your
+%  application uses streams of several types, this macro must be called
+%  once for each of them.
+%\item[{\tt TEMPLATE\_INSTANTIATE\_ISTREAM(T)}]
+%\item[{\tt TEMPLATE\_INSTANTIATE\_OSTREAM(T)}] Instantiate ASCII
+%  input and output scan management objects for the type {\tt T}.
+%  See Section~\ref{sec:ascii-io} for details on these objects.
+%  \index{scanning!ASCII I/O}
+%\item[{\tt TEMPLATE\_INSTANTIATE\_AMI\_MERGE}] Instantiate merging entry
+%  points for streams of objects of type {\tt T}.  Merging is described
+%  in Section~\ref{sec:merging}.
+%\item[{\tt TEMPLATE\_INSTANTIATE\_SORT\_OP(T)}]
+%\item[{\tt TEMPLATE\_INSTANTIATE\_SORT\_CMP(T)}]
+%\item[{\tt TEMPLATE\_INSTANTIATE\_SORT\_OBJ(T)}] Instantiate
+%  respectively operator, comparison function, and comparison object
+%  based sorting of objects of type {\tt T}.  See
+%  Section~\ref{sec:cmp-sorting} for details on these types of sorting.
+%\item[{\tt TEMPLATE\_INSTANTIATE\_KB\_SORT(T)}] 
+%\item[{\tt TEMPLATE\_INSTANTIATE\_KB\_SORT\_KEY(T,K)}] Instantiate key
+%  bucket distribution sorting of objects of type {\tt T}.  The latter
+%  form uses key {\tt K} for sorting.  Section~\ref{sec:kb-sorting}
+%  describes key bucket sorting.
+%\item[{\tt TEMPLATE\_INSTANTIATE\_STREAM\_ADD(T)}]
+%\item[{\tt TEMPLATE\_INSTANTIATE\_STREAM\_SUB(T)}]
+%\item[{\tt TEMPLATE\_INSTANTIATE\_STREAM\_MULT(T)}]
+%\item[{\tt TEMPLATE\_INSTANTIATE\_STREAM\_DIV(T)}]
+%  Instantiate elementwise arithmetic operations on streams of objects
+%  of type {\tt T} as described in Section~\ref{sec:elementwise}.
+%\item[{\tt TEMPLATE\_INSTANTIATE\_AMI\_MATRIX}]
+%  Instantiate dense matrices of objects of type {\tt T} and the
+%  standard operations on them.  Dense
+%  matrices are described in
+%  Section~\ref{sec:dense-mat}.\index{matrices!dense}
+%\item[{\tt TEMPLATE\_INSTANTIATE\_AMI\_SPARSE\_MATRIX}]
+%  Instantiate sparse matrices of objects of type {\tt T} and the
+%  standard operations on them.  Sparse
+%  matrices are described in
+%  Section~\ref{sec:dense-mat}.\index{matrices!sparse}
+%\end{description}
+%\index{TEMPLATE_INSTANTIATE_*@{\tt TEMPLATE\_INSTANTIATE\_*}|)}
+
+%In addition to instantiating functions and classes using the macros
+%described above, it is often necessary to explicitly instantiate
+%particular instances of AMI entry points for user supplied operation
+%management objects.  For example, suppose we declare a scan management
+%object class such as
+%\begin{verbatim}
+%class my_scan_class : AMI_scan_object {
+%public:
+%    AMI_err initialize(void);
+%    AMI_err operate(const int &in1, const int &in2, AMI_SCAN_FLAG *sfin,
+%                    float *out, AMI_SCAN_FLAG *sfout); 
+%}
+%\end{verbatim}
+%Then, in order to explicitly instantiate \verb|AMI_scan()| to use
+%objects of this type, we would use the following code:
+%\begin{verbatim}
+%template AMI_err AMI_scan(AMI_STREAM<int> *, AMI_STREAM<int> *, 
+%                          my_scan_class *, AMI_STREAM<float> *); 
+%\end{verbatim}
+%This instantiates an instance of \verb|AMI_scan()| that takes two input
+%streams of \verb|int|s, operates on them with an object of type
+%\verb|my_scan_class|, and produces an output stream of \verb|float|s.  
+%Note the correspondence between the types of input and output streams
+%and the types of the operands to the \verb|operate()| member function
+%of the class \verb|my_scan_class|.
+%\index{templates!instantiation|)}
+
+\subsection{Compiler Flags}
+\label{sec:comp-flags}
+
+\index{compiler flags|(}
+\index{compiler flags|)}
+
+\subsection{Environment Variables}
+
+\index{environment variables|(}
+
+\index{environment variables!AMI_SINGLE_DEVICE_ENV@{\tt AMI\_SINGLE\_DEVICE\_ENV}}
+
+
+\index{environment variables|)}
+
+
+\chapter{Additional Examples} \label{ch:examples}
+\index{examples}
+
+This chapter contains some additional annotated examples of 
+TPIE application code.
+
+\section{Convex Hull}
+\label{sec:convex-hull}
+\index{convex hull|(}
+
+The convex hull of a set of points in the plane is the smallest convex
+polygon which encloses all of the points.  Graham's scan is a simple
+algorithm for computing convex hulls.  It should be discussed in any
+introductory book on computational geometry, such as~\cite{preparata:cg}.  Although Graham's scan was not originally designed for
+external memory, it can be implemented optimally in this setting.
+What is interesting about this implementation is that external memory
+stacks are used within the implementation of a scan management object.
+
+First, we need a data type for storing points.  We use the following
+simple class, which is templated to handle any numeric type.
+
+\begin{verbatim}
+template<class T>
+class point {
+public:
+    T x;
+    T y;
+    point() {};
+    point(const T &rx, const T &ry) : x(rx), y(ry) {};
+    ~point() {};
+
+    inline int operator==(const point<T> &rhs) const {
+        return (x == rhs.x) && (y == rhs.y);
+    }
+    inline int operator!=(const point<T> &rhs) const {
+        return (x != rhs.x) || (y != rhs.y);
+    }
+
+    // Comparison is done by x.
+    int operator<(const point<T> &rhs) const {
+        return (x < rhs.x);
+    }
+
+    int operator>(const point<T> &rhs) const {
+        return (x > rhs.x);
+    }
+    
+    friend ostream& operator<<(ostream& s, const point<T> &p);
+    friend istream& operator>>(istream& s, point<T> &p);
+};
+\end{verbatim}
+
+Once the points are s by their $x$ values, we simply scan them to
+produce the upper and lower hulls, each of which are stored as a stack
+pointed to by the scan management object.  We then concatenate the
+stacks to produce the final hull.  The code for computing the convex
+hull of a set of points is thus
+
+\begin{verbatim}
+template<class T>
+AMI_err convex_hull(AMI_STREAM< point<T> > *instream,
+                    AMI_STREAM< point<T> > *outstream)
+{
+    AMI_err ae;
+
+    point<T> *pt;
+
+    AMI_stack< point<T> > uh((unsigned int)0, instream->stream_len());
+    AMI_stack< point<T> > lh((unsigned int)0, instream->stream_len());
+
+    AMI_STREAM< point<T> > in_sort;
+        
+    // Sort the points by x.
+
+    ae = AMI_sort(instream, &in_sort);
+    
+    // Compute the upper hull and lower hull in a single scan.
+
+    scan_ul_hull<T> sulh;
+
+    sulh.uh_stack = &uh;
+    sulh.lh_stack = &lh;
+    
+    ae = AMI_scan(&in_sort, &sulh);
+
+    // Copy the upper hull to the output.
+
+    uh.seek(0);
+    
+    while (1) {
+        ae = uh.read_item(&pt);
+        if (ae == AMI_ERROR_END_OF_STREAM) {
+            break;
+        } else if (ae != AMI_ERROR_NO_ERROR) {
+            return ae;
+        }
+
+        ae = outstream->write_item(*pt);
+        if (ae != AMI_ERROR_NO_ERROR) {
+            return ae;
+        }
+    }
+    
+    // Reverse the lower hull, concatenating it onto the upper hull.
+
+    while (lh.pop(&pt) == AMI_ERROR_NO_ERROR) {
+        ae = outstream->write_item(*pt);
+        if (ae != AMI_ERROR_NO_ERROR) {
+            return ae;
+        }
+    }
+
+    return AMI_ERROR_NO_ERROR;
+}
+\end{verbatim}
+
+The only thing that remains is to define a scan management object that
+is capable of producing the upper and lower hulls by scanning the
+points.  According to the Graham's scan algorithm, we produce the
+upper hull by moving forward in the $x$ direction, adding each
+point we encounter to the upper hull, until we find one that induces a
+concave turn on the surface of the hull.  We then move backwards
+through the list of points that have been added to the hull,
+eliminating points until a convex path is reestablished.  This process
+is made efficient by storing the points on the hull so far in a stack.
+The code for the scan management object, which relies on the function
+\verb|ccw()| to actually determine whether a corner is
+convex or not, is as follows:
+
+\begin{verbatim}
+template<class T>
+class scan_ul_hull : AMI_scan_object {
+public:
+    AMI_stack< point <T> > *uh_stack, *lh_stack;
+
+    scan_ul_hull(void);
+    virtual ~scan_ul_hull(void);
+    AMI_err initialize(void);
+    AMI_err operate(const point<T> &in, AMI_SCAN_FLAG *sfin);
+};
+
+template<class T>
+scan_ul_hull<T>::scan_ul_hull(void) : uh_stack(NULL), lh_stack(NULL)
+{
+}
+
+template<class T>
+scan_ul_hull<T>::~scan_ul_hull(void)
+{
+}
+
+template<class T>
+AMI_err scan_ul_hull<T>::initialize(void)
+{
+    return AMI_ERROR_NO_ERROR;
+}
+
+
+template<class T>
+AMI_err scan_ul_hull<T>::operate(const point<T> &in,
+                                 AMI_SCAN_FLAG *sfin)
+{
+    AMI_err ae;
+
+    // If there is no more input we are done.
+    if (!*sfin) {
+        return AMI_SCAN_DONE;
+    }
+
+    if (!uh_stack->stream_len()) {
+
+        // If there is nothing on the stacks then put the first point
+        // on them.
+        ae = uh_stack->push(in);
+        if (ae != AMI_ERROR_NO_ERROR) {
+            return ae;
+        }
+
+        ae = lh_stack->push(in);
+        if (ae != AMI_ERROR_NO_ERROR) {
+            return ae;
+        }
+
+    } else {
+
+        // Add to the upper hull.
+
+        {
+            // Pop the last two points off.
+
+            point<T> *p1, *p2;
+
+            tp_assert(uh_stack->stream_len() >= 1, "Stack is empty.");
+            
+            uh_stack->pop(&p2);
+
+            // If the point just popped is equal to the input, then we
+            // are done.  There is no need to have both on the stack.
+            
+            if (*p2 == in) {
+                uh_stack->push(*p2);
+                return AMI_SCAN_CONTINUE;
+            }
+            
+            if (uh_stack->stream_len() >= 1) {
+                uh_stack->pop(&p1);
+            } else {
+                p1 = p2;
+            }
+            
+            // While the turn is counter clockwise and the stack is
+            // not empty pop another point.
+            
+            while (1) {                
+                if (ccw(*p1,*p2,in) >= 0) {
+                    // It does not turn the right way.  The points may
+                    // be colinear.
+                    if (uh_stack->stream_len() >= 1) {
+                        // Move backwards to check another point.
+                        p2 = p1;
+                        uh_stack->pop(&p1);
+                    } else {
+                        // Nothing left to pop, so we can't move
+                        // backwards.  We're done.
+                        uh_stack->push(*p1);
+                        if (in != *p1) {
+                            uh_stack->push(in);
+                        }
+                        break;
+                    }
+                } else {
+                    // It turns the right way.  We're done.
+                    uh_stack->push(*p1);
+                    uh_stack->push(*p2);
+                    uh_stack->push(in);
+                    break;
+                }
+            }
+        }
+
+        // Add to the lower hull.
+
+        {
+            // Pop the last two points off.
+
+            point<T> *p1, *p2;
+
+            tp_assert(lh_stack->stream_len() >= 1, "Stack is empty.");
+            
+            lh_stack->pop(&p2);
+
+            // If the point just popped is equal to the input, then we
+            // are done.  There is no need to have both on the stack.
+            
+            if (*p2 == in) {
+                lh_stack->push(*p2);
+                return AMI_SCAN_CONTINUE;
+            }
+            
+            if (lh_stack->stream_len() >= 1) {
+                lh_stack->pop(&p1);
+            } else {
+                p1 = p2;
+            }
+            
+            // While the turn is clockwise and the stack is
+            // not empty pop another point.
+            
+            while (1) {                
+                if (ccw(*p1,*p2,in) <= 0) {
+                    // It does not turn the right way.  The points may
+                    // be colinear.
+                    if (lh_stack->stream_len() >= 1) {
+                        // Move backwards to check another point.
+                        p2 = p1;
+                        lh_stack->pop(&p1);
+                    } else {
+                        // Nothing left to pop, so we can't move
+                        // backwards.  We're done.
+                        lh_stack->push(*p1);
+                        if (in != *p1) {
+                            lh_stack->push(in);
+                        }
+                        break;
+                    }
+                } else {
+                    // It turns the right way.  We're done.
+                    lh_stack->push(*p1);
+                    lh_stack->push(*p2);
+                    lh_stack->push(in);
+                    break;
+                }
+            }
+        }       
+    }
+
+    return AMI_SCAN_CONTINUE;    
+}
+\end{verbatim}
+
+The function \verb|ccw()| computes twice the signed area of a triangle in
+the plane by evaluating a 3 by 3 determinant.  The result is positive
+if and only if the the three points in order form a counterclockwise
+cycle.
+
+\begin{verbatim}
+template<class T>
+T ccw(const point<T> &p1, const point<T> &p2, const point<T> &p3)
+{
+    T sa;
+    
+    sa = ((p1.x * p2.y - p2.x * p1.y) -
+          (p1.x * p3.y - p3.x * p1.y) +
+          (p2.x * p3.y - p3.x * p2.y));
+
+    return sa;
+}
+\end{verbatim}
+\index{convex hull|)}
+
+\section{List-Ranking}
+\label{sec:list-ranking}
+\index{list ranking|(}
+
+List ranking is a fundamental problem in graph theory.  The problem is
+as follows: We are given the directed edges of a linked list in some
+arbitrary order.  Each edge is an ordered pair of node ids.  The first
+is the source of the edge and the second is the destination of the
+edge.  Our goal is to assign a weight to each edge corresponding to
+the number of edges that would have to be traversed to get from the
+head of the list to that edge.
+
+The code given below solves the list ranking problem using a simple
+randomized algorithm due to Chiang, Goodrich, Grove, Tamassia,
+Vengroff, and Vitter, which appears in the proceedings of SODA '95.
+As was the case in the code examples in the tutorial in
+Chapter~\ref{ch:tutorial}, \verb|#include| statements
+for header files and definitions of some classes and functions as well
+as some error and consistency checking code are left out so that the
+reader can concentrate on the more important details of how TPIE is
+used.  A complete ready to compile version of this code is included in
+the TPIE source distribution.
+
+First, we need a class to represent edges.  Because the algorithm will
+set a flag for each edge and then assign weights to the edges, we
+include fields for these values.
+
+\begin{verbatim}
+class edge {
+public:
+    unsigned long int from;        // Node it is from
+    unsigned long int to;          // Node it is to
+    unsigned long int weight;      // Position when ranked.
+    bool flag;            // A flag used to randomly select some edges.
+
+    friend ostream& operator<<(ostream& s, const edge &e);
+};    
+\end{verbatim}
+
+As the algorithm runs, it will sort the edges.  At times this will be
+done by their sources and at times by their destinations.  The
+following simple functions are used to compare these values:
+
+\begin{verbatim}
+int edgefromcmp(CONST edge &s, CONST edge &t)
+{
+    return (s.from < t.from) ? -1 : ((s.from > t.from) ? 1 : 0);
+}
+  
+int edgetocmp(CONST edge &s, CONST edge &t)
+{
+    return (s.to < t.to) ? -1 : ((s.to > t.to) ? 1 : 0);
+}
+\end{verbatim}
+
+The first step of the algorithm is to assign a randomly chosen flag,
+whose value is 0 or 1 with equal probability, to each edge.  This is
+done using \verb|AMI_scan()| with a scan management object of the
+class \verb|random_flag_scan|, which is defined as follows:
+
+\begin{verbatim}
+class random_flag_scan : AMI_scan_object {
+public:
+    AMI_err initialize(void);  
+    AMI_err operate(const edge &in, AMI_SCAN_FLAG *sfin,
+                    edge *out, AMI_SCAN_FLAG *sfout);
+};
+
+AMI_err random_flag_scan::initialize(void) {
+    return AMI_ERROR_NO_ERROR;
+}
+
+AMI_err random_flag_scan::operate(const edge &in, AMI_SCAN_FLAG *sfin,
+                                  edge *out, AMI_SCAN_FLAG *sfout)
+{ 
+    if (!(sfout[0] = *sfin)) {
+        return AMI_SCAN_DONE;
+    }
+    *out = in;
+    out->flag = (random() & 1);
+    
+    return AMI_SCAN_CONTINUE;
+}
+\end{verbatim}
+
+The next step of the algorithm is to separate the edges into an active
+list and a cancel list.  In order to do this, we sort one copy of the
+edges by their sources (using \verb|edgefromcmp|) and sort another copy by
+their destinations (using \verb|edgetocmp|).  We then call
+\verb|AMI_scan()| to scan the two lists and produce an active list and
+a cancel list.  A scan management object of class
+\verb|separate_active_from_cancel|, which is defined below, is used.
+
+\begin{verbatim}
+////////////////////////////////////////////////////////////////////////
+// separate_active_from_cancel
+//
+// A class of scan object that takes two edges, one to a node and one 
+// from it, and writes an active edge and possibly a canceled edge.
+//
+// Let e1 = (x,y,w1,f1) be the first edge and e2 = (y,z,w2,f2) the second.
+// If e1's flag (f1) is set and e2's (f2) is not, then we write 
+// (x,z,w1+w2,?) to the active list and e2 to the cancel list.  The
+// effect of this is to bridge over the node y with the new active edge.
+// f2, which was the second half of the bridge, is saved in the cancellation
+// list so that it can be ranked later after the active list is recursively 
+// ranked.
+//
+// Since all the flags should have been set randomly before this function
+// is called, the expected size of the active list is 3/4 the size of the
+// original list.
+////////////////////////////////////////////////////////////////////////
+class separate_active_from_cancel : AMI_scan_object {
+public:
+    AMI_err initialize(void);
+    AMI_err operate(CONST edge &e1, CONST edge &e2, AMI_SCAN_FLAG *sfin,
+                    edge *active, edge *cancel, AMI_SCAN_FLAG *sfout);
+};
+
+AMI_err separate_active_from_cancel::initialize(void)
+{
+    return AMI_ERROR_NO_ERROR;
+}
+
+// e1 is from the list of edges sorted by where they are from.
+// e2 is from the list of edges sorted by where they are to.
+AMI_err separate_active_from_cancel::operate(CONST edge &e1,
+                                             CONST edge &e2, 
+                                             AMI_SCAN_FLAG *sfin,
+                                             edge *active, edge *cancel, 
+                                             AMI_SCAN_FLAG *sfout)
+{
+    // If we have both inputs.
+    if (sfin[0] && sfin[1]) {
+        // If they have a node in common we may be in a bridging situation.
+        if (e2.to == e1.from) {
+            // We will write to the active list no matter what.
+            sfout[0] = 1;
+            *active = e2;
+            if (sfout[1] = (e2.flag && !e1.flag)) {
+                // Bridge.  Put e1 on the cancel list and add its
+                // weight to the active output.
+                active->to = e1.to;
+                active->weight += e1.weight;
+                *cancel = e1;
+                sfout[1] = 1;
+            } else {
+                // No bridge.
+                sfout[1] = 0;
+            }
+        } else {
+            // They don't have a node in common, so one of them needs
+            // to catch up with the other.  What happened is that
+            // either e2 is the very last edge in the list or e1 is
+            // the very first or we just missed a bridge because of
+            // flags.
+            sfout[1] = 0;                
+            if (e2.to > e1.from) {
+                // e1 is behind, so just skip it.
+                sfin[1] = 0;
+                sfout[0] = 0;
+            } else {
+                // e2 is behind, so put it on the active list.
+                sfin[0] = 0;
+                sfout[0] = 1;
+                *active = e2;
+            }
+        }
+        return AMI_SCAN_CONTINUE;
+    } else {
+        // If we only have one input, either just leave it active.
+        if (sfin[0]) {
+            *active = e1;
+            sfout[0] = 1;
+            sfout[1] = 0;
+            return AMI_SCAN_CONTINUE;
+        } else if (sfin[1]) {
+            *active = e2;
+            sfout[0] = 1;
+            sfout[1] = 0;
+            return AMI_SCAN_CONTINUE;
+        } else {
+            // We have no inputs, so we're done.
+            sfout[0] = sfout[1] = 0;            
+            return AMI_SCAN_DONE;
+        }
+    }
+}
+\end{verbatim}
+
+The next step of the algorithm is to strip the cancelled edges away
+from the list of all edges.  The remaining active edges will form a
+recursive subproblem.  Again, we use a scan management object, this
+time of the class \verb|strip_active_from_cancel|, which is defined as
+follows:
+
+\begin{verbatim}
+////////////////////////////////////////////////////////////////////////
+//
+// strip_cancel_from_active
+//
+// A scan management object to take an active list and remove the
+// smaller weighted edge of each pair of consecutive edges with the
+// same destination.  The purpose of this is to strip edges out of the
+// active list that were sent to the cancel list.
+//
+////////////////////////////////////////////////////////////////////////
+class strip_cancel_from_active : AMI_scan_object {
+private:
+    bool holding;
+    edge hold;
+public:
+    AMI_err initialize(void);  
+    AMI_err operate(const edge &active, AMI_SCAN_FLAG *sfin,
+                    edge *out, AMI_SCAN_FLAG *sfout);
+};
+
+AMI_err strip_cancel_from_active::initialize(void) {
+    holding = false;
+    return AMI_ERROR_NO_ERROR;
+}
+
+// Edges should be sorted by destination before being processed by
+// this object.
+AMI_err strip_cancel_from_active::operate(const edge &active,
+                                  AMI_SCAN_FLAG *sfin,
+                                  edge *out, AMI_SCAN_FLAG *sfout)
+{
+    // If no input then we're done, except that we might still be
+    // holding one.
+    if (!*sfin) {
+        if (holding) {
+            *sfout = 1;
+            *out = hold;
+            holding = false;
+            return AMI_SCAN_CONTINUE;
+        } else {
+            *sfout = 0;
+            return AMI_SCAN_DONE;
+        }
+    }
+
+    if (!holding) {
+        // If we are not holding anything, then just hold the current
+        // input.
+        hold = active;
+        holding = true;
+        *sfout = 0;
+    } else {
+        *sfout = 1;
+        
+        if (active.to == hold.to) {
+            if (active.weight > hold.weight) {
+                *out = active;
+            } else {
+                *out = hold;
+            }
+
+            holding = false;
+        } else {
+            *out = hold;
+            hold = active;
+        }
+    }
+
+    return AMI_SCAN_CONTINUE;
+}
+\end{verbatim}
+
+After recursion, we must patch the cancelled edges back into the
+recursively ranked list of active edges.  This is done using a scan
+with a scan management object of the class
+\verb|interleave_active_cancel|, which is implemented as follows:
+
+\begin{verbatim}
+////////////////////////////////////////////////////////////////////////
+// interleave_active_cancel
+//
+// This is a class of merge object that merges two lists of edges
+// based on their to fields.  The first list of edges should be active
+// edges, while the second should be cancelled edges.  When we see two
+// edges with the same to field, we know that the second was cancelled
+// when the first was made active.  We then fix up the weights and
+// output the two of them, one in the current call and one in the next
+// call.
+//
+// The streams this operates on should be sorted by their terminal
+// (to) nodes before AMI_scan() is called.
+// 
+////////////////////////////////////////////////////////////////////////
+
+class patch_active_cancel : AMI_scan_object {
+private:
+    bool holding;
+    edge hold;
+public:
+    AMI_err initialize(void);
+    AMI_err operate(CONST edge &active, CONST edge &cancel,
+                    AMI_SCAN_FLAG *sfin,
+                    edge *patch, AMI_SCAN_FLAG *sfout);
+};
+
+AMI_err patch_active_cancel::initialize(void)
+{
+    holding = false;
+    return AMI_ERROR_NO_ERROR;
+}
+
+AMI_err patch_active_cancel::operate(CONST edge &active, CONST edge &cancel,
+                                     AMI_SCAN_FLAG *sfin,
+                                     edge *patch, AMI_SCAN_FLAG *sfout)
+{
+    // Handle the special cases that occur when holding an edge and/or
+    // completely out of input.
+    if (holding) {
+        sfin[0] = sfin[1] = 0;
+        *patch = hold;
+        holding = false;
+        *sfout = 1;
+        return AMI_SCAN_CONTINUE;
+    } else if (!sfin[0]) {
+        *sfout = 0;
+        return AMI_SCAN_DONE;
+    }
+
+    if (!sfin[1]) {
+        // If there is no cancel edge (i.e. all have been processed)
+        // then just pass the active edge through.
+        *patch = active;
+    } else {
+        if (holding = (active.to == cancel.to)) {
+            patch->from = active.from;
+            patch->to = cancel.from;
+            patch->weight = active.weight - cancel.weight;
+            hold.from = cancel.from;
+            hold.to = active.to;
+            hold.weight = active.weight;
+        } else {
+            *patch = active;
+            sfin[1] = 0;
+        }
+    }
+
+    *sfout = 1;
+    return AMI_SCAN_CONTINUE;
+
+}
+\end{verbatim}
+
+Finally, here is the actual function to rank the list.
+
+\begin{verbatim}
+////////////////////////////////////////////////////////////////////////
+// list_rank()
+//
+// This is the actual recursive function that gets the job done.
+// We assume that all weights are 1 when the initial call is made to
+// this function.
+//
+// Returns 0 on success, nonzero otherwise.
+////////////////////////////////////////////////////////////////////////
+
+int list_rank(AMI_STREAM<edge> *istream, AMI_STREAM<edge> *ostream)
+{
+    AMI_err ae;
+    
+    off_t stream_len = istream->stream_len();
+
+    AMI_STREAM<edge> *edges_rand;
+    AMI_STREAM<edge> *active;
+    AMI_STREAM<edge> *active_2;
+    AMI_STREAM<edge> *cancel;
+    AMI_STREAM<edge> *ranked_active;
+
+    AMI_STREAM<edge> *edges_from_s;
+    AMI_STREAM<edge> *cancel_s;
+    AMI_STREAM<edge> *active_s;
+    AMI_STREAM<edge> *ranked_active_s;
+
+    // Scan/merge management objects.
+    random_flag_scan my_random_flag_scan;
+    separate_active_from_cancel my_separate_active_from_cancel;
+    strip_cancel_from_active my_strip_cancel_from_active;
+    patch_active_cancel my_patch_active_cancel;
+    
+    // Check if the recursion has bottomed out.  If so, then read in the
+    // array and rank it.
+
+    {
+        size_t mm_avail;
+        
+        MM_manager.available(&mm_avail);
+
+        if (stream_len * sizeof(edge) < mm_avail / 2) {
+            edge *mm_buf = new edge[stream_len];
+            istream->seek(0);
+            istream->read_array(mm_buf,&stream_len);
+            main_mem_list_rank(mm_buf,stream_len);
+            ostream->write_array(mm_buf,stream_len);
+            return 0;
+        }
+    }
+    
+    // Flip coins for each node, setting the flag to 0 or 1 with equal
+    // probability.
+
+    edges_rand = new AMI_STREAM<edge>;
+    
+    AMI_scan(istream, &my_random_flag_scan, edges_rand);
+
+    // Sort one stream by source.  The original input was sorted by
+    // destination, so we don't need to sort it again.
+
+    edges_from_s = new AMI_STREAM<edge>;
+
+    ae = AMI_sort(edges_rand, edges_from_s, edgefromcmp);
+
+    // Scan to produce and active list and a cancel list.
+
+    active = new AMI_STREAM<edge>;
+    cancel = new AMI_STREAM<edge>;
+
+    ae = AMI_scan(edges_from_s, edges_rand,
+                  &my_separate_active_from_cancel,
+                  active, cancel);
+
+    delete edges_from_s;
+    delete edges_rand;
+    
+    // Strip the edges that went to the cancel list out of the active list.
+
+    active_s = new AMI_STREAM<edge>;
+
+    ae = AMI_sort(active, active_s, edgetocmp);
+
+    delete active;
+
+    active_2 = new AMI_STREAM<edge>;
+
+    ae = AMI_scan(active_s,
+                  &my_strip_cancel_from_active,
+                  active_2);
+
+    delete active_s;
+
+    // Recurse on the active list.  The list we pass in is sorted by
+    // destination.  The recursion will return a list sorted by
+    // source.
+
+    ranked_active = new AMI_STREAM<edge>;
+    
+    list_rank(active_2, ranked_active);
+
+    delete active_2;
+
+    cancel_s = new AMI_STREAM<edge>;
+
+    AMI_sort(cancel, cancel_s, edgetocmp);
+
+    delete cancel;
+
+    // The output of the recursive call is not necessarily sorted by
+    // destination.  We'll make it so before we try to merge in the
+    // cancel list.
+
+    ranked_active_s = new AMI_STREAM<edge>;
+
+    AMI_sort(ranked_active, ranked_active_s, edgetocmp);
+
+    delete ranked_active;
+    
+    // Now merge the recursively ranked active list and the sorted 
+    // cancel list.
+
+    ae = AMI_scan(ranked_active_s, cancel_s,
+                  &my_patch_active_cancel, ostream);
+
+    delete ranked_active_s;
+    delete cancel_s;
+    
+    return 0;
+}
+\end{verbatim}
+
+Our recursion bottoms out when the problem is small enough to fit
+entirely in main memory, in which case we read it in and call a
+function to rank a list in main memory.  The details of this function
+are omitted here.
+
+\begin{verbatim}
+////////////////////////////////////////////////////////////////////////
+// main_mem_list_rank()
+//
+// This function ranks a list that can fit in main memory.  It is used
+// when the recursion bottoms out.
+//
+////////////////////////////////////////////////////////////////////////
+
+int main_mem_list_rank(edge *edges, size_t count)
+{
+    // Rank the list in main memory
+
+    ...
+        
+    return 0;  
+}
+\end{verbatim}
+\index{list ranking|)}
+
+\section{NAS Parallel Benchmarks}
+
+Code designed to implement external memory versions of a number of the
+NAS parallel benchmarks is included with the TPIE distribution.
+Examine this code for examples of how the various primitives TPIE
+provides can be combined into powerful applications capable of solving
+real-world problems.
+
+Detailed descriptions of the NAS parallel benchmarks are available
+from the \htmladdnormallink{NAS Parallel Benchmark Home Page}%
+{http://www.nas.nasa.gov/NAS/NPB/}
+\begin{latexonly}
+at URL \verb|http://www.nas.nasa.gov/NAS/NPB/|.
+\end{latexonly}

@@ -1,0 +1,808 @@
+%%
+%% $Id: implementation.tex,v 1.1 1999-03-04 00:32:51 tavi Exp $
+%%
+\chapter{The Implementation of TPIE}
+
+This chapter discusses the implementation of TPIE.  It is primarily
+targeted at those who might wish to port TPIE to additional platforms
+or implement similar systems.  
+
+\section{The Structure of TPIE}
+\index{structure!of TPIE}
+\index{components!of TPIE}
+
+TPIE has three main components, the Access Method Interface
+(AMI)\index{access method interface}, the Block Transfer Engine
+(BTE)\index{block transfer engine}, and the Memory Manager
+(MM)\index{memory manager}.  The BTE handles block transfer for a single
+processor.  The MM performs low level memory management across all the
+processors in the system.  The AMI works on top of the MM and one or more
+BTEs, each running on a single processor, to provide a uniform interface
+for application programs.  Applications that use this interface are
+portable across hardware platforms, since they never have to deal with the
+underlying details of how I/O is performed on a particular machine.
+
+The BTE is intended to bridge the gap between the I/O hardware and the
+rest of our system.  It works alongside the traditional buffer
+cache\index{buffer cache} in a UNIX system.  Unlike the buffer
+cache\index{buffer cache}, which must support concurrent access to
+files from multiple address spaces, the BTE is specifically designed
+to support high throughput processing of data from secondary memory
+through a single user level address space.  In order to efficiently
+support the merging, distribution, and scanning paradigms, the BTE
+provides stream oriented buffer replacement policies.  To further
+improve performance, some implementations of the BTE move data from
+disk directly into user space rather than using a kernel level buffer
+cache\index{buffer cache}.  This saves both main memory space and
+copying time.  Although the BTE runs on a single processor, it can
+support concurrent access to multiple disks\index{parallel disks},
+allocating and managing buffer space for all of them concurrently.
+
+The MM\index{memory manager} manages random access memory on behalf of
+TPIE.  It is the most architecture-dependent component of the system.
+On a single processor or multiprocessor system with a single global
+address space, the MM is relatively simple; its task is to allocate
+and manage the physical memory used by the BTE.  On a distributed
+memory system, the MM has the additional task of coordinating
+communication between processors and memory modules in order to
+support the primitives that the AMI provides.
+
+The AMI\index{access method interface} is a layer between the BTE and
+user level processes.  It implements fundamental access methods, such
+as scanning, permutation routing, merging, distribution, and batch
+filtering. It also provides a consistent, object-oriented interface to
+application programs.  The details of how these access methods are
+implemented depends on the hardware on which the system is running.
+For example, recursive distribution will be done somewhat differently
+on a parallel disk machine than on a single disk machine.  The AMI
+abstracts this fact away, allowing an application program that calls a
+function such as
+\verb|AMI_partition_and_merge()|\index{AMI_partition_and_merge@{\tt 
+AMI\_partition\_and\_merge}} to work correctly
+regardless of the underlying I/O system.
+
+The key to keeping the AMI simple and flexible is the fact that its
+user accessible functions serve more as templates for computation than
+as actual problem solving functions.  The details of how a computation
+proceeds within the template is up to the application programmer, who
+is responsible for providing the functions that the template applies
+to data.
+
+\section{The Access Method Interface (AMI)}
+\index{access method interface|(}
+\index{AMI|see{access method interface}}
+\label{sec:ref-ami}
+To use TPIE, the programmer has to create, modify or delete items each of
+which belongs to a \emph{stream}. From the programmer's perspective,
+computation simply requires her to \emph{choreograph the movement of
+items in various streams}: The I/O operations, the buffering required
+and memory management are performed in TPIE itself. In order to specify
+the choreography of streams, the user can make heavy use of inbuilt
+TPIE templates and functions; it is not often that the user has to write
+special-purpose custom-made TPIE functions. The reason why TPIE's unique
+approach is attractive for external memory computation is the well
+known fact that most external memory algorithms consist of sewing
+together a small number of paradigms such as \emph{scanning},
+\emph{merging}, \emph{distributing}, in a well-coordinated manner
+exploiting all available memory and I/O bandwidth. A large variety of 
+indexing data structures and methods related to those data structures 
+can be implemented using the above paradigms in conjunction with a 
+basic tree template: While indexing data structures have been
+implemented using TPIE streams, work on tree templates and related
+methods to further ease implementation of indexing data structures is
+currently ongoing.
+
+Each datum in TPIE is an item of a certain type.
+How then does the programmer access data? She does so by using the
+\emph{Access Method Interface (AMI)} to access items in 
+\emph{AMI\_STREAM}s. Items of type T constitute an AMI\_STREAM of 
+type T. Each AMI\_STREAM is a warapper around  what is known
+as a \emph{BTE\_STREAM}, where BTE stands for \emph{block transfer
+engine.} Each BTE\_STREAM is a stream built on top of a Unix file, with 
+additional features such as typing,  and automatic, efficient,
+``under-the-hoods'' I/O and buffering so that the programmer does
+not bear this burden. TPIE can be configured to use one of three
+different BTE\_STREAM implementations: The implementations vary
+fundamentally in the way they do buffering and I/O. The implementation
+of choice depends, to some extent, on the operating system on which 
+TPIE runs. Later we describe the different BTE implementations and
+how to determine the best implementation on any given system; for now,
+we focus on the AMI\_STREAM interface since that is most directly
+relevant to a programmer/user.
+
+
+Note that the string ``AMI\_STREAM'' has
+ been ``\#define''d to be the string ``AMI\_stream\_single'' in the
+ header file ``ami\_imps.h'' to facilitate alternative implementations
+of AMI\_STREAM if necessary in the future.
+The AMI\_STREAM class,
+templated on the type T of its items,  consists of the following
+public member functions defined in the file ``ami\_single.h'';
+some important related enumerated types that the user will be
+ concerned with have been defined in ``ami\_base.h''.
+
+\begin{itemize}
+\item{Constructors and Destructor} An AMI\_STREAM$<$T$>$ can be constructed 
+with a \emph{filename} argument
+to the constructor, or with the \emph{filename} and \emph{streamtype}
+arguments to the constructor, or  without any
+arguments given to the constructor (in which case a randomly generated
+\emph{filename} and the default \emph{streamtype} is used)
+with the usual semantics. Here,
+\emph{filename} specifies the name of the Unix file ``backing'' the
+AMI\_STREAM and is also the name of the AMI\_STREAM itself. The
+\emph{streamtype} specifies whether the AMI\_STREAM is to be a 
+read-only or read-write or append-only or write stream (See the header file
+``ami\_base.h'' for semantics.) The default  \emph{streamtype} is read-write. 
+The Unix file backing the AMI\_STREAM is opened by the constructor.
+
+
+An important consequence of the construction of an AMI\_STREAM is a
+reduction in the total amount of memory that the user has at her
+disposal since a certain amount of memory is consumed now by buffers
+dedicated to that AMI\_STREAM and its related data
+structures.\footnote{The total amount of memory that the user has
+available, divided by the memory consumed by every AMI\_STREAM thus
+is an upper bound on the maximum number of AMI\_STREAMs that the user
+can have.} When an AMI\_STREAM is destroyed using a destructor, that
+amount of memory becomes is added to the available memory for the
+user. The Unix file backing the AMI\_STREAM is closed by the
+destructor; it may also be deleted from disk 
+depending on the \emph{persistence} flag of
+the AMI\_STREAM; see below.
+
+
+\item {Other constructor-like functions}
+The user may also construct an AMI\_STREAM$<$T$>$ corresponding to a
+pre-existing BTE\_STREAM$<$T$>$ using a constructor while
+specifying a pointer to the BTE\_STREAM$<$T$>$ as an argument.
+
+Using a ``sub-stream constructor'',
+a TPIE user can specify an address range [i,j]
+of an AMI\_STREAM$<$T$>$ and access items in that address range
+as an AMI\_STREAM$<$T$>$ of j-i+1 items: Destroying the sub-stream
+does not destroy the parent AMI\_STREAM$<$T$>$. The parent
+AMI\_STREAM$<$T$>$ can itself be a sub-stream. The motivation behind 
+supporting the sub-stream concept is that in some situations
+having too many open Unix files can cause problems: 
+Having too many open Unix files 
+sometimes can cause a performance problem\footnote{Such
+problems can occur in some situations, on some systems,
+when the number of open files exceeds some threshold.} or
+less frequently, can exceed the maximum possible number\footnote{The
+system call \emph{getrusage()} can be used to ascertain this number.}
+of Unix files that a user process is allowed thus causing a
+Unix error. See ``ami\_single.h'' for syntax.
+
+
+\item{Reading and Writing} AMI\_STREAMs have a notion of \emph{current
+item} in the stream of items. The \emph{read\_item(T **elt)} function
+returns with *elt pointing to the current item of the AMI\_STREAM$<$T$>$
+(so there is actually no copying of an item during a
+\emph{read\_item()} call) and the  \emph{write\_item(T elt)} function 
+returns after setting the current item of AMI\_STREAM$<$T$>$ to the value 
+elt. Appropriate error values (defined in``ami\_base.h'') are returned 
+in case of errors.
+
+Since it was deemed useful to read or write many items at a time
+from or to an AMI\_STREAM, TPIE provides the \emph{read\_array(T
+*mm\_space, off\_t *len)} and the 
+\emph{write\_array(const T *mm\_space, off\_t len)} to read
+(resp. write) \emph{*len} (resp. \emph{len}) items into (resp. from) 
+array \emph{mm\_space} of items of type T from (resp. into) the
+current locations of the AMI\_STREAM$<$T$>$.
+
+\item{Name and Length}
+AMI\_STREAM$<$T$>$ member functions \emph{name()} and \emph{stream\_len()}
+can be used by the user to get the name and length of the
+AMI\_STREAM$<$T$>$; see ``ami\_single.h'' for syntax.
+
+\item{Seeking and Truncating}
+Analogous to Unix files, AMI\_STREAM$<$T$>$s have \emph{seek()} and
+\emph{truncate()} member functions, both of which take an 
+\emph{offset} (within the AMI\_STREAM$<$T$>$) as an argument. The 
+\emph{offset} is in units of items of type T. The \emph{seek()}
+function is necessary whenever the user needs to access items
+in a stream in a non-sequential manner.
+
+
+\item{Memory Usage}
+In order to effectively utilize memory, the user needs to keep track
+of the amount of memory she has at her disposal: Sometimes, 
+when one of several algorithms may be usable to solve a given problem,
+it may be useful to choose the algorithm depending on the problem
+size and available memory size. The total amount of memory consumed
+by an AMI\_STREAM$<$T$>$ often plays an important role while making such 
+a choice. The  \emph{main\_memory\_usage()} member function of
+AMI\_STREAM can be used to determine various memory usages
+such a buffer space, overheads because of stream-related (meta)
+data structures or net total usage corresponding to the AMI\_STREAM;
+see ``ami\_single.h'' and ``mm\_base.h'' for syntax.
+
+\item{Persistence of Unix file}
+An AMI\_STREAM is backed up by a Unix file on disk. Sometimes the
+items in an AMI\_STREAM will never be used  once the AMI\_STREAM is
+destructed whereas sometimes an ``idle'' AMI\_STREAM may be destroyed 
+to prevent it from hogging memory only to be constructed later on
+when really required. In the former case, it is desirable to 
+destroy or delete the Unix file backing the AMI\_STREAM to save
+disk space whereas in the latter case we need the Unix file backing
+the AMI\_STREAM to exist on disk even when the AMI\_STREAM is
+destroyed. A user can specify this \emph{persistence} of the
+Unix file backing the AMI\_STREAM using the \emph{persist()} member
+function; see  ``ami\_single.h'' and ``ami\_base.h'' for syntax.
+
+
+\item{Miscellaneous member functions}
+As mentioned earlier, some systems do not allow a user process
+to exceed a certain threshold number of opened Unix files at any time
+forcing an upper bound on the number of AMI\_STREAMs a user can 
+have at any time.  The member function \emph{available\_streams()} can
+be used to determine how many AMI\_STREAMs more the user can construct
+at any time.
+
+The member function \emph{chunk\_size()} returns with the size,
+in items of type T, of a data-buffer of an AMI\_STREAM$<$T$>$. (Depending
+on the BTE\_STREAM implementation and its configuration parameters, each 
+AMI\_STREAM$<$T$>$ may have one or two data-buffers.) 
+
+\end{itemize}
+
+
+\index{access method interface|)}
+
+\section{AMI Entry Points}
+\label{sec:ref-entry}
+
+\subsection{Scanning}
+\label{sec:ref-imp-ami-scan}
+
+\index{scanning|(}
+\index{scanning|)}
+
+\subsection{Merging}
+\label{sec:ref-imp-ami-merge}
+
+
+\index{merging|(}
+\index{merging|)}
+
+\subsection{Comparison Sorting}
+\label{sec:ref-imp-ami-sort}
+
+\index{sorting!comparison|(}
+\index{sorting!comparison|)}
+
+\subsection{Key Bucket Sorting}
+\label{sec:ref-imp-ami-kb-sort}
+
+\index{sorting!key bucket|(}
+\index{sorting!key bucket|)}
+
+\subsection{General Permuting}
+\label{sec:ref-imp-ami-gp}
+
+\index{permutation!general|(}
+\index{permutation!general|)}
+
+\subsection{Bit Permuting}
+\label{sec:ref-imp-ami-bp}
+
+\index{permutation!bit|(}
+\index{permutation!bit|)}
+
+\subsection{Dense Matrices}
+\label{sec:ref-imp-ami-matrix}
+
+\index{matrices!dense|(}
+\index{matrices!dense|)}
+
+\subsection{Sparse Matrices}
+\label{sec:ref-imp-ami-sm}
+
+\index{matrices!sparse|(}
+\index{matrices!sparse|)}
+
+\subsection{Stacks}
+\label{sec:ref-imp-ami-stack}
+
+\index{stacks|(}
+\index{stacks|)}
+
+\subsection{Elementwise Arithmetic}
+\label{sec:ref-imp-ami-arith}
+
+\index{elementwise arithmetic|(}
+\index{elementwise arithmetic|)}
+
+\section{The Block Transfer Engine (BTE)}
+\label{sec:ref-bte}
+\index{block transfer engine|(}
+\index{BTE|see{block transfer engine}}
+
+The BTE is lowest layer of TPIE.  It is the layer that is ultimately
+responsible for moving blocks of data from physical disk devices to main
+memory and back.  We hope that in most cases it will be possible for the
+BTE to work with device drivers provided by the machine vendor's operating
+system.  In some cases, however, new drivers may have to be written.  The
+BTE is also responsible for maintaining the integrity of streams striped
+across multiple disks attached to a single CPU, which it will do as
+described in \cite{vitter:parmem1}.  The BTE is not, however, responsible
+for coordinating the actions of multiple CPU's and the disks attached to
+them.  A separate instance of the BTE will run on each such CPU, and their
+actions will be coordinated by a single multi-threaded MM running at a
+higher level.  The reason for the functional split between the two levels
+is that it will likely be advantageous to be able to use a single BTE
+written for a specific piece of hardware with more than one MM, for
+example, one MM written for a homogeneous environment and one for a
+heterogeneous environment.
+
+The user should set one of the flags in \verb|app_config.h| corresponding
+to the BTE that he wants to use for the application.  Multiple
+implementations are allowed to coexist, with some restrictions. Version
+\version of TPIE is distributed with three BTE implementations and the
+flags used to select them are as follows:
+
+An implementation based on the UNIX {\tt stdio} library \index{stdio (UNIX
+  library)@{\tt stdio} (UNIX library)} is selected by setting {\tt
+  BTE\_IMP\_STDIO}.  \index{implementation!BTE!{\tt stdio} library}
+ 
+An implementation based on blocked UNIX {\tt read/write} calls \index{read
+  write} is selected by setting {\tt BTE\_IMP\_UFS}.
+\index{implementation!BTE!read!write}
+
+An implementation based on memory mapped I/O\index{memory mapped I/O} is
+selected by setting {\tt BTE\_IMP\_MMB}.  \index{implementation!BTE!memory
+  mapped I/O}
+
+If none of the above flags is specified {\tt BTE\_IMP\_STDIO} is used by
+default and a warning is generated.
+
+Implementations of BTE streams are written as subclasses of the class
+\verb|BTE_base_stream|, which contains the following abstract public methods:
+
+
+\subsubsection{new\_substream}
+\begin{verbatim}
+    BTE_err new_substream(BTE_stream_type st,
+                          off_t sub_begin, off_t sub_end,
+                          BTE_base_stream<T> **sub_stream);
+\end{verbatim}
+A virtual psuedo-constructor for substreams. The arguments \verb|sub_begin| and
+\verb|sub_end| are item offsets.
+
+
+\subsubsection{read\_item}
+\begin{verbatim}
+    BTE_err read_item(T **elt);
+\end{verbatim}
+Read the next item from the stream. If block boundaries are crossed the
+read ahead mechanism is called, but this is invisible to the user.
+
+\subsubsection{write\_item}
+\begin{verbatim}
+    BTE_err write_item(const T &elt);
+\end{verbatim}
+Write the item to stream.
+
+
+\subsubsection{seek}
+\begin{verbatim}
+    BTE_err seek(off_t offset);
+\end{verbatim}
+Seek to the item offset in the stream.
+
+
+\subsubsection{truncate}
+\begin{verbatim}
+    BTE_err truncate(off_t offset);
+\end{verbatim}
+Truncate/extend the stream to the specified number of items. The file
+pointer will be moved to the end of the stream.
+
+
+\subsubsection{main\_memory\_usage}
+\begin{verbatim}
+    BTE_err main_memory_usage(size_t *usage,
+                              MM_stream_usage usage_type);
+\end{verbatim}
+Query memory usage.
+
+
+
+\subsubsection{get\_status}
+\begin{verbatim}
+    BTE_stream_status get_status(void);
+\end{verbatim}
+Returns the status of the stream as one
+of the following:
+\begin{itemize}
+\item \verb|BTE_STREAM_STATUS_NO_STATUS|
+\item \verb|BTE_STREAM_STATUS_INVALID|
+\item \verb|BTE_STREAM_STATUS_EOS_ON_NEXT_CALL|
+\item \verb|BTE_STREAM_STATUS_END_OF_STREAM|
+\end{itemize}
+
+
+\subsubsection{stream\_len}
+\begin{verbatim}
+    off_t stream_len(void);
+\end{verbatim}
+Returns the current number of items in the stream.
+
+
+\subsubsection{name}
+\begin{verbatim}
+    BTE_err name(char **stream_name);
+\end{verbatim}
+Returns the path name of the file backing the stream. The name will be
+stored in newly allocated space.
+
+
+\subsubsection{read\_only}
+\begin{verbatim}
+    int read_only(void);
+\end{verbatim}
+Returns true if the stream is read\_only.
+
+    
+\subsubsection{available\_streams}
+\begin{verbatim}
+    int available_streams(void);    
+\end{verbatim}
+Returns the number of currently available streams.
+
+\subsubsection{chunk\_size}
+\begin{verbatim}
+    off_t chunk_size(void);
+\end{verbatim}
+Not clear what this does...
+
+
+\subsubsection{persistence}
+\begin{verbatim}
+    void persist(persistence);
+\end{verbatim}
+Set the persistence of the stream to one of the following:
+\begin{itemize}
+\item \verb|PERSIST_DELETE:| Delete the stream from the disk when it is
+  destructed.
+\item \verb|PERSIST_PERSISTENT:| Do not delete the stream from the disk when
+  it is destructed.
+\item \verb|PERSIST_READ_ONCE:| Delete each block of data from the disk as
+  it is read.
+\end{itemize}
+
+By default, all streams are deleted at destruction time
+(\verb|PERSIST_DELETE|).  
+\\ \\
+All BTE stream implementations inherit from class \verb|BTE_base_stream|
+and must support all the abstract member functions as declared above.
+
+
+
+
+\subsection{BTE\_stdio}
+
+\verb|BTE_stdio| streams are streams in a special format that are designed
+to be stored as ordinary files in a UNIX file system.  The read/write
+primitives of \verb|BTE_stdio| streams are implemened using system calls
+\verb|fread| and \verb|fwrite|. The underlying operating system blocking
+and prefetching assure that stream accesses are done in blocks and
+prefetching is therefore automatic and invisible to the TPIE developer.
+
+\verb|BTE_stdio| streams are stored as ordinary UNIX files with a header
+with the following structure:
+
+\begin{verbatim}
+typedef struct BTE_stdio_header_v1 { 
+    unsigned int magic_number;  // Set to BTE_STDIO_HEADER_MAGIC_NUMBER
+    unsigned int version;       // Should be 1 for current version.
+    unsigned int length;        // # of bytes in this structure.
+    unsigned int block_length;  // # of bytes in a block.
+    size_t item_size;           // The size of each item in the stream.
+} BTE_stdio_header;
+\end{verbatim}
+
+\verb|BTE_stdio| class inherits from \verb|BTE_base_stream|:
+\begin{verbatim}
+class BTE_stream_stdio : public BTE_base_stream {
+  private:
+     FILE  *file;          
+     BTE_stdio_header      header;
+     ...
+}  
+\end{verbatim}
+
+\verb|BTE_stdio| defines the abstract methods inherited from
+\verb|BTE_base_stream| presented in the previous section. In addition to
+these it defines its own constructors:
+\begin{verbatim}
+     BTE_stream_stdio(const char *dev_path, const BTE_stream_type st); 
+     BTE_stream_stdio(const BTE_stream_type st); 
+     BTE_stream_stdio(const BTE_stream_stdio<T> &s);
+\end{verbatim}
+
+For implementation details please consult the code in
+\verb|/include/bte_stdio.h|.
+
+
+
+\subsection{BTE\_mmb}
+
+Just like \verb|BTE_stdio| streams presented in previous section,
+\verb|BTE_mmb| streams are streams in a special format that are designed to
+be stored as ordinary files in a UNIX file system. What distinguishes them
+from the \verb|BTE_stdio| streams is the way stream input/output is
+implemented. The \verb|BTE_mmb| uses the memory map paradigm which allows
+the user to memory map (\verb|mmap|) blocks of a file and work on them as
+if the file were in memory. The \verb|BTE_mmb| primitives maintain the
+currently accessed block of the file \verb|mmaped| in memory. When a file
+offset ouside current block boundaries is requested, the current block is
+unmapped and a new one is mapped from the source file.
+
+The \verb|BTE_mmb| header structure is very similar to the \verb|BTE_stdio|
+one:
+\begin{verbatim}
+struct mmap_stream_header { 
+  public:
+    unsigned int magic_number;  // Set to MMB_HEADER_MAGIC_NUMBER
+    unsigned int version;       // Should be 1 for current version.
+    unsigned int length;        // # of bytes in this structure.
+    off_t item_logical_eof;     // The number of items in the stream.
+    size_t item_size;           // The size of each item in the stream.
+    size_t block_size;          // The size of a physical block on the device
+                                // where this stream resides.
+    unsigned int items_per_block;
+};
+\end{verbatim}
+
+\verb|BTE_mmb| class inherits from \verb|BTE_base_stream|:
+\begin{verbatim}
+class BTE_stream_mmb : public BTE_base_stream {
+  private:
+     // descriptor of the mapped file.  
+     int fd;   
+     // A pointer to the mapped in header block for the stream. 
+     mmap_stream_header *header;
+     ...
+}  
+\end{verbatim}
+
+\verb|BTE_mmb| defines the abstract methods inherited from
+\verb|BTE_base_stream| presented in a previous section. In addition to
+these it defines its own constructors:
+\begin{verbatim}
+  BTE_stream_mmb(const char *dev_path, BTE_stream_type st); 
+  BTE_stream_mmb(BTE_stream_type st); 
+  BTE_stream_mmb(BTE_stream_mmb<T> &s); 
+  
+  // A substream constructor.
+  BTE_stream_mmb(BTE_stream_mmb *super_stream,
+                 BTE_stream_type st,
+                 off_t sub_begin, off_t sub_end);
+\end{verbatim}
+
+For implementaion details please consult the code in
+\verb|/include/bte_mmb.h|.
+
+While with \verb|BTE_stdio| prefetching is implicitely done by the
+operating system, \verb|BTE_mmb| has to implement its own prefething
+scheme. \verb|BTE_mmb| prefetching can be turned on by setting the flag
+\verb|BTE_MMB_READ_AHEAD| in the header file {\tt
+  tpie-\version/test/app\_config.h}.\index{app_config@{\tt app\_config.h}}.
+Setting this flag tells the BTE to optimize for sequential read speed by
+reading blocks into main memory before the data they contain is actually
+needed. This version provides two methods of read-ahead:
+\begin{itemize}
+\item If the \verb|USE_LIBAIO| flag is set (and \verb|BTE_MMB_READ_AHEAD|
+  is set), read ahead is done using the asynchronous I/O library.  This
+  feature requires the asynchronous I/O library {\tt libaio}.\index{libaio
+    library@{\tt libaio} library.}
+\item If the \verb|USE_LIBAIO| flag is not set (and
+  \verb|BTE_MMB_READ_AHEAD| is set), read ahead is done using \verb|mmap|
+  calls to map the next block of the source file in memory.
+\end{itemize}
+
+By default \verb|BTE_MMB_READ_AHEAD| is set, \verb|USE_LIBAIO| is not set.
+
+
+\subsection{BTE\_UFS}
+
+In addition to \verb|BTE_stdio| and  \verb|BTE_mmb| implementations,
+TPIE provides another implementation for BTE streams, called
+\verb|BTE_ufs|. As in the previously described BTE stream
+implementations, \verb|BTE_ufs| streams are essentially Unix files
+that have been specially formated to facilitate TPIE-specific stream
+operations. Actually, barring the value of one certain header field, the 
+stream format of \verb|BTE_ufs| streams is identical to
+\verb|BTE_mmb| streams. \verb|BTE_ufs| streams differ from 
+\verb|BTE_mmb| streams in the particular system calls used to
+implement I/O and buffering: While \verb|BTE_mmb| streams use the memory
+map paradigm to implement I/O,  \verb|BTE_ufs| streams use 
+\verb|read()|/\verb|write()| calls to implement their I/O. The
+motivation behind implementing  \verb|BTE_ufs| streams is because of
+empirically observed inefficiency\footnote{The inefficiency can occur
+on account of various reasons. On one system,  \verb|mmap()| calls
+were implemented on top of  \verb|stdio| interface instead of a direct
+I/O implementation, resulting in extra overhead.} 
+in \verb|mmap()|-based (and hence
+\verb|BTE_mmb| stream) implementations on some systems. 
+In such situations, a stream implementation that,
+like  \verb|BTE_mmb| streams, have the potential of  
+exploiting large sized blocks and buffers is needed.
+
+
+Actually speaking, the \verb|BTE_ufs| stream implementation simulates
+the \verb|BTE_mmb| stream implementation: Whenever the latter maps in
+(via  \verb|mmap()|) a new block, the former reads in a new block (via
+\verb|read()|) and whenver the latter unmaps a block (via
+\verb|munmap()|), the latter attains the same result as unmapping via
+a \verb|write()| call. But  the \verb|BTE_ufs| implementation involves
+explicitly keeping track in the BTE code various things which are 
+``under the hood'' in \verb|mmap()| implementations. In fact, the code
+in the  \verb|BTE_ufs| implementation can be said to amount to a
+(very rudimentary) \verb|mmap()| implementation.
+
+The name of the class implementing  \verb|BTE_ufs| is \verb|BTE_single_disk|.
+
+The \verb|BTE_ufs| header structure is identical to the \verb|BTE_mmb|
+one:
+\begin{verbatim}
+struct mmap_stream_header { 
+  public:
+    unsigned int magic_number;  // Set to UFS_HEADER_MAGIC_NUMBER
+    unsigned int version;       // Should be 1 for current version.
+    unsigned int length;        // # of bytes in this structure.
+    off_t item_logical_eof;     // The number of items in the stream.
+    size_t item_size;           // The size of each item in the stream.
+    size_t block_size;          // The size of a physical block on the device
+                                // where this stream resides.
+    unsigned int items_per_block;
+};
+\end{verbatim}
+
+\verb|BTE_ufs| class inherits from \verb|BTE_base_stream|:
+\begin{verbatim}
+class BTE_single_disk : public BTE_base_stream {
+  private:
+     // descriptor of the mapped file.  
+     int fd;   
+     // A pointer to the mapped in header block for the stream. 
+     mmap_stream_header *header;
+     ...
+}  
+\end{verbatim}
+
+\verb|BTE_ufs| defines the abstract methods inherited from
+\verb|BTE_base_stream| presented in a previous section. In addition to
+these it defines its own constructors:
+\begin{verbatim}
+  BTE_single_disk(const char *dev_path, BTE_stream_type st); 
+  BTE_single_disk(BTE_stream_type st); 
+  BTE_single_disk(BTE_single_disk<T> &s); 
+  
+  // A substream constructor.
+  BTE_single_disk(BTE_single_disk *super_stream,
+                 BTE_stream_type st,
+                 off_t sub_begin, off_t sub_end);
+\end{verbatim}
+
+For implementation details please consult the code in
+\verb|/include/bte_ufs.h|.
+
+As in  \verb|BTE_stdio|, prefetching can be done implicitly by the
+filesystem underlying TPIE. In fact, nowadays, in the case of 
+sequential accesses, most filesystems almost surely implement
+readahead prefetching, which should suffice for the purpose of
+streaming operations in TPIE. (In the case of non-sequential acceses,
+the next block to be accessed is more often than not dependent on
+the processing of the contents of the current block, so prefetching
+is difficult to implement or impossible.) In \verb|BTE_ufs|
+streams, when the asynchronous I/O library {\tt libaio}\index{libaio
+library@{\tt libaio} library.} is available, there is a provision
+to do (user-level) prefetching within \verb|BTE_ufs| streams but we
+do not recommend its use on account of the implicit filesystem readahead.
+
+
+Following is a description of the portion relevant to  \verb|BTE_ufs|
+streams in  the header file {\tt
+tpie-\version/test/app\_config.h}.\index{app_config@{\tt app\_config.h}}.
+
+
+\begin{verbatim}
+/* ********************************************************************** */
+/* BTE_UFS configuration options */
+/* ********************************************************************** */
+
+#ifdef BTE_IMP_UFS
+
+// The blocksize (corresp to the theoretical I/O model) is 
+// BTE_UFS_LOGICAL_BLOCKSIZE_FACTOR * os blocksize 
+#ifndef BTE_UFS_LOGICAL_BLOCKSIZE_FACTOR
+#define BTE_UFS_LOGICAL_BLOCKSIZE_FACTOR 32
+#endif
+
+//In the current version of TPIE, BTE_UFS_READ_AHEAD should be
+//defined as 0 and DOUBLE_BUFFER should be defined 0. 
+#define BTE_UFS_READ_AHEAD 0
+#define DOUBLE_BUFFER 0
+
+// USE_LIBAIO can be set to 1 to trigger off a certain kind of 
+// readahead on Solaris machines, but we suggest keeping this 0 as well.
+#define USE_LIBAIO 0
+
+// Very often bte_ufs will be used to sequentially access a file;
+//for instance this happens with mergesort and scanning. Typical
+//filesystems in such situations tend to carryout sequential readahead.
+//When BTE_IMPLICIT_FS_READAHEAD is set to 1, we try to account for the
+//amount of memory used up by the read-ahead portion (in the filesystem
+//buffer cache) by assuming (quick and dirty guess) that the amount of
+//read-ahead at any time is equal to the blocksize (corresp to theoretical
+//I/O model). If set to 0, we essentially cheat by not accounting at all
+//for memory used by readahead. So in applications in which you sequentially
+//access streams, BTE_IMPLICIT_FS_READAHEAD shd be set to 1; otherwise for
+//tree-like accesses etc. it should be set to 0.
+
+#define BTE_IMPLICIT_FS_READAHEAD 1
+#endif
+\end{verbatim}
+
+
+
+\section{The Memory Manager (MM)}
+\label{sec:ref-mm}
+\index{memory manager|(}
+\index{MM|see{memory manager}}
+
+The MM is the layer of TPIE that sits between the AMI interface and the
+BTE.  Its primary role is managing main memory, including memory that
+may be distributed across multiple physical machines.  The performance
+of many of the AMI stream operations, such as sorting, permuting,
+merging, and distribution depend critically on the efficient use of
+main memory.  The first thing the MM will have to do to achieve this
+is bypass the virtual memory system provided by UNIX and related
+operating systems.  The second thing it has to do is bypass the
+traditional UNIX buffer cache and take charge of managing the blocks
+of data provided by the BTE.  In some cases, operating system kernels
+will have to be modified in order for the MM to do its job.  In modern
+micro-kernel operating systems, however, the MM may be able to operate
+entirely as a user level process.
+
+In multiple CPU environments, the job of the MM will be complicated by
+the need to manage multiple banks of memory.  In tightly coupled
+homogeneous parallel environments, this task is likely to be made far
+simpler by existing hardware and operating system support.  In
+distributed, and in particular in heterogeneous environments, the MM
+will have to work with various network protocols and drivers to
+accomplish its task.
+
+Some comments on the current simple MM that we have and some OS issues
+that come up in attempting to make it more robust.
+\index{memory manager|)}
+
+\section{TPIE Logging}\index{logging}
+\label{sec:logging}
+
+When logging is turned on (see Section \ref{sec:macros}), TPIE creates a log file\index{log file} with the name \verb|/tmp/TPLOG_XXXXXX|, where \verb|XXXXXX| is a unique system dependent identifier. TPIE writes into this file using a \verb|logstream| class, which is derived from \verb|ofstream| and has the additional functionality of setting a priority and a threshold for this priority. If the priority of a message is smaller than the threshold, the message is not logged. There are three priority levels defined in TPIE, as follows.
+\begin{description}
+\item[\verb|TP\_LOG\_FATAL|] is the highest level and is used for all kinds of errors that would normally impair subsequent computations; errors are always logged;
+\item[\verb|TP\_LOG\_WARNING|] is the next lowest and is used for warnings;
+\item[\verb|TP\_LOG\_DEBUG\_INFO|] is the lowest level and is used for debugging information and any other information that might be useful for the developer.
+\end{description}
+By default, the threshold of the log is set to the lowest level, \verb|TP_LOG_DEBUG_INFO|.
+
+To simplify and unify logging, three macros are provided for writing into the log: 
+\begin{quote}
+\verb|LOG_FATAL|({\em msg})
+
+\verb|LOG_WARNING|({\em msg})
+
+\verb|LOG_DEBUG_INFO|({\em msg}),
+\end{quote}
+where {\em msg} is the information to be logged; {\em msg} can be any type that is supported by the C++ \verb|fstream| class. Each of these macros sets the corresponding priority and sends {\em msg} to the log stream.
+
+{\em Logging should always be done using one of the above macros.} Any other method of logging could hinder the ability of TPIE to turn off logging and, as a result, could affect performance.
+
+% Explain what the TPIE library writes into the log.
+% I Need input from bte developers.
