@@ -7,7 +7,7 @@
 
 
 
-static char ami_device_id[] = "$Id: ami_device.cpp,v 1.4 1999-04-25 02:13:55 rajiv Exp $";
+static char ami_device_id[] = "$Id: ami_device.cpp,v 1.5 1999-10-19 16:29:13 tavi Exp $";
 
 
 #include "lib_config.h"
@@ -22,7 +22,7 @@ static char ami_device_id[] = "$Id: ami_device.cpp,v 1.4 1999-04-25 02:13:55 raj
 
 AMI_device::AMI_device(void)
 {
-    LOG_INFO("In AMI_device(void).\n");
+    LOG_DEBUG_INFO("In AMI_device(void).\n");
 }
 
 
