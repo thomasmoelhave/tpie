@@ -10,19 +10,8 @@
 // the same integers, in reverse order.
 //
 
-static char test_ami_gp_id[] = "$Id: test_ami_gp.cpp,v 1.8 1999-05-02 14:40:12 tavi Exp $";
-
-// This is just to avoid an error message since the string above is never
-// referenced.  Note that a self referential structure must be defined to
-// avoid passing the problem further.
-static struct ___test_ami_gp_id_compiler_fooler {
-    char *pc;
-    ___test_ami_gp_id_compiler_fooler *next;
-} the___test_ami_gp_id_compiler_fooler = {
-    test_ami_gp_id,
-    &the___test_ami_gp_id_compiler_fooler
-};
-
+#include <versions.h>
+VERSION(test_ami_gp_cpp,"$Id: test_ami_gp.cpp,v 1.9 2000-01-11 01:07:05 hutchins Exp $");
 
 // Get the application defaults.
 #include "app_config.h"
@@ -97,8 +86,7 @@ int main(int argc, char **argv)
     srandom(random_seed);
     
     // Set the amount of main memory:
-    MM_manager.resize_heap(test_mm_size);
-    register_new = 1;
+    MM_manager.set_memory_limit (test_mm_size);
 
     AMI_STREAM<int> amis0;
     AMI_STREAM<int> amis1;
