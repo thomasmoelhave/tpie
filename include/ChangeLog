@@ -1,5 +1,9 @@
-Sun Oct 26 16:10 1997 Lars Arge (large)
+Sun Oct 26 18:13 1997 Lars Arge (large)
 
+	* bte_mmb.h: Same bug as in seek() fixed in truncate().
+
+Sun Oct 26 16:10 1997 Lars Arge (large)
+	
 	* bte_mmb.h: Fixed a bug in seek() - check to see if correct block
 	is mapped in added.
 	
