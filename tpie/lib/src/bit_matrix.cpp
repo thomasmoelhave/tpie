@@ -6,11 +6,11 @@
 //
 
 #include <versions.h>
-VERSION(bit_matrix_cpp,"$Id: bit_matrix.cpp,v 1.13 2003-09-12 18:47:14 jan Exp $");
+VERSION(bit_matrix_cpp,"$Id: bit_matrix.cpp,v 1.14 2004-08-12 12:53:43 jan Exp $");
 
 #include <bit_matrix.h>
 
-bit_matrix::bit_matrix(unsigned int rows, unsigned int cols) :
+bit_matrix::bit_matrix(TPIE_OS_SIZE_T rows, TPIE_OS_SIZE_T cols) :
         matrix<bit>(rows, cols)
 {
 }
@@ -30,8 +30,8 @@ bit_matrix bit_matrix::operator=(const bit_matrix &rhs) {
 
 bit_matrix & bit_matrix::operator=(const TPIE_OS_OFFSET &rhs)
 {
-    unsigned int rows = this->rows();
-    unsigned int ii;
+    TPIE_OS_SIZE_T rows = this->rows();
+    TPIE_OS_SIZE_T ii;
 
     if (this->cols() != 1) {
 #if HANDLE_EXCEPTIONS
@@ -52,8 +52,8 @@ bit_matrix::operator TPIE_OS_OFFSET(void)
 {
     TPIE_OS_OFFSET res;
 
-    unsigned int rows = this->rows();
-    unsigned int ii;
+    TPIE_OS_SIZE_T rows = this->rows();
+    TPIE_OS_SIZE_T ii;
 
     if (this->cols() != 1) {
 #if HANDLE_EXCEPTIONS

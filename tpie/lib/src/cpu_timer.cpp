@@ -6,7 +6,7 @@
 //
 
 #include <versions.h>
-VERSION(cpu_timer_cpp,"$Id: cpu_timer.cpp,v 1.7 2003-09-12 18:47:42 jan Exp $");
+VERSION(cpu_timer_cpp,"$Id: cpu_timer.cpp,v 1.8 2004-08-12 12:53:43 jan Exp $");
 
 #include <cpu_timer.h>
 
@@ -26,7 +26,7 @@ void cpu_timer::sync()
 {
     clock_t current_real;
 
-    TPIE_OS_TIME current;
+    TPIE_OS_TIME_T current;
     TPIE_OS_SET_CURRENT_TIME(current);
     TPIE_OS_UNIX_ONLY_SET_ELAPSED_TIME(current);
 
