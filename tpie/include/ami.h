@@ -4,37 +4,13 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/19/94
 //
-// $Id: ami.h,v 1.17 1999-12-16 19:34:01 hutchins Exp $
+// $Id: ami.h,v 1.18 2002-01-03 06:57:46 tavi Exp $
 //
 #ifndef _AMI_H
 #define _AMI_H
 
-#ifndef AMI_VIRTUAL_BASE
-#define AMI_VIRTUAL_BASE 0
-#endif
-
-// include definition of VERSION macro
-#include <versions.h>
-
-// Include the configuration header.
-#include <config.h>
-
-// Some basic constants
-
-// The name of the environment variable pointing to a tmp directory.
-#define TMP_DIR_ENV "TMPDIR"
-
-// The name of a tmp directory to use if the env variable is not set.
-#define TMP_DIR "/var/tmp"
-
-// Get the base class, enums, etc...
-#include <ami_base.h>
-
-// Get the device description class
-#include <ami_device.h>
-
-// Get an implementation definition
-#include <ami_imps.h>
+// Get a stream implementation.
+#include <ami_stream.h>
 
 // Get templates for ami_scan().
 #include <ami_scan.h>
@@ -50,5 +26,14 @@
 
 // Get templates for bit permuting.
 #include <ami_bit_permute.h>
+
+// Get a collection implementation.
+#include <ami_coll.h>
+
+// Get a block implementation.
+#include <ami_block.h>
+
+// Get templates for AMI_btree.
+#include <ami_btree.h>
 
 #endif // _AMI_H 
