@@ -1,11 +1,11 @@
-// Copyright (C) 2001 Octavian Procopiuc
 //
 // File:    tpie_stats.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: tpie_stats.h,v 1.2 2001-12-29 05:18:23 tavi Exp $
+// $Id: tpie_stats.h,v 1.3 2002-01-15 03:07:07 tavi Exp $
 //
-// The tpie_stats class for recording statistics.
+// The tpie_stats class for recording statistics. The parameter C is
+// the number of statistics to be recorded.
 //
 #ifndef _TPIE_STATS_H
 #define _TPIE_STATS_H
@@ -54,10 +54,17 @@ public:
   unsigned long get(int t) const {
     return stats_[t];
   }
-  
-  //  ostream &output(ostream &s) const;
-
+  // Destructor.
   ~tpie_stats() {}
 };
+
+template<int C>
+const tpie_stats<C> operator-(const tpie_stats<C> & lhs, 
+			      const tpie_stats<C> & rhs) {
+  tpie_stats<C> res;
+  for (int i = 0; i < C; i++)
+    res.stats_[i] = lhs.stats_[i] - rhs.stats_[i];
+  return res;
+}
 
 #endif //_TPIE_STATS_H
