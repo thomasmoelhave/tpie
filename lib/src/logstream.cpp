@@ -8,7 +8,7 @@
 //
 
 #include <versions.h>
-VERSION(logstream_cpp,"$Id: logstream.cpp,v 1.15 2003-04-20 06:44:01 tavi Exp $");
+VERSION(logstream_cpp,"$Id: logstream.cpp,v 1.16 2003-09-12 18:48:15 jan Exp $");
 
 #include <logstream.h>
 
@@ -17,9 +17,9 @@ logstream::logstream(const char *fname,
 		     unsigned int p,
 		     unsigned int tp) 
 #ifdef UNIFIED_LOGGING
-: std::ofstream(2), priority(p), threshold(tp) { log_initialized = true; } 
+: ofstream(2), priority(p), threshold(tp) { log_initialized = true; } 
 #else
-: std::ofstream(fname), priority(p), threshold(tp) { log_initialized = true; } 
+: ofstream(fname), priority(p), threshold(tp) { log_initialized = true; } 
 #endif
 
 bool logstream::log_initialized = false;
@@ -37,7 +37,7 @@ logstream::~logstream() {
 logstream& logstream::operator<<(const T x)		\
 {						       	\
     if (priority <= threshold) {		       	\
-	std::ofstream::operator<<(x);			\
+	ofstream::operator<<(x);			\
     }						       	\
     return *this;					\
 }
@@ -46,7 +46,7 @@ logstream& logstream::operator<<(const T x)		\
 logstream& logstream::operator<<(const char *x)
 {									
     if (priority <= threshold) {					
-	std::ofstream::operator<<(x);					
+	ofstream::operator<<(x);					
     }							
     return *this;							
 }
