@@ -1,0 +1,25 @@
+# Copyright (c) 1994 Darren Erik Vengroff
+#
+# The Makefile for the complete TPIE system.
+#
+# $Id: Makefile.in,v 1.1 1994-05-25 19:44:25 dev Exp $
+#
+
+# The directories storing the components of the system
+
+LIBPATH = ./lib
+
+APPSPATH = ./apps
+
+INCPATH = ./include
+
+APPS: LIB INC
+	cd $(APPSPATH); $(MAKE)
+
+LIB:
+	cd $(LIBPATH); $(MAKE)
+
+INC:
+	cd $(INCPATH); $(MAKE)
+
+    
