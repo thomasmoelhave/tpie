@@ -10,7 +10,7 @@
 // *  used in several of TPIE's sorting variants                            *
 // *                                                                        *
 // **************************************************************************
-// 	$Id: apm_dh.h,v 1.2 2000-04-17 01:21:20 hutchins Exp $	
+// 	$Id: apm_dh.h,v 1.3 2000-11-14 01:58:33 hutchins Exp $	
 
 #include <math.h>		// For log(), etc  to compute tree heights.
 #include <sys/time.h>
@@ -258,7 +258,11 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
       return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
    }
 
-   szOrigSubstream = (sz_avail) / sizeof (T);
+   int tmp_1 = mgmt_obj.space_usage_overhead ();
+   int tmp_2 = sizeof(T);
+   printf(" overhead = %d sizeof(T) = %d sz_avail = %d\n", tmp_1, tmp_2, sz_avail );
+
+   szOrigSubstream = (sz_avail) / (sizeof (T) + mgmt_obj.space_usage_overhead ());
 
    // Round the original substream length up to an integral number of
    // chunks.  This is for systems like HP-UX that cannot map in
@@ -294,11 +298,11 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
 
       if (mrgArity > (arity_t) availableStreams - 2) {
 	 mrgArity = availableStreams - 2;
-	 LOG_WARNING_ID ("Reduced merge arity due to AMI restrictions.\n");
+	 LOG_WARNING_ID ("Reduced merge arity due to AMI restrictions.");
       }
    }
 
-   LOG_DEBUG_ID ("merge arity = " << mrgArity << ".\n");
+   LOG_DEBUG_ID ("merge arity = " << mrgArity << ".");
 
    if (mrgArity < 2) {
       LOG_FATAL_ID ("Merge arity < 2! Insufficient memory for a merge.");
@@ -365,9 +369,11 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
    	   2 * mrgArity * ((origSubstreams + mrgArity - 1) /
    			      mrgArity) * sizeof (unsigned int));
 
+   LOG_DEBUG_ID("Allocating " << sizeof(AMI_STREAM<T>*)*mrgArity << 
+                " bytes for " << mrgArity <<
+                " initialTmpStream pointers. Mem. avail. is " << 
+                MM_manager.memory_available () );
    initialTmpStream = new (AMI_STREAM < T > *)[mrgArity];
-   LOG_DEBUG_ID("Allocated space for " << mrgArity <<
-                 " initialTmpStream pointers\n");
 
    if ((ae= mgmt_obj.main_mem_operate_init(szOrigSubstream)) !=
 	    AMI_ERROR_NO_ERROR) {
@@ -409,9 +415,10 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
    makeName (working_disk, prefixName[0], currStream, newName);
 #endif
 
+   LOG_DEBUG_ID("Allocating " << sizeof(AMI_STREAM<T>) <<
+                " bytes for initialTmpStream[" << currStream <<
+            "]. Mem. avail. is " << MM_manager.memory_available () );
    initialTmpStream[currStream] = new AMI_STREAM < T > (newName);
-   LOG_DEBUG_ID("Allocated space for initialTmpStream[" << currStream <<
-                 "]\n");
    initialTmpStream[currStream]->persist (PERSIST_PERSISTENT);
 
    ii = 0;
@@ -467,9 +474,10 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
 #else
 	    makeName (working_disk, prefixName[0], currStream, newName);
 #endif
+            LOG_DEBUG_ID("Allocating " << sizeof(AMI_STREAM<T>) <<
+              " bytes  for initialTmpStream[" << currStream <<
+              "]. Mem. avail. is " << MM_manager.memory_available () );
 	    initialTmpStream[currStream] = new AMI_STREAM < T > (newName);
-            LOG_DEBUG_ID("Allocated space for initialTmpStream[" << 
-                 currStream << "]\n");
 	    initialTmpStream[currStream]->persist (PERSIST_PERSISTENT);
 	    runsInCurrStream = 0;
 	 }
@@ -493,16 +501,18 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
 	      "Stream lengths do not match:" <<
 	      "\n\tinStream->stream_len() = " << inStream->stream_len ()
 	      << "\n\tinitialTmpStream->stream_len() = " << check_size
-	      << ".\n");
+	      << ".");
 
-   LOG_DEBUG_ID ("Initial number of runs " << origSubstreams << "\n");
-   LOG_DEBUG_ID ("Merge arity is " << mrgArity << "\n");
+   LOG_DEBUG_ID ("Initial number of runs " << origSubstreams );
+   LOG_DEBUG_ID ("Merge arity is " << mrgArity );
 
    // Pointers to the substreams that will be merged.
       
+   LOG_DEBUG_ID("Allocating " << sizeof(AMI_STREAM<T>*)*mrgArity << 
+                " bytes for " << mrgArity <<
+                " theSubstreams pointers. Mem. avail. is " << 
+                MM_manager.memory_available () );
    AMI_STREAM < T > **theSubstreams = new (AMI_STREAM < T > *)[mrgArity];
-   LOG_DEBUG_ID("Allocated space for " << mrgArity << 
-                " theSubstreams pointers\n");
 
    mrgHgt = 0;
    currInput = initialTmpStream;
@@ -529,7 +539,7 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
 		 "Current level stream not same length as input." <<
 		 "\n\tlen = " << len <<
 		 "\n\tcurrInput->stream_len() = " <<
-		 check_size << ".\n");
+		 check_size << ".");
 
       check_size = 0;
 
@@ -553,8 +563,10 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
 #else
 	    makeName (working_disk, prefixName[mrgHgt % 2], (int) ii, newName);
 #endif
+            LOG_DEBUG_ID("Allocating " << sizeof(AMI_STREAM<T>) <<
+              " bytes  for currInput[" << ii <<
+              "]. Mem. avail. is " << MM_manager.memory_available () );
 	    currInput[ii] = new AMI_STREAM < T > (newName);
-            LOG_DEBUG_ID("Allocated space for currInput[" << ii << "]\n");
 	    currInput[ii]->persist (PERSIST_DELETE);
 	 }
 
@@ -587,15 +599,17 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
 
       } else { // (ssCount > mrgArity)
 
-	 LOG_DEBUG_ID ("Merging substreams to intermediate streams.\n");
+	 LOG_DEBUG_ID ("Merging substreams to intermediate streams.");
 
 	 // Create the array of mrgArity stream pointers that
 	 // will each point to a stream containing runs output
 	 // at the current level mrgHgt. 
 
+         LOG_DEBUG_ID("Allocating " << sizeof(AMI_STREAM<T>*)*mrgArity << 
+                " bytes for " << mrgArity <<
+                " tmpStream pointers. Mem. avail. is " << 
+                MM_manager.memory_available () );
 	 tmpStream = new (AMI_STREAM < T > *)[mrgArity];
-         LOG_DEBUG_ID("Allocated space for " << mrgArity << 
-                      " tmpStream pointers\n");
 
          // Open up the mrgArity streams in which the
          // the runs input to the current merge level are packed
@@ -608,8 +622,10 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
 #else
 	    makeName (working_disk, prefixName[mrgHgt % 2], (int) ii, newName);
 #endif
+            LOG_DEBUG_ID("Allocating " << sizeof(AMI_STREAM<T>) <<
+              " bytes  for currInput[" << ii <<
+              "]. Mem. avail. is " << MM_manager.memory_available () );
 	    currInput[ii] = new AMI_STREAM < T > (newName);
-            LOG_DEBUG_ID("Allocated space for currInput[" << ii << "]\n");
 	    currInput[ii]->persist (PERSIST_DELETE);
 	 }
 
@@ -631,8 +647,10 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
 	 makeName(working_disk, prefixName[(mrgHgt + 1) % 2], currStream, newName);
 #endif
 
+         LOG_DEBUG_ID("Allocating " << sizeof(AMI_STREAM<T>) <<
+              " bytes  for tmpStream[" << currStream <<
+              "]. Mem. avail. is " << MM_manager.memory_available () );
 	 tmpStream[currStream] = new AMI_STREAM< T >(newName);
-         LOG_DEBUG_ID("Allocated space for tmpStream[" << currStream << "]\n");
 	 tmpStream[currStream]->persist (PERSIST_PERSISTENT);
 
 	 int outRunsLeft = (ssCount + mrgArity - 1) / mrgArity;
@@ -716,8 +734,11 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
 		     makeName (working_disk, prefixName[(mrgHgt + 1) % 2],
 				       (int) currStream, newName);
 #endif
+                     LOG_DEBUG_ID("Allocating " << sizeof(AMI_STREAM<T>) <<
+                                 " bytes  for tmpStream[" << currStream <<
+                                 "]. Mem. avail. is " << 
+                                 MM_manager.memory_available () );
 		     tmpStream[currStream] = new AMI_STREAM < T > (newName);
-                     LOG_DEBUG_ID("Allocated space for tmpStream[" << currStream << "]\n");
 		     tmpStream[currStream]->persist(PERSIST_PERSISTENT);
 		     runsInCurrStream = 0;
 		  }
@@ -726,7 +747,7 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
 	       ae = mgmt_obj.single_merge ( theSubstreams, jj + 1,
 		     tmpStream [currStream] );
 	       if (ae != AMI_ERROR_NO_ERROR) {
-		  LOG_FATAL_ID ("AMI_single_merge error");
+                   LOG_FATAL_ID ("AMI_single_merge error" << ae);
 		  return ae;
 	       }
 
@@ -777,11 +798,12 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
       }
       mrgHgt++;
    }
-   //Monitoring prints.
-   LOG_DEBUG_ID ("Number of passes incl run formation is " << mrgHgt+1 << "\n");
-   LOG_DEBUG_ID ("AMI_partition_and_merge END");
-   return AMI_ERROR_NO_ERROR;
    // Deallocate the merge heap
    mgmt_obj.MergeHeap.deallocate( );
+
+   //Monitoring prints.
+   LOG_DEBUG_ID ("Number of passes incl run formation is " << mrgHgt+1 );
+   LOG_DEBUG_ID ("AMI_partition_and_merge END");
+   return AMI_ERROR_NO_ERROR;
 }
 #endif _APM_DH_H
