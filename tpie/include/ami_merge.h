@@ -8,7 +8,7 @@
 // lower level streams will use appropriate levels of buffering.  This
 // will be more critical for parallel disk implementations.
 //
-// $Id: ami_merge.h,v 1.17 1999-02-03 17:26:49 tavi Exp $
+// $Id: ami_merge.h,v 1.18 1999-02-10 00:03:45 natsev Exp $
 //
 #ifndef _AMI_MERGE_H
 #define _AMI_MERGE_H
@@ -314,7 +314,7 @@ AMI_err AMI_main_mem_merge(AMI_STREAM<T> *instream,
             return ae;
         }
         
-        tp_assert(len1 = len, "Did not read the right amount; "
+        tp_assert(len1 == len, "Did not read the right amount; "
                   "Allocated space for " << len << ", read " << len1 << '.');
 
         if ((ae = m_obj->main_mem_operate(mm_stream, len)) !=
