@@ -3,12 +3,13 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/7/94
 //
-// $Id: parse_args.h,v 1.2 2002-01-14 17:42:21 tavi Exp $
+// $Id: parse_args.h,v 1.3 2003-09-11 18:45:57 jan Exp $
 //
 #ifndef _PARSE_ARGS_H
 #define _PARSE_ARGS_H
 
 #include "app_config.h"
+#include "getopt.h"
 
 void usage(void (*usage_app)(void) = NULL);
 
