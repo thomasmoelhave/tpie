@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/6/94
 //
-// $Id: app_config.h,v 1.4 1994-11-02 22:08:01 darrenv Exp $
+// $Id: app_config.h,v 1.5 1994-12-16 21:15:31 darrenv Exp $
 //
 #ifndef _APP_CONFIG_H
 #define _APP_CONFIG_H
@@ -43,8 +43,8 @@ extern "C" int random(void);
 #define AMI_IMP_SINGLE
 
 // Pick a version of BTE streams.
-//#define BTE_IMP_MMB
-#define BTE_IMP_CACHE
+#define BTE_IMP_MMB
+//#define BTE_IMP_CACHE
 //#define BTE_IMP_STDIO
 //#define BTE_IMP_UFS
 //#define BTE_IMP_BCS
