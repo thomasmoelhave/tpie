@@ -2,10 +2,10 @@
 #
 # The Makefile for the TPIE include directory.
 #
-# $Id: Makefile.in,v 1.2 1994-05-27 19:49:27 dev Exp $
+# $Id: Makefile.in,v 1.3 1994-08-31 19:03:10 darrenv Exp $
 #
 
-INDENT=gindent
+INDENT=indent
 INDENTFLAGS= -kr
 
 CAT=cat
@@ -23,6 +23,12 @@ LOG_FILES=logstream.h tpie_log.h tpie_assert.h
 
 TAG_FILES=$(AMI_FILES) $(BTE_FILES) $(LOG_FILES) 
 
+
+UP_TO_DATE = .up_to_date
+
+$(UP_TO_DATE): ami_scan.h
+	touch $@
+
 # Build the header file that will actually be used by using the
 # C preprocessor to expand all of the macros in the source file.
 
@@ -39,7 +45,6 @@ TAGS: $(TAG_FILES)
 	$(ETAGS) $(TAG_FILES)
 
 
-
-
-
+clean:
+	-rm ami_scan.h
 
