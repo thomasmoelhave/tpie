@@ -8,18 +8,15 @@
 // A main memory version that generates and tabulates but does not maintain
 // the values it generates.
 
-static char nas_ep_mm_id[] = "$Id: nas_ep_mm.cpp,v 1.5 2003-04-20 23:51:40 tavi Exp $";
+static char nas_ep_mm_id[] = "$Id: nas_ep_mm.cpp,v 1.6 2003-09-12 14:51:01 jan Exp $";
+
+#include <portability.h>
+
+// Get information on the configuration to test.
+#include "getopt.h"
 
 #include <math.h>
 #include <cpu_timer.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <iostream>
-#include <strstream>
-
-using std::cout;
-using std::istrstream;
 
 // Constants specified in the benchmark.
 
