@@ -3,7 +3,7 @@
 // File:    ami_block_base.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_block_base.h,v 1.8 2002-08-01 00:18:20 tavi Exp $
+// $Id: ami_block_base.h,v 1.9 2003-04-17 12:05:19 jan Exp $
 //
 // Definition of the AMI_block_base class and supporting types:
 // AMI_bid, AMI_block_status.
@@ -11,6 +11,9 @@
 
 #ifndef _AMI_BLOCK_BASE_H
 #define _AMI_BLOCK_BASE_H
+
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 // The AMI error codes.
 #include <ami_err.h>
