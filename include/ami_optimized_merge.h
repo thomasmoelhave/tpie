@@ -15,7 +15,7 @@
 // a quicksort using only keys of the items; there is a provision to 
 // to use templated heaps to implement the merge.
 
-// 	$Id: ami_optimized_merge.h,v 1.4 1999-02-06 00:38:34 rbarve Exp $	
+// 	$Id: ami_optimized_merge.h,v 1.5 1999-02-06 00:53:55 rbarve Exp $	
 //TO DO: substream_count setting; don't depend on current_stream_len
 
 #ifndef _OPT_AMI_MERGE_H
@@ -2545,7 +2545,7 @@ AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
            LOG_FATAL("AMI Error ");
            LOG_FATAL(ae);
            LOG_FATAL(" in  Run_Formation_Algo_R_Key()");
-           LOG_FLUSHLOG;                                      
+           LOG_FLUSH_LOG;                                      
            return ae;                            
 
                                        }
@@ -3193,15 +3193,6 @@ AMI_err ami_err;
 
 //Define the proper structure for algorithm R of Vol 3
 
-/*
-struct rf_item{ 
-               T  Record;
-               int Loser;
-               int RunNumber;
-               int ParentExt;
-               int ParentInt;
-              }  ;
-*/
 
 //What is called "P" in algorithm R in Vol 3. (Avg run length is 2P)
 unsigned int Number_P = 
