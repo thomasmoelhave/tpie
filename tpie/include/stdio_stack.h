@@ -11,7 +11,7 @@
 // a meta data structure accessed no more than once every block
 // is created or destroyed. 
 //
-// $Id: stdio_stack.h,v 1.5 2002-01-06 18:43:31 tavi Exp $
+// $Id: stdio_stack.h,v 1.6 2003-04-04 20:44:02 tavi Exp $
 //
 
 #ifndef _STDIO_STACK_H
@@ -36,7 +36,7 @@ public:
 
 template<class T>
 stdio_stack<T>::stdio_stack(char *path, 
-			    BTE_stream_type type = BTE_WRITE_STREAM) :
+			    BTE_stream_type type) :
   BTE_stream_stdio<T>(path, type)
 {
 }

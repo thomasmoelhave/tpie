@@ -5,7 +5,7 @@
 //
 // Blocked kd-tree definition and implementation.
 //
-// $Id: ami_kdtree.h,v 1.3 2003-01-27 03:24:19 tavi Exp $
+// $Id: ami_kdtree.h,v 1.4 2003-04-04 20:42:15 tavi Exp $
 //
 
 #ifndef _KDTREE_H
@@ -1892,7 +1892,7 @@ AMI_err KDTREE::load_sorted(POINT_STREAM* streams_s[],
 
     // Now reset intraroot height.
     params_.max_intraroot_height = 
-      std::min((size_t) (log((double)header_.size/params_.leaf_size_max)/log(2)) 
+      std::min((size_t) (log((double)header_.size/params_.leaf_size_max)/log(2.0)) 
 	    % params_.max_intranode_height + 1, params_.max_intranode_height);
   }
 
@@ -2001,7 +2001,7 @@ AMI_err KDTREE::load_sample(POINT_STREAM* s) {
   // Set max_intraroot_height. 
   if (params_.max_intranode_height <= params_.max_intraroot_height) 
     params_.max_intraroot_height = 
-      ((size_t) (log((double)header_.size/params_.leaf_size_max)/log(2))
+      ((size_t) (log((double)header_.size/params_.leaf_size_max)/log(2.0))
        % params_.max_intranode_height + 1) % params_.max_intranode_height + 1;
   
 
