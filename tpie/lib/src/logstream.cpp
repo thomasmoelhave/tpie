@@ -10,7 +10,7 @@
 #include <versions.h>
 #include <logstream.h>
 
-VERSION(logstream_cpp,"$Id: logstream.cpp,v 1.10 2000-01-10 22:04:44 hutchins Exp $");
+VERSION(logstream_cpp,"$Id: logstream.cpp,v 1.11 2000-07-29 16:20:58 tavi Exp $");
 
 // Contructor
 
@@ -27,13 +27,13 @@ logstream::logstream(const char *fname,
 
 // A macro to define a log stream output operator for a given type.
 // The type can be any type that has an ofstream output operator.
-#define _DEFINE_LOGSTREAM_OUTPUT_OPERATOR(T)	\
+#define _DEFINE_LOGSTREAM_OUTPUT_OPERATOR(T)		\
 logstream& logstream::operator<<(const T x)		\
-{												\
-    if (priority <= threshold) {				\
-	ofstream::operator<<(x);    				\
-    }											\
-    return *this;								\
+{						       	\
+    if (priority <= threshold) {		       	\
+	ofstream::operator<<(x);			\
+    }						       	\
+    return *this;					\
 }
 
 
