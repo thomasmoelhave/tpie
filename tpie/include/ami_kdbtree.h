@@ -5,7 +5,7 @@
 //
 // K-D-B-tree definition and implementation. 
 //
-// $Id: ami_kdbtree.h,v 1.14 2005-01-21 16:54:24 tavi Exp $
+// $Id: ami_kdbtree.h,v 1.15 2005-01-27 20:42:11 tavi Exp $
 //
 
 #ifndef _AMI_KDBTREE_H
@@ -16,6 +16,7 @@
 #include <ami_point.h>
 #include <ami_kdtree.h>
 #include <ami_kd_base.h>
+#include <string> // STL string.
 
 #define AMI_KDBTREE_HEADER_MAGIC_NUMBER 0xA9542F
 
@@ -38,6 +39,9 @@ public:
   typedef kdb_item_t<coord_t, dim> item_t;
 
   AMI_kdbtree(const char *base_file_name, AMI_collection_type type, 
+	  const AMI_kdbtree_params& params);
+
+  AMI_kdbtree(const string& base_file_name, AMI_collection_type type, 
 	  const AMI_kdbtree_params& params);
 
   // Transform a kdtree into a kdbtree, in place. Returns true if
@@ -85,6 +89,9 @@ public:
 
   // Inquire the node block size (in bytes)
   TPIE_OS_SIZE_T node_block_size() const { return pcoll_nodes_->block_size(); }
+
+  // Inquire the base path name.
+  const string& name() const { return name_; }
 
   // Destructor.
   ~AMI_kdbtree();
@@ -151,6 +158,9 @@ protected:
 
   // Statistics object.
   tpie_stats_tree stats_;
+
+  // Base path name.
+  string name_;
 
   bool insert_empty(const point_t& p);
 
@@ -416,9 +426,17 @@ TPIE_OS_SIZE_T AMI_KDBTREE_NODE::el_capacity(TPIE_OS_SIZE_T block_size) {
 //// *AMI_kdbtree::AMI_kdbtree* ////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 AMI_KDBTREE::AMI_kdbtree(const char *base_file_name, AMI_collection_type type, 
-		 const AMI_kdbtree_params& params): header_(), params_(params) {
+			 const AMI_kdbtree_params& params): header_(), params_(params), name_(base_file_name) {
 
   shared_init(base_file_name, type);
+}
+
+//// *AMI_kdbtree::AMI_kdbtree* ////
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+AMI_KDBTREE::AMI_kdbtree(const string &base_file_name, AMI_collection_type type, 
+			 const AMI_kdbtree_params& params): header_(), params_(params), name_(base_file_name) {
+
+  shared_init(base_file_name.c_str(), type);
 }
 
 //// *AMI_kdbtree::shared_init* ////
@@ -1236,6 +1254,7 @@ const tpie_stats_tree &AMI_KDBTREE::stats() {
   stats_.set(NODE_COUNT, pcoll_nodes_->size());
   return stats_;
 }
+
 
 //// *AMI_kdbtree::~AMI_kdbtree* ////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
