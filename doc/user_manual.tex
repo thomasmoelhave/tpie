@@ -1,5 +1,5 @@
 %%
-%% $Id: user_manual.tex,v 1.22 2000-09-29 18:47:43 hutchins Exp $
+%% $Id: user_manual.tex,v 1.23 2000-10-05 19:27:44 hutchins Exp $
 %%
 \chapter{Overview}
 
@@ -39,7 +39,7 @@ the late eighties by Aggarwal and
 Vitter~\cite{aggarwal:input} and an important model for
 designing I/O algorithms called the Parallel Disk Model
 (PDM) was later proposed by Vitter and
-Shriver~\cite{vitter:algorithmsI}. The PDM proposed that a
+Shriver~\cite{vitter:parmem1}. The PDM proposed that a
 good EM algorithm should transfer data between main memory
 and disk in a blocked manner, and should use all of the
 available disks concurrently. An optimal EM algorithm under
@@ -58,14 +58,14 @@ processing~\cite{ferragina:fully,ferragina:fast,arge:strings,crauser:constructio
 The use of parallel disks\index{parallel disks}
 \index{disks!parallel|see{parallel disks}} has also received
 some theoretical
-attention~\cite{vitter:algorithmsI,nodine:deterministic,nodine:greed,dehne:efficient,dehne:reducing}.
+attention~\cite{vitter:parmem1,nodine:deterministic,nodine:greed,dehne:efficient,dehne:reducing}.
 There are more complicated models than the PDM, designed to
 address the I/O bottleneck in different ways. These include
 models that address the communication bottleneck between
 multiple layers in
 memory hierarchies~\cite{}, and models incorporating
 parallel processors as well as parallel
-disks~\cite{dehne:efficient,dehne:reducing}.
+disks~\cite{cormen:challenge,dehne:efficient,dehne:reducing}.
 
 Implementations of these theoretical results are scarce.
 TPIE, {\em a Transparent Parallel I/O Environment}, is
@@ -79,12 +79,13 @@ algorithms in order to achieve maximum performance. Other EM
 implementation work includes benchmarking of certain
 geometric I/O algorithms by Chiang\cite{chiang:experiments},
 experiments with FFT and related algorithms by Cormen et
-al.~\ref{cormen:fft}, implementation of the buffer tree by
-Hutchinson et al.~\cite{hutchinson:early}, and the LEDA-SM
-system for implementing data types by Crauser et al.\cite{}.
-Surveys of previous work in EM algorithm design and
-implementation can be found
-in~\cite{arge:gisbook,arge:thesis,vitter:podssurvey,vitter:extdatassurvey}
+al.~\cite{cormen:ffts}, implementation of the buffer tree
+\cite{arge:buffer} by Hutchinson et
+al.~\cite{hutchinson:early}, and the LEDA-SM system for
+implementing data types by Crauser et al.\cite{}.  Surveys
+of previous work in EM algorithm design and implementation
+can be found
+in~\cite{arge:gisbook,arge:thesis,vitter:dimacssurvey}
 
 %As of today, gigabyte computer systems exist on desktops, and terabyte
 %systems are not unheard of.  In the not too distant future, systems
@@ -214,7 +215,7 @@ should be capable of downloading this file to your local machine.
 
 \section{Prerequisites}
 \index{GNU software}
-\plabel{tut:gnu-software}
+\plabel{sec:tut-gnu-software}
 
 To uncompress and unarchive the distribution, you will need either the GNU
 \myverb{tar} utility, or \myverb{gzip} and a \myverb{tar} program. (the GNU
@@ -244,7 +245,7 @@ available at URL \\%
 {\tt http://www.gnu.org/software/software.html}.
 
 
-\section{Installation}\plabel{tut:installation}
+\section{Installation}\plabel{sec:tut-installation}
 \index{installation}
 
 %Once you have obtained the TPIE source distribution file
@@ -366,28 +367,28 @@ TPIE ensures that the program is I/O efficient.
 
 %Note that a 4-way distribution can easily be specified using an
 %appropriately defined scan management object (see
-%Section~\ref{tut:scanning}), in which case the user does not have to use
+%Section~\ref{sec:tut-scanning}), in which case the user does not have to use
 %stream operations.
 
 The intent of this example is to illustrate the sort of
 things involved in TPIE programming; the typical include
 files, specifying how much memory the program should use,
 streaming operations, etc. The program is given in
-Section~\ref{tut:samplepgm} and it is discussed in
-Section~\ref{tut:samplepgm-discuss}.
+Section~\ref{sec:tut-samplepgm} and it is discussed in
+Section~\ref{sec:tut-samplepgm-discuss}.
 
 
-\section{Sample Program}\plabel{tut:samplepgm}
+\section{Sample Program}\plabel{sec:tut-samplepgm}
 \index{sample program|(}
 \index{sample program|)}
 
 The following sample program can be found in {\tt
    tpie\_\version/test/sample\_pgm.cpp} after TPIE has been
-   installed (see Section \ref{tut:installation} of this manual for installation instructions).
+   installed (see Section \ref{sec:tut-installation} of this manual for installation instructions).
 
 \verbatiminput{../test/sample_pgm.cpp}
 
-\section{Discussion of Sample Program}\plabel{tut:samplepgm-discuss}
+\section{Discussion of Sample Program}\plabel{sec:tut-samplepgm-discuss}
 
 In this section we discuss the simple simple C++ sample
 program shown in the previous section. The file
@@ -456,7 +457,7 @@ the machine.
 %of how to determine the buffer-space required for each BTE implementation.
 
 The sample program can be compiled as follows:
-(recall that Section \ref{sec:gnu-software} discussed the version of GNU C++
+(recall that Section \ref{sec:tut-gnu-software} discussed the version of GNU C++
 required):
 
 \begin{verbatim}
@@ -473,7 +474,7 @@ sample_pgm 1000000 5000000
 \chapter{Tutorial}
 \plabel{ch:tutorial}
 
-\section{Introduction}\plabel{tut:introduction}
+\section{Introduction}\plabel{sec:tut-introduction}
 
 This tutorial is designed to introduce new users to the TPIE system.
 It introduces the fundamental paradigms of computation that TPIE
@@ -486,7 +487,7 @@ For the sake of brevity, much of the code presented in this tutorial is
 incomplete, in the sense that necessary header files \index{header files}
 and macros\index{macros} are omitted. Details concerning how to write your
 own complete TPIE code is presented at the end of the tutorial in
-Section~\ref{tut:compiling} (see also Sections~\ref{ch:samplepgmr} and
+Section~\ref{sec:tut-compiling} (see also Sections~\ref{ch:samplepgmr} and
 \ref{sec:choosingbte})\comment{LA: Maybe we should talk briefly about AMI,
 BTE, MM somewhere around here - we talk about main memory issues in merging
 and compiling sections.}
@@ -512,9 +513,9 @@ works. Good references
 are~\cite{vitter:podssurvey,arge:gisbook,aggarwal:input}.
 Some of the basic concepts required for understanding the
 discussion of I/O issues and external memory algorithms in
-this manual are outlined in Section~\ref{tut:concepts}.
+this manual are outlined in Section~\ref{sec:tut-concepts}.
 
-\section{Basic Concepts}\plabel{tut:concepts}
+\section{Basic Concepts}\plabel{sec:tut-concepts}
 \index{concepts}\index{basic concepts}
 \comment{Stuff there should maybe be something about: substreams,
 persistence, read/write primitives, etc.} 
@@ -560,7 +561,7 @@ to EM computation. TPIE provides C++ templates of various
 optimal EM computation \emphd{patterns} or \emphd{paradigms}.
 Examples of such paradigms are the EM algorithms for merge
 sorting, distribution sweeping, time forward processing,
-etc. (see \cite{vitter:survey}). In a TPIE program, the
+etc. (see \cite{vitter:dimacssurvey}). In a TPIE program, the
 application programmer provides application-specific details
 of the specific computation paradigm used, such as C++
 object definitions of the application data records, and code
@@ -591,7 +592,7 @@ application-specific and thus are the responsibility of the
 application programmer. 
 
 
-\section{Streams}\plabel{tut:streams}
+\section{Streams}\plabel{sec:tut-streams}
 \index{stream}\index{structure!of streams}
 \comment{LA: Stuff there should maybe be something about: substreams,
 persistence, read/write primitives, ect. DH: See above.}
@@ -617,9 +618,9 @@ streams and even on other substreams.
 
 Various paradigms of external memory computation are
 supported on streams (and substreams) in TPIE, including
-scanning (see Section \ref{tut:scanning}), merging (see
-Section \ref{tut:merging}), and sorting (see Section
-\ref{tut:sorting}). TPIE reduces the programming effort
+scanning (see Section \ref{sec:tut-scanning}), merging (see
+Section \ref{sec:tut-merging}), and sorting (see Section
+\ref{sec:tut-sorting}). TPIE reduces the programming effort
 required to perform an external sort, merge, etc., by
 providing the high level flow of control within each
 paradigm, and therefore structuring this part of the
@@ -634,9 +635,9 @@ terminology, the collection of necessary event handlers for
 a particular EM computational paradigm is contained in an
 \emphd{operation management object}. Operation management objects differ
 according to which paradigm is used.  See Section
-\ref{tut:scanning} for a discussion of scan management
-objects, Section \ref{tut:merging} for a discussion of merge
-management objects, and Section \ref{tut:sorting} for a
+\ref{sec:tut-scanning} for a discussion of scan management
+objects, Section \ref{sec:tut-merging} for a discussion of merge
+management objects, and Section \ref{sec:tut-sorting} for a
 discussion of sort management objects.
 
 Creating a stream of objects in TPIE is very much like
@@ -671,10 +672,10 @@ anything into the stream; it simply creates the necessary
 data structures to keep track of the contents of the stream
 when data is actually put into it.  One basic way of putting
 data into a stream is via \myverb{AMI\_scan()}, which is
-described in Section \ref{tut:scanning}.
+described in Section \ref{sec:tut-scanning}.
 
 \section{Operation Management Objects} 
-\plabel{tut:omos}\index{operation management object}
+\plabel{sec:tut-omos}\index{operation management object}
 
 TPIE provides a structure for performing a number of basic
 operations, such as scanning a stream of items, merging
@@ -696,7 +697,7 @@ The operation management object for scanning (called a
    initialize} (for initializing any user-required data
 structures of the scan), and {\em operate} (for performing
 whatever steps are needed as each data item is encountered
-in the scan). See Section \ref{tut:scanning} below for more
+in the scan). See Section \ref{sec:tut-scanning} below for more
 information.
 
 In the example of merging, the rules for ``combining''
@@ -705,10 +706,10 @@ dependent. TPIE expects a ``merge management
 object''\index{operation management object!merge} to contain
 members \myverb{initialize} and \myverb{operate}, as well as
 several others. Detailed requirements for merge management
-objects are described in Section \ref{tut:merging}.
+objects are described in Section \ref{sec:tut-merging}.
 
 \section{Scanning}
-\plabel{tut:scanning}
+\plabel{sec:tut-scanning}
 
 \index{scanning|(} \index{AMI_scan()@{\tt AMI\_scan()}}
 The simplest paradigm available in TPIE is scanning.  Scanning can be
@@ -946,7 +947,7 @@ void h()
 \comment{DH: should we summarize what polymorphs are
    available or give a pointer to the section that does?}
 
-\subsection{ASCII Input/Output} \plabel{tut:ascii-io}
+\subsection{ASCII Input/Output} \plabel{sec:tut-ascii-io}
 
 \index{ASCII I/O|see{scanning, ASCII I/O}}
 \index{scanning!ASCII I/O|(}
@@ -1050,7 +1051,7 @@ public:
 \index{scanning!multi-type|)}
 
 \subsection{Out of Step Scanning}
-\plabel{tut:out-of-step}
+\plabel{sec:tut-out-of-step}
 
 \index{scanning!out of step|(}
 In all the examples up to this point, the
@@ -1120,7 +1121,7 @@ the cases when one of more of the input streams are empty.
 \index{scanning|)}
 
 
-\section{Merging} \plabel{tut:merging}
+\section{Merging} \plabel{sec:tut-merging}
 \index{merging|(}
 
 While \myverb{AMI\_scan()} is limited to operate on up to
@@ -1223,7 +1224,7 @@ The member functions of the merge management object
     merge manager to tell TPIE what objects it took from the
     input streams. These are discussed in more detail in the
     context of a merge sorting example in
-    Section~\ref{tut:mergesort}.
+    Section~\ref{sec:tut-mergesort}.
     \item[\myverb{operate()}] Just as in scanning, this
     member function is called repeatedly to process input
     objects.
@@ -1276,14 +1277,14 @@ AMI_err AMI_partition_and_merge(instream, outstream, mm)
 
 
 \subsection{Implementing Mergesort: An Extended Example}
-\plabel{tut:mergesort}
+\plabel{sec:tut-mergesort}
 
 In the following we give an example of the implementation and
 use of a merge management object for merge sorting integers.
 We use merge sorting as a non-trivial example to illustrate
 the interfaces and mechanisms involved in using a merge
 management object. However, the reader should refer to
-Section \ref{tut:sorting} on sorting for a more
+Section \ref{sec:tut-sorting} on sorting for a more
 straightforward and efficient way to sort with TPIE.
 
 First, we declare the class:
@@ -1431,7 +1432,7 @@ indicates that the flags in \myverb{*taken\_flags} are set to
 indicate which of the inputs were used (and should not be presented
 again).  This is very similar to the use of input flags to indicate
 which inputs were used by a scan management object as described in
-Section~\ref{tut:out-of-step}.  The reason that we have a special
+Section~\ref{sec:tut-out-of-step}.  The reason that we have a special
 return value to indicate when these flags are used is to increase
 performance.  In order for \myverb{AMI\_scan()} to determine which inputs
 were taken, it must examine all the flags.  In a many way merge, this
@@ -1470,7 +1471,7 @@ AMI_err MergeMgr::operate(const int * const *in,
 
 \comment{LA: Something here?}
 
-\section{Distribution} \plabel{tut:distribution}
+\section{Distribution} \plabel{sec:tut-distribution}
 \index{Distribution}
 
 \tobewritten
@@ -1491,28 +1492,28 @@ AMI_err MergeMgr::operate(const int * const *in,
 
 
 \section{Sorting}
-\label{tut:sorting}
-\subsection{Comparison Sorting} \plabel{tut:cmp-sorting}
+\label{sec:tut-sorting}
+\subsection{Comparison Sorting} \plabel{sec:tut-cmp-sorting}
 
 \index{sorting!comparison|(} 
 Sorting is a common primitive operation in many algorithms.
 It can be performed in a variety of ways. The two most basic
 approaches for external memory sorting are based on merging
-(See Section~\ref{tut:merging}), and distribution (See
-Section~\ref{tut:distribution}).
+(See Section~\ref{sec:tut-merging}), and distribution (See
+Section~\ref{sec:tut-distribution}).
 %, or Sharesort~\cite{aggarwal:optimal}. The
 %latter combines elements of both, along with simple bit permutations
-%(See Section~\ref{tut:bit-permuting}). 
+%(See Section~\ref{sec:tut-bit-permuting}). 
 TPIE currently provides several efficient sorting functions
 based on merging.  In the future a number of other sorting
 algorithms may be implemented and it is the intention that
 when calling \myverb{AMI\_sort()}, TPIE should automatically
 select the best algorithm for the given hardware platform.
 
-\subsection{Merge Sorting} \plabel{tut:mrg-sorting}
+\subsection{Merge Sorting} \plabel{sec:tut-mrg-sorting}
 \index{sorting!merge|(} 
 While the \myverb{AMI\_merge} example in
-Section~\ref{tut:merging} was not intended as an
+Section~\ref{sec:tut-merging} was not intended as an
 illustration of how to sort in TPIE, it contains the main
 ideas of how merge sorting should be done in order to
 achieve I/O optimality, and how it is done internally by
@@ -1795,14 +1796,14 @@ object.\comment{LA: Maybe we should add something about this
 \index{sorting!comparison|)}
 
 \subsection{Key Bucket Sorting}
-\plabel{tut:kb-sorting}
+\plabel{sec:tut-kb-sorting}
 
 %\index{sorting!key bucket|(}
 
 \tobewritten
 
 
-\section{Permutation}\plabel{tut:permutation}
+\section{Permutation}\plabel{sec:tut-permutation}
 
 \subsection{General Permutation}
 
@@ -1811,8 +1812,8 @@ algorithms. Routing a general permutation in the I/O model
 is asymptotically as complex as
 sorting~\cite{aggarwal:input}, though for some important
 classes of permutations, such as BMMC permutations (See
-Section~\ref{tut:bit-permuting}) faster algorithms are
-possible~\cite{cormen}. In this section, we discuss
+Section~\ref{sec:tut-bit-permuting}) faster algorithms are
+possible~\cite{cormen:fast}. In this section, we discuss
 \myverb{AMI\_general\_permute()}, which routes arbitrary
 permutations, but always takes as long as sorting,
 regardless of whether the particular permutation can be done
@@ -1862,7 +1863,7 @@ void f()
 
 
 \subsection{Bit Permutation}
-\plabel{tut:bit-permuting}
+\plabel{sec:tut-bit-permuting}
 
 \comment{LA: Do we really want this in the tutorial?}
 
@@ -1916,14 +1917,14 @@ matrices and perform the permutation.
     ae = AMI_BMMC_permute(&amis0, &amis1, (AMI_bit_perm_object *)&bpo);
 \end{verbatim}
 
-\section{Distribution Sweeping} \plabel{tut:distsweep}
+\section{Distribution Sweeping} \plabel{sec:tut-distsweep}
 \index{Distribution sweeping}
 \comment{LA: Get sweeping under distribution in the index}
 
 \tobewritten
 
 \section{Matrix Operations}
-\plabel{tut:matrix}
+\plabel{sec:tut-matrix}
 
 \comment{LA: Read through this and check code.}
 
@@ -1948,7 +1949,7 @@ algorithm are used.
 TPIE provides support for both dense and sparse matrices.
 
 \subsection{Dense Matrix Operations}
-\plabel{tut:dense-mat}
+\plabel{sec:tut-dense-mat}
 
 \index{matrices!dense|(}
 
@@ -2014,7 +2015,7 @@ void f()
 \index{matrices!dense|)}
 
 \subsection{Sparse Matrix Operations}
-\plabel{tut:sparse-mat}
+\plabel{sec:tut-sparse-mat}
 
 \index{matrices!sparse|(}
 \index{matrices!sparse|)}
@@ -2023,13 +2024,13 @@ void f()
 
 
 \subsection{Elementwise Arithmetic}
-\plabel{tut:elementwise}
+\plabel{sec:tut-elementwise}
 
 \index{arithmetic!elementwise|see{elementwise arithmetic}}
 \index{elementwise arithmetic|(} 
 The functions \myverb{AMI\_matrix\_add()}
 and \myverb{AMI\_matrix\_subtract()} defined in
-Section~\ref{sec:dense-mat} perform elementwise arithmetic on
+Section~\ref{sec:tut-dense-mat} perform elementwise arithmetic on
 matrices.  At times, we might also wish to perform elementwise
 multiplication or division, or perform a scalar arithmetic operation
 on all elements of a matrix.  TPIE provides mechanisms for doing this
@@ -2065,7 +2066,7 @@ void foo()
 
 
 \section{External Stack}
-\plabel{tut:stack}
+\plabel{sec:tut-stack}
 
 \index{External Stack}
 
@@ -2074,7 +2075,7 @@ void foo()
 \tobewritten
 
 \section{Compiling and Executing a TPIE Program}
-\plabel{tut:compiling}
+\plabel{sec:tut-compiling}
 
 The fragments of code presented in this tutorial are designed for
 instructive purposes  but they are incomplete. In order to

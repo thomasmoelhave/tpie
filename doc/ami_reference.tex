@@ -1,5 +1,5 @@
 %%
-%% $Id: ami_reference.tex,v 1.9 2000-09-29 18:49:46 hutchins Exp $
+%% $Id: ami_reference.tex,v 1.10 2000-10-05 19:27:12 hutchins Exp $
 %%
 \chapter{TPIE Programmer's Reference}
 \plabel{cha:reference}
@@ -449,9 +449,8 @@ Method \myverb{read\_array} reads \myverb{*len} objects from
 the \myverb{current\_item} into the array
 \myverb{mm\_space}. Similarly, \myverb{write\_array} writes
 an array.\comment{LA: Why is there a difference in the
-   passing of len? } \index{read_array()@{\tt
-      read\_array()}!AMI|)}\index{write_array()@{\tt
-      write\_array()}!AMI|)}
+   passing of len? DH: read receives a value of len and
+   write specifies a value for len.} 
 
 \subsubsection{Positioning a Stream}
 
@@ -553,14 +552,14 @@ stuff). Remove?!}
 
 
 \section{AMI Entry Points}
-
-\index{AMI entry point}\index{entry point!AMI|see{AMI entry point}}
+\plabel{sec:ref-ami}
+\index{AMI entry points}\index{entry point!AMI|see{AMI entry points}}
 
 \subsection{Scanning}
 \plabel{sec:ref-ami-scan}
 \index{scanning|(}
-
 \index{AMI_scan()@{\tt AMI\_scan()}|(}
+
 The simplest polymorph of \myverb{AMI\_scan()} is
 \begin{verbatim}
     AMI_err AMI_scan(ST *smo, AMI_STREAM<T> *outstream);
@@ -652,7 +651,7 @@ functions for \myverb{AMI\_scan()} to call.\comment{%
     inputs were not processed and should be presented again
     on the next call to \myverb{operate()}.  This permits
     out of step scanning\index{scanning!out of step}, as
-    illustrated in Section~\ref{sec:out-of-step}.
+    illustrated in Section~\ref{sec:tut-out-of-step}.
     
     If present, the outputs \noiv{*out1, ...} are
     application data items of type \noiv{U1}, and
@@ -689,7 +688,7 @@ functions for \myverb{AMI\_scan()} to call.\comment{%
 \end{itemize}
 
 Examples of the use of scan management objects are given in
-Section~\ref{tut:scanning} as well as in the test applications that
+Section~\ref{sec:tut-scanning} as well as in the test applications that
 appear in the TPIE distribution.
 
 \index{operation management objects!scan|)}
@@ -700,7 +699,7 @@ appear in the TPIE distribution.
 \plabel{sec:ref-ami-merge}
 \index{merging|(}
 
-As discussed in Section~\ref{tut:merging}, the amount of
+As discussed in Section~\ref{sec:tut-merging}, the amount of
 available main memory limits the number of streams that can
 be merged in a single pass. Subject to the available main
 memory, TPIE entry point \myverb{AMI\_generalized\_merge()}
@@ -764,8 +763,9 @@ where
 This entry point takes care of all the details of determining how much
 main memory is available, how big the initial substreams can be, how
 many streams can be merged at a time, and how many levels of merging
-must take place. It is used internally by the TPIE merge
-sorting entry points (see Section~\ref{sec:ref-mrg-sorting}
+must take place. 
+%It is used internally by the old TPIE merge
+%sorting entry points (see Section~\ref{sec:ref-mrg-sorting}
 
 \subsubsection{Merge Management Objects}
 \index{operation management objects!merge|(} 
@@ -895,11 +895,10 @@ where
 \begin{verbatim}
     size_t space_usage_overhead(void);
 \end{verbatim}
-    This function should return an upper bound on the amount
-    of main memory\comment{LA: In bytes?} the merge
-    management object will
-    allocate in addition to the portion that is linear in
-    the number of streams.
+    This function should return an upper bound on the number
+    of bytes of main memory\comment{LA: In bytes? DH: yes.}
+    the merge management object will allocate in addition to
+    the portion that is linear in the number of streams.
     
 \end{itemize}
 
@@ -1087,7 +1086,7 @@ information while merging and sorting, as indicated above.
 
 TPIE offers several entry points for sorting which use
 merging as their underlying paradigm. Please see
-Section~\ref{tut:mrg-sorting} for more details of this
+Section~\ref{sec:tut-mrg-sorting} for more details of this
 approach.
 
 Currently, TPIE offers three merge sorting variants. The
@@ -1139,7 +1138,7 @@ slightly slower), but somewhat more flexible, as it can support
 multiple, different sorts on the same keys. The comparison
 function version is slightly easier to use than the
 comparison object version, but typically it is measureably slower.
-Please refer to Section~\ref{tut:mrg-sorting} for examples
+Please refer to Section~\ref{sec:tut-mrg-sorting} for examples
 of the use of these versions of \myverb{AMI\_sort()}.
 
 \noindent{\bf Comparison operator version:}  This version works on streams of
@@ -1228,61 +1227,61 @@ the fourth argument is the sort management
 object.
 \index{sorting!merge|)} 
 
-\noindent{\bf The old writeup of the sort functions:}
+% \noindent{\bf The old writeup of the sort functions:}
 
-TPIE provides a sort function \myverb{AMI\_sort()} based on merge
-sort. Version \version~of TPIE also contains alpha versions of a new
-sorting function \myverb{AMI\_optimized\_sort()} which is also based on merge
-sort. It is planned that after thorough testing this function will be the
-default TPIE \myverb{AMI\_sort()} function. Section~\ref{sec:ref-imp-ami-sort}
-contains a discussion of the difference between the two functions. In the
-future a number of other sort algorithms will be implemented and it is the
-intention that when calling \myverb{AMI\_sort()} TPIE should automatically
-select the best sorting algorithm for the given hardware platform.
+% TPIE provides a sort function \myverb{AMI\_sort()} based on merge
+% sort. Version \version~of TPIE also contains alpha versions of a new
+% sorting function \myverb{AMI\_optimized\_sort()} which is also based on merge
+% sort. It is planned that after thorough testing this function will be the
+% default TPIE \myverb{AMI\_sort()} function. Section~\ref{sec:ref-imp-ami-sort}
+% contains a discussion of the difference between the two functions. In the
+% future a number of other sort algorithms will be implemented and it is the
+% intention that when calling \myverb{AMI\_sort()} TPIE should automatically
+% select the best sorting algorithm for the given hardware platform.
 
-\subsubsection{AMI\_sort}
+% \subsubsection{AMI\_sort}
 
-In order to provide maximum flexibility to programmers, \myverb{AMI\_sort()}
-has three polymorphs.
-\index{AMI_sort()@{\tt AMI\_sort()}|(}
-\begin{verbatim}
-  AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream)
-  AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
-                   int (*cmp)(CONST T&, CONST T&));
-  AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
-                   comparator<T> *cmp)
-\end{verbatim}
+% In order to provide maximum flexibility to programmers, \myverb{AMI\_sort()}
+% has three polymorphs.
+% \index{AMI_sort()@{\tt AMI\_sort()}|(}
+% \begin{verbatim}
+%   AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream)
+%   AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
+%                    int (*cmp)(CONST T&, CONST T&));
+%   AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
+%                    comparator<T> *cmp)
+% \end{verbatim}
 
-All three polymorphs take an argument \myverb{instream}, which is a pointer
-to the input stream, and \myverb{outstream}, which is a pointer to the output
-stream to which the sorted results are to be written. The first polymorph
-takes no additional arguments and the \myverb{<} operator is used in order to
-determine the relative order of two input objects. Thus, the type \myverb{T}
-of objects in the stream must have a member \myverb{operator<}.
+% All three polymorphs take an argument \myverb{instream}, which is a pointer
+% to the input stream, and \myverb{outstream}, which is a pointer to the output
+% stream to which the sorted results are to be written. The first polymorph
+% takes no additional arguments and the \myverb{<} operator is used in order to
+% determine the relative order of two input objects. Thus, the type \myverb{T}
+% of objects in the stream must have a member \myverb{operator<}.
 
-The second polymorph relies on a user supplied comparison function, similar
-to that used in the familiar C library function \myverb{qsort()} and in one
-of the polymorphs of \myverb{AMI\_merge()}. It is often useful to use a
-comparison function when the type of the objects being sorted has several
-fields, and one sometimes wish to sort on one field and sometimes on
-another.  Two different comparison functions can be defined, eliminating
-the need to provide a \myverb{<} operator that is compile-time bound to
-perform comparisons in a particular way.
+% The second polymorph relies on a user supplied comparison function, similar
+% to that used in the familiar C library function \myverb{qsort()} and in one
+% of the polymorphs of \myverb{AMI\_merge()}. It is often useful to use a
+% comparison function when the type of the objects being sorted has several
+% fields, and one sometimes wish to sort on one field and sometimes on
+% another.  Two different comparison functions can be defined, eliminating
+% the need to provide a \myverb{<} operator that is compile-time bound to
+% perform comparisons in a particular way.
 
-The final polymorph of \myverb{AMI\_sort()} relies on a comparator
-class.\comment{LA: Function object change.}
-Instead of defining a comparison function, the programmer defines a
-comparator class, which has a member function
-\begin{verbatim}
-    int compare(const T& t1, const T& t2);
-\end{verbatim}
-which behaves exactly as the comparison function described above.
-\index{AMI_sort()@{\tt AMI\_sort()}|)}
-Examples of comparison based sorting appear in
-Section~\ref{tut:cmp-sorting} as well as in the test applications that
-appear in the TPIE distribution.  Section~\ref{sec:list-ranking}
-illustrates the use of multiple comparison functions to sort streams of
-objects in different ways.
+% The final polymorph of \myverb{AMI\_sort()} relies on a comparator
+% class.\comment{LA: Function object change.}
+% Instead of defining a comparison function, the programmer defines a
+% comparator class, which has a member function
+% \begin{verbatim}
+%     int compare(const T& t1, const T& t2);
+% \end{verbatim}
+% which behaves exactly as the comparison function described above.
+% \index{AMI_sort()@{\tt AMI\_sort()}|)}
+% Examples of comparison based sorting appear in
+% Section~\ref{sec:tut-cmp-sorting} as well as in the test applications that
+% appear in the TPIE distribution.  Section~\ref{sec:list-ranking}
+% illustrates the use of multiple comparison functions to sort streams of
+% objects in different ways.
 
 % \subsubsection{AMI\_optimized\_sort}
 
