@@ -3,7 +3,7 @@
 // Authors: Octavian Procopiuc <tavi@cs.duke.edu>
 //          (using some code by Rakesh Barve)
 //
-// $Id: bte_coll_base.h,v 1.17 2003-05-08 21:30:01 tavi Exp $
+// $Id: bte_coll_base.h,v 1.18 2003-09-08 14:58:29 tavi Exp $
 //
 // BTE_collection_base class and various basic definitions.
 //
@@ -252,8 +252,8 @@ protected:
 		    return BTE_ERROR_OS_ERROR;
 		}
 		while (curr_off < bid_to_file_offset(header_.total_blocks)) {
-		    TPIE_OS_WRITE(bcc_fd_, tbuf, header_.block_size);
-		    curr_off += header_.block_size;
+		    TPIE_OS_WRITE(bcc_fd_, tbuf, header_.os_block_size);
+		    curr_off += header_.os_block_size;
 		}
 		file_pointer = curr_off;
 		delete [] tbuf;
