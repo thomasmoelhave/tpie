@@ -5,7 +5,7 @@
 //
 // Created: 10/6/94
 //
-// $Id: app_config.h,v 1.33 2003-09-27 05:24:53 tavi Exp $
+// $Id: app_config.h,v 1.34 2003-11-18 17:56:14 tavi Exp $
 //
 #ifndef _APP_CONFIG_H
 #define _APP_CONFIG_H
@@ -23,6 +23,7 @@
 #include <stdlib.h> // for random()
 
 #define DEFAULT_TEST_SIZE (20000000)
+#define DEFAULT_RANDOM_SEED 17
 #define DEFAULT_TEST_MM_SIZE (1024 * 1024 * 32)
 
 extern bool verbose;
