@@ -6,7 +6,7 @@
 //
 // A test for AMI_partition_and_merge().
 
-static char test_ami_pmerge_id[] = "$Id: test_ami_pmerge.cpp,v 1.8 1994-10-11 12:54:55 dev Exp $";
+static char test_ami_pmerge_id[] = "$Id: test_ami_pmerge.cpp,v 1.9 1994-10-13 17:03:16 darrenv Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -71,6 +71,7 @@ public:
 
 s_merge_manager::s_merge_manager(void)
 {
+    pq = NULL;
 }
 
 
@@ -216,7 +217,7 @@ void parse_app_opt(char c, char *optarg)
     }
 }
 
-#if !(defined(__sun__) && defined(__svr4__))
+#if HAVE_GETRUSAGE
 #define REPORT_RUSAGE(os, ru, x)				\
 {								\
     if (verbose) {						\
@@ -244,7 +245,7 @@ int main(int argc, char **argv)
 
     AMI_err ae;
 
-#if !(defined(__sun__) && defined(__svr4__))
+#if HAVE_GETRUSAGE
     rusage ru0, ru1;
 #endif
 
@@ -299,14 +300,14 @@ int main(int argc, char **argv)
 
     s_merge_manager sm;
     
-#if !(defined(__sun__) && defined(__svr4__))
+#if HAVE_GETRUSAGE
     getrusage(RUSAGE_SELF, &ru0);
 #endif
 
     ae = AMI_partition_and_merge(&amis0, &amis1,
                                  (AMI_merge_base<int> *)&sm);
     
-#if !(defined(__sun__) && defined(__svr4__))
+#if HAVE_GETRUSAGE
     getrusage(RUSAGE_SELF, &ru1);
 #endif
 
@@ -318,8 +319,8 @@ int main(int argc, char **argv)
     if (report_results_sorted) {
         ae = AMI_scan((AMI_base_stream<int> *)&amis1, rpts);
     }
-
-#if !(defined(__sun__) && defined(__svr4__))
+    
+#if HAVE_GETRUSAGE
     REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_utime.tv_sec);
     REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_utime.tv_usec);
 
