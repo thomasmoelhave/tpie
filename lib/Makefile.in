@@ -1,5 +1,5 @@
 # Makefile for the TPIE library.
-# $Id: Makefile.in,v 1.5 2002-01-03 18:33:16 tavi Exp $
+# $Id: Makefile.in,v 1.6 2002-03-14 20:12:23 tavi Exp $
 
 LIBRARY = libtpie.a
 LIBSRCPATH = ./src/
@@ -12,7 +12,7 @@ export
 all: $(LIBRARY)
 
 clean:
-	rm -f $(LIBRARY) $(LIBSRCPATH)/Makefile.depend; \
+	rm -f $(LIBSRCPATH)/Makefile.depend; \
 	touch $(LIBSRCPATH)/Makefile.depend
 	$(MAKE) -C $(LIBSRCPATH) $@
 
