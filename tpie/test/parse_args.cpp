@@ -5,7 +5,7 @@
 //
 
 #include <versions.h>
-VERSION(parse_args,"$Id: parse_args.cpp,v 1.17 2004-10-20 08:57:51 jan Exp $");
+VERSION(parse_args,"$Id: parse_args.cpp,v 1.18 2005-02-15 00:20:27 tavi Exp $");
 
 #include <portability.h>
 
@@ -53,7 +53,7 @@ static size_t parse_number(char *s) {
 }
 
 void parse_args(int argc, char **argv, struct options *application_opts,
-		void (*parse_app_opts)(int idx, char *opt_arg)) {
+		void (*parse_app_opts)(int idx, char *opt_arg), bool stop_if_no_args) {
   bool do_exit = false;
 
   static struct options standard_opts[] = {
@@ -86,6 +86,11 @@ void parse_args(int argc, char **argv, struct options *application_opts,
     all_opts[i+l_std_o] = application_opts[i];
   }
   all_opts[l_app_o+l_std_o] = null_opt;
+
+  if (stop_if_no_args && argc == 1) {
+    getopts_usage(argv[0], all_opts);
+    exit(0);
+  }
 
   int idx;
   size_t mm_sz = DEFAULT_TEST_MM_SIZE;
@@ -123,52 +128,6 @@ void parse_args(int argc, char **argv, struct options *application_opts,
   delete [] all_opts;
   if (do_exit) {
     exit(0);
-  }
-}
-
-void parse_args(int argc, char **argv, const char *as_opts,
-                void (*parse_app_opt)(char opt, char *optarg))
-{
-  static char standard_opts[] = "m:t:z:v";
-  
-  // All options, standard and application specific.
-  char *all_opts;
-
-  if (as_opts != NULL) {
-    unsigned int l_aso;
-    
-    all_opts = new char[sizeof(standard_opts) + (l_aso = (unsigned int)strlen(as_opts))]; 
-    strncpy(all_opts, standard_opts, sizeof(standard_opts));
-    strncat(all_opts, as_opts, l_aso);
-  } else {
-    all_opts = standard_opts;
-  }
-  
-  char c;
-  
-  optarg = NULL;
-  while((c = getopt(argc, argv, all_opts)) != -1) {
-    switch (c) {
-    case 'v':
-      verbose = true;
-      break;
-    case 'm':
-      test_mm_size = parse_number(optarg);
-      break;                
-    case 't':
-      test_size = parse_number(optarg);
-      break;
-    case 'z':
-      random_seed = atol(optarg);
-      break;
-    default:
-      parse_app_opt(c, optarg);
-      break;
-    }
-  }
-
-  if (as_opts != NULL) {
-    delete [] all_opts;
   }
 }
 
