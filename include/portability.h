@@ -3,7 +3,7 @@
 // Created: 2002/10/30
 // Authors: Joerg Rotthowe, Jan Vahrenhold, Markus Vogel
 //
-// $Id: portability.h,v 1.2 2003-04-17 20:27:05 jan Exp $
+// $Id: portability.h,v 1.3 2003-04-19 03:38:29 tavi Exp $
 //
 // This header-file offers macros for independent use on Win and Unix systems.
 
@@ -110,9 +110,9 @@
 #ifdef _WIN32
 #include <windows.h>
 #else
-extern "C" {
+//extern "C" {
 #include <sys/mman.h>
-}
+//}
 #if !HAVE_PROTOTYPE_MMAP
 //extern "C" mmap(caddr_t addr, size_t len, int prot, int flags,
 //		int filedes, off_t off);
@@ -875,7 +875,7 @@ return BTE_ERROR_OS_ERROR
 #define TPIE_OS_UNIX_ONLY_DATA_TYPE_LONG_LONG _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const long long);
 #endif
 
-#ifdef WIN32
+#ifdef _WIN32
 #define TPIE_OS_UNIX_ONLY_DEFINE_LOGSTREAM_OUPUT_OPERATOR
 #else
 #define TPIE_OS_UNIX_ONLY_DEFINE_LOGSTREAM_OUPUT_OPERATOR _DEFINE_LOGSTREAM_OUTPUT_OPERATOR(long long);					
