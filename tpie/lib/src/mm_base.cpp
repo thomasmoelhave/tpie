@@ -6,7 +6,7 @@
 //
 
 #include <versions.h>
-VERSION(mm_base_cpp,"$Id: mm_base.cpp,v 1.18 2000-01-14 19:18:56 hutchins Exp $");
+VERSION(mm_base_cpp,"$Id: mm_base.cpp,v 1.19 2000-03-08 03:12:54 rajiv Exp $");
 
 #include "lib_config.h"
 #include <mm_base.h>
@@ -24,6 +24,7 @@ extern MM_register MM_manager;
 MM_manager_base *mm_manager;
 
 
+#include <iostream.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -69,8 +70,8 @@ void *operator new (size_t sz)
 	 LOG_WARNING ("\" \n");
 	 LOG_FLUSH_LOG;
 
-	 fprintf (stderr,
-		  "memory manager: memory allocation limit exceeded\n");
+	 cerr << "memory manager: memory allocation limit exceeded "
+		  << "while allocating " << sz << " bytes" << endl;
       }
    }
 
@@ -78,7 +79,9 @@ void *operator new (size_t sz)
    if (!p) {
       LOG_FATAL_ID ("Out of memory. Cannot continue.");
       LOG_FLUSH_LOG;
+	  cerr << "out of memory while allocating " << sz << " bytes" << endl;
       perror ("mm_base::new malloc");
+	  assert(0);
       exit (1);
    }
    *((size_t *) p) = sz;
