@@ -9,7 +9,7 @@
 // AMI_kdbtree_status, AMI_kdbtree_params, 
 // region_t, kdb_item_t, path_stack_item_t.
 //
-// $Id: ami_kd_base.h,v 1.5 2003-09-12 01:46:18 jan Exp $
+// $Id: ami_kd_base.h,v 1.6 2003-09-13 23:13:25 tavi Exp $
 //
 
 #ifndef _AMI_KD_BASE_H
@@ -138,7 +138,7 @@ template<class coord_t, size_t dim>
 class AMI_kdtree_bin_node_base {
 public:
 
-  void initialize(const Point<coord_t, dim> &p, size_t d) {
+  void initialize(const AMI_point<coord_t, dim> &p, size_t d) {
     assert(d < dim);
     discr_val_ = p[d];
     discr_dim_ = d;
@@ -149,10 +149,10 @@ public:
   coord_t get_discriminator_val() {
     return discr_val_;
   }
-  int discriminate(const Point<coord_t, dim> &p) const {
+  int discriminate(const AMI_point<coord_t, dim> &p) const {
     return (p[discr_dim_] < discr_val_) ? -1: (p[discr_dim_] > discr_val_) ? 1: 0;
   }
-  //  int discriminate(const Point<coord_t, dim> &p) const {
+  //  int discriminate(const AMI_point<coord_t, dim> &p) const {
   //    return (p[discr_dim_] <= discr_val_) ? -1: 1;
   //  }
 
@@ -285,7 +285,7 @@ private:
 template<class coord_t, size_t dim>
 class AMI_kdtree_bin_node_large {
 public:
-  void initialize(const Point<coord_t, dim> &p, size_t d) {
+  void initialize(const AMI_point<coord_t, dim> &p, size_t d) {
     discr_val_ = p;
     discr_dim_ = d;
   }
@@ -297,7 +297,7 @@ public:
     hi_child_ = idx;
     hi_type_ = idx_type;
   }
-  int discriminate(const Point<coord_t, dim> &p) const {
+  int discriminate(const AMI_point<coord_t, dim> &p) const {
     return (p[discr_dim_] < discr_val_[discr_dim_]) ? -1: 
       (p[discr_dim_] > discr_val_[discr_dim_]) ? 1: 
       (p[(discr_dim_+1)%dim] < discr_val_[(discr_dim_+1)%dim]) ? -1 : 
@@ -332,7 +332,7 @@ private:
 
 private:
   // The split point.
-  Point<coord_t, dim> discr_val_; 
+  AMI_point<coord_t, dim> discr_val_; 
   // The dimension orthogonal to the split hyperplane. Should be less than dim.
   size_t discr_dim_;
   // The low child (i.e., its position in the block node).
@@ -374,7 +374,7 @@ public:
   }
 
   // Initialize this box with the values stored in points p1 and p2.
-  region_t(const Point<coord_t, dim>& p1, const Point<coord_t, dim>& p2) {
+  region_t(const AMI_point<coord_t, dim>& p1, const AMI_point<coord_t, dim>& p2) {
     for (size_t i = 0; i < dim; i++) {
       lo_[i] = min(p1[i], p2[i]);
       //      lo_bd_[i] = 1;//true;
@@ -410,15 +410,15 @@ public:
 
   coord_t span(size_t d) const { return hi(d) - lo(d); }
 
-  Point<coord_t, dim> point_lo() const {
-    Point<coord_t, dim> p;
+  AMI_point<coord_t, dim> point_lo() const {
+    AMI_point<coord_t, dim> p;
     for (size_t i = 0; i < dim; i++)
       p[i] = lo_[i];
     return p;
   }
 
-  Point<coord_t, dim> point_hi() const {
-    Point<coord_t, dim> p;
+  AMI_point<coord_t, dim> point_hi() const {
+    AMI_point<coord_t, dim> p;
     for (size_t i = 0; i < dim; i++)
       p[i] = hi_[i];
     return p;
@@ -441,7 +441,7 @@ public:
   }
 
   // Return true if this box contains point p.
-  bool contains(const Point<coord_t, dim>& p) const {
+  bool contains(const AMI_point<coord_t, dim>& p) const {
     size_t i;
     for (i = 0; i < dim; i++) {
       if ((is_bounded_lo(i) && p[i] <  lo_[i]) || 
@@ -475,7 +475,12 @@ public:
   }
 #undef LO_BD_MASK
 #undef HI_BD_MASK
-} __attribute__((packed));
+} 
+#if !defined(_WIN32)
+__attribute__((packed))
+#endif
+  ;
+
 
 template<class coord_t, size_t dim>
 class kdb_item_t {
@@ -488,7 +493,12 @@ public:
   kdb_item_t(const region_t<coord_t, dim>& r, AMI_bid b, link_type_t t): 
     region(r), bid(b), type(t) {}
   kdb_item_t() {}
-} __attribute__((packed));
+}
+#if !defined(_WIN32)
+ __attribute__((packed))
+#endif
+   ;
+
 
 template<class coord_t, size_t dim>
 ostream &operator<<(ostream& s, const kdb_item_t<coord_t, dim>& ki) {
