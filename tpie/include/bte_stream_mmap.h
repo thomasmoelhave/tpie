@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/13/94
 //
-// $Id: bte_stream_mmap.h,v 1.11 2003-09-12 01:46:38 jan Exp $
+// $Id: bte_stream_mmap.h,v 1.12 2004-05-06 15:58:47 adanner Exp $
 //
 // Memory mapped streams.  This particular implementation explicitly manages
 // blocks, and only ever maps in one block at a time.
@@ -71,6 +71,7 @@ private:
     unsigned int mmap_status;
 
     TPIE_OS_FILE_DESCRIPTOR fd;	// descriptor of the mapped file.
+
 
     size_t os_block_size_;
 
@@ -203,7 +204,7 @@ public:
     TPIE_OS_OFFSET chunk_size () const;
 
     void print (char *pref = "");
-    inline BTE_err grow_file (off_t block_offset);
+    inline BTE_err grow_file (TPIE_OS_OFFSET block_offset);
 
     static void log_fatal (char *a, char *b, char *c, char *d, char *e) {
 	LOG_FATAL (a);
@@ -1359,7 +1360,7 @@ inline BTE_err BTE_stream_mmap < T >::advance_current (void) {
     return BTE_ERROR_NO_ERROR;
 }
 
-#define MAX(a,b) ((a)>(b)?(a):(b))
+
 // increase the length of the file, to at least 
 // block_offset + header->block_size
 template < class T > inline BTE_err
@@ -1376,8 +1377,9 @@ BTE_stream_mmap < T >::grow_file (TPIE_OS_OFFSET block_offset)
     // make a note of the new file length
     // f_filelen = block_offset + header->block_size;
     // XXX
-    f_filelen = MAX (BLOCK_OFFSET (f_filelen * 2),
-		     block_offset + header->block_size);
+#define TMP_TPIE_MAX(a,b) ((a > b) ? a : b);
+    f_filelen = TMP_TPIE_MAX(BLOCK_OFFSET (f_filelen * 2), block_offset + header->block_size);
+#undef TMP_TPIE_MAX
     if (TPIE_OS_FTRUNCATE (fd, f_filelen) < 0) {
 	os_errno = errno;
 	LOG_FATAL ("Failed to ftruncate() out a new block of \"");
