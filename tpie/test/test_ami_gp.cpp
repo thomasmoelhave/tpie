@@ -13,7 +13,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_gp_cpp,"$Id: test_ami_gp.cpp,v 1.12 2003-09-11 21:35:13 tavi Exp $");
+VERSION(test_ami_gp_cpp,"$Id: test_ami_gp.cpp,v 1.13 2003-09-12 01:17:56 tavi Exp $");
 
 // Get the application defaults.
 #include "app_config.h"
@@ -81,7 +81,7 @@ int main(int argc, char **argv)
         cout << test_size << ' ' << test_mm_size << ' ' << random_seed;
     }
 
-    srandom(random_seed);
+    TPIE_OS_SRANDOM(random_seed);
     
     // Set the amount of main memory:
     MM_manager.set_memory_limit (test_mm_size);
