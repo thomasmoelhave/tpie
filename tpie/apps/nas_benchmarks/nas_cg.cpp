@@ -24,7 +24,7 @@
 
 // Define it all.
 #include <ami.h>
-VERSION(nas_cg_cpp,"$Id: nas_cg.cpp,v 1.6 2003-09-13 16:29:59 jan Exp $");
+VERSION(nas_cg_cpp,"$Id: nas_cg.cpp,v 1.7 2003-09-13 18:15:40 jan Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -226,16 +226,16 @@ void parse_app_opt(char c, char *optarg)
             input_filename = optarg;
             break;
         case 'N':
-            istrstream(optarg,strlen(optarg)) >> niter;
+	    niter = (unsigned int)atoi(optarg);
             break;            
         case 'n':
-            istrstream(optarg,strlen(optarg)) >> problem_size;
+	    problem_size = (unsigned int)atoi(optarg);
             break;            
         case 'Z':
-            istrstream(optarg,strlen(optarg)) >> zeta_ref;
+	    zeta_ref = atof(optarg);
             break;            
         case 'L':
-            istrstream(optarg,strlen(optarg)) >> lambda;
+	    lambda = (unsigned int)atoi(optarg);
             break;            
     }
 }
