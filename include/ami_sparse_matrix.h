@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 3/2/95
 //
-// $Id: ami_sparse_matrix.h,v 1.1 1995-03-07 14:58:41 darrenv Exp $
+// $Id: ami_sparse_matrix.h,v 1.2 1995-03-25 14:07:42 darrenv Exp $
 //
 #ifndef AMI_SPARSE_MATRIX_H
 #define AMI_SPARSE_MATRIX_H
@@ -191,6 +191,8 @@ AMI_err AMI_sparse_mult_scan_banded(AMI_sparse_matrix<T> &banded_opm,
     }
     vec_row = 0;
 
+    res.seek(0);
+
     unsigned int next_band_start = rows_per_band;
 
     unsigned int ii;
@@ -289,9 +291,13 @@ AMI_err AMI_sparse_mult_scan_banded(AMI_sparse_matrix<T> &banded_opm,
             }
             
         } else {
+
             // If the sparse element column is past the current
             // row in the vector, then advance the vector.
 
+            tp_assert(sparse_current->ec > vec_row,
+                      "Sparse column fell behind current row.");
+            
             ae = opv.read_item(&vec_current);
             if (ae != AMI_ERROR_NO_ERROR) {
                 return ae;
@@ -321,7 +327,7 @@ AMI_err AMI_sparse_mult(AMI_sparse_matrix<T> &opm, AMI_matrix<T> &opv,
     unsigned int rows;
     unsigned int cols;
 
-    size_t sz_avail, single_stream_usage;
+    // size_t sz_avail, single_stream_usage;
 
     AMI_err ae;
     
