@@ -9,8 +9,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_btree_cpp, "$Id: test_ami_btree.cpp,v 1.20 2003-09-14 21:47:27 tavi Exp $");
-#include "app_params.h"
+VERSION(test_ami_btree_cpp, "$Id: test_ami_btree.cpp,v 1.21 2003-09-17 02:29:40 tavi Exp $");
 
 #include <cpu_timer.h>
 #include <ami_btree.h>
@@ -31,19 +30,21 @@ struct el_t {
 struct key_from_el {
   bkey_t operator()(const el_t& v) const { return v.key_; }
 };
-
+// Temporary distinction btw UN*X and WIN, since there are some
+// problems with the MMAP collection implementation.
+#ifdef _WIN32
 typedef AMI_btree< bkey_t,el_t,less<bkey_t>,key_from_el,BTE_COLLECTION_UFS > u_btree_t;
-//typedef AMI_btree< bkey_t,el_t,less<bkey_t>,key_from_el,BTE_COLLECTION_MMAP > m_btree_t;
+#else
+typedef AMI_btree< bkey_t,el_t,less<bkey_t>,key_from_el > u_btree_t;
+#endif
+
 typedef AMI_STREAM< el_t > stream_t;
 
 // Template instantiations (to get meaningful output from gprof)
 //template class AMI_btree_node<bkey_t,el_t,less<bkey_t>,key_from_el>;
 //template class AMI_btree_leaf<bkey_t,el_t,less<bkey_t>,key_from_el>;
 //template class AMI_btree< bkey_t,el_t,less<bkey_t>,key_from_el,BTE_COLLECTION_UFS >;
-//template class AMI_btree< bkey_t,el_t,less<bkey_t>,key_from_el,BTE_COLLECTION_MMAP >;
 //template class AMI_STREAM< el_t >;
-//template class AMI_collection_single< BTE_COLLECTION_UFS >;
-//template class AMI_collection_single< BTE_COLLECTION_MMAP >;
 
 
 // This is 2**31-1, the max value returned by random().
@@ -60,8 +61,6 @@ long range_search_lo = 0;
 long range_search_hi = 10000000;
 
 int main(int argc, char **argv) {
-
-  print_configuration(cerr);
 
   int i;
   size_t j;
