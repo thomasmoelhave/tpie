@@ -4,13 +4,15 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/15/94
 //
-// $Id: ami_stack.h,v 1.4 2003-04-17 14:20:36 jan Exp $
+// $Id: ami_stack.h,v 1.5 2003-04-20 23:57:20 tavi Exp $
 //
 #ifndef _AMI_STACK_H
 #define _AMI_STACK_H
 
 // Get definitions for working with Unix and Windows
 #include <portability.h>
+// Get the AMI_STREAM definition.
+#include <ami_stream.h>
 
 template<class T>
 class AMI_stack : public AMI_STREAM<T> {
