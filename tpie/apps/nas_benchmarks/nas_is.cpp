@@ -8,7 +8,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(nas_is_cpp,"$Id: nas_is.cpp,v 1.8 2003-09-12 01:52:20 tavi Exp $");
+VERSION(nas_is_cpp,"$Id: nas_is.cpp,v 1.9 2003-09-12 14:45:37 jan Exp $");
 
 // Benchmark constants.
 #define IMAX 10
@@ -208,11 +208,10 @@ public:
 
 scan_nas_psuedo_rand::scan_nas_psuedo_rand(double seed,
                                            unsigned int count,
-                                           double a, unsigned long bm) :
-                                                   s(seed),
-                                                   max(count),
-                                                   bmax(bm)
-{
+                                           double a, unsigned long bm) {
+    this->s = seed;
+    this->max = count;
+    this->bmax = bm;
         a1 = floor(TWO_TO_MINUS_23 * a);
         a2 = a - TWO_TO_23 * a1;    
 }
@@ -225,7 +224,7 @@ scan_nas_psuedo_rand::~scan_nas_psuedo_rand()
 AMI_err scan_nas_psuedo_rand::initialize(void)
 {
     x = s;
-    remaining = max;
+    this->remaining = this->max;
 
     key_triple::input_index = 0;
     
