@@ -4,7 +4,7 @@
 // Authors: Octavian Procopiuc <tavi@cs.duke.edu>
 //          (using some code by Rakesh Barve)
 //
-// $Id: bte_coll_base.h,v 1.4 2001-06-13 18:28:31 tavi Exp $
+// $Id: bte_coll_base.h,v 1.5 2001-06-22 03:19:22 tavi Exp $
 //
 // BTE_collection_base class and various basic definitions.
 //
@@ -138,7 +138,7 @@ protected:
   // Number of blocks from this collection that are currently in memory
   size_t in_memory_blocks_;
 
-  Statistics<BC_STATS_COUNT> stats_;
+  statistics<BC_STATS_COUNT> stats_;
 
 private:
   // Helper functions. We don't want them inherited.
@@ -203,9 +203,9 @@ protected:
 		"BTE_collection_ufs internal error: last_block>total_blocks");
       if (header_.last_block == header_.total_blocks) {
 	// Increase the capacity for storing blocks in the stream by 16
-	// (only by 3 the first time around to be gentle with small coll's).
+	// (only by 1 the first time around to be gentle with very small coll's).
 	if (header_.total_blocks == 1)
-	  header_.total_blocks += 3;
+	  header_.total_blocks += 1;
 	else if (header_.total_blocks <= 340)
 	  header_.total_blocks += 16;
 	else
@@ -278,7 +278,7 @@ public:
 
   void *user_data() { return (void *) header_.user_data; }
 
-  const Statistics<BC_STATS_COUNT>& stats() const { return stats_; }
+  const statistics<BC_STATS_COUNT>& stats() const { return stats_; }
 
   // Destructor.
   ~BTE_collection_base(); 
