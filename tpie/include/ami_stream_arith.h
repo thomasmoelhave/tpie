@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/10/94
 //
-// $Id: ami_stream_arith.h,v 1.2 1995-03-25 14:07:50 darrenv Exp $
+// $Id: ami_stream_arith.h,v 1.3 1997-05-20 22:14:46 vengroff Exp $
 //
 #ifndef _AMI_STREAM_ARITH_H
 #define _AMI_STREAM_ARITH_H
@@ -30,7 +30,7 @@ AMI_err AMI_scan_ ## NAME<T>::operate(const T &op1, const T &op2,	\
                                   AMI_SCAN_FLAG *sfin,			\
                                   T *res, AMI_SCAN_FLAG *sfout)		\
 {									\
-    if (*sfout = (sfin[0] && sfin[1])) {				\
+    if ((*sfout = (sfin[0] && sfin[1]))) {				\
         *res = op1 OP op2;						\
         return AMI_SCAN_CONTINUE;					\
     } else {								\
@@ -84,7 +84,7 @@ AMI_err AMI_scan_scalar_ ## NAME<T>::operate(const T &op,		\
                                   AMI_SCAN_FLAG *sfin,			\
                                   T *res, AMI_SCAN_FLAG *sfout)		\
 {									\
-    if (*sfout = *sfin) {						\
+    if ((*sfout = *sfin)) {						\
         *res = op OP scalar;						\
         return AMI_SCAN_CONTINUE;					\
     } else {								\
