@@ -27,7 +27,7 @@ using std::ofstream;
 #include <ami_scan.h>
 #include <ami_sort.h>
 #include <cpu_timer.h>
-VERSION(test_ami_sort_cpp,"$Id: test_ami_sort.cpp,v 1.27 2003-05-04 23:04:08 tavi Exp $");
+VERSION(test_ami_sort_cpp,"$Id: test_ami_sort.cpp,v 1.28 2003-09-11 17:18:55 tavi Exp $");
 
 #include <ami_kb_sort.h>
 
@@ -46,6 +46,9 @@ enum comparison_mode_t {
 static char def_srf[] = "/var/tmp/sorted.txt";
 static char def_rrf[] = "/var/tmp/unsorted.txt";
 
+static char istr_name[128]; 
+static char ostr_name[128];
+
 static char *sorted_results_filename = def_srf;
 static char *rand_results_filename = def_rrf;
 
@@ -62,7 +65,9 @@ void print_usage() {
        << "\t[-m <memory_size_in_bytes>] (set TPIE memory size)\n"
        << "\t[-z <random_seed>] (set random seed)\n";
 
-  cerr << "\t[-r] (write the unsorted items in " << rand_results_filename << ")\n"
+  cerr << "\t[-i <input_stream>]\n"
+       << "\t[-o <output_stream>]\n"
+       << "\t[-r] (write the unsorted items in " << rand_results_filename << ")\n"
        << "\t[-R <file_name>] (write the unsorted items in the given file)\n"
        << "\t[-s] (write the sorted items in " << sorted_results_filename << ")\n"
        << "\t[-S <file_name> (write the sorted items in the given file)]\n"
@@ -72,10 +77,16 @@ void print_usage() {
 }
 
 // The command line options for this application. See getopt(3).
-static const char as_opts[] = "R:S:rsac:k";
+static const char as_opts[] = "R:S:rsac:ki:o:";
 void parse_app_opt(char c, char *optarg)
 {
   switch (c) {
+  case 'i':
+    strncpy(istr_name, optarg, 128);
+    break;
+  case 'o':
+    strncpy(ostr_name, optarg, 128);
+    break;
   case 'R':
     rand_results_filename = optarg;
   case 'r':
@@ -123,6 +134,7 @@ int main(int argc, char **argv)
   cpu_timer timer;
   long elapsed;
   AMI_err ae;
+  istr_name[0] = ostr_name[0] = '\0';
 
   // Log debugging info from the application, but not from the library. 
   tpie_log_init(TPIE_LOG_APP_DEBUG); 
@@ -137,8 +149,10 @@ int main(int argc, char **argv)
   // Set the amount of main memory:
   MM_manager.set_memory_limit (test_mm_size);
 
-  AMI_STREAM<int> amis0;
-  AMI_STREAM<int> amis1;
+  //  AMI_STREAM<int> amis0;
+  //  AMI_STREAM<int> amis1;
+  AMI_STREAM<int>* istr = (istr_name[0] == '\0') ? new AMI_STREAM<int>: new AMI_STREAM<int>(istr_name);
+  AMI_STREAM<int>* ostr = NULL;
 
   if (verbose) {
     cout << "BTE: ";
@@ -169,7 +183,7 @@ int main(int argc, char **argv)
   cout << "Generating input (" << test_size << " random integers)..." << flush;
   timer.start();
   scan_random rnds(test_size,random_seed);
-  ae = AMI_scan(&rnds, &amis0);
+  ae = AMI_scan(&rnds, istr);
   timer.stop();
   cout << "Done.\n";
   if (ae != AMI_ERROR_NO_ERROR) {
@@ -177,7 +191,7 @@ int main(int argc, char **argv)
 	 << "Aborting.\n";
     exit(1);
   } else
-    cout << "\tInput stream length: " << amis0.stream_len() << "\n";
+    cout << "\tInput stream length: " << istr->stream_len() << "\n";
   cout << "\tTime taken: " << timer << "\n";
 
   timer.reset();
@@ -202,7 +216,7 @@ int main(int argc, char **argv)
   if (report_results_random) {
     cout << "Writing input in ASCII file " 
 	 << rand_results_filename << " ..." << flush;
-    ae = AMI_scan(&amis0, rptr);
+    ae = AMI_scan(istr, rptr);
     cout << "Done.\n";
     if (ae != AMI_ERROR_NO_ERROR) {
       cerr << "Error during writing of input ASCII file.\n";
@@ -214,13 +228,14 @@ int main(int argc, char **argv)
   
   cout << "Sorting input..." << flush;
   timer.start();  
+  ostr = (ostr_name[0] == '\0') ? new AMI_STREAM<int>: new AMI_STREAM<int>(ostr_name); 
   if (kb_sort) {
     key_range range(KEY_MIN, KEY_MAX);
-    ae = AMI_kb_sort(amis0, amis1, range);
+    ae = AMI_kb_sort(*istr, *ostr, range);
   } else if (comparison_mode == COMPARISON_OPERATOR) {
-    ae = AMI_sort(&amis0, &amis1);
+    ae = AMI_sort(istr, ostr);
   } else if (comparison_mode == COMPARISON_CLASS) {
-    ae = AMI_sort(&amis0, &amis1, &int_cmp_obj);
+    ae = AMI_sort(istr, ostr, &int_cmp_obj);
   }
   timer.stop();
   cout << "Done.\n";
@@ -229,8 +244,8 @@ int main(int argc, char **argv)
 	 << "Aborting.\n";
     exit(1);
   }
-  cout << "\tSorted stream length: " << amis1.stream_len() << '\n';
-  cout << "\tTime taken: " << timer << "\n";		
+  cout << "\tSorted stream length: " << ostr->stream_len() << '\n';
+  cout << "\tTime taken: " << timer << "\n";
   timer.reset();
 
   if (verbose)
@@ -239,7 +254,7 @@ int main(int argc, char **argv)
   if (report_results_sorted) {
     cout << "Writing sorted items in ASCII file " 
 	 << sorted_results_filename << " ..." << flush;
-    ae = AMI_scan(&amis1, rpts);
+    ae = AMI_scan(ostr, rpts);
     cout << "Done.\n";
     if (ae != AMI_ERROR_NO_ERROR) {
       cerr << "Error during writing of sorted ASCII file.\n";
@@ -267,9 +282,9 @@ int main(int argc, char **argv)
     cout << "Sorting input..." << flush;
     timer.start();  
     if (comparison_mode == COMPARISON_OPERATOR) {
-      ae = AMI_sort_V1(&amis0, &amis3);
+      ae = AMI_sort_V1(istr, &amis3);
     } else if (comparison_mode == COMPARISON_CLASS) {
-      ae = AMI_sort_V1(&amis0, &amis3, &int_cmp_obj);
+      ae = AMI_sort_V1(istr, &amis3, &int_cmp_obj);
     }
     timer.stop();
     cout << "Done.\n";
@@ -284,11 +299,13 @@ int main(int argc, char **argv)
     if (verbose)
       cout << "TPIE free memory: " << MM_manager.memory_available() << " bytes.\n";
 
-    ae = AMI_scan(&amis1, &amis3, &sd, &amisd);
+    ae = AMI_scan(ostr, &amis3, &sd, &amisd);
     
     cout << "Length of diff stream: " <<
       amisd.stream_len() << ".\n";
   }
+  delete istr;
+  delete ostr;
 
   return 0;
 }
