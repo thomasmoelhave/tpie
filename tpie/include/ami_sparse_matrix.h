@@ -4,10 +4,13 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 3/2/95
 //
-// $Id: ami_sparse_matrix.h,v 1.8 2000-11-08 16:22:38 hutchins Exp $
+// $Id: ami_sparse_matrix.h,v 1.9 2003-04-17 14:18:18 jan Exp $
 //
 #ifndef AMI_SPARSE_MATRIX_H
 #define AMI_SPARSE_MATRIX_H
+
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 #include <iostream.h>
 

@@ -2,10 +2,13 @@
 // File: ami_stream.h (formerly part of ami.h and ami_imps.h)
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 //
-// $Id: ami_stream.h,v 1.4 2002-02-02 18:12:48 tavi Exp $
+// $Id: ami_stream.h,v 1.5 2003-04-17 14:22:53 jan Exp $
 //
 #ifndef _AMI_STREAM_H
 #define _AMI_STREAM_H
+
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 #ifndef AMI_VIRTUAL_BASE
 #  define AMI_VIRTUAL_BASE 0
@@ -27,9 +30,8 @@
 // Get an implementation definition
 
 #if defined(AMI_IMP_SINGLE)
-#  warning The AMI_IMP_SINGLE flag is obsolete. \
-           Please use AMI_STREAM_IMP_SINGLE.
-#  warning Implicitly defining AMI_STREAM_IMP_SINGLE.
+	TPIE_OS_UNIX_ONLY_WARNING_AMI_IMP_SINGLE
+#else
 #  define AMI_STREAM_IMP_SINGLE
 #endif
 
