@@ -7,7 +7,7 @@
 // A scan management object to write a stream of random integers.
 //
 
-static char scan_random_id[] = "$Id: scan_random.cpp,v 1.3 1999-02-03 22:12:44 tavi Exp $";
+static char scan_random_id[] = "$Id: scan_random.cpp,v 1.4 1999-10-19 15:05:47 tavi Exp $";
 
 // Get information on the configuration to test.
 #include "app_config.h"
@@ -20,9 +20,9 @@ static char scan_random_id[] = "$Id: scan_random.cpp,v 1.3 1999-02-03 22:12:44 t
 scan_random::scan_random(unsigned int count, int seed) :
 max(count), remaining(count)
 {
-    LOG_INFO("scan_random seed = ");
-    LOG_INFO(seed);
-    LOG_INFO('\n');
+    LOG_DEBUG_INFO("scan_random seed = ");
+    LOG_DEBUG_INFO(seed);
+    LOG_DEBUG_INFO('\n');
 
     srandom(seed);
 }

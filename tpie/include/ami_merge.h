@@ -8,7 +8,7 @@
 // lower level streams will use appropriate levels of buffering.  This
 // will be more critical for parallel disk implementations.
 //
-// $Id: ami_merge.h,v 1.27 1999-07-06 02:59:22 rajiv Exp $
+// $Id: ami_merge.h,v 1.28 1999-10-19 15:05:23 tavi Exp $
 //
 #ifndef _AMI_MERGE_H
 #define _AMI_MERGE_H
@@ -493,11 +493,11 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
       }
       if (merge_arity > (arity_t)ami_available_streams - 2) {
 	merge_arity = ami_available_streams - 2;
-	LOG_INFO("Reduced merge arity due to AMI restrictions.\n");
+	LOG_DEBUG_INFO("Reduced merge arity due to AMI restrictions.\n");
       }
     }
   }
-  LOG_INFO("AMI_partition_and_merge(): merge arity = "<< merge_arity << ".\n");
+  LOG_DEBUG_INFO("AMI_partition_and_merge(): merge arity = "<< merge_arity << ".\n");
   if (merge_arity < 2) {
     return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
   }
@@ -644,7 +644,7 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
     
     if (substream_count <= merge_arity) {
       
-      LOG_INFO("Merging substreams directly to the output stream.\n");
+      LOG_DEBUG_INFO("Merging substreams directly to the output stream.\n");
       
       // Create all the substreams
       for (sub_start = 0, ii = 0 ;
@@ -690,7 +690,7 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
     } else {
       
       //substream_count  is >  merge_arity
-      LOG_INFO("Merging substreams to an intermediate stream.\n");
+      LOG_DEBUG_INFO("Merging substreams to an intermediate stream.\n");
       
       // Create the next intermediate stream.
       intermediate_tmp_stream = new AMI_STREAM<T>;
