@@ -1,77 +1,82 @@
 //
 // File:    test_ami_btree.cpp
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
-//
+// 
 // Test file for class AMI_btree.
 //
 
 #include <versions.h>
-VERSION(test_ami_btree_cpp, "$Id: test_ami_btree.cpp,v 1.7 2002-01-15 03:00:32 tavi Exp $");
+VERSION(test_ami_btree_cpp, "$Id: test_ami_btree.cpp,v 1.8 2002-01-25 23:24:10 tavi Exp $");
 
 #include <fstream>
-
+#include <functional>
 #include "app_config.h"
 #include <cpu_timer.h>
 #include <ami_btree.h>
 
 #define SIZE_OF_STRUCTURE 148
-#define TOTAL_INSERTS     50000
-#define TOTAL_SEARCHES    5000
 
-typedef long key_type;
+// Key type.
+typedef long bkey_t;
 
-struct structure {
-  key_type key_;
-  char data_[SIZE_OF_STRUCTURE - sizeof(key_type)];
-  structure(key_type k): key_(k) {}
-  structure() {}
+// Element type for the btree.
+struct el_t {
+  bkey_t key_;
+  char data_[SIZE_OF_STRUCTURE - sizeof(bkey_t)];
+  el_t(bkey_t k): key_(k) {}
+  el_t() {}
 };
 
-struct key_from_structure {
-  key_type operator()(const structure& v) const { return v.key_; }
+struct key_from_el {
+  bkey_t operator()(const el_t& v) const { return v.key_; }
 };
 
-#define AMI_BTREE_NODE_INT  AMI_btree_node<key_type, structure, less<key_type>, key_from_structure>
-#define AMI_BTREE_LEAF_INT  AMI_btree_leaf<key_type, structure, less<key_type>, key_from_structure>
-#define AMI_BTREE_INT  AMI_btree<key_type, structure, less<key_type>, key_from_structure>
+typedef AMI_btree_node<bkey_t,el_t,less<bkey_t>,key_from_el> btree_node_t;
+typedef AMI_btree_leaf<bkey_t,el_t,less<bkey_t>,key_from_el> btree_leaf_t;
+typedef AMI_btree<bkey_t,el_t,less<bkey_t>,key_from_el> btree_t;
+typedef AMI_STREAM<el_t> stream_t;
 
 // This is 2**31-1, the max value returned by random().
 #define MAX_RANDOM ((double)0x7fffffff)
 // This is the max value that we want.
-#define MAX_RANDOM_VALUE 1000000000
+#define MAX_VALUE 1000000000
 // The number of deletions to perform.
-#define DELETE_COUNT 100
+#define DELETE_COUNT 500
 
-size_t bulk_load_count = 1000000;
-size_t insert_count = 1000;
+// Global variables.
+size_t bulk_load_count;
+size_t insert_count = 5000;
 long range_search_lo = 0;
 long range_search_hi = 10000000;
 
 int main(int argc, char **argv) {
 
   int i;
-  structure s[DELETE_COUNT], ss;
+  el_t s[DELETE_COUNT], ss;
   cpu_timer wt;
+  btree_t *btree;
+  char *base_file = NULL;
 
   LOG_SET_THRESHOLD(TP_LOG_APP_DEBUG);
   MM_manager.set_memory_limit(32*1024*1024);
   MM_manager.enforce_memory_limit();
 
-  AMI_BTREE_INT *btree;
   if (argc > 1) {
     bulk_load_count = atol(argv[1]);
+    if (argc > 2)
+      base_file = argv[2];
   } else {
-    cerr << "Usage: " << argv[0] << " <point_count>\n";
+    cerr << "Usage: " << argv[0] << " <point_count> [base_file_name]\n";
     exit(1);
   }
 
   AMI_btree_params params;
   params.node_block_factor = 2;
   params.leaf_block_factor = 2;
-  params.node_cache_size = 80;
 
-  btree = new AMI_BTREE_INT(params);
-
+  btree = (base_file == NULL) ? new btree_t(params): 
+    new btree_t(base_file, AMI_WRITE_COLLECTION, params);
+  
   if (btree->status() == AMI_BTREE_STATUS_INVALID) {
     cerr << argv[0] << ": Error initializing AMI_btree. Aborting.\n";
     delete btree;
@@ -79,17 +84,17 @@ int main(int argc, char **argv) {
   }
 
   cout << "\n";
-  cout << "Element size: " << sizeof(structure) << " bytes. "
-       << "Key size: " << sizeof(key_type) << " bytes.\n";
+  cout << "Element size: " << sizeof(el_t) << " bytes. "
+       << "Key size: " << sizeof(bkey_t) << " bytes.\n";
   srandom(time(NULL));
 
   // Timing stream write.
   cout << "BEGIN Stream write\n";
-  AMI_STREAM<structure>* is = new AMI_STREAM<structure>;
+  stream_t* is = new stream_t;
   cout << "\tCreating stream with " << bulk_load_count << " random elements.\n";
   wt.start();
   for (size_t j = 0; j < bulk_load_count; j++) {
-    is->write_item(structure(long((random()/MAX_RANDOM) * MAX_RANDOM_VALUE)));
+    is->write_item(el_t(long((random()/MAX_RANDOM) * MAX_VALUE)));
   }
   wt.stop();
   cout << "END Stream write " << wt << "\n";
@@ -97,21 +102,25 @@ int main(int argc, char **argv) {
 
   // Testing Bulk loading.
   if (btree->size() == 0) {
-    cout << "BEGIN Load\n";
-    cout << "\tBulk loading from the stream created.\n";
+    cout << "BEGIN Bulk Load\n";
+    //    cout << "\tBulk loading from the stream created.\n";
+    cout << "\tSorting... " << flush;
     wt.start();
-    AMI_STREAM<structure> *os = new AMI_STREAM<structure>;
+    stream_t *os = new stream_t;
     if (btree->sort(is, os) != AMI_ERROR_NO_ERROR)
       cerr << argv[0] << ": Error during sort.\n";
     else {
-      cout << "\tSorted " << wt << "\n";
+      cout << "Done. " << wt << endl;
+      cout << "\tLoading... " << flush;
       if (btree->load_sorted(os) != AMI_ERROR_NO_ERROR)
 	cerr << argv[0] << ": Error during bulk loading.\n";
+      else
+	cout << "Done. " << endl;
     }
     os->persist(PERSIST_DELETE);
     delete os;
     wt.stop();
-    cout << "END Load " << wt << "\n";
+    cout << "END Bulk Load " << wt << "\n";
   }
 
   delete is;
@@ -127,9 +136,9 @@ int main(int argc, char **argv) {
   wt.start();
   for (i = 1; i <= insert_count; i++) {
     if (i <= DELETE_COUNT)
-      s[i-1] = ss = structure(i+100000);
+      s[i-1] = ss = el_t(i+100000);
     else
-      ss = structure(long((random()/MAX_RANDOM) * MAX_RANDOM_VALUE));
+      ss = el_t(long((random()/MAX_RANDOM) * MAX_VALUE));
     btree->insert(ss);
     if (i % (insert_count/10) == 0)
       cout << i << " " << flush;
@@ -147,7 +156,7 @@ int main(int argc, char **argv) {
   cout << "\tSearching with range [" << range_search_lo << ", " 
        << range_search_hi << "]\n";
 
-  AMI_STREAM<structure>* os = new AMI_STREAM<structure>;
+  stream_t* os = new stream_t;
   wt.start();
   btree->range_query(range_search_lo, range_search_hi, os);
   wt.stop();
@@ -157,11 +166,11 @@ int main(int argc, char **argv) {
 
   // Testing erase.
   cout << "BEGIN Delete\n";
-  cout << "\tDeleting " << key_from_structure()(s[0]) << " through " 
-       <<  key_from_structure()(s[DELETE_COUNT-1]) << ": \n";
+  cout << "\tDeleting " << key_from_el()(s[0]) << " through " 
+       <<  key_from_el()(s[DELETE_COUNT-1]) << ": \n";
   int j = 0;
   for (i = 0; i < DELETE_COUNT ; i++) {
-    if (btree->erase(key_from_structure()(s[i])))
+    if (btree->erase(key_from_el()(s[i])))
       j++;
   }
 
@@ -177,8 +186,8 @@ int main(int argc, char **argv) {
   else
     cout << ": not found. (OK)\n";
 
-  cout << "\tDeleting " <<  key_from_structure()(s[0]) << flush;
-  if (btree->erase(key_from_structure()(s[0])))
+  cout << "\tDeleting " <<  key_from_el()(s[0]) << flush;
+  if (btree->erase(key_from_el()(s[0])))
     cout << ": found. (Potential problem!)\n";
   else
     cout << ": not found. (OK)\n";
@@ -189,7 +198,6 @@ int main(int argc, char **argv) {
        << btree->height() << ".\n";
 
   tpie_stats_tree bts = btree->stats();
-  btree->persist(PERSIST_DELETE);
   delete btree;
   
   cout << "Block collection statistics (global):\n"
@@ -218,15 +226,15 @@ int main(int argc, char **argv) {
     ;
   cout << "Stream statistics (global):\n"
        << "\tREAD ITEM:    "
-       << AMI_STREAM<structure>::gstats().get(ITEM_READ) << endl
+       << stream_t::gstats().get(ITEM_READ) << endl
        << "\tWRITE ITEM:   "
-       << AMI_STREAM<structure>::gstats().get(ITEM_WRITE) << endl
+       << stream_t::gstats().get(ITEM_WRITE) << endl
        << "\tSEEK ITEM:    "
-       << AMI_STREAM<structure>::gstats().get(ITEM_SEEK) << endl
+       << stream_t::gstats().get(ITEM_SEEK) << endl
        << "\tREAD BLOCK:   "
-       << AMI_STREAM<structure>::gstats().get(BLOCK_READ) << endl
+       << stream_t::gstats().get(BLOCK_READ) << endl
        << "\tWRITE BLOCK:  "
-       << AMI_STREAM<structure>::gstats().get(BLOCK_WRITE) << endl
+       << stream_t::gstats().get(BLOCK_WRITE) << endl
     ;
 
   return 0;
