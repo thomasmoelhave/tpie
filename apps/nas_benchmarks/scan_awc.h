@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 3/23/95
 //
-// $Id: scan_awc.h,v 1.1 1995-06-20 20:34:26 darrenv Exp $
+// $Id: scan_awc.h,v 1.2 1997-05-20 22:11:24 vengroff Exp $
 //
 #ifndef _SCAN_AWC_H
 #define _SCAN_AWC_H
@@ -27,7 +27,7 @@ public:
     inline AMI_err operate(const T &in1, const T &in2, AMI_SCAN_FLAG *sfin,
                            T *out, AMI_SCAN_FLAG *sfout)
     {
-        if (*sfout = *sfin) {
+        if ((*sfout = *sfin)) {
             *out = in1 + c * in2;
             return AMI_SCAN_CONTINUE;
         } else {

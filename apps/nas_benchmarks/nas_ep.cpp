@@ -5,7 +5,7 @@
 // Created: 3/22/95
 //
 
-static char nas_ep_id[] = "$Id: nas_ep.cpp,v 1.3 1995-06-30 21:09:18 darrenv Exp $";
+static char nas_ep_id[] = "$Id: nas_ep.cpp,v 1.4 1997-05-20 22:09:12 vengroff Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -99,7 +99,7 @@ inline AMI_err scan_nas_psuedo_rand::operate(double *out, AMI_SCAN_FLAG *sf)
     register double b1, b2;
     register double t1, t2, t3, t4, t5;
 
-    if (*sf = remaining--) {
+    if ((*sf = remaining--)) {
         b1 = floor(TWO_TO_MINUS_23 * x);
         b2 = x - TWO_TO_23 * b1;
 

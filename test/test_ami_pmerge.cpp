@@ -6,7 +6,7 @@
 //
 // A test for AMI_partition_and_merge().
 
-static char test_ami_pmerge_id[] = "$Id: test_ami_pmerge.cpp,v 1.14 1995-06-30 21:09:44 darrenv Exp $";
+static char test_ami_pmerge_id[] = "$Id: test_ami_pmerge.cpp,v 1.15 1997-05-20 22:12:44 vengroff Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -132,7 +132,7 @@ size_t s_merge_manager::space_usage_per_stream(void)
 
 
 AMI_err s_merge_manager::operate(CONST int * CONST *in,
-                                       AMI_merge_flag *taken_flags,
+                                       AMI_merge_flag */*taken_flags*/,
                                        int &taken_index,
                                        int *out)
 {

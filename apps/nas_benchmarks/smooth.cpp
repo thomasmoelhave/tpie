@@ -5,7 +5,7 @@
 // Created: 3/29/95
 //
 
-static char smooth_id[] = "$Id: smooth.cpp,v 1.1 1995-04-03 13:19:17 dev Exp $";
+static char smooth_id[] = "$Id: smooth.cpp,v 1.2 1997-05-20 22:12:27 vengroff Exp $";
 
 
 
@@ -106,7 +106,7 @@ inline AMI_err scan_nas_psuedo_rand::operate(double *out, AMI_SCAN_FLAG *sf)
     register double b1, b2;
     register double t1, t2, t3, t4, t5;
 
-    if (*sf = remaining--) {
+    if ((*sf = remaining--)) {
         b1 = floor(TWO_TO_MINUS_23 * x);
         b2 = x - TWO_TO_23 * b1;
 

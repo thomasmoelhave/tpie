@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/6/94
 //
-// $Id: scan_square.h,v 1.1 1994-10-07 15:48:17 darrenv Exp $
+// $Id: scan_square.h,v 1.2 1997-05-20 22:12:00 vengroff Exp $
 //
 // A scan object to square numeric types.
 //
@@ -34,7 +34,7 @@ AMI_err scan_square<T>::operate(const T &in, AMI_SCAN_FLAG *sfin,
                                 T *out, AMI_SCAN_FLAG *sfout)
 {
     called++;
-    if (*sfout = *sfin) {
+    if ((*sfout = *sfin)) {
         ii = in;
         *out = in * in;
         return AMI_SCAN_CONTINUE;

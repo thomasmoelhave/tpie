@@ -5,7 +5,7 @@
 // Created: 3/6/95
 //
 
-static char scan_uniform_sm_id[] = "$Id: scan_uniform_sm.cpp,v 1.1 1995-03-07 15:13:43 darrenv Exp $";
+static char scan_uniform_sm_id[] = "$Id: scan_uniform_sm.cpp,v 1.2 1997-05-20 22:12:09 vengroff Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -54,7 +54,7 @@ AMI_err scan_uniform_sm::operate(AMI_sm_elem<double> *out, AMI_SCAN_FLAG *sf)
 {
     double dr = double(random() & 0xFFF) / double(0x1000);
 
-    if (*sf = (dr < d)) {
+    if ((*sf = (dr < d))) {
         out->er = r;
         out->ec = c;
         out->val = 1.0;

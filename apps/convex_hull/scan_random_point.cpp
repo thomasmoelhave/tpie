@@ -22,7 +22,7 @@
 // Mass Ave, Cambridge, MA 02139, USA.
 
 
-static char scan_random_point_id[] = "$Id: scan_random_point.cpp,v 1.2 1995-01-10 16:48:03 darrenv Exp $";
+static char scan_random_point_id[] = "$Id: scan_random_point.cpp,v 1.3 1997-05-20 22:11:46 vengroff Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -67,7 +67,7 @@ AMI_err scan_random_point::initialize(void)
 
 AMI_err scan_random_point::operate(point<int> *out1, AMI_SCAN_FLAG *sf)
 {
-    if (*sf = remaining--) {
+    if ((*sf = remaining--)) {
         do {
         out1->x = random() & 0xFFFF;
         out1->y = random() & 0xFFFF;

@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/6/94
 //
-// $Id: merge_interleave.h,v 1.1 1994-10-07 15:45:09 darrenv Exp $
+// $Id: merge_interleave.h,v 1.2 1997-05-20 22:08:13 vengroff Exp $
 //
 // A merge object to interleave two streams.
 //
@@ -39,7 +39,7 @@ public:
 
 template<class T>
 AMI_err merge_interleave<T>::initialize(arity_t arity, T **in,
-                                        AMI_merge_flag *taken_flags,
+                                        AMI_merge_flag */*taken_flags*/,
                                         int &taken_index)
 {
     called = 0;
@@ -69,7 +69,7 @@ AMI_err merge_interleave<T>::initialize(arity_t arity, T **in,
 
 template<class T>
 AMI_err merge_interleave<T>::operate(CONST T * CONST *in,
-                                     AMI_merge_flag *taken_flags,
+                                     AMI_merge_flag */*taken_flags*/,
                                      int &taken_index,
                                      T *out)
 {
@@ -146,7 +146,8 @@ AMI_err merge_interleave<T>::operate(CONST T * CONST *in,
 };
 
 template<class T>
-AMI_err merge_interleave<T>::main_mem_operate(T* mm_stream, size_t len) {
+AMI_err merge_interleave<T>::main_mem_operate(T* /*mm_stream*/,
+                                              size_t /*len*/) {
     return AMI_ERROR_NO_MAIN_MEMORY_OPERATION;
 };
 
