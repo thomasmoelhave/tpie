@@ -4,7 +4,7 @@
 //  Created:         05.11.1998
 //  Author:          Jan Vahrenhold
 //  mail:            jan@math.uni-muenster.de
-//  $Id: rstarnode.h,v 1.3 2004-08-12 12:37:24 jan Exp $
+//  $Id: rstarnode.h,v 1.4 2005-01-21 17:22:15 tavi Exp $
 //  Copyright (C) 1997-2001 by  
 // 
 //  Jan Vahrenhold
@@ -64,6 +64,12 @@ template<class coord_t, class BTECOLL = BTE_COLLECTION>
 class RStarNode: public AMI_block<rectangle<coord_t, AMI_bid>, _RStarNode_info, BTECOLL> {
 //. R-tree node
 public:
+
+  using AMI_block<rectangle<coord_t, AMI_bid>, _RStarNode_info, BTECOLL>::info;
+  using AMI_block<rectangle<coord_t, AMI_bid>, _RStarNode_info, BTECOLL>::el;
+  using AMI_block<rectangle<coord_t, AMI_bid>, _RStarNode_info, BTECOLL>::lk;
+  using AMI_block<rectangle<coord_t, AMI_bid>, _RStarNode_info, BTECOLL>::dirty;
+  using AMI_block<rectangle<coord_t, AMI_bid>, _RStarNode_info, BTECOLL>::bid;
 
   //- constructor, destructor
   RStarNode();
