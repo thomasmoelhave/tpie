@@ -1,69 +1,86 @@
-# Copyright (c) 1994 Darren Erik Vengroff
-
-# $Id: Makefile.in,v 1.30 2001-05-29 14:38:12 tavi Exp $
-
-# Makefile for TPIE libraries.
-
-# Use GNU make on this Makefile.  It relies on the default rules.
+# Makefile for TPIE library.
+# Use GNU make on this Makefile. It relies on the default rules.
 # Use (GNU) "make -p" to see the default rules.
-
-TPIEINC = ../../include
-
-LIBRARY = libtpie.a
-
-RANLIB = @RANLIB@
+# $Id: Makefile.in,v 1.31 2002-01-03 18:27:14 tavi Exp $
 
 ARFLAGS = rv
-
 CXX = @CXX@
+MAKEDEPEND = @CXX@ -M
+RANLIB = @RANLIB@
 
+# The directory containing the library header files.
+TPIEINC = ../../include
+# The name of the library.
+LIBRARY = libtpie.a
+# To compile with debugging symbols, set this to 1.
 MINUSG = 0
 
-# Set GCXX to 1 if we are using the GNU compiler, and 0 otherwise.
-
-GCXX = 0
-ifeq ($(firstword $(CXX)),g++)
-GCXX = 1
-endif
-ifeq ($(firstword $(CXX)),c++)
-GCXX = 1
-endif
+# CPPFLAGS is used by the default rules. Using "override" and "+="
+# allows the user to prepend things to CPPFLAGS on the command line.
+override CPPFLAGS += -DTPIE_LIBRARY -I$(TPIEINC)
+# These options are set by the configure script.
+override CPPFLAGS += @DEFS@
 
 ifeq ($(MINUSG),1)
 override CPPFLAGS += -g
 else
-override CPPFLAGS += -O3 -DNDEBUG
+override CPPFLAGS += -O3# -DNDEBUG 
 endif
 
-# Get the proper include path and DEFS from the configure script.
-override CPPFLAGS += -DTPIE_LIBRARY -I$(TPIEINC) @DEFS@
+# All sources must be listed here.
+SRC =	logstream.cpp \
+	tpie_log.cpp \
+	mm_register.cpp \
+	ami_device.cpp \
+	ami_single.cpp \
+	mm_base.cpp \
+	bte_mmb.cpp \
+	bte_stdio.cpp \
+	bte_ufs.cpp \
+	bit.cpp \
+	bit_matrix.cpp \
+	ami_matrix_blocks.cpp \
+	ami_bit_permute.cpp \
+	wall_timer.cpp \
+	cpu_timer.cpp \
+	bte_stats.cpp \
+	bte_mmb_stats.cpp	\
+	ami_key.cpp \
+	ami_optimized_merge.cpp \
+	bte_coll_base.cpp \
+	bte_coll_mmb.cpp \
+	bte_coll_ufs.cpp
 
-SRC =	logstream.cpp tpie_log.cpp mm_register.cpp ami_device.cpp	\
-	ami_single.cpp mm_base.cpp bte_mmb.cpp bte_stdio.cpp		\
-	bte_ufs.cpp bit.cpp bit_matrix.cpp				\
-	ami_matrix_blocks.cpp ami_bit_permute.cpp wall_timer.cpp	\
-	cpu_timer.cpp counter.cpp bte_stats.cpp bte_mmb_stats.cpp	\
-	ami_key.cpp ami_optimized_merge.cpp				\
-	bte_coll_base.cpp bte_coll_mmb.cpp bte_coll_ufs.cpp           
-
-OBJ = $(SRC:.cpp=.o)
+OBJ =	$(SRC:.cpp=.o)
 
 LIB_COMPONENTS = $(patsubst %.cpp,$(LIBRARY)(%.o),$(SRC))
 
 (%): %
 	$(AR) $(ARFLAGS) $@ $<
 
-%.d: %.cpp
-	$(SHELL) -ec '$(CXX) -M $(CPPFLAGS) $< | sed '\''s/$*.o/& $@/g'\'' > $@'
+# Public targets.
 
 all : $(LIBRARY)
 
-include $(SRC:.cpp=.d)
+depend: cleandepend 
+	$(MAKEDEPEND) $(CPPFLAGS) $(SRC) >> Makefile.depend
+
+clean: cleandepend
+	-rm -f $(OBJ) $(LIBRARY)
+
+distclean: clean
+
+# Private targets.
+
+cleandepend:
+	-rm -f Makefile.depend
 
 $(LIBRARY): $(LIB_COMPONENTS)
 
-.PHONY : clean all
+Makefile.depend: $(SRC)
+	rm -f Makefile.depend; \
+	$(MAKEDEPEND) $(CPPFLAGS) $(SRC) >> Makefile.depend
 
-clean:
-	-rm $(SRC:.cpp=.d) $(OBJ)
-	-rm $(LIBRARY)
+include Makefile.depend
+
+.PHONY : clean all depend cleandepend
