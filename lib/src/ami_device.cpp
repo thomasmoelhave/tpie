@@ -1,4 +1,3 @@
-// Copyright (c) 1993 Darren Erik Vengroff
 //
 // File: ami_device.cpp
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
@@ -6,7 +5,7 @@
 //
 
 #include "versions.h"
-VERSION(ami_device_cpp,"$Id: ami_device.cpp,v 1.9 2001-06-16 19:45:36 tavi Exp $");
+VERSION(ami_device_cpp,"$Id: ami_device.cpp,v 1.10 2002-01-14 17:24:40 tavi Exp $");
 
 #include "lib_config.h"
 
@@ -14,7 +13,7 @@ VERSION(ami_device_cpp,"$Id: ami_device.cpp,v 1.9 2001-06-16 19:45:36 tavi Exp $
 #include <stdlib.h>
 #include <string.h>
 
-#include <ami_base.h>
+#include <ami_err.h>
 #include <ami_device.h>
 
 
