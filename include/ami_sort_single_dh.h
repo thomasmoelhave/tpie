@@ -1,7 +1,7 @@
 //
 // File: ami_sort_single_dh.h
 //
-// $Id: ami_sort_single_dh.h,v 1.16 2004-10-15 15:33:24 jan Exp $
+// $Id: ami_sort_single_dh.h,v 1.17 2005-01-14 18:40:35 tavi Exp $
 //
 // This file contains the templated routines
 //     1) AMI_sort:
@@ -164,6 +164,10 @@ TPIE_OS_SIZE_T sort_manager<T,Q>::space_usage_overhead(void){
 template <class T, class Q>
 class sort_manager_op  : public sort_manager<T,Q>  {
 private:
+ protected:
+  using sort_manager<T,Q>::mmStream;
+  using sort_manager<T,Q>::mm_len;
+  
 public:
     sort_manager_op(void);    
     ~sort_manager_op(void);    
@@ -214,7 +218,7 @@ inline AMI_err sort_manager_op<T,Q>::main_mem_operate (
     //Sort the array.
    TP_LOG_DEBUG_ID("sort_manager_op.main_mem_operate: calling quick_sort_op" <<
 		 " for" << (TPIE_OS_LONGLONG)runSize << " items");
-    quick_sort_op ((T *) mmStream, runSize);
+    quick_sort_op<T> ((T *) mmStream, runSize);
 
    TP_LOG_DEBUG_ID("sort_manager_op.main_mem_operate: " << 
 		 "starting main_mem_operate write out");
@@ -242,6 +246,9 @@ template <class T, class Q, class CMPR>
 class sort_manager_obj   : public sort_manager<T,Q>  {
 private:
     CMPR         *cmp_o;
+ protected:
+    using sort_manager<T,Q>::mmStream;
+    using sort_manager<T,Q>::mm_len;
 public:
     sort_manager_obj(CMPR *cmp);
     ~sort_manager_obj(void);    
@@ -295,7 +302,7 @@ inline AMI_err sort_manager_obj<T,Q,CMPR>::main_mem_operate(AMI_STREAM <T>*inStr
     //Sort the array.
 
    TP_LOG_DEBUG_ID("sort_manager_obj.main_mem_operate: calling quick_sort_obj");
-    quick_sort_obj ((T *) mmStream, runSize, cmp_o);
+    quick_sort_obj<T> ((T *) mmStream, runSize, cmp_o);
 
    TP_LOG_DEBUG_ID("sort_manager_obj.main_mem_operate: starting write out");
     for (i = 0; i < runSize; i++) {
@@ -325,6 +332,10 @@ template <class T, class Q>
 class sort_manager_cmp   : public sort_manager<T,Q>  {
 private:
     int (*cmp_f)(CONST T&, CONST T&);
+ protected:
+    using sort_manager<T,Q>::mmStream;
+    using sort_manager<T,Q>::mm_len;
+
 public:
     Q              MergeHeap;
                    sort_manager_cmp (int (*cmp)(CONST T&, CONST T&));
@@ -359,8 +370,7 @@ inline AMI_err sort_manager_cmp<T,Q>::main_mem_operate(AMI_STREAM <T>*inStream, 
    AMI_err ae;
    T    *next_item;
 
-   LOG_DEBUG_ID("starting sort_manager_cmp.main_mem_operate. runSize is " << 
-                runSize );
+   TP_LOG_DEBUG_ID("starting sort_manager_cmp.main_mem_operate. runSize is " << runSize );
    tp_assert ( runSize <= mm_len, "memory load larger than buffer.");
 
    // Read a memory load out of the input stream one item at a time,
@@ -368,8 +378,7 @@ inline AMI_err sort_manager_cmp<T,Q>::main_mem_operate(AMI_STREAM <T>*inStream, 
 
    for (int i = 0; i < runSize; i++) {
       if ((ae=inStream->read_item (&next_item)) != AMI_ERROR_NO_ERROR) {
-         LOG_FATAL_ID ("sort_manager_cmp.main_mem_operate: read error " <<
-                       ae );
+         TP_LOG_FATAL_ID ("sort_manager_cmp.main_mem_operate: read error " << ae );
          return ae;
       }
       mmStream[i] = *next_item;
@@ -377,19 +386,18 @@ inline AMI_err sort_manager_cmp<T,Q>::main_mem_operate(AMI_STREAM <T>*inStream, 
 
    //Sort the array.
 
-   LOG_DEBUG_ID("sort_manager_cmp.main_mem_operate: calling quick_sort_cmp");
+   TP_LOG_DEBUG_ID("sort_manager_cmp.main_mem_operate: calling quick_sort_cmp");
    quick_sort_cmp ((T *) mmStream, runSize, cmp_f);
 
-   LOG_DEBUG_ID("sort_manager_cmp.main_mem_operate: starting write out");
+   TP_LOG_DEBUG_ID("sort_manager_cmp.main_mem_operate: starting write out");
    for (int i = 0; i < runSize; i++) {
       if ((ae = outStream->write_item (mmStream[i])) 
            != AMI_ERROR_NO_ERROR) {
-         LOG_FATAL_ID ("sort_manager_cmp.main_mem_operate: write error " <<
-                       ae );
+         TP_LOG_FATAL_ID ("sort_manager_cmp.main_mem_operate: write error " << ae );
          return ae;
       }
    }
-   LOG_DEBUG_ID("returning from sort_manager_cmp.main_mem_operate");
+   TP_LOG_DEBUG_ID("returning from sort_manager_cmp.main_mem_operate");
    return AMI_ERROR_NO_ERROR;
 }
 
@@ -412,8 +420,12 @@ template <class T, class Q, class KEY, class CMPR>
 class sort_manager_kobj  : public sort_manager<T,Q> {
 private:
     qsort_item<KEY> *qs_array;
-    //TPIE_OS_SIZE_T          item_overhead;
     CMPR            *UsrObject;             
+ protected:
+    using sort_manager<T,Q>::mmStream;
+    using sort_manager<T,Q>::mm_len;
+    using sort_manager<T,Q>::item_overhead;
+
 public:
     sort_manager_kobj(CMPR *);    
     ~sort_manager_kobj(void);    

@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/11/94
 //
-// $Id: bte_stream_stdio.h,v 1.12 2004-10-20 08:56:05 jan Exp $
+// $Id: bte_stream_stdio.h,v 1.13 2005-01-14 18:35:00 tavi Exp $
 //
 #ifndef _BTE_STREAM_STDIO_H
 #define _BTE_STREAM_STDIO_H
@@ -66,8 +66,23 @@ private:
   
   inline TPIE_OS_OFFSET file_off_to_item_off (TPIE_OS_OFFSET file_off) const;
   inline TPIE_OS_OFFSET item_off_to_file_off (TPIE_OS_OFFSET item_off) const;
+
+ protected:
+  using BTE_stream_base<T>::remaining_streams;
+  using BTE_stream_base<T>::gstats_;
+  using BTE_stream_base<T>::status_;
+  using BTE_stream_base<T>::stats_;
+  using BTE_stream_base<T>::substream_level;
+  using BTE_stream_base<T>::per;
+  using BTE_stream_base<T>::r_only;
   
  public:
+  using BTE_stream_base<T>::os_block_size;
+  using BTE_stream_base<T>::check_header;
+  using BTE_stream_base<T>::init_header;
+  using BTE_stream_base<T>::register_memory_allocation;
+  using BTE_stream_base<T>::register_memory_deallocation;
+  
   T read_tmp;
   
   // Constructors

@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 11/4/94
 //
-// $Id: matrix.h,v 1.10 2004-08-12 12:35:32 jan Exp $
+// $Id: matrix.h,v 1.11 2005-01-14 18:35:00 tavi Exp $
 //
 #ifndef MATRIX_H
 #define MATRIX_H
@@ -36,6 +36,7 @@ template<class T> class matrix_base
 {
 protected:
     TPIE_OS_SIZE_T r,c;
+
 public:
 #if HANDLE_EXCEPTIONS    
     // Exception class.
@@ -424,9 +425,13 @@ template<class T>
 class submatrix : public matrix_base<T>
 {
 private:
+  
     matrix_base<T> &m;
     TPIE_OS_SIZE_T r1,r2,c1,c2;
 public:
+  using matrix_base<T>::rows;
+  using matrix_base<T>::cols;
+
     // Construction/destruction.
     submatrix(matrix_base<T> &amatrix,
                  TPIE_OS_SIZE_T row1, TPIE_OS_SIZE_T row2,
@@ -502,10 +507,16 @@ T& submatrix<T>::elt(TPIE_OS_SIZE_T row, TPIE_OS_SIZE_T col) const
 template<class T>
 class matrix : public matrix_base<T> {
 private:
+  using matrix_base<T>::r;
+  using matrix_base<T>::c;
+  
     T *data;
 public:
+  using matrix_base<T>::rows;
+  using matrix_base<T>::cols;
+
     // Construction/destruction.
-    matrix(TPIE_OS_SIZE_T rows, TPIE_OS_SIZE_T cols);
+    matrix(TPIE_OS_SIZE_T arows, TPIE_OS_SIZE_T acols);
     matrix(const matrix<T> &rhs);
     matrix(const matrix_base<T> &rhs);
     matrix(const submatrix<T> &rhs);
@@ -543,13 +554,13 @@ public:
 
 
 template<class T>
-matrix<T>::matrix(TPIE_OS_SIZE_T rows, TPIE_OS_SIZE_T cols) :
-        matrix_base<T>(rows,cols)
+matrix<T>::matrix(TPIE_OS_SIZE_T arows, TPIE_OS_SIZE_T acols) :
+        matrix_base<T>(arows, acols)
 {
-    data = new T[rows * cols];
+    data = new T[arows * acols];
 
     // Initialize the contents of the matrix.
-    memset(data, 0, rows * cols * sizeof(T));
+    memset(data, 0, arows * acols * sizeof(T));
 }
 
 template<class T>

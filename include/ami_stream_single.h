@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/19/94
 //
-// $Id: ami_stream_single.h,v 1.11 2004-08-12 12:35:31 jan Exp $
+// $Id: ami_stream_single.h,v 1.12 2005-01-14 18:35:00 tavi Exp $
 //
 // AMI entry points implemented on top of a single BTE.  This is useful
 // for single CPU, single disk machines.
@@ -86,6 +86,8 @@ static AMI_stream_single_base_device_initializer one_ssbd_initializer_per_source
 template<class T> class AMI_stream_single : public AMI_stream_base<T>,
                                             public AMI_stream_single_base {
 private:
+  using AMI_stream_base<T>::status_;
+
   // Point to a base stream, since the particular type of BTE
   // stream we are using may vary.
   BTE_STREAM<T> *btes;

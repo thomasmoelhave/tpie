@@ -2,7 +2,7 @@
 // File: bte_stream_ufs.h (formerly bte_ufs.h)
 // Author: Rakesh Barve <rbarve@cs.duke.edu>
 //
-// $Id: bte_stream_ufs.h,v 1.14 2004-08-12 12:35:32 jan Exp $
+// $Id: bte_stream_ufs.h,v 1.15 2005-01-14 18:35:00 tavi Exp $
 //
 // BTE streams with blocks I/Oed using read()/write().  This particular
 // implementation explicitly manages blocks, and only ever maps in one
@@ -176,7 +176,23 @@ private:
     inline TPIE_OS_OFFSET item_off_to_file_off (TPIE_OS_OFFSET item_off) const;
     inline TPIE_OS_OFFSET file_off_to_item_off (TPIE_OS_OFFSET item_off) const;
 
-public:
+ protected:
+  using BTE_stream_base<T>::remaining_streams;
+  using BTE_stream_base<T>::gstats_;
+  using BTE_stream_base<T>::status_;
+  using BTE_stream_base<T>::stats_;
+  using BTE_stream_base<T>::substream_level;
+  using BTE_stream_base<T>::per;
+  using BTE_stream_base<T>::r_only;
+  
+ public:
+  using BTE_stream_base<T>::os_block_size;
+  using BTE_stream_base<T>::check_header;
+  using BTE_stream_base<T>::init_header;
+  using BTE_stream_base<T>::register_memory_allocation;
+  using BTE_stream_base<T>::register_memory_deallocation;
+
+ public:
     // Constructor.
     // [tavi 01/09/02] Careful with the lbf (logical block factor)
     // parameter. I introduced it in order to avoid errors when reading
