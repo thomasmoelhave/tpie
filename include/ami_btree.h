@@ -3,7 +3,7 @@
 // File:    ami_btree.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_btree.h,v 1.27 2003-09-12 01:42:44 jan Exp $
+// $Id: ami_btree.h,v 1.28 2003-09-12 15:47:16 jan Exp $
 //
 // AMI_btree declaration and implementation.
 //
@@ -170,7 +170,7 @@ public:
   // This method is inlined such as to comply with MSVC++ "requirements".
   template<class Filter>
   size_t range_query(const Key& k1, const Key& k2, 
-		     AMI_STREAM<Value>* s, const Filter& f)
+		     AMI_STREAM<Value>* s, const Filter& filter_through)
 {
 
   Key kmin = comp_(k1, k2) ? k1: k2;
@@ -178,7 +178,7 @@ public:
 
   // Find the leaf that might contain kmin.
   AMI_bid bid = find_leaf(kmin);
-  AMI_BTREE_LEAF *p = fetch_leaf(bid);
+  AMI_btree_leaf<Key, Value, Compare, KeyOfValue, BTECOLL> *p = fetch_leaf(bid);
   bool done = false;
   size_t result = 0;
 
@@ -227,7 +227,7 @@ public:
   if (bid != 0) {
     p = fetch_leaf(bid);
     AMI_bid pnbid = p->next();
-    AMI_BTREE_LEAF* pn;
+    AMI_btree_leaf<Key, Value, Compare, KeyOfValue, BTECOLL>* pn;
 
     while (pnbid != 0 && !done) {
       pn = fetch_leaf(pnbid);
@@ -1093,7 +1093,7 @@ void AMI_BTREE::shared_init(const char* base_file_name, AMI_collection_type type
   if (params_.leaf_size_max == 0 || params_.leaf_size_max > leaf_capacity)
     params_.leaf_size_max = leaf_capacity;
   if (params_.leaf_size_max == 1)
-    params_.leaf_size_max == 2;
+    params_.leaf_size_max = 2;
 
   if (params_.leaf_size_min == 0)
     params_.leaf_size_min = params_.leaf_size_max / 2;
@@ -1245,6 +1245,7 @@ AMI_err AMI_BTREE::unload(AMI_STREAM<Value>* s) {
     lbid = l->next();
     release_leaf(l);
   }
+  return err;
 }
 
 //// *AMI_btree::load* ////
@@ -1387,7 +1388,6 @@ template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL
 bool AMI_BTREE::pred(const Key& k, Value& v) {
 
   bool ans = false;
-  AMI_BTREE_NODE * pn;
   AMI_BTREE_LEAF * pl;
   AMI_bid bid;
   size_t idx;
@@ -1430,7 +1430,6 @@ template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL
 bool AMI_BTREE::succ(const Key& k, Value& v) {
 
   bool ans = false;
-  AMI_BTREE_NODE * pn;
   AMI_BTREE_LEAF * pl;
   AMI_bid bid;
   size_t idx;
