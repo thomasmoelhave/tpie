@@ -7,7 +7,7 @@
 
 
 
-static char mm_base_id[] = "$Id: mm_base.cpp,v 1.16 1999-09-21 21:45:49 hutchins Exp $";
+static char mm_base_id[] = "$Id: mm_base.cpp,v 1.17 2000-01-06 22:07:20 tavi Exp $";
 
 #include "lib_config.h"
 #include <mm_base.h>
@@ -60,8 +60,7 @@ void * operator new (size_t sz) {
     
     p = malloc(sz + SIZE_SPACE);
     if(!p) {
-      LOG_FATAL("Out of Memory");
-      LOG_FLUSH_LOG;
+      LOG_FATAL_ID("Out of Physical Memory.");
       perror("mm_base::new malloc");
       exit(1);
       //  return 0;
