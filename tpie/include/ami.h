@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/19/94
 //
-// $Id: ami.h,v 1.6 1994-10-13 17:00:27 darrenv Exp $
+// $Id: ami.h,v 1.7 1994-11-02 21:54:38 darrenv Exp $
 //
 #ifndef _AMI_H
 #define _AMI_H
@@ -19,6 +19,12 @@
 
 // The name of a tmp directory to use if the env variable is not set.
 #define TMP_DIR "/var/tmp"
+
+// A macro to instantiate all the templates for streams for a given
+// type of object.
+#define TEMPLATE_INSTANTIATE_STREAMS(T) \
+TEMPLATE_INSTANTIATE_AMI_STREAMS(T) \
+TEMPLATE_INSTANTIATE_BTE_STREAMS(T)
 
 // Get the base class, enums, etc...
 #include <ami_base.h>
@@ -37,6 +43,9 @@
 
 // Get templates for ami_sort().
 #include <ami_sort.h>
+
+// Get templates for general permutation.
+#include <ami_gen_perm.h>
 
 // Get templates for AMI_distribution_sweep().
 #include <ami_dist_sweep.h>
