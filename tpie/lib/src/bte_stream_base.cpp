@@ -5,11 +5,10 @@
 // Created: 01/08/02
 //
 
+#include "lib_config.h"
 #include <versions.h>
-VERSION(bte_stream_base_cpp,"$Id: bte_stream_base.cpp,v 1.2 2003-04-17 20:57:33 jan Exp $");
+VERSION(bte_stream_base_cpp,"$Id: bte_stream_base.cpp,v 1.3 2003-04-23 07:32:15 tavi Exp $");
 
-#include <config.h>
-//#include "lib_config.h"
 #include <bte_stream_base.h>
 
 static unsigned long get_remaining_streams() {
