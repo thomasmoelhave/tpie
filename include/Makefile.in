@@ -1,0 +1,32 @@
+# Copyright (c) 1994 Darren Erik Vengroff
+#
+# The Makefile for the TPIE include directory.
+#
+# $Id: Makefile.in,v 1.1 1994-05-25 19:32:28 dev Exp $
+#
+
+INDENT=gindent
+INDENTFLAGS= -kr
+
+CAT=cat
+CP=cp
+
+PERL=perl
+
+
+# Build the header file that will actually be used by using the
+# C preprocessor to expand all of the macros in the source file.
+
+ami_scan.h: ami_scan_mac.cpp ami_scan_mac.h ami_scan.h.head ami_scan.h.tail
+	$(CP) ami_scan.h.head $@
+	$(CXX) -E $< | $(INDENT) -st $(INDENTFLAGS) - | grep -v "^#" | \
+	    $(PERL) -e \
+	    'while (<>) { print "\n" if /template/; print if /.+/; }' >> $@
+	$(CAT) ami_scan.h.tail >> $@
+
+
+
+
+
+
+

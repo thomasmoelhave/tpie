@@ -1,0 +1,11 @@
+
+// END MECHANICALLY GENERATED CODE.
+
+// The following Id string applies to the tail used in the processs of
+// generating this file.  The tail, stored in ami_scan.h.tail, may be
+// edited if necessary.
+//
+// $Id: ami_scan.h.tail,v 1.1 1994-05-25 19:32:13 dev Exp $
+
+#endif // _AMI_SCAN_H 
+
