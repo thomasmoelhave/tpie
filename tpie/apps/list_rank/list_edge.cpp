@@ -6,7 +6,7 @@
 //
 
 #include <versions.h>
-VERSION(list_edge_cpp,"$Id: list_edge.cpp,v 1.3 2000-01-11 01:37:29 hutchins Exp $");
+VERSION(list_edge_cpp,"$Id: list_edge.cpp,v 1.4 2003-06-03 16:56:24 tavi Exp $");
 
 // A hack for now until const handling improves.
 #define CONST const
@@ -25,17 +25,17 @@ ostream& operator<<(ostream& s, const edge &e)
 // Helper functions used to compare to edges to sort them either by 
 // the node they are from or the node they are to.
 
-int edgefromcmp(CONST edge &s, CONST edge &t)
+int edgefromcmp::compare(CONST edge &s, CONST edge &t)
 {
     return (s.from < t.from) ? -1 : ((s.from > t.from) ? 1 : 0);
 }
   
-int edgetocmp(CONST edge &s, CONST edge &t)
+int edgetocmp::compare(CONST edge &s, CONST edge &t)
 {
     return (s.to < t.to) ? -1 : ((s.to > t.to) ? 1 : 0);
 }
 
-int edgeweightcmp(CONST edge &s, CONST edge &t)
+int edgeweightcmp::compare(CONST edge &s, CONST edge &t)
 {
     return (s.weight < t.weight) ? -1 : ((s.weight > t.weight) ? 1 : 0);
 }
