@@ -1,39 +1,43 @@
-// Copyright (c) 1995 Darren Vengroff
 //
 // File: cpu_timer.h
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 1/11/95
 //
-// $Id: cpu_timer.h,v 1.2 1995-03-25 14:08:33 darrenv Exp $
+// $Id: cpu_timer.h,v 1.3 2002-01-03 20:20:51 tavi Exp $
+//
+// A timer measuring user time, system time and wall clock time.  The
+// timer can be start()'ed, stop()'ed, and queried. Querying can be
+// done without stopping the timer, to report intermediate values.
 //
 #ifndef _CPU_TIMER_H
 #define _CPU_TIMER_H
 
 #include <sys/times.h>
-
 #include <ostream.h>
-
 #include <timer.h>
 
-class cpu_timer : public timer
-{
+class cpu_timer : public timer {
 private:
-    long clock_tick;
-    tms last_sync;
-    tms elapsed;
-    clock_t last_sync_real;
-    clock_t elapsed_real;
-    bool running;
+  long clock_tick;
+  tms last_sync;
+  tms elapsed;
+  clock_t last_sync_real;
+  clock_t elapsed_real;
+  bool running;
 public:
-    cpu_timer();
-    virtual ~cpu_timer();
-    
-    void start();
-    void stop();
-    void sync();
-    void reset();
+  cpu_timer();
+  virtual ~cpu_timer();
+  
+  void start();
+  void stop();
+  void sync();
+  void reset();
 
-    friend ostream &operator<<(ostream &s, cpu_timer &ct);
+  double user_time();
+  double system_time();
+  double wall_time();
+  
+  friend ostream &operator<<(ostream &s, cpu_timer &ct);
 };
 
 ostream &operator<<(ostream &s, cpu_timer &ct);

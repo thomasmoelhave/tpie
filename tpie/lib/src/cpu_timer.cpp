@@ -6,7 +6,7 @@
 //
 
 #include <versions.h>
-VERSION(cpu_timer_cpp,"$Id: cpu_timer.cpp,v 1.3 2000-01-10 22:32:26 hutchins Exp $");
+VERSION(cpu_timer_cpp,"$Id: cpu_timer.cpp,v 1.4 2002-01-03 20:21:54 tavi Exp $");
 
 #include <unistd.h>
 #include <sys/times.h>
@@ -78,6 +78,21 @@ void cpu_timer::reset()
     elapsed.tms_cstime = 0;
 
     elapsed_real = 0;
+}
+
+double cpu_timer::user_time() {
+  if (running) sync();
+  return double(elapsed.tms_utime) / double(clock_tick);
+}
+
+double cpu_timer::system_time() {
+  if (running) sync();
+  return double(elapsed.tms_stime) / double(clock_tick);
+}
+
+double cpu_timer::wall_time() {
+  if (running) sync();
+  return double(elapsed_real) / double(clock_tick);
 }
 
 ostream &operator<<(ostream &s, cpu_timer &wt)
