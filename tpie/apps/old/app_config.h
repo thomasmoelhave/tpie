@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/6/94
 //
-// $Id: app_config.h,v 1.19 1999-06-29 19:58:34 large Exp $
+// $Id: app_config.h,v 1.20 2001-05-17 19:54:51 tavi Exp $
 //
 #ifndef _APP_CONFIG_H
 #define _APP_CONFIG_H
@@ -16,6 +16,14 @@
 /*                      developer use                                     */
 /* ********************************************************************** */
 
+
+/* ********************************************************************** */
+/*                  choose default BTE collection implementation          */
+/* ********************************************************************** */
+
+/* One of BTE_COLLECTION_IMP_MMB and BTE_COLLECTION_IMP_UFS. */
+#define BTE_COLLECTION_IMP_MMB
+//#define BTE_COLLECTION_IMP_UFS
 
 /* ********************************************************************** */
 /*                       choose BTE                                       */
@@ -33,7 +41,7 @@
 
 
 /* ********************************************************************** */
-/* BTE_MMB configuration options */
+/*                      BTE_MMB configuration options                     */
 /* ********************************************************************** */
 #ifdef BTE_IMP_MMB
 
@@ -127,13 +135,8 @@ extern int random_seed;
 // Enable assertions if requested.
 #if TP_ASSERT_APPS
 #define DEBUG_ASSERTIONS 1
-#define DEBUG_CERR 1
-#define DEBUG_STR 1
 #endif
 #include <tpie_assert.h>
 /********************************************************************/
 
-
 #endif
-
-
