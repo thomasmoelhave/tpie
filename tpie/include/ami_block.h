@@ -5,7 +5,7 @@
 //
 // Definition and implementation of the AMI_block class.
 //
-// $Id: ami_block.h,v 1.8 2005-01-14 19:15:49 tavi Exp $
+// $Id: ami_block.h,v 1.9 2005-01-21 17:29:26 tavi Exp $
 //
 
 #ifndef _AMI_BLOCK_H
@@ -30,6 +30,8 @@ class AMI_block: public AMI_block_base<BTECOLL> {
   using AMI_block_base<BTECOLL>::pcoll_;
   
   public:
+  using AMI_block_base<BTECOLL>::bid;
+  
   //  typedef typename BTECOLL::block_id_t id_t;
 
   // The array of links.
@@ -73,8 +75,8 @@ size_t AMI_block<E,I,BTECOLL>::el_capacity(size_t block_size, size_t links) {
 
 template<class E, class I, class BTECOLL>
 AMI_block<E,I,BTECOLL>::AMI_block(AMI_collection_single<BTECOLL>* pacoll, 
-		  size_t links, AMI_bid bid):
-  AMI_block_base<BTECOLL>(pacoll, bid), 
+		  size_t links, AMI_bid _bid):
+  AMI_block_base<BTECOLL>(pacoll, _bid), 
   lk((AMI_bid*)pdata_, links),
   el((E*) ((char*) pdata_ + links * sizeof(AMI_bid)), 
      el_capacity(pcoll_->block_size(), links))
