@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 9/28/94
 //
-// $Id: ami_sort_single.h,v 1.14 2000-01-20 16:28:11 hutchins Exp $
+// $Id: ami_sort_single.h,v 1.15 2000-08-14 23:28:11 hutchins Exp $
 //
 // Merge sorting for the AMI_IMP_SINGLE implementation.
 // 
@@ -401,7 +401,7 @@ AMI_err merge_sort_manager_cmp<T,Q>::initialize(arity_t arity, CONST T * CONST *
 // type T, an output stream, and a user-specified comparison function
 
 template<class T>
-AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
+AMI_err AMI_sort_V1(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
                  int (*cmp)(CONST T&, CONST T&))
 {
     merge_sort_manager_cmp<T,pqueue_heap_cmp<arity_t,T> > msm(cmp);
@@ -414,7 +414,7 @@ AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
 // T, and an output stream, and and uses the < operator to sort
 
 template<class T>
-AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream)
+AMI_err AMI_sort_V1(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream)
 {
     merge_sort_manager_op<T,pqueue_heap_op<arity_t,T> > msm;
 
@@ -429,7 +429,7 @@ AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream)
 // which is used for sorting the input stream.
 
 template<class T, class CMPR>
-AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
+AMI_err AMI_sort_V1(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
                  CMPR *cmp)
 {
     merge_sort_manager_obj<T,pqueue_heap_obj<arity_t,T,CMPR>,CMPR > msm(cmp);
