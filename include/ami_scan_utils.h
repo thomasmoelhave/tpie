@@ -4,12 +4,12 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 8/31/94
 //
-// $Id: ami_scan_utils.h,v 1.6 2003-04-17 13:57:10 jan Exp $
+// $Id: ami_scan_utils.h,v 1.7 2003-04-20 08:08:04 tavi Exp $
 //
 #ifndef _AMI_SCAN_UTILS_H
 #define _AMI_SCAN_UTILS_H
 
-#include <iostream.h>
+#include <iostream>
 
 // Get definitions for working with Unix and Windows
 #include <portability.h>
