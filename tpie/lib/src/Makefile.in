@@ -1,6 +1,6 @@
 # Copyright (c) 1994 Darren Erik Vengroff
 
-# $Id: Makefile.in,v 1.24 1999-06-18 18:35:07 rajiv Exp $
+# $Id: Makefile.in,v 1.25 1999-11-08 21:12:39 hutchins Exp $
 
 # Makefile for TPIE libraries.
 
@@ -28,7 +28,7 @@ GCXX = 1
 endif
 
 # This is library code.
-override CPPFLAGS += -DTPIE_LIBRARY
+override CPPFLAGS += -DTPIE_LIBRARY -O3
 
 # Get the proper include path and DEFS from the configure script.
 override CPPFLAGS += -I$(TPIEINC) @DEFS@
