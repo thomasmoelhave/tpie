@@ -15,7 +15,7 @@
 // a quicksort using only keys of the items; there is a provision to 
 // to use templated heaps to implement the merge.
 
-// 	$Id: ami_optimized_merge.h,v 1.6 1999-02-10 00:38:16 rbarve Exp $	
+// 	$Id: ami_optimized_merge.h,v 1.7 1999-02-10 06:44:49 rbarve Exp $	
 //TO DO: substream_count setting; don't depend on current_stream_len
 
 #ifndef _OPT_AMI_MERGE_H
@@ -214,7 +214,8 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
                                                  return ae;
            }
 
-           delete mm_stream;
+		  if (mm_stream) {delete mm_stream; mm_stream = NULL;}
+
     } else {
 
         // The number of substreams that the original input stream
@@ -609,7 +610,13 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
                 // since we can generate their names
 
 
-              delete initial_tmp_stream[current_stream];
+              if (initial_tmp_stream[current_stream])
+                      { 
+
+                        delete initial_tmp_stream[current_stream];
+                        initial_tmp_stream[current_stream] = NULL;
+
+                      }
 
               if (check_size < instream->stream_len())  {
                             
@@ -655,9 +662,14 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
 
         }
 
+        if (initial_tmp_stream[current_stream])
+                      { 
+                        delete initial_tmp_stream[current_stream];
+                        initial_tmp_stream[current_stream] = NULL;
+                      }
 
-        delete initial_tmp_stream[current_stream]; 
-        if (mm_stream) delete  mm_stream;
+        
+        if (mm_stream) { delete  mm_stream; mm_stream = NULL;}
         
 
 	   
@@ -675,9 +687,8 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
         // main loop.
 
 
-        instream->persist(PERSIST_PERSISTENT);
-	   //ATTENTION: You were deleting this, but you shdnt be.
-        //delete instream;
+        //instream->persist(PERSIST_PERSISTENT);
+	   //delete instream;
 
 
 
@@ -807,14 +818,20 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
                      ii < merge_arity; 
                      ii++) {
 
-                   delete current_input[ii];
+                   if (current_input[ii]) {
+                       delete current_input[ii];
+                       current_input[ii] = NULL;
+			    }
 
 
                 }
 
-                delete[] current_input;
-                delete[] the_substreams;
-
+                if (current_input) {delete[] current_input; 
+			                     current_input = NULL;}
+                if (the_substreams) {
+                                    delete[] the_substreams;
+                                    the_substreams = NULL;
+							   }
             } else {
 
                LOG_INFO("Merging substreams to intermediate streams.\n");
@@ -1082,7 +1099,9 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
 
 
                   for (jj++; jj--; ) {
+				if (the_substreams[merge_arity-1-jj]){
                           delete the_substreams[merge_arity-1-jj];
+                          the_substreams[merge_arity-1-jj] = NULL;}
                           }
 
 
@@ -1101,8 +1120,9 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
 
                 }
 
-                delete intermediate_tmp_stream[current_stream];
-
+                if (intermediate_tmp_stream[current_stream])
+                      { delete intermediate_tmp_stream[current_stream];
+				  intermediate_tmp_stream[current_stream] = NULL;}
 
                 
 
@@ -1110,8 +1130,14 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
 			 //output at the current level.
 //RAKESH
 
-                for (ii = 0; ii < merge_arity; ii++) delete current_input[ii];
-                delete[] current_input;   
+                for (ii = 0; ii < merge_arity; ii++) 
+			   if (current_input[ii]){
+                        delete current_input[ii];
+			   }
+                if (current_input) {
+                   delete[] current_input;   
+                   current_input = NULL;
+			 }
 
                 current_input = (AMI_STREAM<T> **) intermediate_tmp_stream;
             	    
@@ -1215,7 +1241,8 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
                                      != AMI_ERROR_NO_ERROR)
                                                  return ae;
            }
-           delete mm_stream;
+           if (mm_stream) { delete mm_stream;
+		                  mm_stream = NULL;}
 		}
          else
          {
@@ -1241,8 +1268,8 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
                                            != AMI_ERROR_NO_ERROR)
                                            return ae;
             }
-          delete mm_stream;
-          delete qs_array;
+          if (mm_stream) { delete mm_stream; mm_stream = NULL;}
+          if (qs_array) { delete qs_array; qs_array = NULL;}
 	    }
           
           return AMI_ERROR_NO_ERROR;
@@ -1649,7 +1676,9 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
                 // occuping memory. We know how to get the streams
                 // since we can generate their names
 
-              delete initial_tmp_stream[current_stream];
+              if (initial_tmp_stream[current_stream])
+                    { delete initial_tmp_stream[current_stream];
+				initial_tmp_stream[current_stream] = NULL;}
 
               if (check_size < instream->stream_len())  {
                             
@@ -1696,9 +1725,11 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
         }
 
 
-        delete initial_tmp_stream[current_stream]; 
-        if (mm_stream) delete  mm_stream;
-        if (qs_array) delete qs_array;
+        if (initial_tmp_stream[current_stream]) 
+                     { delete initial_tmp_stream[current_stream];
+				 initial_tmp_stream[current_stream] = NULL;}
+        if (mm_stream) { delete  mm_stream; mm_stream = NULL;}
+        if (qs_array) { delete qs_array; qs_array = NULL;}
 
         // Make sure the total length of the temporary stream is the
         // same as the total length of the original input stream.
@@ -1714,7 +1745,7 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
         // main loop.
 
 
-        instream->persist(PERSIST_PERSISTENT);
+        //instream->persist(PERSIST_PERSISTENT);
 	   //ATTENTION: You were deleting this, but you shdnt be.
         //delete instream;
 
@@ -1847,14 +1878,15 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
                 for (ii = merge_arity - substream_count; 
                      ii < merge_arity; 
                      ii++) {
-
+			   if (current_input[ii]) {
                    delete current_input[ii];
-
+                   current_input[ii] = NULL;}
 
                 }
 
-                delete[] current_input;
-                delete[] the_substreams;
+                if (current_input) {delete[] current_input; current_input = NULL;}
+
+                if (the_substreams) { delete[] the_substreams; the_susbtreams = NULL;}
 
                 
             } else {
@@ -2127,7 +2159,10 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
 
 
                   for (jj++; jj--; ) {
-                          delete the_substreams[merge_arity-1-jj];
+                          if (the_substreams[merge_arity-1-jj])
+					   {
+                             delete the_substreams[merge_arity-1-jj];
+                             the_substreams[merge_arity-1-jj] = NULL;}
                           }
 
                         // Now jj should be -1 so that it gets bumped
@@ -2144,8 +2179,9 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
 
                 }
 
-                delete intermediate_tmp_stream[current_stream];
-
+                if (intermediate_tmp_stream[current_stream])
+                       {delete intermediate_tmp_stream[current_stream];
+				   intermediate_tmp_stream[current_stream] = NULL;}
 
                 
 
@@ -2153,9 +2189,11 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
 			 //output at the current level.
 //RAKESH
 
-                for (ii = 0; ii < merge_arity; ii++) delete current_input[ii];
-                delete[] current_input;   
-
+                for (ii = 0; ii < merge_arity; ii++) 
+                          if (current_input[ii]) delete current_input[ii];
+ 
+                if (current_input)  {delete[] current_input; current_input = NULL;}   
+                    
                 current_input = (AMI_STREAM<T> **) intermediate_tmp_stream;
             	    
             }
@@ -2239,7 +2277,7 @@ AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
                                      != AMI_ERROR_NO_ERROR)
                                                  return ae;
            }
-           delete mm_stream;
+		  if (mm_stream) { delete mm_stream; mm_stream = NULL;}
 		}
          else
          {
@@ -2266,8 +2304,8 @@ AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
                                            != AMI_ERROR_NO_ERROR)
                                            return ae;
             }
-          delete mm_stream;
-          delete qs_array;
+          if (mm_stream) { delete mm_stream; mm_stream = NULL;}
+          if (qs_array) { delete qs_array; qs_array = NULL;}
           }
           
           return AMI_ERROR_NO_ERROR;
@@ -2594,7 +2632,7 @@ AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
         // main loop.
 
         //instream->persist(PERSIST_PERSISTENT);
-	   // delete instream;
+	   //delete instream;
 
 
         current_input = new (AMI_STREAM<T> *)[merge_arity]; 
@@ -2693,7 +2731,7 @@ AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
 
                 for (ii = merge_arity - run_count; ii < merge_arity; ii++) {
 
-                   delete current_input[ii];
+                   if (current_input[ii]) delete current_input[ii];
 
                 }
 
@@ -2702,8 +2740,10 @@ AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
 
 
 
-                 delete[] current_input;
-                 delete[] the_substreams;
+			 if (current_input) 
+                  {delete[] current_input; current_input = NULL;} 
+                if (the_substreams)
+			   {delete[] the_substreams; the_substreams = NULL;}
                 
 
                 run_count = 1;
@@ -3011,7 +3051,9 @@ AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
                         // idiomatic loop.
 
                          for (jj++; jj--; ) {
-                          delete the_substreams[jj];
+                          if ( the_substreams[jj]) 
+                                { delete the_substreams[jj];
+						  the_substreams[jj] = NULL;}
                           }
 
                         // Now jj should be -1 so that it gets bumped
@@ -3035,16 +3077,22 @@ AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
 
                 }
 
-                delete intermediate_tmp_stream[current_stream];
-
+                if (intermediate_tmp_stream[current_stream])
+                     { delete intermediate_tmp_stream[current_stream];
+                       intermediate_tmp_stream[current_stream]=NULL;
+                     }
+ 
               // Get rid of the current input stream and use the next one.
 
                 for (ii = 0; ii < merge_arity; ii++) { 
+                                     if ( current_input[ii])
                                                 delete current_input[ii];
                                                 }
 
-                delete[] current_input;
+                if (current_input) 
+			   { delete[] current_input; current_input = NULL;}
 
+               
                 current_input = (AMI_STREAM<T> **) intermediate_tmp_stream;
 
                 run_count = next_level_run_count;
