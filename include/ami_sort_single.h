@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 9/28/94
 //
-// $Id: ami_sort_single.h,v 1.4 1994-10-31 21:13:26 darrenv Exp $
+// $Id: ami_sort_single.h,v 1.5 1994-11-02 22:01:09 darrenv Exp $
 //
 // Merge sorting for the AMI_IMP_SINGLE implementation.
 //
@@ -20,6 +20,8 @@
 
 
 #include <pqueue_heap.h>
+
+#include <ami_merge.h>
 
 // A class of merge objects for merge sorting objects of type T.  We
 // will actually use one of two subclasses of this class which use
@@ -162,7 +164,7 @@ AMI_err merge_sort_manager<T>::operate(CONST T * CONST *in,
 template <class T>
 class merge_sort_manager_op : public merge_sort_manager<T> {
 private:
-    pqueue_heap<arity_t,T> *new_pqueue(void);
+    pqueue_heap<arity_t,T> *new_pqueue(arity_t arity);
 public:
     merge_sort_manager_op(void);    
     virtual ~merge_sort_manager_op(void);    
@@ -184,9 +186,8 @@ public:
 
 
 template<class T>
-merge_sort_manager_op<T>::merge_sort_manager(void)
+merge_sort_manager_op<T>::merge_sort_manager_op(void)
 {
-    cmp_f = NULL;
     pq = NULL;
 }
 
@@ -259,19 +260,44 @@ AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
 {
     merge_sort_manager_cmp<T> msm(cmp);
 
-    return AMI_partition_and_merge(instream, outstream, &msm);
+    return AMI_partition_and_merge(instream, outstream,
+                                   (AMI_merge_base<T> *)&msm);
 }
 
 
 template<class T>
 AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream)
 {
-    merge_sort_manager_op<T> msm();
+    merge_sort_manager_op<T> msm;
 
-    return AMI_partition_and_merge(instream, outstream, &msm);
+    return AMI_partition_and_merge(instream, outstream,
+                                   (AMI_merge_base<T> *)&msm);
 }
 
 
+#ifdef NO_IMPLICIT_TEMPLATES
+
+#define TEMPLATE_INSTANTIATE_SORT_SINGLE_IMP_CMP(T)			\
+TEMPLATE_INSTANTIATE_MERGE(T)						\
+TEMPLATE_INSTANTIATE_QUICKER_SORT_CMP(T)				\
+TEMPLATE_INSTANTIATE_PQUEUE_HEAP_CMP(arity_t,T)				\
+template class merge_sort_manager<T>;					\
+template class merge_sort_manager_cmp<T>;				\
+template class pqueue_heap<arity_t,T>;					\
+template class pqueue_heap_cmp<arity_t,T>;
+
+#define TEMPLATE_INSTANTIATE_SORT_SINGLE_IMP_OP(T)			\
+TEMPLATE_INSTANTIATE_MERGE(T)						\
+TEMPLATE_INSTANTIATE_QUICKER_SORT_OP(T) 				\
+TEMPLATE_INSTANTIATE_PQUEUE_HEAP_OP(arity_t,T)				\
+template class merge_sort_manager<T>;					\
+template class merge_sort_manager_op<T>;				\
+template class pqueue_heap<arity_t,T>;					\
+template class pqueue_heap_op<arity_t,T>;
+
+#endif
+
+                              
 #endif // _AMI_SORT_SINGLE_H 
 
 

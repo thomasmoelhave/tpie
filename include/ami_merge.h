@@ -8,7 +8,7 @@
 // lower level streams will use appropriate levels of buffering.  This
 // will be more critical for parallel disk implementations.
 //
-// $Id: ami_merge.h,v 1.9 1994-10-31 21:10:49 darrenv Exp $
+// $Id: ami_merge.h,v 1.10 1994-11-02 21:55:40 darrenv Exp $
 //
 #ifndef _AMI_MERGE_H
 #define _AMI_MERGE_H
@@ -106,8 +106,8 @@ static AMI_err AMI_recursive_merge(pp_AMI_bs<T> instreams, arity_t arity,
 
 
 template<class T, class M>
-static AMI_err AMI_single_merge(pp_AMI_bs<T> instreams, arity_t arity,
-                                AMI_base_stream<T> *outstream, M *m_obj)
+AMI_err AMI_single_merge(pp_AMI_bs<T> instreams, arity_t arity,
+                         AMI_base_stream<T> *outstream, M *m_obj)
 {
     unsigned int ii;
     AMI_err ami_err;
@@ -273,8 +273,8 @@ AMI_err AMI_merge(pp_AMI_bs<T> instreams, arity_t arity,
 
 
 template<class T, class M>
-static AMI_err AMI_main_mem_merge(AMI_STREAM<T> *instream,
-                                  AMI_STREAM<T> *outstream, M *m_obj) 
+AMI_err AMI_main_mem_merge(AMI_STREAM<T> *instream,
+                           AMI_STREAM<T> *outstream, M *m_obj) 
 {
     AMI_err ae;
     off_t len;
@@ -849,5 +849,24 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
         return AMI_ERROR_NO_ERROR;
     }
 }
+
+
+#ifdef NO_IMPLICIT_TEMPLATES
+
+#define TEMPLATE_INSTANTIATE_MERGE(T)					\
+template class AMI_merge_base<T>;					\
+template class pp_AMI_bs<T>;						\
+template AMI_err AMI_partition_and_merge(AMI_STREAM<T> *,		\
+                                         AMI_STREAM<T> *,		\
+                                         AMI_merge_base<T> *);		\
+template AMI_err AMI_single_merge(pp_AMI_bs<T> instreams,		\
+                                  arity_t arity,			\
+                                  AMI_base_stream<T> *outstream,	\
+                                  AMI_merge_base<T> *m_obj);		\
+template AMI_err AMI_main_mem_merge(AMI_STREAM<T> *instream,		\
+                                    AMI_STREAM<T> *outstream,		\
+                                    AMI_merge_base<T> *m_obj);
+
+#endif
 
 #endif
