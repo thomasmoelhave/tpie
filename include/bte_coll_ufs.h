@@ -2,7 +2,7 @@
 // File:    bte_coll_ufs.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: bte_coll_ufs.h,v 1.11 2004-08-12 12:35:31 jan Exp $
+// $Id: bte_coll_ufs.h,v 1.12 2005-01-14 18:58:32 tavi Exp $
 //
 // BTE_collection_ufs class definition.
 //
@@ -19,7 +19,27 @@
 
 template<class BIDT = TPIE_BLOCK_ID_TYPE>
 class BTE_collection_ufs: public BTE_collection_base<BIDT> {
-public:
+  protected:
+  using BTE_collection_base<BIDT>::header_;
+  using BTE_collection_base<BIDT>::freeblock_stack_;
+  using BTE_collection_base<BIDT>::bcc_fd_;
+  using BTE_collection_base<BIDT>::per_;
+  using BTE_collection_base<BIDT>::os_block_size_;
+  using BTE_collection_base<BIDT>::base_file_name_;
+  using BTE_collection_base<BIDT>::status_;
+  using BTE_collection_base<BIDT>::read_only_;
+  using BTE_collection_base<BIDT>::in_memory_blocks_;
+  using BTE_collection_base<BIDT>::file_pointer;
+  using BTE_collection_base<BIDT>::stats_;
+  using BTE_collection_base<BIDT>::gstats_;
+  using BTE_collection_base<BIDT>::register_memory_allocation;
+  using BTE_collection_base<BIDT>::register_memory_deallocation;
+  using BTE_collection_base<BIDT>::bid_to_file_offset;
+  using BTE_collection_base<BIDT>::create_stack;
+  using BTE_collection_base<BIDT>::new_block_getid;
+  using BTE_collection_base<BIDT>::delete_block_shared;
+
+  public:
 
   // Constructors.
   BTE_collection_ufs(const char *base_file_name,
