@@ -1,25 +1,25 @@
 %%
-%% $Id: applications.tex,v 1.9 2000-10-05 19:28:29 hutchins Exp $
+%% $Id: applications.tex,v 1.10 2003-11-27 19:55:53 jan Exp $
 %%
 \chapter{Test and Sample Applications}
 
 \section{General Structure and Operation}
 
 The test and sample applications distributed with TPIE are in the
-\myverb{test} directory.  The test programs are designed primarily to
+\path"test/" directory.  The test programs are designed primarily to
 test the operation of the system to verify that it has been installed
 correctly and is as bug free as possible.  These applications all have
-names of the form \myverb{test\_*}.  The sample applications are designed
+names of the form \path"test_*".  The sample applications are designed
 to demonstrate the use of TPIE in the solution of non-trivial
 problems.
 
 The test and sample applications all share a small amount of common
-initialization and argument parsing code.  They all include the header file
-\myverb{app\_config.h}, which selects a particular implementation of streams
-at the AMI and BTE levels. They also all use the same argument parsing
-function \myverb{parse\_args()}, which parses certain default arguments and
-then uses a callback function for arguments specific to the particular
-application.
+initialization and argument parsing code.  They all include the header
+file \path"app_config.h", which selects a particular implementation of
+streams at the AMI and BTE levels. They also all use the same argument
+parsing function \lstinline|parse_args()|, which parses certain
+default arguments and then uses a callback function for arguments
+specific to the particular application.
 
 Much of the functionality provided by the common initialization and
 argument passing code is intended to eventually be subsumed by
@@ -30,63 +30,68 @@ number is reasonable and does not exceed the true amount of main
 memory available to the application.  In the future, it is hoped that
 this information will be provided by the operating system.
 
-\myverb{parse\_args()} is declared as follows:
+\comment{JV: The argument parsing has changed. This section needs to
+  be rewritten accordingly.}
 
-\begin{verbatim}
+\lstinline|parse_args()| is declared as follows:
+
+\begin{lstlisting}
     parse_args();
-\end{verbatim}
+\end{lstlisting}
 
 
 The following is a summary of the common command line arguments that
-are parsed by \myverb{parse\_args()}.
+are parsed by \lstinline|parse_args()|.
 \begin{description}
-    \item[\myverb{-t testsize}] Set the size of the test to
-    be run to \myverb{testsize}.  Typically this is the
-    number of objects to be put into the application
-    produced input stream.  In matrix tests, however, it is
-    the number of rows and columns in the test matrices.  If
-    this argument is not provided, then a default value of
-    8 MB is used.
-    \item[\myverb{-m memsize}] The number of bytes of main
-    memory that the application is permitted to use.  The
-    TPIE Memory Manager\index{memory manager} will ensure
-    that no more than this amount is used.  If this option
-    is not specified, then a default value of 2 MB is used.
-    \item[\myverb{-z randomseed}] Seed the random number
-    generator with the value \myverb{randomseed}.  This is
-    useful for debugging or testing, when we want several
-    runs of the application to rely on the same series of
-    pseudo-random numbers.  For applications that do not
-    generate test data randomly, this has no effect.
-\item[\myverb{-v}]
-Turns on verbose mode.  When running in verbose mode, report major
-actions of the running program to \myverb{stdout}.
+\item\lstinline|-t testsize| Set the size of the test to be run to
+  \lstinline|testsize|.  Typically this is the number of objects to be
+  put into the application produced input stream.  In matrix tests,
+  however, it is the number of rows and columns in the test matrices.
+  If this argument is not provided, then a default value of 8 MB is
+  used.
+\item\lstinline|-m memsize| The number of bytes of main memory that
+  the application is permitted to use.  The TPIE Memory
+  Manager\index{memory manager} will ensure that no more than this
+  amount is used.  If this option is not specified, then a default
+  value of 2 MB is used.
+\item\lstinline|-z randomseed| Seed the random number generator with
+  the value \lstinline|randomseed|.  This is useful for debugging or
+  testing, when we want several runs of the application to rely on the
+  same series of pseudo-random numbers.  For applications that do not
+  generate test data randomly, this has no effect.
+\item\lstinline|-v| Turns on verbose mode.  When running in verbose
+  mode, report major actions of the running program to
+  \lstinline|stdout|.
 \end{description}
 
 Each application specific argument appears in the string pointed to by
-\myverb{aso} as a single character, possibly followed by the single
-character `\myverb{:}', indicating that the argument requires a value.
-For example, if \myverb{aso} pointed to the string ``\myverb{ax:z}'' then the
-following command line arguments would all be parsed correctly:
+\lstinline|aso| as a single character, possibly followed by the single
+character `\lstinline|:|', indicating that the argument requires a
+value.  For example, if \lstinline|aso| pointed to the string
+``\lstinline|ax:z|'' then the following command line arguments would
+all be parsed correctly:
+
 \begin{description}
-\item[\myverb{-a}]
-\item[\myverb{-x 123}]
-\item[\myverb{-a -x 123}]
-\item[\myverb{-ax123}]
-\item[\myverb{-x123 -a}]
+\item\lstinline|-a|
+\item\lstinline|-x 123|
+\item\lstinline|-a -x 123|
+\item\lstinline|-ax123|
+\item\lstinline|-x123 -a|
 \end{description}
-In each case, \myverb{parse\_app()} would be called to take some
+
+In each case, \lstinline|parse_app()| would be called to take some
 application specific action for each of the arguments.  It would be
-called once with \myverb{opt} set to `\myverb{a}' and \myverb{optarg} set to
-\myverb{NULL}, and/or once with \myverb{opt} set to `\myverb{x}' and
-\myverb{optarg} pointing to the string ``\myverb{123}.''  When multiple arguments
-are present on the command line, they are parsed from left to right.
+called once with \lstinline|opt| set to `\lstinline|a|' and
+\lstinline|optarg| set to \lstinline|NULL|, and/or once with
+\lstinline|opt| set to `\lstinline|x' and \lstinline|optarg| pointing
+to the string ``\lstinline|123|''  When multiple arguments are present
+on the command line, they are parsed from left to right.
 
 The following is an example of how a test application, in this case
-\myverb{test\_ami\_sort}, can use application specific command line
-arguments to set up it's global state.
+\lstinline|test_ami_sort|, can use application specific command line
+arguments to set up its global state.
 
-\begin{verbatim}
+\begin{lstlisting}
 static const char as_opts[] = "R:S:rsao";
 void parse_app_opt(char c, char *optarg)
 {
@@ -118,7 +123,7 @@ int main(int argc, char **argv)
 
     return 0;
 }
-\end{verbatim}
+\end{lstlisting}
 
 \section{Test Programs}
 
@@ -126,46 +131,49 @@ The test programs include with TPIE are as follows:\comment{LA: Is this
 still correct?}
 
 \begin{description}
-\item[\myverb{test\_ami\_merge}] Test fixed way merging with direct
-  calls to \myverb{AMI\_merge()}, as described in 
+\item\lstinline|test_ami_merge| Test fixed way merging with direct
+  calls to \lstinline|AMI_merge()|, as described in
   Section~\ref{sec:ref-ami-merge}.
-\item[\myverb{test\_ami\_pmerge}] Test many-way merging using 
-  \myverb{AMI\_partition\_and\_merge()}, as described in 
+\item\lstinline|test_ami_pmerge| Test many-way merging using
+  \lstinline|AMI_partition_and_merge()|, as described in
   Section~\ref{sec:ref-ami-merge}.
-\item[\myverb{test\_ami\_sort}] Test sorting using \myverb{AMI\_sort()} as
-  described in Section~\ref{sec:ref-ami-sort}.
-\item[\myverb{test\_ami\_gp}] Test general permutation using
-  \myverb{AMI\_general\_permute()} as described in Section~\ref{sec:ref-ami-gp}.
-The program generates an input stream
-consisting of sequential integers, and outputs a stream consisting of 
-the same integers, in reverse order.
-\item[\myverb{test\_ami\_bp}] Test bit permutations using
-  \myverb{AMI\_BMMC\_permute()} as described in
-  Section~\ref{sec:ref-ami-bp}. The program generates an input stream
-consisting of sequential integers, and outputs a stream consisting of 
-a permutation of these integers, as described in the example given in the Tutorial, Section~\ref{sec:tut-bit-permuting}.
-\item[\myverb{test\_matrix}]
-\item[\myverb{test\_bit\_matrix}] Test main memory matrix manipulation
+\item\lstinline|test_ami_sort| Test sorting using
+  \lstinline|AMI_sort()| as described in
+  Section~\ref{sec:ref-ami-sort}.
+\item\lstinline|test_ami_gp| Test general permutation using
+  \lstinline|AMI_general_permute()| as described in
+  Section~\ref{sec:ref-imp-ami-gp}.  The program generates an input
+  stream consisting of sequential integers, and outputs a stream
+  consisting of the same integers, in reverse order.
+\item\lstinline|test_ami_bp| Test bit permutations using
+  \lstinline|AMI_BMMC_permute()| as described in
+  Section~\ref{sec:ref-imp-ami-bp}.  The program generates an input
+  stream consisting of sequential integers, and outputs a stream
+  consisting of a permutation of these integers, as described in the
+  example given in the Tutorial, Section~\ref{sec:tut-bit-permuting}.
+\item\lstinline|test_matrix|
+\item\lstinline|test_bit_matrix| Test main memory matrix manipulation
   and arithmetic.  This is used both by the bit permuting code
-  described in Section~\ref{sec:ref-ami-bp} and the dense matrix
-  multiplication code described in Section~\ref{sec:ref-ami-matrix}
+  described in Section~\ref{sec:ref-imp-ami-bp} and the dense matrix
+  multiplication code described in Section~\ref{sec:ref-imp-ami-matrix}
   for internal manipulation of sub-matrices of external memory
   matrices.
-\item[\myverb{test\_ami\_matrix\_pad}] Test padding of external
+\item\lstinline|test_ami_matrix_pad| Test padding of external
   matrices.  This is the preprocessing step for the external dense
   matrix multiplication algorithm TPIE uses, which is described in 
-  Section~\ref{sec:ref-ami-matrix}. 
-\item[\myverb{test\_ami\_matrix}] Test external dense matrix arithmetic
-  as described in Section~\ref{sec:ref-ami-matrix}.
-\item[\myverb{test\_ami\_sm}] Test external sparse matrix arithmetic
-  as described in Section~\ref{sec:ref-ami-sm}.
-\item[\myverb{test\_ami\_stack}] Test external memory stacks as
+  Section~\ref{sec:ref-imp-ami-matrix}. 
+\item\lstinline|test_ami_matrix| Test external dense matrix arithmetic
+  as described in Section~\ref{sec:ref-imp-ami-matrix}.
+\item\lstinline|test_ami_sm| Test external sparse matrix arithmetic as
+  described in Section~\ref{sec:ref-imp-ami-sm}.
+\item\lstinline|test_ami_stack| Test external memory stacks as
   described in Section~\ref{sec:ref-ami-stack}.
-\item[\myverb{test\_ami\_arith}] Test element-wise arithmetic on
-  external memory streams as described in Section~\ref{sec:ref-ami-arith}.
-The program generates an input stream
-consisting of sequential integers, squares them, and performs 
-elementwise division between the resulting stream and the input stream.
+\item\lstinline|test_ami_arith| Test elementwise arithmetic on
+  external memory streams as described in
+  Section~\ref{sec:ref-imp-ami-arith}.  The program generates an input
+  stream consisting of sequential integers, squares them, and performs
+  elementwise division between the resulting stream and the input
+  stream.
 \end{description}
 
 \section{Sample Applications}
@@ -173,31 +181,29 @@ elementwise division between the resulting stream and the input stream.
 The sample applications included with TPIE are as follows:
 
 \begin{description}
-\item[\myverb{ch2}] Two dimensional convex hull\index{convex hull}
+\item\lstinline|ch2| Two dimensional convex hull\index{convex hull}
   program using Graham's scan.  It is implemented using a scan
   management object that maintains the upper and lower hull internally
   as external memory stacks.  Much of the code in this application
   appears in Section~\ref{sec:convex-hull}.
-\item[\myverb{lr}] An implementation of an asymptotically optimal list
+\item\lstinline|lr| An implementation of an asymptotically optimal list
   ranking \index{list ranking} algorithm.  The idea of geometrically
   decreasing computation is used.  Much of the code in this
   application appears in Section~\ref{sec:list-ranking}.
-\item[\myverb{nas\_ep}] An I/O-efficient implementation of the NAS EP
+\item\lstinline|nas_ep| An I/O-efficient implementation of the NAS EP
   parallel benchmark.  This benchmark generates pairs of independent
   Gaussian random variates.
-\item[\myverb{nas\_is}] An I/O-efficient implementation of the NAS IS
+\item\lstinline|nas_is| An I/O-efficient implementation of the NAS IS
   parallel benchmark.  This benchmark sorts integers using one of a
   variety of approaches.
 \end{description}
 
-Detailed descriptions of the NAS parallel benchmarks are available
-from the \htmladdnormallink{NAS Parallel Benchmark Home Page}%
-{http://www.nas.nasa.gov/NAS/NPB/}
-\begin{latexonly}
-at URL \myverb{http://www.nas.nasa.gov/NAS/NPB/}.
-\end{latexonly}
+Detailed descriptions of the parallel benchmarks are available
+from the NAS Parallel Benchmark Report at URL \href{http://www.nas.nasa.gov/Research/Reports/Techreports/1994/HTML/npbspec.html}{\path"http://www.nas.nasa.gov/Research/Reports/Techreports/1994/HTML/npbspec.html"}.
 
+%%%
 %%% Local Variables: 
 %%% mode: latex
-%%% TeX-master: t
+%%% TeX-master: "tpie"
 %%% End: 
+%%%

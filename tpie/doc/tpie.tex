@@ -3,13 +3,20 @@
 %% Copyright (c) 2002 ...
 %% File: tpie.tex
 %%
-%% $Id: tpie.tex,v 1.28 2002-08-30 03:40:33 tavi Exp $
+%% $Id: tpie.tex,v 1.29 2003-11-27 19:54:09 jan Exp $
 %%
  
 \documentclass[10pt]{book}
-\usepackage{html} % for inserting html links to be used by latex2html
+%\usepackage{html} % for inserting html links to be used by latex2html
+\ifx\pdfoutput\undefined 
+\usepackage[dvips]{hyperref}
+\else
+\usepackage[pdftex]{hyperref}
+\fi
+\usepackage{path}
 \usepackage{makeidx}
 \usepackage{verbatim} % new verbatim package.
+\usepackage{listings}
 %\usepackage{times} % for better pdf output.
 \usepackage{color} % for colorbox
 \input{definitions}
@@ -79,12 +86,12 @@ performance I/O-efficient programs for a variety of
 platforms.
 \comment{LA: Something about LEDA-SM somewhere?}
 
-{ \em This manual, like the whole of the TPIE project, is work in
+\emph{This manual, like the whole of the TPIE project, is work in
   progress. The authors are making it available in its current state
   in the hopes that it will be useful, but without any warranty
   whatsoever. Refer to the copyright page at the beginning of this
-  manual for full details. Please send comments, bug reports\index{bug reports}, etc., to
-  \verb|tpie@cs.duke.edu|.}
+  manual for full details. Please send comments, bug reports\index{bug
+    reports}, etc., to \path"tpie@cs.duke.edu".}
 
 \input{acknowledgements} % Chapter: Acknowledgments
 
