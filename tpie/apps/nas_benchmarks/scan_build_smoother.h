@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 3/29/95
 //
-// $Id: scan_build_smoother.h,v 1.1 1995-04-03 13:17:04 dev Exp $
+// $Id: scan_build_smoother.h,v 1.2 1999-02-03 22:03:22 tavi Exp $
 //
 #ifndef _SCAN_BUILD_SMOOTHER_H
 #define _SCAN_BUILD_SMOOTHER_H
@@ -38,14 +38,5 @@ public:
     AMI_err initialize();
     AMI_err operate(AMI_sm_elem<double> *out, AMI_SCAN_FLAG *sf);
 };
-
-
-#ifdef NO_IMPLICIT_TEMPLATES
-
-#define TEMPLATE_INSTANTIATE_SBS					\
-template AMI_err AMI_scan(scan_build_smoother *,			\
-                          AMI_STREAM< AMI_sm_elem<double> > *);
-
-#endif // NO_IMPLICIT_TEMPLATES
 
 #endif // _SCAN_BUILD_SMOOTHER_H 

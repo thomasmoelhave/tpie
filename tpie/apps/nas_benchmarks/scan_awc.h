@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 3/23/95
 //
-// $Id: scan_awc.h,v 1.2 1997-05-20 22:11:24 vengroff Exp $
+// $Id: scan_awc.h,v 1.3 1999-02-03 22:02:30 tavi Exp $
 //
 #ifndef _SCAN_AWC_H
 #define _SCAN_AWC_H
@@ -35,14 +35,5 @@ public:
         }
     };
 };
-
-#ifdef NO_IMPLICIT_TEMPLATES
-#define TEMPLATE_INSTANTIATE_SCAN_AWC(T)				\
-template class scan_add_with_coefficient<T>;				\
-template AMI_err AMI_scan(AMI_STREAM<T> *, AMI_STREAM<T> *,		\
-                          scan_add_with_coefficient<T> *,		\
-                          AMI_STREAM<T> *);
-#endif
-
 
 #endif // _SCAN_AWC_H 

@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 3/23/95
 //
-// $Id: scan_copy2.h,v 1.2 1997-05-20 22:11:32 vengroff Exp $
+// $Id: scan_copy2.h,v 1.3 1999-02-03 22:04:12 tavi Exp $
 //
 #ifndef _SCAN_COPY2_H
 #define _SCAN_COPY2_H
@@ -29,12 +29,5 @@ public:
         }
     };
 };
-
-#ifdef NO_IMPLICIT_TEMPLATES
-#define TEMPLATE_INSTANTIATE_SCAN_COPY2(T)				\
-template class scan_copy2<T>;						\
-template AMI_err AMI_scan(AMI_STREAM<T> *, scan_copy2<T> *,		\
-                          AMI_STREAM<T> *, AMI_STREAM<T> *);
-#endif
 
 #endif // _SCAN_COPY2_H 

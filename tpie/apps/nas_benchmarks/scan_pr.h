@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 3/22/95
 //
-// $Id: scan_pr.h,v 1.1 1995-04-03 13:18:28 dev Exp $
+// $Id: scan_pr.h,v 1.2 1999-02-03 22:08:25 tavi Exp $
 //
 // Psuedo-random numbers for the NAS parallel benchmarks.
 //
@@ -37,18 +37,4 @@ public:
     AMI_err operate(double *out, AMI_SCAN_FLAG *sf);
 };
 
-
-
-#ifdef NO_IMPLICIT_TEMPLATES
-
-#define TEMPLATE_INSTANTIATE_SCAN_PR					\
-template AMI_err AMI_scan(scan_nas_psuedo_rand *,			\
-                          AMI_STREAM<double> *);
-
-
-#endif
-
-
-
 #endif // _SCAN_PR_H 
-

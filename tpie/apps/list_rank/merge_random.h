@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/5/94
 //
-// $Id: merge_random.h,v 1.6 1997-05-20 22:08:33 vengroff Exp $
+// $Id: merge_random.h,v 1.7 1999-02-03 21:53:41 tavi Exp $
 //
 // A merge managment object that reorders the input stream in a random
 // way.
@@ -173,15 +173,4 @@ size_t merge_random<T>::space_usage_per_stream(void)
     return sizeof(int) + sizeof(arity_t);
 }
 
-#ifdef NO_IMPLICIT_TEMPLATES
-
-#define TEMPLATE_INSTANTIATE_MERGE_RANDOM(T)		\
-template class merge_random<T>;				\
-TEMPLATE_INSTANTIATE_PQUEUE_HEAP_OP(arity_t,int)
-
-#endif
-
 #endif // _MERGE_RANDOM_H 
-
-
-

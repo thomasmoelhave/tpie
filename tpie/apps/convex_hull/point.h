@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/16/94
 //
-// $Id: point.h,v 1.2 1999-02-03 02:56:02 jan Exp $
+// $Id: point.h,v 1.3 1999-02-03 22:01:47 tavi Exp $
 //
 #ifndef _POINT_H
 #define _POINT_H
@@ -74,17 +74,5 @@ T cw(const point<T> &p1, const point<T> &p2, const point<T> &p3)
 {
     return -ccw(p1,p2,p3);
 }
-
-#ifdef NO_IMPLICIT_TEMPLATES
-
-#define TEMPLATE_INSTANTIATE_POINT(T)					\
-template class point<T>;						\
-template T ccw(const point<T> &, const point<T> &, const point<T> &);	\
-template T cw(const point<T> &, const point<T> &, const point<T> &);	\
-template ostream& operator<<(ostream& s, const point<T> &p);		\
-template ostream& operator>>(istream& s, point<T> &p);
-
-#endif
-
 
 #endif // _POINT_H 
