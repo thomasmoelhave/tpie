@@ -4,14 +4,14 @@ dnl File: configure.in
 dnl Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 dnl Created: 10/13/94
 dnl 
-dnl $Id: configure.in,v 1.8 1995-03-25 14:05:37 darrenv Exp $
+dnl $Id: configure.in,v 1.9 1997-05-20 22:04:59 vengroff Exp $
 dnl
 dnl Macro file for autoconfig for the TPIE system.
 dnl 
 AC_PREREQ(2.0)
 AC_INIT(include/ami.h)
 AC_CONFIG_HEADER(include/config.h)
-AC_REVISION($Revision: 1.8 $)dnl
+AC_REVISION($Revision: 1.9 $)dnl
 AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_CXX
@@ -55,6 +55,7 @@ AC_HEADER_EGREP($1, $2,
 dnl
 AC_PROTOTYPE(mmap, sys/mman.h)
 AC_PROTOTYPE(munmap, sys/mman.h)
+AC_PROTOTYPE(ftruncate, unistd.h)
 AC_PROTOTYPE(ftruncate, sys/types.h)
 dnl
 dnl How to check for perl and indent
