@@ -7,11 +7,12 @@
 // A basic implementation of quicksort for use in core by AMI_sort() on
 // streams or substreams that are small enough.
 //
-// $Id: quicksort.h,v 1.2 1994-10-04 19:09:47 darrenv Exp $
+// $Id: quicksort.h,v 1.3 1994-10-10 13:11:03 darrenv Exp $
 //
 #ifndef _QUICKSORT_H
 #define _QUICKSORT_H
 
+extern "C" int random(void);
 
 template<class T>
 void partition(T *data, size_t len, size_t &partition,
