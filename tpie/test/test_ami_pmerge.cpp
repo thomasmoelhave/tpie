@@ -7,14 +7,7 @@
 // A test for AMI_generalized_partition_and_merge().
 
 
-#include <stdlib.h>
-#include <sys/time.h>
-#include <sys/resource.h>
-#include <iostream>
-#include <fstream>
-
-using std::cout;
-using std::ofstream;
+#include <portability.h>
 
 // Get information on the configuration to test.
 #include "app_config.h"
@@ -22,7 +15,7 @@ using std::ofstream;
 
 // Define it all.
 #include <ami.h>
-VERSION(test_ami_pmerge_cpp,"$Id: test_ami_pmerge.cpp,v 1.20 2003-04-20 23:51:40 tavi Exp $");
+VERSION(test_ami_pmerge_cpp,"$Id: test_ami_pmerge.cpp,v 1.21 2003-09-11 18:58:29 tavi Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
