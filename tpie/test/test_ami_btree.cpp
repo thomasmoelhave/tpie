@@ -3,7 +3,7 @@
 // File:    test_ami_btree.cpp
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: test_ami_btree.cpp,v 1.1 2001-05-17 19:47:08 tavi Exp $
+// $Id: test_ami_btree.cpp,v 1.2 2001-05-29 15:22:02 tavi Exp $
 //
 // Test file for AMI_btree.
 //
@@ -13,7 +13,6 @@
 #include "app_config.h"
 #include <cpu_timer.h>
 #include <ami_btree.h>
-
 
 #define SIZE_OF_STRUCTURE 148
 #define TOTAL_INSERTS     50000
@@ -61,6 +60,7 @@ int main(int argc, char **argv) {
   AMI_btree_params params;
   params.node_block_factor = 2;
   params.leaf_block_factor = 2;
+  params.node_cache_size = 80;
 
   btree = new AMI_BTREE_INT(params);
 
@@ -179,6 +179,20 @@ int main(int argc, char **argv) {
 
   cout << "Tree size: " << btree->size() << " elements. Tree height: " 
        << btree->height() << ".\n";
+
+  cout << "Block statistics:\n"
+       << "\tREAD:    " 
+       << btree->stats().get(BT_LEAF_READ)+btree->stats().get(BT_NODE_READ) << endl
+       << "\tCREATE:  " 
+       << btree->stats().get(BT_LEAF_CREATE)+btree->stats().get(BT_NODE_CREATE) << endl
+       << "\tFETCH:   " 
+       << btree->stats().get(BT_LEAF_FETCH)+btree->stats().get(BT_NODE_FETCH) << endl
+       << "\tWRITE:   " 
+       << btree->stats().get(BT_LEAF_WRITE)+btree->stats().get(BT_NODE_WRITE) << endl
+       << "\tDELETE:  " 
+       << btree->stats().get(BT_LEAF_DELETE)+btree->stats().get(BT_NODE_DELETE) << endl
+       << "\tRELEASE: " 
+       << btree->stats().get(BT_LEAF_RELEASE)+btree->stats().get(BT_NODE_RELEASE) << endl;
 
   btree->persist(PERSIST_DELETE);
   delete btree;
