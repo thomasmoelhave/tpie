@@ -7,7 +7,7 @@
 // A sample piece of code that does list ranking in the TPIE system.
 //
 
-static char lr_id[] = "$Id: lr.cpp,v 1.10 1995-06-30 21:09:14 darrenv Exp $";
+static char lr_id[] = "$Id: lr.cpp,v 1.11 1997-05-20 22:07:47 vengroff Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -276,7 +276,7 @@ AMI_err separate_active_from_cancel::operate(CONST edge &e1,
             // We will write to the active list no matter what.
             sfout[0] = 1;
             *active = e2;
-            if (sfout[1] = (e2.flag && !e1.flag)) {
+            if ((sfout[1] = (e2.flag && !e1.flag))) {
                 // Bridge.  Put e1 on the cancel list and add its
                 // weight to the active output.
                 active->to = e1.to;
