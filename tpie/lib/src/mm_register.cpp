@@ -7,9 +7,7 @@
 
 // A simple registration based memory manager.
 
-static char mm_register_id[] = "$Id: mm_register.cpp,v 1.2 1994-09-22 15:21:47 darrenv Exp $";
-
-#define TPL_LOGGING 1
+static char mm_register_id[] = "$Id: mm_register.cpp,v 1.3 1994-09-26 19:28:08 darrenv Exp $";
 
 #include <tpie_log.h>
 #include <tpie_assert.h>
@@ -22,7 +20,7 @@ MM_register::MM_register()
 {
     instances++;
 
-    *tpl << setpriority(TP_LOG_ASSERT);
+    //*tpl << setpriority(TP_LOG_ASSERT);
 
     tp_assert(instances == 1,
               "Only 1 instance of MM_register_base should exist.");
