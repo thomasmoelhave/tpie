@@ -17,13 +17,12 @@
 
 // Define it all.
 #include <ami.h>
-VERSION(lr_cpp,"$Id: lr.cpp,v 1.24 2003-09-13 17:50:01 jan Exp $");
+VERSION(lr_cpp,"$Id: lr.cpp,v 1.25 2003-10-09 01:23:48 tavi Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
 
-// Timers.
-#include <wall_timer.h>
+// Timer.
 #include <cpu_timer.h>
 
 #include "parse_args.h"
@@ -698,7 +697,6 @@ int main(int argc, char **argv)
     edgeweightcmp weight_cmp;
     edgetocmp to_cmp;
 
-    wall_timer wt0;
     cpu_timer ct0;
     
     if (argc == 1){
@@ -819,10 +817,8 @@ int main(int argc, char **argv)
     BTE_stream_mmap_base::stats_on();
 #endif
         
-    wt0.reset();
     ct0.reset();
 
-    wt0.start();    
     ct0.start();
 
     pamis2 = new AMI_STREAM<edge>;
@@ -838,11 +834,9 @@ int main(int argc, char **argv)
     // usage by intermediate streams that are no longer needed.
     // /* delete pamis2; */
 
-    wt0.stop();
     ct0.stop();
 
-    cout << "Wall time: " <<  wt0 << endl;
-    cout << "CPU time: " <<  ct0 << endl;
+    cout << "Time: " <<  ct0 << endl;
 
 #if BTE_STATS
     BTE_stream_mmap_base::stats_off();
