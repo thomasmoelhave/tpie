@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/12/94
 //
-// $Id: tpie_log.h,v 1.4 1994-05-31 20:26:25 dev Exp $
+// $Id: tpie_log.h,v 1.5 1994-06-03 13:25:36 dev Exp $
 //
 #ifndef _TPIE_LOG_H
 #define _TPIE_LOG_H
@@ -45,7 +45,7 @@ void init_tpie_logs(void);
 #define LOG_ERROR(msg) (*tpl << setpriority(TP_LOG_ERROR) << msg)
 #define LOG_WARNING(msg)  (*tpl << setpriority(TP_LOG_WARNING) << msg)
 #define LOG_ASSERT(msg)  (*tpl << setpriority(TP_LOG_ASSERT)  << msg)
-#define LOG_DEBUG_INFO(msg)  (*tpl << setpriority(TP_LOG_DEBUG)  << msg)
+#define LOG_DEBUG_INFO(msg)  (*tpl << setpriority(TP_LOG_DEBUG_INFO)  << msg)
 #define LOG_OS_ERROR(msg)  (*tpl << setpriority(TP_LOG_OS_ERROR) << msg)
 #define LOG_DATA_ERROR(msg)  (*tpl << setpriority(TP_LOG_DATA_ERROR) << msg)
 #define LOG_INFO(msg)  (*tpl << setpriority(TP_LOG_INFO) << msg)
