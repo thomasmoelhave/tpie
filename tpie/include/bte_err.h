@@ -3,13 +3,16 @@
 // Author: Octavian Procopiuc <tavi@cs.duke.edu>
 //         (from Darren's bte_base_stream.h)
 // Created: 12/29/01
-// $Id: bte_err.h,v 1.1 2002-01-14 16:18:49 tavi Exp $
+// $Id: bte_err.h,v 1.2 2003-04-17 14:56:26 jan Exp $
 //
 // BTE error codes, moved here from bte_base_stream.h
 //
 
 #ifndef _BTE_ERR_H
 #define _BTE_ERR_H
+
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 //
 // BTE error codes are returned using the BTE_err type.

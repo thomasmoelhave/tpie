@@ -4,11 +4,14 @@
 //
 // Definition of the b_vector class.
 //
-// $Id: b_vector.h,v 1.6 2003-04-04 20:42:36 tavi Exp $
+// $Id: b_vector.h,v 1.7 2003-04-17 14:40:34 jan Exp $
 //
 
 #ifndef _B_VECTOR_H
 #define _B_VECTOR_H
+
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 #include <string.h>
 

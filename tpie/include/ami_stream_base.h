@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/19/94
 //
-// $Id: ami_stream_base.h,v 1.3 2002-03-14 20:25:59 tavi Exp $
+// $Id: ami_stream_base.h,v 1.4 2003-04-17 14:46:20 jan Exp $
 //
 #ifndef _AMI_STREAM_BASE_H
 #define _AMI_STREAM_BASE_H
@@ -14,6 +14,8 @@
 #include <ami_err.h>
 #include <persist.h>
 
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 // AMI stream types passed to constructors
 enum AMI_stream_type {
@@ -55,8 +57,8 @@ public:
     
     // A virtual psuedo-constructor for substreams.
     virtual AMI_err new_substream(AMI_stream_type st,
-                                  off_t sub_begin,
-                                  off_t sub_end,
+                                  TPIE_OS_OFFSET sub_begin,
+                                  TPIE_OS_OFFSET sub_end,
                                   AMI_stream_base<T> **sub_stream) = 0;
 
     // Access methods.
@@ -64,24 +66,24 @@ public:
     virtual A_INLINE AMI_err write_item(const T &tin) = 0;
     virtual A_INLINE AMI_err read_item(T **tout) = 0;
 
-    virtual A_INLINE AMI_err read_array(T *mm_space, off_t *len) = 0;
-    virtual A_INLINE AMI_err write_array(const T *mm_space, off_t len) = 0;
+    virtual A_INLINE AMI_err read_array(T *mm_space, TPIE_OS_OFFSET *len) = 0;
+    virtual A_INLINE AMI_err write_array(const T *mm_space, TPIE_OS_OFFSET len) = 0;
     
     // Misc. 
     virtual AMI_err main_memory_usage(size_t *usage,
                                       MM_stream_usage usage_type) = 0;
     
-    virtual off_t stream_len(void) = 0;
+    virtual TPIE_OS_OFFSET stream_len(void) = 0;
 
     virtual AMI_err name(char **stream_name) = 0;
     
-    virtual AMI_err seek(off_t offset) = 0;
+    virtual AMI_err seek(TPIE_OS_OFFSET offset) = 0;
 
-    virtual AMI_err truncate(off_t offset) = 0;
+    virtual AMI_err truncate(TPIE_OS_OFFSET offset) = 0;
 
     virtual int available_streams(void) = 0;
 
-    virtual off_t chunk_size(void) = 0;
+    virtual TPIE_OS_OFFSET chunk_size(void) = 0;
 
     virtual void persist(persistence) = 0;
 
