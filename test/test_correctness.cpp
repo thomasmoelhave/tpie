@@ -5,17 +5,27 @@
 //
 // An extensive test suite for TPIE functionality.
 //
-// $Id: test_correctness.cpp,v 1.1 2003-04-24 23:48:07 tavi Exp $
+// $Id: test_correctness.cpp,v 1.2 2003-04-26 06:43:16 tavi Exp $
 //
 
 using namespace std;
 
+#include <stdlib.h>
 // For stat()
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 // For strlen()
 #include <string.h>
+// For ofstream
+#include <fstream>
+// For pair
+#include <utility>
+
+using std::pair;
+using std::ofstream;
+
+// TPIE configuration: choose BTE, block size, etc.
 
 #include <config.h>
 
@@ -23,8 +33,12 @@ using namespace std;
 #  define BTE_STREAM_IMP_UFS
 #endif
 
-#define BTE_STREAM_UFS_BLOCK_FACTOR 32
-#define BTE_STREAM_MMAP_BLOCK_FACTOR 32
+#ifndef BTE_STREAM_UFS_BLOCK_FACTOR
+#  define BTE_STREAM_UFS_BLOCK_FACTOR 32
+#endif
+#ifndef BTE_STREAM_MMAP_BLOCK_FACTOR
+#  define BTE_STREAM_MMAP_BLOCK_FACTOR 32
+#endif
 
 // Use logs if requested.
 #if TP_LOG_APPS
@@ -32,14 +46,16 @@ using namespace std;
 #endif
 #include <tpie_log.h>
 
-// TPIE configuration: choose BTE, block size, etc.
-//#include "app_config.h"
+
 // TPIE core classes and functions.
 #include <ami.h>
+#include <ami_scan_utils.h>
+
 // The getopts() function for reading command-line arguments.
 #include "getopts.h"
 // The scan_random class for generating random ints.
 #include "scan_universal.h"
+
 
 // Number of spaces to indent messages written during a test.
 #define INDENT 4
@@ -58,35 +74,37 @@ template <int sz>
 struct foo_t {
   char el[sz];
 };
-
 const foo_t<40> thefoo = { "  This space for rent. Cheap.          " };
 
+
 struct options opts[] = {
-  //  { 11, "stream-ufs", "Test streams (UFS BTE)", NULL, 0 },
-  //  { 12, "stream-mmap", "Test streams (MMAP BTE)", NULL, 0 },
-  //  { 13, "stream-stdio", "Test streams (STDIO BTE)", NULL, 0 },
-  { 10, "stream", "Perform all stream tests", NULL, 0 },
-  //{ 26, "scan-ascii-read", "Test ASCII reading (using cxx_istream_scan)", NULL, 0 },
-  //{ 27, "scan-ascii-write", "Test ASCII writing (using cxx_ostream_scan)", NULL, 0 },
-  { 20, "scan", "Perform all scanning tests", NULL, 0 },
+  { 1,  "memory", "Sets the TPIE memory limit.", "m", 1 },
+  { 10, "stream", "Tests AMI_STREAM", NULL, 0 },
+  { 20, "scan", "Tests AMI_scan", NULL, 0 },
+  { 25, "scan-cxx", "Tests AMI_scan with C++ streams", NULL, 0 },
   //  { 31, "sort-op-int-int", "Test standard sorting (using integers and operator \"<\")", NULL, 0 },
   //  { 32, "sort-op-100b-int", "Test AMI_sort (using 40-byte elements, integers as keys, and operator \"<\")", NULL, 0 },
   //  { 33, "sort-op-100b-100b", "Test AMI_sort (using 100-byte elements, and operator \"<\")", NULL, 0 },
   //  { 34, "sort-cl-int-int", "Test AMI_sort (using integers and comparison class)", NULL, 0 },
   //  { 35, "sort-op-100b-int", "Test AMI_sort (using 40-byte elements, integers as keys, and comparison class)", NULL, 0 },
   //  { 36, "sort-op-100b-100b", "Test AMI_sort (using 40-byte elements, and comparison class)", NULL, 0 },
-  { 30, "sort", "Perform all AMI_sort tests", NULL, 0 },
+  { 30, "sort", "Tests AMI_sort", NULL, 0 },
   { 0,  NULL, NULL, NULL, 0 }
 };
 
 // The test functions.
 int test_stream();
-//int test_stream_ufs();
-//int test_stream_mmap();
-//int test_stream_stdio();
 int test_scan();
+int test_scan_cxx();
+int test_sort();
 // Print current configuration options.
 void print_cfg();
+
+
+
+///////////////////////////////////////////////////
+////////////////    main()     ////////////////////
+///////////////////////////////////////////////////
 
 int main(int argc, char **argv) {
   char *args;
@@ -95,16 +113,33 @@ int main(int argc, char **argv) {
 
   // Initialize the log.
   LOG_SET_THRESHOLD(TP_LOG_APP_DEBUG);
+  MM_manager.set_memory_limit(40*1024*1024);
+  MM_manager.enforce_memory_limit();
+
+  if (argc == 1) {
+    getopts_usage(argv[0], opts);
+    exit(0);
+  }
 
   print_cfg();
 
   while ((idx = getopts(argc, argv, opts, &args)) != 0) {
     switch(idx) {
-      //    case 11: fail += test_stream_ufs(); break;
-      //    case 12: fail += test_stream_mmap(); break;
-      //    case 13: fail += test_stream_stdio(); break;
+    case 1:  
+      {
+	int mem_limit = atoi(args);
+	if (mem_limit < 2*1024*1024)
+	  fprintf(stdout, "Attempting to set memory limit too low (min is 2MB). Did not change.\n");
+	else {
+	  fprintf(stdout, "Setting memory limit to %d KB.\n", mem_limit/1024);
+	  MM_manager.set_memory_limit(mem_limit);
+	}
+      }
+      break;
     case 10: fail += test_stream(); break;
     case 20: fail += test_scan(); break;
+    case 25: fail += test_scan_cxx(); break;
+    case 30: fail += test_sort(); break;
     default: break;
     }
 
@@ -112,13 +147,18 @@ int main(int argc, char **argv) {
   }
 
   if (fail)
-    fprintf(stdout, "One or more tests failed. See the log for more details.\n");
+    fprintf(stdout, "One or more sub-tests failed. See the log for more details.\n");
   else
     fprintf(stdout, "All test have completed successfully. See the log for more info.\n");
 
   return fail;
 }
 
+
+
+/////////////////////////////////////////////////////////
+// Auxiliary: print_msg(), print_status(), print_cfg() //
+/////////////////////////////////////////////////////////
 
 void print_msg(const char* msg, int indent = 0) {
   if (msg == NULL)
@@ -190,6 +230,13 @@ void print_cfg() {
   fprintf(stdout, "\n");
 }
 
+
+
+
+////////////////////////////////////////////////////////
+//////////////     test_stream()      //////////////////
+////////////////////////////////////////////////////////
+
 int test_stream() {
   static bool been_here = false;
   status_t status = EMPTY;
@@ -213,9 +260,7 @@ int test_stream() {
   print_status(EMPTY);
 
 
-  ///////////////////////////////////////////////////
   //////// Part 1: temporary stream.       //////////
-  ///////////////////////////////////////////////////
 
   print_msg("Creating temporary stream (calling op. new)", INDENT);
   s = new AMI_STREAM<foo_t<40> >;
@@ -292,9 +337,7 @@ int test_stream() {
 
   print_status(EMPTY); // New line.
 
-  ///////////////////////////////////////////////////
   //////// Part 2: named stream.           //////////
-  ///////////////////////////////////////////////////
 
   print_msg("Creating named writable stream (calling op. new)", INDENT);
   // Make sure there's no old file lingering around.
@@ -387,6 +430,217 @@ int test_stream() {
 }
 
 
+
+
+////////////////////////////////////////////////////////
+//////////////      test_sort()       //////////////////
+////////////////////////////////////////////////////////
+
+
+int test_sort() {
+  static bool been_here = false;
+  status_t status = EMPTY;
+  int failed = 0;
+  int i;
+  AMI_err err;
+  scan_universal<40> so(1000000, 47);
+  AMI_STREAM< ifoo_t<40> > *ps[2];
+
+  // Print the test heading.
+  print_msg("Testing AMI_sort", 0);
+  if (been_here) {
+    print_status(SKIP);
+    return 0;
+  }
+  been_here = true;
+  print_status(EMPTY); // New line.
+
+  print_msg("Preliminary: Initializing temporary streams.", INDENT);
+  for (i = 0; i < 2; i++) {
+    ps[i] = new AMI_STREAM< ifoo_t<40> >;
+    if (!ps[i]->is_valid()) {
+      status = FAIL;
+      break;
+    } else
+      status = PASS;
+  }
+  print_status(status); if (status == FAIL) { failed++; status = SKIP; }
+
+
+  print_msg("Preliminary: Generating stream with 1m 40-byte items", INDENT);
+  if (status != SKIP) {
+    err = AMI_scan(&so, ps[0]);
+    status = (err == AMI_ERROR_NO_ERROR && ps[0]->stream_len() == 1000000 ? PASS: FAIL);
+  }
+  print_status(status); if (status == FAIL) { failed++; status = SKIP; }
+
+
+  print_msg("Running AMI_sort on 1m 40-byte-item stream (key:int, comp:op)", INDENT);
+  if (status != SKIP) {
+    err = AMI_sort(ps[0], ps[1]);
+    status = (err == AMI_ERROR_NO_ERROR && 
+	      ps[1]->stream_len() == ps[0]->stream_len()
+	      ? PASS: FAIL);
+  }
+  print_status(status); if (status == FAIL) failed++;
+  
+  
+  print_msg("Running AMI_scan to verify sorted order", INDENT);
+  if (status != SKIP) {
+    err = AMI_scan(ps[1], &so);
+    status = (err == AMI_ERROR_NO_ERROR && 
+	      so.switches() == 0 
+	      ? PASS: FAIL);
+    LOG_APP_DEBUG_ID("Number of switches:");
+    LOG_APP_DEBUG_ID(so.switches());
+  }
+  print_status(status); if (status == FAIL) failed++;
+  
+
+  print_msg("Running AMI_sort on 1m 40-byte-item stream (key:int, comp:cl)", INDENT);
+  if (status != SKIP) {
+    ifoo_t<40> comparison_obj;
+    ps[1]->truncate(0);
+    err = AMI_sort(ps[0], ps[1], &comparison_obj);
+    status = (err == AMI_ERROR_NO_ERROR && ps[1]->stream_len() == 1000000 ? PASS: FAIL);
+  }
+  print_status(status); if (status == FAIL) failed++;
+    
+
+  print_msg("Running AMI_scan to verify sorted order", INDENT);
+  if (status != SKIP) {
+    err = AMI_scan(ps[1], &so);
+    status = (err == AMI_ERROR_NO_ERROR && 
+	      ps[1]->stream_len() == 1000000 && 
+	      so.switches() == 0 
+	      ? PASS: FAIL);
+    LOG_APP_DEBUG_ID("Number of switches:");
+    LOG_APP_DEBUG_ID(so.switches());
+  }
+  print_status(status); if (status == FAIL) failed++;
+  
+  for (i = 0; i < 2; i++)
+    delete ps[i];
+
+  print_status(EMPTY); // New line.
+  return (failed ? 1: 0);
+}
+
+
+
+////////////////////////////////////////////////////////
+//////////////    test_scan_cxx()     //////////////////
+////////////////////////////////////////////////////////
+
+// Define a << operator for pairs of ints.
+ostream& operator<<(ostream& os, const pair<int,int>& item) {
+  return os << item.first << " " << item.second << "\n";
+}
+
+// Define a << operator for pairs of ints.
+istream& operator>>(istream& is, pair<int,int>& item) {
+  return is >> item.first >> item.second;
+}
+
+int test_scan_cxx() {
+  static bool been_here = false;
+  status_t status = EMPTY;
+  int failed = 0;
+  AMI_err err;
+  int i;
+  AMI_STREAM< pair<int,int> >* ts;
+
+  // Print the test heading.
+  print_msg("Testing AMI_scan with C++ streams", 0);
+  if (been_here) {
+    print_status(SKIP);
+    return 0;
+  }
+  been_here = true;
+  print_status(EMPTY); // New line.
+
+  print_msg("Creating an ASCII file with 5m pairs of integers", INDENT);
+  if (status != SKIP) {
+    unlink("/var/tmp/tpie00.txt");
+    unlink("/var/tmp/tpie00.stream");
+    ofstream xos;
+    xos.open("/var/tmp/tpie00.txt");
+    if (!xos) {
+      LOG_APP_DEBUG_ID("Could not open C++ stream for writing to /var/tmp/tpie00.txt");
+      status = FAIL;
+    } else {
+      for (i = 0; i < 5000000; i++) {
+	xos << TPIE_OS_RANDOM() << " " << TPIE_OS_RANDOM() << "\n";
+      }
+    }
+    xos.close();
+  }
+  print_status(status); if (status == FAIL) { failed++; status = SKIP; }
+
+
+  print_msg("Running AMI_scan with cxx_istream_scan", INDENT);
+  if (status != SKIP) {
+    ifstream xis;    
+    xis.open("/var/tmp/tpie00.txt");
+    if (!xis) {
+      LOG_APP_DEBUG_ID("Could not open C++ stream for reading from /var/tmp/tpie00.txt");
+      status = FAIL;
+    }
+    cxx_istream_scan< pair<int,int> > so(&xis);
+    ts = new AMI_STREAM< pair<int,int> >("/var/tmp/tpie00.stream");
+    if (!ts->is_valid()) {
+      LOG_APP_DEBUG_ID("Could not open TPIE stream for writing in /var/tmp/tpie00.stream");
+      status = FAIL;
+    } 
+    if (status != FAIL) {
+      err = AMI_scan(&so, ts);
+      LOG_APP_DEBUG_ID("Length of TPIE stream in /var/tmp/tpie00.stream:");
+      LOG_APP_DEBUG_ID(ts->stream_len());
+      status = (err == AMI_ERROR_NO_ERROR && ts->stream_len() == 5000000 ? PASS: FAIL);
+    }
+    xis.close();
+    delete ts;
+  }
+  print_status(status); if (status == FAIL) { failed++; status = SKIP; }
+
+
+  print_msg("Running AMI_scan with cxx_ostream_scan", INDENT);
+  if (status != SKIP) {
+    ofstream xos;
+    xos.open("/var/tmp/tpie01.txt");
+    if (!xos) {
+      LOG_APP_DEBUG_ID("Could not open C++ stream for writing to /var/tmp/tpie01.txt");
+      status = FAIL;
+    }
+    cxx_ostream_scan< pair<int,int> > so(&xos);
+    ts = new AMI_STREAM< pair<int,int> >("/var/tmp/tpie00.stream", AMI_READ_STREAM);
+    if (!ts->is_valid() || ts->stream_len() != 5000000) {
+      LOG_APP_DEBUG_ID("Error while re-opening stream from /var/tmp/tpie00.stream");
+      status = FAIL;
+    }
+    if (status != FAIL) {
+      err = AMI_scan(ts, &so);
+      status = (err == AMI_ERROR_NO_ERROR ? PASS: FAIL);
+    }
+    xos.close();
+    delete ts;
+  }
+  print_status(status); if (status == FAIL) failed++;
+  
+  unlink("/var/tmp/tpie00.stream");
+  unlink("/var/tmp/tpie00.txt");
+  unlink("/var/tmp/tpie01.txt");
+  print_status(EMPTY); // New line.
+  return (failed ? 1: 0);
+}
+
+
+
+
+////////////////////////////////////////////////////////
+//////////////      test_scan()       //////////////////
+////////////////////////////////////////////////////////
+
 int test_scan() {
   static bool been_here = false;
   status_t status = EMPTY;
@@ -395,7 +649,7 @@ int test_scan() {
   AMI_STREAM<int> *ps[9];
   AMI_err err;
   int i;
-  scan_universal so(10000000, 43); // scan object.
+  scan_universal<40> so(10000000, 43); // scan object.
 
 
   print_msg("Testing AMI_scan", 0);
@@ -427,16 +681,15 @@ int test_scan() {
   print_status(status); if (status == FAIL) failed++;
 
 
-  print_msg("Running AMI_scan with 1 in and 0 out (counting even and odd)", INDENT);
+  print_msg("Running AMI_scan with 1 in and 0 out (counting switches)", INDENT);
   if (status != SKIP) {
     err = AMI_scan(ps[0], &so);
-    status = (err == AMI_ERROR_NO_ERROR && ps[0]->stream_len() == 10000000 && so.even() + so.odd() == 10000000 ? PASS: FAIL);
-    LOG_APP_DEBUG_ID("Even integers:");
-    LOG_APP_DEBUG_ID(so.even());
-    LOG_APP_DEBUG_ID("Odd integers:");
-    LOG_APP_DEBUG_ID(so.odd());
+    status = (err == AMI_ERROR_NO_ERROR && ps[0]->stream_len() == 10000000 ? PASS: FAIL);
+    LOG_APP_DEBUG_ID("Number of switches:");
+    LOG_APP_DEBUG_ID(so.switches());
   }
   print_status(status); if (status == FAIL) failed++;
+
   
   print_msg("Running AMI_scan with 1 in and 1 out (halving each of 10m integers)", INDENT);
   if (status != SKIP) {
@@ -557,15 +810,20 @@ int test_scan() {
       err = AMI_scan(ps[3], &so, psn);
       status = (err == AMI_ERROR_NO_ERROR ? FAIL: PASS);
     }
-    delete fn;
+    delete psn;
+    // open it again, to delete the file.
+    psn = new AMI_STREAM<int>(fn);
     psn->persist(PERSIST_DELETE);
     delete psn;
+    delete fn;
   }
   print_status(status); if (status == FAIL) failed++;
-
 
   for (i = 0; i < 9; i++)
     delete ps[i];
 
+  print_status(EMPTY); // New line.
+
   return (failed ? 1: 0);
 }
+
