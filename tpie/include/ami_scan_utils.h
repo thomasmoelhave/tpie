@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 8/31/94
 //
-// $Id: ami_scan_utils.h,v 1.3 1995-01-10 16:43:06 darrenv Exp $
+// $Id: ami_scan_utils.h,v 1.4 1995-03-22 16:23:26 dev Exp $
 //
 #ifndef _AMI_SCAN_UTILS_H
 #define _AMI_SCAN_UTILS_H
@@ -90,13 +90,11 @@ AMI_err cxx_ostream_scan<T>::operate(const T &in, AMI_SCAN_FLAG *sfin)
 
 #define TEMPLATE_INSTANTIATE_OSTREAM(T) 				\
 template class cxx_ostream_scan<T>; 					\
-template AMI_err AMI_scan(AMI_base_stream<T> *, 			\
-                          cxx_ostream_scan<T> *);
+template AMI_err AMI_scan(AMI_STREAM<T> *, cxx_ostream_scan<T> *);
 
 #define TEMPLATE_INSTANTIATE_ISTREAM(T) 				\
 template class cxx_istream_scan<T>;					\
-template AMI_err AMI_scan(cxx_istream_scan<T> *, 			\
-                          AMI_base_stream<T> *);
+template AMI_err AMI_scan(cxx_istream_scan<T> *, AMI_STREAM<T> *);
 
 #endif
 

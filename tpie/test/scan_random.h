@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/6/94
 //
-// $Id: scan_random.h,v 1.2 1994-11-02 21:52:25 darrenv Exp $
+// $Id: scan_random.h,v 1.3 1995-03-22 16:24:09 dev Exp $
 //
 #ifndef _SCAN_RANDOM_H
 #define _SCAN_RANDOM_H
@@ -26,7 +26,7 @@ public:
 #ifdef NO_IMPLICIT_TEMPLATES
 
 #define TEMPLATE_INSTANTIATE_SCAN_RANDOM		\
-template AMI_err AMI_scan(scan_random *, AMI_base_stream<int> *);
+template AMI_err AMI_scan(scan_random *, AMI_STREAM<int> *);
 
 #endif
 

@@ -4,13 +4,13 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/24/94
 //
-// $Id: ami_scan_mac.h,v 1.5 1994-10-31 21:11:57 darrenv Exp $
+// $Id: ami_scan_mac.h,v 1.6 1995-03-22 16:23:12 dev Exp $
 //
 #ifndef _AMI_SCAN_MAC_H
 #define _AMI_SCAN_MAC_H
 
 // Macros for defining parameters to AMI_scan()
-#define __SPARM_BASE(T,io,n) AMI_base_stream< T ## n > *io ## n
+#define __SPARM_BASE(T,io,n) AMI_STREAM< T ## n > *io ## n
 #define __SPARM_1(T,io) __SPARM_BASE(T,io,1)  
 #define __SPARM_2(T,io) __SPARM_1(T,io), __SPARM_BASE(T,io,2)
 #define __SPARM_3(T,io) __SPARM_2(T,io), __SPARM_BASE(T,io,3)
