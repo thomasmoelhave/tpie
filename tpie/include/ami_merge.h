@@ -8,7 +8,7 @@
 // lower level streams will use appropriate levels of buffering.  This
 // will be more critical for parallel disk implementations.
 //
-// $Id: ami_merge.h,v 1.5 1994-09-26 19:24:08 darrenv Exp $
+// $Id: ami_merge.h,v 1.6 1994-09-29 13:01:43 darrenv Exp $
 //
 #ifndef _AMI_MERGE_H
 #define _AMI_MERGE_H
@@ -359,7 +359,17 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
 
         off_t sub_start, sub_end;
 
+        // The number of devices available for temporary streams.
+        // This whole idea should be rolled into a lower level,
+        // i.e. in a constructor for temporary streams that cycles
+        // through the devices.
+        
+        unsigned int device_arity;
 
+        // The current device to use for the next temporary stream.
+
+        unsigned int current_device;
+        
         // How many substreams will there be?  The main memory
         // available to us is the total amount available, minus what
         // is needed for the input stream and the temporary stream.
@@ -395,6 +405,26 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
 
         }
 
+        // Make sure that the AMI is willing to provide us with the
+        // number of substreams we want.  It may not be able to due to
+        // operating system restrictions, such as on the number of
+        // regions that can be mmap()ed in.
+
+        {
+            int ami_available_streams = instream->available_streams();
+
+            if (ami_available_streams != -1) {
+                if (ami_available_streams <= 4) {
+                    return AMI_ERROR_INSUFFICIENT_AVAILABLE_STREAMS;
+                }
+                
+                if (merge_arity > ami_available_streams - 2) {
+                    merge_arity = ami_available_streams - 2;
+                    LOG_INFO("Reduced merge arity due to AMI restrictions.\n");
+                }
+            }
+        }
+        
         LOG_INFO("AMI_partition_and_merge(): merge arity = " <<
                  merge_arity << ".\n");
         
@@ -455,8 +485,17 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
         // substreams, processing each one and writing it to the
         // corresponding substream of the temporary stream.
 
-        initial_tmp_stream = new AMI_STREAM<T>(1,len);
+        // This only works for the AMI_stream_single<T> type for the
+        // moment.  The solution is to push the default device up into
+        // a base class of all stream implementations, which will be
+        // done when another one is written.
 
+        device_arity = AMI_stream_single_base::default_device.arity();
+        current_device = 0;
+        
+        initial_tmp_stream = new AMI_STREAM<T>(current_device,len);
+        current_device = (current_device + 1) % device_arity;
+        
         mm_stream = new T[sz_original_substream];
 
         tp_assert(mm_stream != NULL, "Misjudged available main memory.");
@@ -604,7 +643,7 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
                     delete the_substreams[ii];
                 }
 
-                // And the current input, which is an inptermediate stream
+                // And the current input, which is an intermediate stream
                 // of some kind.
 
                 delete current_input;
