@@ -8,7 +8,7 @@
 // lower level streams will use appropriate levels of buffering.  This
 // will be more critical for parallel disk implementations.
 //
-// $Id: ami_merge.h,v 1.24 1999-06-27 00:49:25 laura Exp $
+// $Id: ami_merge.h,v 1.25 1999-07-05 02:48:33 laura Exp $
 //
 #ifndef _AMI_MERGE_H
 #define _AMI_MERGE_H
@@ -317,7 +317,7 @@ AMI_err AMI_main_mem_merge(AMI_STREAM<T> *instream,
     // m_obj->main_mem_operate
     
     ae = instream->seek(0);
-    assert(ae == AMI_ERROR_MM_ERROR);
+    assert(ae == AMI_ERROR_NO_ERROR);
     
     // This code is sloppy and has to be rewritten correctly for
     // parallel buffer allocation.  It will not work with anything
@@ -551,6 +551,8 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
   }
   
   instream->seek(0);
+  assert(ae == AMI_ERROR_NO_ERROR);
+
   tp_assert(nb_orig_substr * sz_orig_substr - len < sz_orig_substr,
 	    "Total substream length too long or too many.");
   tp_assert(len - (nb_orig_substr - 1) * sz_orig_substr <= sz_orig_substr,
@@ -669,7 +671,8 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
       // on HP-UX.
       //this needs to be cleaned up..Laura
       current_input->seek(0);
-      
+      assert(ae == AMI_ERROR_NO_ERROR);
+
       // Merge them into the output stream.
       ae = AMI_single_merge(the_substreams, substream_count, outstream, m_obj);
       if (ae != AMI_ERROR_NO_ERROR) {
@@ -697,7 +700,8 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
       // on HU-UX.
        //this needs to be cleaned up..Laura
       current_input->seek(0);
-      
+      assert(ae == AMI_ERROR_NO_ERROR);
+
       // Loop through the substreams of the current stream, merging as
       // many as we can at a time until all are done with.
       for (sub_start = 0, ii = 0, jj = 0;
