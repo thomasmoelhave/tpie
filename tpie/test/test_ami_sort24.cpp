@@ -5,7 +5,7 @@
 // Created: 3/24/95
 //
 
-static char test_ami_sort24_id[] = "$Id: test_ami_sort24.cpp,v 1.4 1997-05-20 22:13:01 vengroff Exp $";
+static char test_ami_sort24_id[] = "$Id: test_ami_sort24.cpp,v 1.5 1999-02-03 22:27:09 tavi Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -248,26 +248,3 @@ int main(int argc, char **argv)
     
     return 0;
 }
-    
-
-
-// Instantiate all the templates we have used.
-
-#ifdef NO_IMPLICIT_TEMPLATES
-
-// Instantiate templates for streams of objects.
-TEMPLATE_INSTANTIATE_STREAMS(sort_obj)
-
-// Instantiate templates for sorting objects.
-TEMPLATE_INSTANTIATE_SORT_OP(sort_obj)
-
-// Instantiate templates for I/O using C++ streams.
-TEMPLATE_INSTANTIATE_OSTREAM(sort_obj)
-
-template AMI_err AMI_scan(scan_random_so *, AMI_STREAM<sort_obj> *);
-
-TEMPLATE_INSTANTIATE_KB_SORT(sort_obj)
-
-
-#endif
-

@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 3/23/95
 //
-// $Id: scan_value.h,v 1.2 1997-05-20 22:12:17 vengroff Exp $
+// $Id: scan_value.h,v 1.3 1999-02-03 22:17:30 tavi Exp $
 //
 #ifndef _SCAN_VALUE_H
 #define _SCAN_VALUE_H
@@ -34,11 +34,5 @@ public:
         }
     };
 };
-
-#ifdef NO_IMPLICIT_TEMPLATES
-#define TEMPLATE_INSTANTIATE_SCAN_VALUE(T)				\
-template class scan_value<T>;						\
-template AMI_err AMI_scan(scan_value<T> *, AMI_STREAM<T> *);
-#endif
 
 #endif // _SCAN_VALUE_H 

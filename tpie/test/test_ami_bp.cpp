@@ -5,7 +5,7 @@
 // Created: 1/9/95
 //
 
-static char test_ami_bp_id[] = "$Id: test_ami_bp.cpp,v 1.3 1995-06-30 21:09:38 darrenv Exp $";
+static char test_ami_bp_id[] = "$Id: test_ami_bp.cpp,v 1.4 1999-02-03 22:20:39 tavi Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -70,10 +70,6 @@ void parse_app_opt(char c, char *optarg)
             break;
     }
 }
-
-
-
-
 
 extern int register_new;
 
@@ -170,24 +166,3 @@ int main(int argc, char **argv)
 
     return 0;
 }
-
-
-// Instantiate all the templates we have used.
-
-#ifdef NO_IMPLICIT_TEMPLATES
-
-// Instantiate templates for streams of objects.
-TEMPLATE_INSTANTIATE_STREAMS(int)
-
-// Instantiate templates for I/O using C++ streams.
-TEMPLATE_INSTANTIATE_OSTREAM(int)
-
-// Instantiate AMI_BMMC_permute()
-TEMPLATE_INSTANTIATE_BIT_PERM(int)
-
-// Calls to AMI_scan using various object types.
-template AMI_err AMI_scan(scan_count *, AMI_STREAM<int> *);
-
-#endif
-
-

@@ -5,7 +5,7 @@
 // Created: 12/10/94
 //
 
-static char test_ami_arith_id[] = "$Id: test_ami_arith.cpp,v 1.3 1995-06-30 21:09:35 darrenv Exp $";
+static char test_ami_arith_id[] = "$Id: test_ami_arith.cpp,v 1.4 1999-02-03 22:19:46 tavi Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -172,28 +172,3 @@ int main(int argc, char **argv)
     
     return 0;
 }
-
-
-// Instantiate all the templates we have used.
-
-#ifdef NO_IMPLICIT_TEMPLATES
-
-// Instantiate templates for streams of objects.
-TEMPLATE_INSTANTIATE_STREAMS(int)
-
-// Instantiate templates for I/O using C++ streams.
-TEMPLATE_INSTANTIATE_OSTREAM(int)
-
-// Templated scan/merge management objects used by this program.
-template class scan_square<int>;
-
-// Calls to AMI_scan using various object types.
-template AMI_err AMI_scan(scan_count *, AMI_STREAM<int> *);
-template AMI_err AMI_scan(AMI_STREAM<int> *, scan_square<int> *,
-                          AMI_STREAM<int> *);
-
-// Instantiate stream arithmatic.
-TEMPLATE_INSTANTIATE_STREAM_DIV(int)
-
-#endif
-
