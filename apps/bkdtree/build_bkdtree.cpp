@@ -8,7 +8,7 @@
 // log. method classes on the kd-tree. It uses the run-time parameters
 // from app_params.cpp
 //
-// $Id: build_bkdtree.cpp,v 1.1 2003-09-25 17:45:03 tavi Exp $
+// $Id: build_bkdtree.cpp,v 1.2 2004-08-12 12:36:05 jan Exp $
 //
 
 #define DIRECTIO_STREAMS 0
@@ -260,7 +260,7 @@ int main(int argc, char** argv) {
     atimer.reset();
     params.stats << "Loading method:       " 
 		 << (params.load_method & AMI_KDTREE_LOAD_BINARY? "BINARY ": (params.load_method & AMI_KDTREE_LOAD_SAMPLE ? "SAMPLE ": "GRID ")) 
-		 << (params.load_method & AMI_KDTREE_LOAD_GRID ? params.grid_size: 0) << endl;
+		 << static_cast<TPIE_OS_OUTPUT_SIZE_T>((params.load_method & AMI_KDTREE_LOAD_GRID ? params.grid_size: 0)) << endl;
     params.stats << "LOAD:Wall_IO_%IO      "
 		 << double(int(load_wall*1000)) / 1000 << "\t "
 		 << double(int(load_io*100))/100 << "\t "
@@ -268,9 +268,9 @@ int main(int argc, char** argv) {
     params.stats << "Binary nodes:         "
 		 << kdtree->bin_node_count() << endl;
     params.stats << "Max intraroot height: "
-		 << kdtree->params().max_intraroot_height << endl;
+		 << static_cast<TPIE_OS_OUTPUT_SIZE_T>(kdtree->params().max_intraroot_height) << endl;
     params.stats << "Max intranode height: "
-		 << kdtree->params().max_intranode_height << endl;
+		 << static_cast<TPIE_OS_OUTPUT_SIZE_T>(kdtree->params().max_intranode_height) << endl;
   }
 
   // <><><><><><><><><><><><><><><><><><><><>
@@ -326,7 +326,7 @@ int main(int argc, char** argv) {
       cerr << argv[0] << ": Error opening window queries file " 
 	   << params.file_name_wquery << endl;
     } else {
-      size_t count = 0, result = 0;
+      TPIE_OS_OFFSET count = 0, result = 0;
       app_params_t::point_t lop, hip;
       app_params_t::stream_t *tempstr = (params.do_query_count_only ? NULL: new app_params_t::stream_t);
       cerr << "Window queries from file " 
@@ -393,8 +393,8 @@ int main(int argc, char** argv) {
 
   if (params.wquery_count > 0 && err == AMI_ERROR_NO_ERROR) {
     app_params_t::point_t lop, hip;
-    size_t result = 0;
-    cerr << "Doing " << params.wquery_count << " window queries." << endl;
+    TPIE_OS_OFFSET result = 0;
+    cerr << "Doing " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(params.wquery_count) << " window queries." << endl;
     int mbrlox, mbrloy, mbrdx, mbrdy;
 
     if (params.do_logmethod) {
@@ -413,7 +413,7 @@ int main(int argc, char** argv) {
 	 << ", height: " << params.wquery_size_y << "% of " << mbrdy << endl;
     app_params_t::stream_t *tempstr = new app_params_t::stream_t;
 
-    TPIE_OS_SRANDOM(time(NULL));
+    TPIE_OS_SRANDOM((unsigned int)TPIE_OS_TIME(NULL));
     atimer.start();  
     for (i = 0; i < params.wquery_count; i++) {
       lop[0] = TPIE_OS_RANDOM() % mbrdx + mbrlox - wqdx / 2;

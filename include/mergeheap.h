@@ -37,8 +37,9 @@ public:
   unsigned short run_id;
 };
 
+/*
 TPIE_OS_WIN_ONLY_TEMPLATE_MERGE_HEAP_ELEMENT_COMPILER_FOOLER
-
+*/
 
 //This is the actual heap; there is a constructor, destructor and
 //various useful public member functions.

@@ -9,7 +9,7 @@
 // AMI_kdbtree_status, AMI_kdbtree_params, 
 // region_t, kdb_item_t, path_stack_item_t.
 //
-// $Id: ami_kd_base.h,v 1.7 2003-09-17 02:15:48 tavi Exp $
+// $Id: ami_kd_base.h,v 1.8 2004-08-12 12:35:30 jan Exp $
 //
 
 #ifndef _AMI_KD_BASE_H
@@ -100,27 +100,27 @@ class AMI_kdtree_params {
 public:
 
   // Max number of Value's in a leaf. 0 means use all available capacity.
-  size_t leaf_size_max;
+  TPIE_OS_SIZE_T leaf_size_max;
   // Max number of Key's in a node. 0 means use all available capacity.
-  size_t node_size_max;
+  TPIE_OS_SIZE_T node_size_max;
    // How much bigger is the leaf logical block than the system block.
-  size_t leaf_block_factor;
+  TPIE_OS_SIZE_T leaf_block_factor;
   // How much bigger is the node logical block than the system block.
-  size_t node_block_factor; 
+  TPIE_OS_SIZE_T node_block_factor; 
   // The max number of leaves cached.
-  size_t leaf_cache_size;
+  TPIE_OS_SIZE_T leaf_cache_size;
   // The max number of nodes cached.
-  size_t node_cache_size;
+  TPIE_OS_SIZE_T node_cache_size;
   // Max height of a binary node inside a block node (other than
   // root). The root binary node has height 0. A default value, based
   // on node capacity, is used if set to 0.
-  size_t max_intranode_height;
+  TPIE_OS_SIZE_T max_intranode_height;
   // Max height of a binary node inside the root block node. The root
   // binary node has height 0. A default value, based on node
   // capacity, is used if set to 0.
-  size_t max_intraroot_height;
+  TPIE_OS_SIZE_T max_intraroot_height;
   // The grid size on each dimension, for grid bulk loading.
-  size_t grid_size;
+  TPIE_OS_SIZE_T grid_size;
 
   // The default parameter values.
   AMI_kdtree_params(): 
@@ -134,16 +134,16 @@ public:
 
 // A base class for all binary node implementations. This is not a complete
 // implementation of a kd-tree binary node!
-template<class coord_t, size_t dim>
+template<class coord_t, TPIE_OS_SIZE_T dim>
 class AMI_kdtree_bin_node_base {
 public:
 
-  void initialize(const AMI_point<coord_t, dim> &p, size_t d) {
+  void initialize(const AMI_point<coord_t, dim> &p, TPIE_OS_SIZE_T d) {
     assert(d < dim);
     discr_val_ = p[d];
     discr_dim_ = d;
   }
-  size_t get_discriminator_dim() {
+  TPIE_OS_SIZE_T get_discriminator_dim() {
     return discr_dim_;
   }
   coord_t get_discriminator_val() {
@@ -157,21 +157,21 @@ public:
   //  }
 
 #if AMI_KDTREE_STORE_WEIGHTS
-  size_t &low_weight() {
+  TPIE_OS_OFFSET &low_weight() {
     return lo_weight_;
   }
-  size_t &high_weight() {
+  TPIE_OS_OFFSET &high_weight() {
     return hi_weight_;
   }
-  size_t low_weight() const {
+  TPIE_OS_OFFSET low_weight() const {
     return lo_weight_;
   }
-  size_t high_weight() const {
+  TPIE_OS_SIZE_T high_weight() const {
     return hi_weight_;
   }
 private:
-  size_t lo_weight_;
-  size_t hi_weight_;
+  TPIE_OS_OFFSET lo_weight_;
+  TPIE_OS_OFFSET hi_weight_;
 #endif
 
 private:
@@ -179,63 +179,63 @@ private:
   // axis in this value).
   coord_t discr_val_; 
   // The dimension orthogonal to the split hyperplane. Should be less than dim.
-  size_t discr_dim_;
+  TPIE_OS_SIZE_T discr_dim_;
 };
 
 
 // The default binary node implementation. 
 // (All binary node implementations should have the same public interface).
-template<class coord_t, size_t dim>
+template<class coord_t, TPIE_OS_SIZE_T dim>
 class AMI_kdtree_bin_node_default: public AMI_kdtree_bin_node_base<coord_t, dim> {
 public:
 
-  void set_low_child(size_t idx, link_type_t idx_type) {
+  void set_low_child(TPIE_OS_SIZE_T idx, link_type_t idx_type) {
     lo_child_ = idx;
     lo_type_ = idx_type;
   }
-  void set_high_child(size_t idx, link_type_t idx_type) {
+  void set_high_child(TPIE_OS_SIZE_T idx, link_type_t idx_type) {
     hi_child_ = idx;
     hi_type_ = idx_type;
   }
-  void get_low_child(size_t &idx, link_type_t &idx_type) const {
+  void get_low_child(TPIE_OS_SIZE_T &idx, link_type_t &idx_type) const {
     idx = lo_child_;
     idx_type = lo_type_;
   }
-  void get_high_child(size_t &idx, link_type_t &idx_type) const {
+  void get_high_child(TPIE_OS_SIZE_T &idx, link_type_t &idx_type) const {
     idx = hi_child_;
     idx_type = hi_type_;
   }
 
 private:
   // The low child (i.e., its position in the block node).
-  size_t lo_child_;
+  TPIE_OS_SIZE_T lo_child_;
   link_type_t lo_type_;
   // The high child (i.e., its position in the block node).
-  size_t hi_child_;
+  TPIE_OS_SIZE_T hi_child_;
   link_type_t hi_type_;  
 };
 
 
 // Another binary node implementation, smaller than the default (uses short
-// int instead of size_t and link_type_t).
-template<class coord_t, size_t dim>
+// int instead of TPIE_OS_SIZE_T and link_type_t).
+template<class coord_t, TPIE_OS_SIZE_T dim>
 class AMI_kdtree_bin_node_short: public AMI_kdtree_bin_node_base<coord_t, dim> {
 public:
 
-  void set_low_child(size_t idx, link_type_t idx_type) {
+  void set_low_child(TPIE_OS_SIZE_T idx, link_type_t idx_type) {
     lo_child_ = (unsigned short) idx;
     lo_type_ = (unsigned short) idx_type;
   }
-  void set_high_child(size_t idx, link_type_t idx_type) {
+  void set_high_child(TPIE_OS_SIZE_T idx, link_type_t idx_type) {
     hi_child_ = (unsigned short) idx;
     hi_type_ = (unsigned short) idx_type;
   }
-  void get_low_child(size_t &idx, link_type_t &idx_type) const {
-    idx = (size_t) lo_child_;
+  void get_low_child(TPIE_OS_SIZE_T &idx, link_type_t &idx_type) const {
+    idx = (TPIE_OS_SIZE_T) lo_child_;
     idx_type = (link_type_t) lo_type_;
   }
-  void get_high_child(size_t &idx, link_type_t &idx_type) const {
-    idx = (size_t) hi_child_;
+  void get_high_child(TPIE_OS_SIZE_T &idx, link_type_t &idx_type) const {
+    idx = (TPIE_OS_SIZE_T) hi_child_;
     idx_type = (link_type_t) hi_type_;
   }
 
@@ -251,22 +251,22 @@ private:
 
 // Yet another binary node type. Same functionality as the default
 // type, but much more compact. 
-template<class coord_t, size_t dim>
+template<class coord_t, TPIE_OS_SIZE_T dim>
 class AMI_kdtree_bin_node_small: public AMI_kdtree_bin_node_base<coord_t, dim> {
 public:
 
-  void set_low_child(size_t idx, link_type_t idx_type) {
+  void set_low_child(TPIE_OS_SIZE_T idx, link_type_t idx_type) {
     lo_child_ = ((unsigned short) idx << 2)  | ((unsigned short) idx_type & 0x3);
   }
-  void set_high_child(size_t idx, link_type_t idx_type) {
+  void set_high_child(TPIE_OS_SIZE_T idx, link_type_t idx_type) {
     hi_child_ = ((unsigned short) idx << 2) | ((unsigned short) idx_type & 0x3);
   }  
 
-  void get_low_child(size_t &idx, link_type_t &idx_type) const {
+  void get_low_child(TPIE_OS_SIZE_T &idx, link_type_t &idx_type) const {
     idx = lo_child_ >> 2;
     idx_type = (link_type_t) (lo_child_ & 0x3);
   }
-  void get_high_child(size_t &idx, link_type_t &idx_type) const {
+  void get_high_child(TPIE_OS_SIZE_T &idx, link_type_t &idx_type) const {
     idx = hi_child_ >> 2;
     idx_type = (link_type_t) (hi_child_ & 0x3);
   }
@@ -282,18 +282,18 @@ private:
 // A binary node larger than the default. Stores an entire point as a
 // discriminator, instead of just one value. Does not inherit from the base
 // class.
-template<class coord_t, size_t dim>
+template<class coord_t, TPIE_OS_SIZE_T dim>
 class AMI_kdtree_bin_node_large {
 public:
-  void initialize(const AMI_point<coord_t, dim> &p, size_t d) {
+  void initialize(const AMI_point<coord_t, dim> &p, TPIE_OS_SIZE_T d) {
     discr_val_ = p;
     discr_dim_ = d;
   }
-  void set_low_child(size_t idx, link_type_t idx_type) {
+  void set_low_child(TPIE_OS_SIZE_T idx, link_type_t idx_type) {
     lo_child_ = idx;
     lo_type_ = idx_type;
   }
-  void set_high_child(size_t idx, link_type_t idx_type) {
+  void set_high_child(TPIE_OS_SIZE_T idx, link_type_t idx_type) {
     hi_child_ = idx;
     hi_type_ = idx_type;
   }
@@ -303,30 +303,30 @@ public:
       (p[(discr_dim_+1)%dim] < discr_val_[(discr_dim_+1)%dim]) ? -1 : 
       (p[(discr_dim_+1)%dim] == discr_val_[(discr_dim_+1)%dim]) ? 0: 1;
   }
-  void get_low_child(size_t &idx, link_type_t &idx_type) const {
+  void get_low_child(TPIE_OS_SIZE_T &idx, link_type_t &idx_type) const {
     idx = lo_child_;
     idx_type = lo_type_;
   }
-  void get_high_child(size_t &idx, link_type_t &idx_type) const {
+  void get_high_child(TPIE_OS_SIZE_T &idx, link_type_t &idx_type) const {
     idx = hi_child_;
     idx_type = hi_type_;
   }
 #if AMI_KDTREE_STORE_WEIGHTS
-  size_t &low_weight() {
+  TPIE_OS_OFFSET &low_weight() {
     return lo_weight_;
   }
-  size_t &high_weight() {
+  TPIE_OS_OFFSET &high_weight() {
     return hi_weight_;
   }
-  size_t low_weight() const {
+  TPIE_OS_OFFSET low_weight() const {
     return lo_weight_;
   }
-  size_t high_weight() const {
+  TPIE_OS_OFFSET high_weight() const {
     return hi_weight_;
   }
 private:
-  size_t lo_weight_;
-  size_t hi_weight_;
+  TPIE_OS_OFFSET lo_weight_;
+  TPIE_OS_OFFSET hi_weight_;
 #endif
 
 
@@ -334,19 +334,19 @@ private:
   // The split point.
   AMI_point<coord_t, dim> discr_val_; 
   // The dimension orthogonal to the split hyperplane. Should be less than dim.
-  size_t discr_dim_;
+  TPIE_OS_SIZE_T discr_dim_;
   // The low child (i.e., its position in the block node).
-  size_t lo_child_;
+  TPIE_OS_SIZE_T lo_child_;
   link_type_t lo_type_;
   // The high child (i.e., its position in the block node).
-  size_t hi_child_;
+  TPIE_OS_SIZE_T hi_child_;
   link_type_t hi_type_;   
 };
 
 
 ///// AMI_kdbtree stuff /////
 
-template<class coord_t, size_t dim>
+template<class coord_t, TPIE_OS_SIZE_T dim>
 class region_t {
 protected:
   // The low and high coordinates. The boolean bit is true iff the
@@ -375,7 +375,7 @@ public:
 
   // Initialize this box with the values stored in points p1 and p2.
   region_t(const AMI_point<coord_t, dim>& p1, const AMI_point<coord_t, dim>& p2) {
-    for (size_t i = 0; i < dim; i++) {
+    for (TPIE_OS_SIZE_T i = 0; i < dim; i++) {
       lo_[i] = min(p1[i], p2[i]);
       //      lo_bd_[i] = 1;//true;
       bd_[i] |= LO_BD_MASK; // true on low bd.
@@ -383,50 +383,50 @@ public:
       //      hi_bd_[i] = 1;//true;
       bd_[i] |= HI_BD_MASK; // true on high bd.
       if (p1[i] == p2[i])
-	LOG_WARNING_ID("  region_t: points have one identical coordinate.");
+	TP_LOG_WARNING_ID("  region_t: points have one identical coordinate.");
     }
   }
 
-  coord_t lo(size_t d) const { return lo_[d]; }
-  coord_t& lo(size_t d) { return lo_[d];  }
+  coord_t lo(TPIE_OS_SIZE_T d) const { return lo_[d]; }
+  coord_t& lo(TPIE_OS_SIZE_T d) { return lo_[d];  }
 
-  coord_t hi(size_t d) const { return hi_[d]; }
-  coord_t& hi(size_t d) { return hi_[d];  }
+  coord_t hi(TPIE_OS_SIZE_T d) const { return hi_[d]; }
+  coord_t& hi(TPIE_OS_SIZE_T d) { return hi_[d];  }
 
-  bool is_bounded_lo(size_t d) const { return  (bd_[d] & LO_BD_MASK) != 0; }
-  bool is_bounded_hi(size_t d) const { return  (bd_[d] & HI_BD_MASK) != 0; }
-  bool is_bounded(size_t d) const 
+  bool is_bounded_lo(TPIE_OS_SIZE_T d) const { return  (bd_[d] & LO_BD_MASK) != 0; }
+  bool is_bounded_hi(TPIE_OS_SIZE_T d) const { return  (bd_[d] & HI_BD_MASK) != 0; }
+  bool is_bounded(TPIE_OS_SIZE_T d) const 
     { return is_bounded_lo(d) && is_bounded_hi(d); }
   bool is_bounded() const {
-    size_t i;
+    TPIE_OS_SIZE_T i;
     for (i = 0; i < dim; i++)
       if (!is_bounded(i))
 	break;
     return (i == dim);
   }
 
-  void set_bounded_lo(size_t d, bool b) { bd_[d] |= (b ? LO_BD_MASK: 0); }
-  void set_bounded_hi(size_t d, bool b) { bd_[d] |= (b ? HI_BD_MASK: 0); }
+  void set_bounded_lo(TPIE_OS_SIZE_T d, bool b) { bd_[d] |= (b ? LO_BD_MASK: 0); }
+  void set_bounded_hi(TPIE_OS_SIZE_T d, bool b) { bd_[d] |= (b ? HI_BD_MASK: 0); }
 
-  coord_t span(size_t d) const { return hi(d) - lo(d); }
+  coord_t span(TPIE_OS_SIZE_T d) const { return hi(d) - lo(d); }
 
   AMI_point<coord_t, dim> point_lo() const {
     AMI_point<coord_t, dim> p;
-    for (size_t i = 0; i < dim; i++)
+    for (TPIE_OS_SIZE_T i = 0; i < dim; i++)
       p[i] = lo_[i];
     return p;
   }
 
   AMI_point<coord_t, dim> point_hi() const {
     AMI_point<coord_t, dim> p;
-    for (size_t i = 0; i < dim; i++)
+    for (TPIE_OS_SIZE_T i = 0; i < dim; i++)
       p[i] = hi_[i];
     return p;
   }
 
   // Cutout the portion of the region that's higher than the given
   // coordinate.
-  void cutout_hi(coord_t v, size_t d) {
+  void cutout_hi(coord_t v, TPIE_OS_SIZE_T d) {
     hi_[d] = v;
     //    hi_bd_[d] = 1;//true;
     bd_[d] |= HI_BD_MASK;
@@ -434,7 +434,7 @@ public:
 
   // Cutout the portion of the region that's lower than the given
   // coordinate.
-  void cutout_lo(coord_t v, size_t d) {
+  void cutout_lo(coord_t v, TPIE_OS_SIZE_T d) {
     lo_[d] = v;
     //    lo_bd_[d] = 1;//true;
     bd_[d] |= LO_BD_MASK;
@@ -442,7 +442,7 @@ public:
 
   // Return true if this box contains point p.
   bool contains(const AMI_point<coord_t, dim>& p) const {
-    size_t i;
+    TPIE_OS_SIZE_T i;
     for (i = 0; i < dim; i++) {
       if ((is_bounded_lo(i) && p[i] <  lo_[i]) || 
 	  (is_bounded_hi(i) && p[i] >  hi_[i]))
@@ -453,7 +453,7 @@ public:
 
   // Return true if this box intersects box r.
   bool intersects(const region_t<coord_t, dim>& r) const {
-    size_t i;
+    TPIE_OS_SIZE_T i;
     for (i = 0; i < dim; i++) {
       if ((r.is_bounded_lo(i) && relative_to_plane(r.lo_[i], i) == -1) || 
 	  (r.is_bounded_hi(i) && relative_to_plane(r.hi_[i], i) == 1))
@@ -466,7 +466,7 @@ public:
   // orthogonal to dimension d and passing through sp: -1 if left of
   // the hyperplane, 1 if right of the hyperplane, and 0 if it
   // intersects the hyperplane.
-  int relative_to_plane(coord_t sp, size_t d) const {
+  int relative_to_plane(coord_t sp, TPIE_OS_SIZE_T d) const {
     if (is_bounded_hi(d) && !(sp < hi_[d]))
       return -1;
     if (is_bounded_lo(d) && !(lo_[d] < sp))
@@ -482,7 +482,7 @@ __attribute__((packed))
   ;
 
 
-template<class coord_t, size_t dim>
+template<class coord_t, TPIE_OS_SIZE_T dim>
 class kdb_item_t {
 public:
   // For this purpose, every interval in region is considered open on
@@ -500,17 +500,17 @@ public:
    ;
 
 
-template<class coord_t, size_t dim>
+template<class coord_t, TPIE_OS_SIZE_T dim>
 ostream &operator<<(ostream& s, const kdb_item_t<coord_t, dim>& ki) {
   s << "[";
-  for (size_t i = 0; i < dim; i++) {
+  for (TPIE_OS_SIZE_T i = 0; i < dim; i++) {
     if (ki.region.is_bounded_lo(i))
       s << ki.region.lo(i);
     else
       s << "-INF";
     s << " ";
   }
-  for (size_t i = 0; i < dim; i++) {
+  for (TPIE_OS_SIZE_T i = 0; i < dim; i++) {
     if (ki.region.is_bounded_hi(i))
       s << ki.region.hi(i);
     else
@@ -522,13 +522,13 @@ ostream &operator<<(ostream& s, const kdb_item_t<coord_t, dim>& ki) {
   return s;
 }
 
-template<class coord_t, size_t dim>
+template<class coord_t, TPIE_OS_SIZE_T dim>
 struct path_stack_item_t {
   kdb_item_t<coord_t, dim> item;
-  size_t d;
-  size_t el_idx; // 
-  path_stack_item_t(const kdb_item_t<coord_t, dim>& ki, size_t di, 
-		    size_t idx = 0): item(ki), d(di), el_idx(idx) {}
+  TPIE_OS_SIZE_T d;
+  TPIE_OS_SIZE_T el_idx; // 
+  path_stack_item_t(const kdb_item_t<coord_t, dim>& ki, TPIE_OS_SIZE_T di, 
+		    TPIE_OS_SIZE_T idx = 0): item(ki), d(di), el_idx(idx) {}
   path_stack_item_t() {}
 };
 

@@ -4,7 +4,7 @@
 //  Created:         27.01.1999
 //  Author:          Jan Vahrenhold
 //  mail:            jan@math.uni-muenster.de
-//  $Id: bulkloader.h,v 1.2 2004-02-05 17:53:35 jan Exp $
+//  $Id: bulkloader.h,v 1.3 2004-08-12 12:37:24 jan Exp $
 //  Copyright (C) 1999-2001 by  
 // 
 //  Jan Vahrenhold
@@ -18,6 +18,8 @@
 //  Prevent multiple #includes.
 #ifndef BULKLOADER_H
 #define BULKLOADER_H
+
+#include <portability.h>
 
 #include <assert.h>        //  Debugging.
 #include <math.h>          //  For log, pow, etc.
@@ -130,7 +132,7 @@ public:
     //- BulkLoader
     BulkLoader(
 	const char*    inputStream = NULL, 
-	unsigned short fanOut = 50);
+	children_count_t fanOut = 50);
     BulkLoader(const BulkLoader& other);
     BulkLoader& operator=(const BulkLoader& other);
     ~BulkLoader();
@@ -143,8 +145,8 @@ public:
     //. The name of the input stream of rectangles can be set and inquired.
 
     //- setFanOut, getFanOut
-    void setFanOut(unsigned short fanOut);
-    unsigned short getFanOut() const;
+    void setFanOut(children_count_t fanOut);
+    children_count_t getFanOut() const;
     //. The fan-out for the R-tree to be constructed can be set and inquired.
 
 
@@ -164,7 +166,7 @@ public:
 protected:   
 
     char*          inputStream_;  //  Name of the input stream of rectangles.
-    unsigned short fanOut_;       //  Fan-out for the R-tree.
+    children_count_t fanOut_;       //  Fan-out for the R-tree.
 
     coord_t        xOffset_;      //  Minimun x-coordinate of data set.
     coord_t        yOffset_;      //  Minimun y-coordinate of data set.
@@ -180,7 +182,7 @@ protected:
 
     //  Choosing the best split axis and index for R*-tree node 
     //  splitting [BKSS90]
-    pair<vector<rectangle<coord_t, AMI_bid> >*, unsigned short>  chooseSplitAxisAndIndex(
+    pair<vector<rectangle<coord_t, AMI_bid> >*, children_count_t>  chooseSplitAxisAndIndex(
 	vector<rectangle<coord_t, AMI_bid> >* sortedVector0, 
 	vector<rectangle<coord_t, AMI_bid> >* sortedVector1);
 
@@ -218,15 +220,15 @@ inline const char* BulkLoader<coord_t, BTECOLL>::getInputStream() const {
 }
 
 template<class coord_t, class BTECOLL>
-inline void BulkLoader<coord_t, BTECOLL>::setFanOut(unsigned short fanOut) {
-    if (fanOut > ((LOG_BLK_SZ - (2*sizeof(AMI_bid) + 2*sizeof(unsigned short)))/ sizeof(rectangle<coord_t, AMI_bid>))) {
-	cerr << "Warning: fan-out too big (" << fanOut << " > " << (LOG_BLK_SZ - (2*sizeof(AMI_bid) + 2*sizeof(unsigned short)))/ sizeof(rectangle<coord_t, AMI_bid>) <<  ") !" << endl;
+inline void BulkLoader<coord_t, BTECOLL>::setFanOut(children_count_t fanOut) {
+    if (fanOut > ((LOG_BLK_SZ - (2*sizeof(AMI_bid) + 2*sizeof(children_count_t)))/ sizeof(rectangle<coord_t, AMI_bid>))) {
+	cerr << "Warning: fan-out too big (" << static_cast<TPIE_OS_OUTPUT_SIZE_T>(fanOut) << " > " << (LOG_BLK_SZ - (2*sizeof(AMI_bid) + 2*sizeof(children_count_t)))/ sizeof(rectangle<coord_t, AMI_bid>) <<  ") !" << endl;
     }
     fanOut_ = fanOut;    
 }
 
 template<class coord_t, class BTECOLL>
-inline unsigned short BulkLoader<coord_t, BTECOLL>::getFanOut() const {
+inline children_count_t BulkLoader<coord_t, BTECOLL>::getFanOut() const {
     return fanOut_;
 }
 
@@ -240,7 +242,7 @@ inline void BulkLoader<coord_t, BTECOLL>::show_stats() {
 
 
 template<class coord_t, class BTECOLL>
-BulkLoader<coord_t, BTECOLL>::BulkLoader(const char* inputStream, unsigned short fanOut) : inputStream_(NULL), fanOut_(0), cachedNodes_(), xOffset_((coord_t) 0), yOffset_((coord_t) 0), factor_(0), size_(0), statistics_(false), tree_(NULL) {
+BulkLoader<coord_t, BTECOLL>::BulkLoader(const char* inputStream, children_count_t fanOut) : inputStream_(NULL), fanOut_(0), cachedNodes_(), xOffset_((coord_t) 0), yOffset_((coord_t) 0), factor_(0), size_(0), statistics_(false), tree_(NULL) {
     setInputStream(inputStream);   
     setFanOut(fanOut);
 }
@@ -327,11 +329,11 @@ struct sortBoxesAlongYAxis {
 
 //  Choosing the best split axis and index for R*-tree node splitting
 template<class coord_t, class BTECOLL>
-pair<vector<rectangle<coord_t, AMI_bid> >*, unsigned short>  BulkLoader<coord_t, BTECOLL>::chooseSplitAxisAndIndex(vector<rectangle<coord_t, AMI_bid> >* sortedVector0, vector<rectangle<coord_t, AMI_bid> >* sortedVector1) {
+pair<vector<rectangle<coord_t, AMI_bid> >*, children_count_t>  BulkLoader<coord_t, BTECOLL>::chooseSplitAxisAndIndex(vector<rectangle<coord_t, AMI_bid> >* sortedVector0, vector<rectangle<coord_t, AMI_bid> >* sortedVector1) {
 
     vector<rectangle<coord_t, AMI_bid> >* sortedVector[2];
-    unsigned short counter;
-    unsigned short counter2;
+    children_count_t counter;
+    children_count_t counter2;
 
     coord_t S[2];
     
@@ -342,10 +344,10 @@ pair<vector<rectangle<coord_t, AMI_bid> >*, unsigned short>  BulkLoader<coord_t,
 	sort(sortedVector[0]->begin(), sortedVector[0]->end(), sortBoxesAlongXAxis<coord_t>());
 	sort(sortedVector[1]->begin(), sortedVector[1]->end(), sortBoxesAlongYAxis<coord_t>());
     
-    unsigned short children_ = sortedVector[1]->size();
+    children_count_t children_ = static_cast<children_count_t>(sortedVector[1]->size());
 
-    unsigned short firstGroupMinSize = (unsigned short)(fanOut_ / MIN_FANOUT_FACTOR);
-    unsigned short distributions = fanOut_ - 2*firstGroupMinSize + 1;
+    children_count_t firstGroupMinSize = (children_count_t)(fanOut_ / MIN_FANOUT_FACTOR);
+    children_count_t distributions = fanOut_ - 2*firstGroupMinSize + 1;
 
     //  area-value:    area[bb(first group)] +
     //                 area[bb(second group)]
@@ -455,7 +457,7 @@ pair<vector<rectangle<coord_t, AMI_bid> >*, unsigned short>  BulkLoader<coord_t,
     
     //  "Choose the axis with the minimum S as split axis."
     unsigned short splitAxis = 0;
-    unsigned short bestSoFar = 0;
+    children_count_t bestSoFar = 0;
 
     if (S[1] < S[0]) {
 	splitAxis = 1;
@@ -474,14 +476,14 @@ pair<vector<rectangle<coord_t, AMI_bid> >*, unsigned short>  BulkLoader<coord_t,
 	}
     }
 
-    return pair<vector<rectangle<coord_t, AMI_bid> >*, unsigned short>(sortedVector[splitAxis], bestSoFar);
+    return pair<vector<rectangle<coord_t, AMI_bid> >*, children_count_t>(sortedVector[splitAxis], bestSoFar);
 }
 
 //  Caching and repacking as proposed by DeWitt et al.
 template<class coord_t, class BTECOLL>
 void BulkLoader<coord_t, BTECOLL>::repackCachedNodes(RStarNode<coord_t, BTECOLL>** lastNode) {
 
-    unsigned short counter  = 0;
+    children_count_t counter  = 0;
 
     RStarNode<coord_t, BTECOLL>*  newNode = NULL;
     rectangle<coord_t, AMI_bid> newBB = (*lastNode)->getChild(0);
@@ -529,16 +531,16 @@ void BulkLoader<coord_t, BTECOLL>::repackCachedNodes(RStarNode<coord_t, BTECOLL>
 
     vector<rectangle<coord_t, AMI_bid> >* backup = NULL;
 
-    unsigned short exitLoop = 0;
+    children_count_t exitLoop = 0;
 
     //  Repeat the splitting of the nodes as long as there is no
     //  proper distribution, i.e., as long as there is no small enough
     //  node.
     do {
 
-	pair<vector<rectangle<coord_t, AMI_bid> >*, unsigned short> seeds;
-	unsigned short toDelete         = 0;
-	unsigned short firstGroupNumber = 0;
+	pair<vector<rectangle<coord_t, AMI_bid> >*, children_count_t> seeds;
+	children_count_t toDelete         = 0;
+	children_count_t firstGroupNumber = 0;
 
 	//  Initialize backup vector.
 	backup   = NULL;
@@ -560,7 +562,7 @@ void BulkLoader<coord_t, BTECOLL>::repackCachedNodes(RStarNode<coord_t, BTECOLL>
 	    toSort[toDelete] = new vector<rectangle<coord_t, AMI_bid> >;
 
 	    //  Compute the index for splitting the vector.
- 	    firstGroupNumber = (unsigned short)(fanOut_ / MIN_FANOUT_FACTOR) + seeds.second;
+ 	    firstGroupNumber = (children_count_t)(fanOut_ / MIN_FANOUT_FACTOR) + seeds.second;
 
 	    //  Check if (a) the first section or (b) the second section
 	    //  is small enough to for a node.
@@ -822,11 +824,11 @@ AMI_err BulkLoader<coord_t, BTECOLL>::createHilbertRTree(RStarTree<coord_t, BTEC
     delete boxUnsorted;
     boxUnsorted = NULL;
 
-    off_t                       streamLength = 0;
-    off_t                       streamCounter = 0;
+    TPIE_OS_OFFSET              streamLength = 0;
+    TPIE_OS_OFFSET              streamCounter = 0;
     unsigned short              level = 0;
     unsigned short              counter = 0;
-    unsigned short              childCounter = 0;
+    children_count_t              childCounter = 0;
     unsigned short              nodesCreated = 0;
     pair<rectangle<coord_t, AMI_bid>, TPIE_OS_LONGLONG>* currentObject = NULL;
 //    AMI_bid                       parentID;
@@ -836,7 +838,7 @@ AMI_err BulkLoader<coord_t, BTECOLL>::createHilbertRTree(RStarTree<coord_t, BTEC
     AMI_STREAM<pair<rectangle<coord_t, AMI_bid>, TPIE_OS_LONGLONG> >* currentLevel_ = boxSorted;
     AMI_STREAM<pair<rectangle<coord_t, AMI_bid>, TPIE_OS_LONGLONG> >* nextLevel_;
 
-    off_t minimumPacking = (fanOut_ * 3) / 4;
+    children_count_t minimumPacking = (fanOut_ * 3) / 4;
     double increaseRatio = 1.20;
 
     //  Bottom-up construction of the Hilbert R-Tree
@@ -1066,11 +1068,11 @@ AMI_err BulkLoader<coord_t, BTECOLL>::createRStarTree(RStarTree<coord_t, BTECOLL
     delete boxUnsorted;
     boxUnsorted = NULL;
 
-    off_t                   streamLength = 0;
-    off_t                   streamCounter = 0;
+    TPIE_OS_OFFSET          streamLength = 0;
+    TPIE_OS_OFFSET          streamCounter = 0;
     unsigned short          level = 0;
     unsigned short          counter = 0;
-    unsigned short          childCounter = 0;
+    children_count_t          childCounter = 0;
     unsigned short          nodesCreated = 0;
     pair<rectangle<coord_t, AMI_bid>, TPIE_OS_LONGLONG>* currentObject = NULL;
     AMI_bid                    parentID = 0;
@@ -1080,7 +1082,7 @@ AMI_err BulkLoader<coord_t, BTECOLL>::createRStarTree(RStarTree<coord_t, BTECOLL
     AMI_STREAM<pair<rectangle<coord_t, AMI_bid>, TPIE_OS_LONGLONG> >* currentLevel_ = boxSorted;
     AMI_STREAM<pair<rectangle<coord_t, AMI_bid>, TPIE_OS_LONGLONG> >* nextLevel_;
 
-    off_t minimumPacking = (fanOut_ * 3) / 4;
+    children_count_t minimumPacking = (fanOut_ * 3) / 4;
     double increaseRatio = 1.20;
 
     //  Bottom-up construction of the (Hilbert-)R*-Tree

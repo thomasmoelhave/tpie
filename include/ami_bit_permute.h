@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 1/9/95
 //
-// $Id: ami_bit_permute.h,v 1.7 2003-09-27 06:18:05 tavi Exp $
+// $Id: ami_bit_permute.h,v 1.8 2004-08-12 12:35:29 jan Exp $
 //
 // For the moment this is done in terms of general permutations.
 // This will obviously change in the future.
@@ -74,9 +74,9 @@ template<class T>
 AMI_err AMI_BMMC_permute(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
                          AMI_bit_perm_object *bpo)
 {
-    size_t sz_len = instream->stream_len();
+    TPIE_OS_OFFSET sz_len = instream->stream_len();
 
-    size_t sz_pow2;
+    TPIE_OS_OFFSET sz_pow2;
     unsigned int bits;
     
     // Make sure the length of the input stream is a power of two.

@@ -3,7 +3,7 @@
 // File:    ami_cache.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_cache.h,v 1.9 2003-09-12 01:43:39 jan Exp $
+// $Id: ami_cache.h,v 1.10 2004-08-12 12:35:30 jan Exp $
 //
 // Declaration and definition of AMI_CACHE_MANAGER
 // implementation(s).
@@ -27,16 +27,16 @@ class AMI_cache_manager_base {
 protected:
 
   // Max size.
-  size_t capacity_;
+  TPIE_OS_SIZE_T capacity_;
 
   // Associativity.
-  size_t assoc_;
+  TPIE_OS_SIZE_T assoc_;
 
   // Behavior.
   int behavior_;
 
   // Constructor. Protected to prevent instantiation of this class.
-  AMI_cache_manager_base(size_t capacity, size_t assoc):
+  AMI_cache_manager_base(TPIE_OS_SIZE_T capacity, TPIE_OS_SIZE_T assoc):
     capacity_(capacity), assoc_(assoc), behavior_(0) {}
 
 public:
@@ -51,34 +51,34 @@ template<class T, class W>
 class AMI_cache_manager_lru: public AMI_cache_manager_base {
 protected:
 
-  typedef pair<size_t,T> item_type_;
+  typedef pair<TPIE_OS_OFFSET,T> item_type_;
 	
   // The array of items.
   item_type_ * pdata_;
 
   // The number of sets (equals capacity / associativity).
-  size_t sets_;
+  TPIE_OS_SIZE_T sets_;
 
   // The writeout function object.
   W writeout_;
 
 public:
 
-  AMI_cache_manager_lru(size_t capacity, size_t assoc = 0);
+  AMI_cache_manager_lru(TPIE_OS_SIZE_T capacity, TPIE_OS_SIZE_T assoc = 0);
 
   // Read an item from the cache based on the key k. The item is
   // passed to the user and *removed* from the cache (but not written
   // out).
-  bool read(size_t k, T& item);
+  bool read(TPIE_OS_OFFSET k, T& item);
 
   // Write an item to the cache based on the key k. If the set where
   // the item should go is full, the last item (ie, the l.r.u. item)
   // is written out.
-  bool write(size_t k, const T& item);
+  bool write(TPIE_OS_OFFSET k, const T& item);
 
   // Erase an item from the cache based on the key k. The item is
   // written out first.
-  bool erase(size_t k);
+  bool erase(TPIE_OS_OFFSET k);
 
   // Write out all items in the cache.
   void flush();
@@ -94,14 +94,14 @@ AMI_cache_manager_lru<T,W>::AMI_cache_manager_lru(size_t capacity, size_t assoc)
 
   if (capacity_ != 0) {
     if (assoc_ > capacity_) {
-      LOG_WARNING_ID("Associativity too big.");
-      LOG_WARNING_ID("Associativity reduced to capacity.");
+      TP_LOG_WARNING_ID("Associativity too big.");
+      TP_LOG_WARNING_ID("Associativity reduced to capacity.");
       assoc_ = capacity_;
     }
 
     if (capacity_ % assoc_ != 0) {
-      LOG_WARNING_ID("Capacity is not multiple of associativity.");
-      LOG_WARNING_ID("Capacity reduced.");
+      TP_LOG_WARNING_ID("Capacity is not multiple of associativity.");
+      TP_LOG_WARNING_ID("Capacity reduced.");
       capacity_ = (capacity_ / assoc_) * assoc_;
     }
     
@@ -122,9 +122,9 @@ AMI_cache_manager_lru<T,W>::AMI_cache_manager_lru(size_t capacity, size_t assoc)
 }
 
 template<class T, class W>
-inline bool AMI_cache_manager_lru<T,W>::read(size_t k, T& item) {
+inline bool AMI_cache_manager_lru<T,W>::read(TPIE_OS_OFFSET k, T& item) {
   
-  size_t i;
+  TPIE_OS_SIZE_T i;
   if (capacity_ == 0)
     return false;
 
@@ -157,7 +157,7 @@ inline bool AMI_cache_manager_lru<T,W>::read(size_t k, T& item) {
 }
 
 template<class T, class W>
-inline bool AMI_cache_manager_lru<T,W>::write(size_t k, const T& item) {
+inline bool AMI_cache_manager_lru<T,W>::write(TPIE_OS_OFFSET k, const T& item) {
 
   assert(k != 0);
 
@@ -187,9 +187,9 @@ inline bool AMI_cache_manager_lru<T,W>::write(size_t k, const T& item) {
 }
 
 template<class T, class W>
-bool AMI_cache_manager_lru<T,W>::erase(size_t k) {
+bool AMI_cache_manager_lru<T,W>::erase(TPIE_OS_OFFSET k) {
 
-  size_t i;
+  TPIE_OS_SIZE_T i;
   assert(k != 0);
 
   // The cache line, based on the key k.
@@ -218,7 +218,7 @@ bool AMI_cache_manager_lru<T,W>::erase(size_t k) {
 
 template<class T, class W>
 void AMI_cache_manager_lru<T,W>::flush() {
-  size_t i;
+  TPIE_OS_SIZE_T i;
   for (i = 0; i < capacity_; i++) {
     if (pdata_[i].first != 0) {
       writeout_(pdata_[i].second);

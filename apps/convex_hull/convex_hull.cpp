@@ -16,7 +16,7 @@
 #include <ami_sort.h>
 #include <ami_stack.h>
 
-VERSION(convex_hull_cpp,"$Id: convex_hull.cpp,v 1.1 2003-09-26 02:52:53 tavi Exp $");
+VERSION(convex_hull_cpp,"$Id: convex_hull.cpp,v 1.2 2004-08-12 12:36:23 jan Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -301,10 +301,10 @@ int main(int argc, char **argv)
 
     if (verbose) {
       cout << "test_size = " << test_size << "." << endl;
-      cout << "test_mm_size = " << test_mm_size << "." << endl;
+      cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << endl;
       cout << "random_seed = " << random_seed << "." << endl;
     } else {
-        cout << test_size << ' ' << test_mm_size << ' ' << random_seed;
+        cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << random_seed;
     }
 
     TPIE_OS_SRANDOM(random_seed);

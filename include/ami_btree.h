@@ -3,7 +3,7 @@
 // File:    ami_btree.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_btree.h,v 1.31 2004-05-05 14:31:56 adanner Exp $
+// $Id: ami_btree.h,v 1.32 2004-08-12 12:35:30 jan Exp $
 //
 // AMI_btree declaration and implementation.
 //
@@ -68,21 +68,21 @@ class AMI_btree_params {
 public:
 
   // Min number of Value's in a leaf. 0 means use default B-tree behavior.
-  size_t leaf_size_min;
+  TPIE_OS_SIZE_T leaf_size_min;
   // Min number of Key's in a node. 0 means use default B-tree behavior.
-  size_t node_size_min;
+  TPIE_OS_SIZE_T node_size_min;
   // Max number of Value's in a leaf. 0 means use all available capacity.
-  size_t leaf_size_max;
+  TPIE_OS_SIZE_T leaf_size_max;
   // Max number of Key's in a node. 0 means use all available capacity.
-  size_t node_size_max;
+  TPIE_OS_SIZE_T node_size_max;
   // How much bigger is the leaf logical block than the system block.
-  size_t leaf_block_factor;
+  TPIE_OS_SIZE_T leaf_block_factor;
   // How much bigger is the node logical block than the system block.
-  size_t node_block_factor;
+  TPIE_OS_SIZE_T node_block_factor;
   // The max number of leaves cached.
-  size_t leaf_cache_size;
+  TPIE_OS_SIZE_T leaf_cache_size;
   // The max number of nodes cached.
-  size_t node_cache_size;
+  TPIE_OS_SIZE_T node_cache_size;
 
   // The default parameter values.
   AMI_btree_params(): 
@@ -271,23 +271,23 @@ public:
   return result;
 }
 
-  size_t range_query(const Key& k1, const Key& k2, AMI_STREAM<Value>* s)
+TPIE_OS_OFFSET range_query(const Key& k1, const Key& k2, AMI_STREAM<Value>* s)
   { return range_query(k1, k2, s, dummy_filter_t()); }
 
   template<class Filter>
   size_t window_query(const Key& k1, const Key& k2, 
 		      AMI_STREAM<Value>* s, const Filter& f) 
   { return range_query(k1, k2, s, f); }
-  size_t window_query(const Key& k1, const Key& k2, AMI_STREAM<Value>* s)
+  TPIE_OS_OFFSET window_query(const Key& k1, const Key& k2, AMI_STREAM<Value>* s)
   { return range_query(k1, k2, s, dummy_filter_t()); }
 
   // Return the number of Value elements stored.
-  size_t size() const { return header_.size; }
+  TPIE_OS_OFFSET size() const { return header_.size; }
 
-  size_t leaf_count() const { return pcoll_leaves_->size(); }
-  size_t node_count() const { return pcoll_nodes_->size(); }
+  TPIE_OS_OFFSET leaf_count() const { return pcoll_leaves_->size(); }
+  TPIE_OS_OFFSET node_count() const { return pcoll_nodes_->size(); }
 
-  size_t os_block_count() const { 
+  TPIE_OS_OFFSET os_block_count() const { 
     return pcoll_leaves_->size() * params_.leaf_block_factor + 
            pcoll_nodes_->size() * params_.node_block_factor; 
   }
@@ -296,7 +296,7 @@ public:
   AMI_bid root_bid() const { return header_.root_bid; }
 
   // Return the height.
-  size_t height() const { return header_.height; }
+  TPIE_OS_SIZE_T height() const { return header_.height; }
 
   // Set the persistence. It passes per along to the two block collections.
   void persist(persistence per);
@@ -334,8 +334,8 @@ protected:
   class header_t {
   public:
     AMI_bid root_bid;
-    size_t height;
-    size_t size;
+    TPIE_OS_SIZE_T height;
+    TPIE_OS_OFFSET size;
 
     header_t(): root_bid(0), height(0), size(0) {}
   };
@@ -377,11 +377,11 @@ protected:
   AMI_btree_status status_;
 
   // Stack to store the path to a leaf.
-  stack<pair<AMI_bid, size_t> > path_stack_;
+  stack<pair<AMI_bid,TPIE_OS_SIZE_T> >path_stack_;
 
   // Stack to store path during dfspreorder traversal. Each element is
   // a pair: block id and link index.
-  stack<pair<AMI_bid, size_t> > dfs_stack_;
+  stack<pair<AMI_bid,TPIE_OS_SIZE_T> >dfs_stack_;
 
   // Statistics.
   tpie_stats_tree stats_;
@@ -422,11 +422,11 @@ protected:
 
   // Return the underflow size of a leaf. Moved this function from the
   // leaf class here for saving the space of the minimum fanout, a.
-  size_t cutoff_leaf(leaf_t *p) const;
+  TPIE_OS_SIZE_T cutoff_leaf(leaf_t *p) const;
 
   // Return the underflow size of a node.  Moved this function from the
   // node class here for saving the space of the minimum fanout, a.
-  size_t cutoff_node(node_t *p) const;
+  TPIE_OS_SIZE_T cutoff_node(node_t *p) const;
 
   // Return true if leaf p is full.
   bool full_leaf(const leaf_t *p) const;
@@ -468,7 +468,7 @@ public:
 
 // The Info element of a leaf.
 struct _AMI_btree_leaf_info {
-  size_t size;
+  TPIE_OS_SIZE_T size;
   AMI_bid prev;
   AMI_bid next;
 };
@@ -498,27 +498,27 @@ class AMI_btree_leaf: public AMI_block<Value, _AMI_btree_leaf_info, BTECOLL> {
 public:
   // Compute the capacity of the el vector STATICALLY (but you have to
   // give it the correct logical block size!).
-  static size_t el_capacity(size_t block_size);
+	static TPIE_OS_SIZE_T el_capacity(size_t block_size);
 
   // Find and return the position of key k 
   // (ie, the lowest position where it would be inserted).
-  size_t find(const Key& k);
+	TPIE_OS_SIZE_T find(const Key& k);
 
   // Predecessor of k.
-  size_t pred(const Key& k);
+	TPIE_OS_SIZE_T pred(const Key& k);
     
   // Successor of k.
-  size_t succ(const Key& k);
+	TPIE_OS_SIZE_T succ(const Key& k);
 
   // Constructor.
   AMI_btree_leaf(AMI_collection_single<BTECOLL>* pcoll, AMI_bid bid = 0);
 
   // Number of elements stored in this leaf.
-  size_t& size() { return info()->size; }
-  const size_t& size() const { return info()->size; }
+  TPIE_OS_SIZE_T & size() { return info()->size; }
+  const TPIE_OS_SIZE_T & size() const { return info()->size; }
 
   // Maximum number of elements that can be stored in this leaf.
-  size_t capacity() const { return el.capacity(); }
+  TPIE_OS_SIZE_T capacity() const { return el.capacity(); }
 
   AMI_bid& prev() { return info()->prev; }
   const AMI_bid& prev() const { return info()->prev; }
@@ -543,7 +543,7 @@ public:
   bool insert(const Value& v);
 
   // Insert element into position pos.
-  void insert_pos(const Value& v, size_t pos);
+  void insert_pos(const Value& v, TPIE_OS_SIZE_T pos);
 
   // Delete an element given by its key. The leaf should NOT be empty.
   // Return false if the key is not found in the tree.
@@ -574,22 +574,22 @@ public:
   // give it the correct logical block size!).
   static size_t lk_capacity(size_t block_size);
   // Compute the capacity of the el vector STATICALLY.
-  static size_t el_capacity(size_t block_size);
+  static TPIE_OS_SIZE_T el_capacity(size_t block_size);
 
   // Find and return the position of key k 
   // (ie, the lowest position in the array of keys where it would be inserted).
-  size_t find(const Key& k);
+  TPIE_OS_SIZE_T find(const Key& k);
 
   // Constructor. Calls the block constructor with the 
   // appropriate number of links.
   AMI_btree_node(AMI_collection_single<BTECOLL>* pcoll, AMI_bid bid = 0);
 
   // Number of keys stored in this node.
-  size_t& size() { return (size_t&) (*info()); }
-  const size_t& size() const { return (size_t&) (*info()); }
+  TPIE_OS_SIZE_T& size() { return (TPIE_OS_SIZE_T&) (*info()); }
+  const TPIE_OS_SIZE_T& size() const { return (TPIE_OS_SIZE_T&) (*info()); }
 
   // Maximum number of keys that can be stored in this node.
-  size_t capacity() const { return el.capacity(); }
+  TPIE_OS_SIZE_T capacity() const { return el.capacity(); }
 
   bool full() const { return size() == capacity(); }
 
@@ -604,7 +604,7 @@ public:
 
   // Insert a key and link into a non-full node in a given position.
   // No validity checks.
-  void insert_pos(const Key& k, AMI_bid l, size_t k_pos, size_t l_pos);
+  void insert_pos(const Key& k, AMI_bid l, TPIE_OS_SIZE_T k_pos, TPIE_OS_SIZE_T l_pos);
 
   // Insert a key and link into a non-full node 
   // (uses the key k to find the right position).
@@ -627,7 +627,7 @@ public:
 ////////////////////////////////////
 
 template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-size_t AMI_BTREE_LEAF::el_capacity(size_t block_size) {
+TPIE_OS_SIZE_T AMI_BTREE_LEAF::el_capacity(TPIE_OS_SIZE_T block_size) {
   return AMI_block<Value, _AMI_btree_leaf_info, BTECOLL>::el_capacity(block_size, 0);
 }
 
@@ -653,7 +653,7 @@ Key  AMI_BTREE_LEAF::split(AMI_BTREE_LEAF &right) {
 #endif
 
   // save the original size of this leaf.
-  size_t original_size = size();
+  TPIE_OS_SIZE_T original_size = size();
 
   // The new leaf will have half of this leaf's elements.
   // If the original size is odd, the new leaf will have fewer elements.
@@ -685,7 +685,7 @@ void AMI_BTREE_LEAF::merge(const AMI_BTREE_LEAF &right) {
 #endif
 
   // save the original size of this leaf.
-  size_t original_size = size();
+  TPIE_OS_SIZE_T original_size = size();
    
   // Update this leaf's size.
   size() = original_size + right.size();
@@ -733,7 +733,7 @@ inline bool AMI_BTREE_LEAF::insert(const Value& v) {
   if (pos < size())
     if (!comp_(KeyOfValue()(v), KeyOfValue()(el[pos])) && 
 	!comp_(KeyOfValue()(el[pos]), KeyOfValue()(v))) {
-      LOG_WARNING_ID("Attempting to insert duplicate key. Ignoring insert.");
+      TP_LOG_WARNING_ID("Attempting to insert duplicate key. Ignoring insert.");
       return false;
     }
 #endif
@@ -848,7 +848,7 @@ bool AMI_BTREE_LEAF::erase(const Key& k) {
 
 //// *AMI_btree_leaf::erase_pos* ////
 template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-void AMI_BTREE_LEAF::erase_pos(size_t pos) {
+void AMI_BTREE_LEAF::erase_pos(TPIE_OS_SIZE_T pos) {
  
   // Erase mechanics.
   el.erase(pos);
@@ -882,12 +882,12 @@ size_t AMI_BTREE_NODE::lk_capacity(size_t block_size) {
 }
 
 template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-size_t AMI_BTREE_NODE::el_capacity(size_t block_size) {
+TPIE_OS_SIZE_T AMI_BTREE_NODE::el_capacity(TPIE_OS_SIZE_T block_size) {
   // Sanity check. Two different methods of computing the el capacity.
   // [tavi 01/26/02]: Changed == into >= since I could fit one more
   // element, but not one more link.
-  assert((AMI_block<Key, size_t>::el_capacity(block_size, lk_capacity(block_size))) >= (size_t) (lk_capacity(block_size) - 1));
-  return (size_t) (lk_capacity(block_size) - 1);
+  assert((AMI_block<Key, TPIE_OS_SIZE_T>::el_capacity(block_size, lk_capacity(block_size))) >= (TPIE_OS_SIZE_T) (lk_capacity(block_size) - 1));
+  return (TPIE_OS_SIZE_T) (lk_capacity(block_size) - 1);
 }
 
 //// *AMI_btree_node::AMI_btree_node* ////
@@ -968,7 +968,7 @@ void AMI_BTREE_NODE::insert(const Key& k, AMI_bid l) {
 
 //// *AMI_btree_node::erase_pos* ////
 template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-void AMI_BTREE_NODE::erase_pos(size_t k_pos, size_t l_pos) {
+void AMI_BTREE_NODE::erase_pos(TPIE_OS_SIZE_T k_pos, TPIE_OS_SIZE_T l_pos) {
 
   assert(!empty());
 
@@ -1061,7 +1061,7 @@ void AMI_BTREE::shared_init(const char* base_file_name, AMI_collection_type type
 
   if (base_file_name == NULL) {
     status_ = AMI_BTREE_STATUS_INVALID;
-    LOG_WARNING_ID("AMI_btree::AMI_btree: NULL file name.");
+    TP_LOG_WARNING_ID("AMI_btree::AMI_btree: NULL file name.");
     return;
   }
 
@@ -1083,14 +1083,14 @@ void AMI_BTREE::shared_init(const char* base_file_name, AMI_collection_type type
   pcoll_leaves_ = new collection_t(lcollname, type, params_.leaf_block_factor);
   if (!pcoll_leaves_->is_valid()) {
     status_ = AMI_BTREE_STATUS_INVALID;
-    LOG_WARNING_ID("AMI_btree::AMI_btree: Could not open leaves collection.");
+    TP_LOG_WARNING_ID("AMI_btree::AMI_btree: Could not open leaves collection.");
     return;
   }
 
   pcoll_nodes_ = new collection_t(ncollname, type, params_.node_block_factor);
   if (!pcoll_nodes_->is_valid()) {
     status_ = AMI_BTREE_STATUS_INVALID;
-    LOG_WARNING_ID("AMI_btree::AMI_btree: Could not open nodes collection.");
+    TP_LOG_WARNING_ID("AMI_btree::AMI_btree: Could not open nodes collection.");
     return;
   }    
 
@@ -1128,15 +1128,15 @@ template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL
 AMI_err AMI_BTREE::sort(AMI_STREAM<Value>* in_stream, AMI_STREAM<Value>* &out_stream) {
 
   if (status_ != AMI_BTREE_STATUS_VALID) {
-    LOG_FATAL_ID("sort: tree is invalid.");
+    TP_LOG_FATAL_ID("sort: tree is invalid.");
     return AMI_ERROR_GENERIC_ERROR;
   }
   if (in_stream == NULL) {
-    LOG_FATAL_ID("sort: attempting to sort a NULL stream pointer.");
+    TP_LOG_FATAL_ID("sort: attempting to sort a NULL stream pointer.");
     return AMI_ERROR_GENERIC_ERROR;
   }  
   if (in_stream->stream_len() == 0) {
-    LOG_FATAL_ID("sort: attempting to sort an empty stream.");
+    TP_LOG_FATAL_ID("sort: attempting to sort an empty stream.");
     return AMI_ERROR_GENERIC_ERROR;
   }
 
@@ -1146,7 +1146,7 @@ AMI_err AMI_BTREE::sort(AMI_STREAM<Value>* in_stream, AMI_STREAM<Value>* &out_st
   if (out_stream == NULL) {
     out_stream = new AMI_STREAM<Value>;
     if (!out_stream->is_valid()) {
-      LOG_FATAL_ID("sort: error initializing temporary stream.");
+      TP_LOG_FATAL_ID("sort: error initializing temporary stream.");
       delete out_stream;
       return AMI_ERROR_OBJECT_INITIALIZATION;
     }
@@ -1156,9 +1156,9 @@ AMI_err AMI_BTREE::sort(AMI_STREAM<Value>* in_stream, AMI_STREAM<Value>* &out_st
   err = AMI_sort(in_stream, out_stream, &cmp);
 
   if (err != AMI_ERROR_NO_ERROR)
-    LOG_WARNING_ID("sort: sorting returned error.");
+    TP_LOG_WARNING_ID("sort: sorting returned error.");
   else  if (in_stream->stream_len() != out_stream->stream_len()) {
-    LOG_WARNING_ID("sort: sorted stream has different length than unsorted stream.");
+    TP_LOG_WARNING_ID("sort: sorted stream has different length than unsorted stream.");
     err = AMI_ERROR_GENERIC_ERROR;
   }
 
@@ -1170,15 +1170,15 @@ template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL
 AMI_err AMI_BTREE::load_sorted(AMI_STREAM<Value>* s, float leaf_fill, float node_fill) {
 
   if (status_ != AMI_BTREE_STATUS_VALID) {
-    LOG_FATAL_ID("load: tree is invalid.");
+    TP_LOG_FATAL_ID("load: tree is invalid.");
     return AMI_ERROR_GENERIC_ERROR;
   }
   if (s == NULL) {
-    LOG_FATAL_ID("load: attempting to load with NULL stream pointer.");
+    TP_LOG_FATAL_ID("load: attempting to load with NULL stream pointer.");
     return AMI_ERROR_GENERIC_ERROR;
   }
   if (!s->is_valid()) {
-    LOG_FATAL_ID("load: attempting to load with invalid input stream.");
+    TP_LOG_FATAL_ID("load: attempting to load with invalid input stream.");
     return AMI_ERROR_GENERIC_ERROR;
   }
 
@@ -1199,7 +1199,7 @@ AMI_err AMI_BTREE::load_sorted(AMI_STREAM<Value>* s, float leaf_fill, float node
   }
 
   if (err != AMI_ERROR_END_OF_STREAM)
-    LOG_FATAL_ID("load: error occured while reading the input stream.");
+    TP_LOG_FATAL_ID("load: error occured while reading the input stream.");
   else
     err = AMI_ERROR_NO_ERROR;
 
@@ -1233,11 +1233,11 @@ template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL
 AMI_err AMI_BTREE::unload(AMI_STREAM<Value>* s) {
 
   if (status_ != AMI_BTREE_STATUS_VALID) {
-    LOG_WARNING_ID("unload: tree is invalid. unload aborted.");
+    TP_LOG_WARNING_ID("unload: tree is invalid. unload aborted.");
     return AMI_ERROR_GENERIC_ERROR;
   }
   if (s == NULL) {
-    LOG_WARNING_ID("unload: NULL stream pointer. unload aborted.");
+    TP_LOG_WARNING_ID("unload: NULL stream pointer. unload aborted.");
     return AMI_ERROR_GENERIC_ERROR;
   }
 
@@ -1263,15 +1263,15 @@ template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL
 AMI_err AMI_BTREE::load(AMI_BTREE* bt, float leaf_fill, float node_fill) {
 
   if (!is_valid()) {
-    LOG_WARNING_ID("load: tree is invalid.");
+    TP_LOG_WARNING_ID("load: tree is invalid.");
     return AMI_ERROR_GENERIC_ERROR;
   }
   if (bt == NULL) {
-    LOG_WARNING_ID("load: NULL btree pointer.");
+    TP_LOG_WARNING_ID("load: NULL btree pointer.");
     return AMI_ERROR_GENERIC_ERROR;
   }
   if (!bt->is_valid()) {
-    LOG_WARNING_ID("load: input tree is invalid.");
+    TP_LOG_WARNING_ID("load: input tree is invalid.");
     return AMI_ERROR_GENERIC_ERROR;
   }
 
@@ -1323,7 +1323,7 @@ pair<AMI_bid, Key> AMI_BTREE::dfs_preorder(int& level) {
     // Push the root on the stack.
     dfs_stack_.push(pair<AMI_bid, size_t>(header_.root_bid, 0));
 
-    level = dfs_stack_.size() - 1;
+    level = (int)dfs_stack_.size() - 1;
     return pair<AMI_bid, Key>(header_.root_bid, k);
   } else {
     AMI_BTREE_NODE* bn;
@@ -1356,7 +1356,7 @@ pair<AMI_bid, Key> AMI_BTREE::dfs_preorder(int& level) {
 	release_node(bn);
       }
     }
-    level = dfs_stack_.size() - 1;
+    level = (int)dfs_stack_.size() - 1;
     return pair<AMI_bid, Key>(id, k);
   }
 }
@@ -1499,7 +1499,7 @@ bool AMI_BTREE::insert(const Value& v) {
     if (pos < p->size() && 
 	!comp_(kov_(v), kov_(p->el[pos])) &&  
 	!comp_(kov_(p->el[pos]), kov_(v))) { 
-      LOG_WARNING_ID("Attempting to insert duplicate key. Ignoring insert.");
+      TP_LOG_WARNING_ID("Attempting to insert duplicate key. Ignoring insert.");
       ans = false; 
     } else {
       ans = insert_split(v, p, bid);
@@ -1550,7 +1550,7 @@ bool AMI_BTREE::modify(const Value& v) {
       if (pos < p->size() &&
                 !comp_(kov_(v), kov_(p->el[pos])) &&
                 !comp_(kov_(p->el[pos]), kov_(v))) {
-        LOG_WARNING_ID("Attempting to insert duplicate key. Ignoring insert.");
+        TP_LOG_WARNING_ID("Attempting to insert duplicate key. Ignoring insert.");
         ans = false;
       }
       else {
@@ -1684,7 +1684,7 @@ bool AMI_BTREE::insert_split(const Value& v, AMI_BTREE_LEAF* p, AMI_bid& leaf_id
   // Insert in the appropriate leaf.
   if (!comp_(mid_key, kov_(v)) && !comp_(kov_(v), mid_key)) {
     ans = false;
-    LOG_WARNING_ID("Attempting to insert duplicate key");
+    TP_LOG_WARNING_ID("Attempting to insert duplicate key");
     // TODO: during loading, this is not enough. q may remain empty!
   } else {
     ans = (comp_(mid_key, kov_(v)) ? q: p)->insert(v);
@@ -1770,7 +1770,7 @@ AMI_bid AMI_BTREE::find_leaf(const Key& k) {
   AMI_BTREE_NODE * p;
   AMI_bid bid = header_.root_bid;
   size_t pos;
-  int level;
+  TPIE_OS_SIZE_T level;
 
   assert(header_.height >= 1);
   assert(path_stack_.empty());
@@ -1802,7 +1802,7 @@ AMI_bid AMI_BTREE::find_min_leaf() {
 
   assert(header_.height >= 1);
   
-  for (level = header_.height - 1; level > 0; level--) {    
+  for (level = (int)header_.height - 1; level > 0; level--) {    
     p = fetch_node(bid);
     bid = p->lk[0];
     release_node(p);

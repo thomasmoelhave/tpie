@@ -4,11 +4,11 @@
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 // Created: May 2003 
 //
-// $Id: visualize_btree.cpp,v 1.2 2004-02-05 17:51:50 jan Exp $
+// $Id: visualize_btree.cpp,v 1.3 2004-08-12 12:40:39 jan Exp $
 //
 #include <portability.h>
 #include <versions.h>
-VERSION(visualize_btree_cpp, "$Id: visualize_btree.cpp,v 1.2 2004-02-05 17:51:50 jan Exp $");                            
+VERSION(visualize_btree_cpp, "$Id: visualize_btree.cpp,v 1.3 2004-08-12 12:40:39 jan Exp $");                            
 
 // For std::less.
 #include <functional>
@@ -64,7 +64,7 @@ int main(int argc, char **argv) {
   bool do_extra_inserts = false;
   bool do_input_file = false;
   btree_t *btree;
-  size_t input_size = 0;
+  TPIE_OS_OFFSET input_size = 0;
   AMI_btree_params params;
   params.node_block_factor = 1;
   params.leaf_block_factor = 1;
@@ -198,8 +198,8 @@ int main(int argc, char **argv) {
   long elem;
   int prevlevel = 0;
   int level = -1;
-  int height = btree->height();
-  int fc = max(0, 9 - height); // index of first color.
+  TPIE_OS_SIZE_T height = btree->height();
+  TPIE_OS_SIZE_T fc = max(0, 9 - height); // index of first color.
   float avg_leaf_size = 0.0;
   float avg_fanout = 0.0;
   pair<AMI_bid, long> idkey = btree->dfs_preorder(level);
@@ -211,7 +211,7 @@ int main(int argc, char **argv) {
   if (html) {
     cout << "<table cellpadding=2 cellspacing=0 width=100%>\n<tr>";
     if (btree->height() > 1) {
-      cout << "<th class=nodeheader colspan=" << height-1 << ">Internal nodes</th>";
+      cout << "<th class=nodeheader colspan=" << static_cast<TPIE_OS_OUTPUT_SIZE_T>(height-1) << ">Internal nodes</th>";
       cout << "<th class=leafheader>Leaf nodes</th>";
     } else {
       cout << "<th class=leafheader>Leaf node</th>";
@@ -226,8 +226,8 @@ int main(int argc, char **argv) {
 	if (html) {
 	  cout << "<tr>";
 	  for (i = 0; i < level - 1; i++)
-	    cout << "<td class=node" << i+fc << "></td>";
-	  cout << "<td class=key" << level-1+fc << ">" << idkey.second << "</td>";
+	    cout << "<td class=node" << static_cast<TPIE_OS_OUTPUT_SIZE_T>(i+fc) << "></td>";
+	  cout << "<td class=key" << static_cast<TPIE_OS_OUTPUT_SIZE_T>(level-1+fc) << ">" << idkey.second << "</td>";
 	  for (i = level; i < btree->height(); i++)
 	    cout << "<td></td>";
 	  cout << "</tr>\n";
@@ -239,7 +239,7 @@ int main(int argc, char **argv) {
       // Insert some empty cells.
       for (i = 0; i < level; i++) {
 	if (html)
-	  cout << "<td class=node" << i+fc << "></td>";
+	  cout << "<td class=node" << static_cast<TPIE_OS_OUTPUT_SIZE_T>(i+fc) << "></td>";
 	else
 	  cout << "\t";
       }
@@ -259,8 +259,8 @@ int main(int argc, char **argv) {
 	// Write the td element (title and style).
 	btree_t::node_t* bn = btree->fetch_node(idkey.first);
 	avg_fanout += (float) (bn->size() + 1) / btree->node_count();
-	cout << "<td title=\"node fanout: " << bn->size() + 1 
-	     << "\" class=node" << level + fc << ">";
+	cout << "<td title=\"node fanout: " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(bn->size() + 1) 
+	     << "\" class=node" << static_cast<TPIE_OS_OUTPUT_SIZE_T>(level + fc) << ">";
 	cout << "<a id=\"ID" << idkey.first << "\"></a>";
 	btree->release_node(bn);
 
@@ -295,7 +295,7 @@ int main(int argc, char **argv) {
       avg_leaf_size += (float) bl->size() / btree->leaf_count();
       size_t i;
       if (html)
-	cout << "<td title=\"leaf size: " << bl->size() 
+	cout << "<td title=\"leaf size: " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(bl->size()) 
 	     << "\" class=leaf" << ">";
       for (i = 0u; i < bl->size(); i++) {
 	if (html && extra_btree && extra_btree->find(bl->el[i], elem))
@@ -320,9 +320,9 @@ int main(int argc, char **argv) {
   if (html) cout << "<strong>Input Parameters</strong><br>\n";
   cout << " Size: " << input_size << " records\n";
   if (html) cout << "<br>"; 
-  cout << " Max fanout: " << btree->params().node_size_max + 1 << "\n";
+  cout << " Max fanout: " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(btree->params().node_size_max + 1) << "\n";
   if (html) cout << "<br>"; 
-  cout << " Max leaf size: " << btree->params().leaf_size_max << "\n";
+  cout << " Max leaf size: " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(btree->params().leaf_size_max) << "\n";
   if (html) cout << "<br>"; 
   cout << " Build method: " 
        << (do_bulk_load ? "bulk load 100%": "repeated insertion") << "\n";
@@ -340,7 +340,7 @@ int main(int argc, char **argv) {
   if (html) cout << "<br>"; 
   cout << " Leaf nodes: " << btree->leaf_count() << "\n";
   if (html) cout << "<br>"; 
-  cout << " Height: " << height << "\n";
+  cout << " Height: " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(height) << "\n";
   if (html) cout << "</div>\n"; 
 
   delete extra_btree;

@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/27/94
 //
-// $Id: list_edge.h,v 1.4 2003-09-12 02:43:45 tavi Exp $
+// $Id: list_edge.h,v 1.5 2004-08-12 12:36:45 jan Exp $
 //
 // The edge class.  This is what our list ranking function will work on.
 //
@@ -15,10 +15,10 @@
 
 class edge {
 public:
-    unsigned long int from;        // Node it is from
-    unsigned long int to;          // Node it is to
-    unsigned long int weight;      // Position when ranked.
-    bool flag;            // A flag used to randomly select some edges.
+    TPIE_OS_OFFSET from;        // Node it is from
+    TPIE_OS_OFFSET to;          // Node it is to
+    TPIE_OS_OFFSET weight;      // Position when ranked.
+    bool flag;                  // A flag used to randomly select some edges.
 
     friend ostream& operator<<(ostream& s, const edge &e);
 };    

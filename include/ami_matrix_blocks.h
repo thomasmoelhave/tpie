@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/11/94
 //
-// $Id: ami_matrix_blocks.h,v 1.3 2003-09-27 06:18:05 tavi Exp $
+// $Id: ami_matrix_blocks.h,v 1.4 2004-08-12 12:35:30 jan Exp $
 //
 #ifndef _AMI_MATRIX_BLOCKS_H
 #define _AMI_MATRIX_BLOCKS_H
@@ -16,10 +16,10 @@
 
 class perm_matrix_into_blocks : public AMI_gen_perm_object {
 private:
-    unsigned int r,c,be;
+    TPIE_OS_OFFSET r,c,be;
 public:    
-    perm_matrix_into_blocks(unsigned int rows, unsigned int cols,
-                            unsigned int block_extent);
+    perm_matrix_into_blocks(TPIE_OS_OFFSET rows, TPIE_OS_OFFSET cols,
+                            TPIE_OS_OFFSET block_extent);
     virtual ~perm_matrix_into_blocks();
     AMI_err initialize(TPIE_OS_OFFSET len);
     TPIE_OS_OFFSET destination(TPIE_OS_OFFSET source);
@@ -27,10 +27,10 @@ public:
 
 class perm_matrix_outof_blocks : public AMI_gen_perm_object {
 private:
-    unsigned int r,c,be;
+    TPIE_OS_OFFSET r,c,be;
 public:    
-    perm_matrix_outof_blocks(unsigned int rows, unsigned int cols,
-                             unsigned int block_extent);
+    perm_matrix_outof_blocks(TPIE_OS_OFFSET rows, TPIE_OS_OFFSET cols,
+                             TPIE_OS_OFFSET block_extent);
     virtual ~perm_matrix_outof_blocks();
     AMI_err initialize(TPIE_OS_OFFSET len);
     TPIE_OS_OFFSET destination(TPIE_OS_OFFSET source);

@@ -12,7 +12,7 @@
 
 // Define it all.
 #include <ami.h>
-VERSION(smooth_cpp,"$Id: smooth.cpp,v 1.8 2003-09-13 18:29:18 jan Exp $");
+VERSION(smooth_cpp,"$Id: smooth.cpp,v 1.9 2004-08-12 12:37:04 jan Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -57,10 +57,10 @@ private:
     // A cache for the multiplicative factor a.
     double a1, a2;
     
-    unsigned int max, remaining;
+    TPIE_OS_OFFSET max, remaining;
 public:
     scan_nas_psuedo_rand(double seed = NAS_S,
-                         unsigned int count = COUNT,
+                         TPIE_OS_OFFSET count = COUNT,
                          double a = NAS_A);
                          
     virtual ~scan_nas_psuedo_rand(void);
@@ -70,7 +70,7 @@ public:
 
 
 scan_nas_psuedo_rand::scan_nas_psuedo_rand(double seed,
-                                           unsigned int count,
+                                           TPIE_OS_OFFSET count,
                                            double a) {
     this->s   = seed;
     this->max = count;
@@ -96,7 +96,7 @@ inline AMI_err scan_nas_psuedo_rand::operate(double *out, AMI_SCAN_FLAG *sf)
     register double b1, b2;
     register double t1, t2, t3, t4, t5;
 
-    if ((*sf = remaining--)) {
+    if ((*sf = (remaining-- > 0))) {
         b1 = floor(TWO_TO_MINUS_23 * x);
         b2 = x - TWO_TO_23 * b1;
 
@@ -168,14 +168,14 @@ int main(int argc, char **argv)
 
     // The actual size of the vector ans matrices is test_size^3.
 
-    unsigned int ts3 = test_size * test_size * test_size;
+    TPIE_OS_OFFSET ts3 = test_size * test_size * test_size;
     
     if (verbose) {
       cout << "test_size = " << test_size << "." << endl;
-      cout << "test_mm_size = " << test_mm_size << "." << endl;
+      cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << endl;
       cout << "random_seed = " << random_seed << "." << endl;
     } else {
-        cout << test_size << ' ' << test_mm_size << ' ' << ts3 << ' '
+        cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << ts3 << ' '
              << niter << ' ';
     }
     
@@ -250,7 +250,8 @@ int main(int argc, char **argv)
 
     cpu_timer cput0, cput1;
         
-    unsigned int rows_per_band, total_bands;
+    TPIE_OS_SIZE_T rows_per_band;
+	TPIE_OS_OFFSET total_bands;
         
     if (verbose) {
       cout << "Generating banded matrix." << endl;

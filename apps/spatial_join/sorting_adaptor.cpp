@@ -5,7 +5,7 @@
 // Created:      01/24/99
 // Description:  
 //
-// $Id: sorting_adaptor.cpp,v 1.1 2003-11-21 17:01:09 tavi Exp $
+// $Id: sorting_adaptor.cpp,v 1.2 2004-08-12 12:39:09 jan Exp $
 //
 
 #include <iostream>
@@ -20,7 +20,7 @@ SortingAdaptor::SortingAdaptor(const char* inStreamName) {
     currentRect_ = new rectangle;
     nextRect_    = NULL;
 
-    char sortedName[strlen(inStreamName)+strlen(".sorted")+1];
+    char* sortedName = new char[strlen(inStreamName)+strlen(".sorted")+1];
     strcpy(sortedName, inStreamName);
     strcat(sortedName, ".sorted");
       
@@ -49,6 +49,8 @@ SortingAdaptor::SortingAdaptor(const char* inStreamName) {
 	cerr << "Error while using " << sortedName << " (";
 	cerr  << result << ")." << endl;
     }
+
+	delete[] sortedName;
 }
 
 SortingAdaptor::SortingAdaptor(const SortingAdaptor& other) {

@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/30/94
 //
-// $Id: mm_register.h,v 1.9 2003-04-17 19:42:08 jan Exp $
+// $Id: mm_register.h,v 1.10 2004-08-12 12:35:32 jan Exp $
 //
 #ifndef _MM_REGISTER_H
 #define _MM_REGISTER_H
@@ -13,9 +13,6 @@
 #include <portability.h>
 
 #define MM_REGISTER_VERSION 2
-
-// Get size_t
-#include <sys/types.h>
 
 // To be defined later in this file.
 class mm_register_init;
@@ -33,13 +30,13 @@ private:
     static int instances;
 
     // The amount of space remaining to be allocated.
-    size_t   remaining;
+    TPIE_OS_SIZE_T   remaining;
 
     // The user-specified limit on memory. 
-    size_t   user_limit;
+    TPIE_OS_SIZE_T   user_limit;
     
     // the amount that has been allocated.
-    size_t   used;
+    TPIE_OS_SIZE_T   used;
 
 
 public:
@@ -51,27 +48,27 @@ public:
     MM_register();
     ~MM_register(void);
 
-    MM_err register_allocation  (size_t sz);
-    MM_err register_deallocation(size_t sz);
+    MM_err register_allocation  (TPIE_OS_SIZE_T sz);
+    MM_err register_deallocation(TPIE_OS_SIZE_T sz);
 #ifdef MM_BACKWARD_COMPATIBLE
 // retained for backward compatibility
-    MM_err available        (size_t *sz);
-    MM_err resize_heap      (size_t sz);
+    MM_err available        (TPIE_OS_SIZE_T *sz);
+    MM_err resize_heap      (TPIE_OS_SIZE_T sz);
 #endif
-    MM_err set_memory_limit(size_t sz); // dh.
+    MM_err set_memory_limit(TPIE_OS_SIZE_T sz); // dh.
 
     void   enforce_memory_limit ();     // dh.
     void   ignore_memory_limit ();      // dh.
     void   warn_memory_limit ();        // dh.
     MM_mode get_limit_mode();
 
-    size_t memory_available ();         // dh.
-    size_t memory_used ();              // dh.
-    size_t memory_limit ();             // dh.
+    TPIE_OS_SIZE_T memory_available ();         // dh.
+    TPIE_OS_SIZE_T memory_used ();              // dh.
+    TPIE_OS_SIZE_T memory_limit ();             // dh.
     int    space_overhead ();           // dh.
         
     friend class mm_register_init;
-    //friend void * operator new(size_t);
+    //friend void * operator new(TPIE_OS_SIZE_T);
     //friend void operator delete(void *);
     //friend void operator delete[](void *);
 };

@@ -2,7 +2,7 @@
 // File:    bte_coll_ufs.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: bte_coll_ufs.h,v 1.10 2003-09-14 21:04:22 tavi Exp $
+// $Id: bte_coll_ufs.h,v 1.11 2004-08-12 12:35:31 jan Exp $
 //
 // BTE_collection_ufs class definition.
 //
@@ -106,7 +106,7 @@ protected:
 template<class BIDT>
 BTE_err BTE_collection_ufs<BIDT>::new_block_internals(BIDT bid, void* &place) {
   if ((place = new char[header_.block_size]) == NULL) {    
-    LOG_FATAL_ID("new() failed to alloc space for a block from file.");
+   TP_LOG_FATAL_ID("new() failed to alloc space for a block from file.");
     return BTE_ERROR_MEMORY_ERROR;
   }
 
@@ -148,16 +148,16 @@ BTE_err BTE_collection_ufs<BIDT>::new_block_getid_specific(BIDT& bid) {
 #define USE_FTRUNCATE_FOR_UFS 1
 #if     USE_FTRUNCATE_FOR_UFS
 	if (TPIE_OS_FTRUNCATE(bcc_fd_, bid_to_file_offset(header_.total_blocks))) {
-	  LOG_FATAL_ID("Failed to ftruncate() to the new end of file.");
-	  LOG_FATAL_ID(strerror(errno));
+	 TP_LOG_FATAL_ID("Failed to ftruncate() to the new end of file.");
+	 TP_LOG_FATAL_ID(strerror(errno));
 	  return BTE_ERROR_OS_ERROR;
 	}
 #else
 	TPIE_OS_OFFSET curr_off;
 	char* tbuf = new char[header_.os_block_size];
 	if ((curr_off = TPIE_OS_LSEEK(bcc_fd_, 0, TPIE_OS_FLAG_SEEK_END)) == (TPIE_OS_OFFSET)-1) {
-	  LOG_FATAL_ID("Failed to lseek() to the end of file.");
-	  LOG_FATAL_ID(strerror(errno));
+	 TP_LOG_FATAL_ID("Failed to lseek() to the end of file.");
+	 TP_LOG_FATAL_ID(strerror(errno));
 	  return BTE_ERROR_OS_ERROR;
 	}
 	while (curr_off < bid_to_file_offset(header_.total_blocks)) {
@@ -178,21 +178,21 @@ template<class BIDT>
 BTE_err BTE_collection_ufs<BIDT>::get_block_internals(BIDT bid, void * &place) {
 
   if ((place = new char[header_.block_size]) == NULL) {    
-    LOG_FATAL_ID("new() failed to alloc space for a block from file.");
+   TP_LOG_FATAL_ID("new() failed to alloc space for a block from file.");
     return BTE_ERROR_MEMORY_ERROR;
   }
 
   if (file_pointer != bid_to_file_offset(bid)) {
     if (TPIE_OS_LSEEK(bcc_fd_, bid_to_file_offset(bid), TPIE_OS_FLAG_SEEK_SET) !=  
 	bid_to_file_offset(bid)) {
-      LOG_FATAL_ID("lseek failed in file.");
+     TP_LOG_FATAL_ID("lseek failed in file.");
       return BTE_ERROR_IO_ERROR;
     }
   }
 
   if (TPIE_OS_READ(bcc_fd_, (char *) place, header_.block_size) != 
       (TPIE_OS_SSIZE_T)header_.block_size) {
-    LOG_FATAL_ID("Failed to read() from file.");
+   TP_LOG_FATAL_ID("Failed to read() from file.");
     return BTE_ERROR_IO_ERROR;
   }
 
@@ -207,12 +207,12 @@ template<class BIDT>
 BTE_err BTE_collection_ufs<BIDT>::put_block_internals(BIDT bid, void * place, char dirty) {
   
   if ((bid < 0) || (bid >= header_.last_block)) {
-    LOG_FATAL_ID("Incorrect bid in placeholder.");
+   TP_LOG_FATAL_ID("Incorrect bid in placeholder.");
     return BTE_ERROR_INVALID_PLACEHOLDER;
   }
   
   if (place == NULL) {
-    LOG_FATAL_ID("Null block ptr field in placeholder.");
+   TP_LOG_FATAL_ID("Null block ptr field in placeholder.");
     return BTE_ERROR_INVALID_PLACEHOLDER;
   }
 
@@ -223,13 +223,13 @@ BTE_err BTE_collection_ufs<BIDT>::put_block_internals(BIDT bid, void * place, ch
     if (file_pointer != bid_to_file_offset(bid)) {
       if (TPIE_OS_LSEEK(bcc_fd_, bid_to_file_offset(bid), TPIE_OS_FLAG_SEEK_SET) 
 	  !=  bid_to_file_offset(bid)) {
-	LOG_FATAL_ID("Failed to lseek() in file.");
+	TP_LOG_FATAL_ID("Failed to lseek() in file.");
 	return BTE_ERROR_IO_ERROR;
       }
     }
 
     if (TPIE_OS_WRITE(bcc_fd_, place, header_.block_size) != (TPIE_OS_SSIZE_T)header_.block_size) {
-      LOG_FATAL_ID("Failed to write() block to file.");
+     TP_LOG_FATAL_ID("Failed to write() block to file.");
       return BTE_ERROR_IO_ERROR;
     }
 
@@ -246,12 +246,12 @@ template<class BIDT>
 BTE_err BTE_collection_ufs<BIDT>::sync_block(BIDT bid, void* place, char dirty) {
 
   if ((bid < 0) || (bid >= header_.last_block)) {
-    LOG_FATAL_ID("Incorrect bid in placeholder.");
+   TP_LOG_FATAL_ID("Incorrect bid in placeholder.");
     return BTE_ERROR_INVALID_PLACEHOLDER;
   }
   
   if (place == NULL) {
-    LOG_FATAL_ID("Null block pointer.");
+   TP_LOG_FATAL_ID("Null block pointer.");
     return BTE_ERROR_INVALID_PLACEHOLDER;
   }
 
@@ -259,12 +259,12 @@ BTE_err BTE_collection_ufs<BIDT>::sync_block(BIDT bid, void* place, char dirty) 
     
     if (TPIE_OS_LSEEK(bcc_fd_, bid_to_file_offset(bid), TPIE_OS_FLAG_SEEK_SET) 
 	!=  bid_to_file_offset(bid)) {
-      LOG_FATAL_ID("Failed to lseek() in file.");
+     TP_LOG_FATAL_ID("Failed to lseek() in file.");
       return BTE_ERROR_IO_ERROR;
     }
     
     if (TPIE_OS_WRITE(bcc_fd_, place, header_.block_size) != (TPIE_OS_SSIZE_T)header_.block_size) {
-      LOG_FATAL_ID("Failed to write() block to file.");
+     TP_LOG_FATAL_ID("Failed to write() block to file.");
       return BTE_ERROR_IO_ERROR;
     }
 

@@ -10,7 +10,7 @@
 #include <ami.h>
 #include "scan_list.h"
 
-VERSION(scan_list_cpp,"$Id: scan_list.cpp,v 1.2 2000-01-11 01:40:58 hutchins Exp $");
+VERSION(scan_list_cpp,"$Id: scan_list.cpp,v 1.3 2004-08-12 12:36:45 jan Exp $");
 
 // MODULUS and INCREMENT are used to compute (vaguely psuedo-random)
 // node numbers for the edges of the list.  They should be relatively
@@ -33,7 +33,7 @@ VERSION(scan_list_cpp,"$Id: scan_list.cpp,v 1.2 2000-01-11 01:40:58 hutchins Exp
 #define LIST_NODE_INFINITY MODULUS
 
 
-scan_list::scan_list(unsigned long int max) : maximum(max), called(0)
+scan_list::scan_list(TPIE_OS_OFFSET max) : maximum(max), called(0)
 {
 }
 

@@ -4,7 +4,7 @@
 // Created: 10/7/94
 //
 
-static char parse_args_id[] = "$Id: parse_args.cpp,v 1.13 2003-09-11 17:50:57 jan Exp $";
+static char parse_args_id[] = "$Id: parse_args.cpp,v 1.14 2004-08-12 12:36:23 jan Exp $";
 
 #include <portability.h>
 
@@ -49,7 +49,7 @@ void parse_args(int argc, char **argv, const char *as_opts,
   char *all_opts;
 
   if (as_opts != NULL) {
-    unsigned int l_aso;
+    TPIE_OS_SIZE_T l_aso;
     
     all_opts = new char[sizeof(standard_opts) + (l_aso = strlen(as_opts))]; 
     strncpy(all_opts, standard_opts, sizeof(standard_opts));

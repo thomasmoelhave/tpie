@@ -4,7 +4,7 @@
 //  Created:         05.11.1998
 //  Author:          Jan Vahrenhold
 //  mail:            jan.vahrenhold@math.uni-muenster.de
-//  $Id: rstartree.h,v 1.2 2004-02-05 17:54:14 jan Exp $
+//  $Id: rstartree.h,v 1.3 2004-08-12 12:37:24 jan Exp $
 //  Copyright (C) 1997-2001 by  
 // 
 //  Jan Vahrenhold
@@ -18,6 +18,8 @@
 //  Prevent multiple #includes.
 #ifndef RSTARTREE_H
 #define RSTARTREE_H
+
+#include <portability.h>
 
 //  Include <iostream> for output operator.
 //#include <iostream>
@@ -55,7 +57,7 @@ public:
     RStarTree();
     RStarTree(
 	const char*    name,
-	unsigned short fanOut);
+	children_count_t fanOut);
     RStarTree(const RStarTree<coord_t, BTECOLL>& other);
     ~RStarTree();
     //. The R*-tree is defined by its fan-out, and a name for
@@ -74,7 +76,7 @@ public:
     const char* name() const;
     unsigned short fanOut() const;
     unsigned short treeHeight() const;
-    off_t totalObjects() const;
+	TPIE_OS_OFFSET totalObjects() const;
     AMI_bid rootPosition() const;
     //. These are several methods to inquire tree metadata.
 
@@ -134,9 +136,9 @@ public:
 
     //- setTreeInformation
     void setTreeInformation(
-	AMI_bid       root, 
+	AMI_bid        root, 
 	unsigned short height,
-	off_t          objects);
+	TPIE_OS_OFFSET objects);
     //. After bulk loading by bottom-up construction, this method needs
     //. to be called to set the information about the root's block ID,
     //. the height of the tree, and the number of objects. There is
@@ -151,13 +153,13 @@ public:
 
 protected:
   AMI_collection_single<BTECOLL> *storageArea_;      //  Pointer to the disk.
-    unsigned short                 fanOut_;           //  Fan-out of each node.
-    unsigned short                 minFanOut_;        //  Minimum fan-out.
-    unsigned short                 blockSize_;        //  Block size in bytes.
-    unsigned short                 treeHeight_;       //  Height of the tree.
-    AMI_bid                        rootPosition_;     //  ID of the root.
-    off_t                          totalObjects_;     //  Objects in the tree.
-    char*                          name_;
+    children_count_t              fanOut_;           //  Fan-out of each node.
+    children_count_t              minFanOut_;        //  Minimum fan-out.
+    TPIE_OS_SIZE_T                blockSize_;        //  Block size in bytes.
+    unsigned short                treeHeight_;       //  Height of the tree.
+    AMI_bid                       rootPosition_;     //  ID of the root.
+    TPIE_OS_OFFSET                totalObjects_;     //  Objects in the tree.
+    char*                         name_;
     list<pair<rectangle<coord_t, AMI_bid>, unsigned short> > reinsertObjects_; 
     vector<bool>                           overflowOnLevel_;
 
@@ -233,7 +235,7 @@ unsigned short RStarTree<coord_t, BTECOLL>::treeHeight() const {
 }
 
 template<class coord_t, class BTECOLL>
-off_t RStarTree<coord_t, BTECOLL>::totalObjects() const {
+TPIE_OS_OFFSET RStarTree<coord_t, BTECOLL>::totalObjects() const {
     return totalObjects_;
 }
 
@@ -271,7 +273,7 @@ RStarNode<coord_t, BTECOLL>* RStarTree<coord_t, BTECOLL>::readNode(AMI_bid posit
 }
 
 template<class coord_t, class BTECOLL>
-void RStarTree<coord_t, BTECOLL>::setTreeInformation(AMI_bid root, unsigned short height, off_t objects) {
+void RStarTree<coord_t, BTECOLL>::setTreeInformation(AMI_bid root, unsigned short height, TPIE_OS_OFFSET objects) {
     rootPosition_ = root;
     treeHeight_   = height;
     totalObjects_ = objects;
@@ -279,11 +281,11 @@ void RStarTree<coord_t, BTECOLL>::setTreeInformation(AMI_bid root, unsigned shor
 
 template<class coord_t, class BTECOLL>
 void RStarTree<coord_t, BTECOLL>::show_stats() {
-    off_t nodes = storageArea_->size();
+    TPIE_OS_OFFSET nodes = storageArea_->size();
     cout << "\n";
     cout << "R*-tree statistics for file: " << name() << "\n";
     cout << "root position     : " << rootPosition_ << "\n";
-    cout << "fan-out           : " << fanOut_ << "\n";
+    cout << "fan-out           : " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(fanOut_) << "\n";
     cout << "height            : " << treeHeight_ << "\n";
     cout << "nodes             : " << nodes << "\n";
     cout << "objects           : " << totalObjects_ << "\n";
@@ -305,7 +307,7 @@ RStarTree<coord_t, BTECOLL>::RStarTree() {
 }
 
 template<class coord_t, class BTECOLL>
-RStarTree<coord_t, BTECOLL>::RStarTree(const char* name, unsigned short fanOut) {
+RStarTree<coord_t, BTECOLL>::RStarTree(const char* name, children_count_t fanOut) {
 
     name_ = new char[strlen(name)+1];
     strcpy(name_, name);
@@ -320,13 +322,13 @@ RStarTree<coord_t, BTECOLL>::RStarTree(const char* name, unsigned short fanOut) 
 
     //  Compute the maximal number of children that can be packed
     //  into a disk block.
-    const size_t nodeInfoSize = 
+    const unsigned short nodeInfoSize = 
 	sizeof(fanOut) +
 	sizeof(blockSize_) +
 	sizeof(rootPosition_);
-    const size_t childInfoSize = sizeof(rectangle<coord_t, AMI_bid>);
+    const unsigned short childInfoSize = sizeof(rectangle<coord_t, AMI_bid>);
 
-    fanOut_   = (blockSize_ - nodeInfoSize) / childInfoSize;
+    fanOut_   = static_cast<children_count_t>((blockSize_ - nodeInfoSize) / childInfoSize);
 
     //  If a user-defined branching factor is given, check whether
     //  this number fits into the block and is not equal to zero.
@@ -481,7 +483,7 @@ void RStarTree<coord_t, BTECOLL>::checkTree() {
     list<pair<AMI_bid, rectangle<coord_t, AMI_bid> > > l;
     rectangle<coord_t, AMI_bid>                        checkNode;
     RStarNode<coord_t, BTECOLL>*                       n = NULL;
-    off_t                            objectCounter = 0;
+    TPIE_OS_OFFSET                                     objectCounter = 0;
 
     cerr << "Checking tree " << name() << "\n";
 

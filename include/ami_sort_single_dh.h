@@ -1,7 +1,7 @@
 //
 // File: ami_sort_single_dh.h
 //
-// $Id: ami_sort_single_dh.h,v 1.13 2003-04-17 14:08:45 jan Exp $
+// $Id: ami_sort_single_dh.h,v 1.14 2004-08-12 12:35:31 jan Exp $
 //
 // This file contains the templated routines
 //     1) AMI_sort:
@@ -103,37 +103,37 @@ inline bool sort_manager<T,Q>::sort_fits_in_memory (AMI_STREAM <T> *instream, si
     // See if we have enough room to sort in memory
     //    if (instream->stream_len()*(sizeof(T)+MM_manager.space_overhead()+item_overhead) <= sz_avail){ 2001/04/22 dh
     if (instream->stream_len()*(sizeof(T)+item_overhead) <= sz_avail){
-        LOG_DEBUG_ID("sort_manager.sort_fits_in_memory: sort fits in mem");
+       TP_LOG_DEBUG_ID("sort_manager.sort_fits_in_memory: sort fits in mem");
         return true;
     }
     else {
-        LOG_DEBUG_ID("sort_manager.sort_fits_in_memory: sort doesn't fit in mem");
+       TP_LOG_DEBUG_ID("sort_manager.sort_fits_in_memory: sort doesn't fit in mem");
         return false;
     };
 }
 
 template<class T,class Q>
 inline AMI_err sort_manager<T,Q>::main_mem_operate_init(size_t szMemoryLoad) {
-    LOG_DEBUG_ID("Starting sort_manager.main_mem_operate_init");
+   TP_LOG_DEBUG_ID("Starting sort_manager.main_mem_operate_init");
     item_overhead = 0;
     mm_len        = szMemoryLoad;
     mmStream      = new T[szMemoryLoad];
     //if (mmStream == NULL) {
-    //   LOG_FATAL_ID ("Misjudged available main memory.");
+    //  TP_LOG_FATAL_ID ("Misjudged available main memory.");
     //   return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
     //}
-    LOG_DEBUG_ID("Ending sort_manager.main_mem_operate_init");
+   TP_LOG_DEBUG_ID("Ending sort_manager.main_mem_operate_init");
     return AMI_ERROR_NO_ERROR;
 }
 
 template<class T,class Q>
 inline AMI_err sort_manager<T,Q>::main_mem_operate_cleanup() {
-    LOG_DEBUG_ID("Starting sort_manager.main_mem_operate_cleanup");
+   TP_LOG_DEBUG_ID("Starting sort_manager.main_mem_operate_cleanup");
     if (mmStream) {
 	delete[]mmStream;
 	mmStream = NULL;
     }
-    LOG_DEBUG_ID("Ending sort_manager.main_mem_operate_cleanup");
+   TP_LOG_DEBUG_ID("Ending sort_manager.main_mem_operate_cleanup");
     return AMI_ERROR_NO_ERROR;
 }
 
@@ -189,8 +189,8 @@ inline AMI_err sort_manager_op<T,Q>::main_mem_operate (
     T    *next_item;
     size_t i = 0;
 
-    LOG_DEBUG_ID("starting sort_manager_op.main_mem_operate. runSize is " << 
-		 runSize );
+   TP_LOG_DEBUG_ID("starting sort_manager_op.main_mem_operate. runSize is " << 
+		 (TPIE_OS_LONGLONG)runSize );
     tp_assert ( runSize <= mm_len, "memory load larger than buffer.");
 
     // Read a memory load out of the input stream one item at a time,
@@ -198,7 +198,7 @@ inline AMI_err sort_manager_op<T,Q>::main_mem_operate (
 
     for (i = 0; i < runSize; i++) {
 	if ((ae=inStream->read_item (&next_item)) != AMI_ERROR_NO_ERROR) {
-	    LOG_FATAL_ID ("sort_manager_op.main_mem_operate: AMI read error " << 
+	   TP_LOG_FATAL_ID ("sort_manager_op.main_mem_operate: AMI read error " << 
 			  ae);
 	    return ae;
 	}
@@ -206,21 +206,21 @@ inline AMI_err sort_manager_op<T,Q>::main_mem_operate (
     }
 
     //Sort the array.
-    LOG_DEBUG_ID("sort_manager_op.main_mem_operate: calling quick_sort_op" <<
-		 " for" << runSize << " items");
+   TP_LOG_DEBUG_ID("sort_manager_op.main_mem_operate: calling quick_sort_op" <<
+		 " for" << (TPIE_OS_LONGLONG)runSize << " items");
     quick_sort_op ((T *) mmStream, runSize);
 
-    LOG_DEBUG_ID("sort_manager_op.main_mem_operate: " << 
+   TP_LOG_DEBUG_ID("sort_manager_op.main_mem_operate: " << 
 		 "starting main_mem_operate write out");
     for (i = 0; i < runSize; i++) {
 	if ((ae = outStream->write_item (mmStream[i])) 
 	    != AMI_ERROR_NO_ERROR) {
-	    LOG_FATAL_ID ("sort_manager_op.main_mem_operate: AMI write error " <<
+	   TP_LOG_FATAL_ID ("sort_manager_op.main_mem_operate: AMI write error " <<
 			  ae );
 	    return ae;
 	}
     }
-    LOG_DEBUG_ID("sort_manager_op.main_mem_operate: " << 
+   TP_LOG_DEBUG_ID("sort_manager_op.main_mem_operate: " << 
 		 "returning from main_mem_operate");
     return AMI_ERROR_NO_ERROR;
 }
@@ -270,8 +270,8 @@ inline AMI_err sort_manager_obj<T,Q,CMPR>::main_mem_operate(AMI_STREAM <T>*inStr
     T    *next_item;
     size_t i = 0;
 
-    LOG_DEBUG_ID("starting sort_manager_obj.main_mem_operate. runSize is " << 
-		 runSize );
+   TP_LOG_DEBUG_ID("starting sort_manager_obj.main_mem_operate. runSize is " << 
+		 (TPIE_OS_LONGLONG)runSize );
     tp_assert ( runSize <= mm_len, "memory load larger than buffer.");
 
     // Read a memory load out of the input stream one item at a time,
@@ -279,7 +279,7 @@ inline AMI_err sort_manager_obj<T,Q,CMPR>::main_mem_operate(AMI_STREAM <T>*inStr
 
     for (i = 0; i < runSize; i++) {
 	if ((ae=inStream->read_item (&next_item)) != AMI_ERROR_NO_ERROR) {
-	    LOG_FATAL_ID ("sort_manager_obj.main_mem_operate: read error" <<
+	   TP_LOG_FATAL_ID ("sort_manager_obj.main_mem_operate: read error" <<
 			  ae);
 	    return ae;
 	}
@@ -288,19 +288,19 @@ inline AMI_err sort_manager_obj<T,Q,CMPR>::main_mem_operate(AMI_STREAM <T>*inStr
 
     //Sort the array.
 
-    LOG_DEBUG_ID("sort_manager_obj.main_mem_operate: calling quick_sort_obj");
+   TP_LOG_DEBUG_ID("sort_manager_obj.main_mem_operate: calling quick_sort_obj");
     quick_sort_obj ((T *) mmStream, runSize, cmp_o);
 
-    LOG_DEBUG_ID("sort_manager_obj.main_mem_operate: starting write out");
+   TP_LOG_DEBUG_ID("sort_manager_obj.main_mem_operate: starting write out");
     for (i = 0; i < runSize; i++) {
 	if ((ae = outStream->write_item (mmStream[i])) 
 	    != AMI_ERROR_NO_ERROR) {
-	    LOG_FATAL_ID ("sort_manager_obj.main_mem_operate: write error " << 
+	   TP_LOG_FATAL_ID ("sort_manager_obj.main_mem_operate: write error " << 
 			  ae );
 	    return ae;
 	}
     }
-    LOG_DEBUG_ID("returning from sort_manager_obj.main_mem_operate");
+   TP_LOG_DEBUG_ID("returning from sort_manager_obj.main_mem_operate");
     return AMI_ERROR_NO_ERROR;
 }
 
@@ -355,17 +355,17 @@ inline AMI_err sort_manager_kobj<T,Q,KEY,CMPR>::single_merge (
 
 template<class T,class Q,class KEY,class CMPR>
 inline AMI_err sort_manager_kobj<T,Q,KEY,CMPR>::main_mem_operate_init(size_t szMemoryLoad) {
-    LOG_DEBUG_ID("Starting sort_manager_kobj.main_mem_operate_init");
+   TP_LOG_DEBUG_ID("Starting sort_manager_kobj.main_mem_operate_init");
     mm_len        = szMemoryLoad;
-    LOG_DEBUG_ID("sort_manager_kobj.main_mem_operate_init: allocating " 
+   TP_LOG_DEBUG_ID("sort_manager_kobj.main_mem_operate_init: allocating " 
 		 << szMemoryLoad*sizeof(T) << 
 		 "bytes for array mmStream<T>[" << szMemoryLoad << "]");
     mmStream      = new T[szMemoryLoad];
-    LOG_DEBUG_ID("sort_manager_kobj.main_mem_operate_init: allocating " 
+   TP_LOG_DEBUG_ID("sort_manager_kobj.main_mem_operate_init: allocating " 
 		 << szMemoryLoad*sizeof(qsort_item <KEY>) << 
 		 "bytes for qs_array["<< szMemoryLoad << "]");
     qs_array      = new (qsort_item <KEY>)[szMemoryLoad];
-    LOG_DEBUG_ID("Ending sort_manager_kobj.main_mem_operate_init");
+   TP_LOG_DEBUG_ID("Ending sort_manager_kobj.main_mem_operate_init");
     return AMI_ERROR_NO_ERROR;
 }
 
@@ -376,7 +376,7 @@ inline AMI_err sort_manager_kobj<T,Q,KEY,CMPR>::main_mem_operate(AMI_STREAM <T> 
     T    *next_item;
     size_t i = 0;
 
-    LOG_DEBUG_ID("starting sort_manager_kobj.main_mem_operate. runSize is " << 
+   TP_LOG_DEBUG_ID("starting sort_manager_kobj.main_mem_operate. runSize is " << 
 		 runSize );
     tp_assert ( runSize <= mm_len, "memory load larger than buffer.");
 
@@ -385,7 +385,7 @@ inline AMI_err sort_manager_kobj<T,Q,KEY,CMPR>::main_mem_operate(AMI_STREAM <T> 
 
     for (i = 0; i < runSize; i++) {
 	if ((ae=inStream->read_item (&next_item)) != AMI_ERROR_NO_ERROR) {
-	    LOG_FATAL_ID ("sort_manager_kobj.main_mem_operate: read error " <<
+	   TP_LOG_FATAL_ID ("sort_manager_kobj.main_mem_operate: read error " <<
 			  ae);
 	    return ae;
 	}
@@ -395,25 +395,25 @@ inline AMI_err sort_manager_kobj<T,Q,KEY,CMPR>::main_mem_operate(AMI_STREAM <T> 
     }
 
     //Sort the array.
-    LOG_DEBUG_ID("sort_manager_kobj.main_mem_operate: calling quick_sort_obj");
+   TP_LOG_DEBUG_ID("sort_manager_kobj.main_mem_operate: calling quick_sort_obj");
     quick_sort_obj ((qsort_item<KEY> *)qs_array, runSize, this );
 
-    LOG_DEBUG_ID("starting sort_manager_kobj.main_mem_operate write out");
+   TP_LOG_DEBUG_ID("starting sort_manager_kobj.main_mem_operate write out");
     for (i = 0; i < runSize; i++) {
 	if ((ae = outStream->write_item(mmStream[qs_array[i].source])) 
 	    != AMI_ERROR_NO_ERROR) {
-	    LOG_FATAL_ID ("sort_manager_kobj.main_mem_operate: write error " <<
+	   TP_LOG_FATAL_ID ("sort_manager_kobj.main_mem_operate: write error " <<
 			  ae);
 	    return ae;
 	}
     }
-    LOG_DEBUG_ID("returning from sort_manager_kobj.main_mem_operate");
+   TP_LOG_DEBUG_ID("returning from sort_manager_kobj.main_mem_operate");
     return AMI_ERROR_NO_ERROR;
 }
 
 template<class T,class Q,class KEY,class CMPR>
 inline AMI_err sort_manager_kobj<T,Q,KEY,CMPR>::main_mem_operate_cleanup() {
-    LOG_DEBUG_ID("Starting sort_manager_kobj.main_mem_operate_cleanup");
+   TP_LOG_DEBUG_ID("Starting sort_manager_kobj.main_mem_operate_cleanup");
     if (mmStream) {
 	delete[]mmStream;
 	mmStream = NULL;
@@ -422,7 +422,7 @@ inline AMI_err sort_manager_kobj<T,Q,KEY,CMPR>::main_mem_operate_cleanup() {
 	delete[]qs_array;
 	qs_array = NULL;
     }
-    LOG_DEBUG_ID("Ending sort_manager_kobj.main_mem_operate_cleanup");
+   TP_LOG_DEBUG_ID("Ending sort_manager_kobj.main_mem_operate_cleanup");
     return AMI_ERROR_NO_ERROR;
 }
 

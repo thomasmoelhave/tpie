@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 9/19/94
 //
-// $Id: bte_stream_cache.h,v 1.3 2003-04-17 15:06:32 jan Exp $
+// $Id: bte_stream_cache.h,v 1.4 2004-08-12 12:35:31 jan Exp $
 //
 // BTE streams for main memory caches.
 //
@@ -107,7 +107,7 @@ BTE_stream_cache<T>::BTE_stream_cache(const char *path, BTE_stream_type st,
             data = (T*)malloc(max_len*sizeof(T));
             if (data == NULL) {
                 valid = 0;
-                LOG_FATAL_ID("Out of \"secondary memory.\"");
+               TP_LOG_FATAL_ID("Out of \"secondary memory.\"");
                 return;
             }
             current = data_max = data;

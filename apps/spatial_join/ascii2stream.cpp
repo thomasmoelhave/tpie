@@ -12,6 +12,11 @@
 #include "rectangle.h"
 #include "my_ami_scan_utils.h"
 
+TPIE_OS_SIZE_T test_mm_size = 0; // Not used.
+TPIE_OS_OFFSET test_size = 0; // Not used.
+bool verbose = false; // Not used.
+int random_seed = 17; // Not used.
+
 int main(int argc, char **argv)
 {
 

@@ -2,7 +2,7 @@
 // File:    tpie_stats.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: tpie_stats.h,v 1.4 2003-04-17 20:14:48 jan Exp $
+// $Id: tpie_stats.h,v 1.5 2004-08-12 12:35:32 jan Exp $
 //
 // The tpie_stats class for recording statistics. The parameter C is
 // the number of statistics to be recorded.
@@ -18,7 +18,7 @@ class tpie_stats {
 private:
 
   // The array storing the C statistics.
-  unsigned long stats_[C];
+  TPIE_OS_OFFSET stats_[C];
 
 public:
 
@@ -41,7 +41,7 @@ public:
     stats_[t]++;
   }
   // Record k events of type t.
-  void record(int t, unsigned long k) {
+  void record(int t, TPIE_OS_OFFSET k) {
     stats_[t] += k;
   }
   // Record the events stored in s.
@@ -50,11 +50,11 @@ public:
       stats_[i] += s.stats_[i];
   }
   // Set the number of type t events to k.
-  void set(int t, unsigned long k) {
+  void set(int t, TPIE_OS_OFFSET k) {
     stats_[t] = k;
   }
   // Inquire the number of type t events.
-  unsigned long get(int t) const {
+  TPIE_OS_OFFSET get(int t) const {
     return stats_[t];
   }
   // Destructor.

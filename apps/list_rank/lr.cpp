@@ -17,7 +17,7 @@
 
 // Define it all.
 #include <ami.h>
-VERSION(lr_cpp,"$Id: lr.cpp,v 1.25 2003-10-09 01:23:48 tavi Exp $");
+VERSION(lr_cpp,"$Id: lr.cpp,v 1.26 2004-08-12 12:36:45 jan Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -39,13 +39,13 @@ VERSION(lr_cpp,"$Id: lr.cpp,v 1.25 2003-10-09 01:23:48 tavi Exp $");
 //
 ////////////////////////////////////////////////////////////////////////
 
-int main_mem_list_rank(edge *edges, size_t count)
+int main_mem_list_rank(edge *edges, TPIE_OS_SIZE_T count)
 {
     edge *edges_copy;
-    unsigned int ii,jj,kk;
-    unsigned int head_index, tail_index;
-    unsigned long int head_node, tail_node;
-    long int total_weight;
+    TPIE_OS_SIZE_T ii,jj,kk;
+    TPIE_OS_SIZE_T head_index, tail_index;
+    TPIE_OS_SIZE_T head_node, tail_node;
+    TPIE_OS_OFFSET total_weight;
     edgefromcmp from_cmp;
     edgetocmp to_cmp;
 
@@ -77,7 +77,7 @@ int main_mem_list_rank(edge *edges, size_t count)
                 tp_assert(!tail_found, "We already found the tail.");
                 tp_assert(kk == count-1, "kk is too far behind.");
                 tail_index = kk;
-                tail_node = edges_copy[kk++].to;
+                tail_node = (TPIE_OS_SIZE_T)edges_copy[kk++].to;
                 tail_found = true;
                 break;
             } else if (kk == count) {
@@ -85,21 +85,21 @@ int main_mem_list_rank(edge *edges, size_t count)
                 tp_assert(!head_found, "We already found the tail.");
                 tp_assert(ii == count-1, "ii is too far behind.");
                 head_index = ii;
-                head_node = edges[ii++].to;
+                head_node = (TPIE_OS_SIZE_T)edges[ii++].to;
                 head_found = true;
                 break;
             } else if (edges[ii].from < edges_copy[kk].to) {
                 // ii is the index of the head of the list.
                 tp_assert(!head_found, "We already found the head.");
                 head_index = ii;
-                head_node = edges[ii++].from;
+                head_node = (TPIE_OS_SIZE_T)edges[ii++].from;
                 if ((head_found = true) && tail_found)
                     break;
             } else if (edges[ii].from > edges_copy[kk].to) {
                 // kk is the index of the tail of the list.
                 tp_assert(!tail_found, "We already found the tail.");
                 tail_index = kk;
-                tail_node = edges_copy[kk++].to;
+                tail_node = (TPIE_OS_SIZE_T)edges_copy[kk++].to;
                 if ((tail_found = true) && head_found)
                     break;
             }
@@ -156,14 +156,16 @@ int main_mem_list_rank(edge *edges, size_t count)
     // Traverse the reduced copy by taking count - 1 steps, starting
     // from the index of the head.  We use jj to keep track of the
     // number of iterations.
+	// We are working on a reduced list that fits in main memory,
+	// so we can safely cast the indices. 
     for (ii = head_index, jj = count, total_weight = 0;
-         jj--; ii = edges_copy[ii].to) {
+         jj--; ii = (TPIE_OS_SIZE_T)edges_copy[ii].to) {
 
-        tp_assert(ii < count, "ii (= " << ii <<
-                  ") out of range (jj = " << jj << ").");
+        tp_assert(ii < count, "ii (= " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(ii) <<
+                  ") out of range (jj = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(jj) << ").");
 
         tp_assert((ii != head_index) || !total_weight || (ii == tail_node),
-                  "Cycled back to the head somehow (jj = " << jj << ").");
+                  "Cycled back to the head somehow (jj = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(jj) << ").");
         
         // The original array edges is sorted by source node, thus the
         // edges are in the same positions within the array as the
@@ -480,7 +482,7 @@ int list_rank(AMI_STREAM<edge> *istream, AMI_STREAM<edge> *ostream,
 {
     AMI_err ae;
     
-    off_t stream_len = istream->stream_len();
+    TPIE_OS_OFFSET stream_len = istream->stream_len();
 
     AMI_STREAM<edge> *edges_rand;
     AMI_STREAM<edge> *active;
@@ -510,10 +512,12 @@ int list_rank(AMI_STREAM<edge> *istream, AMI_STREAM<edge> *ostream,
         mm_avail = MM_manager.memory_available ();
 
         if (stream_len * sizeof(edge) < mm_avail / 2) {
-            edge *mm_buf = new edge[stream_len];
+			// Ww know that stream_len edges fit in main memory,
+			// so it is safe to cast.
+            edge *mm_buf = new edge[(TPIE_OS_SIZE_T)stream_len];
             istream->seek(0);
             istream->read_array(mm_buf,&stream_len);
-            main_mem_list_rank(mm_buf,stream_len);
+            main_mem_list_rank(mm_buf,(TPIE_OS_SIZE_T)stream_len);
             ostream->write_array(mm_buf,stream_len);
             delete [] mm_buf;
             // Get rid of the input stream.
@@ -723,11 +727,11 @@ int main(int argc, char **argv)
 
     if (verbose) {
       cout << "test_size = " << test_size << "." << endl;
-      cout << "test_mm_size = " << test_mm_size << "." << endl;
+      cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << endl;
       cout << "random_seed = " << random_seed << "." << endl;
       cout << "sizeof(edge) = " << sizeof(edge) << "." << endl;
     } else {
-        cout << test_size << ' ' << test_mm_size << ' ' << random_seed;
+        cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << random_seed;
     }
 
     TPIE_OS_SRANDOM(random_seed);
@@ -809,7 +813,7 @@ int main(int argc, char **argv)
     // Rank them.  Note that we should sort by destination before
     // calling the recursive list ranking function.
 
-    LOG_APP_DEBUG_ID("About to start timers.");
+    TP_LOG_APP_DEBUG_ID("About to start timers.");
     
 #if BTE_STATS
     BTE_stream_mmap_base::reset_stats();
@@ -843,7 +847,7 @@ int main(int argc, char **argv)
     cout << BTE_stream_mmap_base::statistics() << endl;
 #endif
 
-    LOG_APP_DEBUG_ID("Stopped timers.");
+    TP_LOG_APP_DEBUG_ID("Stopped timers.");
 
     if (report_results_final) {
         // Sort by rank before output, to make it easier for humans to

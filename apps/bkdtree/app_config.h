@@ -5,7 +5,7 @@
 //
 // Created: 10/6/94
 //
-// $Id: app_config.h,v 1.32 2003-09-17 02:57:07 tavi Exp $
+// $Id: app_config.h,v 1.33 2004-08-12 12:36:04 jan Exp $
 //
 #ifndef _APP_CONFIG_H
 #define _APP_CONFIG_H
@@ -26,8 +26,8 @@
 #define DEFAULT_TEST_MM_SIZE (1024 * 1024 * 32)
 
 extern bool verbose;
-extern size_t test_mm_size;
-extern size_t test_size;
+extern TPIE_OS_SIZE_T test_mm_size;
+extern TPIE_OS_OFFSET test_size;
 extern int random_seed;
 
 
