@@ -5,7 +5,7 @@
 //
 // K-D-B-tree definition and implementation. 
 //
-// $Id: ami_kdbtree.h,v 1.3 2003-01-27 03:27:15 tavi Exp $
+// $Id: ami_kdbtree.h,v 1.4 2003-04-20 20:34:20 tavi Exp $
 //
 
 #ifndef _KDBTREE_H
@@ -281,7 +281,7 @@ public:
 
   // Sort points on the given dimension.
   void sort(size_t d) {
-    POINT::cmp cmpd(d);
+    typename POINT::cmp cmpd(d);
     std::sort(&el[0], &el[0] + size(), cmpd);
   }
 
@@ -486,7 +486,7 @@ bool KDBTREE::kd2kdb() {
   }
 
   bool ans = true;
-  KDTREE::header_t kdheader;
+  typename KDTREE::header_t kdheader;
   // = *((KDTREE::header_t *) pcoll_nodes_->user_data());
   memcpy((void *)(&kdheader), pcoll_nodes_->user_data(), sizeof(kdheader));
   header_.root_bid = kdheader.root_bid;
