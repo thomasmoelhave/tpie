@@ -5,7 +5,7 @@
 //
 // K-D-B-tree definition and implementation. 
 //
-// $Id: ami_kdbtree.h,v 1.9 2003-06-02 16:55:51 tavi Exp $
+// $Id: ami_kdbtree.h,v 1.10 2003-06-21 07:53:29 tavi Exp $
 //
 
 #ifndef _AMI_KDBTREE_H
@@ -145,10 +145,10 @@ protected:
   AMI_kdbtree_params params_;
 
   // Stack to store the path to a leaf.
-  stack<path_stack_item_t<coord_t, dim> > path_stack_;
+  std::stack<path_stack_item_t<coord_t, dim> > path_stack_;
 
   // Stack for dfs_preorder
-  stack<path_stack_item_t<coord_t, dim> > dfs_stack_;
+  std::stack<path_stack_item_t<coord_t, dim> > dfs_stack_;
 
   // Statistics object.
   tpie_stats_tree stats_;
@@ -862,6 +862,7 @@ KDB_ITEM AMI_KDBTREE::dfs_preorder(int& level) {
       dfs_stack_.pop();
     REGION r; // Infinite region.
     KDB_ITEM ki(r, header_.root_bid, header_.root_type);
+    // Push the root region on the stack.
     dfs_stack_.push(STACK_ITEM(ki, 0, 0));
 
     level = dfs_stack_.size() - 1;
