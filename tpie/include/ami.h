@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/19/94
 //
-// $Id: ami.h,v 1.16 1999-04-20 17:19:46 rajiv Exp $
+// $Id: ami.h,v 1.17 1999-12-16 19:34:01 hutchins Exp $
 //
 #ifndef _AMI_H
 #define _AMI_H
@@ -12,6 +12,9 @@
 #ifndef AMI_VIRTUAL_BASE
 #define AMI_VIRTUAL_BASE 0
 #endif
+
+// include definition of VERSION macro
+#include <versions.h>
 
 // Include the configuration header.
 #include <config.h>
