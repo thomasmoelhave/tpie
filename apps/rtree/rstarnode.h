@@ -4,7 +4,7 @@
 //  Created:         05.11.1998
 //  Author:          Jan Vahrenhold
 //  mail:            jan@math.uni-muenster.de
-//  $Id: rstarnode.h,v 1.1 2003-11-21 17:26:02 tavi Exp $
+//  $Id: rstarnode.h,v 1.2 2004-02-05 17:54:14 jan Exp $
 //  Copyright (C) 1997-2001 by  
 // 
 //  Jan Vahrenhold
@@ -218,9 +218,8 @@ public:
     //. This method is used for debugging purposes.
 
     //- findLeaf
-    AMI_bid findLeaf(
-	const rectangle<coord_t, AMI_bid>& r, 
-	list<AMI_bid>*  candidates) const;
+    AMI_bid findLeaf(const rectangle<coord_t, AMI_bid>& r, 
+	                 list<AMI_bid>*  candidates) const;
     //. This method realized a depth-first search looking for a leaf
     //. containing a given object and returns this leaf's ID (or 0 if
     //. the search was unsuccessful. For a more detailed
@@ -661,9 +660,9 @@ RStarNode<coord_t, BTECOLL>::chooseSplitAxisAndIndex() const {
     //                 margin[bb(second group)]
     //  overlap-value: area[bb(first group) $\cap$ bb(second group)]
 
-    coord_t areaValue[dim][distributions];
-    coord_t marginValue[dim][distributions];
-    coord_t overlapValue[dim][distributions];
+    VarArray2D<coord_t> areaValue(dim,distributions);
+    VarArray2D<coord_t> marginValue(dim,distributions);
+    VarArray2D<coord_t> overlapValue(dim,distributions);
 
     //  "For each axis 
     //     Sort the entries by their lower then by their upper 
@@ -719,13 +718,13 @@ RStarNode<coord_t, BTECOLL>::chooseSplitAxisAndIndex() const {
 	    }
 	    
 	    //  Compute area-value, margin-value and overlap-value.
-	    areaValue[dimC][c] = group[0].area() + group[1].area();
-	    marginValue[dimC][c] = group[0].width() + 
+	    areaValue(dimC,c)    = group[0].area() + group[1].area();
+	    marginValue(dimC,c)  = group[0].width() + 
 		group[0].height() + group[1].width() + group[1].height();
-	    overlapValue[dimC][c] = group[0].overlapArea(group[1]);
+	    overlapValue(dimC,c) = group[0].overlapArea(group[1]);
 
 	    //  Update S.
-	    S[dimC] += marginValue[dimC][c];
+	    S[dimC] += marginValue(dimC,c);
 	}
     }
     
@@ -755,9 +754,9 @@ RStarNode<coord_t, BTECOLL>::chooseSplitAxisAndIndex() const {
     //   minimum area-value."
 
     for(c = 1; c < distributions; ++c) {
-	if ((overlapValue[splitAxis][c] < overlapValue[splitAxis][bestSoFar]) ||
-	    ((overlapValue[splitAxis][c] == overlapValue[splitAxis][bestSoFar]) && 
-	     (areaValue[splitAxis][c] < areaValue[splitAxis][bestSoFar]))) {
+	if ((overlapValue(splitAxis,c) < overlapValue(splitAxis,bestSoFar)) ||
+	    ((overlapValue(splitAxis,c) == overlapValue(splitAxis,bestSoFar)) && 
+	     (areaValue(splitAxis,c) < areaValue(splitAxis,bestSoFar)))) {
 	    bestSoFar = c;
 	}
     }

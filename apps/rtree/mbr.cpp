@@ -4,7 +4,7 @@
 // Author: Octavian Procopiuc <tavi@cs.duke.edu>
 // Created: 01/27/99
 //
-// $Id: mbr.cpp,v 1.1 2003-11-21 17:26:02 tavi Exp $
+// $Id: mbr.cpp,v 1.2 2004-02-05 17:54:14 jan Exp $
 //
 // Performs a scan of a stream of rectangles to find their
 // minimum bounding rectangle (MBR).
@@ -38,7 +38,7 @@ public:
   }
     
   AMI_err initialize() {
-
+	return AMI_ERROR_NO_ERROR;
   }
 
   AMI_err operate(const rectangle<coord_t, oid_t> &in, AMI_SCAN_FLAG *sfin) {
@@ -78,4 +78,5 @@ int main(int argc, char **argv) {
   AMI_err err = AMI_scan(&input_stream, &scan);
   cerr << "done." << endl;
 
+	return 0;
 }

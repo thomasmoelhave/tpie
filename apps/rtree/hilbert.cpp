@@ -3,7 +3,7 @@
 //  Created:         02.02.1998
 //  Author:          Jan Vahrenhold
 //  mail:            jan.vahrenhold@math.uni-muenster.de
-//  $Id: hilbert.cpp,v 1.1 2003-11-21 17:26:02 tavi Exp $
+//  $Id: hilbert.cpp,v 1.2 2004-02-05 17:53:53 jan Exp $
 //  Copyright (C) 1998 by  
 // 
 //  Jan Vahrenhold
@@ -32,7 +32,7 @@ int HILBERTquad_table[4][2][2] = { {{0,1},{3,2}},
 				   {{2,3},{1,0}},
 				   {{3,0},{2,1}} };
 
-long long computeHilbertValue(long long x, long long y, long long side) {
+TPIE_OS_LONGLONG computeHilbertValue(TPIE_OS_LONGLONG x, TPIE_OS_LONGLONG y, TPIE_OS_LONGLONG side) {
 
     assert(0 <= x);
     assert(0 <= y);
@@ -40,13 +40,13 @@ long long computeHilbertValue(long long x, long long y, long long side) {
     assert(y <= side);
     assert(side >= 0);
 
-    int       rotation = 0;
-    int       sense    = 1;
-    long long num      = 0;
-    long long k        = 0;
-    long long xbit     = 0;
-    long long ybit     = 0;
-    int       quad     = 0;
+    int              rotation = 0;
+    int              sense    = 1;
+    TPIE_OS_LONGLONG num      = 0;
+    TPIE_OS_LONGLONG k        = 0;
+    TPIE_OS_LONGLONG xbit     = 0;
+    TPIE_OS_LONGLONG ybit     = 0;
+    int              quad     = 0;
     
     for(k = side/2; k > 0; k = k/2) {
 	xbit = x/k;
