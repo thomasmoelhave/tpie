@@ -1,8 +1,7 @@
 #include <iostream.h>
 #include <stdlib.h>
 #include <sys/time.h>
-#include <values.h> //for MAXINT
-
+#include <limits.h> //for INT_MAX
  
 //Include the file that sets application configuration: It sets what
 //kind of BTE (Block Transfer Engine) to use and where applicable,
@@ -114,7 +113,7 @@ main(int argc, char *argv[]) {
 	
 	quicker_sort_op((int *)partitioning,7);
 	cout << "sorted partitioning array\n";
-	partitioning[7] = MAXINT;
+	partitioning[7] = INT_MAX;
 
 
 
