@@ -2,7 +2,7 @@
 // File:    bte_coll.h
 // Authors: Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: bte_coll.h,v 1.3 2003-04-17 14:47:48 jan Exp $
+// $Id: bte_coll.h,v 1.4 2003-04-29 05:29:42 tavi Exp $
 //
 // Front end for the BTE collection classes.
 //
@@ -24,7 +24,7 @@
 
 
 #if defined(BTE_COLLECTION_IMP_MMB)
-	TPIE_OS_UNIX_ONLY_WARNING_BTE_COLLECTION_IMP_MMB_UNIX_ONLY
+//	TPIE_OS_UNIX_ONLY_WARNING_BTE_COLLECTION_IMP_MMB_UNIX_ONLY
 #  define BTE_COLLECTION_IMP_MMAP
 #endif
 
@@ -41,10 +41,13 @@
 #  define BTE_COLLECTION_IMP_MMAP
 #endif
 
+#define BTE_COLLECTION_MMAP BTE_collection_mmap<TPIE_BLOCK_ID_TYPE>
+#define BTE_COLLECTION_UFS  BTE_collection_ufs<TPIE_BLOCK_ID_TYPE>
+
 #if defined(BTE_COLLECTION_IMP_MMAP)
-#  define BTE_COLLECTION BTE_collection_mmap
+#  define BTE_COLLECTION BTE_COLLECTION_MMAP
 #elif defined(BTE_COLLECTION_IMP_UFS)
-#  define BTE_COLLECTION BTE_collection_ufs
+#  define BTE_COLLECTION BTE_COLLECTION_UFS
 #elif defined(BTE_COLLECTION_IMP_USER_DEFINED)
    // Do not define BTE_COLLECTION. The user will define it.
 #endif

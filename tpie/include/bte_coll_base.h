@@ -3,13 +3,18 @@
 // Authors: Octavian Procopiuc <tavi@cs.duke.edu>
 //          (using some code by Rakesh Barve)
 //
-// $Id: bte_coll_base.h,v 1.15 2003-04-17 14:51:31 jan Exp $
+// $Id: bte_coll_base.h,v 1.16 2003-04-29 05:29:42 tavi Exp $
 //
 // BTE_collection_base class and various basic definitions.
 //
 
 #ifndef _BTE_COLL_BASE_H
 #define _BTE_COLL_BASE_H
+
+// For open(), read() and write().
+//#include <sys/types.h>
+//#include <sys/stat.h>
+//#include <fcntl.h>
 
 // Get definitions for working with Unix and Windows
 #include <portability.h>
@@ -37,7 +42,7 @@
 // BTE_COLLECTION types passed to constructors.
 enum BTE_collection_type {
     BTE_READ_COLLECTION = 1,    // Open existing stream read only.
-    BTE_WRITE_COLLECTION,	      // Open for read/write. Create if non-existent.
+    BTE_WRITE_COLLECTION,	// Open for read/write. Create if non-existent.
     BTE_WRITE_NEW_COLLECTION    // Open for read/write a new collection,
     // even if a nonempty file with that name exists.
 };
@@ -47,6 +52,7 @@ enum BTE_collection_status {
     BTE_COLLECTION_STATUS_VALID = 0,
     BTE_COLLECTION_STATUS_INVALID = 1,
 };
+
 
 // Maximum length of the file names.
 #define BTE_COLLECTION_PATH_NAME_LEN 128
@@ -99,7 +105,16 @@ public:
     char user_data[BTE_COLLECTION_USER_DATA_LEN];
   
     // Default constructor.
-    BTE_collection_header();
+  BTE_collection_header():
+    magic_number(BTE_COLLECTION_HEADER_MAGIC_NUMBER), 
+      version(1), 
+      type(0),
+      header_length(sizeof(BTE_collection_header)), 
+      total_blocks(1), 
+      last_block(1), 
+      used_blocks(0) {
+      os_block_size = TPIE_OS_BLOCKSIZE();
+  }
 };
 
 // Setting this to 1 causes the use of ftruncate(2) for extending
@@ -111,14 +126,12 @@ public:
 
 
 // A base class for all implementations of block collection classes.
+template <class BIDT>
 class BTE_collection_base {
 protected:
-    // Bid type for BTE internal use. Should match AMI_bid type defined
-    // in ami_block_base.h.
-    typedef unsigned int bid_t;
 
     // An stdio_stack of TPIE_OS_OFFSET's.
-    stdio_stack<bid_t> *freeblock_stack_; 
+    stdio_stack<BIDT> *freeblock_stack_; 
 
     // File descriptor for the file backing the block collection.
     TPIE_OS_FILE_DESCRIPTOR bcc_fd_;
@@ -188,18 +201,18 @@ protected:
 	return BTE_ERROR_NO_ERROR;
     }
 
-    TPIE_OS_OFFSET bid_to_file_offset(bid_t bid) const 
-	{ return header_.os_block_size + header_.block_size * (bid-1); }
+    TPIE_OS_OFFSET bid_to_file_offset(BIDT bid) const 
+    { return header_.os_block_size + header_.block_size * (bid-1); }
 
     void create_stack();
 
     // Common code for all new_block implementations. Inlined.
-    BTE_err new_block_getid(bid_t& bid) {
+    BTE_err new_block_getid(BIDT& bid) {
 	// We try getting a free bid from the stack first. If there aren't
 	// any there, we will try to get one after last_block; if there are
 	// no blocks past last_block, we will ftruncate() some more blocks
 	// to the tail of the BCC and then get a free bid.
-	bid_t *lbn;
+	BIDT *lbn;
 	BTE_err err;
 	if (header_.used_blocks < header_.last_block - 1) {
 	    tp_assert(freeblock_stack_ != NULL, 
@@ -252,7 +265,7 @@ protected:
     }
 
     // Common code for all delete_block implementations. Inlined.
-    BTE_err delete_block_shared(bid_t bid) {
+    BTE_err delete_block_shared(BIDT bid) {
 	if (bid == header_.last_block - 1) 
 	    header_.last_block--;
 	else {
@@ -266,6 +279,8 @@ protected:
     }
 
 public:
+
+    typedef BIDT block_id_t;
 
     BTE_collection_base(const char *base_name, BTE_collection_type ct, 
 			size_t logical_block_factor);
@@ -306,5 +321,297 @@ public:
     static bool direct_io;
 #endif
 };
+
+
+template<class BIDT>
+tpie_stats_collection BTE_collection_base<BIDT>::gstats_;
+
+template<class BIDT>
+void BTE_collection_base<BIDT>::create_stack() {
+  // Fill in the stack file name.
+  char stack_name[BTE_COLLECTION_PATH_NAME_LEN];
+  strncpy((char *) stack_name, base_file_name_, BTE_COLLECTION_PATH_NAME_LEN - 4);
+  strcat((char *) stack_name, BTE_COLLECTION_STK_SUFFIX);
+
+  // Construct the pre-existing freeblock_stack.
+  freeblock_stack_ = new stdio_stack<BIDT>((char *) stack_name, 
+		       read_only_? BTE_READ_STREAM: BTE_WRITE_STREAM);
+  
+}
+
+template<class BIDT>
+void BTE_collection_base<BIDT>::remove_stack_file() {
+   // Fill in the stack file name.
+  char stack_name[BTE_COLLECTION_PATH_NAME_LEN];
+  strncpy((char *) stack_name, base_file_name_, BTE_COLLECTION_PATH_NAME_LEN - 4);
+  strcat((char *) stack_name, BTE_COLLECTION_STK_SUFFIX);
+
+  TPIE_OS_UNLINK(stack_name);
+}
+
+template<class BIDT>
+BTE_collection_base<BIDT>::BTE_collection_base(const char *base_name, 
+		 BTE_collection_type type, size_t logical_block_factor):
+  header_() {
+
+  if (base_name == NULL) {
+    status_ = BTE_COLLECTION_STATUS_INVALID;
+    LOG_FATAL_ID("NULL file name passed to constructor");
+    return;
+  }
+  
+  strncpy((char*) base_file_name_, base_name, BTE_COLLECTION_PATH_NAME_LEN - 4);
+
+  // A collection with a given name is not deleted upon destruction.
+  per_ = PERSIST_PERSISTENT;
+
+  shared_init(type, logical_block_factor);
+}
+
+
+template<class BIDT>
+void BTE_collection_base<BIDT>::shared_init(BTE_collection_type type,
+				      size_t logical_block_factor) {
+  read_only_ = (type == BTE_READ_COLLECTION);
+  status_ = BTE_COLLECTION_STATUS_VALID;
+  in_memory_blocks_ = 0;
+  file_pointer = -1;
+  os_block_size_ = TPIE_OS_BLOCKSIZE();
+
+  // Fill in the blocks file name.
+  char bcc_name[BTE_COLLECTION_PATH_NAME_LEN];
+  strncpy((char *) bcc_name, base_file_name_, BTE_COLLECTION_PATH_NAME_LEN - 4);  
+  strcat((char *) bcc_name, BTE_COLLECTION_BLK_SUFFIX);
+
+  if (read_only_) {
+
+    if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(bcc_fd_ = TPIE_OS_OPEN_ORDONLY(bcc_name, TPIE_OS_FLAG_USE_MAPPING_TRUE))) {
+      status_ = BTE_COLLECTION_STATUS_INVALID;
+      LOG_FATAL_ID("open() failed to open read-only file: ");
+      LOG_FATAL_ID(bcc_name);	
+      return;
+    }
+
+    if (read_header(bcc_name) != BTE_ERROR_NO_ERROR) {
+      status_ = BTE_COLLECTION_STATUS_INVALID;
+      return;
+    }
+
+    // Check whether we need a stack.
+    if (header_.used_blocks < header_.last_block - 1) {
+      create_stack();
+      if (freeblock_stack_->status() == BTE_STREAM_STATUS_INVALID) {
+	status_ = BTE_COLLECTION_STATUS_INVALID;
+	return;
+      }
+    } else
+      freeblock_stack_ = NULL;
+
+  } else  {   // Writeable bcc.
+
+    // If a new collection, remove any existing files with the same names.
+    if (type == BTE_WRITE_NEW_COLLECTION) {
+      TPIE_OS_UNLINK(bcc_name);
+      remove_stack_file();
+    }
+      
+    // Open the file for writing.  First we will try to open 
+    // it with the O_EXCL flag set.  This will fail if the file
+    // already exists.  If this is the case, we will call open()
+    // again without it and read in the header block.
+    if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(bcc_fd_ = TPIE_OS_OPEN_OEXCL(bcc_name,TPIE_OS_FLAG_USE_MAPPING_TRUE))) {
+			
+      // Try again, hoping the file already exists.
+      if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(bcc_fd_ = TPIE_OS_OPEN_ORDWR(bcc_name,TPIE_OS_FLAG_USE_MAPPING_TRUE))) {
+        status_ = BTE_COLLECTION_STATUS_INVALID;        
+        LOG_FATAL_ID("open() failed to open file:");
+	LOG_FATAL_ID(bcc_name);
+        return;
+      }
+      
+      if (read_header(bcc_name) != BTE_ERROR_NO_ERROR) {
+	status_ = BTE_COLLECTION_STATUS_INVALID;
+	return;
+      }
+
+      // Check whether we need a stack.
+      if (header_.used_blocks < header_.last_block - 1) {
+	create_stack();
+	if (freeblock_stack_->status() == BTE_STREAM_STATUS_INVALID) {
+	  status_ = BTE_COLLECTION_STATUS_INVALID;
+	  return;
+	}
+      } else 
+	freeblock_stack_ = NULL;
+
+    } else {   // The file was just created.
+      
+      tp_assert(header_.magic_number == BTE_COLLECTION_HEADER_MAGIC_NUMBER, "Header magic number mismatch.");
+      tp_assert(header_.os_block_size == os_block_size_, "Header os_block_size mismatch.");
+
+      header_.block_size = logical_block_factor * header_.os_block_size;
+
+      if (write_header(bcc_name) != BTE_ERROR_NO_ERROR) {
+	status_ = BTE_COLLECTION_STATUS_INVALID;
+	return;
+      }
+
+      // No stack (yet). Will be created by delete if needed.
+      freeblock_stack_ = NULL;
+
+      gstats_.record(COLLECTION_CREATE);
+      stats_.record(COLLECTION_CREATE);
+    }
+  }
+
+#if defined(__sun__) 
+  if (direct_io)
+    directio(bcc_fd_, DIRECTIO_ON);
+  else
+    directio(bcc_fd_, DIRECTIO_OFF);
+#endif
+
+  gstats_.record(COLLECTION_OPEN);
+  stats_.record(COLLECTION_OPEN);
+}
+
+#if defined(__sun__) 
+template<class BIDT>
+bool BTE_collection_base<BIDT>::direct_io = false;
+#endif
+
+
+template<class BIDT>
+BTE_err BTE_collection_base<BIDT>::read_header(char* bcc_name) {
+
+  char * tmp_buffer = new char[os_block_size_];
+
+  if (TPIE_OS_LSEEK(bcc_fd_, 0, TPIE_OS_FLAG_SEEK_SET) != 0) {
+    LOG_FATAL_ID("Failed to lseek in file:");
+    LOG_FATAL_ID(bcc_name);
+    return BTE_ERROR_IO_ERROR;
+  }
+
+  if (TPIE_OS_READ(bcc_fd_, (char *)tmp_buffer, os_block_size_) != (int)os_block_size_) {
+    LOG_FATAL_ID("Failed to read() in file:");
+    LOG_FATAL_ID(bcc_name);
+    return BTE_ERROR_IO_ERROR;
+  }
+
+  file_pointer = os_block_size_;
+
+  memcpy((void *) &header_, (const void *) tmp_buffer, 
+	 sizeof(BTE_collection_header));
+  delete [] tmp_buffer;
+
+  // Do some error checking on the header, such as to make sure that
+  // it has the correct header version, block size etc.
+  if (header_.magic_number != BTE_COLLECTION_HEADER_MAGIC_NUMBER || 
+      header_.os_block_size != os_block_size_) {
+    LOG_FATAL_ID("Invalid header in file: ");
+    LOG_FATAL_ID(bcc_name);
+    return BTE_ERROR_BAD_HEADER;
+  }
+    
+  TPIE_OS_OFFSET lseek_retval;
+  // Some more error checking.
+  if ((lseek_retval = TPIE_OS_LSEEK(bcc_fd_, 0, TPIE_OS_FLAG_SEEK_END)) != bid_to_file_offset(header_.total_blocks)) {
+    LOG_FATAL_ID("Header field total_blocks incompatible with Unix file length in file:");
+    LOG_FATAL_ID(bcc_name);
+    return BTE_ERROR_BAD_HEADER;
+  }
+
+  file_pointer = lseek_retval;
+
+  return BTE_ERROR_NO_ERROR;
+}
+
+
+template<class BIDT>
+BTE_err BTE_collection_base<BIDT>::write_header(char *bcc_name) {
+
+  char * tmp_buffer = new char[os_block_size_];
+  memcpy((void *) tmp_buffer, (const void *) &header_, 
+	 sizeof(BTE_collection_header));
+
+  if (TPIE_OS_LSEEK(bcc_fd_, 0, TPIE_OS_FLAG_SEEK_SET) != 0) {
+    LOG_FATAL_ID("Failed to lseek() in file:");
+    LOG_FATAL_ID(bcc_name);
+    return BTE_ERROR_IO_ERROR;
+  }
+
+  if (TPIE_OS_WRITE(bcc_fd_, tmp_buffer, os_block_size_) != (int)os_block_size_) {
+    LOG_FATAL_ID("Failed to write() in file:");
+    LOG_FATAL_ID(bcc_name);
+    return BTE_ERROR_IO_ERROR;
+  }
+
+  file_pointer = os_block_size_;
+
+  delete [] tmp_buffer;
+  return BTE_ERROR_NO_ERROR;
+}
+
+
+template<class BIDT>
+BTE_collection_base<BIDT>::~BTE_collection_base() {
+
+  char bcc_name[BTE_COLLECTION_PATH_NAME_LEN];
+  strncpy((char *) bcc_name, base_file_name_, 
+	  BTE_COLLECTION_PATH_NAME_LEN - 4);
+  strcat((char *) bcc_name, BTE_COLLECTION_BLK_SUFFIX);
+
+  // No block should be in memory at the time of destruction.
+  if (in_memory_blocks_) {
+    LOG_WARNING_ID("In memory blocks when closing collection in:");
+    LOG_WARNING_ID(base_file_name_);
+  }
+
+#if defined(__sun__) 
+  if (direct_io)
+    directio(bcc_fd_, DIRECTIO_OFF);
+#endif
+
+  // Write the header.
+  if (!read_only_)
+    write_header(bcc_name);
+
+  // Delete the stack.
+  if (freeblock_stack_ != NULL) {
+    freeblock_stack_->persist(per_);
+    delete freeblock_stack_;
+  }
+
+  // Close the blocks file.
+  if (TPIE_OS_CLOSE(bcc_fd_)) {            
+    LOG_FATAL_ID("Failed to close() ");
+    LOG_FATAL_ID(bcc_name);
+    return;
+  }
+  
+  // If necessary, remove the blocks file.
+  if (per_ == PERSIST_DELETE) {
+    if (read_only_) {
+      LOG_WARNING_ID("Read-only collection is PERSIST_DELETE");
+      LOG_WARNING_ID(bcc_name);
+      return;
+    } 
+
+    if (unlink(bcc_name)) {
+      LOG_FATAL_ID("Failed to unlink() ");
+      LOG_FATAL_ID(bcc_name);
+      return;
+    } else {
+      gstats_.record(COLLECTION_DELETE);
+      stats_.record(COLLECTION_DELETE);
+    }
+  }
+
+  gstats_.record(COLLECTION_CLOSE);
+  stats_.record(COLLECTION_CLOSE);
+}
+
+
+
 
 #endif //_BTE_COLL_BASE_H

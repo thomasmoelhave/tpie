@@ -5,7 +5,7 @@
 //
 // Definition and implementation of the AMI_block class.
 //
-// $Id: ami_block.h,v 1.6 2003-04-20 09:22:15 tavi Exp $
+// $Id: ami_block.h,v 1.7 2003-04-29 05:29:42 tavi Exp $
 //
 
 #ifndef _AMI_BLOCK_H
@@ -20,10 +20,11 @@
 // The b_vector class.
 #include <b_vector.h>
  
-template<class E, class I, class BTECOLL=BTE_COLLECTION>
+template<class E, class I, class BTECOLL = BTE_COLLECTION >
 class AMI_block: public AMI_block_base<BTECOLL> {
 public:
-  
+  //  typedef typename BTECOLL::block_id_t id_t;
+
   // The array of links.
   b_vector<AMI_bid> lk;
 

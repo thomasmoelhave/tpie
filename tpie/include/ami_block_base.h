@@ -3,7 +3,7 @@
 // File:    ami_block_base.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_block_base.h,v 1.9 2003-04-17 12:05:19 jan Exp $
+// $Id: ami_block_base.h,v 1.10 2003-04-29 05:29:42 tavi Exp $
 //
 // Definition of the AMI_block_base class and supporting types:
 // AMI_bid, AMI_block_status.
@@ -21,7 +21,7 @@
 #include <ami_coll.h>
 
 // AMI block id type.
-typedef unsigned int AMI_bid;
+typedef TPIE_BLOCK_ID_TYPE AMI_bid;
 
 // Block status type.
 enum AMI_block_status {
@@ -32,6 +32,9 @@ enum AMI_block_status {
 
 template<class BTECOLL>
 class AMI_block_base {
+public:
+  //  typedef typename BTECOLL::block_id_t id_t;
+
 protected:
 
   // Pointer to the block collection.
