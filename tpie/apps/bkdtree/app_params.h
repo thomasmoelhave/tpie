@@ -6,7 +6,7 @@
 // Runtime parameters for the kd-tree, K-D-B-tree and B-tree test
 // suite.
 //
-// $Id: app_params.h,v 1.6 2004-08-12 12:36:04 jan Exp $
+// $Id: app_params.h,v 1.7 2004-08-12 18:04:36 jan Exp $
 
 
 #ifndef _APP_PARAMS_H
@@ -206,7 +206,7 @@ void parse_args(int argc, char** argv);
 
 template<class T> 
 void add_to_stats(TPIE_OS_SIZE_T width, const char* header, T value) {
-  params.stats << header << " " << (TPIE_OS_OFFSET)value << endl;
+    params.stats << header << " " << value << endl;
 }
 
 
