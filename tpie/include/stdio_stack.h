@@ -8,7 +8,8 @@
 //stacks related to block collections since such a stack is only
 // a meta data structure accessed no more than once every block
 // is created or destroyed. 
-//
+//// 	$Id: stdio_stack.h,v 1.2 1999-03-28 04:15:59 rbarve Exp $	
+
 
 #ifndef _STDIO_STACK_H
 #define _STDIO_STACK_H
