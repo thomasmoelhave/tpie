@@ -1,7 +1,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(sample_pgm_cpp,"$Id: sample_pgm.cpp,v 1.12 2003-09-12 15:04:27 jan Exp $");	
+VERSION(sample_pgm_cpp,"$Id: sample_pgm.cpp,v 1.13 2003-09-13 18:36:31 jan Exp $");	
 
 //Include the file that sets application configuration: It sets what
 //kind of BTE (Block Transfer Engine) to use and where applicable,
@@ -54,7 +54,8 @@ int main(int argc, char *argv[]) {
    //generate the stream of randon integers
    AMI_err ae;
    int src_int;
-   for (int i = 0; i < Gen_Stream_Length; i++) {
+   int i;
+   for (i = 0; i < Gen_Stream_Length; i++) {
       
       //generate a random int
       src_int = TPIE_OS_RANDOM();
