@@ -3,7 +3,7 @@
 // File:    ami_block_base.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_block_base.h,v 1.7 2002-07-20 21:33:46 tavi Exp $
+// $Id: ami_block_base.h,v 1.8 2002-08-01 00:18:20 tavi Exp $
 //
 // Definition of the AMI_block_base class and supporting types:
 // AMI_bid, AMI_block_status.
@@ -93,6 +93,16 @@ public:
   AMI_block_status status() const { 
     return (pdata_ == NULL) ? 
       AMI_BLOCK_STATUS_INVALID: AMI_BLOCK_STATUS_VALID; 
+  }
+
+  // Return true if the block is valid.
+  bool is_valid() const {
+    return (pdata_ != NULL);
+  }
+
+  // Return true if the block is invalid.
+  bool operator!() const {
+    return (pdata_ == NULL);
   }
 
   void persist(persistence per) { per_ = per; }
