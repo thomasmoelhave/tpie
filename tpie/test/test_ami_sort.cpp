@@ -6,7 +6,7 @@
 //
 // A test for AMI_sort().
 
-static char test_ami_sort_id[] = "$Id: test_ami_sort.cpp,v 1.4 1994-10-13 17:03:34 darrenv Exp $";
+static char test_ami_sort_id[] = "$Id: test_ami_sort.cpp,v 1.5 1994-10-31 21:08:44 darrenv Exp $";
 
 // This is just to avoid an error message since the string above is never
 // refereneced.  Note that a self referential structure must be defined to
@@ -53,7 +53,9 @@ static bool report_results_sorted = false;
 
 static bool sort_again = false;
 
-static const char as_opts[] = "R:S:rsa";
+static bool use_operator = false;
+
+static const char as_opts[] = "R:S:rsao";
 void parse_app_opt(char c, char *optarg)
 {
     switch (c) {
@@ -69,6 +71,9 @@ void parse_app_opt(char c, char *optarg)
             break;
         case 'a':
             sort_again = !sort_again;
+            break;
+        case 'o':
+            use_operator = !use_operator;
             break;
     }
 }
@@ -107,7 +112,9 @@ static void ___dummy_1() {
     AMI_err ae;
 
     ae = AMI_sort(s1,s2,cc_int_cmp);
-
+#if 0    
+    ae = AMI_sort(s1,s2);
+#endif
     ___dummy_1();
 }
 
@@ -173,7 +180,13 @@ int main(int argc, char **argv)
     getrusage(RUSAGE_SELF, &ru0);
 #endif
 
-    ae = AMI_sort(&amis0, &amis1, cc_int_cmp);
+    if (use_operator) {
+#if 0
+        ae = AMI_sort(&amis0, &amis1);
+#endif        
+    } else {
+        ae = AMI_sort(&amis0, &amis1, cc_int_cmp);
+    }
     
 #if HAVE_GETRUSAGE
     getrusage(RUSAGE_SELF, &ru1);
