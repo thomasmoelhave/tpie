@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/30/94
 //
-// $Id: mm_base.h,v 1.3 1994-09-16 13:25:13 darrenv Exp $
+// $Id: mm_base.h,v 1.4 1994-09-22 14:56:32 darrenv Exp $
 //
 #ifndef _MM_BASE_H
 #define _MM_BASE_H
@@ -15,7 +15,8 @@
 enum MM_err {
     MM_ERROR_NO_ERROR = 0,
     MM_ERROR_INSUFFICIENT_SPACE,
-    MM_ERROR_UNDERFLOW
+    MM_ERROR_UNDERFLOW,
+    MM_ERROR_EXCESSIVE_ALLOCATION
 };
 
 // types of memory usage queries we can make on streams (either BTE or MM)
@@ -51,6 +52,7 @@ class MM_manager_base
 public:
     // How much is currently available.
     virtual MM_err available(size_t *sz_a) = 0;
+#if 0
     // Allocate some space.
     virtual MM_err alloc(size_t req, MM_ptr_base *p) = 0;
     // Free space.
@@ -63,10 +65,13 @@ public:
     
     virtual MM_err register_allocation(size_t sz) = 0;
     virtual MM_err register_deallocation(size_t sz) = 0;
-
+#endif
+    
 };
 
+#if 0
 // A pointer to the one and only memory manager.
 extern MM_manager_base *mm_manager;
+#endif
 
 #endif // _MM_BASE_H 
