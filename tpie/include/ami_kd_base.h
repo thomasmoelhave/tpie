@@ -9,7 +9,7 @@
 // AMI_kdbtree_status, AMI_kdbtree_params, 
 // region_t, kdb_item_t, path_stack_item_t.
 //
-// $Id: ami_kd_base.h,v 1.3 2003-06-06 23:09:25 tavi Exp $
+// $Id: ami_kd_base.h,v 1.4 2003-06-21 07:52:56 tavi Exp $
 //
 
 #ifndef _AMI_KD_BASE_H
@@ -88,15 +88,6 @@ enum AMI_kdtree_status {
 };
 
 // Node type type.
-/*
-enum link_type_t {
-  BLOCK_NODE = 0,
-  BLOCK_LEAF,
-  BIN_NODE,
-
-  GRID_INDEX
-};
-*/
 typedef unsigned short int link_type_t;
 #define BLOCK_NODE 0u
 #define BLOCK_LEAF 1u
