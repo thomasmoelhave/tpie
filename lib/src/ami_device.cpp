@@ -6,7 +6,7 @@
 //
 
 #include "versions.h"
-VERSION(ami_device_cpp,"$Id: ami_device.cpp,v 1.7 2000-01-10 22:08:02 hutchins Exp $");
+VERSION(ami_device_cpp,"$Id: ami_device.cpp,v 1.8 2000-03-09 02:43:15 rajiv Exp $");
 
 #include "lib_config.h"
 
@@ -108,7 +108,7 @@ AMI_err AMI_device::set_to_path(const char *path)
         argv[ii][s - t] = '\0';
 
 		// make sure there is no trailing /
-		for(int i=s-t-1; i && argv[ii][i] == '/'; i++) {
+		for(int i=s-t-1; i && argv[ii][i] == '/'; i--) {
 		  argv[ii][i] = '\0';
 		}
 		tp_assert(strlen(argv[ii]) > 0, "non-null path specified");
