@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/24/94
 //
-// $Id: ami_scan_mac.h,v 1.3 1994-08-31 19:28:03 darrenv Exp $
+// $Id: ami_scan_mac.h,v 1.4 1994-10-10 13:05:07 darrenv Exp $
 //
 #ifndef _AMI_SCAN_MAC_H
 #define _AMI_SCAN_MAC_H
@@ -158,7 +158,7 @@ AMI_err AMI_scan( __SPARM_ ## in_arity (T,_ts_),			    \
         return _ami_err_;						    \
     }	    								    \
     	    								    \
-    return _op_err_;							    \
+    return AMI_ERROR_NO_ERROR;						    \
 }
 
 // The template for the whole AMI_scan(), with no inputs.  This is
@@ -192,7 +192,7 @@ AMI_err AMI_scan( SC *soper, __SPARM_ ## out_arity (U,_us_))		    \
         return _ami_err_;						    \
     }	    								    \
     	    								    \
-    return _op_err_;							    \
+    return AMI_ERROR_NO_ERROR;						    \
 }
 
 // The template for the whole AMI_scan(), with no outputs.
@@ -223,7 +223,7 @@ AMI_err AMI_scan( __SPARM_ ## in_arity (T,_ts_), SC *soper)		    \
         return _ami_err_;						    \
     }	    								    \
     	    								    \
-    return _op_err_;							    \
+    return AMI_ERROR_NO_ERROR;						    \
 }
 
 
