@@ -8,7 +8,7 @@
 //
 
 #include <versions.h>
-VERSION(logstream_cpp,"$Id: logstream.cpp,v 1.17 2004-05-06 16:04:01 adanner Exp $");
+VERSION(logstream_cpp,"$Id: logstream.cpp,v 1.18 2004-05-31 19:32:39 tavi Exp $");
 
 #include <logstream.h>
 
@@ -46,7 +46,7 @@ logstream& logstream::operator<<(const T x)		\
 logstream& logstream::operator<<(const char *x)
 {									
     if (priority <= threshold) {					
-	ofstream::operator<<(x);					
+	std::operator<<((*this), x);
     }							
     return *this;							
 }
