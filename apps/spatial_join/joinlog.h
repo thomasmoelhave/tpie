@@ -5,7 +5,7 @@
 // Created:      01/24/99
 // Description:  
 //
-// $Id: joinlog.h,v 1.2 2004-08-12 12:39:44 jan Exp $
+// $Id: joinlog.h,v 1.3 2004-08-12 18:01:50 jan Exp $
 //
 #ifndef JOINLOG_H
 #define JOINLOG_H
@@ -17,9 +17,9 @@
 
 #include <sys/types.h>
 #include <sys/signal.h>
-#include <sys/fault.h>
+//#include <sys/fault.h>
 #include <sys/syscall.h>
-#include <sys/procfs.h>
+//#include <sys/procfs.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <stdio.h>
