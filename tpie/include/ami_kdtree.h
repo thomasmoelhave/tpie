@@ -5,7 +5,7 @@
 //
 // Blocked kd-tree definition and implementation.
 //
-// $Id: ami_kdtree.h,v 1.1 2003-01-02 19:43:02 tavi Exp $
+// $Id: ami_kdtree.h,v 1.2 2003-01-27 02:58:42 tavi Exp $
 //
 
 #ifndef _KDTREE_H
@@ -45,9 +45,9 @@
 // The cache manager.
 #include <ami_cache.h>
 // The Point/Record classes.
-#include "point.h"
+#include <ami_point.h>
 // Supporting types: Kdtree_status, Kdtree_params, Bin_node_default.
-#include "ami_kdtree_base.h"
+#include <ami_kdtree_base.h>
 
 // Forward references.
 template<class coord_t, size_t dim, class BTECOLL> class Kdtree_leaf;
