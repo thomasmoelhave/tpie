@@ -23,7 +23,7 @@
 
 // Define it all.
 #include <ami.h>
-VERSION(test_ami_sort_cpp,"$Id: test_ami_sort.cpp,v 1.20 2000-01-11 02:06:11 hutchins Exp $");
+VERSION(test_ami_sort_cpp,"$Id: test_ami_sort.cpp,v 1.21 2001-02-11 22:25:27 hutchins Exp $");
 
 #include <ami_kb_sort.h>
 
@@ -213,10 +213,10 @@ main(int argc, char **argv)
     merge_random<int> mr;
     scan_diff<int> sd(-1);
     
-    ae = AMI_partition_and_merge(&amis1, &amis2,
+    ae = AMI_generalized_partition_and_merge(&amis1, &amis2,
 				 (merge_random<int> *)&mr);
     
-    ae = AMI_sort(&amis2, &amis3, cc_int_cmp);
+    ae = AMI_sort_V1(&amis2, &amis3, cc_int_cmp);
     
     ae = AMI_scan(&amis1, &amis3, &sd, &amisd);
     
