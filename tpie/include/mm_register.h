@@ -4,10 +4,12 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/30/94
 //
-// $Id: mm_register.h,v 1.4 2000-03-14 01:43:37 rajiv Exp $
+// $Id: mm_register.h,v 1.5 2000-03-14 01:45:26 rajiv Exp $
 //
 #ifndef _MM_REGISTER_H
 #define _MM_REGISTER_H
+
+#define MM_REGISTER_VERSION 2
 
 // Get size_t
 #include <sys/types.h>
