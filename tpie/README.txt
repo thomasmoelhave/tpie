@@ -2,14 +2,22 @@
 
 Documentation for TPIE can be found in the doc directory. 
 
+Please visit http://www.cs.duke.edu/TPIE for the latest information on
+TPIE.
 
-In order to build TPIE (including documentation), first generate the
-Makefiles using:
+----------------------------------------------------------------------
+
+The manual contains a full account on how to build and use TPIE.
+First generate the Makefiles using:
 
 ./configure
 
-Run GNU make (gmake or /usr/local/bin/make on most systems) in the doc
-directory to generate the documentation, which will contain full
-details on installing and using TPIE.
+Run GNU make (gmake or /usr/local/bin/make on most systems):
 
-tpie@cs.duke.edu
+/usr/local/bin/make all
+
+This should build the entire distribution.
+
+If you have problems, please consult the manual; there are some
+requirements listed. Contact <tpie@cs.duke.edu> if you encounter other
+problems.
