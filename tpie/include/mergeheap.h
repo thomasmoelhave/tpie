@@ -1,4 +1,4 @@
-// 	$Id: mergeheap.h,v 1.3 1999-02-05 23:48:16 rbarve Exp $	
+// 	$Id: mergeheap.h,v 1.4 1999-02-07 22:21:27 rbarve Exp $	
 
 //Rakesh Barve.
 //A template useful during merge operations. 
@@ -159,8 +159,8 @@ merge_heap<Key>::merge_heap(
 //#define TEMPLATE_INSTANTIATE_MERGE_HEAP(Key)				\
 //template class merge_heap_element<Key>;					\
 //template class merge_heap<Key>;
-
-#endif
+//
+//#endif
 
 
 #endif // _MERGE_HEAP_H
