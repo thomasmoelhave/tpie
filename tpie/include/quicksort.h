@@ -7,7 +7,7 @@
 // A basic implementation of quicksort for use in core by AMI_sort() on
 // streams or substreams that are small enough.
 //
-// $Id: quicksort.h,v 1.15 1999-02-07 21:40:18 rbarve Exp $
+// $Id: quicksort.h,v 1.16 1999-02-17 19:59:33 natsev Exp $
 //
 #ifndef _QUICKSORT_H
 #define _QUICKSORT_H
@@ -16,6 +16,7 @@
 
 #include <comparator.h>
 
+#define CONST const
 
 
 //A simple class that facilitates doing key sorting followed 
