@@ -1,10 +1,9 @@
-// Copyright (c) 1994 Darren Erik Vengroff
 //
 // File: app_config.h
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/6/94
 //
-// $Id: app_config.h,v 1.20 2001-05-17 19:54:51 tavi Exp $
+// $Id: app_config.h,v 1.21 2002-01-14 17:39:30 tavi Exp $
 //
 #ifndef _APP_CONFIG_H
 #define _APP_CONFIG_H
@@ -21,18 +20,18 @@
 /*                  choose default BTE collection implementation          */
 /* ********************************************************************** */
 
-/* One of BTE_COLLECTION_IMP_MMB and BTE_COLLECTION_IMP_UFS. */
-#define BTE_COLLECTION_IMP_MMB
+/* Pick a version of BTE collections; default is BTE_COLLECTION_IMP_MMAP */
+#define BTE_COLLECTION_IMP_MMAP
 //#define BTE_COLLECTION_IMP_UFS
 
 /* ********************************************************************** */
-/*                       choose BTE                                       */
+/*                       choose BTE stream implementation                 */
 /* ********************************************************************** */
 
-/* Pick a version of BTE streams; default is BTE_IMP_UFS */
-//#define BTE_IMP_MMB
-//#define BTE_IMP_STDIO
-#define BTE_IMP_UFS
+/* Pick a version of BTE streams; default is BTE_STREAM_IMP_UFS */
+//#define BTE_STREAM_IMP_MMAP
+//#define BTE_STREAM_IMP_STDIO
+#define BTE_STREAM_IMP_UFS
 
 
 /* ********************************************************************** */
@@ -43,10 +42,10 @@
 /* ********************************************************************** */
 /*                      BTE_MMB configuration options                     */
 /* ********************************************************************** */
-#ifdef BTE_IMP_MMB
+#ifdef BTE_STREAM_IMP_MMAP
 
 /* define logical blocksize; default is 32 * operating system blocksize */
-#define BTE_MMB_LOGICAL_BLOCKSIZE_FACTOR 32
+#define BTE_STREAM_MMAP_BLOCK_FACTOR 32
 
 /* enable/disable TPIE read ahead; default is enabled (set to 1) */
 #define BTE_MMB_READ_AHEAD 1
@@ -61,12 +60,12 @@
 
 
 /* ********************************************************************** */
-/* BTE_UFS configuration options */
+/*                      BTE_UFS configuration options                     */
 /* ********************************************************************** */
-#ifdef BTE_IMP_UFS
+#ifdef BTE_STREAM_IMP_UFS
 
 /* define logical blocksize; default is 32 * operating system blocksize */
-#define BTE_UFS_LOGICAL_BLOCKSIZE_FACTOR 32
+#define BTE_STREAM_UFS_BLOCK_FACTOR 32
 
 /* enable/disable TPIE read ahead; default is disabled (set to 0) */
 #define BTE_UFS_READ_AHEAD 0
@@ -81,15 +80,14 @@
 /********************************************************************/
 
 
-
 /********************************************************************/
 /*              Set up some defaults for the apps                   */
 /********************************************************************/
 #include <sys/types.h> // for size_t
 #include <stdlib.h> // for random
 
-#define DEFAULT_TEST_SIZE (1024 * 1024 * 16)
-#define DEFAULT_TEST_MM_SIZE (1024 * 1024 * 8)
+#define DEFAULT_TEST_SIZE (20000000)
+#define DEFAULT_TEST_MM_SIZE (1024 * 1024 * 32)
 
 extern bool verbose;
 extern size_t test_mm_size;
@@ -106,7 +104,7 @@ extern int random_seed;
 
 /* Use the single BTE stream version of AMI streams; in the current
    option this is the only option */
-#define AMI_IMP_SINGLE
+#define AMI_STREAM_IMP_SINGLE
 
 
 /* enable/disable virtual interface; normally disabled */
@@ -116,7 +114,6 @@ extern int random_seed;
 #ifndef BTE_VIRTUAL_BASE 
 #define BTE_VIRTUAL_BASE 0
 #endif
-
 
 
 /********************************************************************/
