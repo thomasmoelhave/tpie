@@ -1,7 +1,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(sample_pgm_cpp,"$Id: sample_pgm.cpp,v 1.11 2003-09-12 14:56:04 tavi Exp $");	
+VERSION(sample_pgm_cpp,"$Id: sample_pgm.cpp,v 1.12 2003-09-12 15:04:27 jan Exp $");	
 
 //Include the file that sets application configuration: It sets what
 //kind of BTE (Block Transfer Engine) to use and where applicable,
@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
    int partitioning[8];
    int *read_ptr;
    
-   for (int i = 0; i < 7; i++) {
+   for (i = 0; i < 7; i++) {
       
       //Obtain a pointer to the next integer in AMI_STREAM source
       //using the member function read_item()
@@ -108,8 +108,6 @@ int main(int argc, char *argv[]) {
    //************************************************************
    //PARTITION INTS OF source INTO THE buckets USING partitioning ELEMENTS
    
-   struct timeval tp1, tp2;
-
    //binary search variables.
    int u,v,l,j;
    
@@ -125,7 +123,7 @@ int main(int argc, char *argv[]) {
    
    //scan source stream distributing the integers in the approriate
    //buckets
-   for (int i = 0; i < Gen_Stream_Length; i++) {
+   for (i = 0; i < Gen_Stream_Length; i++) {
       
       //Obtain a pointer to the next integer in AMI_STREAM source
       //using the member function read_item()
@@ -169,7 +167,7 @@ int main(int argc, char *argv[]) {
    
    //let the file corresponding to buckets[i] persist on disk when the
    //buckets[i] stream gets destructed
-   for (int i = 0; i < 8; i++) {
+   for (i = 0; i < 8; i++) {
       buckets[i].persist(PERSIST_PERSISTENT);
       cout << "Length of bucket " << i << " is " 
 	   << buckets[i].stream_len() << endl;
