@@ -5,7 +5,7 @@
 // Created: 3/24/95
 //
 
-static char test_ami_sort24_id[] = "$Id: test_ami_sort24.cpp,v 1.1 1995-06-20 18:49:52 darrenv Exp $";
+static char test_ami_sort24_id[] = "$Id: test_ami_sort24.cpp,v 1.2 1995-06-20 19:01:09 darrenv Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -17,8 +17,6 @@ static struct ___test_ami_sort24_id_compiler_fooler {
     test_ami_sort24_id,
     &the___test_ami_sort24_id_compiler_fooler
 };
-
-#include <tpqueue.h>
 
 #include <stdlib.h>
 #include <sys/time.h>
