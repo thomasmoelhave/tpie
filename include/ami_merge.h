@@ -8,7 +8,7 @@
 // lower level streams will use appropriate levels of buffering.  This
 // will be more critical for parallel disk implementations.
 //
-// $Id: ami_merge.h,v 1.11 1994-12-16 21:11:36 darrenv Exp $
+// $Id: ami_merge.h,v 1.12 1995-03-22 16:22:56 dev Exp $
 //
 #ifndef _AMI_MERGE_H
 #define _AMI_MERGE_H
@@ -49,8 +49,8 @@ public:
 
 
 template<class T, class M>
-static AMI_err AMI_recursive_merge(pp_AMI_bs<T> instreams, arity_t arity,
-                                   AMI_base_stream<T> *outstream, M *m_obj)
+static AMI_err AMI_recursive_merge(AMI_STREAM<T> **instreams, arity_t arity,
+                                   AMI_STREAM<T> *outstream, M *m_obj)
 {
     size_t sz_avail;
     size_t sz_stream;
@@ -106,8 +106,8 @@ static AMI_err AMI_recursive_merge(pp_AMI_bs<T> instreams, arity_t arity,
 
 
 template<class T, class M>
-AMI_err AMI_single_merge(pp_AMI_bs<T> instreams, arity_t arity,
-                         AMI_base_stream<T> *outstream, M *m_obj)
+AMI_err AMI_single_merge(AMI_STREAM<T> **instreams, arity_t arity,
+                         AMI_STREAM<T> *outstream, M *m_obj)
 {
     unsigned int ii;
     AMI_err ami_err;
@@ -230,8 +230,8 @@ AMI_err AMI_single_merge(pp_AMI_bs<T> instreams, arity_t arity,
 
 
 template<class T, class M>
-AMI_err AMI_merge(pp_AMI_bs<T> instreams, arity_t arity,
-                  AMI_base_stream<T> *outstream, M *m_obj)
+AMI_err AMI_merge(AMI_STREAM<T> **instreams, arity_t arity,
+                  AMI_STREAM<T> *outstream, M *m_obj)
 {
     size_t sz_avail;
     size_t sz_stream, sz_needed;
@@ -708,9 +708,9 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
                 
                 // Merge them into the output stream.
 
-                ae = AMI_single_merge((pp_AMI_bs<T>)the_substreams,
+                ae = AMI_single_merge(the_substreams,
                                       substream_count,
-                                      (AMI_base_stream<T> *)outstream, m_obj);
+                                      outstream, m_obj);
                 if (ae != AMI_ERROR_NO_ERROR) {
                     return ae;
                 }
@@ -792,9 +792,8 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
                         // This should append to the stream, since
                         // AMI_single_merge() does not rewind the
                         // output before merging.
-                        ae = AMI_single_merge((pp_AMI_bs<T>)the_substreams,
+                        ae = AMI_single_merge(the_substreams,
                                               jj+1,
-                                              (AMI_base_stream<T> *)
                                               intermediate_tmp_stream,
                                               m_obj);
                         
@@ -857,13 +856,12 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
 
 #define TEMPLATE_INSTANTIATE_MERGE(T)					\
 template class AMI_merge_base<T>;					\
-template class pp_AMI_bs<T>;						\
 template AMI_err AMI_partition_and_merge(AMI_STREAM<T> *,		\
                                          AMI_STREAM<T> *,		\
                                          AMI_merge_base<T> *);		\
-template AMI_err AMI_single_merge(pp_AMI_bs<T> instreams,		\
+template AMI_err AMI_single_merge(AMI_STREAM<T> **instreams,		\
                                   arity_t arity,			\
-                                  AMI_base_stream<T> *outstream,	\
+                                  AMI_STREAM<T> *outstream,		\
                                   AMI_merge_base<T> *m_obj);		\
 template AMI_err AMI_main_mem_merge(AMI_STREAM<T> *instream,		\
                                     AMI_STREAM<T> *outstream,		\

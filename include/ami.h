@@ -4,10 +4,14 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/19/94
 //
-// $Id: ami.h,v 1.9 1995-03-21 16:46:25 dev Exp $
+// $Id: ami.h,v 1.10 1995-03-22 16:22:35 dev Exp $
 //
 #ifndef _AMI_H
 #define _AMI_H
+
+#ifndef AMI_VIRTUAL_BASE
+#define AMI_VIRTUAL_BASE 1
+#endif
 
 // Include the configuration header.
 #include <config.h>

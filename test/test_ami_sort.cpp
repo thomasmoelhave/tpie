@@ -6,7 +6,7 @@
 //
 // A test for AMI_sort().
 
-static char test_ami_sort_id[] = "$Id: test_ami_sort.cpp,v 1.7 1995-03-21 16:44:44 dev Exp $";
+static char test_ami_sort_id[] = "$Id: test_ami_sort.cpp,v 1.8 1995-03-22 16:24:22 dev Exp $";
 
 // This is just to avoid an error message since the string above is never
 // refereneced.  Note that a self referential structure must be defined to
@@ -154,7 +154,7 @@ int main(int argc, char **argv)
     // Write some ints.
     scan_random rnds(test_size,random_seed);
     
-    ae = AMI_scan(&rnds, (AMI_base_stream<int> *)&amis0);
+    ae = AMI_scan(&rnds, &amis0);
 
     if (verbose) {
         cout << "Wrote the random values.\n";
@@ -180,7 +180,7 @@ int main(int argc, char **argv)
     }
     
     if (report_results_random) {
-        ae = AMI_scan((AMI_base_stream<int> *)&amis0, rptr);
+        ae = AMI_scan(&amis0, rptr);
     }
 
 #if HAVE_GETRUSAGE
@@ -208,7 +208,7 @@ int main(int argc, char **argv)
     }
     
     if (report_results_sorted) {
-        ae = AMI_scan((AMI_base_stream<int> *)&amis1, rpts);
+        ae = AMI_scan(&amis1, rpts);
     }
 
 #if HAVE_GETRUSAGE
@@ -251,9 +251,7 @@ int main(int argc, char **argv)
 
         ae = AMI_sort(&amis2, &amis3, cc_int_cmp);
         
-        ae = AMI_scan((AMI_base_stream<int> *)&amis1,
-                      (AMI_base_stream<int> *)&amis3, &sd,
-                      (AMI_base_stream<scan_diff_out<int> > *)&amisd);
+        ae = AMI_scan(&amis1, &amis3, &sd, &amisd);
 
         if (verbose) {
             cout << "Length of diff stream = " <<
