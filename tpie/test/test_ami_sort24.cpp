@@ -8,7 +8,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_sort24_cpp,"$Id: test_ami_sort24.cpp,v 1.9 2003-09-12 01:54:21 tavi Exp $");
+VERSION(test_ami_sort24_cpp,"$Id: test_ami_sort24.cpp,v 1.10 2003-09-12 02:37:10 jan Exp $");
 
 // Get information on the configuration to test.
 #include "app_config.h"
@@ -52,9 +52,9 @@ public:
 };
 
 
-scan_random_so::scan_random_so(unsigned int count, int seed) :
-max(count), remaining(count)
-{
+scan_random_so::scan_random_so(unsigned int count, int seed) {
+    this->max = count;
+    this->remaining = count;
     LOG_APP_DEBUG("scan_random_so seed = ");
     LOG_APP_DEBUG(seed);
     LOG_APP_DEBUG('\n');
@@ -69,7 +69,7 @@ scan_random_so::~scan_random_so(void)
 
 AMI_err scan_random_so::initialize(void)
 {
-    remaining = max;
+    this->remaining = this->max;
 
     return AMI_ERROR_NO_ERROR;
 };
@@ -77,7 +77,7 @@ AMI_err scan_random_so::initialize(void)
 AMI_err scan_random_so::operate(sort_obj *out1, AMI_SCAN_FLAG *sf)
 {
     if ((*sf = remaining--)) {
-        out1->key_val = random();
+        out1->key_val = TPIE_OS_RANDOM();
         return AMI_SCAN_CONTINUE;
     } else {
         return AMI_SCAN_DONE;
