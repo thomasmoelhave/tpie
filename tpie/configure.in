@@ -1,0 +1,32 @@
+dnl Copyright (c) 1994 Darren Erik Vengroff
+dnl
+dnl File: configure.in
+dnl Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
+dnl Created: 10/13/94
+dnl 
+dnl $Id: configure.in,v 1.1 1994-10-13 17:08:02 darrenv Exp $
+dnl
+dnl Macro file for autoconfig for the TPIE system.
+dnl 
+AC_INIT(include/ami.h)
+AC_CONFIG_HEADER(include/config.h)
+AC_REVISION($Revision: 1.1 $)dnl
+AC_PROG_CC
+AC_PROG_CPP
+AC_PROG_CXX
+AC_PROG_CXXCPP
+AC_PROG_RANLIB
+dnl Set the language to C when checking for functions so that we look
+dnl for them as C functions and not as C++ functions (e.g. foo()
+dnl becomes foo__Fv).
+AC_LANG_C
+AC_HAVE_FUNCS(mmap getrusage)
+AC_LANG_CPLUSPLUS
+AC_CHECKING(for munmap() prototype)
+AC_HEADER_EGREP(munmap, sys/mman.h, [AC_DEFINE(HAVE_MUNMAP_PROTO)])
+AC_CHECKING(for ftruncate() prototype)
+AC_HEADER_EGREP(ftruncate, sys/types.h, [AC_DEFINE(HAVE_FTRUNCATE_PROTO)])
+AC_OUTPUT(Makefile apps/Makefile lib/Makefile lib/src/Makefile)
+
+
+
