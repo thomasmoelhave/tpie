@@ -8,7 +8,7 @@
 // lower level streams will use appropriate levels of buffering.  This
 // will be more critical for parallel disk implementations.
 //
-// $Id: ami_merge.h,v 1.18 1999-02-10 00:03:45 natsev Exp $
+// $Id: ami_merge.h,v 1.19 1999-03-09 01:45:56 natsev Exp $
 //
 #ifndef _AMI_MERGE_H
 #define _AMI_MERGE_H
@@ -349,7 +349,8 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
     AMI_err ae;
     off_t len;
     size_t sz_avail, sz_stream;
-    unsigned int ii, jj;
+    unsigned int ii;
+    int jj;
     
     // Figure out how much memory we've got to work with.
 
@@ -680,8 +681,8 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
 
                 }               
 
-                tp_assert((sub_start >= len) &&
-                          (sub_start < len + current_substream_len),
+                tp_assert(((int) sub_start >= (int) len) &&
+                          ((int) sub_start < (int) len + (int) current_substream_len),
                           "Loop ended in wrong location.");
 
                 // Fool the OS into unmapping the current block of the
@@ -752,10 +753,10 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
                     // If we've got all we can handle or we've seen
                     // them all, then merge them.
                     
-                    if ((jj >= merge_arity - 1) ||
+                    if ((jj >= (int) merge_arity - 1) ||
                         (ii == substream_count - 1)) {
                         
-                        tp_assert(jj <= merge_arity - 1,
+                        tp_assert(jj <= (int) merge_arity - 1,
                                   "Index got too large.");
 
 #if DEBUG_ASSERTIONS
