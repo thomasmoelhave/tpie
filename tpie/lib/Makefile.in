@@ -2,7 +2,7 @@
 #
 # The Makefile for the TPIE library.
 #
-# $Id: Makefile.in,v 1.1 1994-08-31 19:35:41 darrenv Exp $
+# $Id: Makefile.in,v 1.2 1994-10-10 13:11:42 darrenv Exp $
 #
 
 LIBRARY = libtpie.a
@@ -14,19 +14,13 @@ RANLIB = ranlib
 export
 
 
-UP_TO_DATE = .up_to_date
+all: $(LIBRARY)
 
-$(UP_TO_DATE): $(LIBRARY)
-	touch $@
-
-$(LIBRARY): $(LIBSRCPATH)$(UP_TO_DATE)
-	cp $(LIBSRCPATH)$(LIBRARY) $@
+$(LIBRARY): $(LIBSRCPATH)$(LIBRARY)
+	cp $< $@
 	$(RANLIB) $@
 
-$(LIBSRCPATH)$(UP_TO_DATE): $(LIBSRCPATH)*.cpp
-	make -e -C $(LIBSRCPATH) $(UP_TO_DATE)
-
-.PHONY : clean
+.PHONY : clean all
 
 clean:
 	-rm $(LIBRARY)
