@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/11/94
 //
-// $Id: bte_stream_base.h,v 1.1 2002-01-14 16:20:28 tavi Exp $
+// $Id: bte_stream_base.h,v 1.2 2002-01-15 03:10:17 tavi Exp $
 //
 #ifndef _BTE_STREAM_BASE_H
 #define _BTE_STREAM_BASE_H
@@ -28,7 +28,9 @@
 // Max length of a stream file name.
 #define BTE_STREAM_PATH_NAME_LEN 128
 
-#define BTE_STREAM_HEADER_MAGIC_NUMBER	0xFEDCBA
+// The magic number of the file storing the stream.
+// (in network byteorder, it spells "TPST": TPie STream)
+#define BTE_STREAM_HEADER_MAGIC_NUMBER	0x54505354 
 
 // BTE stream types passed to constructors.
 enum BTE_stream_type {
@@ -216,27 +218,23 @@ void BTE_stream_base<T>::init_header (BTE_stream_header* ph) {
 
 template<class T>
 BTE_err BTE_stream_base<T>::register_memory_allocation (size_t sz) {
-  MM_err mme;
 
-  if ((mme = MM_manager.register_allocation (sz)) != MM_ERROR_NO_ERROR) {
+  if (MM_manager.register_allocation(sz) != MM_ERROR_NO_ERROR) {
     status_ = BTE_STREAM_STATUS_INVALID;
     LOG_FATAL_ID("Memory manager error in allocation.");
     return BTE_ERROR_MEMORY_ERROR;
   }
-
   return BTE_ERROR_NO_ERROR;
 }
 
 template<class T>
 BTE_err BTE_stream_base<T>::register_memory_deallocation (size_t sz) {
-  MM_err mme;
 
-  if ((mme = MM_manager.register_deallocation (sz)) != MM_ERROR_NO_ERROR) {
+  if (MM_manager.register_deallocation (sz) != MM_ERROR_NO_ERROR) {
     status_ = BTE_STREAM_STATUS_INVALID;
     LOG_FATAL_ID("Memory manager error in deallocation.");
     return BTE_ERROR_MEMORY_ERROR;
   }
-
   return BTE_ERROR_NO_ERROR;
 }
 
