@@ -7,7 +7,7 @@
 // A basic implementation of quicksort for use in core by AMI_sort() on
 // streams or substreams that are small enough.
 //
-// $Id: quicksort.h,v 1.20 2000-04-14 22:19:15 hutchins Exp $
+// $Id: quicksort.h,v 1.21 2002-06-27 01:13:18 tavi Exp $
 //
 #ifndef _QUICKSORT_H
 #define _QUICKSORT_H
@@ -61,7 +61,7 @@ void partition_cmp(T *data, size_t len, size_t &partition,
                int (*cmp)(CONST T&, CONST T&));
 
 template<class T>
-void quick_sort_cmp(T *data, size_t len,
+void __quick_sort_cmp(T *data, size_t len,
                     int (*cmp)(CONST T&, CONST T&),
                     size_t min_file_len = 2)
 {
@@ -78,9 +78,9 @@ void quick_sort_cmp(T *data, size_t len,
     
     partition_cmp(data, len, part_index, cmp);
 
-    quick_sort_cmp(data, part_index + 1, cmp, min_file_len);
-    quick_sort_cmp(data + part_index + 1, len - part_index - 1, 
-		                                cmp, min_file_len);
+    __quick_sort_cmp(data, part_index + 1, cmp, min_file_len);
+    __quick_sort_cmp(data + part_index + 1, len - part_index - 1, 
+		     cmp, min_file_len);
 }
 
 template<class T>
@@ -128,11 +128,11 @@ void insertion_sort_cmp(T *data, size_t len,
                         int (*cmp)(CONST T&, CONST T&));
 
 template<class T>
-void quicker_sort_cmp(T *data, size_t len,
+void quick_sort_cmp(T *data, size_t len,
                       int (*cmp)(CONST T&, CONST T&),
                       size_t min_file_len = 20)
 {
-    quick_sort_cmp(data, len, cmp, min_file_len);
+    __quick_sort_cmp(data, len, cmp, min_file_len);
     insertion_sort_cmp(data, len, cmp);
 }
 
@@ -164,7 +164,7 @@ template<class T>
 void partition_op(T *data, size_t len, size_t &partition);
 
 template<class T>
-void quick_sort_op(T *data, size_t len,
+void __quick_sort_op(T *data, size_t len,
                    size_t min_file_len = 2)
 {
     // On return from partition(), everything at or below this index
@@ -180,8 +180,8 @@ void quick_sort_op(T *data, size_t len,
     
     partition_op(data, len, part_index);
 
-    quick_sort_op(data, part_index + 1, min_file_len);
-    quick_sort_op(data + part_index + 1, len - part_index - 1, min_file_len);
+    __quick_sort_op(data, part_index + 1, min_file_len);
+    __quick_sort_op(data + part_index + 1, len - part_index - 1, min_file_len);
 }
 
 template<class T>
@@ -228,10 +228,10 @@ template<class T>
 void insertion_sort_op(T *data, size_t len);
 
 template<class T>
-void quicker_sort_op(T *data, size_t len,
+void quick_sort_op(T *data, size_t len,
                      size_t min_file_len = 20)
 {
-    quick_sort_op(data, len, min_file_len);
+    __quick_sort_op(data, len, min_file_len);
     insertion_sort_op(data, len);
 }
 
@@ -260,7 +260,7 @@ void partition_obj(T *data, size_t len, size_t &partition,
                    CMPR  *cmp);
 
 template<class T, class CMPR>
-void quick_sort_obj(T *data, size_t len, CMPR *cmp,
+void __quick_sort_obj(T *data, size_t len, CMPR *cmp,
                     size_t min_file_len = 2)
 {
     // On return from partition(), everything at or below this index
@@ -276,8 +276,8 @@ void quick_sort_obj(T *data, size_t len, CMPR *cmp,
     
     partition_obj(data, len, part_index, cmp);
 
-    quick_sort_obj(data, part_index + 1, cmp, min_file_len);
-    quick_sort_obj(data + part_index + 1, len - part_index - 1, cmp, min_file_len);
+    __quick_sort_obj(data, part_index + 1, cmp, min_file_len);
+    __quick_sort_obj(data + part_index + 1, len - part_index - 1, cmp, min_file_len);
 }
 
 template<class T, class CMPR>
@@ -325,11 +325,11 @@ void insertion_sort_obj(T *data, size_t len,
                         CMPR *cmp);
 
 template<class T, class CMPR>
-void quicker_sort_obj(T *data, size_t len,
+void quick_sort_obj(T *data, size_t len,
                       CMPR *cmp,
                       size_t min_file_len = 20)
 {
-    quick_sort_obj(data, len, cmp, min_file_len);
+    __quick_sort_obj(data, len, cmp, min_file_len);
     insertion_sort_obj(data, len, cmp);
 }
 
