@@ -1,5 +1,5 @@
 %%
-%% $Id: ami_reference.tex,v 1.6 1999-10-25 21:49:14 tavi Exp $
+%% $Id: ami_reference.tex,v 1.7 2000-01-14 22:59:38 hutchins Exp $
 %%
 \chapter{TPIE Programmers' Reference}
 \label{cha:reference}
@@ -82,128 +82,127 @@ Although provisions exist for alternative memory managers,
 TPIE currently provides only one. TPIE's memory manager is the object
 \verb|MM_manager|, which has global scope. 
 
-  % commented out for quick release.
-% The following
-%public methods of object \verb|MM_manager| are provided:
-%
-%\begin{itemize}
-%\item Setting an application's memory limit:
-%\begin{verbatim}
-%MM_err set_memory_limit (size_t size);
-%\end{verbatim}
-%
-%The memory limit is set to \verb|size| bytes. If the
-%specified mamory limit is greater than or equal to the
-%amount of memory already allocated, \verb|set_memory_limit|
-%returns \verb|MM_ERROR_NO_ERROR|, otherwise
-%\verb|MM_ERROR_EXCESSIVE_ALLOCATION|. By default, successive
-%calls to operator \verb|new| will cause the program to abort
-%if the resulting memory usage would exceed \verb|size|
-%bytes. This behaviour can be controlled explicitly by the
-%use of methods \verb|enforce_memory_limit|,
-%\verb|warn_memory_limit| and \verb|ignore_memory_limit|.
-%See below for details.
-%
-%\item Setting enforcement behaviour:
-%\begin{verbatim}
-%MM_err enforce_memory_limit();
-%MM_err ignore_memory_limit ();
-%MM_err warn_memory_limit   ();
-%\end{verbatim}
-%
-%Methods \verb|enforce_memory_limit|,
-%\verb|ignore_memory_limit| and \verb|warn_memory_limit| are
-%used to specify the behaviour desired in the event that the
-%user-specified memory limit is exceeded. These methods cause
-%TPIE to abort, continue without warning, or continue after a
-%warning, respectively.
-%
-%\item Query memory parameters
-%
-%\begin{verbatim}
-%long memory_available();
-%long memory_used();
-%long memory_limit();
-%\end{verbatim}
-%
-%Method \verb|memory_available()| returns the number of bytes
-%of memory which can be allocated before the user-specified
-%limit is reached. \verb|memory_used| returns the number of
-%bytes of memory currently allocated. \verb|memory_limit|
-%returns the memory limit as set by the last call to method
-%\verb|set_memory_limit|.
-%
-%Application programs which wish to limit their main memory
-%usage can check via \verb|memory_available| whether a
-%contemplated memory allocation request would exceed their
-%self-imposed threshold.
-%
-%\item Query space overhead
-%
-%\begin{verbatim}
-%int space_overhead();
-%\end{verbatim}
-%
-%TPIE imposes a small space overhead on each memory
-%allocation request received by operator \verb|new|. This involves
-%increasing each allocation request by a fixed number of
-%bytes. The precise size of this increase is machine
-%dependent, but typically 8 bytes. Method \verb|space_overhead|
-%returns the size of this increase.
-%\end{itemize}
-%
-%\subsection{Using the Memory Manager: An Example}
-%
-%The following (toy) program creates new elements of a linked
-%list until its specified memory limit has been reached.
-%
-%\begin{verbatim}
-%// This program illustrates the use of the main public 
-%// entry points in the TPIE memory manager object "MM_manager".
-%// It creates nodes in a linked list and stops when a predefined memory 
-%// limit would be exceeded if it continued.
-%
-%#include "app_config.h"
-%#include <ami.h>
-%#define  MY_MEMORY_LIMIT 4*1024*1024;
-%
-%int    overhead, nodeCount;
-%size_t mem_limit = MY_MEMORY_LIMIT;
-%class  myNode 
-%       { public:
-%            int i[1020/4];
-%            myNode *next;
-%       };
-%myNode *firstNode, *currentNode, *previousNode;
-%
-%void 
-%main (int argc, char *argv[]){
-% 
-%   overhead = MM_manager.space_overhead();
-%   nodeCount = 0;
-%   MM_manager.set_memory_limit(mem_limit);
-%   currentNode = firstNode = 0;
-%
-%   while ((sizeof(myNode)+overhead)<= MM_manager.memory_available()) { 
-%      currentNode = new myNode;
-%      if (firstNode == 0) 
-%         firstNode = currentNode;
-%      else
-%        (*previousNode).next = currentNode;
-%      (*currentNode).next = 0;
-%      previousNode = currentNode;
-%      nodeCount++;
-%   };
-%   cout << nodeCount << " list nodes of size " << (int) sizeof(myNode); 
-%   cout << " were allocated within my memory limit of ";
-%   cout << (size_t) mem_limit << " bytes \n";
-%};
-%\end{verbatim}
-%
-%Under PC Solaris, this program gives the following output:
-%\begin{verbatim}
-%4064 list nodes of size 1024 were allocated within my memory limit of 4194304 bytes
-%\end{verbatim}
+The following public methods of object \verb|MM_manager| are
+provided:
+
+\begin{itemize}
+\item Setting an application's memory limit:
+\begin{verbatim}
+MM_err set_memory_limit (size_t size);
+\end{verbatim}
+
+The memory limit is set to \verb|size| bytes. If the
+specified mamory limit is greater than or equal to the
+amount of memory already allocated, \verb|set_memory_limit|
+returns \verb|MM_ERROR_NO_ERROR|, otherwise
+\verb|MM_ERROR_EXCESSIVE_ALLOCATION|. By default, successive
+calls to operator \verb|new| will cause the program to abort
+if the resulting memory usage would exceed \verb|size|
+bytes. This behaviour can be controlled explicitly by the
+use of methods \verb|enforce_memory_limit|,
+\verb|warn_memory_limit| and \verb|ignore_memory_limit|.
+See below for details.
+
+\item Setting enforcement behaviour:
+\begin{verbatim}
+MM_err enforce_memory_limit();
+MM_err ignore_memory_limit ();
+MM_err warn_memory_limit   ();
+\end{verbatim}
+
+Methods \verb|enforce_memory_limit|,
+\verb|ignore_memory_limit| and \verb|warn_memory_limit| are
+used to specify the behaviour desired in the event that the
+user-specified memory limit is exceeded. These methods cause
+TPIE to abort, continue without warning, or continue after a
+warning, respectively.
+
+\item Query memory parameters
+
+\begin{verbatim}
+size_t  memory_available();
+size_t  memory_used();
+size_t  memory_limit();
+\end{verbatim}
+
+Method \verb|memory_available()| returns the number of bytes
+of memory which can be allocated before the user-specified
+limit is reached, \verb|memory_used| returns the number of
+bytes of memory currently allocated, and \verb|memory_limit|
+returns the memory limit as set by the last call to method
+\verb|set_memory_limit|.
+
+Application programs which wish to limit their main memory
+usage can check via \verb|memory_available| whether a
+contemplated memory allocation request would exceed their
+self-imposed threshold.
+
+\item Query space overhead
+
+\begin{verbatim}
+int space_overhead();
+\end{verbatim}
+
+TPIE imposes a small space overhead on each memory
+allocation request received by operator \verb|new|. This involves
+increasing each allocation request by a fixed number of
+bytes. The precise size of this increase is machine
+dependent, but typically 8 bytes. Method \verb|space_overhead|
+returns the size of this increase.
+\end{itemize}
+
+\subsection{Using the Memory Manager: An Example}
+
+The following (toy) program creates new elements of a linked
+list until its specified memory limit has been reached.
+
+\begin{verbatim}
+// This program illustrates the use of the main public 
+// entry points in the TPIE memory manager object "MM_manager".
+// It creates nodes in a linked list and stops when a predefined memory 
+// limit would be exceeded if it continued.
+
+#include "app_config.h"
+#include <ami.h>
+#define  MY_MEMORY_LIMIT 4*1024*1024;
+
+int    overhead, nodeCount;
+size_t mem_limit = MY_MEMORY_LIMIT;
+class  myNode 
+      { public:
+           int i[1020/4];
+           myNode *next;
+      };
+myNode *firstNode, *currentNode, *previousNode;
+
+void 
+main (int argc, char *argv[]){
+
+  overhead = MM_manager.space_overhead();
+  nodeCount = 0;
+  MM_manager.set_memory_limit(mem_limit);
+  currentNode = firstNode = 0;
+
+  while ((sizeof(myNode)+overhead)<= MM_manager.memory_available()) { 
+     currentNode = new myNode;
+     if (firstNode == 0) 
+        firstNode = currentNode;
+     else
+       (*previousNode).next = currentNode;
+     (*currentNode).next = 0;
+     previousNode = currentNode;
+     nodeCount++;
+  };
+  cout << nodeCount << " list nodes of size " << (int) sizeof(myNode); 
+  cout << " were allocated within my memory limit of ";
+  cout << (size_t) mem_limit << " bytes \n";
+};
+\end{verbatim}
+
+Under PC Solaris, this program gives the following output:
+\begin{verbatim}
+4064 list nodes of size 1024 were allocated within my memory limit of 4194304 bytes
+\end{verbatim}
 \index{memory manager|)}
 
 
