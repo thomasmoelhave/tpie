@@ -3,7 +3,7 @@
 // Authors: Octavian Procopiuc <tavi@cs.duke.edu>
 //          (using some code by Rakesh Barve)
 //
-// $Id: bte_coll_base.h,v 1.12 2002-01-27 23:34:26 tavi Exp $
+// $Id: bte_coll_base.h,v 1.13 2002-07-20 21:38:27 tavi Exp $
 //
 // BTE_collection_base class and various basic definitions.
 //
@@ -109,9 +109,12 @@ public:
 // A base class for all implementations of block collection classes.
 class BTE_collection_base {
 protected:
-  
+  // Bid type for BTE internal use. Should match AMI_bid type defined
+  // in ami_block_base.h.
+  typedef unsigned int bid_t;
+
   // An stdio_stack of off_t's.
-  stdio_stack<off_t> *freeblock_stack_; 
+  stdio_stack<bid_t> *freeblock_stack_; 
 
   // File descriptor for the file backing the block collection.
   int bcc_fd_;
@@ -181,18 +184,18 @@ protected:
     return BTE_ERROR_NO_ERROR;
   }
 
-  off_t bid_to_file_offset(off_t bid) const 
+  off_t bid_to_file_offset(bid_t bid) const 
     { return header_.os_block_size + header_.block_size * (bid-1); }
 
   void create_stack();
 
   // Common code for all new_block implementations. Inlined.
-  BTE_err new_block_getid(off_t& bid) {
+  BTE_err new_block_getid(bid_t& bid) {
     // We try getting a free bid from the stack first. If there aren't
     // any there, we will try to get one after last_block; if there are
     // no blocks past last_block, we will ftruncate() some more blocks
     // to the tail of the BCC and then get a free bid.
-    off_t *lbn;
+    bid_t *lbn;
     BTE_err err;
     if (header_.used_blocks < header_.last_block - 1) {
       tp_assert(freeblock_stack_ != NULL, 
@@ -244,7 +247,7 @@ protected:
   }
 
   // Common code for all delete_block implementations. Inlined.
-  BTE_err delete_block_shared(off_t bid) {
+  BTE_err delete_block_shared(bid_t bid) {
     if (bid == header_.last_block - 1) 
       header_.last_block--;
     else {
