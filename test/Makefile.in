@@ -1,6 +1,6 @@
 # Copyright (c) 1994 Darren Erik Vengroff
 
-# $Id: Makefile.in,v 1.17 1995-03-07 14:53:42 darrenv Exp $
+# $Id: Makefile.in,v 1.18 1995-03-25 14:09:14 darrenv Exp $
 
 # Makefile for TPIE test applications.
 
@@ -59,9 +59,9 @@ override CPPFLAGS += -I$(TPIEINC) @DEFS@
 
 OSF1 := @OSF1@
 ifeq ($(OSF1),1)
-LDLIBS =  -L$(TPIELIBDIR) -ltpie /usr/lib/libm.a
+LDLIBS =  -L$(TPIELIBDIR) -ltpie @LIBS@ /usr/lib/libm.a
 else
-LDLIBS =  -L$(TPIELIBDIR) -ltpie -lm
+LDLIBS =  -L$(TPIELIBDIR) -ltpie -lm @LIBS@
 endif
 
 CC = @CC@
@@ -72,7 +72,7 @@ CCFLAGS = $(CXXFLAGS)
 APPS := test_ami_pmerge test_ami_sort test_ami_merge test_ami_gp	\
 	test_matrix test_bit_matrix test_ami_arith test_ami_matrix	\
 	test_ami_matrix_pad test_ami_stack test_ami_bp lr ch2		\
-	test_ami_sm
+	test_ami_sm nas_ep nas_cg nas_is test_ami_sort24
 
 # Sources to the test applications.
 
@@ -84,7 +84,7 @@ APPSRC = $(patsubst %,%.cpp,$(APPS))
 COMMONCXXSRC = parse_args.cpp app_config.cpp
 
 OTHERCXXSRC = scan_random.cpp scan_count.cpp scan_list.cpp list_edge.cpp 	\
-	scan_random_point.cpp scan_uniform_sm.cpp
+	scan_random_point.cpp scan_uniform_sm.cpp 
 
 CXXSRC=$(APPSRC) $(COMMONCXXSRC) $(OTHERCXXSRC)
 
@@ -148,6 +148,14 @@ lr: lr.o list_edge.o scan_list.o $(COMMONOBJ)
 ch2: ch2.o scan_random_point.o $(COMMONOBJ)
 
 test_ami_sm: test_ami_sm.o scan_uniform_sm.o $(COMMONOBJ)
+
+nas_ep: nas_ep.o $(COMMONOBJ)
+
+nas_cg: nas_cg.o $(COMMONOBJ)
+
+nas_is: nas_is.o $(COMMONOBJ)
+
+test_ami_sort24: test_ami_sort24.o $(COMMONOBJ)
 
 
 .PHONY : clean all
