@@ -7,7 +7,7 @@
 
 
 
-static char ami_device_id[] = "$Id: ami_device.cpp,v 1.5 1999-10-19 16:29:13 tavi Exp $";
+static char ami_device_id[] = "$Id: ami_device.cpp,v 1.6 1999-11-23 17:42:47 tavi Exp $";
 
 
 #include "lib_config.h"
@@ -30,12 +30,15 @@ AMI_device::AMI_device(unsigned int count, char **strings)
 {
     char *s, *t;
 
-    if (argc = count) {
+    argc = count;
+    if (argc) {
         argv = new (char *)[argc];
 
         while (count--) {
             argv[count] = new char[strlen(strings[count]) + 1];
-            for (s = strings[count], t = argv[count]; *t++ = *s++; )
+            // for (s = strings[count], t = argv[count]; *t++ = *s++; )
+	    // [tavi] modified to avoid warning.
+	    for (s = strings[count], t = argv[count]; *t; *t++ = *s++)
                 ;
         }
                      
