@@ -2,7 +2,7 @@
 #
 # The Makefile for the complete TPIE system.
 #
-# $Id: Makefile.in,v 1.2 1994-09-16 13:14:02 darrenv Exp $
+# $Id: Makefile.in,v 1.3 1994-09-22 15:22:39 darrenv Exp $
 #
 
 ########################################################################
@@ -10,22 +10,22 @@
 ########################################################################
 
 # Define if the library functions should write to the log.
-LOG_LIBRARY = 1
+#LOG_LIBRARY = 1
 
 # Define if the library functions should include debugging code.
-DEBUG_LIBRARY = 1
+#DEBUG_LIBRARY = 1
 
 # Define if the library code should be optimized.
-# OPTIMIZE_LIBRARY = 1
+OPTIMIZE_LIBRARY = 1
 
 # Define if the apps should write to the log.
-LOG_APPS = 1
+#LOG_APPS = 1
 
 # Define if the apps should include debugging code.
-DEBUG_APPS = 1
+#DEBUG_APPS = 1
 
 # Define if the apps should be optimized.
-# OPTIMIZE_APPS = 1
+OPTIMIZE_APPS = 1
 
 ########################################################################
 # END OF USER SETTABLE FLAGS.
@@ -58,6 +58,8 @@ export
 
 LIBPATH = ./lib/
 
+LIBSRCPATH = $(LIBPATH)src/
+
 APPSPATH = ./apps/
 
 INCPATH = ./include/
@@ -69,6 +71,7 @@ inc:
 	$(MAKE) -C $(INCPATH) $(UP_TO_DATE)
 
 lib:
+	$(MAKE) -C $(LIBSRCPATH) $(UP_TO_DATE)
 	$(MAKE) -C $(LIBPATH) $(UP_TO_DATE)
 
 apps:
