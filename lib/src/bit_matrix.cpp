@@ -5,7 +5,7 @@
 // Created: 1/9/95
 //
 
-static char bit_matrix_id[] = "$Id: bit_matrix.cpp,v 1.8 1999-05-02 18:48:22 tavi Exp $";
+static char bit_matrix_id[] = "$Id: bit_matrix.cpp,v 1.9 1999-11-23 17:29:59 tavi Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -37,7 +37,7 @@ bit_matrix::~bit_matrix(void)
 }
 
 bit_matrix bit_matrix::operator=(const bit_matrix &rhs) {
-    this->matrix<bit>::operator=((matrix<bit> &)rhs);
+    return this->matrix<bit>::operator=((matrix<bit> &)rhs);
 }
 
 bit_matrix & bit_matrix::operator=(const off_t &rhs)
