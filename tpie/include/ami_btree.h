@@ -3,7 +3,7 @@
 // File:    ami_btree.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_btree.h,v 1.5 2001-06-22 03:14:52 tavi Exp $
+// $Id: ami_btree.h,v 1.6 2001-06-26 14:56:48 adanner Exp $
 //
 // AMI_btree declaration and implementation.
 //
@@ -113,6 +113,12 @@ public:
   // Find an element based on key. If found, return true and store the element in v.
   bool find(const Key& k, Value& v);
 
+  // Find a predecessor based on key.
+  bool pred(const Key& k, Value& v);
+
+  // Find a successor based on key.
+  bool succ(const Key& k, Value& v);
+    
   // Report all values in the range determined by keys k1 and k2.
   size_t range_query(const Key& k1, const Key& k2, AMI_STREAM<Value>* s);
 
@@ -335,6 +341,12 @@ public:
   // Find and return the position of key k 
   // (ie, the lowest position where it would be inserted).
   size_t find(const Key& k);
+
+  // Predeccessor of k
+  size_t pred(const Key& k);
+    
+  // Successor of k
+  size_t succ(const Key& k);
 
   // Constructor.
   AMI_btree_leaf(AMI_COLLECTION* pcoll, AMI_bid bid = 0);
@@ -586,6 +598,72 @@ size_t AMI_BTREE_LEAF::find(const Key& k) {
     if (!comp_(KeyOfValue()(el[i]), k) && !comp_(k, KeyOfValue()(el[i])))
       return i;
   return size();
+#endif
+}
+
+//// *AMI_btree_leaf::pred* ////
+template<class Key, class Value, class Compare, class KeyOfValue>
+size_t AMI_BTREE_LEAF::pred(const Key& k) {
+
+size_t pred_idx;
+#if LEAF_ELEMENTS_SORTED
+  // Sanity check.
+  assert(size() >= 2 ? comp_(KeyOfValue()(el[0]), KeyOfValue()(el[size()-1])): true);
+  pred_idx = ::lower_bound(&el[0], &el[size()-1] + 1, k,comp_value_key_) - &el[0];
+  // lower_bound pos is off by one for pred
+  // Final pred_idx cannot be matching key
+  if (pred_idx != 0)
+    pred_idx--;
+  return pred_idx;
+#else
+  size_t i=0;
+  size_t j;
+  // Find candidate
+  while (i < size() && !comp_(KeyOfValue()(el[i]), k) )
+    i++;
+  pred_idx = i;
+  // Check for closer candidates
+  for (j = i+1; j < size(); j++)
+    if (comp_(KeyOfValue()(el[j]), k) && comp_(KeyOfValue()(el[i]), KeyOfValue()(el[j])))
+      pred_idx = j;
+  if (i != size())
+    return pred_idx;
+  else
+    return 0;
+#endif
+}
+
+//// *AMI_btree_leaf::succ* ////
+template<class Key, class Value, class Compare, class KeyOfValue>
+size_t AMI_BTREE_LEAF::succ(const Key& k) {
+
+size_t succ_idx;
+#if LEAF_ELEMENTS_SORTED
+  // Sanity check.
+  assert(size() >= 2 ? comp_(KeyOfValue()(el[0]), KeyOfValue()(el[size()-1])): true);
+  succ_idx = ::lower_bound(&el[0], &el[size()-1] + 1, k, comp_value_key_) - &el[0];
+  // Bump up one spot if keys match
+  if (succ_idx != size() &&
+      !comp_(k,KeyOfValue()(el[succ_idx])) && !comp_(KeyOfValue()(el[succ_idx]),k) )
+    succ_idx++;
+  return succ_idx;
+#else
+  size_t i=0;
+  size_t j;
+
+  // Find candidate
+  while (i < size() && !comp_(k, KeyOfValue()(el[i])) )
+    i++;
+  succ_idx = i;
+  // Check for closer candidates
+  for (j = i+1; j < size(); j++)
+    if (comp_(k, KeyOfValue()(el[j])) && comp_(KeyOfValue()(el[j]), KeyOfValue()(el[i])))
+      succ_idx = j;
+  
+  if (i != size())
+    return succ_idx;
+  else
+    return 0;
 #endif
 }
 
@@ -1076,6 +1154,138 @@ bool AMI_BTREE::find(const Key& k, Value& v) {
 
   // Write back the leaf and empty the stack.
   release_leaf(p);
+  empty_stack();
+
+  return ans;
+}
+
+//// *AMI_btree::pred* ////
+template <class Key, class Value, class Compare, class KeyOfValue>
+bool AMI_BTREE::pred(const Key& k, Value& v) {
+
+  bool ans = false;
+  size_t idx;
+  AMI_BTREE_NODE * pn;
+  AMI_BTREE_LEAF * pl;
+  AMI_bid bid;
+  size_t pos;
+  size_t level, levelup;
+  pair<AMI_bid, size_t> tos;
+
+  assert(header_.height >= 1);
+  assert(path_stack_.empty());
+
+  // Get a close candidate and path_stack
+  bid = find_leaf(k);
+  pl = fetch_leaf(bid);
+  idx = pl->pred(k);
+  
+  // Check whether we have a match.
+  if (comp_(kov_(pl->el[idx]), k)){
+    v = pl->el[idx]; 
+    ans = true;
+  }
+  
+  release_leaf(pl);
+  levelup=0;
+  // while no predecessor, wiggle around tree
+  // find adjacent leaves. 
+  while ((!path_stack_.empty()) && (ans == false) ){
+    tos = path_stack_.top();
+    path_stack_.pop();
+    levelup++;
+    pn = fetch_node(tos.first);
+    if (tos.second != 0 ){
+      levelup--;
+      pos=tos.second-1;
+      path_stack_.push(pair<AMI_bid, size_t>(tos.first,pos ));
+      bid=pn->lk[pos];
+      for (level = levelup; level >0; level-- ){
+        release_node(pn);
+        pn = fetch_node(bid);
+        path_stack_.push(pair<AMI_bid, size_t>(bid, pn->size()));
+        bid=pn->lk[pn->size()]; 
+      }
+      pl = fetch_leaf(bid);
+      idx = pl->pred(k);
+      // check again
+      if (comp_(kov_(pl->el[idx]), k)){
+        v = pl->el[idx]; 
+        ans = true;
+      }
+      release_leaf(pl);
+      levelup=0;
+    }
+    release_node(pn);
+  } // while empty/false
+
+  // Write back the leaf and empty the stack.
+  empty_stack();
+
+  return ans;
+}
+
+//// *AMI_btree::succ* ////
+template <class Key, class Value, class Compare, class KeyOfValue>
+bool AMI_BTREE::succ(const Key& k, Value& v) {
+
+  bool ans = false;
+  size_t idx;
+  AMI_BTREE_NODE * pn;
+  AMI_BTREE_LEAF * pl;
+  AMI_bid bid;
+  size_t pos;
+  size_t level, levelup;
+  pair<AMI_bid, size_t> tos;
+
+  assert(header_.height >= 1);
+  assert(path_stack_.empty());
+
+  // Get a close candidate and path_stack
+  bid = find_leaf(k);
+  pl = fetch_leaf(bid);
+  idx = pl->succ(k);
+  
+  // Check whether we have a match.
+  if (comp_(k,kov_(pl->el[idx]))){
+    v = pl->el[idx]; 
+    ans = true;
+  }
+  
+  release_leaf(pl);
+  levelup=0;
+  // while no successor, wiggle around tree
+  // find adjacent leaves. 
+  while ((!path_stack_.empty()) && (ans == false) ){
+    tos = path_stack_.top();
+    path_stack_.pop();
+    levelup++;
+    pn = fetch_node(tos.first);
+    if (tos.second != pn->size() ){
+      levelup--;
+      pos=tos.second+1;
+      path_stack_.push(pair<AMI_bid, size_t>(tos.first,pos ));
+      bid=pn->lk[pos];
+      for (level = levelup; level >0; level-- ){
+        release_node(pn);
+        pn = fetch_node(bid);
+        path_stack_.push(pair<AMI_bid, size_t>(bid, 0));
+        bid=pn->lk[0]; 
+      }
+      pl = fetch_leaf(bid);
+      idx = pl->succ(k);
+      // check again
+      if (comp_(k, kov_(pl->el[idx]))){
+        v = pl->el[idx]; 
+        ans = true;
+      }
+      release_leaf(pl);
+      levelup=0;
+    }
+    release_node(pn);
+  } // while empty/false
+
+  // Write back the leaf and empty the stack.
   empty_stack();
 
   return ans;
