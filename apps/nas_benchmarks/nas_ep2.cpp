@@ -5,11 +5,7 @@
 // Created: 3/25/95
 //
 
-#include <iostream>
-#include <fstream>
-
-using std::cout;
-using std::ofstream;
+#include <portability.h>
 
 // Get information on the configuration to test.
 #include "app_config.h"
@@ -17,8 +13,7 @@ using std::ofstream;
 
 // Define it all.
 #include <ami.h>
-VERSION(nas_ep2_cpp,"$Id: nas_ep2.cpp,v 1.5 2003-04-20 23:51:40 tavi Exp $");
-
+VERSION(nas_ep2_cpp,"$Id: nas_ep2.cpp,v 1.6 2003-09-12 01:46:26 tavi Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -176,8 +171,8 @@ inline AMI_err scan_both::operate(double *x, double *y,
 //
 //
 
-static char def_rrf[] = "/var/tmp/osr.txt";
-static char def_frf[] = "/var/tmp/osf.txt";
+static char def_rrf[] = "osr.txt";
+static char def_frf[] = "osf.txt";
 
 static char *rand_results_filename = def_rrf;
 static char *filtered_results_filename = def_frf;

@@ -5,20 +5,14 @@
 // Created: 3/29/95
 //
 
-#include <iostream>
-#include <fstream>
-#include <strstream>
-
-using std::cout;
-using std::ofstream;
-using std::istrstream;
+#include <portability.h>
 
 #include "app_config.h"        
 #include "parse_args.h"
 
 // Define it all.
 #include <ami.h>
-VERSION(smooth_cpp,"$Id: smooth.cpp,v 1.5 2003-04-20 23:51:40 tavi Exp $");
+VERSION(smooth_cpp,"$Id: smooth.cpp,v 1.6 2003-09-12 01:58:14 tavi Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -34,8 +28,6 @@ VERSION(smooth_cpp,"$Id: smooth.cpp,v 1.5 2003-04-20 23:51:40 tavi Exp $");
 #include "scan_build_smoother.h"
 
 #include <cpu_timer.h>
-
-
 
 // The uniform random variate generator from the NAS parallel
 // benchmarks.
@@ -129,9 +121,9 @@ inline AMI_err scan_nas_psuedo_rand::operate(double *out, AMI_SCAN_FLAG *sf)
 // End of the uniform scanner.
 
 
-static char def_srf[] = "/var/tmp/osc.txt";
-static char def_brf[] = "/var/tmp/osi.txt";
-static char def_frf[] = "/var/tmp/osf.txt";
+static char def_srf[] = "osc.txt";
+static char def_brf[] = "osi.txt";
+static char def_frf[] = "osf.txt";
 
 static char *smooth_results_filename = def_srf;
 static char *banded_results_filename = def_brf;
@@ -180,9 +172,9 @@ int main(int argc, char **argv)
     unsigned int ts3 = test_size * test_size * test_size;
     
     if (verbose) {
-        cout << "test_size = " << test_size << ".\n";
-        cout << "test_mm_size = " << test_mm_size << ".\n";
-        cout << "random_seed = " << random_seed << ".\n";
+      cout << "test_size = " << test_size << "." << endl;
+      cout << "test_mm_size = " << test_mm_size << "." << endl;
+      cout << "random_seed = " << random_seed << "." << endl;
     } else {
         cout << test_size << ' ' << test_mm_size << ' ' << ts3 << ' '
              << niter << ' ';
@@ -262,7 +254,7 @@ int main(int argc, char **argv)
     unsigned int rows_per_band, total_bands;
         
     if (verbose) {
-        cout << "Generating banded matrix.\n";
+      cout << "Generating banded matrix." << endl;
     }
 
     cput0.reset();
@@ -290,7 +282,7 @@ int main(int argc, char **argv)
 
     for (unsigned int ii = 0; ii < niter; ii++ ) {
         if (verbose) {
-            cout << "Iteration " << ii+1 << '\n';
+            cout << "Iteration " << ii+1 << endl;
         }
         if (ii & 1) {
             ae = AMI_sparse_mult_scan_banded(smoother_b, ev1, ev0, ts3,
@@ -301,8 +293,8 @@ int main(int argc, char **argv)
         }
         
         if (verbose) {
-            cout << "Multiplied them.\n";
-            cout << "Stream length = " << ev1.stream_len() << '\n';
+	  cout << "Multiplied them." << endl;
+            cout << "Stream length = " << ev1.stream_len() << endl;
         }
     }
     
@@ -317,7 +309,7 @@ int main(int argc, char **argv)
         }
     }
     
-    cout << cput0 << ' ' << cput1 << '\n';
+    cout << cput0 << ' ' << cput1 << endl;
             
     return 0;
 }
