@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/9/94
 //
-// $Id: ami_matrix.h,v 1.12 2003-09-12 01:46:18 jan Exp $
+// $Id: ami_matrix.h,v 1.13 2003-09-27 06:18:05 tavi Exp $
 //
 #ifndef _AMI_MATRIX_H
 #define _AMI_MATRIX_H
@@ -27,6 +27,8 @@
 #include <ami_matrix_pad.h>
 #include <ami_matrix_blocks.h>
 #include <ami_stream_arith.h>
+
+#include <ami_gen_perm.h>
 
 template<class T>
 class AMI_matrix : public AMI_STREAM<T> {
