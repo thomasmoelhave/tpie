@@ -5,7 +5,7 @@
 //
 // Blocked kd-tree definition and implementation.
 //
-// $Id: ami_kdtree.h,v 1.17 2005-01-27 20:52:59 tavi Exp $
+// $Id: ami_kdtree.h,v 1.18 2005-01-27 21:44:48 tavi Exp $
 //
 
 #ifndef _AMI_KDTREE_H
@@ -66,6 +66,9 @@ public:
   typedef AMI_collection_single<BTECOLL> collection_t;
   typedef AMI_kdtree_node<coord_t, dim, Bin_node, BTECOLL> node_t;
   typedef AMI_kdtree_leaf<coord_t, dim, BTECOLL> leaf_t;
+
+  // Constructor.
+  AMI_kdtree(const AMI_kdtree_params& params = _AMI_kdtree_params_default);
 
   // Constructor. Open/create a new kdtree with the given name, type
   // and parameters.
@@ -1317,6 +1320,24 @@ pair<AMI_bid, link_type_t> AMI_KDTREE_NODE::find(const POINT &p) const {
 //////////////////////////////////////
 ///////////// **AMI_kdtree** /////////////
 //////////////////////////////////////
+
+
+//// *AMI_kdtree::AMI_kdtree* ////
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+AMI_KDTREE::AMI_kdtree(const AMI_kdtree_params& params) 
+               : header_(), params_(params), points_are_sample(false) {
+  TPLOG("AMI_kdtree::AMI_kdtree Entering\n");
+
+  char *base_file_name = tpie_tempnam("AMI_KDTREE");
+  name_ = base_file_name;
+  shared_init(base_file_name, AMI_WRITE_COLLECTION);
+  if (status_ == AMI_KDTREE_STATUS_VALID) {
+    persist(PERSIST_DELETE);
+  }
+
+  TPLOG("AMI_kdtree::AMI_kdtree Exiting status="<<status_<<", size="<<header_.size<<"\n");
+}
+
 
 //// *AMI_kdtree::AMI_kdtree* ////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
