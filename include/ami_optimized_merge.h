@@ -21,7 +21,7 @@
 // keys of the items; there is a provision to to use templated heaps
 // to implement the merge.
 
-// $Id: ami_optimized_merge.h,v 1.50 2002-03-14 20:25:08 tavi Exp $
+// $Id: ami_optimized_merge.h,v 1.51 2002-06-26 22:40:23 tavi Exp $
 
 // TO DO: substream_count setting; don't depend on current_stream_len
 
@@ -610,7 +610,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 	 }
 	 mm_stream[i] = *next_item;
       }
-      quicker_sort_op ((T *) mm_stream, len);
+      quick_sort_op ((T *) mm_stream, len);
 
       for (int i = 0; i < len; i++) {
 	 if ((ae = outstream->write_item (mm_stream[i]))
@@ -952,7 +952,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 	       }
 
 	       //Sort the array.
-	       quicker_sort_op ((T *) mm_stream, mm_len);
+	       quick_sort_op ((T *) mm_stream, mm_len);
 
 	       for (int i = 0; i < mm_len; i++) {
 		  if (
@@ -1514,7 +1514,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
       }
 
       cout << "qsorting in all in-memory-sort";
-      quicker_sort_cmp ((T *) mm_stream, len, cmp);
+      quick_sort_cmp ((T *) mm_stream, len, cmp);
       cout << "returned from qsorting";
 
       for (int i = 0; i < len; i++) {
@@ -1872,7 +1872,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
 	       //cout << "quicksorting";
 
-	       quicker_sort_cmp ((T *) mm_stream, mm_len, cmp);
+	       quick_sort_cmp ((T *) mm_stream, mm_len, cmp);
 
 	       for (int i = 0; i < mm_len; i++) {
 		  if (
@@ -2438,7 +2438,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 	    mm_stream[i] = *next_item;
 	 }
 
-	 quicker_sort_op ((T *) mm_stream, len);
+	 quick_sort_op ((T *) mm_stream, len);
 
 	 for (int i = 0; i < len; i++) {
 	    if ((ae = outstream->write_item (mm_stream[i]))
@@ -2468,7 +2468,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 	    qs_array[i].source = i;
 	 }
 
-	 quicker_sort_op ((qsort_item < KEY > *)qs_array, len);
+	 quick_sort_op ((qsort_item < KEY > *)qs_array, len);
 
 	 for (int i = 0; i < len; i++) {
 	    if (
@@ -2834,7 +2834,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
 	       //Sort the key array.
 
-	       quicker_sort_op ((qsort_item < KEY > *)qs_array, mm_len);
+	       quick_sort_op ((qsort_item < KEY > *)qs_array, mm_len);
 
 	       //Now permute the memoryload as per the sorted key array.
 
@@ -3393,7 +3393,7 @@ template < class T, class KEY >
 	    mm_stream[i] = *next_item;
 	 }
 
-	 quicker_sort_op ((T *) mm_stream, len);
+	 quick_sort_op ((T *) mm_stream, len);
 
 	 for (int i = 0; i < len; i++) {
 	    if ((ae = outstream->write_item (mm_stream[i]))
@@ -3425,7 +3425,7 @@ template < class T, class KEY >
 	    qs_array[i].source = i;
 	 }
 
-	 quicker_sort_op ((qsort_item < KEY > *)qs_array, len);
+	 quick_sort_op ((qsort_item < KEY > *)qs_array, len);
 
 	 for (int i = 0; i < len; i++) {
 	    if (

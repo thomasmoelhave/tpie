@@ -16,7 +16,7 @@
 
 // Define it all.
 #include <ami.h>
-VERSION(lr_cpp,"$Id: lr.cpp,v 1.18 2002-01-14 17:44:34 tavi Exp $");
+VERSION(lr_cpp,"$Id: lr.cpp,v 1.19 2002-06-26 22:39:54 tavi Exp $");
 
 // Utitlities for ascii output.
 #include <iostream.h>
@@ -56,10 +56,10 @@ int main_mem_list_rank(edge *edges, size_t count)
     }
     
     // Sort the original set by the from fields.
-    quicker_sort_cmp(edges, count, edgefromcmp); 
+    quick_sort_cmp(edges, count, edgefromcmp); 
     
     // Sort the copy by to.
-    quicker_sort_cmp(edges_copy, count, edgetocmp); 
+    quick_sort_cmp(edges_copy, count, edgetocmp); 
 
     // Find the head of this list, which is the unique node number
     // that appears in the list sorted by from but not by to.  At the
@@ -151,7 +151,7 @@ int main_mem_list_rank(edge *edges, size_t count)
 
     // Sort the copy back by source edge.
     
-    quicker_sort_cmp(edges_copy, count, edgefromcmp); 
+    quick_sort_cmp(edges_copy, count, edgefromcmp); 
 
     // Traverse the reduced copy by taking count - 1 steps, starting
     // from the index of the head.  We use jj to keep track of the
