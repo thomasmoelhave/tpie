@@ -45,64 +45,53 @@
 
 #include "getopts.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
 int option_index = 1;
 /* int getopts_usage()
  *
  *  Returns: 1 - Successful
  */
-int getopts_usage(char *progName, struct options opts[])
-{
+int getopts_usage(char *progName, struct options opts[]) {
+
   int count;
+  int i;
   char *cmd;
-  
-  printf("Usage: %s [options]\n\n", progName);
-  printf("  --help, -h\t\t\tDisplays this information\n");
-  for (count = 0; opts[count].description; count++)
-    {
-      if (opts[count].name && opts[count].shortName)
-        {
-          cmd = (char*) calloc(1, strlen(opts[count].name) + strlen(opts[count].shortName) + 15);
-          if (opts[count].args)
-            {
-              sprintf(cmd, "--%s, -%s <args>\t\t", opts[count].name, opts[count].shortName);
-            }
-          else
-            {
-              sprintf(cmd, "--%s, -%s\t\t\t", opts[count].name, opts[count].shortName);
-            }
-        }
-      else if (opts[count].name) 
-        {
-          cmd = (char*) calloc(1, strlen(opts[count].name) + 15);
-          if (opts[count].args)
-            {
-              sprintf(cmd, "--%s <args>\t\t\t", opts[count].name);
-            }
-          else
-            {
-              sprintf(cmd, "--%s\t\t\t", opts[count].name);
-            }
-        }
-      else if (opts[count].shortName) 
-        {
-          cmd = (char*) calloc(1, strlen(opts[count].shortName) + 15);
-          if (opts[count].args)
-            {
-              sprintf(cmd, "\t\t-%s <args>\t\t", opts[count].shortName);
-            }
-          else
-            {
-              sprintf(cmd, "\t\t-%s\t\t\t", opts[count].shortName);
-            }
-        }
-      printf("  %s%s\n", cmd, opts[count].description);
-      free(cmd);
+  int optlen = 30;
+
+  printf("Usage: %s [options]\nOptions:\n", progName);
+  printf("  --help, -h ");
+  for (i = 11; i < optlen; i++) {
+    printf(" ");
+  }
+  printf("Display this information.\n");
+  for (count = 0; opts[count].description; count++) {
+    if (opts[count].name && opts[count].shortName)  {
+      cmd = (char*) calloc(1, strlen(opts[count].name) + strlen(opts[count].shortName) + optlen);
+      if (opts[count].args) {
+	sprintf(cmd, "--%s, -%s <args> ", opts[count].name, opts[count].shortName);
+      } else {
+	sprintf(cmd, "--%s, -%s ", opts[count].name, opts[count].shortName);
+      }
+    } else if (opts[count].name) {
+      cmd = (char*) calloc(1, strlen(opts[count].name) + optlen);
+      if (opts[count].args) {
+	sprintf(cmd, "--%s <args> ", opts[count].name);
+      } else {
+	sprintf(cmd, "--%s ", opts[count].name);
+      }
+    } else if (opts[count].shortName) {
+      cmd = (char*) calloc(1, strlen(opts[count].shortName) + optlen);
+      if (opts[count].args) {
+	sprintf(cmd, "-%s <args> ", opts[count].shortName);
+      } else {
+	sprintf(cmd, "-%s ", opts[count].shortName);
+      }
     }
+    for (i = strlen(cmd); i < optlen; i++) {
+      cmd[i] = ' ';
+    }
+    printf("  %s%s\n", cmd, opts[count].description);
+    free(cmd);
+  }
   return 1;
 }
 
@@ -180,10 +169,6 @@ useage:
     }
   return 0;
 }
-
-#ifdef __cplusplus
-}
-#endif
 
 
 
