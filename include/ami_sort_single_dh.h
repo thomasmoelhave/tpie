@@ -1,7 +1,7 @@
 //
 // File: ami_sort_single_dh.h
 //
-// $Id: ami_sort_single_dh.h,v 1.10 2002-01-14 16:07:04 tavi Exp $
+// $Id: ami_sort_single_dh.h,v 1.11 2002-02-02 04:30:25 tavi Exp $
 //
 // This file contains the templated routines
 //     1) AMI_sort:
@@ -138,6 +138,7 @@ inline AMI_err sort_manager<T,Q>::main_mem_operate_cleanup() {
       mmStream = NULL;
    }
    LOG_DEBUG_ID("Ending sort_manager.main_mem_operate_cleanup");
+   return AMI_ERROR_NO_ERROR;
 }
 
 template<class T, class Q>
