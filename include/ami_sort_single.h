@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 9/28/94
 //
-// $Id: ami_sort_single.h,v 1.3 1994-10-10 13:06:15 darrenv Exp $
+// $Id: ami_sort_single.h,v 1.4 1994-10-31 21:13:26 darrenv Exp $
 //
 // Merge sorting for the AMI_IMP_SINGLE implementation.
 //
@@ -18,46 +18,41 @@
 // For use in core by main_mem_operate().
 #include <quicksort.h>
 
-// For the priority queue to do the merge.
-#define SORT_PQUEUE_HEAP
-#ifdef SORT_PQUEUE_HEAP
-#define PQUEUE pqueue_heap_cmp
-#else
-#define PQUEUE pqueue_array
-#endif
 
 #include <pqueue_heap.h>
 
-// A class of merge objects for merge sorting objects of type T.
+// A class of merge objects for merge sorting objects of type T.  We
+// will actually use one of two subclasses of this class which use
+// either a comparison function or the binary comparison operator <.
 
 template <class T>
 class merge_sort_manager : public AMI_merge_base<T> {
 private:
-    int (*cmp_f)(CONST T&, CONST T&);
     arity_t input_arity;
-    PQUEUE<arity_t,T> *pq;
+    bool use_operator;
 #if DEBUG_ASSERTIONS
     unsigned int input_count, output_count;
-#endif    
+#endif
+protected:
+    virtual pqueue_heap<arity_t,T> *new_pqueue(arity_t arity) = 0;
+    pqueue_heap<arity_t,T> *pq;
 public:
-    merge_sort_manager(int (*cmp)(CONST T&, CONST T&));
+    merge_sort_manager(void);
     virtual ~merge_sort_manager(void);
     AMI_err initialize(arity_t arity, CONST T * CONST *in,
                        AMI_merge_flag *taken_flags,
                        int &taken_index);
     AMI_err operate(CONST T * CONST *in, AMI_merge_flag *taken_flags,
                     int &taken_index, T *out);
-    AMI_err main_mem_operate(T* mm_stream, size_t len);
-    size_t space_usage_overhead(void);
+    virtual AMI_err main_mem_operate(T* mm_stream, size_t len) = 0;
+    virtual size_t space_usage_overhead(void) = 0;
     size_t space_usage_per_stream(void);
 };
 
 
 template<class T>
-merge_sort_manager<T>::merge_sort_manager(int (*cmp)(CONST T&, CONST T&))
+merge_sort_manager<T>::merge_sort_manager(void)
 {
-    cmp_f = cmp;
-    pq = NULL;
 }
 
 template<class T>
@@ -84,8 +79,8 @@ AMI_err merge_sort_manager<T>::initialize(arity_t arity, CONST T * CONST *in,
     if (pq != NULL) {
         delete pq;
     }
-    pq = new PQUEUE<arity_t,T>(arity,cmp_f);
-
+    new_pqueue(arity);
+    
 #if DEBUG_ASSERTIONS
     input_count = output_count = 0;
 #endif    
@@ -104,12 +99,6 @@ AMI_err merge_sort_manager<T>::initialize(arity_t arity, CONST T * CONST *in,
 
     taken_index = -1;
     return AMI_MERGE_READ_MULTIPLE;
-}
-
-template<class T>
-size_t merge_sort_manager<T>::space_usage_overhead(void)
-{
-    return sizeof(PQUEUE<arity_t,T>);
 }
 
 template<class T>
@@ -169,25 +158,118 @@ AMI_err merge_sort_manager<T>::operate(CONST T * CONST *in,
     }
 }
 
+
+template <class T>
+class merge_sort_manager_op : public merge_sort_manager<T> {
+private:
+    pqueue_heap<arity_t,T> *new_pqueue(void);
+public:
+    merge_sort_manager_op(void);    
+    virtual ~merge_sort_manager_op(void);    
+    AMI_err main_mem_operate(T* mm_stream, size_t len);
+    size_t space_usage_overhead(void);
+};    
+
+template <class T>
+class merge_sort_manager_cmp : public merge_sort_manager<T> {
+private:
+    int (*cmp_f)(CONST T&, CONST T&);
+    pqueue_heap<arity_t,T> *new_pqueue(arity_t arity);
+public:
+    merge_sort_manager_cmp(int (*cmp)(CONST T&, CONST T&));
+    virtual ~merge_sort_manager_cmp(void);    
+    AMI_err main_mem_operate(T* mm_stream, size_t len);
+    size_t space_usage_overhead(void);
+};   
+
+
 template<class T>
-AMI_err merge_sort_manager<T>::main_mem_operate(T* mm_stream, size_t len)
+merge_sort_manager_op<T>::merge_sort_manager(void)
 {
-    quicker_sort(mm_stream, len, cmp_f);
+    cmp_f = NULL;
+    pq = NULL;
+}
+
+template<class T>
+pqueue_heap<arity_t,T> *merge_sort_manager_op<T>::new_pqueue(arity_t arity)
+{
+    return pq = new pqueue_heap_op<arity_t,T>(arity);
+}
+
+template<class T>
+merge_sort_manager_op<T>::~merge_sort_manager_op(void)
+{
+}
+
+template<class T>
+merge_sort_manager_cmp<T>::merge_sort_manager_cmp(int (*cmp)(CONST T&,
+                                                             CONST T&))
+{
+    cmp_f = cmp;
+    pq = NULL;
+}
+
+template<class T>
+AMI_err merge_sort_manager_op<T>::main_mem_operate(T* mm_stream, size_t len)
+{
+    quicker_sort_op(mm_stream, len);
+    return AMI_ERROR_NO_ERROR;
+}
+
+template<class T>
+pqueue_heap<arity_t,T> *merge_sort_manager_cmp<T>::new_pqueue(arity_t arity)
+{
+    return pq = new pqueue_heap_cmp<arity_t,T>(arity,cmp_f);
+}
+
+
+template<class T>
+merge_sort_manager_cmp<T>::~merge_sort_manager_cmp(void)
+{
+}
+
+
+template<class T>
+AMI_err merge_sort_manager_cmp<T>::main_mem_operate(T* mm_stream, size_t len)
+{
+    quicker_sort_cmp(mm_stream, len, cmp_f);
     return AMI_ERROR_NO_ERROR;
 }
 
 
+template<class T>
+size_t merge_sort_manager_op<T>::space_usage_overhead(void)
+{
+    return sizeof(pqueue_heap_op<arity_t,T>);
+}
 
+
+template<class T>
+size_t merge_sort_manager_cmp<T>::space_usage_overhead(void)
+{
+    return sizeof(pqueue_heap_cmp<arity_t,T>);
+}
+
+
+// The actual sort calls.
 
 template<class T>
 AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
                  int (*cmp)(CONST T&, CONST T&))
 {
-    merge_sort_manager<T> msm(cmp);
+    merge_sort_manager_cmp<T> msm(cmp);
 
     return AMI_partition_and_merge(instream, outstream, &msm);
 }
 
+
+template<class T>
+AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream)
+{
+    merge_sort_manager_op<T> msm();
+
+    return AMI_partition_and_merge(instream, outstream, &msm);
+}
 
 
 #endif // _AMI_SORT_SINGLE_H 
