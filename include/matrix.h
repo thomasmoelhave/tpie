@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 11/4/94
 //
-// $Id: matrix.h,v 1.8 2003-04-20 06:38:39 tavi Exp $
+// $Id: matrix.h,v 1.9 2003-09-12 01:46:38 jan Exp $
 //
 #ifndef MATRIX_H
 #define MATRIX_H
@@ -362,7 +362,7 @@ matrix<T> operator*(const matrix_base<T> &op1,
 }
 
 template<class T>
-std::ostream &operator<<(std::ostream &s, matrix_base<T> &m)
+ostream &operator<<(ostream &s, matrix_base<T> &m)
 {
     unsigned int ii,jj;
     
@@ -678,13 +678,13 @@ MAT_DUMMY_OP(submatrix<T>,matrix<T>,*)
 MAT_DUMMY_OP(submatrix<T>,submatrix<T>,*)
     
 template<class T>
-std::ostream &operator<<(std::ostream &s, const matrix<T> &m)
+ostream &operator<<(ostream &s, const matrix<T> &m)
 {
     return s << (matrix_base<T> &)m;
 }
 
 template<class T>
-std::ostream &operator<<(std::ostream &s, const submatrix<T> &m)
+ostream &operator<<(ostream &s, const submatrix<T> &m)
 {
     return s << (matrix_base<T> &)m;
 }

@@ -5,7 +5,7 @@
 //
 // K-D-B-tree definition and implementation. 
 //
-// $Id: ami_kdbtree.h,v 1.10 2003-06-21 07:53:29 tavi Exp $
+// $Id: ami_kdbtree.h,v 1.11 2003-09-12 01:46:18 jan Exp $
 //
 
 #ifndef _AMI_KDBTREE_H
@@ -145,10 +145,10 @@ protected:
   AMI_kdbtree_params params_;
 
   // Stack to store the path to a leaf.
-  std::stack<path_stack_item_t<coord_t, dim> > path_stack_;
+  stack<path_stack_item_t<coord_t, dim> > path_stack_;
 
   // Stack for dfs_preorder
-  std::stack<path_stack_item_t<coord_t, dim> > dfs_stack_;
+  stack<path_stack_item_t<coord_t, dim> > dfs_stack_;
 
   // Statistics object.
   tpie_stats_tree stats_;
@@ -282,7 +282,7 @@ public:
   // Sort points on the given dimension.
   void sort(size_t d) {
     typename Record<coord_t, size_t, dim>::cmp cmpd(d);
-    std::sort(&el[0], &el[0] + size(), cmpd);
+    sort(&el[0], &el[0] + size(), cmpd);
   }
 
   // Find median point on the given dimension. Return the index of the
@@ -722,8 +722,8 @@ bool AMI_KDBTREE::insert(const Record<coord_t, size_t, dim>& p) {
 
   // Update the MBR.
   for (size_t i = 0; i < dim; i++) {
-    header_.mbr_lo[i] = std::min(header_.mbr_lo[i], p[i]);
-    header_.mbr_hi[i] = std::max(header_.mbr_hi[i], p[i]);
+    header_.mbr_lo[i] = min(header_.mbr_lo[i], p[i]);
+    header_.mbr_hi[i] = max(header_.mbr_hi[i], p[i]);
   }
 
   bool ans;
@@ -946,12 +946,12 @@ bool AMI_KDBTREE::split_leaf_and_insert(const STACK_ITEM& top, AMI_KDBTREE_LEAF*
   POINT sp = bl->el[med];
 
   if (med + 1 >= bl->size()) {
-    std::cerr << "\nbl->bid()=" << bl->bid() << ", bl->size()=" <<bl->size() << ", med=" << med << "\n";
-    std::cerr << "bl: ";
+    cerr << "\nbl->bid()=" << bl->bid() << ", bl->size()=" <<bl->size() << ", med=" << med << "\n";
+    cerr << "bl: ";
     for (size_t i = 0; i < bl->size(); i++) {
-      std::cerr << "[" << bl->el[i][0] << "," << bl->el[i][1] << "] ";
+      cerr << "[" << bl->el[i][0] << "," << bl->el[i][1] << "] ";
     }
-    std::cerr << "\n";
+    cerr << "\n";
   }
   assert(med + 1 < bl->size());
   bl_hi->size() = bl->size() - (med + 1); // the size of bl_hi

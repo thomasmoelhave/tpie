@@ -9,15 +9,15 @@
 // AMI_kdbtree_status, AMI_kdbtree_params, 
 // region_t, kdb_item_t, path_stack_item_t.
 //
-// $Id: ami_kd_base.h,v 1.4 2003-06-21 07:52:56 tavi Exp $
+// $Id: ami_kd_base.h,v 1.5 2003-09-12 01:46:18 jan Exp $
 //
 
 #ifndef _AMI_KD_BASE_H
 #define _AMI_KD_BASE_H
 
-// For std::ostream.
+// For ostream.
 #include <iostream>
-// For std::min, std::max.
+// For min, max.
 #include <algorithm>
 #include <ami_block_base.h>
 #include <ami_point.h>
@@ -376,10 +376,10 @@ public:
   // Initialize this box with the values stored in points p1 and p2.
   region_t(const Point<coord_t, dim>& p1, const Point<coord_t, dim>& p2) {
     for (size_t i = 0; i < dim; i++) {
-      lo_[i] = std::min(p1[i], p2[i]);
+      lo_[i] = min(p1[i], p2[i]);
       //      lo_bd_[i] = 1;//true;
       bd_[i] |= LO_BD_MASK; // true on low bd.
-      hi_[i] = std::max(p1[i], p2[i]);
+      hi_[i] = max(p1[i], p2[i]);
       //      hi_bd_[i] = 1;//true;
       bd_[i] |= HI_BD_MASK; // true on high bd.
       if (p1[i] == p2[i])
@@ -491,7 +491,7 @@ public:
 } __attribute__((packed));
 
 template<class coord_t, size_t dim>
-std::ostream &operator<<(std::ostream& s, const kdb_item_t<coord_t, dim>& ki) {
+ostream &operator<<(ostream& s, const kdb_item_t<coord_t, dim>& ki) {
   s << "[";
   for (size_t i = 0; i < dim; i++) {
     if (ki.region.is_bounded_lo(i))
