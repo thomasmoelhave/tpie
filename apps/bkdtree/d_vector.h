@@ -3,7 +3,7 @@
 // File:   d_vector.h
 // Author: Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: d_vector.h,v 1.1 2003-04-29 06:44:41 tavi Exp $
+// $Id: d_vector.h,v 1.2 2003-09-17 03:07:21 tavi Exp $
 //
 
 #include <vector>
@@ -37,11 +37,7 @@ public:
     max_block_count_(params) {
     AMI_err err;
     Value* pp;
-#ifdef _SC_PAGE_SIZE
-    os_block_size_ = sysconf(_SC_PAGE_SIZE);
-#else    
-    os_block_size_ = getpagesize(); 
-#endif
+    os_block_size_ = TPIE_OS_BLOCKSIZE();
     v_ = new vector<Value>(0);
     v_->reserve(max_block_count_ * (os_block_size_/sizeof(Value) + 1));
     str_ = new stream_t(base_file_name);
