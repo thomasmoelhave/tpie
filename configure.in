@@ -4,18 +4,36 @@ dnl File: configure.in
 dnl Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 dnl Created: 10/13/94
 dnl 
-dnl $Id: configure.in,v 1.2 1994-10-31 21:20:30 darrenv Exp $
+dnl $Id: configure.in,v 1.3 1994-11-03 15:32:08 darrenv Exp $
 dnl
 dnl Macro file for autoconfig for the TPIE system.
 dnl 
 AC_INIT(include/ami.h)
 AC_CONFIG_HEADER(include/config.h)
-AC_REVISION($Revision: 1.2 $)dnl
+AC_REVISION($Revision: 1.3 $)dnl
 AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_CXX
 AC_PROG_CXXCPP
 AC_PROG_RANLIB
+dnl
+dnl Check for OSF/1.
+define(AC_OSF,
+[AC_CHECKING(for OSF/1)
+AC_BEFORE([$0], [AC_COMPILE_CHECK])AC_BEFORE([$0], [AC_TEST_PROGRAM])AC_BEFORE([$0], [AC_HEADER_EGREP])AC_BEFORE([$0], [AC_TEST_CPP])AC_PROGRAM_EGREP(yes,
+[#include <standards.h>
+#ifdef _OSF_SOURCE
+  yes
+#endif
+], 
+AC_VERBOSE(detected.)
+OSF1=1,
+AC_VERBOSE(not detected.)
+OSF1=0)
+])dnl
+AC_SUBST(OSF1)
+dnl
+AC_OSF
 dnl Set the language to C when checking for functions so that we look
 dnl for them as C functions and not as C++ functions (e.g. foo()
 dnl becomes foo__Fv).
