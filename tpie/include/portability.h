@@ -3,7 +3,7 @@
 // Created: 2002/10/30
 // Authors: Joerg Rotthowe, Jan Vahrenhold, Markus Vogel
 //
-// $Id: portability.h,v 1.21 2004-02-05 18:27:09 jan Exp $
+// $Id: portability.h,v 1.22 2004-02-05 19:25:25 jan Exp $
 //
 // This header-file offers macros for independent use on Win and Unix systems.
 
@@ -267,8 +267,8 @@ typedef unsigned int TPIE_BLOCK_ID_TYPE;
 #define TPLOGDIR ".\\"
 #define TPIE_OS_TEMPNAMESTR "%s\\%s_XXXXXX"
 #else
-#define	TMP_DIR	"/var/tmp"
-#define TPLOGDIR "/tmp"
+#define	TMP_DIR	"/var/tmp/"
+#define TPLOGDIR "/tmp/"
 #define TPIE_OS_TEMPNAMESTR "%s/%s_XXXXXX"
 #endif
 
