@@ -3,7 +3,7 @@
 // File:    ami_btree.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_btree.h,v 1.9 2001-11-09 15:11:40 tavi Exp $
+// $Id: ami_btree.h,v 1.10 2001-12-29 05:14:56 tavi Exp $
 //
 // AMI_btree declaration and implementation.
 //
@@ -23,14 +23,14 @@
 #include <ami.h>
 // The triple class.
 #include <triple.h>
-// AMI_COLLECTION.
+// The AMI_COLLECTION class.
 #include <ami_coll.h>
-// The Block class.
+// The AMI_block class.
 #include <ami_block.h>
 // The cache manager.
 #include <ami_cache.h>
-// Statistics.
-#include <tree_stats.h>
+// The tpie_stats_tree class for tree statistics.
+#include <tpie_stats_tree.h>
 
 enum AMI_btree_status {
   AMI_BTREE_STATUS_VALID,
@@ -151,7 +151,7 @@ public:
   AMI_btree_status status() { return status_; }
 
   // Flush the caches and return a const reference to a tree_stats object.
-  const tree_stats &stats();
+  const tpie_stats_tree &stats();
 
   // Destructor. Flush the caches and close the collections.
   ~AMI_btree();
@@ -215,7 +215,7 @@ protected:
   stack<pair<AMI_bid, size_t> > path_stack_;
 
   // Statistics.
-  tree_stats stats_;
+  tpie_stats_tree stats_;
 
   // Use this to obtain keys from Value elements.
   KeyOfValue kov_;
@@ -1942,7 +1942,7 @@ AMI_BTREE::~AMI_btree() {
 template <class Key, class Value, class Compare, class KeyOfValue>
 AMI_BTREE_NODE* AMI_BTREE::fetch_node(AMI_bid bid) {
   AMI_BTREE_NODE* q;
-  stats_.record(TREE_NODE_FETCH);
+  stats_.record(NODE_FETCH);
   // Warning: using short-circuit evaluation. Order is important.
   if ((bid == 0) || !node_cache_->read(bid, q)) {
     q = new AMI_BTREE_NODE(pcoll_nodes_, bid);
@@ -1953,7 +1953,7 @@ AMI_BTREE_NODE* AMI_BTREE::fetch_node(AMI_bid bid) {
 template <class Key, class Value, class Compare, class KeyOfValue>
 AMI_BTREE_LEAF* AMI_BTREE::fetch_leaf(AMI_bid bid) {
   AMI_BTREE_LEAF* q;
-  stats_.record(TREE_LEAF_FETCH);
+  stats_.record(LEAF_FETCH);
   // Warning: using short-circuit evaluation. Order is important.
   if ((bid == 0) || !leaf_cache_->read(bid, q)) {
     q = new AMI_BTREE_LEAF(pcoll_leaves_, bid);
@@ -1963,7 +1963,7 @@ AMI_BTREE_LEAF* AMI_BTREE::fetch_leaf(AMI_bid bid) {
 
 template <class Key, class Value, class Compare, class KeyOfValue>
 void AMI_BTREE::release_node(AMI_BTREE_NODE *p) {
-  stats_.record(TREE_NODE_RELEASE);
+  stats_.record(NODE_RELEASE);
   if (p->persist() == PERSIST_DELETE)
     delete p;
   else
@@ -1972,7 +1972,7 @@ void AMI_BTREE::release_node(AMI_BTREE_NODE *p) {
 
 template <class Key, class Value, class Compare, class KeyOfValue>
 void AMI_BTREE::release_leaf(AMI_BTREE_LEAF *p) {
-  stats_.record(TREE_LEAF_RELEASE);
+  stats_.record(LEAF_RELEASE);
   if (p->persist() == PERSIST_DELETE)
     delete p;
   else
@@ -1980,19 +1980,19 @@ void AMI_BTREE::release_leaf(AMI_BTREE_LEAF *p) {
 }
 
 template <class Key, class Value, class Compare, class KeyOfValue>
-const tree_stats &AMI_BTREE::stats() {
+const tpie_stats_tree& AMI_BTREE::stats() {
   node_cache_->flush();
   leaf_cache_->flush();
-  stats_.set(TREE_LEAF_READ, pcoll_leaves_->stats().get(BC_GET));
-  stats_.set(TREE_LEAF_WRITE, pcoll_leaves_->stats().get(BC_PUT));
-  stats_.set(TREE_LEAF_CREATE, pcoll_leaves_->stats().get(BC_NEW));
-  stats_.set(TREE_LEAF_DELETE, pcoll_leaves_->stats().get(BC_DELETE));
-  stats_.set(TREE_LEAF_COUNT, pcoll_leaves_->size());
-  stats_.set(TREE_NODE_READ, pcoll_nodes_->stats().get(BC_GET));
-  stats_.set(TREE_NODE_WRITE, pcoll_nodes_->stats().get(BC_PUT));
-  stats_.set(TREE_NODE_CREATE, pcoll_nodes_->stats().get(BC_NEW));
-  stats_.set(TREE_NODE_DELETE, pcoll_nodes_->stats().get(BC_DELETE));
-  stats_.set(TREE_NODE_COUNT, pcoll_nodes_->size());
+  stats_.set(LEAF_READ, pcoll_leaves_->stats().get(BLOCK_GET));
+  stats_.set(LEAF_WRITE, pcoll_leaves_->stats().get(BLOCK_PUT));
+  stats_.set(LEAF_CREATE, pcoll_leaves_->stats().get(BLOCK_NEW));
+  stats_.set(LEAF_DELETE, pcoll_leaves_->stats().get(BLOCK_DELETE));
+  stats_.set(LEAF_COUNT, pcoll_leaves_->size());
+  stats_.set(NODE_READ, pcoll_nodes_->stats().get(BLOCK_GET));
+  stats_.set(NODE_WRITE, pcoll_nodes_->stats().get(BLOCK_PUT));
+  stats_.set(NODE_CREATE, pcoll_nodes_->stats().get(BLOCK_NEW));
+  stats_.set(NODE_DELETE, pcoll_nodes_->stats().get(BLOCK_DELETE));
+  stats_.set(NODE_COUNT, pcoll_nodes_->size());
   return stats_;
 }
 
