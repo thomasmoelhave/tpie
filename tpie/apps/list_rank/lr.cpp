@@ -17,7 +17,7 @@
 
 // Define it all.
 #include <ami.h>
-VERSION(lr_cpp,"$Id: lr.cpp,v 1.23 2003-09-12 01:23:26 tavi Exp $");
+VERSION(lr_cpp,"$Id: lr.cpp,v 1.24 2003-09-13 17:50:01 jan Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -610,8 +610,7 @@ int list_rank(AMI_STREAM<edge> *istream, AMI_STREAM<edge> *ostream,
 
     // This is now done inside the recursion to avoid telescoping space
     // usage by intermediate streams that are no longer needed.
-    
-    // delete active_2;
+    // /* delete active_2; */
 
     if (verbose) {
         cout << "After recursion, ranked active list is of length " <<
@@ -835,7 +834,9 @@ int main(int argc, char **argv)
     list_rank(pamis2,
               &amis3, 1);
 
-    delete pamis2;
+    // This is now done inside the recursion to avoid telescoping space
+    // usage by intermediate streams that are no longer needed.
+    // /* delete pamis2; */
 
     wt0.stop();
     ct0.stop();
