@@ -4,10 +4,12 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/6/94
 //
-// $Id: scan_count.h,v 1.2 1995-06-30 21:09:29 darrenv Exp $
+// $Id: scan_count.h,v 1.3 2003-04-21 02:53:59 tavi Exp $
 //
 #ifndef _SCAN_COUNT_H
 #define _SCAN_COUNT_H
+
+#include <ami_scan.h>
 
 class scan_count : AMI_scan_object {
 private:
