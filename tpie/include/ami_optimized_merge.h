@@ -20,7 +20,7 @@
 // keys of the items; there is a provision to to use templated heaps
 // to implement the merge.
 
-// $Id: ami_optimized_merge.h,v 1.44 2000-01-14 21:09:04 hutchins Exp $	
+// $Id: ami_optimized_merge.h,v 1.45 2000-01-14 21:28:31 hutchins Exp $	
 
 // TO DO: substream_count setting; don't depend on current_stream_len
 
@@ -1893,7 +1893,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
 	       //Sort the array.
 
-	       cout << "quicksorting\n";
+	       //cout << "quicksorting\n";
 
 	       quicker_sort_cmp ((T *) mm_stream, mm_len, cmp);
 
@@ -1908,7 +1908,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
 	       }
 
-	       cout << "Wrote out a memload\n";
+	       //cout << "Wrote out a memload\n";
 
 	       run_lengths[0][current_stream][runs_in_current_stream] =
 		   mm_len;
