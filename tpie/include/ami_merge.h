@@ -8,7 +8,7 @@
 // lower level streams will use appropriate levels of buffering.  This
 // will be more critical for parallel disk implementations.
 //
-// $Id: ami_merge.h,v 1.30 2000-01-12 21:00:01 hutchins Exp $
+// $Id: ami_merge.h,v 1.31 2000-11-14 04:41:04 hutchins Exp $
 //
 #ifndef _AMI_MERGE_H
 #define _AMI_MERGE_H
@@ -33,30 +33,30 @@ typedef unsigned int arity_t;
 //------------------------------------------------------------
 
 //A superclass for merge management objects
-template<class T> class AMI_merge_base;
+template<class T> class AMI_generalized_merge_base;
 
 
 //merge <arity> streams using a merge management object and write
 //result into <outstream>; it is assumed that the available memory can
 //fit the <arity> streams, the output stream and also the space
-//required by the merge management object; AMI_merge() checks this and
-//then calls AMI_single_merge();
+//required by the merge management object; AMI_generalized_merge() checks this and
+//then calls AMI_generalized_single_merge();
 template<class T, class M>
-AMI_err AMI_merge(AMI_STREAM<T> **instreams, arity_t arity,
+AMI_err AMI_generalized_merge(AMI_STREAM<T> **instreams, arity_t arity,
 		  AMI_STREAM<T> *outstream, M *m_obj);
 
 
 // divide the input stream in substreams, merge each substream
-// recursively, and merge them together using AMI_single_merge()
+// recursively, and merge them together using AMI_generalized_single_merge()
 template<class T, class M>
-AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
+AMI_err AMI_generalized_partition_and_merge(AMI_STREAM<T> *instream,
                                 AMI_STREAM<T> *outstream, M *m_obj);
 
 
 //merge <arity> streams in memory using a merge management object and
 //write result into <outstream>; 
 template<class T, class M>
-AMI_err  AMI_single_merge(AMI_STREAM<T> **instreams, arity_t arity,
+AMI_err  AMI_generalized_single_merge(AMI_STREAM<T> **instreams, arity_t arity,
 			  AMI_STREAM<T> *outstream, M *m_obj);
 
 
@@ -79,7 +79,7 @@ AMI_err AMI_main_mem_merge(AMI_STREAM<T> *instream,
 // A superclass for merge management objects
 //------------------------------------------------------------
 template<class T>
-class AMI_merge_base {
+class AMI_generalized_merge_base {
 public:
 
 #if AMI_VIRTUAL_BASE
@@ -107,13 +107,13 @@ public:
 //merge <arity> streams using a merge management object and write
 //result into <outstream>; it is assumed that the available memory can
 //fit the <arity> streams, the output stream and also the space
-//required by the merge management object; AMI_merge() checks this and
-//then calls AMI_single_merge();
+//required by the merge management object; AMI_generalized_merge() checks this and
+//then calls AMI_generalized_single_merge();
 
 //------------------------------------------------------------ 
 template<class T, class M>
 AMI_err 
-AMI_merge(AMI_STREAM<T> **instreams, arity_t arity,
+AMI_generalized_merge(AMI_STREAM<T> **instreams, arity_t arity,
 	  AMI_STREAM<T> *outstream, M *m_obj) {
 
   size_t sz_avail;
@@ -149,7 +149,7 @@ AMI_merge(AMI_STREAM<T> **instreams, arity_t arity,
   assert(sz_needed < sz_avail);
   
   //merge streams in memory
-  return AMI_single_merge(instreams, arity, outstream, m_obj);
+  return AMI_generalized_single_merge(instreams, arity, outstream, m_obj);
 };
 
 
@@ -164,7 +164,7 @@ AMI_merge(AMI_STREAM<T> **instreams, arity_t arity,
 //------------------------------------------------------------
 template<class T, class M>
 AMI_err 
-AMI_single_merge(AMI_STREAM<T> **instreams, arity_t arity,
+AMI_generalized_single_merge(AMI_STREAM<T> **instreams, arity_t arity,
 		 AMI_STREAM<T> *outstream, M *m_obj) {
 
   unsigned int ii;
@@ -370,11 +370,11 @@ AMI_err AMI_main_mem_merge(AMI_STREAM<T> *instream,
 //------------------------------------------------------------
 
 // divide the input stream in substreams, merge each substream
-// recursively, and merge them together using AMI_single_merge()
+// recursively, and merge them together using AMI_generalized_single_merge()
 
 //------------------------------------------------------------
 template<class T, class M>
-AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
+AMI_err AMI_generalized_partition_and_merge(AMI_STREAM<T> *instream,
                                 AMI_STREAM<T> *outstream, M *m_obj) {
 
   AMI_err ae;
@@ -495,7 +495,7 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
       }
     }
   }
-  LOG_DEBUG_INFO("AMI_partition_and_merge(): merge arity = "<< merge_arity << ".\n");
+  LOG_DEBUG_INFO("AMI_generalized_partition_and_merge(): merge arity = "<< merge_arity << ".\n");
   if (merge_arity < 2) {
     return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
   }
@@ -673,7 +673,7 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
       assert(ae == AMI_ERROR_NO_ERROR);
 
       // Merge them into the output stream.
-      ae = AMI_single_merge(the_substreams, substream_count, outstream, m_obj);
+      ae = AMI_generalized_single_merge(the_substreams, substream_count, outstream, m_obj);
       if (ae != AMI_ERROR_NO_ERROR) {
 	return ae;
       }
@@ -742,9 +742,9 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
 #endif 
 	  
 	  // This should append to the stream, since
-	  // AMI_single_merge() does not rewind the output before
+	  // AMI_generalized_single_merge() does not rewind the output before
 	  // merging.
-	  ae = AMI_single_merge(the_substreams, jj+1,
+	  ae = AMI_generalized_single_merge(the_substreams, jj+1,
 				intermediate_tmp_stream, m_obj);
 	  if (ae != AMI_ERROR_NO_ERROR) {
 	    return ae;
