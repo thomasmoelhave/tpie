@@ -24,7 +24,7 @@
 // keys of the items; there is a provision to to use templated heaps
 // to implement the merge.
 
-// $Id: ami_optimized_merge.h,v 1.57 2004-08-17 16:47:50 jan Exp $
+// $Id: ami_optimized_merge.h,v 1.58 2005-01-14 18:39:21 tavi Exp $
 
 // TO DO: substream_count setting; don't depend on current_stream_len
 
@@ -385,15 +385,15 @@ AMI_merge (AMI_STREAM < T > **instreams, arity_t arity,
 	   AMI_STREAM < T > *outstream)
 {
     size_t sz_avail;
-    size_t sz_stream;
+    size_t sz_needed;
 
     // How much main memory is available?
     sz_avail = MM_manager.memory_available ();
 
     //make sure all streams fit in available memory
-    sz_avail = count_stream_overhead (instreams, arity);
+    sz_needed = count_stream_overhead (instreams, arity);
     if (sz_needed >= sz_avail) {
-	LOG_FATAL_ID ("Insufficent main memory to perform a merge.");
+	TP_LOG_FATAL_ID ("Insufficent main memory to perform a merge.");
 	return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
     }
     // assert (sz_needed < sz_avail); just checked this.. dh
@@ -414,15 +414,15 @@ AMI_merge (AMI_STREAM < T > **instreams, arity_t arity,
 	   AMI_STREAM < T > *outstream, int keyoffset, KEY dummy)
 {
     size_t sz_avail;
-    size_t sz_stream;
+    size_t sz_needed;
 
     // How much main memory is available?
     sz_avail = MM_manager.memory_available ();
 
     //make sure all streams fit in available memory
-    sz_avail = count_stream_overhead (instreams, arity);
+    sz_needed = count_stream_overhead (instreams, arity);
     if (sz_needed >= sz_avail) {
-	LOG_FATAL_ID ("Insuficent main memory to perform a merge.");
+	TP_LOG_FATAL_ID ("Insuficent main memory to perform a merge.");
 	return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
     }
     // assert (sz_needed < sz_avail); just checked this .. dh
