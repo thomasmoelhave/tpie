@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/12/94
 //
-// $Id: logstream.h,v 1.12 2000-07-29 16:20:05 tavi Exp $
+// $Id: logstream.h,v 1.13 2001-06-07 17:05:21 tavi Exp $
 //
 #ifndef _LOGSTREAM_H
 #define _LOGSTREAM_H
@@ -27,10 +27,12 @@
 class logstream : public ofstream {
 
   public:
+    static bool log_initialized;
     unsigned int priority;
     unsigned int threshold;
 
     logstream(const char *fname, unsigned int p = 0, unsigned int tp = 0);
+    ~logstream();
 
     // Output operators
 
