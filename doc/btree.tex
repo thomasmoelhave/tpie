@@ -1,0 +1,143 @@
+%%
+%% File: btree.tex
+%% Author: Octavian Procopiuc <tavi@cs.duke.edu>
+%% Created: 2000
+%%
+%% Last updated on: Feb 24, 2000
+%% by: Octavian Procopiuc <tavi@cs.duke.edu>
+%%
+
+\documentclass[11pt]{article}
+
+\usepackage{fullpage}
+\usepackage{verbatim}
+\usepackage{epsfig}
+%\usepackage{times}
+
+\begin{document}
+
+\title{\bf The {\tt Btree} Class}
+\date{Draft of \today}
+\author{}
+\maketitle
+
+\section{Overview}
+\label{btree:overview}
+
+The {\tt Btree<Key, Value, Compare, KeyOfValue>} class implements the behavior of a dynamic B+-tree. All data elements (of type {\tt Value}) are stored in the leaves of the tree, with internal nodes containing keys (of type {\tt Key}) and links to other nodes. The keys are ordered using the {\tt Compare} function object, which should define a strict weak ordering (as in the STL sorting algorithms). Keys are extracted from the {\tt Value} data elements using the {\tt KeyOfValue} function object.
+
+Three main operations are supported: {\tt find(const Key\& k, Value\&
+v)}, which searches for an element based on key, {\tt insert(const
+Value\& v)}, which inserts an element and does the appropriate
+rebalancing, and {\tt erase(const Key\& k)}, which deletes an element
+based on its key. Note that elements with duplicate keys are not allowed.
+
+\subsection{Example}
+\begin{verbatim}
+typedef size_t tKey;
+
+class tValue {
+public:
+  tKey key;
+  char data[100];
+};
+
+typedef less<tKey> tCompare;
+
+class tKeyOfValue {
+public:
+  tKey operator()(const tValue& v) const { return v.key; }
+};
+
+Btree<tKey, tValue, tCompare, tKeyOfValue> *tree;
+\end{verbatim}
+
+
+\section{Class Declaration}
+
+   \begin{tabbing}
+   \hspace*{.3in} \= \hspace{.5in} \= \\
+
+   \> {\tt template<class Key, class Value, class Compare, class KeyOfValue> class Btree;}
+   \end{tabbing}
+
+\section{Constructors and Destructor}
+
+   \begin{tabbing}
+   \hspace*{.3in} \= \hspace{.5in} \= \\
+
+   \> {\tt Btree()}\\ 
+   \>\>\parbox[t]{5.5in}{Construct an empty Btree using temporary files. 
+	The tree is stored in a directory given by the {\tt TMPDIR} 
+	environment variable (or 
+	{\tt $\backslash$var$\backslash$tmp$\backslash$} if that
+	 variable is not set). The persistency flag is set to 
+	{\tt PERSIST\_DELETE}.}\\[3mm]
+
+   \> {\tt Btree(BTE\_COLLECTION *leaves, BTE\_COLLECTION *nodes)}\\ 
+   \>\>\parbox[t]{5.5in}{Construct a Btree from the given nodes and leaves.
+	The two collections must be initialized. If they are empty, an
+	empty tree is created. The persistency flag is set to 
+	{\tt PERSIST\_PERSISTENT}. Note that the two collections can
+	have different block sizes. This is a desirable property, 
+	allowing the leaves to be bigger than the internal nodes.}\\[3mm]
+
+   \> {\tt \verb|~|Btree()}\\ 
+   \>\>\parbox[t]{5.5in}{Destructor. If persistency is set to 
+	{\tt PERSIST\_DELETE}, the two supporting collections are deleted.}
+
+   \end{tabbing}
+
+\section{Member functions}
+   \begin{tabbing}
+   \hspace*{.3in} \= \hspace{.5in} \= \\ 
+
+   \> {\tt bool insert(const Value\& v)}\\ 
+   \>\>\parbox[t]{5.5in}{Insert an element {\tt v} into the tree. Return true if the insert succeded, false otherwise (duplicate key).}\\[3mm]
+
+   \> {\tt bool erase(const Key\& k)}\\ 
+   \>\>\parbox[t]{5.5in}{Delete the element with Key {\tt k} from the tree. Return true if succeded, false otherwise (key not found).}\\[3mm]
+
+   \> {\tt bool find(const Key\& k, Value\& v)}\\ 
+   \>\>\parbox[t]{5.5in}{Find an element based on its key. If found, store it in {\tt v} and return true.}\\[3mm]
+
+   \> {\tt bool defragment()}\\ 
+   \>\>\parbox[t]{5.5in}{Rearrange the nodes and leaves of the tree so that they take the minimum disk space. This is a very time-consuming operation. Return true if completed successfully.}\\[3mm]
+
+
+   \> {\tt size\_t size() const }\\ 
+   \>\>\parbox[t]{5.5in}{Return the number of Value elements stored in the tree.}\\[3mm]
+
+   \> {\tt size\_t height() const }\\ 
+   \>\>\parbox[t]{5.5in}{Return the height of the tree, including the leaf level. A value of $0$ represents an empty tree.}\\[3mm]
+
+   \> {\tt void persist(persistence p) }\\ 
+   \>\>\parbox[t]{5.5in}{Set the persistence to {\tt p}. This value is passed to the two collections that make this tree: the leaves and the nodes.}\\[3mm]
+
+\end{tabbing}
+
+\section{Implementation Details}
+
+In addition to the {\tt Btree} class itself, the implementation uses two
+more classes, {\tt Btree\_node} and {\tt Btree\_leaf}, representing
+the internal nodes, and leaf nodes, respectively. Both inherit from
+the Block class, allowing transparent read/write operations. In
+addition, these two classes implement technical operations needed for
+keeping the tree in balance: merge and split. 
+
+The tree grows from the top, by splitting the root node. All the
+internal nodes except the root must be at least half full. This holds
+true for the leaves as well.
+
+The fanout of the tree is given by the block size chosen for the
+internal nodes. To search for a key inside a node, STL's binary search
+is used.
+
+A Btree instance can be created from a previously-saved instance. This
+consists of four files, two for each collection (the blocks file and
+the stack file). In the user part of the nodes collection's header,
+the Btree stores some initialization information: the id of the root
+node, the height and the size of the tree. Note that the id may not be
+from the node collection: if the height is 1, the root is a leaf.
+
+\end{document}
