@@ -23,7 +23,7 @@
 
 // Define it all.
 #include <ami.h>
-VERSION(test_ami_sort_cpp,"$Id: test_ami_sort.cpp,v 1.18 1999-12-16 16:41:49 hutchins Exp $");
+VERSION(test_ami_sort_cpp,"$Id: test_ami_sort.cpp,v 1.19 2000-01-11 00:40:42 hutchins Exp $");
 
 #include <ami_kb_sort.h>
 
@@ -131,8 +131,7 @@ main(int argc, char **argv)
   }
     
     // Set the amount of main memory:
-  MM_manager.resize_heap(test_mm_size);
-  register_new = 1;
+  MM_manager.set_memory_limit (test_mm_size);
     
   AMI_STREAM<int> amis0;
   AMI_STREAM<int> amis1;
