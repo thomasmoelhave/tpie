@@ -1,9 +1,7 @@
-Thu May 22 22:42 1997 Lars Arge (large)
+Wed Aug 26 22:40:43 2002 Octavian Procopiuc (tavi)
 
-	* There is a bog hole in time here, but no we start describing
-	changes again!
-
-
+	* configure.in: changed the default of logging to on.
+	* Makefile.in: Some reoganization.
 
 Thu Sep 29 12:54:06 1994  Darren Erik Vengroff  (darrenv@lazyboy)
 
