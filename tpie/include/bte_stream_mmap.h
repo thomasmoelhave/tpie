@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/13/94
 //
-// $Id: bte_stream_mmap.h,v 1.12 2004-05-06 15:58:47 adanner Exp $
+// $Id: bte_stream_mmap.h,v 1.13 2004-05-07 15:41:57 adanner Exp $
 //
 // Memory mapped streams.  This particular implementation explicitly manages
 // blocks, and only ever maps in one block at a time.
@@ -1373,13 +1373,7 @@ BTE_stream_mmap < T >::grow_file (TPIE_OS_OFFSET block_offset)
    //    assert (ignoreSubstream || !substream_level);
    assert(!substream_level);
 
-    // Rajiv    
-    // make a note of the new file length
-    // f_filelen = block_offset + header->block_size;
-    // XXX
-#define TMP_TPIE_MAX(a,b) ((a > b) ? a : b);
-    f_filelen = TMP_TPIE_MAX(BLOCK_OFFSET (f_filelen * 2), block_offset + header->block_size);
-#undef TMP_TPIE_MAX
+    f_filelen = block_offset + header->block_size;
     if (TPIE_OS_FTRUNCATE (fd, f_filelen) < 0) {
 	os_errno = errno;
 	LOG_FATAL ("Failed to ftruncate() out a new block of \"");
