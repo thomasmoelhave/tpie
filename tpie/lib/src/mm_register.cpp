@@ -8,7 +8,7 @@
 // A simple registration based memory manager.
 
 #include <versions.h>
-VERSION(mm_register_cpp,"$Id: mm_register.cpp,v 1.14 2000-03-29 22:15:37 rajiv Exp $");
+VERSION(mm_register_cpp,"$Id: mm_register.cpp,v 1.15 2000-04-22 04:03:46 rajiv Exp $");
 
 #include <assert.h>
 #include "lib_config.h"
@@ -47,6 +47,12 @@ MM_register::~MM_register(void)
 
 MM_err MM_register::register_allocation(size_t request)
 {
+  // quick hack to allow operation before limit is set
+  // XXX 
+  if(!user_limit) {
+	return MM_ERROR_NO_ERROR;
+  }
+
     used      += request;     
 
     if (request > remaining) {
