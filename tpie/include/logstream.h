@@ -4,13 +4,16 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/12/94
 //
-// $Id: logstream.h,v 1.2 1994-05-12 14:46:00 dev Exp $
+// $Id: logstream.h,v 1.3 1994-05-12 21:01:54 dev Exp $
 //
 #ifndef _LOGSTREAM_H
 #define _LOGSTREAM_H
 
 #include <fstream.h>
-#include <iomanip.h>
+
+// A macro for declaring output operators for log streams.
+#define _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(T)	\
+    logstream& operator<<(T)
 
 // A log is like a regular output stream, but it also supports messages
 // at different priorities.  If a message's priority is at least as high
@@ -19,28 +22,38 @@
 // the highest.  1 is the default if not 
 
 class logstream : ofstream {
-  private:
-    unsigned int priority;
-    unsigned int thresh_p;
 
   public:
+    unsigned int priority;
+    unsigned int threshold;
+
     logstream(const char *fname, unsigned int p = 0, unsigned int tp = 0);
 
-    void set_priority(unsigned int dp);
-    unsigned int get_default_priority(void);
-    void threshold_priority(unsigned int tp);
-    unsigned int get_threshold_priority(void);    
-}
+    // Output operators
 
-// Setting priority on the fly with manipulators.
+    _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const char *);
+    _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(char);
+    _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(int);
+    _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(unsigned int);
 
-logstream& manip_priority(logstream& tpl, unsigned int p)
-{
-    tpl.priority = p;
-    return tpl;
-}
+};
 
 
+// The logmanip template is based on the omanip template from iomanip.h 
+// in the libg++ sources.
 
+template <class TP> class logmanip {
+    logstream& (*_f)(logstream&, TP);
+    TP _a;
+public:
+    logmanip(logstream& (*f)(logstream&, TP), TP a) : _f(f), _a(a) {}
+    //
+    friend
+      logstream& operator<<(logstream& o, logmanip<TP>& m)
+	{ return (*m._f)(o, m._a); }
+};
+
+logmanip<unsigned int> setpriority(unsigned int p);
+logmanip<unsigned int> setthreshold(unsigned int p);
 
 #endif // _LOGSTREAM_H 
