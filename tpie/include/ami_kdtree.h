@@ -5,11 +5,11 @@
 //
 // Blocked kd-tree definition and implementation.
 //
-// $Id: ami_kdtree.h,v 1.7 2003-04-29 05:29:42 tavi Exp $
+// $Id: ami_kdtree.h,v 1.8 2003-05-05 01:30:20 tavi Exp $
 //
 
-#ifndef _KDTREE_H
-#define _KDTREE_H
+#ifndef _AMI_KDTREE_H
+#define _AMI_KDTREE_H
 
 // STORE_WEIGHTS determines whether weights are stored in all binary
 // kd-tree nodes (when set to 1), or just in block nodes (when set to
@@ -21,7 +21,7 @@
 // for this parameter will very likely crash the program AND corrupt
 // the kd-tree! Also, this parameter is used by the Bin_node
 // implementations, so it has to be set before including
-// kdtree_base.h.
+// ami_kdtree_base.h.
 #define STORE_WEIGHTS 0
 
 // For strcpy(), strcat().
@@ -47,12 +47,12 @@
 #include <ami_cache.h>
 // The Point/Record classes.
 #include <ami_point.h>
-// Supporting types: Kdtree_status, Kdtree_params, Bin_node_default.
+// Supporting types: AMI_kdtree_status, AMI_kdtree_params, Bin_node_default.
 #include <ami_kdtree_base.h>
 
 // Forward references.
-template<class coord_t, size_t dim, class BTECOLL> class Kdtree_leaf;
-template<class coord_t, size_t dim, class Bin_node, class BTECOLL> class Kdtree_node;
+template<class coord_t, size_t dim, class BTECOLL> class AMI_kdtree_leaf;
+template<class coord_t, size_t dim, class Bin_node, class BTECOLL> class AMI_kdtree_node;
 
 // USE_REAL_MEDIAN determines the kd-tree splitting method.  If set to 1,
 // medians are used. If set to 0, the weight of the left branch is
@@ -81,15 +81,15 @@ template<class coord_t, size_t dim, class Bin_node, class BTECOLL> class Kdtree_
 // program AND corrupt the kd-tree!
 #define USE_KDBTREE_LEAF 1
 
-#define KDTREE_HEADER_MAGIC_NUMBER 0xA9420E
+#define AMI_KDTREE_HEADER_MAGIC_NUMBER 0xA9420E
 
 // A global object storing the default parameter values.
-const Kdtree_params kdtree_params_default = Kdtree_params();
+const AMI_kdtree_params _AMI_kdtree_params_default = AMI_kdtree_params();
 
 
-// The Kdtree class.
+// The AMI_kdtree class.
 template<class coord_t, size_t dim, class Bin_node=Bin_node_default<coord_t, dim>, class BTECOLL = BTE_COLLECTION >
-class Kdtree {
+class AMI_kdtree {
 public:
 
   typedef Record<coord_t, size_t, dim> point_t;
@@ -97,14 +97,14 @@ public:
   typedef Point<coord_t, dim> key_t;
   typedef AMI_STREAM<point_t> stream_t;
   typedef AMI_collection_single<BTECOLL> collection_t;
-  typedef Kdtree_node<coord_t, dim, Bin_node, BTECOLL> node_t;
-  typedef Kdtree_leaf<coord_t, dim, BTECOLL> leaf_t;
+  typedef AMI_kdtree_node<coord_t, dim, Bin_node, BTECOLL> node_t;
+  typedef AMI_kdtree_leaf<coord_t, dim, BTECOLL> leaf_t;
 
   // Constructor. Open/create a new kdtree with the given name, type
   // and parameters.
-  Kdtree(const char* base_file_name, 
+  AMI_kdtree(const char* base_file_name, 
 	 AMI_collection_type type = AMI_WRITE_COLLECTION,
-	 const Kdtree_params& params = kdtree_params_default);
+	 const AMI_kdtree_params& params = _AMI_kdtree_params_default);
 
   // Sort in_stream on each of the dim coordinates and store the
   // sorted streams in the given array. If out_streams[i] is NULL, a
@@ -115,12 +115,12 @@ public:
   // construction.
   AMI_err load_sorted(stream_t* streams_s[],
 		      float lfill = 0.75, float nfill = 0.75,
-		      int load_method = KDTREE_LOAD_SORT | KDTREE_LOAD_GRID);
+		      int load_method = AMI_KDTREE_LOAD_SORT | AMI_KDTREE_LOAD_GRID);
 
   // A shortcut for sort+load_sorted.
   AMI_err load(stream_t* in_stream, 
 	       float lfill = 0.75, float nfill = 0.75,
-	       int load_method = KDTREE_LOAD_SORT | KDTREE_LOAD_GRID);
+	       int load_method = AMI_KDTREE_LOAD_SORT | AMI_KDTREE_LOAD_GRID);
 
   // Bulk load using sampling, thus avoiding the sorting step.
   AMI_err load_sample(stream_t* in_stream);
@@ -155,10 +155,10 @@ public:
   void persist(persistence per);
 
   // Inquire the (real) parameters.
-  const Kdtree_params& params() const { return params_; }
+  const AMI_kdtree_params& params() const { return params_; }
 
   // Inquire the status.
-  Kdtree_status status() const { return status_; };
+  AMI_kdtree_status status() const { return status_; };
 
   // Inquire the mbr_lo point.
   point_t mbr_lo() const { return header_.mbr_lo; }
@@ -174,7 +174,7 @@ public:
   void print(ostream& s);
 
   // Destructor.
-  ~Kdtree();
+  ~AMI_kdtree();
 
   // Inquire the number of Bin_node's.
   size_t bin_node_count() const { return bin_node_count_; }
@@ -189,7 +189,7 @@ public:
     size_t size;
     
     header_type():
-      magic_number(KDTREE_HEADER_MAGIC_NUMBER), mbr_lo(0), mbr_hi(0), 
+      magic_number(AMI_KDTREE_HEADER_MAGIC_NUMBER), mbr_lo(0), mbr_hi(0), 
       root_bid(0), root_type(BLOCK_LEAF), size(0) {}
   };
 
@@ -234,10 +234,10 @@ protected:
   leaf_t* previous_leaf_;
 
   // The status.
-  Kdtree_status status_;
+  AMI_kdtree_status status_;
 
   // Run-time parameters.
-  Kdtree_params params_;
+  AMI_kdtree_params params_;
 
   // One comparison object for each dimension.
   typename point_t::cmp* comp_obj_[dim];
@@ -477,7 +477,7 @@ protected:
 };
 
 
-struct Kdtree_leaf_info {
+struct _AMI_kdtree_leaf_info {
   size_t size;
   AMI_bid next;
 #if USE_KDBTREE_LEAF
@@ -489,18 +489,18 @@ struct Kdtree_leaf_info {
 // number of points actually stored (ie, the size) and the id of
 // another leaf. All leaves in a tree are threaded this way.
 template<class coord_t, size_t dim, class BTECOLL> 
-class Kdtree_leaf: public AMI_block<Record<coord_t, size_t, dim>, Kdtree_leaf_info, BTECOLL> 
+class AMI_kdtree_leaf: public AMI_block<Record<coord_t, size_t, dim>, _AMI_kdtree_leaf_info, BTECOLL> 
 {
 public:
 
   typedef Record<coord_t, size_t, dim> point_t;
   typedef AMI_STREAM<point_t> stream_t;
   typedef AMI_collection_single<BTECOLL> collection_t;
-  typedef Kdtree_leaf_info info_t;
+  typedef _AMI_kdtree_leaf_info info_t;
 
   static size_t el_capacity(size_t block_size);
 
-  Kdtree_leaf(collection_t* pcoll, AMI_bid bid = 0);
+  AMI_kdtree_leaf(collection_t* pcoll, AMI_bid bid = 0);
 
   // Number of points stored in this leaf.
   size_t& size() { return info()->size; }
@@ -545,7 +545,7 @@ public:
 };
 
 
-struct Kdtree_node_info {
+struct _AMI_kdtree_node_info {
   size_t size;
   size_t weight;
 };
@@ -555,7 +555,7 @@ struct Kdtree_node_info {
 // actually stored and the weight of the node (ie, the number of
 // points stored in the subtree rooted on this node).
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-class Kdtree_node: public AMI_block<Bin_node, Kdtree_node_info, BTECOLL> {
+class AMI_kdtree_node: public AMI_block<Bin_node, _AMI_kdtree_node_info, BTECOLL> {
 public:
 
   typedef Record<coord_t, size_t, dim> point_t;
@@ -568,7 +568,7 @@ public:
   // Compute the capacity of the el vector STATICALLY.
   static size_t el_capacity(size_t block_size);
 
-  Kdtree_node(collection_t* pcoll, AMI_bid bid = 0);
+  AMI_kdtree_node(collection_t* pcoll, AMI_bid bid = 0);
 
   // Number of binary nodes stored in this node.
   size_t& size() { return info()->size; }
@@ -598,11 +598,11 @@ public:
 #define DBG(msg)      std::cerr << msg << flush
 
 // Shortcuts for my convenience.
-#define KDTREE_LEAF  Kdtree_leaf<coord_t, dim, BTECOLL>
-#define KDTREE_NODE  Kdtree_node<coord_t, dim, Bin_node, BTECOLL>
-#define KDTREE       Kdtree<coord_t, dim, Bin_node, BTECOLL>
-#define POINT        Record<coord_t, size_t, dim>
-#define POINT_STREAM AMI_STREAM<POINT >
+#define AMI_KDTREE_LEAF  AMI_kdtree_leaf<coord_t, dim, BTECOLL>
+#define AMI_KDTREE_NODE  AMI_kdtree_node<coord_t, dim, Bin_node, BTECOLL>
+#define AMI_KDTREE       AMI_kdtree<coord_t, dim, Bin_node, BTECOLL>
+#define POINT            Record<coord_t, size_t, dim>
+#define POINT_STREAM     AMI_STREAM< POINT >
 
 #define MEM_AVAIL 
 //((float)(MM_manager.memory_available() /(MM_manager.memory_limit()/1000)) / 10)
@@ -624,57 +624,57 @@ public:
 
 
 ////////////////////////////////
-//////// **Kdtree_leaf** ///////
+//////// **AMI_kdtree_leaf** ///////
 ////////////////////////////////
 
-//// *Kdtree_leaf::el_capacity* ////
+//// *AMI_kdtree_leaf::el_capacity* ////
 template<class coord_t, size_t dim, class BTECOLL>
-size_t KDTREE_LEAF::el_capacity(size_t block_size) {
-  return AMI_block<Record<coord_t, size_t, dim>, Kdtree_leaf_info, BTECOLL>::el_capacity(block_size, 0);
+size_t AMI_KDTREE_LEAF::el_capacity(size_t block_size) {
+  return AMI_block<Record<coord_t, size_t, dim>, _AMI_kdtree_leaf_info, BTECOLL>::el_capacity(block_size, 0);
 }
 
-//// *Kdtree_leaf::Kdtree_leaf* ////
+//// *AMI_kdtree_leaf::AMI_kdtree_leaf* ////
 template<class coord_t, size_t dim, class BTECOLL>
-KDTREE_LEAF::Kdtree_leaf(AMI_collection_single<BTECOLL>* pcoll, AMI_bid bid):
-  AMI_block<POINT, Kdtree_leaf_info, BTECOLL>(pcoll, 0, bid) {
-  TPLOG("Kdtree_leaf::Kdtree_leaf Entering bid="<<bid<<"\n");
+AMI_KDTREE_LEAF::AMI_kdtree_leaf(AMI_collection_single<BTECOLL>* pcoll, AMI_bid bid):
+  AMI_block<POINT, _AMI_kdtree_leaf_info, BTECOLL>(pcoll, 0, bid) {
+  TPLOG("AMI_kdtree_leaf::AMI_kdtree_leaf Entering bid="<<bid<<"\n");
 #if USE_KDBTREE_LEAF
   split_dim() = 0;
 #endif
-  TPLOG("Kdtree_leaf::Kdtree_leaf Exiting bid="<<bid_<<"\n");
+  TPLOG("AMI_kdtree_leaf::AMI_kdtree_leaf Exiting bid="<<bid_<<"\n");
 }
 
-//// *Kdtree_leaf::find* ////
+//// *AMI_kdtree_leaf::find* ////
 template<class coord_t, size_t dim, class BTECOLL>
-size_t KDTREE_LEAF::find(const POINT &p) const {
-  TPLOG("Kdtree_leaf::find Entering bid="<<bid()<<" size="<<size()<<"\n");
+size_t AMI_KDTREE_LEAF::find(const POINT &p) const {
+  TPLOG("AMI_kdtree_leaf::find Entering bid="<<bid()<<" size="<<size()<<"\n");
   size_t i = 0;
   while (i < size()) {
     if (p == el[i])
       break;
     i++;
   }
-  TPLOG("Kdtree_leaf::find Exiting ans="<<(i<size())<<"\n");
+  TPLOG("AMI_kdtree_leaf::find Exiting ans="<<(i<size())<<"\n");
   return i; 
 }
 
-//// *Kdtree_leaf::insert* ////
+//// *AMI_kdtree_leaf::insert* ////
 template<class coord_t, size_t dim, class BTECOLL>
-bool KDTREE_LEAF::insert(const POINT &p) {
-  TPLOG("Kdtree_leaf::insert Entering "<<"\n");
+bool AMI_KDTREE_LEAF::insert(const POINT &p) {
+  TPLOG("AMI_kdtree_leaf::insert Entering "<<"\n");
   assert(size() < el.capacity());
   // TODO: do a find() here to check for duplicate point. 
   el[size()] = p;
   size()++;
   dirty() = 1;
-  TPLOG("Kdtree_leaf::insert Exiting "<<"\n");
+  TPLOG("AMI_kdtree_leaf::insert Exiting "<<"\n");
   return true;
 }
 
-//// *Kdtree_leaf::erase* ////
+//// *AMI_kdtree_leaf::erase* ////
 template<class coord_t, size_t dim, class BTECOLL>
-bool KDTREE_LEAF::erase(const POINT &p) {
-  TPLOG("Kdtree_leaf::erase Entering "<<"\n");
+bool AMI_KDTREE_LEAF::erase(const POINT &p) {
+  TPLOG("AMI_kdtree_leaf::erase Entering "<<"\n");
   bool ans = false;
   size_t idx;
   if ((idx = find(p)) < size()) {
@@ -688,15 +688,15 @@ bool KDTREE_LEAF::erase(const POINT &p) {
     dirty() = 1;
   }
 
-  TPLOG("Kdtree_leaf::erase Exiting ans="<<ans<<"\n");
+  TPLOG("AMI_kdtree_leaf::erase Exiting ans="<<ans<<"\n");
   return ans;
 }
 
-//// *Kdtree_leaf::window_query* ////
+//// *AMI_kdtree_leaf::window_query* ////
 template<class coord_t, size_t dim, class BTECOLL>
-size_t KDTREE_LEAF::window_query(const POINT &lop, const POINT &hip, 
+size_t AMI_KDTREE_LEAF::window_query(const POINT &lop, const POINT &hip, 
 				 POINT_STREAM* stream) const {
-  TPLOG("Kdtree_leaf::window_query Entering "<<"\n");
+  TPLOG("AMI_kdtree_leaf::window_query Entering "<<"\n");
   size_t i, di, result = 0;
   for (i = 0; i < size(); i++) {
     // Test on all dimensions.
@@ -707,20 +707,20 @@ size_t KDTREE_LEAF::window_query(const POINT &lop, const POINT &hip,
     }
   }
 
-  TPLOG("Kdtree_leaf::window_query Exiting count="<<result<<"\n");
+  TPLOG("AMI_kdtree_leaf::window_query Exiting count="<<result<<"\n");
   return result;
 }
 
-//// *Kdtree_leaf::sort* ////
+//// *AMI_kdtree_leaf::sort* ////
 template<class coord_t, size_t dim, class BTECOLL>
-void KDTREE_LEAF::sort(size_t d) {
+void AMI_KDTREE_LEAF::sort(size_t d) {
   typename POINT::cmp cmpd(d);
   std::sort(&el[0], &el[0] + size(), cmpd);
 }
 
-//// *Kdtree_leaf::find_median* ////
+//// *AMI_kdtree_leaf::find_median* ////
 template<class coord_t, size_t dim, class BTECOLL>
-size_t KDTREE_LEAF::find_median(size_t d) {
+size_t AMI_KDTREE_LEAF::find_median(size_t d) {
   typename POINT::cmp cmpd(d);
   sort(d);
   size_t ans = (size() - 1) / 2; // preliminary median.
@@ -731,43 +731,43 @@ size_t KDTREE_LEAF::find_median(size_t d) {
 
 
 ////////////////////////////////
-//////// **Kdtree_node** ///////
+//////// **AMI_kdtree_node** ///////
 ////////////////////////////////
 
-//// *Kdtree_node::lk_capacity* ////
+//// *AMI_kdtree_node::lk_capacity* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-size_t KDTREE_NODE::lk_capacity(size_t block_size) {
+size_t AMI_KDTREE_NODE::lk_capacity(size_t block_size) {
   return (size_t) ((block_size - sizeof(pair<size_t, size_t>) - 
 		    sizeof(AMI_bid)) / 
     (sizeof(Bin_node) + sizeof(AMI_bid)) + 1);
 }
 
-//// *Kdtree_node::el_capacity* ////
+//// *AMI_kdtree_node::el_capacity* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-size_t KDTREE_NODE::el_capacity(size_t block_size) {
-  TPLOG("Kdtree_node::el_capacity Entering\n");
-  TPLOG("  AMI_block<Bin_node, Kdtree_node_info>::el_capacity(block_size, lk_capacity(block_size))="<<(AMI_block<Bin_node, Kdtree_node_info, BTECOLL>::el_capacity(block_size, lk_capacity(block_size)))<<"\n");
+size_t AMI_KDTREE_NODE::el_capacity(size_t block_size) {
+  TPLOG("AMI_kdtree_node::el_capacity Entering\n");
+  TPLOG("  AMI_block<Bin_node, _AMI_kdtree_node_info>::el_capacity(block_size, lk_capacity(block_size))="<<(AMI_block<Bin_node, _AMI_kdtree_node_info, BTECOLL>::el_capacity(block_size, lk_capacity(block_size)))<<"\n");
   TPLOG("  (lk_capacity(block_size) - 1)="<<(lk_capacity(block_size) - 1)<<"\n");
   // Sanity check. Two different methods of computing the el capacity.
   // [12/21/01: changed == into >= since I could fit one more element, but not one more link] 
-  assert((AMI_block<Bin_node, Kdtree_node_info, BTECOLL>::el_capacity(block_size, lk_capacity(block_size))) >= (size_t) (lk_capacity(block_size) - 1));
-  TPLOG("Kdtree_node::el_capacity Exiting\n");
+  assert((AMI_block<Bin_node, _AMI_kdtree_node_info, BTECOLL>::el_capacity(block_size, lk_capacity(block_size))) >= (size_t) (lk_capacity(block_size) - 1));
+  TPLOG("AMI_kdtree_node::el_capacity Exiting\n");
   return (size_t) (lk_capacity(block_size) - 1);
 }
 
-//// *Kdtree_node::Kdtree_node* ////
+//// *AMI_kdtree_node::AMI_kdtree_node* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-KDTREE_NODE::Kdtree_node(AMI_collection_single<BTECOLL>* pcoll, AMI_bid bid):
-  AMI_block<Bin_node, Kdtree_node_info, BTECOLL>(pcoll, 
+AMI_KDTREE_NODE::AMI_kdtree_node(AMI_collection_single<BTECOLL>* pcoll, AMI_bid bid):
+  AMI_block<Bin_node, _AMI_kdtree_node_info, BTECOLL>(pcoll, 
 		     lk_capacity(pcoll->block_size()), bid) {
-  TPLOG("Kdtree_node::Kdtree_node Entering bid="<<bid<<"\n");
-  TPLOG("Kdtree_node::Kdtree_node Exiting bid="<<bid_<<"\n");
+  TPLOG("AMI_kdtree_node::AMI_kdtree_node Entering bid="<<bid<<"\n");
+  TPLOG("AMI_kdtree_node::AMI_kdtree_node Exiting bid="<<bid_<<"\n");
 }
 
-//// *Kdtree_node::find_index* ////
+//// *AMI_kdtree_node::find_index* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-inline pair<size_t, Node_type> KDTREE_NODE::find_index(const POINT &p) const {
-  TPLOG("Kdtree_node::find_index Entering "<<"\n");
+inline pair<size_t, Node_type> AMI_KDTREE_NODE::find_index(const POINT &p) const {
+  TPLOG("AMI_kdtree_node::find_index Entering "<<"\n");
   size_t idx1 = 0, idx2; // the root bin node is always in pos 0.
   Node_type idx_type = BIN_NODE;
   while (idx_type == BIN_NODE) {
@@ -780,44 +780,44 @@ inline pair<size_t, Node_type> KDTREE_NODE::find_index(const POINT &p) const {
     //    assert(idx_type != BIN_NODE || idx2 != idx1);
     idx1 = idx2;
   }
-  TPLOG("Kdtree_node::find_index Exiting "<<"\n");
+  TPLOG("AMI_kdtree_node::find_index Exiting "<<"\n");
   return pair<size_t, Node_type>(idx1, idx_type);
 }
 
-//// *Kdtree_node::find* ////
+//// *AMI_kdtree_node::find* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-pair<AMI_bid, Node_type> KDTREE_NODE::find(const POINT &p) const {
-  TPLOG("Kdtree_node::find Entering bid="<<bid()<<"\n");
+pair<AMI_bid, Node_type> AMI_KDTREE_NODE::find(const POINT &p) const {
+  TPLOG("AMI_kdtree_node::find Entering bid="<<bid()<<"\n");
   pair<size_t, Node_type> ans = find_index(p);
   //  assert(ans.second != GRID_INDEX);
-  TPLOG("Kdtree_node::find Exiting "<<"\n");
+  TPLOG("AMI_kdtree_node::find Exiting "<<"\n");
   return pair<AMI_bid, Node_type>(lk[ans.first], ans.second);
 }
 
 
 //////////////////////////////////////
-///////////// **Kdtree** /////////////
+///////////// **AMI_kdtree** /////////////
 //////////////////////////////////////
 
-//// *Kdtree::Kdtree* ////
+//// *AMI_kdtree::AMI_kdtree* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-KDTREE::Kdtree(const char *base_file_name, AMI_collection_type type, 
-	       const Kdtree_params& params): header_(), params_(params), points_are_sample(false) {
-  TPLOG("Kdtree::Kdtree Entering base_file_name="<<base_file_name<<"\n");
+AMI_KDTREE::AMI_kdtree(const char *base_file_name, AMI_collection_type type, 
+	       const AMI_kdtree_params& params): header_(), params_(params), points_are_sample(false) {
+  TPLOG("AMI_kdtree::AMI_kdtree Entering base_file_name="<<base_file_name<<"\n");
 
   shared_init(base_file_name, type);
 
-  TPLOG("Kdtree::Kdtree Exiting status="<<status_<<", size="<<header_.size<<"\n");
+  TPLOG("AMI_kdtree::AMI_kdtree Exiting status="<<status_<<", size="<<header_.size<<"\n");
 }
 
 
-//// *Kdtree::shared_init* ////
+//// *AMI_kdtree::shared_init* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-void KDTREE::shared_init(const char* base_file_name, AMI_collection_type type) {
-  TPLOG("Kdtree::shared_init Entering "<<"\n");
+void AMI_KDTREE::shared_init(const char* base_file_name, AMI_collection_type type) {
+  TPLOG("AMI_kdtree::shared_init Entering "<<"\n");
 
   assert(base_file_name != NULL);
-  status_ = KDTREE_STATUS_VALID;
+  status_ = AMI_KDTREE_STATUS_VALID;
 
   char collname[124];
 
@@ -832,7 +832,7 @@ void KDTREE::shared_init(const char* base_file_name, AMI_collection_type type) {
 
   if (pcoll_nodes_->status() != AMI_COLLECTION_STATUS_VALID ||
       pcoll_leaves_->status() != AMI_COLLECTION_STATUS_VALID) {
-    status_ = KDTREE_STATUS_INVALID;
+    status_ = AMI_KDTREE_STATUS_INVALID;
     delete pcoll_nodes_;
     delete pcoll_leaves_;
     return;
@@ -842,8 +842,8 @@ void KDTREE::shared_init(const char* base_file_name, AMI_collection_type type) {
   if (pcoll_leaves_->size() != 0) {
     //    header_ = *((header_type *) pcoll_nodes_->user_data());
     memcpy((void *)(&header_), pcoll_nodes_->user_data(), sizeof(header_));
-    if (header_.magic_number != KDTREE_HEADER_MAGIC_NUMBER) {
-      status_ = KDTREE_STATUS_INVALID;
+    if (header_.magic_number != AMI_KDTREE_HEADER_MAGIC_NUMBER) {
+      status_ = AMI_KDTREE_STATUS_INVALID;
       LOG_WARNING_ID("Invalid magic number in kdtree file.");
       delete pcoll_nodes_;
       delete pcoll_leaves_;
@@ -857,12 +857,12 @@ void KDTREE::shared_init(const char* base_file_name, AMI_collection_type type) {
   node_cache_ = new node_cache_t(params_.node_cache_size, 8);
 
   // Give meaningful values to parameters, if necessary.
-  size_t leaf_capacity = KDTREE_LEAF::el_capacity(pcoll_leaves_->block_size());
+  size_t leaf_capacity = AMI_KDTREE_LEAF::el_capacity(pcoll_leaves_->block_size());
   if (params_.leaf_size_max == 0 || params_.leaf_size_max > leaf_capacity)
     params_.leaf_size_max = leaf_capacity;
   TPLOG("  leaf_size_max="<<params_.leaf_size_max<<"\n");
 
-  size_t node_capacity = KDTREE_NODE::el_capacity(pcoll_nodes_->block_size());
+  size_t node_capacity = AMI_KDTREE_NODE::el_capacity(pcoll_nodes_->block_size());
   if (params_.node_size_max == 0 || params_.node_size_max > node_capacity)
     params_.node_size_max = node_capacity;
   TPLOG("  node_size_max="<<params_.node_size_max<<"\n");
@@ -897,15 +897,15 @@ void KDTREE::shared_init(const char* base_file_name, AMI_collection_type type) {
 
   bin_node_count_ = 0;
 
-  TPLOG("Kdtree::shared_init Exiting "<<"\n");
+  TPLOG("AMI_kdtree::shared_init Exiting "<<"\n");
 }
 
-//// *Kdtree::create_bin_node* ////
+//// *AMI_kdtree::create_bin_node* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-void KDTREE::create_bin_node(KDTREE_NODE *b, bn_context ctx, 
+void AMI_KDTREE::create_bin_node(AMI_KDTREE_NODE *b, bn_context ctx, 
 			     POINT_STREAM** in_streams, 
 			     size_t& next_free_el, size_t& next_free_lk) {
-  TPLOG("Kdtree::create_bin_node Entering bid="<<b->bid()<<", dim="<<ctx.d<<"\n");
+  TPLOG("AMI_kdtree::create_bin_node Entering bid="<<b->bid()<<", dim="<<ctx.d<<"\n");
 
   MEMDISPLAY;
   HEIGHTDISPLAY_IN(" <>")
@@ -917,7 +917,7 @@ void KDTREE::create_bin_node(KDTREE_NODE *b, bn_context ctx,
   POINT *p1, ap;
   size_t len = in_streams[ctx.d]->stream_len();
   assert(len > params_.leaf_size_max);
-  TPLOG("  Kdtree::create_bin_node in_len="<<len<<"\n");
+  TPLOG("  AMI_kdtree::create_bin_node in_len="<<len<<"\n");
   
   // Go to the median position in the in_stream sorted on d'th coordinate.
   in_streams[ctx.d]->seek(median(len));
@@ -932,7 +932,7 @@ void KDTREE::create_bin_node(KDTREE_NODE *b, bn_context ctx,
   
   // b->el[ctx.i] is the binary node we're constructing.
   b->el[ctx.i].initialize(p1->key, ctx.d);
-  TPLOG("  Kdtree::create_bin_node discriminator="<<(*p1)[ctx.d]<<", dim="<<ctx.d<<"\n");
+  TPLOG("  AMI_kdtree::create_bin_node discriminator="<<(*p1)[ctx.d]<<", dim="<<ctx.d<<"\n");
   
   // Create the output streams by distributing the input streams.
   for (size_t i = 0; i < dim; i++) {
@@ -957,9 +957,9 @@ void KDTREE::create_bin_node(KDTREE_NODE *b, bn_context ctx,
     assert(err == AMI_ERROR_END_OF_STREAM);
     
     assert(lo_streams[i]->stream_len() < in_streams[i]->stream_len());
-    TPLOG("  Kdtree::create_bin_node lo_len="<<lo_streams[i]->stream_len()<<"\n");
+    TPLOG("  AMI_kdtree::create_bin_node lo_len="<<lo_streams[i]->stream_len()<<"\n");
     assert(hi_streams[i]->stream_len() < in_streams[i]->stream_len());
-    TPLOG("  Kdtree::create_bin_node hi_len="<<hi_streams[i]->stream_len()<<"\n");
+    TPLOG("  AMI_kdtree::create_bin_node hi_len="<<hi_streams[i]->stream_len()<<"\n");
     
     // Remove the input stream.
     delete in_streams[i];
@@ -1067,18 +1067,18 @@ void KDTREE::create_bin_node(KDTREE_NODE *b, bn_context ctx,
   }
   
   HEIGHTDISPLAY_OUT
-  TPLOG("Kdtree::create_bin_node Exiting bid="<<b->bid()<<"\n");
+  TPLOG("AMI_kdtree::create_bin_node Exiting bid="<<b->bid()<<"\n");
 }
 
 
-//// *Kdtree::create_node* ////
+//// *AMI_kdtree::create_node* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-void KDTREE::create_node(AMI_bid& bid, size_t d, 
+void AMI_KDTREE::create_node(AMI_bid& bid, size_t d, 
 			 POINT_STREAM** in_streams) {
-  TPLOG("Kdtree::create_node Entering dim="<<d<<"\n");
+  TPLOG("AMI_kdtree::create_node Entering dim="<<d<<"\n");
 
   // New node.
-  KDTREE_NODE* n = fetch_node(); 
+  AMI_KDTREE_NODE* n = fetch_node(); 
   bid = n->bid();
   n->weight() = in_streams[0]->stream_len();
 
@@ -1103,19 +1103,19 @@ void KDTREE::create_node(AMI_bid& bid, size_t d,
   bin_node_count_ += n->size();
   release_node(n);
 
-  TPLOG("Kdtree::create_node Exiting bid="<<bid<<"\n");
+  TPLOG("AMI_kdtree::create_node Exiting bid="<<bid<<"\n");
 }
 
 
-//// *Kdtree::create_leaf* ////
+//// *AMI_kdtree::create_leaf* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-void KDTREE::create_leaf(AMI_bid& bid, size_t d, 
+void AMI_KDTREE::create_leaf(AMI_bid& bid, size_t d, 
 			 POINT_STREAM** in_streams) {
-  TPLOG("Kdtree::create_leaf Entering "<<"\n");
+  TPLOG("AMI_kdtree::create_leaf Entering "<<"\n");
   HEIGHTDISPLAY_IN(" O ")
 
   // New leaf.
-  KDTREE_LEAF* l = fetch_leaf();
+  AMI_KDTREE_LEAF* l = fetch_leaf();
   bid = l->bid();
   assert(d < dim);
 
@@ -1147,15 +1147,15 @@ void KDTREE::create_leaf(AMI_bid& bid, size_t d,
   }  
 
   HEIGHTDISPLAY_OUT
-  TPLOG("Kdtree::create_leaf Exiting bid="<<bid<<", dim="<<d<<"\n");
+  TPLOG("AMI_kdtree::create_leaf Exiting bid="<<bid<<", dim="<<d<<"\n");
 }
 
-//// *Kdtree::create_bin_node_mm* ////
+//// *AMI_kdtree::create_bin_node_mm* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-void KDTREE::create_bin_node_mm(KDTREE_NODE *b, bn_context ctx, 
+void AMI_KDTREE::create_bin_node_mm(AMI_KDTREE_NODE *b, bn_context ctx, 
 				POINT** in_streams, size_t sz,
 				size_t& next_free_el, size_t& next_free_lk) {
-  TPLOG("Kdtree::create_bin_node_mm Entering bid="<<b->bid()<<", dim="<<ctx.d<<", idx="<<ctx.i<<"\n");
+  TPLOG("AMI_kdtree::create_bin_node_mm Entering bid="<<b->bid()<<", dim="<<ctx.d<<", idx="<<ctx.i<<"\n");
   MEMDISPLAY;
   HEIGHTDISPLAY_IN("-M-");
 
@@ -1292,7 +1292,7 @@ void KDTREE::create_bin_node_mm(KDTREE_NODE *b, bn_context ctx,
 
   // We must have made at least one external link.
   //  assert(next_free_lk > 0);
-  TPLOG("  Kdtree::create_bin_node_mm Mid-recursion bid="<<b->bid()<<"\n");
+  TPLOG("  AMI_kdtree::create_bin_node_mm Mid-recursion bid="<<b->bid()<<"\n");
 
   // ...and for the high child.
 #if STORE_WEIGHTS
@@ -1331,17 +1331,17 @@ void KDTREE::create_bin_node_mm(KDTREE_NODE *b, bn_context ctx,
 
   //  assert(next_free_lk > 1);
   HEIGHTDISPLAY_OUT;
-  TPLOG("Kdtree::create_bin_node_mm Exiting bid="<<b->bid()<<"\n");
+  TPLOG("AMI_kdtree::create_bin_node_mm Exiting bid="<<b->bid()<<"\n");
 }
 
-//// *Kdtree::create_leaf_mm* ////
+//// *AMI_kdtree::create_leaf_mm* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-void KDTREE::create_leaf_mm(AMI_bid& bid, size_t d, 
+void AMI_KDTREE::create_leaf_mm(AMI_bid& bid, size_t d, 
 			 POINT** in_streams, size_t sz) {
-  TPLOG("Kdtree::create_leaf_mm Entering "<<"\n");
+  TPLOG("AMI_kdtree::create_leaf_mm Entering "<<"\n");
 
   // Brand new leaf.
-  KDTREE_LEAF* l = fetch_leaf();
+  AMI_KDTREE_LEAF* l = fetch_leaf();
   bid = l->bid();
   assert(d < dim);
   assert(sz <= params_.leaf_size_max);
@@ -1367,18 +1367,18 @@ void KDTREE::create_leaf_mm(AMI_bid& bid, size_t d,
     in_streams[i] = NULL;
   }
 
-  TPLOG("Kdtree::create_leaf_mm Exiting bid="<<bid<<", dim="<<d<<"\n");  
+  TPLOG("AMI_kdtree::create_leaf_mm Exiting bid="<<bid<<", dim="<<d<<"\n");  
 }
 
 
-//// *Kdtree::create_node_mm* ////
+//// *AMI_kdtree::create_node_mm* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-void KDTREE::create_node_mm(AMI_bid& bid, size_t d, 
+void AMI_KDTREE::create_node_mm(AMI_bid& bid, size_t d, 
 			 POINT** in_streams, size_t sz) {
-  TPLOG("Kdtree::create_node_mm Entering dim="<<d<<"\n");
+  TPLOG("AMI_kdtree::create_node_mm Entering dim="<<d<<"\n");
 
   // New node.
-  KDTREE_NODE* n = fetch_node();
+  AMI_KDTREE_NODE* n = fetch_node();
   bid = n->bid();
   n->weight() = sz;
   
@@ -1398,17 +1398,17 @@ void KDTREE::create_node_mm(AMI_bid& bid, size_t d,
     n->lk[n->lk.capacity()-1] = next_free_lk;
   bin_node_count_ += n->size();
   release_node(n);
-  TPLOG("Kdtree::create_node_mm Exiting bid="<<bid<<"\n");
+  TPLOG("AMI_kdtree::create_node_mm Exiting bid="<<bid<<"\n");
 }
 
-//// *Kdtree::can_do_mm* ////
+//// *AMI_kdtree::can_do_mm* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-bool KDTREE::can_do_mm(size_t sz) {
+bool AMI_KDTREE::can_do_mm(size_t sz) {
   bool ans = ((unsigned long long) sz * sizeof(POINT) * size_t(dim + 1) + 
 	  pcoll_nodes_->block_size() * params_.node_cache_size +
 	  pcoll_leaves_->block_size() * params_.leaf_cache_size +
 	  size_t(8192 * 4) < (unsigned long long) MM_manager.memory_available());
-  TPLOG("Kdtree::can_do_mm needed = " << 
+  TPLOG("AMI_kdtree::can_do_mm needed = " << 
       (long long int) ((unsigned long long) sz * sizeof(POINT) * size_t(dim + 1) + 
        pcoll_nodes_->block_size() * params_.node_cache_size +
        pcoll_leaves_->block_size() * params_.leaf_cache_size +
@@ -1417,10 +1417,10 @@ bool KDTREE::can_do_mm(size_t sz) {
   return ans;
 }
 
-//// *Kdtree::copy_to_mm* ////
+//// *AMI_kdtree::copy_to_mm* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-void KDTREE::copy_to_mm(POINT_STREAM** in_streams, POINT** mm_streams, size_t& sz) {
-  TPLOG("Kdtree::copy_to_mm Entering "<<"\n");
+void AMI_KDTREE::copy_to_mm(POINT_STREAM** in_streams, POINT** mm_streams, size_t& sz) {
+  TPLOG("AMI_kdtree::copy_to_mm Entering "<<"\n");
   sz = in_streams[0]->stream_len();
   size_t i, j;
   POINT* p;
@@ -1437,13 +1437,13 @@ void KDTREE::copy_to_mm(POINT_STREAM** in_streams, POINT** mm_streams, size_t& s
     in_streams[i] = NULL;
   }
 
-  TPLOG("Kdtree::copy_to_mm Exiting "<<"\n");
+  TPLOG("AMI_kdtree::copy_to_mm Exiting "<<"\n");
 }
 
-//// *Kdtree::copy_to_mm* ////
+//// *AMI_kdtree::copy_to_mm* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-void KDTREE::copy_to_mm(POINT_STREAM* in_stream, POINT** streams_mm, size_t& sz) {
-  TPLOG("Kdtree::copy_to_mm Entering "<<"\n");
+void AMI_KDTREE::copy_to_mm(POINT_STREAM* in_stream, POINT** streams_mm, size_t& sz) {
+  TPLOG("AMI_kdtree::copy_to_mm Entering "<<"\n");
   sz = in_stream->stream_len();
   size_t i, j;
   POINT* p;
@@ -1484,13 +1484,13 @@ void KDTREE::copy_to_mm(POINT_STREAM* in_stream, POINT** streams_mm, size_t& sz)
     header_.mbr_hi.id() = 1;
   }  
 
-  TPLOG("Kdtree::copy_to_mm Exiting "<<"\n");
+  TPLOG("AMI_kdtree::copy_to_mm Exiting "<<"\n");
 }
 
-//// *Kdtree::create_grid* ////
+//// *AMI_kdtree::create_grid* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-void KDTREE::create_grid(AMI_bid& bid, size_t d, POINT_STREAM** in_streams, size_t t) {
-  TPLOG("Kdtree::create_grid Entering "<<"\n");
+void AMI_KDTREE::create_grid(AMI_bid& bid, size_t d, POINT_STREAM** in_streams, size_t t) {
+  TPLOG("AMI_kdtree::create_grid Entering "<<"\n");
   // Note: only one grid level implemented.
 
   DBG("  Computing grid lines [" << dim*t << " (random seek + read)]...\n");
@@ -1511,13 +1511,13 @@ void KDTREE::create_grid(AMI_bid& bid, size_t d, POINT_STREAM** in_streams, size
   build_lower_tree_g(g);
 
   delete g;
-  TPLOG("Kdtree::create_grid Exiting "<<"\n");
+  TPLOG("AMI_kdtree::create_grid Exiting "<<"\n");
 }
 
-//// *Kdtree::build_lower_tree_g* ////
+//// *AMI_kdtree::build_lower_tree_g* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-void KDTREE::build_lower_tree_g(grid* g) {
-  TPLOG("Kdtree::build_lower_tree_g Entering "<<"\n");
+void AMI_KDTREE::build_lower_tree_g(grid* g) {
+  TPLOG("AMI_kdtree::build_lower_tree_g Entering "<<"\n");
 
   grid_context *gc;
   size_t sz, i, j;
@@ -1525,7 +1525,7 @@ void KDTREE::build_lower_tree_g(grid* g) {
   POINT* streams_mm[dim];
   AMI_err err;
   size_t next_free_el, next_free_lk;
-  KDTREE_NODE* b;
+  AMI_KDTREE_NODE* b;
 
   for (j = 0; j < g->q.size(); j++) {
 
@@ -1541,7 +1541,7 @@ void KDTREE::build_lower_tree_g(grid* g) {
       gc->streams[i] = new POINT_STREAM(gc->stream_names[i]);
       gc->streams[i]->persist(PERSIST_DELETE);
       if (gc->streams[i]->status() == AMI_STREAM_STATUS_INVALID) {
-	std::cerr << "Kdtree bulk loading internal error.\n" 
+	std::cerr << "AMI_kdtree bulk loading internal error.\n" 
 	     << "[invalid stream restored from file "
 	     << gc->stream_names[i] << "].\n";
 	std::cerr << "Aborting.\n";
@@ -1597,13 +1597,13 @@ void KDTREE::build_lower_tree_g(grid* g) {
     release_node(b);
     DBG(" ");
   }
-  TPLOG("Kdtree::build_lower_tree_g Exiting "<<"\n");
+  TPLOG("AMI_kdtree::build_lower_tree_g Exiting "<<"\n");
 }
 
-//// *Kdtree::distribute_g* ////
+//// *AMI_kdtree::distribute_g* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-void KDTREE::distribute_g(AMI_bid bid, size_t d, grid* g) {
-  TPLOG("KDTREE::distribute_g Entering\n");
+void AMI_KDTREE::distribute_g(AMI_bid bid, size_t d, grid* g) {
+  TPLOG("AMI_KDTREE::distribute_g Entering\n");
   AMI_err err;
   size_t i, j, jj, sz;
   POINT* p1;
@@ -1643,7 +1643,7 @@ void KDTREE::distribute_g(AMI_bid bid, size_t d, grid* g) {
 
 #else
   // The root of this sub-tree is *r.
-  KDTREE_NODE *n, *r = fetch_node(bid);
+  AMI_KDTREE_NODE *n, *r = fetch_node(bid);
   AMI_bid nbid;
   grid_context* gc;
   pair<size_t, Node_type> a;
@@ -1687,15 +1687,15 @@ void KDTREE::distribute_g(AMI_bid bid, size_t d, grid* g) {
     }
   }
 
-  TPLOG("KDTREE::distribute_g Exiting\n");
+  TPLOG("AMI_KDTREE::distribute_g Exiting\n");
 }
 
-//// *Kdtree::create_node_g* ////
+//// *AMI_kdtree::create_node_g* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-void KDTREE::create_node_g(AMI_bid& bid, size_t d, grid_matrix* gmx) {
-  TPLOG("Kdtree::create_node_g Entering "<<"\n");
+void AMI_KDTREE::create_node_g(AMI_bid& bid, size_t d, grid_matrix* gmx) {
+  TPLOG("AMI_kdtree::create_node_g Entering "<<"\n");
   
-  KDTREE_NODE *n = fetch_node();
+  AMI_KDTREE_NODE *n = fetch_node();
   bid = n->bid();
   n->weight() = gmx->point_count;
 
@@ -1716,14 +1716,14 @@ void KDTREE::create_node_g(AMI_bid& bid, size_t d, grid_matrix* gmx) {
   bin_node_count_ += n->size();
   release_node(n);
 
-  TPLOG("Kdtree::create_node_g Exiting bid="<<bid<<"\n");
+  TPLOG("AMI_kdtree::create_node_g Exiting bid="<<bid<<"\n");
 } 
 
-//// *Kdtree::create_bin_node_g* ////
+//// *AMI_kdtree::create_bin_node_g* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-void KDTREE::create_bin_node_g(KDTREE_NODE *b, bn_context ctx, grid_matrix *gmx, 
+void AMI_KDTREE::create_bin_node_g(AMI_KDTREE_NODE *b, bn_context ctx, grid_matrix *gmx, 
 			       size_t& next_free_el, size_t& next_free_lk) {
-   TPLOG("Kdtree::create_bin_node_g Entering "<<"\n");
+   TPLOG("AMI_kdtree::create_bin_node_g Entering "<<"\n");
    
    grid_matrix* gmx_hi; // gmx will act as gmx_lo.
 
@@ -1804,13 +1804,13 @@ void KDTREE::create_bin_node_g(KDTREE_NODE *b, bn_context ctx, grid_matrix *gmx,
      }
    }
 
-   TPLOG("Kdtree::create_bin_node_g Exiting bid="<<b->bid()<<"\n");   
+   TPLOG("AMI_kdtree::create_bin_node_g Exiting bid="<<b->bid()<<"\n");   
 }
 
-//// *Kdtree::sort* ////
+//// *AMI_kdtree::sort* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-AMI_err KDTREE::sort(POINT_STREAM* in_stream, POINT_STREAM* out_streams[]) {
-  TPLOG("Kdtree::sort Entering"<<"\n");
+AMI_err AMI_KDTREE::sort(POINT_STREAM* in_stream, POINT_STREAM* out_streams[]) {
+  TPLOG("AMI_kdtree::sort Entering"<<"\n");
 
   if (in_stream == NULL) {
     LOG_WARNING_ID("Attempting to sort a NULL stream pointer. Sorting Aborted.");
@@ -1840,24 +1840,24 @@ AMI_err KDTREE::sort(POINT_STREAM* in_stream, POINT_STREAM* out_streams[]) {
     LOG_WARNING_ID("Sorting returned error.");
   }
 
-  TPLOG("Kdtree::sort Exiting err="<<err<<"\n");
+  TPLOG("AMI_kdtree::sort Exiting err="<<err<<"\n");
   return err;
 }
 
-//// *Kdtree::load_sorted* ////
+//// *AMI_kdtree::load_sorted* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-AMI_err KDTREE::load_sorted(POINT_STREAM* streams_s[], 
+AMI_err AMI_KDTREE::load_sorted(POINT_STREAM* streams_s[], 
 			    float lfill, float nfill, int load_method) {
-  TPLOG("Kdtree::load_sorted Entering"<<"\n");
+  TPLOG("AMI_kdtree::load_sorted Entering"<<"\n");
   AMI_err err = AMI_ERROR_NO_ERROR;
 
   // Some error checking.
   if (header_.size > 0) {
-    LOG_WARNING_ID("Kdtree already loaded. Nothing done in load.");
+    LOG_WARNING_ID("AMI_kdtree already loaded. Nothing done in load.");
     return AMI_ERROR_GENERIC_ERROR;
   }
-  if (status_ == KDTREE_STATUS_INVALID) {
-    LOG_WARNING_ID("Kdtree is invalid. Nothing done in load.");
+  if (status_ == AMI_KDTREE_STATUS_INVALID) {
+    LOG_WARNING_ID("AMI_kdtree is invalid. Nothing done in load.");
     return AMI_ERROR_OBJECT_INITIALIZATION;
   }
   if (streams_s[0] == NULL) {
@@ -1875,7 +1875,7 @@ AMI_err KDTREE::load_sorted(POINT_STREAM* streams_s[],
   //   std::min((size_t) (log((double)header_.size/params_.leaf_size_max)/log(2)) 
   //   % params_.max_intranode_height + 1, params_.max_intranode_height);
 
-  Kdtree_params params_saved = params_;
+  AMI_kdtree_params params_saved = params_;
   params_.leaf_size_max = std::min(params_.leaf_size_max, 
 				size_t(lfill*params_.leaf_size_max));
   params_.node_size_max = std::min(params_.node_size_max, 
@@ -1931,10 +1931,10 @@ AMI_err KDTREE::load_sorted(POINT_STREAM* streams_s[],
       size_t sz;
       copy_to_mm(streams_s, streams_mm, sz);
       create_node_mm(header_.root_bid, 0, streams_mm, sz);
-    } else if (load_method & KDTREE_LOAD_BINARY) {
+    } else if (load_method & AMI_KDTREE_LOAD_BINARY) {
       // Build the tree using binary distribution.
       create_node(header_.root_bid, 0, streams_s);
-    } else if (load_method & KDTREE_LOAD_GRID) {
+    } else if (load_method & AMI_KDTREE_LOAD_GRID) {
       // Build the tree using the grid method.
       create_grid(header_.root_bid, 0, streams_s, params_.grid_size);
     } else {
@@ -1944,7 +1944,7 @@ AMI_err KDTREE::load_sorted(POINT_STREAM* streams_s[],
     }
   }
 
-  status_ = KDTREE_STATUS_VALID; 
+  status_ = AMI_KDTREE_STATUS_VALID; 
 
   if (previous_leaf_ != NULL) {
     previous_leaf_->next() = 0;
@@ -1962,15 +1962,15 @@ AMI_err KDTREE::load_sorted(POINT_STREAM* streams_s[],
   // Restore params_.
   params_ = params_saved;
 
-  TPLOG("Kdtree::load_sorted Exiting err="<<err<<"\n");
+  TPLOG("AMI_kdtree::load_sorted Exiting err="<<err<<"\n");
   return err;
 }
 
 
-//// *Kdtree::load* ////
+//// *AMI_kdtree::load* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-AMI_err KDTREE::load(POINT_STREAM* s, float lfill, float nfill, int load_method) {
-  TPLOG("Kdtree::load Entering "<<"\n");
+AMI_err AMI_KDTREE::load(POINT_STREAM* s, float lfill, float nfill, int load_method) {
+  TPLOG("AMI_kdtree::load Entering "<<"\n");
   POINT_STREAM* streams_s[dim];
   size_t i;
   AMI_err err;
@@ -1985,14 +1985,14 @@ AMI_err KDTREE::load(POINT_STREAM* s, float lfill, float nfill, int load_method)
   if (err == AMI_ERROR_NO_ERROR)
     err = load_sorted(streams_s, lfill, nfill, load_method);
 
-  TPLOG("Kdtree::load Exiting err="<<err<<"\n");
+  TPLOG("AMI_kdtree::load Exiting err="<<err<<"\n");
   return err;
 }
 
-//// *Kdtree::load_sample* ////
+//// *AMI_kdtree::load_sample* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-AMI_err KDTREE::load_sample(POINT_STREAM* s) {
-  TPLOG("Kdtree::load_sample Entering"<<"\n");
+AMI_err AMI_KDTREE::load_sample(POINT_STREAM* s) {
+  TPLOG("AMI_kdtree::load_sample Entering"<<"\n");
 
   AMI_err err = AMI_ERROR_NO_ERROR;
   header_.size = s->stream_len();
@@ -2030,7 +2030,7 @@ AMI_err KDTREE::load_sample(POINT_STREAM* s) {
     }
   }
 
-  status_ = KDTREE_STATUS_VALID; 
+  status_ = AMI_KDTREE_STATUS_VALID; 
 
   if (previous_leaf_ != NULL) {
     previous_leaf_->next() = 0;
@@ -2045,16 +2045,16 @@ AMI_err KDTREE::load_sample(POINT_STREAM* s) {
   MEMDISPLAY_DONE;
   HEIGHTDISPLAY_DONE
 
-  TPLOG("Kdtree::load_sample Exiting err="<<err<<"\n");
+  TPLOG("AMI_kdtree::load_sample Exiting err="<<err<<"\n");
   return err;
 }
 
-//// *Kdtree::unload* ////
+//// *AMI_kdtree::unload* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-AMI_err KDTREE::unload(POINT_STREAM* s) {
-  TPLOG("Kdtree::unload Entering "<<"\n");
+AMI_err AMI_KDTREE::unload(POINT_STREAM* s) {
+  TPLOG("AMI_kdtree::unload Entering "<<"\n");
   AMI_bid lid = first_leaf_id_;
-  KDTREE_LEAF *l;
+  AMI_KDTREE_LEAF *l;
   size_t i;
   AMI_err err = AMI_ERROR_NO_ERROR;
   ///DBG("  first_leaf_id_=" << first_leaf_id_ << "\n");
@@ -2063,7 +2063,7 @@ AMI_err KDTREE::unload(POINT_STREAM* s) {
     LOG_WARNING_ID("  unload: null stream pointer. unload aborted.");
     return AMI_ERROR_OBJECT_INITIALIZATION;
   }
-  if (status_ != KDTREE_STATUS_VALID) {
+  if (status_ != AMI_KDTREE_STATUS_VALID) {
     LOG_WARNING_ID("  unload: tree is invalid or not loaded. unload aborted.");
     return AMI_ERROR_OBJECT_INITIALIZATION;
   }
@@ -2076,22 +2076,22 @@ AMI_err KDTREE::unload(POINT_STREAM* s) {
     lid = l->next();
     release_leaf(l);
   }
-  TPLOG("Kdtree::unload Exiting err="<<err<<"\n");
+  TPLOG("AMI_kdtree::unload Exiting err="<<err<<"\n");
   return err;
 }
 
-//// *Kdtree::window_query* ////
+//// *AMI_kdtree::window_query* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-size_t KDTREE::window_query(const POINT &p1, const POINT& p2, 
+size_t AMI_KDTREE::window_query(const POINT &p1, const POINT& p2, 
 			    POINT_STREAM* stream) {
-  TPLOG("Kdtree::window_query Entering "<<"\n");
+  TPLOG("AMI_kdtree::window_query Entering "<<"\n");
   POINT lop, hip;
   // The number of points found.
   size_t result = 0;
 
   // We can afford to do some error checking, since this is usually a
   // lengthy operation.
-  if (status_ != KDTREE_STATUS_VALID) {
+  if (status_ != AMI_KDTREE_STATUS_VALID) {
     LOG_WARNING_ID("  window_query: tree is invalid or not loaded. query aborted.");
     return result;
   }
@@ -2124,8 +2124,8 @@ size_t KDTREE::window_query(const POINT &p1, const POINT& p2,
   podf topflags, tempflags;
   size_t child;
   Node_type childtype;
-  KDTREE_NODE *bn, *bn2;
-  KDTREE_LEAF *bl;
+  AMI_KDTREE_NODE *bn, *bn2;
+  AMI_KDTREE_LEAF *bl;
 
   while (!s.empty()) {
     // Copy the top of the stack.
@@ -2275,17 +2275,17 @@ size_t KDTREE::window_query(const POINT &p1, const POINT& p2,
 
   } // while !s.empty()
 
-  TPLOG("Kdtree::window_query Exiting "<<"\n");
+  TPLOG("AMI_kdtree::window_query Exiting "<<"\n");
   return result;
 }
 
-//// *Kdtree::find_leaf* ////
+//// *AMI_kdtree::find_leaf* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-AMI_bid KDTREE::find_leaf(const POINT &p) {
-  TPLOG("Kdtree::find_leaf Entering "<<"\n");
+AMI_bid AMI_KDTREE::find_leaf(const POINT &p) {
+  TPLOG("AMI_kdtree::find_leaf Entering "<<"\n");
   pair<AMI_bid, Node_type> n = 
     pair<AMI_bid, Node_type>(header_.root_bid, header_.root_type);
-  KDTREE_NODE* bn;
+  AMI_KDTREE_NODE* bn;
   bool ans;
 
   // Go down the tree until the appropriate leaf is found.
@@ -2296,32 +2296,32 @@ AMI_bid KDTREE::find_leaf(const POINT &p) {
   }
 
   assert(n.second == BLOCK_LEAF);
-  TPLOG("Kdtree::find_leaf Exiting "<<"\n");
+  TPLOG("AMI_kdtree::find_leaf Exiting "<<"\n");
   return n.first;
 }
 
-//// *Kdtree::find* ////
+//// *AMI_kdtree::find* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-bool KDTREE::find(const POINT &p) {
+bool AMI_KDTREE::find(const POINT &p) {
 
-  TPLOG("Kdtree::find Entering "<<"\n");
+  TPLOG("AMI_kdtree::find Entering "<<"\n");
   bool ans;
 
   // Check the leaf.
-  KDTREE_LEAF* bl = fetch_leaf(find_leaf(p));
+  AMI_KDTREE_LEAF* bl = fetch_leaf(find_leaf(p));
   ans = (bl->find(p) < bl->size());
   release_leaf(bl);
 
-  TPLOG("Kdtree::find Exiting ans="<<ans<<"\n"); 
+  TPLOG("AMI_kdtree::find Exiting ans="<<ans<<"\n"); 
   return ans;
 }
 
-//// *Kdtree::insert* ////
+//// *AMI_kdtree::insert* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-bool KDTREE::insert(const POINT& p) {
-  TPLOG("Kdtree::insert Entering "<<"\n");
+bool AMI_KDTREE::insert(const POINT& p) {
+  TPLOG("AMI_kdtree::insert Entering "<<"\n");
   bool ans = false;
-  KDTREE_LEAF* bl = fetch_leaf(find_leaf(p));
+  AMI_KDTREE_LEAF* bl = fetch_leaf(find_leaf(p));
 
   if (bl->size() == params_.leaf_size_max)
     ans =  false;
@@ -2330,63 +2330,63 @@ bool KDTREE::insert(const POINT& p) {
 
   // TODO: update the weights of all nodes on the path!
 
-  TPLOG("Kdtree::insert Exiting "<<"\n");
+  TPLOG("AMI_kdtree::insert Exiting "<<"\n");
   return ans;
 }
 
-//// *Kdtree::erase* ////
+//// *AMI_kdtree::erase* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-bool KDTREE::erase(const POINT& p) {
-  TPLOG("Kdtree::erase Entering "<<"\n");
+bool AMI_KDTREE::erase(const POINT& p) {
+  TPLOG("AMI_kdtree::erase Entering "<<"\n");
   bool ans;
 
-  KDTREE_LEAF* bl = fetch_leaf(find_leaf(p));
+  AMI_KDTREE_LEAF* bl = fetch_leaf(find_leaf(p));
   if (ans = bl->erase(p))
     header_.size--;
   release_leaf(bl);
 
-  TPLOG("Kdtree::erase Exiting "<<"\n");
+  TPLOG("AMI_kdtree::erase Exiting "<<"\n");
   return ans;
 }
 
-//// *Kdtree::persist* ////
+//// *AMI_kdtree::persist* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-void KDTREE::persist(persistence per) {
-  TPLOG("Kdtree::persist Entering "<<"\n");
+void AMI_KDTREE::persist(persistence per) {
+  TPLOG("AMI_kdtree::persist Entering "<<"\n");
 
   pcoll_leaves_->persist(per);
   pcoll_nodes_->persist(per);
 
-  TPLOG("Kdtree::persist Exiting "<<"\n");
+  TPLOG("AMI_kdtree::persist Exiting "<<"\n");
 }
 
-//// *Kdtree::fetch_node* ////
+//// *AMI_kdtree::fetch_node* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-KDTREE_NODE* KDTREE::fetch_node(AMI_bid bid) {
-  KDTREE_NODE* q;
+AMI_KDTREE_NODE* AMI_KDTREE::fetch_node(AMI_bid bid) {
+  AMI_KDTREE_NODE* q;
   stats_.record(NODE_FETCH);
   // Warning: using short-circuit evaluation. Order is important.
   if ((bid == 0) || !node_cache_->read(bid, q)) {
-    q = new KDTREE_NODE(pcoll_nodes_, bid);
+    q = new AMI_KDTREE_NODE(pcoll_nodes_, bid);
   }
   return q;
 }
 
-//// *Kdtree::fetch_leaf* ////
+//// *AMI_kdtree::fetch_leaf* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-KDTREE_LEAF* KDTREE::fetch_leaf(AMI_bid bid) {
-  KDTREE_LEAF* q;
+AMI_KDTREE_LEAF* AMI_KDTREE::fetch_leaf(AMI_bid bid) {
+  AMI_KDTREE_LEAF* q;
   stats_.record(LEAF_FETCH);
   // Warning: using short-circuit evaluation. Order is important.
   if ((bid == 0) || !leaf_cache_->read(bid, q)) {
-    q = new KDTREE_LEAF(pcoll_leaves_, bid);
+    q = new AMI_KDTREE_LEAF(pcoll_leaves_, bid);
   }
   return q;
 }
 
-//// *Kdtree::release_node* ////
+//// *AMI_kdtree::release_node* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-void KDTREE::release_node(KDTREE_NODE* q) {
+void AMI_KDTREE::release_node(AMI_KDTREE_NODE* q) {
   stats_.record(NODE_RELEASE);
   if (q->persist() == PERSIST_DELETE)
     delete q;
@@ -2394,9 +2394,9 @@ void KDTREE::release_node(KDTREE_NODE* q) {
     node_cache_->write(q->bid(), q);
 }
 
-//// *Kdtree::release_leaf* ////
+//// *AMI_kdtree::release_leaf* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-void KDTREE::release_leaf(KDTREE_LEAF* q) {
+void AMI_KDTREE::release_leaf(AMI_KDTREE_LEAF* q) {
   stats_.record(LEAF_RELEASE);
   if (q->persist() == PERSIST_DELETE)
     delete q;
@@ -2404,9 +2404,9 @@ void KDTREE::release_leaf(KDTREE_LEAF* q) {
     leaf_cache_->write(q->bid(), q);
 }
 
-//// *Kdtree::stats* ////
+//// *AMI_kdtree::stats* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-const tpie_stats_tree &KDTREE::stats() {
+const tpie_stats_tree &AMI_KDTREE::stats() {
   node_cache_->flush();
   leaf_cache_->flush();
   stats_.set(LEAF_READ, pcoll_leaves_->stats().get(BLOCK_GET));
@@ -2422,12 +2422,12 @@ const tpie_stats_tree &KDTREE::stats() {
   return stats_;
 }
 
-//// *Kdtree::print* ////
+//// *AMI_kdtree::print* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-void KDTREE::print(ostream& s) {
-  s << "Kdtree nodes: ";
+void AMI_KDTREE::print(ostream& s) {
+  s << "AMI_kdtree nodes: ";
   if (header_.root_type == BLOCK_NODE) {
-    KDTREE_NODE* bn;
+    AMI_KDTREE_NODE* bn;
     queue<AMI_bid> xq; //  external queue; stores node id's
     queue<size_t> iq; // internal queue;
     size_t i, idx, fo;
@@ -2482,12 +2482,12 @@ void KDTREE::print(ostream& s) {
   s << "\n";
 }
 
-//// *Kdtree::~Kdtree* ////
+//// *AMI_kdtree::~AMI_kdtree* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-KDTREE::~Kdtree() {
-  TPLOG("Kdtree::~Kdtree Entering status="<<status_<<"\n");
+AMI_KDTREE::~AMI_kdtree() {
+  TPLOG("AMI_kdtree::~AMI_kdtree Entering status="<<status_<<"\n");
 
-  if (status_ == KDTREE_STATUS_VALID) {
+  if (status_ == AMI_KDTREE_STATUS_VALID) {
     // Write initialization info into the pcoll_nodes_ header.
     //    *((header_type *) pcoll_nodes_->user_data()) = header_;
     memcpy(pcoll_nodes_->user_data(), (void *)(&header_), sizeof(header_));
@@ -2504,17 +2504,17 @@ KDTREE::~Kdtree() {
   delete pcoll_nodes_;
   delete pcoll_leaves_;
 
-  TPLOG("Kdtree::~Kdtree Exiting status="<<status_<<"\n");
+  TPLOG("AMI_kdtree::~AMI_kdtree Exiting status="<<status_<<"\n");
 }
 
 
 /////////////////////////////////////////
-/////////// **Kdtree::grid** ////////////
+/////////// **AMI_kdtree::grid** ////////////
 /////////////////////////////////////////
 
-//// *Kdtree::grid::grid* ////
+//// *AMI_kdtree::grid::grid* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-KDTREE::grid::grid(size_t t_all, POINT_STREAM** in_streams) {
+AMI_KDTREE::grid::grid(size_t t_all, POINT_STREAM** in_streams) {
 
   streams = in_streams;
   
@@ -2550,9 +2550,9 @@ KDTREE::grid::grid(size_t t_all, POINT_STREAM** in_streams) {
   }
 }
 
-//// *Kdtree::grid::~grid* ////
+//// *AMI_kdtree::grid::~grid* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-KDTREE::grid::~grid() {
+AMI_KDTREE::grid::~grid() {
   size_t i;
   for (i = 0; i < dim; i++) {
     delete [] l[i];
@@ -2562,9 +2562,9 @@ KDTREE::grid::~grid() {
   //  assert(q.size() == 0);
 }
 
-//// *Kdtree::grid::create_matrix* ////
+//// *AMI_kdtree::grid::create_matrix* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-typename KDTREE::grid_matrix* KDTREE::grid::create_matrix() {
+typename AMI_KDTREE::grid_matrix* AMI_KDTREE::grid::create_matrix() {
 
   size_t i, j;
   AMI_err err;
@@ -2637,12 +2637,12 @@ typename KDTREE::grid_matrix* KDTREE::grid::create_matrix() {
 
 
 /////////////////////////////////////////
-//////// **Kdtree::grid_matrix** ////////
+//////// **AMI_kdtree::grid_matrix** ////////
 /////////////////////////////////////////
 
-//// *Kdtree::grid_matrix::grid_matrix* ////
+//// *AMI_kdtree::grid_matrix::grid_matrix* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-KDTREE::grid_matrix::grid_matrix(const grid_matrix& x) {
+AMI_KDTREE::grid_matrix::grid_matrix(const grid_matrix& x) {
   size_t i;
   sz = 1;
   for (i = 0; i < dim; i++) {
@@ -2656,9 +2656,9 @@ KDTREE::grid_matrix::grid_matrix(const grid_matrix& x) {
   c = NULL;
 }
 
-//// *Kdtree::grid_matrix::grid_matrix* ////
+//// *AMI_kdtree::grid_matrix::grid_matrix* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-KDTREE::grid_matrix::grid_matrix(size_t* tt, grid *gg) {
+AMI_KDTREE::grid_matrix::grid_matrix(size_t* tt, grid *gg) {
   size_t i;
   sz = 1;
   for (i = 0; i < dim; i++) {
@@ -2673,9 +2673,9 @@ KDTREE::grid_matrix::grid_matrix(size_t* tt, grid *gg) {
   c = NULL;
 }
 
-//// *Kdtree::grid_matrix::split* ////
+//// *AMI_kdtree::grid_matrix::split* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-typename KDTREE::grid_matrix* KDTREE::grid_matrix::split(size_t s, const POINT& p, size_t d) {
+typename AMI_KDTREE::grid_matrix* AMI_KDTREE::grid_matrix::split(size_t s, const POINT& p, size_t d) {
   TPLOG("  ::grid_matrix::split Entering\n");
 
   assert(d < dim);
@@ -2830,9 +2830,9 @@ typename KDTREE::grid_matrix* KDTREE::grid_matrix::split(size_t s, const POINT& 
   return gmx;
 }
 
-//// *Kdtree::grid_matrix::find_median_and_split* ////
+//// *AMI_kdtree::grid_matrix::find_median_and_split* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-typename KDTREE::grid_matrix* KDTREE::grid_matrix::find_median_and_split(POINT& p, size_t d, size_t median_pos) {
+typename AMI_KDTREE::grid_matrix* AMI_KDTREE::grid_matrix::find_median_and_split(POINT& p, size_t d, size_t median_pos) {
   TPLOG("  ::grid_matrix::find_median_and_split Entering dim="<<d<<"\n");
   size_t s = 0, acc = 0, i;
   grid_matrix* gmx;
@@ -2936,9 +2936,9 @@ typename KDTREE::grid_matrix* KDTREE::grid_matrix::find_median_and_split(POINT& 
   return gmx;
 }
 
-//// *Kdtree::grid_matrix::is_inside* ////
+//// *AMI_kdtree::grid_matrix::is_inside* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-bool KDTREE::grid_matrix::is_inside(const POINT& p) {
+bool AMI_KDTREE::grid_matrix::is_inside(const POINT& p) {
   bool ans = true;
   size_t i;
   for (i = 0; i < dim; i++) {
@@ -2963,15 +2963,15 @@ bool KDTREE::grid_matrix::is_inside(const POINT& p) {
   return ans;
 }
 
-//// *Kdtree::grid_matrix::~grid_matrix* ////
+//// *AMI_kdtree::grid_matrix::~grid_matrix* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-KDTREE::grid_matrix::~grid_matrix() {
+AMI_KDTREE::grid_matrix::~grid_matrix() {
   delete [] c;
 }
 
-//// *Kdtree::create_sample* ////
+//// *AMI_kdtree::create_sample* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-void KDTREE::create_sample(AMI_bid& bid, size_t d, POINT_STREAM* in_stream) {
+void AMI_KDTREE::create_sample(AMI_bid& bid, size_t d, POINT_STREAM* in_stream) {
 
   // New sample.
   DBG("  Sampling [" << 20000 << " (random seek + read)]...\n");
@@ -3002,13 +3002,13 @@ void KDTREE::create_sample(AMI_bid& bid, size_t d, POINT_STREAM* in_stream) {
   delete gso;
 }
 
-//// *Kdtree::build_lower_tree_s* ////
+//// *AMI_kdtree::build_lower_tree_s* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-void KDTREE::build_lower_tree_s(sample* s) {
+void AMI_KDTREE::build_lower_tree_s(sample* s) {
   sample_context* sc;
   size_t i, j;
   POINT* p;
-  KDTREE_NODE* b;
+  AMI_KDTREE_NODE* b;
   size_t next_free_el, next_free_lk, sz;
   POINT* streams_mm[dim];
 
@@ -3025,7 +3025,7 @@ void KDTREE::build_lower_tree_s(sample* s) {
     sc->stream = new POINT_STREAM(sc->stream_name);
     sc->stream->persist(PERSIST_DELETE);
     if (!sc->stream->is_valid()) {
-      std::cerr << "Kdtree bulk loading internal error.\n"
+      std::cerr << "AMI_kdtree bulk loading internal error.\n"
 	   << "[invalid stream restored from file]\n";
       std::cerr << "Skipping.\n";
       delete sc->stream;
@@ -3092,11 +3092,11 @@ void KDTREE::build_lower_tree_s(sample* s) {
   }
 }
 
-//// *Kdtree::distribute_s* ////
+//// *AMI_kdtree::distribute_s* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-void KDTREE::distribute_s(AMI_bid bid, size_t d, sample* s) {
+void AMI_KDTREE::distribute_s(AMI_bid bid, size_t d, sample* s) {
 
-  KDTREE_NODE* n, *r = fetch_node(bid);
+  AMI_KDTREE_NODE* n, *r = fetch_node(bid);
   AMI_bid nbid;
   POINT* p;
   pair<size_t, Node_type> a;
@@ -3143,9 +3143,9 @@ void KDTREE::distribute_s(AMI_bid bid, size_t d, sample* s) {
   }
 }
 
-//// *Kdtree::sample::sample* ////
+//// *AMI_kdtree::sample::sample* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-KDTREE::sample::sample(size_t _sz, POINT_STREAM* _in_stream) {
+AMI_KDTREE::sample::sample(size_t _sz, POINT_STREAM* _in_stream) {
   
 #define MAX_RANDOM ((double)0x7fffffff)
 
@@ -3208,19 +3208,25 @@ KDTREE::sample::sample(size_t _sz, POINT_STREAM* _in_stream) {
   }
 }
 
-//// *Kdtree::sample::~sample* ////
+//// *AMI_kdtree::sample::~sample* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-KDTREE::sample::~sample() {
+AMI_KDTREE::sample::~sample() {
   cleanup();
 }
 
-//// *Kdtree::sample::cleanup* ////
+//// *AMI_kdtree::sample::cleanup* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-void KDTREE::sample::cleanup() {
+void AMI_KDTREE::sample::cleanup() {
   for (size_t i = 0; i < dim; i++) {
     delete [] mm_streams[i];
     mm_streams[i] = NULL;
   }
 }
 
-#endif //_KDTREE_H
+#undef AMI_KDTREE_LEAF
+#undef AMI_KDTREE_NODE
+#undef AMI_KDTREE     
+#undef POINT       
+#undef POINT_STREAM
+
+#endif //_AMI_KDTREE_H
