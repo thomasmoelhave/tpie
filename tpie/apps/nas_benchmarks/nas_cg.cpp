@@ -5,20 +5,6 @@
 // Created: 3/23/95
 //
 
-static char nas_cg_id[] = "$Id: nas_cg.cpp,v 1.2 1999-02-03 21:57:23 tavi Exp $";
-
-// This is just to avoid an error message since the string above is never
-// referenced.  Note that a self referential structure must be defined to
-// avoid passing the problem further.
-static struct ___nas_cg_id_compiler_fooler {
-    char *pc;
-    ___nas_cg_id_compiler_fooler *next;
-} the___nas_cg_id_compiler_fooler = {
-    nas_cg_id,
-    &the___nas_cg_id_compiler_fooler
-};
-
-
 // From the benchmark specification.
 #define PROBLEM_SIZE 1400
 #define NITER 15
@@ -40,6 +26,7 @@ static struct ___nas_cg_id_compiler_fooler {
 
 // Define it all.
 #include <ami.h>
+VERSION(nas_cg_cpp,"$Id: nas_cg.cpp,v 1.3 2000-01-11 01:55:04 hutchins Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -254,8 +241,6 @@ void parse_app_opt(char c, char *optarg)
 }
 
 
-extern int register_new;
-
 int main(int argc, char **argv)
 {
     unsigned int n;
@@ -267,8 +252,7 @@ int main(int argc, char **argv)
     parse_args(argc,argv,as_opts,parse_app_opt);
 
     // Set the amount of main memory:
-    MM_manager.resize_heap(test_mm_size);
-    register_new = 1;
+    MM_manager.set_memory_limit (test_mm_size);
 
     n = problem_size;
     

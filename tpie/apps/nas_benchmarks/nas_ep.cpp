@@ -5,22 +5,8 @@
 // Created: 3/22/95
 //
 
-static char nas_ep_id[] = "$Id: nas_ep.cpp,v 1.5 1999-02-03 21:58:16 tavi Exp $";
-
-// This is just to avoid an error message since the string above is never
-// referenced.  Note that a self referential structure must be defined to
-// avoid passing the problem further.
-static struct ___nas_ep_id_compiler_fooler {
-    char *pc;
-    ___nas_ep_id_compiler_fooler *next;
-} the___nas_ep_id_compiler_fooler = {
-    nas_ep_id,
-    &the___nas_ep_id_compiler_fooler
-};
-
 #include <iostream.h>
 #include <fstream.h>
-
 
 // Get information on the configuration to test.
 #include "app_config.h"
@@ -28,6 +14,7 @@ static struct ___nas_ep_id_compiler_fooler {
 
 // Define it all.
 #include <ami.h>
+VERSION(nas_ep_cpp,"$Id: nas_ep.cpp,v 1.6 2000-01-11 01:51:09 hutchins Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -250,8 +237,6 @@ void parse_app_opt(char c, char *optarg)
 }
 
 
-extern int register_new;
-
 int main(int argc, char **argv)
 {
     cpu_timer cput;
@@ -286,8 +271,7 @@ int main(int argc, char **argv)
     }
 
     // Set the amount of main memory:
-    MM_manager.resize_heap(test_mm_size);
-    register_new = 1;
+    MM_manager.set_memory_limit (test_mm_size);
         
     AMI_STREAM<double> amis_r;
 
