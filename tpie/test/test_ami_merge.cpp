@@ -5,7 +5,7 @@
 // Created: 6/2/94
 //
 
-static char test_ami_merge_id[] = "$Id: test_ami_merge.cpp,v 1.3 1994-10-07 15:39:07 darrenv Exp $";
+static char test_ami_merge_id[] = "$Id: test_ami_merge.cpp,v 1.4 1994-10-11 12:54:24 dev Exp $";
 
 // This is just to avoid an error message since the string above is never
 // refereneced.  Note that a self referential structure must be defined to
@@ -19,6 +19,7 @@ static struct ___test_ami_merge_id_compiler_fooler {
 };
 
 #include <iostream.h>
+#include <fstream.h>
 
 #include "app_config.h"        
 #include "parse_args.h"
@@ -100,9 +101,9 @@ int main(int argc, char **argv)
     ofstream *osc;
     ofstream *osi;
     ofstream *osf;
-    cxx_ostream_scan<int> *rptc;
-    cxx_ostream_scan<int> *rpti;
-    cxx_ostream_scan<int> *rptf;
+    cxx_ostream_scan<int> *rptc = NULL;
+    cxx_ostream_scan<int> *rpti = NULL;
+    cxx_ostream_scan<int> *rptf = NULL;
     
     if (report_results_count) {
         osc = new ofstream(count_results_filename);
