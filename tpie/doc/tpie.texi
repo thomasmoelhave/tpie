@@ -1,3 +1,4 @@
+\input texinfo   @c -*-texinfo-*-
 @c
 @c Copyright (c) 1994 Darren Vengroff
 @c
@@ -5,9 +6,8 @@
 @c Author: Darren Vengroff <darrenv@eecs.umich.edu>
 @c Created: 12/9/94
 @c
-@c $Id: tpie.texi,v 1.1 1994-12-09 20:51:24 darrenv Exp $
+@c $Id: tpie.texi,v 1.2 1994-12-16 21:09:48 darrenv Exp $
 @c
-\input texinfo   @c -*-texinfo-*-
 @comment %**start of header
 
 @setfilename tpie.info
@@ -28,13 +28,15 @@ END-INFO-DIR-ENTRY
 
 This file documents TPIE, A Transparent Parallel I/O Environment
 
+@today{}
+
 Copyright @copyright{} 1994 Darren Erik Vengroff
 
 This is a DRAFT version of this document, which is not intended for
 redistribution. 
 
 Permission will be granted to copy and distribute a future version of
-this manual for non-commercial use.
+this manual under the terms of the GNU public license, version 2.
 @end ifinfo
 
 @comment Un-comment the next line to get the GNU small book format.
@@ -48,17 +50,19 @@ this manual for non-commercial use.
 @vskip 0pt plus 1filll
 Copyright @copyright{} 1994 Darren Erik Vengroff
 
+@today{}
+
 This is a DRAFT version of this document, which is not intended for
 redistribution. 
 
 Permission will be granted to copy and distribute a future version of
-this manual for non-commercial use.
+this manual under the terms of the GNU public license, version 2.
 
 @c If we are producing html, sneak the copyright notice in as part of
 @c the author's name so that it goes onto the table of contents page.
 
 @ifset html
-@author by Darren Erik Vengroff <P> <P> <P> Copyright @copyright{} 1994 Darren Erik Vengroff<P>This is a DRAFT version of this document, which is not intended for redistribution.<P>Permission will be granted to copy and distribute a future version of this manual for non-commercial use.
+@author by Darren Erik Vengroff <P> <P> <P> Copyright @copyright{} 1994 Darren Erik Vengroff<P>@today{}<P>This is a DRAFT version of this document, which is not intended for redistribution.<P>Permission will be granted to copy and distribute a future version of this manual under the terms of the GNU public license, version 2.
 @end ifset
 @end titlepage
 
@@ -67,16 +71,26 @@ this manual for non-commercial use.
 
 @menu
 * Overview::		        What is TPIE and what is it good for?
-* Installing TPIE::             How to obtain and install TPIE.
+* Obtaining and Installing TPIE::
+                                How to obtain and install TPIE.
 * Tutorial::                    A step by step introduction to TPIE.
 * AMI Reference::               Detailed description of the AMI.
 * Implementation::              The design and implementation of TPIE
 * Examples::                    Code to solve real problems with TPIE.
 
+* Acknowledgements::            Thanks to everyone who contributed.
+
 * Function Index::              Index of TPIE functions.
 * Concept Index::               Index of concepts in the manual.
 
  --- The Detailed Node Listing ---
+
+Installing TPIE
+
+* Licensing::                   The terms under which TPIE is distributed.
+* Where to get TPIE::           How to get the source code to TPIE.
+* Prerequisites::               What you need to build TPIE from sources.
+* Installation::                How to build and install TPIE.
 
 Tutorial
 
@@ -84,33 +98,32 @@ Tutorial
 
 Scanning
 
-* Basic Scanning::              Using @code{AMI_scan()}
+* Basic Scanning::              Using @code{AMI_scan()}.
 * ASCII Input/Output::          I/O between streams and human readable files.
 * Multi-Type Scanning::         Scanning streams of different types.
 * Out of Step Scanning::        An advanced scanning technique.
 
 Multi-stream Operations
 
-* Merging::                     Using @code{AMI_merge()}
+* Merging::                     Using @code{AMI_merge()}.
 * Implementing mergesort::      An extended example.
-* Distribution::                Using @code{AMI_distribute()}
+* Distribution::                Using @code{AMI_distribute()}.
 
 Permuting and Sorting
 
-* General Permuting::           Using @code{AMI_general permute()}
-* Bit Permuting::               Using @code{AMI_BMMC_permute()}
-* Sorting::                     Using @code{AMI_sort()}
+* General Permuting::           Using @code{AMI_general permute()}.
+* Bit Permuting::               Using @code{AMI_BMMC_permute()}.
+* Sorting::                     Using @code{AMI_sort()}.
 
 AMI Reference
 
 * AMI Streams::                 Streams of data.
-* AMI Operation Managers::      Operation Managers
-* AMI Entry Points::            Entry Points
+* AMI Operation Managers::      Operation Managers.
+* AMI Entry Points::            Entry Points.
 
 AMI Entry Points
 
 * AMI_scan()::                  Scan, select, and/or transform stream(s).
-* AMI_single_merge()::          
 * AMI_partition_and_merge()::   Partition and then merge sub-streams.
 * AMI_general_permute()::          
 * AMI_sort()::                  Sort objects in a stream.
@@ -128,7 +141,7 @@ Examples
 * List-Ranking::                Based on an algorithm from SODA '95
 @end menu
 
-@node    Overview, Installing TPIE, Top, Top
+@node    Overview, Obtaining and Installing TPIE, Top, Top
 @comment  node-name,  next,  previous,  up
 @chapter Overview
 @cindex Overview
@@ -176,43 +189,159 @@ the following simultaneously:
 Talk about C++ implementation and mention some C++ books.
 
 
-@node Installing TPIE, Tutorial, Overview, Top
+@node Obtaining and Installing TPIE, Tutorial, Overview, Top
 @comment  node-name,  next,  previous,  up
 @chapter Installing TPIE
-@cindex Installation
-
-This is how to obtain and install TPIE.
+@cindex Obtaining and Installing TPIE
 
 
+@menu
+* Licensing::                   The terms under which TPIE is distributed
+* Where to get TPIE::           How to get the source code to TPIE
+* Prerequisites::               What you need to build TPIE from sources
+* Installation::                How to build and install TPIE
+@end menu
 
-@node Tutorial, AMI Reference, Installing TPIE, Top
+@node Licensing, Where to get TPIE, Obtaining and Installing TPIE, Obtaining and Installing TPIE
+@comment  node-name,  next,  previous,  up
+@section Licensing
+
+Once TPIE enters beta testing it will be made available to all under
+the terms of the GNU general public license, version 2.
+
+For now it is being made available to alpha testers with NO WARRANTEE
+whatsoever.
+
+@node Where to get TPIE, Prerequisites, Licensing, Obtaining and Installing TPIE
+@comment  node-name,  next,  previous,  up
+@section Where to get TPIE
+
+TPIE is currently available to alpha testers.  If you would like to be
+a tester, please send email to @code{dev@@cs.duke.edu} to make
+arrangements to receive a copy.  Once TPIE enters beta testing it will
+be make generally available under the terms of the GNU general public
+license, version 2.
+
+@node Prerequisites, Installation, Where to get TPIE, Obtaining and Installing TPIE
+@comment  node-name,  next,  previous,  up
+@section Prerequisites
+
+@cindex GNU software
+
+TPIE relies heavily on GNU software distributed by the Free Software
+Foundation.  In particular, programs and library listed below are
+required.  Note that version numbers indicate the versions used in the
+development of TPIE version 0.5a.  Later versions of the GNU tools
+should work as well, though no guarantees can be made about earlier
+versions.  This is particularly true of @code{g++}.  If you already
+have the required programs but are not sure what version they are, try
+invoking each with the single command line argument @code{--version}.
+
+@table @code
+@item g++
+The GNU C++ compiler, version 2.6.3.  This is distributed as part of @code{gcc}, the GNU C compiler.
+@item libg++
+The GNU C++ library, version 2.6.  This is not a program, but rather run-time support for programs compiled with @code{g++}.  It is distributed separately from @code{g++}, but if you have one you probably have the other.
+@item make 
+The GNU Make utility, version 3.71
+@item gzip
+The GNU compression/decompression utility, version 1.2.4.  This is needed to uncompress the TPIE distribution.
+@item tar 
+The GNU tape archive utility, version 1.11.2.  This is needed to extract the components of the TPIE package from the source distribution.
+@end table
+
+For information on where and how to obtain GNU software via FTP,
+@ifset html
+click <A HREF="ftp://prep.ai.mit.edu:/pub/gnu/GNUinfo/FTP">here</A>.
+@end ifset
+@ifclear html
+connect to the machine @code{prep.ai.mit.edu} via anonymous FTP, and consult the file @file{/pub/gnu/GNUinfo/FTP}.
+@end ifclear
+For a variety of information about GNU software and how it is written
+and distributed, 
+@ifset html
+click <A HREF="ftp://prep.ai.mit.edu:/pub/gnu/GNUinfo">here</A>.
+@end ifset
+@ifclear html
+consult the various other files in the directory
+@file{/pub/gnu/GNUinfo/} on @code{prep}.
+@end ifclear
+ 
+@node Installation,  , Prerequisites, Obtaining and Installing TPIE
+@comment  node-name,  next,  previous,  up
+@section Installation
+
+Once you have obtained the source distribution file
+@file{tpie.tar.gz}, you must decide where to install it.
+@file{/usr/local/} is a typical place.
+
+Place @file{tpie.tar.gz} in the directory in which TPIE is to be
+installed, and execute the command
+
+@smallexample
+tar czf tpie.tar.gz
+@end smallexample
+
+This will produce a directory @file{tpie} with subdirectories
+@file{inc}, @file{lib}, @file{test}, and @file{apps}.  Enter the 
+directory @file{tpie}.  You must now configure TPIE for your
+particular system.  To do this, use the command
+
+@smallexample
+./configure
+@end smallexample
+
+The configuration program will take some time to examine the
+parameters of your system.  Once it has done so, it will produce the
+various makefiles and configuration files required to build TPIE on
+your system.  When this is done, simply type
+
+@smallexample
+make all
+@end smallexample
+
+to build the complete TPIE system.  This will build the following
+components:
+
+@table @code
+@item inc
+The TPIE header files.
+@item lib
+The TPIE library.  This is relatively small, as most of the TPIE system remains in the form of templated header files.
+@item test
+A series of test applications designed to verify that TPIE is operating correctly.  This directory also includes the code to examples in this document.  @xref{Examples}
+@item doc
+Complete documentation for TPIE, consisting of the document you are
+reading right now in three formats: info for viewing on-line in GNU
+Emacs; HTML for viewing with Mosaic and similar programs; and DVI and
+Postscript(TM) for printing.
+@end table
+
+Alternatively, individual components can be built one at a time.  For
+example, to build only the header files, type 
+
+@smallexample
+make inc
+@end smallexample
+
+@node Tutorial, AMI Reference, Obtaining and Installing TPIE, Top
 @comment  node-name,  next,  previous,  up
 @chapter Tutorial
 @cindex Tutorial
 
 @menu
-Basic Concepts
-
 * Basic Concepts::              Basic concepts of TPIE.
-
-Scanning
-
-* Basic Scanning::              Using @code{AMI_scan()}
+* Basic Scanning::              Using @code{AMI_scan()}.
 * ASCII Input/Output::          I/O between streams and human readable files.
 * Multi-Type Scanning::         Scanning streams of different types.
 * Out of Step Scanning::        An advanced scanning technique.
-
-Multi-stream Operations
-
-* Merging::                     Using @code{AMI_merge()}
+* Merging::                     Using @code{AMI_merge()}.
 * Implementing mergesort::      An extended example.
-* Distribution::                Using @code{AMI_distribute()}
-
-Permuting and Sorting
-
-* General Permuting::           Using @code{AMI_general permute()}
-* Bit Permuting::               Using @code{AMI_BMMC_permute()}
-* Sorting::                     Using @code{AMI_sort()}
+* Distribution::                Using @code{AMI_distribute()}.
+* General Permuting::           Using @code{AMI_general permute()}.
+* Bit Permuting::               Using @code{AMI_BMMC_permute()}.
+* Sorting::                     Using @code{AMI_sort()}.
+* Basic Matrix Operations::     Matrix arithmetic.
 @end menu
 
 @node Basic Concepts, Basic Scanning, Tutorial, Tutorial
@@ -943,28 +1072,43 @@ always takes as long as sorting, regardless of whether the particular
 permutation can be done more quickly or not.
 
 General permutations are routed using the function
-@code{AMI_general_permute()}.  Unlike other AMI functions, 
-@code{AMI_general_permute()} does not require an operation management
-object.  Instead, it relies on a bijective function that maps from one offset 
-to another to route the permutation.  For example, if we wanted to
-route a permutation that reversed the order of a stream of @var{n}
-objects, then we would use the function @var{f(x) = n - 1 - x}.  Note
-that offsets are 0-based.  Here is an example of how the order
-reversing permutation would be implemented in TPIE:
+@code{AMI_general_permute()}.  Like other AMI functions,
+@code{AMI_general_permute()} relies on an operation management object
+to determine its precise behavior.  Unlike functions covered up to
+now, however, the type of the operation management object need not
+depend on the type of object in the stream being permuted.
+
+A general permutation management object must provide two member
+functions, @code{initialize()} and @code{destination}.
+@code{initialize()} is called to inform the general permutation object
+of the length of the stream to be permuted.  @code{destination()} is
+then called repeatedly to determine the destination for each object in
+the stream based on it's initial position.
+
+Here is an example of using general permutation to reverse the order
+of the items in a stream.
 
 @smallexample
-off_t reverse_order(CONST off_t source)
-@{
-    // N is the size of the stream.
-    return N - 1 - source;
-@}
+class reverse_order : public AMI_gen_perm_object @{
+private:
+    off_t total_size;
+public:
+    AMI_error initialize(off_t ts) @{ 
+        total_size = ts; 
+        return AMI_ERROR_NO_ERROR;
+    @};
+    off_t destination(off_t source) @{
+        return total_size - 1 - source;
+    @};
+@};
 
-AMI_STREAM<int> amis0;
-AMI_STREAM<int> amis1;
+AMI_STREAM<int> amis0, amis1;    
 
 void f()
 @{
-    AMI_general_permute(&amis0, &amis1, reverse_order);
+    reverse_order ro;
+
+    AMI_general_permute(&amis0, &amis1, (AMI_gen_perm_object *)&ro);
 @}
 @end smallexample
 
@@ -977,7 +1121,7 @@ Bit permuting is on temporary hold pending a fix to eliminate a bug in
 the compiler.  Once the bug is fixed, bit permuting will be
 implemented in short order.
 
-@node Sorting,  , Bit Permuting, Tutorial
+@node Sorting, Basic Matrix Operations, Bit Permuting, Tutorial
 @comment  node-name,  next,  previous,  up
 @section Sorting
 @cindex Sorting
@@ -986,12 +1130,12 @@ Sorting is a common primitive operation in many algorithms.  It can be
 performed in a variety of ways, such as by merging (@pxref{Merging}),
 distribution (@pxref{Distribution}), and Aggarwal and Plaxton's
 Sharesort, which combines elements of both along with simple bit
-permutations (@pxref{Bit Permuting}).  Becasue the best choice of
+permutations (@pxref{Bit Permuting}).  Because the best choice of
 sorting algorithm varies from one I/O system to the next, TPIE
 provides a single function @code{AMI_sort()}, which selects an
-appropriate algorithm based on the underlying hardware charateristics.
+appropriate algorithm based on the underlying hardware characteristics.
 
-@code{AMI_sort()} has two polymorhs.  The first works on streams of
+@code{AMI_sort()} has two polymorphs.  The first works on streams of
 objects for which the operator @code{<} is defined.  It is invoked as
 follows:
 
@@ -1043,6 +1187,78 @@ void f()
     AMI_sort(&instream, &outstream_im, compare_im);
 @}
 @end smallexample
+
+@node Basic Matrix Operations,  , Sorting, Tutorial
+@comment  node-name,  next,  previous,  up
+@section Basic Matrix Operations
+
+In addition to streams, which are linearly ordered collections of
+objects, the AMI provides a mechanism for storing large matrices in
+external memory.  Matrices are a subclass of streams, and thus can be
+used with any of the stream operations discussed above.  When a matrix
+is treated as a stream its elements appear in row major order.  In
+addition to stream operations, matrices support three simple
+arithmetic operations, addition, subtraction, and multiplication.
+
+It is assumed that the class @code{T} of the elements in a matrix
+forms a quasiring with the operators @code{+} and @code{*}.
+Furthermore, the object @code{T((int)0)} is assumed to be an identity
+for @code{+}.  At the moment, it is not assumed that the operator
+@code{-} in an inverse of @code{+}, and therefore no reduced
+complexity matrix multiplication algorithms analogous to Strassen's
+algorithm are used.
+
+Matrices can be filled using @code{AMI_scan()}, though typically they
+are filled using the function @code{AMI_matrix_fill()}, which uses a
+scan management object that is given the row and column of each
+element of the matrix and asked to fill them in.  In the following
+example, we create a 1000 by 1000 upper triangular matrix of ones and
+zeroes:
+
+@smallexample
+template<class T>
+class fill_upper_tri : public AMI_matrix_filler<T> @{
+    AMI_err initialize(unsigned int rows, unsigned int cols)
+    @{
+        return AMI_ERROR_NO_ERROR;
+    @};
+    T element(unsigned int row, unsigned int col)
+    @{
+        return (row <= col) ? T(1) : T(0);
+    @};
+@};
+
+AMI_matrix m(1000, 1000);
+
+void f()
+@{
+    fill_upper_tri<double> fut;
+
+    AMI_matrix_fill(&em, (AMI_matrix_filler<T> *)&fut);
+@}
+@end smallexample
+
+Arithmetic on matrices is performed in a straightforward way using the
+functions @code{AMI_matrix_add()}, @code{AMI_matrix_subtract()}, and
+@code{AMI_matrix_multiply()}, as is the following example:
+
+@smallexample
+AMI_matrix m0(1000, 500), m1(500, 2000), m2(1000, 2000);
+AMI_matrix m3(1000, 500), m4(1000, 500);
+
+void f()
+@{
+    // Add m3 to m4 and put the result in m0.
+    AMI_matrix_add(em3, em4, em0);
+   
+    // Multiply m0 by em1 to get m2.
+    AMI_matrix_mult(em0, em1, em2);
+
+    // Subtract m4 from m3 and put the result in m0.
+    AMI_matrix_subtract(em3, em4, em0);        
+@}
+@end smallexample
+
 
 @node AMI Reference, Implementation, Tutorial, Top
 @comment  node-name,  next,  previous,  up
@@ -1098,13 +1314,12 @@ This section describes all the AMI entry points.
 
 @menu
 * AMI_scan()::                  Scan, select, and/or transform stream(s).
-* AMI_single_merge()::          
 * AMI_partition_and_merge()::   Partition and then merge sub-streams.
 * AMI_general_permute()::          
 * AMI_sort()::                  Sort objects in a stream.
 @end menu
 
-@node    AMI_scan(), AMI_single_merge(), AMI Entry Points, AMI Entry Points
+@node    AMI_scan(), AMI_partition_and_merge(), AMI Entry Points, AMI Entry Points
 @comment  node-name,  next,  previous,  up
 @subsection AMI_scan()
 
@@ -1116,21 +1331,11 @@ output streams.  The second form does no scanning, it just produces
 output.  The third form scans input but produces no output.
 @end deftypefun
 
-@node AMI_single_merge(), AMI_partition_and_merge(), AMI_scan(), AMI Entry Points
-@comment  node-name,  next,  previous,  up
-@subsection AMI_single_merge()
-
-@deftypefun AMI_err AMI_single_merge (pp_AMI_bs<@var{T}> @var{instreams}, arity_t @var{arity}, AMI_base_stream<@var{T}> *@var{outstream}, @var{M} *\@var{m_obj})
-Scan the streams of objects pointed to by @var{instreams}, merging
-them as specified by @var{m_obj}, and write the output to
-*@var{outstream}.
-@end deftypefun
-
-@node AMI_partition_and_merge(), AMI_general_permute(), AMI_single_merge(), AMI Entry Points
+@node AMI_partition_and_merge(), AMI_general_permute(), AMI_scan(), AMI Entry Points
 @comment  node-name,  next,  previous,  up
 @subsection AMI_partition_and_merge()
 
-@deftypefun AMI_err AMI_partiton_and_merge (AMI_base_stream<@var{T}> *@var{instream}, AMI_base_stream<@var{T}> *@var{outstream}, @var{M} *\@var{m_obj})
+@deftypefun AMI_err AMI_partition_and_merge (AMI_base_stream<@var{T}> *@var{instream}, AMI_base_stream<@var{T}> *@var{outstream}, @var{M} *\@var{m_obj})
 The input stream is partitioned int as many sub-streams as is required
 to make them small enough to fit in main memory.  Each sub-stream is
 read in and processed by @var{m_obj->main_mem_operate()}.  They are
@@ -1289,7 +1494,7 @@ accomplish its task.
 Some comments on the current simple MM that we have and some OS issues
 that come up in attempting to make it more robust.
 
-@node Examples, Function Index, Implementation, Top
+@node Examples, Acknowledgements, Implementation, Top
 @comment  node-name,  next,  previous,  up
 @chapter Examples
 @cindex Examples
@@ -1394,17 +1599,17 @@ AMI_err random_flag_scan::operate(const edge &in, AMI_SCAN_FLAG *sfin,
 @}
 @end smallexample
 
-The next step of the algorithm is to seperate the edges into an active
+The next step of the algorithm is to separate the edges into an active
 list and a cancel list.  In order to do this, we sort one copy of the
 edges by their sources (using @code{edgefromcmp}) and sort another copy by
 their destinations (using @code{edgetocmp}).  We then call
 @code{AMI_scan()} to scan the two lists and produce an active list and
 a cancel list.  A scan management object of class
-@code{seperate_active_from_cancel}, which is defined below, is used.
+@code{separate_active_from_cancel}, which is defined below, is used.
 
 @smallexample
 ////////////////////////////////////////////////////////////////////////
-// seperate_active_from_cancel
+// separate_active_from_cancel
 //
 // A class of scan object that takes two edges, one to a node and one 
 // from it, and writes an active edge and possibly a canceled edge.
@@ -1421,21 +1626,21 @@ a cancel list.  A scan management object of class
 // is called, the expected size of the active list is 3/4 the size of the
 // original list.
 ////////////////////////////////////////////////////////////////////////
-class seperate_active_from_cancel : AMI_scan_object @{
+class separate_active_from_cancel : AMI_scan_object @{
 public:
     AMI_err initialize(void);
     AMI_err operate(CONST edge &e1, CONST edge &e2, AMI_SCAN_FLAG *sfin,
                     edge *active, edge *cancel, AMI_SCAN_FLAG *sfout);
 @};
 
-AMI_err seperate_active_from_cancel::initialize(void)
+AMI_err separate_active_from_cancel::initialize(void)
 @{
     return AMI_ERROR_NO_ERROR;
 @}
 
 // e1 is from the list of edges sorted by where they are from.
 // e2 is from the list of edges sorted by where they are to.
-AMI_err seperate_active_from_cancel::operate(CONST edge &e1,
+AMI_err separate_active_from_cancel::operate(CONST edge &e1,
                                              CONST edge &e2, 
                                              AMI_SCAN_FLAG *sfin,
                                              edge *active, edge *cancel, 
@@ -1665,7 +1870,7 @@ Finally, here is the actual function to rank the list.
 // list_rank()
 //
 // This is the actual recursive function that gets the job done.
-// We assume that all weigths are 1 when the initial call is made to
+// We assume that all weights are 1 when the initial call is made to
 // this function.
 //
 // Returns 0 on success, nonzero otherwise.
@@ -1690,7 +1895,7 @@ int list_rank(AMI_base_stream<edge> *istream, AMI_base_stream<edge> *ostream)
 
     // Scan/merge management objects.
     random_flag_scan my_random_flag_scan;
-    seperate_active_from_cancel my_seperate_active_from_cancel;
+    separate_active_from_cancel my_separate_active_from_cancel;
     strip_cancel_from_active my_strip_cancel_from_active;
     patch_active_cancel my_patch_active_cancel;
     
@@ -1734,7 +1939,7 @@ int list_rank(AMI_base_stream<edge> *istream, AMI_base_stream<edge> *ostream)
 
     ae = AMI_scan((AMI_base_stream<edge> *)edges_from_s,
                   (AMI_base_stream<edge> *)edges_rand,
-                  &my_seperate_active_from_cancel,
+                  &my_separate_active_from_cancel,
                   (AMI_base_stream<edge> *)active,
                   (AMI_base_stream<edge> *)cancel);
 
@@ -1783,7 +1988,8 @@ int list_rank(AMI_base_stream<edge> *istream, AMI_base_stream<edge> *ostream)
 
     delete ranked_active;
     
-    // Now merge the recursively ranked active list and the sorted cancel list.
+    // Now merge the recursively ranked active list and the sorted 
+    // cancel list.
 
     ae = AMI_scan((AMI_base_stream<edge> *)ranked_active_s,
                   (AMI_base_stream<edge> *)cancel_s,
@@ -1821,7 +2027,68 @@ int main_mem_list_rank(edge *edges, size_t count)
 @}
 @end smallexample
 
-@node Function Index, Concept Index, Examples, Top
+@node Acknowledgements, Function Index, Examples, Top
+@comment  node-name,  next,  previous,  up
+@unnumbered Acknowledgements
+
+The development of TPIE was supported in part by the National Science
+Foundation under grant CCR-9007851 and by the U.S. Army Research
+Office under grant DAAL03-91-G-0035.
+
+I would like to thank the following people for helpful discussions
+concerning algorithms and implementation techniques which influenced
+the development of TPIE: 
+@ifset html
+<A HREF="http://www.cs.duke.edu/~jsv/HomePage.html">Jeff Vitter</A>, 
+<A HREF="http://www.cs.duke.edu/cgi-bin/facinfo?efg">Eddie Grove</A>, 
+<A HREF="http://www.cs.brown.edu/people/rt/">Roberto Tamassia</A>, 
+<A HREF="http://www.cs.brown.edu/people/yjc/">Yi-Jen Chiang</A>, 
+<A HREF="http://www.cs.jhu.edu/goodrich/home.html">Mike Goodrich</A>, 
+Jyh-Jong Tsay, 
+<A HREF="http://www.daimi.aau.dk/~large/">Lars Arge</A>,
+<A HREF="http://www.cs.dartmouth.edu/faculty/cormen.html">Tom Cormen</A>, 
+Len Wisniewski, 
+Liddy Shriver,
+and 
+<A HREF="http://www.cs.dartmouth.edu/faculty/kotz.html">David Kotz</A>.
+@end ifset
+@ifclear html
+Jeff Vitter, Eddie Grove, Roberto Tamassia, Yi-Jen Chiang, Mike
+Goodrich, Jyh-Jong Tsay, Lars Arge, Tom Cormen, Len Wisniewski, Liddy Shriver,
+and David Kotz.
+@end ifclear
+
+I would also like to thank the following people and institutions for
+providing access to the hardware on which TPIE design and development
+are ongoing:
+@ifset html
+<A HREF="http://www.cs.brown.edu">Brown University Department of Computer Science</A>, 
+for Sun Sparc 10s running Solaris;
+<A HREF="http://www.cs.duke.edu">Duke University Department of Computer Science</A>, 
+for a variety of Sun workstations running SunOS and for DEC Alphas
+running OSF/1;
+Yale Patt and the ACAL Lab in the 
+<A HREF="http://www.eecs.umich.edu">Department of Electrical Engineering
+and Computer Science</A> at the University of Michigan, for a DEC
+Alpha running OSF/1 and for an HP 9000 running HP-UX;
+<A HREF="http://www.cs.dartmouth.edu/faculty/kotz.html">David Kotz</A>
+and the <A HREF="http://www.cs.dartmouth.edu">Dartmouth College
+Department of Computer Science</A>, for MIPS based DECstations
+running Ultrix. 
+@end ifset
+@ifclear html
+Brown University Dept. of Computer Science, for Sun Sparc 10s running
+Solaris; Duke University Department of Computer Science, for a variety
+of Sun workstations running SunOS and for a DEC Alpha running OSF/1;
+Yale Patt and the ACAL Lab in the Department of Electrical Engineering
+and Computer Science at the University of Michigan, for a DEC
+Alpha running OSF/1 and for an HP 9000 running HP-UX; David Kotz and the
+Dartmouth College Department of Computer Science, for MIPS based
+DECstations running Ultrix.
+@end ifclear
+
+
+@node Function Index, Concept Index, Acknowledgements, Top
 @comment    node-name,         next,       previous, up
 @unnumbered Function Index
 
@@ -1837,12 +2104,3 @@ int main_mem_list_rank(edge *edges, size_t count)
 @contents
 
 @bye
-
-
-
-
-
-
-
-
-
