@@ -3,7 +3,7 @@
 // File:    ami_logmethod.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_logmethod.h,v 1.6 2003-09-12 01:46:18 jan Exp $
+// $Id: ami_logmethod.h,v 1.7 2003-09-17 02:54:14 tavi Exp $
 //
 // Logmethod_base, Logmethod2 and LogmethodB declarations and
 // definitions.
@@ -12,16 +12,8 @@
 #ifndef _LOGMETHOD_H
 #define _LOGMETHOD_H
 
-// For open().
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-// For read(), write().
-#include <unistd.h>
-// For errno.
-#include <errno.h>
-// For strerror().
-#include <string.h>
+#include <portability.h>
+
 // For vector
 #include <vector>
 // For pair
@@ -110,7 +102,7 @@ protected:
   // The first tree.
   T0 *tree0_;
   // The vector of trees, in increasing size.
-  vector<T *> trees_;
+  vector< T* > trees_;
   // The base name of all trees.
   char base_file_name_[LM_PATH_NAME_LENGTH];
   // String used for constructing tree names.
@@ -171,15 +163,15 @@ LOGMETHOD_BASE::Logmethod_base(const char *base_file_name,
   mbr_is_set_ = false;
   strcpy(temp_name_, base_file_name_);
 
-  int fd; // file descriptor for the header file.
+  TPIE_OS_FILE_DESCRIPTOR fd; // file descriptor for the header file.
 
   // Try to open header file read-only.
-  if ((fd = open(base_file_name_,  O_RDONLY)) >= 0) {
-    if (read(fd, &header_, sizeof(header_)) != sizeof(header_)) {
+  if (TPIE_OS_IS_VALID_FILE_DESCRIPTOR(fd = TPIE_OS_OPEN_ORDONLY(base_file_name_))) {
+    if (TPIE_OS_READ(fd, &header_, sizeof(header_)) != sizeof(header_)) {
       LOG_WARNING_ID("Corrupt header file.");
       assert(0);
     }
-    close(fd);
+    TPIE_OS_CLOSE(fd);
 
     assert(header_.last_tree < 100);
     size_t i;
@@ -269,23 +261,37 @@ void LOGMETHOD_BASE::persist(persistence per) {
 //// *Logmethod_base::~Logmethod_base* ////
 template<class Key, class Value, class T, class Tp, class T0, class T0p>
 LOGMETHOD_BASE::~Logmethod_base() {
-  int fd;
+  TPIE_OS_FILE_DESCRIPTOR fd;
 
   if (per_ == PERSIST_PERSISTENT) {
     header_.last_tree = trees_.size() - 1;
     // Open the header file (create if not present).
-    if ((fd = open(base_file_name_, O_RDWR | O_CREAT | O_EXCL,
-		     S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH)) == -1) {
+    if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(fd = TPIE_OS_OPEN_OEXCL(base_file_name_, TPIE_OS_FLAG_USE_MAPPING_FALSE))) {
+      //    if ((fd = open(base_file_name_, O_RDWR | O_CREAT | O_EXCL,
+      //   S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH)) == -1) {
+
       // Try again, hoping it exists.
-      if ((fd = open(base_file_name_, O_RDWR)) == -1) {
+      if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(fd = TPIE_OS_OPEN_ORDWR(base_file_name_, TPIE_OS_FLAG_USE_MAPPING_FALSE))) {
+	//      if ((fd = open(base_file_name_, O_RDWR)) == -1) {
 	LOG_WARNING_ID("Error creating header file.");
 	LOG_WARNING_ID(strerror(errno));
 	assert(0);
       }
     }
 
-    write(fd, &header_, sizeof(header_));
-    close(fd);
+    TPIE_OS_WRITE(fd, &header_, sizeof(header_));
+  }
+
+  if (TPIE_OS_CLOSE(fd)) {
+    LOG_FATAL_ID("Failed to close() ");
+    LOG_FATAL_ID(base_file_name_);
+  }
+
+  if (per_ == PERSIST_DELETE) {
+    if (TPIE_OS_UNLINK(base_file_name_)) {
+      LOG_FATAL_ID("Failed to unlink() ");
+      LOG_FATAL_ID(base_file_name_);
+    }
   }
 
   tree0_->persist(per_);
