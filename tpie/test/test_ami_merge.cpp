@@ -7,7 +7,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_merge_cpp,"$Id: test_ami_merge.cpp,v 1.16 2003-09-11 18:45:11 jan Exp $");
+VERSION(test_ami_merge_cpp,"$Id: test_ami_merge.cpp,v 1.17 2004-08-12 15:15:12 jan Exp $");
 
 #include <iostream>
 
@@ -72,10 +72,10 @@ int main(int argc, char **argv)
 
     if (verbose) {
         cout << "test_size = " << test_size << ".\n";
-        cout << "test_mm_size = " << test_mm_size << ".\n";
+        cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ".\n";
         cout << "random_seed = " << random_seed << ".\n";
     } else {
-        cout << test_size << ' ' << test_mm_size << ' ' << random_seed;
+        cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << random_seed;
     }
     
     // Set the amount of main memory:

@@ -21,7 +21,7 @@
 #include <ami_scan.h>
 #include <ami_sort.h>
 #include <cpu_timer.h>
-VERSION(test_ami_sort_cpp,"$Id: test_ami_sort.cpp,v 1.30 2003-11-18 18:11:04 tavi Exp $");
+VERSION(test_ami_sort_cpp,"$Id: test_ami_sort.cpp,v 1.31 2004-08-12 15:15:12 jan Exp $");
 
 #include <ami_kb_sort.h>
 
@@ -135,7 +135,7 @@ int main(int argc, char **argv)
     exit(1);
   }
 
-  LOG_APP_DEBUG_ID("Boo");
+  TP_LOG_APP_DEBUG_ID("Boo");
 
   random_input = (istr_name[0] == '\0');
 
@@ -171,8 +171,8 @@ int main(int argc, char **argv)
 	 << "." << endl;
     cout << "Input size: " << test_size << " items." << endl
 	 << "Item size: " << sizeof(int) << " bytes." << endl
-	 << "TPIE memory size: " << MM_manager.memory_limit() << " bytes." << endl;
-    cout << "TPIE free memory: " << MM_manager.memory_available() << " bytes." << endl;
+	 << "TPIE memory size: " << (TPIE_OS_LONGLONG)MM_manager.memory_limit() << " bytes." << endl;
+    cout << "TPIE free memory: " << (TPIE_OS_LONGLONG)MM_manager.memory_available() << " bytes." << endl;
   }
 
   if (random_input) {
@@ -226,7 +226,7 @@ int main(int argc, char **argv)
   }
 
   if (verbose) {
-    cout << "TPIE free memory: " << MM_manager.memory_available() << " bytes.\n";
+    cout << "TPIE free memory: " << (TPIE_OS_LONGLONG)MM_manager.memory_available() << " bytes.\n";
   }
   cout << "Sorting input..." << flush;
   timer.start();  
@@ -252,7 +252,7 @@ int main(int argc, char **argv)
   timer.reset();
 
   if (verbose) {
-    cout << "TPIE free memory: " << MM_manager.memory_available() << " bytes." << endl;
+    cout << "TPIE free memory: " << (TPIE_OS_LONGLONG)MM_manager.memory_available() << " bytes." << endl;
   }
   if (report_results_sorted) {
     cout << "Writing sorted items in ASCII file " 
@@ -263,7 +263,7 @@ int main(int argc, char **argv)
       cerr << argv[0] << ": Error during writing of sorted ASCII file." << endl;
     }
     if (verbose) {
-      cout << "TPIE free memory: " << MM_manager.memory_available() << " bytes." << endl;
+      cout << "TPIE free memory: " << (TPIE_OS_LONGLONG)MM_manager.memory_available() << " bytes." << endl;
     }
   }
   
@@ -278,7 +278,7 @@ int main(int argc, char **argv)
     
     cout << "Sorting again using old sorting routine." << endl;
     if (verbose)
-      cout << "TPIE free memory: " << MM_manager.memory_available() << " bytes." << endl;
+      cout << "TPIE free memory: " << (TPIE_OS_LONGLONG)MM_manager.memory_available() << " bytes." << endl;
 
     cout << "Sorting input..." << flush;
     timer.start();  
@@ -297,7 +297,7 @@ int main(int argc, char **argv)
     cout << "Sorted stream length: " << amis3.stream_len() << endl;
     if (verbose) {
       cout << "Time taken: " << timer << endl;
-      cout << "TPIE free memory: " << MM_manager.memory_available() << " bytes.\n";
+      cout << "TPIE free memory: " << (TPIE_OS_LONGLONG)MM_manager.memory_available() << " bytes.\n";
     }
 
     ae = AMI_scan(ostr, &amis3, &sd, &amisd);

@@ -5,7 +5,7 @@
 //
 // Created: 10/6/94
 //
-// $Id: app_config.h,v 1.34 2003-11-18 17:56:14 tavi Exp $
+// $Id: app_config.h,v 1.35 2004-08-12 15:15:11 jan Exp $
 //
 #ifndef _APP_CONFIG_H
 #define _APP_CONFIG_H
@@ -19,6 +19,7 @@
 
 // Set up some defaults for the test applications
 
+#include <portability.h>
 #include <sys/types.h> // for size_t
 #include <stdlib.h> // for random()
 
@@ -27,8 +28,8 @@
 #define DEFAULT_TEST_MM_SIZE (1024 * 1024 * 32)
 
 extern bool verbose;
-extern size_t test_mm_size;
-extern size_t test_size;
+extern TPIE_OS_SIZE_T test_mm_size;
+extern TPIE_OS_OFFSET test_size;
 extern int random_seed;
 
 
@@ -48,8 +49,8 @@ extern int random_seed;
 // <><><><><><><><><><><><><><><><><><><><><><> //
 
 // Define only one (default is BTE_STREAM_IMP_UFS)
-#define BTE_STREAM_IMP_UFS
-//#define BTE_STREAM_IMP_MMAP
+//#define BTE_STREAM_IMP_UFS
+#define BTE_STREAM_IMP_MMAP
 //#define BTE_STREAM_IMP_STDIO
 //#define BTE_STREAM_IMP_USER_DEFINED
 
@@ -88,7 +89,7 @@ extern int random_seed;
 #endif
 
  // Enable/disable TPIE read ahead; default is enabled (set to 1)
-#define BTE_STREAM_MMAP_READ_AHEAD 1
+//#define BTE_STREAM_MMAP_READ_AHEAD 1
 
 // read ahead method, ignored unless BTE_STREAM_MMAP_READ_AHEAD is set
 // to 1; if USE_LIBAIO is enabled, use asynchronous IO read ahead;

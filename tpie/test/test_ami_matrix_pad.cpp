@@ -7,7 +7,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_matrix_cpp,"$Id: test_ami_matrix_pad.cpp,v 1.9 2003-09-27 07:10:42 tavi Exp $");
+VERSION(test_ami_matrix_cpp,"$Id: test_ami_matrix_pad.cpp,v 1.10 2004-08-12 15:15:12 jan Exp $");
 
 #include "app_config.h"        
 #include "parse_args.h"
@@ -62,14 +62,16 @@ int main(int argc, char **argv)
 {
     AMI_err ae;
 
+	test_size = 128 * 1024;
+
     parse_args(argc,argv,as_opts,parse_app_opt);
 
     if (verbose) {
       cout << "test_size = " << test_size << "." << endl;
-      cout << "test_mm_size = " << test_mm_size << "." << endl;
+      cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << endl;
       cout << "random_seed = " << random_seed << "." << endl;
     } else {
-        cout << test_size << ' ' << test_mm_size << ' ' << random_seed;
+        cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << random_seed;
     }
     
     // Set the amount of main memory:
@@ -104,7 +106,7 @@ int main(int argc, char **argv)
     // Write some ints.
     scan_count sc(test_size*test_size);
 
-    ae = AMI_scan(&sc, (AMI_STREAM<int> *)&em0);
+    ae = AMI_scan(&sc, (AMI_STREAM<TPIE_OS_OFFSET> *)&em0);
 
     if (verbose) {
       cout << "Wrote the initial sequence of values." << endl;

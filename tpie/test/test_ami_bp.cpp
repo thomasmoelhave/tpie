@@ -11,7 +11,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_bp_cpp,"$Id: test_ami_bp.cpp,v 1.10 2003-09-27 07:10:42 tavi Exp $");
+VERSION(test_ami_bp_cpp,"$Id: test_ami_bp.cpp,v 1.11 2004-08-12 15:15:12 jan Exp $");
 
 // Get the application defaults.
 #include "app_config.h"
@@ -56,7 +56,10 @@ void parse_app_opt(char c, char *optarg)
 int main(int argc, char **argv)
 {
     AMI_err ae;
-    int number_of_bits;
+    TPIE_OS_SIZE_T number_of_bits;
+
+	verbose = false;
+	test_size = 32 * 1024;
 
     parse_args(argc,argv,as_opts,parse_app_opt);
     
@@ -71,10 +74,10 @@ int main(int argc, char **argv)
     
     if (verbose) {
       cout << "test_size = " << test_size << "." << endl;
-      cout << "test_mm_size = " << test_mm_size << "." << endl;
+      cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << endl;
       cout << "random_seed = " << random_seed << "." << endl;
     } else {
-        cout << test_size << ' ' << test_mm_size << ' ' << random_seed;
+        cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << random_seed;
     }
 
     TPIE_OS_SRANDOM(random_seed);
@@ -121,7 +124,7 @@ int main(int argc, char **argv)
     bit_matrix c(number_of_bits, 1);
 
     {
-        unsigned int ii,jj;
+        TPIE_OS_SIZE_T ii,jj;
 
         for (ii = number_of_bits; ii--; ) {
             c[ii][0] = 0;
