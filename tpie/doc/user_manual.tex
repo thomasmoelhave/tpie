@@ -1,39 +1,89 @@
 %%
-%% $Id: user_manual.tex,v 1.20 2000-06-20 22:23:26 hutchins Exp $
+%% $Id: user_manual.tex,v 1.21 2000-08-08 04:57:52 hutchins Exp $
 %%
 \chapter{Overview}
 
 The data sets involved in some modern applications are too large to
 fit in the main memory of even the most powerful computers and must therefore
 reside on disk. Thus communication between internal and external memory,
-and not actual computation time, becomes the bottleneck in the
+and not actual computation time, often becomes the bottleneck in the
 computation. This is due to the huge difference in access time of fast
 internal memory and slower external memory such as disks. While typical
-access time of main memory is measured in nanoseconds, a typical access
+accSess time of main memory is measured in nanoseconds, a typical access
 time of a disk is on the order of milliseconds~\cite{cockcroft:sun}. So
 roughly speaking there is a factor of a million in difference in the access
 time of internal and external memory. A good example of an applications
 involving massive amounts of geometric data is NASA's Earth Observation
 System (EOS)~\cite{cromp,kobler:nasa}, which is expected to manipulate
-petabytes (thousands of terebytes, or million of gigabytes) of data.
+petabytes (thousands of terabytes, or million of gigabytes) of data.
 
-The goal of theoretical work in the area of {\em external memory
-algorithms\/} (also called {\em I/O algorithms\/} or {\em out-of-core
-algorithms}) is to develop algorithms that minimize the input/output
-communication ({\em I/O}) performed when solving a given
-problem. The area was effectively started in the late eighties by Aggarwal
-and Vitter~\cite{aggarwal:input} and subsequently I/O algorithms have been
-developed for several problem domains, including computational
-geometry~\cite{goodrich:external,arge:buffer,arge:theory,arge:gis,aamvv-empgbtag97,arge:interval,kanellakis:indexing,ramaswamy:path,subramanian:p-range,vengroff:efficient,agarwal:efficient,zhu:further,agarwal:point,arge:scalable,arge:theory,callahan:topology,franciosa:orders,grossi:cross-tree,zhu:further},
+The goal of theoretical work in the area of {\em external
+   memory (EM) algorithms\/} (also called {\em I/O
+   algorithms\/} or {\em out-of-core algorithms}) is to
+eliminate or minimize the I/O bottleneck through better
+algorithm design.
+
+In order to cope with the high cost of accessing data,
+efficient EM algorithms exploit locality in their design.
+They access a large \emph{block} of $B$ contiguous data
+elements at a time and perform the necessary algorithmic
+steps on the elements in the block while in the high-speed
+memory. The speedup can be considerable.
+A second effective strategy for EM algorithms is the use of
+multiple parallel disks; whenever an input/output operation
+is performed, $D$ blocks are transferred in parallel between
+memory and each of the $D$ disks (one block per disk).
+
+The study of EM algorithm design was effectively started in
+the late eighties by Aggarwal and
+Vitter~\cite{aggarwal:input} and an important model for
+designing I/O algorithms called the Parallel Disk Model
+(PDM) was later proposed by Vitter and
+Shriver~\cite{vitter:algorithmsI}. The PDM proposed that a
+good EM algorithm should transfer data between main memory
+and disk in a blocked manner, and should use all of the
+available disks concurrently. An optimal EM algorithm under
+this model minimizes the number of such blocked, parallel
+I/O operations it performs.
+ 
+Subsequently, I/O algorithms for the PDM (mostly with a
+single disk and single processor) have been developed for
+many problem domains, including computational
+geometry~\cite{goodrich:external,arge:buffer,arge:theory,arge:gis,aamvv-empgbtag97,arge:interval,kanellakis:indexing,ramaswamy:path,subramanian:p-range,vengroff:efficient,agarwal:efficient,zhu:further,agarwal:point,arge:scalable,arge:theory,callahan:topology,franciosa:orders,grossi:cross-tree},
 \index{computational geometry} graph
 algorithms~\cite{chiang:external,arge:buffer,kumar:improved,abello:functional,crauser:randomized,arge:obdd,feuerstein:memory,nodine:blocking,ullman:input},
 \index{graph algorithms} and string
 processing~\cite{ferragina:fully,ferragina:fast,arge:strings,crauser:construction}.
-Also I/O performance can often be improved if many disks can efficiently be
-used in parallel and the use of parallel disks\index{parallel disks}
-\index{disks!parallel|see{parallel disks}} has received a lot of
-theoretical attention.\comment{LA: Add refs.} Recent surveys of theoretical
-results in the area of I/O-efficient algorithms can be found
+
+The use of parallel disks\index{parallel disks}
+\index{disks!parallel|see{parallel disks}} has also received
+some theoretical
+attention~\cite{vitter:algorithmsI,nodine:deterministic,nodine:greed,dehne:efficient,dehne:reducing}.
+There are more complicated models than the PDM, designed to
+address the I/O bottleneck in different ways. These include
+models that address the communication bottleneck between
+multiple layers in
+memory hierarchies~\cite{}, and models incorporating
+parallel processors as well as parallel
+disks~\cite{dehne:efficient,dehne:reducing}.
+
+Implementations of these theoretical results are scarce.
+TPIE, {\em a Transparent Parallel I/O Environment}, is
+intended to bridge the gap between the theory and practice
+of parallel I/O systems. On one hand, TPIE attempts to
+provide usable implementations of (sometimes complex)
+theoretical algorithms, feeding back that experience to
+algorithm designers. On the other hand, TPIE also
+accommodates the use of heuristics from the practice of I/O
+algorithms in order to achieve maximum performance. Other EM
+implementation work includes benchmarking of certain
+geometric I/O algorithms by Chiang\cite{chiang:experiments},
+experiments with FFT and related algorithms by Cormen et
+al.~\ref{cormen:fft}, implementation of the buffer tree by
+Hutchinson et al.~\cite{hutchinson:early}, and the LEDA-SM
+system for implementing data types by Crauser et al.\cite{}.
+Surveys of previous work in EM algorithm design and
+implementation can be found
 in~\cite{arge:gisbook,arge:thesis,vitter:podssurvey,vitter:extdatassurvey}
 
 %As of today, gigabyte computer systems exist on desktops, and terabyte
@@ -44,7 +94,7 @@ in~\cite{arge:gisbook,arge:thesis,vitter:podssurvey,vitter:extdatassurvey}
 %computers. Instead, they must be stored on secondary memory, such as
 %magnetic disks, or tertiary memory, such as tapes and optical memory.
 %Compared to CPUs and solid state random access memory, these devices are
-%extraordinarily slow; the difference in access time is typically 2 to 5
+%extremely slow; the difference in access time is typically 2 to 5
 %orders of magnitude. Because of the low speed of secondary storage, good
 %performance in the Input/Output (I/O) system that links secondary storage
 %to main memory and the CPU or CPUs is critical if good performance is to be
@@ -56,32 +106,36 @@ in~\cite{arge:gisbook,arge:thesis,vitter:podssurvey,vitter:extdatassurvey}
 %available, though in most cases they have failed to take adequate advantage
 %of the insights theorists have had to offer \cite{cormen:integrate-tr}.
 
-TPIE, a transparent parallel I/O environment, is designed to bridge the gap
-between the theory and practice of parallel I/O systems. It
-is designed to doo the following:
+The objectives of the TPIE
+project include the following:
 
 \begin{itemize}
-\item {\em Abstract away the details of how I/O is performed} so that programmers
-need only deal with a simple high level interface.
-\item {\em Provide a collection of I/O-optimal paradigms} for large scale computation that are
-efficient not only in theory, but also in practice.
-\item {\em Be flexible}, allowing programmers to specify the functional
-details of computation taking place within the supported paradigms.  This
-will allow a wide variety of algorithms to be implemented within the
-system.
-\item {\em Be portable} across a variety hardware platforms.
-\item {\em Be extensible}, so that new features can be easily added later.
+    \item {\em Abstract away the details of how I/O is
+       performed} so that programmers need only deal with a
+    simple high level interface.
+    \item {\em Provide a collection of I/O-optimal
+       paradigms} for large scale computation that are
+    efficient not only in theory, but also in practice.
+    \item {\em Be flexible}, allowing programmers to specify
+    the functional details of computation taking place
+    within the supported paradigms.  This will allow a wide
+    variety of algorithms to be implemented within the
+    system.
+    \item {\em Be portable} across a variety hardware
+    platforms.
+    \item {\em Be extensible}, so that new features can be
+    easily added later.
 \end{itemize}
 
-TPIE is implemented as a set of templated classes and functions in
-C++.\index{C++} It also includes a small library and a set of test and
-sample applications. 
+TPIE is implemented as a set of templated classes and
+functions in C++.\index{C++} It also includes a small
+library and a set of test and sample applications.
 
 \section{Hardware Platforms}
 \index{hardware platforms}
 
 TPIE has been tested on a variety of hardware platforms with a variety of
-flavors of UNIX operating systems. Combinations that have been tested
+UNIX operating systems. Combinations that have been tested
 include:
 \begin{itemize}
 \item Sun Sparc/Solaris 5.x
@@ -96,36 +150,41 @@ include:
 \index{Future releases}
 \index{Releases!future|see{future releases}}
 
-The current release of TPIE (\version) includes the fundamental routines for
-solving fundamental {\em batched} problems such as sorting. These routines
-enable the programmer to write efficient and portable implementations of
-algorithms that makes use of the fundamental {\em streaming} primitives
-which has been identified in theoretical
-work~\cite{arge:gisbook,vitter:podssurvey}. Relative to
-versions 0.8.02a and 0.9.01a, the
-current version of TPIE has been updated to improved performance and a
-number of bugs have been fixed. This manual has been updated to reflect
-these changes and several chapters has been expanded in order to allow the
-TPIE programmer to tune the systems for maximal performance on a given
-platform. A list of the major changes can be found on the TPIE www page at
-\myverb{http://www.cs.duke.edu/TPIE/}. Keep in mind that the TPIE project is
-work in progress -- several major planned components has not yet been
-implemented and work is also being done to update and extend the current
-manual. Users of TPIE are encouraged to send bug reports, etc., to
+The TPIE system is a research tool that is constantly
+evolving.  The current release of TPIE (\version) includes
+the fundamental routines for solving fundamental {\em
+   batched} problems such as sorting. These routines enable
+the programmer to write efficient and portable
+implementations of algorithms that makes use of fundamental
+{\em streaming}
+primitives~\cite{arge:gisbook,vitter:podssurvey}. Relative
+to versions 0.8.02a and 0.9.01a, the current version of TPIE
+has been updated to improve performance and a number of
+bugs have been fixed. This manual has been updated to
+reflect these changes and several chapters have been
+expanded in order to allow the TPIE programmer to tune the
+system for best performance on a given platform. A list of
+the major changes can be found on the TPIE web page at
+\myverb{http://www.cs.duke.edu/TPIE/}. The
+TPIE project is work in progress -- several major planned
+components have not yet been implemented and work is also
+being done to update and extend the current manual. Users of
+TPIE are encouraged to send bug reports, etc., to
 \verb|tpie@cs.duke.edu|.
 
-Extensions and/or improvements to TPIE are in
-progress. Projects include further performance improvements, support for
-parallel disks, addition of the distribution sweeping
-primitive~\cite{goodrich:external}, and addition of several application
-examples (examples of applications written using TPIE can be found in the
-papers listed on the TPIE home page). Another major project involves the
-addition of support for random access to blocks as opposed to the stream
-oriented access used in the current version of TPIE. This addition will
-facilitate the implementation of indexing structures (external data
-structures). Users interested in obtaining/testing preliminary versions of
-these extensions are encouraged to send a request to
-\verb|tpie@cs.duke.edu|.
+Extensions and/or improvements to TPIE are in progress.
+Projects include further performance improvements, support
+for parallel disks, addition of the distribution sweeping
+primitive~\cite{goodrich:external}, and addition of several
+application examples (examples of applications written using
+TPIE can be found in the papers listed on the TPIE home
+page). Another major project involves the addition of
+support for random access to blocks as opposed to the stream
+oriented access used in the current version of TPIE. This
+addition will facilitate the implementation of indexing
+structures (external data structures). Users interested in
+obtaining/testing preliminary versions of these extensions
+are encouraged to send a request to \verb|tpie@cs.duke.edu|.
 
 
 \chapter{Obtaining and Installing TPIE}
@@ -155,7 +214,7 @@ should be capable of downloading this file to your local machine.
 
 \section{Prerequisites}
 \index{GNU software}
-\label{sec:gnu-software}
+\plabel{tut:gnu-software}
 
 To uncompress and unarchive the distribution, you will need either the GNU
 \myverb{tar} utility, or \myverb{gzip} and a \myverb{tar} program. (the GNU
@@ -168,27 +227,29 @@ usually located in \myverb{/usr/local/bin/make} (or is called
 %the manual.
 
 TPIE is heavily dependent on the compiler used, mainly
-because of the use of C++ templates. It requires the GNU C++
-compiler, \myverb{gcc}, version~\gxxversion~ or later (it has
-also been successfully compiled with \myverb{gcc} version
-2.7.2.1 on some systems). We are currently using \myverb{gcc},
-version~\gxxcurrent~ for most development work on TPIE. We
-expect that it will also be compatible with future version
-of this compiler. TPIE has also been successfully compiled
-using \myverb{egcs}, version 2.91.66.
+because of the use of C++ templates. It currently requires
+the GNU C++ compiler, \myverb{gcc}, version~\gxxversion~ or
+later (it has also been successfully compiled with
+\myverb{gcc} version 2.7.2.1 on some systems). We are
+currently using \myverb{gcc}, version~\gxxcurrent~ for most
+development work on TPIE, and we expect that TPIE will also be
+compatible with future version of this compiler. TPIE has
+also been successfully compiled using \myverb{egcs}, version
+2.91.66.
 
 %In general, invoking the above utilities with the single command line
 %argument \myverb{--version} will indicate whether they are compatible.
-Information on where and how to obtain and install GUN software is
-available at URL {\tt http://www.gnu.org/software/software.html}.
+Information on how to obtain and install GNU software is
+available at URL \\%
+{\tt http://www.gnu.org/software/software.html}.
 
 
-\section{Installation}\label{sec:installation}
+\section{Installation}\plabel{tut:installation}
 \index{installation}
 
-Once you have obtained the TPIE source distribution file
-{\tt tpie\_\version.tgz}, you must decide where to install it.
-\myverb{/usr/local/tpie/} is a typical place.
+%Once you have obtained the TPIE source distribution file
+%{\tt tpie\_\version.tgz}, you must decide where to install it.
+%\myverb{/usr/local/tpie/} is a typical place.
 
 Place {\tt tpie\_\version.tgz} in the directory in which TPIE is to
 be installed, \myverb{cd} into that directory, and execute the command
@@ -228,7 +289,6 @@ system. This includes: the TPIE run-time library
 {\tt tpie\_\version/lib/libtpie.a}, the test and sample
 programs in directory {\tt tpie\_\version/test}, 
 and certain header files in {\tt tpie\_\version/include}.
-
 You should now have a complete TPIE system, consisting of
 the directories listed in Figure \ref{fig:components}.
 \begin{figure}
@@ -261,7 +321,7 @@ Directory & Contents \\
                    formats.\index{documentation} \\
 \hline
 \end{tabular}}
-\caption{\label{fig:components} Components of the TPIE distribution.}
+\caption{\plabel{fig:components} Components of the TPIE distribution.}
 \end{minipage}
 \end{center}
 \end{figure}
@@ -269,19 +329,20 @@ Directory & Contents \\
 
 
 \chapter{A Taste of TPIE via a Sample Program}
-\label{ch:samplepgmr}
+\plabel{ch:samplepgmr}
 
 This chapter presents a quick look
 at TPIE via a simple TPIE program. A more detailed TPIE
 tutorial appears in Chapter \ref{ch:tutorial}. 
 
-One of the primary themes in TPIE is to allow a user to view
-and \emph{specify} I/O efficient computation simply as a
+One of the primary themes in TPIE is to allow a user to
+specify an I/O efficient computation via 
 high-level coordination of data movement interspersed with
-appropriate internal memory computing, with all low level
-details of I/O being transparent, or ``under the hood''.
-Accordingly, TPIE provides classes \emph{scan management
-   objects}, \emph{merge management objects}, etc. that
+appropriate internal memory computing, with the low level I/O
+details being transparent, or ``under the hood''.
+TPIE provides various classes of ``management objects'',
+(e.g. \emph{scan management
+   objects}, \emph{merge management objects}, etc.) that
 allow the user to specify sophisticated data movement
 operations on \emph{streams} of data in a simple and
 straightforward manner. These management object classes are
@@ -289,53 +350,62 @@ built on top of a simple \emph{stream interface} called
 \myverb{AMI\_STREAM}. The tutorial in the next chapter explains
 how to specify and use such management object classes.
 
-Using the sample example program below, we take a look at TPIE from a
-viewpoint just above the \myverb{AMI\_STREAM} interface.  The
-sample program uses simple stream operations to generate a stream of random
-integers, scans this stream of integers and partitions them into several
-distinct streams. The manner in which I/O operations are handled by TPIE
-ensures that the program is I/O efficient.
+%Using the sample example program below, we take a look at TPIE from a
+%viewpoint just above the \myverb{AMI\_STREAM} interface.  
+The sample program below uses simple stream
+operations\comment{DH: %
+   we use only STREAM member functions in the sample
+   program, but never describe them in the tutorial. We
+   should either describe them or illustrate the power of
+   TPIE using operation management objects (scanning,
+   merging, sorting, etc.} %
+to generate a stream of random integers, scans this stream
+of integers and partitions them into several distinct
+streams. The manner in which I/O operations are handled by
+TPIE ensures that the program is I/O efficient.
 
 %Note that a 4-way distribution can easily be specified using an
 %appropriately defined scan management object (see
-%Section~\ref{sec:scanning}), in which case the user does not have to use
+%Section~\ref{tut:scanning}), in which case the user does not have to use
 %stream operations.
 
 The intent of this example is to illustrate the sort of
 things involved in TPIE programming; the typical include
 files, specifying how much memory the program should use,
 streaming operations, etc. The program is given in
-Section~\ref{sec:samplepgm} and it is discussed in
-Section~\ref{sec:samplepgm_discuss}.
+Section~\ref{tut:samplepgm} and it is discussed in
+Section~\ref{tut:samplepgm-discuss}.
 
 
-\section{Sample Program}\label{sec:samplepgm}
+\section{Sample Program}\plabel{tut:samplepgm}
 \index{sample program|(}
 \index{sample program|)}
 
-The following is the program in {\tt  tpie\_\version/doc/sample\_pgm.cpp}.
+The following sample program can be found in {\tt
+   tpie\_\version/test/sample\_pgm.cpp} after TPIE has been
+   installed (see Section \ref{tut:installation} of this manual for installation instructions).
 
-\verbatiminput{sample_pgm.cpp}
+\verbatiminput{../test/sample_pgm.cpp}
 
-\section{Discussion of Sample Program}\label{sec:samplepgm_discuss}
+\section{Discussion of Sample Program}\plabel{tut:samplepgm-discuss}
 
 In this section we discuss the simple simple C++ sample
-program in the previous section. The file
+program shown in the previous section. The file
 \myverb{app\_config.h} is the TPIE configuration file. TPIE's
 \myverb{AMI\_STREAM} stream I/O operations are carried out
 transparently by one of three possible \emph{block transfer
-   engines (BTEs)}. Briefly, the \myverb{app\_config.h} chooses
+   engines (BTEs)}. Briefly, the file \myverb{app\_config.h} chooses
 a specific BTE, and the amount of internal memory used as
 buffer space for each \myverb{AMI\_STREAM}. The
 \myverb{app\_config.h} configuration file is further discussed
 in Section~\ref{sec:tuning} which also contains a discussion
 of how to choose a BTE for a given platform. The file
-\myverb{<ami.h>} contains TPIEs templated classed and
+\myverb{<ami.h>} contains TPIE's templated classes and
 functions, while the file \myverb{<quicksort.h>} contains
 various quicksort polymorphs. Note that each
 \myverb{AMI\_STREAM} corresponds to an underlying Unix file.
 
-The program illustrates the most fundamental
+The program illustrates the use of the basic
 \myverb{AMI\_STREAM} member functions \myverb{read\_item()},
 \myverb{write\_item()}, \myverb{seek()} and \myverb{persist()}.
 Successful execution of these member functions is indicated
@@ -349,26 +419,33 @@ completion of the program
 streams are saved (made persistent with
 \myverb{buckets[i].persist(PERSIST\_PERSISTENT)}) in the
 default scratch directory \myverb{/var/tmp}. The default
-location can be changed by setting the environment variable
+location for the scratch files can be changed by setting the environment variable
 \myverb{AMI\_SINGLE\_DEVICE} appropriately (see
 Section~\ref{sec:environment}).
 
-The setting of the \myverb{register\_new} variable instructs TPIE whether to
-run with a user-specified amount of internal memory (\myverb{register\_new:= 1})
-or to run with virtual memory like an ordinary non-TPIE application
-would (\myverb{register\_new:= 0}). In this program, we set
-\myverb{register\_new:= 1} which means that the program will abort if the
-allocated internal memory exceeds the specified amount. The call
-\myverb{MM\_manager.resize\_heap(test\_mm\_size)} tells TPIE's internal memory
-manager \myverb{MM\_manager} to prevent the program's internal
-memory usage (in the ``heap'' area) from exceeding \myverb{test\_mm\_size}
-bytes. Note that \myverb{test\_mm\_size} is the second input argument to our
-program. When \myverb{register\_new == 1}, it is the responsibility of the
-user to have the \myverb{MM\_manager} ``resize'' its heap to an appropriate
-size as desired. For example, one might set this value to
-the amount of physical main
-memory minus the main memory used by the operating system and other
-programs running on the machine.
+TPIE can run with a user-specified amount of internal memory
+(although typically, about 4MB is required as a minimum for
+most simple applications) or it can run with virtual memory
+like an ordinary non-TPIE application. The former mode is
+invoked by calling \\%
+\myverb{MM\_manager.ignore\_memory\_limit()}, and the latter
+by calling \myverb{MM\_manager.enforce\_memory\_limit()}. In
+the sample program, we call
+\myverb{MM\_manager.enforce\_memory\_limit()}, which means
+that the program will abort if the allocated internal memory
+exceeds the specified amount. The call
+\myverb{MM\_manager.set\_memory\_limit(test\_mm\_size)} tells
+TPIE's internal memory manager \myverb{MM\_manager} to
+prevent the program's internal memory usage from exceeding
+\myverb{test\_mm\_size} bytes (note that
+\myverb{test\_mm\_size} is the second input argument to our
+program). When \myverb{MM\_manager.enforce\_memory\_limit()}
+is used, it is the responsibility of the user to inform
+\myverb{MM\_manager} via \myverb{set\_memory\_limit()} of the
+desired memory limit.  For example, one might set this value
+to the amount of physical main memory minus the main memory
+used by the operating system and other programs running on
+the machine.
 
 %In the case of the present program, it is desirable to
 %ensure that the program is allowed enough memory to comfortably accomodate
@@ -378,8 +455,7 @@ programs running on the machine.
 %\myverb{app\_config.h} file. Section~\ref{sec:env-variables} provides details
 %of how to determine the buffer-space required for each BTE implementation.
 
-
-The sample program is compiled by executing the follows
+The sample program can be compiled as follows:
 (recall that Section \ref{sec:gnu-software} discussed the version of GNU C++
 required):
 
@@ -387,17 +463,17 @@ required):
 g++ sample_pgm.cpp -I../include/ -L../lib/ -ltpie -o sample_pgm
 \end{verbatim}
 
-The program can be run with 1000000 random integers and 5000000 bytes of main
-memory by execute the following:
+By way of example, the program can be run with 1000000 random integers and 5000000 bytes of main
+memory as follows:
 \begin{verbatim}
 sample_pgm 1000000 5000000
 \end{verbatim}
 
 
 \chapter{Tutorial}
-\label{ch:tutorial}
+\plabel{ch:tutorial}
 
-\section{Introduction}
+\section{Introduction}\plabel{tut:introduction}
 
 This tutorial is designed to introduce new users to the TPIE system.
 It introduces the fundamental paradigms of computation that TPIE
@@ -411,71 +487,127 @@ incomplete, in the sense that necessary header files \index{header files}
 and macros\index{macros} are omitted. Details concerning how to write your
 own complete TPIE code is presented at the end of the tutorial in
 Section~\ref{sec:compiling} (see also Section~\ref{ch:samplepgmr} and
-\ref{sec:choosingbte})\comment{LA: Maybe we should talk shortly about AMI,
+\ref{sec:choosingbte})\comment{LA: Maybe we should talk briefly about AMI,
 BTE, MM somewhere around here - we talk about main memory issues in merging
 and compiling sections.}
 
 TPIE is written in the C++ language, and this manual assumes
-that the reader is familiar with C++.
-If you would like the use TPIE but are not familiar with the C++\index{C++}
-language, a number of good books are available. If you are familiar with
-C\index{C}, \cite{pohl:c++} is a good place to start. A more basic, but
-very comprehensive book is~\cite{deitel:c++}. Once you have mastered the
-basics, \cite{meyers:effective} is an excellent source of information on
-intermediate and advanced C++.  Finally, \cite{ellis:arm} is the definitive
-book on C++, though not necessarily the best place for new programmers to
-start.
+that the reader is familiar with C++.  If you would like to
+use TPIE but are not familiar with the C++\index{C++}
+language, a number of good books are available. If you are
+familiar with C\index{C}, \cite{pohl:c++} is a good place to
+start. A more basic, but very comprehensive book
+is~\cite{deitel:c++}, and \cite{meyers:effective} is an
+excellent source of information on intermediate and advanced
+C++.  Finally, \cite{ellis:arm} is the definitive book on
+C++, though not necessarily the best place for new
+programmers to start.
 
-\index{External memory algorithms} Familiarity with the
-theoretical results on I/O-efficient algorithms is not
-necessary in order to use TPIE. However, this tutorial (and
-the rest of this manual) may be easier to follow with some
-general background information such as how a theoretically
-optimal external (merge) sort algorithm works. Good
-references 
+Familiarity with the theoretical results on I/O-efficient
+algorithms is not necessary in order to use TPIE. However,
+this tutorial (and the rest of this manual) may be easier to
+follow with some general background information such as how
+a theoretically optimal external (merge) sort algorithm
+works. Good references
 are~\cite{vitter:podssurvey,arge:gisbook,aggarwal:input}.
+Some of the basic concepts required for understanding the
+discussion of I/O issues and external memory algorithms in
+this manual are outlined in Section~\ref{tut:concepts}.
+
+\section{Basic External Memory Concepts}\plabel{tut:concepts}
+\index{concepts}\index{basic concepts}
+Stuff there should maybe be something about: substreams,
+persistence, read/write primitives, etc. 
+We start talking about memory
+   constraints - there should be a general intro to blocks
+   and stuff somewhere.
 
 
-\section{Streams}
+\section{Streams}\plabel{tut:streams}
 \index{stream}\index{structure!of streams}
 
 \comment{LA: Stuff there should maybe be something about: substreams,
 persistence, read/write primitives, ect.}
 
-Conceptually, TPIE programs work with streams of data stored in external
-memory. A stream is an ordered collection of objects of a particular type.
-Various paradigms of computation are defined on these streams, though the
-functional details of the computation performed within these paradigms are
-left to the TPIE programmer to specify. These details are specified using
-an {\em operation management object},\index{operation management object}
-which is an object with member functions designed to work with the
-particular paradigm being used.
+In TPIE, a \emph{stream} is an ordered collection of objects
+of a particular type, stored in external memory, and
+accessed in sequential order. Streams can be thought of as
+fundamental TPIE objects which map volatile, typed
+application data elements in internal
+memory to persistent, untyped data elements in external
+memory, and vice-versa.  Streams are read and written like
+files in Unix and support a number of primitive file-like
+operations such as read(), write(), truncate(), etc. 
+%See Section \ref{implementationofstreams} for more
+%information.
+TPIE also supports the concept of a \emph{substream}, which
+permits a contiguous subset of the elements in a stream to
+accessed sequentially. Multiple substreams can be created on
+streams and even on other substreams. 
+%Substreams are deprecated in TPIE due to performance issues
+%(see Section \ref{substreams} for more information).
 
-Creating a stream of objects in TPIE is very much like creating any other
-object in C++. The only difference is that data placed in the stream,
-whether explicitly, or as is more commonly the case, implicitly, is stored
-in external memory (on disk). For example, to create a stream of integers,
-we could use either of the following:
+Various paradigms of external memory computation are
+supported on streams (and substreams) in TPIE, including
+scanning (see Section \ref{tut:scanning}), merging (see
+Section \ref{tut:merging}), sorting (see Section
+\ref{tut:sorting}). TPIE reduces the programming effort
+required to perform an external sort, merge, etc., by
+providing the high level
+flow of control within each paradigm, and therefore
+structuring this part of the computation so that it will be
+I/O efficient. The programmer is left with the task of
+providing what amount to ``event handlers'', specifying the
+application-specific details of the computation. For
+instance in sorting, the programmer defines a stream of
+input data, a comparison function (the event handler for the
+task of comparing two application data elements), and an
+output stream for the results. In TPIE terminology, the
+collection of necessary event handlers for a particular EM
+computational paradigm is contained in an {\em operation management
+   object},\index{operation management object}. Operation
+management objects differ according to which paradigm is
+used.  See Section \ref{tut:sorting} for a discussion of the
+details of sort management objects, Section \ref{tut:scanning}
+for a discussion of scan management objects, and Section
+\ref{tut:merging} for a discussion of merge management objects.
+
+Creating a stream of objects in TPIE is very much like
+creating any other object in C++. The only difference is
+that the data placed in the stream is stored in external
+memory (on disk). 
+%In some respects this aspect of TPIE can
+%be viewed as an implementation of \emph{persistent objects}
+%(see Section~\ref{BCCstuff} for more discussion of persistent objects).
+For example, to create an (empty) stream \myverb{stream0}
+capable of storing integers, we could use the following:
 \begin{verbatim}
 AMI_STREAM<int> stream0;
-
-AMI_STREAM<int> *pstream0 = new AMI_STREAM<int>;
+\end{verbatim}
+Alternatively, the following creates a pointer
+\myverb{p} to an empty stream of \myverb{applrec} objects:
+\begin{verbatim}
+AMI_STREAM<applrec> *p = new AMI_STREAM<applrec>;
 \end{verbatim}
 
-The {\tt AMI} in {\tt AMI\_STREAM} stands for {\emph Access Method
-Interface}\index{access method interface}, which is the level of TPIE that
-most applications interact with. {\tt AMI\_STREAM} is actually a macro that
-evaluates to the name of a particular implementation of streams, but for
-now it is safe to assume that it is simply a class.
+The {\tt AMI} prefix in {\tt AMI\_STREAM} stands for
+\emph{Access Method Interface}\index{Access Method Interface
+   (AMI)}\index{AMI}. This layer of TPIE contains the
+services and functionality which a normal user of TPIE will
+require.  {\tt AMI\_STREAM} is actually a compile-time macro
+that evaluates to the name of a particular implementation of
+streams, but for now it is safe to assume that it is simply
+a C++ class.
 
-The {\tt AMI\_STREAM} constructor does not actually put anything into
-the stream; it simply creates the necessary data structures to keep
-track of the contents of the stream when data is actually put into it.
-Data is typically put into streams using \myverb{AMI\_scan()}, which is
-described in the next section.
+The {\tt AMI\_STREAM} constructor does not actually put
+anything into the stream; it simply creates the necessary
+data structures to keep track of the contents of the stream
+when data is actually put into it.  One basic way of putting
+data into a stream is via \myverb{AMI\_scan()}, which is
+described in Section \ref{tut:scanning}.
 
-\section{Operation Management Objects}
-\label{sec:omos}\index{operation management object}
+\section{Operation Management Objects} 
+\plabel{tut:omos}\index{operation management object}
 
 TPIE provides a structure for performing a number of basic
 operations, such as scanning a stream of items, merging
@@ -497,18 +629,19 @@ The operation management object for scanning (called a
    initialize} (for initializing any user-required data
 structures of the scan), and {\em operate} (for performing
 whatever steps are needed as each data item is encountered
-in the scan).
+in the scan). See Section \ref{tut:scanning} below for more
+information.
 
 In the example of merging, the rules for ``combining''
-elements of the merge operation are necessarily case
+elements of the merge operation are necessarily application
 dependent. TPIE expects a ``merge management
 object''\index{operation management object!merge} to contain
-members {\em initialize} and {\em operate}, as well as
+members \myverb{initialize} and \myverb{operate}, as well as
 several others. Detailed requirements for merge management
-objects are described in Section \ref{sec:merging}.
+objects are described in Section \ref{tut:merging}.
 
 \section{Scanning}
-\label{sec:scanning}
+\plabel{tut:scanning}
 
 \index{scanning|(} \index{AMI_scan()@{\tt AMI\_scan()}}
 The simplest paradigm available in TPIE is scanning.  Scanning can be
@@ -517,32 +650,29 @@ streams.
 
 \subsection{Basic Scanning}
 
-The most basic thing a scan can do is write a series of
+One basic thing a scan can do is write a series of
 objects to a stream.  In the following example, we create a
 stream of integers consisting of the first 10000 natural
-numbers.  \comment{DH: why is ii public? Can we think of a
-   better name for ii(applies to all examples)? Why not
-   delete the default value for max for simplicity?}
+numbers.  
 
 \begin{verbatim}
 class scan_count : AMI_scan_object {
 private:
     int maximum;
+    int nextint;
 public:
-    int ii;
-
-    scan_count(int max=1000) : maximum(max), ii(0) {};
+    scan_count(int max) : maximum(max), ii(0) {};
 
     AMI_err initialize(void) 
     {
-        ii = 0;
+        nextint = 0;
         return AMI_ERROR_NO_ERROR;
     };
 
     AMI_err operate(int *out1, AMI_SCAN_FLAG *sf)
     {
-        *out1 = ++ii;
-        return (*sf = (ii <= maximum)) ? AMI_SCAN_CONTINUE : 
+        *out1 = ++nextint;
+        return (*sf = (nextint <= maximum)) ? AMI_SCAN_CONTINUE : 
             AMI_SCAN_DONE;
     };
 };
@@ -579,34 +709,34 @@ return the value \myverb{AMI\_SCAN\_DONE}.
 \begin{verbatim} 
 AMI_err AMI_scan(scan_count &sc, AMI_STREAM<int> *pamis)
 {
-    int ii;
+    int nextint;
     AMI_err ae;    
     AMI_SCAN_FLAG sf;
 
     sc.initialize();    
-    while ((ae = sc.operate(&ii, &sf)) == AMI_SCAN_CONTINUE) {
+    while ((ae = sc.operate(&nextint, &sf)) == AMI_SCAN_CONTINUE) {
         if (sf) {
-            write ii to *pamis;
+            Write nextint to *pamis;
         }
     }
 
     if (ae != AMI_SCAN_DONE) {
-        handle error conditions;
+        Handle error conditions;
     }
 
     return AMI_ERROR_NO_ERROR;
 }
 \end{verbatim}
 
-Thus, after the function \myverb{f()} in the original example code is
-called, the stream \myverb{amis0} contains the integers from 1 to 10000
-in order.
+Thus, after the function \myverb{f()} in the original
+example code returns, the stream \myverb{amis0} will contain
+the integers from 1 to 10000 in increasing order.
 
-Now that we have produced a stream, there are a variety of things we
-can do with it.  One of the simplest things we can do with a stream of
-objects is scan it in order to transform it in some way.  As an
-example, suppose we wanted to square every integer in the stream
-\myverb{amis0}.  We could do so using the following code:
+One of the simplest things we can do with a stream of
+objects is scan it in order to transform it in some way.  As
+an example, suppose we wanted to square every integer in the
+stream \myverb{amis0}.  We could do so using the following
+code:
 
 \begin{verbatim}
 class scan_square : AMI_scan_object {
@@ -655,11 +785,11 @@ for input (\myverb{sfin}) and one for output
 (\myverb{sfout}).  \myverb{*sfin} is set by TPIE to indicate
 that there is more input to be processed.  \myverb{*sfout}
 is set by the scan management object to indicate when output
-is generated.  The scan management object must contain an
+is generated.  A scan management object must contain an
 \myverb{operate()} member function that takes the
 appropriate types and number of arguments for the invocation
 of \myverb{AMI\_scan()} that uses it, or else a compile-time
-error is generated.
+error will be generated.
 
 \myverb{AMI\_scan} with one input stream and one output stream
 behaves as the following pseudo-code:
@@ -676,38 +806,34 @@ AMI_err AMI_scan(AMI_STREAM<int> *instream, scan_square &ss,
 
     while (1) {
         {
-             read in from *instream;
+             Read in from *instream;
              sfin = (read succeeded);
         }
         if ((ae = ss.operate(in, &sfin, &out, &sf)) == 
             AMI_SCAN_CONTINUE) {
             if (sfout) {
-                write out to *outstream;
+                Write out to *outstream;
             }
             if (ae == AMI_SCAN_DONE) {
                 return AMI_ERROR_NO_ERROR;
             }
             if (ae != AMI_SCAN_CONTINUE) {
-                handle error conditions;
+                Handle error conditions;
             }
         }
     }
 }
 \end{verbatim}
 
-\myverb{AMI\_scan()} can operate on up
-to four input streams and four output streams.  Here is an example
-that takes two input streams of values, \myverb{x} and \myverb{y}, and
-produces four output streams, 
-one consisting of the running sum of the
-\myverb{x} values,
-one consisting of the running sum of the
-\myverb{y} values,
-one consisting of the running sum of the
-squares of the \myverb{x} values,
-and
-one consisting of the running sum of the
-squares of the \myverb{y} values.
+\myverb{AMI\_scan()} can operate on up to four input streams
+and four output streams.  Here is an example that takes two
+input streams of values, \myverb{x} and \myverb{y}, and
+produces four output streams, one consisting of the running
+sum of the \myverb{x} values, one consisting of the running
+sum of the \myverb{y} values, one consisting of the running
+sum of the squares of the \myverb{x} values, and one
+consisting of the running sum of the squares of the
+\myverb{y} values.
 
 \begin{verbatim}
 class scan_sum : AMI_scan_object {
@@ -753,7 +879,7 @@ void h()
 \comment{DH: should we summarize what polymorphs are
    available or give a pointer to the section that does?}
 
-\subsection{ASCII Input/Output} \label{sec:ascii-io}
+\subsection{ASCII Input/Output} \plabel{tut:ascii-io}
 
 \index{ASCII I/O|see{scanning, ASCII I/O}}
 \index{scanning!ASCII I/O|(}
@@ -767,7 +893,7 @@ class \myverb{T} for which the operators \myverb{ostream
 \&operator<<(ostream \&s, T \&t)} and \myverb{istream \&operator>>(T \&t)}
 are defined can be used with this mechanism.
 
-As an example, suppose we have a file called \myverb{input\_nums.txt}
+As an example, suppose we have an ASCII file called \myverb{input\_nums.txt}
 containing one integer per line, such as
 
 \begin{verbatim}
@@ -780,9 +906,9 @@ containing one integer per line, such as
 .
 \end{verbatim}
 
-To read this file into a TPIE stream of integers, square each, and
-write them out to the file \myverb{output\_nums.txt} we could use the
-following code:
+The following code copies this file into a TPIE stream of
+integers, squares each one, and
+writes the results to the file \myverb{output\_nums.txt}.
 
 \begin{verbatim}
 void f()
@@ -806,12 +932,13 @@ void f()
 }    
 \end{verbatim}
 
-In order to read from an input file using the scan object
-\myverb{in\_scan}, \myverb{AMI\_scan()} repeatedly calls
-\myverb{in\_scan->operate()}, just as it would for any scan
-object.  Each time \myverb{in\_scan->operate()} is called,
-it uses the \myverb{>>} operator to read a single integer
-from the input file.  When the input file is exhausted,
+In order to read from an ASCII input file using the scan
+management object \myverb{in\_scan}, \myverb{AMI\_scan()}
+repeatedly calls \myverb{in\_scan->operate()}, just as it
+would for any scan management object.  Each time
+\myverb{in\_scan->operate()} is called, it uses the
+\myverb{>>} operator to read a single integer from the input
+file.  When the input file is exhausted,
 \myverb{in\_scan->operate()} returns
 \myverb{AMI\_SCAN\_DONE}, and \myverb{AMI\_scan()} returns
 to its caller.  The behavior of \myverb{out\_scan} is
@@ -856,33 +983,32 @@ public:
 \index{scanning!multi-type|)}
 
 \subsection{Out of Step Scanning}
-\label{sec:out-of-step}
+\plabel{tut:out-of-step}
 
 \index{scanning!out of step|(}
-In all the examples up to this point, every call to the
+In all the examples up to this point, the
 \myverb{operate()} member function of a scan management object has been
-called with each object in the input stream(s) exactly once.  In this
-section, we introduce the concept of out of step scanning, which
-allows a scan management object to reject certain inputs and ask that
+called exactly once for each object in the input stream(s).  In this
+section, we discuss the concept of out of step scanning,
+which involves using a scan management object to reject certain inputs and ask that
 they be resubmitted in subsequent calls to the \myverb{operate()} member
 function.
 
-Suppose we have two streams of integers, each of which we know is
+Suppose we have two streams of integers, each of which is
 sorted in ascending order.  We would like to merge the two streams
 into a single output stream consisting of all the integers in the two
 input streams, in sorted order.  In order to do this with a scan, we
 must have the ability to look at the next integer from each stream,
 choose the smaller of the two and write it to the output stream, and
 then ask for the next number from the stream from which it was taken.
-Luckily, there is a simple mechanism for doing this.  The same flags
+There is a simple mechanism for doing this.  The same flags
 that TPIE uses to tell the scan management object which inputs are
-available can be used by the scan management object to indicate which
-inputs were used and which should be presented again.
+available can also be used by the scan management object to indicate which
+inputs were used (i.e. ``consumed'') and which should be presented again.
 
 Consider the following example of a scan management object class which
-performs exactly the sort of binary
-merge\index{merge!binary}\index{merge sort!binary} described in the
-preceding paragraph:
+performs this sort of binary
+merge\index{merge!binary}\index{merge sort!binary}:
 
 \begin{verbatim}
 class scan_binary_merge : AMI_scan_object {
@@ -927,58 +1053,74 @@ the cases when one of more of the input streams are empty.
 \index{scanning|)}
 
 
-\section{Merging} \label{sec:merging}
+\section{Merging} \plabel{tut:merging}
 \index{merging|(}
 
-While \myverb{AMI\_scan()} is limited to operate on up to four input and four
-output streams, theoretically efficient external memory algorithms often
-operate on more than eight streams. An especially common operation is
+While \myverb{AMI\_scan()} is limited to operate on up to
+four input and four output streams, theoretically efficient
+external memory algorithms often operate on eight or more
+streams, the exact number depending on the amount of
+internal memory available. An especially common operation is
 merging of a large number of input streams into one output
-stream.\footnote{Note that ``merge'' here means the process of reading the
-content of a number of input streams in some interleaved order producing an
-output stream. Merging a number of sorted input streams into a sorted
-output stream is a (very common) special case of merging.} An example of
-the this is external merge sorting. The binary merging scan management
-object presented in the previous section could be used recursively to
-implement a merge sorting\index{merge sorting!binary} algorithm. We could
-simply divide the input stream into sub-streams small enough to fit into
-main memory, read each sub-stream into memory and sort it, and then merge
-pairs of streams, then pairs of merged pairs of streams, and so on, until
-we had merged all the input back into one completely sorted stream. While
-this approach would correctly sort the input, it would not be nearly as
-efficient as possible on most machines. The reason is that we typically
-have enough main memory available to merge many streams together at one
-time~\cite{aggarwal:input}.
+stream.\footnote{Note that ``merge'' here means the process
+   of reading the content of a number of input streams in
+   some interleaved order producing an output stream.
+   Merging a number of sorted input streams into a sorted
+   output stream is a special (but common) case of
+   merging.} An example of the this is external merge
+sorting. The \myverb{scan\_binary\_merge} scan management
+object presented in the previous section could be used
+recursively to implement a merge sorting\index{merge
+   sorting!binary} algorithm. We could simply divide the
+input stream into sub-streams small enough to fit into main
+memory, read each sub-stream into memory and sort it, and
+then merge pairs of streams, then pairs of merged pairs of
+streams, and so on, until we had merged all the input back
+into one completely sorted stream. While this approach would
+correctly sort the input, it would not be nearly as
+efficient as possible on most machines. The reason is that
+we typically have enough main memory available to merge many
+more streams together at one time~\cite{aggarwal:input}.
 
-TPIE provide the function \myverb{AMI\_merge()} which, provide that enough
-main memory is available, merge a number of input streams into an output
-stream in one scan of the input streams. As in the case of \myverb{AMI\_scan},
-the functional details in how the merge is performed is specified via an
-operation management object\index{operation management object } (a merge
-management object) with member functions \myverb{initialize()} and
-\myverb{operate()}.\comment{LA: The AMI\_merge stuff should be rewritten with
-some examples}\footnote{The merging function also have three other more
-specialized polymorphs for merging according to some total order defined by
-the used. These polymorphs do not need a merge management object. Refer to
-Section~\ref{sec:ref-ami-merge}.} However, often, as in the merge sort
-example, one wants to merge more streams than memory constraints dictates
-and the merge has to be done in several recursive stages.\comment{LA: Here
-we start talking about memory constraints - there should be a general intro
-to blocks and stuff somewhere.} In many cases the streams are produced my
-dividing a single input stream like in merge sort. Since it can be
-cumbersome to compute precisely how many streams can be merged in one pass
---- one must keep track of the space needed for input blocks form each of
-the streams being merged, as well as the overhead of any data structures
-needed for the merge --- TPIE also provides a mechanism that does most of
-the above work for us. The function \myverb{AMI\_partition\_and\_merge()}
-divides an input stream into sub-streams just small enough to fit into main
-memory, operates on each in main memory, then merges them back into a
-single output stream, using intermediate streams if memory constraints
-dictate. Like in the case if \myverb{AMI\_merge()}, the functional details of
-\myverb{AMI\_partition\_and\_merge()} are specified via a merge management
-object. In fact the merge management object for \myverb{AMI\_merge()} is a
-special case of the one for \myverb{AMI\_partition\_and\_merge()}. The following
-example shows such an object:
+TPIE therefore provides the function \myverb{AMI\_merge()}
+which, depending on the main memory available, merges a
+variable number of input streams into an output stream in a
+single scan of the input streams. As in the case of
+\myverb{AMI\_scan}, the application-specific details of how the merge
+is performed are specified via an operation management
+object (in this case, a  merge management object)
+with member functions \myverb{initialize()} and
+\myverb{operate()}.\comment{LA: The AMI\_merge stuff should
+   be rewritten with some examples}\footnote{%
+   \myverb{ami\_merge} also has three specialized polymorphs
+   for merging according to a total order on the data
+   elements. These specialized polymorphs do not use a merge
+   management object. Refer to
+   Section~\ref{sec:ref-ami-merge}.} 
+However, often, as in the merge sort example, one wants to
+merge more streams than memory constraints allow in a single
+pass, and so the merge may have to be done in several recursive
+stages.
+\comment{LA: Here we start talking about memory
+   constraints - there should be a general intro to blocks
+   and stuff somewhere.} 
+Since it can be cumbersome to compute precisely how
+many streams can be merged in one pass --- one must keep
+track of the space needed for input blocks from each of the
+streams being merged, as well as the overhead of any data
+structures needed for the merge --- TPIE provides a
+mechanism that does most of this work for us. The
+function \myverb{AMI\_partition\_and\_merge()} divides an
+input stream into sub-streams just small enough to fit into
+main memory, operates on each in main memory, then merges
+them back into a single output stream, using intermediate
+streams if memory constraints dictate. As in the case of
+\myverb{AMI\_merge()}, the functional details of
+\myverb{AMI\_partition\_and\_merge()} are specified via a
+merge management object. In fact the merge management object
+for \myverb{AMI\_merge()} is a special case of the one for
+\myverb{AMI\_partition\_and\_merge()}. The following example
+illustrates the use of \myverb{AMI\_partition\_and\_merge()}:
 
 \begin{verbatim}
 class my_merger : AMI_merge_base {
@@ -1002,57 +1144,64 @@ void f()
 }
 \end{verbatim}
 
-The class members are as follows:
+The member functions of the merge management object
+\myverb{mm} are as follows:
 
 \begin{description}
-\item[\myverb{initialize()}] Tells the object how many streams it should
-  merge (\myverb{arity}) and what the first item from each stream is
-  (\myverb{in}). \myverb{taken\_flags} and \myverb{taken\_index} provide two
-  mechanisms for the merge manager to tell TPIE what objects it took
-  from the input streams. These are discussed in more detail in 
-  the context of a merge sorting example in Section~\ref{sec:mergesort}.
-\item[\myverb{operate()}]
-Just as in scanning, this member function is called repeatedly to process
-input objects.
-\item[\myverb{main\_mem\_operate()}]
-Called by TPIE to operate on an array of data in main memory.
-\item[\myverb{space\_usage\_overhead()}]
-Called by TPIE prior to initialization to asses how much main memory this
-object will use.
-\item[\myverb{space\_usage\_per\_item()}]
-Called by TPIE prior to initialization to asses how much main memory may be
-used per input stream. Merge management objects are allowed to use main
-memory space linear in the number of input streams.
+    \item[\myverb{initialize()}] Tells the object how many
+    streams TPIE has chosen to (\myverb{arity}) and what the
+    first item from each stream is (\myverb{in}). The
+    variables \myverb{taken\_flags} and
+    \myverb{taken\_index} provide two mechanisms for the
+    merge manager to tell TPIE what objects it took from the
+    input streams. These are discussed in more detail in the
+    context of a merge sorting example in
+    Section~\ref{tut:mergesort}.
+    \item[\myverb{operate()}] Just as in scanning, this
+    member function is called repeatedly to process input
+    objects.
+    \item[\myverb{main\_mem\_operate()}] Called by TPIE to
+    operate on an array of data in main memory.
+    \item[\myverb{space\_usage\_overhead()}] Called by TPIE
+    prior to initialization to assess how much main memory
+    this object will use.
+    \item[\myverb{space\_usage\_per\_item()}] Called by TPIE
+    prior to initialization to assess how much main memory
+    may be used per input stream. Merge management objects
+    are allowed to use main memory space linear in the
+    number of input streams.
 \end{description}
 
-\myverb{AMI\_partition\_and\_merge()} behaves as indicated by the following
-pseudo-code. Note that for simplicity of presentation, boundary conditions are not covered.
+The following pseudo-code describes the operation of
+\myverb{AMI\_partition\_and\_merge()}.  Note that for
+simplicity of presentation, boundary conditions are not
+covered.
 
 \begin{verbatim}
 AMI_err AMI_partition_and_merge(instream, outstream, mm)
 {
     max_ss = max # of items that can fit in main memory;
-    partition instream into num_substreams substreams of size max_ss;
+    Partition instream into num_substreams substreams of size max_ss;
 
-    foreach substream[i] {
-        read substream[i] into main memory;
+    Foreach substream[i] {
+        Read substream[i] into main memory;
         mm->main_mem_operate(substream[i]);
-        write substream[i];
+        Write substream[i];
     }
 
-    call mm->space_usage_overhead() and mm->space_usage_per_stream;
+    Call mm->space_usage_overhead() and mm->space_usage_per_stream;
     
-    compute merge_arity; // Maximum # of streams we can merge.     
+    Compute merge_arity; // Maximum # of streams we can merge.     
 
     while (num_substreams > 1) {
         for (i = 0; i < num_substreams; i += merge_arity) {
-            merge substream[i] .. substream[i+merge_arity-1];
+            Merge substream[i] .. substream[i+merge_arity-1];
         }
         num_substreams /= merge_arity;
         max_ss *= merge_arity;
     }
 
-    write single remaining substream to outstream;
+    Write single remaining substream to outstream;
         
     return AMI_ERROR_NO_ERROR;
 }
@@ -1060,28 +1209,35 @@ AMI_err AMI_partition_and_merge(instream, outstream, mm)
 
 
 \subsection{Implementing Mergesort: An Extended Example}
-\label{sec:mergesort}
+\plabel{tut:mergesort}
 
-In the following we give example of the implementation and use of a merge
-management object for merge sorting integers. First, we declare the class:
+In the following we give an example of the implementation and
+use of a merge management object for merge sorting integers.
+We use merge sorting as a non-trivial example to illustrate
+the interfaces and mechanisms involved in using a merge
+management object. However, the reader should refer to
+Section \ref{tut:sorting} on sorting for a more
+straightforward and efficient way to sort with TPIE.
+
+First, we declare the class:
 
 \comment{LA: We should probably change AMI\_merge\_base to AMI\_merge\_object at some point}
 
 \begin{verbatim}
-class s_merge_manager : public AMI_merge_base<int> { 
+class MergeMgr : public AMI_merge_base<int> { 
 private:
     arity_t input_arity;
-    pqueue *pq;
+    pqueue  *pq;
 public:
-    s_merge_manager(void);
-    virtual ~s_merge_manager(void);
-    AMI_err initialize(arity_t arity, const int * const *in,
+    MergeMgr (void);
+    virtual ~MergeMgr  (void);
+    AMI_err initialize (arity_t arity, const int * const *in,
                        AMI_merge_flag *taken_flags, int &taken_index);
-    AMI_err operate(const int * const *in, AMI_merge_flag *taken_flags,
-                    int &taken_index, int *out);
-    AMI_err main_mem_operate(int* mm_stream, size_t len);
-    size_t space_usage_overhead(void);
-    size_t space_usage_per_stream(void);
+    AMI_err operate    (const int * const *in, AMI_merge_flag *taken_flags,
+                       int &taken_index, int *out);
+    AMI_err main_mem_operate      (int* mm_stream, size_t len);
+    size_t  space_usage_overhead  (void);
+    size_t  space_usage_per_stream(void);
 };
 \end{verbatim}
 
@@ -1089,14 +1245,12 @@ In addition to the standard class members for a merge management
 object, we have the following:
 
 \begin{description}
-\item[\myverb{input\_arity}]
-The number of input streams the merge management object must handle.
-\item[\myverb{pq}]
-A priority queue into which items will be placed.
-\item[\myverb{s\_merge\_manager()}]
-A constructor.
-\item[\myverb{\~{}s\_merge\_manager()}]
-A destructor.
+    \item[\myverb{input\_arity}] The number of input streams
+    the merge management object must handle.
+    \item[\myverb{pq}] A priority queue into which items
+    will be placed.
+    \item[\myverb{MergeMgr()}] A constructor.
+    \item[\myverb{\~{}MergeMgr()}] A destructor.
 \end{description}
 
 Construction and destruction are fairly straightforward.  At construction
@@ -1107,12 +1261,12 @@ is called.  The destructor checks whether
 destructor are implemented as follows:
 
 \begin{verbatim}
-s_merge_manager::s_merge_manager(void)
+MergeMgr::MergeMgr(void)
 {
     pq = NULL;
 }
 
-s_merge_manager::~s_merge_manager(void)
+MergeMgr::~MergeMgr(void)
 {
     if (pq != NULL) {
         delete pq;
@@ -1120,38 +1274,47 @@ s_merge_manager::~s_merge_manager(void)
 }
 \end{verbatim}
 
-When \myverb{AMI\_partition\_and\_merge()} is called with a merge management
-object of type \myverb{s\_merge\_manager}, the first member functions called
-are \myverb{space\_usage\_overhead()} and\\ % 
-\myverb{space\_usage\_per\_stream()}.  These return the number of bytes of main
-memory that the merge management object will allocate when initialized.
-\myverb{space\_usage\_overhead()}'s return value indicates that space will be
-needed for a priority queue.  \myverb{space\_usage\_per\_stream()}'s return
-value indicates that for each input stream, space (which is to be allocated
-when the priority queue is constructed) will be needed for an integer and
-an arity type.
+When \myverb{AMI\_partition\_and\_merge()} is invoked 
+it calls the member functions \\%
+\myverb{space\_usage\_overhead()} and
+\myverb{space\_usage\_per\_stream()} of the merge management
+object (\myverb{MergeMgr} in this case).  These
+return the number of bytes of main memory that the merge
+management object will allocate when initialized.  In our
+example, the return value from
+\myverb{space\_usage\_overhead()} indicates that space will
+needed for a priority queue, and the return value from
+\myverb{space\_usage\_per\_stream()} indicates that space
+%for each input stream, space (which is to be allocated
+%when the priority queue is constructed) 
+will be needed for an object of type \myverb{int} and one of
+type \myverb{arity} associated with each stream.
 
 \begin{verbatim}
-size_t s_merge_manager::space_usage_overhead(void)
+size_t MergeMgr::space_usage_overhead(void)
 {
     return sizeof(pqueue<arity_t,int>);
 }
 
 
-size_t s_merge_manager::space_usage_per_stream(void)
+size_t MergeMgr::space_usage_per_stream(void)
 {
     return sizeof(arity_t) + sizeof(int);
 }
 \end{verbatim}
 
-The next member function called by \myverb{AMI\_partition\_and\_merge()} is
-\myverb{main\_mem\_operate()}, which is called to handle the initial
-substreams that are small enough to fit in main
-memory.  Since we are sorting, we will simply use
-quicksort.
+As an early step in its processing,
+\myverb{AMI\_partition\_and\_merge()} will divide the input
+stream into ``memoryloads'' (which fit into main
+memory). It then calls the member function
+\myverb{main\_mem\_operate()} of the merge management object
+to perform application specific processing on these memoryloads.
+Since we are sorting in this example, we simply sort each memoryload
+via quicksort. The sorted memoryloads are then stored on the
+disks as substreams.
 
 \begin{verbatim}
-AMI_err s_merge_manager::main_mem_operate(int* mm_stream, size_t len)
+AMI_err MergeMgr::main_mem_operate(int* mm_stream, size_t len)
 {
     qsort(mm_stream, len, sizeof(int), c_int_cmp);
     return AMI_ERROR_NO_ERROR;
@@ -1159,21 +1322,20 @@ AMI_err s_merge_manager::main_mem_operate(int* mm_stream, size_t len)
 \end{verbatim}
 
 Having sorted all of the initial substreams,
-\myverb{AMI\_partition\_and\_merge()} begins to merge them.  Before merging a
-set of substreams, the merge management object's member function
-\myverb{initialize()} is called to inform the merge management object of the
-number of streams it should be prepared to merge.  The object is also
-provided with the first object from each of the streams to be merged.  For
-objects of the class \myverb{s\_merge\_manager}, the \myverb{initialize()} member
-function is as follows:
+\myverb{AMI\_partition\_and\_merge()} begins to merge them.
+Before merging a set of substreams, the merge management
+object's member function \myverb{initialize()} is called to
+inform the merge management object of the number of streams
+it should be prepared to handle at the merge step.  The
+object is also provided with the first object from each of
+the streams to be merged.  In our example the
+\myverb{initialize()} member function is as follows:
 
 \begin{verbatim}
-AMI_err s_merge_manager::initialize(arity_t arity, const int * const *in,
+AMI_err MergeMgr::initialize(arity_t arity, const int * const *in,
                                     AMI_merge_flag *taken_flags,
                                     int &taken_index)
 {
-    arity_t ii;
-
     input_arity = arity;
 
     if (pq != NULL) {
@@ -1183,7 +1345,7 @@ AMI_err s_merge_manager::initialize(arity_t arity, const int * const *in,
     // Construct a priority queue that can hold arity items.
     pq = new pqueue_heap_op(arity);
 
-    for (ii = arity; ii--; ) {
+    for (arity_t ii = arity; ii--; ) {
         if (in[ii] != NULL) {
             taken_flags[ii] = 1;
             pq->insert(ii,*in[ii]);
@@ -1198,21 +1360,21 @@ AMI_err s_merge_manager::initialize(arity_t arity, const int * const *in,
 \end{verbatim}
 
 Note the use of the return value \myverb{AMI\_MERGE\_READ\_MULTIPLE}.  This
-indicates that the flags pointed to by \myverb{*taken\_flags} are set to
-indicate which of the inputs were used and should not be presented
-again.  This is very similar to the use of input flags to indicate
+indicates that the flags in \myverb{*taken\_flags} are set to
+indicate which of the inputs were used (and should not be presented
+again).  This is very similar to the use of input flags to indicate
 which inputs were used by a scan management object as described in
-Section~\ref{sec:out-of-step}.  The reason that we have a special
+Section~\ref{tut:out-of-step}.  The reason that we have a special
 return value to indicate when these flags are used is to increase
 performance.  In order for \myverb{AMI\_scan()} to determine which inputs
 were taken, it must examine all the flags.  In a many way merge, this
 might be time consuming.  In cases where only one item is taken, its
 index can be returned in \myverb{taken\_index} in order to save the time
-that would be spent scanning the flags.  This technique is used in the
-\myverb{operate()} member function, whose implementation is as follows:
+that would be spent scanning the flags.  This technique is illustrated in our
+\myverb{operate()} member function, below.
 
 \begin{verbatim}
-AMI_err s_merge_manager::operate(const int * const *in,
+AMI_err MergeMgr::operate(const int * const *in,
                                  AMI_merge_flag *taken_flags,
                                  int &taken_index,
                                  int *out)
@@ -1241,7 +1403,7 @@ AMI_err s_merge_manager::operate(const int * const *in,
 
 \comment{LA: Something here?}
 
-\section{Distribution} \label{sec:distribution}
+\section{Distribution} \plabel{tut:distribution}
 \index{Distribution}
 
 \tobewritten
@@ -1263,27 +1425,101 @@ AMI_err s_merge_manager::operate(const int * const *in,
 
 \section{Sorting}
 
-\subsection{Comparison Sorting} \label{sec:cmp-sorting}
+\subsection{Comparison Sorting} \plabel{tut:cmp-sorting}
 
-\index{sorting!comparison|(}
-Sorting is a common primitive operation in many algorithms.  It can be
-performed in a variety of ways, such as by merging (See
-Section~\ref{sec:merging}), distribution (See
-Section~\ref{sec:distribution}), or Sharesort~\cite{aggarwal:optimal}. The
-latter combines elements of both, along with simple bit permutations
-(See Section~\ref{sec:bit-permuting}). TPIE provides a sort function
-\myverb{AMI\_sort()} based on merging. In the future a number of other sorting
-algorithms will be implemented and it is the intention that when
-calling \myverb{AMI\_sort()}, TPIE should automatically select the best
-algorithm for the given hardware platform.
+\index{sorting!comparison|(} 
+Sorting is a common primitive operation in many algorithms.
+It can be performed in a variety of ways. The two most basic
+approaches for external memory sorting are based on merging
+(See Section~\ref{tut:merging}), and distribution (See
+Section~\ref{tut:distribution}).
+%, or Sharesort~\cite{aggarwal:optimal}. The
+%latter combines elements of both, along with simple bit permutations
+%(See Section~\ref{tut:bit-permuting}). 
+TPIE currently provides several efficient sorting functions
+based on merging.  In the future a number of other sorting
+algorithms may be implemented and it is the intention that
+when calling \myverb{AMI\_sort()}, TPIE should automatically
+select the best algorithm for the given hardware platform.
 
+\subsection{Merge Sorting} \plabel{tut:mrg-sorting}
+\index{sorting!merge|(} 
+While the \myverb{AMI\_merge} example in
+Section~\ref{tut:merging} was not intended as an
+illustration of how to sort in TPIE, it contains the main
+ideas of how merge sorting should be done in order to
+achieve I/O optimality, and how it is done internally by
+TPIE's merge sort services.
+
+\noindent
+\emph{Merge sort} consists of two phases: the run formation
+phase and the merging phase.  During the \emph{run formation
+   phase}, the $N$ input elements are input $M$ (one \emph{memory-load})
+at a time; each memory-load is sorted and written to the
+disks as a ``run''.  In the \emph{merge phase}, the sorted
+runs are merged together approximately $M/B$ at a time (where $M$
+is the internal memory size and $B$ is the block size) in a
+round-robin manner until a single sorted run remains.
+Typically, a heap or similar data structure is used during
+the merge phase to select the next record to be output from
+the set of records presented by the sorted runs being
+merged. 
+
+Currently, TPIE offers three merge sorting variants. The
+user must decide which variant is most appropriate for their
+circumstances.  All accomplish the same goal, but the
+performance can vary depending on the situation. They differ
+mainly in the way they perform the merge phase of merge
+sort, specifically how they maintain their heap data
+structure used in the merge phase. The three variants are as
+follows:
+\begin{itemize}
+    \item \myverb{AMI\_sort}: keeps the (entire) first record
+    of each sorted run (each is a stream) in a heap. This
+    approach is most suitable when the record consists
+    entirely of the record key.
+    
+    \item \myverb{AMI\_ptr\_sort}: keeps a pointer to the
+    first record of each stream in the heap. This approach
+    works best when records are very long and the key
+    field(s) take up a large percentage of the record.
+
+    \item \myverb{AMI\_key\_sort}: keeps the key field(s) and
+    a pointer to the first record of each stream in the
+    heap. This approach works best when the key field(s) are
+    small in comparison to the record size.
+\end{itemize}
+
+Any of these variants will accomplish the task of sorting an
+input stream in an I/O efficient way, but there can be
+noticeable differences in processing time between the
+variants. As an example, \myverb{AMI\_key\_sort} appears to be
+more cache-efficient than the others in many cases, and
+therefore often uses less processor time, despite extra data
+movement relative to \myverb{AMI\_ptr\_sort}.
+
+In addition to the three variants discussed above, there are
+multiple choices within each variant regarding how the
+actual comparison operations are to be performed. These
+choices are described in detail for \myverb{AMI\_sort}, below.
 %Because the best choice of sorting
 %algorithm varies from one I/O system to the next, TPIE provides a single
 %function \myverb{AMI\_sort()}, which selects an appropriate algorithm based on
 %the underlying hardware characteristics.
 
 \subsubsection{AMI\_sort()}
-\myverb{AMI\_sort()} has three polymorphs. The first works on streams of
+\myverb{AMI\_sort()} has three polymorphs, described below.
+We will refer to these as the (1) comparison operator, (2)
+comparison function, and (3) comparison class versions of
+\myverb{AMI\_sort}. The comparison operator version tends to
+be the fastest and most straightforward to use. The
+comparison class version is comparable in speed (maybe
+slightly slower), but somewhat more flexible, as it can support
+multiple, different sorts on the same keys. The comparison
+function version is slightly easier to use than the
+comparison object version, but typically it is measureably slower.
+
+\noindent{\bf Comparison operator version:} This version works on streams of
 objects for which the operator \myverb{<} is defined. It is invoked as
 follows:
 
@@ -1297,7 +1533,8 @@ void f()
 }
 \end{verbatim}
 
-The second polymorph of \myverb{AMI\_sort()} uses an explicit function to
+\noindent{\bf Comparison function version:}
+This version uses an explicit function to
 determine the relative order of two objects in the input stream.  This
 is useful in cases where we may want to sort a stream of objects in
 several different ways.  For example, the following code sorts a
@@ -1336,23 +1573,29 @@ void f()
 }
 \end{verbatim}
 
-The third polymorph of \myverb{AMI\_sort()} works like the second, except that
-it relies on a comparator class instead of on a comparator function. In this
-case the above complex number example would look at follows:\comment{LA:
-Check that this is correct.}
+\noindent{\bf Comparison class version:} 
+This version of \myverb{AMI\_sort()} is similar to the
+comparison function version, except that the comparison
+function is now a method of a user-defined comparison class. This polymorph of \myverb{AMI\_sort} expects an object
+as its third argument. This object must have a public member
+function named \myverb{compare}, whose calling sequence and
+functionality is the same as for a comparison function (as
+described above). The complex number example might be solved
+using the comparison class version of \myverb{AMI\_sort} as
+follows: \comment{LA: Check that this is correct.}
 
 \begin{verbatim}
-class compare_re_class : comparator {
+class compare_re_class {
 public:
-    int compare_re(const complex &c1, const complex &c2) {
+    int compare ( const complex &c1, const complex &c2 ) {
         return (c1.re() < c2.re()) ? -1 :
                ((c1.re() > c2.re()) ? 1 : 0);
     };
 };
 
-class compare_im_class : comparator {
+class compare_im_class {
 public:
-    int compare_im(const complex &c1, const complex &c2) {
+    int compare ( const complex &c1, const complex &c2 ) {
         return (c1.im() < c2.im()) ? -1 :
                ((c1.im() > c2.im()) ? 1 : 0);
     };
@@ -1361,6 +1604,7 @@ public:
 AMI_STREAM<complex> instream;
 AMI_STREAM<complex> outstream_re;
 AMI_STREAM<complex> outstream_im;
+
 compare_re_class compare_re
 compare_im_class compare_im
 
@@ -1371,30 +1615,53 @@ void f()
 }
 \end{verbatim}
 
-\comment{LA: We need to make the function object change!}
+%\comment{LA: We need to make the function object change!}
+% \subsubsection{Optimized Sort Functions}
+
+% Version \version~of TPIE also contains alpha versions of a new improved
+% sorting function\\ %
+% \myverb{AMI\_optimized\_sort()} which has three polymorphs. It is planned that
+% after thorough testing this function will be the standard \myverb{AMI\_sort()}
+% function. Section~\ref{sec:ref-imp-ami-sort} provide more details with
+% regards to the difference in the implementation details between
+% \myverb{AMI\_optimized\_sort()} and \myverb{AMI\_sort()}.
+
+% The first two polymorphs of \myverb{AMI\_optimized\_sort()} are identical to
+% the first two \myverb{AMI\_sort()} polymorphs, which relies on the \myverb{<}
+% operator and a comparison function, respectively.\comment{LA: We need to
+% add a comparator class polymorph also (when we do the function object
+% stuff). Doing so will also make it possible to clean up the
+% ami\_merge\_optimized.h code - right now there is two full copies of the
+% code.} The third polymorph is based on the assumption that the objects in
+% the input stream is to be sorted according to one of their fields (the
+% \myverb{key} field), and that the class of this field have a well-defined
+% (possibly via overloading) \myverb{<} operator. For example, consider the
+% class \myverb{rectangle} below meant for axis parallel rectangles:
+
+\subsubsection{AMI\_ptr\_sort()}
+
+The \myverb{AMI\_ptr\_sort} variant of merge sort in TPIE
+keeps only a pointer to each record in the heap used to
+perform merging of runs. Similar to \myverb{AMI\_sort}
+above, it offers comparison
+operator, comparison function, and comparison class
+polymorphs. The syntax is identical to that illustrated in
+the \myverb{AMI\_sort} examples; simply replace
+\myverb{AMI\_sort} by \myverb{AMI\_ptr\_sort}.
+
+\subsubsection{AMI\_key\_sort()}
+
+The \myverb{AMI\_key\_sort} variant of TPIE merge sort keeps
+the key field(s) plus a pointer to the corresponding record
+in an internal heap during the merging phase of merge sort.
+It requires a sort management object with member functions
+\myverb{compare} and \myverb{copy}. The usage of
+\myverb{AMI\_key\_sort()} is illustrated by the following
+example:
 
 
-\subsubsection{Optimized Sort Functions}
-
-Version \version~of TPIE also contains alpha versions of a new improved
-sorting function\\ %
-\myverb{AMI\_optimized\_sort()} which has three polymorphs. It is planned that
-after thorough testing this function will be the standard \myverb{AMI\_sort()}
-function. Section~\ref{sec:ref-imp-ami-sort} provide more details with
-regards to the difference in the implementation details between
-\myverb{AMI\_optimized\_sort()} and \myverb{AMI\_sort()}.
-
-The first two polymorphs of \myverb{AMI\_optimized\_sort()} are identical to
-the first two \myverb{AMI\_sort()} polymorphs, which relies on the \myverb{<}
-operator and a comparison function, respectively.\comment{LA: We need to
-add a comparator class polymorph also (when we do the function object
-stuff). Doing so will also make it possible to clean up the
-ami\_merge\_optimized.h code - right now there is two full copies of the
-code.} The third polymorph is based on the assumption that the objects in
-the input stream is to be sorted according to one of their fields (the
-\myverb{key} field), and that the class of this field have a well-defined
-(possibly via overloading) \myverb{<} operator. For example, consider the
-class \myverb{rectangle} below meant for axis parallel rectangles:
+Consider the class \myverb{rectangle} below, meant to
+describe axis-parallel rectangles,
 
 \begin{verbatim}}
 class rectangle{
@@ -1402,12 +1669,39 @@ double northEast_x;
 double northEast_y;
 double southWest_x;
 double southWest_y;
+char   long_text_description[200];
 }
 \end{verbatim}
 
-and suppose that we want to sort a stream of rectangles in descending order
-according to their \myverb{southWest\_y} coordinate. Assuming that the size
-of each \myverb{double} is 8 bytes, we simply sort the stream as follows:
+\noindent
+and suppose that we want to sort a stream of rectangles in
+descending order according to their \myverb{southWest\_y}
+coordinate. The user-written sort management object
+\myverb{smo} below contains a member function \myverb{copy}
+for copying the desired key field from a record (whose
+address will be provided by TPIE) to a location in the heap
+(determined by TPIE). 
+
+\begin{verbatim}
+// Here is the definition of the sort management class
+class SortManager {
+private:
+    int result;
+public:
+   inline int compare (const double & k1, const double & k2) {
+      return ((k1 < k2)? -1 : (k1 > k2) ? 1 : 0);
+   }
+   inline void copy (double *key, const rectangle &record) {
+      *key = record.southwest_y;
+   }
+};
+
+// create a sort management object
+SortManager <rectangle,double> smo;
+\end{verbatim}
+ 
+Assuming that the size of each \myverb{double} is 8 bytes,
+we can sort the stream as follows:
  
 \begin{verbatim}
 AMI_STREAM<rectangle> instream;
@@ -1416,42 +1710,44 @@ double dummyKey;
 
 void f()
 {
-    AMI_optimized_sort(&instream, &outstream, 24, dummyKey);
+    AMI_key_sort(&instream, &outstream, dummyKey, &smo );
 }
 \end{verbatim}
 
-The third argument of \myverb{AMI\_optimized\_sort()} is the offset within the
-object of the \myverb{key} according to which the items are to be sorted. The
-fourth argument is a dummy argument having the same type as the key
-field.\comment{LA: Maybe we should add something about this being a C++
-requirement?}
+The third argument of \myverb{AMI\_key\_sort()} is a a
+dummy argument having the same type as the key field, and
+the fourth argument is the sort management
+object.\comment{LA: Maybe we should add something about this
+   being a C++ requirement?}
 
 
+\index{sorting!merge|)}
 
 \index{sorting!comparison|)}
 
 \subsection{Key Bucket Sorting}
-\label{sec:kb-sorting}
+\plabel{tut:kb-sorting}
 
-\index{sorting!key bucket|(}
-\index{sorting!key bucket|)}
+%\index{sorting!key bucket|(}
 
 \tobewritten
 
 
-\section{Permutation}
+\section{Permutation}\plabel{tut:permutation}
 
 \subsection{General Permutation}
 
-Permutation is a basic building block in many I/O algorithms. Routing a
-general permutation in the I/O model is asymptotically as complex as
-sorting~\cite{aggarwal:input}, though for some important classes of
-permutations, such as BMMC permutations (See
-Section~\ref{sec:bit-permuting}) faster algorithms are possible. In this
-section, we discuss
-\myverb{AMI\_general\_permute()}, which routes arbitrary permutations, but
-always takes as long as sorting, regardless of whether the particular
-permutation can be done more quickly or not.
+Permutation is a basic building block in many I/O
+algorithms. Routing a general permutation in the I/O model
+is asymptotically as complex as
+sorting~\cite{aggarwal:input}, though for some important
+classes of permutations, such as BMMC permutations (See
+Section~\ref{tut:bit-permuting}) faster algorithms are
+possible~\cite{cormen}. In this section, we discuss
+\myverb{AMI\_general\_permute()}, which routes arbitrary
+permutations, but always takes as long as sorting,
+regardless of whether the particular permutation can be done
+more quickly or not.
 
 General permutations are routed using the function
 \myverb{AMI\_general\_permute()}.  Like other AMI functions,
@@ -1495,8 +1791,9 @@ void f()
 }
 \end{verbatim}
 
+
 \subsection{Bit Permutation}
-\label{sec:bit-permuting}
+\plabel{tut:bit-permuting}
 
 \comment{LA: Do we really want this in the tutorial?}
 
@@ -1512,9 +1809,11 @@ matrix $A$ and an $n$ element column vector $c$ of bits.  Source and
 destination addresses are interpreted as column vectors of bits, with
 the low order bit of the address at the top. The destination address
 $x'$ corresponding to a given source address $x$ is computed as
-$$x' = Ax + c$$ where addition and multiplication of matrix elements is
-done over GF(2). For a detailed description of BMMC permutations,
-see~\cite{cormen:integrate-tr}.
+$$x' = Ax + c$$
+where addition and multiplication of matrix
+elements is done over GF(2)\comment{DH: we should spell out
+   what GF(2) is.}. For a detailed description of BMMC
+permutations, see~\cite{cormen:integrate-tr}.
 
 Routing BMMC permutations in TPIE is done using the
 \myverb{AMI\_BMMC\_permute()} entry point\comment{LA: Is it really
@@ -1548,14 +1847,14 @@ matrices and perform the permutation.
     ae = AMI_BMMC_permute(&amis0, &amis1, (AMI_bit_perm_object *)&bpo);
 \end{verbatim}
 
-\section{Distribution Sweeping} \label{sec:distsweep}
+\section{Distribution Sweeping} \plabel{tut:distsweep}
 \index{Distribution sweeping}
 \comment{LA: Get sweeping under distribution in the index}
 
 \tobewritten
 
 \section{Matrix Operations}
-\label{sec:matrix}
+\plabel{tut:matrix}
 
 \comment{LA: Read through this and check code.}
 
@@ -1573,26 +1872,30 @@ It is assumed that the class \myverb{T} of the elements in a matrix forms a
 quasiring with the operators \myverb{+} and \myverb{*}.  Furthermore, the
 object \myverb{T((int)0)} is assumed to be an identity for \myverb{+}.  At the
 moment, it is not assumed that the operator
-\myverb{-} in an inverse of \myverb{+}, and therefore no reduced
+\myverb{-} is an inverse of \myverb{+}, and therefore no reduced
 complexity matrix multiplication algorithms analogous to Strassen's
 algorithm are used.
 
-TPIE provides two different classes of matrices that, dense, and sparse.
-
+TPIE provides support for both dense and sparse matrices.
 
 \subsection{Dense Matrix Operations}
-\label{sec:dense-mat}
+\plabel{tut:dense-mat}
 
 \index{matrices!dense|(}
 
 Dense matrices are implemented by the templated class
-\myverb{AMI\_matrix},\index{AMI_matrix@{\tt AMI\_matrix}} which is a subclass
-of \myverb{AMI\_STREAM}.\index{AMI_STREAM@{\tt AMI\_STREAM}} Dense matrices
-can be filled using \myverb{AMI\_scan()}, though typically they are filled
-using the function \myverb{AMI\_matrix\_fill()}, which uses a scan management
-object that is given the row and column of each element of the matrix and
-asked to fill them in.  In the following example, we create a 1000 by 1000
-upper triangular matrix of ones and zeroes:
+\myverb{AMI\_matrix},\index{AMI_matrix@{\tt AMI\_matrix}}
+which is a subclass of
+\myverb{AMI\_STREAM}.\index{AMI_STREAM@{\tt AMI\_STREAM}}
+Dense matrices can be initialized or ``filled'' using
+\myverb{AMI\_scan()}, though typically they are filled using
+the function \myverb{AMI\_matrix\_fill()}.
+\myverb{AMI\_matrix\_fill()} wuses a scan management object
+whose member function \myverb{element} is given the row and
+column of each element of the matrix and must return the
+value to be inserted at that position of the matrix. In the
+following example, we create a 1000 by 1000 upper triangular
+matrix of ones and zeroes:
 
 \begin{verbatim}
 template<class T>
@@ -1642,7 +1945,7 @@ void f()
 \index{matrices!dense|)}
 
 \subsection{Sparse Matrix Operations}
-\label{sec:sparse-mat}
+\plabel{tut:sparse-mat}
 
 \index{matrices!sparse|(}
 \index{matrices!sparse|)}
@@ -1651,7 +1954,7 @@ void f()
 
 
 \subsection{Elementwise Arithmetic}
-\label{sec:elementwise}
+\plabel{tut:elementwise}
 
 \index{arithmetic!elementwise|see{elementwise arithmetic}}
 \index{elementwise arithmetic|(} 
@@ -1693,7 +1996,7 @@ void foo()
 
 
 \section{External Stack}
-\label{sec:stack}
+\plabel{tut:stack}
 
 \index{External Stack}
 
@@ -1702,10 +2005,10 @@ void foo()
 \tobewritten
 
 \section{Compiling and Executing a TPIE Program}
-\label{sec:compiling}
+\plabel{tut:compiling}
 
-The fragments of code presented in this tutorial are valuable for
-instructive purposes, however, they are incomplete. In order to
+The fragments of code presented in this tutorial are designed for
+instructive purposes  but they are incomplete. In order to
 successfully compile, link, and run a complete TPIE application, some
 additional code and configuration is needed. The configuration and
 compilation of a TPIE program is discussed below. The recommended way for a
@@ -1713,44 +2016,66 @@ novice TPIE programmer to learn how to write a complete TPIE application is
 to go through the sample program of Chapter~\ref{ch:samplepgmr} or to look
 at the source code provided in the \myverb{test} directory.
 
-The exact behavior or TPIE at run time is controlled by several
-macros. These macros are normally defined in the file \myverb{app\_config.h}
-\index{app_config@{\tt app\_config.h}} which is included in the beginning
-of any TPIE program before including any TPIE headers. The test application
-code\index{test applications} distributed with TPIE contains such a file
-(in \myverb{/test/app\_config.h}). See Section~\ref{sec:tuning} for a
-discussion of the macros and of how they should be set on a given hardware
-platform in order to obtain maximal performance.
+The main steps involved in setting up and running a TPIE
+program are as follows:\comment{DH: This mixes apples and
+   oranges. Should rewrite with more focus, e.g compiling a
+   TPIE Hello World program?}
 
-Once the appropriate macros have been defined, TPIE's templated classes and
-functions are included by including the header file \myverb{ami.h} from the
-\myverb{include} directory. Normally, this directory is pointed to by a
-\myverb{-I} argument to the compiler. In order to instruct TPIE to run with a
-user-specified amount of internal memory the variable \myverb{register\_new}
-has to be set to 1 in the main body of the program. Setting this variable
-means that the program will abort if the allocated internal memory exceeds
-a specified amount.\comment{LA: Something about how TPIE counts memory?}
-This amount is set by the function \myverb{MM\_manager.resize\_heap(mm\_size)}
-which instructs the TPIE memory manager \myverb{MM\_manager} to disallow the
-applications total internal memory usage (in the ``heap'' area) from
-exceeding \myverb{test\_mm\_size} bytes. It is the responsibility of the
-application to have the \myverb{MM\_manager} ``resize'' its heap to an
-appropriate size. Normally, this amount is the amount of physical main
-memory minus the main memory used by the operating system and other
-programs running on the machine. If \myverb{register\_new} is set to 0, the
-application will run with virtual memory like an ordinary non-TPIE
-application would.
-
-If the application program is stored in the file \myverb{foo.cpp} it can now be
-compiled with the following command:
+\begin{enumerate}
+    
+    \item Various behaviors of TPIE at run time can be
+    controlled by compile-time variables.  These variables
+    are defined in the file \myverb{app\_config.h}
+    \index{app_config@{\tt app\_config.h}} which is included
+    at the beginning of a TPIE program before including any
+    TPIE headers. The test application code\index{test
+       applications} distributed with TPIE contains such a
+    file (\myverb{/test/app\_config.h}). See
+    Section~\ref{sec:tuning} for a discussion of these
+    options and of how they should be set on a given
+    hardware platform for best performance.
+    
+    \item TPIE's templated classes and functions are
+    included by including the header file \myverb{ami.h}
+    from the \myverb{include} directory. Normally, this
+    directory is indicated via the \myverb{-I} argument to
+    the compiler.
+    
+    \item The following statements are used to indicate that
+    the TPIE memory manager \myverb{MM\_manager} should
+    restrict the internal memory that it uses (to the value
+    of \myverb{mm\_size} in this case).
 
 \begin{verbatim}
-g++ foo.cpp -I ../include/ -L ../lib/ -ltpie -o foo
+   MM_manager.enforce_memory_limit ();
+   MM_manager.set_memory_limit (mm_size);
 \end{verbatim}
+    
+    Calling the \myverb{MM\_manager} member function
+    \myverb{enforce\_memory\_limit ()} indicates that the
+    program should abort if the allocated internal memory
+    exceeds a specified amount.\comment{LA: Something about
+       how TPIE counts memory?} This amount is set by the
+    member function \myverb{set\_memory\_limit (mm\_size)}.
+    Normally, this amount is the amount of physical main
+    memory minus the main memory used by the operating
+    system and other programs running on the machine. If
+    \myverb{MM\_manager.ignore\_memory\_limit ()} is called,
+    the application will run with virtual memory like an
+    ordinary non-TPIE application.
+    
+    \item If a TPIE program file \myverb{foo.cpp} exists in
+    the TPIE base directory it can be compiled with the
+    following command:
 
-Users interested in setting up a \myverb{Makefile} for the compiling task can
-look at a sample \myverb{Makefile} in the \myverb{test} directory.
-
+\begin{verbatim}
+g++ foo.cpp -Iinclude/ -Llib/ -ltpie -o foo
+\end{verbatim}
+    
+    Users interested in setting up a \myverb{Makefile} for
+    the compiling task can look at a sample
+    \myverb{Makefile} in the \myverb{test} subdirectory.
+\end{enumerate}
 
 
 %%% Local Variables: 
