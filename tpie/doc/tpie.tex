@@ -7,7 +7,7 @@
 %%
 %% Copies and modified from tpie.texi.
 %%
-%% $Id: tpie.tex,v 1.3 1998-12-12 17:07:30 tavi Exp $
+%% $Id: tpie.tex,v 1.4 1999-01-31 03:35:54 rajiv Exp $
 %%
 
 \documentstyle[11pt,html,makeidx]{book}
@@ -50,7 +50,7 @@
 \bibliographystyle{abbrv}
 
 \title{TPIE User Manual and Reference}
-\author{Darren Erik Vengroff}
+\author{FIX THIS Darren Erik Vengroff}
 \date{{\bf DRAFT} of \today}
 
 \maketitle
@@ -1450,7 +1450,7 @@ to begin is probably to look directly at the source code provided in
 the {\tt test} directory.  It incorporates all of the necessary
 components discussed below.
 
-\subsection{Macros and Header Files}
+\subsection{Configuring TPIE for the Application}
 \label{sec:macros}
 \index{macros|(}
 
@@ -1503,21 +1503,7 @@ The macros are as follows:
   \verb|AMI_VIRTUAL_BASE|, but for the BTE layer.
   Normally, TPIE applications programmers would never
   set this flag.
-\item[{\verb|BTE\_IMP\_*|}]
-  \index{BTE_IMP_*@{\tt BTE\_IMP\_*}}
-  \index{block transfer engine!implementation}
-  \index{implementation!BTE}
-  A macro of this form is used to tell TPIE which of the available
-  block transfer engine implementations to use.  Version \version of
-  TPIE is distributed with two implementations.  An implementation
-  based on the UNIX {\tt stdio} library
-  \index{stdio (UNIX library)@{\tt stdio} (UNIX library)} is selected
-  by setting {\tt BTE\_IMP\_STDIO}.  
-  \index{implementation!BTE!{\tt stdio} library}
-  An implementation based on memory
-  mapped I/O\index{memory mapped I/O} is selected by setting 
-  {\tt BTE\_IMP\_MMB}.
-  \index{implementation!BTE!memory mapped I/O}
+
 \item[{\verb|AMI\_IMP\_*|}]
   \index{AMI_IMP_*@{\tt AMI\_IMP\_*}}
   \index{access method interface!implementation}
@@ -1529,13 +1515,52 @@ The macros are as follows:
   selected by setting 
   {\tt AMI\_IMP\_SINGLE}.
   \index{implementation!AMI!single disk}
+
+\item[{\verb|BTE\_IMP\_*|}]
+  \index{BTE_IMP_*@{\tt BTE\_IMP\_*}}
+  \index{block transfer engine!implementation}
+  \index{implementation!BTE}
+  These are important macros for the TPIE user.
+  The macros of this form are used to tell TPIE which of the available
+  block transfer engine implementations to use.  Version \version of
+  TPIE is distributed with three implementations.  
+  %
+  An implementation
+  based on the UNIX {\tt stdio} library
+  \index{stdio (UNIX library)@{\tt stdio} (UNIX library)} is selected
+  by setting {\tt BTE\_IMP\_STDIO}.  
+  \index{implementation!BTE!{\tt stdio} library}
+  %
+  An implementation based on blocked UNIX {\tt read/write} calls 
+  \index{read write} is selected by setting 
+  {\tt BTE\_IMP\_UFS}.
+  \index{implementation!BTE!read!write}
+  %
+  An implementation based on memory
+  mapped I/O\index{memory mapped I/O} is selected by setting 
+  {\tt BTE\_IMP\_MMB}.
+  \index{implementation!BTE!memory mapped I/O}
+
+\end{description}
+
+The following flags are only used by the memory mapped I/O BTE (BTE\_MMB).
+
+\begin{description}
+
 \item[{\verb|BTE\_MMB\_READ\_AHEAD|}]
   \index{BTE_MMB_READ_AHEAD@{\tt BTE\_MMB\_READ\_AHEAD}}
   \index{read ahead}
   When the memory mapped I/O implementation of the BTE layer is
   selected, setting this flag tells the BTE to optimize for sequential
   read speed by reading blocks into main memory before the
-  data they contain is actually needed.  This feature requires the
+  data they contain is actually needed. This version provides two methods
+  of read-ahead. The default behaviour uses {\tt mmap}. If the USE\_LIBAIO
+  flag is also set, read ahead is done using the asynchronous I/O library.
+\item[{\verb|USE\_LIBAIO|}]
+  \index{USE_LIBAIO}
+  If the BTE\_MMB\_READ\_AHEAD flag is also set, setting this flag
+  performs read ahead using the  asynchronous I/O library.
+  This feature requires the
   asynchronous I/O library {\tt libaio}.\index{libaio library@{\tt
       libaio} library.}
 \end{description}
