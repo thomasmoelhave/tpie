@@ -11,11 +11,14 @@
 // a meta data structure accessed no more than once every block
 // is created or destroyed. 
 //
-// $Id: stdio_stack.h,v 1.6 2003-04-04 20:44:02 tavi Exp $
+// $Id: stdio_stack.h,v 1.7 2003-04-17 19:57:25 jan Exp $
 //
 
 #ifndef _STDIO_STACK_H
 #define _STDIO_STACK_H
+
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 #include <bte_stream_stdio.h>
 
@@ -50,7 +53,7 @@ template<class T>
 BTE_err stdio_stack<T>::push(const T &t)
 {
   BTE_err ae;
-  off_t slen;
+  TPIE_OS_OFFSET slen;
     
   ae = truncate((slen = stream_len())+1);
   if (ae != BTE_ERROR_NO_ERROR) {
@@ -70,7 +73,7 @@ template<class T>
 BTE_err stdio_stack<T>::pop(T **t)
 {
   BTE_err ae;
-  off_t slen;
+  TPIE_OS_OFFSET slen;
   
   slen = stream_len();
   ae = seek(slen-1);
