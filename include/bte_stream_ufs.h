@@ -2,7 +2,7 @@
 // File: bte_stream_ufs.h (formerly bte_ufs.h)
 // Author: Rakesh Barve <rbarve@cs.duke.edu>
 //
-// $Id: bte_stream_ufs.h,v 1.7 2003-04-17 18:47:34 jan Exp $
+// $Id: bte_stream_ufs.h,v 1.8 2003-04-23 00:05:47 tavi Exp $
 //
 // BTE streams with blocks I/Oed using read()/write().  This particular
 // implementation explicitly manages blocks, and only ever maps in one
@@ -173,8 +173,8 @@ private:
 
     inline BTE_err advance_current (void);
 
-    inline TPIE_OS_OFFSET item_off_to_file_off (TPIE_OS_OFFSET item_off);
-    inline TPIE_OS_OFFSET file_off_to_item_off (TPIE_OS_OFFSET item_off);
+    inline TPIE_OS_OFFSET item_off_to_file_off (TPIE_OS_OFFSET item_off) const;
+    inline TPIE_OS_OFFSET file_off_to_item_off (TPIE_OS_OFFSET item_off) const;
 
 public:
     // Constructor.
@@ -203,7 +203,7 @@ public:
     BTE_err main_memory_usage (size_t * usage, MM_stream_usage usage_type);
 
     // Return the number of items in the stream.
-    TPIE_OS_OFFSET stream_len (void);
+    TPIE_OS_OFFSET stream_len () const;
 
     // Return the path name in newly allocated space.
     BTE_err name (char **stream_name);
@@ -211,16 +211,19 @@ public:
     // Move to a specific position in the stream.
     BTE_err seek (TPIE_OS_OFFSET offset);
 
+    // Return the current position in the stream.
+    TPIE_OS_OFFSET tell () const;
+
     // Truncate the stream.
     BTE_err truncate (TPIE_OS_OFFSET offset);
 
     // Destructor
-    ~BTE_stream_ufs (void);
+    ~BTE_stream_ufs ();
 
     B_INLINE BTE_err read_item (T ** elt);
     B_INLINE BTE_err write_item (const T & elt);
 
-    TPIE_OS_OFFSET chunk_size (void);
+    TPIE_OS_OFFSET chunk_size (void) const;
 };
 
 // This constructor creates a stream whose contents are taken from the
@@ -867,8 +870,8 @@ BTE_err BTE_stream_ufs < T >::main_memory_usage (size_t * usage,
 }
 
 // Return the number of items in the stream.
-template < class T > TPIE_OS_OFFSET BTE_stream_ufs < T >::stream_len (void)
-{
+template < class T > 
+TPIE_OS_OFFSET BTE_stream_ufs < T >::stream_len (void) const {
     return file_off_to_item_off (f_eos) - file_off_to_item_off (f_bos);
 };
 
@@ -889,7 +892,8 @@ BTE_err BTE_stream_ufs < T >::name (char **stream_name) {
 }
 
 // Move to a specific position.
-template < class T > BTE_err BTE_stream_ufs < T >::seek (TPIE_OS_OFFSET offset) {
+template < class T > 
+BTE_err BTE_stream_ufs < T >::seek (TPIE_OS_OFFSET offset) {
 
     BTE_err be;
     TPIE_OS_OFFSET new_offset;
@@ -933,8 +937,14 @@ template < class T > BTE_err BTE_stream_ufs < T >::seek (TPIE_OS_OFFSET offset) 
     return BTE_ERROR_NO_ERROR;
 }
 
+template < class T > 
+TPIE_OS_OFFSET BTE_stream_ufs < T >::tell() const {
+  return file_off_to_item_off(f_offset);
+}
+
 // Truncate the stream.
-template < class T > BTE_err BTE_stream_ufs < T >::truncate (TPIE_OS_OFFSET offset) {
+template < class T > 
+BTE_err BTE_stream_ufs < T >::truncate (TPIE_OS_OFFSET offset) {
 
     BTE_err be;
     TPIE_OS_OFFSET new_offset;
@@ -1337,7 +1347,7 @@ inline BTE_err BTE_stream_ufs < T >::advance_current (void) {
 }
 
 template < class T >
-inline TPIE_OS_OFFSET BTE_stream_ufs < T >::item_off_to_file_off (TPIE_OS_OFFSET item_off)
+inline TPIE_OS_OFFSET BTE_stream_ufs < T >::item_off_to_file_off (TPIE_OS_OFFSET item_off) const
 {
     TPIE_OS_OFFSET file_off;
 
@@ -1362,7 +1372,7 @@ inline TPIE_OS_OFFSET BTE_stream_ufs < T >::item_off_to_file_off (TPIE_OS_OFFSET
 }
 
 template < class T >
-inline TPIE_OS_OFFSET BTE_stream_ufs < T >::file_off_to_item_off (TPIE_OS_OFFSET file_off)
+inline TPIE_OS_OFFSET BTE_stream_ufs < T >::file_off_to_item_off (TPIE_OS_OFFSET file_off) const
 {
     TPIE_OS_OFFSET item_off;
 
@@ -1386,8 +1396,8 @@ inline TPIE_OS_OFFSET BTE_stream_ufs < T >::file_off_to_item_off (TPIE_OS_OFFSET
     }
 }
 
-template < class T > TPIE_OS_OFFSET BTE_stream_ufs < T >::chunk_size (void)
-{
+template < class T > 
+TPIE_OS_OFFSET BTE_stream_ufs < T >::chunk_size (void) const {
     return blocksize_items;
 }
 

@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/19/94
 //
-// $Id: ami_stream_single.h,v 1.9 2003-04-22 08:44:52 tavi Exp $
+// $Id: ami_stream_single.h,v 1.10 2003-04-23 00:05:47 tavi Exp $
 //
 // AMI entry points implemented on top of a single BTE.  This is useful
 // for single CPU, single disk machines.
@@ -121,18 +121,22 @@ public:
   AMI_stream_single(BTE_STREAM<T> *bs);
   
   // A psuedo-constructor for substreams.
-  AMI_err new_substream(AMI_stream_type st, TPIE_OS_OFFSET sub_begin, TPIE_OS_OFFSET sub_end,
+  AMI_err new_substream(AMI_stream_type st, TPIE_OS_OFFSET sub_begin, 
+			TPIE_OS_OFFSET sub_end,
 			AMI_stream_base<T> **sub_stream);
   
   // Return the number of items in the stream.
-  TPIE_OS_OFFSET stream_len(void);
+  TPIE_OS_OFFSET stream_len(void) const { return btes->stream_len(); }
   
   // Return the path name of this stream in newly allocated space.
   AMI_err name(char **stream_name);
   
-  // Move to a specific item in the stream.
+  // Move to a specific position in the stream.
   AMI_err seek(TPIE_OS_OFFSET offset);
   
+  // Return the current position in the stream.
+  TPIE_OS_OFFSET tell() const { return btes->tell(); }
+
   // Truncate
   AMI_err truncate(TPIE_OS_OFFSET offset);
   
@@ -143,17 +147,15 @@ public:
   // Destructor
   ~AMI_stream_single(void);
   
-  const tpie_stats_stream& stats() const 
-  { return btes->stats(); }
+  const tpie_stats_stream& stats() const { return btes->stats(); }
 
   int available_streams(void);
   
-  TPIE_OS_OFFSET chunk_size(void);
+  TPIE_OS_OFFSET chunk_size(void) const { return btes->chunk_size(); }
   
   void persist(persistence p);
   
-  persistence persist() const
-  { return btes->persist(); }
+  persistence persist() const { return btes->persist(); }
 
   char *sprint();
 };
@@ -324,12 +326,6 @@ AMI_err AMI_stream_single<T>::new_substream(AMI_stream_type st,
     return ae;
 }
 
-// Return the number of items in the stream.
-template<class T>
-TPIE_OS_OFFSET AMI_stream_single<T>::stream_len(void)
-{
-    return (btes->stream_len());
-}
 
 template<class T>
 AMI_err AMI_stream_single<T>::name(char **stream_name)
@@ -487,11 +483,6 @@ int AMI_stream_single<T>::available_streams(void)
     return btes->available_streams();
 }
 
-template<class T>
-TPIE_OS_OFFSET AMI_stream_single<T>::chunk_size(void)
-{
-    return btes->chunk_size();
-}
 
 template<class T>
 void AMI_stream_single<T>::persist(persistence p)

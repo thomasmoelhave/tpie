@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/11/94
 //
-// $Id: bte_stream_stdio.h,v 1.7 2003-04-19 11:45:59 jan Exp $
+// $Id: bte_stream_stdio.h,v 1.8 2003-04-23 00:05:47 tavi Exp $
 //
 #ifndef _BTE_STREAM_STDIO_H
 #define _BTE_STREAM_STDIO_H
@@ -38,68 +38,71 @@
 template < class T > 
 class BTE_stream_stdio: public BTE_stream_base < T > {
 private:
-
-   FILE * file;
-   BTE_stream_header header;
-
-   size_t os_block_size_;
-
-   int os_errno;   // A place to cache OS error values.  It is normally
-                   // set after each call to the OS.
-
-   char path[BTE_STREAM_PATH_NAME_LEN];
-
-   // If this stream is actually a substream, these will be set to
-   // indicate the portion of the file that is part of this stream.
-   // If the stream is the whole file, they will be set to -1.
-   TPIE_OS_OFFSET logical_bos;
-   TPIE_OS_OFFSET logical_eos;
-
-   // Offset of the current item in the file.
-   TPIE_OS_OFFSET f_offset;
   
-   // Offset past the last item in the file.
-   TPIE_OS_OFFSET f_eof;
-
-   // Read and check the header; used by constructors
-   int readcheck_header ();
-
-   inline TPIE_OS_OFFSET file_off_to_item_off (TPIE_OS_OFFSET file_off);
-   inline TPIE_OS_OFFSET item_off_to_file_off (TPIE_OS_OFFSET item_off);
-
+  FILE * file;
+  BTE_stream_header header;
+  
+  size_t os_block_size_;
+  
+  int os_errno;   // A place to cache OS error values.  It is normally
+  // set after each call to the OS.
+  
+  char path[BTE_STREAM_PATH_NAME_LEN];
+  
+  // If this stream is actually a substream, these will be set to
+  // indicate the portion of the file that is part of this stream.
+  // If the stream is the whole file, they will be set to -1.
+  TPIE_OS_OFFSET logical_bos;
+  TPIE_OS_OFFSET logical_eos;
+  
+  // Offset of the current item in the file.
+  TPIE_OS_OFFSET f_offset;
+  
+  // Offset past the last item in the file.
+  TPIE_OS_OFFSET f_eof;
+  
+  // Read and check the header; used by constructors
+  int readcheck_header ();
+  
+  inline TPIE_OS_OFFSET file_off_to_item_off (TPIE_OS_OFFSET file_off) const;
+  inline TPIE_OS_OFFSET item_off_to_file_off (TPIE_OS_OFFSET item_off) const;
+  
  public:
-   T read_tmp;
-
-   // Constructors
-   BTE_stream_stdio (const char *dev_path, const BTE_stream_type st, 
-		     size_t lbf = 1);
-
-   // A psuedo-constructor for substreams.
-   BTE_err new_substream (BTE_stream_type st, TPIE_OS_OFFSET sub_begin,
-			  TPIE_OS_OFFSET sub_end,
-			  BTE_stream_base < T > **sub_stream);
-
-   ~BTE_stream_stdio (void);
-
-   BTE_err read_item (T ** elt);
-   BTE_err write_item (const T & elt);
-
-   // Query memory usage
-   BTE_err main_memory_usage (size_t * usage, MM_stream_usage usage_type);
-
-   // Return the number of items in the stream.
-   TPIE_OS_OFFSET stream_len (void);
-
-   // Return the path name in newly allocated space.
-   BTE_err name (char **stream_name);
-
-   // Move to a specific position in the stream.
-   BTE_err seek (TPIE_OS_OFFSET offset);
-
-   // Truncate the stream.
-   BTE_err truncate (TPIE_OS_OFFSET offset);
-
-   TPIE_OS_OFFSET chunk_size (void);
+  T read_tmp;
+  
+  // Constructors
+  BTE_stream_stdio (const char *dev_path, const BTE_stream_type st, 
+		    size_t lbf = 1);
+  
+  // A psuedo-constructor for substreams.
+  BTE_err new_substream (BTE_stream_type st, TPIE_OS_OFFSET sub_begin,
+			 TPIE_OS_OFFSET sub_end,
+			 BTE_stream_base < T > **sub_stream);
+  
+  ~BTE_stream_stdio (void);
+  
+  BTE_err read_item (T ** elt);
+  BTE_err write_item (const T & elt);
+  
+  // Query memory usage
+  BTE_err main_memory_usage (size_t * usage, MM_stream_usage usage_type);
+  
+  // Return the number of items in the stream.
+  TPIE_OS_OFFSET stream_len (void) const;
+  
+  // Return the path name in newly allocated space.
+  BTE_err name (char **stream_name);
+  
+  // Move to a specific position in the stream.
+  BTE_err seek (TPIE_OS_OFFSET offset);
+  
+  // Return the current position in the stream.
+  TPIE_OS_OFFSET tell () const;
+  
+  // Truncate the stream.
+  BTE_err truncate (TPIE_OS_OFFSET offset);
+  
+  TPIE_OS_OFFSET chunk_size (void) const;
 };
 
 template < class T >
@@ -452,7 +455,7 @@ BTE_err BTE_stream_stdio < T >::main_memory_usage (size_t * usage,
 
 // Return the number of items in the stream.
 template < class T > 
-TPIE_OS_OFFSET BTE_stream_stdio < T >::stream_len (void) {
+TPIE_OS_OFFSET BTE_stream_stdio < T >::stream_len (void) const {
 
    if (substream_level) {	// We are in a substream.
      ///      return (logical_eos - logical_bos) / sizeof (T);
@@ -532,14 +535,20 @@ template < class T > BTE_err BTE_stream_stdio < T >::seek (TPIE_OS_OFFSET offset
    return BTE_ERROR_NO_ERROR;
 }
 
+
+template < class T > 
+TPIE_OS_OFFSET BTE_stream_stdio < T >::tell() const {
+  return file_off_to_item_off(f_offset);
+}
+
 // Truncate the stream.
 template < class T >
 BTE_err BTE_stream_stdio < T >::truncate (TPIE_OS_OFFSET offset) {
 	TPIE_OS_TRUNCATE_STREAM_TEMPLATE_CLASS_BODY;
 }
 
-template < class T > TPIE_OS_OFFSET BTE_stream_stdio < T >::chunk_size (void)
-{
+template < class T > 
+TPIE_OS_OFFSET BTE_stream_stdio < T >::chunk_size (void) const {
    // Quick and dirty guess.
    return (os_block_size_ * 2) / sizeof (T);
 }
@@ -564,12 +573,12 @@ template<class T> int BTE_stream_stdio < T >::readcheck_header ()
 }
 
 template<class T> 
-TPIE_OS_OFFSET BTE_stream_stdio < T >::file_off_to_item_off (TPIE_OS_OFFSET file_off) {
+TPIE_OS_OFFSET BTE_stream_stdio < T >::file_off_to_item_off (TPIE_OS_OFFSET file_off) const {
   return (file_off - os_block_size_) / sizeof (T);
 }
 
 template<class T> 
-TPIE_OS_OFFSET BTE_stream_stdio < T >::item_off_to_file_off (TPIE_OS_OFFSET item_off) {
+TPIE_OS_OFFSET BTE_stream_stdio < T >::item_off_to_file_off (TPIE_OS_OFFSET item_off) const {
   return (os_block_size_ + item_off * sizeof (T));
 }
 
