@@ -7,7 +7,7 @@
 
 
 
-static char ami_scan_id[] = "$Id: ami_scan.cpp,v 1.4 1995-06-30 21:09:06 darrenv Exp $";
+static char ami_scan_id[] = "$Id: ami_scan.cpp,v 1.5 1999-02-03 22:37:34 tavi Exp $";
 
 #define BTE_MMB_LOGICAL_BLOCKSIZE_FACTOR 32
 
@@ -34,7 +34,7 @@ private:
     int ii;
 public:    
     AMI_err initialize(void);
-    AMI_err operate(int *out1, AMI_SCAN_FLAG *sf);
+    inline AMI_err operate(int *out1, AMI_SCAN_FLAG *sf);
 };
 
 template<int MAX>
@@ -56,7 +56,7 @@ AMI_err count_scan<MAX>::operate(int *out1, AMI_SCAN_FLAG *sf)
 template<class T> class square_scan : AMI_scan_object {
 public:    
     AMI_err initialize(void);
-    AMI_err operate(const T &in, AMI_SCAN_FLAG *sfin,
+    inline AMI_err operate(const T &in, AMI_SCAN_FLAG *sfin,
                     T *out, AMI_SCAN_FLAG *sfout);
 };
 
@@ -92,7 +92,7 @@ int main(int argc, char **argv)
     {
         count_scan<1000> cs;
     
-        ae = AMI_scan(&cs, (AMI_base_stream<int> *)&amis1);
+        ae = AMI_scan(&cs, (AMI_STREAM<int> *)&amis1);
     }
 
     cout << "Wrote them.\n";
@@ -101,15 +101,11 @@ int main(int argc, char **argv)
     {
         square_scan<int> ss;
         
-        ae = AMI_scan((AMI_base_stream<int> *)&amis1, &ss, 
-		      (AMI_base_stream<int> *)&amis2);
+        ae = AMI_scan((AMI_STREAM<int> *)&amis1, &ss, 
+		      (AMI_STREAM<int> *)&amis2);
     }
     
     cout << "Squared them.\n";
 
     return 0;
 }
-
-
-
-
