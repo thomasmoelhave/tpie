@@ -8,7 +8,7 @@
 // lower level streams will use appropriate levels of buffering.  This
 // will be more critical for parallel disk implementations.
 //
-// $Id: ami_merge.h,v 1.7 1994-10-04 19:07:36 darrenv Exp $
+// $Id: ami_merge.h,v 1.8 1994-10-10 13:04:06 darrenv Exp $
 //
 #ifndef _AMI_MERGE_H
 #define _AMI_MERGE_H
@@ -125,6 +125,10 @@ static AMI_err AMI_single_merge(pp_AMI_bs<T> instreams, arity_t arity,
     
     //Output of the merge object.
     T merge_out;
+
+#if DEBUG_PERFECT_MERGE
+    unsigned int input_count = 0, output_count = 0;
+#endif    
     
     // Rewind and read the first item from every stream.
     for (ii = arity; ii--; ) {
@@ -140,6 +144,10 @@ static AMI_err AMI_single_merge(pp_AMI_bs<T> instreams, arity_t arity,
             }
             // Set the taken flags to 0 before we call intialize()
             taken_flags[ii] = 0;
+        } else {
+#if DEBUG_PERFECT_MERGE
+    input_count++;
+#endif                
         }
     }
 
@@ -157,13 +165,18 @@ static AMI_err AMI_single_merge(pp_AMI_bs<T> instreams, arity_t arity,
     while (1) {
         if (ami_err == AMI_MERGE_READ_MULTIPLE) {
             for (ii = arity; ii--; ) {
-                if (taken_flags[ii] &&
-                    ((ami_err = instreams[ii]->read_item(&(in_objects[ii]))) !=
-                     AMI_ERROR_NO_ERROR)) {
-                    if (ami_err == AMI_ERROR_END_OF_STREAM) {
-                        in_objects[ii] = NULL;
+                if (taken_flags[ii]) {
+                    ami_err = instreams[ii]->read_item(&(in_objects[ii]));
+                    if (ami_err != AMI_ERROR_NO_ERROR) {
+                        if (ami_err == AMI_ERROR_END_OF_STREAM) {
+                            in_objects[ii] = NULL;
+                        } else {
+                            return ami_err;
+                        }
                     } else {
-                        return ami_err;
+#if DEBUG_PERFECT_MERGE                    
+                    input_count++;
+#endif
                     }
                 }
                 // Clear all flags before operate is called.
@@ -171,14 +184,19 @@ static AMI_err AMI_single_merge(pp_AMI_bs<T> instreams, arity_t arity,
             }
         } else {
             // The last call took at most one item.
-            if ((taken_index >= 0) && 
-                ((ami_err = instreams[taken_index]->
-                  read_item(&(in_objects[taken_index]))) !=
-                 AMI_ERROR_NO_ERROR)) {
-                if (ami_err == AMI_ERROR_END_OF_STREAM) {
-                    in_objects[taken_index] = NULL;
+            if (taken_index >= 0) {
+                ami_err = instreams[taken_index]->
+                    read_item(&(in_objects[taken_index]));
+                if (ami_err != AMI_ERROR_NO_ERROR) {
+                    if (ami_err == AMI_ERROR_END_OF_STREAM) {
+                        in_objects[taken_index] = NULL;
+                    } else {
+                        return ami_err;
+                    }
                 } else {
-                    return ami_err;
+#if DEBUG_PERFECT_MERGE                    
+                    input_count++;
+#endif
                 }
                 taken_flags[taken_index] = 0;
             }
@@ -188,14 +206,24 @@ static AMI_err AMI_single_merge(pp_AMI_bs<T> instreams, arity_t arity,
         if (ami_err == AMI_MERGE_DONE) {
             break;
         } else if (ami_err == AMI_MERGE_OUTPUT) {
+#if DEBUG_PERFECT_MERGE
+            output_count++;
+#endif                    
             if ((ami_err = outstream->write_item(merge_out)) !=
                 AMI_ERROR_NO_ERROR) {
                 return ami_err;
             }            
-        } else if (ami_err != AMI_MERGE_CONTINUE) {
+        } else if ((ami_err != AMI_MERGE_CONTINUE) &&
+                   (ami_err != AMI_MERGE_READ_MULTIPLE)) {
             return ami_err;
         }
     }
+
+#if DEBUG_PERFECT_MERGE
+        tp_assert(input_count == output_count,
+                  "Merge done, input_count = " << input_count <<
+                  ", output_count = " << output_count << '.');
+#endif
     
     return AMI_ERROR_NO_ERROR;
 };
@@ -461,7 +489,7 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
             return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
         }
 
-#define MINIMIZE_INITIAL_SUBSTREAM_LENGTH
+//#define MINIMIZE_INITIAL_SUBSTREAM_LENGTH
 #ifdef MINIMIZE_INITIAL_SUBSTREAM_LENGTH
         
         // Make the substreams as small as possible without increasing
@@ -754,13 +782,17 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
 
                         tp_assert(sz_output_after_merge - sz_output ==
                                   sz_substream_total,
-                                  "Stream lengths do not add up.");
+                                  "Stream lengths do not add up: " <<
+                                  sz_output_after_merge - sz_output <<
+                                  " written when " <<
+                                  sz_substream_total <<
+                                  " were to have been read.");
                                   
 #endif // DEBUG_ASSERTIONS                        
                         
                         // Delete the substreams.  jj is currently the index
                         // of the largest, so we want to bump it up before the
-                        // idomatic loop.
+                        // idiomatic loop.
 
                         for (jj++; jj--; ) {
                             delete the_substreams[jj];
