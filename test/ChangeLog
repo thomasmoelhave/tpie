@@ -1,5 +1,8 @@
 Fri Jan 25 17:58 2002 Octavian Procopiuc (tavi)
 
+	* magic_tpie: initial revision. To be used with the UNIX file(1)
+	utility for checking TPIE file types.
+	
 	* test_ami_sort.cpp: Much nicer interface, usage printing.
 
 	* test_ami_btree.cpp: Now has the option of leaving the files on
