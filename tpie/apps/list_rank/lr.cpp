@@ -7,7 +7,7 @@
 // A sample piece of code that does list ranking in the TPIE system.
 //
 
-static char lr_id[] = "$Id: lr.cpp,v 1.12 1999-02-03 21:49:50 tavi Exp $";
+static char lr_id[] = "$Id: lr.cpp,v 1.13 1999-11-01 23:49:27 tavi Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -801,7 +801,7 @@ int main(int argc, char **argv)
     // Rank them.  Note that we should sort by destination before
     // calling the recursive list ranking function.
 
-    LOG_INFO("About to start timers.\n");
+    LOG_APP_DEBUG("About to start timers.\n");
     
 #if BTE_STATS
     BTE_stream_mmb_base::reset_stats();
@@ -837,7 +837,7 @@ int main(int argc, char **argv)
     cout << BTE_stream_mmb_base::statistics() << '\n';
 #endif
 
-    LOG_INFO("Stopped timers.\n");
+    LOG_APP_DEBUG("Stopped timers.\n");
 
     if (report_results_final) {
         // Sort by rank before output, to make it easier for humans to
