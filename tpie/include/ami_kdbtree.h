@@ -5,16 +5,16 @@
 //
 // K-D-B-tree definition and implementation. 
 //
-// $Id: ami_kdbtree.h,v 1.4 2003-04-20 20:34:20 tavi Exp $
+// $Id: ami_kdbtree.h,v 1.5 2003-04-21 04:07:26 tavi Exp $
 //
 
 #ifndef _KDBTREE_H
 #define _KDBTREE_H
 
+#include <iostream>
 #include <ami_point.h>
 #include <ami_kdtree.h>
 #include <ami_kdbtree_base.h>
-
 
 #define KDBTREE_HEADER_MAGIC_NUMBER 0xA9542F
 
@@ -943,12 +943,12 @@ bool KDBTREE::split_leaf_and_insert(const STACK_ITEM& top, KDBTREE_LEAF* bl,
   POINT sp = bl->el[med];
 
   if (med + 1 >= bl->size()) {
-    cerr << "\nbl->bid()=" << bl->bid() << ", bl->size()=" <<bl->size() << ", med=" << med << endl;
-    cerr << "bl: ";
+    std::cerr << "\nbl->bid()=" << bl->bid() << ", bl->size()=" <<bl->size() << ", med=" << med << "\n";
+    std::cerr << "bl: ";
     for (size_t i = 0; i < bl->size(); i++) {
-      cerr << "[" << bl->el[i][0] << "," << bl->el[i][1] << "] ";
+      std::cerr << "[" << bl->el[i][0] << "," << bl->el[i][1] << "] ";
     }
-    cerr << endl;
+    std::cerr << "\n";
   }
   assert(med + 1 < bl->size());
   bl_hi->size() = bl->size() - (med + 1); // the size of bl_hi
