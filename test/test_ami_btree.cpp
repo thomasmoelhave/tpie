@@ -5,12 +5,12 @@
 // Test file for class AMI_btree.
 //
 
+#include "app_config.h"
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_btree_cpp, "$Id: test_ami_btree.cpp,v 1.16 2003-09-14 21:30:01 tavi Exp $");
+VERSION(test_ami_btree_cpp, "$Id: test_ami_btree.cpp,v 1.17 2003-09-14 21:35:32 tavi Exp $");
 
-#include "app_config.h"
 #include <cpu_timer.h>
 #include <ami_btree.h>
 
