@@ -6,7 +6,7 @@
 @c Author: Darren Vengroff <darrenv@eecs.umich.edu>
 @c Created: 12/9/94
 @c
-@c $Id: tpie.texi,v 1.4 1995-03-07 14:45:00 darrenv Exp $
+@c $Id: tpie.texi,v 1.5 1995-06-20 20:39:36 darrenv Exp $
 @c
 @comment %**start of header
 
@@ -16,8 +16,8 @@
 
 @comment %**end of header 
 
-@set EDITION 0.5a
-@set VERSION 0.5a
+@set EDITION 0.5.1a
+@set VERSION 0.7.0a
 
 @ifinfo
 @format
