@@ -2,7 +2,7 @@
 # Makefile for TPIE test applications.
 # Use gmake on this Makefile.  It relies on the default rules, and 
 # Use gmake -p to see the default rules.
-# $Id: Makefile.in,v 1.1 2003-09-24 19:34:00 tavi Exp $
+# $Id: Makefile.in,v 1.2 2003-09-25 17:45:44 tavi Exp $
 
 CXX = @CXX@
 CC = @CC@
@@ -45,7 +45,7 @@ CCFLAGS = $(CXXFLAGS)
 
 # The various test applications.
 
-APPS := ptest_ami_kdtree ptest_ami_kdbtree ptest_ami_btree ptest_datagen
+APPS := build_bkdtree build_kdbtree build_btree datagen
 
 # Sources to the test applications.
 APPSRC = $(patsubst %,%.cpp,$(APPS))
@@ -83,10 +83,10 @@ clean: cleandepend
 distclean: clean
 
 # What objects each of the apps acually needs.
-ptest_ami_kdtree: ptest_ami_kdtree.o $(COMMONOBJ)
-ptest_ami_kdbtree: ptest_ami_kdbtree.o $(COMMONOBJ)
-ptest_ami_btree: ptest_ami_btree.o $(COMMONOBJ)
-ptest_datagen: ptest_datagen.o $(COMMONOBJ)
+build_bkdtree: build_bkdtree.o $(COMMONOBJ)
+build_kdbtree: build_kdbtree.o $(COMMONOBJ)
+build_btree: build_btree.o $(COMMONOBJ)
+datagen: datagen.o $(COMMONOBJ)
 
 
 include Makefile.depend
