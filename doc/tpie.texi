@@ -6,7 +6,7 @@
 @c Author: Darren Vengroff <darrenv@eecs.umich.edu>
 @c Created: 12/9/94
 @c
-@c $Id: tpie.texi,v 1.5 1995-06-20 20:39:36 darrenv Exp $
+@c $Id: tpie.texi,v 1.6 1995-06-21 18:27:47 darrenv Exp $
 @c
 @comment %**start of header
 
@@ -411,7 +411,7 @@ AMI_STREAM<int> amis0;
 
 void f()
 @{
-    AMI_scan(&sc, (AMI_base_stream<int> *)&amis0);
+    AMI_scan(&sc, &amis0);
 @}
 @end smallexample
 
@@ -431,7 +431,7 @@ it.
 The call to @code{AMI_scan} behaves as the following pseudo-code:
 
 @smallexample 
-AMI_err AMI_scan(scan_count &sc, AMI_base_stream<int> *pamis)
+AMI_err AMI_scan(scan_count &sc, AMI_STREAM<int> *pamis)
 @{
     int ii;
     AMI_err ae;    
@@ -487,8 +487,7 @@ AMI_STREAM<int> amis1;
 
 void g() 
 @{
-    AMI_scan((AMI_base_stream<int> *)&amis0, &ss, 
-             (AMI_base_stream<int> *)&amis1);
+    AMI_scan(&amis0, &ss, &amis1);
 @}
 @end smallexample
 
@@ -515,8 +514,8 @@ A call to @code{AMI_scan} with one input stream and one output stream
 behaves as the following pseudo-code:
 
 @smallexample 
-AMI_err AMI_scan(AMI_base_stream<int> *instream, scan_square &ss, 
-        AMI_base_stream<int> *outstream)
+AMI_err AMI_scan(AMI_STREAM<int> *instream, scan_square &ss, 
+        AMI_STREAM<int> *outstream)
 @{
     int in, out;
     AMI_err ae;    
@@ -1469,9 +1468,9 @@ This section describes all the AMI entry points.
 @comment  node-name,  next,  previous,  up
 @subsection AMI_scan()
 
-@deftypefun AMI_err AMI_scan (AMI_base_stream<@var{T0}> *@var{instream0} [, AMI_base_stream<@var{T1}> *@var{instream1}, ...,]  AMI_scan_object *@var{s_obj}, AMI_base_stream<@var{U0}> *@var{outstream0} [, AMI_base_stream<@var{U1}> *@var{outstream1}, ...])
-@deftypefunx AMI_err AMI_scan (AMI_scan_object *@var{s_obj}, AMI_base_stream<@var{U0}> *@var{outstream0} [, AMI_base_stream<@var{U1}> *@var{outstream1}, ...])
-@deftypefunx AMI_err AMI_scan (AMI_base_stream<@var{T0}> *@var{instream0} [, AMI_base_stream<@var{T1}> *@var{instream1}, ...,]  AMI_scan_object *@var{s_obj})
+@deftypefun AMI_err AMI_scan (AMI_STREAM<@var{T0}> *@var{instream0} [, AMI_STREAM<@var{T1}> *@var{instream1}, ...,]  AMI_scan_object *@var{s_obj}, AMI_STREAM<@var{U0}> *@var{outstream0} [, AMI_STREAM<@var{U1}> *@var{outstream1}, ...])
+@deftypefunx AMI_err AMI_scan (AMI_scan_object *@var{s_obj}, AMI_STREAM<@var{U0}> *@var{outstream0} [, AMI_STREAM<@var{U1}> *@var{outstream1}, ...])
+@deftypefunx AMI_err AMI_scan (AMI_STREAM<@var{T0}> *@var{instream0} [, AMI_STREAM<@var{T1}> *@var{instream1}, ...,]  AMI_scan_object *@var{s_obj})
 The first form scans one or more streams and produces one or more
 output streams.  The second form does no scanning, it just produces
 output.  The third form scans input but produces no output.
@@ -1481,7 +1480,7 @@ output.  The third form scans input but produces no output.
 @comment  node-name,  next,  previous,  up
 @subsection AMI_partition_and_merge()
 
-@deftypefun AMI_err AMI_partition_and_merge (AMI_base_stream<@var{T}> *@var{instream}, AMI_base_stream<@var{T}> *@var{outstream}, @var{M} *\@var{m_obj})
+@deftypefun AMI_err AMI_partition_and_merge (AMI_STREAM<@var{T}> *@var{instream}, AMI_STREAM<@var{T}> *@var{outstream}, @var{M} *\@var{m_obj})
 The input stream is partitioned int as many sub-streams as is required
 to make them small enough to fit in main memory.  Each sub-stream is
 read in and processed by @var{m_obj->main_mem_operate()}.  They are
@@ -1733,8 +1732,7 @@ AMI_err convex_hull(AMI_STREAM< point<T> > *instream,
     sulh.uh_stack = &uh;
     sulh.lh_stack = &lh;
     
-    ae = AMI_scan((AMI_base_stream< point<T> > *)&in_sort,
-                  &sulh);
+    ae = AMI_scan(&in_sort, &sulh);
 
     // Copy the upper hull to the output.
 
@@ -2333,7 +2331,7 @@ Finally, here is the actual function to rank the list.
 // Returns 0 on success, nonzero otherwise.
 ////////////////////////////////////////////////////////////////////////
 
-int list_rank(AMI_base_stream<edge> *istream, AMI_base_stream<edge> *ostream)
+int list_rank(AMI_STREAM<edge> *istream, AMI_STREAM<edge> *ostream)
 @{
     AMI_err ae;
     
@@ -2379,8 +2377,7 @@ int list_rank(AMI_base_stream<edge> *istream, AMI_base_stream<edge> *ostream)
 
     edges_rand = new AMI_STREAM<edge>((unsigned int)0, stream_len);
     
-    AMI_scan((AMI_base_stream<edge> *)istream, &my_random_flag_scan,
-             (AMI_base_stream<edge> *)edges_rand);
+    AMI_scan(istream, &my_random_flag_scan, edges_rand);
 
     // Sort one stream by source.  The original input was sorted by
     // destination, so we don't need to sort it again.
@@ -2394,11 +2391,9 @@ int list_rank(AMI_base_stream<edge> *istream, AMI_base_stream<edge> *ostream)
     active = new AMI_STREAM<edge>((unsigned int)0, stream_len);
     cancel = new AMI_STREAM<edge>((unsigned int)0, stream_len);
 
-    ae = AMI_scan((AMI_base_stream<edge> *)edges_from_s,
-                  (AMI_base_stream<edge> *)edges_rand,
+    ae = AMI_scan(edges_from_s, edges_rand,
                   &my_separate_active_from_cancel,
-                  (AMI_base_stream<edge> *)active,
-                  (AMI_base_stream<edge> *)cancel);
+                  active, cancel);
 
     delete edges_from_s;
     delete edges_rand;
@@ -2413,9 +2408,9 @@ int list_rank(AMI_base_stream<edge> *istream, AMI_base_stream<edge> *ostream)
 
     active_2 = new AMI_STREAM<edge>((unsigned int)0, stream_len);
 
-    ae = AMI_scan((AMI_base_stream<edge> *)active_s,
+    ae = AMI_scan(active_s,
                   &my_strip_cancel_from_active,
-                  (AMI_base_stream<edge> *)active_2);
+                  active_2);
 
     delete active_s;
 
@@ -2448,10 +2443,8 @@ int list_rank(AMI_base_stream<edge> *istream, AMI_base_stream<edge> *ostream)
     // Now merge the recursively ranked active list and the sorted 
     // cancel list.
 
-    ae = AMI_scan((AMI_base_stream<edge> *)ranked_active_s,
-                  (AMI_base_stream<edge> *)cancel_s,
-                  &my_patch_active_cancel,
-                  (AMI_base_stream<edge> *)ostream);
+    ae = AMI_scan(ranked_active_s, cancel_s,
+                  &my_patch_active_cancel, ostream);
 
     delete ranked_active_s;
     delete cancel_s;
@@ -2654,7 +2647,7 @@ Test element-wise arithmetic on external memory streams.
 @comment  node-name,  next,  previous,  up
 @section Sample Applications
 
-The sample applications include with TPIE are as follows:
+The sample applications included with TPIE are as follows:
 
 @table @file
 @item ch2
@@ -2666,7 +2659,22 @@ in this application appears in this document.  @xref{Convex Hull}
 An implementation of an asymptotically optimal list ranking algorithm.
 The idea of geometrically decreasing computation is used.  Much of the code
 in this application appears in this document.  @xref{List-Ranking}.
+@item nas_ep
+An I/O-efficient implementation of the NAS EP parallel benchmark.
+This benchamrk generates pairs of independent Gaussian random variates.
+@item nas_is
+An I/O-efficient implementation of the NAS IS parallel benchmark.
+This benchmark sorts integers.
 @end table
+
+Detailed description of the NAS parallel benchmarks are available
+@ifset html
+from the <A HREF="http://www.nas.nasa.gov/NAS/NPB/">NAS Parallel
+Benchmark Home Page</A>.
+@end ifset
+@ifclear html
+via WWW a`<t @code{http://www.nas.nasa.gov/NAS/NPB/}.
+@end ifclear
 
 
 @node Acknowledgements, Function Index, Test and Sample Applications, Top
