@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/11/94
 //
-// $Id: bte_stream_base.h,v 1.2 2002-01-15 03:10:17 tavi Exp $
+// $Id: bte_stream_base.h,v 1.3 2002-01-25 23:13:01 tavi Exp $
 //
 #ifndef _BTE_STREAM_BASE_H
 #define _BTE_STREAM_BASE_H
@@ -55,7 +55,7 @@ public:
   
   // Unique header identifier. Set to BTE_STREAM_HEADER_MAGIC_NUMBER.
   unsigned int magic_number;
-  // Should be 1 for current version.
+  // Should be 2 for current version (version 1 has been deprecated).
   unsigned int version;
   // The type of BTE_STREAM that created this header. Not all types of
   // BTE's are readable by all BTE implementations. For example,
@@ -72,7 +72,8 @@ public:
   size_t os_block_size;
   // Size in bytes of each logical block, if applicable.
   size_t block_size;
-  // (What exactly is this?)
+  // For all intents and purposes, the length of the stream in number
+  // of items.
   off_t item_logical_eof;
 };
 
