@@ -1,0 +1,29 @@
+# Copyright (c) 1994 Darren Erik Vengroff
+
+# $Id: Makefile.in,v 1.1 1994-05-12 21:02:52 dev Exp $
+
+# Makefile for TPIE libraries.
+
+# Use gmake on this Makefile.  It relies on the default rules, and 
+# Use gmake -p to see the default rules.
+
+TPIEINC = /u/dev/src/tpie/include
+
+CXXFLAGS = -g 
+
+CPPFLAGS = -I$(TPIEINC) -DDEBUG_ASSERTIONS=1 -DDEBUG_STR=1  
+
+RANLIB = ranlib
+
+(%): %
+	$(AR) $(ARFLAGS) $@ $<
+	$(RANLIB) $@
+
+
+ALL: liblog.a(logstream.o) liblog.a(tpie_log.o)
+
+liblog.a(logstream.o): logstream.o
+
+liblog.a(tpie_log.o): tpie_log.o
+
+
