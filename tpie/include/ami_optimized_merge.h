@@ -15,7 +15,7 @@
 // a quicksort using only keys of the items; there is a provision to 
 // to use templated heaps to implement the merge.
 
-// 	$Id: ami_optimized_merge.h,v 1.36 1999-05-18 21:40:29 rajiv Exp $	
+// 	$Id: ami_optimized_merge.h,v 1.37 1999-06-25 19:53:09 rajiv Exp $	
 //TO DO: substream_count setting; don't depend on current_stream_len
 
 
@@ -150,7 +150,9 @@ static inline void stream_name_generator(char *prepre, char * pre, int id, char 
 
 
 
-#define XXX LOG_DEBUG_ID("AMI_partition_and_merge_stream");
+// #define XXX LOG_DEBUG_ID("AMI_partition_and_merge_stream");
+#define XXX
+
 
 // Recursive division of a stream and then merging back together.
 template<class T>
