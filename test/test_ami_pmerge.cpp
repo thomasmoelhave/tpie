@@ -15,7 +15,7 @@
 
 // Define it all.
 #include <ami.h>
-VERSION(test_ami_pmerge_cpp,"$Id: test_ami_pmerge.cpp,v 1.22 2003-09-11 19:26:00 tavi Exp $");
+VERSION(test_ami_pmerge_cpp,"$Id: test_ami_pmerge.cpp,v 1.23 2003-09-11 19:30:47 tavi Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -23,7 +23,12 @@ VERSION(test_ami_pmerge_cpp,"$Id: test_ami_pmerge.cpp,v 1.22 2003-09-11 19:26:00
 #include "scan_random.h"
 
 // From int_cmp.c
-extern "C" int c_int_cmp(const void *, const void *);
+//extern "C" int c_int_cmp(const void *, const void *);
+int c_int_cmp(const void *p1, const void *p2)
+{
+    return *((int *)p1) - *((int *)p2);
+}
+
 
 // A merge object to merge sorted streams.  This code looks a lot like
 // what is included as part of the TPIE system for sorting in
