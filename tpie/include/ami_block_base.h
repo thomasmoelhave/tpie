@@ -3,7 +3,7 @@
 // File:    ami_block_base.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_block_base.h,v 1.4 2001-12-29 05:21:41 tavi Exp $
+// $Id: ami_block_base.h,v 1.5 2002-01-28 15:33:24 tavi Exp $
 //
 // Definition of the AMI_block_base class and supporting types:
 // AMI_bid, AMI_block_status.
@@ -49,7 +49,7 @@ public:
   // Constructor.
   // Read and initialize a block with a given ID.
   // When bid is missing or 0, a new block is created.
-  AMI_block_base(AMI_COLLECTION_NT<BTECOLL>* pacoll, AMI_bid bid = 0)
+  AMI_block_base(AMI_collection_single<BTECOLL>* pacoll, AMI_bid bid = 0)
     : bid_(bid), dirty_(0), per_(PERSIST_PERSISTENT) {
     pcoll_ = pacoll->bte();
     if (bid != 0) {
