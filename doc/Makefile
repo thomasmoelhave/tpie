@@ -1,11 +1,11 @@
 #
-# $Id: Makefile,v 1.2 2002-06-26 23:25:54 tavi Exp $
+# $Id: Makefile,v 1.3 2002-08-30 03:26:57 tavi Exp $
 #
 
 LATEX = latex
 BIBTEX = bibtex
 MAKEINDEX = makeindex
-DVIPS = dvips
+DVIPS = dvips -Pamz -Pcmz
 LATEX2HTML = latex2html
 PS2PDF = ps2pdf
 
