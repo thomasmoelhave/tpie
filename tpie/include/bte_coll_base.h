@@ -1,12 +1,13 @@
+// Copyright (c) 2001 Octavian Procopiuc
 //
 // File:    bte_coll_base.h
 // Authors: Octavian Procopiuc <tavi@cs.duke.edu>
 //          (using some code by Rakesh Barve)
 //
-// $Id: bte_coll_base.h,v 1.21 2003-09-14 21:04:14 tavi Exp $
+// $Id: bte_coll_base.h,v 1.22 2003-09-17 02:11:38 tavi Exp $
 //
 // BTE_collection_base class and various basic definitions.
-//
+
 
 #ifndef _BTE_COLL_BASE_H
 #define _BTE_COLL_BASE_H
@@ -20,8 +21,8 @@
 
 // For persist.
 #include <persist.h>
-// For stdio_stack.
-#include <stdio_stack.h>
+// For BTE_stack_ufs
+#include <bte_stack_ufs.h>
 // For BTE_err.
 #include <bte_err.h>
 // For class tpie_stats_collection.
@@ -120,8 +121,8 @@ template <class BIDT>
 class BTE_collection_base {
 protected:
 
-    // An stdio_stack of TPIE_OS_OFFSET's.
-    stdio_stack<BIDT> *freeblock_stack_; 
+    // A stack of TPIE_OS_OFFSET's.
+    BTE_stack_ufs<BIDT> *freeblock_stack_; 
 
     // File descriptor for the file backing the block collection.
     TPIE_OS_FILE_DESCRIPTOR bcc_fd_;
@@ -226,6 +227,8 @@ protected:
 		    header_.total_blocks += 8;
 		else
 		    header_.total_blocks += 64;
+
+
 #if BTE_COLLECTION_USE_FTRUNCATE
 		if (TPIE_OS_FTRUNCATE(bcc_fd_, bid_to_file_offset(header_.total_blocks))) {
 		    LOG_FATAL_ID("Failed to truncate to the new end of file.");
@@ -233,8 +236,8 @@ protected:
 		    return BTE_ERROR_OS_ERROR;
 		}
 #else
-		TPIE_OS_OFFSET curr_off;
 		char* tbuf = new char[header_.os_block_size];
+		TPIE_OS_OFFSET curr_off;
 
 		if ((curr_off = TPIE_OS_LSEEK(bcc_fd_, 0, TPIE_OS_FLAG_SEEK_END)) == (TPIE_OS_OFFSET)(-1)) {
 		    LOG_FATAL_ID("Failed to seek to the end of file.");
@@ -245,9 +248,10 @@ protected:
 		    TPIE_OS_WRITE(bcc_fd_, tbuf, header_.os_block_size);
 		    curr_off += header_.os_block_size;
 		}
-		file_pointer = curr_off;
 		delete [] tbuf;
+		file_pointer = curr_off;
 #endif
+
 	    }
 	    bid = header_.last_block++;
 	}
@@ -327,7 +331,7 @@ void BTE_collection_base<BIDT>::create_stack() {
   strcat((char *) stack_name, BTE_COLLECTION_STK_SUFFIX);
 
   // Construct the pre-existing freeblock_stack.
-  freeblock_stack_ = new stdio_stack<BIDT>((char *) stack_name, 
+  freeblock_stack_ = new BTE_stack_ufs<BIDT>((char *) stack_name, 
 		       read_only_? BTE_READ_STREAM: BTE_WRITE_STREAM);
   
 }
