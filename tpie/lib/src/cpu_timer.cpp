@@ -6,7 +6,7 @@
 //
 
 #include <versions.h>
-VERSION(cpu_timer_cpp,"$Id: cpu_timer.cpp,v 1.6 2003-04-20 06:44:01 tavi Exp $");
+VERSION(cpu_timer_cpp,"$Id: cpu_timer.cpp,v 1.7 2003-09-12 18:47:42 jan Exp $");
 
 #include <cpu_timer.h>
 
@@ -78,7 +78,7 @@ double cpu_timer::wall_time() {
   return double(elapsed_real) / double(clock_tick);
 }
 
-std::ostream &operator<<(std::ostream &s, cpu_timer &wt)
+ostream &operator<<(ostream &s, cpu_timer &wt)
 {
     if (wt.running) {
         wt.sync();
