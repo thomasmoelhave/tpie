@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 9/28/94
 //
-// $Id: ami_sort_single.h,v 1.17 2002-01-14 16:05:41 tavi Exp $
+// $Id: ami_sort_single.h,v 1.18 2002-06-26 22:40:16 tavi Exp $
 //
 // Merge sorting for the AMI_STREAM_IMP_SINGLE implementation.
 // 
@@ -161,7 +161,7 @@ merge_sort_manager_op<T,Q>::~merge_sort_manager_op(void)
 template<class T,class Q>
 AMI_err merge_sort_manager_op<T,Q>::main_mem_operate(T* mm_stream, size_t len)
 {
-    quicker_sort_op(mm_stream, len);
+    quick_sort_op(mm_stream, len);
     return AMI_ERROR_NO_ERROR;
 }
 
@@ -249,7 +249,7 @@ merge_sort_manager_obj<T,Q,CMPR>::~merge_sort_manager_obj(void)
 template<class T, class Q, class CMPR>
 AMI_err merge_sort_manager_obj<T,Q,CMPR>::main_mem_operate(T* mm_stream, size_t len)
 {
-    quicker_sort_obj(mm_stream, len, cmp_o);
+    quick_sort_obj(mm_stream, len, cmp_o);
     return AMI_ERROR_NO_ERROR;
 }
 
@@ -341,7 +341,7 @@ merge_sort_manager_cmp<T,Q>::~merge_sort_manager_cmp(void)
 template<class T,class Q>
 AMI_err merge_sort_manager_cmp<T,Q>::main_mem_operate(T* mm_stream, size_t len)
 {
-    quicker_sort_cmp(mm_stream, len, cmp_f);
+    quick_sort_cmp(mm_stream, len, cmp_f);
     return AMI_ERROR_NO_ERROR;
 }
 

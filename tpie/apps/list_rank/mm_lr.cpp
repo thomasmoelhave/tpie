@@ -7,12 +7,12 @@
 
 #include "app_config.h"
 #include <ami.h>
-VERSION(mm_lr_cpp,"$Id: mm_lr.cpp,v 1.2 2000-01-11 02:17:02 hutchins Exp $");
+VERSION(mm_lr_cpp,"$Id: mm_lr.cpp,v 1.3 2002-06-26 22:39:48 tavi Exp $");
 
 #include "list_edge.h"
 #include "mm_lr.h"
 
-// quicker sort
+// quick sort
 #include <quicksort.h>
 
 ////////////////////////////////////////////////////////////////////////
@@ -38,10 +38,10 @@ int main_mem_list_rank(edge *edges, size_t count)
     }
     
     // Sort the original set by the from fields.
-    quicker_sort_cmp(edges, count, edgefromcmp); 
+    quick_sort_cmp(edges, count, edgefromcmp); 
     
     // Sort the copy by to.
-    quicker_sort_cmp(edges_copy, count, edgetocmp); 
+    quick_sort_cmp(edges_copy, count, edgetocmp); 
 
     // Find the head of this list, which is the unique node number
     // that appears in the list sorted by from but not by to.  At the
@@ -133,7 +133,7 @@ int main_mem_list_rank(edge *edges, size_t count)
 
     // Sort the copy back by source edge.
     
-    quicker_sort_cmp(edges_copy, count, edgefromcmp); 
+    quick_sort_cmp(edges_copy, count, edgefromcmp); 
 
     // Traverse the reduced copy by taking count - 1 steps, starting
     // from the index of the head.  We use jj to keep track of the

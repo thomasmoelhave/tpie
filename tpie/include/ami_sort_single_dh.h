@@ -1,7 +1,7 @@
 //
 // File: ami_sort_single_dh.h
 //
-// $Id: ami_sort_single_dh.h,v 1.11 2002-02-02 04:30:25 tavi Exp $
+// $Id: ami_sort_single_dh.h,v 1.12 2002-06-26 22:40:04 tavi Exp $
 //
 // This file contains the templated routines
 //     1) AMI_sort:
@@ -209,9 +209,9 @@ inline AMI_err sort_manager_op<T,Q>::main_mem_operate (
    }
 
    //Sort the array.
-   LOG_DEBUG_ID("sort_manager_op.main_mem_operate: calling quicker_sort_op" <<
+   LOG_DEBUG_ID("sort_manager_op.main_mem_operate: calling quick_sort_op" <<
                 " for" << runSize << " items");
-   quicker_sort_op ((T *) mmStream, runSize);
+   quick_sort_op ((T *) mmStream, runSize);
 
    LOG_DEBUG_ID("sort_manager_op.main_mem_operate: " << 
                 "starting main_mem_operate write out");
@@ -290,8 +290,8 @@ inline AMI_err sort_manager_obj<T,Q,CMPR>::main_mem_operate(AMI_STREAM <T>*inStr
 
    //Sort the array.
 
-   LOG_DEBUG_ID("sort_manager_obj.main_mem_operate: calling quicker_sort_obj");
-   quicker_sort_obj ((T *) mmStream, runSize, cmp_o);
+   LOG_DEBUG_ID("sort_manager_obj.main_mem_operate: calling quick_sort_obj");
+   quick_sort_obj ((T *) mmStream, runSize, cmp_o);
 
    LOG_DEBUG_ID("sort_manager_obj.main_mem_operate: starting write out");
    for (int i = 0; i < runSize; i++) {
@@ -373,8 +373,8 @@ inline AMI_err sort_manager_cmp<T,Q>::main_mem_operate(AMI_STREAM <T>*inStream, 
 
    //Sort the array.
 
-   LOG_DEBUG_ID("sort_manager_cmp.main_mem_operate: calling quicker_sort_cmp");
-   quicker_sort_cmp ((T *) mmStream, runSize, cmp_f);
+   LOG_DEBUG_ID("sort_manager_cmp.main_mem_operate: calling quick_sort_cmp");
+   quick_sort_cmp ((T *) mmStream, runSize, cmp_f);
 
    LOG_DEBUG_ID("sort_manager_cmp.main_mem_operate: starting write out");
    for (int i = 0; i < runSize; i++) {
@@ -482,8 +482,8 @@ inline AMI_err sort_manager_kobj<T,Q,KEY,CMPR>::main_mem_operate(AMI_STREAM <T> 
    }
 
    //Sort the array.
-   LOG_DEBUG_ID("sort_manager_kobj.main_mem_operate: calling quicker_sort_obj");
-   quicker_sort_obj ((qsort_item<KEY> *)qs_array, runSize, this );
+   LOG_DEBUG_ID("sort_manager_kobj.main_mem_operate: calling quick_sort_obj");
+   quick_sort_obj ((qsort_item<KEY> *)qs_array, runSize, this );
 
    LOG_DEBUG_ID("starting sort_manager_kobj.main_mem_operate write out");
    for (int i = 0; i < runSize; i++) {

@@ -1,5 +1,5 @@
 #include <versions.h>
-VERSION(sample_pgm_cpp,"$Id: sample_pgm.cpp,v 1.7 2000-01-11 01:59:37 hutchins Exp $");	
+VERSION(sample_pgm_cpp,"$Id: sample_pgm.cpp,v 1.8 2002-06-26 22:39:35 tavi Exp $");	
 
 #include <iostream.h>
 #include <stdlib.h>
@@ -105,7 +105,7 @@ main(int argc, char *argv[]) {
    //************************************************************
    //sort partitioning array
    
-   quicker_sort_op((int *)partitioning,7);
+   quick_sort_op((int *)partitioning,7);
    cout << "sorted partitioning array\n";
    partitioning[7] = INT_MAX;
 
