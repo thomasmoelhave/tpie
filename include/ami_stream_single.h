@@ -3,13 +3,16 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/19/94
 //
-// $Id: ami_stream_single.h,v 1.7 2003-04-04 20:43:18 tavi Exp $
+// $Id: ami_stream_single.h,v 1.8 2003-04-17 14:31:23 jan Exp $
 //
 // AMI entry points implemented on top of a single BTE.  This is useful
 // for single CPU, single disk machines.
 //
 #ifndef _AMI_STREAM_SINGLE_H
 #define _AMI_STREAM_SINGLE_H
+
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 // [tavi] for UINT_MAX
 #include <limits.h>
@@ -99,8 +102,8 @@ public:
   A_INLINE AMI_err read_item(T **elt);
   A_INLINE AMI_err write_item(const T &elt);
   
-  A_INLINE AMI_err read_array(T *mm_space, off_t *len);
-  A_INLINE AMI_err write_array(const T *mm_space, off_t len);
+  A_INLINE AMI_err read_array(T *mm_space, TPIE_OS_OFFSET *len);
+  A_INLINE AMI_err write_array(const T *mm_space, TPIE_OS_OFFSET len);
   
   // We have a variety of constructors for different uses.
   
@@ -118,20 +121,20 @@ public:
   AMI_stream_single(BTE_STREAM<T> *bs);
   
   // A psuedo-constructor for substreams.
-  AMI_err new_substream(AMI_stream_type st, off_t sub_begin, off_t sub_end,
+  AMI_err new_substream(AMI_stream_type st, TPIE_OS_OFFSET sub_begin, TPIE_OS_OFFSET sub_end,
 			AMI_stream_base<T> **sub_stream);
   
   // Return the number of items in the stream.
-  off_t stream_len(void);
+  TPIE_OS_OFFSET stream_len(void);
   
   // Return the path name of this stream in newly allocated space.
   AMI_err name(char **stream_name);
   
   // Move to a specific item in the stream.
-  AMI_err seek(off_t offset);
+  AMI_err seek(TPIE_OS_OFFSET offset);
   
   // Truncate
-  AMI_err truncate(off_t offset);
+  AMI_err truncate(TPIE_OS_OFFSET offset);
   
   // Query memory usage
   AMI_err main_memory_usage(size_t *usage,
@@ -145,7 +148,7 @@ public:
 
   int available_streams(void);
   
-  off_t chunk_size(void);
+  TPIE_OS_OFFSET chunk_size(void);
   
   void persist(persistence p);
   
@@ -268,8 +271,8 @@ AMI_stream_single<T>::AMI_stream_single(BTE_STREAM<T> *bs) {
 
 template<class T>
 AMI_err AMI_stream_single<T>::new_substream(AMI_stream_type st,
-                                            off_t sub_begin,
-                                            off_t sub_end,
+                                            TPIE_OS_OFFSET sub_begin,
+                                            TPIE_OS_OFFSET sub_end,
                                             AMI_stream_base<T> **sub_stream)
 {
     AMI_err ae = AMI_ERROR_NO_ERROR;
@@ -320,9 +323,9 @@ AMI_err AMI_stream_single<T>::new_substream(AMI_stream_type st,
 
 // Return the number of items in the stream.
 template<class T>
-off_t AMI_stream_single<T>::stream_len(void)
+TPIE_OS_OFFSET AMI_stream_single<T>::stream_len(void)
 {
-    return btes->stream_len();
+    return (btes->stream_len());
 }
 
 template<class T>
@@ -339,7 +342,7 @@ AMI_err AMI_stream_single<T>::name(char **stream_name)
 
 // Move to a specific offset.
 template<class T>
-AMI_err AMI_stream_single<T>::seek(off_t offset)
+AMI_err AMI_stream_single<T>::seek(TPIE_OS_OFFSET offset)
 {
     if (btes->seek(offset) != BTE_ERROR_NO_ERROR) {
 	  LOG_WARNING_ID("bte error");		
@@ -351,7 +354,7 @@ AMI_err AMI_stream_single<T>::seek(off_t offset)
 
 // Truncate
 template<class T>
-AMI_err AMI_stream_single<T>::truncate(off_t offset)
+AMI_err AMI_stream_single<T>::truncate(TPIE_OS_OFFSET offset)
 {
     if (btes->truncate(offset) != BTE_ERROR_NO_ERROR) {
 	  LOG_WARNING_ID("bte error");
@@ -431,14 +434,14 @@ A_INLINE AMI_err AMI_stream_single<T>::write_item(const T &elt)
 
 
 template<class T>
-A_INLINE AMI_err AMI_stream_single<T>::read_array(T *mm_space, off_t *len)
+A_INLINE AMI_err AMI_stream_single<T>::read_array(T *mm_space, TPIE_OS_OFFSET *len)
 {
     BTE_err be;
     T *read;
     unsigned int ii;
     
     // How long is it.
-    off_t str_len = *len;
+    TPIE_OS_OFFSET str_len = *len;
             
     // Read them all.
     for (ii = str_len; ii--; ) {
@@ -458,7 +461,7 @@ A_INLINE AMI_err AMI_stream_single<T>::read_array(T *mm_space, off_t *len)
 }
 
 template<class T>
-A_INLINE AMI_err AMI_stream_single<T>::write_array(const T *mm_space, off_t len)
+A_INLINE AMI_err AMI_stream_single<T>::write_array(const T *mm_space, TPIE_OS_OFFSET len)
 {
     BTE_err be;
     unsigned int ii;
@@ -482,7 +485,7 @@ int AMI_stream_single<T>::available_streams(void)
 }
 
 template<class T>
-off_t AMI_stream_single<T>::chunk_size(void)
+TPIE_OS_OFFSET AMI_stream_single<T>::chunk_size(void)
 {
     return btes->chunk_size();
 }
