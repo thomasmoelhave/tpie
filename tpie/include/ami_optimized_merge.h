@@ -15,7 +15,7 @@
 // a quicksort using only keys of the items; there is a provision to 
 // to use templated heaps to implement the merge.
 
-// 	$Id: ami_optimized_merge.h,v 1.10 1999-02-12 00:50:54 jan Exp $	
+// 	$Id: ami_optimized_merge.h,v 1.11 1999-03-23 19:12:33 rbarve Exp $	
 //TO DO: substream_count setting; don't depend on current_stream_len
 
 #ifndef _OPT_AMI_MERGE_H
@@ -693,6 +693,10 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
 
         current_input = initial_tmp_stream;
  
+	   //Monitoring prints.
+
+        cout << "Number of runs from run formation is " << original_streams << "\n";
+        cout << "Merge arity is " << merge_arity << "\n";
 
 
         // Pointers to the substreams that will be merged.
@@ -1147,6 +1151,10 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
 
         }
 
+
+	   //Monitoring prints.
+
+        cout << "Number of passes incl run formation is " << k+1 << "\n";
 
         
         return AMI_ERROR_NO_ERROR;
@@ -1774,6 +1782,13 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
         // The number of substreams to be processed at any merge level.
         arity_t substream_count;
 
+	   //Monitoring prints.
+
+        cout << "Number of runs from run formation is " << original_streams << "\n";
+        cout << "Merge arity is " << merge_arity << "\n";
+
+
+
 
         for (substream_count  = original_substreams;
              substream_count > 1;
@@ -2204,6 +2219,10 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
             k++;
 
         }
+
+	   //Monitoring prints.
+
+        cout << "Number of passes incl run formation is " << k+1 << "\n";
 
         
         return AMI_ERROR_NO_ERROR;
