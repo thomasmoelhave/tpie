@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/19/94
 //
-// $Id: ami_stream_single.h,v 1.5 2002-07-20 21:35:20 tavi Exp $
+// $Id: ami_stream_single.h,v 1.6 2002-08-13 17:58:24 tavi Exp $
 //
 // AMI entry points implemented on top of a single BTE.  This is useful
 // for single CPU, single disk machines.
@@ -92,7 +92,7 @@ private:
   // Non-zero if we should destroy the bte stream when we the
   // AMI stream is destroyed.
   int destruct_bte;
-  
+
 public:
   
   // Read and write elements.
@@ -140,6 +140,9 @@ public:
   // Destructor
   ~AMI_stream_single(void);
   
+  const tpie_stats_stream& stats() const 
+  { return btes->stats(); }
+
   int available_streams(void);
   
   off_t chunk_size(void);
