@@ -7,7 +7,7 @@
 // A basic implementation of quicksort for use in core by AMI_sort() on
 // streams or substreams that are small enough.
 //
-// $Id: quicksort.h,v 1.14 1999-02-05 23:46:29 rbarve Exp $
+// $Id: quicksort.h,v 1.15 1999-02-07 21:40:18 rbarve Exp $
 //
 #ifndef _QUICKSORT_H
 #define _QUICKSORT_H
@@ -17,7 +17,6 @@
 #include <comparator.h>
 
 
-extern "C"  int random(void);
 
 //A simple class that facilitates doing key sorting followed 
 //by in-memory permuting to sort items in-memory. This is 
