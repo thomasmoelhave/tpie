@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 3/11/95
 //
-// $Id: ami_kb_dist.h,v 1.8 2003-09-12 01:45:19 jan Exp $
+// $Id: ami_kb_dist.h,v 1.9 2003-09-27 07:00:48 tavi Exp $
 //
 // Radix based distribution for single or striped AMI layers.
 //
@@ -16,7 +16,6 @@
 // KB_KEY is defined, we will process the file.
 
 #if !(defined(_AMI_KB_DIST_H)) || defined(KB_KEY)
-
 
 #ifdef KB_KEY
 
@@ -43,7 +42,7 @@
 
 #endif
 
-
+#include <ami_stream.h>
 #include <ami_key.h>
 
 // This is a hack.  The reason it is here is that if AMI_STREAM<char>
