@@ -7,7 +7,7 @@
 // A basic implementation of quicksort for use in core by AMI_sort() on
 // streams or substreams that are small enough.
 //
-// $Id: quicksort.h,v 1.4 1994-10-31 21:18:07 darrenv Exp $
+// $Id: quicksort.h,v 1.5 1994-11-02 22:04:04 darrenv Exp $
 //
 #ifndef _QUICKSORT_H
 #define _QUICKSORT_H
@@ -210,5 +210,31 @@ void insertion_sort_op(T *data, size_t len)
         *(q+1) = test;
     }
 }
+
+#ifdef NO_IMPLICIT_TEMPLATES
+
+#define TEMPLATE_INSTANTIATE_QUICKER_SORT_CMP(T)			\
+template void partition_cmp(T *data, size_t len,			\
+                            size_t &partition,				\
+                            int (*cmp)(CONST T&, CONST T&));		\
+template void quick_sort_cmp(T *data, size_t len,			\
+                             int (*cmp)(CONST T&, CONST T&),		\
+                             size_t min_file_len);			\
+template void insertion_sort_cmp(T *data, size_t len,			\
+                                 int (*cmp)(CONST T&, CONST T&));	\
+template void quicker_sort_cmp(T *data, size_t len,			\
+                               int (*cmp)(CONST T&, CONST T&),		\
+                               size_t min_file_len);		
+
+#define TEMPLATE_INSTANTIATE_QUICKER_SORT_OP(T)				\
+template void partition_op(T *data, size_t len,				\
+                            size_t &partition);				\
+template void quick_sort_op(T *data, size_t len,			\
+                             size_t min_file_len);			\
+template void insertion_sort_op(T *data, size_t len);			\
+template void quicker_sort_op(T *data, size_t len,			\
+                               size_t min_file_len);		
+
+#endif
 
 #endif // _QUICKSORT_H 
