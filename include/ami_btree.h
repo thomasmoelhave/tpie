@@ -3,7 +3,7 @@
 // File:    ami_btree.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_btree.h,v 1.18 2003-04-21 02:54:46 tavi Exp $
+// $Id: ami_btree.h,v 1.19 2003-04-21 04:28:04 tavi Exp $
 //
 // AMI_btree declaration and implementation.
 //
@@ -626,7 +626,7 @@ size_t AMI_BTREE_LEAF::find(const Key& k) {
 #if LEAF_ELEMENTS_SORTED
   // Sanity check.
   assert(size() >= 2 ? comp_(KeyOfValue()(el[0]), KeyOfValue()(el[size()-1])): true);
-  return ::lower_bound(&el[0], &el[size()-1] + 1, k, comp_value_key_) - &el[0];
+  return std::lower_bound(&el[0], &el[size()-1] + 1, k, comp_value_key_) - &el[0];
 #else
   size_t i;
   for (i = 0; i < size(); i++)
@@ -644,7 +644,7 @@ size_t pred_idx;
 #if LEAF_ELEMENTS_SORTED
   // Sanity check.
   assert(size() >= 2 ? comp_(KeyOfValue()(el[0]), KeyOfValue()(el[size()-1])): true);
-  pred_idx = ::lower_bound(&el[0], &el[size()-1] + 1, k,comp_value_key_) - &el[0];
+  pred_idx = std::lower_bound(&el[0], &el[size()-1] + 1, k,comp_value_key_) - &el[0];
   // lower_bound pos is off by one for pred
   // Final pred_idx cannot be matching key
   if (pred_idx != 0)
@@ -674,7 +674,7 @@ size_t succ_idx;
 #if LEAF_ELEMENTS_SORTED
   // Sanity check.
   assert(size() >= 2 ? comp_(KeyOfValue()(el[0]), KeyOfValue()(el[size()-1])): true);
-  succ_idx = ::lower_bound(&el[0], &el[size()-1] + 1, k, comp_value_key_) - &el[0];
+  succ_idx = std::lower_bound(&el[0], &el[size()-1] + 1, k, comp_value_key_) - &el[0];
   // Bump up one spot if keys match
   if (succ_idx != size() &&
       !comp_(k,KeyOfValue()(el[succ_idx])) && !comp_(KeyOfValue()(el[succ_idx]),k) )
@@ -734,7 +734,7 @@ void AMI_BTREE_LEAF::erase_pos(size_t pos) {
 //// *AMI_btree_leaf::sort* ////
 template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
 void AMI_BTREE_LEAF::sort() {
-  ::sort(&el[0], &el[size()-1] + 1, comp_value_value_);
+  std::sort(&el[0], &el[size()-1] + 1, comp_value_value_);
 }
 
 //// *AMI_btree_leaf::~AMI_btree_leaf* ////
@@ -831,7 +831,7 @@ template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
 void AMI_BTREE_NODE::insert(const Key& k, AMI_bid l) {
 
   // Find the position using STL's binary search.
-  size_t pos = ::lower_bound(&el[0], &el[size()-1] + 1, k, comp_) - &el[0];
+  size_t pos = std::lower_bound(&el[0], &el[size()-1] + 1, k, comp_) - &el[0];
 
   // Insert.
   insert_pos(k, l, pos, pos + 1);
@@ -881,7 +881,7 @@ void AMI_BTREE_NODE::merge(const AMI_BTREE_NODE &right, const Key& k) {
 //// *AMI_btree_node::find* ////
 template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
 size_t AMI_BTREE_NODE::find(const Key& k) {
-  return ::lower_bound(&el[0], &el[size()-1] + 1, k, comp_) - &el[0];
+  return std::lower_bound(&el[0], &el[size()-1] + 1, k, comp_) - &el[0];
 }
 
 //// *AMI_btree_node::~AMI_btree_node* ////
@@ -1042,8 +1042,8 @@ AMI_err AMI_BTREE::load_sorted(AMI_STREAM<Value>* s, float leaf_fill, float node
   Value* pv;
   AMI_err err = AMI_ERROR_NO_ERROR;
   AMI_btree_params params_saved = params_;
-  params_.leaf_size_max = ::min(params_.leaf_size_max, size_t(leaf_fill*params_.leaf_size_max));
-  params_.node_size_max = ::min(params_.node_size_max, size_t(node_fill*params_.node_size_max));
+  params_.leaf_size_max = std::min(params_.leaf_size_max, size_t(leaf_fill*params_.leaf_size_max));
+  params_.node_size_max = std::min(params_.node_size_max, size_t(node_fill*params_.node_size_max));
 
   AMI_BTREE_LEAF* lcl = NULL; // locally cached leaf.
 
@@ -1132,8 +1132,8 @@ AMI_err AMI_BTREE::load(AMI_BTREE* bt, float leaf_fill, float node_fill) {
 
   AMI_btree_params params_saved = params_;
   AMI_err err = AMI_ERROR_NO_ERROR;
-  params_.leaf_size_max = ::min(params_.leaf_size_max, size_t(leaf_fill*params_.leaf_size_max));
-  params_.node_size_max = ::min(params_.leaf_size_max, size_t(node_fill*params_.node_size_max));
+  params_.leaf_size_max = std::min(params_.leaf_size_max, size_t(leaf_fill*params_.leaf_size_max));
+  params_.node_size_max = std::min(params_.leaf_size_max, size_t(node_fill*params_.node_size_max));
   AMI_BTREE_LEAF* lcl = NULL; // locally cached leaf.
 
   // Get the bid of the min leaf in bt.
