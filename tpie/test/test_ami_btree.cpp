@@ -8,7 +8,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_btree_cpp, "$Id: test_ami_btree.cpp,v 1.14 2003-09-13 18:38:49 tavi Exp $");
+VERSION(test_ami_btree_cpp, "$Id: test_ami_btree.cpp,v 1.15 2003-09-14 21:03:50 tavi Exp $");
 
 #include "app_config.h"
 #include <cpu_timer.h>
@@ -31,17 +31,17 @@ struct key_from_el {
   bkey_t operator()(const el_t& v) const { return v.key_; }
 };
 
-typedef AMI_btree< bkey_t,el_t,less<bkey_t>,key_from_el,BTE_COLLECTION_UFS > u_btree_t;
-typedef AMI_btree< bkey_t,el_t,less<bkey_t>,key_from_el,BTE_COLLECTION_UFS > m_btree_t;
+typedef AMI_btree< bkey_t,el_t,less<bkey_t>,key_from_el > u_btree_t;
+//typedef AMI_btree< bkey_t,el_t,less<bkey_t>,key_from_el,BTE_COLLECTION_MMAP > m_btree_t;
 typedef AMI_STREAM< el_t > stream_t;
 
 // Template instantiations (to get meaningful output from gprof)
 //template class AMI_btree_node<bkey_t,el_t,less<bkey_t>,key_from_el>;
 //template class AMI_btree_leaf<bkey_t,el_t,less<bkey_t>,key_from_el>;
-template class AMI_btree< bkey_t,el_t,less<bkey_t>,key_from_el,BTE_COLLECTION_UFS >;
+//template class AMI_btree< bkey_t,el_t,less<bkey_t>,key_from_el,BTE_COLLECTION_UFS >;
 //template class AMI_btree< bkey_t,el_t,less<bkey_t>,key_from_el,BTE_COLLECTION_MMAP >;
-template class AMI_STREAM< el_t >;
-template class AMI_collection_single< BTE_COLLECTION_UFS >;
+//template class AMI_STREAM< el_t >;
+//template class AMI_collection_single< BTE_COLLECTION_UFS >;
 //template class AMI_collection_single< BTE_COLLECTION_MMAP >;
 
 
@@ -154,16 +154,16 @@ int main(int argc, char **argv) {
 
   //////  Testing insertion.  //////
 
-  m_btree_t *m_btree;
+  //  u_btree_t *u_btree;
   params.leaf_cache_size = 16;
   params.node_cache_size = 64;
 
-  m_btree = (base_file == NULL) ? new m_btree_t(params): 
-    new m_btree_t(base_file, AMI_WRITE_COLLECTION, params);
+  u_btree = (base_file == NULL) ? new u_btree_t(params): 
+    new u_btree_t(base_file, AMI_WRITE_COLLECTION, params);
 
-  if (!m_btree->is_valid()) {
+  if (!u_btree->is_valid()) {
     cerr << argv[0] << ": Error reinitializing btree. Aborting.\n";
-    delete m_btree;
+    delete u_btree;
     exit(1);
   }
 
@@ -176,7 +176,7 @@ int main(int argc, char **argv) {
       s[i-1] = ss = el_t(i+100000);
     else
       ss = el_t(long((TPIE_OS_RANDOM()/MAX_RANDOM) * MAX_VALUE));
-    m_btree->insert(ss);
+    u_btree->insert(ss);
     if (i % (insert_count/10) == 0)
       cout << i << " " << flush;
   }
@@ -184,8 +184,8 @@ int main(int argc, char **argv) {
   wt.stop();
   cout << "END Insert " << wt << "\n";
   
-  cout << "Tree size: " << m_btree->size() << " elements. Tree height: " 
-       << m_btree->height() << ".\n";
+  cout << "Tree size: " << u_btree->size() << " elements. Tree height: " 
+       << u_btree->height() << ".\n";
   wt.reset();
 
 
@@ -197,7 +197,7 @@ int main(int argc, char **argv) {
 
   stream_t* os = new stream_t;
   wt.start();
-  m_btree->range_query(range_search_lo, range_search_hi, os);
+  u_btree->range_query(range_search_lo, range_search_hi, os);
   wt.stop();
   cout << "\tFound " << os->stream_len() << " elements.\n";
   delete os;
@@ -209,8 +209,9 @@ int main(int argc, char **argv) {
   cout << "BEGIN Delete\n";
   cout << "\tDeleting " << key_from_el()(s[0]) << " through " 
        <<  key_from_el()(s[DELETE_COUNT-1]) << ": \n";
+  j = 0;
   for (i = 0; i < DELETE_COUNT ; i++) {
-    if (m_btree->erase(key_from_el()(s[i])))
+    if (u_btree->erase(key_from_el()(s[i])))
       j++;
   }
 
@@ -221,24 +222,24 @@ int main(int argc, char **argv) {
     cout << "(Potential problem!)\n";
   
   cout << "\tDeleting " << (long)-1 << flush;
-  if (m_btree->erase((long)-1))
+  if (u_btree->erase((long)-1))
     cout << ": found. (Potential problem!)\n";
   else
     cout << ": not found. (OK)\n";
 
   cout << "\tDeleting " <<  key_from_el()(s[0]) << flush;
-  if (m_btree->erase(key_from_el()(s[0])))
+  if (u_btree->erase(key_from_el()(s[0])))
     cout << ": found. (Potential problem!)\n";
   else
     cout << ": not found. (OK)\n";
   cout << "END Delete\n";
   
 
-  cout << "Tree size: " << m_btree->size() << " elements. Tree height: " 
-       << m_btree->height() << ".\n";
+  cout << "Tree size: " << u_btree->size() << " elements. Tree height: " 
+       << u_btree->height() << ".\n";
 
-  tpie_stats_tree bts = m_btree->stats();
-  delete m_btree;
+  tpie_stats_tree bts = u_btree->stats();
+  delete u_btree;
   
   cout << "Block collection statistics (global):\n"
        << "\tGET BLOCK:    "

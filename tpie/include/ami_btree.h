@@ -3,7 +3,7 @@
 // File:    ami_btree.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_btree.h,v 1.28 2003-09-12 15:47:16 jan Exp $
+// $Id: ami_btree.h,v 1.29 2003-09-14 21:03:57 tavi Exp $
 //
 // AMI_btree declaration and implementation.
 //
@@ -1069,15 +1069,21 @@ void AMI_BTREE::shared_init(const char* base_file_name, AMI_collection_type type
   strncpy(ncollname, base_file_name, PATH_NAME_LENGTH - 2);
   strcat(lcollname, ".l");
   strcat(ncollname, ".n");
+  // Initialize these pointers to NULL to avoid errors in the
+  // destructor in case of premature return from this function.
+  node_cache_ = NULL;
+  leaf_cache_ = NULL;
+  pcoll_leaves_ = NULL;
+  pcoll_nodes_ = NULL;
 
   pcoll_leaves_ = new collection_t(lcollname, type, params_.leaf_block_factor);
-  pcoll_nodes_ = new collection_t(ncollname, type, params_.node_block_factor);
-
   if (!pcoll_leaves_->is_valid()) {
     status_ = AMI_BTREE_STATUS_INVALID;
     LOG_WARNING_ID("AMI_btree::AMI_btree: Could not open leaves collection.");
     return;
   }
+
+  pcoll_nodes_ = new collection_t(ncollname, type, params_.node_block_factor);
   if (!pcoll_nodes_->is_valid()) {
     status_ = AMI_BTREE_STATUS_INVALID;
     LOG_WARNING_ID("AMI_btree::AMI_btree: Could not open nodes collection.");

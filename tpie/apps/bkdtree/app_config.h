@@ -5,7 +5,7 @@
 //
 // Created: 10/6/94
 //
-// $Id: app_config.h,v 1.30 2003-04-29 05:30:29 tavi Exp $
+// $Id: app_config.h,v 1.31 2003-09-14 21:03:44 tavi Exp $
 //
 #ifndef _APP_CONFIG_H
 #define _APP_CONFIG_H
@@ -37,8 +37,8 @@ extern int random_seed;
 
 #if (!defined(BTE_COLLECTION_IMP_MMAP) && !defined(BTE_COLLECTION_IMP_UFS) && !defined(BTE_COLLECTION_IMP_USER_DEFINED))
 // Define only one (default is BTE_COLLECTION_IMP_MMAP)
-#  define BTE_COLLECTION_IMP_MMAP
-//#  define BTE_COLLECTION_IMP_UFS
+//#  define BTE_COLLECTION_IMP_MMAP
+#  define BTE_COLLECTION_IMP_UFS
 //#  define BTE_COLLECTION_IMP_USER_DEFINED
 #endif
 

@@ -3,7 +3,7 @@
 // Authors: Octavian Procopiuc <tavi@cs.duke.edu>
 //          (using some code by Rakesh Barve)
 //
-// $Id: bte_coll_base.h,v 1.20 2003-09-13 23:06:52 tavi Exp $
+// $Id: bte_coll_base.h,v 1.21 2003-09-14 21:04:14 tavi Exp $
 //
 // BTE_collection_base class and various basic definitions.
 //
@@ -56,6 +56,16 @@ enum BTE_collection_status {
 #define BTE_COLLECTION_BLK_SUFFIX ".blk"
 #define BTE_COLLECTION_STK_SUFFIX ".stk"
 
+// Setting this to 1 causes the use of ftruncate(2) for extending
+// files, which, in conjunction with mmap(2), results in more
+// fragmented files and, consequently, slower I/O. See mmap(2) on
+// FreeBSD for an explanation. When set to 0, lseek(2) and write(2)
+// are used to extend the files. This should be set to 1 for WIN32
+// (see portability.h)
+#ifndef BTE_COLLECTION_USE_FTRUNCATE
+#define BTE_COLLECTION_USE_FTRUNCATE 0
+#endif
+
 
 // The in-memory representation of the BTE_COLLECTION header.
 // This data structure is read from/written to the first 
@@ -104,15 +114,6 @@ public:
       os_block_size = TPIE_OS_BLOCKSIZE();
   }
 };
-
-// Setting this to 1 causes the use of ftruncate(2) for extending
-// files, which, in conjunction with mmap(2), results in more
-// fragmented files and, consequently, slower I/O. See mmap(2) on
-// FreeBSD for an explanation. When set to 0, lseek(2) and write(2)
-// are used to extend the files.
-#ifndef USE_FTRUNCATE
-#define USE_FTRUNCATE 1
-#endif
 
 // A base class for all implementations of block collection classes.
 template <class BIDT>
@@ -225,9 +226,9 @@ protected:
 		    header_.total_blocks += 8;
 		else
 		    header_.total_blocks += 64;
-#if USE_FTRUNCATE
+#if BTE_COLLECTION_USE_FTRUNCATE
 		if (TPIE_OS_FTRUNCATE(bcc_fd_, bid_to_file_offset(header_.total_blocks))) {
-		    LOG_FATAL_ID("Failed to ftruncate() to the new end of file.");
+		    LOG_FATAL_ID("Failed to truncate to the new end of file.");
 		    //LOG_FATAL_ID(strerror(errno));
 		    return BTE_ERROR_OS_ERROR;
 		}
@@ -236,7 +237,7 @@ protected:
 		char* tbuf = new char[header_.os_block_size];
 
 		if ((curr_off = TPIE_OS_LSEEK(bcc_fd_, 0, TPIE_OS_FLAG_SEEK_END)) == (TPIE_OS_OFFSET)(-1)) {
-		    LOG_FATAL_ID("Failed to lseek() to the end of file.");
+		    LOG_FATAL_ID("Failed to seek to the end of file.");
 		    //LOG_FATAL_ID(strerror(errno));
 		    return BTE_ERROR_OS_ERROR;
 		}
@@ -547,8 +548,8 @@ BTE_err BTE_collection_base<BIDT>::write_header(char *bcc_name) {
 
   file_pointer = os_block_size_;
 
-  LOG_APP_DEBUG_ID("header_.total_blocks: ");
-  LOG_APP_DEBUG_ID(header_.total_blocks);
+  //  LOG_APP_DEBUG_ID("header_.total_blocks: ");
+  //  LOG_APP_DEBUG_ID(header_.total_blocks);
 
   delete [] tmp_buffer;
   return BTE_ERROR_NO_ERROR;
