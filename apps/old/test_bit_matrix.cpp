@@ -5,7 +5,7 @@
 // Created: 11/4/94
 //
 
-static char test_bit_matrix_id[] = "$Id: test_bit_matrix.cpp,v 1.3 1995-01-10 19:59:13 dev Exp $";
+static char test_bit_matrix_id[] = "$Id: test_bit_matrix.cpp,v 1.4 1999-05-02 18:51:47 tavi Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -37,7 +37,7 @@ int main(int argc, char **argv)
     
     cout << bm << '\n';
 
-    bit_matrix bv(16, 1);
+    bit_matrix bv(16, 1), bbv(16, 1);
 
     cout << (bv = (off_t)(0xF0F0)) << '\n';
 
@@ -53,9 +53,9 @@ int main(int argc, char **argv)
 
     cout << ot << "\n\n";
 
-    bv = bv + bv;
+    bbv = bv + bv;
 
-    cout << bv << '\n';
+    cout << bbv << '\n';
     
     return 0;
 }
