@@ -1,6 +1,6 @@
 // File: ami_sort_single_dh.h
 //
-// 	$Id: ami_sort_single_dh.h,v 1.5 2000-11-14 02:00:45 hutchins Exp $	
+// 	$Id: ami_sort_single_dh.h,v 1.6 2001-02-20 03:56:58 hutchins Exp $	
 
 // 
 // 
@@ -585,6 +585,26 @@ inline AMI_err sort_manager_kobj<T,Q,KEY,CMPR>::main_mem_operate_cleanup() {
 template<class T,class Q,class KEY,class CMPR>
 size_t sort_manager_kobj<T,Q,KEY,CMPR>::space_usage_overhead(void){
     return item_overhead;
+}
+
+// *******************************************************************
+// *                                                                 *
+// *           The actual AMI_mergeX calls                           *
+// *                                                                 *
+// *  These are tentative AMI_merge entry points which were omitted  *
+// *  from the original version.                                     *
+// ******************************************************************* 
+template < class T, class CMPR >
+    AMI_err 
+AMI_mergeX (AMI_STREAM < T > **inStreams, arity_t arity,
+		     AMI_STREAM < T > *outStream,   CMPR *cmp)
+{
+    merge_heap_dh_obj<T,CMPR> MergeHeap;
+    MergeHeap.allocate (arity);
+    return AMI_single_merge_dh ( inStreams, 
+                                 arity, 
+                                 outStream, 
+                                 MergeHeap);  
 }
 
 // *******************************************************************
