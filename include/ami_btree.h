@@ -3,7 +3,7 @@
 // File:    ami_btree.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_btree.h,v 1.8 2001-06-26 16:28:20 tavi Exp $
+// $Id: ami_btree.h,v 1.9 2001-11-09 15:11:40 tavi Exp $
 //
 // AMI_btree declaration and implementation.
 //
@@ -36,7 +36,6 @@ enum AMI_btree_status {
   AMI_BTREE_STATUS_VALID,
   AMI_BTREE_STATUS_INVALID,
 };
-
 
 // Parameters for the AMI_btree. Passed to the AMI_btree constructor.
 class AMI_btree_params {
@@ -218,8 +217,7 @@ protected:
   // Statistics.
   tree_stats stats_;
 
-  // Use this to obtain keys from Value elements, rather than
-  // KeyOfValue().
+  // Use this to obtain keys from Value elements.
   KeyOfValue kov_;
 
   // Insert helpers.
@@ -301,15 +299,15 @@ protected:
 // Determines how elements are stored in a leaf. If set to 1, elements
 // are stored in a sorted list, which results in slower insertions. If
 // set to 0, elements are stored in the order in which they are
-// inserted, which results in slower queries.
+// inserted, which results in slower queries. Setting to 0 gives
+// better overall performance.
 #define LEAF_ELEMENTS_SORTED 0
 
-// Determines whether "previous" pointers are maintained for leaves. If
-// set to 0, these pointers are not meaningful and should not be used
-// (although space for them is allocated in the leaf). TODO: remove
-// them completely? They are harder to maintain then "next" pointers and
-// are not used anywhere.
-#define LEAF_PREV_POINTER 0
+// Determines whether "previous" pointers are maintained for leaves.
+// Don't set to 0! There is good reason to maintain prev pointers:
+// computing predecessor queries. Unless maintaining previous pointers
+// proves costly, we keep them.
+#define LEAF_PREV_POINTER 1
 
 // The AMI_btree_leaf class.
 // Stores size() elements of type Value.
@@ -1155,13 +1153,10 @@ template <class Key, class Value, class Compare, class KeyOfValue>
 bool AMI_BTREE::pred(const Key& k, Value& v) {
 
   bool ans = false;
-  size_t idx;
   AMI_BTREE_NODE * pn;
   AMI_BTREE_LEAF * pl;
   AMI_bid bid;
-  size_t pos;
-  size_t level, levelup;
-  pair<AMI_bid, size_t> tos;
+  size_t idx;
 
   assert(header_.height >= 1);
   assert(path_stack_.empty());
@@ -1172,45 +1167,25 @@ bool AMI_BTREE::pred(const Key& k, Value& v) {
   idx = pl->pred(k);
   
   // Check whether we have a match.
-  if (comp_(kov_(pl->el[idx]), k)){
+  if (comp_(kov_(pl->el[idx]),k)){
     v = pl->el[idx]; 
     ans = true;
-  }
-  
-  release_leaf(pl);
-  levelup=0;
-  // while no predecessor, wiggle around tree
-  // find adjacent leaves. 
-  while ((!path_stack_.empty()) && (ans == false) ){
-    tos = path_stack_.top();
-    path_stack_.pop();
-    levelup++;
-    pn = fetch_node(tos.first);
-    if (tos.second != 0 ){
-      levelup--;
-      pos=tos.second-1;
-      path_stack_.push(pair<AMI_bid, size_t>(tos.first,pos ));
-      bid=pn->lk[pos];
-      for (level = levelup; level >0; level-- ){
-        release_node(pn);
-        pn = fetch_node(bid);
-        path_stack_.push(pair<AMI_bid, size_t>(bid, pn->size()));
-        bid=pn->lk[pn->size()]; 
-      }
-      pl = fetch_leaf(bid);
-      idx = pl->pred(k);
-      // check again
-      if (comp_(kov_(pl->el[idx]), k)){
-        v = pl->el[idx]; 
-        ans = true;
-      }
+  } else {
+#if LEAF_PREV_POINTER
+    bid = pl->prev();
+#else
+    assert(0);
+#endif
+    if (bid != 0) {
       release_leaf(pl);
-      levelup=0;
+      pl = fetch_leaf(bid);
+      v = pl->el[pl->pred(k)];
+      ans=true;
     }
-    release_node(pn);
-  } // while empty/false
+  }
 
   // Write back the leaf and empty the stack.
+  release_leaf(pl);
   empty_stack();
 
   return ans;
@@ -1221,13 +1196,10 @@ template <class Key, class Value, class Compare, class KeyOfValue>
 bool AMI_BTREE::succ(const Key& k, Value& v) {
 
   bool ans = false;
-  size_t idx;
   AMI_BTREE_NODE * pn;
   AMI_BTREE_LEAF * pl;
   AMI_bid bid;
-  size_t pos;
-  size_t level, levelup;
-  pair<AMI_bid, size_t> tos;
+  size_t idx;
 
   assert(header_.height >= 1);
   assert(path_stack_.empty());
@@ -1241,46 +1213,23 @@ bool AMI_BTREE::succ(const Key& k, Value& v) {
   if (comp_(k,kov_(pl->el[idx]))){
     v = pl->el[idx]; 
     ans = true;
+  } else {
+    bid = pl->next();
+    if (bid !=0) {
+      release_leaf(pl);
+      pl = fetch_leaf(bid);
+      v = pl->el[pl->succ(k)];
+      ans=true;
+    }
   }
   
-  release_leaf(pl);
-  levelup=0;
-  // while no successor, wiggle around tree
-  // find adjacent leaves. 
-  while ((!path_stack_.empty()) && (ans == false) ){
-    tos = path_stack_.top();
-    path_stack_.pop();
-    levelup++;
-    pn = fetch_node(tos.first);
-    if (tos.second != pn->size() ){
-      levelup--;
-      pos=tos.second+1;
-      path_stack_.push(pair<AMI_bid, size_t>(tos.first,pos ));
-      bid=pn->lk[pos];
-      for (level = levelup; level >0; level-- ){
-        release_node(pn);
-        pn = fetch_node(bid);
-        path_stack_.push(pair<AMI_bid, size_t>(bid, 0));
-        bid=pn->lk[0]; 
-      }
-      pl = fetch_leaf(bid);
-      idx = pl->succ(k);
-      // check again
-      if (comp_(k, kov_(pl->el[idx]))){
-        v = pl->el[idx]; 
-        ans = true;
-      }
-      release_leaf(pl);
-      levelup=0;
-    }
-    release_node(pn);
-  } // while empty/false
-
   // Write back the leaf and empty the stack.
+  release_leaf(pl);
   empty_stack();
 
   return ans;
 }
+
 
 //// *AMI_btree::range_query* ////
 template <class Key, class Value, class Compare, class KeyOfValue>
