@@ -15,7 +15,7 @@
 // a quicksort using only keys of the items; there is a provision to 
 // to use templated heaps to implement the merge.
 
-// 	$Id: ami_optimized_merge.h,v 1.12 1999-03-23 19:22:00 rbarve Exp $	
+// 	$Id: ami_optimized_merge.h,v 1.13 1999-03-26 00:08:40 rbarve Exp $	
 //TO DO: substream_count setting; don't depend on current_stream_len
 
 #ifndef _OPT_AMI_MERGE_H
@@ -211,7 +211,7 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
                                                  return ae;
            }
 
-		  if (mm_stream) {delete mm_stream; mm_stream = NULL;}
+		  if (mm_stream) {delete [] mm_stream; mm_stream = NULL;}
 
     } else {
 
@@ -668,7 +668,7 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
                       }
 
         
-        if (mm_stream) { delete  mm_stream; mm_stream = NULL;}
+        if (mm_stream) { delete [] mm_stream; mm_stream = NULL;}
         
 
 	   
@@ -1248,7 +1248,7 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
                                      != AMI_ERROR_NO_ERROR)
                                                  return ae;
            }
-           if (mm_stream) { delete mm_stream;
+           if (mm_stream) { delete [] mm_stream;
 		                  mm_stream = NULL;}
 		}
          else
@@ -1275,8 +1275,8 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
                                            != AMI_ERROR_NO_ERROR)
                                            return ae;
             }
-          if (mm_stream) { delete mm_stream; mm_stream = NULL;}
-          if (qs_array) { delete qs_array; qs_array = NULL;}
+          if (mm_stream) { delete [] mm_stream; mm_stream = NULL;}
+          if (qs_array) { delete [] qs_array; qs_array = NULL;}
 	    }
           
           return AMI_ERROR_NO_ERROR;
@@ -1737,8 +1737,8 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
         if (initial_tmp_stream[current_stream]) 
                      { delete initial_tmp_stream[current_stream];
 				 initial_tmp_stream[current_stream] = NULL;}
-        if (mm_stream) { delete  mm_stream; mm_stream = NULL;}
-        if (qs_array) { delete qs_array; qs_array = NULL;}
+        if (mm_stream) { delete  [] mm_stream; mm_stream = NULL;}
+        if (qs_array) { delete [] qs_array; qs_array = NULL;}
 
         // Make sure the total length of the temporary stream is the
         // same as the total length of the original input stream.
@@ -2297,7 +2297,7 @@ AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
                                      != AMI_ERROR_NO_ERROR)
                                                  return ae;
            }
-		  if (mm_stream) { delete mm_stream; mm_stream = NULL;}
+		  if (mm_stream) { delete [] mm_stream; mm_stream = NULL;}
 		}
          else
          {
@@ -2324,8 +2324,8 @@ AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
                                            != AMI_ERROR_NO_ERROR)
                                            return ae;
             }
-          if (mm_stream) { delete mm_stream; mm_stream = NULL;}
-          if (qs_array) { delete qs_array; qs_array = NULL;}
+          if (mm_stream) { delete [] mm_stream; mm_stream = NULL;}
+          if (qs_array) { delete [] qs_array; qs_array = NULL;}
           }
           
           return AMI_ERROR_NO_ERROR;
