@@ -5,7 +5,7 @@
 // Created: 3/6/95
 //
 
-static char scan_uniform_sm_id[] = "$Id: scan_uniform_sm.cpp,v 1.2 1997-05-20 22:12:09 vengroff Exp $";
+static char scan_uniform_sm_id[] = "$Id: scan_uniform_sm.cpp,v 1.3 1999-11-02 17:05:44 tavi Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -32,9 +32,9 @@ scan_uniform_sm::scan_uniform_sm(unsigned int rows, unsigned int cols,
                                  double density, int seed) :
         rmax(rows), cmax(cols), d(density)
 {
-    LOG_INFO("scan_uniform_sm seed = ");
-    LOG_INFO(seed);
-    LOG_INFO('\n');
+    LOG_APP_DEBUG("scan_uniform_sm seed = ");
+    LOG_APP_DEBUG(seed);
+    LOG_APP_DEBUG('\n');
 
     srandom(seed);
 }

@@ -5,7 +5,7 @@
 // Created: 3/24/95
 //
 
-static char test_ami_sort24_id[] = "$Id: test_ami_sort24.cpp,v 1.5 1999-02-03 22:27:09 tavi Exp $";
+static char test_ami_sort24_id[] = "$Id: test_ami_sort24.cpp,v 1.6 1999-11-02 17:06:29 tavi Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -71,9 +71,9 @@ public:
 scan_random_so::scan_random_so(unsigned int count, int seed) :
 max(count), remaining(count)
 {
-    LOG_INFO("scan_random_so seed = ");
-    LOG_INFO(seed);
-    LOG_INFO('\n');
+    LOG_APP_DEBUG("scan_random_so seed = ");
+    LOG_APP_DEBUG(seed);
+    LOG_APP_DEBUG('\n');
 
     srandom(seed);
 }
