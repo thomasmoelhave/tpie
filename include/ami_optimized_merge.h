@@ -15,7 +15,7 @@
 // a quicksort using only keys of the items; there is a provision to 
 // to use templated heaps to implement the merge.
 
-// 	$Id: ami_optimized_merge.h,v 1.8 1999-02-10 07:44:49 rbarve Exp $	
+// 	$Id: ami_optimized_merge.h,v 1.9 1999-02-10 22:58:42 tavi Exp $	
 //TO DO: substream_count setting; don't depend on current_stream_len
 
 #ifndef _OPT_AMI_MERGE_H
@@ -32,9 +32,6 @@
 
 typedef int AMI_merge_flag;
 typedef unsigned int arity_t;
-
-#define CONST 
-
 
 //Defined at the end of the file, declared here.
 
