@@ -2,12 +2,15 @@
 // File:    bte_coll_ufs.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: bte_coll_ufs.h,v 1.7 2002-07-20 21:37:16 tavi Exp $
+// $Id: bte_coll_ufs.h,v 1.8 2003-04-17 14:55:38 jan Exp $
 //
 // BTE_collection_ufs class definition.
 //
 #ifndef _BTE_COLL_UFS_H
 #define _BTE_COLL_UFS_H
+
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 // For header's type field (85 == 'U').
 #define BTE_COLLECTION_UFS 85

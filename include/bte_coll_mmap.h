@@ -2,12 +2,15 @@
 // File:    bte_coll_mmap.h (formerly bte_coll_mmb.h)
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: bte_coll_mmap.h,v 1.7 2002-08-13 18:01:39 tavi Exp $
+// $Id: bte_coll_mmap.h,v 1.8 2003-04-17 14:52:52 jan Exp $
 //
 // BTE_collection_mmap class definition.
 //
 #ifndef _BTE_COLL_MMAP_H
 #define _BTE_COLL_MMAP_H
+
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 // For header's type field (77 == 'M').
 #define BTE_COLLECTION_MMAP 77

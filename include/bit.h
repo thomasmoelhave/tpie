@@ -4,10 +4,13 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 11/4/94
 //
-// $Id: bit.h,v 1.2 1995-01-10 16:43:34 darrenv Exp $
+// $Id: bit.h,v 1.3 2003-04-17 14:42:18 jan Exp $
 //
 #ifndef _BIT_H
 #define _BIT_H
+
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 #include <ostream.h>
 
