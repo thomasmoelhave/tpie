@@ -8,10 +8,10 @@
 
 
 
-static char int_cmp_id[] = "$Id: int_cmp.c,v 1.1 1994-08-31 19:58:10 darrenv Exp $";
+static char int_cmp_id[] = "$Id: int_cmp.c,v 1.2 1994-10-07 15:41:09 darrenv Exp $";
 
 
-int int_cmp(const void *p1, const void *p2)
+int c_int_cmp(const void *p1, const void *p2)
 {
     return *((int *)p1) - *((int *)p2);
 }
