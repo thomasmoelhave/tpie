@@ -7,7 +7,7 @@
 
 // A simple registration based memory manager.
 
-static char mm_register_id[] = "$Id: mm_register.cpp,v 1.7 1999-04-22 17:23:14 rajiv Exp $";
+static char mm_register_id[] = "$Id: mm_register.cpp,v 1.8 1999-04-23 06:06:39 rajiv Exp $";
 
 #include <assert.h>
 #include "lib_config.h"
@@ -48,7 +48,7 @@ MM_err MM_register::register_allocation(size_t sz)
 
     remaining -= sz;
 
-    LOG_DEBUG_INFO("Allocated ");
+    LOG_DEBUG_INFO("mm_register Allocated ");
     LOG_DEBUG_INFO((unsigned int)sz);
     LOG_DEBUG_INFO("; ");
     LOG_DEBUG_INFO((unsigned int)remaining);
