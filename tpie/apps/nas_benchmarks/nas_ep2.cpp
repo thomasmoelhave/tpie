@@ -13,7 +13,7 @@
 
 // Define it all.
 #include <ami.h>
-VERSION(nas_ep2_cpp,"$Id: nas_ep2.cpp,v 1.6 2003-09-12 01:46:26 tavi Exp $");
+VERSION(nas_ep2_cpp,"$Id: nas_ep2.cpp,v 1.7 2003-09-12 01:47:29 tavi Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -226,10 +226,10 @@ int main(int argc, char **argv)
     }
 
     if (verbose) {
-        cout << "test_size = " << test_size << ".\n";
-        cout << "test_mm_size = " << test_mm_size << ".\n";
+      cout << "test_size = " << test_size << "." << endl;
+      cout << "test_mm_size = " << test_mm_size << "." << endl;
     } else {
-        cout << test_size << ' ' << test_mm_size << '\n';
+        cout << test_size << ' ' << test_mm_size << endl;
     }
 
     // Set the amount of main memory:
@@ -248,22 +248,22 @@ int main(int argc, char **argv)
     if (verbose) {
         cout << "Wrote Gaussians; " <<
             "stream lengths = " << amis_x.stream_len() <<
-            " and " << amis_y.stream_len() << '\n';        
+            " and " << amis_y.stream_len() << endl;        
     }    
 
-    cout << "No. pairs: " << amis_x.stream_len() << '\n';
+    cout << "No. pairs: " << amis_x.stream_len() << endl;
     
     cout.precision(15);
     
-    cout << "Sums: " << sb.sumx << ' ' << sb.sumy << "\nCounts:\n" ;
+    cout << "Sums: " << sb.sumx << ' ' << sb.sumy << endl << "Counts:" << endl;
 
     for (unsigned int ii = 0; ii < 10; ii++) {
-        cout << ii << '\t' << sb.annulus[ii] << '\n';
+        cout << ii << '\t' << sb.annulus[ii] << endl;
     }
 
     cput.stop();
 
-    cout << cput << '\n';
+    cout << cput << endl;
     
     return 0;
 }
