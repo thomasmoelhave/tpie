@@ -5,7 +5,7 @@
 //
 // Blocked kd-tree definition and implementation.
 //
-// $Id: ami_kdtree.h,v 1.18 2005-01-27 21:44:48 tavi Exp $
+// $Id: ami_kdtree.h,v 1.19 2005-02-12 20:27:36 tavi Exp $
 //
 
 #ifndef _AMI_KDTREE_H
@@ -149,6 +149,8 @@ public:
   // Print out some stuff about the tree structure. For debugging
   // purposes only.
   void print(ostream& s);
+  // Print the BINARY kd-tree indented.
+  void print(ostream& s, bool print_mbr, bool print_level, char indent_char = ' ');
 
   // Inquire the base path name.
   const string& name() const { return name_; }
@@ -928,6 +930,21 @@ protected:
 
   typedef pair<podf, pair<AMI_bid,link_type_t> > outer_stack_elem;
   typedef pair<podf, size_t>                   inner_stack_elem;
+
+  // Used for printing the binary kd-tree.
+  // An element represents a binary kd-tree
+  // node and the number of times it was visited. 
+  // bid id the block id of the block node, and idx is the index
+  // of the bin node (or -1 for a leaf node).
+  // lo and hi form the mbr of the node.
+  struct print_stack_elem {
+    AMI_bid bid;
+    int idx;
+    int visits;
+    point_t lo;
+    point_t hi;
+    print_stack_elem(AMI_bid _bid, int _idx, int _visits, point_t _lo, point_t _hi): bid(_bid), idx(_idx), visits(_visits), lo(_lo), hi(_hi) {}
+  };
 
   // Used for nearest neighbor searching.
   struct nn_pq_elem {
@@ -3047,21 +3064,25 @@ void AMI_KDTREE::print(ostream& s) {
     link_type_t idx_type;
 
     xq.push(header_.root_bid);
+    //    level = 0;
     while (!xq.empty()) {
       bn = fetch_node(xq.front());
       xq.pop();
       assert(iq.empty());
       iq.push(0);
       fo = 0;
+
       s << "[id=" << bn->bid() << " (";
 
       while (!iq.empty()) {
 	i = iq.front();
 	iq.pop();
 
-	s << "B/" << (TPIE_OS_OFFSET)bn->el[i].get_discriminator_dim() << " " 
-	  << bn->el[i].get_discriminator_val() << "/ ";
+	s << "B" << (TPIE_OS_OFFSET)bn->el[i].get_discriminator_dim() << " " 
+	  << bn->el[i].get_discriminator_val() << "\n";
+
 	bn->el[i].get_low_child(idx, idx_type);
+
 	if (idx_type == BIN_NODE) {
 	  iq.push(idx);
 	} else {
@@ -3069,12 +3090,15 @@ void AMI_KDTREE::print(ostream& s) {
 	  if (idx_type == BLOCK_NODE) {
 	    s << "N" << bn->lk[idx];
 	    xq.push(bn->lk[idx]);
-	  } else 
+	  } else {
 	    s << "L";
+	  }
 	  s << " ";
 	}
 
+
 	bn->el[i].get_high_child(idx, idx_type);
+
 	if (idx_type == BIN_NODE) {
 	  iq.push(idx);
 	} else {
@@ -3082,8 +3106,9 @@ void AMI_KDTREE::print(ostream& s) {
 	  if (idx_type == BLOCK_NODE) {
 	    s << "N" << bn->lk[idx];
 	    xq.push(bn->lk[idx]);
-	  } else 
+	  } else {
 	    s << "L";
+	  }
 	  s << " ";
 	}
       }
@@ -3094,6 +3119,145 @@ void AMI_KDTREE::print(ostream& s) {
     s << " Root is leaf.\n";
   s << "\n";
 }
+
+
+//// *AMI_kdtree::print* ////
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+  void AMI_KDTREE::print(ostream& s, bool print_mbr, bool print_level, char indent_char) {
+
+
+  //  s << "AMI_kdtree nodes: ";
+  if (header_.root_type == BLOCK_NODE) {
+
+    AMI_KDTREE_NODE* bln;
+    AMI_KDTREE_LEAF* bll;
+    // The current binary node.
+    Bin_node bin;
+
+    // The recursion stack.
+    stack<print_stack_elem> dfs_stack;
+    
+    point_t rlo, rhi;
+    size_t i, j, idx, fo, level;
+    link_type_t idx_type;
+
+    // Initialize the stack.
+    dfs_stack.push(print_stack_elem(header_.root_bid, 0, 0, header_.mbr_lo, header_.mbr_hi));
+
+    while (!dfs_stack.empty()) {
+
+      rlo = dfs_stack.top().lo;
+      rhi = dfs_stack.top().hi;
+
+      if (dfs_stack.top().idx == -1) { // Top of the stack is a leaf.
+	// Print the leaf.
+	
+	// The MBR.
+	if (print_mbr) {
+	  s << "[";
+	  s << "(";
+	  for (j = 0; j < dim-1; j++) {
+	    s << rlo[j] << ",";
+	  }
+	  s << rlo[dim-1] << ") ";
+	  s << "(";
+	  for (j = 0; j < dim-1; j++) {
+	    s << rhi[j] << ",";
+	  }
+	  s << rhi[dim-1] << ")";
+	  s << "] ";
+	}
+	if (print_level) {
+	  s << (dfs_stack.size()-1) << (dfs_stack.size()-1 < 10 ? "  ": " ");
+	}
+	for (i = 0; i < dfs_stack.size()-1; i++) {
+	  s << indent_char;
+	}
+	s << "L ";
+	bll = fetch_leaf(dfs_stack.top().bid);
+	for (i = 0; i < bll->size(); i++) {
+	  s << "(";
+	  for (j = 0; j < dim-1; j++) {
+	    s << bll->el[i][j] << ",";
+	  }
+	  s << bll->el[i][dim-1] << ") ";
+	}
+	s << endl;
+	release_leaf(bll);
+
+      	dfs_stack.pop();	  
+
+      } else { // Top of the stack is a node.
+
+	bln = fetch_node(dfs_stack.top().bid);
+	bin = bln->el[dfs_stack.top().idx];
+
+	if (dfs_stack.top().visits == 0) {
+
+	  // Print the binary node 'bin', since it's the first time we see it.
+
+	  // The MBR.
+	  if (print_mbr) {
+	    s << "[";
+	    s << "(";
+	    for (j = 0; j < dim-1; j++) {
+	      s << rlo[j] << ",";
+	    }
+	    s << rlo[dim-1] << ") ";
+	    s << "(";
+	    for (j = 0; j < dim-1; j++) {
+	      s << rhi[j] << ",";
+	    }
+	    s << rhi[dim-1] << ")";
+	    s << "] ";
+	  }
+	  if (print_level) {
+	    s << (dfs_stack.size()-1) << (dfs_stack.size()-1 < 10 ? "  ": " ");
+	  }
+	  for (i = 0; i < dfs_stack.size()-1; i++) {
+	    s << indent_char;
+	  }
+
+	  s << "B" << bin.get_discriminator_dim();
+	  s << " " << bin.get_discriminator_val();
+	  s << endl;
+	  
+	  bin.get_low_child(idx, idx_type);
+	  rhi[bin.get_discriminator_dim()] = bin.get_discriminator_val();
+
+	} else {
+	  bin.get_high_child(idx, idx_type);
+	  rlo[bin.get_discriminator_dim()] = bin.get_discriminator_val();
+	}
+	
+	dfs_stack.top().visits++;
+	
+	if (idx_type == BIN_NODE) {
+	  dfs_stack.push(print_stack_elem(bln->bid(), idx, 0, rlo, rhi));
+	} else if (idx_type == BLOCK_NODE) {
+	  dfs_stack.push(print_stack_elem(bln->lk[idx], 0, 0, rlo, rhi));
+	} else { // idx_type == BLOCK_LEAF
+	  dfs_stack.push(print_stack_elem(bln->lk[idx], -1, 0, rlo, rhi));
+	}
+	
+	release_node(bln);
+	
+      }
+
+      while (!dfs_stack.empty() && dfs_stack.top().visits == 2) {
+	dfs_stack.pop();
+      }
+
+    }
+
+  } else {
+    s << "Root is leaf." << endl;
+  }
+
+  s << endl;
+}
+
+
 
 //// *AMI_kdtree::~AMI_kdtree* ////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
