@@ -6,7 +6,7 @@
 //
 
 #include <versions.h>
-VERSION(tpie_log_cpp,"$Id: tpie_log.cpp,v 1.15 2003-09-13 18:11:57 tavi Exp $");
+VERSION(tpie_log_cpp,"$Id: tpie_log.cpp,v 1.16 2004-08-12 12:53:43 jan Exp $");
 
 // We are logging
 #define TPL_LOGGING	1
@@ -22,7 +22,7 @@ VERSION(tpie_log_cpp,"$Id: tpie_log.cpp,v 1.15 2003-09-13 18:11:57 tavi Exp $");
 // file name. Should be called only once, by theLogName() below.
 static char *__tpie_log_name() {
   static char tln[128];
-  TPIE_OS_SRANDOM(time(NULL));
+  TPIE_OS_SRANDOM((unsigned int)TPIE_OS_TIME(NULL));
   strncpy(tln, tpie_tempnam(TPLOGPFX, TPLOGDIR), 124);
   strcat(tln, ".txt");
   return tln;
@@ -40,5 +40,5 @@ logstream &tpie_log() {
 }
 
 void tpie_log_init(TPIE_LOG_LEVEL level) {
-  LOG_SET_THRESHOLD(level);
+  TP_LOG_SET_THRESHOLD(level);
 }

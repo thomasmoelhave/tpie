@@ -8,7 +8,7 @@
 //
 
 #include <versions.h>
-VERSION(logstream_cpp,"$Id: logstream.cpp,v 1.18 2004-05-31 19:32:39 tavi Exp $");
+VERSION(logstream_cpp,"$Id: logstream.cpp,v 1.19 2004-08-12 12:53:43 jan Exp $");
 
 #include <logstream.h>
 
@@ -57,7 +57,7 @@ _DEFINE_LOGSTREAM_OUTPUT_OPERATOR(char)
 _DEFINE_LOGSTREAM_OUTPUT_OPERATOR(int)
 _DEFINE_LOGSTREAM_OUTPUT_OPERATOR(unsigned int)
 _DEFINE_LOGSTREAM_OUTPUT_OPERATOR(long int)
-_DEFINE_LOGSTREAM_OUTPUT_OPERATOR(long unsigned int)
+_DEFINE_LOGSTREAM_OUTPUT_OPERATOR(unsigned long)
 _DEFINE_LOGSTREAM_OUTPUT_OPERATOR(float)
 _DEFINE_LOGSTREAM_OUTPUT_OPERATOR(double)
 
@@ -66,24 +66,30 @@ TPIE_OS_DEFINE_LOGSTREAM_LONGLONG
 
 // Setting priority and threshold on the fly with manipulators.
 
-logstream& manip_priority(logstream& tpl, unsigned int p)
+logstream& manip_priority(logstream& tpl, unsigned long p)
 {
     tpl.priority = p;
     return tpl;
 }
 
-logmanip<unsigned int> setpriority(unsigned int p)
+logmanip<unsigned long> setpriority(unsigned long p)
 {
-   return logmanip<unsigned int>(&manip_priority, p);
+   return logmanip<unsigned long>(&manip_priority, p);
 } 
 
-logstream& manip_threshold(logstream& tpl, unsigned int p)
+logstream& manip_threshold(logstream& tpl, unsigned long p)
 {
     tpl.threshold = p;
     return tpl;
 }
 
-logmanip<unsigned int> setthreshold(unsigned int p)
+logmanip<unsigned long> setthreshold(unsigned long p)
 {
-   return logmanip<unsigned int>(&manip_threshold, p);
+   return logmanip<unsigned long>(&manip_threshold, p);
 } 
+
+logstream& operator<< (logstream& o, const logmanip<unsigned long>& m)
+{
+  (*m._f)(o, m._a); return o;
+}
+

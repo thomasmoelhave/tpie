@@ -5,7 +5,7 @@
 //
 
 #include <versions.h>
-VERSION(ami_single_cpp,"$Id: ami_stream_single.cpp,v 1.3 2003-04-17 20:47:57 jan Exp $");
+VERSION(ami_single_cpp,"$Id: ami_stream_single.cpp,v 1.4 2004-08-12 12:53:42 jan Exp $");
 
 #include "lib_config.h"
 
@@ -53,11 +53,11 @@ AMI_stream_single_base_device_initializer::
             default_device.set_to_path(TMP_DIR "|" TMP_DIR);
 
         if (ae != AMI_ERROR_NO_ERROR) {
-            LOG_WARNING_ID("Unable to initialize the default device description for AMI single streams.");
+            TP_LOG_WARNING_ID("Unable to initialize the default device description for AMI single streams.");
         }
 
-        LOG_DEBUG_ID("Default device description for AMI single streams:");
-        LOG_DEBUG_ID(AMI_stream_single_base::default_device);
+        TP_LOG_DEBUG_ID("Default device description for AMI single streams:");
+        TP_LOG_DEBUG_ID(AMI_stream_single_base::default_device);
 
         // Set the last device index used to the last device index, so
         // that the first stream will wrap around to go on device 0.

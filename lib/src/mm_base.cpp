@@ -6,7 +6,7 @@
 //
 
 #include <versions.h>
-VERSION(mm_base_cpp,"$Id: mm_base.cpp,v 1.27 2003-09-12 01:17:54 jan Exp $");
+VERSION(mm_base_cpp,"$Id: mm_base.cpp,v 1.28 2004-08-12 12:53:43 jan Exp $");
 
 #include "lib_config.h"
 #include <mm_base.h>
@@ -33,9 +33,9 @@ int   register_new = MM_IGNORE_MEMORY_EXCEEDED;
 // possible to check whether a machine needs this at configuration
 // time or if dword alignment is ok.  On the HP 9000, bus errors occur
 // when loading doubles that are not qword aligned.
-static const size_t SIZE_SPACE=(sizeof(size_t) > 8 ? sizeof(size_t) : 8);
+static const TPIE_OS_SIZE_T SIZE_SPACE=(sizeof(TPIE_OS_SIZE_T) > 8 ? sizeof(TPIE_OS_SIZE_T) : 8);
 
-void *operator new (size_t sz)
+void *operator new (TPIE_OS_SIZE_T sz)
 {
    void *p;
 #ifdef USE_DMALLOC
@@ -48,17 +48,17 @@ void *operator new (size_t sz)
 	   MM_ERROR_NO_ERROR)) {
       switch(MM_manager.register_new) {
 	  case MM_ABORT_ON_MEMORY_EXCEEDED:
-		LOG_FATAL_ID ("In operator new() - allocation request \"");
-		LOG_FATAL (sz + SIZE_SPACE);
-		LOG_FATAL ("\" plus previous allocation \"");
-		LOG_FATAL (MM_manager.memory_used () - (sz + SIZE_SPACE));
-		LOG_FATAL ("\" exceeds user-defined limit \"");
-		LOG_FATAL (MM_manager.memory_limit ());
-		LOG_FATAL ("\" \n");
-		LOG_FLUSH_LOG;
+		TP_LOG_FATAL_ID ("In operator new() - allocation request \"");
+		TP_LOG_FATAL ((TPIE_OS_LONG)(sz + SIZE_SPACE));
+		TP_LOG_FATAL ("\" plus previous allocation \"");
+		TP_LOG_FATAL ((TPIE_OS_LONG)(MM_manager.memory_used () - (sz + SIZE_SPACE)));
+		TP_LOG_FATAL ("\" exceeds user-defined limit \"");
+		TP_LOG_FATAL ((TPIE_OS_LONG)(MM_manager.memory_limit ()));
+		TP_LOG_FATAL ("\" \n");
+		TP_LOG_FLUSH_LOG;
 		cerr << "memory manager: memory allocation limit " << 
-                         MM_manager.memory_limit () << " exceeded "
-			 << "while allocating " << sz << " bytes" << "\n";
+                         (TPIE_OS_LONG)MM_manager.memory_limit () << " exceeded "
+			 << "while allocating " << (TPIE_OS_LONG)sz << " bytes" << "\n";
 #ifdef USE_DMALLOC
 		dmalloc_shutdown();
 #endif
@@ -66,17 +66,17 @@ void *operator new (size_t sz)
 		exit (1);
 		break;
 	  case MM_WARN_ON_MEMORY_EXCEEDED:
-		LOG_WARNING_ID ("In operator new() - allocation request \"");
-		LOG_WARNING (sz + SIZE_SPACE);
-		LOG_WARNING ("\" plus previous allocation \"");
-		LOG_WARNING (MM_manager.memory_used () - (sz + SIZE_SPACE));
-		LOG_WARNING ("\" exceeds user-defined limit \"");
-		LOG_WARNING (MM_manager.memory_limit ());
-		LOG_WARNING ("\" \n");
-		LOG_FLUSH_LOG;
+		TP_LOG_WARNING_ID ("In operator new() - allocation request \"");
+		TP_LOG_WARNING ((TPIE_OS_LONG)(sz + SIZE_SPACE));
+		TP_LOG_WARNING ("\" plus previous allocation \"");
+		TP_LOG_WARNING ((TPIE_OS_LONG)(MM_manager.memory_used () - (sz + SIZE_SPACE)));
+		TP_LOG_WARNING ("\" exceeds user-defined limit \"");
+		TP_LOG_WARNING ((TPIE_OS_LONG)(MM_manager.memory_limit ()));
+		TP_LOG_WARNING ("\" \n");
+		TP_LOG_FLUSH_LOG;
 		cerr << "memory manager: memory allocation limit " << 
-                         MM_manager.memory_limit () << " exceeded "
-			 << "while allocating " << sz << " bytes" << "\n";
+                         (TPIE_OS_LONG)MM_manager.memory_limit () << " exceeded "
+			 << "while allocating " << (TPIE_OS_LONG)sz << " bytes" << "\n";
 		break;
 	  case MM_IGNORE_MEMORY_EXCEEDED:
 		break;
@@ -89,9 +89,9 @@ void *operator new (size_t sz)
    p = malloc(sz + SIZE_SPACE);
 #endif
    if (!p) {
-      LOG_FATAL_ID ("Out of memory. Cannot continue.");
-      LOG_FLUSH_LOG;
-	  cerr << "out of memory while allocating " << sz << " bytes" << "\n";
+      TP_LOG_FATAL_ID ("Out of memory. Cannot continue.");
+      TP_LOG_FLUSH_LOG;
+	  cerr << "out of memory while allocating " << (TPIE_OS_LONG)sz << " bytes" << "\n";
       perror ("mm_base::new malloc");
 	  assert(0);
       exit (1);
@@ -103,15 +103,15 @@ void *operator new (size_t sz)
 void operator delete (void *ptr)
 {
    if (!ptr) {
-      LOG_WARNING_ID ("operator delete was given a NULL pointer");
+      TP_LOG_WARNING_ID ("operator delete was given a NULL pointer");
       return;
    }
 
    if (MM_manager.register_new != MM_IGNORE_MEMORY_EXCEEDED) {
       if (MM_manager.register_deallocation (
-	    *((size_t *) (((char *) ptr) - SIZE_SPACE)) + SIZE_SPACE) 
+	    (TPIE_OS_SIZE_T)*((size_t *) (((char *) ptr) - SIZE_SPACE)) + SIZE_SPACE) 
          != MM_ERROR_NO_ERROR) {
-	 LOG_WARNING_ID("In operator delete - MM_manager.register_deallocation failed");
+	 TP_LOG_WARNING_ID("In operator delete - MM_manager.register_deallocation failed");
       }
    }
    void *p = ((char *)ptr) - SIZE_SPACE;
@@ -127,15 +127,15 @@ void operator delete (void *ptr)
 
 void operator delete[] (void *ptr) {
    if (!ptr) {
-      LOG_WARNING_ID ("operator delete [] was given a NULL pointer");
+      TP_LOG_WARNING_ID ("operator delete [] was given a NULL pointer");
       return;
    }
 
    if (MM_manager.register_new != MM_IGNORE_MEMORY_EXCEEDED) {
       if (MM_manager.register_deallocation (
-	    *((size_t *) (((char *) ptr) - SIZE_SPACE)) + SIZE_SPACE)
+	    (TPIE_OS_SIZE_T)*((size_t *) (((char *) ptr) - SIZE_SPACE)) + SIZE_SPACE)
          != MM_ERROR_NO_ERROR) {
-	 LOG_WARNING_ID("In operator delete [] - MM_manager.register_deallocation failed");
+	 TP_LOG_WARNING_ID("In operator delete [] - MM_manager.register_deallocation failed");
       }
    }
    void *p = ((char *)ptr) - SIZE_SPACE;
@@ -154,5 +154,6 @@ int   MM_register::space_overhead ()
    return SIZE_SPACE;
 }
 
+#ifndef NDEBUG
 TPIE_OS_SPACE_OVERHEAD_BODY
-
+#endif

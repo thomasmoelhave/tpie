@@ -8,7 +8,7 @@
 // A simple registration based memory manager.
 
 #include <versions.h>
-VERSION(mm_register_cpp,"$Id: mm_register.cpp,v 1.19 2003-04-20 06:44:01 tavi Exp $");
+VERSION(mm_register_cpp,"$Id: mm_register.cpp,v 1.20 2004-08-12 12:53:43 jan Exp $");
 
 //#include <assert.h>
 #include "lib_config.h"
@@ -47,7 +47,7 @@ MM_register::~MM_register(void)
 // check that new allocation request is below user-defined limit.
 // This should be a private method, only called by operator new.
 
-MM_err MM_register::register_allocation(size_t request)
+MM_err MM_register::register_allocation(TPIE_OS_SIZE_T request)
 {
   // quick hack to allow operation before limit is set
   // XXX 
@@ -58,22 +58,22 @@ MM_err MM_register::register_allocation(size_t request)
     used      += request;     
 
     if (request > remaining) {
-       LOG_WARNING("Memory allocation request: ");
-       LOG_WARNING(request);
-       LOG_WARNING(": User-specified memory limit exceeded.");
-       LOG_FLUSH_LOG;
+       TP_LOG_WARNING("Memory allocation request: ");
+       TP_LOG_WARNING((LONG)request);
+       TP_LOG_WARNING(": User-specified memory limit exceeded.");
+       TP_LOG_FLUSH_LOG;
        remaining = 0;
        return MM_ERROR_INSUFFICIENT_SPACE;
     }
 
-    remaining -= request;
+    remaining -= request; 
 
-    LOG_DEBUG("mm_register Allocated ");
-    LOG_DEBUG((unsigned int)request);
-    LOG_DEBUG("; ");
-    LOG_DEBUG((unsigned int)remaining);
-    LOG_DEBUG(" remaining.\n");
-    LOG_FLUSH_LOG;
+    TP_LOG_DEBUG("mm_register Allocated ");
+    TP_LOG_DEBUG((unsigned int)request);
+    TP_LOG_DEBUG("; ");
+    TP_LOG_DEBUG((unsigned int)remaining);
+    TP_LOG_DEBUG(" remaining.\n");
+    TP_LOG_FLUSH_LOG;
 
 #ifdef REPORT_LARGE_MEMOPS
 	if(request > user_limit/10) {
@@ -89,31 +89,31 @@ MM_err MM_register::register_allocation(size_t request)
 // This should be a private method, only called by operators 
 // delete and delete [].
 
-MM_err MM_register::register_deallocation(size_t sz)
+MM_err MM_register::register_deallocation(TPIE_OS_SIZE_T sz)
 {
     remaining += sz;
 
     if (sz > used) {
-       LOG_WARNING("Error in deallocation sz=");
-       LOG_WARNING(sz);
-       LOG_WARNING(", remaining=");
-       LOG_WARNING(remaining);
-       LOG_WARNING(", user_limit=");
-       LOG_WARNING(user_limit);
-       LOG_WARNING("\n");
-       LOG_FLUSH_LOG;
+       TP_LOG_WARNING("Error in deallocation sz=");
+       TP_LOG_WARNING((TPIE_OS_LONG)sz);
+       TP_LOG_WARNING(", remaining=");
+       TP_LOG_WARNING((TPIE_OS_LONG)remaining);
+       TP_LOG_WARNING(", user_limit=");
+       TP_LOG_WARNING((TPIE_OS_LONG)user_limit);
+       TP_LOG_WARNING("\n");
+       TP_LOG_FLUSH_LOG;
        used = 0;
        return MM_ERROR_UNDERFLOW;
     }
 
     used      -= sz;    
 
-    LOG_DEBUG("mm_register De-allocated ");
-    LOG_DEBUG((unsigned int)sz);
-    LOG_DEBUG("; ");
-    LOG_DEBUG((unsigned int)remaining);
-    LOG_DEBUG(" now available.\n");
-    LOG_FLUSH_LOG;
+    TP_LOG_DEBUG("mm_register De-allocated ");
+    TP_LOG_DEBUG((unsigned int)sz);
+    TP_LOG_DEBUG("; ");
+    TP_LOG_DEBUG((unsigned int)remaining);
+    TP_LOG_DEBUG(" now available.\n");
+    TP_LOG_FLUSH_LOG;
     
 #ifdef REPORT_LARGE_MEMOPS
 	if(sz > user_limit/10) {
@@ -128,7 +128,7 @@ MM_err MM_register::register_deallocation(size_t sz)
 #ifdef MM_BACKWARD_COMPATIBLE
 // (Old) way to query how much memory is available
 
-MM_err MM_register::available (size_t *sz)
+MM_err MM_register::available (TPIE_OS_SIZE_T *sz)
 {
     *sz = remaining;
     return MM_ERROR_NO_ERROR;    
@@ -138,7 +138,7 @@ MM_err MM_register::available (size_t *sz)
 // It is retained for backward compatibility. 
 // dh. 1999 09 29
 
-MM_err MM_register::resize_heap(size_t sz)
+MM_err MM_register::resize_heap(TPIE_OS_SIZE_T sz)
 {
    return set_memory_limit(sz);
 }
@@ -147,7 +147,7 @@ MM_err MM_register::resize_heap(size_t sz)
 
 // User-callable method to set allowable memory size
 
-MM_err MM_register::set_memory_limit (size_t new_limit)
+MM_err MM_register::set_memory_limit (TPIE_OS_SIZE_T new_limit)
 {
     // by default, we keep track and abort if memory limit exceeded
     if (register_new == MM_IGNORE_MEMORY_EXCEEDED){
