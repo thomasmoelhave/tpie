@@ -4,14 +4,14 @@ dnl File: configure.in
 dnl Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 dnl Created: 10/13/94
 dnl 
-dnl $Id: configure.in,v 1.12 2003-04-24 20:35:47 tavi Exp $
+dnl $Id: configure.in,v 1.13 2003-09-24 21:41:29 tavi Exp $
 dnl
 dnl Macro file for autoconfig for the TPIE system.
 dnl 
 AC_PREREQ(2.0)
 AC_INIT(include/ami.h)
 AC_CONFIG_HEADER(include/config.h)
-AC_REVISION($Revision: 1.12 $)dnl
+AC_REVISION($Revision: 1.13 $)dnl
 AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_CXX
@@ -119,4 +119,4 @@ AC_ARG_ENABLE(log-lib,     --disable-log-lib      Turn logging off in libray cod
 	      AC_MSG_RESULT(lib logging disabled.),
 	      AC_MSG_RESULT(lib logging enabled.))
 dnl
-AC_OUTPUT(Makefile test/Makefile include/Makefile lib/Makefile lib/src/Makefile)
+AC_OUTPUT(Makefile test/Makefile include/Makefile lib/Makefile lib/src/Makefile apps/bkdtree/Makefile apps/convex_hull/Makefile apps/list_rank/Makefile apps/nas_benchmarks/Makefile)
