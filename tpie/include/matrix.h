@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 11/4/94
 //
-// $Id: matrix.h,v 1.1 1994-12-16 21:48:45 darrenv Exp $
+// $Id: matrix.h,v 1.2 1995-03-07 14:51:07 darrenv Exp $
 //
 #ifndef MATRIX_H
 #define MATRIX_H
@@ -520,6 +520,21 @@ public:
     
     // Access to elements.
     T &elt(unsigned int row, unsigned int col) const;
+
+    // Friends that need direct access to data for fast multiplication.
+    friend void quick_matrix_mult_in_place(const matrix<T> &op1,
+                                           const matrix<T> &op2,
+                                           matrix<T> &res);
+    friend void quick_matrix_mult_add_in_place(const matrix<T> &op1,
+                                               const matrix<T> &op2,
+                                               matrix<T> &res);
+    friend void aggarwal_matrix_mult_in_place(const matrix<T> &op1,
+                                              const matrix<T> &op2,
+                                              matrix<T> &res);
+    friend void aggarwal_matrix_mult_add_in_place(const matrix<T> &op1,
+                                                  const matrix<T> &op2,
+                                                  matrix<T> &res);
+
 };
 
 
@@ -668,6 +683,217 @@ ostream &operator<<(ostream &s, const submatrix<T> &m)
 }
 
 
+
+// Speedups for multiplying matrices.  This is only for use with the
+// specific implementation of matrices above.  General purpose
+// multiplication still has to be done with perform_mult_in_place or
+// perform_mult_add_in_place.
+
+template<class T>
+void quick_matrix_mult_in_place(const matrix<T> &op1,
+                                const matrix<T> &op2,
+                                matrix<T> &res)
+{
+    if ((op1.cols() != op2.rows()) ||
+        (op1.rows() != res.rows()) ||
+        (op2.cols() != res.cols())) {
+#if HANDLE_EXCEPTIONS        
+        throw matrix_base<T>::range();
+#else
+        tp_assert(0, "Range error.");
+#endif
+    }
+
+    unsigned int ii,jj,kk;
+    unsigned int r1,r2,c1,c2,cres;
+    T t;
+
+    r1 = op1.rows();
+    r2 = op2.rows();
+    c1 = op1.cols();
+    c2 = op2.cols();
+    cres = res.cols();
+    
+    // Iterate over rows of op1.
+    for (ii = r1; ii--; ) {
+        // Iterate over colums of op2.
+        for (jj = c2; jj--; ) {
+            // Iterate through the row of r1 and the column of r2.
+            t = op1.data[ii*c1+c1-1] * op2.data[(r2-1)*c2+jj];
+                // op1.elt(ii,op1.cols()-1) * op2.elt(op2.rows()-1,jj);
+            for (kk = r2 - 1; kk--; ) {                
+                t += op1.data[ii*c1+kk] * op2.data[kk*c2+jj];
+                    // op1.elt(ii,kk) * op2.elt(kk,jj);
+            }
+            // Assign into the result.
+            res.data[ii*cres+jj] = t;
+            // res.elt(ii,jj) = t;
+        }
+    }    
+}                      
+
+
+template<class T>
+void quick_matrix_mult_add_in_place(const matrix<T> &op1,
+                                    const matrix<T> &op2,
+                                    matrix<T> &res)
+{
+    if ((op1.cols() != op2.rows()) ||
+        (op1.rows() != res.rows()) ||
+        (op2.cols() != res.cols())) {
+#if HANDLE_EXCEPTIONS        
+        throw matrix_base<T>::range();
+#else
+        tp_assert(0, "Range error.");
+#endif
+    }
+
+    unsigned int ii,jj,kk;
+    unsigned int r1,r2,c1,c2,cres;
+    T t;
+
+    r1 = op1.rows();
+    r2 = op2.rows();
+    c1 = op1.cols();
+    c2 = op2.cols();
+    cres = res.cols();
+    
+    // Iterate over rows of op1.
+    for (ii = r1; ii--; ) {
+        // Iterate over colums of op2.
+        for (jj = c2; jj--; ) {
+            // Iterate through the row of r1 and the column of r2.
+            t = op1.data[ii*c1+c1-1] * op2.data[(r2-1)*c2+jj];
+                // op1.elt(ii,op1.cols()-1) * op2.elt(op2.rows()-1,jj);
+            for (kk = r2 - 1; kk--; ) {                
+                t += op1.data[ii*c1+kk] * op2.data[kk*c2+jj];
+                    // op1.elt(ii,kk) * op2.elt(kk,jj);
+            }
+            // Assign into the result.
+            res.data[ii*cres+jj] += t;
+            // res.elt(ii,jj) += t;
+        }
+    }    
+}                      
+
+
+// Aggarwal et. al.'s algorithm.
+
+template<class T>
+void aggarwal_matrix_mult_in_place(const matrix<T> &op1,
+                                   const matrix<T> &op2,
+                                   matrix<T> &res)
+{
+    if ((op1.cols() != op2.rows()) ||
+        (op1.rows() != res.rows()) ||
+        (op2.cols() != res.cols())) {
+#if HANDLE_EXCEPTIONS        
+        throw matrix_base<T>::range();
+#else
+        tp_assert(0, "Range error.");
+#endif
+    }
+
+    unsigned int ii,jj,kk;
+    unsigned int r1,r2,c1,c2,cres;
+
+    r1 = op1.rows();
+    r2 = op2.rows();
+    c1 = op1.cols();
+    c2 = op2.cols();
+    cres = res.cols();
+
+    // Temporary results.
+
+    T *temp = new T[c2];
+    T op1elt;
+    
+    // Iterate over rows of op1.
+    for (ii = r1; ii--; ) {
+
+        // Clear out the temporary sums.
+        for (jj = c2; jj--; ) {                
+            temp[jj] = 0;
+        }        
+        
+        // Iterate through the row of r1 and the column of r2.
+        for (kk = r2; kk--; ) {                
+            
+            // Iterate over columns of op2.
+            op1elt = op1.data[ii*c1+kk];
+            for (jj = c2; jj--; ) {                
+                temp[jj] += op1elt * op2.data[kk*c2+jj];
+            }
+        }
+
+        // Set the results.
+        for (jj = c2; jj--; ) {
+            res.data[ii*cres+jj] = temp[jj];
+        }
+    }
+
+    delete [] temp;
+}
+
+
+template<class T>
+void aggarwal_matrix_mult_add_in_place(const matrix<T> &op1,
+                                       const matrix<T> &op2,
+                                       matrix<T> &res)
+{
+    if ((op1.cols() != op2.rows()) ||
+        (op1.rows() != res.rows()) ||
+        (op2.cols() != res.cols())) {
+#if HANDLE_EXCEPTIONS        
+        throw matrix_base<T>::range();
+#else
+        tp_assert(0, "Range error.");
+#endif
+    }
+
+    unsigned int ii,jj,kk;
+    unsigned int r1,r2,c1,c2,cres;
+
+    r1 = op1.rows();
+    r2 = op2.rows();
+    c1 = op1.cols();
+    c2 = op2.cols();
+    cres = res.cols();
+
+    // Temporary results.
+
+    T *temp = new T[c2];
+    T op1elt;
+    
+    // Iterate over rows of op1.
+    for (ii = r1; ii--; ) {
+
+        // Clear out the temporary sums.
+        for (jj = c2; jj--; ) {                
+            temp[jj] = 0;
+        }        
+        // Iterate through the row of r1 and the column of r2.
+        for (kk = r2; kk--; ) {                
+            
+            // Iterate over columns of op2.
+            op1elt = op1.data[ii*c1+kk];
+            for (jj = c2; jj--; ) {                
+                temp[jj] += op1elt * op2.data[kk*c2+jj];
+            }
+        }
+
+        // Set the results.
+        for (jj = c2; jj--; ) {
+            res.data[ii*cres+jj] += temp[jj];
+        }
+    }
+
+    delete [] temp;
+
+}
+
+
+
 #ifdef NO_IMPLICIT_TEMPLATES
 
 #define TEMPLATE_INSTANTIATE_MAT_DUMMY_OP(T,TM1,TM2,OP)			\
@@ -703,6 +929,22 @@ template void perform_mult_in_place(const matrix_base<T> &op1,		\
 template void perform_mult_add_in_place(const matrix_base<T> &op1,	\
                                         const matrix_base<T> &op2,	\
                                         matrix_base<T> &res);		\
+									\
+template void quick_matrix_mult_in_place(const matrix<T> &op1,		\
+                                         const matrix<T> &op2,		\
+                                         matrix<T> &res);		\
+									\
+template void quick_matrix_mult_add_in_place(const matrix<T> &op1,	\
+                                             const matrix<T> &op2,	\
+                                             matrix<T> &res);		\
+									\
+template void aggarwal_matrix_mult_in_place(const matrix<T> &op1,	\
+                                            const matrix<T> &op2,	\
+                                            matrix<T> &res);		\
+									\
+template void aggarwal_matrix_mult_add_in_place(const matrix<T> &op1,	\
+                                                const matrix<T> &op2,	\
+                                                matrix<T> &res);	\
 									\
 template ostream &operator<<(ostream &s, matrix_base<T> &m);		\
 template ostream &operator<<(ostream &s, matrix<T> &m);			\
