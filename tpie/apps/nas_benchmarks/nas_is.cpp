@@ -5,18 +5,8 @@
 // Created: 3/24/95
 //
 
-static char nas_is_id[] = "$Id: nas_is.cpp,v 1.4 1999-02-03 22:00:44 tavi Exp $";
-
-// This is just to avoid an error message since the string above is never
-// referenced.  Note that a self referential structure must be defined to
-// avoid passing the problem further.
-static struct ___nas_is_id_compiler_fooler {
-    char *pc;
-    ___nas_is_id_compiler_fooler *next;
-} the___nas_is_id_compiler_fooler = {
-    nas_is_id,
-    &the___nas_is_id_compiler_fooler
-};
+#include <versions.h>
+VERSION(nas_is_cpp,"$Id: nas_is.cpp,v 1.5 2000-01-11 01:27:33 hutchins Exp $");
 
 
 // Benchmark constants.
@@ -400,9 +390,6 @@ AMI_err modify_keys(AMI_STREAM<key_triple> &keys, unsigned int iteration,
     return AMI_ERROR_NO_ERROR;
 }
 
-
-extern int register_new;
-
 int main(int argc, char **argv)
 {
 
@@ -437,8 +424,7 @@ int main(int argc, char **argv)
     }
     
     // Set the amount of main memory:
-    MM_manager.resize_heap(test_mm_size);
-    register_new = 1;        
+    MM_manager.set_memory_limit (test_mm_size);
 
     // Stream of keys.  At the beginning of each iteration the keys
     // are here.
