@@ -3,7 +3,7 @@
 // File:    ami_block_base.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_block_base.h,v 1.13 2004-05-05 14:31:56 adanner Exp $
+// $Id: ami_block_base.h,v 1.14 2004-08-17 16:47:38 jan Exp $
 //
 // Definition of the AMI_block_base class and supporting types:
 // AMI_bid, AMI_block_status.
@@ -26,7 +26,7 @@ typedef TPIE_BLOCK_ID_TYPE AMI_bid;
 // Block status type.
 enum AMI_block_status {
   AMI_BLOCK_STATUS_VALID = 0,
-  AMI_BLOCK_STATUS_INVALID = 1,
+  AMI_BLOCK_STATUS_INVALID = 1
 };
 
 

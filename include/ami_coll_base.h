@@ -3,7 +3,7 @@
 // File:   ami_coll_base.h
 // Author: Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_coll_base.h,v 1.3 2003-04-17 12:12:00 jan Exp $
+// $Id: ami_coll_base.h,v 1.4 2004-08-17 16:47:45 jan Exp $
 //
 // Basic definitions for all AMI_COLLECTION implementations.
 //
@@ -23,7 +23,7 @@ enum AMI_collection_type {
 // AMI collection status.
 enum AMI_collection_status {
   AMI_COLLECTION_STATUS_VALID = 0,
-  AMI_COLLECTION_STATUS_INVALID = 1,
+  AMI_COLLECTION_STATUS_INVALID = 1
 };
 
 #endif // _AMI_COLL_BASE_H

@@ -3,7 +3,7 @@
 // File:    ami_btree.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_btree.h,v 1.32 2004-08-12 12:35:30 jan Exp $
+// $Id: ami_btree.h,v 1.33 2004-08-17 16:47:42 jan Exp $
 //
 // AMI_btree declaration and implementation.
 //
@@ -60,7 +60,7 @@
 
 enum AMI_btree_status {
   AMI_BTREE_STATUS_VALID,
-  AMI_BTREE_STATUS_INVALID,
+  AMI_BTREE_STATUS_INVALID
 };
 
 // Parameters for the AMI_btree. Passed to the AMI_btree constructor.

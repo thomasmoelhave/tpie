@@ -24,7 +24,7 @@
 // keys of the items; there is a provision to to use templated heaps
 // to implement the merge.
 
-// $Id: ami_optimized_merge.h,v 1.56 2004-08-12 12:35:30 jan Exp $
+// $Id: ami_optimized_merge.h,v 1.57 2004-08-17 16:47:50 jan Exp $
 
 // TO DO: substream_count setting; don't depend on current_stream_len
 
@@ -197,10 +197,10 @@ AMI_err AMI_single_merge (AMI_STREAM < T > **instreams, arity_t arity,
 
     //the mergeheap
     class merge_heap_element < T > *K_Array =
-	new (merge_heap_element < T >)[arity + 1];
+	new merge_heap_element<T>[arity + 1];
 
     //Pointers to current leading elements of streams
-    T* *in_objects = new (T*)[arity + 1];
+    T* *in_objects = new T*[arity + 1];
 
     //The number of actual heap elements at any time: can change even
     //after the merge begins because whenever some stream gets
@@ -752,7 +752,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
 	//  End Comment.
 
-	initial_tmp_stream = new (AMI_STREAM < T > *)[merge_arity];
+	initial_tmp_stream = new AMI_STREAM<T> *[merge_arity];
 	mm_stream = new T[sz_original_substream];
 
 	tp_assert (mm_stream != NULL, "Misjudged available main memory.");
@@ -976,7 +976,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 	// Pointers to the substreams that will be merged.
 //RAKESH        
 	AMI_STREAM < T > **the_substreams =
-	    new (AMI_STREAM < T > *)[merge_arity];
+	    new AMI_STREAM<T>*[merge_arity];
 
 	k = 0;
 
@@ -1084,8 +1084,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 		// will each point to a stream containing runs output
 		// at the current level k. 
 
-		intermediate_tmp_stream = new (AMI_STREAM < T > *)
-		    [merge_arity];
+		intermediate_tmp_stream = new AMI_STREAM<T>*[merge_arity];
 
 //RAKESH   Open up the merge_arity streams in which the
 //         the runs input to the current merge level are packed
@@ -2406,7 +2405,7 @@ AMI_err AMI_replacement_selection_and_merge_Key (AMI_STREAM < T >
 	    T *mm_stream = new T[len];
 
 	   TP_LOG_DEBUG_ID ("post new");
-	    qsort_item < KEY > *qs_array = new (qsort_item < KEY >)[len];
+	    qsort_item < KEY > *qs_array = new qsort_item<KEY>[len];
 	   TP_LOG_DEBUG_ID ("post new");
 	    T *next_item;
 
@@ -2715,15 +2714,14 @@ AMI_err AMI_replacement_selection_and_merge_Key (AMI_STREAM < T >
 	// Set up the loop invariants for the first iteration of the
 	// main loop.
 
-	current_input = new (AMI_STREAM < T > *)[merge_arity];
+	current_input = new AMI_STREAM<T> *[merge_arity];
 	arity_t next_level_run_count;
 	int run_start[merge_arity];
 
 	// Pointers to the substreams that will be merged.
 
 //RAKESH
-	AMI_STREAM < T > **the_substreams =
-	    new (AMI_STREAM < T > *)[merge_arity];
+	AMI_STREAM < T > **the_substreams = new AMI_STREAM<T>*[merge_arity];
 
 	k = 0;
 
@@ -2826,8 +2824,7 @@ AMI_err AMI_replacement_selection_and_merge_Key (AMI_STREAM < T >
 		next_level_run_count =
 		    (run_count + merge_arity - 1) / merge_arity;
 
-		intermediate_tmp_stream =
-		    new (AMI_STREAM < T > *)[merge_arity];
+		intermediate_tmp_stream = new AMI_STREAM<T>*[merge_arity];
 
 //RAKESH   Open up the merge_arity streams in which the
 //         the runs input to the current merge level are packed
@@ -3141,8 +3138,7 @@ Run_Formation_Algo_R_Key (AMI_STREAM < T > *instream,
     unsigned int Number_P =
 	available_mem / (sizeof (run_formation_item < KEY >) + sizeof (T));
 
-    run_formation_item < KEY > *Array_X =
-	new (run_formation_item < KEY >)[Number_P];
+    run_formation_item < KEY > *Array_X = new run_formation_item<KEY>[Number_P];
     T *Item_Array = new T[Number_P];
 
     T *ptr_to_record;
@@ -3156,7 +3152,7 @@ Run_Formation_Algo_R_Key (AMI_STREAM < T > *instream,
 
     char int_to_string[5], new_stream_name[BTE_STREAM_PATH_NAME_LEN];
 
-    outstreams = new (AMI_STREAM < T > *)[arity];
+    outstreams = new AMI_STREAM<T>*[arity];
 
     int *Cast_Var = (int *) LRunLengths;
     int MaxRuns =

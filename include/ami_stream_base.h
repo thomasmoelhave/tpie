@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/19/94
 //
-// $Id: ami_stream_base.h,v 1.4 2003-04-17 14:46:20 jan Exp $
+// $Id: ami_stream_base.h,v 1.5 2004-08-17 16:47:58 jan Exp $
 //
 #ifndef _AMI_STREAM_BASE_H
 #define _AMI_STREAM_BASE_H
@@ -28,7 +28,7 @@ enum AMI_stream_type {
 // AMI stream status.
 enum AMI_stream_status {
   AMI_STREAM_STATUS_VALID = 0,
-  AMI_STREAM_STATUS_INVALID = 1,
+  AMI_STREAM_STATUS_INVALID = 1
 };
 
 
