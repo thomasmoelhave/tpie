@@ -1,5 +1,5 @@
 %%
-%% $Id: implementation.tex,v 1.6 1999-10-13 21:09:54 hutchins Exp $
+%% $Id: implementation.tex,v 1.7 1999-10-25 17:54:13 tavi Exp $
 %%
 \chapter{The Implementation of TPIE}
 \label{cha:implementation}
@@ -146,7 +146,7 @@ All BTE stream implementations inherit from class \verb|BTE_base_stream|
 member functions:\comment{LA: Some note about construction being BTE
 dependent - why are they?}
 
-\subsubsection{new\_substream}
+\subsubsection{new\_substream}\index{new_substream@{\tt new\_substream}}
 \begin{verbatim}
     BTE_err new_substream(BTE_stream_type st, off_t sub_begin, off_t
                           sub_end, BTE_base_stream<T> **sub_stream);
@@ -156,28 +156,28 @@ A virtual pseudo-constructor for substreams. The arguments \verb|sub_begin| and
 ref. Stream type?}
 
 
-\subsubsection{read\_item}
+\subsubsection{read\_item}\index{read_item@{\tt read\_item}!BTE}
 \begin{verbatim}
     BTE_err read_item(T **elt);
 \end{verbatim}
 Read the next object from the stream. If block boundaries are crossed the
 read ahead mechanism\comment{LA: ?} is called.\comment{LA: Extend!}
 
-\subsubsection{write\_item}
+\subsubsection{write\_item}\index{write_item@{\tt write\_item}!BTE}
 \begin{verbatim}
     BTE_err write_item(const T &elt);
 \end{verbatim}
 Write the object to stream.\comment{LA: Extend!}
 
 
-\subsubsection{seek}
+\subsubsection{seek}\index{seek@{\tt seek}!BTE}
 \begin{verbatim}
     BTE_err seek(off_t offset);
 \end{verbatim}
 Seek to the object offset in the stream.
 
 
-\subsubsection{truncate}
+\subsubsection{truncate}\index{truncate@{\tt truncate}!BTE}
 \begin{verbatim}
     BTE_err truncate(off_t offset);
 \end{verbatim}
@@ -185,7 +185,7 @@ Truncate/extend the stream to the specified number of items. The file
 pointer\comment{LA: ?} will be moved to the end of the stream.
 
 
-\subsubsection{main\_memory\_usage}
+\subsubsection{main\_memory\_usage}\index{main_memory_usage@{\tt main\_memory\_usage}!BTE}
 \begin{verbatim}
     BTE_err main_memory_usage(size_t *usage,
                               MM_stream_usage usage_type);
@@ -194,7 +194,7 @@ Query memory usage.\comment{LA: ?}
 
 
 
-\subsubsection{get\_status}
+\subsubsection{get\_status}\index{get_status@{\tt get\_status}}
 \begin{verbatim}
     BTE_stream_status get_status(void);
 \end{verbatim}
@@ -208,14 +208,14 @@ of the following:\comment{LA: Is this really used anywhere?}
 \end{itemize}
 
 
-\subsubsection{stream\_len}
+\subsubsection{stream\_len}\index{stream_len@{\tt stream\_len}!BTE}
 \begin{verbatim}
     off_t stream_len(void);
 \end{verbatim}
 Returns the current number of items in the stream.
 
 
-\subsubsection{name}
+\subsubsection{name}\index{name@{\tt name}!BTE}
 \begin{verbatim}
     BTE_err name(char **stream_name);
 \end{verbatim}
@@ -223,14 +223,14 @@ Returns the path name of the file backing the stream. The name will be
 stored in newly allocated space.
 
 
-\subsubsection{read\_only}
+\subsubsection{read\_only}\index{read_only@{\tt read\_only}}
 \begin{verbatim}
     int read_only(void);
 \end{verbatim}
 Returns true if the stream is read\_only.\comment{LA: ?}
 
     
-\subsubsection{available\_streams}
+\subsubsection{available\_streams}\index{available_streams@{\tt available\_streams}!BTE}
 \begin{verbatim}
     int available_streams(void);    
 \end{verbatim}
@@ -243,7 +243,8 @@ Returns the number of currently available streams.\comment{LA: Extend}
 %Not clear what this does...
 Returns the number of elements that fit in a logical block.\comment{LA: ?}
 
-\subsubsection{persistence}
+\subsubsection{persist}\index{persistence!BTE}
+\index{persist@{\tt persist}|see{persistence}}
 \begin{verbatim}
     void persist(persistence);
 \end{verbatim}
@@ -260,8 +261,8 @@ Set the persistence of the stream to one of the following:
 By default, all streams are deleted at destruction time
 (\verb|PERSIST_DELETE|).
 
-
-\subsection{BTE\_stdio}
+\index{BTE_stream_stdio@{\tt BTE\_stream\_stdio}|see{BTE\_stdio}}
+\subsection{BTE\_stdio}\index{BTE_stdio@{\tt BTE\_stdio}|(}
 
 \tobeextended
 
@@ -279,9 +280,9 @@ its way to user space.
 \comment{LA: Extend. Also something about no logical block size
 concept.}
 
-\verb|BTE_stdio| streams are stored as ordinary UNIX files with a header
-with the following structure:
+\verb|BTE_stdio| streams are stored as ordinary UNIX files with a header\index{BTE_stdio@{\tt BTE\_stdio}!header} with the following structure:
 
+\index{BTE_stdio_header@{\tt BTE\_stdio\_header}}
 \begin{verbatim}
 typedef struct BTE_stdio_header_v1 { 
     unsigned int magic_number;  // Set to BTE_STDIO_HEADER_MAGIC_NUMBER
@@ -292,8 +293,8 @@ typedef struct BTE_stdio_header_v1 {
 } BTE_stdio_header;
 \end{verbatim}
 
-\verb|BTE_stdio| class inherits from \verb|BTE_base_stream| (in file
-\verb|/include/bte_base_stream.h|):
+\verb|BTE_stream_stdio| class inherits from \verb|BTE_base_stream| (in file
+\verb|/include/bte_base_stream.h|):\index{BTE_base_stream@{\tt BTE\_base\_stream}}
 \begin{verbatim}
 class BTE_stream_stdio : public BTE_base_stream {
   private:
@@ -303,19 +304,20 @@ class BTE_stream_stdio : public BTE_base_stream {
 }  
 \end{verbatim}
 
-\verb|BTE_stdio| defines the abstract methods inherited from
+\verb|BTE_stream_stdio| defines the abstract methods inherited from
 \verb|BTE_base_stream| presented in the previous section.\comment{LA:
 Extend - discuss implementation!} In addition to these it defines its own
-constructors:
+constructors:\index{BTE_stdio@{\tt BTE\_stdio}!constructors}
 
 \begin{verbatim}
      BTE_stream_stdio(const char *dev_path, const BTE_stream_type st); 
      BTE_stream_stdio(const BTE_stream_type st); 
      BTE_stream_stdio(const BTE_stream_stdio<T> &s);
 \end{verbatim}
+\index{BTE_stdio@{\tt BTE\_stdio}|)}
 
-
-\subsection{BTE\_mmb}\comment{LA: Why not called BTE\_mmp?}
+\index{BTE_stream_mmb@{\tt BTE\_stream\_mmb}|see{BTE\_mmb}}
+\subsection{BTE\_mmb}\comment{LA: Why not called BTE\_mmp?}\index{BTE_mmb@{\tt BTE\_mmb}|(}
 
 \tobeextended
 
@@ -369,8 +371,9 @@ library.}
 By default \verb|BTE_MMB_READ_AHEAD| is defined, \verb|USE_LIBAIO| is
 not.\comment{LA: Discuss the two and how they differ.}
 
-The \verb|BTE_mmb| header structure is very similar to the \verb|BTE_stdio|
+The \verb|BTE_mmb| header\index{BTE_mmb@{\tt BTE\_mmb}!header} structure is very similar to the \verb|BTE_stdio|
 one:
+\index{mmap_stream_header@{\tt mmap\_stream\_header}}
 \begin{verbatim}
 struct mmap_stream_header { 
   public:
@@ -385,7 +388,7 @@ struct mmap_stream_header {
 };
 \end{verbatim}
 
-\verb|BTE_mmb| class inherits from \verb|BTE_base_stream|:
+\verb|BTE_mmb| class inherits from \verb|BTE_base_stream|:\index{BTE_base_stream@{\tt BTE\_base\_stream}}
 \begin{verbatim}
 class BTE_stream_mmb : public BTE_base_stream {
   private:
@@ -397,10 +400,10 @@ class BTE_stream_mmb : public BTE_base_stream {
 }  
 \end{verbatim}
 
-\verb|BTE_mmb| defines the abstract methods inherited from
+\verb|BTE_stream_mmb| defines the abstract methods inherited from
 \verb|BTE_base_stream| presented in a previous section.\comment{LA: Extend
 - discuss implementation.} In addition to these it defines its own
-constructors:
+constructors:\index{BTE_mmb@{\tt BTE\_mmb}!constructors}
 \begin{verbatim}
   BTE_stream_mmb(const char *dev_path, BTE_stream_type st); 
   BTE_stream_mmb(BTE_stream_type st); 
@@ -411,9 +414,9 @@ constructors:
                  BTE_stream_type st,
                  off_t sub_begin, off_t sub_end);
 \end{verbatim}\comment{LA: Why special substream constructor?}
+\index{BTE_mmb@{\tt BTE\_mmb}|)}
 
-
-\subsection{BTE\_UFS}
+\subsection{BTE\_UFS}\index{BTE_ufso@{\tt BTE\_ufs}|(}
 
 \tobeextended
 
@@ -465,6 +468,8 @@ streams but we do not recommend its use on account of the implicit
 filesystem prefetching.
 
 The \verb|BTE_ufs| header structure is identical to the \verb|BTE_mmb| one:
+\index{mmap_stream_header@{\tt mmap\_stream\_header}}
+\index{BTE_ufs@{\tt BTE\_ufs}!header}
 \begin{verbatim}
 struct mmap_stream_header { 
   public:
@@ -492,7 +497,7 @@ class BTE_single_disk : public BTE_base_stream {
 
 \verb|BTE_ufs| defines the abstract methods inherited from
 \verb|BTE_base_stream| presented in a previous section. In addition to
-these it defines its own constructors:
+these it defines its own constructors:\index{BTE_ufs@{\tt BTE\_ufs}!constructors}
 \begin{verbatim}
   BTE_single_disk(const char *dev_path, BTE_stream_type st); 
   BTE_single_disk(BTE_stream_type st); 
@@ -503,7 +508,7 @@ these it defines its own constructors:
                  BTE_stream_type st,
                  off_t sub_begin, off_t sub_end);
 \end{verbatim}\comment{LA: Why a special substream constructer?}
-
+\index{BTE_ufs@{\tt BTE\_ufs}|)}
 \comment{LA: Discuss implementation!}
 
 
@@ -511,6 +516,7 @@ these it defines its own constructors:
 \label{sec:ref-mm}
 \index{memory manager|(}
 \index{MM|see{memory manager}}
+\index{MM_manager@{\tt MM\_manager}|see{memory manager}}
 
 The Memory Manager components of TPIE provide services related to
 the management of internal memory:
