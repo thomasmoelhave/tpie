@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/12/94
 //
-// $Id: logstream.h,v 1.7 1999-02-03 18:02:58 tavi Exp $
+// $Id: logstream.h,v 1.8 1999-02-10 00:04:36 natsev Exp $
 //
 #ifndef _LOGSTREAM_H
 #define _LOGSTREAM_H
@@ -40,6 +40,8 @@ class logstream : public ofstream {
     _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const unsigned int);
     _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const long int);
     _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const long unsigned int);
+    _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const float);
+    _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const double);
 
 };
 
