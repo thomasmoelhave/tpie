@@ -21,7 +21,7 @@
 // keys of the items; there is a provision to to use templated heaps
 // to implement the merge.
 
-// $Id: ami_optimized_merge.h,v 1.49 2002-01-14 15:59:42 tavi Exp $
+// $Id: ami_optimized_merge.h,v 1.50 2002-03-14 20:25:08 tavi Exp $
 
 // TO DO: substream_count setting; don't depend on current_stream_len
 
@@ -43,6 +43,7 @@
 #include <ami_stream.h>
 #include <mergeheap.h>		//For templated heaps
 #include <quicksort.h>		//For templated qsort_items
+#include <tpie_tempnam.h>
 
 typedef int AMI_merge_flag;
 typedef unsigned int arity_t;
@@ -588,8 +589,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
    }
    sz_avail -= 2 * sz_stream;
 
-   working_disk = ami_single_temp_name ("Temp");
-   //LOG_DEBUG_ID(working_disk);
+   working_disk = tpie_tempnam ("Temp");
 
    // If the whole input can fit in main memory then just call
    // AMI_main_mem_merge() to deal with it by loading it once and
@@ -1490,8 +1490,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
    sz_avail -= 2 * sz_stream;
 
-   working_disk = ami_single_temp_name ("Temp");
-   //LOG_DEBUG_ID(working_disk);
+   working_disk = tpie_tempnam ("Temp");
 
    // If the whole input can fit in main memory then just call
    // AMI_main_mem_merge() to deal with it by loading it once and
@@ -2409,7 +2408,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
    sz_avail -= 2 * sz_stream;
 
-   working_disk = ami_single_temp_name ("Temp");
+   working_disk = tpie_tempnam ("Temp");
    //LOG_DEBUG_ID(working_disk);
 
    // If the whole input can fit in main memory then just call
@@ -3363,7 +3362,7 @@ template < class T, class KEY >
    sz_avail = MM_manager.memory_available ();
 
 #ifndef BTE_IMP_USER_DEFINED
-   working_disk = ami_single_temp_name ("Temp");
+   working_disk = tpie_tempnam ("Temp");
    //LOG_DEBUG_ID(working_disk);
 #endif
 
