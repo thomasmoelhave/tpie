@@ -4,7 +4,7 @@
 // Authors: Octavian Procopiuc <tavi@cs.duke.edu>
 //          (using some code by Rakesh Barve)
 //
-// $Id: bte_coll_base.h,v 1.5 2001-06-22 03:19:22 tavi Exp $
+// $Id: bte_coll_base.h,v 1.6 2001-06-22 20:39:40 tavi Exp $
 //
 // BTE_collection_base class and various basic definitions.
 //
@@ -80,11 +80,12 @@ public:
   unsigned int magic_number;
   // Should be 1 for current version.
   unsigned int version;
-  // # of bytes in this structure.
+  // The number of bytes in this structure.
   size_t header_length;
-  // The number of blocks consumed by this bte_coll.
+  // The number of blocks consumed by this collection, plus 1.
   size_t total_blocks;
-  // The highest bid any block of this block collection has, PLUS 1 (always <= total_blocks).
+  // The highest bid any block of this block collection has, PLUS 1
+  // (always <= total_blocks).
   size_t last_block; 
   // The number of valid blocks in this block collection.
   size_t used_blocks;
@@ -177,7 +178,7 @@ protected:
   }
 
   off_t bid_to_file_offset(off_t bid) const 
-    { return header_.os_block_size + header_.block_size * bid; }
+  { return header_.os_block_size + header_.block_size * (bid-1); }//ch
 
   void create_stack();
 
@@ -202,8 +203,9 @@ protected:
       tp_assert(header_.last_block <= header_.total_blocks, 
 		"BTE_collection_ufs internal error: last_block>total_blocks");
       if (header_.last_block == header_.total_blocks) {
-	// Increase the capacity for storing blocks in the stream by 16
-	// (only by 1 the first time around to be gentle with very small coll's).
+	// Increase the capacity for storing blocks in the stream by
+	// 16 (only by 1 the first time around to be gentle with very
+	// small coll's).
 	if (header_.total_blocks == 1)
 	  header_.total_blocks += 1;
 	else if (header_.total_blocks <= 340)
@@ -230,9 +232,9 @@ protected:
 	}
 	delete [] tbuf;
 #endif
-      } 
+      }
       bid = header_.last_block++;
-    } 
+    }
     return BTE_ERROR_NO_ERROR;
   }
 
@@ -259,7 +261,7 @@ public:
   size_t size() const { return header_.used_blocks; }
                           	
   // Return the total number of blocks consumed by the block collection.
-  size_t file_size() const { return header_.total_blocks; }
+  size_t file_size() const { return header_.total_blocks - 1; }
 
   // Return the logical block size in bytes.
   size_t block_size() const { return header_.block_size; }
