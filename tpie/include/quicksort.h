@@ -7,16 +7,17 @@
 // A basic implementation of quicksort for use in core by AMI_sort() on
 // streams or substreams that are small enough.
 //
-// $Id: quicksort.h,v 1.5 1994-11-02 22:04:04 darrenv Exp $
+// $Id: quicksort.h,v 1.6 1995-03-07 14:51:36 darrenv Exp $
 //
 #ifndef _QUICKSORT_H
 #define _QUICKSORT_H
 
 extern "C" int random(void);
 
+#include <comparator.h>
 
 // A version that uses a comparison function.  This is useful for
-// sorting object with multiple data members based on a particular
+// sorting objects with multiple data members based on a particular
 // member or combination of members.
 
 template<class T>
@@ -211,6 +212,107 @@ void insertion_sort_op(T *data, size_t len)
     }
 }
 
+
+// A version that uses a comparison object.
+
+template<class T>
+void partition_obj(T *data, size_t len, size_t &partition,
+                   comparator<T> *cmp);
+
+template<class T>
+void quick_sort_obj(T *data, size_t len, comparator<T> *cmp,
+                    size_t min_file_len = 2)
+{
+    // On return from partition(), everything at or below this index
+    // will be less that or equal to everything above it.
+    // Furthermore, it will not be 0 since this will leave us to
+    // recurse on the whole array again.
+    
+    size_t part_index;
+    
+    if (len < min_file_len) {
+        return;
+    }
+    
+    partition_obj(data, len, part_index, cmp);
+
+    quick_sort_obj(data, part_index + 1, cmp);
+    quick_sort_obj(data + part_index + 1, len - part_index - 1, cmp);
+}
+
+template<class T>
+void partition_obj(T *data, size_t len, size_t &part_index,
+                   comparator<T> *cmp)
+{
+    T *ptpart, tpart;
+    T *p, *q;
+    T t0;
+
+    // Try to get a good partition value and avoid being bitten by already
+    // sorted input.
+
+    ptpart = data + (random() % len);
+
+    tpart = *ptpart;
+    *ptpart = data[0];
+    data[0] = tpart;
+
+    // Walk through the array and partition them.
+
+    for (p = data - 1, q = data + len; ; ) {
+
+        do {
+            q--;
+        } while (cmp->compare(*q, tpart) > 0);
+        do {
+            p++;
+        } while (cmp->compare(*p, tpart) < 0);
+
+        if (p < q) {
+            t0 = *p;
+            *p = *q;
+            *q = t0;
+        } else {
+            part_index = q - data;            
+            break;
+        }
+    }
+}
+
+
+template<class T>
+void insertion_sort_obj(T *data, size_t len,
+                        comparator<T> *cmp);
+
+template<class T>
+void quicker_sort_obj(T *data, size_t len,
+                      comparator<T> *cmp,
+                      size_t min_file_len = 10)
+{
+    quick_sort_obj(data, len, cmp, min_file_len);
+    insertion_sort_obj(data, len, cmp);
+}
+
+template<class T>
+void insertion_sort_obj(T *data, size_t len,
+                        comparator<T> *cmp)
+{
+    T *p, *q, test;
+
+    for (p = data + 1; p < data + len; p++) {
+        for (q = p - 1, test = *p; cmp->compare(*q, test) > 0; q--) {
+            *(q+1) = *q;
+            if (q == data) {
+                break;
+            }
+        }
+        *(q+1) = test;
+    }
+}
+
+
+
+
 #ifdef NO_IMPLICIT_TEMPLATES
 
 #define TEMPLATE_INSTANTIATE_QUICKER_SORT_CMP(T)			\
@@ -234,6 +336,20 @@ template void quick_sort_op(T *data, size_t len,			\
 template void insertion_sort_op(T *data, size_t len);			\
 template void quicker_sort_op(T *data, size_t len,			\
                                size_t min_file_len);		
+
+#define TEMPLATE_INSTANTIATE_QUICKER_SORT_OBJ(T)			\
+template void partition_obj(T *data, size_t len,			\
+                            size_t &partition,				\
+                            comparator<T> *cmp);			\
+template void quick_sort_obj(T *data, size_t len,			\
+                             comparator<T> *cmp,			\
+                             size_t min_file_len);			\
+template void insertion_sort_obj(T *data, size_t len,			\
+                                 comparator<T> *cmp);			\
+template void quicker_sort_obj(T *data, size_t len,			\
+                               comparator<T> *cmp,			\
+                               size_t min_file_len);
+
 
 #endif
 
