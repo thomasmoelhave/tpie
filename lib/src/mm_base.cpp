@@ -7,7 +7,7 @@
 
 
 
-static char mm_base_id[] = "$Id: mm_base.cpp,v 1.4 1999-01-31 16:37:50 rbarve Exp $";
+static char mm_base_id[] = "$Id: mm_base.cpp,v 1.5 1999-01-31 16:39:46 rbarve Exp $";
 
 
 
@@ -47,7 +47,7 @@ void * operator new (size_t sz) {
                            != MM_ERROR_NO_ERROR)) {
         LOG_FATAL("Requested memory allocation \"");
 	   LOG_FATAL(sz+SIZE_SPACE);
-   	   LOG_FATAL("\" was not available.\n");
+   	   LOG_FATAL("\" could not be made by new() operator.\n");
         LOG_FLUSH_LOG;
         return (void *)0;
     }
