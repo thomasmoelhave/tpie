@@ -15,7 +15,7 @@
 // a quicksort using only keys of the items; there is a provision to 
 // to use templated heaps to implement the merge.
 
-// 	$Id: ami_optimized_merge.h,v 1.26 1999-04-24 20:04:33 rbarve Exp $	
+// 	$Id: ami_optimized_merge.h,v 1.27 1999-04-24 20:08:50 rbarve Exp $	
 //TO DO: substream_count setting; don't depend on current_stream_len
 
 
@@ -2350,6 +2350,7 @@ AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
 
 
 #ifndef BTE_IMP_USER_DEFINED
+    char * temp_string;
     temp_string = getenv(AMI_SINGLE_DEVICE_ENV);
      if (temp_string == NULL){
 	    temp_string = getenv(TMP_DIR_ENV);
