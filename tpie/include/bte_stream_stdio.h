@@ -3,13 +3,13 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/11/94
 //
-// $Id: bte_stream_stdio.h,v 1.2 2002-01-14 16:24:21 tavi Exp $
+// $Id: bte_stream_stdio.h,v 1.3 2002-01-17 02:18:31 tavi Exp $
 //
 #ifndef _BTE_STREAM_STDIO_H
 #define _BTE_STREAM_STDIO_H
 
-// For header type.
-#define BTE_STREAM_STDIO 3
+// For header's type field (83 == 'S').
+#define BTE_STREAM_STDIO 83
 
 #include <sys/time.h>
 #include <sys/resource.h>
