@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include <sys/resource.h>
-#include <fstream.h>
+#include <fstream>
 
 // Get information on the configuration to test.
 #include "app_config.h"
@@ -20,7 +20,8 @@
 #include <ami_stream.h>
 #include <ami_scan.h>
 #include <ami_sort.h>
-VERSION(test_ami_sort_cpp,"$Id: test_ami_sort.cpp,v 1.24 2002-06-25 21:03:37 tavi Exp $");
+#include <cpu_timer.h>
+VERSION(test_ami_sort_cpp,"$Id: test_ami_sort.cpp,v 1.25 2003-04-20 21:12:56 tavi Exp $");
 
 #include <ami_kb_sort.h>
 
@@ -30,11 +31,9 @@ VERSION(test_ami_sort_cpp,"$Id: test_ami_sort.cpp,v 1.24 2002-06-25 21:03:37 tav
 #include "scan_random.h"
 #include "scan_diff.h"
 #include "merge_random.h"
-#include "cpu_timer.h"
 
 enum comparison_mode_t {
   COMPARISON_OPERATOR,
-  COMPARISON_FUNCTION,
   COMPARISON_CLASS
 };
 
@@ -61,7 +60,7 @@ void print_usage() {
        << "\t[-R <file_name>] (write the unsorted items in the given file)\n"
        << "\t[-s] (write the sorted items in " << sorted_results_filename << ")\n"
        << "\t[-S <file_name> (write the sorted items in the given file)]\n"
-       << "\t[-c o|f|c] (comparison device: Operator|Function|Class)\n"
+       << "\t[-c o|c] (comparison device: Operator|Class)\n"
        << "\t[-a] (sort again with different sorting routine)\n"
     ;
 }
@@ -89,9 +88,6 @@ void parse_app_opt(char c, char *optarg)
     case 'o': case 'O':
       comparison_mode = COMPARISON_OPERATOR;
       break;
-    case 'f': case 'F':
-      comparison_mode = COMPARISON_FUNCTION;
-      break;
     case 'c': case 'C':
       comparison_mode = COMPARISON_CLASS;
       break;
@@ -107,11 +103,6 @@ void parse_app_opt(char c, char *optarg)
   }
 }
 
-
-int int_cmp_func(CONST int &i1, CONST int &i2)
-{
-  return i1 - i2;
-}
 
 class int_cmp_class {
 public:
@@ -159,7 +150,9 @@ int main(int argc, char **argv)
     cout << " BTE_MMB_READ_AHEAD ";	  
 #endif
     cout << "\n";
-    cout << "Comparison device: " << (comparison_mode == COMPARISON_OPERATOR ? "Operator": (comparison_mode == COMPARISON_FUNCTION ? "Function": "Class")) << ".\n";
+    cout << "Comparison device: " 
+	 << (comparison_mode == COMPARISON_OPERATOR ? "Operator": "Class")
+	 << ".\n";
     cout << "Input size: " << test_size << " items.\n"
 	 << "Item size: " << sizeof(int) << " bytes.\n"
 	 << "TPIE memory size: " << MM_manager.memory_limit() << " bytes.\n";
@@ -221,8 +214,6 @@ int main(int argc, char **argv)
     ae = AMI_kb_sort(amis0, amis1, range);
   } else if (comparison_mode == COMPARISON_OPERATOR) {
     ae = AMI_sort(&amis0, &amis1);
-  } else if (comparison_mode == COMPARISON_FUNCTION) {
-    ae = AMI_sort(&amis0, &amis1, int_cmp_func);
   } else if (comparison_mode == COMPARISON_CLASS) {
     ae = AMI_sort(&amis0, &amis1, &int_cmp_obj);
   }
@@ -272,8 +263,6 @@ int main(int argc, char **argv)
     timer.start();  
     if (comparison_mode == COMPARISON_OPERATOR) {
       ae = AMI_sort_V1(&amis0, &amis3);
-    } else if (comparison_mode == COMPARISON_FUNCTION) {
-      ae = AMI_sort_V1(&amis0, &amis3, int_cmp_func);
     } else if (comparison_mode == COMPARISON_CLASS) {
       ae = AMI_sort_V1(&amis0, &amis3, &int_cmp_obj);
     }
