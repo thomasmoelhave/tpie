@@ -3,7 +3,7 @@
 // File:    ami_btree.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_btree.h,v 1.2 2001-05-29 15:32:36 tavi Exp $
+// $Id: ami_btree.h,v 1.3 2001-06-06 16:27:29 tavi Exp $
 //
 // AMI_btree declaration and implementation.
 //
@@ -44,7 +44,7 @@ public:
 
   // Min number of Value's in a leaf. 0 means use default B-tree behavior.
   size_t leaf_size_min;
-  // Max number of Key's in a node. 0 means use default B-tree behavior.
+  // Min number of Key's in a node. 0 means use default B-tree behavior.
   size_t node_size_min;
   // Max number of Value's in a leaf. 0 means use all available capacity.
   size_t leaf_size_max;
@@ -83,6 +83,7 @@ enum BT_stats {
   BT_NODE_CREATE,
   BT_NODE_DELETE
 };
+typedef Statistics<BT_STATS_COUNT> AMI_btree_stats;
 
 // A global object storing the default parameter values.
 const AMI_btree_params btree_params_default = AMI_btree_params();
@@ -139,6 +140,14 @@ public:
   // Return the number of Value elements stored.
   size_t size() const { return header_.size; }
 
+  size_t leaf_count() const { return pcoll_leaves_->size(); }
+  size_t node_count() const { return pcoll_nodes_->size(); }
+
+  size_t os_block_count() const { 
+    return pcoll_leaves_->size() * params_.leaf_block_factor + 
+           pcoll_nodes_->size() * params_.node_block_factor; 
+  }
+
   // Return the bid of the root. Make this protected or remove it.
   AMI_bid root_bid() const { return header_.root_bid; }
 
@@ -154,8 +163,10 @@ public:
   // Inquire the status.
   AMI_btree_status status() { return status_; }
 
-  const Statistics<BT_STATS_COUNT> &stats();
+  // Flush the caches and return a const reference to an AMI_btree_stats object.
+  const AMI_btree_stats &stats();
 
+  // Destructor. Flush the caches and close the collections.
   ~AMI_btree();
 
 protected:
@@ -216,7 +227,12 @@ protected:
   // Stack to store the path to a leaf.
   stack<pair<AMI_bid, size_t> > path_stack_;
 
-  Statistics<BT_STATS_COUNT> stats_;
+  // Statistics.
+  AMI_btree_stats stats_;
+
+  // Use this to obtain keys from Value elements, rather than
+  // KeyOfValue().
+  KeyOfValue kov_;
 
   // Insert helpers.
   bool insert_split(const Value& v, 
@@ -296,15 +312,19 @@ protected:
 
 // Determines how elements are stored in a leaf. If set to 1, elements
 // are stored in a sorted list, which results in slower insertions. If
-// set to 0, elements are sorted in the order in which they are
-// inserted, which results in slower queries (do not set to 0: not all
-// functionality is implemented).
-#define LEAF_ELEMENTS_SORTED 1
+// set to 0, elements are stored in the order in which they are
+// inserted, which results in slower queries.
+#define LEAF_ELEMENTS_SORTED 0
 
-//
+// Determines whether previous pointers are maintained for leaves. If
+// set to 0, these pointers are not meaningful and should not be used
+// (although space for them is allocated in the leaf). TODO: remove
+// them completely? They are harder to maintain then next pointers and
+// are not used anywhere.
+#define LEAF_PREV_POINTER 0
+
 // The AMI_btree_leaf class.
 // Stores size() elements of type Value.
-//
 template<class Key, class Value, class Compare, class KeyOfValue>
 class AMI_btree_leaf: public AMI_block<Value, triple<size_t, AMI_bid, AMI_bid> > {
 
@@ -373,17 +393,17 @@ public:
   // Erase element from position pos.
   void erase_pos(size_t pos);
 
+  // Sort elements.
+  void sort();
+
   // Destructor.
   ~AMI_btree_leaf();
-
 };
 
-//
 // The AMI_btree_node class.
 // An internal node of the AMI_btree.
 // It stores size() keys and size()+1 links representing 
 // the following pattern: Link0 Key0 Link1 Key1 ... LinkS KeyS Link(S+1)
-//
 template<class Key, class Value, class Compare, class KeyOfValue>
 class AMI_btree_node: public AMI_block<Key, size_t> {
 
@@ -448,7 +468,9 @@ AMI_BTREE_LEAF::AMI_btree_leaf(AMI_COLLECTION* pcoll, AMI_bid lbid)
   if (lbid == 0) {
     size() = 0;
     next() = 0;
+#if LEAF_PREV_POINTER
     prev() = 0;
+#endif
   }
 }
 
@@ -457,7 +479,7 @@ template<class Key, class Value, class Compare, class KeyOfValue>
 Key  AMI_BTREE_LEAF::split(AMI_BTREE_LEAF &right) {
 
 #if (!LEAF_ELEMENTS_SORTED)
-  ::sort(&el[0], &el[size()-1] + 1, comp_value_value_);
+  sort();
 #endif
 
   // save the original size of this leaf.
@@ -546,10 +568,9 @@ bool AMI_BTREE_LEAF::insert(const Value& v) {
       return false;
     }
   }
-
   insert_pos(v, pos);
 #else
-
+  // Insert it on the last position. No duplicate check!
   insert_pos(v, size());
 #endif
 
@@ -586,7 +607,6 @@ bool AMI_BTREE_LEAF::erase(const Key& k) {
   if (pos == size())
     return false;
   // TODO: make sure this is right.
-  //  if (!(KeyOfValue()(el[pos]) == k))
   if (comp_(KeyOfValue()(el[pos]), k) || comp_(k, KeyOfValue()(el[pos])))
     return false;
   
@@ -605,6 +625,12 @@ void AMI_BTREE_LEAF::erase_pos(size_t pos) {
   // Decrease size by one and update dirty bit.
   size()--;
   dirty() = 1;
+}
+
+//// *AMI_btree_leaf::sort* ////
+template<class Key, class Value, class Compare, class KeyOfValue>
+void AMI_BTREE_LEAF::sort() {
+  ::sort(&el[0], &el[size()-1] + 1, comp_value_value_);
 }
 
 //// *AMI_btree_leaf::~AMI_btree_leaf* ////
@@ -851,15 +877,15 @@ template <class Key, class Value, class Compare, class KeyOfValue>
 AMI_err AMI_BTREE::sort(AMI_STREAM<Value>* in_stream, AMI_STREAM<Value>* &out_stream) {
 
   if (status_ != AMI_BTREE_STATUS_VALID) {
-    LOG_WARNING_ID("unload: tree is invalid. unload aborted.");
+    LOG_WARNING_ID("sort: tree is invalid.");
     return AMI_ERROR_GENERIC_ERROR;
   }
   if (in_stream == NULL) {
-    LOG_WARNING_ID("Attempting to sort a NULL stream pointer. Sorting Aborted.");
+    LOG_WARNING_ID("sort: attempting to sort a NULL stream pointer.");
     return AMI_ERROR_GENERIC_ERROR;
   }  
   if (in_stream->stream_len() == 0) {
-    LOG_WARNING_ID("Attempting to sort an empty stream.");
+    LOG_WARNING_ID("sort: attempting to sort an empty stream.");
     return AMI_ERROR_GENERIC_ERROR;
   }
 
@@ -874,9 +900,9 @@ AMI_err AMI_BTREE::sort(AMI_STREAM<Value>* in_stream, AMI_STREAM<Value>* &out_st
   err = AMI_sort(in_stream, out_stream, &cmp);
 
   if (err != AMI_ERROR_NO_ERROR)
-    LOG_WARNING_ID("Sorting returned error.");
+    LOG_WARNING_ID("sort: sorting returned error.");
   else  if (in_stream->stream_len() != out_stream->stream_len()) {
-    LOG_WARNING_ID("Sorted stream has different length than unsorted stream.");
+    LOG_WARNING_ID("sort: sorted stream has different length than unsorted stream.");
     err = AMI_ERROR_GENERIC_ERROR;
   }
 
@@ -888,11 +914,11 @@ template <class Key, class Value, class Compare, class KeyOfValue>
 AMI_err AMI_BTREE::load_sorted(AMI_STREAM<Value>* s, float leaf_fill, float node_fill) {
 
   if (status_ != AMI_BTREE_STATUS_VALID) {
-    LOG_WARNING_ID("unload: tree is invalid. unload aborted.");
+    LOG_WARNING_ID("load: tree is invalid.");
     return AMI_ERROR_GENERIC_ERROR;
   }
   if (s == NULL) {
-    LOG_WARNING_ID("Attempting to load with NULL stream pointer.");
+    LOG_WARNING_ID("load: attempting to load with NULL stream pointer.");
     return AMI_ERROR_GENERIC_ERROR;
   }
 
@@ -910,7 +936,7 @@ AMI_err AMI_BTREE::load_sorted(AMI_STREAM<Value>* s, float leaf_fill, float node
   }
 
   if (err != AMI_ERROR_END_OF_STREAM)
-    LOG_WARNING_ID("Error occured while reading the input stream.");
+    LOG_WARNING_ID("load: error occured while reading the input stream.");
   else
     err = AMI_ERROR_NO_ERROR;
 
@@ -973,15 +999,15 @@ template <class Key, class Value, class Compare, class KeyOfValue>
 AMI_err AMI_BTREE::load(AMI_BTREE* bt, float leaf_fill, float node_fill) {
 
   if (status_ != AMI_BTREE_STATUS_VALID) {
-    LOG_WARNING_ID("load: tree is invalid. load aborted.");
+    LOG_WARNING_ID("load: tree is invalid.");
     return AMI_ERROR_GENERIC_ERROR;
   }
   if (bt == NULL) {
-    LOG_WARNING_ID("load: NULL btree pointer. load aborted.");
+    LOG_WARNING_ID("load: NULL btree pointer.");
     return AMI_ERROR_GENERIC_ERROR;
   }
   if (bt->status() != AMI_BTREE_STATUS_VALID) {
-    LOG_WARNING_ID("load: provided tree is invalid. load aborted.");
+    LOG_WARNING_ID("load: provided tree is invalid.");
     return AMI_ERROR_GENERIC_ERROR;
   }
 
@@ -1032,9 +1058,11 @@ bool AMI_BTREE::find(const Key& k, Value& v) {
 
   // Check whether we have a match.
   idx = p->find(k);
-  if (!comp_(KeyOfValue()(p->el[idx]), k) && !comp_(k, KeyOfValue()(p->el[idx]))) {
-    v = p->el[idx];
-    //    memcpy(&v, &p->el[i], sizeof(Value));
+
+  if (idx < p->size() && 
+      !comp_(kov_(p->el[idx]), k) && 
+      !comp_(k, kov_(p->el[idx]))) {
+    v = p->el[idx]; // using Value's assignment operator.
     ans = true;
   } else
     ans = false;
@@ -1053,19 +1081,20 @@ void AMI_BTREE::range_query(const Key& k1, const Key& k2, AMI_STREAM<Value>* s) 
   Key kmin = comp_(k1, k2) ? k1: k2;
   Key kmax = comp_(k1, k2) ? k2: k1;
 
-#if  LEAF_ELEMENTS_SORTED
   // Find the leaf that might contain kmin.
   AMI_bid bid = find_leaf(kmin);
   AMI_BTREE_LEAF *p = fetch_leaf(bid);
+  bool done = false;
+
+#if  LEAF_ELEMENTS_SORTED
 
   size_t j;
-  bool done = false;
   j = p->find(kmin);
-
   while (bid != 0 && !done) {
     while (j < p->size() && !done) {
-      if (comp_(KeyOfValue()(p->el[j]), kmax) || 
-	  (!comp_(KeyOfValue()(p->el[j]), kmax) && !comp_(kmax, KeyOfValue()(p->el[j]))))
+      if (comp_(kov_(p->el[j]), kmax) || 
+	  (!comp_(kov_(p->el[j]), kmax) && 
+	   !comp_(kmax, kov_(p->el[j]))))
 	s->write_item(p->el[j]);
       else
 	done = true;
@@ -1078,11 +1107,49 @@ void AMI_BTREE::range_query(const Key& k1, const Key& k2, AMI_STREAM<Value>* s) 
     j = 0;
   }
 
-  empty_stack();
 #else
-  cerr << "NOT IMPLEMENTED!!!\n";
-  // TODO..
+
+  size_t i;
+  // Check elements of p.
+  for (i = 0; i < p->size(); i++) {
+    if (comp_(kov_(p->el[i]), kmax) && comp_(kmin, kov_(p->el[i])) ||
+	!comp_(kov_(p->el[i]), kmax) && !comp_(kmax, kov_(p->el[i])) ||
+	!comp_(kov_(p->el[i]), kmin) && !comp_(kmin, kov_(p->el[i])))
+      s->write_item(p->el[i]);
+  }
+  bid = p->next();
+  release_leaf(p);
+
+  if (bid != 0) {
+    p = fetch_leaf(bid);
+    AMI_bid pnbid = p->next();
+    AMI_BTREE_LEAF* pn;
+
+    while (pnbid != 0 && !done) {
+      pn = fetch_leaf(pnbid);
+      if (comp_(kov_(pn->el[0]), kmax)) {
+	// Write all elements from p to stream s.
+	for (i = 0; i < p->size(); i++)
+	  s->write_item(p->el[i]);
+      } else 
+	done = true;
+
+      release_leaf(p);
+      p = pn;
+      pnbid = p->next();
+    }
+
+    // Check elements of p.
+    for (i = 0; i < p->size(); i++) {
+      if (comp_(kov_(p->el[i]), kmax) ||
+	  (!comp_(kov_(p->el[i]), kmax) && !comp_(kmax, kov_(p->el[i]))))
+	s->write_item(p->el[i]);
+    }
+    release_leaf(p);
+  }
 #endif
+
+  empty_stack();
 }
 
 //// *AMI_btree::insert* ////
@@ -1097,7 +1164,7 @@ bool AMI_BTREE::insert(const Value& v) {
   }
 
   // Find the leaf where v should be inserted and fetch it.
-  AMI_bid bid = find_leaf(KeyOfValue()(v));
+  AMI_bid bid = find_leaf(kov_(v));
   AMI_BTREE_LEAF *p = fetch_leaf(bid);
 
   // If the leaf is not full, insert v into it.
@@ -1133,9 +1200,9 @@ bool AMI_BTREE::insert_load(const Value& v, AMI_BTREE_LEAF* &lcl) {
 
   p = lcl;
   // Verify sorting.
-  assert(!comp_(KeyOfValue()(v), KeyOfValue()(lcl->el[lcl->size()-1])));
+  assert(!comp_(kov_(v), kov_(lcl->el[lcl->size()-1])));
   
-  if (!comp_(KeyOfValue()(p->el[p->size()-1]), KeyOfValue()(v)))
+  if (!comp_(kov_(p->el[p->size()-1]), kov_(v)))
     ans = false;
   else {
     // If the leaf is not full, insert v into it.
@@ -1146,7 +1213,7 @@ bool AMI_BTREE::insert_load(const Value& v, AMI_BTREE_LEAF* &lcl) {
       release_leaf(p);
       
       // Do the whole routine.
-      bid = find_leaf(KeyOfValue()(v));
+      bid = find_leaf(kov_(v));
       //assert(bid == pbid);////
       // Should be in cache.
       p = fetch_leaf(bid);
@@ -1176,8 +1243,11 @@ bool AMI_BTREE::insert_empty(const Value& v) {
   // Store its bid.
   header_.root_bid = lroot->bid();
   
-  lroot->prev() = lroot->next() = 0;
-  
+  lroot->next() = 0;
+#if LEAF_PREV_POINTER
+  lroot->prev() = 0;
+#endif
+
   // Insert v into the root.
   ans = lroot->insert(v);
   assert(ans);
@@ -1206,32 +1276,34 @@ bool AMI_BTREE::insert_split(const Value& v, AMI_BTREE_LEAF* p, AMI_bid& leaf_id
   q = fetch_leaf();
   Key mid_key;
   if (loading) {
-    mid_key = KeyOfValue()(p->el[p->size()-1]);
+    mid_key = kov_(p->el[p->size()-1]);
   } else
     mid_key = p->split(*q);
 
-  // Update the prev/next pointers.
-  q->prev() = p->bid();
+  // Update the next pointers.
   q->next() = p->next();
   p->next() = q->bid();
-  // I don't like this. All these updates should be done inside the leaf, 
-  // but how do I take advantage of the cache?
+
+#if LEAF_PREV_POINTER
+  // Update the prev pointers.
+  q->prev() = p->bid();  
   if (q->next() != 0) {
     r = fetch_leaf(q->next());
     r->prev() = q->bid();
     release_leaf(r);
   }
+#endif
 
   bid = q->bid();
   
   // Insert in the appropriate leaf.
-  if (!comp_(mid_key, KeyOfValue()(v)) && !comp_(KeyOfValue()(v), mid_key)) {
+  if (!comp_(mid_key, kov_(v)) && !comp_(kov_(v), mid_key)) {
     ans = false;
     LOG_WARNING_ID("Attempting to insert duplicate key");
     // TODO: during loading, this is not enough. q may remain empty!
   } else {
-    ans = (comp_(mid_key, KeyOfValue()(v)) ? q: p)->insert(v);
-    leaf_id = (comp_(mid_key, KeyOfValue()(v)) ? q: p)->bid();
+    ans = (comp_(mid_key, kov_(v)) ? q: p)->insert(v);
+    leaf_id = (comp_(mid_key, kov_(v)) ? q: p)->bid();
     assert(!loading || q->size() == 1);
   }
 
@@ -1317,24 +1389,19 @@ AMI_bid AMI_BTREE::find_leaf(const Key& k) {
 
   // Go down the tree.
   for (level = header_.height - 1; level > 0; level--) {
-
     // Fetch the node.
     p = fetch_node(bid);
-
     // Find the position of the link to the child node.
     pos = p->find(k);
-
     // Push the current node and position on the path stack.
     path_stack_.push(pair<AMI_bid, size_t>(bid, pos));
-
     // Find the actual block id of the child node.
     bid = p->lk[pos];
-
-    // Release the node structure.
+    // Release the node.
     release_node(p);
   }
 
-  // This should be the id of a leaf node.
+  // This should be the id of a leaf.
   return bid;
 }
 
@@ -1347,13 +1414,12 @@ AMI_bid AMI_BTREE::find_min_leaf() {
 
   assert(header_.height >= 1);
   
-  for (level = header_.height - 1; level > 0; level--) {
-    
+  for (level = header_.height - 1; level > 0; level--) {    
     p = fetch_node(bid);
     bid = p->lk[0];
     release_node(p);
   }
-   
+
   return bid;
 }
 
@@ -1451,11 +1517,14 @@ bool AMI_BTREE::balance_leaf(AMI_BTREE_NODE *f, AMI_BTREE_LEAF *p, size_t pos) {
     sib = fetch_leaf(f->lk[pos + 1]);
     if (sib->size() >= cutoff_leaf(sib) + 2) {
 
+#if (!LEAF_ELEMENTS_SORTED)
+      sib->sort();
+#endif
       // Rotate left.
       // Insert the first element from sib to the end of p.
       p->insert(sib->el[0]);
       // Update the key in the father (f).
-      f->el[pos] = KeyOfValue()(sib->el[0]);
+      f->el[pos] = kov_(sib->el[0]);
       // Delete the first element from sib.
       sib->erase_pos(0);
       ans = true;
@@ -1469,11 +1538,14 @@ bool AMI_BTREE::balance_leaf(AMI_BTREE_NODE *f, AMI_BTREE_LEAF *p, size_t pos) {
     sib = fetch_leaf(f->lk[pos - 1]);
     if (sib->size() >= cutoff_leaf(sib) + 2) {
 
+#if (!LEAF_ELEMENTS_SORTED)
+      sib->sort();
+#endif
       // Rotate right.
       // Insert the last element of sib to the beginning of p.
       p->insert(sib->el[sib->size() - 1]);
       // Update the key in the father.
-      f->el[pos - 1] = KeyOfValue()(sib->el[sib->size() - 2]);
+      f->el[pos - 1] = kov_(sib->el[sib->size() - 2]);
       // Delete the last element from sib.
       sib->erase_pos(sib->size() - 1); 
       ans = true;
@@ -1498,13 +1570,16 @@ void AMI_BTREE::merge_leaf(AMI_BTREE_NODE* f, AMI_BTREE_LEAF* &p, size_t pos) {
     // Merge with right sibling.
     // Fetch the sibling.
     sib = fetch_leaf(f->lk[pos + 1]);
-    // Update the prev/next pointers.
+    // Update the next pointer.
     p->next() = sib->next();
+#if LEAF_PREV_POINTER
+    // Update the prev pointer.
     if (p->next() != 0) {
       r = fetch_leaf(p->next());
       r->prev() = p->bid();
       release_leaf(r);
     }
+#endif
     // Do the merge.
     p->merge(*sib);
     // Delete the sibling.
@@ -1518,11 +1593,13 @@ void AMI_BTREE::merge_leaf(AMI_BTREE_NODE* f, AMI_BTREE_LEAF* &p, size_t pos) {
     // Merge with left sibling.
     sib = fetch_leaf(f->lk[pos - 1]);
     sib->next() = p->next();
+#if LEAF_PREV_POINTER
     if (sib->next() != 0) {
       r = fetch_leaf(sib->next());
       r->prev() = sib->bid();
       release_leaf(r);
     }
+#endif
     sib->merge(*p);
     p->persist(PERSIST_DELETE);
     release_leaf(p);
@@ -1567,10 +1644,8 @@ bool AMI_BTREE::erase(const Key& k) {
   if (header_.height == 0) 
     return false;
 
-  // Find the leaf where the data might be.
+  // Find the leaf where the data might be and fetch it.
   AMI_bid bid = find_leaf(k);
-
-  // Load that leaf.
   AMI_BTREE_LEAF *p = fetch_leaf(bid);
 
   // Check for exact match and delete.
@@ -1605,10 +1680,7 @@ bool AMI_BTREE::erase(const Key& k) {
 
     // Can we borrow an element from a sibling?
     if (balance_leaf(q, p, top.second)) {
-
-      // Done.
-      bid = 0;
-
+      bid = 0; // Done.
     } else {
 
       // Merge p with a sibling.
@@ -1737,7 +1809,7 @@ void AMI_BTREE::release_leaf(AMI_BTREE_LEAF *p) {
 }
 
 template <class Key, class Value, class Compare, class KeyOfValue>
-const Statistics<BT_STATS_COUNT> &AMI_BTREE::stats() {
+const AMI_btree_stats &AMI_BTREE::stats() {
   node_cache_->flush();
   leaf_cache_->flush();
   stats_.set(BT_LEAF_READ, pcoll_leaves_->stats().get(BC_GET));
