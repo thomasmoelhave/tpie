@@ -1,0 +1,18 @@
+Tue Jun  7 13:19:07 1994  Darren Erik Vengroff  (dev@rhine.cs.duke.edu)
+
+	* test_ami_merge.cpp (main): Now tests substreams.
+
+Thu Jun  2 10:37:43 1994  Darren Erik Vengroff  (dev@rhine.cs.duke.edu)
+
+	* test_ami_merge.cpp: Wrote it based on ami_scan.cpp to test the new
+	AMI_merge() code. 
+
+	* Makefile: Added test_ami_merge and made it the default to build.
+
+Tue May 31 13:35:06 1994  Darren Erik Vengroff  (dev@rhine.cs.duke.edu)
+
+	* ami_scan.cpp (main): Got rid of call to init_tpie_logs(), since
+	initialization is now done at construction time.
+
+
+
