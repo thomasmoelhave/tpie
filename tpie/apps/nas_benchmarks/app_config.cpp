@@ -7,12 +7,12 @@
 
 
 
-static char app_config_id[] = "$Id: app_config.cpp,v 1.2 1999-02-03 02:57:16 jan Exp $";
+static char app_config_id[] = "$Id: app_config.cpp,v 1.3 1999-06-28 22:07:58 laura Exp $";
 
 
 #include "app_config.h"
 
-bool verbose = true;
+bool verbose = false;
 
 size_t test_mm_size = DEFAULT_TEST_MM_SIZE;
 size_t test_size = DEFAULT_TEST_SIZE;
