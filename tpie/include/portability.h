@@ -3,7 +3,7 @@
 // Created: 2002/10/30
 // Authors: Joerg Rotthowe, Jan Vahrenhold, Markus Vogel
 //
-// $Id: portability.h,v 1.3 2003-04-19 03:38:29 tavi Exp $
+// $Id: portability.h,v 1.4 2003-04-20 06:39:20 tavi Exp $
 //
 // This header-file offers macros for independent use on Win and Unix systems.
 
@@ -47,11 +47,11 @@
 
 
 // for reading command line parameter //
-#ifdef _WIN32
-#include <strstrea.h>  // 8-letter file name(!)
-#else
-#include <strstream.h>
-#endif
+//#ifdef _WIN32
+//#include <strstrea.h>  // 8-letter file name(!)
+//#else
+//#include <strstream.h>
+//#endif
 
 // Get class tms or time_t //
 #ifdef _WIN32
@@ -79,9 +79,11 @@
 
 
 #ifdef _WIN32
-#define DO_NOTHING  
+#  define DO_NOTHING  
 #else
-#include <sys/asynch.h>
+#  if USE_LIBAIO
+#    include <sys/asynch.h>
+#  endif
 #endif
 
 #ifdef _WIN32
@@ -257,14 +259,14 @@ typedef int TPIE_OS_FILE_DESCRIPTOR;
 #ifdef _WIN32
 #define TPIE_OS_UNIX_ONLY_SET_ELAPSED_TIME(current)
 #else
-#define TPIE_OS_UNIX_ONLY_SET_ELAPSED_TIME(current) elapsed.tms_utime += (## current).tms_utime - last_sync.tms_utime; elapsed.tms_stime += ( ## current).tms_stime - last_sync.tms_stime; elapsed.tms_cutime += ( ## current).tms_cutime - last_sync.tms_cutime; elapsed.tms_cstime += ( ## current).tms_cstime - last_sync.tms_cstime;
+#define TPIE_OS_UNIX_ONLY_SET_ELAPSED_TIME(current) elapsed.tms_utime += (current).tms_utime - last_sync.tms_utime; elapsed.tms_stime += (current).tms_stime - last_sync.tms_stime; elapsed.tms_cutime += (current).tms_cutime - last_sync.tms_cutime; elapsed.tms_cstime += (current).tms_cstime - last_sync.tms_cstime;
 #endif
 
 
 #ifdef _WIN32
-#define TPIE_OS_SET_CURRENT_TIME(current) time(& ##current ); current_real = clock();
+#define TPIE_OS_SET_CURRENT_TIME(current) time(& current ); current_real = clock();
 #else
-#define TPIE_OS_SET_CURRENT_TIME(current) current_real = times(& ## current);
+#define TPIE_OS_SET_CURRENT_TIME(current) current_real = times(& current);
 #endif
 
 
@@ -883,9 +885,11 @@ return BTE_ERROR_OS_ERROR
 
 
 #ifdef _WIN32	
-#define VERSION(name,id) static char __ ## name[] = ## id;      
+#define VERSION(name,id) static char __ ## name[] = id;      
 #else
-#define VERSION(name,id) static char __ ## name[] = ## id; static struct __ ## name ## _compiler_fooler {	char *pc; __ ## name ## _compiler_fooler *next; } the__ ## name ## _compiler_fooler = { __ ## name, & the__ ## name ## _compiler_fooler};
+#define VERSION(name,id) static char __ ## name[] = id;
+
+//#define VERSION(name,id) static char __ ## name[] = ## id; static struct __ ## name ## _compiler_fooler {	char *pc; __ ## name ## _compiler_fooler *next; } the__ ## name ## _compiler_fooler = { __ ## name, & the__ ## name ## _compiler_fooler};
 #endif
 
 
