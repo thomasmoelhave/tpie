@@ -15,7 +15,7 @@
 // a quicksort using only keys of the items; there is a provision to 
 // to use templated heaps to implement the merge.
 
-// 	$Id: ami_optimized_merge.h,v 1.16 1999-04-05 16:45:20 laura Exp $	
+// 	$Id: ami_optimized_merge.h,v 1.17 1999-04-12 00:06:28 rbarve Exp $	
 //TO DO: substream_count setting; don't depend on current_stream_len
 
 #ifndef _OPT_AMI_MERGE_H
@@ -126,7 +126,7 @@ static inline void stream_name_generator(char *prepre, char * pre, int id, char 
   char tmparray[5];
 
   strcpy(dest,prepre);
-  if (strcmp(dest,"") != 0) strcat(dest,"/");
+  //  if (strcmp(dest,"") != 0) strcat(dest,"/");
   strcat(dest,pre);
   sprintf(tmparray,"%d",id);
   strcat(dest,tmparray);
@@ -179,7 +179,10 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
 
     sz_avail -= 2*sz_stream;
 
-    working_disk = getenv("TMP");
+
+    //working_disk = getenv("TMP");
+
+    working_disk = tempnam(NULL, "Temp");
 
     // If the whole input can fit in main memory then just call
     // AMI_main_mem_merge() to deal with it by loading it once and
@@ -255,7 +258,7 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
         
        //RAKESH  FIX THIS: Need to generate random strings using
 	   //tmpname() or something like that.
-	   char * prefix_name[] = {"Tempo_stream0", "Tempo_stream1"};
+	   char * prefix_name[] = {"_0_", "_1_"};
         char itoa_str[5];
 
 
@@ -1216,7 +1219,9 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
     sz_avail -= 2*sz_stream;
 
 
-    working_disk = getenv("TMP");
+    //working_disk = getenv("TMP");
+
+    working_disk = tempnam(NULL, "Temp");
 
     // If the whole input can fit in main memory then just call
     // AMI_main_mem_merge() to deal with it by loading it once and
@@ -1326,7 +1331,7 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
         
        //RAKESH  FIX THIS: Need to generate random strings using
 	   //tmpname() or something like that.
-	   char * prefix_name[] = {"Tempo_stream0", "Tempo_stream1"};
+	   char * prefix_name[] = {"_0_", "_1_"};
         char itoa_str[5];
 
 
@@ -2267,7 +2272,8 @@ AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
 
 
 #ifndef BTE_IMP_USER_DEFINED
-    working_disk = getenv("TMP");
+    //    working_disk = getenv("TMP");
+    working_disk = tempnam(NULL, "Temp");
 #endif
 
     // If the whole input can fit in main memory then just call
@@ -2379,7 +2385,7 @@ AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
 
 	   //TO DO
 //RAKESH  (Hard coded prefixes) Ideally you be asking TPIE to give new names
-        char * prefix_name[] = {"Tempo_stream0", "Tempo_stream1"};
+        char * prefix_name[] = {"_0_", "_1_"};
         char itoa_str[5];
 
 
