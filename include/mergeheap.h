@@ -144,7 +144,7 @@ template<class Key>
 class merge_heap_cmp {
 
   class merge_heap_element<Key> *Heaparray;
-  int (*cmp)(CONST Key&, CONST Key&);
+  int (*cmp)(const Key&, const Key&);
   unsigned int Heapsize;
 
   void Exchange(int i, int j){
@@ -168,7 +168,7 @@ public:
 
   // Constructor
   merge_heap_cmp(class merge_heap_element<Key> *array_of_elements,
-		 unsigned int array_size, int (*comp_fun)(CONST Key&, CONST Key&));
+		 unsigned int array_size, int (*comp_fun)(const Key&, const Key&));
 
   // Destructor
   ~merge_heap_cmp(void) {if (Heaparray) {delete Heaparray; Heaparray = NULL;}};
