@@ -14,7 +14,7 @@
 // Define it all.
 #include <ami.h>
 
-VERSION(test_ami_sm_cpp,"$Id: test_ami_sm.cpp,v 1.8 2003-09-12 02:31:40 tavi Exp $");
+VERSION(test_ami_sm_cpp,"$Id: test_ami_sm.cpp,v 1.9 2003-09-13 18:15:49 jan Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -78,7 +78,7 @@ void parse_app_opt(char c, char *optarg)
             report_results_final = true;
             break;
         case 'd':
-            istrstream(optarg,strlen(optarg)) >> density;
+	    density = atof(optarg);
             break;
         case 'D':
             call_mult = true;
