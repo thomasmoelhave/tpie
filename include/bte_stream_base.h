@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/11/94
 //
-// $Id: bte_stream_base.h,v 1.5 2003-04-17 15:04:09 jan Exp $
+// $Id: bte_stream_base.h,v 1.6 2003-04-22 08:45:30 tavi Exp $
 //
 #ifndef _BTE_STREAM_BASE_H
 #define _BTE_STREAM_BASE_H
@@ -123,6 +123,8 @@ public:
     // Tell the stream whether to leave its data on the disk or not
     // when it is destructed.
     void persist (persistence p) { per = p; }
+    // Inquire the persistence status of this BTE stream.
+    persistence persist() const { return per; }
     // Return true if a read-only stream.
     bool read_only () const { return (r_only != 0); }
     // Inquire the status.
