@@ -7,7 +7,7 @@
 
 
 
-static char mm_base_id[] = "$Id: mm_base.cpp,v 1.5 1999-01-31 16:39:46 rbarve Exp $";
+static char mm_base_id[] = "$Id: mm_base.cpp,v 1.6 1999-03-11 03:13:56 laura Exp $";
 
 
 
@@ -53,6 +53,12 @@ void * operator new (size_t sz) {
     }
     
     p = malloc(sz + SIZE_SPACE);
+    if(!p) {
+      LOG_FATAL("Out of Memory");
+      LOG_FLUSH_LOG;
+      cerr << "Out of Memory" << endl;
+      exit(1);
+    }
     *((size_t *)p) = sz;
     return ((char *)p) + SIZE_SPACE;
 }
