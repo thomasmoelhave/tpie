@@ -3,7 +3,7 @@
 // Created: 2002/10/30
 // Authors: Joerg Rotthowe, Jan Vahrenhold, Markus Vogel
 //
-// $Id: portability.h,v 1.17 2003-09-17 03:06:34 tavi Exp $
+// $Id: portability.h,v 1.18 2003-09-24 22:24:09 tavi Exp $
 //
 // This header-file offers macros for independent use on Win and Unix systems.
 
@@ -184,8 +184,8 @@ typedef off_t TPIE_OS_OFFSET;
 #ifdef _WIN32
 #else
 typedef long LONG;
-typedef int64_t LONGLONG;
-typedef uint64_t ULONGLONG;
+typedef long long int LONGLONG;
+typedef unsigned long long int ULONGLONG;
 #endif	
 
 #ifdef _WIN32
