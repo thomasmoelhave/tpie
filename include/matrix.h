@@ -4,10 +4,13 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 11/4/94
 //
-// $Id: matrix.h,v 1.6 1999-02-03 18:04:00 tavi Exp $
+// $Id: matrix.h,v 1.7 2003-04-17 19:06:03 jan Exp $
 //
 #ifndef MATRIX_H
 #define MATRIX_H
+
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 #include <iostream.h>
 
@@ -72,7 +75,7 @@ private:
     matrix_base<T> &m;
     unsigned int r;
 public:
-    rowref(matrix_base<T> &matrix, unsigned int row);
+    rowref(matrix_base<T> &amatrix, unsigned int row);
     ~rowref(void);
 
     T &operator[](const unsigned int col) const;
@@ -88,7 +91,7 @@ private:
     matrix_base<T> &m;
     unsigned int c;
 public:
-    colref(matrix_base<T> &matrix, unsigned int col);
+    colref(matrix_base<T> &amatrix, unsigned int col);
     ~colref(void);
 
     T &operator[](const unsigned int col) const;
@@ -380,8 +383,8 @@ ostream &operator<<(ostream &s, matrix_base<T> &m)
 // Member functions for row and column reference classes.
 
 template<class T>
-rowref<T>::rowref(matrix_base<T> &matrix, unsigned int row) :
-        m(matrix),
+rowref<T>::rowref(matrix_base<T> &amatrix, unsigned int row) :
+        m(amatrix),
         r(row)
 {
 }
@@ -398,8 +401,8 @@ T &rowref<T>::operator[](const unsigned int col) const
 }
 
 template<class T>
-colref<T>::colref(matrix_base<T> &matrix, unsigned int col) :
-        m(matrix),
+colref<T>::colref(matrix_base<T> &amatrix, unsigned int col) :
+        m(amatrix),
         c(col)
 {
 }
@@ -425,7 +428,7 @@ private:
     unsigned int r1,r2,c1,c2;
 public:
     // Construction/destruction.
-    submatrix(matrix_base<T> &matrix,
+    submatrix(matrix_base<T> &amatrix,
                  unsigned int row1, unsigned int row2,
                  unsigned int col1, unsigned int col2);
 
@@ -444,12 +447,12 @@ public:
 };
 
 template<class T>
-submatrix<T>::submatrix(matrix_base<T> &matrix,
+submatrix<T>::submatrix(matrix_base<T> &amatrix,
                               unsigned int row1, unsigned int row2,
                               unsigned int col1, unsigned int col2) :
                                       matrix_base<T>(row2 - row1 + 1,
                                                           col2 - col1 + 1),
-                                      m(matrix),
+                                      m(amatrix),
                                       r1(row1), r2(row2),
                                       c1(col1), c2(col2)
 {
@@ -544,6 +547,9 @@ matrix<T>::matrix(unsigned int rows, unsigned int cols) :
         matrix_base<T>(rows,cols)
 {
     data = new T[rows * cols];
+
+    // Initialize the contents of the matrix.
+    memset(data, 0, rows * cols * sizeof(T));
 }
 
 template<class T>
