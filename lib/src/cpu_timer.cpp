@@ -5,7 +5,7 @@
 // Created: 1/11/95
 //
 
-static char cpu_timer_id[] = "$Id: cpu_timer.cpp,v 1.1 1995-03-07 15:20:14 darrenv Exp $";
+static char cpu_timer_id[] = "$Id: cpu_timer.cpp,v 1.2 1995-03-25 14:08:54 darrenv Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -19,6 +19,8 @@ static struct ___cpu_timer_id_compiler_fooler {
 };
 
 
+#include <unistd.h>
+#include <sys/times.h>
 
 #include <cpu_timer.h>
 
@@ -26,6 +28,8 @@ static struct ___cpu_timer_id_compiler_fooler {
 cpu_timer::cpu_timer() :
         running(false)
 {
+    clock_tick = sysconf(_SC_CLK_TCK);
+    
     elapsed.tms_utime = 0;
     elapsed.tms_stime = 0;
     elapsed.tms_cutime = 0;
@@ -93,12 +97,9 @@ ostream &operator<<(ostream &s, cpu_timer &wt)
         wt.sync();
     }
 
-    return s << wt.elapsed.tms_utime / 100 << '.' <<
-        wt.elapsed.tms_utime % 100 << "u " <<
-        wt.elapsed.tms_stime / 100 << '.' <<
-        wt.elapsed.tms_stime % 100 << "s " <<
-        wt.elapsed_real / 100 << '.' <<
-        wt.elapsed_real % 100;
+    return s << double(wt.elapsed.tms_utime) / double(wt.clock_tick) << "u " <<
+        double(wt.elapsed.tms_stime) / double(wt.clock_tick) << "s " <<
+        double(wt.elapsed_real) / double(wt.clock_tick);
 }
 
 
