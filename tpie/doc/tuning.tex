@@ -1,5 +1,5 @@
 %%
-%% $Id: tuning.tex,v 1.4 1999-10-22 23:02:29 tavi Exp $
+%% $Id: tuning.tex,v 1.5 1999-10-25 17:53:58 tavi Exp $
 %%
 \chapter{Configuration and Performance Tuning}
 \label{sec:tuning}
@@ -7,14 +7,15 @@
 \comment{LA: Should there be something about compiling in this chapter (and
 about e.g including ami.h)?}
 
-\section{TPIE Configuration}
+\section{TPIE Configuration}\index{configuration|(}
 \label{sec:configuration}
 
 \index{Configuration}
 
 The exact behavior or TPIE at run time is controlled by several macros
 defined before including any TPIE headers. The macros are normally defined
-in the file \verb|app_config.h| which is then included in an application
+in the file \verb|app_config.h|\index{app_config.h@{\tt app\_config.h}}
+which is then included in an application
 program. A typical example of such a file can be found in the \verb|test|
 directory and the (interesting parts of the) file is shown below. After
 the file we discuss the different macros.\comment{LA: Something general
@@ -271,9 +272,11 @@ variable is called \verb|AMI_SINGLE_DEVICE| and defines where TPIE places
 temporary streams. The default location is \verb|/var/tmp|. If a different
 location is desired, \verb|AMI_SINGLE_DEVICE| must be set accordingly. For
 example (in C-shell): setenv AMI\_SINGLE\_DEVICE /usr/project/tmp/.
+\index{configuration|)}
+
 
 \section{TPIE Performance Tuning}
-\index{Performance tuning}
+\index{performance tuning}
 
 \subsection{Choosing and Configuring a BTE Implementation}
 \label{sec:choosingbte}
