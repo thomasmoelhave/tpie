@@ -1,140 +1,56 @@
 %%
 %% Copyright (c) 1994, 1995 Darren Vengroff
-%%
+%% Copyright (c) 2002 ...
 %% File: tpie.tex
 %%
-%% $Id: tpie.tex,v 1.25 2000-10-05 19:26:52 hutchins Exp $
+%% $Id: tpie.tex,v 1.26 2002-06-25 18:27:17 tavi Exp $
 %%
  
-\documentclass[11pt]{book}
-\usepackage{html,makeidx}
-\usepackage{verbatim} % new verbatim package
-
-\hbadness=10000
-
-% plabel allows the label value to be printed for easier
-% writing of the manual
-\newcommand{\plabel}[1]{{\tiny #1}\label{#1}}
-%\newcommand{\plabel}[1]{\label{#1}}
-
-% use this instead of \verb, which is not allowed as parameter [tavi]
-%app_config@{\tt app\_config.h}}
-%\newcommand{\myverb}[1]{\texttt{#1}\index{#1@{\tt #1}}}
-%\newcommand{\myv}[1]{\texttt{#1}\index{#1@{\tt #1}}}
-\newcommand{\myverb}[1]{\noiv{#1}\index{#1@{\small\tt #1}}}
-\newcommand{\myv}[1]{\noiv{#1}\index{#1@{\small\tt #1}}}
-
-% use this instead of \myverb if you don't want its
-% parameter in the index
-%\newcommand{\noiverb}[1]{\texttt{#1}}
-%\newcommand{\noiv}[1]{\texttt{#1}}
-\newcommand{\noiverb}[1]{{\small \tt #1}}
-\newcommand{\noiv}[1]{{\small \tt #1}}
-
-% emphasize and put into index
-\newcommand{\emphd}[1]{\emph{#1}\index{#1}}
-
-% used for algorithms
-\newcommand{\step}[2] {\begin{enumerate}\item[#1]#2\end{enumerate}}
-
-\makeatletter    % '@' is now a normal letter for TeX
-% this makes verbatim text smaller and indented [tavi]
-\def\verbatim@startline{\small%
-  \def\verbatim@startline{\hspace*{5mm}\verbatim@line{}}%
-  \verbatim@startline}
-\makeatother    % '@' is restored as a non-letter character
-
-% normal margins for US-size paper
-\setlength{\topmargin}{-.5in}   
-\setlength{\oddsidemargin}{.1in} % distance from left edge of page to text
-\setlength{\evensidemargin}{.1in} % distance from left edge of page to text
-\setlength{\textwidth}{6.3in}
-\setlength{\textheight}{9in}
-
-% *****************************
-% COMMENTS
-% *****************************
-
-%% Macro for writing in the margin comments on what is left to be done.
-%% Use \withcomments in the preamble if you want comments to appear.
-\def\comment#1{}
-\def\withcomments{
-% Set \marginparwidth to ensure comment does not runs off the end of the page. 
-\setlength{\marginparwidth}{8.5in}
-\addtolength{\marginparwidth}{-1.0in}
-\addtolength{\marginparwidth}{-\oddsidemargin}
-\addtolength{\marginparwidth}{-\textwidth}
-\addtolength{\marginparwidth}{-2.0\marginparsep} 
-% To get the same space on both sides of the margin text
-% because Duke printers use weird margins:
-\addtolength{\marginparwidth}{-0.125in}
-\newcounter{mycomments}
-\def\comment##1{\refstepcounter{mycomments}%
-\ifhmode%
-\unskip%
-{\dimen1=\baselineskip \divide\dimen1 by 2 %
-\raise\dimen1\llap{\tiny -\themycomments-}}\fi%
-\marginpar{\tiny [\themycomments]: ##1}}%
-}
+\documentclass[10pt]{book}
+\usepackage{html} % for inserting html links to be used by latex2html
+\usepackage{makeidx}
+\usepackage{verbatim} % new verbatim package.
+\usepackage{times} % for better pdf output.
+\usepackage{color} % for colorbox
+\input{definitions}
 
 %% Comment this out to produce distribution version of manual.
-\withcomments
-
+%\withcomments
 
 \makeindex
-
-% Additions to makeidx.sty
-%\makeatletter
-%\@ifundefined{alsoname}%
-%   {\def\alsoname{also}}{}
-
-%\def\seealso#1#2{{\em \seename\ \alsoname\/} #1}
-%\makeatother
-
-% This manual applies to the following version of TPIE
-\newcommand{\edition}{0.9.01b}
-\newcommand{\version}{0.9.01b}
-% minimum GNU release required
-\newcommand{\gxxversion}{2.8.1}
-% current GNU release we use for development
-\newcommand{\gxxcurrent}{2.95}
-
-\newcommand{\tobewritten}{\vspace{\baselineskip}$<$TO BE WRITTEN$>$\vspace{\baselineskip}}
-\newcommand{\tobeextended}{\vspace{\baselineskip}$<$TO BE EXTENDED$>$\vspace{\baselineskip}}
-
-%% Commands to mimic some that latexinfo has:
-
-%% End of LaTeXinfo-like commands.
-
-
 
 \begin{document}
 
 \title{{\Huge TPIE}\\ User Manual and Reference}
-\author{Lars Arge \and Rakesh Barve \and David Hutchinson \and Octavian Procopiuc \and Laura
-Toma\and  Darren Erik Vengroff \and Rajiv Wickeremesinghe}
+\author{%
+Lars Arge \and 
+Rakesh Barve \and 
+David Hutchinson \and 
+Octavian Procopiuc \and 
+Laura Toma \and
+Darren Erik Vengroff \and 
+Rajiv Wickeremesinghe}
+
 \date{{\bf DRAFT} of \today}
 
 \maketitle
 
 \begin{titlepage}
-
 \mbox{ }
 
 \vspace{\fill}
-
 
 \noindent TPIE User Manual and Reference
 
 \noindent Edition \edition, for TPIE version \version.
 
-\vspace{2 ex}
+\vspace{2ex}
 
 \noindent Copyright \copyright 1994, 1995 Darren Erik Vengroff, 1999 Lars
 Arge, Rakesh Barve, David Hutchinson, Octavian Procopiuc, Laura Toma, Darren Erik
 Vengroff, Rajiv Wickeremesinghe.
 
-\vspace{2 ex}
+\vspace{2ex}
 
 The programs described in this manual are free software; you can
 redistribute them and/or modify them under the terms of the GNU General
@@ -184,7 +100,7 @@ platforms.
   \input{applications} %  Chapter: Test and Sample Applications
   \input{addexamples}
   \input{errorcodes}
-  \input{GNUlicence} 
+  \input{GNUlicence}
 
 \bibliographystyle{abbrv}
 \newpage
