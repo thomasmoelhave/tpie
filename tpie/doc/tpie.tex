@@ -3,14 +3,24 @@
 %%
 %% File: tpie.tex
 %%
-%% $Id: tpie.tex,v 1.20 1999-11-15 17:59:48 hutchins Exp $
+%% $Id: tpie.tex,v 1.21 1999-11-17 20:51:24 tavi Exp $
 %%
  
-\documentstyle[11pt,html,makeidx]{book}
+\documentclass[11pt]{book}
+\usepackage{html,makeidx}
+\usepackage{verbatim} % new verbatim package
 
 \hbadness=10000
 
-%\newenvironment{code}{\small\verbatim}{\endverbatim}
+% use this instead of \verb, which is not allowed as parameter [tavi]
+\newcommand{\myverb}[1]{\texttt{#1}}
+
+\makeatletter    % '@' is now a normall letter for TeX
+% this makes verbatim text smaller and indented [tavi]
+\def\verbatim@startline{\small%
+  \def\verbatim@startline{\hspace*{5mm}\verbatim@line{}}%
+  \verbatim@startline}
+\makeatother    % '@' is restored as a non-letter character
 
 % normal margins for US-size paper
 \setlength{\topmargin}{-.5in}   
@@ -153,7 +163,9 @@ platforms.
   \input{applications} %  Chapter: Test and Sample Applications
   \input{errorcodes}
   \input{GNUlicence} 
+
 \bibliographystyle{abbrv}
+\newpage
 \addcontentsline{toc}{part}{Bibliography}
 \bibliography{tpie}
 \newpage
