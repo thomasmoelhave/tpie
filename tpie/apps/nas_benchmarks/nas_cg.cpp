@@ -24,7 +24,7 @@
 
 // Define it all.
 #include <ami.h>
-VERSION(nas_cg_cpp,"$Id: nas_cg.cpp,v 1.5 2003-09-12 01:49:07 tavi Exp $");
+VERSION(nas_cg_cpp,"$Id: nas_cg.cpp,v 1.6 2003-09-13 16:29:59 jan Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -82,6 +82,8 @@ AMI_err solve_system(AMI_sparse_matrix<double> &A,
     // r and p, both of which were jsut set to x.
     
     {
+	cerr << r0.stream_len() << " " << p0.stream_len() << endl;
+
         ae = AMI_scan((AMI_STREAM<double> *)&r0,
                       (AMI_STREAM<double> *)&p0, &sip);
         rho = sip.result();
@@ -287,6 +289,11 @@ int main(int argc, char **argv)
 
     if (verbose) {
         cerr << "Read raw A; stream length = " << A_raw.stream_len() << endl;
+    }
+
+    if (!A_raw.stream_len()) {
+	cerr << "No data was provided in input file " << input_filename << endl;
+	exit(1);
     }
 
     // Preprocess A into band(s).
