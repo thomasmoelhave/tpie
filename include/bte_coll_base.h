@@ -3,7 +3,7 @@
 // Authors: Octavian Procopiuc <tavi@cs.duke.edu>
 //          (using some code by Rakesh Barve)
 //
-// $Id: bte_coll_base.h,v 1.9 2002-01-14 16:17:28 tavi Exp $
+// $Id: bte_coll_base.h,v 1.10 2002-01-15 03:00:58 tavi Exp $
 //
 // BTE_collection_base class and various basic definitions.
 //
@@ -27,7 +27,7 @@
 #include <stdio_stack.h>
 // For BTE_err.
 #include <bte_err.h>
-// For class tpie_stats_coll.
+// For class tpie_stats_collection.
 #include <tpie_stats_coll.h>
 
 // BTE_COLLECTION types passed to constructors.
@@ -50,8 +50,9 @@ enum BTE_collection_status {
 // Number of bytes in the header's user_data_ field.
 #define BTE_COLLECTION_USER_DATA_LEN 512
 
-// The magic number of the files storing blocks. Stored in the header.
-#define BTE_COLLECTION_HEADER_MAGIC_NUMBER 0x123ABC
+// The magic number of the files storing blocks.
+// (in network byteorder, it spells "TPBC": TPie Block Collection)
+#define BTE_COLLECTION_HEADER_MAGIC_NUMBER 0x54504243
 
 // Default file name suffixes
 #define BTE_COLLECTION_BLK_SUFFIX ".blk"
@@ -96,9 +97,8 @@ public:
 // are used to extend the files.
 #define USE_FTRUNCATE 0
 
-//
+
 // A base class for all implementations of block collection classes.
-//
 class BTE_collection_base {
 protected:
   
@@ -128,7 +128,11 @@ protected:
   // Number of blocks from this collection that are currently in memory
   size_t in_memory_blocks_;
 
-  tpie_stats_coll stats_;
+  // Statistics for this object.
+  tpie_stats_collection stats_;
+
+  // Global collection statistics.
+  static tpie_stats_collection gstats_;
 
 private:
   // Helper functions. We don't want them inherited.
@@ -167,7 +171,7 @@ protected:
   }
 
   off_t bid_to_file_offset(off_t bid) const 
-  { return header_.os_block_size + header_.block_size * (bid-1); }
+    { return header_.os_block_size + header_.block_size * (bid-1); }
 
   void create_stack();
 
@@ -269,7 +273,11 @@ public:
 
   void *user_data() { return (void *) header_.user_data; }
 
-  const tpie_stats_coll& stats() const { return stats_; }
+  // Local statistics (for this object).
+  const tpie_stats_collection& stats() const { return stats_; }
+
+  // Global statistics (for all collections).
+  static const tpie_stats_collection& gstats() { return gstats_; }
 
   // Destructor.
   ~BTE_collection_base(); 

@@ -3,7 +3,7 @@
 // File:   ami_coll_single.h
 // Author: Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_coll_single.h,v 1.6 2002-01-14 15:49:40 tavi Exp $
+// $Id: ami_coll_single.h,v 1.7 2002-01-15 03:01:31 tavi Exp $
 //
 // AMI collection entry points implemented on top of a single BTE.
 //
@@ -60,7 +60,10 @@ public:
 
   BTECOLL* bte() { return btec_; }
 
-  const tpie_stats_coll& stats() const { return btec_->stats(); }
+  const tpie_stats_collection& stats() const { return btec_->stats(); }
+
+  static const tpie_stats_collection& gstats() 
+    { return BTE_collection_base::gstats(); }
 
 private:
 

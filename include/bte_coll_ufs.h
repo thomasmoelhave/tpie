@@ -1,9 +1,8 @@
-// Copyright (C) 2001 Octavian Procopiuc
 //
 // File:    bte_coll_ufs.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: bte_coll_ufs.h,v 1.3 2001-12-29 05:15:56 tavi Exp $
+// $Id: bte_coll_ufs.h,v 1.4 2002-01-15 03:02:31 tavi Exp $
 //
 // BTE_collection_ufs class definition.
 //
@@ -26,7 +25,6 @@ public:
   // Block. Main memory usage increases.
   BTE_err new_block(off_t &bid, void * &place) {
     BTE_err err;
-    stats_.record(BLOCK_NEW);
     // Get a block id.
     if ((err = new_block_shared(bid)) != BTE_ERROR_NO_ERROR)
       return err;
@@ -34,6 +32,8 @@ public:
     if ((err = get_block_internals(bid, place)) != BTE_ERROR_NO_ERROR)
       return err;
     header_.used_blocks++;
+    stats_.record(BLOCK_NEW);
+    gstats_.record(BLOCK_NEW);
     return BTE_ERROR_NO_ERROR;
   }
 
@@ -46,12 +46,13 @@ public:
   // stdio_stack of free blocks. Main memory usage goes down.
   BTE_err delete_block(off_t bid, void * place) {
     BTE_err err;
-    stats_.record(BLOCK_DELETE);
     if ((err = put_block_internals(bid, place, 1)) != BTE_ERROR_NO_ERROR)  
       return err; 
     if ((err = delete_block_shared(bid)) != BTE_ERROR_NO_ERROR)
       return err;
     header_.used_blocks--;
+    stats_.record(BLOCK_DELETE);
+    gstats_.record(BLOCK_DELETE);
     return BTE_ERROR_NO_ERROR;
   }
 
@@ -61,8 +62,12 @@ public:
   // on; no checks made here to ensure that that is indeed the case. Main
   // memory usage increases.
   BTE_err get_block(off_t bid, void * &place) {
+    BTE_err err;
+    if ((err = get_block_internals(bid, place)) != BTE_ERROR_NO_ERROR)
+      return err;
     stats_.record(BLOCK_GET);
-    return get_block_internals(bid, place);
+    gstats_.record(BLOCK_GET);
+    return BTE_ERROR_NO_ERROR;
   }
 
   // Write a currently in-memory block. NOTE once more that it is the
@@ -70,8 +75,12 @@ public:
   // made here to ensure that that is indeed the case. Main memory usage
   // decreases.
   BTE_err put_block(off_t bid, void * place, char dirty = 1) {
+    BTE_err err;
+    if ((err = put_block_internals(bid, place, dirty)) != BTE_ERROR_NO_ERROR)
+      return err;
     stats_.record(BLOCK_PUT);
-    return put_block_internals(bid, place, dirty);
+    gstats_.record(BLOCK_PUT);
+    return BTE_ERROR_NO_ERROR;
   }
 
   // Synchronize the in-memory block with the on-disk block.
