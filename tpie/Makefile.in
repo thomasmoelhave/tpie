@@ -1,5 +1,10 @@
 # Makefile for the complete TPIE system.
-# $Id: Makefile.in,v 1.19 2002-01-14 15:32:51 tavi Exp $
+# $Id: Makefile.in,v 1.20 2002-02-02 18:17:08 tavi Exp $
+
+# To compile with debugging symbols, set this to 1.
+MINUSG = 0
+# To compile with gprof symbols, set this to 1.
+MINUSPG = 0
 
 MY_DEFS := @DEFS@
 MY_LIBS := @LIBS@
