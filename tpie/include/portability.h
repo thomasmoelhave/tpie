@@ -3,7 +3,7 @@
 // Created: 2002/10/30
 // Authors: Joerg Rotthowe, Jan Vahrenhold, Markus Vogel
 //
-// $Id: portability.h,v 1.11 2003-09-12 18:38:16 jan Exp $
+// $Id: portability.h,v 1.12 2003-09-13 17:33:54 tavi Exp $
 //
 // This header-file offers macros for independent use on Win and Unix systems.
 
@@ -209,6 +209,11 @@ enum TPIE_OS_FLAG {
 };
 #endif
 
+#ifdef _WIN32
+const int TPIE_OS_PERSIST_READ_ONCE = 0;
+#else
+const int TPIE_OS_PERSIST_READ_ONCE = 0;
+#endif
 
 enum TPIE_OS_MAPPING_FLAG {
 	TPIE_OS_FLAG_USE_MAPPING_FALSE,
