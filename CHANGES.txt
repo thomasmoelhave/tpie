@@ -4,19 +4,61 @@ New release :     0.9.01b
 Previous Release: 0.9.01a
 Changes:
 
-1) compile error in ::operator new with gcc-2.95 fixed
+      * Compile error in ::operator new with gcc-2.95 fixed
 
-2) performance improvement made in quicksort
+      * Performance improvement made in quicksort
 
-3) documentation changes: manual revised and expanded
+      * Documentation changes: manual revised and expanded
 
 New release:      0.9.01a
 Previous release: 0.8.02a
 Changes:
 
-1) bug in bte_mmb seek() and truncate() fixed
+      * TPIE now requires gcc version 2.8.1
+        - explicit template instantiation is no longer needed
 
-2) bug in ::operator new fixed
+      * The use of environment variables has been reduced
+        - now only AMI_SINGLE_DEVICE is used
+
+      * Logging macros have been simplified
+        - logging macros reduced to LOG_FATAL, LOG_WARNING, LOG_DEBUG_INFO.
+
+      * TPIE configuration has been simplified
+        - example of TPIE configuration file is now included in /test/config.h
+        - program for helping in determining which BTE to use on given
+          platform has been included in /test/bte_test.c
+
+      * AMI code has been improved
+        - code simplified and several minor bugs have been fixed
+        - Stream types have been introduced in AMI_STREAM constructor
+        - AMI_stream status code removed
+        - AMI_single_merge() renamed to AMI_merge()
+        - new AMI_merge() polymorphs introduced for improved efficiency (no 
+          management objects used)
+        - new AMI_optimized_sort() polymorphs introduced (many
+          improvements, e.g, more sequential access to substreams during
+          mergesort) 
+
+      * BTE_stdio has been improved
+        - code simplified and several minor bugs have been fixed
+        - stream header check when opening stream on disk has been completed
+
+      * BTE_mmb has been improved
+        - code simplified and several minor bugs have been fixed
+        - mmap-based read ahead has been implemented
+        - bug causing problems when item size did not divide block size has
+          been fixed
+        - stream header check when opening stream on disk has been completed
+
+      * New BTE_ufs has been introduced:
+        - performs block I/O like BTE_mmb but uses read()/write() calls 
+          instead of mmap()/unmap() calls
+        - read-ahead done by file system or via aio-library
+
+      * Manual extensively updated and improved:
+        - several sections modified/rewritten/completed
+        - new chapter "A Taste of TPIE via a Sample Program" added
+        - several sections on TPIE configuring added
 
 New release:      0.8.02a
 Previous release: 0.8.01a
