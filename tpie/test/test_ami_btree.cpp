@@ -9,7 +9,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_btree_cpp, "$Id: test_ami_btree.cpp,v 1.17 2003-09-14 21:35:32 tavi Exp $");
+VERSION(test_ami_btree_cpp, "$Id: test_ami_btree.cpp,v 1.18 2003-09-14 21:45:02 tavi Exp $");
 
 #include <cpu_timer.h>
 #include <ami_btree.h>
@@ -59,6 +59,8 @@ long range_search_lo = 0;
 long range_search_hi = 10000000;
 
 int main(int argc, char **argv) {
+
+  print_configuration(cerr);
 
   int i;
   size_t j;
