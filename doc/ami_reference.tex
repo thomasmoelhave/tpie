@@ -1,78 +1,251 @@
 %%
-%% $Id: ami_reference.tex,v 1.4 1999-07-02 16:30:17 large Exp $
+%% $Id: ami_reference.tex,v 1.5 1999-10-13 21:01:36 hutchins Exp $
 %%
 \chapter{TPIE Programmers' Reference}
+\label{cha:reference}
 
 \comment{LA: Statistics somewhere!}
 
 \comment{LA: pqueue, internal sort, ect somewhere?}
 
-TPIE has three main components, the Access Method Interface (AMI), the
-Block Transfer Engine (BTE), and the Memory Manager (MM). The BTE handles
-disk block transfers and the MM performs low level memory management. The
-AMI works on top of the MM and one or more BTEs to provide a uniform
-interface for application programs. Applications that use this interface
-are portable across hardware platforms, since they never have to deal with
-the underlying details of how I/O is performed on a particular
-machine. This chapter contains a description of the AMI and MM entry points
-an application programmer will normally use. Typically, an application
-programmer will not be using the BTE directly. Refer to
-Chapter~\ref{cha:implementation} for a description of the BTE and of how
-TPIE is implemented.
+TPIE has three main components, the Access Method Interface
+(AMI), a Block Transfer Engine (BTE), and a Memory Manager.
+A BTE handles disk block transfers and the MM performs low
+level memory management. The AMI works on top of the Memory
+Manager and one or more BTEs to provide a uniform interface
+for application programs. Applications that use this
+interface are portable across hardware platforms, since they
+never have to deal with the underlying details of how I/O is
+performed on a particular machine. This chapter contains a
+description of the AMI and Memory Manager entry points that
+an application programmer might normally use. Typically, an
+application programmer will not request services from a BTE
+directly. Refer to Chapter~\ref{cha:implementation} for a
+description of BTEs and for TPIE implementation details.
 
 
 \section{TPIE Memory Management}
 \label{sec:mm-ref}
 
-\tobewritten
+The Memory Manager components of TPIE provide services related to
+the management of internal memory:
+\begin{itemize}
+\item allocation and deallocation of (internal)
+memory as requested by the \verb|new| and \verb|delete| operators,
+\item accounting of memory usage (when required),
+\item enforcing of the user-specified internal memory usage
+limit (when required),
+\item logging of memory allocation requests (when required).
+\end{itemize}
 
+%The TPIE memory manager \verb|MM_manager|, is built from the source
+%files \verb|mm_register.cpp|, \verb|mm_base.cpp|, \verb|mm_register.h|, and
+%\verb|mm\_base.h|. 
+The TPIE memory manager \verb|MM_manager| traps memory
+allocation and deallocation requests in order to monitor
+and enforce memory usage limits. It provides a number of
+user-callable functions and services.
+
+\begin{itemize}
+\item Replacement of the default C++ \verb|new| operator
+\begin{verbatim}
+void * operator new (size_t) sz;
+\end{verbatim}
+This function returns a pointer to a memory block of sixe
+\verb|sz| bytes, where \verb|sz| is initialized by the
+compiler, and contains the size of the object
+for which memory is required. The calling program syntax is
+exactly the same as when invoking the default \verb|new|
+operator of the C++ library, i.e. 
+
+\begin{verbatim}
+anObject *p;
+p = new anObject; 
+\end{verbatim}
+
+\item Replacement of the default C++ \verb|delete| and
+\verb|delete []| operators
+\begin{verbatim}
+void operator delete    (void *ptr);
+void operator delete [] (void *ptr);
+\end{verbatim}
+
+These functions deallocate the memory pointed to by
+\verb|ptr|. The calling program syntax and usage is exactly
+the same as when invoking the default \verb|delete| and
+\verb|delete []| operators of the C++ runtime library.
+
+\end{itemize}
+
+Although provisions exist for alternative memory managers,
+TPIE currently provides only one. TPIE's memory manager is the object
+\verb|MM_manager|, which has global scope.  The following
+public methods of object \verb|MM_manager| are provided:
+
+\begin{itemize}
+\item Setting an application's memory limit:
+\begin{verbatim}
+MM_err set_memory_limit (size_t size);
+\end{verbatim}
+
+The memory limit is set to \verb|size| bytes. If the
+specified mamory limit is greater than or equal to the
+amount of memory already allocated, \verb|set_memory_limit|
+returns \verb|MM_ERROR_NO_ERROR|, otherwise
+\verb|MM_ERROR_EXCESSIVE_ALLOCATION|. By default, successive
+calls to operator \verb|new| will cause the program to abort
+if the resulting memory usage would exceed \verb|size|
+bytes. This behaviour can be controlled explicitly by the
+use of methods \verb|enforce_memory_limit|,
+\verb|warn_memory_limit| and \verb|ignore_memory_limit|.
+See below for details.
+
+\item Setting enforcement behaviour:
+\begin{verbatim}
+MM_err enforce_memory_limit();
+MM_err ignore_memory_limit ();
+MM_err warn_memory_limit   ();
+\end{verbatim}
+
+Methods \verb|enforce_memory_limit|,
+\verb|ignore_memory_limit| and \verb|warn_memory_limit| are
+used to specify the behaviour desired in the event that the
+user-specified memory limit is exceeded. These methods cause
+TPIE to abort, continue without warning, or continue after a
+warning, respectively.
+
+\item Query memory parameters
+
+\begin{verbatim}
+long memory_available();
+long memory_used();
+long memory_limit();
+\end{verbatim}
+
+Method \verb|memory_available()| returns the number of bytes
+of memory which can be allocated before the user-specified
+limit is reached. \verb|memory_used| returns the number of
+bytes of memory currently allocated. \verb|memory_limit|
+returns the memory limit as set by the last call to method
+\verb|set_memory_limit|.
+
+Application programs which wish to limit their main memory
+usage can check via \verb|memory_available| whether a
+contemplated memory allocation request would exceed their
+self-imposed threshold.
+
+\item Query space overhead
+
+\begin{verbatim}
+int space_overhead();
+\end{verbatim}
+
+TPIE imposes a small space overhead on each memory
+allocation request received by operator \verb|new|. This involves
+increasing each allocation request by a fixed number of
+bytes. The precise size of this increase is machine
+dependent, but typically 8 bytes. Method \verb|space_overhead|
+returns the size of this increase.
+\end{itemize}
+
+\subsection{Using the Memory Manager: An Example}
+
+The following (toy) program creates new elements of a linked
+list until its specified memory limit has been reached.
+
+\begin{verbatim}
+// This program illustrates the use of the main public 
+// entry points in the TPIE memory manager object "MM_manager".
+// It creates nodes in a linked list and stops when a predefined memory 
+// limit would be exceeded if it continued.
+
+#include "app_config.h"
+#include <ami.h>
+#define  MY_MEMORY_LIMIT 4*1024*1024;
+
+int    overhead, nodeCount;
+size_t mem_limit = MY_MEMORY_LIMIT;
+class  myNode 
+       { public:
+            int i[1020/4];
+            myNode *next;
+       };
+myNode *firstNode, *currentNode, *previousNode;
+
+void 
+main (int argc, char *argv[]){
+ 
+   overhead = MM_manager.space_overhead();
+   nodeCount = 0;
+   MM_manager.set_memory_limit(mem_limit);
+   currentNode = firstNode = 0;
+
+   while ((sizeof(myNode)+overhead)<= MM_manager.memory_available()) { 
+      currentNode = new myNode;
+      if (firstNode == 0) 
+         firstNode = currentNode;
+      else
+        (*previousNode).next = currentNode;
+      (*currentNode).next = 0;
+      previousNode = currentNode;
+      nodeCount++;
+   };
+   cout << nodeCount << " list nodes of size " << (int) sizeof(myNode); 
+   cout << " were allocated within my memory limit of ";
+   cout << (size_t) mem_limit << " bytes \n";
+};
+\end{verbatim}
+
+Under PC Solaris, this program gives the following output:
+\begin{verbatim}
+4064 list nodes of size 1024 were allocated within my memory limit of 4194304 bytes
+\end{verbatim}
 \comment{LA: Index!}
-
-\comment{LA: Write register\_new, resize\_heap, ect., here! Also something
-about applications checking mm available before allocating}
-
-
 \section{AMI Streams}
 \label{sec:ami_stream-ref}
 
 \tobeextended
-
-An\comment{LA: This whole section needs an overhaul! (e.g. check that
-everything is included and correct).} AMI stream\index{streams!AMI} is
-nothing more than an abstraction of an ordered collection of objects of a
+\comment{LA: This whole section needs an overhaul! (e.g. check that
+everything is included and correct).}
+An AMI stream\index{streams!AMI} is
+an abstraction of an ordered collection of objects of a
 particular class which is stored in secondary memory.  In some
-applications, the elements of a stream might be nothing more than integers.
-In others, they might be objects of an arbitrarily complex user defined
-class.  Creating a stream of objects of class \verb|foo| called
-\verb|foo_stream| requires nothing more than the definition
+applications, the elements of a stream might be integers.
+In others, they might be objects of an arbitrarily complex, user-defined
+class.  A stream of objects of class \verb|foo| called
+\verb|foo_stream| is created in a TPIE program as follows:
 
 \begin{verbatim}
 AMI_STREAM<foo> foo_stream;
 \end{verbatim}
 
-\verb|AMI_STREAM| is a macro that resolves to a class template declared to
-match the underlying semantics of the target I/O architecture by using an
-appropriate AMI implementation (see section~\ref{sec:ref-ami}), BTE
-implementation\index{block transfer engine} (see Section~\ref{sec:ref-bte})
-and MM (see Section~\ref{sec:ref-mm}) implementation. In the current
-version of TPIE an \verb|AMI_STREAM| is stored in a standard UNIX file on a
-single disk. In this implementation the \verb|AMI_STREAM| class have the
-following public member functions:\comment{LA: Change when parallel disks
-is introduced}
+{\em The public member functions of the \verb|AMI_STREAM|
+   class are defined in the file ``ami\_single.h''. Some
+   important related enumerated types that the user will be
+   concerned with are defined in ``ami\_base.h''.
+   \verb|AMI_STREAM| is a macro that resolves to a class
+   template declared to match the underlying semantics of
+   the target I/O architecture by using an appropriate AMI
+   implementation (see section~\ref{sec:ref-ami}), BTE
+   implementation\index{block transfer engine} (see
+   Section~\ref{sec:ref-bte}) and MM (see
+   Section~\ref{sec:ref-mm}) implementation. In the current
+   version of TPIE an \verb|AMI_STREAM| is stored in a
+   standard UNIX file on a single disk.}
+
+In version \version of TPIE,  the \verb|AMI_STREAM| class has the
+following public member functions:
+\comment{LA: Change when parallel disks are introduced}
 
 \comment{LA: Probably put some general discussion of stream types
 (read/write/append) and persistence here. Same comment about substreams and
 {\em current\_item}.}
 
-% defined in the file ``ami\_single.h'';
-%some important related enumerated types that the user will be
-% concerned with have been defined in ``ami\_base.h''.
-
 \comment{LA: Remove bullets?}
 \begin{itemize}
 \item{Constructors (and Destructor)}
 
-There are four different construction polymorphs.
+There are four constructor polymorphs.
 
 \begin{verbatim}
      AMI_STREAM();
@@ -81,51 +254,61 @@ There are four different construction polymorphs.
      AMI_STREAM(BTE_STREAM<T> &bs);
 \end{verbatim}
 
+
+ If
+no arguments are given to the constructor, a new stream 
+%of type \verb|AMI_READ_WRITE_STREAM| 
+is constructed on a file with a randomly generated name. If
+\verb|path-name| is given and the file does not already
+exist, a new stream is constructed on a newly created file
+with the specified file name. If the file already exists, it
+is checked if it contains an \verb|AMI_STREAM|, and if so,
+the new stream is constructed on this file. 
+
 An \verb|AMI_stream| can have one of four different types
-\verb|AMI_READ_STREAM|, \verb|AMI_WRITE_STREAM|, \verb|AMI_APPEND_STREAM|,
-or \verb|AMI_READ_WRITE_STREAM|, which define what operations will be
-permitted on the stream.\comment{LA: Check that this works ok in the code -
-also check that r\_only is correct. Another problem is that AMI and BTE
-WRITE\_STREAM flags have different semantics - needs to be cleaned up} If
-no arguments are given to the constructor the new stream of type
-\verb|AMI_READ_WRITE_STREAM| is constructed in a file with a randomly
-generated name. If a file name is given and the file does not already
-exists, the new stream is constructed in a newly created file with that
-file name. If the file already exists, it is checked if it contains an
-\verb|AMI_STREAM|, and if so, the new stream is constructed on this
-file. In both cases the stream is of type \verb|AMI_READ_WRITE_STREAM|. If
-so desired, the stream type can also be given explicitly. The
-\verb|AMI_APPEND_STREAM| type is like \verb|AMI_WRITE_STREAM|
-type\comment{LA: It this true?} except that if the stream is constructed on
-a file containing an existing stream, objects written to the stream will be
-appended at the end of the stream. The last constructor, which will not
-normally be used by a TPIE application programmer\comment{LA: Why do we
-have it then?}, constructs a stream from an existing \verb|BTE_STREAM| (see
-Section~\ref{sec:ref-bte}). The stream gets the same type as the
-\verb|BTE_STREAM|.
+\verb|AMI_READ_STREAM|, \verb|AMI_WRITE_STREAM|,
+\verb|AMI_APPEND_STREAM|, or \verb|AMI_READ_WRITE_STREAM|,
+which define what operations will be permitted on the
+stream.\comment{LA: Check that this works ok in the code -
+   also check that r\_only is correct. Another problem is
+   that AMI and BTE WRITE\_STREAM flags have different
+   semantics - needs to be cleaned up} If \verb|st| is not
+specified, the stream type defaults to
+\verb|AMI_READ_WRITE_STREAM|. The \verb|AMI_APPEND_STREAM|
+type is like \verb|AMI_WRITE_STREAM| type\comment{LA: It
+   this true?} except that if the stream is constructed on a
+file containing an existing stream, objects written to the
+stream will be appended at the end of the stream.
+
+The last constructor, which will not normally be used by a
+TPIE application programmer\comment{LA: Why do we have it
+   then?}, constructs a stream from an existing
+\verb|BTE_STREAM| (see Section~\ref{sec:ref-bte}). The
+stream gets the same type as the \verb|BTE_STREAM|.
 
 
 \item{Substreams}
 
-It is possible to construct one AMI stream that is actually a
-substream of another.  In fact, if one so desires, one can construct
-substreams of substreams of subtreams {\em ad infinitum}.  A substream
-is defined as a contiguous range of objects from within the ordered
-collection of objects that make up the stream.
+It is possible to construct an AMI stream that is composed
+of a portion of another AMI stream. A substream $B$ of a
+stream $A$ is defined as a contiguous range of objects from
+the ordered collection of objects that make up the stream
+$A$.  If desired, one can construct substreams of substreams
+of substreams {\em ad infinitum}.
 
 In order to create a substream, one has to use a pseudo-constructor called
 \verb|new_substream()|, which is declared as follows:\comment{LA: Why is it
-called AMI\_strean\_single? Change!}
+called AMI\_stream\_single? Change!}
 \begin{verbatim}
 AMI_err AMI_stream_single<T>::new_substream(AMI_stream_type st,
                                             off_t sub_begin,
                                             off_t sub_end,
                                             AMI_base_stream<T> **sub_stream)
 \end{verbatim}
-\verb|st| defines the type of the stream. The offsets \verb|sub_begin| and
-\verb|sub_end| of type \verb|off_t| define at which object in the stream
-the new substream will begin and end. Upon completion, \verb|*sub_stream| is
-set to point to the newly allocated and created substream.
+\verb|st| specifies the type of the stream. The offsets \verb|sub_begin| and
+\verb|sub_end| of type \verb|off_t| define at which object
+in the original stream $A$
+the new substream $B$ will begin and end. Upon completion, \verb|*sub_stream| points to the newly allocated and created substream.
 
 The\comment{LA: I don't understand this paragraph} reason we do not use a
 real constructor is to get around the fact that constructors can not be
@@ -149,7 +332,7 @@ objects. The \verb|read_item(T **elt)| function returns with \verb|*elt|
 pointing to the current object of the \verb|AMI_STREAM<T>| and the
 \verb|write_item(T elt)| function returns after setting the current object
 of \verb|AMI_STREAM<T>| to the value \verb|elt|. The two functions also
-increments the \verb|current_item|.
+increment the \verb|current_item|.
 
 Since it can be useful to read or write many objects at a time from or to
 an \verb|AMI_STREAM|, TPIE provides two functions to do so.
@@ -202,8 +385,8 @@ more types defined in mm.base.h - what are they?}
     AMI_err name(char **stream_name);
 \end{verbatim}
 
-Returns the UNIX file storing the stream.  The name will be stored in newly
-allocated space.
+Returns the name of the UNIX file storing the stream.  The
+name will be stored in newly allocated space.
 
 \item{Length}
 
@@ -218,10 +401,10 @@ Returns the current number of objects in the stream.
     int available_streams(void);    
 \end{verbatim}
 
-Typically, there is an OS limit on the number of open files. This
-translates into a limit on the number of TPIE
-streams. \verb|available_streams| returns the number of streams which can
-still be constructed.
+Typically, there is an operating system limit on the number
+of open files. This translates into a limit on the number of
+TPIE streams. Method \verb|available_streams| returns the
+number of streams which can still be constructed.
 
 \item{Set persistence}
 
@@ -231,9 +414,9 @@ still be constructed.
 
 Sets the persistence of the stream to one of the following:
 \begin{itemize}
-\item \verb|PERSIST_DELETE:| Delete the stream from the disk when it is
+\item \verb|PERSIST_DELETE|: Delete the stream from the disk when it is
   destructed.
-\item \verb|PERSIST_PERSISTENT:| Do not delete the stream from the disk when
+\item \verb|PERSIST_PERSISTENT|: Do not delete the stream from the disk when
   it is destructed.
 %\item \verb|PERSIST_READ_ONCE:| Delete each block of data from the disk as
 %  it is read.
@@ -245,98 +428,6 @@ PERSIST\_READ\_ONCE flag as well! (from darren's delete-block
 stuff). Remove?!}
 \end{itemize}
 
-\subsection{AMI Error Codes}
-\label{sec:ami-errors}
-\index{error|(}
-
-AMI\comment{LA: Should we move this section to an appendix? Or just move it
-to the end of this section? What about appendix for management object
-return codes ect.?} entry points typically return error codes of the
-enumerated type \verb|AMI_err|.  Member functions of operation management
-objects\index{operation management objects} also typically return this
-type.  Possible values for error codes include those listed below.  It is
-expected that in future releases of TPIE, many of these error codes will be
-replaced by exceptions.  Exceptions are not currently used by TPIE because
-the {\tt g++} compiler does not fully support them.
-
-\begin{description}
-\item[{\tt AMI\_ERROR\_NO\_ERROR}] No error occurred.  The call the the
-  entry point returned normally.
-\item[{\tt AMI\_ERROR\_IO\_ERROR}] A low level I/O error occurred.
-\item[{\tt AMI\_ERROR\_END\_OF\_STREAM}] An attempt was made to read
-  past the end of a stream or write past the end of a substream.
-\item[{\tt AMI\_ERROR\_READ\_ONLY}] An attempt was made to write to a
-  read-only stream.
-\item[{\tt AMI\_ERROR\_OS\_ERROR}]  An unexpected operating system
-  error occurred.  Details should appear in the log file if logging is
-  enabled.  See Section~\ref{sec:logging}.
-\item[{\tt AMI\_ERROR\_BASE\_METHOD}] An attempt was made to call a
-  member function of the virtual base class of {\tt AMI\_STREAM}.  This
-  indicates a bug in the implementation of AMI streams.
-\item[{\tt AMI\_ERROR\_BTE\_ERROR}] An error occurred at the BTE
-  level.  
-\item[{\tt AMI\_ERROR\_MM\_ERROR}] An error occurred within the memory
-  manager.
-\item[{\tt AMI\_ERROR\_OBJECT\_INITIALIZATION}] An AMI entry point was
-  not able to properly initialize the operation management object that
-  was passed to it.  This generally indicates a bug in the operation
-  management object's initialization code.
-%\item[{\tt AMI\_ERROR\_PERMISSION\_DENIED}]
-\item[{\tt AMI\_ERROR\_INSUFFICIENT\_MAIN\_MEMORY}] The MM could not
-  make adequate main memory available to complete the requested
-  operation.  Many operations adapt themselves to use whatever main
-  memory is available, but in some cases, when memory is extremely
-  tight, they may not be able to function.
-\item[{\tt AMI\_ERROR\_INSUFFICIENT\_AVAILABLE\_STREAMS}]
-  The AMI could not allocate enough intermediate streams to perform
-  the requested operation.  Certain operating system restrictions
-  limit the number of streams that can be created on certain
-  platforms.  Only in unusual circumstances, such as when the
-  application itself has a very large number of open streams, will
-  this error occur. 
-\item[{\tt AMI\_ERROR\_ENV\_UNDEFINED}]
-  An environment variable necessary to initialize the AMI was not defined.
-\item[{\tt AMI\_ERROR\_BIT\_MATRIX\_BOUNDS}]
-  A bit matrix larger than the number of bits in an offset into a
-  stream was passed to \verb|ami_gp()|.
-\item[{\tt AMI\_ERROR\_NOT\_POWER\_OF\_2}]
-  The length of a stream on which a bit permutation was to be
-  performed is not a power of two.
-\item[{\tt AMI\_MATRIX\_BOUNDS}] An attempt was made to perform a
-  matrix operation on matrices whose bounds did not match appropriately.
-\end{description}
-
-
-%\subsection{Return Values for Scan Management Objects}
-
-%More information on the precise semantics of these values appears in
-%Section~\ref{sec:ref-ami-scan}.
-%\begin{description}
-%\item[{\tt AMI\_SCAN\_CONTINUE}] Tells \verb|AMI_scan()| to continue
-%  to call the \verb|operate()| member function of the scan management
-%  object with more data.
-%\item[{\tt AMI\_SCAN\_DONE}] Tells \verb|AMI_scan()| that the scan is
-%  complete. 
-%\end{description}
-
-%\subsection{Return Values for Merge Management Objects}
-
-%More information on the precise semantics of these values appears in
-%Section~\ref{sec:ref-ami-merge}.
-%\begin{description}
-%\item[{\tt AMI\_MERGE\_CONTINUE}] Tells \verb|AMI_merge()| to continue
-%  to call the \verb|operate()| member function of the scan management
-%  object with more data.
-%\item[{\tt AMI\_MERGE\_DONE}] Tells \verb|AMI_merge()| that the scan is
-%  complete. 
-%\item[{\tt AMI\_MERGE\_OUTPUT}]  Tells \verb|AMI_merge()| that the
-%  last call generated output for the output stream.
-%\item[{\tt AMI\_MERGE\_READ\_MULTIPLE}]  Tells \verb|AMI_merge()| that
-%  more than one input object was consumed and thus the input flags
-%  should be consulted.
-%\end{description}
-
-\index{error|)}
 
 
 \section{AMI Entry Points}
@@ -927,3 +1018,7 @@ one and storing a pointer to the removed object in the space pointed to by
 \comment{LA: index - Distribution sweeping}
 
 \tobewritten
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 
