@@ -6,7 +6,7 @@
 @c Author: Darren Vengroff <darrenv@eecs.umich.edu>
 @c Created: 12/9/94
 @c
-@c $Id: tpie.texi,v 1.2 1994-12-16 21:09:48 darrenv Exp $
+@c $Id: tpie.texi,v 1.3 1995-01-10 16:41:28 darrenv Exp $
 @c
 @comment %**start of header
 
@@ -32,8 +32,7 @@ This file documents TPIE, A Transparent Parallel I/O Environment
 
 Copyright @copyright{} 1994 Darren Erik Vengroff
 
-This is a DRAFT version of this document, which is not intended for
-redistribution. 
+This is a DRAFT version of this document.
 
 Permission will be granted to copy and distribute a future version of
 this manual under the terms of the GNU public license, version 2.
@@ -52,8 +51,7 @@ Copyright @copyright{} 1994 Darren Erik Vengroff
 
 @today{}
 
-This is a DRAFT version of this document, which is not intended for
-redistribution. 
+This is a DRAFT version of this document.
 
 Permission will be granted to copy and distribute a future version of
 this manual under the terms of the GNU public license, version 2.
@@ -62,7 +60,7 @@ this manual under the terms of the GNU public license, version 2.
 @c the author's name so that it goes onto the table of contents page.
 
 @ifset html
-@author by Darren Erik Vengroff <P> <P> <P> Copyright @copyright{} 1994 Darren Erik Vengroff<P>@today{}<P>This is a DRAFT version of this document, which is not intended for redistribution.<P>Permission will be granted to copy and distribute a future version of this manual under the terms of the GNU public license, version 2.
+@author by <A HREF="http://www.cs.duke.edu/~dev/HomePage.html">Darren Erik Vengroff</A><P> <P> <P> Copyright @copyright{} 1994 Darren Erik Vengroff<P>@today{}<P>This is a DRAFT version of this document.<P>Permission will be granted to copy and distribute a future version of this manual under the terms of the GNU public license, version 2.
 @end ifset
 @end titlepage
 
@@ -77,6 +75,8 @@ this manual under the terms of the GNU public license, version 2.
 * AMI Reference::               Detailed description of the AMI.
 * Implementation::              The design and implementation of TPIE
 * Examples::                    Code to solve real problems with TPIE.
+* Test and Sample Applications::
+                                Descriptions of code provided with TPIE.
 
 * Acknowledgements::            Thanks to everyone who contributed.
 
@@ -87,39 +87,31 @@ this manual under the terms of the GNU public license, version 2.
 
 Installing TPIE
 
-* Licensing::                   The terms under which TPIE is distributed.
-* Where to get TPIE::           How to get the source code to TPIE.
-* Prerequisites::               What you need to build TPIE from sources.
-* Installation::                How to build and install TPIE.
+* Licensing::                   The terms under which TPIE is distributed
+* Where to get TPIE::           How to get the source code to TPIE
+* Prerequisites::               What you need to build TPIE from sources
+* Installation::                How to build and install TPIE
 
 Tutorial
 
 * Basic Concepts::              Basic concepts of TPIE.
-
-Scanning
-
 * Basic Scanning::              Using @code{AMI_scan()}.
 * ASCII Input/Output::          I/O between streams and human readable files.
 * Multi-Type Scanning::         Scanning streams of different types.
 * Out of Step Scanning::        An advanced scanning technique.
-
-Multi-stream Operations
-
 * Merging::                     Using @code{AMI_merge()}.
 * Implementing mergesort::      An extended example.
 * Distribution::                Using @code{AMI_distribute()}.
-
-Permuting and Sorting
-
 * General Permuting::           Using @code{AMI_general permute()}.
 * Bit Permuting::               Using @code{AMI_BMMC_permute()}.
 * Sorting::                     Using @code{AMI_sort()}.
+* Basic Matrix Operations::     Matrix arithmetic.
 
 AMI Reference
 
 * AMI Streams::                 Streams of data.
-* AMI Operation Managers::      Operation Managers.
-* AMI Entry Points::            Entry Points.
+* AMI Operation Managers::      Operation Managers
+* AMI Entry Points::            Entry Points
 
 AMI Entry Points
 
@@ -139,6 +131,12 @@ Examples
 
 * Convex Hull::                 Graham's scan for 2-D convex hull
 * List-Ranking::                Based on an algorithm from SODA '95
+
+Test and Sample Applications
+
+* General Structure and Operation::  
+* Test Programs::               
+* Sample Applications::         
 @end menu
 
 @node    Overview, Obtaining and Installing TPIE, Top, Top
@@ -175,19 +173,32 @@ is intended to demonstrate that a parallel I/O system can do all of
 the following simultaneously:
 
 @itemize @bullet
-  @item Abstract away the details of how I/O is performed so that programmers need only deal with a simple high level interface.
-
-  @item Implement I/O-optimal paradigms for large scale computation that are efficient not only in theory, but also in practice.
-
-  @item Remain flexible, allowing programmers to specify the functional details of computation taking place within the supported paradigms.  This will allow a wide variety of algorithms to be implemented within the system.
-
-  @item Be portable across a variety hardware platforms.
-
-  @item Be extensible, so that new features can be easily added later.  
+@item 
+Abstract away the details of how I/O is performed so that programmers need only deal with a simple high level interface.
+@item 
+Implement I/O-optimal paradigms for large scale computation that are efficient not only in theory, but also in practice.
+@item 
+Remain flexible, allowing programmers to specify the functional details of computation taking place within the supported paradigms.  This will allow a wide variety of algorithms to be implemented within the system.
+@item 
+Be portable across a variety hardware platforms.
+@item 
+Be extensible, so that new features can be easily added later.  
 @end itemize
 
-Talk about C++ implementation and mention some C++ books.
+TPIE is implemented as a set of templated classes and functions in
+C++.  It also includes a small library and a set of test and sample
+applications.
 
+If you would like the use TPIE but are not familiar with the C++
+language, a number of good books are available.  If you are familiar
+with C, a good book is @cite{C++ for C Programmers} by Ira Pohl.  A more
+basic, but very comprehensive book is @cite{C++: How to Program}
+by Deitel and Deitel, Prentice-Hall, 1994.  Once you know the basics,
+an excellent source of information on intermediate and advanced C++ is
+@cite{Effective C++} by Scott Meyers, Addison Wesley, 1992.  Finally,
+the definitive book on C++, though not necessarily the bast place for
+new programmers to start, is @cite{The Annotated C++ Reference Manual}
+by Ellis and Stroustrup, Addison Wesley, 1990. 
 
 @node Obtaining and Installing TPIE, Tutorial, Overview, Top
 @comment  node-name,  next,  previous,  up
@@ -207,7 +218,7 @@ Talk about C++ implementation and mention some C++ books.
 @section Licensing
 
 Once TPIE enters beta testing it will be made available to all under
-the terms of the GNU general public license, version 2.
+the terms of the GNU General Public License, version 2.
 
 For now it is being made available to alpha testers with NO WARRANTEE
 whatsoever.
@@ -219,7 +230,7 @@ whatsoever.
 TPIE is currently available to alpha testers.  If you would like to be
 a tester, please send email to @code{dev@@cs.duke.edu} to make
 arrangements to receive a copy.  Once TPIE enters beta testing it will
-be make generally available under the terms of the GNU general public
+be make generally available under the terms of the GNU General Public
 license, version 2.
 
 @node Prerequisites, Installation, Where to get TPIE, Obtaining and Installing TPIE
@@ -1494,7 +1505,7 @@ accomplish its task.
 Some comments on the current simple MM that we have and some OS issues
 that come up in attempting to make it more robust.
 
-@node Examples, Acknowledgements, Implementation, Top
+@node Examples, Test and Sample Applications, Implementation, Top
 @comment  node-name,  next,  previous,  up
 @chapter Examples
 @cindex Examples
@@ -1512,9 +1523,317 @@ to solve problems using TPIE.
 @section Convex Hull
 @cindex Convex Hull
 
-This is a very simple example.  It's just a matter of doing a sort and
-then a scan.  The scan is a little tricky though, because is uses a
-stack that must be in external memory also.
+The convex hull of a set of points in the plane is the smallest convex
+polygon which encloses all of the points.  Graham's scan is a simple
+algorithm for computing convex hulls.  It should be discussed in any
+introductory book on computational geometry, such as @cite{Preparata
+and Shamos}.  Although Graham's scan was not orginally designed for
+external memory, it can be implemented optimally in this setting.
+What is interesting about this implementation is that external memory
+stacks are used within the implementation of a scan management object.
+
+First, we need a data type for storing points.  We use the following
+simple class, which is templated to handle any numeric type.
+
+@smallexample
+template<class T>
+class point @{
+public:
+    T x;
+    T y;
+    point() @{@};
+    point(const T &rx, const T &ry) : x(rx), y(ry) @{@};
+    ~point() @{@};
+
+    inline int operator==(const point<T> &rhs) const @{
+        return (x == rhs.x) && (y == rhs.y);
+    @}
+    inline int operator!=(const point<T> &rhs) const @{
+        return (x != rhs.x) || (y != rhs.y);
+    @}
+
+    // Comparison is done by x.
+    int operator<(const point<T> &rhs) const @{
+        return (x < rhs.x);
+    @}
+
+    int operator>(const point<T> &rhs) const @{
+        return (x > rhs.x);
+    @}
+    
+    friend ostream& operator<<(ostream& s, const point<T> &p);
+    friend istream& operator>>(istream& s, point<T> &p);
+@};
+@end smallexample
+
+Once the points are s by their @var{x} values, we simply scan them to
+produce the upper and lower hulls, each of which are stored as a stack
+pointed to by the scan management object.  We then concatenate the
+stacks to produce the final hull.  The code for computing the convex
+hull of a set of points is thus
+
+@smallexample
+template<class T>
+AMI_err convex_hull(AMI_STREAM< point<T> > *instream,
+                    AMI_STREAM< point<T> > *outstream)
+@{
+    AMI_err ae;
+
+    point<T> *pt;
+
+    AMI_stack< point<T> > uh((unsigned int)0, instream->stream_len());
+    AMI_stack< point<T> > lh((unsigned int)0, instream->stream_len());
+
+    AMI_STREAM< point<T> > in_sort((unsigned int)0,
+                                   instream->stream_len());
+        
+    // Sort the points by x.
+
+    ae = AMI_sort(instream, &in_sort);
+    
+    // Compute the upper hull and lower hull in a single scan.
+
+    scan_ul_hull<T> sulh;
+
+    sulh.uh_stack = &uh;
+    sulh.lh_stack = &lh;
+    
+    ae = AMI_scan((AMI_base_stream< point<T> > *)&in_sort,
+                  &sulh);
+
+    // Copy the upper hull to the output.
+
+    uh.seek(0);
+    
+    while (1) @{
+        ae = uh.read_item(&pt);
+        if (ae == AMI_ERROR_END_OF_STREAM) @{
+            break;
+        @} else if (ae != AMI_ERROR_NO_ERROR) @{
+            return ae;
+        @}
+
+        ae = outstream->write_item(*pt);
+        if (ae != AMI_ERROR_NO_ERROR) @{
+            return ae;
+        @}
+    @}
+    
+    // Reverse the lower hull, concatenating it onto the upper hull.
+
+    while (lh.pop(&pt) == AMI_ERROR_NO_ERROR) @{
+        ae = outstream->write_item(*pt);
+        if (ae != AMI_ERROR_NO_ERROR) @{
+            return ae;
+        @}
+    @}
+
+    return AMI_ERROR_NO_ERROR;
+@}
+@end smallexample
+
+The only thing that remains is to define a scan management object that
+is capable of producing the upper and lower hulls by scanning the
+points.  According to the Graham's scan algorithm, we produce the
+upper hull by moving forward in the @var{x} direction, adding each
+point we encounter to the upper hull, until we find one that induces a
+concave turn on the surface of the hull.  We then move backwards
+through the list of points that have been added to the hull,
+eliminating points until a convex path is reestablished.  This process
+is made efficient by storing the points on the hull so far in a stack.
+The code for the scan management object, which relies on the function
+@code{ccw()} to actually determine whether a corner is
+convex or not, is as follows:
+
+@smallexample
+template<class T>
+class scan_ul_hull : AMI_scan_object @{
+public:
+    AMI_stack< point <T> > *uh_stack, *lh_stack;
+
+    scan_ul_hull(void);
+    virtual ~scan_ul_hull(void);
+    AMI_err initialize(void);
+    AMI_err operate(const point<T> &in, AMI_SCAN_FLAG *sfin);
+@};
+
+template<class T>
+scan_ul_hull<T>::scan_ul_hull(void) : uh_stack(NULL), lh_stack(NULL)
+@{
+@}
+
+template<class T>
+scan_ul_hull<T>::~scan_ul_hull(void)
+@{
+@}
+
+template<class T>
+AMI_err scan_ul_hull<T>::initialize(void)
+@{
+    return AMI_ERROR_NO_ERROR;
+@}
+
+
+template<class T>
+AMI_err scan_ul_hull<T>::operate(const point<T> &in,
+                                 AMI_SCAN_FLAG *sfin)
+@{
+    AMI_err ae;
+
+    // If there is no more input we are done.
+    if (!*sfin) @{
+        return AMI_SCAN_DONE;
+    @}
+
+    if (!uh_stack->stream_len()) @{
+
+        // If there is nothing on the stacks then put the first point
+        // on them.
+        ae = uh_stack->push(in);
+        if (ae != AMI_ERROR_NO_ERROR) @{
+            return ae;
+        @}
+
+        ae = lh_stack->push(in);
+        if (ae != AMI_ERROR_NO_ERROR) @{
+            return ae;
+        @}
+
+    @} else @{
+
+        // Add to the upper hull.
+
+        @{
+            // Pop the last two points off.
+
+            point<T> *p1, *p2;
+
+            tp_assert(uh_stack->stream_len() >= 1, "Stack is empty.");
+            
+            uh_stack->pop(&p2);
+
+            // If the point just popped is equal to the input, then we
+            // are done.  There is no need to have both on the stack.
+            
+            if (*p2 == in) @{
+                uh_stack->push(*p2);
+                return AMI_SCAN_CONTINUE;
+            @}
+            
+            if (uh_stack->stream_len() >= 1) @{
+                uh_stack->pop(&p1);
+            @} else @{
+                p1 = p2;
+            @}
+            
+            // While the turn is counter clockwise and the stack is
+            // not empty pop another point.
+            
+            while (1) @{                
+                if (ccw(*p1,*p2,in) >= 0) @{
+                    // It does not turn the right way.  The points may
+                    // be colinear.
+                    if (uh_stack->stream_len() >= 1) @{
+                        // Move backwards to check another point.
+                        p2 = p1;
+                        uh_stack->pop(&p1);
+                    @} else @{
+                        // Nothing left to pop, so we can't move
+                        // backwards.  We're done.
+                        uh_stack->push(*p1);
+                        if (in != *p1) @{
+                            uh_stack->push(in);
+                        @}
+                        break;
+                    @}
+                @} else @{
+                    // It turns the right way.  We're done.
+                    uh_stack->push(*p1);
+                    uh_stack->push(*p2);
+                    uh_stack->push(in);
+                    break;
+                @}
+            @}
+        @}
+
+        // Add to the lower hull.
+
+        @{
+            // Pop the last two points off.
+
+            point<T> *p1, *p2;
+
+            tp_assert(lh_stack->stream_len() >= 1, "Stack is empty.");
+            
+            lh_stack->pop(&p2);
+
+            // If the point just popped is equal to the input, then we
+            // are done.  There is no need to have both on the stack.
+            
+            if (*p2 == in) @{
+                lh_stack->push(*p2);
+                return AMI_SCAN_CONTINUE;
+            @}
+            
+            if (lh_stack->stream_len() >= 1) @{
+                lh_stack->pop(&p1);
+            @} else @{
+                p1 = p2;
+            @}
+            
+            // While the turn is clockwise and the stack is
+            // not empty pop another point.
+            
+            while (1) @{                
+                if (ccw(*p1,*p2,in) <= 0) @{
+                    // It does not turn the right way.  The points may
+                    // be colinear.
+                    if (lh_stack->stream_len() >= 1) @{
+                        // Move backwards to check another point.
+                        p2 = p1;
+                        lh_stack->pop(&p1);
+                    @} else @{
+                        // Nothing left to pop, so we can't move
+                        // backwards.  We're done.
+                        lh_stack->push(*p1);
+                        if (in != *p1) @{
+                            lh_stack->push(in);
+                        @}
+                        break;
+                    @}
+                @} else @{
+                    // It turns the right way.  We're done.
+                    lh_stack->push(*p1);
+                    lh_stack->push(*p2);
+                    lh_stack->push(in);
+                    break;
+                @}
+            @}
+        @}       
+    @}
+
+    return AMI_SCAN_CONTINUE;    
+@}
+@end smallexample
+
+The function @code{ccw()} computes twice the signed area of a triangle in
+the plane by evaluating a 3 by 3 determinant.  The result is positive
+if and only if the the three points in order form a counterclockwise
+cycle.
+
+@smallexample
+template<class T>
+T ccw(const point<T> &p1, const point<T> &p2, const point<T> &p3)
+@{
+    T sa;
+    
+    sa = ((p1.x * p2.y - p2.x * p1.y) -
+          (p1.x * p3.y - p3.x * p1.y) +
+          (p2.x * p3.y - p3.x * p2.y));
+
+    return sa;
+@}
+@end smallexample
 
 @node List-Ranking,  , Convex Hull, Examples
 @comment  node-name,  next,  previous,  up
@@ -1522,9 +1841,12 @@ stack that must be in external memory also.
 @cindex List-Ranking
 
 List ranking is a fundamental problem in graph theory.  The problem is
-as follows:
-
-
+as follows: We are given the directed edges of a linked list in some
+arbitrary order.  Each edge is an ordered pair of node ids.  The first
+is the source of the edge and the second is the destination of the
+edge.  Our goal is to assign a weight to each edge corresponding to
+the number of edges that would have to be traversed to get from the
+head of the list to that edge.
 
 The code given below solves the list ranking problem using a simple
 randomized algorithm due to Chiang, Goodrich, Grove, Tamassia,
@@ -2027,7 +2349,192 @@ int main_mem_list_rank(edge *edges, size_t count)
 @}
 @end smallexample
 
-@node Acknowledgements, Function Index, Examples, Top
+@node Test and Sample Applications, Acknowledgements, Examples, Top
+@comment  node-name,  next,  previous,  up
+@chapter Test and Sample Applications
+
+@menu
+* General Structure and Operation::  
+* Test Programs::               
+* Sample Applications::         
+@end menu
+
+@node General Structure and Operation, Test Programs, Test and Sample Applications, Test and Sample Applications
+@comment  node-name,  next,  previous,  up
+@section General Structure and Operation
+
+The test and sample applications distributed with TPIE are in the
+@file{test} directory.  The test programs are designed primarily to
+test the operation of the system to verify that it has been installed
+correctly and is as bug free as possible.  These applications all have
+names of the form @file{test_*}.  The sample applications are designed
+to demonstrate the use of TPIE in the solution of non-trivial
+problems.
+
+The test and sample applications all share a small amount of common
+initialization and argument parsing code.  They all include the header
+file @file{app_config.h}, which selects a particular implementation of
+streams at the AMI (@pxref{AMI}) and BTE (@pxref{BTE}) levels.  They
+also all use the same argument parsing function @code{parse_args()},
+which parses certain default arguments and then uses a callback
+function for arguments specific to one particular application.
+
+Much of the functionality provided by the common initialization and
+argument passing code is intended to eventually be subsumed by
+operating system provided services.  For example, the amount of main
+memory a particular application is permitted to use can be set via a
+command line argument.  It is up to the user to be sure that this
+number is reasonable and does not exceed the true amount of main
+memory available to the application.  In the future, it is hoped that
+this information will be provided by the operating system.
+
+@code{parse_args()} is declared as follows:
+
+@deftypefun void parse_args(int @var{argc}, char **@var{argv}, const char *@var{aso} = NULL, void (*@var{parse_app})(char @var{opt}, char *@var{optarg}) = NULL);
+Given @var{argc} and @var{argv} as passed to @code{main()} at program
+startup, parse common arguments as outlined below.
+If @var{aso} is not @code{NULL}, it should point to a string of
+command line arguments valid for this particular application and
+@var{parse_app} should point to a callback function to perform
+application specific setup based on arguments appearing in @var{aso}.
+@end deftypefun
+
+The following is a summary of the common command line arguments that
+are parsed by @code{parse_args()}.
+@table @samp
+@item -t testsize
+Set the size of the test to be run to @var{testsize}.  Typically this
+is the number of objects to be put into the application produced input
+stream.  In matrix tests, however, it is the number of rows and
+columns is the test matrices.  If this argument is not passed, then
+the default value of 8 Meg is used.
+@item -m memsize
+The number of bytes of main memory that the application is permitted to
+use.  The MM (@pxref{MM}) will ensure that no more than this amount is
+used.  If this option is not specified, then a default value of 2 Mb
+is used.
+@item -z randomseed
+Seed the random number generator with the value @var{randomseed}.
+This is useful for debugging or testing, when we want several runs of
+the application to rely on the same series of pseudo-random numbers.
+For applications that do not generate test data randomly, this has no
+effect. 
+@item -v
+Toggle verbose mode.  When running in verbose mode, report major
+actions of the running program to @file{stdout}.
+@end table
+
+Each application specific argument appears in the string pointed to by
+@var{aso} as a single character, possibly followed by the single
+character @samp{:}, indicating that the argument requires a value.
+For example, if @var{aso} pointed to the string @samp{ax:z} then the
+following command line arguments would all be parsed correctly:
+@table @samp
+@item -a
+
+@item -x 123
+
+@item -a -x 123
+
+@item -ax123
+
+@item -x123 -a
+@end table
+In each case, @var{parse_app()} would be called to take some
+application specific action for each of the arguments.  It would be
+called once with @var{opt} set to @samp{a} and @var{optarg} set to
+@code{NULL}, and/or once with @var{opt} set to @samp{x} and
+@var{optarg} pointing to the string @samp{123}.  When multiple arguments
+are present on the command line, they are parsed from left to right.
+
+The following is an example of how a test application, in this case
+@code{test_ami_sort}, can use application specific command line
+arguments to set up it's global state.
+
+@smallexample
+static const char as_opts[] = "R:S:rsao";
+void parse_app_opt(char c, char *optarg)
+@{
+    switch (c) @{
+        case 'R':
+            rand_results_filename = optarg;
+        case 'r':
+            report_results_random = true;
+            break;
+        case 'S':
+            sorted_results_filename = optarg;
+        case 's':
+            report_results_sorted = true;
+            break;
+        case 'a':
+            sort_again = !sort_again;
+            break;
+        case 'o':
+            use_operator = !use_operator;
+            break;
+    @}
+@}
+
+int main(int argc, char **argv)
+@{
+    parse_args(argc,argv,as_opts,parse_app_opt);
+
+    ...
+
+    return 0;
+@}
+@end smallexample
+
+@node Test Programs, Sample Applications, General Structure and Operation, Test and Sample Applications
+@comment  node-name,  next,  previous,  up
+@section Test Programs
+
+The test programs include with TPIE are as follows:
+
+@table @file
+@item test_ami_pmerge
+Test @code{AMI_partition_and_merge()}.
+@xref{Merging}.
+@item test_ami_sort
+Test @code{AMI_sort()}.
+@xref{Sorting}.
+@item test_ami_gp
+Test @code{AMI_general_permute()}.
+@xref{General Permuting}.
+@item test_matrix test_bit_matrix
+Test main memory matrix manipulation and arithmetic.  This is used
+both by the bit permuting code (@pxref{Bit Permuting}) and for
+internal manipulation of sub-matrices of external memory matrices
+(@pxref{Basic Matrix Operations}).
+@item test_ami_matrix
+Test external matrix arithmetic.
+@xref{Basic Matrix Operations}.
+@item test_ami_stack
+Test external memory stacks.
+@item test_ami_arith
+Test element-wise arithmetic on external memory streams.
+@end table
+
+@node Sample Applications,  , Test Programs, Test and Sample Applications
+@comment  node-name,  next,  previous,  up
+@section Sample Applications
+
+The sample applications include with TPIE are as follows:
+
+@table @file
+@item ch2
+Two dimensional convex hull program using Graham's scan.  It is
+implemented using a scan management object that maintains the upper
+and lower hull internally as external memory stacks.  Much of the code
+in this application appears in this document.  @xref{Convex Hull}
+@item lr
+An implementation of an asymptotically optimal list ranking algorithm.
+The idea of geometrically decreasing computation is used.  Much of the code
+in this application appears in this document.  @xref{List-Ranking}.
+@end table
+
+
+@node Acknowledgements, Function Index, Test and Sample Applications, Top
 @comment  node-name,  next,  previous,  up
 @unnumbered Acknowledgements
 
@@ -2087,6 +2594,15 @@ Dartmouth College Department of Computer Science, for MIPS based
 DECstations running Ultrix.
 @end ifclear
 
+Finally, I would like to thank 
+@ifset html
+<A HREF="http://www.cs.duke.edu/~ola/HomePage.html">Owen Astrachan</A>
+@end ifset
+@ifclear html
+Owen Astrachan
+@end ifclear
+for his helpful discussions on some of the finer points of the C++
+language.
 
 @node Function Index, Concept Index, Acknowledgements, Top
 @comment    node-name,         next,       previous, up
