@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/19/94
 //
-// $Id: scan_random_point.h,v 1.3 1995-06-30 21:09:31 darrenv Exp $
+// $Id: scan_random_point.h,v 1.4 1999-02-03 22:15:44 tavi Exp $
 //
 #ifndef _SCAN_RANDOM_POINT_H
 #define _SCAN_RANDOM_POINT_H
@@ -26,13 +26,5 @@ public:
     AMI_err initialize(void);
     AMI_err operate(point<int> *out1, AMI_SCAN_FLAG *sf);
 };
-
-#ifdef NO_IMPLICIT_TEMPLATES
-
-#define TEMPLATE_INSTANTIATE_SCAN_RANDOM_POINT				\
-template AMI_err AMI_scan(scan_random_point *,				\
-                          AMI_STREAM< point<int> > *);
-
-#endif
 
 #endif // _SCAN_RANDOM_POINT_H 

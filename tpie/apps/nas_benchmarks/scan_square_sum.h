@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 3/23/95
 //
-// $Id: scan_square_sum.h,v 1.1 1995-04-03 13:18:46 dev Exp $
+// $Id: scan_square_sum.h,v 1.2 1999-02-03 22:16:20 tavi Exp $
 //
 #ifndef _SCAN_SQUARE_SUM_H
 #define _SCAN_SQUARE_SUM_H
@@ -35,13 +35,5 @@ public:
         }
     };
 };
-
-
-#ifdef NO_IMPLICIT_TEMPLATES
-#define TEMPLATE_INSTANTIATE_SCAN_SS(T)					\
-template class scan_square_sum<T>;					\
-template AMI_err AMI_scan(AMI_STREAM<T> *,				\
-                          scan_square_sum<T> *);
-#endif
 
 #endif // _SCAN_SQUARE_SUM_H 

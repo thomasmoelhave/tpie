@@ -5,7 +5,7 @@
 // Created: 6/2/94
 //
 
-static char test_ami_merge_id[] = "$Id: test_ami_merge.cpp,v 1.8 1995-06-30 21:09:43 darrenv Exp $";
+static char test_ami_merge_id[] = "$Id: test_ami_merge.cpp,v 1.9 1999-02-03 22:24:18 tavi Exp $";
 
 // This is just to avoid an error message since the string above is never
 // refereneced.  Note that a self referential structure must be defined to
@@ -205,28 +205,3 @@ int main(int argc, char **argv)
     
     return 0;
 }
-
-
-
-// Instantiate all the templates we have used.
-
-#ifdef NO_IMPLICIT_TEMPLATES
-
-// Instantiate templates for streams of objects.
-TEMPLATE_INSTANTIATE_STREAMS(int)
-
-// Instantiate templates for I/O using C++ streams.
-TEMPLATE_INSTANTIATE_OSTREAM(int)
-
-// Templated scan/merge management objects used by this program.
-template class scan_square<int>;
-template class merge_interleave<int>;
-
-// Calls to AMI_scan using various object types.
-template AMI_err AMI_scan(scan_count *, AMI_STREAM<int> *);
-template AMI_err AMI_scan(AMI_STREAM<int> *, scan_square<int> *,
-                          AMI_STREAM<int> *);
-
-TEMPLATE_INSTANTIATE_MERGE(int)
-
-#endif
