@@ -11,13 +11,14 @@
 // generating this file.  The header, stored in ami_scan.h.head, may be
 // edited if necessary.
 //
-// $Id: ami_scan.h.head,v 1.4 2003-04-20 22:57:13 tavi Exp $
+// $Id: ami_scan.h.head,v 1.5 2003-04-20 23:12:42 tavi Exp $
 //
 //
 #ifndef _AMI_SCAN_H
 #define _AMI_SCAN_H
 
 #include <ami_err.h>
+#include <ami_stream.h>
 
 typedef int AMI_SCAN_FLAG;
 
