@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/12/94
 //
-// $Id: logstream.h,v 1.9 1999-04-08 01:39:13 rajiv Exp $
+// $Id: logstream.h,v 1.10 1999-04-08 16:39:44 rajiv Exp $
 //
 #ifndef _LOGSTREAM_H
 #define _LOGSTREAM_H
@@ -57,7 +57,11 @@ template <class TP> class logmanip {
 public:
     logmanip(logstream& (*f)(logstream&, TP), TP a) : _f(f), _a(a) {}
 
+#if (__GNUC__ > 2) || (__GNUC__ == 2 &&  __GNUC_MINOR__ >= 8)
     friend logstream& operator<< <> (logstream& o, const logmanip<TP>& m);
+#else
+    friend logstream& operator<< (logstream& o, const logmanip<TP>& m);
+#endif
 };
 
 template<class TP>
