@@ -6,7 +6,7 @@
 //
 
 #include <versions.h>
-VERSION(bit_cpp,"$Id: bit.cpp,v 1.3 2003-04-17 20:49:35 jan Exp $");
+VERSION(bit_cpp,"$Id: bit.cpp,v 1.4 2003-04-20 06:44:01 tavi Exp $");
 
 #include <bit.h>
 
@@ -70,7 +70,7 @@ bit operator*(bit op1, bit op2)
 }
 
 
-ostream &operator<<(ostream &s, bit b)
+std::ostream &operator<<(std::ostream &s, bit b)
 {
     return s << int(b.data);
 }

@@ -5,7 +5,7 @@
 //
 
 #include "versions.h"
-VERSION(ami_device_cpp,"$Id: ami_device.cpp,v 1.11 2003-04-17 20:40:45 jan Exp $");
+VERSION(ami_device_cpp,"$Id: ami_device.cpp,v 1.12 2003-04-20 06:44:01 tavi Exp $");
 
 #include "lib_config.h"
 
@@ -131,7 +131,7 @@ AMI_err AMI_device::read_environment(const char *name)
 
 
 // Output of a device description:
-ostream &operator<<(ostream &os, const AMI_device &dev)
+std::ostream &operator<<(std::ostream &os, const AMI_device &dev)
 {
     unsigned int ii;
 
