@@ -4,7 +4,7 @@
 // Created: 02/02/02
 //
 #include <versions.h>
-VERSION(tpie_tempnam_cpp,"$Id: tpie_tempnam.cpp,v 1.4 2003-04-17 21:05:24 jan Exp $");
+VERSION(tpie_tempnam_cpp,"$Id: tpie_tempnam.cpp,v 1.5 2004-04-16 21:34:06 adanner Exp $");
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,7 +19,7 @@ char *tpie_mktemp(char *str);
 /* like tempnam, but consults environment in an order we like; note
  * that the returned pointer is to static storage, so this function is
  * not re-entrant. */
-char *tpie_tempnam(char *base, const char* dir) {
+char *tpie_tempnam(const char *base, const char* dir) {
   char *base_dir;
   static char tmp_path[BUFSIZ];
   char *path;

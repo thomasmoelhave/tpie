@@ -3,7 +3,7 @@
 // Author: 
 // Created: 02/02/02
 //
-// $Id: tpie_tempnam.h,v 1.3 2003-04-17 20:09:02 jan Exp $
+// $Id: tpie_tempnam.h,v 1.4 2004-04-16 21:33:29 adanner Exp $
 //
 //
 #ifndef _TPIE_TEMPNAM_H
@@ -19,6 +19,6 @@
 // descriptions.
 #define AMI_SINGLE_DEVICE_ENV "AMI_SINGLE_DEVICE"
 
-char *tpie_tempnam(char *base, const char *dir = NULL);
+char *tpie_tempnam(const char *base, const char *dir = NULL);
 
 #endif // _TPIE_TEMPNAM_H 
