@@ -2,7 +2,7 @@
 // File: ami_stream.h (formerly part of ami.h and ami_imps.h)
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 //
-// $Id: ami_stream.h,v 1.3 2002-01-15 03:38:20 tavi Exp $
+// $Id: ami_stream.h,v 1.4 2002-02-02 18:12:48 tavi Exp $
 //
 #ifndef _AMI_STREAM_H
 #define _AMI_STREAM_H
@@ -16,14 +16,6 @@
 
 // Include the configuration header.
 #include <config.h>
-
-// Some basic constants
-
-// The name of the environment variable pointing to a tmp directory.
-#define TMP_DIR_ENV "TMPDIR"
-
-// The name of a tmp directory to use if the env variable is not set.
-#define TMP_DIR "/var/tmp"
 
 // Get the base class, enums, etc...
 #include <ami_err.h>
