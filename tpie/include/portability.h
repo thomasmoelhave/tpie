@@ -3,7 +3,7 @@
 // Created: 2002/10/30
 // Authors: Joerg Rotthowe, Jan Vahrenhold, Markus Vogel
 //
-// $Id: portability.h,v 1.16 2003-09-16 15:03:31 tavi Exp $
+// $Id: portability.h,v 1.17 2003-09-17 03:06:34 tavi Exp $
 //
 // This header-file offers macros for independent use on Win and Unix systems.
 
@@ -50,7 +50,10 @@
 
 // for reading command line parameter //
 #ifdef _WIN32
-#include <strstrea.h>  // 8-letter file name(!)
+//#include <strstrea.h>  // 8-letter file name(!)
+#include <sstream>
+using std::ostringstream;
+//using std::basic_ostringstream;
 #else
 #include <sstream>
 #endif
@@ -71,6 +74,11 @@ using std::less;
 #include <algorithm>
 using std::lower_bound;
 using std::upper_bound;
+using std::unique;
+#include <vector>
+using std::vector;
+#include <queue>
+using std::queue;
 #else
 using namespace std;
 #endif
@@ -176,6 +184,8 @@ typedef off_t TPIE_OS_OFFSET;
 #ifdef _WIN32
 #else
 typedef long LONG;
+typedef int64_t LONGLONG;
+typedef uint64_t ULONGLONG;
 #endif	
 
 #ifdef _WIN32
