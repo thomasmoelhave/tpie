@@ -1,7 +1,7 @@
 //
 // File: ami_sort_single_dh.h
 //
-// $Id: ami_sort_single_dh.h,v 1.12 2002-06-26 22:40:04 tavi Exp $
+// $Id: ami_sort_single_dh.h,v 1.13 2003-04-17 14:08:45 jan Exp $
 //
 // This file contains the templated routines
 //     1) AMI_sort:
@@ -9,17 +9,11 @@
 //                              AMI_STREAM<T> *outstream)
 //          b) AMI_err AMI_sort(AMI_STREAM<T> *instream, 
 //                              AMI_STREAM<T> *outstream,
-//                              int (*cmp)(CONST T&, CONST T&))
-//          c) AMI_err AMI_sort(AMI_STREAM<T> *instream, 
-//                              AMI_STREAM<T> *outstream,
 //                              CMPR *cmp)
 //     2) AMI_ptr_sort
 //          a) AMI_err AMI_ptr_sort(AMI_STREAM<T> *instream, 
 //                                  AMI_STREAM<T> *outstream)
 //          b) AMI_err AMI_ptr_sort(AMI_STREAM<T> *instream, 
-//                                  AMI_STREAM<T> *outstream,
-//                                  int (*cmp)(CONST T&, CONST T&))
-//          c) AMI_err AMI_ptr_sort(AMI_STREAM<T> *instream, 
 //                                  AMI_STREAM<T> *outstream,
 //                                  CMPR *cmp)
 //     3) AMI_key_sort
@@ -31,8 +25,7 @@
 // and the supporting routines
 //     sort_manager : a base class for sort managers
 //     sort_manager_op : used in 1a, 2a
-//     sort_manager_obj : used in 1b, 2b
-//     sort_manager_cmp : used in 1c, 2c
+//     sort_manager_cmp : used in 1b, 2b
 //     sort_manager_kobj : used in 3a
 // 
 
@@ -49,6 +42,9 @@
  
 #ifndef _AMI_SORT_SINGLE_DH_H
 #define _AMI_SORT_SINGLE_DH_H
+
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 #ifndef AMI_STREAM_IMP_SINGLE
 #warning Including __FILE__ when AMI_STREAM_IMP_SINGLE undefined.
@@ -83,8 +79,8 @@ protected:
     size_t              mm_len;        // size of a memory load
     size_t              item_overhead; // space overhead per item
 public:
-            sort_manager(void);
-            ~sort_manager(void);
+    sort_manager(void);
+    ~sort_manager(void);
     bool    sort_fits_in_memory(AMI_STREAM<T> *, size_t sz_avail);
     AMI_err main_mem_operate_init(size_t);
     AMI_err main_mem_operate_cleanup();
@@ -118,27 +114,27 @@ inline bool sort_manager<T,Q>::sort_fits_in_memory (AMI_STREAM <T> *instream, si
 
 template<class T,class Q>
 inline AMI_err sort_manager<T,Q>::main_mem_operate_init(size_t szMemoryLoad) {
-   LOG_DEBUG_ID("Starting sort_manager.main_mem_operate_init");
-   item_overhead = 0;
-   mm_len        = szMemoryLoad;
-   mmStream      = new T[szMemoryLoad];
-   //if (mmStream == NULL) {
-   //   LOG_FATAL_ID ("Misjudged available main memory.");
-   //   return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
-   //}
-   LOG_DEBUG_ID("Ending sort_manager.main_mem_operate_init");
-   return AMI_ERROR_NO_ERROR;
+    LOG_DEBUG_ID("Starting sort_manager.main_mem_operate_init");
+    item_overhead = 0;
+    mm_len        = szMemoryLoad;
+    mmStream      = new T[szMemoryLoad];
+    //if (mmStream == NULL) {
+    //   LOG_FATAL_ID ("Misjudged available main memory.");
+    //   return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
+    //}
+    LOG_DEBUG_ID("Ending sort_manager.main_mem_operate_init");
+    return AMI_ERROR_NO_ERROR;
 }
 
 template<class T,class Q>
 inline AMI_err sort_manager<T,Q>::main_mem_operate_cleanup() {
-   LOG_DEBUG_ID("Starting sort_manager.main_mem_operate_cleanup");
-   if (mmStream) {
-      delete[]mmStream;
-      mmStream = NULL;
-   }
-   LOG_DEBUG_ID("Ending sort_manager.main_mem_operate_cleanup");
-   return AMI_ERROR_NO_ERROR;
+    LOG_DEBUG_ID("Starting sort_manager.main_mem_operate_cleanup");
+    if (mmStream) {
+	delete[]mmStream;
+	mmStream = NULL;
+    }
+    LOG_DEBUG_ID("Ending sort_manager.main_mem_operate_cleanup");
+    return AMI_ERROR_NO_ERROR;
 }
 
 template<class T, class Q>
@@ -163,8 +159,8 @@ template <class T, class Q>
 class sort_manager_op  : public sort_manager<T,Q>  {
 private:
 public:
-                sort_manager_op(void);    
-                ~sort_manager_op(void);    
+    sort_manager_op(void);    
+    ~sort_manager_op(void);    
     Q           MergeHeap;
     AMI_err     main_mem_operate( AMI_STREAM <T>*, AMI_STREAM <T>*, size_t);
     AMI_err     single_merge(AMI_STREAM<T> **, arity_t, AMI_STREAM<T> * );
@@ -180,52 +176,53 @@ sort_manager_op<T,Q>::~sort_manager_op(void){
 
 template<class T,class Q>
 inline AMI_err sort_manager_op<T,Q>::single_merge ( 
-                               AMI_STREAM < T > **inStreams, arity_t arity,
-                               AMI_STREAM < T > *outStream ) {
-   return AMI_single_merge_dh<T,Q>( inStreams, arity, outStream, MergeHeap );
+    AMI_STREAM < T > **inStreams, arity_t arity,
+    AMI_STREAM < T > *outStream ) {
+    return AMI_single_merge_dh<T,Q>( inStreams, arity, outStream, MergeHeap );
 };
 
 template<class T,class Q>
 inline AMI_err sort_manager_op<T,Q>::main_mem_operate (
-                               AMI_STREAM <T> *inStream, 
-                               AMI_STREAM <T> *outStream, size_t runSize ) {
-   AMI_err ae;
-   T    *next_item;
+    AMI_STREAM <T> *inStream, 
+    AMI_STREAM <T> *outStream, size_t runSize ) {
+    AMI_err ae;
+    T    *next_item;
+    size_t i = 0;
 
-   LOG_DEBUG_ID("starting sort_manager_op.main_mem_operate. runSize is " << 
-                runSize );
-   tp_assert ( runSize <= mm_len, "memory load larger than buffer.");
+    LOG_DEBUG_ID("starting sort_manager_op.main_mem_operate. runSize is " << 
+		 runSize );
+    tp_assert ( runSize <= mm_len, "memory load larger than buffer.");
 
-   // Read a memory load out of the input stream one item at a time,
-   // if key sorting fill up the key array at the same time.
+    // Read a memory load out of the input stream one item at a time,
+    // if key sorting fill up the key array at the same time.
 
-   for (int i = 0; i < runSize; i++) {
-      if ((ae=inStream->read_item (&next_item)) != AMI_ERROR_NO_ERROR) {
-         LOG_FATAL_ID ("sort_manager_op.main_mem_operate: AMI read error " << 
-                       ae);
-         return ae;
-      }
-      mmStream[i] = *next_item;
-   }
+    for (i = 0; i < runSize; i++) {
+	if ((ae=inStream->read_item (&next_item)) != AMI_ERROR_NO_ERROR) {
+	    LOG_FATAL_ID ("sort_manager_op.main_mem_operate: AMI read error " << 
+			  ae);
+	    return ae;
+	}
+	mmStream[i] = *next_item;
+    }
 
-   //Sort the array.
-   LOG_DEBUG_ID("sort_manager_op.main_mem_operate: calling quick_sort_op" <<
-                " for" << runSize << " items");
-   quick_sort_op ((T *) mmStream, runSize);
+    //Sort the array.
+    LOG_DEBUG_ID("sort_manager_op.main_mem_operate: calling quick_sort_op" <<
+		 " for" << runSize << " items");
+    quick_sort_op ((T *) mmStream, runSize);
 
-   LOG_DEBUG_ID("sort_manager_op.main_mem_operate: " << 
-                "starting main_mem_operate write out");
-   for (int i = 0; i < runSize; i++) {
-      if ((ae = outStream->write_item (mmStream[i])) 
-           != AMI_ERROR_NO_ERROR) {
-         LOG_FATAL_ID ("sort_manager_op.main_mem_operate: AMI write error " <<
-                       ae );
-         return ae;
-      }
-   }
-   LOG_DEBUG_ID("sort_manager_op.main_mem_operate: " << 
-                "returning from main_mem_operate");
-   return AMI_ERROR_NO_ERROR;
+    LOG_DEBUG_ID("sort_manager_op.main_mem_operate: " << 
+		 "starting main_mem_operate write out");
+    for (i = 0; i < runSize; i++) {
+	if ((ae = outStream->write_item (mmStream[i])) 
+	    != AMI_ERROR_NO_ERROR) {
+	    LOG_FATAL_ID ("sort_manager_op.main_mem_operate: AMI write error " <<
+			  ae );
+	    return ae;
+	}
+    }
+    LOG_DEBUG_ID("sort_manager_op.main_mem_operate: " << 
+		 "returning from main_mem_operate");
+    return AMI_ERROR_NO_ERROR;
 }
 
 
@@ -240,8 +237,8 @@ class sort_manager_obj   : public sort_manager<T,Q>  {
 private:
     CMPR         *cmp_o;
 public:
-                 sort_manager_obj(CMPR *cmp);
-                 ~sort_manager_obj(void);    
+    sort_manager_obj(CMPR *cmp);
+    ~sort_manager_obj(void);    
     Q            MergeHeap;
     AMI_err      main_mem_operate(AMI_STREAM <T>*, AMI_STREAM <T> *, size_t);
     AMI_err      single_merge(AMI_STREAM<T> **, arity_t, AMI_STREAM<T> * );
@@ -261,140 +258,55 @@ sort_manager_obj<T,Q,CMPR>::~sort_manager_obj(void)
 
 template<class T,class Q,class CMPR>
 inline AMI_err sort_manager_obj<T,Q,CMPR>::single_merge ( 
-                               AMI_STREAM < T > **inStreams, arity_t arity,
-                               AMI_STREAM < T > *outStream ) {
-   return AMI_single_merge_dh<T,Q>( inStreams, arity, outStream, MergeHeap );
+    AMI_STREAM < T > **inStreams, arity_t arity,
+    AMI_STREAM < T > *outStream ) {
+    return AMI_single_merge_dh<T,Q>( inStreams, arity, outStream, MergeHeap );
 };
 
 template<class T, class Q, class CMPR>
 inline AMI_err sort_manager_obj<T,Q,CMPR>::main_mem_operate(AMI_STREAM <T>*inStream, AMI_STREAM <T> *outStream, size_t runSize)
 {
-   AMI_err ae;
-   T    *next_item;
+    AMI_err ae;
+    T    *next_item;
+    size_t i = 0;
 
-   LOG_DEBUG_ID("starting sort_manager_obj.main_mem_operate. runSize is " << 
-                runSize );
-   tp_assert ( runSize <= mm_len, "memory load larger than buffer.");
+    LOG_DEBUG_ID("starting sort_manager_obj.main_mem_operate. runSize is " << 
+		 runSize );
+    tp_assert ( runSize <= mm_len, "memory load larger than buffer.");
 
-   // Read a memory load out of the input stream one item at a time,
-   // if key sorting fill up the key array at the same time.
+    // Read a memory load out of the input stream one item at a time,
+    // if key sorting fill up the key array at the same time.
 
-   for (int i = 0; i < runSize; i++) {
-      if ((ae=inStream->read_item (&next_item)) != AMI_ERROR_NO_ERROR) {
-         LOG_FATAL_ID ("sort_manager_obj.main_mem_operate: read error" <<
-                       ae);
-         return ae;
-      }
-      mmStream[i] = *next_item;
-   }
+    for (i = 0; i < runSize; i++) {
+	if ((ae=inStream->read_item (&next_item)) != AMI_ERROR_NO_ERROR) {
+	    LOG_FATAL_ID ("sort_manager_obj.main_mem_operate: read error" <<
+			  ae);
+	    return ae;
+	}
+	mmStream[i] = *next_item;
+    }
 
-   //Sort the array.
+    //Sort the array.
 
-   LOG_DEBUG_ID("sort_manager_obj.main_mem_operate: calling quick_sort_obj");
-   quick_sort_obj ((T *) mmStream, runSize, cmp_o);
+    LOG_DEBUG_ID("sort_manager_obj.main_mem_operate: calling quick_sort_obj");
+    quick_sort_obj ((T *) mmStream, runSize, cmp_o);
 
-   LOG_DEBUG_ID("sort_manager_obj.main_mem_operate: starting write out");
-   for (int i = 0; i < runSize; i++) {
-      if ((ae = outStream->write_item (mmStream[i])) 
-           != AMI_ERROR_NO_ERROR) {
-         LOG_FATAL_ID ("sort_manager_obj.main_mem_operate: write error " << 
-                       ae );
-         return ae;
-      }
-   }
-   LOG_DEBUG_ID("returning from sort_manager_obj.main_mem_operate");
-   return AMI_ERROR_NO_ERROR;
+    LOG_DEBUG_ID("sort_manager_obj.main_mem_operate: starting write out");
+    for (i = 0; i < runSize; i++) {
+	if ((ae = outStream->write_item (mmStream[i])) 
+	    != AMI_ERROR_NO_ERROR) {
+	    LOG_FATAL_ID ("sort_manager_obj.main_mem_operate: write error " << 
+			  ae );
+	    return ae;
+	}
+    }
+    LOG_DEBUG_ID("returning from sort_manager_obj.main_mem_operate");
+    return AMI_ERROR_NO_ERROR;
 }
 
 //template<class T, class Q, class CMPR>
 //size_t sort_manager_obj<T,Q,CMPR>::space_usage_overhead(void)
 //{
-//}
-
-// *********************************************************************
-// *                                                                   *
-// * Comparison function based merge sort manager.                     *
-// *                                                                   *
-// *********************************************************************
-
-template <class T, class Q>
-class sort_manager_cmp   : public sort_manager<T,Q>  {
-private:
-    int (*cmp_f)(CONST T&, CONST T&);
-public:
-    Q              MergeHeap;
-                   sort_manager_cmp (int (*cmp)(CONST T&, CONST T&));
-                   ~sort_manager_cmp(void);    
-    AMI_err        initialize();
-    AMI_err        main_mem_operate(AMI_STREAM <T>*, AMI_STREAM <T>*, size_t);
-    AMI_err        single_merge(AMI_STREAM<T> **, arity_t, AMI_STREAM<T> * );
-    //size_t         space_usage_overhead(void);
-};   
-
-
-template<class T,class Q>
-sort_manager_cmp<T,Q>::sort_manager_cmp(int (*cmp)(CONST T&, CONST T&) )
-    : MergeHeap ( cmp ) {
-    cmp_f = cmp;
-}
-
-template<class T, class Q>
-sort_manager_cmp<T,Q>::~sort_manager_cmp(void) {
-}
-
-template<class T,class Q>
-inline AMI_err sort_manager_cmp<T,Q>::single_merge ( 
-                               AMI_STREAM < T > **inStreams, arity_t arity,
-                               AMI_STREAM < T > *outStream ) {
-   return AMI_single_merge_dh<T,Q>( inStreams, arity, outStream, MergeHeap );
-};
-
-template<class T,class Q>
-inline AMI_err sort_manager_cmp<T,Q>::main_mem_operate(AMI_STREAM <T>*inStream, AMI_STREAM <T> *outStream, size_t runSize) {
-
-   AMI_err ae;
-   T    *next_item;
-
-   LOG_DEBUG_ID("starting sort_manager_cmp.main_mem_operate. runSize is " << 
-                runSize );
-   tp_assert ( runSize <= mm_len, "memory load larger than buffer.");
-
-   // Read a memory load out of the input stream one item at a time,
-   // if key sorting fill up the key array at the same time.
-
-   for (int i = 0; i < runSize; i++) {
-      if ((ae=inStream->read_item (&next_item)) != AMI_ERROR_NO_ERROR) {
-         LOG_FATAL_ID ("sort_manager_cmp.main_mem_operate: read error " <<
-                       ae );
-         return ae;
-      }
-      mmStream[i] = *next_item;
-   }
-
-   //Sort the array.
-
-   LOG_DEBUG_ID("sort_manager_cmp.main_mem_operate: calling quick_sort_cmp");
-   quick_sort_cmp ((T *) mmStream, runSize, cmp_f);
-
-   LOG_DEBUG_ID("sort_manager_cmp.main_mem_operate: starting write out");
-   for (int i = 0; i < runSize; i++) {
-      if ((ae = outStream->write_item (mmStream[i])) 
-           != AMI_ERROR_NO_ERROR) {
-         LOG_FATAL_ID ("sort_manager_cmp.main_mem_operate: write error " <<
-                       ae );
-         return ae;
-      }
-   }
-   LOG_DEBUG_ID("returning from sort_manager_cmp.main_mem_operate");
-   return AMI_ERROR_NO_ERROR;
-}
-
-//template<class T,class Q>
-//size_t sort_manager_cmp<T,Q>::space_usage_overhead(void){
-//}
-
-//template<class T, class Q>
-//AMI_err sort_manager_cmp<T,Q>::initialize( ){
 //}
 
 
@@ -408,17 +320,17 @@ template <class T, class Q, class KEY, class CMPR>
 class sort_manager_kobj  : public sort_manager<T,Q> {
 private:
     qsort_item<KEY> *qs_array;
-  //size_t          item_overhead;
+    //size_t          item_overhead;
     CMPR            *UsrObject;             
 public:
-                    sort_manager_kobj(CMPR *);    
-                    ~sort_manager_kobj(void);    
+    sort_manager_kobj(CMPR *);    
+    ~sort_manager_kobj(void);    
     Q               MergeHeap;
     AMI_err         main_mem_operate_init(size_t szMemoryLoad);
     AMI_err         main_mem_operate(AMI_STREAM <T>*, AMI_STREAM <T>*, size_t);
     AMI_err         main_mem_operate_cleanup();
     AMI_err         single_merge(AMI_STREAM<T> **, arity_t, AMI_STREAM<T> * );
-  // size_t          space_usage_overhead(void);
+    // size_t          space_usage_overhead(void);
     inline int compare ( CONST qsort_item<KEY> &x, CONST qsort_item<KEY> &y) {
         return (*UsrObject).compare( x.keyval, y.keyval );};
 };    
@@ -436,81 +348,82 @@ sort_manager_kobj<T,Q,KEY,CMPR>::~sort_manager_kobj(void){
 
 template<class T,class Q, class KEY,class CMPR>
 inline AMI_err sort_manager_kobj<T,Q,KEY,CMPR>::single_merge ( 
-                               AMI_STREAM < T > **inStreams, arity_t arity,
-                               AMI_STREAM < T > *outStream ) {
-   return AMI_single_merge_dh<T,Q>( inStreams, arity, outStream, MergeHeap);
+    AMI_STREAM < T > **inStreams, arity_t arity,
+    AMI_STREAM < T > *outStream ) {
+    return AMI_single_merge_dh<T,Q>( inStreams, arity, outStream, MergeHeap);
 };
 
 template<class T,class Q,class KEY,class CMPR>
 inline AMI_err sort_manager_kobj<T,Q,KEY,CMPR>::main_mem_operate_init(size_t szMemoryLoad) {
-   LOG_DEBUG_ID("Starting sort_manager_kobj.main_mem_operate_init");
-   mm_len        = szMemoryLoad;
-   LOG_DEBUG_ID("sort_manager_kobj.main_mem_operate_init: allocating " 
-                << szMemoryLoad*sizeof(T) << 
-                "bytes for array mmStream<T>[" << szMemoryLoad << "]");
-   mmStream      = new T[szMemoryLoad];
-   LOG_DEBUG_ID("sort_manager_kobj.main_mem_operate_init: allocating " 
-                << szMemoryLoad*sizeof(qsort_item <KEY>) << 
-                "bytes for qs_array["<< szMemoryLoad << "]");
-   qs_array      = new (qsort_item <KEY>)[szMemoryLoad];
-   LOG_DEBUG_ID("Ending sort_manager_kobj.main_mem_operate_init");
-   return AMI_ERROR_NO_ERROR;
+    LOG_DEBUG_ID("Starting sort_manager_kobj.main_mem_operate_init");
+    mm_len        = szMemoryLoad;
+    LOG_DEBUG_ID("sort_manager_kobj.main_mem_operate_init: allocating " 
+		 << szMemoryLoad*sizeof(T) << 
+		 "bytes for array mmStream<T>[" << szMemoryLoad << "]");
+    mmStream      = new T[szMemoryLoad];
+    LOG_DEBUG_ID("sort_manager_kobj.main_mem_operate_init: allocating " 
+		 << szMemoryLoad*sizeof(qsort_item <KEY>) << 
+		 "bytes for qs_array["<< szMemoryLoad << "]");
+    qs_array      = new (qsort_item <KEY>)[szMemoryLoad];
+    LOG_DEBUG_ID("Ending sort_manager_kobj.main_mem_operate_init");
+    return AMI_ERROR_NO_ERROR;
 }
 
 template<class T,class Q,class KEY,class CMPR>
 inline AMI_err sort_manager_kobj<T,Q,KEY,CMPR>::main_mem_operate(AMI_STREAM <T> *inStream, AMI_STREAM <T> *outStream, size_t runSize ) {
 
-   AMI_err ae;
-   T    *next_item;
+    AMI_err ae;
+    T    *next_item;
+    size_t i = 0;
 
-   LOG_DEBUG_ID("starting sort_manager_kobj.main_mem_operate. runSize is " << 
-                runSize );
-   tp_assert ( runSize <= mm_len, "memory load larger than buffer.");
+    LOG_DEBUG_ID("starting sort_manager_kobj.main_mem_operate. runSize is " << 
+		 runSize );
+    tp_assert ( runSize <= mm_len, "memory load larger than buffer.");
 
-   // Read a memory load out of the input stream one item at a time,
-   // if key sorting fill up the key array at the same time.
+    // Read a memory load out of the input stream one item at a time,
+    // if key sorting fill up the key array at the same time.
 
-   for (int i = 0; i < runSize; i++) {
-      if ((ae=inStream->read_item (&next_item)) != AMI_ERROR_NO_ERROR) {
-         LOG_FATAL_ID ("sort_manager_kobj.main_mem_operate: read error " <<
-                       ae);
-         return ae;
-      }
-      mmStream[i] = *next_item;
-      (*UsrObject).copy (&qs_array[i].keyval, *next_item);
-      qs_array[i].source = i;
-   }
+    for (i = 0; i < runSize; i++) {
+	if ((ae=inStream->read_item (&next_item)) != AMI_ERROR_NO_ERROR) {
+	    LOG_FATAL_ID ("sort_manager_kobj.main_mem_operate: read error " <<
+			  ae);
+	    return ae;
+	}
+	mmStream[i] = *next_item;
+	(*UsrObject).copy (&qs_array[i].keyval, *next_item);
+	qs_array[i].source = i;
+    }
 
-   //Sort the array.
-   LOG_DEBUG_ID("sort_manager_kobj.main_mem_operate: calling quick_sort_obj");
-   quick_sort_obj ((qsort_item<KEY> *)qs_array, runSize, this );
+    //Sort the array.
+    LOG_DEBUG_ID("sort_manager_kobj.main_mem_operate: calling quick_sort_obj");
+    quick_sort_obj ((qsort_item<KEY> *)qs_array, runSize, this );
 
-   LOG_DEBUG_ID("starting sort_manager_kobj.main_mem_operate write out");
-   for (int i = 0; i < runSize; i++) {
-       if ((ae = outStream->write_item(mmStream[qs_array[i].source])) 
-           != AMI_ERROR_NO_ERROR) {
-          LOG_FATAL_ID ("sort_manager_kobj.main_mem_operate: write error " <<
-                        ae);
-         return ae;
-      }
-   }
-   LOG_DEBUG_ID("returning from sort_manager_kobj.main_mem_operate");
-   return AMI_ERROR_NO_ERROR;
+    LOG_DEBUG_ID("starting sort_manager_kobj.main_mem_operate write out");
+    for (i = 0; i < runSize; i++) {
+	if ((ae = outStream->write_item(mmStream[qs_array[i].source])) 
+	    != AMI_ERROR_NO_ERROR) {
+	    LOG_FATAL_ID ("sort_manager_kobj.main_mem_operate: write error " <<
+			  ae);
+	    return ae;
+	}
+    }
+    LOG_DEBUG_ID("returning from sort_manager_kobj.main_mem_operate");
+    return AMI_ERROR_NO_ERROR;
 }
 
 template<class T,class Q,class KEY,class CMPR>
 inline AMI_err sort_manager_kobj<T,Q,KEY,CMPR>::main_mem_operate_cleanup() {
-   LOG_DEBUG_ID("Starting sort_manager_kobj.main_mem_operate_cleanup");
-   if (mmStream) {
-      delete[]mmStream;
-      mmStream = NULL;
-   }
-   if (qs_array) {
-      delete[]qs_array;
-      qs_array = NULL;
-   }
-   LOG_DEBUG_ID("Ending sort_manager_kobj.main_mem_operate_cleanup");
-   return AMI_ERROR_NO_ERROR;
+    LOG_DEBUG_ID("Starting sort_manager_kobj.main_mem_operate_cleanup");
+    if (mmStream) {
+	delete[]mmStream;
+	mmStream = NULL;
+    }
+    if (qs_array) {
+	delete[]qs_array;
+	qs_array = NULL;
+    }
+    LOG_DEBUG_ID("Ending sort_manager_kobj.main_mem_operate_cleanup");
+    return AMI_ERROR_NO_ERROR;
 }
 
 //template<class T,class Q,class KEY,class CMPR>
@@ -526,9 +439,9 @@ inline AMI_err sort_manager_kobj<T,Q,KEY,CMPR>::main_mem_operate_cleanup() {
 // *  soon. 2001/02/26  dh.                                          *
 // ******************************************************************* 
 template < class T, class CMPR >
-    AMI_err 
+AMI_err 
 AMI_mergeX (AMI_STREAM < T > **inStreams, arity_t arity,
-		     AMI_STREAM < T > *outStream,   CMPR *cmp)
+	    AMI_STREAM < T > *outStream,   CMPR *cmp)
 {
     merge_heap_dh_obj<T,CMPR> MergeHeap (cmp);
     MergeHeap.allocate (arity);
@@ -560,19 +473,19 @@ AMI_mergeX (AMI_STREAM < T > **inStreams, arity_t arity,
 //       ami_optimized_merge.h
 
 template < class T, class CMPR >
-    AMI_err 
+AMI_err 
 AMI_merge (AMI_STREAM < T > **inStreams, 
            arity_t arity,
 	   AMI_STREAM < T > *outStream,   
            CMPR *cmp)
 {
-   // make a merge heap which uses the user's comparison object
-   // and initialize it
-   merge_heap_dh_obj<T,CMPR> mrgheap (cmp);
-   mrgheap.allocate (arity);
+    // make a merge heap which uses the user's comparison object
+    // and initialize it
+    merge_heap_dh_obj<T,CMPR> mrgheap (cmp);
+    mrgheap.allocate (arity);
 
-   AMI_err ae = AMI_single_merge_dh ( inStreams, arity, outStream, mrgheap);  
-   return ae;
+    AMI_err ae = AMI_single_merge_dh ( inStreams, arity, outStream, mrgheap);  
+    return ae;
 }
 
 // Merging with a heap that keeps a pointer to the records rather than
@@ -584,19 +497,19 @@ AMI_merge (AMI_STREAM < T > **inStreams,
 //       1) check that memory management is done right 
 
 template < class T, class CMPR >
-    AMI_err 
+AMI_err 
 AMI_ptr_merge (AMI_STREAM < T > **inStreams, 
-           arity_t arity,
-	   AMI_STREAM < T > *outStream,   
-           CMPR *cmp)
+	       arity_t arity,
+	       AMI_STREAM < T > *outStream,   
+	       CMPR *cmp)
 {
-   // make a merge heap of pointers which uses the user's comparison
-   // object and initialize it
-   merge_heap_pdh_obj<T,CMPR> mrgheap (cmp);
-   mrgheap.allocate (arity);
+    // make a merge heap of pointers which uses the user's comparison
+    // object and initialize it
+    merge_heap_pdh_obj<T,CMPR> mrgheap (cmp);
+    mrgheap.allocate (arity);
 
-   AMI_err ae = AMI_single_merge_dh ( inStreams, arity, outStream, mrgheap);  
-   return ae;
+    AMI_err ae = AMI_single_merge_dh ( inStreams, arity, outStream, mrgheap);  
+    return ae;
 }
 
 // Merging with a heap that contains copies of the keys from the
@@ -612,19 +525,19 @@ AMI_ptr_merge (AMI_STREAM < T > **inStreams,
 //       1) check that memory management is done right 
 
 template<class T, class KEY, class CMPR>
-    AMI_err 
+AMI_err 
 AMI_key_merge (AMI_STREAM < T > **inStreams, 
-           arity_t arity,
-	   AMI_STREAM < T > *outStream,   
-           CMPR *cmp)
+	       arity_t arity,
+	       AMI_STREAM < T > *outStream,   
+	       CMPR *cmp)
 {
-   // make a key merge heap which uses the user's comparison object
-   // and initialize it
-   merge_heap_dh_kobj<T,KEY,CMPR> mrgheap (cmp);
-   mrgheap.allocate (arity);
+    // make a key merge heap which uses the user's comparison object
+    // and initialize it
+    merge_heap_dh_kobj<T,KEY,CMPR> mrgheap (cmp);
+    mrgheap.allocate (arity);
 
-   AMI_err ae = AMI_single_merge_dh ( inStreams, arity, outStream, mrgheap);  
-   return ae;
+    AMI_err ae = AMI_single_merge_dh ( inStreams, arity, outStream, mrgheap);  
+    return ae;
 }
 
 // *******************************************************************
@@ -633,16 +546,12 @@ AMI_key_merge (AMI_STREAM < T > **inStreams,
 // *                                                                 *
 // ******************************************************************* 
 
-// A version of AMI_sort that takes an input stream of elements of
-// type T, an output stream, and a user-specified comparison function
+// Comment (jan): You must not you this version anymore.
 
-template<class T>
-AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
-                 int (*cmp)(CONST T&, CONST T&))
-{
-    return AMI_partition_and_merge_dh(instream, outstream,
-           sort_manager_cmp< T, merge_heap_dh_cmp<T> > (cmp) );
-}
+// // A version of AMI_sort that takes an input stream of elements of
+// // type T, an output stream, and a user-specified comparison function
+
+// End Comment.
 
 // A version of AMI_sort that takes an input stream of elements of type
 // T, and an output stream, and and uses the < operator to sort
@@ -651,7 +560,7 @@ template<class T>
 AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream)
 {
     return AMI_partition_and_merge_dh(instream, outstream,
-           sort_manager_op< T, merge_heap_dh_op<T> > () );
+				      sort_manager_op< T, merge_heap_dh_op<T> > () );
 }
 
 // A version of AMI_sort that takes an input stream of elements of
@@ -665,7 +574,7 @@ AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
                  CMPR *cmp)
 {
     return AMI_partition_and_merge_dh( instream, outstream,
-     sort_manager_obj<T,merge_heap_dh_obj<T,CMPR>,CMPR>( cmp ) );
+				       sort_manager_obj<T,merge_heap_dh_obj<T,CMPR>,CMPR>( cmp ) );
 }
 
 // ********************************************************************
@@ -680,18 +589,16 @@ template<class T>
 AMI_err AMI_ptr_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream)
 {
     return AMI_partition_and_merge_dh(instream, outstream,
-           sort_manager_op< T, merge_heap_pdh_op<T> > () );
+				      sort_manager_op< T, merge_heap_pdh_op<T> > () );
 }
-// A version of AMI_sort that takes an input stream of elements of
-// type T, an output stream, and a user-specified comparison function
 
-template<class T>
-AMI_err AMI_ptr_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
-                 int (*cmp)(CONST T&, CONST T&))
-{
-    return AMI_partition_and_merge_dh(instream, outstream,
-           sort_manager_cmp< T, merge_heap_pdh_cmp<T> > (cmp) );
-}
+// Comment: (jan) You must not use this version anymore.
+
+// // A version of AMI_sort that takes an input stream of elements of
+// // type T, an output stream, and a user-specified comparison function
+
+// End Comment.
+
 // A version of AMI_sort that takes an input stream of elements of
 // type T, an output stream, and a user-specified comparison
 // object. The comparison object "cmp", of (user-defined) class
@@ -700,10 +607,10 @@ AMI_err AMI_ptr_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
 
 template<class T, class CMPR>
 AMI_err AMI_ptr_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
-                 CMPR *cmp)
+		     CMPR *cmp)
 {
     return AMI_partition_and_merge_dh (instream, outstream,
-     sort_manager_obj<T,merge_heap_pdh_obj<T,CMPR>,CMPR> (cmp) );
+				       sort_manager_obj<T,merge_heap_pdh_obj<T,CMPR>,CMPR> (cmp) );
 }
 
 // ********************************************************************
@@ -726,9 +633,9 @@ AMI_err AMI_ptr_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
 template<class T, class KEY, class CMPR>
 AMI_err 
 AMI_key_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
-	 KEY dummykey, CMPR *cmp) {
+	     KEY dummykey, CMPR *cmp) {
     return AMI_partition_and_merge_dh( instream, outstream, 
-       sort_manager_kobj<T,merge_heap_dh_kobj<T,KEY,CMPR>,KEY,CMPR>( cmp ) );
+				       sort_manager_kobj<T,merge_heap_dh_kobj<T,KEY,CMPR>,KEY,CMPR>( cmp ) );
 }
                           
                           

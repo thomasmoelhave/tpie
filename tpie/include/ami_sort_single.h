@@ -3,12 +3,15 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 9/28/94
 //
-// $Id: ami_sort_single.h,v 1.18 2002-06-26 22:40:16 tavi Exp $
+// $Id: ami_sort_single.h,v 1.19 2003-04-17 14:05:11 jan Exp $
 //
 // Merge sorting for the AMI_STREAM_IMP_SINGLE implementation.
 // 
 #ifndef _AMI_SORT_SINGLE_H
 #define _AMI_SORT_SINGLE_H
+
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 #ifndef AMI_STREAM_IMP_SINGLE
 #  warning Including __FILE__ when AMI_STREAM_IMP_SINGLE undefined.
@@ -106,7 +109,7 @@ AMI_err merge_sort_manager<T,Q>::operate(CONST T * CONST *in,
         pqret = pq->extract_min(min_source,min_t);
         tp_assert(pqret, "pq->extract_min() failed.");
         *out = min_t;
-        if (in[min_source] != NULL) {
+	if (in[min_source] != NULL) {
             pqret = pq->insert(min_source,*in[min_source]);
             tp_assert(pqret, "pq->insert() failed.");
             taken_index = min_source;
@@ -299,96 +302,12 @@ AMI_err merge_sort_manager_obj<T,Q,CMPR>::initialize(arity_t arity, CONST T * CO
 }
 
 
-// Comparison function based merge sort manager.
+// Comment: (jan) You must not you this version anymore
 
-template <class T, class Q>
-class merge_sort_manager_cmp : public merge_sort_manager<T,Q> {
-private:
-    int (*cmp_f)(CONST T&, CONST T&);
-    Q *new_pqueue(arity_t arity);
-public:
-    merge_sort_manager_cmp(int (*cmp)(CONST T&, CONST T&));
-    virtual ~merge_sort_manager_cmp(void);    
-    AMI_err main_mem_operate(T* mm_stream, size_t len);
-    size_t space_usage_overhead(void);
-    AMI_err initialize(arity_t arity, CONST T * CONST *in,
-                       AMI_merge_flag *taken_flags,
-                       int &taken_index);
-};   
+// // Comparison function based merge sort manager.
 
+// End Comment
 
-template<class T,class Q>
-merge_sort_manager_cmp<T,Q>::merge_sort_manager_cmp(int (*cmp)(CONST T&,
-                                                             CONST T&))
-{
-    cmp_f = cmp;
-    pq = NULL;
-}
-
-template<class T, class Q>
-Q *merge_sort_manager_cmp<T,Q>::new_pqueue(arity_t arity)
-{
-    return pq = new Q (arity,cmp_f);
-}
-
-
-template<class T, class Q>
-merge_sort_manager_cmp<T,Q>::~merge_sort_manager_cmp(void)
-{
-}
-
-
-template<class T,class Q>
-AMI_err merge_sort_manager_cmp<T,Q>::main_mem_operate(T* mm_stream, size_t len)
-{
-    quick_sort_cmp(mm_stream, len, cmp_f);
-    return AMI_ERROR_NO_ERROR;
-}
-
-template<class T,class Q>
-size_t merge_sort_manager_cmp<T,Q>::space_usage_overhead(void)
-{
-    return sizeof(Q);
-}
-
-template<class T, class Q>
-AMI_err merge_sort_manager_cmp<T,Q>::initialize(arity_t arity, CONST T * CONST *in,
-                                          AMI_merge_flag *taken_flags,
-                                          int &taken_index)
-{
-    arity_t ii;
-
-    input_arity = arity;
-
-    bool pqret;
-    
-    tp_assert(arity > 0, "Input arity is 0.");
-    
-    if (pq != NULL) {
-        delete pq;
-        pq = NULL;
-    }
-    new_pqueue(arity);
-    
-#if DEBUG_ASSERTIONS
-    input_count = output_count = 0;
-#endif    
-    for (ii = arity; ii--; ) {
-        if (in[ii] != NULL) {
-            taken_flags[ii] = 1;
-            pqret = pq->insert(ii,*in[ii]);
-            tp_assert(pqret, "pq->insert() failed.");
-#if DEBUG_ASSERTIONS
-            input_count++;
-#endif                  
-        } else {
-            taken_flags[ii] = 0;
-        }
-    }
-
-    taken_index = -1;
-    return AMI_MERGE_READ_MULTIPLE;
-}
 
 // *******************************************************************
 // *                                                                 *
@@ -396,18 +315,12 @@ AMI_err merge_sort_manager_cmp<T,Q>::initialize(arity_t arity, CONST T * CONST *
 // *                                                                 *
 // ******************************************************************* 
 
-// A version of AMI_sort that takes an input stream of elements of
-// type T, an output stream, and a user-specified comparison function
+// Comment: (jan) You must not you this version anymore
 
-template<class T>
-AMI_err AMI_sort_V1(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
-                 int (*cmp)(CONST T&, CONST T&))
-{
-    merge_sort_manager_cmp<T,pqueue_heap_cmp<arity_t,T> > msm(cmp);
+// // A version of AMI_sort that takes an input stream of elements of
+// // type T, an output stream, and a user-specified comparison function
 
-    return AMI_generalized_partition_and_merge(instream, outstream,
-           (merge_sort_manager_cmp<T, pqueue_heap_cmp<arity_t,T> > *)&msm);
-}
+// End Comment
 
 // A version of AMI_sort that takes an input streamof elements of type
 // T, and an output stream, and and uses the < operator to sort
