@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/13/94
 //
-// $Id: config.h.in,v 1.1 1994-10-13 17:09:48 darrenv Exp $
+// $Id: config.h.in,v 1.2 1994-10-31 21:17:18 darrenv Exp $
 //
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -12,16 +12,24 @@
 // Define if you have getrusage()
 #define HAVE_GETRUSAGE 0
 
-// Define if you have a working mmap()
+// Define if you have mmap()
 #define HAVE_MMAP 0
 
+// Define if you have a prototype for mmap()
+#define HAVE_PROTOTYPE_MMAP 0
+
 // Define if you have a prototype for munmap()
-#define HAVE_MUNMAP_PROTO 0
+#define HAVE_PROTOTYPE_MUNMAP 0
 
 // Define if you have a prototype for ftruncate()
-#define HAVE_FTRUNCATE_PROTO 0
+#define HAVE_PROTOTYPE_FTRUNCATE 0
 
-// Define if you have a prototype for getpagesize()
-#define HAVE_GETPAGESIZE_PROTO 0
+// Flags to enable or disable various features of the system.
+
+#define TP_ASSERT_APPS 0
+#define TP_ASSERT_LIB 0
+
+#define TP_LOG_APPS 0
+#define TP_LOG_LIB 0
 
 #endif // _CONFIG_H 
