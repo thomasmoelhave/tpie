@@ -4,7 +4,7 @@
 // Authors: Octavian Procopiuc <tavi@cs.duke.edu>
 //          (using some code by Rakesh Barve)
 //
-// $Id: bte_coll_base.h,v 1.3 2001-06-06 16:34:44 tavi Exp $
+// $Id: bte_coll_base.h,v 1.4 2001-06-13 18:28:31 tavi Exp $
 //
 // BTE_collection_base class and various basic definitions.
 //
@@ -13,6 +13,10 @@
 #define _BTE_COLL_BASE_H
 
 #include <stdlib.h>
+// For errno
+#include <errno.h>
+// For strerror()
+#include <string.h>
 
 // Include the registration based memory manager.
 #define MM_IMP_REGISTER
@@ -94,6 +98,13 @@ public:
   // Default constructor.
   BTE_collection_header();
 };
+
+// Setting this to 1 causes the use of ftruncate(2) for extending
+// files, which, in conjunction with mmap(2), results in more
+// fragmented files and, consequently, slower I/O. See mmap(2) on
+// FreeBSD for an explanation. When set to 0, lseek(2) and write(2)
+// are used to extend the files.
+#define USE_FTRUNCATE 0
 
 //
 // A base class for all implementations of block collection classes.
@@ -179,8 +190,9 @@ protected:
     off_t *lbn;
     BTE_err err;
     if (header_.used_blocks < header_.last_block - 1) {
-      //tp_assert(freeblock_stack_ != NULL, 
-      //	"BTE_collection_ufs internal error: NULL stack pointer");
+      tp_assert(freeblock_stack_ != NULL, 
+		"BTE_collection_ufs internal error: NULL stack pointer");
+      // TODO: this is a costly operation. improve!
       size_t slen = freeblock_stack_->stream_len();
       tp_assert(slen > 0, "BTE_collection_ufs internal error: empty stack");
       if ((err = freeblock_stack_->pop(&lbn)) != BTE_ERROR_NO_ERROR)
@@ -194,12 +206,30 @@ protected:
 	// (only by 3 the first time around to be gentle with small coll's).
 	if (header_.total_blocks == 1)
 	  header_.total_blocks += 3;
-	else
+	else if (header_.total_blocks <= 340)
 	  header_.total_blocks += 16;
+	else
+	  header_.total_blocks += 64;
+#if USE_FTRUNCATE
 	if (ftruncate(bcc_fd_, bid_to_file_offset(header_.total_blocks))) {
 	  LOG_FATAL_ID("Failed to ftruncate() to the new end of file.");
+	  LOG_FATAL_ID(strerror(errno));
 	  return BTE_ERROR_OS_ERROR;
-	}             
+	}
+#else
+	off_t curr_off;
+	char* tbuf = new char[header_.os_block_size];
+	if ((curr_off = lseek(bcc_fd_, 0, SEEK_END)) == (off_t)-1) {
+	  LOG_FATAL_ID("Failed to lseek() to the end of file.");
+	  LOG_FATAL_ID(strerror(errno));
+	  return BTE_ERROR_OS_ERROR;
+	}
+	while (curr_off < bid_to_file_offset(header_.total_blocks)) {
+	  write(bcc_fd_, tbuf, header_.os_block_size);
+	  curr_off += header_.os_block_size;
+	}
+	delete [] tbuf;
+#endif
       } 
       bid = header_.last_block++;
     } 
