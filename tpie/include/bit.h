@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 11/4/94
 //
-// $Id: bit.h,v 1.1 1994-12-16 21:47:41 darrenv Exp $
+// $Id: bit.h,v 1.2 1995-01-10 16:43:34 darrenv Exp $
 //
 #ifndef _BIT_H
 #define _BIT_H
@@ -20,8 +20,13 @@ public:
     bit(void);
     bit(bool);
     bit(int);
+    bit(long int);
     ~bit(void);
 
+    operator bool(void);
+    operator int(void);
+    operator long int(void);
+    
     bit operator+=(bit rhs);
     bit operator*=(bit rhs);
     
