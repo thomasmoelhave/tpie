@@ -14,13 +14,13 @@
 // better by a huge margin: THis function is called AMI_single_merge()
 // (a polymorph, without merge management object) and is based on a
 // simple heap data structure straight out of CLR (Introduction to
-// ALgorithms) in Simple_Heap.h There is also a merge using
+// ALgorithms) in mergeheap.h There is also a merge using
 // replacement selection based run formation.  There is also a
 // provision to use a run formation that uses a quicksort using only
 // keys of the items; there is a provision to to use templated heaps
 // to implement the merge.
 
-// $Id: ami_optimized_merge.h,v 1.39 1999-06-27 01:44:07 laura Exp $	
+// $Id: ami_optimized_merge.h,v 1.40 1999-06-27 21:50:13 laura Exp $	
 // TO DO: substream_count setting; don't depend on current_stream_len
 
 
