@@ -1,4 +1,3 @@
-// Copyright (C) 2001 Octavian Procopiuc
 //
 // File:    test_ami_btree.cpp
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
@@ -7,7 +6,7 @@
 //
 
 #include <versions.h>
-VERSION(test_ami_btree_cpp, "$Id: test_ami_btree.cpp,v 1.6 2002-01-14 17:38:31 tavi Exp $");
+VERSION(test_ami_btree_cpp, "$Id: test_ami_btree.cpp,v 1.7 2002-01-15 03:00:32 tavi Exp $");
 
 #include <fstream>
 
@@ -189,33 +188,46 @@ int main(int argc, char **argv) {
   cout << "Tree size: " << btree->size() << " elements. Tree height: " 
        << btree->height() << ".\n";
 
-  cout << "Block collection statistics:\n"
-       << "\tREAD:    " 
-       << btree->stats().get(LEAF_READ)+btree->stats().get(NODE_READ) << endl
-       << "\tCREATE:  " 
-       << btree->stats().get(LEAF_CREATE)+btree->stats().get(NODE_CREATE) << endl
-       << "\tFETCH:   " 
-       << btree->stats().get(LEAF_FETCH)+btree->stats().get(NODE_FETCH) << endl
-       << "\tWRITE:   " 
-       << btree->stats().get(LEAF_WRITE)+btree->stats().get(NODE_WRITE) << endl
-       << "\tDELETE:  " 
-       << btree->stats().get(LEAF_DELETE)+btree->stats().get(NODE_DELETE) << endl
-       << "\tRELEASE: " 
-       << btree->stats().get(LEAF_RELEASE)+btree->stats().get(NODE_RELEASE) << endl;
-
-  cout << "Stream statistics:\n"
-       << "\tITEM READ:  "
-       << AMI_STREAM<structure>::gstats().get(ITEM_READ) << endl
-       << "\tITEM WRITE: "
-       << AMI_STREAM<structure>::gstats().get(ITEM_WRITE) << endl
-       << "\tITEM_SEEK:  "
-       << AMI_STREAM<structure>::gstats().get(ITEM_SEEK) << endl
-       << "\tBLOCK READ: "
-       << AMI_STREAM<structure>::gstats().get(BLOCK_READ) << endl
-       << "\tBLOCK WRITE "
-       << AMI_STREAM<structure>::gstats().get(BLOCK_WRITE) << endl;
-
+  tpie_stats_tree bts = btree->stats();
   btree->persist(PERSIST_DELETE);
   delete btree;
+  
+  cout << "Block collection statistics (global):\n"
+       << "\tGET BLOCK:    "
+       << AMI_COLLECTION::gstats().get(BLOCK_GET) << endl
+       << "\tPUT BLOCK:    "
+       << AMI_COLLECTION::gstats().get(BLOCK_PUT) << endl
+       << "\tNEW BLOCK     "
+       << AMI_COLLECTION::gstats().get(BLOCK_NEW) << endl
+       << "\tDELETE BLOCK: "
+       << AMI_COLLECTION::gstats().get(BLOCK_DELETE) << endl
+    ;
+  cout << "Tree statistics:\n"
+       << "\tREAD (LEAF+NODE):    " 
+       << bts.get(LEAF_READ) + bts.get(NODE_READ) << endl
+       << "\tCREATE (LEAF+NODE):  " 
+       << bts.get(LEAF_CREATE) + bts.get(NODE_CREATE) << endl
+       << "\tFETCH (LEAF+NODE):   " 
+       << bts.get(LEAF_FETCH) + bts.get(NODE_FETCH) << endl
+       << "\tWRITE (LEAF+NODE):   " 
+       << bts.get(LEAF_WRITE) + bts.get(NODE_WRITE) << endl
+       << "\tDELETE (LEAF+NODE):  " 
+       << bts.get(LEAF_DELETE) + bts.get(NODE_DELETE) << endl
+       << "\tRELEASE (LEAF+NODE): " 
+       << bts.get(LEAF_RELEASE) + bts.get(NODE_RELEASE) << endl
+    ;
+  cout << "Stream statistics (global):\n"
+       << "\tREAD ITEM:    "
+       << AMI_STREAM<structure>::gstats().get(ITEM_READ) << endl
+       << "\tWRITE ITEM:   "
+       << AMI_STREAM<structure>::gstats().get(ITEM_WRITE) << endl
+       << "\tSEEK ITEM:    "
+       << AMI_STREAM<structure>::gstats().get(ITEM_SEEK) << endl
+       << "\tREAD BLOCK:   "
+       << AMI_STREAM<structure>::gstats().get(BLOCK_READ) << endl
+       << "\tWRITE BLOCK:  "
+       << AMI_STREAM<structure>::gstats().get(BLOCK_WRITE) << endl
+    ;
+
   return 0;
 }
