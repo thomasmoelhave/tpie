@@ -1,6 +1,6 @@
 // File: ami_sort_single_dh.h
 //
-// 	$Id: ami_sort_single_dh.h,v 1.3 2000-08-14 23:27:23 hutchins Exp $	
+// 	$Id: ami_sort_single_dh.h,v 1.4 2000-10-09 16:22:29 hutchins Exp $	
 
 // 
 // 
@@ -142,7 +142,7 @@ template<class T,class Q>
 inline AMI_err sort_manager_op<T,Q>::main_mem_operate (
                                AMI_STREAM <T> *inStream, 
                                AMI_STREAM <T> *outStream, size_t runSize ) {
-
+   AMI_err ae;
    T    *next_item;
 
    LOG_DEBUG_ID("starting main_mem_operate. runSize is " << runSize << "\n");
@@ -220,6 +220,7 @@ inline AMI_err sort_manager_obj<T,Q,CMPR>::single_merge (
 template<class T, class Q, class CMPR>
 inline AMI_err sort_manager_obj<T,Q,CMPR>::main_mem_operate(AMI_STREAM <T>*inStream, AMI_STREAM <T> *outStream, size_t runSize)
 {
+   AMI_err ae;
    T    *next_item;
 
    LOG_DEBUG_ID("starting main_mem_operate. runSize is " << runSize << "\n");
@@ -299,6 +300,7 @@ inline AMI_err sort_manager_cmp<T,Q>::single_merge (
 template<class T,class Q>
 inline AMI_err sort_manager_cmp<T,Q>::main_mem_operate(AMI_STREAM <T>*inStream, AMI_STREAM <T> *outStream, size_t runSize) {
 
+   AMI_err ae;
    T    *next_item;
 
    LOG_DEBUG_ID("starting main_mem_operate. runSize is " << runSize << "\n");
@@ -396,6 +398,7 @@ inline AMI_err sort_manager_kop<T,Q,KEY,CMPR>::main_mem_operate_init(size_t szMe
 template<class T,class Q,class KEY,class CMPR>
 inline AMI_err sort_manager_kop<T,Q,KEY,CMPR>::main_mem_operate(AMI_STREAM <T> *inStream, AMI_STREAM <T> *outStream, size_t runSize ) {
 
+   AMI_err ae;
    T    *next_item;
 
    LOG_DEBUG_ID("starting main_mem_operate. runSize is " << runSize << "\n");
@@ -506,6 +509,7 @@ inline AMI_err sort_manager_kobj<T,Q,KEY,CMPR>::main_mem_operate_init(size_t szM
 template<class T,class Q,class KEY,class CMPR>
 inline AMI_err sort_manager_kobj<T,Q,KEY,CMPR>::main_mem_operate(AMI_STREAM <T> *inStream, AMI_STREAM <T> *outStream, size_t runSize ) {
 
+   AMI_err ae;
    T    *next_item;
 
    LOG_DEBUG_ID("starting main_mem_operate. runSize is " << runSize << "\n");
