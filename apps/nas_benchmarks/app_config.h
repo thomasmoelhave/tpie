@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/6/94
 //
-// $Id: app_config.h,v 1.15 1999-04-09 03:07:08 rajiv Exp $
+// $Id: app_config.h,v 1.16 1999-06-18 20:39:54 laura Exp $
 //
 #ifndef _APP_CONFIG_H
 #define _APP_CONFIG_H
@@ -44,13 +44,7 @@
 /* ********************************************************************** */
 /* developer use */
 /* ********************************************************************** */
-// Don't use virtual interface.
-#ifndef AMI_VIRTUAL_BASE
-#define AMI_VIRTUAL_BASE 0
-#endif
-#ifndef BTE_VIRTUAL_BASE 
-#define BTE_VIRTUAL_BASE 0
-#endif
+
 
 /* ********************************************************************** */
 /* choose BTE(s) */
@@ -61,9 +55,7 @@
 // Pick a version of BTE streams.
 //#define BTE_IMP_MMB
 #define BTE_IMP_STDIO
-//#define BTE_IMP_CACHE
 //#define BTE_IMP_UFS
-//#define BTE_IMP_BCS
 
 
 /* ********************************************************************** */
@@ -134,20 +126,6 @@
 
 
 
-
-/* ********************************************************************** */
-/* BTE_CACHE configuration options */
-/* ********************************************************************** */
-#ifdef BTE_IMP_CACHE
-#define BTE_MMB_CACHE_LINE_SIZE 256
-#endif // BTE_IMP_CACHE
-
-
-/* ********************************************************************** */
-
-
-
-
 /* ********************************************************************** */
 /* Block collection options : Set similarly to BTE options */
 /* ********************************************************************** */
@@ -162,6 +140,8 @@
 #define MMAPPED_BCC 1
 #endif
 
+
+
 /********************************************************************/
 
 // Set up some defaults for the apps.
@@ -172,6 +152,17 @@ extern bool verbose;
 extern size_t test_mm_size;
 extern size_t test_size;
 extern int random_seed;
+
+
+
+/********************************************************************/
+// Don't use virtual interface.
+#ifndef AMI_VIRTUAL_BASE
+#define AMI_VIRTUAL_BASE 0
+#endif
+#ifndef BTE_VIRTUAL_BASE 
+#define BTE_VIRTUAL_BASE 0
+#endif
 
 
 #endif
