@@ -7,16 +7,20 @@
 // A basic implementation of quicksort for use in core by AMI_sort() on
 // streams or substreams that are small enough.
 //
-// $Id: quicksort.h,v 1.1 1994-09-29 13:13:15 darrenv Exp $
+// $Id: quicksort.h,v 1.2 1994-10-04 19:09:47 darrenv Exp $
 //
 #ifndef _QUICKSORT_H
 #define _QUICKSORT_H
 
-template<class T>
-void partition(T *data, size_t len, size_t &partition);
 
 template<class T>
-void quick_sort(T *data, size_t len)
+void partition(T *data, size_t len, size_t &partition,
+               int (*cmp)(CONST T&, CONST T&));
+
+template<class T>
+void quick_sort(T *data, size_t len,
+               int (*cmp)(CONST T&, CONST T&),
+                size_t min_file_len = 2)
 {
     // On return from partition(), everything at or below this index
     // will be less that or equal to everything above it.
@@ -25,54 +29,43 @@ void quick_sort(T *data, size_t len)
     
     size_t part_index;
     
-    if (len <= 1) {
+    if (len < min_file_len) {
         return;
     }
     
-    partition(data, len, part_index);
+    partition(data, len, part_index, cmp);
 
-    tp_assert((part_index > 0) || (part_index < len - 1),
-              "About to recurse on the same exact array.");
-
-    if (part_index > 0) {
-        quick_sort(data, part_index + 1);
-    }
-    if (len - part_index > 2) {
-        quick_sort(data + part_index + 1, len - part_index - 1);
-    }
+    quick_sort(data, part_index + 1, cmp);
+    quick_sort(data + part_index + 1, len - part_index - 1, cmp);
 }
 
 template<class T>
-inline T min(const T &t1, const T &t2) { return (t1<t2) ? t1 : t2; }
-
-template<class T>
-inline T max(const T &t1, const T &t2) { return (t1<t2) ? t2 : t1; }
-
-template<class T>
-void partition(T *data, size_t len, size_t &part_index)
+void partition(T *data, size_t len, size_t &part_index,
+               int (*cmp)(CONST T&, CONST T&))
 {
-    T t0, t1, t2, tpart;
+    T *ptpart, tpart;
     T *p, *q;
+    T t0;
 
     // Try to get a good partition value and avoid being bitten by already
     // sorted input.
-    
-    t0 = data[0];
-    t1 = data[len / 2];
-    t2 = data[len - 1];
 
-    tpart = min(t0, max(t1, t2));
+    ptpart = data + (random() % len);
+
+    tpart = *ptpart;
+    *ptpart = data[0];
+    data[0] = tpart;
 
     // Walk through the array and partition them.
 
-    for (p = data, q = data + len - 1; ; ) {
-        while ((p < q) && !(*q < tpart)) {
+    for (p = data - 1, q = data + len; ; ) {
+
+        do {
             q--;
-        }
-        // while ((p < q) && !(tpart < *p)) {
-        while ((p < q) && (*p < tpart)) {
+        } while (cmp(*q, tpart) > 0);
+        do {
             p++;
-        }
+        } while (cmp(*p, tpart) < 0);
 
         if (p < q) {
             t0 = *p;
@@ -82,6 +75,37 @@ void partition(T *data, size_t len, size_t &part_index)
             part_index = q - data;            
             break;
         }
+    }
+}
+
+
+template<class T>
+void insertion_sort(T *data, size_t len,
+                    int (*cmp)(CONST T&, CONST T&));
+
+template<class T>
+void quicker_sort(T *data, size_t len,
+                  int (*cmp)(CONST T&, CONST T&),
+                  size_t min_file_len = 10)
+{
+    quick_sort(data, len, cmp, min_file_len);
+    insertion_sort(data, len, cmp);
+}
+
+template<class T>
+void insertion_sort(T *data, size_t len,
+                    int (*cmp)(CONST T&, CONST T&))
+{
+    T *p, *q, test;
+
+    for (p = data + 1; p < data + len; p++) {
+        for (q = p - 1, test = *p; cmp(*q, test) > 0; q--) {
+            *(q+1) = *q;
+            if (q == data) {
+                break;
+            }
+        }
+        *(q+1) = test;
     }
 }
 
