@@ -17,7 +17,7 @@
 
 // Define it all.
 #include <ami.h>
-VERSION(lr_cpp,"$Id: lr.cpp,v 1.15 2000-01-11 01:35:50 hutchins Exp $");
+VERSION(lr_cpp,"$Id: lr.cpp,v 1.16 2000-01-11 01:39:09 hutchins Exp $");
 
 // Utitlities for ascii output.
 #include <iostream.h>
@@ -506,7 +506,7 @@ int list_rank(AMI_STREAM<edge> *istream, AMI_STREAM<edge> *ostream,
     {
         size_t mm_avail;
         
-        MM_manager.available(&mm_avail);
+        mm_avail = MM_manager.memory_available ();
 
         if (stream_len * sizeof(edge) < mm_avail / 2) {
             edge *mm_buf = new edge[stream_len];
