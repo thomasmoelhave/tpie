@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/30/94
 //
-// $Id: mm_register.h,v 1.7 2000-03-29 22:15:44 rajiv Exp $
+// $Id: mm_register.h,v 1.8 2002-01-14 16:30:42 tavi Exp $
 //
 #ifndef _MM_REGISTER_H
 #define _MM_REGISTER_H
@@ -38,12 +38,13 @@ private:
     // the amount that has been allocated.
     size_t   used;
 
-    //#ifndef MM_BACKWARD_COMPATIBLE
-    // flag indicates whether we are keeping track of memory or not
-    static MM_mode register_new;
-    //#endif
 
 public:
+    // made public since Linux c++ doesn't like the fact that our new
+    // and delete operators don't throw exceptions. [tavi] 
+    // flag indicates whether we are keeping track of memory or not
+    static MM_mode register_new;
+
     MM_register();
     ~MM_register(void);
 
@@ -67,9 +68,9 @@ public:
     int    space_overhead ();           // dh.
         
     friend class mm_register_init;
-    friend void * operator new(size_t);
-    friend void operator delete(void *);
-    friend void operator delete[](void *);
+    //friend void * operator new(size_t);
+    //friend void operator delete(void *);
+    //friend void operator delete[](void *);
 };
 
 
