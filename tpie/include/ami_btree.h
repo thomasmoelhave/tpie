@@ -3,7 +3,7 @@
 // File:    ami_btree.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_btree.h,v 1.6 2001-06-26 14:56:48 adanner Exp $
+// $Id: ami_btree.h,v 1.7 2001-06-26 16:12:21 tavi Exp $
 //
 // AMI_btree declaration and implementation.
 //
@@ -933,20 +933,16 @@ void AMI_BTREE::shared_init(const char* base_file_name, AMI_collection_type type
   leaf_cache_ = new AMI_CACHE_MANAGER<AMI_BTREE_LEAF*, remove_leaf>(params_.leaf_cache_size, 8);
 
   // Give meaningful values to parameters, if necessary.
-  AMI_BTREE_LEAF *dummy_leaf = fetch_leaf(0);
-  if (params_.leaf_size_max == 0 || params_.leaf_size_max > dummy_leaf->capacity())
-    params_.leaf_size_max = dummy_leaf->capacity();
-  dummy_leaf->persist(PERSIST_DELETE);
-  release_leaf(dummy_leaf);
+  size_t leaf_capacity = AMI_BTREE_LEAF::el_capacity(pcoll_leaves_->block_size());
+  if (params_.leaf_size_max == 0 || params_.leaf_size_max > leaf_capacity)
+    params_.leaf_size_max = leaf_capacity;
 
   if (params_.leaf_size_min == 0)
     params_.leaf_size_min = params_.leaf_size_max / 2;
 
-  AMI_BTREE_NODE* dummy_node = fetch_node(0);
-  if (params_.node_size_max == 0 || params_.node_size_max > dummy_node->capacity())
-    params_.node_size_max = dummy_node->capacity();
-  dummy_node->persist(PERSIST_DELETE);
-  release_node(dummy_node);
+  size_t node_capacity = AMI_BTREE_NODE::el_capacity(pcoll_nodes_->block_size());
+  if (params_.node_size_max == 0 || params_.node_size_max > node_capacity)
+    params_.node_size_max = node_capacity;
 
   if (params_.node_size_min == 0)
     params_.node_size_min = params_.node_size_max / 2;
