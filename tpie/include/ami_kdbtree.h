@@ -5,7 +5,7 @@
 //
 // K-D-B-tree definition and implementation. 
 //
-// $Id: ami_kdbtree.h,v 1.11 2003-09-12 01:46:18 jan Exp $
+// $Id: ami_kdbtree.h,v 1.12 2003-09-17 02:20:15 tavi Exp $
 //
 
 #ifndef _AMI_KDBTREE_H
@@ -28,10 +28,9 @@ template<class coord_t, size_t dim, class Bin_node=AMI_kdtree_bin_node_default<c
 class AMI_kdbtree {
 public:
 
-  //  typedef IdPoint<coord_t, dim> point_t;
-  typedef Record<coord_t, size_t, dim> point_t;
-  typedef Record<coord_t, size_t, dim> record_t;
-  typedef Point<coord_t, dim> key_t;
+  typedef AMI_record<coord_t, size_t, dim> point_t;
+  typedef AMI_record<coord_t, size_t, dim> record_t;
+  typedef AMI_point<coord_t, dim> key_t;
   typedef AMI_STREAM<point_t> stream_t;
   typedef AMI_collection_single<BTECOLL> collection_t;
   typedef AMI_kdbtree_node<coord_t, dim, BTECOLL> node_t;
@@ -187,10 +186,10 @@ struct _AMI_kdbtree_leaf_info {
 };
 
 template<class coord_t, size_t dim, class BTECOLL>
-class AMI_kdbtree_leaf: public AMI_block<Record<coord_t, size_t, dim>, _AMI_kdbtree_leaf_info, BTECOLL> {
+class AMI_kdbtree_leaf: public AMI_block<AMI_record<coord_t, size_t, dim>, _AMI_kdbtree_leaf_info, BTECOLL> {
 public:
-  typedef Record<coord_t, size_t, dim> point_t;
-  typedef Record<coord_t, size_t, dim> record_t;
+  typedef AMI_record<coord_t, size_t, dim> point_t;
+  typedef AMI_record<coord_t, size_t, dim> record_t;
   typedef AMI_STREAM<point_t> stream_t;
   typedef AMI_collection_single<BTECOLL> collection_t;
   typedef _AMI_kdbtree_leaf_info info_t;
@@ -198,7 +197,7 @@ public:
   static size_t el_capacity(size_t block_size);
 
   AMI_kdbtree_leaf(collection_t* pcoll, AMI_bid bid = 0): 
-    AMI_block<Record<coord_t, size_t, dim>, _AMI_kdbtree_leaf_info, BTECOLL>(pcoll, 0, bid) {
+    AMI_block<AMI_record<coord_t, size_t, dim>, _AMI_kdbtree_leaf_info, BTECOLL>(pcoll, 0, bid) {
     if (bid == 0) {
       size() = 0;
       next() = 0;
@@ -239,7 +238,7 @@ public:
 
   size_t window_query(const point_t &lop, const point_t &hip,
 		      stream_t* stream) const {
-    size_t i, di, result = 0;
+    size_t i, result = 0;
     for (i = 0; i < size(); i++) {
       // Test on all dimensions.
       if (lop < el[i] && el[i] < hip) {
@@ -281,8 +280,8 @@ public:
 
   // Sort points on the given dimension.
   void sort(size_t d) {
-    typename Record<coord_t, size_t, dim>::cmp cmpd(d);
-    sort(&el[0], &el[0] + size(), cmpd);
+    typename AMI_record<coord_t, size_t, dim>::cmp cmpd(d);
+    std::sort(&el[0], &el[0] + size(), cmpd);
   }
 
   // Find median point on the given dimension. Return the index of the
@@ -309,7 +308,7 @@ template<class coord_t, size_t dim, class BTECOLL>
 class AMI_kdbtree_node: public AMI_block<kdb_item_t<coord_t, dim>, _AMI_kdbtree_node_info, BTECOLL> {
 public:
   
-  typedef Record<coord_t, size_t, dim> point_t;
+  typedef AMI_record<coord_t, size_t, dim> point_t;
   typedef AMI_STREAM<point_t> stream_t;
   typedef AMI_collection_single<BTECOLL> collection_t;
   typedef kdb_item_t<coord_t, dim> item_t;
@@ -373,7 +372,7 @@ public:
 #define AMI_KDBTREE       AMI_kdbtree<coord_t, dim, Bin_node, BTECOLL>
 #define AMI_KDBTREE_NODE  AMI_kdbtree_node<coord_t, dim, BTECOLL>
 #define AMI_KDBTREE_LEAF  AMI_kdbtree_leaf<coord_t, dim, BTECOLL>
-#define POINT            Record<coord_t, size_t, dim>
+#define POINT            AMI_record<coord_t, size_t, dim>
 #define POINT_STREAM     AMI_STREAM< POINT >
 #define REGION        region_t<coord_t, dim>
 #define KDB_ITEM      kdb_item_t<coord_t, dim>
@@ -388,7 +387,7 @@ public:
 
 template<class coord_t, size_t dim, class BTECOLL>
 size_t AMI_KDBTREE_LEAF::el_capacity(size_t block_size) {
-  return AMI_block<Record<coord_t, size_t, dim>, _AMI_kdbtree_leaf_info, BTECOLL>::el_capacity(block_size, 0);
+  return AMI_block<AMI_record<coord_t, size_t, dim>, _AMI_kdbtree_leaf_info, BTECOLL>::el_capacity(block_size, 0);
 }
 
 //////////////////////////////////////
@@ -575,7 +574,7 @@ void AMI_KDBTREE::kd2kdb(const KDB_ITEM& ki, b_vector<KDB_ITEM >& bv) {
 
   AMI_kdtree_node<coord_t, dim, Bin_node, BTECOLL> *bno;
   AMI_KDBTREE_NODE *bn;
-  link_type_t ni_type;
+  //  link_type_t ni_type;
   bno = new AMI_kdtree_node<coord_t, dim, Bin_node, BTECOLL>(pcoll_nodes_, ki.bid);
   if (bno->size() + 1 > params_.node_size_max) {
     LOG_FATAL_ID("  kd2kdb: wrong kdtree node size;");
@@ -648,7 +647,7 @@ void AMI_KDBTREE::kd2kdb_node(AMI_kdtree_node<coord_t, dim, Bin_node, BTECOLL> *
 
 //// *AMI_kdbtree::insert_empty* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-bool AMI_KDBTREE::insert_empty(const Record<coord_t, size_t, dim>& p) {
+bool AMI_KDBTREE::insert_empty(const AMI_record<coord_t, size_t, dim>& p) {
   bool ans;
   AMI_KDBTREE_LEAF* bl = fetch_leaf();
   ans = bl->insert(p);
@@ -671,7 +670,7 @@ bool AMI_KDBTREE::insert_empty(const Record<coord_t, size_t, dim>& p) {
 
 //// *AMI_kdbtree::find* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-bool AMI_KDBTREE::find(const Record<coord_t, size_t, dim>& p) {
+bool AMI_KDBTREE::find(const AMI_record<coord_t, size_t, dim>& p) {
 
   TPLOG("AMI_kdbtree::find Entering "<<"\n");
 
@@ -712,16 +711,17 @@ bool AMI_KDBTREE::find(const Record<coord_t, size_t, dim>& p) {
 
 //// *AMI_kdbtree::insert* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-bool AMI_KDBTREE::insert(const Record<coord_t, size_t, dim>& p) {
+bool AMI_KDBTREE::insert(const AMI_record<coord_t, size_t, dim>& p) {
 
   TPLOG("AMI_kdbtree::insert Entering "<<"\n");
+  size_t i;
 
   // The first insertion is treated separately.
   if (header_.size == 0)
     return insert_empty(p);
 
   // Update the MBR.
-  for (size_t i = 0; i < dim; i++) {
+  for (i = 0; i < dim; i++) {
     header_.mbr_lo[i] = min(header_.mbr_lo[i], p[i]);
     header_.mbr_hi[i] = max(header_.mbr_hi[i], p[i]);
   }
@@ -730,7 +730,6 @@ bool AMI_KDBTREE::insert(const Record<coord_t, size_t, dim>& p) {
   AMI_KDBTREE_NODE* bn;
   REGION r; // Infinite region.
   KDB_ITEM ki(r, header_.root_bid, header_.root_type);
-  size_t i;
 
   // Stack item; initially unbounded, corresponding to the root node.
   STACK_ITEM si(ki, 0);
@@ -768,8 +767,6 @@ bool AMI_KDBTREE::insert(const Record<coord_t, size_t, dim>& p) {
 
     ans = bl->insert(p);
     release_leaf(bl);
-    // TODO [****] this is wrong! Should be empty_stack(ans);
-    //    empty_stack(false);
     empty_stack(ans);
 
   } else {
@@ -1085,7 +1082,7 @@ void AMI_KDBTREE::find_split_position(const STACK_ITEM& top, coord_t& sp, size_t
   }
   assert(cv.size() > 0);
   // Sort.
-  sort(cv.begin(), cv.end());
+  std::sort(cv.begin(), cv.end());
   // Get median value.
   size_t median = (bn->size() / 2 > unbounded ? bn->size() / 2 - unbounded: 0);
   // Make sure we don't return the leftmost boundary.
