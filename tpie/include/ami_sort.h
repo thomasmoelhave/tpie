@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 6/10/94
 //
-// $Id: ami_sort.h,v 1.3 1994-11-02 22:00:24 darrenv Exp $
+// $Id: ami_sort.h,v 1.4 1995-03-07 14:48:15 darrenv Exp $
 //
 #ifndef _AMI_SORT_H
 #define _AMI_SORT_H
@@ -34,6 +34,8 @@ AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream);
 TEMPLATE_INSTANTIATE_SORT_SINGLE_IMP_OP(T)
 #define TEMPLATE_INSTANTIATE_SORT_IMP_CMP(T) \
 TEMPLATE_INSTANTIATE_SORT_SINGLE_IMP_CMP(T)
+#define TEMPLATE_INSTANTIATE_SORT_IMP_OBJ(T) \
+TEMPLATE_INSTANTIATE_SORT_SINGLE_IMP_OBJ(T)
 #endif
 #endif
 
@@ -48,6 +50,12 @@ TEMPLATE_INSTANTIATE_SORT_IMP_CMP(T);				\
 template AMI_err AMI_sort(AMI_STREAM<T> *instream,		\
                           AMI_STREAM<T> *outstream,		\
                           int (*cmp)(CONST T&, CONST T&));
+
+#define TEMPLATE_INSTANTIATE_SORT_OBJ(T)			\
+TEMPLATE_INSTANTIATE_SORT_IMP_OBJ(T);				\
+template AMI_err AMI_sort(AMI_STREAM<T> *instream,		\
+                          AMI_STREAM<T> *outstream,		\
+                          comparator<T> *cmp);
 #endif
 
 #endif // _AMI_SORT_H 
