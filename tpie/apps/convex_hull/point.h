@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/16/94
 //
-// $Id: point.h,v 1.1 1994-12-20 22:13:08 darrenv Exp $
+// $Id: point.h,v 1.2 1999-02-03 02:56:02 jan Exp $
 //
 #ifndef _POINT_H
 #define _POINT_H
@@ -36,8 +36,8 @@ public:
         return (x > rhs.x);
     }
     
-    friend ostream& operator<<(ostream& s, const point<T> &p);
-    friend istream& operator>>(istream& s, point<T> &p);
+    friend ostream& operator<< <> (ostream& s, const point<T> &p);
+    friend istream& operator>> <> (istream& s, point<T> &p);
 };
 
 template<class T>
