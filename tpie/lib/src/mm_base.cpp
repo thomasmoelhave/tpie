@@ -6,7 +6,7 @@
 //
 
 #include <versions.h>
-VERSION(mm_base_cpp,"$Id: mm_base.cpp,v 1.28 2004-08-12 12:53:43 jan Exp $");
+VERSION(mm_base_cpp,"$Id: mm_base.cpp,v 1.29 2004-10-27 19:13:54 adanner Exp $");
 
 #include "lib_config.h"
 #include <mm_base.h>
@@ -157,3 +157,4 @@ int   MM_register::space_overhead ()
 #ifndef NDEBUG
 TPIE_OS_SPACE_OVERHEAD_BODY
 #endif
+
