@@ -4,12 +4,12 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 6/10/94
 //
-// $Id: ami_sort.h,v 1.4 1995-03-07 14:48:15 darrenv Exp $
+// $Id: ami_sort.h,v 1.5 1998-12-11 18:34:04 tavi Exp $
 //
 #ifndef _AMI_SORT_H
 #define _AMI_SORT_H
 
-#define CONST 
+#define CONST const
 
 // This is #if'ed out because the declarations appear in the
 // particular sort implementation.  g++ 2.6.0 gets confused when these
