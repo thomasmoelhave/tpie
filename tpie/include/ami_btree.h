@@ -3,7 +3,7 @@
 // File:    ami_btree.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_btree.h,v 1.24 2003-07-01 16:06:06 tavi Exp $
+// $Id: ami_btree.h,v 1.25 2003-07-22 06:14:23 tavi Exp $
 //
 // AMI_btree declaration and implementation.
 //
@@ -1259,6 +1259,9 @@ bool AMI_BTREE::find(const Key& k, Value& v) {
 
   bool ans;
   size_t idx;
+
+  if (header_.height == 0)
+    return false;
 
   // Find the leaf that might contain the key and fetch it.
   AMI_bid bid = find_leaf(k);
