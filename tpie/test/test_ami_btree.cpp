@@ -7,7 +7,7 @@
 //
 
 #include <versions.h>
-VERSION(test_ami_btree_cpp, "$Id: test_ami_btree.cpp,v 1.3 2001-06-16 20:19:55 tavi Exp $");
+VERSION(test_ami_btree_cpp, "$Id: test_ami_btree.cpp,v 1.4 2001-06-22 20:26:46 tavi Exp $");
 
 #include <fstream>
 
@@ -191,17 +191,17 @@ int main(int argc, char **argv) {
 
   cout << "Block statistics:\n"
        << "\tREAD:    " 
-       << btree->stats().get(BT_LEAF_READ)+btree->stats().get(BT_NODE_READ) << endl
+       << btree->stats().get(TREE_LEAF_READ)+btree->stats().get(TREE_NODE_READ) << endl
        << "\tCREATE:  " 
-       << btree->stats().get(BT_LEAF_CREATE)+btree->stats().get(BT_NODE_CREATE) << endl
+       << btree->stats().get(TREE_LEAF_CREATE)+btree->stats().get(TREE_NODE_CREATE) << endl
        << "\tFETCH:   " 
-       << btree->stats().get(BT_LEAF_FETCH)+btree->stats().get(BT_NODE_FETCH) << endl
+       << btree->stats().get(TREE_LEAF_FETCH)+btree->stats().get(TREE_NODE_FETCH) << endl
        << "\tWRITE:   " 
-       << btree->stats().get(BT_LEAF_WRITE)+btree->stats().get(BT_NODE_WRITE) << endl
+       << btree->stats().get(TREE_LEAF_WRITE)+btree->stats().get(TREE_NODE_WRITE) << endl
        << "\tDELETE:  " 
-       << btree->stats().get(BT_LEAF_DELETE)+btree->stats().get(BT_NODE_DELETE) << endl
+       << btree->stats().get(TREE_LEAF_DELETE)+btree->stats().get(TREE_NODE_DELETE) << endl
        << "\tRELEASE: " 
-       << btree->stats().get(BT_LEAF_RELEASE)+btree->stats().get(BT_NODE_RELEASE) << endl;
+       << btree->stats().get(TREE_LEAF_RELEASE)+btree->stats().get(TREE_NODE_RELEASE) << endl;
 
   btree->persist(PERSIST_DELETE);
   delete btree;
