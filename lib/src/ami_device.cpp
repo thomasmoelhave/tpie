@@ -7,14 +7,15 @@
 
 
 
-static char ami_device_id[] = "$Id: ami_device.cpp,v 1.2 1994-09-29 13:25:28 darrenv Exp $";
+static char ami_device_id[] = "$Id: ami_device.cpp,v 1.3 1994-10-31 21:19:05 darrenv Exp $";
 
+
+#include "lib_config.h"
 
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include <tpie_assert.h>
 #include <ami_base.h>
 #include <ami_device.h>
 

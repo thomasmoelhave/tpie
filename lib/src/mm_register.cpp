@@ -7,10 +7,9 @@
 
 // A simple registration based memory manager.
 
-static char mm_register_id[] = "$Id: mm_register.cpp,v 1.3 1994-09-26 19:28:08 darrenv Exp $";
+static char mm_register_id[] = "$Id: mm_register.cpp,v 1.4 1994-10-31 21:19:28 darrenv Exp $";
 
-#include <tpie_log.h>
-#include <tpie_assert.h>
+#include "lib_config.h"
 
 #define MM_IMP_REGISTER
 #include <mm.h>
