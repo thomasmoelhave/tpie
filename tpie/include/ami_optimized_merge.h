@@ -15,7 +15,7 @@
 // a quicksort using only keys of the items; there is a provision to 
 // to use templated heaps to implement the merge.
 
-// 	$Id: ami_optimized_merge.h,v 1.20 1999-04-16 20:38:35 rajiv Exp $	
+// 	$Id: ami_optimized_merge.h,v 1.21 1999-04-16 21:30:25 rbarve Exp $	
 //TO DO: substream_count setting; don't depend on current_stream_len
 
 
@@ -727,8 +727,9 @@ XXX
  
 	   //Monitoring prints.
 
-        cout << "Number of runs from run formation is " << original_substreams << "\n";
-        cout << "Merge arity is " << merge_arity << "\n";
+        LOG_DEBUG_INFO("Number of runs from run formation is " << original_substreams << "\n");
+        LOG_DEBUG_INFO("Merge arity is " << merge_arity << "\n");
+         
 
 
         // Pointers to the substreams that will be merged.
@@ -866,6 +867,9 @@ XXX
                                     delete[] the_substreams;
                                     the_substreams = NULL;
 							   }
+
+                return AMI_ERROR_NO_ERROR;
+
             } else {
 
                LOG_INFO("Merging substreams to intermediate streams.\n");
@@ -1187,7 +1191,7 @@ XXX
 XXX
 	   //Monitoring prints.
 
-        cout << "Number of passes incl run formation is " << k+1 << "\n";
+        LOG_DEBUG_INFO("Number of passes incl run formation is " << k+1 << "\n");
 		
         return AMI_ERROR_NO_ERROR;
    
@@ -1821,8 +1825,8 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
 
 	   //Monitoring prints.
 
-        cout << "Number of runs from run formation is " << original_substreams << "\n";
-        cout << "Merge arity is " << merge_arity << "\n";
+        LOG_DEBUG_INFO("Number of runs from run formation is " << original_substreams << "\n");
+        LOG_DEBUG_INFO("Merge arity is " << merge_arity << "\n");
 
 
 
@@ -2259,7 +2263,7 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
 
 	   //Monitoring prints.
 
-        cout << "Number of passes incl run formation is " << k+1 << "\n";
+        LOG_DEBUG_INFO("Number of passes incl run formation is " << k+1 << "\n");
 
         
         return AMI_ERROR_NO_ERROR;
