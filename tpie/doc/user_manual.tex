@@ -1,5 +1,5 @@
 %%
-%% $Id: user_manual.tex,v 1.8 1999-06-20 04:35:09 rajiv Exp $
+%% $Id: user_manual.tex,v 1.9 1999-06-20 17:09:31 tavi Exp $
 %%
 \chapter{Overview}
 
@@ -118,17 +118,17 @@ Once you have obtained the TPIE source distribution file
 {\tt tpie-\version.tar.gz}, you must decide where to install it.
 \verb|/usr/local/tpie/| is a typical place.
 
-Place {\tt tpie-\version.tgz} in the directory in which TPIE is to
+Place {\tt tpie-\version.tar.gz} in the directory in which TPIE is to
 be installed, \verb|cd| into that directory, and execute the command
 
-\begin{verbatim}
-tar czf tpie-\version.tgz
-\end{verbatim}
+%\begin{verbatim}
+%tar czf tpie-\version.tar.gz
+%\end{verbatim}
+%
+%or
 
-or
-
 \begin{verbatim}
-gunzip -c tpie-\version.tgz | tar cf -
+gunzip -c tpie-\version.tar.gz | tar xvf -
 \end{verbatim}
 
 
