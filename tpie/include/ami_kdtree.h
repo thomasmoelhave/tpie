@@ -5,7 +5,7 @@
 //
 // Blocked kd-tree definition and implementation.
 //
-// $Id: ami_kdtree.h,v 1.16 2005-01-21 16:54:35 tavi Exp $
+// $Id: ami_kdtree.h,v 1.17 2005-01-27 20:52:59 tavi Exp $
 //
 
 #ifndef _AMI_KDTREE_H
@@ -23,6 +23,9 @@
 #include <vector>
 // For priority_queue.
 #include <queue>
+// STL string.
+#include <string>
+
 // TPIE stuff.
 #include <ami_stream.h>
 #include <ami_scan.h>
@@ -67,8 +70,12 @@ public:
   // Constructor. Open/create a new kdtree with the given name, type
   // and parameters.
   AMI_kdtree(const char* base_file_name, 
-	 AMI_collection_type type = AMI_WRITE_COLLECTION,
-	 const AMI_kdtree_params& params = _AMI_kdtree_params_default);
+	     AMI_collection_type type = AMI_WRITE_COLLECTION,
+	     const AMI_kdtree_params& params = _AMI_kdtree_params_default);
+
+  AMI_kdtree(const string& base_file_name,
+	     AMI_collection_type type = AMI_WRITE_COLLECTION, 
+	     const AMI_kdtree_params& params = _AMI_kdtree_params_default);
 
   // Sort in_stream on each of the dim coordinates and store the
   // sorted streams in the given array. If out_streams[i] is NULL, a
@@ -139,6 +146,9 @@ public:
   // Print out some stuff about the tree structure. For debugging
   // purposes only.
   void print(ostream& s);
+
+  // Inquire the base path name.
+  const string& name() const { return name_; }
 
   // Destructor.
   ~AMI_kdtree();
@@ -222,6 +232,8 @@ protected:
   // The total number of bin nodes.
   TPIE_OS_OFFSET bin_node_count_;
 
+  // Base path name.
+  string name_;
 
   // Various initialization common to all constructors.
   void shared_init(const char* base_file_name, AMI_collection_type type);
@@ -1309,7 +1321,8 @@ pair<AMI_bid, link_type_t> AMI_KDTREE_NODE::find(const POINT &p) const {
 //// *AMI_kdtree::AMI_kdtree* ////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 AMI_KDTREE::AMI_kdtree(const char *base_file_name, AMI_collection_type type, 
-	       const AMI_kdtree_params& params): header_(), params_(params), points_are_sample(false) {
+		       const AMI_kdtree_params& params) 
+               : header_(), params_(params), points_are_sample(false), name_(base_file_name) {
   TPLOG("AMI_kdtree::AMI_kdtree Entering base_file_name="<<base_file_name<<"\n");
 
   shared_init(base_file_name, type);
@@ -1317,6 +1330,17 @@ AMI_KDTREE::AMI_kdtree(const char *base_file_name, AMI_collection_type type,
   TPLOG("AMI_kdtree::AMI_kdtree Exiting status="<<status_<<", size="<<header_.size<<"\n");
 }
 
+//// *AMI_kdtree::AMI_kdtree* ////
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+AMI_KDTREE::AMI_kdtree(const string& base_file_name, AMI_collection_type type, 
+		       const AMI_kdtree_params& params)
+                : header_(), params_(params), points_are_sample(false), name_(base_file_name) {
+  TPLOG("AMI_kdtree::AMI_kdtree Entering base_file_name="<<base_file_name.c_str()<<"\n");
+
+  shared_init(base_file_name.c_str(), type);
+
+  TPLOG("AMI_kdtree::AMI_kdtree Exiting status="<<status_<<", size="<<header_.size<<"\n");
+}
 
 //// *AMI_kdtree::shared_init* ////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
