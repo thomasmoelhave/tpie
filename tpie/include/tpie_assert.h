@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/12/94
 //
-// $Id: tpie_assert.h,v 1.2 1994-05-27 19:29:45 dev Exp $
+// $Id: tpie_assert.h,v 1.3 1994-08-31 19:28:03 darrenv Exp $
 //
 // This code is based on 
 // 	myassert.h
@@ -38,10 +38,14 @@
 {									\
     if (!(c)) {								\
 	LOG_ASSERT(__FILE__ ":" QUOTEMACRORESULT(__LINE__)		\
-                   ": Assertion failed: " msg "\n");			\
+                   ": Assertion failed: ");				\
+        LOG_ASSERT(msg);						\
+    	LOG_ASSERT('\n');						\
 	LOG_FLUSH_LOG;							\
 	CERR_OUT(__FILE__ ":" QUOTEMACRORESULT(__LINE__)		\
-                 ": Assertion failed: " msg "\n");			\
+                 ": Assertion failed: ");				\
+        CERR_OUT(msg);							\
+        CERR_OUT('\n');							\
     }									\
 }
 #else
@@ -49,9 +53,9 @@
 #endif
 
 #if DEBUG_STR
-#define TP_DEBUGSTR(s) LOG_DEBUG_INFO(s); LOG_FLUSH_LOG; CERR_OUT(s)
+#define TP_DEBUG_OUT(s) LOG_DEBUG_INFO(s); LOG_FLUSH_LOG; CERR_OUT(s)
 #else
-#define TP_DEBUGSTR(s)
+#define TP_DEBUG_OUT(s)
 #endif
 	
 
