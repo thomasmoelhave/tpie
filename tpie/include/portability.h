@@ -3,7 +3,7 @@
 // Created: 2002/10/30
 // Authors: Joerg Rotthowe, Jan Vahrenhold, Markus Vogel
 //
-// $Id: portability.h,v 1.6 2003-04-29 05:29:42 tavi Exp $
+// $Id: portability.h,v 1.7 2003-04-30 06:13:57 tavi Exp $
 //
 // This header-file offers macros for independent use on Win and Unix systems.
 
@@ -275,10 +275,9 @@ typedef unsigned int TPIE_BLOCK_ID_TYPE;
 
 
 #ifdef _WIN32
-#define TPIE_OS_LAST_SYNC_REAL_DECLARATION \
-		clock_t last_sync_real = clock();
+#define TPIE_OS_LAST_SYNC_REAL_DECLARATION last_sync_real = clock();
 #else
-#define TPIE_OS_LAST_SYNC_REAL_DECLARATION clock_t last_sync_real = times(&last_sync);	
+#define TPIE_OS_LAST_SYNC_REAL_DECLARATION last_sync_real = times(&last_sync);	
 #endif
 
 
