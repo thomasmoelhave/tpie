@@ -1,5 +1,5 @@
 #include <versions.h>
-VERSION(sample_pgm_cpp,"$Id: sample_pgm.cpp,v 1.9 2003-04-20 23:51:40 tavi Exp $");	
+VERSION(sample_pgm_cpp,"$Id: sample_pgm.cpp,v 1.10 2003-04-21 04:44:56 tavi Exp $");	
 
 #include <stdlib.h>
 #include <sys/time.h>
@@ -34,8 +34,7 @@ using std::cout;
 //integers and the size of the main memory that can be used.
 
 
-void
-main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) {
    
    //parse arguments
    if (argc < 3) {
@@ -179,5 +178,7 @@ main(int argc, char *argv[]) {
       buckets[i].persist(PERSIST_PERSISTENT);
       cout << "Length of bucket " << i << " is " 
 	   << buckets[i].stream_len() << "\n";
-   }  
+   }
+
+   return 0;
 }
