@@ -3,7 +3,7 @@
 // File:    ami_cache.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_cache.h,v 1.7 2003-04-17 12:09:49 jan Exp $
+// $Id: ami_cache.h,v 1.8 2003-04-23 05:35:58 tavi Exp $
 //
 // Declaration and definition of AMI_CACHE_MANAGER
 // implementation(s).
@@ -11,11 +11,12 @@
 
 #ifndef _AMI_CACHE_H
 #define _AMI_CACHE_H
- 
-// Get definitions for working with Unix and Windows
-#include <portability.h>
 
-// The b_vector class.
+// Get the STL pair class.
+#include <utility>
+// Get the logging macros.
+#include <tpie_log.h>
+// Get the b_vector class.
 #include <b_vector.h>
 
 // The only implementation is AMI_cache_manager_lru.
@@ -50,7 +51,7 @@ template<class T, class W>
 class AMI_cache_manager_lru: public AMI_cache_manager_base {
 protected:
 
-  typedef TPIE_OS_STL_PAIR<size_t,T> item_type_;
+  typedef std::pair<size_t,T> item_type_;
 	
   // The array of items.
   item_type_ * pdata_;
