@@ -5,7 +5,7 @@
 //
 // The Point and IdPoint classes.
 //
-// $Id: ami_point.h,v 1.1 2003-01-27 02:55:00 tavi Exp $
+// $Id: ami_point.h,v 1.2 2003-04-20 09:22:15 tavi Exp $
 //
 
 #ifndef POINT_H_
@@ -254,7 +254,7 @@ public:
 template<class coord_t, class data_t, size_t dim>
 class Record: public Record_base<coord_t, data_t, dim> {
 
-  Record(const point_t& p, data_t b = data_t(0)): 
+  Record(const typename Record_base<coord_t, data_t, dim>::point_t& p, data_t b = data_t(0)): 
     Record_base<coord_t, data_t, dim>(p, b) {}
   Record(data_t b = data_t(0)): Record_base<coord_t, data_t, dim>(b) {}
 
@@ -304,7 +304,7 @@ class Record: public Record_base<coord_t, data_t, dim> {
 template<class coord_t, class data_t>
 struct Record<coord_t, data_t, 2>: public Record_base<coord_t, data_t, 2> {
 
-  Record(const point_t& p, data_t b = data_t(0)): 
+  Record(const typename Record_base<coord_t, data_t, 2>::point_t& p, data_t b = data_t(0)): 
     Record_base<coord_t, data_t, 2>(p, b) {}
   Record(const coord_t& x, const coord_t& y, const data_t& b): 
     Record_base<coord_t, data_t, 2>(point_t(x, y), b) {}
@@ -312,7 +312,7 @@ struct Record<coord_t, data_t, 2>: public Record_base<coord_t, data_t, 2> {
 
   struct less_X_point {
     bool operator()(const Record<coord_t, data_t, 2>& r, 
-			   const point_t& p) const { 
+			   const typename Record_base<coord_t, data_t, 2>::point_t& p) const { 
       //      return point_t::less_X()(r.key, p); 
       return r.key.less_x(p);
     }
