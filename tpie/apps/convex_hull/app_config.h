@@ -4,20 +4,13 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/6/94
 //
-// $Id: app_config.h,v 1.18 1999-06-29 00:27:20 laura Exp $
+// $Id: app_config.h,v 1.19 1999-06-29 19:58:34 large Exp $
 //
 #ifndef _APP_CONFIG_H
 #define _APP_CONFIG_H
 
-// Get the configuration set up by the configure script.
+// Get the configuration as set up by the TPIE configure script.
 #include <config.h>
-
-#include <sys/types.h> // for size_t
-#include <stdlib.h> // for random
-
-
-
-
 
 /* ********************************************************************** */
 /*                      developer use                                     */
@@ -81,11 +74,12 @@
 
 
 
-
-
 /********************************************************************/
 /*              Set up some defaults for the apps                   */
 /********************************************************************/
+#include <sys/types.h> // for size_t
+#include <stdlib.h> // for random
+
 #define DEFAULT_TEST_SIZE (1024 * 1024 * 16)
 #define DEFAULT_TEST_MM_SIZE (1024 * 1024 * 8)
 
@@ -97,9 +91,8 @@ extern int random_seed;
 
 
 
-
 /********************************************************************/
-/*  THE FOLLOWING FLAGS ARE NORMALLY NOT MODIFIED BY USER           */
+/*  THE FOLLOWING MACROS ARE NORMALLY NOT MODIFIED BY USER           */
 /********************************************************************/
 
 
@@ -120,9 +113,9 @@ extern int random_seed;
 
 /********************************************************************/
 /*                            logging;                              */
-/*              this should NOT be modified by user!!! 
-       in order to enable/disable library/application logging,
-       run tpie configure script with appropriate options           */
+/*              this should NOT be modified by user!!!              */
+/*       in order to enable/disable library/application logging,    */
+/*     run tpie configure script with appropriate options           */
 /********************************************************************/
 // Use logs if requested.
 #if TP_LOG_APPS
