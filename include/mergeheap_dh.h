@@ -1,7 +1,7 @@
 //
 // File: mergeheap_dh.h
 // 
-// $Id: mergeheap_dh.h,v 1.4 2002-01-14 16:27:58 tavi Exp $	
+// $Id: mergeheap_dh.h,v 1.5 2003-04-17 19:37:22 jan Exp $	
 
 // This file contains several merge heap templates. 
 // Originally written by Rakesh Barve.  
@@ -40,6 +40,9 @@
 #ifndef _MERGE_HEAP_DH_H
 #define _MERGE_HEAP_DH_H
 
+// Get definitions for working with Unix and Windows
+#include <portability.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -55,8 +58,8 @@
 template<class KEY>
 class heap_element {
 public:
-  KEY            key;
-  unsigned short run_id;
+    KEY            key;
+    unsigned short run_id;
 };
 
 // This is a record pointer element. Encapsulates the record pointer,
@@ -66,8 +69,8 @@ public:
 template<class REC>
 class heap_ptr {
 public:
-  REC            *recptr;
-  unsigned short run_id;
+    REC            *recptr;
+    unsigned short run_id;
 };
 
 // ********************************************************************
@@ -77,63 +80,63 @@ public:
 template<class REC, class CMPR>
 class merge_heap_pdh_obj{
 
-  CMPR                *cmp;
-  class heap_ptr<REC> *Heaparray;
-  unsigned int        Heapsize;
-  unsigned int        maxHeapsize;
+    CMPR                *cmp;
+    heap_ptr<REC> *Heaparray;
+    unsigned int        Heapsize;
+    unsigned int        maxHeapsize;
 
-  inline void Exchange(int i, int j) {
-    REC            *tmpptr;
-    unsigned short tmpid;
+    inline void Exchange(int i, int j) {
+	REC            *tmpptr;
+	unsigned short tmpid;
 
-    tmpptr = Heaparray[i].recptr;
-    tmpid  = Heaparray[i].run_id;
+	tmpptr = Heaparray[i].recptr;
+	tmpid  = Heaparray[i].run_id;
     
-    Heaparray[i].recptr = Heaparray[j].recptr;
-    Heaparray[i].run_id = Heaparray[j].run_id;
+	Heaparray[i].recptr = Heaparray[j].recptr;
+	Heaparray[i].run_id = Heaparray[j].run_id;
     
-    Heaparray[j].recptr = tmpptr;
-    Heaparray[j].run_id = tmpid;
-  };
+	Heaparray[j].recptr = tmpptr;
+	Heaparray[j].run_id = tmpid;
+    };
 
-  inline void Heapify(unsigned int i);
+    inline void Heapify(unsigned int i);
 
 public:
 
-  // Constructor initializes a pointer to the user's comparison object
-  // The object may contain dynamic data although the 'compare' method is CONST
-  // and therefore inline'able.
+    // Constructor initializes a pointer to the user's comparison object
+    // The object may contain dynamic data although the 'compare' method is CONST
+    // and therefore inline'able.
 
-  merge_heap_pdh_obj ( CMPR *cmpptr ) {
-    cmp = cmpptr;
-  }
+    merge_heap_pdh_obj ( CMPR *cmpptr ) {
+	cmp = cmpptr;
+    }
   
-  // Report size of Heap (number of elements)
-  unsigned int sizeofheap(void) {return Heapsize;}; 
+    // Report size of Heap (number of elements)
+    unsigned int sizeofheap(void) {return Heapsize;}; 
 
-  // Delete the current minimum and insert the new item from the same
-  // source / run.
+    // Delete the current minimum and insert the new item from the same
+    // source / run.
 
-  inline void delete_min_and_insert(REC *nextelement_same_run){ 
-    if (nextelement_same_run == NULL) {
-      Heaparray[1].recptr = Heaparray[Heapsize].recptr;
-      Heaparray[1].run_id = Heaparray[Heapsize].run_id;
-      Heapsize--;
-    } else 
-      Heaparray[1].recptr = nextelement_same_run;
-    this->Heapify(1);
-  };
+    inline void delete_min_and_insert(REC *nextelement_same_run){ 
+	if (nextelement_same_run == NULL) {
+	    Heaparray[1].recptr = Heaparray[Heapsize].recptr;
+	    Heaparray[1].run_id = Heaparray[Heapsize].run_id;
+	    Heapsize--;
+	} else 
+	    Heaparray[1].recptr = nextelement_same_run;
+	this->Heapify(1);
+    };
 
-  // Return the run with the minimum key.
-  inline unsigned short get_min_run_id(void) {return Heaparray[1].run_id;};
+    // Return the run with the minimum key.
+    inline unsigned short get_min_run_id(void) {return Heaparray[1].run_id;};
 
-  // The initialize member function heapify's an initial array of
-  // elements
-  void initialize ();
+    // The initialize member function heapify's an initial array of
+    // elements
+    void initialize ();
 
-  void allocate   (unsigned int size);
-  void insert     (REC *ptr, unsigned int run_id);
-  void deallocate ();
+    void allocate   (unsigned int size);
+    void insert     (REC *ptr, unsigned int run_id);
+    void deallocate ();
 };
 
 // Allocate space for the heap
@@ -157,7 +160,7 @@ inline void merge_heap_pdh_obj<REC,CMPR>::insert ( REC *ptr, unsigned int run_id
 template<class REC, class CMPR>
 inline void merge_heap_pdh_obj<REC,CMPR>::deallocate () {
     if (Heaparray)
-       delete [] Heaparray; 
+	delete [] Heaparray; 
     Heapsize    = 0;
     maxHeapsize = 0;
 };
@@ -167,35 +170,35 @@ inline void merge_heap_pdh_obj<REC,CMPR>::deallocate () {
 template<class REC, class CMPR>
 inline void merge_heap_pdh_obj<REC,CMPR>::Heapify(unsigned int i) {
 
-  unsigned int l,r, smallest;
+    unsigned int l,r, smallest;
 
-  l = Left(i);
-  r = Right(i);
-
-  smallest = ((l <= Heapsize) && (cmp->compare(*Heaparray[l].recptr,*Heaparray[i].recptr)< 0)) ? l : i;
-
-  smallest = ((r <= Heapsize) && 
-	      (cmp->compare(*Heaparray[r].recptr,*Heaparray[smallest].recptr)<0))? r : smallest;
-
-  while (smallest != i) {
-    this->Exchange(i,smallest);
-    
-    i = smallest;
     l = Left(i);
     r = Right(i);
-    
-    smallest = ((l <= Heapsize) && 
-		(cmp->compare(*Heaparray[l].recptr,*Heaparray[i].recptr)<0))? l : i;
 
-    smallest =  ((r <= Heapsize) && 
-		 (cmp->compare(*Heaparray[r].recptr,*Heaparray[smallest].recptr)<0))? r : smallest;
-  }
+    smallest = ((l <= Heapsize) && (cmp->compare(*Heaparray[l].recptr,*Heaparray[i].recptr)< 0)) ? l : i;
+
+    smallest = ((r <= Heapsize) && 
+		(cmp->compare(*Heaparray[r].recptr,*Heaparray[smallest].recptr)<0))? r : smallest;
+
+    while (smallest != i) {
+	this->Exchange(i,smallest);
+    
+	i = smallest;
+	l = Left(i);
+	r = Right(i);
+    
+	smallest = ((l <= Heapsize) && 
+		    (cmp->compare(*Heaparray[l].recptr,*Heaparray[i].recptr)<0))? l : i;
+
+	smallest =  ((r <= Heapsize) && 
+		     (cmp->compare(*Heaparray[r].recptr,*Heaparray[smallest].recptr)<0))? r : smallest;
+    }
 }
 
 template<class REC, class CMPR>
 void merge_heap_pdh_obj<REC,CMPR>::initialize () {
-  for ( int i = Heapsize/2; i >= 1; i--) 
-    this->Heapify(i);
+    for ( int i = Heapsize/2; i >= 1; i--) 
+	this->Heapify(i);
 }
 // ********************************************************************
 // * A record pointer heap that uses a comparison operator <          *
@@ -204,54 +207,54 @@ void merge_heap_pdh_obj<REC,CMPR>::initialize () {
 template<class REC>
 class merge_heap_pdh_op{
 
-  class heap_ptr<REC> *Heaparray;
-  unsigned int        Heapsize;
-  unsigned int        maxHeapsize;
+    heap_ptr<REC> *Heaparray;
+    unsigned int        Heapsize;
+    unsigned int        maxHeapsize;
 
-  inline void Exchange(int i, int j) {
-    REC            *tmpptr;
-    unsigned short tmpid;
+    inline void Exchange(int i, int j) {
+	REC            *tmpptr;
+	unsigned short tmpid;
 
-    tmpptr = Heaparray[i].recptr;
-    tmpid  = Heaparray[i].run_id;
+	tmpptr = Heaparray[i].recptr;
+	tmpid  = Heaparray[i].run_id;
     
-    Heaparray[i].recptr = Heaparray[j].recptr;
-    Heaparray[i].run_id = Heaparray[j].run_id;
+	Heaparray[i].recptr = Heaparray[j].recptr;
+	Heaparray[i].run_id = Heaparray[j].run_id;
     
-    Heaparray[j].recptr = tmpptr;
-    Heaparray[j].run_id = tmpid;
-  };
+	Heaparray[j].recptr = tmpptr;
+	Heaparray[j].run_id = tmpid;
+    };
 
-  inline void Heapify(unsigned int i);
+    inline void Heapify(unsigned int i);
 
 public:
 
-  // Report size of Heap (number of elements)
-  unsigned int sizeofheap(void) {return Heapsize;}; 
+    // Report size of Heap (number of elements)
+    unsigned int sizeofheap(void) {return Heapsize;}; 
 
-  // Delete the current minimum and insert the new item from the same
-  // source / run.
+    // Delete the current minimum and insert the new item from the same
+    // source / run.
 
-  inline void delete_min_and_insert(REC *nextelement_same_run){
-    if (nextelement_same_run == NULL) {
-      Heaparray[1].recptr = Heaparray[Heapsize].recptr;
-      Heaparray[1].run_id = Heaparray[Heapsize].run_id;
-      Heapsize--;
-    } else 
-      Heaparray[1].recptr = nextelement_same_run;
-    this->Heapify(1);
-  };
+    inline void delete_min_and_insert(REC *nextelement_same_run){
+	if (nextelement_same_run == NULL) {
+	    Heaparray[1].recptr = Heaparray[Heapsize].recptr;
+	    Heaparray[1].run_id = Heaparray[Heapsize].run_id;
+	    Heapsize--;
+	} else 
+	    Heaparray[1].recptr = nextelement_same_run;
+	this->Heapify(1);
+    };
 
-  // Return the run with the minimum key.
-  inline unsigned short get_min_run_id(void) {return Heaparray[1].run_id;};
+    // Return the run with the minimum key.
+    inline unsigned short get_min_run_id(void) {return Heaparray[1].run_id;};
 
-  // The initialize member function heapify's an initial array of
-  // elements
-  void initialize ();
+    // The initialize member function heapify's an initial array of
+    // elements
+    void initialize ();
 
-  void allocate   (unsigned int size);
-  void insert     (REC *ptr, unsigned int run_id);
-  void deallocate ();
+    void allocate   (unsigned int size);
+    void insert     (REC *ptr, unsigned int run_id);
+    void deallocate ();
 };
 
 // Allocate space for the heap
@@ -276,7 +279,7 @@ inline void merge_heap_pdh_op<REC>::insert ( REC *ptr, unsigned int run_id ) {
 template<class REC>
 inline void merge_heap_pdh_op<REC>::deallocate () {
     if (Heaparray)
-       delete [] Heaparray; 
+	delete [] Heaparray; 
     Heapsize    = 0;
     maxHeapsize = 0;
 };
@@ -287,166 +290,45 @@ inline void merge_heap_pdh_op<REC>::deallocate () {
 template<class REC>
 inline void merge_heap_pdh_op<REC>::Heapify(unsigned int i) {
 
-  unsigned int l,r, smallest;
+    unsigned int l,r, smallest;
 
-  l = Left(i);
-  r = Right(i);
-
-  smallest = ((l <= Heapsize) && 
-	      (*Heaparray[l].recptr < *Heaparray[i].recptr)) ? l : i;
-
-  smallest = ((r <= Heapsize) && 
-	      (*Heaparray[r].recptr < *Heaparray[smallest].recptr))? r : smallest;
-
-  while (smallest != i) {
-    this->Exchange(i,smallest);
-
-    i = smallest;
     l = Left(i);
     r = Right(i);
-    
+
     smallest = ((l <= Heapsize) && 
-		(*Heaparray[l].recptr < *Heaparray[i].recptr))? l : i;
+		(*Heaparray[l].recptr < *Heaparray[i].recptr)) ? l : i;
+
+    smallest = ((r <= Heapsize) && 
+		(*Heaparray[r].recptr < *Heaparray[smallest].recptr))? r : smallest;
+
+    while (smallest != i) {
+	this->Exchange(i,smallest);
+
+	i = smallest;
+	l = Left(i);
+	r = Right(i);
     
-    smallest =  ((r <= Heapsize) && 
-		 (*Heaparray[r].recptr < *Heaparray[smallest].recptr))? r : smallest;
-  }
+	smallest = ((l <= Heapsize) && 
+		    (*Heaparray[l].recptr < *Heaparray[i].recptr))? l : i;
+    
+	smallest =  ((r <= Heapsize) && 
+		     (*Heaparray[r].recptr < *Heaparray[smallest].recptr))? r : smallest;
+    }
 }
 
 template<class REC>
 void merge_heap_pdh_op<REC>::initialize () {
-  for ( int i = Heapsize/2; i >= 1; i--) 
-    this->Heapify(i);
+    for ( int i = Heapsize/2; i >= 1; i--) 
+	this->Heapify(i);
 }
 
-// ********************************************************************
-// * A record pointer heap that uses a comparison function            *
-// ********************************************************************
+// Comment (jan): This version must no be used anymore!
 
-template<class REC>
-class merge_heap_pdh_cmp {
+// // ********************************************************************
+// // * A record pointer heap that uses a comparison function            *
+// // ********************************************************************
 
-  class heap_ptr<REC>     *Heaparray;
-  unsigned int            Heapsize;
-  unsigned int            maxHeapsize;
-
-  // The constructor will provide the comparison function
-  int (*cmp)(CONST REC&, CONST REC&);
-
-  inline void Exchange(int i, int j){
-    REC            *tmpptr;
-    unsigned short tmpid;
-
-    tmpptr = Heaparray[i].recptr;
-    tmpid  = Heaparray[i].run_id;
-  
-    Heaparray[i].recptr = Heaparray[j].recptr;
-    Heaparray[i].run_id = Heaparray[j].run_id;
-
-    Heaparray[j].recptr = tmpptr;
-    Heaparray[j].run_id = tmpid;
-  };
-
-  inline void Heapify(unsigned int i);
-
-public:
-
-  // Constructor
-  merge_heap_pdh_cmp( int (*cmp_f)(CONST REC &, CONST REC &) ) {    
-    cmp = cmp_f;
-  };
-
-  // Report size of Heap (number of elements)
-  unsigned int sizeofheap(void) {return Heapsize;}; 
-  
-  // Delete the current minimum and insert the new item from
-  // the same source / run.
-
-  inline void delete_min_and_insert(REC *nextelement_same_run) {  
-    if (nextelement_same_run == NULL) {
-      Heaparray[1].recptr = Heaparray[Heapsize].recptr;
-      Heaparray[1].run_id = Heaparray[Heapsize].run_id;
-      Heapsize--;
-    } else Heaparray[1].recptr = nextelement_same_run;
-    this->Heapify(1);
-  };
-
-  //Return the run with the minimum key.
-  inline unsigned short get_min_run_id(void) {return Heaparray[1].run_id;};
-
-  // create initial heap by heapifying the array of keys provided
-
-  void initialize();
-
-  void allocate   (unsigned int size);
-  void insert     (REC *ptr, unsigned int run_id);
-  void deallocate ();
-};
-
-// Allocate space for the heap
-template<class REC>
-inline void merge_heap_pdh_cmp<REC>::allocate ( unsigned int size ) {
-    Heaparray = new heap_ptr<REC> [size+1];
-    Heapsize  = 0;
-    maxHeapsize = size;
-};
-
-// Copy an (initial) element into the heap array
-template<class REC>
-inline void merge_heap_pdh_cmp<REC>::insert ( REC *ptr, unsigned int run_id ) {
-    Heaparray[Heapsize+1].recptr = ptr;
-    Heaparray[Heapsize+1].run_id = run_id;
-    Heapsize++;
-    //tp_assert( Heapsize <= maxHeapsize
-};
-
-// Deallocate the space used by the heap
-template<class REC>
-inline void merge_heap_pdh_cmp<REC>::deallocate () {
-    if (Heaparray)
-       delete [] Heaparray; 
-    Heapsize    = 0;
-    maxHeapsize = 0;
-};
-
-
-// This is the primary function; note that we have unfolded the 
-// recursion.
-template<class REC>
-inline void merge_heap_pdh_cmp<REC>::Heapify(unsigned int i) {
-  unsigned int l,r, smallest;
-  
-  l = Left(i);
-  r = Right(i);
-
-  smallest = ((l <= Heapsize) && (cmp(*Heaparray[l].recptr,*Heaparray[i].recptr)< 0)) ? l : i;
-
-  smallest = ((r <= Heapsize) && 
-	      (cmp(*Heaparray[r].recptr,*Heaparray[smallest].recptr)<0))? r : smallest;
-
-  while (smallest != i) {
-    this->Exchange(i,smallest);
-    
-    i = smallest;
-    l = Left(i);
-    r = Right(i);
-    
-    smallest = ((l <= Heapsize) && 
-		(cmp(*Heaparray[l].recptr,*Heaparray[i].recptr)<0))? l : i;
-
-    smallest =  ((r <= Heapsize) && 
-		 (cmp(*Heaparray[r].recptr,*Heaparray[smallest].recptr)<0))? r : smallest;
-
-  }
-}
-
-// create initial heap by heapifying the array of keys provided
-
-template<class REC>
-void merge_heap_pdh_cmp<REC>::initialize () {
-  for ( int i = Heapsize/2; i >= 1; i--) 
-    this->Heapify(i);
-}
+// End Comment.
 
 // ********************************************************************
 // * A merge heap that uses a comparison object                       *
@@ -455,63 +337,63 @@ void merge_heap_pdh_cmp<REC>::initialize () {
 template<class REC, class CMPR>
 class merge_heap_dh_obj{
 
-  CMPR                    *cmp;
-  class heap_element<REC> *Heaparray;
-  unsigned int            Heapsize;
-  unsigned int            maxHeapsize;
-  inline void Exchange(int i, int j) {
+    CMPR                    *cmp;
+    heap_element<REC> *Heaparray;
+    unsigned int            Heapsize;
+    unsigned int            maxHeapsize;
+    inline void Exchange(int i, int j) {
 
-    REC tmpkey;
-    unsigned short tmpid;
+	REC tmpkey;
+	unsigned short tmpid;
 
-    tmpkey = Heaparray[i].key;
-    tmpid = Heaparray[i].run_id;
+	tmpkey = Heaparray[i].key;
+	tmpid = Heaparray[i].run_id;
     
-    Heaparray[i].key = Heaparray[j].key;
-    Heaparray[i].run_id = Heaparray[j].run_id;
+	Heaparray[i].key = Heaparray[j].key;
+	Heaparray[i].run_id = Heaparray[j].run_id;
     
-    Heaparray[j].key = tmpkey;
-    Heaparray[j].run_id = tmpid;
-  };
+	Heaparray[j].key = tmpkey;
+	Heaparray[j].run_id = tmpid;
+    };
 
-  inline void Heapify(unsigned int i);
+    inline void Heapify(unsigned int i);
 
 public:
-  // Constructor initializes a pointer to the user's comparison object
-  // The object may contain dynamic data although the 'compare' method is CONST
-  // and therefore inline'able.
+    // Constructor initializes a pointer to the user's comparison object
+    // The object may contain dynamic data although the 'compare' method is CONST
+    // and therefore inline'able.
 
-  merge_heap_dh_obj ( CMPR *cmpptr ) {
-    cmp = cmpptr;
-  }
+    merge_heap_dh_obj ( CMPR *cmpptr ) {
+	cmp = cmpptr;
+    }
 
-  // Report size of Heap (number of elements)
-  unsigned int sizeofheap(void) {return Heapsize;}; 
+    // Report size of Heap (number of elements)
+    unsigned int sizeofheap(void) {return Heapsize;}; 
 
-  // Delete the current minimum and insert the new item from the same
-  // source / run.
+    // Delete the current minimum and insert the new item from the same
+    // source / run.
 
-  inline void delete_min_and_insert(REC *nextelement_same_run){
+    inline void delete_min_and_insert(REC *nextelement_same_run){
   
-    if (nextelement_same_run == NULL) {
-      Heaparray[1].key = Heaparray[Heapsize].key;
-      Heaparray[1].run_id = Heaparray[Heapsize].run_id;
-      Heapsize--;
-    } else 
-      Heaparray[1].key = *nextelement_same_run;
-    this->Heapify(1);
-  };
+	if (nextelement_same_run == NULL) {
+	    Heaparray[1].key = Heaparray[Heapsize].key;
+	    Heaparray[1].run_id = Heaparray[Heapsize].run_id;
+	    Heapsize--;
+	} else 
+	    Heaparray[1].key = *nextelement_same_run;
+	this->Heapify(1);
+    };
 
-  // Return the run with the minimum key.
-  inline unsigned short get_min_run_id(void) {return Heaparray[1].run_id;};
+    // Return the run with the minimum key.
+    inline unsigned short get_min_run_id(void) {return Heaparray[1].run_id;};
 
-  // The initialize member function heapify's an initial array of
-  // elements
-  void initialize ();
+    // The initialize member function heapify's an initial array of
+    // elements
+    void initialize ();
 
-  void allocate   (unsigned int size);
-  void insert     (REC *ptr, unsigned int run_id);
-  void deallocate ();
+    void allocate   (unsigned int size);
+    void insert     (REC *ptr, unsigned int run_id);
+    void deallocate ();
 };
 
 // Allocate space for the heap
@@ -535,7 +417,7 @@ inline void merge_heap_dh_obj<REC,CMPR>::insert ( REC *ptr, unsigned int run_id 
 template<class REC, class CMPR>
 inline void merge_heap_dh_obj<REC,CMPR>::deallocate () {
     if (Heaparray)
-       delete [] Heaparray; 
+	delete [] Heaparray; 
     Heapsize    = 0;
     maxHeapsize = 0;
 };
@@ -545,35 +427,35 @@ inline void merge_heap_dh_obj<REC,CMPR>::deallocate () {
 template<class REC, class CMPR>
 inline void merge_heap_dh_obj<REC,CMPR>::Heapify(unsigned int i) {
 
-  unsigned int l,r, smallest;
+    unsigned int l,r, smallest;
 
-  l = Left(i);
-  r = Right(i);
-
-  smallest = ((l <= Heapsize) && (cmp->compare(Heaparray[l].key,Heaparray[i].key)< 0)) ? l : i;
-
-  smallest = ((r <= Heapsize) && 
-	      (cmp->compare(Heaparray[r].key,Heaparray[smallest].key)<0))? r : smallest;
-
-  while (smallest != i) {
-    this->Exchange(i,smallest);
-    
-    i = smallest;
     l = Left(i);
     r = Right(i);
-    
-    smallest = ((l <= Heapsize) && 
-		(cmp->compare(Heaparray[l].key,Heaparray[i].key)<0))? l : i;
 
-    smallest =  ((r <= Heapsize) && 
-		 (cmp->compare(Heaparray[r].key,Heaparray[smallest].key)<0))? r : smallest;
-  }
+    smallest = ((l <= Heapsize) && (cmp->compare(Heaparray[l].key,Heaparray[i].key)< 0)) ? l : i;
+
+    smallest = ((r <= Heapsize) && 
+		(cmp->compare(Heaparray[r].key,Heaparray[smallest].key)<0))? r : smallest;
+
+    while (smallest != i) {
+	this->Exchange(i,smallest);
+    
+	i = smallest;
+	l = Left(i);
+	r = Right(i);
+    
+	smallest = ((l <= Heapsize) && 
+		    (cmp->compare(Heaparray[l].key,Heaparray[i].key)<0))? l : i;
+
+	smallest =  ((r <= Heapsize) && 
+		     (cmp->compare(Heaparray[r].key,Heaparray[smallest].key)<0))? r : smallest;
+    }
 }
 
 template<class REC, class CMPR>
 void merge_heap_dh_obj<REC,CMPR>::initialize () {
-  for ( int i = Heapsize/2; i >= 1; i--) 
-    this->Heapify(i);
+    for ( int i = Heapsize/2; i >= 1; i--) 
+	this->Heapify(i);
 }
 
 // ********************************************************************
@@ -583,55 +465,55 @@ void merge_heap_dh_obj<REC,CMPR>::initialize () {
 template<class REC>
 class merge_heap_dh_op{
 
-  class heap_element<REC> *Heaparray;
-  unsigned int            Heapsize;
-  unsigned int            maxHeapsize;
-  inline void Exchange(int i, int j) {
+    heap_element<REC> *Heaparray;
+    unsigned int            Heapsize;
+    unsigned int            maxHeapsize;
+    inline void Exchange(int i, int j) {
 
-    REC tmpkey;
-    unsigned short tmpid;
+	REC tmpkey;
+	unsigned short tmpid;
 
-    tmpkey = Heaparray[i].key;
-    tmpid = Heaparray[i].run_id;
+	tmpkey = Heaparray[i].key;
+	tmpid = Heaparray[i].run_id;
     
-    Heaparray[i].key = Heaparray[j].key;
-    Heaparray[i].run_id = Heaparray[j].run_id;
+	Heaparray[i].key = Heaparray[j].key;
+	Heaparray[i].run_id = Heaparray[j].run_id;
     
-    Heaparray[j].key = tmpkey;
-    Heaparray[j].run_id = tmpid;
-  };
+	Heaparray[j].key = tmpkey;
+	Heaparray[j].run_id = tmpid;
+    };
 
-  inline void Heapify(unsigned int i);
+    inline void Heapify(unsigned int i);
 
 public:
 
-  // Report size of Heap (number of elements)
-  unsigned int sizeofheap(void) {return Heapsize;}; 
+    // Report size of Heap (number of elements)
+    unsigned int sizeofheap(void) {return Heapsize;}; 
 
-  // Delete the current minimum and insert the new item from the same
-  // source / run.
+    // Delete the current minimum and insert the new item from the same
+    // source / run.
 
-  inline void delete_min_and_insert(REC *nextelement_same_run){
+    inline void delete_min_and_insert(REC *nextelement_same_run){
   
-    if (nextelement_same_run == NULL) {
-      Heaparray[1].key = Heaparray[Heapsize].key;
-      Heaparray[1].run_id = Heaparray[Heapsize].run_id;
-      Heapsize--;
-    } else 
-      Heaparray[1].key = *nextelement_same_run;
-    this->Heapify(1);
-  };
+	if (nextelement_same_run == NULL) {
+	    Heaparray[1].key = Heaparray[Heapsize].key;
+	    Heaparray[1].run_id = Heaparray[Heapsize].run_id;
+	    Heapsize--;
+	} else 
+	    Heaparray[1].key = *nextelement_same_run;
+	this->Heapify(1);
+    };
 
-  // Return the run with the minimum key.
-  inline unsigned short get_min_run_id(void) {return Heaparray[1].run_id;};
+    // Return the run with the minimum key.
+    inline unsigned short get_min_run_id(void) {return Heaparray[1].run_id;};
 
-  // The initialize member function heapify's an initial array of
-  // elements
-  void initialize ();
+    // The initialize member function heapify's an initial array of
+    // elements
+    void initialize ();
 
-  void allocate   (unsigned int size);
-  void insert     (REC *ptr, unsigned int run_id);
-  void deallocate ();
+    void allocate   (unsigned int size);
+    void insert     (REC *ptr, unsigned int run_id);
+    void deallocate ();
 };
 
 // Allocate space for the heap
@@ -655,7 +537,7 @@ inline void merge_heap_dh_op<REC>::insert ( REC *ptr, unsigned int run_id ) {
 template<class REC>
 inline void merge_heap_dh_op<REC>::deallocate () {
     if (Heaparray)
-       delete [] Heaparray; 
+	delete [] Heaparray; 
     Heapsize    = 0;
     maxHeapsize = 0;
 };
@@ -665,168 +547,47 @@ inline void merge_heap_dh_op<REC>::deallocate () {
 template<class REC>
 inline void merge_heap_dh_op<REC>::Heapify(unsigned int i) {
 
-  unsigned int l,r, smallest;
+    unsigned int l,r, smallest;
 
-  l = Left(i);
-  r = Right(i);
-
-  smallest = ((l <= Heapsize) && 
-	      (Heaparray[l].key < Heaparray[i].key)) ? l : i;
-
-  smallest = ((r <= Heapsize) && 
-	      (Heaparray[r].key < Heaparray[smallest].key))? r : smallest;
-
-  while (smallest != i) {
-    this->Exchange(i,smallest);
-
-    i = smallest;
     l = Left(i);
     r = Right(i);
-    
+
     smallest = ((l <= Heapsize) && 
-		(Heaparray[l].key < Heaparray[i].key))? l : i;
+		(Heaparray[l].key < Heaparray[i].key)) ? l : i;
+
+    smallest = ((r <= Heapsize) && 
+		(Heaparray[r].key < Heaparray[smallest].key))? r : smallest;
+
+    while (smallest != i) {
+	this->Exchange(i,smallest);
+
+	i = smallest;
+	l = Left(i);
+	r = Right(i);
     
-    smallest =  ((r <= Heapsize) && 
-		 (Heaparray[r].key < Heaparray[smallest].key))? r : smallest;
-  }
+	smallest = ((l <= Heapsize) && 
+		    (Heaparray[l].key < Heaparray[i].key))? l : i;
+    
+	smallest =  ((r <= Heapsize) && 
+		     (Heaparray[r].key < Heaparray[smallest].key))? r : smallest;
+    }
 }
 
 template<class REC>
 void merge_heap_dh_op<REC>::initialize () {
-  for ( int i = Heapsize/2; i >= 1; i--) 
-    this->Heapify(i);
+    for ( int i = Heapsize/2; i >= 1; i--) 
+	this->Heapify(i);
 }
 
-// ********************************************************************
-// * A merge heap that uses a comparison function                     *
-// ********************************************************************
 
-template<class REC>
-class merge_heap_dh_cmp {
+// Comment (jan): This version must no be used anymore!
 
-  class heap_element<REC> *Heaparray;
-  unsigned int            Heapsize;
-  unsigned int            maxHeapsize;
+// // ********************************************************************
+// // * A merge heap that uses a comparison function                     *
+// // ********************************************************************
 
-  // The constructor will provide this comparison function
-  int (*cmp)(CONST REC&, CONST REC&);
+// End Comment.
 
-  inline void Exchange(int i, int j){
-
-    REC tmpkey;
-    unsigned short tmpid;
-
-    tmpkey = Heaparray[i].key;
-    tmpid = Heaparray[i].run_id;
-  
-    Heaparray[i].key = Heaparray[j].key;
-    Heaparray[i].run_id = Heaparray[j].run_id;
-
-    Heaparray[j].key = tmpkey;
-    Heaparray[j].run_id = tmpid;
-  };
-
-  inline void Heapify(unsigned int i);
-
-public:
-
-  // Constructor
-  merge_heap_dh_cmp( int (*cmp_f)(CONST REC&, CONST REC&) ) {    
-    cmp = cmp_f;
-  };
-
-  // Report size of Heap (number of elements)
-  unsigned int sizeofheap(void) {return Heapsize;}; 
-  
-  // Delete the current minimum and insert the new item from
-  // the same source / run.
-
-  inline void delete_min_and_insert(REC *nextelement_same_run) {
-  
-    if (nextelement_same_run == NULL) {
-      Heaparray[1].key = Heaparray[Heapsize].key;
-      Heaparray[1].run_id = Heaparray[Heapsize].run_id;
-      Heapsize--;
-    } else Heaparray[1].key = *nextelement_same_run;
-    this->Heapify(1);
-  };
-
-  //Return the run with the minimum key.
-  inline unsigned short get_min_run_id(void) {return Heaparray[1].run_id;};
-
-  // create initial heap by heapifying the array of keys provided
-
-  void initialize( );
-
-  void allocate   (unsigned int size);
-  void insert     (REC *ptr, unsigned int run_id);
-  void deallocate ();
-};
-
-// Allocate space for the heap
-template<class REC>
-inline void merge_heap_dh_cmp<REC>::allocate ( unsigned int size ) {
-    Heaparray = new heap_element<REC> [size+1];
-    Heapsize  = 0;
-    maxHeapsize = size;
-};
-
-// Copy an (initial) element into the heap array
-template<class REC>
-inline void merge_heap_dh_cmp<REC>::insert ( REC *ptr, unsigned int run_id ) {
-    Heaparray[Heapsize+1].key    = *ptr;
-    Heaparray[Heapsize+1].run_id = run_id;
-    Heapsize++;
-    //tp_assert( Heapsize <= maxHeapsize
-};
-
-// Deallocate the space used by the heap
-template<class REC>
-inline void merge_heap_dh_cmp<REC>::deallocate () {
-    if (Heaparray)
-       delete [] Heaparray; 
-    Heapsize    = 0;
-    maxHeapsize = 0;
-};
-
-
-// This is the primary function; note that we have unfolded the 
-// recursion.
-template<class REC>
-inline void merge_heap_dh_cmp<REC>::Heapify(unsigned int i) {
-  unsigned int l,r, smallest;
-  
-  l = Left(i);
-  r = Right(i);
-
-  smallest = ((l <= Heapsize) && (cmp(Heaparray[l].key,Heaparray[i].key)< 0)) ? l : i;
-
-  smallest = ((r <= Heapsize) && 
-	      (cmp(Heaparray[r].key,Heaparray[smallest].key)<0))? r : smallest;
-
-  while (smallest != i) {
-    this->Exchange(i,smallest);
-    
-    i = smallest;
-    l = Left(i);
-    r = Right(i);
-    
-    smallest = ((l <= Heapsize) && 
-		(cmp(Heaparray[l].key,Heaparray[i].key)<0))? l : i;
-
-    smallest =  ((r <= Heapsize) && 
-		 (cmp(Heaparray[r].key,Heaparray[smallest].key)<0))? r : smallest;
-
-  }
-}
-
-// create initial heap by heapifying the array of keys provided
-
-template<class REC>
-void merge_heap_dh_cmp<REC>::initialize () {
-  for ( int i = Heapsize/2; i >= 1; i--) 
-    this->Heapify(i);
-}
 
 // ********************************************************************
 // * A key-merge heap that uses a comparison operator <                   *
@@ -839,62 +600,62 @@ void merge_heap_dh_cmp<REC>::initialize () {
 template<class REC, class KEY, class CMPR>
 class merge_heap_dh_kop{
 
-  CMPR                    *UsrObject;
-  class heap_element<KEY> *Heaparray;
-  unsigned int            Heapsize;
-  unsigned int            maxHeapsize;
+    CMPR                               *UsrObject;
+    heap_element<KEY> *Heaparray;
+    unsigned int                       Heapsize;
+    unsigned int                       maxHeapsize;
 
-  inline void Exchange(int i, int j) {
-    KEY            tmpkey;
-    unsigned short tmpid;
+    inline void Exchange(int i, int j) {
+	KEY            tmpkey;
+	unsigned short tmpid;
 
-    tmpkey = Heaparray[i].key;
-    tmpid  = Heaparray[i].run_id;
+	tmpkey = Heaparray[i].key;
+	tmpid  = Heaparray[i].run_id;
     
-    Heaparray[i].key    = Heaparray[j].key;
-    Heaparray[i].run_id = Heaparray[j].run_id;
+	Heaparray[i].key    = Heaparray[j].key;
+	Heaparray[i].run_id = Heaparray[j].run_id;
     
-    Heaparray[j].key    = tmpkey;
-    Heaparray[j].run_id = tmpid;
-  };
+	Heaparray[j].key    = tmpkey;
+	Heaparray[j].run_id = tmpid;
+    };
 
-  inline void Heapify(unsigned int i);
+    inline void Heapify(unsigned int i);
 
 public:
 
-  // Constructor initializes a pointer to the user's comparison object
-  // The object may contain dynamic data although the 'copy' method is CONST
-  // and therefore inline'able.
+    // Constructor initializes a pointer to the user's comparison object
+    // The object may contain dynamic data although the 'copy' method is CONST
+    // and therefore inline'able.
 
-  merge_heap_dh_kop ( CMPR *cmpptr ) {
-    UsrObject = cmpptr;
-  }
+    merge_heap_dh_kop ( CMPR *cmpptr ) {
+	UsrObject = cmpptr;
+    }
 
-  // Report size of Heap (number of elements)
-  unsigned int sizeofheap(void) {return Heapsize;}; 
+    // Report size of Heap (number of elements)
+    unsigned int sizeofheap(void) {return Heapsize;}; 
 
-  // Delete the current minimum and insert the new item from the same
-  // source / run.
+    // Delete the current minimum and insert the new item from the same
+    // source / run.
 
-  inline void delete_min_and_insert( REC *nextelement_same_run ){
-    if (nextelement_same_run == NULL) {
-      Heaparray[1].key = Heaparray[Heapsize].key;
-      Heaparray[1].run_id = Heaparray[Heapsize].run_id;
-      Heapsize--;
-    } else 
-      UsrObject->copy(&Heaparray[1].key, *nextelement_same_run);
-    this->Heapify(1);
-  };
+    inline void delete_min_and_insert( REC *nextelement_same_run ){
+	if (nextelement_same_run == NULL) {
+	    Heaparray[1].key = Heaparray[Heapsize].key;
+	    Heaparray[1].run_id = Heaparray[Heapsize].run_id;
+	    Heapsize--;
+	} else 
+	    UsrObject->copy(&Heaparray[1].key, *nextelement_same_run);
+	this->Heapify(1);
+    };
 
-  // Return the run with the minimum key.
-  inline unsigned short get_min_run_id(void) {return Heaparray[1].run_id;};
+    // Return the run with the minimum key.
+    inline unsigned short get_min_run_id(void) {return Heaparray[1].run_id;};
 
-  // The initialize member function heapify's an initial array of
-  // elements
-  void initialize ();
-  void allocate   (unsigned int size);
-  void insert     (REC *ptr, unsigned int run_id);
-  void deallocate ();
+    // The initialize member function heapify's an initial array of
+    // elements
+    void initialize ();
+    void allocate   (unsigned int size);
+    void insert     (REC *ptr, unsigned int run_id);
+    void deallocate ();
 };
 
 // Allocate space for the heap
@@ -918,7 +679,7 @@ inline void merge_heap_dh_kop<REC,KEY,CMPR>::insert ( REC *ptr, unsigned int run
 template<class REC, class KEY, class CMPR>
 inline void merge_heap_dh_kop<REC,KEY,CMPR>::deallocate () {
     if (Heaparray)
-       delete [] Heaparray; 
+	delete [] Heaparray; 
     Heapsize    = 0;
     maxHeapsize = 0;
 };
@@ -928,36 +689,36 @@ inline void merge_heap_dh_kop<REC,KEY,CMPR>::deallocate () {
 template<class REC, class KEY, class CMPR>
 inline void merge_heap_dh_kop<REC,KEY,CMPR>::Heapify(unsigned int i) {
 
-  unsigned int l,r, smallest;
+    unsigned int l,r, smallest;
 
-  l = Left(i);
-  r = Right(i);
-
-  smallest = ((l <= Heapsize) && 
-	      (Heaparray[l].key < Heaparray[i].key)) ? l : i;
-
-  smallest = ((r <= Heapsize) && 
-	      (Heaparray[r].key < Heaparray[smallest].key))? r : smallest;
-
-  while (smallest != i) {
-    this->Exchange(i,smallest);
-
-    i = smallest;
     l = Left(i);
     r = Right(i);
-    
+
     smallest = ((l <= Heapsize) && 
-		(Heaparray[l].key < Heaparray[i].key))? l : i;
+		(Heaparray[l].key < Heaparray[i].key)) ? l : i;
+
+    smallest = ((r <= Heapsize) && 
+		(Heaparray[r].key < Heaparray[smallest].key))? r : smallest;
+
+    while (smallest != i) {
+	this->Exchange(i,smallest);
+
+	i = smallest;
+	l = Left(i);
+	r = Right(i);
     
-    smallest =  ((r <= Heapsize) && 
-		 (Heaparray[r].key < Heaparray[smallest].key))? r : smallest;
-  }
+	smallest = ((l <= Heapsize) && 
+		    (Heaparray[l].key < Heaparray[i].key))? l : i;
+    
+	smallest =  ((r <= Heapsize) && 
+		     (Heaparray[r].key < Heaparray[smallest].key))? r : smallest;
+    }
 }
 
 template<class REC, class KEY, class CMPR>
 void merge_heap_dh_kop<REC,KEY,CMPR>::initialize ( ) {
-  for ( int i = Heapsize/2; i >= 1; i--) 
-    this->Heapify(i);
+    for ( int i = Heapsize/2; i >= 1; i--) 
+	this->Heapify(i);
 }
 
 // ********************************************************************
@@ -973,67 +734,67 @@ void merge_heap_dh_kop<REC,KEY,CMPR>::initialize ( ) {
 template<class REC, class KEY, class CMPR>
 class merge_heap_dh_kobj{
 
-  CMPR                    *UsrObject;
-  class heap_element<KEY> *Heaparray;
-  unsigned int            Heapsize;
-  unsigned int            maxHeapsize;
+    CMPR                                *UsrObject;
+    heap_element<KEY> *Heaparray;
+    unsigned int                        Heapsize;
+    unsigned int                        maxHeapsize;
 
-  inline void Exchange(int i, int j) {
-    KEY            tmpkey;
-    unsigned short tmpid;
+    inline void Exchange(int i, int j) {
+	KEY            tmpkey;
+	unsigned short tmpid;
 
-    tmpkey = Heaparray[i].key;
-    tmpid  = Heaparray[i].run_id;
+	tmpkey = Heaparray[i].key;
+	tmpid  = Heaparray[i].run_id;
     
-    Heaparray[i].key    = Heaparray[j].key;
-    Heaparray[i].run_id = Heaparray[j].run_id;
+	Heaparray[i].key    = Heaparray[j].key;
+	Heaparray[i].run_id = Heaparray[j].run_id;
     
-    Heaparray[j].key    = tmpkey;
-    Heaparray[j].run_id = tmpid;
-  };
+	Heaparray[j].key    = tmpkey;
+	Heaparray[j].run_id = tmpid;
+    };
 
-  inline void Heapify(unsigned int i);
+    inline void Heapify(unsigned int i);
 
 public:
 
-  // Constructor initializes a pointer to the user's comparison object
-  // The object may contain dynamic data although the 'copy' and
-  // 'compare' methods are CONST and therefore inline'able.
+    // Constructor initializes a pointer to the user's comparison object
+    // The object may contain dynamic data although the 'copy' and
+    // 'compare' methods are CONST and therefore inline'able.
 
-  merge_heap_dh_kobj ( CMPR *cmpptr ) {
-    UsrObject = cmpptr;
-  }
+    merge_heap_dh_kobj ( CMPR *cmpptr ) {
+	UsrObject = cmpptr;
+    }
 
-  // Report size of Heap (number of elements)
-  unsigned int sizeofheap(void) {return Heapsize;}; 
+    // Report size of Heap (number of elements)
+    unsigned int sizeofheap(void) {return Heapsize;}; 
 
-  // Delete the current minimum and insert the new item from the same
-  // source / run.
+    // Delete the current minimum and insert the new item from the same
+    // source / run.
 
-  inline void delete_min_and_insert( REC *nextelement_same_run ){
-    if (nextelement_same_run == NULL) {
-      Heaparray[1].key = Heaparray[Heapsize].key;
-      Heaparray[1].run_id = Heaparray[Heapsize].run_id;
-      Heapsize--;
-    } else 
-      UsrObject->copy(&Heaparray[1].key, *nextelement_same_run);
-    this->Heapify(1);
-  };
+    inline void delete_min_and_insert( REC *nextelement_same_run ){
+	if (nextelement_same_run == NULL) {
+	    Heaparray[1].key = Heaparray[Heapsize].key;
+	    Heaparray[1].run_id = Heaparray[Heapsize].run_id;
+	    Heapsize--;
+	} else 
+	    UsrObject->copy(&Heaparray[1].key, *nextelement_same_run);
+	this->Heapify(1);
+    };
 
-  // Return the run with the minimum key.
-  inline unsigned short get_min_run_id(void) {return Heaparray[1].run_id;};
+    // Return the run with the minimum key.
+    inline unsigned short get_min_run_id(void) {return Heaparray[1].run_id;};
 
-  // initialize heapify's the initial array of elements
-  void initialize ();
+    // initialize heapify's the initial array of elements
+    void initialize ();
 
-  // allocate allocates space for the heap
-  void allocate   (unsigned int size);
+    // allocate allocates space for the heap
+    void allocate   (unsigned int size);
 
-  // insert copies an element into the heap array
-  void insert     (REC *ptr, unsigned int run_id);
+    // insert copies an element into the heap array
+    void insert     (REC *ptr, unsigned int run_id);
 
-  // deallocate deallocates the space used by the heap
-  void deallocate ();
+    // deallocate deallocates the space used by the heap
+    void deallocate ();
 };
 
 // Allocate space for the heap
@@ -1057,7 +818,7 @@ inline void merge_heap_dh_kobj<REC,KEY,CMPR>::insert( REC *ptr, unsigned int run
 template<class REC, class KEY, class CMPR>
 inline void merge_heap_dh_kobj<REC,KEY,CMPR>::deallocate() {
     if (Heaparray)
-       delete [] Heaparray; 
+	delete [] Heaparray; 
     Heapsize    = 0;
     maxHeapsize = 0;
 };
@@ -1067,35 +828,35 @@ inline void merge_heap_dh_kobj<REC,KEY,CMPR>::deallocate() {
 template<class REC, class KEY, class CMPR>
 inline void merge_heap_dh_kobj<REC,KEY,CMPR>::Heapify(unsigned int i) {
 
-  unsigned int l,r, smallest;
+    unsigned int l,r, smallest;
 
 
-  l = Left(i);
-  r = Right(i);
-
-  smallest = ((l <= Heapsize) && 
-	    (UsrObject->compare(Heaparray[l].key,Heaparray[i].key)<0)) ? l : i;
-  smallest = ((r <= Heapsize) && 
-	    (UsrObject->compare(Heaparray[r].key,Heaparray[smallest].key)<0))? r : smallest;
-  while (smallest != i) {
-    this->Exchange(i,smallest);
-
-    i = smallest; 
     l = Left(i);
-    r = Right(i); 
-    
+    r = Right(i);
+
     smallest = ((l <= Heapsize) && 
-	     (UsrObject->compare(Heaparray[l].key,Heaparray[i].key)<0))? l : i;
+		(UsrObject->compare(Heaparray[l].key,Heaparray[i].key)<0)) ? l : i;
+    smallest = ((r <= Heapsize) && 
+		(UsrObject->compare(Heaparray[r].key,Heaparray[smallest].key)<0))? r : smallest;
+    while (smallest != i) {
+	this->Exchange(i,smallest);
+
+	i = smallest; 
+	l = Left(i);
+	r = Right(i); 
     
-    smallest =  ((r <= Heapsize) && 
-	     (UsrObject->compare(Heaparray[r].key,Heaparray[smallest].key)<0))? r : smallest;
-  };
+	smallest = ((l <= Heapsize) && 
+		    (UsrObject->compare(Heaparray[l].key,Heaparray[i].key)<0))? l : i;
+    
+	smallest =  ((r <= Heapsize) && 
+		     (UsrObject->compare(Heaparray[r].key,Heaparray[smallest].key)<0))? r : smallest;
+    };
 }
 
 template<class REC, class KEY, class CMPR>
 inline void merge_heap_dh_kobj<REC,KEY,CMPR>::initialize ( ) {
-  for ( int i = Heapsize/2; i >= 1; i--) 
-    this->Heapify(i);
+    for ( int i = Heapsize/2; i >= 1; i--) 
+	this->Heapify(i);
 }
 
 #endif // _MERGE_HEAP_DH_H
