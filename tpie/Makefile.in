@@ -2,60 +2,13 @@
 #
 # The Makefile for the complete TPIE system.
 #
-# $Id: Makefile.in,v 1.11 1994-10-26 14:10:06 darrenv Exp $
+# $Id: Makefile.in,v 1.12 1994-10-31 19:56:05 darrenv Exp $
 #
-
-########################################################################
-# FLAGS TO CONTROL SYSTEM PARAMETERS.
-########################################################################
 
 MY_DEFS = @DEFS@
 MY_LIBS = @LIBS@
 
-# Define if the library functions should write to the log.
-#LOG_LIBRARY = 1
-
-# Define if the library functions should include debugging code.
-#DEBUG_LIBRARY = 1
-
-# Define if the library code should be optimized.
-OPTIMIZE_LIBRARY = 1
-
-# Define if the library code should be profilable.
-#PROFILE_LIBRARY = 1
-
-# Define if the apps should write to the log.
-#LOG_APPS = 1
-
-# Define if the apps should include debugging code.
-#DEBUG_APPS = 1
-
-# Define if the apps should be optimized.
-OPTIMIZE_APPS = 1
-
-# Define if the apps should be profilable.
-#PROFILE_APPS = 1
-
-########################################################################
-# END OF USER SETTABLE FLAGS.
-########################################################################
-
 SHELL = /bin/csh
-
-# Define the two different kinds of debugging: symbolic, and
-# assertion.  Normally both are turned on and off, but they can
-# be controlled individually by setting them on the make command
-# line. 
-
-ifdef DEBUG_LIBRARY
-SYM_DEBUG_LIBRARY = 1
-ASSERT_DEBUG_LIBRARY = 1
-endif
-
-ifdef DEBUG_APPS
-SYM_DEBUG_APPS = 1
-ASSERT_DEBUG_APPS = 1
-endif
 
 # Send all variables into recursive makes.
 export
@@ -71,10 +24,9 @@ APPSPATH = ./apps/
 INCPATH = ./include/
 
 usage:
-	echo make [ all | inc | lib | apps ]
+	echo $(MAKE) "[ all | inc | lib | apps ]"
 
 all: inc lib apps
-
 
 inc:
 	$(MAKE) -C $(INCPATH) all

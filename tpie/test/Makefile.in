@@ -1,6 +1,6 @@
 # Copyright (c) 1994 Darren Erik Vengroff
 
-# $Id: Makefile.in,v 1.11 1994-10-26 14:10:18 darrenv Exp $
+# $Id: Makefile.in,v 1.12 1994-10-31 19:56:26 darrenv Exp $
 
 # Makefile for TPIE test applications.
 
@@ -8,9 +8,6 @@
 # Use gmake -p to see the default rules.
 
 CXX = @CXX@
-
-CXX_DEBUG = -g
-C_DEBUG = -g
 
 TPIEINC = ../include
 
@@ -23,32 +20,10 @@ LOG_APPS = 1
 ASSERT_DEBUG_APPS = 1
 endif
 
-CXXFLAGS = -Wall #-v
-
-ifdef OPTIMIZE_APPS
-CXXFLAGS += -O
-CFLAGS += -O
-endif
-
-ifdef PROFILE_APPS
-CXXFLAGS += -pg 
-CFLAGS += -pg
-endif
-
-ifdef SYM_DEBUG_APPS
-CXXFLAGS += $(CXX_DEBUG)
-CFLAGS += $(C_DEBUG)
-endif
+CXXFLAGS = -Wall 
 
 CPPFLAGS = -I$(TPIEINC) @DEFS@
 
-ifdef LOG_APPS
-CPPFLAGS += -DTPL_LOGGING
-endif
-
-ifdef ASSERT_DEBUG_APPS
-CPPFLAGS += -DDEBUG_ASSERTIONS -DDEBUG_STR -DDEBUG_CERR
-endif
 
 # The loader in OSF 1.x is flakey.  Using -lm generates an executable
 # that /bin/loader refuses to load, so we just load the library
@@ -60,12 +35,12 @@ endif
 #LDLIBS =  -L$(TPIELIBDIR) -ltpie /usr/lib/libm.a #-lm
 LDLIBS =  -L$(TPIELIBDIR) -ltpie -lm
 
-CC = gcc
+CC = @CC@
 CCFLAGS = $(CXXFLAGS)
 
 # The various test applications.
 
-APPS = test_ami_pmerge test_ami_sort test_ami_merge  # dist_sweep_test
+APPS = test_ami_pmerge test_ami_sort test_ami_merge lr # dist_sweep_test
 
 # Sources to the test applications.
 
@@ -73,19 +48,25 @@ APPSRC = $(patsubst %,%.cpp,$(APPS))
 
 # Other C++ sources for common support routines.
 
-OTHERCXXSRC = scan_random.cpp scan_count.cpp parse_args.cpp app_config.cpp
+COMMONCXXSRC = parse_args.cpp app_config.cpp
 
-CXXSRC=$(APPSRC) $(OTHERCXXSRC)
+OTHERCXXSRC = scan_random.cpp scan_count.cpp scan_list.cpp list_edge.cpp mm_lr.cpp
+
+CXXSRC=$(APPSRC) $(COMMONCXXSRC) $(OTHERCXXSRC)
+
+# Common objects that go into most apps.
+
+COMMONOBJ = $(COMMONCXXSRC:.cpp=.o)
 
 # C sources.
 
 CSRC = int_cmp.c
 
-// Translation rules:
+# Translation rules:
 
 %:%.o
 	$(LINK.cc) $^ $(LOADLIBES) $(LDLIBS) -o $@
-	
+
 %:%.cpp
 	$(LINK.cc) $< $(LOADLIBES) $(LDLIBS) -o $@
 
@@ -106,21 +87,21 @@ include $(CXXSRC:.cpp=.d)
 
 # What objects each of the apps acually need.
 
-test_ami_pmerge: test_ami_pmerge.o scan_random.o 	\
-	int_cmp.o parse_args.o app_config.o
+test_ami_pmerge: test_ami_pmerge.o scan_random.o int_cmp.o $(COMMONOBJ)
 
-test_ami_sort: test_ami_sort.o scan_random.o parse_args.o app_config.o
+test_ami_sort: test_ami_sort.o scan_random.o $(COMMONOBJ)
 
-test_ami_merge: test_ami_merge.o scan_count.o parse_args.o app_config.o
+test_ami_merge: test_ami_merge.o scan_count.o $(COMMONOBJ)
 
 dist_sweep_test: dist_sweep_test.o
 
+lr: lr.o list_edge.o scan_list.o mm_lr.o $(COMMONOBJ)
 
 
 .PHONY : clean all
 
 clean:
-	-rm $(CSRC:.c=.d) $(CSRC:.c=.o) $(CXXSRC:.cpp=.d)  $(CXXSRC:.cpp=.d)
+	-rm $(CSRC:.c=.d) $(CSRC:.c=.o) $(CXXSRC:.cpp=.d) $(CXXSRC:.cpp=.o)
 	-rm $(APPS)
 
 

@@ -1,6 +1,6 @@
 # Copyright (c) 1994 Darren Erik Vengroff
 
-# $Id: Makefile.in,v 1.9 1994-10-11 12:56:24 dev Exp $
+# $Id: Makefile.in,v 1.10 1994-10-31 20:01:15 darrenv Exp $
 
 # Makefile for TPIE libraries.
 
@@ -11,41 +11,19 @@ TPIEINC = ../../include
 
 LIBRARY = libtpie.a
 
+RANLIB = @RANLIB@
 
+ARFLAGS = rv
 
-ifdef DEBUG_APPS
-LOG_APPS = 1
-ASSERT_DEBUG_APPS = 1
-endif
+CXX = @CXX@
 
 CXXFLAGS = -Wall
 
-ifdef OPTIMIZE_APPS
-CXXFLAGS += -O
-endif
+CPPFLAGS = -I$(TPIEINC) @DEFS@
 
-ifdef PROFILE_APPS
-CXXFLAGS += -pg
-endif
-
-ifdef SYM_DEBUG_APPS
-CXXFLAGS += -gstabs+
-endif
-
-CPPFLAGS = -I$(TPIEINC) 
-
-ifdef LOG_APPS
-CPPFLAGS += -DTPL_LOGGING
-endif
-
-ifdef ASSERT_DEBUG_APPS
-CPPFLAGS += -DDEBUG_ASSERTIONS -DDEBUG_STR -DDEBUG_CERR
-endif
-
-
-
-SRC = logstream.cpp tpie_log.cpp mm_register.cpp ami_device.cpp		\
-	 ami_single.cpp mm_base.cpp bte_mmb.cpp bte_stdio.cpp
+SRC =	logstream.cpp tpie_log.cpp mm_register.cpp ami_device.cpp	\
+	ami_single.cpp mm_base.cpp bte_mmb.cpp bte_stdio.cpp		\
+	bte_block_collection.cpp
 
 OBJ = $(SRC:.cpp=.o)
 
@@ -68,5 +46,5 @@ $(LIBRARY): $(LIB_COMPONENTS)
 clean:
 	-rm *.o *.d
 	-rm $(LIBRARY)
-	-rm $(UP_TO_DATE)
+
 
