@@ -4,10 +4,12 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/30/94
 //
-// $Id: mm_base.h,v 1.2 1994-08-31 19:28:03 darrenv Exp $
+// $Id: mm_base.h,v 1.3 1994-09-16 13:25:13 darrenv Exp $
 //
 #ifndef _MM_BASE_H
 #define _MM_BASE_H
+
+#include <sys/types.h>
 
 // MM Error codes
 enum MM_err {
@@ -25,13 +27,46 @@ enum MM_stream_usage {
     // Amount currently in use.
     MM_STREAM_USAGE_CURRENT,
     // Max amount that will ever be used.
-    MM_STREAM_USAGE_MAXIMUM
+    MM_STREAM_USAGE_MAXIMUM,
+    // Maximum additional amount used by each substream created.
+    MM_STREAM_USAGE_SUBSTREAM
 };
 
+// The base class for pointers into memory being managed by memory
+// managers.  In a uniprocessor, these objects will simply contain
+// pointers.  In multiprocessors, they will be more complicated
+// descriptions of the layout of memory.
+class MM_ptr_base
+{
+public:
+    // This should return 1 to indicate a valid pointer and 0 to
+    // indicate an invalid one.  It is usefull for tests and
+    // assertions.
+    virtual operator int (void) = 0;
+};
 
 // The base class for all memory management objects.
-class MM_base_manager
+class MM_manager_base
 {
+public:
+    // How much is currently available.
+    virtual MM_err available(size_t *sz_a) = 0;
+    // Allocate some space.
+    virtual MM_err alloc(size_t req, MM_ptr_base *p) = 0;
+    // Free space.
+    virtual MM_err free(MM_ptr_base *p) = 0;
+
+    // Registration for main memory usage that cannot be allocated
+    // directly through the memory manager.  Use of these is
+    // discouraged, but sometimes unavoidable, such as in accounting
+    // for space used in the buffer cache.
+    
+    virtual MM_err register_allocation(size_t sz) = 0;
+    virtual MM_err register_deallocation(size_t sz) = 0;
+
 };
+
+// A pointer to the one and only memory manager.
+extern MM_manager_base *mm_manager;
 
 #endif // _MM_BASE_H 
