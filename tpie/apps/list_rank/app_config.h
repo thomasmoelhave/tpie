@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/6/94
 //
-// $Id: app_config.h,v 1.6 1995-03-07 14:54:22 darrenv Exp $
+// $Id: app_config.h,v 1.7 1995-03-25 19:42:18 dev Exp $
 //
 #ifndef _APP_CONFIG_H
 #define _APP_CONFIG_H
@@ -50,7 +50,13 @@ extern "C" int random(void);
 //#define BTE_IMP_BCS
 
 #ifdef BTE_IMP_MMB
+
+#ifndef BTE_MMB_LOGICAL_BLOCKSIZE_FACTOR
 #define BTE_MMB_LOGICAL_BLOCKSIZE_FACTOR 16
+#endif
+
+#define BTE_MMB_READ_AHEAD 1
+
 #endif
 
 #ifdef BTE_IMP_CACHE
