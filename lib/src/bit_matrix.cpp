@@ -6,7 +6,7 @@
 //
 
 #include <versions.h>
-VERSION(bit_matrix_cpp,"$Id: bit_matrix.cpp,v 1.10 2000-01-10 22:27:11 hutchins Exp $");
+VERSION(bit_matrix_cpp,"$Id: bit_matrix.cpp,v 1.11 2003-04-17 20:50:55 jan Exp $");
 
 #include <bit_matrix.h>
 
@@ -28,7 +28,7 @@ bit_matrix bit_matrix::operator=(const bit_matrix &rhs) {
     return this->matrix<bit>::operator=((matrix<bit> &)rhs);
 }
 
-bit_matrix & bit_matrix::operator=(const off_t &rhs)
+bit_matrix & bit_matrix::operator=(const TPIE_OS_OFFSET &rhs)
 {
     unsigned int rows = this->rows();
     unsigned int ii;
@@ -48,9 +48,9 @@ bit_matrix & bit_matrix::operator=(const off_t &rhs)
     return *this;
 }    
 
-bit_matrix::operator off_t(void)
+bit_matrix::operator TPIE_OS_OFFSET(void)
 {
-    off_t res;
+    TPIE_OS_OFFSET res;
 
     unsigned int rows = this->rows();
     unsigned int ii;
