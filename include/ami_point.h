@@ -5,11 +5,21 @@
 //
 // The Point and IdPoint classes.
 //
-// $Id: ami_point.h,v 1.2 2003-04-20 09:22:15 tavi Exp $
+// $Id: ami_point.h,v 1.3 2003-06-02 18:51:58 tavi Exp $
 //
 
-#ifndef POINT_H_
-#define POINT_H_
+#ifndef AMI_POINT_H_
+#define AMI_POINT_H_
+
+// This is a hack. It works for integer types only.
+template<class coord_t>
+class infinity_t {
+  static const coord_t minf = (1 << (8*sizeof(coord_t) - 1));
+  static const coord_t pinf = ~minf;
+public:
+  int operator+() const { return pinf; }
+  int operator-() const { return minf; }
+};
 
 // The base class for Point.
 template<class coord_t, size_t dim>
@@ -17,6 +27,7 @@ class Point_base {
 protected:
   coord_t coords_[dim];
 public:
+  static infinity_t<coord_t> Inf;
 
   // The default constructor.
   Point_base() {}
@@ -53,6 +64,10 @@ public:
     return ans;
   }
 };
+
+template<class coord_t, size_t dim>
+infinity_t<coord_t> Point_base<coord_t, dim>::Inf = infinity_t<coord_t>();
+
 
 // The Point class.
 template <class coord_t, size_t dim>
@@ -107,22 +122,18 @@ public:
   };
 };
 
+template<class coord_t, size_t dim>
+ostream& operator<<(ostream& s, const Point<coord_t, dim>& p) {
+  for (size_t i = 0; i < dim-1; i++)
+    s << p[i] << " ";
+  return s << p[dim-1];
+}
 
-// This is a hack. It works for integer types only.
-template<class coord_t>
-class infinity_t {
-  static const coord_t minf = (1 << (8*sizeof(coord_t) - 1));
-  static const coord_t pinf = ~minf;
-public:
-  int operator+() const { return pinf; }
-  int operator-() const { return minf; }
-};
 
 // Partial specialization of Point for 2 dimensions.
 template <class coord_t>
 class Point<coord_t, 2>: public Point_base<coord_t, 2> {
 public:
-  static infinity_t<coord_t> Inf;
 
   Point() {}
   Point(coord_t _x, coord_t _y) { coords_[0] = _x; coords_[1] = _y; }
@@ -189,8 +200,6 @@ public:
   };
 };
 
-template<class coord_t>
-infinity_t<coord_t> Point<coord_t, 2>::Inf = infinity_t<coord_t>();
 
 template<class coord_t>
 ostream& operator<<(ostream& s, const Point<coord_t, 2>& p) {
@@ -253,7 +262,7 @@ public:
 
 template<class coord_t, class data_t, size_t dim>
 class Record: public Record_base<coord_t, data_t, dim> {
-
+public:
   Record(const typename Record_base<coord_t, data_t, dim>::point_t& p, data_t b = data_t(0)): 
     Record_base<coord_t, data_t, dim>(p, b) {}
   Record(data_t b = data_t(0)): Record_base<coord_t, data_t, dim>(b) {}
@@ -299,11 +308,19 @@ class Record: public Record_base<coord_t, data_t, dim> {
 
 };
 
+template<class coord_t, class data_t, size_t dim>
+ostream& operator<<(ostream& s, const Record<coord_t, data_t, dim>& p) {
+  for (size_t i = 0; i < dim; i++)
+    s << p[i] << " ";
+  return s << p.id();
+}
+
+
 // A record consists of a key (two-dimensional point) and a data
 // item. Used by the EPStree.
 template<class coord_t, class data_t>
 struct Record<coord_t, data_t, 2>: public Record_base<coord_t, data_t, 2> {
-
+public:
   Record(const typename Record_base<coord_t, data_t, 2>::point_t& p, data_t b = data_t(0)): 
     Record_base<coord_t, data_t, 2>(p, b) {}
   Record(const coord_t& x, const coord_t& y, const data_t& b): 
@@ -390,6 +407,7 @@ ostream& operator<<(ostream& s, const Record<coord_t, data_t, 2>& p) {
 }
 
 
+
 // Function object to extract the key from a record.
 template<class coord_t, class data_t, size_t dim>
 class Record_key {
@@ -398,4 +416,4 @@ public:
   { return r.key; }
 };
 
-#endif // POINT_H_
+#endif // AMI_POINT_H_
