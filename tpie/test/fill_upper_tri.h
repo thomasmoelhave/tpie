@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/12/94
 //
-// $Id: fill_upper_tri.h,v 1.1 1995-03-07 15:07:27 darrenv Exp $
+// $Id: fill_upper_tri.h,v 1.2 1995-04-03 13:11:32 dev Exp $
 //
 #ifndef _FILL_UPPER_TRI_H
 #define _FILL_UPPER_TRI_H
@@ -13,13 +13,18 @@
 
 template<class T>
 class fill_upper_tri : public AMI_matrix_filler<T> {
+private:
+    T val;
+public:
+    fill_upper_tri(T t) : val(t) {};
+    ~fill_upper_tri() {};
     AMI_err initialize(unsigned int rows, unsigned int cols)
     {
         return AMI_ERROR_NO_ERROR;
     };
     T element(unsigned int row, unsigned int col)
     {
-        return (row <= col) ? (T)1 : (T)0;
+        return (row <= col) ? val : (T)0;
     };
 };
 
