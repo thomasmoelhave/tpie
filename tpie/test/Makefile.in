@@ -1,6 +1,6 @@
 # Copyright (c) 1994 Darren Erik Vengroff
 
-# $Id: Makefile.in,v 1.19 1995-04-03 13:11:10 dev Exp $
+# $Id: Makefile.in,v 1.20 1995-06-30 21:10:49 darrenv Exp $
 
 # Makefile for TPIE test applications.
 
@@ -59,9 +59,9 @@ override CPPFLAGS += -I$(TPIEINC) @DEFS@
 
 OSF1 := @OSF1@
 ifeq ($(OSF1),1)
-LDLIBS =  -L$(TPIELIBDIR) -ltpie @LIBS@ /usr/lib/libm.a
+LDLIBS =  -L$(TPIELIBDIR) -ltpie -lg++ -liberty @LIBS@ /usr/lib/libm.a
 else
-LDLIBS =  -L$(TPIELIBDIR) -ltpie -lm @LIBS@
+LDLIBS =  -L$(TPIELIBDIR) -ltpie -lg++ -liberty -lm @LIBS@
 endif
 
 CC = @CC@
