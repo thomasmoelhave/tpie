@@ -2,7 +2,7 @@
 // File: bte_stream_ufs.h (formerly bte_ufs.h)
 // Author: Rakesh Barve <rbarve@cs.duke.edu>
 //
-// $Id: bte_stream_ufs.h,v 1.8 2003-04-23 00:05:47 tavi Exp $
+// $Id: bte_stream_ufs.h,v 1.9 2003-09-17 02:31:57 tavi Exp $
 //
 // BTE streams with blocks I/Oed using read()/write().  This particular
 // implementation explicitly manages blocks, and only ever maps in one
@@ -678,6 +678,8 @@ template < class T > BTE_stream_ufs < T >::~BTE_stream_ufs (void) {
 		// TODO: Should we really return? If we do, we have memory leaks.
 		return;
 	    }
+	    // Invalidate the cached file pointer.
+	    file_pointer = -1;
 	}
 
 	if (header)
@@ -1230,16 +1232,16 @@ template < class T > BTE_err BTE_stream_ufs < T >::map_current (void) {
 
     if (do_mmap) {
 
-//	if (block_offset != file_pointer) {
+	if (file_pointer == -1 || block_offset != file_pointer) {
 	    if (TPIE_OS_LSEEK(fd, block_offset, TPIE_OS_FLAG_SEEK_SET) != block_offset) {
 		status_ = BTE_STREAM_STATUS_INVALID;
 		os_errno = errno;
-		LOG_FATAL_ID ("lseek() to  block at " << block_offset <<
-			      " in file ");
-		LOG_FATAL_ID (path << ": " << strerror (os_errno));
+		LOG_FATAL_ID ("seek failed in file:");
+		LOG_FATAL_ID (path);
+		LOG_FATAL_ID(strerror(os_errno));
 		return BTE_ERROR_OS_ERROR;
 	    }
-//	}
+	}
 
 	if (curr_block == NULL) {
 	
@@ -1255,15 +1257,16 @@ template < class T > BTE_err BTE_stream_ufs < T >::map_current (void) {
 	    (TPIE_OS_SSIZE_T) header->block_size) {
 	    status_ = BTE_STREAM_STATUS_INVALID;
 	    os_errno = errno;
-	    LOG_FATAL_ID ("read() failed to read in block at " << block_offset
-			  << " in file ");
-	    LOG_FATAL (path << " : " << strerror (os_errno));
+	    LOG_FATAL_ID ("read failed in file ");
+	    LOG_FATAL_ID(path);
+	    LOG_FATAL_ID(strerror(os_errno));
 	    return BTE_ERROR_OS_ERROR;
 	}
+
+	// Advance file pointer.
+	file_pointer = block_offset + header->block_size;
     }
    
-    // Advance file pointer.
-    file_pointer = block_offset + header->block_size;
 
     block_valid = 1;
     curr_block_file_offset = block_offset;
@@ -1298,13 +1301,13 @@ BTE_err BTE_stream_ufs < T >::unmap_current (void) {
 
     if (!r_only && block_dirty) {
 
-	if (curr_block_file_offset != file_pointer) {
+	if (file_pointer == -1 || curr_block_file_offset != file_pointer) {
 	    if (TPIE_OS_LSEEK(fd, curr_block_file_offset, TPIE_OS_FLAG_SEEK_SET) !=
 		curr_block_file_offset) {
 		status_ = BTE_STREAM_STATUS_INVALID;
 		os_errno = errno;
 		LOG_FATAL_ID ("lseek() failed while unmapping current block.");
-		LOG_FATAL_ID (strerror (os_errno));
+		LOG_FATAL_ID (strerror(os_errno));
 		return BTE_ERROR_OS_ERROR;
 	    }
 	}
@@ -1317,7 +1320,7 @@ BTE_err BTE_stream_ufs < T >::unmap_current (void) {
 	    status_ = BTE_STREAM_STATUS_INVALID;
 	    os_errno = errno;
 	    LOG_FATAL_ID ("write() failed to unmap current block.");
-	    LOG_FATAL_ID (strerror (os_errno));
+	    LOG_FATAL_ID (strerror(os_errno));
 	    return BTE_ERROR_OS_ERROR;
 	}
 	// Advance file pointer.
