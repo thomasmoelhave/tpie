@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/11/94
 //
-// $Id: bte_stream_stdio.h,v 1.3 2002-01-17 02:18:31 tavi Exp $
+// $Id: bte_stream_stdio.h,v 1.4 2002-01-25 23:25:55 tavi Exp $
 //
 #ifndef _BTE_STREAM_STDIO_H
 #define _BTE_STREAM_STDIO_H
@@ -34,7 +34,8 @@
 
 // A class of BTE streams implemented using ordinary stdio
 // semantics.
-template < class T > class BTE_stream_stdio: public BTE_stream_base < T > {
+template < class T > 
+class BTE_stream_stdio: public BTE_stream_base < T > {
 private:
 
    FILE * file;
@@ -53,8 +54,17 @@ private:
    off_t logical_bos;
    off_t logical_eos;
 
+   // Offset of the current item in the file.
+   off_t f_offset;
+  
+   // Offset past the last item in the file.
+   off_t f_eof;
+
    // Read and check the header; used by constructors
    int readcheck_header ();
+
+   inline off_t file_off_to_item_off (off_t file_off);
+   inline off_t item_off_to_file_off (off_t item_off);
 
  public:
    T read_tmp;
@@ -120,7 +130,9 @@ BTE_stream_stdio < T >::BTE_stream_stdio (const char *dev_path,
 
    logical_bos = logical_eos = -1;
 
-   // By default, all streams are deleted at destruction time.
+   // By default, all streams are deleted at destruction time.  (the
+   // comment above is misleading. the AMI level stream is controlling
+   // the persistency of this stream)
    per = PERSIST_DELETE;
 
    remaining_streams--;
@@ -141,9 +153,14 @@ BTE_stream_stdio < T >::BTE_stream_stdio (const char *dev_path,
 	 return;
       }
       // Seek past the end of the first block.
-      if (fseek (file, os_block_size_, 0) == -1) {
-	status_ = BTE_STREAM_STATUS_INVALID;
-	LOG_FATAL_ID("fseek failed.");
+      //if (fseek (file, os_block_size_, 0) == -1) {
+      //status_ = BTE_STREAM_STATUS_INVALID;
+      //LOG_FATAL_ID("fseek failed.");
+      //return;
+      //}
+      if ((berr = this->seek (0)) != BTE_ERROR_NO_ERROR) {
+	LOG_FATAL_ID("Cannot seek in file:");
+	LOG_FATAL_ID(dev_path);
 	return;
       }
       break;
@@ -172,15 +189,13 @@ BTE_stream_stdio < T >::BTE_stream_stdio (const char *dev_path,
 	    return;
 	 }
 
-	 BTE_err er;
-
 	 // Truncate the file to header block
-	 if ((er = this->truncate (0)) != BTE_ERROR_NO_ERROR) {
+	 if ((berr = this->truncate (0)) != BTE_ERROR_NO_ERROR) {
 	    LOG_FATAL_ID("Cannot truncate in file:");
 	    LOG_FATAL_ID(dev_path);
 	    return;
 	 }
-	 if ((er = this->seek (0)) != BTE_ERROR_NO_ERROR) {
+	 if ((berr = this->seek (0)) != BTE_ERROR_NO_ERROR) {
 	    LOG_FATAL_ID("Cannot seek in file:");
 	    LOG_FATAL_ID(dev_path);
 	    return;
@@ -191,7 +206,8 @@ BTE_stream_stdio < T >::BTE_stream_stdio (const char *dev_path,
       } else {
 	 // File exists - read and check header
 	 if (readcheck_header () == -1) {
-	    LOG_FATAL_ID("Bad header.");
+	    LOG_FATAL_ID("Bad header in file:");
+	    LOG_FATAL_ID(dev_path);
 	    return;
 	 }
 	 // Seek to the end of the stream  if BTE_APPEND_STREAM
@@ -204,7 +220,9 @@ BTE_stream_stdio < T >::BTE_stream_stdio (const char *dev_path,
 	    }
 	    // Make sure there was at least a full block there to pass.
 	    if ((unsigned) ftell (file) < (unsigned) os_block_size_) {
-	       status_ = BTE_STREAM_STATUS_INVALID;
+	      LOG_FATAL_ID("File too short:");
+	      LOG_FATAL_ID(dev_path);
+	      status_ = BTE_STREAM_STATUS_INVALID;
 	    }
 	 } else {
 	    // seek to 0 if  BTE_WRITE_STREAM
@@ -224,6 +242,8 @@ BTE_stream_stdio < T >::BTE_stream_stdio (const char *dev_path,
       status_ = BTE_STREAM_STATUS_INVALID;
       break;
    }
+
+   f_eof = item_off_to_file_off(header.item_logical_eof);
 
    // Register memory usage before returning.
    register_memory_allocation (sizeof (BTE_stream_stdio < T >));
@@ -291,32 +311,55 @@ BTE_err BTE_stream_stdio < T >::new_substream (BTE_stream_type st,
 
 template < class T > BTE_stream_stdio < T >::~BTE_stream_stdio (void) {
 
-   fclose (file);
-   // Get rid of the file if not persistent and if not substream.
-   if (!substream_level) {
-     if (per == PERSIST_DELETE) {
-       if (unlink (path)) {
-	 os_errno = errno;
-	 LOG_WARNING_ID("Failed to unlink() file:");
-	 LOG_WARNING_ID(path);
-	 LOG_WARNING_ID(strerror(os_errno));
-       } else
-	 gstats_.record(STREAM_DELETE);
-     }
-   } else {
-     gstats_.record(SUBSTREAM_DELETE);
-   }
-   // Register memory deallocation before returning.
-   register_memory_deallocation (sizeof (BTE_stream_stdio < T >));
+  if (!r_only) {
+    header.item_logical_eof = file_off_to_item_off(f_eof);
+    if (fseek (file, 0, SEEK_SET) == -1) {
+      status_ = BTE_STREAM_STATUS_INVALID;
+      LOG_WARNING_ID("Failed to seek in file:");
+      LOG_WARNING_ID(path);
+    } else if (fwrite ((char *) &header, sizeof (header), 1, file) != 1) {
+      status_ = BTE_STREAM_STATUS_INVALID;
+      LOG_WARNING_ID("Failed to write header to file:");
+      LOG_WARNING_ID(path);
+      //      return;
+    }
+  }
 
-   // A quick and dirty guess.  One block in the buffer cache, one in
-   // user space. TODO.
-   register_memory_deallocation (os_block_size_ * 2);
+  if (fclose (file) != 0) {
+    status_ = BTE_STREAM_STATUS_INVALID;
+    LOG_WARNING_ID("Failed to close file:");
+    LOG_WARNING_ID(path);
+  }
 
-   if (remaining_streams >= 0) {
-      remaining_streams++;
-   }
-   gstats_.record(STREAM_CLOSE);
+  // Get rid of the file if not persistent and if not substream.
+  if (!substream_level) {
+    if (per == PERSIST_DELETE) {
+      if (r_only) {
+	LOG_WARNING_ID("Read only stream is PERSIST_DELETE:");
+	LOG_WARNING_ID(path);
+	LOG_WARNING_ID("Ignoring persistency request.");
+      } else if (unlink (path)) {
+	os_errno = errno;
+	LOG_WARNING_ID("Failed to unlink() file:");
+	LOG_WARNING_ID(path);
+	LOG_WARNING_ID(strerror(os_errno));
+      } else
+	gstats_.record(STREAM_DELETE);
+    }
+  } else {
+    gstats_.record(SUBSTREAM_DELETE);
+  }
+  // Register memory deallocation before returning.
+  register_memory_deallocation (sizeof (BTE_stream_stdio < T >));
+  
+  // A quick and dirty guess.  One block in the buffer cache, one in
+  // user space. TODO.
+  register_memory_deallocation (os_block_size_ * 2);
+  
+  if (remaining_streams >= 0) {
+    remaining_streams++;
+  }
+  gstats_.record(STREAM_CLOSE);
 }
 
 template < class T > BTE_err BTE_stream_stdio < T >::read_item (T ** elt)
@@ -333,6 +376,7 @@ template < class T > BTE_err BTE_stream_stdio < T >::read_item (T ** elt)
       stdio_ret = fread ((char *) (&read_tmp), sizeof (T), 1, file);
 
       if (stdio_ret == 1) {
+ 	 f_offset += sizeof(T);
 	 *elt = &read_tmp;
 	 ret = BTE_ERROR_NO_ERROR;
       } else {
@@ -346,9 +390,9 @@ template < class T > BTE_err BTE_stream_stdio < T >::read_item (T ** elt)
    return ret;
 }
 
-template < class T >
-    BTE_err BTE_stream_stdio < T >::write_item (const T & elt)
-{
+template < class T > 
+BTE_err BTE_stream_stdio < T >::write_item (const T & elt) {
+
    int stdio_ret;
    BTE_err ret;
 
@@ -357,13 +401,14 @@ template < class T >
       status_ = BTE_STREAM_STATUS_END_OF_STREAM;
       ret = BTE_ERROR_END_OF_STREAM;
    } else {
-      //printf("write_item: stream_len is %d\n", this->stream_len());
       stdio_ret = fwrite ((char *) &elt, sizeof (T), 1, file);
       if (stdio_ret == 1) {
+	 if (f_eof == f_offset)
+	   f_eof += sizeof(T);
+         f_offset += sizeof(T);
 	 ret = BTE_ERROR_NO_ERROR;
       } else {
 	 LOG_FATAL_ID("write_item failed.");
-	 //assert(0);
 	 status_ = BTE_STREAM_STATUS_INVALID;
 	 ret = BTE_ERROR_IO_ERROR;
       }
@@ -396,36 +441,40 @@ BTE_err BTE_stream_stdio < T >::main_memory_usage (size_t * usage,
 }
 
 // Return the number of items in the stream.
-template < class T > off_t BTE_stream_stdio < T >::stream_len (void)
-{
+template < class T > 
+off_t BTE_stream_stdio < T >::stream_len (void) {
 
    if (substream_level) {	// We are in a substream.
-      return (logical_eos - logical_bos) / sizeof (T);
+     ///      return (logical_eos - logical_bos) / sizeof (T);
+     // [tavi 01/25/02] Commented out the above and replaced it with the following:
+     return file_off_to_item_off(logical_eos) - file_off_to_item_off(logical_bos);
    } else {
       // There must be a way to get this information directly,
       // instead of fseeking around.
 
       // Where are we now?
-      off_t current = ftell (file);
+     ///      off_t current = ftell (file);
 
       // Go to the end and see where we are.
-      fseek (file, 0, SEEK_END);
-      off_t end = ftell (file);
+     ///      fseek (file, 0, SEEK_END);
+     ///      off_t end = ftell (file);
 
       // Go back.
-      fseek (file, current, SEEK_SET);
+     ///      fseek (file, current, SEEK_SET);
 
       // Lars May 22, 1997: This is a quick hack to fix a problem
       // with headers of length less than a block. That shouldn't 
       // be possible but there is a bug somewhere
       // - Look at it later (seems to have something to do with
       //   substreams. Header block is not truncated).
-      if (end < (int) os_block_size_) {
+     ///      if (end < (int) os_block_size_) {
 	 //printf("shouldnt be here! possible bug\n);
-	 return 0;
-      } else {
-	 return (end - os_block_size_) / sizeof (T);
-      }
+     ///	 return 0;
+     ///      } else {
+     ///	 return (end - os_block_size_) / sizeof (T);
+     ///      }
+     // [tavi 01/25/02] Commented out the above and replaced it with the following:
+     return file_off_to_item_off(f_eof);
    }
 }
 
@@ -467,6 +516,7 @@ template < class T > BTE_err BTE_stream_stdio < T >::seek (off_t offset) {
       return BTE_ERROR_OS_ERROR;
    }
 
+   f_offset = file_position;
    gstats_.record(ITEM_SEEK);
    return BTE_ERROR_NO_ERROR;
 }
@@ -503,6 +553,9 @@ BTE_err BTE_stream_stdio < T >::truncate (off_t offset) {
       LOG_FLUSH_LOG;
       return BTE_ERROR_OS_ERROR;
    }
+
+   f_offset = file_position;
+   f_eof = file_position;
    return BTE_ERROR_NO_ERROR;
 }
 
@@ -529,6 +582,16 @@ template<class T> int BTE_stream_stdio < T >::readcheck_header ()
 
    //everything's fine
    return 0;
+}
+
+template<class T> 
+off_t BTE_stream_stdio < T >::file_off_to_item_off (off_t file_off) {
+  return (file_off - os_block_size_) / sizeof (T);
+}
+
+template<class T> 
+off_t BTE_stream_stdio < T >::item_off_to_file_off (off_t item_off) {
+  return (os_block_size_ + item_off * sizeof (T));
 }
 
 #endif // _BTE_STREAM_STDIO_H
