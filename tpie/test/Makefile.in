@@ -1,0 +1,25 @@
+# Copyright (c) 1994 Darren Erik Vengroff
+
+# $Id: Makefile.in,v 1.1 1994-05-11 13:35:42 dev Exp $
+
+# Makefile for TPIE test applications.
+
+# Use gmake on this Makefile.  It relies on the default rules, and 
+# Use gmake -p to see the default rules.
+
+TPIEINC = /u/dev/src/tpie/include
+
+CXXFLAGS = -g 
+
+CPPFLAGS = -I$(TPIEINC) -DBTE_MMAP_IMPLEMENTATION=1 
+
+
+
+
+EXE=bte_scan
+
+OBJS = $(EXE).o
+
+$(EXE): $(OBJS)
+	$(LINK.cc) $^ $(LOADLIBES) $(LDLIBS) -o $@
+
