@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/6/94
 //
-// $Id: app_config.h,v 1.7 1995-03-25 19:42:18 dev Exp $
+// $Id: app_config.h,v 1.8 1995-04-06 21:13:02 darrenv Exp $
 //
 #ifndef _APP_CONFIG_H
 #define _APP_CONFIG_H
@@ -39,23 +39,29 @@ extern "C" int random(void);
 
 #define DEFAULT_TEST_MM_SIZE (1024 * 1024 * 2)
 
+// Don't use virtual interface.
+#define AMI_VIRTUAL_BASE 1
+#define BTE_VIRTUAL_BASE 1
+
 // Use the single BTE stream version of AMI streams.
 #define AMI_IMP_SINGLE
 
 // Pick a version of BTE streams.
-#define BTE_IMP_MMB
+//#define BTE_IMP_MMB
 //#define BTE_IMP_CACHE
-//#define BTE_IMP_STDIO
+#define BTE_IMP_STDIO
 //#define BTE_IMP_UFS
 //#define BTE_IMP_BCS
 
 #ifdef BTE_IMP_MMB
 
 #ifndef BTE_MMB_LOGICAL_BLOCKSIZE_FACTOR
-#define BTE_MMB_LOGICAL_BLOCKSIZE_FACTOR 16
+#define BTE_MMB_LOGICAL_BLOCKSIZE_FACTOR 2
 #endif
 
+#if HAVE_LIBAIO
 #define BTE_MMB_READ_AHEAD 1
+#endif
 
 #endif
 
