@@ -1,20 +1,15 @@
-# Copyright (c) 1994 Darren Erik Vengroff
-
-# $Id: Makefile.in,v 1.28 2001-05-17 20:01:45 tavi Exp $
-
 # Makefile for TPIE test applications.
-
 # Use gmake on this Makefile.  It relies on the default rules, and 
 # Use gmake -p to see the default rules.
+# $Id: Makefile.in,v 1.29 2002-01-03 18:34:09 tavi Exp $
 
 CXX = @CXX@
+CC = @CC@
+MAKEDEPEND = @CXX@ -M
 
 TPIEINC = ../include
-
 TPIELIBDIR = ../lib
-
 TPIELIB = $(TPIELIBDIR)/libtpie.a
-
 MINUSG = 0
 
 ifdef DEBUG_APPS
@@ -24,74 +19,68 @@ endif
 
 CXXFLAGS = 
 
-# Set GCXX to 1 if we are using the GNU compiler, and 0 otherwise.
+# CPPFLAGS is used by the default rules. Using "override" and "+="
+# allows the user to prepend things to CPPFLAGS on the command line.
+override CPPFLAGS +=  -I$(TPIEINC)
+# These options are set by the configure script.
+override CPPFLAGS += @DEFS@
 
-GCXX = 0
-ifeq ($(firstword $(CXX)),g++)
-GCXX = 1
-endif
-ifeq ($(firstword $(CXX)),c++)
-GCXX = 1
-endif
-
-# Try GNU's exception handler.
-# ifeq ($(GCXX),1)
-# override CXXFLAGS += -fhandle-exceptions
-# override CPPFLAGS += -DHANDLE_EXCEPTIONS
-# endif
-
-# Get the proper include path and DEFS from the configure script.
 ifeq ($(MINUSG),1)
-override CPPFLAGS += -I$(TPIEINC) @DEFS@ -g
+override CPPFLAGS += -g
 else
-override CPPFLAGS += -I$(TPIEINC) @DEFS@ -O3
+override CPPFLAGS += -O3
 endif
 
-# The loader in OSF 1.x is flakey.  Using -lm generates an executable
-# that /bin/loader refuses to load, so we just load the library
-# explicitly.
-#
-# I've tried this on two machines, one running 1.2 and one running
-# 1.3, and had the same problem.
+LDLIBS =  -L$(TPIELIBDIR) -ltpie -lm #-liberty
 
-OSF1 := @OSF1@
-ifeq ($(OSF1),1)
-LDLIBS =  -L$(TPIELIBDIR) -ltpie @LIBS@ /usr/lib/libm.a #-liberty
-else
-LDLIBS =  -L$(TPIELIBDIR) -ltpie -lm @LIBS@ #-liberty
-endif
-
-CC = @CC@
 CCFLAGS = $(CXXFLAGS)
 
 # The various test applications.
 
-APPS := test_ami_pmerge test_ami_sort test_ami_merge test_ami_gp	\
-	test_matrix test_bit_matrix test_ami_arith test_ami_matrix	\
-	test_ami_matrix_pad test_ami_stack test_ami_bp lr ch2		\
-	test_ami_sm nas_ep nas_ep2 nas_cg nas_is test_ami_sort24	\
-	nas_ep_mm smooth sample_pgm test_ami_btree
+APPS := test_ami_pmerge \
+	test_ami_sort \
+	test_ami_merge \
+	test_ami_gp \
+	test_matrix \
+	test_bit_matrix \
+	test_ami_arith \
+	test_ami_matrix	\
+	test_ami_matrix_pad \
+	test_ami_stack \
+	test_ami_bp \
+	lr \
+	ch2 \
+	test_ami_sm \
+	nas_ep \
+	nas_ep2 \
+	nas_cg \
+	nas_is \
+	test_ami_sort24	\
+	nas_ep_mm \
+	smooth \
+	sample_pgm \
+	test_ami_btree
 
 # Sources to the test applications.
-
 APPSRC = $(patsubst %,%.cpp,$(APPS))
 
-
 # Other C++ sources for common support routines.
+COMMONCXXSRC = parse_args.cpp \
+	app_config.cpp
 
-COMMONCXXSRC = parse_args.cpp app_config.cpp
+OTHERCXXSRC = scan_random.cpp \
+	scan_count.cpp \
+	scan_list.cpp \
+	list_edge.cpp \
+	scan_random_point.cpp \
+	scan_uniform_sm.cpp
 
-OTHERCXXSRC = scan_random.cpp scan_count.cpp scan_list.cpp list_edge.cpp 	\
-	scan_random_point.cpp scan_uniform_sm.cpp 
-
-CXXSRC=$(APPSRC) $(COMMONCXXSRC) $(OTHERCXXSRC)
+CXXSRC = $(APPSRC) $(COMMONCXXSRC) $(OTHERCXXSRC)
 
 # Common objects that go into most apps.
-
 COMMONOBJ = $(COMMONCXXSRC:.cpp=.o)
 
 # C sources.
-
 CSRC = int_cmp.c
 
 # Translation rules:
@@ -99,77 +88,55 @@ CSRC = int_cmp.c
 %:%.o
 	$(LINK.cc) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
-#%:%.cpp
-#	$(LINK.cc) $< $(LOADLIBES) $(LDLIBS) -o $@
-
-%.d:%.cpp
-	$(SHELL) -ec '$(CXX) -M $(CPPFLAGS) $< | sed '\''s/$*\.o/& $@/g'\'' > $@'
-
-%.d:%.c
-	$(SHELL) -ec '$(CC) -M $(CPPFLAGS) $< | sed '\''s/$*\.o/& $@/g'\'' > $@'
 
 # Specific dependencies, explicit and automatic.
 
 all: $(APPS)
 
-include $(CSRC:.c=.d)
+depend: cleandepend 
+	$(MAKEDEPEND) $(CPPFLAGS) $(CSRC) $(CXXSRC) >> Makefile.depend
 
-include $(CXXSRC:.cpp=.d)
+clean: cleandepend
+	-rm -f $(CSRC:.c=.o) $(CXXSRC:.cpp=.o) $(APPS)
+
+distclean: clean
 
 
-# What objects each of the apps acually need.
+# What objects each of the apps acually needs.
 
 test_ami_pmerge: test_ami_pmerge.o scan_random.o int_cmp.o $(COMMONOBJ)
-
 test_ami_sort: test_ami_sort.o scan_random.o $(COMMONOBJ)
-
 test_ami_merge: test_ami_merge.o scan_count.o $(COMMONOBJ)
-
 test_ami_gp: test_ami_gp.o scan_count.o $(COMMONOBJ)
-
 test_ami_bp: test_ami_bp.o scan_count.o $(COMMONOBJ)
-
 test_util_matrix: test_util_matrix.o
-
 test_bit_matrix: test_bit_matrix.o
-
 test_ami_arith: test_ami_arith.o scan_count.o $(COMMONOBJ)
-
 test_ami_matrix_pad: test_ami_matrix_pad.o scan_count.o	$(COMMONOBJ)
-
 test_ami_matrix: test_ami_matrix.o scan_count.o $(COMMONOBJ)
-
 test_ami_stack: test_ami_stack.o $(COMMONOBJ)
-
 lr: lr.o list_edge.o scan_list.o $(COMMONOBJ)
-
 ch2: ch2.o scan_random_point.o $(COMMONOBJ)
-
 test_ami_sm: test_ami_sm.o scan_uniform_sm.o $(COMMONOBJ)
-
 nas_ep: nas_ep.o $(COMMONOBJ)
-
 nas_ep2: nas_ep2.o $(COMMONOBJ)
-
 nas_cg: nas_cg.o $(COMMONOBJ)
-
 nas_is: nas_is.o $(COMMONOBJ)
-
 nas_ep_mm: nas_ep_mm.o 
-
 test_ami_sort24: test_ami_sort24.o $(COMMONOBJ)
-
 smooth: smooth.o scan_build_smoother.o  $(COMMONOBJ)
-
 sample_pgm: sample_pgm.o $(COMMONOBJ)
-
 test_ami_btree: test_ami_btree.o
 
-.PHONY : clean all
+include Makefile.depend
 
-clean:
-	-rm $(CSRC:.c=.d) $(CSRC:.c=.o) $(CXXSRC:.cpp=.d) $(CXXSRC:.cpp=.o)
-	-rm $(APPS)
+Makefile.depend: $(CSRC) $(CXXSRC)
+	rm -f Makefile.depend; \
+	$(MAKEDEPEND) $(CPPFLAGS) $(CSRC) $(CXXSRC) >> Makefile.depend
 
+cleandepend:
+	-rm -f Makefile.depend
+
+.PHONY : clean all depend cleandepend distclean
 
 
