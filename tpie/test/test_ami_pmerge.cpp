@@ -7,7 +7,7 @@
 // A test for AMI_partition_and_merge().
 
 
-static char partition_and_merge_id[] = "$Id: test_ami_pmerge.cpp,v 1.3 1994-09-29 12:56:51 darrenv Exp $";
+static char partition_and_merge_id[] = "$Id: test_ami_pmerge.cpp,v 1.4 1994-10-04 19:06:09 darrenv Exp $";
 
 // Use Owen's priority queue code.
 #define MERGE_VIA_TPQUEUE
@@ -17,9 +17,6 @@ static char partition_and_merge_id[] = "$Id: test_ami_pmerge.cpp,v 1.3 1994-09-2
 #endif // MERGE_VIA_TPQUEUE
 
 
-#ifdef BTE_IMP_CACHE
-#define BTE_MMB_CACHE_LINE_SIZE 256
-#endif
 
 #define DEFAULT_TEST_SIZE (1024 * 1024 * 8)
 
@@ -51,6 +48,9 @@ static char partition_and_merge_id[] = "$Id: test_ami_pmerge.cpp,v 1.3 1994-09-2
 #define BTE_MMB_LOGICAL_BLOCKSIZE_FACTOR 1
 #endif
 
+#ifdef BTE_IMP_CACHE
+#define BTE_MMB_CACHE_LINE_SIZE 256
+#endif
 
 // Define it all.
 #include <ami.h>
@@ -64,34 +64,6 @@ static char partition_and_merge_id[] = "$Id: test_ami_pmerge.cpp,v 1.3 1994-09-2
 static size_t test_mm_size = DEFAULT_TEST_MM_SIZE;
 static size_t test_size = DEFAULT_TEST_SIZE;
 static int random_seed = 17;
-
-
-// My very own new and delete operators.  The idea is that these should be
-// integrated into the memory manager.
-
-static int register_new = 0;
-
-void * operator new (size_t sz) {
-    void *p;
-    
-    if ((register_new) && (MM_manager.register_allocation(sz+sizeof(size_t))
-                           != MM_ERROR_NO_ERROR)) {
-        return (void *)0;
-    }
-    
-    p = malloc(sz + sizeof(size_t));
-    *((size_t *)p) = sz;
-    return ((size_t *)p) + 1;
-}
-
-void operator delete (void *ptr) {
-    if (register_new) {
-        MM_manager.register_deallocation(*((size_t *)ptr - 1) +
-                                         sizeof(size_t));
-    }
-    free(((char *)ptr) - sizeof(size_t));
-}
-    
 
 
 // random_scan should be moved into it's own source file since it is
@@ -144,7 +116,7 @@ AMI_err random_scan::operate(int *out1, AMI_SCAN_FLAG *sf)
     }
 };
 
-
+# if 0
 
 // A merge object to merge sorted streams.
 
@@ -160,7 +132,7 @@ public:
 
     sort_merge(void);
     virtual ~sort_merge(void);
-    AMI_err initialize(arity_t arity, int **in, AMI_merge_flag *taken_flags);
+    AMI_err initialize(arity_t arity, const int **in, AMI_merge_flag *taken_flags);
     AMI_err operate(const int **in, AMI_merge_flag *taken_flags, int *out);
     AMI_err main_mem_operate(int* mm_stream, size_t len);
 
@@ -202,7 +174,7 @@ size_t sort_merge::space_usage_per_stream(void)
 }
 
 
-AMI_err sort_merge::initialize(arity_t arity, int **in,
+AMI_err sort_merge::initialize(arity_t arity, const int **in,
                                AMI_merge_flag *taken_flags)
 {
     unsigned int ii;
@@ -316,6 +288,7 @@ AMI_err sort_merge::main_mem_operate(int* mm_stream, size_t len)
     qsort(mm_stream, len, sizeof(int), int_cmp);
     return AMI_ERROR_NO_ERROR;
 }
+#endif
 
 static bool verbose = false;
 
@@ -382,6 +355,22 @@ void parse_args(int argc, char **argv)
     }								\
 }
 
+extern int register_new;
+
+//int cc_int_cmp(const int &i1, const int &i2)
+int cc_int_cmp(int &i1, int &i2)
+{
+    return i1 - i2;
+}
+
+static void ___dummy_1() {
+    AMI_STREAM<int> *s1, *s2;
+    
+    AMI_err ae;
+
+    ae = AMI_sort(s1,s2,cc_int_cmp);
+}
+
 int main(int argc, char **argv)
 {
 
@@ -437,25 +426,29 @@ int main(int argc, char **argv)
     if (report_results_random) {
         ae = AMI_scan((AMI_base_stream<int> *)&amis0, rptr);
     }
-    
-    sort_merge sm;
 
+#if 0    
+    sort_merge sm;
+#endif
+    
     getrusage(RUSAGE_SELF, &ru0);
 
 #if 0    
     ae = AMI_partition_and_merge(&amis0, &amis1,
                                  (AMI_merge_base<int> *)&sm);
 #else
-    ae = AMI_sort(&amis0, &amis1);
+    ae = AMI_sort(&amis0, &amis1, cc_int_cmp);
 #endif
     
     getrusage(RUSAGE_SELF, &ru1);
 
+#if 0    
     if (verbose) {
         cout << "Sorted them.\n";
         cout << "Sorted stream length = " << amis1.stream_len() << '\n';
         cout << "sm.operate called " << sm.called << " times.\n";
     }
+#endif
     
     if (report_results_sorted) {
         ae = AMI_scan((AMI_base_stream<int> *)&amis1, rpts);
