@@ -5,16 +5,10 @@
 // Created: 12/15/94
 //
 
+#include <portability.h>
+
 #include <versions.h>
-VERSION(test_ami_stack_cpp,"$Id: test_ami_stack.cpp,v 1.6 2003-04-20 23:51:40 tavi Exp $");
-
-// For std::cout
-#include <iostream>
-// For std::ofstream
-#include <fstream>
-
-using std::cout;
-using std::ofstream;
+VERSION(test_ami_stack_cpp,"$Id: test_ami_stack.cpp,v 1.7 2003-09-12 00:52:39 tavi Exp $");
 
 #include "app_config.h"        
 #include "parse_args.h"
@@ -25,9 +19,9 @@ using std::ofstream;
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
 
-static char def_crf[] = "/var/tmp/osc.txt";
-static char def_irf[] = "/var/tmp/osi.txt";
-static char def_frf[] = "/var/tmp/osf.txt";
+static char def_crf[] = "osc.txt";
+static char def_irf[] = "osi.txt";
+static char def_frf[] = "osf.txt";
 
 static char *count_results_filename = def_crf;
 static char *intermediate_results_filename = def_irf;
@@ -66,9 +60,9 @@ int main(int argc, char **argv)
     parse_args(argc,argv,as_opts,parse_app_opt);
 
     if (verbose) {
-        cout << "test_size = " << test_size << ".\n";
-        cout << "test_mm_size = " << test_mm_size << ".\n";
-        cout << "random_seed = " << random_seed << ".\n";
+      cout << "test_size = " << test_size << "." << endl;
+      cout << "test_mm_size = " << test_mm_size << "." << endl;
+      cout << "random_seed = " << random_seed << "." << endl;
     } else {
         cout << test_size << ' ' << test_mm_size << ' ' << random_seed;
     }
@@ -108,8 +102,8 @@ int main(int argc, char **argv)
     }
 
     if (verbose) {
-        cout << "Pushed the initial sequence of values.\n";
-        cout << "Stream length = " << amis0.stream_len() << '\n';
+      cout << "Pushed the initial sequence of values." << endl;
+        cout << "Stream length = " << amis0.stream_len() << endl;
     }
         
     if (report_results_count) {
@@ -123,13 +117,13 @@ int main(int argc, char **argv)
     for (ii = 0.0; ii < test_size; ii++ ) {
         amis0.pop(&jj);
         if (ii  + 0.01 != *jj) {
-            cout << ii  + 0.01 << " != " << *jj << '\n';
+            cout << ii  + 0.01 << " != " << *jj << endl;
         }
     }
 
     if (verbose) {
-        cout << "Popped the initial sequence of values.\n";
-        cout << "Stream length = " << amis0.stream_len() << '\n';
+      cout << "Popped the initial sequence of values." << endl;
+        cout << "Stream length = " << amis0.stream_len() << endl;
     }
     
     return 0;
