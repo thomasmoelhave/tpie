@@ -5,27 +5,12 @@
 // Created: 10/27/94
 //
 
-static char scan_list_id[] = "$Id: scan_list.cpp,v 1.1 1994-10-31 21:35:55 darrenv Exp $";
-
-// This is just to avoid an error message since the string above is never
-// referenced.  Note that a self referential structure must be defined to
-// avoid passing the problem further.
-static struct ___scan_list_id_compiler_fooler {
-    char *pc;
-    ___scan_list_id_compiler_fooler *next;
-} the___scan_list_id_compiler_fooler = {
-    scan_list_id,
-    &the___scan_list_id_compiler_fooler
-};
-
-
 
 #include "app_config.h"
-
 #include <ami.h>
-
 #include "scan_list.h"
 
+VERSION(scan_list_cpp,"$Id: scan_list.cpp,v 1.2 2000-01-11 01:40:58 hutchins Exp $");
 
 // MODULUS and INCREMENT are used to compute (vaguely psuedo-random)
 // node numbers for the edges of the list.  They should be relatively
