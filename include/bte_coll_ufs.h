@@ -2,7 +2,7 @@
 // File:    bte_coll_ufs.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: bte_coll_ufs.h,v 1.5 2002-01-25 21:46:00 tavi Exp $
+// $Id: bte_coll_ufs.h,v 1.6 2002-01-27 23:37:18 tavi Exp $
 //
 // BTE_collection_ufs class definition.
 //
@@ -13,6 +13,7 @@
 #define BTE_COLLECTION_UFS 85
 
 #include <bte_coll_base.h>
+
 
 class BTE_collection_ufs: public BTE_collection_base {
 public:
@@ -31,10 +32,10 @@ public:
   BTE_err new_block(off_t &bid, void * &place) {
     BTE_err err;
     // Get a block id.
-    if ((err = new_block_shared(bid)) != BTE_ERROR_NO_ERROR)
+    if ((err = new_block_getid_specific(bid)) != BTE_ERROR_NO_ERROR)
       return err;
     // We have a bid, so we can call the get_block routine.
-    if ((err = get_block_internals(bid, place)) != BTE_ERROR_NO_ERROR)
+    if ((err = new_block_internals(bid, place)) != BTE_ERROR_NO_ERROR)
       return err;
     header_.used_blocks++;
     stats_.record(BLOCK_NEW);
@@ -92,6 +93,9 @@ public:
   BTE_err sync_block(off_t bid, void* place, char dirty = 1);
 
 protected:
+
+  BTE_err new_block_internals(off_t bid, void *&place);
+  BTE_err new_block_getid_specific(off_t& bid);
   BTE_err get_block_internals(off_t bid, void *&place);
   BTE_err put_block_internals(off_t bid, void* place, char dirty);
 };
