@@ -6,7 +6,7 @@
 // Runtime parameters for the kd-tree, K-D-B-tree and B-tree test
 // suite.
 //
-// $Id: app_params.cpp,v 1.4 2003-09-12 15:08:14 tavi Exp $
+// $Id: app_params.cpp,v 1.5 2003-09-13 23:09:22 tavi Exp $
 
 
 //#include <time.h>
@@ -121,11 +121,13 @@ void print_configuration(ostream& os) {
 
 
 void parse_args(int argc, char** argv) {
+  int i;
+  //  int j;
   assert(DIM >= 2);
   if (DIM > 2)
     cerr << "Dimension: " << DIM << endl;
   params.stats << "COMMAND_LINE:         ";
-  for (int i = 0; i < argc; i++)
+  for (i = 0; i < argc; i++)
     params.stats << argv[i] << " ";
   params.stats << endl;
 
@@ -135,8 +137,7 @@ void parse_args(int argc, char** argv) {
   }
   char tmpname[MAX_PATH_LENGTH];
   app_params_t::stream_t* random_stream = NULL;
-  int i = 1, j;
-  AMI_err err;
+  //AMI_err err;
   bool keep_input = false;
   bool output_unsorted = false;
   bool initialization_only = false;
@@ -147,7 +148,7 @@ void parse_args(int argc, char** argv) {
   strcpy(params.file_name_stats, "results.txt");
   params.base_file_name_s[0] = 0;
   params.base_file_name[0] = 0;
-
+  i = 1;
   while (i < argc) {
     if (argv[i][0] != '-') {
       cerr << argv[0] << ": " << argv[i] 
