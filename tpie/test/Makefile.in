@@ -1,6 +1,6 @@
 # Copyright (c) 1994 Darren Erik Vengroff
 
-# $Id: Makefile.in,v 1.5 1994-09-26 19:20:29 darrenv Exp $
+# $Id: Makefile.in,v 1.6 1994-10-04 19:00:15 darrenv Exp $
 
 # Makefile for TPIE test applications.
 
@@ -23,6 +23,11 @@ CXXFLAGS = -Wall #-v
 ifdef OPTIMIZE_APPS
 CXXFLAGS += -O
 CFLAGS += -O
+endif
+
+ifdef PROFILE_APPS
+CXXFLAGS += -p -v
+CFLAGS += -p
 endif
 
 ifdef SYM_DEBUG_APPS
@@ -68,7 +73,9 @@ PM = partition_and_merge
 
 QS = qsort_test
 
-APPS=$(PM) $(QS) #$(BMS) #(AMI_SCAN) $(AMI_MERGE) $(BMS)
+DST = dist_sweep_test
+
+APPS=$(PM) #$(DST) #$(QS) #$(BMS) #(AMI_SCAN) $(AMI_MERGE) $(BMS)
 
 UP_TO_DATE = .up_to_date
 
@@ -96,6 +103,9 @@ $(PM): $(PM).o int_cmp.o
 	$(LINK.cc) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
 $(QS): $(QS).cpp int_cmp.o
+	$(LINK.cc) $^ $(LOADLIBES) $(LDLIBS) -o $@
+
+$(DST): $(DST).o
 	$(LINK.cc) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
 .PHONY : clean
