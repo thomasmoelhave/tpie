@@ -5,19 +5,8 @@
 // Created: 1/20/95
 //
 
-static char lru_sim_id[] = "$Id: lru_sim.cpp,v 1.2 1999-06-19 01:19:32 tavi Exp $";
-
-// This is just to avoid an error message since the string above is never
-// referenced.  Note that a self referential structure must be defined to
-// avoid passing the problem further.
-static struct ___lru_sim_id_compiler_fooler {
-    char *pc;
-    ___lru_sim_id_compiler_fooler *next;
-} the___lru_sim_id_compiler_fooler = {
-    lru_sim_id,
-    &the___lru_sim_id_compiler_fooler
-};
-
+#include <versions.h>
+VERSION(lru_sim_cpp,"$Id: lru_sim.cpp,v 1.3 2000-01-11 02:15:59 hutchins Exp $");
 
 #include <strstream.h>
 #include <iostream.h>
