@@ -1,11 +1,14 @@
-// Optimized merge sorting for the AMI_IMP_SINGLE implementation.
 //
-//file: ami_optimized_sort.h
+// File: ami_optimized_sort.h
+// $Id: ami_optimized_sort.h,v 1.3 2002-01-14 16:01:02 tavi Exp $
+//
+// Optimized merge sorting.
+//
 #ifndef _AMI_SORT_OPTIMIZED_H
 #define _AMI_SORT_OPTIMIZED_H
 
-#ifndef AMI_IMP_SINGLE
-#warning Including __FILE__ when AMI_IMP_SINGLE undefined.
+#ifndef AMI_STREAM_IMP_SINGLE
+#  warning Including __FILE__ when AMI_STREAM_IMP_SINGLE undefined.
 #endif
 
 #include <ami_merge.h>
