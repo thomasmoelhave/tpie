@@ -20,7 +20,7 @@
 // keys of the items; there is a provision to to use templated heaps
 // to implement the merge.
 
-// $Id: ami_optimized_merge.h,v 1.38 1999-06-27 00:48:44 laura Exp $	
+// $Id: ami_optimized_merge.h,v 1.39 1999-06-27 01:44:07 laura Exp $	
 // TO DO: substream_count setting; don't depend on current_stream_len
 
 
@@ -50,10 +50,6 @@
 typedef int AMI_merge_flag;
 typedef unsigned int arity_t;
 
-// #define XXX LOG_DEBUG_ID("AMI_partition_and_merge_stream");
-#define XXX
-#define XXX_PRINT 0
-
 #ifdef BTE_IMP_STDIO
 #define BTE_PATH_NAME_LEN BTE_STDIO_PATH_NAME_LEN
 #endif
@@ -68,66 +64,88 @@ typedef unsigned int arity_t;
 #endif
 
 
+//enable debugging messages in AMI_partition_and_merge(..)
+// #define XXX LOG_DEBUG_ID("AMI_partition_and_merge_stream");
+#define XXX
+
+
+//------------------------------------------------------------
 // FUNCTIONS DEFINED IN THIS MODULE
 //------------------------------------------------------------
 
-
-//This is a polymorph of AMI_single_merge in ami_merge.h; merge input
+//These are polymorphs of AMI_single_merge in ami_merge.h; merge input
 //streams using a 'hardwired' heap, without using a merge-management
-//object
+//object, but:
+
+//using < operator
 template<class T> 
 AMI_err AMI_single_merge(AMI_STREAM<T> **, arity_t , AMI_STREAM<T> *);
 
-
-//This is a polymorph of AMI_single_merge in ami_merge.h; merge input
-//streams using a 'hardwired' heap, without using a merge-management
-//object, but the user can specify a comparison function
+//do not use <,  use specified comparison function
 template<class T> 
 AMI_err AMI_single_merge(AMI_STREAM<T> **, arity_t , AMI_STREAM<T> *, 
 			 int (*cmp)(CONST T&, CONST T&) );
 
-
-//This is a polymorph of AMI_single_merge in ami_merge.h; merge input
-//streams using a 'hardwired' heap, without using a merge-management
-//object; it makes use of the explicit knowledge of the key of the
-//user-defined records
+//make use of the explicit knowledge of the key of the user-defined
+//records
 template<class T, class KEY> 
 AMI_err AMI_single_merge(AMI_STREAM<T> **, arity_t , 
-			       AMI_STREAM<T> *, int , KEY);
+			 AMI_STREAM<T> *, int , KEY);
 
 
-//This is a polymorph of AMI_partition_and_merge in ami_merge.h;divide
-//the input stream in substreams, merge each substream recursively,
-//and merge them together using AMI_single_merge(AMI_STREAM<T> **,
-//arity_t , AMI_STREAM<T> *);
+
+
+//These are polymorphs of AMI_merge in ami_merge.h, each corresponding
+//to one of AMI_single_merge's polymorphs defined above; merge <arity>
+//streams using a merge management object and write result into
+//<outstream>; it is assumed that the available memory can fit the
+//<arity> streams, the output stream and also the space required by
+//the merge management object;
+
+template<class T> 
+AMI_err AMI_merge(AMI_STREAM<T> **, arity_t , AMI_STREAM<T> *);
+
+template<class T> 
+AMI_err AMI_merge(AMI_STREAM<T> **, arity_t , AMI_STREAM<T> *, 
+		  int (*cmp)(CONST T&, CONST T&) );
+
+template<class T, class KEY> 
+AMI_err AMI_merge(AMI_STREAM<T> **, arity_t , 
+		  AMI_STREAM<T> *, int , KEY);
+
+
+
+
+//These are polymorphs of AMI_partition_and_merge in
+//ami_merge.h;divide the input stream in substreams, merge each
+//substream recursively, and merge them together using one of
+//AMI_single_merge() polymorphs defined above;
+
 template<class T>
 AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
                                 AMI_STREAM<T> *outstream);
 
-//This is a polymorph of AMI_partition_and_merge in ami_merge.h;divide
-//the input stream in substreams, merge each substream recursively,
-//and merge them together using AMI_single_merge(AMI_STREAM<T> **,
-//arity_t , AMI_STREAM<T> *, int (*cmp)(CONST T&, CONST T&) );
 template<class T>
 AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
 				AMI_STREAM<T> *outstream,
 				int (*cmp)(CONST T&, CONST T&));
 
-//This is a polymorph of AMI_partition_and_merge in ami_merge.h;divide
-//the input stream in substreams, merge each substream recursively,
-//and merge them together using AMI_single_merge(AMI_STREAM<T> **,
-//arity_t , AMI_STREAM<T> *, int , KEY)
 template<class T, class KEY>
 AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
 				AMI_STREAM<T> *outstream, 
                                 int keyoffset, KEY dummykey);
 
+
+
 //------------------------------------------------------------
-//static functions
+//static classes functions
 
 //class describing a run formation item
 //static template<class KEY> class run_formation_item;
 
+template<class T> 
+static size_t 
+count_stream_overhead(AMI_STREAM<T> **instreams, arity_t arity);
 
 template<class T, class KEY> 
 static AMI_err 
@@ -196,6 +214,7 @@ public:
 //This is polymorph to AMI_single_merge in ami_merge.h; merge input
 //streams using a 'hardwired' heap, without using a merge-management
 //object
+//------------------------------------------------------------
 template<class T> 
 AMI_err 
 AMI_single_merge(AMI_STREAM<T> **instreams, arity_t arity, 
@@ -275,6 +294,7 @@ AMI_single_merge(AMI_STREAM<T> **instreams, arity_t arity,
 //This is a polymorph of AMI_single_merge in ami_merge.h; merge input
 //streams using a 'hardwired' heap, without using a merge-management
 //object, but the user can specify a comparison function.
+//------------------------------------------------------------
 template<class T> 
 AMI_err 
 AMI_single_merge(AMI_STREAM<T> **instreams, arity_t arity, 
@@ -353,6 +373,7 @@ AMI_single_merge(AMI_STREAM<T> **instreams, arity_t arity,
 //streams using a 'hardwired' heap, without using a merge-management
 //object; it makes use of the explicit knowledge of the key of the
 //user-defined records
+//------------------------------------------------------------
 template<class T, class KEY> 
 AMI_err 
 AMI_single_merge(AMI_STREAM<T> **instreams, arity_t arity, 
@@ -426,6 +447,131 @@ AMI_single_merge(AMI_STREAM<T> **instreams, arity_t arity,
 
 
 
+//------------------------------------------------------------ 
+//Iterate through the streams, finding out how much additional memory
+//each stream will need in the worst case (the streams are in memory,
+//but their memory usage could be smaller then the maximum one; one
+//scenario is when the streams have been loaded from disk with no
+//subsequent read_item/write_item operation, in which case their
+//current memory usage is just the header block); count also the
+//output stream
+//------------------------------------------------------------
+template<class T> 
+size_t
+count_stream_overhead(AMI_STREAM<T> **instreams, arity_t arity) {
+  
+  size_t sz_stream, sz_needed = 0;
+
+  for (unsigned int ii = 0; ii < arity + 1; ii++) {
+    instreams[ii]->main_memory_usage(&sz_stream, MM_STREAM_USAGE_MAXIMUM);
+    sz_needed += sz_stream;
+    instreams[ii]->main_memory_usage(&sz_stream, MM_STREAM_USAGE_CURRENT);
+    sz_needed -= sz_stream;
+  }    
+  return sz_needed;
+}
+
+
+
+//------------------------------------------------------------
+//These are polymorphs of AMI_merge in ami_merge.h, each corresponding
+//to one of AMI_single_merge's polymorphs defined above; merge <arity>
+//streams using a merge management object and write result into
+//<outstream>; it is assumed that the available memory can fit the
+//<arity> streams, the output stream and also the space required by
+//the merge management object;
+
+//------------------------------------------------------------
+template<class T> 
+AMI_err 
+AMI_merge(AMI_STREAM<T> **instreams, arity_t arity, 
+	  AMI_STREAM<T> *outstream) {
+  
+  size_t sz_avail;
+  size_t sz_stream;
+  
+  // How much main memory is available?
+  if (MM_manager.available(&sz_avail) != MM_ERROR_NO_ERROR) {
+    return AMI_ERROR_MM_ERROR;
+  }
+  
+  //make sure all streams fit in available memory
+  sz_avail = count_stream_overhead(instreams, arity);
+  if (sz_needed >= sz_avail) {
+    LOG_ERROR("Insuficent main memory to perform a merge.\n");
+    return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
+  }
+  assert(sz_needed < sz_avail);
+  //should count the space overhead used by merge..merge should
+  //implement a function which returns it; for the moment just rely on
+  //the merge routine that it returns an error
+  //(AMI_ERROR_INSUFFICIENT_MEMORY) if there is n ot enough memory;
+  
+  return AMI_single_merge(instreams, arity, outstream);
+}
+
+
+//------------------------------------------------------------
+template<class T> 
+AMI_err 
+AMI_merge(AMI_STREAM<T> **instreams, arity_t arity, 
+	  AMI_STREAM<T> * outstream, int (*cmp)(CONST T&, CONST T&) ) {
+  
+  size_t sz_avail;
+  size_t sz_stream;
+  
+  // How much main memory is available?
+  if (MM_manager.available(&sz_avail) != MM_ERROR_NO_ERROR) {
+    return AMI_ERROR_MM_ERROR;
+  }
+  
+  //make sure all streams fit in available memory
+  sz_avail = count_stream_overhead(instreams, arity);
+  if (sz_needed >= sz_avail) {
+    LOG_ERROR("Insuficent main memory to perform a merge.\n");
+    return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
+  }
+  assert(sz_needed < sz_avail);
+  //should count the space overhead used by merge..merge should
+  //implement a function which returns it; for the moment just rely on
+  //the merge routine that it returns an error
+  //(AMI_ERROR_INSUFFICIENT_MEMORY) if there is n ot enough memory;
+  
+  return AMI_single_merge(instreams, arity, outstream, cmp);
+}
+
+
+
+//------------------------------------------------------------
+template<class T, class KEY> 
+AMI_err 
+AMI_merge(AMI_STREAM<T> **instreams, arity_t arity, 
+	  AMI_STREAM<T> *outstream, int keyoffset, KEY dummy) {
+ 
+  size_t sz_avail;
+  size_t sz_stream;
+  
+  // How much main memory is available?
+  if (MM_manager.available(&sz_avail) != MM_ERROR_NO_ERROR) {
+    return AMI_ERROR_MM_ERROR;
+  }
+
+  //make sure all streams fit in available memory
+  sz_avail = count_stream_overhead(instreams, arity);
+  if (sz_needed >= sz_avail) {
+    LOG_ERROR("Insuficent main memory to perform a merge.\n");
+    return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
+  }
+  assert(sz_needed < sz_avail);
+  //should count the space overhead used by merge..merge should
+  //implement a function which returns it; for the moment just rely on
+  //the merge routine that it returns an error
+  //(AMI_ERROR_INSUFFICIENT_MEMORY) if there is n ot enough memory;
+  
+  return AMI_single_merge(instreams, arity, keyoffset, dummy);
+}
+
+
 
 
 //------------------------------------------------------------
@@ -447,6 +593,7 @@ stream_name_generator(char *prepre, char * pre, int id, char * dest) {
 //the input stream in substreams, merge each substream recursively,
 //and merge them together using AMI_single_merge(AMI_STREAM<T> **,
 //arity_t , AMI_STREAM<T> *);
+//------------------------------------------------------------
 template<class T>
 AMI_err 
 AMI_partition_and_merge(AMI_STREAM<T> *instream,
@@ -1512,6 +1659,7 @@ XXX
 //the input stream in substreams, merge each substream recursively,
 //and merge them together using AMI_single_merge(AMI_STREAM<T> **,
 //arity_t , AMI_STREAM<T> *, int (*cmp)(CONST T&, CONST T&) );
+//------------------------------------------------------------
 template<class T>
 AMI_err 
 AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
@@ -2580,6 +2728,7 @@ if(XXX_PRINT) XXX;
 //the input stream in substreams, merge each substream recursively,
 //and merge them together using AMI_single_merge(AMI_STREAM<T> **,
 //arity_t , AMI_STREAM<T> *, int , KEY)
+//------------------------------------------------------------
 template<class T, class KEY>
 AMI_err 
 AMI_partition_and_merge(AMI_STREAM<T> *instream,
