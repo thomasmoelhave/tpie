@@ -11,7 +11,7 @@
 //
 
 #include <versions.h>
-VERSION(test_ami_gp_cpp,"$Id: test_ami_gp.cpp,v 1.9 2000-01-11 01:07:05 hutchins Exp $");
+VERSION(test_ami_gp_cpp,"$Id: test_ami_gp.cpp,v 1.10 2000-01-11 02:02:48 hutchins Exp $");
 
 // Get the application defaults.
 #include "app_config.h"
@@ -67,7 +67,6 @@ public:
     };
 };
 
-extern int register_new;
 
 int main(int argc, char **argv)
 {
