@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/4/94
 //
-// $Id: pqueue_heap.h,v 1.5 1995-03-07 14:51:27 darrenv Exp $
+// $Id: pqueue_heap.h,v 1.6 1999-02-03 18:11:45 tavi Exp $
 //
 // A priority queue class implemented as a binary heap.
 //
@@ -478,32 +478,5 @@ void pqueue_array<T,P>::min(T& elt, P& prio)
     elt = elements[min].priority;
     prio = elements[min].thing;
 }
-
-#ifdef NO_IMPLICIT_TEMPLATES
-
-#define TEMPLATE_INSTANTIATE_PQUEUE_HEAP(T,P)				\
-template struct q_elt<T,P>;						\
-template class pqueue<T,P>;						\
-template class pqueue_heap<T,P>;					
-
-#define TEMPLATE_INSTANTIATE_PQUEUE_HEAP_CMP(T,P)			\
-TEMPLATE_INSTANTIATE_PQUEUE_HEAP(T,P)					\
-template class pqueue_heap_cmp<T,P>;					
-
-#define TEMPLATE_INSTANTIATE_PQUEUE_HEAP_OBJ(T,P)			\
-TEMPLATE_INSTANTIATE_PQUEUE_HEAP(T,P)					\
-template class pqueue_heap_obj<T,P>;					
-
-#define TEMPLATE_INSTANTIATE_PQUEUE_HEAP_OP(T,P)			\
-TEMPLATE_INSTANTIATE_PQUEUE_HEAP(T,P)					\
-template class pqueue_heap_op<T,P>;					
-
-#define TEMPLATE_INSTANTIATE_PQUEUE_HEAP_ALL(T,P)			\
-TEMPLATE_INSTANTIATE_PQUEUE_HEAP(T,P)					\
-template class pqueue_heap_cmp<T,P>;					\
-template class pqueue_heap_obj<T,P>;					\
-template class pqueue_heap_op<T,P>;					
-
-#endif
 
 #endif // _PQUEUE_HEAP_H 
