@@ -3,7 +3,7 @@
 // File:   ami_coll_single.h
 // Author: Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_coll_single.h,v 1.5 2001-12-29 05:18:04 tavi Exp $
+// $Id: ami_coll_single.h,v 1.6 2002-01-14 15:49:40 tavi Exp $
 //
 // AMI collection entry points implemented on top of a single BTE.
 //
@@ -23,7 +23,7 @@
 #include <ami_coll_base.h>
 
 // For ami_single_temp_name().
-#include <ami_single.h>
+#include <ami_stream_single.h>
 
 template<class BTECOLL=BTE_COLLECTION>
 class AMI_collection_single {
