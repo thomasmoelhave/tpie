@@ -5,24 +5,7 @@
 // Created: 12/19/94
 //
 
-// This file is part of TPIE, a transparent parallel I/O enviroment.
-
-// TPIE is free software; you can redistribute it and/or modify it
-// under the terms of the GNU General Public License as published by
-// the Free Software Foundation; either version 2 of the License, or
-// (at your option) any later version.
-
-// TPIE is distributed in the hope that it will be useful, but WITHOUT
-// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-// or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
-// License for more details.
-
-// You should have received a copy of the GNU General Public License
-// along with TPIE; if not, write to the Free Software Foundation, 675
-// Mass Ave, Cambridge, MA 02139, USA.
-
-
-static char scan_random_point_id[] = "$Id: scan_random_point.cpp,v 1.3 1997-05-20 22:11:46 vengroff Exp $";
+static char scan_random_point_id[] = "$Id: scan_random_point.cpp,v 1.4 1999-02-03 22:15:07 tavi Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -78,5 +61,3 @@ AMI_err scan_random_point::operate(point<int> *out1, AMI_SCAN_FLAG *sf)
         return AMI_SCAN_DONE;
     }
 };
-
-
