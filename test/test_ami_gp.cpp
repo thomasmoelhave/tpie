@@ -4,8 +4,12 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 11/1/94
 //
+// Tests general permutation using AMI_general_permute() and 
+// the AMI_gen_perm_object class. The program generates an input file
+// consisting of seuential intergers and outputs them in reverse order.
+//
 
-static char test_ami_gp_id[] = "$Id: test_ami_gp.cpp,v 1.5 1999-02-03 22:22:06 tavi Exp $";
+static char test_ami_gp_id[] = "$Id: test_ami_gp.cpp,v 1.6 1999-05-02 14:37:26 tavi Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -31,22 +35,18 @@ static struct ___test_ami_gp_id_compiler_fooler {
 #include <ami_scan_utils.h>
 
 #include "parse_args.h"
-
 #include "scan_count.h"
 
 static char def_irf[] = "/var/tmp/osi.txt";
-static char def_rrf[] = "/var/tmp/osr.txt";
 static char def_frf[] = "/var/tmp/osf.txt";
 
 static char *initial_results_filename = def_irf;
-static char *rand_results_filename = def_rrf;
 static char *final_results_filename = def_frf;
 
 static bool report_results_initial = false;
-static bool report_results_random = false;
 static bool report_results_final = false;
 
-static const char as_opts[] = "I:iR:rF:f";
+static const char as_opts[] = "I:iF:f";
 void parse_app_opt(char c, char *optarg)
 {
     switch (c) {
@@ -54,11 +54,6 @@ void parse_app_opt(char c, char *optarg)
             initial_results_filename = optarg;
         case 'i':
             report_results_initial = true;
-            break;
-        case 'R':
-            rand_results_filename = optarg;
-        case 'r':
-            report_results_random = true;
             break;
         case 'F':
             final_results_filename = optarg;
