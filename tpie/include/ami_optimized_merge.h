@@ -15,7 +15,7 @@
 // a quicksort using only keys of the items; there is a provision to 
 // to use templated heaps to implement the merge.
 
-// 	$Id: ami_optimized_merge.h,v 1.9 1999-02-10 22:58:42 tavi Exp $	
+// 	$Id: ami_optimized_merge.h,v 1.10 1999-02-12 00:50:54 jan Exp $	
 //TO DO: substream_count setting; don't depend on current_stream_len
 
 #ifndef _OPT_AMI_MERGE_H
@@ -441,13 +441,15 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
 
        int Sub_Start[merge_arity];
     
-       for (int i = 0; i < 2; i++)
-           for (int j = 0; j < merge_arity; j++)
-              for (int k1 = 0; 
-                   k1 <  (original_substreams+merge_arity-1)/merge_arity;
-                   k1++)
-                      run_lengths[i][j][k1] = 0;                      
+//        for (int i = 0; i < 2; i++)
+//            for (int j = 0; j < merge_arity; j++)
+//               for (int k1 = 0; 
+//                    k1 <  (original_substreams+merge_arity-1)/merge_arity;
+//                    k1++)
+//                       run_lengths[i][j][k1] = 0;                      
 
+       //  JAN
+       memset((void*)run_lengths, 0, 2*merge_arity*((original_substreams+merge_arity-1)/merge_arity)*sizeof(unsigned int));
 
 
 
@@ -1500,13 +1502,15 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
 
        int Sub_Start[merge_arity];
     
-       for (int i = 0; i < 2; i++)
-           for (int j = 0; j < merge_arity; j++)
-              for (int k1 = 0; 
-                   k1 <  (original_substreams+merge_arity-1)/merge_arity;
-                   k1++)
-                      run_lengths[i][j][k1] = 0;                      
+//        for (int i = 0; i < 2; i++)
+//            for (int j = 0; j < merge_arity; j++)
+//               for (int k1 = 0; 
+//                    k1 <  (original_substreams+merge_arity-1)/merge_arity;
+//                    k1++)
+//                       run_lengths[i][j][k1] = 0;                      
 
+       //  JAN
+       memset((void*)run_lengths, 0, 2*merge_arity*((original_substreams+merge_arity-1)/merge_arity)*sizeof(unsigned int));
 
 
 
