@@ -21,7 +21,7 @@
 #include <ami_scan.h>
 #include <ami_sort.h>
 #include <cpu_timer.h>
-VERSION(test_ami_sort_cpp,"$Id: test_ami_sort.cpp,v 1.31 2004-08-12 15:15:12 jan Exp $");
+VERSION(test_ami_sort_cpp,"$Id: test_ami_sort.cpp,v 1.32 2005-02-15 00:25:57 tavi Exp $");
 
 #include <ami_kb_sort.h>
 
@@ -127,7 +127,6 @@ int main(int argc, char **argv)
   test_size = 0;
   istr_name[0] = ostr_name[0] = '\0';
 
-  //  parse_args(argc, argv, as_opts, parse_app_opt);
   parse_args(argc, argv, app_opts, parse_app_opts);
 
   if (test_size == 0 && istr_name[0] == '\0') {
