@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/30/94
 //
-// $Id: mm_base.h,v 1.5 2000-01-14 19:09:18 hutchins Exp $
+// $Id: mm_base.h,v 1.6 2000-03-25 06:25:20 rajiv Exp $
 //
 #ifndef _MM_BASE_H
 #define _MM_BASE_H
@@ -12,9 +12,11 @@
 #include <sys/types.h>
 
 // dh. MM accounting modes
-#define MM_IGNORE_MEMORY_EXCEEDED   0
-#define MM_ABORT_ON_MEMORY_EXCEEDED 1
-#define MM_WARN_ON_MEMORY_EXCEEDED  2
+typedef enum {
+  MM_IGNORE_MEMORY_EXCEEDED=0,
+  MM_ABORT_ON_MEMORY_EXCEEDED,
+  MM_WARN_ON_MEMORY_EXCEEDED
+} MM_mode;
 
 // MM Error codes
 enum MM_err {
