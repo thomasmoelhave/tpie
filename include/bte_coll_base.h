@@ -3,7 +3,7 @@
 // Authors: Octavian Procopiuc <tavi@cs.duke.edu>
 //          (using some code by Rakesh Barve)
 //
-// $Id: bte_coll_base.h,v 1.19 2003-09-13 18:36:24 tavi Exp $
+// $Id: bte_coll_base.h,v 1.20 2003-09-13 23:06:52 tavi Exp $
 //
 // BTE_collection_base class and various basic definitions.
 //
@@ -11,20 +11,8 @@
 #ifndef _BTE_COLL_BASE_H
 #define _BTE_COLL_BASE_H
 
-// For open(), read() and write().
-//#include <sys/types.h>
-//#include <sys/stat.h>
-//#include <fcntl.h>
-
 // Get definitions for working with Unix and Windows
 #include <portability.h>
-
-#include <stdlib.h>
-// For errno
-#include <errno.h>
-// For strerror()
-#include <string.h>
-
 
 // Include the registration based memory manager.
 #define MM_IMP_REGISTER
@@ -122,8 +110,9 @@ public:
 // fragmented files and, consequently, slower I/O. See mmap(2) on
 // FreeBSD for an explanation. When set to 0, lseek(2) and write(2)
 // are used to extend the files.
-#define USE_FTRUNCATE 0
-
+#ifndef USE_FTRUNCATE
+#define USE_FTRUNCATE 1
+#endif
 
 // A base class for all implementations of block collection classes.
 template <class BIDT>
@@ -228,18 +217,18 @@ protected:
 		      "BTE_collection_ufs internal error: last_block>total_blocks");
 	    if (header_.last_block == header_.total_blocks) {
 		// Increase the capacity for storing blocks in the stream by
-		// 16 (only by 1 the first time around to be gentle with very
+		// 16 (only by 2 the first time around to be gentle with very
 		// small coll's).
 		if (header_.total_blocks == 1)
 		    header_.total_blocks += 2;
 		else if (header_.total_blocks <= 161)
-		    header_.total_blocks += 16;
+		    header_.total_blocks += 8;
 		else
-		    header_.total_blocks += 128;
+		    header_.total_blocks += 64;
 #if USE_FTRUNCATE
-		if (ftruncate(bcc_fd_, bid_to_file_offset(header_.total_blocks))) {
+		if (TPIE_OS_FTRUNCATE(bcc_fd_, bid_to_file_offset(header_.total_blocks))) {
 		    LOG_FATAL_ID("Failed to ftruncate() to the new end of file.");
-		    LOG_FATAL_ID(strerror(errno));
+		    //LOG_FATAL_ID(strerror(errno));
 		    return BTE_ERROR_OS_ERROR;
 		}
 #else
@@ -248,7 +237,7 @@ protected:
 
 		if ((curr_off = TPIE_OS_LSEEK(bcc_fd_, 0, TPIE_OS_FLAG_SEEK_END)) == (TPIE_OS_OFFSET)(-1)) {
 		    LOG_FATAL_ID("Failed to lseek() to the end of file.");
-		    LOG_FATAL_ID(strerror(errno));
+		    //LOG_FATAL_ID(strerror(errno));
 		    return BTE_ERROR_OS_ERROR;
 		}
 		while (curr_off < bid_to_file_offset(header_.total_blocks)) {
@@ -355,7 +344,7 @@ void BTE_collection_base<BIDT>::remove_stack_file() {
 template<class BIDT>
 BTE_collection_base<BIDT>::BTE_collection_base(const char *base_name, 
 		 BTE_collection_type type, size_t logical_block_factor):
-  header_() {
+  header_(), freeblock_stack_(NULL) {
 
   if (base_name == NULL) {
     status_ = BTE_COLLECTION_STATUS_INVALID;
@@ -388,7 +377,7 @@ void BTE_collection_base<BIDT>::shared_init(BTE_collection_type type,
 
   if (read_only_) {
 
-    if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(bcc_fd_ = TPIE_OS_OPEN_ORDONLY(bcc_name, TPIE_OS_FLAG_USE_MAPPING_TRUE))) {
+    if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(bcc_fd_ = TPIE_OS_OPEN_ORDONLY(bcc_name, TPIE_OS_FLAG_USE_MAPPING_FALSE))) {
       status_ = BTE_COLLECTION_STATUS_INVALID;
       LOG_FATAL_ID("open() failed to open read-only file: ");
       LOG_FATAL_ID(bcc_name);	
@@ -422,10 +411,10 @@ void BTE_collection_base<BIDT>::shared_init(BTE_collection_type type,
     // it with the O_EXCL flag set.  This will fail if the file
     // already exists.  If this is the case, we will call open()
     // again without it and read in the header block.
-    if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(bcc_fd_ = TPIE_OS_OPEN_OEXCL(bcc_name,TPIE_OS_FLAG_USE_MAPPING_TRUE))) {
+    if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(bcc_fd_ = TPIE_OS_OPEN_OEXCL(bcc_name,TPIE_OS_FLAG_USE_MAPPING_FALSE))) {
 			
       // Try again, hoping the file already exists.
-      if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(bcc_fd_ = TPIE_OS_OPEN_ORDWR(bcc_name,TPIE_OS_FLAG_USE_MAPPING_TRUE))) {
+      if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(bcc_fd_ = TPIE_OS_OPEN_ORDWR(bcc_name,TPIE_OS_FLAG_USE_MAPPING_FALSE))) {
         status_ = BTE_COLLECTION_STATUS_INVALID;        
         LOG_FATAL_ID("open() failed to open file:");
 	LOG_FATAL_ID(bcc_name);
@@ -610,7 +599,7 @@ BTE_collection_base<BIDT>::~BTE_collection_base() {
       return;
     } 
 
-    if (unlink(bcc_name)) {
+    if (TPIE_OS_UNLINK(bcc_name)) {
       LOG_FATAL_ID("Failed to unlink() ");
       LOG_FATAL_ID(bcc_name);
       return;
