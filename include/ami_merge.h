@@ -8,7 +8,7 @@
 // lower level streams will use appropriate levels of buffering.  This
 // will be more critical for parallel disk implementations.
 //
-// $Id: ami_merge.h,v 1.12 1995-03-22 16:22:56 dev Exp $
+// $Id: ami_merge.h,v 1.13 1995-05-02 00:55:15 dev Exp $
 //
 #ifndef _AMI_MERGE_H
 #define _AMI_MERGE_H
@@ -447,7 +447,7 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
 
         // Round the original substream length off to an integral
         // number of chunks.  This is for systems like HP-UX that
-        // cannot map in overlapping regions.  It is also usefull for
+        // cannot map in overlapping regions.  It is also required for
         // BTE's that are capable of freeing chunks as they are
         // read.
 
@@ -693,6 +693,11 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
                                                  sub_end,
                                                  (AMI_base_stream<T> **)
                                                  (the_substreams + ii));
+
+                    // The substreams are read-once.
+
+                    the_substreams[ii]->persist(PERSIST_READ_ONCE);
+
                 }               
 
                 tp_assert((sub_start >= len) &&
@@ -760,6 +765,10 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
                                                  (AMI_base_stream<T> **)
                                                  (the_substreams + jj));
 
+                    // The substreams are read-once.
+
+                    the_substreams[jj]->persist(PERSIST_READ_ONCE);
+                    
                     // If we've got all we can handle or we've seen
                     // them all, then merge them.
                     

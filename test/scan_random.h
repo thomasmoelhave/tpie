@@ -4,13 +4,16 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/6/94
 //
-// $Id: scan_random.h,v 1.3 1995-03-22 16:24:09 dev Exp $
+// $Id: scan_random.h,v 1.4 1995-05-02 00:56:51 dev Exp $
 //
 #ifndef _SCAN_RANDOM_H
 #define _SCAN_RANDOM_H
 
-extern "C" int srandom(int);
-extern "C" int random(void);
+extern "C" void srandom(unsigned int);
+// Linux defiens this random as a macro.
+#ifndef random
+extern "C" long int random(void);
+#endif
 
 // A scan object to generate random integers.
 class scan_random : AMI_scan_object {

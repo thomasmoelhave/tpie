@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/13/94
 //
-// $Id: config.h.in,v 1.5 1995-03-25 14:08:05 darrenv Exp $
+// $Id: config.h.in,v 1.6 1995-05-02 00:56:09 dev Exp $
 //
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -35,6 +35,9 @@
 #define HAVE_UNISTD_H 0
 #define HAVE_SYS_UNISTD_H 0
 
+// Are we on a hacked kernel that supports zero()?
+#define HAVE_ZERO 0
+
 // On Solaris, _SC_PAGE_SIZE is called _SC_PAGE_SIZE.  Here's a quick
 // fix.
 
@@ -43,7 +46,7 @@
 #elif HAVE_SYS_UNISTD_H
 #include <sys/unistd.h>
 #endif
-#ifndef _SC_PAGE_SIZE
+#if !defined(_SC_PAGE_SIZE) && defined(_SC_PAGESIZE)
 #define _SC_PAGE_SIZE _SC_PAGESIZE
 #endif
 
