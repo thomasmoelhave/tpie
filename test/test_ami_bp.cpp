@@ -4,8 +4,11 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 1/9/95
 //
+// Test for AMI_BMMC_permute(). See the Tutorial for an explanation of 
+// this particular example.
+//
 
-static char test_ami_bp_id[] = "$Id: test_ami_bp.cpp,v 1.4 1999-02-03 22:20:39 tavi Exp $";
+static char test_ami_bp_id[] = "$Id: test_ami_bp.cpp,v 1.5 1999-05-02 16:08:59 tavi Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -33,23 +36,19 @@ static struct ___test_ami_bp_id_compiler_fooler {
 #include <ami_scan_utils.h>
 
 #include "parse_args.h"
-
 #include "scan_count.h"
 
 
 static char def_irf[] = "/var/tmp/osi.txt";
-static char def_rrf[] = "/var/tmp/osr.txt";
 static char def_frf[] = "/var/tmp/osf.txt";
 
 static char *initial_results_filename = def_irf;
-static char *rand_results_filename = def_rrf;
 static char *final_results_filename = def_frf;
 
 static bool report_results_initial = false;
-static bool report_results_random = false;
 static bool report_results_final = false;
 
-static const char as_opts[] = "I:iR:rF:f";
+static const char as_opts[] = "I:iF:f";
 void parse_app_opt(char c, char *optarg)
 {
     switch (c) {
@@ -57,11 +56,6 @@ void parse_app_opt(char c, char *optarg)
             initial_results_filename = optarg;
         case 'i':
             report_results_initial = true;
-            break;
-        case 'R':
-            rand_results_filename = optarg;
-        case 'r':
-            report_results_random = true;
             break;
         case 'F':
             final_results_filename = optarg;
@@ -76,12 +70,18 @@ extern int register_new;
 int main(int argc, char **argv)
 {
     AMI_err ae;
-    
+    int number_of_bits;
+
     parse_args(argc,argv,as_opts,parse_app_opt);
+    
+    // Count the bits in test_size.
+    for (number_of_bits = 0 ; test_size >= 2; number_of_bits++)
+      test_size = test_size >> 1;
+    if (number_of_bits == 0)
+      number_of_bits = 1;
 
-    // Overrride the test size.
-
-    test_size = 1 << 16;
+    // Adjust the test size to be a power of two.
+    test_size = 1 << number_of_bits;
     
     if (verbose) {
         cout << "test_size = " << test_size << ".\n";
@@ -132,16 +132,16 @@ int main(int argc, char **argv)
 
     amis0.seek(0);
 
-    bit_matrix A(16,16);
-    bit_matrix c(16,1);
+    bit_matrix A(number_of_bits, number_of_bits);
+    bit_matrix c(number_of_bits, 1);
 
     {
         unsigned int ii,jj;
 
-        for (ii = 16; ii--; ) {
+        for (ii = number_of_bits; ii--; ) {
             c[ii][0] = 0;
-            for (jj = 16; jj--; ) {
-                A[15-ii][jj] = (ii == jj);
+            for (jj = number_of_bits; jj--; ) {
+                A[number_of_bits-1-ii][jj] = (ii == jj);
             }
         }
     }
@@ -151,7 +151,7 @@ int main(int argc, char **argv)
         cout << "c = \n" << c << '\n';
     }
     
-    AMI_bit_perm_object bpo(A,c);
+    AMI_bit_perm_object bpo(A, c);
     
     ae = AMI_BMMC_permute(&amis0, &amis1, (AMI_bit_perm_object *)&bpo);
 
