@@ -1,3 +1,22 @@
+Thu Aug 29 23:01:23 2002
+	* bte_coll_base.cpp,  bte_coll_mmap.cpp, bte_coll_ufs.cpp: Use bid_t to
+	represent the bid type at the bte collection level.
+
+	* bte_coll_mmap.cpp: Added the BTE_COLLECTION_MMAP_LAZY_WRITE
+	constant to specify the writing policy.
+
+	* tpie_log.cpp: Using tpie_tempnam instead of tempnam, to avoid warnings.
+	Changed prefix of log file name from "TPLOG" to "tpielog".
+
+	* tpie_tempnam.cpp: Added include string.h to make it compile on
+	Linux.
+
+	* tpie_tempnam.cpp: Added tpie_mktemp to replace mktemp, since it
+	was giving warnings on FreeBSD and Linux. Added a parameter to
+	tpie_tempnam to optionally specify the directory. When missing, it
+	defaults to NULL and tpie_tempnam uses the environment variable
+	etc.
+	
 Mon Jan 14 12:09:41 2002
 	* this file is now ChangeLog instead of Changelog.
 
