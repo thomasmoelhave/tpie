@@ -3,7 +3,7 @@
 // File:    ami_logmethod.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_logmethod.h,v 1.1 2003-01-02 19:44:57 tavi Exp $
+// $Id: ami_logmethod.h,v 1.2 2003-01-27 03:29:45 tavi Exp $
 //
 // Logmethod_base, Logmethod2 and LogmethodB declarations and
 // definitions.
@@ -175,12 +175,12 @@ LOGMETHOD_BASE::Logmethod_base(const char *base_file_name,
   int fd; // file descriptor for the header file.
 
   // Try to open header file read-only.
-  if ((fd = ::open(base_file_name_,  O_RDONLY)) >= 0) {
-    if (::read(fd, &header_, sizeof(header_)) != sizeof(header_)) {
+  if ((fd = open(base_file_name_,  O_RDONLY)) >= 0) {
+    if (read(fd, &header_, sizeof(header_)) != sizeof(header_)) {
       LOG_WARNING_ID("Corrupt header file.");
       assert(0);
     }
-    ::close(fd);
+    close(fd);
 
     assert(header_.last_tree < 100);
     size_t i;
@@ -275,18 +275,18 @@ LOGMETHOD_BASE::~Logmethod_base() {
   if (per_ == PERSIST_PERSISTENT) {
     header_.last_tree = trees_.size() - 1;
     // Open the header file (create if not present).
-    if ((fd = ::open(base_file_name_, O_RDWR | O_CREAT | O_EXCL,
+    if ((fd = open(base_file_name_, O_RDWR | O_CREAT | O_EXCL,
 		     S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH)) == -1) {
       // Try again, hoping it exists.
-      if ((fd = ::open(base_file_name_, O_RDWR)) == -1) {
+      if ((fd = open(base_file_name_, O_RDWR)) == -1) {
 	LOG_WARNING_ID("Error creating header file.");
 	LOG_WARNING_ID(strerror(errno));
 	assert(0);
       }
     }
 
-    ::write(fd, &header_, sizeof(header_));
-    ::close(fd);
+    write(fd, &header_, sizeof(header_));
+    close(fd);
   }
 
   tree0_->persist(per_);
