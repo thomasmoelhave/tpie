@@ -7,7 +7,7 @@
 // A basic implementation of quicksort for use in core by AMI_sort() on
 // streams or substreams that are small enough.
 //
-// $Id: quicksort.h,v 1.12 1999-02-03 18:12:28 tavi Exp $
+// $Id: quicksort.h,v 1.13 1999-02-05 21:54:19 rbarve Exp $
 //
 #ifndef _QUICKSORT_H
 #define _QUICKSORT_H
@@ -15,6 +15,7 @@
 //extern "C" long int random(void);
 
 #include <comparator.h>
+
 
 // A version that uses a comparison function.  This is useful for
 // sorting objects with multiple data members based on a particular
@@ -314,3 +315,49 @@ void insertion_sort_obj(T *data, size_t len,
 }
 
 #endif // _QUICKSORT_H 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
