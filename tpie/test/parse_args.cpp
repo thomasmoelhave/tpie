@@ -4,13 +4,15 @@
 // Created: 10/7/94
 //
 
-static char parse_args_id[] = "$Id: parse_args.cpp,v 1.11 2003-04-20 23:51:40 tavi Exp $";
+static char parse_args_id[] = "$Id: parse_args.cpp,v 1.12 2003-04-21 02:30:12 tavi Exp $";
 
 #include <stdlib.h>
 #include <strings.h>
 #include <string.h>
 #include <ctype.h>
 #include <unistd.h>
+#include <iostream>
+using std::cerr;
 
 #include "app_config.h"
 #include "parse_args.h"
@@ -28,7 +30,7 @@ static size_t parse_number(char *s) {
       mult = 1 << 10;
       break;
     default:
-      cerr << "bad number format: " << s << endl;
+      cerr << "bad number format: " << s << "\n";
       exit(-1);
       break;
     }
