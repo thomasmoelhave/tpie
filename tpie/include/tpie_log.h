@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/12/94
 //
-// $Id: tpie_log.h,v 1.7 1999-04-16 21:26:50 rajiv Exp $
+// $Id: tpie_log.h,v 1.8 1999-04-23 01:19:54 rajiv Exp $
 //
 #ifndef _TPIE_LOG_H
 #define _TPIE_LOG_H
@@ -85,6 +85,11 @@ static log_init source_file_log_init;
 #define LOG_FATAL(msg) 
 #define LOG_WARNING(msg) 
 #define LOG_DEBUG_INFO(msg) 
+
+#define LOG_FATAL_ID(msg)
+#define LOG_WARNING_ID(msg)
+#define LOG_DEBUG_ID(msg)
+
 
 // Keep these a little longer, to avoid errors. 
 // All references to them should be replaced by one of the macros above.
