@@ -3,7 +3,7 @@
 // Created: 2002/10/30
 // Authors: Joerg Rotthowe, Jan Vahrenhold, Markus Vogel
 //
-// $Id: portability.h,v 1.26 2004-08-12 12:35:32 jan Exp $
+// $Id: portability.h,v 1.27 2004-08-17 16:48:17 jan Exp $
 //
 // This header-file offers macros for independent use on Win and Unix systems.
 
@@ -16,7 +16,6 @@
 #pragma warning (disable : 4018) // signed/unsigned comparison mismatch
 #pragma warning (disable : 4786) // debug identifier truncated to 255 chars.
 #endif
-
 // overview of this file:				//
 //////////////////////////////////////////
 // includes								//
@@ -73,14 +72,12 @@ using namespace std;
 #endif
 #endif
 
-#ifdef _WIN32
 #include <stack>
 #include <functional>
 #include <algorithm>
 #include <vector>
 #include <queue>
 #include <list>
-#endif
 
 #ifdef _WIN32
 #if _MSC_VER < 1300
@@ -195,8 +192,10 @@ inline TPIE_OS_TIME_T TPIE_OS_TIME(TPIE_OS_TIME_T* timep) {
 	return time(timep);
 }
 #endif
+typedef time_t TPIE_OS_TMS;
 #else
-typedef tms TPIE_OS_TIME_T;
+typedef time_t TPIE_OS_TIME_T;
+typedef tms TPIE_OS_TMS;
 inline TPIE_OS_TIME_T TPIE_OS_TIME(TPIE_OS_TIME_T* timep) {
 	return time(timep);
 }
@@ -434,18 +433,18 @@ inline LONG getLowOrderOff(TPIE_OS_OFFSET off) {
 //       tpie specific functions            //
 
 #ifdef _WIN32
-inline long TPIE_OS_PAGESIZE() {
+inline TPIE_OS_SIZE_T  TPIE_OS_PAGESIZE() {
     SYSTEM_INFO systemInfos;
     GetSystemInfo(&systemInfos);
-    return (long)systemInfos.dwPageSize;
+    return (TPIE_OS_SIZE_T )systemInfos.dwPageSize;
 }
 #else
 #ifdef _SC_PAGE_SIZE
-inline long TPIE_OS_PAGESIZE() {
+inline TPIE_OS_SIZE_T  TPIE_OS_PAGESIZE() {
     return sysconf (_SC_PAGE_SIZE);
 }
 #else
-inline long TPIE_OS_PAGESIZE() {
+inline TPIE_OS_SIZE_T  TPIE_OS_PAGESIZE() {
     return getpagesize();
 }
 #endif
@@ -453,18 +452,18 @@ inline long TPIE_OS_PAGESIZE() {
 
 
 #ifdef _WIN32
-inline DWORD TPIE_OS_BLOCKSIZE() {
+inline TPIE_OS_SIZE_T  TPIE_OS_BLOCKSIZE() {
     SYSTEM_INFO systemInfos;
     GetSystemInfo(&systemInfos);
     return systemInfos.dwAllocationGranularity;
 }
 #else
 #ifdef _SC_PAGE_SIZE
-inline long TPIE_OS_BLOCKSIZE() {
+inline TPIE_OS_SIZE_T TPIE_OS_BLOCKSIZE() {
     return sysconf (_SC_PAGE_SIZE);
 }
 #else
-inline long TPIE_OS_BLOCKSIZE() {
+inline TPIE_OS_SIZE_T  TPIE_OS_BLOCKSIZE() {
     return getpagesize();
 }
 #endif
@@ -486,19 +485,27 @@ inline FILE* TPIE_OS_FOPEN(const char* filename,
 #else
 inline FILE* TPIE_OS_FOPEN(const char* filename,
 			   const char* mode) {
+#ifdef _LARGEFILE_SOURCE
+    return fopen64(filename,mode);
+#else
     return fopen(filename,mode);
+#endif
 }
 #endif
 
 //there is no difference between the systemcalls
 //but for later adaptation to other systems it maybe useful
 #ifdef _WIN32
-inline int TPIE_OS_FSEEK(FILE* file, long offset, int whence) {
+inline int TPIE_OS_FSEEK(FILE* file, TPIE_OS_OFFSET offset, int whence) {
     return fseek(file, offset, whence);
 }
 #else
-inline int TPIE_OS_FSEEK(FILE* file, long offset, int whence) {
+inline int TPIE_OS_FSEEK(FILE* file, TPIE_OS_OFFSET offset, int whence) {
+#ifdef _LARGEFILE_SOURCE
+    return fseeko64(file, offset, whence);
+#else
     return fseek(file, offset, whence);
+#endif
 }
 #endif
 
@@ -510,7 +517,11 @@ inline TPIE_OS_LONG TPIE_OS_FTELL(FILE* file) {
 }
 #else
 inline TPIE_OS_LONG TPIE_OS_FTELL(FILE* file) {
+#ifdef _LARGEFILE_SOURCE
+    return ftell64(file);
+#else
     return ftell(file);
+#endif
 }
 #endif
 
@@ -627,7 +638,11 @@ inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_ORDONLY(const char* name,TPIE_OS_MAP
 }
 #else
 inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_ORDONLY(const char* name,TPIE_OS_MAPPING_FLAG mappingFlag = TPIE_OS_FLAG_USE_MAPPING_FALSE) {
+#ifdef _LARGEFILE_SOURCE
+    return ::open64(name, O_RDONLY);
+#else
     return ::open(name, O_RDONLY);
+#endif
 }
 #endif
 
@@ -638,7 +653,11 @@ inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_OEXCL(const char* name, TPIE_OS_MAPP
 }
 #else
 inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_OEXCL(const char* name, TPIE_OS_MAPPING_FLAG mappingFlag = TPIE_OS_FLAG_USE_MAPPING_FALSE) {
+#ifdef _LARGEFILE_SOURCE
+    return ::open64(name, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+#else
     return ::open(name, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+#endif
 }
 #endif
 
@@ -649,7 +668,11 @@ inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_ORDWR(const char* name, TPIE_OS_MAPP
 }
 #else
 inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_ORDWR(const char* name, TPIE_OS_MAPPING_FLAG mappingFlag = TPIE_OS_FLAG_USE_MAPPING_FALSE) {
+#ifdef _LARGEFILE_SOURCE
+    return ::open64(name, O_RDWR);
+#else
     return ::open(name, O_RDWR);
+#endif
 }
 #endif
 
@@ -737,7 +760,11 @@ inline LPVOID TPIE_OS_MMAP(LPVOID addr,
 }
 #else	
 inline void* TPIE_OS_MMAP(void* addr, size_t len, int prot, int flags, TPIE_OS_FILE_DESCRIPTOR fildes, TPIE_OS_OFFSET off) {
+#ifdef _LARGEFILE_SOURCE
+    return mmap64((caddr_t)addr, len, prot, flags, fildes, off);
+#else
     return mmap((caddr_t)addr, len, prot, flags, fildes, off);
+#endif
 }
 #endif
 
@@ -797,7 +824,11 @@ inline int TPIE_OS_FTRUNCATE(TPIE_OS_FILE_DESCRIPTOR& fd, TPIE_OS_OFFSET length)
 }
 #else							
 inline int TPIE_OS_FTRUNCATE(TPIE_OS_FILE_DESCRIPTOR& fd, TPIE_OS_OFFSET length) {
+#ifdef _LARGEFILE_SOURCE
+    return ftruncate64(fd, length);
+#else
     return ftruncate(fd, length);
+#endif
 }
 #endif
 
@@ -1017,8 +1048,8 @@ logstream& logstream::operator<<(const LONGLONG x)\
 #ifdef _WIN32	
 #define VERSION(name,id) static char __ ## name[] = id;      
 #else
-#define VERSION(name,id) static char __ ## name[] = id;
-
+#define VERSION(name,id) 
+// static char __ ## name[] = id;
 //#define VERSION(name,id) static char __ ## name[] = ## id; static struct __ ## name ## _compiler_fooler {	char *pc; __ ## name ## _compiler_fooler *next; } the__ ## name ## _compiler_fooler = { __ ## name, & the__ ## name ## _compiler_fooler};
 #endif
 
@@ -1101,7 +1132,7 @@ void * operator new(\
 };
 #endif
 #else							
-#define TPIE_OS_SPACE_OVERHEAD_BODY {};
+#define TPIE_OS_SPACE_OVERHEAD_BODY //
 #endif
 
 #endif 

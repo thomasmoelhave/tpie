@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/12/94
 //
-// $Id: tpie_log.h,v 1.23 2004-08-12 12:35:32 jan Exp $
+// $Id: tpie_log.h,v 1.24 2004-08-17 16:48:21 jan Exp $
 //
 
 #ifndef _TPIE_LOG_H
@@ -15,7 +15,7 @@ enum TPIE_LOG_LEVEL {
   TPIE_LOG_FATAL = 0,	// Fatal errors are always logged no matter what;
   TPIE_LOG_WARNING,	// Warning about some internal condition;
   TPIE_LOG_APP_DEBUG,     // Debugging info for the application only;
-  TPIE_LOG_DEBUG,		// Debugging info.
+  TPIE_LOG_DEBUG		// Debugging info.
 };
 
 

@@ -2,7 +2,7 @@
 // File:    tpie_stats_stream.h
 // Authors: Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: tpie_stats_stream.h,v 1.2 2003-04-17 20:06:24 jan Exp $
+// $Id: tpie_stats_stream.h,v 1.3 2004-08-17 16:48:25 jan Exp $
 //
 // Statistics for streams.
 
@@ -26,7 +26,7 @@ enum TPIE_STATS_STREAM {
   STREAM_CREATE,
   STREAM_DELETE,
   SUBSTREAM_CREATE,
-  SUBSTREAM_DELETE,
+  SUBSTREAM_DELETE
 };
 
 typedef tpie_stats<TPIE_STATS_STREAM_COUNT> tpie_stats_stream;

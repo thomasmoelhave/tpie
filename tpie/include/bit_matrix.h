@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 11/4/94
 //
-// $Id: bit_matrix.h,v 1.12 2004-08-12 12:35:31 jan Exp $
+// $Id: bit_matrix.h,v 1.13 2004-08-17 16:48:03 jan Exp $
 //
 #ifndef _BIT_MATRIX_H
 #define _BIT_MATRIX_H
@@ -22,7 +22,7 @@
 
 class bit_matrix : public matrix<bit> {
 public:
-    bit_matrix::bit_matrix(matrix<bit> &mb);
+	bit_matrix(matrix<bit> &mb);
     bit_matrix(TPIE_OS_SIZE_T rows, TPIE_OS_SIZE_T cols);
     virtual ~bit_matrix(void);
 
