@@ -3,17 +3,17 @@
 // Author: 
 // Created: 02/02/02
 //
-// $Id: tpie_tempnam.h,v 1.2 2002-07-20 21:32:24 tavi Exp $
+// $Id: tpie_tempnam.h,v 1.3 2003-04-17 20:09:02 jan Exp $
 //
 //
 #ifndef _TPIE_TEMPNAM_H
 #define _TPIE_TEMPNAM_H
 
-// The name of the environment variable pointing to a tmp directory.
-#define TMP_DIR_ENV "TMPDIR"
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
-// The name of a tmp directory to use if the env variable is not set.
-#define TMP_DIR "/var/tmp"
+// The name of the environment variable pointing to a tmp directory.
+#define TMPDIR_ENV "TMPDIR"
 
 // The name of the environment variable to consult for default device
 // descriptions.
