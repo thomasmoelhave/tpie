@@ -7,7 +7,7 @@
 
 // A simple registration based memory manager.
 
-static char mm_register_id[] = "$Id: mm_register.cpp,v 1.1 1994-08-31 19:39:09 darrenv Exp $";
+static char mm_register_id[] = "$Id: mm_register.cpp,v 1.2 1994-09-22 15:21:47 darrenv Exp $";
 
 #define TPL_LOGGING 1
 
@@ -82,6 +82,25 @@ MM_err MM_register::available(size_t *sz)
     *sz = remaining;
     return MM_ERROR_NO_ERROR;    
 }
+
+
+MM_err MM_register::resize_heap(size_t sz)
+{
+    if (max_sz - remaining > sz) {
+        return MM_ERROR_EXCESSIVE_ALLOCATION;
+    } else {
+        // These are unsigned, so be careful.
+        if (sz < max_sz) {
+            remaining -= max_sz - sz;
+        } else {
+            remaining += sz - max_sz;
+        }
+        max_sz = sz;
+        return MM_ERROR_NO_ERROR;
+    }
+}
+
+
 
 // The number of instances.  Implicitly set to zero.
 int MM_register::instances;
