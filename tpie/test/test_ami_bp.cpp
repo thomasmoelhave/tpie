@@ -8,8 +8,10 @@
 // this particular example.
 //
 
+#include <portability.h>
+
 #include <versions.h>
-VERSION(test_ami_bp_cpp,"$Id: test_ami_bp.cpp,v 1.7 2003-04-20 23:51:40 tavi Exp $");
+VERSION(test_ami_bp_cpp,"$Id: test_ami_bp.cpp,v 1.8 2003-09-11 21:38:17 tavi Exp $");
 
 // Get the application defaults.
 #include "app_config.h"
@@ -17,21 +19,14 @@ VERSION(test_ami_bp_cpp,"$Id: test_ami_bp.cpp,v 1.7 2003-04-20 23:51:40 tavi Exp
 // Define it all.
 #include <ami.h>
 
-// Utitlities for ascii output.
-#include <iostream>
-#include <fstream>
-
-using std::cout;
-using std::ofstream;
-
 #include <ami_scan_utils.h>
 
 #include "parse_args.h"
 #include "scan_count.h"
 
 
-static char def_irf[] = "/var/tmp/osi.txt";
-static char def_frf[] = "/var/tmp/osf.txt";
+static char def_irf[] = "osi.txt";
+static char def_frf[] = "osf.txt";
 
 static char *initial_results_filename = def_irf;
 static char *final_results_filename = def_frf;
@@ -74,9 +69,9 @@ int main(int argc, char **argv)
     test_size = 1 << number_of_bits;
     
     if (verbose) {
-        cout << "test_size = " << test_size << ".\n";
-        cout << "test_mm_size = " << test_mm_size << ".\n";
-        cout << "random_seed = " << random_seed << ".\n";
+      cout << "test_size = " << test_size << "." << endl;
+      cout << "test_mm_size = " << test_mm_size << "." << endl;
+      cout << "random_seed = " << random_seed << "." << endl;
     } else {
         cout << test_size << ' ' << test_mm_size << ' ' << random_seed;
     }
@@ -112,7 +107,7 @@ int main(int argc, char **argv)
     ae = AMI_scan(&my_scan_count, &amis0);
 
     if (verbose) {
-        cout << "Initial stream length = " << amis0.stream_len() << '\n';
+        cout << "Initial stream length = " << amis0.stream_len() << endl;
     }
     
     if (report_results_initial) {
@@ -136,8 +131,8 @@ int main(int argc, char **argv)
     }
 
     if (verbose) {
-        cout << "A = \n" << A << '\n';
-        cout << "c = \n" << c << '\n';
+        cout << "A = " << A << endl;
+        cout << "c = " << c << endl;
     }
     
     AMI_bit_perm_object bpo(A, c);
@@ -145,8 +140,8 @@ int main(int argc, char **argv)
     ae = AMI_BMMC_permute(&amis0, &amis1, (AMI_bit_perm_object *)&bpo);
 
     if (verbose) {
-        cout << "After permutation, stream length = " << amis1.stream_len() <<
-            '\n';
+        cout << "After permutation, stream length = " 
+	     << amis1.stream_len() << endl;
     }
 
     if (report_results_final) {
