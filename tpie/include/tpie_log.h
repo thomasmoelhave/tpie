@@ -4,16 +4,10 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/12/94
 //
-// $Id: tpie_log.h,v 1.12 1999-11-08 17:09:53 tavi Exp $
+// $Id: tpie_log.h,v 1.13 2000-11-05 19:53:23 tavi Exp $
 //
 #ifndef _TPIE_LOG_H
 #define _TPIE_LOG_H
-
-#if TPL_LOGGING		
-
-// We are logging.
-
-#include <logstream.h>
 
 // Logging levels, from higest priority to lowest.
 enum {
@@ -22,6 +16,13 @@ enum {
   TP_LOG_APP_DEBUG,     // Debugging info for the application only;
   TP_LOG_DEBUG_INFO,	// Debugging info.
 };
+
+#if TPL_LOGGING		
+
+// We are logging.
+
+#include <logstream.h>
+
 
 // The main tpie log to which all logging information goes.
 extern logstream *tpl;
@@ -89,6 +90,7 @@ static log_init source_file_log_init;
 #define LOG_APP_DEBUG_ID(msg)
 #define LOG_DEBUG_ID(msg)
 
+#define LOG_SET_THRESHOLD(level)
 #define LOG_FLUSH_LOG {}
 
 #endif // TPL_LOGGING
