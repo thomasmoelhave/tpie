@@ -1,5 +1,5 @@
 %%
-%% $Id: tuning.tex,v 1.10 2000-10-05 19:27:35 hutchins Exp $
+%% $Id: tuning.tex,v 1.11 2001-06-16 20:36:11 tavi Exp $
 %%
 \chapter{Configuration and Performance Tuning}
 \plabel{sec:tuning}\index{Configuration}\plabel{sec:configuration}
@@ -562,7 +562,7 @@ levels defined in TPIE, as follows.
     \item[\myverb{TP\_LOG\_APP\_DEBUG}] can be used by
     applications built on top of TPIE, for logging debugging
     information.
-    \item[\myverb{TP\_LOG\_LIB\_INFO}] is the lowest level
+    \item[\myverb{TP\_LOG\_DEBUG}] is the lowest level
     and is used by the TPIE library for logging debugging
     information.
 \end{description}
@@ -574,7 +574,7 @@ threshold level, the following macro is provided:
 \end{quote}
 where \emph{level} is one of \myverb{TP\_LOG\_FATAL},
 \myverb{TP\_LOG\_WARNING}, \myverb{TP\_LOG\_APP\_DEBUG}, or
-\myverb{TP\_LOG\_LIB\_INFO}.
+\myverb{TP\_LOG\_DEBUG}.
 
 The threshold level can be reset as many times as needed in
 a program. This enables the developer to focus the debugging
@@ -592,8 +592,8 @@ into the log:
 \myverb{LOG\_APP\_DEBUG}({\em msg})
 \myverb{LOG\_APP\_DEBUG\_ID}({\em msg})
 
-\myverb{LOG\_DEBUG\_INFO}({\em msg})
-\myverb{LOG\_DEBUG\_INFO\_ID}({\em msg})
+\myverb{LOG\_DEBUG}({\em msg})
+\myverb{LOG\_DEBUG\_ID}({\em msg})
 \end{quote}
 where {\em msg} is the information to be logged; {\em msg} can be any type
 that is supported by the \myverb{C++} \myverb{fstream} class. Each of these
