@@ -1,3 +1,12 @@
+Sat Sep 17 13:17:20 1994  Darren Erik Vengroff  (darrenv@lazyboy.eecs.umich.edu)
+
+	* ami_merge.h: Added main_mem_operate() member function to class
+        AMI_merge_base to handle bottoming out.
+	(AMI_main_mem_merge): Broke it out of partition_and_merge() since
+	it is useful in other types of merges as well.  Essestially it
+	does some error checking and then calls the main_mem_operate()
+	member function of the merge management object.
+
 Wed Aug 31 13:44:48 1994  Darren Erik Vengroff  (darrenv@lazyboy.eecs.umich.edu)
 
 	* tpie_assert.h (TP_DEBUG_OUT): changed the name form TP_DEBUG_STR
