@@ -3,7 +3,7 @@
 %%
 %% File: tpie.tex
 %%
-%% $Id: tpie.tex,v 1.22 1999-11-23 00:49:59 tavi Exp $
+%% $Id: tpie.tex,v 1.23 2000-08-08 04:53:10 hutchins Exp $
 %%
  
 \documentclass[11pt]{book}
@@ -12,10 +12,25 @@
 
 \hbadness=10000
 
-% use this instead of \verb, which is not allowed as parameter [tavi]
-\newcommand{\myverb}[1]{\texttt{#1}}
+% plabel allows the label value to be printed for easier
+% writing of the manual
+\newcommand{\plabel}[1]{{\tiny #1}\label{#1}}
+%\newcommand{\plabel}[1]{\label{#1}}
 
-\makeatletter    % '@' is now a normall letter for TeX
+% use this instead of \verb, which is not allowed as parameter [tavi]
+%app_config@{\tt app\_config.h}}
+\newcommand{\myverb}[1]{\texttt{#1}\index{#1@{\tt #1}}}
+\newcommand{\myv}[1]{\texttt{#1}\index{#1@{\tt #1}}}
+
+% use this instead of \myverb if you don't want its
+% parameter in the index
+\newcommand{\noiverb}[1]{\texttt{#1}}
+\newcommand{\noiv}[1]{\texttt{#1}}
+
+% used for algorithms
+\newcommand{\step}[2] {\begin{enumerate}\item[#1]#2\end{enumerate}}
+
+\makeatletter    % '@' is now a normal letter for TeX
 % this makes verbatim text smaller and indented [tavi]
 \def\verbatim@startline{\small%
   \def\verbatim@startline{\hspace*{5mm}\verbatim@line{}}%
@@ -44,7 +59,7 @@
 \addtolength{\marginparwidth}{-\textwidth}
 \addtolength{\marginparwidth}{-2.0\marginparsep} 
 % To get the same space on both sides of the margin text
-% because duke printers use weird margins:
+% because Duke printers use weird margins:
 \addtolength{\marginparwidth}{-0.125in}
 \newcounter{mycomments}
 \def\comment##1{\refstepcounter{mycomments}%
@@ -154,13 +169,13 @@ platforms.
   \input{user_manual}
 
 \part{Reference}
-  \input{ami_reference} % Chapter: AMI Programmers' Reference
+  \input{ami_reference} % Chapter: AMI Programmer's Reference
   \input{implementation} % Chapter: The Implementation of TPIE
   \input{tuning} % Chapter: TPIE Performance Tuning
 \part{Appendices}
 \appendix
-  \input{addexamples}
   \input{applications} %  Chapter: Test and Sample Applications
+  \input{addexamples}
   \input{errorcodes}
   \input{GNUlicence} 
 
