@@ -1,5 +1,5 @@
 %%
-%% $Id: user_manual.tex,v 1.6 1999-06-12 16:56:17 rbarve Exp $
+%% $Id: user_manual.tex,v 1.7 1999-06-18 20:35:13 laura Exp $
 %%
 \chapter{Overview}
 
@@ -1408,7 +1408,7 @@ void foo()
 
 \index{matrices|)}
 
-\section{Configurations, Compiler Flags, and Environment Variables.}
+\section{Configuration, Compiler Flags, and Environment Variables.}
 \label{sec:complete}
 \index{Configurarions, compiler flags and environment variables}
 
@@ -1420,7 +1420,7 @@ These are discussed below.  The recommended way for a novice TPIE programmer
 to begin is to first look directly at the sample program
 of Chapter~3 or at the source code provided in
 the {\tt test} directory, then set up the configuration
-parameters (of file {\tt
+parameters (in file {\tt
   tpie-\version/test/app\_config.h}),  compiler flags, 
 and various environment variables as described below, and then
 proceed to compiling, linking and running the programs.
@@ -1456,7 +1456,7 @@ The macros are as follows:
   programs compiled with this macro set.
 \item[{\verb|DEBUG\_CERR|}] \index{DEBUG_CERR@{\tt DEBUG\_CERR}}
   \index{debugging!TPIE} Setting this macro to a non-zero value tells
-  TPIE to write all internal debugging messages to the C++ standard
+  TPIE to write all internal assertion messages to the C++ standard
   error stream \verb|cerr| in addition to the TPIE log file.
 \item[{\verb|DEBUG\_STR|}] 
   \index{DEBUG_STR@{\tt DEBUG\_STR}} \index{debugging!TPIE}
@@ -1499,7 +1499,7 @@ The macros are as follows:
   \index{implementation!BTE}
   These are important macros for the TPIE user.
   The macros of this form are used to tell TPIE which of the available
-  block transfer engine implementations to use.  Version \version of
+  block transfer engine implementations to use.  Version \version ~of
   TPIE is distributed with three implementations.  
   %
   An implementation
@@ -1517,8 +1517,11 @@ The macros are as follows:
   mapped I/O\index{memory mapped I/O} is selected by setting 
   {\tt BTE\_IMP\_MMB}.
   \index{implementation!BTE!memory mapped I/O}
+  
 
 \end{description}
+
+See also the TPIE implementation section for details on each BTE.
 
 The following flags are only used by the memory mapped I/O BTE (BTE\_MMB).
 
@@ -1533,14 +1536,26 @@ The following flags are only used by the memory mapped I/O BTE (BTE\_MMB).
   data they contain is actually needed. This version provides two methods
   of read-ahead. The default behaviour uses {\tt mmap}. If the USE\_LIBAIO
   flag is also set, read ahead is done using the asynchronous I/O library.
-\item[{\verb|USE\_LIBAIO|}]
-  \index{USE\_LIBAIO}
-  If the BTE\_MMB\_READ\_AHEAD flag is also set, setting this flag
-  performs read ahead using the  asynchronous I/O library.
-  This feature requires the
-  asynchronous I/O library {\tt libaio}.\index{libaio library@{\tt
-      libaio} library.}
+  
+\item[{\verb|USE\_LIBAIO|}] \index{USE\_LIBAIO} If the
+  \verb|BTE_MMB_READ_AHEAD| flag is also set, setting this flag performs read
+  ahead using the asynchronous I/O library.  This feature requires the
+  asynchronous I/O library {\tt libaio}.\index{libaio library@{\tt libaio}
+    library.}. If {\verb|USE_LIBAIO|} flag is not set, read ahead is done
+  by default using {\tt mmap} and double buffering.
+
 \end{description}
+
+There is one more flag used only by \verb|BTE_mmb| and \verb|BTE_ufs|, the
+logical block-size factor:
+\begin{description}
+  
+\item[{\verb|BTE\_\*\_LOGICAL\_BLOCKSIZE\_FACTOR|}] This flag sets the logical
+  blocksize used by BTEs, which can be a multiple of the physical
+  blocksize. Value 1 indicates that the logical blocksize is same as
+  physical blocksize. Typical values are 16,32,64.
+\end{description}
+
 \index{macros|)}
 
 \index{header files|(}
@@ -1552,6 +1567,67 @@ are discussed in more detail in Section~\ref{sec:comp-flags} and are
 illustrated by their use un the {\tt Makefile} in the
 {\tt test} directory.
 \index{header files|)}
+
+
+A sample \verb|app_config.h| file is included below.
+
+\begin{verbatim}
+// Use the single BTE stream version of AMI streams.
+#define AMI_IMP_SINGLE
+
+// Pick a version of BTE streams.
+#define BTE_IMP_MMB
+//#define BTE_IMP_STDIO
+//#define BTE_IMP_UFS
+
+
+#ifdef BTE_IMP_MMB
+
+#ifndef BTE_MMB_LOGICAL_BLOCKSIZE_FACTOR
+#define BTE_MMB_LOGICAL_BLOCKSIZE_FACTOR 32
+#endif
+
+#define BTE_MMB_READ_AHEAD 1
+//#define USE_LIBAIO
+
+#endif 
+
+
+#ifdef BTE_IMP_UFS
+
+#ifndef BTE_UFS_LOGICAL_BLOCKSIZE_FACTOR
+#define BTE_UFS_LOGICAL_BLOCKSIZE_FACTOR 16
+#endif
+
+#define BTE_UFS_READ_AHEAD 0
+#define DOUBLE_BUFFER 0
+#define USE_LIBAIO 0
+
+#define BTE_IMPLICIT_FS_READAHEAD 0
+#endif
+
+
+// Use logs if requested.
+#if TP_LOG_APPS
+#define TPL_LOGGING 1
+#endif
+// Enable assertions if requested.
+#if TP_ASSERT_APPS
+#define DEBUG_ASSERTIONS 1
+#define DEBUG_CERR 1
+#define DEBUG_STR 1
+#endif
+
+// Don't use virtual interface.
+#ifndef AMI_VIRTUAL_BASE
+#define AMI_VIRTUAL_BASE 0
+#endif
+#ifndef BTE_VIRTUAL_BASE 
+#define BTE_VIRTUAL_BASE 0
+#endif
+
+\end{verbatim}
+
  
 %\subsection{Template Instantiation}
 
@@ -1668,20 +1744,65 @@ illustrated by their use un the {\tt Makefile} in the
 %of the class \verb|my_scan_class|.
 %\index{templates!instantiation|)}
 
-\subsection{Compiler Flags}
+\subsection{Environment Variables and Compiler Flags}
 \label{sec:comp-flags}
-
 \index{compiler flags|(}
 \index{compiler flags|)}
 
-\subsection{Environment Variables}
-\label{sec:env-variables}
-\index{environment variables|(}
 
-\index{environment variables!AMI_SINGLE_DEVICE_ENV@{\tt AMI\_SINGLE\_DEVICE\_ENV}}
+In version \version of TPIE there is only one environment variable that the
+user needs to set before running TPIE applications. The variable is called
+\verb|AMI_SINGLE_DEVICE| and defines where are placed the TPIE streams
+created during the execution of the program . The defaut location is
+\verb|/var/tmp|. If the user wants a different location, he must set the
+\verb|AMI_SINGLE_DEVICE| accordingly, for example (in C-shell):
+
+\begin{verbatim}
+setenv AMI_SINGLE_DEVICE /usr/project/tmp/
+\end{verbatim}
+
+Before compiling an application the user should set up the desired
+configuration in  file {\tt tpie-\version/test/app\_config.h}) (see
+previous subsection).
+
+TPIE test programs come with a Makefile and can be compiled in the usual
+way by invoking \verb|make| with the program name. For instance, in order to
+compile the test program \verb|test_ami_sort.cpp| the command is:
+
+\begin{verbatim}
+make test_ami_sort
+\end{verbatim}
 
 
-\index{environment variables|)}
+If the user writes new TPIE applications, in order to compile the options
+are:
+\begin{itemize}
+\item either create an application directory, modify the Makefile
+  accordingly and call \verb|make| with the new application name as
+  follows:
+\begin{verbatim}
+make sample_appl
+\end{verbatim}
+
+  
+\item or invoke directly the compiler as follows:
+
+\begin{verbatim}
+g++  sample_appl.cpp -I ../include/ -L ../lib/ -ltpie -o sample_appl
+\end{verbatim}
+\end{itemize}
+
+
+%\subsection{}
+%\label{sec:env-variables}
+%\index{environment variables|(}
+%\index{environment variables!AMI_SINGLE_DEVICE_ENV@{\tt AMI\_SINGLE\_DEVICE\_ENV}}
+%\index{environment variables|)}
+
+
+
+
+
 
 
 \chapter{Additional Examples} \label{ch:examples}
