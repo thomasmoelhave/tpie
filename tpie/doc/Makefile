@@ -1,8 +1,5 @@
-# Copyright (c) 1999 Octavian Procopiuc
 #
-# The Makefile for the TPIE documentation.
-#
-# $Id: Makefile,v 1.1 2001-12-19 21:22:29 tavi Exp $
+# $Id: Makefile,v 1.2 2002-06-26 23:25:54 tavi Exp $
 #
 
 LATEX = latex
@@ -18,8 +15,7 @@ MAIN_SRC = tpie.tex
 
 OTHER_SRC = GNUlicence.tex  ami_reference.tex  errorcodes.tex  \
   acknowledgements.tex appendices.tex implementation.tex tuning.tex  \
-  addexamples.tex applications.tex user_manual.tex sample_pgm.cpp \
-  block.tex btree.tex cache.tex
+  addexamples.tex applications.tex user_manual.tex sample_pgm.cpp 
 
 tpie.dvi: $(MAIN_SRC) $(OTHER_SRC) tpie.ind tpie.bbl
 	$(LATEX) $<
