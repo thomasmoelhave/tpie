@@ -3,7 +3,7 @@
 // Created: 2002/10/30
 // Authors: Joerg Rotthowe, Jan Vahrenhold, Markus Vogel
 //
-// $Id: portability.h,v 1.23 2004-05-05 14:31:56 adanner Exp $
+// $Id: portability.h,v 1.24 2004-05-05 15:59:07 adanner Exp $
 //
 // This header-file offers macros for independent use on Win and Unix systems.
 
@@ -898,6 +898,18 @@ inline int TPIE_OS_UNLINK(const char* filename) {
 #warning No implementation defined.  Using BTE_STREAM_IMP_UFS by default.
 #endif
 
+#ifdef _WIN32
+inline int TPIE_OS_TRUNCATE(FILE* file, const char* path, TPIE_OS_OFFSET offset) {
+//    TPIE_OS_LONG highOrderOff = getHighOrderOff(offset);	
+//    DWORD x = SetFilePointer(fd.FileHandle,getLowOrderOff(offset),&highOrderOff, FILE_BEGIN);
+//	return SetEndOfFile(fd.FileHandle);
+	return _chsize(file->_file, offset);
+}
+#else
+inline int TPIE_OS_TRUNCATE(FILE* file, const char* path, TPIE_OS_OFFSET offset) {
+	return ::ftruncate(path, offset);
+}
+#endif
 
 #ifdef _WIN32
 #define TPIE_OS_TRUNCATE_STREAM_TEMPLATE_CLASS_BODY \

@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/11/94
 //
-// $Id: bte_stream_stdio.h,v 1.8 2003-04-23 00:05:47 tavi Exp $
+// $Id: bte_stream_stdio.h,v 1.9 2004-05-05 15:59:35 adanner Exp $
 //
 #ifndef _BTE_STREAM_STDIO_H
 #define _BTE_STREAM_STDIO_H
@@ -146,6 +146,7 @@ BTE_stream_stdio < T >::BTE_stream_stdio (const char *dev_path,
       // Open the file for reading.
       r_only = 1;
       if ((file = TPIE_OS_FOPEN(dev_path, "rb")) == NULL) {
+
 	 status_ = BTE_STREAM_STATUS_INVALID;
 	 LOG_FATAL_ID("Failed to open file:");
 	 LOG_FATAL_ID(dev_path);
@@ -186,7 +187,7 @@ BTE_stream_stdio < T >::BTE_stream_stdio (const char *dev_path,
 	 init_header(&header);
 	 header.type = BTE_STREAM_STDIO;
 
-	 if (fwrite ((char *) &header, sizeof (header), 1, file) != 1) {
+	 if (TPIE_OS_FWRITE ((char *) &header, sizeof (header), 1, file) != 1) {
 	    status_ = BTE_STREAM_STATUS_INVALID;
 	    LOG_FATAL_ID("Failed to write header to file:");
 	    LOG_FATAL_ID(dev_path);
@@ -544,7 +545,38 @@ TPIE_OS_OFFSET BTE_stream_stdio < T >::tell() const {
 // Truncate the stream.
 template < class T >
 BTE_err BTE_stream_stdio < T >::truncate (TPIE_OS_OFFSET offset) {
-	TPIE_OS_TRUNCATE_STREAM_TEMPLATE_CLASS_BODY;
+//	TPIE_OS_TRUNCATE_STREAM_TEMPLATE_CLASS_BODY;
+	TPIE_OS_OFFSET file_position; 
+	
+	if (substream_level) { 
+		return BTE_ERROR_STREAM_IS_SUBSTREAM; 
+	} 
+	
+	if (offset < 0) {   
+		return BTE_ERROR_OFFSET_OUT_OF_RANGE; 
+	} 
+	
+	file_position = offset * sizeof (T) + os_block_size_; 
+	
+//	if (::truncate (path, file_position)) {   
+	if (TPIE_OS_TRUNCATE(file, path, file_position) == -1) {   
+		os_errno = errno;   
+		LOG_FATAL_ID("Failed to truncate() to the new end of file:");   
+		LOG_FATAL_ID(path);   
+		LOG_FATAL_ID(strerror (os_errno));   
+		return BTE_ERROR_OS_ERROR; 
+	} 
+	
+	if (TPIE_OS_FSEEK(file, file_position, SEEK_SET) == -1) { 
+		LOG_FATAL("fseek failed to go to position " << file_position << " of \"" << "\"\n"); 
+		LOG_FLUSH_LOG;  
+		return BTE_ERROR_OS_ERROR; 
+	} 
+	
+	f_offset = file_position; 
+	f_eof = file_position; 
+	
+	return BTE_ERROR_NO_ERROR;
 }
 
 template < class T > 
