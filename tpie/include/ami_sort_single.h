@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 9/28/94
 //
-// $Id: ami_sort_single.h,v 1.11 1999-06-26 21:06:49 large Exp $
+// $Id: ami_sort_single.h,v 1.12 1999-12-15 23:14:41 hutchins Exp $
 //
 // Merge sorting for the AMI_IMP_SINGLE implementation.
 //
@@ -29,91 +29,48 @@
 // either a comparison function, a comparison object,  or the binary 
 // comparison operator <.
 
-template <class T>
-class merge_sort_manager : public AMI_merge_base<T> {
+template <class T, class Q>
+class merge_sort_manager /*: public AMI_merge_base<T> */{
 private:
-    arity_t input_arity;
     bool use_operator;
+protected:
+    Q  *pq;
+    arity_t input_arity;
 #if DEBUG_ASSERTIONS
     unsigned int input_count, output_count;
 #endif
-protected:
-    virtual pqueue_heap<arity_t,T> *new_pqueue(arity_t arity) = 0;
-    pqueue_heap<arity_t,T> *pq;
 public:
     merge_sort_manager(void);
     virtual ~merge_sort_manager(void);
-    AMI_err initialize(arity_t arity, CONST T * CONST *in,
-                       AMI_merge_flag *taken_flags,
-                       int &taken_index);
-    AMI_err operate(CONST T * CONST *in, AMI_merge_flag *taken_flags,
+    inline AMI_err operate(CONST T * CONST *in, AMI_merge_flag *taken_flags,
                     int &taken_index, T *out);
-    virtual AMI_err main_mem_operate(T* mm_stream, size_t len) = 0;
-    virtual size_t space_usage_overhead(void) = 0;
     size_t space_usage_per_stream(void);
 };
 
 
-template<class T>
-merge_sort_manager<T>::merge_sort_manager(void)
+template<class T, class Q>
+merge_sort_manager<T,Q>::merge_sort_manager(void)
 {
 }
 
-template<class T>
-merge_sort_manager<T>::~merge_sort_manager(void)
+template<class T, class Q>
+merge_sort_manager<T,Q>::~merge_sort_manager(void)
 {
     if (pq != NULL) {
         delete pq;
     }
 }
 
-template<class T>
-AMI_err merge_sort_manager<T>::initialize(arity_t arity, CONST T * CONST *in,
-                                          AMI_merge_flag *taken_flags,
-                                          int &taken_index)
-{
-    arity_t ii;
 
-    input_arity = arity;
 
-    bool pqret;
-    
-    tp_assert(arity > 0, "Input arity is 0.");
-    
-    if (pq != NULL) {
-        delete pq;
-        pq = NULL;
-    }
-    new_pqueue(arity);
-    
-#if DEBUG_ASSERTIONS
-    input_count = output_count = 0;
-#endif    
-    for (ii = arity; ii--; ) {
-        if (in[ii] != NULL) {
-            taken_flags[ii] = 1;
-            pqret = pq->insert(ii,*in[ii]);
-            tp_assert(pqret, "pq->insert() failed.");
-#if DEBUG_ASSERTIONS
-            input_count++;
-#endif                  
-        } else {
-            taken_flags[ii] = 0;
-        }
-    }
-
-    taken_index = -1;
-    return AMI_MERGE_READ_MULTIPLE;
-}
-
-template<class T>
-size_t merge_sort_manager<T>::space_usage_per_stream(void)
+template<class T, class Q>
+size_t merge_sort_manager<T,Q>::space_usage_per_stream(void)
 {
     return sizeof(arity_t) + sizeof(T);
 }
 
-template<class T>
-AMI_err merge_sort_manager<T>::operate(CONST T * CONST *in,
+template<class T, class Q>
+AMI_err merge_sort_manager<T,Q>::operate(CONST T * CONST *in,
                                        AMI_merge_flag */*taken_flags*/,
                                        int &taken_index,
                                        T *out)
@@ -171,178 +128,301 @@ AMI_err merge_sort_manager<T>::operate(CONST T * CONST *in,
 
 // Operator based merge sort manager.
 
-template <class T>
-class merge_sort_manager_op : public merge_sort_manager<T> {
+template <class T, class Q>
+class merge_sort_manager_op : public merge_sort_manager<T,Q> {
 private:
-    pqueue_heap<arity_t,T> *new_pqueue(arity_t arity);
+    Q *new_pqueue(arity_t arity);
 public:
     merge_sort_manager_op(void);    
     virtual ~merge_sort_manager_op(void);    
     AMI_err main_mem_operate(T* mm_stream, size_t len);
     size_t space_usage_overhead(void);
+    AMI_err initialize(arity_t arity, CONST T * CONST *in,
+                       AMI_merge_flag *taken_flags,
+                       int &taken_index);
 };    
 
-template<class T>
-merge_sort_manager_op<T>::merge_sort_manager_op(void)
+template<class T,class Q>
+merge_sort_manager_op<T,Q>::merge_sort_manager_op(void)
 {
     pq = NULL;
 }
 
-template<class T>
-pqueue_heap<arity_t,T> *merge_sort_manager_op<T>::new_pqueue(arity_t arity)
+template<class T, class Q>
+Q *merge_sort_manager_op<T,Q>::new_pqueue(arity_t arity)
 {
-    return pq = new pqueue_heap_op<arity_t,T>(arity);
+    return pq = new Q (arity);
 }
 
-template<class T>
-merge_sort_manager_op<T>::~merge_sort_manager_op(void)
+template<class T,class Q>
+merge_sort_manager_op<T,Q>::~merge_sort_manager_op(void)
 {
 }
 
-template<class T>
-AMI_err merge_sort_manager_op<T>::main_mem_operate(T* mm_stream, size_t len)
+template<class T,class Q>
+AMI_err merge_sort_manager_op<T,Q>::main_mem_operate(T* mm_stream, size_t len)
 {
     quicker_sort_op(mm_stream, len);
     return AMI_ERROR_NO_ERROR;
 }
 
-template<class T>
-size_t merge_sort_manager_op<T>::space_usage_overhead(void)
+template<class T,class Q>
+size_t merge_sort_manager_op<T,Q>::space_usage_overhead(void)
 {
-    return sizeof(pqueue_heap_op<arity_t,T>);
+    return sizeof(Q);
 }
 
+template<class T, class Q>
+AMI_err merge_sort_manager_op<T,Q>::initialize(arity_t arity, CONST T * CONST *in,
+                                          AMI_merge_flag *taken_flags,
+                                          int &taken_index)
+{
+    arity_t ii;
 
+    input_arity = arity;
+
+    bool pqret;
+    
+    tp_assert(arity > 0, "Input arity is 0.");
+    
+    if (pq != NULL) {
+        delete pq;
+        pq = NULL;
+    }
+    new_pqueue(arity);
+    
+#if DEBUG_ASSERTIONS
+    input_count = output_count = 0;
+#endif    
+    for (ii = arity; ii--; ) {
+        if (in[ii] != NULL) {
+            taken_flags[ii] = 1;
+            pqret = pq->insert(ii,*in[ii]);
+            tp_assert(pqret, "pq->insert() failed.");
+#if DEBUG_ASSERTIONS
+            input_count++;
+#endif                  
+        } else {
+            taken_flags[ii] = 0;
+        }
+    }
+
+    taken_index = -1;
+    return AMI_MERGE_READ_MULTIPLE;
+}
 
 // Comparison object based merge sort manager.
 
-template <class T>
-class merge_sort_manager_obj : public merge_sort_manager<T> {
+template <class T, class Q, class CMPR>
+class merge_sort_manager_obj : public merge_sort_manager<T,Q> {
 private:
-    comparator<T> *cmp_o;
-    pqueue_heap<arity_t,T> *new_pqueue(arity_t arity);
+    CMPR *cmp_o;
+    Q *new_pqueue(arity_t arity);
 public:
-    merge_sort_manager_obj(comparator<T> *cmp);
+    merge_sort_manager_obj(CMPR *cmp);
     virtual ~merge_sort_manager_obj(void);    
     AMI_err main_mem_operate(T* mm_stream, size_t len);
     size_t space_usage_overhead(void);
+    AMI_err initialize(arity_t arity, CONST T * CONST *in,
+                       AMI_merge_flag *taken_flags,
+                       int &taken_index);
 };   
 
-template<class T>
-merge_sort_manager_obj<T>::merge_sort_manager_obj(comparator<T> *cmp)
+template<class T, class Q, class CMPR>
+merge_sort_manager_obj<T,Q,CMPR>::merge_sort_manager_obj(CMPR *cmp)
 {
     cmp_o = cmp;
     pq = NULL;
 }
 
-template<class T>
-pqueue_heap<arity_t,T> *merge_sort_manager_obj<T>::new_pqueue(arity_t arity)
+template<class T, class Q, class CMPR>
+Q *merge_sort_manager_obj<T,Q,CMPR>::new_pqueue(arity_t arity)
 {
-    return pq = new pqueue_heap_obj<arity_t,T>(arity,cmp_o);
+    return pq = new Q (arity,cmp_o);
 }
 
-template<class T>
-merge_sort_manager_obj<T>::~merge_sort_manager_obj(void)
+template<class T, class Q, class CMPR>
+merge_sort_manager_obj<T,Q,CMPR>::~merge_sort_manager_obj(void)
 {
 }
 
 
-template<class T>
-AMI_err merge_sort_manager_obj<T>::main_mem_operate(T* mm_stream, size_t len)
+template<class T, class Q, class CMPR>
+AMI_err merge_sort_manager_obj<T,Q,CMPR>::main_mem_operate(T* mm_stream, size_t len)
 {
     quicker_sort_obj(mm_stream, len, cmp_o);
     return AMI_ERROR_NO_ERROR;
 }
 
-template<class T>
-size_t merge_sort_manager_obj<T>::space_usage_overhead(void)
+template<class T, class Q, class CMPR>
+size_t merge_sort_manager_obj<T,Q,CMPR>::space_usage_overhead(void)
 {
-    return sizeof(pqueue_heap_obj<arity_t,T>);
+    return sizeof(Q);
 }
 
+template<class T, class Q, class CMPR>
+AMI_err merge_sort_manager_obj<T,Q,CMPR>::initialize(arity_t arity, CONST T * CONST *in,
+                                          AMI_merge_flag *taken_flags,
+                                          int &taken_index)
+{
+    arity_t ii;
+
+    input_arity = arity;
+
+    bool pqret;
+    
+    tp_assert(arity > 0, "Input arity is 0.");
+    
+    if (pq != NULL) {
+        delete pq;
+        pq = NULL;
+    }
+    new_pqueue(arity);
+    
+#if DEBUG_ASSERTIONS
+    input_count = output_count = 0;
+#endif    
+    for (ii = arity; ii--; ) {
+        if (in[ii] != NULL) {
+            taken_flags[ii] = 1;
+            pqret = pq->insert(ii,*in[ii]);
+            tp_assert(pqret, "pq->insert() failed.");
+#if DEBUG_ASSERTIONS
+            input_count++;
+#endif                  
+        } else {
+            taken_flags[ii] = 0;
+        }
+    }
+
+    taken_index = -1;
+    return AMI_MERGE_READ_MULTIPLE;
+}
 
 
 // Comparison function based merge sort manager.
 
-template <class T>
-class merge_sort_manager_cmp : public merge_sort_manager<T> {
+template <class T, class Q>
+class merge_sort_manager_cmp : public merge_sort_manager<T,Q> {
 private:
     int (*cmp_f)(CONST T&, CONST T&);
-    pqueue_heap<arity_t,T> *new_pqueue(arity_t arity);
+    Q *new_pqueue(arity_t arity);
 public:
     merge_sort_manager_cmp(int (*cmp)(CONST T&, CONST T&));
     virtual ~merge_sort_manager_cmp(void);    
     AMI_err main_mem_operate(T* mm_stream, size_t len);
     size_t space_usage_overhead(void);
+    AMI_err initialize(arity_t arity, CONST T * CONST *in,
+                       AMI_merge_flag *taken_flags,
+                       int &taken_index);
 };   
 
 
-template<class T>
-merge_sort_manager_cmp<T>::merge_sort_manager_cmp(int (*cmp)(CONST T&,
+template<class T,class Q>
+merge_sort_manager_cmp<T,Q>::merge_sort_manager_cmp(int (*cmp)(CONST T&,
                                                              CONST T&))
 {
     cmp_f = cmp;
     pq = NULL;
 }
 
-template<class T>
-pqueue_heap<arity_t,T> *merge_sort_manager_cmp<T>::new_pqueue(arity_t arity)
+template<class T, class Q>
+Q *merge_sort_manager_cmp<T,Q>::new_pqueue(arity_t arity)
 {
-    return pq = new pqueue_heap_cmp<arity_t,T>(arity,cmp_f);
+    return pq = new Q (arity,cmp_f);
 }
 
 
-template<class T>
-merge_sort_manager_cmp<T>::~merge_sort_manager_cmp(void)
+template<class T, class Q>
+merge_sort_manager_cmp<T,Q>::~merge_sort_manager_cmp(void)
 {
 }
 
 
-template<class T>
-AMI_err merge_sort_manager_cmp<T>::main_mem_operate(T* mm_stream, size_t len)
+template<class T,class Q>
+AMI_err merge_sort_manager_cmp<T,Q>::main_mem_operate(T* mm_stream, size_t len)
 {
     quicker_sort_cmp(mm_stream, len, cmp_f);
     return AMI_ERROR_NO_ERROR;
 }
 
-template<class T>
-size_t merge_sort_manager_cmp<T>::space_usage_overhead(void)
+template<class T,class Q>
+size_t merge_sort_manager_cmp<T,Q>::space_usage_overhead(void)
 {
-    return sizeof(pqueue_heap_cmp<arity_t,T>);
+    return sizeof(Q);
 }
 
+template<class T, class Q>
+AMI_err merge_sort_manager_cmp<T,Q>::initialize(arity_t arity, CONST T * CONST *in,
+                                          AMI_merge_flag *taken_flags,
+                                          int &taken_index)
+{
+    arity_t ii;
+
+    input_arity = arity;
+
+    bool pqret;
+    
+    tp_assert(arity > 0, "Input arity is 0.");
+    
+    if (pq != NULL) {
+        delete pq;
+        pq = NULL;
+    }
+    new_pqueue(arity);
+    
+#if DEBUG_ASSERTIONS
+    input_count = output_count = 0;
+#endif    
+    for (ii = arity; ii--; ) {
+        if (in[ii] != NULL) {
+            taken_flags[ii] = 1;
+            pqret = pq->insert(ii,*in[ii]);
+            tp_assert(pqret, "pq->insert() failed.");
+#if DEBUG_ASSERTIONS
+            input_count++;
+#endif                  
+        } else {
+            taken_flags[ii] = 0;
+        }
+    }
+
+    taken_index = -1;
+    return AMI_MERGE_READ_MULTIPLE;
+}
 
 // The actual sort calls.
+
 
 template<class T>
 AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
                  int (*cmp)(CONST T&, CONST T&))
 {
-    merge_sort_manager_cmp<T> msm(cmp);
+    merge_sort_manager_cmp<T,pqueue_heap_cmp<arity_t,T> > msm(cmp);
 
     return AMI_partition_and_merge(instream, outstream,
-                                   (AMI_merge_base<T> *)&msm);
+           (merge_sort_manager_cmp<T, pqueue_heap_cmp<arity_t,T> > *)&msm);
 }
 
 
 template<class T>
 AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream)
 {
-    merge_sort_manager_op<T> msm;
+    merge_sort_manager_op<T,pqueue_heap_op<arity_t,T> > msm;
 
     return AMI_partition_and_merge(instream, outstream,
-                                   (AMI_merge_base<T> *)&msm);
+           (merge_sort_manager_op<T,pqueue_heap_op<arity_t,T> > *)&msm);
 }
 
 
-template<class T>
+template<class T, class CMPR>
 AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
-                 comparator<T> *cmp)
+                 CMPR *cmp)
 {
-    merge_sort_manager_obj<T> msm(cmp);
+    merge_sort_manager_obj<T,pqueue_heap_obj<arity_t,T,CMPR>,CMPR > msm(cmp);
 
-    return AMI_partition_and_merge(instream, outstream,
-                                   (AMI_merge_base<T> *)&msm);
+    return AMI_partition_and_merge (instream, outstream,
+     (merge_sort_manager_obj<T,pqueue_heap_obj<arity_t,T,CMPR>,CMPR> *)&msm);
 }
                           
 #endif // _AMI_SORT_SINGLE_H 
