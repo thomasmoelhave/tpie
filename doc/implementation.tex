@@ -1,5 +1,5 @@
 %%
-%% $Id: implementation.tex,v 1.18 2002-08-01 01:48:21 tavi Exp $
+%% $Id: implementation.tex,v 1.19 2003-11-27 19:56:08 jan Exp $
 %%
 \chapter{The Implementation of TPIE}
 \plabel{cha:implementation}
@@ -62,7 +62,7 @@ a consistent, object-oriented interface to application programs.
 %distribution will be done somewhat differently on a parallel disk machine
 %than on a single disk machine. The AMI abstracts this fact away, allowing
 %an application program that calls a function such as
-%\myv{AMI\_partition\_and\_merge()}\index{AMI\_partition\_and\_merge@{\tt
+%\lstinline|AMI_partition_and_merge()|\index{AMI\_partition\_and\_merge@{\tt
 %AMI\\_partition\\_and\_merge}} to work correctly regardless of the underlying
 %I/O system.
 The key to keeping the AMI simple and flexible is the fact that its
@@ -136,39 +136,39 @@ access primitives. \comment{%
 Version \version~of TPIE supports the following three BTE stream
 implementations:
 \begin{enumerate}
-    \item \myv{BTE\_stream\_stdio}, which uses the
-    UNIX \myv{stdio} library as its file access method;
+    \item \lstinline|BTE_stream_stdio|, which uses the
+    UNIX \lstinline|stdio| library as its file access method;
     
-    \item \myv{BTE\_stream\_ufs}, which performs I/O via UNIX {\tt
-       read()/write()} system calls;
+    \item \lstinline|BTE_stream_ufs|, which performs I/O via UNIX 
+       \lstinline|read()/write()| system calls;
     
-    \item \myv{BTE\_stream\_mmap}, which uses the UNIX
-    \myv{mmap()/munmap()} calls to perform I/O.
+    \item \lstinline|BTE_stream_mmap|, which uses the UNIX
+    \lstinline|mmap()/munmap()| calls to perform I/O.
 \end{enumerate}
 
 The choice of BTE in a given application is controlled by
-compile-time variables in the \myv{app\_config.h} file.
-The \myv{BTE\_stream\_stdio} implementation is selected by
-defining the variable \myv{BTE\_STREAM\_IMP\_STDIO}, the
-\myv{BTE\_stream\_ufs} implementation by defining
-\myv{BTE\_STREAM\_IMP\_UFS}, and the memory mapped implementation
-by defining \myv{BTE\_STREAM\_IMP\_MMAP}.  For example, the
-following code (taken from \myv{app\_config.h} selects
-the \myv{BTE\_stream\_ufs} Block Transfer Engine (and does not
+compile-time variables in the \path"app_config.h" file.
+The \lstinline|BTE_stream_stdio| implementation is selected by
+defining the variable \lstinline|BTE_STREAM_IMP_STDIO|, the
+\lstinline|BTE_stream_ufs| implementation by defining
+\lstinline|BTE_STREAM_IMP_UFS|, and the memory mapped implementation
+by defining \lstinline|BTE_STREAM_IMP_MMAP|.  For example, the
+following code (taken from \path"app_config.h" selects
+the \lstinline|BTE_stream_ufs| Block Transfer Engine (and does not
 select the others):
 
-\begin{verbatim}
+\begin{lstlisting}
 //#define BTE_STREAM_IMP_MMAP
 //#define BTE_STREAM_IMP_STDIO
 #define BTE_STREAM_IMP_UFS
-\end{verbatim}
+\end{lstlisting}
 
 % If the including module did not explicitly ask for multiple
 % implementations but requested more than one implementation,
 % issue a warning.  
 Multiple implementations are allowed to coexist, with some
 restrictions, e.g. declarations of streams must use explicit subclasses
-of \myv{AMI\_stream\_base} to specify what type of streams they
+of \lstinline|AMI_stream_base| to specify what type of streams they
 are. 
 \comment{LA: This needs to be extended somewhere.}
 \comment{DH: I am skeptical that it works with multiple impl., but
@@ -181,7 +181,7 @@ Section~\ref{sec:choosingbte} discuss how to choose an
 appropriate BTE (also refer to the more detailed
 descriptions of the BTE's in the next three subsections). If
 none of the available BTEs is selected,
-\myv{BTE\_STREAM\_IMP\_UFS}\comment{DH: We should change the default
+\lstinline|BTE_STREAM_IMP_UFS|\comment{DH: We should change the default
    to BTE\_IMP\_UFS} is defined by default and a warning
 is generated at compile time.
 
@@ -191,15 +191,15 @@ The first block in a TPIE stream, referred to as the
 contextual information for the stream. Currently, the format
 of the header block is BTE-dependent. Please refer to the
 descriptions of the individual BTEs in
-Sections~\ref{sec:ref-bte-stdio},\ref{sec:ref-bte-mmb}, and
+Sections~\ref{sec:ref-bte-stdio},\ref{sec:ref-bte-mmap}, and
 \ref{sec:ref-bte-ufs} for more details.
 
 \subsection{BTE Common Functionality}
 \plabel{sec:imp-bte-base}
 
 All BTE stream implementations inherit from class
-\myv{BTE\_stream\_base} (in file
-\myv{bte\_stream\_base.h}) and must support the member
+\lstinline|BTE_stream_base| (in file
+\path"bte_stream_base.h") and must support the member
 functions listed below. 
 
 
@@ -212,51 +212,50 @@ functions listed below.
 %individual BTE choices available correspond to different
 %access methods for such a file. 
 
-Since the details of each access method (ie
-\myv{BTE\_stream\_ufs}, \myv{BTE\_stream\_stdio} or \myv{BTE\_stream\_mmap} are
-different, the BTEs generally have different member function
-implementations, including constructors (construction
-involves opening the appropriate stream file, etc.).
-The \myv{BTE\_stream\_ufs}, \myv{BTE\_stream\_stdio}, and
-\myv{BTE\_stream\_mmap} implementations are defined in the
-respective files \myv{include/bte\_stream\_ufs.h},
-\myv{include/bte\_stream\_stdio.h}, and \myv{include/bte\_stream\_mmap.h}.
-\comment{LA: Some note about construction being BTE
-dependent - why are they? DH: DONE}
+As the details of each access method (i.e.
+\lstinline|BTE_stream_ufs|, \lstinline|BTE_stream_stdio| or
+\lstinline|BTE_stream_mmap| are different, the BTEs generally have
+different member function implementations, including constructors
+(construction involves opening the appropriate stream file, etc.).
+The implementations of the access methods \lstinline|BTE_stream_ufs|,
+\lstinline|BTE_stream_stdio|, and \lstinline|BTE_stream_mmap| are
+defined in the respective files \path"include/bte_stream_ufs.h",
+\path"include/bte_stream_stdio.h", and
+\path"include/bte_stream_mmap.h".  \comment{LA: Some note about
+  construction being BTE dependent - why are they? DH: DONE}
 Functionally, the member functions for each BTE are similar.
 
-The common BTE member functions\footnote{%
-   These functions can be defined as \myv{virtual} to
-   assist in debugging a new BTE if the compile-time
-   variable \myv{BTE\_VIRTUAL\_BASE} is defined to be
-   non-zero (see also file \myv{app\_config.h}). For best
-   run-time performance, the default value for
-   \myv{BTE\_VIRTUAL\_BASE} is zero.  } 
+The common BTE member functions\footnote{These functions can be defined
+  as \texttt{virtual} to assist in debugging a new BTE if the  
+  compile-time variable \texttt{BTE\_VIRTUAL\_BASE} is defined to be
+  non-zero (see also file \texttt{app\_config.h}). For best  
+  run-time performance, the default value for 
+  \texttt{BTE\_VIRTUAL\_BASE} is zero.  }  
 and their usage are outlined below:
 
 \subsubsection{Stream Constructors}
-\begin{verbatim}
+\begin{lstlisting}
     BTE_stream_mmap  ( const char *dev_path, BTE_stream_type st );
     BTE_stream_stdio ( const char *dev_path, BTE_stream_type st );
     BTE_stream_ufs   ( const char *dev_path, BTE_stream_type st );
-\end{verbatim}
+\end{lstlisting}
 
 These constructors each create a stream which is backed by
-the file whose path is pointed to by \myv{dev\_path}.  The
+the file whose path is pointed to by \lstinline|dev_path|.  The
 stream can be opened in one of several modes, depending on
-the value of \myv{st}:
+the value of \lstinline|st|:
 
 \begin{itemize}
 
-    \item \myv{BTE\_READ\_STREAM}: the stream can be read,
+    \item \lstinline|BTE_READ_STREAM|: the stream can be read,
     but not written. The underlying file must have been
     created previously in this case.
-    \item \myv{BTE\_WRITE\_STREAM} or
-    \myv{BTE\_WRITEONLY\_STREAM}: the stream can be
+    \item \lstinline|BTE_WRITE_STREAM| or
+    \lstinline|BTE_WRITEONLY_STREAM|: the stream can be
     written, but not read. This will allow a new stream to
     be created or overwrite a previously-created one.
 
-    \item \myv{BTE\_APPEND\_STREAM}: the stream is opened,
+    \item \lstinline|BTE_APPEND_STREAM|: the stream is opened,
     and positioned to the end of stream so that new data can
     be appended. This is valid only if the stream was
     previously created. 
@@ -264,38 +263,38 @@ the value of \myv{st}:
 
 \subsubsection{new\_substream}\index{new_substream()@{\tt new\_substream()}}
 \index{substreams!of BTE streams}
-\begin{verbatim}
+\begin{lstlisting}
     BTE_err new_substream(BTE_stream_type st, off_t sub_begin, off_t
                           sub_end, BTE_stream_base<T> **sub_stream);
-\end{verbatim}
+\end{lstlisting}
 
 Constructs a substream of the current stream.  A substream
 is a logical contiguous subset of a stream, i.e. from the
 implementation point of view, it is a contiguous subset of
 the data elements in a file.  The parameters of
-\myv{new\_substream()} are as follows:
+\lstinline|new_substream()| are as follows:
 \begin{itemize}
-    \item \myv{sub\_begin} and \myv{sub\_end} are
+    \item \lstinline|sub_begin| and \lstinline|sub_end| are
     object offsets into the current stream, indicating the
     limits of the new substream.
     
-    \item \myv{st} is the stream type of the new
+    \item \lstinline|st| is the stream type of the new
     substream. Please refer to the discussion of substream
     constructors above for a list of the valid (sub)stream
     types.
 
-    \item \myv{sub\_stream} will be given the address of
+    \item \lstinline|sub_stream| will be given the address of
     a pointer to the new substream.
 \end{itemize}
 
 While it might seem logical to explicitly define a substream
-in TPIE as inheriting (in the C++ sense) from a stream, this
+in TPIE as inheriting (in the \CPP{} sense) from a stream, this
 would imply a need for both to have a constructor, and hence
-for the stream constructor to be \myv{virtual}. This is a
-problem in C++, and so the ``pseudo-constructor'' approach
+for the stream constructor to be \lstinline|virtual|. This is a
+problem in \CPP{}, and so the ``pseudo-constructor'' approach
 described here is used instead.\comment{LA: Extend like in
    AMI ref.  Stream type?}
-Because \myv{new\_substream()} is not a constructor, but rather a
+Because \lstinline|new_substream()| is not a constructor, but rather a
 function each particular implementation of which calls an appropriate
 constructor, it can be a pure virtual function in the stream base class,
 which forces it to be defined for all actual stream
@@ -304,11 +303,11 @@ implementations.
    reworked. Clearer?} 
 
 \subsubsection{read\_item}\index{read_item()@{\tt read\_item()}!BTE}
-\begin{verbatim}
+\begin{lstlisting}
     BTE_err read_item(T **elt);
-\end{verbatim}
+\end{lstlisting}
 Returns the address of a pointer to the next element in the
-stream in \myv{elt}. Since the application data elements are blocked,
+stream in \lstinline|elt|. Since the application data elements are blocked,
 this often does not require a physical I/O operation. If the
 current block has been exhausted, the first element of the
 next block will be accessed. In some cases the BTE will
@@ -317,25 +316,25 @@ memory. (See descriptions of the individual BTEs for more
 details about prefetching or read-ahead.)
 
 \subsubsection{write\_item}\index{write_item()@{\tt write\_item()}!BTE}
-\begin{verbatim}
+\begin{lstlisting}
     BTE_err write_item(const T &elt);
-\end{verbatim}
-Writes the data element pointed to by \myv{elt} to the
+\end{lstlisting}
+Writes the data element pointed to by \lstinline|elt| to the
 current position in the stream. Streams are normally written
 in sequential order, and so the current position is usually
 directly after the previous element written. The current
 position (which we will refer to as the value of the
-\emphd{file pointer}) can be modified via the \myv{seek}
+\emphd{file pointer}) can be modified via the \lstinline|seek|
 command below.  \comment{LA: Extend! DH:DONE}
 
 
 \subsubsection{seek}\index{seek()@{\tt seek()}!BTE}
-\begin{verbatim}
+\begin{lstlisting}
     BTE_err seek(off_t offset);
-\end{verbatim}
-Seeks to the object offset \noiverb{offset} in the
-stream. The BTE \myv{seek} member function is similar to
-and utilizes the \noiverb{seek} function supported by the
+\end{lstlisting}
+Seeks to the object offset \lstinline|offset| in the
+stream. The BTE \lstinline|seek| member function is similar to
+and utilizes the \lstinline|seek| function supported by the
 underlying file I/O system being used. The difference is
 that TPIE performs a seek to the requested application data
 element in the stream rather than to a byte offset within a
@@ -343,94 +342,94 @@ file of untyped data.
 
 
 \subsubsection{truncate}\index{truncate()@{\tt truncate()}!BTE}
-\begin{verbatim}
+\begin{lstlisting}
     BTE_err truncate(off_t offset);
-\end{verbatim}
+\end{lstlisting}
 Truncates/extends the stream to the specified number of
 application data elements. The file
 pointer\comment{LA: ? DH: defined above} will be moved to
 the end of the stream. This is analogous to the
-\myv{truncate} function of the underlying file access
-method. Note: \myv{truncate} is not supported for substreams.
+\lstinline|truncate| function of the underlying file access
+method. Note: \lstinline|truncate| is not supported for substreams.
 
 \subsubsection{main\_memory\_usage}
 \index{main_memory_usage()@{\tt main\_memory\_usage()}!BTE}
-\begin{verbatim}
+\begin{lstlisting}
     BTE_err main_memory_usage(size_t *usage,
                               MM_stream_usage usage_type);
-\end{verbatim}
+\end{lstlisting}
 Queries how much memory is used by the stream for
-\myv{usage\_type} purposes. On return, \myv{usage}
-points to the value used. The valid values for \myv{usage\_type}
+\lstinline|usage_type| purposes. On return, \lstinline|usage|
+points to the value used. The valid values for \lstinline|usage_type|
 are as follows:\comment{LA: ? DH: DONE}
 \begin{itemize}
-\item \myv{MM\_STREAM\_USAGE\_OVERHEAD}: the size in
+\item \lstinline|MM_STREAM_USAGE_OVERHEAD|: the size in
 bytes of the stream object plus, if this is not a substream,
 the stream header block.
-\item \myv{MM\_STREAM\_USAGE\_BUFFER}: the number of
+\item \lstinline|MM_STREAM_USAGE_BUFFER|: the number of
 bytes consumed by block buffers (blocks of elements in main memory).
-\item \myv{MM\_STREAM\_USAGE\_CURRENT}:
-\myv{MM\_STREAM\_USAGE\_OVERHEAD} plus the number of
+\item \lstinline|MM_STREAM_USAGE_CURRENT|:
+\lstinline|MM_STREAM_USAGE_OVERHEAD| plus the number of
 bytes currently consumed by block buffers for this stream. 
-\item \myv{MM\_STREAM\_USAGE\_MAXIMUM}:
-\myv{MM\_STREAM\_USAGE\_OVERHEAD} plus the maximum number of
+\item \lstinline|MM_STREAM_USAGE_MAXIMUM|:
+\lstinline|MM_STREAM_USAGE_OVERHEAD| plus the maximum number of
 bytes that will be consumed by block buffers for this
 stream.
-\item \myv{MM\_STREAM\_USAGE\_SUBSTREAM}:
-The same as \myv{MM\_STREAM\_USAGE\_OVERHEAD} but assumes
+\item \lstinline|MM_STREAM_USAGE_SUBSTREAM|:
+The same as \lstinline|MM_STREAM_USAGE_OVERHEAD| but assumes
 that this is a substream.
 \end{itemize}
 
 \subsubsection{get\_status}\index{get_status()@{\tt get\_status()}}
-\begin{verbatim}
+\begin{lstlisting}
     BTE_stream_status get_status(void);
-\end{verbatim}
+\end{lstlisting}
 Returns the status of the stream as one
 of the following values:\comment{LA: Is this really used
    anywhere? DH: Yes, appears in the code.}
 \index{BTE\_STREAM\_STATUS_*@{\tt BTE\_STREAM\_STATUS\_*}}
 \begin{itemize}
-\item \myv{BTE\_STREAM\_STATUS\_NO\_STATUS}: No status
+\item \lstinline|BTE_STREAM_STATUS_NO_STATUS|: No status
 information exists for the stream.  
-\item \myv{BTE\_STREAM\_STATUS\_INVALID}: An error was
+\item \lstinline|BTE_STREAM_STATUS_INVALID|: An error was
 encountered while manipulating the stream and the stream
 can no longer be used.
-%UNUSED \item \myv{BTE\_STREAM\_STATUS\_EOS\_ON\_NEXT\_CALL}:
-\item \myv{BTE\_STREAM\_STATUS\_END\_OF\_STREAM}: The end
+%UNUSED \item \lstinline|BTE_STREAM_STATUS_EOS_ON_NEXT_CALL|:
+\item \lstinline|BTE_STREAM_STATUS_END_OF_STREAM|: The end
 of stream was encountered.
 \end{itemize}
-The \myv{get\_status} member function is one of the few
-that is implemented in \myv{bte\_stream\_base.h} and its
+The \lstinline|get_status| member function is one of the few
+that is implemented in \path"include/bte_stream_base.h" and its
 implementation is therefore common to all BTEs. The status
-is stored in the private variable \myv{status} of a BTE object. 
+is stored in the private variable \lstinline|status| of a BTE object. 
 
 \subsubsection{stream\_len}\index{stream_len()@{\tt stream\_len()}!BTE}
-\begin{verbatim}
+\begin{lstlisting}
     off_t stream_len(void);
-\end{verbatim}
+\end{lstlisting}
 Returns the current number of application data elements in the stream.
 
 
 \subsubsection{name}\index{name()@{\tt name()}!BTE}
-\begin{verbatim}
+\begin{lstlisting}
     BTE_err name(char **stream_name);
-\end{verbatim}
+\end{lstlisting}
 Returns the path name of the file backing the stream. The name will be
 stored in newly allocated space.
 
 \subsubsection{read\_only}\index{read_only()@{\tt read\_only()}}
-\begin{verbatim}
+\begin{lstlisting}
     int read_only(void);
-\end{verbatim}
-Returns true if the stream mode is BTE\_READ\_STREAM. The file mode
+\end{lstlisting}
+Returns true if the stream mode is \lstinline|BTE_READ_STREAM|. The file mode
 is set when creating a
 stream. See BTE constructors, above for details.\comment{LA:? DH: DONE}
 
 \subsubsection{available\_streams}
 \index{available_streams()@{\tt available\_streams()}!BTE}
-\begin{verbatim}
+\begin{lstlisting}
     int available_streams(void);    
-\end{verbatim}
+\end{lstlisting}
 Returns the number of additional streams that can be
 activated (i.e. created) before an
 operating system limit on the number of open files would be
@@ -439,28 +438,28 @@ number of open files. The TPIE memory requirements for
 active streams are not reflected in this limit.\comment{LA: Extend DH:DONE}
 
 \subsubsection{chunk\_size}
-\begin{verbatim}
+\begin{lstlisting}
     off_t chunk_size(void);
-\end{verbatim}
+\end{lstlisting}
 %Not clear what this does...
 Returns the number of application data elements that fit in
 a logical block of the current stream.\comment{LA: ?}
 
 \subsubsection{persist}\index{persistence!BTE}
 \index{persist()@{\tt persist()}|see{persistence}}
-\begin{verbatim}
+\begin{lstlisting}
     void persist(persistence);
-\end{verbatim}
+\end{lstlisting}
 Sets the persistence attribute of the current stream to the
-value of \myv{persistence}. This may be one of the
+value of \lstinline|persistence|. This may be one of the
 following values:
 \begin{itemize}
-\item \myv{PERSIST\_DELETE}: Delete the stream from the
+\item \lstinline|PERSIST_DELETE|: Delete the stream from the
 disk when the stream 
   destructor is called.
-\item \myv{PERSIST\_PERSISTENT}: Do not delete the stream from the disk when
+\item \lstinline|PERSIST_PERSISTENT|: Do not delete the stream from the disk when
   the stream destructor is called.
-%\item \myv{PERSIST\_READ\_ONCE}: Delete each block of data from the disk as
+%\item \lstinline|PERSIST_READ_ONCE|: Delete each block of data from the disk as
 %  it is read.
 \end{itemize}
 
@@ -472,14 +471,14 @@ are called.
 \plabel{sec:ref-bte-stdio}
 
 The \emphd{stdio} BTE is implemented by the class
-\myv{BTE\_stream\_stdio}, defined in file
-\myv{/include/bte\_stdio.h}.  \myv{BTE\_stream\_stdio}
+\lstinline|BTE_stream_stdio|, defined in file
+\path"include/bte_stdio.h".  \lstinline|BTE_stream_stdio|
 streams are stored as ordinary UNIX files which are
 manipulated via the \emphd{stdio} file access method, i.e.
-via the standard \myv{C} I/O library. The read/write
-primitives of \myv{BTE\_stream\_stdio} streams are
-implemented using the system calls \myv{fread} and
-\myv{fwrite}. The underlying operating system blocking
+via the standard \lstinline|C| I/O library. The read/write
+primitives of \lstinline|BTE_stream_stdio| streams are
+implemented using the system calls \lstinline|fread| and
+\lstinline|fwrite|. The underlying operating system blocking
 and prefetching assure that stream accesses are done in
 blocks and so both blocking and prefetching are therefore
 automatic and invisible to the TPIE developer.  Note that
@@ -490,39 +489,42 @@ through kernel level buffer space on its way to user space.
 \comment{LA: Extend. Also something about no logical block size
 concept.}
 
-The \myv{BTE\_stream\_stdio} class inherits from
-\myv{BTE\_stream\_base} (in file
-\myv{/include/bte\_stream\_base.h}):\index{BTE_stream_base@{\tt
+The \lstinline|BTE_stream_stdio| class inherits from
+\lstinline|BTE_stream_base| (in file
+\path"include/bte_stream_base.h"):\index{BTE_stream_base@{\tt
       BTE\_stream\_base}}
-\begin{verbatim}
+\begin{lstlisting}
 class BTE_stream_stdio : public BTE_stream_base {
   private:
      FILE  *file;          
      BTE_stdio_header      header;
      ...
 }  
-\end{verbatim}
+\end{lstlisting}
 
-\myv{BTE\_stream\_stdio} defines the public member
-functions defined for \myv{BTE\_stream\_base} (please
+\lstinline|BTE_stream_stdio| defines the public member
+functions defined for \lstinline|BTE_stream_base| (please
 see Section~\ref{sec:imp-bte-base} for a list of these
 member functions and their semantics).  \comment{LA: Extend
-   - discuss implementation!} In addition to these,
-\myv{BTE\_stream\_stdio} defines its own
+   - discuss implementation!} Additionally,
+\lstinline|BTE_stream_stdio| defines its own
 constructors:\index{BTE\_stream\_stdio@{\tt BTE\_stream\_stdio}!constructors}
 
-\begin{verbatim}
+\begin{lstlisting}
      BTE_stream_stdio(const char *dev_path, const BTE_stream_type st); 
      BTE_stream_stdio(const BTE_stream_type st); 
      BTE_stream_stdio(const BTE_stream_stdio<T> &s);
-\end{verbatim}
+\end{lstlisting}
+
+\comment{JV: The header stuff has changed completely. Someone has to
+  update this section accordingly.}
 
 The first block of a TPIE \emphd{stdio} stream is a header
 block\index{BTE_stream_stdio@{\tt BTE\_stream\_stdio}!header}
 \index{streams!header block} with the following structure:
 
 \index{BTE_stdio_header@{\tt BTE\_stdio\_header}}
-\begin{verbatim}
+\begin{lstlisting}
 typedef struct BTE_stdio_header_v1 { 
     unsigned int magic_number;  // Set to BTE_STDIO_HEADER_MAGIC_NUMBER
     unsigned int version;       // Should be 1 for current version.
@@ -530,7 +532,7 @@ typedef struct BTE_stdio_header_v1 {
     unsigned int block_length;  // # of bytes in a block.
     size_t item_size;           // The size of each item in the stream.
 } BTE_stdio_header;
-\end{verbatim}
+\end{lstlisting}
 
 
 \index{BTE_stream_stdio@{\tt BTE\_stream\_stdio}|)}
@@ -542,75 +544,74 @@ typedef struct BTE_stdio_header_v1 {
 \index{BTE mmap|see {\tt BTE\_stream\_mmap}}
 
 The \emphd{mmap} BTE is implemented by the class
-\myv{BTE\_stream\_mmap}, defined in file
-\myv{/include/bte\_stream\_stdio.h}.  \myv{BTE\_stream\_mmap}
+\lstinline|BTE_stream_mmap|, defined in file
+\path"include/bte_stream_stdio.h".  \lstinline|BTE_stream_mmap|
 streams are stored as ordinary UNIX files.  The TPIE
-\myv{BTE\_stream\_mmap} implementation uses the Unix
-\myv{mmap} and \myv{munmap} calls to perform I/O. The
-UNIX \myv{mmap} call allows a part of a file to be
+\lstinline|BTE_stream_mmap| implementation uses the Unix
+\lstinline|mmap| and \lstinline|munmap| calls to perform I/O. The
+UNIX \lstinline|mmap| call allows a part of a file to be
 associated with a corresponding section of internal memory.
 When the memory is accessed, the corresponding portion of
 the file is copied directly into that memory buffer. The
-\myv{BTE\_stream\_mmap} primitives explicitly maintain the
+\lstinline|BTE_stream_mmap| primitives explicitly maintain the
 currently accessed block of the file mapped into memory.
 When an object outside the current block boundaries is
 requested, the current block is unmapped and a new one is
 mapped from the source file.
 
-The \myv{BTE\_stream\_mmap} is not limited to mapping in
+The \lstinline|BTE_stream_mmap| is not limited to mapping in
 blocks of size equal to the physical block size of the OS
 (typically 8K bytes). Often improved performance can be
 obtained by mapping blocks of much larger size (for example
 256KB\footnote{We use the notation KB to mean kilobytes.}).
 This is typically due to (track) buffering and prefetching
 performed in the disk controller. The (logical) block size
-used by \myv{BTE\_stream\_mmap} can be set using the macro
-\myv{BTE\_STREAM\_MMAP\_BLOCK\_FACTOR} in the
-\myv{app\_config.h} file. However, choosing a large
+used by \lstinline|BTE_stream_mmap| can be set using the macro
+\lstinline|BTE_STREAM_MMAP_BLOCK_FACTOR| in the
+\path"app_config.h" file. However, choosing a large
 (logical) block size limits the amount of main memory
 available for an application program and thus the (logical)
 block size should be chosen very carefully in order to
 obtain maximal performance.
 
-Unlike in \myv{BTE\_stream\_stdio}, where a function call
+Unlike in \lstinline|BTE_stream_stdio|, where a function call
 is incurred every time a stream object is accessed, the
-\myv{BTE\_stream\_mmap} only incurs such a call on every
+\lstinline|BTE_stream_mmap| only incurs such a call on every
 (logical) block. This can lead to improved performance,
 especially on systems with a relatively slow CPU compared to
 the disk.  However, while prefetching of disk blocks is
 implicitly done by the operating system in
-\myv{BTE\_stream\_stdio}, \myv{BTE\_stream\_mmap} has
+\lstinline|BTE_stream_stdio|, \lstinline|BTE_stream_mmap| has
 to implement its own prefetching scheme. (Note on the other
-hand that unlike in \myv{BTE\_stream\_stdio} objects does
+hand that unlike in \lstinline|BTE_stream_stdio| objects does
 not pass through the kernel level buffer space on its way to
-user space).  \myv{BTE\_stream\_mmap} prefetching can be
+user space).  \lstinline|BTE_stream_mmap| prefetching can be
 turned on by defining the macro
-\myv{BTE\_MMAP\_READ\_AHEAD} in the \myv{app\_config.h}
+\lstinline|BTE_MMAP_READ_AHEAD| in the \path"app_config.h"
 file. If this compile-time variable is defined,
-\myv{BTE\_stream\_mmap} optimize for sequential read speed
+\lstinline|BTE_stream_mmap| optimize for sequential read speed
 by reading (mapping) blocks into main memory before the data
 they contain is actually needed. Two methods of read-ahead
 is provided:
 
 \begin{itemize}
 
-    \item If the \myv{USE\_LIBAIO} macro is undefined
-    (and \myv{BTE\_MMAP\_READ\_AHEAD} is set), read ahead
-    is done using \myv{mmap} calls.
+    \item If the \lstinline|USE_LIBAIO| macro is undefined
+    (and \lstinline|BTE_MMAP_READ_AHEAD| is set), read ahead
+    is done using \lstinline|mmap| calls.
 
-    \item If the \myv{USE\_LIBAIO} macro is defined (and
-    \myv{BTE\_MMAP\_READ\_AHEAD} is set), read ahead is
+    \item If the \lstinline|USE_LIBAIO| macro is defined (and
+    \lstinline|BTE_MMAP_READ_AHEAD| is set), read ahead is
     done using the asynchronous I/O library. This feature
-    requires the asynchronous I/O library {\tt
-       libaio}.\index{libaio library@{\tt libaio} library.}
+    requires the asynchronous I/O library \lstinline|libaio|.\index{libaio library@{\tt libaio} library.}
 
 \end{itemize}
-By default \myv{BTE\_MMAP\_READ\_AHEAD} is defined,
-\myv{USE\_LIBAIO} is not.\comment{LA: Discuss the two and
+By default \lstinline|BTE_MMAP_READ_AHEAD| is defined,
+\lstinline|USE_LIBAIO| is not.\comment{LA: Discuss the two and
    how they differ.}
 
-\myv{BTE\_stream\_mmap} class inherits from \myv{BTE\_stream\_base}:\index{BTE_stream_base@{\tt BTE\_stream\_base}}
-\begin{verbatim}
+\lstinline|BTE_stream_mmap| class inherits from \lstinline|BTE_stream_base|:\index{BTE_stream_base@{\tt BTE\_stream\_base}}
+\begin{lstlisting}
 class BTE_stream_mmap : public BTE_stream_base {
   private:
      // descriptor of the mapped file.  
@@ -619,17 +620,17 @@ class BTE_stream_mmap : public BTE_stream_base {
      mmap_stream_header *header;
      ...
 }  
-\end{verbatim}
+\end{lstlisting}
 
-\myv{BTE\_stream\_mmap} defines the public member
-functions defined for \myv{BTE\_stream\_base} (please see
+\lstinline|BTE_stream_mmap| defines the public member
+functions defined for \lstinline|BTE_stream_base| (please see
 Section~\ref{sec:imp-bte-base} for a list of these member
 functions and their semantics).  In addition to these it
 defines its own constructors: 
 \index{BTE_stream_mmap@{\tt BTE\_stream\_mmap}!constructors}
 \comment{LA: Extend - discuss implementation.} 
 \comment{LA: Why special substream constructor? DH:Previously discussed.}
-\begin{verbatim}
+\begin{lstlisting}
   BTE_stream_mmap(const char *dev_path, BTE_stream_type st);
   BTE_stream_mmap(BTE_stream_type st); 
   BTE_stream_mmap(BTE_stream_mmap<T> &s); 
@@ -638,13 +639,13 @@ defines its own constructors:
   BTE_stream_mmap(BTE_stream_mmap *super_stream,
                  BTE_stream_type st,
                  off_t sub_begin, off_t sub_end);
-\end{verbatim}
+\end{lstlisting}
 
-The \myv{BTE\_stream\_mmap} header\index{BTE_stream_mmap@{\tt
+The \lstinline|BTE_stream_mmap| header\index{BTE_stream_mmap@{\tt
       BTE\_stream\_mmap}!header}\index{streams!header block}
 structure is as follows:
 
-\begin{verbatim}
+\begin{lstlisting}
 struct mmap_stream_header { 
   public:
     unsigned int magic_number;  // Set to MMAP_HEADER_MAGIC_NUMBER
@@ -652,11 +653,11 @@ struct mmap_stream_header {
     unsigned int length;        // # of bytes in this structure.
     off_t item_logical_eof;     // The number of items in the stream.
     size_t item_size;           // The size of each item in the stream.
-    size_t block_size;          // The size of a physical block on the device
-                                // where this stream resides.
+    size_t block_size;          // The size of a physical block on the
+                                // device where this stream resides.
     unsigned int items_per_block;
 };
-\end{verbatim}
+\end{lstlisting}
 
 
 \index{BTE_stream_mmap@{\tt BTE\_stream\_mmap}|)}
@@ -668,46 +669,46 @@ struct mmap_stream_header {
 \index{BTE ufs|see {\tt BTE\_stream\_ufs}}
 
 The \emphd{ufs} BTE is implemented by the class
-\myv{BTE\_stream\_ufs}, defined in file
-\myv{/include/bte\_stdio.h}.  \myv{BTE\_stream\_ufs}
+\lstinline|BTE_stream_ufs|, defined in file
+\path"include/bte_stdio.h".  \lstinline|BTE_stream_ufs|
 streams are stored as ordinary UNIX files.
-\myv{BTE\_stream\_ufs} streams use
-\myv{read()}/\myv{write()} calls to implement their
+\lstinline|BTE_stream_ufs| streams use the
+\lstinline|read()| and \lstinline|write()| calls to implement their
 I/O.
 
 
-% The motivation behind implementing \myv{BTE\_ufs} streams
+% The motivation behind implementing \lstinline|BTE_ufs| streams
 % is an empirically observed inefficiency\footnote{The
 %    inefficiency can occur on account of various reasons. On
-%    one system, \myv{mmap()} calls were implemented on top
-%    of the \myv{stdio} interface instead of a direct I/O
+%    one system, \lstinline|mmap()| calls were implemented on top
+%    of the \lstinline|stdio| interface instead of a direct I/O
 %    implementation, resulting in extra overhead.} of
-% \myv{mmap()} implementations in some systems.\comment{LA:
+% \lstinline|mmap()| implementations in some systems.\comment{LA:
 %    Say that its Solaris?} In such situations, another stream
-% implementation that, like \myv{BTE\_stream\_mmap} streams,
+% implementation that, like \lstinline|BTE_stream_mmap| streams,
 % have the potential of exploiting large sized blocks and
 % buffers is needed.
 
-% The \myv{BTE\_ufs} stream implementation simulates the
-% \myv{BTE\_stream\_mmap} stream implementation: Whenever the latter
+% The \lstinline|BTE_ufs| stream implementation simulates the
+% \lstinline|BTE_stream_mmap| stream implementation: Whenever the latter
 % maps in a new block, the former reads in a new block (via
-% \myv{read()}) and whenever the latter unmaps a block, the
-% latter attains the same result via a \myv{write()} call.
-% But the \myv{BTE\_ufs} implementation involves explicitly
+% \lstinline|read()|) and whenever the latter unmaps a block, the
+% latter attains the same result via a \lstinline|write()| call.
+% But the \lstinline|BTE_ufs| implementation involves explicitly
 % keeping track in the BTE code various things which are
-% ``under the hood'' in \myv{mmap()}
+% ``under the hood'' in \lstinline|mmap()|
 % implementations.\comment{LA: Like what?} In fact, the code
-% in the \myv{BTE\_ufs} implementation can be said to
-% amount to a (very rudimentary) \myv{mmap()}
+% in the \lstinline|BTE_ufs| implementation can be said to
+% amount to a (very rudimentary) \lstinline|mmap()|
 % implementation. 
 
-Like in the case of \myv{BTE\_stream\_mmap} the
+Like in the case of \lstinline|BTE_stream_mmap| the
 (logical) block size can be controlled using the macro
-\myv{BTE\_STREAM\_UFS\_BLOCK\_FACTOR}.
-\myv{BTE\_stream\_ufs} also has the same advantage as
-\myv{BTE\_stream\_mmap} over \myv{BTE\_stream\_stdio} of only incurring
-one kernel call per block. However, unlike \myv{BTE\_stream\_mmap}
-(but like \myv{BTE\_stream\_stdio}), prefetching is done
+\lstinline|BTE_STREAM_UFS_BLOCK_FACTOR|.
+\lstinline|BTE_stream_ufs| also has the same advantage as
+\lstinline|BTE_stream_mmap| over \lstinline|BTE_stream_stdio| of only incurring
+one kernel call per block. However, unlike \lstinline|BTE_stream_mmap|
+(but like \lstinline|BTE_stream_stdio|), prefetching is done
 implicitly by the filesystem underlying TPIE (and objects
 have to pass through kernel level buffer space)
 %In fact, nowadays, in the case of sequential accesses, most filesystems
@@ -716,31 +717,33 @@ have to pass through kernel level buffer space)
 %acceses, the next block to be accessed is more often than not dependent on
 %the processing of the contents of the current block, so prefetching is
 %difficult to implement or impossible.)
-In \myv{BTE\_stream\_ufs} streams, when the asynchronous I/O library
-\myv{libaio}\index{libaio library@{\tt libaio} library.} is available,
-there is a provision to do (user-level) prefetching within \myv{BTE\_stream\_ufs}
+In \lstinline|BTE_stream_ufs| streams, when the asynchronous I/O library
+\lstinline|libaio|\index{libaio library@{\tt libaio} library.} is available,
+there is a provision to do (user-level) prefetching within \lstinline|BTE_stream_ufs|
 streams but we do not recommend its use on account of the implicit
 filesystem prefetching.
 
-\myv{BTE\_stream\_ufs} class inherits from
-\myv{BTE\_stream\_base}:
-\begin{verbatim}
+\lstinline|BTE_stream_ufs| class inherits from
+\lstinline|BTE_stream_base|:
+\begin{lstlisting}
 class BTE_stream_ufs : public BTE_stream_base { 
   private:
      // descriptor of the mapped file.  
      int fd;
-     // A pointer to the mapped in header block for
-     the stream.  mmap_stream_header *header; ...  }
-\end{verbatim}
+     // A pointer to the mapped in header block for  the stream.  
+     mmap_stream_header *header; 
+     ...  
+}
+\end{lstlisting}
 
-\myv{BTE\_stream\_ufs} defines the public member
-functions defined for \myv{BTE\_stream\_base} (please see
+\lstinline|BTE_stream_ufs| defines the public member
+functions defined for \lstinline|BTE_stream_base| (please see
 Section~\ref{sec:imp-bte-base} for a list of these member
 functions and their semantics).  In addition to these it
 defines its own constructors: 
 \index{BTE_stream_ufs@{\tt BTE\_stream\_ufs}!constructors}
 \comment{LA: Why a special substream constructer?}
-\begin{verbatim}
+\begin{lstlisting}
   BTE_stream_ufs(const char *dev_path, BTE_stream_type st); 
   BTE_stream_ufs(BTE_stream_type st); 
   BTE_stream_ufs(BTE_stream_ufs<T> &s); 
@@ -749,10 +752,10 @@ defines its own constructors:
   BTE_stream_ufs(BTE_stream_ufs *super_stream,
                  BTE_stream_type st,
                  off_t sub_begin, off_t sub_end);
-\end{verbatim}
-The \myv{BTE\_stream\_ufs} header structure is as follows:
+\end{lstlisting}
+The \lstinline|BTE_stream_ufs| header structure is as follows:
 \index{BTE\_stream\_ufs@{\tt BTE\_stream\_ufs}!header}\index{streams!header block}
-\begin{verbatim}
+\begin{lstlisting}
 struct ufs_stream_header { 
   public:
     unsigned int magic_number;  // Set to UFS_HEADER_MAGIC_NUMBER
@@ -760,11 +763,11 @@ struct ufs_stream_header {
     unsigned int length;        // # of bytes in this structure.
     off_t item_logical_eof;     // The number of items in the stream.
     size_t item_size;           // The size of each item in the stream.
-    size_t block_size;          // The size of a physical block on the device
-                                // where this stream resides.
+    size_t block_size;          // The size of a physical block on the
+                                // device where this stream resides.
     unsigned int items_per_block;
 };
-\end{verbatim}
+\end{lstlisting}
 
 
 \index{BTE_stream_ufs@{\tt BTE\_stream\_ufs}|)}
@@ -781,7 +784,7 @@ The Memory Manager components of TPIE provide services related to
 the management of internal memory:
 \begin{itemize}
 \item allocation and deallocation of (internal)
-memory as requested by the \myv{new} and \myv{delete} operators,
+memory as requested by the \lstinline|new| and \lstinline|delete| operators,
 \item accounting of memory usage (when required),
 \item enforcing of the user-specified internal memory usage
 limit (when required),
@@ -789,9 +792,9 @@ limit (when required),
 \end{itemize}
 
 In version \version of TPIE, the memory manager
-\myv{MM\_manager}, is built from the source files
-\myv{mm\_register.cpp}, \myv{mm\_base.cpp},
-\myv{mm\_register.h}, and \myv{mm\_base.h}.  The memory
+\lstinline|MM_manager|, is built from the source files
+\path"lib/src/mm_register.cpp", \path"lib/src/mm_base.cpp",
+\path"include/mm_register.h", and \path"/include/mm_base.h".  The memory
 manager traps memory allocation and deallocation requests in
 order to monitor and enforce memory usage limits. It
 provides a number of user-callable functions and services,
@@ -835,8 +838,8 @@ that come up in attempting to make it more robust.)}
 \plabel{sec:imp-ami}
 
 The AMI-level entry points provided by TPIE are documented
-in the Reference section of this manual (see
-Section~\ref{sec:ref-ami}), and a number of examples of
+in the Reference section 0of this manual (see
+Section~\ref{cha:reference}), and a number of examples of
 their use are given in the Tutorial section (see
 Section~\ref{ch:tutorial}).  In this section we examine the
 TPIE source files which compose the AMI and provide a brief
@@ -858,18 +861,17 @@ particular source file.
 
 For instance, if a single implementation is needed, it is
 sufficient for the application code to create a stream of
-\noiv{int} as follows:
-\begin{verbatim}
+\lstinline|int| as follows:
+\begin{lstlisting}
 AMI_STREAM<int> aStream;
-\end{verbatim}
-However, if different implementations, say a \myv{ufs} and
-an \myv{mmap} stream are desired, the code would be similar
+\end{lstlisting}
+However, if different implementations, say a \lstinline|ufs| and
+an \lstinline|mmap| stream are desired, the code would be similar
 to the following:
-\begin{verbatim}
-    BTE_stream_mmap   firstStream( const char *dev_path, BTE_stream_type st );
-    BTE_stream_stdio secondStream( const char *dev_path, BTE_stream_type st );
-
-\end{verbatim}
+\begin{lstlisting}
+BTE_stream_mmap   firstStream(const char *dev_path, BTE_stream_type st);
+BTE_stream_stdio secondStream(const char *dev_path, BTE_stream_type st);
+\end{lstlisting}
 
 \subsection{General Considerations}
 
@@ -879,64 +881,66 @@ services are accessed:\comment{DH: There may be a better
    place for some of the stuff in this intro}
 
 \begin{itemize}
-    \item \myv{include/ami.h}: This file should be included
-    (at compile time) in every TPIE application program that
-    uses the AMI-level interface. It in turn inputs the
-    definitions for the AMI-level services of TPIE. The
-    files input by \myv{include/ami.h} are itemized below.
-
-    \item \myv{test/app\_config.h}: This file contains TPIE
-    flags and settings that can be customized to an
-    individual application. The options available in this
-    file are described in detail in
-    Section~\ref{sec:tun-appconfig}.
-
-    \item \myv{include/config.h}: This file contains flags and
-    indicators that describe the machine and operating
-    system on which TPIE is currently running. It is
-    generated automatically by the TPIE installation
-    process and is not intended to be modified.
+\item \path"include/ami.h": This file should be included (at compile
+  time) in every TPIE application program that uses the AMI-level
+  interface. It in turn inputs the definitions for the AMI-level
+  services of TPIE. The files input by \path"include/ami.h" are
+  itemized below.
+  
+\item \path"test/app_config.h": This file contains TPIE flags and
+  settings that can be customized to an individual application. The
+  options available in this file are described in detail in
+  Section~\ref{sec:tun-appconfig}.
+  
+\item \path"include/config.h": This file contains flags and indicators
+  that describe the machine and operating system on which TPIE is
+  currently running. It is generated automatically by the TPIE
+  installation process and is not intended to be modified.
     
-    \item \myv{lib/libtpie.a}: This is the TPIE load
-    library. It contains code for the memory manager
-    \myv{MM\_manager}, TPIE logging, BTE statistics, and a
-    small number of other services. While most TPIE code is
-    in the form of templates, which generate code at
-    compile-time, application programs must also link with
-    \myv{lib/libtpie.a}. This is described further in
-    Section~\ref{sec:tut-compiling}.
+\item \path"lib/libtpie.a": This is the static TPIE load library. It
+  contains code for the memory manager \lstinline|MM_manager|, TPIE
+  logging, BTE statistics, and a small number of other services.
+  While most TPIE code is in the form of templates, which generate
+  code at compile-time, application programs must also link with
+  \path"lib/libtpie.a". This is described further in
+  Section~\ref{sec:tut-compiling}.
 \end{itemize} 
 
-\subsubsection{File: \myv{include/ami.h}} This C++ include
+\subsubsection{File: \texttt{include/ami.h}} This \CPP{} include
 file inputs the various include files required for
-compilation of an application program with TPIE. The relevant portion
-of \myv{include/ami.h} is included below:
+compilation of an application program with TPIE. 
 
-\begin{verbatim}
-// Get the base class, enums, etc...
-#include <ami_base.h>
+\comment{JV: Most of the file has changed. Someone has to update this
+  section accordingly.}
 
-// Get the device description class
-#include <ami_device.h>
+\lstinputlisting[caption={The AMI configuration file.}]{../include/ami.h}
+%%The relevant portion of \path"include/ami.h" is included below:
 
-// Get an implementation definition
-#include <ami_imps.h>
-
-// Get templates for ami_scan().
-#include <ami_scan.h>
-
-// Get templates for ami_merge().
-#include <ami_merge.h>
-
-// Get templates for ami_sort().
-#include <ami_sort.h>
-
-// Get templates for general permutation.
-#include <ami_gen_perm.h>
-
-// Get templates for bit permuting.
-#include <ami_bit_permute.h>
-\end{verbatim} 
+%%\begin{lstlisting}
+%%// Get the base class, enums, etc...
+%%#include <ami_base.h>
+%%
+%%// Get the device description class
+%%#include <ami_device.h>
+%%
+%%// Get an implementation definition
+%%#include <ami_imps.h>
+%%
+%%// Get templates for ami_scan().
+%%#include <ami_scan.h>
+%%
+%%// Get templates for ami_merge().
+%%#include <ami_merge.h>
+%%
+%%// Get templates for ami_sort().
+%%#include <ami_sort.h>
+%%
+%%// Get templates for general permutation.
+%%#include <ami_gen_perm.h>
+%%
+%%// Get templates for bit permuting.
+%%#include <ami_bit_permute.h>
+%%\end{lstlisting} 
 
 Each of these files is discussed in the sections which
 follow.
@@ -944,22 +948,22 @@ follow.
 \subsection{Creation of Streams}
 
 AMI stream objects are created in a TPIE program via the
-\myv{AMI\_STREAM} keyword.  \myv{AMI\_STREAM} is a macro
+\lstinline|AMI_STREAM| keyword.  \lstinline|AMI_STREAM| is a macro
 that resolves to a class template invocation appropriate to
 the declared target I/O architecture. This involves the
-declared AMI implementation (see Section~\ref{sec:ref-ami}),
+declared AMI implementation (see Section~\ref{cha:reference}),
 BTE implementation\index{block transfer engine} (see
 Section~\ref{sec:ref-bte}) and whether one or multiple disks
 are used.  In the current version of TPIE an
-\myv{AMI\_STREAM} is stored in a standard UNIX file on a
-single disk. For most applications, an \myv{AMI\_STREAM}
-will have type \myv{AMI\_stream\_single}, which is the TPIE
+\lstinline|AMI_STREAM| is stored in a standard UNIX file on a
+single disk. For most applications, an \lstinline|AMI_STREAM|
+will have type \lstinline|AMI_stream_single|, which is the TPIE
 base class for a stream backed by a single file (normally on
-a single disk). The string \myv{AMI\_STREAM} is
-\myv{\#define}'d to be the string
-\myv{AMI\_stream\_single} in the header file
-\myv{ami\_imps.h}. This arrangement is intended to permit
-alternative implementations of \myv{AMI\_STREAM} if
+a single disk). The string \lstinline|AMI_STREAM| is
+\lstinline|#define|'d to be the string
+\lstinline|AMI_stream_single| in the header file
+\path"include/ami_imps.h". This arrangement is intended to permit
+alternative implementations of \lstinline|AMI_STREAM| if
 necessary in the future.
 
 The TPIE code associated with the creation and manipulation
@@ -967,88 +971,84 @@ of stream objects is contained mainly within the following
 files:
 
 \begin{itemize}
-    \item \myv{include/ami\_base.h}: 
-    \begin{enumerate}     
-        \item defines the \myv{AMI\_err} codes returned by
-        the AMI-level services (these and their meanings are
-        listed in Appendix~\ref{sec:ami-errors}.
+\item \path"include/ami_base.h": 
 
-        \item defines codes for the AMI stream types
-        (\myv{AMI\_READ\_STREAM}, \myv{AMI\_WRITE\_STREAM},
-        \myv{AMI\_APPEND\_STREAM},
-        \myv{AMI\_READ\_WRITE\_STREAM}.
-  
-        \item defines the member functions of
-        \myv{AMI\_stream\_base} as \myv{virtual} if compile
-        time variable \myv{AMI\_VIRTUAL\_BASE} is defined.
-    \end{enumerate}    
+  \begin{enumerate}     
+  \item defines the \lstinline|AMI_err| codes returned by the
+    AMI-level services (these and their meanings are listed in
+    Appendix~\ref{sec:ami-errors}.
     
-    \item \myv{include/ami\_single.h}: This include file
-    defines the class \myv{AMI\_stream\_single}, which is the
-    base class for all AMI-level streams backed by a single
-    Unix file.
-    \begin{enumerate}
+  \item defines the AMI stream types discussed in
+    Section~\ref{cha:reference} (\lstinline|AMI_READ_STREAM|,
+    \lstinline|AMI_WRITE_STREAM|, \lstinline|AMI_APPEND_STREAM|, and
+    \lstinline|AMI_READ_WRITE_STREAM|).
+  
+  \item defines the member functions of \lstinline|AMI_stream_base| as
+    \lstinline|virtual| (only if the compile time variable
+    \lstinline|AMI_VIRTUAL_BASE| is defined).
+  \end{enumerate}    
+    
+\item \path"include/ami_single.h": This include file defines the class
+  \lstinline|AMI_stream_single|, which is the base class for all
+  AMI-level streams backed by a single Unix file.
 
-        \item the template parameter \noiverb{<T>}
-        represents the type of the application data element
-        in the stream.
+  \begin{enumerate}
+    
+  \item the template parameter \lstinline|<T>| represents the type of
+    the application data element in the stream.
         
-        \item At construction time, an
-        \myv{AMI\_stream\_single<T>} is mapped onto a
-        \myv{BTE\_STREAM<T>} and the AMI stream type is
-        mapped as follows:
-        \begin{itemize}
-            \item \myv{AMI\_READ\_STREAM} is mapped to
-            \myv{BTE\_READ\_STREAM}
-            \item \myv{AMI\_APPEND\_STREAM} is mapped to
-            \myv{BTE\_APPEND\_STREAM}
-            \item \myv{AMI\_WRITE\_STREAM} and
-            \myv{AMI\_READ\_WRITE\_STREAM} are mapped to
-            \myv{BTE\_WRITE\_STREAM}
-        \end{itemize}
+  \item At construction time, an \lstinline|AMI_stream_single<T>| is
+    mapped onto a \lstinline|BTE_STREAM<T>| and the AMI stream type is
+    mapped as follows:
+
+    \begin{itemize}
+    \item \lstinline|AMI_READ_STREAM| is mapped to
+      \lstinline|BTE_READ_STREAM|
+    \item \lstinline|AMI_APPEND_STREAM| is mapped to
+      \lstinline|BTE_APPEND_STREAM|
+    \item \lstinline|AMI_WRITE_STREAM| and
+      \lstinline|AMI_READ_WRITE_STREAM| are mapped to
+      \lstinline|BTE_WRITE_STREAM|
+    \end{itemize}
         
-        \item The AMI-level services for streams are
-        implemented by corresponding BTE-level services. The
-        AMI member functions described in
-        Sections~\ref{sec:ref-ami-stream} (see examples of
-        use of some of these in Section~\ref{sec:tut-samplepgm})
-        are implemented by calls to the BTE-level functions
-        documented in Section~\ref{sec:ref-bte}. An AMI
-        stream has little internal context information as a
-        result. Two exceptions are the following:
-        \begin{itemize}
-            \item \myv{r\_only}: this flag is one (TRUE) if
-            the stream is only readable, and not writeable,
-            corresponding to the status
-            \myv{AMI\_READ\_STREAM}. Maintaining this flag
-            allows the AMI stream member functions to catch
-            erroneous attempt by application-level code to
-            write to a stream whose underlying file was
-            opened for reading.
+  \item The AMI-level services for streams are implemented by
+    corresponding BTE-level services. The AMI member functions
+    described in Sections~\ref{sec:ref-ami-stream} (see examples of
+    use of some of these in Section~\ref{sec:tut-samplepgm}) are
+    implemented by calls to the BTE-level functions documented in
+    Section~\ref{sec:ref-bte}. An AMI stream has little internal
+    context information as a result. Two exceptions are the following:
+
+    \begin{itemize}
+    \item \lstinline|r_only|: this flag is one (TRUE) if the stream is
+      only readable, and not writeable, corresponding to the status
+      \lstinline|AMI_READ_STREAM|. Maintaining this flag allows the
+      AMI stream member functions to catch erroneous attempt by
+      application-level code to write to a stream whose underlying
+      file was opened for reading.
             
-            \item \myv{destruct\_bte}: this flag is one
-            (TRUE) if the destructor of the underlying BTE
-            stream should be called by the AMI-level
-            destructor (the normal situation). If the
-            AMI-level stream was constructed from a
-            pre-existing BTE stream via the constructor
-\begin{verbatim}
+    \item \lstinline|destruct_bte|: this flag is one (TRUE) if the
+      destructor of the underlying BTE stream should be called by the
+      AMI-level destructor (the normal situation). If the AMI-level
+      stream was constructed from a pre-existing BTE stream via the
+      constructor
+\begin{lstlisting}
     AMI_stream_single(BTE_STREAM<T> *bs);
-\end{verbatim}
-            then a \myv{destruct\_bte} value of zero is used
-            to prevent the destructor from deleting the BTE
-            stream (owned by another AMI stream).
-        \end{itemize}
-    \end{enumerate}
-
+\end{lstlisting}
+      then a \lstinline|destruct_bte| value of zero is used
+      to prevent the destructor from deleting the BTE
+      stream (owned by another AMI stream).
+    \end{itemize}
+  \end{enumerate}
+  
 \end{itemize}
 
 
-% The public member functions of the \myv{AMI\_STREAM}
+% The public member functions of the \lstinline|AMI_STREAM|
 % class are defined in the file ``ami\_single.h''. Some
 % important related enumerated types that the user will be
 % concerned with are defined in ``ami\_base.h''.
-% \myv{AMI\_STREAM} is a macro that resolves to a class
+% \lstinline|AMI_STREAM| is a macro that resolves to a class
 % template declared to match the underlying semantics of the
 % target I/O architecture by using an appropriate AMI
 % implementation (see section~\ref{sec:ref-ami}), BTE
@@ -1084,36 +1084,36 @@ files:
 % Each datum in TPIE is an item of a certain type.  The
 % programmer normally manipulates the data via the services of
 % the \emphd{Access Method Interface (AMI)}, which accesses
-% data elements stored in \myv{AMI\_STREAM}s.  An
-% \myv{AMI\_STREAM} can be viewed as simply a wrapper
-% around a \myv{BTE\_STREAM} (See
+% data elements stored in \lstinline|AMI_STREAM|s.  An
+% \lstinline|AMI_STREAM| can be viewed as simply a wrapper
+% around a \lstinline|BTE_STREAM| (See
 % Section~\ref{BTEinterface} for a discussion of the BTE
 % interface).
 
-%as a \myv{BTE\_STREAM}, where BTE stands for \emphd{block transfer
-%engine.} Each \myv{BTE\_STREAM} is a stream built on top
+%as a \lstinline|BTE_STREAM|, where BTE stands for \emphd{block transfer
+%engine.} Each \lstinline|BTE_STREAM| is a stream built on top
 %of a Unix file, with  
 %additional features such as typing,  and automatic, efficient,
 % I/O and buffering so that the programmer does
 %not bear this burden. TPIE can be configured to use one of three
-%different \myv{BTE\_STREAM} implementations: The implementations vary
+%different \lstinline|BTE_STREAM| implementations: The implementations vary
 %fundamentally in the way they do buffering and I/O. The implementation
 %of choice depends, to some extent, on the operating system on which 
 %TPIE runs. Later we describe the different BTE implementations and
 %how to determine the best implementation on any given system; for now,
-%we focus on the \myv{AMI\_STREAM} interface since that
+%we focus on the \lstinline|AMI_STREAM| interface since that
 %is most directly 
 %relevant to a programmer/user.
 
-%The member functions of the \myv{AMI\_STREAM} class,
-%templated on the type T of its items,  are defined in the file \myv{ami\_single.h};
+%The member functions of the \lstinline|AMI_STREAM| class,
+%templated on the type T of its items,  are defined in the file \path"include/ami_single.h";
 %some important related enumerated types that the user will be
-% concerned with have been defined in \myv{ami\_base.h}.
+% concerned with have been defined in \path"include/ami_base.h".
 
-%An important consequence of the construction of an \myv{AMI\_STREAM} is a
+%An important consequence of the construction of an \lstinline|AMI_STREAM| is a
 %reduction in the total amount of memory that the user has at her
 %disposal since a certain amount of memory is consumed now by buffers
-%dedicated to that \myv{AMI\_STREAM} and its related data
+%dedicated to that \lstinline|AMI_STREAM| and its related data
 %structures.\footnote{The total amount of memory that the user has
 %available, divided by the memory consumed by every AMI\_STREAM thus
 %is an upper bound on the maximum number of AMI\_STREAMs that the user
@@ -1124,27 +1124,27 @@ files:
 %when one of several algorithms may be usable to solve a given problem,
 %it may be useful to choose the algorithm depending on the problem
 %size and available memory size. The total amount of memory consumed
-%by an \myv{AMI\_STREAM} often plays an important role while making such 
-%a choice. The memory manager \myv{mm.h} is responsible for keeping
+%by an \lstinline|AMI_STREAM| often plays an important role while making such 
+%a choice. The memory manager \path"include/mm.h" is responsible for keeping
 %track of the amount of memory avaoable to the user at any time.
 
-%When an \myv{AMI\_STREAM} is destroyed using a destructor, that
+%When an \lstinline|AMI_STREAM| is destroyed using a destructor, that
 %amount of memory becomes is added to the available memory for the
 %user. 
 
 
 %Sometimes the
-%items in an \myv{AMI\_STREAM} will never be used  once
-%the \myv{AMI\_STREAM} is 
+%items in an \lstinline|AMI_STREAM| will never be used  once
+%the \lstinline|AMI_STREAM| is 
 %destructed whereas sometimes an ``idle''
-%\myv{AMI\_STREAM} may be destroyed  
+%\lstinline|AMI_STREAM| may be destroyed  
 %to prevent it from hogging memory only to be constructed later on
 %when really required. In the former case, it is desirable to 
-%destroy or delete the Unix file backing the \myv{AMI\_STREAM} to save
+%destroy or delete the Unix file backing the \lstinline|AMI_STREAM| to save
 %disk space whereas in the latter case we need the Unix file backing
-%the \myv{AMI\_STREAM} to exist on disk even when the
-%   \myv{AMI\_STREAM} is 
-%destroyed. The  \myv{AMI\_STREAM} destructor looks at the persistence 
+%the \lstinline|AMI_STREAM| to exist on disk even when the
+%   \lstinline|AMI_STREAM| is 
+%destroyed. The  \lstinline|AMI_STREAM| destructor looks at the persistence 
 %flag to decide whether it need only close the backing Unix file or
 %delete it from disk.
 
@@ -1152,14 +1152,14 @@ files:
 \subsection{Scanning}
 \index{scanning|(}
 
-The file \myv{include/ami\_scan.h} defines the scanning
+The file \path"include/ami_scan.h" defines the scanning
 functionality provided by TPIE. This file is mechanically generated
-by \myv{make} when TPIE is compiled and built. It is essentially a concatenation
-of the files \myv{include/ami\_scan.h.head},
-\myv{include/ami\_scan\_mac.h}, and
-\myv{include/ami\_scan.h.tail} -- for more
-details, see the file \myv{include/Makefile}. It is not
-intended that \myv{include/ami\_scan.h} be modified
+by \lstinline|make| when TPIE is compiled and built. It is essentially a concatenation
+of the files \path"include/ami_scan.h.head",
+\path"include/ami_scan_mac.h", and
+\path"include/ami_scan.h.tail" -- for more
+details, see the file \path"include/Makefile". It is not
+intended that \path"include/ami_scan.h" be modified
 manually.
 
 \index{scanning|)}
@@ -1171,37 +1171,37 @@ manually.
 
 \tobeextended
 
-\myv{ami\_merge\_base.h}
+\path"include/ami_merge_base.h"
 
 %\subsubsection{Merge Management Objects}
 %
-%Merge management objects based on the super class \myv{AMI\_merge\_base} 
-%defined in the file \myv{ami\_merge.h} can be used conveniently by
+%Merge management objects based on the super class \lstinline|AMI_merge_base| 
+%defined in the file \lstinline|ami_merge.h" can be used conveniently by
 %appropriately defining the member functions of the class.
 
 \subsubsection{Generalized Merging: using Merge Management Objects}
 
 \tobeextended
 
-\myv{ami\_merge.h}\comment{LA: Remember something about ami\_merge really
+\path"include/ami_merge.h"\comment{LA: Remember something about ami\_merge really
 called ami\_single\_merge.}
 
 \subsubsection{Specialized Merging: without Merge Management Objects}
 
 \tobeextended
 
-The \myv{AMI\_merge()} polymorphs (defined in file
-\myv{ami\_optimized\_merge.h}) work without a merge
+The \lstinline|AMI_merge()| polymorphs (defined in file
+\path"include/ami_optimized_merge.h") work without a merge
 management object and perform standard (total
 order/comparison based) merging. The elimination of the
 merge management object object results in one less level of
 function calls and thus in improved efficiency over a
 similar comparison based merging based on a merge management
 object. The merge is controlled by a priority queue (defined
-in file \myv{include/mergeheap.h}) which exploits the
-fact that \myv{delete-min} and \myv{insert} are always
+in file \path"include/mergeheap.h") which exploits the
+fact that \lstinline|delete-min| and \lstinline|insert| are always
 performed together. This improves efficiency. In
- \myv{AMI\_key\_merge()} the heap stores the
+ \lstinline|AMI_key_merge()| the heap stores the
 key and not the entire object. When the object size is large
 compared to the key size, this often leads to further
 performance improvement.\comment{LA: Extend this stuff so it
@@ -1211,16 +1211,18 @@ performance improvement.\comment{LA: Extend this stuff so it
 
 \tobeextended
 
-\myv{AMI\_partition\_and\_merge()} repeatedly merges together the maximum
-possible number of sub-streams using \myv{AMI\_merge()}. An important point
-is that the substreams input to \myv{AMI\_merge()} during the execution of
-\myv{AMI\_partition\_and\_merge()} all originate from the same underlying
-parent \myv{AMI\_STREAM}; thus filesystem accesses are inherently
-non-sequential. Throughout the execution of
-\myv{AMI\_partition\_and\_merge()}, there are only two active
-\myv{AMI\_STREAM}s at any time: One which stores the substreams being
-merged at that stage and one which stores the substreams output by that
-stage.\comment{LA: Extend this stuff so that it becomes readable!}
+\lstinline|AMI_partition_and_merge()| repeatedly merges together the
+maximum possible number of sub-streams using \lstinline|AMI_merge()|.
+An important point is that the substreams input to
+\lstinline|AMI_merge()| during the execution of
+\lstinline|AMI_partition_and_merge()| all originate from the same
+underlying parent \lstinline|AMI_STREAM|; thus filesystem accesses are
+inherently non-sequential. Throughout the execution of the merging
+method \lstinline|AMI_partition_and_merge()|, there are only two
+active \lstinline|AMI_STREAM|s at any time: One which stores the
+substreams being merged at that stage and one which stores the
+substreams output by that stage.\comment{LA: Extend this stuff so that
+  it becomes readable!}
 
 
 \subsection{Comparison Sorting}
@@ -1232,109 +1234,111 @@ The TPIE source files involved in merge sorting include the following:
 
 \begin{enumerate}
 
-    \item \myv{include/ami\_sort.h}: This file simply
+    \item \path"include/ami_sort.h": This file simply
     includes several sorting-related files in the compilation:
     \begin{itemize}
-        \item \myv{include/ami\_sort\_single.h}
-        \item \myv{include/ami\_optimized\_sort.h}
-        \item \myv{include/ami\_sort\_single\_dh.h}
+        \item \path"include/ami_sort_single.h"
+        \item \path"include/ami_optimized_sort.h"
+        \item \path"include/ami_sort_single_dh.h"
     \end{itemize}
     \noindent
      These files are discussed briefly below.
      
-     \item \myv{include/ami\_sort\_single.h}: This file
+     \item \path"include/ami_sort_single.h": This file
      contains a number of templates for outdated (version 1)
      sort routines:
     \begin{itemize}
         \item 
-\begin{verbatim}
+\begin{lstlisting}
 AMI_err AMI_sort_V1 ( AMI_STREAM<T> *instream, 
                       AMI_STREAM<T> *outstream ); 
-\end{verbatim}
+\end{lstlisting}
+
         \item 
-\begin{verbatim}
+\begin{lstlisting}
 AMI_err AMI_sort_V1 ( AMI_STREAM<T> *instream, 
                       AMI_STREAM<T> *outstream, 
                       int (*cmp)(CONST T&, CONST T&) );
-\end{verbatim}
+\end{lstlisting}
 
         \item 
-\begin{verbatim}
+\begin{lstlisting}
 AMI_err AMI_sort_V1 ( AMI_STREAM<T> *instream, 
                       AMI_STREAM<T> *outstream, 
                       CMPR *cmp)
-\end{verbatim}
+\end{lstlisting}
+
     \end{itemize}
-    Except for their name (\myv{AMI\_sort\_V1}) these
+    Except for their name (\lstinline|AMI_sort_V1|) these
     routines have the same syntax as the version 2 sort
-    routines \myv{AMI\_sort} (see
+    routines \lstinline|AMI_sort| (see
     Section~\ref{sec:ref-ami-sort} for details). The version
     1 routines are generally slower than the version 2
     routines. They are included in TPIE for historical
     comparison purposes.
     The current versions (version 2) of these routines can
-    be found in \myv{include/ami\_sort\_single\_dh.h}).
+    be found in \path"include/ami_sort_single_dh.h").
 
     
-    The version 1 merge sort polymorphs of
-    \myv{AMI\_sort\_V1()} are implemented using
-    \myv{AMI\_partition\_and\_merge()} and a merge
-    management object. The \myv{merge\_sort\_manager}
-    class, a base class for merge management objects needed in
-    \myv{AMI\_sort\_V1()}, is also defined in file
-    \myv{include/ami\_sort\_single.h}.  The member functions
-    \myv{main\_mem\_operate()}, \myv{initialize()},
-    and \myv{operate()} of the merge management object
-    provide the sorting-specific details required for merge
-    sorting:
+    The version 1 merge sort polymorphs of \lstinline|AMI_sort_V1()|
+    are implemented using the abovementioned method
+    \lstinline|AMI_partition_and_merge()| and a merge management
+    object. The \lstinline|merge_sort_manager| class, a base class for
+    merge management objects needed in \lstinline|AMI_sort_V1()|, is
+    also defined in file \path"include/ami_sort_single.h".  The member
+    functions \lstinline|main_mem_operate()|,
+    \lstinline|initialize()|, and \lstinline|operate()| of the merge
+    management object provide the sorting-specific details required
+    for merge sorting:
     \begin{itemize}
-        \item \myv{main\_mem\_operate()} is simply an
+        \item \lstinline|main_mem_operate()| is simply an
         in-memory sorting algorithm based on quicksort (in
-        file \myv{quicksort.h}).
+        file \path"include/quicksort.h").
         
-        \item Member function \myv{operate()} selects the
+        \item Member function \lstinline|operate()| selects the
         next output element during the merging of runs using
         a standard priority queue (in file
-        \myv{pqueue\_heap.h}).
+        \path"include/pqueue_heap.h").
         
-        \item Member function \myv{initialize()} just
+        \item Member function \lstinline|initialize()| just
         initializes this priority queue.\comment{LA: extend/rewrite?}
     \end{itemize}
     
-    \item \myv{include/ami\_optimized\_sort.h}: Contains
+    \item \path"include/ami_optimized_sort.h": Contains
     beta test versions of some of the sorting methods now
-    accessed via file \myv{include/apm\_dh.h} (see below for
+    accessed via file \path"include/apm_dh.h" (see below for
     details).
 
-    \item \myv{include/apm\_dh.h}: Described in detail below.
+    \item \path"include/apm_dh.h": Described in detail below.
 
-    \item \myv{include/ami\_sort\_single\_dh.h}: Described in detail below.
+    \item \path"include/ami_sort_single_dh.h": Described in detail below.
 
 \end{enumerate}
 
-\subsubsection{File: \myv{include/ami\_sort\_single\_dh.h}}
+\subsubsection{File: \texttt{include/ami\_sort\_single\_dh.h}}
      
 This file contains the templates for the TPIE sort routines,
 as described in Section~\ref{sec:ref-ami-sort}.  The
-\myv{AMI\_sort} and \myv{AMI\_ptr\_sort} templates are:
-\begin{verbatim}
-AMI_err AMI_sort     ( AMI_STREAM<T> *, AMI_STREAM<T> *, sort_manager & );
-AMI_err AMI_ptr_sort ( AMI_STREAM<T> *, AMI_STREAM<T> *, sort_manager & );
-\end{verbatim}
+\lstinline|AMI_sort| and \lstinline|AMI_ptr_sort| templates are:
+\begin{lstlisting}
+AMI_err AMI_sort     (AMI_STREAM<T>*, AMI_STREAM<T>*, sort_manager &);
+AMI_err AMI_ptr_sort (AMI_STREAM<T>*, AMI_STREAM<T>*, sort_manager &);
+\end{lstlisting}
 
-The \myv{AMI\_key\_sort} template is:
-\begin{verbatim}
-AMI_err AMI_key_sort ( AMI_STREAM<T> *, AMI_STREAM<T> *, KEY, sort_manager & );
-\end{verbatim}
+The \lstinline|AMI_key_sort| template is:
+\begin{lstlisting}
+AMI_err AMI_key_sort (AMI_STREAM<T>*, AMI_STREAM<T>*, 
+                      KEY, sort_manager &);
+\end{lstlisting}
 
 Please refer to Section~\ref{sec:ref-ami-sort} for details
 of these templates.
 In all cases the first two arguments are input and output
-streams. The \myv{sort\_manager} object is customized for
+streams. The \lstinline|sort_manager| object is customized for
 the particular sorting options implied by the template that
 is used. All of these templates invoke
-\myv{AMI\_partition\_and\_merge\_dh} (see file
-\myv{include/apm\_dh.h} below for details) and pass their
+\lstinline|AMI_partition_and_merge_dh| (see file
+\path"include/apm_dh.h" below for details) and pass their
 customized sort management object to indicate the specific
 details or options required.
 
@@ -1342,74 +1346,74 @@ details or options required.
 
     \begin{itemize}
         
-        \item class \myv{sort\_manager} is a base class for
+        \item class \lstinline|sort_manager| is a base class for
         sort management objects. It is inherited by the
         following sort management classes, which are also
-        defined in \myv{include/ami\_sort\_single\_dh.h}:
+        defined in \path"include/ami_sort_single_dh.h":
 
-        \item \myv{sort\_manager\_op}: used by the operator
-        variant of the \myv{AMI\_sort} and \myv{AMI\_ptr\_sort} templates.
+        \item \lstinline|sort_manager_op|: used by the operator
+        variant of the \lstinline|AMI_sort| and \lstinline|AMI_ptr_sort| templates.
         
-        \item \myv{sort\_manager\_obj}: used by the
-        comparison object variant of the \myv{AMI\_sort}
-        and \myv{AMI\_ptr\_sort} templates.\comment{DH:
+        \item \lstinline|sort_manager_obj|: used by the
+        comparison object variant of the \lstinline|AMI_sort|
+        and \lstinline|AMI_ptr_sort| templates.\comment{DH:
            ``comparison object'' should be called
            ``comparison management object''}
         
-        \item \myv{sort\_manager\_cmp}: used by the
-        comparison function variant of the \myv{AMI\_sort} and
-        \myv{AMI\_ptr\_sort} templates.
+        \item \lstinline|sort_manager_cmp|: used by the
+        comparison function variant of the \lstinline|AMI_sort| and
+        \lstinline|AMI_ptr_sort| templates.
 
-%        \item \myv{sort\_manager\_kop}: used by the operator
-%        variant of the \myv{AMI\_ptr\_sort} template.
+%        \item \lstinline|sort_manager_kop|: used by the operator
+%        variant of the \lstinline|AMI_ptr_sort| template.
 %
-%        \item \myv{sort\_manager\_kobj}: used by the
+%        \item \lstinline|sort_manager_kobj|: used by the
 %        comparison function variant of the
-%        \myv{AMI\_ptr\_sort} template.
+%        \lstinline|AMI_ptr_sort| template.
         
-        \item \myv{sort\_manager\_kcmp}: used by the
-        \myv{AMI\_key\_sort} template (which uses a
+        \item \lstinline|sort_manager_kcmp|: used by the
+        \lstinline|AMI_key_sort| template (which uses a
         comparison object).
     \end{itemize}
 
-All \myv{sort\_manager} objects contain the following
+All \lstinline|sort_manager| objects contain the following
 member functions:
 \begin{itemize}
-    \item member function \myv{sort\_fits\_in\_memory},
+    \item member function \lstinline|sort_fits_in_memory|,
     which returns TRUE if there is sufficient internal
     memory to sort the input stream without external
     merging.
     
-    \item member function \myv{main\_mem\_operate\_init},
+    \item member function \lstinline|main_mem_operate_init|,
     which initializes any internal memory data structures
     needed for internal sorting (e.g. an array of pointers
-    in the case of \myv{AMI\_ptr\_sort} and an array of keys
-    in the case of \myv{AMI\_key\_sort}).
+    in the case of \lstinline|AMI_ptr_sort| and an array of keys
+    in the case of \lstinline|AMI_key_sort|).
     
-    \item member function \myv{main\_mem\_operate}, which
+    \item member function \lstinline|main_mem_operate|, which
     performs an internal sort of the appropriate type (e.g.
     quicksort of records, quicksort of pointers to records,
     or quicksort of keys)
     
-    \item member function \myv{main\_mem\_operate\_cleanup},
-    which cleans up after \myv{main\_mem\_operate} (e.g.
+    \item member function \lstinline|main_mem_operate_cleanup|,
+    which cleans up after \lstinline|main_mem_operate| (e.g.
     frees the data structures used after an internal memory
     sort).
     
-    \item member function \myv{single\_merge}, which merges
+    \item member function \lstinline|single_merge|, which merges
     a set of input streams into an output stream. This
-    resolves to a call to \myv{AMI\_single\_merge\_dh} in
+    resolves to a call to \lstinline|AMI_single_merge_dh| in
     all cases. However the merge heap object used in that
     call is customized according to which sort template was
     invoked by the application programmer.
 
 \end{itemize}
 
-All \myv{sort\_manager} objects also contain a
+All \lstinline|sort_manager| objects also contain a
 \emphd{merge heap} object, which is custom-chosen by the
 particular sort template selected by the application
 programmer. The merge heap classes are defined in file
-\myv{include/mergeheap\_dh.h}. The following table shows the
+\path"include/mergeheap_dh.h". The following table shows the
 class of sort management object and merge heap object used
 for each sorting template and variant:
 \begin{figure}
@@ -1422,87 +1426,87 @@ for each sorting template and variant:
 Sorting  & Comparison & Class of Sort & Class of Merge \\
 Template & Variant    & Mgmt Object   & Mgmt Object    \\
 \hline
-\myv{AMI\_sort} & operator & \myv{sort\_manager\_op} & \myv{merge\_heap\_dh\_op} \\
-\myv{AMI\_sort} & object   & \myv{sort\_manager\_obj} & \myv{merge\_heap\_dh\_obj} \\
-\myv{AMI\_sort} & function & \myv{sort\_manager\_cmp} & \myv{merge\_heap\_dh\_cmp} \\
-\myv{AMI\_ptr\_sort} & operator & \myv{sort\_manager\_op} & \myv{merge\_heap\_pdh\_op} \\
-\myv{AMI\_ptr\_sort} & object   & \myv{sort\_manager\_obj} & \myv{merge\_heap\_pdh\_obj} \\
-\myv{AMI\_ptr\_sort} & function & \myv{sort\_manager\_cmp} &
-\myv{merge\_heap\_pdh\_cmp} \\
-\myv{AMI\_key\_sort} &   & \myv{sort\_manager\_kobj} & \myv{merge\_heap\_dh\_kobj} \\
+\lstinline|AMI_sort| & operator & \lstinline|sort_manager_op| & \lstinline|merge_heap_dh_op| \\
+\lstinline|AMI_sort| & object   & \lstinline|sort_manager_obj| & \lstinline|merge_heap_dh_obj| \\
+\lstinline|AMI_sort| & function & \lstinline|sort_manager_cmp| & \lstinline|merge_heap_dh_cmp| \\
+\lstinline|AMI_ptr_sort| & operator & \lstinline|sort_manager_op| & \lstinline|merge_heap_pdh_op| \\
+\lstinline|AMI_ptr_sort| & object   & \lstinline|sort_manager_obj| & \lstinline|merge_heap_pdh_obj| \\
+\lstinline|AMI_ptr_sort| & function & \lstinline|sort_manager_cmp| &
+\lstinline|merge_heap_pdh_cmp| \\
+\lstinline|AMI_key_sort| &   & \lstinline|sort_manager_kobj| & \lstinline|merge_heap_dh_kobj| \\
 \hline
 \end{tabular}}
 \caption{\plabel{fig:imp-sort-variants} Customization of Arguments
-   to \myv{AMI\_partition\_and\_merge\_dh}.}
+   to \lstinline|AMI_partition_and_merge_dh|.}
 \end{minipage}
 \end{center}
 \end{figure}
 
 
-\subsubsection{File: \myv{include/apm\_dh.h}}
+\subsubsection{File: \texttt{include/apm\_dh.h}}
 
 This file contains code for the following templates:
 \begin{itemize}
     
     \item
-\begin{verbatim}
+\begin{lstlisting}
 template < class T, class M>
 AMI_err AMI_single_merge_dh ( AMI_STREAM <T> **instreams,
                               arity_t arity,
                               AMI_STREAM <T> *outstream.
                               M MergeHeap );
-\end{verbatim}
-    Function: Merge an array \noiv{*instreams} of \noiv{arity} input
+\end{lstlisting}
+    Function: Merge an array \lstinline|*instreams| of \lstinline|arity| input
     streams using the services of merge heap object
-    \noiv{Mergeheap}, to create the output stream
-    \noiv{*outstream}.
+    \lstinline|Mergeheap|, to create the output stream
+    \lstinline|*outstream|.
     
     \item
-\begin{verbatim}
+\begin{lstlisting}
 template < class T, class M>
 AMI_err AMI_partition_and_merge_dh ( AMI_STREAM <T> *instream,
                                      AMI_STREAM <T> *outstream.
                                      M mgmt_obj );
-\end{verbatim}
-    Function: Cut the input stream \noiv{*instream} into pieces that
-    fit into memory, \myv{operate} on each of them (e.g.sort
+\end{lstlisting}
+    Function: Cut the input stream \lstinline|*instream| into pieces that
+    fit into memory, \lstinline|operate| on each of them (e.g.sort
     them) internally, and recursively merge them as memory
     permits until only a single output stream
-    \noiv{*outstream} remains.
+    \lstinline|*outstream| remains.
 \end{itemize}
 
 \noindent
-Template \myv{AMI\_partition\_and\_merge\_dh} is invoked directly by
+Template \lstinline|AMI_partition_and_merge_dh| is invoked directly by
 the user-callable sort templates. Its sort management object
-\noiv{mgmt\_obj} contains the following:
+\lstinline|mgmt_obj| contains the following:
 \begin{itemize}
     \item a merge heap object, selected by the particular
     sorting template invoked by the application programmer,
     and instantiated from one of the classes defined in file
-    \myv{include/mergeheap\_dh.h}.
+    \path"include/mergeheap_dh.h".
     
-    \item member function \myv{sort\_fits\_in\_memory}
+    \item member function \lstinline|sort_fits_in_memory|
     returns TRUE if there is sufficient internal memory to
     sort the input stream without external merging.
 
-    \item member function \myv{main\_mem\_operate\_init}
+    \item member function \lstinline|main_mem_operate_init|
     initializes any internal memory data structures needed
     for internal sorting (e.g. an array of pointers in the
-    case of \myv{AMI\_ptr\_sort} and an array of keys in the case
-    of \myv{AMI\_key\_sort}).
+    case of \lstinline|AMI_ptr_sort| and an array of keys in the case
+    of \lstinline|AMI_key_sort|).
 
-    \item member function \myv{main\_mem\_operate} performs
+    \item member function \lstinline|main_mem_operate| performs
     an internal sort of the appropriate type (e.g. quicksort
     of records, quicksort of pointers to records, or
     quicksort of keys)
     
-    \item member function \myv{main\_mem\_operate\_cleanup}
-    cleans up after \myv{main\_mem\_operate} (e.g. frees the
+    \item member function \lstinline|main_mem_operate_cleanup|
+    cleans up after \lstinline|main_mem_operate| (e.g. frees the
     data structures used after an internal memory sort).
 
-    \item member function \myv{single\_merge} merges a set
+    \item member function \lstinline|single_merge| merges a set
     of input streams into an output stream. This resolves
-    to a call to \myv{AMI\_single\_merge\_dh} in all
+    to a call to \lstinline|AMI_single_merge_dh| in all
     cases. However the merge heap object used in that call
     is customized according to which sort template was invoked by
     the application programmer.
@@ -1510,39 +1514,39 @@ the user-callable sort templates. Its sort management object
 \end{itemize} 
 
 The merge sorting algorithm used by
-\myv{AMI\_partition\_and\_merge\_dh} is outlined below:
+\lstinline|AMI_partition_and_merge_dh| is outlined below:
 
-\step{1.} {If \myv{sort\_fits\_in\_memory}
-    \step{(a.)} { \myv{main\_mem\_operate\_init} }
-    \step{(b.)} { \myv{main\_mem\_operate} }
-    \step{(c.)} { \myv{main\_mem\_operate\_cleanup} }}
+\step{1.} {If \lstinline|sort_fits_in_memory|
+    \step{(a.)} { \lstinline|main_mem_operate_init| }
+    \step{(b.)} { \lstinline|main_mem_operate| }
+    \step{(c.)} { \lstinline|main_mem_operate_cleanup| }}
 \step{}{else
     \step{2.}{ Partition the input into memoryloads, sort
     each one using 
-    \step{(a.)} { \myv{main\_mem\_operate\_init} }
-    \step{(b.)} { \myv{main\_mem\_operate} }
-    \step{(c.)} { \myv{main\_mem\_operate\_cleanup} }
+    \step{(a.)} { \lstinline|main_mem_operate_init| }
+    \step{(b.)} { \lstinline|main_mem_operate| }
+    \step{(c.)} { \lstinline|main_mem_operate_cleanup| }
     and write them out into separate streams.
     \step{3.} { If sorting can be completed by a single
     pass of external merging, then do so using
-       \step{(a.)} { \myv{single\_merge} }}
+       \step{(a.)} { \lstinline|single_merge| }}
     \step{4.} { Recursively merge as many streams as memory
     constraints allow, using
-       \step{(a.)} { \myv{single\_merge} }
+       \step{(a.)} { \lstinline|single_merge| }
     until only a single output stream remains.}}}
 
-One important difference between the \myv{AMI\_sort\_V1()}
-and the \myv{AMI\_sort()}, \myv{AMI\_ptr\_sort()}, and
-\myv{AMI\_key\_sort()} implementations is in the way they
+One important difference between the \lstinline|AMI_sort_V1()|
+and the \lstinline|AMI_sort()|, \lstinline|AMI_ptr_sort()|, and
+\lstinline|AMI_key_sort()| implementations is in the way they
 store the (sub-) streams to be merged after the initial
 in-memory sorting is performed. The number, say $R$, of
 streams (files) being merged together at any time is the maximum
 possible for the amount of memory available. In contrast to
-the \myv{AMI\_sort\_V1()} implementations which only have
+the \lstinline|AMI_sort_V1()| implementations which only have
 two streams (files) active at any time with the $R$ substreams
 stored 'inside' them, the newer implementations have $R$
 files active. While the $R$ sub-streams sent
-for merging by the \myv{AMI\_sort()} function all have
+for merging by the \lstinline|AMI_sort()| function all have
 the same parent stream (file), the $R$ sub-streams sent for merging
 by the new implementations all reside in different parent
 streams (files). Thus, each stream (file) involved is accessed in a
@@ -1555,61 +1559,61 @@ streams (files).\comment{LA: This section really needs to be
 
 % One final difference between the two sorting algorithm
 % implementation is that during the initial main memory sort
-% the \myv{AMI\_optimized\_sort()} polymorph which relies
+% the \lstinline|AMI_optimized_sort()| polymorph which relies
 % on the objects having a special key field first extracts the
 % keys from the objects and sorts them to obtain the order of
 % the objects in memory. The full objects are then permuted to
 % reflect this order. Again this result in improved efficiency
 % if the keys are much smaller than the objects.
 
-% As the \myv{AMI\_sort()} polymorphs are based on
-% \myv{AMI\_partition\_and\_merge()} which in turn are
-% based on \myv{AMI\_merge()} and a merge management
-% object, the \myv{AMI\_optimized\_sort()} polymorphs are
-% based on the \myv{AMI\_merge()} polymorphs that do not
+% As the \lstinline|AMI_sort()| polymorphs are based on
+% \lstinline|AMI_partition_and_merge()| which in turn are
+% based on \lstinline|AMI_merge()| and a merge management
+% object, the \lstinline|AMI_optimized_sort()| polymorphs are
+% based on the \lstinline|AMI_merge()| polymorphs that do not
 % use a standard (as described in
 % Section~\ref{sec:ref-ami-merge}) TPIE merge management
-% object. Thus \myv{AMI\_optimized\_sort()} benefits from
+% object. Thus \lstinline|AMI_optimized_sort()| benefits from
 % the efficiency improvement obtained in
-% \myv{AMI\_optimized\_merge()} relative to
-% \myv{AMI\_merge()}. \myv{AMI\_optimized\_sort()} is a
+% \lstinline|AMI_optimized_merge()| relative to
+% \lstinline|AMI_merge()|. \lstinline|AMI_optimized_sort()| is a
 % merge sort implemented along the lines of
-% \myv{AMI\_partition\_and\_merge()} (in fact the
-% implementation of \myv{AMI\_optimized\_sort()} really is
-% an \myv{AMI\_partition\_and\_merge()} polymorphs defined
-% in the file \myv{ami\_optimized\_merge.h}).
+% \lstinline|AMI_partition_and_merge()| (in fact the
+% implementation of \lstinline|AMI_optimized_sort()| really is
+% an \lstinline|AMI_partition_and_merge()| polymorphs defined
+% in the file \lstinline|ami_optimized_merge.h").
 
-\subsubsection{File: \myv{include/mergeheap\_dh.h}}
+\subsubsection{File: \texttt{include/mergeheap\_dh.h}}
 
 This file defines the following classes:
 \begin{itemize}
-    \item \myv{merge\_heap\_dh\_op}
-    \item \myv{merge\_heap\_dh\_cmp}
-    \item \myv{merge\_heap\_dh\_obj}
-    \item \myv{merge\_heap\_pdh\_op}
-    \item \myv{merge\_heap\_pdh\_cmp}
-    \item \myv{merge\_heap\_pdh\_obj}
-    \item \myv{merge\_heap\_dh\_kobj}
+    \item \lstinline|merge_heap_dh_op|
+    \item \lstinline|merge_heap_dh_cmp|
+    \item \lstinline|merge_heap_dh_obj|
+    \item \lstinline|merge_heap_pdh_op|
+    \item \lstinline|merge_heap_pdh_cmp|
+    \item \lstinline|merge_heap_pdh_obj|
+    \item \lstinline|merge_heap_dh_kobj|
 \end{itemize}
 
 Each of the above classes implements the following member
 functions:
 \begin{itemize}
-    \item \myv{allocate}: Allocates space for the heap.
-    \item \myv{insert}: Inserts (copies) an element into
+    \item \lstinline|allocate|: Allocates space for the heap.
+    \item \lstinline|insert|: Inserts (copies) an element into
     the heap array.
-    \item \myv{deallocate}: Deallocates the space used by the heap.
-    \item \myv{initialize}: Makes the heap array into a heap
+    \item \lstinline|deallocate|: Deallocates the space used by the heap.
+    \item \lstinline|initialize|: Makes the heap array into a heap
     by repeatedly calling internal member function
-    \myv{Heapify}.\footnote{%
+    \lstinline|Heapify|.\footnote{%
        See \cite{cormen:introduction} for more details if
        required.}
-    \item \myv{get\_min\_run\_id}: Returns the number of the
+    \item \lstinline|get_min_run_id|: Returns the number of the
     run which has the smallest element in the heap.
-    \item \myv{delete\_min\_and\_insert}: Replaces the
+    \item \lstinline|delete_min_and_insert|: Replaces the
     smallest item in the heap with a new element  and
     re-heapifies the heap.
-    \item \myv{sizeofheap}: Returns the number of elements
+    \item \lstinline|sizeofheap|: Returns the number of elements
     in the heap.
 \end{itemize}
 
@@ -1683,8 +1687,9 @@ functions:
 
 \index{access method interface|)}
 
-
+%%%
 %%% Local Variables: 
 %%% mode: latex
-%%% TeX-master: t
+%%% TeX-master: "tpie"
 %%% End: 
+%%%

@@ -1,5 +1,5 @@
 %%
-%% $Id: definitions.tex,v 1.4 2002-08-30 03:26:00 tavi Exp $
+%% $Id: definitions.tex,v 1.5 2003-11-27 19:55:56 jan Exp $
 %%
 
 \hbadness=10000
@@ -23,19 +23,28 @@
 %\newcommand{\plabel}[1]{{\tiny #1}\label{#1}}
 \newcommand{\plabel}[1]{\label{#1}}
 
-% use this instead of \verb, which is not allowed as parameter [tavi]
-%app_config@{\tt app\_config.h}}
-%\newcommand{\myverb}[1]{\texttt{#1}\index{#1@{\tt #1}}}
-%\newcommand{\myv}[1]{\texttt{#1}\index{#1@{\tt #1}}}
-\newcommand{\myverb}[1]{\noiv{#1}\index{#1@{\small\tt #1}}}
-\newcommand{\myv}[1]   {\noiv{#1}\index{#1@{\small\tt #1}}}
+%%%
+%%%  The following macros are obsolete due to switching to
+%%%  the listings package
+%%% 
 
-% use this instead of \myverb if you don't want its
-% parameter in the index
-%\newcommand{\noiverb}[1]{\texttt{#1}}
-%\newcommand{\noiv}[1]{\texttt{#1}}
-\newcommand{\noiverb}[1]{{\small \tt #1}}
-\newcommand{\noiv}[1]{{\small \tt #1}}
+%% % use this instead of \verb, which is not allowed as parameter [tavi]
+%% %app_config@{\tt app\_config.h}}
+%% %\newcommand{\myverb}[1]{\texttt{#1}\index{#1@{\tt #1}}}
+%% %\newcommand{\myv}[1]{\texttt{#1}\index{#1@{\tt #1}}}
+%% %%\newcommand{\myverb}[1]{\noiv{#1}\index{#1@{\small\tt #1}}}
+%%\newcommand{\myv}[1]   {\noiv{#1}\index{#1@{\small\tt #1}}}
+
+%% % use this instead of \myverb if you don't want its
+%% % parameter in the index
+%% %\newcommand{\noiverb}[1]{\texttt{#1}}
+%% %\newcommand{\noiv}[1]{\texttt{#1}}
+%% \newcommand{\noiverb}[1]{{\small \tt #1}}
+%% \newcommand{\noiv}[1]{{\small \tt #1}}
+
+%%%
+%%% End
+%%% 
 
 % emphasize and put into index
 \newcommand{\emphd}[1]{\emph{#1}\index{#1}}
@@ -44,21 +53,30 @@
 \newcommand{\step}[2] {\begin{enumerate}\item[#1]#2\end{enumerate}}
 
 % for the reference manual [tavi]
-\newcommand{\entry}[2]{\> \parbox[t]{6.3in}{\tt #1}\\ \>\>\parbox[t]{5.5in}{#2}\\[3mm]}
+\newcommand{\entry}[2]{\> \parbox[t]{6.3in}{{\ttfamily #1}}\\ \>\>\parbox[t]{5.5in}{#2}\\[3mm]}
 \newcommand{\btabb}{\begin{tabbing} \hspace*{.3in} \= \hspace{.5in}\=\\ }
 \newcommand{\etabb}{\end{tabbing}\vspace*{-12mm}}
 
-\makeatletter    % '@' is now a normal letter for TeX
-% this makes verbatim text smaller and indented [tavi]
-\def\verbatim@startline{\small%
-  \def\verbatim@startline{\hspace*{5mm}\verbatim@line{}}%
-  \verbatim@startline}
-% remove some space before the text
-\addto@hook\every@verbatim{\vspace*{-1mm}}
-% remove some space after the text
-\def\verbatim@finish{\def\verbatim@finish{\ifcat$\the\verbatim@line$\else%
-  \verbatim@processline\fi}\vspace*{-4mm}\verbatim@finish}
-\makeatother    % '@' is restored as a non-letter character
+%%%
+%%%  The following macros are obsolete due to switching to
+%%%  the listings package
+%%% 
+
+%% \makeatletter    % '@' is now a normal letter for TeX
+%% % this makes verbatim text smaller and indented [tavi]
+%% \def\verbatim@startline{\small%
+%%   \def\verbatim@startline{\hspace*{5mm}\verbatim@line{}}%
+%%   \verbatim@startline}
+%% % remove some space before the text
+%% \addto@hook\every@verbatim{\vspace*{-1mm}}
+%% % remove some space after the text
+%% \def\verbatim@finish{\def\verbatim@finish{\ifcat$\the\verbatim@line$\else%
+%%  \verbatim@processline\fi}\vspace*{-4mm}\verbatim@finish}
+%% \makeatother    % '@' is restored as a non-letter character
+
+%%%
+%%% End
+%%% 
 
 % normal margins for US-size paper
 \setlength{\topmargin}{-.5in}   
@@ -107,3 +125,37 @@
 
 \newcommand{\tobewritten}{\vspace{\baselineskip}$<$TO BE WRITTEN$>$\vspace{\baselineskip}}
 \newcommand{\tobeextended}{\vspace{\baselineskip}$<$TO BE EXTENDED$>$\vspace{\baselineskip}}
+
+%%%
+%%% Setup for printing C++ code using the listings package
+%%% 
+
+\DeclareFontShape{OT1}{cmtt}{bx}{n}
+     {<5><6><7><8>cmbtt8%
+      <9>cmbtt9%
+      <10><10.95>cmbtt10%
+      <12><14.4><17.28><20.74><24.88>cmbtt10%
+      }{}
+
+\lstset{language=[ANSI]C++}
+\lstset{basicstyle=\ttfamily}
+\lstset{showstringspaces=false}
+\lstset{numbers=none}
+\lstset{numberstyle=\tiny}
+\lstset{stepnumber=10}
+\lstset{captionpos=b}
+
+\makeatletter
+\providecommand{\toclevel@lstlisting}{1}
+\makeatother
+
+\newcommand{\CPP}{\texttt{C++}}
+
+%%%
+%%% End
+%%%
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "tpie"
+%%% End: 
