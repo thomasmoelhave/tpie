@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/12/94
 //
-// $Id: tpie_log.h,v 1.2 1994-05-18 18:50:16 dev Exp $
+// $Id: tpie_log.h,v 1.3 1994-05-27 19:36:42 dev Exp $
 //
 #ifndef _TPIE_LOG_H
 #define _TPIE_LOG_H
@@ -63,6 +63,8 @@ void init_tpie_logs(void);
 #define LOG_OS_ERROR(msg) 
 #define LOG_DATA_ERROR(msg) 
 #define LOG_INFO(msg) 
+
+#define LOG_FLUSH_LOG {}
 
 #endif // TPL_LOGGING
 
