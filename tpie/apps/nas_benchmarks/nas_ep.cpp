@@ -5,7 +5,7 @@
 // Created: 3/22/95
 //
 
-static char nas_ep_id[] = "$Id: nas_ep.cpp,v 1.1 1995-03-25 20:56:51 dev Exp $";
+static char nas_ep_id[] = "$Id: nas_ep.cpp,v 1.2 1995-05-02 00:56:48 dev Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -309,8 +309,13 @@ int main(int argc, char **argv)
         ae = AMI_scan(&amis_r, rptr);
     }
 
-    // Scan the stream, evaluating pairs and producing independent gaussian
-    // deviates for acceptable pairs.
+    // Make the streams read once so they give up their blocks if the
+    // OS supports it.
+
+    amis_r.persist(PERSIST_READ_ONCE);
+
+    // Scan the stream, evaluating pairs and producing independent
+    // gaussian deviates for acceptable pairs.
 
     AMI_STREAM<double> amis_x((unsigned int)1, test_size);
     AMI_STREAM<double> amis_y((unsigned int)1, test_size);
