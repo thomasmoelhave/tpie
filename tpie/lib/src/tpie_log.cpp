@@ -6,7 +6,10 @@
 //
 
 
-static char tpie_log_id[] = "$Id: tpie_log.cpp,v 1.1 1994-05-12 21:00:02 dev Exp $";
+static char tpie_log_id[] = "$Id: tpie_log.cpp,v 1.2 1994-05-17 18:18:29 dev Exp $";
+
+// We are logging
+#define TPL_LOGGING	1
 
 #include <tpie_log.h>
 
