@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 1/11/95
 //
-// $Id: cpu_timer.h,v 1.1 1995-03-07 15:01:54 darrenv Exp $
+// $Id: cpu_timer.h,v 1.2 1995-03-25 14:08:33 darrenv Exp $
 //
 #ifndef _CPU_TIMER_H
 #define _CPU_TIMER_H
@@ -18,6 +18,7 @@
 class cpu_timer : public timer
 {
 private:
+    long clock_tick;
     tms last_sync;
     tms elapsed;
     clock_t last_sync_real;
