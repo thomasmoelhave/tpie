@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 11/4/94
 //
-// $Id: bit_matrix.h,v 1.7 1999-05-02 18:48:05 tavi Exp $
+// $Id: bit_matrix.h,v 1.8 1999-07-05 20:24:54 rajiv Exp $
 //
 #ifndef _BIT_MATRIX_H
 #define _BIT_MATRIX_H
@@ -18,9 +18,8 @@
 // typedef matrix<bit> bit_matrix_0;
 
 class bit_matrix : public matrix<bit> {
-private:
-    bit_matrix::bit_matrix(matrix<bit> &mb);
 public:
+    bit_matrix::bit_matrix(matrix<bit> &mb);
     bit_matrix(unsigned int rows, unsigned int cols);
     virtual ~bit_matrix(void);
 
