@@ -3,16 +3,13 @@
 // Author: Octavian Procopiuc <tavi@cs.duke.edu>
 //         (from Darren's ami_base.h)
 // Created: 12/29/01
-// $Id: ami_err.h,v 1.2 2003-04-17 12:18:38 jan Exp $
+// $Id: ami_err.h,v 1.3 2003-04-20 22:54:34 tavi Exp $
 //
 // AMI error codes, moved here from ami_base.h
 //
 
 #ifndef _AMI_ERR_H
 #define _AMI_ERR_H
-
-// Get definitions for working with Unix and Windows
-#include <portability.h>
 
 // AMI error codes are returned using the AMI_err type.
 enum AMI_err {
