@@ -5,20 +5,8 @@
 // Created: 1/9/95
 //
 
-static char bit_matrix_id[] = "$Id: bit_matrix.cpp,v 1.9 1999-11-23 17:29:59 tavi Exp $";
-
-// This is just to avoid an error message since the string above is never
-// referenced.  Note that a self referential structure must be defined to
-// avoid passing the problem further.
-static struct ___bit_matrix_id_compiler_fooler {
-    char *pc;
-    ___bit_matrix_id_compiler_fooler *next;
-} the___bit_matrix_id_compiler_fooler = {
-    bit_matrix_id,
-    &the___bit_matrix_id_compiler_fooler
-};
-
-
+#include <versions.h>
+VERSION(bit_matrix_cpp,"$Id: bit_matrix.cpp,v 1.10 2000-01-10 22:27:11 hutchins Exp $");
 
 #include <bit_matrix.h>
 
