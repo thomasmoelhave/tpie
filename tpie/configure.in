@@ -4,13 +4,13 @@ dnl File: configure.in
 dnl Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 dnl Created: 10/13/94
 dnl 
-dnl $Id: configure.in,v 1.3 1994-11-03 15:32:08 darrenv Exp $
+dnl $Id: configure.in,v 1.4 1994-11-03 15:51:37 dev Exp $
 dnl
 dnl Macro file for autoconfig for the TPIE system.
 dnl 
 AC_INIT(include/ami.h)
 AC_CONFIG_HEADER(include/config.h)
-AC_REVISION($Revision: 1.3 $)dnl
+AC_REVISION($Revision: 1.4 $)dnl
 AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_CXX
@@ -40,6 +40,7 @@ dnl becomes foo__Fv).
 AC_LANG_C
 AC_HAVE_FUNCS(mmap getrusage)
 AC_LANG_CPLUSPLUS
+AC_HAVE_HEADERS(strings.h,string.h)
 dnl
 dnl A macro for searching for prototypes in header files.
 dnl Unfortunately, not all library functions have prototypes
