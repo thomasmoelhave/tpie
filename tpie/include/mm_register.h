@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/30/94
 //
-// $Id: mm_register.h,v 1.1 1994-06-03 13:28:26 dev Exp $
+// $Id: mm_register.h,v 1.2 1994-09-22 14:57:09 darrenv Exp $
 //
 #ifndef _MM_REGISTER_H
 #define _MM_REGISTER_H
@@ -41,13 +41,16 @@ public:
     MM_err register_deallocation(size_t sz);
     MM_err available(size_t *sz);
 
+    MM_err resize_heap(size_t sz);
+    
     friend class mm_register_init;
 };
 
 
 // The default amount of memory we will allow to be allocated.
 
-#define MM_DEFAULT_MM_SIZE 4194304   // 4 Meg.
+#define MM_DEFAULT_MM_SIZE (4 * 1024 * 1024)	// 4 Meg.
+
 
 // Here is the single memory management object.
 extern MM_register MM_manager;
