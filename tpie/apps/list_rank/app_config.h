@@ -4,10 +4,13 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/6/94
 //
-// $Id: app_config.h,v 1.1 1994-10-07 15:43:18 darrenv Exp $
+// $Id: app_config.h,v 1.2 1994-10-11 12:53:34 dev Exp $
 //
 #ifndef _APP_CONFIG_H
 #define _APP_CONFIG_H
+
+// for size_t
+#include <sys/types.h>
 
 // Use logs.
 #include <tpie_log.h>
