@@ -7,7 +7,7 @@
 // A test for AMI_partition_and_merge().
 
 
-static char partition_and_merge_id[] = "$Id: test_ami_pmerge.cpp,v 1.4 1994-10-04 19:06:09 darrenv Exp $";
+static char partition_and_merge_id[] = "$Id: test_ami_pmerge.cpp,v 1.5 1994-10-05 13:04:09 darrenv Exp $";
 
 // Use Owen's priority queue code.
 #define MERGE_VIA_TPQUEUE
@@ -24,6 +24,7 @@ static char partition_and_merge_id[] = "$Id: test_ami_pmerge.cpp,v 1.4 1994-10-0
 
 
 #include <stdlib.h>
+#include <sys/time.h>
 #include <sys/resource.h>
 #include <iostream.h>
 #include <fstream.h>
