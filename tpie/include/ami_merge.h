@@ -8,7 +8,7 @@
 // lower level streams will use appropriate levels of buffering.  This
 // will be more critical for parallel disk implementations.
 //
-// $Id: ami_merge.h,v 1.29 1999-12-15 22:17:46 hutchins Exp $
+// $Id: ami_merge.h,v 1.30 2000-01-12 21:00:01 hutchins Exp $
 //
 #ifndef _AMI_MERGE_H
 #define _AMI_MERGE_H
@@ -120,10 +120,8 @@ AMI_merge(AMI_STREAM<T> **instreams, arity_t arity,
   size_t sz_stream, sz_needed = 0;
   
   // How much main memory is available?
-  if (MM_manager.available(&sz_avail) != MM_ERROR_NO_ERROR) {
-    return AMI_ERROR_MM_ERROR;
-  }
-  
+  sz_avail = MM_manager.memory_available ();
+
   // Iterate through the streams, finding out how much additional
   // memory each stream will need in the worst case (the streams are
   // in memory, but their memory usage could be smaller then the
@@ -310,10 +308,8 @@ AMI_err AMI_main_mem_merge(AMI_STREAM<T> *instream,
   size_t sz_avail;
   
   // How much memory is available?
-  if (MM_manager.available(&sz_avail) != MM_ERROR_NO_ERROR) {
-    return AMI_ERROR_MM_ERROR;
-  }
-  
+  sz_avail = MM_manager.memory_available ();
+
   len = instream->stream_len();
   if ((len * sizeof(T)) <= sz_avail) {
     
@@ -388,9 +384,7 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
   int jj;
   
   //How much memory is available?
-  if (MM_manager.available(&sz_avail) != MM_ERROR_NO_ERROR) {
-    return AMI_ERROR_MM_ERROR;
-  }
+  sz_avail = MM_manager.memory_available ();
 
   // If the whole input can fit in main memory then just call
   // AMI_main_mem_merge() to deal with it by loading it once and
