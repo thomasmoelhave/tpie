@@ -1,6 +1,6 @@
 # Copyright (c) 1994 Darren Erik Vengroff
 
-# $Id: Makefile.in,v 1.13 1994-11-02 22:06:16 darrenv Exp $
+# $Id: Makefile.in,v 1.14 1994-11-03 15:31:56 darrenv Exp $
 
 # Makefile for TPIE test applications.
 
@@ -51,8 +51,12 @@ override CPPFLAGS += -I$(TPIEINC) @DEFS@
 # I've tried this on two machines, one running 1.2 and one running
 # 1.3, and had the same problem.
 
-#LDLIBS =  -L$(TPIELIBDIR) -ltpie /usr/lib/libm.a #-lm
+OSF1 := @OSF1@
+ifeq ($(OSF1),1)
+LDLIBS =  -L$(TPIELIBDIR) -ltpie /usr/lib/libm.a
+else
 LDLIBS =  -L$(TPIELIBDIR) -ltpie -lm
+endif
 
 CC = @CC@
 CCFLAGS = $(CXXFLAGS)
