@@ -1,0 +1,111 @@
+Wed Aug 31 13:44:48 1994  Darren Erik Vengroff  (darrenv@lazyboy.eecs.umich.edu)
+
+	* tpie_assert.h (TP_DEBUG_OUT): changed the name form TP_DEBUG_STR
+	
+	(tp_assert): changed to log msg by itself so it need not be a
+	string.  It can also be a sequence of items separated by <<
+	operators. 
+
+Tue Aug 30 13:17:30 1994  Darren Erik Vengroff  (darrenv@lazyboy.eecs.umich.edu)
+
+	* bte_mmb.h (map_current): Fixed a serious bug that was setting
+	current = curr_block.  This was a problem when the current block
+	was invalid but the location of the current object in the stream
+	was not at the beginning of the block, as in a newly created
+	substream.
+
+Fri Jun 10 11:46:10 1994  Darren Erik Vengroff  (dev@rhine.cs.duke.edu)
+
+	* ami_scan.h.tail: Added a template for AMI_copy_stream() to
+	scan using an identity object.
+
+Wed Jun  8 09:53:21 1994  Darren Erik Vengroff  (dev@rhine.cs.duke.edu)
+
+	* bte_mmb.h: BTE_stream_mmb is now properly declared with
+	public base class BTE_base_stream so that standard pointer
+	conversion is done.
+
+	* ami_single.h: AMI_stream_single is now properly declared with
+	public base class AMI_base_stream so that standard pointer
+	conversion is done.
+
+	* ami_scan_mac.h (__SPARM_BASE): Changed AMI_STREAM to
+	AMI_base_stream now that sub_classes of AMI_base_stream are
+	properly declared public.
+
+	* bte_imps.h: Removed erroneous comment now that sub_classes of
+	AMI_base_stream are properly declared public.
+
+	* ami_imps.h: Removed erroneous comment now that sub_classes of
+	AMI_base_stream are properly declared public.
+
+	* ami_base.h: Added enum AMI_stream_type and added a virtual
+	psuedo-constructor for substreams.
+
+Tue Jun  7 09:57:43 1994  Darren Erik Vengroff  (dev@rhine.cs.duke.edu)
+
+	* ami_single.h (read_item): Now returns AMI_ERROR_END_OF_STREAM if
+	the BTE returns BTE_ERROR_END_OF_STREAM.
+
+	* ami_merge.h (AMI_merge): Fixed bug where EOS from read_item was
+	being returned to our called.
+
+Mon Jun  6 09:50:16 1994  Darren Erik Vengroff  (dev@gypsum.cs.duke.edu)
+
+	* bte_mmb.h: Added logical block size, which can be an integral
+	multiple of os_blocksize.  It is currently specified via
+	BTE_MMB_LOGICAL_BLOCKSIZE_FACTOR, but a more elegant mechanism
+	employing an optional argument to the constructors (defaulted to a
+	reasonable value) is in the works.
+
+Fri Jun  3 14:10:41 1994  Darren Erik Vengroff  (dev@rhine.cs.duke.edu)
+
+	* bte_stdio.h: Added simple memory manager calls to register the
+	allocation and deallocation of memory for stdio streams. 
+
+Thu Jun  2 14:11:20 1994  Darren Erik Vengroff  (dev@gypsum.cs.duke.edu)
+
+	* bte_imps.h: #include <bte_stdio.h> now lower case.
+
+	* bte_mmb.h (BTE_stream_mmb): Adjusted the mode argument to
+	::open() in the case where we try to create a new file.
+
+	* tpie_log.h (LOG_DEBUG_INFO): changed TP_LOG_DEBUG to
+	TP_LOG_DEBUG_INFO to match enum.
+
+Thu Jun  2 09:20:54 1994  Darren Erik Vengroff  (dev@rhine.cs.duke.edu)
+
+	* ami.h: Now includes ami_merge.h to load the merging code.
+
+Tue May 31 20:26:25 1994  Darren Erik Vengroff  (dev@rhine)
+
+	* tpie_log.h, bte_mmb.h, bte_base_stream.h:
+	First implementation of a simple registration based memory manager.
+
+Tue May 31 09:24:24 1994  Darren Erik Vengroff  (dev@rhine.cs.duke.edu)
+
+	* bte_mmb.h (register_memory_allocation): Wrote this method as an
+	iterface to the MM.
+	(BTE_stream_mmb): Added memory registration via
+	register_memory_allocation().
+	(register_memory_deallocation): Wrote it to handle deallocation.
+
+	* bte_base_stream.h: Added a new error code
+	BTE_ERROR_MEMEORY_ERROR for reporting MM errors.
+
+Mon May 30 11:11:19 1994  Darren Erik Vengroff  (dev@rhine.cs.duke.edu)
+
+	* bte_mmb.h: Now includes the registration based memory manager.
+
+	* mm_imps.h: Created it.  For the moment it is just a shell that
+	verifies that the registration based implementation is selected.
+
+	* mm_base.h: Created it.  The MM_base_manager class is empty for
+	the moment.
+
+	* mm.h: Created it.  Modeled after ami.h
+
+	* mm_register.h: Created the basics of MM_register, a simple MM
+	class for BTE implementations that rely on the OS to allocate most
+	of their memory.
+
