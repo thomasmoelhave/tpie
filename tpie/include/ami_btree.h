@@ -3,7 +3,7 @@
 // File:    ami_btree.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_btree.h,v 1.3 2001-06-06 16:27:29 tavi Exp $
+// $Id: ami_btree.h,v 1.4 2001-06-22 00:01:51 tavi Exp $
 //
 // AMI_btree declaration and implementation.
 //
@@ -132,10 +132,10 @@ public:
   bool find(const Key& k, Value& v);
 
   // Report all values in the range determined by keys k1 and k2.
-  void range_query(const Key& k1, const Key& k2, AMI_STREAM<Value>* s);
+  size_t range_query(const Key& k1, const Key& k2, AMI_STREAM<Value>* s);
 
-  void window_query(const Key& k1, const Key& k2, AMI_STREAM<Value>* s) 
-  { range_query(k1, k2, s); }
+  size_t window_query(const Key& k1, const Key& k2, AMI_STREAM<Value>* s) 
+  { return range_query(k1, k2, s); }
 
   // Return the number of Value elements stored.
   size_t size() const { return header_.size; }
@@ -316,10 +316,10 @@ protected:
 // inserted, which results in slower queries.
 #define LEAF_ELEMENTS_SORTED 0
 
-// Determines whether previous pointers are maintained for leaves. If
+// Determines whether "previous" pointers are maintained for leaves. If
 // set to 0, these pointers are not meaningful and should not be used
 // (although space for them is allocated in the leaf). TODO: remove
-// them completely? They are harder to maintain then next pointers and
+// them completely? They are harder to maintain then "next" pointers and
 // are not used anywhere.
 #define LEAF_PREV_POINTER 0
 
@@ -797,7 +797,7 @@ AMI_BTREE::AMI_btree(const AMI_btree_params &params): header_(), params_(params)
 template <class Key, class Value, class Compare, class KeyOfValue>
 AMI_BTREE::AMI_btree(const char *base_file_name, AMI_collection_type type, 
 	     const AMI_btree_params &params):
-  header_(), params_(params), status_(AMI_BTREE_STATUS_VALID) {
+  header_(), params_(params), stats_(), kov_(), status_(AMI_BTREE_STATUS_VALID) {
 
   shared_init(base_file_name, type);
 
@@ -845,6 +845,10 @@ void AMI_BTREE::shared_init(const char* base_file_name, AMI_collection_type type
     return;
   }    
 
+  // Initialize the caches.
+  node_cache_ = new AMI_CACHE_MANAGER<AMI_BTREE_NODE*, remove_node>(params_.node_cache_size, 8);
+  leaf_cache_ = new AMI_CACHE_MANAGER<AMI_BTREE_LEAF*, remove_leaf>(params_.leaf_cache_size, 8);
+
   // Give meaningful values to parameters, if necessary.
   AMI_BTREE_LEAF *dummy_leaf = fetch_leaf(0);
   if (params_.leaf_size_max == 0 || params_.leaf_size_max > dummy_leaf->capacity())
@@ -865,10 +869,6 @@ void AMI_BTREE::shared_init(const char* base_file_name, AMI_collection_type type
   // Set the right block factor parameters for the case of an existing tree.
   params_.leaf_block_factor = pcoll_leaves_->block_factor();
   params_.node_block_factor = pcoll_nodes_->block_factor();
-
-  // Initialize the caches.
-  node_cache_ = new AMI_CACHE_MANAGER<AMI_BTREE_NODE*, remove_node>(params_.node_cache_size, 8);
-  leaf_cache_ = new AMI_CACHE_MANAGER<AMI_BTREE_LEAF*, remove_leaf>(params_.leaf_cache_size, 8);
 }
 
 
@@ -1076,7 +1076,7 @@ bool AMI_BTREE::find(const Key& k, Value& v) {
 
 //// *AMI_btree::range_query* ////
 template <class Key, class Value, class Compare, class KeyOfValue>
-void AMI_BTREE::range_query(const Key& k1, const Key& k2, AMI_STREAM<Value>* s) {
+size_t AMI_BTREE::range_query(const Key& k1, const Key& k2, AMI_STREAM<Value>* s) {
 
   Key kmin = comp_(k1, k2) ? k1: k2;
   Key kmax = comp_(k1, k2) ? k2: k1;
@@ -1085,6 +1085,7 @@ void AMI_BTREE::range_query(const Key& k1, const Key& k2, AMI_STREAM<Value>* s) 
   AMI_bid bid = find_leaf(kmin);
   AMI_BTREE_LEAF *p = fetch_leaf(bid);
   bool done = false;
+  size_t result = 0;
 
 #if  LEAF_ELEMENTS_SORTED
 
@@ -1093,10 +1094,11 @@ void AMI_BTREE::range_query(const Key& k1, const Key& k2, AMI_STREAM<Value>* s) 
   while (bid != 0 && !done) {
     while (j < p->size() && !done) {
       if (comp_(kov_(p->el[j]), kmax) || 
-	  (!comp_(kov_(p->el[j]), kmax) && 
-	   !comp_(kmax, kov_(p->el[j]))))
-	s->write_item(p->el[j]);
-      else
+	  (!comp_(kov_(p->el[j]), kmax) && !comp_(kmax, kov_(p->el[j])))) {
+	if (s != NULL)
+	  s->write_item(p->el[j]);
+	result++;
+      } else
 	done = true;
       j++;
     }
@@ -1114,8 +1116,11 @@ void AMI_BTREE::range_query(const Key& k1, const Key& k2, AMI_STREAM<Value>* s) 
   for (i = 0; i < p->size(); i++) {
     if (comp_(kov_(p->el[i]), kmax) && comp_(kmin, kov_(p->el[i])) ||
 	!comp_(kov_(p->el[i]), kmax) && !comp_(kmax, kov_(p->el[i])) ||
-	!comp_(kov_(p->el[i]), kmin) && !comp_(kmin, kov_(p->el[i])))
-      s->write_item(p->el[i]);
+	!comp_(kov_(p->el[i]), kmin) && !comp_(kmin, kov_(p->el[i]))) {
+      if (s != NULL)
+	s->write_item(p->el[i]);
+      result++;
+    }
   }
   bid = p->next();
   release_leaf(p);
@@ -1129,8 +1134,11 @@ void AMI_BTREE::range_query(const Key& k1, const Key& k2, AMI_STREAM<Value>* s) 
       pn = fetch_leaf(pnbid);
       if (comp_(kov_(pn->el[0]), kmax)) {
 	// Write all elements from p to stream s.
-	for (i = 0; i < p->size(); i++)
-	  s->write_item(p->el[i]);
+	for (i = 0; i < p->size(); i++) {
+	  if (s!= NULL)
+	    s->write_item(p->el[i]);
+	  result++;
+	}
       } else 
 	done = true;
 
@@ -1142,14 +1150,18 @@ void AMI_BTREE::range_query(const Key& k1, const Key& k2, AMI_STREAM<Value>* s) 
     // Check elements of p.
     for (i = 0; i < p->size(); i++) {
       if (comp_(kov_(p->el[i]), kmax) ||
-	  (!comp_(kov_(p->el[i]), kmax) && !comp_(kmax, kov_(p->el[i]))))
-	s->write_item(p->el[i]);
+	  (!comp_(kov_(p->el[i]), kmax) && !comp_(kmax, kov_(p->el[i])))) {
+	if (s!= NULL)
+	  s->write_item(p->el[i]);
+	result++;
+      }
     }
     release_leaf(p);
   }
 #endif
 
   empty_stack();
+  return result;
 }
 
 //// *AMI_btree::insert* ////
@@ -1438,7 +1450,9 @@ bool AMI_BTREE::underflow_node(AMI_BTREE_NODE *p) const {
 //// *AMI_btree::cutoff_leaf* ////
 template <class Key, class Value, class Compare, class KeyOfValue>
 size_t AMI_BTREE::cutoff_leaf(AMI_BTREE_LEAF *p) const {
-  return (p->bid() == header_.root_bid) ? 0 : params_.leaf_size_min - 1;
+  // Be careful how you test for the root (thanks, Andrew).
+  return (p->bid() == header_.root_bid && header_.height == 1) ? 0 
+    : params_.leaf_size_min - 1;
 }
 
 //// *AMI_btree::cutoff_node* ////
