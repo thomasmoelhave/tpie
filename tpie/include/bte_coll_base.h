@@ -4,7 +4,7 @@
 // Authors: Octavian Procopiuc <tavi@cs.duke.edu>
 //          (using some code by Rakesh Barve)
 //
-// $Id: bte_coll_base.h,v 1.2 2001-05-29 15:38:37 tavi Exp $
+// $Id: bte_coll_base.h,v 1.3 2001-06-06 16:34:44 tavi Exp $
 //
 // BTE_collection_base class and various basic definitions.
 //
@@ -170,11 +170,55 @@ protected:
 
   void create_stack();
 
-  // Common code for all new_block implementations.
-  BTE_err new_block_shared(off_t& bid);
+  // Common code for all new_block implementations. Inlined.
+  BTE_err new_block_shared(off_t& bid) {
+    // We try getting a free bid from the stack first. If there aren't
+    // any there, we will try to get one after last_block; if there are
+    // no blocks past last_block, we will ftruncate() some more blocks
+    // to the tail of the BCC and then get a free bid.
+    off_t *lbn;
+    BTE_err err;
+    if (header_.used_blocks < header_.last_block - 1) {
+      //tp_assert(freeblock_stack_ != NULL, 
+      //	"BTE_collection_ufs internal error: NULL stack pointer");
+      size_t slen = freeblock_stack_->stream_len();
+      tp_assert(slen > 0, "BTE_collection_ufs internal error: empty stack");
+      if ((err = freeblock_stack_->pop(&lbn)) != BTE_ERROR_NO_ERROR)
+	return err;
+      bid = *lbn;
+    } else {
+      tp_assert(header_.last_block <= header_.total_blocks, 
+		"BTE_collection_ufs internal error: last_block>total_blocks");
+      if (header_.last_block == header_.total_blocks) {
+	// Increase the capacity for storing blocks in the stream by 16
+	// (only by 3 the first time around to be gentle with small coll's).
+	if (header_.total_blocks == 1)
+	  header_.total_blocks += 3;
+	else
+	  header_.total_blocks += 16;
+	if (ftruncate(bcc_fd_, bid_to_file_offset(header_.total_blocks))) {
+	  LOG_FATAL_ID("Failed to ftruncate() to the new end of file.");
+	  return BTE_ERROR_OS_ERROR;
+	}             
+      } 
+      bid = header_.last_block++;
+    } 
+    return BTE_ERROR_NO_ERROR;
+  }
 
-  // Common code for all delete_block implementations.
-  BTE_err delete_block_shared(off_t bid);
+  // Common code for all delete_block implementations. Inlined.
+  BTE_err delete_block_shared(off_t bid) {
+    if (bid == header_.last_block - 1) 
+      header_.last_block--;
+    else {
+      if (freeblock_stack_ == NULL)
+	create_stack();
+      //tp_assert(freeblock_stack_ != NULL, 
+      //	"BTE_collection_ufs internal error: NULL stack pointer");
+      return freeblock_stack_->push(bid);
+    }
+    return BTE_ERROR_NO_ERROR;
+  }
 
 public:
 
