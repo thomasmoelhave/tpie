@@ -6,7 +6,7 @@
 //
 
 #include <versions.h>
-VERSION(tpie_log_cpp,"$Id: tpie_log.cpp,v 1.12 2003-04-23 07:48:34 tavi Exp $");
+VERSION(tpie_log_cpp,"$Id: tpie_log.cpp,v 1.13 2003-05-04 23:07:02 tavi Exp $");
 
 // We are logging
 #define TPL_LOGGING	1
@@ -20,20 +20,24 @@ VERSION(tpie_log_cpp,"$Id: tpie_log.cpp,v 1.12 2003-04-23 07:48:34 tavi Exp $");
 
 // Local initialization function. Create a permanent repository for the log
 // file name. Should be called only once, by theLogName() below.
-static char *__theLogName() {
+static char *__tpie_log_name() {
   static char tln[128];
   TPIE_OS_SRANDOM(time(NULL));
   strncpy(tln, tpie_tempnam(TPLOGPFX, TPLOGDIR), 128);
   return tln;
 }
 
-char *theLogName() {
-  static char *tln = __theLogName();
+char *tpie_log_name() {
+  static char *tln = __tpie_log_name();
   return tln;
 }
 
-logstream &theLog() {
-  static logstream log(theLogName(),
-                       TP_LOG_DEBUG, TP_LOG_DEBUG);
+
+logstream &tpie_log() {
+  static logstream log(tpie_log_name(), TPIE_LOG_DEBUG, TPIE_LOG_DEBUG);
   return log;
+}
+
+void tpie_log_init(TPIE_LOG_LEVEL level = TPIE_LOG_WARNING) {
+  LOG_SET_THRESHOLD(level);
 }
