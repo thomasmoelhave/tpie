@@ -7,7 +7,7 @@
 // A scan management object to write a stream of random integers.
 //
 
-static char scan_random_id[] = "$Id: scan_random.cpp,v 1.2 1997-03-20 02:38:21 vengroff Exp $";
+static char scan_random_id[] = "$Id: scan_random.cpp,v 1.3 1999-02-03 22:12:44 tavi Exp $";
 
 // Get information on the configuration to test.
 #include "app_config.h"
@@ -39,7 +39,7 @@ AMI_err scan_random::initialize(void)
     return AMI_ERROR_NO_ERROR;
 };
 
-AMI_err scan_random::operate(int *out1, AMI_SCAN_FLAG *sf)
+inline AMI_err scan_random::operate(int *out1, AMI_SCAN_FLAG *sf)
 {
     if ((*sf = (remaining-- != 0))) {
         *out1 = random();
