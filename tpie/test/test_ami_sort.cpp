@@ -6,7 +6,7 @@
 //
 // A test for AMI_sort().
 
-static char test_ami_sort_id[] = "$Id: test_ami_sort.cpp,v 1.15 1999-04-08 01:33:25 rajiv Exp $";
+static char test_ami_sort_id[] = "$Id: test_ami_sort.cpp,v 1.16 1999-07-05 18:17:41 rajiv Exp $";
 
 // This is just to avoid an error message since the string above is never
 // refereneced.  Note that a self referential structure must be defined to
@@ -150,7 +150,7 @@ main(int argc, char **argv)
     scan_random rnds(test_size,random_seed);
     
     ae = AMI_scan(&rnds, &amis0);
-	assert(ae == BTE_ERROR_NO_ERROR);
+	assert(ae == AMI_ERROR_NO_ERROR);
 
     if (verbose) {
         cout << "Wrote the random values.\n";
@@ -177,7 +177,7 @@ main(int argc, char **argv)
     
     if (report_results_random) {
         ae = AMI_scan(&amis0, rptr);
-		assert(ae == BTE_ERROR_NO_ERROR);
+		assert(ae == AMI_ERROR_NO_ERROR);
     }
 
     wt.start();
@@ -185,14 +185,14 @@ main(int argc, char **argv)
     if (kb_sort) {
         key_range range(KEY_MIN, KEY_MAX);
         ae = AMI_kb_sort(amis0, amis1, range);
-		assert(ae == BTE_ERROR_NO_ERROR);
+		assert(ae == AMI_ERROR_NO_ERROR);
     } else {
         if (use_operator) {
             ae = AMI_sort(&amis0, &amis1);
-			assert(ae == BTE_ERROR_NO_ERROR);
+			assert(ae == AMI_ERROR_NO_ERROR);
         } else {
             ae = AMI_sort(&amis0, &amis1, cc_int_cmp);
-			assert(ae == BTE_ERROR_NO_ERROR);
+			assert(ae == AMI_ERROR_NO_ERROR);
         }
     }
 	wt.stop();
@@ -209,7 +209,7 @@ main(int argc, char **argv)
     
     if (report_results_sorted) {
         ae = AMI_scan(&amis1, rpts);
-		assert(ae == BTE_ERROR_NO_ERROR);
+		assert(ae == AMI_ERROR_NO_ERROR);
     }
 
     cout << '\n';
