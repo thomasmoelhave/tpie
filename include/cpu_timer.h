@@ -3,7 +3,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 1/11/95
 //
-// $Id: cpu_timer.h,v 1.4 2003-04-17 18:52:29 jan Exp $
+// $Id: cpu_timer.h,v 1.5 2003-04-20 06:38:39 tavi Exp $
 //
 // A timer measuring user time, system time and wall clock time.  The
 // timer can be start()'ed, stop()'ed, and queried. Querying can be
@@ -15,7 +15,7 @@
 // Get definitions for working with Unix and Windows
 #include <portability.h>
 
-#include <ostream.h>
+#include <iostream>
 #include <timer.h>
 
 class cpu_timer : public timer {
@@ -41,9 +41,9 @@ public:
   double system_time();
   double wall_time();
   
-  friend ostream &operator<<(ostream &s, cpu_timer &ct);
+  friend std::ostream &operator<<(std::ostream &s, cpu_timer &ct);
 };
 
-ostream &operator<<(ostream &s, cpu_timer &ct);
+std::ostream &operator<<(std::ostream &s, cpu_timer &ct);
 
 #endif // _CPU_TIMER_H 
