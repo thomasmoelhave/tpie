@@ -9,12 +9,12 @@
 // the values it generates.
 
 
-static char nas_ep_mm_id[] = "$Id: nas_ep_mm.cpp,v 1.3 1999-07-05 06:04:17 rajiv Exp $";
+static char nas_ep_mm_id[] = "$Id: nas_ep_mm.cpp,v 1.4 2001-02-13 00:27:30 tavi Exp $";
 
 #include <iostream.h>
 #include <math.h>
 #include <cpu_timer.h>
-///#include <GetOpt.h>
+#include <string.h>
 #include <strstream.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -57,15 +57,12 @@ static bool use_array = false;
 
 void parse_args(int argc, char *argv[])
 {
-  ///GetOpt go(argc, argv, "at:");
   char c;
 
-  /// while ((c = go()) != -1) {
   optarg = NULL;
   while((c = getopt(argc, argv, "at:")) != -1) {
     switch (c) {
     case 't':
-      ///istrstream(go.optarg,strlen(go.optarg)) >> test_size;
       istrstream(optarg,strlen(optarg)) >> test_size;
       break;
     case 'a':
