@@ -3,7 +3,7 @@
 // File:    ami_btree.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_btree.h,v 1.15 2002-07-23 01:45:50 tavi Exp $
+// $Id: ami_btree.h,v 1.16 2002-07-23 20:13:52 tavi Exp $
 //
 // AMI_btree declaration and implementation.
 //
@@ -91,6 +91,12 @@ public:
   typedef Value record_t;
   typedef AMI_btree_params params_t;
 
+  // Pass-through filter for range queries.
+  class dummy_filter_t {
+  public:
+    bool operator()(const Value& v) const { return true; }
+  };
+
   // Construct an empty B-tree.
   AMI_btree(const AMI_btree_params &params = btree_params_default);
 
@@ -104,10 +110,12 @@ public:
   AMI_err sort(AMI_STREAM<Value>* in_stream, AMI_STREAM<Value>* &out_stream);
 
   // Bulk load from sorted stream.
-  AMI_err load_sorted(AMI_STREAM<Value>* stream_s, float leaf_fill = .7, float node_fill = .5);
+  AMI_err load_sorted(AMI_STREAM<Value>* stream_s, 
+		      float leaf_fill = .75, float node_fill = .6);
 
   // Bulk load from given stream. Calls sort and then load_sorted.
-  AMI_err load(AMI_STREAM<Value>* s, float leaf_fill = .7, float node_fill = .5);
+  AMI_err load(AMI_STREAM<Value>* s, 
+	       float leaf_fill = .75, float node_fill = .6);
 
   // Write all elements stored in the tree to the given stream.
   AMI_err unload(AMI_STREAM<Value>* s);
@@ -132,10 +140,18 @@ public:
   bool succ(const Key& k, Value& v);
     
   // Report all values in the range determined by keys k1 and k2.
-  size_t range_query(const Key& k1, const Key& k2, AMI_STREAM<Value>* s);
+  template<class Filter>
+  size_t range_query(const Key& k1, const Key& k2, 
+		     AMI_STREAM<Value>* s, const Filter& f);
+  size_t range_query(const Key& k1, const Key& k2, AMI_STREAM<Value>* s)
+  { return range_query(k1, k2, s, dummy_filter_t()); }
 
-  size_t window_query(const Key& k1, const Key& k2, AMI_STREAM<Value>* s) 
-  { return range_query(k1, k2, s); }
+  template<class Filter>
+  size_t window_query(const Key& k1, const Key& k2, 
+		      AMI_STREAM<Value>* s, const Filter& f) 
+  { return range_query(k1, k2, s, f); }
+  size_t window_query(const Key& k1, const Key& k2, AMI_STREAM<Value>* s)
+  { return range_query(k1, k2, s, dummy_filter_t()); }
 
   // Return the number of Value elements stored.
   size_t size() const { return header_.size; }
@@ -1260,8 +1276,10 @@ bool AMI_BTREE::succ(const Key& k, Value& v) {
 
 
 //// *AMI_btree::range_query* ////
-template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-size_t AMI_BTREE::range_query(const Key& k1, const Key& k2, AMI_STREAM<Value>* s) {
+template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL> template<class Filter>
+size_t AMI_BTREE::range_query(const Key& k1, const Key& k2, 
+			      AMI_STREAM<Value>* s, 
+			      const Filter& filter_through) {
 
   Key kmin = comp_(k1, k2) ? k1: k2;
   Key kmax = comp_(k1, k2) ? k2: k1;
@@ -1280,9 +1298,11 @@ size_t AMI_BTREE::range_query(const Key& k1, const Key& k2, AMI_STREAM<Value>* s
     while (j < p->size() && !done) {
       if (comp_(kov_(p->el[j]), kmax) || 
 	  (!comp_(kov_(p->el[j]), kmax) && !comp_(kmax, kov_(p->el[j])))) {
-	if (s != NULL)
-	  s->write_item(p->el[j]);
-	result++;
+	if (filter_through(p->el[j])) {
+	  if (s != NULL)
+	    s->write_item(p->el[j]);
+	  result++;
+	}
       } else
 	done = true;
       j++;
@@ -1302,9 +1322,11 @@ size_t AMI_BTREE::range_query(const Key& k1, const Key& k2, AMI_STREAM<Value>* s
     if (comp_(kov_(p->el[i]), kmax) && comp_(kmin, kov_(p->el[i])) ||
 	!comp_(kov_(p->el[i]), kmax) && !comp_(kmax, kov_(p->el[i])) ||
 	!comp_(kov_(p->el[i]), kmin) && !comp_(kmin, kov_(p->el[i]))) {
-      if (s != NULL)
-	s->write_item(p->el[i]);
-      result++;
+      if (filter_through(p->el[i])) {
+	if (s != NULL)
+	  s->write_item(p->el[i]);
+	result++;
+      }
     }
   }
   bid = p->next();
@@ -1320,9 +1342,11 @@ size_t AMI_BTREE::range_query(const Key& k1, const Key& k2, AMI_STREAM<Value>* s
       if (comp_(kov_(pn->el[0]), kmax)) {
 	// Write all elements from p to stream s.
 	for (i = 0; i < p->size(); i++) {
-	  if (s!= NULL)
-	    s->write_item(p->el[i]);
-	  result++;
+	  if (filter_through(p->el[i])) {
+	    if (s!= NULL)
+	      s->write_item(p->el[i]);
+	    result++;
+	  }
 	}
       } else 
 	done = true;
@@ -1336,9 +1360,11 @@ size_t AMI_BTREE::range_query(const Key& k1, const Key& k2, AMI_STREAM<Value>* s
     for (i = 0; i < p->size(); i++) {
       if (comp_(kov_(p->el[i]), kmax) ||
 	  (!comp_(kov_(p->el[i]), kmax) && !comp_(kmax, kov_(p->el[i])))) {
-	if (s!= NULL)
-	  s->write_item(p->el[i]);
-	result++;
+	if (filter_through(p->el[i])) {
+	  if (s!= NULL)
+	    s->write_item(p->el[i]);
+	  result++;
+	}
       }
     }
     release_leaf(p);
