@@ -5,7 +5,7 @@
 //
 // Definition and implementation of the AMI_block class.
 //
-// $Id: ami_block.h,v 1.3 2001-06-22 02:36:34 tavi Exp $
+// $Id: ami_block.h,v 1.4 2002-01-28 15:33:03 tavi Exp $
 //
 
 #ifndef _AMI_BLOCK_H
@@ -39,7 +39,7 @@ public:
 
   // Constructor.  Read and initialize a block with a given ID. If the
   // ID is missing or 0, a new block is created.
-  AMI_block(AMI_COLLECTION_NT<BTECOLL>* pacoll, size_t links, AMI_bid bid = 0);
+  AMI_block(AMI_collection_single<BTECOLL>* pacoll, size_t links, AMI_bid bid = 0);
 
   // Get a reference to the info field.
   I* info();
@@ -61,7 +61,7 @@ size_t AMI_block<E,I,BTECOLL>::el_capacity(size_t block_size, size_t links) {
 }
 
 template<class E, class I, class BTECOLL>
-AMI_block<E,I,BTECOLL>::AMI_block(AMI_COLLECTION_NT<BTECOLL>* pacoll, 
+AMI_block<E,I,BTECOLL>::AMI_block(AMI_collection_single<BTECOLL>* pacoll, 
 		  size_t links, AMI_bid bid):
   AMI_block_base<BTECOLL>(pacoll, bid), 
   lk((AMI_bid*)pdata_, links),
