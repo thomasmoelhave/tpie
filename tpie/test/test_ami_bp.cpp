@@ -11,13 +11,14 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_bp_cpp,"$Id: test_ami_bp.cpp,v 1.9 2003-09-12 02:21:48 jan Exp $");
+VERSION(test_ami_bp_cpp,"$Id: test_ami_bp.cpp,v 1.10 2003-09-27 07:10:42 tavi Exp $");
 
 // Get the application defaults.
 #include "app_config.h"
 
-// Define it all.
-#include <ami.h>
+
+#include <ami_scan.h>
+#include <ami_bit_permute.h>
 
 #include <ami_scan_utils.h>
 

@@ -1,7 +1,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(sample_pgm_cpp,"$Id: sample_pgm.cpp,v 1.13 2003-09-13 18:36:31 jan Exp $");	
+VERSION(sample_pgm_cpp,"$Id: sample_pgm.cpp,v 1.14 2003-09-27 07:10:42 tavi Exp $");	
 
 //Include the file that sets application configuration: It sets what
 //kind of BTE (Block Transfer Engine) to use and where applicable,
@@ -11,7 +11,7 @@ VERSION(sample_pgm_cpp,"$Id: sample_pgm.cpp,v 1.13 2003-09-13 18:36:31 jan Exp $
 #include "app_config.h"
 
 //Include the file that will allow us to use AMI_STREAMs.
-#include <ami.h>
+#include <ami_stream.h>
 
 //include "wall clock" timer that will allow us to time
 #include <wall_timer.h>
