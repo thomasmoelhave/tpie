@@ -1,5 +1,5 @@
 %%
-%% $Id: user_manual.tex,v 1.19 1999-11-20 00:36:32 hutchins Exp $
+%% $Id: user_manual.tex,v 1.20 2000-06-20 22:23:26 hutchins Exp $
 %%
 \chapter{Overview}
 
@@ -415,28 +415,25 @@ Section~\ref{sec:compiling} (see also Section~\ref{ch:samplepgmr} and
 BTE, MM somewhere around here - we talk about main memory issues in merging
 and compiling sections.}
 
-
-
-\section{C++}
-
+TPIE is written in the C++ language, and this manual assumes
+that the reader is familiar with C++.
 If you would like the use TPIE but are not familiar with the C++\index{C++}
 language, a number of good books are available. If you are familiar with
 C\index{C}, \cite{pohl:c++} is a good place to start. A more basic, but
 very comprehensive book is~\cite{deitel:c++}. Once you have mastered the
-basics, \cite{meyers:effective} an excellent source of information on
+basics, \cite{meyers:effective} is an excellent source of information on
 intermediate and advanced C++.  Finally, \cite{ellis:arm} is the definitive
 book on C++, though not necessarily the best place for new programmers to
 start.
 
-\section{External Memory Algorithms}
-\index{External memory algorithms}
-
-Even though you do not need to know any of the theoretical results on
-I/O-efficient algorithms to used TPIE, much of what is presented in the
-this tutorial (and in general in the manual) will be easilier digestible if
-you have some basis knowledge like how a theoretically optimal external
-(merge) sort algorithm works. Good reference
-are~\cite{aggarwal:input,vitter:podssurvey,arge:gisbook}.
+\index{External memory algorithms} Familiarity with the
+theoretical results on I/O-efficient algorithms is not
+necessary in order to use TPIE. However, this tutorial (and
+the rest of this manual) may be easier to follow with some
+general background information such as how a theoretically
+optimal external (merge) sort algorithm works. Good
+references 
+are~\cite{vitter:podssurvey,arge:gisbook,aggarwal:input}.
 
 
 \section{Streams}
@@ -450,7 +447,7 @@ memory. A stream is an ordered collection of objects of a particular type.
 Various paradigms of computation are defined on these streams, though the
 functional details of the computation performed within these paradigms are
 left to the TPIE programmer to specify. These details are specified using
-an {\emph operation management object},\index{operation management object}
+an {\em operation management object},\index{operation management object}
 which is an object with member functions designed to work with the
 particular paradigm being used.
 
@@ -477,6 +474,39 @@ track of the contents of the stream when data is actually put into it.
 Data is typically put into streams using \myverb{AMI\_scan()}, which is
 described in the next section.
 
+\section{Operation Management Objects}
+\label{sec:omos}\index{operation management object}
+
+TPIE provides a structure for performing a number of basic
+operations, such as scanning a stream of items, merging
+streams of items, sorting a stream of items, etc. Much of
+the application-independent work in these operations is
+handled by TPIE. The TPIE user, however, must provide the
+code for the application-dependent aspects of these
+operations via a TPIE {\em operation management object}. An
+operation management object in TPIE is an object which
+contains member functions to control the critical,
+application-varying aspects of operations such as scanning,
+merging, and sorting. TPIE expects certain named methods of
+the object to be present, depending on the operation being
+performed. 
+
+The operation management object for scanning (called a
+``scan management object''\index{operation management
+   object!scan}), for instance, must provide methods {\em
+   initialize} (for initializing any user-required data
+structures of the scan), and {\em operate} (for performing
+whatever steps are needed as each data item is encountered
+in the scan).
+
+In the example of merging, the rules for ``combining''
+elements of the merge operation are necessarily case
+dependent. TPIE expects a ``merge management
+object''\index{operation management object!merge} to contain
+members {\em initialize} and {\em operate}, as well as
+several others. Detailed requirements for merge management
+objects are described in Section \ref{sec:merging}.
+
 \section{Scanning}
 \label{sec:scanning}
 
@@ -487,9 +517,12 @@ streams.
 
 \subsection{Basic Scanning}
 
-The most basic thing a scan can do is write a series of objects to a
-stream.  In the following example, we create a stream of integers
-consisting of the first 10000 natural numbers.
+The most basic thing a scan can do is write a series of
+objects to a stream.  In the following example, we create a
+stream of integers consisting of the first 10000 natural
+numbers.  \comment{DH: why is ii public? Can we think of a
+   better name for ii(applies to all examples)? Why not
+   delete the default value for max for simplicity?}
 
 \begin{verbatim}
 class scan_count : AMI_scan_object {
@@ -498,7 +531,7 @@ private:
 public:
     int ii;
 
-    scan_count(int max = 1000) : maximum(max), ii(0) {};
+    scan_count(int max=1000) : maximum(max), ii(0) {};
 
     AMI_err initialize(void) 
     {
@@ -523,21 +556,25 @@ void f()
 }
 \end{verbatim}
 
-The class \myverb{scan\_count} is a class of scan management
-object\index{operation management object!scan}.  It has two member
-functions, \myverb{initialize()} and \myverb{operate()}, which TPIE calls
-when asked to perform a scan.  The first member function,
-\myverb{initialize()} is called at the beginning of the scan.  TPIE
-expects that a call to this member function will cause the object to
-initialize any internal state it may maintain in preparation for
-performing a scan.  The second member function, \myverb{operate()}, is
-called repeatedly during the scan to create objects to go into the
-output stream.  \myverb{operate()} sets the flag \myverb{*sf} to indicate
-whether it generated output or not.  Only when \myverb{operate()}
-returns either an error or \myverb{AMI\_SCAN\_DONE} does TPIE stop calling
-it.
+The object \myverb{sc} is called a scan management
+object\index{operation management object!scan}.  It has two
+member functions, \myverb{initialize()} and
+\myverb{operate()}, which TPIE calls when asked to perform a
+scan.  The first member function, \myverb{initialize()} is
+called at the beginning of the scan.  TPIE expects that a
+call to this member function will cause the object to
+initialize any internal state it may maintain in preparation
+for performing a scan.  The second member function,
+\myverb{operate()}, is called repeatedly during the scan to
+create objects to go into the output stream.
+\myverb{operate()} sets the flag \myverb{*sf} to indicate
+whether it generated output or not.  TPIE will call
+\myverb{operate()} as long as \myverb{operate()} returns
+\myverb{AMI\_SCAN\_CONTINUE}. The normal way for
+\myverb{operate()} to signal that it is finished is to
+return the value \myverb{AMI\_SCAN\_DONE}. 
 
-The call to \myverb{AMI\_scan} behaves as the following pseudo-code:
+\myverb{AMI\_scan} behaves as the following pseudo-code:
 
 \begin{verbatim} 
 AMI_err AMI_scan(scan_count &sc, AMI_STREAM<int> *pamis)
@@ -600,26 +637,31 @@ void g()
 }
 \end{verbatim}
 
-Notice that the call to \myverb{AMI\_scan()} in \myverb{g()} differs from
-the one we used in \myverb{f()} in that it takes two stream pointers and
-a scan management object.  By convention, the stream \myverb{amis0} is
-an input stream, because it appears before the scan management object
-\myverb{ss} in the argument list.  By similar convention, \myverb{amis1}
-is an output stream.  Because the call to \myverb{AMI\_scan} has one
-input stream and one output stream, TPIE expects the \myverb{operate()}
-member function of \myverb{ss} to have one input argument (which is
-called \myverb{in} in the example above) and one output argument (called
-\myverb{out} in the example above).  Note that the \myverb{operate()}
-member function of the class \myverb{square\_scan} also takes two
-pointers to flags, one for input (\myverb{sfin}) and one for output
-(\myverb{sfout}).  \myverb{*sfin} is set by TPIE to indicate that there is
-more input to be processed.  \myverb{*sfout} is set by the scan
-management object to indicate when output is generated.
-If a scan management object has no polymorph of \myverb{operate()} that
-takes the appropriate type number of arguments for the invocation of
-\myverb{AMI\_scan()} that uses it then a compile-time error is generated.
+Notice that the call to \myverb{AMI\_scan()} in \myverb{g()}
+differs from the one we used in \myverb{f()} in that it
+takes two stream pointers and a scan management object.  By
+convention, the stream \myverb{amis0} is an input stream,
+because it appears before the scan management object
+\myverb{ss} in the argument list.  By similar convention,
+\myverb{amis1} is an output stream.  Because the call to
+\myverb{AMI\_scan} has one input stream and one output
+stream, TPIE expects the \myverb{operate()} member function
+of \myverb{ss} to have one input argument (which is called
+\myverb{in} in the example above) and one output argument
+(called \myverb{out} in the example above).  Note that the
+\myverb{operate()} member function of the class
+\myverb{square\_scan} also takes two pointers to flags, one
+for input (\myverb{sfin}) and one for output
+(\myverb{sfout}).  \myverb{*sfin} is set by TPIE to indicate
+that there is more input to be processed.  \myverb{*sfout}
+is set by the scan management object to indicate when output
+is generated.  The scan management object must contain an
+\myverb{operate()} member function that takes the
+appropriate types and number of arguments for the invocation
+of \myverb{AMI\_scan()} that uses it, or else a compile-time
+error is generated.
 
-A call to \myverb{AMI\_scan} with one input stream and one output stream
+\myverb{AMI\_scan} with one input stream and one output stream
 behaves as the following pseudo-code:
 
 \begin{verbatim} 
@@ -653,7 +695,7 @@ AMI_err AMI_scan(AMI_STREAM<int> *instream, scan_square &ss,
 }
 \end{verbatim}
 
-More complicated invocations of \myverb{AMI\_scan()} can operate on up
+\myverb{AMI\_scan()} can operate on up
 to four input streams and four output streams.  Here is an example
 that takes two input streams of values, \myverb{x} and \myverb{y}, and
 produces four output streams, 
@@ -708,7 +750,8 @@ void h()
              &sum_xstream, &sum_ystream, &sum_x2stream, &sum_y2stream);
 }
 \end{verbatim}
-
+\comment{DH: should we summarize what polymorphs are
+   available or give a pointer to the section that does?}
 
 \subsection{ASCII Input/Output} \label{sec:ascii-io}
 
@@ -765,24 +808,27 @@ void f()
 
 In order to read from an input file using the scan object
 \myverb{in\_scan}, \myverb{AMI\_scan()} repeatedly calls
-\myverb{in\_scan->operate()}, just as it would for any scan object.  Each
-time \myverb{in\_scan->operate()} is called, it uses the \myverb{>>}
-operator to read a single integer from the input file.  When the input
-file is exhausted, \myverb{in\_scan->operate()} returns
-\myverb{AMI\_SCAN\_DONE}, and \myverb{AMI\_scan()} returns to its caller.
-The behavior of \myverb{out\_scan} is similar to that of \myverb{in\_scan},
-except that it writes to a file instead of reading from one.
+\myverb{in\_scan->operate()}, just as it would for any scan
+object.  Each time \myverb{in\_scan->operate()} is called,
+it uses the \myverb{>>} operator to read a single integer
+from the input file.  When the input file is exhausted,
+\myverb{in\_scan->operate()} returns
+\myverb{AMI\_SCAN\_DONE}, and \myverb{AMI\_scan()} returns
+to its caller.  The behavior of \myverb{out\_scan} is
+similar to that of \myverb{in\_scan}, except that it writes
+to a file instead of reading from one.
 \index{scanning!ASCII I/O|)}
 
 \subsection{Multi-Type Scanning}
 
 \index{scanning!multi-type|(}
 
-In all of the examples presented up to this point, scanning has been
-done on streams of objects that are all of the same type.
-\myverb{AMI\_scan()} is not limited to such scans, however.  In the
-following example, we have a scan management class that takes two
-streams of \myverb{double}s and returns a stream of complex numbers.
+In all of the examples presented up to this point, scanning
+has been done on streams of objects that are all of the same
+type.  \myverb{AMI\_scan()} is not limited to such scans,
+however.  In the following example, we have a scan
+management class that takes two streams of \myverb{double}s
+and returns a stream of complex numbers.
 
 \begin{verbatim}
 class complex {
@@ -886,7 +932,7 @@ the cases when one of more of the input streams are empty.
 
 While \myverb{AMI\_scan()} is limited to operate on up to four input and four
 output streams, theoretically efficient external memory algorithms often
-operates on more than eight streams. An especially common operation is
+operate on more than eight streams. An especially common operation is
 merging of a large number of input streams into one output
 stream.\footnote{Note that ``merge'' here means the process of reading the
 content of a number of input streams in some interleaved order producing an
