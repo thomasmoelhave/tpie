@@ -1,10 +1,11 @@
 //
 // File: test_ami_sort.cpp
-// Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
+// Author: Darren Erik Vengroff <darrenv@eecs.umich.edu> and
+//         Octavian Procopiuc <tavi@cs.duke.edu>
 // Created: 10/7/94
 //
 // A test for AMI_sort().
-
+//
 #include <sys/types.h>
 #include <stdlib.h>
 #include <sys/time.h>
@@ -19,11 +20,11 @@
 #include <ami_stream.h>
 #include <ami_scan.h>
 #include <ami_sort.h>
-VERSION(test_ami_sort_cpp,"$Id: test_ami_sort.cpp,v 1.23 2002-01-14 17:40:40 tavi Exp $");
+VERSION(test_ami_sort_cpp,"$Id: test_ami_sort.cpp,v 1.24 2002-06-25 21:03:37 tavi Exp $");
 
 #include <ami_kb_sort.h>
 
-// Utitlities for ascii output.
+// Utilities for ascii output.
 #include <ami_scan_utils.h>
 
 #include "scan_random.h"
@@ -56,7 +57,7 @@ void print_usage() {
        << "\t[-m <memory_size_in_bytes>] (set TPIE memory size)\n"
        << "\t[-z <random_seed>] (set random seed)\n";
 
-  cerr << "\t[-r] (write the sorted items in " << rand_results_filename << ")\n"
+  cerr << "\t[-r] (write the unsorted items in " << rand_results_filename << ")\n"
        << "\t[-R <file_name>] (write the unsorted items in the given file)\n"
        << "\t[-s] (write the sorted items in " << sorted_results_filename << ")\n"
        << "\t[-S <file_name> (write the sorted items in the given file)]\n"
