@@ -1,5 +1,5 @@
 %%
-%% $Id: implementation.tex,v 1.2 1999-06-12 15:49:48 rbarve Exp $
+%% $Id: implementation.tex,v 1.3 1999-06-12 16:17:52 rbarve Exp $
 %%
 \chapter{The Implementation of TPIE}
 
@@ -126,8 +126,8 @@ reduction in the total amount of memory that the user has at her
 disposal since a certain amount of memory is consumed now by buffers
 dedicated to that \verb|AMI_STREAM| and its related data
 structures.\footnote{The total amount of memory that the user has
-available, divided by the memory consumed by every \verb|AMI_STREAM| thus
-is an upper bound on the maximum number of \verb|AMI_STREAM|s that the user
+available, divided by the memory consumed by every AMI\_STREAM thus
+is an upper bound on the maximum number of AMI\_STREAMs that the user
 can have.}
  
 In order to effectively utilize memory, the user needs to keep track
@@ -196,7 +196,7 @@ The implementation of  \verb|AMI_partition_and_merge()| first involves
 a ``run-formation'' stage in which a memory-load of the input stream is 
 read into memory, sorted in memory and then written as a substream into
 an intermediate stream. The merge management object uses an appropriate 
-quicksort implementation from the file \veb|quicksort.h| to do the internal
+quicksort implementation from the file \verb|quicksort.h| to do the internal
 memory sorting. Thereafter, the \verb|AMI_partition_and_merge()| repeatedly
 merges together the maximum possible number of sub-streams at a time using the 
 \verb|AMI_single_merge()| function. An important point is that all the
@@ -207,7 +207,6 @@ Throughout the execution of \verb|AMI_partition_and_merge()|, there are only
 two active \verb|AMI_STREAM|s at any time: One which stores the substreams
 being merged at that stage and one which stores the substreams output by
 that stage.
-
 \subsubsection{External Merging without Merge Management Objects}
 The entry points \verb|MIAMI_single_merge_*()| described in Section~\ref{sec:ref-ami-merge} 
 do not use merge management objects. Instead  these merge functions, in file
@@ -235,12 +234,9 @@ quicksort routines in \verb|quicksort.h|. During run-formation, for each memoryl
 the \verb|AMI_partition_and_merge_Key()| routine 
 first extricates the keys from the items in a separate table and then sorts them 
 in memory and then permutes in memory the items based on the sorted order.
-
 \index{merging|)}
-
 \subsection{Comparison Sorting}
 \label{sec:ref-imp-ami-sort}
-
 \index{sorting!comparison|(}
 The comparison sorts \verb|AMI_sort()| are defined in the file \verb|ami_sort_single.h|.
 They are implemented using the \verb|AMI_partition_ane_merge()| routine of 
@@ -249,10 +245,7 @@ They are implemented using the \verb|AMI_partition_ane_merge()| routine of
 The comparison sorts \verb|AMI_partition_and_merge_stream()|, \verb|AMI_partition_and_merge_Key()| and  \verb|AMI_partition_and_merge_stream_cmp()| are defined in the file
 \verb|optimized_merge.h|, and are implemented as described in the previous 
 Section.
-
-
 \index{sorting!comparison|)}
-
 \subsection{Key Bucket Sorting}
 \label{sec:ref-imp-ami-kb-sort}
 
