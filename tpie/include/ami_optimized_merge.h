@@ -15,7 +15,7 @@
 // a quicksort using only keys of the items; there is a provision to 
 // to use templated heaps to implement the merge.
 
-// 	$Id: ami_optimized_merge.h,v 1.7 1999-02-10 06:44:49 rbarve Exp $	
+// 	$Id: ami_optimized_merge.h,v 1.8 1999-02-10 07:44:49 rbarve Exp $	
 //TO DO: substream_count setting; don't depend on current_stream_len
 
 #ifndef _OPT_AMI_MERGE_H
@@ -1886,7 +1886,7 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
 
                 if (current_input) {delete[] current_input; current_input = NULL;}
 
-                if (the_substreams) { delete[] the_substreams; the_susbtreams = NULL;}
+                if (the_substreams) { delete[] the_substreams; the_substreams = NULL;}
 
                 
             } else {
@@ -3507,7 +3507,8 @@ Step_R7:
              goto Step_R6;
             }
 
-Step_End: delete [] Array_X;
+Step_End: delete Array_X;
+          delete Item_Array;
           delete [] outstreams;
 
 
