@@ -8,7 +8,7 @@
 // This will go into a library whne it is ready.
 
 
-static char logstream_id[] = "$Id: logstream.cpp,v 1.3 1999-02-03 21:36:22 tavi Exp $";
+static char logstream_id[] = "$Id: logstream.cpp,v 1.4 1999-02-10 00:04:52 natsev Exp $";
 
 
 #include <logstream.h>
@@ -51,6 +51,8 @@ _DEFINE_LOGSTREAM_OUTPUT_OPERATOR(int)
 _DEFINE_LOGSTREAM_OUTPUT_OPERATOR(unsigned int)
 _DEFINE_LOGSTREAM_OUTPUT_OPERATOR(long int)
 _DEFINE_LOGSTREAM_OUTPUT_OPERATOR(long unsigned int)
+_DEFINE_LOGSTREAM_OUTPUT_OPERATOR(float)
+_DEFINE_LOGSTREAM_OUTPUT_OPERATOR(double)
 
 
 // Setting priority and threshold on the fly with manipulators.
