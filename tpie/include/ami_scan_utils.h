@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 8/31/94
 //
-// $Id: ami_scan_utils.h,v 1.2 1994-11-02 21:56:17 darrenv Exp $
+// $Id: ami_scan_utils.h,v 1.3 1995-01-10 16:43:06 darrenv Exp $
 //
 #ifndef _AMI_SCAN_UTILS_H
 #define _AMI_SCAN_UTILS_H
@@ -39,9 +39,11 @@ AMI_err cxx_istream_scan<T>::initialize(void)
 template<class T>
 AMI_err cxx_istream_scan<T>::operate(T *out, AMI_SCAN_FLAG *sfout)
 {
-    if (*sfout = (is >> *out)) {
+    if (*is >> *out) {
+        *sfout = true;
         return AMI_SCAN_CONTINUE;
     } else {
+        *sfout = false;
         return AMI_SCAN_DONE;
     }
 };
@@ -91,8 +93,10 @@ template class cxx_ostream_scan<T>; 					\
 template AMI_err AMI_scan(AMI_base_stream<T> *, 			\
                           cxx_ostream_scan<T> *);
 
-#define TEMPLATE_INSTANTIATE_ISTREAM(T) \
-template class cxx_istream_scan<T>;
+#define TEMPLATE_INSTANTIATE_ISTREAM(T) 				\
+template class cxx_istream_scan<T>;					\
+template AMI_err AMI_scan(cxx_istream_scan<T> *, 			\
+                          AMI_base_stream<T> *);
 
 #endif
 
