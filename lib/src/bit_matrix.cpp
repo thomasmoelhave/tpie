@@ -5,7 +5,7 @@
 // Created: 1/9/95
 //
 
-static char bit_matrix_id[] = "$Id: bit_matrix.cpp,v 1.7 1999-04-08 01:14:39 rajiv Exp $";
+static char bit_matrix_id[] = "$Id: bit_matrix.cpp,v 1.8 1999-05-02 18:48:22 tavi Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -83,14 +83,14 @@ bit_matrix::operator off_t(void)
 }
 
 
-bit_matrix operator+(bit_matrix &op1, bit_matrix &op2)
+bit_matrix operator+(const bit_matrix &op1, const bit_matrix &op2)
 {
     matrix<bit> sum = ((matrix<bit> &)op1) + ((matrix<bit> &)op2);
 
     return sum;
 }
 
-bit_matrix operator*(bit_matrix &op1, bit_matrix &op2)
+bit_matrix operator*(const bit_matrix &op1, const bit_matrix &op2)
 {
     matrix<bit> prod = ((matrix<bit> &)op1) * ((matrix<bit> &)op2);
 
