@@ -3,7 +3,12 @@
 //
 //COMMENT: This program may need to be modified if we want to use
 //         munmap() operations during MMAP_TEST.
-//
+///* 	$Id: bte_test.c,v 1.2 1999-02-08 14:12:58 rbarve Exp $	 */
+
+#ifndef lint
+static char vcid[] = "$Id: bte_test.c,v 1.2 1999-02-08 14:12:58 rbarve Exp $";
+#endif /* lint */
+
 //This file contains a program that can be used to determine the 
 //streaming speeds attained by BTE_stdio, BTE_mmb, and BTE_ufs
 //streams on a given system. The performance of these implementations
