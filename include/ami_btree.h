@@ -3,7 +3,7 @@
 // File:    ami_btree.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_btree.h,v 1.26 2003-07-23 05:38:36 tavi Exp $
+// $Id: ami_btree.h,v 1.27 2003-09-12 01:42:44 jan Exp $
 //
 // AMI_btree declaration and implementation.
 //
@@ -149,7 +149,7 @@ public:
   // Traverse the tree in dfs preorder. Return next node and its level
   // (root is on level 0). Start the process by calling this with
   // level=-1.
-  std::pair<AMI_bid, Key> dfs_preorder(int& level);
+  pair<AMI_bid, Key> dfs_preorder(int& level);
 
   // Insert an element.
   bool insert(const Value& v);
@@ -167,9 +167,106 @@ public:
   bool succ(const Key& k, Value& v);
     
   // Report all values in the range determined by keys k1 and k2.
+  // This method is inlined such as to comply with MSVC++ "requirements".
   template<class Filter>
   size_t range_query(const Key& k1, const Key& k2, 
-		     AMI_STREAM<Value>* s, const Filter& f);
+		     AMI_STREAM<Value>* s, const Filter& f)
+{
+
+  Key kmin = comp_(k1, k2) ? k1: k2;
+  Key kmax = comp_(k1, k2) ? k2: k1;
+
+  // Find the leaf that might contain kmin.
+  AMI_bid bid = find_leaf(kmin);
+  AMI_BTREE_LEAF *p = fetch_leaf(bid);
+  bool done = false;
+  size_t result = 0;
+
+#if  AMI_BTREE_LEAF_ELEMENTS_SORTED
+
+  size_t j;
+  j = p->find(kmin);
+  while (bid != 0 && !done) {
+    while (j < p->size() && !done) {
+      if (comp_(kov_(p->el[j]), kmax) || 
+	  (!comp_(kov_(p->el[j]), kmax) && !comp_(kmax, kov_(p->el[j])))) {
+	if (filter_through(p->el[j])) {
+	  if (s != NULL)
+	    s->write_item(p->el[j]);
+	  result++;
+	}
+      } else
+	done = true;
+      j++;
+    }
+    bid = p->next();
+    release_leaf(p);
+    if (bid != 0 && !done)
+      p = fetch_leaf(bid);
+    j = 0;
+  }
+
+#else
+
+  size_t i;
+  // Check elements of p.
+  for (i = 0; i < p->size(); i++) {
+    if (comp_(kov_(p->el[i]), kmax) && comp_(kmin, kov_(p->el[i])) ||
+	!comp_(kov_(p->el[i]), kmax) && !comp_(kmax, kov_(p->el[i])) ||
+	!comp_(kov_(p->el[i]), kmin) && !comp_(kmin, kov_(p->el[i]))) {
+      if (filter_through(p->el[i])) {
+	if (s != NULL)
+	  s->write_item(p->el[i]);
+	result++;
+      }
+    }
+  }
+  bid = p->next();
+  release_leaf(p);
+
+  if (bid != 0) {
+    p = fetch_leaf(bid);
+    AMI_bid pnbid = p->next();
+    AMI_BTREE_LEAF* pn;
+
+    while (pnbid != 0 && !done) {
+      pn = fetch_leaf(pnbid);
+      if (comp_(kov_(pn->el[0]), kmax)) {
+	// Write all elements from p to stream s.
+	for (i = 0; i < p->size(); i++) {
+	  if (filter_through(p->el[i])) {
+	    if (s!= NULL)
+	      s->write_item(p->el[i]);
+	    result++;
+	  }
+	}
+      } else 
+	done = true;
+
+      release_leaf(p);
+      p = pn;
+      pnbid = p->next();
+    }
+
+    // Check elements of p.
+    for (i = 0; i < p->size(); i++) {
+      if (comp_(kov_(p->el[i]), kmax) ||
+	  (!comp_(kov_(p->el[i]), kmax) && !comp_(kmax, kov_(p->el[i])))) {
+	if (filter_through(p->el[i])) {
+	  if (s!= NULL)
+	    s->write_item(p->el[i]);
+	  result++;
+	}
+      }
+    }
+    release_leaf(p);
+  }
+#endif
+
+  empty_stack();
+  return result;
+}
+
   size_t range_query(const Key& k1, const Key& k2, AMI_STREAM<Value>* s)
   { return range_query(k1, k2, s, dummy_filter_t()); }
 
@@ -276,11 +373,11 @@ protected:
   AMI_btree_status status_;
 
   // Stack to store the path to a leaf.
-  std::stack<std::pair<AMI_bid, size_t> > path_stack_;
+  stack<pair<AMI_bid, size_t> > path_stack_;
 
   // Stack to store path during dfspreorder traversal. Each element is
   // a pair: block id and link index.
-  std::stack<std::pair<AMI_bid, size_t> > dfs_stack_;
+  stack<pair<AMI_bid, size_t> > dfs_stack_;
 
   // Statistics.
   tpie_stats_tree stats_;
@@ -652,7 +749,7 @@ size_t AMI_BTREE_LEAF::find(const Key& k) {
 #if AMI_BTREE_LEAF_ELEMENTS_SORTED
   // Sanity check.
   assert(size() < 2 || comp_(KeyOfValue()(el[0]), KeyOfValue()(el[size()-1])));
-  return std::lower_bound(&el[0], &el[size()-1] + 1, k, comp_value_key_) - &el[0];
+  return lower_bound(&el[0], &el[size()-1] + 1, k, comp_value_key_) - &el[0];
 #else
   size_t i;
   for (i = 0u; i < size(); i++)
@@ -670,7 +767,7 @@ size_t pred_idx;
 #if AMI_BTREE_LEAF_ELEMENTS_SORTED
   // Sanity check.
   assert(size() < 2 || comp_(KeyOfValue()(el[0]), KeyOfValue()(el[size()-1])));
-  pred_idx = std::lower_bound(&el[0], &el[size()-1] + 1, k,comp_value_key_) - &el[0];
+  pred_idx = lower_bound(&el[0], &el[size()-1] + 1, k,comp_value_key_) - &el[0];
   // lower_bound pos is off by one for pred
   // Final pred_idx cannot be matching key
   if (pred_idx != 0)
@@ -700,7 +797,7 @@ size_t succ_idx;
 #if AMI_BTREE_LEAF_ELEMENTS_SORTED
   // Sanity check.
   assert(size() < 2 || comp_(KeyOfValue()(el[0]), KeyOfValue()(el[size()-1])));
-  succ_idx = std::lower_bound(&el[0], &el[size()-1] + 1, k, comp_value_key_) - &el[0];
+  succ_idx = lower_bound(&el[0], &el[size()-1] + 1, k, comp_value_key_) - &el[0];
   // Bump up one spot if keys match
   if (succ_idx != size() &&
       !comp_(k,KeyOfValue()(el[succ_idx])) && !comp_(KeyOfValue()(el[succ_idx]),k) )
@@ -760,7 +857,7 @@ void AMI_BTREE_LEAF::erase_pos(size_t pos) {
 //// *AMI_btree_leaf::sort* ////
 template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
 void AMI_BTREE_LEAF::sort() {
-  std::sort(&el[0], &el[size()-1] + 1, comp_value_value_);
+  sort(&el[0], &el[size()-1] + 1, comp_value_value_);
 }
 
 //// *AMI_btree_leaf::~AMI_btree_leaf* ////
@@ -859,7 +956,7 @@ template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
 void AMI_BTREE_NODE::insert(const Key& k, AMI_bid l) {
 
   // Find the position using STL's binary search.
-  size_t pos = std::lower_bound(&el[0], &el[size()-1] + 1, k, comp_) - &el[0];
+  size_t pos = lower_bound(&el[0], &el[size()-1] + 1, k, comp_) - &el[0];
 
   // Insert.
   insert_pos(k, l, pos, pos + 1);
@@ -909,7 +1006,7 @@ void AMI_BTREE_NODE::merge(const AMI_BTREE_NODE &right, const Key& k) {
 //// *AMI_btree_node::find* ////
 template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
 size_t AMI_BTREE_NODE::find(const Key& k) {
-  return (size() == 0) ? 0: (std::lower_bound(&el[0], &el[size()-1] + 1, k, comp_) - &el[0]);
+  return (size() == 0) ? 0: (lower_bound(&el[0], &el[size()-1] + 1, k, comp_) - &el[0]);
 }
 
 //// *AMI_btree_node::~AMI_btree_node* ////
@@ -1078,8 +1175,8 @@ AMI_err AMI_BTREE::load_sorted(AMI_STREAM<Value>* s, float leaf_fill, float node
   Value* pv;
   AMI_err err = AMI_ERROR_NO_ERROR;
   AMI_btree_params params_saved = params_;
-  params_.leaf_size_max = std::min(params_.leaf_size_max, size_t(leaf_fill*params_.leaf_size_max));
-  params_.node_size_max = std::min(params_.node_size_max, size_t(node_fill*params_.node_size_max));
+  params_.leaf_size_max = min(params_.leaf_size_max, size_t(leaf_fill*params_.leaf_size_max));
+  params_.node_size_max = min(params_.node_size_max, size_t(node_fill*params_.node_size_max));
 
   AMI_BTREE_LEAF* lcl = NULL; // locally cached leaf.
 
@@ -1169,8 +1266,8 @@ AMI_err AMI_BTREE::load(AMI_BTREE* bt, float leaf_fill, float node_fill) {
 
   AMI_btree_params params_saved = params_;
   AMI_err err = AMI_ERROR_NO_ERROR;
-  params_.leaf_size_max = std::min(params_.leaf_size_max, size_t(leaf_fill*params_.leaf_size_max));
-  params_.node_size_max = std::min(params_.leaf_size_max, size_t(node_fill*params_.node_size_max));
+  params_.leaf_size_max = min(params_.leaf_size_max, size_t(leaf_fill*params_.leaf_size_max));
+  params_.node_size_max = min(params_.leaf_size_max, size_t(node_fill*params_.node_size_max));
   AMI_BTREE_LEAF* lcl = NULL; // locally cached leaf.
 
   // Get the bid of the min leaf in bt.
@@ -1204,7 +1301,7 @@ AMI_err AMI_BTREE::load(AMI_BTREE* bt, float leaf_fill, float node_fill) {
 
 //// *AMI_btree::dfs_preorder* ////
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-std::pair<AMI_bid, Key> AMI_BTREE::dfs_preorder(int& level) {
+pair<AMI_bid, Key> AMI_BTREE::dfs_preorder(int& level) {
 
   Key k;
   if (level == -1) {
@@ -1213,10 +1310,10 @@ std::pair<AMI_bid, Key> AMI_BTREE::dfs_preorder(int& level) {
     while (!dfs_stack_.empty())
       dfs_stack_.pop();
     // Push the root on the stack.
-    dfs_stack_.push(std::pair<AMI_bid, size_t>(header_.root_bid, 0));
+    dfs_stack_.push(pair<AMI_bid, size_t>(header_.root_bid, 0));
 
     level = dfs_stack_.size() - 1;
-    return std::pair<AMI_bid, Key>(header_.root_bid, k);
+    return pair<AMI_bid, Key>(header_.root_bid, k);
   } else {
     AMI_BTREE_NODE* bn;
     AMI_bid id = 0;
@@ -1226,7 +1323,7 @@ std::pair<AMI_bid, Key> AMI_BTREE::dfs_preorder(int& level) {
       bn = fetch_node(dfs_stack_.top().first);
       // ... and get the appropriate child.
       id = bn->lk[dfs_stack_.top().second];
-      dfs_stack_.push(std::pair<AMI_bid, size_t>(id, 0));
+      dfs_stack_.push(pair<AMI_bid, size_t>(id, 0));
       release_node(bn);
     } else { // top of the stack is leaf
       dfs_stack_.pop();
@@ -1240,7 +1337,7 @@ std::pair<AMI_bid, Key> AMI_BTREE::dfs_preorder(int& level) {
 	if (dfs_stack_.top().second < bn->size() + 1) {
 	  id = bn->lk[dfs_stack_.top().second];
 	  k = bn->el[dfs_stack_.top().second-1];
-	  dfs_stack_.push(std::pair<AMI_bid, size_t>(id, 0));
+	  dfs_stack_.push(pair<AMI_bid, size_t>(id, 0));
 	  done = true;
 	} else
 	  dfs_stack_.pop();
@@ -1249,7 +1346,7 @@ std::pair<AMI_bid, Key> AMI_BTREE::dfs_preorder(int& level) {
       }
     }
     level = dfs_stack_.size() - 1;
-    return std::pair<AMI_bid, Key>(id, k);
+    return pair<AMI_bid, Key>(id, k);
   }
 }
 
@@ -1365,107 +1462,6 @@ bool AMI_BTREE::succ(const Key& k, Value& v) {
   empty_stack();
 
   return ans;
-}
-
-
-//// *AMI_btree::range_query* ////
-template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL> template<class Filter>
-size_t AMI_BTREE::range_query(const Key& k1, const Key& k2, 
-			      AMI_STREAM<Value>* s, 
-			      const Filter& filter_through) {
-
-  Key kmin = comp_(k1, k2) ? k1: k2;
-  Key kmax = comp_(k1, k2) ? k2: k1;
-
-  // Find the leaf that might contain kmin.
-  AMI_bid bid = find_leaf(kmin);
-  AMI_BTREE_LEAF *p = fetch_leaf(bid);
-  bool done = false;
-  size_t result = 0;
-
-#if  AMI_BTREE_LEAF_ELEMENTS_SORTED
-
-  size_t j;
-  j = p->find(kmin);
-  while (bid != 0 && !done) {
-    while (j < p->size() && !done) {
-      if (comp_(kov_(p->el[j]), kmax) || 
-	  (!comp_(kov_(p->el[j]), kmax) && !comp_(kmax, kov_(p->el[j])))) {
-	if (filter_through(p->el[j])) {
-	  if (s != NULL)
-	    s->write_item(p->el[j]);
-	  result++;
-	}
-      } else
-	done = true;
-      j++;
-    }
-    bid = p->next();
-    release_leaf(p);
-    if (bid != 0 && !done)
-      p = fetch_leaf(bid);
-    j = 0;
-  }
-
-#else
-
-  size_t i;
-  // Check elements of p.
-  for (i = 0; i < p->size(); i++) {
-    if (comp_(kov_(p->el[i]), kmax) && comp_(kmin, kov_(p->el[i])) ||
-	!comp_(kov_(p->el[i]), kmax) && !comp_(kmax, kov_(p->el[i])) ||
-	!comp_(kov_(p->el[i]), kmin) && !comp_(kmin, kov_(p->el[i]))) {
-      if (filter_through(p->el[i])) {
-	if (s != NULL)
-	  s->write_item(p->el[i]);
-	result++;
-      }
-    }
-  }
-  bid = p->next();
-  release_leaf(p);
-
-  if (bid != 0) {
-    p = fetch_leaf(bid);
-    AMI_bid pnbid = p->next();
-    AMI_BTREE_LEAF* pn;
-
-    while (pnbid != 0 && !done) {
-      pn = fetch_leaf(pnbid);
-      if (comp_(kov_(pn->el[0]), kmax)) {
-	// Write all elements from p to stream s.
-	for (i = 0; i < p->size(); i++) {
-	  if (filter_through(p->el[i])) {
-	    if (s!= NULL)
-	      s->write_item(p->el[i]);
-	    result++;
-	  }
-	}
-      } else 
-	done = true;
-
-      release_leaf(p);
-      p = pn;
-      pnbid = p->next();
-    }
-
-    // Check elements of p.
-    for (i = 0; i < p->size(); i++) {
-      if (comp_(kov_(p->el[i]), kmax) ||
-	  (!comp_(kov_(p->el[i]), kmax) && !comp_(kmax, kov_(p->el[i])))) {
-	if (filter_through(p->el[i])) {
-	  if (s!= NULL)
-	    s->write_item(p->el[i]);
-	  result++;
-	}
-      }
-    }
-    release_leaf(p);
-  }
-#endif
-
-  empty_stack();
-  return result;
 }
 
 //// *AMI_btree::insert* ////
@@ -1597,7 +1593,7 @@ template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL
 bool AMI_BTREE::insert_split(const Value& v, AMI_BTREE_LEAF* p, AMI_bid& leaf_id, bool loading) {
 
   AMI_BTREE_LEAF *q, *r;
-  std::pair<AMI_bid, size_t> top;
+  pair<AMI_bid, size_t> top;
   AMI_bid bid;
   bool ans;
 
@@ -1726,7 +1722,7 @@ AMI_bid AMI_BTREE::find_leaf(const Key& k) {
     // Find the position of the link to the child node.
     pos = p->find(k);
     // Push the current node and position on the path stack.
-    path_stack_.push(std::pair<AMI_bid, size_t>(bid, pos));
+    path_stack_.push(pair<AMI_bid, size_t>(bid, pos));
     // Find the actual block id of the child node.
     bid = p->lk[pos];
     // Release the node.
@@ -1999,7 +1995,7 @@ bool AMI_BTREE::erase(const Key& k) {
   }
 
   AMI_BTREE_NODE * q;
-  std::pair<AMI_bid, size_t> top;
+  pair<AMI_bid, size_t> top;
 
   // Underflow. Balance or merge up the tree.
   // Treat the first iteration separately since it deals with leaves.
