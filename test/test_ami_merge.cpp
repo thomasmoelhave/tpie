@@ -5,7 +5,7 @@
 // Created: 6/2/94
 //
 
-static char test_ami_merge_id[] = "$Id: test_ami_merge.cpp,v 1.4 1994-10-11 12:54:24 dev Exp $";
+static char test_ami_merge_id[] = "$Id: test_ami_merge.cpp,v 1.5 1994-10-31 20:05:50 darrenv Exp $";
 
 // This is just to avoid an error message since the string above is never
 // refereneced.  Note that a self referential structure must be defined to
@@ -183,6 +183,11 @@ int main(int argc, char **argv)
                 amirs[1]->stream_len() << '\n';
     }
 
+    // Get around the OS (HP_UX in particular) when using BTE_IMP_MMB
+    // by seeking back to 0 in the substream, which will force the last
+    // block written to be unmapped.
+    ae = amis2.seek(0);
+    
     ae = AMI_single_merge((pp_AMI_bs<int>)amirs, arity,
                           (AMI_base_stream<int> *)&amis3, &im);
 
