@@ -4,10 +4,13 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/30/94
 //
-// $Id: mm_register.h,v 1.8 2002-01-14 16:30:42 tavi Exp $
+// $Id: mm_register.h,v 1.9 2003-04-17 19:42:08 jan Exp $
 //
 #ifndef _MM_REGISTER_H
 #define _MM_REGISTER_H
+
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 #define MM_REGISTER_VERSION 2
 

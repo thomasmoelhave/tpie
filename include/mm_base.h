@@ -4,10 +4,13 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/30/94
 //
-// $Id: mm_base.h,v 1.6 2000-03-25 06:25:20 rajiv Exp $
+// $Id: mm_base.h,v 1.7 2003-04-17 19:39:42 jan Exp $
 //
 #ifndef _MM_BASE_H
 #define _MM_BASE_H
+
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 #include <sys/types.h>
 

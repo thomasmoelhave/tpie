@@ -4,13 +4,15 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 4/7/95
 //
-// $Id: persist.h,v 1.1 1995-06-20 18:43:25 darrenv Exp $
+// $Id: persist.h,v 1.2 2003-04-17 19:43:16 jan Exp $
 //
 // Persistence flags for TPIE streams.
 //
 #ifndef _PERSIST_H
 #define _PERSIST_H
 
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 enum persistence {
     // Delete the stream from the disk when it is destructed.
