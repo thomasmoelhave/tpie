@@ -1,5 +1,5 @@
 # Makefile for the complete TPIE system.
-# $Id: Makefile.in,v 1.20 2002-02-02 18:17:08 tavi Exp $
+# $Id: Makefile.in,v 1.21 2002-06-10 20:44:30 tavi Exp $
 
 # To compile with debugging symbols, set this to 1.
 MINUSG = 0
@@ -8,8 +8,6 @@ MINUSPG = 0
 
 MY_DEFS := @DEFS@
 MY_LIBS := @LIBS@
-
-SHELL := /bin/csh
 
 # Send all variables into recursive makes.
 export
@@ -50,6 +48,7 @@ clean:
 
 dirs := ./ $(TESTPATH) $(LIBPATH) $(LIBSRCPATH) $(INCPATH)
 distclean: clean
+	rm -f config.log config.cache config.status
 	$(foreach dir,$(dirs),(rm -f $(dir)/*~; rm -f $(dir)/Makefile);)
 
 # Private targets.
