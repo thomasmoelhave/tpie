@@ -6,8 +6,7 @@
 //
 
 #include <versions.h>
-VERSION(nas_is_cpp,"$Id: nas_is.cpp,v 1.5 2000-01-11 01:27:33 hutchins Exp $");
-
+VERSION(nas_is_cpp,"$Id: nas_is.cpp,v 1.6 2003-04-20 23:51:40 tavi Exp $");
 
 // Benchmark constants.
 #define IMAX 10
@@ -22,16 +21,19 @@ VERSION(nas_is_cpp,"$Id: nas_is.cpp,v 1.5 2000-01-11 01:27:33 hutchins Exp $");
 #define TWO_TO_MINUS_23 (1.0 / TWO_TO_23)
 #define TWO_TO_MINUS_46 (1.0 / TWO_TO_46)
 
-
-
 #define INPUT_FILENAME "K.8"
 
 #include <stdlib.h>
 #include <sys/time.h>
 #include <sys/resource.h>
-#include <iostream.h>
-#include <fstream.h>
-#include <strstream.h>
+#include <iostream>
+#include <fstream>
+#include <strstream>
+
+using std::cout;
+using std::ofstream;
+using std::ifstream;
+using std::istrstream;
 
 // Get information on the configuration to test.
 #include "app_config.h"

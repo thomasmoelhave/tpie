@@ -4,13 +4,11 @@
 // Created: 10/7/94
 //
 
-
-static char parse_args_id[] = "$Id: parse_args.cpp,v 1.10 2002-01-14 17:42:37 tavi Exp $";
+static char parse_args_id[] = "$Id: parse_args.cpp,v 1.11 2003-04-20 23:51:40 tavi Exp $";
 
 #include <stdlib.h>
 #include <strings.h>
 #include <string.h>
-#include <strstream.h>
 #include <ctype.h>
 #include <unistd.h>
 

@@ -6,14 +6,18 @@
 //
 
 #include <versions.h>
-VERSION(test_ami_sort24_cpp,"$Id: test_ami_sort24.cpp,v 1.7 2000-01-11 01:24:59 hutchins Exp $");
+VERSION(test_ami_sort24_cpp,"$Id: test_ami_sort24.cpp,v 1.8 2003-04-20 23:51:40 tavi Exp $");
 
 #include <stdlib.h>
 #include <sys/time.h>
 #include <sys/resource.h>
-#include <iostream.h>
-#include <fstream.h>
-#include <strstream.h>
+// For cout.
+#include <iostream>
+// For ofstream.
+#include <fstream>
+
+using std::cout;
+using std::ofstream;
 
 // Get information on the configuration to test.
 #include "app_config.h"
@@ -228,7 +232,6 @@ int main(int argc, char **argv)
     if (report_results_sorted) {
         ae = AMI_scan(&amis1, rpts);
     }
-
     cout << '\n';
     
     return 0;

@@ -5,28 +5,20 @@
 // Created: 5/26/94
 //
 
+static char ami_scan_id[] = "$Id: ami_scan.cpp,v 1.6 2003-04-20 23:51:40 tavi Exp $";
 
+#define BTE_STREAM_MMAP_BLOCK_FACTOR 32
 
-static char ami_scan_id[] = "$Id: ami_scan.cpp,v 1.5 1999-02-03 22:37:34 tavi Exp $";
-
-#define BTE_MMB_LOGICAL_BLOCKSIZE_FACTOR 32
-
-#include <iostream.h>
+#include <iostream>
+using std::cout;
 
 // Use logs.
 //#define TPL_LOGGING 1
 #include <tpie_log.h>
 
-// Use the single BTE stream version of AMI streams.
-#define AMI_IMP_SINGLE
+#define BTE_STREAM_IMP_MMAP	// Use the MMAP version of BTE streams.
 
-
-#define BTE_IMP_MMB	// Use the MMB version of BTE streams.
-//#define BTE_IMP_STDIO	// Use stdio implementation of BTE streams.
-
-// Define it all.
-#include <ami.h>
-
+#include <ami_scan.h>
 
 // A scan object to generate output.
 template<int MAX> class count_scan : AMI_scan_object {
@@ -78,8 +70,6 @@ AMI_err square_scan<T>::operate(const T &in, AMI_SCAN_FLAG *sfin,
     }
 };
 
-
-int main(int argc, char **argv);
 
 int main(int argc, char **argv)
 {
