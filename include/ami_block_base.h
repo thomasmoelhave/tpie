@@ -3,7 +3,7 @@
 // File:    ami_block_base.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_block_base.h,v 1.11 2003-09-12 15:35:43 tavi Exp $
+// $Id: ami_block_base.h,v 1.12 2003-09-12 15:38:38 tavi Exp $
 //
 // Definition of the AMI_block_base class and supporting types:
 // AMI_bid, AMI_block_status.
@@ -124,11 +124,11 @@ public:
       if (per_ == PERSIST_PERSISTENT) {
 	// Write back the block.
 	if (pcoll_->put_block(bid_, pdata_) == BTE_ERROR_NO_ERROR)
-	  ; //do nothing
+	  int warning_fooler = 0; //do nothing
       } else {
 	// Delete the block from the collection.
 	if (pcoll_->delete_block(bid_, pdata_) == BTE_ERROR_NO_ERROR)
-	  ; //do nothing 
+	  int warning_fooler = 0; //do nothing 
       }
   }
 };
