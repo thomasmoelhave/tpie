@@ -6,7 +6,7 @@
 // Runtime parameters for the kd-tree, K-D-B-tree and B-tree test
 // suite.
 //
-// $Id: app_params.h,v 1.1 2003-04-29 06:44:41 tavi Exp $
+// $Id: app_params.h,v 1.2 2003-05-05 01:33:20 tavi Exp $
 //
 
 #ifndef _APP_PARAMS_H
@@ -21,7 +21,7 @@
 #include <ami_stream.h>
 // TPIE tree statistics.
 #include <tpie_stats_tree.h>
-// For KDTREE_GRID_SIZE, KDTREE_LOAD_SORT, KDTREE_LOAD_GRID.
+// For AMI_KDTREE_GRID_SIZE, AMI_KDTREE_LOAD_SORT, AMI_KDTREE_LOAD_GRID.
 #include <ami_kdtree_base.h>
 // For split_heuristic_t.
 #include <ami_kdbtree_base.h>
@@ -98,7 +98,7 @@ public:
   app_params_t(): mbr_lo(), mbr_hi() {
     point_count = 0;
     structure_name = "UNKNOWN"; // The application should override this.
-    load_method = KDTREE_LOAD_SORT|KDTREE_LOAD_GRID;
+    load_method = AMI_KDTREE_LOAD_SORT | AMI_KDTREE_LOAD_GRID;
     memory_limit = 64*1024*1024;
     do_sort = true;
     do_load = true;
@@ -124,7 +124,7 @@ public:
     // 3-sided for epstree, 2-sided for Btree.
     query_type = 0;
     wquery_count = 0; // refers to the random window queries.
-    grid_size = KDTREE_GRID_SIZE;
+    grid_size = AMI_KDTREE_GRID_SIZE;
     leaf_block_factor = max(16384/getpagesize(), 1);
     node_block_factor = max(16384/getpagesize(), 1);
     // For the EPS-tree catalog nodes. A value of 0 means 2*node_block_factor.

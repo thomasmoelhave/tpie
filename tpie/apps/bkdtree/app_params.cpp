@@ -6,7 +6,7 @@
 // Runtime parameters for the kd-tree, K-D-B-tree and B-tree test
 // suite.
 //
-// $Id: app_params.cpp,v 1.1 2003-04-29 06:44:41 tavi Exp $
+// $Id: app_params.cpp,v 1.2 2003-05-05 01:33:20 tavi Exp $
 
 using namespace std;
 
@@ -165,13 +165,13 @@ void parse_args(int argc, char** argv) {
     }
     switch (argv[i][1]) {
     case 'g':
-      params.load_method = KDTREE_LOAD_SORT|KDTREE_LOAD_GRID;
+      params.load_method = AMI_KDTREE_LOAD_SORT|AMI_KDTREE_LOAD_GRID;
       break;
     case 'b':
       if (argv[i][2] == 'l')
 	params.bulk_load_fill = min(atof(argv[++i]), 1.0);
       else
-	params.load_method = KDTREE_LOAD_SORT|KDTREE_LOAD_BINARY;
+	params.load_method = AMI_KDTREE_LOAD_SORT|AMI_KDTREE_LOAD_BINARY;
       break;
     case 'h':
       // Split heuristic for the K-D-B-tree.
@@ -189,7 +189,7 @@ void parse_args(int argc, char** argv) {
       break;
     case 's':
       params.do_sort = false;
-      params.load_method = KDTREE_LOAD_SAMPLE;
+      params.load_method = AMI_KDTREE_LOAD_SAMPLE;
       break;
     case 'm':
       params.memory_limit = atoi(argv[++i])*1024*1024;
