@@ -7,7 +7,7 @@
 // A sample piece of code that does list ranking in the TPIE system.
 //
 
-static char lr_id[] = "$Id: lr.cpp,v 1.7 1995-01-10 16:46:29 darrenv Exp $";
+static char lr_id[] = "$Id: lr.cpp,v 1.8 1995-03-07 14:54:57 darrenv Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -20,6 +20,10 @@ static struct ___lr_id_compiler_fooler {
     &the___lr_id_compiler_fooler
 };
 
+#ifndef BTE_STATS
+#define BTE_STATS 1
+#endif
+
 // Get the application defaults.
 #include "app_config.h"
 
@@ -30,6 +34,10 @@ static struct ___lr_id_compiler_fooler {
 #include <iostream.h>
 #include <fstream.h>
 #include <ami_scan_utils.h>
+
+// Timers.
+#include <wall_timer.h>
+#include <cpu_timer.h>
 
 #include "parse_args.h"
 
@@ -479,7 +487,8 @@ AMI_err patch_active_cancel::operate(CONST edge &active, CONST edge &cancel,
 // Returns 0 on success, nonzero otherwise.
 ////////////////////////////////////////////////////////////////////////
 
-int list_rank(AMI_base_stream<edge> *istream, AMI_base_stream<edge> *ostream)
+int list_rank(AMI_base_stream<edge> *istream, AMI_base_stream<edge> *ostream,
+              unsigned int rec_level = 0)
 {
     AMI_err ae;
     
@@ -516,6 +525,11 @@ int list_rank(AMI_base_stream<edge> *istream, AMI_base_stream<edge> *ostream)
             istream->read_array(mm_buf,&stream_len);
             main_mem_list_rank(mm_buf,stream_len);
             ostream->write_array(mm_buf,stream_len);
+            delete [] mm_buf;
+            // Get rid of the input stream.
+            if (rec_level) {
+                delete istream;
+            }
             return 0;
         }
     }
@@ -533,6 +547,10 @@ int list_rank(AMI_base_stream<edge> *istream, AMI_base_stream<edge> *ostream)
             edges_rand->stream_len() << ".\n";
     }
 
+    if (rec_level) {
+        delete istream;
+    }
+    
     // Sort one stream by source.  The original input was sorted by
     // destination, so we don't need to sort it again.
 
@@ -598,9 +616,12 @@ int list_rank(AMI_base_stream<edge> *istream, AMI_base_stream<edge> *ostream)
 
     ranked_active = new AMI_STREAM<edge>((unsigned int)0, stream_len);
     
-    list_rank(active_2, ranked_active);
+    list_rank(active_2, ranked_active, rec_level + 1);
 
-    delete active_2;
+    // This is now done inside the recursion to avoid telescoping space
+    // usage by intermediate streams that are no longer needed.
+    
+    // delete active_2;
 
     if (verbose) {
         cout << "After recursion, ranked active list is of length " <<
@@ -686,6 +707,9 @@ extern int register_new;
 int main(int argc, char **argv)
 {
     AMI_err ae;
+
+    wall_timer wt0;
+    cpu_timer ct0;
     
     parse_args(argc,argv,as_opts,parse_app_opt);
 
@@ -693,6 +717,7 @@ int main(int argc, char **argv)
         cout << "test_size = " << test_size << ".\n";
         cout << "test_mm_size = " << test_mm_size << ".\n";
         cout << "random_seed = " << random_seed << ".\n";
+        cout << "sizeof(edge) = " << sizeof(edge) << ".\n";
     } else {
         cout << test_size << ' ' << test_mm_size << ' ' << random_seed;
     }
@@ -703,9 +728,8 @@ int main(int argc, char **argv)
     MM_manager.resize_heap(test_mm_size);
     register_new = 1;
         
-    AMI_STREAM<edge> amis0((unsigned int)0, test_size);
-    AMI_STREAM<edge> amis1((unsigned int)0, test_size);
-    AMI_STREAM<edge> amis2((unsigned int)0, test_size);
+    AMI_STREAM<edge> *pamis1;
+    AMI_STREAM<edge> *pamis2;
     AMI_STREAM<edge> amis3((unsigned int)0, test_size);
     AMI_STREAM<edge> amis4((unsigned int)0, test_size);
 
@@ -737,45 +761,84 @@ int main(int argc, char **argv)
 
     // Write the initial set of edges.
 
-    scan_list sl(test_size);
+    {
+        AMI_STREAM<edge> amis0((unsigned int)0, test_size);
 
-    ae = AMI_scan(&sl, (AMI_base_stream<edge> *)&amis0);
+        scan_list sl(test_size);
 
-    if (verbose) {
-        cout << "Wrote the initial sequence of edges.\n";
-        cout << "Stopped (didn't write) with last_to = "
-             << sl.last_to << ". operate() called " << sl.called
-             << " times.\n";
-        cout << "Stream length = " << amis0.stream_len() << '\n';
-    }
+        ae = AMI_scan(&sl, (AMI_base_stream<edge> *)&amis0);
 
-    if (report_results_initial) {
-        ae = AMI_scan((AMI_base_stream<edge> *)&amis0, rpti);
+        if (verbose) {
+            cout << "Wrote the initial sequence of edges.\n";
+            cout << "Stopped (didn't write) with last_to = "
+                 << sl.last_to << ". operate() called " << sl.called
+                 << " times.\n";
+            cout << "Stream length = " << amis0.stream_len() << '\n';
+        }
+
+        if (report_results_initial) {
+            ae = AMI_scan((AMI_base_stream<edge> *)&amis0, rpti);
+        }
+        
+        // Randomly order them.
+
+        merge_random<edge> mr;
+
+        pamis1 = new AMI_STREAM<edge>((unsigned int)0, test_size);        
+        
+        ae = AMI_partition_and_merge(&amis0, pamis1,
+                                 (AMI_merge_base<edge> *)&mr);
+        
+        if (verbose) {
+            cout << "Randomly ordered the initial sequence of edges.\n";
+            cout << "Stream length = " << pamis1->stream_len() << '\n';
+        }
+
+        if (report_results_random) {
+            ae = AMI_scan((AMI_base_stream<edge> *)pamis1, rptr);
+        }
     }
     
-    // Randomly order them.
-
-    merge_random<edge> mr;
-
-    ae = AMI_partition_and_merge(&amis0, &amis1,
-                                 (AMI_merge_base<edge> *)&mr);
-
-    if (verbose) {
-        cout << "Randomly ordered the initial sequence of edges.\n";
-        cout << "Stream length = " << amis1.stream_len() << '\n';
-    }
-
-    if (report_results_random) {
-        ae = AMI_scan((AMI_base_stream<edge> *)&amis1, rptr);
-    }
-
     // Rank them.  Note that we should sort by destination before
     // calling the recursive list ranking function.
 
-    ae = AMI_sort(&amis1, &amis2, edgetocmp);
+    LOG_INFO("About to start timers.\n");
     
-    list_rank((AMI_base_stream<edge> *)&amis2,
-              (AMI_base_stream<edge> *)&amis3);
+#ifdef BTE_STATS
+    BTE_stream_mmb_base::reset_stats();
+    cout << BTE_stream_mmb_base::statistics() << '\n';
+    BTE_stream_mmb_base::stats_on();
+#endif
+        
+    wt0.reset();
+    ct0.reset();
+
+    wt0.start();    
+    ct0.start();
+
+    pamis2 = new AMI_STREAM<edge>((unsigned int)0, test_size);
+    
+    ae = AMI_sort(pamis1, pamis2, edgetocmp);
+
+    delete pamis1;
+    
+    list_rank((AMI_base_stream<edge> *)pamis2,
+              (AMI_base_stream<edge> *)&amis3, 1);
+
+    delete pamis2;
+
+    wt0.stop();
+    ct0.stop();
+
+    cout << "Wall time: " <<  wt0 << '\n';
+    cout << "CPU time: " <<  ct0 << '\n';
+
+#ifdef BTE_STATS
+    BTE_stream_mmb_base::stats_off();
+    cout << BTE_stream_mmb_base::statistics() << '\n';
+#endif
+
+    LOG_INFO("Stopped timers.\n");
 
     if (report_results_final) {
         // Sort by rank before output, to make it easier for humans to
@@ -784,7 +847,7 @@ int main(int argc, char **argv)
     
         ae = AMI_scan((AMI_base_stream<edge> *)&amis4, rptf);
     }
-
+        
     return 0;
 }
 
