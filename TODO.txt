@@ -3,6 +3,9 @@ This is the "to-do-list" - feel free to add stuff to it! Stuff that needs
 to be done on the manual is include in the .tex files using \comment{} -
 feel free to add stuff there too. Its better to add too much than to little!!
 
+Emails (or just text) describing bugs, requests for new functionality, ect
+can be found in the BUGemail directory. Fell free to add stuff there!
+
 General:
 --------
 
