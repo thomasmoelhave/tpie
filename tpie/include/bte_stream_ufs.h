@@ -2,7 +2,7 @@
 // File: bte_stream_ufs.h (formerly bte_ufs.h)
 // Author: Rakesh Barve <rbarve@cs.duke.edu>
 //
-// $Id: bte_stream_ufs.h,v 1.3 2002-01-17 02:15:52 tavi Exp $
+// $Id: bte_stream_ufs.h,v 1.4 2002-01-27 23:26:19 tavi Exp $
 //
 // BTE streams with blocks I/Oed using read()/write().  This particular
 // implementation explicitly manages blocks, and only ever maps in one
@@ -110,6 +110,11 @@ private:
   // were using ordinary (i.e. non-mmap()) file access methods.
   off_t f_offset;
 
+  // [tavi 01/27/02]
+  // This is the position in the file where the pointer is. We can
+  // save some lseek() calls by maintaining this.
+  off_t file_pointer;
+
   // Offset just past the end of the last item in the stream. If this
   // is a substream, we can't write here or anywhere beyond.
   off_t f_eos;
@@ -196,8 +201,6 @@ public:
   BTE_stream_ufs (const char *dev_path, BTE_stream_type st,
 		  size_t lbf = BTE_STREAM_UFS_BLOCK_FACTOR);
 
-  ///   BTE_stream_ufs (BTE_stream_ufs < T > &s);
-
    // A substream constructor.
    BTE_stream_ufs (BTE_stream_ufs * super_stream,
 		   BTE_stream_type st, off_t sub_begin, off_t sub_end);
@@ -270,6 +273,9 @@ BTE_stream_ufs < T >::BTE_stream_ufs (const char *dev_path,
    curr_block_file_offset = 0;
    curr_block = current = NULL;
    f_offset = f_bos = os_block_size_;
+   // To be on the safe side, set this to -1. It will be set to the
+   // right value by map_header(), below.
+   file_pointer = -1; 
 
    // Decrease the number of available streams.
    remaining_streams--;
@@ -465,7 +471,8 @@ BTE_stream_ufs < T >::BTE_stream_ufs (const char *dev_path,
 
    // Memory-usage for the header and the stream buffers are
    // registered automatically by Darren's modified new() function.
-   f_filelen = lseek (fd, 0, SEEK_END);
+   f_filelen = ::lseek (fd, 0, SEEK_END);
+   file_pointer = f_filelen;
    register_memory_allocation (sizeof (BTE_stream_ufs < T >));
    gstats_.record(STREAM_OPEN);
 }
@@ -576,6 +583,7 @@ BTE_stream_ufs < T >::BTE_stream_ufs (BTE_stream_ufs * super_stream,
    }
 
    f_offset = f_bos;
+   file_pointer = -1; // I don't jnow where the file pointer is.
    current = curr_block = NULL;
    block_valid = 0;
    block_dirty = 0;
@@ -618,7 +626,7 @@ BTE_err BTE_stream_ufs < T >::new_substream (BTE_stream_type st,
    BTE_stream_ufs < T > *sub =
        new BTE_stream_ufs < T > (this, st, sub_begin, sub_end);
 
-   *sub_stream = (BTE_stream_base < T > *)sub;
+   *sub_stream = (BTE_stream_base < T > *) sub;
 
    return BTE_ERROR_NO_ERROR;
 }
@@ -653,7 +661,7 @@ template < class T > BTE_stream_ufs < T >::~BTE_stream_ufs (void) {
    if (!substream_level) {
      // If a writeable stream, write back the header.
      if (!r_only) {
-       if (lseek (fd, 0, SEEK_SET) != 0) {
+       if (::lseek (fd, 0, SEEK_SET) != 0) {
 	 status_ = BTE_STREAM_STATUS_INVALID;
 	 os_errno = errno;
 	 LOG_FATAL_ID ("lseek() failed to move past header of " << path);
@@ -663,7 +671,7 @@ template < class T > BTE_stream_ufs < T >::~BTE_stream_ufs (void) {
 	 // TODO: Should we really return? If we do, we have memory leaks.
 	 return;
        }
-       if (write (fd, (char *) header, sizeof (BTE_stream_header))
+       if (::write (fd, (char *) header, sizeof (BTE_stream_header))
 	   != sizeof (BTE_stream_header)) {
 	 status_ = BTE_STREAM_STATUS_INVALID;
 	 os_errno = errno;
@@ -882,12 +890,13 @@ BTE_err BTE_stream_ufs < T >::name (char **stream_name) {
 
 // Move to a specific position.
 template < class T > BTE_err BTE_stream_ufs < T >::seek (off_t offset) {
+
    BTE_err be;
    off_t new_offset;
 
    if ((offset < 0) ||
-       (offset >
-	file_off_to_item_off (f_eos) - file_off_to_item_off (f_bos))) {
+       (offset > file_off_to_item_off (f_eos) - 
+	file_off_to_item_off (f_bos))) {
       LOG_WARNING_ID ("seek() out of range (off/bos/eos)");
       LOG_WARNING_ID (offset);
       LOG_WARNING_ID (file_off_to_item_off (f_bos));
@@ -962,12 +971,14 @@ template < class T > BTE_err BTE_stream_ufs < T >::truncate (off_t offset) {
       block_offset = ((new_offset - os_block_size_) / header->block_size)
 	  * header->block_size + os_block_size_;
       f_filelen = block_offset + header->block_size;
-      if (ftruncate (fd, block_offset + header->block_size)) {
+      if (::ftruncate (fd, block_offset + header->block_size)) {
 	 os_errno = errno;
 	 LOG_FATAL_ID ("Failed to ftruncate() to the new end of " << path);
 	 LOG_FATAL_ID (strerror (os_errno));
 	 return BTE_ERROR_OS_ERROR;
       }
+      // Invalidate the file pointer.
+      file_pointer = -1;
    }
    // Reset the current position to the end.    
    f_offset = f_eos = new_offset;
@@ -979,8 +990,8 @@ template < class T > BTE_err BTE_stream_ufs < T >::truncate (off_t offset) {
 // has been cached in path and that the file has been opened and
 // fd contains a valid descriptor.
 template < class T >
-BTE_stream_header * BTE_stream_ufs < T >::map_header (void)
-{
+BTE_stream_header * BTE_stream_ufs < T >::map_header (void) {
+
    off_t file_end;
    BTE_stream_header *ptr_to_header;
 
@@ -1006,14 +1017,14 @@ BTE_stream_header * BTE_stream_ufs < T >::map_header (void)
 
 	 char *tmp_buffer = new char[os_block_size_];
 
-	 if (lseek (fd, 0, SEEK_SET) != 0) {
+	 if (::lseek (fd, 0, SEEK_SET) != 0) {
 	    os_errno = errno;
 	    LOG_FATAL_ID ("Failed to lseek() in stream " << path);
 	    LOG_FATAL_ID (strerror (os_errno));
 	    return NULL;
 	 }
 
-	 if (write (fd, tmp_buffer, os_block_size_) !=
+	 if (::write (fd, tmp_buffer, os_block_size_) !=
 	     (ssize_t) os_block_size_) {
 	    os_errno = errno;
 	    LOG_FATAL_ID ("Failed to write() in stream " << path);
@@ -1022,6 +1033,7 @@ BTE_stream_header * BTE_stream_ufs < T >::map_header (void)
 	 }
 
 	 delete [] tmp_buffer;	// use vector delete -RW
+	 file_pointer = os_block_size_;
 
 	 ptr_to_header = new BTE_stream_header;
 	 if (ptr_to_header != NULL) {
@@ -1036,12 +1048,13 @@ BTE_stream_header * BTE_stream_ufs < T >::map_header (void)
       }
    }
 
-   //Instead of mmap() we simply read in the os_block_size_ leading
-   // bytes of the file, copy the leading sizeof(ufs_stream_header) bytes
-   // of the os_block_size_ bytes into the ptr_to_header structure and return
-   // ptr_to_header. Note that even though we could have read only the first
-   // sizeof(ufs_stream_header) of the file 
-   // we choose not to do so in order to avoid confusing sequential prefetcher. 
+   // Instead of mmap() we simply read in the os_block_size_ leading
+   // bytes of the file, copy the leading sizeof(ufs_stream_header)
+   // bytes of the os_block_size_ bytes into the ptr_to_header
+   // structure and return ptr_to_header. Note that even though we
+   // could have read only the first sizeof(ufs_stream_header) of the
+   // file we choose not to do so in order to avoid confusing
+   // sequential prefetcher.
 
    char *tmp_buffer = new char[os_block_size_];
 
@@ -1060,6 +1073,7 @@ BTE_stream_header * BTE_stream_ufs < T >::map_header (void)
       return NULL;
    }
     
+   file_pointer = os_block_size_;
    ptr_to_header = new BTE_stream_header;
    memcpy(ptr_to_header, tmp_buffer, sizeof(BTE_stream_header));
    delete [] tmp_buffer;	// should use vector delete -RW
@@ -1071,8 +1085,8 @@ BTE_stream_header * BTE_stream_ufs < T >::map_header (void)
 // set as appropriate.  
 //  
 template < class T >
-    inline BTE_err BTE_stream_ufs < T >::validate_current (void)
-{
+inline BTE_err BTE_stream_ufs < T >::validate_current (void) {
+
    unsigned int block_space;	// The space left in the current block.
    BTE_err bte_err;
 
@@ -1111,8 +1125,8 @@ template < class T >
 
 // Map in the current block.
 // f_offset is used to determine what block is needed.
-template < class T > BTE_err BTE_stream_ufs < T >::map_current (void)
-{
+template < class T > BTE_err BTE_stream_ufs < T >::map_current (void) {
+
    off_t block_offset;
    int do_mmap = 0;
 
@@ -1205,35 +1219,40 @@ template < class T > BTE_err BTE_stream_ufs < T >::map_current (void)
 
    if (do_mmap) {
 
-      if (lseek (fd, block_offset, SEEK_SET) != block_offset) {
+     if (block_offset != file_pointer) {
+       if (::lseek (fd, block_offset, SEEK_SET) != block_offset) {
 	 status_ = BTE_STREAM_STATUS_INVALID;
 	 os_errno = errno;
 	 LOG_FATAL_ID ("lseek() to  block at " << block_offset <<
 		       " in file ");
 	 LOG_FATAL_ID (path << ": " << strerror (os_errno));
 	 return BTE_ERROR_OS_ERROR;
-      }
+       }
+     }
 
-      if (curr_block == NULL) {
+     if (curr_block == NULL) {
+	
+       curr_block = new T[(sizeof(T)-1+header->block_size)/sizeof(T)];
 
-	 curr_block = new T[(sizeof(T)-1+header->block_size)/sizeof(T)];
+       // If you really want to be anal about memory calculation
+       // consistency then if BTE_IMPLICIT_FS_READAHEAD flag is set
+       // you shd register a memory allocation of header->block_size
+       // AT THIS POINT of time in code.
+     }
 
-	 // If you really want to be anal about memory calculation
-	 // consistency then if BTE_IMPLICIT_FS_READAHEAD flag is set
-	 // you shd register a memory allocation of header->block_size
-	 // AT THIS POINT of time in code.
-      }
-
-      if (read (fd, (char *) curr_block, header->block_size) !=
-	  (ssize_t) header->block_size) {
-	 status_ = BTE_STREAM_STATUS_INVALID;
-	 os_errno = errno;
-	 LOG_FATAL_ID ("read() failed to read in block at " << block_offset
-		       << " in file ");
-	 LOG_FATAL (path << " : " << strerror (os_errno));
-	 return BTE_ERROR_OS_ERROR;
-      }
+     if (::read (fd, (char *) curr_block, header->block_size) !=
+	 (ssize_t) header->block_size) {
+       status_ = BTE_STREAM_STATUS_INVALID;
+       os_errno = errno;
+       LOG_FATAL_ID ("read() failed to read in block at " << block_offset
+		     << " in file ");
+       LOG_FATAL (path << " : " << strerror (os_errno));
+       return BTE_ERROR_OS_ERROR;
+     }
    }
+   
+   // Advance file pointer.
+   file_pointer = block_offset + header->block_size;
 
    block_valid = 1;
    curr_block_file_offset = block_offset;
@@ -1260,33 +1279,39 @@ template < class T > BTE_err BTE_stream_ufs < T >::map_current (void)
 template < class T > 
 BTE_err BTE_stream_ufs < T >::unmap_current (void) {
 
-   off_t lseek_retval;
+  ///   off_t lseek_retval;
 
    // We should currently have a valid block.
    tp_assert (block_valid, "No block is mapped in.");
 
-   if ((!r_only) && (block_dirty)) {
-      if ((lseek_retval = lseek (fd, curr_block_file_offset, SEEK_SET)) !=
-	  curr_block_file_offset) {
+   if (!r_only && block_dirty) {
+
+     if (curr_block_file_offset != file_pointer) {
+       if (::lseek (fd, curr_block_file_offset, SEEK_SET) !=
+	   curr_block_file_offset) {
 	 status_ = BTE_STREAM_STATUS_INVALID;
 	 os_errno = errno;
 	 LOG_FATAL_ID ("lseek() failed while unmapping current block.");
 	 LOG_FATAL_ID (strerror (os_errno));
 	 return BTE_ERROR_OS_ERROR;
-      }
-      if (lseek_retval == f_filelen)
-	 f_filelen += header->block_size;
+       }
+     }
 
-      if (write (fd, (char *) curr_block, header->block_size) !=
-	  (ssize_t) header->block_size) {
-	 status_ = BTE_STREAM_STATUS_INVALID;
-	 os_errno = errno;
-	 LOG_FATAL_ID ("write() failed to unmap current block.");
-	 LOG_FATAL_ID (strerror (os_errno));
-	 return BTE_ERROR_OS_ERROR;
-      }
+     if (curr_block_file_offset == f_filelen)
+       f_filelen += header->block_size;
+     
+     if (::write (fd, (char *) curr_block, header->block_size) !=
+	 (ssize_t) header->block_size) {
+       status_ = BTE_STREAM_STATUS_INVALID;
+       os_errno = errno;
+       LOG_FATAL_ID ("write() failed to unmap current block.");
+       LOG_FATAL_ID (strerror (os_errno));
+       return BTE_ERROR_OS_ERROR;
+     }
+     // Advance file pointer.
+     file_pointer = curr_block_file_offset + header->block_size;
    }
-
+   
    block_dirty = 0;
    block_valid = 0;
    curr_block_file_offset = 0;
@@ -1402,7 +1427,7 @@ template < class T > void BTE_stream_ufs < T >::read_ahead (void)
 	 aiocancel (aio_results + ii);
 
 	 // Start the async I/O.
-	 if (aioread (fd, (char *) (read_ahead_buffer + ii), sizeof (int),
+	 if (::aioread (fd, (char *) (read_ahead_buffer + ii), sizeof (int),
 		      f_next_block + ii * os_block_size_, SEEK_SET,
 		      aio_results + ii)) {
 
