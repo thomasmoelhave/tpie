@@ -1,9 +1,5 @@
-# Copyright (c) 1994 Darren Erik Vengroff
-#
-# The Makefile for the complete TPIE system.
-#
-# $Id: Makefile.in,v 1.17 1999-07-03 03:34:00 rajiv Exp $
-#
+# Makefile for the complete TPIE system.
+# $Id: Makefile.in,v 1.18 2002-01-03 18:31:09 tavi Exp $
 
 MY_DEFS := @DEFS@
 MY_LIBS := @LIBS@
@@ -16,12 +12,11 @@ export
 # The directories storing the components of the system
 
 LIBPATH := ./lib/
-
 LIBSRCPATH := $(LIBPATH)src/
-
 TESTPATH := ./test/
-
 INCPATH := ./include/
+
+# Public targets.
 
 usage:
 	@echo $(MAKE) "[ all | include | lib | test | clean | distclean ]"
@@ -31,23 +26,24 @@ all: include lib test
 include:
 	$(MAKE) -C $(INCPATH) all
 
-lib: 
+lib: include
 	$(MAKE) -C $(LIBSRCPATH) all
 	$(MAKE) -C $(LIBPATH) all
 
 test: 
 	$(MAKE) -C $(TESTPATH) all
 
-.PHONY : clean lib include test usage all distclean
-
-distcleandir = (rm -f $(dir)*~; rm -f $(dir)Makefile)
-
-dirs := ./ $(TESTPATH) $(LIBPATH) $(LIBSRCPATH) $(INCPATH)
-
 clean:
+	rm -f $(TESTPATH)/Makefile.depend; touch $(TESTPATH)/Makefile.depend
 	$(MAKE) -C $(TESTPATH) $@
 	$(MAKE) -C $(LIBPATH) $@
 	$(MAKE) -C $(INCPATH) $@
- 
+
+dirs := ./ $(TESTPATH) $(LIBPATH) $(LIBSRCPATH) $(INCPATH)
 distclean: clean
-	$(foreach dir,$(dirs),$(distcleandir);)
+	$(foreach dir,$(dirs),(rm -f $(dir)/*~; rm -f $(dir)/Makefile);)
+
+# Private targets.
+
+.PHONY : clean lib include test usage all distclean
+

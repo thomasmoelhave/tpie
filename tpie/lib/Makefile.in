@@ -1,31 +1,29 @@
-# Copyright (c) 1994 Darren Erik Vengroff
-#
-# The Makefile for the TPIE library.
-#
-# $Id: Makefile.in,v 1.4 1994-10-31 19:58:05 darrenv Exp $
-#
+# Makefile for the TPIE library.
+# $Id: Makefile.in,v 1.5 2002-01-03 18:33:16 tavi Exp $
 
 LIBRARY = libtpie.a
-
 LIBSRCPATH = ./src/
-
 RANLIB = @RANLIB@
 
 export
 
+# Public targets.
 
 all: $(LIBRARY)
+
+clean:
+	rm -f $(LIBRARY) $(LIBSRCPATH)/Makefile.depend; \
+	touch $(LIBSRCPATH)/Makefile.depend
+	$(MAKE) -C $(LIBSRCPATH) $@
+
+distclean: 
+	-rm -f $(LIBRARY)
+	$(MAKE) -C $(LIBSRCPATH) $@
+
+# Private targets.
 
 $(LIBRARY): $(LIBSRCPATH)$(LIBRARY)
 	cp $< $@
 	$(RANLIB) $@
 
 .PHONY : clean all
-
-clean:
-	-rm $(LIBRARY)
-	$(MAKE) -C $(LIBSRCPATH) $@
-
-
-
-
