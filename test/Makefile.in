@@ -1,6 +1,6 @@
 # Copyright (c) 1994 Darren Erik Vengroff
 
-# $Id: Makefile.in,v 1.2 1994-05-27 20:00:06 dev Exp $
+# $Id: Makefile.in,v 1.3 1994-06-03 13:48:16 dev Exp $
 
 # Makefile for TPIE test applications.
 
@@ -13,7 +13,7 @@ TPIELIBDIR = ../lib
 
 TPIELIB = $(TPIELIBDIR)/libtpie.a
 
-CXXFLAGS = -g
+CXXFLAGS = -O # -g
 
 CPPFLAGS = -I$(TPIEINC) -DDEBUG_ASSERTIONS=1 -DDEBUG_STR=1 -DDEBUG_CERR=1
 
@@ -28,7 +28,10 @@ MMTOBJS = mmb_stream_test.o
 AMI_SCAN = ami_scan
 AMISCANOBJS = ami_scan.o
 
-APPS=$(AMI_SCAN)
+AMI_MERGE = test_ami_merge
+AMIMERGEOBJS = test_ami_merge.o
+
+APPS=$(AMI_MERGE)
 
 FSCATOBJS = bte_fs_cat.o 
 
@@ -41,5 +44,8 @@ $(MMAP_TEST): $(MMTOBJS) $(TPIELIB)
 	$(LINK.cc) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
 $(AMI_SCAN): $(AMISCANOBJS) $(TPIELIB)
+	$(LINK.cc) $^ $(LOADLIBES) $(LDLIBS) -o $@
+
+$(AMI_MERGE): $(AMIMERGEOBJS) $(TPIELIB)
 	$(LINK.cc) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
