@@ -4,8 +4,13 @@
 //
 // Definition of the b_vector class.
 //
-// $Id: b_vector.h,v 1.1 2000-11-03 04:16:15 tavi Exp $
+// $Id: b_vector.h,v 1.2 2000-11-04 01:58:19 tavi Exp $
 //
+
+#ifndef _B_VECTOR_H
+#define _B_VECTOR_H
+
+#include <string.h>
 
 template<class T>
 class b_vector {
@@ -118,3 +123,5 @@ void b_vector<T>::erase(size_t pos) {
 
   copy(pos, capacity_ - pos - 1, *this, pos + 1);
 }
+
+#endif // _B_VECTOR_H
