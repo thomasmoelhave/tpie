@@ -1,6 +1,6 @@
 # Copyright (c) 1994 Darren Erik Vengroff
 
-# $Id: Makefile.in,v 1.7 1994-10-07 15:41:54 darrenv Exp $
+# $Id: Makefile.in,v 1.8 1994-10-10 13:00:56 darrenv Exp $
 
 # Makefile for TPIE test applications.
 
@@ -114,8 +114,8 @@ dist_sweep_test: dist_sweep_test.o
 .PHONY : clean all
 
 clean:
-	-rm *.o *.d
+	-rm $(CSRC:.c=.d) $(CSRC:.c=.o) $(CXXSRC:.cpp=.d)  $(CXXSRC:.cpp=.d)
 	-rm $(APPS)
-	-rm $(UP_TO_DATE)
+
 
 
