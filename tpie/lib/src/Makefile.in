@@ -1,7 +1,7 @@
 # Makefile for TPIE library.
 # Use GNU make on this Makefile. It relies on the default rules.
 # Use (GNU) "make -p" to see the default rules.
-# $Id: Makefile.in,v 1.31 2002-01-03 18:27:14 tavi Exp $
+# $Id: Makefile.in,v 1.32 2002-01-14 15:35:31 tavi Exp $
 
 ARFLAGS = rv
 CXX = @CXX@
@@ -32,23 +32,19 @@ SRC =	logstream.cpp \
 	tpie_log.cpp \
 	mm_register.cpp \
 	ami_device.cpp \
-	ami_single.cpp \
+	ami_stream_single.cpp \
 	mm_base.cpp \
-	bte_mmb.cpp \
-	bte_stdio.cpp \
-	bte_ufs.cpp \
+	bte_stream_base.cpp \
 	bit.cpp \
 	bit_matrix.cpp \
 	ami_matrix_blocks.cpp \
 	ami_bit_permute.cpp \
 	wall_timer.cpp \
 	cpu_timer.cpp \
-	bte_stats.cpp \
-	bte_mmb_stats.cpp	\
 	ami_key.cpp \
 	ami_optimized_merge.cpp \
 	bte_coll_base.cpp \
-	bte_coll_mmb.cpp \
+	bte_coll_mmap.cpp \
 	bte_coll_ufs.cpp
 
 OBJ =	$(SRC:.cpp=.o)
@@ -77,7 +73,7 @@ cleandepend:
 
 $(LIBRARY): $(LIB_COMPONENTS)
 
-Makefile.depend: $(SRC)
+Makefile.depend: #$(SRC)
 	rm -f Makefile.depend; \
 	$(MAKEDEPEND) $(CPPFLAGS) $(SRC) >> Makefile.depend
 
