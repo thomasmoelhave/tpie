@@ -8,7 +8,7 @@
 // A simple registration based memory manager.
 
 #include <versions.h>
-VERSION(mm_register_cpp,"$Id: mm_register.cpp,v 1.15 2000-04-22 04:03:46 rajiv Exp $");
+VERSION(mm_register_cpp,"$Id: mm_register.cpp,v 1.16 2000-04-22 04:07:56 rajiv Exp $");
 
 #include <assert.h>
 #include "lib_config.h"
@@ -229,7 +229,7 @@ unsigned int mm_register_init::count;
 mm_register_init::mm_register_init(void)
 {
     if (count++ == 0) {
-        MM_manager.remaining = MM_manager.user_limit = MM_DEFAULT_MM_SIZE;
+	  MM_manager.set_memory_limit(MM_DEFAULT_MM_SIZE);
     }
 }
 
