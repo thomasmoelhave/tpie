@@ -1,5 +1,5 @@
 %%
-%% $Id: ami_reference.tex,v 1.11 2000-11-08 17:24:30 hutchins Exp $
+%% $Id: ami_reference.tex,v 1.12 2001-04-27 14:35:00 tavi Exp $
 %%
 \chapter{TPIE Programmer's Reference}
 \plabel{cha:reference}
@@ -173,6 +173,7 @@ The following (toy) program creates new elements of a linked
 list until its specified memory limit has been reached.
 
 \begin{verbatim}
+
 // This program illustrates the use of the main public 
 // entry points in the TPIE memory manager object "MM_manager".
 // It creates nodes in a linked list and stops when a predefined memory 
@@ -213,6 +214,7 @@ main (int argc, char *argv[]){
   cout << " were allocated within my memory limit of ";
   cout << (size_t) mem_limit << " bytes \n";
 };
+
 \end{verbatim}
 
 Under PC Solaris, this program gives the following output:
@@ -1234,10 +1236,10 @@ prototype:
 \end{verbatim}
 
 The user-written \myverb{compare} function computes the
-order of the two user-defined keys \noiv{&k1} and
-\noiv{&k2}, and returns $-1$, $0$, or $+1$ to indicate that
-$&k1<&k2$, $&k1==&k2$, or $&k1>&k2$ respectively.
-It will be called by the internals of \noiv{AMI_key_sort} to
+order of the two user-defined keys \noiv{k1} and
+\noiv{k2}, and returns $-1$, $0$, or $+1$ to indicate that
+$k1<k2$, $k1==k2$, or $k1>k2$ respectively.
+It will be called by the internals of \noiv{AMI\_key\_sort} to
 determine the relative order of records during the sort.
 
 The \myverb{copy} member function has the following
@@ -1248,8 +1250,8 @@ prototype:
 
 The user-written \myverb{copy} function constructs the
 user-defined key \noiv{*key} from the contents of the
-user-defined record \noiv{&record}. It will be called by the
-internals of \noiv{AMI_key_sort} to make copies of record
+user-defined record \noiv{record}. It will be called by the
+internals of \noiv{AMI\_key\_sort} to make copies of record
 keys as necessary during the sort.
 
 \index{sorting!merge|)} 
