@@ -6,12 +6,8 @@
 // Runtime parameters for the kd-tree, K-D-B-tree and B-tree test
 // suite.
 //
-// $Id: app_params.cpp,v 1.5 2003-09-13 23:09:22 tavi Exp $
+// $Id: app_params.cpp,v 1.6 2003-09-17 02:47:26 tavi Exp $
 
-
-//#include <time.h>
-//#include <stdlib.h>
-//#include <strings.h>
 
 #include <portability.h>
 
@@ -30,16 +26,17 @@
 // Initialize a global object with all run-time parameters.
 app_params_t params;
 
-istream& operator>>(istream& s, app_params_t::record_t& p) {
+static istream& operator>>(istream& s, app_params_t::record_t& p) {
   for (int i = 0; i < DIM; i++)
     s >> p[i];
   return s >> p.id();
 }
 
+
 void usage(char* argv0) {
   cerr << "Usage: " << argv0 << "\n"
        << "   [-m <memory_size_in_MB>] (TPIE memory size in megabytes)\n"
-       << "   [-is <base_name_sorted> | -iu <base_name_unsorted> | -ir <point_count> |\n"
+       << "   [-is <base_name_sorted> | -iu <base_name_unsorted> |\n"
        << "       -ia <ascii_file_name> [...] | -it <base_name_tree>] (input method; choose one)\n"
        << "   [-os <base_name_sorted>] (write sorted files; \"0\" and \"1\" are added to the name)\n"
        << "   [-ou <base_name_unsorted>] (write unsorted file)\n"
@@ -70,8 +67,7 @@ void usage(char* argv0) {
 }
 
 void print_statistics(ostream& os) {
-  params.stats << '\0';
-  os << params.stats.str() << endl;
+  os << params.stats << endl;
 }
 
 void print_configuration(ostream& os) {
