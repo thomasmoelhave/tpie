@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 11/4/94
 //
-// $Id: bit_matrix.h,v 1.6 1999-02-03 17:41:31 tavi Exp $
+// $Id: bit_matrix.h,v 1.7 1999-05-02 18:48:05 tavi Exp $
 //
 #ifndef _BIT_MATRIX_H
 #define _BIT_MATRIX_H
@@ -32,12 +32,12 @@ public:
 
     operator off_t(void);
 
-    friend bit_matrix operator+(bit_matrix &op1, bit_matrix &op2);
-    friend bit_matrix operator*(bit_matrix &op1, bit_matrix &op2);
+    friend bit_matrix operator+(const bit_matrix &op1, const bit_matrix &op2);
+    friend bit_matrix operator*(const bit_matrix &op1, const bit_matrix &op2);
 };
 
-bit_matrix operator+(bit_matrix &op1, bit_matrix &op2);
-bit_matrix operator*(bit_matrix &op1, bit_matrix &op2);
+bit_matrix operator+(const bit_matrix &op1, const bit_matrix &op2);
+bit_matrix operator*(const bit_matrix &op1, const bit_matrix &op2);
 
 ostream &operator<<(ostream &s, bit_matrix &bm);
 
