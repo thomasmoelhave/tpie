@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 11/4/94
 //
-// $Id: bit_matrix.h,v 1.13 2004-08-17 16:48:03 jan Exp $
+// $Id: bit_matrix.h,v 1.14 2005-01-14 18:35:00 tavi Exp $
 //
 #ifndef _BIT_MATRIX_H
 #define _BIT_MATRIX_H
@@ -22,20 +22,23 @@
 
 class bit_matrix : public matrix<bit> {
 public:
-	bit_matrix(matrix<bit> &mb);
-    bit_matrix(TPIE_OS_SIZE_T rows, TPIE_OS_SIZE_T cols);
-    virtual ~bit_matrix(void);
+  using matrix<bit>::rows;
+  using matrix<bit>::cols;
+  
+  bit_matrix(matrix<bit> &mb);
+  bit_matrix(TPIE_OS_SIZE_T rows, TPIE_OS_SIZE_T cols);
+  virtual ~bit_matrix(void);
 
-    bit_matrix operator=(const bit_matrix &rhs);
+  bit_matrix operator=(const bit_matrix &rhs);
     
-    // We can assign from an offset, which is typically a source
-    // address for a BMMC permutation.
-    bit_matrix &operator=(const TPIE_OS_OFFSET &rhs);
+  // We can assign from an offset, which is typically a source
+  // address for a BMMC permutation.
+  bit_matrix &operator=(const TPIE_OS_OFFSET &rhs);
 
-    operator TPIE_OS_OFFSET(void);
-
-    friend bit_matrix operator+(const bit_matrix &op1, const bit_matrix &op2);
-    friend bit_matrix operator*(const bit_matrix &op1, const bit_matrix &op2);
+  operator TPIE_OS_OFFSET(void);
+  
+  friend bit_matrix operator+(const bit_matrix &op1, const bit_matrix &op2);
+  friend bit_matrix operator*(const bit_matrix &op1, const bit_matrix &op2);
 };
 
 bit_matrix operator+(const bit_matrix &op1, const bit_matrix &op2);
