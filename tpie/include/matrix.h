@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 11/4/94
 //
-// $Id: matrix.h,v 1.4 1998-12-11 18:22:58 tavi Exp $
+// $Id: matrix.h,v 1.5 1999-02-03 03:01:52 jan Exp $
 //
 #ifndef MATRIX_H
 #define MATRIX_H
@@ -523,18 +523,18 @@ public:
     T &elt(unsigned int row, unsigned int col) const;
 
     // Friends that need direct access to data for fast multiplication.
-    friend void quick_matrix_mult_in_place(const matrix<T> &op1,
-                                           const matrix<T> &op2,
-                                           matrix<T> &res);
-    friend void quick_matrix_mult_add_in_place(const matrix<T> &op1,
-                                               const matrix<T> &op2,
-                                               matrix<T> &res);
-    friend void aggarwal_matrix_mult_in_place(const matrix<T> &op1,
-                                              const matrix<T> &op2,
-                                              matrix<T> &res);
-    friend void aggarwal_matrix_mult_add_in_place(const matrix<T> &op1,
-                                                  const matrix<T> &op2,
-                                                  matrix<T> &res);
+//     friend void quick_matrix_mult_in_place(const matrix<T> &op1,
+// 					   const matrix<T> &op2,
+// 					   matrix<T> &res);
+//     friend void quick_matrix_mult_add_in_place(const matrix<T> &op1,
+// 					       const matrix<T> &op2,
+// 					       matrix<T> &res);
+//     friend void aggarwal_matrix_mult_in_place(const matrix<T> &op1,
+// 					      const matrix<T> &op2,
+// 					      matrix<T> &res);
+//     friend void aggarwal_matrix_mult_add_in_place(const matrix<T> &op1,
+// 						  const matrix<T> &op2,
+// 						  matrix<T> &res);
 
 };
 
@@ -720,15 +720,17 @@ void quick_matrix_mult_in_place(const matrix<T> &op1,
         // Iterate over colums of op2.
         for (jj = c2; jj--; ) {
             // Iterate through the row of r1 and the column of r2.
-            t = op1.data[ii*c1+c1-1] * op2.data[(r2-1)*c2+jj];
-                // op1.elt(ii,op1.cols()-1) * op2.elt(op2.rows()-1,jj);
+//            t = op1.data[ii*c1+c1-1] * op2.data[(r2-1)*c2+jj];
+//                // op1.elt(ii,op1.cols()-1) * op2.elt(op2.rows()-1,jj);
+              t = op1.elt(ii,c1-1) * op2.elt(r2-1,jj);
             for (kk = r2 - 1; kk--; ) {                
-                t += op1.data[ii*c1+kk] * op2.data[kk*c2+jj];
-                    // op1.elt(ii,kk) * op2.elt(kk,jj);
+//                t += op1.data[ii*c1+kk] * op2.data[kk*c2+jj];
+//                    // op1.elt(ii,kk) * op2.elt(kk,jj);
+                  t += op1.elt(ii,kk) * op2.elt(kk,jj);
             }
             // Assign into the result.
-            res.data[ii*cres+jj] = t;
-            // res.elt(ii,jj) = t;
+//            res.data[ii*cres+jj] = t;
+            res.elt(ii,jj) = t;
         }
     }    
 }                      
@@ -764,15 +766,16 @@ void quick_matrix_mult_add_in_place(const matrix<T> &op1,
         // Iterate over colums of op2.
         for (jj = c2; jj--; ) {
             // Iterate through the row of r1 and the column of r2.
-            t = op1.data[ii*c1+c1-1] * op2.data[(r2-1)*c2+jj];
-                // op1.elt(ii,op1.cols()-1) * op2.elt(op2.rows()-1,jj);
+//            t = op1.data[ii*c1+c1-1] * op2.data[(r2-1)*c2+jj];
+//                // op1.elt(ii,op1.cols()-1) * op2.elt(op2.rows()-1,jj);
+              t = op1.elt(ii,c1-1) * op2.elt(r2-1,jj);
             for (kk = r2 - 1; kk--; ) {                
-                t += op1.data[ii*c1+kk] * op2.data[kk*c2+jj];
-                    // op1.elt(ii,kk) * op2.elt(kk,jj);
+//                t += op1.data[ii*c1+kk] * op2.data[kk*c2+jj];
+                  t += op1.elt(ii,kk) * op2.elt(kk,jj);
             }
             // Assign into the result.
-            res.data[ii*cres+jj] += t;
-            // res.elt(ii,jj) += t;
+//            res.data[ii*cres+jj] += t;
+            res.elt(ii,jj) += t;
         }
     }    
 }                      
@@ -821,15 +824,18 @@ void aggarwal_matrix_mult_in_place(const matrix<T> &op1,
         for (kk = r2; kk--; ) {                
             
             // Iterate over columns of op2.
-            op1elt = op1.data[ii*c1+kk];
+//            op1elt = op1.data[ii*c1+kk];
+            op1elt = op1.elt(ii,kk);
             for (jj = c2; jj--; ) {                
-                temp[jj] += op1elt * op2.data[kk*c2+jj];
+//                temp[jj] += op1elt * op2.data[kk*c2+jj];
+                temp[jj] += op1elt * op2.elt(kk,jj);
             }
         }
 
         // Set the results.
         for (jj = c2; jj--; ) {
-            res.data[ii*cres+jj] = temp[jj];
+//            res.data[ii*cres+jj] = temp[jj];
+            res.elt(ii,jj) = temp[jj];
         }
     }
 
@@ -877,15 +883,18 @@ void aggarwal_matrix_mult_add_in_place(const matrix<T> &op1,
         for (kk = r2; kk--; ) {                
             
             // Iterate over columns of op2.
-            op1elt = op1.data[ii*c1+kk];
+//            op1elt = op1.data[ii*c1+kk];
+            op1elt = op1.elt(ii,kk);
             for (jj = c2; jj--; ) {                
-                temp[jj] += op1elt * op2.data[kk*c2+jj];
+//                temp[jj] += op1elt * op2.data[kk*c2+jj];
+                temp[jj] += op1elt * op2.elt(kk,jj);
             }
         }
 
         // Set the results.
         for (jj = c2; jj--; ) {
-            res.data[ii*cres+jj] += temp[jj];
+//            res.data[ii*cres+jj] += temp[jj];
+            res.elt(ii,jj) += temp[jj];
         }
     }
 
