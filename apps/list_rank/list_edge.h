@@ -4,15 +4,14 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/27/94
 //
-// $Id: list_edge.h,v 1.3 2003-06-03 16:56:24 tavi Exp $
+// $Id: list_edge.h,v 1.4 2003-09-12 02:43:45 tavi Exp $
 //
 // The edge class.  This is what our list ranking function will work on.
 //
 #ifndef _LIST_EDGE_H
 #define _LIST_EDGE_H
 
-#include <iostream>
-using std::ostream;
+#include <portability.h>
 
 class edge {
 public:
