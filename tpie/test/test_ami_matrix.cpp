@@ -5,7 +5,7 @@
 // Created: 12/11/94
 //
 
-static char test_ami_matrix_id[] = "$Id: test_ami_matrix.cpp,v 1.2 1995-03-07 14:55:46 darrenv Exp $";
+static char test_ami_matrix_id[] = "$Id: test_ami_matrix.cpp,v 1.3 1995-04-03 13:11:59 dev Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -37,6 +37,7 @@ static struct ___test_ami_matrix_id_compiler_fooler {
 #include <ami_matrix_fill.h>
 #include "fill_upper_tri.h"
 
+#include <cpu_timer.h>
 
 // Instantiate all the templates we will.
 
@@ -103,7 +104,7 @@ int main(int argc, char **argv)
         cout << "test_mm_size = " << test_mm_size << ".\n";
         cout << "random_seed = " << random_seed << ".\n";
     } else {
-        cout << test_size << ' ' << test_mm_size << ' ' << random_seed << '\n';
+        cout << test_size << ' ' << test_mm_size << ' ';
     }
     
     // Set the amount of main memory:
@@ -141,7 +142,7 @@ int main(int argc, char **argv)
 #if 1    
     // Write some doubles.
 
-    fill_upper_tri<double> fut;
+    fill_upper_tri<double> fut(3.1415927);
     
     {
         ae = AMI_matrix_fill(&em0, (AMI_matrix_filler<double> *)&fut);
@@ -151,7 +152,7 @@ int main(int argc, char **argv)
         }
         
         if (report_results_count) {
-            ae = AMI_scan((AMI_base_stream<double> *)&em0, rptc);
+            ae = AMI_scan((AMI_STREAM<double> *)&em0, rptc);
             cout << "Stream length = " << em0.stream_len() << '\n';
         }
     }
@@ -165,22 +166,31 @@ int main(int argc, char **argv)
         }
         
         if (report_results_intermediate) {
-            ae = AMI_scan((AMI_base_stream<double> *)&em1, rpti);
+            ae = AMI_scan((AMI_STREAM<double> *)&em1, rpti);
         }
     }
 #endif
+
+    cpu_timer cput;
+    
+    cput.reset();
+    cput.start();
     
     // Multiply the two
 
     ae = AMI_matrix_mult(em0, em1, em2);
 
+    cput.stop();
+
+    cout << cput << '\n';
+    
     if (verbose) {
         cout << "Multiplied them.\n";
         cout << "Stream length = " << em2.stream_len() << '\n';
     }
     
     if (report_results_final) {
-        ae = AMI_scan((AMI_base_stream<double> *)&em2, rptf);
+        ae = AMI_scan((AMI_STREAM<double> *)&em2, rptf);
     }
     
     return 0;
