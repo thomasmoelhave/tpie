@@ -9,13 +9,16 @@
 // AMI_kdbtree_status, AMI_kdbtree_params, 
 // region_t, kdb_item_t, path_stack_item_t.
 //
-// $Id: ami_kd_base.h,v 1.1 2003-06-02 16:59:43 tavi Exp $
+// $Id: ami_kd_base.h,v 1.2 2003-06-03 23:16:32 tavi Exp $
 //
 
 #ifndef _AMI_KD_BASE_H
 #define _AMI_KD_BASE_H
 
+// For std::ostream.
 #include <iostream>
+// For std::min, std::max.
+#include <algorithm>
 #include <ami_block_base.h>
 #include <ami_point.h>
 
@@ -487,7 +490,7 @@ public:
 };
 
 template<class coord_t, size_t dim>
-ostream &operator<<(ostream& s, const kdb_item_t<coord_t, dim>& ki) {
+std::ostream &operator<<(std::ostream& s, const kdb_item_t<coord_t, dim>& ki) {
   s << "[";
   for (size_t i = 0; i < dim; i++) {
     if (ki.region.is_bounded_lo(i))

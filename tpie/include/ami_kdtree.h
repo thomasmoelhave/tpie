@@ -5,7 +5,7 @@
 //
 // Blocked kd-tree definition and implementation.
 //
-// $Id: ami_kdtree.h,v 1.10 2003-06-02 16:55:51 tavi Exp $
+// $Id: ami_kdtree.h,v 1.11 2003-06-03 23:16:32 tavi Exp $
 //
 
 #ifndef _AMI_KDTREE_H
@@ -15,12 +15,17 @@
 #include <strings.h>
 // Get definitions for working with Unix and Windows
 #include <portability.h>
-// STL stuff.
+// For std::ostream.
 #include <iostream>
+// For std::pair.
 #include <utility>
+// For std::stack.
 #include <stack>
+// For std::min, std::max.
 #include <algorithm>
+// For std::vector.
 #include <vector>
+// For std::priority_queue.
 #include <queue>
 // TPIE stuff.
 #include <ami_stream.h>
@@ -134,7 +139,7 @@ public:
 
   // Print out some stuff about the tree structure. For debugging
   // purposes only.
-  void print(ostream& s);
+  void print(std::ostream& s);
 
   // Destructor.
   ~AMI_kdtree();
@@ -276,11 +281,11 @@ protected:
     // The low and high coordinates. The boolean bit is false iff the
     // value is unbounded on that dimension.
 #if AMI_KDTREE_USE_EXACT_SPLIT
-    pair<point_t, bool> lo[dim];
-    pair<point_t, bool> hi[dim];
+    std::pair<point_t, bool> lo[dim];
+    std::pair<point_t, bool> hi[dim];
 #else
-    pair<coord_t, bool> lo[dim];
-    pair<coord_t, bool> hi[dim];
+    std::pair<coord_t, bool> lo[dim];
+    std::pair<coord_t, bool> hi[dim];
 #endif
 
     // Construct a grid_matrix.
@@ -336,7 +341,7 @@ protected:
     size_t* o[dim];
     size_t point_count;
     // The queue of unfinished business.
-    vector<grid_context> q;
+    std::vector<grid_context> q;
 
     grid(size_t t_all, stream_t** in_streams);
     ~grid();
@@ -366,7 +371,7 @@ protected:
     // The number of sample points.
     size_t sz;
     // The queue of unfinished business.
-    vector<sample_context> q;
+    std::vector<sample_context> q;
     // Construct a sample.
     sample(size_t _sz, stream_t* _in_stream);
     // Remove the sample points.
@@ -387,8 +392,8 @@ protected:
     }
   };
 
-  typedef pair<podf, pair<AMI_bid,link_type_t> > outer_stack_elem;
-  typedef pair<podf, size_t>                   inner_stack_elem;
+  typedef std::pair<podf, std::pair<AMI_bid,link_type_t> > outer_stack_elem;
+  typedef std::pair<podf, size_t>                   inner_stack_elem;
 
   // Used for nearest neighbor searching.
   struct nn_pq_elem {
@@ -560,9 +565,9 @@ public:
   // Find the child node that leads to p. The second
   // entry in the pair tells whether that pointer is a leaf AMI_bid
   // or a node AMI_bid.
-  pair<AMI_bid, link_type_t> find(const point_t &p) const;
+  std::pair<AMI_bid, link_type_t> find(const point_t &p) const;
 
-  pair<size_t, link_type_t> find_index(const point_t &p) const;
+  std::pair<size_t, link_type_t> find_index(const point_t &p) const;
 };
 
 
@@ -714,7 +719,7 @@ size_t AMI_KDTREE_LEAF::find_median(size_t d) {
 //// *AMI_kdtree_node::lk_capacity* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
 size_t AMI_KDTREE_NODE::lk_capacity(size_t block_size) {
-  return (size_t) ((block_size - sizeof(pair<size_t, size_t>) - 
+  return (size_t) ((block_size - sizeof(std::pair<size_t, size_t>) - 
 		    sizeof(AMI_bid)) / 
     (sizeof(Bin_node) + sizeof(AMI_bid)) + 1);
 }
@@ -743,7 +748,7 @@ AMI_KDTREE_NODE::AMI_kdtree_node(AMI_collection_single<BTECOLL>* pcoll, AMI_bid 
 
 //// *AMI_kdtree_node::find_index* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-inline pair<size_t, link_type_t> AMI_KDTREE_NODE::find_index(const POINT &p) const {
+inline std::pair<size_t, link_type_t> AMI_KDTREE_NODE::find_index(const POINT &p) const {
   TPLOG("AMI_kdtree_node::find_index Entering "<<"\n");
   size_t idx1 = 0, idx2; // the root bin node is always in pos 0.
   link_type_t idx_type = BIN_NODE;
@@ -758,17 +763,17 @@ inline pair<size_t, link_type_t> AMI_KDTREE_NODE::find_index(const POINT &p) con
     idx1 = idx2;
   }
   TPLOG("AMI_kdtree_node::find_index Exiting "<<"\n");
-  return pair<size_t, link_type_t>(idx1, idx_type);
+  return std::pair<size_t, link_type_t>(idx1, idx_type);
 }
 
 //// *AMI_kdtree_node::find* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-pair<AMI_bid, link_type_t> AMI_KDTREE_NODE::find(const POINT &p) const {
+std::pair<AMI_bid, link_type_t> AMI_KDTREE_NODE::find(const POINT &p) const {
   TPLOG("AMI_kdtree_node::find Entering bid="<<bid()<<"\n");
-  pair<size_t, link_type_t> ans = find_index(p);
+  std::pair<size_t, link_type_t> ans = find_index(p);
   //  assert(ans.second != GRID_INDEX);
   TPLOG("AMI_kdtree_node::find Exiting "<<"\n");
-  return pair<AMI_bid, link_type_t>(lk[ans.first], ans.second);
+  return std::pair<AMI_bid, link_type_t>(lk[ans.first], ans.second);
 }
 
 
@@ -1651,7 +1656,7 @@ void AMI_KDTREE::distribute_g(AMI_bid bid, size_t d, grid* g) {
   AMI_KDTREE_NODE *n, *r = fetch_node(bid);
   AMI_bid nbid;
   grid_context* gc;
-  pair<size_t, link_type_t> a;
+  std::pair<size_t, link_type_t> a;
 
   // Distribute points.
   for (i = 0; i < dim; i++) {
@@ -2100,7 +2105,7 @@ size_t AMI_KDTREE::k_nn_query(const POINT &p,
 
   cerr << "k_nn_query: NOT IMPLEMENTED YET!\n";
   LOG_WARNING_ID("  k_nn_query: NOT IMPLEMENTED YET!");
-  //  priority_queue<nn_pq_elem> q;
+  //  std::priority_queue<nn_pq_elem> q;
   //  nn_pq_elem cur((coord_t) 0, header_.root_bid, header_.root_type);
   //  while (cur.type != BLOCK_LEAF) {
   //  }  
@@ -2132,11 +2137,11 @@ size_t AMI_KDTREE::window_query(const POINT &p1, const POINT& p2,
   }
 
   // A stack for the search (no recursive calls here :). 
-  stack<outer_stack_elem> s;
+  std::stack<outer_stack_elem> s;
 
   // Another stack for the search inside a block node. The elements
   // are indexes in the el vector of a block node.
-  stack<inner_stack_elem> ss;
+  std::stack<inner_stack_elem> ss;
 
   podf allfalse;
   for (size_t i = 0; i < dim; i++) {
@@ -2145,9 +2150,9 @@ size_t AMI_KDTREE::window_query(const POINT &p1, const POINT& p2,
   }
 
   s.push(outer_stack_elem(allfalse,
-			  pair<AMI_bid, link_type_t>(header_.root_bid, header_.root_type)));
+			  std::pair<AMI_bid, link_type_t>(header_.root_bid, header_.root_type)));
 
-  pair<AMI_bid,link_type_t> top;
+  std::pair<AMI_bid,link_type_t> top;
   podf topflags, tempflags;
   size_t child;
   link_type_t childtype;
@@ -2207,7 +2212,7 @@ size_t AMI_KDTREE::window_query(const POINT &p1, const POINT& p2,
 #endif
 	    } else {
 	      s.push(outer_stack_elem(tempflags,
-				      pair<AMI_bid, link_type_t>(bn->lk[child], childtype)));
+				      std::pair<AMI_bid, link_type_t>(bn->lk[child], childtype)));
 	    }
 	  } else if (childtype == BLOCK_LEAF) {
 	    if (tempflags.alltrue() && stream == NULL) {
@@ -2221,7 +2226,7 @@ size_t AMI_KDTREE::window_query(const POINT &p1, const POINT& p2,
 #endif
 	    } else {
 	      s.push(outer_stack_elem(tempflags,
-		           pair<AMI_bid, link_type_t>(bn->lk[child], childtype)));
+		           std::pair<AMI_bid, link_type_t>(bn->lk[child], childtype)));
 	    }
 	  } else { // BIN_NODE
 #if AMI_KDTREE_STORE_WEIGHTS
@@ -2266,7 +2271,7 @@ size_t AMI_KDTREE::window_query(const POINT &p1, const POINT& p2,
 #endif
 	    } else {
 	      s.push(outer_stack_elem(tempflags,
-				      pair<AMI_bid, link_type_t>(bn->lk[child], childtype)));
+				      std::pair<AMI_bid, link_type_t>(bn->lk[child], childtype)));
 	    }
 	  } else if (childtype == BLOCK_LEAF) {
 	    if (tempflags.alltrue() && stream == NULL) {
@@ -2280,7 +2285,7 @@ size_t AMI_KDTREE::window_query(const POINT &p1, const POINT& p2,
 #endif
 	    } else {
 	      s.push(outer_stack_elem(tempflags,
-			   pair<AMI_bid, link_type_t>(bn->lk[child], childtype)));
+			   std::pair<AMI_bid, link_type_t>(bn->lk[child], childtype)));
 	    }
 	  } else { // BIN_NODE
 #if AMI_KDTREE_STORE_WEIGHTS
@@ -2310,8 +2315,8 @@ size_t AMI_KDTREE::window_query(const POINT &p1, const POINT& p2,
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
 AMI_bid AMI_KDTREE::find_leaf(const POINT &p) {
   TPLOG("AMI_kdtree::find_leaf Entering "<<"\n");
-  pair<AMI_bid, link_type_t> n = 
-    pair<AMI_bid, link_type_t>(header_.root_bid, header_.root_type);
+  std::pair<AMI_bid, link_type_t> n = 
+    std::pair<AMI_bid, link_type_t>(header_.root_bid, header_.root_type);
   AMI_KDTREE_NODE* bn;
   bool ans;
 
@@ -2451,7 +2456,7 @@ const tpie_stats_tree &AMI_KDTREE::stats() {
 
 //// *AMI_kdtree::print* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-void AMI_KDTREE::print(ostream& s) {
+void AMI_KDTREE::print(std::ostream& s) {
   s << "AMI_kdtree nodes: ";
   if (header_.root_type == BLOCK_NODE) {
     AMI_KDTREE_NODE* bn;
@@ -2800,11 +2805,11 @@ typename AMI_KDTREE::grid_matrix* AMI_KDTREE::grid_matrix::split(size_t s, const
   size_t median_strip = gl[d] + s; // refers to the big grid!
   TPLOG("    median strip in grid: "<<median_strip<<"\n");
 #if AMI_KDTREE_USE_EXACT_SPLIT
-  hi[d] = pair<Record<coord_t, size_t, dim>, bool>(p, true);
-  gmx->lo[d] = pair<Record<coord_t, size_t, dim>, bool>(p, true);
+  hi[d] = std::pair<Record<coord_t, size_t, dim>, bool>(p, true);
+  gmx->lo[d] = std::pair<Record<coord_t, size_t, dim>, bool>(p, true);
 #else
-  hi[d] = pair<coord_t, bool>(p[d], true);
-  gmx->lo[d] = pair<coord_t, bool>(p[d], true);
+  hi[d] = std::pair<coord_t, bool>(p[d], true);
+  gmx->lo[d] = std::pair<coord_t, bool>(p[d], true);
 #endif
   size_t off = g->o[d][median_strip];
   TPLOG("    stream offset of first pnt in median strip: "<<off<<"\n");
@@ -3126,7 +3131,7 @@ void AMI_KDTREE::distribute_s(AMI_bid bid, size_t d, sample* s) {
   AMI_KDTREE_NODE* n, *r = fetch_node(bid);
   AMI_bid nbid;
   POINT* p;
-  pair<size_t, link_type_t> a;
+  std::pair<size_t, link_type_t> a;
   int j, sz;
 
   // Create all streams. Could we run out of memory here?

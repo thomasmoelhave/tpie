@@ -5,11 +5,14 @@
 //
 // The Point and IdPoint classes.
 //
-// $Id: ami_point.h,v 1.3 2003-06-02 18:51:58 tavi Exp $
+// $Id: ami_point.h,v 1.4 2003-06-03 23:16:32 tavi Exp $
 //
 
 #ifndef AMI_POINT_H_
 #define AMI_POINT_H_
+
+// For std::ostream.
+#include <iostream>
 
 // This is a hack. It works for integer types only.
 template<class coord_t>
@@ -123,7 +126,7 @@ public:
 };
 
 template<class coord_t, size_t dim>
-ostream& operator<<(ostream& s, const Point<coord_t, dim>& p) {
+std::ostream& operator<<(std::ostream& s, const Point<coord_t, dim>& p) {
   for (size_t i = 0; i < dim-1; i++)
     s << p[i] << " ";
   return s << p[dim-1];
@@ -202,7 +205,7 @@ public:
 
 
 template<class coord_t>
-ostream& operator<<(ostream& s, const Point<coord_t, 2>& p) {
+std::ostream& operator<<(std::ostream& s, const Point<coord_t, 2>& p) {
   return s << p[0] << " " << p[1];
 }
 
@@ -309,7 +312,7 @@ public:
 };
 
 template<class coord_t, class data_t, size_t dim>
-ostream& operator<<(ostream& s, const Record<coord_t, data_t, dim>& p) {
+std::ostream& operator<<(std::ostream& s, const Record<coord_t, data_t, dim>& p) {
   for (size_t i = 0; i < dim; i++)
     s << p[i] << " ";
   return s << p.id();
@@ -402,7 +405,7 @@ public:
 };
 
 template<class coord_t, class data_t>
-ostream& operator<<(ostream& s, const Record<coord_t, data_t, 2>& p) {
+std::ostream& operator<<(std::ostream& s, const Record<coord_t, data_t, 2>& p) {
   return s << p[0] << " " << p[1] << " " << p.id();
 }
 
