@@ -7,7 +7,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_merge_cpp,"$Id: test_ami_merge.cpp,v 1.18 2004-08-17 16:49:47 jan Exp $");
+VERSION(test_ami_merge_cpp,"$Id: test_ami_merge.cpp,v 1.19 2005-02-15 00:23:06 tavi Exp $");
 
 #include <iostream>
 
@@ -41,23 +41,32 @@ static bool report_results_count = false;
 static bool report_results_interleave = false;
 static bool report_results_final = false;
 
-static const char as_opts[] = "C:I:F:cif";
-void parse_app_opt(char c, char *optarg)
+struct options app_opts[] = {
+  { 10, "count-results-filename", "", "C", 1 },
+  { 11, "report-results-count", "", "c", 0 },
+  { 12, "interleave-results-filename", "", "I", 1 },
+  { 13, "report-results-interleave", "", "i", 0 },
+  { 14, "final-results-filename", "", "F", 1 },
+  { 15, "report-results-final", "", "f", 0 },
+  { 0, NULL, NULL, NULL, 0 }
+};
+
+void parse_app_opts(int idx, char *opt_arg)
 {
-    switch (c) {
-        case 'C':
-            count_results_filename = optarg;
-        case 'c':
+    switch (idx) {
+        case 10:
+            count_results_filename = opt_arg;
+        case 11:
             report_results_count = true;
             break;
-        case 'I':
-            interleave_results_filename = optarg;
-        case 'i':
+        case 12:
+            interleave_results_filename = opt_arg;
+        case 13:
             report_results_interleave = true;
             break;
-        case 'F':
-            final_results_filename = optarg;
-        case 'f':
+        case 14:
+            final_results_filename = opt_arg;
+        case 15:
             report_results_final = true;
             break;
     }
@@ -68,7 +77,7 @@ int main(int argc, char **argv)
 {
     AMI_err ae;
 
-    parse_args(argc,argv,as_opts,parse_app_opt);
+    parse_args(argc, argv, app_opts, parse_app_opts);
 
     if (verbose) {
         cout << "test_size = " << test_size << ".\n";

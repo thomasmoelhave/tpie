@@ -13,7 +13,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_gp_cpp,"$Id: test_ami_gp.cpp,v 1.16 2004-08-17 16:49:43 jan Exp $");
+VERSION(test_ami_gp_cpp,"$Id: test_ami_gp.cpp,v 1.17 2005-02-15 00:23:06 tavi Exp $");
 
 // Get the application defaults.
 #include "app_config.h"
@@ -39,23 +39,29 @@ static char *final_results_filename = def_frf;
 static bool report_results_initial = false;
 static bool report_results_final = false;
 
-static const char as_opts[] = "I:iF:f";
-void parse_app_opt(char c, char *optarg)
+struct options app_opts[] = {
+  { 12, "initial-results-filename", "", "I", 1 },
+  { 13, "report-results-initial", "", "i", 0 },
+  { 14, "final-results-filename", "", "F", 1 },
+  { 15, "report-results-final", "", "f", 0 },
+  { 0, NULL, NULL, NULL, 0 }
+};
+
+void parse_app_opts(int idx, char *opt_arg)
 {
-    switch (c) {
-        case 'I':
-            initial_results_filename = optarg;
-        case 'i':
+    switch (idx) {
+        case 12:
+            initial_results_filename = opt_arg;
+        case 13:
             report_results_initial = true;
             break;
-        case 'F':
-            final_results_filename = optarg;
-        case 'f':
+        case 14:
+            final_results_filename = opt_arg;
+        case 15:
             report_results_final = true;
             break;
     }
 }
-
 
 class reverse_order : public AMI_gen_perm_object {
 private:
@@ -75,7 +81,7 @@ int main(int argc, char **argv)
 {
     AMI_err ae;
     
-    parse_args(argc,argv,as_opts,parse_app_opt);
+    parse_args(argc, argv, app_opts, parse_app_opts);
 
     if (verbose) {
       cout << "test_size = " << test_size << "." << endl;

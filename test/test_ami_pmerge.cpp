@@ -17,7 +17,7 @@
 #include <pqueue_heap.h>
 
 #include <versions.h>
-VERSION(test_ami_pmerge_cpp,"$Id: test_ami_pmerge.cpp,v 1.27 2004-08-12 15:15:12 jan Exp $");
+VERSION(test_ami_pmerge_cpp,"$Id: test_ami_pmerge.cpp,v 1.28 2005-02-15 00:23:06 tavi Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -188,18 +188,25 @@ static char *rand_results_filename = def_rrf;
 static bool report_results_random = false;
 static bool report_results_sorted = false;
 
-static const char as_opts[] = "R:S:rs";
-void parse_app_opt(char c, char *optarg)
+struct options app_opts[] = {
+  { 10, "random-results-filename", "", "R", 1 },
+  { 11, "report-results-random", "", "r", 0 },
+  { 12, "sorted-results-filename", "", "S", 1 },
+  { 13, "report-results-sorted", "", "s", 0 },
+  { 0, NULL, NULL, NULL, 0 }
+};
+
+void parse_app_opts(int idx, char *opt_arg)
 {
-    switch (c) {
-        case 'R':
-            rand_results_filename = optarg;
-        case 'r':
+    switch (idx) {
+        case 10:
+            rand_results_filename = opt_arg;
+        case 11:
             report_results_random = true;
             break;
-        case 'S':
-            sorted_results_filename = optarg;
-        case 's':
+        case 12:
+            sorted_results_filename = opt_arg;
+        case 13:
             report_results_sorted = true;
             break;
     }
@@ -211,7 +218,7 @@ int main(int argc, char **argv)
 
     AMI_err ae;
 
-    parse_args(argc,argv,as_opts,parse_app_opt);
+    parse_args(argc, argv, app_opts, parse_app_opts);
 
     if (verbose) {
       cout << "test_size = " << test_size << "." << endl;

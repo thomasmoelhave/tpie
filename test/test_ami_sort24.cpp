@@ -8,7 +8,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_sort24_cpp,"$Id: test_ami_sort24.cpp,v 1.14 2004-08-12 15:15:12 jan Exp $");
+VERSION(test_ami_sort24_cpp,"$Id: test_ami_sort24.cpp,v 1.15 2005-02-15 00:23:06 tavi Exp $");
 
 // Get information on the configuration to test.
 #include "app_config.h"
@@ -95,48 +95,43 @@ static bool report_results_sorted = false;
 
 static bool kb_sort = false;
 
-static const char as_opts[] = "R:S:rsk";
-void parse_app_opt(char c, char *optarg)
+struct options app_opts[] = {
+  { 10, "random-results-filename", "", "R", 1 },
+  { 11, "report-results-random", "", "r", 0 },
+  { 12, "sorted-results-filename", "", "S", 1 },
+  { 13, "report-results-sorted", "", "s", 0 },
+  { 14, "kb-sort", "", "k", 0 },
+  { 0, NULL, NULL, NULL, 0 }
+};
+
+void parse_app_opts(int idx, char *opt_arg)
 {
-    switch (c) {
-        case 'R':
-            rand_results_filename = optarg;
-        case 'r':
+    switch (idx) {
+        case 10:
+            rand_results_filename = opt_arg;
+        case 11:
             report_results_random = true;
             break;
-        case 'S':
-            sorted_results_filename = optarg;
-        case 's':
+        case 12:
+            sorted_results_filename = opt_arg;
+        case 13:
             report_results_sorted = true;
             break;
-        case 'k':
+        case 14:
             kb_sort = !kb_sort;
-            break;
+	    break;
     }
 }
 
-#if 0
-#include <signal.h>
-#endif
 
 int main(int argc, char **argv)
 {
-
-#if 0    
-    {
-        // What's going on with SIGIO?
-        int sa;
-        struct sigaction old_action;
-        sa = sigaction(SIGIO, NULL, &old_action);
-        cout << sa;
-    }
-#endif
     
     AMI_err ae;
 
     cpu_timer cput;
     
-    parse_args(argc,argv,as_opts,parse_app_opt);
+    parse_args(argc, argv, app_opts, parse_app_opts);
 
     if (verbose) {
       cout << "test_size = " << test_size << "." << endl;
