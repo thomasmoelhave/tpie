@@ -3,7 +3,7 @@
 // Created: 2002/10/30
 // Authors: Joerg Rotthowe, Jan Vahrenhold, Markus Vogel
 //
-// $Id: portability.h,v 1.4 2003-04-20 06:39:20 tavi Exp $
+// $Id: portability.h,v 1.5 2003-04-21 02:15:15 tavi Exp $
 //
 // This header-file offers macros for independent use on Win and Unix systems.
 
@@ -225,14 +225,14 @@ typedef int TPIE_OS_FILE_DESCRIPTOR;
 #ifdef _WIN32					
 #define TPIE_OS_STL_STACK std::stack				
 #else							
-#define TPIE_OS_STL_STACK stack					
+#define TPIE_OS_STL_STACK std::stack					
 #endif							
 
 
 #ifdef _WIN32					
 #define TPIE_OS_STL_PAIR std::pair				
 #else 			
-#define TPIE_OS_STL_PAIR pair					
+#define TPIE_OS_STL_PAIR std::pair					
 #endif	
 
 #ifdef _WIN32	
