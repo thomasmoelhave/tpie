@@ -4,7 +4,7 @@
 //  Created:         27.01.1999
 //  Author:          Jan Vahrenhold
 //  mail:            jan@math.uni-muenster.de
-//  $Id: bulkloader.h,v 1.3 2004-08-12 12:37:24 jan Exp $
+//  $Id: bulkloader.h,v 1.4 2004-08-12 18:02:42 jan Exp $
 //  Copyright (C) 1999-2001 by  
 // 
 //  Jan Vahrenhold
@@ -109,8 +109,8 @@ public:
 
 	    //  Translate the rectangle by the given offset and
 	    //  compute the midpoint in scaled integer coordinates.
-	    TPIE_OS_LONGLONG x = (LONGLONG)(factor_ * (LONGLONG)((in.left() + in.right()) / 2.0 - xOffset_));
-	    TPIE_OS_LONGLONG y = (LONGLONG)(factor_ * (LONGLONG)((in.lower() + in.upper()) / 2.0 - yOffset_));
+	    TPIE_OS_LONGLONG x = (TPIE_OS_LONGLONG)(factor_ * (TPIE_OS_LONGLONG)((in.left() + in.right()) / 2.0 - xOffset_));
+	    TPIE_OS_LONGLONG y = (TPIE_OS_LONGLONG)(factor_ * (TPIE_OS_LONGLONG)((in.lower() + in.upper()) / 2.0 - yOffset_));
 
 	    *out = pair<rectangle<coord_t, AMI_bid>, TPIE_OS_LONGLONG>(in, computeHilbertValue(x, y, side_));
 
@@ -494,8 +494,8 @@ void BulkLoader<coord_t, BTECOLL>::repackCachedNodes(RStarNode<coord_t, BTECOLL>
 
     //  Translate the rectangle by the given offset and
     //  compute the midpoint in scaled integer coordinates.
-    TPIE_OS_LONGLONG x = factor_ * (LONGLONG)((newBB.left() + newBB.right()) / 2.0 - xOffset_);
-    TPIE_OS_LONGLONG y = factor_ * (LONGLONG)((newBB.lower() + newBB.upper()) / 2.0 - yOffset_);
+    TPIE_OS_LONGLONG x = factor_ * (TPIE_OS_LONGLONG)((newBB.left() + newBB.right()) / 2.0 - xOffset_);
+    TPIE_OS_LONGLONG y = factor_ * (TPIE_OS_LONGLONG)((newBB.lower() + newBB.upper()) / 2.0 - yOffset_);
     
     //  Compute and set the Hilbert value.
     TPIE_OS_LONGLONG hv = computeHilbertValue(x, y, size_);
@@ -642,8 +642,8 @@ void BulkLoader<coord_t, BTECOLL>::repackCachedNodes(RStarNode<coord_t, BTECOLL>
 
 	    //  Translate the rectangle by the given offset and
 	    //  compute the midpoint in scaled integer coordinates.
-	    x = factor_ * (LONGLONG)((newBB.left() + newBB.right()) / 2.0 - xOffset_);
-	    y = factor_ * (LONGLONG)((newBB.lower() + newBB.upper()) / 2.0 - yOffset_);
+	    x = factor_ * (TPIE_OS_LONGLONG)((newBB.left() + newBB.right()) / 2.0 - xOffset_);
+	    y = factor_ * (TPIE_OS_LONGLONG)((newBB.lower() + newBB.upper()) / 2.0 - yOffset_);
 
 	    //  Compute and set the Hilbert value.
 	    hv = computeHilbertValue(x, y, size_);
@@ -689,8 +689,8 @@ void BulkLoader<coord_t, BTECOLL>::repackCachedNodes(RStarNode<coord_t, BTECOLL>
 
 	    //  Translate the rectangle by the given offset and
 	    //  compute the midpoint in scaled integer coordinates.
-	    TPIE_OS_LONGLONG x = factor_ * (LONGLONG)((newBB.left() + newBB.right()) / 2.0 - xOffset_);
-	    TPIE_OS_LONGLONG y = factor_ * (LONGLONG)((newBB.lower() + newBB.upper()) / 2.0 - yOffset_);
+	    TPIE_OS_LONGLONG x = factor_ * (TPIE_OS_LONGLONG)((newBB.left() + newBB.right()) / 2.0 - xOffset_);
+	    TPIE_OS_LONGLONG y = factor_ * (TPIE_OS_LONGLONG)((newBB.lower() + newBB.upper()) / 2.0 - yOffset_);
 
 	    //  Compute and set the Hilbert value.
 	    TPIE_OS_LONGLONG hv = computeHilbertValue(x, y, size_);
@@ -807,7 +807,7 @@ AMI_err BulkLoader<coord_t, BTECOLL>::createHilbertRTree(RStarTree<coord_t, BTEC
 #endif
 
     coord_t maxExtent = max(xMax-xOffset_, yMax-yOffset_) * scaleFactor;
-    size_ = (LONGLONG)(pow((float)2, (int)((log((float)maxExtent)/log((float)2)) + 1.0)));
+    size_ = (TPIE_OS_LONGLONG)(pow((float)2, (int)((log((float)maxExtent)/log((float)2)) + 1.0)));
     scan_scaleAndComputeHilbertValue<coord_t> ssb(xOffset_, yOffset_, scaleFactor, size_);
 
     //  Scan data to scale the midpoint of each MBR such that it fits
@@ -1050,7 +1050,7 @@ AMI_err BulkLoader<coord_t, BTECOLL>::createRStarTree(RStarTree<coord_t, BTECOLL
 #endif
 
     coord_t maxExtent = max(xMax-xOffset_, yMax-yOffset_) * scaleFactor;
-    size_ = (LONGLONG)(pow((float)2, (int)((log((float)maxExtent)/log((float)2)) + 1.0)));
+    size_ = (TPIE_OS_LONGLONG)(pow((float)2, (int)((log((float)maxExtent)/log((float)2)) + 1.0)));
 
     scan_scaleAndComputeHilbertValue<coord_t> ssb(xOffset_, yOffset_, scaleFactor, size_);
 
