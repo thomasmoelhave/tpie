@@ -10,6 +10,7 @@
 // *  used in several of TPIE's sorting variants                            *
 // *                                                                        *
 // **************************************************************************
+// 	$Id: apm_dh.h,v 1.2 2000-04-17 01:21:20 hutchins Exp $	
 
 #include <math.h>		// For log(), etc  to compute tree heights.
 #include <sys/time.h>
