@@ -1,10 +1,9 @@
-// Copyright (C) 2001 Octavian Procopiuc
 //
 // File:    bte_coll_base.h
 // Authors: Octavian Procopiuc <tavi@cs.duke.edu>
 //          (using some code by Rakesh Barve)
 //
-// $Id: bte_coll_base.h,v 1.8 2001-12-30 04:11:33 tavi Exp $
+// $Id: bte_coll_base.h,v 1.9 2002-01-14 16:17:28 tavi Exp $
 //
 // BTE_collection_base class and various basic definitions.
 //
@@ -46,10 +45,10 @@ enum BTE_collection_status {
 };
 
 // Maximum length of the file names.
-#define BTE_COLLECTION_PATH_NAME_LENGTH 128
+#define BTE_COLLECTION_PATH_NAME_LEN 128
 
 // Number of bytes in the header's user_data_ field.
-#define BTE_COLLECTION_USER_DATA_LENGTH 512
+#define BTE_COLLECTION_USER_DATA_LEN 512
 
 // The magic number of the files storing blocks. Stored in the header.
 #define BTE_COLLECTION_HEADER_MAGIC_NUMBER 0x123ABC
@@ -84,7 +83,7 @@ public:
   // Size in bytes of each logical block.
   size_t block_size;
   // Some data to be filled by the user of the collection.
-  char user_data[BTE_COLLECTION_USER_DATA_LENGTH];
+  char user_data[BTE_COLLECTION_USER_DATA_LEN];
   
   // Default constructor.
   BTE_collection_header();
@@ -109,7 +108,7 @@ protected:
   // File descriptor for the file backing the block collection.
   int bcc_fd_;
 
-  char base_file_name_[BTE_COLLECTION_PATH_NAME_LENGTH];
+  char base_file_name_[BTE_COLLECTION_PATH_NAME_LEN];
 
   // Various parameters (will be stored into the file header block).
   BTE_collection_header header_;
