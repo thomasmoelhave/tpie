@@ -8,7 +8,7 @@
 // lower level streams will use appropriate levels of buffering.  This
 // will be more critical for parallel disk implementations.
 //
-// $Id: ami_merge.h,v 1.6 1994-09-29 13:01:43 darrenv Exp $
+// $Id: ami_merge.h,v 1.7 1994-10-04 19:07:36 darrenv Exp $
 //
 #ifndef _AMI_MERGE_H
 #define _AMI_MERGE_H
@@ -26,13 +26,20 @@ enum AMI_merge_output_type {
 typedef int AMI_merge_flag;
 typedef unsigned int arity_t;
 
+#define CONST 
+
 // A superclass for merge objects.
 template<class T>
 class AMI_merge_base {
 public:
-    virtual AMI_err initialize(arity_t arity, T **in,
-                               AMI_merge_flag *taken_flags) = 0;
-    virtual AMI_err operate(const T **in, AMI_merge_flag *taken_flags,
+    virtual AMI_err initialize(arity_t arity,
+                               CONST T *
+                               CONST * in,
+                               AMI_merge_flag *taken_flags,
+                               int &taken_index) = 0;
+    virtual AMI_err operate(CONST T * CONST *in,
+                            AMI_merge_flag *taken_flags,
+                            int &taken_index,
                             T *out) = 0;
     virtual AMI_err main_mem_operate(T* mm_stream, size_t len) = 0;
     virtual size_t space_usage_overhead(void) = 0;
@@ -112,7 +119,11 @@ static AMI_err AMI_single_merge(pp_AMI_bs<T> instreams, arity_t arity,
     // more input from specific streams.
     AMI_merge_flag taken_flags[arity];
 
-    // Output of the merge object.
+    // An index to speed things up when the merge object takes only
+    // from one index.
+    int taken_index;
+    
+    //Output of the merge object.
     T merge_out;
     
     // Rewind and read the first item from every stream.
@@ -133,29 +144,47 @@ static AMI_err AMI_single_merge(pp_AMI_bs<T> instreams, arity_t arity,
     }
 
     // Initialize the merge object.
-    if (m_obj->initialize(arity, in_objects, taken_flags) !=
-        AMI_ERROR_NO_ERROR) {
+    if (((ami_err = m_obj->initialize(arity, in_objects, taken_flags,
+                                     taken_index)) !=
+                                     AMI_ERROR_NO_ERROR) &&
+                                      (ami_err != AMI_MERGE_READ_MULTIPLE)) {
         return AMI_ERROR_OBJECT_INITIALIZATION;
-    }
+    }      
 
     // Now simply call the merge object repeatedly until it claims to
     // be done or generates an error.
 
     while (1) {
-        for (ii = arity; ii--; ) {
-            if (taken_flags[ii] &&
-                ((ami_err = instreams[ii]->read_item(&(in_objects[ii]))) !=
+        if (ami_err == AMI_MERGE_READ_MULTIPLE) {
+            for (ii = arity; ii--; ) {
+                if (taken_flags[ii] &&
+                    ((ami_err = instreams[ii]->read_item(&(in_objects[ii]))) !=
+                     AMI_ERROR_NO_ERROR)) {
+                    if (ami_err == AMI_ERROR_END_OF_STREAM) {
+                        in_objects[ii] = NULL;
+                    } else {
+                        return ami_err;
+                    }
+                }
+                // Clear all flags before operate is called.
+                taken_flags[ii] = 0;
+            }
+        } else {
+            // The last call took at most one item.
+            if ((taken_index >= 0) && 
+                ((ami_err = instreams[taken_index]->
+                  read_item(&(in_objects[taken_index]))) !=
                  AMI_ERROR_NO_ERROR)) {
                 if (ami_err == AMI_ERROR_END_OF_STREAM) {
-                    in_objects[ii] = NULL;
+                    in_objects[taken_index] = NULL;
                 } else {
                     return ami_err;
                 }
+                taken_flags[taken_index] = 0;
             }
-            // Clear all flags before operate is called.
-            taken_flags[ii] = 0;
         }
-        ami_err = m_obj->operate(in_objects, taken_flags, &merge_out);
+        ami_err = m_obj->operate(in_objects, taken_flags, taken_index,
+                                 &merge_out);
         if (ami_err == AMI_MERGE_DONE) {
             break;
         } else if (ami_err == AMI_MERGE_OUTPUT) {
