@@ -1,6 +1,6 @@
 # Copyright (c) 1994 Darren Erik Vengroff
 
-# $Id: Makefile.in,v 1.10 1994-10-13 14:01:46 darrenv Exp $
+# $Id: Makefile.in,v 1.11 1994-10-26 14:10:18 darrenv Exp $
 
 # Makefile for TPIE test applications.
 
@@ -8,6 +8,9 @@
 # Use gmake -p to see the default rules.
 
 CXX = @CXX@
+
+CXX_DEBUG = -g
+C_DEBUG = -g
 
 TPIEINC = ../include
 
@@ -33,8 +36,8 @@ CFLAGS += -pg
 endif
 
 ifdef SYM_DEBUG_APPS
-CXXFLAGS += -gstabs+ 
-CFLAGS += -gstabs
+CXXFLAGS += $(CXX_DEBUG)
+CFLAGS += $(C_DEBUG)
 endif
 
 CPPFLAGS = -I$(TPIEINC) @DEFS@
@@ -54,7 +57,8 @@ endif
 # I've tried this on two machines, one running 1.2 and one running
 # 1.3, and had the same problem.
 
-LDLIBS =  -L$(TPIELIBDIR) -ltpie /usr/lib/libm.a #-lm
+#LDLIBS =  -L$(TPIELIBDIR) -ltpie /usr/lib/libm.a #-lm
+LDLIBS =  -L$(TPIELIBDIR) -ltpie -lm
 
 CC = gcc
 CCFLAGS = $(CXXFLAGS)
