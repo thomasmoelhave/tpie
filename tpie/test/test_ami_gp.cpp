@@ -6,10 +6,11 @@
 //
 // Tests general permutation using AMI_general_permute() and 
 // the AMI_gen_perm_object class. The program generates an input stream
-// consisting of seuential intergers and outputs them in reverse order.
+// consisting of sequential integers and outputs a stream consisting of 
+// the same integers, in reverse order.
 //
 
-static char test_ami_gp_id[] = "$Id: test_ami_gp.cpp,v 1.7 1999-05-02 14:38:49 tavi Exp $";
+static char test_ami_gp_id[] = "$Id: test_ami_gp.cpp,v 1.8 1999-05-02 14:40:12 tavi Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
