@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 3/23/95
 //
-// $Id: scan_inner_product.h,v 1.1 1995-04-03 13:17:55 dev Exp $
+// $Id: scan_inner_product.h,v 1.2 1999-02-03 22:07:09 tavi Exp $
 //
 #ifndef _SCAN_INNER_PRODUCT_H
 #define _SCAN_INNER_PRODUCT_H
@@ -35,13 +35,5 @@ public:
         }
     };
 };
-
-#ifdef NO_IMPLICIT_TEMPLATES
-#define TEMPLATE_INSTANTIATE_SCAN_IP(T)					\
-template class scan_inner_product<T>;					\
-template AMI_err AMI_scan(AMI_STREAM<T> *, AMI_STREAM<T> *,		\
-                          scan_inner_product<T> *);
-#endif
-
 
 #endif // _SCAN_INNER_PRODUCT_H 
