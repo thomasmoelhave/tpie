@@ -7,21 +7,9 @@
 // A test for AMI_partition_and_merge().
 
 
-static char partition_and_merge_id[] = "$Id: test_ami_pmerge.cpp,v 1.5 1994-10-05 13:04:09 darrenv Exp $";
+static char partition_and_merge_id[] = "$Id: test_ami_pmerge.cpp,v 1.6 1994-10-07 13:56:10 darrenv Exp $";
 
-// Use Owen's priority queue code.
-#define MERGE_VIA_TPQUEUE
-
-#ifdef MERGE_VIA_TPQUEUE
 #include <tpqueue.h>
-#endif // MERGE_VIA_TPQUEUE
-
-
-
-#define DEFAULT_TEST_SIZE (1024 * 1024 * 8)
-
-#define DEFAULT_TEST_MM_SIZE (1024 * 1024 * 2)
-
 
 #include <stdlib.h>
 #include <sys/time.h>
@@ -30,268 +18,167 @@ static char partition_and_merge_id[] = "$Id: test_ami_pmerge.cpp,v 1.5 1994-10-0
 #include <fstream.h>
 #include <strstream.h>
 
-#include <GetOpt.h>
-
-// Use logs.
-//#define TPL_LOGGING 1
-#include <tpie_log.h>
-
-// Use the single BTE stream version of AMI streams.
-#define AMI_IMP_SINGLE
-
-// Pick a version of BTE streams.
-#define BTE_IMP_MMB
-//#define BTE_IMP_CACHE
-//#define BTE_IMP_STDIO
-//#define BTE_IMP_UFS
-
-#ifdef BTE_IMP_MMB
-#define BTE_MMB_LOGICAL_BLOCKSIZE_FACTOR 1
-#endif
-
-#ifdef BTE_IMP_CACHE
-#define BTE_MMB_CACHE_LINE_SIZE 256
-#endif
+// Get information on the configuration to test.
+#include "app_config.h"
+#include "parse_args.h"
 
 // Define it all.
 #include <ami.h>
 
-
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
 
+#include "scan_random.h"
 
-// Some defaults.
-static size_t test_mm_size = DEFAULT_TEST_MM_SIZE;
-static size_t test_size = DEFAULT_TEST_SIZE;
-static int random_seed = 17;
+// From int_cmp.c
+extern "C" int c_int_cmp(const void *, const void *);
 
-
-// random_scan should be moved into it's own source file since it is
-// so commonly used.  Perhaps it should be added to a tpie utility
-// library.
-
-extern "C" int srandom(int);
-extern "C" int random(void);
-
-// A scan object to generate random integers.
-class random_scan : AMI_scan_object {
-private:
-    unsigned int max, remaining;
-public:
-    random_scan(unsigned int count = 1000, int seed = 17);
-    virtual ~random_scan(void);
-    AMI_err initialize(void);
-    AMI_err operate(int *out1, AMI_SCAN_FLAG *sf);
-};
-
-random_scan::random_scan(unsigned int count, int seed) :
-max(count), remaining(count)
-{
-    LOG_INFO("random_scan seed = ");
-    LOG_INFO(seed);
-    LOG_INFO('\n');
-
-    srandom(seed);
-}
-
-random_scan::~random_scan(void)
-{
-}
+// A merge object to merge sorted streams.  This code looks a lot like
+// what is included as part of the TPIE system for sorting in
+// ami_sort_single.h.
 
 
-AMI_err random_scan::initialize(void)
-{
-    remaining = max;
-
-    return AMI_ERROR_NO_ERROR;
-};
-
-AMI_err random_scan::operate(int *out1, AMI_SCAN_FLAG *sf)
-{
-    if (*sf = remaining--) {
-        *out1 = random();
-        return AMI_SCAN_CONTINUE;
-    } else {
-        return AMI_SCAN_DONE;
-    }
-};
-
-# if 0
-
-// A merge object to merge sorted streams.
-
-class sort_merge : public AMI_merge_base<int> {
+class s_merge_manager : public AMI_merge_base<int> {
 private:
     arity_t input_arity;
-#ifdef MERGE_VIA_TPQUEUE
-    PQueue<arity_t> *pq;
-#endif // MERGE_VIA_TPQUEUE
-    
+    pqueue_heap_op<arity_t,int> *pq;
+#if DEBUG_ASSERTIONS
+    unsigned int input_count, output_count;
+#endif    
 public:
-    unsigned long int called;
-
-    sort_merge(void);
-    virtual ~sort_merge(void);
-    AMI_err initialize(arity_t arity, const int **in, AMI_merge_flag *taken_flags);
-    AMI_err operate(const int **in, AMI_merge_flag *taken_flags, int *out);
+    s_merge_manager(void);
+    virtual ~s_merge_manager(void);
+    AMI_err initialize(arity_t arity, CONST int * CONST *in,
+                       AMI_merge_flag *taken_flags,
+                       int &taken_index);
+    AMI_err operate(CONST int * CONST *in, AMI_merge_flag *taken_flags,
+                    int &taken_index, int *out);
     AMI_err main_mem_operate(int* mm_stream, size_t len);
-
     size_t space_usage_overhead(void);
     size_t space_usage_per_stream(void);
 };
 
-sort_merge::sort_merge(void)
+
+s_merge_manager::s_merge_manager(void)
 {
-#ifdef MERGE_VIA_TPQUEUE
-    pq = NULL;
-#endif // MERGE_VIA_TPQUEUE    
 }
 
-sort_merge::~sort_merge(void)
+
+s_merge_manager::~s_merge_manager(void)
 {
-#ifdef MERGE_VIA_TPQUEUE
     if (pq != NULL) {
         delete pq;
     }
-#endif // MERGE_VIA_TPQUEUE    
 }
 
 
-size_t sort_merge::space_usage_overhead(void)
+AMI_err s_merge_manager::initialize(arity_t arity, CONST int * CONST *in,
+                                          AMI_merge_flag *taken_flags,
+                                          int &taken_index)
 {
-#ifdef MERGE_VIA_TPQUEUE    
-    return sizeof(PQueue<arity_t>);
-#else
-    return 0;
-#endif // MERGE_VIA_TPQUEUE    
-}
+    arity_t ii;
 
-size_t sort_merge::space_usage_per_stream(void)
-{
-    // How much space will the priority queue use per item?
-
-    return sizeof(arity_t) + sizeof(int);
-}
-
-
-AMI_err sort_merge::initialize(arity_t arity, const int **in,
-                               AMI_merge_flag *taken_flags)
-{
-    unsigned int ii;
-
-    called = 0;
-    
     input_arity = arity;
 
+    bool pqret;
+    
     tp_assert(arity > 0, "Input arity is 0.");
     
-#ifdef MERGE_VIA_TPQUEUE
     if (pq != NULL) {
         delete pq;
     }
-    pq = new PQueue<arity_t>(arity);
-#endif // MERGE_VIA_TPQUEUE
+    pq = new pqueue_heap_op<arity_t,int>(arity);
 
-#ifdef MERGE_VIA_TPQUEUE
+#if DEBUG_ASSERTIONS
+    input_count = output_count = 0;
+#endif    
     for (ii = arity; ii--; ) {
         if (in[ii] != NULL) {
             taken_flags[ii] = 1;
-            pq->Insert(ii,*in[ii]);
+            pqret = pq->insert(ii,*in[ii]);
+            tp_assert(pqret, "pq->insert() failed.");
+#if DEBUG_ASSERTIONS
+            input_count++;
+#endif                  
         } else {
             taken_flags[ii] = 0;
         }
     }
-#else     
-    for (ii = arity; ii--; ) {
-        taken_flags[ii] = 0;
-    }
-#endif // MERGE_VIA_TPQUEUE
 
-    return AMI_ERROR_NO_ERROR;
+    taken_index = -1;
+    return AMI_MERGE_READ_MULTIPLE;
 }
 
 
-AMI_err sort_merge::operate(const int **in, AMI_merge_flag *taken_flags,
-                            int *out)
+size_t s_merge_manager::space_usage_overhead(void)
 {
-    int ii;
-#ifndef MERGE_VIA_TPQUEUE        
-    int min, ii_min;
-#endif // !MERGE_VIA_TPQUEUE
+    return sizeof(PQUEUE<arity_t,int>);
+}
+
+
+size_t s_merge_manager::space_usage_per_stream(void)
+{
+    return sizeof(arity_t) + sizeof(int);
+}
+
+
+AMI_err s_merge_manager::operate(CONST int * CONST *in,
+                                       AMI_merge_flag *taken_flags,
+                                       int &taken_index,
+                                       int *out)
+{
+    bool pqret;
     
-    called++;
-    
-#ifdef MERGE_VIA_TPQUEUE
     // If the queue is empty, we are done.  There should be no more
     // inputs.
-    if (!pq->NumElts()) {
-#if DEBUG_ASSERTIONS        
+    if (!pq->num_elts()) {
+
+#if DEBUG_ASSERTIONS
+        arity_t ii;
+        
         for (ii = input_arity; ii--; ) {
             tp_assert(in[ii] == NULL, "Empty queue but more input.");
         }
+
+        tp_assert(input_count == output_count,
+                  "Merge done, input_count = " << input_count <<
+                  ", output_count = " << output_count << '.');
 #endif        
+
         return AMI_MERGE_DONE;
+
     } else {
         arity_t min_source;
-        int min_val;
+        int min_t;
 
-        pq->MinElt(min_source,min_val);
-        pq->DeleteMin();
-        *out = min_val;
+        pqret = pq->extract_min(min_source,min_t);
+        tp_assert(pqret, "pq->extract_min() failed.");
+        *out = min_t;
         if (in[min_source] != NULL) {
-            pq->Insert(min_source,*in[min_source]);
-            taken_flags[min_source] = 1;
+            pqret = pq->insert(min_source,*in[min_source]);
+            tp_assert(pqret, "pq->insert() failed.");
+            taken_index = min_source;
+            //taken_flags[min_source] = 1;
+#if DEBUG_ASSERTIONS
+            input_count++;
+#endif            
+        } else {
+            taken_index = -1;
         }
+#if DEBUG_ASSERTIONS
+        output_count++;
+#endif        
         return AMI_MERGE_OUTPUT;
     }
-#else    
-    tp_assert(input_arity > 0, "Input arity is 0.");
-
-    // Find an input to start with.
-    for (ii = input_arity; ii--; ) {
-        if (in[ii] != NULL) {
-            min = *(in[ii]);
-            ii_min = ii;
-            break;
-        }
-    }
-
-    // Did we get one?  If not, then we are done.
-    
-    if (ii < 0) {
-        return AMI_MERGE_DONE;
-    }
-
-    // Now look through the rest to see if any are smaller
-
-    while (ii--) {
-        if ((in[ii] != NULL) && (*(in[ii]) < min)) {
-            min = *(in[ii]);
-            ii_min = ii;
-        }
-    }
-
-    *out = min;
-    for (ii = input_arity; ii--; ) {
-        taken_flags[ii] = (ii_min == ii);
-    }
-
-    return AMI_MERGE_OUTPUT;
-#endif // !MERGE_VIA_TPQUEUE
 }
 
 
-extern "C" int int_cmp(const void *p1, const void *p2);
-
-AMI_err sort_merge::main_mem_operate(int* mm_stream, size_t len)
+AMI_err s_merge_manager::main_mem_operate(int* mm_stream, size_t len)
 {
-    qsort(mm_stream, len, sizeof(int), int_cmp);
+    qsort(mm_stream, len, sizeof(int), c_int_cmp);
     return AMI_ERROR_NO_ERROR;
 }
-#endif
 
-static bool verbose = false;
 
 static char def_srf[] = "/var/tmp/oss.txt";
 static char def_rrf[] = "/var/tmp/osr.txt";
@@ -302,39 +189,20 @@ static char *rand_results_filename = def_rrf;
 static bool report_results_random = false;
 static bool report_results_sorted = false;
 
-void parse_args(int argc, char **argv)
+static const char as_opts[] = "R:S:rs";
+void parse_app_opt(char c, char *optarg)
 {
-    GetOpt go(argc, argv, "m:t:z:vbR:rS:s");
-    char c;
-    
-    while ((c = go()) != -1) {
-        switch (c) {
-            case 'v':
-                verbose = true;
-                break;
-            case 'b':
-                verbose = false;
-                break;
-            case 'm':
-                istrstream(go.optarg,strlen(go.optarg)) >> test_mm_size;
-                break;                
-            case 't':
-                istrstream(go.optarg,strlen(go.optarg)) >> test_size;
-                break;
-            case 'z':
-                istrstream(go.optarg,strlen(go.optarg)) >> random_seed;
-                break;
-            case 'R':
-                rand_results_filename = go.optarg;
-            case 'r':
-                report_results_random = true;
-                break;
-            case 'S':
-                sorted_results_filename = go.optarg;
-            case 's':
-                report_results_sorted = true;
-                break;
-        }
+    switch (c) {
+        case 'R':
+            rand_results_filename = optarg;
+        case 'r':
+            report_results_random = true;
+            break;
+        case 'S':
+            sorted_results_filename = optarg;
+        case 's':
+            report_results_sorted = true;
+            break;
     }
 }
 
@@ -358,19 +226,6 @@ void parse_args(int argc, char **argv)
 
 extern int register_new;
 
-//int cc_int_cmp(const int &i1, const int &i2)
-int cc_int_cmp(int &i1, int &i2)
-{
-    return i1 - i2;
-}
-
-static void ___dummy_1() {
-    AMI_STREAM<int> *s1, *s2;
-    
-    AMI_err ae;
-
-    ae = AMI_sort(s1,s2,cc_int_cmp);
-}
 
 int main(int argc, char **argv)
 {
@@ -379,7 +234,7 @@ int main(int argc, char **argv)
 
     rusage ru0, ru1;
 
-    parse_args(argc,argv);
+    parse_args(argc,argv,as_opts,parse_app_opt);
 
     if (verbose) {
         cout << "test_size = " << test_size << ".\n";
@@ -397,7 +252,7 @@ int main(int argc, char **argv)
     AMI_STREAM<int> amis1((unsigned int)1, test_size);
         
     // Write some ints.
-    random_scan rnds(test_size,random_seed);
+    scan_random rnds(test_size,random_seed);
     
     ae = AMI_scan(&rnds, (AMI_base_stream<int> *)&amis0);
 
@@ -428,13 +283,13 @@ int main(int argc, char **argv)
         ae = AMI_scan((AMI_base_stream<int> *)&amis0, rptr);
     }
 
-#if 0    
-    sort_merge sm;
+#if 10    
+    s_merge_manager sm;
 #endif
     
     getrusage(RUSAGE_SELF, &ru0);
 
-#if 0    
+#if 10    
     ae = AMI_partition_and_merge(&amis0, &amis1,
                                  (AMI_merge_base<int> *)&sm);
 #else
