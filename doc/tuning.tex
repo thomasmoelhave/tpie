@@ -1,12 +1,12 @@
 %%
-%% $Id: tuning.tex,v 1.1 1999-03-04 00:33:35 tavi Exp $
+%% $Id: tuning.tex,v 1.2 1999-06-20 23:54:27 tavi Exp $
 %%
 \chapter{TPIE Performance Tuning}
 
 \section{Choosing a BTE Implementation} % and Setting Parameters}
 
-Choosing the appropriate BTE implementation is more often than
-not system dependent; and setting up BTE parameters is 
+Choosing the appropriate BTE implementation is both application and
+system dependent; and setting up BTE parameters is 
 application dependent. We describe here some simple approaches
 to determine these; one of the approaches involves using the
 \verb|bte_test.c| programs in the test directory.
@@ -28,7 +28,7 @@ that can be undertaken by a TPIE application; which can have a crucial
 impact on (say, the number of passes required in external sorting and
 hence the) net running time. The size of each buffer and the size of
 each I/O in the BTE stream is \verb|BTE_LOGICAL_BLOCKSIZE_FACTOR|
-times the operating system  blocksize, so this (very) roughly
+times the operating system  blocksize, so this roughly
 corresponds to the amount of data brought in or written out at the
 cost of a single disk operation.  The latter observation suggests
 that \verb|BTE_LOGICAL_BLOCKSIZE_FACTOR| should be set to a high
@@ -37,7 +37,7 @@ streams active at a time and hence can result in an increase in the
 number of passes required in sorting. In the case of external memory
 indexing data structures based on trees, the value of the 
 \verb|BTE_LOGICAL_BLOCKSIZE_FACTOR| for any BTE stream (or BTE block
-collection, in future TPIE versions) like structure used to implement 
+collection, in future TPIE versions) used to implement 
 the external memory data structure should be made as close to the size
 of the tree node as possible.
 
@@ -69,11 +69,11 @@ speed of  \verb|BTE_mmb|, \verb|BTE_ufs| or  \verb|BTE_stdio|;
 flags to 0. Also \verb|#define| the \verb|BLOCKSIZE_BASE|
  parameter to be equal to the underlying operating system blocksize. 
 
-NOTE: The \verb|BTE_mmb| stream being simulated here is one that has 
-an \verb|mmap()| based prefetching; this configuration is typically expected
-to be the best possible \verb|mmap()|-based BTE implementation. The \verb|ftruncate()|
-necessary while appending data to an to a file is done once every
-twenty \verb|mmaps()|.  
+%NOTE: The \verb|BTE_mmb| stream being simulated here is one that has 
+%an \verb|mmap()| based prefetching; this configuration is typically expected
+%to be the best possible \verb|mmap()|-based BTE implementation. The \verb|ftruncate()|
+%necessary while appending data to an to a file is done once every
+%twenty \verb|mmaps()|.  
 
 The program is to be compiled using a C compiler. In order to test the streaming 
 performance of  BTE streams of any type T (of size ItemSize), the program 
@@ -106,8 +106,51 @@ is given in units of MB/s.
 
 \section{Virtual and Non-virtual Streams}
 
+All the AMI streams in TPIE are instances of a class derived from the base
+stream class \verb|AMI_base_stream|. Although this base class has no
+functionality in itself, it can provide the minimum set of methods that
+need to be implemented by a derived class in order to have the required
+stream functionality. This is done by using abstract virtual methods. To
+tell TPIE to declare these methods in the base stream class you need to
+set \verb|AMI_VIRTUAL_BASE| to 1 (either in the application's
+configuration, or during compilation by using the -D flag). Similarly,
+\verb|BTE_VIRTUAL_BASE| controls the behavior of the BTE streams.
 
-\section{Inlining Operation Management Object Member Functions}
+By default, both BTE and AMI streams use a non-virtual base. By doing this,
+the performance of the stream methods is improved dramatically, in many
+cases. The biggest gain is obtained from inlining short methods (virtual
+methods cannot be inlined). 
+
+We believe this setup provides a good compromise between the need for high
+performance one one hand, and clarity, modularity and debugging support on
+the other hand.
 
 
-\section{Using Multiple Physical Devices}
+\section{Inlining Operation Management Object Methods}
+
+The title of this section is self-explanatory. However, failing to inline
+the \verb|operate()| method of the operation management classes you create
+could be a major source of lackluster performance of your application,
+since \verb|operate()| is called once for every element in a stream that is
+being scanned. This is, of course, just a suggestion to the compiler, which
+can choose to ignore it. In order to maximize the chances to have the
+method inlined, keep it short and simple. A way to do this is to wrap
+complex pieces of code that are called less often in separate functions.
+
+\section{Other factors afecting performance}
+
+This is an eclectic list of performance-afecting parameters, not all of
+which are TPIE specific.
+\begin{itemize}
+\item[g++ optimization] We recommend using the \verb|-O2| level of
+optimization of g++ in order to obtain the best overall
+performance. Although higher speeds could be obtained using \verb|-O3|,
+this optimization leads to increased size of the program, potentially
+hurting performance. 
+\item[memory size] To insure that no disk swapping is done, the size of
+main memory used by TPIE should be set to a realistic value, which is
+usually much smaller than the size of the memory installed in the computer
+(due to operating system resources and daemons).
+\end{itemize}
+
+%\section{Using Multiple Physical Devices}
