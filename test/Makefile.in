@@ -1,7 +1,7 @@
 # Makefile for TPIE test applications.
 # Use gmake on this Makefile.  It relies on the default rules, and 
 # Use gmake -p to see the default rules.
-# $Id: Makefile.in,v 1.30 2002-01-14 15:35:00 tavi Exp $
+# $Id: Makefile.in,v 1.31 2002-02-02 18:19:17 tavi Exp $
 
 CXX = @CXX@
 CC = @CC@
@@ -10,7 +10,6 @@ MAKEDEPEND = @CXX@ -M
 TPIEINC = ../include
 TPIELIBDIR = ../lib
 TPIELIB = $(TPIELIBDIR)/libtpie.a
-MINUSG = 0
 
 ifdef DEBUG_APPS
 LOG_APPS = 1
@@ -29,6 +28,10 @@ ifeq ($(MINUSG),1)
 override CPPFLAGS += -g
 else
 override CPPFLAGS += -O3
+endif
+
+ifeq ($(MINUSPG),1)
+override CPPFLAGS += -pg
 endif
 
 LDLIBS =  -L$(TPIELIBDIR) -ltpie -lm #-liberty
