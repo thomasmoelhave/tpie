@@ -5,7 +5,7 @@
 //
 // An extensive test suite for TPIE functionality.
 //
-// $Id: test_correctness.cpp,v 1.7 2004-08-12 15:15:12 jan Exp $
+// $Id: test_correctness.cpp,v 1.8 2004-08-13 09:48:22 jan Exp $
 //
 
 static int mapcount = 0;
@@ -76,6 +76,7 @@ struct options opts[] = {
   //  { 35, "sort-op-100b-int", "Test AMI_sort (using 40-byte elements, integers as keys, and comparison class)", NULL, 0 },
   //  { 36, "sort-op-100b-100b", "Test AMI_sort (using 40-byte elements, and comparison class)", NULL, 0 },
   { 30, "sort", "Tests AMI_sort", NULL, 0 },
+  { 40, "large-file", "Tests large files (> 2GB)", NULL, 0 },
   { 0,  NULL, NULL, NULL, 0 }
 };
 
@@ -84,6 +85,7 @@ int test_stream();
 int test_scan();
 int test_scan_cxx();
 int test_sort();
+int test_large_files();
 // Print current configuration options.
 void print_cfg();
 
@@ -128,6 +130,7 @@ int main(int argc, char **argv) {
     case 20: fail += test_scan(); break;
     case 25: fail += test_scan_cxx(); break;
     case 30: fail += test_sort(); break;
+    case 40: fail += test_large_files(); break;
     default: break;
     }
 
@@ -839,3 +842,67 @@ int test_scan() {
   return (failed ? 1: 0);
 }
 
+
+////////////////////////////////////////////////////////
+////////////     test_large_file()      ////////////////
+////////////////////////////////////////////////////////
+
+int test_large_files() {
+  static bool been_here = false;
+  status_t status = EMPTY;
+  AMI_STREAM<TPIE_OS_OFFSET>* s;
+  int failed = 0;
+  AMI_err err;
+
+  TPIE_OS_OFFSET i;
+  TPIE_OS_OFFSET myLargeNumber = (TPIE_OS_OFFSET)4 * (TPIE_OS_OFFSET)1024 * (TPIE_OS_OFFSET)1024 * (TPIE_OS_OFFSET)1024 / (TPIE_OS_OFFSET)sizeof(TPIE_OS_OFFSET);
+
+  char *fn  = new char[strlen(TMP_DIR)+strlen("tpie_large.stream")+1];
+  strcpy(fn,TMP_DIR);
+  strcpy(fn+strlen(fn),"tpie_large.stream");
+
+  print_msg("Testing large file support", 0);
+  if (been_here) {
+    print_status(SKIP);
+    return 0;
+  }
+
+  been_here = true;
+  print_status(EMPTY);
+
+
+  //////// Part 1: temporary stream.       //////////
+
+  print_msg("Creating temporary stream (calling op. new)", INDENT);
+  s = new AMI_STREAM<TPIE_OS_OFFSET>();
+  status = (s != NULL && s->is_valid() ? PASS: FAIL);
+  print_status(status); if (status == FAIL) failed++;
+
+  print_status(EMPTY); // New line.
+
+  if (status != FAIL) {
+    err = AMI_ERROR_NO_ERROR;
+
+    print_msg("Truncating temporary stream ", INDENT);
+	err = s->truncate(myLargeNumber);
+    status = (err == AMI_ERROR_NO_ERROR && s->stream_len() == myLargeNumber ? PASS: FAIL);
+    print_status(status); if (status == FAIL) failed++; 
+
+	cerr << "Writing data";
+	s->seek(0);
+    for (i=0; i< myLargeNumber; i++) {
+      if ((err = s->write_item(i)) != AMI_ERROR_NO_ERROR) break;
+	  if (i%(TPIE_OS_OFFSET)(100 * 1024 * 1024) == 0) cerr << ".";
+	  if (i%((TPIE_OS_OFFSET)1024 * (TPIE_OS_OFFSET)1024 * (TPIE_OS_OFFSET)1024) == 0) cerr << "|";
+    }
+
+	cerr << endl;
+	status = (err == AMI_ERROR_NO_ERROR && s->stream_len() == myLargeNumber ? PASS: FAIL);
+    print_status(status); if (status == FAIL) failed++; 
+  }
+
+  print_msg("Deleting temporary stream (calling op. new)", INDENT);
+  status = (err == AMI_ERROR_NO_ERROR && s->stream_len() == myLargeNumber ? PASS: FAIL);
+
+  return (failed ? 1: 0);
+}
