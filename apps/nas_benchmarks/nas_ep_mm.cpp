@@ -9,17 +9,14 @@
 // the values it generates.
 
 
-static char nas_ep_mm_id[] = "$Id: nas_ep_mm.cpp,v 1.1 1995-06-20 18:49:04 darrenv Exp $";
+static char nas_ep_mm_id[] = "$Id: nas_ep_mm.cpp,v 1.2 1999-06-19 01:25:34 tavi Exp $";
 
 #include <iostream.h>
-
 #include <math.h>
-
 #include <cpu_timer.h>
-
-#include <GetOpt.h>
+///#include <GetOpt.h>
 #include <strstream.h>
-
+#include <stdlib.h>
 
 // Constants specified in the benchmark.
 
@@ -59,19 +56,22 @@ static bool use_array = false;
 
 void parse_args(int argc, char *argv[])
 {
-    GetOpt go(argc, argv, "at:");
-    char c;
+  ///GetOpt go(argc, argv, "at:");
+  char c;
 
-    while ((c = go()) != -1) {
-        switch (c) {
-            case 't':
-                istrstream(go.optarg,strlen(go.optarg)) >> test_size;
-                break;
-            case 'a':
-                use_array = !use_array;
-                break;
-        }
+  /// while ((c = go()) != -1) {
+  optarg = NULL;
+  while((c = getopt(argc, argv, "at:")) != -1) {
+    switch (c) {
+    case 't':
+      ///istrstream(go.optarg,strlen(go.optarg)) >> test_size;
+      istrstream(optarg,strlen(optarg)) >> test_size;
+      break;
+    case 'a':
+      use_array = !use_array;
+      break;
     }
+  }
 }
 
 
