@@ -1,7 +1,7 @@
 //
 // File: ami_sort_single_dh.h
 //
-// $Id: ami_sort_single_dh.h,v 1.14 2004-08-12 12:35:31 jan Exp $
+// $Id: ami_sort_single_dh.h,v 1.15 2004-08-17 16:47:55 jan Exp $
 //
 // This file contains the templated routines
 //     1) AMI_sort:
@@ -364,7 +364,7 @@ inline AMI_err sort_manager_kobj<T,Q,KEY,CMPR>::main_mem_operate_init(size_t szM
    TP_LOG_DEBUG_ID("sort_manager_kobj.main_mem_operate_init: allocating " 
 		 << szMemoryLoad*sizeof(qsort_item <KEY>) << 
 		 "bytes for qs_array["<< szMemoryLoad << "]");
-    qs_array      = new (qsort_item <KEY>)[szMemoryLoad];
+    qs_array      = new qsort_item<KEY>[szMemoryLoad];
    TP_LOG_DEBUG_ID("Ending sort_manager_kobj.main_mem_operate_init");
     return AMI_ERROR_NO_ERROR;
 }

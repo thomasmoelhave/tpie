@@ -4,7 +4,7 @@
 // Authors: Octavian Procopiuc <tavi@cs.duke.edu>
 //          (using some code by Rakesh Barve)
 //
-// $Id: bte_coll_base.h,v 1.26 2004-08-12 12:35:31 jan Exp $
+// $Id: bte_coll_base.h,v 1.27 2004-08-17 16:48:06 jan Exp $
 //
 // BTE_collection_base class and various basic definitions.
 
@@ -39,7 +39,7 @@ enum BTE_collection_type {
 // BTE collection status.
 enum BTE_collection_status {
     BTE_COLLECTION_STATUS_VALID = 0,
-    BTE_COLLECTION_STATUS_INVALID = 1,
+    BTE_COLLECTION_STATUS_INVALID = 1
 };
 
 
