@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/6/94
 //
-// $Id: app_config.h,v 1.21 2002-01-14 17:39:30 tavi Exp $
+// $Id: app_config.h,v 1.22 2002-01-15 03:53:03 tavi Exp $
 //
 #ifndef _APP_CONFIG_H
 #define _APP_CONFIG_H
@@ -94,26 +94,6 @@ extern size_t test_mm_size;
 extern size_t test_size;
 extern int random_seed;
 /********************************************************************/
-
-
-
-/********************************************************************/
-/*  THE FOLLOWING MACROS ARE NORMALLY NOT MODIFIED BY USER           */
-/********************************************************************/
-
-
-/* Use the single BTE stream version of AMI streams; in the current
-   option this is the only option */
-#define AMI_STREAM_IMP_SINGLE
-
-
-/* enable/disable virtual interface; normally disabled */
-#ifndef AMI_VIRTUAL_BASE
-#define AMI_VIRTUAL_BASE 0
-#endif
-#ifndef BTE_VIRTUAL_BASE 
-#define BTE_VIRTUAL_BASE 0
-#endif
 
 
 /********************************************************************/
