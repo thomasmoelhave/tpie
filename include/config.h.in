@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/13/94
 //
-// $Id: config.h.in,v 1.4 1995-03-07 14:49:42 darrenv Exp $
+// $Id: config.h.in,v 1.5 1995-03-25 14:08:05 darrenv Exp $
 //
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -14,6 +14,9 @@
 
 // Define if you have mmap()
 #define HAVE_MMAP 0
+
+// Define if asyncronous I/O is avaialable.
+#define HAVE_LIBAIO 0
 
 // Define if you have a prototype for mmap()
 #define HAVE_PROTOTYPE_MMAP 0
