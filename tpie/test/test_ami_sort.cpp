@@ -6,7 +6,7 @@
 //
 // A test for AMI_sort().
 
-static char test_ami_sort_id[] = "$Id: test_ami_sort.cpp,v 1.8 1995-03-22 16:24:22 dev Exp $";
+static char test_ami_sort_id[] = "$Id: test_ami_sort.cpp,v 1.9 1995-06-20 19:00:39 darrenv Exp $";
 
 // This is just to avoid an error message since the string above is never
 // refereneced.  Note that a self referential structure must be defined to
@@ -18,8 +18,6 @@ static struct ___test_ami_sort_id_compiler_fooler {
     test_ami_sort_id,
     &the___test_ami_sort_id_compiler_fooler
 };
-
-#include <tpqueue.h>
 
 #include <stdlib.h>
 #include <sys/time.h>
