@@ -15,7 +15,7 @@
 // a quicksort using only keys of the items; there is a provision to 
 // to use templated heaps to implement the merge.
 
-// 	$Id: ami_optimized_merge.h,v 1.5 1999-02-06 00:53:55 rbarve Exp $	
+// 	$Id: ami_optimized_merge.h,v 1.6 1999-02-10 00:38:16 rbarve Exp $	
 //TO DO: substream_count setting; don't depend on current_stream_len
 
 #ifndef _OPT_AMI_MERGE_H
@@ -214,6 +214,7 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
                                                  return ae;
            }
 
+           delete mm_stream;
     } else {
 
         // The number of substreams that the original input stream
@@ -1214,7 +1215,8 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
                                      != AMI_ERROR_NO_ERROR)
                                                  return ae;
            }
-         }
+           delete mm_stream;
+		}
          else
          {
          //Use qsort on keys followed by permuting
@@ -1239,7 +1241,9 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
                                            != AMI_ERROR_NO_ERROR)
                                            return ae;
             }
-          }
+          delete mm_stream;
+          delete qs_array;
+	    }
           
           return AMI_ERROR_NO_ERROR;
 
@@ -2235,7 +2239,8 @@ AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
                                      != AMI_ERROR_NO_ERROR)
                                                  return ae;
            }
-         }
+           delete mm_stream;
+		}
          else
          {
          //Use qsort on keys followed by permuting
@@ -2261,6 +2266,8 @@ AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
                                            != AMI_ERROR_NO_ERROR)
                                            return ae;
             }
+          delete mm_stream;
+          delete qs_array;
           }
           
           return AMI_ERROR_NO_ERROR;
