@@ -4,13 +4,15 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/10/94
 //
-// $Id: ami_stream_arith.h,v 1.5 2003-04-17 14:24:20 jan Exp $
+// $Id: ami_stream_arith.h,v 1.6 2003-04-20 23:56:38 tavi Exp $
 //
 #ifndef _AMI_STREAM_ARITH_H
 #define _AMI_STREAM_ARITH_H
 
 // Get definitions for working with Unix and Windows
 #include <portability.h>
+// Get the definition of the AMI_scan_object class.
+#include <ami_scan.h>
 
 #define SCAN_OPERATOR_DECLARATION(NAME,OP)				\
 									\
