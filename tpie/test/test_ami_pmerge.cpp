@@ -15,7 +15,7 @@
 
 // Define it all.
 #include <ami.h>
-VERSION(test_ami_pmerge_cpp,"$Id: test_ami_pmerge.cpp,v 1.24 2003-09-11 19:45:51 tavi Exp $");
+VERSION(test_ami_pmerge_cpp,"$Id: test_ami_pmerge.cpp,v 1.25 2003-09-12 01:17:01 jan Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -120,7 +120,7 @@ size_t s_merge_manager::space_usage_per_stream(void)
 
 
 AMI_err s_merge_manager::operate(CONST int * CONST *in,
-                                       AMI_merge_flag */*taken_flags*/,
+                                       AMI_merge_flag * /*taken_flags*/,
                                        int &taken_index,
                                        int *out)
 {
