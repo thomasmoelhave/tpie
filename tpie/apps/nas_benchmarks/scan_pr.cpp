@@ -5,28 +5,14 @@
 // Created: 3/22/95
 //
 
-static char scan_pr_id[] = "$Id: scan_pr.cpp,v 1.1 1995-04-03 13:18:19 dev Exp $";
-
-// This is just to avoid an error message since the string above is never
-// referenced.  Note that a self referential structure must be defined to
-// avoid passing the problem further.
-static struct ___scan_pr_id_compiler_fooler {
-    char *pc;
-    ___scan_pr_id_compiler_fooler *next;
-} the___scan_pr_id_compiler_fooler = {
-    scan_pr_id,
-    &the___scan_pr_id_compiler_fooler
-};
-
-
 // Get information on the configuration to test.
 #include "app_config.h"
 
 // Define it all.
 #include <ami.h>
+VERSION(scan_pr_cpp,"$Id: scan_pr.cpp,v 1.2 2000-01-11 02:13:19 hutchins Exp $");
 
 #include "scan_pr.h"
-
 #include <math.h>
 
 // Constants definied in the NAS EP benchmark.
