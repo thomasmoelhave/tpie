@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/30/94
 //
-// $Id: mm_register.h,v 1.6 2000-03-25 06:40:09 rajiv Exp $
+// $Id: mm_register.h,v 1.7 2000-03-29 22:15:44 rajiv Exp $
 //
 #ifndef _MM_REGISTER_H
 #define _MM_REGISTER_H
@@ -55,9 +55,12 @@ public:
     MM_err resize_heap      (size_t sz);
 #endif
     MM_err set_memory_limit(size_t sz); // dh.
+
     void   enforce_memory_limit ();     // dh.
     void   ignore_memory_limit ();      // dh.
     void   warn_memory_limit ();        // dh.
+    MM_mode get_limit_mode();
+
     size_t memory_available ();         // dh.
     size_t memory_used ();              // dh.
     size_t memory_limit ();             // dh.
