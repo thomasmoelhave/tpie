@@ -6,7 +6,7 @@
 //
 // A test for AMI_sort().
 
-static char test_ami_sort_id[] = "$Id: test_ami_sort.cpp,v 1.3 1994-10-11 12:55:06 dev Exp $";
+static char test_ami_sort_id[] = "$Id: test_ami_sort.cpp,v 1.4 1994-10-13 17:03:34 darrenv Exp $";
 
 // This is just to avoid an error message since the string above is never
 // refereneced.  Note that a self referential structure must be defined to
@@ -73,6 +73,7 @@ void parse_app_opt(char c, char *optarg)
     }
 }
 
+#if HAVE_GETRUSAGE
 #define REPORT_RUSAGE(os, ru, x)				\
 {								\
     if (verbose) {						\
@@ -90,6 +91,7 @@ void parse_app_opt(char c, char *optarg)
     	os << ' ' << ru1.x - ru0.x;				\
     }								\
 }
+#endif
 
 extern int register_new;
 
@@ -114,7 +116,7 @@ int main(int argc, char **argv)
 
     AMI_err ae;
 
-#if !(defined(__sun__) && defined(__svr4__))
+#if HAVE_GETRUSAGE
     rusage ru0, ru1;
 #endif
 
@@ -167,13 +169,13 @@ int main(int argc, char **argv)
         ae = AMI_scan((AMI_base_stream<int> *)&amis0, rptr);
     }
 
-#if !(defined(__sun__) && defined(__svr4__))
+#if HAVE_GETRUSAGE
     getrusage(RUSAGE_SELF, &ru0);
 #endif
 
     ae = AMI_sort(&amis0, &amis1, cc_int_cmp);
     
-#if !(defined(__sun__) && defined(__svr4__))
+#if HAVE_GETRUSAGE
     getrusage(RUSAGE_SELF, &ru1);
 #endif
 
@@ -186,7 +188,7 @@ int main(int argc, char **argv)
         ae = AMI_scan((AMI_base_stream<int> *)&amis1, rpts);
     }
 
-#if !(defined(__sun__) && defined(__svr4__))
+#if HAVE_GETRUSAGE
     REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_utime.tv_sec);
     REPORT_RUSAGE_DIFFERENCE(cout, ru0, ru1, ru_utime.tv_usec);
 
