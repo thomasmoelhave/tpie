@@ -3,7 +3,7 @@
 // Created: 2002/10/30
 // Authors: Joerg Rotthowe, Jan Vahrenhold, Markus Vogel
 //
-// $Id: portability.h,v 1.20 2004-02-05 17:38:02 jan Exp $
+// $Id: portability.h,v 1.21 2004-02-05 18:27:09 jan Exp $
 //
 // This header-file offers macros for independent use on Win and Unix systems.
 
@@ -464,11 +464,11 @@ inline int TPIE_OS_FSEEK(FILE* file, long offset, int whence) {
 //there is no difference between the systemcalls
 //but for later adaptation to other systems it maybe useful
 #ifdef _WIN32
-inline LONG TPIE_OS_FTELL(FILE* file) {
+inline TPIE_OS_LONG TPIE_OS_FTELL(FILE* file) {
     return ftell(file);
 }
 #else
-inline LONG TPIE_OS_FTELL(FILE* file) {
+inline TPIE_OS_LONG TPIE_OS_FTELL(FILE* file) {
     return ftell(file);
 }
 #endif
@@ -633,7 +633,7 @@ inline bool TPIE_OS_IS_VALID_FILE_DESCRIPTOR(TPIE_OS_FILE_DESCRIPTOR& fd) {
 #ifdef _WIN32
 inline TPIE_OS_OFFSET TPIE_OS_LSEEK(TPIE_OS_FILE_DESCRIPTOR &fd,TPIE_OS_OFFSET offset,TPIE_OS_FLAG origin) {
 //    CloseHandle(fd.mapFileHandle);	
-    LONG highOrderOff = getHighOrderOff(offset);	
+    TPIE_OS_LONG highOrderOff = getHighOrderOff(offset);	
     DWORD x = SetFilePointer(fd.FileHandle,getLowOrderOff(offset),&highOrderOff,origin);
     if (x == 0xFFFFFFFF) { 
 	x = -1;
@@ -734,13 +734,13 @@ inline int TPIE_OS_MSYNC(char* addr, size_t len,int flags) {
 #endif
 #define BTE_COLLECTION_USE_FTRUNCATE 1
 
-inline int TPIE_OS_FTRUNCATE(TPIE_OS_FILE_DESCRIPTOR& fd, LONG length) {
+inline int TPIE_OS_FTRUNCATE(TPIE_OS_FILE_DESCRIPTOR& fd, TPIE_OS_LONG length) {
   // Save the offset
   TPIE_OS_OFFSET so = TPIE_OS_LSEEK(fd, 0, TPIE_OS_FLAG_SEEK_CUR);
   if (fd.useFileMapping == TPIE_OS_FLAG_USE_MAPPING_TRUE) {
     CloseHandle(fd.mapFileHandle);	
   }
-  LONG highOrderOff = getHighOrderOff(length);
+  TPIE_OS_LONG highOrderOff = getHighOrderOff(length);
   int x = ((((fd).RDWR == false) 	|| 
 	    (SetFilePointer((fd).FileHandle,getLowOrderOff(length),&highOrderOff,FILE_BEGIN) == 0xFFFFFFFF)	|| 
 	    (SetEndOfFile((fd).FileHandle) == 0)) ? -1 : 0);
@@ -756,7 +756,7 @@ inline int TPIE_OS_FTRUNCATE(TPIE_OS_FILE_DESCRIPTOR& fd, LONG length) {
   return x;
 }
 #else							
-inline int TPIE_OS_FTRUNCATE(TPIE_OS_FILE_DESCRIPTOR& fd, LONG length) {
+inline int TPIE_OS_FTRUNCATE(TPIE_OS_FILE_DESCRIPTOR& fd, TPIE_OS_LONG length) {
     return ftruncate(fd, length);
 }
 #endif
