@@ -1,7 +1,7 @@
 # Makefile for TPIE library.
 # Use GNU make on this Makefile. It relies on the default rules.
 # Use (GNU) "make -p" to see the default rules.
-# $Id: Makefile.in,v 1.35 2003-05-08 21:32:45 tavi Exp $
+# $Id: Makefile.in,v 1.36 2003-08-21 19:33:25 tavi Exp $
 
 ARFLAGS = rv
 CXX = @CXX@
@@ -22,7 +22,7 @@ override CPPFLAGS += @DEFS@
 ifeq ($(MINUSG),1)
 override CPPFLAGS += -g
 else
-override CPPFLAGS += -O3# -DNDEBUG 
+override CPPFLAGS += -O2# -DNDEBUG 
 endif
 
 ifeq ($(MINUSPG),1)
