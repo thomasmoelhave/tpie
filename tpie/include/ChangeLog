@@ -1,4 +1,14 @@
-Wed Feb  3 13:14:55 EST 1999 Octavian Procopiuc (tavi)
+Fri Oct 22 19:12:08 1999 Octavian Procopiuc (tavi)
+	* tpie_log.h: added LOG_APP_DEBUG level and corresponding macros, 
+	for messages logged by applications. Also added LOG_SET_THRESHOLD 
+	macro, for changing the threshold level.
+	
+	* quicksort.h: fixed a bug in quicksort (which allowed the recursion 
+	to go all the way down, instead of stopping at a preset value, after 
+	which insertion_sort would be called). Also changed the value where 
+	quicksort bottoms out to 20, based on experiments on various machines.
+	
+Wed Feb  3 13:14:55 1999 Octavian Procopiuc (tavi)
 
 	* almost_all_files: Removed template instantiations and related macros.
 	
