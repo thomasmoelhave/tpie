@@ -1,6 +1,6 @@
 # Copyright (c) 1994 Darren Erik Vengroff
 
-# $Id: Makefile.in,v 1.26 1999-11-08 21:14:41 hutchins Exp $
+# $Id: Makefile.in,v 1.27 2001-02-08 04:52:23 tavi Exp $
 
 # Makefile for TPIE test applications.
 
@@ -65,7 +65,7 @@ APPS := test_ami_pmerge test_ami_sort test_ami_merge test_ami_gp	\
 	test_matrix test_bit_matrix test_ami_arith test_ami_matrix	\
 	test_ami_matrix_pad test_ami_stack test_ami_bp lr ch2		\
 	test_ami_sm nas_ep nas_ep2 nas_cg nas_is test_ami_sort24	\
-	nas_ep_mm smooth sample_pgm
+	nas_ep_mm smooth sample_pgm test_btree
 
 # Sources to the test applications.
 
@@ -157,6 +157,8 @@ test_ami_sort24: test_ami_sort24.o $(COMMONOBJ)
 smooth: smooth.o scan_build_smoother.o  $(COMMONOBJ)
 
 sample_pgm: sample_pgm.o $(COMMONOBJ)
+
+test_btree: test_btree.o
 
 .PHONY : clean all
 
