@@ -10,7 +10,13 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <iostream>
 #include <fstream>
+
+using std::cout;
+using std::cerr;
+using std::flush;
+using std::ofstream;
 
 // Get information on the configuration to test.
 #include "app_config.h"
@@ -21,7 +27,7 @@
 #include <ami_scan.h>
 #include <ami_sort.h>
 #include <cpu_timer.h>
-VERSION(test_ami_sort_cpp,"$Id: test_ami_sort.cpp,v 1.25 2003-04-20 21:12:56 tavi Exp $");
+VERSION(test_ami_sort_cpp,"$Id: test_ami_sort.cpp,v 1.26 2003-04-21 02:12:35 tavi Exp $");
 
 #include <ami_kb_sort.h>
 
