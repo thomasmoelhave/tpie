@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/12/94
 //
-// $Id: logstream.h,v 1.4 1994-08-31 19:28:03 darrenv Exp $
+// $Id: logstream.h,v 1.5 1995-03-07 14:50:25 darrenv Exp $
 //
 #ifndef _LOGSTREAM_H
 #define _LOGSTREAM_H
@@ -52,13 +52,26 @@ template <class TP> class logmanip {
     TP _a;
 public:
     logmanip(logstream& (*f)(logstream&, TP), TP a) : _f(f), _a(a) {}
-    //
-    friend
-      logstream& operator<<(logstream& o, const logmanip<TP>& m)
-	{ return (*m._f)(o, m._a); }
+
+    friend logstream& operator<<(logstream& o, const logmanip<TP>& m);
 };
+
+template<class TP>
+logstream& operator<<(logstream& o, const logmanip<TP>& m)
+{
+    return (*m._f)(o, m._a);
+}
 
 logmanip<unsigned int> setpriority(unsigned int p);
 logmanip<unsigned int> setthreshold(unsigned int p);
+
+#ifdef NO_IMPLICIT_TEMPLATES
+
+#define TEMPLATE_INSTANTIATE_LOGMANIP					\
+template class logmanip<unsigned int>;					\
+template logstream& operator<<(logstream& o,				\
+                               const logmanip<unsigned int>& m);
+
+#endif
 
 #endif // _LOGSTREAM_H 
