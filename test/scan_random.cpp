@@ -10,10 +10,8 @@
 // Get information on the configuration to test.
 #include "app_config.h"
 
-// Define it all.
-#include <ami.h>
-
-VERSION(scan_random_cpp,"$Id: scan_random.cpp,v 1.6 2000-01-11 01:45:02 hutchins Exp $");
+#include <versions.h>
+VERSION(scan_random_cpp,"$Id: scan_random.cpp,v 1.7 2003-04-21 02:32:11 tavi Exp $");
 
 #include "scan_random.h"
 
