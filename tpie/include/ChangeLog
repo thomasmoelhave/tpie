@@ -1,6 +1,34 @@
+Thu May 22 22:40 1997 Lars Arge (large)
+
+	* quicksort.h: Fixed an off-by-one error in all the insertion_sort
+	functions. Inserted "extern "C" long int random(void)" to avoid
+	warning during compilation (random() used).
+
+	* ami_single.h: Initialized r_only variable on creation. Inserted
+	seek(0) in new_substream.
+
+	* bte_mmb.h: Changed >= to <= in write_item.
+
+	* bte_ufs.h: Small typographical change.
+
+	* bte_stdio.h: Quick bug-fix hack in stream_len() - need to look
+	at the real problem (header block not a block) later!
+
+	* ami_scan_mac: Removed rewind of output stream.
+
+	
+	
+Thu May 22 14:47 1997 Lars Arge (large)
+
+	* There is a bog hole in time here, but no we start describing
+	changes again!
+
+
+	
 Thu Sep 29 13:13:15 1994  Darren Erik Vengroff  (darrenv@lazyboy)
 
-	* quicksort.h, pqueue.h, bte_ufs.h, ami_sort_single.h, ami_ptr.h, ami_device.h:
+	* quicksort.h, pqueue.h, bte_ufs.h, ami_sort_single.h, ami_ptr.h,
+	ami_device.h: 
 	Initial revision
 
 	* bte_mmb.h: Added BTE_stream_mmb_base.
