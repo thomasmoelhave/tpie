@@ -1,5 +1,5 @@
 %%
-%% $Id: ami_reference.tex,v 1.5 1999-10-13 21:01:36 hutchins Exp $
+%% $Id: ami_reference.tex,v 1.6 1999-10-25 21:49:14 tavi Exp $
 %%
 \chapter{TPIE Programmers' Reference}
 \label{cha:reference}
@@ -26,6 +26,7 @@ description of BTEs and for TPIE implementation details.
 
 \section{TPIE Memory Management}
 \label{sec:mm-ref}
+\index{memory manager|(}
 
 The Memory Manager components of TPIE provide services related to
 the management of internal memory:
@@ -79,135 +80,140 @@ the same as when invoking the default \verb|delete| and
 
 Although provisions exist for alternative memory managers,
 TPIE currently provides only one. TPIE's memory manager is the object
-\verb|MM_manager|, which has global scope.  The following
-public methods of object \verb|MM_manager| are provided:
+\verb|MM_manager|, which has global scope. 
 
-\begin{itemize}
-\item Setting an application's memory limit:
-\begin{verbatim}
-MM_err set_memory_limit (size_t size);
-\end{verbatim}
+  % commented out for quick release.
+% The following
+%public methods of object \verb|MM_manager| are provided:
+%
+%\begin{itemize}
+%\item Setting an application's memory limit:
+%\begin{verbatim}
+%MM_err set_memory_limit (size_t size);
+%\end{verbatim}
+%
+%The memory limit is set to \verb|size| bytes. If the
+%specified mamory limit is greater than or equal to the
+%amount of memory already allocated, \verb|set_memory_limit|
+%returns \verb|MM_ERROR_NO_ERROR|, otherwise
+%\verb|MM_ERROR_EXCESSIVE_ALLOCATION|. By default, successive
+%calls to operator \verb|new| will cause the program to abort
+%if the resulting memory usage would exceed \verb|size|
+%bytes. This behaviour can be controlled explicitly by the
+%use of methods \verb|enforce_memory_limit|,
+%\verb|warn_memory_limit| and \verb|ignore_memory_limit|.
+%See below for details.
+%
+%\item Setting enforcement behaviour:
+%\begin{verbatim}
+%MM_err enforce_memory_limit();
+%MM_err ignore_memory_limit ();
+%MM_err warn_memory_limit   ();
+%\end{verbatim}
+%
+%Methods \verb|enforce_memory_limit|,
+%\verb|ignore_memory_limit| and \verb|warn_memory_limit| are
+%used to specify the behaviour desired in the event that the
+%user-specified memory limit is exceeded. These methods cause
+%TPIE to abort, continue without warning, or continue after a
+%warning, respectively.
+%
+%\item Query memory parameters
+%
+%\begin{verbatim}
+%long memory_available();
+%long memory_used();
+%long memory_limit();
+%\end{verbatim}
+%
+%Method \verb|memory_available()| returns the number of bytes
+%of memory which can be allocated before the user-specified
+%limit is reached. \verb|memory_used| returns the number of
+%bytes of memory currently allocated. \verb|memory_limit|
+%returns the memory limit as set by the last call to method
+%\verb|set_memory_limit|.
+%
+%Application programs which wish to limit their main memory
+%usage can check via \verb|memory_available| whether a
+%contemplated memory allocation request would exceed their
+%self-imposed threshold.
+%
+%\item Query space overhead
+%
+%\begin{verbatim}
+%int space_overhead();
+%\end{verbatim}
+%
+%TPIE imposes a small space overhead on each memory
+%allocation request received by operator \verb|new|. This involves
+%increasing each allocation request by a fixed number of
+%bytes. The precise size of this increase is machine
+%dependent, but typically 8 bytes. Method \verb|space_overhead|
+%returns the size of this increase.
+%\end{itemize}
+%
+%\subsection{Using the Memory Manager: An Example}
+%
+%The following (toy) program creates new elements of a linked
+%list until its specified memory limit has been reached.
+%
+%\begin{verbatim}
+%// This program illustrates the use of the main public 
+%// entry points in the TPIE memory manager object "MM_manager".
+%// It creates nodes in a linked list and stops when a predefined memory 
+%// limit would be exceeded if it continued.
+%
+%#include "app_config.h"
+%#include <ami.h>
+%#define  MY_MEMORY_LIMIT 4*1024*1024;
+%
+%int    overhead, nodeCount;
+%size_t mem_limit = MY_MEMORY_LIMIT;
+%class  myNode 
+%       { public:
+%            int i[1020/4];
+%            myNode *next;
+%       };
+%myNode *firstNode, *currentNode, *previousNode;
+%
+%void 
+%main (int argc, char *argv[]){
+% 
+%   overhead = MM_manager.space_overhead();
+%   nodeCount = 0;
+%   MM_manager.set_memory_limit(mem_limit);
+%   currentNode = firstNode = 0;
+%
+%   while ((sizeof(myNode)+overhead)<= MM_manager.memory_available()) { 
+%      currentNode = new myNode;
+%      if (firstNode == 0) 
+%         firstNode = currentNode;
+%      else
+%        (*previousNode).next = currentNode;
+%      (*currentNode).next = 0;
+%      previousNode = currentNode;
+%      nodeCount++;
+%   };
+%   cout << nodeCount << " list nodes of size " << (int) sizeof(myNode); 
+%   cout << " were allocated within my memory limit of ";
+%   cout << (size_t) mem_limit << " bytes \n";
+%};
+%\end{verbatim}
+%
+%Under PC Solaris, this program gives the following output:
+%\begin{verbatim}
+%4064 list nodes of size 1024 were allocated within my memory limit of 4194304 bytes
+%\end{verbatim}
+\index{memory manager|)}
 
-The memory limit is set to \verb|size| bytes. If the
-specified mamory limit is greater than or equal to the
-amount of memory already allocated, \verb|set_memory_limit|
-returns \verb|MM_ERROR_NO_ERROR|, otherwise
-\verb|MM_ERROR_EXCESSIVE_ALLOCATION|. By default, successive
-calls to operator \verb|new| will cause the program to abort
-if the resulting memory usage would exceed \verb|size|
-bytes. This behaviour can be controlled explicitly by the
-use of methods \verb|enforce_memory_limit|,
-\verb|warn_memory_limit| and \verb|ignore_memory_limit|.
-See below for details.
 
-\item Setting enforcement behaviour:
-\begin{verbatim}
-MM_err enforce_memory_limit();
-MM_err ignore_memory_limit ();
-MM_err warn_memory_limit   ();
-\end{verbatim}
-
-Methods \verb|enforce_memory_limit|,
-\verb|ignore_memory_limit| and \verb|warn_memory_limit| are
-used to specify the behaviour desired in the event that the
-user-specified memory limit is exceeded. These methods cause
-TPIE to abort, continue without warning, or continue after a
-warning, respectively.
-
-\item Query memory parameters
-
-\begin{verbatim}
-long memory_available();
-long memory_used();
-long memory_limit();
-\end{verbatim}
-
-Method \verb|memory_available()| returns the number of bytes
-of memory which can be allocated before the user-specified
-limit is reached. \verb|memory_used| returns the number of
-bytes of memory currently allocated. \verb|memory_limit|
-returns the memory limit as set by the last call to method
-\verb|set_memory_limit|.
-
-Application programs which wish to limit their main memory
-usage can check via \verb|memory_available| whether a
-contemplated memory allocation request would exceed their
-self-imposed threshold.
-
-\item Query space overhead
-
-\begin{verbatim}
-int space_overhead();
-\end{verbatim}
-
-TPIE imposes a small space overhead on each memory
-allocation request received by operator \verb|new|. This involves
-increasing each allocation request by a fixed number of
-bytes. The precise size of this increase is machine
-dependent, but typically 8 bytes. Method \verb|space_overhead|
-returns the size of this increase.
-\end{itemize}
-
-\subsection{Using the Memory Manager: An Example}
-
-The following (toy) program creates new elements of a linked
-list until its specified memory limit has been reached.
-
-\begin{verbatim}
-// This program illustrates the use of the main public 
-// entry points in the TPIE memory manager object "MM_manager".
-// It creates nodes in a linked list and stops when a predefined memory 
-// limit would be exceeded if it continued.
-
-#include "app_config.h"
-#include <ami.h>
-#define  MY_MEMORY_LIMIT 4*1024*1024;
-
-int    overhead, nodeCount;
-size_t mem_limit = MY_MEMORY_LIMIT;
-class  myNode 
-       { public:
-            int i[1020/4];
-            myNode *next;
-       };
-myNode *firstNode, *currentNode, *previousNode;
-
-void 
-main (int argc, char *argv[]){
- 
-   overhead = MM_manager.space_overhead();
-   nodeCount = 0;
-   MM_manager.set_memory_limit(mem_limit);
-   currentNode = firstNode = 0;
-
-   while ((sizeof(myNode)+overhead)<= MM_manager.memory_available()) { 
-      currentNode = new myNode;
-      if (firstNode == 0) 
-         firstNode = currentNode;
-      else
-        (*previousNode).next = currentNode;
-      (*currentNode).next = 0;
-      previousNode = currentNode;
-      nodeCount++;
-   };
-   cout << nodeCount << " list nodes of size " << (int) sizeof(myNode); 
-   cout << " were allocated within my memory limit of ";
-   cout << (size_t) mem_limit << " bytes \n";
-};
-\end{verbatim}
-
-Under PC Solaris, this program gives the following output:
-\begin{verbatim}
-4064 list nodes of size 1024 were allocated within my memory limit of 4194304 bytes
-\end{verbatim}
-\comment{LA: Index!}
-\section{AMI Streams}
+\section{AMI Streams}\index{streams!AMI|(}
 \label{sec:ami_stream-ref}
 
 \tobeextended
 \comment{LA: This whole section needs an overhaul! (e.g. check that
 everything is included and correct).}
-An AMI stream\index{streams!AMI} is
+An AMI stream is
 an abstraction of an ordered collection of objects of a
 particular class which is stored in secondary memory.  In some
 applications, the elements of a stream might be integers.
@@ -215,6 +221,7 @@ In others, they might be objects of an arbitrarily complex, user-defined
 class.  A stream of objects of class \verb|foo| called
 \verb|foo_stream| is created in a TPIE program as follows:
 
+\index{AMI_STREAM@{\tt AMI\_STREAM}}
 \begin{verbatim}
 AMI_STREAM<foo> foo_stream;
 \end{verbatim}
@@ -243,7 +250,7 @@ following public member functions:
 
 \comment{LA: Remove bullets?}
 \begin{itemize}
-\item{Constructors (and Destructor)}
+\item{Constructors (and Destructor)}\index{AMI_STREAM@{\tt AMI\_STREAM}!constructors|(}
 
 There are four constructor polymorphs.
 
@@ -255,8 +262,7 @@ There are four constructor polymorphs.
 \end{verbatim}
 
 
- If
-no arguments are given to the constructor, a new stream 
+If no arguments are given to the constructor, a new stream 
 %of type \verb|AMI_READ_WRITE_STREAM| 
 is constructed on a file with a randomly generated name. If
 \verb|path-name| is given and the file does not already
@@ -265,7 +271,7 @@ with the specified file name. If the file already exists, it
 is checked if it contains an \verb|AMI_STREAM|, and if so,
 the new stream is constructed on this file. 
 
-An \verb|AMI_stream| can have one of four different types
+An \verb|AMI_STREAM| can have one of four different types
 \verb|AMI_READ_STREAM|, \verb|AMI_WRITE_STREAM|,
 \verb|AMI_APPEND_STREAM|, or \verb|AMI_READ_WRITE_STREAM|,
 which define what operations will be permitted on the
@@ -285,9 +291,9 @@ TPIE application programmer\comment{LA: Why do we have it
    then?}, constructs a stream from an existing
 \verb|BTE_STREAM| (see Section~\ref{sec:ref-bte}). The
 stream gets the same type as the \verb|BTE_STREAM|.
+\index{AMI_STREAM@{\tt AMI\_STREAM}!constructors|)}
 
-
-\item{Substreams}
+\item{Substreams}\index{substreams!of AMI streams|(}
 
 It is possible to construct an AMI stream that is composed
 of a portion of another AMI stream. A substream $B$ of a
@@ -319,9 +325,11 @@ which forces it to be defined for all actual stream implementations. This
 is discussed in more detail in Sections~\ref{sec:ref-bte}
 and~\ref{sec:ref-ami},\comment{LA: Is it?} which discuss the implementation
 of the AMI and BTE in more detail.
+\index{substreams!of AMI streams|)}
 
 \item{Reading and Writing}
 
+\index{read_item()@{\tt read\_item()}!AMI|(}\index{write_item()@{\tt write\_item()}!AMI|(}
 \begin{verbatim}
     AMI_err read_item(T **elt);
     AMI_err write_item(const T &elt);
@@ -333,10 +341,12 @@ pointing to the current object of the \verb|AMI_STREAM<T>| and the
 \verb|write_item(T elt)| function returns after setting the current object
 of \verb|AMI_STREAM<T>| to the value \verb|elt|. The two functions also
 increment the \verb|current_item|.
+\index{read_item()@{\tt read\_item()}!AMI|)}\index{write_item()@{\tt write\_item()}!AMI|)}
 
 Since it can be useful to read or write many objects at a time from or to
 an \verb|AMI_STREAM|, TPIE provides two functions to do so.
 
+\index{read_array()@{\tt read\_array()}!AMI|(}\index{write_array()@{\tt write\_array()}!AMI|(}
 \begin{verbatim}
     read_array(T *mm_space, off_t *len)
     write_array(const T *mm_space, off_t len)
@@ -345,10 +355,13 @@ an \verb|AMI_STREAM|, TPIE provides two functions to do so.
 \verb|read_array| read \verb|*len| objects from the \verb|current_item| into
 the array \verb|mm_space|. Similarly, \verb|write_arrar| writes an
 array.\comment{LA: Why is there a difference in the passing of len?}
+\index{read_array()@{\tt read\_array()}!AMI|)}\index{write_array()@{\tt write\_array()}!AMI|)}
 
 \item{Seeking}
 
 \verb|current_item| can be explicitly changed with the \verb|seek| function.
+
+\index{seek()@{\tt seek()}!AMI}
 \begin{verbatim}
     AMI_err seek(off_t offset);
 \end{verbatim}
@@ -358,6 +371,7 @@ array.\comment{LA: Why is there a difference in the passing of len?}
 Apart from by using \verb|write_item()| a stream can be extended
 (truncated) using the function \verb|truncate()|.
 
+\index{truncate()@{\tt truncate()}!AMI}
 \begin{verbatim}
     AMI_err truncate(off_t offset);
 \end{verbatim}
@@ -366,6 +380,7 @@ objects. \verb|current_item| will be moved to the end of the stream.
 
 \item{Getting main memory usage}
 
+\index{main_memory_usage()@{\tt main\_memory\_usage()}!AMI}
 \begin{verbatim}
     AMI_err main_memory_usage(size_t *usage,
                               MM_stream_usage usage_type);
@@ -381,6 +396,7 @@ more types defined in mm.base.h - what are they?}
 
 \item{Naming}
 
+\index{name()@{\tt name()}!AMI}
 \begin{verbatim}
     AMI_err name(char **stream_name);
 \end{verbatim}
@@ -390,12 +406,14 @@ name will be stored in newly allocated space.
 
 \item{Length}
 
+\index{stream_len()@{\tt stream\_len()}!AMI}
 \begin{verbatim}
     off_t stream_len(void);
 \end{verbatim}
 
 Returns the current number of objects in the stream.
 
+\index{available_streams()@{\tt available\_streams()}!AMI}
 \item{Available Streams}
 \begin{verbatim}
     int available_streams(void);    
@@ -408,6 +426,7 @@ number of streams which can still be constructed.
 
 \item{Set persistence}
 
+\index{persistence!AMI}
 \begin{verbatim}
     void persist(persistence);
 \end{verbatim}
@@ -427,7 +446,7 @@ By default, all streams are deleted at destruction time
 PERSIST\_READ\_ONCE flag as well! (from darren's delete-block
 stuff). Remove?!}
 \end{itemize}
-
+\index{streams!AMI|)}
 
 
 \section{AMI Entry Points}
@@ -436,9 +455,9 @@ stuff). Remove?!}
 
 \subsection{Scanning}
 \label{sec:ref-ami-scan}
-
 \index{scanning|(}
 
+\index{AMI_scan()@{\tt AMI\_scan()}|(}
 The simplest polymorph of \verb|AMI_scan()| is
 \begin{verbatim}
     AMI_err AMI_scan(ST *smo, AMI_STREAM<T> *outstream);
@@ -470,6 +489,7 @@ each potentially of a different type.  This is done using the polymorph
                      AMI_STREAM<U1> *os1, 
                      AMI_STREAM<U1> *os2, ...);
 \end{verbatim}
+\index{AMI_scan()@{\tt AMI\_scan()}|)}
 The scan management object class \verb|ST| should have an operate
 method taking the appropriate number and type of operands.  For
 example, {\tt AMI\_err operate(const T1 \&in1, const T2 \&in2, ...,
@@ -484,6 +504,7 @@ between zero and four inputs and zero and four outputs.
 A scan management object class must provide two member functions for
 \verb|AMI_scan()| to call.\comment{LA: Something about subclass of
 AMI\_scan\_object (also in previous text)?} The first is
+\index{initialize()@{\tt initialize()}}
 \begin{verbatim}
     AMI_err initialize(void);
 \end{verbatim}
@@ -496,6 +517,7 @@ Section~\ref{sec:ami-errors} for a list of error codes.
 
 Most of the work done is a scan is typically done in the scan management
 objects member function
+\index{operate()@{\tt operate()}|(}
 \begin{verbatim}
     AMI_err operate(const T1 &in1, ...,  AMI_SCAN_FLAG *sfin,
                     U1 *out1, ..., AMI_SCAN_FLAG *sfout);
@@ -521,7 +543,8 @@ streams. The output flags must be set by \verb|operate()| to indicate which
 outputs are valid and should be written to the output streams. 
 
 The return value of \verb|operate()| will normally be either
-\verb|AMI_SCAN_CONTINUE|, which indicates that the function should be
+\verb|AMI_SCAN_CONTINUE|\index{AMI_SCAN_*@{\tt AMI\_SCAN\_*}},
+ which indicates that the function should be
 called again with any taken input parameters replaced by the next objects
 from the streams they came from, of \verb|AMI_SCAN_DONE|, which indicates
 that the scan is complete and no more input needs to be processed.  Note
@@ -529,14 +552,13 @@ that \verb|operate()| may continue to return \verb|AMI_SCAN_CONTINUE| even
 when the input flags indicate that their is no more input to be processed.
 This is useful if the scan management object maintains some internal state
 that must be written out after all input has been processed.
-
+\index{operate()@{\tt operate()}|)}
 \comment{LA: Something about special built-in scan management objects, e.g,
 ASCII input/output}
 
 %There are numerous examples of scan management objects in
 %Section~\ref{sec:scanning} as well as in the test applications that
 %appear in the TPIE distribution.
-
 
 \index{operation management objects!scan|)}
 \index{scanning|)}
@@ -549,6 +571,7 @@ ASCII input/output}
 To merge a number of streams in a single pass\comment{LA: Understandable?},
 TPIE provides the entry point.
 
+\index{AMI_merge()@{\tt AMI\_merge()}}
 \begin{verbatim}
 AMI_err AMI_merge(AMI_STREAM<T> **instreams, arity_t arity,
                   AMI_STREAM<T> *outstream, M *m_obj);
@@ -570,6 +593,7 @@ partition a stream into substreams small enough to fit in main memory,
 operate on each in main memory, and then merge them together, possibly in
 several passes if low memory conditions dictate. TPIE provides the entry
 point to do this, which is
+\index{AMI_partition_and_merge()@{\tt AMI\_partition\_and\_merge()}}
 \begin{verbatim}
 AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
                                 AMI_STREAM<T> *outstream, M *m_obj);
@@ -584,12 +608,14 @@ must take place.
 must provide \verb|initialize()| and \verb|operate()| member
 functions, whose functions are analogous to their namesakes for scan
 management objects.  They should be declared as
+\index{initialize()@{\tt initialize()}}
 \begin{verbatim}
     AMI_err initialize(arity_t arity, const T * const *in,
                        AMI_merge_flag *taken_flags,
                        int &taken_index);
 \end{verbatim}
 and
+\index{operate()@{\tt operate()}|(}
 \begin{verbatim}
     AMI_err operate(const T * const *in, AMI_merge_flag *taken_flags,
                     int &taken_index, T *out);
@@ -609,7 +635,7 @@ that it took all the inputs which were indicated to be valid by
 can turn off any flags in \verb|taken_flags| corresponding to inputs
 that should be presented to \verb|operate()|.  Alternatively, it can
 set \verb|taken_index| to the index of a single input it processed and
-return \verb|AMI_MERGE_CONTINUE|.
+return \verb|AMI_MERGE_CONTINUE|\index{AMI_MERGE_*@{\tt AMI\_MERGE\_*}}.
 
 The \verb|operate()| member function for a merge management object is
 called repeatedly to process input objects.  Typically, this member
@@ -630,11 +656,13 @@ undesirable because, if only one input is taken, it is far slower than
 using \verb|taken_index| to indicate which input was taken.  The merge
 management object must clear all other flags, and then TPIE must test all
 the flags to see which inputs were or were not processed.
+\index{operate()@{\tt operate()}|)}
 
 Any merge management object that is used with the entry point
-\verb|AMI_partition_and_merge()| needs to provide three additional a member
-function. One function is used to operate on substreams of data that are
+\verb|AMI_partition_and_merge()| needs to provide three additional member
+functions. One function is used to operate on substreams of data that are
 small enough to fit into main memory. This member function is
+\index{main_mem_operate()@{\tt main\_mem\_operate()}}
 \begin{verbatim}
     AMI_err main_mem_operate(T* mm_stream, size_t len);
 \end{verbatim}
@@ -644,6 +672,8 @@ other member functions are functions for communicating to TPIE how much
 main memory the merge management object use. Merge management objects are
 allowed to maintain data structures whose size is linear in the number of
 input streams being processed.
+\index{space_usage_overhead()@{\tt space\_usage\_overhead()}}
+\index{space_usage_per_stream()@{\tt space\_usage\_per\_stream()}}
 \begin{verbatim}
     size_t space_usage_overhead(void);
     size_t space_usage_per_stream(void);
@@ -665,6 +695,7 @@ the amount of additional main memory needed per input stream.
 \label{sec:ref-miami-merge}
 \comment{LA: merging without merge management object in index}
 
+\index{AMI_merge()@{\tt AMI\_merge()}|(}
 By using appropriate \verb|operate()| and \verb|main_mem_operate()|
 functions, \verb|AMI_merge()| can be used to conveniently program
 operations other than standard comparison based merging. TPIE also provide
@@ -706,7 +737,7 @@ for C++ reasons?}
 
 All three polymorphs return \verb|AMI_ERR_INSUFFICIENT_MAIN_MEMORY| if not
 enough main memory is available to perform the merge.
-
+\index{AMI_merge()@{\tt AMI\_merge()}|)}
 
 %The motivation for such a function is to exploit situations
 %in which the KEY field is often much smaller than the T type object: For
@@ -788,14 +819,13 @@ enough main memory is available to perform the merge.
 
 \subsection{Distribution}
 \label{sec:ref-ami-dist}
-\index{Distribution}
+\index{distribution}
 
 \tobewritten
 
 
 \subsection{Comparison Sorting}
 \label{sec:ref-ami-sort}
-
 \index{sorting!comparison|(}
 
 TPIE provides a sort function \verb|AMI_sort()| based on merge
@@ -812,7 +842,7 @@ select the best sorting algorithm for the given hardware platform.
 
 In order to provide maximum flexibility to programmers, \verb|AMI_sort()|
 has three polymorphs.
-
+\index{AMI_sort()@{\tt AMI\_sort()}|(}
 \begin{verbatim}
   AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream)
   AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
@@ -845,7 +875,7 @@ comparator class, which has a member function
     int compare(const T& t1, const T& t2);
 \end{verbatim}
 which behaves exactly as the comparison function described above.
-
+\index{AMI_sort()@{\tt AMI\_sort()}|)}
 %Examples of comparison based sorting appear in
 %Section~\ref{sec:cmp-sorting} as well as in the test applications that
 %appear in the TPIE distribution.  Section~\ref{sec:list-ranking}
@@ -854,6 +884,7 @@ which behaves exactly as the comparison function described above.
 
 \subsubsection{AMI\_optimized\_sort}
 
+\index{AMI_optimized_sort()@{\tt AMI\_optimized\_sort()}|(}
 \verb|AMI_optimized_sort()| also have three polymorphs.\comment{LA: We need
 to add a comparator class polymorph. That will also make it possible to
 clean up the code in ami\_optmized\_merge.h}
@@ -877,7 +908,7 @@ operator, and that the ordering of the object is to be based on the total
 order of this field. \verb|keyoffset| is the offset within an object of
 type T of this key field and \verb|dummy| is a (any) variable of type
 \verb|KEY|.\comment{LA: Something about this being for C++ reasons?}
-
+\index{AMI_optimized_sort()@{\tt AMI\_optimized\_sort()}|)}
 \index{sorting!comparison|)}
 
 \subsection{Key Bucket Sorting}
@@ -950,7 +981,6 @@ AMI_err AMI_BMMC_permute(AMI_STREAM<T> *instream,
 
 \tobewritten
 
-
 \subsection{Elementwise and Scalar Elementwise Arithmetic}
 \label{sec:ref-ami-arith}
 
@@ -1000,7 +1030,8 @@ operations.
 \index{stacks|(}
 
 External stacks are implemented through the templated class
-\verb|AMI_stack<T>|, which is a subclass of \verb|AMI_STREAM<T>|. In
+\verb|AMI_stack<T>|\index{AMI_stack@{\tt AMI\_stack}}, 
+which is a subclass of \verb|AMI_STREAM<T>|. In
 addition to the normal operations operations on streams, an
 \verb|AMI_stack<T>| has member functions \verb|AMI_err push(const &T t)|
 and \verb|AMI_err pop(T **ppt)|. The former appends a copy of the object
@@ -1011,13 +1042,12 @@ one and storing a pointer to the removed object in the space pointed to by
 
 \index{stacks|)}
 
-
 \subsection{Distribution Sweeping}
 \label{sec:ref-ami-distsweep}
-
-\comment{LA: index - Distribution sweeping}
+\index{distribution sweeping}
 
 \tobewritten
+
 %%% Local Variables: 
 %%% mode: latex
 %%% TeX-master: t
