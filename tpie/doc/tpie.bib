@@ -1,0 +1,144 @@
+@InProceedings{aggarwal:optimal,
+  author =       "Alok Aggarwal and C. Greg Plaxton",
+  title =        "Optimal Parallel Sorting in Multi-Level Storage",
+  pages =        "659--668",
+  ISBN =         "0-89871-329-3",
+  editor =       "Daniel D. Sleator",
+  booktitle =    "Proceedings of the 5th Annual {ACM}-{SIAM} Symposium
+                 on Discrete Algorithms",
+  address =      "Arlington, VA",
+  month =        jan,
+  year =         "1994",
+  publisher =    "ACM Press",
+}
+
+@TechReport{cormen:integrate-tr,
+  author =       "Thomas H. Cormen and David Kotz",
+  title =        "{Integrating Theory and Practice in Parallel File
+                 Systems}",
+  institution =  "Dartmouth College, Computer Science",
+  address =      "Hanover, NH",
+  number =       "TR94-223",
+  year =         "1994",
+  abstract =     "Several algorithms for parallel disk systems have
+                 appeared in the literature recently, and they are
+                 asymptotically optimal in terms of the number of disk
+                 accesses. Scalable systems with parallel disks must be
+                 able to run these algorithms. We present a list of
+                 capabilities that must be provided by the system to
+                 support these optimal algorithms: control over
+                 declustering, querying about the configuration,
+                 independent I/O, turning off file caching and
+                 prefetching, and bypassing parity. We summarize recent
+                 theoretical and empirical work that justifies the need
+                 for these capabilities.",
+}
+
+@Book{deitel:c++,
+  key =          "Deitel \& Deitel",
+  author =       "H. M. Deitel and P. J. Deitel",
+  title =        "{C}++ How To Program",
+  publisher =    "Prentice Hall",
+  year =         "1994",
+  address =      "Englewood Cliffs, New Jersey 07632",
+  annote =       "183 references",
+}
+
+@Book{ellis:arm,
+  author =       "M. A. Ellis and B. Stroustrup",
+  year =         "1990",
+  title =        "The Annotated {C}++ Rerenence Manual",
+  publisher =    "Addison--Wesley",
+  address =      "1990",
+  kwds =         "cs, c++",
+}
+
+@Book{meyers:effective,
+  author =       "Scott Meyers",
+  title =        "Effective {C}++",
+  publisher =    "Addison-Wesley",
+  year =         "1992",
+  keywords =     "olit-oopl book scglib",
+}
+
+@Article{patt:computer,
+  author =       "Y. N. Patt",
+  title =        "The {I/O} subsystem-a candidate for improvement",
+  journal =      "Computer",
+  volume =       "27",
+  number =       "3",
+  pages =        "15--16",
+  month =        mar,
+  year =         "1994",
+  coden =        "CPTRB4",
+  ISSN =         "0018-9162",
+  bibdate =      "Mon Feb 3 07:28:57 MST 1997",
+  acknowledgement = ack-nhfb,
+  affiliation =  "Dept. of Electr. Eng. and Comput. Sci., Michigan
+                 Univ., Ann Arbor, MI, USA",
+  classification = "C5500 (Computer peripheral equipment); C6150J
+                 (Operating systems)",
+  keywords =     "Hardware; I/O subsystem; Information availability;
+                 Input output subsystem; Networks; Performance;
+                 Software; Storage devices",
+  thesaurus =    "Computer peripheral equipment; Input-output programs;
+                 Operating systems [computers]; Performance evaluation",
+}
+
+@Book{pohl:c++,
+  author =       "I. Pohl",
+  title =        "{C}++ for {C} Programmers",
+  publisher =    "Benjamin-Cummings",
+  year =         "1994",
+  keywords =     "book, text, computer programming language, cc,
+                 CplusPlus, OO, OOP",
+}
+
+@Book{preparata:cg,
+  author =       "F. P. Preparata and M. I. Shamos",
+  title =        "Computational Geometry: In Introduction",
+  publisher =    "Springer-Verlag",
+  address =      "New York",
+  year =         "1985",
+}
+
+@Article{vitter:parmem1,
+  author =       "Jeffrey Scott Vitter and Elizabeth A. M. Shriver",
+  title =        "Algorithms for Parallel Memory {I}: Two-level
+                 Memories",
+  journal =      "Algorithmica",
+  year =         "1994",
+  month =        aug # " and " # sep,
+  volume =       "12",
+  number =       "2/3",
+  pages =        "110--147",
+  earlier =      "vitter:parmem1-tr",
+  keyword =      "parallel I/O algorithms, parallel memory, pario-bib",
+  abstract =     "We provide the first optimal algorithms in terms of
+                 the number of input/outputs (I/Os) required between
+                 internal memory and multiple secondary storage devices
+                 for the problems of sorting, FFT, matrix transposition,
+                 standard matrix multiplication, and related problems.
+                 Our two-level memory model is new and gives a realistic
+                 treatment of {\em parallel block transfer}, in which
+                 during a single~I/O each of the $P$ secondary storage
+                 devices can simultaneously transfer a contiguous block
+                 of $B$ records. The model pertains to a large-scale
+                 uniprocessor system or parallel multiprocessor system
+                 with $P$ disks. In addition, the sorting, FFT,
+                 permutation network, and standard matrix multiplication
+                 algorithms are typically optimal in terms of the amount
+                 of internal processing time. The difficulty in
+                 developing optimal algorithms is to cope with the
+                 partitioning of memory into $P$~separate physical
+                 devices. Our algorithms' performance can be
+                 significantly better than those obtained by the
+                 well-known but nonoptimal technique of disk striping.
+                 Our optimal sorting algorithm is randomized, but
+                 practical; the probability of using more than $\ell$
+                 times the optimal number of I/Os is exponentially small
+                 in $\ell (\log \ell) \log (M/B)$, where $M$ is the
+                 internal memory size.",
+  comment =      "See shorter version vitter:optimal. See TR version
+                 vitter:parmem1-tr. See also vitter:parmem2.",
+}
