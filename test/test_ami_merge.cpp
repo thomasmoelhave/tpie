@@ -6,7 +6,7 @@
 //
 
 #include <versions.h>
-VERSION(test_ami_merge_cpp,"$Id: test_ami_merge.cpp,v 1.12 2000-01-11 02:04:27 hutchins Exp $");
+VERSION(test_ami_merge_cpp,"$Id: test_ami_merge.cpp,v 1.13 2000-11-14 18:17:18 hutchins Exp $");
 
 #include <iostream.h>
 #include <fstream.h>
@@ -145,7 +145,7 @@ int main(int argc, char **argv)
     amirs[0] = &amis0;
     amirs[1] = &amis1;
     
-    ae = AMI_single_merge((AMI_STREAM<int> **)amirs, arity, &amis2,
+    ae = AMI_generalized_single_merge((AMI_STREAM<int> **)amirs, arity, &amis2,
                           (merge_interleave<int> *)&im);
 
     if (verbose) {
@@ -175,7 +175,7 @@ int main(int argc, char **argv)
     // block written to be unmapped.
     ae = amis2.seek(0);
     
-    ae = AMI_single_merge((AMI_STREAM<int> **)amirs, arity, &amis3,
+    ae = AMI_generalized_single_merge((AMI_STREAM<int> **)amirs, arity, &amis3,
                           (merge_interleave<int> *)&im);
 
     if (verbose) {
