@@ -1,5 +1,5 @@
 %%
-%% $Id: ami_reference.tex,v 1.8 2000-08-08 04:55:51 hutchins Exp $
+%% $Id: ami_reference.tex,v 1.9 2000-09-29 18:49:46 hutchins Exp $
 %%
 \chapter{TPIE Programmer's Reference}
 \plabel{cha:reference}
@@ -225,87 +225,147 @@ Under PC Solaris, this program gives the following output:
 \section{AMI Streams}\index{streams!AMI|(}
 \plabel{sec:ref-ami-stream}
 
-\tobeextended
-\comment{LA: This whole section needs an overhaul! (e.g. check that
-everything is included and correct).}
+\comment{%
+   LA: This whole section needs an overhaul! (e.g. check
+   that everything is included and correct).} 
 An AMI stream is an ordered collection of objects of a
-common type,  stored in secondary memory.  In some
+common type, stored in secondary memory.  In some
 applications, the elements of a stream might be integers.
-In others, they might be objects of an arbitrarily complex, user-defined
-class.  A stream of objects of class \myverb{foo} called
-\myverb{foo\_stream} is created in a TPIE program as follows:
+In others, they might be objects of an arbitrarily complex,
+user-defined class.  For example, a stream of objects of class
+\myverb{foo} called \myverb{foo\_stream} might be created in a
+TPIE program as follows:
 
 \index{AMI_STREAM@{\tt AMI\_STREAM}}
 \begin{verbatim}
 AMI_STREAM<foo> foo_stream;
 \end{verbatim}
 
-AMI\_STREAM functions as if it were a class in C++. It is
-actually a compile-time macro (See
+\myv{AMI\_STREAM} functions as if it were a class in C++. It
+is actually a compile-time macro. See
 Section~\ref{cha:implementation} for more details. For most
-applications, an AMI\_STREAM will have type
-AMI\_stream\_single, which is the TPIE base class for a stream
-backed by a single file (normally on a single disk).
-
-The \myverb{AMI\_STREAM} class has the following public
-member functions: \comment{LA: Change when parallel disks
-   are introduced}
+applications, \myv{AMI\_STREAM} will resolve to the class
+\myv{AMI\_stream\_single}, which is the TPIE base class for
+a stream backed by a single file (normally on a single
+disk).
 
 \comment{LA: Probably put some general discussion of stream types
 (read/write/append) and persistence here. Same comment about substreams and
-{\em current\_item}.}
+{\em current\_item}. DH: changes made.}
 
-\comment{LA: Remove bullets?}
-\begin{itemize}
-\item{Constructors (and Destructor)}\index{AMI_STREAM@{\tt AMI\_STREAM}!constructors|(}
+\subsection{AMI Stream Types}
+\index{AMI_STREAM@{\tt AMI\_STREAM}!stream types|(}
 
-There are four constructor polymorphs.
-
-\begin{verbatim}
-     AMI_STREAM();
-     AMI_STREAM(const char *path_name);
-     AMI_STREAM(const char *path_name, AMI_stream_type st);
-     AMI_STREAM(BTE_STREAM<T> &bs);
-\end{verbatim}
-
-
-If no arguments are given to the constructor, a new stream 
-%of type \myverb{AMI\_READ\_WRITE\_STREAM} 
-is constructed on a file with a randomly generated name. If
-\myverb{path-name} is given and the file does not already
-exist, a new stream is constructed on a newly created file
-with the specified file name. If the file already exists, it
-is checked if it contains an \myverb{AMI\_STREAM}, and if so,
-the new stream is constructed on this file. 
-
-An \myverb{AMI\_STREAM} can have one of four different types
-\myverb{AMI\_READ\_STREAM}, \myverb{AMI\_WRITE\_STREAM},
-\myverb{AMI\_APPEND\_STREAM}, or
-\myverb{AMI\_READ\_WRITE\_STREAM}, which define what
-operations will be permitted on the stream.\comment{LA:
+The stream type of an \myverb{AMI\_STREAM} indicates what
+operations are permitted on the stream.\comment{LA:
    Check that this works ok in the code - also check that
    r\_only is correct. Another problem is that AMI and BTE
    WRITE\_STREAM flags have different semantics - needs to
-   be cleaned up DH: to be confirmed!?} If \myverb{st} is
-not specified, the stream type defaults to
-\myverb{AMI\_READ\_WRITE\_STREAM}. The
-\myverb{AMI\_APPEND\_STREAM} type is like
-\myverb{AMI\_WRITE\_STREAM} type\comment{LA: It this true?
-   DH: seems ok} except that if the stream is constructed on
-a file containing an existing stream, objects written to the
-stream will be appended at the end of the stream.
+   be cleaned up}
+The stream type can be specified via the\myverb{AMI\_STREAM}
+constructor (see below).  
 
-The last constructor, which will not normally be used by a
-TPIE application programmer\comment{LA: Why do we have it
-   then? DH: for completeness}, constructs a stream from an existing
-\myverb{BTE\_STREAM} (see Section~\ref{sec:ref-bte}). The
-new \myverb{AMI\_STREAM} gets the same type as the \myverb{BTE\_STREAM}.
+
+An \myverb{AMI\_STREAM} can have one of four different types
+\begin{itemize}
+    
+    \item \myverb{AMI\_READ\_STREAM}: Input operations on
+    the stream are permitted, but output is not permitted.
+    
+    \item \myverb{AMI\_WRITE\_STREAM}: Output operations are
+    permitted, but input operations are not permitted. 
+    
+    \item \myverb{AMI\_APPEND\_STREAM}: Output is appended
+    to the end of the stream. Input operations are not
+    permitted. This is similar to
+    \myverb{AMI\_WRITE\_STREAM} except that if the stream is
+    constructed on a file containing an existing stream,
+    objects written to the stream will be appended at the
+    end of the stream.\comment{LA: It this true?
+   DH: seems ok}
+
+\item \myverb{AMI\_READ\_WRITE\_STREAM}: Both input and output
+    operations are permitted.
+\end{itemize}
+\index{AMI_STREAM@{\tt AMI\_STREAM}!stream types|)}
+
+\subsection{AMI\_STREAM Constructors}
+\label{member:ami-constructor}
+\index{AMI_STREAM@{\tt AMI\_STREAM}!constructors|(}
+
+\myverb{AMI\_STREAM} constructors perform two basic
+steps:
+\begin{enumerate}
+    \item Create an \myverb{AMI\_STREAM} object whose member
+    functions provide services for manipulating a
+    stream,
+    \item Create a \myv{BTE\_STREAM} object customized to
+    the chosen file access method, and associate it with the
+    \myverb{AMI\_STREAM} object of step~1. At this time the
+    constructor of the \myv{BTE\_STREAM} object opens the
+    file that stores the stream contents.
+\end{enumerate}
+
+\noindent
+There are four constructors available for \myv{AMI\_STREAM}:
+
+\begin{itemize}
+\item
+\begin{verbatim}
+     AMI_STREAM();
+\end{verbatim}
+A new stream of type \myverb{AMI\_READ\_WRITE\_STREAM} is
+constructed on a file with a randomly generated name. (See
+below for an discussion of stream types.)
+
+\item
+\begin{verbatim}
+     AMI_STREAM(const char *path_name);
+\end{verbatim}
+A stream of type \myverb{AMI\_READ\_WRITE\_STREAM} is constructed on the file whose pathname is given.
+If the file does not already exist, a new stream is
+constructed on a newly created file with the specified file
+name. If the file already exists, it
+is checked if it contains an \myverb{AMI\_STREAM}, and if so,
+the new stream is constructed on this file.
+
+\item
+\begin{verbatim}
+     AMI_STREAM(const char *path_name, AMI_stream_type st);
+\end{verbatim}
+A stream of type \noiv{st} is constructed on the file whose
+pathname is given.
+
+\item
+\begin{verbatim}
+     AMI_STREAM(BTE_STREAM<T> &bs);
+\end{verbatim}
+A stream is constructed from an existing
+\myverb{BTE\_STREAM} (see Section~\ref{sec:ref-bte}). This
+constructor will not normally be used by a TPIE application
+programmer\comment{LA: Why do we have it then? DH: for
+   completeness}. The new \myverb{AMI\_STREAM} gets the same
+type as the \myverb{BTE\_STREAM}.
+\end{itemize}
+
 \index{AMI_STREAM@{\tt AMI\_STREAM}!constructors|)}
 
-\item{Substreams}\index{substreams!of AMI streams|(}
+\subsection{Persistence}
+\index{AMI_STREAM@{\tt AMI\_STREAM}!persist}
+\index{persistence}
 
-It is possible to construct an AMI stream that is composed
-of a portion of another AMI stream. A substream $B$ of a
+When a TPIE program exits, any \myv{AMI\_STREAM} objects are
+destroyed, but the underlying files can be either retained
+(i.e. they can persist) or be deleted from the file system.
+The TPIE programmer can select either option (prior to
+invocation of the \myv{AMI\_STREAM} destructor) by way of
+the \myv{AMI\_STREAM} member function \myv{persist} (see
+page~\pageref{member:ami-persist}).
+
+\subsection{Substreams}\index{substreams!of AMI streams|(}
+
+A TPIE substream is an AMI stream that is part of another
+AMI stream. More precisely, a substream $B$ of a
 stream $A$ is defined as a contiguous range of objects from
 the ordered collection of objects that make up the stream
 $A$.  If desired, one can construct substreams of substreams
@@ -313,10 +373,17 @@ of substreams {\em ad infinitum}. Since a substream is a
 stream in its own right, many of the stream member functions
 can be applied to a substream. Exceptions are noted below.
 
-A substream can be created via the pseudo-constructor
-\myverb{new\_substream()}, which is declared as follows:
-(recall that an AMI\_STREAM normally inherits from AMI\_stream\_single.)\comment{LA: Why is it
-called AMI\_stream\_single? Change! DH: reason explained}
+A substream can be created via the pseudo-constructor\footnote{% 
+   The reason we do not use a real constructor is to get
+   around the fact that constructors can not be virtual.
+   Please see Section~\ref{cha:implementation} for more
+   details.} 
+\myverb{new\_substream()}, which has the following
+prototype: (recall that an AMI\_STREAM on a single disk
+inherits from AMI\_stream\_single.)\comment{LA: Why is it
+   called AMI\_stream\_single? Change! DH: reason
+   explained}\comment{LA: Change when parallel disks are
+   introduced}
 \begin{verbatim}
 AMI_err AMI_stream_single<T>::new_substream ( 
                             AMI_stream_type    st,
@@ -335,13 +402,12 @@ allocated and created substream.
 % is discussed in the Implementation chapter of this manual
 % (Section~\ref{cha:implementation}.
 
-{\em The\comment{LA: I don't understand this paragraph} reason we do not use a
-real constructor is to get around the fact that constructors can not be
-virtual. Because \myverb{new\_substream()} is not a constructor, but rather a
-function each particular implementation of which calls an appropriate
-constructor, it can be a pure virtual function in the stream base class,
-which forces it to be defined for all actual stream
-implementations.}
+
+% Because \myverb{new\_substream()} is not a constructor, but rather a
+% function each particular implementation of which calls an appropriate
+% constructor, it can be a pure virtual function in the stream base class,
+% which forces it to be defined for all actual stream
+% implementations.\comment{LA: I don't understand this paragraph}
 
 %This is discussed in more detail in
 %Sections~\ref{sec:ref-bte}
@@ -349,7 +415,12 @@ implementations.}
 %implementation of the AMI and BTE in more detail.
 \index{substreams!of AMI streams|)}
 
-\item{Reading and Writing Streams}
+\subsection{AMI\_STREAM Services}
+\noindent
+The \myverb{AMI\_STREAM} classes offer the following
+standard services: 
+
+\subsubsection{Reading and Writing Streams}
 
 \index{read_item()@{\tt read\_item()}!AMI|(}\index{write_item()@{\tt write\_item()}!AMI|(}
 \begin{verbatim}
@@ -382,7 +453,7 @@ an array.\comment{LA: Why is there a difference in the
       read\_array()}!AMI|)}\index{write_array()@{\tt
       write\_array()}!AMI|)}
 
-\item{Seeking}
+\subsubsection{Positioning a Stream}
 
 \myverb{current\_item} can be explicitly changed with the \myverb{seek} function.
 
@@ -391,19 +462,24 @@ an array.\comment{LA: Why is there a difference in the
     AMI_err seek(off_t offset);
 \end{verbatim}
 
-\item{Truncating}
+\subsubsection{Resizing a Stream}
 
-Apart from by using \myverb{write\_item()} a stream can be extended
-(truncated) using the function \myverb{truncate()}.
+A stream can be resized to a specified number of objects via
+the \myverb{truncate()} member function.
 
 \index{truncate()@{\tt truncate()}!AMI}
 \begin{verbatim}
     AMI_err truncate(off_t offset);
 \end{verbatim}
-The function extends the stream to the specified number of
-objects. \myverb{current\_item} will be moved to the end of the stream.
+If \noiv{offset} is less than the number of objects in the
+stream, \myverb{truncate()} truncates the stream to
+\noiv{offset} objects. If \noiv{offset} is more than the
+number of objects in the stream, \myverb{truncate()} extends
+the stream to the specified number of objects. In either
+case \myverb{current\_item} will be moved to the new end of
+the stream.
 
-\item{Getting main memory usage}
+\subsubsection{Calculating Main Memory Usage}
 
 \index{main_memory_usage()@{\tt main\_memory\_usage()}!AMI}
 \begin{verbatim}
@@ -411,25 +487,25 @@ objects. \myverb{current\_item} will be moved to the end of the stream.
                               MM_stream_usage usage_type);
 \end{verbatim}
 
-This function is used for obtaining the amount of main memory used by a
-stream (in bytes). \myverb{usage\_type} is one of
+This function is used for obtaining the amount of main memory used by an
+\noiv{AMI\_STREAM} object (in bytes). \myverb{usage\_type} is one of
 \myverb{MM\_STREAM\_USAGE\_CURRENT}, \myverb{MM\_STREAM\_USAGE\_MAXIMUM}, and
-\myverb{MM\_STREAM\_USAGE\_SUBSTREAM} which gives the current use, the maximal
-amount that will ever be used, and the additional amount which will be used
+\myverb{MM\_STREAM\_USAGE\_SUBSTREAM} which gives the current use, the maximum
+that will ever be used, and the additional amount which will be used
 by each substream created, respectively.\comment{LA: There seems to be two
 more types defined in mm.base.h - what are they?}
 
-\item{Naming}
+\subsubsection{Unix File Name}
 
 \index{name()@{\tt name()}!AMI}
 \begin{verbatim}
     AMI_err name(char **stream_name);
 \end{verbatim}
 
-Returns the name of the UNIX file storing the stream.  The
+Returns the path to the UNIX file storing the stream.  The
 name will be stored in newly allocated space.
 
-\item{Length}
+\subsubsection{Stream Length}
 
 \index{stream_len()@{\tt stream\_len()}!AMI}
 \begin{verbatim}
@@ -438,8 +514,8 @@ name will be stored in newly allocated space.
 
 Returns the current number of objects in the stream.
 
+\subsubsection{Available Streams}
 \index{available_streams()@{\tt available\_streams()}!AMI}
-\item{Available Streams}
 \begin{verbatim}
     int available_streams(void);    
 \end{verbatim}
@@ -447,10 +523,13 @@ Returns the current number of objects in the stream.
 Typically, there is an operating system limit on the number
 of open files. This translates into a limit on the number of
 TPIE streams. Method \myverb{available\_streams} returns the
-number of streams which can still be constructed.
+number of streams which can still be constructed.\comment{%
+   This should not be a member of an AMI\_STREAM, but
+   instead should be a member of a ``resource
+   manager(RM)''.}
 
-\item{Set persistence}
-
+\subsubsection{Persistence of Streams}
+\label{member:ami-persist}
 \index{persistence!AMI}
 \begin{verbatim}
     void persist(persistence);
@@ -470,7 +549,6 @@ By default, all streams are deleted at destruction time
 (\myverb{PERSIST\_DELETE}).\comment{LA: There seems to be an unused
 PERSIST\_READ\_ONCE flag as well! (from darren's delete-block
 stuff). Remove?!}
-\end{itemize}
 \index{streams!AMI|)}
 
 
@@ -488,13 +566,13 @@ The simplest polymorph of \myverb{AMI\_scan()} is
     AMI_err AMI_scan(ST *smo, AMI_STREAM<T> *outstream);
 \end{verbatim}
 which generates an output stream of objects of type \myverb{T}.
-\myverb{smo} is a pointer to a scan management object of used defined
+\myverb{smo} is a pointer to a scan management object of user-defined
 class \myverb{ST}.  \myverb{ST} should provide member functions {\tt
   AMI\_err initialize(void)} and {\tt AMI\_err operate(T *out1,
   AMI\_SCAN\_FLAG *sf)}.
 
 Scanning can also read and process an input stream of objects of type
-\myverb{T}.  The polymorph that does this looks as follows
+\myverb{T}.  
 \begin{verbatim}
     AMI_err AMI_scan(AMI_STREAM<T> *instream, ST *smo);
 \end{verbatim}
@@ -505,7 +583,7 @@ defined class \myverb{ST}.  \myverb{ST} should provide member functions
 
 \myverb{AMI\_scan()} may also read multiple input streams, each
 potentially of a different type, and write multiple output streams,
-each potentially of a different type.  This is done using the polymorph
+each potentially of a different type.  
 \index{scanning!multi-type}
 \begin{verbatim}
     AMI_err AMI_scan(AMI_STREAM<T1> *instream1, 
@@ -526,69 +604,91 @@ between zero and four inputs and zero and four outputs.
 \subsubsection{Scan Management Objects}  
 \index{operation management objects!scan|(}
 
-A scan management object class must provide two member functions for
-\myverb{AMI\_scan()} to call.\comment{LA: Something about subclass of
-AMI\_scan\_object (also in previous text)?} The first is
-\index{initialize()@{\tt initialize()}}
+A scan management object class must provide two member
+functions for \myverb{AMI\_scan()} to call.\comment{%
+   LA: Something about subclass of AMI\_scan\_object (also
+   in previous text)?} 
+
+\begin{itemize}
+    
+    \item \index{initialize()@{\tt initialize()}}
 \begin{verbatim}
     AMI_err initialize(void);
 \end{verbatim}
-\myverb{initialize()} initializes the object to prepare it for a scan.  This
-member function is called once by each call to \myverb{AMI\_scan()} in order
-to initialize the scan management object before any data processing takes
-place. This function should return \myverb{AMI\_ERROR\_NO\_ERROR} if
-successful, or an appropriate error otherwise. See
-Section~\ref{sec:ami-errors} for a list of error codes.
-
-Most of the work done is a scan is typically done in the scan management
-objects member function
-\index{operate()@{\tt operate()}|(}
+    Initializes a scan management object to prepare
+    it for a scan.  This member function is called once by
+    each call to \myverb{AMI\_scan()} in order to initialize
+    the scan management object before any data processing
+    takes place.  This function should return
+    \myverb{AMI\_ERROR\_NO\_ERROR} if successful, or an
+    appropriate error otherwise. See
+    Section~\ref{sec:ami-errors} for a list of error codes.
+    
+    \item \index{operate()@{\tt operate()}|(}
+    
+    Most of the work of a scan is typically done in the scan
+    management object's \myverb{operate()} member function:
 \begin{verbatim}
     AMI_err operate(const T1 &in1, ...,  AMI_SCAN_FLAG *sfin,
                     U1 *out1, ..., AMI_SCAN_FLAG *sfout);
 \end{verbatim}
+    
+    One or more input objects or one or more output
+    parameters must be specified.  These must correspond in
+    number and type to the streams passed to the polymorph
+    of \myverb{AMI\_scan()} with which this scan management
+    object is to be used.
+    
+    If present, the inputs \noiv{*in1, ...} are application
+    data items of type \noiv{T1}, and \myverb{sfin} points
+    to an array of flags, one for each input.  On entry to
+    \myverb{operate()}, flags that are set (non-zero)
+    indicate that the corresponding inputs contain data.  If
+    on exit from \myverb{operate()}, the input flags are
+    left untouched, \myverb{AMI\_scan()} assumes that the
+    corresponding inputs were processed.  If one or more
+    input flags are cleared (set to zero) then
+    \myverb{AMI\_scan()} assumes that the corresponding
+    inputs were not processed and should be presented again
+    on the next call to \myverb{operate()}.  This permits
+    out of step scanning\index{scanning!out of step}, as
+    illustrated in Section~\ref{sec:out-of-step}.
+    
+    If present, the outputs \noiv{*out1, ...} are
+    application data items of type \noiv{U1}, and
+    \myverb{sfout} points to an array of flags, one for each
+    output. On exit from \myverb{operate()}, the outputs
+    should contain any objects to be written to the output
+    streams, and the output flags must be set to indicate to
+    \myverb{AMI\_scan()} which outputs are valid and should
+    be written to the output streams.
+    
+    The return value of \myverb{operate()} will normally be
+    one of the following:
+    \begin{itemize}
+        \item \myverb{AMI\_SCAN\_CONTINUE}:
+        \index{AMI_SCAN_*@{\tt AMI\_SCAN\_*}} indicates that
+        the function should be called again with any
+        ``taken'' inputs replaced by the next objects from
+        their respective streams
+        \item \myverb{AMI\_SCAN\_DONE}: indicates that the
+        scan is complete and no more input needs to be
+        processed.
+    \end{itemize}
+    
+    Note that \myverb{operate()} is permitted to return
+    \myverb{AMI\_SCAN\_CONTINUE} even when the input flags
+    indicate that there is no more input to be processed.
+    This is useful if the scan management object maintains
+    some internal state that must be written out after all
+    input has been processed.  \comment{%
+       LA: Something about special built-in scan management
+       objects, e.g, ASCII input/output}
 
-Either one or more input objects or one or more output parameters must
-be specified.  These must correspond in number and type to the streams
-passed to the polymorph of \myverb{AMI\_scan()} with which this scan
-management object is to be used.
-
-If there are inputs, \myverb{sfin} points to an array of flags, one for each
-input parameter.  Flags that are set (non-zero) indicate that the
-corresponding input parameters are valid.  If the input flags are left
-untouched, it is assumed that the input parameters were processed.  If one
-or more are cleared (set to zero) then the it is assumed that the
-corresponding inputs were not processed and should be presented again on
-the next call to \myverb{operate()}.  This permits out of step
-scanning\index{scanning!out of step}, as illustrated in
-Section~\ref{sec:out-of-step}.
-
-The output parameters are used to store objects to be written to the output
-streams. The output flags must be set by \myverb{operate()} to indicate which
-outputs are valid and should be written to the output streams. 
-
-The return value of \myverb{operate()} will normally be one
-of the following:
-\begin{itemize}
-    \item \myverb{AMI\_SCAN\_CONTINUE}:
-    \index{AMI_SCAN_*@{\tt AMI\_SCAN\_*}} indicates that the
-    function should be called again with any ``taken'' inputs
-    replaced by the next objects from their respective
-    streams
-    \item \myverb{AMI\_SCAN\_DONE}: indicates that the scan
-    is complete and no more input needs to be processed.
+\index{operate()@{\tt operate()}|)} 
 \end{itemize}
 
-Note that \myverb{operate()} is permitted to return
-\myverb{AMI\_SCAN\_CONTINUE} even when the input flags
-indicate that there is no more input to be processed.  This
-is useful if the scan management object maintains some
-internal state that must be written out after all input has
-been processed.  \index{operate()@{\tt operate()}|)}
-\comment{LA: Something about special built-in scan
-   management objects, e.g, ASCII input/output}
-
-There are examples of scan management objects in
+Examples of the use of scan management objects are given in
 Section~\ref{tut:scanning} as well as in the test applications that
 appear in the TPIE distribution.
 
@@ -602,24 +702,25 @@ appear in the TPIE distribution.
 
 As discussed in Section~\ref{tut:merging}, the amount of
 available main memory limits the number of streams that can
-be merged in a single pass. Subject to the available main memory, 
-TPIE entry point \myverb{AMI\_merge()} allows an arbitrary
-number of streams to be merged in one pass. TPIE will
-attempt to read the first block of each stream into the
-internal memory, and will update the contents of these
-buffers as the merge progresses. At least one block buffer
-is also required for the output stream from the merge.
-\comment{LA: Understandable? DH: rewritten.},
+be merged in a single pass. Subject to the available main
+memory, TPIE entry point \myverb{AMI\_generalized\_merge()}
+allows an arbitrary number of streams to be merged in one
+pass. TPIE will attempt to read the first block of each
+stream into the internal memory, and will update the
+contents of these buffers as the merge progresses. At least
+one block buffer is also required for the output stream from
+the merge.  \comment{LA: Understandable? DH: rewritten.},
 
-\index{AMI_merge()@{\tt AMI\_merge()}}
+\index{AMI_generalized_merge()@{\tt AMI\_generalized\_merge()}}
 \begin{verbatim}
-AMI_err AMI_merge ( AMI_STREAM<T> **instreams, 
+AMI_err AMI_generalized_merge ( AMI_STREAM<T> **instreams, 
                     arity_t arity,
                     AMI_STREAM<T> *outstream, 
                     MergeMgr *m_obj);
 \end{verbatim}
 
-The parameters of \myverb{AMI\_merge()} are as follows:
+\noindent
+where
 \begin{itemize}
     \item \myverb{instreams} is an array of pointers to the
     input streams, all of which are streams of objects of
@@ -644,12 +745,22 @@ substreams small enough to fit in main memory, operate on
 each in main memory, and then merge them together, possibly
 in several passes if low memory conditions dictate. TPIE
 provides the following entry point for this situation:
-\index{AMI_partition_and_merge()@{\tt
-      AMI\_partition\_and\_merge()}}
+\index{AMI_partition_and_generalized_merge()@{\tt AMI\_partition\_and\_generalized\_merge()}}
 \begin{verbatim}
-AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
-                                AMI_STREAM<T> *outstream, MergeMgr *m_obj);
+AMI_err AMI_partition_and_generalized_merge(AMI_STREAM<T> *instream,
+                                AMI_STREAM<T> *outstream, 
+                                MergeMgr *m_obj);
 \end{verbatim}
+\noindent
+where
+\begin{itemize}
+    \item \myverb{*instream} is the
+    input stream, which is a stream of objects of
+    type \myverb{T}.
+    \item \myverb{*outstream} is the output stream.
+    \item \myverb{m\_obj} points to a merge management
+    object which will control the merge.
+\end{itemize}
 This entry point takes care of all the details of determining how much
 main memory is available, how big the initial substreams can be, how
 many streams can be merged at a time, and how many levels of merging
@@ -659,95 +770,138 @@ sorting entry points (see Section~\ref{sec:ref-mrg-sorting}
 \subsubsection{Merge Management Objects}
 \index{operation management objects!merge|(} 
 
-When performing a merge, TPIE relies on the application
-programmer to provide code to determine the order of any two
-application data elements, and selected other
-application-specific processing, as discussed below. By
-convention, TPIE expects these decisions to be made by the
-\myverb{operate} member function of a merge management
-object (the object of class \myverb{MergeMgr} in the two
-merge prototypes listed above). TPIE also provides for an
-\myverb{initialize} member function, which it calls at the
-beginning of the merge.
+\index{operate()@{\tt operate()}|(}
+\index{initialize()@{\tt initialize()}|(}
 
-A merge management object
-must provide \myverb{initialize()} and \myverb{operate()} member
-functions, whose functions are analogous to their namesakes for scan
-management objects.  They should be declared as
-\index{initialize()@{\tt initialize()}}
+A merge management object must provide \myverb{initialize()}
+and \myverb{operate()} member functions, whose purposes are
+analogous to their namesakes for scan management objects.
+
+\begin{itemize}
+    
+    \item \index{initialize()@{\tt initialize()}}
+    The user's \myverb{initialize()} member function is
+    called by TPIE at the beginning of the merge so that
+    application-specific data structures (if any) can be
+    initialized.
 \begin{verbatim}
     AMI_err initialize(arity_t arity, const T * const *in,
                        AMI_merge_flag *taken_flags,
                        int &taken_index);
 \end{verbatim}
-and
-\index{operate()@{\tt operate()}|(}
+ 
+    where
+    \begin{itemize}
+        \item \myverb{arity} is the number of input streams
+        in the merge,
+        \item \myverb{in} is a pointer to an array of
+        pointers to input objects, each of which is the
+        first objects appearing in one of the input streams,    
+        \item \myverb{taken\_flags} an array of flags
+        indicating which of the inputs are present (i.e.
+        which of the input streams is not empty), and a
+        pointer to an output object.
+    \end{itemize}
+    
+    The typical behavior of \myverb{initialize()} is to
+    place all the input objects into a data structure and
+    then return \myverb{AMI\_MERGE\_READ\_MULTIPLE} to
+    indicate that it used (and is now finished with) all of
+    the inputs which were indicated to be valid by
+    \myverb{taken\_flags}.  \myverb{initialize} need not
+    process all inputs; it can turn off any flags in
+    \myverb{taken\_flags} corresponding to inputs that
+    should be presented to \myverb{operate()}.
+    Alternatively, it can set \myverb{taken\_index} to the
+    index of a single input it processed and return
+    \myverb{AMI\_MERGE\_CONTINUE}.
+%\index{AMI_MERGE_*@{\tt AMI\_MERGE\_*}}.
+    \item \index{operate()@{\tt operate()}}
+    When performing a merge, TPIE relies on the application
+    programmer to provide code to determine the order of any
+    two application data elements, and certain other
+    application-specific processing. By convention, TPIE
+    expects these decisions to be made by the
+    \myverb{operate} function:
 \begin{verbatim}
     AMI_err operate(const T * const *in, AMI_merge_flag *taken_flags,
                     int &taken_index, T *out);
 \end{verbatim}
-The arguments to \myverb{initialize()} are \myverb{arity}, the number of
-input streams in the merge, \myverb{in} a pointer to an array of
-pointers to input objects, each of which is the first objects appearing
-in one of the input streams,  \myverb{taken\_flags} an array of flags
-indicating which of the inputs are present (i.e. which of the input
-streams is not empty), and a pointer to an output object.
+    The \myverb{operate()} member function is called
+    repeatedly to process input objects.  Typically,
+    \myverb{operate()} will choose a single input object to
+    process, and set \myverb{taken\_index} to the index of
+    the pointer to that object in the input array.  This
+    object is then typically added to a dynamic data
+    structure maintained by the merge management object.  If
+    output is generated, for example by removing an object
+    from the dynamic data structure, \myverb{operate()}
+    should return \myverb{AMI\_MERGE\_OUTPUT}, otherwise, it
+    returns either \myverb{AMI\_MERGE\_CONTINUE} to indicate
+    that more input should be presented, or
+    \myverb{AMI\_MERGE\_DONE} to indicate that the merge has
+    completed.
+    
+    Alternatively, \myverb{operate()} can clear the elements
+    of \myverb{taken\_flags} that correspond to inputs it
+    does not currently wish to process, and then return
+    \myverb{AMI\_MERGE\_READ\_MULTIPLE}.  This is generally
+    undesirable because, if only one input is taken, it is
+    far slower than using \myverb{taken\_index} to indicate
+    which input was taken.  The merge management object must
+    clear all other flags, and then TPIE must test all the
+    flags to see which inputs were or were not processed.
+\end{itemize}
 
-The typical behavior of an \myverb{initialize()} member function for a
-merge management object is to place all the input objects into a data
-structure and then return \myverb{AMI\_MERGE\_READ\_MULTIPLE} to indicate
-that it took all the inputs which were indicated to be valid by
-\myverb{taken\_flags}.  \myverb{initialize} need not process all inputs; it
-can turn off any flags in \myverb{taken\_flags} corresponding to inputs
-that should be presented to \myverb{operate()}.  Alternatively, it can
-set \myverb{taken\_index} to the index of a single input it processed and
-return \myverb{AMI\_MERGE\_CONTINUE}\index{AMI_MERGE_*@{\tt AMI\_MERGE\_*}}.
-
-The \myverb{operate()} member function for a merge management object is
-called repeatedly to process input objects.  Typically, this member
-function will choose one input object to process, and set
-\myverb{taken\_index} to the index of the pointer to that object in the input
-array.  This object is then typically added to a dynamic data structure
-maintained by the merge management object.  If output is generated, for
-example by removing an object from the dynamic data structure,
-\myverb{operate()} should return \myverb{AMI\_MERGE\_OUTPUT}, otherwise, it
-returns either \myverb{AMI\_MERGE\_CONTINUE} to indicate that more input should
-be presented, or \myverb{AMI\_MERGE\_DONE} to indicate that the merge has
-completed.
-
-Alternatively, \myverb{operate()} can clear the elements of
-\myverb{taken\_flags} that correspond to inputs it does not currently wish to
-process, and then return \myverb{AMI\_MERGE\_READ\_MULTIPLE}.  This is generally
-undesirable because, if only one input is taken, it is far slower than
-using \myverb{taken\_index} to indicate which input was taken.  The merge
-management object must clear all other flags, and then TPIE must test all
-the flags to see which inputs were or were not processed.
 \index{operate()@{\tt operate()}|)}
+\index{initialize()@{\tt initialize()}|)}
 
-Any merge management object that is used with the entry point
-\myverb{AMI\_partition\_and\_merge()} must provide three additional member
-functions. One function is used to operate on substreams of data that are
-small enough to fit into main memory. This member function is
-\index{main_mem_operate()@{\tt main\_mem\_operate()}}
+The \myverb{AMI\_partition\_and\_generalized\_merge()} entry point 
+requires a merge management object to provide three
+additional member functions:
+
+\begin{itemize}
+    \item \index{main_mem_operate()@{\tt main\_mem\_operate()}}
 \begin{verbatim}
     AMI_err main_mem_operate(T* mm_stream, size_t len);
 \end{verbatim}
-where \myverb{mm\_stream} is a pointer to an array of objects that have been read
-into main memory, and \myverb{len} is the number of objects in the array. The two
-other member functions are functions for communicating to TPIE how much
-main memory the merge management object uses. Merge management objects are
-allowed to maintain data structures whose size is linear in the number of
-input streams being processed.
-\index{space_usage_overhead()@{\tt space\_usage\_overhead()}}
-\index{space_usage_per_stream()@{\tt space\_usage\_per\_stream()}}
+\noindent
+where
+    \begin{itemize}
+        \item \myverb{mm\_stream} is a pointer to an array
+        of objects that have been read into main memory,
+        \item \myverb{len} is the number of objects in the
+        array.
+    \end{itemize}
+    
+    This function is called by
+    \myverb{AMI\_partition\_and\_merge()} when a substream of
+    the data is small enough to fit into main memory, and
+    the (application-specific) processing of this subset of
+    the data can therefore be completed in internal memory.
+
+    
+    \item \index{space_usage_per_stream()@{\tt space\_usage\_per\_stream()}}
 \begin{verbatim}
-    size_t space_usage_overhead(void);
     size_t space_usage_per_stream(void);
 \end{verbatim}
-The first function should return an upper bound on the amount of main
-memory\comment{LA: In bytes?} the object will allocate in addition to the
-portion that is linear in the number of streams. The second should return
-the amount of additional main memory needed per input stream.
+    This function should return the amount of main memory
+    that the merge management object will need per per input
+    stream. Merge management objects are allowed to maintain
+    data structures whose size is linear in the number of
+    input streams being processed.
+
+    \item \index{space_usage_overhead()@{\tt space\_usage\_overhead()}}
+\begin{verbatim}
+    size_t space_usage_overhead(void);
+\end{verbatim}
+    This function should return an upper bound on the amount
+    of main memory\comment{LA: In bytes?} the merge
+    management object will
+    allocate in addition to the portion that is linear in
+    the number of streams.
+    
+\end{itemize}
 
 %There are examples of merge management objects in
 %Section~\ref{sec:merging} as well as in the test applications that
@@ -758,17 +912,24 @@ the amount of additional main memory needed per input stream.
 
 
 \subsubsection{AMI merging without Merge Management Objects}
-\plabel{sec:ref-miami-merge}\index{merging!without a merge
-   management object|)}
+\plabel{sec:ref-miami-merge}
+%\index{merging!without a merge management object|(}
 
 \comment{LA: merging without merge management object in index}
 
-\index{AMI_merge()@{\tt AMI\_merge()}|(}
-By using appropriate \myverb{operate()} and \myverb{main\_mem\_operate()}
-functions, \myverb{AMI\_merge()} can be used to conveniently program
-operations other than standard comparison based merging. TPIE also provides
-three other \myverb{AMI\_merge()} polymorphs for the special (normal) case of
-merging (partly for efficiency reasons):
+\index{AMI_merge()@{\tt AMI\_merge()}|(} By using
+appropriate \myverb{operate()} and
+\myverb{main\_mem\_operate()} functions,
+\myverb{AMI\_generalized\_merge()} and
+\myverb{AMI\_partition\_and\_generalized\_merge()} can be
+used to conveniently program operations which require
+generalized merging (such as database and spatial JOIN
+operations, for example).  TPIE also provides several merge
+entry points for the special case of merging sorted streams
+to produce a single, interleaved output stream.  These entry
+points allow this common application to be processed faster
+than would be possible using the generalized merge entry
+points.
 
 \begin{itemize}
     \item
@@ -852,38 +1013,36 @@ main memory is available to perform the merge.
 %
 %
 %The first function, based on \myverb{MIAMI_single_merge_stream()},
-%\begin{verbatim}
-%template<class T>
-%AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
-%                                       AMI_STREAM<T> *outstream)
-%\end{verbatim}
-%provides the exact same functionality as the
-%\myverb{AMI_partition_and_merge()} function except that it requires 
-%the type T to have well defined  \myverb{ < } and \myverb{ > } operators.
-%
+\begin{verbatim}
+template<class T>
+AMI_err AMI_partition_and_merge (AMI_STREAM<T> *instream,
+                                 AMI_STREAM<T> *outstream)
+\end{verbatim}
+provides the same functionality as the
+\myverb{AMI\_partition\_and\_generalized\_merge()} function except that it requires 
+the type T to have well defined  \myverb{ < } and \myverb{ > } operators.
+
 %The second function, based on  \myverb{MIAMI_single_merge_cmp()},
-%\begin{verbatim}
-%template<class T>
-%
-%template<class T>               
-%AMI_err AMI_partition_and_merge_stream_cmp(AMI_STREAM<T> *instream,
-%                                           AMI_STREAM<T> *outstream,
-%                                           int (*cmp)(CONST T&, CONST T&)
-%                                           )
-%\end{verbatim}
-%has the same requirements as the \myverb{MIAMI_single_merge_cmp()} function.
+\begin{verbatim}
+template<class T>               
+AMI_err AMI_partition_and_merge (AMI_STREAM<T> *instream,
+                                 AMI_STREAM<T> *outstream,
+                                 int (*cmp)(CONST T&, CONST T&)
+                                  )
+\end{verbatim}
+has the same requirements as the \myverb{AMI\_merge\_cmp()} function.
 %
 %The third function,   based on  \myverb{MIAMI_single_merge_Key()},
-%\begin{verbatim}
-%template<class T, class KEY>
-%AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
-%                                   AMI_STREAM<T> *outstream, 
-%                                              int keyoffset, 
-%                                               KEY dummykey)
-%\end{verbatim}
-%provides similar functionality as \myverb{AMI_partition_and_merge()}
-%except that it is  uses KEY and {\tt keyoffset}
-%information while merging and sorting, as indicated above.
+\begin{verbatim}
+template<class T, class KEY>
+AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
+                                   AMI_STREAM<T> *outstream, 
+                                              int keyoffset, 
+                                               KEY dummykey)
+\end{verbatim}
+provides similar functionality as \myverb{AMI\_partition\_and\_merge()}
+except that it is  uses KEY and {\tt keyoffset}
+information while merging and sorting, as indicated above.
 %
 
 
@@ -983,14 +1142,15 @@ comparison object version, but typically it is measureably slower.
 Please refer to Section~\ref{tut:mrg-sorting} for examples
 of the use of these versions of \myverb{AMI\_sort()}.
 
-\noindent{\bf Comparison operator version:} This version works on streams of
-objects for which the operator \myverb{<} is defined. It has
-the following prototype:
+\noindent{\bf Comparison operator version:}  This version works on streams of
+objects for which the operator \myverb{<} is defined.  It
+has the following prototype:
 
 \begin{verbatim}
     AMI_err AMI_sort ( AMI_STREAM<T> *instream, 
                        AMI_STREAM<T> *outstream );
 \end{verbatim}
+
 
 \noindent{\bf Comparison function version:}
 This version uses an explicit function to determine the
@@ -1009,12 +1169,11 @@ prototype:
 \noindent{\bf Comparison class version:} 
 This version of \myverb{AMI\_sort()} is similar to the
 comparison function version, except that the comparison
-function is now a method of a user-defined comparison class. This polymorph of \myverb{AMI\_sort} expects an object
-as its third argument. This object must have a public member
-function named \myverb{compare}, whose calling sequence and
-functionality is the same as for a comparison function (as
-described above). It has the following
-prototype:
+function is now a method of a user-defined comparison
+object. This object must have a public member function named
+\myverb{compare}, whose calling sequence and functionality
+is the same as for a comparison function (as described
+above). It has the following prototype:
 
 \begin{verbatim}
     AMI_err AMI_sort ( AMI_STREAM<T> *instream, 
@@ -1027,12 +1186,11 @@ prototype:
 The \myverb{AMI\_ptr\_sort} variant of merge sort in TPIE
 keeps only a pointer to each record in the heap used to
 perform merging of runs. Similar to \myverb{AMI\_sort}
-above, it offers comparison
-operator, comparison function, and comparison class
-polymorphs. The syntax is identical to that illustrated in
-the \myverb{AMI\_sort} examples; simply replace
-\myverb{AMI\_sort} by \myverb{AMI\_ptr\_sort}. The three
-prototypes are as follows:
+above, it offers comparison operator, comparison function,
+and comparison class polymorphs. The syntax is identical to
+that illustrated in the \myverb{AMI\_sort} examples; simply
+replace \myverb{AMI\_sort} by \myverb{AMI\_ptr\_sort}. The
+three prototypes are as follows:
 
 \begin{verbatim}
     AMI_err AMI_ptr_sort ( AMI_STREAM<T> *instream, 
