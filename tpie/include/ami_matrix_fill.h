@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/12/94
 //
-// $Id: ami_matrix_fill.h,v 1.1 1995-01-10 16:51:18 darrenv Exp $
+// $Id: ami_matrix_fill.h,v 1.2 1995-04-03 13:10:01 dev Exp $
 //
 #ifndef _AMI_MATRIX_FILL_H
 #define _AMI_MATRIX_FILL_H
@@ -60,7 +60,7 @@ AMI_err AMI_matrix_fill(AMI_matrix<T> *pem, AMI_matrix_filler<T> *pemf)
     
     AMI_matrix_fill_scan<T> emfs(pemf, pem->rows(), pem->cols());
     
-    return AMI_scan(&emfs, (AMI_base_stream<T> *)pem);
+    return AMI_scan(&emfs, (AMI_STREAM<T> *)pem);
 };
 
 #ifdef NO_IMPLICIT_TEMPLATES
@@ -71,7 +71,7 @@ template class AMI_matrix_fill_scan<T>;					\
 template AMI_err AMI_matrix_fill(AMI_matrix<T> *em,			\
                              AMI_matrix_filler<T> *pemf);		\
 template AMI_err AMI_scan(AMI_matrix_fill_scan<T> *,			\
-                          AMI_base_stream<T> *);
+                          AMI_STREAM<T> *);
 
 #endif
 
