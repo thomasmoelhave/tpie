@@ -2,7 +2,7 @@
 // File: bte_stream_ufs.h (formerly bte_ufs.h)
 // Author: Rakesh Barve <rbarve@cs.duke.edu>
 //
-// $Id: bte_stream_ufs.h,v 1.2 2002-01-14 16:24:47 tavi Exp $
+// $Id: bte_stream_ufs.h,v 1.3 2002-01-17 02:15:52 tavi Exp $
 //
 // BTE streams with blocks I/Oed using read()/write().  This particular
 // implementation explicitly manages blocks, and only ever maps in one
@@ -24,8 +24,8 @@
 #ifndef _BTE_STREAM_UFS_H
 #define _BTE_STREAM_UFS_H
 
-// For header type.
-#define BTE_STREAM_UFS 1
+// For header's type field (85 == 'U').
+#define BTE_STREAM_UFS 85
 
 //the code for double buffering is not here..
 #define UFS_DOUBLE_BUFFER 0
