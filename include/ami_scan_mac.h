@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/24/94
 //
-// $Id: ami_scan_mac.h,v 1.6 1995-03-22 16:23:12 dev Exp $
+// $Id: ami_scan_mac.h,v 1.7 1997-05-22 22:31:44 large Exp $
 //
 #ifndef _AMI_SCAN_MAC_H
 #define _AMI_SCAN_MAC_H
@@ -161,8 +161,6 @@ AMI_err AMI_scan( __SPARM_ ## in_arity (T,_ts_),			    \
     AMI_err _op_err_, _ami_err_;					    \
 	    								    \
     __REWIND_ ## in_arity (_ts_);					    \
-    __REWIND_ ## out_arity (_us_);					    \
-	    								    \
     soper->initialize();						    \
                                                                             \
     __SET_IF_ ## in_arity (_if_);					    \
@@ -199,9 +197,6 @@ AMI_err AMI_scan( SC *soper, __SPARM_ ## out_arity (U,_us_))		    \
     __FSPACE(_of_,out_arity);						    \
 	    								    \
     AMI_err _op_err_, _ami_err_;					    \
-	    								    \
-    __REWIND_ ## out_arity (_us_);					    \
-	    								    \
     soper->initialize();						    \
 	    								    \
     do {	    							    \
