@@ -10,20 +10,17 @@
 // *  used in several of TPIE's sorting variants                            *
 // *                                                                        *
 // **************************************************************************
-// 	$Id: apm_dh.h,v 1.8 2001-12-10 22:04:46 tavi Exp $	
+// 	$Id: apm_dh.h,v 1.9 2002-01-03 07:06:22 tavi Exp $	
 
 #include <math.h>		// For log(), etc  to compute tree heights.
 #include <sys/time.h>
 #include <assert.h>
 #include <fstream.h>
 
-#include <ami.h>
+#include <ami_stream.h>
 #include <ami_ptr.h>
 #include <mergeheap_dh.h>	   //For templated heaps
 #include <quicksort.h>		//For templated qsort_items
-#include <ami_base.h>		// Get the base class, enums, etc...
-#include <ami_device.h>		// Get the device description class
-#include <ami_imps.h>		// Get an implementation definition
 
 typedef int          AMI_merge_flag;
 typedef unsigned int arity_t;

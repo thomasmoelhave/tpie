@@ -1,8 +1,9 @@
 //
-// File: optimized_ami_merge.h Author: Rakesh Barve 
-
+// File: ami_optimized_merge.h 
+// Author: Rakesh Barve  <rbarve@cs.duke.edu>
+//
 //cleaned up: laura (tried to..) TO DO: the 3 polymorphs of
-//AMI_partition-and_merge() have each 1100 lines of code and are
+//AMI_partition_and_merge() have each 1100 lines of code and are
 //almost identical; similarly, the 3 polymorphs of AMI_single_merge()
 //differ in one line..
 //
@@ -20,7 +21,7 @@
 // keys of the items; there is a provision to to use templated heaps
 // to implement the merge.
 
-// $Id: ami_optimized_merge.h,v 1.47 2001-06-16 21:19:11 hutchins Exp $	
+// $Id: ami_optimized_merge.h,v 1.48 2002-01-03 07:03:12 tavi Exp $
 
 // TO DO: substream_count setting; don't depend on current_stream_len
 
@@ -29,21 +30,18 @@
 //part of TPIE distribution. Once it becomes partof TPIE distribution
 //the BTE_IMP_USER_DEFINED flag will begin to be used.
 
-#ifndef _OPT_AMI_MERGE_H
-#define _OPT_AMI_MERGE_H
+#ifndef _AMI_OPTIMIZED_MERGE_H
+#define _AMI_OPTIMIZED_MERGE_H
 
 #include <math.h>		// For log() and such as needed to compute tree heights.
 #include <sys/time.h>
 #include <assert.h>
 #include <fstream.h>
 
-#include <ami.h>
+#include <ami_stream.h>
 #include <ami_ptr.h>
 #include <mergeheap.h>		//For templated heaps
 #include <quicksort.h>		//For templated qsort_items
-#include <ami_base.h>		// Get the base class, enums, etc...
-#include <ami_device.h>		// Get the device description class
-#include <ami_imps.h>		// Get an implementation definition
 
 typedef int AMI_merge_flag;
 typedef unsigned int arity_t;
@@ -150,7 +148,6 @@ AMI_replacement_selection_and_merge_Key (AMI_STREAM < T > *instream,
 					 int keyoffset, KEY dummykey);
 
 static inline void
-
 stream_name_generator (char *prepre, char *pre, int id, char *dest);
 //------------------------------------------------------------
 
@@ -4373,4 +4370,4 @@ Run_Formation_Algo_R_Key (AMI_STREAM < T > *instream,
 
 }
 
-#endif
+#endif // _AMI_OPTIMIZED_MERGE_H
