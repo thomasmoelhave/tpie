@@ -1,5 +1,5 @@
 %%
-%% $Id: ami_reference.tex,v 1.1 1999-03-04 00:32:06 tavi Exp $
+%% $Id: ami_reference.tex,v 1.2 1999-06-12 15:45:42 rbarve Exp $
 %%
 \chapter{AMI Programmers' Reference}
 
@@ -24,8 +24,39 @@ architecture by using an appropriate BTE\index{block transfer engine}
 (see Section~\ref{sec:ref-bte}) and MM 
 (see Section~\ref{sec:ref-mm}).
 
+The \verb|AMI_STREAM| class,
+templated on the type T of its items,  consists of the following
+public member functions: % defined in the file ``ami\_single.h'';
+%some important related enumerated types that the user will be
+% concerned with have been defined in ``ami\_base.h''.
 
-\subsection{Substreams}
+\begin{itemize}
+\item{Constructors and Destructor} An \verb|AMI_STREAM<T>| can be constructed 
+with a filename argument
+to the constructor, or with the filename and streamtype
+arguments to the constructor, or  without any
+arguments given to the constructor (in which case a randomly generated
+filename and the default streamtype is used)
+with the usual semantics. The corresponding constructors 
+are:
+\begin{verbatim}
+     AMI_STREAM(const char *dev_path, const AMI_stream_type st); 
+     AMI_STREAM(const AMI_stream_type st); 
+     AMI_STREAM();
+     AMI_STREAM(const BTE_STREAM<T> &s);
+\end{verbatim}
+The last constructor constructs an \verb|AMI_STREAM| from an exisiting
+\verb| BTE_STREAM|.
+%Here,
+%\emph{filename} specifies the name of the Unix file ``backing'' the
+%AMI\_STREAM and is also the name of the AMI\_STREAM itself. The
+%\emph{streamtype} specifies whether the AMI\_STREAM is to be a 
+%read-only or read-write or append-only or write stream (See the header file
+%``ami\_base.h'' for semantics.) The default  \emph{streamtype} is read-write. 
+%The Unix file backing the AMI\_STREAM is opened by the constructor.
+
+
+\item{Substreams}
 
 It is possible to construct one AMI stream that is actually a
 substream of another.  In fact, if one so desires, one can construct
@@ -56,6 +87,91 @@ pure virtual function in the stream base class, which forces it to be
 defined for all actual stream implementations.  This is discussed in
 more detail in Sections~\ref{sec:ref-ami} and~\ref{sec:ref-bte}, which
 discuss the implementation of the AMI and BTE in more detail.
+
+\item{Reading and Writing} \verb|AMI\_STREAM|s have a notion of \emph{current
+item} in the stream of items. The \verb|read_item(T **elt)| function
+returns with *elt pointing to the current item of the \verb|AMI_STREAM<T>|
+and the  \verb|write_item(T elt)| function 
+returns after setting the current item of \verb|AMI_STREAM<T>| to the value 
+elt. 
+
+\begin{verbatim}
+    AMI_err read_item(T **elt);
+    AMI_err write_item(const T &elt);
+\end{verbatim}
+
+Since it was deemed useful to read or write many items at a time
+from or to an AMI\_STREAM, TPIE provides the 
+\verb|read_array(T *mm_space, off_t *len)| and the 
+\verb|write_array(const T *mm_space, off_t len)| to read
+(resp. write) *len (resp. len) items into (resp. from) 
+array \verb|mm_space| of items of type T from (resp. into) the
+current locations of the \verb|AMI_STREAM<T>|.
+
+
+\item{seek}
+In order to seek within a stream, the user can:
+\begin{verbatim}
+    AMI_err seek(off_t offset);
+\end{verbatim}
+Seeks to the item offset in the stream.
+
+
+\subsubsection{truncate}
+\begin{verbatim}
+    AMI_err truncate(off_t offset);
+\end{verbatim}
+Truncate/extend the stream to the specified number of items. The file
+pointer will be moved to the end of the stream.
+
+
+\subsubsection{Get main\_memory\_usage}
+In order to obtain the total number of bytes taken up by a stream, the user can
+query using:
+\begin{verbatim}
+    AMI_err main_memory_usage(size_t *usage,
+                              MM_stream_usage usage_type);
+\end{verbatim}
+
+
+\item{Name and Length}
+\verb|AMI\_STREAM<T>| member functions \verb|name()| and \verb|stream_len()|
+can be used by the user to get the name and length of the
+\verb|AMI_STREAM<T>|.
+\begin{verbatim}
+    AMI_err name(char **stream_name);
+\end{verbatim}
+Returns the path name of the file backing the stream. The name will be
+stored in newly allocated space.
+\begin{verbatim}
+    off_t stream_len(void);
+\end{verbatim}
+Returns the current number of items in the stream.
+
+
+
+\item{Available Streams}
+\begin{verbatim}
+    int available_streams(void);    
+\end{verbatim}
+Returns the number of currently available streams.
+
+\item{Set persistence}
+\begin{verbatim}
+    void persist(persistence);
+\end{verbatim}
+Sets the persistence of the stream to one of the following:
+\begin{itemize}
+\item \verb|PERSIST_DELETE:| Delete the stream from the disk when it is
+  destructed.
+\item \verb|PERSIST_PERSISTENT:| Do not delete the stream from the disk when
+  it is destructed.
+\item \verb|PERSIST_READ_ONCE:| Delete each block of data from the disk as
+  it is read.
+\end{itemize}
+
+By default, all streams are deleted at destruction time
+(\verb|PERSIST_DELETE|).  
 
 \section{AMI Errors}
 \label{sec:ami-errors}
@@ -385,17 +501,48 @@ appear in the TPIE distribution.
 
 \subsubsection{AMI merging without Merge Management Objects}
 \label{sec:ref-miami-merge}
-Sometimes it may be undesirable to have to use merge management
-objects during external sorting or external merging. One avenue
-we provide the programmer is to then use the entry point below.
-Using the approach below is often more efficient, albeit it can
-be less flexible, than using merge management objects and the 
-\verb|AMI_single_merge()| function above.
+By using appropriate \verb|operate()| and \verb|main_mem_operate()| functions, 
+merge management objects allow can be used to conveniently program
+operations other than standard comparison based merging used while 
+sorting that have a merging like flavor. Sometimes, for the purpose of
+the standard external merging operation, it may be preferable to forego
+the generality provided by merge management objects and use routines
+specifically geared towards standard external merging operations, 
+in the interest of potential increased efficiency. The programmer can
+use the entry points below in such situations.
 
-The entry point assumes that the items of type T in the streams being
-merged include a field KEY with well-defined (possibly by means of
-overloading)  \verb| < | and \verb| > | operators at compile time; and
-furthermore that the ordering of the T type items is to based on the
+The first entry point
+\begin{verbatim}
+
+ AMI_err MIAMI_single_merge(AMI_STREAM<T> **instreams, 
+                            arity_t arity, 
+                            AMI_STREAM<T> *outstream)
+
+\end{verbatim}
+provides functionality identical to the \verb|AMI_single_merge()|
+routine presented above, except that this routine assumes that the
+items of class T have well-defined \verb| < |, \verb| > |, etc. operators 
+that are to be used to order the merge. In contrast, the second
+entry point 
+\begin{verbatim}
+
+ AMI_err MIAMI_single_merge_cmp(AMI_STREAM<T> **instreams, 
+                                arity_t arity, 
+                                AMI_STREAM<T> *outstream,  
+                                int (*cmp)(CONST T&, CONST T&))
+
+\end{verbatim}
+which provides identical functionality requires a well-defined 
+comparison function \verb| cmp()| that takes two items of type T
+and returns a negative, zero or positive number depending on whether
+or not the first item is less than, equal to or greater than the second
+item in the desired merging order. 
+
+The third entry point is more interesting and 
+assumes that the items of type T in the streams being
+merged include a member field, KEY, with well-defined (possibly by means of
+overloading)  \verb| < | and \verb| > | operators at compile time, and
+furthermore, that the ordering of the T type items is to based on the
 total order of their KEY fields. If these assumptions hold, the
 programmer can use the function,
 
@@ -410,38 +557,29 @@ AMI_err MIAMI_single_merge_Key(AMI_STREAM<T> **instreams,
 
 to merge {\tt arity} streams of type T. Here, {\tt keyoffset} is the
 offset with respect to the start of an item of type T of the field KEY
-within T. The motivation behind providing such a function is to 
-exploit the fact that the KEY field is often much smaller than the
+within T. The motivation for such a function is to 
+exploit situations in which the KEY field is often much smaller than the
 T type item: For instance, if T is a rectangle, each item may be of 
-size approximately 40 bytes or so, whereas if one is interested in
-sorting along the X co-ordinate, the KEY may be of size 8 bytes.
-If such information is known to the programmer, itcan be leveraged to 
-sometimes significantly improve the internal memory performance of 
-merging and sorting by using some very simple techniques. The return
-values of the above function are  similar to those of
+size approximately 40 bytes, whereas if one is interested in
+sorting along the X co-ordinate, the KEY may be of size 4 or 8 bytes.
+If such information is known to the programmer, the above entry point 
+can exploit it by using appropriately-suited simple internal memory merging 
+techniques: Often, the small size of the KEY field can improve the running
+time of the operation.
+
+The return
+values of the above three functions are  similar to those of
 \verb|AMI_single_merge()|. 
 
-If the operators \verb| < | and \verb| > |  are defined for type T,
-then sometimes it makes sense to use \verb|MIAMI_single_merge_Key()|
-with {\tt keyoffset} set to 0 and KEY ``set to'' type T, 
-in order to carry out the merge
-because of the difference in merging implementation from
-\verb|AMI_single_merge()|. Note that the {\tt dummykey} argument
-to \verb|MIAMI_single_merge_Key()| is simply any item of type 
-KEY; it is not used in the implementation.
-
-We also provide analogues of \verb|AMI_partition_and_merge()|
-that do not require merge management objects and 
-that utilize  \verb|MIAMI_single_merge_Key()| the way 
-\verb|AMI_partition_and_merge()| uses \verb|AMI_single_merge()|.
-The functions below are  smarter than
-\verb|AMI_partition_and_merge()|  in the way  they manage
-intermediate streams required during sorting: The functions below are
-designed with the guarantee that any stream used during the sort is 
-always accessed sequentially; which results in performance improvements.
+We also provide three entry points analogous to the \verb|AMI_partition_and_merge()|
+function that do not require merge management objects and 
+that use the  \verb|MIAMI_single_merge_*()| routines the way 
+\verb|AMI_partition_and_merge()| uses the \verb|AMI_single_merge()|: Each
+analogue entry point corresponds to one of the above three  
+\verb|MIAMI_single_merge_*()| entry points. 
 
 
-The function
+The first function, based on \verb|MIAMI_single_merge_stream()|,
 \begin{verbatim}
 template<class T>
 AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
@@ -450,11 +588,20 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
 provides the exact same functionality as the
 \verb|AMI_partition_and_merge()| function except that it requires 
 the type T to have well defined  \verb| < | and \verb| > | operators.
-(This function uses \verb|MIAMI_single_merge_Key()| with 
- {\tt keyoffset} set to 0 and KEY ``set to'' type T as described
-above.)
 
-The function 
+The second function, based on  \verb|MIAMI_single_merge_cmp()|,
+\begin{verbatim}
+template<class T>
+
+template<class T>               
+AMI_err AMI_partition_and_merge_stream_cmp(AMI_STREAM<T> *instream,
+                                           AMI_STREAM<T> *outstream,
+                                           int (*cmp)(CONST T&, CONST T&)
+                                           )
+\end{verbatim}
+has the same requirements as the \verb|MIAMI_single_merge_cmp()| function.
+
+The third function,   based on  \verb|MIAMI_single_merge_Key()|,
 \begin{verbatim}
 template<class T, class KEY>
 AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
@@ -463,30 +610,30 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
                                                KEY dummykey)
 \end{verbatim}
 provides similar functionality as \verb|AMI_partition_and_merge()|
-except that it is somewhat smarter in the way it manages intermediate
-streams required during sorting, and uses KEY and {\tt keyoffset}
-information to improve internal memory performance. 
+except that it is  uses KEY and {\tt keyoffset}
+information while merging and sorting, as indicated above.
 
-The function
-\begin{verbatim}
-template<class T, class KEY>
-AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
-                                               AMI_STREAM<T> *outstream, 
-                                               int keyoffset,
-                                               KEY dummykey)
-\end{verbatim}
-is the same as \verb|AMI_partition_and_merge_Key()| above, except that
-it uses a fundamentally different run formation algorithm. The 
-\verb|AMI_replacement_selection_and_merge_Key()| function uses
-the replacement selection (Algorithm R in Knuth's Vol 3, Section 5.4.1)
-technique to form runs. This technique is known to produce runs that
-are twice as long and half as many as the ordinary run formation
-technique used in  \verb|AMI_partition_and_merge_Key()| on average,
-and so has the potential of reducing the number of merge passes.
-But the internal memory performance of replacement selection may
-be a little worse than the internal memory performance of the ordinary
-run formation technique; so what is eventually better could very well
-depend on various parameters.
+
+%The function
+%\begin{verbatim}
+%template<class T, class KEY>
+%AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
+%                                               AMI_STREAM<T> *outstream, 
+%                                               int keyoffset,
+%                                               KEY dummykey)
+%\end{verbatim}
+%is the same as \verb|AMI_partition_and_merge_Key()| above, except that
+%it uses a fundamentally different run formation algorithm. The 
+%\verb|AMI_replacement_selection_and_merge_Key()| function uses
+%the replacement selection (Algorithm R in Knuth's Vol 3, Section 5.4.1)
+%technique to form runs. This technique is known to produce runs that
+%are twice as long and half as many as the ordinary run formation
+%technique used in  \verb|AMI_partition_and_merge_Key()| on average,
+%and so has the potential of reducing the number of merge passes.
+%But the internal memory performance of replacement selection may
+%be a little worse than the internal memory performance of the ordinary
+%run formation technique; so what is eventually better could very well
+%depend on various parameters.
 
 
 
@@ -495,10 +642,14 @@ depend on various parameters.
 
 \index{sorting!comparison|(}
 
+\subsubsection{External Sorting based on \verb|AMI_partition_and_merge()|}
+
 In order to provide maximum flaxibility to programmers, comparison
 sorting a set of objects in a stream can be done in three different
 ways.  The particular choice of method will depend on the exact
-context in which the sort is being performed.
+context in which the sort is being performed. The three \verb|AMI_sort()| 
+polymorphs mentioned below are implemented using the  \verb|AMI_partition_and_merge()| 
+function and merge management objects.
 
 All three polymorhps of \verb|AMI_sort()| take an argument
 \verb|instream|, which is a pointer to the input stream, and
@@ -549,20 +700,13 @@ illustrates the use of multiple comparison functions to sort streams
 of objects in different ways.
 
 
-\subsubsection{Alternative external mergesort implementations available}
-
-The \verb|AMI_partition_and_merge_Key()|,
-\verb|AMI_partition_and_merge()|, and\\
-\verb|AMI_replacement_selection_and_merge_Key()| 
-functions defined in Section~\ref{sec:ref-miami-merge} above 
-can also be used as entry points for comparison based 
-sorting. As mentioned in Section~\ref{sec:ref-miami-merge},
-these functions are programmed to have somewhat more efficient
-stream access patterns and are capable of exploiting information
-regarding keys to improve performance; albeit the user has 
-to specify a key field (having well-defined \verb|<| and \verb|>|
-operators at compile time) and an offset to that key field from
-the start of the item beings sorted.
+\subsubsection{External Sorting based on \verb|MIAMI_single_merge_*()|}
+In situations wherein merge management objects are sought to be avoided 
+(see Section~\ref{sec:ref-ami-merge}), the programmer may use the 
+\verb|AMI_partition_and_merge_stream()|, \verb|AMI_partition_and_merge_Key()|,
+and the \verb|AMI_partition_and_merge_stream_cmp()| routines (with the appropriate
+pre-conditions mentioned in Section~\ref{sec:ref-ami-merge} met,) to 
+do external sorting.
 
 \index{sorting!comparison|)}
 
