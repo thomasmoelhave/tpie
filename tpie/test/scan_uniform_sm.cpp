@@ -11,7 +11,7 @@
 
 // Define it all.
 #include <ami.h>
-VERSION(scan_uniform_sm_cpp,"$Id: scan_uniform_sm.cpp,v 1.4 2000-01-11 02:12:01 hutchins Exp $");
+VERSION(scan_uniform_sm_cpp,"$Id: scan_uniform_sm.cpp,v 1.5 2003-09-12 02:29:04 tavi Exp $");
 
 #include "scan_uniform_sm.h"
 
@@ -23,7 +23,7 @@ scan_uniform_sm::scan_uniform_sm(unsigned int rows, unsigned int cols,
     LOG_APP_DEBUG(seed);
     LOG_APP_DEBUG('\n');
 
-    srandom(seed);
+    TPIE_OS_SRANDOM(seed);
 }
 
 scan_uniform_sm::~scan_uniform_sm(void)
@@ -39,7 +39,7 @@ AMI_err scan_uniform_sm::initialize(void)
 
 AMI_err scan_uniform_sm::operate(AMI_sm_elem<double> *out, AMI_SCAN_FLAG *sf)
 {
-    double dr = double(random() & 0xFFF) / double(0x1000);
+    double dr = double(TPIE_OS_RANDOM() & 0xFFF) / double(0x1000);
 
     if ((*sf = (dr < d))) {
         out->er = r;
