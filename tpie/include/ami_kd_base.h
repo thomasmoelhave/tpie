@@ -9,7 +9,7 @@
 // AMI_kdbtree_status, AMI_kdbtree_params, 
 // region_t, kdb_item_t, path_stack_item_t.
 //
-// $Id: ami_kd_base.h,v 1.2 2003-06-03 23:16:32 tavi Exp $
+// $Id: ami_kd_base.h,v 1.3 2003-06-06 23:09:25 tavi Exp $
 //
 
 #ifndef _AMI_KD_BASE_H
@@ -88,6 +88,7 @@ enum AMI_kdtree_status {
 };
 
 // Node type type.
+/*
 enum link_type_t {
   BLOCK_NODE = 0,
   BLOCK_LEAF,
@@ -95,6 +96,12 @@ enum link_type_t {
 
   GRID_INDEX
 };
+*/
+typedef unsigned short int link_type_t;
+#define BLOCK_NODE 0u
+#define BLOCK_LEAF 1u
+#define BIN_NODE   2u
+#define GRID_INDEX 3u
 
 
 // AMI_kdtree run-time parameters.
@@ -357,9 +364,12 @@ protected:
   //  pair<coord_t, bool> hi_[dim];
   coord_t lo_[dim];
   coord_t hi_[dim];
-  unsigned char bd_[dim]; // Contains the bounded bits: least significant bit is for low
-	    // boundary, and second least significant bit is for upper
-	    // boundary.
+
+  // Contains the bounded bits: least significant bit is for low
+  // boundary, and second least significant bit is for upper
+  // boundary.
+  unsigned char bd_[dim]; 
+
 #define LO_BD_MASK ((unsigned char) 1)
 #define HI_BD_MASK ((unsigned char) 2)
 
@@ -474,7 +484,7 @@ public:
   }
 #undef LO_BD_MASK
 #undef HI_BD_MASK
-};
+} __attribute__((packed));
 
 template<class coord_t, size_t dim>
 class kdb_item_t {
@@ -482,12 +492,12 @@ public:
   // For this purpose, every interval in region is considered open on
   // the left and closed on the right.
   region_t<coord_t, dim> region;
-  AMI_bid bid;
   link_type_t type;
+  AMI_bid bid;
   kdb_item_t(const region_t<coord_t, dim>& r, AMI_bid b, link_type_t t): 
     region(r), bid(b), type(t) {}
   kdb_item_t() {}
-};
+} __attribute__((packed));
 
 template<class coord_t, size_t dim>
 std::ostream &operator<<(std::ostream& s, const kdb_item_t<coord_t, dim>& ki) {
