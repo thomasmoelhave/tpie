@@ -1,5 +1,27 @@
 THIS IS THE TPIE CHANGE LOG
 
+New release :     062702
+Previos release:  0.9.01b
+Changes:
+
+      * New random access BTE and AMI tools: AMI_block, AMI_collection,
+        AMI_btree. 
+
+      * Manual updated to reflect the new random access part.
+
+      * Various bugfixes in the mmap stream BTE, sorting, etc.
+
+      * new naming convention makes it clear which files implement the
+        streaming functionality and which the random access functionality:
+        bte_stream_* refer to streams and bte_coll_* refer to random access
+        collections.
+
+      * performance improvements in ufs stream BTE.
+
+      * improved test_ami_sort.cpp
+
+      * new statistics handling.
+
 New release :     0.9.01b
 Previous Release: 0.9.01a
 Changes:
