@@ -15,7 +15,7 @@
 
 // Define it all.
 #include <ami.h>
-VERSION(lr_cpp,"$Id: lr.cpp,v 1.20 2003-04-20 23:51:40 tavi Exp $");
+VERSION(lr_cpp,"$Id: lr.cpp,v 1.21 2003-06-03 16:56:31 tavi Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -50,7 +50,9 @@ int main_mem_list_rank(edge *edges, size_t count)
     unsigned int head_index, tail_index;
     unsigned long int head_node, tail_node;
     long int total_weight;
-    
+    edgefromcmp from_cmp;
+    edgetocmp to_cmp;
+
     // Copy the array.
     edges_copy = new edge[count];
     for (ii = count; ii--; ) {
@@ -58,10 +60,10 @@ int main_mem_list_rank(edge *edges, size_t count)
     }
     
     // Sort the original set by the from fields.
-    quick_sort_cmp(edges, count, edgefromcmp); 
+    quick_sort_obj(edges, count, &from_cmp); 
     
     // Sort the copy by to.
-    quick_sort_cmp(edges_copy, count, edgetocmp); 
+    quick_sort_obj(edges_copy, count, &to_cmp); 
 
     // Find the head of this list, which is the unique node number
     // that appears in the list sorted by from but not by to.  At the
@@ -153,7 +155,7 @@ int main_mem_list_rank(edge *edges, size_t count)
 
     // Sort the copy back by source edge.
     
-    quick_sort_cmp(edges_copy, count, edgefromcmp); 
+    quick_sort_obj(edges_copy, count, &from_cmp); 
 
     // Traverse the reduced copy by taking count - 1 steps, starting
     // from the index of the head.  We use jj to keep track of the
@@ -500,6 +502,8 @@ int list_rank(AMI_STREAM<edge> *istream, AMI_STREAM<edge> *ostream,
     separate_active_from_cancel my_separate_active_from_cancel;
     strip_cancel_from_active my_strip_cancel_from_active;
     patch_active_cancel my_patch_active_cancel;
+    edgefromcmp from_cmp;
+    edgetocmp to_cmp;
     
     // Check if the recursion has bottomed out.  If so, then read in the
     // array and rank it.
@@ -545,7 +549,7 @@ int list_rank(AMI_STREAM<edge> *istream, AMI_STREAM<edge> *ostream,
 
     edges_from_s = new AMI_STREAM<edge>;
 
-    ae = AMI_sort(edges_rand, edges_from_s, edgefromcmp);
+    ae = AMI_sort(edges_rand, edges_from_s, &from_cmp);
 
     if (verbose) {
         cout << "Sorted from list is of length " <<
@@ -577,7 +581,7 @@ int list_rank(AMI_STREAM<edge> *istream, AMI_STREAM<edge> *ostream,
 
     active_s = new AMI_STREAM<edge>;
 
-    ae = AMI_sort(active, active_s, edgetocmp);
+    ae = AMI_sort(active, active_s, &to_cmp);
 
     delete active;
 
@@ -619,7 +623,7 @@ int list_rank(AMI_STREAM<edge> *istream, AMI_STREAM<edge> *ostream,
 
     cancel_s = new AMI_STREAM<edge>;
 
-    AMI_sort(cancel, cancel_s, edgetocmp);
+    AMI_sort(cancel, cancel_s, &to_cmp);
 
     delete cancel;
 
@@ -634,7 +638,7 @@ int list_rank(AMI_STREAM<edge> *istream, AMI_STREAM<edge> *ostream,
 
     ranked_active_s = new AMI_STREAM<edge>;
 
-    AMI_sort(ranked_active, ranked_active_s, edgetocmp);
+    AMI_sort(ranked_active, ranked_active_s, &to_cmp);
 
     delete ranked_active;
     
@@ -695,6 +699,8 @@ void parse_app_opt(char c, char *optarg)
 int main(int argc, char **argv)
 {
     AMI_err ae;
+    edgeweightcmp weight_cmp;
+    edgetocmp to_cmp;
 
     wall_timer wt0;
     cpu_timer ct0;
@@ -825,7 +831,7 @@ int main(int argc, char **argv)
 
     pamis2 = new AMI_STREAM<edge>;
     
-    ae = AMI_sort(pamis1, pamis2, edgetocmp);
+    ae = AMI_sort(pamis1, pamis2, &to_cmp);
 
     delete pamis1;
     
@@ -850,7 +856,7 @@ int main(int argc, char **argv)
     if (report_results_final) {
         // Sort by rank before output, to make it easier for humans to
         // read.
-        ae = AMI_sort(&amis3, &amis4, edgeweightcmp);
+        ae = AMI_sort(&amis3, &amis4, &weight_cmp);
     
         ae = AMI_scan(&amis4, rptf);
     }
