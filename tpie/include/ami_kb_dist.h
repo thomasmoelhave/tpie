@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 3/11/95
 //
-// $Id: ami_kb_dist.h,v 1.7 2003-07-01 16:03:48 tavi Exp $
+// $Id: ami_kb_dist.h,v 1.8 2003-09-12 01:45:19 jan Exp $
 //
 // Radix based distribution for single or striped AMI layers.
 //
@@ -109,8 +109,8 @@ AMI_err _AMI_KB_DIST(KB_KEY)(AMI_STREAM<T> &instream,
     // Create the output streams and initialize the ranges they cover to
     // be empty.
 
-    AMI_STREAM<T> **out_streams = new (AMI_STREAM<T> *)[output_streams];
-    key_range *out_ranges = new (key_range)[output_streams];
+    AMI_STREAM<T> **out_streams = new  AMI_STREAM<T> *[output_streams];
+    key_range *out_ranges = new key_range[output_streams];
     
     for (ii = 0; ii < output_streams; ii++) {
 
