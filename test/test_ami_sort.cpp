@@ -23,7 +23,7 @@
 
 // Define it all.
 #include <ami.h>
-VERSION(test_ami_sort_cpp,"$Id: test_ami_sort.cpp,v 1.19 2000-01-11 00:40:42 hutchins Exp $");
+VERSION(test_ami_sort_cpp,"$Id: test_ami_sort.cpp,v 1.20 2000-01-11 02:06:11 hutchins Exp $");
 
 #include <ami_kb_sort.h>
 
@@ -76,8 +76,6 @@ void parse_app_opt(char c, char *optarg)
   }
 }
 
-
-extern int register_new;
 
 int cc_int_cmp(CONST int &i1, CONST int &i2)
 {

@@ -6,7 +6,7 @@
 //
 
 #include <versions.h>
-VERSION(test_ami_arith_cpp,"$Id: test_ami_arith.cpp,v 1.6 2000-01-11 01:09:43 hutchins Exp $");
+VERSION(test_ami_arith_cpp,"$Id: test_ami_arith.cpp,v 1.7 2000-01-11 02:01:04 hutchins Exp $");
 
 #include <iostream.h>
 #include <fstream.h>
@@ -61,9 +61,6 @@ void parse_app_opt(char c, char *optarg)
     }
 }
 
-
-
-extern int register_new;
 
 int main(int argc, char **argv)
 {
