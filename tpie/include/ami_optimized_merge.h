@@ -15,7 +15,7 @@
 // a quicksort using only keys of the items; there is a provision to 
 // to use templated heaps to implement the merge.
 
-// 	$Id: ami_optimized_merge.h,v 1.3 1999-02-05 23:50:50 rbarve Exp $	
+// 	$Id: ami_optimized_merge.h,v 1.4 1999-02-06 00:38:34 rbarve Exp $	
 //TO DO: substream_count setting; don't depend on current_stream_len
 
 #ifndef _OPT_AMI_MERGE_H
@@ -149,17 +149,10 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
     size_t sz_avail, sz_stream;
     size_t sz_substream;
 
-    //Monitoring 
-    struct timeval tp1, tp2;
-    double tp_dub1,tp_dub2,tp_dub3;
-
-
 
     unsigned int ii, jj, kk;
     int ii_streams;
 
-    //Monitoring
-    char *Cache_For_Names;
     char *working_disk;
     
 
@@ -169,8 +162,6 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
         return AMI_ERROR_MM_ERROR;
     }
 
-    //Monitoring
-    cout << "RAKESH: Avail memory (new keyless fun) is " << sz_avail << "\n";
 
     //Conservatively assume that the memory for buffers for 
     //the two streams is unallocated; so we need to subtract.
@@ -190,9 +181,6 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
 
     sz_avail -= 2*sz_stream;
 
-    cout << "Avail memory after accounting for input streams' memory" << sz_avail << endl;
-
-
     working_disk = getenv("TMP");
 
     // If the whole input can fit in main memory then just call
@@ -202,8 +190,6 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
     len = instream->stream_len();
     instream->seek(0);
     
-    cout << "Instream length is " << len << "\n";
-
     
     if ((len * sizeof(T)) <= sz_avail) 
 
@@ -318,7 +304,8 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
                             ) 
          {
    
-		 cout << "Insuff memory\n";
+            LOG_FATAL("Insufficient Memory for AMI_partition_and_merge_stream()");
+            LOG_FLUSH_LOG;
             return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
          }
  
@@ -359,17 +346,6 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
             //Compute merge arity
             merge_arity = sz_avail_during_merge/sz_stream_during_merge;
 
-
-//TRASH
-            cout << "Original mem size available " << sz_avail << "\n";
-            cout << "Max stream overhead " << sz_stream << "\n";
-            cout <<"Merge Heap Element Size "<< sizeof(merge_heap_element<T>)
-                                             << "\n";
-            cout << "Availablity after accounting for output stream" 
-                 << sz_avail_during_merge << "\n";
-	       cout << "Overhead Per input run " 
-                 <<  sz_stream_during_merge << "\n";
-            cout << "Thus merge arity is " << merge_arity << "\n";	
         }
 
         // Make sure that the AMI is willing to provide us with the
@@ -380,8 +356,6 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
         {
             int ami_available_streams = instream->available_streams();
 
-            cout << "Available_streams " << ami_available_streams << "\n";
-
             if (ami_available_streams != -1) {
                     if (ami_available_streams <= 5) {
                     return AMI_ERROR_INSUFFICIENT_AVAILABLE_STREAMS;
@@ -390,9 +364,7 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
                 if (merge_arity > (arity_t)ami_available_streams - 2) {
                     merge_arity = ami_available_streams - 2;
                     LOG_INFO("Reduced merge arity due to AMI restrictions.\n");
-				//Monitor
-                    cout << "debug: Merge arity reduced to " 
-                                      << merge_arity << "\n";
+				
                 }
             }
         }
@@ -403,8 +375,7 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
 
         if (merge_arity < 2) {
 
-	   cout << "Insufficient memory: merge_arity is " << merge_arity << "\n";
-        LOG_FATAL("Insufficient memory for AMI_partition_and_merge()");
+        LOG_FATAL("Insufficient memory for AMI_partition_and_merge_stream()");
         LOG_FLUSH_LOG;
 
         return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
@@ -466,12 +437,6 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
         // substreams, processing each one and writing it to the
         // corresponding substream of the temporary stream.
 
-//RAKESH        
-//TRASH
-       cout << "RAKESH original substreams " << original_substreams << "\n";
-       cout << "Merge arity " << merge_arity << ".\n";
-
-
        unsigned int run_lengths[2][merge_arity]
                    [(original_substreams+merge_arity-1)/merge_arity];
 
@@ -494,8 +459,7 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
         tp_assert(mm_stream != NULL, "Misjudged available main memory.");
 
         if (mm_stream == NULL) {
-		cout << "Misjudged available main memory.\n";
-            return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
+		   return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
         }
 
         instream->seek(0);
@@ -568,10 +532,6 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
 
         initial_tmp_stream[current_stream]->persist(PERSIST_PERSISTENT); 
 
-	   //Monitor        
-        initial_tmp_stream[current_stream]->name(&Cache_For_Names);
-        cout << "constructed stream " << Cache_For_Names << "\n";
-        if (gettimeofday(&tp1,NULL) == -1) {perror("gettimeofday");}
 
 
         ii = 0;
@@ -647,11 +607,6 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
                 // occuping memory. We know how to get the streams
                 // since we can generate their names
 
-			//Monitor
-             cout << "Packed "<< runs_in_current_stream << 
-              "runs into stream " << new_stream_name << 
-              "of length " 
-            << initial_tmp_stream[current_stream]->stream_len() << "\n";
 
               delete initial_tmp_stream[current_stream];
 
@@ -704,16 +659,7 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
         if (mm_stream) delete  mm_stream;
         
 
-	   //Monitor
-        if (gettimeofday(&tp2,NULL) == -1) {perror("gettimeofday");}
-        tp_dub1 = tp2.tv_sec-tp1.tv_sec;
-        tp_dub2 = tp2.tv_usec-tp1.tv_usec;
-        cout << "RF Pass:\nNumber of runs=" <<  
-         (len + sz_original_substream- 1) /sz_original_substream << "\nTime=" <<
-        (tp_dub1*1000000 + tp_dub2)/1000 << " millisecs\n";
-
-
-
+	   
         // Make sure the total length of the temporary stream is the
         // same as the total length of the original input stream.
 
@@ -764,8 +710,7 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
             )
 		{
 
-		//Monitor
-          if (gettimeofday(&tp1,NULL) == -1) {perror("gettimeofday");}                
+
 
             
             // Set up to process a given level.
@@ -833,9 +778,6 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
 
                 // Merge them into the output stream.
 
-		//Monitor
-               cout << "RAKESH: Reached just before (last pass) AMI_single_merge\n";
-
 
                 ae = MIAMI_single_merge_Key(
                                   (current_input+merge_arity-substream_count),
@@ -845,13 +787,10 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
                                    dummykey
                                    );
 
-			 //Monitor
-                cout << "Length of output stream after MERGE is " << outstream->stream_len() << "\n";
 
 
                 if (ae != AMI_ERROR_NO_ERROR) {
-			   //Monitor
-                   cout << "Sorting error : AMI_ERROR " << ae << "\n";
+			   
                    LOG_FATAL("AMI_ERROR ");
                    LOG_FATAL(ae);
                    LOG_FATAL(" returned by  MIAMI_single_merge_Key()");
@@ -859,16 +798,9 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
                    return ae;
                 }
 
-			 //Monitor
-                cout << "RAKESH: Reached just after (last pass) AMI_single_merge\n";
-
                 
                   
                 // Delete the streams input to the above merge.
-
-			 //Monitor
-                cout << "Just before deleting streams after last pass\n";
-
 
                 for (ii = merge_arity - substream_count; 
                      ii < merge_arity; 
@@ -882,18 +814,9 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
                 delete[] current_input;
                 delete[] the_substreams;
 
-			 //Monitor
-                if (gettimeofday(&tp2,NULL) == -1) {perror("gettimeofday");}
-                tp_dub1 = tp2.tv_sec-tp1.tv_sec;  
-                tp_dub2 = tp2.tv_usec-tp1.tv_usec;
-                cout << "Final Pass:\n Arity=" << substream_count << 
-                "\nTime=" << (tp_dub1*1000000 + tp_dub2)/1000 << " millisecs\n";
-                
             } else {
 
-		    //Monitor
-               cout << "RAKESH: More than one pass\n";
-               LOG_INFO("Merging substreams to an intermediate stream.\n");
+               LOG_INFO("Merging substreams to intermediate streams.\n");
 
                 // Create the array of merge_arity stream pointers that
 		      // will each point to a stream containing runs output
@@ -1012,7 +935,7 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
                runs_in_current_stream = 0;
                unsigned int merge_number = 0;
 
-			//Monitor
+
                
 
                 // Loop through the substreams of the current stream,
@@ -1124,8 +1047,6 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
                        }
 				}
 
-				//Monitor
-                      cout << "RAKESH: Calling merge\n";
 
                       ae = MIAMI_single_merge_Key(the_substreams,
                                        jj+1,
@@ -1144,12 +1065,7 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
                                   the_substreams[ii_streams]->stream_len();
             
 
-				  //Monitor                        
-                      cout << "After call from AMI_single_merge\n";
                       merge_number++;
-
-				  //Monitor
-                      cout << "Length of stream containing output of merge of MERGE is " << intermediate_tmp_stream[current_stream]->stream_len() << "\n";
 
          
                        
@@ -1163,15 +1079,13 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
                         // of the largest, so we want to bump it up before the
                         // idiomatic loop.
 
-				 //Monitor
-                  cout << "RAKESH:Deleting substreams\n";
 
                   for (jj++; jj--; ) {
                           delete the_substreams[merge_arity-1-jj];
                           }
 
-			   //Monitor
-                  cout << "RAKESH: Deleted them\n";
+
+   
                         // Now jj should be -1 so that it gets bumped
                         // back up to 0 before the next iteration of
                         // the outer loop.
@@ -1202,28 +1116,12 @@ AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
             	    
             }
 
-            if (substream_count > merge_arity) {
-
-               if (gettimeofday(&tp2,NULL) == -1) {perror("gettimeofday");}
-
-
-               tp_dub1 = tp2.tv_sec-tp1.tv_sec;  
-               tp_dub2 = tp2.tv_usec-tp1.tv_usec;
-
-               cout << "Intmdt Pass:\n Arity=" << merge_arity <<
-               "\nTime=" << (tp_dub1*1000000 + tp_dub2)/1000 << " millisecs\n";
-    
-
-              } 
             
             k++;
 
         }
 
-	   //Monitor
-        cout << "Number of passes including runformation pass is " << k+1 << "\n";
-//RAKESH
-//        delete [] the_substreams;
+
         
         return AMI_ERROR_NO_ERROR;
    
@@ -1246,17 +1144,11 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
     size_t sz_avail, sz_stream;
     size_t sz_substream;
 
-    //Monitoring 
-    struct timeval tp1, tp2;
-    double tp_dub1,tp_dub2,tp_dub3;
-
-
 
     unsigned int ii, jj, kk;
     int ii_streams;
 
-    //Monitoring
-    char *Cache_For_Names;
+
     char *working_disk;
     
 
@@ -1266,8 +1158,6 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
         return AMI_ERROR_MM_ERROR;
     }
 
-    //Monitoring
-    cout << "RAKESH: Avail memory is " << sz_avail << "\n";
 
     //Conservatively assume that the memory for buffers for 
     //the two streams is unallocated; so we need to subtract.
@@ -1287,8 +1177,6 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
 
     sz_avail -= 2*sz_stream;
 
-    cout << "Avail memory after accounting for input streams' memory" << sz_avail << endl;
-
 
     working_disk = getenv("TMP");
 
@@ -1299,7 +1187,6 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
     len = instream->stream_len();
     instream->seek(0);
     
-    cout << "Instream length is " << len << "\n";
 
     
     if ((len * sizeof(T)) <= sz_avail) {
@@ -1446,7 +1333,8 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
                             ) 
          {
    
-		 cout << "Insuff memory\n";
+            LOG_FATAL("Insufficient memory in AMI_partition_and_merge_Key()");
+            LOG_FLUSH_LOG;
             return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
          }
  
@@ -1487,17 +1375,6 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
             //Compute merge arity
             merge_arity = sz_avail_during_merge/sz_stream_during_merge;
 
-
-//TRASH
-            cout << "Original mem size available " << sz_avail << "\n";
-            cout << "Max stream overhead " << sz_stream << "\n";
-            cout <<"Merge Heap Element Size "<< sizeof(merge_heap_element<KEY>)
-                                             << "\n";
-            cout << "Availablity after accounting for output stream" 
-                 << sz_avail_during_merge << "\n";
-	       cout << "Overhead Per input run " 
-                 <<  sz_stream_during_merge << "\n";
-            cout << "Thus merge arity is " << merge_arity << "\n";	
         }
 
         // Make sure that the AMI is willing to provide us with the
@@ -1508,7 +1385,6 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
         {
             int ami_available_streams = instream->available_streams();
 
-            cout << "Available_streams " << ami_available_streams << "\n";
 
             if (ami_available_streams != -1) {
                     if (ami_available_streams <= 5) {
@@ -1518,9 +1394,7 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
                 if (merge_arity > (arity_t)ami_available_streams - 2) {
                     merge_arity = ami_available_streams - 2;
                     LOG_INFO("Reduced merge arity due to AMI restrictions.\n");
-				//Monitor
-                    cout << "debug: Merge arity reduced to " 
-                                      << merge_arity << "\n";
+				
                 }
             }
         }
@@ -1531,7 +1405,6 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
 
         if (merge_arity < 2) {
 
-	   cout << "Insufficient memory: merge_arity is " << merge_arity << "\n";
         LOG_FATAL("Insufficient memory for AMI_partition_and_merge_Key()");
         LOG_FLUSH_LOG;
 
@@ -1594,12 +1467,6 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
         // substreams, processing each one and writing it to the
         // corresponding substream of the temporary stream.
 
-//RAKESH        
-//TRASH
-       cout << "RAKESH original substreams " << original_substreams << "\n";
-       cout << "Merge arity " << merge_arity << ".\n";
-
-
        unsigned int run_lengths[2][merge_arity]
                    [(original_substreams+merge_arity-1)/merge_arity];
 
@@ -1625,7 +1492,7 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
         tp_assert(mm_stream != NULL, "Misjudged available main memory.");
 
         if (mm_stream == NULL) {
-		cout << "Misjudged available main memory.\n";
+		
             return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
         }
 
@@ -1699,11 +1566,8 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
 
         initial_tmp_stream[current_stream]->persist(PERSIST_PERSISTENT); 
 
-	   //Monitor        
-        initial_tmp_stream[current_stream]->name(&Cache_For_Names);
-        cout << "constructed stream " << Cache_For_Names << "\n";
-        if (gettimeofday(&tp1,NULL) == -1) {perror("gettimeofday");}
-
+	   
+        
 
         ii = 0;
         while (ii < original_substreams) { 
@@ -1781,12 +1645,6 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
                 // occuping memory. We know how to get the streams
                 // since we can generate their names
 
-			//Monitor
-             cout << "Packed "<< runs_in_current_stream << 
-              "runs into stream " << new_stream_name << 
-              "of length " 
-            << initial_tmp_stream[current_stream]->stream_len() << "\n";
-
               delete initial_tmp_stream[current_stream];
 
               if (check_size < instream->stream_len())  {
@@ -1838,16 +1696,6 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
         if (mm_stream) delete  mm_stream;
         if (qs_array) delete qs_array;
 
-	   //Monitor
-        if (gettimeofday(&tp2,NULL) == -1) {perror("gettimeofday");}
-        tp_dub1 = tp2.tv_sec-tp1.tv_sec;
-        tp_dub2 = tp2.tv_usec-tp1.tv_usec;
-        cout << "RF Pass:\nNumber of runs=" <<  
-         (len + sz_original_substream- 1) /sz_original_substream << "\nTime=" <<
-        (tp_dub1*1000000 + tp_dub2)/1000 << " millisecs\n";
-
-
-
         // Make sure the total length of the temporary stream is the
         // same as the total length of the original input stream.
 
@@ -1898,8 +1746,7 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
             )
 		{
 
-		//Monitor
-          if (gettimeofday(&tp1,NULL) == -1) {perror("gettimeofday");}                
+
 
             
             // Set up to process a given level.
@@ -1967,9 +1814,6 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
 
                 // Merge them into the output stream.
 
-		//Monitor
-               cout << "RAKESH: Reached just before (last pass) AMI_single_merge\n";
-
 
                 ae = MIAMI_single_merge_Key(
                                   (current_input+merge_arity-substream_count),
@@ -1979,13 +1823,10 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
                                    dummykey
                                    );
 
-			 //Monitor
-                cout << "Length of output stream after MERGE is " << outstream->stream_len() << "\n";
 
 
                 if (ae != AMI_ERROR_NO_ERROR) {
-			   //Monitor
-                   cout << "Sorting error : AMI_ERROR " << ae << "\n";
+			   
                    LOG_FATAL("AMI_ERROR ");
                    LOG_FATAL(ae);
                    LOG_FATAL(" returned by  MIAMI_single_merge_Key()");
@@ -1993,15 +1834,10 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
                    return ae;
                 }
 
-			 //Monitor
-                cout << "RAKESH: Reached just after (last pass) AMI_single_merge\n";
-
                 
                   
                 // Delete the streams input to the above merge.
 
-			 //Monitor
-                cout << "Just before deleting streams after last pass\n";
 
 
                 for (ii = merge_arity - substream_count; 
@@ -2016,18 +1852,11 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
                 delete[] current_input;
                 delete[] the_substreams;
 
-			 //Monitor
-                if (gettimeofday(&tp2,NULL) == -1) {perror("gettimeofday");}
-                tp_dub1 = tp2.tv_sec-tp1.tv_sec;  
-                tp_dub2 = tp2.tv_usec-tp1.tv_usec;
-                cout << "Final Pass:\n Arity=" << substream_count << 
-                "\nTime=" << (tp_dub1*1000000 + tp_dub2)/1000 << " millisecs\n";
                 
             } else {
 
-		    //Monitor
-               cout << "RAKESH: More than one pass\n";
-               LOG_INFO("Merging substreams to an intermediate stream.\n");
+
+               LOG_INFO("Merging substreams to intermediate streams.\n");
 
                 // Create the array of merge_arity stream pointers that
 		      // will each point to a stream containing runs output
@@ -2146,7 +1975,7 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
                runs_in_current_stream = 0;
                unsigned int merge_number = 0;
 
-			//Monitor
+
                
 
                 // Loop through the substreams of the current stream,
@@ -2258,8 +2087,7 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
                        }
 				}
 
-				//Monitor
-                      cout << "RAKESH: Calling merge\n";
+
 
                       ae = MIAMI_single_merge_Key(the_substreams,
                                        jj+1,
@@ -2278,12 +2106,8 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
                                   the_substreams[ii_streams]->stream_len();
             
 
-				  //Monitor                        
-                      cout << "After call from AMI_single_merge\n";
-                      merge_number++;
 
-				  //Monitor
-                      cout << "Length of stream containing output of merge of MERGE is " << intermediate_tmp_stream[current_stream]->stream_len() << "\n";
+                      merge_number++;
 
          
                        
@@ -2297,15 +2121,11 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
                         // of the largest, so we want to bump it up before the
                         // idiomatic loop.
 
-				 //Monitor
-                  cout << "RAKESH:Deleting substreams\n";
 
                   for (jj++; jj--; ) {
                           delete the_substreams[merge_arity-1-jj];
                           }
 
-			   //Monitor
-                  cout << "RAKESH: Deleted them\n";
                         // Now jj should be -1 so that it gets bumped
                         // back up to 0 before the next iteration of
                         // the outer loop.
@@ -2336,28 +2156,12 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
             	    
             }
 
-            if (substream_count > merge_arity) {
 
-               if (gettimeofday(&tp2,NULL) == -1) {perror("gettimeofday");}
-
-
-               tp_dub1 = tp2.tv_sec-tp1.tv_sec;  
-               tp_dub2 = tp2.tv_usec-tp1.tv_usec;
-
-               cout << "Intmdt Pass:\n Arity=" << merge_arity <<
-               "\nTime=" << (tp_dub1*1000000 + tp_dub2)/1000 << " millisecs\n";
-    
-
-              } 
             
             k++;
 
         }
 
-	   //Monitor
-        cout << "Number of passes including runformation pass is " << k+1 << "\n";
-//RAKESH
-//        delete [] the_substreams;
         
         return AMI_ERROR_NO_ERROR;
    
@@ -2377,16 +2181,11 @@ AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
     size_t sz_avail, sz_stream;
     size_t sz_substream;
 
-    //Monitor
-    struct timeval tp1, tp2;
-    double tp_dub1,tp_dub2,tp_dub3;
-    
-
  
     unsigned int ii, jj, kk;
     int ii_streams;
 
-    char *Cache_For_Names;
+
 
 #ifndef BTE_IMP_USER_DEFINED
     char *working_disk;
@@ -2398,8 +2197,6 @@ AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
         return AMI_ERROR_MM_ERROR;
     }
 
-    //Monitor
-    cout << "RAKESH: Avail memory is " << sz_avail << "\n";
 
 #ifndef BTE_IMP_USER_DEFINED
     working_disk = getenv("TMP");
@@ -2411,9 +2208,6 @@ AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
 
     len = instream->stream_len();
     instream->seek(0);
-
-    //Monitor
-    cout << "Instream length is " << len << "\n";
 
 
     if ((len * sizeof(T)) <= sz_avail) {
@@ -2596,8 +2390,6 @@ AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
                             ) 
 		 {
 
-		   //Monitor
-            cout << "RAKESH:Insufficient mem\n";
             LOG_FATAL("Insufficient Memory for AMI_replacement_selection_and_merge_Key()");
             LOG_FLUSH_LOG;
             return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
@@ -2643,14 +2435,6 @@ AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
 
             merge_arity = sz_avail_during_merge/sz_stream_during_merge;
 
-		  //Monitor
-            cout << "Original mem size available " << sz_avail << "\n";
-            cout << "Max stream overhead " << sz_stream << "\n";
-            cout << "Merge Obj Overhead " <<  sizeof(merge_heap_element<KEY>)   << "\n";
-            cout << "Availablity after accounting for output stream" 
-                                    << sz_avail_during_merge << "\n";
-            cout << "Overhead Per input run " <<  sz_stream_during_merge << "\n";
-            cout << "Thus merge arity is " << merge_arity << "\n";
 
         }
 
@@ -2670,7 +2454,7 @@ AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
                 if (merge_arity > (arity_t)ami_available_streams - 2) {
                     merge_arity = ami_available_streams - 2;
                     LOG_INFO("Reduced merge arity due to AMI restrictions.\n");
-                    cout << "debug: Merge arity reduced to " << merge_arity << "\n";
+
                 }
             }
         }
@@ -2690,10 +2474,6 @@ AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
         // substreams, processing each one and writing it to the
         // corresponding substream of the temporary stream.
 //RAKESH
-
-	   //Monitor
-        cout << "RAKESH original substreams " << original_substreams << "\n";
-        cout << "Merge arity " << merge_arity << ".\n";
 
 
         instream->seek(0);
@@ -2721,17 +2501,13 @@ AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
 #endif
 
 
-	  //Monitor
-       cout << "Computed_prefix is " << computed_prefix << "\n";
+
 
 	  //Conservatie estimate of the max possible number of runs during
 	  //run formation.
        int MaxRuns = instream->stream_len()/
          (sz_original_substream/(sizeof(run_formation_item<KEY>)+sizeof(T)));
 
-	  //Monitor
-       cout << "Size of each array to hold run lengths for a given stream is "
-            << (MaxRuns+merge_arity-1)/merge_arity << "\n";
 
 	  //Arrays to store the number of runs in each of the streams formed 
 	  //during each pass and the length of each of the runs.
@@ -2753,8 +2529,6 @@ AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
         
 
    
-	    //Monitor
-         if (gettimeofday(&tp1,NULL) == -1) {perror("gettimeofday");}
 
 	    //Call the run formation function.
 
@@ -2767,16 +2541,17 @@ AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
                                         (int **) RunLengths[0],
                                         (MaxRuns+merge_arity-1)/merge_arity,
                                         keyoffset, dummykey
-                                       ))  != AMI_ERROR_NO_ERROR)
-                                       {
-                                        cout << "Run Formation error\n";
-                                        cout << "AMI Error " << ae << "\n";
+									))  != AMI_ERROR_NO_ERROR) {
+           LOG_FATAL("AMI Error ");
+           LOG_FATAL(ae);
+           LOG_FATAL(" in  Run_Formation_Algo_R_Key()");
+           LOG_FLUSHLOG;                                      
+           return ae;                            
+
                                        }
 
 
 
-	    //Monitor
-        if (gettimeofday(&tp2,NULL) == -1) {perror("gettimeofday");}
 
 
         // Make sure the total length of the temporary stream is the
@@ -2793,20 +2568,11 @@ AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
           run_count+=RunsInStream[0][i];
           }
 
-	   //Monitor
-        tp_dub1 = tp2.tv_sec-tp1.tv_sec;
-        tp_dub2 = tp2.tv_usec-tp1.tv_usec;
-    
-        cout << "RF Pass:\nNumber of runs=" <<
-        run_count <<
-         "\nTime=" << (tp_dub1*1000000 + tp_dub2)/1000 << " millisecs\n";
-
 
         if (check_size != instream->stream_len()) 
             {
-		    //Monitor
-            cout << "Run formation input stream is of length " << instream->stream_len() << "\n";
-            cout << "but outputs " << check_size << " items\n";
+            LOG_FATAL("Run_Formation_Algo_R_Key() output different from input stream in length");
+            LOG_FLUSH_LOG;
             return AMI_ERROR_IO_ERROR;
             } 
 
@@ -2843,9 +2609,6 @@ AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
 
 
         while (run_count > 1) {
-
-		//Monitor
-          if (gettimeofday(&tp1,NULL) == -1) {perror("gettimeofday");}
 
 
 
@@ -2898,9 +2661,6 @@ AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
                 
                 // Merge them into the output stream.
 
-		//Monitor
-               cout << "RAKESH: Reached just before (last pass)
-AMI_single_merge\n";
 
                 ae = MIAMI_single_merge_Key(
                                       (current_input+ merge_arity-run_count),
@@ -2910,18 +2670,15 @@ AMI_single_merge\n";
                                        dummykey
                                        ); 
 
-			 //Monitor
-                cout << "Length of output stream after MERGE is " << outstream->stream_len() << " \n";
 
 
                 if (ae != AMI_ERROR_NO_ERROR) {
-			   //Monitor
-
-                  cout << "MIAMI_single_merge_Key error : AMI_ERROR " << ae << "\n";
+                    LOG_FATAL("AMI Error ");
+                    LOG_FATAL(ae);
+                    LOG_FATAL("MIAMI_single_merge_Key()");
                     return ae;
                 }
 
-                cout << "RAKESH: Reached just after (last pass) AMI_single_merge\n";
 
                 
                 // Delete the substreams.
@@ -2941,23 +2698,14 @@ AMI_single_merge\n";
                  delete[] current_input;
                  delete[] the_substreams;
                 
-			  //Monitor
-                if (gettimeofday(&tp2,NULL) == -1) {perror("gettimeofday");}
-
-                tp_dub1 = tp2.tv_sec-tp1.tv_sec; 
-                tp_dub2 = tp2.tv_usec-tp1.tv_usec;
-
-                cout << "Final Pass:\n Arity=" << run_count <<
-                "\nTime=" << (tp_dub1*1000000 + tp_dub2)/1000 << " millisecs\n";
-
 
                 run_count = 1;
 
             } else {
 
                 
-		    //Monitor
-               cout << "RAKESH: More than one pass\n";
+	
+ 
                LOG_INFO("Merging substreams to an intermediate stream.\n");
 
                 // Create the array of merge_arity stream pointers that
@@ -3076,9 +2824,7 @@ AMI_single_merge\n";
                                                            merge_arity;
                        run_start[ii_streams]=0;
 				   
-				   //Monitor
-                       cout << "Stream " << ii_streams << " shd get " << 
-					RunsInStream[(k+1) % 2][ii_streams] << "streams\n";
+
 
                }
 
@@ -3142,9 +2888,6 @@ AMI_single_merge\n";
                   // dummy runs; no other merge of the pass has any dummy run.
 
 
-				//Monitor
-                    cout << "Stream " << merge_arity - 1 - jj <<
-				" sub_start " << sub_start << ", sub_end " << sub_end << "\n";
          
 
                    current_input[merge_arity-1-jj]->new_substream(
@@ -3235,22 +2978,15 @@ AMI_single_merge\n";
                                        );
 
                       if (ae != AMI_ERROR_NO_ERROR) {
-				    //Monitor
-				    cout << "MIAMI_single_merge_Key Error " << ae << "\n";
-                            return ae;
+	                        LOG_FATAL("AMI Error ");
+                             LOG_FATAL(ae);
+                             LOG_FATAL("MIAMI_single_merge_Key()");	
+                             return ae;
                                                     }
 
-				  //Monitor
-                      cout << "Length of stream " 
-                      << current_stream << " with merge output is "
-                      << intermediate_tmp_stream[current_stream]->stream_len() << "\n";
 
                       RunLengths[(k+1) % 2][current_stream]
-                                //[merge_number/merge_arity] = mergeoutput_v;
                                 [runs_in_current_stream]  = mergeoutput_v;
-
-				  //Monitor
-                      cout << "Recorded output run length is " <<  mergeoutput_v << "\n";
 
 
                       merge_number++;
@@ -3308,20 +3044,6 @@ AMI_single_merge\n";
             }
 
 
-            if (run_count != 1) {
-
-		    //Monitor
-               if (gettimeofday(&tp2,NULL) == -1) {perror("gettimeofday");}
-                
-
-              tp_dub1 = tp2.tv_sec-tp1.tv_sec;
-               tp_dub2 = tp2.tv_usec-tp1.tv_usec;
-
-               cout << "Intmdt Pass:\n Arity=" << merge_arity <<
-               "\nTime=" << (tp_dub1*1000000 + tp_dub2)/1000 << " millisecs\n";
-
-
-              }
 
 
             k++;
@@ -3330,7 +3052,7 @@ AMI_single_merge\n";
         }
 
 
-        cout << "Number of passes including runformation pass is " << k+1 << "\n";
+
 
         return AMI_ERROR_NO_ERROR;
     }
@@ -3401,8 +3123,6 @@ T merge_out;
     if ((ami_err = outstream->write_item(*in_objects[i])) 
                                     != AMI_ERROR_NO_ERROR)
                    {
-				 //Monitor
-				 cout << "Write item error in MIAMI_single..._Key()\n";
                     return ami_err;
                    }
 
@@ -3411,8 +3131,6 @@ T merge_out;
                    {
                    if (ami_err != AMI_ERROR_END_OF_STREAM)
                      {
-				   //Monitor
-                     cout << "Read_item error in MIAMI_single_merge\n";
                      return ami_err;
 		           }
                    }
@@ -3446,129 +3164,6 @@ T merge_out;
 // we need to only add the integer at the end to get a stream name.
 
 
-template<class T, class KEY> AMI_err MIAMI_single_merge_Key_scan(AMI_STREAM<T> **instreams, arity_t arity, AMI_STREAM<T> *outstream, int keyoffset, KEY dummykey)
-{
-
-
-// Pointers to current leading elements of streams
-T * in_objects[arity+1];
-int i,j;
-AMI_err ami_err;
-
-//The number of actual heap elements at any time: can change even 
-//after the merge begins because
-// whenever some stream gets completely depleted, heapsize decremnents by one.
-
-int heapsize_H;
-
-class merge_heap_element<KEY> * K_Array = new (merge_heap_element<KEY>)[arity+1];
-
-T merge_out;
-
-//RAKESH:
-//for (i=0; i < arity; i++)
-//       cout << "STream " << i << " of length " << instreams[i]->stream_len() << "\n";
-
-    // Rewind and read the first item from every stream.
-    j = 1;
-    for (i = 0; i < arity ; i++ ) {
-        if ((ami_err = instreams[i]->seek(0)) != AMI_ERROR_NO_ERROR) {
-		//TRASH
-            cout << "Seek error in MIAMI merge\n";
-            return ami_err;
-        }
-
-        if ((ami_err = instreams[i]->read_item(&(in_objects[i]))) !=
-            AMI_ERROR_NO_ERROR) {
-            if (ami_err == AMI_ERROR_END_OF_STREAM) {
-                in_objects[i] = NULL;
-             
-            } else {
-		    //TRASH 
-               cout << "RAKESH: read_item AMI_stream error" << ami_err << "\n";
-               return ami_err;
-            }
-            // Set the taken flags to 0 before we call intialize()
-        } else {
-#if DEBUG_PERFECT_MERGE
-    input_count++;
-#endif  
-         
-         K_Array[j].key = *(KEY *)((char *)in_objects[i]+keyoffset);
-         K_Array[j].run_id = i;
-         j++; 
-
-
-        
-        }
-    }
-
-    unsigned int NonEmptyRuns = j-1;
-
-
-    merge_heap<KEY> Main_Merge_Heap(K_Array, NonEmptyRuns);
-
-#if SORT_VERIFY_OPT 
-    int MIAMI_Cntr = 0;
-#endif
-    while (Main_Merge_Heap.sizeofheap())
-    {
-    i = Main_Merge_Heap.get_min_run_id();
-    //if ((ami_err = outstream->write_item(*in_objects[i])) 
-    //                                != AMI_ERROR_NO_ERROR)
-    //               {
-    //                cout << "RAKESH: write_item error in MIAMI_single_merge\n";
-    //                return ami_err;
-    //                }
-
-    if ((ami_err = instreams[i]->read_item(&(in_objects[i])))
-                                       != AMI_ERROR_NO_ERROR)
-                   {
-                   if (ami_err != AMI_ERROR_END_OF_STREAM)
-                     {
-				   //TRASH
-                     cout << "RAKESH: read_item error in MIAMI_single_merge\n";
-                     return ami_err;
-		           }
-                   }
-
-    if (ami_err == AMI_ERROR_END_OF_STREAM)
-                  {
-                   Main_Merge_Heap.delete_min_and_insert((KEY *)NULL);
-
-#if SORT_VERIFY_OPT
-			    //                   cout <<  "Heap outputted " << MIAMI_Cntr << " elements\n";
-#endif
-                  
-                  }
-    else 
-	   	        {
-                   Main_Merge_Heap.delete_min_and_insert(
-                                 (KEY *)((char *)in_objects[i]+keyoffset)
-                                                        );
-                 } 
-
-    }
-
-#if SORT_VERIFY_OPT
-    //    cout << "Heap outputted " << MIAMI_Cntr << " elements\n";
-#endif
-
-    return AMI_ERROR_NO_ERROR;
-
-}
-
-
-// We assume that instream is the already constructed input stream 
-// to be sorted by AMI_partition and merge. 
-// We assume that the outstreams array is yet to be constructed.
-//We assume that available_mem is the value of available memory *after*
-// accounting for the fact that at any time during run formation,
-// the input stream and one output stream will be active (so their
-// memory-usage will have to have been taken into consideration.)
-// We assume that computed_prefix is such that it contains the 
-//appropriate intermediate stream name up to Tempo_stream: so  
-// we need to only add the integer at the end to get a stream name.
 
 
 
@@ -3585,8 +3180,6 @@ AMI_err Run_Formation_Algo_R_Key( AMI_STREAM<T> *instream,
                                       
 {
 
-//TRASH
-cout << "Entered Run_Formation_Algo_R\n";
 
 char local_copy[BTE_PATH_NAME_LEN];
 
@@ -3617,10 +3210,7 @@ unsigned int Number_P =
 run_formation_item<KEY> *Array_X = new (run_formation_item<KEY>)[Number_P];
 T * Item_Array = new T[Number_P];
 
-//TRASH
-cout << "Allocated memory for P= " << Number_P << " to Array_X in Run Formation routine\n";
-cout << "Size of rf_item is " << sizeof(run_formation_item<KEY>) << "\n";
-cout << "Avail mem to run formation phase is " << available_mem << "\n";
+
 
 T * ptr_to_record;
 unsigned int tempint;
@@ -3677,23 +3267,13 @@ Step_R2:
     if (RQ != RC)  {
                    if (RC >= 1) 
                    {   
-//TRASH
-//delete the previous run
-//                 cout << "Curr run length is " << curr_run_length << "\n"; 
 
                    Cast_Var[current_stream*dim2_LRunLengths 
                          + LRunsInStream[current_stream]] = curr_run_length;
 
                    LRunsInStream[current_stream]++;
 
-//                 cout << "RAKESH: Destructing stream " << current_stream << "\n";
-
                    delete outstreams[current_stream];
-
-//TRASH
-                   cout << "Run of length " <<  curr_run_length << 
-                           " output to stream " << current_stream << "\n";
-                   
 
                    current_stream = (current_stream + arity - 1) % arity;
                    RF_Cntr+=curr_run_length;
@@ -3752,9 +3332,7 @@ Step_R2:
 
 
          	  outstreams[current_stream]->persist(PERSIST_PERSISTENT);
-                  cout << "RAKESH: Seeking to " << 
-                 outstreams[current_stream]->stream_len() << " for "
-                 << new_stream_name << "\n";
+             
  
                   outstreams[current_stream]->seek(outstreams[current_stream]->stream_len());
 
@@ -3763,8 +3341,6 @@ Step_R2:
  
                   curr_run_length = 0;
 
-//TRASH
-//                cout << "Constructed stream " << new_stream_name << "\n";
                  }
 
 // End of Step_R2
@@ -3889,15 +3465,7 @@ Step_End: delete [] Array_X;
           delete [] outstreams;
 
 
-		//TRASH
-cout << "Elements scanned during RF : " << RF_Cntr << "\n";
-for (int i = 0; i < arity; i++) 
-    {
-     cout << "Stream " << i << " has " << LRunsInStream[i] << " runs of lengths : \n";
-     for (int j = 0; j < LRunsInStream[i]; j++)
-         cout << " " << Cast_Var[i*dim2_LRunLengths+j] << " ";
-     cout << "\n";
-     }
+
 
 
 return AMI_ERROR_NO_ERROR;
