@@ -1,6 +1,6 @@
 # Copyright (c) 1994 Darren Erik Vengroff
 
-# $Id: Makefile.in,v 1.21 1999-02-07 21:47:18 rbarve Exp $
+# $Id: Makefile.in,v 1.22 1999-02-07 22:05:06 rbarve Exp $
 
 # Makefile for TPIE libraries.
 
@@ -38,7 +38,7 @@ SRC =	logstream.cpp tpie_log.cpp mm_register.cpp ami_device.cpp	\
 	bte_ufs.cpp bit.cpp bit_matrix.cpp					\
 	ami_matrix_blocks.cpp ami_bit_permute.cpp wall_timer.cpp	\
 	cpu_timer.cpp counter.cpp bte_stats.cpp bte_mmb_stats.cpp	\
-	ami_key.cpp optimized_merge.cpp
+	ami_key.cpp optimized_ami_merge.cpp
 
 OBJ = $(SRC:.cpp=.o)
 
