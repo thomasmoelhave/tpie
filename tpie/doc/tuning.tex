@@ -1,5 +1,5 @@
 %%
-%% $Id: tuning.tex,v 1.11 2001-06-16 20:36:11 tavi Exp $
+%% $Id: tuning.tex,v 1.12 2002-06-25 18:33:49 tavi Exp $
 %%
 \chapter{Configuration and Performance Tuning}
 \plabel{sec:tuning}\index{Configuration}\plabel{sec:configuration}
@@ -276,7 +276,7 @@ modified by TPIE application programmers:
   \index{implementation!AMI!single disk}
   
   \item[{\myverb{AMI\_VIRTUAL\_BASE}}] Defining this macro
-  \myverb{AMI\_base\_stream}, which is the base class of all
+  \myverb{AMI\_stream\_base}, which is the base class of all
   implementations of AMI streams, declare its member
   functions to be \myverb{virtual}. This is useful for
   debugging new AMI stream implementations, but many
@@ -292,7 +292,7 @@ modified by TPIE application programmers:
   
   All the AMI streams in TPIE are 
   derived from the base stream class
-  \myverb{AMI\_base\_stream}. Although this base class has
+  \myverb{AMI\_stream\_base}. Although this base class has
   no functionality in itself, it can declare the minimum set
   of methods that need to be implemented by a derived class
   in order to have the required stream functionality. This
