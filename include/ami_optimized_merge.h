@@ -15,7 +15,7 @@
 // a quicksort using only keys of the items; there is a provision to 
 // to use templated heaps to implement the merge.
 
-// 	$Id: ami_optimized_merge.h,v 1.34 1999-04-30 21:02:21 rbarve Exp $	
+// 	$Id: ami_optimized_merge.h,v 1.35 1999-05-18 20:07:56 rajiv Exp $	
 //TO DO: substream_count setting; don't depend on current_stream_len
 
 
@@ -209,7 +209,7 @@ XXX
 	  }
 	}
 	working_disk = tempnam(temp_string,"Temp");
-
+	LOG_DEBUG_ID(working_disk);
 
 
     // If the whole input can fit in main memory then just call
@@ -1279,7 +1279,7 @@ XXX
 	  }
 	}
 	working_disk = tempnam(temp_string,"Temp");
-
+	LOG_DEBUG_ID(working_disk);
 
 
     // If the whole input can fit in main memory then just call
@@ -2352,8 +2352,7 @@ AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
 	  }
     }
 	working_disk = tempnam(temp_string,"Temp");
-
-
+	LOG_DEBUG_ID(working_disk);
 
 
 
@@ -3429,6 +3428,7 @@ AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
 	}
 	
 	working_disk = tempnam(temp_string,"Temp");
+	LOG_DEBUG_ID(working_disk);
 #endif
 
     // If the whole input can fit in main memory then just call
