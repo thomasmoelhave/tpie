@@ -9,7 +9,7 @@
 // the values it generates.
 
 
-static char nas_ep_mm_id[] = "$Id: nas_ep_mm.cpp,v 1.2 1999-06-19 01:25:34 tavi Exp $";
+static char nas_ep_mm_id[] = "$Id: nas_ep_mm.cpp,v 1.3 1999-07-05 06:04:17 rajiv Exp $";
 
 #include <iostream.h>
 #include <math.h>
@@ -17,6 +17,7 @@ static char nas_ep_mm_id[] = "$Id: nas_ep_mm.cpp,v 1.2 1999-06-19 01:25:34 tavi 
 ///#include <GetOpt.h>
 #include <strstream.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 // Constants specified in the benchmark.
 
