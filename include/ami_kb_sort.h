@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 3/12/95
 //
-// $Id: ami_kb_sort.h,v 1.7 2003-04-21 03:20:16 tavi Exp $
+// $Id: ami_kb_sort.h,v 1.8 2003-07-01 16:03:48 tavi Exp $
 //
 
 // This header file can be included in one of two ways, either with a
@@ -93,9 +93,10 @@ AMI_err _AMI_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
 {
     AMI_err ae;
 
+    // Memory sizes.
     size_t sz_avail, sz_stream;
-    
-    long max_size;
+    // Stream sizes.
+    TPIE_OS_OFFSET max_size, stream_len;
     
     // Check whether the problem fits in main memory.
 
@@ -113,8 +114,8 @@ AMI_err _AMI_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
     
     // If it fits, simply read it, sort it, and write it.
 
-    TPIE_OS_OFFSET stream_len = instream.stream_len();
-        
+    stream_len = instream.stream_len();
+
     if (sz_avail >= stream_len * (sizeof(T) + 
                                   sizeof(AMI_bucket_list_elem<T> *) + 
                                   sizeof(AMI_bucket_list_elem<T>))) {
