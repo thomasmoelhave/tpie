@@ -4,10 +4,13 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/30/94
 //
-// $Id: mm.h,v 1.2 2002-01-14 16:29:10 tavi Exp $
+// $Id: mm.h,v 1.3 2003-04-17 19:38:28 jan Exp $
 //
 #ifndef _MM_H
 #define _MM_H
+
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 // Get the base class, enums, etc...
 #include <mm_base.h>
