@@ -2,29 +2,29 @@
 #
 # The Makefile for the complete TPIE system.
 #
-# $Id: Makefile.in,v 1.13 1994-10-31 21:51:50 darrenv Exp $
+# $Id: Makefile.in,v 1.14 1994-11-02 22:06:02 darrenv Exp $
 #
 
-MY_DEFS = @DEFS@
-MY_LIBS = @LIBS@
+MY_DEFS := @DEFS@
+MY_LIBS := @LIBS@
 
-SHELL = /bin/csh
+SHELL := /bin/csh
 
 # Send all variables into recursive makes.
 export
 
 # The directories storing the components of the system
 
-LIBPATH = ./lib/
+LIBPATH := ./lib/
 
-LIBSRCPATH = $(LIBPATH)src/
+LIBSRCPATH := $(LIBPATH)src/
 
-APPSPATH = ./apps/
+APPSPATH := ./apps/
 
-INCPATH = ./include/
+INCPATH := ./include/
 
 usage:
-	echo $(MAKE) "[ all | inc | lib | apps ]"
+	@echo $(MAKE) "[ all | inc | lib | apps | clean | distclean ]"
 
 all: inc lib apps
 
@@ -46,10 +46,9 @@ clean:
 	$(MAKE) -C $(LIBPATH) $@
 	$(MAKE) -C $(INCPATH) $@
 
-distclean: clean
-	-rm -f Makefile
-	-rm -f $(APPSPATH)Makefile
-	-rm -f $(LIBPATH)Makefile
-	-rm -f $(LIBSRCPATH)Makefile
-	-rm -f $(INCPATH)config.h
+cleandir = (rm -f $(dir)*~; rm -f $(dir)Makefile)
 
+dirs := ./ $(APPSPATH) $(LIBPATH) $(LIBSRCPATH) $(INCPATH)
+ 
+distclean: clean
+	-$(foreach dir,$(dirs),$(cleandir);)
