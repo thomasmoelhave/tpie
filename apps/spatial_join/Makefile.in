@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.1 2003-11-21 17:01:08 tavi Exp $
+# $Id: Makefile.in,v 1.2 2004-08-12 18:01:06 jan Exp $
 #
 # Use gmake on this Makefile.  It relies on the default rules.
 # Use gmake -p to see the default rules.
@@ -36,7 +36,7 @@ APPS = sssj pbsmj ascii2stream mbr
 APPSRC = $(patsubst %,%.cpp,$(APPS))
 
 # Other C++ sources for common support routines.
-COMMONCXXSRC = parse_args.cpp rectangle.cpp joinlog.cpp sortsweep.cpp sorting_adaptor.cpp intertree.cpp
+COMMONCXXSRC = parse_args.cpp rectangle.cpp joinlog.cpp sortsweep.cpp sorting_adaptor.cpp intertree.cpp getopts.cpp
 
 CXXSRC = $(APPSRC) $(COMMONCXXSRC)
 
