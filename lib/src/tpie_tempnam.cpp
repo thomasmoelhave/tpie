@@ -4,7 +4,7 @@
 // Created: 02/02/02
 //
 #include <versions.h>
-VERSION(tpie_tempnam_cpp,"$Id: tpie_tempnam.cpp,v 1.3 2002-07-28 16:41:08 tavi Exp $");
+VERSION(tpie_tempnam_cpp,"$Id: tpie_tempnam.cpp,v 1.4 2003-04-17 21:05:24 jan Exp $");
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,14 +28,14 @@ char *tpie_tempnam(char *base, const char* dir) {
     // get the dir
     base_dir = getenv(AMI_SINGLE_DEVICE_ENV);
     if (base_dir == NULL) {
-      base_dir = getenv(TMP_DIR_ENV);
+      base_dir = getenv(TMPDIR_ENV);
       if (base_dir == NULL) {
 	base_dir = TMP_DIR;
       }
     }
-    sprintf(tmp_path, "%s/%s_XXXXXX", base_dir, base);
+    sprintf(tmp_path, TPIE_OS_TEMPNAMESTR, base_dir, base);
   } else {
-    sprintf(tmp_path, "%s/%s_XXXXXX", dir, base);
+    sprintf(tmp_path, TPIE_OS_TEMPNAMESTR, dir, base);
   }
 
   path = tpie_mktemp(tmp_path);    
@@ -55,10 +55,12 @@ char *tpie_mktemp(char *str) {
 
   str[pos++] = chars[counter/chars_count];
   str[pos++] = chars[counter%chars_count];
-  str[pos++] = chars[random()%chars_count];
-  str[pos++] = chars[random()%chars_count];
-  str[pos++] = chars[random()%chars_count];
-  str[pos] = chars[random()%chars_count];
+
+  str[pos++] = chars[TPIE_OS_RANDOM() % chars_count];
+  str[pos++] = chars[TPIE_OS_RANDOM() % chars_count];
+  str[pos++] = chars[TPIE_OS_RANDOM() % chars_count];
+  str[pos]   = chars[TPIE_OS_RANDOM() % chars_count];
+
   counter = (counter + 1) % (chars_count * chars_count);
   return str;
 }
