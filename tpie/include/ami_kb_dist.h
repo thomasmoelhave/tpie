@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 3/11/95
 //
-// $Id: ami_kb_dist.h,v 1.1 1995-06-20 20:28:19 darrenv Exp $
+// $Id: ami_kb_dist.h,v 1.2 1995-06-30 21:08:12 darrenv Exp $
 //
 // Radix based distribution for single or striped AMI layers.
 //
@@ -116,7 +116,7 @@ AMI_err _AMI_KB_DIST(KB_KEY)(AMI_STREAM<T> &instream,
 
         // This needs to be fixed to eliminate the max size parameter.
         // This should be done system-wide.
-        out_streams[ii] = new AMI_STREAM<T>((unsigned int)0, 1000);
+        out_streams[ii] = new AMI_STREAM<T>;
 
         out_ranges[ii].min = KEY_MAX;
         out_ranges[ii].max = KEY_MIN;

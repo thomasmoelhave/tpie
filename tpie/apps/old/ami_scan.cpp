@@ -7,7 +7,7 @@
 
 
 
-static char ami_scan_id[] = "$Id: ami_scan.cpp,v 1.3 1994-09-16 13:17:03 darrenv Exp $";
+static char ami_scan_id[] = "$Id: ami_scan.cpp,v 1.4 1995-06-30 21:09:06 darrenv Exp $";
 
 #define BTE_MMB_LOGICAL_BLOCKSIZE_FACTOR 32
 
@@ -85,8 +85,8 @@ int main(int argc, char **argv)
 {
     AMI_err ae;
 
-    AMI_STREAM<int> amis1((unsigned int)0);
-    AMI_STREAM<int> amis2((unsigned int)0);
+    AMI_STREAM<int> amis1;
+    AMI_STREAM<int> amis2;
         
     // Write some ints.
     {

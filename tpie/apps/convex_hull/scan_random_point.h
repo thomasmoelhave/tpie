@@ -4,15 +4,17 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/19/94
 //
-// $Id: scan_random_point.h,v 1.2 1995-06-20 20:15:38 darrenv Exp $
+// $Id: scan_random_point.h,v 1.3 1995-06-30 21:09:31 darrenv Exp $
 //
 #ifndef _SCAN_RANDOM_POINT_H
 #define _SCAN_RANDOM_POINT_H
 
 #include "point.h"
 
+#if 0
 extern "C" int srandom(int);
 extern "C" int random(void);
+#endif
 
 // A scan object to generate random integers.
 class scan_random_point : AMI_scan_object {

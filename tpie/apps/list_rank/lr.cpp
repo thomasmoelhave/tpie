@@ -7,7 +7,7 @@
 // A sample piece of code that does list ranking in the TPIE system.
 //
 
-static char lr_id[] = "$Id: lr.cpp,v 1.9 1995-06-20 20:15:14 darrenv Exp $";
+static char lr_id[] = "$Id: lr.cpp,v 1.10 1995-06-30 21:09:14 darrenv Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -537,7 +537,7 @@ int list_rank(AMI_STREAM<edge> *istream, AMI_STREAM<edge> *ostream,
     // Flip coins for each node, setting the flag to 0 or 1 with equal
     // probability.
 
-    edges_rand = new AMI_STREAM<edge>((unsigned int)0, stream_len);
+    edges_rand = new AMI_STREAM<edge>;
     
     AMI_scan(istream, &my_random_flag_scan, edges_rand);
 
@@ -553,7 +553,7 @@ int list_rank(AMI_STREAM<edge> *istream, AMI_STREAM<edge> *ostream,
     // Sort one stream by source.  The original input was sorted by
     // destination, so we don't need to sort it again.
 
-    edges_from_s = new AMI_STREAM<edge>((unsigned int)0, stream_len);
+    edges_from_s = new AMI_STREAM<edge>;
 
     ae = AMI_sort(edges_rand, edges_from_s, edgefromcmp);
 
@@ -564,8 +564,8 @@ int list_rank(AMI_STREAM<edge> *istream, AMI_STREAM<edge> *ostream,
     
     // Scan to produce and active list and a cancel list.
 
-    active = new AMI_STREAM<edge>((unsigned int)0, stream_len);
-    cancel = new AMI_STREAM<edge>((unsigned int)0, stream_len);
+    active = new AMI_STREAM<edge>;
+    cancel = new AMI_STREAM<edge>;
 
     ae = AMI_scan(edges_from_s,
                   edges_rand,
@@ -585,7 +585,7 @@ int list_rank(AMI_STREAM<edge> *istream, AMI_STREAM<edge> *ostream,
             active->stream_len() << ".\n";
     }
 
-    active_s = new AMI_STREAM<edge>((unsigned int)0, stream_len);
+    active_s = new AMI_STREAM<edge>;
 
     ae = AMI_sort(active, active_s, edgetocmp);
 
@@ -596,7 +596,7 @@ int list_rank(AMI_STREAM<edge> *istream, AMI_STREAM<edge> *ostream,
             active_s->stream_len() << ".\n";
     }
 
-    active_2 = new AMI_STREAM<edge>((unsigned int)0, stream_len);
+    active_2 = new AMI_STREAM<edge>;
 
     ae = AMI_scan(active_s,
                   &my_strip_cancel_from_active,
@@ -613,7 +613,7 @@ int list_rank(AMI_STREAM<edge> *istream, AMI_STREAM<edge> *ostream,
     // destination.  The recursion will return a list sorted by
     // source.
 
-    ranked_active = new AMI_STREAM<edge>((unsigned int)0, stream_len);
+    ranked_active = new AMI_STREAM<edge>;
     
     list_rank(active_2, ranked_active, rec_level + 1);
 
@@ -627,7 +627,7 @@ int list_rank(AMI_STREAM<edge> *istream, AMI_STREAM<edge> *ostream,
             ranked_active->stream_len() << ".\n";
     }
 
-    cancel_s = new AMI_STREAM<edge>((unsigned int)0, stream_len);
+    cancel_s = new AMI_STREAM<edge>;
 
     AMI_sort(cancel, cancel_s, edgetocmp);
 
@@ -642,7 +642,7 @@ int list_rank(AMI_STREAM<edge> *istream, AMI_STREAM<edge> *ostream,
     // destination.  We'll make it so before we try to merge in the
     // cancel list.
 
-    ranked_active_s = new AMI_STREAM<edge>((unsigned int)0, stream_len);
+    ranked_active_s = new AMI_STREAM<edge>;
 
     AMI_sort(ranked_active, ranked_active_s, edgetocmp);
 
@@ -729,8 +729,8 @@ int main(int argc, char **argv)
         
     AMI_STREAM<edge> *pamis1;
     AMI_STREAM<edge> *pamis2;
-    AMI_STREAM<edge> amis3((unsigned int)0, test_size);
-    AMI_STREAM<edge> amis4((unsigned int)0, test_size);
+    AMI_STREAM<edge> amis3;
+    AMI_STREAM<edge> amis4;
 
     // Streams for reporting values to ascii streams.
     
@@ -761,7 +761,7 @@ int main(int argc, char **argv)
     // Write the initial set of edges.
 
     {
-        AMI_STREAM<edge> amis0((unsigned int)0, test_size);
+        AMI_STREAM<edge> amis0;
 
         scan_list sl(test_size);
 
@@ -783,7 +783,7 @@ int main(int argc, char **argv)
 
         merge_random<edge> mr;
 
-        pamis1 = new AMI_STREAM<edge>((unsigned int)0, test_size);        
+        pamis1 = new AMI_STREAM<edge>;
         
         ae = AMI_partition_and_merge(&amis0, pamis1,
                                  (AMI_merge_base<edge> *)&mr);
@@ -815,7 +815,7 @@ int main(int argc, char **argv)
     wt0.start();    
     ct0.start();
 
-    pamis2 = new AMI_STREAM<edge>((unsigned int)0, test_size);
+    pamis2 = new AMI_STREAM<edge>;
     
     ae = AMI_sort(pamis1, pamis2, edgetocmp);
 

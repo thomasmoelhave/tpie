@@ -5,7 +5,7 @@
 // Created: 6/2/94
 //
 
-static char test_ami_merge_id[] = "$Id: test_ami_merge.cpp,v 1.7 1995-06-20 20:15:48 darrenv Exp $";
+static char test_ami_merge_id[] = "$Id: test_ami_merge.cpp,v 1.8 1995-06-30 21:09:43 darrenv Exp $";
 
 // This is just to avoid an error message since the string above is never
 // refereneced.  Note that a self referential structure must be defined to
@@ -91,10 +91,10 @@ int main(int argc, char **argv)
     MM_manager.resize_heap(test_mm_size);
     register_new = 1;
         
-    AMI_STREAM<int> amis0((unsigned int)1, test_size);
-    AMI_STREAM<int> amis1((unsigned int)1, test_size);
-    AMI_STREAM<int> amis2((unsigned int)1, 2 * test_size);
-    AMI_STREAM<int> amis3((unsigned int)1, 2 * test_size);
+    AMI_STREAM<int> amis0;
+    AMI_STREAM<int> amis1;
+    AMI_STREAM<int> amis2;
+    AMI_STREAM<int> amis3;
 
     // Streams for reporting values to ascii streams.
     

@@ -7,7 +7,7 @@
 
 
 
-static char binary_merge_sort_id[] = "$Id: binary_merge_sort.cpp,v 1.2 1994-09-16 13:17:20 darrenv Exp $";
+static char binary_merge_sort_id[] = "$Id: binary_merge_sort.cpp,v 1.3 1995-06-30 21:09:09 darrenv Exp $";
 
 // If you actually want to see all the ints in the stream.
 //#define REPORT_RESULTS
@@ -39,8 +39,8 @@ static char binary_merge_sort_id[] = "$Id: binary_merge_sort.cpp,v 1.2 1994-09-1
 #include <ami_scan_utils.h>
 #endif //REPORT_RESULTS
 
-extern "C" int srandom(int);
-extern "C" int random(void);
+extern "C" void srandom(unsigned int);
+extern "C" long int random(void);
 
 // A scan object to generate random integers.
 class random_scan : AMI_scan_object {
@@ -230,7 +230,7 @@ AMI_err binary_divide_and_conquer(AMI_STREAM<T> *instream,
               
     // Recurse on each half.
     
-    AMI_STREAM<T> rec0((unsigned int)0), rec1((unsigned int)1);
+    AMI_STREAM<T> rec0, rec1;
 
     if ((ae = binary_divide_and_conquer(sub0, &rec0, merge_obj,
                                         mm_operate)) != AMI_ERROR_NO_ERROR) {
@@ -283,8 +283,8 @@ int main(int argc, char **argv)
 {
     AMI_err ae;
 
-    AMI_STREAM<int> amis0((unsigned int)0);
-    AMI_STREAM<int> amis1((unsigned int)0);
+    AMI_STREAM<int> amis0;
+    AMI_STREAM<int> amis1;
         
     // Write some ints.
     random_scan rnds(TEST_SIZE);

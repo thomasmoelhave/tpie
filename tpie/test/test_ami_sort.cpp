@@ -6,7 +6,7 @@
 //
 // A test for AMI_sort().
 
-static char test_ami_sort_id[] = "$Id: test_ami_sort.cpp,v 1.10 1995-06-20 20:15:53 darrenv Exp $";
+static char test_ami_sort_id[] = "$Id: test_ami_sort.cpp,v 1.11 1995-06-30 21:09:45 darrenv Exp $";
 
 // This is just to avoid an error message since the string above is never
 // refereneced.  Note that a self referential structure must be defined to
@@ -123,8 +123,8 @@ int main(int argc, char **argv)
     MM_manager.resize_heap(test_mm_size);
     register_new = 1;
         
-    AMI_STREAM<int> amis0((unsigned int)1, test_size);
-    AMI_STREAM<int> amis1((unsigned int)1, test_size);
+    AMI_STREAM<int> amis0;
+    AMI_STREAM<int> amis1;
         
     // Write some ints.
     scan_random rnds(test_size,random_seed);
@@ -182,9 +182,9 @@ int main(int argc, char **argv)
 
     if (sort_again) {
         
-        AMI_STREAM<int> amis2((unsigned int)0, test_size);
-        AMI_STREAM<int> amis3((unsigned int)0, test_size);
-        AMI_STREAM<scan_diff_out<int> > amisd((unsigned int)0, test_size);
+        AMI_STREAM<int> amis2;
+        AMI_STREAM<int> amis3;
+        AMI_STREAM<scan_diff_out<int> > amisd;
         
         merge_random<int> mr;
         scan_diff<int> sd(-1);
