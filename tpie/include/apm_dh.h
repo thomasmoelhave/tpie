@@ -10,7 +10,7 @@
 // *  used in several of TPIE's sorting variants                            *
 // *                                                                        *
 // **************************************************************************
-// 	$Id: apm_dh.h,v 1.3 2000-11-14 01:58:33 hutchins Exp $	
+// 	$Id: apm_dh.h,v 1.4 2000-11-14 04:40:22 hutchins Exp $	
 
 #include <math.h>		// For log(), etc  to compute tree heights.
 #include <sys/time.h>
@@ -257,10 +257,6 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
       LOG_FATAL_ID ("Insufficient Memory for AMI_partition_and_merge");
       return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
    }
-
-   int tmp_1 = mgmt_obj.space_usage_overhead ();
-   int tmp_2 = sizeof(T);
-   printf(" overhead = %d sizeof(T) = %d sz_avail = %d\n", tmp_1, tmp_2, sz_avail );
 
    szOrigSubstream = (sz_avail) / (sizeof (T) + mgmt_obj.space_usage_overhead ());
 
