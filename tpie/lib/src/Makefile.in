@@ -1,6 +1,6 @@
 # Copyright (c) 1994 Darren Erik Vengroff
 
-# $Id: Makefile.in,v 1.15 1995-01-10 16:45:25 darrenv Exp $
+# $Id: Makefile.in,v 1.16 1995-03-07 14:52:16 darrenv Exp $
 
 # Makefile for TPIE libraries.
 
@@ -44,7 +44,8 @@ override CPPFLAGS += -I$(TPIEINC) @DEFS@
 SRC =	logstream.cpp tpie_log.cpp mm_register.cpp ami_device.cpp	\
 	ami_single.cpp mm_base.cpp bte_mmb.cpp bte_stdio.cpp		\
 	bte_block_collection.cpp bit.cpp bit_matrix.cpp		\
-	ami_matrix_blocks.cpp ami_bit_permute.cpp
+	ami_matrix_blocks.cpp ami_bit_permute.cpp wall_timer.cpp	\
+	cpu_timer.cpp counter.cpp bte_stats.cpp bte_mmb_stats.cpp 
 
 OBJ = $(SRC:.cpp=.o)
 
