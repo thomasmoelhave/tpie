@@ -8,7 +8,7 @@
 //
 
 #include <versions.h>
-VERSION(logstream_cpp,"$Id: logstream.cpp,v 1.16 2003-09-12 18:48:15 jan Exp $");
+VERSION(logstream_cpp,"$Id: logstream.cpp,v 1.17 2004-05-06 16:04:01 adanner Exp $");
 
 #include <logstream.h>
 
@@ -61,7 +61,8 @@ _DEFINE_LOGSTREAM_OUTPUT_OPERATOR(long unsigned int)
 _DEFINE_LOGSTREAM_OUTPUT_OPERATOR(float)
 _DEFINE_LOGSTREAM_OUTPUT_OPERATOR(double)
 
-TPIE_OS_UNIX_ONLY_DEFINE_LOGSTREAM_OUPUT_OPERATOR
+//"LONGLONG" and "long long" are different in Win32/Unix
+TPIE_OS_DEFINE_LOGSTREAM_LONGLONG
 
 // Setting priority and threshold on the fly with manipulators.
 
