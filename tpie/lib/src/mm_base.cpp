@@ -7,12 +7,11 @@
 
 
 
-static char mm_base_id[] = "$Id: mm_base.cpp,v 1.6 1999-03-11 03:13:56 laura Exp $";
+static char mm_base_id[] = "$Id: mm_base.cpp,v 1.7 1999-03-11 03:15:39 laura Exp $";
 
 
-
+#include <iostream.h>
 #include <mm_base.h>
-
 #include <tpie_log.h>
 
 // A pointer to the memory manager currently being used.
