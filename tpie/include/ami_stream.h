@@ -2,7 +2,7 @@
 // File: ami_stream.h (formerly part of ami.h and ami_imps.h)
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 //
-// $Id: ami_stream.h,v 1.2 2002-01-14 16:07:31 tavi Exp $
+// $Id: ami_stream.h,v 1.3 2002-01-15 03:38:20 tavi Exp $
 //
 #ifndef _AMI_STREAM_H
 #define _AMI_STREAM_H
@@ -77,10 +77,12 @@
 // Now include the definitions of each implementation that will be
 // used.
 
-// Make sure at least one implementation was chosen.  If none was, then
-// choose one by default, but warn the user.
+// Make sure at least one implementation was chosen.  If none was,
+// then choose one by default, but warn the user. [tavi] NO, don't
+// bother. Since the IMP_SINGLE is the only existing implementation,
+// just tacitly make it the default.
 #if (_AMI_STREAM_IMP_COUNT < 1)
-#  warning No implementation defined. Using AMI_STREAM_IMP_SINGLE by default.
+//#  warning No implementation defined. Using AMI_STREAM_IMP_SINGLE by default.
 #  define AMI_STREAM_IMP_SINGLE
 #endif // (_AMI_STREAM_IMP_COUNT < 1)
 
