@@ -4,7 +4,7 @@
 //
 // Definition of the b_vector class.
 //
-// $Id: b_vector.h,v 1.4 2001-05-17 20:10:19 tavi Exp $
+// $Id: b_vector.h,v 1.5 2002-06-10 20:40:06 tavi Exp $
 //
 
 #ifndef _B_VECTOR_H
@@ -14,20 +14,27 @@
 
 template<class T>
 class b_vector {
-private:
+protected:
   T* p_;
   size_t capacity_;
 
 public:
 
-  typedef T* iterator;
+  typedef T value_type;
+  typedef value_type* iterator;
+  typedef const value_type* const_iterator;
 
   b_vector(T* p, size_t cap): p_(p), capacity_(cap) {}
+
+  iterator begin() { return p_; }
+  const_iterator begin() const { return p_; }
+  iterator end() { return p_ + capacity_; }
+  const_iterator end() const { return p_ + capacity_; }
 
   // Get a reference to the i'th element.
   T& operator[](size_t i) { return *(p_ + i); }
   // Get a const reference to the i'th element.
-  const T& operator[](size_t i) const {return *(p_ + i); }
+  const T& operator[](size_t i) const { return *(p_ + i); }
 
   size_t capacity() const { return capacity_; }
 
