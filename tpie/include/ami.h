@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/19/94
 //
-// $Id: ami.h,v 1.13 1998-12-11 18:45:08 tavi Exp $
+// $Id: ami.h,v 1.14 1999-02-03 17:03:48 tavi Exp $
 //
 #ifndef _AMI_H
 #define _AMI_H
@@ -23,12 +23,6 @@
 
 // The name of a tmp directory to use if the env variable is not set.
 #define TMP_DIR "/var/tmp"
-
-// A macro to instantiate all the templates for streams for a given
-// type of object.
-#define TEMPLATE_INSTANTIATE_STREAMS(T) \
-TEMPLATE_INSTANTIATE_BTE_STREAMS(T) \
-TEMPLATE_INSTANTIATE_AMI_STREAMS(T)
 
 // Get the base class, enums, etc...
 #include <ami_base.h>
@@ -53,12 +47,6 @@ TEMPLATE_INSTANTIATE_AMI_STREAMS(T)
 
 // Get templates for bit permuting.
 #include <ami_bit_permute.h>
-
-// Get templates for blocksets for e.g. B-trees.
-//#include <ami_blockset.h>
-
-// Get templates for AMI_distribution_sweep().
-//#include <ami_dist_sweep.h>
 
 // Get the size of main memory.
 extern size_t AMI_mem_size(void);
