@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/11/94
 //
-// $Id: bte_stream_stdio.h,v 1.11 2004-09-29 14:07:10 jan Exp $
+// $Id: bte_stream_stdio.h,v 1.12 2004-10-20 08:56:05 jan Exp $
 //
 #ifndef _BTE_STREAM_STDIO_H
 #define _BTE_STREAM_STDIO_H
@@ -496,7 +496,7 @@ TPIE_OS_OFFSET BTE_stream_stdio < T >::stream_len (void) const {
 template < class T >
 BTE_err BTE_stream_stdio < T >::name (char **stream_name) {
   
-  int len = strlen (path);
+  TPIE_OS_SIZE_T len = strlen (path);
 
   tp_assert (len < BTE_STREAM_PATH_NAME_LEN, "Path length is too long.");
   
