@@ -6,16 +6,19 @@
 // Runtime parameters for the kd-tree, K-D-B-tree and B-tree test
 // suite.
 //
-// $Id: app_params.cpp,v 1.3 2003-06-02 17:03:37 tavi Exp $
+// $Id: app_params.cpp,v 1.4 2003-09-12 15:08:14 tavi Exp $
 
-using namespace std;
 
-#include <time.h>
-#include <stdlib.h>
-#include <strings.h>
+//#include <time.h>
+//#include <stdlib.h>
+//#include <strings.h>
+
+#include <portability.h>
+
 #include <algorithm>
 
 #include "app_config.h"
+
 #include <ami_kd_base.h>
 #include "app_params.h"
 #include <ami_stream.h>
@@ -62,8 +65,8 @@ void usage(char* argv0) {
        << "   [-S]  (verify sorted order)\n"
        << "   [-in [<point_count>]]  (if possible, build tree by inserting the input points)\n"
        << "   [-e[t] [<file_name>]] (eliminate duplicate keys, if implemented; restrict TIGER data to continental US; write the resulting data to file_name)\n"
-       << "   [-h C|L|R]  (choose K-D-B-tree split heuristic)\n"
-    ;
+       << "   [-h C|L|R]  (choose K-D-B-tree split heuristic)\n" 
+       << endl;
 }
 
 void print_statistics(ostream& os) {
@@ -72,22 +75,11 @@ void print_statistics(ostream& os) {
 }
 
 void print_configuration(ostream& os) {
-//   os   << "Base input file name: ";
-//   if (params.do_sort || params.do_insert) {
-//     if (params.base_file_name[0])
-//       os << params.base_file_name;
-//     else 
-//       os << "(random)";
-//   } else if (params.do_load)
-//     os << params.base_file_name_s << " (sorted)";
-//   else
-//     os << params.base_file_name_t << " (tree)";
-//   os   << "\n";
 
   os   << "MEMORY_SIZE:          " << params.memory_limit/(1024*1024) << " MB\n" 
        << "POINT_COUNT:          " << params.point_count << "\n"
        << "DATA_STRUCTURE:       " << params.structure_name << (params.do_logmethod ? " + LOG.METHOD": "") << endl
-       << "OPERATION:            " << (params.do_insert ? "INSERT": (params.do_load ? "BULK_LOAD" : (params.do_wquery_from_file || params.wquery_count ? "WINDOW_QUERY" : "UNKNOWN"))) << "\n";
+       << "OPERATION:            " << (params.do_insert ? "INSERT": (params.do_load ? "BULK_LOAD" : (params.do_wquery_from_file || params.wquery_count ? "WINDOW_QUERY" : "UNKNOWN"))) << endl;
 
   os   << "BTE_STREAM:           "
 #if defined(BTE_STREAM_IMP_MMAP)
@@ -99,7 +91,7 @@ void print_configuration(ostream& os) {
 #else
        << "UNKNOWN"
 #endif
-       << "\n";
+       << endl;
 
   os   << "BTE_COLLECTION        " 
 #if defined(BTE_COLLECTION_IMP_MMAP)
@@ -109,12 +101,12 @@ void print_configuration(ostream& os) {
 #else
        << "UNKNOWN"
 #endif
-       << " L" << params.leaf_block_factor << " N" << params.node_block_factor << "\n";
+       << " L" << params.leaf_block_factor << " N" << params.node_block_factor << endl;
 
   if (params.do_logmethod) {
-    os << "Cached os blocks:     " << params.cached_blocks << "\n";
+    os << "Cached os blocks:     " << params.cached_blocks << endl;
     if (params.B_for_LMB != 0)
-      os << "B (for LogMethodB)    " << params.B_for_LMB << "\n";
+      os << "B (for LogMethodB)    " << params.B_for_LMB << endl;
   }
 
 #if (defined(__sun__) && defined(BTE_COLLECTION_IMP_UFS))
@@ -131,7 +123,7 @@ void print_configuration(ostream& os) {
 void parse_args(int argc, char** argv) {
   assert(DIM >= 2);
   if (DIM > 2)
-    cerr << "Dimension: " << DIM << "\n";
+    cerr << "Dimension: " << DIM << endl;
   params.stats << "COMMAND_LINE:         ";
   for (int i = 0; i < argc; i++)
     params.stats << argv[i] << " ";
@@ -158,7 +150,8 @@ void parse_args(int argc, char** argv) {
 
   while (i < argc) {
     if (argv[i][0] != '-') {
-      cerr << argv[0] << ": " << argv[i] << ": Unrecognized option.\n";
+      cerr << argv[0] << ": " << argv[i] 
+	   << ": Unrecognized option." << endl;
       usage(argv[0]);
       exit(1);
     }
@@ -229,7 +222,7 @@ void parse_args(int argc, char** argv) {
 	params.in_stream = new app_params_t::stream_t(params.base_file_name, 
 					AMI_READ_STREAM);
 	if (!params.in_stream->is_valid()) {
-	  cerr << "Invalid input stream.\n";
+	  cerr << "Invalid input stream." << endl;
 	  delete params.in_stream;
 	  params.in_stream = NULL;
 	} else 
@@ -240,14 +233,14 @@ void parse_args(int argc, char** argv) {
 #if 0
 	params.point_count = atoi(argv[++i]);
 	params.in_stream = new app_params_t::stream_t;
-	srandom(time(NULL));
+	TPIE_OS_SRANDOM(time(NULL));
 	for (j = 0; j < params.point_count; j++) {
 	  for (int jj = 0; jj < DIM; jj++)
-	    p[jj] = int((random()/MAX_RANDOM) * MAX_VALUE);
+	    p[jj] = int((TPIE_OS_RANDOM()/MAX_RANDOM) * MAX_VALUE);
 	  params.in_stream->write_item(p);
 	}
 #else
-	cerr << "This option is no longer supported. Use datagen to generate points.\n";
+	cerr << "This option is no longer supported. Use datagen to generate points." << endl;
 #endif
 	break;
       case 'a':
@@ -258,7 +251,7 @@ void parse_args(int argc, char** argv) {
 	while (argv[i+1][0] != '-') {
 	  ifstream ifs(argv[++i]);
 	  if (!ifs) {
-	    cerr << argv[0] << ": Error opening file " << argv[i] << "\n";
+	    cerr << argv[0] << ": Error opening file " << argv[i] << endl;
 	    exit(1); 
 	  }
 	  cerr << "Reading ascii input..." << flush;
@@ -267,14 +260,14 @@ void parse_args(int argc, char** argv) {
 	  err = AMI_scan(&read_input, params.in_stream);
 
 	  if (err != AMI_ERROR_NO_ERROR) {
-	    cerr << "\n" << argv[0] << ": Error reading ascii input.\n";
+	    cerr << "\n" << argv[0] << ": Error reading ascii input." << endl;
 	    exit(1);
 	  }
-	  cerr << "done.\n";
+	  cerr << "done." << endl;
 	}
 	params.point_count = params.in_stream->stream_len();
 #else
-	cerr << "This option is no longer supported. Use datagen to generate points.\n";
+	cerr << "This option is no longer supported. Use datagen to generate points." << endl;
 #endif
 	break;
       case 't':
@@ -284,7 +277,8 @@ void parse_args(int argc, char** argv) {
 	strncpy(params.base_file_name_t, argv[++i], MAX_PATH_LENGTH);
 	break;
       default:
-	cerr << argv[0] << ": " << argv[i] << ": Unrecognized option.\n";
+	cerr << argv[0] << ": " << argv[i] 
+	     << ": Unrecognized option." << endl;
 	usage(argv[0]);
 	exit(1);
       }
@@ -311,7 +305,8 @@ void parse_args(int argc, char** argv) {
 	initialization_only = true;
 	break;
       default:
-	cerr << argv[0] << ": " << argv[i] << ": Unrecognized option.\n";
+	cerr << argv[0] << ": " << argv[i] 
+	     << ": Unrecognized option." << endl;
 	usage(argv[0]);
 	exit(1);
 	break;
@@ -432,7 +427,7 @@ void parse_args(int argc, char** argv) {
 	exit(1);
       }
 
-      params.in_stream = new app_params_t::stream_t(params.base_file_name, 
+      params.in_stream = new app_params_t::stream_t(params.base_file_name,
 				      AMI_READ_STREAM);
       params.in_stream->persist(PERSIST_PERSISTENT);
       delete [] buf;
@@ -455,7 +450,7 @@ void parse_args(int argc, char** argv) {
 	// Read item from position 2*i in in_stream.
 	params.in_stream->read_item(&pp1);
 	// Go to a random odd position in random_stream.
-	j = (random() % (l/2)) * 2 + 1;
+	j = (TPIE_OS_RANDOM() % (l/2)) * 2 + 1;
 	random_stream->seek(j);
 	random_stream->read_item(&pp2);
 	p2 = *pp2;
