@@ -1560,7 +1560,7 @@ crossref = "knuth:sorting"}
 
 
 @Manual{vengroff:tpie,
-  title = 	 {TPIE User Manual and Reference},
+  title = 	 {{TPIE} User Manual and Reference},
   author =	 {D. E. Vengroff},
   organization = {Duke University},
   year =	 1997,
@@ -3267,15 +3267,14 @@ year = {1999}
   year =         {1998}
 }
 
-@Unpublished{agarwal:dynquad,
-  author =       {P. K. Agarwal and
-                  L. Arge and
-                  O. Procopiuc and
-                  J. S. Vitter},
-  title =        {{I/O}-efficient Dynamic Quad- and K-D-Trees},
-  note =         {In preparation},
-  year =         {1998}
+@InProceedings{aapv-fibld-01,
+  author = "Pankaj K. Agarwal and Lars Arge and Octavian Procopiuc and Jeffrey S. Vitt
+er",
+  title = "A Framework for Index Bulk Loading and Dynamization",
+  year = "2001",
+  booktitle = "Proc. 28th Intl. Colloq. Automata, Languages and Programming (ICALP)",
 }
+
 
 @InProceedings{roussopoulos:nearest,
   author =       {N. Roussopoulos and
@@ -3303,26 +3302,32 @@ year = {1999}
   pages =        {237-248}
 }
 
-@Misc{mehlhorn:private,
+
+@InProceedings{mehlhorn:ledasm,
   author =       {A. Crauser and K. Mehlhorn},
-  title =        {{LEDA-SM}: {A} library prototype for Secondary Memory},
-  year =         {1998},
-  note =         {Private communication}
+  title =        {{LEDA-SM}: {E}xtending {LEDA} to Secondary Memory},
+  booktitle =    wae,
+  year =         {1999},
 }
 
-@Unpublished{wang:approximate,
-  author = 	 {M. Wang and J. S. Vitter},
-  title = 	 {Approximate Computation of Multidimensional Aggregates of
-                  Sparse Data Using Wavelets},
-  note = 	 {Submitted},
-  year = 	 {1998}
+
+@inproceedings{wang:approximate,
+  author=       {J. S. Vitter and M. Wang},
+  title=        {Approximate Computation of Multidimensional Aggregates 
+of Sparse Data Using Wavelets},
+  booktitle =   sigmod,
+  address =     {Philadelphia, PA},
+  month =       {June},
+  pages = {193-204},
+  year =         1999
 }
 
-@unpublished{barve:srm_implementation,
-    author = {Rakesh D. Barve and Jeffrey Scott Vitter},
-    title  =  {A Simple and Efficient Parallel Disk Mergesort},
-    year = {1998},
-    note = {In Submission},
+@InProceedings{barve:srm_implementation,
+  author = {R. D. Barve and J. S. Vitter},
+  title  =  {A Simple and Efficient Parallel Disk Mergesort},
+  booktitle = spaa,
+  pages =        {232-241},
+  year =         {1999},
 }
 
 @Article{varman:multiversion,
@@ -3503,3 +3508,12 @@ Science, \textbf{1461}, Springer-Verlag, Berlin}
   year  =        1998,
   annote =	 "Journal version of Dartmouth:TR96-294.",
 }
+
+
+@InProceedings{arge:tpie,
+  author = 	 {L. Arge and O. Procopiuc and J. S. Vitter},
+  title = 	 {Implementing {I/O}-Efficient Data Structures Using {TPIE}},
+  booktitle = 	 esa,
+  OPTyear = 	 2002
+}
+
