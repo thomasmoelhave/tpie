@@ -52,10 +52,10 @@ int option_index = 1;
  */
 int getopts_usage(char *progName, struct options opts[]) {
 
-  int count;
+  size_t count;
   TPIE_OS_SIZE_T i;
-  char *cmd;
-  int optlen = 30;
+  char *cmd=NULL;
+  size_t optlen = 30;
 
   printf("Usage: %s [options]\nOptions:\n", progName);
   printf("  --help, -h ");

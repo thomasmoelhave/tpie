@@ -1,7 +1,7 @@
 # Makefile for TPIE test applications.
 # Use gmake on this Makefile.  It relies on the default rules, and 
 # Use gmake -p to see the default rules.
-# $Id: Makefile.in,v 1.36 2003-11-21 16:22:45 tavi Exp $
+# $Id: Makefile.in,v 1.37 2004-08-17 16:49:23 jan Exp $
 
 CXX = @CXX@
 CC = @CC@
@@ -10,6 +10,7 @@ MAKEDEPEND = $(CXX) -M
 TPIEINC = ../include
 TPIELIBDIR = ../lib
 TPIELIB = $(TPIELIBDIR)/libtpie.a
+TPIEBINDIR = ../bin
 
 ifdef DEBUG_APPS
 LOG_APPS = 1
@@ -55,7 +56,6 @@ APPS := test_ami_pmerge \
 	test_ami_bp \
 	test_ami_sm \
 	test_ami_sort24	\
-	sample_pgm \
 	test_ami_btree \
 	test_correctness
 
@@ -83,7 +83,7 @@ CSRC = getopt.c
 # Translation rules:
 
 %:%.o
-	$(LINK.cc) $^ $(LOADLIBES) $(LDLIBS) -o $@
+	$(LINK.cc) $^ $(LOADLIBES) $(LDLIBS) -o $(TPIEBINDIR)/$@
 
 
 # Specific dependencies, explicit and automatic.
@@ -112,7 +112,6 @@ test_ami_matrix: test_ami_matrix.o scan_count.o $(COMMONOBJ)
 test_ami_stack: test_ami_stack.o $(COMMONOBJ)
 test_ami_sm: test_ami_sm.o scan_uniform_sm.o $(COMMONOBJ)
 test_ami_sort24: test_ami_sort24.o $(COMMONOBJ)
-sample_pgm: sample_pgm.o $(COMMONOBJ)
 test_ami_btree: test_ami_btree.o
 test_correctness: test_correctness.o getopts.o
 

@@ -13,7 +13,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_gp_cpp,"$Id: test_ami_gp.cpp,v 1.15 2004-08-12 15:15:12 jan Exp $");
+VERSION(test_ami_gp_cpp,"$Id: test_ami_gp.cpp,v 1.16 2004-08-17 16:49:43 jan Exp $");
 
 // Get the application defaults.
 #include "app_config.h"
@@ -90,25 +90,25 @@ int main(int argc, char **argv)
     // Set the amount of main memory:
     MM_manager.set_memory_limit (test_mm_size);
 
-    AMI_STREAM<int> amis0;
-    AMI_STREAM<int> amis1;
+    AMI_STREAM<TPIE_OS_OFFSET> amis0;
+    AMI_STREAM<TPIE_OS_OFFSET> amis1;
 
     // Streams for reporting values to ascii streams.
     
     ofstream *osi;
-    cxx_ostream_scan<int> *rpti = NULL;
+    cxx_ostream_scan<TPIE_OS_OFFSET> *rpti = NULL;
 
     ofstream *osf;
-    cxx_ostream_scan<int> *rptf = NULL;
+    cxx_ostream_scan<TPIE_OS_OFFSET> *rptf = NULL;
 
     if (report_results_initial) {
         osi = new ofstream(initial_results_filename);
-        rpti = new cxx_ostream_scan<int>(osi);
+        rpti = new cxx_ostream_scan<TPIE_OS_OFFSET>(osi);
     }
 
     if (report_results_final) {
         osf = new ofstream(final_results_filename);
-        rptf = new cxx_ostream_scan<int>(osf);
+        rptf = new cxx_ostream_scan<TPIE_OS_OFFSET>(osf);
     }
 
     scan_count my_scan_count(test_size);
