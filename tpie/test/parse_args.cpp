@@ -7,7 +7,7 @@
 
 
 
-static char parse_args_id[] = "$Id: parse_args.cpp,v 1.1 1994-10-07 15:45:43 darrenv Exp $";
+static char parse_args_id[] = "$Id: parse_args.cpp,v 1.2 1995-01-10 16:47:10 darrenv Exp $";
 
 #include <GetOpt.h>
 #include <strstream.h>
@@ -19,7 +19,7 @@ static char parse_args_id[] = "$Id: parse_args.cpp,v 1.1 1994-10-07 15:45:43 dar
 void parse_args(int argc, char **argv, const char *as_opts,
                 void (*parse_app_opt)(char opt, char *optarg))
 {
-    static char standard_opts[] = "m:t:z:vb";
+    static char standard_opts[] = "m:t:z:v";
 
     // All options, stnadard and application specific.
     char *all_opts;
@@ -39,10 +39,7 @@ void parse_args(int argc, char **argv, const char *as_opts,
     while ((c = go()) != -1) {
         switch (c) {
             case 'v':
-                verbose = true;
-                break;
-            case 'b':
-                verbose = false;
+                verbose = !verbose;
                 break;
             case 'm':
                 istrstream(go.optarg,strlen(go.optarg)) >> test_mm_size;
