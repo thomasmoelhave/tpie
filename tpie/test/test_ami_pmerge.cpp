@@ -7,7 +7,7 @@
 // A test for AMI_partition_and_merge().
 
 
-static char partition_and_merge_id[] = "$Id: test_ami_pmerge.cpp,v 1.2 1994-09-26 19:22:03 darrenv Exp $";
+static char partition_and_merge_id[] = "$Id: test_ami_pmerge.cpp,v 1.3 1994-09-29 12:56:51 darrenv Exp $";
 
 // Use Owen's priority queue code.
 #define MERGE_VIA_TPQUEUE
@@ -16,10 +16,6 @@ static char partition_and_merge_id[] = "$Id: test_ami_pmerge.cpp,v 1.2 1994-09-2
 #include <tpqueue.h>
 #endif // MERGE_VIA_TPQUEUE
 
-
-#ifdef BTE_IMP_MMB
-#define BTE_MMB_LOGICAL_BLOCKSIZE_FACTOR 4
-#endif
 
 #ifdef BTE_IMP_CACHE
 #define BTE_MMB_CACHE_LINE_SIZE 256
@@ -33,6 +29,7 @@ static char partition_and_merge_id[] = "$Id: test_ami_pmerge.cpp,v 1.2 1994-09-2
 #include <stdlib.h>
 #include <sys/resource.h>
 #include <iostream.h>
+#include <fstream.h>
 #include <strstream.h>
 
 #include <GetOpt.h>
@@ -49,6 +46,11 @@ static char partition_and_merge_id[] = "$Id: test_ami_pmerge.cpp,v 1.2 1994-09-2
 //#define BTE_IMP_CACHE
 //#define BTE_IMP_STDIO
 //#define BTE_IMP_UFS
+
+#ifdef BTE_IMP_MMB
+#define BTE_MMB_LOGICAL_BLOCKSIZE_FACTOR 1
+#endif
+
 
 // Define it all.
 #include <ami.h>
@@ -401,8 +403,8 @@ int main(int argc, char **argv)
     MM_manager.resize_heap(test_mm_size);
     register_new = 1;
         
-    AMI_STREAM<int> amis0((unsigned int)0, test_size);
-    AMI_STREAM<int> amis1((unsigned int)0, test_size);
+    AMI_STREAM<int> amis0((unsigned int)1, test_size);
+    AMI_STREAM<int> amis1((unsigned int)1, test_size);
         
     // Write some ints.
     random_scan rnds(test_size,random_seed);
@@ -439,10 +441,14 @@ int main(int argc, char **argv)
     sort_merge sm;
 
     getrusage(RUSAGE_SELF, &ru0);
-    
+
+#if 0    
     ae = AMI_partition_and_merge(&amis0, &amis1,
                                  (AMI_merge_base<int> *)&sm);
-
+#else
+    ae = AMI_sort(&amis0, &amis1);
+#endif
+    
     getrusage(RUSAGE_SELF, &ru1);
 
     if (verbose) {
