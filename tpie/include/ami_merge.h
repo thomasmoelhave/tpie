@@ -8,7 +8,7 @@
 // lower level streams will use appropriate levels of buffering.  This
 // will be more critical for parallel disk implementations.
 //
-// $Id: ami_merge.h,v 1.15 1997-05-20 22:14:45 vengroff Exp $
+// $Id: ami_merge.h,v 1.16 1998-12-11 18:36:32 tavi Exp $
 //
 #ifndef _AMI_MERGE_H
 #define _AMI_MERGE_H
@@ -26,7 +26,7 @@ enum AMI_merge_output_type {
 typedef int AMI_merge_flag;
 typedef unsigned int arity_t;
 
-#define CONST 
+#define CONST const
 
 // A superclass for merge objects.
 template<class T>
