@@ -1,156 +1,563 @@
 %%
-%% $Id: tuning.tex,v 1.2 1999-06-20 23:54:27 tavi Exp $
+%% $Id: tuning.tex,v 1.3 1999-07-02 16:31:46 large Exp $
 %%
-\chapter{TPIE Performance Tuning}
+\chapter{Configuration and Performance Tuning}
+\label{sec:tuning}
 
-\section{Choosing a BTE Implementation} % and Setting Parameters}
+\comment{LA: Should there be something about compiling in this chapter (and
+about e.g including ami.h)?}
 
-Choosing the appropriate BTE implementation is both application and
-system dependent; and setting up BTE parameters is 
-application dependent. We describe here some simple approaches
-to determine these; one of the approaches involves using the
-\verb|bte_test.c| programs in the test directory.
+\section{TPIE Configuration}
+\label{sec:configuration}
 
-One criterion that should be carefully considered while setting BTE 
-parameters is the \verb|BTE_LOGICAL_BLOCKSIZE_FACTOR|. This parameter
-determines the unit of I/O and buffering used by the BTE stream
-implementation. In case of \verb|BTE_mmb| or \verb|BTE_ufs|
-implementations,  the amount of memory dedicated to a stream is 
-either \verb|BTE_LOGICAL_BLOCKSIZE_FACTOR| times the operating system 
-blocksize (no prefeteching) or twice  
-\verb|BTE_LOGICAL_BLOCKSIZE_FACTOR| times the operating system  blocksize
-(in the presence of prefetching). So the value of the
-\verb|BTE_LOGICAL_BLOCKSIZE_FACTOR| parameter, together with available
-memory, determines the number of BTE streams (and hence AMI streams)
-that can be active or ``alive'' at any time. This is an upper bound on
-the arity of a multi-way merge or a multi-way distribution operation
-that can be undertaken by a TPIE application; which can have a crucial
-impact on (say, the number of passes required in external sorting and
-hence the) net running time. The size of each buffer and the size of
-each I/O in the BTE stream is \verb|BTE_LOGICAL_BLOCKSIZE_FACTOR|
-times the operating system  blocksize, so this roughly
-corresponds to the amount of data brought in or written out at the
-cost of a single disk operation.  The latter observation suggests
-that \verb|BTE_LOGICAL_BLOCKSIZE_FACTOR| should be set to a high
-value; but a high value for this parameter inhibits the number of 
-streams active at a time and hence can result in an increase in the
-number of passes required in sorting. In the case of external memory
-indexing data structures based on trees, the value of the 
-\verb|BTE_LOGICAL_BLOCKSIZE_FACTOR| for any BTE stream (or BTE block
-collection, in future TPIE versions) used to implement 
-the external memory data structure should be made as close to the size
-of the tree node as possible.
+\index{Configuration}
 
-In order to decide an appropriate \verb|BTE_LOGICAL_BLOCKSIZE_FACTOR|
-or in fact to decide which one of the three BTE implementations 
-should be chosen, we also present in the test directory, a C program
-called \verb|bte_test.cpp|.
-  
+The exact behavior or TPIE at run time is controlled by several macros
+defined before including any TPIE headers. The macros are normally defined
+in the file \verb|app_config.h| which is then included in an application
+program. A typical example of such a file can be found in the \verb|test|
+directory and the (interesting parts of the) file is shown below. After
+the file we discuss the different macros.\comment{LA: Something general
+about TPIE configuration as set up by the configure-script needs to be
+included here (e.g. discuss config.h file).}
 
-This file contains a program that can be used to determine the 
-streaming speeds attained by \verb|BTE_stdio|, \verb|BTE_mmb|, and
-\verb|BTE_ufs| 
-streams on a given system. The performance of these implementations
-can vary significantly from system to system; and the information 
-that can be attained  can be used to decide which implementation
-is appropriate for a given system. 
-
-The C program simulates the buffering and I/O mechanisms/used by each 
-one of the BTE stream implementations so that the ``raw'' (only in the 
-sense that there is no TPIE layer between
-the program and the filesystem) streaming speed of an 
-I/O-buffering mechanism combination.
-
-To use the program,  \verb|#define| one of  \verb|MMAP_TEST|,
-\verb|READ_WRITE_TEST| or  \verb|STDIO_TEST|
- to be 1 depending on whether you want to test the streaming
-speed of  \verb|BTE_mmb|, \verb|BTE_ufs| or  \verb|BTE_stdio|;
-\verb|#define|  the other two 
-flags to 0. Also \verb|#define| the \verb|BLOCKSIZE_BASE|
- parameter to be equal to the underlying operating system blocksize. 
-
-%NOTE: The \verb|BTE_mmb| stream being simulated here is one that has 
-%an \verb|mmap()| based prefetching; this configuration is typically expected
-%to be the best possible \verb|mmap()|-based BTE implementation. The \verb|ftruncate()|
-%necessary while appending data to an to a file is done once every
-%twenty \verb|mmaps()|.  
-
-The program is to be compiled using a C compiler. In order to test the streaming 
-performance of  BTE streams of any type T (of size ItemSize), the program 
-first writes out some specified number NumStreams of BTE streams containing 
-a specified number NumItems of items of size ItemSize. Then, it carries
-out a perfect NumStreams-way interleaving of the streams via a simple
-merge like process, writing the output to an output stream. During the 
-computation, each of the NumStreams streams input to the merge and 
-the stream being output by the merge uses either one (when \verb|READ_WRITE_TEST|
-or \verb|STDIO_TEST| are set to 1)  or two (when \verb|MMAP_TEST| 
-is set to 1) buffers.
-In case of \verb|STDIO_TEST|, the buffers are not maintained in the program
-but by the stdio library. In the case of \verb|MMAP_TEST| or \verb|READ_WRITE_TEST|,
-each buffer is set to be of size \verb|BLOCK_FACTOR| times \verb|BLOCKSIZE_BASE|, and
-each I/O operation corresponds to a buffer-sized operation. 
-
-In order to test the streaming performance of a BTE stream with 
-\verb|items_in_block| items of size ItemSize in each block (that is, the
-block corresponding to the theoretical I/O model), the command line 
-sequence is:
+\subsection{app\_config.h}
 
 \begin{verbatim}
-bte_test NumItems ItemSize NumStreams BLOCK_FACTOR items_in_block DataFile 
+// Get the configuration as set up by the TPIE configure script.
+#include <config.h>
+
+/* ********************************************************************** */
+/*                      developer use                                     */
+/* ********************************************************************** */
+
+
+/* ********************************************************************** */
+/*                       choose BTE                                       */
+/* ********************************************************************** */
+
+/* Pick a version of BTE streams; default is BTE_IMP_UFS */
+//#define BTE_IMP_MMB
+//#define BTE_IMP_STDIO
+#define BTE_IMP_UFS
+
+
+/* ********************************************************************** */
+/*                      configure BTE                                     */
+/* ********************************************************************** */
+
+
+/* ********************************************************************** */
+/* BTE_MMB configuration options */
+/* ********************************************************************** */
+#ifdef BTE_IMP_MMB
+
+/* define logical blocksize; default is 32 * operating system blocksize */
+#define BTE_MMB_LOGICAL_BLOCKSIZE_FACTOR 32
+
+/* enable/disable TPIE read ahead; default is enabled (set to 1) */
+#define BTE_MMB_READ_AHEAD 1
+
+/* read ahead method, ignored unless BTE_MMB_READ_AHEAD is set to 1;
+   if USE_LIBAIO is enabled, use asynchronous IO read ahead; otherwise
+   use use mmap-based read ahead; default is mmap-based read ahead
+   (USE_LIBAIO not defined) */
+//#define USE_LIBAIO
+
+#endif
+
+
+/* ********************************************************************** */
+/* BTE_UFS configuration options */
+/* ********************************************************************** */
+#ifdef BTE_IMP_UFS
+
+/* define logical blocksize; default is 32 * operating system blocksize */
+#define BTE_UFS_LOGICAL_BLOCKSIZE_FACTOR 32
+
+/* enable/disable TPIE read ahead; default is disabled (set to 0) */
+#define BTE_UFS_READ_AHEAD 0
+
+/* read ahead method, ignored unless BTE_UFS_READ_AHEAD is set to 1;
+   if USE_LIBAIO is set to 1, use asynchronous IO read ahead;
+   otherwise no TPIE read ahead is done; default is disabled (set to
+   0) */
+#define USE_LIBAIO 0
+
+#endif
+/********************************************************************/
+
+
+/********************************************************************/
+/*  THE FOLLOWING MACROS ARE NORMALLY NOT MODIFIED BY USER           */
+/********************************************************************/
+
+/* Use the single BTE stream version of AMI streams; in the current
+   option this is the only option */
+#define AMI_IMP_SINGLE
+
+/* enable/disable virtual interface; normally disabled */
+#ifndef AMI_VIRTUAL_BASE
+#define AMI_VIRTUAL_BASE 0
+#endif
+#ifndef BTE_VIRTUAL_BASE 
+#define BTE_VIRTUAL_BASE 0
+#endif
+
+
+/********************************************************************/
+/*                            logging;                              */
+/*              this should NOT be modified by user!!!              */
+/*       in order to enable/disable library/application logging,    */
+/*     run tpie configure script with appropriate options           */
+/********************************************************************/
+// Use logs if requested.
+#if TP_LOG_APPS
+#define TPL_LOGGING 1
+#endif
+
+#include <tpie_log.h>
+
+// Enable assertions if requested.
+#if TP_ASSERT_APPS
+#define DEBUG_ASSERTIONS 1
+#define DEBUG_CERR 1
+#define DEBUG_STR 1
+#endif
+#include <tpie_assert.h>
+/********************************************************************/
 \end{verbatim}
 
+\subsection{Macros in app\_config.h}
+
+\begin{description}
+\item[{\verb|BTE\_IMP\_*|}] Used to choose which of the available Block
+Transfer Engine (see Section~\ref{sec:ref-bte}) implementations to
+use. Version \version~of TPIE is distributed with three BTEs and the
+desired BTE is chosen by defining \verb|BTE_IMP_STDIO|, \verb|BTE_IMP_MMB|
+or \verb|BTE_IMP_UFS|. See Section~\ref{sec:ref-bte} for a discussion of
+the implementation details in these BTEs. The next section discusses how to
+choose an appropriate BTE for a given application in order to obtain
+maximal performance.
+
+  \index{BTE_IMP_*@{\tt BTE\_IMP\_*}}
+  \index{block transfer engine!implementation}
+  \index{implementation!BTE}
+\end{description}
+
+\noindent
+If \verb|BTE_IMP_MMB| or \verb|BTE_IMP_UFS| is defined, the following macros
+are used to control BTE options (how to set the options for maximal
+performance is discussed in the next section):
+
+  \begin{description}
+
+  \item[{\verb|BTE\_\*\_LOGICAL\_BLOCKSIZE\_FACTOR|}] This macro sets the
+  logical blocksize used by the BTE in units of the physical block size
+  (refer to Section~\ref{sec:ref-bte}). Value 1 indicates that the logical
+  blocksize is the same as the physical blocksize of the OS.
+
+  \item[{\verb|BTE\_*\_READ\_AHEAD|}] Defining this macro instructs the
+  BTE to optimize for sequential read speed by reading blocks into main
+  memory before the data they contain is actually needed.
+
+  \index{BTE_MMB_READ_AHEAD@{\tt BTE\_MMB\_READ\_AHEAD}}
+  \index{read ahead}
+  
+  \item[{\verb|USE\_LIBAIO|}] If \verb|BTE_MMB_READ_AHEAD| is defined,
+  defining this macro results in the read ahead being performed using the
+  asynchronous I/O library \verb|libaio|. If the macro {\verb|USE_LIBAIO|}
+  is not defined the read ahead is done using \verb|mmap| and double
+  buffering in the case of \verb|BTE_IMP_MMB| and not done at all in the
+  case of \verb|BTE_IMP_UFS| (refer to Section~\ref{sec:ref-bte}).
+
+  \index{libaio library@{\tt libaio}}
+  \index{USE\_LIBAIO }
+  \end{description}
+
+\noindent
+The rest of the macros are normally not modified by TPIE application
+programmer:
+
+\begin{description}
+\item[{\verb|AMI\_IMP\_*|}] This macro controls which Access Method
+Interface implementations (see Section~\ref{sec:ref-bte}) to use. Version
+\version~of TPIE is only distributed with one AMI implementation, which stores
+the contents of a given stream on a single disk. This implementation is
+selected by defining \verb|AMI_IMP_SINGLE|.
+
+  \index{AMI_IMP_*@{\tt AMI\_IMP\_*}}
+  \index{access method interface!implementation}
+  \index{implementation!AMI}
+  \index{implementation!AMI!single disk}
+
+\item[{\verb|AMI\_VIRTUAL\_BASE|}] Defining this macro makes the base class
+declares a large number of virtual functions for the class
+\verb|AMI_base_stream|, which is the base class of all implementations of
+AMI streams. This is useful for debugging new AMI stream implementations,
+but many compilers cannot properly inline virtual functions, so it slows
+the system down significantly.
+
+  \index{AMI_VIRTUAL_BASE@{\tt AMI\_VIRTUAL\_BASE}}
+  \index{virtual base class!AMI} 
+
+\item[{\verb|BTE\_VIRTUAL\_BASE|}] Similar to \verb|AMI_VIRTUAL_BASE|, but
+for the BTE layer.
+  
+  \index{BTE_VIRTUAL_BASE@{\tt BTE\_VIRTUAL\_BASE}}
+  \index{virtual base class!BTE} 
+
+%All the AMI streams in TPIE are instances of a class derived from the base
+%stream class \verb|AMI_base_stream|. Although this base class has no
+%functionality in itself, it can provide the minimum set of methods that
+%need to be implemented by a derived class in order to have the required
+%stream functionality. This is done by using abstract virtual methods. To
+%tell TPIE to declare these methods in the base stream class you need to
+%set \verb|AMI_VIRTUAL_BASE| to 1 (either in the application's
+%configuration, or during compilation by using the -D flag). Similarly,
+%\verb|BTE_VIRTUAL_BASE| controls the behavior of the BTE streams.
+%
+%By default, both BTE and AMI streams use a non-virtual base. By doing this,
+%the performance of the stream methods is improved dramatically, in many
+%cases. The biggest gain is obtained from inlining short methods (virtual
+%methods cannot be inlined). 
+%
+%We believe this setup provides a good compromise between the need for high
+%performance one one hand, and clarity, modularity and debugging support on
+%the other hand.
+
+
+\item[{\verb|TPL\_LOGGING|}] Set to a non-zero value to enable logging of
+TPIE's internal behavior.\comment{LA: Is this correct?} By default,
+information is logged to the log file\index{log file} \verb|/tmp/TPLOG_XXX|
+where \verb|XXX| is a unique system dependent identifier. Typically it
+encodes the process ID of the TPIE process that produced it in some
+way. See Section~\ref{sec:logging} for information on exactly what TPIE
+writes to the log file.
+
+  \index{TPL_LOGGING@{\tt TPL\_LOGGING}}
+
+\item[{\verb|DEBUG\_ASSERTIONS|}] Define to enable TPIE assertions. These
+assertions check for inconsistent or erroneous conditions within TPIE
+itself. They are primarily intended to aid in the debugging of TPIE. Some
+overhead is added to programs compiled with this macro set.
+
+  \index{DEBUG_ASSERTIONS@{\tt DEBUG\_ASSERTIONS}}
+  \index{debugging!TPIE}
+
+\item[{\verb|DEBUG\_CERR|}] Defining this macro tells TPIE to write all
+internal assertion messages to the C++ standard error stream \verb|cerr| in
+addition to the TPIE log file.
+
+ \index{DEBUG_CERR@{\tt DEBUG\_CERR}}
+ \index{debugging!TPIE}
+
+\item[{\verb|DEBUG\_STR|}] Defining this macro enables certain debugging
+messages that report on the internal behavior of TPIE but do not
+necessarily indicate error conditions. In some cases this can increase the
+size of the log dramatically.
+
+  \index{DEBUG_STR@{\tt DEBUG\_STR}}
+  \index{debugging!TPIE}
+
+\end{description}
+
+
+\subsection{Environment Variables}
+\index{Environment variables}
+
+In version \version~of TPIE there is only one environment variable. The
+variable is called \verb|AMI_SINGLE_DEVICE| and defines where TPIE places
+temporary streams. The default location is \verb|/var/tmp|. If a different
+location is desired, \verb|AMI_SINGLE_DEVICE| must be set accordingly. For
+example (in C-shell): setenv AMI\_SINGLE\_DEVICE /usr/project/tmp/.
+
+\section{TPIE Performance Tuning}
+\index{Performance tuning}
+
+\subsection{Choosing and Configuring a BTE Implementation}
+\label{sec:choosingbte}
+
+\comment{LA: This needs an overhaul!}
+
+Choosing an appropriate BTE implementation (and BTE parameter settings) for
+best performance is both application and system dependent. (See
+section~\ref{sec:ref-bte} for a description of the three BTEs TPIE is
+currently distributed with). Theoretically, \verb|BTE_mmb| should have the
+best performance for most applications, because space and copy time is
+saved relative to \verb|BTE_stdio| and \verb|BTE_ufs| as steam objects do
+not have to pass through kernel level buffer space when accessed. On the
+other hand, buffering and prefetching has to be explicitly implemented in
+\verb|BTE_mmb| whereas it is (typically) done by the OS in \verb|BTE_stdio|
+and \verb|BTE_ufs|. Also theoretically, \verb|BTE_ufs| (and \verb|BTE_mmb|)
+should perform better than \verb|BTE_stdio| because of fewer kernel calls
+and because of the (possible) larger logical block size. However, in
+practice the performance of the three BTE's are very system (and
+application) dependent. This is for example due to different
+implementations of the \verb|fread()|, \verb|fwrite()|, \verb|read()|,
+\verb|write()|, \verb|mmap()|, and \verb|munmap()| calls on different
+machines.\comment{LA: Other reasons?}
+
+The most important BTE configuration parameter is the logical block size
+setting of the \verb|BTE_mmb| and \verb|BTE_ufs|. As discussed in
+Section~\ref{sec:ref-bte}, a large setting increases performance due to the
+less kernel calls and due to the (track) buffering and prefetching in the
+disk controller, while a too large setting results in decreased performance
+due to the BTE's use of main memory. Thus this parameter should be chosen
+carefully. As far at the other BTE configuration parameters (prefetching)
+are concerned, the default settings in the \verb|app_config.h| file in the
+\verb|test| directory are normally the best.
+
+%One criterion that should be carefully considered while setting BTE
+%parameters is the \verb|BTE_LOGICAL_BLOCKSIZE_FACTOR|. This parameter
+%determines the unit of I/O and buffering used by the BTE stream
+%implementation. In case of \verb|BTE_mmb| or \verb|BTE_ufs|
+%implementations, the amount of memory dedicated to a stream is either
+%\verb|BTE_LOGICAL_BLOCKSIZE_FACTOR| times the operating system blocksize
+%(no prefetching) or twice \verb|BTE_LOGICAL_BLOCKSIZE_FACTOR| times the
+%operating system blocksize (in the presence of prefetching). So the value
+%of the \verb|BTE_LOGICAL_BLOCKSIZE_FACTOR| parameter, together with
+%available memory, determines the number of BTE streams (and hence AMI
+%streams) that can be active or ``alive'' at any time. This is an upper
+%bound on the arity of a multi-way merge or a multi-way distribution
+%operation that can be undertaken by a TPIE application; which can have a
+%crucial impact on (say, the number of passes required in external sorting
+%and hence the) net running time. The size of each buffer and the size of
+%each I/O in the BTE stream is \verb|BTE_LOGICAL_BLOCKSIZE_FACTOR| times the
+%operating system blocksize, so this roughly corresponds to the amount of
+%data brought in or written out at the cost of a single disk operation.  The
+%latter observation suggests that \verb|BTE_LOGICAL_BLOCKSIZE_FACTOR| should
+%be set to a high value; but a high value for this parameter inhibits the
+%number of streams active at a time and hence can result in an increase in
+%the number of passes required in sorting.
+%%In the case of external memory indexing data structures based on trees, the
+%value of the \verb|BTE_LOGICAL_BLOCKSIZE_FACTOR| for any BTE stream (or BTE
+%block collection, in future TPIE versions) used to implement the external
+%memory data structure should be made as close to the size of the tree node
+%as possible.
+
+In order to help in deciding which BTE to choose for a given
+application/system, as well as deciding on what logical block size to use
+(in \verb|BTE_mmb| and \verb|BTE_ufs|), we have included a C program in the
+\verb|test| directory of the TPIE distribution called \verb|bte_test.c|.
+This program can be used to determine the streaming speeds attained by
+\verb|BTE_stdio|, \verb|BTE_mmb|, and \verb|BTE_ufs| streams on a given
+system. The program simulates the buffering and I/O mechanisms used by each
+of the BTE stream implementations so that the ``raw'' (in the sense that
+there is no TPIE layer between the program and the filesystem) streaming
+speed of an I/O-buffering mechanism combination can be determined. To use
+the program, define one of \verb|MMAP_TEST|,
+\verb|READ_WRITE_TEST|\comment{LA: Why not UFS\_TEST?} or \verb|STDIO_TEST|
+in the program depending on whether you want to test the streaming speed of
+\verb|BTE_mmb|, \verb|BTE_ufs| or \verb|BTE_stdio|. Also define the
+\verb|BLOCKSIZE_BASE| parameter to be equal to the underlying operating
+system blocksize.\comment{LA: Why not automatic?} Compile the program using
+a C compiler. In order to test the streaming performance of BTE streams of
+objects of size \verb|ItemSize|, the program first writes out some
+specified number \verb|NumStreams| of BTE streams containing a specified
+number \verb|NumItems| of items. Then it carries out a perfect
+\verb|NumStreams|-way interleaving of the streams via a simple merge like
+process, writing the output to an output stream. During the computation,
+each of the \verb|NumStreams| streams input to the merge, as well as the
+stream being output by the merge uses either one (when
+\verb|READ_WRITE_TEST| or \verb|STDIO_TEST| are set to 1) or two (when
+\verb|MMAP_TEST| is set to 1) buffers.  In case of \verb|STDIO_TEST|, the
+buffers are not maintained in the program but by the stdio library. In the
+case of \verb|MMAP_TEST| or \verb|READ_WRITE_TEST|, each buffer is set to
+be of size \verb|block_factor| times \verb|BLOCKFACTOR_BASE|, and each I/O
+operation corresponds to a buffer-sized operation. To test the streaming
+performance of a BTE stream with \verb|items_in_block| items in each block
+simply execute:
+\begin{verbatim}
+bte_test NumItems ItemSize NumStreams block_factor items_in_block DataFile 
+\end{verbatim}
 The output of the program (streaming speed) is appended to the file
-DataFile. The streaming speed, alternatively called I/O Bandwidth,
-is given in units of MB/s.
-\index{block transfer engine|)}
+\verb|DataFile|. The streaming speed, alternatively called I/O Bandwidth,
+is given in units of MB/s, and can be used to decide which BTE to use and
+how to configure it.
 
-\section{Virtual and Non-virtual Streams}
+\subsection{Other Factors Affecting Performance}
 
-All the AMI streams in TPIE are instances of a class derived from the base
-stream class \verb|AMI_base_stream|. Although this base class has no
-functionality in itself, it can provide the minimum set of methods that
-need to be implemented by a derived class in order to have the required
-stream functionality. This is done by using abstract virtual methods. To
-tell TPIE to declare these methods in the base stream class you need to
-set \verb|AMI_VIRTUAL_BASE| to 1 (either in the application's
-configuration, or during compilation by using the -D flag). Similarly,
-\verb|BTE_VIRTUAL_BASE| controls the behavior of the BTE streams.
+In addition to the choice (and configuration) of BTE, a number of other
+factors, not all of which are TPIE specific, can effect the performance of
+a TPIE application.
 
-By default, both BTE and AMI streams use a non-virtual base. By doing this,
-the performance of the stream methods is improved dramatically, in many
-cases. The biggest gain is obtained from inlining short methods (virtual
-methods cannot be inlined). 
-
-We believe this setup provides a good compromise between the need for high
-performance one one hand, and clarity, modularity and debugging support on
-the other hand.
-
-
-\section{Inlining Operation Management Object Methods}
-
-The title of this section is self-explanatory. However, failing to inline
-the \verb|operate()| method of the operation management classes you create
-could be a major source of lackluster performance of your application,
-since \verb|operate()| is called once for every element in a stream that is
-being scanned. This is, of course, just a suggestion to the compiler, which
-can choose to ignore it. In order to maximize the chances to have the
-method inlined, keep it short and simple. A way to do this is to wrap
-complex pieces of code that are called less often in separate functions.
-
-\section{Other factors afecting performance}
-
-This is an eclectic list of performance-afecting parameters, not all of
-which are TPIE specific.
-\begin{itemize}
-\item[g++ optimization] We recommend using the \verb|-O2| level of
-optimization of g++ in order to obtain the best overall
-performance. Although higher speeds could be obtained using \verb|-O3|,
-this optimization leads to increased size of the program, potentially
-hurting performance. 
-\item[memory size] To insure that no disk swapping is done, the size of
-main memory used by TPIE should be set to a realistic value, which is
-usually much smaller than the size of the memory installed in the computer
-(due to operating system resources and daemons).
-\end{itemize}
+\begin{description}
+\item[Inlining operation management object methods] Failing to inline the
+\verb|operate()| method of operation management objects can be a major
+source of lackluster performance of an application, since \verb|operate()|
+is called once for every object in a stream being scanned. Inlining of
+\verb|operate()| is, of course, just a suggestion to the compiler, which
+can choose to ignore it. In order to maximize the likelihood of inlining,
+it is a good idea to keep the function  short and simple. One way of
+doing this is to wrap complex pieces of code that are called less often in
+separate functions.
+\item[\verb|gcc| optimization] We recommend using the \verb|-O2| level of
+optimization of \verb|gcc| in order to obtain the best overall
+performance. Although better performance can normally be obtained using
+\verb|-O3|, this optimization leads to increased program size which can
+potentially result in decreased performance.
+\item[Memory size] To insure that no disk swapping is done by the OS, the
+size of main memory used by TPIE (set by \verb|MM_manager.resize_heap()|,
+see Section\ref{sec:compiling} and Section~\ref{sec:mm-ref}) should be set
+to a realistic value. The best value is usually much smaller than the size
+of the memory installed in the computer (due to memory use of operating
+system resources and daemons).
+\end{description}
 
 %\section{Using Multiple Physical Devices}
+
+
+\section{TPIE Logging}\index{logging}
+\label{sec:logging}
+
+\comment{LA: The whole logging thing needs to be reevaluated and changed}
+When logging is turned on (see Section \ref{sec:configuration}), TPIE
+creates a log file\index{log file} in \verb|/tmp/TPLOG_XXXXXX|, where
+\verb|XXXXXX| is a unique system dependent identifier. TPIE writes into
+this file using a \verb|logstream| class, which is derived from
+\verb|ofstream| and has the additional functionality of setting a priority
+and a threshold for logging. If the priority of a message is smaller
+than the threshold, the message is not logged. There are three priority
+levels defined in TPIE, as follows.
+\begin{description}
+\item[\verb|TP\_LOG\_FATAL|] is the highest level and is used for all kinds
+of errors that would normally impair subsequent computations. Errors are
+always logged;
+\item[\verb|TP\_LOG\_WARNING|] is the next lowest and is used for warnings.
+\item[\verb|TP\_LOG\_DEBUG\_INFO|] is the lowest level and is used for debugging information and any other information that might be useful for the developer.
+\end{description}
+By default, the threshold of the log is set to the lowest level, \verb|TP_LOG_DEBUG_INFO|.
+
+Three macros are provided for writing into the log:
+\begin{quote}
+\verb|LOG_FATAL|({\em msg})
+
+\verb|LOG_WARNING|({\em msg})
+
+\verb|LOG_DEBUG_INFO|({\em msg}),
+\end{quote}
+where {\em msg} is the information to be logged; {\em msg} can be any type
+that is supported by the \verb|C++| \verb|fstream| class. Each of these
+macros sets the corresponding priority and sends {\em msg} to the log
+stream.
+
+%{\em Logging should always be done using one of the above macros.} Any
+%other method of logging could hinder the ability of TPIE to turn off
+%logging and, as a result, could affect performance.
+
+
+%\subsection{Template Instantiation}
+
+%{\bf Important Note:} Much of the information in this section is
+%likely to change as the template instantiation mechanism of the 
+%{\tt g++}\index{g++@{\tt g++}} compiler improves.  If you are
+%interested in the nitty gritty details of template instantiation,
+%consult~\cite{ellis:arm} or one of the frequent discussions on the
+%topic in the newsgroup {\tt comp.lang.c++}
+%\index{comp.lang.c++@{\tt comp.lang.c++}}.
+
+%\index{templates!instantiation|(}
+%\noindent Most of the classes and functions TPIE defines are
+%templated.  Furthermore, many user written operation management
+%object\index{operation management objects!user supplied} classes are
+%likely to be templated; many of those supplied with the test and
+%sample applications are.
+
+%Unfortunately, many C++\index{C++} compilers do not properly implement
+%templated function and/or classes.  In particular, the GNU C++
+%compiler, {\tt g++}\index{g++@{\tt g++}}, version \gxxversion, which
+%was used in the development of TPIE has some deficiencies when it
+%comes to template instantiation.  It also has a well defined mechanism
+%for working around these deficiencies, which TPIE takes significant
+%advantage of.  This mechanism prevents the compiler from implicitly
+%instantiating any template.  Thus, all templates used by a program
+%must be explicitly instantiated at compile time or they will not be
+%available at link time and linking will fail.
+
+%In order to tell {\tt g++}\index{g++@{\tt g++}} not to implicitly
+%instantiate any templates, the {\tt -fno-implicit-templates} flag is
+%used.  Additionally, the macro {\tt NO\_IMPLICIT\_TEMPLATES} should be
+%defined on the command line, using {\tt -D}.  This macro informs TPIE
+%that it should not rely on the presence of implicit template
+%instantiation.  In response to the fact that this macro is set, TPIE
+%defines a series of new macros with names of the form {\tt
+%  TEMPLATE\_INSTANTIATE\_*}.  
+%\index{TEMPLATE_INSTANTIATE_*@{\tt TEMPLATE\_INSTANTIATE\_*}|(}
+%Each of these macros can be used to
+%actually instantiate some set of functions and/or classes that TPIE
+%needs to provide a given operation.  These macros should be used at
+%the end of your source file in order to perform the proper
+%instantiations.
+
+%The {\tt TEMPLATE\_INSTANTIATE\_*} macros likely to be needed by TPIE
+%programmers are as follows:
+%\begin{description}
+%\item[{\tt TEMPLATE\_INSTANTIATE\_STREAMS(T)}] Instantiate AMI and
+%  BTE level streams of objects of type {\tt T}.  If your
+%  application uses streams of several types, this macro must be called
+%  once for each of them.
+%\item[{\tt TEMPLATE\_INSTANTIATE\_ISTREAM(T)}]
+%\item[{\tt TEMPLATE\_INSTANTIATE\_OSTREAM(T)}] Instantiate ASCII
+%  input and output scan management objects for the type {\tt T}.
+%  See Section~\ref{sec:ascii-io} for details on these objects.
+%  \index{scanning!ASCII I/O}
+%\item[{\tt TEMPLATE\_INSTANTIATE\_AMI\_MERGE}] Instantiate merging entry
+%  points for streams of objects of type {\tt T}.  Merging is described
+%  in Section~\ref{sec:merging}.
+%\item[{\tt TEMPLATE\_INSTANTIATE\_SORT\_OP(T)}]
+%\item[{\tt TEMPLATE\_INSTANTIATE\_SORT\_CMP(T)}]
+%\item[{\tt TEMPLATE\_INSTANTIATE\_SORT\_OBJ(T)}] Instantiate
+%  respectively operator, comparison function, and comparison object
+%  based sorting of objects of type {\tt T}.  See
+%  Section~\ref{sec:cmp-sorting} for details on these types of sorting.
+%\item[{\tt TEMPLATE\_INSTANTIATE\_KB\_SORT(T)}] 
+%\item[{\tt TEMPLATE\_INSTANTIATE\_KB\_SORT\_KEY(T,K)}] Instantiate key
+%  bucket distribution sorting of objects of type {\tt T}.  The latter
+%  form uses key {\tt K} for sorting.  Section~\ref{sec:kb-sorting}
+%  describes key bucket sorting.
+%\item[{\tt TEMPLATE\_INSTANTIATE\_STREAM\_ADD(T)}]
+%\item[{\tt TEMPLATE\_INSTANTIATE\_STREAM\_SUB(T)}]
+%\item[{\tt TEMPLATE\_INSTANTIATE\_STREAM\_MULT(T)}]
+%\item[{\tt TEMPLATE\_INSTANTIATE\_STREAM\_DIV(T)}]
+%  Instantiate elementwise arithmetic operations on streams of objects
+%  of type {\tt T} as described in Section~\ref{sec:elementwise}.
+%\item[{\tt TEMPLATE\_INSTANTIATE\_AMI\_MATRIX}]
+%  Instantiate dense matrices of objects of type {\tt T} and the
+%  standard operations on them.  Dense
+%  matrices are described in
+%  Section~\ref{sec:dense-mat}.\index{matrices!dense}
+%\item[{\tt TEMPLATE\_INSTANTIATE\_AMI\_SPARSE\_MATRIX}]
+%  Instantiate sparse matrices of objects of type {\tt T} and the
+%  standard operations on them.  Sparse
+%  matrices are described in
+%  Section~\ref{sec:dense-mat}.\index{matrices!sparse}
+%\end{description}
+%\index{TEMPLATE_INSTANTIATE_*@{\tt TEMPLATE\_INSTANTIATE\_*}|)}
+
+%In addition to instantiating functions and classes using the macros
+%described above, it is often necessary to explicitly instantiate
+%particular instances of AMI entry points for user supplied operation
+%management objects.  For example, suppose we declare a scan management
+%object class such as
+%\begin{verbatim}
+%class my_scan_class : AMI_scan_object {
+%public:
+%    AMI_err initialize(void);
+%    AMI_err operate(const int &in1, const int &in2, AMI_SCAN_FLAG *sfin,
+%                    float *out, AMI_SCAN_FLAG *sfout); 
+%}
+%\end{verbatim}
+%Then, in order to explicitly instantiate \verb|AMI_scan()| to use
+%objects of this type, we would use the following code:
+%\begin{verbatim}
+%template AMI_err AMI_scan(AMI_STREAM<int> *, AMI_STREAM<int> *, 
+%                          my_scan_class *, AMI_STREAM<float> *); 
+%\end{verbatim}
+%This instantiates an instance of \verb|AMI_scan()| that takes two input
+%streams of \verb|int|s, operates on them with an object of type
+%\verb|my_scan_class|, and produces an output stream of \verb|float|s.  
+%Note the correspondence between the types of input and output streams
+%and the types of the operands to the \verb|operate()| member function
+%of the class \verb|my_scan_class|.
+%\index{templates!instantiation|)}
