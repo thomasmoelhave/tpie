@@ -7,14 +7,12 @@
 // A basic implementation of quicksort for use in core by AMI_sort() on
 // streams or substreams that are small enough.
 //
-// $Id: quicksort.h,v 1.9 1997-05-22 18:50:52 large Exp $
+// $Id: quicksort.h,v 1.10 1997-05-23 02:02:59 large Exp $
 //
 #ifndef _QUICKSORT_H
 #define _QUICKSORT_H
 
-#if 0
 extern "C" long int random(void);
-#endif
 
 #include <comparator.h>
 
