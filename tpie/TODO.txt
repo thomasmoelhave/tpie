@@ -1,3 +1,4 @@
+Modified: 1999 11 07 dh.
 
 This is the "to-do-list" - feel free to add stuff to it! Stuff that needs
 to be done on the manual is include in the .tex files using \comment{} -
@@ -8,41 +9,65 @@ can be found in the BUGemail directory. Fell free to add stuff there!
 
 General:
 --------
+* gcc 2.95 gives error in operator new code which returns null
+  (status: fixed in 0.9.01b release)
 
-* Is the stack implementation ok?
+* Is the stack implementation ok? Write stack section of manual.
+  (status: Tavi to do as part of Block Collection (BC) implementation)
 
 * Cleanup #define in config.h
-  - flags or macros?!
+  - flags or macros?
+  (status: both required. Closed.)
 
 * Logging needs to be fixed
   - separate application program and TPIE internal logging
+  (status: Tavi added APP as 4th level of logging: order is now 
+           TPIE errors, TPIE warnings, APP messages, TPIE debug
+           messages. Default is to log APP-level and above, when
+           logging is turned on. Logging turned off by default. 
+           -- V0.9.01b.
+
+           To discuss: turn on logging by default, log to a permanent
+           file with known name, other proposals?)
 
 * Statistics
   - currently only in BTE_mmb; should be in all BTE's
   - should be accessible at AMI level
+  (Status: Dave to propose AMI/BTE cooperation mechanism for stats,
+           provide specs for stats collection in other BTEs, incl. BC)
 
 * Support for parallel disks
   - some code is probably present in merge_optimized.h and Rakesh should
     have a new BTE
+  (Status: not in next release. Low priority.)
 
 * Clear up confusion between AMI and BTE stream types
   - make uniform naming and check that all AMI/BTE pairs works similarly
   - r_only flag in AMI?
+  (Status: Dave to make proposal.)
 
-* Clean up device stuff in ami_single.h (and other places)
+* Clean up device stuff re scratch files in ami_single.h (and other places)
   - what does it do?
+  (Status: to be determined.)
 
-* Remove PERSISTENT_READ_ONCE code
+* Remove PERSISTENT_READ_ONCE code (depends on Linux hack)
+  (Status: to be determined)
 
 * Why isn't substream constructor a real constructer?
   - also; are BTE constructors ok? (separate names)
+  (Status: to be determined)
 
 * Clean up files (did we remove all unused files?)
+  (Status: ongoing)
 
 * Clean up bte_test.c program:
   - automatic run with set of parameters?
   - flag cleanup (READ_WRITE_TEST -> UFS_TEST)
   - prefetching operations?
+  Clean up other test programs: Standard comment header in programs
+  explaining purpose and operation, readable output that indicates
+  explicitly whether test was successful.
+  (Status: Dave (and others?))
 
 MM:
 ---
@@ -50,42 +75,99 @@ MM:
 * Introduce better name/mechanism for register_new
 * rename mm_register.h to mm_single.h (?)
 * clean up code
+(Status: New manual sections written. Changes to memory manager agreed  
+        and complete. 
+        Dave to make corresponding changes to library code. Laura to 
+        make corresponding changes to test programs.)
 
 AMI:
 ----
 
 * fix problem with constructor (bad path -> crash)
+  (The problem is that there is no way for a BTE constructor to tell
+  the AMI level that the file could not be opened. The AMI level
+  continues and eventually causes a severe error by trying to use the
+  unopened file.)
+  (Status: Dave to propose a solution for discussion.)
+
 * AMI_merge_base should be AMI_merge_object
+  (Status: to be determined)
+
 * Why so many AMI_MM_usage flags?
+  (Status: to be determined)
+
 * Function objects in AMI_merge and AMI_sort (for improved efficiency)
+  (Status: Dave to report.)
+
 * Cleanup/modification of ami_optimized_merge.h
   - introduction of function objects should help
   - add comparator class polymorph
   - add forecasting stuff (I think there is code in there already)?
+  (Status: Dave to report. Related to function objects investigation.)
+
 * Distribution needs to be written
   - something probably available in kb_sort stuff
+  (Status: to be determined)
+
 * Add distribution sweeping
   - also add spatial join example (SSSJ)
+  (Status: to be determined)
+
 * Add index structures (when BTE_bcc done)
   - B-trees
   - R-trees
   - Priority queue
+  (Status: undergrad student to implement?)
+
 * Overlap last merge in sorting with computation (save scan)
   - can we maybe introduce a 'piping' mechanism?
+  (Status: to be determined)
 
 BTE:
 ----
 
-* BTE_STREAM_STATUS used?
-  - if not remove!
+* BTE_STREAM_STATUS used? - if not remove!
+  (Status: to be determined)
+
 * BTE_ufs cleanup
   - name should be BTE_stream_ufs instead of BTE_single_disk (for
     consistency)
   - Should we remove aio option?
+  - fix references to MMB in UFS code
+  - rename mmap_stream_header
+  (Status: Dave to cleanup)
+
 * Block collection (BTE_bcc)
   - code for BTE exists in bcc_base.h and block_collection.h;
     needs to be cleaned-up/tested
   - code for AMI (typed view, ect) needs to be written
-* Fix code that allows several BTEs to coexist
-* Why is BTE_mmb not called BTE_mmp?
-* madvice in BTE_mmb?
+  (Status: Tavi to make proposal), implement)
+
+* Miscellaneous:
+   - Fix code that allows several BTEs to coexist
+   - Why is BTE_mmb not called BTE_mmp?
+   -  madvice in BTE_mmb?
+  (Status: What are the problems here?)
+
+*Manual:
+  - incomplete and missing descriptions in REFERENCE and
+    IMPLEMENTATION chapters
+  (Status: Dave to provide missing descriptions)
+
+*Tuning:
+  - stacks
+  - "function objects" (performance-wise equivalent to inlined 
+    operate methods)
+    - in sort and merge
+    - in scan, permute, etc.?
+  - faster in-memory procedures
+     - (Tavi's quicksort mods in V0.9.01b)
+     - cache-efficient procedures (validate via cache simulations?)
+  - commit to 'optimized' versions of sort and merge
+  - profiling to detect hot spots
+
+* reducing uncertainty and effort on releases
+  - scripts 
+  - documentation / instructions
+  (Status: Rajiv wrote scripts and instructions. Dave adapted scripts 
+           and instructions while preparing release 0.9.01b)
