@@ -2,7 +2,7 @@
 #
 # The Makefile for the complete TPIE system.
 #
-# $Id: Makefile.in,v 1.16 1995-03-07 15:31:09 darrenv Exp $
+# $Id: Makefile.in,v 1.17 1999-07-03 03:34:00 rajiv Exp $
 #
 
 MY_DEFS := @DEFS@
@@ -23,14 +23,12 @@ TESTPATH := ./test/
 
 INCPATH := ./include/
 
-DOCPATH := ./doc/
-
 usage:
-	@echo $(MAKE) "[ all | inc | lib | test | doc | clean | distclean ]"
+	@echo $(MAKE) "[ all | include | lib | test | clean | distclean ]"
 
-all: inc lib test doc
+all: include lib test 
 
-inc:
+include:
 	$(MAKE) -C $(INCPATH) all
 
 lib: 
@@ -40,20 +38,16 @@ lib:
 test: 
 	$(MAKE) -C $(TESTPATH) all
 
-doc:
-	$(MAKE) -C $(DOCPATH) all
-
-.PHONY : clean lib inc test doc usage all distclean
+.PHONY : clean lib include test usage all distclean
 
 distcleandir = (rm -f $(dir)*~; rm -f $(dir)Makefile)
 
-dirs := ./ $(TESTPATH) $(LIBPATH) $(LIBSRCPATH) $(INCPATH) $(DOCPATH)
+dirs := ./ $(TESTPATH) $(LIBPATH) $(LIBSRCPATH) $(INCPATH)
 
 clean:
 	$(MAKE) -C $(TESTPATH) $@
 	$(MAKE) -C $(LIBPATH) $@
 	$(MAKE) -C $(INCPATH) $@
-	$(MAKE) -C $(DOCPATH) $@
  
 distclean: clean
 	$(foreach dir,$(dirs),$(distcleandir);)
