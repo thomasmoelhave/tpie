@@ -1,5 +1,5 @@
 # Makefile for the complete TPIE system.
-# $Id: Makefile.in,v 1.21 2002-06-10 20:44:30 tavi Exp $
+# $Id: Makefile.in,v 1.22 2003-09-24 21:42:24 tavi Exp $
 
 # To compile with debugging symbols, set this to 1.
 MINUSG = 0
@@ -17,6 +17,7 @@ export
 LIBPATH := ./lib/
 LIBSRCPATH := $(LIBPATH)src/
 TESTPATH := ./test/
+APPSPATH := ./apps/
 INCPATH := ./include/
 
 # Public targets.
