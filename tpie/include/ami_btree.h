@@ -3,7 +3,7 @@
 // File:    ami_btree.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_btree.h,v 1.23 2003-06-21 07:47:25 tavi Exp $
+// $Id: ami_btree.h,v 1.24 2003-07-01 16:06:06 tavi Exp $
 //
 // AMI_btree declaration and implementation.
 //
@@ -33,6 +33,30 @@
 #include <tpie_stats_tree.h>
 // The tpie_tempnam() function
 #include <tpie_tempnam.h>
+
+// Determines how elements are stored in a leaf. If set to 0, elements are
+// stored in the order in which they are inserted, which may results in
+// slower queries. If set to 1, elements are stored in a sorted list, which
+// may result in slower insertions when allowing duplicate keys (see
+// below).
+#ifndef AMI_BTREE_LEAF_ELEMENTS_SORTED
+#  define AMI_BTREE_LEAF_ELEMENTS_SORTED 1
+#endif
+
+// Determines whether to allow duplicate keys when inserting and bulk
+// loading. Support for duplicate keys is incomplete, so you might
+// experience errors when setting this to 0.
+#ifndef AMI_BTREE_UNIQUE_KEYS
+# define AMI_BTREE_UNIQUE_KEYS 1
+#endif
+
+// Determines whether "previous" pointers are maintained for leaves.
+// Don't set to 0! There is good reason to maintain prev pointers:
+// computing predecessor queries. Unless maintaining previous pointers
+// proves costly, we keep them.
+#ifndef AMI_BTREE_LEAF_PREV_POINTER
+#  define AMI_BTREE_LEAF_PREV_POINTER 1
+#endif
 
 enum AMI_btree_status {
   AMI_BTREE_STATUS_VALID,
@@ -336,23 +360,10 @@ public:
   void release_node(node_t* p);
 };
 
-// Define shortcuts.
+// Define shortcuts. They are undefined at the end of the file.
 #define AMI_BTREE_NODE AMI_btree_node<Key, Value, Compare, KeyOfValue, BTECOLL>
 #define AMI_BTREE_LEAF AMI_btree_leaf<Key, Value, Compare, KeyOfValue, BTECOLL>
 #define AMI_BTREE      AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>
-
-// Determines how elements are stored in a leaf. If set to 1, elements
-// are stored in a sorted list, which results in slower insertions. If
-// set to 0, elements are stored in the order in which they are
-// inserted, which results in slower queries. Setting to 0 gives
-// better overall performance.
-#define LEAF_ELEMENTS_SORTED 0
-
-// Determines whether "previous" pointers are maintained for leaves.
-// Don't set to 0! There is good reason to maintain prev pointers:
-// computing predecessor queries. Unless maintaining previous pointers
-// proves costly, we keep them.
-#define LEAF_PREV_POINTER 1
 
 // The Info element of a leaf.
 struct _AMI_btree_leaf_info {
@@ -526,7 +537,7 @@ AMI_BTREE_LEAF::AMI_btree_leaf(AMI_collection_single<BTECOLL>* pcoll, AMI_bid lb
   if (lbid == 0) {
     size() = 0;
     next() = 0;
-#if LEAF_PREV_POINTER
+#if AMI_BTREE_LEAF_PREV_POINTER
     prev() = 0;
 #endif
   }
@@ -536,7 +547,7 @@ AMI_BTREE_LEAF::AMI_btree_leaf(AMI_collection_single<BTECOLL>* pcoll, AMI_bid lb
 template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
 Key  AMI_BTREE_LEAF::split(AMI_BTREE_LEAF &right) {
 
-#if (!LEAF_ELEMENTS_SORTED)
+#if (!AMI_BTREE_LEAF_ELEMENTS_SORTED)
   sort();
 #endif
 
@@ -568,7 +579,7 @@ void AMI_BTREE_LEAF::merge(const AMI_BTREE_LEAF &right) {
   // Make sure there's enough place.
   assert(size() + right.size() <= capacity());
 
-#if LEAF_ELEMENTS_SORTED
+#if AMI_BTREE_LEAF_ELEMENTS_SORTED
   assert(comp_(KeyOfValue()(el[size() - 1]), KeyOfValue()(right.el[0])));
 #endif
 
@@ -590,9 +601,6 @@ void AMI_BTREE_LEAF::merge(const AMI_BTREE_LEAF &right) {
 template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
 inline void AMI_BTREE_LEAF::insert_pos(const Value& v, size_t pos) {
 
-  // Sanity check.
-  //// assert(!full());
-
   // Insert mechanics.
   if (pos == size())
     el[pos] = v;
@@ -608,7 +616,7 @@ inline void AMI_BTREE_LEAF::insert_pos(const Value& v, size_t pos) {
 template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
 inline bool AMI_BTREE_LEAF::insert(const Value& v) {
 
-#if LEAF_ELEMENTS_SORTED
+#if (AMI_BTREE_LEAF_ELEMENTS_SORTED || AMI_BTREE_UNIQUE_KEYS)
   // Find the position where v should be.
   size_t pos;
   if (size() == 0)
@@ -617,18 +625,21 @@ inline bool AMI_BTREE_LEAF::insert(const Value& v) {
     pos = size();
   else
     pos = find(KeyOfValue()(v));
+#endif
 
-  if (pos < size()) {
-    // Check for duplicate key.
+#if AMI_BTREE_UNIQUE_KEYS
+  // Check for duplicate key.
+  if (pos < size())
     if (!comp_(KeyOfValue()(v), KeyOfValue()(el[pos])) && 
 	!comp_(KeyOfValue()(el[pos]), KeyOfValue()(v))) {
       LOG_WARNING_ID("Attempting to insert duplicate key.");
       return false;
     }
-  }
+#endif
+
+#if AMI_BTREE_LEAF_ELEMENTS_SORTED
   insert_pos(v, pos);
 #else
-  // Insert it on the last position. No duplicate check!
   insert_pos(v, size());
 #endif
 
@@ -638,13 +649,13 @@ inline bool AMI_BTREE_LEAF::insert(const Value& v) {
 //// *AMI_btree_leaf::find* ////
 template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
 size_t AMI_BTREE_LEAF::find(const Key& k) {
-#if LEAF_ELEMENTS_SORTED
+#if AMI_BTREE_LEAF_ELEMENTS_SORTED
   // Sanity check.
-  assert(size() >= 2 ? comp_(KeyOfValue()(el[0]), KeyOfValue()(el[size()-1])): true);
+  assert(size() < 2 || comp_(KeyOfValue()(el[0]), KeyOfValue()(el[size()-1])));
   return std::lower_bound(&el[0], &el[size()-1] + 1, k, comp_value_key_) - &el[0];
 #else
   size_t i;
-  for (i = 0; i < size(); i++)
+  for (i = 0u; i < size(); i++)
     if (!comp_(KeyOfValue()(el[i]), k) && !comp_(k, KeyOfValue()(el[i])))
       return i;
   return size();
@@ -656,9 +667,9 @@ template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
 size_t AMI_BTREE_LEAF::pred(const Key& k) {
 
 size_t pred_idx;
-#if LEAF_ELEMENTS_SORTED
+#if AMI_BTREE_LEAF_ELEMENTS_SORTED
   // Sanity check.
-  assert(size() >= 2 ? comp_(KeyOfValue()(el[0]), KeyOfValue()(el[size()-1])): true);
+  assert(size() < 2 || comp_(KeyOfValue()(el[0]), KeyOfValue()(el[size()-1])));
   pred_idx = std::lower_bound(&el[0], &el[size()-1] + 1, k,comp_value_key_) - &el[0];
   // lower_bound pos is off by one for pred
   // Final pred_idx cannot be matching key
@@ -686,9 +697,9 @@ template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
 size_t AMI_BTREE_LEAF::succ(const Key& k) {
 
 size_t succ_idx;
-#if LEAF_ELEMENTS_SORTED
+#if AMI_BTREE_LEAF_ELEMENTS_SORTED
   // Sanity check.
-  assert(size() >= 2 ? comp_(KeyOfValue()(el[0]), KeyOfValue()(el[size()-1])): true);
+  assert(size() < 2 || comp_(KeyOfValue()(el[0]), KeyOfValue()(el[size()-1])));
   succ_idx = std::lower_bound(&el[0], &el[size()-1] + 1, k, comp_value_key_) - &el[0];
   // Bump up one spot if keys match
   if (succ_idx != size() &&
@@ -772,8 +783,8 @@ size_t AMI_BTREE_NODE::lk_capacity(size_t block_size) {
 template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
 size_t AMI_BTREE_NODE::el_capacity(size_t block_size) {
   // Sanity check. Two different methods of computing the el capacity.
-  // [01/26/02: changed == into >= since I could fit one more element, 
-  // but not one more link] 
+  // [tavi 01/26/02]: Changed == into >= since I could fit one more
+  // element, but not one more link.
   assert((AMI_block<Key, size_t>::el_capacity(block_size, lk_capacity(block_size))) >= (size_t) (lk_capacity(block_size) - 1));
   return (size_t) (lk_capacity(block_size) - 1);
 }
@@ -791,7 +802,8 @@ AMI_BTREE_NODE::AMI_btree_node(AMI_collection_single<BTECOLL>* pcoll, AMI_bid nb
 template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
 Key AMI_BTREE_NODE::split(AMI_BTREE_NODE &right) {
 
-  //TODO: Is this needed? I want to be left with at least one key in each node.
+  // TODO: Is this needed? I want to be left with at least one key in each
+  // node.
   assert(size() >= 3);
 
   // save the original size of this node.
@@ -1293,7 +1305,7 @@ bool AMI_BTREE::pred(const Key& k, Value& v) {
     v = pl->el[idx]; 
     ans = true;
   } else {
-#if LEAF_PREV_POINTER
+#if AMI_BTREE_LEAF_PREV_POINTER
     bid = pl->prev();
 #else
     assert(0);
@@ -1368,7 +1380,7 @@ size_t AMI_BTREE::range_query(const Key& k1, const Key& k2,
   bool done = false;
   size_t result = 0;
 
-#if  LEAF_ELEMENTS_SORTED
+#if  AMI_BTREE_LEAF_ELEMENTS_SORTED
 
   size_t j;
   j = p->find(kmin);
@@ -1545,7 +1557,7 @@ bool AMI_BTREE::insert_empty(const Value& v) {
   header_.root_bid = lroot->bid();
   
   lroot->next() = 0;
-#if LEAF_PREV_POINTER
+#if AMI_BTREE_LEAF_PREV_POINTER
   lroot->prev() = 0;
 #endif
 
@@ -1585,7 +1597,7 @@ bool AMI_BTREE::insert_split(const Value& v, AMI_BTREE_LEAF* p, AMI_bid& leaf_id
   q->next() = p->next();
   p->next() = q->bid();
 
-#if LEAF_PREV_POINTER
+#if AMI_BTREE_LEAF_PREV_POINTER
   // Update the prev pointers.
   q->prev() = p->bid();  
   if (q->next() != 0) {
@@ -1823,7 +1835,7 @@ bool AMI_BTREE::balance_leaf(AMI_BTREE_NODE *f, AMI_BTREE_LEAF *p, size_t pos) {
     sib = fetch_leaf(f->lk[pos + 1]);
     if (sib->size() >= cutoff_leaf(sib) + 2) {
 
-#if (!LEAF_ELEMENTS_SORTED)
+#if (!AMI_BTREE_LEAF_ELEMENTS_SORTED)
       sib->sort();
 #endif
       // Rotate left.
@@ -1844,7 +1856,7 @@ bool AMI_BTREE::balance_leaf(AMI_BTREE_NODE *f, AMI_BTREE_LEAF *p, size_t pos) {
     sib = fetch_leaf(f->lk[pos - 1]);
     if (sib->size() >= cutoff_leaf(sib) + 2) {
 
-#if (!LEAF_ELEMENTS_SORTED)
+#if (!AMI_BTREE_LEAF_ELEMENTS_SORTED)
       sib->sort();
 #endif
       // Rotate right.
@@ -1878,7 +1890,7 @@ void AMI_BTREE::merge_leaf(AMI_BTREE_NODE* f, AMI_BTREE_LEAF* &p, size_t pos) {
     sib = fetch_leaf(f->lk[pos + 1]);
     // Update the next pointer.
     p->next() = sib->next();
-#if LEAF_PREV_POINTER
+#if AMI_BTREE_LEAF_PREV_POINTER
     // Update the prev pointer.
     if (p->next() != 0) {
       r = fetch_leaf(p->next());
@@ -1899,7 +1911,7 @@ void AMI_BTREE::merge_leaf(AMI_BTREE_NODE* f, AMI_BTREE_LEAF* &p, size_t pos) {
     // Merge with left sibling.
     sib = fetch_leaf(f->lk[pos - 1]);
     sib->next() = p->next();
-#if LEAF_PREV_POINTER
+#if AMI_BTREE_LEAF_PREV_POINTER
     if (sib->next() != 0) {
       r = fetch_leaf(sib->next());
       r->prev() = sib->bid();
