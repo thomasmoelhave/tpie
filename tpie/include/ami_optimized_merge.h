@@ -15,7 +15,7 @@
 // a quicksort using only keys of the items; there is a provision to 
 // to use templated heaps to implement the merge.
 
-// 	$Id: ami_optimized_merge.h,v 1.17 1999-04-12 00:06:28 rbarve Exp $	
+// 	$Id: ami_optimized_merge.h,v 1.18 1999-04-12 00:33:51 rbarve Exp $	
 //TO DO: substream_count setting; don't depend on current_stream_len
 
 #ifndef _OPT_AMI_MERGE_H
@@ -2566,9 +2566,10 @@ AMI_err AMI_replacement_selection_and_merge_Key(AMI_STREAM<T> *instream,
 	//Compute a prefix that will be sent to the run formation function,
 	//since that is where the initial runs are formed.
 
+
 #ifndef BTE_IMP_USER_DEFINED
        strcpy(computed_prefix,working_disk);
-       strcat(computed_prefix,"/");
+       //strcat(computed_prefix,"/");
        strcat(computed_prefix,prefix_name[0]);
 #endif
 
