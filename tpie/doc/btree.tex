@@ -4,7 +4,7 @@
 %% Author: Octavian Procopiuc <tavi@cs.duke.edu>
 %%
 %% AMI_btree documentation.
-%% $Id: btree.tex,v 1.5 2001-05-17 20:17:30 tavi Exp $
+%% $Id: btree.tex,v 1.6 2001-05-29 15:39:39 tavi Exp $
 %%
 
 \documentclass[11pt]{article}
@@ -186,7 +186,7 @@ AMI_btree<tKey, tValue, less<tKey>, tKeyOfValue> tree("/var/tmp/btree");
    will be closed during the destruction of this AMI\_btree object, and all the
    information needed to reopen this tree will be saved.}
 
-   \entry{const AMI\_btree\_params\& get\_params() const} {Return a const
+   \entry{const AMI\_btree\_params\& params() const} {Return a const
    reference to the {\tt AMI\_btree\_params} object used by the B-tree. This
    object contains the true values of all parameters (unlike the object
    passed to the constructor, which may contain $0$-valued parameters to
