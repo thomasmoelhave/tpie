@@ -9,7 +9,7 @@
 // AMI_kdbtree_status, AMI_kdbtree_params, 
 // region_t, kdb_item_t, path_stack_item_t.
 //
-// $Id: ami_kd_base.h,v 1.6 2003-09-13 23:13:25 tavi Exp $
+// $Id: ami_kd_base.h,v 1.7 2003-09-17 02:15:48 tavi Exp $
 //
 
 #ifndef _AMI_KD_BASE_H
@@ -393,8 +393,8 @@ public:
   coord_t hi(size_t d) const { return hi_[d]; }
   coord_t& hi(size_t d) { return hi_[d];  }
 
-  bool is_bounded_lo(size_t d) const { return bool (bd_[d] & LO_BD_MASK); }
-  bool is_bounded_hi(size_t d) const { return bool (bd_[d] & HI_BD_MASK); }
+  bool is_bounded_lo(size_t d) const { return  (bd_[d] & LO_BD_MASK) != 0; }
+  bool is_bounded_hi(size_t d) const { return  (bd_[d] & HI_BD_MASK) != 0; }
   bool is_bounded(size_t d) const 
     { return is_bounded_lo(d) && is_bounded_hi(d); }
   bool is_bounded() const {
