@@ -1,18 +1,17 @@
-// Copyright (c) 1994 Darren Erik Vengroff
 //
 // File: ami_sort_single.h
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 9/28/94
 //
-// $Id: ami_sort_single.h,v 1.16 2000-11-14 04:44:11 hutchins Exp $
+// $Id: ami_sort_single.h,v 1.17 2002-01-14 16:05:41 tavi Exp $
 //
-// Merge sorting for the AMI_IMP_SINGLE implementation.
+// Merge sorting for the AMI_STREAM_IMP_SINGLE implementation.
 // 
 #ifndef _AMI_SORT_SINGLE_H
 #define _AMI_SORT_SINGLE_H
 
-#ifndef AMI_IMP_SINGLE
-#warning Including __FILE__ when AMI_IMP_SINGLE undefined.
+#ifndef AMI_STREAM_IMP_SINGLE
+#  warning Including __FILE__ when AMI_STREAM_IMP_SINGLE undefined.
 #endif
 
 // For use in core by main_mem_operate().
