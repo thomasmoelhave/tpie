@@ -4,10 +4,14 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/12/94
 //
-// $Id: logstream.h,v 1.13 2001-06-07 17:05:21 tavi Exp $
+// $Id: logstream.h,v 1.14 2003-04-17 18:54:20 jan Exp $
 //
+
 #ifndef _LOGSTREAM_H
 #define _LOGSTREAM_H
+
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 #include <fstream.h>
 
@@ -15,8 +19,7 @@
 #include <sys/types.h>
 
 // A macro for declaring output operators for log streams.
-#define _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(T)	\
-    logstream& operator<<(T)
+#define _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(T) logstream& operator<<(T)
 
 // A log is like a regular output stream, but it also supports messages
 // at different priorities.  If a message's priority is at least as high
@@ -44,7 +47,9 @@ class logstream : public ofstream {
     _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const long unsigned int);
     _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const float);
     _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const double);
-    _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const long long);
+    
+    //  WIN32 does not support data type "long long".
+    TPIE_OS_UNIX_ONLY_DATA_TYPE_LONG_LONG
 };
 
 

@@ -3,7 +3,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 1/11/95
 //
-// $Id: cpu_timer.h,v 1.3 2002-01-03 20:20:51 tavi Exp $
+// $Id: cpu_timer.h,v 1.4 2003-04-17 18:52:29 jan Exp $
 //
 // A timer measuring user time, system time and wall clock time.  The
 // timer can be start()'ed, stop()'ed, and queried. Querying can be
@@ -12,15 +12,19 @@
 #ifndef _CPU_TIMER_H
 #define _CPU_TIMER_H
 
-#include <sys/times.h>
+// Get definitions for working with Unix and Windows
+#include <portability.h>
+
 #include <ostream.h>
 #include <timer.h>
 
 class cpu_timer : public timer {
 private:
   long clock_tick;
-  tms last_sync;
-  tms elapsed;
+
+  TPIE_OS_TIME last_sync;
+  TPIE_OS_TIME elapsed;
+
   clock_t last_sync_real;
   clock_t elapsed_real;
   bool running;

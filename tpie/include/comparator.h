@@ -4,10 +4,13 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 3/6/95
 //
-// $Id: comparator.h,v 1.2 1999-12-15 22:08:40 hutchins Exp $
+// $Id: comparator.h,v 1.3 2003-04-17 18:48:39 jan Exp $
 //
 #ifndef _COMPARATOR_H
 #define _COMPARATOR_H
+
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 // First we define a comparison object.
 template<class T>
