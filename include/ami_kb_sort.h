@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 3/12/95
 //
-// $Id: ami_kb_sort.h,v 1.5 2000-01-11 00:38:04 hutchins Exp $
+// $Id: ami_kb_sort.h,v 1.6 2003-04-17 12:33:10 jan Exp $
 //
 
 // This header file can be included in one of two ways, either with a
@@ -19,6 +19,9 @@
 // KB_KEY is defined, we will process the file.
 
 #if !(defined(_AMI_KB_SORT_H)) || defined(KB_KEY)
+
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 #include <ami_key.h>
 #include <ami_kb_dist.h>
@@ -90,7 +93,7 @@ AMI_err _AMI_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
 
     size_t sz_avail, sz_stream;
     
-    off_t max_size;
+    long max_size;
     
     // Check whether the problem fits in main memory.
 
@@ -108,7 +111,7 @@ AMI_err _AMI_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
     
     // If it fits, simply read it, sort it, and write it.
 
-    off_t stream_len = instream.stream_len();
+    TPIE_OS_OFFSET stream_len = instream.stream_len();
         
     if (sz_avail >= stream_len * (sizeof(T) + 
                                   sizeof(AMI_bucket_list_elem<T> *) + 
@@ -194,7 +197,7 @@ AMI_err _AMI_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
             
             // Read its range.
             {
-                off_t range_size = sizeof(stream_range);
+                TPIE_OS_OFFSET range_size = sizeof(stream_range);
                 ae = name_stream->read_array((char *)&stream_range,
                                              &range_size);
                 if (ae != AMI_ERROR_NO_ERROR) {
@@ -204,7 +207,7 @@ AMI_err _AMI_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
             
             // Read its length.
             {
-                off_t length_size = sizeof(stream_len);
+                TPIE_OS_OFFSET length_size = sizeof(stream_len);
                 ae = name_stream->read_array((char *)&stream_len,
                                              &length_size);
                 if (ae != AMI_ERROR_NO_ERROR) {
@@ -347,7 +350,7 @@ AMI_err _AMI_MM_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
     AMI_err ae;
     
     size_t sz_avail;
-    off_t stream_len;
+    TPIE_OS_OFFSET stream_len;
 
     unsigned int ii,jj;
     
@@ -378,7 +381,7 @@ AMI_err _AMI_MM_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
     T *indata = new T[stream_len];
     
     AMI_bucket_list_elem<T> **buckets =
-        new (AMI_bucket_list_elem<T> *)[stream_len];
+        new AMI_bucket_list_elem<T>*[stream_len];
 
     AMI_bucket_list_elem<T> *list_space =
         new AMI_bucket_list_elem<T>[stream_len];
@@ -387,9 +390,12 @@ AMI_err _AMI_MM_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
 
     instream.seek(0);
     {
-        off_t sl2 = stream_len;
+        TPIE_OS_OFFSET sl2 = stream_len;
         ae = instream.read_array(indata, &sl2);
         if (ae != AMI_ERROR_NO_ERROR) {
+	    delete[] indata;
+	    delete[] buckets;
+	    delete[] list_space;
             return ae;
         }
     }
@@ -415,10 +421,10 @@ AMI_err _AMI_MM_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
          ii--; list_elem++ ) {
         unsigned int bucket_index;
 
-        bucket_index = ((unsigned int)(KB_KEY(indata[ii])) - range.min) /
+        bucket_index = ((unsigned int)((KB_KEY)(indata[ii])) - range.min) /
             bucket_index_denom; 
 
-        tp_assert(bucket_index < stream_len, "Bucket index too large.");
+        tp_assert(bucket_index < (unsigned long)stream_len, "Bucket index too large.");
         
         list_elem->data = indata[ii];
         list_elem->next = buckets[bucket_index];
@@ -486,6 +492,9 @@ AMI_err _AMI_MM_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
 
     ae = outstream.write_array(indata, stream_len);
     if (ae != AMI_ERROR_NO_ERROR) {
+	delete [] indata;
+	delete [] buckets;
+	delete [] list_space;
         return ae;
     }    
 
