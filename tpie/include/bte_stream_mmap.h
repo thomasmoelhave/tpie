@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/13/94
 //
-// $Id: bte_stream_mmap.h,v 1.2 2002-01-14 16:23:47 tavi Exp $
+// $Id: bte_stream_mmap.h,v 1.3 2002-01-17 02:17:35 tavi Exp $
 //
 // Memory mapped streams.  This particular implementation explicitly manages
 // blocks, and only ever maps in one block at a time.
@@ -18,8 +18,8 @@
 #ifndef _BTE_STREAM_MMAP_H
 #define _BTE_STREAM_MMAP_H
 
-// For header type.
-#define BTE_STREAM_MMAP 2
+// For header's type field (77 == 'M').
+#define BTE_STREAM_MMAP 77
 
 #include <assert.h>
 
