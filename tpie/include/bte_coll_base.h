@@ -4,7 +4,7 @@
 // Authors: Octavian Procopiuc <tavi@cs.duke.edu>
 //          (using some code by Rakesh Barve)
 //
-// $Id: bte_coll_base.h,v 1.1 2001-05-17 19:48:20 tavi Exp $
+// $Id: bte_coll_base.h,v 1.2 2001-05-29 15:38:37 tavi Exp $
 //
 // BTE_collection_base class and various basic definitions.
 //
@@ -22,8 +22,20 @@
 #include <persist.h>
 // For stdio_stack.
 #include <stdio_stack.h>
-// For BTE_err
+// For BTE_err.
 #include <bte_base_stream.h>
+// For Statistics.
+#include <statistics.h>
+
+// Statistics.
+#define BC_STATS_COUNT 5
+enum BC_stats {
+  BC_GET = 0,
+  BC_PUT,
+  BC_NEW,
+  BC_DELETE,
+  BC_SYNC
+};
 
 // BTE_COLLECTION types passed to constructors.
 enum BTE_collection_type {
@@ -115,6 +127,8 @@ protected:
   // Number of blocks from this collection that are currently in memory
   size_t in_memory_blocks_;
 
+  Statistics<BC_STATS_COUNT> stats_;
+
 private:
   // Helper functions. We don't want them inherited.
 
@@ -189,6 +203,8 @@ public:
   const char *base_file_name() const { return base_file_name_; }
 
   void *user_data() { return (void *) header_.user_data; }
+
+  const Statistics<BC_STATS_COUNT>& stats() const { return stats_; }
 
   // Destructor.
   ~BTE_collection_base(); 
