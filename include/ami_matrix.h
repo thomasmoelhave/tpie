@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/9/94
 //
-// $Id: ami_matrix.h,v 1.7 1999-01-31 16:56:06 rbarve Exp $
+// $Id: ami_matrix.h,v 1.8 1999-02-03 17:23:15 tavi Exp $
 //
 #ifndef _AMI_MATRIX_H
 #define _AMI_MATRIX_H
@@ -519,30 +519,4 @@ AMI_err AMI_matrix_mult(AMI_matrix<T> &op1, AMI_matrix<T> &op2,
     return AMI_ERROR_NO_ERROR;
 }
 
-
-#ifdef NO_IMPLICIT_TEMPLATES
-
-#define TEMPLATE_INSTANTIATE_AMI_MATRIX(T)				\
-template class AMI_matrix<T>;						\
-TEMPLATE_INSTANTIATE_AMI_MATRIX_PAD(T)					\
-TEMPLATE_INSTANTIATE_MATRIX(T)						\
-template AMI_err AMI_matrix_mult(AMI_matrix<T> &op1,			\
-                                 AMI_matrix<T> &op2,			\
-                                 AMI_matrix<T> &res);			\
-template AMI_err AMI_matrix_add(AMI_matrix<T> &op1,			\
-                                AMI_matrix<T> &op2,			\
-                                AMI_matrix<T> &res);			\
-template AMI_err AMI_matrix_sub(AMI_matrix<T> &op1,			\
-                                AMI_matrix<T> &op2,			\
-                                AMI_matrix<T> &res);			\
-TEMPLATE_INSTANTIATE_GEN_PERM(T)					\
-TEMPLATE_INSTANTIATE_STREAM_ADD(T)					\
-TEMPLATE_INSTANTIATE_STREAM_SUB(T)
-
-#endif
-
-
-
 #endif // _AMI_MATRIX_H 
-
-

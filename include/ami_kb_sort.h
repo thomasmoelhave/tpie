@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 3/12/95
 //
-// $Id: ami_kb_sort.h,v 1.3 1997-05-20 22:14:40 vengroff Exp $
+// $Id: ami_kb_sort.h,v 1.4 1999-02-03 17:21:45 tavi Exp $
 //
 
 // This header file can be included in one of two ways, either with a
@@ -499,42 +499,6 @@ AMI_err _AMI_MM_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
     
     return AMI_ERROR_NO_ERROR;
 }
-
-
-
-#ifdef NO_IMPLICIT_TEMPLATES
-
-#ifndef TEMPLATE_INSTANTIATE_BUCKET_LIST_ELEM
-#define TEMPLATE_INSTANTIATE_BUCKET_LIST_ELEM(T)		\
-template class AMI_bucket_list_elem<T>;
-#endif
-
-#ifdef _HAVE_TEMP_KB_KEY_DEFINITION_
-#define TEMPLATE_INSTANTIATE_KB_SORT(T)				\
-TEMPLATE_INSTANTIATE_BUCKET_LIST_ELEM(T)			\
-TEMPLATE_INSTANTIATE_KB_DIST(T)					\
-TEMPLATE_INSTANTIATE_STREAMS(char)				\
-template AMI_err AMI_kb_sort(AMI_STREAM<T> &instream,		\
-                             AMI_STREAM<T> &outstream,		\
-                             const key_range &range);		\
-template AMI_err AMI_mm_kb_sort(AMI_STREAM<T> &instream,	\
-                                AMI_STREAM<T> &outstream,	\
-                                const key_range &range);
-#else
-#define TEMPLATE_INSTANTIATE_KB_SORT_KEY(T,K)			\
-TEMPLATE_INSTANTIATE_BUCKET_LIST_ELEM(T)			\
-TEMPLATE_INSTANTIATE_KB_DIST_KEY(T,K)				\
-TEMPLATE_INSTANTIATE_STREAMS(char)				\
-template AMI_err AMI_kb_sort_ ## K(AMI_STREAM<T> &instream,	\
-                                  AMI_STREAM<T> &outstream,	\
-                                  const key_range &range);	\
-template AMI_err AMI_mm_kb_sort_ ## K(AMI_STREAM<T> &instream,	\
-                                     AMI_STREAM<T> &outstream,	\
-                                     const key_range &range);
-#endif
-
-#endif // NO_IMPLICIT_TEMPLATES
-
 
 #ifdef _HAVE_TEMP_KB_KEY_DEFINITION_
 #undef _HAVE_TEMP_KB_KEY_DEFINITION_

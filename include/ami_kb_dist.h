@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 3/11/95
 //
-// $Id: ami_kb_dist.h,v 1.3 1997-05-20 22:14:39 vengroff Exp $
+// $Id: ami_kb_dist.h,v 1.4 1999-02-03 17:20:29 tavi Exp $
 //
 // Radix based distribution for single or striped AMI layers.
 //
@@ -229,25 +229,6 @@ AMI_err _AMI_KB_DIST(KB_KEY)(AMI_STREAM<T> &instream,
 
     return AMI_ERROR_NO_ERROR;
 }
-
-
-#ifdef NO_IMPLICIT_TEMPLATES
-
-#ifdef _HAVE_TEMP_KB_KEY_DEFINITION_
-#define TEMPLATE_INSTANTIATE_KB_DIST(T)				\
-template AMI_err AMI_kb_dist(AMI_STREAM<T> &instream,		\
-                             type_amisc &name_stream,		\
-                             const key_range &range,		\
-                             off_t &max_size);
-#else
-#define TEMPLATE_INSTANTIATE_KB_DIST_KEY(T,K)			\
-template AMI_err AMI_kb_dist_ ## K(AMI_STREAM<T> &instream,	\
-                                  type_amisc &name_stream,	\
-                                  const key_range &range,	\
-                                  off_t &max_size);
-#endif
-
-#endif // NO_IMPLICIT_TEMPLATES
 
 #ifdef _HAVE_TEMP_KB_KEY_DEFINITION_
 #undef _HAVE_TEMP_KB_KEY_DEFINITION_

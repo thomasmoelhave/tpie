@@ -8,7 +8,7 @@
 // lower level streams will use appropriate levels of buffering.  This
 // will be more critical for parallel disk implementations.
 //
-// $Id: ami_merge.h,v 1.16 1998-12-11 18:36:32 tavi Exp $
+// $Id: ami_merge.h,v 1.17 1999-02-03 17:26:49 tavi Exp $
 //
 #ifndef _AMI_MERGE_H
 #define _AMI_MERGE_H
@@ -840,22 +840,4 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
     }
 }
 
-
-#ifdef NO_IMPLICIT_TEMPLATES
-
-#define TEMPLATE_INSTANTIATE_MERGE(T)					\
-template class AMI_merge_base<T>;					\
-template AMI_err AMI_partition_and_merge(AMI_STREAM<T> *,		\
-                                         AMI_STREAM<T> *,		\
-                                         AMI_merge_base<T> *);		\
-template AMI_err AMI_single_merge(AMI_STREAM<T> **instreams,		\
-                                  arity_t arity,			\
-                                  AMI_STREAM<T> *outstream,		\
-                                  AMI_merge_base<T> *m_obj);		\
-template AMI_err AMI_main_mem_merge(AMI_STREAM<T> *instream,		\
-                                    AMI_STREAM<T> *outstream,		\
-                                    AMI_merge_base<T> *m_obj);
-
-#endif
-
-#endif
+#endif //_AMI_MERGE_H
