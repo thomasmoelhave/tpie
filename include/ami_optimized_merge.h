@@ -15,7 +15,7 @@
 // a quicksort using only keys of the items; there is a provision to 
 // to use templated heaps to implement the merge.
 
-// 	$Id: ami_optimized_merge.h,v 1.31 1999-04-25 01:21:00 rajiv Exp $	
+// 	$Id: ami_optimized_merge.h,v 1.32 1999-04-28 15:14:15 rbarve Exp $	
 //TO DO: substream_count setting; don't depend on current_stream_len
 
 
@@ -120,11 +120,20 @@ template<class T, class KEY> AMI_err Run_Formation_Algo_R_Key( AMI_STREAM<T>
 *, arity_t , AMI_STREAM<T> **, char * , size_t , int * , int ** , int ,
 int , int, KEY);
 
+//This is the merging routine that makes use of the explicit knowledge of 
+//the key of the user-defined records.
 template<class T, class KEY> AMI_err MIAMI_single_merge_Key(AMI_STREAM<T> **,
  arity_t , AMI_STREAM<T> *, int , KEY);
 
-template<class T, class KEY> AMI_err MIAMI_single_merge_Key_scan(AMI_STREAM<T> **,
- arity_t , AMI_STREAM<T> *, int , KEY);
+//This is equivalent to AMI_single_merge in ami_merge.h
+template<class T> AMI_err MIAMI_single_merge(AMI_STREAM<T> **,
+ arity_t , AMI_STREAM<T> *);
+
+//This is like MIAMI_single_merge except that the user can
+//specify a comparison function.
+template<class T> AMI_err MIAMI_single_merge_cmp(AMI_STREAM<T> **,
+ arity_t , AMI_STREAM<T> *, int (*cmp)(CONST T&, CONST T&) );
+
 
 
 static inline void stream_name_generator(char *prepre, char * pre, int id, char * dest)
@@ -838,25 +847,25 @@ XXX
 
                 // Merge them into the output stream.
 
-
-                ae = MIAMI_single_merge_Key(
+                ae = MIAMI_single_merge(
                                   (current_input+merge_arity-substream_count),
                                    substream_count,
-				               outstream,
-                                   0,
-                                   dummykey
-                                   );
+				               outstream);
 
 XXX
 
                 if (ae != AMI_ERROR_NO_ERROR) {
-				  LOG_DEBUG_ID("MIAMI_single_merge_Key error");			   
+				  LOG_DEBUG_ID("MIAMI_single_merge error");			   
 				  LOG_FATAL("AMI_ERROR ");
 				  LOG_FATAL(ae);
-				  LOG_FATAL(" returned by  MIAMI_single_merge_Key()");
+				  LOG_FATAL(" returned by  MIAMI_single_merge()");
 				  LOG_FLUSH_LOG; 
 				  return ae;
                 }
+
+                
+                 
+
 
                 
                   
@@ -1117,18 +1126,17 @@ XXX
                        }
 				}
 
-
-                      ae = MIAMI_single_merge_Key(the_substreams,
+                      ae = MIAMI_single_merge(the_substreams,
                                        jj+1,
-                                       intermediate_tmp_stream[current_stream],
-                                       0,
-                                       dummykey
-                                       );
+                                       intermediate_tmp_stream[current_stream]);
+
                         
                       if (ae != AMI_ERROR_NO_ERROR) {
-						LOG_DEBUG_ID("MIAMI_single_merge_Key error");
+						LOG_DEBUG_ID("MIAMI_single_merge error");
 						return ae;
 					  }
+                   
+
                      
                       for (ii_streams = 0; ii_streams < jj+1; ii_streams++)
                       run_lengths[(k+1)%2][current_stream]
@@ -1209,6 +1217,1080 @@ XXX
 	}
 	LOG_DEBUG_ID("AMI_partition_and_merge_stream END");
 }
+
+
+
+// Recursive division of a stream and then merging back together.
+template<class T>
+AMI_err AMI_partition_and_merge_stream_cmp(AMI_STREAM<T> *instream,
+                                           AMI_STREAM<T> *outstream,
+                                           int (*cmp)(CONST T&, CONST T&)
+                                           )
+{ 
+    AMI_err ae;
+    off_t len;
+    size_t sz_avail, sz_stream;
+    size_t sz_substream;
+
+
+    unsigned int ii, jj, kk;
+    unsigned int ii_streams;
+
+    char *working_disk;
+	
+	LOG_DEBUG_ID("AMI_partition_and_merge_cmp START");
+
+    // Figure out how much memory we've got to work with.
+
+    if (MM_manager.available(&sz_avail) != MM_ERROR_NO_ERROR) {
+	  LOG_DEBUG_ID("memory error");
+	  return AMI_ERROR_MM_ERROR;
+    }
+XXX
+    //Conservatively assume that the memory for buffers for 
+    //the two streams is unallocated; so we need to subtract.
+
+    if ((ae = instream->main_memory_usage(&sz_stream,
+										  MM_STREAM_USAGE_MAXIMUM)) !=
+		AMI_ERROR_NO_ERROR) {
+	  LOG_DEBUG_ID("memory error");
+	  return ae;
+	}                                     
+XXX
+    if ((ae = instream->main_memory_usage(&sz_substream, 
+										  MM_STREAM_USAGE_OVERHEAD)) !=
+		AMI_ERROR_NO_ERROR) {
+	  
+	  LOG_DEBUG_ID("memory error");
+	  return ae;
+	}   
+XXX
+    sz_avail -= 2*sz_stream;
+
+
+
+
+    char * temp_string;
+    temp_string = getenv(AMI_SINGLE_DEVICE_ENV);
+	if (temp_string == NULL) {
+	  temp_string = getenv(TMP_DIR_ENV);
+      if (temp_string == NULL) {
+            temp_string = TMP_DIR;
+	  }
+	}
+	working_disk = tempnam(temp_string,"Temp");
+
+
+
+    // If the whole input can fit in main memory then just call
+    // AMI_main_mem_merge() to deal with it by loading it once and
+    // processing it.
+
+    len = instream->stream_len();
+    instream->seek(0);
+
+XXX
+    if ((len * sizeof(T)) <= sz_avail) 
+
+          {
+           
+           T * next_item;
+           T * mm_stream = new T[len];
+XXX
+           for (int i = 0; i <  len; i++)
+           {
+            if ((ae =  instream->read_item(&next_item)) != AMI_ERROR_NO_ERROR)
+			  {
+XXX
+				LOG_DEBUG_ID("read error");
+				return ae;
+			  }
+            mm_stream[i] = *next_item;
+           }
+XXX
+  cout << "qsorting in all in-memory-sort\n";
+           quicker_sort_cmp((T *)mm_stream,len,cmp);
+		 cout << "returned from qsorting\n";
+
+            for (int i = 0; i <  len; i++)
+           {
+            if ((ae = outstream->write_item( mm_stream[i])) 
+                                     != AMI_ERROR_NO_ERROR)
+			  {
+				LOG_DEBUG_ID("write error");
+				return ae;
+			  }
+           }
+
+		  if (mm_stream) {delete [] mm_stream; mm_stream = NULL;}
+
+            return AMI_ERROR_NO_ERROR;
+
+    } else {
+XXX
+        // The number of substreams that the original input stream
+        // will be split into.
+        
+        arity_t original_substreams;
+
+        // The length, in terms of stream objects of type T, of the
+        // original substreams of the input stream.  The last one may
+        // be shorter than this.
+        
+        size_t sz_original_substream;
+
+        // The initial temporary stream, to which substreams of the
+        // original input stream are written.
+
+        //RAKESH
+        AMI_STREAM<T> **initial_tmp_stream;
+        
+        // The number of substreams that can be merged together at once.
+
+        arity_t merge_arity;
+
+        // A pointer to the buffer in main memory to read a memory load into.
+        T *mm_stream;
+
+        
+        // Loop variables:
+
+        // The stream being read at the current level.
+        
+XXX
+        //RAKESH
+        AMI_STREAM<T> **current_input;
+
+        // The output stream for the current level if it is not outstream.
+
+        //RAKESH
+        AMI_STREAM<T> **intermediate_tmp_stream;
+        
+       //RAKESH  FIX THIS: Need to generate random strings using
+	   //tmpname() or something like that.
+	   char * prefix_name[] = {"_0_", "_1_"};
+        char itoa_str[5];
+
+
+        // The size of substreams of *current_input that are being
+        // merged.  The last one may be smaller.  This value should be
+        // sz_original_substream * (merge_arity ** k) where k is the
+        // number of iterations the loop has gone through.
+        
+
+        //Merge Level
+        unsigned int k;
+
+        off_t sub_start, sub_end;
+
+        // How many substreams will there be?  The main memory
+        // available to us is the total amount available, minus what
+        // is needed for the input stream and the temporary stream.
+
+
+
+
+//RAKESH
+// In our case merge_arity is determined differently than in the original
+// implementation of AMI_partition_and_merge since we use several streams
+// in each level.
+// In our case net main memory required to carry out an R-way merge is
+// (R+1)*MM_STREAM_USAGE_MAXIMUM  {R substreams for input runs, 1 stream for output}
+// + R*MM_STREAM_USAGE_OVERHEAD   {One stream for each active input run: but while
+//				   the substreams use buffers, streams don't}
+// + (R+1)*m_obj->space_usage_per_stream();
+//
+// The net memory usage for an R-way merge is thus
+// R*(sz_stream + sz_substeam + m_obj->space_usage_per_stream()) + sz_stream +
+// m_obj->space_usage_per_stream();
+//
+        
+     
+        
+
+	   //To support a binary merge, need space for max_stream_usage
+	   //for at least three stream objects.
+
+XXX
+         if (sz_avail <= 3*(sz_stream + sz_substream 
+                            + sizeof(merge_heap_element<T>))
+
+                            ) 
+         {
+		   LOG_FATAL_ID("Insufficient Memory for AMI_partition_and_merge_cmp()");
+		   LOG_FLUSH_LOG;
+		   return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
+         }
+ 
+XXX
+       sz_original_substream = (sz_avail)/sizeof(T);
+
+        // Round the original substream length off to an integral
+        // number of chunks.  This is for systems like HP-UX that
+        // cannot map in overlapping regions.  It is also required for
+        // BTE's that are capable of freeing chunks as they are
+        // read.
+
+        {
+         size_t sz_chunk_size = instream->chunk_size();
+            
+         sz_original_substream = sz_chunk_size *
+                ((sz_original_substream + sz_chunk_size - 1) /
+                 sz_chunk_size);
+        }
+
+        original_substreams = (len + sz_original_substream - 1) /
+            sz_original_substream;
+        
+        // Account for the space that a merge object will use.
+
+        {
+		//Availabe memory for input stream objects is given by 
+		//sz_avail minus the space occupied by output stream objects.
+            size_t sz_avail_during_merge = sz_avail - 
+                                           sz_stream - sz_substream;
+
+
+		  //This conts the per-input stream memory cost.
+            size_t sz_stream_during_merge =sz_stream + sz_substream +
+                 sizeof(merge_heap_element<T>);
+           
+
+            //Compute merge arity
+            merge_arity = sz_avail_during_merge/sz_stream_during_merge;
+
+        }
+XXX
+        // Make sure that the AMI is willing to provide us with the
+        // number of substreams we want.  It may not be able to due to
+        // operating system restrictions, such as on the number of
+        // regions that can be mmap()ed in.
+
+        {
+            int ami_available_streams = instream->available_streams();
+
+            if (ami_available_streams != -1) {
+                    if (ami_available_streams <= 5) {
+					  LOG_DEBUG_ID("out of streams");
+					  LOG_FLUSH_LOG;
+					  return AMI_ERROR_INSUFFICIENT_AVAILABLE_STREAMS;
+					}
+                
+                if (merge_arity > (arity_t)ami_available_streams - 2) {
+                    merge_arity = ami_available_streams - 2;
+                    LOG_DEBUG_INFO("Reduced merge arity due to AMI restrictions.\n");
+				
+                }
+            }
+        }
+        
+        LOG_DEBUG_INFO("AMI_partition_and_merge(): merge arity = " <<
+					   merge_arity << ".\n");
+        
+
+        if (merge_arity < 2) {
+
+		  LOG_FATAL_ID("Insufficient memory for AMI_partition_and_merge_cmp()");
+		  LOG_FLUSH_LOG;
+
+        return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
+        }
+XXX
+ 
+//#define MINIMIZE_INITIAL_SUBSTREAM_LENGTH
+#ifdef MINIMIZE_INITIAL_SUBSTREAM_LENGTH
+        
+        // Make the substreams as small as possible without increasing
+        // the height of the merge tree.
+
+        {
+            // The tree height is the ceiling of the log base merge_arity
+            // of the number of original substreams.
+            
+            double tree_height = log((double)original_substreams) /
+                log((double)merge_arity);
+
+            tp_assert(tree_height > 0,
+                      "Negative or zero tree height!");
+           
+            tree_height = ceil(tree_height);
+
+            // See how many substreams we could possibly fit in the
+            // tree without increasing the height.
+
+            double max_original_substreams = pow((double)merge_arity,
+                                                 tree_height);
+
+            tp_assert(max_original_substreams >= original_substreams,
+                      "Number of permitted substreams was reduced.");
+
+            // How big will such substreams be?
+
+            double new_sz_original_substream = ceil((double)len /
+                                                    max_original_substreams);
+
+            tp_assert(new_sz_original_substream <= sz_original_substream,
+                      "Size of original streams increased.");
+
+            sz_original_substream = (size_t)new_sz_original_substream;
+
+            LOG_INFO("Memory constraints set original substreams = " <<
+                     original_substreams << '\n');
+            
+            original_substreams = (len + sz_original_substream - 1) /
+                sz_original_substream;
+
+            LOG_INFO("Tree height constraints set original substreams = " <<
+                     original_substreams << '\n');
+        }
+                
+#endif // MINIMIZE_INITIAL_SUBSTREAM_LENGTH
+
+
+
+        // Create a temporary stream, then iterate through the
+        // substreams, processing each one and writing it to the
+        // corresponding substream of the temporary stream.
+
+       unsigned int run_lengths[2][merge_arity]
+                   [(original_substreams+merge_arity-1)/merge_arity];
+
+       int Sub_Start[merge_arity];
+    
+//        for (int i = 0; i < 2; i++)
+//            for (int j = 0; j < merge_arity; j++)
+//               for (int k1 = 0; 
+//                    k1 <  (original_substreams+merge_arity-1)/merge_arity;
+//                    k1++)
+//                       run_lengths[i][j][k1] = 0;                      
+
+       //  JAN
+       memset((void*)run_lengths, 0, 2*merge_arity*((original_substreams+merge_arity-1)/merge_arity)*sizeof(unsigned int));
+
+
+
+       initial_tmp_stream = new (AMI_STREAM<T> *)[merge_arity];
+       mm_stream = new T[sz_original_substream];
+XXX
+       
+        tp_assert(mm_stream != NULL, "Misjudged available main memory.");
+
+        if (mm_stream == NULL) {
+		  LOG_DEBUG_INFO("internal error");
+		  LOG_FLUSH_LOG;
+		  return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
+        }
+
+        instream->seek(0);
+
+
+        tp_assert(original_substreams * sz_original_substream - len <
+                  sz_original_substream,
+                  "Total substream length too long or too many.");
+
+        tp_assert(len - (original_substreams - 1) * sz_original_substream <=
+                  sz_original_substream,
+                  "Total substream length too short or too few.");        
+
+//RAKESH
+     size_t check_size = 0;    
+     int current_stream = merge_arity-1;
+
+
+     int runs_in_current_stream = 0;
+     int * desired_runs_in_stream = new int[merge_arity];
+     char new_stream_name[BTE_PATH_NAME_LEN];
+
+     //For the first stream:
+XXX
+    for (ii_streams = 0; ii_streams < merge_arity; ii_streams ++)
+    {
+
+ //Figure out how many runs go in each one of merge_arity streams?
+ // If there are 12 runs to be distributed among 5 streams, the first 
+ //three get 2 and the last two  get 3 runs 
+
+
+    if (ii_streams < (merge_arity - (original_substreams % merge_arity)) )   
+      desired_runs_in_stream[ii_streams] = original_substreams/merge_arity;
+     
+    else 
+      desired_runs_in_stream[ii_streams] = 
+                               (original_substreams+ merge_arity -1)/
+                                merge_arity;
+    }                  
+
+
+
+#ifndef BTE_IMP_USER_DEFINED
+
+//    new_name_from_prefix(prefix_name[0],current_stream, new_stream_name);
+
+    //The assumption here is that working_disk is the name of the specific 
+    //directory in which the temporary/intermediate streams will be made.
+    //By default, I think we shd 
+
+XXX
+      stream_name_generator(working_disk, 
+                           prefix_name[0], 
+                           current_stream, 
+                           new_stream_name);
+#endif 
+
+#ifdef BTE_IMP_USER_DEFINED
+        stream_name_generator("",
+                             prefix_name[0], 
+                             current_stream, 
+                             new_stream_name);
+        
+#endif
+
+
+        initial_tmp_stream[current_stream] = new AMI_STREAM<T>(
+                                                new_stream_name);
+XXX
+        initial_tmp_stream[current_stream]->persist(PERSIST_PERSISTENT); 
+
+
+
+        ii = 0;
+        while (ii < original_substreams) { 
+            off_t mm_len;
+
+            // Make sure that the current_stream is supposed to get a run
+         
+            if (desired_runs_in_stream[current_stream] > runs_in_current_stream )
+	    { 
+               if (ii == original_substreams - 1) {
+                mm_len = len % sz_original_substream;
+
+                // If it is an exact multiple, then the mod will come
+                // out 0, which is wrong.
+
+                if (!mm_len) {
+                    mm_len = sz_original_substream;
+                }
+            } else {
+                mm_len = sz_original_substream;
+            }
+            
+
+#if DEBUG_ASSERTIONS
+            off_t mm_len_bak = mm_len;
+#endif
+
+            // Read a memory load out of the input stream one item at a time,
+		  // fill up the key array at the same time.
+XXX
+           {
+           T * next_item;
+           for (int i = 0; i <  mm_len; i++)
+           {
+            if ((ae =  instream->read_item(&next_item)) != AMI_ERROR_NO_ERROR)
+			  {
+				LOG_DEBUG_ID("read error");
+				return ae;
+			  }
+            mm_stream[i] = *next_item;
+           }
+XXX
+		 //Sort the array.
+
+  cout << "quicksorting\n";
+
+           quicker_sort_cmp((T *)mm_stream,mm_len,cmp);
+
+
+            for (int i = 0; i <  mm_len; i++)
+           {
+            if ((ae = initial_tmp_stream[current_stream]->write_item(
+                                               mm_stream[i]))
+				!= AMI_ERROR_NO_ERROR) {
+			  LOG_DEBUG_ID("write error");
+			  return ae;
+			}
+			
+           }
+
+		  cout << "Wrote out a memload\n";
+
+           run_lengths[0][current_stream][runs_in_current_stream] = mm_len;
+
+           }
+
+
+            runs_in_current_stream++;
+            ii++;
+
+	 }
+
+//RAKESH        
+    if (runs_in_current_stream == desired_runs_in_stream[current_stream])
+         {
+              
+               check_size += 
+			initial_tmp_stream[current_stream]->stream_len(); 
+
+                // We do not want old streams hanging around
+                // occuping memory. We know how to get the streams
+                // since we can generate their names
+XXX
+
+              if (initial_tmp_stream[current_stream])
+                      { 
+
+                        delete initial_tmp_stream[current_stream];
+                        initial_tmp_stream[current_stream] = NULL;
+
+                      }
+
+              if (check_size < (size_t)instream->stream_len())  {
+                            
+                  current_stream = (current_stream + merge_arity - 1) 
+                                    % merge_arity;
+
+#ifndef BTE_IMP_USER_DEFINED
+ //    new_name_from_prefix(prefix_name[0],current_stream, new_stream_name);
+
+               stream_name_generator(working_disk, 
+                                     prefix_name[0], 
+                                     current_stream, 
+                                     new_stream_name);
+  
+#endif
+
+#ifdef BTE_IMP_USER_DEFINED
+                stream_name_generator("",
+                                      prefix_name[0], 
+                                      current_stream, 
+                                      new_stream_name);
+#endif 
+
+
+
+                initial_tmp_stream[current_stream] =
+                           new AMI_STREAM<T>(new_stream_name);
+
+XXX
+
+                
+                initial_tmp_stream[current_stream]->persist(PERSIST_PERSISTENT);
+
+
+
+                // Number of runs packed into 
+                // the stream just constructed now
+
+                runs_in_current_stream = 0;
+                }
+	    }
+
+
+        }
+
+        if (initial_tmp_stream[current_stream])
+                      { 
+                        delete initial_tmp_stream[current_stream];
+                        initial_tmp_stream[current_stream] = NULL;
+                      }
+
+        
+        if (mm_stream) { delete [] mm_stream; mm_stream = NULL;}
+        
+
+	   
+        // Make sure the total length of the temporary stream is the
+        // same as the total length of the original input stream.
+
+XXX
+        tp_assert(instream->stream_len() == check_size,
+                  "Stream lengths do not match:" <<
+                  "\n\tinstream->stream_len() = " << instream->stream_len() <<
+                  "\n\tinitial_tmp_stream->stream_len() = " <<
+                  check_size << ".\n");
+ 
+
+	   //We now delete the input stream. Note that if instream has
+	   //its persistence member set to PERSIST_DELETE, instream will
+	   //be deleted from disk.
+
+        delete instream;
+
+
+        // Set up the loop invariants for the first iteration of hte
+        // main loop.
+
+
+        current_input = initial_tmp_stream;
+ 
+	   //Monitoring prints.
+
+        LOG_DEBUG_INFO("Number of runs from run formation is " << original_substreams << "\n");
+        LOG_DEBUG_INFO("Merge arity is " << merge_arity << "\n");
+         
+
+
+        // Pointers to the substreams that will be merged.
+//RAKESH        
+       AMI_STREAM<T> **the_substreams = new (AMI_STREAM<T> *)[merge_arity];
+
+        k = 0;
+        
+        // The main loop.  At the outermost level we are looping over
+        // levels of the merge tree.  Typically this will be very
+        // small, e.g. 1-3.
+
+        
+ 
+        // The number of substreams to be processed at any merge level.
+        arity_t substream_count;
+
+
+        for (substream_count  = original_substreams;
+             substream_count > 1;
+             substream_count = (substream_count + merge_arity - 1)
+                               /merge_arity
+            )
+		{
+
+
+XXX
+            // Set up to process a given level.
+//RAKESH
+            tp_assert(len == check_size,
+                      "Current level stream not same length as input." <<
+                      "\n\tlen = " << len <<
+                      "\n\tcurrent_input->stream_len() = " <<
+                      check_size << ".\n");
+
+            check_size = 0;
+
+
+
+
+            
+
+            
+            // Do we have enough main memory to merge all the
+            // substreams on the current level into the output stream?
+            // If so, then we will do so, if not then we need an
+            // additional level of iteration to process the substreams
+            // in groups.
+
+
+            if (substream_count <= merge_arity) {
+
+//RAKESH   Open up the substream_count streams in which the
+//         the runs input to the current merge level are packed
+//         The names of these streams (storing the input runs)
+//         can be constructed from  prefix_name[k % 2]
+
+    
+            
+          for(ii= merge_arity - substream_count; ii < merge_arity; ii++) 
+
+                {
+
+		
+#ifndef BTE_IMP_USER_DEFINED
+
+                stream_name_generator(working_disk, 
+                                      prefix_name[k % 2], 
+                                      (int) ii, 
+                                      new_stream_name);
+
+#endif
+
+#ifdef  BTE_IMP_USER_DEFINED
+                stream_name_generator("",
+                                      prefix_name[k % 2], 
+                                      (int) ii, 
+                                      new_stream_name);
+#endif
+
+
+
+
+                current_input[ii] = new AMI_STREAM<T>(new_stream_name);
+                current_input[ii]->persist(PERSIST_DELETE);
+ 
+                }
+
+
+
+                // Merge them into the output stream.
+
+
+                ae = MIAMI_single_merge_cmp(
+                                  (current_input+merge_arity-substream_count),
+                                   substream_count,
+				               outstream,
+                                   cmp);
+
+XXX
+
+                if (ae != AMI_ERROR_NO_ERROR) {
+				  LOG_DEBUG_ID("MIAMI_single_merge_cmp error");			   
+				  LOG_FATAL("AMI_ERROR ");
+				  LOG_FATAL(ae);
+				  LOG_FATAL(" returned by  MIAMI_single_merge_cmp()");
+				  LOG_FLUSH_LOG; 
+				  return ae;
+                }
+
+                
+                  
+                // Delete the streams input to the above merge.
+
+                for (ii = merge_arity - substream_count; 
+                     ii < merge_arity; 
+                     ii++) {
+
+                   if (current_input[ii]) {
+                       delete current_input[ii];
+                       current_input[ii] = NULL;
+			    }
+
+
+                }
+
+                if (current_input) {delete[] current_input; 
+			                     current_input = NULL;}
+                if (the_substreams) {
+                                    delete[] the_substreams;
+                                    the_substreams = NULL;
+							   }
+
+               
+
+            } else {
+
+               LOG_INFO("Merging substreams to intermediate streams.\n");
+
+                // Create the array of merge_arity stream pointers that
+		      // will each point to a stream containing runs output
+		      // at the current level k. 
+
+                intermediate_tmp_stream = new (AMI_STREAM<T> *)
+                                          [merge_arity];       
+
+
+
+//RAKESH   Open up the merge_arity streams in which the
+//         the runs input to the current merge level are packed
+//         The names of these streams (storing the input runs)
+//         can be constructed from  prefix_name[k % 2]
+
+XXX
+		for (ii=0; ii < merge_arity; ii++)
+                	{
+
+//                	new_name_from_prefix(prefix_name[k % 2],(int) ii,
+//                                            new_stream_name);
+
+#ifndef BTE_IMP_USER_DEFINED
+                    stream_name_generator(working_disk, 
+                                          prefix_name[k % 2], 
+                                          (int) ii, 
+                                          new_stream_name);
+#endif
+
+#ifdef BTE_IMP_USER_DEFINED
+		          stream_name_generator("",
+                                          prefix_name[k % 2], 
+                                          (int) ii, 
+                                          new_stream_name);
+#endif
+
+
+
+                     current_input[ii] = new AMI_STREAM<T>(new_stream_name);
+
+                     current_input[ii]->persist(PERSIST_DELETE);
+
+                	}
+
+
+
+                // Fool the OS into unmapping the current block of the
+                // input stream so that blocks of the substreams can
+                // be mapped in without overlapping it.  This is
+                // needed for correct execution on HU-UX.
+//RAKESH
+//                current_input->seek(0);
+
+
+
+           current_stream = merge_arity-1;
+
+        	//For the first stream that we use to pack some    
+		//of the output runs of the current merge level k.
+
+
+//                new_name_from_prefix(prefix_name[(k+1) % 2],0,
+//                                            new_stream_name);
+                  
+#ifndef BTE_IMP_USER_DEFINED
+
+                stream_name_generator(working_disk, 
+                                      prefix_name[(k+1) % 2], 
+                                      current_stream , 
+                                      new_stream_name);
+#endif
+
+#ifdef BTE_IMP_USER_DEFINED
+                stream_name_generator("", 
+                                      prefix_name[(k+1) % 2], 
+                                      current_stream , 
+                                      new_stream_name);
+#endif 
+
+
+XXX
+
+         intermediate_tmp_stream[current_stream] = new
+                                    AMI_STREAM<T>(new_stream_name);
+
+
+         intermediate_tmp_stream[current_stream]->persist(PERSIST_PERSISTENT);
+
+                 unsigned int remaining_number_of_output_runs = 
+			  (substream_count +  merge_arity - 1)/merge_arity;
+
+
+                for (ii_streams = 0; ii_streams < merge_arity; ii_streams ++)
+                {
+	            // If there are 12 runs to be distributed among 5 streams, 
+                 // the first three get 2 and the last two  get 3 runs   
+
+    		       if (ii_streams < 
+                    (merge_arity - 
+                    (remaining_number_of_output_runs % merge_arity)) )   
+                   
+		            desired_runs_in_stream[ii_streams] = 
+                                       remaining_number_of_output_runs/
+                                       merge_arity;
+     
+   	            else 
+                      desired_runs_in_stream[ii_streams] = 
+                                      (remaining_number_of_output_runs 
+                                                    + merge_arity -1)/
+                                                           merge_arity;
+ 
+                 Sub_Start[ii_streams] = 0;
+
+               }           
+
+
+               runs_in_current_stream = 0;
+               unsigned int merge_number = 0;
+
+XXX
+               
+
+                // Loop through the substreams of the current stream,
+                // merging as many as we can at a time until all are
+                // done with.
+
+
+                for (sub_start = 0, ii = 0, jj = 0;
+                     ii < substream_count;
+                     ii++){
+
+                     if (run_lengths[k % 2][merge_arity-1-jj][merge_number]!=0)
+				  {                    
+
+                       sub_start =  Sub_Start[merge_arity-1-jj];
+
+                       sub_end = sub_start + 
+                       run_lengths[k % 2][merge_arity-1-jj][merge_number] - 1;
+
+
+                       Sub_Start[merge_arity-1-jj]+=
+                       run_lengths[k % 2][merge_arity-1-jj][merge_number];
+
+                       run_lengths[k % 2][merge_arity-1-jj][merge_number]
+                                  = 0;
+                      }
+                    else
+                      {
+				    //This weirdness is caused by the way bte substream
+				    //constructor was designed.
+
+                       sub_end = Sub_Start[merge_arity-1-jj]-1;
+                       sub_start = sub_end + 1;
+
+                       ii--;
+
+                      }
+
+ 
+				 //Open the new substream
+                  current_input[merge_arity-1-jj]->new_substream(AMI_READ_STREAM,
+                                                sub_start,
+                                                sub_end,
+                                                (AMI_base_stream<T> **)
+                                                (the_substreams + jj));
+                               
+                    // The substreams are read-once.
+                    // If we've got all we can handle or we've seen
+                    // them all, then merge them.
+                    
+
+                    if ((jj >= merge_arity - 1) ||
+                        (ii == substream_count - 1)) {
+                        
+                        tp_assert(jj <= merge_arity - 1,
+                                  "Index got too large.");
+
+
+				    //Check if the stream into which runs are cuurently 
+				    //being packed has got its share of runs. If yes,
+				    //delete that stream and construct a new stream 
+				    //appropriately.
+ 
+                    if (desired_runs_in_stream[current_stream] == runs_in_current_stream)
+                    {
+                     
+				  //Make sure that the deleted stream persists on disk.
+                      intermediate_tmp_stream[current_stream]->persist(
+                                                       PERSIST_PERSISTENT);
+
+                      delete intermediate_tmp_stream[current_stream];
+
+                      current_stream = (current_stream + merge_arity -1) 
+                                       % merge_arity;
+
+
+                      // Unless the current level is over, we've to generate 
+				  //a new stream for the next set of runs.
+
+                       if (remaining_number_of_output_runs > 0) {
+
+//                        new_name_from_prefix(prefix_name[(k+1) % 2],
+//                              current_stream, new_stream_name);
+
+
+#ifndef BTE_IMP_USER_DEFINED
+                          stream_name_generator(working_disk, 
+                                                prefix_name[(k+1) % 2], 
+                                                (int) current_stream, 
+                                                new_stream_name);
+#endif
+
+#ifdef BTE_IMP_USER_DEFINED
+                          stream_name_generator("",
+                                                prefix_name[(k+1) % 2], 
+                                                (int) current_stream, 
+                                                new_stream_name);
+#endif
+
+
+                        intermediate_tmp_stream[current_stream] = new
+                                    AMI_STREAM<T>(new_stream_name);
+XXX
+
+
+                        intermediate_tmp_stream[current_stream]->persist(
+                                                     PERSIST_PERSISTENT);
+    			         runs_in_current_stream = 0;
+                       }
+				}
+
+
+                      ae = MIAMI_single_merge_cmp(the_substreams,
+                                       jj+1,
+                                     intermediate_tmp_stream[current_stream],
+                                     cmp);
+				                          
+                      if (ae != AMI_ERROR_NO_ERROR) {
+						LOG_DEBUG_ID("MIAMI_single_merge_cmp error");
+						return ae;
+					  }
+                     
+                      for (ii_streams = 0; ii_streams < jj+1; ii_streams++)
+                      run_lengths[(k+1)%2][current_stream]
+                                  [runs_in_current_stream]+= 
+                                  the_substreams[ii_streams]->stream_len();
+            
+
+                      merge_number++;
+
+         
+                       
+                    //Decrement the counter corresp to number of runs 
+			    // still to be formed at current level
+
+
+  			      remaining_number_of_output_runs--;
+                        
+                        // Delete input substreams. jj is currently the index
+                        // of the largest.
+
+
+
+                  for (ii_streams = 0; ii_streams < jj+1; ii_streams++ ) {
+				if (the_substreams[ii_streams]){
+                          delete the_substreams[ii_streams];
+                          the_substreams[ii_streams] = NULL;}
+                          }
+
+
+   
+                  jj = 0;
+                        
+//RAKESH		The number of runs in the current_stream
+//			goes up by 1.
+
+                   runs_in_current_stream ++;
+                        
+				}    
+				else {jj++;}          
+
+                }
+
+                if (intermediate_tmp_stream[current_stream])
+                      { delete intermediate_tmp_stream[current_stream];
+				  intermediate_tmp_stream[current_stream] = NULL;}
+
+                
+
+                // Get rid of the current input streams and use the ones
+			 //output at the current level.
+//RAKESH
+
+                for (ii = 0; ii < merge_arity; ii++) 
+			   if (current_input[ii]){
+                        delete current_input[ii];
+			   }
+                if (current_input) {
+                   delete[] current_input;   
+                   current_input = NULL;
+			 }
+
+                current_input = (AMI_STREAM<T> **) intermediate_tmp_stream;
+            	    
+            }
+
+            
+            k++;
+
+        }
+
+XXX
+	   //Monitoring prints.
+
+        LOG_DEBUG_INFO("Number of passes incl run formation is " << k+1 << "\n");
+		
+        return AMI_ERROR_NO_ERROR;
+   
+	}
+	LOG_DEBUG_ID("AMI_partition_and_merge_cmp END");
+}
+
+
+
+
 
 
 
@@ -3326,16 +4408,185 @@ T merge_out;
 }
 
 
-// We assume that instream is the already constructed input stream 
-// to be sorted by AMI_partition and merge. 
-// We assume that the outstreams array is yet to be constructed.
-//We assume that available_mem is the value of available memory *after*
-// accounting for the fact that at any time during run formation,
-// the input stream and one output stream will be active (so their
-// memory-usage will have to have been taken into consideration.)
-// We assume that computed_prefix is such that it contains the 
-//appropriate intermediate stream name up to Tempo_stream: so  
-// we need to only add the integer at the end to get a stream name.
+
+
+template<class T> AMI_err MIAMI_single_merge(AMI_STREAM<T> **instreams, arity_t arity, AMI_STREAM<T> *outstream)
+{
+
+
+// Pointers to current leading elements of streams
+T * in_objects[arity+1];
+int i,j;
+AMI_err ami_err;
+
+//The number of actual heap elements at any time: can change even 
+//after the merge begins because
+// whenever some stream gets completely depleted, heapsize decremnents by one.
+
+int heapsize_H;
+
+class merge_heap_element<T> * K_Array = 
+                            new (merge_heap_element<T>)[arity+1];
+
+T merge_out;
+
+    // Rewind and read the first item from every stream.
+
+    j = 1;
+    for (i = 0; i < (int)arity ; i++ ) {
+        if ((ami_err = instreams[i]->seek(0)) != AMI_ERROR_NO_ERROR) {
+            return ami_err;
+        }
+
+        if ((ami_err = instreams[i]->read_item(&(in_objects[i]))) !=
+            AMI_ERROR_NO_ERROR) {
+            if (ami_err == AMI_ERROR_END_OF_STREAM) {
+                in_objects[i] = NULL;
+             
+            } else {
+               return ami_err;
+            }
+            // Set the taken flags to 0 before we call intialize()
+        } else {
+         
+         K_Array[j].key = *in_objects[i];
+         K_Array[j].run_id = i;
+         j++; 
+
+
+        
+        }
+    }
+
+    unsigned int NonEmptyRuns = j-1;
+
+
+    merge_heap<T> Main_Merge_Heap(K_Array, NonEmptyRuns);
+
+    while (Main_Merge_Heap.sizeofheap())
+    {
+    i = Main_Merge_Heap.get_min_run_id();
+    if ((ami_err = outstream->write_item(*in_objects[i])) 
+                                    != AMI_ERROR_NO_ERROR)
+                   {
+                    return ami_err;
+                   }
+
+    if ((ami_err = instreams[i]->read_item(&(in_objects[i])))
+                                       != AMI_ERROR_NO_ERROR)
+                   {
+                   if (ami_err != AMI_ERROR_END_OF_STREAM)
+                     {
+                     return ami_err;
+		           }
+                   }
+
+    if (ami_err == AMI_ERROR_END_OF_STREAM)
+                  {
+                   Main_Merge_Heap.delete_min_and_insert((T *)NULL);
+                  }
+    else 
+	   	        {
+                   Main_Merge_Heap.delete_min_and_insert(
+                                                        in_objects[i]
+                                                        );
+                 } 
+    }
+
+    return AMI_ERROR_NO_ERROR;
+
+}
+
+
+template<class T> AMI_err MIAMI_single_merge_cmp(AMI_STREAM<T> **instreams, arity_t arity, AMI_STREAM<T> *outstream,  int (*cmp)(CONST T&, CONST T&))
+{
+
+
+// Pointers to current leading elements of streams
+T * in_objects[arity+1];
+int i,j;
+AMI_err ami_err;
+
+//The number of actual heap elements at any time: can change even 
+//after the merge begins because
+// whenever some stream gets completely depleted, heapsize decremnents by one.
+
+int heapsize_H;
+
+class merge_heap_element<T> * K_Array = 
+                            new (merge_heap_element<T>)[arity+1];
+
+T merge_out;
+
+    // Rewind and read the first item from every stream.
+
+    j = 1;
+    for (i = 0; i < (int)arity ; i++ ) {
+        if ((ami_err = instreams[i]->seek(0)) != AMI_ERROR_NO_ERROR) {
+            return ami_err;
+        }
+
+        if ((ami_err = instreams[i]->read_item(&(in_objects[i]))) !=
+            AMI_ERROR_NO_ERROR) {
+            if (ami_err == AMI_ERROR_END_OF_STREAM) {
+                in_objects[i] = NULL;
+             
+            } else {
+               return ami_err;
+            }
+            // Set the taken flags to 0 before we call intialize()
+        } else {
+         
+         K_Array[j].key = *in_objects[i];
+         K_Array[j].run_id = i;
+         j++; 
+
+
+        
+        }
+    }
+
+    unsigned int NonEmptyRuns = j-1;
+
+
+    merge_heap_cmp<T> Main_Merge_Heap(K_Array, NonEmptyRuns,cmp);
+
+    while (Main_Merge_Heap.sizeofheap())
+    {
+    i = Main_Merge_Heap.get_min_run_id();
+    if ((ami_err = outstream->write_item(*in_objects[i])) 
+                                    != AMI_ERROR_NO_ERROR)
+                   {
+                    return ami_err;
+                   }
+
+    if ((ami_err = instreams[i]->read_item(&(in_objects[i])))
+                                       != AMI_ERROR_NO_ERROR)
+                   {
+                   if (ami_err != AMI_ERROR_END_OF_STREAM)
+                     {
+                     return ami_err;
+		           }
+                   }
+
+    if (ami_err == AMI_ERROR_END_OF_STREAM)
+                  {
+                   Main_Merge_Heap.delete_min_and_insert((T *)NULL);
+                  }
+    else 
+	   	        {
+                   Main_Merge_Heap.delete_min_and_insert(
+                                                        in_objects[i]
+                                                        );
+                 } 
+    }
+
+    return AMI_ERROR_NO_ERROR;
+
+}
+
+
+
 
 
 
