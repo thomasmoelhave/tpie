@@ -3,7 +3,7 @@
 // Created: 2002/10/30
 // Authors: Joerg Rotthowe, Jan Vahrenhold, Markus Vogel
 //
-// $Id: portability.h,v 1.7 2003-04-30 06:13:57 tavi Exp $
+// $Id: portability.h,v 1.8 2003-09-11 18:56:40 jan Exp $
 //
 // This header-file offers macros for independent use on Win and Unix systems.
 
@@ -34,6 +34,7 @@
 // includes                                 //
 //////////////////////////////////////////////
 
+#include <iostream>
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -52,6 +53,15 @@
 //#else
 //#include <strstream.h>
 //#endif
+
+// for class logstream
+
+#ifdef _WIN32
+#include <fstream.h>
+#else
+#include <fstream>
+using namespace std;
+#endif
 
 // Get class tms or time_t //
 #ifdef _WIN32
@@ -227,16 +237,16 @@ typedef unsigned int TPIE_BLOCK_ID_TYPE;
 
  
 #ifdef _WIN32					
-#define TPIE_OS_STL_STACK std::stack				
+#define TPIE_OS_STL_STACK stack				
 #else							
-#define TPIE_OS_STL_STACK std::stack					
+#define TPIE_OS_STL_STACK stack					
 #endif							
 
 
 #ifdef _WIN32					
-#define TPIE_OS_STL_PAIR std::pair				
+#define TPIE_OS_STL_PAIR pair				
 #else 			
-#define TPIE_OS_STL_PAIR std::pair					
+#define TPIE_OS_STL_PAIR pair					
 #endif	
 
 #ifdef _WIN32	
@@ -977,10 +987,6 @@ void * operator new(\
 #endif
 #else									      
 #define TPIE_OS_SPACE_OVERHEAD_BODY
-#endif
-
-#ifdef _WIN32
-#include <getopt.h>
 #endif
 
 #endif 
