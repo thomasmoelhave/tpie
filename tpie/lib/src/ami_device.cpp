@@ -5,11 +5,10 @@
 //
 
 #include "versions.h"
-VERSION(ami_device_cpp,"$Id: ami_device.cpp,v 1.10 2002-01-14 17:24:40 tavi Exp $");
+VERSION(ami_device_cpp,"$Id: ami_device.cpp,v 1.11 2003-04-17 20:40:45 jan Exp $");
 
 #include "lib_config.h"
 
-#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -29,7 +28,7 @@ AMI_device::AMI_device(unsigned int count, char **strings)
 
     argc = count;
     if (argc) {
-        argv = new (char *)[argc];
+        argv = new char*[argc];
 
         while (count--) {
             argv[count] = new char[strlen(strings[count]) + 1];
@@ -83,22 +82,22 @@ AMI_err AMI_device::set_to_path(const char *path)
 
     // Count the components
     for (argc = 1, s = path; *s; s++) {
-        if (*s == ':') {
+        if (*s == '|') {
             argc++;
         }
     }
                 
-    argv = new (char *)[argc];
+    argv = new char*[argc];
 
     // copy the components one by one.  t points to the start of the 
     // current component and s is used to scan to the end of it.
 
     for (ii = 0, s = t = path; ii < argc; ii++, t = ++s) {
         // Move past the current component.
-        while (*s && (*s != ':')) 
+        while (*s && (*s != '|')) 
             s++;
 
-        tp_assert(((*s == ':') || (ii == argc - 1)),
+        tp_assert(((*s == '|') || (ii == argc - 1)),
                   "Path ended before all components found.");
         
         // Copy the current component.
@@ -139,7 +138,7 @@ ostream &operator<<(ostream &os, const AMI_device &dev)
     for (ii = 0; ii < dev.argc; ii++) {
         os << dev.argv[ii];
         if (ii < dev.argc - 1) {
-            os << ':';
+            os << '|';
         }
     }
     
