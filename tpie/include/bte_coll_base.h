@@ -4,7 +4,7 @@
 // Authors: Octavian Procopiuc <tavi@cs.duke.edu>
 //          (using some code by Rakesh Barve)
 //
-// $Id: bte_coll_base.h,v 1.23 2004-02-05 17:36:52 jan Exp $
+// $Id: bte_coll_base.h,v 1.24 2004-05-05 14:31:56 adanner Exp $
 //
 // BTE_collection_base class and various basic definitions.
 
@@ -121,6 +121,9 @@ template <class BIDT>
 class BTE_collection_base {
 protected:
 
+    // Various parameters (will be stored into the file header block).
+    BTE_collection_header header_;
+
     // A stack of TPIE_OS_OFFSET's.
     BTE_stack_ufs<BIDT> *freeblock_stack_; 
 
@@ -128,9 +131,6 @@ protected:
     TPIE_OS_FILE_DESCRIPTOR bcc_fd_;
 
     char base_file_name_[BTE_COLLECTION_PATH_NAME_LEN];
-
-    // Various parameters (will be stored into the file header block).
-    BTE_collection_header header_;
 
     size_t os_block_size_;
 
