@@ -3,14 +3,15 @@
 // Created: 2002/10/30
 // Authors: Joerg Rotthowe, Jan Vahrenhold, Markus Vogel
 //
-// $Id: portability.h,v 1.28 2004-10-20 08:57:08 jan Exp $
+// $Id: portability.h,v 1.29 2004-10-20 13:39:54 jan Exp $
 //
 // This header-file offers macros for independent use on Win and Unix systems.
 
 #ifndef _PORTABILITY_H
 #define _PORTABILITY_H
 
-#define _TPIE_SMALL_MEMORY
+//  The following wil cause TPIE_OS_SIZE_T to be a 32-bit integer!
+#define _TPIE_SMALL_MAIN_MEMORY
 
 #ifdef _WIN32
 #pragma warning (disable : 4018) // signed/unsigned comparison mismatch
