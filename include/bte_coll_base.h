@@ -3,7 +3,7 @@
 // Authors: Octavian Procopiuc <tavi@cs.duke.edu>
 //          (using some code by Rakesh Barve)
 //
-// $Id: bte_coll_base.h,v 1.13 2002-07-20 21:38:27 tavi Exp $
+// $Id: bte_coll_base.h,v 1.14 2002-08-13 18:01:25 tavi Exp $
 //
 // BTE_collection_base class and various basic definitions.
 //
@@ -216,9 +216,9 @@ protected:
 	if (header_.total_blocks == 1)
 	  header_.total_blocks += 2;
 	else if (header_.total_blocks <= 161)
-	  header_.total_blocks += 8;
+	  header_.total_blocks += 16;
 	else
-	  header_.total_blocks += 64;
+	  header_.total_blocks += 128;
 #if USE_FTRUNCATE
 	if (ftruncate(bcc_fd_, bid_to_file_offset(header_.total_blocks))) {
 	  LOG_FATAL_ID("Failed to ftruncate() to the new end of file.");
@@ -234,8 +234,8 @@ protected:
 	  return BTE_ERROR_OS_ERROR;
 	}
 	while (curr_off < bid_to_file_offset(header_.total_blocks)) {
-	  ::write(bcc_fd_, tbuf, header_.os_block_size);
-	  curr_off += header_.os_block_size;
+	  ::write(bcc_fd_, tbuf, header_.block_size);
+	  curr_off += header_.block_size;
 	}
 	file_pointer = curr_off;
 	delete [] tbuf;

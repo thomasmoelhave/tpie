@@ -2,7 +2,7 @@
 // File:    bte_coll_mmap.h (formerly bte_coll_mmb.h)
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: bte_coll_mmap.h,v 1.6 2002-07-21 19:41:49 tavi Exp $
+// $Id: bte_coll_mmap.h,v 1.7 2002-08-13 18:01:39 tavi Exp $
 //
 // BTE_collection_mmap class definition.
 //
@@ -17,7 +17,7 @@
 //  0    (synchronous writes)
 //  1    (asynchronous writes using MS_ASYNC - see msync(2)) [default]
 //  2    (asynchronous bulk writes)
-#define BTE_COLLECTION_MMAP_LAZY_WRITE 1
+#define BTE_COLLECTION_MMAP_LAZY_WRITE 2
 
 #include <bte_coll_base.h>
 
