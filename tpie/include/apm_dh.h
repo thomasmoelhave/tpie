@@ -10,7 +10,7 @@
 // *  used in several of TPIE's sorting variants                            *
 // *                                                                        *
 // **************************************************************************
-// 	$Id: apm_dh.h,v 1.7 2001-04-24 17:41:46 hutchins Exp $	
+// 	$Id: apm_dh.h,v 1.8 2001-12-10 22:04:46 tavi Exp $	
 
 #include <math.h>		// For log(), etc  to compute tree heights.
 #include <sys/time.h>
@@ -827,4 +827,4 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
    LOG_DEBUG_ID ("AMI_partition_and_merge END");
    return AMI_ERROR_NO_ERROR;
 }
-#endif _APM_DH_H
+#endif //_APM_DH_H
