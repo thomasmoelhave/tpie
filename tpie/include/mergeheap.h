@@ -1,4 +1,4 @@
-// 	$Id: mergeheap.h,v 1.5 1999-04-28 14:58:35 rbarve Exp $	
+// 	$Id: mergeheap.h,v 1.6 1999-11-23 16:49:10 tavi Exp $	
 
 //Rakesh Barve.
 //A template useful during merge operations. 
@@ -15,20 +15,14 @@
 #ifndef _MERGE_HEAP_H
 #define _MERGE_HEAP_H
 
-
-
-#include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
-
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 //Macros for left and right.
 #define Left(i) 2*i
 #define Right(i) 2*i+1
 #define Parent(i) i/2
-
-
-
 
 //This is a heap element. Meant to encapsulate the key, along with
 //the label run_id indicating the run the key originates from.
@@ -36,8 +30,8 @@
 template<class Key>
 class merge_heap_element {
 public:
-Key key;
-unsigned short run_id;
+  Key key;
+  unsigned short run_id;
 };
 
 
@@ -47,250 +41,204 @@ unsigned short run_id;
 template<class Key>
 class merge_heap{
 
-class merge_heap_element<Key> *Heaparray;
-unsigned int Heapsize;
-void Exchange(int i, int j){
+  class merge_heap_element<Key> *Heaparray;
+  unsigned int Heapsize;
+  void Exchange(int i, int j) {
 
-  Key tmpkey;
-  unsigned short tmpid;
+    Key tmpkey;
+    unsigned short tmpid;
 
-  tmpkey = Heaparray[i].key;
-  tmpid = Heaparray[i].run_id;
-  
-  Heaparray[i].key = Heaparray[j].key;
-  Heaparray[i].run_id = Heaparray[j].run_id;
-
-  Heaparray[j].key = tmpkey;
-  Heaparray[j].run_id = tmpid;
+    tmpkey = Heaparray[i].key;
+    tmpid = Heaparray[i].run_id;
+    
+    Heaparray[i].key = Heaparray[j].key;
+    Heaparray[i].run_id = Heaparray[j].run_id;
+    
+    Heaparray[j].key = tmpkey;
+    Heaparray[j].run_id = tmpid;
   };
 
- inline void Heapify(unsigned int i);
-
+  inline void Heapify(unsigned int i);
 
 public:
 
- //Constructor
- merge_heap(class merge_heap_element<Key> *array_of_elements,
-            unsigned int array_size);
+  // Constructor
+  merge_heap(class merge_heap_element<Key> *array_of_elements,
+	     unsigned int array_size);
 
- //destructor
- ~merge_heap(void) {if (Heaparray) {delete Heaparray; Heaparray = NULL;}};
+  // Destructor
+  ~merge_heap(void) {if (Heaparray) {delete Heaparray; Heaparray = NULL;}};
 
-  //Report size of Heap (number of elements)
- unsigned int sizeofheap(void) {return Heapsize;}; 
+  // Report size of Heap (number of elements)
+  unsigned int sizeofheap(void) {return Heapsize;}; 
 
   //Delete the current minimum and insert the new item from
   //the same source / run.
 
- void delete_min_and_insert(Key *nextelement_same_run){
+  void delete_min_and_insert(Key *nextelement_same_run){
   
-   if (nextelement_same_run == NULL)
-	{
+    if (nextelement_same_run == NULL) {
       Heaparray[1].key = Heaparray[Heapsize].key;
       Heaparray[1].run_id = Heaparray[Heapsize].run_id;
       Heapsize--;
-     }
-   else Heaparray[1].key = *nextelement_same_run;
-   this->Heapify(1);
+    } else 
+      Heaparray[1].key = *nextelement_same_run;
+    this->Heapify(1);
   };
 
-  //Return the minimum key.
- Key get_min_key(void) {return Heaparray[1].key;};
+  // Return the minimum key.
+  Key get_min_key(void) {return Heaparray[1].key;};
 
   //Return the run with the minimum key.
- unsigned short get_min_run_id(void) {return Heaparray[1].run_id;};
+  unsigned short get_min_run_id(void) {return Heaparray[1].run_id;};
 
 };
 
 
 
-//This is the primary function; note that we have unfolded the 
-//recursion.
+// This is the primary function; note that we have unfolded the 
+// recursion.
 template<class Key>
-inline void merge_heap<Key>::Heapify(unsigned int i)
-{
+inline void merge_heap<Key>::Heapify(unsigned int i) {
+
   unsigned int l,r, smallest;
 
   l = Left(i);
   r = Right(i);
 
+  smallest = ((l <= Heapsize) && 
+	      (Heaparray[l].key < Heaparray[i].key)) ? l : i;
 
-  smallest = ((l <= Heapsize) && (Heaparray[l].key < Heaparray[i].key)) ? 
-             l : i;
+  smallest = ((r <= Heapsize) && 
+	      (Heaparray[r].key < Heaparray[smallest].key))? r : smallest;
 
-  smallest = ((r <= Heapsize) && (Heaparray[r].key < Heaparray[smallest].key))?
-              r : smallest;
+  while (smallest != i) {
+    this->Exchange(i,smallest);
 
-  while (smallest != i)
-          {
-           this->Exchange(i,smallest);
+    i = smallest;
+    l = Left(i);
+    r = Right(i);
+    
+    smallest = ((l <= Heapsize) && 
+		(Heaparray[l].key < Heaparray[i].key))? l : i;
+    
+    smallest =  ((r <= Heapsize) && 
+		 (Heaparray[r].key < Heaparray[smallest].key))? r : smallest;
 
-           i = smallest;
-
-           l = Left(i);
-           r = Right(i);
-
-           smallest = ((l <= Heapsize) && 
-                       (Heaparray[l].key < Heaparray[i].key))?
-                       l : i;
-
-           smallest =  ((r <= Heapsize) && 
-                       (Heaparray[r].key < Heaparray[smallest].key))? 
-                       r : smallest;
-
-          }
+  }
 }
 
 //Constructor
 template<class Key>
-merge_heap<Key>::merge_heap(
-                     class merge_heap_element<Key> *array_of_elements,
-                     unsigned int size_of_array)
-{
-   int i;
-   Heapsize = size_of_array;
-   Heaparray = array_of_elements;
-   for ( i = Heapsize/2; i >= 1; i--) this->Heapify(i);
+merge_heap<Key>::merge_heap(class merge_heap_element<Key> *array_of_elements,
+			    unsigned int size_of_array) {
+  int i;
+  Heapsize = size_of_array;
+  Heaparray = array_of_elements;
+  for ( i = Heapsize/2; i >= 1; i--) 
+    this->Heapify(i);
 }
 
 
-
 template<class Key>
-class merge_heap_cmp{
+class merge_heap_cmp {
 
-class merge_heap_element<Key> *Heaparray;
-int (*cmp)(CONST Key&, CONST Key&);
-unsigned int Heapsize;
+  class merge_heap_element<Key> *Heaparray;
+  int (*cmp)(CONST Key&, CONST Key&);
+  unsigned int Heapsize;
 
-void Exchange(int i, int j){
+  void Exchange(int i, int j){
 
-  Key tmpkey;
-  unsigned short tmpid;
+    Key tmpkey;
+    unsigned short tmpid;
 
-  tmpkey = Heaparray[i].key;
-  tmpid = Heaparray[i].run_id;
+    tmpkey = Heaparray[i].key;
+    tmpid = Heaparray[i].run_id;
   
-  Heaparray[i].key = Heaparray[j].key;
-  Heaparray[i].run_id = Heaparray[j].run_id;
+    Heaparray[i].key = Heaparray[j].key;
+    Heaparray[i].run_id = Heaparray[j].run_id;
 
-  Heaparray[j].key = tmpkey;
-  Heaparray[j].run_id = tmpid;
+    Heaparray[j].key = tmpkey;
+    Heaparray[j].run_id = tmpid;
   };
 
- inline void Heapify(unsigned int i);
-
+  inline void Heapify(unsigned int i);
 
 public:
 
- //Constructor
- merge_heap_cmp(class merge_heap_element<Key> *array_of_elements,
-            unsigned int array_size, int (*comp_fun)(CONST Key&, CONST Key&));
+  // Constructor
+  merge_heap_cmp(class merge_heap_element<Key> *array_of_elements,
+		 unsigned int array_size, int (*comp_fun)(CONST Key&, CONST Key&));
 
- //destructor
- ~merge_heap_cmp(void) {if (Heaparray) {delete Heaparray; Heaparray = NULL;}};
+  // Destructor
+  ~merge_heap_cmp(void) {if (Heaparray) {delete Heaparray; Heaparray = NULL;}};
 
-  //Report size of Heap (number of elements)
- unsigned int sizeofheap(void) {return Heapsize;}; 
-
-  //Delete the current minimum and insert the new item from
-  //the same source / run.
-
- void delete_min_and_insert(Key *nextelement_same_run){
+  // Report size of Heap (number of elements)
+  unsigned int sizeofheap(void) {return Heapsize;}; 
   
-   if (nextelement_same_run == NULL)
-	{
+  // Delete the current minimum and insert the new item from
+  // the same source / run.
+
+  void delete_min_and_insert(Key *nextelement_same_run) {
+  
+    if (nextelement_same_run == NULL) {
       Heaparray[1].key = Heaparray[Heapsize].key;
       Heaparray[1].run_id = Heaparray[Heapsize].run_id;
       Heapsize--;
-     }
-   else Heaparray[1].key = *nextelement_same_run;
-   this->Heapify(1);
+    } else Heaparray[1].key = *nextelement_same_run;
+    this->Heapify(1);
   };
 
   //Return the minimum key.
- Key get_min_key(void) {return Heaparray[1].key;};
-
+  Key get_min_key(void) {return Heaparray[1].key;};
+  
   //Return the run with the minimum key.
- unsigned short get_min_run_id(void) {return Heaparray[1].run_id;};
-
+  unsigned short get_min_run_id(void) {return Heaparray[1].run_id;};
 };
 
 
-
-//This is the primary function; note that we have unfolded the 
-//recursion.
+// This is the primary function; note that we have unfolded the 
+// recursion.
 template<class Key>
-inline void merge_heap_cmp<Key>::Heapify(unsigned int i)
-{
+inline void merge_heap_cmp<Key>::Heapify(unsigned int i) {
   unsigned int l,r, smallest;
-
+  
   l = Left(i);
   r = Right(i);
 
+  smallest = ((l <= Heapsize) && (cmp(Heaparray[l].key,Heaparray[i].key)< 0)) ? l : i;
 
+  smallest = ((r <= Heapsize) && 
+	      (cmp(Heaparray[r].key,Heaparray[smallest].key)<0))? r : smallest;
 
+  while (smallest != i) {
+    this->Exchange(i,smallest);
+    
+    i = smallest;
+    l = Left(i);
+    r = Right(i);
+    
+    smallest = ((l <= Heapsize) && 
+		(cmp(Heaparray[l].key,Heaparray[i].key)<0))? l : i;
 
-  smallest = ((l <= Heapsize) && (cmp(Heaparray[l].key,Heaparray[i].key)< 0)) ? 
-             l : i;
+    smallest =  ((r <= Heapsize) && 
+		 (cmp(Heaparray[r].key,Heaparray[smallest].key)<0))? r : smallest;
 
-  smallest = ((r <= Heapsize) && (cmp(Heaparray[r].key,Heaparray[smallest].key)<0))?
-              r : smallest;
-
-  while (smallest != i)
-          {
-           this->Exchange(i,smallest);
-
-           i = smallest;
-
-           l = Left(i);
-           r = Right(i);
-
-           smallest = ((l <= Heapsize) && 
-                       (cmp(Heaparray[l].key,Heaparray[i].key)<0))?
-                       l : i;
-
-           smallest =  ((r <= Heapsize) && 
-                       (cmp(Heaparray[r].key,Heaparray[smallest].key)<0))? 
-                       r : smallest;
-
-          }
+  }
 }
 
-//Constructor
+// Constructor
 template<class Key>
-merge_heap_cmp<Key>::merge_heap_cmp(
-                     class merge_heap_element<Key> *array_of_elements,
-                     unsigned int size_of_array, int (*comp_fun)(const Key&, const Key&))
-{
-   int i;
-   Heapsize = size_of_array;
-   Heaparray = array_of_elements;
-   cmp = comp_fun;
-
-   for ( i = Heapsize/2; i >= 1; i--) this->Heapify(i);
+merge_heap_cmp<Key>::merge_heap_cmp(class merge_heap_element<Key> *array_of_elements,
+				    unsigned int size_of_array, 
+				    int (*comp_fun)(const Key&, const Key&)) {
+  int i;
+  Heapsize = size_of_array;
+  Heaparray = array_of_elements;
+  cmp = comp_fun;
+  
+  for ( i = Heapsize/2; i >= 1; i--) 
+    this->Heapify(i);
 }
-
-
-
-
-//#ifdef NO_IMPLICIT_TEMPLATES
-
-//#define TEMPLATE_INSTANTIATE_MERGE_HEAP(Key)				\
-//template class merge_heap_element<Key>;					\
-//template class merge_heap<Key>;
-//
-//#endif
-
 
 #endif // _MERGE_HEAP_H
-          
-  
-      
- 
-
-
-     
-   
-  
-
-
