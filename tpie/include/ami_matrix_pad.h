@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/11/94
 //
-// $Id: ami_matrix_pad.h,v 1.2 1995-03-25 14:07:29 darrenv Exp $
+// $Id: ami_matrix_pad.h,v 1.3 1995-06-30 21:08:41 darrenv Exp $
 //
 #ifndef _AMI_MATRIX_PAD_H
 #define _AMI_MATRIX_PAD_H
@@ -67,7 +67,7 @@ AMI_err AMI_matrix_pad<T>::operate(const T &in, AMI_SCAN_FLAG *sfin,
         // Don't take the input.
         *sfin = false;
         // If we are not completely done then write padding.
-        if (*sfout = (cur_row < final_rows)) {
+        if ((*sfout = (cur_row < final_rows))) {
             *out = (T)0;
             ae = AMI_SCAN_CONTINUE;
         } else {

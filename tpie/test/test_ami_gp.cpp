@@ -5,7 +5,7 @@
 // Created: 11/1/94
 //
 
-static char test_ami_gp_id[] = "$Id: test_ami_gp.cpp,v 1.3 1995-06-20 20:15:45 darrenv Exp $";
+static char test_ami_gp_id[] = "$Id: test_ami_gp.cpp,v 1.4 1995-06-30 21:09:43 darrenv Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -105,8 +105,8 @@ int main(int argc, char **argv)
     MM_manager.resize_heap(test_mm_size);
     register_new = 1;
 
-    AMI_STREAM<int> amis0((unsigned int)0, test_size);
-    AMI_STREAM<int> amis1((unsigned int)0, test_size);
+    AMI_STREAM<int> amis0;
+    AMI_STREAM<int> amis1;
 
     // Streams for reporting values to ascii streams.
     

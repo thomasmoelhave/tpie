@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/9/94
 //
-// $Id: ami_matrix.h,v 1.5 1995-06-20 20:16:53 darrenv Exp $
+// $Id: ami_matrix.h,v 1.6 1995-06-30 21:08:38 darrenv Exp $
 //
 #ifndef _AMI_MATRIX_H
 #define _AMI_MATRIX_H
@@ -37,7 +37,7 @@ public:
 
 template<class T>
 AMI_matrix<T>::AMI_matrix(unsigned int row, unsigned int col) :
-        r(row), c(col), AMI_STREAM<T>((unsigned int)0, row*col)
+        r(row), c(col), AMI_STREAM<T>()
 {
 }
 

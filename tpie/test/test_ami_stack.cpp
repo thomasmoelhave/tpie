@@ -5,7 +5,7 @@
 // Created: 12/15/94
 //
 
-static char test_ami_stack_id[] = "$Id: test_ami_stack.cpp,v 1.2 1995-06-20 20:15:53 darrenv Exp $";
+static char test_ami_stack_id[] = "$Id: test_ami_stack.cpp,v 1.3 1995-06-30 21:09:49 darrenv Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -117,8 +117,10 @@ int main(int argc, char **argv)
     }
     
     // Push values.
+
+    double ii;
     
-    for (double ii = test_size; ii--; ) {
+    for (ii = test_size; ii--; ) {
         amis0.push(ii+0.01);
     }
 

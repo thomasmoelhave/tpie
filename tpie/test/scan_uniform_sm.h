@@ -4,13 +4,13 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 3/6/95
 //
-// $Id: scan_uniform_sm.h,v 1.2 1995-06-20 20:15:41 darrenv Exp $
+// $Id: scan_uniform_sm.h,v 1.3 1995-06-30 21:09:32 darrenv Exp $
 //
 #ifndef _SCAN_UNIFORM_SM_H
 #define _SCAN_UNIFORM_SM_H
 
-extern "C" int srandom(int);
-extern "C" int random(void);
+extern "C" void srandom(unsigned int);
+extern "C" long int random(void);
 
 #include <ami_sparse_matrix.h>
 

@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 3/2/95
 //
-// $Id: ami_sparse_matrix.h,v 1.2 1995-03-25 14:07:42 darrenv Exp $
+// $Id: ami_sparse_matrix.h,v 1.3 1995-06-30 21:08:48 darrenv Exp $
 //
 #ifndef AMI_SPARSE_MATRIX_H
 #define AMI_SPARSE_MATRIX_H
@@ -52,7 +52,7 @@ public:
 
 template<class T>
 AMI_sparse_matrix<T>::AMI_sparse_matrix(unsigned int row, unsigned int col) :
-        r(row), c(col), AMI_STREAM< AMI_sm_elem<T> >((unsigned int)0, row*col)
+        r(row), c(col), AMI_STREAM< AMI_sm_elem<T> >()
 {
 }
 

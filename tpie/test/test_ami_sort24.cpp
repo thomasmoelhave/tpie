@@ -5,7 +5,7 @@
 // Created: 3/24/95
 //
 
-static char test_ami_sort24_id[] = "$Id: test_ami_sort24.cpp,v 1.2 1995-06-20 19:01:09 darrenv Exp $";
+static char test_ami_sort24_id[] = "$Id: test_ami_sort24.cpp,v 1.3 1995-06-30 21:09:46 darrenv Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -178,8 +178,8 @@ int main(int argc, char **argv)
     MM_manager.resize_heap(test_mm_size);
     register_new = 1;
         
-    AMI_STREAM<sort_obj> amis0((unsigned int)1, test_size);
-    AMI_STREAM<sort_obj> amis1((unsigned int)1, test_size);
+    AMI_STREAM<sort_obj> amis0;
+    AMI_STREAM<sort_obj> amis1;
         
     // Write some ints.
     scan_random_so rnds(test_size,random_seed);
