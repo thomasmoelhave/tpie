@@ -8,7 +8,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(nas_is_cpp,"$Id: nas_is.cpp,v 1.9 2003-09-12 14:45:37 jan Exp $");
+VERSION(nas_is_cpp,"$Id: nas_is.cpp,v 1.10 2003-09-13 18:24:43 jan Exp $");
 
 // Benchmark constants.
 #define IMAX 10
@@ -349,13 +349,13 @@ void parse_app_opt(char c, char *optarg)
             kb_sort = !kb_sort;
             break;
         case 'B':
-            istrstream(optarg,strlen(optarg)) >> bmax;            
+	    bmax = (unsigned int)atol(optarg);
             break;
         case 'I':
-            istrstream(optarg,strlen(optarg)) >> imax;            
+	    imax = (unsigned int)atol(optarg);
             break;
         case 'C':
-            istrstream(optarg,strlen(optarg)) >> use_cdf;            
+	    use_cdf = (unsigned int)atol(optarg);
             break;            
     }
 }
