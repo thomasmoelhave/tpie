@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/13/94
 //
-// $Id: config.h.in,v 1.2 1994-10-31 21:17:18 darrenv Exp $
+// $Id: config.h.in,v 1.3 1994-11-03 16:25:21 dev Exp $
 //
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -23,6 +23,17 @@
 
 // Define if you have a prototype for ftruncate()
 #define HAVE_PROTOTYPE_FTRUNCATE 0
+
+// Do we have string.h or strings.h?
+#define HAVE_STRING_H 0
+#define HAVE_STRINGS_H 0
+
+// On Solaris, _SC_PAGE_SIZE is called _SC_PAGE_SIZE.  Here's a quick
+// fix.
+#include <sys/unistd.h>
+#ifndef _SC_PAGE_SIZE
+#define _SC_PAGE_SIZE _SC_PAGESIZE
+#endif
 
 // Flags to enable or disable various features of the system.
 
