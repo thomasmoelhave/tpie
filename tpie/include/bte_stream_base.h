@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/11/94
 //
-// $Id: bte_stream_base.h,v 1.3 2002-01-25 23:13:01 tavi Exp $
+// $Id: bte_stream_base.h,v 1.4 2002-08-13 18:00:01 tavi Exp $
 //
 #ifndef _BTE_STREAM_BASE_H
 #define _BTE_STREAM_BASE_H
@@ -105,6 +105,8 @@ protected:
   unsigned int substream_level;
   // Non-zero if this stream was opened for reading only.
   int r_only; 
+  // Statistics for this stream only.
+  tpie_stats_stream stats_;
 
   // Check the given header for reasonable values.
   int check_header(BTE_stream_header* ph);
@@ -128,6 +130,8 @@ public:
 
   // Inquire the OS block size.
   size_t os_block_size () const;
+
+  const tpie_stats_stream& stats() const { return stats_; }
 
 #if BTE_VIRTUAL_BASE
     
