@@ -8,7 +8,7 @@
 // lower level streams will use appropriate levels of buffering.  This
 // will be more critical for parallel disk implementations.
 //
-// $Id: ami_merge.h,v 1.31 2000-11-14 04:41:04 hutchins Exp $
+// $Id: ami_merge.h,v 1.32 2001-06-16 19:45:44 tavi Exp $
 //
 #ifndef _AMI_MERGE_H
 #define _AMI_MERGE_H
@@ -491,11 +491,11 @@ AMI_err AMI_generalized_partition_and_merge(AMI_STREAM<T> *instream,
       }
       if (merge_arity > (arity_t)ami_available_streams - 2) {
 	merge_arity = ami_available_streams - 2;
-	LOG_DEBUG_INFO("Reduced merge arity due to AMI restrictions.\n");
+	LOG_DEBUG_ID("Reduced merge arity due to AMI restrictions.");
       }
     }
   }
-  LOG_DEBUG_INFO("AMI_generalized_partition_and_merge(): merge arity = "<< merge_arity << ".\n");
+  LOG_DEBUG_ID("AMI_generalized_partition_and_merge(): merge arity = "<< merge_arity);
   if (merge_arity < 2) {
     return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
   }
@@ -528,12 +528,10 @@ AMI_err AMI_generalized_partition_and_merge(AMI_STREAM<T> *instream,
 	      "Size of original streams increased.");
     
     sz_orig_substr = (size_t)new_sz_original_substream;
-    LOG_INFO("Memory constraints set original substreams = " <<
-	     nb_orig_substr << '\n');
+    LOG_DEBUG_ID("Memory constraints set original substreams = " << nb_orig_substr);
     
     nb_orig_substr = (len + sz_orig_substr - 1) / sz_orig_substr;
-    LOG_INFO("Tree height constraints set original substreams = " <<
-	     nb_orig_substr << '\n');
+    LOG_DEBUG_ID("Tree height constraints set original substreams = " << nb_orig_substr);
   }                
 #endif // MINIMIZE_INITIAL_SUBSTREAM_LENGTH
 
@@ -612,9 +610,9 @@ AMI_err AMI_generalized_partition_and_merge(AMI_STREAM<T> *instream,
   AMI_STREAM<T> **the_substreams = new (AMI_STREAM<T> *)[merge_arity];
   
   //Monitoring prints.
-  LOG_DEBUG_INFO("Number of runs from run formation is "
-				 << nb_orig_substr << "\n");
-  LOG_DEBUG_INFO("Merge arity is " << merge_arity << "\n");
+  LOG_DEBUG_ID("Number of runs from run formation is "
+				 << nb_orig_substr);
+  LOG_DEBUG_ID("Merge arity is " << merge_arity);
   
   
   k = 0;
@@ -642,7 +640,7 @@ AMI_err AMI_generalized_partition_and_merge(AMI_STREAM<T> *instream,
     
     if (substream_count <= merge_arity) {
       
-      LOG_DEBUG_INFO("Merging substreams directly to the output stream.\n");
+      LOG_DEBUG_ID("Merging substreams directly to the output stream.");
       
       // Create all the substreams
       for (sub_start = 0, ii = 0 ;
@@ -688,7 +686,7 @@ AMI_err AMI_generalized_partition_and_merge(AMI_STREAM<T> *instream,
     } else {
       
       //substream_count  is >  merge_arity
-      LOG_DEBUG_INFO("Merging substreams to an intermediate stream.\n");
+      LOG_DEBUG_ID("Merging substreams to an intermediate stream.");
       
       // Create the next intermediate stream.
       intermediate_tmp_stream = new AMI_STREAM<T>;
@@ -787,7 +785,7 @@ AMI_err AMI_generalized_partition_and_merge(AMI_STREAM<T> *instream,
   }
 
   //Monitoring prints.
-  LOG_DEBUG_INFO("Number of passes incl run formation is " << k+1 << "\n");
+  LOG_DEBUG_ID("Number of passes incl run formation is " << k+1);
   
   delete [] the_substreams;
   return AMI_ERROR_NO_ERROR;
