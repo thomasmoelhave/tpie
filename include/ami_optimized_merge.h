@@ -20,7 +20,8 @@
 // keys of the items; there is a provision to to use templated heaps
 // to implement the merge.
 
-// $Id: ami_optimized_merge.h,v 1.41 1999-07-06 02:59:55 rajiv Exp $	
+// $Id: ami_optimized_merge.h,v 1.42 1999-10-21 22:57:46 tavi Exp $	
+
 // TO DO: substream_count setting; don't depend on current_stream_len
 
 
@@ -894,13 +895,13 @@ XXX
 
             sz_original_substream = (size_t)new_sz_original_substream;
 
-            LOG_INFO("Memory constraints set original substreams = " <<
+            LOG_DEBUG_ID("Memory constraints set original substreams = " <<
                      original_substreams << '\n');
             
             original_substreams = (len + sz_original_substream - 1) /
                 sz_original_substream;
 
-            LOG_INFO("Tree height constraints set original substreams = " <<
+            LOG_DEBUG_ID("Tree height constraints set original substreams = " <<
                      original_substreams << '\n');
         }
                 
@@ -1326,7 +1327,7 @@ XXX
 
             } else {
 
-               LOG_INFO("Merging substreams to intermediate streams.\n");
+               LOG_DEBUG_ID("Merging substreams to intermediate streams.\n");
 
                 // Create the array of merge_arity stream pointers that
 		      // will each point to a stream containing runs output
@@ -1963,13 +1964,13 @@ AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
 
             sz_original_substream = (size_t)new_sz_original_substream;
 
-            LOG_INFO("Memory constraints set original substreams = " <<
+            LOG_DEBUG_ID("Memory constraints set original substreams = " <<
                      original_substreams << '\n');
             
             original_substreams = (len + sz_original_substream - 1) /
                 sz_original_substream;
 
-            LOG_INFO("Tree height constraints set original substreams = " <<
+            LOG_DEBUG_ID("Tree height constraints set original substreams = " <<
                      original_substreams << '\n');
         }
                 
@@ -2394,7 +2395,7 @@ AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
 
             } else {
 
-               LOG_INFO("Merging substreams to intermediate streams.\n");
+               LOG_DEBUG_ID("Merging substreams to intermediate streams.\n");
 
                 // Create the array of merge_arity stream pointers that
 		      // will each point to a stream containing runs output
@@ -3005,13 +3006,13 @@ LOG_DEBUG_ID("post delete");
                 
                 if (merge_arity > (arity_t)ami_available_streams - 2) {
                     merge_arity = ami_available_streams - 2;
-                    LOG_INFO("Reduced merge arity due to AMI restrictions.\n");
+                    LOG_DEBUG_ID("Reduced merge arity due to AMI restrictions.\n");
 				
                 }
             }
         }
         
-        LOG_INFO("AMI_partition_and_merge_Key(): merge arity = " <<
+        LOG_DEBUG_ID("AMI_partition_and_merge_Key(): merge arity = " <<
                                           merge_arity << ".\n");
         
 
@@ -3061,13 +3062,13 @@ LOG_DEBUG_ID("post delete");
 
             sz_original_substream = (size_t)new_sz_original_substream;
 
-            LOG_INFO("Memory constraints set original substreams = " <<
+            LOG_DEBUG_ID("Memory constraints set original substreams = " <<
                      original_substreams << '\n');
             
             original_substreams = (len + sz_original_substream - 1) /
                 sz_original_substream;
 
-            LOG_INFO("Tree height constraints set original substreams = " <<
+            LOG_DEBUG_ID("Tree height constraints set original substreams = " <<
                      original_substreams << '\n');
         }
                 
@@ -3488,7 +3489,7 @@ LOG_DEBUG_ID("post delete");
             } else {
 
 
-               LOG_INFO("Merging substreams to intermediate streams.\n");
+               LOG_DEBUG_ID("Merging substreams to intermediate streams.\n");
 
                 // Create the array of merge_arity stream pointers that
 		      // will each point to a stream containing runs output
@@ -4112,13 +4113,13 @@ LOG_DEBUG_ID("post delete");
 
                 if (merge_arity > (arity_t)ami_available_streams - 2) {
                     merge_arity = ami_available_streams - 2;
-                    LOG_INFO("Reduced merge arity due to AMI restrictions.\n");
+                    LOG_DEBUG_ID("Reduced merge arity due to AMI restrictions.\n");
 
                 }
             }
         }
 
-        LOG_INFO("AMI_replacement_selection_and_merge(): merge arity = " <<
+        LOG_DEBUG_ID("AMI_replacement_selection_and_merge(): merge arity = " <<
                  merge_arity << ".\n");
 
         if (merge_arity < 2) {
@@ -4371,7 +4372,7 @@ LOG_DEBUG_ID("post delete");
                 
 	
  
-               LOG_INFO("Merging substreams to an intermediate stream.\n");
+               LOG_DEBUG_ID("Merging substreams to an intermediate stream.\n");
 
                 // Create the array of merge_arity stream pointers that
                 // will each point to a stream containing runs output
