@@ -31,7 +31,7 @@ AMI_optimized_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
 
 
 //------------------------------------------------------------
-template<class T>
+template<class T, class KEY>
 AMI_err 
 AMI_optimized_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
 	 int keyoffset, KEY dummykey) {
