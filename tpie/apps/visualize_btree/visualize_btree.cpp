@@ -4,11 +4,11 @@
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 // Created: May 2003 
 //
-// $Id: visualize_btree.cpp,v 1.3 2004-08-12 12:40:39 jan Exp $
+// $Id: visualize_btree.cpp,v 1.4 2005-01-21 17:16:48 tavi Exp $
 //
 #include <portability.h>
 #include <versions.h>
-VERSION(visualize_btree_cpp, "$Id: visualize_btree.cpp,v 1.3 2004-08-12 12:40:39 jan Exp $");                            
+VERSION(visualize_btree_cpp, "$Id: visualize_btree.cpp,v 1.4 2005-01-21 17:16:48 tavi Exp $");                            
 
 // For std::less.
 #include <functional>
@@ -199,7 +199,7 @@ int main(int argc, char **argv) {
   int prevlevel = 0;
   int level = -1;
   TPIE_OS_SIZE_T height = btree->height();
-  TPIE_OS_SIZE_T fc = max(0, 9 - height); // index of first color.
+  TPIE_OS_SIZE_T fc = max(0, int(9 - height)); // index of first color.
   float avg_leaf_size = 0.0;
   float avg_fanout = 0.0;
   pair<AMI_bid, long> idkey = btree->dfs_preorder(level);
