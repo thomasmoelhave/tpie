@@ -1,5 +1,5 @@
 %%
-%% $Id: implementation.tex,v 1.12 2000-09-29 19:01:10 hutchins Exp $
+%% $Id: implementation.tex,v 1.13 2000-10-05 19:27:24 hutchins Exp $
 %%
 \chapter{The Implementation of TPIE}
 \plabel{cha:implementation}
@@ -165,11 +165,14 @@ select the others):
 
 % If the including module did not explicitly ask for multiple
 % implementations but requested more than one implementation,
-% issue a warning.  Currently, only one implementation can be
-% supported by TPIE at a time.
+% issue a warning.  
+Multiple implementations are allowed to coexist, with some
+restrictions, e.g. declarations of streams must use explicit subclasses
+of \myv{AMI\_base\_stream} to specify what type of streams they
+are. 
 \comment{LA: This needs to be extended somewhere.}
-\comment{DH: I don't think it works with multiple impl., but
-   I don't see why we need both MMB and UFS for instance.
+\comment{DH: I am skeptical that it works with multiple impl., but
+   I don't see why we need this feature with single disks.
    Multiple impls. in an app may be possible with separate
    compiles? We may need more flexibility with multi disk
    implementations however.} The best choice of BTE for a
@@ -178,7 +181,8 @@ Section~\ref{sec:choosingbte} discuss how to choose an
 appropriate BTE (also refer to the more detailed
 descriptions of the BTE's in the next three subsections). If
 none of the available BTEs is selected,
-\myverb{BTE\_IMP\_STDIO} is defined by default and a warning
+\myverb{BTE\_IMP\_STDIO}\comment{DH: We should change the default
+   to BTE\_IMP\_UFS} is defined by default and a warning
 is generated at compile time.
 
 
@@ -198,11 +202,6 @@ All BTE stream implementations inherit from class
 \myverb{bte\_base\_stream.h}) and must support the member
 functions listed below. 
 
-Multiple implementations are allowed to coexist, with some
-restrictions.  Declarations of streams must use explicit subclasses
-of \myv{AMI\_base\_stream} to specify what type of streams they
-are. Please refer to Section~\ref{sec:imp-ami-stream} for
-more discussion of multiple implementations.
 
 %In addition to the data elements stored in a stream, a TPIE
 %stream contains a ``header block'' which contains
@@ -630,7 +629,7 @@ functions and their semantics).  In addition to these it
 defines its own constructors: 
 \index{BTE_stream_mmb@{\tt BTE\_stream\_mmb}!constructors}
 \comment{LA: Extend - discuss implementation.} 
-
+\comment{LA: Why special substream constructor? DH:Previously discussed.}
 \begin{verbatim}
   BTE_stream_mmb(const char *dev_path, BTE_stream_type st);
   BTE_stream_mmb(BTE_stream_type st); 
@@ -640,7 +639,7 @@ defines its own constructors:
   BTE_stream_mmb(BTE_stream_mmb *super_stream,
                  BTE_stream_type st,
                  off_t sub_begin, off_t sub_end);
-\end{verbatim}\comment{LA: Why special substream constructor? DH:Previously discussed.}
+\end{verbatim}
 
 The \myverb{BTE\_stream\_mmb} header\index{BTE_stream_mmb@{\tt
       BTE\_stream\_mmb}!header}\index{streams!header block}
@@ -744,6 +743,7 @@ Section~\ref{sec:imp-bte-base} for a list of these member
 functions and their semantics).  In addition to these it
 defines its own constructors: 
 \index{BTE_stream_ufs@{\tt BTE\_stream\_ufs}!constructors}
+\comment{LA: Why a special substream constructer?}
 \begin{verbatim}
   BTE_single_disk(const char *dev_path, BTE_stream_type st); 
   BTE_single_disk(BTE_stream_type st); 
@@ -753,8 +753,7 @@ defines its own constructors:
   BTE_single_disk(BTE_single_disk *super_stream,
                  BTE_stream_type st,
                  off_t sub_begin, off_t sub_end);
-\end{verbatim}\comment{LA: Why a special substream constructer?}
-
+\end{verbatim}
 The \myverb{BTE\_ufs} header structure as follows:
 \index{BTE\_stream\_ufs@{\tt BTE\_stream\_ufs}!header}\index{streams!header block}
 \begin{verbatim}
@@ -909,7 +908,7 @@ services are accessed:\comment{DH: There may be a better
     in the form of templates, which generate code at
     compile-time, application programs must also link with
     \myv{lib/libtpie.a}. This is described further in
-    Section~\ref{tut:compiling}.
+    Section~\ref{sec:tut-compiling}.
 \end{itemize} 
 
 \subsubsection{File: \myverb{include/ami.h}} This C++ include
@@ -1016,7 +1015,7 @@ files:
         implemented by corresponding BTE-level services. The
         AMI member functions described in
         Sections~\ref{sec:ref-ami-stream} (see examples of
-        use of some of these in Section~\ref{tut:samplepgm})
+        use of some of these in Section~\ref{sec:tut-samplepgm})
         are implemented by calls to the BTE-level functions
         documented in Section~\ref{sec:ref-bte}. An AMI
         stream has little internal context information as a
