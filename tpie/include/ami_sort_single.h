@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 9/28/94
 //
-// $Id: ami_sort_single.h,v 1.9 1999-02-03 17:37:27 tavi Exp $
+// $Id: ami_sort_single.h,v 1.10 1999-06-18 18:06:16 rajiv Exp $
 //
 // Merge sorting for the AMI_IMP_SINGLE implementation.
 //
@@ -21,6 +21,8 @@
 #include <pqueue_heap.h>
 
 #include <ami_merge.h>
+#include <ami_optimized_merge.h>
+
 
 // A class of merge objects for merge sorting objects of type T.  We
 // will actually use one of two subclasses of this class which use
