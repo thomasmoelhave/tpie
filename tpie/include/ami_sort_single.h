@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 9/28/94
 //
-// $Id: ami_sort_single.h,v 1.1 1994-09-29 13:08:39 darrenv Exp $
+// $Id: ami_sort_single.h,v 1.2 1994-10-04 19:08:05 darrenv Exp $
 //
 // Merge sorting for the AMI_IMP_SINGLE implementation.
 //
@@ -19,20 +19,31 @@
 #include <quicksort.h>
 
 // For the priority queue to do the merge.
+#define SORT_PQUEUE_HEAP
+#ifdef SORT_PQUEUE_HEAP
+#include <pqueue_heap.h>
+#define PQUEUE pqueue_heap
+#else
 #include <pqueue.h>
+#define PQUEUE pqueue
+#endif
 
 // A class of merge objects for merge sorting objects of type T.
 
 template <class T>
 class merge_sort_manager : public AMI_merge_base<T> {
 private:
+    int (*cmp_f)(CONST T&, CONST T&);
     arity_t input_arity;
-    pqueue<arity_t,T> *pq;
+    PQUEUE<arity_t,T> *pq;
 public:
-    merge_sort_manager(void);
+    merge_sort_manager(int (*cmp)(CONST T&, CONST T&));
     virtual ~merge_sort_manager(void);
-    AMI_err initialize(arity_t arity, T **in, AMI_merge_flag *taken_flags);
-    AMI_err operate(const T **in, AMI_merge_flag *taken_flags, T *out);
+    AMI_err initialize(arity_t arity, CONST T * CONST *in,
+                       AMI_merge_flag *taken_flags,
+                       int &taken_index);
+    AMI_err operate(CONST T * CONST *in, AMI_merge_flag *taken_flags,
+                    int &taken_index, T *out);
     AMI_err main_mem_operate(T* mm_stream, size_t len);
     size_t space_usage_overhead(void);
     size_t space_usage_per_stream(void);
@@ -40,8 +51,9 @@ public:
 
 
 template<class T>
-merge_sort_manager<T>::merge_sort_manager(void)
+merge_sort_manager<T>::merge_sort_manager(int (*cmp)(CONST T&, CONST T&))
 {
+    cmp_f = cmp;
     pq = NULL;
 }
 
@@ -54,8 +66,9 @@ merge_sort_manager<T>::~merge_sort_manager(void)
 }
 
 template<class T>
-AMI_err merge_sort_manager<T>::initialize(arity_t arity, T **in,
-                                          AMI_merge_flag *taken_flags)
+AMI_err merge_sort_manager<T>::initialize(arity_t arity, CONST T * CONST *in,
+                                          AMI_merge_flag *taken_flags,
+                                          int &taken_index)
 {
     arity_t ii;
 
@@ -66,24 +79,25 @@ AMI_err merge_sort_manager<T>::initialize(arity_t arity, T **in,
     if (pq != NULL) {
         delete pq;
     }
-    pq = new pqueue<arity_t,T>(arity);
+    pq = new PQUEUE<arity_t,T>(arity,cmp_f);
 
     for (ii = arity; ii--; ) {
         if (in[ii] != NULL) {
             taken_flags[ii] = 1;
-            pq->Insert(ii,*in[ii]);
+            pq->insert(ii,*in[ii]);
         } else {
             taken_flags[ii] = 0;
         }
     }
 
-    return AMI_ERROR_NO_ERROR;
+    taken_index = -1;
+    return AMI_MERGE_READ_MULTIPLE;
 }
 
 template<class T>
 size_t merge_sort_manager<T>::space_usage_overhead(void)
 {
-    return sizeof(pqueue<arity_t,T>);
+    return sizeof(PQUEUE<arity_t,T>);
 }
 
 template<class T>
@@ -93,13 +107,14 @@ size_t merge_sort_manager<T>::space_usage_per_stream(void)
 }
 
 template<class T>
-AMI_err merge_sort_manager<T>::operate(const T **in,
+AMI_err merge_sort_manager<T>::operate(CONST T * CONST *in,
                                        AMI_merge_flag *taken_flags,
+                                       int &taken_index,
                                        T *out)
 {
     // If the queue is empty, we are done.  There should be no more
     // inputs.
-    if (!pq->NumElts()) {
+    if (!pq->num_elts()) {
 
 #if DEBUG_ASSERTIONS
         arity_t ii;
@@ -115,12 +130,12 @@ AMI_err merge_sort_manager<T>::operate(const T **in,
         arity_t min_source;
         T min_t;
 
-        pq->MinElt(min_source,min_t);
-        pq->DeleteMin();
+        pq->extract_min(min_source,min_t);
         *out = min_t;
         if (in[min_source] != NULL) {
-            pq->Insert(min_source,*in[min_source]);
-            taken_flags[min_source] = 1;
+            pq->insert(min_source,*in[min_source]);
+            taken_index = min_source;
+            //taken_flags[min_source] = 1;
         }
         return AMI_MERGE_OUTPUT;
     }
@@ -129,7 +144,7 @@ AMI_err merge_sort_manager<T>::operate(const T **in,
 template<class T>
 AMI_err merge_sort_manager<T>::main_mem_operate(T* mm_stream, size_t len)
 {
-    quick_sort(mm_stream, len);
+    quicker_sort(mm_stream, len, cmp_f);
     return AMI_ERROR_NO_ERROR;
 }
 
@@ -137,9 +152,10 @@ AMI_err merge_sort_manager<T>::main_mem_operate(T* mm_stream, size_t len)
 
 
 template<class T>
-AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream)
+AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
+                 int (*cmp)(CONST T&, CONST T&))
 {
-    merge_sort_manager<T> msm;
+    merge_sort_manager<T> msm(cmp);
 
     return AMI_partition_and_merge(instream, outstream, &msm);
 }
@@ -147,3 +163,6 @@ AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream)
 
 
 #endif // _AMI_SORT_SINGLE_H 
+
+
+
