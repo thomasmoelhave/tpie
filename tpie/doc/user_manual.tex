@@ -1,10 +1,10 @@
 %%
-%% $Id: user_manual.tex,v 1.16 1999-10-28 15:52:32 hutchins Exp $
+%% $Id: user_manual.tex,v 1.17 1999-11-15 17:59:15 hutchins Exp $
 %%
 \chapter{Overview}
 
-The data sets involved in many modern applications are often too massive to
-fit in main memory of even the most powerful computers and must therefore
+The data sets involved in some modern applications are too large to
+fit in the main memory of even the most powerful computers and must therefore
 reside on disk. Thus communication between internal and external memory,
 and not actual computation time, becomes the bottleneck in the
 computation. This is due to the huge difference in access time of fast
@@ -13,17 +13,17 @@ access time of main memory is measured in nanoseconds, a typical access
 time of a disk is on the order of milliseconds~\cite{cockcroft:sun}. So
 roughly speaking there is a factor of a million in difference in the access
 time of internal and external memory. A good example of an applications
-involving massive amounts of geometric data is NASAs Earth Observation
+involving massive amounts of geometric data is NASA's Earth Observation
 System (EOS)~\cite{cromp,kobler:nasa}, which is expected to manipulate
 petabytes (thousands of terebytes, or million of gigabytes) of data.
 
 The goal of theoretical work in the area of {\em external memory
 algorithms\/} (also called {\em I/O algorithms\/} or {\em out-of-core
 algorithms}) is to develop algorithms that minimize the input/output
-communication (or just {\em I/O}) performed when solving a given
+communication ({\em I/O}) performed when solving a given
 problem. The area was effectively started in the late eighties by Aggarwal
 and Vitter~\cite{aggarwal:input} and subsequently I/O algorithms have been
-developed for several problem domain, including computational
+developed for several problem domains, including computational
 geometry~\cite{goodrich:external,arge:buffer,arge:theory,arge:gis,aamvv-empgbtag97,arge:interval,kanellakis:indexing,ramaswamy:path,subramanian:p-range,vengroff:efficient,agarwal:efficient,zhu:further,agarwal:point,arge:scalable,arge:theory,callahan:topology,franciosa:orders,grossi:cross-tree,zhu:further},
 \index{computational geometry} graph
 algorithms~\cite{chiang:external,arge:buffer,kumar:improved,abello:functional,crauser:randomized,arge:obdd,feuerstein:memory,nodine:blocking,ullman:input},
@@ -57,20 +57,20 @@ in~\cite{arge:gisbook,arge:thesis,vitter:podssurvey,vitter:extdatassurvey}
 %of the insights theorists have had to offer \cite{cormen:integrate-tr}.
 
 TPIE, a transparent parallel I/O environment, is designed to bridge the gap
-between the theory and practice of parallel I/O systems. It is intended to
-demonstrate how all of the following can be obtained simultaneously:
+between the theory and practice of parallel I/O systems. It
+is designed to doo the following:
 
 \begin{itemize}
-\item Abstract away the details of how I/O is performed so that programmers
+\item {\em Abstract away the details of how I/O is performed} so that programmers
 need only deal with a simple high level interface.
-\item Implement I/O-optimal paradigms for large scale computation that are
+\item {\em Provide a collection of I/O-optimal paradigms} for large scale computation that are
 efficient not only in theory, but also in practice.
-\item Remain flexible, allowing programmers to specify the functional
+\item {\em Be flexible}, allowing programmers to specify the functional
 details of computation taking place within the supported paradigms.  This
 will allow a wide variety of algorithms to be implemented within the
 system.
-\item Be portable across a variety hardware platforms.
-\item Be extensible, so that new features can be easily added later.
+\item {\em Be portable} across a variety hardware platforms.
+\item {\em Be extensible}, so that new features can be easily added later.
 \end{itemize}
 
 TPIE is implemented as a set of templated classes and functions in
@@ -96,29 +96,30 @@ include:
 \index{Future releases}
 \index{Releases!future|see{future releases}}
 
-The current release of TPIE (\version) include the fundamental routines for
+The current release of TPIE (\version) includes the fundamental routines for
 solving fundamental {\em batched} problems such as sorting. These routines
-enables the programmer to write efficient and portable implementations of
+enable the programmer to write efficient and portable implementations of
 algorithms that makes use of the fundamental {\em streaming} primitives
 which has been identified in theoretical
-work~\cite{arge:gisbook,vitter:podssurvey}. Relative to version 0.8.02a the
+work~\cite{arge:gisbook,vitter:podssurvey}. Relative to
+versions 0.8.02a and 0.9.01a, the
 current version of TPIE has been updated to improved performance and a
-number of bugs has been fixed. This manual has been updated to reflect
+number of bugs have been fixed. This manual has been updated to reflect
 these changes and several chapters has been expanded in order to allow the
-TPIE programmer to tune the systems for maximal performance on a give
+TPIE programmer to tune the systems for maximal performance on a given
 platform. A list of the major changes can be found on the TPIE www page at
 \verb|http://www.cs.duke.edu/TPIE/|. Keep in mind that the TPIE project is
 work in progress -- several major planned components has not yet been
 implemented and work is also being done to update and extend the current
-manual. Users of TPIE are encouraged to send bug reports, ect., to
+manual. Users of TPIE are encouraged to send bug reports, etc., to
 \verb|tpie@cs.duke.edu|.
 
-Work on extending and/or improving TPIE is currently underway or in
+Extensions and/or improvements to TPIE are in
 progress. Projects include further performance improvements, support for
 parallel disks, addition of the distribution sweeping
 primitive~\cite{goodrich:external}, and addition of several application
 examples (examples of applications written using TPIE can be found in the
-papers listed on the TPIE home page). Another major project involved the
+papers listed on the TPIE home page). Another major project involves the
 addition of support for random access to blocks as opposed to the stream
 oriented access used in the current version of TPIE. This addition will
 facilitate the implementation of indexing structures (external data
@@ -148,7 +149,7 @@ at URL \verb|http://www.cs.duke.edu/TPIE/|.
 \end{latexonly}
 To obtain the TPIE source distribution\index{source distribution}, follow
 the pointers from the home page to the distribution itself, which consists
-of a gzipped tar file named {\tt tpie-\version.tgz}. Your Web browser
+of a gzipped tar file named {\tt tpie\_\version.tgz}. Your Web browser
 should be capable of downloading this file to your local machine.
 
 
@@ -166,12 +167,15 @@ usually located in \verb|/usr/local/bin/make| (or is called
 %manual, and \verb|latex2html| is required to generate the HTML version of
 %the manual.
 
-TPIE is heavily dependent on the compiler used, mainly because of the use
-of C++ templates. It currently requires the GNU C++ compiler, \verb|gcc|,
-version~\gxxversion~(it has also been successfully compiled with \verb|gcc|
-version 2.7.2.1 on some systems). We expect that it will also be compatible
-with future version of this compiler. TPIE has also been successfully
-compiled using \verb|egcs|, version 2.91.66.
+TPIE is heavily dependent on the compiler used, mainly
+because of the use of C++ templates. It requires the GNU C++
+compiler, \verb|gcc|, version~\gxxversion~ or later (it has
+also been successfully compiled with \verb|gcc| version
+2.7.2.1 on some systems). We are currently using \verb|gcc|,
+version~\gxxcurrent~ for most development work on TPIE. We
+expect that it will also be compatible with future version
+of this compiler. TPIE has also been successfully compiled
+using \verb|egcs|, version 2.91.66.
 
 %In general, invoking the above utilities with the single command line
 %argument \verb|--version| will indicate whether they are compatible.
@@ -179,31 +183,37 @@ Information on where and how to obtain and install GUN software is
 available at URL {\tt http://www.gnu.org/software/software.html}.
 
 
-\section{Installation}
+\section{Installation}\label{sec:installation}
 \index{installation}
 
 Once you have obtained the TPIE source distribution file
-{\tt tpie-\version.tgz}, you must decide where to install it.
+{\tt tpie\_\version.tgz}, you must decide where to install it.
 \verb|/usr/local/tpie/| is a typical place.
 
-Place {\tt tpie-\version.tgz} in the directory in which TPIE is to
+Place {\tt tpie\_\version.tgz} in the directory in which TPIE is to
 be installed, \verb|cd| into that directory, and execute the command
 
 \begin{flushleft}
-{\tt tar xzf tpie-\version.tgz}
-(or {\tt gunzip -c tpie-\version.tgz | tar xvf -} )  
+{\tt tar xzf tpie\_\version.tgz}
+(or {\tt gunzip -c tpie\_\version.tgz | tar xvf -} )  
 \end{flushleft}
 
-This will produce a directory {\tt tpie-\version} with subdirectories
-\verb|include|, \verb|lib|, \verb|test|, and \verb|doc|.  Enter the
-directory {\tt tpie-\version}.  You must now configure TPIE for your
+This will produce a directory {\tt tpie\_\version} with
+subdirectories \verb|include|, \verb|lib|, \verb|lib/src|,
+\verb|test|, and \verb|doc|.  Enter the directory 
+{\tt tpie\_\version}.  You must now configure TPIE for your
 particular system.  To do this, use the command
 
 \begin{verbatim}
 ./configure
 \end{verbatim}
 
-\index{configuration}The configuration program will take some time to
+\index{configuration} Certain configuration options can be
+specified to the {\tt configure} script, but usually these
+will not be of interest the first time TPIE is installed.
+These options are described in Section \ref{sec:customization}.
+
+The configuration program will take some time to
 examine the parameters of your system.  Once it has done so, it will
 produce the various Makefiles and configuration files required to
 build TPIE on your system.  When this is done, simply invoke your version
@@ -213,96 +223,75 @@ of GNU \verb|make|:
 make all
 \end{verbatim}
 
-to build the complete TPIE system.  This will build the following
-components:
+to build the complete TPIE system.  This will build the
+components of TPIE that must be tailored to your
+system. This includes: the TPIE run-time library 
+{\tt tpie\_\version/lib/libtpie.a}, the test and sample
+programs in directory {\tt tpie\_\version/test}, 
+and certain header files in {\tt tpie\_\version/include}.
 
-\begin{description}
-\item[\verb|include|] The TPIE header files.\index{header files}
-\item[\verb|lib|] The TPIE library.  This is relatively small, as most
-  of the TPIE system remains in the form of templated header
-  files.\index{library}
-\item[\verb|test|] A series of test applications designed to verify
-  that TPIE is operating correctly.  This directory also includes the
-  code to the example applications described in
-  Chapter~\ref{ch:examples}.\index{test applications}
-\item[\verb|doc|] Complete documentation for TPIE, consisting of the
-  document you are reading right now in various formats: HTML, and DVI and
-  Postscript(TM) for printing.\index{documentation}
-\end{description}
+You should now have a complete TPIE system, consisting of
+the directories listed in Figure \ref{fig:components}.
+\begin{figure}
+\begin{center}
+\begin{minipage}[hb]{1.0\linewidth}
+\raggedright
+\centering{
+\begin{tabular}{|l|p{4in}|}
+\hline
+Directory & Contents \\
+\hline
+ \verb|include|  & The TPIE header files.\index{header files}\\ 
 
+ \verb|lib|      & The TPIE run-time library.  This is relatively small, as most
+                   of the TPIE system remains in the form of templated header
+                   files.\index{library} \\
+ \verb|lib/src|  & The source code for the TPIE run-time
+                   library. \\
+ \verb|test|     & A series of test applications designed to verify
+                   that TPIE is operating correctly.  This
+                   directory also includes the code for the
+                   sample program discussed in Chapter
+                   \ref{ch:samplepgmr}, and the example
+                   applications described in
+                   Chapter~\ref{ch:examples}.\index{test
+                   applications}  \\
+ \verb|doc|      & Written documentation for TPIE,
+                   consisting of the document you are
+                   reading now, in DVI and Postscript(TM)
+                   formats.\index{documentation} \\
+\hline
+\end{tabular}}
+\caption{\label{fig:components} Components of the TPIE distribution.}
+\end{minipage}
+\end{center}
+\end{figure}
 
-
-
-
-\section{Customization}
-\index{Customization}
-
-\comment{LA: We need to change this when we change logging}
-It is possible to customize the installation by providing arguments to
-the {\tt configure} script.\index{configuration:options} None of these
-arguments are necessary and the first time you build TPIE you should
-probably not need any of them. The arguments recognized are as
-follows:
-\begin{description}
-\item[\verb|--enable-log-lib|] 
-  \index{enable-log-lib@{\tt --enable-log-lib}}
-  Enable logging in TPIE library code.
-  This can also be accomplished at compile time by defining the macro
-  \verb|TP_LOG_LIB| using the syntax \verb|make lib TP_LOG_LIB=1|.
-  This is useful for debugging the TPIE library, but slows it down.
-  This option works by defining \verb|TPL_LOGGING|
-  \index{TPL_LOGGING@{\tt TPL\_LOGGING}}
-  when compiling the library. 
-  Section \ref{sec:logging} discusses TPIE logging.
-\item[\verb|--enable-assert-lib|]  
-  \index{enable-assert-lib@{\tt --enable-assert-lib}}
-  Enable assertions in the TPIE library code for debugging purposes.
-  This can also be accomplished at compile time by defining the macro
-  \verb|TP_ASSERT_LIB| using the syntax \verb|make lib TP_ASSERT_LIB=1|.
-  This option works by defining \verb|DEBUG_ASSERTIONS|
-  \index{DEBUG_ASSERTIONS@{\tt DEBUG\_ASSERTIONS}} 
-  when compiling the library.
-\item[\verb|--enable-log-apps|]  and
-\item[\verb|--enable-assert-apps|]  
-  \index{enable-assert-apps@{\tt --enable-assert-apps}}
-  \index{enable-log-apps@{\tt --enable-log-apps}}
-  Similar to {\tt --enable-log-lib} and {\tt --enable-assert-lib}, but
-  they apply to the test application code.  Running \verb|make test|
-  with the options \verb|TP_LOG_APPS=1| and/or \verb|TP_ASSERT_APPS=1|
-  accomplishes the same thing.
-\item[\verb|--enable-expand-ami-scan|]  Expand the macros in the file
-  \verb|ami_scan.h| when making the include directory with the
-command {\tt make include} (or {\tt make all}).  This is mainly useful for
-debugging the code in \verb|ami_scan.h| itself, and is not normally
-needed by TPIE programmers.  It may make compilation of TPIE programs
-slightly faster because the macro processor of the C++ compiler will
-have less work to do.  In addition to the standard GNU tools mentioned
-in Section~\ref{sec:gnu-software}, this requires \verb|perl|.
-\item[\verb|--disable-*|]  Any of the options above can be explicitly
-  disabled  by using this syntax.  For example
-  \verb|--disable-expand-ami-scan|. 
-\end{description}
 
 
 \chapter{A Taste of TPIE via a Sample Program}
 \label{ch:samplepgmr}
 
-The next chapter is a detailed TPIE tutorial. Here we present a quick look
-at TPIE via a simple TPIE program. One of the primary ideas behind TPIE is
-to allow a user to view and \emph{specify} I/O efficient computation simply
-as a high-level coordination of data movement interspersed with
-appropriate internal memory computing, with all low level details of I/O
-being ``under the hood''. Accordingly, TPIE provides classes \emph{scan
-management objects}, \emph{merge management objects}, etc. that allow the
-user to specify sophisticated data movement operations on \emph{streams} of
-data in a simple and straightforward manner. The above mentioned
-management object classes are built on top of a simple and carefully
-designed \emph{stream interface} called \verb|AMI_STREAM|, and the tutorial
-in the next chapter explains how to use and specify such management object
-classes.
+This chapter presents a quick look
+at TPIE via a simple TPIE program. A more detailed TPIE
+tutorial appears in Chapter \ref{ch:tutorial}. 
+
+One of the primary themes in TPIE is to allow a user to view
+and \emph{specify} I/O efficient computation simply as a
+high-level coordination of data movement interspersed with
+appropriate internal memory computing, with all low level
+details of I/O being transparent, or ``under the hood''.
+Accordingly, TPIE provides classes \emph{scan management
+   objects}, \emph{merge management objects}, etc. that
+allow the user to specify sophisticated data movement
+operations on \emph{streams} of data in a simple and
+straightforward manner. These management object classes are
+built on top of a simple \emph{stream interface} called
+\verb|AMI_STREAM|. The tutorial in the next chapter explains
+how to specify and use such management object classes.
 
 Using the sample example program below, we take a look at TPIE from a
-viewpoint at a level just above the \verb|AMI_STREAM| interface.  The
+viewpoint just above the \verb|AMI_STREAM| interface.  The
 sample program uses simple stream operations to generate a stream of random
 integers, scans this stream of integers and partitions them into several
 distinct streams. The manner in which I/O operations are handled by TPIE
@@ -313,10 +302,10 @@ ensures that the program is I/O efficient.
 %Section~\ref{sec:scanning}), in which case the user does not have to use
 %stream operations.
 
-The most useful aspect of the program is that it gives the user a 
-flavor of the sort of things involved in TPIE programming; the typical 
-include files, specifying how much memory the program should use, 
-streaming operations etc. The program is given in
+The intent of this example is to illustrate the sort of
+things involved in TPIE programming; the typical include
+files, specifying how much memory the program should use,
+streaming operations, etc. The program is given in
 Section~\ref{sec:samplepgm} and it is discussed in
 Section~\ref{sec:samplepgm_discuss}.
 
@@ -325,12 +314,12 @@ Section~\ref{sec:samplepgm_discuss}.
 \index{sample program|(}
 \index{sample program|)}
 
-The following is the program in {\tt  tpie-\version/doc/sample\_pgm.cpp}.
+The following is the program in {\tt  tpie\_\version/doc/sample\_pgm.cpp}.
 \begin{verbatim}
 #include <iostream.h>
 #include <stdlib.h>
 #include <sys/time.h>
-#include <values.h> //for MAXINT
+#include <limits.h> //for INT_MAX
 
 //Include the file that sets application configuration: It sets what
 //kind of BTE (Block Transfer Engine) to use, and where applicable,
@@ -343,7 +332,7 @@ The following is the program in {\tt  tpie-\version/doc/sample\_pgm.cpp}.
 #include <ami.h>
 
 //include wall timer that will allow us to time
-#include "wall_timer.h"
+#include <wall_timer.h>
 
 //Include TPIE's internal memory sorting routines.
 #include <quicksort.h>
@@ -442,7 +431,7 @@ main(int argc, char *argv[]) {
         
         quicker_sort_op((int *)partitioning,7);
         cout << "sorted partitioning array\n";
-        partitioning[7] = MAXINT;
+        partitioning[7] = INT_MAX;
 
 
 
@@ -519,36 +508,41 @@ main(int argc, char *argv[]) {
 
 \end{verbatim}
 
-
 \section{Discussion of Sample Program}\label{sec:samplepgm_discuss}
 
-In this section we discuss the simple simple C++ sample program in the
-previous section. The file \verb|app_config.h| is the TPIE configuration
-file. TPIE's \verb|AMI_STREAM| stream I/O operations are carried out under
-the hood by one of three possible \emph{block transfer engines
-(BTEs)}. Briefly, the \verb|app_config.h| chooses a specific BTE, and the
-amount of internal memory used as buffer space for each
-\verb|AMI_STREAM|. The \verb|app_config.h| configuration file is further
-discussed in Section~\ref{sec:tuning} which also contains a discussion of
-how to choose a BTE for a given platform. The file \verb|<ami.h>| contains
-TPIEs templated classed and functions, while the file \verb|<quicksort.h>|
-contains various quicksort polymorphs. Note that each \verb|AMI_STREAM|
-corresponds to an underlying Unix file.
+In this section we discuss the simple simple C++ sample
+program in the previous section. The file
+\verb|app_config.h| is the TPIE configuration file. TPIE's
+\verb|AMI_STREAM| stream I/O operations are carried out
+transparently by one of three possible \emph{block transfer
+   engines (BTEs)}. Briefly, the \verb|app_config.h| chooses
+a specific BTE, and the amount of internal memory used as
+buffer space for each \verb|AMI_STREAM|. The
+\verb|app_config.h| configuration file is further discussed
+in Section~\ref{sec:tuning} which also contains a discussion
+of how to choose a BTE for a given platform. The file
+\verb|<ami.h>| contains TPIEs templated classed and
+functions, while the file \verb|<quicksort.h>| contains
+various quicksort polymorphs. Note that each
+\verb|AMI_STREAM| corresponds to an underlying Unix file.
 
-The program illustrates the most fundamental \verb|AMI_STREAM| member
-functions \verb|read_item()|, \verb|write_item()|, \verb|seek()| and
-\verb|persist()|. Successful execution of these member functions is
-indicated by a return value of \verb|AMI_ERROR_NO_ERROR|. The remaining
-program is easily understood by means of the comments in the code. The
-program distributes a randomly generated source stream of integers into
-eight bucket streams, and then displays the time taken by this operation
-and the size of each of the eight output buckets. The randomly generated
-stream is deleted upon completion of the program
-(\verb|source.persist(PERSIST_DELETE)|), while the bucket streams are saved
-(made persistent with \verb|buckets[i].persist(PERSIST_PERSISTENT)|) in the
-default directory \verb|/var/tmp|. The default location can be changed by
-setting the \verb|AMI_SINGLE_DEVICE| variable appropriately (see
-Section~\ref{sec:configuration}).
+The program illustrates the most fundamental
+\verb|AMI_STREAM| member functions \verb|read_item()|,
+\verb|write_item()|, \verb|seek()| and \verb|persist()|.
+Successful execution of these member functions is indicated
+by a return value of \verb|AMI_ERROR_NO_ERROR|.  The program
+distributes a randomly generated source stream of integers
+into eight bucket streams, and then displays the time taken
+by this operation and the size of each of the eight output
+buckets. The randomly generated stream is deleted upon
+completion of the program
+(\verb|source.persist(PERSIST_DELETE)|), while the bucket
+streams are saved (made persistent with
+\verb|buckets[i].persist(PERSIST_PERSISTENT)|) in the
+default scratch directory \verb|/var/tmp|. The default
+location can be changed by setting the environment variable
+\verb|AMI_SINGLE_DEVICE| appropriately (see
+Section~\ref{sec:environment}).
 
 The setting of the \verb|register_new| variable instructs TPIE whether to
 run with a user-specified amount of internal memory (\verb|register_new:=
@@ -557,12 +551,13 @@ would (\verb|register_new:= 0|). In this program, we set
 \verb|register_new:= 1| which means that the program will abort if the
 allocated internal memory exceeds the specified amount. The call
 \verb|MM_manager.resize_heap(test_mm_size)| tells TPIE's internal memory
-manager \verb|MM_manager| to disallow the TPIE program's total internal
+manager \verb|MM_manager| to prevent the program's internal
 memory usage (in the ``heap'' area) from exceeding \verb|test_mm_size|
 bytes. Note that \verb|test_mm_size| is the second input argument to our
 program. When \verb|register_new == 1|, it is the responsibility of the
 user to have the \verb|MM_manager| ``resize'' its heap to an appropriate
-size as desired. Normally, this amount is the amount of physical main
+size as desired. For example, one might set this value to
+the amount of physical main
 memory minus the main memory used by the operating system and other
 programs running on the machine.
 
@@ -575,7 +570,9 @@ programs running on the machine.
 %of how to determine the buffer-space required for each BTE implementation.
 
 
-The sample program is compiled by executing the follows:
+The sample program is compiled by executing the follows
+(recall that Section \ref{sec:gnu-software} discussed the version of GNU C++
+required):
 
 \begin{verbatim}
 g++ sample_pgm.cpp -I../include/ -L../lib/ -ltpie -o sample_pgm
@@ -598,7 +595,7 @@ It introduces the fundamental paradigms of computation that TPIE
 supports, giving source code examples of each.  The majority of the
 code presented in the tutorial is available in the test
 applications\index{test applications} directory of the distribution, 
-{\tt tpie-\version/test/}.
+{\tt tpie\_\version/test/}.
 
 For the sake of brevity, much of the code presented in this tutorial is
 incomplete, in the sense that necessary header files \index{header files}
