@@ -4,13 +4,15 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/11/94
 //
-// $Id: ami_matrix_pad.h,v 1.6 2003-04-17 12:53:58 jan Exp $
+// $Id: ami_matrix_pad.h,v 1.7 2003-04-20 23:59:53 tavi Exp $
 //
 #ifndef _AMI_MATRIX_PAD_H
 #define _AMI_MATRIX_PAD_H
 
 // Get definitions for working with Unix and Windows
 #include <portability.h>
+// Get definition of AMI_scan_object class.
+#include <ami_scan.h>
 
 // This is a scan management object designed to pad a rows by cols
 // matrix with zeroes so that is becomes an (i * block_extent) by (j *
