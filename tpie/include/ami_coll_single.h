@@ -3,7 +3,7 @@
 // File:   ami_coll_single.h
 // Author: Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_coll_single.h,v 1.8 2002-01-28 16:50:35 tavi Exp $
+// $Id: ami_coll_single.h,v 1.9 2002-03-14 20:24:02 tavi Exp $
 //
 // AMI collection entry points implemented on top of a single BTE.
 //
@@ -12,18 +12,14 @@
 
 // For persist type.
 #include <persist.h>
-
-// Get the tpie_stats_coll class for collection statistics.
-#include <tpie_stats_coll.h>
-
 // Get an appropriate BTE collection.
 #include <bte_coll.h>
-
 // For AMI_collection_type and AMI_collection_status.
 #include <ami_coll_base.h>
-
-// For ami_single_temp_name().
-#include <ami_stream_single.h>
+// The tpie_tempnam() function.
+#include <tpie_tempnam.h>
+// Get the tpie_stats_coll class for collection statistics.
+#include <tpie_stats_coll.h>
 
 template<class BTECOLL=BTE_COLLECTION>
 class AMI_collection_single {
@@ -52,7 +48,8 @@ public:
   // Inquire the status.
   AMI_collection_status status() const { return status_; }
   bool is_valid() const { return status_ == AMI_COLLECTION_STATUS_VALID; }
-  
+  bool operator!() const { return !is_valid(); }
+
   // User data to be stored in the header.
   void *user_data() { return btec_->user_data(); }
 
@@ -78,7 +75,7 @@ private:
 template <class BTECOLL>
 AMI_collection_single<BTECOLL>::AMI_collection_single(size_t lbf) {
 
-  char *temp_path = ami_single_temp_name("AMI");
+  char *temp_path = tpie_tempnam("AMI");
 
   btec_ = new BTECOLL(temp_path, BTE_WRITE_COLLECTION, lbf);
   tp_assert(btec_ != NULL, "new failed to create a new BTE_COLLECTION.");
