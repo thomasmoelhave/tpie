@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/6/94
 //
-// $Id: merge_interleave.h,v 1.2 1997-05-20 22:08:13 vengroff Exp $
+// $Id: merge_interleave.h,v 1.3 1998-11-08 22:14:44 tavi Exp $
 //
 // A merge object to interleave two streams.
 //
@@ -38,7 +38,7 @@ public:
 };
 
 template<class T>
-AMI_err merge_interleave<T>::initialize(arity_t arity, T **in,
+AMI_err merge_interleave<T>::initialize(arity_t arity, CONST T * CONST *in,
                                         AMI_merge_flag */*taken_flags*/,
                                         int &taken_index)
 {
