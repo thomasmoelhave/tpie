@@ -1,4 +1,3 @@
-// Copyright (c) 1994 Darren Vengroff
 //
 // File: ami_matrix_blocks.cpp
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
@@ -6,10 +5,12 @@
 //
 
 #include <versions.h>
-VERSION(ami_matrix_blocks_cpp,"$Id: ami_matrix_blocks.cpp,v 1.3 2000-01-10 22:28:45 hutchins Exp $");
+VERSION(ami_matrix_blocks_cpp,"$Id: ami_matrix_blocks.cpp,v 1.4 2002-01-14 17:25:35 tavi Exp $");
+#include "lib_config.h"
 
 #include <sys/types.h>
-#include <ami_base.h>
+
+#include <ami_err.h>
 #include <ami_gen_perm_object.h>
 #include <ami_matrix_blocks.h>
 
