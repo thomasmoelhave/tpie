@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 3/11/95
 //
-// $Id: ami_kb_dist.h,v 1.6 2003-04-17 12:27:37 jan Exp $
+// $Id: ami_kb_dist.h,v 1.7 2003-07-01 16:03:48 tavi Exp $
 //
 // Radix based distribution for single or striped AMI layers.
 //
@@ -59,7 +59,7 @@ typedef AMI_STREAM<char> type_amisc;
 template<class T>
 AMI_err _AMI_KB_DIST(KB_KEY)(AMI_STREAM<T> &instream,
                              type_amisc &name_stream,
-                             const key_range &range, off_t &max_size)
+                             const key_range &range, TPIE_OS_OFFSET &max_size)
 {
     AMI_err ae;
 
@@ -167,7 +167,7 @@ AMI_err _AMI_KB_DIST(KB_KEY)(AMI_STREAM<T> &instream,
 
     for (ii = 0, max_size = 0; ii < output_streams; ii++) {
         char *stream_name;
-        size_t stream_len;
+        TPIE_OS_OFFSET stream_len;
         
         if ((stream_len = out_streams[ii]->stream_len()) > 0) {
 
@@ -175,7 +175,7 @@ AMI_err _AMI_KB_DIST(KB_KEY)(AMI_STREAM<T> &instream,
             
             // Is it the biggest one so far?
 
-            if (stream_len > (size_t)max_size) {
+            if (stream_len > max_size) {
                 max_size = stream_len;
             }
 
