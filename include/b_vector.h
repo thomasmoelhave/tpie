@@ -4,7 +4,7 @@
 //
 // Definition of the b_vector class.
 //
-// $Id: b_vector.h,v 1.2 2000-11-04 01:58:19 tavi Exp $
+// $Id: b_vector.h,v 1.3 2001-05-08 16:45:53 tavi Exp $
 //
 
 #ifndef _B_VECTOR_H
@@ -24,8 +24,10 @@ public:
 
   b_vector(T* p, size_t cap): p_(p), capacity_(cap) {}
 
-  // Get a reference to the ith element.
+  // Get a reference to the i'th element.
   T& operator[](size_t i) { return *(p_ + i); }
+  // Get a const reference to the i'th element.
+  const T& operator[](size_t i) const {return *(p_ + i); }
 
   size_t capacity() const { return capacity_; }
 
@@ -69,18 +71,7 @@ size_t b_vector<T>::copy(size_t start, size_t length,
     copy_length = (copy_length > source.capacity() - s_start) ? 
       source.capacity() - s_start: copy_length;
     
-    // Check whether source and dest. are the same.
-    if (&source == this) {
-      // Use a buffer to copy inside this block. Don't use array of
-      // E's b/c we don't want the default constructor of E to be
-      // called.
-      char* temp = new char[copy_length * sizeof(T)];
-      memcpy(temp, &(*this)[s_start], copy_length * sizeof(T));
-      memcpy(&(*this)[start], temp, copy_length * sizeof(T));
-      delete [] temp;
-    } else {
-      memcpy(&(*this)[start], &source[s_start], copy_length * sizeof(T));
-    }
+    memmove(&(*this)[start], &source[s_start], copy_length * sizeof(T));
   } else {
     // start is too big. No copying.
     copy_length = 0;
@@ -96,14 +87,12 @@ size_t b_vector<T>::copy(size_t start, size_t length, const T* source) {
   size_t copy_length = length;
 
   if (start < capacity_) {
-
     // Check how much of length we can copy.
     copy_length = (copy_length > capacity_ - start) ? 
       capacity_ - start: copy_length;
 
-    memcpy(&(*this)[start], source, copy_length * sizeof(T));
-
-  } else 
+    memmove(&(*this)[start], source, copy_length * sizeof(T));
+  } else
     copy_length = 0;
 
   return copy_length;
@@ -112,7 +101,6 @@ size_t b_vector<T>::copy(size_t start, size_t length, const T* source) {
 //// *b_vector::insert* ////
 template<class T>
 void b_vector<T>::insert(const T& t, size_t pos) {
-
   copy(pos + 1, capacity_ - pos - 1, *this, pos);
   copy(pos, 1, &t);
 }
@@ -120,7 +108,6 @@ void b_vector<T>::insert(const T& t, size_t pos) {
 //// *b_vector::erase* ////
 template<class T>
 void b_vector<T>::erase(size_t pos) {
-
   copy(pos, capacity_ - pos - 1, *this, pos + 1);
 }
 
