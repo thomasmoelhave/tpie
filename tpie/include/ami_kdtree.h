@@ -5,7 +5,7 @@
 //
 // Blocked kd-tree definition and implementation.
 //
-// $Id: ami_kdtree.h,v 1.2 2003-01-27 02:58:42 tavi Exp $
+// $Id: ami_kdtree.h,v 1.3 2003-01-27 03:24:19 tavi Exp $
 //
 
 #ifndef _KDTREE_H
@@ -714,7 +714,7 @@ size_t KDTREE_LEAF::window_query(const POINT &lop, const POINT &hip,
 template<class coord_t, size_t dim, class BTECOLL>
 void KDTREE_LEAF::sort(size_t d) {
   POINT::cmp cmpd(d);
-  ::sort(&el[0], &el[0] + size(), cmpd);
+  std::sort(&el[0], &el[0] + size(), cmpd);
 }
 
 //// *Kdtree_leaf::find_median* ////
@@ -1473,8 +1473,8 @@ void KDTREE::copy_to_mm(POINT_STREAM* in_stream, POINT** streams_mm, size_t& sz)
       header_.mbr_lo[j] = streams_mm[j][0][j];
       header_.mbr_hi[j] = streams_mm[j][sz-1][j];
     } else {
-      header_.mbr_lo[j] = ::min(streams_mm[j][0][j], header_.mbr_lo[j]);
-      header_.mbr_hi[j] = ::max(streams_mm[j][sz-1][j], header_.mbr_hi[j]);
+      header_.mbr_lo[j] = std::min(streams_mm[j][0][j], header_.mbr_lo[j]);
+      header_.mbr_hi[j] = std::max(streams_mm[j][sz-1][j], header_.mbr_hi[j]);
     }
   }
 
@@ -1871,13 +1871,13 @@ AMI_err KDTREE::load_sorted(POINT_STREAM* streams_s[],
   // Set max_intraroot_height. 
   //if (params_.max_intranode_height == params_.max_intraroot_height) 
   //  params_.max_intraroot_height = 
-  //   ::min((size_t) (log((double)header_.size/params_.leaf_size_max)/log(2)) 
+  //   std::min((size_t) (log((double)header_.size/params_.leaf_size_max)/log(2)) 
   //   % params_.max_intranode_height + 1, params_.max_intranode_height);
 
   Kdtree_params params_saved = params_;
-  params_.leaf_size_max = ::min(params_.leaf_size_max, 
+  params_.leaf_size_max = std::min(params_.leaf_size_max, 
 				size_t(lfill*params_.leaf_size_max));
-  params_.node_size_max = ::min(params_.node_size_max, 
+  params_.node_size_max = std::min(params_.node_size_max, 
 				size_t(nfill*params_.node_size_max));
 
   // Reinitialize params_.max_intranode_height
@@ -1892,7 +1892,7 @@ AMI_err KDTREE::load_sorted(POINT_STREAM* streams_s[],
 
     // Now reset intraroot height.
     params_.max_intraroot_height = 
-      ::min((size_t) (log((double)header_.size/params_.leaf_size_max)/log(2)) 
+      std::min((size_t) (log((double)header_.size/params_.leaf_size_max)/log(2)) 
 	    % params_.max_intranode_height + 1, params_.max_intranode_height);
   }
 
@@ -2097,8 +2097,8 @@ size_t KDTREE::window_query(const POINT &p1, const POINT& p2,
 
   // Determine the low and high bounds of the box.
   for (size_t i = 0; i < dim; i++) {
-    lop[i] = ::min(p1[i], p2[i]);
-    hip[i] = ::max(p1[i], p2[i]);
+    lop[i] = std::min(p1[i], p2[i]);
+    hip[i] = std::max(p1[i], p2[i]);
     if (p1[i] == p2[i])
       LOG_WARNING_ID("  window_query: points have one identical coordinate.");
   }
@@ -3166,10 +3166,10 @@ KDTREE::sample::sample(size_t _sz, POINT_STREAM* _in_stream) {
   }
 
   // Sort the sampled offsets.
-  ::sort(offsets, offsets + sz);
+  std::sort(offsets, offsets + sz);
 
   // Eliminate duplicates.
-  if ((new_last = ::unique(offsets, offsets + sz)) != offsets + sz) {
+  if ((new_last = std::unique(offsets, offsets + sz)) != offsets + sz) {
     cerr << "    Warning: Duplicate samples found! Decreasing sample size accordingly.\n";
     // Adjust sample size sz.
     sz = new_last - offsets;
