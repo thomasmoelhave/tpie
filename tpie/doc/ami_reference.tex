@@ -1,59 +1,108 @@
 %%
-%% $Id: ami_reference.tex,v 1.3 1999-06-12 16:18:07 rbarve Exp $
+%% $Id: ami_reference.tex,v 1.4 1999-07-02 16:30:17 large Exp $
 %%
-\chapter{AMI Programmers' Reference}
+\chapter{TPIE Programmers' Reference}
+
+\comment{LA: Statistics somewhere!}
+
+\comment{LA: pqueue, internal sort, ect somewhere?}
+
+TPIE has three main components, the Access Method Interface (AMI), the
+Block Transfer Engine (BTE), and the Memory Manager (MM). The BTE handles
+disk block transfers and the MM performs low level memory management. The
+AMI works on top of the MM and one or more BTEs to provide a uniform
+interface for application programs. Applications that use this interface
+are portable across hardware platforms, since they never have to deal with
+the underlying details of how I/O is performed on a particular
+machine. This chapter contains a description of the AMI and MM entry points
+an application programmer will normally use. Typically, an application
+programmer will not be using the BTE directly. Refer to
+Chapter~\ref{cha:implementation} for a description of the BTE and of how
+TPIE is implemented.
+
+
+\section{TPIE Memory Management}
+\label{sec:mm-ref}
+
+\tobewritten
+
+\comment{LA: Index!}
+
+\comment{LA: Write register\_new, resize\_heap, ect., here! Also something
+about applications checking mm available before allocating}
+
 
 \section{AMI Streams}
 \label{sec:ami_stream-ref}
 
-An AMI stream\index{streams!AMI} is nothing more than an abstraction
-of an ordered set of objects of any one class which is stored in
-secondary memory.  In some applications, the elements of a stream
-might be nothing more than integers.  In others, they might be objects
-of an arbitrarily complex user defined class.  Creating a stream of
-objects of class \verb|foo| called \verb|foo_stream| requires nothing
-more than the definition
+\tobeextended
+
+An\comment{LA: This whole section needs an overhaul! (e.g. check that
+everything is included and correct).} AMI stream\index{streams!AMI} is
+nothing more than an abstraction of an ordered collection of objects of a
+particular class which is stored in secondary memory.  In some
+applications, the elements of a stream might be nothing more than integers.
+In others, they might be objects of an arbitrarily complex user defined
+class.  Creating a stream of objects of class \verb|foo| called
+\verb|foo_stream| requires nothing more than the definition
 
 \begin{verbatim}
 AMI_STREAM<foo> foo_stream;
 \end{verbatim}
 
-\verb|AMI_STREAM| is a macro that resolves to a class
-template declared to match the underlying semantics of the target I/O
-architecture by using an appropriate BTE\index{block transfer engine}
-(see Section~\ref{sec:ref-bte}) and MM 
-(see Section~\ref{sec:ref-mm}).
+\verb|AMI_STREAM| is a macro that resolves to a class template declared to
+match the underlying semantics of the target I/O architecture by using an
+appropriate AMI implementation (see section~\ref{sec:ref-ami}), BTE
+implementation\index{block transfer engine} (see Section~\ref{sec:ref-bte})
+and MM (see Section~\ref{sec:ref-mm}) implementation. In the current
+version of TPIE an \verb|AMI_STREAM| is stored in a standard UNIX file on a
+single disk. In this implementation the \verb|AMI_STREAM| class have the
+following public member functions:\comment{LA: Change when parallel disks
+is introduced}
 
-The \verb|AMI_STREAM| class,
-templated on the type T of its items,  consists of the following
-public member functions: % defined in the file ``ami\_single.h'';
+\comment{LA: Probably put some general discussion of stream types
+(read/write/append) and persistence here. Same comment about substreams and
+{\em current\_item}.}
+
+% defined in the file ``ami\_single.h'';
 %some important related enumerated types that the user will be
 % concerned with have been defined in ``ami\_base.h''.
 
+\comment{LA: Remove bullets?}
 \begin{itemize}
-\item{Constructors and Destructor} An \verb|AMI_STREAM<T>| can be constructed 
-with a filename argument
-to the constructor, or with the filename and streamtype
-arguments to the constructor, or  without any
-arguments given to the constructor (in which case a randomly generated
-filename and the default streamtype is used)
-with the usual semantics. The corresponding constructors 
-are:
+\item{Constructors (and Destructor)}
+
+There are four different construction polymorphs.
+
 \begin{verbatim}
-     AMI_STREAM(const char *dev_path, const AMI_stream_type st); 
-     AMI_STREAM(const AMI_stream_type st); 
      AMI_STREAM();
-     AMI_STREAM(const BTE_STREAM<T> &s);
+     AMI_STREAM(const char *path_name);
+     AMI_STREAM(const char *path_name, AMI_stream_type st);
+     AMI_STREAM(BTE_STREAM<T> &bs);
 \end{verbatim}
-The last constructor constructs an \verb|AMI_STREAM| from an exisiting
-\verb| BTE_STREAM|.
-%Here,
-%\emph{filename} specifies the name of the Unix file ``backing'' the
-%AMI\_STREAM and is also the name of the AMI\_STREAM itself. The
-%\emph{streamtype} specifies whether the AMI\_STREAM is to be a 
-%read-only or read-write or append-only or write stream (See the header file
-%``ami\_base.h'' for semantics.) The default  \emph{streamtype} is read-write. 
-%The Unix file backing the AMI\_STREAM is opened by the constructor.
+
+An \verb|AMI_stream| can have one of four different types
+\verb|AMI_READ_STREAM|, \verb|AMI_WRITE_STREAM|, \verb|AMI_APPEND_STREAM|,
+or \verb|AMI_READ_WRITE_STREAM|, which define what operations will be
+permitted on the stream.\comment{LA: Check that this works ok in the code -
+also check that r\_only is correct. Another problem is that AMI and BTE
+WRITE\_STREAM flags have different semantics - needs to be cleaned up} If
+no arguments are given to the constructor the new stream of type
+\verb|AMI_READ_WRITE_STREAM| is constructed in a file with a randomly
+generated name. If a file name is given and the file does not already
+exists, the new stream is constructed in a newly created file with that
+file name. If the file already exists, it is checked if it contains an
+\verb|AMI_STREAM|, and if so, the new stream is constructed on this
+file. In both cases the stream is of type \verb|AMI_READ_WRITE_STREAM|. If
+so desired, the stream type can also be given explicitly. The
+\verb|AMI_APPEND_STREAM| type is like \verb|AMI_WRITE_STREAM|
+type\comment{LA: It this true?} except that if the stream is constructed on
+a file containing an existing stream, objects written to the stream will be
+appended at the end of the stream. The last constructor, which will not
+normally be used by a TPIE application programmer\comment{LA: Why do we
+have it then?}, constructs a stream from an existing \verb|BTE_STREAM| (see
+Section~\ref{sec:ref-bte}). The stream gets the same type as the
+\verb|BTE_STREAM|.
 
 
 \item{Substreams}
@@ -64,134 +113,156 @@ substreams of substreams of subtreams {\em ad infinitum}.  A substream
 is defined as a contiguous range of objects from within the ordered
 collection of objects that make up the stream.
 
-In order to create a substream, we use a pseudo-constructor called
-\verb|new_substream()|, which is declared as follows:
+In order to create a substream, one has to use a pseudo-constructor called
+\verb|new_substream()|, which is declared as follows:\comment{LA: Why is it
+called AMI\_strean\_single? Change!}
 \begin{verbatim}
 AMI_err AMI_stream_single<T>::new_substream(AMI_stream_type st,
                                             off_t sub_begin,
                                             off_t sub_end,
                                             AMI_base_stream<T> **sub_stream)
 \end{verbatim}
-The stream type is one of \verb|AMI_READ_STREAM|,
-\verb|AMI_WRITE_STREAM|, or \verb|AMI_READ_WRITE_STREAM|, which define
-what operation will be permitted on this substream.  The offsets
-\verb|sub_begin| and \verb|sub_end| define where in the stream the new
-substream will begin.  Upon completion, \verb|*substream| is set to
-point to the newly allocated and created substream.
+\verb|st| defines the type of the stream. The offsets \verb|sub_begin| and
+\verb|sub_end| of type \verb|off_t| define at which object in the stream
+the new substream will begin and end. Upon completion, \verb|*sub_stream| is
+set to point to the newly allocated and created substream.
 
-The reason we do not use a real constructor is to get around the fact
-that constructors can not be virtual.  Because \verb|new_substream()|
-is not a constructor, but rather a function each particular
-implementation of which calls an appropriate constructor, it can be a
-pure virtual function in the stream base class, which forces it to be
-defined for all actual stream implementations.  This is discussed in
-more detail in Sections~\ref{sec:ref-ami} and~\ref{sec:ref-bte}, which
-discuss the implementation of the AMI and BTE in more detail.
+The\comment{LA: I don't understand this paragraph} reason we do not use a
+real constructor is to get around the fact that constructors can not be
+virtual. Because \verb|new_substream()| is not a constructor, but rather a
+function each particular implementation of which calls an appropriate
+constructor, it can be a pure virtual function in the stream base class,
+which forces it to be defined for all actual stream implementations. This
+is discussed in more detail in Sections~\ref{sec:ref-bte}
+and~\ref{sec:ref-ami},\comment{LA: Is it?} which discuss the implementation
+of the AMI and BTE in more detail.
 
-\item{Reading and Writing} \verb|AMI\_STREAM|s have a notion of \emph{current
-item} in the stream of items. The \verb|read_item(T **elt)| function
-returns with *elt pointing to the current item of the \verb|AMI_STREAM<T>|
-and the  \verb|write_item(T elt)| function 
-returns after setting the current item of \verb|AMI_STREAM<T>| to the value 
-elt. 
+\item{Reading and Writing}
 
 \begin{verbatim}
     AMI_err read_item(T **elt);
     AMI_err write_item(const T &elt);
 \end{verbatim}
 
-Since it was deemed useful to read or write many items at a time
-from or to an AMI\_STREAM, TPIE provides the 
-\verb|read_array(T *mm_space, off_t *len)| and the \\
-\verb|write_array(const T *mm_space, off_t len)| to read
-(resp. write) *len (resp. len) items into (resp. from) 
-array \verb|mm_space| of items of type T from (resp. into) the
-current locations of the \verb|AMI_STREAM<T>|.
+\verb|AMI_STREAM|s have a notion of \verb|current_item| in the stream of
+objects. The \verb|read_item(T **elt)| function returns with \verb|*elt|
+pointing to the current object of the \verb|AMI_STREAM<T>| and the
+\verb|write_item(T elt)| function returns after setting the current object
+of \verb|AMI_STREAM<T>| to the value \verb|elt|. The two functions also
+increments the \verb|current_item|.
 
+Since it can be useful to read or write many objects at a time from or to
+an \verb|AMI_STREAM|, TPIE provides two functions to do so.
 
-\item{Seek:}
-In order to seek within a stream, the user can:
+\begin{verbatim}
+    read_array(T *mm_space, off_t *len)
+    write_array(const T *mm_space, off_t len)
+\end{verbatim}
+
+\verb|read_array| read \verb|*len| objects from the \verb|current_item| into
+the array \verb|mm_space|. Similarly, \verb|write_arrar| writes an
+array.\comment{LA: Why is there a difference in the passing of len?}
+
+\item{Seeking}
+
+\verb|current_item| can be explicitly changed with the \verb|seek| function.
 \begin{verbatim}
     AMI_err seek(off_t offset);
 \end{verbatim}
-Seeks to the item offset in the stream.
 
+\item{Truncating}
 
-\item{Truncate:}
+Apart from by using \verb|write_item()| a stream can be extended
+(truncated) using the function \verb|truncate()|.
+
 \begin{verbatim}
     AMI_err truncate(off_t offset);
 \end{verbatim}
-Truncate/extend the stream to the specified number of items. The file
-pointer will be moved to the end of the stream.
+The function extends the stream to the specified number of
+objects. \verb|current_item| will be moved to the end of the stream.
 
+\item{Getting main memory usage}
 
-\item{Get main\_memory\_usage}
-In order to obtain the total number of bytes taken up by a stream, the user can
-query using:
 \begin{verbatim}
     AMI_err main_memory_usage(size_t *usage,
                               MM_stream_usage usage_type);
 \end{verbatim}
 
+This function is used for obtaining the amount of main memory used by a
+stream (in bytes). \verb|usage_type| is one of
+\verb|MM_STREAM_USAGE_CURRENT|, \verb|MM_STREAM_USAGE_MAXIMUM|, and
+\verb|MM_STREAM_USAGE_SUBSTREAM| which gives the current use, the maximal
+amount that will ever be used, and the additional amount which will be used
+by each substream created, respectively.\comment{LA: There seems to be two
+more types defined in mm.base.h - what are they?}
 
-\item{Name and Length}
-\verb|AMI\_STREAM<T>| member functions \verb|name()| and \verb|stream_len()|
-can be used by the user to get the name and length of the
-\verb|AMI_STREAM<T>|.
+\item{Naming}
+
 \begin{verbatim}
     AMI_err name(char **stream_name);
 \end{verbatim}
-Returns the path name of the file backing the stream. The name will be
-stored in newly allocated space.
+
+Returns the UNIX file storing the stream.  The name will be stored in newly
+allocated space.
+
+\item{Length}
+
 \begin{verbatim}
     off_t stream_len(void);
 \end{verbatim}
-Returns the current number of items in the stream.
 
-
+Returns the current number of objects in the stream.
 
 \item{Available Streams}
 \begin{verbatim}
     int available_streams(void);    
 \end{verbatim}
-Returns the number of currently available streams.
+
+Typically, there is an OS limit on the number of open files. This
+translates into a limit on the number of TPIE
+streams. \verb|available_streams| returns the number of streams which can
+still be constructed.
 
 \item{Set persistence}
+
 \begin{verbatim}
     void persist(persistence);
 \end{verbatim}
+
 Sets the persistence of the stream to one of the following:
 \begin{itemize}
 \item \verb|PERSIST_DELETE:| Delete the stream from the disk when it is
   destructed.
 \item \verb|PERSIST_PERSISTENT:| Do not delete the stream from the disk when
   it is destructed.
-\item \verb|PERSIST_READ_ONCE:| Delete each block of data from the disk as
-  it is read.
+%\item \verb|PERSIST_READ_ONCE:| Delete each block of data from the disk as
+%  it is read.
 \end{itemize}
 
 By default, all streams are deleted at destruction time
-(\verb|PERSIST_DELETE|).  
+(\verb|PERSIST_DELETE|).\comment{LA: There seems to be an unused
+PERSIST\_READ\_ONCE flag as well! (from darren's delete-block
+stuff). Remove?!}
 \end{itemize}
 
-\section{AMI Errors}
+\subsection{AMI Error Codes}
 \label{sec:ami-errors}
-
 \index{error|(}
-AMI entry points typically return error codes of the enumerated type
-\verb|AMI_err|.  Member functions of operation management
-objects\index{operation management objects} also typically return this
-type.  Possible values for error codes include those listed below.  It
-is expected that in future releases of TPIE, many of these error codes
-will be replaced by exceptions.  Exceptions are not currently used by
-TPIE becasue the {\tt g++} compiler does not fully support them.
 
-\subsection{General Error Codes}
+AMI\comment{LA: Should we move this section to an appendix? Or just move it
+to the end of this section? What about appendix for management object
+return codes ect.?} entry points typically return error codes of the
+enumerated type \verb|AMI_err|.  Member functions of operation management
+objects\index{operation management objects} also typically return this
+type.  Possible values for error codes include those listed below.  It is
+expected that in future releases of TPIE, many of these error codes will be
+replaced by exceptions.  Exceptions are not currently used by TPIE because
+the {\tt g++} compiler does not fully support them.
 
 \begin{description}
-\item[{\tt AMI\_ERROR\_NO\_ERROR}] No error occured.  The call the the
+\item[{\tt AMI\_ERROR\_NO\_ERROR}] No error occurred.  The call the the
   entry point returned normally.
-\item[{\tt AMI\_ERROR\_IO\_ERROR}] A low level I/O error occured.
+\item[{\tt AMI\_ERROR\_IO\_ERROR}] A low level I/O error occurred.
 \item[{\tt AMI\_ERROR\_END\_OF\_STREAM}] An attempt was made to read
   past the end of a stream or write past the end of a substream.
 \item[{\tt AMI\_ERROR\_READ\_ONLY}] An attempt was made to write to a
@@ -236,42 +307,41 @@ TPIE becasue the {\tt g++} compiler does not fully support them.
 \end{description}
 
 
-\subsection{Return Values for Scan Management Objects}
+%\subsection{Return Values for Scan Management Objects}
 
-More information on the precise semantics of these values appears in
-Section~\ref{sec:ref-ami-scan}.
-\begin{description}
-\item[{\tt AMI\_SCAN\_CONTINUE}] Tells \verb|AMI_scan()| to continue
-  to call the \verb|operate()| member function of the scan management
-  object with more data.
-\item[{\tt AMI\_SCAN\_DONE}] Tells \verb|AMI_scan()| that the scan is
-  complete. 
-\end{description}
+%More information on the precise semantics of these values appears in
+%Section~\ref{sec:ref-ami-scan}.
+%\begin{description}
+%\item[{\tt AMI\_SCAN\_CONTINUE}] Tells \verb|AMI_scan()| to continue
+%  to call the \verb|operate()| member function of the scan management
+%  object with more data.
+%\item[{\tt AMI\_SCAN\_DONE}] Tells \verb|AMI_scan()| that the scan is
+%  complete. 
+%\end{description}
 
-\subsection{Return Values for Merge Management Objects}
+%\subsection{Return Values for Merge Management Objects}
 
-More information on the precise semantics of these values appears in
-Section~\ref{sec:ref-ami-merge}.
-\begin{description}
-\item[{\tt AMI\_MERGE\_CONTINUE}] Tells \verb|AMI_merge()| to continue
-  to call the \verb|operate()| member function of the scan management
-  object with more data.
-\item[{\tt AMI\_MERGE\_DONE}] Tells \verb|AMI_merge()| that the scan is
-  complete. 
-\item[{\tt AMI\_MERGE\_OUTPUT}]  Tells \verb|AMI_merge()| that the
-  last call generated output for the output stream.
-\item[{\tt AMI\_MERGE\_READ\_MULTIPLE}]  Tells \verb|AMI_merge()| that
-  more than one input object was consumed and thus the input flags
-  should be consulted.
-\end{description}
+%More information on the precise semantics of these values appears in
+%Section~\ref{sec:ref-ami-merge}.
+%\begin{description}
+%\item[{\tt AMI\_MERGE\_CONTINUE}] Tells \verb|AMI_merge()| to continue
+%  to call the \verb|operate()| member function of the scan management
+%  object with more data.
+%\item[{\tt AMI\_MERGE\_DONE}] Tells \verb|AMI_merge()| that the scan is
+%  complete. 
+%\item[{\tt AMI\_MERGE\_OUTPUT}]  Tells \verb|AMI_merge()| that the
+%  last call generated output for the output stream.
+%\item[{\tt AMI\_MERGE\_READ\_MULTIPLE}]  Tells \verb|AMI_merge()| that
+%  more than one input object was consumed and thus the input flags
+%  should be consulted.
+%\end{description}
 
 \index{error|)}
+
 
 \section{AMI Entry Points}
 
 \index{AMI entry point}\index{entry point!AMI|see{AMI entry point}}
-
-% This section describes all the commonly used AMI entry points.  
 
 \subsection{Scanning}
 \label{sec:ref-ami-scan}
@@ -289,7 +359,7 @@ class \verb|ST|.  \verb|ST| should provide member functions {\tt
   AMI\_SCAN\_FLAG *sf)}.
 
 Scanning can also read and process an input stream of objects of type
-\verb|T|.  The polymorph that does this looks like
+\verb|T|.  The polymorph that does this looks as follows
 \begin{verbatim}
     AMI_err AMI_scan(AMI_STREAM<T> *instream, ST *smo);
 \end{verbatim}
@@ -321,23 +391,23 @@ between zero and four inputs and zero and four outputs.
 \index{operation management objects!scan|(}
 
 A scan management object class must provide two member functions for
-\verb|AMI_scan()| to call.  The first is
+\verb|AMI_scan()| to call.\comment{LA: Something about subclass of
+AMI\_scan\_object (also in previous text)?} The first is
 \begin{verbatim}
     AMI_err initialize(void);
 \end{verbatim}
-\verb|initialize()| initializes the object to prepare it for a scan.
-This member function is called once by each call to \verb|AMI_scan()|
-in order to initialize the scan managment object before any data
-processing takes place.  This function should return
-\verb|AMI_ERROR_NO_ERROR| if successful, or an appropriate error
-otherwise.  See Section~\ref{sec:ami-errors} for a list of error
-codes.
+\verb|initialize()| initializes the object to prepare it for a scan.  This
+member function is called once by each call to \verb|AMI_scan()| in order
+to initialize the scan management object before any data processing takes
+place. This function should return \verb|AMI_ERROR_NO_ERROR| if
+successful, or an appropriate error otherwise. See
+Section~\ref{sec:ami-errors} for a list of error codes.
 
-Most of the work done is a scan is typically done in by the scan
-management objects's member function
+Most of the work done is a scan is typically done in the scan management
+objects member function
 \begin{verbatim}
-    AMI_err operate([const T1 &in1, ...,  AMI\_SCAN\_FLAG *sfin, ] 
-                    [ U1 *out1, ..., AMI\_SCAN\_FLAG *sfout]);
+    AMI_err operate(const T1 &in1, ...,  AMI_SCAN_FLAG *sfin,
+                    U1 *out1, ..., AMI_SCAN_FLAG *sfout);
 \end{verbatim}
 
 Either one or more input objects or one or more output parameters must
@@ -345,67 +415,70 @@ be specified.  These must correspond in number and type to the streams
 passed to the polymorph of \verb|AMI_scan()| with which this scan
 management object is to be used.
 
-If there are inputs, \verb|sfin| points to an array of flags, one for
-each input parameter.  Flags that are set (non-zero) indicate that the
+If there are inputs, \verb|sfin| points to an array of flags, one for each
+input parameter.  Flags that are set (non-zero) indicate that the
 corresponding input parameters are valid.  If the input flags are left
-untouched, it is assumed that the input parameters were processed.  If
-one or more are cleared (set to zero) then the it is assumed that the
-corresponding inputs were not processed and should be presented again
-on the next call to \verb|operate()|.  This permits out of step
+untouched, it is assumed that the input parameters were processed.  If one
+or more are cleared (set to zero) then the it is assumed that the
+corresponding inputs were not processed and should be presented again on
+the next call to \verb|operate()|.  This permits out of step
 scanning\index{scanning!out of step}, as illustrated in
 Section~\ref{sec:out-of-step}.
 
-The output parameters are used to store objects to be written to the
-output streams.  The output flags are set by \verb|operate()| to
-indicate which outputs are valid and should be written to the output
-streams.
+The output parameters are used to store objects to be written to the output
+streams. The output flags must be set by \verb|operate()| to indicate which
+outputs are valid and should be written to the output streams. 
 
 The return value of \verb|operate()| will normally be either
 \verb|AMI_SCAN_CONTINUE|, which indicates that the function should be
-called again with any taken input parameters replaced by the next
-objects from the streams they came from, of \verb|AMI_SCAN_DONE|,
-which indicates that the scan is complete and no more input needs to
-be processed.  Note that \verb|operate()| may continue to return
-\verb|AMI_SCAN_CONTINUE| even when the input flags indicate that their
-is no more input to be processed.  This is useful if the scan
-management object maintains some internal state that must be written
-out after all input has been processed.
+called again with any taken input parameters replaced by the next objects
+from the streams they came from, of \verb|AMI_SCAN_DONE|, which indicates
+that the scan is complete and no more input needs to be processed.  Note
+that \verb|operate()| may continue to return \verb|AMI_SCAN_CONTINUE| even
+when the input flags indicate that their is no more input to be processed.
+This is useful if the scan management object maintains some internal state
+that must be written out after all input has been processed.
 
-There are numerous examples of scan managment objects in
-Section~\ref{sec:scanning} as well as in the test applications that
-appear in the TPIE distribution.
+\comment{LA: Something about special built-in scan management objects, e.g,
+ASCII input/output}
+
+%There are numerous examples of scan management objects in
+%Section~\ref{sec:scanning} as well as in the test applications that
+%appear in the TPIE distribution.
+
 
 \index{operation management objects!scan|)}
 \index{scanning|)}
+
 
 \subsection{Merging}
 \label{sec:ref-ami-merge}
 \index{merging|(}
 
-To merge a number of streams in a single pass, TPIE provides the entry
-point.
+To merge a number of streams in a single pass\comment{LA: Understandable?},
+TPIE provides the entry point.
 
 \begin{verbatim}
-AMI_err AMI_single_merge(AMI_STREAM<T> **instreams, arity_t arity,
-                         AMI_STREAM<T> *outstream, M *m_obj);
+AMI_err AMI_merge(AMI_STREAM<T> **instreams, arity_t arity,
+                  AMI_STREAM<T> *outstream, M *m_obj);
 \end{verbatim}
 
-\verb|instreams| is an array of pointers to the input streams, all of
-which are streams of objects of type \verb|T|.  \verb|arity| is the
-number of input streams.  \verb|outstream| is the output stream.
-Finally, \verb|m_obj| points to a merge management object which will
-control the merge.  Merge management objects are described below.
- 
-If the number of streams is large enough that all cannot be properly
-buffered in the available main memory, then this function will fail,
-returning \verb|AMI_ERR_INSUFFICIENT_MAIN_MEMORY|.  Most programs are
-unlikely to need to call \verb|AMI_single_merge()| directly.  
+\verb|instreams| is an array of pointers to the input streams, all of which
+are streams of objects of type \verb|T|. \verb|arity| is the number of
+input streams. \verb|outstream| is the output stream.  Finally,
+\verb|m_obj| points to a merge management object which will control the
+merge. Merge management objects are described below. If the number of
+streams is large enough that all streams cannot be properly buffered in the
+available main memory\comment{LA: Do the reader know what we are talking
+about here?}, then this function will fail, returning
+\verb|AMI_ERR_INSUFFICIENT_MAIN_MEMORY|.
 
-More commonly, programs will wish to partition a stream into
-substreams small enough to fit in main memory, operate on each in main
-memory, and then merge them together, possibly in several passes if
-low memory conditions dictate.  TPIE provides the entry point to do
-this, which is
+Most programs are unlikely to need to call \verb|AMI_merge()|
+directly.\comment{LA: Really?} More commonly, programs will wish to
+partition a stream into substreams small enough to fit in main memory,
+operate on each in main memory, and then merge them together, possibly in
+several passes if low memory conditions dictate. TPIE provides the entry
+point to do this, which is
 \begin{verbatim}
 AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
                                 AMI_STREAM<T> *outstream, M *m_obj);
@@ -432,7 +505,7 @@ and
 \end{verbatim}
 The arguments to \verb|initialize()| are \verb|arity|, the number of
 input streams in the merge, \verb|in| a pointer to an array of
-pointers to input objects, each of which is the first object appearing
+pointers to input objects, each of which is the first objects appearing
 in one of the input streams,  \verb|taken_flags| an array of flags
 indicating which of the inputs are present (i.e. which of the input
 streams is not empty), and a pointer to an output object.
@@ -450,170 +523,155 @@ return \verb|AMI_MERGE_CONTINUE|.
 The \verb|operate()| member function for a merge management object is
 called repeatedly to process input objects.  Typically, this member
 function will choose one input object to process, and set
-\verb|taken_index| to the index of the pointer to that object in the
-input array.  This object is then typically added to a dynamic data
-structure maintained by the merge management object.  If output is
-generated, for example by removing an object from the dynamic data
-structure, \verb|operate()| should return \verb|AMI_MERGE_OUTPUT|,
-otherwise, it returns either \verb|AMI_MERGE_CONTINUE| to indicate that
-more input should be presented, or \verb|AMI_MERGE_DONE| to indicate
-that the merge has completed.  
+\verb|taken_index| to the index of the pointer to that object in the input
+array.  This object is then typically added to a dynamic data structure
+maintained by the merge management object.  If output is generated, for
+example by removing an object from the dynamic data structure,
+\verb|operate()| should return \verb|AMI_MERGE_OUTPUT|, otherwise, it
+returns either \verb|AMI_MERGE_CONTINUE| to indicate that more input should
+be presented, or \verb|AMI_MERGE_DONE| to indicate that the merge has
+completed.
 
 Alternatively, \verb|operate()| can clear the elements of
-\verb|taken_flags| that correspond to inputs it does not currently
-wish to process, and then return \verb|AMI_MERGE_READ_MULTIPLE|.  This
-is generally undesirable because, if only one input is taken, it is
-far slower than using \verb|taken_index| to indicate which input was
-taken.  The merge management object must clear all other flags, and
-then TPIE must can all the flags to see which inputs were or were not 
-processed.
+\verb|taken_flags| that correspond to inputs it does not currently wish to
+process, and then return \verb|AMI_MERGE_READ_MULTIPLE|.  This is generally
+undesirable because, if only one input is taken, it is far slower than
+using \verb|taken_index| to indicate which input was taken.  The merge
+management object must clear all other flags, and then TPIE must test all
+the flags to see which inputs were or were not processed.
 
 Any merge management object that is used with the entry point
-\verb|AMI_partition_and_merge()| needs to provide a member function to
-operate on substreams of data that are small enough to fit into main
-memory.  This member function is
+\verb|AMI_partition_and_merge()| needs to provide three additional a member
+function. One function is used to operate on substreams of data that are
+small enough to fit into main memory. This member function is
 \begin{verbatim}
     AMI_err main_mem_operate(T* mm_stream, size_t len);
 \end{verbatim}
-\verb|mm_stream| is a pointer to an array of objects that have
-been read into main memory.  \verb|len| is the number of objects in
-the array.
-
-Finally, because merge management objects are allowed to maintain data
-structures whose size is linear in the number of input streams being
-processed, there must be some mechanism to communicate their memory
-requirements to TPIE.  This is done through the following two member
-functions:
+\verb|mm_stream| is a pointer to an array of objects that have been read
+into main memory. \verb|len| is the number of objects in the array. The two
+other member functions are functions for communicating to TPIE how much
+main memory the merge management object use. Merge management objects are
+allowed to maintain data structures whose size is linear in the number of
+input streams being processed.
 \begin{verbatim}
     size_t space_usage_overhead(void);
     size_t space_usage_per_stream(void);
 \end{verbatim}
-The former should return an upper bound on the amount of main memory
-the object will allocate in addition to the portion that is linear in
-the number of streams.  The latter should return the amount of
-additional main memory needed per input stream.
+The first function should return an upper bound on the amount of main
+memory\comment{LA: In bytes?} the object will allocate in addition to the
+portion that is linear in the number of streams. The second should return
+the amount of additional main memory needed per input stream.
 
-There are examples of merge management objects in
-Section~\ref{sec:merging} as well as in the test applications that
-appear in the TPIE distribution.
+%There are examples of merge management objects in
+%Section~\ref{sec:merging} as well as in the test applications that
+%appear in the TPIE distribution.
+
 \index{operation management objects!merge|)}
 \index{merging|)}
 
 
 \subsubsection{AMI merging without Merge Management Objects}
 \label{sec:ref-miami-merge}
-By using appropriate \verb|operate()| and \verb|main_mem_operate()| functions, 
-merge management objects allow can be used to conveniently program
-operations other than standard comparison based merging used while 
-sorting that have a merging like flavor. Sometimes, for the purpose of
-the standard external merging operation, it may be preferable to forego
-the generality provided by merge management objects and use routines
-specifically geared towards standard external merging operations, 
-in the interest of potential increased efficiency. The programmer can
-use the entry points below in such situations.
+\comment{LA: merging without merge management object in index}
 
-The first entry point
-\begin{verbatim}
-
- AMI_err MIAMI_single_merge(AMI_STREAM<T> **instreams, 
-                            arity_t arity, 
-                            AMI_STREAM<T> *outstream)
-
-\end{verbatim}
-provides functionality identical to the \verb|AMI_single_merge()|
-routine presented above, except that this routine assumes that the
-items of class T have well-defined \verb| < |, \verb| > |, etc. operators 
-that are to be used to order the merge. In contrast, the second
-entry point 
-\begin{verbatim}
-
- AMI_err MIAMI_single_merge_cmp(AMI_STREAM<T> **instreams, 
-                                arity_t arity, 
-                                AMI_STREAM<T> *outstream,  
-                                int (*cmp)(CONST T&, CONST T&))
-
-\end{verbatim}
-which provides identical functionality requires a well-defined 
-comparison function \verb| cmp()| that takes two items of type T
-and returns a negative, zero or positive number depending on whether
-or not the first item is less than, equal to or greater than the second
-item in the desired merging order. 
-
-The third entry point is more interesting and 
-assumes that the items of type T in the streams being
-merged include a member field, KEY, with well-defined (possibly by means of
-overloading)  \verb| < | and \verb| > | operators at compile time, and
-furthermore, that the ordering of the T type items is to based on the
-total order of their KEY fields. If these assumptions hold, the
-programmer can use the function,
+By using appropriate \verb|operate()| and \verb|main_mem_operate()|
+functions, \verb|AMI_merge()| can be used to conveniently program
+operations other than standard comparison based merging. TPIE also provide
+three other \verb|AMI_merge()| polymorphs for the special (normal) case of
+merging (partly for efficiency reasons):
 
 \begin{verbatim}
-
-AMI_err MIAMI_single_merge_Key(AMI_STREAM<T> **instreams, 
-                               arity_t arity, 
-                               AMI_STREAM<T> *outstream, 
-                               int keyoffset, 
-                               KEY dummykey)
+  AMI_err AMI_merge(AMI_STREAM<T> **instreams,
+                    arity_t arity, 
+                    AMI_STREAM<T> *outstream);
+  AMI_err AMI_merge(AMI_STREAM<T> **instreams,
+                    arity_t arity,
+                    AMI_STREAM<T> * outstream,
+                    int (*cmp)(CONST T&, CONST T&));
+  AMI_err AMI_merge(AMI_STREAM<T> **instreams,
+                    arity_t arity,
+                    AMI_STREAM<T> *outstream,
+                    int keyoffset, KEY dummy);
 \end{verbatim}
 
-to merge {\tt arity} streams of type T. Here, {\tt keyoffset} is the
-offset with respect to the start of an item of type T of the field KEY
-within T. The motivation for such a function is to 
-exploit situations in which the KEY field is often much smaller than the
-T type item: For instance, if T is a rectangle, each item may be of 
-size approximately 40 bytes, whereas if one is interested in
-sorting along the X co-ordinate, the KEY may be of size 4 or 8 bytes.
-If such information is known to the programmer, the above entry point 
-can exploit it by using appropriately-suited simple internal memory merging 
-techniques: Often, the small size of the KEY field can improve the running
-time of the operation.
+\comment{LA: We need to add comparator class polymorph}
 
-The return
-values of the above three functions are  similar to those of
-\verb|AMI_single_merge()|. 
+The first polymorph works on streams of objects for which the operator
+\verb|<| is defined.
 
-We also provide three entry points analogous to the \verb|AMI_partition_and_merge()|
-function that do not require merge management objects and 
-that use the  \verb|MIAMI_single_merge_*()| routines the way 
-\verb|AMI_partition_and_merge()| uses the \verb|AMI_single_merge()|: Each
-analogue entry point corresponds to one of the above three  
-\verb|MIAMI_single_merge_*()| entry points. 
+The second polymorph uses an explicit user defined function to compare
+objects. The function takes two objects of type T and returns a negative,
+zero or positive number depending on whether or not the first object is
+less than, equal to or greater than the second object in the desired
+merging order.
+
+The third polymorphs assumes that the objects (of type T) in the streams
+being merged have a field (of type \verb|KEY|) with well-defined (possibly
+by means of overloading) \verb|<| operator, and that the ordering of the
+object is to be based on the total order of this field. \verb|keyoffset| is
+the offset within an object of type T of this key field, and \verb|dummy| is
+a (any) variable of type \verb|KEY|.\comment{LA: Something about this being
+for C++ reasons?}
+
+All three polymorphs return \verb|AMI_ERR_INSUFFICIENT_MAIN_MEMORY| if not
+enough main memory is available to perform the merge.
 
 
-The first function, based on \verb|MIAMI_single_merge_stream()|,
-\begin{verbatim}
-template<class T>
-AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
-                                       AMI_STREAM<T> *outstream)
-\end{verbatim}
-provides the exact same functionality as the
-\verb|AMI_partition_and_merge()| function except that it requires 
-the type T to have well defined  \verb| < | and \verb| > | operators.
+%The motivation for such a function is to exploit situations
+%in which the KEY field is often much smaller than the T type object: For
+%instance, if T is a rectangle, each object may be of size approximately 40
+%bytes, whereas if one is interested in sorting along the X co-ordinate, the
+%KEY may be of size 4 or 8 bytes.  If such information is known to the
+%programmer, the above entry point can exploit it by using
+%appropriately-suited simple internal memory merging techniques: Often, the
+%small size of the KEY field can improve the running time of the operation.
 
-The second function, based on  \verb|MIAMI_single_merge_cmp()|,
-\begin{verbatim}
-template<class T>
+%We also provide three entry points analogous to the
+%\verb|AMI_partition_and_merge()| function that do not require merge
+%management objects and that use the \verb|MIAMI_single_merge_*()| routines
+%the way \verb|AMI_partition_and_merge()| uses the
+%\verb|AMI_single_merge()|: Each analogue entry point corresponds to one of
+%the above three \verb|MIAMI_single_merge_*()| entry points.
+%
+%
+%The first function, based on \verb|MIAMI_single_merge_stream()|,
+%\begin{verbatim}
+%template<class T>
+%AMI_err AMI_partition_and_merge_stream(AMI_STREAM<T> *instream,
+%                                       AMI_STREAM<T> *outstream)
+%\end{verbatim}
+%provides the exact same functionality as the
+%\verb|AMI_partition_and_merge()| function except that it requires 
+%the type T to have well defined  \verb| < | and \verb| > | operators.
+%
+%The second function, based on  \verb|MIAMI_single_merge_cmp()|,
+%\begin{verbatim}
+%template<class T>
+%
+%template<class T>               
+%AMI_err AMI_partition_and_merge_stream_cmp(AMI_STREAM<T> *instream,
+%                                           AMI_STREAM<T> *outstream,
+%                                           int (*cmp)(CONST T&, CONST T&)
+%                                           )
+%\end{verbatim}
+%has the same requirements as the \verb|MIAMI_single_merge_cmp()| function.
+%
+%The third function,   based on  \verb|MIAMI_single_merge_Key()|,
+%\begin{verbatim}
+%template<class T, class KEY>
+%AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
+%                                   AMI_STREAM<T> *outstream, 
+%                                              int keyoffset, 
+%                                               KEY dummykey)
+%\end{verbatim}
+%provides similar functionality as \verb|AMI_partition_and_merge()|
+%except that it is  uses KEY and {\tt keyoffset}
+%information while merging and sorting, as indicated above.
+%
 
-template<class T>               
-AMI_err AMI_partition_and_merge_stream_cmp(AMI_STREAM<T> *instream,
-                                           AMI_STREAM<T> *outstream,
-                                           int (*cmp)(CONST T&, CONST T&)
-                                           )
-\end{verbatim}
-has the same requirements as the \verb|MIAMI_single_merge_cmp()| function.
 
-The third function,   based on  \verb|MIAMI_single_merge_Key()|,
-\begin{verbatim}
-template<class T, class KEY>
-AMI_err AMI_partition_and_merge_Key(AMI_STREAM<T> *instream,
-                                   AMI_STREAM<T> *outstream, 
-                                              int keyoffset, 
-                                               KEY dummykey)
-\end{verbatim}
-provides similar functionality as \verb|AMI_partition_and_merge()|
-except that it is  uses KEY and {\tt keyoffset}
-information while merging and sorting, as indicated above.
-
+%%% THIS IS SOMETHING THAT SHOULD MAYBE GO IN LATER IN THE IMPLEMENTATION
+%%% SECTION (and the distribution)
 
 %The function
 %\begin{verbatim}
@@ -637,77 +695,97 @@ information while merging and sorting, as indicated above.
 %depend on various parameters.
 
 
+\subsection{Distribution}
+\label{sec:ref-ami-dist}
+\index{Distribution}
+
+\tobewritten
+
 
 \subsection{Comparison Sorting}
 \label{sec:ref-ami-sort}
 
 \index{sorting!comparison|(}
 
-\subsubsection{External Sorting based on AMI\_partition\_and\_merge()}
+TPIE provides a sort function \verb|AMI_sort()| based on merge
+sort. Version \version~of TPIE also contains alpha versions of a new
+sorting function \verb|AMI_optimized_sort()| which is also based on merge
+sort. It is planned that after thorough testing this function will be the
+default TPIE \verb|AMI_sort()| function. Section~\ref{sec:ref-imp-ami-sort}
+contains a discussion of the difference between the two functions. In the
+future a number of other sort algorithms will be implemented and it is the
+intention that when calling \verb|AMI_sort()| TPIE should automatically
+select the best sorting algorithm for the given hardware platform.
 
-In order to provide maximum flaxibility to programmers, comparison
-sorting a set of objects in a stream can be done in three different
-ways.  The particular choice of method will depend on the exact
-context in which the sort is being performed. The three \verb|AMI_sort()| 
-polymorphs mentioned below are implemented using the  \verb|AMI_partition_and_merge()| 
-function and merge management objects.
+\subsubsection{AMI\_sort}
 
-All three polymorhps of \verb|AMI_sort()| take an argument
-\verb|instream|, which is a pointer to the input stream, and
-\verb|outstream|, which is a pointer to the output stream to which the
-sorted results are to be written.
-The first polymoph takes no additional arguments.  
+In order to provide maximum flexibility to programmers, \verb|AMI_sort()|
+has three polymorphs.
+
 \begin{verbatim}
-AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream)
+  AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream)
+  AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
+                   int (*cmp)(CONST T&, CONST T&));
+  AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
+                   comparator<T> *cmp)
 \end{verbatim}
-In order to
-determine the relative order of two input objects in the output, it
-uses the operator \verb|<|.  Thus, the type \verb|T| of objects in the
-stream must have a member \verb|operator<|. 
 
-The second polymorph relies on a user supplied comparison function,
-similar to that used in the familiar C library function \verb|qsort()|.
-\begin{verbatim}
-AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
-                 int (*cmp)(CONST T&, CONST T&));
-\end{verbatim}
-When called, \verb|cmp(a,b)| should return a negative value if $a$ is
-less that $b$, a positive value if $a$ is greater than $b$, and
-\verb|0| if \verb|a| and \verb|b| are equal.
+All three polymorphs take an argument \verb|instream|, which is a pointer
+to the input stream, and \verb|outstream|, which is a pointer to the output
+stream to which the sorted results are to be written. The first polymorph
+takes no additional arguments and the \verb|<| operator is used in order to
+determine the relative order of two input objects. Thus, the type \verb|T|
+of objects in the stream must have a member \verb|operator<|.
 
-It is often useful to use a comparison function when the type of
-object being sorted has several fields, and we sometime wish to sort
-on one field and sometimes on another.  Two differenct comparison
-functions can be defined, eliminating the need to provide a \verb|<|
-operator that is compile-time bound to perform comparisons is a
-particular way.
+The second polymorph relies on a user supplied comparison function, similar
+to that used in the familiar C library function \verb|qsort()| and in one
+of the polymorphs of \verb|AMI_merge()|. It is often useful to use a
+comparison function when the type of the objects being sorted has several
+fields, and one sometimes wish to sort on one field and sometimes on
+another.  Two different comparison functions can be defined, eliminating
+the need to provide a \verb|<| operator that is compile-time bound to
+perform comparisons in a particular way.
 
-The final polymorph of \verb|AMI_sort()| relise on a comparator class.
-\begin{verbatim}
-AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
-                 comparator<T> *cmp)
-\end{verbatim}
+The final polymorph of \verb|AMI_sort()| relies on a comparator
+class.\comment{LA: Function object change.}
 Instead of defining a comparison function, the programmer defines a
-comparator class, which has a member function 
+comparator class, which has a member function
 \begin{verbatim}
     int compare(const T& t1, const T& t2);
 \end{verbatim}
 which behaves exactly as the comparison function described above.
 
-Examples of comparison based sorting appear in
-Section~\ref{sec:cmp-sorting} as well as in the test applications that 
-appear in the TPIE distribution.  Section~\ref{sec:list-ranking}
-illustrates the use of multiple comparison functions to sort streams
-of objects in different ways.
+%Examples of comparison based sorting appear in
+%Section~\ref{sec:cmp-sorting} as well as in the test applications that
+%appear in the TPIE distribution.  Section~\ref{sec:list-ranking}
+%illustrates the use of multiple comparison functions to sort streams of
+%objects in different ways.
 
+\subsubsection{AMI\_optimized\_sort}
 
-\subsubsection{External Sorting based on MIAMI\_single\_merge\_*()}
-In situations wherein merge management objects are sought to be avoided 
-(see Section~\ref{sec:ref-ami-merge}), the programmer may use the 
-\verb|AMI_partition_and_merge_stream()|, \verb|AMI_partition_and_merge_Key()|,
-and the \verb|AMI_partition_and_merge_stream_cmp()| routines (with the appropriate
-pre-conditions mentioned in Section~\ref{sec:ref-ami-merge} met,) to 
-do external sorting.
+\verb|AMI_optimized_sort()| also have three polymorphs.\comment{LA: We need
+to add a comparator class polymorph. That will also make it possible to
+clean up the code in ami\_optmized\_merge.h}
+
+\begin{verbatim}
+  AMI_err AMI_optimized_sort(AMI_STREAM<T> *instream, AMI_STREAM<T>
+                             *outstream) 
+  AMI_err AMI_optimized_sort(AMI_STREAM<T> *instream,
+                             AMI_STREAM<T> *outstream, int (*cmp)(CONST T&,
+                             CONST T&)); 
+  AMI_err AMI_optimized_sort(AMI_STREAM<T> *instream,
+                             AMI_STREAM<T> *outstream, 
+                             int keyoffset, KEY dummy);
+\end{verbatim}
+
+As for \verb|AMI_sort()| the first two polymorphs rely on \verb|<| and user
+supplied comparison functions, respectively. Similar to one of the
+\verb|AMI_merge()| polymorphs, the third polymorphs assumes that the
+objects in the input stream have a field with well-defined \verb|<|
+operator, and that the ordering of the object is to be based on the total
+order of this field. \verb|keyoffset| is the offset within an object of
+type T of this key field and \verb|dummy| is a (any) variable of type
+\verb|KEY|.\comment{LA: Something about this being for C++ reasons?}
 
 \index{sorting!comparison|)}
 
@@ -715,6 +793,8 @@ do external sorting.
 \label{sec:ref-ami-kb-sort}
 
 \index{sorting!key bucket|(}
+
+\tobeextended
 
 \begin{verbatim}
 AMI_err AMI_kb_dist()
@@ -733,10 +813,13 @@ AMI_err AMI_kb_sort_key()
 \end{verbatim}
 \index{sorting!key bucket|)}
 
+
 \subsection{General Permuting}
 \label{sec:ref-ami-gp}
 
 \index{permutation!general|(}
+
+\tobeextended
 
 \begin{verbatim}
 AMI_err AMI_general_permute(AMI_STREAM<T> *instream, 
@@ -749,6 +832,9 @@ AMI_err AMI_general_permute(AMI_STREAM<T> *instream,
 \label{sec:ref-ami-bp}
 
 \index{permutation!bit|(}
+
+\tobeextended
+
 \begin{verbatim}
 AMI_err AMI_BMMC_permute(AMI_STREAM<T> *instream, 
                          AMI_STREAM<T> *outstream, 
@@ -762,29 +848,17 @@ AMI_err AMI_BMMC_permute(AMI_STREAM<T> *instream,
 \index{matrices!dense|(}
 \index{matrices!dense|)}
 
+\tobewritten
+
+
 \subsection{Sparse Matrices}
 \label{sec:ref-ami-sm}
 
 \index{matrices!sparse|(}
 \index{matrices!sparse|)}
 
-\subsection{Stacks}
-\label{sec:ref-ami-stack}
+\tobewritten
 
-\index{stacks|(}
-
-External stacks are implemented through the templated class
-\verb|AMI_stack<T>|, which is a subclass of \verb|AMI_STREAM<T>|.  In
-addition to the normal operations operations on streams, an
-\verb|AMI_stack<T>| has member functions \verb|AMI_err push(const &T
-t)| and \verb|AMI_err pop(T **ppt)|.  The former appends a copy of the
-item \verb|t| to the end of the stream, increasing it's length by one.
-The latter removes the last item from the stream, decreasing it's
-length by one and storing a pointer to the removed object in the space
-pointed to by \verb|ppt|.  An example of the use of an external stack
-can be seen in the convex hull code in Section~\ref{sec:convex-hull}.
-
-\index{stacks|)}
 
 \subsection{Elementwise and Scalar Elementwise Arithmetic}
 \label{sec:ref-ami-arith}
@@ -827,3 +901,29 @@ matrices are implemented on top of scans using elementwise arithmetic
 operations.
 
 \index{elementwise arithmetic|)}
+
+
+\subsection{Stacks}
+\label{sec:ref-ami-stack}
+
+\index{stacks|(}
+
+External stacks are implemented through the templated class
+\verb|AMI_stack<T>|, which is a subclass of \verb|AMI_STREAM<T>|. In
+addition to the normal operations operations on streams, an
+\verb|AMI_stack<T>| has member functions \verb|AMI_err push(const &T t)|
+and \verb|AMI_err pop(T **ppt)|. The former appends a copy of the object
+\verb|t| to the end of the stream, increasing it's length by one. The
+latter removes the last object from the stream, decreasing it's length by
+one and storing a pointer to the removed object in the space pointed to by
+\verb|ppt|.
+
+\index{stacks|)}
+
+
+\subsection{Distribution Sweeping}
+\label{sec:ref-ami-distsweep}
+
+\comment{LA: index - Distribution sweeping}
+
+\tobewritten
