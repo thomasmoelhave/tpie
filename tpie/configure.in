@@ -4,14 +4,14 @@ dnl File: configure.in
 dnl Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 dnl Created: 10/13/94
 dnl 
-dnl $Id: configure.in,v 1.10 1999-07-05 20:26:09 rajiv Exp $
+dnl $Id: configure.in,v 1.11 2002-06-06 16:44:20 tavi Exp $
 dnl
 dnl Macro file for autoconfig for the TPIE system.
 dnl 
 AC_PREREQ(2.0)
 AC_INIT(include/ami.h)
 AC_CONFIG_HEADER(include/config.h)
-AC_REVISION($Revision: 1.10 $)dnl
+AC_REVISION($Revision: 1.11 $)dnl
 AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_CXX
@@ -101,22 +101,22 @@ dnl
 dnl Enable or disable assertions and logging for the library and/or apps.
 dnl
 AC_CHECKING(whether to enable assertions...)
-AC_ARG_ENABLE(assert-apps,Turn assertions on/off in application code.,
-              AC_DEFINE(TP_ASSERT_APPS) 
-	      AC_MSG_RESULT(app assertions enabled.),
-	      AC_MSG_RESULT(app assertions disabled.))
-AC_ARG_ENABLE(assert-lib,Turn assertions on/off in library code.,
-              AC_DEFINE(TP_ASSERT_LIB)
-	      AC_MSG_RESULT(lib assertions enabled.),
-	      AC_MSG_RESULT(lib assertions disabled.))
+AC_ARG_ENABLE(assert-apps, --disable-assert-apps  Turn assertions off in application code (default is on).,
+              AC_DEFINE(TP_ASSERT_APPS, 0) 
+	      AC_MSG_RESULT(app assertions disabled.),
+	      AC_MSG_RESULT(app assertions enabled.))
+AC_ARG_ENABLE(assert-lib,  --disable-assert-lib   Turn assertions off in library code (default is on).,
+              AC_DEFINE(TP_ASSERT_LIB, 0)
+	      AC_MSG_RESULT(lib assertions disabled.),
+	      AC_MSG_RESULT(lib assertions enabled.))
 AC_CHECKING(whether to enable logs...)
-AC_ARG_ENABLE(log-apps,Turn logging on/off in application code.,
-              AC_DEFINE(TP_LOG_APPS)
-	      AC_MSG_RESULT(app logging enabled.),
-	      AC_MSG_RESULT(app logging disabled.))
-AC_ARG_ENABLE(log-lib,Turn logging on/off in libray code.,
-	      AC_DEFINE(TP_LOG_LIB)
-	      AC_MSG_RESULT(lib logging enabled.),
-	      AC_MSG_RESULT(lib logging disabled.))
+AC_ARG_ENABLE(log-apps,    --disable-log-apps     Turn logging off in application code (default is on).,
+              AC_DEFINE(TP_LOG_APPS, 0)
+	      AC_MSG_RESULT(app logging disabled.),
+	      AC_MSG_RESULT(app logging enabled.))
+AC_ARG_ENABLE(log-lib,     --disable-log-lib      Turn logging off in libray code (default is on).,
+	      AC_DEFINE(TP_LOG_LIB, 0)
+	      AC_MSG_RESULT(lib logging disabled.),
+	      AC_MSG_RESULT(lib logging enabled.))
 dnl
 AC_OUTPUT(Makefile test/Makefile include/Makefile lib/Makefile lib/src/Makefile)
