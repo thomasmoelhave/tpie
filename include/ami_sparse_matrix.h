@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 3/2/95
 //
-// $Id: ami_sparse_matrix.h,v 1.4 1997-05-20 22:14:45 vengroff Exp $
+// $Id: ami_sparse_matrix.h,v 1.5 1999-02-03 17:38:20 tavi Exp $
 //
 #ifndef AMI_SPARSE_MATRIX_H
 #define AMI_SPARSE_MATRIX_H
@@ -371,35 +371,5 @@ AMI_err AMI_sparse_mult(AMI_sparse_matrix<T> &opm, AMI_matrix<T> &opv,
 
     return ae;
 }
-    
-
-#ifdef NO_IMPLICIT_TEMPLATES
-
-#define TEMPLATE_INSTANTIATE_AMI_SPARSE_MATRIX(T)			\
-template ostream &operator<<(ostream& s, const AMI_sm_elem<T> &a);	\
-template istream &operator>>(istream& s, const AMI_sm_elem<T> &a);	\
-template class AMI_sparse_matrix<T>;					\
-TEMPLATE_INSTANTIATE_STREAMS(AMI_sm_elem<T>)				\
-template class comparator< AMI_sm_elem<T> >;				\
-template class sm_band_comparator<T>;					\
-template AMI_err AMI_sparse_band_info(AMI_sparse_matrix<T> &opm,	\
-                                      unsigned int &rows_per_band,	\
-                                      unsigned int &total_bands);	\
-template AMI_err AMI_sparse_bandify(AMI_sparse_matrix<T> &sm,		\
-                                    AMI_sparse_matrix<T> &bsm,		\
-                                    unsigned int rows_per_band);	\
-template AMI_err							\
-AMI_sparse_mult_scan_banded(AMI_sparse_matrix<T> &banded_opm,		\
-                            AMI_matrix<T> &opv, AMI_matrix<T> &res,	\
-                            unsigned int rows, unsigned int cols,	\
-                            unsigned int rows_per_band);		\
-template AMI_err AMI_sparse_mult(AMI_sparse_matrix<T> &opm,		\
-                                 AMI_matrix<T> &opv,			\
-                                 AMI_matrix<T> &res);			\
-TEMPLATE_INSTANTIATE_SORT_OBJ(AMI_sm_elem<T>)
-
-
-
-#endif
 
 #endif // _AMI_SPARSE_MATRIX_H 

@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 11/4/94
 //
-// $Id: bit_matrix.h,v 1.5 1998-12-11 18:31:54 tavi Exp $
+// $Id: bit_matrix.h,v 1.6 1999-02-03 17:41:31 tavi Exp $
 //
 #ifndef _BIT_MATRIX_H
 #define _BIT_MATRIX_H
@@ -40,12 +40,5 @@ bit_matrix operator+(bit_matrix &op1, bit_matrix &op2);
 bit_matrix operator*(bit_matrix &op1, bit_matrix &op2);
 
 ostream &operator<<(ostream &s, bit_matrix &bm);
-
-
-#ifdef NO_IMPLICIT_TEMPLATES
-#define TEMPLATE_INSTANTIATE_BIT_MATRIX		   	\
-TEMPLATE_INSTANTIATE_MATRIX(bit)
-
-#endif
 
 #endif // _BIT_MATRIX_H 

@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/10/94
 //
-// $Id: ami_stream_arith.h,v 1.3 1997-05-20 22:14:46 vengroff Exp $
+// $Id: ami_stream_arith.h,v 1.4 1999-02-03 17:40:15 tavi Exp $
 //
 #ifndef _AMI_STREAM_ARITH_H
 #define _AMI_STREAM_ARITH_H
@@ -97,64 +97,5 @@ SCAN_SCALAR_OPERATOR_DECLARATION(add,+)
 SCAN_SCALAR_OPERATOR_DECLARATION(sub,-)
 SCAN_SCALAR_OPERATOR_DECLARATION(mult,*)
 SCAN_SCALAR_OPERATOR_DECLARATION(div,/)
-
-
-#ifdef NO_IMPLICIT_TEMPLATES
-
-#define TEMPLATE_INSTANTIATE_STREAM_ADD(T)			\
-template class AMI_scan_add<T>;					\
-template AMI_err AMI_scan(AMI_STREAM<T> *,			\
-                          AMI_STREAM<T> *,			\
-                          AMI_scan_add<T> *,			\
-                          AMI_STREAM<T> *);
-
-#define TEMPLATE_INSTANTIATE_STREAM_SUB(T)			\
-template class AMI_scan_sub<T>;					\
-template AMI_err AMI_scan(AMI_STREAM<T> *,			\
-                          AMI_STREAM<T> *,			\
-                          AMI_scan_sub<T> *,			\
-                          AMI_STREAM<T> *);
-
-#define TEMPLATE_INSTANTIATE_STREAM_MULT(T)			\
-template class AMI_scan_mult<T>;				\
-template AMI_err AMI_scan(AMI_STREAM<T> *,			\
-                          AMI_STREAM<T> *,			\
-                          AMI_scan_mult<T> *,			\
-                          AMI_STREAM<T> *);
-
-#define TEMPLATE_INSTANTIATE_STREAM_DIV(T)			\
-template class AMI_scan_div<T>;					\
-template AMI_err AMI_scan(AMI_STREAM<T> *,			\
-                          AMI_STREAM<T> *,			\
-                          AMI_scan_div<T> *,			\
-                          AMI_STREAM<T> *);
-
-
-
-#define TEMPLATE_INSTANTIATE_STREAM_SCALAR_ADD(T)		\
-template class AMI_scan_scalar_add<T>;				\
-template AMI_err AMI_scan(AMI_STREAM<T> *,			\
-                          AMI_scan_scalar_add<T> *,		\
-                          AMI_STREAM<T> *);
-
-#define TEMPLATE_INSTANTIATE_STREAM_SCALAR_SUB(T)		\
-template class AMI_scan_scalar_sub<T>;				\
-template AMI_err AMI_scan(AMI_STREAM<T> *,			\
-                          AMI_scan_scalar_sub<T> *,		\
-                          AMI_STREAM<T> *);
-
-#define TEMPLATE_INSTANTIATE_STREAM_SCALAR_MULT(T)		\
-template class AMI_scan_scalar_mult<T>;				\
-template AMI_err AMI_scan(AMI_STREAM<T> *,			\
-                          AMI_scan_scalar_mult<T> *,		\
-                          AMI_STREAM<T> *);
-
-#define TEMPLATE_INSTANTIATE_STREAM_SCALAR_DIV(T)		\
-template class AMI_scan_scalar_div<T>;				\
-template AMI_err AMI_scan(AMI_STREAM<T> *,			\
-                          AMI_scan_scalar_div<T> *,		\
-                          AMI_STREAM<T> *);
-
-#endif
 
 #endif // _AMI_STREAM_ARITH_H 
