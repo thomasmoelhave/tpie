@@ -7,19 +7,22 @@
 
 
 
-static char ami_scan_id[] = "$Id: ami_scan.cpp,v 1.2 1994-05-31 20:34:03 dev Exp $";
+static char ami_scan_id[] = "$Id: ami_scan.cpp,v 1.3 1994-09-16 13:17:03 darrenv Exp $";
+
+#define BTE_MMB_LOGICAL_BLOCKSIZE_FACTOR 32
 
 #include <iostream.h>
 
 // Use logs.
-#define TPL_LOGGING 1
+//#define TPL_LOGGING 1
 #include <tpie_log.h>
 
 // Use the single BTE stream version of AMI streams.
 #define AMI_IMP_SINGLE
 
-// Use the MMB version of BTE streams.
-#define BTE_IMP_MMB
+
+#define BTE_IMP_MMB	// Use the MMB version of BTE streams.
+//#define BTE_IMP_STDIO	// Use stdio implementation of BTE streams.
 
 // Define it all.
 #include <ami.h>
@@ -82,14 +85,14 @@ int main(int argc, char **argv)
 {
     AMI_err ae;
 
+    AMI_STREAM<int> amis1((unsigned int)0);
+    AMI_STREAM<int> amis2((unsigned int)0);
+        
     // Write some ints.
     {
-        count_scan<10000> cs;
+        count_scan<1000> cs;
     
-        BTE_STREAM<int> btes("/tmp/BTE_SCAN0", BTE_WRITE_STREAM);
-        AMI_STREAM<int> amis((BTE_base_stream<int> *)&btes);
-
-        ae = AMI_scan(&cs, &amis);
+        ae = AMI_scan(&cs, (AMI_base_stream<int> *)&amis1);
     }
 
     cout << "Wrote them.\n";
@@ -98,13 +101,8 @@ int main(int argc, char **argv)
     {
         square_scan<int> ss;
         
-        BTE_STREAM<int> bters("/tmp/BTE_SCAN0", BTE_READ_STREAM);
-        AMI_STREAM<int> amirs((BTE_base_stream<int> *)&bters);
-
-        BTE_STREAM<int> btews("/tmp/BTE_SCAN1", BTE_WRITE_STREAM);
-        AMI_STREAM<int> amiws((BTE_base_stream<int> *)&btews);
-        
-        ae = AMI_scan(&amirs, &ss, &amiws);
+        ae = AMI_scan((AMI_base_stream<int> *)&amis1, &ss, 
+		      (AMI_base_stream<int> *)&amis2);
     }
     
     cout << "Squared them.\n";
