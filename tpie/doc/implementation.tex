@@ -1,5 +1,5 @@
 %%
-%% $Id: implementation.tex,v 1.17 2002-06-25 18:31:20 tavi Exp $
+%% $Id: implementation.tex,v 1.18 2002-08-01 01:48:21 tavi Exp $
 %%
 \chapter{The Implementation of TPIE}
 \plabel{cha:implementation}
@@ -137,30 +137,30 @@ Version \version~of TPIE supports the following three BTE stream
 implementations:
 \begin{enumerate}
     \item \myv{BTE\_stream\_stdio}, which uses the
-    UNIX \myv{stdio} library as its file access method.
+    UNIX \myv{stdio} library as its file access method;
     
     \item \myv{BTE\_stream\_ufs}, which performs I/O via UNIX {\tt
-       read/write} calls,
+       read()/write()} system calls;
     
-    \item \myv{BTE\_stream\_mmb}, which uses the UNIX
-    \myv{mmap} call to perform I/O
+    \item \myv{BTE\_stream\_mmap}, which uses the UNIX
+    \myv{mmap()/munmap()} calls to perform I/O.
 \end{enumerate}
 
 The choice of BTE in a given application is controlled by
 compile-time variables in the \myv{app\_config.h} file.
-The UNIX \myv{stdio} implementation is selected by
-defining the variable \myv{BTE\_IMP\_STDIO}, the
-\myv{read/write} implementation by defining
-\myv{BTE\_IMP\_UFS}, and the memory mapped implementation
-by defining \myv{BTE\_IMP\_MMB}.  For example, the
+The \myv{BTE\_stream\_stdio} implementation is selected by
+defining the variable \myv{BTE\_STREAM\_IMP\_STDIO}, the
+\myv{BTE\_stream\_ufs} implementation by defining
+\myv{BTE\_STREAM\_IMP\_UFS}, and the memory mapped implementation
+by defining \myv{BTE\_STREAM\_IMP\_MMAP}.  For example, the
 following code (taken from \myv{app\_config.h} selects
 the \myv{BTE\_stream\_ufs} Block Transfer Engine (and does not
 select the others):
 
 \begin{verbatim}
-//#define BTE_IMP_MMB
-//#define BTE_IMP_STDIO
-#define BTE_IMP_UFS
+//#define BTE_STREAM_IMP_MMAP
+//#define BTE_STREAM_IMP_STDIO
+#define BTE_STREAM_IMP_UFS
 \end{verbatim}
 
 % If the including module did not explicitly ask for multiple
@@ -181,7 +181,7 @@ Section~\ref{sec:choosingbte} discuss how to choose an
 appropriate BTE (also refer to the more detailed
 descriptions of the BTE's in the next three subsections). If
 none of the available BTEs is selected,
-\myv{BTE\_IMP\_STDIO}\comment{DH: We should change the default
+\myv{BTE\_STREAM\_IMP\_UFS}\comment{DH: We should change the default
    to BTE\_IMP\_UFS} is defined by default and a warning
 is generated at compile time.
 
@@ -213,14 +213,14 @@ functions listed below.
 %access methods for such a file. 
 
 Since the details of each access method (ie
-\myv{BTE\_stream\_ufs}, \myv{BTE\_stream\_stdio} or \myv{BTE\_stream\_mmb} are
+\myv{BTE\_stream\_ufs}, \myv{BTE\_stream\_stdio} or \myv{BTE\_stream\_mmap} are
 different, the BTEs generally have different member function
 implementations, including constructors (construction
 involves opening the appropriate stream file, etc.).
 The \myv{BTE\_stream\_ufs}, \myv{BTE\_stream\_stdio}, and
-\myv{BTE\_stream\_mmb} implementations are defined in the
+\myv{BTE\_stream\_mmap} implementations are defined in the
 respective files \myv{include/bte\_stream\_ufs.h},
-\myv{include/bte\_stream\_stdio}, and \myv{include/bte\_stream\_mmb.h}.
+\myv{include/bte\_stream\_stdio.h}, and \myv{include/bte\_stream\_mmap.h}.
 \comment{LA: Some note about construction being BTE
 dependent - why are they? DH: DONE}
 Functionally, the member functions for each BTE are similar.
@@ -236,7 +236,7 @@ and their usage are outlined below:
 
 \subsubsection{Stream Constructors}
 \begin{verbatim}
-    BTE_stream_mmb   ( const char *dev_path, BTE_stream_type st );
+    BTE_stream_mmap  ( const char *dev_path, BTE_stream_type st );
     BTE_stream_stdio ( const char *dev_path, BTE_stream_type st );
     BTE_stream_ufs   ( const char *dev_path, BTE_stream_type st );
 \end{verbatim}
@@ -536,36 +536,36 @@ typedef struct BTE_stdio_header_v1 {
 \index{BTE_stream_stdio@{\tt BTE\_stream\_stdio}|)}
 
 
-\index{BTE_stream_mmb@{\tt BTE\_stream\_mmb}|(} 
-\subsection{BTE \emphd{mmb}}
-\plabel{sec:ref-bte-mmb}
-\index{BTE mmb|see {\tt BTE\_stream\_mmb}}
+\index{BTE_stream_mmap@{\tt BTE\_stream\_mmap}|(} 
+\subsection{BTE \emphd{mmap}}
+\plabel{sec:ref-bte-mmap}
+\index{BTE mmap|see {\tt BTE\_stream\_mmap}}
 
 The \emphd{mmap} BTE is implemented by the class
-\myv{BTE\_stream\_mmb}, defined in file
-\myv{/include/bte\_stream\_stdio.h}.  \myv{BTE\_stream\_mmb}
+\myv{BTE\_stream\_mmap}, defined in file
+\myv{/include/bte\_stream\_stdio.h}.  \myv{BTE\_stream\_mmap}
 streams are stored as ordinary UNIX files.  The TPIE
-\myv{BTE\_stream\_mmb} implementation uses the Unix
+\myv{BTE\_stream\_mmap} implementation uses the Unix
 \myv{mmap} and \myv{munmap} calls to perform I/O. The
 UNIX \myv{mmap} call allows a part of a file to be
 associated with a corresponding section of internal memory.
 When the memory is accessed, the corresponding portion of
 the file is copied directly into that memory buffer. The
-\myv{BTE\_stream\_mmb} primitives explicitly maintain the
+\myv{BTE\_stream\_mmap} primitives explicitly maintain the
 currently accessed block of the file mapped into memory.
 When an object outside the current block boundaries is
 requested, the current block is unmapped and a new one is
 mapped from the source file.
 
-The \myv{BTE\_stream\_mmb} is not limited to mapping in
+The \myv{BTE\_stream\_mmap} is not limited to mapping in
 blocks of size equal to the physical block size of the OS
 (typically 8K bytes). Often improved performance can be
 obtained by mapping blocks of much larger size (for example
 256KB\footnote{We use the notation KB to mean kilobytes.}).
 This is typically due to (track) buffering and prefetching
 performed in the disk controller. The (logical) block size
-used by \myv{BTE\_stream\_mmb} can be set using the macro
-\myv{BTE\_MMB\_LOGICAL\_BLOCKSIZE\_FACTOR} in the
+used by \myv{BTE\_stream\_mmap} can be set using the macro
+\myv{BTE\_STREAM\_MMAP\_BLOCK\_FACTOR} in the
 \myv{app\_config.h} file. However, choosing a large
 (logical) block size limits the amount of main memory
 available for an application program and thus the (logical)
@@ -574,20 +574,20 @@ obtain maximal performance.
 
 Unlike in \myv{BTE\_stream\_stdio}, where a function call
 is incurred every time a stream object is accessed, the
-\myv{BTE\_stream\_mmb} only incurs such a call on every
+\myv{BTE\_stream\_mmap} only incurs such a call on every
 (logical) block. This can lead to improved performance,
 especially on systems with a relatively slow CPU compared to
 the disk.  However, while prefetching of disk blocks is
 implicitly done by the operating system in
-\myv{BTE\_stream\_stdio}, \myv{BTE\_stream\_mmb} has
+\myv{BTE\_stream\_stdio}, \myv{BTE\_stream\_mmap} has
 to implement its own prefetching scheme. (Note on the other
 hand that unlike in \myv{BTE\_stream\_stdio} objects does
 not pass through the kernel level buffer space on its way to
-user space).  \myv{BTE\_stream\_mmb} prefetching can be
+user space).  \myv{BTE\_stream\_mmap} prefetching can be
 turned on by defining the macro
-\myv{BTE\_MMB\_READ\_AHEAD} in the \myv{app\_config.h}
+\myv{BTE\_MMAP\_READ\_AHEAD} in the \myv{app\_config.h}
 file. If this compile-time variable is defined,
-\myv{BTE\_stream\_mmb} optimize for sequential read speed
+\myv{BTE\_stream\_mmap} optimize for sequential read speed
 by reading (mapping) blocks into main memory before the data
 they contain is actually needed. Two methods of read-ahead
 is provided:
@@ -595,23 +595,23 @@ is provided:
 \begin{itemize}
 
     \item If the \myv{USE\_LIBAIO} macro is undefined
-    (and \myv{BTE\_MMB\_READ\_AHEAD} is set), read ahead
+    (and \myv{BTE\_MMAP\_READ\_AHEAD} is set), read ahead
     is done using \myv{mmap} calls.
 
     \item If the \myv{USE\_LIBAIO} macro is defined (and
-    \myv{BTE\_MMB\_READ\_AHEAD} is set), read ahead is
+    \myv{BTE\_MMAP\_READ\_AHEAD} is set), read ahead is
     done using the asynchronous I/O library. This feature
     requires the asynchronous I/O library {\tt
        libaio}.\index{libaio library@{\tt libaio} library.}
 
 \end{itemize}
-By default \myv{BTE\_MMB\_READ\_AHEAD} is defined,
+By default \myv{BTE\_MMAP\_READ\_AHEAD} is defined,
 \myv{USE\_LIBAIO} is not.\comment{LA: Discuss the two and
    how they differ.}
 
-\myv{BTE\_stream\_mmb} class inherits from \myv{BTE\_stream\_base}:\index{BTE_stream_base@{\tt BTE\_stream\_base}}
+\myv{BTE\_stream\_mmap} class inherits from \myv{BTE\_stream\_base}:\index{BTE_stream_base@{\tt BTE\_stream\_base}}
 \begin{verbatim}
-class BTE_stream_mmb : public BTE_stream_base {
+class BTE_stream_mmap : public BTE_stream_base {
   private:
      // descriptor of the mapped file.  
      int fd;   
@@ -621,33 +621,33 @@ class BTE_stream_mmb : public BTE_stream_base {
 }  
 \end{verbatim}
 
-\myv{BTE\_stream\_mmb} defines the public member
+\myv{BTE\_stream\_mmap} defines the public member
 functions defined for \myv{BTE\_stream\_base} (please see
 Section~\ref{sec:imp-bte-base} for a list of these member
 functions and their semantics).  In addition to these it
 defines its own constructors: 
-\index{BTE_stream_mmb@{\tt BTE\_stream\_mmb}!constructors}
+\index{BTE_stream_mmap@{\tt BTE\_stream\_mmap}!constructors}
 \comment{LA: Extend - discuss implementation.} 
 \comment{LA: Why special substream constructor? DH:Previously discussed.}
 \begin{verbatim}
-  BTE_stream_mmb(const char *dev_path, BTE_stream_type st);
-  BTE_stream_mmb(BTE_stream_type st); 
-  BTE_stream_mmb(BTE_stream_mmb<T> &s); 
+  BTE_stream_mmap(const char *dev_path, BTE_stream_type st);
+  BTE_stream_mmap(BTE_stream_type st); 
+  BTE_stream_mmap(BTE_stream_mmap<T> &s); 
   
   // A substream constructor.
-  BTE_stream_mmb(BTE_stream_mmb *super_stream,
+  BTE_stream_mmap(BTE_stream_mmap *super_stream,
                  BTE_stream_type st,
                  off_t sub_begin, off_t sub_end);
 \end{verbatim}
 
-The \myv{BTE\_stream\_mmb} header\index{BTE_stream_mmb@{\tt
-      BTE\_stream\_mmb}!header}\index{streams!header block}
+The \myv{BTE\_stream\_mmap} header\index{BTE_stream_mmap@{\tt
+      BTE\_stream\_mmap}!header}\index{streams!header block}
 structure is as follows:
 
 \begin{verbatim}
 struct mmap_stream_header { 
   public:
-    unsigned int magic_number;  // Set to MMB_HEADER_MAGIC_NUMBER
+    unsigned int magic_number;  // Set to MMAP_HEADER_MAGIC_NUMBER
     unsigned int version;       // Should be 1 for current version.
     unsigned int length;        // # of bytes in this structure.
     off_t item_logical_eof;     // The number of items in the stream.
@@ -659,7 +659,7 @@ struct mmap_stream_header {
 \end{verbatim}
 
 
-\index{BTE_stream_mmb@{\tt BTE\_stream\_mmb}|)}
+\index{BTE_stream_mmap@{\tt BTE\_stream\_mmap}|)}
 
 \index{BTE_stream_ufs@{\tt BTE\_stream\_ufs}|(}
 
@@ -684,12 +684,12 @@ I/O.
 %    implementation, resulting in extra overhead.} of
 % \myv{mmap()} implementations in some systems.\comment{LA:
 %    Say that its Solaris?} In such situations, another stream
-% implementation that, like \myv{BTE\_stream\_mmb} streams,
+% implementation that, like \myv{BTE\_stream\_mmap} streams,
 % have the potential of exploiting large sized blocks and
 % buffers is needed.
 
 % The \myv{BTE\_ufs} stream implementation simulates the
-% \myv{BTE\_stream\_mmb} stream implementation: Whenever the latter
+% \myv{BTE\_stream\_mmap} stream implementation: Whenever the latter
 % maps in a new block, the former reads in a new block (via
 % \myv{read()}) and whenever the latter unmaps a block, the
 % latter attains the same result via a \myv{write()} call.
@@ -701,12 +701,12 @@ I/O.
 % amount to a (very rudimentary) \myv{mmap()}
 % implementation. 
 
-Like in the case of \myv{BTE\_stream\_mmb} the
+Like in the case of \myv{BTE\_stream\_mmap} the
 (logical) block size can be controlled using the macro
-\myv{BTE\_UFS\_LOGICAL\_BLOCKSIZE\_FACTOR}.
+\myv{BTE\_STREAM\_UFS\_BLOCK\_FACTOR}.
 \myv{BTE\_stream\_ufs} also has the same advantage as
-\myv{BTE\_stream\_mmb} over \myv{BTE\_stream\_stdio} of only incurring
-one kernel call per block. However, unlike \myv{BTE\_stream\_mmb}
+\myv{BTE\_stream\_mmap} over \myv{BTE\_stream\_stdio} of only incurring
+one kernel call per block. However, unlike \myv{BTE\_stream\_mmap}
 (but like \myv{BTE\_stream\_stdio}), prefetching is done
 implicitly by the filesystem underlying TPIE (and objects
 have to pass through kernel level buffer space)
@@ -863,10 +863,10 @@ sufficient for the application code to create a stream of
 AMI_STREAM<int> aStream;
 \end{verbatim}
 However, if different implementations, say a \myv{ufs} and
-an \myv{mmb} stream are desired, the code would be similar
+an \myv{mmap} stream are desired, the code would be similar
 to the following:
 \begin{verbatim}
-    BTE_stream_mmb   firstStream( const char *dev_path, BTE_stream_type st );
+    BTE_stream_mmap   firstStream( const char *dev_path, BTE_stream_type st );
     BTE_stream_stdio secondStream( const char *dev_path, BTE_stream_type st );
 
 \end{verbatim}
