@@ -20,6 +20,11 @@ Changes:
 
       * Improved test_ami_sort.cpp
 
+      * Improved dependency handling for .h files. Instead of creating .d
+        files, Makefile now creates and includes one file in each directory,
+        called Makefile.depend. These files are created during initial
+        compilation and are updated using 'make depend'.
+
       * New statistics mechanism.
 
 New release :     0.9.01b
