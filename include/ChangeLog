@@ -1,4 +1,74 @@
+Mon Jan 14 11:33:13 2002 Octavian Procopiuc (tavi)
 
+	* general: new naming convention: all files dealing with bte
+	streams are called bte_stream* instead of bte*; all files related
+	to ami streams are called ami_stream* instead of ami*; mmb streams
+	are now called mmap streams; all macro definitions have been
+	changed accordingly.
+
+	* general: new statistics mechanism. Feedback is needed to refine it.
+	
+	* ami_stream.h: new wrapper for ami streams; replaces old ami.h,
+	which now is wrapper for entire library, not just the streams
+	part.
+
+	* ami.h: now includes the ami block collection, the ami block and
+	the ami btree; it is a front end to the entire library.
+	
+	* ami_imps.h: deprecated, moved its contents into ami_stream.h
+
+	* ami_err.h: new file, contains the ami error codes.
+
+	* bte_err.h: initial revision, contains the bte error codes.
+
+	* bte.h: deprecated; moved its contents into bte_stream.h
+
+	* bte_stream.h: initial revision, contains the old bte.h
+
+	* mm_imps.h: deprecated; moved its contents in mm.h
+
+	* bte_base_stream.h: deprecated; renamed bte_stream_based.h
+
+	* ami_single.h: deprecated; renamed ami_stream_single.h
+
+	* ami_base.h: deprecated; renamed ami_stream_base.h
+
+	* bte_ufs.h: deprecated; renamed bte_stream_ufs.h
+
+	* bte_mmb.h: deprecated; renamed bte_stream_mmap.h
+
+	* bte_stdio.h: deprecated; renamed bte_stream_stdio.h
+
+	* ami_ptr.h: deprecated; was not used or useful
+
+	* counter.h: deprecated; was not used or useful
+
+	* bte_stream_ufs.h: fixed an error that was causing two blocks
+	instead of one to be allocated, which caused errors in sorting
+	routine.
+
+	* bte_stream_base.h: BTE_base_stream is now called
+	BTE_stream_base. Added generic base class for streams, in
+	order to have global statistics. Introduced new statistics. Moved
+	a lot of the header checking code from bte implementations (ufs,
+	mmb) here. Moved register_memory_* functions from bte
+	implementations here. get_status() is now called status(), to be
+	consistent with bte collections. 
+
+	* ami_stream_base.h: AMI_base_stream is now called
+	AMI_stream_base. Reintroduced status.
+
+	* ami_stream_single.h: introduced global statistics (counted using
+	the BTE streams).
+
+	* tpie_stats.h, tpie_stats_stream.h: initial revision; new
+	statistics mechanism.
+	* tpie_stats_coll.h, tpie_stats_tree.h:
+	initial revision.	
+
+	* bte_mmb_stats.h, bte_stats.h: deprecated; changed to new
+	statistics mechanism (see tpie_stats*.h files.)
+	
 Thu May 17 19:29:14 2001 Octavian Procopiuc (tavi)
 
 	* ami_block.h, ami_block_base.h: Initial revision.
