@@ -7,7 +7,7 @@
 // A basic implementation of quicksort for use in core by AMI_sort() on
 // streams or substreams that are small enough.
 //
-// $Id: quicksort.h,v 1.13 1999-02-05 21:54:19 rbarve Exp $
+// $Id: quicksort.h,v 1.14 1999-02-05 23:46:29 rbarve Exp $
 //
 #ifndef _QUICKSORT_H
 #define _QUICKSORT_H
@@ -15,6 +15,41 @@
 //extern "C" long int random(void);
 
 #include <comparator.h>
+
+
+extern "C"  int random(void);
+
+//A simple class that facilitates doing key sorting followed 
+//by in-memory permuting to sort items in-memory. This is 
+//particularly useful when key size is much smaller than 
+//item size. Note that using this requires that the class Key
+//have the comparison operators defined appropriately.
+
+template<class Key>
+class qsort_item {
+  public:
+  Key keyval;
+  unsigned int source;
+
+  friend int operator==(const qsort_item &x, const qsort_item &y)
+             {return  (x.keyval ==  y.keyval);}
+
+  friend int operator!=(const qsort_item &x, const qsort_item &y)
+             {return  (x.keyval !=  y.keyval);}    
+
+  friend int operator<=(const qsort_item &x, const qsort_item &y)
+             {return  (x.keyval <=  y.keyval);}
+
+  friend int operator>=(const qsort_item &x, const qsort_item &y)
+             {return  (x.keyval >=  y.keyval);}
+
+  friend int operator<(const qsort_item &x, const qsort_item &y)
+             {return  (x.keyval <  y.keyval);}
+
+  friend int operator>(const qsort_item &x, const qsort_item &y)
+             {return  (x.keyval >  y.keyval);}
+
+  };
 
 
 // A version that uses a comparison function.  This is useful for
