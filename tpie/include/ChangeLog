@@ -1,3 +1,31 @@
+Thu Aug 29 22:40:43 2002 Octavian Procopiuc (tavi)
+
+	* ami_stream_single.h, bte_stream_base.h, bte_stream_mmap.h,
+	bte_stream_ufs.h, bte_stream_stdio.h: new stats() method in
+	AMI_STREAM and corresponding support in bte streams.
+	
+	* ami_optimized_merge.h, apm_dh.h: Changed the prefix of temporary
+	files from Temp to AMI, for uniformity. 
+	
+	* ami_coll.h: Added AMI_collection shortcut.
+	
+	* bte_coll_base.h, bte_coll_ufs.h, bte_coll_mmap.h: Define and use
+	bid_t to represent the block id 
+	type at the bte collection level. This has to correspond
+	to the AMI_bid type defined in ami_block_base.h.
+
+	* bte_coll_mmap.h: Added BTE_COLLECTION_MMAP_LAZY_WRITE definition.
+
+	* bte_stream_mmap.h: Modified some constants to be consistent with
+	the new naming convention: BTE_STREAM_MMAP_* instead of BTE_MMB_*.
+
+	* bte_stream_ufs.h: Modified some constants to be consistent with
+	the new naming conventions: BTE_STREAM_UFS_* instead of BTE_UFS_*.
+
+	* tpie_tempnam.h: Added a new parameter to the tpie_tempnam
+	function, to specify the directory. When NULL, it defaults to
+	finding a directory using the environment variables.
+
 Sun Jun 23 22:15:58 2002 Octavian Procopiuc (tavi)
 	
 	* bte_stream_mmap.h: fixed a bug that was causing core dump when
