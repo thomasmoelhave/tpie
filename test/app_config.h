@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/6/94
 //
-// $Id: app_config.h,v 1.3 1994-10-31 20:04:04 darrenv Exp $
+// $Id: app_config.h,v 1.4 1994-11-02 22:08:01 darrenv Exp $
 //
 #ifndef _APP_CONFIG_H
 #define _APP_CONFIG_H
@@ -14,6 +14,10 @@
 
 // for size_t
 #include <sys/types.h>
+
+// Many apps use random numbers.
+extern "C" int srandom(int);
+extern "C" int random(void);
 
 // Use logs if requested.
 #if TP_LOG_APPS
@@ -39,8 +43,8 @@
 #define AMI_IMP_SINGLE
 
 // Pick a version of BTE streams.
-#define BTE_IMP_MMB
-//#define BTE_IMP_CACHE
+//#define BTE_IMP_MMB
+#define BTE_IMP_CACHE
 //#define BTE_IMP_STDIO
 //#define BTE_IMP_UFS
 //#define BTE_IMP_BCS
