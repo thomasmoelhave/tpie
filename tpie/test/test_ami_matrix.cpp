@@ -5,7 +5,7 @@
 // Created: 12/11/94
 //
 
-static char test_ami_matrix_id[] = "$Id: test_ami_matrix.cpp,v 1.1 1994-12-16 21:19:50 darrenv Exp $";
+static char test_ami_matrix_id[] = "$Id: test_ami_matrix.cpp,v 1.2 1995-03-07 14:55:46 darrenv Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -103,7 +103,7 @@ int main(int argc, char **argv)
         cout << "test_mm_size = " << test_mm_size << ".\n";
         cout << "random_seed = " << random_seed << ".\n";
     } else {
-        cout << test_size << ' ' << test_mm_size << ' ' << random_seed;
+        cout << test_size << ' ' << test_mm_size << ' ' << random_seed << '\n';
     }
     
     // Set the amount of main memory:
@@ -137,7 +137,8 @@ int main(int argc, char **argv)
         osf = new ofstream(final_results_filename);
         rptf = new cxx_ostream_scan<double>(osf);
     }
-    
+
+#if 1    
     // Write some doubles.
 
     fill_upper_tri<double> fut;
@@ -167,11 +168,17 @@ int main(int argc, char **argv)
             ae = AMI_scan((AMI_base_stream<double> *)&em1, rpti);
         }
     }
-
+#endif
+    
     // Multiply the two
 
     ae = AMI_matrix_mult(em0, em1, em2);
 
+    if (verbose) {
+        cout << "Multiplied them.\n";
+        cout << "Stream length = " << em2.stream_len() << '\n';
+    }
+    
     if (report_results_final) {
         ae = AMI_scan((AMI_base_stream<double> *)&em2, rptf);
     }
