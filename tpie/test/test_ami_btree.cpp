@@ -9,7 +9,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_btree_cpp, "$Id: test_ami_btree.cpp,v 1.21 2003-09-17 02:29:40 tavi Exp $");
+VERSION(test_ami_btree_cpp, "$Id: test_ami_btree.cpp,v 1.22 2004-08-12 15:15:12 jan Exp $");
 
 #include <cpu_timer.h>
 #include <ami_btree.h>
@@ -17,7 +17,7 @@ VERSION(test_ami_btree_cpp, "$Id: test_ami_btree.cpp,v 1.21 2003-09-17 02:29:40 
 #define SIZE_OF_STRUCTURE 128
 
 // Key type.
-typedef long bkey_t;
+typedef TPIE_OS_OFFSET bkey_t;
 
 // Element type for the btree.
 struct el_t {
@@ -55,15 +55,15 @@ typedef AMI_STREAM< el_t > stream_t;
 #define DELETE_COUNT 500
 
 // Global variables.
-size_t bulk_load_count;
-size_t insert_count = 5000;
-long range_search_lo = 0;
-long range_search_hi = 10000000;
+TPIE_OS_OFFSET bulk_load_count;
+TPIE_OS_OFFSET insert_count = 5000;
+TPIE_OS_OFFSET range_search_lo = 0;
+TPIE_OS_OFFSET range_search_hi = 10000000;
 
 int main(int argc, char **argv) {
 
-  int i;
-  size_t j;
+  TPIE_OS_OFFSET i;
+  TPIE_OS_OFFSET j;
   el_t s[DELETE_COUNT], ss;
   cpu_timer wt;
   char *base_file = NULL;
@@ -86,7 +86,7 @@ int main(int argc, char **argv) {
   cout << "\n";
   cout << "Element size: " << sizeof(el_t) << " bytes. "
        << "Key size: " << sizeof(bkey_t) << " bytes.\n";
-  TPIE_OS_SRANDOM(time(NULL));
+  TPIE_OS_SRANDOM((unsigned int)TPIE_OS_TIME(NULL));
 
   // Timing stream write.
   cout << "BEGIN Stream write\n";
@@ -149,7 +149,7 @@ int main(int argc, char **argv) {
   delete is;
 
   cout << "Tree size: " << u_btree->size() << " elements. Tree height: " 
-       << u_btree->height() << ".\n";
+       << static_cast<TPIE_OS_OUTPUT_SIZE_T>(u_btree->height()) << ".\n";
   wt.reset();
 
   delete u_btree;
@@ -187,7 +187,7 @@ int main(int argc, char **argv) {
   cout << "END Insert " << wt << "\n";
   
   cout << "Tree size: " << u_btree->size() << " elements. Tree height: " 
-       << u_btree->height() << ".\n";
+       << static_cast<TPIE_OS_OUTPUT_SIZE_T>(u_btree->height()) << ".\n";
   wt.reset();
 
 
@@ -238,7 +238,7 @@ int main(int argc, char **argv) {
   
 
   cout << "Tree size: " << u_btree->size() << " elements. Tree height: " 
-       << u_btree->height() << ".\n";
+       << static_cast<TPIE_OS_OUTPUT_SIZE_T>(u_btree->height()) << ".\n";
 
   tpie_stats_tree bts = u_btree->stats();
   delete u_btree;

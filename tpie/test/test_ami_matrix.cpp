@@ -8,7 +8,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_matrix_cpp,"$Id: test_ami_matrix.cpp,v 1.10 2003-09-27 07:10:42 tavi Exp $");
+VERSION(test_ami_matrix_cpp,"$Id: test_ami_matrix.cpp,v 1.11 2004-08-12 15:15:12 jan Exp $");
 
 #include "app_config.h"        
 #include "parse_args.h"
@@ -65,22 +65,26 @@ int main(int argc, char **argv)
 {
     AMI_err ae;
 
+	test_size = 128 * 1024;
+
     parse_args(argc,argv,as_opts,parse_app_opt);
 
     if (verbose) {
       cout << "test_size = " << test_size << "." << endl;
-      cout << "test_mm_size = " << test_mm_size << "." << endl;
+      cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << endl;
       cout << "random_seed = " << random_seed << "." << endl;
     } else {
-        cout << test_size << ' ' << test_mm_size << ' ';
+        cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ';
     }
     
     // Set the amount of main memory:
     MM_manager.set_memory_limit (test_mm_size);
 
-    AMI_matrix<double> em0(test_size, test_size);
-    AMI_matrix<double> em1(test_size, test_size);
-    AMI_matrix<double> em2(test_size, test_size);
+	TPIE_OS_OFFSET matrix_size = (TPIE_OS_OFFSET)(sqrt((double)test_size));
+
+    AMI_matrix<double> em0(matrix_size, matrix_size);
+    AMI_matrix<double> em1(matrix_size, matrix_size);
+    AMI_matrix<double> em2(matrix_size, matrix_size);
         
     // Streams for reporting values to ascii streams.
     

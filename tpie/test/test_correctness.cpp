@@ -5,12 +5,14 @@
 //
 // An extensive test suite for TPIE functionality.
 //
-// $Id: test_correctness.cpp,v 1.6 2004-02-05 17:48:53 jan Exp $
+// $Id: test_correctness.cpp,v 1.7 2004-08-12 15:15:12 jan Exp $
 //
 
+static int mapcount = 0;
 #include <portability.h>
 
 // TPIE configuration: choose BTE, block size, etc.
+#include "app_config.h"
 
 #include <config.h>
 
@@ -43,7 +45,7 @@
 
 
 // Number of spaces to indent messages written during a test.
-#define INDENT 4
+#define INDENT 2
 
 // Status of a test.
 enum status_t {
@@ -149,15 +151,15 @@ int main(int argc, char **argv) {
 void print_msg(const char* msg, int indent = 0) {
   if (msg == NULL)
     return;
-  int len = strlen(msg);
+  int len = (int)strlen(msg);
   if (indent < 0)
     for (int i=0; i<len; i++) fprintf(stdout, "\b");
   else
     for (int i=0; i<indent; i++) fprintf(stdout, " ");
   fprintf(stdout, msg);
-  LOG_APP_DEBUG(">>-");
-  LOG_APP_DEBUG(msg);
-  LOG_APP_DEBUG("\n");
+ TP_LOG_APP_DEBUG(">>-");
+ TP_LOG_APP_DEBUG(msg);
+ TP_LOG_APP_DEBUG("\n");
   if (indent >= 0) {
     int current_pos = indent + len;
     for (int i=current_pos; i<74; i++) fprintf(stdout, " ");
@@ -169,25 +171,33 @@ void print_status(status_t status) {
   switch (status) {
   case EMPTY: 
     fprintf(stdout, "\n"); 
-    LOG_APP_DEBUG(">>-\n");
+   TP_LOG_APP_DEBUG(">>-\n");
     break;
   case SKIP:  
     fprintf(stdout, " [SKIP]\n"); 
-    LOG_APP_DEBUG(">>-[SKIP]\n");
+   TP_LOG_APP_DEBUG(">>-[SKIP]\n");
     break;
   case PASS:  
     // This prints in green, when possible.
+#ifdef _WIN32
+    fprintf(stdout, "[PASS]\n"); 
+#else
     fprintf(stdout, " \033[1;32m[PASS]\033[0m\n"); 
-    LOG_APP_DEBUG(">>-[PASS]\n");
+#endif
+   TP_LOG_APP_DEBUG(">>-[PASS]\n");
     break;
   case FAIL:  
     // This prints in red, when possible.
+#ifdef _WIN32
+    fprintf(stdout, "[FAIL]\n"); 
+#else
     fprintf(stdout, " \033[1;31m[FAIL]\033[0m\n"); 
-    LOG_APP_DEBUG(">>-[FAIL]\n");
+#endif
+   TP_LOG_APP_DEBUG(">>-[FAIL]\n");
     break;
   case NA:    
     fprintf(stdout, " [N/Av]\n"); 
-    LOG_APP_DEBUG(">>-[N/Av]\n");
+   TP_LOG_APP_DEBUG(">>-[N/Av]\n");
     break;
   }
 }
@@ -316,7 +326,7 @@ int test_stream() {
     print_status(status); if (status == FAIL) failed++; 
 
   }
-  
+ 
   print_msg("Destroying temp stream (file should be removed) (calling op. delete)", INDENT);
   delete s;
   status = (stat(pfn, &buf) == -1 && errno == ENOENT ? PASS: FAIL);
@@ -416,7 +426,8 @@ int test_stream() {
   print_status(EMPTY);
 
   delete[] fn;
-  return (failed ? 1: 0);
+
+return (failed ? 1: 0);
 }
 
 
@@ -481,8 +492,8 @@ int test_sort() {
     status = (err == AMI_ERROR_NO_ERROR && 
 	      so.switches() == 0 
 	      ? PASS: FAIL);
-    LOG_APP_DEBUG_ID("Number of switches:");
-    LOG_APP_DEBUG_ID(so.switches());
+   TP_LOG_APP_DEBUG_ID("Number of switches:");
+   TP_LOG_APP_DEBUG_ID(so.switches());
   }
   print_status(status); if (status == FAIL) failed++;
   
@@ -504,8 +515,8 @@ int test_sort() {
 	      ps[1]->stream_len() == 1000000 && 
 	      so.switches() == 0 
 	      ? PASS: FAIL);
-    LOG_APP_DEBUG_ID("Number of switches:");
-    LOG_APP_DEBUG_ID(so.switches());
+   TP_LOG_APP_DEBUG_ID("Number of switches:");
+   TP_LOG_APP_DEBUG_ID(so.switches());
   }
   print_status(status); if (status == FAIL) failed++;
   
@@ -568,7 +579,7 @@ int test_scan_cxx() {
     ofstream xos;
     xos.open(fnt0);
     if (!xos) {
-      LOG_APP_DEBUG_ID("Could not open C++ stream for writing to tpie00.txt");
+     TP_LOG_APP_DEBUG_ID("Could not open C++ stream for writing to tpie00.txt");
       status = FAIL;
     } else {
       for (i = 0; i < 5000000; i++) {
@@ -585,19 +596,19 @@ int test_scan_cxx() {
     ifstream xis;    
     xis.open(fnt0);
     if (!xis) {
-      LOG_APP_DEBUG_ID("Could not open C++ stream for reading from tpie00.txt");
+     TP_LOG_APP_DEBUG_ID("Could not open C++ stream for reading from tpie00.txt");
       status = FAIL;
     }
     cxx_istream_scan< pair<int,int> > so(&xis);
     ts = new AMI_STREAM< pair<int,int> >(fns);
     if (!ts->is_valid()) {
-      LOG_APP_DEBUG_ID("Could not open TPIE stream for writing in tpie00.stream");
+     TP_LOG_APP_DEBUG_ID("Could not open TPIE stream for writing in tpie00.stream");
       status = FAIL;
     } 
     if (status != FAIL) {
       err = AMI_scan(&so, ts);
-      LOG_APP_DEBUG_ID("Length of TPIE stream in tpie00.stream:");
-      LOG_APP_DEBUG_ID(ts->stream_len());
+     TP_LOG_APP_DEBUG_ID("Length of TPIE stream in tpie00.stream:");
+     TP_LOG_APP_DEBUG_ID(ts->stream_len());
       status = (err == AMI_ERROR_NO_ERROR && ts->stream_len() == 5000000 ? PASS: FAIL);
     }
     xis.close();
@@ -611,13 +622,13 @@ int test_scan_cxx() {
     ofstream xos;
     xos.open(fnt1);
     if (!xos) {
-      LOG_APP_DEBUG_ID("Could not open C++ stream for writing to tpie01.txt");
+     TP_LOG_APP_DEBUG_ID("Could not open C++ stream for writing to tpie01.txt");
       status = FAIL;
     }
     cxx_ostream_scan< pair<int,int> > so(&xos);
     ts = new AMI_STREAM< pair<int,int> >(fns, AMI_READ_STREAM);
     if (!ts->is_valid() || ts->stream_len() != 5000000) {
-      LOG_APP_DEBUG_ID("Error while re-opening stream from tpie00.stream");
+     TP_LOG_APP_DEBUG_ID("Error while re-opening stream from tpie00.stream");
       status = FAIL;
     }
     if (status != FAIL) {
@@ -682,13 +693,12 @@ int test_scan() {
   }
   print_status(status); if (status == FAIL) failed++;
 
-
   print_msg("Running AMI_scan with 1 in and 0 out (counting switches)", INDENT);
   if (status != SKIP) {
     err = AMI_scan(ps[0], &so);
     status = (err == AMI_ERROR_NO_ERROR && ps[0]->stream_len() == 10000000 ? PASS: FAIL);
-    LOG_APP_DEBUG_ID("Number of switches:");
-    LOG_APP_DEBUG_ID(so.switches());
+   TP_LOG_APP_DEBUG_ID("Number of switches:");
+   TP_LOG_APP_DEBUG_ID(so.switches());
   }
   print_status(status); if (status == FAIL) failed++;
 
@@ -704,10 +714,10 @@ int test_scan() {
   print_msg("Checking streams integrity and current pos (should be 10000000)", INDENT);
   if (status != SKIP) {
     status = (ps[0]->is_valid() && ps[0]->stream_len() == 10000000 && ps[0]->tell() == 10000000  && ps[1]->tell() == 10000000 ? PASS: FAIL);
-    LOG_APP_DEBUG_ID("Current position in input stream:");
-    LOG_APP_DEBUG_ID(ps[0]->tell());
-    LOG_APP_DEBUG_ID("Current position in output stream:");
-    LOG_APP_DEBUG_ID(ps[1]->tell());
+   TP_LOG_APP_DEBUG_ID("Current position in input stream:");
+   TP_LOG_APP_DEBUG_ID(ps[0]->tell());
+   TP_LOG_APP_DEBUG_ID("Current position in output stream:");
+   TP_LOG_APP_DEBUG_ID(ps[1]->tell());
   }
   print_status(status); if (status == FAIL) failed++;
   
@@ -722,7 +732,7 @@ int test_scan() {
 
   print_msg("Same as above, with non-equal-size inputs: 9m and 10m  ", INDENT);
   if (status != SKIP) {
-    ps[0]->truncate(9000000);
+    err = ps[0]->truncate(9000000);
     err = AMI_scan(ps[0], ps[1], &so, ps[3]);
     status = (err == AMI_ERROR_NO_ERROR && ps[0]->stream_len() == 9000000 && ps[1]->stream_len() == 10000000 && ps[3]->stream_len() == 10000000 ? PASS: FAIL);
   }
@@ -732,11 +742,11 @@ int test_scan() {
   if (status != SKIP) {
     err = AMI_scan(ps[0], ps[1], &so, ps[4], ps[5]);
     status = (err == AMI_ERROR_NO_ERROR && ps[0]->stream_len() == 9000000 && ps[1]->stream_len() == 10000000 && ps[4]->stream_len() + ps[5]->stream_len() == 19000000 ? PASS: FAIL);
-    LOG_APP_DEBUG_ID("Length of \"even\" stream: ");
-    LOG_APP_DEBUG_ID(ps[4]->stream_len());
-    LOG_APP_DEBUG_ID("Length of \"odd\" stream: ");
-    LOG_APP_DEBUG_ID(ps[5]->stream_len());
-    LOG_APP_DEBUG_ID("The sum should be 19000000.");
+   TP_LOG_APP_DEBUG_ID("Length of \"even\" stream: ");
+   TP_LOG_APP_DEBUG_ID(ps[4]->stream_len());
+   TP_LOG_APP_DEBUG_ID("Length of \"odd\" stream: ");
+   TP_LOG_APP_DEBUG_ID(ps[5]->stream_len());
+   TP_LOG_APP_DEBUG_ID("The sum should be 19000000.");
   }
   print_status(status); if (status == FAIL) failed++;
 
@@ -767,14 +777,14 @@ int test_scan() {
 
 
   print_msg("Running AMI_scan illegally with same stream in and out", INDENT);
-  LOG_APP_DEBUG_ID("Length of stream before scan:");
-  LOG_APP_DEBUG_ID(ps[1]->stream_len());
+ TP_LOG_APP_DEBUG_ID("Length of stream before scan:");
+ TP_LOG_APP_DEBUG_ID(ps[1]->stream_len());
   if (status != SKIP) {
     err = AMI_scan(ps[1], &so, ps[1]);
     status = (err == AMI_ERROR_NO_ERROR ? FAIL: PASS);
   }
-  LOG_APP_DEBUG_ID("Length of stream after scan:");
-  LOG_APP_DEBUG_ID(ps[1]->stream_len());  
+ TP_LOG_APP_DEBUG_ID("Length of stream after scan:");
+ TP_LOG_APP_DEBUG_ID(ps[1]->stream_len());  
   print_status(status); if (status == FAIL) failed++;
 
 

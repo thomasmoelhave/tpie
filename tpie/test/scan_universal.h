@@ -4,7 +4,7 @@
 // Author: Octavian Procopiuc <tavi@cs.duke.edu>
 // Created: 04/23/03
 //
-// $Id: scan_universal.h,v 1.3 2003-09-12 18:33:39 jan Exp $
+// $Id: scan_universal.h,v 1.4 2004-08-12 15:15:11 jan Exp $
 //
 
 #ifndef _SCAN_UNIVERSAL_H
@@ -42,8 +42,8 @@ private:
 public:
   scan_universal(unsigned int count = 1000, int seed = 17): 
     _max(count), _remaining(count) {
-    LOG_APP_DEBUG_ID("scan_universal random seed:");
-    LOG_APP_DEBUG_ID(seed);
+    TP_LOG_APP_DEBUG_ID("scan_universal random seed:");
+    TP_LOG_APP_DEBUG_ID(seed);
     TPIE_OS_SRANDOM(seed);     
   }
 

@@ -8,7 +8,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_arith_cpp,"$Id: test_ami_arith.cpp,v 1.10 2003-09-27 07:10:42 tavi Exp $");
+VERSION(test_ami_arith_cpp,"$Id: test_ami_arith.cpp,v 1.11 2004-08-12 15:15:11 jan Exp $");
 
 #include "app_config.h"        
 #include "parse_args.h"
@@ -69,10 +69,10 @@ int main(int argc, char **argv)
 
     if (verbose) {
       cout << "test_size = " << test_size << "." << endl;
-        cout << "test_mm_size = " << test_mm_size << "." << endl;
+        cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << endl;
         cout << "random_seed = " << random_seed << "." << endl;
     } else {
-        cout << test_size << ' ' << test_mm_size << ' ' << random_seed;
+        cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << random_seed;
     }
     
     // Set the amount of main memory:

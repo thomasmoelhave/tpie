@@ -13,7 +13,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_gp_cpp,"$Id: test_ami_gp.cpp,v 1.14 2003-09-27 07:10:42 tavi Exp $");
+VERSION(test_ami_gp_cpp,"$Id: test_ami_gp.cpp,v 1.15 2004-08-12 15:15:12 jan Exp $");
 
 // Get the application defaults.
 #include "app_config.h"
@@ -59,13 +59,13 @@ void parse_app_opt(char c, char *optarg)
 
 class reverse_order : public AMI_gen_perm_object {
 private:
-    off_t total_size;
+    TPIE_OS_OFFSET total_size;
 public:
-    AMI_err initialize(off_t ts) {
+    AMI_err initialize(TPIE_OS_OFFSET ts) {
         total_size = ts;
         return AMI_ERROR_NO_ERROR;
     };
-    off_t destination(off_t source) {
+    TPIE_OS_OFFSET destination(TPIE_OS_OFFSET source) {
         return total_size - 1 - source;
     };
 };
@@ -79,10 +79,10 @@ int main(int argc, char **argv)
 
     if (verbose) {
       cout << "test_size = " << test_size << "." << endl;
-        cout << "test_mm_size = " << test_mm_size << "." << endl;
+        cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << endl;
         cout << "random_seed = " << random_seed << "." << endl;
     } else {
-        cout << test_size << ' ' << test_mm_size << ' ' << random_seed;
+        cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << random_seed;
     }
 
     TPIE_OS_SRANDOM(random_seed);

@@ -4,7 +4,7 @@
 // Created: 10/7/94
 //
 
-static char parse_args_id[] = "$Id: parse_args.cpp,v 1.14 2003-11-18 18:10:28 tavi Exp $";
+static char parse_args_id[] = "$Id: parse_args.cpp,v 1.15 2004-08-12 15:15:11 jan Exp $";
 
 #include <portability.h>
 
@@ -98,7 +98,7 @@ void parse_args(int argc, char **argv, struct options *application_opts,
       break;
     case 2:
       verbose = true; 
-      LOG_APP_DEBUG_ID("Setting verbose flag.");
+     TP_LOG_APP_DEBUG_ID("Setting verbose flag.");
       break;
     case 3: 
       test_size = parse_number(opt_arg); 
@@ -136,7 +136,7 @@ void parse_args(int argc, char **argv, const char *as_opts,
   if (as_opts != NULL) {
     unsigned int l_aso;
     
-    all_opts = new char[sizeof(standard_opts) + (l_aso = strlen(as_opts))]; 
+    all_opts = new char[sizeof(standard_opts) + (l_aso = (unsigned int)strlen(as_opts))]; 
     strncpy(all_opts, standard_opts, sizeof(standard_opts));
     strncat(all_opts, as_opts, l_aso);
   } else {

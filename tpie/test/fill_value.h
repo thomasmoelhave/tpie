@@ -4,10 +4,12 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 3/6/95
 //
-// $Id: fill_value.h,v 1.3 1999-02-03 21:47:59 tavi Exp $
+// $Id: fill_value.h,v 1.4 2004-08-12 15:15:11 jan Exp $
 //
 #ifndef _FILL_VALUE_H
 #define _FILL_VALUE_H
+
+#include <portability.h>
 
 #include <ami_matrix_fill.h>
 
@@ -19,11 +21,11 @@ public:
     void set_value(const T &v) {
         value = v;
     };
-    AMI_err initialize(unsigned int /*rows*/, unsigned int /*cols*/)
+    AMI_err initialize(TPIE_OS_OFFSET /*rows*/, TPIE_OS_OFFSET /*cols*/)
     {
         return AMI_ERROR_NO_ERROR;
     };
-    T element(unsigned int /*row*/, unsigned int /*col*/)
+    T element(TPIE_OS_OFFSET /*row*/, TPIE_OS_OFFSET /*col*/)
     {
         return value;
     };

@@ -17,7 +17,7 @@
 #include <pqueue_heap.h>
 
 #include <versions.h>
-VERSION(test_ami_pmerge_cpp,"$Id: test_ami_pmerge.cpp,v 1.26 2003-09-27 07:10:42 tavi Exp $");
+VERSION(test_ami_pmerge_cpp,"$Id: test_ami_pmerge.cpp,v 1.27 2004-08-12 15:15:12 jan Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -41,7 +41,7 @@ private:
     arity_t input_arity;
     pqueue_heap_op<arity_t,int> *pq;
 #if DEBUG_ASSERTIONS
-    unsigned int input_count, output_count;
+    TPIE_OS_OFFSET input_count, output_count;
 #endif    
 public:
     s_merge_manager(void);
@@ -51,9 +51,9 @@ public:
                        int &taken_index);
     AMI_err operate(CONST int * CONST *in, AMI_merge_flag *taken_flags,
                     int &taken_index, int *out);
-    AMI_err main_mem_operate(int* mm_stream, size_t len);
-    size_t space_usage_overhead(void);
-    size_t space_usage_per_stream(void);
+    AMI_err main_mem_operate(int* mm_stream, TPIE_OS_SIZE_T len);
+	TPIE_OS_SIZE_T space_usage_overhead(void);
+	TPIE_OS_SIZE_T space_usage_per_stream(void);
 };
 
 
@@ -109,13 +109,13 @@ AMI_err s_merge_manager::initialize(arity_t arity, CONST int * CONST *in,
 }
 
 
-size_t s_merge_manager::space_usage_overhead(void)
+TPIE_OS_SIZE_T s_merge_manager::space_usage_overhead(void)
 {
     return sizeof(pqueue_heap_op<arity_t,int>);
 }
 
 
-size_t s_merge_manager::space_usage_per_stream(void)
+TPIE_OS_SIZE_T s_merge_manager::space_usage_per_stream(void)
 {
     return sizeof(arity_t) + sizeof(int);
 }
@@ -172,7 +172,7 @@ AMI_err s_merge_manager::operate(CONST int * CONST *in,
 }
 
 
-AMI_err s_merge_manager::main_mem_operate(int* mm_stream, size_t len)
+AMI_err s_merge_manager::main_mem_operate(int* mm_stream, TPIE_OS_SIZE_T len)
 {
     qsort(mm_stream, len, sizeof(int), c_int_cmp);
     return AMI_ERROR_NO_ERROR;
@@ -215,10 +215,10 @@ int main(int argc, char **argv)
 
     if (verbose) {
       cout << "test_size = " << test_size << "." << endl;
-      cout << "test_mm_size = " << test_mm_size << "." << endl;
+      cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << endl;
       cout << "random_seed = " << random_seed << "." << endl;
     } else {
-        cout << test_size << ' ' << test_mm_size << ' ' << random_seed;
+        cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << random_seed;
     }
     
     // Set the amount of main memory:

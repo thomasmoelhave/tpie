@@ -8,7 +8,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_stack_cpp,"$Id: test_ami_stack.cpp,v 1.7 2003-09-12 00:52:39 tavi Exp $");
+VERSION(test_ami_stack_cpp,"$Id: test_ami_stack.cpp,v 1.8 2004-08-12 15:15:12 jan Exp $");
 
 #include "app_config.h"        
 #include "parse_args.h"
@@ -61,10 +61,10 @@ int main(int argc, char **argv)
 
     if (verbose) {
       cout << "test_size = " << test_size << "." << endl;
-      cout << "test_mm_size = " << test_mm_size << "." << endl;
+      cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << endl;
       cout << "random_seed = " << random_seed << "." << endl;
     } else {
-        cout << test_size << ' ' << test_mm_size << ' ' << random_seed;
+        cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << random_seed;
     }
     
     // Set the amount of main memory:
@@ -96,9 +96,9 @@ int main(int argc, char **argv)
     }
     
     // Push values.
-    double ii;
+    TPIE_OS_OFFSET ii;
     for (ii = test_size; ii--; ) {
-        amis0.push(ii+0.01);
+        amis0.push((double)ii+0.01);
     }
 
     if (verbose) {
@@ -114,7 +114,7 @@ int main(int argc, char **argv)
 
     double *jj;
     
-    for (ii = 0.0; ii < test_size; ii++ ) {
+    for (ii = 0; ii < test_size; ii++ ) {
         amis0.pop(&jj);
         if (ii  + 0.01 != *jj) {
             cout << ii  + 0.01 << " != " << *jj << endl;

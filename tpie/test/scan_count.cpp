@@ -8,7 +8,7 @@
 //
 
 
-static char scan_count_id[] = "$Id: scan_count.cpp,v 1.3 2003-04-21 02:54:11 tavi Exp $";
+static char scan_count_id[] = "$Id: scan_count.cpp,v 1.4 2004-08-12 15:15:11 jan Exp $";
 
 #include "app_config.h"
 #include "scan_count.h"
@@ -20,13 +20,13 @@ AMI_err scan_count::initialize(void)
     return AMI_ERROR_NO_ERROR;
 };
 
-scan_count::scan_count(int max) :
+scan_count::scan_count(TPIE_OS_OFFSET max) :
         maximum(max),
         ii(0)
 {
 };
 
-AMI_err scan_count::operate(int *out1, AMI_SCAN_FLAG *sf)
+AMI_err scan_count::operate(TPIE_OS_OFFSET *out1, AMI_SCAN_FLAG *sf)
 {
     called++;
     *out1 = ++ii;

@@ -11,17 +11,17 @@
 #include "app_config.h"
 
 #include <versions.h>
-VERSION(scan_random_cpp,"$Id: scan_random.cpp,v 1.9 2003-09-11 17:51:20 jan Exp $");
+VERSION(scan_random_cpp,"$Id: scan_random.cpp,v 1.10 2004-08-12 15:15:11 jan Exp $");
 
 #include "scan_random.h"
 
-scan_random::scan_random(unsigned int count, int seed) {
+scan_random::scan_random(TPIE_OS_OFFSET count, int seed) {
     this->max = count;
     this->remaining = count;
 
-    LOG_APP_DEBUG("scan_random seed = ");
-    LOG_APP_DEBUG(seed);
-    LOG_APP_DEBUG('\n');
+    TP_LOG_APP_DEBUG("scan_random seed = ");
+    TP_LOG_APP_DEBUG((TPIE_OS_LONGLONG)seed);
+    TP_LOG_APP_DEBUG('\n');
 
     TPIE_OS_SRANDOM(seed);
 }

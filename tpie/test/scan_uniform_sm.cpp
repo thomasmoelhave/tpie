@@ -10,17 +10,17 @@
 #include "app_config.h"
 
 #include <versions.h>
-VERSION(scan_uniform_sm_cpp,"$Id: scan_uniform_sm.cpp,v 1.6 2003-09-27 07:10:42 tavi Exp $");
+VERSION(scan_uniform_sm_cpp,"$Id: scan_uniform_sm.cpp,v 1.7 2004-08-12 15:15:11 jan Exp $");
 
 #include "scan_uniform_sm.h"
 
-scan_uniform_sm::scan_uniform_sm(unsigned int rows, unsigned int cols,
+scan_uniform_sm::scan_uniform_sm(TPIE_OS_OFFSET rows, TPIE_OS_OFFSET cols,
                                  double density, int seed) :
         rmax(rows), cmax(cols), d(density)
 {
-    LOG_APP_DEBUG("scan_uniform_sm seed = ");
-    LOG_APP_DEBUG(seed);
-    LOG_APP_DEBUG('\n');
+    TP_LOG_APP_DEBUG("scan_uniform_sm seed = ");
+    TP_LOG_APP_DEBUG(seed);
+    TP_LOG_APP_DEBUG('\n');
 
     TPIE_OS_SRANDOM(seed);
 }

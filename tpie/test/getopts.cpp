@@ -53,7 +53,7 @@ int option_index = 1;
 int getopts_usage(char *progName, struct options opts[]) {
 
   int count;
-  int i;
+  TPIE_OS_SIZE_T i;
   char *cmd;
   int optlen = 30;
 
@@ -104,7 +104,8 @@ int getopts_usage(char *progName, struct options opts[]) {
 */
 int getopts(int argc, char **argv, struct options opts[], char **args)
 {
-  int count1, sizeOfArgs;
+  int count1;
+  TPIE_OS_SIZE_T sizeOfArgs;
 
   if (argc == 1 || option_index == argc)
     return 0;
