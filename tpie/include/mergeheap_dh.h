@@ -1,3 +1,6 @@
+// file: mergeheap_dh.h
+
+// 	$Id: mergeheap_dh.h,v 1.3 2001-03-05 17:29:12 hutchins Exp $	
 
 // This file contains several merge heap templates. 
 // Originally written by Rakesh Barve.  
@@ -32,7 +35,6 @@
 //     versions of the merge heap that maintain pointers to the
 //     current records at the head of the streams being merged. The
 //     previous versions kept the entire corresponding record in the heap.
-// 	$Id: mergeheap_dh.h,v 1.2 2000-04-17 01:50:53 hutchins Exp $	
 
 #ifndef _MERGE_HEAP_DH_H
 #define _MERGE_HEAP_DH_H
@@ -74,7 +76,7 @@ public:
 template<class REC, class CMPR>
 class merge_heap_pdh_obj{
 
-  CMPR cmp;
+  CMPR                *cmp;
   class heap_ptr<REC> *Heaparray;
   unsigned int        Heapsize;
   unsigned int        maxHeapsize;
@@ -97,6 +99,14 @@ class merge_heap_pdh_obj{
 
 public:
 
+  // Constructor initializes a pointer to the user's comparison object
+  // The object may contain dynamic data although the 'compare' method is CONST
+  // and therefore inline'able.
+
+  merge_heap_pdh_obj ( CMPR *cmpptr ) {
+    cmp = cmpptr;
+  }
+  
   // Report size of Heap (number of elements)
   unsigned int sizeofheap(void) {return Heapsize;}; 
 
@@ -161,10 +171,10 @@ inline void merge_heap_pdh_obj<REC,CMPR>::Heapify(unsigned int i) {
   l = Left(i);
   r = Right(i);
 
-  smallest = ((l <= Heapsize) && (cmp.compare(*Heaparray[l].recptr,*Heaparray[i].recptr)< 0)) ? l : i;
+  smallest = ((l <= Heapsize) && (cmp->compare(*Heaparray[l].recptr,*Heaparray[i].recptr)< 0)) ? l : i;
 
   smallest = ((r <= Heapsize) && 
-	      (cmp.compare(*Heaparray[r].recptr,*Heaparray[smallest].recptr)<0))? r : smallest;
+	      (cmp->compare(*Heaparray[r].recptr,*Heaparray[smallest].recptr)<0))? r : smallest;
 
   while (smallest != i) {
     this->Exchange(i,smallest);
@@ -174,10 +184,10 @@ inline void merge_heap_pdh_obj<REC,CMPR>::Heapify(unsigned int i) {
     r = Right(i);
     
     smallest = ((l <= Heapsize) && 
-		(cmp.compare(*Heaparray[l].recptr,*Heaparray[i].recptr)<0))? l : i;
+		(cmp->compare(*Heaparray[l].recptr,*Heaparray[i].recptr)<0))? l : i;
 
     smallest =  ((r <= Heapsize) && 
-		 (cmp.compare(*Heaparray[r].recptr,*Heaparray[smallest].recptr)<0))? r : smallest;
+		 (cmp->compare(*Heaparray[r].recptr,*Heaparray[smallest].recptr)<0))? r : smallest;
   }
 }
 
@@ -444,7 +454,7 @@ void merge_heap_pdh_cmp<REC>::initialize () {
 template<class REC, class CMPR>
 class merge_heap_dh_obj{
 
-  CMPR cmp;
+  CMPR                    *cmp;
   class heap_element<REC> *Heaparray;
   unsigned int            Heapsize;
   unsigned int            maxHeapsize;
@@ -466,6 +476,13 @@ class merge_heap_dh_obj{
   inline void Heapify(unsigned int i);
 
 public:
+  // Constructor initializes a pointer to the user's comparison object
+  // The object may contain dynamic data although the 'compare' method is CONST
+  // and therefore inline'able.
+
+  merge_heap_dh_obj ( CMPR *cmpptr ) {
+    cmp = cmpptr;
+  }
 
   // Report size of Heap (number of elements)
   unsigned int sizeofheap(void) {return Heapsize;}; 
@@ -532,10 +549,10 @@ inline void merge_heap_dh_obj<REC,CMPR>::Heapify(unsigned int i) {
   l = Left(i);
   r = Right(i);
 
-  smallest = ((l <= Heapsize) && (cmp.compare(Heaparray[l].key,Heaparray[i].key)< 0)) ? l : i;
+  smallest = ((l <= Heapsize) && (cmp->compare(Heaparray[l].key,Heaparray[i].key)< 0)) ? l : i;
 
   smallest = ((r <= Heapsize) && 
-	      (cmp.compare(Heaparray[r].key,Heaparray[smallest].key)<0))? r : smallest;
+	      (cmp->compare(Heaparray[r].key,Heaparray[smallest].key)<0))? r : smallest;
 
   while (smallest != i) {
     this->Exchange(i,smallest);
@@ -545,10 +562,10 @@ inline void merge_heap_dh_obj<REC,CMPR>::Heapify(unsigned int i) {
     r = Right(i);
     
     smallest = ((l <= Heapsize) && 
-		(cmp.compare(Heaparray[l].key,Heaparray[i].key)<0))? l : i;
+		(cmp->compare(Heaparray[l].key,Heaparray[i].key)<0))? l : i;
 
     smallest =  ((r <= Heapsize) && 
-		 (cmp.compare(Heaparray[r].key,Heaparray[smallest].key)<0))? r : smallest;
+		 (cmp->compare(Heaparray[r].key,Heaparray[smallest].key)<0))? r : smallest;
   }
 }
 
@@ -821,7 +838,7 @@ void merge_heap_dh_cmp<REC>::initialize () {
 template<class REC, class KEY, class CMPR>
 class merge_heap_dh_kop{
 
-  CMPR                    UsrObject;
+  CMPR                    *UsrObject;
   class heap_element<KEY> *Heaparray;
   unsigned int            Heapsize;
   unsigned int            maxHeapsize;
@@ -844,6 +861,14 @@ class merge_heap_dh_kop{
 
 public:
 
+  // Constructor initializes a pointer to the user's comparison object
+  // The object may contain dynamic data although the 'copy' method is CONST
+  // and therefore inline'able.
+
+  merge_heap_dh_kop ( CMPR *cmpptr ) {
+    UsrObject = cmpptr;
+  }
+
   // Report size of Heap (number of elements)
   unsigned int sizeofheap(void) {return Heapsize;}; 
 
@@ -856,7 +881,7 @@ public:
       Heaparray[1].run_id = Heaparray[Heapsize].run_id;
       Heapsize--;
     } else 
-      UsrObject.copy(&Heaparray[1].key, *nextelement_same_run);
+      UsrObject->copy(&Heaparray[1].key, *nextelement_same_run);
     this->Heapify(1);
   };
 
@@ -882,7 +907,7 @@ inline void merge_heap_dh_kop<REC,KEY,CMPR>::allocate ( unsigned int size ) {
 // Copy an (initial) element into the heap array
 template<class REC, class KEY, class CMPR>
 inline void merge_heap_dh_kop<REC,KEY,CMPR>::insert ( REC *ptr, unsigned int run_id ) {
-    UsrObject.copy(&Heaparray[Heapsize+1].key, *ptr);
+    UsrObject->copy(&Heaparray[Heapsize+1].key, *ptr);
     Heaparray[Heapsize+1].run_id = run_id;
     Heapsize++;
     //tp_assert( Heapsize <= maxHeapsize
@@ -947,7 +972,7 @@ void merge_heap_dh_kop<REC,KEY,CMPR>::initialize ( ) {
 template<class REC, class KEY, class CMPR>
 class merge_heap_dh_kobj{
 
-  CMPR                    UsrObject;
+  CMPR                    *UsrObject;
   class heap_element<KEY> *Heaparray;
   unsigned int            Heapsize;
   unsigned int            maxHeapsize;
@@ -970,6 +995,14 @@ class merge_heap_dh_kobj{
 
 public:
 
+  // Constructor initializes a pointer to the user's comparison object
+  // The object may contain dynamic data although the 'copy' and
+  // 'compare' methods are CONST and therefore inline'able.
+
+  merge_heap_dh_kobj ( CMPR *cmpptr ) {
+    UsrObject = cmpptr;
+  }
+
   // Report size of Heap (number of elements)
   unsigned int sizeofheap(void) {return Heapsize;}; 
 
@@ -982,7 +1015,7 @@ public:
       Heaparray[1].run_id = Heaparray[Heapsize].run_id;
       Heapsize--;
     } else 
-      UsrObject.copy(&Heaparray[1].key, *nextelement_same_run);
+      UsrObject->copy(&Heaparray[1].key, *nextelement_same_run);
     this->Heapify(1);
   };
 
@@ -1013,7 +1046,7 @@ inline void merge_heap_dh_kobj<REC,KEY,CMPR>::allocate( unsigned int size ) {
 // Copy an (initial) element into the heap array
 template<class REC, class KEY, class CMPR>
 inline void merge_heap_dh_kobj<REC,KEY,CMPR>::insert( REC *ptr, unsigned int run_id ) {
-    UsrObject.copy(&Heaparray[Heapsize+1].key, *ptr);
+    UsrObject->copy(&Heaparray[Heapsize+1].key, *ptr);
     Heaparray[Heapsize+1].run_id = run_id;
     Heapsize++;
     //tp_assert( Heapsize <= maxHeapsize
@@ -1040,9 +1073,9 @@ inline void merge_heap_dh_kobj<REC,KEY,CMPR>::Heapify(unsigned int i) {
   r = Right(i);
 
   smallest = ((l <= Heapsize) && 
-	    (UsrObject.compare(Heaparray[l].key,Heaparray[i].key)<0)) ? l : i;
+	    (UsrObject->compare(Heaparray[l].key,Heaparray[i].key)<0)) ? l : i;
   smallest = ((r <= Heapsize) && 
-	    (UsrObject.compare(Heaparray[r].key,Heaparray[smallest].key)<0))? r : smallest;
+	    (UsrObject->compare(Heaparray[r].key,Heaparray[smallest].key)<0))? r : smallest;
   while (smallest != i) {
     this->Exchange(i,smallest);
 
@@ -1051,10 +1084,10 @@ inline void merge_heap_dh_kobj<REC,KEY,CMPR>::Heapify(unsigned int i) {
     r = Right(i); 
     
     smallest = ((l <= Heapsize) && 
-	     (UsrObject.compare(Heaparray[l].key,Heaparray[i].key)<0))? l : i;
+	     (UsrObject->compare(Heaparray[l].key,Heaparray[i].key)<0))? l : i;
     
     smallest =  ((r <= Heapsize) && 
-	     (UsrObject.compare(Heaparray[r].key,Heaparray[smallest].key)<0))? r : smallest;
+	     (UsrObject->compare(Heaparray[r].key,Heaparray[smallest].key)<0))? r : smallest;
   };
 }
 
