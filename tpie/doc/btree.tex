@@ -32,24 +32,38 @@ Value\& v)}, which inserts an element and does the appropriate
 rebalancing, and {\tt erase(const Key\& k)}, which deletes an element
 based on its key. Note that elements with duplicate keys are not allowed.
 
+An instance of the {\tt Btree} is implicitly given by two block
+collections: one storing the leaves of the tree, and one storing the
+internal nodes of the tree. If both collections are provided during
+initialization, the class uses their contents without further
+checking, resulting in a fast initialization process. If only the
+leaves collection is provided during initialization, the tree is bulk
+loaded, a potentially leangthy process. Finally, if no collection is
+given, an empty tree is created using temporary collections.
+
 \subsection{Example}
 \begin{verbatim}
+// The Key type.
 typedef size_t tKey;
 
+// The Value class.
 class tValue {
 public:
   tKey key;
   char data[100];
 };
 
+// The Compare class.
 typedef less<tKey> tCompare;
 
+// The KeyOfValue class (containing the function operator).
 class tKeyOfValue {
 public:
   tKey operator()(const tValue& v) const { return v.key; }
 };
 
-Btree<tKey, tValue, tCompare, tKeyOfValue> *tree;
+// Constructing an empty B-tree.
+Btree<tKey, tValue, tCompare, tKeyOfValue> tree();
 \end{verbatim}
 
 
@@ -75,12 +89,15 @@ Btree<tKey, tValue, tCompare, tKeyOfValue> *tree;
 	{\tt PERSIST\_DELETE}.}\\[3mm]
 
    \> {\tt Btree(BTE\_COLLECTION *leaves, BTE\_COLLECTION *nodes)}\\ 
-   \>\>\parbox[t]{5.5in}{Construct a Btree from the given nodes and leaves.
+   \>\>\parbox[t]{5.5in}{Construct a B-tree from the given nodes and leaves.
 	The two collections must be initialized. If they are empty, an
 	empty tree is created. The persistency flag is set to 
 	{\tt PERSIST\_PERSISTENT}. Note that the two collections can
 	have different block sizes. This is a desirable property, 
 	allowing the leaves to be bigger than the internal nodes.}\\[3mm]
+
+   \> {\tt Btree(BTE\_COLLECTION *leaves, BTE\_COLLECTION *nodes, size\_t min\_leaf, size\_t min\_node)}\\ 
+   \>\>\parbox[t]{5.5in}{Same as above, but set the minimum number of elements in a leaf to {\tt min\_leaf}, and the minimum number of keys in a node to {\tt min\_node}. This allows the {\tt Btree} to act as an (a,b)-tree. }\\[3mm]
 
    \> {\tt \verb|~|Btree()}\\ 
    \>\>\parbox[t]{5.5in}{Destructor. If persistency is set to 
@@ -137,7 +154,8 @@ A Btree instance can be created from a previously-saved instance. This
 consists of four files, two for each collection (the blocks file and
 the stack file). In the user part of the nodes collection's header,
 the Btree stores some initialization information: the id of the root
-node, the height and the size of the tree. Note that the id may not be
+node, the height and the size of the tree. Note that the id of the
+root may not be
 from the node collection: if the height is 1, the root is a leaf.
 
 \end{document}
