@@ -7,7 +7,18 @@
 // A sample piece of code that does list ranking in the TPIE system.
 //
 
-static char lr_id[] = "$Id: lr.cpp,v 1.3 1994-09-29 13:23:54 darrenv Exp $";
+static char lr_id[] = "$Id: lr.cpp,v 1.4 1994-10-31 20:04:42 darrenv Exp $";
+
+// This is just to avoid an error message since the string above is never
+// referenced.  Note that a self referential structure must be defined to
+// avoid passing the problem further.
+static struct ___lr_id_compiler_fooler {
+    char *pc;
+    ___lr_id_compiler_fooler *next;
+} the___lr_id_compiler_fooler = {
+    lr_id,
+    &the___lr_id_compiler_fooler
+};
 
 // Use the single BTE stream version of AMI streams.
 #define AMI_IMP_SINGLE
@@ -18,28 +29,30 @@ static char lr_id[] = "$Id: lr.cpp,v 1.3 1994-09-29 13:23:54 darrenv Exp $";
 // Define it all.
 #include <ami.h>
 
-////////////////////////////////////////////////////////////////////////
-// The edge class.  This is what our list ranking function will work on.
-////////////////////////////////////////////////////////////////////////
+// Utitlities for ascii output.
+#include <iostream.h>
+#include <fstream.h>
+#include <ami_scan_utils.h>
 
-struct edge {
-public:
-  long int from;        // Node it is from
-  long int to;          // Node it is to
-  long int weight;      // Position when ranked.
-  bool flag;            // A flag used to randomly select some edges.
-};
+// Get the application defaults.
+#include "app_config.h"
+
+#include "parse_args.h"
+
+#include "list_edge.h"
+#include "scan_list.h"
+#include "merge_random.h"
+
+#include "mm_lr.h"
 
 ////////////////////////////////////////////////////////////////////////
-// random_flag 
+// random_flag_scan
 //
 // This is a class of scan management objects that operates by flipping
 // a fair coin for each edge and setting the edge's flag accordingly.
 //
 // There is a single instance of this class, called my_random_flag.
 ////////////////////////////////////////////////////////////////////////
-
-extern int flip_coin();
 
 class random_flag_scan : AMI_scan_object {
 public:
@@ -48,15 +61,21 @@ public:
                     edge *out, AMI_SCAN_FLAG *sfout);
 };
 
+AMI_err random_flag_scan::initialize(void) {
+    return AMI_ERROR_NO_ERROR;
+}
+
 AMI_err random_flag_scan::operate(const edge &in, AMI_SCAN_FLAG *sfin,
                                   edge *out, AMI_SCAN_FLAG *sfout)
 { 
-    if (!*sfin) return AMI_SCAN_DONE;
+    if (!(sfout[0] = *sfin)) {
+        return AMI_SCAN_DONE;
+    }
     *out = in;
-    out->flag = flip_coin();
+    out->flag = (random() & 1);
+    
+    return AMI_SCAN_CONTINUE;
 }
-
-static random_flag_scan my_random_flag;
 
 ////////////////////////////////////////////////////////////////////////
 // seperate_active_from_cancel
@@ -78,37 +97,151 @@ static random_flag_scan my_random_flag;
 ////////////////////////////////////////////////////////////////////////
 class seperate_active_from_cancel : AMI_scan_object {
 public:
-    AMI_err initialize(void) { return AMI_ERROR_NO_ERROR; };
-    AMI_err operate(const edge &e1, const edge &e2, AMI_SCAN_FLAG *sfin,
+    AMI_err initialize(void);
+    AMI_err operate(CONST edge &e1, CONST edge &e2, AMI_SCAN_FLAG *sfin,
                     edge *active, edge *cancel, AMI_SCAN_FLAG *sfout);
 };
 
-AMI_err seperate_active_from_cancel::operate(const edge &e1, const edge &e2, 
+AMI_err seperate_active_from_cancel::initialize(void)
+{
+    return AMI_ERROR_NO_ERROR;
+}
+
+// e1 is from the list of edges sorted by where they are from.
+// e2 is from the list of edges sorted by where they are to.
+AMI_err seperate_active_from_cancel::operate(CONST edge &e1,
+                                             CONST edge &e2, 
                                              AMI_SCAN_FLAG *sfin,
                                              edge *active, edge *cancel, 
                                              AMI_SCAN_FLAG *sfout)
-{ 
-    if (!sfin[0]) return AMI_SCAN_DONE;
-
-    sfout[0] = 1;
-    if (e1.flag && !e2.flag) {
-        active->from = e1.from;
-        active->to = e2.to;
-        active->weight += e2.weight;
-        *cancel = e2;
-        sfout[1] = 1;
+{
+    // If we have both inputs.
+    if (sfin[0] && sfin[1]) {
+        // If they have a node in common we may be in a bridging situation.
+        if (e2.to == e1.from) {
+            // We will write to the active list no matter what.
+            sfout[0] = 1;
+            *active = e2;
+            if (sfout[1] = (e2.flag && !e1.flag)) {
+                // Bridge.  Put e1 on the cancel list and add its
+                // weight to the active output.
+                active->to = e1.to;
+                active->weight += e1.weight;
+                *cancel = e1;
+                sfout[1] = 1;
+            } else {
+                // No bridge.
+                sfout[1] = 0;
+            }
+        } else {
+            // They don't have a node in common, so one of them needs
+            // to catch up with the other.  What happened is that
+            // either e2 is the very last edge in the list or e1 is
+            // the very first or we just missed a bridge because of
+            // flags.
+            sfout[1] = 0;                
+            if (e2.to > e1.from) {
+                // e1 is behind, so just skip it.
+                sfin[1] = 0;
+                sfout[0] = 0;
+            } else {
+                // e2 is behind, so put it on the active list.
+                sfin[0] = 0;
+                sfout[0] = 1;
+                *active = e2;
+            }
+        }
+        return AMI_SCAN_CONTINUE;
     } else {
-        *active = e1;
+        // If we only have one input, either just leave it active.
+        if (sfin[0]) {
+            *active = e1;
+            sfout[0] = 1;
+            sfout[1] = 0;
+            return AMI_SCAN_CONTINUE;
+        } else if (sfin[1]) {
+            *active = e2;
+            sfout[0] = 1;
+            sfout[1] = 0;
+            return AMI_SCAN_CONTINUE;
+        } else {
+            // We have no inputs, so we're done.
+            sfout[0] = sfout[1] = 0;            
+            return AMI_SCAN_DONE;
+        }
     }
+}
+
+// A scan management object to take an active list and remove the
+// smaller weighted edge of each pair of consecutive edges with the
+// same destination.  The purpose of this is to strip edges out of the
+// active list that were sent to the cancel list.
+class strip_cancel_from_active : AMI_scan_object {
+private:
+    bool holding;
+    edge hold;
+public:
+    AMI_err initialize(void);  
+    AMI_err operate(const edge &active, AMI_SCAN_FLAG *sfin,
+                    edge *out, AMI_SCAN_FLAG *sfout);
+};
+
+AMI_err strip_cancel_from_active::initialize(void) {
+    holding = false;
+    return AMI_ERROR_NO_ERROR;
+}
+
+// Edges should be sorted by destination before being processed by
+// this object.
+AMI_err strip_cancel_from_active::operate(const edge &active,
+                                  AMI_SCAN_FLAG *sfin,
+                                  edge *out, AMI_SCAN_FLAG *sfout)
+{
+    // If no input then we're done, except that we might still be
+    // holding one.
+    if (!*sfin) {
+        if (holding) {
+            *sfout = 1;
+            *out = hold;
+            holding = false;
+            return AMI_SCAN_CONTINUE;
+        } else {
+            *sfout = 0;
+            return AMI_SCAN_DONE;
+        }
+    }
+
+    if (!holding) {
+        // If we are not holding anything, then just hold the current
+        // input.
+        hold = active;
+        holding = true;
+        *sfout = 0;
+    } else {
+        tp_assert(active.to >= hold.to, "Out of order inputs.");
+
+        *sfout = 1;
+        
+        if (active.to == hold.to) {
+            tp_assert(active.from != hold.from, "Same edge.");
+            tp_assert(active.weight != hold.weight, "Same weights.");
+
+            if (active.weight > hold.weight) {
+                *out = active;
+            } else {
+                *out = hold;
+            }
+
+            holding = false;
+        } else {
+            *out = hold;
+            hold = active;
+        }
+    }
+
     return AMI_SCAN_CONTINUE;
 }
 
-// Generate the proper function from the AMI_scan() function template.
-AMI_err AMI_scan(AMI_base_stream<edge> *, AMI_base_stream<edge> *,
-                 active_cancel *,
-                 AMI_base_stream<edge> *, AMI_base_stream<edge> *);
-
-static active_cancel my_active_cancel;
 
 ////////////////////////////////////////////////////////////////////////
 // interleave_active_cancel
@@ -120,137 +253,83 @@ static active_cancel my_active_cancel;
 // when the first was made active.  We then fix up the weights and
 // output the two of them, one in the current call and one in the next
 // call.
+//
+// The streams this operates on should be sorted by their terminal
+// (to) nodes before AMI_scan() is called.
+// 
 ////////////////////////////////////////////////////////////////////////
 
-class interleave_active_cancel : public AMI_scan_take_object {
+class patch_active_cancel : AMI_scan_object {
 private:
-  int state;            // A finite amount of state.
-  edge held_edge;       // An edge waiting to go in the output stream.
+    bool holding;
+    edge hold;
 public:
-  AMI_err initialize(void);
-  AMI_err operate(const edge &in_active, const edge &in_cancel,
-                  AMI_SCAN_FLAG *inf, AMI_SCAN_FLAG *takenf,
-                  edge *out_edge);
+    AMI_err initialize(void);
+    AMI_err operate(CONST edge &active, CONST edge &cancel,
+                    AMI_SCAN_FLAG *sfin,
+                    edge *patch, AMI_SCAN_FLAG *sfout);
 };
 
-AMI_err interleave_active_cancel::initialize(void)
+AMI_err patch_active_cancel::initialize(void)
 {
-  state = 0;
-  return AMI_ERROR_NO_ERROR;
+    holding = false;
+    return AMI_ERROR_NO_ERROR;
 }
 
-AMI_err interleave_active_cancel::operate(const edge &in_active, const edge &in_cancel
-                                          AMI_SCAN_FLAG *inf,
-                                          AMI_SCAN_FLAG *takenf,
-                                          edge *out_edge)
+AMI_err patch_active_cancel::operate(CONST edge &active, CONST edge &cancel,
+                                     AMI_SCAN_FLAG *sfin,
+                                     edge *patch, AMI_SCAN_FLAG *sfout)
 {
-    long int lost_weight;
-
-    // If we're holding an edge from last time, output it.
-    if (state) {
-        state = 0;
-        *out_edge = held_edge;
-        takenf[0] = takenf[1] = 0;
-        return AMI_SCAN_OUTPUT;
-    }
-
-    if (!inf[0])
+    // Handle the special cases that occur when holding an edge and/or
+    // completely out of input.
+    if (holding) {
+        sfin[0] = sfin[1] = 0;
+        *patch = hold;
+        holding = false;
+        *sfout = 1;
+        return AMI_SCAN_CONTINUE;
+    } else if (!sfin[0]) {
+        tp_assert(!sfin[1], "We have cancel but no active");
+        *sfout = 0;
         return AMI_SCAN_DONE;
-
-    // If the active edge goes to a smaller node than the cancelled one,
-    // skip it.
-    if (in_active.to < in_cancel.to) {
-        *out_edge = in_active;
-        takenf[0] = 1; takenf[1] = 0;
-    } else {
-
-        // The edges should go to the same node.
-        tp_assert(in_active.to == in_cancel.to,
-                  "Edges don't go the same place.");
-
-        takenf[0] = takenf[1] = 1;
-        held_edge = in_active;
-        *out_edge = in_cancel;
-        out_edge->to = held_edge.from;
-        lost_weight = held_edge.weight;
-        held_edge.weight = out_edge->weight;
-        out_edge->weight -= lost_weight;
-        state = 1;
     }
-   
-    return AMI_SCAN_OUTPUT;
+
+    tp_assert(sfin[0], "No active input.");
+    
+    if (!sfin[1]) {
+        // If there is no cancel edge (i.e. all have been processed)
+        // then just pass the active edge through.
+        *patch = active;
+    } else {
+        tp_assert(active.to <= cancel.to, "Out of sync, or not sorted.");
+    
+        if (holding = (active.to == cancel.to)) {
+            patch->from = active.from;
+            patch->to = cancel.from;
+            patch->weight = active.weight - cancel.weight;
+            hold.from = cancel.from;
+            hold.to = active.to;
+            hold.weight = active.weight;
+        } else {
+            *patch = active;
+            sfin[1] = 0;
+        }
+    }
+
+    *sfout = 1;
+    return AMI_SCAN_CONTINUE;
+
 }
 
-merge_active_cancel my_merge_active_cancel;
 
-////////////////////////////////////////////////////////////////////////
-// edgefromcmp(), edgetocmp()
-//
-// Helper functions used to compare to edges to sort them either by 
-// the node they are from or the node they are to.
-////////////////////////////////////////////////////////////////////////
-
-static int edgefromcmp(edge *s, edge *t)
-{ return (s->from < t->from) ? -1 : ((s->from < t->from) ? 1 : 0); }
-  
-static int edgetocmp(edge *s, edge *t)
-{ return (s->to < t->to) ? -1 : ((s->to < t->to) ? 1 : 0); }
 
 ////////////////////////////////////////////////////////////////////////
 // Until the ANSI standards committee resolves the issue of type
 // conversion in function template matching, these declarations are
 // required to force the compiler to define the appropriate template
 // functions.
-//
-// With GNU g++ 2.5.8, things are even worse.  We have to create a
-// dummy function that actually makes each call in order for the
-// corresponding template function to be generated in the object file.
-// This dummy function should never be called.
 ////////////////////////////////////////////////////////////////////////
 
-#if __GNUG__ // GNU g++
-static void _DUMMY_FUNCTION_DO_NOT_EVER_CALL_ME_(void)
-{
-    pp_AMI_bs<edge> ppb;
-    arity_t arity;
-    AMI_base_stream<edge> *amibs;
-    merge_active_cancel *mac;
-    int (*cmp)(edge *, edge *);
-    
-    tp_assert(0, "Warning, dummy function was called somehow."
-              "seg fault is imminent.");
-    
-    AMI_merge(ppb, arity, amibs, mac);
-    // Sorry, as of 2.5.8, g++ still does not support function types
-    // in template unification.
-    /* AMI_sort(amibs, cmp); */
-    AMI_copy_stream(amibs, amibs);
-}
-#endif // __GNUG__
-
-AMI_err AMI_merge(pp_AMI_bs<edge>, arity_t, AMI_base_stream<edge> *,
-                  merge_active_cancel *);
-AMI_err AMI_sort(AMI_base_stream<edge> *s, int (*cmp)(edge *, edge *));
-AMI_err AMI_copy_stream(AMI_base_stream<edge> *, AMI_base_stream<edge> *);
-
-////////////////////////////////////////////////////////////////////////
-// main_mem_list_rank()
-//
-// This function ranks a list that can fit in main memory.  It is used
-// when the recursion bottoms out.
-//
-// Details of this function are omitted for brevity
-////////////////////////////////////////////////////////////////////////
-
-AMI_STREAM<edge> *main_mem_list_rank(AMI_STREAM<edge> *edges)
-{
-  // Read the stream into memory;
-  // Use your favorite main memory list ranking algorithm 
-  //    (is there actually more than one?);
-  // Write the results out to a stream;
-  // Return the stream;
-  return edges;  
-}
 
 ////////////////////////////////////////////////////////////////////////
 // list_rank()
@@ -258,64 +337,315 @@ AMI_STREAM<edge> *main_mem_list_rank(AMI_STREAM<edge> *edges)
 // This is the actual recursive function that gets the job done.
 // We assume that all weigths are 1 when the initial call is made to
 // this function.
+//
+// Returns 0 on success, nonzero otherwise.
 ////////////////////////////////////////////////////////////////////////
 
-AMI_STREAM<edge> *list_rank(AMI_STREAM<edge> *edges)
+int list_rank(AMI_base_stream<edge> *istream, AMI_base_stream<edge> *ostream)
 {
-    AMI_STREAM<edge> *edges1;
-    AMI_STREAM<edge> *active;
-    AMI_STREAM<edge> *cancel;
-
-    // Scan management objects.
-    random_flag my_random_flag;
-    seperate_active_from_cancel my_seperate_active_from_cancel;
-    interleave_active_cancel my_interleave_active_cancel;
+    AMI_err ae;
     
-    // Check if the recursion has bottomed out.
+    off_t stream_len = istream->stream_len();
 
-    if (edges->stream_len() * sizeof(edge) < AMI_mem_size())
-        return(main_mem_list_rank(edges));
+    AMI_STREAM<edge> *edges_rand;
+    AMI_STREAM<edge> *active;
+    AMI_STREAM<edge> *active_2;
+    AMI_STREAM<edge> *cancel;
+    AMI_STREAM<edge> *ranked_active;
 
+    AMI_STREAM<edge> *edges_from_s;
+    AMI_STREAM<edge> *cancel_s;
+    AMI_STREAM<edge> *active_s;
+    AMI_STREAM<edge> *ranked_active_s;
+
+    // Scan/merge management objects.
+    random_flag_scan my_random_flag_scan;
+    seperate_active_from_cancel my_seperate_active_from_cancel;
+    strip_cancel_from_active my_strip_cancel_from_active;
+    patch_active_cancel my_patch_active_cancel;
+    
+    // Check if the recursion has bottomed out.  If so, then read in the
+    // array and rank it.
+
+    {
+        size_t mm_avail;
+        
+        MM_manager.available(&mm_avail);
+
+        if (stream_len * sizeof(edge) < mm_avail / 2) {
+            edge *mm_buf = new edge[stream_len];
+            istream->seek(0);
+            istream->read_array(mm_buf,&stream_len);
+            main_mem_list_rank(mm_buf,stream_len);
+            ostream->write_array(mm_buf,stream_len);
+            return 0;
+        }
+    }
+    
     // Flip coins for each node, setting the flag to 0 or 1 with equal
     // probability.
 
-    AMI_scan(edges, &my_random_flag, edges);
-
-    // Make a copy of the stream.  
-
-    AMI_copy_stream(edges, edges1);
+    edges_rand = new AMI_STREAM<edge>((unsigned int)0, stream_len);
     
-    // Sort one stream by where the edge is from, the other by where it is
-    // to.
+    AMI_scan((AMI_base_stream<edge> *)istream, &my_random_flag_scan,
+             (AMI_base_stream<edge> *)edges_rand);
 
-    AMI_sort(edges, edgetocmp);
-    AMI_sort(edges1, edgefromcmp);
+    if (verbose) {
+        cout << "Random flag list is of length " <<
+            edges_rand->stream_len() << ".\n";
+    }
 
+    // Sort one stream by source.  The original input was sorted by
+    // destination, so we don't need to sort it again.
+
+    edges_from_s = new AMI_STREAM<edge>((unsigned int)0, stream_len);
+
+    ae = AMI_sort(edges_rand, edges_from_s, edgefromcmp);
+
+    if (verbose) {
+        cout << "Sorted from list is of length " <<
+            edges_from_s->stream_len() << ".\n";
+    }
+    
     // Scan to produce and active list and a cancel list.
 
-    AMI_scan(edges, edges1, &my_seperate_active_from_cancel, active, cancel);
+    active = new AMI_STREAM<edge>((unsigned int)0, stream_len);
+    cancel = new AMI_STREAM<edge>((unsigned int)0, stream_len);
 
-    // Recurse on the active list.  It will return sorted by terminal (to)
-    // vertex.
+    ae = AMI_scan((AMI_base_stream<edge> *)edges_from_s,
+                  (AMI_base_stream<edge> *)edges_rand,
+                  &my_seperate_active_from_cancel,
+                  (AMI_base_stream<edge> *)active,
+                  (AMI_base_stream<edge> *)cancel);
 
-    active = list_rank(active);
+    delete edges_from_s;
+    delete edges_rand;
+    
+    // Strip the edges that went to the cancel list out of the active list.
 
-    // Sort the cancel list by where the edges go to.
-  
-    AMI_sort(cancel, edgetocmp);
+    if (verbose) {
+        cout << "Cancel list is of length " <<
+            cancel->stream_len() << ".\n";
+        cout << "Active list is of length " <<
+            active->stream_len() << ".\n";
+    }
 
-    // Now merge the two lists.
+    active_s = new AMI_STREAM<edge>((unsigned int)0, stream_len);
 
-    AMI_scan(active, cancel, edges1, &my_interleave_active_cancel);
+    ae = AMI_sort(active, active_s, edgetocmp);
 
-    return edges1;
+    delete active;
+
+    if (verbose) {
+        cout << "Sorted active list is of length " <<
+            active_s->stream_len() << ".\n";
+    }
+
+    active_2 = new AMI_STREAM<edge>((unsigned int)0, stream_len);
+
+    ae = AMI_scan((AMI_base_stream<edge> *)active_s,
+                  &my_strip_cancel_from_active,
+                  (AMI_base_stream<edge> *)active_2);
+
+    delete active_s;
+
+    if (verbose) {
+        cout << "After stripping, active list is of length " <<
+            active_2->stream_len() << ".\n";
+    }
+    
+    // Recurse on the active list.  The list we pass in is sorted by
+    // destination.  The recursion will return a list sorted by
+    // source.
+
+    ranked_active = new AMI_STREAM<edge>((unsigned int)0, stream_len);
+    
+    list_rank(active_2, ranked_active);
+
+    delete active_2;
+
+    if (verbose) {
+        cout << "After recursion, ranked active list is of length " <<
+            ranked_active->stream_len() << ".\n";
+    }
+
+    cancel_s = new AMI_STREAM<edge>((unsigned int)0, stream_len);
+
+    AMI_sort(cancel, cancel_s, edgetocmp);
+
+    delete cancel;
+
+    if (verbose) {
+        cout << "Sorted cancel list is of length " <<
+            cancel_s->stream_len() << ".\n";
+    }
+
+    // The output of the recursive call is not necessarily sorted by
+    // destination.  We'll make it so before we try to merge in the
+    // cancel list.
+
+    ranked_active_s = new AMI_STREAM<edge>((unsigned int)0, stream_len);
+
+    AMI_sort(ranked_active, ranked_active_s, edgetocmp);
+
+    delete ranked_active;
+    
+    // Now merge the recursively ranked active list and the sorted cancel list.
+
+    ae = AMI_scan((AMI_base_stream<edge> *)ranked_active_s,
+                  (AMI_base_stream<edge> *)cancel_s,
+                  &my_patch_active_cancel,
+                  (AMI_base_stream<edge> *)ostream);
+
+    if (verbose) {
+        cout << "After patching in canceled edges, list is of length " <<
+            ostream->stream_len() << ".\n";
+    }
+    
+    delete ranked_active_s;
+    delete cancel_s;
+    
+    return 0;
 }
 
 
+static char def_irf[] = "/var/tmp/osi.txt";
+static char def_rrf[] = "/var/tmp/osr.txt";
+static char def_frf[] = "/var/tmp/osf.txt";
 
+static char *initial_results_filename = def_irf;
+static char *rand_results_filename = def_rrf;
+static char *final_results_filename = def_frf;
 
+static bool report_results_initial = false;
+static bool report_results_random = false;
+static bool report_results_final = false;
 
+static const char as_opts[] = "I:iR:rF:f";
+void parse_app_opt(char c, char *optarg)
+{
+    switch (c) {
+        case 'I':
+            initial_results_filename = optarg;
+        case 'i':
+            report_results_initial = true;
+            break;
+        case 'R':
+            rand_results_filename = optarg;
+        case 'r':
+            report_results_random = true;
+            break;
+        case 'F':
+            final_results_filename = optarg;
+        case 'f':
+            report_results_final = true;
+            break;
+    }
+}
 
+extern int register_new;
 
+int main(int argc, char **argv)
+{
+    AMI_err ae;
+    
+    parse_args(argc,argv,as_opts,parse_app_opt);
 
+    if (verbose) {
+        cout << "test_size = " << test_size << ".\n";
+        cout << "test_mm_size = " << test_mm_size << ".\n";
+        cout << "random_seed = " << random_seed << ".\n";
+    } else {
+        cout << test_size << ' ' << test_mm_size << ' ' << random_seed;
+    }
 
+    srandom(random_seed);
+    
+    // Set the amount of main memory:
+    MM_manager.resize_heap(test_mm_size);
+    register_new = 1;
+        
+    AMI_STREAM<edge> amis0((unsigned int)0, test_size);
+    AMI_STREAM<edge> amis1((unsigned int)0, test_size);
+    AMI_STREAM<edge> amis2((unsigned int)0, test_size);
+    AMI_STREAM<edge> amis3((unsigned int)0, test_size);
+    AMI_STREAM<edge> amis4((unsigned int)0, test_size);
+
+    // Streams for reporting values to ascii streams.
+    
+    ofstream *osi;
+    cxx_ostream_scan<edge> *rpti = NULL;
+
+    ofstream *osr;
+    cxx_ostream_scan<edge> *rptr = NULL;
+
+    ofstream *osf;
+    cxx_ostream_scan<edge> *rptf = NULL;
+
+    if (report_results_initial) {
+        osi = new ofstream(initial_results_filename);
+        rpti = new cxx_ostream_scan<edge>(osi);
+    }
+
+    if (report_results_random) {
+        osr = new ofstream(rand_results_filename);
+        rptr = new cxx_ostream_scan<edge>(osr);
+    }
+
+    if (report_results_final) {
+        osf = new ofstream(final_results_filename);
+        rptf = new cxx_ostream_scan<edge>(osf);
+    }
+
+    // Write the initial set of edges.
+
+    scan_list sl(test_size);
+
+    ae = AMI_scan(&sl, (AMI_base_stream<edge> *)&amis0);
+
+    if (verbose) {
+        cout << "Wrote the initial sequence of edges.\n";
+        cout << "Stopped (didn't write) with last_to = "
+             << sl.last_to << ". operate() called " << sl.called
+             << " times.\n";
+        cout << "Stream length = " << amis0.stream_len() << '\n';
+    }
+
+    if (report_results_initial) {
+        ae = AMI_scan((AMI_base_stream<edge> *)&amis0, rpti);
+    }
+    
+    // Randomly order them.
+
+    merge_random<edge> mr;
+
+    ae = AMI_partition_and_merge(&amis0, &amis1,
+                                 (AMI_merge_base<edge> *)&mr);
+
+    if (verbose) {
+        cout << "Randomly ordered the initial sequence of edges.\n";
+        cout << "Stream length = " << amis1.stream_len() << '\n';
+    }
+
+    if (report_results_random) {
+        ae = AMI_scan((AMI_base_stream<edge> *)&amis1, rptr);
+    }
+
+    // Rank them.  Note that we should sort by destination before
+    // calling the recursive list ranking function.
+
+    ae = AMI_sort(&amis1, &amis2, edgetocmp);
+    
+    list_rank((AMI_base_stream<edge> *)&amis2,
+              (AMI_base_stream<edge> *)&amis3);
+
+    if (report_results_final) {
+        // Sort by rank before output, to make it easier for humans to
+        // read.
+        ae = AMI_sort(&amis3, &amis4, edgeweightcmp);
+    
+        ae = AMI_scan((AMI_base_stream<edge> *)&amis4, rptf);
+    }
+
+    return 0;
+}
