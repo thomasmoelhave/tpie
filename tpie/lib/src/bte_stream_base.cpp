@@ -6,22 +6,14 @@
 //
 
 #include <versions.h>
-VERSION(bte_stream_base_cpp,"$Id: bte_stream_base.cpp,v 1.1 2002-01-14 17:18:45 tavi Exp $");
-
-#include <sys/time.h>
-#include <sys/resource.h>
+VERSION(bte_stream_base_cpp,"$Id: bte_stream_base.cpp,v 1.2 2003-04-17 20:57:33 jan Exp $");
 
 #include <config.h>
 //#include "lib_config.h"
 #include <bte_stream_base.h>
 
 static unsigned long get_remaining_streams() {
-  struct rlimit limits;
-  if(getrlimit(RLIMIT_NOFILE,&limits) == -1)   {
-    // This shouldn't happen, but just in case. Set a conservative value.
-    limits.rlim_cur = 255;
-  }
-  return limits.rlim_cur;
+	TPIE_OS_SET_LIMITS_BODY;
 }
 
 tpie_stats_stream BTE_stream_base_generic::gstats_;
