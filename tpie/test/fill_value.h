@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 3/6/95
 //
-// $Id: fill_value.h,v 1.2 1997-05-20 22:06:25 vengroff Exp $
+// $Id: fill_value.h,v 1.3 1999-02-03 21:47:59 tavi Exp $
 //
 #ifndef _FILL_VALUE_H
 #define _FILL_VALUE_H
@@ -28,15 +28,5 @@ public:
         return value;
     };
 };
-
-
-#ifdef NO_IMPLICIT_TEMPLATES
-
-#define TEMPLATE_INSTANTIATE_FILL_VALUE(T)				\
-TEMPLATE_INSTANTIATE_MATRIX_FILL(T)					\
-template class fill_value<T>;
-
-#endif
-
 
 #endif // _FILL_VALUE_H 

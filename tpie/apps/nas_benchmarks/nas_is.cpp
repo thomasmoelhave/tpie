@@ -5,7 +5,7 @@
 // Created: 3/24/95
 //
 
-static char nas_is_id[] = "$Id: nas_is.cpp,v 1.3 1997-05-20 22:11:15 vengroff Exp $";
+static char nas_is_id[] = "$Id: nas_is.cpp,v 1.4 1999-02-03 22:00:44 tavi Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -326,34 +326,6 @@ public:
         }
     }
 };
-
-
-#ifdef NO_IMPLICIT_TEMPLATES
-
-// Instantiate templates for streams of objects.
-TEMPLATE_INSTANTIATE_STREAMS(key_triple)
-
-// Instantiate templates for I/O using C++ streams.
-TEMPLATE_INSTANTIATE_ISTREAM(key_triple)
-TEMPLATE_INSTANTIATE_OSTREAM(key_triple)
-
-// Key generation scan.
-template AMI_err AMI_scan(scan_nas_psuedo_rand *, AMI_STREAM<key_triple> *);
-
-// Key bucket sorts.
-TEMPLATE_INSTANTIATE_KB_SORT_KEY(key_triple,key_value)
-TEMPLATE_INSTANTIATE_KB_SORT_KEY(key_triple,index)
-
-TEMPLATE_INSTANTIATE_KB_SORT_KEY(key_triple,key_cdf2)
-TEMPLATE_INSTANTIATE_KB_SORT_KEY(key_triple,key_cdf4)
-
-// Merge sort.
-TEMPLATE_INSTANTIATE_SORT_OP(key_triple)
-
-template AMI_err AMI_scan(AMI_STREAM<key_triple> *, scan_rank *,
-                          AMI_STREAM<key_triple> *);
-
-#endif
 
 static unsigned int imax = IMAX;
 

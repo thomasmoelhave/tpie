@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 3/22/95
 //
-// $Id: scan_gauss.h,v 1.1 1995-04-03 13:17:47 dev Exp $
+// $Id: scan_gauss.h,v 1.2 1999-02-03 22:06:34 tavi Exp $
 //
 #ifndef _SCAN_GAUSS_H
 #define _SCAN_GAUSS_H
@@ -28,16 +28,5 @@ public:
     AMI_err operate(const double &r, AMI_SCAN_FLAG *sfin,
                     double *x, double *y, AMI_SCAN_FLAG *sfout);
 };
-
-
-#ifdef NO_IMPLICIT_TEMPLATES
-
-#define TEMPLATE_INSTANTIATE_SCAN_GAUSS					\
-template AMI_err AMI_scan(AMI_STREAM<double> *, scan_gauss *,		\
-                          AMI_STREAM<double> *, AMI_STREAM<double> *);
-
-
-#endif
-
 
 #endif // _SCAN_GAUSS_H 

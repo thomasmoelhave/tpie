@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/12/94
 //
-// $Id: fill_upper_tri.h,v 1.4 1997-05-20 22:06:01 vengroff Exp $
+// $Id: fill_upper_tri.h,v 1.5 1999-02-03 21:47:31 tavi Exp $
 //
 #ifndef _FILL_UPPER_TRI_H
 #define _FILL_UPPER_TRI_H
@@ -27,14 +27,5 @@ public:
         return (row <= col) ? val : (T)0;
     };
 };
-
-
-#ifdef NO_IMPLICIT_TEMPLATES
-
-#define TEMPLATE_INSTANTIATE_FILL_UPPER_TRI(T)				\
-TEMPLATE_INSTANTIATE_MATRIX_FILL(T)					\
-template class fill_upper_tri<T>;
-
-#endif
 
 #endif // _FILL_UPPER_TRI_H 

@@ -5,7 +5,7 @@
 // Created: 3/22/95
 //
 
-static char nas_ep_id[] = "$Id: nas_ep.cpp,v 1.4 1997-05-20 22:09:12 vengroff Exp $";
+static char nas_ep_id[] = "$Id: nas_ep.cpp,v 1.5 1999-02-03 21:58:16 tavi Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -346,20 +346,3 @@ int main(int argc, char **argv)
     
     return 0;
 }
-
-
-#ifdef NO_IMPLICIT_TEMPLATES
-
-// Instantiate templates for streams of objects.
-TEMPLATE_INSTANTIATE_STREAMS(double)
-
-// Instantiate templates for I/O using C++ streams.
-TEMPLATE_INSTANTIATE_OSTREAM(double)
-
-template AMI_err AMI_scan(scan_nas_psuedo_rand *, AMI_STREAM<double> *);
-
-template AMI_err AMI_scan(AMI_STREAM<double> *, scan_gauss *,
-                          AMI_STREAM<double> *, AMI_STREAM<double> *);
-
-#endif
-

@@ -5,7 +5,7 @@
 // Created: 3/23/95
 //
 
-static char nas_cg_id[] = "$Id: nas_cg.cpp,v 1.1 1995-04-03 13:14:52 dev Exp $";
+static char nas_cg_id[] = "$Id: nas_cg.cpp,v 1.2 1999-02-03 21:57:23 tavi Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -56,38 +56,6 @@ static struct ___nas_cg_id_compiler_fooler {
 #include "scan_copy2.h"
 #include "scan_awc.h"
 #include "scan_square_sum.h"
-
-
-
-#ifdef NO_IMPLICIT_TEMPLATES
-
-// Instantiate templates for streams of objects.
-TEMPLATE_INSTANTIATE_STREAMS(double)
-
-// Instantiate external matrices
-TEMPLATE_INSTANTIATE_AMI_MATRIX(double)
-
-// Instantiate external sparse matrices
-TEMPLATE_INSTANTIATE_AMI_SPARSE_MATRIX(double)
-
-// Scanners we will use.
-TEMPLATE_INSTANTIATE_SCAN_VALUE(double)
-TEMPLATE_INSTANTIATE_SCAN_COPY2(double)
-TEMPLATE_INSTANTIATE_SCAN_AWC(double)
-TEMPLATE_INSTANTIATE_SCAN_IP(double)
-TEMPLATE_INSTANTIATE_SCAN_SS(double)
-
-TEMPLATE_INSTANTIATE_STREAM_SCALAR_MULT(double)
-
-// Instantiate templates for I/O using C++ streams.
-TEMPLATE_INSTANTIATE_ISTREAM(AMI_sm_elem<double>)
-
-TEMPLATE_INSTANTIATE_OSTREAM(double)
-
-#endif
-
-
-
 
 AMI_err solve_system(AMI_sparse_matrix<double> &A,
                      AMI_matrix<double> &z,
@@ -395,5 +363,3 @@ int main(int argc, char **argv)
     return 0;
     
 }
-
-

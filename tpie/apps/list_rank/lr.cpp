@@ -7,7 +7,7 @@
 // A sample piece of code that does list ranking in the TPIE system.
 //
 
-static char lr_id[] = "$Id: lr.cpp,v 1.11 1997-05-20 22:07:47 vengroff Exp $";
+static char lr_id[] = "$Id: lr.cpp,v 1.12 1999-02-03 21:49:50 tavi Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -849,41 +849,3 @@ int main(int argc, char **argv)
         
     return 0;
 }
-
-
-// Instantiate all the templates we have used.
-
-#ifdef NO_IMPLICIT_TEMPLATES
-
-// Instantiate templates for streams of objects.
-TEMPLATE_INSTANTIATE_STREAMS(edge)
-
-// Instantiate templates for sorting objects.
-TEMPLATE_INSTANTIATE_SORT_CMP(edge)
-
-// Instantiate templates for I/O using C++ streams.
-TEMPLATE_INSTANTIATE_OSTREAM(edge)
-
-// Templated scan/merge management objects used by this program.
-TEMPLATE_INSTANTIATE_MERGE_RANDOM(edge);
-
-// Calls to AMI_scan using various object types.
-template AMI_err AMI_scan(AMI_STREAM<edge> *, random_flag_scan *,
-                          AMI_STREAM<edge> *);
-
-template AMI_err AMI_scan(AMI_STREAM<edge> *, AMI_STREAM<edge> *,
-                          separate_active_from_cancel *,
-                          AMI_STREAM<edge> *, AMI_STREAM<edge> *);
-
-template AMI_err AMI_scan(AMI_STREAM<edge> *, strip_cancel_from_active *,
-                          AMI_STREAM<edge> *);
-
-
-template AMI_err AMI_scan(AMI_STREAM<edge> *, AMI_STREAM<edge> *,
-                          patch_active_cancel *,
-                          AMI_STREAM<edge> *);
-
-template AMI_err AMI_scan(scan_list *, AMI_STREAM<edge> *);
-
-
-#endif
