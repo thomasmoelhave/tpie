@@ -3,7 +3,7 @@
 // File:    ami_logmethod.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_logmethod.h,v 1.3 2003-04-20 09:22:15 tavi Exp $
+// $Id: ami_logmethod.h,v 1.4 2003-04-21 04:04:48 tavi Exp $
 //
 // Logmethod_base, Logmethod2 and LogmethodB declarations and
 // definitions.
@@ -12,7 +12,6 @@
 #ifndef _LOGMETHOD_H
 #define _LOGMETHOD_H
 
-//extern "C" {
 // For open().
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -23,7 +22,6 @@
 #include <errno.h>
 // For strerror().
 #include <string.h>
-//}
 
 #include <vector>
 
