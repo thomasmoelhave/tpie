@@ -1,5 +1,5 @@
 %%
-%% $Id: user_manual.tex,v 1.2 1999-05-02 19:19:17 tavi Exp $
+%% $Id: user_manual.tex,v 1.3 1999-05-10 20:36:50 rbarve Exp $
 %%
 \chapter{Overview}
 
@@ -239,6 +239,9 @@ in Section~\ref{sec:gnu-software}, this requires \verb|perl|.
   \verb|--disable-expand-ami-scan|. 
 \end{description}
 
+\chapter{Quick TPIE Primer Via a Sample Program}
+\label{ch:samplepgm}
+\input{samplepgm.tex}
 
 \chapter{Tutorial}
 \label{ch:tutorial}
@@ -1332,18 +1335,24 @@ void foo()
 
 \index{matrices|)}
 
-\section{Writing and Executing Complete TPIE Programs}
+\section{Configurations, Compiler Flags, and Environment Variables.}
 \label{sec:complete}
-\index{complete TPIE programs}
+\index{Configurarions, compiler flags and environment variables}
 
 The fragments of code presented in this tutorial are valuable for
 instructive purposes; however, they are incomplete.  In order to
 successfully compile, link, and run TPIE applications, some additional
 code and appropriate compilation and run-time environments are needed.
-These are discussed below.  The best way for a novice TPIE programmer
-to begin is probably to look directly at the source code provided in
-the {\tt test} directory.  It incorporates all of the necessary
-components discussed below.
+These are discussed below.  The recommended way for a novice TPIE programmer
+to begin is to first look directly at the sample program
+of Chapter~3 or at the source code provided in
+the {\tt test} directory, then set up the configuration
+parameters (of file {\tt
+  tpie-\version/test/app\_config.h}),  compiler flags, 
+and various environment variables as described below, and then
+proceed to compiling, linking and running the programs.
+
+
 
 \subsection{Configuring TPIE for the Application}
 \label{sec:macros}
