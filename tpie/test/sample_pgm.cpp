@@ -1,7 +1,16 @@
+// This program writes out an AMI_STREAM of random integers of
+// user-specified length, and then, based on 7 partitioning elements
+// chosen from that stream, partitions that stream into 8 buckets. Each
+// of the buckets is implemented as an AMI stream and the program
+// prints the size of each bucket at the end.
+
+// The user needs to specify the length of the initial stream of
+// integers and the size of the main memory that can be used.
+
 #include <portability.h>
 
 #include <versions.h>
-VERSION(sample_pgm_cpp,"$Id: sample_pgm.cpp,v 1.16 2004-08-17 16:49:31 jan Exp $");	
+VERSION(sample_pgm_cpp,"$Id: sample_pgm.cpp,v 1.17 2004-11-18 19:27:14 adanner Exp $");	
 
 // Include the file that sets application configuration: It sets what
 // kind of BTE (Block Transfer Engine) to use and where applicable,
@@ -19,29 +28,134 @@ VERSION(sample_pgm_cpp,"$Id: sample_pgm.cpp,v 1.16 2004-08-17 16:49:31 jan Exp $
 // Include TPIE's internal memory sorting routines.
 #include <quicksort.h>
 
-// This program writes out an AMI_STREAM of random integers of
-// user-specified length, and then, based on 7 partitioning elements
-// chosen from that stream, partitions that stream into 8 buckets. Each
-// of the buckets is implemented as an AMI stream and the program
-// prints the size of each bucket at the end.
+// Include command line parsing functions
+#include "getopts.h"
+
+//set up command line options.
+struct options opts[] = {
+   {1, "length", "Number of integers to generate", "l", 1},
+   {2, "mem", "Memory size (in bytes) to use", "m", 1},
+   {0, NULL, NULL, NULL, 0} //getopts requires last option to be emtpy
+};
+
+//Tell user what program does and how to use it
+//if they do not use proper options.
+void print_usage(char * progname){
+  printf("\nThis program writes out an AMI_STREAM of random integers of\n"
+         "user-specified length, and then, based on 7 partitioning\n"
+         "elements chosen from that stream, partitions that stream\n"
+         "into 8 buckets. Each of the buckets is implemented as an\n"
+         "AMI stream and the program prints the size of each bucket\n"
+         "at the end. All created streams are deleted before exiting\n\n");
+  getopts_usage(progname, opts);
+  printf("\nSuffixes K, M, and G can be appended to the\n"
+      "--length and --mem options to mean\n"
+      "*1024, *1024*1024, and *2^30 respectively\n"
+      "e.g., --length 10M --mem 32M creates roughly 10 million elements\n"
+      "and can use a maximum of 32 MB of memory\n\n");
+  printf("Sample usage:\n%s -l 50M -m 32M\n"
+         "Writes 50 million random integers and partitions them using\n"
+         "no more than 32 MB of memory\n\n", progname);
+}
+
+// Convert a string to a number
+// Just like atoi or atol, but should also work for 64bit numbers
+// Also supports KMG suffixes (e.g. 2K = 2*1024)
+TPIE_OS_OFFSET ascii2offset(char *s){
+  int i, len, digit;
+  TPIE_OS_OFFSET multfactor, value;
+  bool ok;
+  
+  i=0;
+  len=strlen(s);
+  value=0;
+  
+  if (len < 1){ return 0; }
+  
+  //look for KMG suffix
+  switch(s[len-1]){
+    case 'K':
+    case 'k':
+      multfactor = 1024;
+      break;
+    case 'M':
+    case 'm':
+      multfactor = 1024*1024;
+      break;
+    case 'G':
+    case 'g':
+      multfactor = 1024*1024*1024;
+      break;
+    default:
+      multfactor = 1;
+      break;
+  }
+  
+  //convert string to decimal
+  ok=true;
+  do {
+    digit=s[i]-'0';
+    if((digit< 0) || (digit > 9)){ ok = false;} //stop on non-digit
+    else{value = 10*value+digit;}
+    i++;
+  } while((i<len) && ok);
+
+  return value*multfactor;
+}
+
+void get_app_info(int argc, char** argv, 
+                  TPIE_OS_OFFSET& len, TPIE_OS_OFFSET& mem){
+
+  int optidx, opts_set=0;
+  char* optarg;
+
+  if(argc<5){
+    //not enough options specified
+    print_usage(argv[0]);
+    exit(1);
+  }
+  
+  while(optidx=getopts(argc, argv, opts, &optarg)){
+    if(optidx==-1){
+      printf("Could not allocate space for arguments. Exiting...\n");
+      exit(1);
+    }
+    switch(optidx){
+      case 1:
+        len=ascii2offset(optarg);
+        opts_set=opts_set | 1;
+        break;
+      case 2:
+        mem=ascii2offset(optarg);
+        opts_set=opts_set | 2;
+        break;
+      default:
+        printf("Unhandled option - %d\n",optidx);
+        break;
+    }//end switch
+  }//end while 
+  if(opts_set != 3){
+    printf("Both length and memory must be specified\n\n");
+    print_usage(argv[0]);
+    exit(1);
+  }
+}
 
 // The user needs to specify the length of the initial stream of
 // integers and the size of the main memory that can be used.
+int main(int argc, char *argv[]) { 
+  TPIE_OS_OFFSET Gen_Stream_Length;
+  TPIE_OS_OFFSET test_mm_size;
+ 
+  //get length, mem size from command line
+  get_app_info(argc, argv, Gen_Stream_Length, test_mm_size);
 
-int main(int argc, char *argv[]) {
-   
-   //parse arguments
-   if (argc < 3) {
-     cout << "Input the number of integers to be generated" << endl;
-     cout << " and the size of memory that can be used" << endl;
-      exit(1);
-   }
-   int Gen_Stream_Length = atoi(argv[1]);
-   long test_mm_size = atol(argv[2]);
-   
-   //Tell the memory manager to abort if the allocated 
-   //internal memory exceeds the specified amount
-   MM_manager.enforce_memory_limit();
+  cout << "Writing " << Gen_Stream_Length << " random integers\n"
+       << "using a maximum " << test_mm_size << " bytes of memory\n"<<endl;
+  
+  //Tell the memory manager to abort if the allocated 
+  //internal memory exceeds the specified amount
+  MM_manager.enforce_memory_limit();
 
    //Set the size of memory the application is allowed to use
    MM_manager.set_memory_limit(test_mm_size);
@@ -56,7 +170,8 @@ int main(int argc, char *argv[]) {
    // Generate the stream of randon integers
    AMI_err ae;
    int src_int;
-   int i;
+   TPIE_OS_OFFSET i;
+   cout << "Writing random stream..."<<endl;
    for (i = 0; i < Gen_Stream_Length; i++) {
       
       // Generate a random int.
@@ -114,6 +229,7 @@ int main(int argc, char *argv[]) {
    // Binary search variables.
    int u, v, l, j;
    
+   cout << "Partitioning elements into 8 buckets..." <<endl;
    // Start the timer.
    cpu_timer timer;
    timer.start();
@@ -174,5 +290,6 @@ int main(int argc, char *argv[]) {
 	   << buckets[i].stream_len() << endl;
    }
 
+   cout << "Program ran successfully" << endl;
    return 0;
 }
