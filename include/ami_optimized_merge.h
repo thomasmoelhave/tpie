@@ -20,7 +20,7 @@
 // keys of the items; there is a provision to to use templated heaps
 // to implement the merge.
 
-// $Id: ami_optimized_merge.h,v 1.45 2000-01-14 21:28:31 hutchins Exp $	
+// $Id: ami_optimized_merge.h,v 1.46 2000-03-05 19:47:00 hutchins Exp $	
 
 // TO DO: substream_count setting; don't depend on current_stream_len
 
@@ -1066,7 +1066,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
       //its persistence member set to PERSIST_DELETE, instream will
       //be deleted from disk.
 
-      delete instream;
+      //delete instream;
 
       // Set up the loop invariants for the first iteration of hte
       // main loop.
@@ -1996,7 +1996,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
       //its persistence member set to PERSIST_DELETE, instream will
       //be deleted from disk.
 
-      delete instream;
+      // delete instream;
 
       // Set up the loop invariants for the first iteration of hte
       // main loop.
@@ -2964,7 +2964,7 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 
       //We now delete the instream; note that it will be wiped off
       //disk if instream->persistence is set to PERSIST_DELETE
-      delete instream;
+      //delete instream;
 
       // Set up the loop invariants for the first iteration of hte
       // main loop.
@@ -3753,7 +3753,7 @@ template < class T, class KEY >
 
       //We now delete the instream; note that it will be wiped off
       //disk if instream->persistence is set to PERSIST_DELETE
-      delete instream;
+      //delete instream;
 
       // Set up the loop invariants for the first iteration of the
       // main loop.
