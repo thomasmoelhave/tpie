@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/11/94
 //
-// $Id: bte_stream_stdio.h,v 1.6 2003-04-17 15:36:48 jan Exp $
+// $Id: bte_stream_stdio.h,v 1.7 2003-04-19 11:45:59 jan Exp $
 //
 #ifndef _BTE_STREAM_STDIO_H
 #define _BTE_STREAM_STDIO_H
@@ -319,12 +319,12 @@ template < class T > BTE_stream_stdio < T >::~BTE_stream_stdio (void) {
     header.item_logical_eof = file_off_to_item_off(f_eof);
     if (TPIE_OS_FSEEK (file, 0, TPIE_OS_FLAG_SEEK_SET) == -1) {
       status_ = BTE_STREAM_STATUS_INVALID;
-      LOG_WARNING_ID("Failed to seek in file:")
-      LOG_WARNING_ID(path)
+      LOG_WARNING_ID("Failed to seek in file:");
+      LOG_WARNING_ID(path);
     } else if (TPIE_OS_FWRITE ((char *) &header, sizeof (header), 1, file) != 1) {
       status_ = BTE_STREAM_STATUS_INVALID;
-      LOG_WARNING_ID("Failed to write header to file:")
-      LOG_WARNING_ID(path)
+      LOG_WARNING_ID("Failed to write header to file:");
+      LOG_WARNING_ID(path);
       //      return;
     }
   }
