@@ -4,16 +4,10 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/24/94
 //
-// $Id: ami_scan_mac.h,v 1.1 1994-05-25 19:33:40 dev Exp $
+// $Id: ami_scan_mac.h,v 1.2 1994-05-27 19:40:42 dev Exp $
 //
 #ifndef _AMI_SCAN_MAC_H
 #define _AMI_SCAN_MAC_H
-
-// Just in case, make sure we know about the AMI_STREAM class.
-// Note that AMI_STREAM is a macro that will have been defined
-// to match a particular implementation before this header file
-// is loaded.
-template<class T> class AMI_STREAM;
 
 // Macros for defining parameters to AMI_scan()
 #define __SPARM_BASE(T,io,n) AMI_STREAM< T ## n > *io ## n
@@ -43,8 +37,8 @@ template<class T> class AMI_STREAM;
 // read was succesful or not.  If it was unsuccessful for any reason other
 // than EOS, then break out of the scan loop.
 #define __STSR_BASE(t,ts,f,e,n)						    \
-if (!(f[n-1] = ((e = ts ## n->get_item(&t ## n)) == AMI_ERROR_NO_ERROR))) {   \
-    if (e != AMI_ERROR_EOS) {						    \
+if (!(f[n-1] = ((e = ts ## n->read_item(&t ## n)) == AMI_ERROR_NO_ERROR))) {\
+    if (e != AMI_ERROR_END_OF_STREAM) {					    \
         break;								    \
     }									    \
 }
@@ -57,7 +51,7 @@ if (!(f[n-1] = ((e = ts ## n->get_item(&t ## n)) == AMI_ERROR_NO_ERROR))) {   \
 // Write outputs.  Only write if the flag is set.  If there is an
 // error during the write, then break out of the scan loop.
 #define __STSW_BASE(u,us,f,e,n)						    \
-if (f[n-1] && (e = us ## n -> put_item(u ## n)) != AMI_ERROR_NO_ERROR) {    \
+if (f[n-1] && (e = us ## n -> write_item(u ## n)) != AMI_ERROR_NO_ERROR) {  \
     break;								    \
 }
 
@@ -98,7 +92,17 @@ if (f[n-1] && (e = us ## n -> put_item(u ## n)) != AMI_ERROR_NO_ERROR) {    \
 #define __SCALL_OP_4_3(t,if,sop,u,of) __SCALL_BASE(t,4,if,sop,u,3,of)
 #define __SCALL_OP_4_4(t,if,sop,u,of) __SCALL_BASE(t,4,if,sop,u,4,of)
 
-// The template for the whole AMI_scan().
+// Handle the no input case.
+#define __SCALL_BASE_0(sop,u,nu,of) \
+    sop->operate(__SCALL_ARGS_ ## nu (&u), of)
+
+#define __SCALL_OP_0_1(sop,u,of) __SCALL_BASE_0(sop,u,1,of)
+#define __SCALL_OP_0_2(sop,u,of) __SCALL_BASE_0(sop,u,2,of)
+#define __SCALL_OP_0_3(sop,u,of) __SCALL_BASE_0(sop,u,3,of)
+#define __SCALL_OP_0_4(sop,u,of) __SCALL_BASE_0(sop,u,4,of)
+
+
+// The template for the whole AMI_scan(), with inputs and outputs.
 #define __STEMPLATE(in_arity, out_arity)				    \
 template< __STEMP_ ## in_arity (T), class SC, __STEMP_ ## out_arity (U) >   \
 AMI_err AMI_scan( __SPARM_ ## in_arity (T,_ts_),			    \
@@ -112,6 +116,8 @@ AMI_err AMI_scan( __SPARM_ ## in_arity (T,_ts_),			    \
 	    								    \
     AMI_err _op_err_, _ami_err_;					    \
 	    								    \
+    soper->initialize();						    \
+	    								    \
     do {	    							    \
 	    								    \
         __STS_READ_ ## in_arity (_t_,_ts_,_if_,_ami_err_)		    \
@@ -121,10 +127,43 @@ AMI_err AMI_scan( __SPARM_ ## in_arity (T,_ts_),			    \
 	    								    \
         __STS_WRITE_ ## out_arity(_u_,_us_,_of_,_ami_err_)		    \
             								    \
-    } while (_op_err_ != AMI_SCAN_CONTINUE);				    \
+    } while (_op_err_ == AMI_SCAN_CONTINUE);				    \
 	    								    \
     if ((_ami_err_ != AMI_ERROR_NO_ERROR) &&				    \
-        (_ami_err_ != AMI_ERROR_EOS)) {					    \
+        (_ami_err_ != AMI_ERROR_END_OF_STREAM)) {			    \
+        return _ami_err_;						    \
+    }	    								    \
+    	    								    \
+    return _op_err_;							    \
+}
+
+// The template for the whole AMI_scan(), with no inputs.  This is
+// based on __STEMPLATE_() and could be merged into one big macro at
+// the expense of having to define multiple versions of __STEMP_N()
+// and __SPARM_N() to handle the case N = 0.
+#define __STEMPLATE_0(out_arity)					    \
+template< class SC, __STEMP_ ## out_arity (U) >				    \
+AMI_err AMI_scan( SC *soper, __SPARM_ ## out_arity (U,_us_))		    \
+{	    								    \
+    __STSPACE_ ## out_arity (U,_u_);					    \
+	    								    \
+    __FSPACE(_of_,out_arity);						    \
+	    								    \
+    AMI_err _op_err_, _ami_err_;					    \
+	    								    \
+    soper->initialize();						    \
+	    								    \
+    do {	    							    \
+	    								    \
+        _op_err_ = __SCALL_OP_0_ ##					    \
+            out_arity(soper,_u_,_of_);					    \
+	    								    \
+        __STS_WRITE_ ## out_arity(_u_,_us_,_of_,_ami_err_)		    \
+            								    \
+    } while (_op_err_ == AMI_SCAN_CONTINUE);				    \
+	    								    \
+    if ((_ami_err_ != AMI_ERROR_NO_ERROR) &&				    \
+        (_ami_err_ != AMI_ERROR_END_OF_STREAM)) {			    \
         return _ami_err_;						    \
     }	    								    \
     	    								    \
@@ -132,6 +171,8 @@ AMI_err AMI_scan( __SPARM_ ## in_arity (T,_ts_),			    \
 }
 
 // Finally, the templates themsleves.
+__STEMPLATE_0(1); __STEMPLATE_0(2); __STEMPLATE_0(3); __STEMPLATE_0(4);
+
 __STEMPLATE(1,1); __STEMPLATE(1,2); __STEMPLATE(1,3); __STEMPLATE(1,4);
 __STEMPLATE(2,1); __STEMPLATE(2,2); __STEMPLATE(2,3); __STEMPLATE(2,4);
 __STEMPLATE(3,1); __STEMPLATE(3,2); __STEMPLATE(3,3); __STEMPLATE(3,4);
