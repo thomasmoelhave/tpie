@@ -7,7 +7,7 @@
 
 
 
-static char mm_base_id[] = "$Id: mm_base.cpp,v 1.14 1999-05-18 20:16:04 rajiv Exp $";
+static char mm_base_id[] = "$Id: mm_base.cpp,v 1.15 1999-05-21 04:50:36 rajiv Exp $";
 
 #include "lib_config.h"
 #include <mm_base.h>
@@ -51,9 +51,10 @@ void * operator new (size_t sz) {
 	  LOG_FLUSH_LOG;
 
 	  fprintf(stderr, "memory manager: memory allocation limit exceeded\n");
+#ifndef CONTINUE_IF_POSSIBLE
 	  assert(0);				// core dump if debugging
 	  exit(1);
-
+#endif
 	  // return (void *)0;		// this is evil - causes failure elsewhere
     }
     
@@ -63,6 +64,7 @@ void * operator new (size_t sz) {
       LOG_FLUSH_LOG;
       perror("mm_base::new malloc");
       exit(1);
+	  return 0;
     }
     *((size_t *)p) = sz;
     return ((char *)p) + SIZE_SPACE;
@@ -70,11 +72,27 @@ void * operator new (size_t sz) {
 
 void operator delete (void *ptr) {
     if (!ptr) {
-	  LOG_DEBUG_ID("delete operator got NULL pointer");
+	  LOG_WARNING_ID("delete operator got NULL pointer");
 	  return;
 	}
 
     //LOG_DEBUG_ID(" Delete got called\n");
+    if (register_new) {
+	  if(MM_manager.register_deallocation(*((size_t *)
+											(((char *)ptr) - SIZE_SPACE)) +
+										  SIZE_SPACE) != MM_ERROR_NO_ERROR) {
+		LOG_WARNING_ID("MM_manager.register_deallocation failed");
+	  }
+    }
+    free(((char *)ptr) - SIZE_SPACE);
+}
+
+void operator delete [] (void *ptr) {
+    if (!ptr) {
+	  LOG_WARNING_ID("delete [] operator got NULL pointer");
+	  return;
+	}
+
     if (register_new) {
 	  if(MM_manager.register_deallocation(*((size_t *)
 											(((char *)ptr) - SIZE_SPACE)) +
