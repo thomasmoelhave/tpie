@@ -7,7 +7,7 @@
 %%
 %% Copies and modified from tpie.texi.
 %%
-%% $Id: tpie.tex,v 1.2 1998-10-05 14:48:08 tavi Exp $
+%% $Id: tpie.tex,v 1.3 1998-12-12 17:07:30 tavi Exp $
 %%
 
 \documentstyle[11pt,html,makeidx]{book}
@@ -1464,7 +1464,7 @@ The macros are as follows:
 \item[{\verb|TPL\_LOGGING|}] \index{TPL_LOGGING@{\tt TPL\_LOGGING}} Set
   to a non-zero value to enable logging of TPIE's internal behavior.
   By default, information is logged to the log file\index{log file}
-  \verb|/usr/tmp/TPL_XXXXX| where \verb|XXXXX| is a unique system
+  \verb|/tmp/TPLOG_XXXXXX| where \verb|XXXXXX| is a unique system
   dependent identifier.  Typically it encodes the process ID of the
   TPIE process that produced it in some way.  See
   Section~\ref{sec:logging} of the reference manual for information on
@@ -3288,9 +3288,31 @@ Some comments on the current simple MM that we have and some OS issues
 that come up in attempting to make it more robust.
 \index{memory manager|)}
 
-\section{TPIE Logging}
+\section{TPIE Logging}\index{logging}
 \label{sec:logging}
 
+When logging is turned on (see Section \ref{sec:macros}), TPIE creates a log file\index{log file} with the name \verb|/tmp/TPLOG_XXXXXX|, where \verb|XXXXXX| is a unique system dependent identifier. TPIE writes into this file using a \verb|logstream| class, which is derived from \verb|ofstream| and has the additional functionality of setting a priority and a threshold for this priority. If the priority of a message is smaller than the threshold, the message is not logged. There are three priority levels defined in TPIE, as follows.
+\begin{description}
+\item[\verb|TP\_LOG\_FATAL|] is the highest level and is used for all kinds of errors that would normally impair subsequent computations; errors are always logged;
+\item[\verb|TP\_LOG\_WARNING|] is the next lowest and is used for warnings;
+\item[\verb|TP\_LOG\_DEBUG\_INFO|] is the lowest level and is used for debugging information and any other information that might be useful for the developer.
+\end{description}
+By default, the threshold of the log is set to the lowest level, \verb|TP_LOG_DEBUG_INFO|.
+
+To simplify and unify logging, three macros are provided for writing into the log: 
+\begin{quote}
+\verb|LOG_FATAL|({\em msg})
+
+\verb|LOG_WARNING|({\em msg})
+
+\verb|LOG_DEBUG_INFO|({\em msg}),
+\end{quote}
+where {\em msg} is the information to be logged; {\em msg} can be any type that is supported by the C++ \verb|fstream| class. Each of these macros sets the corresponding priority and sends {\em msg} to the log stream.
+
+{\em Logging should always be done using one of the above macros.} Any other method of logging could hinder the ability of TPIE to turn off logging and, as a result, could affect performance.
+
+% Explain what the TPIE library writes into the log.
+% I Need input from bte developers.
 
 \chapter{TPIE Performance Tuning}
 
