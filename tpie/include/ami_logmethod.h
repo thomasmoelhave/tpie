@@ -3,7 +3,7 @@
 // File:    ami_logmethod.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_logmethod.h,v 1.2 2003-01-27 03:29:45 tavi Exp $
+// $Id: ami_logmethod.h,v 1.3 2003-04-20 09:22:15 tavi Exp $
 //
 // Logmethod_base, Logmethod2 and LogmethodB declarations and
 // definitions.
@@ -12,7 +12,7 @@
 #ifndef _LOGMETHOD_H
 #define _LOGMETHOD_H
 
-extern "C" {
+//extern "C" {
 // For open().
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -23,7 +23,7 @@ extern "C" {
 #include <errno.h>
 // For strerror().
 #include <string.h>
-}
+//}
 
 #include <vector>
 
@@ -396,7 +396,7 @@ bool LOGMETHOD2::insert(const Value& p) {
 
     // First unload all relevant trees to a stream.
     
-    stream_t *stream = new stream_t;
+    typename LOGMETHOD_BASE::stream_t *stream = new typename LOGMETHOD_BASE::stream_t;
     stream->persist(PERSIST_DELETE);
     
     tree0_->unload(stream);
@@ -465,7 +465,7 @@ bool LOGMETHODB::insert(const Value& p) {
   } else {
 
     size_t fi;
-    stream_t *stream = new stream_t;
+    typename LOGMETHOD_BASE::stream_t *stream = new typename LOGMETHOD_BASE::stream_t;
     stream->persist(PERSIST_DELETE);
 
     tree0_->unload(stream);

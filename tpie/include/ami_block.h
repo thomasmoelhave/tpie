@@ -5,7 +5,7 @@
 //
 // Definition and implementation of the AMI_block class.
 //
-// $Id: ami_block.h,v 1.5 2003-04-17 12:03:20 jan Exp $
+// $Id: ami_block.h,v 1.6 2003-04-20 09:22:15 tavi Exp $
 //
 
 #ifndef _AMI_BLOCK_H
@@ -30,8 +30,8 @@ public:
   // The array of elements.
   b_vector<E> el;
 
-  typedef b_vector<AMI_bid>::iterator  lk_iterator;
-  typedef b_vector<E>::iterator  el_iterator;
+  typedef typename b_vector<AMI_bid>::iterator  lk_iterator;
+  typedef typename b_vector<E>::iterator  el_iterator;
 
 public:
   // Compute the capacity of the el vector statically (but you have to

@@ -5,7 +5,7 @@
 //
 // Blocked kd-tree definition and implementation.
 //
-// $Id: ami_kdtree.h,v 1.4 2003-04-04 20:42:15 tavi Exp $
+// $Id: ami_kdtree.h,v 1.5 2003-04-20 09:22:15 tavi Exp $
 //
 
 #ifndef _KDTREE_H
@@ -239,7 +239,7 @@ protected:
   Kdtree_params params_;
 
   // One comparison object for each dimension.
-  point_t::cmp* comp_obj_[dim];
+  typename point_t::cmp* comp_obj_[dim];
 
   // Statistics object.
   tpie_stats_tree stats_;
@@ -713,14 +713,14 @@ size_t KDTREE_LEAF::window_query(const POINT &lop, const POINT &hip,
 //// *Kdtree_leaf::sort* ////
 template<class coord_t, size_t dim, class BTECOLL>
 void KDTREE_LEAF::sort(size_t d) {
-  POINT::cmp cmpd(d);
+  typename POINT::cmp cmpd(d);
   std::sort(&el[0], &el[0] + size(), cmpd);
 }
 
 //// *Kdtree_leaf::find_median* ////
 template<class coord_t, size_t dim, class BTECOLL>
 size_t KDTREE_LEAF::find_median(size_t d) {
-  POINT::cmp cmpd(d);
+  typename POINT::cmp cmpd(d);
   sort(d);
   size_t ans = (size() - 1) / 2; // preliminary median.
   while ((ans+1 < size()) && cmpd.compare(el[ans], el[ans+1]) == 0)
@@ -884,7 +884,7 @@ void KDTREE::shared_init(const char* base_file_name, AMI_collection_type type) {
 
   // Initialize the comparison objects.
   for (i = 0; i < dim; i++) {
-    comp_obj_[i] = new POINT::cmp(i);
+    comp_obj_[i] = new typename POINT::cmp(i);
   }
 
   // Set the right block factor parameters for the case of an existing tree.
@@ -2563,7 +2563,7 @@ KDTREE::grid::~grid() {
 
 //// *Kdtree::grid::create_matrix* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-KDTREE::grid_matrix* KDTREE::grid::create_matrix() {
+typename KDTREE::grid_matrix* KDTREE::grid::create_matrix() {
 
   size_t i, j;
   AMI_err err;
@@ -2674,7 +2674,7 @@ KDTREE::grid_matrix::grid_matrix(size_t* tt, grid *gg) {
 
 //// *Kdtree::grid_matrix::split* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-KDTREE::grid_matrix* KDTREE::grid_matrix::split(size_t s, const POINT& p, size_t d) {
+typename KDTREE::grid_matrix* KDTREE::grid_matrix::split(size_t s, const POINT& p, size_t d) {
   TPLOG("  ::grid_matrix::split Entering\n");
 
   assert(d < dim);
@@ -2831,7 +2831,7 @@ KDTREE::grid_matrix* KDTREE::grid_matrix::split(size_t s, const POINT& p, size_t
 
 //// *Kdtree::grid_matrix::find_median_and_split* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
-KDTREE::grid_matrix* KDTREE::grid_matrix::find_median_and_split(POINT& p, size_t d, size_t median_pos) {
+typename KDTREE::grid_matrix* KDTREE::grid_matrix::find_median_and_split(POINT& p, size_t d, size_t median_pos) {
   TPLOG("  ::grid_matrix::find_median_and_split Entering dim="<<d<<"\n");
   size_t s = 0, acc = 0, i;
   grid_matrix* gmx;
@@ -3199,9 +3199,9 @@ KDTREE::sample::sample(size_t _sz, POINT_STREAM* _in_stream) {
   }
 
   // Sort the d in-memory arrays on each dimension.
-  POINT::cmp* comp_obj;
+  typename POINT::cmp* comp_obj;
   for (size_t i = 0; i < dim; i++) {
-    comp_obj = new POINT::cmp(i);
+    comp_obj = new typename POINT::cmp(i);
     quick_sort_obj(mm_streams[i], sz, comp_obj);
     delete comp_obj;
   }
