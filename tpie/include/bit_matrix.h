@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 11/4/94
 //
-// $Id: bit_matrix.h,v 1.4 1997-05-20 22:14:46 vengroff Exp $
+// $Id: bit_matrix.h,v 1.5 1998-12-11 18:31:54 tavi Exp $
 //
 #ifndef _BIT_MATRIX_H
 #define _BIT_MATRIX_H
@@ -14,12 +14,6 @@
 
 #include <sys/types.h>
 
-#ifdef NO_IMPLICIT_TEMPLATES
-
-#define TEMPLATE_INSTANTIATE_BIT_MATRIX			\
-TEMPLATE_INSTANTIATE_MATRIX(bit)
-
-#endif
 
 // typedef matrix<bit> bit_matrix_0;
 
@@ -49,7 +43,7 @@ ostream &operator<<(ostream &s, bit_matrix &bm);
 
 
 #ifdef NO_IMPLICIT_TEMPLATES
-#define TEMPLATE_INSTANTIATE_BIT_MATRIX					\
+#define TEMPLATE_INSTANTIATE_BIT_MATRIX		   	\
 TEMPLATE_INSTANTIATE_MATRIX(bit)
 
 #endif
