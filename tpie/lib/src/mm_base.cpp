@@ -7,7 +7,7 @@
 
 
 
-static char mm_base_id[] = "$Id: mm_base.cpp,v 1.11 1999-04-22 17:39:49 rajiv Exp $";
+static char mm_base_id[] = "$Id: mm_base.cpp,v 1.12 1999-04-28 19:19:28 rajiv Exp $";
 
 #include "lib_config.h"
 #include <mm_base.h>
@@ -69,11 +69,16 @@ void * operator new (size_t sz) {
 }
 
 void operator delete (void *ptr) {
-    if (!ptr) return;
+    if (!ptr) {
+	  LOG_DEBUG_ID("delete operator got NULL pointer");
+	  return;
+	}
     if (register_new) {
-        MM_manager.register_deallocation(*((size_t *)
-                                           (((char *)ptr) - SIZE_SPACE)) +
-                                         SIZE_SPACE);
+	  if(MM_manager.register_deallocation(*((size_t *)
+											(((char *)ptr) - SIZE_SPACE)) +
+										  SIZE_SPACE) != MM_ERROR_NO_ERROR) {
+		LOG_WARNING_ID("MM_manager.register_deallocation failed");
+	  }
     }
     free(((char *)ptr) - SIZE_SPACE);
 }
