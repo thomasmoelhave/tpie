@@ -2,7 +2,7 @@
 // File:    bte_coll_mmap.h (formerly bte_coll_mmb.h)
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: bte_coll_mmap.h,v 1.3 2002-01-25 21:46:38 tavi Exp $
+// $Id: bte_coll_mmap.h,v 1.4 2002-01-27 23:39:04 tavi Exp $
 //
 // BTE_collection_mmap class definition.
 //
@@ -32,7 +32,7 @@ public:
   BTE_err new_block(off_t &bid, void * &place) {
     BTE_err err;
     // Get a block id.
-    if ((err = new_block_shared(bid)) != BTE_ERROR_NO_ERROR)
+    if ((err = new_block_getid(bid)) != BTE_ERROR_NO_ERROR)
       return err;
     // We have a bid, so we can call the get_block routine.
     if ((err = get_block_internals(bid, place)) != BTE_ERROR_NO_ERROR)
