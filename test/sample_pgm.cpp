@@ -15,7 +15,7 @@
 //Include the file that will allow us to use AMI_STREAMs.
 #include <ami.h>
 //include wall timer that will allow us to time
-#include "wall_timer.h"
+#include <wall_timer.h>
 
 //Include TPIE's internal memory sorting routines.
 #include <quicksort.h>
