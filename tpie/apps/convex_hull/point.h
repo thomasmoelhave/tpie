@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/16/94
 //
-// $Id: point.h,v 1.3 1999-02-03 22:01:47 tavi Exp $
+// $Id: point.h,v 1.4 1999-07-05 20:44:24 rajiv Exp $
 //
 #ifndef _POINT_H
 #define _POINT_H
@@ -35,9 +35,14 @@ public:
     int operator>(const point<T> &rhs) const {
         return (x > rhs.x);
     }
-    
+
+#if (__GNUC__ > 2) || (__GNUC__ == 2 &&  __GNUC_MINOR__ >= 8)
     friend ostream& operator<< <> (ostream& s, const point<T> &p);
     friend istream& operator>> <> (istream& s, point<T> &p);
+#else
+    friend ostream& operator<< (ostream& s, const point<T> &p);
+    friend istream& operator>> (istream& s, point<T> &p);
+#endif
 };
 
 template<class T>
