@@ -8,7 +8,7 @@
 // A simple registration based memory manager.
 
 #include <versions.h>
-VERSION(mm_register_cpp,"$Id: mm_register.cpp,v 1.13 2000-03-25 06:40:22 rajiv Exp $");
+VERSION(mm_register_cpp,"$Id: mm_register.cpp,v 1.14 2000-03-29 22:15:37 rajiv Exp $");
 
 #include <assert.h>
 #include "lib_config.h"
@@ -16,6 +16,10 @@ VERSION(mm_register_cpp,"$Id: mm_register.cpp,v 1.13 2000-03-25 06:40:22 rajiv E
 #define MM_IMP_REGISTER
 #include <mm.h>
 #include <mm_register.h>
+
+#ifdef REPORT_LARGE_MEMOPS
+#include <iostream>
+#endif
 
 #ifdef MM_BACKWARD_COMPATIBLE
 extern int register_new;
@@ -62,6 +66,13 @@ MM_err MM_register::register_allocation(size_t request)
     LOG_DEBUG_INFO((unsigned int)remaining);
     LOG_DEBUG_INFO(" remaining.\n");
     LOG_FLUSH_LOG;
+
+#ifdef REPORT_LARGE_MEMOPS
+	if(request > user_limit/10) {
+	  cerr << "MEM alloc " << request
+		   << " (" << remaining << " remaining)" << endl;
+	}
+#endif
     
     return MM_ERROR_NO_ERROR;
 }
@@ -96,6 +107,13 @@ MM_err MM_register::register_deallocation(size_t sz)
     LOG_DEBUG_INFO(" now available.\n");
     LOG_FLUSH_LOG;
     
+#ifdef REPORT_LARGE_MEMOPS
+	if(sz > user_limit/10) {
+	  cerr << "MEM free " << sz 
+		   << " (" << remaining << " remaining)" << endl;
+	}
+#endif
+
     return MM_ERROR_NO_ERROR;
 }
 
@@ -165,6 +183,12 @@ void MM_register::ignore_memory_limit()
 {
     register_new = MM_IGNORE_MEMORY_EXCEEDED;
 }
+
+// rw. provide accounting state
+MM_mode MM_register::get_limit_mode() {
+  return register_new;
+}
+
 
 // dh. return the amount of memory available before user-specified 
 // memory limit exceeded 
