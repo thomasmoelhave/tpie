@@ -3,7 +3,7 @@
 // File:    bte_coll_ufs.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: bte_coll_ufs.h,v 1.2 2001-06-16 20:18:10 tavi Exp $
+// $Id: bte_coll_ufs.h,v 1.3 2001-12-29 05:15:56 tavi Exp $
 //
 // BTE_collection_ufs class definition.
 //
@@ -11,7 +11,6 @@
 #define _BTE_COLL_UFS_H
 
 #include <bte_coll_base.h>
-
 
 class BTE_collection_ufs: public BTE_collection_base {
 public:
@@ -27,7 +26,7 @@ public:
   // Block. Main memory usage increases.
   BTE_err new_block(off_t &bid, void * &place) {
     BTE_err err;
-    stats_.record(BC_NEW);
+    stats_.record(BLOCK_NEW);
     // Get a block id.
     if ((err = new_block_shared(bid)) != BTE_ERROR_NO_ERROR)
       return err;
@@ -47,7 +46,7 @@ public:
   // stdio_stack of free blocks. Main memory usage goes down.
   BTE_err delete_block(off_t bid, void * place) {
     BTE_err err;
-    stats_.record(BC_DELETE);
+    stats_.record(BLOCK_DELETE);
     if ((err = put_block_internals(bid, place, 1)) != BTE_ERROR_NO_ERROR)  
       return err; 
     if ((err = delete_block_shared(bid)) != BTE_ERROR_NO_ERROR)
@@ -62,7 +61,7 @@ public:
   // on; no checks made here to ensure that that is indeed the case. Main
   // memory usage increases.
   BTE_err get_block(off_t bid, void * &place) {
-    stats_.record(BC_GET);
+    stats_.record(BLOCK_GET);
     return get_block_internals(bid, place);
   }
 
@@ -71,7 +70,7 @@ public:
   // made here to ensure that that is indeed the case. Main memory usage
   // decreases.
   BTE_err put_block(off_t bid, void * place, char dirty = 1) {
-    stats_.record(BC_PUT);
+    stats_.record(BLOCK_PUT);
     return put_block_internals(bid, place, dirty);
   }
 

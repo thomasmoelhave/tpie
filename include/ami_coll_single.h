@@ -3,7 +3,7 @@
 // File:   ami_coll_single.h
 // Author: Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_coll_single.h,v 1.4 2001-06-22 03:16:54 tavi Exp $
+// $Id: ami_coll_single.h,v 1.5 2001-12-29 05:18:04 tavi Exp $
 //
 // AMI collection entry points implemented on top of a single BTE.
 //
@@ -12,6 +12,9 @@
 
 // For persist type.
 #include <persist.h>
+
+// Get the tpie_stats_coll class for collection statistics.
+#include <tpie_stats_coll.h>
 
 // Get an appropriate BTE collection.
 #include <bte_coll.h>
@@ -57,7 +60,8 @@ public:
 
   BTECOLL* bte() { return btec_; }
 
-  const statistics<BC_STATS_COUNT>& stats() const { return btec_->stats(); }
+  const tpie_stats_coll& stats() const { return btec_->stats(); }
+
 private:
 
   BTECOLL *btec_;
