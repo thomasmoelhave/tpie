@@ -1,7 +1,7 @@
 # Makefile for TPIE library.
 # Use GNU make on this Makefile. It relies on the default rules.
 # Use (GNU) "make -p" to see the default rules.
-# $Id: Makefile.in,v 1.36 2003-08-21 19:33:25 tavi Exp $
+# $Id: Makefile.in,v 1.37 2003-09-24 23:22:04 tavi Exp $
 
 ARFLAGS = rv
 CXX = @CXX@
@@ -18,6 +18,10 @@ LIBRARY = libtpie.a
 override CPPFLAGS += -DTPIE_LIBRARY -I$(TPIEINC)
 # These options are set by the configure script.
 override CPPFLAGS += @DEFS@
+# These options are for large file support. They force all file access
+# calls to use the 64 bit variants. Several types change also, e.g. off_t
+# becomes off64_t.
+override CPPFLAGS += -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE
 
 ifeq ($(MINUSG),1)
 override CPPFLAGS += -g
