@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/12/94
 //
-// $Id: tpie_log.h,v 1.6 1998-12-11 18:51:17 tavi Exp $
+// $Id: tpie_log.h,v 1.7 1999-04-16 21:26:50 rajiv Exp $
 //
 #ifndef _TPIE_LOG_H
 #define _TPIE_LOG_H
@@ -32,9 +32,19 @@ void init_tpie_logs(void);
 
 #define LOG_FLUSH_LOG (tpl->ofstream::flush())
 
+// eg: LOG_FATAL(LOG_ID_MSG)
+#define LOG_ID_MSG __FILE__ << " line " << __LINE__ << ": "
+
 #define LOG_FATAL(msg) (*tpl << setpriority(TP_LOG_FATAL) << msg)
 #define LOG_WARNING(msg)  (*tpl << setpriority(TP_LOG_WARNING) << msg)
 #define LOG_DEBUG_INFO(msg)  (*tpl << setpriority(TP_LOG_DEBUG_INFO)  << msg)
+
+#define LOG_FATAL_ID(msg)  \
+  (LOG_FATAL(LOG_ID_MSG << msg << "\n"), LOG_FLUSH_LOG)
+#define LOG_WARNING_ID(msg)  \
+  (LOG_WARNING(LOG_ID_MSG << msg << "\n"), LOG_FLUSH_LOG)
+#define LOG_DEBUG_ID(msg)  \
+  (LOG_DEBUG_INFO(LOG_ID_MSG << msg << "\n"), LOG_FLUSH_LOG)
 
 // Keep these a little longer, to avoid errors. 
 // All references to them should be replaced by one of the macros above.
