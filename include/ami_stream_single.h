@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/19/94
 //
-// $Id: ami_stream_single.h,v 1.1 2002-01-14 15:38:29 tavi Exp $
+// $Id: ami_stream_single.h,v 1.2 2002-01-27 20:10:05 tavi Exp $
 //
 // AMI entry points implemented on top of a single BTE.  This is useful
 // for single CPU, single disk machines.
@@ -342,7 +342,7 @@ AMI_err AMI_stream_single<T>::name(char **stream_name)
 {
     BTE_err be = btes->name(stream_name);
     if (be != BTE_ERROR_NO_ERROR) {
-	  LOG_DEBUG_ID("bte error");		
+	  LOG_WARNING_ID("bte error");
 	  return AMI_ERROR_BTE_ERROR;
     } else {
 	  return AMI_ERROR_NO_ERROR;
@@ -354,7 +354,7 @@ template<class T>
 AMI_err AMI_stream_single<T>::seek(off_t offset)
 {
     if (btes->seek(offset) != BTE_ERROR_NO_ERROR) {
-	  LOG_DEBUG_ID("bte error");		
+	  LOG_WARNING_ID("bte error");		
 	  return AMI_ERROR_BTE_ERROR;
     }
 
@@ -366,7 +366,7 @@ template<class T>
 AMI_err AMI_stream_single<T>::truncate(off_t offset)
 {
     if (btes->truncate(offset) != BTE_ERROR_NO_ERROR) {
-	  LOG_DEBUG_ID("bte error");		
+	  LOG_WARNING_ID("bte error");
 	  return AMI_ERROR_BTE_ERROR;
     }
 
@@ -379,7 +379,7 @@ AMI_err AMI_stream_single<T>::main_memory_usage(size_t *usage,
                                                 MM_stream_usage usage_type)
 {
     if (btes->main_memory_usage(usage, usage_type) != BTE_ERROR_NO_ERROR) {
-	  LOG_DEBUG_ID("bte error");		
+	  LOG_WARNING_ID("bte error");		
 	  return AMI_ERROR_BTE_ERROR;
     }
 
@@ -435,7 +435,7 @@ template<class T>
 A_INLINE AMI_err AMI_stream_single<T>::write_item(const T &elt)
 {
     if (btes->write_item(elt) != BTE_ERROR_NO_ERROR) {
-	  LOG_DEBUG_ID("bte error in write_item");
+	  LOG_WARNING_ID("bte error");
 	  return AMI_ERROR_BTE_ERROR;
     }
 	return AMI_ERROR_NO_ERROR;
