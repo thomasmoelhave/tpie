@@ -1,3 +1,11 @@
+Thu Apr 17 23:10:02 2003 Jan Vahrenhold (jan)
+	* all files: modified such as to reflect the "portability.h" code.
+	* ami_device.cpp, tpie_tempnam.cpp: changed device separator
+	  character from ':' to '|' to avoid conflicts with DOS
+	  path names.
+	* ami_key.cpp: Changed "max/min" to "this->max/this->min"
+	  to avoid conflicts with STL methods.
+
 Thu Aug 29 23:01:23 2002
 	* bte_coll_base.cpp,  bte_coll_mmap.cpp, bte_coll_ufs.cpp: Use bid_t to
 	represent the bid type at the bte collection level.
