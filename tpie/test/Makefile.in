@@ -1,6 +1,6 @@
 # Copyright (c) 1994 Darren Erik Vengroff
 
-# $Id: Makefile.in,v 1.14 1994-11-03 15:31:56 darrenv Exp $
+# $Id: Makefile.in,v 1.15 1994-12-16 21:14:47 darrenv Exp $
 
 # Makefile for TPIE test applications.
 
@@ -40,6 +40,12 @@ override CXXFLAGS += -fno-implicit-templates
 override CPPFLAGS += -DNO_IMPLICIT_TEMPLATES
 endif
 
+# Try GNU's exception handler.
+# ifeq ($(GCXX),1)
+# override CXXFLAGS += -fhandle-exceptions
+# override CPPFLAGS += -DHANDLE_EXCEPTIONS
+# endif
+
 # Get the proper include path and DEFS from the configure script.
 override CPPFLAGS += -I$(TPIEINC) @DEFS@
 
@@ -63,11 +69,9 @@ CCFLAGS = $(CXXFLAGS)
 
 # The various test applications.
 
-APPS := test_ami_pmerge test_ami_sort test_ami_merge lr test_ami_gp
-       # Not done yet.
-       # dist_sweep_test
-       # Broken under g++ 2.6.0 due to template function problems. 
-       # test_ami_gp
+APPS := test_ami_pmerge test_ami_sort test_ami_merge test_ami_gp	\
+	test_matrix test_bit_matrix test_ami_arith test_ami_matrix	\
+	test_ami_matrix_pad test_ami_stack lr
 
 
 # Sources to the test applications.
@@ -79,7 +83,8 @@ APPSRC = $(patsubst %,%.cpp,$(APPS))
 
 COMMONCXXSRC = parse_args.cpp app_config.cpp
 
-OTHERCXXSRC = scan_random.cpp scan_count.cpp scan_list.cpp list_edge.cpp 
+OTHERCXXSRC = scan_random.cpp scan_count.cpp scan_list.cpp list_edge.cpp 	\
+	perm_matrix_blocks.cpp
 
 CXXSRC=$(APPSRC) $(COMMONCXXSRC) $(OTHERCXXSRC)
 
@@ -122,11 +127,23 @@ test_ami_sort: test_ami_sort.o scan_random.o $(COMMONOBJ)
 
 test_ami_merge: test_ami_merge.o scan_count.o $(COMMONOBJ)
 
-dist_sweep_test: dist_sweep_test.o
+test_ami_gp: test_ami_gp.o scan_count.o $(COMMONOBJ)
+
+test_util_matrix: test_util_matrix.o
+
+test_bit_matrix: test_bit_matrix.o
+
+test_ami_arith: test_ami_arith.o scan_count.o $(COMMONOBJ)
+
+test_ami_matrix_pad: test_ami_matrix_pad.o scan_count.o			\
+	perm_matrix_blocks.o $(COMMONOBJ)
+
+test_ami_matrix: test_ami_matrix.o scan_count.o 			\
+	perm_matrix_blocks.o $(COMMONOBJ)
+
+test_ami_stack: test_ami_stack.o $(COMMONOBJ)
 
 lr: lr.o list_edge.o scan_list.o $(COMMONOBJ)
-
-test_ami_gp: test_ami_gp.o scan_count.o $(COMMONOBJ)
 
 .PHONY : clean all
 
