@@ -2,7 +2,7 @@
 #
 # The Makefile for the complete TPIE system.
 #
-# $Id: Makefile.in,v 1.10 1994-10-13 16:59:55 darrenv Exp $
+# $Id: Makefile.in,v 1.11 1994-10-26 14:10:06 darrenv Exp $
 #
 
 ########################################################################
@@ -13,25 +13,25 @@ MY_DEFS = @DEFS@
 MY_LIBS = @LIBS@
 
 # Define if the library functions should write to the log.
-LOG_LIBRARY = 1
+#LOG_LIBRARY = 1
 
 # Define if the library functions should include debugging code.
-DEBUG_LIBRARY = 1
+#DEBUG_LIBRARY = 1
 
 # Define if the library code should be optimized.
-#OPTIMIZE_LIBRARY = 1
+OPTIMIZE_LIBRARY = 1
 
 # Define if the library code should be profilable.
 #PROFILE_LIBRARY = 1
 
 # Define if the apps should write to the log.
-LOG_APPS = 1
+#LOG_APPS = 1
 
 # Define if the apps should include debugging code.
-DEBUG_APPS = 1
+#DEBUG_APPS = 1
 
 # Define if the apps should be optimized.
-#OPTIMIZE_APPS = 1
+OPTIMIZE_APPS = 1
 
 # Define if the apps should be profilable.
 #PROFILE_APPS = 1
@@ -90,7 +90,6 @@ apps:
 .PHONY : clean lib inc apps usage all
 
 clean:
-	-rm $(UP_TO_DATE)
 	$(MAKE) -C $(APPSPATH) $@
 	$(MAKE) -C $(LIBPATH) $@
 	$(MAKE) -C $(INCPATH) $@
