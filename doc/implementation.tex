@@ -1,5 +1,5 @@
 %%
-%% $Id: implementation.tex,v 1.16 2001-04-27 14:52:54 hutchins Exp $
+%% $Id: implementation.tex,v 1.17 2002-06-25 18:31:20 tavi Exp $
 %%
 \chapter{The Implementation of TPIE}
 \plabel{cha:implementation}
@@ -133,16 +133,16 @@ access primitives. \comment{%
    stream types, persistence, ect.?}
 
 
-Version \version~of TPIE supports the following three BTE
+Version \version~of TPIE supports the following three BTE stream
 implementations:
 \begin{enumerate}
-    \item \myv{BTE\_stdio}, which uses the
+    \item \myv{BTE\_stream\_stdio}, which uses the
     UNIX \myv{stdio} library as its file access method.
     
-    \item \myv{BTE\_ufs}, which performs I/O via UNIX {\tt
+    \item \myv{BTE\_stream\_ufs}, which performs I/O via UNIX {\tt
        read/write} calls,
     
-    \item \myv{BTE\_mmb}, which uses the UNIX
+    \item \myv{BTE\_stream\_mmb}, which uses the UNIX
     \myv{mmap} call to perform I/O
 \end{enumerate}
 
@@ -154,7 +154,7 @@ defining the variable \myv{BTE\_IMP\_STDIO}, the
 \myv{BTE\_IMP\_UFS}, and the memory mapped implementation
 by defining \myv{BTE\_IMP\_MMB}.  For example, the
 following code (taken from \myv{app\_config.h} selects
-the \myv{BTE\_ufs} Block Transfer Engine (and does not
+the \myv{BTE\_stream\_ufs} Block Transfer Engine (and does not
 select the others):
 
 \begin{verbatim}
@@ -168,7 +168,7 @@ select the others):
 % issue a warning.  
 Multiple implementations are allowed to coexist, with some
 restrictions, e.g. declarations of streams must use explicit subclasses
-of \myv{AMI\_base\_stream} to specify what type of streams they
+of \myv{AMI\_stream\_base} to specify what type of streams they
 are. 
 \comment{LA: This needs to be extended somewhere.}
 \comment{DH: I am skeptical that it works with multiple impl., but
@@ -198,8 +198,8 @@ Sections~\ref{sec:ref-bte-stdio},\ref{sec:ref-bte-mmb}, and
 \plabel{sec:imp-bte-base}
 
 All BTE stream implementations inherit from class
-\myv{BTE\_base\_stream} (in file
-\myv{bte\_base\_stream.h}) and must support the member
+\myv{BTE\_stream\_base} (in file
+\myv{bte\_stream\_base.h}) and must support the member
 functions listed below. 
 
 
@@ -213,14 +213,14 @@ functions listed below.
 %access methods for such a file. 
 
 Since the details of each access method (ie
-\myv{BTE\_ufs}, \myv{BTE\_stdio} or \myv{BTE\_mmb} are
+\myv{BTE\_stream\_ufs}, \myv{BTE\_stream\_stdio} or \myv{BTE\_stream\_mmb} are
 different, the BTEs generally have different member function
 implementations, including constructors (construction
 involves opening the appropriate stream file, etc.).
-The \myv{BTE\_ufs}, \myv{BTE\_stdio}, and
-\myv{BTE\_mmb} implementations are defined in the
-respective files \myv{include/bte\_ufs.h},
-\myv{include/bte\_stdio}, and \myv{include/bte\_mmb.h}.
+The \myv{BTE\_stream\_ufs}, \myv{BTE\_stream\_stdio}, and
+\myv{BTE\_stream\_mmb} implementations are defined in the
+respective files \myv{include/bte\_stream\_ufs.h},
+\myv{include/bte\_stream\_stdio}, and \myv{include/bte\_stream\_mmb.h}.
 \comment{LA: Some note about construction being BTE
 dependent - why are they? DH: DONE}
 Functionally, the member functions for each BTE are similar.
@@ -266,7 +266,7 @@ the value of \myv{st}:
 \index{substreams!of BTE streams}
 \begin{verbatim}
     BTE_err new_substream(BTE_stream_type st, off_t sub_begin, off_t
-                          sub_end, BTE_base_stream<T> **sub_stream);
+                          sub_end, BTE_stream_base<T> **sub_stream);
 \end{verbatim}
 
 Constructs a substream of the current stream.  A substream
@@ -400,7 +400,7 @@ can no longer be used.
 of stream was encountered.
 \end{itemize}
 The \myv{get\_status} member function is one of the few
-that is implemented in \myv{bte\_base\_stream.h} and its
+that is implemented in \myv{bte\_stream\_base.h} and its
 implementation is therefore common to all BTEs. The status
 is stored in the private variable \myv{status} of a BTE object. 
 
@@ -491,11 +491,11 @@ through kernel level buffer space on its way to user space.
 concept.}
 
 The \myv{BTE\_stream\_stdio} class inherits from
-\myv{BTE\_base\_stream} (in file
-\myv{/include/bte\_base\_stream.h}):\index{BTE_base_stream@{\tt
-      BTE\_base\_stream}}
+\myv{BTE\_stream\_base} (in file
+\myv{/include/bte\_stream\_base.h}):\index{BTE_stream_base@{\tt
+      BTE\_stream\_base}}
 \begin{verbatim}
-class BTE_stream_stdio : public BTE_base_stream {
+class BTE_stream_stdio : public BTE_stream_base {
   private:
      FILE  *file;          
      BTE_stdio_header      header;
@@ -504,7 +504,7 @@ class BTE_stream_stdio : public BTE_base_stream {
 \end{verbatim}
 
 \myv{BTE\_stream\_stdio} defines the public member
-functions defined for \myv{BTE\_base\_stream} (please
+functions defined for \myv{BTE\_stream\_base} (please
 see Section~\ref{sec:imp-bte-base} for a list of these
 member functions and their semantics).  \comment{LA: Extend
    - discuss implementation!} In addition to these,
@@ -533,18 +533,17 @@ typedef struct BTE_stdio_header_v1 {
 \end{verbatim}
 
 
-\index{BTE_stdio@{\tt BTE\_stdio}|)}
+\index{BTE_stream_stdio@{\tt BTE\_stream\_stdio}|)}
 
 
 \index{BTE_stream_mmb@{\tt BTE\_stream\_mmb}|(} 
 \subsection{BTE \emphd{mmb}}
 \plabel{sec:ref-bte-mmb}
 \index{BTE mmb|see {\tt BTE\_stream\_mmb}}
-\comment{LA: Why not called BTE\_mmp?}
 
-The \emphd{mmb} BTE is implemented by the class
+The \emphd{mmap} BTE is implemented by the class
 \myv{BTE\_stream\_mmb}, defined in file
-\myv{/include/bte\_stdio.h}.  \myv{BTE\_stream\_mmb}
+\myv{/include/bte\_stream\_stdio.h}.  \myv{BTE\_stream\_mmb}
 streams are stored as ordinary UNIX files.  The TPIE
 \myv{BTE\_stream\_mmb} implementation uses the Unix
 \myv{mmap} and \myv{munmap} calls to perform I/O. The
@@ -610,9 +609,9 @@ By default \myv{BTE\_MMB\_READ\_AHEAD} is defined,
 \myv{USE\_LIBAIO} is not.\comment{LA: Discuss the two and
    how they differ.}
 
-\myv{BTE\_stream\_mmb} class inherits from \myv{BTE\_base\_stream}:\index{BTE_base_stream@{\tt BTE\_base\_stream}}
+\myv{BTE\_stream\_mmb} class inherits from \myv{BTE\_stream\_base}:\index{BTE_stream_base@{\tt BTE\_stream\_base}}
 \begin{verbatim}
-class BTE_stream_mmb : public BTE_base_stream {
+class BTE_stream_mmb : public BTE_stream_base {
   private:
      // descriptor of the mapped file.  
      int fd;   
@@ -623,7 +622,7 @@ class BTE_stream_mmb : public BTE_base_stream {
 \end{verbatim}
 
 \myv{BTE\_stream\_mmb} defines the public member
-functions defined for \myv{BTE\_base\_stream} (please see
+functions defined for \myv{BTE\_stream\_base} (please see
 Section~\ref{sec:imp-bte-base} for a list of these member
 functions and their semantics).  In addition to these it
 defines its own constructors: 
@@ -668,12 +667,11 @@ struct mmap_stream_header {
 \plabel{sec:ref-bte-ufs}
 \index{BTE ufs|see {\tt BTE\_stream\_ufs}}
 
-(!!! CHECK COMMENTS) 
 The \emphd{ufs} BTE is implemented by the class
 \myv{BTE\_stream\_ufs}, defined in file
 \myv{/include/bte\_stdio.h}.  \myv{BTE\_stream\_ufs}
 streams are stored as ordinary UNIX files.
-\myv{BTE\_ufs} streams use
+\myv{BTE\_stream\_ufs} streams use
 \myv{read()}/\myv{write()} calls to implement their
 I/O.
 
@@ -707,9 +705,9 @@ Like in the case of \myv{BTE\_stream\_mmb} the
 (logical) block size can be controlled using the macro
 \myv{BTE\_UFS\_LOGICAL\_BLOCKSIZE\_FACTOR}.
 \myv{BTE\_stream\_ufs} also has the same advantage as
-\myv{BTE\_stream\_mmb} over \myv{BTE\_stdio} of only incurring
+\myv{BTE\_stream\_mmb} over \myv{BTE\_stream\_stdio} of only incurring
 one kernel call per block. However, unlike \myv{BTE\_stream\_mmb}
-(but like \myv{BTE\_stdio}), prefetching is done
+(but like \myv{BTE\_stream\_stdio}), prefetching is done
 implicitly by the filesystem underlying TPIE (and objects
 have to pass through kernel level buffer space)
 %In fact, nowadays, in the case of sequential accesses, most filesystems
@@ -718,18 +716,16 @@ have to pass through kernel level buffer space)
 %acceses, the next block to be accessed is more often than not dependent on
 %the processing of the contents of the current block, so prefetching is
 %difficult to implement or impossible.)
-In \myv{BTE\_ufs} streams, when the asynchronous I/O library
+In \myv{BTE\_stream\_ufs} streams, when the asynchronous I/O library
 \myv{libaio}\index{libaio library@{\tt libaio} library.} is available,
-there is a provision to do (user-level) prefetching within \myv{BTE\_ufs}
+there is a provision to do (user-level) prefetching within \myv{BTE\_stream\_ufs}
 streams but we do not recommend its use on account of the implicit
 filesystem prefetching.
 
 \myv{BTE\_stream\_ufs} class inherits from
-\myv{BTE\_base\_stream}:\comment{LA: Why called
-   BTE\_single\_disk and not BTE\_stream\_ufs?? DH: Yes,
-   this documentation is wrong, but the code should be fixed!!!}
+\myv{BTE\_stream\_base}:
 \begin{verbatim}
-class BTE_single_disk : public BTE_base_stream { 
+class BTE_stream_ufs : public BTE_stream_base { 
   private:
      // descriptor of the mapped file.  
      int fd;
@@ -738,23 +734,23 @@ class BTE_single_disk : public BTE_base_stream {
 \end{verbatim}
 
 \myv{BTE\_stream\_ufs} defines the public member
-functions defined for \myv{BTE\_base\_stream} (please see
+functions defined for \myv{BTE\_stream\_base} (please see
 Section~\ref{sec:imp-bte-base} for a list of these member
 functions and their semantics).  In addition to these it
 defines its own constructors: 
 \index{BTE_stream_ufs@{\tt BTE\_stream\_ufs}!constructors}
 \comment{LA: Why a special substream constructer?}
 \begin{verbatim}
-  BTE_single_disk(const char *dev_path, BTE_stream_type st); 
-  BTE_single_disk(BTE_stream_type st); 
-  BTE_single_disk(BTE_single_disk<T> &s); 
+  BTE_stream_ufs(const char *dev_path, BTE_stream_type st); 
+  BTE_stream_ufs(BTE_stream_type st); 
+  BTE_stream_ufs(BTE_stream_ufs<T> &s); 
   
   // A substream constructor.
-  BTE_single_disk(BTE_single_disk *super_stream,
+  BTE_stream_ufs(BTE_stream_ufs *super_stream,
                  BTE_stream_type st,
                  off_t sub_begin, off_t sub_end);
 \end{verbatim}
-The \myv{BTE\_ufs} header structure is as follows:
+The \myv{BTE\_stream\_ufs} header structure is as follows:
 \index{BTE\_stream\_ufs@{\tt BTE\_stream\_ufs}!header}\index{streams!header block}
 \begin{verbatim}
 struct ufs_stream_header { 
@@ -771,7 +767,7 @@ struct ufs_stream_header {
 \end{verbatim}
 
 
-\index{BTE_ufs@{\tt BTE\_ufs}|)}
+\index{BTE_stream_ufs@{\tt BTE\_stream\_ufs}|)}
 \comment{LA: Discuss implementation!}
 
 
@@ -827,8 +823,8 @@ which are documented in Chapter \ref{cha:reference}.
 %will have to work with various network protocols and drivers to
 %accomplish its task.
 
-(Need some comments on the current simple MM that we have and some OS issues
-that come up in attempting to make it more robust.)
+\comment{(Need some comments on the current simple MM that we have and some OS issues
+that come up in attempting to make it more robust.)}
 
 \index{memory manager|)}
 
@@ -983,7 +979,7 @@ files:
         \myv{AMI\_READ\_WRITE\_STREAM}.
   
         \item defines the member functions of
-        \myv{AMI\_base\_stream} as \myv{virtual} if compile
+        \myv{AMI\_stream\_base} as \myv{virtual} if compile
         time variable \myv{AMI\_VIRTUAL\_BASE} is defined.
     \end{enumerate}    
     
@@ -1692,8 +1688,3 @@ functions:
 %%% mode: latex
 %%% TeX-master: t
 %%% End: 
-
-
-
-
-
