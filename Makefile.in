@@ -1,5 +1,5 @@
 # Makefile for the complete TPIE system.
-# $Id: Makefile.in,v 1.22 2003-09-24 21:42:24 tavi Exp $
+# $Id: Makefile.in,v 1.23 2004-11-17 22:16:21 adanner Exp $
 
 # To compile with debugging symbols, set this to 1.
 MINUSG = 0
@@ -41,16 +41,22 @@ depend: include
 	$(MAKE) -C $(LIBSRCPATH) $@
 	$(MAKE) -C $(TESTPATH) $@
 
+appdirs := bkdtree convex_hull list_rank nas_benchmarks rtree \
+					 spatial_join visualize_btree
 clean:
 	rm -f $(TESTPATH)/Makefile.depend; touch $(TESTPATH)/Makefile.depend
 	$(MAKE) -C $(TESTPATH) $@
 	$(MAKE) -C $(LIBPATH) $@
 	$(MAKE) -C $(INCPATH) $@
+	$(foreach dir, $(appdirs),($(MAKE) -C $(APPSPATH)$(dir) $@);)
 
 dirs := ./ $(TESTPATH) $(LIBPATH) $(LIBSRCPATH) $(INCPATH)
+					 
 distclean: clean
 	rm -f config.log config.cache config.status
 	$(foreach dir,$(dirs),(rm -f $(dir)/*~; rm -f $(dir)/Makefile);)
+	$(foreach dir, $(appdirs),(rm -f $(APPSPATH)$(dir)/*~);)
+	$(foreach dir, $(appdirs),(rm -f $(APPSPATH)$(dir)/Makefile);)
 
 # Private targets.
 
