@@ -2,7 +2,7 @@
 // File: bte_stream_ufs.h (formerly bte_ufs.h)
 // Author: Rakesh Barve <rbarve@cs.duke.edu>
 //
-// $Id: bte_stream_ufs.h,v 1.10 2003-09-22 18:43:08 tavi Exp $
+// $Id: bte_stream_ufs.h,v 1.11 2004-05-05 14:31:56 adanner Exp $
 //
 // BTE streams with blocks I/Oed using read()/write().  This particular
 // implementation explicitly manages blocks, and only ever maps in one
@@ -525,12 +525,40 @@ BTE_stream_ufs < T >::BTE_stream_ufs (BTE_stream_ufs * super_stream,
     remaining_streams--;
 
     // Copy the relevant fields from the super_stream.
-    fd = super_stream->fd;
-    os_block_size_ = super_stream->os_block_size_;
+    
+    r_only = super_stream->r_only;
+    strncpy (path, super_stream->path, BTE_STREAM_PATH_NAME_LEN);
+	os_block_size_ = super_stream->os_block_size_;
     blocksize_items = super_stream->blocksize_items;
     itemsize_div_blocksize = super_stream->itemsize_div_blocksize;
     header = super_stream->header;
     substream_level = super_stream->substream_level + 1;
+
+	//Each substream should have a local file descriptor 
+	//so file_pointer and fd position match
+	//Only READ and WRITE streams allowed
+	switch(st){
+	  case BTE_READ_STREAM:
+		fd=TPIE_OS_OPEN_ORDONLY(path);
+		break;
+	  case BTE_WRITE_STREAM:
+		//file better exist if super_stream exists
+		fd=TPIE_OS_OPEN_ORDWR(path);
+		break;
+	  default:
+	    status_ = BTE_STREAM_STATUS_INVALID;
+	    LOG_FATAL_ID ("BTE internal error: Invalid subtream type.");
+	    return;
+    }
+
+	if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(fd)) {
+	  status_ = BTE_STREAM_STATUS_INVALID;
+	  os_errno = errno;
+	  LOG_FATAL_ID ("open() failed to open " << path);
+	  LOG_FATAL_ID (strerror (os_errno));
+	  assert(0);
+	  return;
+	}
 
     per = PERSIST_PERSISTENT;
 
@@ -575,7 +603,7 @@ BTE_stream_ufs < T >::BTE_stream_ufs (BTE_stream_ufs * super_stream,
     }
 
     f_offset = f_bos;
-    file_pointer = -1; // I don't jnow where the file pointer is.
+    file_pointer = -1; // I don't know where the file pointer is.
     current = curr_block = NULL;
     block_valid = 0;
     block_dirty = 0;
@@ -586,9 +614,6 @@ BTE_stream_ufs < T >::BTE_stream_ufs (BTE_stream_ufs * super_stream,
     f_next_block = 0;
     have_next_block = 0;
 #endif
-
-    r_only = super_stream->r_only;
-    strncpy (path, super_stream->path, BTE_STREAM_PATH_NAME_LEN);
 
     // Register memory_usage for the object corresp to the substream.
     register_memory_allocation (sizeof (BTE_stream_ufs < T >));
