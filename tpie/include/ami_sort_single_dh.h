@@ -1,6 +1,6 @@
 // File: ami_sort_single_dh.h
 //
-// 	$Id: ami_sort_single_dh.h,v 1.2 2000-04-17 02:00:28 hutchins Exp $	
+// 	$Id: ami_sort_single_dh.h,v 1.3 2000-08-14 23:27:23 hutchins Exp $	
 
 // 
 // 
@@ -570,7 +570,7 @@ size_t sort_manager_kobj<T,Q,KEY,CMPR>::space_usage_overhead(void){
 // type T, an output stream, and a user-specified comparison function
 
 template<class T>
-AMI_err AMI_sort_dh(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
+AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
                  int (*cmp)(CONST T&, CONST T&))
 {
     return AMI_partition_and_merge_dh(instream, outstream,
@@ -581,7 +581,7 @@ AMI_err AMI_sort_dh(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
 // T, and an output stream, and and uses the < operator to sort
 
 template<class T>
-AMI_err AMI_sort_dh(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream)
+AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream)
 {
     return AMI_partition_and_merge_dh(instream, outstream,
            sort_manager_op< T, merge_heap_dh_op<T> > () );
@@ -594,7 +594,7 @@ AMI_err AMI_sort_dh(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream)
 // which is used for sorting the input stream.
 
 template<class T, class CMPR>
-AMI_err AMI_sort_dh(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
+AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
                  CMPR *cmp)
 {
     return AMI_partition_and_merge_dh( instream, outstream,
@@ -612,13 +612,15 @@ AMI_err AMI_sort_dh(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
 // record of type T (the type to be sorted). The class KEY must have
 // the comparison operator < defined.
 
-template<class T, class KEY, class CMPR>
-AMI_err 
-AMI_sort_dh_op(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
-	 KEY dummykey, CMPR *cmp) {
-    return AMI_partition_and_merge_dh( instream, outstream, 
-       sort_manager_kop<T,merge_heap_dh_kop<T,KEY,CMPR>,KEY,CMPR>( CMPR() ) );
-}
+//template<class T, class KEY, class CMPR>
+//AMI_err 
+//AMI_key_sort_op(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
+//	 KEY dummykey, CMPR *cmp) {
+//    return AMI_partition_and_merge_dh( instream, outstream, 
+//       sort_manager_kop<T,merge_heap_dh_kop<T,KEY,CMPR>,KEY,CMPR>( CMPR() ) );
+//}
+
+
 // A version of AMI_sort that takes an input stream of elements of
 // type T, an output stream, a key specification, and a user-specified
 // comparison object. 
@@ -632,7 +634,7 @@ AMI_sort_dh_op(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
 
 template<class T, class KEY, class CMPR>
 AMI_err 
-AMI_sort_dh_cmp(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
+AMI_key_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
 	 KEY dummykey, CMPR *cmp) {
     return AMI_partition_and_merge_dh( instream, outstream, 
        sort_manager_kobj<T,merge_heap_dh_kobj<T,KEY,CMPR>,KEY,CMPR>( CMPR() ) );
@@ -647,7 +649,7 @@ AMI_sort_dh_cmp(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
 // T, and an output stream, and and uses the < operator to sort
 
 template<class T>
-AMI_err AMI_sort_pdh(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream)
+AMI_err AMI_ptr_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream)
 {
     return AMI_partition_and_merge_dh(instream, outstream,
            sort_manager_op< T, merge_heap_pdh_op<T> > () );
@@ -656,7 +658,7 @@ AMI_err AMI_sort_pdh(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream)
 // type T, an output stream, and a user-specified comparison function
 
 template<class T>
-AMI_err AMI_sort_pdh(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
+AMI_err AMI_ptr_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
                  int (*cmp)(CONST T&, CONST T&))
 {
     return AMI_partition_and_merge_dh(instream, outstream,
@@ -669,25 +671,12 @@ AMI_err AMI_sort_pdh(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
 // which is used for sorting the input stream.
 
 template<class T, class CMPR>
-AMI_err AMI_sort_pdh(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
+AMI_err AMI_ptr_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
                  CMPR *cmp)
 {
     return AMI_partition_and_merge_dh (instream, outstream,
      sort_manager_obj<T,merge_heap_pdh_obj<T,CMPR>,CMPR> (CMPR()) );
 }
 
-// A version of AMI_sort that takes an input stream of elements of
-// type T, an output stream, and a key specification. The key
-// specification consists of an offset to the starting byte of the
-// key, and an example key, which is used to infer the type of the key
-// field. A comparison operator is assumed to have been defined on
-// objects of this type.
-
-//template<class T, class KEY>
-//AMI_err 
-//AMI_sort_pdh(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
-//	 int keyoffset, KEY dummykey) {
-//  return AMI_partition_and_merge_pdh(instream, outstream, keyoffset, dummykey);
-//}
                           
 #endif // _AMI_SORT_SINGLE_DH_H 
