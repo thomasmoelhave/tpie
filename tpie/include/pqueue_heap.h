@@ -4,14 +4,12 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/4/94
 //
-// $Id: pqueue_heap.h,v 1.6 1999-02-03 18:11:45 tavi Exp $
+// $Id: pqueue_heap.h,v 1.7 1999-12-15 22:02:10 hutchins Exp $
 //
 // A priority queue class implemented as a binary heap.
 //
 #ifndef _PQUEUE_HEAP_H
 #define _PQUEUE_HEAP_H
-
-#include <comparator.h>
 
 // The virtual base class that defines what priority queues must do.
 template <class T, class P>
@@ -73,7 +71,7 @@ struct q_elt {
 // A base class for priority queues that use heaps.
 
 template <class T, class P>
-class pqueue_heap : public pqueue<T,P>
+class pqueue_heap 
 {
 protected:
     // A pointer to the array of elements and their priorities.
@@ -89,7 +87,7 @@ protected:
 
     // Fix up the heap after a deletion.
     
-    virtual void heapify(unsigned int root) = 0;
+    /* virtual void heapify(unsigned int root) = 0; */
 
 public:
     pqueue_heap(unsigned int size);
@@ -105,8 +103,6 @@ public:
     // Min
     void min(T& elt, P& prio);
 
-    // Extract min.
-    bool extract_min(T& elt, P& prio);
 };
 
 
@@ -141,18 +137,6 @@ void pqueue_heap<T,P>::min(T& elt, P& prio) {
     prio = elements->priority;
 }
     
-template <class T, class P>
-bool pqueue_heap<T,P>::extract_min(T& elt, P& prio) {
-    if (!cur_elts) {
-        return false;
-    }
-    elt = elements->elt;
-    prio = elements->priority;
-    elements[0] = elements[--cur_elts];
-    heapify(0);
-
-    return true;
-}
 
 
 // A priority queue that uses a comparison function for comparing
@@ -174,8 +158,23 @@ public:
 
     // Insert
     bool insert(const T& elt, const P& prio);
+    // Extract min.
+    bool extract_min(T& elt, P& prio);
+
 };
 
+template <class T, class P>
+bool pqueue_heap_cmp<T,P>::extract_min(T& elt, P& prio) {
+    if (!cur_elts) {
+        return false;
+    }
+    elt = elements->elt;
+    prio = elements->priority;
+    elements[0] = elements[--cur_elts];
+    heapify(0);
+
+    return true;
+}
 
 template <class T, class P>
 pqueue_heap_cmp<T,P>::pqueue_heap_cmp(unsigned int size,
@@ -248,8 +247,22 @@ public:
 
     // Insert
     bool insert(const T& elt, const P& prio);
+    // Extract min.
+    bool extract_min(T& elt, P& prio);
 };
 
+template <class T, class P>
+bool pqueue_heap_op<T,P>::extract_min(T& elt, P& prio) {
+    if (!cur_elts) {
+        return false;
+    }
+    elt = elements->elt;
+    prio = elements->priority;
+    elements[0] = elements[--cur_elts];
+    heapify(0);
+
+    return true;
+}
 
 template <class T, class P>
 pqueue_heap_op<T,P>::pqueue_heap_op(unsigned int size) :
@@ -304,24 +317,38 @@ void pqueue_heap_op<T,P>::heapify(unsigned int root) {
 
 // A priority queue that uses a comparison object.
 
-template <class T, class P>
+template <class T, class P, class CMPR>
 class pqueue_heap_obj : public pqueue_heap<T,P>
 {
 private:
-    comparator<P> *cmp_o;
+    CMPR *cmp_o;
     void heapify(unsigned int root);
 
 public:
-    pqueue_heap_obj(unsigned int size, comparator<P> *cmp);
+    pqueue_heap_obj(unsigned int size, CMPR *cmp);
     virtual ~pqueue_heap_obj(void) {};
 
     // Insert
     bool insert(const T& elt, const P& prio);
+    // Extract min.
+    bool extract_min(T& elt, P& prio);
 };
 
+template <class T, class P, class CMPR>
+bool pqueue_heap_obj<T,P,CMPR>::extract_min(T& elt, P& prio) {
+    if (!cur_elts) {
+        return false;
+    }
+    elt = elements->elt;
+    prio = elements->priority;
+    elements[0] = elements[--cur_elts];
+    heapify(0);
 
-template <class T, class P>
-pqueue_heap_obj<T,P>::pqueue_heap_obj(unsigned int size, comparator<P> *cmp)
+    return true;
+}
+
+template <class T, class P, class CMPR>
+pqueue_heap_obj<T,P,CMPR>::pqueue_heap_obj(unsigned int size, CMPR *cmp)
         : pqueue_heap<T,P>(size)
 
 {
@@ -329,8 +356,8 @@ pqueue_heap_obj<T,P>::pqueue_heap_obj(unsigned int size, comparator<P> *cmp)
 }
 
 
-template <class T, class P>
-bool pqueue_heap_obj<T,P>::insert(const T& elt, const P& prio) {
+template <class T, class P, class CMPR>
+bool pqueue_heap_obj<T,P,CMPR>::insert(const T& elt, const P& prio) {
     unsigned int ii;
     
     if (full()) {
@@ -348,8 +375,8 @@ bool pqueue_heap_obj<T,P>::insert(const T& elt, const P& prio) {
     return true;
 }                                       
 
-template <class T, class P>
-void pqueue_heap_obj<T,P>::heapify(unsigned int root) {
+template <class T, class P, class CMPR>
+void pqueue_heap_obj<T,P,CMPR>::heapify(unsigned int root) {
     unsigned int min_index = root;
     unsigned int lc = lchild(root);
     unsigned int rc = rchild(root);
