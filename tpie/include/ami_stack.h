@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/15/94
 //
-// $Id: ami_stack.h,v 1.5 2003-04-20 23:57:20 tavi Exp $
+// $Id: ami_stack.h,v 1.6 2003-09-17 02:54:55 tavi Exp $
 //
 #ifndef _AMI_STACK_H
 #define _AMI_STACK_H
@@ -17,16 +17,24 @@
 template<class T>
 class AMI_stack : public AMI_STREAM<T> {
 public:
-    AMI_stack(); 
-    ~AMI_stack(void);
-    AMI_err push(const T &t);
-    AMI_err pop(T **t);
+  AMI_stack(); 
+  AMI_stack(const char* path, 
+	    AMI_stream_type type = AMI_READ_WRITE_STREAM);
+  ~AMI_stack(void);
+  AMI_err push(const T &t);
+  AMI_err pop(T **t);
 };
 
 
 template<class T>
 AMI_stack<T>::AMI_stack() :
         AMI_STREAM<T>()
+{
+}
+
+template<class T>
+AMI_stack<T>::AMI_stack(const char* path, AMI_stream_type type):
+        AMI_STREAM<T>(path, type)
 {
 }
 
