@@ -3,7 +3,7 @@
 // File:    ami_btree.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_btree.h,v 1.20 2003-04-29 05:29:42 tavi Exp $
+// $Id: ami_btree.h,v 1.21 2003-05-04 21:48:01 tavi Exp $
 //
 // AMI_btree declaration and implementation.
 //
@@ -33,8 +33,6 @@
 #include <tpie_stats_tree.h>
 // The tpie_tempnam() function
 #include <tpie_tempnam.h>
-// The triple class.
-#include <triple.h>
 
 enum AMI_btree_status {
   AMI_BTREE_STATUS_VALID,
@@ -328,7 +326,7 @@ protected:
   void release_node(node_t* p);
 };
 
-// Shortcuts.
+// Define shortcuts.
 #define AMI_BTREE_NODE AMI_btree_node<Key, Value, Compare, KeyOfValue, BTECOLL>
 #define AMI_BTREE_LEAF AMI_btree_leaf<Key, Value, Compare, KeyOfValue, BTECOLL>
 #define AMI_BTREE      AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>
@@ -346,10 +344,17 @@ protected:
 // proves costly, we keep them.
 #define LEAF_PREV_POINTER 1
 
+// The Info element of a leaf.
+struct __AMI_btree_leaf_info {
+  size_t size;
+  AMI_bid prev;
+  AMI_bid next;
+};
+
 // The AMI_btree_leaf class.
 // Stores size() elements of type Value.
 template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL = BTE_COLLECTION >
-class AMI_btree_leaf: public AMI_block<Value, triple<size_t, AMI_bid, AMI_bid>, BTECOLL> {
+class AMI_btree_leaf: public AMI_block<Value, __AMI_btree_leaf_info, BTECOLL> {
 
   Compare comp_;
 
@@ -387,17 +392,17 @@ public:
   AMI_btree_leaf(AMI_collection_single<BTECOLL>* pcoll, AMI_bid bid = 0);
 
   // Number of elements stored in this leaf.
-  size_t& size() { return info()->first; }
-  const size_t& size() const { return info()->first; }
+  size_t& size() { return info()->size; }
+  const size_t& size() const { return info()->size; }
 
   // Maximum number of elements that can be stored in this leaf.
   size_t capacity() const { return el.capacity(); }
 
-  AMI_bid& prev() { return info()->second; }
-  const AMI_bid& prev() const { return info()->second; }
+  AMI_bid& prev() { return info()->prev; }
+  const AMI_bid& prev() const { return info()->prev; }
 
-  AMI_bid& next() { return info()->third; }
-  const AMI_bid& next() const { return info()->third; }
+  AMI_bid& next() { return info()->next; }
+  const AMI_bid& next() const { return info()->next; }
 
   bool full() const { return size() == capacity(); }
 
@@ -501,13 +506,13 @@ public:
 
 template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
 size_t AMI_BTREE_LEAF::el_capacity(size_t block_size) {
-  return AMI_block<Value, triple<size_t, AMI_bid, AMI_bid> >::el_capacity(block_size, 0);
+  return AMI_block<Value, __AMI_btree_leaf_info, BTECOLL>::el_capacity(block_size, 0);
 }
 
 //// *AMI_btree_leaf::AMI_btree_leaf* ////
 template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
 AMI_BTREE_LEAF::AMI_btree_leaf(AMI_collection_single<BTECOLL>* pcoll, AMI_bid lbid)
-              : AMI_block<Value, triple<size_t, AMI_bid, AMI_bid>, BTECOLL>(pcoll, 0, lbid) {
+              : AMI_block<Value, __AMI_btree_leaf_info, BTECOLL>(pcoll, 0, lbid) {
   if (lbid == 0) {
     size() = 0;
     next() = 0;
@@ -2050,5 +2055,10 @@ const tpie_stats_tree& AMI_BTREE::stats() {
   stats_.set(NODE_COUNT, pcoll_nodes_->size());
   return stats_;
 }
+
+// Undefine shortcuts.
+#undef AMI_BTREE_NODE 
+#undef AMI_BTREE_LEAF 
+#undef AMI_BTREE      
 
 #endif // _AMI_BTREE_H
