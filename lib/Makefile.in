@@ -1,0 +1,38 @@
+# Copyright (c) 1994 Darren Erik Vengroff
+#
+# The Makefile for the TPIE library.
+#
+# $Id: Makefile.in,v 1.1 1994-08-31 19:35:41 darrenv Exp $
+#
+
+LIBRARY = libtpie.a
+
+LIBSRCPATH = ./src/
+
+RANLIB = ranlib
+
+export
+
+
+UP_TO_DATE = .up_to_date
+
+$(UP_TO_DATE): $(LIBRARY)
+	touch $@
+
+$(LIBRARY): $(LIBSRCPATH)$(UP_TO_DATE)
+	cp $(LIBSRCPATH)$(LIBRARY) $@
+	$(RANLIB) $@
+
+$(LIBSRCPATH)$(UP_TO_DATE): $(LIBSRCPATH)*.cpp
+	make -e -C $(LIBSRCPATH) $(UP_TO_DATE)
+
+.PHONY : clean
+
+clean:
+	-rm $(LIBRARY)
+	-rm $(UP_TO_DATE)
+	$(MAKE) -C $(LIBSRCPATH) $@
+
+
+
+
