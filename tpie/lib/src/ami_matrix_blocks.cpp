@@ -5,7 +5,7 @@
 // Created: 12/11/94
 //
 
-static char ami_matrix_blocks_id[] = "$Id: ami_matrix_blocks.cpp,v 1.1 1995-01-10 16:54:49 darrenv Exp $";
+static char ami_matrix_blocks_id[] = "$Id: ami_matrix_blocks.cpp,v 1.2 1999-11-23 17:43:42 tavi Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -38,7 +38,7 @@ perm_matrix_into_blocks::~perm_matrix_into_blocks()
 
 AMI_err perm_matrix_into_blocks::initialize(off_t len)
 {
-    return (r * c == len) ? AMI_ERROR_NO_ERROR : AMI_MATRIX_BOUNDS;
+    return ((off_t) (r * c) == len) ? AMI_ERROR_NO_ERROR : AMI_MATRIX_BOUNDS;
 }
 
 off_t perm_matrix_into_blocks::destination(off_t source)
@@ -92,7 +92,7 @@ perm_matrix_outof_blocks::~perm_matrix_outof_blocks()
 
 AMI_err perm_matrix_outof_blocks::initialize(off_t len)
 {
-    return (r * c == len) ? AMI_ERROR_NO_ERROR : AMI_MATRIX_BOUNDS;
+    return ((off_t) (r * c) == len) ? AMI_ERROR_NO_ERROR : AMI_MATRIX_BOUNDS;
 }
 
 off_t perm_matrix_outof_blocks::destination(off_t source)
