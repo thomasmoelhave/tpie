@@ -11,13 +11,14 @@
 // Define it all.
 #include <ami.h>
 
-VERSION(scan_random_point_cpp,"$Id: scan_random_point.cpp,v 1.7 2003-09-12 01:36:18 tavi Exp $");
+VERSION(scan_random_point_cpp,"$Id: scan_random_point.cpp,v 1.8 2003-09-12 02:56:13 jan Exp $");
 
 #include "scan_random_point.h"
 
-scan_random_point::scan_random_point(unsigned int count, int seed) :
-max(count), remaining(count)
+scan_random_point::scan_random_point(unsigned int count, int seed) 
 {
+    this->max = count;
+    this->remaining = count;
     LOG_APP_DEBUG("scan_random_point seed = ");
     LOG_APP_DEBUG(seed);
     LOG_APP_DEBUG('\n');
@@ -32,7 +33,7 @@ scan_random_point::~scan_random_point(void)
 
 AMI_err scan_random_point::initialize(void)
 {
-    remaining = max;
+    this->remaining = this->max;
 
     return AMI_ERROR_NO_ERROR;
 };
