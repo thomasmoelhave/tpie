@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/6/94
 //
-// $Id: app_config.h,v 1.26 2002-07-21 18:18:58 tavi Exp $
+// $Id: app_config.h,v 1.27 2002-07-21 18:42:51 tavi Exp $
 //
 #ifndef _APP_CONFIG_H
 #define _APP_CONFIG_H
@@ -56,8 +56,12 @@ extern int random_seed;
 // <><><><><><><><><><><><><><><><><><><><><><><><> //
 
 #ifdef BTE_COLLECTION_IMP_MMAP
-// define write behavior (default 0, ie, synchronous writes.) 
-#  define BTE_COLLECTION_MMAP_ASYNC_WRITE 0
+// Define write behavior.
+// Allowed values:
+//  0    (synchronous writes)
+//  1    (asynchronous writes using MS_ASYNC - see msync(2)) [default]
+//  2    (asynchronous bulk writes)
+#  define BTE_COLLECTION_MMAP_LAZY_WRITE 1
 #endif
 
 // <><><><><><><><><><><><><><><><><><><><><><><><> //
