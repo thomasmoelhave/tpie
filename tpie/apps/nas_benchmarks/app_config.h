@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/6/94
 //
-// $Id: app_config.h,v 1.13 1999-02-05 23:35:50 rbarve Exp $
+// $Id: app_config.h,v 1.14 1999-03-28 04:21:10 rbarve Exp $
 //
 #ifndef _APP_CONFIG_H
 #define _APP_CONFIG_H
@@ -67,6 +67,12 @@
 
 
 /* ********************************************************************** */
+/* choose the block collection class implementation */
+/* ********************************************************************** */
+//#define BCC_IMP_MMB
+//#define BCC_IMP_UFS
+
+/* ********************************************************************** */
 /* BTE_MMB configuration options */
 /* ********************************************************************** */
 #ifdef BTE_IMP_MMB
@@ -126,6 +132,9 @@
 
 
 
+
+
+
 /* ********************************************************************** */
 /* BTE_CACHE configuration options */
 /* ********************************************************************** */
@@ -136,6 +145,24 @@
 
 /* ********************************************************************** */
 
+
+
+
+/* ********************************************************************** */
+/* Block collection options : Set similarly to BTE options */
+/* ********************************************************************** */
+
+#ifdef BCC_IMP_UFS
+#define MMAPPED_BCC 0
+#define BCC_LOGICAL_BLOCK_FACTOR 32
+#endif
+
+#ifdef BCC_IMP_MMB
+#define BCC_LOGICAL_BLOCK_FACTOR 32
+#define MMAPPED_BCC 1
+#endif
+
+/********************************************************************/
 
 // Set up some defaults for the apps.
 #define DEFAULT_TEST_SIZE (1024 * 1024 * 8)
