@@ -8,12 +8,18 @@
 // lower level streams will use appropriate levels of buffering.  This
 // will be more critical for parallel disk implementations.
 //
-// $Id: ami_merge.h,v 1.3 1994-09-16 13:24:48 darrenv Exp $
+// $Id: ami_merge.h,v 1.4 1994-09-22 14:52:29 darrenv Exp $
 //
 #ifndef _AMI_MERGE_H
 #define _AMI_MERGE_H
 
 #include <ami_ptr.h>
+
+
+enum AMI_merge_output_type {
+    AMI_MERGE_OUTPUT_OVERWRITE = 1,
+    AMI_MERGE_OUTPUT_APPEND
+};
 
 typedef int AMI_merge_flag;
 typedef unsigned int arity_t;
@@ -26,13 +32,16 @@ public:
                                AMI_merge_flag *taken_flags) = 0;
     virtual AMI_err operate(const T **in, AMI_merge_flag *taken_flags,
                             T *out) = 0;
+    virtual AMI_err main_mem_operate(T* mm_stream, size_t len) = 0;
+    virtual size_t space_usage_overhead(void) = 0;
+    virtual size_t space_usage_per_stream(void) = 0;
 };
 
 
 
 template<class T, class M>
 static AMI_err AMI_recursive_merge(pp_AMI_bs<T> instreams, arity_t arity,
-                                   AMI_base_stream<T> *outstream, M *mobj)
+                                   AMI_base_stream<T> *outstream, M *m_obj)
 {
     size_t sz_avail;
     size_t sz_stream;
@@ -89,7 +98,7 @@ static AMI_err AMI_recursive_merge(pp_AMI_bs<T> instreams, arity_t arity,
 
 template<class T, class M>
 static AMI_err AMI_single_merge(pp_AMI_bs<T> instreams, arity_t arity,
-                  AMI_base_stream<T> *outstream, M *mobj)
+                                AMI_base_stream<T> *outstream, M *m_obj)
 {
     unsigned int ii;
     AMI_err ami_err;
@@ -122,7 +131,7 @@ static AMI_err AMI_single_merge(pp_AMI_bs<T> instreams, arity_t arity,
     }
 
     // Initialize the merge object.
-    if (mobj->initialize(arity, in_objects, taken_flags) !=
+    if (m_obj->initialize(arity, in_objects, taken_flags) !=
         AMI_ERROR_NO_ERROR) {
         return AMI_ERROR_OBJECT_INITIALIZATION;
     }
@@ -144,7 +153,7 @@ static AMI_err AMI_single_merge(pp_AMI_bs<T> instreams, arity_t arity,
             // Clear all flags before operate is called.
             taken_flags[ii] = 0;
         }
-        ami_err = mobj->operate(in_objects, taken_flags, &merge_out);
+        ami_err = m_obj->operate(in_objects, taken_flags, &merge_out);
         if (ami_err == AMI_MERGE_DONE) {
             break;
         } else if (ami_err == AMI_MERGE_OUTPUT) {
@@ -163,7 +172,7 @@ static AMI_err AMI_single_merge(pp_AMI_bs<T> instreams, arity_t arity,
 
 template<class T, class M>
 AMI_err AMI_merge(pp_AMI_bs<T> instreams, arity_t arity,
-                  AMI_base_stream<T> *outstream, M *mobj)
+                  AMI_base_stream<T> *outstream, M *m_obj)
 {
     size_t sz_avail;
     size_t sz_stream, sz_needed;
@@ -195,24 +204,22 @@ AMI_err AMI_merge(pp_AMI_bs<T> instreams, arity_t arity,
         
         // Make sure we have a temporary stream to merge to before we
     	// do a recursive merge.
-        return AMI_recursive_merge(instreams, arity, outstream, mobj);
+        return AMI_recursive_merge(instreams, arity, outstream, m_obj);
 
     } else {
-        return AMI_single_merge(instreams, arity, outstream, mobj);
+        return AMI_single_merge(instreams, arity, outstream, m_obj);
     }
 
 };
 
 
-
-// Recursive division of a stream and then merging back together.
 template<class T, class M>
-AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
-                                AMI_STREAM<T> *outstream, M *mobj) 
+static AMI_err AMI_main_mem_merge(AMI_STREAM<T> *instream,
+                                  AMI_STREAM<T> *outstream, M *m_obj) 
 {
     AMI_err ae;
     off_t len;
-    size_t sz_avail, sz_stream;
+    size_t sz_avail;
     
     // Figure out how much memory we've got to work with.
 
@@ -220,18 +227,29 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
         return AMI_ERROR_MM_ERROR;
     }
 
-    // If the whole input stream can fit in main memory, then load it
-    // and call the bottoming out function.
+    // If the whole input can fit in main memory then just call
+    // AMI_main_mem_merge() to deal with it by loading it once and
+    // processing it.
 
     len = instream->stream_len();
 
     if ((len * sizeof(T)) <= sz_avail) {
-        MM_ptr<T> mm_stream;
 
-        if (!(mm_stream = MM_manager->alloc(len * sizeof(T)))) {
+        T *mm_stream;
+        off_t len1;
+
+        instream->seek(0);
+        
+        // This code is sloppy and has to be rewritten correctly for
+        // parallel buffer allocation.  It will not work with anything
+        // other than a registration based memory manager.
+        
+        if ((mm_stream = new T[len]) == NULL) {
             return AMI_ERROR_MM_ERROR;
-        }
+        };
 
+        len1 = len;
+        
         if ((ae = instream->read_array(mm_stream, &len1)) !=
             AMI_ERROR_NO_ERROR) {
             return ae;
@@ -240,7 +258,7 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
         tp_assert(len1 = len, "Did not read the right amount; "
                   "Allocated space for " << len << ", read " << len1 << '.');
 
-        if ((ae = (*mm_operate)(mm_stream, len)) !=
+        if ((ae = m_obj->main_mem_operate(mm_stream, len)) !=
             AMI_ERROR_NO_ERROR) {
             return ae;
         }
@@ -250,56 +268,382 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
             return ae;
         }
 
-        MM_manager->free(mm_stream);
+        delete mm_stream;
 
         return AMI_ERROR_NO_ERROR;
 
     } else {
 
-        // It won't all fit, so we have to recurse.
-
-        tp_assert(0, "Recursive part not implemented yet.");
+        // Something went wrong.  We should not have called this
+        // function, since we don't have enough mein memory.
 
         return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
     }
 };
 
 
-#if 0
-    // How much memory do we need for each substream?
-
-    if ((ae = instream->main_memory_usage(&sz_stream,
-                                          MM_STREAM_USAGE_SUBSTREAM)) !=
-                                          AMI_ERROR_NO_ERROR) {
-        return ae;
-    }                                     
+// Recursive division of a stream and then merging back together.
+template<class T, class M>
+AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
+                                AMI_STREAM<T> *outstream, M *m_obj) 
+{
+    AMI_err ae;
+    off_t len;
+    size_t sz_avail, sz_stream;
+    unsigned int ii, jj;
     
-    // Determine how many substreams we can merge at a time.
+    // Figure out how much memory we've got to work with.
 
-    substream_arity = sz_avail / sz_stream;
+    if (MM_manager.available(&sz_avail) != MM_ERROR_NO_ERROR) {
+        return AMI_ERROR_MM_ERROR;
+    }
 
-    // Determine the depth of recursion.  What is important is whether
-    // it is even or odd, since that will determine whether we start
-    // out going to the output stream or to the shadow stream.
+    // If the whole input can fit in main memory then just call
+    // AMI_main_mem_merge() to deal with it by loading it once and
+    // processing it.
 
-    
-    
-    // If the recursion depth exceeds 1 the create a shadow stream as
-    // large as the input stream.
+    len = instream->stream_len();
 
-    // Partition the input stream into substreams that fit into memory,
-    // read each in as it is created, process it, and send it to the
-    // appropriate substream of the shadow stream or output stream.
+    if ((len * sizeof(T)) <= sz_avail) {
 
-    // Iterate through the levels of recursion.  At each level, create
-    // the appropriate substreams of the output (resp. shadow) stream
-    // and merge them into a substream of the shadow (resp. output)
-    // stream.
-    
-    return AMI_ERROR_NO_ERROR;
-};
+        return AMI_main_mem_merge(instream, outstream, m_obj);
+
+    } else {
+
+        // The number of substreams that the original input stream
+        // will be split into.
+        
+        arity_t original_substreams;
+
+        // The length, in terms of stream objects of type T, of the
+        // original substreams of the input stream.  The last one may
+        // be shorter than this.
+        
+        size_t sz_original_substream;
+
+        // The initial temporary stream, to which substreams of the
+        // original input stream are written.
+
+        AMI_STREAM<T> *initial_tmp_stream;
+        
+        // The number of substreams that can be merged together at once.
+
+        arity_t merge_arity;
+
+        // A pointer to the buffer in main memory to read a memory load into.
+        T *mm_stream;
+        
+        // Loop variables:
+
+        // The stream being read at the current level.
+        
+        AMI_STREAM<T> *current_input;
+
+        // The output stream for the current level if it is not outstream.
+
+        AMI_STREAM<T> *intermediate_tmp_stream;
+        
+        // The size of substreams of *current_input that are being
+        // merged.  The last one may be smaller.  This value should be
+        // sz_original_substream * (merge_arity ** k) where k is the
+        // number of iterations the loop has gone through.
+        
+        size_t current_substream_len;
+
+        // The exponenent used to verify that current_substream_len is
+        // correct.
+        
+        unsigned int k;
+
+        off_t sub_start, sub_end;
+
+
+        // How many substreams will there be?  The main memory
+        // available to us is the total amount available, minus what
+        // is needed for the input stream and the temporary stream.
+
+        if ((ae = instream->main_memory_usage(&sz_stream,
+                                              MM_STREAM_USAGE_MAXIMUM)) !=
+                                              AMI_ERROR_NO_ERROR) {
+            return ae;
+        }                                     
+
+        if (sz_avail <= 2 * sz_stream + sizeof(T)) {
+            return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
+        }
+        
+        sz_avail -= 2 * sz_stream;
+
+        sz_original_substream = sz_avail / sizeof(T);
+
+        original_substreams = (len + sz_original_substream - 1) /
+            sz_original_substream;
+
+        // Create a temporary stream, then iterate through the
+        // substreams, processing each one and writing it to the
+        // corresponding substream of the temporary stream.
+
+        initial_tmp_stream = new AMI_STREAM<T>(1,len);
+
+        mm_stream = new T[sz_original_substream];
+
+        tp_assert(mm_stream != NULL, "Misjudged available main memory.");
+
+        if (mm_stream == NULL) {
+            return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
+        }
+
+        instream->seek(0);
+        
+        for (ii = 0; ii++ < original_substreams; ) {
+            off_t mm_len = (ii == original_substreams) ?
+                len % sz_original_substream : sz_original_substream;
+
+#if DEBUG_ASSERTIONS
+            off_t mm_len_bak = mm_len;
 #endif
+            
+            // Read a memory load out of the input stream.
+            ae = instream->read_array(mm_stream, &mm_len);
+            if (ae != AMI_ERROR_NO_ERROR) {
+                return ae;
+            }
 
-#endif // _AMI_MERGE_H 
+            tp_assert(mm_len == mm_len_bak,
+                      "Did not read the requested number of objects." <<
+                      "\n\tmm_len = " << mm_len <<
+                      "\n\tmm_len_bak = " << mm_len_bak << '.');
+                      
+            // Solve in main memory.
+            m_obj->main_mem_operate(mm_stream, mm_len);
 
+            // Write the result out to the temporary stream.
+            ae = initial_tmp_stream->write_array(mm_stream, mm_len);
+            if (ae != AMI_ERROR_NO_ERROR) {
+                return ae;
+            }            
+        }
 
+        delete mm_stream;
+
+        // Make sure the total length of the temporary stream is the
+        // same as the total length of the original input stream.
+
+        tp_assert(instream->stream_len() == initial_tmp_stream->stream_len(),
+                  "Stream lengths do not match:" <<
+                  "\n\tinstream->stream_len() = " << instream->stream_len() <<
+                  "\n\tinitial_tmp_stream->stream_len() = " <<
+                  initial_tmp_stream->stream_len() << ".\n");
+
+        // Set up the loop invariants for the first iteration of hte
+        // main loop.
+
+        current_input = initial_tmp_stream;
+        current_substream_len = sz_original_substream;
+
+        // Account for the space that a merge object will use.
+
+        sz_avail -= m_obj->space_usage_overhead();
+        sz_stream += m_obj->space_usage_per_stream();
+           
+        merge_arity = (sz_avail + sz_stream - 1) / sz_stream;
+
+        LOG_INFO("AMI_partition_and_merge(): merge arity = " <<
+                 merge_arity << ".\n");
+        
+        if (merge_arity < 2) {
+            return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
+        }
+
+        // Pointers to the substreams that will be merged.
+        
+        AMI_STREAM<T> **the_substreams = new (AMI_STREAM<T> *)[merge_arity];
+
+        k = 0;
+        
+        // The main loop.  At the outermost level we are looping over
+        // levels of the merge tree.  Typically this will be very
+        // small, e.g. 1-3.
+
+        for( ; current_substream_len < len;
+               current_substream_len *= merge_arity) {
+
+            // The number of substreams to be processed at this level.
+            
+            arity_t substream_count;
+            
+            // Set up to process a given level.
+
+            tp_assert(len == current_input->stream_len(),
+                      "Current level stream not same length as input." <<
+                      "\n\tlen = " << len <<
+                      "\n\tcurrent_input->stream_len() = " <<
+                      current_input->stream_len() << ".\n");
+
+            // Do we have enough main memory to merge all the
+            // substreams on the current level into the output stream?
+            // If so, then we will do so, if not then we need an
+            // additional level of iteration to process the substreams
+            // in groups.
+
+            substream_count = (len + current_substream_len - 1) /
+                current_substream_len;
+            
+            if (substream_count <= merge_arity) {
+
+                LOG_INFO("Merging substreams directly to the output stream.\n");
+                // Create all the substreams
+
+                for (sub_start = 0, ii = 0 ;
+                     ii < substream_count;
+                     sub_start += current_substream_len, ii++) {
+
+                    sub_end = sub_start + current_substream_len - 1;
+                    if (sub_end >= len) {
+                        sub_end = len - 1;
+                    }
+                    current_input->new_substream(AMI_READ_STREAM,
+                                                 sub_start,
+                                                 sub_end,
+                                                 (AMI_base_stream<T> **)
+                                                 (the_substreams + ii));
+                }               
+
+                tp_assert((sub_start >= len) &&
+                          (sub_start < len + current_substream_len),
+                          "Loop ended in wrong location.");
+                          
+                // Merge them into the output stream.
+
+                ae = AMI_single_merge((pp_AMI_bs<T>)the_substreams,
+                                      substream_count,
+                                      (AMI_base_stream<T> *)outstream, m_obj);
+                if (ae != AMI_ERROR_NO_ERROR) {
+                    return ae;
+                }
+                
+                // Delete the substreams.
+
+                for (ii = 0; ii < substream_count; ii++) {
+                    delete the_substreams[ii];
+                }
+
+                // And the current input, which is an inptermediate stream
+                // of some kind.
+
+                delete current_input;
+                
+            } else {
+
+                LOG_INFO("Merging substreams to an intermediate stream.\n");
+
+                // Create the next intermediate stream.
+
+                intermediate_tmp_stream = new AMI_STREAM<T>(1,len);
+                
+                // Loop through the substreams of the current stream,
+                // merging as many as we can at a time until all are
+                // done with.
+
+                for (sub_start = 0, ii = 0, jj = 0;
+                     ii < substream_count;
+                     sub_start += current_substream_len, ii++, jj++) {
+
+                    sub_end = sub_start + current_substream_len - 1;
+                    if (sub_end >= len) {
+                        sub_end = len - 1;
+                    }
+
+                    current_input->new_substream(AMI_READ_STREAM,
+                                                 sub_start,
+                                                 sub_end,
+                                                 (AMI_base_stream<T> **)
+                                                 (the_substreams + jj));
+
+                    // If we've got all we can handle or we've seen
+                    // them all, then merge them.
+                    
+                    if ((jj >= merge_arity - 1) ||
+                        (ii == substream_count - 1)) {
+                        
+                        tp_assert(jj <= merge_arity - 1,
+                                  "Index got too large.");
+
+#if DEBUG_ASSERTIONS
+                        // Check the lengths before the merge.
+                        
+                        size_t sz_output, sz_output_after_merge;
+                        size_t sz_substream, sz_substream_total;
+
+                        {
+                            unsigned int kk;
+
+                            sz_output = intermediate_tmp_stream->stream_len();
+                            sz_substream_total = 0;
+                            
+                            for (kk = jj+1; kk--; ) {
+                                sz_substream_total +=
+                                    the_substreams[kk]->stream_len();
+                            }                          
+                                
+                        }
+#endif // DEBUG_ASSERTIONS
+                        
+                        // This should append to the stream, since
+                        // AMI_single_merge() does not rewind the
+                        // output before merging.
+                        ae = AMI_single_merge((pp_AMI_bs<T>)the_substreams,
+                                              jj+1,
+                                              (AMI_base_stream<T> *)
+                                              intermediate_tmp_stream,
+                                              m_obj);
+                        
+                        if (ae != AMI_ERROR_NO_ERROR) {
+                            return ae;
+                        }
+
+#if DEBUG_ASSERTIONS
+                        // Verify the total lengths after the merge.
+
+                        sz_output_after_merge =
+                            intermediate_tmp_stream->stream_len();
+
+                        tp_assert(sz_output_after_merge - sz_output ==
+                                  sz_substream_total,
+                                  "Stream lengths do not add up.");
+                                  
+#endif // DEBUG_ASSERTIONS                        
+                        
+                        // Delete the substreams.  jj is currently the index
+                        // of the largest, so we want to bump it up before the
+                        // idomatic loop.
+
+                        for (jj++; jj--; ) {
+                            delete the_substreams[jj];
+                        }
+
+                        // Now jj should be -1 so that it gets bumped
+                        // back up to 0 before the next iteration of
+                        // the outer loop.
+                        tp_assert((jj == -1), "Index not reduced to -1.");
+                        
+                    }               
+
+                }
+
+                // Get rid of the current input stream and use the next one.
+
+                delete current_input;
+                current_input = intermediate_tmp_stream;
+                
+            }
+            
+            k++;
+
+        }
+
+        return AMI_ERROR_NO_ERROR;
+    }
+}
+
+#endif
