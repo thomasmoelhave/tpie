@@ -1,0 +1,32 @@
+THIS IS THE TPIE CHANGE LOG
+
+New release :     0.9.01b
+Previous Release: 0.9.01a
+Changes:
+
+1) compile error in ::operator new with gcc-2.95 fixed
+
+2) performance improvement made in quicksort
+
+3) documentation changes: manual revised and expanded
+
+New release:      0.9.01a
+Previous release: 0.8.02a
+Changes:
+
+1) bug in bte_mmb seek() and truncate() fixed
+
+2) bug in ::operator new fixed
+
+New release:      0.8.02a
+Previous release: 0.8.01a
+Changes:
+
+1) ami_scan no longer performs a seek(0) on output streams before the
+   scan - its now the users responsibility (allows several scans to
+   append output to the same stream).
+	
+2) Bug in quicksort (when sorting small sets) fixed
+
+3) A number of bugs in connection with substreams fixed.
+	
