@@ -1,16 +1,16 @@
-// 	$Id: mergeheap.h,v 1.6 1999-11-23 16:49:10 tavi Exp $	
+//
+// File: mergeheap.h
+// Author:  Rakesh Barve <rbarve@cs.duke.edu>
+//
+// Id: mergeheap.h,v 1.6 1999/11/23 16:49:10 tavi Exp tavi $
 
-//Rakesh Barve.
-//A template useful during merge operations. 
-//Basically a heap can be maintained on keys;
-//so that the log n comparisons per item involve
-//touching an array of keys; not items.
-// The heap is basically the heap from CLR
-//except that there is provision to exploit the
-//fact that when you are merging you know you will
-//be inserting a new element whenever you are
-//doing a delete_min.
-
+// A template useful during merge operations. Basically a heap can be
+// maintained on keys; so that the log n comparisons per item involve
+// touching an array of keys; not items. The heap is basically the
+// heap from CLR except that there is provision to exploit the fact
+// that when you are merging you know you will be inserting a new
+// element whenever you are doing a delete_min.
+//
 
 #ifndef _MERGE_HEAP_H
 #define _MERGE_HEAP_H
