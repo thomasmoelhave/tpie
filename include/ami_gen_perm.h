@@ -4,12 +4,15 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 11/1/94
 //
-// $Id: ami_gen_perm.h,v 1.10 1999-07-03 20:43:26 rajiv Exp $
+// $Id: ami_gen_perm.h,v 1.11 2003-04-17 12:20:59 jan Exp $
 //
 // General permutation.
 //
 #ifndef _AMI_GEN_PERM_H
 #define _AMI_GEN_PERM_H
+
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 #include <ami_gen_perm_object.h>
 
@@ -70,10 +73,10 @@ template<class T>
 class dest_obj {
 private:
     T t;
-    off_t dest;
+    TPIE_OS_OFFSET dest;
 public:
     dest_obj(void) {};
-    dest_obj(T t_in, off_t d) : t(t_in), dest(d) {};
+    dest_obj(T t_in, TPIE_OS_OFFSET d) : t(t_in), dest(d) {};
     ~dest_obj(void) {};
 #if (__GNUC__ > 2) || (__GNUC__ == 2 &&  __GNUC_MINOR__ >= 8)
     friend int operator< <> (const dest_obj<T> &s, const dest_obj<T> &t);

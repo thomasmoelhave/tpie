@@ -4,13 +4,16 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 1/9/95
 //
-// $Id: ami_bit_permute.h,v 1.5 1999-02-03 17:11:23 tavi Exp $
+// $Id: ami_bit_permute.h,v 1.6 2003-04-17 12:01:35 jan Exp $
 //
 // For the moment this is done in terms of general permutations.
 // This will obviously change in the future.
 //
 #ifndef _AMI_BIT_PERMUTE_H
 #define _AMI_BIT_PERMUTE_H
+
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 // For bit_matrix.
 #include <bit_matrix.h>
@@ -49,18 +52,18 @@ public:
         src_bits = new bit_matrix(c.rows(),1);
     };
     
-    AMI_err initialize(off_t /*stream_len*/) {
+    AMI_err initialize(TPIE_OS_OFFSET /*stream_len*/) {
         return AMI_ERROR_NO_ERROR;
     }
     
-    off_t destination(off_t input_offset) {
+    TPIE_OS_OFFSET destination(TPIE_OS_OFFSET input_offset) {
         
         *src_bits = input_offset;
 
         bit_matrix r1 = A * *src_bits;
         bit_matrix res = r1 + c;
 
-        return off_t(res);
+        return TPIE_OS_OFFSET(res);
     }
 };
 

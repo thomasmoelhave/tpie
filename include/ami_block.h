@@ -5,11 +5,14 @@
 //
 // Definition and implementation of the AMI_block class.
 //
-// $Id: ami_block.h,v 1.4 2002-01-28 15:33:03 tavi Exp $
+// $Id: ami_block.h,v 1.5 2003-04-17 12:03:20 jan Exp $
 //
 
 #ifndef _AMI_BLOCK_H
 #define _AMI_BLOCK_H
+
+// Get definitions for working with Unix and Windows
+#include <portability.h>
 
 // The AMI_block_base class.
 #include <ami_block_base.h>
