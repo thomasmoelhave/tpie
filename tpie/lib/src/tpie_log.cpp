@@ -5,8 +5,8 @@
 // Created: 5/12/94
 //
 
-
-static char tpie_log_id[] = "$Id: tpie_log.cpp,v 1.4 1998-12-11 18:55:12 tavi Exp $";
+#include <versions.h>
+VERSION(tpie_log_cpp,"$Id: tpie_log.cpp,v 1.5 2000-01-10 22:06:14 hutchins Exp $");
 
 // We are logging
 #define TPL_LOGGING	1
