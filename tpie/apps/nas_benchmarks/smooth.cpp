@@ -12,7 +12,7 @@
 
 // Define it all.
 #include <ami.h>
-VERSION(smooth_cpp,"$Id: smooth.cpp,v 1.6 2003-09-12 01:58:14 tavi Exp $");
+VERSION(smooth_cpp,"$Id: smooth.cpp,v 1.7 2003-09-12 14:55:33 jan Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -71,12 +71,11 @@ public:
 
 scan_nas_psuedo_rand::scan_nas_psuedo_rand(double seed,
                                            unsigned int count,
-                                           double a) :
-                                                   s(seed),
-                                                   max(count)
-{
-        a1 = floor(TWO_TO_MINUS_23 * a);
-        a2 = a - TWO_TO_23 * a1;    
+                                           double a) {
+    this->s   = seed;
+    this->max = count;
+    a1 = floor(TWO_TO_MINUS_23 * a);
+    a2 = a - TWO_TO_23 * a1;    
 }
 
 
@@ -86,8 +85,8 @@ scan_nas_psuedo_rand::~scan_nas_psuedo_rand()
 
 AMI_err scan_nas_psuedo_rand::initialize(void)
 {
-    x = s;
-    remaining = max;
+    this->x = this->s;
+    this->remaining = this->max;
 
     return AMI_ERROR_NO_ERROR;
 }
