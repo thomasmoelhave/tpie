@@ -1,7 +1,7 @@
 # Makefile for TPIE test applications.
 # Use gmake on this Makefile.  It relies on the default rules, and 
 # Use gmake -p to see the default rules.
-# $Id: Makefile.in,v 1.29 2002-01-03 18:34:09 tavi Exp $
+# $Id: Makefile.in,v 1.30 2002-01-14 15:35:00 tavi Exp $
 
 CXX = @CXX@
 CC = @CC@
@@ -130,7 +130,7 @@ test_ami_btree: test_ami_btree.o
 
 include Makefile.depend
 
-Makefile.depend: $(CSRC) $(CXXSRC)
+Makefile.depend: #$(CSRC) $(CXXSRC)
 	rm -f Makefile.depend; \
 	$(MAKEDEPEND) $(CPPFLAGS) $(CSRC) $(CXXSRC) >> Makefile.depend
 
