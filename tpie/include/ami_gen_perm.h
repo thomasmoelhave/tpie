@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 11/1/94
 //
-// $Id: ami_gen_perm.h,v 1.1 1994-12-16 21:46:33 darrenv Exp $
+// $Id: ami_gen_perm.h,v 1.2 1995-03-25 14:06:50 darrenv Exp $
 //
 // General permutation.
 //
@@ -99,8 +99,8 @@ AMI_err AMI_general_permute(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
     
     // Scan the stream, producing an output stream that labels each
     // item with its destination.
-    ae = AMI_scan((AMI_base_stream<T> *)instream, &gpad,
-                  (AMI_base_stream< dest_obj<T> > *)&sdo_in);
+    ae = AMI_scan((AMI_STREAM<T> *)instream, &gpad,
+                  (AMI_STREAM< dest_obj<T> > *)&sdo_in);
     if (ae != AMI_ERROR_NO_ERROR) {
         return ae;
     }
@@ -112,8 +112,8 @@ AMI_err AMI_general_permute(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
     }
 
     // Scan to strip off the destinations.
-    ae = AMI_scan((AMI_base_stream< dest_obj<T> > *)&sdo_out, &gpsd,
-                  (AMI_base_stream<T> *)outstream);
+    ae = AMI_scan((AMI_STREAM< dest_obj<T> > *)&sdo_out, &gpsd,
+                  (AMI_STREAM<T> *)outstream);
     if (ae != AMI_ERROR_NO_ERROR) {
         return ae;
     }
@@ -130,12 +130,12 @@ template int operator>(const dest_obj<T> &, const dest_obj<T> &);	\
 TEMPLATE_INSTANTIATE_SORT_OP(dest_obj<T>)				\
 template class gen_perm_strip_dest<T>;					\
 template class gen_perm_add_dest<T>;					\
-template AMI_err AMI_scan(AMI_base_stream<T> *,				\
+template AMI_err AMI_scan(AMI_STREAM<T> *,				\
                           gen_perm_add_dest<T> *,			\
-                          AMI_base_stream< dest_obj<T> > *);		\
-template AMI_err AMI_scan(AMI_base_stream< dest_obj<T> > *,		\
+                          AMI_STREAM< dest_obj<T> > *);			\
+template AMI_err AMI_scan(AMI_STREAM< dest_obj<T> > *,			\
                           gen_perm_strip_dest<T> *,			\
-                          AMI_base_stream<T> *);			\
+                          AMI_STREAM<T> *);				\
 template AMI_err AMI_general_permute(AMI_STREAM<T> *, AMI_STREAM<T> *,	\
                                      AMI_gen_perm_object *gpo);
 

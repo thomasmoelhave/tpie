@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/9/94
 //
-// $Id: ami_matrix.h,v 1.2 1995-03-07 14:46:00 darrenv Exp $
+// $Id: ami_matrix.h,v 1.3 1995-03-25 14:07:18 darrenv Exp $
 //
 #ifndef _AMI_MATRIX_H
 #define _AMI_MATRIX_H
@@ -69,8 +69,8 @@ AMI_err AMI_matrix_add(AMI_matrix<T> &op1, AMI_matrix<T> &op2,
 
     // We should do some bound checking here.
 
-    return AMI_scan((AMI_base_stream<T> *)&op1, (AMI_base_stream<T> *)&op2,
-                    &sa, (AMI_base_stream<T> *)&res);
+    return AMI_scan((AMI_STREAM<T> *)&op1, (AMI_STREAM<T> *)&op2,
+                    &sa, (AMI_STREAM<T> *)&res);
 }
 
 // Subtract.
@@ -83,8 +83,8 @@ AMI_err AMI_matrix_sub(AMI_matrix<T> &op1, AMI_matrix<T> &op2,
 
     // We should do some bound checking here.
     
-    return AMI_scan((AMI_base_stream<T> *)&op1, (AMI_base_stream<T> *)&op2,
-                    &ss, (AMI_base_stream<T> *)&res);
+    return AMI_scan((AMI_STREAM<T> *)&op1, (AMI_STREAM<T> *)&op2,
+                    &ss, (AMI_STREAM<T> *)&res);
 }
 
 
@@ -299,13 +299,13 @@ AMI_err AMI_matrix_mult(AMI_matrix<T> &op1, AMI_matrix<T> &op2,
             AMI_matrix_pad<T> smp1(op1.rows(), op1.cols(), mm_matrix_extent);
             AMI_matrix_pad<T> smp2(op2.rows(), op2.cols(), mm_matrix_extent);
 
-            ae = AMI_scan((AMI_base_stream<T> *)&op1, &smp1,
-                          (AMI_base_stream<T> *)op1p);
+            ae = AMI_scan((AMI_STREAM<T> *)&op1, &smp1,
+                          (AMI_STREAM<T> *)op1p);
             if (ae != AMI_ERROR_NO_ERROR) {
                 return ae;
             }
-            ae = AMI_scan((AMI_base_stream<T> *)&op2, &smp2,
-                          (AMI_base_stream<T> *)op2p);
+            ae = AMI_scan((AMI_STREAM<T> *)&op2, &smp2,
+                          (AMI_STREAM<T> *)op2p);
             if (ae != AMI_ERROR_NO_ERROR) {
                 return ae;
             }
@@ -504,8 +504,8 @@ AMI_err AMI_matrix_mult(AMI_matrix<T> &op1, AMI_matrix<T> &op2,
             AMI_matrix_unpad<T> smup(op1.rows(), op2.cols(),
                                       mm_matrix_extent);
 
-            ae = AMI_scan((AMI_base_stream<T> *)resp, &smup,
-                          (AMI_base_stream<T> *)&res);
+            ae = AMI_scan((AMI_STREAM<T> *)resp, &smup,
+                          (AMI_STREAM<T> *)&res);
             if (ae != AMI_ERROR_NO_ERROR) {
                 return ae;
             }
