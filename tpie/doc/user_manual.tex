@@ -1,5 +1,5 @@
 %%
-%% $Id: user_manual.tex,v 1.17 1999-11-15 17:59:15 hutchins Exp $
+%% $Id: user_manual.tex,v 1.18 1999-11-17 20:53:14 tavi Exp $
 %%
 \chapter{Overview}
 
@@ -108,7 +108,7 @@ number of bugs have been fixed. This manual has been updated to reflect
 these changes and several chapters has been expanded in order to allow the
 TPIE programmer to tune the systems for maximal performance on a given
 platform. A list of the major changes can be found on the TPIE www page at
-\verb|http://www.cs.duke.edu/TPIE/|. Keep in mind that the TPIE project is
+\myverb{http://www.cs.duke.edu/TPIE/}. Keep in mind that the TPIE project is
 work in progress -- several major planned components has not yet been
 implemented and work is also being done to update and extend the current
 manual. Users of TPIE are encouraged to send bug reports, etc., to
@@ -145,7 +145,7 @@ http://www.cs.duke.edu/TPIE/
 \end{rawhtml}%
 }%
 \begin{latexonly}
-at URL \verb|http://www.cs.duke.edu/TPIE/|.
+at URL \myverb{http://www.cs.duke.edu/TPIE/}.
 \end{latexonly}
 To obtain the TPIE source distribution\index{source distribution}, follow
 the pointers from the home page to the distribution itself, which consists
@@ -158,27 +158,27 @@ should be capable of downloading this file to your local machine.
 \label{sec:gnu-software}
 
 To uncompress and unarchive the distribution, you will need either the GNU
-\verb|tar| utility, or \verb|gzip| and a \verb|tar| program. (the GNU
-version can decompress and untar at the same time with the '\verb|z|'
-option). The GNU \verb|make| utility is also needed. This utility is
-usually located in \verb|/usr/local/bin/make| (or is called
-\verb|gmake|).
-% \verb|LaTeX| and associated tools are needed to generate the
-%manual, and \verb|latex2html| is required to generate the HTML version of
+\myverb{tar} utility, or \myverb{gzip} and a \myverb{tar} program. (the GNU
+version can decompress and untar at the same time with the '\myverb{z}'
+option). The GNU \myverb{make} utility is also needed. This utility is
+usually located in \myverb{/usr/local/bin/make} (or is called
+\myverb{gmake}).
+% \myverb{LaTeX} and associated tools are needed to generate the
+%manual, and \myverb{latex2html} is required to generate the HTML version of
 %the manual.
 
 TPIE is heavily dependent on the compiler used, mainly
 because of the use of C++ templates. It requires the GNU C++
-compiler, \verb|gcc|, version~\gxxversion~ or later (it has
-also been successfully compiled with \verb|gcc| version
-2.7.2.1 on some systems). We are currently using \verb|gcc|,
+compiler, \myverb{gcc}, version~\gxxversion~ or later (it has
+also been successfully compiled with \myverb{gcc} version
+2.7.2.1 on some systems). We are currently using \myverb{gcc},
 version~\gxxcurrent~ for most development work on TPIE. We
 expect that it will also be compatible with future version
 of this compiler. TPIE has also been successfully compiled
-using \verb|egcs|, version 2.91.66.
+using \myverb{egcs}, version 2.91.66.
 
 %In general, invoking the above utilities with the single command line
-%argument \verb|--version| will indicate whether they are compatible.
+%argument \myverb{--version} will indicate whether they are compatible.
 Information on where and how to obtain and install GUN software is
 available at URL {\tt http://www.gnu.org/software/software.html}.
 
@@ -188,10 +188,10 @@ available at URL {\tt http://www.gnu.org/software/software.html}.
 
 Once you have obtained the TPIE source distribution file
 {\tt tpie\_\version.tgz}, you must decide where to install it.
-\verb|/usr/local/tpie/| is a typical place.
+\myverb{/usr/local/tpie/} is a typical place.
 
 Place {\tt tpie\_\version.tgz} in the directory in which TPIE is to
-be installed, \verb|cd| into that directory, and execute the command
+be installed, \myverb{cd} into that directory, and execute the command
 
 \begin{flushleft}
 {\tt tar xzf tpie\_\version.tgz}
@@ -199,8 +199,8 @@ be installed, \verb|cd| into that directory, and execute the command
 \end{flushleft}
 
 This will produce a directory {\tt tpie\_\version} with
-subdirectories \verb|include|, \verb|lib|, \verb|lib/src|,
-\verb|test|, and \verb|doc|.  Enter the directory 
+subdirectories \myverb{include}, \myverb{lib}, \myverb{lib/src},
+\myverb{test}, and \myverb{doc}.  Enter the directory 
 {\tt tpie\_\version}.  You must now configure TPIE for your
 particular system.  To do this, use the command
 
@@ -217,12 +217,11 @@ The configuration program will take some time to
 examine the parameters of your system.  Once it has done so, it will
 produce the various Makefiles and configuration files required to
 build TPIE on your system.  When this is done, simply invoke your version
-of GNU \verb|make|:
+of GNU \myverb{make}:
 
 \begin{verbatim}
 make all
 \end{verbatim}
-
 to build the complete TPIE system.  This will build the
 components of TPIE that must be tailored to your
 system. This includes: the TPIE run-time library 
@@ -241,14 +240,14 @@ the directories listed in Figure \ref{fig:components}.
 \hline
 Directory & Contents \\
 \hline
- \verb|include|  & The TPIE header files.\index{header files}\\ 
+ \myverb{include}  & The TPIE header files.\index{header files}\\ 
 
- \verb|lib|      & The TPIE run-time library.  This is relatively small, as most
+ \myverb{lib}      & The TPIE run-time library.  This is relatively small, as most
                    of the TPIE system remains in the form of templated header
                    files.\index{library} \\
- \verb|lib/src|  & The source code for the TPIE run-time
+ \myverb{lib/src}  & The source code for the TPIE run-time
                    library. \\
- \verb|test|     & A series of test applications designed to verify
+ \myverb{test}     & A series of test applications designed to verify
                    that TPIE is operating correctly.  This
                    directory also includes the code for the
                    sample program discussed in Chapter
@@ -256,7 +255,7 @@ Directory & Contents \\
                    applications described in
                    Chapter~\ref{ch:examples}.\index{test
                    applications}  \\
- \verb|doc|      & Written documentation for TPIE,
+ \myverb{doc}      & Written documentation for TPIE,
                    consisting of the document you are
                    reading now, in DVI and Postscript(TM)
                    formats.\index{documentation} \\
@@ -287,11 +286,11 @@ allow the user to specify sophisticated data movement
 operations on \emph{streams} of data in a simple and
 straightforward manner. These management object classes are
 built on top of a simple \emph{stream interface} called
-\verb|AMI_STREAM|. The tutorial in the next chapter explains
+\myverb{AMI\_STREAM}. The tutorial in the next chapter explains
 how to specify and use such management object classes.
 
 Using the sample example program below, we take a look at TPIE from a
-viewpoint just above the \verb|AMI_STREAM| interface.  The
+viewpoint just above the \myverb{AMI\_STREAM} interface.  The
 sample program uses simple stream operations to generate a stream of random
 integers, scans this stream of integers and partitions them into several
 distinct streams. The manner in which I/O operations are handled by TPIE
@@ -315,247 +314,57 @@ Section~\ref{sec:samplepgm_discuss}.
 \index{sample program|)}
 
 The following is the program in {\tt  tpie\_\version/doc/sample\_pgm.cpp}.
-\begin{verbatim}
-#include <iostream.h>
-#include <stdlib.h>
-#include <sys/time.h>
-#include <limits.h> //for INT_MAX
 
-//Include the file that sets application configuration: It sets what
-//kind of BTE (Block Transfer Engine) to use, and where applicable,
-//what should be the size of the logical block (the logical block size
-//is a user specified multiple of the physical block size) for a
-//stream, and so on;
-#include "app_config.h"
-
-//Include the file that will allow us to use AMI_STREAMs.
-#include <ami.h>
-
-//include wall timer that will allow us to time
-#include <wall_timer.h>
-
-//Include TPIE's internal memory sorting routines.
-#include <quicksort.h>
-
-//variable which is used to set up TPIE memory accounting
-extern int register_new;
-
-//This program writes out an AMI_STREAM of random integers of
-//user-specified length, and then, based on 7 partitioning elements
-//chosen from that stream, partitions the stream into 8 buckets. Each
-//of the buckets is implemented as an AMI_STREAM and the program
-//prints the size of each bucket at the end.
-
-//The user needs to specify the length of the initial stream of
-//integers and the size of the main memory that can be used.
-
-
-void
-main(int argc, char *argv[]) {
-        
-        //parse arguments
-        if (argc < 3) {
-                cout << "Input the number of integers to be generated\n";
-                cout << " and the size of memory that can be used\n";
-                exit(1);
-        }
-        int Gen_Stream_Length = atoi(argv[1]);
-        long test_mm_size = atol(argv[2]);
-        
-        //Set the size of memory the application is allowed to use
-        MM_manager.resize_heap(test_mm_size);
-        //enable TPIE memory accounting
-        register_new = 1;
-        
-        //the source stream of ints
-        AMI_STREAM<int> source;
-
-        //the 8 bucket streams of ints
-        AMI_STREAM<int> buckets[8];
-        
-        
-        //************************************************************
-        //generate the stream of random integers
-        AMI_err ae;
-        int src_int;
-        for (int i = 0; i < Gen_Stream_Length; i++) {
-                
-                //generate a random int
-                src_int = random();
-                
-                //Now write out the integer into the AMI_STREAM source using 
-                //the AMI_STREAM member function write_item()
-                if ((ae = source.write_item(src_int)) != AMI_ERROR_NO_ERROR) {
-                        cout << "AMI_ERROR " << ae << " during source.write_item()\n";
-                        exit(1);
-                }
-                
-        }
-        //print stream length
-        cout << "source stream is of length " << source.stream_len() << endl;
-        
-        
-
-        //************************************************************
-        //pick the first 7 integers in source stream as partitioning elements
-        //(pivots)
-        
-        //Seek to the beginning of the AMI_STREAM source.
-        if ((ae = source.seek(0))!= AMI_ERROR_NO_ERROR) {
-                cout << "AMI_ERROR " << ae << " during source.seek()\n";
-                exit(1);
-        }
-        
-        //read first 7 integers and fill in the partitioning array
-        int partitioning[8];
-        int *read_ptr;
-        
-        for (int i = 0; i < 7; i++) {
-                
-                //Obtain a pointer to the next integer in AMI_STREAM source
-                //using the member function read_item()
-                if ((ae = source.read_item(&read_ptr)) != AMI_ERROR_NO_ERROR) {
-                        cout << "AMI_ERROR " << ae << " during source.read_item()\n";
-                        exit(1);
-                }
-                
-                //Copy the current source integer into the partitioning element array.
-                partitioning[i]= *read_ptr;
-        }
-        cout << "Loaded partitioning array\n";
-
-
-
-        //************************************************************
-        //sort partitioning array
-        
-        quicker_sort_op((int *)partitioning,7);
-        cout << "sorted partitioning array\n";
-        partitioning[7] = INT_MAX;
-
-
-
-        //************************************************************
-        //Partition ints of source into the buckets using partitioning elements
-        
-        struct timeval tp1, tp2;
-
-        //binary search variables.
-        int u,v,l,j;
-        
-        //start timer
-        wall_timer wt;
-        wt.start();
-        
-        //seek to the beginning of the AMI_STREAM source.
-        if ((ae = source.seek(0))!= AMI_ERROR_NO_ERROR) {
-                cout << "AMI_ERROR " << ae << " during source.seek()\n";
-                exit(1);
-        }
-        
-        //scan source stream distributing the integers in the appropriate
-        //buckets
-        for (int i = 0; i < Gen_Stream_Length; i++) {
-                
-                //Obtain a pointer to the next integer in AMI_STREAM source
-                //using the member function read_item()
-                if ((ae = source.read_item(&read_ptr)) != AMI_ERROR_NO_ERROR) {
-                        cout << "AMI_ERROR " << ae << " during source.read_item()\n";
-                        exit(1);
-                }
-                v = *read_ptr;
-
-                //find out l such that v is assigned to buckets[l] using binary
-                //search
-                l = 0;
-                u = 7;
-                while (u >= l) {
-                        j = (l+u)>>1; 
-                        if (v < partitioning[j]) {
-                                u = j-1;
-                        } else {
-                                l = j+1;
-                        }
-                }
-
-                //now write out the int into the AMI_STREAM buckets[l] using 
-                //the AMI_STREAM member function write_item().
-                if ((ae = buckets[l].write_item(v)) != AMI_ERROR_NO_ERROR) {
-                        cout << "AMI_ERROR " << ae << " during buckets[" << l 
-                                         << "].write_item()\n";
-                        exit(1);
-                }
-        }
-        
-        //stop timer
-        wt.stop();
-        cout << "Time taken to partition is " << wt.seconds() << " seconds" << endl;
-        
-  //delete the file corresponding to the source stream when source
-  //stream gets destructed (this is the default, so this call is not
-  //needed)
-        source.persist(PERSIST_DELETE);
-        
-        //let the file correspond to buckets[i] persist on disk when the
-        //buckets[i] stream gets destructed
-        for (int i = 0; i < 8; i++) {
-                buckets[i].persist(PERSIST_PERSISTENT);
-                cout << "Length of bucket " << i << " is " 
-                                 << buckets[i].stream_len() << endl;
-        }
-        
-}
-
-\end{verbatim}
+\verbatiminput{sample_pgm.cpp}
 
 \section{Discussion of Sample Program}\label{sec:samplepgm_discuss}
 
 In this section we discuss the simple simple C++ sample
 program in the previous section. The file
-\verb|app_config.h| is the TPIE configuration file. TPIE's
-\verb|AMI_STREAM| stream I/O operations are carried out
+\myverb{app\_config.h} is the TPIE configuration file. TPIE's
+\myverb{AMI\_STREAM} stream I/O operations are carried out
 transparently by one of three possible \emph{block transfer
-   engines (BTEs)}. Briefly, the \verb|app_config.h| chooses
+   engines (BTEs)}. Briefly, the \myverb{app\_config.h} chooses
 a specific BTE, and the amount of internal memory used as
-buffer space for each \verb|AMI_STREAM|. The
-\verb|app_config.h| configuration file is further discussed
+buffer space for each \myverb{AMI\_STREAM}. The
+\myverb{app\_config.h} configuration file is further discussed
 in Section~\ref{sec:tuning} which also contains a discussion
 of how to choose a BTE for a given platform. The file
-\verb|<ami.h>| contains TPIEs templated classed and
-functions, while the file \verb|<quicksort.h>| contains
+\myverb{<ami.h>} contains TPIEs templated classed and
+functions, while the file \myverb{<quicksort.h>} contains
 various quicksort polymorphs. Note that each
-\verb|AMI_STREAM| corresponds to an underlying Unix file.
+\myverb{AMI\_STREAM} corresponds to an underlying Unix file.
 
 The program illustrates the most fundamental
-\verb|AMI_STREAM| member functions \verb|read_item()|,
-\verb|write_item()|, \verb|seek()| and \verb|persist()|.
+\myverb{AMI\_STREAM} member functions \myverb{read\_item()},
+\myverb{write\_item()}, \myverb{seek()} and \myverb{persist()}.
 Successful execution of these member functions is indicated
-by a return value of \verb|AMI_ERROR_NO_ERROR|.  The program
+by a return value of \myverb{AMI\_ERROR\_NO\_ERROR}.  The program
 distributes a randomly generated source stream of integers
 into eight bucket streams, and then displays the time taken
 by this operation and the size of each of the eight output
 buckets. The randomly generated stream is deleted upon
 completion of the program
-(\verb|source.persist(PERSIST_DELETE)|), while the bucket
+(\myverb{source.persist(PERSIST\_DELETE)}), while the bucket
 streams are saved (made persistent with
-\verb|buckets[i].persist(PERSIST_PERSISTENT)|) in the
-default scratch directory \verb|/var/tmp|. The default
+\myverb{buckets[i].persist(PERSIST\_PERSISTENT)}) in the
+default scratch directory \myverb{/var/tmp}. The default
 location can be changed by setting the environment variable
-\verb|AMI_SINGLE_DEVICE| appropriately (see
+\myverb{AMI\_SINGLE\_DEVICE} appropriately (see
 Section~\ref{sec:environment}).
 
-The setting of the \verb|register_new| variable instructs TPIE whether to
-run with a user-specified amount of internal memory (\verb|register_new:=
-1|) or to run with virtual memory like an ordinary non-TPIE application
-would (\verb|register_new:= 0|). In this program, we set
-\verb|register_new:= 1| which means that the program will abort if the
+The setting of the \myverb{register\_new} variable instructs TPIE whether to
+run with a user-specified amount of internal memory (\myverb{register\_new:= 1})
+or to run with virtual memory like an ordinary non-TPIE application
+would (\myverb{register\_new:= 0}). In this program, we set
+\myverb{register\_new:= 1} which means that the program will abort if the
 allocated internal memory exceeds the specified amount. The call
-\verb|MM_manager.resize_heap(test_mm_size)| tells TPIE's internal memory
-manager \verb|MM_manager| to prevent the program's internal
-memory usage (in the ``heap'' area) from exceeding \verb|test_mm_size|
-bytes. Note that \verb|test_mm_size| is the second input argument to our
-program. When \verb|register_new == 1|, it is the responsibility of the
-user to have the \verb|MM_manager| ``resize'' its heap to an appropriate
+\myverb{MM\_manager.resize\_heap(test\_mm\_size)} tells TPIE's internal memory
+manager \myverb{MM\_manager} to prevent the program's internal
+memory usage (in the ``heap'' area) from exceeding \myverb{test\_mm\_size}
+bytes. Note that \myverb{test\_mm\_size} is the second input argument to our
+program. When \myverb{register\_new == 1}, it is the responsibility of the
+user to have the \myverb{MM\_manager} ``resize'' its heap to an appropriate
 size as desired. For example, one might set this value to
 the amount of physical main
 memory minus the main memory used by the operating system and other
@@ -563,10 +372,10 @@ programs running on the machine.
 
 %In the case of the present program, it is desirable to
 %ensure that the program is allowed enough memory to comfortably accomodate
-%the buffer space required by each one of the nine \verb|AMI_STREAM|s
+%the buffer space required by each one of the nine \myverb{AMI\_STREAM}s
 %involved in the computation. The amount of buffer space required per
-%\verb|AMI_STREAM| depends on the BTE implementation chosen in the
-%\verb|app_config.h| file. Section~\ref{sec:env-variables} provides details
+%\myverb{AMI\_STREAM} depends on the BTE implementation chosen in the
+%\myverb{app\_config.h} file. Section~\ref{sec:env-variables} provides details
 %of how to determine the buffer-space required for each BTE implementation.
 
 
@@ -665,7 +474,7 @@ now it is safe to assume that it is simply a class.
 The {\tt AMI\_STREAM} constructor does not actually put anything into
 the stream; it simply creates the necessary data structures to keep
 track of the contents of the stream when data is actually put into it.
-Data is typically put into streams using \verb|AMI_scan()|, which is
+Data is typically put into streams using \myverb{AMI\_scan()}, which is
 described in the next section.
 
 \section{Scanning}
@@ -714,21 +523,21 @@ void f()
 }
 \end{verbatim}
 
-The class \verb|scan_count| is a class of scan management
+The class \myverb{scan\_count} is a class of scan management
 object\index{operation management object!scan}.  It has two member
-functions, \verb|initialize()| and \verb|operate()|, which TPIE calls
+functions, \myverb{initialize()} and \myverb{operate()}, which TPIE calls
 when asked to perform a scan.  The first member function,
-\verb|initialize()| is called at the beginning of the scan.  TPIE
+\myverb{initialize()} is called at the beginning of the scan.  TPIE
 expects that a call to this member function will cause the object to
 initialize any internal state it may maintain in preparation for
-performing a scan.  The second member function, \verb|operate()|, is
+performing a scan.  The second member function, \myverb{operate()}, is
 called repeatedly during the scan to create objects to go into the
-output stream.  \verb|operate()| sets the flag \verb|*sf| to indicate
-whether it generated output or not.  Only when \verb|operate()|
-returns either an error or \verb|AMI_SCAN_DONE| does TPIE stop calling
+output stream.  \myverb{operate()} sets the flag \myverb{*sf} to indicate
+whether it generated output or not.  Only when \myverb{operate()}
+returns either an error or \myverb{AMI\_SCAN\_DONE} does TPIE stop calling
 it.
 
-The call to \verb|AMI_scan| behaves as the following pseudo-code:
+The call to \myverb{AMI\_scan} behaves as the following pseudo-code:
 
 \begin{verbatim} 
 AMI_err AMI_scan(scan_count &sc, AMI_STREAM<int> *pamis)
@@ -752,15 +561,15 @@ AMI_err AMI_scan(scan_count &sc, AMI_STREAM<int> *pamis)
 }
 \end{verbatim}
 
-Thus, after the function \verb|f()| in the original example code is
-called, the stream \verb|amis0| contains the integers from 1 to 10000
+Thus, after the function \myverb{f()} in the original example code is
+called, the stream \myverb{amis0} contains the integers from 1 to 10000
 in order.
 
 Now that we have produced a stream, there are a variety of things we
 can do with it.  One of the simplest things we can do with a stream of
 objects is scan it in order to transform it in some way.  As an
 example, suppose we wanted to square every integer in the stream
-\verb|amis0|.  We could do so using the following code:
+\myverb{amis0}.  We could do so using the following code:
 
 \begin{verbatim}
 class scan_square : AMI_scan_object {
@@ -791,26 +600,26 @@ void g()
 }
 \end{verbatim}
 
-Notice that the call to \verb|AMI_scan()| in \verb|g()| differs from
-the one we used in \verb|f()| in that it takes two stream pointers and
-a scan management object.  By convention, the stream \verb|amis0| is
+Notice that the call to \myverb{AMI\_scan()} in \myverb{g()} differs from
+the one we used in \myverb{f()} in that it takes two stream pointers and
+a scan management object.  By convention, the stream \myverb{amis0} is
 an input stream, because it appears before the scan management object
-\verb|ss| in the argument list.  By similar convention, \verb|amis1|
-is an output stream.  Because the call to \verb|AMI_scan| has one
-input stream and one output stream, TPIE expects the \verb|operate()|
-member function of \verb|ss| to have one input argument (which is
-called \verb|in| in the example above) and one output argument (called
-\verb|out| in the example above).  Note that the \verb|operate()|
-member function of the class \verb|square_scan| also takes two
-pointers to flags, one for input (\verb|sfin|) and one for output
-(\verb|sfout|).  \verb|*sfin| is set by TPIE to indicate that there is
-more input to be processed.  \verb|*sfout| is set by the scan
+\myverb{ss} in the argument list.  By similar convention, \myverb{amis1}
+is an output stream.  Because the call to \myverb{AMI\_scan} has one
+input stream and one output stream, TPIE expects the \myverb{operate()}
+member function of \myverb{ss} to have one input argument (which is
+called \myverb{in} in the example above) and one output argument (called
+\myverb{out} in the example above).  Note that the \myverb{operate()}
+member function of the class \myverb{square\_scan} also takes two
+pointers to flags, one for input (\myverb{sfin}) and one for output
+(\myverb{sfout}).  \myverb{*sfin} is set by TPIE to indicate that there is
+more input to be processed.  \myverb{*sfout} is set by the scan
 management object to indicate when output is generated.
-If a scan management object has no polymorph of \verb|operate()| that
+If a scan management object has no polymorph of \myverb{operate()} that
 takes the appropriate type number of arguments for the invocation of
-\verb|AMI_scan()| that uses it then a compile-time error is generated.
+\myverb{AMI\_scan()} that uses it then a compile-time error is generated.
 
-A call to \verb|AMI_scan| with one input stream and one output stream
+A call to \myverb{AMI\_scan} with one input stream and one output stream
 behaves as the following pseudo-code:
 
 \begin{verbatim} 
@@ -844,19 +653,19 @@ AMI_err AMI_scan(AMI_STREAM<int> *instream, scan_square &ss,
 }
 \end{verbatim}
 
-More complicated invocations of \verb|AMI_scan()| can operate on up
+More complicated invocations of \myverb{AMI\_scan()} can operate on up
 to four input streams and four output streams.  Here is an example
-that takes two input streams of values, \verb|x| and \verb|y|, and
+that takes two input streams of values, \myverb{x} and \myverb{y}, and
 produces four output streams, 
 one consisting of the running sum of the
-\verb|x| values,
+\myverb{x} values,
 one consisting of the running sum of the
-\verb|y| values,
+\myverb{y} values,
 one consisting of the running sum of the
-squares of the \verb|x| values,
+squares of the \myverb{x} values,
 and
 one consisting of the running sum of the
-squares of the \verb|y| values.
+squares of the \myverb{y} values.
 
 \begin{verbatim}
 class scan_sum : AMI_scan_object {
@@ -907,15 +716,15 @@ void h()
 \index{scanning!ASCII I/O|(}
 TPIE provides a number of predefined scan management objects.  Among
 the most useful are instances of the template classes
-\verb|cxx_ostream_scan<T>| and \verb|cxx_ostream_scan<T>|, which are
+\myverb{cxx\_ostream\_scan<T>} and \myverb{cxx\_ostream\_scan<T>}, which are
 used for reading ASCII data into streams and writing the contents of
 streams in ASCII respectively.  This is done in conjunction with the
-\verb|iostream| facilities provided in the standard C++ library.  Any
-class \verb|T| for which the operators \verb|ostream
-&operator<<(ostream &s, T &t)| and \verb|istream &operator>>(T &t)|
+\myverb{iostream} facilities provided in the standard C++ library.  Any
+class \myverb{T} for which the operators \myverb{ostream
+\&operator<<(ostream \&s, T \&t)} and \myverb{istream \&operator>>(T \&t)}
 are defined can be used with this mechanism.
 
-As an example, suppose we have a file called \verb|input_nums.txt|
+As an example, suppose we have a file called \myverb{input\_nums.txt}
 containing one integer per line, such as
 
 \begin{verbatim}
@@ -929,7 +738,7 @@ containing one integer per line, such as
 \end{verbatim}
 
 To read this file into a TPIE stream of integers, square each, and
-write them out to the file \verb|output_nums.txt| we could use the
+write them out to the file \myverb{output\_nums.txt} we could use the
 following code:
 
 \begin{verbatim}
@@ -955,13 +764,13 @@ void f()
 \end{verbatim}
 
 In order to read from an input file using the scan object
-\verb|in_scan|, \verb|AMI_scan()| repeatedly calls
-\verb|in_scan->operate()|, just as it would for any scan object.  Each
-time \verb|in_scan->operate()| is called, it uses the \verb|>>|
+\myverb{in\_scan}, \myverb{AMI\_scan()} repeatedly calls
+\myverb{in\_scan->operate()}, just as it would for any scan object.  Each
+time \myverb{in\_scan->operate()} is called, it uses the \myverb{>>}
 operator to read a single integer from the input file.  When the input
-file is exhausted, \verb|in_scan->operate()| returns
-\verb|AMI_SCAN_DONE|, and \verb|AMI_scan()| returns to its caller.
-The behavior of \verb|out_scan| is similar to that of \verb|in_scan|,
+file is exhausted, \myverb{in\_scan->operate()} returns
+\myverb{AMI\_SCAN\_DONE}, and \myverb{AMI\_scan()} returns to its caller.
+The behavior of \myverb{out\_scan} is similar to that of \myverb{in\_scan},
 except that it writes to a file instead of reading from one.
 \index{scanning!ASCII I/O|)}
 
@@ -971,9 +780,9 @@ except that it writes to a file instead of reading from one.
 
 In all of the examples presented up to this point, scanning has been
 done on streams of objects that are all of the same type.
-\verb|AMI_scan()| is not limited to such scans, however.  In the
+\myverb{AMI\_scan()} is not limited to such scans, however.  In the
 following example, we have a scan management class that takes two
-streams of \verb|double|s and returns a stream of complex numbers.
+streams of \myverb{double}s and returns a stream of complex numbers.
 
 \begin{verbatim}
 class complex {
@@ -1005,11 +814,11 @@ public:
 
 \index{scanning!out of step|(}
 In all the examples up to this point, every call to the
-\verb|operate()| member function of a scan management object has been
+\myverb{operate()} member function of a scan management object has been
 called with each object in the input stream(s) exactly once.  In this
 section, we introduce the concept of out of step scanning, which
 allows a scan management object to reject certain inputs and ask that
-they be resubmitted in subsequent calls to the \verb|operate()| member
+they be resubmitted in subsequent calls to the \myverb{operate()} member
 function.
 
 Suppose we have two streams of integers, each of which we know is
@@ -1062,7 +871,7 @@ public:
 \end{verbatim}
 
 In the operate method, we first check that both inputs are valid by
-looking at the flags pointed to by \verb|sfin|.  If both are valid,
+looking at the flags pointed to by \myverb{sfin}.  If both are valid,
 then we select the smaller of the inputs and copy it to the output.
 We then clear the other input flag to let TPIE know that we did not
 use that input, but we will need it later and it should be resubmitted
@@ -1075,7 +884,7 @@ the cases when one of more of the input streams are empty.
 \section{Merging} \label{sec:merging}
 \index{merging|(}
 
-While \verb|AMI_scan()| is limited to operate on up to four input and four
+While \myverb{AMI\_scan()} is limited to operate on up to four input and four
 output streams, theoretically efficient external memory algorithms often
 operates on more than eight streams. An especially common operation is
 merging of a large number of input streams into one output
@@ -1095,13 +904,13 @@ efficient as possible on most machines. The reason is that we typically
 have enough main memory available to merge many streams together at one
 time~\cite{aggarwal:input}.
 
-TPIE provide the function \verb|AMI_merge()| which, provide that enough
+TPIE provide the function \myverb{AMI\_merge()} which, provide that enough
 main memory is available, merge a number of input streams into an output
-stream in one scan of the input streams. As in the case of \verb|AMI_scan|,
+stream in one scan of the input streams. As in the case of \myverb{AMI\_scan},
 the functional details in how the merge is performed is specified via an
 operation management object\index{operation management object } (a merge
-management object) with member functions \verb|initialize()| and
-\verb|operate()|.\comment{LA: The AMI\_merge stuff should be rewritten with
+management object) with member functions \myverb{initialize()} and
+\myverb{operate()}.\comment{LA: The AMI\_merge stuff should be rewritten with
 some examples}\footnote{The merging function also have three other more
 specialized polymorphs for merging according to some total order defined by
 the used. These polymorphs do not need a merge management object. Refer to
@@ -1115,14 +924,14 @@ cumbersome to compute precisely how many streams can be merged in one pass
 --- one must keep track of the space needed for input blocks form each of
 the streams being merged, as well as the overhead of any data structures
 needed for the merge --- TPIE also provides a mechanism that does most of
-the above work for us. The function \verb|AMI_partition_and_merge()|
+the above work for us. The function \myverb{AMI\_partition\_and\_merge()}
 divides an input stream into sub-streams just small enough to fit into main
 memory, operates on each in main memory, then merges them back into a
 single output stream, using intermediate streams if memory constraints
-dictate. Like in the case if \verb|AMI_merge()|, the functional details of
-\verb|AMI_partition_and_merge()| are specified via a merge management
-object. In fact the merge management object for \verb|AMI_merge()| is a
-special case of the one for \verb|AMI_partition_and_merge()|. The following
+dictate. Like in the case if \myverb{AMI\_merge()}, the functional details of
+\myverb{AMI\_partition\_and\_merge()} are specified via a merge management
+object. In fact the merge management object for \myverb{AMI\_merge()} is a
+special case of the one for \myverb{AMI\_partition\_and\_merge()}. The following
 example shows such an object:
 
 \begin{verbatim}
@@ -1150,27 +959,27 @@ void f()
 The class members are as follows:
 
 \begin{description}
-\item[\verb|initialize()|] Tells the object how many streams it should
-  merge (\verb|arity|) and what the first item from each stream is
-  (\verb|in|). \verb|taken_flags| and \verb|taken_index| provide two
+\item[\myverb{initialize()}] Tells the object how many streams it should
+  merge (\myverb{arity}) and what the first item from each stream is
+  (\myverb{in}). \myverb{taken\_flags} and \myverb{taken\_index} provide two
   mechanisms for the merge manager to tell TPIE what objects it took
   from the input streams. These are discussed in more detail in 
   the context of a merge sorting example in Section~\ref{sec:mergesort}.
-\item[\verb|operate()|]
+\item[\myverb{operate()}]
 Just as in scanning, this member function is called repeatedly to process
 input objects.
-\item[\verb|main\_mem\_operate()|]
+\item[\myverb{main\_mem\_operate()}]
 Called by TPIE to operate on an array of data in main memory.
-\item[\verb|space\_usage\_overhead()|]
+\item[\myverb{space\_usage\_overhead()}]
 Called by TPIE prior to initialization to asses how much main memory this
 object will use.
-\item[\verb|space\_usage\_per\_item()|]
+\item[\myverb{space\_usage\_per\_item()}]
 Called by TPIE prior to initialization to asses how much main memory may be
 used per input stream. Merge management objects are allowed to use main
 memory space linear in the number of input streams.
 \end{description}
 
-\verb|AMI_partition_and_merge()| behaves as indicated by the following
+\myverb{AMI\_partition\_and\_merge()} behaves as indicated by the following
 pseudo-code. Note that for simplicity of presentation, boundary conditions are not covered.
 
 \begin{verbatim}
@@ -1234,21 +1043,21 @@ In addition to the standard class members for a merge management
 object, we have the following:
 
 \begin{description}
-\item[\verb|input\_arity|]
+\item[\myverb{input\_arity}]
 The number of input streams the merge management object must handle.
-\item[\verb|pq|]
+\item[\myverb{pq}]
 A priority queue into which items will be placed.
-\item[\verb|s\_merge\_manager()|]
+\item[\myverb{s\_merge\_manager()}]
 A constructor.
-\item[\verb|\~{}s\_merge\_manager()|]
+\item[\myverb{\~{}s\_merge\_manager()}]
 A destructor.
 \end{description}
 
 Construction and destruction are fairly straightforward.  At construction
 time, we have no priority queue because we do not yet know how big the
-priority queue should be.  \verb|pq| will be set up when \verb|initialize|
+priority queue should be.  \myverb{pq} will be set up when \myverb{initialize}
 is called.  The destructor checks whether
-\verb|pq| is valid, and deletes it if it is.  The constructor and
+\myverb{pq} is valid, and deletes it if it is.  The constructor and
 destructor are implemented as follows:
 
 \begin{verbatim}
@@ -1265,13 +1074,13 @@ s_merge_manager::~s_merge_manager(void)
 }
 \end{verbatim}
 
-When \verb|AMI_partition_and_merge()| is called with a merge management
-object of type \verb|s_merge_manager|, the first member functions called
-are \verb|space_usage_overhead()| and\\ % 
-\verb|space_usage_per_stream()|.  These return the number of bytes of main
+When \myverb{AMI\_partition\_and\_merge()} is called with a merge management
+object of type \myverb{s\_merge\_manager}, the first member functions called
+are \myverb{space\_usage\_overhead()} and\\ % 
+\myverb{space\_usage\_per\_stream()}.  These return the number of bytes of main
 memory that the merge management object will allocate when initialized.
-\verb|space_usage_overhead()|'s return value indicates that space will be
-needed for a priority queue.  \verb|space_usage_per_stream()|'s return
+\myverb{space\_usage\_overhead()}'s return value indicates that space will be
+needed for a priority queue.  \myverb{space\_usage\_per\_stream()}'s return
 value indicates that for each input stream, space (which is to be allocated
 when the priority queue is constructed) will be needed for an integer and
 an arity type.
@@ -1289,8 +1098,8 @@ size_t s_merge_manager::space_usage_per_stream(void)
 }
 \end{verbatim}
 
-The next member function called by \verb|AMI_partition_and_merge()| is
-\verb|main_mem_operate()|, which is called to handle the initial
+The next member function called by \myverb{AMI\_partition\_and\_merge()} is
+\myverb{main\_mem\_operate()}, which is called to handle the initial
 substreams that are small enough to fit in main
 memory.  Since we are sorting, we will simply use
 quicksort.
@@ -1304,12 +1113,12 @@ AMI_err s_merge_manager::main_mem_operate(int* mm_stream, size_t len)
 \end{verbatim}
 
 Having sorted all of the initial substreams,
-\verb|AMI_partition_and_merge()| begins to merge them.  Before merging a
+\myverb{AMI\_partition\_and\_merge()} begins to merge them.  Before merging a
 set of substreams, the merge management object's member function
-\verb|initialize()| is called to inform the merge management object of the
+\myverb{initialize()} is called to inform the merge management object of the
 number of streams it should be prepared to merge.  The object is also
 provided with the first object from each of the streams to be merged.  For
-objects of the class \verb|s_merge_manager|, the \verb|initialize()| member
+objects of the class \myverb{s\_merge\_manager}, the \myverb{initialize()} member
 function is as follows:
 
 \begin{verbatim}
@@ -1342,19 +1151,19 @@ AMI_err s_merge_manager::initialize(arity_t arity, const int * const *in,
 }
 \end{verbatim}
 
-Note the use of the return value \verb|AMI_MERGE_READ_MULTIPLE|.  This
-indicates that the flags pointed to by \verb|*taken_flags| are set to
+Note the use of the return value \myverb{AMI\_MERGE\_READ\_MULTIPLE}.  This
+indicates that the flags pointed to by \myverb{*taken\_flags} are set to
 indicate which of the inputs were used and should not be presented
 again.  This is very similar to the use of input flags to indicate
 which inputs were used by a scan management object as described in
 Section~\ref{sec:out-of-step}.  The reason that we have a special
 return value to indicate when these flags are used is to increase
-performance.  In order for \verb|AMI_scan()| to determine which inputs
+performance.  In order for \myverb{AMI\_scan()} to determine which inputs
 were taken, it must examine all the flags.  In a many way merge, this
 might be time consuming.  In cases where only one item is taken, its
-index can be returned in \verb|taken_index| in order to save the time
+index can be returned in \myverb{taken\_index} in order to save the time
 that would be spent scanning the flags.  This technique is used in the
-\verb|operate()| member function, whose implementation is as follows:
+\myverb{operate()} member function, whose implementation is as follows:
 
 \begin{verbatim}
 AMI_err s_merge_manager::operate(const int * const *in,
@@ -1417,19 +1226,19 @@ Section~\ref{sec:merging}), distribution (See
 Section~\ref{sec:distribution}), or Sharesort~\cite{aggarwal:optimal}. The
 latter combines elements of both, along with simple bit permutations
 (See Section~\ref{sec:bit-permuting}). TPIE provides a sort function
-\verb|AMI_sort()| based on merging. In the future a number of other sorting
+\myverb{AMI\_sort()} based on merging. In the future a number of other sorting
 algorithms will be implemented and it is the intention that when
-calling \verb|AMI_sort()|, TPIE should automatically select the best
+calling \myverb{AMI\_sort()}, TPIE should automatically select the best
 algorithm for the given hardware platform.
 
 %Because the best choice of sorting
 %algorithm varies from one I/O system to the next, TPIE provides a single
-%function \verb|AMI_sort()|, which selects an appropriate algorithm based on
+%function \myverb{AMI\_sort()}, which selects an appropriate algorithm based on
 %the underlying hardware characteristics.
 
 \subsubsection{AMI\_sort()}
-\verb|AMI_sort()| has three polymorphs. The first works on streams of
-objects for which the operator \verb|<| is defined. It is invoked as
+\myverb{AMI\_sort()} has three polymorphs. The first works on streams of
+objects for which the operator \myverb{<} is defined. It is invoked as
 follows:
 
 \begin{verbatim}
@@ -1442,7 +1251,7 @@ void f()
 }
 \end{verbatim}
 
-The second polymorph of \verb|AMI_sort()| uses an explicit function to
+The second polymorph of \myverb{AMI\_sort()} uses an explicit function to
 determine the relative order of two objects in the input stream.  This
 is useful in cases where we may want to sort a stream of objects in
 several different ways.  For example, the following code sorts a
@@ -1481,7 +1290,7 @@ void f()
 }
 \end{verbatim}
 
-The third polymorph of \verb|AMI_sort()| works like the second, except that
+The third polymorph of \myverb{AMI\_sort()} works like the second, except that
 it relies on a comparator class instead of on a comparator function. In this
 case the above complex number example would look at follows:\comment{LA:
 Check that this is correct.}
@@ -1523,23 +1332,23 @@ void f()
 
 Version \version~of TPIE also contains alpha versions of a new improved
 sorting function\\ %
-\verb|AMI_optimized_sort()| which has three polymorphs. It is planned that
-after thorough testing this function will be the standard \verb|AMI_sort()|
+\myverb{AMI\_optimized\_sort()} which has three polymorphs. It is planned that
+after thorough testing this function will be the standard \myverb{AMI\_sort()}
 function. Section~\ref{sec:ref-imp-ami-sort} provide more details with
 regards to the difference in the implementation details between
-\verb|AMI_optimized-sort()| and \verb|AMI_sort()|.
+\myverb{AMI\_optimized\_sort()} and \myverb{AMI\_sort()}.
 
-The first two polymorphs of \verb|AMI_optimized_sort()| are identical to
-the first two \verb|AMI_sort()| polymorphs, which relies on the \verb|<|
+The first two polymorphs of \myverb{AMI\_optimized\_sort()} are identical to
+the first two \myverb{AMI\_sort()} polymorphs, which relies on the \myverb{<}
 operator and a comparison function, respectively.\comment{LA: We need to
 add a comparator class polymorph also (when we do the function object
 stuff). Doing so will also make it possible to clean up the
 ami\_merge\_optimized.h code - right now there is two full copies of the
 code.} The third polymorph is based on the assumption that the objects in
 the input stream is to be sorted according to one of their fields (the
-\verb|key| field), and that the class of this field have a well-defined
-(possibly via overloading) \verb|<| operator. For example, consider the
-class \verb|rectangle| below meant for axis parallel rectangles:
+\myverb{key} field), and that the class of this field have a well-defined
+(possibly via overloading) \myverb{<} operator. For example, consider the
+class \myverb{rectangle} below meant for axis parallel rectangles:
 
 \begin{verbatim}}
 class rectangle{
@@ -1551,8 +1360,8 @@ double southWest_y;
 \end{verbatim}
 
 and suppose that we want to sort a stream of rectangles in descending order
-according to their \verb|southWest_y| coordinate. Assuming that the size
-of each \verb|double| is 8 bytes, we simply sort the stream as follows:
+according to their \myverb{southWest\_y} coordinate. Assuming that the size
+of each \myverb{double} is 8 bytes, we simply sort the stream as follows:
  
 \begin{verbatim}
 AMI_STREAM<rectangle> instream;
@@ -1565,8 +1374,8 @@ void f()
 }
 \end{verbatim}
 
-The third argument of \verb|AMI_optimized_sort()| is the offset within the
-object of the \verb|key| according to which the items are to be sorted. The
+The third argument of \myverb{AMI\_optimized\_sort()} is the offset within the
+object of the \myverb{key} according to which the items are to be sorted. The
 fourth argument is a dummy argument having the same type as the key
 field.\comment{LA: Maybe we should add something about this being a C++
 requirement?}
@@ -1594,22 +1403,22 @@ sorting~\cite{aggarwal:input}, though for some important classes of
 permutations, such as BMMC permutations (See
 Section~\ref{sec:bit-permuting}) faster algorithms are possible. In this
 section, we discuss
-\verb|AMI_general_permute()|, which routes arbitrary permutations, but
+\myverb{AMI\_general\_permute()}, which routes arbitrary permutations, but
 always takes as long as sorting, regardless of whether the particular
 permutation can be done more quickly or not.
 
 General permutations are routed using the function
-\verb|AMI_general_permute()|.  Like other AMI functions,
-\verb|AMI_general_permute()| relies on an operation management
+\myverb{AMI\_general\_permute()}.  Like other AMI functions,
+\myverb{AMI\_general\_permute()} relies on an operation management
 object\index{operation management object} to determine its precise
 behavior.  Unlike functions covered up to now, however, the type of
 the operation management object\index{operation management object}
 need not depend on the type of object in the stream being permuted.
 
 A general permutation management object must provide two member
-functions, \verb|initialize()| and \verb|destination()|.
-\verb|initialize()| is called to inform the general permutation object
-of the length of the stream to be permuted.  \verb|destination()| is
+functions, \myverb{initialize()} and \myverb{destination()}.
+\myverb{initialize()} is called to inform the general permutation object
+of the length of the stream to be permuted.  \myverb{destination()} is
 then called repeatedly to determine the destination for each object in
 the stream based on it's initial position.
 
@@ -1662,7 +1471,7 @@ done over GF(2). For a detailed description of BMMC permutations,
 see~\cite{cormen:integrate-tr}.
 
 Routing BMMC permutations in TPIE is done using the
-\verb|AMI_BMMC_permute()| entry point\comment{LA: Is it really
+\myverb{AMI\_BMMC\_permute()} entry point\comment{LA: Is it really
 implemented?}, which takes an input stream, and output stream, and a
 pointer to a bit permutation management object. In the following example,
 we route a permutation that simply reverses the order of the source address
@@ -1714,11 +1523,11 @@ its elements appear in row major order.  In addition to stream operations,
 matrices support three simple arithmetic operations, addition, subtraction,
 and multiplication.
 
-It is assumed that the class \verb|T| of the elements in a matrix forms a
-quasiring with the operators \verb|+| and \verb|*|.  Furthermore, the
-object \verb|T((int)0)| is assumed to be an identity for \verb|+|.  At the
+It is assumed that the class \myverb{T} of the elements in a matrix forms a
+quasiring with the operators \myverb{+} and \myverb{*}.  Furthermore, the
+object \myverb{T((int)0)} is assumed to be an identity for \myverb{+}.  At the
 moment, it is not assumed that the operator
-\verb|-| in an inverse of \verb|+|, and therefore no reduced
+\myverb{-} in an inverse of \myverb{+}, and therefore no reduced
 complexity matrix multiplication algorithms analogous to Strassen's
 algorithm are used.
 
@@ -1731,10 +1540,10 @@ TPIE provides two different classes of matrices that, dense, and sparse.
 \index{matrices!dense|(}
 
 Dense matrices are implemented by the templated class
-\verb|AMI_matrix|,\index{AMI_matrix@{\tt AMI\_matrix}} which is a subclass
-of \verb|AMI_STREAM|.\index{AMI_STREAM@{\tt AMI\_STREAM}} Dense matrices
-can be filled using \verb|AMI_scan()|, though typically they are filled
-using the function \verb|AMI_matrix_fill()|, which uses a scan management
+\myverb{AMI\_matrix},\index{AMI_matrix@{\tt AMI\_matrix}} which is a subclass
+of \myverb{AMI\_STREAM}.\index{AMI_STREAM@{\tt AMI\_STREAM}} Dense matrices
+can be filled using \myverb{AMI\_scan()}, though typically they are filled
+using the function \myverb{AMI\_matrix\_fill()}, which uses a scan management
 object that is given the row and column of each element of the matrix and
 asked to fill them in.  In the following example, we create a 1000 by 1000
 upper triangular matrix of ones and zeroes:
@@ -1763,8 +1572,8 @@ void f()
 \end{verbatim}
 
 Arithmetic on dense matrices is performed in a straightforward way
-using the functions \verb|AMI_matrix_add()|,
-\verb|AMI_matrix_subtract()|, and \verb|AMI_matrix_multiply()|, as is
+using the functions \myverb{AMI\_matrix\_add()},
+\myverb{AMI\_matrix\_subtract()}, and \myverb{AMI\_matrix\_multiply()}, as is
 the following example:
 
 \begin{verbatim}
@@ -1800,8 +1609,8 @@ void f()
 
 \index{arithmetic!elementwise|see{elementwise arithmetic}}
 \index{elementwise arithmetic|(} 
-The functions \verb|AMI_matrix_add()|
-and \verb|AMI_matrix_subtract()| defined in
+The functions \myverb{AMI\_matrix\_add()}
+and \myverb{AMI\_matrix\_subtract()} defined in
 Section~\ref{sec:dense-mat} perform elementwise arithmetic on
 matrices.  At times, we might also wish to perform elementwise
 multiplication or division, or perform a scalar arithmetic operation
@@ -1812,8 +1621,8 @@ objects for which the appropriate arithmetic operators (i.e. {\tt +},
 
 Elementwise arithmetic is done with scan management objects
 \index{operation management objects!scan} of the classes
-\verb|AMI_scan_add|, \verb|AMI_scan_sub|, \verb|AMI_scan_mult| and
-\verb|AMI_scan_div|.  Here is an example that performs
+\myverb{AMI\_scan\_add}, \myverb{AMI\_scan\_sub}, \myverb{AMI\_scan\_mult} and
+\myverb{AMI\_scan\_div}.  Here is an example that performs
 elementwise division on the elements of two streams.
 
 \begin{verbatim}
@@ -1856,45 +1665,45 @@ additional code and configuration is needed. The configuration and
 compilation of a TPIE program is discussed below. The recommended way for a
 novice TPIE programmer to learn how to write a complete TPIE application is
 to go through the sample program of Chapter~\ref{ch:samplepgmr} or to look
-at the source code provided in the \verb|test| directory.
+at the source code provided in the \myverb{test} directory.
 
 The exact behavior or TPIE at run time is controlled by several
-macros. These macros are normally defined in the file \verb|app_config.h|
+macros. These macros are normally defined in the file \myverb{app\_config.h}
 \index{app_config@{\tt app\_config.h}} which is included in the beginning
 of any TPIE program before including any TPIE headers. The test application
 code\index{test applications} distributed with TPIE contains such a file
-(in \verb|/test/app_config.h|). See Section~\ref{sec:tuning} for a
+(in \myverb{/test/app\_config.h}). See Section~\ref{sec:tuning} for a
 discussion of the macros and of how they should be set on a given hardware
 platform in order to obtain maximal performance.
 
 Once the appropriate macros have been defined, TPIE's templated classes and
-functions are included by including the header file \verb|ami.h| from the
-\verb|include| directory. Normally, this directory is pointed to by a
-\verb|-I| argument to the compiler. In order to instruct TPIE to run with a
-user-specified amount of internal memory the variable \verb|register_new|
+functions are included by including the header file \myverb{ami.h} from the
+\myverb{include} directory. Normally, this directory is pointed to by a
+\myverb{-I} argument to the compiler. In order to instruct TPIE to run with a
+user-specified amount of internal memory the variable \myverb{register\_new}
 has to be set to 1 in the main body of the program. Setting this variable
 means that the program will abort if the allocated internal memory exceeds
 a specified amount.\comment{LA: Something about how TPIE counts memory?}
-This amount is set by the function \verb|MM_manager.resize_heap(mm_size)|
-which instructs the TPIE memory manager \verb|MM_manager| to disallow the
+This amount is set by the function \myverb{MM\_manager.resize\_heap(mm\_size)}
+which instructs the TPIE memory manager \myverb{MM\_manager} to disallow the
 applications total internal memory usage (in the ``heap'' area) from
-exceeding \verb|test_mm_size| bytes. It is the responsibility of the
-application to have the \verb|MM_manager| ``resize'' its heap to an
+exceeding \myverb{test\_mm\_size} bytes. It is the responsibility of the
+application to have the \myverb{MM\_manager} ``resize'' its heap to an
 appropriate size. Normally, this amount is the amount of physical main
 memory minus the main memory used by the operating system and other
-programs running on the machine. If \verb|register_new| is set to 0, the
+programs running on the machine. If \myverb{register\_new} is set to 0, the
 application will run with virtual memory like an ordinary non-TPIE
 application would.
 
-If the application program is stored in the file \verb|foo.cpp| it can now be
+If the application program is stored in the file \myverb{foo.cpp} it can now be
 compiled with the following command:
 
 \begin{verbatim}
 g++ foo.cpp -I ../include/ -L ../lib/ -ltpie -o foo
 \end{verbatim}
 
-Users interested in setting up a \verb|Makefile| for the compiling task can
-look at a sample \verb|Makefile| in the \verb|test| directory.
+Users interested in setting up a \myverb{Makefile} for the compiling task can
+look at a sample \myverb{Makefile} in the \myverb{test} directory.
 
 
 
