@@ -5,7 +5,7 @@
 // Created: 10/27/94
 //
 
-static char list_edge_id[] = "$Id: list_edge.cpp,v 1.1 1995-03-07 15:08:50 darrenv Exp $";
+static char list_edge_id[] = "$Id: list_edge.cpp,v 1.2 1999-02-03 02:56:35 jan Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
@@ -19,7 +19,7 @@ static struct ___list_edge_id_compiler_fooler {
 };
 
 // A hack for now until const handling improves.
-#define CONST 
+#define CONST const
 
 #include "list_edge.h"
 
