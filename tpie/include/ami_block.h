@@ -5,7 +5,7 @@
 //
 // Definition and implementation of the AMI_block class.
 //
-// $Id: ami_block.h,v 1.7 2003-04-29 05:29:42 tavi Exp $
+// $Id: ami_block.h,v 1.8 2005-01-14 19:15:49 tavi Exp $
 //
 
 #ifndef _AMI_BLOCK_H
@@ -22,7 +22,14 @@
  
 template<class E, class I, class BTECOLL = BTE_COLLECTION >
 class AMI_block: public AMI_block_base<BTECOLL> {
-public:
+  protected:
+  using AMI_block_base<BTECOLL>::bid_;
+  using AMI_block_base<BTECOLL>::dirty_;
+  using AMI_block_base<BTECOLL>::pdata_;
+  using AMI_block_base<BTECOLL>::per_;
+  using AMI_block_base<BTECOLL>::pcoll_;
+  
+  public:
   //  typedef typename BTECOLL::block_id_t id_t;
 
   // The array of links.

@@ -3,7 +3,7 @@
 // File:    ami_btree.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_btree.h,v 1.33 2004-08-17 16:47:42 jan Exp $
+// $Id: ami_btree.h,v 1.34 2005-01-14 19:15:49 tavi Exp $
 //
 // AMI_btree declaration and implementation.
 //
@@ -496,6 +496,10 @@ class AMI_btree_leaf: public AMI_block<Value, _AMI_btree_leaf_info, BTECOLL> {
   Compare_value_value comp_value_value_;
   
 public:
+  using AMI_block<Value, _AMI_btree_leaf_info, BTECOLL>::info;
+  using AMI_block<Value, _AMI_btree_leaf_info, BTECOLL>::el;
+  using AMI_block<Value, _AMI_btree_leaf_info, BTECOLL>::dirty;
+  
   // Compute the capacity of the el vector STATICALLY (but you have to
   // give it the correct logical block size!).
 	static TPIE_OS_SIZE_T el_capacity(size_t block_size);
@@ -569,7 +573,11 @@ class AMI_btree_node: public AMI_block<Key, size_t, BTECOLL> {
   Compare comp_;
   
 public:
-
+  using AMI_block<Key, size_t, BTECOLL>::info;
+  using AMI_block<Key, size_t, BTECOLL>::el;
+  using AMI_block<Key, size_t, BTECOLL>::lk;
+  using AMI_block<Key, size_t, BTECOLL>::dirty;
+  
   // Compute the capacity of the lk vector STATICALLY (but you have to
   // give it the correct logical block size!).
   static size_t lk_capacity(size_t block_size);
