@@ -7,7 +7,7 @@
 //
 
 #include <versions.h>
-VERSION(test_ami_btree_cpp, "$Id: test_ami_btree.cpp,v 1.5 2001-12-29 05:22:08 tavi Exp $");
+VERSION(test_ami_btree_cpp, "$Id: test_ami_btree.cpp,v 1.6 2002-01-14 17:38:31 tavi Exp $");
 
 #include <fstream>
 
@@ -189,7 +189,7 @@ int main(int argc, char **argv) {
   cout << "Tree size: " << btree->size() << " elements. Tree height: " 
        << btree->height() << ".\n";
 
-  cout << "Block statistics:\n"
+  cout << "Block collection statistics:\n"
        << "\tREAD:    " 
        << btree->stats().get(LEAF_READ)+btree->stats().get(NODE_READ) << endl
        << "\tCREATE:  " 
@@ -202,6 +202,18 @@ int main(int argc, char **argv) {
        << btree->stats().get(LEAF_DELETE)+btree->stats().get(NODE_DELETE) << endl
        << "\tRELEASE: " 
        << btree->stats().get(LEAF_RELEASE)+btree->stats().get(NODE_RELEASE) << endl;
+
+  cout << "Stream statistics:\n"
+       << "\tITEM READ:  "
+       << AMI_STREAM<structure>::gstats().get(ITEM_READ) << endl
+       << "\tITEM WRITE: "
+       << AMI_STREAM<structure>::gstats().get(ITEM_WRITE) << endl
+       << "\tITEM_SEEK:  "
+       << AMI_STREAM<structure>::gstats().get(ITEM_SEEK) << endl
+       << "\tBLOCK READ: "
+       << AMI_STREAM<structure>::gstats().get(BLOCK_READ) << endl
+       << "\tBLOCK WRITE "
+       << AMI_STREAM<structure>::gstats().get(BLOCK_WRITE) << endl;
 
   btree->persist(PERSIST_DELETE);
   delete btree;

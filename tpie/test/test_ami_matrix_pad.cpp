@@ -1,4 +1,3 @@
-// Copyright (c) 1994 Darren Vengroff
 //
 // File: test_ami_matrix.cpp
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
@@ -6,7 +5,7 @@
 //
 
 #include <versions.h>
-VERSION(test_ami_matrix_cpp,"$Id: test_ami_matrix_pad.cpp,v 1.5 2000-01-11 01:16:45 hutchins Exp $");
+VERSION(test_ami_matrix_cpp,"$Id: test_ami_matrix_pad.cpp,v 1.6 2002-01-14 17:45:33 tavi Exp $");
 
 #include <iostream.h>
 #include <fstream.h>
@@ -164,7 +163,7 @@ int main(int argc, char **argv)
 
 #if 0        
         if (report_results_intermediate) {
-            ae = AMI_scan((AMI_base_stream<int> *)&em2, rpti);
+            ae = AMI_scan((AMI_stream_base<int> *)&em2, rpti);
         }        
 #endif
         
