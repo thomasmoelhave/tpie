@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/19/94
 //
-// $Id: ami.h,v 1.11 1995-06-20 18:44:41 darrenv Exp $
+// $Id: ami.h,v 1.12 1997-05-20 22:03:43 vengroff Exp $
 //
 #ifndef _AMI_H
 #define _AMI_H
@@ -53,6 +53,9 @@ TEMPLATE_INSTANTIATE_AMI_STREAMS(T)
 
 // Get templates for bit permuting.
 #include <ami_bit_permute.h>
+
+// Get templates for blocksets for e.g. B-trees.
+//#include <ami_blockset.h>
 
 // Get templates for AMI_distribution_sweep().
 //#include <ami_dist_sweep.h>

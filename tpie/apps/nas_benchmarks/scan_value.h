@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 3/23/95
 //
-// $Id: scan_value.h,v 1.1 1995-04-03 13:19:05 dev Exp $
+// $Id: scan_value.h,v 1.2 1997-05-20 22:12:17 vengroff Exp $
 //
 #ifndef _SCAN_VALUE_H
 #define _SCAN_VALUE_H
@@ -26,7 +26,7 @@ public:
     };
     inline AMI_err operate(T *out, AMI_SCAN_FLAG *sf)
     {
-        if (*sf = ii--) {
+        if ((*sf = ii--)) {
             *out = t;
             return AMI_SCAN_CONTINUE;
         } else {

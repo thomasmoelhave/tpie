@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 3/6/95
 //
-// $Id: fill_value.h,v 1.1 1995-03-07 15:07:45 darrenv Exp $
+// $Id: fill_value.h,v 1.2 1997-05-20 22:06:25 vengroff Exp $
 //
 #ifndef _FILL_VALUE_H
 #define _FILL_VALUE_H
@@ -19,11 +19,11 @@ public:
     void set_value(const T &v) {
         value = v;
     };
-    AMI_err initialize(unsigned int rows, unsigned int cols)
+    AMI_err initialize(unsigned int /*rows*/, unsigned int /*cols*/)
     {
         return AMI_ERROR_NO_ERROR;
     };
-    T element(unsigned int row, unsigned int col)
+    T element(unsigned int /*row*/, unsigned int /*col*/)
     {
         return value;
     };

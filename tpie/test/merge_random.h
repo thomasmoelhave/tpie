@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/5/94
 //
-// $Id: merge_random.h,v 1.5 1995-06-30 21:09:16 darrenv Exp $
+// $Id: merge_random.h,v 1.6 1997-05-20 22:08:33 vengroff Exp $
 //
 // A merge managment object that reorders the input stream in a random
 // way.
@@ -61,7 +61,7 @@ merge_random<T>::~merge_random(void)
 template<class T>
 AMI_err merge_random<T>::initialize(arity_t arity,
                                     CONST T * CONST *in,
-                                    AMI_merge_flag *taken_flags,
+                                    AMI_merge_flag */*taken_flags*/,
                                     int &taken_index)
 {
     arity_t ii;
@@ -92,7 +92,7 @@ AMI_err merge_random<T>::initialize(arity_t arity,
 
 template<class T>
 AMI_err merge_random<T>::operate(CONST T * CONST *in,
-                                 AMI_merge_flag *taken_flags,
+                                 AMI_merge_flag */*taken_flags*/,
                                  int &taken_index, T *out)
 {
     bool pqret;
