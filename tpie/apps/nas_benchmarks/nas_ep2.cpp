@@ -13,7 +13,7 @@
 
 // Define it all.
 #include <ami.h>
-VERSION(nas_ep2_cpp,"$Id: nas_ep2.cpp,v 1.7 2003-09-12 01:47:29 tavi Exp $");
+VERSION(nas_ep2_cpp,"$Id: nas_ep2.cpp,v 1.8 2003-09-12 14:21:36 jan Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -64,12 +64,11 @@ public:
 };
 
 
-scan_both::scan_both(double seed, unsigned int count, double a) :
-        s(seed), 
-        max(count)
-{
-        a1 = floor(TWO_TO_MINUS_23 * a);
-        a2 = a - TWO_TO_23 * a1;    
+scan_both::scan_both(double seed, unsigned int count, double a) {
+    this->s = seed; 
+    this->max = count;
+    a1 = floor(TWO_TO_MINUS_23 * a);
+    a2 = a - TWO_TO_23 * a1;    
 }
 
 
@@ -80,7 +79,7 @@ scan_both::~scan_both()
 AMI_err scan_both::initialize(void)
 {
     xlc2 = s;
-    remaining = max;
+    this->remaining = this->max;
 
     sumx = sumy = 0.0;
     for (unsigned int ii = 10; ii--; ) {
