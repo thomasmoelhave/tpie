@@ -3,7 +3,7 @@
 // Created: 2002/10/30
 // Authors: Joerg Rotthowe, Jan Vahrenhold, Markus Vogel
 //
-// $Id: portability.h,v 1.24 2004-05-05 15:59:07 adanner Exp $
+// $Id: portability.h,v 1.25 2004-05-06 16:01:30 adanner Exp $
 //
 // This header-file offers macros for independent use on Win and Unix systems.
 
@@ -183,10 +183,17 @@ typedef tms TPIE_OS_TIME;
 
 
 #ifdef _WIN32
-typedef _off_t TPIE_OS_OFFSET;
+typedef LONGLONG TPIE_OS_OFFSET;
 #else
 typedef off_t TPIE_OS_OFFSET;
 #endif	
+
+#ifdef _WIN32
+//windows doesn't have a default way
+//of printing 64 bit integers
+//printf doesn't work either with %d, use %I64d in Win32
+extern ostream& operator<<(ostream& s, const TPIE_OS_OFFSET x);
+#endif
 
 #ifdef _WIN32
 typedef long TPIE_OS_LONG;
@@ -376,16 +383,20 @@ inline void TPIE_OS_SRANDOM(unsigned int seed) {
 }
 #endif
 
+#ifdef _WIN32
+// Win32 File Seeks use high/low order offsets 
 // Getting Highorder 32 Bit OFFSET
 inline TPIE_OS_OFFSET getHighOrderOff(TPIE_OS_OFFSET off) {
-    return off / (1 << 31);
+    //Be careful with sign bits. 
+    return (LONG)((ULONGLONG)(off)>>32);
 }
  
      
 // Getting Loworder 32 Bit OFFSET
 inline TPIE_OS_OFFSET getLowOrderOff(TPIE_OS_OFFSET off) {
-    return off % (1 << 31);
+    return (LONG)((ULONGLONG)(off) % 0x000100000000);
 }
+#endif
 
 
 
@@ -635,22 +646,17 @@ inline bool TPIE_OS_IS_VALID_FILE_DESCRIPTOR(TPIE_OS_FILE_DESCRIPTOR& fd) {
 
 // for working with HANDLEs under Windows we have to use SetFilePointer instead of _lseek //
 #ifdef _WIN32
-inline TPIE_OS_OFFSET TPIE_OS_LSEEK(TPIE_OS_FILE_DESCRIPTOR &fd,TPIE_OS_OFFSET offset,TPIE_OS_FLAG origin) {
-//    CloseHandle(fd.mapFileHandle);	
-    TPIE_OS_LONG highOrderOff = getHighOrderOff(offset);	
+inline TPIE_OS_OFFSET TPIE_OS_LSEEK(TPIE_OS_FILE_DESCRIPTOR &fd,TPIE_OS_OFFSET offset,TPIE_OS_FLAG origin) {	
+    LONG highOrderOff = getHighOrderOff(offset);	
     DWORD x = SetFilePointer(fd.FileHandle,getLowOrderOff(offset),&highOrderOff,origin);
-    if (x == 0xFFFFFFFF) { 
-	x = -1;
-    };
-	x += highOrderOff;
-//    fd.mapFileHandle= CreateFileMapping( 
-//	(fd).FileHandle,
-//	0, 
-//	((fd).RDWR ? PAGE_READWRITE : PAGE_READONLY),
-//	0,
-//	0,
-//	NULL);
-    return x;
+
+	if( x==0xFFFFFFFF && (GetLastError() != NO_ERROR) ){
+	  //Error
+	  return -1;
+	}
+	else{
+      return (TPIE_OS_OFFSET)((((ULONGLONG) highOrderOff)<<32)+(ULONGLONG) x);
+	}
 }
 #else
 inline TPIE_OS_OFFSET TPIE_OS_LSEEK(TPIE_OS_FILE_DESCRIPTOR &fd,TPIE_OS_OFFSET offset,TPIE_OS_FLAG origin) {
@@ -738,13 +744,13 @@ inline int TPIE_OS_MSYNC(char* addr, size_t len,int flags) {
 #endif
 #define BTE_COLLECTION_USE_FTRUNCATE 1
 
-inline int TPIE_OS_FTRUNCATE(TPIE_OS_FILE_DESCRIPTOR& fd, TPIE_OS_LONG length) {
+inline int TPIE_OS_FTRUNCATE(TPIE_OS_FILE_DESCRIPTOR& fd, TPIE_OS_OFFSET length) {
   // Save the offset
   TPIE_OS_OFFSET so = TPIE_OS_LSEEK(fd, 0, TPIE_OS_FLAG_SEEK_CUR);
   if (fd.useFileMapping == TPIE_OS_FLAG_USE_MAPPING_TRUE) {
     CloseHandle(fd.mapFileHandle);	
   }
-  TPIE_OS_LONG highOrderOff = getHighOrderOff(length);
+  LONG highOrderOff = getHighOrderOff(length);
   int x = ((((fd).RDWR == false) 	|| 
 	    (SetFilePointer((fd).FileHandle,getLowOrderOff(length),&highOrderOff,FILE_BEGIN) == 0xFFFFFFFF)	|| 
 	    (SetEndOfFile((fd).FileHandle) == 0)) ? -1 : 0);
@@ -760,7 +766,7 @@ inline int TPIE_OS_FTRUNCATE(TPIE_OS_FILE_DESCRIPTOR& fd, TPIE_OS_LONG length) {
   return x;
 }
 #else							
-inline int TPIE_OS_FTRUNCATE(TPIE_OS_FILE_DESCRIPTOR& fd, TPIE_OS_LONG length) {
+inline int TPIE_OS_FTRUNCATE(TPIE_OS_FILE_DESCRIPTOR& fd, TPIE_OS_OFFSET length) {
     return ftruncate(fd, length);
 }
 #endif
@@ -907,7 +913,7 @@ inline int TPIE_OS_TRUNCATE(FILE* file, const char* path, TPIE_OS_OFFSET offset)
 }
 #else
 inline int TPIE_OS_TRUNCATE(FILE* file, const char* path, TPIE_OS_OFFSET offset) {
-	return ::ftruncate(path, offset);
+	return ::truncate(path, offset);
 }
 #endif
 
@@ -953,17 +959,27 @@ return BTE_ERROR_OS_ERROR
 #endif
 
 
-//  WIN32 does not support data type "long long".//
+//  WIN32 does not support data type "long long", but does support "LONGLONG".//
 #ifdef _WIN32
-#define TPIE_OS_UNIX_ONLY_DATA_TYPE_LONG_LONG 
+#define TPIE_OS_DECLARE_LOGSTREAM_LONGLONG _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const LONGLONG); 
 #else
-#define TPIE_OS_UNIX_ONLY_DATA_TYPE_LONG_LONG _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const long long);
+#define TPIE_OS_DECLARE_LOGSTREAM_LONGLONG _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const long long);
 #endif
 
 #ifdef _WIN32
-#define TPIE_OS_UNIX_ONLY_DEFINE_LOGSTREAM_OUPUT_OPERATOR
+#define TPIE_OS_DEFINE_LOGSTREAM_LONGLONG  \
+logstream& logstream::operator<<(const LONGLONG x)\
+{\
+    char buf[30];\
+    sprintf(buf,"%I64d",x);\
+    if (priority <= threshold) {\
+          ofstream::operator<<(buf);\
+    }\
+    return *this;\
+}
+
 #else
-#define TPIE_OS_UNIX_ONLY_DEFINE_LOGSTREAM_OUPUT_OPERATOR _DEFINE_LOGSTREAM_OUTPUT_OPERATOR(long long);					
+#define TPIE_OS_DEFINE_LOGSTREAM_LONGLONG _DEFINE_LOGSTREAM_OUTPUT_OPERATOR(long long);					
 #endif
 
 
