@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/12/94
 //
-// $Id: tpie_log.h,v 1.21 2003-05-04 23:05:48 tavi Exp $
+// $Id: tpie_log.h,v 1.22 2003-09-11 15:14:25 jan Exp $
 //
 
 #ifndef _TPIE_LOG_H
@@ -38,7 +38,7 @@ void tpie_log_init(TPIE_LOG_LEVEL level = TPIE_LOG_WARNING);
 // Macros to simplify logging.  The argument to the macro can be any type
 // that log streams have an output operator for.
 
-#define LOG_FLUSH_LOG (!logstream::log_initialized || tpie_log().std::ofstream::flush())
+#define LOG_FLUSH_LOG (!logstream::log_initialized || tpie_log().flush())
 
 // eg: LOG_FATAL(LOG_ID_MSG)
 #define LOG_ID_MSG __FILE__ << " line " << __LINE__ << ": "
