@@ -3,7 +3,7 @@
 // File:    ami_cache.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_cache.h,v 1.5 2002-07-21 22:57:26 tavi Exp $
+// $Id: ami_cache.h,v 1.6 2003-03-16 02:38:34 tavi Exp $
 //
 // Declaration and definition of AMI_CACHE_MANAGER
 // implementation(s).
@@ -12,6 +12,9 @@
 #ifndef _AMI_CACHE_H
 #define _AMI_CACHE_H
 
+ 
+// STL header, for class pair.
+#include <utility>
 // The b_vector class.
 #include <b_vector.h>
 
@@ -48,7 +51,7 @@ class AMI_cache_manager_lru: public AMI_cache_manager_base {
 protected:
 
   // The type of the item stored. Pair of key and T.
-  typedef pair<size_t,T> item_type_;
+  typedef std::pair<size_t,T> item_type_;
 
   // The array of items.
   item_type_ * pdata_;
