@@ -3,7 +3,7 @@
 // File:    ami_btree.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_btree.h,v 1.7 2001-06-26 16:12:21 tavi Exp $
+// $Id: ami_btree.h,v 1.8 2001-06-26 16:28:20 tavi Exp $
 //
 // AMI_btree declaration and implementation.
 //
@@ -342,10 +342,10 @@ public:
   // (ie, the lowest position where it would be inserted).
   size_t find(const Key& k);
 
-  // Predeccessor of k
+  // Predecessor of k.
   size_t pred(const Key& k);
     
-  // Successor of k
+  // Successor of k.
   size_t succ(const Key& k);
 
   // Constructor.
@@ -626,10 +626,8 @@ size_t pred_idx;
   for (j = i+1; j < size(); j++)
     if (comp_(KeyOfValue()(el[j]), k) && comp_(KeyOfValue()(el[i]), KeyOfValue()(el[j])))
       pred_idx = j;
-  if (i != size())
-    return pred_idx;
-  else
-    return 0;
+
+  return ((i != size()) ? pred_idx: 0);
 #endif
 }
 
@@ -659,11 +657,8 @@ size_t succ_idx;
   for (j = i+1; j < size(); j++)
     if (comp_(k, KeyOfValue()(el[j])) && comp_(KeyOfValue()(el[j]), KeyOfValue()(el[i])))
       succ_idx = j;
-  
-  if (i != size())
-    return succ_idx;
-  else
-    return 0;
+
+  return ((i != size()) ? succ_idx: 0);
 #endif
 }
 
