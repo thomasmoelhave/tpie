@@ -1,10 +1,9 @@
-// Copyright (c) 1994 Darren Erik Vengroff
 //
 // File: ami_stream_single.h (formerly ami_single.h)
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/19/94
 //
-// $Id: ami_stream_single.h,v 1.2 2002-01-27 20:10:05 tavi Exp $
+// $Id: ami_stream_single.h,v 1.3 2002-02-02 18:11:52 tavi Exp $
 //
 // AMI entry points implemented on top of a single BTE.  This is useful
 // for single CPU, single disk machines.
@@ -14,7 +13,6 @@
 
 // [tavi] for UINT_MAX
 #include <limits.h>
-
 #include <sys/types.h>
 
 // Use tempnam() instead of mktemp().
@@ -45,13 +43,10 @@
 #include <mm_base.h>
 
 #include <ami_device.h>
+#include <tpie_tempnam.h>
 
-// The name of the environment variable to consult for default device
-// descriptions.
-#define AMI_SINGLE_DEVICE_ENV "AMI_SINGLE_DEVICE"
-
-// An initializer class to set the default device for the AMI_stream_single_base
-// class.
+// An initializer class to set the default device for the
+// AMI_stream_single_base class.
 class AMI_stream_single_base_device_initializer {
 private:
     static unsigned int count;
@@ -521,7 +516,5 @@ char *AMI_stream_single<T>::sprint()
   delete s;
   return buf;
 }
-
-char *ami_single_temp_name(char *);
 
 #endif // _AMI_STREAM_SINGLE_H 
