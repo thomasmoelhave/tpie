@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 3/2/95
 //
-// $Id: ami_sparse_matrix.h,v 1.9 2003-04-17 14:18:18 jan Exp $
+// $Id: ami_sparse_matrix.h,v 1.10 2003-04-20 08:08:04 tavi Exp $
 //
 #ifndef AMI_SPARSE_MATRIX_H
 #define AMI_SPARSE_MATRIX_H
@@ -12,7 +12,7 @@
 // Get definitions for working with Unix and Windows
 #include <portability.h>
 
-#include <iostream.h>
+#include <iostream>
 
 // We need dense matrices to support some sparse/dense interactions.
 #include <ami_matrix.h>
