@@ -2,7 +2,7 @@
 // File: bte_stream_ufs.h (formerly bte_ufs.h)
 // Author: Rakesh Barve <rbarve@cs.duke.edu>
 //
-// $Id: bte_stream_ufs.h,v 1.11 2004-05-05 14:31:56 adanner Exp $
+// $Id: bte_stream_ufs.h,v 1.12 2004-05-07 10:03:26 adanner Exp $
 //
 // BTE streams with blocks I/Oed using read()/write().  This particular
 // implementation explicitly manages blocks, and only ever maps in one
@@ -677,7 +677,7 @@ template < class T > BTE_stream_ufs < T >::~BTE_stream_ufs (void) {
 	unmap_current ();
     }
 
-    // If this is not a substream then close the file.
+    // If this is not a substream then cleanup.
     if (!substream_level) {
       // If a writeable stream, write back the header.  But only if
       // the stream is persistent. Otherwise, don't waste time with
@@ -737,10 +737,17 @@ template < class T > BTE_stream_ufs < T >::~BTE_stream_ufs (void) {
 	      }
 	    }
 	}
-    } else {				// end of if (!substream_level) 
-	gstats_.record(SUBSTREAM_DELETE);
-	stats_.record(SUBSTREAM_DELETE);
-    }
+  } else {				// end of if (!substream_level) 
+		//Each substream has its own file descriptor so close it. 
+	  if (TPIE_OS_CLOSE (fd)) {
+	    os_errno = errno;
+	    LOG_FATAL_ID ("Failed to close() substream" << path);
+	    LOG_FATAL_ID (strerror (os_errno));
+	    return;
+		}
+	  gstats_.record(SUBSTREAM_DELETE);
+	  stats_.record(SUBSTREAM_DELETE);
+  }
 
     if (curr_block) {
 	delete [] curr_block; // should be vector delete -RW
