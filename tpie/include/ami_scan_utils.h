@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 8/31/94
 //
-// $Id: ami_scan_utils.h,v 1.1 1994-08-31 18:59:01 darrenv Exp $
+// $Id: ami_scan_utils.h,v 1.2 1994-11-02 21:56:17 darrenv Exp $
 //
 #ifndef _AMI_SCAN_UTILS_H
 #define _AMI_SCAN_UTILS_H
@@ -84,5 +84,16 @@ AMI_err cxx_ostream_scan<T>::operate(const T &in, AMI_SCAN_FLAG *sfin)
     }
 };
 
+#ifdef NO_IMPLICIT_TEMPLATES
+
+#define TEMPLATE_INSTANTIATE_OSTREAM(T) 				\
+template class cxx_ostream_scan<T>; 					\
+template AMI_err AMI_scan(AMI_base_stream<T> *, 			\
+                          cxx_ostream_scan<T> *);
+
+#define TEMPLATE_INSTANTIATE_ISTREAM(T) \
+template class cxx_istream_scan<T>;
+
+#endif
 
 #endif // _AMI_SCAN_UTILS_H 
