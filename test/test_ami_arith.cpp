@@ -8,22 +8,22 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_arith_cpp,"$Id: test_ami_arith.cpp,v 1.9 2003-09-12 00:18:38 tavi Exp $");
+VERSION(test_ami_arith_cpp,"$Id: test_ami_arith.cpp,v 1.10 2003-09-27 07:10:42 tavi Exp $");
 
 #include "app_config.h"        
 #include "parse_args.h"
 
-// Define it all.
-#include <ami.h>
+// Get AMI_scan().
+#include <ami_scan.h>
 
-// Utitlities for ascii output.
+// Get utitlities for ascii output.
 #include <ami_scan_utils.h>
 
 // Get some scanners.
 #include "scan_square.h"
 #include "scan_count.h"
 
-// Get stream arithmatic.
+// Get stream arithmetic.
 #include <ami_stream_arith.h>
 
 static char def_crf[] = "osc.txt";

@@ -12,9 +12,9 @@
 #include "parse_args.h"
 
 // Define it all.
-#include <ami.h>
+#include <ami_scan.h>
 
-VERSION(test_ami_sm_cpp,"$Id: test_ami_sm.cpp,v 1.9 2003-09-13 18:15:49 jan Exp $");
+VERSION(test_ami_sm_cpp,"$Id: test_ami_sm.cpp,v 1.10 2003-09-27 07:10:42 tavi Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
