@@ -5,7 +5,24 @@
 // Created: 12/19/94
 //
 
-static char scan_random_point_id[] = "$Id: scan_random_point.cpp,v 1.1 1994-12-20 22:14:13 darrenv Exp $";
+// This file is part of TPIE, a transparent parallel I/O enviroment.
+
+// TPIE is free software; you can redistribute it and/or modify it
+// under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+
+// TPIE is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+// or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
+// License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with TPIE; if not, write to the Free Software Foundation, 675
+// Mass Ave, Cambridge, MA 02139, USA.
+
+
+static char scan_random_point_id[] = "$Id: scan_random_point.cpp,v 1.2 1995-01-10 16:48:03 darrenv Exp $";
 
 // This is just to avoid an error message since the string above is never
 // referenced.  Note that a self referential structure must be defined to
