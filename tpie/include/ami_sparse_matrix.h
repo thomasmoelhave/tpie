@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 3/2/95
 //
-// $Id: ami_sparse_matrix.h,v 1.6 1999-12-15 22:24:45 hutchins Exp $
+// $Id: ami_sparse_matrix.h,v 1.7 2000-01-11 01:02:20 hutchins Exp $
 //
 #ifndef AMI_SPARSE_MATRIX_H
 #define AMI_SPARSE_MATRIX_H
@@ -133,9 +133,7 @@ AMI_err AMI_sparse_band_info(AMI_sparse_matrix<T> &opm,
     AMI_err ae;
     
     // Check available main memory.
-    if (MM_manager.available(&sz_avail) != MM_ERROR_NO_ERROR) {
-        return AMI_ERROR_MM_ERROR;
-    }
+    sz_avail = MM_manager.memory_available ();
     
     // How much memory does a single stream need in the worst case?
     
