@@ -5,7 +5,7 @@
 //
 // K-D-B-tree definition and implementation. 
 //
-// $Id: ami_kdbtree.h,v 1.2 2003-01-27 03:00:47 tavi Exp $
+// $Id: ami_kdbtree.h,v 1.3 2003-01-27 03:27:15 tavi Exp $
 //
 
 #ifndef _KDBTREE_H
@@ -282,7 +282,7 @@ public:
   // Sort points on the given dimension.
   void sort(size_t d) {
     POINT::cmp cmpd(d);
-    ::sort(&el[0], &el[0] + size(), cmpd);
+    std::sort(&el[0], &el[0] + size(), cmpd);
   }
 
   // Find median point on the given dimension. Return the index of the
@@ -720,8 +720,8 @@ bool KDBTREE::insert(const Record<coord_t, size_t, dim>& p) {
 
   // Update the MBR.
   for (size_t i = 0; i < dim; i++) {
-    header_.mbr_lo[i] = ::min(header_.mbr_lo[i], p[i]);
-    header_.mbr_hi[i] = ::max(header_.mbr_hi[i], p[i]);
+    header_.mbr_lo[i] = std::min(header_.mbr_lo[i], p[i]);
+    header_.mbr_hi[i] = std::max(header_.mbr_hi[i], p[i]);
   }
 
   bool ans;
