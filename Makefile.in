@@ -2,7 +2,7 @@
 #
 # The Makefile for the complete TPIE system.
 #
-# $Id: Makefile.in,v 1.14 1994-11-02 22:06:02 darrenv Exp $
+# $Id: Makefile.in,v 1.15 1994-12-16 21:08:16 darrenv Exp $
 #
 
 MY_DEFS := @DEFS@
@@ -19,14 +19,16 @@ LIBPATH := ./lib/
 
 LIBSRCPATH := $(LIBPATH)src/
 
-APPSPATH := ./apps/
+TESTPATH := ./test/
 
 INCPATH := ./include/
 
-usage:
-	@echo $(MAKE) "[ all | inc | lib | apps | clean | distclean ]"
+DOCPATH := ./doc/
 
-all: inc lib apps
+usage:
+	@echo $(MAKE) "[ all | inc | lib | test | doc | clean | distclean ]"
+
+all: inc lib test doc
 
 inc:
 	$(MAKE) -C $(INCPATH) all
@@ -35,20 +37,24 @@ lib:
 	$(MAKE) -C $(LIBSRCPATH) all
 	$(MAKE) -C $(LIBPATH) all
 
-apps: 
-	$(MAKE) -C $(APPSPATH) all
+test: 
+	$(MAKE) -C $(TESTPATH) all
 
+doc:
+	$(MAKE) -C $(DOCPATH) all
 
-.PHONY : clean lib inc apps usage all distclean
+.PHONY : clean lib inc test doc usage all distclean
+
+distcleandir = (rm -f $(dir)*~; rm -f $(dir)Makefile)
+
+dirs := ./ $(TESTPATH) $(LIBPATH) $(LIBSRCPATH) $(INCPATH)
 
 clean:
-	$(MAKE) -C $(APPSPATH) $@
+	$(MAKE) -C $(TESTPATH) $@
 	$(MAKE) -C $(LIBPATH) $@
 	$(MAKE) -C $(INCPATH) $@
-
-cleandir = (rm -f $(dir)*~; rm -f $(dir)Makefile)
-
-dirs := ./ $(APPSPATH) $(LIBPATH) $(LIBSRCPATH) $(INCPATH)
+	$(MAKE) -C $(DOCPATH) $@
  
 distclean: clean
-	-$(foreach dir,$(dirs),$(cleandir);)
+	$(foreach dir,$(dirs),@$(distcleandir);)
+	@rm -f $(DOCPATH)*~ $(DOCPATH)Makefile 
