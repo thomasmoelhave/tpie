@@ -21,7 +21,7 @@
 // keys of the items; there is a provision to to use templated heaps
 // to implement the merge.
 
-// $Id: ami_optimized_merge.h,v 1.52 2002-07-25 22:35:50 tavi Exp $
+// $Id: ami_optimized_merge.h,v 1.53 2002-12-19 08:06:53 tavi Exp $
 
 // TO DO: substream_count setting; don't depend on current_stream_len
 
@@ -68,8 +68,8 @@ template < class T >
 //do not use <,  use specified comparison function
 template < class T >
     AMI_err AMI_single_merge (AMI_STREAM < T > **, arity_t,
-			      AMI_STREAM < T > *, int (*cmp) (CONST T &,
-							      CONST T &));
+			      AMI_STREAM < T > *, int (*cmp) (const T &,
+							      const T &));
 
 //make use of the explicit knowledge of the key of the user-defined
 //records
@@ -89,7 +89,7 @@ template < class T >
 
 template < class T >
     AMI_err AMI_merge (AMI_STREAM < T > **, arity_t, AMI_STREAM < T > *,
-		       int (*cmp) (CONST T &, CONST T &));
+		       int (*cmp) (const T &, const T &));
 
 template < class T, class KEY >
     AMI_err AMI_merge (AMI_STREAM < T > **, arity_t,
@@ -107,7 +107,7 @@ template < class T >
 template < class T >
     AMI_err AMI_partition_and_merge (AMI_STREAM < T > *instream,
 				     AMI_STREAM < T > *outstream,
-				     int (*cmp) (CONST T &, CONST T &));
+				     int (*cmp) (const T &, const T &));
 
 template < class T, class KEY >
     AMI_err AMI_partition_and_merge (AMI_STREAM < T > *instream,
@@ -267,7 +267,7 @@ template < class T >
     AMI_err
 AMI_single_merge (AMI_STREAM < T > **instreams, arity_t arity,
 		  AMI_STREAM < T > *outstream,
-		  int (*cmp) (CONST T &, CONST T &))
+		  int (*cmp) (const T &, const T &))
 {
 
    unsigned int i, j;
@@ -480,7 +480,7 @@ AMI_merge (AMI_STREAM < T > **instreams, arity_t arity,
 template < class T >
     AMI_err
 AMI_merge (AMI_STREAM < T > **instreams, arity_t arity,
-	   AMI_STREAM < T > *outstream, int (*cmp) (CONST T &, CONST T &))
+	   AMI_STREAM < T > *outstream, int (*cmp) (const T &, const T &))
 {
    size_t sz_avail;
    size_t sz_stream;
@@ -1446,13 +1446,13 @@ AMI_partition_and_merge (AMI_STREAM < T > *instream,
 //This is a polymorph of AMI_partition_and_merge in ami_merge.h;divide
 //the input stream in substreams, merge each substream recursively,
 //and merge them together using AMI_single_merge(AMI_STREAM<T> **,
-//arity_t , AMI_STREAM<T> *, int (*cmp)(CONST T&, CONST T&) );
+//arity_t , AMI_STREAM<T> *, int (*cmp)(const T&, const T&) );
 //------------------------------------------------------------
 template < class T >
     AMI_err
 AMI_partition_and_merge (AMI_STREAM < T > *instream,
 			 AMI_STREAM < T > *outstream,
-			 int (*cmp) (CONST T &, CONST T &))
+			 int (*cmp) (const T &, const T &))
 {
    AMI_err ae;
    off_t len;
