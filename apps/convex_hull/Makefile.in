@@ -2,7 +2,7 @@
 # Makefile for TPIE test applications.
 # Use gmake on this Makefile.  It relies on the default rules, and 
 # Use gmake -p to see the default rules.
-# $Id: Makefile.in,v 1.1 2003-09-24 19:33:41 tavi Exp $
+# $Id: Makefile.in,v 1.2 2003-09-26 03:02:27 tavi Exp $
 
 CXX = @CXX@
 CC = @CC@
@@ -45,7 +45,7 @@ CCFLAGS = $(CXXFLAGS)
 
 # The various test applications.
 
-APPS := ch2
+APPS := convex_hull
 
 # Sources to the test applications.
 APPSRC = $(patsubst %,%.cpp,$(APPS))
@@ -83,7 +83,7 @@ clean: cleandepend
 distclean: clean
 
 # What objects each of the apps acually needs.
-ch2: ch2.o scan_random_point.o $(COMMONOBJ)
+convex_hull: convex_hull.o scan_random_point.o $(COMMONOBJ)
 
 include Makefile.depend
 
@@ -95,5 +95,3 @@ cleandepend:
 	-rm -f Makefile.depend
 
 .PHONY : clean all depend cleandepend distclean
-
-
