@@ -1,0 +1,88 @@
+
+This is the "to-do-list" - feel free to add stuff to it! Stuff that needs
+to be done on the manual is include in the .tex files using \comment{} -
+feel free to add stuff there too. Its better to add too much than to little!!
+
+General:
+--------
+
+* Is the stack implementation ok?
+
+* Cleanup #define in config.h
+  - flags or macros?!
+
+* Logging needs to be fixed
+  - separate application program and TPIE internal logging
+
+* Statistics
+  - currently only in BTE_mmb; should be in all BTE's
+  - should be accessible at AMI level
+
+* Support for parallel disks
+  - some code is probably present in merge_optimized.h and Rakesh should
+    have a new BTE
+
+* Clear up confusion between AMI and BTE stream types
+  - make uniform naming and check that all AMI/BTE pairs works similarly
+  - r_only flag in AMI?
+
+* Clean up device stuff in ami_single.h (and other places)
+  - what does it do?
+
+* Remove PERSISTENT_READ_ONCE code
+
+* Why isn't substream constructor a real constructer?
+  - also; are BTE constructors ok? (separate names)
+
+* Clean up files (did we remove all unused files?)
+
+* Clean up bte_test.c program:
+  - automatic run with set of parameters?
+  - flag cleanup (READ_WRITE_TEST -> UFS_TEST)
+  - prefetching operations?
+
+MM:
+---
+
+* Introduce better name/mechanism for register_new
+* rename mm_register.h to mm_single.h (?)
+* clean up code
+
+AMI:
+----
+
+* fix problem with constructor (bad path -> crash)
+* AMI_merge_base should be AMI_merge_object
+* Why so many AMI_MM_usage flags?
+* Function objects in AMI_merge and AMI_sort (for improved efficiency)
+* Cleanup/modification of ami_optimized_merge.h
+  - introduction of function objects should help
+  - add comparator class polymorph
+  - add forecasting stuff (I think there is code in there already)?
+* Distribution needs to be written
+  - something probably available in kb_sort stuff
+* Add distribution sweeping
+  - also add spatial join example (SSSJ)
+* Add index structures (when BTE_bcc done)
+  - B-trees
+  - R-trees
+  - Priority queue
+* Overlap last merge in sorting with computation (save scan)
+  - can we maybe introduce a 'piping' mechanism?
+
+BTE:
+----
+
+* BTE_STREAM_STATUS used?
+  - if not remove!
+* BTE_ufs cleanup
+  - name should be BTE_stream_ufs instead of BTE_single_disk (for
+    consistency)
+  - Should we remove aio option?
+* Block collection (BTE_bcc)
+  - code for BTE exists in bcc_base.h and block_collection.h;
+    needs to be cleaned-up/tested
+  - code for AMI (typed view, ect) needs to be written
+* Fix code that allows several BTEs to coexist
+* Why is BTE_mmb not called BTE_mmp?
+* madvice in BTE_mmb?
