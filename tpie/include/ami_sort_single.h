@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 9/28/94
 //
-// $Id: ami_sort_single.h,v 1.10 1999-06-18 18:06:16 rajiv Exp $
+// $Id: ami_sort_single.h,v 1.11 1999-06-26 21:06:49 large Exp $
 //
 // Merge sorting for the AMI_IMP_SINGLE implementation.
 //
@@ -25,8 +25,9 @@
 
 
 // A class of merge objects for merge sorting objects of type T.  We
-// will actually use one of two subclasses of this class which use
-// either a comparison function or the binary comparison operator <.
+// will actually use one of three subclasses of this class which use
+// either a comparison function, a comparison object,  or the binary 
+// comparison operator <.
 
 template <class T>
 class merge_sort_manager : public AMI_merge_base<T> {
