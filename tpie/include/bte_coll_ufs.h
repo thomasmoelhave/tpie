@@ -2,7 +2,7 @@
 // File:    bte_coll_ufs.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: bte_coll_ufs.h,v 1.6 2002-01-27 23:37:18 tavi Exp $
+// $Id: bte_coll_ufs.h,v 1.7 2002-07-20 21:37:16 tavi Exp $
 //
 // BTE_collection_ufs class definition.
 //
@@ -29,7 +29,7 @@ public:
   // Allocate a new block in block collection and then read that block into
   // memory, allocating and returning an appropriately initialized
   // Block. Main memory usage increases.
-  BTE_err new_block(off_t &bid, void * &place) {
+  BTE_err new_block(bid_t &bid, void * &place) {
     BTE_err err;
     // Get a block id.
     if ((err = new_block_getid_specific(bid)) != BTE_ERROR_NO_ERROR)
@@ -50,7 +50,7 @@ public:
   // correct. No check is made if the bid is an invalid or previously
   // unallocated bid, which will introduce erroneous entries in the
   // stdio_stack of free blocks. Main memory usage goes down.
-  BTE_err delete_block(off_t bid, void * place) {
+  BTE_err delete_block(bid_t bid, void * place) {
     BTE_err err;
     if ((err = put_block_internals(bid, place, 1)) != BTE_ERROR_NO_ERROR)  
       return err; 
@@ -67,7 +67,7 @@ public:
   // to ensure that the bid requested corresponds to a valid block and so
   // on; no checks made here to ensure that that is indeed the case. Main
   // memory usage increases.
-  BTE_err get_block(off_t bid, void * &place) {
+  BTE_err get_block(bid_t bid, void * &place) {
     BTE_err err;
     if ((err = get_block_internals(bid, place)) != BTE_ERROR_NO_ERROR)
       return err;
@@ -80,7 +80,7 @@ public:
   // user's onus to ensure that the bid is correct and so on; no checks
   // made here to ensure that that is indeed the case. Main memory usage
   // decreases.
-  BTE_err put_block(off_t bid, void * place, char dirty = 1) {
+  BTE_err put_block(bid_t bid, void * place, char dirty = 1) {
     BTE_err err;
     if ((err = put_block_internals(bid, place, dirty)) != BTE_ERROR_NO_ERROR)
       return err;
@@ -90,14 +90,14 @@ public:
   }
 
   // Synchronize the in-memory block with the on-disk block.
-  BTE_err sync_block(off_t bid, void* place, char dirty = 1);
+  BTE_err sync_block(bid_t bid, void* place, char dirty = 1);
 
 protected:
 
-  BTE_err new_block_internals(off_t bid, void *&place);
-  BTE_err new_block_getid_specific(off_t& bid);
-  BTE_err get_block_internals(off_t bid, void *&place);
-  BTE_err put_block_internals(off_t bid, void* place, char dirty);
+  BTE_err new_block_internals(bid_t bid, void *&place);
+  BTE_err new_block_getid_specific(bid_t& bid);
+  BTE_err get_block_internals(bid_t bid, void *&place);
+  BTE_err put_block_internals(bid_t bid, void* place, char dirty);
 };
 
 #endif // _BTE_COLL_UFS_H
