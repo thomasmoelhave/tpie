@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/6/94
 //
-// $Id: app_config.h,v 1.25 2002-06-22 18:12:24 tavi Exp $
+// $Id: app_config.h,v 1.26 2002-07-21 18:18:58 tavi Exp $
 //
 #ifndef _APP_CONFIG_H
 #define _APP_CONFIG_H
@@ -50,6 +50,22 @@ extern int random_seed;
 //#define BTE_STREAM_IMP_STDIO
 //#define BTE_STREAM_IMP_USER_DEFINED
 
+
+// <><><><><><><><><><><><><><><><><><><><><><><><> //
+// <> BTE_COLLECTION_MMAP configuration options  <> //
+// <><><><><><><><><><><><><><><><><><><><><><><><> //
+
+#ifdef BTE_COLLECTION_IMP_MMAP
+// define write behavior (default 0, ie, synchronous writes.) 
+#  define BTE_COLLECTION_MMAP_ASYNC_WRITE 0
+#endif
+
+// <><><><><><><><><><><><><><><><><><><><><><><><> //
+// <> BTE_COLLECTION_UFS configuration options   <> //
+// <><><><><><><><><><><><><><><><><><><><><><><><> //
+
+#ifdef BTE_COLLECTION_IMP_UFS
+#endif
 
 // <><><><><><><><><><><><><><><><><><><><><><><><> //
 // <><> BTE_STREAM_MMAP configuration options  <><> //
