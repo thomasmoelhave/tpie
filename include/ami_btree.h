@@ -3,7 +3,7 @@
 // File:    ami_btree.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_btree.h,v 1.19 2003-04-21 04:28:04 tavi Exp $
+// $Id: ami_btree.h,v 1.20 2003-04-29 05:29:42 tavi Exp $
 //
 // AMI_btree declaration and implementation.
 //
@@ -80,7 +80,7 @@ template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
 class AMI_btree_node;
 
 // The AMI_btree class.
-template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL=BTE_COLLECTION>
+template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL = BTE_COLLECTION >
 class AMI_btree {
 public:
 
@@ -348,7 +348,7 @@ protected:
 
 // The AMI_btree_leaf class.
 // Stores size() elements of type Value.
-template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL=BTE_COLLECTION>
+template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL = BTE_COLLECTION >
 class AMI_btree_leaf: public AMI_block<Value, triple<size_t, AMI_bid, AMI_bid>, BTECOLL> {
 
   Compare comp_;
@@ -436,7 +436,7 @@ public:
 // An internal node of the AMI_btree.
 // It stores size() keys and size()+1 links representing 
 // the following pattern: Link0 Key0 Link1 Key1 ... LinkS KeyS Link(S+1)
-template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL=BTE_COLLECTION>
+template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL = BTE_COLLECTION >
 class AMI_btree_node: public AMI_block<Key, size_t, BTECOLL> {
 
   Compare comp_;

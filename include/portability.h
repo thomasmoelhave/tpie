@@ -3,7 +3,7 @@
 // Created: 2002/10/30
 // Authors: Joerg Rotthowe, Jan Vahrenhold, Markus Vogel
 //
-// $Id: portability.h,v 1.5 2003-04-21 02:15:15 tavi Exp $
+// $Id: portability.h,v 1.6 2003-04-29 05:29:42 tavi Exp $
 //
 // This header-file offers macros for independent use on Win and Unix systems.
 
@@ -204,6 +204,10 @@ typedef struct {
 #else
 typedef int TPIE_OS_FILE_DESCRIPTOR;
 #endif
+
+
+// Default block id type
+typedef unsigned int TPIE_BLOCK_ID_TYPE;
 
 
 //////////////////////////////////////////////

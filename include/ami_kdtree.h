@@ -5,7 +5,7 @@
 //
 // Blocked kd-tree definition and implementation.
 //
-// $Id: ami_kdtree.h,v 1.6 2003-04-21 04:10:59 tavi Exp $
+// $Id: ami_kdtree.h,v 1.7 2003-04-29 05:29:42 tavi Exp $
 //
 
 #ifndef _KDTREE_H
@@ -88,7 +88,7 @@ const Kdtree_params kdtree_params_default = Kdtree_params();
 
 
 // The Kdtree class.
-template<class coord_t, size_t dim, class Bin_node=Bin_node_default<coord_t, dim>, class BTECOLL = BTE_COLLECTION>
+template<class coord_t, size_t dim, class Bin_node=Bin_node_default<coord_t, dim>, class BTECOLL = BTE_COLLECTION >
 class Kdtree {
 public:
 
