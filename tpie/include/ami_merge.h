@@ -8,7 +8,7 @@
 // lower level streams will use appropriate levels of buffering.  This
 // will be more critical for parallel disk implementations.
 //
-// $Id: ami_merge.h,v 1.22 1999-04-16 20:04:51 rajiv Exp $
+// $Id: ami_merge.h,v 1.23 1999-05-14 18:00:06 rajiv Exp $
 //
 #ifndef _AMI_MERGE_H
 #define _AMI_MERGE_H
@@ -435,6 +435,7 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
         
         sz_avail -= 2 * sz_stream;
 
+		// number of elements that will fit in memory (M) -R
         sz_original_substream = sz_avail / sizeof(T);
 
         // Round the original substream length off to an integral
@@ -442,30 +443,29 @@ AMI_err AMI_partition_and_merge(AMI_STREAM<T> *instream,
         // cannot map in overlapping regions.  It is also required for
         // BTE's that are capable of freeing chunks as they are
         // read.
-
         {
             size_t sz_chunk_size = instream->chunk_size();
             
             sz_original_substream = sz_chunk_size *
                 ((sz_original_substream + sz_chunk_size - 1) /
                  sz_chunk_size);
+			// WARNING sz_original_substream now may not fit in memory!!! -R
         }
 
+		// number of memoryloads in input ceil(N/M) -R
         original_substreams = (len + sz_original_substream - 1) /
             sz_original_substream;
         
         // Account for the space that a merge object will use.
-
         {
-            size_t sz_avail_during_merge = sz_avail -
-                m_obj->space_usage_overhead();
-            size_t sz_stream_during_merge =sz_stream +
-                m_obj->space_usage_per_stream();
-           
+            size_t sz_avail_during_merge = 
+			  sz_avail - m_obj->space_usage_overhead();
+            size_t sz_stream_during_merge =
+			  sz_stream + m_obj->space_usage_per_stream();
+			
             merge_arity = (sz_avail_during_merge +
                            sz_stream_during_merge - 1) /
                 sz_stream_during_merge;
-
         }
 
         // Make sure that the AMI is willing to provide us with the
