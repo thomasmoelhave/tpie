@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/6/94
 //
-// $Id: app_config.h,v 1.17 1999-06-28 21:55:33 laura Exp $
+// $Id: app_config.h,v 1.18 1999-06-29 00:27:20 laura Exp $
 //
 #ifndef _APP_CONFIG_H
 #define _APP_CONFIG_H
@@ -28,7 +28,7 @@
 /*                       choose BTE                                       */
 /* ********************************************************************** */
 
-// Pick a version of BTE streams; default is BTE_IMP_UFS
+/* Pick a version of BTE streams; default is BTE_IMP_UFS */
 //#define BTE_IMP_MMB
 //#define BTE_IMP_STDIO
 #define BTE_IMP_UFS
@@ -47,12 +47,13 @@
 /* define logical blocksize; default is 32 * operating system blocksize */
 #define BTE_MMB_LOGICAL_BLOCKSIZE_FACTOR 32
 
-/* enable/disable TPIE read ahead; default is enabled */
+/* enable/disable TPIE read ahead; default is enabled (set to 1) */
 #define BTE_MMB_READ_AHEAD 1
 
 /* read ahead method, ignored unless BTE_MMB_READ_AHEAD is set to 1;
    if USE_LIBAIO is enabled, use asynchronous IO read ahead; otherwise
-   use use mmap-based read ahead; default is mmap-based read ahead */
+   use use mmap-based read ahead; default is mmap-based read ahead
+   (USE_LIBAIO not defined) */
 //#define USE_LIBAIO
 
 #endif
@@ -66,12 +67,13 @@
 /* define logical blocksize; default is 32 * operating system blocksize */
 #define BTE_UFS_LOGICAL_BLOCKSIZE_FACTOR 32
 
-/* enable/disable TPIE read ahead; default is disabled */
+/* enable/disable TPIE read ahead; default is disabled (set to 0) */
 #define BTE_UFS_READ_AHEAD 0
 
 /* read ahead method, ignored unless BTE_UFS_READ_AHEAD is set to 1;
    if USE_LIBAIO is set to 1, use asynchronous IO read ahead;
-   otherwise no read ahead id done; default is off */
+   otherwise no TPIE read ahead is done; default is disabled (set to
+   0) */
 #define USE_LIBAIO 0
 
 #endif
