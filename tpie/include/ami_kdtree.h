@@ -5,7 +5,7 @@
 //
 // Blocked kd-tree definition and implementation.
 //
-// $Id: ami_kdtree.h,v 1.9 2003-05-20 05:46:35 tavi Exp $
+// $Id: ami_kdtree.h,v 1.10 2003-06-02 16:55:51 tavi Exp $
 //
 
 #ifndef _AMI_KDTREE_H
@@ -34,8 +34,8 @@
 #include <ami_cache.h>
 // The Point/Record classes.
 #include <ami_point.h>
-// Supporting types: AMI_kdtree_status, AMI_kdtree_params, Bin_node_default.
-#include <ami_kdtree_base.h>
+// Supporting types: AMI_kdtree_status, AMI_kdtree_params, etc.
+#include <ami_kd_base.h>
 
 // Forward references.
 template<class coord_t, size_t dim, class BTECOLL> class AMI_kdtree_leaf;
@@ -89,6 +89,9 @@ public:
   // changes are made to the tree.
   AMI_err unload(stream_t* s);
 
+  // Report the k nearest neighbors of point p.
+  size_t k_nn_query(const point_t &p, stream_t* stream, size_t k);
+
   // Report all points inside the window determined by p1 and p2. If
   // stream is NULL, only *count* the points inside the window. NB:
   // Counting is much faster than reporting, because (a) no points are
@@ -139,7 +142,7 @@ public:
   // Inquire the number of Bin_node's.
   size_t bin_node_count() const { return bin_node_count_; }
 
-  class header_type {
+  class header_t {
   public:
     unsigned int magic_number;
     point_t mbr_lo;
@@ -152,7 +155,7 @@ public:
     unsigned char use_kdbtree_leaf;
     unsigned char use_real_median;
 
-    header_type():
+    header_t():
       magic_number(AMI_KDTREE_HEADER_MAGIC_NUMBER), mbr_lo(0), mbr_hi(0), 
       root_bid(0), root_type(BLOCK_LEAF), size(0), 
       store_weights(AMI_KDTREE_STORE_WEIGHTS), 
@@ -161,7 +164,6 @@ public:
       use_real_median(AMI_KDTREE_USE_REAL_MEDIAN) {}
   };
 
-  typedef header_type header_t;
 
 protected:
 
@@ -192,7 +194,7 @@ protected:
 
   // Critical information: root bid and type, mbr, size (will be
   // stored into the header of the nodes collection).
-  header_type header_;
+  header_t header_;
 
   // This points to the first leaf in the order given by the next
   // pointers stored in leaves. Used by unload to start the leaf
@@ -387,6 +389,13 @@ protected:
 
   typedef pair<podf, pair<AMI_bid,link_type_t> > outer_stack_elem;
   typedef pair<podf, size_t>                   inner_stack_elem;
+
+  // Used for nearest neighbor searching.
+  struct nn_pq_elem {
+    double p; // the priority (the distance squared)
+    AMI_bid bid;
+    link_type_t type;
+  };
 
   // Helpers for binary distribution bulk loading.
   void create_bin_node(node_t *b, bn_context ctx, 
@@ -812,7 +821,7 @@ void AMI_KDTREE::shared_init(const char* base_file_name, AMI_collection_type typ
 
   // Read the header info, if relevant.
   if (pcoll_leaves_->size() != 0) {
-    //    header_ = *((header_type *) pcoll_nodes_->user_data());
+    //    header_ = *((header_t *) pcoll_nodes_->user_data());
     memcpy((void *)(&header_), pcoll_nodes_->user_data(), sizeof(header_));
     if (header_.magic_number != AMI_KDTREE_HEADER_MAGIC_NUMBER) {
       status_ = AMI_KDTREE_STATUS_INVALID;
@@ -2076,6 +2085,29 @@ AMI_err AMI_KDTREE::unload(POINT_STREAM* s) {
   return err;
 }
 
+//// *AMI_kdtree::k_nn_query* ////
+template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
+size_t AMI_KDTREE::k_nn_query(const POINT &p, 
+			      POINT_STREAM* stream, size_t k) {
+  TPLOG("AMI_kdtree::k_nn_query Entering "<<"\n");
+  size_t result = 0;
+
+  // Do some error checking.
+  if (status_ != AMI_KDTREE_STATUS_VALID) {
+    LOG_WARNING_ID("  k_nn_query: tree is invalid or not loaded. query aborted.");
+    return result;
+  }
+
+  cerr << "k_nn_query: NOT IMPLEMENTED YET!\n";
+  LOG_WARNING_ID("  k_nn_query: NOT IMPLEMENTED YET!");
+  //  priority_queue<nn_pq_elem> q;
+  //  nn_pq_elem cur((coord_t) 0, header_.root_bid, header_.root_type);
+  //  while (cur.type != BLOCK_LEAF) {
+  //  }  
+
+  TPLOG("AMI_kdtree::k_nn_query Exiting "<<"\n");
+}
+
 //// *AMI_kdtree::window_query* ////
 template<class coord_t, size_t dim, class Bin_node, class BTECOLL>
 size_t AMI_KDTREE::window_query(const POINT &p1, const POINT& p2, 
@@ -2085,8 +2117,7 @@ size_t AMI_KDTREE::window_query(const POINT &p1, const POINT& p2,
   // The number of points found.
   size_t result = 0;
 
-  // We can afford to do some error checking, since this is usually a
-  // lengthy operation.
+  // Do some error checking.
   if (status_ != AMI_KDTREE_STATUS_VALID) {
     LOG_WARNING_ID("  window_query: tree is invalid or not loaded. query aborted.");
     return result;
@@ -2485,7 +2516,7 @@ AMI_KDTREE::~AMI_kdtree() {
 
   if (status_ == AMI_KDTREE_STATUS_VALID) {
     // Write initialization info into the pcoll_nodes_ header.
-    //    *((header_type *) pcoll_nodes_->user_data()) = header_;
+    //    *((header_t *) pcoll_nodes_->user_data()) = header_;
     memcpy(pcoll_nodes_->user_data(), (void *)(&header_), sizeof(header_));
   }
   // Delete the comparison objects.
