@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/19/94
 //
-// $Id: ami.h,v 1.15 1999-02-09 02:29:37 laura Exp $
+// $Id: ami.h,v 1.16 1999-04-20 17:19:46 rajiv Exp $
 //
 #ifndef _AMI_H
 #define _AMI_H
@@ -47,8 +47,5 @@
 
 // Get templates for bit permuting.
 #include <ami_bit_permute.h>
-
-// Get the size of main memory.
-extern size_t AMI_mem_size(void);
 
 #endif // _AMI_H 
