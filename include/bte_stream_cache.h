@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 9/19/94
 //
-// $Id: bte_stream_cache.h,v 1.1 2002-01-06 18:50:56 tavi Exp $
+// $Id: bte_stream_cache.h,v 1.2 2002-01-14 16:22:40 tavi Exp $
 //
 // BTE streams for main memory caches.
 //
@@ -23,9 +23,9 @@
 
 #define BTE_STREAM_CACHE_DEFAULT_MAX_LEN (1024 * 256)
 
-#ifndef BTE_MMB_CACHE_LINE_SIZE
-#define BTE_MMB_CACHE_LINE_SIZE 64
-#endif // BTE_MMB_CACHE_LINE_SIZE
+#ifndef BTE_STREAM_CACHE_LINE_SIZE
+#define BTE_STREAM_CACHE_LINE_SIZE 64
+#endif // BTE_STREAM_CACHE_LINE_SIZE
 
 //
 // The cache stream class.
@@ -150,10 +150,10 @@ BTE_err BTE_stream_cache<T>::main_memory_usage(size_t *usage,
         case MM_STREAM_USAGE_CURRENT:
         case MM_STREAM_USAGE_MAXIMUM:
         case MM_STREAM_USAGE_SUBSTREAM:
-            *usage = sizeof(*this) + BTE_MMB_CACHE_LINE_SIZE;
+            *usage = sizeof(*this) + BTE_STREAM_CACHE_LINE_SIZE;
             break;
         case MM_STREAM_USAGE_BUFFER:
-            *usage = BTE_MMB_CACHE_LINE_SIZE;
+            *usage = BTE_STREAM_CACHE_LINE_SIZE;
             break;
         case MM_STREAM_USAGE_OVERHEAD:
             *usage = sizeof(this);
@@ -223,7 +223,7 @@ BTE_err BTE_stream_cache<T>::write_item(const T &elt)
 template<class T>
 off_t BTE_stream_cache<T>::chunk_size(void)
 {
-    return BTE_MMB_CACHE_LINE_SIZE / sizeof(T);
+    return BTE_STREAM_CACHE_LINE_SIZE / sizeof(T);
 }
 
 
