@@ -4,21 +4,20 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/12/94
 //
-// $Id: tpie_log.h,v 1.20 2003-04-23 07:50:12 tavi Exp $
+// $Id: tpie_log.h,v 1.21 2003-05-04 23:05:48 tavi Exp $
 //
 
 #ifndef _TPIE_LOG_H
 #define _TPIE_LOG_H
 
 // Logging levels, from higest priority to lowest.
-enum {
-  TP_LOG_FATAL = 0,	// Fatal errors are always logged no matter what;
-  TP_LOG_WARNING,	// Warning about some internal condition;
-  TP_LOG_APP_DEBUG,     // Debugging info for the application only;
-  TP_LOG_DEBUG,		// Debugging info.
+enum TPIE_LOG_LEVEL {
+  TPIE_LOG_FATAL = 0,	// Fatal errors are always logged no matter what;
+  TPIE_LOG_WARNING,	// Warning about some internal condition;
+  TPIE_LOG_APP_DEBUG,     // Debugging info for the application only;
+  TPIE_LOG_DEBUG,		// Debugging info.
 };
 
-// We are logging.
 
 // Get definitions for working with Unix and Windows
 #include <portability.h>
@@ -26,31 +25,32 @@ enum {
 #include <logstream.h>
 
 // The file name of the log stream.
-char *theLogName();
+char *tpie_log_name();
 
-// Serves double duty: initilizes the log on the first call, and
-// returns the only logstream object. Defined in tpie_log.cpp
-logstream& theLog();
+// Returns the only logstream object. 
+logstream& tpie_log();
 
+// Initialize the log.
+void tpie_log_init(TPIE_LOG_LEVEL level = TPIE_LOG_WARNING);
 
 #if TPL_LOGGING		
 
 // Macros to simplify logging.  The argument to the macro can be any type
 // that log streams have an output operator for.
 
-#define LOG_FLUSH_LOG (!logstream::log_initialized || theLog().std::ofstream::flush())
+#define LOG_FLUSH_LOG (!logstream::log_initialized || tpie_log().std::ofstream::flush())
 
 // eg: LOG_FATAL(LOG_ID_MSG)
 #define LOG_ID_MSG __FILE__ << " line " << __LINE__ << ": "
 
 #define LOG_FATAL(msg) \
-  (!logstream::log_initialized || theLog() << setpriority(TP_LOG_FATAL) << msg)
+  (!logstream::log_initialized || tpie_log() << setpriority(TPIE_LOG_FATAL) << msg)
 #define LOG_WARNING(msg) \
-  (!logstream::log_initialized || theLog() << setpriority(TP_LOG_WARNING) << msg)
+  (!logstream::log_initialized || tpie_log() << setpriority(TPIE_LOG_WARNING) << msg)
 #define LOG_APP_DEBUG(msg) \
-  (!logstream::log_initialized || theLog() << setpriority(TP_LOG_APP_DEBUG)  << msg)
+  (!logstream::log_initialized || tpie_log() << setpriority(TPIE_LOG_APP_DEBUG)  << msg)
 #define LOG_DEBUG(msg) \
-  (!logstream::log_initialized || theLog() << setpriority(TP_LOG_DEBUG)  << msg)
+  (!logstream::log_initialized || tpie_log() << setpriority(TPIE_LOG_DEBUG)  << msg)
 
 #define LOG_FATAL_ID(msg)  \
   (LOG_FATAL(LOG_ID_MSG << msg << "\n"), LOG_FLUSH_LOG)
@@ -61,7 +61,7 @@ logstream& theLog();
 #define LOG_DEBUG_ID(msg)  \
   (LOG_DEBUG(LOG_ID_MSG << msg << "\n"), LOG_FLUSH_LOG)
 
-#define LOG_SET_THRESHOLD(level) (theLog() << setthreshold(level))
+#define LOG_SET_THRESHOLD(level) (tpie_log() << setthreshold(level))
 
 #else // !TPL_LOGGING
 
