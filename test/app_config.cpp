@@ -6,7 +6,7 @@
 //
 
 #include <versions.h>
-VERSION(app_config.cpp,"$Id: app_config.cpp,v 1.8 2004-08-17 16:49:12 jan Exp $");
+VERSION(app_config,"$Id: app_config.cpp,v 1.9 2004-10-20 08:58:05 jan Exp $");
 
 #include "app_config.h"
 
