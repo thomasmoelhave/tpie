@@ -11,7 +11,7 @@
 // generating this file.  The header, stored in ami_scan.h.head, may be
 // edited if necessary.
 //
-// $Id: ami_scan.h.head,v 1.2 1994-05-27 19:26:34 dev Exp $
+// $Id: ami_scan.h.head,v 1.3 1994-08-31 19:28:03 darrenv Exp $
 //
 //
 #ifndef _AMI_SCAN_H
@@ -26,3 +26,6 @@ public:
 };
 
 // BEGIN MECHANICALLY GENERATED CODE.
+
+
+
