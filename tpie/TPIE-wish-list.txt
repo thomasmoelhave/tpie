@@ -1,0 +1,158 @@
+-----------------
+ID: 1
+General Area: Sorting
+Priority: Very High
+Description: TPIE sometimes returns memory errors on sorting.
+If the memory manager is set to enforce_memory_limit() the program will
+crash. I have an email from Jan 13 2005 describing the problem in detail. 
+We need to calculate the space used by all "new" calls during the sorting
+phase. I have identified several objects whose space is not accounted for. 
+There are also some circular dependecies in calculating memory usage.
+Until these memory calculation is resolved, I suggest setting the memory
+manager to warn_memory_limit() or ignore_memory_limit() before sorting.
+Files: apm_dh.h
+Status: Open as of 1 April 2005
+------------------
+ID: 2
+General Area: Priority Queues
+Priority: Medium
+Description: TPIE is lacking a good implementation of a general purpose
+external priority queue. There is an implementation from TerraFlow, but
+this is not in the main TPIE source and there are some concerns about its
+performance. It would be nice to examine the performance of the TFlow PQ,
+possibly implement some other EM PQueues and put at least one decent
+implementation into the main TPIE source
+Status: Open as of 1 April 2005
+-------------------
+ID: 3 
+General Area: Generalized Streaming
+Priority: Medium
+Description: A common sorting paradigm is decorate-sort-undecorate or DSU.
+We decorate a stream with some keys to sort by, sort the stream, and then
+later remove the keys from the stream. The output of TPIE sort is stream
+of the same type as the input, i.e., a stream with keys. Removing the keys
+requires an additional scan over the stream. However, one could imagine
+adding a option in TPIE sort to apply some function object to each item in
+the final merge phase when the keys are no longer needed. Because an
+external sort is typically equivalent to about three scans, bundling the
+undecorate phase and saving a fourth scan is a considerable savings.
+Status: Open as of 1 April 2005
+---------------------
+ID: 4 
+General Area: Substreams
+Priority: High
+Description: Herman Haverkort writes: "when making a substream of an
+AMI_STREAM, I get an AMI_stream_base, which is not an AMI_STREAM but
+something different. So different, in fact, that AMI_sort does not take it.
+So this concept of making substreams is not as transparent as I would like
+it to be."  This should be addressed somehow.
+Status: Open as of 1 April 2005
+----------------------
+ID: 5
+General Area: Streams with variable length items
+Priority: Medium
+Description: AMI_streams currently maintain a stream of fixed sized items,
+but it would often be useful to sort/scan variable sized items. A sample
+data layout could be that each item could have a fixed sized header
+including at a minimum the size of the variable length item. While this
+might be difficult to do in a general setting, in most applications I have
+encountered, the variable length is bounded, so perhaps one could create a
+stream that could support scanning and sorting of variable length items
+where the length of the item is bounded. 
+Status: Open as of 1 April 2005
+----------------------
+ID: 6
+General Area: Memory usage
+Priority: ?
+Description: From Herman Haverkort "TPIE philosophy is, apparently, that
+the user does not have to worry about how memory is used. This is fine as
+long as you have one thing running at a time. But if, for example, you
+want to run an algorithm that uses two priority queues in parallel, you
+really want to be able to give them each a share of the main memory,
+rather then seeing the first one to be initialized take all." 
+Perhaps this can be solved--in the case of the priority queue--by having
+an option in the constructor that specifies the amount of memory to use.
+It could default to all available memory. We would need to check other
+data structures for this too. Perhaps the B-tree and related tree
+structures. I don't think this is a problem for sorting as you can't do
+anything else while you are sorting and sort cleans up its memory when it
+is done.
+Status: Open as of 21 April 2005
+-----------------------
+ID: 7
+General Area: Streams
+Priority:
+Description: From Herman Haverkort "Include a member function that returns
+the current position of the read/write pointer. Without such a thing, you
+cannot detect end of file except by attempting to read past it. This is
+annoying.  In the Pfafstetter code, I handled this issue by putting a
+wrapper around the AMI stream that counts the number of times an item has
+been read---thus probably keeping the same count three times (once in the
+wrapper, once as the internal read/write pointer of the stream, and once
+in the statistics of the stream)..." Comment from Andrew Danner: "There is
+the tell() function, but as Herman notes, it is not defined in
+ami_stream_base, but it IS defined in ami_stream_single"
+Status: Open as of 21 April 2005
+------------------------
+ID: 8
+General Area: Sorting
+Priority:
+Description: It should be possible that sort feeds its output to some
+arbitrary object that has a write_item type of function. This object
+should not be restricted to being a converter or an "undecorator": it may
+do complicated stuff with the objects, keep an internal state, and maybe
+it does not even output anything in a one-to-one relation with the
+objects fed to it.
+Status: Open as of 21 April 2005
+------------------------
+ID: 9
+General Area: Sorting
+Priority:
+Description: Include a progress indicator for sorting. Users don't like it
+when the software seems to stall for ten minutes.
+Status: Open as of 21 April 2005
+------------------------
+ID: 10
+General Area: Priority Queue
+Priority:
+Description: Regarding the TerraFlow Priority Queue, messages are
+displayed with printf to standard out. This should probably be sent to a
+log file and it should be possible to turn off messages all together.
+See Also: wish-list ID 2,11,12
+Status: Open as of 21 April 2005
+------------------------
+ID: 11
+General Area: Priority Queue
+Priority:
+Description: Regarding the TerraFlow Priority Queue, it leaves a lot of
+temporary files persistent. They should be deleted if not needed.
+See Also: wish-list ID 2,10,12
+Status: Open as of 21 April 2005
+------------------------
+ID: 12
+General Area: Priority Queue
+Priority:
+Description: Regarding the TerraFlow Priority Queue, Herman Haverkort
+suspects that it crashes on low memory limits.
+See Also: wish-list ID 2,10,12
+Status: Open as of 21 April 2005
+-------------------------
+ID: 13
+General Area: Sorting, Code cleanup
+Priority:
+Description: There are main sort implementations in the TPIE source, but
+only one seems to be used. Find out which one it is, document it. Remove
+or update older code and get rid of _dh tags if the _dh code is really the
+default sort.
+Status: Open as of 21 April 2005
+-------------------------
+ID: 14
+General Area: Streams, Code cleanup
+Priority:
+Description: Can ami_stream_base and ami_stream_single be merged? Are we
+seriously every going to have another stream implementation other than
+ami_stream_single. If not, the code should be merged.
+See Also: wish-list ID 7
+Status: Open as of 21 April 2005
+--------------------------
+
