@@ -10,7 +10,7 @@
 // *  used in several of TPIE's sorting variants                            *
 // *                                                                        *
 // **************************************************************************
-// 	$Id: apm_dh.h,v 1.16 2004-10-20 08:55:18 jan Exp $	
+// 	$Id: apm_dh.h,v 1.17 2005-04-22 13:03:47 jan Exp $	
 
 // Get definitions for working with Unix and Windows
 #include <portability.h>
@@ -384,7 +384,7 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
                 (TPIE_OS_LONGLONG)MM_manager.memory_available () );
    initialTmpStream = new AMI_STREAM<T>* [mrgArity];
 
-   if ((ae = mgmt_obj.main_mem_operate_init((size_t)szOrigSubstream)) !=
+   if ((ae = mgmt_obj.main_mem_operate_init((TPIE_OS_SIZE_T)szOrigSubstream)) !=
 	    AMI_ERROR_NO_ERROR) {
      TP_LOG_FATAL_ID ("main_mem_operate_init failed");
       return ae;
@@ -453,7 +453,7 @@ AMI_partition_and_merge_dh (AMI_STREAM < T > *inStream,
 	    mm_len = szOrigSubstream;
 	 }
 
-         if ((ae = mgmt_obj.main_mem_operate (inStream, initialTmpStream[currStream], (size_t)mm_len)) !=
+         if ((ae = mgmt_obj.main_mem_operate (inStream, initialTmpStream[currStream], (TPIE_OS_SIZE_T)mm_len)) !=
 	    AMI_ERROR_NO_ERROR) {
 	   TP_LOG_FATAL_ID ("main_mem_operate failed");
 	    return ae;
