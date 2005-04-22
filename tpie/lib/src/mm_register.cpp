@@ -8,7 +8,7 @@
 // A simple registration based memory manager.
 
 #include <versions.h>
-VERSION(mm_register_cpp,"$Id: mm_register.cpp,v 1.21 2004-08-17 16:48:59 jan Exp $");
+VERSION(mm_register_cpp,"$Id: mm_register.cpp,v 1.22 2005-04-22 13:51:40 jan Exp $");
 
 //#include <assert.h>
 #include "lib_config.h"
@@ -200,7 +200,7 @@ MM_mode MM_register::get_limit_mode() {
 
 // dh. return the amount of memory available before user-specified 
 // memory limit exceeded 
-size_t MM_register::memory_available()
+TPIE_OS_SIZE_T MM_register::memory_available()
 {
     return remaining;    
 }
