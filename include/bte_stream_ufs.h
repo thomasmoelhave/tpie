@@ -2,7 +2,7 @@
 // File: bte_stream_ufs.h (formerly bte_ufs.h)
 // Author: Rakesh Barve <rbarve@cs.duke.edu>
 //
-// $Id: bte_stream_ufs.h,v 1.15 2005-01-14 18:35:00 tavi Exp $
+// $Id: bte_stream_ufs.h,v 1.16 2005-04-22 13:04:05 jan Exp $
 //
 // BTE streams with blocks I/Oed using read()/write().  This particular
 // implementation explicitly manages blocks, and only ever maps in one
@@ -89,7 +89,7 @@ private:
     // Descriptor of the mapped file.
     TPIE_OS_FILE_DESCRIPTOR fd;
 
-    size_t os_block_size_;
+    TPIE_OS_SIZE_T os_block_size_;
 
     int itemsize_div_blocksize;
 
@@ -204,7 +204,7 @@ private:
     // streams created later. Until these issues are addressed, the
     // usage of lbf is discouraged.
     BTE_stream_ufs (const char *dev_path, BTE_stream_type st,
-		    size_t lbf = BTE_STREAM_UFS_BLOCK_FACTOR);
+		    TPIE_OS_SIZE_T lbf = BTE_STREAM_UFS_BLOCK_FACTOR);
 
     // A substream constructor.
     BTE_stream_ufs (BTE_stream_ufs * super_stream,
@@ -247,7 +247,7 @@ private:
 template < class T >
 BTE_stream_ufs < T >::BTE_stream_ufs (const char *dev_path,
 				      BTE_stream_type st,
-				      size_t lbf) {
+				      TPIE_OS_SIZE_T lbf) {
 
     status_ = BTE_STREAM_STATUS_NO_STATUS;
 
@@ -933,7 +933,7 @@ TPIE_OS_OFFSET BTE_stream_ufs < T >::stream_len (void) const {
 template < class T >
 BTE_err BTE_stream_ufs < T >::name (char **stream_name) {
 
-    TPIE_OS_SIZE_T len = strlen (path);
+    TPIE_OS_SIZE_T len = (TPIE_OS_SIZE_T)strlen (path);
 
     tp_assert (len < BTE_STREAM_PATH_NAME_LEN, "Path length is too long.");
 
