@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/30/94
 //
-// $Id: mm_base.h,v 1.7 2003-04-17 19:39:42 jan Exp $
+// $Id: mm_base.h,v 1.8 2005-04-22 13:52:50 jan Exp $
 //
 #ifndef _MM_BASE_H
 #define _MM_BASE_H
@@ -64,7 +64,7 @@ class MM_manager_base
 public:
 
     // How much is currently available.
-    virtual MM_err available (size_t *sz_a) = 0;
+    virtual MM_err available (TPIE_OS_SIZE_T *sz_a) = 0;
 
 };
 
