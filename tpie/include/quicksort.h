@@ -7,15 +7,13 @@
 // A basic implementation of quicksort for use in core by AMI_sort() on
 // streams or substreams that are small enough.
 //
-// $Id: quicksort.h,v 1.22 2003-04-17 19:54:53 jan Exp $
+// $Id: quicksort.h,v 1.23 2005-07-07 20:42:31 adanner Exp $
 //
 #ifndef _QUICKSORT_H
 #define _QUICKSORT_H
  
 // Get definitions for working with Unix and Windows
 #include <portability.h>
-
-#include <comparator.h>
 
 //A simple class that facilitates doing key sorting followed 
 //by in-memory permuting to sort items in-memory. This is 
@@ -48,15 +46,6 @@ class qsort_item {
              {return  (x.keyval >  y.keyval);}
 
   };
-
-
-// Comment (jan): This version must no be used anymore!
-
-// // A version that uses a comparison function.  This is useful for
-// // sorting objects with multiple data members based on a particular
-// // member or combination of members.
-
-// End Comment.
 
 
 // A version that uses the < operator.  This should be faster for
@@ -110,7 +99,6 @@ void partition_op(T *data, size_t len, size_t &part_index)
 
         do {
             q--;
-            //} while (*q > tpart); dh. changed to limit operators required
         } while (tpart < *q );
         do {
             p++;
@@ -207,7 +195,7 @@ void partition_obj(T *data, size_t len, size_t &part_index,
 
         do {
             q--;
-        } while (cmp->compare(*q, tpart) > 0);
+        } while (cmp->compare(tpart, *q) < 0);
         do {
             p++;
         } while (cmp->compare(*p, tpart) < 0);
@@ -244,7 +232,7 @@ void insertion_sort_obj(T *data, size_t len,
     T *p, *q, test;
 
     for (p = data + 1; p < data + len; p++) {
-        for (q = p - 1, test = *p; (cmp->compare(*q, test) > 0); q--) {
+        for (q = p - 1, test = *p; (cmp->compare(test, *q) < 0); q--) {
             *(q+1) = *q;
 	    if (q==data) {
 	      q--; // to make assignment below correct
@@ -254,6 +242,20 @@ void insertion_sort_obj(T *data, size_t len,
         *(q+1) = test;
     }
 }
+
+/* 
+   DEPRECATED: quick_sort_cmp
+   Earlier TPIE versions allowed a quicksort that used a C-style
+   comparison function to sort. However, comparison functions cannot be
+   inlined, so each comparison requires one function call. Given that the
+   comparison operator < and comparison object classes can be inlined and 
+   have better performance while providing the exact same functionality,
+   comparison functions have been removed from TPIE. If you can provide us
+   with a compelling argument on why they should be in here, we may consider
+   adding them again, but you must demonstrate that comparision functions
+   can outperform other methods in at least some cases or give an example
+   were it is impossible to use a comparison operator or comparison object
+*/
 
 #endif // _QUICKSORT_H 
 
