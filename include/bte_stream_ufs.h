@@ -2,7 +2,7 @@
 // File: bte_stream_ufs.h (formerly bte_ufs.h)
 // Author: Rakesh Barve <rbarve@cs.duke.edu>
 //
-// $Id: bte_stream_ufs.h,v 1.16 2005-04-22 13:04:05 jan Exp $
+// $Id: bte_stream_ufs.h,v 1.17 2005-07-07 20:36:12 adanner Exp $
 //
 // BTE streams with blocks I/Oed using read()/write().  This particular
 // implementation explicitly manages blocks, and only ever maps in one
@@ -189,8 +189,6 @@ private:
   using BTE_stream_base<T>::os_block_size;
   using BTE_stream_base<T>::check_header;
   using BTE_stream_base<T>::init_header;
-  using BTE_stream_base<T>::register_memory_allocation;
-  using BTE_stream_base<T>::register_memory_deallocation;
 
  public:
     // Constructor.
@@ -478,11 +476,10 @@ BTE_stream_ufs < T >::BTE_stream_ufs (const char *dev_path,
 #endif
 
 
-    // Memory-usage for the header and the stream buffers are
-    // registered automatically by Darren's modified new() function.
+    // Memory-usage for the object, base class, header and the stream buffers
+    // are registered automatically by Darren's modified new() function.
     f_filelen = TPIE_OS_LSEEK(fd, 0, TPIE_OS_FLAG_SEEK_END);
     file_pointer = f_filelen;
-    register_memory_allocation (sizeof (BTE_stream_ufs < T >));
     gstats_.record(STREAM_OPEN);
     stats_.record(STREAM_OPEN);
 }
@@ -634,7 +631,6 @@ BTE_stream_ufs < T >::BTE_stream_ufs (BTE_stream_ufs * super_stream,
 #endif
 
     // Register memory_usage for the object corresp to the substream.
-    register_memory_allocation (sizeof (BTE_stream_ufs < T >));
     gstats_.record(STREAM_OPEN);
     gstats_.record(SUBSTREAM_CREATE);
     stats_.record(STREAM_OPEN);
@@ -787,7 +783,6 @@ template < class T > BTE_stream_ufs < T >::~BTE_stream_ufs (void) {
 	delete [] next_block;	// use vector delete -RW
 #endif
 
-    register_memory_deallocation (sizeof (BTE_stream_ufs < T >));
     gstats_.record(STREAM_CLOSE);
     stats_.record(STREAM_CLOSE);
 }
@@ -896,30 +891,33 @@ BTE_err BTE_stream_ufs < T >::main_memory_usage (size_t * usage,
 						 usage_type)
 {
     switch (usage_type) {
-    case MM_STREAM_USAGE_OVERHEAD:
-	*usage =
-	    (sizeof (*this) +
-	     (((header == NULL) || substream_level) ? 0 : os_block_size_));
-	break;
-    case MM_STREAM_USAGE_BUFFER:
-	*usage = BTE_STREAM_UFS_MM_BUFFERS * header->block_size;
-	break;
-    case MM_STREAM_USAGE_CURRENT:
-	*usage =
-	    (sizeof (*this) +
-	     (((header == NULL) || substream_level) ? 0 : os_block_size_) +
-	     ((curr_block == NULL) ? 0 : BTE_STREAM_UFS_MM_BUFFERS *
-	      header->block_size));
-	break;
-    case MM_STREAM_USAGE_MAXIMUM:
-	*usage = (sizeof (*this) + BTE_STREAM_UFS_MM_BUFFERS * header->block_size +
-		  (substream_level ? 0 : os_block_size_));
-	break;
-    case MM_STREAM_USAGE_SUBSTREAM:
-	*usage = (sizeof (*this) + BTE_STREAM_UFS_MM_BUFFERS * header->block_size);
-	break;
+      case MM_STREAM_USAGE_OVERHEAD:
+        //sizeof(*this) includes base class. 
+        //header is allocated dynamically, but always allocated, 
+        //even for substreams. Don't forget space overhead per
+        //"new" on (class, base class, header) 
+        *usage = sizeof(*this) + sizeof(BTE_stream_header) +
+                 3*MM_manager.space_overhead();
+        break;
+      case MM_STREAM_USAGE_BUFFER: 
+        //space used by buffers, when allocated
+        *usage = BTE_STREAM_UFS_MM_BUFFERS * header->block_size +
+                 MM_manager.space_overhead();
+        break;
+      case MM_STREAM_USAGE_CURRENT:
+        //overhead + buffers (if in use)
+        *usage = sizeof(*this) +  sizeof(BTE_stream_header) +
+           3*MM_manager.space_overhead() + 
+           ((curr_block == NULL) ? 0 : (BTE_STREAM_UFS_MM_BUFFERS *
+            header->block_size + MM_manager.space_overhead()));
+        break;
+      case MM_STREAM_USAGE_MAXIMUM:
+      case MM_STREAM_USAGE_SUBSTREAM:
+        *usage = sizeof(*this) +  sizeof(BTE_stream_header) +
+           BTE_STREAM_UFS_MM_BUFFERS * header->block_size +
+           4*MM_manager.space_overhead();
+        break;
     }
-
     return BTE_ERROR_NO_ERROR;
 }
 

@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/13/94
 //
-// $Id: bte_stream_mmap.h,v 1.15 2005-01-14 19:17:43 tavi Exp $
+// $Id: bte_stream_mmap.h,v 1.16 2005-07-07 20:36:12 adanner Exp $
 //
 // Memory mapped streams.  This particular implementation explicitly manages
 // blocks, and only ever maps in one block at a time.
@@ -483,8 +483,9 @@ BTE_stream_mmap < T >::BTE_stream_mmap (const char *dev_path, BTE_stream_type st
 	per = PERSIST_PERSISTENT;
 
 	// Register memory usage before returning.
+  // Since blocks and header are allocated by mmap and not "new",
+  // register memory manually. No mem overhead with mmap
 	register_memory_allocation (sizeof (BTE_stream_header));
-	register_memory_allocation (sizeof (BTE_stream_mmap < T >));
 	register_memory_allocation (BTE_STREAM_MMAP_MM_BUFFERS * header->block_size);
 	gstats_.record(STREAM_OPEN);
 	stats_.record(STREAM_OPEN);
@@ -680,7 +681,6 @@ template < class T > BTE_stream_mmap < T >::~BTE_stream_mmap (void) {
 
 			// Register memory deallocation before returning.
 			register_memory_deallocation (sizeof (BTE_stream_header)); // for the header.
-			register_memory_deallocation (sizeof (BTE_stream_mmap < T >));
 			register_memory_deallocation (BTE_STREAM_MMAP_MM_BUFFERS *
 				header->block_size);
 
@@ -839,29 +839,29 @@ B_INLINE BTE_err BTE_stream_mmap < T >::write_item (const T & elt) {
 template < class T >
 BTE_err BTE_stream_mmap < T >::main_memory_usage (size_t * usage, MM_stream_usage usage_type) {
 	switch (usage_type) {
-	case MM_STREAM_USAGE_OVERHEAD:
-		*usage = (sizeof (*this) +
-			(((header == NULL) || substream_level) ? 0 :
-		os_block_size_));
-		break;
-	case MM_STREAM_USAGE_BUFFER:
-		*usage = BTE_STREAM_MMAP_MM_BUFFERS * header->block_size;
-		break;
-	case MM_STREAM_USAGE_CURRENT:
-		*usage = (sizeof (*this) +
-			(((header == NULL) || substream_level) ? 0 :
-		os_block_size_) +
-			((curr_block == NULL) ? 0 :
-		BTE_STREAM_MMAP_MM_BUFFERS * header->block_size));
-		break;
-	case MM_STREAM_USAGE_MAXIMUM:
-		*usage = (sizeof (*this) + BTE_STREAM_MMAP_MM_BUFFERS * header->block_size +
-			(substream_level ? 0 : os_block_size_));
-		break;
-	case MM_STREAM_USAGE_SUBSTREAM:
-		*usage = (sizeof (*this) + BTE_STREAM_MMAP_MM_BUFFERS * header->block_size);
-		break;
-	}
+    case MM_STREAM_USAGE_OVERHEAD:
+      //Fixed costs. Only 2*mem overhead, because only class and base
+      //are allocated dynamicall via "new". Header is read via mmap
+      *usage = sizeof(*this) + sizeof(BTE_stream_header) +
+        2*MM_manager.space_overhead();
+      break;
+    case MM_STREAM_USAGE_BUFFER:
+      //no mem manager overhead when allocated via mmap
+      *usage = BTE_STREAM_MMAP_MM_BUFFERS * header->block_size;
+      break;
+    case MM_STREAM_USAGE_CURRENT:
+      *usage = (sizeof(*this) + sizeof(BTE_stream_header) +
+          2*MM_manager.space_overhead() + 
+          ((curr_block == NULL) ? 0 :
+           BTE_STREAM_MMAP_MM_BUFFERS * header->block_size));
+      break;
+    case MM_STREAM_USAGE_MAXIMUM:
+    case MM_STREAM_USAGE_SUBSTREAM:
+      *usage = (sizeof(*this) + sizeof(BTE_stream_header) +
+          2*MM_manager.space_overhead() + 
+          BTE_STREAM_MMAP_MM_BUFFERS * header->block_size);
+      break;
+  }
 
 	return BTE_ERROR_NO_ERROR;
 };
