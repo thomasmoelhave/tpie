@@ -3,7 +3,7 @@
 // Author: Octavian Procopiuc <tavi@cs.duke.edu>
 //         (from Darren's ami_base.h)
 // Created: 12/29/01
-// $Id: ami_err.h,v 1.3 2003-04-20 22:54:34 tavi Exp $
+// $Id: ami_err.h,v 1.4 2005-07-07 20:38:39 adanner Exp $
 //
 // AMI error codes, moved here from ami_base.h
 //
@@ -22,6 +22,7 @@ enum AMI_err {
   AMI_ERROR_BTE_ERROR,
   AMI_ERROR_MM_ERROR,
   AMI_ERROR_OBJECT_INITIALIZATION,
+  AMI_ERROR_OBJECT_INVALID,
   AMI_ERROR_PERMISSION_DENIED,
   AMI_ERROR_INSUFFICIENT_MAIN_MEMORY,
   AMI_ERROR_INSUFFICIENT_AVAILABLE_STREAMS,
@@ -29,7 +30,8 @@ enum AMI_err {
   AMI_ERROR_NO_MAIN_MEMORY_OPERATION,
   AMI_ERROR_BIT_MATRIX_BOUNDS,
   AMI_ERROR_NOT_POWER_OF_2,
-  
+  AMI_ERROR_NULL_POINTER,
+
   AMI_ERROR_GENERIC_ERROR = 0xfff,
 
   // Values returned by scan objects.
@@ -43,7 +45,10 @@ enum AMI_err {
   AMI_MERGE_READ_MULTIPLE,
 
   // Matrix related errors
-  AMI_MATRIX_BOUNDS = 0x3000
+  AMI_MATRIX_BOUNDS = 0x3000,
+
+  // Values returned by sort routines.
+  AMI_SORT_ALREADY_SORTED = 0x4000
   
 };
 
