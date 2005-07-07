@@ -248,4 +248,7 @@ merge_heap_cmp<Key>::merge_heap_cmp(class merge_heap_element<Key> *array_of_elem
 }
 
 
+#undef Left
+#undef Right
+#undef Parent
 #endif // _MERGE_HEAP_H
