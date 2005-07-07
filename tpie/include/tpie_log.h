@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/12/94
 //
-// $Id: tpie_log.h,v 1.24 2004-08-17 16:48:21 jan Exp $
+// $Id: tpie_log.h,v 1.25 2005-07-07 20:37:39 adanner Exp $
 //
 
 #ifndef _TPIE_LOG_H
@@ -15,7 +15,8 @@ enum TPIE_LOG_LEVEL {
   TPIE_LOG_FATAL = 0,	// Fatal errors are always logged no matter what;
   TPIE_LOG_WARNING,	// Warning about some internal condition;
   TPIE_LOG_APP_DEBUG,     // Debugging info for the application only;
-  TPIE_LOG_DEBUG		// Debugging info.
+  TPIE_LOG_DEBUG,		// Debugging info.
+  TPIE_LOG_MEM_DEBUG		// Memory allocation de-allocation.
 };
 
 
@@ -51,6 +52,8 @@ void tpie_log_init(TPIE_LOG_LEVEL level = TPIE_LOG_WARNING);
   (!logstream::log_initialized || tpie_log() << setpriority(TPIE_LOG_APP_DEBUG)  << msg)
 #define TP_LOG_DEBUG(msg) \
   (!logstream::log_initialized || tpie_log() << setpriority(TPIE_LOG_DEBUG)  << msg)
+#define TP_LOG_MEM_DEBUG(msg) \
+  (!logstream::log_initialized || tpie_log() << setpriority(TPIE_LOG_MEM_DEBUG)  << msg)
 
 #define TP_LOG_FATAL_ID(msg)  \
   (TP_LOG_FATAL(TP_LOG_ID_MSG << msg << "\n"), TP_LOG_FLUSH_LOG)
@@ -60,6 +63,8 @@ void tpie_log_init(TPIE_LOG_LEVEL level = TPIE_LOG_WARNING);
   (TP_LOG_APP_DEBUG(TP_LOG_ID_MSG << msg << "\n"), TP_LOG_FLUSH_LOG)
 #define TP_LOG_DEBUG_ID(msg)  \
   (TP_LOG_DEBUG(TP_LOG_ID_MSG << msg << "\n"), TP_LOG_FLUSH_LOG)
+#define TP_LOG_MEM_DEBUG_ID(msg) \
+  (TP_LOG_MEM_DEBUG(TP_LOG_ID_MSG << msg << "\n"), TP_LOG_FLUSH_LOG)
 
 #define TP_LOG_SET_THRESHOLD(level) (tpie_log() << setthreshold(level))
 
@@ -71,11 +76,13 @@ void tpie_log_init(TPIE_LOG_LEVEL level = TPIE_LOG_WARNING);
 #define TP_LOG_WARNING(msg) 
 #define TP_LOG_APP_DEBUG(msg)
 #define TP_LOG_DEBUG(msg) 
+#define TP_LOG_MEM_DEBUG(msg)
 
 #define TP_LOG_FATAL_ID(msg)
 #define TP_LOG_WARNING_ID(msg)
 #define TP_LOG_APP_DEBUG_ID(msg)
 #define TP_LOG_DEBUG_ID(msg)
+#define TP_LOG_MEM_DEBUG_ID(msg)
 
 #define TP_LOG_SET_THRESHOLD(level)
 #define TP_LOG_FLUSH_LOG {}

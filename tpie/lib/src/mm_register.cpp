@@ -8,7 +8,7 @@
 // A simple registration based memory manager.
 
 #include <versions.h>
-VERSION(mm_register_cpp,"$Id: mm_register.cpp,v 1.22 2005-04-22 13:51:40 jan Exp $");
+VERSION(mm_register_cpp,"$Id: mm_register.cpp,v 1.23 2005-07-07 20:37:39 adanner Exp $");
 
 //#include <assert.h>
 #include "lib_config.h"
@@ -68,11 +68,11 @@ MM_err MM_register::register_allocation(TPIE_OS_SIZE_T request)
 
     remaining -= request; 
 
-    TP_LOG_DEBUG("mm_register Allocated ");
-    TP_LOG_DEBUG(static_cast<TPIE_OS_OUTPUT_SIZE_T>(request));
-    TP_LOG_DEBUG("; ");
-    TP_LOG_DEBUG(static_cast<TPIE_OS_OUTPUT_SIZE_T>(remaining));
-    TP_LOG_DEBUG(" remaining.\n");
+    TP_LOG_MEM_DEBUG("mm_register Allocated ");
+    TP_LOG_MEM_DEBUG(static_cast<TPIE_OS_OUTPUT_SIZE_T>(request));
+    TP_LOG_MEM_DEBUG("; ");
+    TP_LOG_MEM_DEBUG(static_cast<TPIE_OS_OUTPUT_SIZE_T>(remaining));
+    TP_LOG_MEM_DEBUG(" remaining.\n");
     TP_LOG_FLUSH_LOG;
 
 #ifdef REPORT_LARGE_MEMOPS
@@ -108,11 +108,11 @@ MM_err MM_register::register_deallocation(TPIE_OS_SIZE_T sz)
 
     used      -= sz;    
 
-    TP_LOG_DEBUG("mm_register De-allocated ");
-    TP_LOG_DEBUG((unsigned int)sz);
-    TP_LOG_DEBUG("; ");
-    TP_LOG_DEBUG((unsigned int)remaining);
-    TP_LOG_DEBUG(" now available.\n");
+    TP_LOG_MEM_DEBUG("mm_register De-allocated ");
+    TP_LOG_MEM_DEBUG((unsigned int)sz);
+    TP_LOG_MEM_DEBUG("; ");
+    TP_LOG_MEM_DEBUG((unsigned int)remaining);
+    TP_LOG_MEM_DEBUG(" now available.\n");
     TP_LOG_FLUSH_LOG;
     
 #ifdef REPORT_LARGE_MEMOPS
