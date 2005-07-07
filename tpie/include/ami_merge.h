@@ -7,7 +7,7 @@
 // lower level streams will use appropriate levels of buffering.  This
 // will be more critical for parallel disk implementations.
 //
-// $Id: ami_merge.h,v 1.37 2005-01-14 18:38:34 tavi Exp $
+// $Id: ami_merge.h,v 1.38 2005-07-07 20:43:36 adanner Exp $
 //
 #ifndef _AMI_MERGE_H
 #define _AMI_MERGE_H
@@ -26,7 +26,7 @@ enum AMI_merge_output_type {
 };
 
 typedef int AMI_merge_flag;
-typedef unsigned int arity_t;
+typedef int arity_t;
 
 #define CONST const
 

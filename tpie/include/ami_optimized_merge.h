@@ -24,7 +24,7 @@
 // keys of the items; there is a provision to to use templated heaps
 // to implement the merge.
 
-// $Id: ami_optimized_merge.h,v 1.58 2005-01-14 18:39:21 tavi Exp $
+// $Id: ami_optimized_merge.h,v 1.59 2005-07-07 20:43:49 adanner Exp $
 
 // TO DO: substream_count setting; don't depend on current_stream_len
 
@@ -51,7 +51,7 @@
 #include <tpie_tempnam.h>
 
 typedef int AMI_merge_flag;
-typedef unsigned int arity_t;
+typedef int arity_t;
 
 //enable debugging messages in AMI_partition_and_merge(..)
 // #define XXX TP_LOG_DEBUG_ID("AMI_partition_and_merge_stream");
