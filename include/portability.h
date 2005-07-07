@@ -3,7 +3,7 @@
 // Created: 2002/10/30
 // Authors: Joerg Rotthowe, Jan Vahrenhold, Markus Vogel
 //
-// $Id: portability.h,v 1.30 2004-11-17 22:43:19 adanner Exp $
+// $Id: portability.h,v 1.31 2005-07-07 20:35:11 adanner Exp $
 //
 // This header-file offers macros for independent use on Win and Unix systems.
 
@@ -37,6 +37,7 @@
 //////////////////////////////////////////////
 
 #include <iostream>
+#include <iomanip>
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -52,7 +53,7 @@
 #include <assert.h>
 
 #ifdef _WIN32
-#if _MSC_VER < 1300
+#if (_MSC_VER < 1300) && !defined(__MINGW32__)
 #include <fstream.h>
 #else
 #include <fstream>
@@ -63,7 +64,7 @@ using namespace std;
 #endif
 
 // for reading command line parameter //
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 #include <sstream>
 #else
 #if (__GNUC__ == 2)
@@ -81,7 +82,7 @@ using namespace std;
 #include <list>
 
 #ifdef _WIN32
-#if _MSC_VER < 1300
+#if (_MSC_VER < 1300) && !defined(__MINGW32__)
 using std::ostringstream;
 using std::istringstream;
 using std::stack;
@@ -212,12 +213,12 @@ typedef off_t TPIE_OS_OFFSET;
 //windows doesn't have a default way
 //of printing 64 bit integers
 //printf doesn't work either with %d, use %I64d in Win32
-#if _MSC_VER < 1300
+#if (_MSC_VER < 1300) && !defined(__MINGW32__)
 extern ostream& operator<<(ostream& s, const TPIE_OS_OFFSET x);
 #endif
 #endif
 
-#ifdef _WIN32
+#if defined (_WIN32) && !defined(__MINGW32__)
 typedef long TPIE_OS_LONG;
 typedef __int64 TPIE_OS_LONGLONG;
 typedef unsigned __int64 TPIE_OS_ULONGLONG;
@@ -227,7 +228,7 @@ typedef long long int TPIE_OS_LONGLONG;
 typedef unsigned long long int TPIE_OS_ULONGLONG;
 #endif	
 
-#ifdef _WIN32
+#if defined (_WIN32) && !defined(__MINGW32__)
 typedef SSIZE_T TPIE_OS_SSIZE_T;
 #ifdef _TPIE_SMALL_MAIN_MEMORY
 typedef unsigned __int32 TPIE_OS_SIZE_T;
@@ -398,8 +399,12 @@ inline int TPIE_OS_RANDOM() {
   return rand() % 0x8000 + (rand() % 0x8000 << 15) + (rand() % 0x2 << 30);
 }
 #else
-inline long TPIE_OS_RANDOM() {
-    return random();
+inline int TPIE_OS_RANDOM() {
+    //adanner: rand and srand are ANSI standards
+    //random and srandom are from old BSD systems
+    //use the standard unless we run into problems
+    //http://www.gnu.org/software/libc/manual/html_node/Pseudo_002dRandom-Numbers.html
+    return rand();
 }
 #endif
 
@@ -409,7 +414,7 @@ inline void TPIE_OS_SRANDOM(unsigned int seed) {
 }
 #else
 inline void TPIE_OS_SRANDOM(unsigned int seed) {
-    srandom(seed);
+    srand(seed);
 }
 #endif
 
@@ -424,7 +429,7 @@ inline LONG getHighOrderOff(TPIE_OS_OFFSET off) {
      
 // Getting Loworder 32 Bit OFFSET
 inline LONG getLowOrderOff(TPIE_OS_OFFSET off) {
-    return (LONG)((ULONGLONG)(off) % 0x000100000000);
+    return (LONG)((ULONGLONG)(off) % 0x000100000000ULL);
 }
 #endif
 
