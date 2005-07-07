@@ -430,7 +430,7 @@ void progress_bar(float pct, TPIE_OS_LONGLONG nbytes){
 // Open a stream, write num_items, close stream
 void write_test(char* fname, appInfo & info){
   
-  TPIE_OS_LONGLONG i,n;
+  TPIE_OS_OFFSET i,n,trunc;
   Item x;
   AMI_err ae=AMI_ERROR_NO_ERROR;
   
@@ -446,7 +446,13 @@ void write_test(char* fname, appInfo & info){
   cout << "Opened file " << fname 
        << "\nWriting "<< n << " items..." << endl;
   
-  ae = str->truncate(((TPIE_OS_OFFSET)(sizeof (x)))*n);
+  trunc=((TPIE_OS_OFFSET)(sizeof (x)))*n;
+  if(trunc<0 || trunc>(4*APP_GIG)){
+    cout << "Initial file length computed as "<< trunc
+         << "\nSetting to 4GB "<< endl;
+    trunc=4*APP_GIG;
+  }
+  ae = str->truncate(trunc);
   if(ae != AMI_ERROR_NO_ERROR){
     cout << "\nError truncating file"<<endl;
   }
