@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/19/94
 //
-// $Id: ami_stream_single.h,v 1.12 2005-01-14 18:35:00 tavi Exp $
+// $Id: ami_stream_single.h,v 1.13 2005-07-07 20:43:06 adanner Exp $
 //
 // AMI entry points implemented on top of a single BTE.  This is useful
 // for single CPU, single disk machines.
@@ -143,7 +143,7 @@ public:
   AMI_err truncate(TPIE_OS_OFFSET offset);
   
   // Query memory usage
-  AMI_err main_memory_usage(size_t *usage,
+  AMI_err main_memory_usage(TPIE_OS_SIZE_T *usage,
 			    MM_stream_usage usage_type);
   
   // Destructor
@@ -367,7 +367,7 @@ AMI_err AMI_stream_single<T>::truncate(TPIE_OS_OFFSET offset)
 
 // Query memory usage
 template<class T>
-AMI_err AMI_stream_single<T>::main_memory_usage(size_t *usage,
+AMI_err AMI_stream_single<T>::main_memory_usage(TPIE_OS_SIZE_T *usage,
                                                 MM_stream_usage usage_type)
 {
     if (btes->main_memory_usage(usage, usage_type) != BTE_ERROR_NO_ERROR) {
