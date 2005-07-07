@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/11/94
 //
-// $Id: bte_stream_stdio.h,v 1.13 2005-01-14 18:35:00 tavi Exp $
+// $Id: bte_stream_stdio.h,v 1.14 2005-07-07 20:36:12 adanner Exp $
 //
 #ifndef _BTE_STREAM_STDIO_H
 #define _BTE_STREAM_STDIO_H
@@ -267,9 +267,9 @@ BTE_stream_stdio < T >::BTE_stream_stdio (const char *dev_path,
    f_eof = item_off_to_file_off(header.item_logical_eof);
 
    // Register memory usage before returning.
-   register_memory_allocation (sizeof (BTE_stream_stdio < T >));
    // A quick and dirty guess.  One block in the buffer cache, one in
-   // user space. TODO.
+   // user space. This is not accounted for by a "new" call, so we have to 
+   // register it ourselves. TODO: is 2*block_size accurate?
    register_memory_allocation (os_block_size_ * 2);
    gstats_.record(STREAM_OPEN);
    stats_.record(STREAM_OPEN);
@@ -376,8 +376,6 @@ template < class T > BTE_stream_stdio < T >::~BTE_stream_stdio (void) {
     stats_.record(SUBSTREAM_DELETE);
   }
   // Register memory deallocation before returning.
-  register_memory_deallocation (sizeof (BTE_stream_stdio < T >));
-  
   // A quick and dirty guess.  One block in the buffer cache, one in
   // user space. TODO.
   register_memory_deallocation (os_block_size_ * 2);
@@ -453,17 +451,22 @@ BTE_err BTE_stream_stdio < T >::main_memory_usage (size_t * usage,
 						   usage_type) {
 
    switch (usage_type) {
-   case MM_STREAM_USAGE_OVERHEAD:
-      *usage = sizeof (*this);
-      break;
-   case MM_STREAM_USAGE_BUFFER:
-      *usage = 2 * os_block_size_;
-      break;
-   case MM_STREAM_USAGE_CURRENT:
-   case MM_STREAM_USAGE_MAXIMUM:
-   case MM_STREAM_USAGE_SUBSTREAM:
-      *usage = sizeof (*this) + 2 * os_block_size_;
-      break;
+     case MM_STREAM_USAGE_OVERHEAD:
+       //Fixed overhead per object. *this includes base class.
+       //Need to include 2*overhead per "new" that sizeof doesn't 
+       //know about.
+       *usage = sizeof(*this)+2*MM_manager.space_overhead();
+       break;
+     case MM_STREAM_USAGE_BUFFER:
+       //Amount used by stdio buffers. No "new" calls => no overhead
+       *usage = 2 * os_block_size_;
+       break;
+     case MM_STREAM_USAGE_CURRENT:
+     case MM_STREAM_USAGE_MAXIMUM:
+     case MM_STREAM_USAGE_SUBSTREAM:
+       *usage = sizeof(*this) + 2*os_block_size_ +
+         2*MM_manager.space_overhead();
+       break;
    }
 
    return BTE_ERROR_NO_ERROR;
