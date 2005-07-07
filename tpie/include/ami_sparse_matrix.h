@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 3/2/95
 //
-// $Id: ami_sparse_matrix.h,v 1.13 2004-08-12 12:35:31 jan Exp $
+// $Id: ami_sparse_matrix.h,v 1.14 2005-07-07 20:45:37 adanner Exp $
 //
 #ifndef AMI_SPARSE_MATRIX_H
 #define AMI_SPARSE_MATRIX_H
@@ -83,7 +83,7 @@ TPIE_OS_OFFSET AMI_sparse_matrix<T>::cols(void)
 //
 
 template<class T>
-class sm_band_comparator : public comparator< AMI_sm_elem<T> >
+class sm_band_comparator 
 {
 private:
     TPIE_OS_SIZE_T rpb;
