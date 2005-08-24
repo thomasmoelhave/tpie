@@ -3,7 +3,7 @@
 // Created: 2002/10/30
 // Authors: Joerg Rotthowe, Jan Vahrenhold, Markus Vogel
 //
-// $Id: portability.h,v 1.31 2005-07-07 20:35:11 adanner Exp $
+// $Id: portability.h,v 1.32 2005-08-24 19:34:34 adanner Exp $
 //
 // This header-file offers macros for independent use on Win and Unix systems.
 
@@ -14,8 +14,10 @@
 #define _TPIE_SMALL_MAIN_MEMORY
 
 #ifdef _WIN32
+#ifndef __MINGW32__
 #pragma warning (disable : 4018) // signed/unsigned comparison mismatch
 #pragma warning (disable : 4786) // debug identifier truncated to 255 chars.
+#endif
 #endif
 // overview of this file:				//
 //////////////////////////////////////////
@@ -831,7 +833,7 @@ inline int TPIE_OS_CLOSE(TPIE_OS_FILE_DESCRIPTOR fd) {
 #endif
 
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 inline int TPIE_OS_UNLINK(const char* filename) {
     return _unlink(filename);
 }
@@ -992,7 +994,7 @@ return BTE_ERROR_OS_ERROR
 // #define HAVE_SYS_UNISTD_H 0
 // #endif
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 #define HAVE_UNISTD_H 0
 #define HAVE_SYS_UNISTD_H 0
 #endif
