@@ -1,7 +1,7 @@
 # Makefile for TPIE test applications.
 # Use gmake on this Makefile.  It relies on the default rules, and 
 # Use gmake -p to see the default rules.
-# $Id: Makefile.in,v 1.41 2005-02-15 00:18:47 tavi Exp $
+# $Id: Makefile.in,v 1.42 2005-08-24 19:36:00 adanner Exp $
 
 CXX = @CXX@
 CC = @CC@
@@ -28,6 +28,11 @@ override CPPFLAGS += @DEFS@
 # calls to use the 64 bit variants. Several types change also, e.g. off_t
 # becomes off64_t.
 override CPPFLAGS += -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE
+#override CPPFLAGS += -DTPIE_SORT_SMALL_MRGARITY=2
+#override CPPFLAGS += -DTPIE_SORT_SMALL_RUNSIZE=10000
+#override CPPFLAGS += -DTPIE_USE_STL_SORT
+
+
 
 ifeq ($(MINUSG),1)
 override CPPFLAGS += -g
@@ -58,7 +63,9 @@ APPS := test_ami_pmerge \
 	test_ami_sort24	\
 	test_ami_btree \
 	test_correctness \
-	test_big_scan
+	test_big_scan \
+	test_sort 
+ 
 
 
 # Sources to the test applications.
@@ -118,6 +125,7 @@ test_ami_btree: test_ami_btree.o
 test_correctness: test_correctness.o getopts.o
 test_big_scan: test_big_scan.o getopts.o
 sample_pgm: sample_pgm.o getopts.o 
+test_sort: test_sort.o getopts.o
 
 include Makefile.depend
 
