@@ -2,7 +2,7 @@
 // File: bte_stream_ufs.h (formerly bte_ufs.h)
 // Author: Rakesh Barve <rbarve@cs.duke.edu>
 //
-// $Id: bte_stream_ufs.h,v 1.17 2005-07-07 20:36:12 adanner Exp $
+// $Id: bte_stream_ufs.h,v 1.18 2005-09-22 18:53:22 adanner Exp $
 //
 // BTE streams with blocks I/Oed using read()/write().  This particular
 // implementation explicitly manages blocks, and only ever maps in one
@@ -998,55 +998,65 @@ TPIE_OS_OFFSET BTE_stream_ufs < T >::tell() const {
 template < class T > 
 BTE_err BTE_stream_ufs < T >::truncate (TPIE_OS_OFFSET offset) {
 
-    BTE_err be;
-    TPIE_OS_OFFSET new_offset;
-    TPIE_OS_OFFSET block_offset;
+  BTE_err be;
+  TPIE_OS_OFFSET new_offset;
+  TPIE_OS_OFFSET block_offset;
 
-    // Sorry, we can't truncate a substream.
-    if (substream_level) {
-	return BTE_ERROR_STREAM_IS_SUBSTREAM;
+  // Sorry, we can't truncate a substream.
+  if (substream_level) {
+    return BTE_ERROR_STREAM_IS_SUBSTREAM;
+  }
+
+  if (offset < 0) {
+    return BTE_ERROR_OFFSET_OUT_OF_RANGE;
+  }
+  
+  // Compute the new offset
+  new_offset = item_off_to_file_off (file_off_to_item_off (f_bos) + offset);
+
+  // If it is not in the same block as the current position then
+  // invalidate the current block.
+  // We also need to check that we have the correct block mapped in (f_offset
+  // does not always point into the current block!) - see comment in seek()
+  if (((unsigned int) ((char *) current - (char *) curr_block) >= header->block_size)
+      || (((new_offset - os_block_size_) / header->block_size) !=
+        ((f_offset - os_block_size_) / header->block_size))) {
+    if (block_valid && ((be = unmap_current ()) != BTE_ERROR_NO_ERROR)) {
+      return be;
     }
-
-    if (offset < 0) {
-	return BTE_ERROR_OFFSET_OUT_OF_RANGE;
+  }
+  
+  // If it is not in the same block as the current end of stream
+  // then truncate the file to the end of the new last block.
+  if (((new_offset - os_block_size_) / header->block_size) !=
+      ((f_eos - os_block_size_) / header->block_size)) {
+    
+    // Determine the offset of the block that new_offset is in.
+    block_offset = ((new_offset - os_block_size_) / header->block_size)
+      * header->block_size + os_block_size_;
+    f_filelen = block_offset + header->block_size;
+    if (TPIE_OS_FTRUNCATE (fd, block_offset + header->block_size)) {
+      os_errno = errno;
+      TP_LOG_FATAL_ID ("Failed to ftruncate() to the new end of " << path);
+      TP_LOG_FATAL_ID (strerror (os_errno));
+      return BTE_ERROR_OS_ERROR;
     }
-    // Compute the new offset
-    new_offset = item_off_to_file_off (file_off_to_item_off (f_bos) + offset);
+    // Invalidate the file pointer.
+    file_pointer = -1;
+  }
 
-    // If it is not in the same block as the current position then
-    // invalidate the current block.
-    // We also need to check that we have the correct block mapped in (f_offset
-    // does not always point into the current block!) - see comment in seek()
-    if (((unsigned int) ((char *) current - (char *) curr_block) >=
-	 header->block_size)
-	|| (((new_offset - os_block_size_) / header->block_size) !=
-	    ((f_offset - os_block_size_) / header->block_size))) {
-	if (block_valid && ((be = unmap_current ()) != BTE_ERROR_NO_ERROR)) {
-	    return be;
-	}
-    }
-    // If it is not in the same block as the current end of stream
-    // then truncate the file to the end of the new last block.
-    if (((new_offset - os_block_size_) / header->block_size) !=
-	((f_eos - os_block_size_) / header->block_size)) {
+  if (block_valid) {
+    // This can happen if we didn't truncate much and stayed within the current block
+    // then the current block is still valid, but the current item
+    // pointer may not be valid. We have to adjust current.
+    TPIE_OS_OFFSET internal_block_offset;
+    internal_block_offset = file_off_to_item_off (new_offset) % blocksize_items;
+    current = curr_block + internal_block_offset;
+  }
 
-	// Determine the offset of the block that new_offset is in.
-	block_offset = ((new_offset - os_block_size_) / header->block_size)
-	    * header->block_size + os_block_size_;
-	f_filelen = block_offset + header->block_size;
-	if (TPIE_OS_FTRUNCATE (fd, block_offset + header->block_size)) {
-	    os_errno = errno;
-	   TP_LOG_FATAL_ID ("Failed to ftruncate() to the new end of " << path);
-	   TP_LOG_FATAL_ID (strerror (os_errno));
-	    return BTE_ERROR_OS_ERROR;
-	}
-	// Invalidate the file pointer.
-	file_pointer = -1;
-    }
-    // Reset the current position to the end.    
-    f_offset = f_eos = new_offset;
-
-    return BTE_ERROR_NO_ERROR;
+  // Reset the current position to the end.    
+  f_offset = f_eos = new_offset;
+  return BTE_ERROR_NO_ERROR;
 }
 
 // Map in the header from the file.  This assumes that the path
