@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/13/94
 //
-// $Id: bte_stream_mmap.h,v 1.16 2005-07-07 20:36:12 adanner Exp $
+// $Id: bte_stream_mmap.h,v 1.17 2005-09-22 18:53:22 adanner Exp $
 //
 // Memory mapped streams.  This particular implementation explicitly manages
 // blocks, and only ever maps in one block at a time.
@@ -1018,33 +1018,44 @@ BTE_err BTE_stream_mmap < T >::truncate (TPIE_OS_OFFSET offset)
 					return BTE_ERROR_OS_ERROR;
 				}
 			}
-			// Reset the current position to the end.    
-			f_offset = f_eos = new_offset;
+    if (block_valid) {
+      // This can happen if we didn't truncate much 
+      // and stayed within the current block
+      // then the current block is still valid, but the current item
+      // pointer may not be valid. We have to adjust current.
+      TPIE_OS_OFFSET internal_block_offset;
+      internal_block_offset = file_off_to_item_off (new_offset) %
+        (header->block_size / sizeof (T));
+      current = curr_block + internal_block_offset;
+    }
 
-			return BTE_ERROR_NO_ERROR;
-}
+    // Reset the current position to the end.    
+    f_offset = f_eos = new_offset;
 
-// Map in the header from the file.  This assumes that the path
-// has been cached in path and that the file has been opened and
-// fd contains a valid descriptor.
-template < class T >
-BTE_stream_header * BTE_stream_mmap < T >::map_header (void) {
+    return BTE_ERROR_NO_ERROR;
+  }
 
-	TPIE_OS_OFFSET file_end;
-	BTE_stream_header *mmap_hdr;
+  // Map in the header from the file.  This assumes that the path
+  // has been cached in path and that the file has been opened and
+  // fd contains a valid descriptor.
+  template < class T >
+    BTE_stream_header * BTE_stream_mmap < T >::map_header (void) {
 
-	// If the underlying file is not at least long enough to contain
-	// the header block, then, assuming the stream is writable, we have
-	// to create the space on disk by doing an explicit write().
-	if ((file_end = TPIE_OS_LSEEK(fd, 0, TPIE_OS_FLAG_SEEK_END)) < os_block_size_) {
-		if (r_only) {
-			status_ = BTE_STREAM_STATUS_INVALID;
+      TPIE_OS_OFFSET file_end;
+      BTE_stream_header *mmap_hdr;
 
-			TP_LOG_FATAL ("No header block in read only stream \"");
-			TP_LOG_FATAL (path);
-			TP_LOG_FATAL ('\n');
-			TP_LOG_FLUSH_LOG;
-			return NULL;
+      // If the underlying file is not at least long enough to contain
+      // the header block, then, assuming the stream is writable, we have
+      // to create the space on disk by doing an explicit write().
+      if ((file_end = TPIE_OS_LSEEK(fd, 0, TPIE_OS_FLAG_SEEK_END)) < os_block_size_) {
+        if (r_only) {
+          status_ = BTE_STREAM_STATUS_INVALID;
+
+          TP_LOG_FATAL ("No header block in read only stream \"");
+          TP_LOG_FATAL (path);
+          TP_LOG_FATAL ('\n');
+          TP_LOG_FLUSH_LOG;
+          return NULL;
 
 		} else {
 			// A writable stream, so we can ftruncate() space for a
