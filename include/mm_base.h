@@ -4,15 +4,13 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/30/94
 //
-// $Id: mm_base.h,v 1.8 2005-04-22 13:52:50 jan Exp $
+// $Id: mm_base.h,v 1.9 2005-11-08 17:21:02 adanner Exp $
 //
 #ifndef _MM_BASE_H
 #define _MM_BASE_H
 
 // Get definitions for working with Unix and Windows
 #include <portability.h>
-
-#include <sys/types.h>
 
 // dh. MM accounting modes
 typedef enum {

@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/12/94
 //
-// $Id: tpie_log.h,v 1.25 2005-07-07 20:37:39 adanner Exp $
+// $Id: tpie_log.h,v 1.26 2005-11-08 17:21:02 adanner Exp $
 //
 
 #ifndef _TPIE_LOG_H
@@ -18,10 +18,6 @@ enum TPIE_LOG_LEVEL {
   TPIE_LOG_DEBUG,		// Debugging info.
   TPIE_LOG_MEM_DEBUG		// Memory allocation de-allocation.
 };
-
-
-// Get definitions for working with Unix and Windows
-#include <portability.h>
 
 #include <logstream.h>
 
