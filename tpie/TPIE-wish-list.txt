@@ -11,7 +11,7 @@ There are also some circular dependecies in calculating memory usage.
 Until these memory calculation is resolved, I suggest setting the memory
 manager to warn_memory_limit() or ignore_memory_limit() before sorting.
 Files: apm_dh.h
-Status: Open as of 1 April 2005
+Status: Problem fixed by A.Danner in Summer 2005
 ------------------
 ID: 2
 General Area: Priority Queues
@@ -110,7 +110,10 @@ General Area: Sorting
 Priority:
 Description: Include a progress indicator for sorting. Users don't like it
 when the software seems to stall for ten minutes.
-Status: Open as of 21 April 2005
+Status: Initial attempt summer 2005 by A. Danner
+J. Vahrenhold looking into progress bar class for a general/flexible
+solution as of 8 Nov 2005
+       
 ------------------------
 ID: 10
 General Area: Priority Queue
@@ -140,19 +143,57 @@ Status: Open as of 21 April 2005
 ID: 13
 General Area: Sorting, Code cleanup
 Priority:
-Description: There are main sort implementations in the TPIE source, but
+Description: There are three main sort implementations in the TPIE source, but
 only one seems to be used. Find out which one it is, document it. Remove
 or update older code and get rid of _dh tags if the _dh code is really the
 default sort.
-Status: Open as of 21 April 2005
+Status: Assigned to A. Danner as of 8 Nov 2005
 -------------------------
 ID: 14
 General Area: Streams, Code cleanup
 Priority:
 Description: Can ami_stream_base and ami_stream_single be merged? Are we
-seriously every going to have another stream implementation other than
-ami_stream_single. If not, the code should be merged.
+seriously ever going to have another stream implementation other than
+ami_stream_single? If not, the code should be merged.
 See Also: wish-list ID 7
 Status: Open as of 21 April 2005
 --------------------------
+ID: 15
+General Area: Memory management/STL
+Priority: ?
+Description: the TPIE memory manager cannot keep track of memory 
+allocated in STL correctly.  It seems that it can capture allocation but 
+not deallocation.  For example the following piece of code will report a 
+memory leak.
+
+
+cout << "Memory available = " << MM_manager.memory_available() << endl;
+vector<int> *s = new vector<int>;
+s->push_back(1);
+delete s;
+cout << "Memory available = " << MM_manager.memory_available() << endl;
+
+The real problem is related to this lengthy document:
+http://www.codeguru.com/Cpp/Cpp/cpp_mfc/stl/article.php/c4079/
+
+A very quick summary:
+ The STL uses its own memory allocation methods. They could be just
+ new/delete or something else. You can also build your own and pass it as
+ a template parameter like  
+
+ vector<my_data_type, my_memory_allocator> foo 
+
+ Looking at GCC 3.3 the vector library uses "new" to allocate space, but
+ does not necessarily use "delete" to free space. What a nightmare. I
+ don't have any quick solutions in mind. Perhaps we can overload the
+ default STL allocator much like we overloaded new/delete, but I doubt
+ this will improve performance of the STL.
+
+ If one wants to see some more evidence, take a look at c
+ ++/bits/stl_vector.h and c++/bits/stl_construct.h. You'll see a "new"
+ but no "delete"
+
+ We need to decide what is the best way to handle this.
+ Status: Open as of 3 Nov 2005
+ ------------------------------
 
