@@ -6,7 +6,7 @@
 //
 
 #include <versions.h>
-VERSION(mm_base_cpp,"$Id: mm_base.cpp,v 1.29 2004-10-27 19:13:54 adanner Exp $");
+VERSION(mm_base_cpp,"$Id: mm_base.cpp,v 1.30 2005-11-08 13:27:54 jan Exp $");
 
 #include "lib_config.h"
 #include <mm_base.h>
@@ -96,9 +96,11 @@ void *operator new (TPIE_OS_SIZE_T sz)
 	  assert(0);
       exit (1);
    }
-   *((size_t *) p) = sz;
+   *((size_t *) p) = sz * MM_manager.allocation_count_factor();
    return ((char *) p) + SIZE_SPACE;
 }
+
+TPIE_OS_SIZE_T _temp_deallocation_size = 0;
 
 void operator delete (void *ptr)
 {
@@ -108,11 +110,13 @@ void operator delete (void *ptr)
    }
 
    if (MM_manager.register_new != MM_IGNORE_MEMORY_EXCEEDED) {
-      if (MM_manager.register_deallocation (
-	    (TPIE_OS_SIZE_T)*((size_t *) (((char *) ptr) - SIZE_SPACE)) + SIZE_SPACE) 
-         != MM_ERROR_NO_ERROR) {
+       if (_temp_deallocation_size = 
+	   (TPIE_OS_SIZE_T)*((size_t *) (((char *) ptr) - SIZE_SPACE))) {
+	   if (MM_manager.register_deallocation (
+		   _temp_deallocation_size + SIZE_SPACE) != MM_ERROR_NO_ERROR) {
 	 TP_LOG_WARNING_ID("In operator delete - MM_manager.register_deallocation failed");
-      }
+	   }
+       }
    }
    void *p = ((char *)ptr) - SIZE_SPACE;
 
@@ -132,11 +136,13 @@ void operator delete[] (void *ptr) {
    }
 
    if (MM_manager.register_new != MM_IGNORE_MEMORY_EXCEEDED) {
-      if (MM_manager.register_deallocation (
-	    (TPIE_OS_SIZE_T)*((size_t *) (((char *) ptr) - SIZE_SPACE)) + SIZE_SPACE)
-         != MM_ERROR_NO_ERROR) {
-	 TP_LOG_WARNING_ID("In operator delete [] - MM_manager.register_deallocation failed");
-      }
+       if (_temp_deallocation_size = 
+	   (TPIE_OS_SIZE_T)*((size_t *) (((char *) ptr) - SIZE_SPACE))) {
+	   if (MM_manager.register_deallocation (
+		   _temp_deallocation_size + SIZE_SPACE) != MM_ERROR_NO_ERROR) {
+	       TP_LOG_WARNING_ID("In operator delete [] - MM_manager.register_deallocation failed");
+	   }
+       }
    }
    void *p = ((char *)ptr) - SIZE_SPACE;
 #ifdef USE_DMALLOC
