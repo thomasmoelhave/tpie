@@ -8,7 +8,7 @@
 // A simple registration based memory manager.
 
 #include <versions.h>
-VERSION(mm_register_cpp,"$Id: mm_register.cpp,v 1.23 2005-07-07 20:37:39 adanner Exp $");
+VERSION(mm_register_cpp,"$Id: mm_register.cpp,v 1.24 2005-11-08 13:27:54 jan Exp $");
 
 //#include <assert.h>
 #include "lib_config.h"
@@ -27,8 +27,8 @@ extern int register_new;
 
 #include <stdlib.h>
 
-MM_register::MM_register()
-{
+MM_register::MM_register() : 
+    remaining (0), user_limit(0), used(0), pause_allocation_depth (0) {
     instances++;
 
     tp_assert(instances == 1,
@@ -51,10 +51,10 @@ MM_err MM_register::register_allocation(TPIE_OS_SIZE_T request)
 {
   // quick hack to allow operation before limit is set
   // XXX 
-  if(!user_limit) {
+    if(!user_limit || pause_allocation_depth) {
 	return MM_ERROR_NO_ERROR;
-  }
-
+    }
+    
     used      += request;     
 
     if (request > remaining) {
@@ -68,7 +68,7 @@ MM_err MM_register::register_allocation(TPIE_OS_SIZE_T request)
 
     remaining -= request; 
 
-    TP_LOG_MEM_DEBUG("mm_register Allocated ");
+    TP_LOG_MEM_DEBUG("MM_register Allocated ");
     TP_LOG_MEM_DEBUG(static_cast<TPIE_OS_OUTPUT_SIZE_T>(request));
     TP_LOG_MEM_DEBUG("; ");
     TP_LOG_MEM_DEBUG(static_cast<TPIE_OS_OUTPUT_SIZE_T>(remaining));
@@ -222,15 +222,16 @@ int MM_register::instances = 0; // Number of instances. (init)
 // TPIE's "register memory requests" flag
 MM_mode MM_register::register_new = MM_ABORT_ON_MEMORY_EXCEEDED; 
 
-// The counter of mm_register_init instances.  It is implicity set to 0.
-unsigned int mm_register_init::count;
+// The counter of mm_register_init instances. 
+unsigned int mm_register_init::count = 0;
 
 // The constructor and destructor that ensure that the memory manager is
 // created exactly once, and destroyed when appropriate.
 mm_register_init::mm_register_init(void)
 {
     if (count++ == 0) {
-	  MM_manager.set_memory_limit(MM_DEFAULT_MM_SIZE);
+	MM_manager.set_memory_limit(MM_DEFAULT_MM_SIZE);
+	setenv("GLIBCPP_FORCE_NEW", "1", 1);
     }
 }
 
