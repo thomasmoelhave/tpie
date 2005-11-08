@@ -6,7 +6,7 @@
 //
 
 #include <versions.h>
-VERSION(mm_base_cpp,"$Id: mm_base.cpp,v 1.30 2005-11-08 13:27:54 jan Exp $");
+VERSION(mm_base_cpp,"$Id: mm_base.cpp,v 1.31 2005-11-08 14:19:53 jan Exp $");
 
 #include "lib_config.h"
 #include <mm_base.h>
@@ -96,11 +96,10 @@ void *operator new (TPIE_OS_SIZE_T sz)
 	  assert(0);
       exit (1);
    }
-   *((size_t *) p) = sz * MM_manager.allocation_count_factor();
+   *((size_t *) p) = (MM_manager.allocation_count_factor() ? sz : 0);
    return ((char *) p) + SIZE_SPACE;
 }
 
-TPIE_OS_SIZE_T _temp_deallocation_size = 0;
 
 void operator delete (void *ptr)
 {
@@ -109,13 +108,13 @@ void operator delete (void *ptr)
       return;
    }
 
+   const size_t dealloc_size =  
+       (TPIE_OS_SIZE_T)*((size_t *) (((char *) ptr) - SIZE_SPACE));
+
    if (MM_manager.register_new != MM_IGNORE_MEMORY_EXCEEDED) {
-       if (_temp_deallocation_size = 
-	   (TPIE_OS_SIZE_T)*((size_t *) (((char *) ptr) - SIZE_SPACE))) {
-	   if (MM_manager.register_deallocation (
-		   _temp_deallocation_size + SIZE_SPACE) != MM_ERROR_NO_ERROR) {
-	 TP_LOG_WARNING_ID("In operator delete - MM_manager.register_deallocation failed");
-	   }
+       if (MM_manager.register_deallocation (
+	       dealloc_size ? dealloc_size + SIZE_SPACE : 0) != MM_ERROR_NO_ERROR) {
+	   TP_LOG_WARNING_ID("In operator delete - MM_manager.register_deallocation failed");
        }
    }
    void *p = ((char *)ptr) - SIZE_SPACE;
@@ -135,13 +134,13 @@ void operator delete[] (void *ptr) {
       return;
    }
 
+   const size_t dealloc_size =  
+       (TPIE_OS_SIZE_T)*((size_t *) (((char *) ptr) - SIZE_SPACE));
+
    if (MM_manager.register_new != MM_IGNORE_MEMORY_EXCEEDED) {
-       if (_temp_deallocation_size = 
-	   (TPIE_OS_SIZE_T)*((size_t *) (((char *) ptr) - SIZE_SPACE))) {
-	   if (MM_manager.register_deallocation (
-		   _temp_deallocation_size + SIZE_SPACE) != MM_ERROR_NO_ERROR) {
-	       TP_LOG_WARNING_ID("In operator delete [] - MM_manager.register_deallocation failed");
-	   }
+       if (MM_manager.register_deallocation (
+	       dealloc_size ? dealloc_size + SIZE_SPACE : 0) != MM_ERROR_NO_ERROR) {
+	   TP_LOG_WARNING_ID("In operator delete [] - MM_manager.register_deallocation failed");
        }
    }
    void *p = ((char *)ptr) - SIZE_SPACE;
