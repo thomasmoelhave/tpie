@@ -7,7 +7,7 @@
 // Internal sorter class that can be used within AMI_sort() on small
 // streams/substreams
 //
-// $Id: internal_sort.h,v 1.1 2005-08-24 19:32:38 adanner Exp $
+// $Id: internal_sort.h,v 1.2 2005-11-08 17:21:02 adanner Exp $
 //
 #ifndef _INTERNAL_SORT_H
 #define _INTERNAL_SORT_H
@@ -137,6 +137,10 @@ AMI_err Internal_Sorter_Op<T>::sort(AMI_STREAM<T>* InStr,
 
   TP_LOG_DEBUG_ID("Sorting internal run of " << nItems 
                   << " items using \"<\" operator.");
+
+  //make sure we called allocate earlier
+  if(ItemArray==NULL){return AMI_ERROR_NULL_POINTER;}
+  
   tp_assert ( nItems <= len, "nItems more than interal buffer size.");
 
   // Read a memory load out of the input stream one item at a time,
@@ -210,6 +214,9 @@ AMI_err Internal_Sorter_Obj<T, CMPR>::sort(AMI_STREAM<T>* InStr,
   T    *next_item;
   TPIE_OS_OFFSET i = 0;
 
+  //make sure we called allocate earlier
+  if(ItemArray==NULL){return AMI_ERROR_NULL_POINTER;}
+  
   TP_LOG_DEBUG_ID("Sorting internal run of " << nItems 
                   << " items using TPIE comparison object.");
   tp_assert ( nItems <= len, "nItems more than interal buffer size.");
@@ -335,6 +342,9 @@ inline AMI_err Internal_Sorter_KObj<T, KEY, CMPR>::sort(AMI_STREAM<T>* InStr,
   T    *next_item;
   TPIE_OS_OFFSET i = 0;
 
+  //make sure we called allocate earlier
+  if(ItemArray==NULL || sortItemArray==NULL){return AMI_ERROR_NULL_POINTER;}
+  
   TP_LOG_DEBUG_ID("Sorting internal run of " << nItems 
                   << " items using \"<\" operator.");
   tp_assert ( nItems <= len, "nItems more than interal buffer size.");
