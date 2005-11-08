@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/12/94
 //
-// $Id: logstream.h,v 1.20 2004-08-17 16:48:14 jan Exp $
+// $Id: logstream.h,v 1.21 2005-11-08 17:21:02 adanner Exp $
 //
 
 #ifndef _LOGSTREAM_H
@@ -12,9 +12,6 @@
 
 // Get definitions for working with Unix and Windows
 #include <portability.h>
-
-// For size_t
-#include <sys/types.h>
 
 // A macro for declaring output operators for log streams.
 #define _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(T) logstream& operator<<(T)
