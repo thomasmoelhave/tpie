@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/30/94
 //
-// $Id: mm_register.h,v 1.10 2004-08-12 12:35:32 jan Exp $
+// $Id: mm_register.h,v 1.11 2005-11-08 13:28:51 jan Exp $
 //
 #ifndef _MM_REGISTER_H
 #define _MM_REGISTER_H
@@ -38,6 +38,8 @@ private:
     // the amount that has been allocated.
     TPIE_OS_SIZE_T   used;
 
+    // the depth of possibly nested "pause"-calls.
+    unsigned long pause_allocation_depth;
 
 public:
     // made public since Linux c++ doesn't like the fact that our new
@@ -67,12 +69,37 @@ public:
     TPIE_OS_SIZE_T memory_limit ();             // dh.
     int    space_overhead ();           // dh.
         
+    size_t allocation_count_factor() const; 
+    void pause_allocation_counting(); 
+    void resume_allocation_counting(); 
+
     friend class mm_register_init;
     //friend void * operator new(TPIE_OS_SIZE_T);
     //friend void operator delete(void *);
     //friend void operator delete[](void *);
 };
 
+inline size_t MM_register::allocation_count_factor() const {
+    if (pause_allocation_depth)
+	return 0;
+    return 1;
+}
+
+inline void MM_register::pause_allocation_counting() { 
+    if (++pause_allocation_depth == 1) 
+	unsetenv("GLIB_CPP_FORCE_NEW");
+}
+
+inline void MM_register::resume_allocation_counting() { 
+    if (pause_allocation_depth > 0) {
+	if (--pause_allocation_depth == 0)
+	    setenv("GLIBCPP_FORCE_NEW", "1", 1);
+    }
+    else {
+	TP_LOG_WARNING("Unmatched MM_register::resume_allocation_counting()");
+	pause_allocation_depth = 0;
+    }
+}
 
 // The default amount of memory we will allow to be allocated.
 // 40MB
