@@ -21,7 +21,7 @@
 #include <ami_scan.h>
 #include <ami_sort.h>
 #include <cpu_timer.h>
-VERSION(test_ami_sort_cpp,"$Id: test_ami_sort.cpp,v 1.32 2005-02-15 00:25:57 tavi Exp $");
+VERSION(test_ami_sort_cpp,"$Id: test_ami_sort.cpp,v 1.33 2005-11-09 13:57:57 adanner Exp $");
 
 #include <ami_kb_sort.h>
 
@@ -282,9 +282,9 @@ int main(int argc, char **argv)
     cout << "Sorting input..." << flush;
     timer.start();  
     if (comparison_mode == COMPARISON_OPERATOR) {
-      ae = AMI_sort_V1(istr, &amis3);
+      ae = AMI_sort(istr, &amis3);
     } else if (comparison_mode == COMPARISON_CLASS) {
-      ae = AMI_sort_V1(istr, &amis3, &int_cmp_obj);
+      ae = AMI_sort(istr, &amis3, &int_cmp_obj);
     }
     timer.stop();
     cout << "Done." << endl;
