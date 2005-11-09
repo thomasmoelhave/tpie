@@ -1,0 +1,145 @@
+******************************************
+***
+***  CodingGuidelines.txt
+***
+***  $Id: CodingGuidelines.txt,v 1.1 2005-11-09 11:47:17 jan Exp $
+*** 
+******************************************
+
+Purpose of this document:
+
+- To provide guidelines for how to write C++
+  code that is supposed to become part of
+  the TPIE project.
+
+How to modify this document:
+
+- Contact the person who is responsible for
+  the respective rule. 
+- If the change is approved, substitute your
+  initals for the initials of the previous
+  author.
+- If necessary, update the list of maintainers
+  to include your name, initials, and e-mail address.
+- Commit the changes (or have some member of
+  the TPIE project commit them).
+
+Maintainers: 
+ 
+- Thomas Molhave (tm, thomasm@daimi.au.dk)
+- Jan Vahrenhold (jv, jan@math.uni-muenster.de)
+
+
+******************************************************************
+
+Section 1. Documentation.
+
+******************************************************************
+
+1.1.  Code has to be documented using doxygen (www.doxygen.org). (jv)
+
+1.2.  Comments have to be given for all public and protected
+      methods and attributes. (jv)
+
+1.3.  Old-C-style comments ( /*   */ ) shall not be used. (jv)
+
+1.4.  Comments for classes and methods shall be written using
+      the "three-slash" style followed and preceeded by a line
+      of slashes. (jv)
+
+      Example:
+
+      /////////////////////////////////////////////////////////
+      ///
+      ///  \class  foo_bar
+      ///
+      ///  This class serves as an example.
+      ///
+      /////////////////////////////////////////////////////////
+
+1.5.  Javadoc-style comments may be used for commenting 
+      attributes. (jv)
+
+      Example:
+
+      /**  This is a sample attribute.  */
+      int attribute;
+
+
+1.6.  An empty expression, e.g., an empty destructor should
+      be commented using " // Do nothing." (jv)
+
+
+******************************************************************
+
+Section 2. Naming Convention
+
+******************************************************************
+
+2.1.  Class names shall be all-lowercase using an underscore
+      to separate parts. (tm)
+
+      Example: class foo_bar_base { ... }
+
+2.2.  Method names shall be all-lowercase using an underscore
+      to separate parts. (tm)
+
+      Example: int foo_bar();
+
+2.3.  Names of attributes, parameters, and variables shall be 
+      starting with a lowercase letter and use uppercase letters
+      to seperate parts. (jv)
+
+      Example: int myLocalVariable;
+
+2.4.  Instance and class attributes shall be prefixed by "m_". (jv)
+
+      Example: short m_anAttribute;
+
+2.5.  The use of namespacing shall be enforced. The namespace 
+      for the TPIE-project is "tpie::". (tm)
+
+******************************************************************
+
+Section 3. Writing Efficient Code
+
+******************************************************************
+
+3.1.  Use const modifiers for methods and parameters wherever
+      possible. (tm)
+
+
+******************************************************************
+
+Section 4. Class Design and Layout
+
+******************************************************************
+
+4.1.  The components of a class shall appear in the following
+      order: public - protected - private (jv)
+
+4.2.  Bodies longer than 6 lines of code shall be put in an
+      inline file (.inl) which is included after the 
+      class declaration. (tm)
+
+4.3.  The "at-most-one-class-per-file" rule shall be enforced. (jv)
+
+4.4.  Attributes shall not be public. Every attribute shall
+      be accompanied by a "put"- and "get"-method. The name
+      of such a method is the name of the attribute prefixed
+      by "put_" or "get_" (using the naming convention, parts
+      of the attribute name are sepearated by underscores).
+      Read-only attributes shall be accessed by a method that
+      is named just like the attribute. (jv)
+
+      Example:
+
+      int get_my_attribute() const;
+      void put_my_attribtue(int myAttribute);
+
+      int my_readonly_attribute() const;
+
+******************************************************************
+
+
+ 
