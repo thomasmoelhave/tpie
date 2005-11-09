@@ -14,10 +14,10 @@
 #include "parse_args.h"
 
 #include <ami_merge.h>
-#include <pqueue_heap.h>
+#include <mergeheap.h>
 
 #include <versions.h>
-VERSION(test_ami_pmerge_cpp,"$Id: test_ami_pmerge.cpp,v 1.28 2005-02-15 00:23:06 tavi Exp $");
+VERSION(test_ami_pmerge_cpp,"$Id: test_ami_pmerge.cpp,v 1.29 2005-11-09 13:57:57 adanner Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -38,18 +38,18 @@ int c_int_cmp(const void *p1, const void *p2)
 
 class s_merge_manager : public AMI_generalized_merge_base<int> {
 private:
-    arity_t input_arity;
-    pqueue_heap_op<arity_t,int> *pq;
+    TPIE_OS_SIZE_T input_arity;
+    merge_heap_op<int> *mheap;
 #if DEBUG_ASSERTIONS
     TPIE_OS_OFFSET input_count, output_count;
 #endif    
 public:
     s_merge_manager(void);
     virtual ~s_merge_manager(void);
-    AMI_err initialize(arity_t arity, CONST int * CONST *in,
+    AMI_err initialize(TPIE_OS_SIZE_T arity, int **in,
                        AMI_merge_flag *taken_flags,
                        int &taken_index);
-    AMI_err operate(CONST int * CONST *in, AMI_merge_flag *taken_flags,
+    AMI_err operate(int **in, AMI_merge_flag *taken_flags,
                     int &taken_index, int *out);
     AMI_err main_mem_operate(int* mm_stream, TPIE_OS_SIZE_T len);
 	TPIE_OS_SIZE_T space_usage_overhead(void);
@@ -59,34 +59,35 @@ public:
 
 s_merge_manager::s_merge_manager(void)
 {
-    pq = NULL;
+    mheap = NULL;
 }
 
 
 s_merge_manager::~s_merge_manager(void)
 {
-    if (pq != NULL) {
-        delete pq;
+    if (mheap != NULL) {
+        mheap->deallocate();
+        delete mheap;
     }
 }
 
 
-AMI_err s_merge_manager::initialize(arity_t arity, CONST int * CONST *in,
+AMI_err s_merge_manager::initialize(TPIE_OS_SIZE_T arity, int **in,
                                           AMI_merge_flag *taken_flags,
                                           int &taken_index)
 {
-    arity_t ii;
+    TPIE_OS_SIZE_T ii;
 
     input_arity = arity;
 
-    bool pqret;
-    
     tp_assert(arity > 0, "Input arity is 0.");
     
-    if (pq != NULL) {
-        delete pq;
+    if (mheap != NULL) {
+        mheap->deallocate();
+        delete mheap;
     }
-    pq = new pqueue_heap_op<arity_t,int>(arity);
+    mheap = new merge_heap_op<int>();
+    mheap->allocate(arity);
 
 #if DEBUG_ASSERTIONS
     input_count = output_count = 0;
@@ -94,8 +95,7 @@ AMI_err s_merge_manager::initialize(arity_t arity, CONST int * CONST *in,
     for (ii = arity; ii--; ) {
         if (in[ii] != NULL) {
             taken_flags[ii] = 1;
-            pqret = pq->insert(ii,*in[ii]);
-            tp_assert(pqret, "pq->insert() failed.");
+            mheap->insert(in[ii],ii);
 #if DEBUG_ASSERTIONS
             input_count++;
 #endif                  
@@ -111,29 +111,27 @@ AMI_err s_merge_manager::initialize(arity_t arity, CONST int * CONST *in,
 
 TPIE_OS_SIZE_T s_merge_manager::space_usage_overhead(void)
 {
-    return sizeof(pqueue_heap_op<arity_t,int>);
+    return mheap->space_overhead();
 }
 
 
 TPIE_OS_SIZE_T s_merge_manager::space_usage_per_stream(void)
 {
-    return sizeof(arity_t) + sizeof(int);
+    return sizeof(TPIE_OS_SIZE_T) + sizeof(int);
 }
 
 
-AMI_err s_merge_manager::operate(CONST int * CONST *in,
+AMI_err s_merge_manager::operate(int **in,
                                        AMI_merge_flag * /*taken_flags*/,
                                        int &taken_index,
                                        int *out)
 {
-    bool pqret;
-    
     // If the queue is empty, we are done.  There should be no more
     // inputs.
-    if (!pq->num_elts()) {
+    if (!mheap->sizeofheap()) {
 
 #if DEBUG_ASSERTIONS
-        arity_t ii;
+        TPIE_OS_SIZE_T ii;
         
         for (ii = input_arity; ii--; ) {
             tp_assert(in[ii] == NULL, "Empty queue but more input.");
@@ -147,15 +145,13 @@ AMI_err s_merge_manager::operate(CONST int * CONST *in,
         return AMI_MERGE_DONE;
 
     } else {
-        arity_t min_source;
+        TPIE_OS_SIZE_T min_source;
         int min_t;
 
-        pqret = pq->extract_min(min_source,min_t);
-        tp_assert(pqret, "pq->extract_min() failed.");
+        mheap->extract_min(min_t, min_source);
         *out = min_t;
         if (in[min_source] != NULL) {
-            pqret = pq->insert(min_source,*in[min_source]);
-            tp_assert(pqret, "pq->insert() failed.");
+            mheap->insert(in[min_source], min_source);
             taken_index = min_source;
             //taken_flags[min_source] = 1;
 #if DEBUG_ASSERTIONS

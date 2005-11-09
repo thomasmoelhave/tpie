@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/5/94
 //
-// $Id: merge_random.h,v 1.11 2003-09-12 01:30:19 tavi Exp $
+// $Id: merge_random.h,v 1.12 2005-11-09 13:57:57 adanner Exp $
 //
 // A merge managment object that reorders the input stream in a random
 // way.
@@ -13,13 +13,14 @@
 #define _MERGE_RANDOM_H
 
 #include <portability.h>
-
+#include <ami_merge.h>
+#include <mergeheap.h>
 
 template<class T>
 class merge_random : public AMI_generalized_merge_base<T> {
 private:
     arity_t input_arity;
-    pqueue_heap_op<arity_t,int> *pq;
+    merge_heap_op<int> *mheap;
 #if DEBUG_ASSERTIONS
     unsigned int input_count, output_count;
 #endif    
@@ -42,14 +43,15 @@ merge_random<T>::merge_random(int seed)
     if (seed) {
         TPIE_OS_SRANDOM(seed);
     }
-    pq = NULL;
+    mheap = NULL;
 }
 
 template<class T>
 merge_random<T>::~merge_random(void)
 {
-    if (pq != NULL) {
-        delete pq;
+    if (mheap != NULL) {
+      mheap->deallocate();
+      delete mheap;
     }
 }
 
@@ -65,15 +67,17 @@ AMI_err merge_random<T>::initialize(arity_t arity,
 
     tp_assert(arity > 0, "Input arity is 0.");
     
-    if (pq != NULL) {
-        delete pq;
+    if (mheap != NULL) {
+        mheap->deallocate();
+        delete mheap;
     }
-    pq = new pqueue_heap_op<arity_t,int>(arity);
+    mheap = new merge_heap_op<int>();
+    mheap->allocate(arity);
 
     // Insert an element with random priority for each non-empty stream.
     for (ii = arity; ii--; ) {
         if (in[ii] != NULL) {
-            pq->insert(ii,TPIE_OS_RANDOM());
+            mheap->insert(TPIE_OS_RANDOM(),ii);
         }
     }
     
@@ -90,11 +94,10 @@ AMI_err merge_random<T>::operate(CONST T * CONST *in,
                                  AMI_merge_flag * /*taken_flags*/,
                                  int &taken_index, T *out)
 {
-    bool pqret;
     
     // If the queue is empty, we are done.  There should be no more
     // inputs.
-    if (!pq->num_elts()) {
+    if (!mheap->sizeofheap()) {
 
 #if DEBUG_ASSERTIONS
         arity_t ii;
@@ -114,8 +117,7 @@ AMI_err merge_random<T>::operate(CONST T * CONST *in,
         arity_t min_source;
         int min;
 
-        pqret = pq->extract_min(min_source, min);
-        tp_assert(pqret, "pq->extract_min() failed.");
+        mheap->extract_min(min,min_source);
 
         // If there is something in the stream of lowest priority,
         // then send it to the output and put a new element with the
@@ -123,8 +125,7 @@ AMI_err merge_random<T>::operate(CONST T * CONST *in,
 
         if (in[min_source] != NULL) {
             *out = *(in[min_source]);
-            pqret = pq->insert(min_source, TPIE_OS_RANDOM());
-            tp_assert(pqret, "pq->insert() failed.");
+            mheap->insert(TPIE_OS_RANDOM(),min_source);
             taken_index = min_source;
             return AMI_MERGE_OUTPUT;
         } else {
