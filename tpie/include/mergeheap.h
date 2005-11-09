@@ -1,7 +1,7 @@
 //
 // File: mergeheap.h
 // 
-// $Id: mergeheap.h,v 1.13 2005-11-09 11:32:17 adanner Exp $	
+// $Id: mergeheap.h,v 1.14 2005-11-09 13:55:58 adanner Exp $	
 
 // This file contains several merge heap templates. 
 // Originally written by Rakesh Barve.  
@@ -111,6 +111,7 @@ public:
 
   void allocate   (TPIE_OS_SIZE_T size);
   void insert     (REC *ptr, TPIE_OS_SIZE_T run_id);
+  void extract_min(REC& el, TPIE_OS_SIZE_T& run_id);
   void deallocate (void);
   
   // heapify's an initial array of elements
@@ -194,6 +195,18 @@ inline void merge_heap_ptr_op<REC>::delete_min_and_insert
   Heapify(1);
 }
 
+// Extract minimum element from heap array
+// If you follow this with an immediate insert, consider using
+// delete_min_and_insert
+template<class REC>
+inline void merge_heap_ptr_op<REC>::extract_min(REC& el, TPIE_OS_SIZE_T& run_id)
+{
+    el=*(Heaparray[1].recptr);
+    run_id=Heaparray[1].run_id;
+    Heaparray[1]=Heaparray[--Heapsize];
+    Heapify(1);
+}
+
 // Allocate space for the heap
 template<class REC>
 inline void merge_heap_ptr_op<REC>::allocate ( TPIE_OS_SIZE_T size ) {
@@ -253,6 +266,8 @@ public:
   merge_heap_ptr_obj ( CMPR *cmptr ) : cmp(cmptr) {};
   ~merge_heap_ptr_obj(){};
   
+  void extract_min(REC& el, TPIE_OS_SIZE_T& run_id);
+  
   void initialize (void);
   
   // Delete the current minimum and insert the new item from the same
@@ -305,6 +320,19 @@ inline void merge_heap_ptr_obj<REC, CMPR>::delete_min_and_insert
   Heapify(1);
 }
 
+// Extract minimum element from heap array
+// If you follow this with an immediate insert, consider using
+// delete_min_and_insert
+template<class REC, class CMPR>
+inline void merge_heap_ptr_obj<REC, CMPR>::extract_min
+                                    (REC& el, TPIE_OS_SIZE_T& run_id)
+{
+    el=*(Heaparray[1].recptr);
+    run_id=Heaparray[1].run_id;
+    Heaparray[1]=Heaparray[--Heapsize];
+    Heapify(1);
+}
+
 
 template<class REC, class CMPR>
 void merge_heap_ptr_obj<REC, CMPR>::initialize () {
@@ -349,6 +377,7 @@ public:
 
   void allocate   (TPIE_OS_SIZE_T size);
   void insert     (REC *ptr, TPIE_OS_SIZE_T run_id);
+  void extract_min(REC& el, TPIE_OS_SIZE_T& run_id);
   void deallocate (void);
   
   // heapify's an initial array of elements
@@ -433,6 +462,18 @@ inline void merge_heap_op<REC>::delete_min_and_insert
   Heapify(1);
 }
 
+// Extract minimum element from heap array
+// If you follow this with an immediate insert, consider using
+// delete_min_and_insert
+template<class REC>
+inline void merge_heap_op<REC>::extract_min(REC& el, TPIE_OS_SIZE_T& run_id)
+{
+    el=Heaparray[1].key;
+    run_id=Heaparray[1].run_id;
+    Heaparray[1]=Heaparray[--Heapsize];
+    Heapify(1);
+}
+
 // Allocate space for the heap
 template<class REC>
 inline void merge_heap_op<REC>::allocate ( TPIE_OS_SIZE_T size ) {
@@ -492,6 +533,8 @@ public:
   merge_heap_obj ( CMPR *cmptr ) : cmp(cmptr) {};
   ~merge_heap_obj(){};
   
+  void extract_min(REC& el, TPIE_OS_SIZE_T& run_id);
+  
   // heapify's an initial array of elements
   void initialize (void);
   
@@ -543,6 +586,19 @@ inline void merge_heap_obj<REC, CMPR>::delete_min_and_insert
     Heaparray[1].key = *nextelement_same_run;
   }
   Heapify(1);
+}
+
+// Extract minimum element from heap array
+// If you follow this with an immediate insert, consider using
+// delete_min_and_insert
+template<class REC, class CMPR>
+inline void merge_heap_obj<REC, CMPR>::extract_min
+                                    (REC& el, TPIE_OS_SIZE_T& run_id)
+{
+    el=Heaparray[1].key;
+    run_id=Heaparray[1].run_id;
+    Heaparray[1]=Heaparray[--Heapsize];
+    Heapify(1);
 }
 
 
