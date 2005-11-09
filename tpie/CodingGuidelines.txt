@@ -2,7 +2,7 @@
 ***
 ***  CodingGuidelines.txt
 ***
-***  $Id: CodingGuidelines.txt,v 1.1 2005-11-09 11:47:17 jan Exp $
+***  $Id: CodingGuidelines.txt,v 1.2 2005-11-09 12:07:55 thomasm Exp $
 *** 
 ******************************************
 
@@ -98,6 +98,9 @@ Section 2. Naming Convention
 
 2.5.  The use of namespacing shall be enforced. The namespace 
       for the TPIE-project is "tpie::". (tm)
+
+2.6.  Do not import symbols into the global namespace (this prohibits
+      many uses of the "using" keyword). (tm)
 
 ******************************************************************
 
