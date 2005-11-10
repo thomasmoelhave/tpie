@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/5/94
 //
-// $Id: merge_random.h,v 1.12 2005-11-09 13:57:57 adanner Exp $
+// $Id: merge_random.h,v 1.13 2005-11-10 10:49:04 adanner Exp $
 //
 // A merge managment object that reorders the input stream in a random
 // way.
@@ -19,7 +19,7 @@
 template<class T>
 class merge_random : public AMI_generalized_merge_base<T> {
 private:
-    arity_t input_arity;
+    TPIE_OS_SIZE_T input_arity;
     merge_heap_op<int> *mheap;
 #if DEBUG_ASSERTIONS
     unsigned int input_count, output_count;
@@ -27,7 +27,7 @@ private:
 public:
     merge_random(int seed = 0);
     virtual ~merge_random(void);
-    AMI_err initialize(arity_t arity, CONST T * CONST *in,
+    AMI_err initialize(TPIE_OS_SIZE_T arity, CONST T * CONST *in,
                        AMI_merge_flag *taken_flags,
                        int &taken_index);
     AMI_err operate(CONST T * CONST *in, AMI_merge_flag *taken_flags,
@@ -56,13 +56,14 @@ merge_random<T>::~merge_random(void)
 }
 
 template<class T>
-AMI_err merge_random<T>::initialize(arity_t arity,
+AMI_err merge_random<T>::initialize(TPIE_OS_SIZE_T arity,
                                     CONST T * CONST *in,
                                     AMI_merge_flag * /*taken_flags*/,
                                     int &taken_index)
 {
-    arity_t ii;
-
+    TPIE_OS_SIZE_T ii;
+    int rnum;
+    
     input_arity = arity;
 
     tp_assert(arity > 0, "Input arity is 0.");
@@ -77,7 +78,8 @@ AMI_err merge_random<T>::initialize(arity_t arity,
     // Insert an element with random priority for each non-empty stream.
     for (ii = arity; ii--; ) {
         if (in[ii] != NULL) {
-            mheap->insert(TPIE_OS_RANDOM(),ii);
+            rnum=TPIE_OS_RANDOM();
+            mheap->insert(&rnum,ii);
         }
     }
     
@@ -100,7 +102,7 @@ AMI_err merge_random<T>::operate(CONST T * CONST *in,
     if (!mheap->sizeofheap()) {
 
 #if DEBUG_ASSERTIONS
-        arity_t ii;
+        TPIE_OS_SIZE_T ii;
         
         for (ii = input_arity; ii--; ) {
             tp_assert(in[ii] == NULL, "Empty queue but more input.");
@@ -114,7 +116,7 @@ AMI_err merge_random<T>::operate(CONST T * CONST *in,
         return AMI_MERGE_DONE;
 
     } else {
-        arity_t min_source;
+        TPIE_OS_SIZE_T min_source;
         int min;
 
         mheap->extract_min(min,min_source);
@@ -125,7 +127,8 @@ AMI_err merge_random<T>::operate(CONST T * CONST *in,
 
         if (in[min_source] != NULL) {
             *out = *(in[min_source]);
-            mheap->insert(TPIE_OS_RANDOM(),min_source);
+            min=TPIE_OS_RANDOM();
+            mheap->insert(&min,min_source);
             taken_index = min_source;
             return AMI_MERGE_OUTPUT;
         } else {
@@ -166,7 +169,7 @@ size_t merge_random<T>::space_usage_overhead(void)
 template<class T>
 size_t merge_random<T>::space_usage_per_stream(void)
 {
-    return sizeof(int) + sizeof(arity_t);
+    return sizeof(int) + sizeof(TPIE_OS_SIZE_T);
 }
 
 #endif // _MERGE_RANDOM_H 
