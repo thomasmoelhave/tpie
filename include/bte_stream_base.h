@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/11/94
 //
-// $Id: bte_stream_base.h,v 1.10 2005-11-10 13:34:00 jan Exp $
+// $Id: bte_stream_base.h,v 1.11 2005-11-10 21:31:05 jan Exp $
 //
 #ifndef _BTE_STREAM_BASE_H
 #define _BTE_STREAM_BASE_H
@@ -125,44 +125,44 @@ int BTE_stream_base<T>::check_header(BTE_stream_header* ph) {
 	return -1;
     }
 
-    if (ph->magic_number != BTE_STREAM_HEADER_MAGIC_NUMBER) {
+    if (ph->m_magicNumber != BTE_STREAM_HEADER_MAGIC_NUMBER) {
 	TP_LOG_FATAL_ID ("header: magic number mismatch (expected/obtained):");
 	TP_LOG_FATAL_ID (BTE_STREAM_HEADER_MAGIC_NUMBER);
-	TP_LOG_FATAL_ID (ph->magic_number);
+	TP_LOG_FATAL_ID (ph->m_magicNumber);
 	return -1;
     }
 
-    if (ph->header_length != sizeof (*ph)) {
+    if (ph->m_headerLength != sizeof (*ph)) {
       TP_LOG_FATAL_ID ("header: incorrect header length; (expected/obtained):");
       TP_LOG_FATAL_ID (sizeof (BTE_stream_header));
-      TP_LOG_FATAL_ID (ph->header_length);
+      TP_LOG_FATAL_ID (ph->m_headerLength);
       TP_LOG_FATAL_ID ("This could be due to a stream written without 64-bit support.");
       return -1;
     }
 
-    if (ph->version != 2) {
+    if (ph->m_version != 2) {
       TP_LOG_FATAL_ID ("header: incorrect version (expected/obtained):");
       TP_LOG_FATAL_ID (2);
-      TP_LOG_FATAL_ID (ph->version);
+      TP_LOG_FATAL_ID (ph->m_version);
       return -1;
     }
 
-    if (ph->type == 0) {
+    if (ph->m_type == 0) {
 	TP_LOG_FATAL_ID ("header: type is 0 (reserved for base class).");
 	return -1;
     }
 
-    if (ph->item_size != sizeof (T)) {
+    if (ph->m_itemSize != sizeof (T)) {
 	TP_LOG_FATAL_ID ("header: incorrect item size (expected/obtained):");
 	TP_LOG_FATAL_ID (sizeof(T));
-	TP_LOG_FATAL_ID ((TPIE_OS_LONGLONG)ph->item_size);
+	TP_LOG_FATAL_ID ((TPIE_OS_LONGLONG)ph->m_itemSize);
 	return -1;
     }
 
-    if (ph->os_block_size != os_block_size()) {
+    if (ph->m_osBlockSize != os_block_size()) {
 	TP_LOG_FATAL_ID ("header: incorrect OS block size (expected/obtained):");
 	TP_LOG_FATAL_ID ((TPIE_OS_LONGLONG)os_block_size());
-	TP_LOG_FATAL_ID ((TPIE_OS_LONGLONG)ph->os_block_size);
+	TP_LOG_FATAL_ID ((TPIE_OS_LONGLONG)ph->m_osBlockSize);
 	return -1;
     }
 
@@ -172,14 +172,14 @@ int BTE_stream_base<T>::check_header(BTE_stream_header* ph) {
 template<class T>
 void BTE_stream_base<T>::init_header (BTE_stream_header* ph) {
     tp_assert(ph != NULL, "NULL header pointer");
-    ph->magic_number = BTE_STREAM_HEADER_MAGIC_NUMBER;
-    ph->version = 2;
-    ph->type = 0; // Not known here.
-    ph->header_length = sizeof(*ph);
-    ph->item_size = sizeof(T);
-    ph->os_block_size = os_block_size();
-    ph->block_size = 0; // Not known here.
-    ph->item_logical_eof = 0;
+    ph->m_magicNumber    = BTE_STREAM_HEADER_MAGIC_NUMBER;
+    ph->m_version        = 2;
+    ph->m_type           = 0; // Not known here.
+    ph->m_headerLength   = sizeof(*ph);
+    ph->m_itemSize       = sizeof(T);
+    ph->m_osBlockSize    = os_block_size();
+    ph->m_blockSize      = 0; // Not known here.
+    ph->m_itemLogicalEOF = 0;
 }
 
 template<class T>

@@ -2,7 +2,7 @@
 // File: bte_stream_ufs.h (formerly bte_ufs.h)
 // Author: Rakesh Barve <rbarve@cs.duke.edu>
 //
-// $Id: bte_stream_ufs.h,v 1.20 2005-11-10 13:59:19 jan Exp $
+// $Id: bte_stream_ufs.h,v 1.21 2005-11-10 21:31:05 jan Exp $
 //
 // BTE streams with blocks I/Oed using read()/write().  This particular
 // implementation explicitly manages blocks, and only ever maps in one
@@ -332,13 +332,13 @@ BTE_stream_ufs < T >::BTE_stream_ufs (const char *dev_path,
 	}
 
 	// Some more checking, specific to this stream type.
-	if (m_header->type != BTE_STREAM_UFS) {
+	if (m_header->m_type != BTE_STREAM_UFS) {
 	    TP_LOG_WARNING_ID("Using UFS stream implem. on another type of stream.");
 	    TP_LOG_WARNING_ID("Stream implementations may not be compatible.");
 	}
 
-	if ((m_header->block_size % m_osBlockSize != 0) || 
-	    (m_header->block_size == 0)) {
+	if ((m_header->m_blockSize % m_osBlockSize != 0) || 
+	    (m_header->m_blockSize == 0)) {
 
 	    m_status = BTE_STREAM_STATUS_INVALID;
 
@@ -348,20 +348,20 @@ BTE_stream_ufs < T >::BTE_stream_ufs (const char *dev_path,
 	    return;
 	}
 
-	if (m_header->block_size != BTE_STREAM_UFS_BLOCK_FACTOR * m_osBlockSize) {
+	if (m_header->m_blockSize != BTE_STREAM_UFS_BLOCK_FACTOR * m_osBlockSize) {
 	    TP_LOG_WARNING_ID("Stream has different block factor than the default.");
 	    TP_LOG_WARNING_ID("This may cause problems in some existing applications.");
 	}
 
-	m_itemsPerBlock         =  m_header->block_size / sizeof (T);
-	m_itemsAlignedWithBlock = (m_header->block_size % sizeof (T) == 0);
+	m_itemsPerBlock         =  m_header->m_blockSize / sizeof (T);
+	m_itemsAlignedWithBlock = (m_header->m_blockSize % sizeof (T) == 0);
 
 	// Set the eos marker appropriately.
-	m_fileEndOfStream = item_off_to_file_off (m_header->item_logical_eof);
+	m_fileEndOfStream = item_off_to_file_off (m_header->m_itemLogicalEOF);
 
-	if (m_header->item_logical_eof >= 1) {
+	if (m_header->m_itemLogicalEOF >= 1) {
 	    if (m_fileEndOfStream - 
-		item_off_to_file_off (m_header->item_logical_eof - 1) -
+		item_off_to_file_off (m_header->m_itemLogicalEOF - 1) -
 		sizeof (T) > 0) {
 		// Meaning, 1. sizeof (T) does not divide the logical
 		// blocksize. 2. the last item in the stream is the last
@@ -378,7 +378,7 @@ BTE_stream_ufs < T >::BTE_stream_ufs (const char *dev_path,
 		// past the last item's byte offset.
 
 		m_fileEndOfStream = 
-		    item_off_to_file_off (m_header->item_logical_eof - 1) +
+		    item_off_to_file_off (m_header->m_itemLogicalEOF - 1) +
 		    sizeof (T);
 	    }
 	}
@@ -421,13 +421,13 @@ BTE_stream_ufs < T >::BTE_stream_ufs (const char *dev_path,
 	    }
 
 	    // Some more checking, specific to this stream.
-	    if (m_header->type != BTE_STREAM_UFS) {
+	    if (m_header->m_type != BTE_STREAM_UFS) {
 		TP_LOG_WARNING_ID("Using UFS stream implem. on another type of stream.");
 		TP_LOG_WARNING_ID("Stream implementations may not be compatible.");
 	    }
 
-	    if ((m_header->block_size % m_osBlockSize != 0) || 
-		(m_header->block_size == 0)) {
+	    if ((m_header->m_blockSize % m_osBlockSize != 0) || 
+		(m_header->m_blockSize == 0)) {
 
 		m_status = BTE_STREAM_STATUS_INVALID;
 
@@ -437,23 +437,23 @@ BTE_stream_ufs < T >::BTE_stream_ufs (const char *dev_path,
 		return;
 	    }
 
-	    if (m_header->block_size != 
+	    if (m_header->m_blockSize != 
 		BTE_STREAM_UFS_BLOCK_FACTOR * m_osBlockSize) {
 		TP_LOG_WARNING_ID("Stream has different block factor than the default;");
-		TP_LOG_WARNING_ID("\tStream block factor: " << (TPIE_OS_LONGLONG)m_header->block_size/m_osBlockSize);
+		TP_LOG_WARNING_ID("\tStream block factor: " << (TPIE_OS_LONGLONG)m_header->m_blockSize/m_osBlockSize);
 		TP_LOG_WARNING_ID("\tDefault block factor: " << BTE_STREAM_UFS_BLOCK_FACTOR);
 		TP_LOG_WARNING_ID("This may cause problems in some existing applications.");
 	    }
 
-	    m_itemsPerBlock         =  m_header->block_size / sizeof (T);
-	    m_itemsAlignedWithBlock = (m_header->block_size % sizeof (T) == 0);
+	    m_itemsPerBlock         =  m_header->m_blockSize / sizeof (T);
+	    m_itemsAlignedWithBlock = (m_header->m_blockSize % sizeof (T) == 0);
 
 	    m_fileEndOfStream = 
-		item_off_to_file_off (m_header->item_logical_eof);
+		item_off_to_file_off (m_header->m_itemLogicalEOF);
 
-	    if (m_header->item_logical_eof >= 1) {
+	    if (m_header->m_itemLogicalEOF >= 1) {
 		if (m_fileEndOfStream - 
-		    item_off_to_file_off (m_header->item_logical_eof - 1) -
+		    item_off_to_file_off (m_header->m_itemLogicalEOF - 1) -
 		    sizeof (T) > 0) {
 		    // Meaning, 1. sizeof (T) does not divide the logical
 		    // blocksize. 2. the last item in the stream is the last
@@ -469,7 +469,7 @@ BTE_stream_ufs < T >::BTE_stream_ufs (const char *dev_path,
 		    // reset m_fileEndOfStream in this circumstance to be 
 		    // just past the last item's byte offset.
 		    m_fileEndOfStream =  
-			item_off_to_file_off (m_header->item_logical_eof - 1) +
+			item_off_to_file_off (m_header->m_itemLogicalEOF - 1) +
 			sizeof (T);
 		}
 	    }
@@ -498,13 +498,13 @@ BTE_stream_ufs < T >::BTE_stream_ufs (const char *dev_path,
 	    }
 
 	    // Set the logical block size.
-	    m_header->block_size = lbf * m_osBlockSize;
+	    m_header->m_blockSize = lbf * m_osBlockSize;
 
 	    // Set the type.
-	    m_header->type = BTE_STREAM_UFS;
+	    m_header->m_type = BTE_STREAM_UFS;
 
-	    m_itemsPerBlock         =  m_header->block_size / sizeof (T);
-	    m_itemsAlignedWithBlock = (m_header->block_size % sizeof (T) == 0);
+	    m_itemsPerBlock         =  m_header->m_blockSize / sizeof (T);
+	    m_itemsAlignedWithBlock = (m_header->m_blockSize % sizeof (T) == 0);
 	 
 	    m_fileEndOfStream = m_osBlockSize;
 	    m_streamStatistics.record(STREAM_CREATE);
@@ -516,13 +516,13 @@ BTE_stream_ufs < T >::BTE_stream_ufs (const char *dev_path,
     }				// end of switch
     
     // We can't handle streams of large objects.
-    if (sizeof (T) > m_header->block_size) {
+    if (sizeof (T) > m_header->m_blockSize) {
 
 	m_status = BTE_STREAM_STATUS_INVALID;
 
 	TP_LOG_FATAL_ID ("Object is too big (object size/block size):");
 	TP_LOG_FATAL_ID (sizeof(T));
-	TP_LOG_FATAL_ID ((TPIE_OS_LONGLONG)m_header->block_size);
+	TP_LOG_FATAL_ID ((TPIE_OS_LONGLONG)m_header->m_blockSize);
 
 	return;
     }
@@ -778,7 +778,7 @@ BTE_stream_ufs < T >::~BTE_stream_ufs () {
     // If this is writable and not a substream, then put the logical
     // eos back into the header before unmapping it.
     if (!m_readOnly && !m_substreamLevel) {
-	m_header->item_logical_eof = file_off_to_item_off (m_fileEndOfStream);
+	m_header->m_itemLogicalEOF = file_off_to_item_off (m_fileEndOfStream);
     }
 
     // Unmap the current block if necessary.
@@ -929,7 +929,7 @@ inline BTE_err BTE_stream_ufs < T >::read_item (T ** elt) {
     // Check and make sure that the current pointer points into the
     // current block.
     tp_assert (((unsigned int) ((char *) m_currentItem - (char *) m_currentBlock) <=
-		(unsigned int) (m_header->block_size - sizeof (T))),
+		(unsigned int) (m_header->m_blockSize - sizeof (T))),
 	       "m_currentItem is past the end of the current block");
     tp_assert (((char *) m_currentItem - (char *) m_currentBlock >= 0),
 	       "m_currentItem is before the begining of the current block");
@@ -976,7 +976,7 @@ inline BTE_err BTE_stream_ufs < T >::write_item (const T & elt) {
     // Check and make sure that the current pointer points into the current
     // block.
     tp_assert (((unsigned int) ((char *) m_currentItem - (char *) m_currentBlock) <=
-		(unsigned int) (m_header->block_size - sizeof (T))),
+		(unsigned int) (m_header->m_blockSize - sizeof (T))),
 	       "m_currentItem is past the end of the current block");
     tp_assert (((char *) m_currentItem - (char *) m_currentBlock >= 0),
 	       "current is before the begining of the current block");
@@ -1031,7 +1031,7 @@ BTE_err BTE_stream_ufs < T >::main_memory_usage (size_t * usage,
 
     case MM_STREAM_USAGE_BUFFER: 
         //space used by buffers, when allocated
-        *usage = BTE_STREAM_UFS_MM_BUFFERS * m_header->block_size +
+        *usage = BTE_STREAM_UFS_MM_BUFFERS * m_header->m_blockSize +
 	    MM_manager.space_overhead();
         break;
 
@@ -1040,14 +1040,14 @@ BTE_err BTE_stream_ufs < T >::main_memory_usage (size_t * usage,
         *usage = sizeof(*this) +  sizeof(BTE_stream_header) +
 	    3*MM_manager.space_overhead() + 
 	    ((m_currentBlock == NULL) ? 0 : (BTE_STREAM_UFS_MM_BUFFERS *
-					     m_header->block_size +
+					     m_header->m_blockSize +
 					     MM_manager.space_overhead()));
         break;
 	
     case MM_STREAM_USAGE_MAXIMUM:
     case MM_STREAM_USAGE_SUBSTREAM:
         *usage = sizeof(*this) +  sizeof(BTE_stream_header) +
-	    BTE_STREAM_UFS_MM_BUFFERS * m_header->block_size +
+	    BTE_STREAM_UFS_MM_BUFFERS * m_header->m_blockSize +
 	    4*MM_manager.space_overhead();
         break;
     }
@@ -1102,9 +1102,9 @@ BTE_err BTE_stream_ufs < T >::seek (TPIE_OS_OFFSET offset) {
 	file_off_to_item_off (m_fileBeginOfStream) + offset);
     
     if (((size_t) ((char *) m_currentItem - (char *) m_currentBlock) >=
-	 m_header->block_size)
-	|| (((new_offset - m_osBlockSize) / m_header->block_size) !=
-	    ((m_fileOffset - m_osBlockSize) / m_header->block_size))) {
+	 m_header->m_blockSize)
+	|| (((new_offset - m_osBlockSize) / m_header->m_blockSize) !=
+	    ((m_fileOffset - m_osBlockSize) / m_header->m_blockSize))) {
 	if (m_blockValid && ((be = unmap_current ()) != BTE_ERROR_NO_ERROR)) {
 	    return be;
 	}
@@ -1162,9 +1162,9 @@ BTE_err BTE_stream_ufs < T >::truncate (TPIE_OS_OFFSET offset) {
     // We also need to check that we have the correct block mapped in (
     // m_fileOffset does not always point into the current block!) 
     // - see comment in seek()
-    if (((unsigned int) ((char *) m_currentItem - (char *) m_currentBlock) >= m_header->block_size)
-	|| (((new_offset - m_osBlockSize) / m_header->block_size) !=
-	    ((m_fileOffset - m_osBlockSize) / m_header->block_size))) {
+    if (((unsigned int) ((char *) m_currentItem - (char *) m_currentBlock) >= m_header->m_blockSize)
+	|| (((new_offset - m_osBlockSize) / m_header->m_blockSize) !=
+	    ((m_fileOffset - m_osBlockSize) / m_header->m_blockSize))) {
 	if (m_blockValid && ((be = unmap_current ()) != BTE_ERROR_NO_ERROR)) {
 	    return be;
 	}
@@ -1172,15 +1172,15 @@ BTE_err BTE_stream_ufs < T >::truncate (TPIE_OS_OFFSET offset) {
     
     // If it is not in the same block as the current end of stream
     // then truncate the file to the end of the new last block.
-    if (((new_offset - m_osBlockSize) / m_header->block_size) !=
-	((m_fileEndOfStream - m_osBlockSize) / m_header->block_size)) {
+    if (((new_offset - m_osBlockSize) / m_header->m_blockSize) !=
+	((m_fileEndOfStream - m_osBlockSize) / m_header->m_blockSize)) {
 	
 	// Determine the offset of the block that new_offset is in.
-	block_offset = ((new_offset - m_osBlockSize) / m_header->block_size)
-	    * m_header->block_size + m_osBlockSize;
-	m_fileLength = block_offset + m_header->block_size;
+	block_offset = ((new_offset - m_osBlockSize) / m_header->m_blockSize)
+	    * m_header->m_blockSize + m_osBlockSize;
+	m_fileLength = block_offset + m_header->m_blockSize;
 
-	if (TPIE_OS_FTRUNCATE (m_fileDescriptor, block_offset + m_header->block_size)) {
+	if (TPIE_OS_FTRUNCATE (m_fileDescriptor, block_offset + m_header->m_blockSize)) {
 
 	    m_osErrno = errno;
 
@@ -1344,7 +1344,7 @@ inline BTE_err BTE_stream_ufs < T >::validate_current () {
     // enough room in the block for a full item, we are fine.  If it is
     // valid but there is not enough room, unmap it.
     if (m_blockValid) {
-	if ((block_space = (unsigned int)m_header->block_size -
+	if ((block_space = (unsigned int)m_header->m_blockSize -
 	     ((char *) m_currentItem - (char *) m_currentBlock)) >= (unsigned int)sizeof (T)) {
 	    return BTE_ERROR_NO_ERROR;
 	} 
@@ -1384,13 +1384,13 @@ template < class T > BTE_err BTE_stream_ufs < T >::map_current (void) {
     tp_assert (!m_blockValid, "Block is already mapped in.");
 
     // Determine the offset of the block that the current item is in.
-    block_offset = ((m_fileOffset - m_osBlockSize) / m_header->block_size)
-	* m_header->block_size + m_osBlockSize;
+    block_offset = ((m_fileOffset - m_osBlockSize) / m_header->m_blockSize)
+	* m_header->m_blockSize + m_osBlockSize;
 
     // If the block offset is beyond the logical end of the file, then
     // we either record this fact and return (if the stream is read
     // only) or ftruncate() out to the end of the current block.
-    if (m_fileLength < block_offset + (TPIE_OS_OFFSET) m_header->block_size) {
+    if (m_fileLength < block_offset + (TPIE_OS_OFFSET) m_header->m_blockSize) {
 	if (m_readOnly) {
 	    return BTE_ERROR_END_OF_STREAM;
 	} 
@@ -1400,8 +1400,8 @@ template < class T > BTE_err BTE_stream_ufs < T >::map_current (void) {
 	    // items beyond offset block_offset. This is justified because one invariant
 	    // being maintained is that file length is m_osBlockSize + an INTEGRAL
 	    // number of Logical Blocks: By this invariant, since lseek returns something 
-	    //  smaller than block_offset + m_header->block_size - 1 (meaning that filesize
-	    // is smaller than block_offset + m_header->block_size), 
+	    //  smaller than block_offset + m_header->m_blockSize - 1 (meaning that filesize
+	    // is smaller than block_offset + m_header->m_blockSize), 
 	    //
 	    // A consequence of this assumption is that the block being mapped in
 	    // is being written/appended. Now while using mmapped I/O, what this 
@@ -1418,12 +1418,12 @@ template < class T > BTE_err BTE_stream_ufs < T >::map_current (void) {
 	    // a dirty block.  
 
 	    if (m_currentBlock == NULL) {
-		m_currentBlock = new T[(sizeof(T)-1+m_header->block_size)/sizeof(T)];
+		m_currentBlock = new T[(sizeof(T)-1+m_header->m_blockSize)/sizeof(T)];
 
 		// If you really want to be anal about memory calculation
 		// consistency then if BTE_IMPLICIT_FS_READAHEAD flag is
 		// set you should register a memory allocation of
-		// m_header->block_size AT THIS POINT of time in code.
+		// m_header->m_blockSize AT THIS POINT of time in code.
 	    }
 
 	    m_currentBlockFileOffset = block_offset;
@@ -1486,16 +1486,16 @@ template < class T > BTE_err BTE_stream_ufs < T >::map_current (void) {
 
 	if (m_currentBlock == NULL) {
 	
-	    m_currentBlock = new T[(sizeof(T)-1+m_header->block_size)/sizeof(T)];
+	    m_currentBlock = new T[(sizeof(T)-1+m_header->m_blockSize)/sizeof(T)];
 
 	    // If you really want to be anal about memory calculation
 	    // consistency then if BTE_IMPLICIT_FS_READAHEAD flag is set
-	    // you shd register a memory allocation of m_header->block_size
+	    // you shd register a memory allocation of m_header->m_blockSize
 	    // AT THIS POINT of time in code.
 	}
 	
-	if (TPIE_OS_READ (m_fileDescriptor, (char *) m_currentBlock, m_header->block_size) !=
-	    (TPIE_OS_SSIZE_T) m_header->block_size) {
+	if (TPIE_OS_READ (m_fileDescriptor, (char *) m_currentBlock, m_header->m_blockSize) !=
+	    (TPIE_OS_SSIZE_T) m_header->m_blockSize) {
 
 	    m_status = BTE_STREAM_STATUS_INVALID;
 	    m_osErrno = errno;
@@ -1508,7 +1508,7 @@ template < class T > BTE_err BTE_stream_ufs < T >::map_current (void) {
 	}
 	
 	// Advance file pointer.
-	m_filePointer = block_offset + m_header->block_size;
+	m_filePointer = block_offset + m_header->m_blockSize;
     }
    
 
@@ -1560,24 +1560,24 @@ BTE_err BTE_stream_ufs < T >::unmap_current (void) {
 	}
 
 	if (m_currentBlockFileOffset == m_fileLength)
-	    m_fileLength += m_header->block_size;
+	    m_fileLength += m_header->m_blockSize;
 	TPIE_OS_OFFSET bla = 0;
-	if ((bla = TPIE_OS_WRITE (m_fileDescriptor, (char *) m_currentBlock, m_header->block_size)) !=
-	    m_header->block_size) {
+	if ((bla = TPIE_OS_WRITE (m_fileDescriptor, (char *) m_currentBlock, m_header->m_blockSize)) !=
+	    m_header->m_blockSize) {
 	    
 	    m_status  = BTE_STREAM_STATUS_INVALID;
 	    m_osErrno = errno;
 	    
 	    TP_LOG_FATAL_ID ("write() failed to unmap current block.");
 	    TP_LOG_FATAL_ID (bla);
-	    TP_LOG_FATAL_ID ((TPIE_OS_OFFSET)m_header->block_size);
+	    TP_LOG_FATAL_ID ((TPIE_OS_OFFSET)m_header->m_blockSize);
 	    TP_LOG_FATAL_ID (strerror(m_osErrno));
 	    
 	    return BTE_ERROR_OS_ERROR;
 	}
 
 	// Advance file pointer.
-	m_filePointer = m_currentBlockFileOffset + m_header->block_size;
+	m_filePointer = m_currentBlockFileOffset + m_header->m_blockSize;
 
     }
    
@@ -1615,8 +1615,8 @@ inline TPIE_OS_OFFSET BTE_stream_ufs < T >::item_off_to_file_off (TPIE_OS_OFFSET
 	// Move past the header.  
 	file_off = m_osBlockSize;
 
-	// Add m_header->block_size for each full block.
-	file_off += m_header->block_size * (item_off / m_itemsPerBlock);
+	// Add m_header->m_blockSize for each full block.
+	file_off += m_header->m_blockSize * (item_off / m_itemsPerBlock);
 
 	// Add sizeof(T) for each item in the partially full block.
 	file_off += sizeof (T) * (item_off % m_itemsPerBlock);
@@ -1641,10 +1641,10 @@ inline TPIE_OS_OFFSET BTE_stream_ufs < T >::file_off_to_item_off (TPIE_OS_OFFSET
 	file_off -= m_osBlockSize;
 
 	// Account for the full blocks.
-	item_off = m_itemsPerBlock * (file_off / m_header->block_size);
+	item_off = m_itemsPerBlock * (file_off / m_header->m_blockSize);
 
 	// Add in the number of items in the last block.
-	item_off += (file_off % m_header->block_size) / sizeof (T);
+	item_off += (file_off % m_header->m_blockSize) / sizeof (T);
 
 	return item_off;
 
@@ -1674,14 +1674,14 @@ template < class T > void BTE_stream_ufs < T >::read_ahead (void)
 
     // Check whether there is a next block.  If we are already in the
     // last block of the file then it makes no sense to read ahead.
-    f_curr_block = ((m_fileOffset - m_osBlockSize) / m_header->block_size) *
-	m_header->block_size + m_osBlockSize;
+    f_curr_block = ((m_fileOffset - m_osBlockSize) / m_header->m_blockSize) *
+	m_header->m_blockSize + m_osBlockSize;
 
-    if (m_fileEndOfStream < f_curr_block + m_header->block_size) {
+    if (m_fileEndOfStream < f_curr_block + m_header->m_blockSize) {
 	return;
     }
 
-    f_next_block = f_curr_block + m_header->block_size;
+    f_next_block = f_curr_block + m_header->m_blockSize;
 
 #if USE_LIBAIO
     // Asyncronously read the first word of each os block in the next
