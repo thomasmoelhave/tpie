@@ -1,12 +1,14 @@
 #include "app_config.h"
 #include <portability.h>
-#include <ami_sort_single_dh.h>
+#include <ami_sort.h>
 #include <tpie_log.h>
 #include "getopts.h"
 #include "quicksort.h"  //TPIE internal sort
 #include <algorithm>    //STL internal sort
 #include <stdlib.h>     //C internal sort
 #include "cpu_timer.h"
+
+#include <progress_indicator_arrow.h>
 
 //snprintf is different on WIN/Unix platforms
 #ifdef _WIN32
@@ -383,41 +385,8 @@ char* ll2size(TPIE_OS_LONGLONG n, char* buf){
   return buf;
 }
 
-// A simple progress bar that shows percentage complete
-// and current file offset
-void progress_bar(float pct, TPIE_OS_LONGLONG nbytes){
-
-  //how long is progress bar?
-  const int nticks=20;
-  const int bufsize=30;
-  
-  int intpct, i;
-  char buf[bufsize];
-  char buf2[20];
-  
-  //percent done as an integer
-  intpct = (int)(100*pct);
-  
-  cout <<"\r[";
-  i=1;
-  while( i <= (nticks*pct) ){
-    cout << ".";
-    i++;
-  }
-  while( i <= nticks ){
-    cout << " ";
-    i++;
-  }
-  cout <<"] "<<intpct<<"%";
-   
-  ll2size(nbytes,buf2);
-  APP_SNPRINTF(buf, bufsize, " - %sB      ",buf2);
-  cout << buf;
-  cout.flush();
-}
-
 // Open a stream, write num_items, close stream
-void write_random_stream(char* fname, appInfo & info){
+void write_random_stream(char* fname, appInfo & info, progress_indicator_base* indicator=NULL){
   
   TPIE_OS_OFFSET i,n,trunc;
   AMI_err ae=AMI_ERROR_NO_ERROR;
@@ -446,19 +415,22 @@ void write_random_stream(char* fname, appInfo & info){
   }
   str->seek(0);
 
-  float pct = 0.;
-  progress_bar(pct, 0);
+  if (indicator) {
+      indicator->set_title("Generating stream of random elements.");
+      indicator->set_percentage_range(0,n,1000);
+      indicator->init("Items written:");
+  }
   while((i<n) && (ae==AMI_ERROR_NO_ERROR)){
     ae=str->write_item(SortItem(TPIE_OS_RANDOM()));   
     i++;
-    if( (( i/(n*1.) ) - pct) > 0.001 ){
-      pct = i/(n*1.);
-      progress_bar(pct, i*info.item_size);
+    if (indicator) {
+	indicator->step_percentage();
     }
   }
-  
-  pct = i/(n*1.);
-  progress_bar(pct, i*info.item_size);
+
+  if (indicator) {
+      indicator->done();
+  }
   
   if(ae != AMI_ERROR_NO_ERROR){
     cout<< "\nWrite stopped early with AMI_ERROR: " << ae << endl;
@@ -471,7 +443,7 @@ void write_random_stream(char* fname, appInfo & info){
 }
 
 // Read sorted stream from fname and check that its elements are sorted
-void check_sorted(char * fname, appInfo & info){
+void check_sorted(char * fname, appInfo & info, progress_indicator_base* indicator=NULL){
 
   TPIE_OS_LONGLONG i,n;
   SortItem *x, x_prev;
@@ -490,8 +462,11 @@ void check_sorted(char * fname, appInfo & info){
   cout << "Opened file " << fname 
        << "\nReading "<< n << " items..." << endl;
   
-  float pct = 0.;
-  progress_bar(pct, 0);
+  if (indicator) {
+      indicator->set_title("Checking that output is sorted.");
+      indicator->set_percentage_range(0,n,1000);
+      indicator->init("Items checked:");
+  }
   i=0;
   while((i<n) && (ae==AMI_ERROR_NO_ERROR)){
     ae=str->read_item(&x);
@@ -505,14 +480,14 @@ void check_sorted(char * fname, appInfo & info){
                        "List not sorted! Exiting");
     }
     x_prev=*x;
-    if( (( i/(n*1.) ) - pct) > 0.001 ){
-      pct = i/(n*1.);
-      progress_bar(pct, i*info.item_size);
+    if (indicator) {
+	indicator->step_percentage();
     }
   }
 
-  pct = i/(n*1.);
-  progress_bar(pct, i*info.item_size);
+  if (indicator) {
+      indicator->done();
+  }
   
   if(ae != AMI_ERROR_NO_ERROR){
     cout<< "\nRead stopped early with AMI_ERROR: " << ae << endl;
@@ -616,14 +591,14 @@ void internal_sort_test(const appInfo& info){
   delete Str;
 }
 
-AMI_err test_3x_sort(appInfo& info, enum test_type ttype, bool prog=false){
+AMI_err test_3x_sort(appInfo& info, enum test_type ttype, progress_indicator_base* indicator=NULL){
   //Make up some temp filenames
   cout << "****TEST START****" << endl;
   char fname[BUFSIZ], fname2[BUFSIZ];
   strncpy(fname, tpie_tempnam(APP_FILE_BASE, info.path), BUFSIZ);
   strncpy(fname2, tpie_tempnam(APP_FILE_BASE, info.path), BUFSIZ);
   //Create the input stream
-  write_random_stream(fname, info);
+  write_random_stream(fname, info, indicator);
   
   //Sort
   AMI_err ae;
@@ -638,23 +613,23 @@ AMI_err test_3x_sort(appInfo& info, enum test_type ttype, bool prog=false){
   switch(ttype){
     case APP_TEST_OBJ_OP:
       cout << "Using operator sorting and object heaps" << endl;
-      ae=AMI_sort(inStr, outStr, prog);
+      ae=AMI_sort(inStr, outStr, indicator);
       break;
     case APP_TEST_PTR_OP:
       cout << "Using operator sorting and ptr heaps" << endl;
-      ae=AMI_ptr_sort(inStr, outStr, prog);
+      ae=AMI_ptr_sort(inStr, outStr, indicator);
       break;
     case APP_TEST_OBJ_CMPOBJ: 
       cout << "Using comp obj sorting and object heaps" << endl;
-      ae=AMI_sort(inStr, outStr, &cmp, prog);
+      ae=AMI_sort(inStr, outStr, &cmp, indicator);
       break;
     case APP_TEST_PTR_CMPOBJ: 
       cout << "Using comp obj sorting and ptr heaps" << endl;
-      ae=AMI_ptr_sort(inStr, outStr, &cmp, prog);
+      ae=AMI_ptr_sort(inStr, outStr, &cmp, indicator);
       break;
     case APP_TEST_KOBJ: 
       cout << "Using key+obj sorting and object heaps" << endl;
-      ae=AMI_key_sort(inStr, outStr, dummykey, &kcmp, prog);
+      ae=AMI_key_sort(inStr, outStr, dummykey, &kcmp, indicator);
       break;
     default:
       ae=AMI_ERROR_GENERIC_ERROR;
@@ -680,7 +655,7 @@ AMI_err test_3x_sort(appInfo& info, enum test_type ttype, bool prog=false){
   delete outStr;
 
   //Check the output
-  if(ae==AMI_ERROR_NO_ERROR){ check_sorted(fname2, info); }
+  if(ae==AMI_ERROR_NO_ERROR){ check_sorted(fname2, info, indicator); }
 
   //delete stream from disk
   cout << "\nDeleting streams " << fname << " and " << fname2 << endl;
@@ -691,13 +666,13 @@ AMI_err test_3x_sort(appInfo& info, enum test_type ttype, bool prog=false){
   return ae;
 }
 
-AMI_err test_2x_sort(appInfo& info, enum test_type ttype, bool prog=false){
+AMI_err test_2x_sort(appInfo& info, enum test_type ttype, progress_indicator_base* indicator=NULL){
   //Make up some temp filenames
   cout << "****TEST START****" << endl;
   char fname[BUFSIZ];
   strncpy(fname, tpie_tempnam(APP_FILE_BASE, info.path), BUFSIZ);
   //Create the input stream
-  write_random_stream(fname, info);
+  write_random_stream(fname, info, indicator);
   
   //Sort
   AMI_err ae;
@@ -711,23 +686,23 @@ AMI_err test_2x_sort(appInfo& info, enum test_type ttype, bool prog=false){
   switch(ttype){
     case APP_TEST_OBJ_OP:
       cout << "Using operator sorting and object heaps" << endl;
-      ae=AMI_sort(inStr, prog);
+      ae=AMI_sort(inStr, indicator);
       break;
     case APP_TEST_PTR_OP:
       cout << "Using operator sorting and ptr heaps" << endl;
-      ae=AMI_ptr_sort(inStr, prog);
+      ae=AMI_ptr_sort(inStr, indicator);
       break;
     case APP_TEST_OBJ_CMPOBJ: 
       cout << "Using comp obj sorting and object heaps" << endl;
-      ae=AMI_sort(inStr, &cmp, prog);
+      ae=AMI_sort(inStr, &cmp, indicator);
       break;
     case APP_TEST_PTR_CMPOBJ: 
       cout << "Using comp obj sorting and ptr heaps" << endl;
-      ae=AMI_ptr_sort(inStr, &cmp, prog);
+      ae=AMI_ptr_sort(inStr, &cmp, indicator);
       break;
     case APP_TEST_KOBJ: 
       cout << "Using key+obj sorting and object heaps" << endl;
-      ae=AMI_key_sort(inStr, dummykey, &kcmp, prog);
+      ae=AMI_key_sort(inStr, dummykey, &kcmp, indicator);
       break;
     default:
       ae=AMI_ERROR_GENERIC_ERROR;
@@ -750,7 +725,7 @@ AMI_err test_2x_sort(appInfo& info, enum test_type ttype, bool prog=false){
   delete inStr;
 
   //Check the output
-  if(ae==AMI_ERROR_NO_ERROR){ check_sorted(fname, info); }
+  if(ae==AMI_ERROR_NO_ERROR){ check_sorted(fname, info, indicator); }
 
   //delete stream from disk
   cout << "\nDeleting stream " << fname << endl;
@@ -786,6 +761,9 @@ int main(int argc, char **argv){
        << "\nItem Size: " << info.item_size
        << "\nFile Size: " << ll2size(filesize,buf) << "B\n" <<endl;
 
+  progress_indicator_arrow* myIndicator = 
+      new progress_indicator_arrow("Title", "Description", 0, 100, 1);
+  
   AMI_err ae;
   /*
   cout << "++++start 3X space tests++++" << endl;
@@ -803,10 +781,9 @@ int main(int argc, char **argv){
     ae=test_3x_sort(info, APP_TEST_KOBJ, true);
   }
   cout << "++++end 3X space tests++++" << endl;
-*/
+
   cout << "++++start 2X space tests++++" << endl;
-  ae=test_2x_sort(info, APP_TEST_OBJ_OP, true);
-/*
+  ae=test_2x_sort(info, APP_TEST_OBJ_OP, myIndicator); 
   if(ae==AMI_ERROR_NO_ERROR){
     ae=test_2x_sort(info, APP_TEST_PTR_OP, true);
   }
@@ -818,7 +795,7 @@ int main(int argc, char **argv){
   }
 */
   if(ae==AMI_ERROR_NO_ERROR){
-    ae=test_2x_sort(info, APP_TEST_KOBJ, true);
+    ae=test_2x_sort(info, APP_TEST_KOBJ, myIndicator);
   }
   cout << "++++end 2X space tests++++" << endl;
   
@@ -827,5 +804,7 @@ int main(int argc, char **argv){
   
   if(ae==AMI_ERROR_NO_ERROR){ cout << "Test ran successfully " << endl; }
   else { cout << "Test at least ran without crashing" << endl; }
+
+  delete myIndicator;
   return 0;
 }
