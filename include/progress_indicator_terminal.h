@@ -39,6 +39,9 @@ public:
 				TPIE_OS_OFFSET maxRange, 
 				TPIE_OS_OFFSET stepValue) : 
 	progress_indicator_base(title, description, minRange, maxRange, stepValue) {
+	m_title = new char[strlen(title)+1];
+	strcpy(m_title, title);
+
 	m_description = new char[strlen(description)+1];
 	strcpy(m_description, description);
     }
