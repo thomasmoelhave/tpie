@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 8/22/93
 //
-// $Id: ami_device.h,v 1.4 2003-09-12 01:44:29 jan Exp $
+// $Id: ami_device.h,v 1.5 2005-11-10 11:56:27 jan Exp $
 //
 #ifndef _AMI_DEVICE_H
 #define _AMI_DEVICE_H
@@ -13,6 +13,8 @@
 #include <portability.h>
 
 #include <iostream>
+
+#include <ami_err.h>
 
 class AMI_device {
     friend ostream &operator<<(ostream &os, const AMI_device &dev);
