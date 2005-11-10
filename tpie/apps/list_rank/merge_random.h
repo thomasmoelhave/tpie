@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/5/94
 //
-// $Id: merge_random.h,v 1.12 2004-08-12 12:36:45 jan Exp $
+// $Id: merge_random.h,v 1.13 2005-11-10 10:34:15 adanner Exp $
 //
 // A merge managment object that reorders the input stream in a random
 // way.
@@ -13,20 +13,21 @@
 #define _MERGE_RANDOM_H
 
 #include <portability.h>
-
+#include <ami_merge.h>
+#include <mergeheap.h>
 
 template<class T>
 class merge_random : public AMI_generalized_merge_base<T> {
 private:
-    arity_t input_arity;
-    pqueue_heap_op<arity_t,int> *pq;
+    TPIE_OS_SIZE_T input_arity;
+    merge_heap_op<int> *mheap;
 #if DEBUG_ASSERTIONS
     unsigned int input_count, output_count;
 #endif    
 public:
     merge_random(int seed = 0);
     virtual ~merge_random(void);
-    AMI_err initialize(arity_t arity, CONST T * CONST *in,
+    AMI_err initialize(TPIE_OS_SIZE_T arity, CONST T * CONST *in,
                        AMI_merge_flag *taken_flags,
                        int &taken_index);
     AMI_err operate(CONST T * CONST *in, AMI_merge_flag *taken_flags,
@@ -42,38 +43,43 @@ merge_random<T>::merge_random(int seed)
     if (seed) {
         TPIE_OS_SRANDOM(seed);
     }
-    pq = NULL;
+    mheap = NULL;
 }
 
 template<class T>
 merge_random<T>::~merge_random(void)
 {
-    if (pq != NULL) {
-        delete pq;
+    if (mheap != NULL) {
+      mheap->deallocate();
+      delete mheap;
     }
 }
 
 template<class T>
-AMI_err merge_random<T>::initialize(arity_t arity,
+AMI_err merge_random<T>::initialize(TPIE_OS_SIZE_T arity,
                                     CONST T * CONST *in,
                                     AMI_merge_flag * /*taken_flags*/,
                                     int &taken_index)
 {
-    arity_t ii;
-
+    TPIE_OS_SIZE_T ii;
+    int rnum;
+    
     input_arity = arity;
 
     tp_assert(arity > 0, "Input arity is 0.");
     
-    if (pq != NULL) {
-        delete pq;
+    if (mheap != NULL) {
+        mheap->deallocate();
+        delete mheap;
     }
-    pq = new pqueue_heap_op<arity_t,int>(arity);
+    mheap = new merge_heap_op<int>();
+    mheap->allocate(arity);
 
     // Insert an element with random priority for each non-empty stream.
     for (ii = arity; ii--; ) {
         if (in[ii] != NULL) {
-            pq->insert(ii,TPIE_OS_RANDOM());
+            rnum=TPIE_OS_RANDOM();
+            mheap->insert(&rnum,ii);
         }
     }
     
@@ -90,14 +96,13 @@ AMI_err merge_random<T>::operate(CONST T * CONST *in,
                                  AMI_merge_flag * /*taken_flags*/,
                                  int &taken_index, T *out)
 {
-    bool pqret;
     
     // If the queue is empty, we are done.  There should be no more
     // inputs.
-    if (!pq->num_elts()) {
+    if (!mheap->sizeofheap()) {
 
 #if DEBUG_ASSERTIONS
-        arity_t ii;
+        TPIE_OS_SIZE_T ii;
         
         for (ii = input_arity; ii--; ) {
             tp_assert(in[ii] == NULL, "Empty queue but more input.");
@@ -111,11 +116,10 @@ AMI_err merge_random<T>::operate(CONST T * CONST *in,
         return AMI_MERGE_DONE;
 
     } else {
-        arity_t min_source;
+        TPIE_OS_SIZE_T min_source;
         int min;
 
-        pqret = pq->extract_min(min_source, min);
-        tp_assert(pqret, "pq->extract_min() failed.");
+        mheap->extract_min(min,min_source);
 
         // If there is something in the stream of lowest priority,
         // then send it to the output and put a new element with the
@@ -123,8 +127,8 @@ AMI_err merge_random<T>::operate(CONST T * CONST *in,
 
         if (in[min_source] != NULL) {
             *out = *(in[min_source]);
-            pqret = pq->insert(min_source, TPIE_OS_RANDOM());
-            tp_assert(pqret, "pq->insert() failed.");
+            min=TPIE_OS_RANDOM();
+            mheap->insert(&min,min_source);
             taken_index = min_source;
             return AMI_MERGE_OUTPUT;
         } else {
@@ -143,9 +147,9 @@ template<class T>
 AMI_err merge_random<T>::main_mem_operate(T* mm_stream,
                                           size_t len)
 {
-    TPIE_OS_SIZE_T ii;
+    size_t ii;
     T temp;
-    TPIE_OS_SIZE_T rand_index;
+    int rand_index;
     
     for (ii = 0; ii < len - 1; ii++) {
         rand_index = ii + (TPIE_OS_RANDOM() % (len - ii));
@@ -165,7 +169,7 @@ size_t merge_random<T>::space_usage_overhead(void)
 template<class T>
 size_t merge_random<T>::space_usage_per_stream(void)
 {
-    return sizeof(int) + sizeof(arity_t);
+    return sizeof(int) + sizeof(TPIE_OS_SIZE_T);
 }
 
 #endif // _MERGE_RANDOM_H 
