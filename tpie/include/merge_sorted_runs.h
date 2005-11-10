@@ -11,7 +11,7 @@
 // *  used in several of TPIE's merge variants                              *
 // *                                                                        *
 // **************************************************************************
-// 	$Id: merge_sorted_runs.h,v 1.1 2005-11-09 11:35:25 adanner Exp $	
+// 	$Id: merge_sorted_runs.h,v 1.2 2005-11-10 11:54:57 jan Exp $	
 
 // Get definitions for working with Unix and Windows
 #include <portability.h>
@@ -21,6 +21,8 @@
 #include <tpie_tempnam.h>
 #include <mergeheap.h>	   //For templated heaps
 #include <quicksort.h>		//For templated qsort_items
+
+#include <progress_indicator_base.h>
 
 typedef int arity_t;
 
@@ -39,8 +41,9 @@ typedef int arity_t;
 // stream and also a boolean flag for showing a progress indicator.
 template < class T, class M >
 AMI_err  merge_sorted_runs(AMI_STREAM<T> **inStreams, arity_t arity,
-		     AMI_STREAM<T> *outStream, M& MergeHeap,
-         TPIE_OS_OFFSET cutoff=-1, bool show_progress=false)
+			   AMI_STREAM<T> *outStream, M& MergeHeap,
+			   TPIE_OS_OFFSET cutoff=-1, 
+			   progress_indicator_base* indicator=NULL)
 {
 
    TPIE_OS_SIZE_T i;
@@ -49,18 +52,6 @@ AMI_err  merge_sorted_runs(AMI_STREAM<T> **inStreams, arity_t arity,
    //Pointers to current leading elements of streams
    T** in_objects = new T*[arity];
    TPIE_OS_OFFSET* nread = new TPIE_OS_OFFSET[arity]; 
-
-   //for progress bar
-   TPIE_OS_OFFSET progStep, progTarget, progCount, progMax;
-   progCount=0; progMax=0;
-   if(show_progress){
-     if(cutoff>0){progMax=cutoff*arity;}
-     else{
-       for(i=0; i<arity; i++){ progMax+=inStreams[i]->stream_len();}
-     }
-     progStep=(TPIE_OS_OFFSET)(0.0001*progMax);
-     progTarget=progCount+progStep;
-   }
    
    // **************************************************************
    // * Read first element from stream. Do not rewind! We may read *
@@ -81,6 +72,9 @@ AMI_err  merge_sorted_runs(AMI_STREAM<T> **inStreams, arity_t arity,
        MergeHeap.insert( in_objects[i], i );
      }
      nread[i]=1; 
+     if (indicator) {
+	 indicator->step_percentage();
+     }
    }
 
    // *********************************************************
@@ -116,33 +110,23 @@ AMI_err  merge_sorted_runs(AMI_STREAM<T> **inStreams, arity_t arity,
             return ami_err;
           }
         }
+	if (indicator) {
+	    indicator->step_percentage();
+	}
       } 
       if (ami_err == AMI_ERROR_END_OF_STREAM) {
         MergeHeap.delete_min_and_insert ((T *) NULL);
       } else { 
         nread[i]++;
         MergeHeap.delete_min_and_insert (in_objects[i]);
-        if(show_progress){
-          progCount++;
-          if(progCount>progTarget){
-            progTarget=progCount+progStep;
-            cout << "\b\b\b\b\b\b\b\b\b" <<  "[" << setw(6)
-              << setiosflags(ios::fixed) << setprecision(2)
-              << ((1.*progCount)/progMax)*100. << "%]"
-              << flush;
-          }
-        }
+
       }
    }//while
 
    //cleanup
    delete[] in_objects;
    delete[] nread;
-   if(show_progress){
-     cout << "\b\b\b\b\b\b\b\b\b" <<  "[" << setw(6) << setiosflags(ios::fixed)
-       << setprecision(2) << 100. << "%]"
-       << flush;
-   }
+
    return AMI_ERROR_NO_ERROR;
 }
 

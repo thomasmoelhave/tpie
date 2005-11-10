@@ -1,7 +1,7 @@
 //
 // File: sort_manager.h
 //
-// $Id: sort_manager.h,v 1.1 2005-11-09 11:36:19 adanner Exp $
+// $Id: sort_manager.h,v 1.2 2005-11-10 11:54:57 jan Exp $
 //
 // This file contains the class sort_manager that actually performs sorting
 //      given an internal sort implementation and merge heap implementation
@@ -22,6 +22,8 @@
                            // using different comparison types
 #include <math.h> //for log, ceil, etc.
 
+#include <progress_indicator_base.h>
+
 #ifndef AMI_STREAM_IMP_SINGLE
 #warning Including __FILE__ when AMI_STREAM_IMP_SINGLE undefined.
 #endif
@@ -39,10 +41,10 @@ class sort_manager{
     sort_manager(I isort, M mheap);
     ~sort_manager(){};
     //Sort in stream to out stream an save in stream (uses 3x space)
-    AMI_err sort(AMI_STREAM<T>* in, AMI_STREAM<T>* out, bool progress);
+    AMI_err sort(AMI_STREAM<T>* in, AMI_STREAM<T>* out, progress_indicator_base* indicator=NULL);
     //Sort in stream and overwrite unsorted input with sorted output
     //(uses 2x space)
-    AMI_err sort(AMI_STREAM<T>* in, bool progress); 
+    AMI_err sort(AMI_STREAM<T>* in, progress_indicator_base* indicator=NULL); 
 
   private:
     // *************
@@ -72,7 +74,7 @@ class sort_manager{
     TPIE_OS_OFFSET  mmBytesAvail; //Amount of spare memory we can use
     TPIE_OS_SIZE_T  mmBytesPerStream; //Memory consumed by each Stream obj
 
-    bool bProgress; //flag indicating if we show progress bar
+    progress_indicator_base* m_indicator; // pointer to progress indicator
     TPIE_OS_OFFSET progCount; //counter for showing progress
 
     bool use2xSpace; //flag to indicate if we are doing a 2x sort
@@ -125,12 +127,12 @@ sort_manager<T, I, M>::sort_manager(I isort, M mheap):
 
 template<class T, class I, class M>
 AMI_err sort_manager<T,I,M>::sort(AMI_STREAM<T>* in, AMI_STREAM<T>* out,
-                                  bool progress=false){
+                                  progress_indicator_base* indicator){
 
   //This version saves the original input and uses 3x space
   //(input, current temp runs, output runs)
   
-  bProgress=progress;
+    m_indicator = indicator;
   inStream=in;
   outStream=out;
   use2xSpace=false;
@@ -144,12 +146,12 @@ AMI_err sort_manager<T,I,M>::sort(AMI_STREAM<T>* in, AMI_STREAM<T>* out,
 }
 
 template<class T, class I, class M>
-AMI_err sort_manager<T,I,M>::sort(AMI_STREAM<T>* in, bool progress=false){
+AMI_err sort_manager<T,I,M>::sort(AMI_STREAM<T>* in, progress_indicator_base* indicator){
 
   //This version overwrites the original input and uses 2x space
   //The input stream is truncated to length 0 after forming initial runs
   //and only two levels of the merge tree are on disk at any one time.
-  bProgress=progress;
+    m_indicator = indicator;
   inStream=in;
   outStream=in; //output destination is same as input
   use2xSpace=true;
@@ -166,7 +168,6 @@ template<class T, class I, class M>
 AMI_err sort_manager<T,I,M>::start_sort(){
 
   TP_LOG_DEBUG_ID ("sort_manager::sort START");
-  if(bProgress){ cout << "\n----Starting TPIE Sort----" << endl; }
 
   // ********************************************************************
   // * PHASE 1: See if we can sort the entire stream in internal memory *
@@ -196,8 +197,17 @@ AMI_err sort_manager<T,I,M>::start_sort(){
   // Check if all input items can be sorted internally using less than
   // mmBytesAvail
   nInputItems = inStream->stream_len();
+
+  if (m_indicator) {
+      m_indicator->set_title("\nStarting TPIE Sort");
+      m_indicator->set_percentage_range(0, nInputItems, 1000);
+  }
+
   inStream->seek (0);
   if (nInputItems<InternalSorter.MaxItemCount(mmBytesAvail)){
+      if (m_indicator) {
+	  m_indicator->init("Sorting items internally");
+      }
     // allocate the internal array items
     InternalSorter.allocate(nInputItems);
     // load the items into main memory, sort, and write to output.
@@ -211,7 +221,9 @@ AMI_err sort_manager<T,I,M>::start_sort(){
     }
     // de-allocate the internal array of items
     InternalSorter.deallocate();
-    if(bProgress){ cout << "----Finished TPIE Sort----\n" << endl; }
+    if (m_indicator) {
+	m_indicator->done();
+    }
     return AMI_ERROR_NO_ERROR;
   }
 
@@ -249,7 +261,9 @@ AMI_err sort_manager<T,I,M>::start_sort(){
   if(ae != AMI_ERROR_NO_ERROR){ return ae; }
 
   // That's it
-  if(bProgress){ cout << "----Finished TPIE Sort----\n" << endl; }
+    if (m_indicator) {
+	m_indicator->done();
+    }
   return AMI_ERROR_NO_ERROR;
 }
 
@@ -459,13 +473,6 @@ AMI_err sort_manager<T,I,M>::compute_sort_params(void){
   tp_assert (nInputItems - (nRuns - 1) * nItemsPerRun <= nItemsPerRun,
       "Total expected output size is too small.");
 
-  if(bProgress){
-    cout << "Input stream has " << nInputItems << " Items\n"
-         << "Forming " << nRuns << " initial runs of at most "
-         << nItemsPerRun << " items each\n" 
-         << "Merge arity is " << mrgArity << endl;
-  }
-  
   TP_LOG_DEBUG_ID ("Input stream has " << nInputItems << " Items");
   TP_LOG_DEBUG_ID ("Max number of items per runs " << nItemsPerRun );
   TP_LOG_DEBUG_ID ("Initial number of runs " << nRuns );
@@ -521,7 +528,14 @@ AMI_err sort_manager<T,I,M>::partition_and_sort_runs(void){
   // * Partition and make initial sorted runs                           *
   // ********************************************************************
   TPIE_OS_OFFSET check_size = 0; //for debugging
-  progCount=0; //for progress indication
+
+
+  if (m_indicator) {
+      m_indicator->set_description("Forming runs      ");
+      m_indicator->set_range(0,mrgArity,1);
+      m_indicator->refresh();
+  }
+
   for( ii=0; ii<mrgArity; ii++){   //For each output stream
     // Make the output file name
     make_name(working_disk, suffixName[0], ii, newName);
@@ -532,19 +546,13 @@ AMI_err sort_manager<T,I,M>::partition_and_sort_runs(void){
     // extra runs go in the LAST nXtraRuns streams so that
     // the one short run is always in the LAST output stream
     runsInStream = minRunsPerStream + ((ii >= mrgArity-nXtraRuns)?1:0);
+
     for( jj=0; jj < runsInStream; jj++ ) { // For each run in this stream
       // See if this is the last run
       if( (ii==mrgArity-1) && (jj==runsInStream-1)) {
         nItemsInThisRun=nItemsInLastRun;
       }
       // Sort it
-      if(bProgress){
-        progCount++;
-        cout << "\rForming sorted run " << progCount << " of " << nRuns
-             << " [" << setw(6) << setiosflags(ios::fixed) 
-             << setprecision(2) 
-             << ((1.*progCount)/nRuns)*100. << "%]" << flush;
-      }
       if ((ae = InternalSorter.sort(inStream, curOutputRunStream, 
               nItemsInThisRun))!= AMI_ERROR_NO_ERROR)
       {
@@ -552,12 +560,18 @@ AMI_err sort_manager<T,I,M>::partition_and_sort_runs(void){
         return ae;
       }
     } // For each run in this stream
+
     // All runs created for this stream, clean up
     TP_LOG_DEBUG_ID ("Wrote " << runsInStream << " runs and "
         << curOutputRunStream->stream_len() << " items to file " << ii);
     check_size+=curOutputRunStream->stream_len();
     curOutputRunStream->persist(PERSIST_PERSISTENT);
     delete curOutputRunStream;
+
+    if (m_indicator) {
+	m_indicator->step();
+    }
+
   }//For each output stream
 
   tp_assert(check_size == nInputItems, "item count mismatch");
@@ -565,7 +579,9 @@ AMI_err sort_manager<T,I,M>::partition_and_sort_runs(void){
   // Done with partitioning and initial run formation
   // free space associated with internal memory sorting
   InternalSorter.deallocate();
-  if(bProgress){ cout << endl; } //newline
+  if (m_indicator) {
+      m_indicator->done();
+  }
   if(use2xSpace){ 
     //recall outStream/inStream point to same file in this case
     inStream->truncate(0); //free up disk space
@@ -617,7 +633,7 @@ AMI_err sort_manager<T,I,M>::merge_to_output(void){
   // *                                                               *
   // *****************************************************************
 
-  if(bProgress){
+  if (m_indicator) {
     //compute merge depth, number of passes over data
     treeHeight=(int)ceil(log((double)nRuns)/log((double)mrgArity));
   }
@@ -627,11 +643,15 @@ AMI_err sort_manager<T,I,M>::merge_to_output(void){
   //contain one extra run. Runs and nXtraRuns are updated as we 
   //complete a merge level. 
   while (nRuns > mrgArity){
-    if(bProgress){
-      progCount=0;
-      cout << "\rMerge pass " << mrgHeight+1 << " of " << treeHeight 
-           << " [  0.00\%]" << flush;
-    }
+      if (m_indicator) {
+	  char description[255];
+	  ::snprintf(description, sizeof(description), 
+		     "Merge pass %d of %d ",
+		     mrgHeight+1, treeHeight);
+	  m_indicator->set_percentage_range(0, nInputItems);
+	  m_indicator->init(description);
+      }
+
     // We are not yet at the top of the merge tree
     // Write merged runs to temporary output streams
     TP_LOG_DEBUG_ID ("Intermediate merge. level="<<mrgHeight);
@@ -705,7 +725,8 @@ AMI_err sort_manager<T,I,M>::merge_to_output(void){
           }
           // Merge runs to curOutputRunStream
           ae = single_merge(mergeInputStreams+mrgArity-nRunsToMerge,
-              nRunsToMerge, curOutputRunStream, nItemsPerRun);
+			    nRunsToMerge, curOutputRunStream, 
+			    nItemsPerRun); 
           if (ae != AMI_ERROR_NO_ERROR) {
             TP_LOG_FATAL_ID("AMI_single_merge error"<< ae <<" in deep merge");
             return ae;
@@ -757,14 +778,13 @@ AMI_err sort_manager<T,I,M>::merge_to_output(void){
     mergeInputStreams[ii-(mrgArity-nRuns)]->seek(0);
   }
 
-  if(bProgress){
-    progCount=0;
-    cout << "\rFinal merge pass (" << mrgHeight+1 << " of " << treeHeight 
-      << ") [  0.00\%]" << flush;
+  if (m_indicator) {
+      m_indicator->set_percentage_range(0, nInputItems);
+      m_indicator->init("Final merge pass  ");
   }
   // Merge last remaining runs to the output stream.
   // mergeInputStreams is address( address (the first input stream) )
-  ae = single_merge (mergeInputStreams, nRuns, outStream );
+  ae = single_merge (mergeInputStreams, nRuns, outStream);
 
   tp_assert(outStream->stream_len() == nInputItems, "item count mismatch");
 
@@ -775,7 +795,7 @@ AMI_err sort_manager<T,I,M>::merge_to_output(void){
   }
 
   TP_LOG_DEBUG_ID ("merge cleanup");
-  if(bProgress){cout << endl;} //print newline
+
   // We are done, except for cleanup. Is anyone still reading this?
   // Delete temp input merge streams
   for(ii = 0; ii < nRuns; ii++){
@@ -798,106 +818,7 @@ AMI_err sort_manager<T,I,M>::single_merge( AMI_STREAM < T > **inStreams,
 {
 
    return merge_sorted_runs(inStreams, arity, outStream, MergeHeap,
-                            cutoff, bProgress);
-#if 0
-  arity_t i;
-  AMI_err ami_err;
-  
-  //Memory accounted for in phase 2:
-  // arity*sizeof(TPIE_OS_OFFSET) + space_overhead[fixed cost]
-  TPIE_OS_OFFSET* nread = new TPIE_OS_OFFSET[arity];
-  TPIE_OS_OFFSET progStep, progTarget; //for progress bar
-  
-  //Pointers to current leading elements of streams
-  //Memory accounted for in phase 2:
-  // arity*sizeof(T*) + space_overhead[fixed cost]
-  T** in_objects = new T*[arity];
-
-  // **************************************************************
-  // * Read first element from stream. Do not rewind! We may read *
-  // * more elements from the same stream later.                  *
-  // **************************************************************
-
-  for (i = 0; i < arity; i++) {
-
-    if ((ami_err = inStreams[i]->read_item (&(in_objects[i]))) !=
-        AMI_ERROR_NO_ERROR) {
-      if (ami_err == AMI_ERROR_END_OF_STREAM) {
-        in_objects[i] = NULL;
-      } else {
-        delete[] in_objects;
-        delete[] nread;
-        return ami_err;
-      }
-    } else {
-      MergeHeap.insert( in_objects[i], i );
-    }
-    nread[i]=1;
-  }
-  // *********************************************************
-  // * Build a heap from the smallest items of each stream   *
-  // *********************************************************
-
-  MergeHeap.initialize();
-
-  // *********************************************************
-  // * Perform the merge until the inputs are exhausted.     *
-  // *********************************************************
-  if(bProgress){ 
-    progStep=(TPIE_OS_OFFSET)(0.0001*nInputItems);
-    progTarget=progCount+progStep;
-  }
-  while (MergeHeap.sizeofheap() > 0) {
-
-    i = MergeHeap.get_min_run_id ();
-
-    if ((ami_err = outStream->write_item (*in_objects[i]))
-        != AMI_ERROR_NO_ERROR) {
-      delete[] in_objects;
-      delete[] nread;
-      return ami_err;
-    }
-
-    //Check if we read as many elements as we are allowed to
-    if( (cutoff != -1) && (nread[i]>=cutoff)){
-      ami_err=AMI_ERROR_END_OF_STREAM;
-    }
-    else if ((ami_err = inStreams[i]->read_item (&(in_objects[i])))
-          != AMI_ERROR_NO_ERROR) {
-      if (ami_err != AMI_ERROR_END_OF_STREAM) {
-        delete[] in_objects;
-        delete[] nread;
-        return ami_err;
-      }
-    }
-    if (ami_err == AMI_ERROR_END_OF_STREAM) {
-      MergeHeap.delete_min_and_insert ((T *) NULL);
-    } else {
-      nread[i]++;
-      MergeHeap.delete_min_and_insert (in_objects[i]);
-      if(bProgress){
-        progCount++;
-        if(progCount>progTarget){
-          progTarget=progCount+progStep;
-          cout << "\b\b\b\b\b\b\b\b\b" <<  "[" << setw(6) 
-            << setiosflags(ios::fixed) << setprecision(2) 
-            << ((1.*progCount)/nInputItems)*100. << "%]" 
-            << flush;
-        }
-      }
-    }
-  }//while
-
-  //cleanup
-  delete [] in_objects;
-  delete [] nread;
-  if(bProgress){
-    cout << "\b\b\b\b\b\b\b\b\b" <<  "[" << setw(6) << setiosflags(ios::fixed) 
-         << setprecision(2) << ((1.*progCount)/nInputItems)*100. << "%]" 
-         << flush;
-  }
-  return AMI_ERROR_NO_ERROR;
-#endif
+                            cutoff, m_indicator);
 }
 
 
