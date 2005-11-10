@@ -2,7 +2,7 @@
 // File: bte_stream_ufs.h (formerly bte_ufs.h)
 // Author: Rakesh Barve <rbarve@cs.duke.edu>
 //
-// $Id: bte_stream_ufs.h,v 1.19 2005-11-10 13:37:48 jan Exp $
+// $Id: bte_stream_ufs.h,v 1.20 2005-11-10 13:59:19 jan Exp $
 //
 // BTE streams with blocks I/Oed using read()/write().  This particular
 // implementation explicitly manages blocks, and only ever maps in one
@@ -85,21 +85,24 @@
 // a member function that is a friend of this class.
 template < class T > 
 class BTE_stream_ufs: public BTE_stream_base < T > {
-// protected:
-//  using BTE_stream_base<T>::remaining_streams;
-//  using BTE_stream_base<T>::gstats_;
-//  using BTE_stream_base<T>::m_streamStatistics;
-//  using BTE_stream_base<T>::m_substreamLevel;
-//  using BTE_stream_base<T>::m_status;
-//  using BTE_stream_base<T>::m_persistenceStatus;
-//  using BTE_stream_base<T>::m_readOnly;
-  
-// public:
-//  using BTE_stream_base<T>::os_block_size;
-//  using BTE_stream_base<T>::check_header;
-//  using BTE_stream_base<T>::init_header;
 
- public:
+// These are for gcc-3.4 compatibility
+protected:
+    using BTE_stream_base<T>::remaining_streams;
+    using BTE_stream_base<T>::gstats_;
+    using BTE_stream_base<T>::m_streamStatistics;
+    using BTE_stream_base<T>::m_substreamLevel;
+    using BTE_stream_base<T>::m_status;
+    using BTE_stream_base<T>::m_persistenceStatus;
+    using BTE_stream_base<T>::m_readOnly;
+    
+public:
+    using BTE_stream_base<T>::os_block_size;
+    using BTE_stream_base<T>::check_header;
+    using BTE_stream_base<T>::init_header;
+// End: These are for gcc-3.4 compatibility
+
+public:
     // Constructor.
     // [tavi 01/09/02] Careful with the lbf (logical block factor)
     // parameter. I introduced it in order to avoid errors when reading
