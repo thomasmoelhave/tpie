@@ -5,7 +5,7 @@
 // Created: 03/30/97
 // Last Modified: 01/28/99
 //
-// $Id: pbsmj.cpp,v 1.2 2004-08-12 12:39:23 jan Exp $
+// $Id: pbsmj.cpp,v 1.3 2005-11-10 10:35:57 adanner Exp $
 //
 // Rectangle intersection using the alg. of Patel and DeWitt.
 //
@@ -63,24 +63,31 @@ static TPIE_OS_SIZE_T part_count;
 // Default sweeping algorithm.
 static int algorithm = ORIGINAL;
 
-static const char as_opts[] = "R:B:p:a:o:h";
-void parse_app_opt(char c, char *optarg)
+static struct options as_opts[]={
+  { 5, "red", "Red input Stream", "R", 1 },
+  { 6, "blue", "Blue input Stream", "B", 1 },
+  { 7, "out", "Output file name", "o", 1 },
+  { 8, "part", "Part Count", "p", 1 },
+  { 9, "algo", "Algorithm Type (1-3)", "a", 1 },
+};
+
+void parse_app_opt(int idx, char *optarg)
 {
-    switch (c) {
-    case 'R':
+    switch (idx) {
+    case 5:
       input_filename_red = optarg;
       break;
-    case 'B':
+    case 6:
       input_filename_blue = optarg;
       break;
-    case 'o':
+    case 7:
       output_filename = optarg;
       break;
-    case 'p':
+    case 8:
       part_count = atol(optarg);
       //istrstream(optarg,strlen(optarg)) >> part_count;
       break;
-    case 'a':
+    case 9:
       algorithm = atol(optarg);
       //istrstream(optarg,strlen(optarg)) >> algorithm;
       if ((algorithm != ORIGINAL) && (algorithm != STRIPED) && (algorithm != TREE)) {
@@ -88,15 +95,7 @@ void parse_app_opt(char c, char *optarg)
 	exit(-1);
       }
       break;
-    case 'h':
-      cout << "Usage: pbsmjoin [ -R <red_input_file_name> ] "
-	   << "[ -B <blue_input_file_name> ]\n" 
-	   << "\t[ -o <output_file_name> ] [ -p <part_count> ]"
-	   << "\t[ -m <memory_size> ] [ -a <algorithm> ]\n" 
-	   << "Algorithm can be 1, 2, or 3:\n" 
-	   << "\t1: ORIGINAL, 2: STRIPED, 3: TREE." << endl;
-      exit(0);
-    }
+   }
 }
 
 extern "C" {void UsageStart(); void UsageEnd(char *);}
@@ -616,6 +615,15 @@ int main(int argc, char **argv)
   MM_manager.warn_memory_limit();
   verbose = true;
   part_count = 4;
+  if(argc < 2){
+      cout << "Usage: pbsmjoin [ -R <red_input_file_name> ] "
+	   << "[ -B <blue_input_file_name> ]\n" 
+	   << "\t[ -o <output_file_name> ] [ -p <part_count> ]"
+	   << "\t[ -m <memory_size> ] [ -a <algorithm> ]\n" 
+	   << "Algorithm can be 1, 2, or 3:\n" 
+	   << "\t1: ORIGINAL, 2: STRIPED, 3: TREE." << endl;
+      exit(0);
+  } 
   parse_args(argc,argv,as_opts,parse_app_opt);
   MM_manager.set_memory_limit(test_mm_size);
   pbsmJoin();

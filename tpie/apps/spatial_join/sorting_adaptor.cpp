@@ -5,7 +5,7 @@
 // Created:      01/24/99
 // Description:  
 //
-// $Id: sorting_adaptor.cpp,v 1.2 2004-08-12 12:39:09 jan Exp $
+// $Id: sorting_adaptor.cpp,v 1.3 2005-11-10 10:35:57 adanner Exp $
 //
 
 #include <iostream>
@@ -14,7 +14,7 @@ using std::endl;
 using std::istream;
 using std::ostream;
 #include "sorting_adaptor.h"
-#include <ami_optimized_merge.h>
+#include <ami_sort.h>
 
 SortingAdaptor::SortingAdaptor(const char* inStreamName) {
     currentRect_ = new rectangle;
@@ -35,10 +35,8 @@ SortingAdaptor::SortingAdaptor(const char* inStreamName) {
     coord_t dummyKey = 0;
     //rectangle r_dummyKey;
     //  Sort the rectangles in the input stream according to ylo.
-    AMI_partition_and_merge(unsortedStream, sortedStream_,
-     		sizeof(oid_t) + sizeof(coord_t), dummyKey);
+    AMI_sort(unsortedStream, sortedStream_);
     //AMI_partition_and_merge_stream(unsortedStream, sortedStream_);
-    //AMI_sort(unsortedStream, sortedStream_);
     delete unsortedStream;
     sortedStream_->seek(0);
 
