@@ -3,13 +3,15 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/19/94
 //
-// $Id: ami_stream_single.h,v 1.13 2005-07-07 20:43:06 adanner Exp $
+// $Id: ami_stream_single.h,v 1.14 2005-11-10 11:57:28 jan Exp $
 //
 // AMI entry points implemented on top of a single BTE.  This is useful
 // for single CPU, single disk machines.
 //
 #ifndef _AMI_STREAM_SINGLE_H
 #define _AMI_STREAM_SINGLE_H
+
+#warning This file is obsolete. Please include ami_stream.h
 
 // Get definitions for working with Unix and Windows
 #include <portability.h>
