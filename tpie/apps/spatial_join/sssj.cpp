@@ -6,7 +6,7 @@
 // Created:      01/24/99
 // Description:  Join two sets using sort and sweep.
 //
-// $Id: sssj.cpp,v 1.2 2004-08-12 12:38:53 jan Exp $
+// $Id: sssj.cpp,v 1.3 2005-11-10 10:35:57 adanner Exp $
 //
 #include <iostream>
 using std::cout;
@@ -47,33 +47,24 @@ void usage(const char* progname) {
 	   << "\t[ -m memory_size ]" << endl;
 }
 
-static const char as_opts[] = "R:B:o:m:z:vh";
-void parse_app_opt(char c, char *optarg)
+static struct options as_opts[]={
+  { 5, "red", "Red input Stream", "R", 1 },
+  { 6, "blue", "Blue input Stream", "B", 1 },
+  { 7, "out", "Output file name", "o", 1 },
+};
+
+void parse_app_opt(int idx, char *optarg)
 {
-    switch (c) {
-    case 'o':
-      output_filename = optarg;
-      break;
-    case 'R':
+    switch (idx) {
+    case 5:
       input_filename_red = optarg;
       break;
-    case 'B':
+    case 6:
       input_filename_blue = optarg;
       break;
-    case 'v':
-      verbose = !verbose;
+    case 7:
+      output_filename = optarg;
       break;
-    case 'm':
-      test_mm_size = atol(optarg);
-      //istrstream(optarg,strlen(optarg)) >> test_mm_size;
-      break;                
-    case 'z':
-      random_seed = atol(optarg);
-      //istrstream(optarg,strlen(optarg)) >> random_seed;
-      break;
-    case 'h':
-      usage("sssj");
-      exit(1);
     }
 }
 
@@ -126,7 +117,7 @@ int main(int argc, char** argv) {
   parse_args(argc,argv,as_opts,parse_app_opt);
 
   // Set the main memory size. 
-  MM_manager.set_memory_limit(test_mm_size);
+  //MM_manager.set_memory_limit(test_mm_size); //done by parse_args
   MM_manager.enforce_memory_limit();
 
   if ((err = join()) != AMI_ERROR_NO_ERROR)

@@ -5,7 +5,7 @@
 // Created:      06/11/97
 // Description:  
 //
-// $Id: definitions.h,v 1.1 2003-11-21 17:01:09 tavi Exp $
+// $Id: definitions.h,v 1.2 2005-11-10 10:35:57 adanner Exp $
 
 #ifndef _DEFINITIONS_H
 #define _DEFINITIONS_H
@@ -35,15 +35,15 @@
 #define COORD_T INT
 
 #if (COORD_T==INT)
-#define INFINITY      (INT_MAX-1)
+#define TP_INFINITY      (INT_MAX-1)
 #define MINUSINFINITY (1-INT_MAX)
 typedef int           coord_t;
 #elif (COORD_T==FLOAT)
-#define INFINITY (FLT_MAX-1.0)
+#define TP_INFINITY (FLT_MAX-1.0)
 #define MINUSINFINITY (1.0-FLT_MAX)
 typedef float         coord_t;
 #elif (COORD_T==DOUBLE)
-#define INFINITY (DBL_MAX-1.0)
+#define TP_INFINITY (DBL_MAX-1.0)
 #define MINUSINFINITY (1.0-DBL_MAX)
 typedef double         coord_t;
 #endif
