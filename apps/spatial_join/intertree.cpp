@@ -5,7 +5,7 @@
 // Created: 06/28/97
 // Last Modified: 01/25/99 by Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: intertree.cpp,v 1.1 2003-11-21 17:01:09 tavi Exp $
+// $Id: intertree.cpp,v 1.2 2005-11-10 10:35:57 adanner Exp $
 //
 // class intertree representing an interval tree.
 // class internode representing a node in the interval tree.
@@ -54,7 +54,7 @@ InterNode::InterNode(int maxlev, InterNode *nilptr)
   id = INVALIDID;
   xLow = MINUSINFINITY;
   treeInfo[0].xHighMax = MINUSINFINITY;
-  treeInfo[0].yHighMin = INFINITY;
+  treeInfo[0].yHighMin = TP_INFINITY;
   for (int i = 0; i <= maxlev; i++)
     treeInfo[i].forward = nilptr;
 }
@@ -63,9 +63,9 @@ InterNode::InterNode(int maxlev, InterNode *nilptr)
 inline InterNode::InterNode()
 {
   id = INVALIDID;
-  xLow = INFINITY;
-  treeInfo[0].xHighMax = INFINITY;
-  treeInfo[0].yHighMin = INFINITY;
+  xLow = TP_INFINITY;
+  treeInfo[0].xHighMax = TP_INFINITY;
+  treeInfo[0].yHighMin = TP_INFINITY;
   treeInfo[0].forward = NULL;
 }
 
@@ -252,7 +252,7 @@ AMI_err InterTree::Insert(const rectangle &rect, randInfo *rand)
 
     /* compute treeInfo of new node from next lower level */
     tInfo->xHighMax = MINUSINFINITY;
-    tInfo->yHighMin = INFINITY;
+    tInfo->yHighMin = TP_INFINITY;
     for (iNode2 = iNode; iNode2 != tInfo->forward; iNode2 = tInfo2->forward)
     {
       tInfo2 = &(iNode2->treeInfo[lev-1]);
@@ -262,7 +262,7 @@ AMI_err InterTree::Insert(const rectangle &rect, randInfo *rand)
 
     /* update treeInfo of predecessor of new node from next lower level */
     tInfo1->xHighMax = MINUSINFINITY;
-    tInfo1->yHighMin = INFINITY;
+    tInfo1->yHighMin = TP_INFINITY;
     for (iNode2 = iNode1; iNode2 != tInfo1->forward; iNode2 = tInfo2->forward)
     {
       tInfo2 = &(iNode2->treeInfo[lev-1]);
@@ -338,7 +338,7 @@ int InterTree:: DeleteOld(coord_t time)
 
       /* reset treeInfo fields for recomputation, and go down into subtree */
       iNode->treeInfo[lev].xHighMax = MINUSINFINITY;
-      iNode->treeInfo[lev].yHighMin = INFINITY;
+      iNode->treeInfo[lev].yHighMin = TP_INFINITY;
       lev--;
     } 
     else 

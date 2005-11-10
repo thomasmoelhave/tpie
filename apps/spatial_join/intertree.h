@@ -5,7 +5,7 @@
 // Created: 06/28/97
 // Last Modified: 06/29/97 by Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: intertree.h,v 1.1 2003-11-21 17:01:09 tavi Exp $
+// $Id: intertree.h,v 1.2 2005-11-10 10:35:57 adanner Exp $
 //
 // class intertree representing an interval tree.
 // class internode representing a node in the interval tree.
@@ -29,8 +29,6 @@ enum { MaxLevel = 64 };                // another magic constant. This is
 
 
 #define INVALIDID -1                   // ID for empty header and tail nodes 
-//#define INFINITY DBL_MAX               // value larger than all coordnate values
-//#define MINUSINFINITY -DBL_MAX         // value smaller than all coordinate values
 
 // what I would really like to define here are operators min= and max=
 // that work like *= or += but with minimum and maximum operator 

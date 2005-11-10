@@ -4,7 +4,7 @@
 // Author: Octavian Procopiuc <tavi@cs.duke.edu>
 // Created: 01/27/99
 //
-// $Id: mbr.cpp,v 1.2 2004-08-12 12:39:44 jan Exp $
+// $Id: mbr.cpp,v 1.3 2005-11-10 10:35:57 adanner Exp $
 //
 // Performs a scan of a stream of rectangles to find their minimum
 // bounding rectangle (MBR). The MBR is written on cout, as well as in
@@ -31,10 +31,10 @@ protected:
 public:
   MBRScanner(char *out_filename): out(out_filename) {
     //out = new ofstream(out_filename);
-    mbr.xlo = INFINITY;
-    mbr.ylo = INFINITY;
-    mbr.xhi = -INFINITY;
-    mbr.yhi = -INFINITY;
+    mbr.xlo = TP_INFINITY;
+    mbr.ylo = TP_INFINITY;
+    mbr.xhi = -TP_INFINITY;
+    mbr.yhi = -TP_INFINITY;
   }
 
   AMI_err initialize() {
