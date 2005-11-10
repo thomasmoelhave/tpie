@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 6/10/94
 //
-// $Id: ami_sort.h,v 1.12 2005-11-09 11:39:03 adanner Exp $
+// $Id: ami_sort.h,v 1.13 2005-11-10 11:54:57 jan Exp $
 //
 #ifndef _AMI_SORT_H
 #define _AMI_SORT_H
@@ -15,6 +15,8 @@
 #include <sort_manager.h>
 #include <mergeheap.h>
 #include <internal_sort.h>
+
+#include <progress_indicator_base.h>
 
 // *******************************************************************
 // *                                                                 *
@@ -32,11 +34,11 @@
 // T, and an output stream, and and uses the < operator to sort
 template<class T>
 AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
-                 bool progress=false)
+                 progress_indicator_base* indicator=NULL)
 {
   return sort_manager< T, Internal_Sorter_Op<T>, merge_heap_op<T> >
     (Internal_Sorter_Op<T>(), merge_heap_op<T>() ).sort
-    (instream, outstream, progress);
+    (instream, outstream, indicator);
 }
 
 // A version of AMI_sort that takes an input stream of elements of
@@ -46,12 +48,12 @@ AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
 // which is used for sorting the input stream.
 template<class T, class CMPR>
 AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
-    CMPR *cmp, bool progress=false)
+    CMPR *cmp, progress_indicator_base* indicator=NULL)
 {
   return sort_manager<T, Internal_Sorter_Obj<T, CMPR>,
          merge_heap_obj<T,CMPR> >( Internal_Sorter_Obj<T, CMPR>(cmp),
              merge_heap_obj<T,CMPR>(cmp) ).sort
-              (instream, outstream, progress);
+              (instream, outstream, indicator);
 }
 
 // ********************************************************************
@@ -64,11 +66,11 @@ AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
 // T, and an output stream, and and uses the < operator to sort
 template<class T>
 AMI_err AMI_ptr_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
-                 bool progress=false)
+                 progress_indicator_base* indicator=NULL)
 {
   return sort_manager< T, Internal_Sorter_Op<T>, merge_heap_ptr_op<T> >
     (Internal_Sorter_Op<T>(), merge_heap_ptr_op<T>()).sort
-    (instream, outstream, progress);
+    (instream, outstream, indicator);
 }
 
 // A version of AMI_sort that takes an input stream of elements of
@@ -78,12 +80,12 @@ AMI_err AMI_ptr_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
 // which is used for sorting the input stream.
 template<class T, class CMPR>
 AMI_err AMI_ptr_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
-    CMPR *cmp, bool progress=false)
+    CMPR *cmp, progress_indicator_base* indicator=NULL)
 {
   return sort_manager<T, Internal_Sorter_Obj<T, CMPR>,
          merge_heap_ptr_obj<T,CMPR> >( Internal_Sorter_Obj<T, CMPR>(cmp),
              merge_heap_ptr_obj<T,CMPR>(cmp) ).sort
-             (instream, outstream, progress);
+             (instream, outstream, indicator);
 }
 
 // ********************************************************************
@@ -106,11 +108,11 @@ AMI_err AMI_ptr_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
 // sorted).
 template<class T, class KEY, class CMPR>
 AMI_err  AMI_key_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
-    KEY dummykey, CMPR *cmp, bool progress=false)
+    KEY dummykey, CMPR *cmp, progress_indicator_base* indicator=NULL)
 {
   return sort_manager<T, Internal_Sorter_KObj<T, KEY, CMPR>,
         merge_heap_kobj<T,KEY,CMPR> >( Internal_Sorter_KObj<T,KEY,CMPR>(cmp),             merge_heap_kobj<T,KEY,CMPR>(cmp) ).sort
-          (instream, outstream, progress);
+          (instream, outstream, indicator);
 }
 
 // ********************************************************************
@@ -122,50 +124,50 @@ AMI_err  AMI_key_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
 
 // object heaps, < operator comparisons
 template<class T>
-AMI_err AMI_sort(AMI_STREAM<T> *instream, bool progress=false)
+AMI_err AMI_sort(AMI_STREAM<T> *instream, progress_indicator_base* indicator=NULL)
 {
   return sort_manager< T, Internal_Sorter_Op<T>, merge_heap_op<T> >
   (Internal_Sorter_Op<T>(), merge_heap_op<T>() ).sort
-  (instream, progress);
+  (instream, indicator);
 }
 
 // object heaps, comparison object comparisions
 template<class T, class CMPR>
-AMI_err AMI_sort(AMI_STREAM<T> *instream, CMPR *cmp, bool progress=false)
+AMI_err AMI_sort(AMI_STREAM<T> *instream, CMPR *cmp, progress_indicator_base* indicator=NULL)
 {
   return sort_manager<T, Internal_Sorter_Obj<T, CMPR>,
          merge_heap_obj<T,CMPR> >( Internal_Sorter_Obj<T, CMPR>(cmp),
              merge_heap_obj<T,CMPR>(cmp) ).sort
-           (instream, progress);
+           (instream, indicator);
 }
 
 // ptr heaps, < operator comparisons
 template<class T>
-AMI_err AMI_ptr_sort(AMI_STREAM<T> *instream, bool progress=false)
+AMI_err AMI_ptr_sort(AMI_STREAM<T> *instream, progress_indicator_base* indicator=NULL)
 {
   return sort_manager< T, Internal_Sorter_Op<T>, merge_heap_ptr_op<T> >
     (Internal_Sorter_Op<T>(), merge_heap_ptr_op<T>()).sort
-    (instream, progress);
+    (instream, indicator);
 }
 
 // ptr heaps, comparison object comparisions
 template<class T, class CMPR>
-AMI_err AMI_ptr_sort(AMI_STREAM<T> *instream, CMPR *cmp, bool progress=false)
+AMI_err AMI_ptr_sort(AMI_STREAM<T> *instream, CMPR *cmp, progress_indicator_base* indicator=NULL)
 {
   return sort_manager<T, Internal_Sorter_Obj<T, CMPR>,
          merge_heap_ptr_obj<T,CMPR> >( Internal_Sorter_Obj<T, CMPR>(cmp),
              merge_heap_ptr_obj<T,CMPR>(cmp) ).sort
-           (instream, progress);
+           (instream, indicator);
 }
 
 // key/object heaps, key/object comparisons 
 template<class T, class KEY, class CMPR>
 AMI_err  AMI_key_sort(AMI_STREAM<T> *instream, KEY dummykey, CMPR *cmp,
-    bool progress=false)
+    progress_indicator_base* indicator=NULL)
 {
   return sort_manager<T, Internal_Sorter_KObj<T, KEY, CMPR>,
         merge_heap_kobj<T,KEY,CMPR> >( Internal_Sorter_KObj<T,KEY,CMPR>(cmp),             merge_heap_kobj<T,KEY,CMPR>(cmp) ).sort
-          (instream, progress);
+          (instream, indicator);
 }
 
 /*
