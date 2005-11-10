@@ -2,7 +2,7 @@
 // File: ami_stream.h (formerly part of ami.h and ami_imps.h)
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 //
-// $Id: ami_stream.h,v 1.7 2005-11-10 11:56:27 jan Exp $
+// $Id: ami_stream.h,v 1.8 2005-11-10 13:43:06 jan Exp $
 //
 #ifndef _AMI_STREAM_H
 #define _AMI_STREAM_H
@@ -52,9 +52,9 @@ class AMI_stream : public AMI_stream_base {
     
 public:
 
-    AMI_stream() { 
-	m_status = AMI_STREAM_STATUS_INVALID;
-    }
+//    AMI_stream() { 
+//	m_status = AMI_STREAM_STATUS_INVALID;
+//    }
     
     // We have a variety of constructors for different uses.
     
