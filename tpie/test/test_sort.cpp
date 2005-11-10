@@ -764,7 +764,7 @@ int main(int argc, char **argv){
   progress_indicator_arrow* myIndicator = 
       new progress_indicator_arrow("Title", "Description", 0, 100, 1);
   
-  AMI_err ae;
+  AMI_err ae=AMI_ERROR_NO_ERROR;
   /*
   cout << "++++start 3X space tests++++" << endl;
   ae=test_3x_sort(info, APP_TEST_OBJ_OP, true);
@@ -781,9 +781,10 @@ int main(int argc, char **argv){
     ae=test_3x_sort(info, APP_TEST_KOBJ, true);
   }
   cout << "++++end 3X space tests++++" << endl;
-
+*/
   cout << "++++start 2X space tests++++" << endl;
-  ae=test_2x_sort(info, APP_TEST_OBJ_OP, myIndicator); 
+  ae=test_2x_sort(info, APP_TEST_OBJ_OP, myIndicator);
+/*
   if(ae==AMI_ERROR_NO_ERROR){
     ae=test_2x_sort(info, APP_TEST_PTR_OP, true);
   }
@@ -793,10 +794,10 @@ int main(int argc, char **argv){
   if(ae==AMI_ERROR_NO_ERROR){
     ae=test_2x_sort(info, APP_TEST_PTR_CMPOBJ, true);
   }
-*/
   if(ae==AMI_ERROR_NO_ERROR){
     ae=test_2x_sort(info, APP_TEST_KOBJ, myIndicator);
   }
+*/
   cout << "++++end 2X space tests++++" << endl;
   
   //cout << "Internal sort testing..." << endl;
