@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/11/94
 //
-// $Id: bte_stream_stdio.h,v 1.15 2005-11-11 13:24:15 jan Exp $
+// $Id: bte_stream_stdio.h,v 1.16 2005-11-11 17:39:17 adanner Exp $
 //
 #ifndef _BTE_STREAM_STDIO_H
 #define _BTE_STREAM_STDIO_H
@@ -53,9 +53,9 @@ protected:
     using BTE_stream_base<T>::register_memory_allocation;
     using BTE_stream_base<T>::register_memory_deallocation;
     using BTE_stream_base<T>::record_statistics;
-    using BTE_stream_base<T>::name;
 
 public:
+    using BTE_stream_base<T>::name;
     using BTE_stream_base<T>::os_block_size;
 
 // End: These are for gcc-3.4 compatibility
