@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/11/94
 //
-// $Id: bte_stream_base.h,v 1.11 2005-11-10 21:31:05 jan Exp $
+// $Id: bte_stream_base.h,v 1.12 2005-11-11 13:24:15 jan Exp $
 //
 #ifndef _BTE_STREAM_BASE_H
 #define _BTE_STREAM_BASE_H
@@ -90,79 +90,119 @@ public:
 	return m_streamStatistics; 
     }
 
+    // Return the path name in newly allocated space.
+    BTE_err name (char **stream_name) const;
+
 protected:
 
     using BTE_stream_base_generic::remaining_streams;
     using BTE_stream_base_generic::gstats_;
   
     // Check the given header for reasonable values.
-    int check_header(BTE_stream_header* ph);
+    int check_header();
 
     // Initialize the header with as much information as is known here.
-    void init_header(BTE_stream_header* ph);
+    void init_header();
 
     inline BTE_err register_memory_allocation (TPIE_OS_SIZE_T sz);
     inline BTE_err register_memory_deallocation (TPIE_OS_SIZE_T sz);
 
+    // Record statistics both globally (on base-class level) and
+    // locally (on instance level).
+    inline void record_statistics(TPIE_STATS_STREAM event);
+
+    // A pointer to the mapped in header block for the stream.
+    BTE_stream_header *m_header;
+
     // The persistence status of this stream.
     persistence       m_persistenceStatus;
+
     // The status (integrity) of this stream.
     BTE_stream_status m_status;
+
     // How deeply is this stream nested.
     unsigned int      m_substreamLevel;
+
     // Non-zero if this stream was opened for reading only.
     bool              m_readOnly; 
+
     // Statistics for this stream only.
     tpie_stats_stream m_streamStatistics;
+
+    // The size of a physical block.
+    TPIE_OS_SIZE_T m_osBlockSize;
+
+    // Offset of the current item in the file. This is the logical
+    // offset of the item within the file, that is, the place we would
+    // have to lseek() to in order to read() or write() the item if we
+    // were using ordinary (i.e. non-mmap()) file access methods.
+    TPIE_OS_OFFSET m_fileOffset;
+
+    // Beginning of the file.  Can't write before here.
+    TPIE_OS_OFFSET m_logicalBeginOfStream;
+
+    // Offset just past the end of the last item in the stream. If this
+    // is a substream, we can't write here or anywhere beyond.
+    TPIE_OS_OFFSET m_logicalEndOfStream;
+
+    // Length of the underlying file.
+    TPIE_OS_OFFSET m_fileLength;
+
+    // A place to cache OS error values. It is normally set after each
+    // call to the OS.
+    int m_osErrno;
+
+    //  Name of the underlying file.
+    char m_path[BTE_STREAM_PATH_NAME_LEN];
 
 };
 
 template<class T>
-int BTE_stream_base<T>::check_header(BTE_stream_header* ph) {
+int BTE_stream_base<T>::check_header() {
 
-    if (ph == NULL) {
+    if (m_header == NULL) {
 	TP_LOG_FATAL_ID ("Could not map header.");
 	return -1;
     }
 
-    if (ph->m_magicNumber != BTE_STREAM_HEADER_MAGIC_NUMBER) {
+    if (m_header->m_magicNumber != BTE_STREAM_HEADER_MAGIC_NUMBER) {
 	TP_LOG_FATAL_ID ("header: magic number mismatch (expected/obtained):");
 	TP_LOG_FATAL_ID (BTE_STREAM_HEADER_MAGIC_NUMBER);
-	TP_LOG_FATAL_ID (ph->m_magicNumber);
+	TP_LOG_FATAL_ID (m_header->m_magicNumber);
 	return -1;
     }
 
-    if (ph->m_headerLength != sizeof (*ph)) {
+    if (m_header->m_headerLength != sizeof (*m_header)) {
       TP_LOG_FATAL_ID ("header: incorrect header length; (expected/obtained):");
       TP_LOG_FATAL_ID (sizeof (BTE_stream_header));
-      TP_LOG_FATAL_ID (ph->m_headerLength);
+      TP_LOG_FATAL_ID (m_header->m_headerLength);
       TP_LOG_FATAL_ID ("This could be due to a stream written without 64-bit support.");
       return -1;
     }
 
-    if (ph->m_version != 2) {
+    if (m_header->m_version != 2) {
       TP_LOG_FATAL_ID ("header: incorrect version (expected/obtained):");
       TP_LOG_FATAL_ID (2);
-      TP_LOG_FATAL_ID (ph->m_version);
+      TP_LOG_FATAL_ID (m_header->m_version);
       return -1;
     }
 
-    if (ph->m_type == 0) {
+    if (m_header->m_type == 0) {
 	TP_LOG_FATAL_ID ("header: type is 0 (reserved for base class).");
 	return -1;
     }
 
-    if (ph->m_itemSize != sizeof (T)) {
+    if (m_header->m_itemSize != sizeof (T)) {
 	TP_LOG_FATAL_ID ("header: incorrect item size (expected/obtained):");
 	TP_LOG_FATAL_ID (sizeof(T));
-	TP_LOG_FATAL_ID ((TPIE_OS_LONGLONG)ph->m_itemSize);
+	TP_LOG_FATAL_ID ((TPIE_OS_LONGLONG)m_header->m_itemSize);
 	return -1;
     }
 
-    if (ph->m_osBlockSize != os_block_size()) {
+    if (m_header->m_osBlockSize != os_block_size()) {
 	TP_LOG_FATAL_ID ("header: incorrect OS block size (expected/obtained):");
 	TP_LOG_FATAL_ID ((TPIE_OS_LONGLONG)os_block_size());
-	TP_LOG_FATAL_ID ((TPIE_OS_LONGLONG)ph->m_osBlockSize);
+	TP_LOG_FATAL_ID ((TPIE_OS_LONGLONG)m_header->m_osBlockSize);
 	return -1;
     }
 
@@ -170,16 +210,16 @@ int BTE_stream_base<T>::check_header(BTE_stream_header* ph) {
 }
 
 template<class T>
-void BTE_stream_base<T>::init_header (BTE_stream_header* ph) {
-    tp_assert(ph != NULL, "NULL header pointer");
-    ph->m_magicNumber    = BTE_STREAM_HEADER_MAGIC_NUMBER;
-    ph->m_version        = 2;
-    ph->m_type           = 0; // Not known here.
-    ph->m_headerLength   = sizeof(*ph);
-    ph->m_itemSize       = sizeof(T);
-    ph->m_osBlockSize    = os_block_size();
-    ph->m_blockSize      = 0; // Not known here.
-    ph->m_itemLogicalEOF = 0;
+void BTE_stream_base<T>::init_header () {
+    tp_assert(m_header != NULL, "NULL header pointer");
+    m_header->m_magicNumber    = BTE_STREAM_HEADER_MAGIC_NUMBER;
+    m_header->m_version        = 2;
+    m_header->m_type           = 0; // Not known here.
+    m_header->m_headerLength   = sizeof(*m_header);
+    m_header->m_itemSize       = sizeof(T);
+    m_header->m_osBlockSize    = os_block_size();
+    m_header->m_blockSize      = 0; // Not known here.
+    m_header->m_itemLogicalEOF = 0;
 }
 
 template<class T>
@@ -210,5 +250,31 @@ BTE_err BTE_stream_base<T>::register_memory_deallocation (TPIE_OS_SIZE_T sz) {
     return BTE_ERROR_NO_ERROR;
 }
 
+// Return the path name in newly allocated space.
+template < class T >
+BTE_err BTE_stream_base<T>::name (char **stream_name) const {
+  
+    TPIE_OS_SIZE_T len = strlen (m_path);
+
+    tp_assert (len < BTE_STREAM_PATH_NAME_LEN, "Path length is too long.");
+  
+    // Return the path name in newly allocated space.
+    char *newPath = new char[len + 1];
+    strncpy (newPath, m_path, len + 1);
+    *stream_name = newPath;
+
+    return BTE_ERROR_NO_ERROR;
+}
+
+template < class T >
+inline void BTE_stream_base<T>::record_statistics(TPIE_STATS_STREAM event) {
+
+    //  Record for base class, i.e., globally.
+    gstats_.record(event);
+
+    //  Record for instance, i.e., locally.
+    m_streamStatistics.record(event);
+
+};
 
 #endif // _BTE_STREAM_BASE_H 
