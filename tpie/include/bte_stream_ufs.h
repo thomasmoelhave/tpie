@@ -2,7 +2,7 @@
 // File: bte_stream_ufs.h (formerly bte_ufs.h)
 // Author: Rakesh Barve <rbarve@cs.duke.edu>
 //
-// $Id: bte_stream_ufs.h,v 1.22 2005-11-11 13:24:16 jan Exp $
+// $Id: bte_stream_ufs.h,v 1.23 2005-11-11 17:39:17 adanner Exp $
 //
 // BTE streams with blocks I/Oed using read()/write().  This particular
 // implementation explicitly manages blocks, and only ever maps in one
@@ -106,10 +106,10 @@ protected:
     using BTE_stream_base<T>::register_memory_allocation;
     using BTE_stream_base<T>::register_memory_deallocation;
     using BTE_stream_base<T>::record_statistics;
-    using BTE_stream_base<T>::name;
 
     
 public:
+    using BTE_stream_base<T>::name;
     using BTE_stream_base<T>::os_block_size;
 // End: These are for gcc-3.4 compatibility
 

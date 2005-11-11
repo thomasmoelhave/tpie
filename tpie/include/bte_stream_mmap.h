@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/13/94
 //
-// $Id: bte_stream_mmap.h,v 1.18 2005-11-11 13:24:16 jan Exp $
+// $Id: bte_stream_mmap.h,v 1.19 2005-11-11 17:39:17 adanner Exp $
 //
 // Memory mapped streams.  This particular implementation explicitly manages
 // blocks, and only ever maps in one block at a time.
@@ -89,10 +89,10 @@ protected:
     using BTE_stream_base<T>::register_memory_allocation;
     using BTE_stream_base<T>::register_memory_deallocation;
     using BTE_stream_base<T>::record_statistics;
-    using BTE_stream_base<T>::name;
 
     
 public:
+    using BTE_stream_base<T>::name;
     using BTE_stream_base<T>::os_block_size;
 // End: These are for gcc-3.4 compatibility
 
