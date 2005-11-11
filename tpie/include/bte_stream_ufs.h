@@ -2,7 +2,7 @@
 // File: bte_stream_ufs.h (formerly bte_ufs.h)
 // Author: Rakesh Barve <rbarve@cs.duke.edu>
 //
-// $Id: bte_stream_ufs.h,v 1.21 2005-11-10 21:31:05 jan Exp $
+// $Id: bte_stream_ufs.h,v 1.22 2005-11-11 13:24:16 jan Exp $
 //
 // BTE streams with blocks I/Oed using read()/write().  This particular
 // implementation explicitly manages blocks, and only ever maps in one
@@ -64,18 +64,17 @@
 #  endif
 #endif
 
-// Get the BTE_stream_base class and related definitions.
-#include <bte_stream_base.h>
-
 // This code makes assertions and logs errors.
 #include <tpie_assert.h>
 #include <tpie_log.h>
+
+// Get the BTE_stream_base class and related definitions.
+#include <bte_stream_base.h>
 
 // Define a sensible logical block factor, if not already defined.
 #ifndef  BTE_STREAM_UFS_BLOCK_FACTOR
 #  define BTE_STREAM_UFS_BLOCK_FACTOR 8
 #endif
-
 
 // This is a class template for the implementation of a 
 // BTE stream of objects of type T such that the entire stream 
@@ -89,17 +88,29 @@ class BTE_stream_ufs: public BTE_stream_base < T > {
 // These are for gcc-3.4 compatibility
 protected:
     using BTE_stream_base<T>::remaining_streams;
-    using BTE_stream_base<T>::gstats_;
-    using BTE_stream_base<T>::m_streamStatistics;
     using BTE_stream_base<T>::m_substreamLevel;
     using BTE_stream_base<T>::m_status;
     using BTE_stream_base<T>::m_persistenceStatus;
     using BTE_stream_base<T>::m_readOnly;
+    using BTE_stream_base<T>::m_path;
+    using BTE_stream_base<T>::m_osBlockSize;
+    using BTE_stream_base<T>::m_fileOffset;
+    using BTE_stream_base<T>::m_logicalBeginOfStream;
+    using BTE_stream_base<T>::m_logicalEndOfStream;
+    using BTE_stream_base<T>::m_fileLength;
+    using BTE_stream_base<T>::m_osErrno;
+    using BTE_stream_base<T>::m_header;
+
+    using BTE_stream_base<T>::check_header;
+    using BTE_stream_base<T>::init_header;
+    using BTE_stream_base<T>::register_memory_allocation;
+    using BTE_stream_base<T>::register_memory_deallocation;
+    using BTE_stream_base<T>::record_statistics;
+    using BTE_stream_base<T>::name;
+
     
 public:
     using BTE_stream_base<T>::os_block_size;
-    using BTE_stream_base<T>::check_header;
-    using BTE_stream_base<T>::init_header;
 // End: These are for gcc-3.4 compatibility
 
 public:
@@ -113,81 +124,73 @@ public:
     // the input stream may have different block size from the temporary
     // streams created later. Until these issues are addressed, the
     // usage of lbf is discouraged.
-    BTE_stream_ufs (const char *dev_path, 
-		    BTE_stream_type st,
-		    TPIE_OS_SIZE_T lbf = BTE_STREAM_UFS_BLOCK_FACTOR);
-
+    BTE_stream_ufs(const char *dev_path, 
+		   BTE_stream_type st,
+		   TPIE_OS_SIZE_T lbf = BTE_STREAM_UFS_BLOCK_FACTOR);
+    
     // A substream constructor.
-    BTE_stream_ufs (BTE_stream_ufs * super_stream,
-		    BTE_stream_type st, 
-		    TPIE_OS_OFFSET sub_begin, 
-		    TPIE_OS_OFFSET sub_end);
-
+    BTE_stream_ufs(BTE_stream_ufs * super_stream,
+		   BTE_stream_type st, 
+		   TPIE_OS_OFFSET sub_begin, 
+		   TPIE_OS_OFFSET sub_end);
+    
     // A psuedo-constructor for substreams.
-    BTE_err new_substream (BTE_stream_type st, 
-			   TPIE_OS_OFFSET sub_begin,
-			   TPIE_OS_OFFSET sub_end,
-			   BTE_stream_base < T > **sub_stream);
+    BTE_err new_substream(BTE_stream_type st, 
+			  TPIE_OS_OFFSET sub_begin,
+			  TPIE_OS_OFFSET sub_end,
+			  BTE_stream_base < T > **sub_stream);
+    
+    // Destructor
+    ~BTE_stream_ufs();
 
-    // Query memory usage
-    BTE_err main_memory_usage (size_t * usage, MM_stream_usage usage_type);
-
-    // Return the number of items in the stream.
-    TPIE_OS_OFFSET stream_len () const;
-
-    // Return the path name in newly allocated space.
-    BTE_err name (char **stream_name);
+    inline BTE_err read_item(T ** elt);
+    inline BTE_err write_item(const T & elt);
 
     // Move to a specific position in the stream.
-    BTE_err seek (TPIE_OS_OFFSET offset);
-
-    // Return the current position in the stream.
-    TPIE_OS_OFFSET tell () const;
+    BTE_err seek(TPIE_OS_OFFSET offset);
 
     // Truncate the stream.
-    BTE_err truncate (TPIE_OS_OFFSET offset);
+    BTE_err truncate(TPIE_OS_OFFSET offset);
 
-    // Destructor
-    ~BTE_stream_ufs ();
+    // Return the number of items in the stream.
+    inline TPIE_OS_OFFSET stream_len() const;
 
-    inline BTE_err read_item (T ** elt);
-    inline BTE_err write_item (const T & elt);
+    // Return the current position in the stream.
+    inline TPIE_OS_OFFSET tell() const;
 
-    TPIE_OS_OFFSET chunk_size () const;
+    // Query memory usage
+    BTE_err main_memory_usage(size_t * usage, MM_stream_usage usage_type);
+
+    TPIE_OS_OFFSET chunk_size() const;
+
 private:
+
+    BTE_stream_header* map_header ();
+
+    inline BTE_err validate_current ();
+    inline BTE_err invalidate_current ();
+
+    BTE_err map_current ();
+    BTE_err unmap_current ();
+
+    inline BTE_err advance_current ();
+
+    inline TPIE_OS_OFFSET item_off_to_file_off (TPIE_OS_OFFSET itemOffset) const;
+    inline TPIE_OS_OFFSET file_off_to_item_off (TPIE_OS_OFFSET fileOffset) const;
 
     // Descriptor of the mapped file.
     TPIE_OS_FILE_DESCRIPTOR m_fileDescriptor;
 
-    TPIE_OS_SIZE_T m_osBlockSize;
-
     bool m_itemsAlignedWithBlock;
-
-    // Offset of the current item in the file. This is the logical
-    // offset of the item within the file, that is, the place we would
-    // have to lseek() to in order to read() or write() the item if we
-    // were using ordinary (i.e. non-mmap()) file access methods.
-    TPIE_OS_OFFSET m_fileOffset;
 
     // [tavi 01/27/02]
     // This is the position in the file where the pointer is. We can
     // save some lseek() calls by maintaining this.
     TPIE_OS_OFFSET m_filePointer;
 
-    // Offset just past the end of the last item in the stream. If this
-    // is a substream, we can't write here or anywhere beyond.
-    TPIE_OS_OFFSET m_fileEndOfStream;
-
-    // Beginning of the file.  Can't write before here.
-    TPIE_OS_OFFSET m_fileBeginOfStream;
-
-    TPIE_OS_OFFSET m_fileLength;
-
-    // A pointer to the mapped in header block for the stream.
-    BTE_stream_header *m_header;
-
     // The current item (mapped in)
     T *m_currentItem;
+
     // A pointer to the beginning of the currently mapped block.
     T *m_currentBlock;
 
@@ -205,11 +208,6 @@ private:
 
     TPIE_OS_SIZE_T m_itemsPerBlock;
 
-    // A place to cache OS error values. It is normally set after each
-    // call to the OS.
-    int m_osErrno;
-    // The file name.
-    char path[BTE_STREAM_PATH_NAME_LEN];
 
 #if UFS_DOUBLE_BUFFER
     // for use in double buffering, when one is implemented using
@@ -233,18 +231,6 @@ private:
     void read_ahead ();
 #endif
 
-    BTE_stream_header *map_header ();
-
-    inline BTE_err validate_current ();
-    inline BTE_err invalidate_current ();
-
-    BTE_err map_current ();
-    BTE_err unmap_current ();
-
-    inline BTE_err advance_current ();
-
-    inline TPIE_OS_OFFSET item_off_to_file_off (TPIE_OS_OFFSET item_off) const;
-    inline TPIE_OS_OFFSET file_off_to_item_off (TPIE_OS_OFFSET item_off) const;
 
 };
 
@@ -278,7 +264,7 @@ BTE_stream_ufs < T >::BTE_stream_ufs (const char *dev_path,
 	return;
     }
 
-    strncpy (path, dev_path, BTE_STREAM_PATH_NAME_LEN);
+    strncpy (m_path, dev_path, BTE_STREAM_PATH_NAME_LEN);
 
     // Cache the OS block size.
     m_osBlockSize = os_block_size();
@@ -294,7 +280,7 @@ BTE_stream_ufs < T >::BTE_stream_ufs (const char *dev_path,
     // A field to remember the file offset of mapped in block.
     m_currentBlockFileOffset = 0;
     m_currentBlock = m_currentItem = NULL;
-    m_fileOffset = m_fileBeginOfStream = m_osBlockSize;
+    m_fileOffset = m_logicalBeginOfStream = m_osBlockSize;
 
     // To be on the safe side, set this to -1. It will be set to the
     // right value by map_header(), below.
@@ -310,12 +296,12 @@ BTE_stream_ufs < T >::BTE_stream_ufs (const char *dev_path,
 
 	// Open the file for reading.
 	if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(m_fileDescriptor = 
-					      TPIE_OS_OPEN_ORDONLY(path))) {
+					      TPIE_OS_OPEN_ORDONLY(m_path))) {
 
 	    m_status = BTE_STREAM_STATUS_INVALID;
 	    m_osErrno = errno;
 
-	    TP_LOG_FATAL_ID ("open() failed to open " << path);
+	    TP_LOG_FATAL_ID ("open() failed to open " << m_path);
 	    TP_LOG_FATAL_ID (strerror (m_osErrno));
 	    // [tavi 01/07/02] Commented this out. Just because the file is
 	    // unreadable is no reason to crash.
@@ -326,7 +312,7 @@ BTE_stream_ufs < T >::BTE_stream_ufs (const char *dev_path,
 
 	m_header = map_header ();
 
-	if (check_header (m_header) < 0) {
+	if (check_header() < 0) {
 	    m_status = BTE_STREAM_STATUS_INVALID;
 	    return;
 	}
@@ -357,10 +343,10 @@ BTE_stream_ufs < T >::BTE_stream_ufs (const char *dev_path,
 	m_itemsAlignedWithBlock = (m_header->m_blockSize % sizeof (T) == 0);
 
 	// Set the eos marker appropriately.
-	m_fileEndOfStream = item_off_to_file_off (m_header->m_itemLogicalEOF);
+	m_logicalEndOfStream = item_off_to_file_off (m_header->m_itemLogicalEOF);
 
 	if (m_header->m_itemLogicalEOF >= 1) {
-	    if (m_fileEndOfStream - 
+	    if (m_logicalEndOfStream - 
 		item_off_to_file_off (m_header->m_itemLogicalEOF - 1) -
 		sizeof (T) > 0) {
 		// Meaning, 1. sizeof (T) does not divide the logical
@@ -371,13 +357,13 @@ BTE_stream_ufs < T >::BTE_stream_ufs (const char *dev_path,
 		// than the byte offset at which the last item ends). In
 		// this situation, after reading the last item and
 		// m_fileOffset gets incremented, it is strictly less than 
-		// m_fileEndOfStream; as a result the check 
-		// (m_fileEndOfStream <= m_fileOffset)? in ::read_item()
+		// m_logicalEndOfStream; as a result the check 
+		// (m_logicalEndOfStream <= m_fileOffset)? in ::read_item()
 		// gets beaten when it shouldn't.  To remedy, we simply
-		// reset m_fileEndOfStream in this circumstance to be just 
+		// reset m_logicalEndOfStream in this circumstance to be just 
 		// past the last item's byte offset.
 
-		m_fileEndOfStream = 
+		m_logicalEndOfStream = 
 		    item_off_to_file_off (m_header->m_itemLogicalEOF - 1) +
 		    sizeof (T);
 	    }
@@ -395,16 +381,16 @@ BTE_stream_ufs < T >::BTE_stream_ufs (const char *dev_path,
 	// already exists.  If this is the case, we will call open()
 	// again without it and read in the header block.
 	if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(m_fileDescriptor = 
-					      TPIE_OS_OPEN_OEXCL(path))) {
+					      TPIE_OS_OPEN_OEXCL(m_path))) {
 
 	    // Try again, hoping the file already exists.
 	    if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(m_fileDescriptor = 
-						  TPIE_OS_OPEN_ORDWR(path))) {
+						  TPIE_OS_OPEN_ORDWR(m_path))) {
 
 		m_status = BTE_STREAM_STATUS_INVALID;
 		m_osErrno = errno;
 
-		TP_LOG_FATAL_ID ("open() failed to open " << path);
+		TP_LOG_FATAL_ID ("open() failed to open " << m_path);
 		TP_LOG_FATAL_ID (strerror (m_osErrno));
 
 		return;
@@ -413,7 +399,7 @@ BTE_stream_ufs < T >::BTE_stream_ufs (const char *dev_path,
 	    // The file already exists, so read the header.
 	    m_header = map_header ();
 
-	    if (check_header (m_header) < 0) {
+	    if (check_header() < 0) {
 
 		m_status = BTE_STREAM_STATUS_INVALID;
 
@@ -448,11 +434,11 @@ BTE_stream_ufs < T >::BTE_stream_ufs (const char *dev_path,
 	    m_itemsPerBlock         =  m_header->m_blockSize / sizeof (T);
 	    m_itemsAlignedWithBlock = (m_header->m_blockSize % sizeof (T) == 0);
 
-	    m_fileEndOfStream = 
+	    m_logicalEndOfStream = 
 		item_off_to_file_off (m_header->m_itemLogicalEOF);
 
 	    if (m_header->m_itemLogicalEOF >= 1) {
-		if (m_fileEndOfStream - 
+		if (m_logicalEndOfStream - 
 		    item_off_to_file_off (m_header->m_itemLogicalEOF - 1) -
 		    sizeof (T) > 0) {
 		    // Meaning, 1. sizeof (T) does not divide the logical
@@ -463,19 +449,19 @@ BTE_stream_ufs < T >::BTE_stream_ufs (const char *dev_path,
 		    // greater than the byte offset at which the last item
 		    // ends). In this situation, after reading the last
 		    // item and m_fileOffset gets incremented, it is strictly
-		    // less than m_fileEndOfStream; as a result the check 
-		    // (m_fileEndOfStream <= m_fileOffset)? in ::read_item() 
+		    // less than m_logicalEndOfStream; as a result the check 
+		    // (m_logicalEndOfStream <= m_fileOffset)? in ::read_item() 
 		    // gets beaten when it shouldn't. To remedy, we simply 
-		    // reset m_fileEndOfStream in this circumstance to be 
+		    // reset m_logicalEndOfStream in this circumstance to be 
 		    // just past the last item's byte offset.
-		    m_fileEndOfStream =  
+		    m_logicalEndOfStream =  
 			item_off_to_file_off (m_header->m_itemLogicalEOF - 1) +
 			sizeof (T);
 		}
 	    }
 
 	    if (st == BTE_APPEND_STREAM) {
-		m_fileOffset = m_fileEndOfStream;
+		m_fileOffset = m_logicalEndOfStream;
 	    }
 	} 
 	else {	// The file was just created.
@@ -490,7 +476,7 @@ BTE_stream_ufs < T >::BTE_stream_ufs (const char *dev_path,
 		return;
 	    }
 
-	    init_header (m_header);
+	    init_header();
 
 	    if (lbf == 0) {
 		lbf = 1;
@@ -506,10 +492,9 @@ BTE_stream_ufs < T >::BTE_stream_ufs (const char *dev_path,
 	    m_itemsPerBlock         =  m_header->m_blockSize / sizeof (T);
 	    m_itemsAlignedWithBlock = (m_header->m_blockSize % sizeof (T) == 0);
 	 
-	    m_fileEndOfStream = m_osBlockSize;
-	    m_streamStatistics.record(STREAM_CREATE);
+	    m_logicalEndOfStream = m_osBlockSize;
 
-	    gstats_.record(STREAM_CREATE);
+	    record_statistics(STREAM_CREATE);
 	}
 	
 	break;
@@ -538,16 +523,15 @@ BTE_stream_ufs < T >::BTE_stream_ufs (const char *dev_path,
     // are registered automatically by Darren's modified new() function.
     m_fileLength  = TPIE_OS_LSEEK(m_fileDescriptor, 0, TPIE_OS_FLAG_SEEK_END);
     m_filePointer = m_fileLength;
-    m_streamStatistics.record(STREAM_OPEN);
 
-    gstats_.record(STREAM_OPEN);
+    record_statistics(STREAM_OPEN);
 }
 
 
 // A substream constructor.
 // sub_begin is the item offset of the first item in the stream.
 // sub_end is the item offset that of the last item in the stream.
-// Thus, m_fileEndOfStream in the new substream will be set to point one item beyond
+// Thus, m_logicalEndOfStream in the new substream will be set to point one item beyond
 // this.
 //
 // For example, if a stream contains [A,B,C,D,...] then substream(1,3)
@@ -612,7 +596,7 @@ BTE_stream_ufs < T >::BTE_stream_ufs (BTE_stream_ufs * super_stream,
 
     // Copy the relevant fields from the super_stream.
     
-    strncpy (path, super_stream->path, BTE_STREAM_PATH_NAME_LEN);
+    strncpy (m_path, super_stream->m_path, BTE_STREAM_PATH_NAME_LEN);
 
     m_readOnly              = super_stream->read_only();
     m_osBlockSize           = super_stream->m_osBlockSize;
@@ -627,12 +611,14 @@ BTE_stream_ufs < T >::BTE_stream_ufs (BTE_stream_ufs * super_stream,
     // Only READ and WRITE streams allowed
     switch(st){
     case BTE_READ_STREAM:
-	m_fileDescriptor=TPIE_OS_OPEN_ORDONLY(path);
+	m_fileDescriptor=TPIE_OS_OPEN_ORDONLY(m_path);
 	break;
+
     case BTE_WRITE_STREAM:
 	//file better exist if super_stream exists
-	m_fileDescriptor=TPIE_OS_OPEN_ORDWR(path);
+	m_fileDescriptor=TPIE_OS_OPEN_ORDWR(m_path);
 	break;
+
     default:
 	m_status = BTE_STREAM_STATUS_INVALID;
 
@@ -646,7 +632,7 @@ BTE_stream_ufs < T >::BTE_stream_ufs (BTE_stream_ufs * super_stream,
 	m_status = BTE_STREAM_STATUS_INVALID;
 	m_osErrno = errno;
 
-	TP_LOG_FATAL_ID ("open() failed to open " << path);
+	TP_LOG_FATAL_ID ("open() failed to open " << m_path);
 	TP_LOG_FATAL_ID (strerror (m_osErrno));
 	assert(0);
 
@@ -660,16 +646,16 @@ BTE_stream_ufs < T >::BTE_stream_ufs (BTE_stream_ufs * super_stream,
     // the stream where items are found.
 
     TPIE_OS_OFFSET super_item_begin = 
-	file_off_to_item_off (super_stream->m_fileBeginOfStream);
+	file_off_to_item_off (super_stream->m_logicalBeginOfStream);
 
-    m_fileBeginOfStream = item_off_to_file_off(super_item_begin + sub_begin);
-    m_fileEndOfStream   = item_off_to_file_off(super_item_begin + sub_end + 1);
+    m_logicalBeginOfStream = item_off_to_file_off(super_item_begin + sub_begin);
+    m_logicalEndOfStream   = item_off_to_file_off(super_item_begin + sub_end + 1);
 
     // sanity check
-    tp_assert (m_fileBeginOfStream <= m_fileEndOfStream, "bos beyond eos");
+    tp_assert (m_logicalBeginOfStream <= m_logicalEndOfStream, "bos beyond eos");
     
     if (super_item_begin + sub_end + 1 >= 1) {
-	if (m_fileEndOfStream - 
+	if (m_logicalEndOfStream - 
 	    item_off_to_file_off (super_item_begin + sub_end) -
 	    sizeof (T) > 0) {
 	    // Meaning, 1. sizeof (T) does not divide the logical
@@ -679,23 +665,23 @@ BTE_stream_ufs < T >::BTE_stream_ufs (BTE_stream_ufs * super_stream,
 	    // of a new block and so strictly greater than the byte offset
 	    // at which the last item ends.)  In this situation, after
 	    // reading the last item and m_fileOffset gets incremented, it is
-	    // strictly less than m_fileEndOfStream; as a result the check 
-	    // (m_fileEndOfStream <= m_fileOffset)? in ::read_item() gets 
+	    // strictly less than m_logicalEndOfStream; as a result the check 
+	    // (m_logicalEndOfStream <= m_fileOffset)? in ::read_item() gets 
 	    // beaten when it shouldn't. To remedy, we simply reset
-	    // m_fileEndOfStream in this circumstance to be
+	    // m_logicalEndOfStream in this circumstance to be
 	    // just past the last item's byte offset.
-	    m_fileEndOfStream = 
+	    m_logicalEndOfStream = 
 		item_off_to_file_off (super_item_begin + sub_end) +
 		sizeof (T);
 	}
     }
 
     // sanity check
-    tp_assert (m_fileBeginOfStream <= m_fileEndOfStream, "bos beyond eos");
+    tp_assert (m_logicalBeginOfStream <= m_logicalEndOfStream, "bos beyond eos");
 
     m_fileLength = super_stream->m_fileLength;
 
-    if (m_fileEndOfStream > super_stream->m_fileEndOfStream) {
+    if (m_logicalEndOfStream > super_stream->m_logicalEndOfStream) {
 
 	m_status = BTE_STREAM_STATUS_INVALID;
 
@@ -704,7 +690,7 @@ BTE_stream_ufs < T >::BTE_stream_ufs (BTE_stream_ufs * super_stream,
 	return;
     }
 
-    m_fileOffset   = m_fileBeginOfStream;
+    m_fileOffset   = m_logicalBeginOfStream;
     m_filePointer  = -1; // I don't know where the file pointer is.
     m_currentItem  = NULL;
     m_currentBlock = NULL;
@@ -718,12 +704,8 @@ BTE_stream_ufs < T >::BTE_stream_ufs (BTE_stream_ufs * super_stream,
     have_next_block = 0;
 #endif
 
-    // Register memory_usage for the object corresp to the substream.
-    m_streamStatistics.record(STREAM_OPEN);
-    m_streamStatistics.record(SUBSTREAM_CREATE);
-
-    gstats_.record(STREAM_OPEN);
-    gstats_.record(SUBSTREAM_CREATE);
+    record_statistics(STREAM_OPEN);
+    record_statistics(SUBSTREAM_CREATE);
 }
 
 // A psuedo-constructor for substreams.  This serves as a wrapper for
@@ -771,14 +753,12 @@ BTE_stream_ufs < T >::~BTE_stream_ufs () {
 	remaining_streams++;
     }
 
-    m_streamStatistics.record(STREAM_DELETE);
-
-    gstats_.record(STREAM_DELETE);
+    record_statistics(STREAM_DELETE);
 
     // If this is writable and not a substream, then put the logical
     // eos back into the header before unmapping it.
     if (!m_readOnly && !m_substreamLevel) {
-	m_header->m_itemLogicalEOF = file_off_to_item_off (m_fileEndOfStream);
+	m_header->m_itemLogicalEOF = file_off_to_item_off (m_logicalEndOfStream);
     }
 
     // Unmap the current block if necessary.
@@ -798,7 +778,7 @@ BTE_stream_ufs < T >::~BTE_stream_ufs () {
 		m_status  = BTE_STREAM_STATUS_INVALID;
 		m_osErrno = errno;
 
-		TP_LOG_FATAL_ID ("lseek() failed to move past header of " << path);
+		TP_LOG_FATAL_ID ("lseek() failed to move past header of " << m_path);
 		TP_LOG_FATAL_ID (strerror (m_osErrno));
 		// [tavi 01/07/02] Commented this out. Why panic?
 		//assert (0);
@@ -815,7 +795,7 @@ BTE_stream_ufs < T >::~BTE_stream_ufs () {
 		m_osErrno = errno;
 
 		TP_LOG_FATAL_ID ("write() failed during stream destruction for "
-			      << path);
+			      << m_path);
 		TP_LOG_FATAL_ID (strerror (m_osErrno));
 		// [tavi 01/07/02] Commented this out. Why panic?
 		//assert (0);
@@ -836,7 +816,7 @@ BTE_stream_ufs < T >::~BTE_stream_ufs () {
 
 	    m_osErrno = errno;
 
-	    TP_LOG_FATAL_ID ("Failed to close() " << path);
+	    TP_LOG_FATAL_ID ("Failed to close() " << m_path);
 	    TP_LOG_FATAL_ID (strerror (m_osErrno));
 	    // [tavi 01/07/02] Commented this out. Why panic?
 	    //assert (0);
@@ -847,21 +827,19 @@ BTE_stream_ufs < T >::~BTE_stream_ufs () {
 	// If it should not persist, unlink the file.
 	if (m_persistenceStatus == PERSIST_DELETE) {
 	    if (m_readOnly) {
-		TP_LOG_WARNING_ID("PERSIST_DELETE for read-only stream in " << path);
+		TP_LOG_WARNING_ID("PERSIST_DELETE for read-only stream in " << m_path);
             } 
 	    else  {
-		if (TPIE_OS_UNLINK (path)) {
+		if (TPIE_OS_UNLINK (m_path)) {
 
 		    m_osErrno = errno;
 
 		    TP_LOG_WARNING_ID ("unlink failed during destruction of:");
-		    TP_LOG_WARNING_ID (path);
+		    TP_LOG_WARNING_ID (m_path);
 		    TP_LOG_WARNING_ID (strerror (m_osErrno));
 		}
 		else {
-		    m_streamStatistics.record(STREAM_DELETE);
-
-		    gstats_.record(STREAM_DELETE);
+		    record_statistics(STREAM_DELETE);
 		}
 	    }
 	}
@@ -872,15 +850,13 @@ BTE_stream_ufs < T >::~BTE_stream_ufs () {
 	    
 	    m_osErrno = errno;
 	    
-	    TP_LOG_FATAL_ID ("Failed to close() substream" << path);
+	    TP_LOG_FATAL_ID ("Failed to close() substream" << m_path);
 	    TP_LOG_FATAL_ID (strerror (m_osErrno));
 
 	    return;
 	}
 
-	m_streamStatistics.record(SUBSTREAM_DELETE);
-
-	gstats_.record(SUBSTREAM_DELETE);
+	record_statistics(SUBSTREAM_DELETE);
     }
     
     if (m_currentBlock) {
@@ -905,9 +881,7 @@ BTE_stream_ufs < T >::~BTE_stream_ufs () {
 	delete [] next_block;	// use vector delete -RW
 #endif
     
-    m_streamStatistics.record(STREAM_CLOSE);
-
-    gstats_.record(STREAM_CLOSE);
+    record_statistics(STREAM_CLOSE);
 }
 
 template < class T >
@@ -916,8 +890,8 @@ inline BTE_err BTE_stream_ufs < T >::read_item (T ** elt) {
     BTE_err bte_err;
    
     // Make sure we are not currently at the EOS.
-    if (m_fileOffset >= m_fileEndOfStream) {
-	tp_assert (m_fileEndOfStream == m_fileOffset, "Can't read past eos.");
+    if (m_fileOffset >= m_logicalEndOfStream) {
+	tp_assert (m_logicalEndOfStream == m_fileOffset, "Can't read past eos.");
 	return BTE_ERROR_END_OF_STREAM;
     }
 
@@ -934,9 +908,7 @@ inline BTE_err BTE_stream_ufs < T >::read_item (T ** elt) {
     tp_assert (((char *) m_currentItem - (char *) m_currentBlock >= 0),
 	       "m_currentItem is before the begining of the current block");
 
-    m_streamStatistics.record(ITEM_READ);
-
-    gstats_.record(ITEM_READ);
+    record_statistics(ITEM_READ);
 
     // Read
     *elt = m_currentItem;
@@ -945,8 +917,8 @@ inline BTE_err BTE_stream_ufs < T >::read_item (T ** elt) {
     advance_current ();
 
     // If we are in a substream, there should be no way for f_current
-    // to pass m_fileEndOfStream.
-    tp_assert (!m_substreamLevel || (m_fileOffset <= m_fileEndOfStream),
+    // to pass m_logicalEndOfStream.
+    tp_assert (!m_substreamLevel || (m_fileOffset <= m_logicalEndOfStream),
 	       "Got past eos in a substream.");
 
     return BTE_ERROR_NO_ERROR;
@@ -963,8 +935,8 @@ inline BTE_err BTE_stream_ufs < T >::write_item (const T & elt) {
     }
 
     // Make sure we are not currently at the EOS of a substream.
-    if (m_substreamLevel && (m_fileEndOfStream <= m_fileOffset)) {
-	tp_assert (m_fileEndOfStream == m_fileOffset, "Went too far in a substream.");
+    if (m_substreamLevel && (m_logicalEndOfStream <= m_fileOffset)) {
+	tp_assert (m_logicalEndOfStream == m_fileOffset, "Went too far in a substream.");
 	return BTE_ERROR_END_OF_STREAM;
     }
 
@@ -981,9 +953,7 @@ inline BTE_err BTE_stream_ufs < T >::write_item (const T & elt) {
     tp_assert (((char *) m_currentItem - (char *) m_currentBlock >= 0),
 	       "current is before the begining of the current block");
 
-    m_streamStatistics.record(ITEM_WRITE);
-
-    gstats_.record(ITEM_WRITE);
+    record_statistics(ITEM_WRITE);
 
     // Write.
     *m_currentItem = elt;
@@ -993,18 +963,18 @@ inline BTE_err BTE_stream_ufs < T >::write_item (const T & elt) {
     advance_current ();
 
     // If we are in a substream, there should be no way for f_current to
-    // pass m_fileEndOfStream.
-    tp_assert (!m_substreamLevel || (m_fileOffset <= m_fileEndOfStream),
+    // pass m_logicalEndOfStream.
+    tp_assert (!m_substreamLevel || (m_fileOffset <= m_logicalEndOfStream),
 	       "Got past eos in a substream.");
 
     // If we moved past eos, then update eos unless we are in a
     // substream, in which case EOS will be returned on the next call.
-    if ((m_fileOffset > m_fileEndOfStream) && !m_substreamLevel) {
+    if ((m_fileOffset > m_logicalEndOfStream) && !m_substreamLevel) {
 	// disable the assertion below because it is violated when
 	// the end of a block is reached and the item size does not
 	// divide the block size completely (so there is some space left)
-	// tp_assert(m_fileOffset == m_fileEndOfStream + sizeof(T), "Advanced too far somehow.");
-	m_fileEndOfStream = m_fileOffset;
+	// tp_assert(m_fileOffset == m_logicalEndOfStream + sizeof(T), "Advanced too far somehow.");
+	m_logicalEndOfStream = m_fileOffset;
     }
 
     return BTE_ERROR_NO_ERROR;
@@ -1058,25 +1028,9 @@ BTE_err BTE_stream_ufs < T >::main_memory_usage (size_t * usage,
 // Return the number of items in the stream.
 template < class T > 
 TPIE_OS_OFFSET BTE_stream_ufs < T >::stream_len () const {
-    return file_off_to_item_off (m_fileEndOfStream) - 
-	file_off_to_item_off (m_fileBeginOfStream);
+    return file_off_to_item_off (m_logicalEndOfStream) - 
+	file_off_to_item_off (m_logicalBeginOfStream);
 };
-
-// Return the path name in newly allocated space.
-template < class T >
-BTE_err BTE_stream_ufs < T >::name (char **stream_name) {
-
-    TPIE_OS_SIZE_T len = (TPIE_OS_SIZE_T)strlen (path);
-    
-    tp_assert (len < BTE_STREAM_PATH_NAME_LEN, "Path length is too long.");
-    
-    char *new_path = new char[len + 1];
-    
-    strncpy (new_path, path, len + 1);
-    *stream_name = new_path;
-    
-    return BTE_ERROR_NO_ERROR;
-}
 
 // Move to a specific position.
 template < class T > 
@@ -1086,20 +1040,20 @@ BTE_err BTE_stream_ufs < T >::seek (TPIE_OS_OFFSET offset) {
     TPIE_OS_OFFSET new_offset;
     
     if ((offset < 0) ||
-	(offset > file_off_to_item_off (m_fileEndOfStream) - 
-	file_off_to_item_off (m_fileBeginOfStream))) {
+	(offset > file_off_to_item_off (m_logicalEndOfStream) - 
+	file_off_to_item_off (m_logicalBeginOfStream))) {
 
 	TP_LOG_WARNING_ID ("seek() out of range (off/bos/eos)");
 	TP_LOG_WARNING_ID (offset);
-	TP_LOG_WARNING_ID (file_off_to_item_off (m_fileBeginOfStream));
-	TP_LOG_WARNING_ID (file_off_to_item_off (m_fileEndOfStream));
+	TP_LOG_WARNING_ID (file_off_to_item_off (m_logicalBeginOfStream));
+	TP_LOG_WARNING_ID (file_off_to_item_off (m_logicalEndOfStream));
 
 	return BTE_ERROR_OFFSET_OUT_OF_RANGE;
     }
     
     // Compute the new offset.
     new_offset = item_off_to_file_off (
-	file_off_to_item_off (m_fileBeginOfStream) + offset);
+	file_off_to_item_off (m_logicalBeginOfStream) + offset);
     
     if (((size_t) ((char *) m_currentItem - (char *) m_currentBlock) >=
 	 m_header->m_blockSize)
@@ -1124,9 +1078,7 @@ BTE_err BTE_stream_ufs < T >::seek (TPIE_OS_OFFSET offset) {
 
     m_fileOffset = new_offset;
 
-    m_streamStatistics.record(ITEM_SEEK);
-
-    gstats_.record(ITEM_SEEK);
+    record_statistics(ITEM_SEEK);
 
     return BTE_ERROR_NO_ERROR;
 }
@@ -1155,7 +1107,7 @@ BTE_err BTE_stream_ufs < T >::truncate (TPIE_OS_OFFSET offset) {
     
     // Compute the new offset
     new_offset = item_off_to_file_off (
-	file_off_to_item_off (m_fileBeginOfStream) + offset);
+	file_off_to_item_off (m_logicalBeginOfStream) + offset);
 
     // If it is not in the same block as the current position then
     // invalidate the current block.
@@ -1173,7 +1125,7 @@ BTE_err BTE_stream_ufs < T >::truncate (TPIE_OS_OFFSET offset) {
     // If it is not in the same block as the current end of stream
     // then truncate the file to the end of the new last block.
     if (((new_offset - m_osBlockSize) / m_header->m_blockSize) !=
-	((m_fileEndOfStream - m_osBlockSize) / m_header->m_blockSize)) {
+	((m_logicalEndOfStream - m_osBlockSize) / m_header->m_blockSize)) {
 	
 	// Determine the offset of the block that new_offset is in.
 	block_offset = ((new_offset - m_osBlockSize) / m_header->m_blockSize)
@@ -1184,7 +1136,7 @@ BTE_err BTE_stream_ufs < T >::truncate (TPIE_OS_OFFSET offset) {
 
 	    m_osErrno = errno;
 
-	    TP_LOG_FATAL_ID ("Failed to ftruncate() to the new end of " << path);
+	    TP_LOG_FATAL_ID ("Failed to ftruncate() to the new end of " << m_path);
 	    TP_LOG_FATAL_ID (strerror (m_osErrno));
 
 	    return BTE_ERROR_OS_ERROR;
@@ -1206,7 +1158,7 @@ BTE_err BTE_stream_ufs < T >::truncate (TPIE_OS_OFFSET offset) {
     }
     
     // Reset the current position to the end.    
-    m_fileOffset = m_fileEndOfStream = new_offset;
+    m_fileOffset = m_logicalEndOfStream = new_offset;
 
     return BTE_ERROR_NO_ERROR;
 }
@@ -1228,7 +1180,7 @@ BTE_stream_header * BTE_stream_ufs < T >::map_header () {
 
 	    m_status = BTE_STREAM_STATUS_INVALID;
 
-	    TP_LOG_FATAL_ID ("No header block in read only stream " << path);
+	    TP_LOG_FATAL_ID ("No header block in read only stream " << m_path);
 
 	    return NULL;
 	} 
@@ -1250,7 +1202,7 @@ BTE_stream_header * BTE_stream_ufs < T >::map_header () {
 
 		    m_osErrno = errno;
 
-		    TP_LOG_FATAL_ID ("Failed to lseek() in stream " << path);
+		    TP_LOG_FATAL_ID ("Failed to lseek() in stream " << m_path);
 		    TP_LOG_FATAL_ID (strerror (m_osErrno));
 
 		    return NULL;
@@ -1262,7 +1214,7 @@ BTE_stream_header * BTE_stream_ufs < T >::map_header () {
 
 		m_osErrno = errno;
 
-		TP_LOG_FATAL_ID ("Failed to write() in stream " << path);
+		TP_LOG_FATAL_ID ("Failed to write() in stream " << m_path);
 		TP_LOG_FATAL_ID (strerror (m_osErrno));
 
 		return NULL;
@@ -1304,7 +1256,7 @@ BTE_stream_header * BTE_stream_ufs < T >::map_header () {
 	m_osErrno = errno;
 	delete [] tmp_buffer;
 
-	TP_LOG_FATAL_ID ("Failed to lseek() in stream " << path);
+	TP_LOG_FATAL_ID ("Failed to lseek() in stream " << m_path);
 	TP_LOG_FATAL_ID (strerror (m_osErrno));
 
 	return NULL;
@@ -1316,7 +1268,7 @@ BTE_stream_header * BTE_stream_ufs < T >::map_header () {
 	m_osErrno = errno;
 	delete [] tmp_buffer;
 
-	TP_LOG_FATAL_ID ("Failed to read() in stream " << path);
+	TP_LOG_FATAL_ID ("Failed to read() in stream " << m_path);
 	TP_LOG_FATAL_ID (strerror (m_osErrno));
 
 	return NULL;
@@ -1477,7 +1429,7 @@ template < class T > BTE_err BTE_stream_ufs < T >::map_current (void) {
 		m_osErrno = errno;
 
 		TP_LOG_FATAL_ID ("seek failed in file:");
-		TP_LOG_FATAL_ID (path);
+		TP_LOG_FATAL_ID (m_path);
 		TP_LOG_FATAL_ID(strerror(m_osErrno));
 
 		return BTE_ERROR_OS_ERROR;
@@ -1501,7 +1453,7 @@ template < class T > BTE_err BTE_stream_ufs < T >::map_current (void) {
 	    m_osErrno = errno;
 
 	    TP_LOG_FATAL_ID ("read failed in file ");
-	    TP_LOG_FATAL_ID(path);
+	    TP_LOG_FATAL_ID(m_path);
 	    TP_LOG_FATAL_ID(strerror(m_osErrno));
 
 	    return BTE_ERROR_OS_ERROR;
@@ -1530,8 +1482,8 @@ template < class T > BTE_err BTE_stream_ufs < T >::map_current (void) {
 
     m_currentItem = m_currentBlock + internal_block_offset;
 
-    gstats_.record(BLOCK_READ);
-    m_streamStatistics.record(BLOCK_READ);
+    record_statistics(BLOCK_READ);
+
     return BTE_ERROR_NO_ERROR;
 }
 
@@ -1585,9 +1537,7 @@ BTE_err BTE_stream_ufs < T >::unmap_current (void) {
     m_blockValid = false;
     m_currentBlockFileOffset = 0;
 
-    m_streamStatistics.record(BLOCK_WRITE);
-
-    gstats_.record(BLOCK_WRITE);
+    record_statistics(BLOCK_WRITE);
 
     return BTE_ERROR_NO_ERROR;
 }
@@ -1677,7 +1627,7 @@ template < class T > void BTE_stream_ufs < T >::read_ahead (void)
     f_curr_block = ((m_fileOffset - m_osBlockSize) / m_header->m_blockSize) *
 	m_header->m_blockSize + m_osBlockSize;
 
-    if (m_fileEndOfStream < f_curr_block + m_header->m_blockSize) {
+    if (m_logicalEndOfStream < f_curr_block + m_header->m_blockSize) {
 	return;
     }
 
