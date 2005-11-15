@@ -5,7 +5,7 @@
 // Created: 06/28/97
 // Last Modified: 06/29/97 by Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: intertree.h,v 1.2 2005-11-10 10:35:57 adanner Exp $
+// $Id: intertree.h,v 1.3 2005-11-15 15:36:09 jan Exp $
 //
 // class intertree representing an interval tree.
 // class internode representing a node in the interval tree.
@@ -18,6 +18,9 @@
 #include <ami.h>
 #include "rectangle.h"
 
+#ifdef _WIN32
+#include "rand48.h"
+#endif
 extern "C" { long nrand48(unsigned short *);}
 
 enum { bitsInRandom = 31 };            // aah. a magic constant. this is the
