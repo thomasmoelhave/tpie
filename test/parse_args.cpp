@@ -5,7 +5,7 @@
 //
 
 #include <versions.h>
-VERSION(parse_args,"$Id: parse_args.cpp,v 1.18 2005-02-15 00:20:27 tavi Exp $");
+VERSION(parse_args,"$Id: parse_args.cpp,v 1.19 2005-11-15 15:42:08 jan Exp $");
 
 #include <portability.h>
 
@@ -23,9 +23,9 @@ VERSION(parse_args,"$Id: parse_args.cpp,v 1.18 2005-02-15 00:20:27 tavi Exp $");
 #include "parse_args.h"
 #include <ami_stream.h>
 
-static size_t parse_number(char *s) {
-  size_t n; 
-  size_t mult = 1;
+static TPIE_OS_OFFSET parse_number(char *s) {
+  TPIE_OS_OFFSET n; 
+  TPIE_OS_OFFSET mult = 1;
   size_t len = strlen(s);
   if(isalpha(s[len-1])) {
     switch(s[len-1]) {
@@ -48,7 +48,7 @@ static size_t parse_number(char *s) {
     }
     s[len-1] = '\0';
   }
-  n = size_t(atof(s) * mult);
+  n = TPIE_OS_OFFSET(atof(s) * mult);
   return n;
 }
 
@@ -93,14 +93,15 @@ void parse_args(int argc, char **argv, struct options *application_opts,
   }
 
   int idx;
-  size_t mm_sz = DEFAULT_TEST_MM_SIZE;
+  TPIE_OS_SIZE_T mm_sz = DEFAULT_TEST_MM_SIZE;
   unsigned int rnd_seed = DEFAULT_RANDOM_SEED;
   char *opt_arg;
 
   while ((idx = getopts(argc, argv, all_opts, &opt_arg)) != 0) {
     switch (idx) {
     case 1: 
-      mm_sz = max(size_t(128*1024), parse_number(opt_arg));
+        // mm_size should be small.
+      mm_sz = max(size_t(128*1024), static_cast<TPIE_OS_SIZE_T>(parse_number(opt_arg)));
       break;
     case 2:
       verbose = true; 
