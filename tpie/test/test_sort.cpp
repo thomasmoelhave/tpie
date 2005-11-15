@@ -47,8 +47,8 @@ const char* APP_FILE_BASE =  "TPIE_Test";
 typedef struct app_info{
     char * path;
     int item_size;
-    TPIE_OS_LONGLONG num_items;
-    TPIE_OS_LONGLONG mem_size;
+    TPIE_OS_OFFSET num_items;
+    TPIE_OS_SIZE_T mem_size;
 } appInfo;
 
 // ********************************************************** 
@@ -121,10 +121,10 @@ int qcomp(const void* left, const void* right){
 
 // Just like atoi or atol, but should also work for 64bit numbers
 // Also supports KMG suffixes (e.g. 2K = 2*1024)
-TPIE_OS_LONGLONG ascii2longlong(char *s){
+TPIE_OS_OFFSET ascii2longlong(char *s){
 
-  int i, len, digit, multfactor;
-  TPIE_OS_LONGLONG val;
+  size_t i, len, digit, multfactor;
+  TPIE_OS_OFFSET val;
   bool ok, neg;
   
   len = strlen(s);
@@ -240,7 +240,7 @@ void get_app_info(int argc, char** argv, appInfo & Info){
   char* optarg;
   int optidx, nopts;
   bool optset=false;
-  TPIE_OS_LONGLONG tmp;
+  TPIE_OS_OFFSET tmp;
 
   init_opts(opts, argc, argv); 
 
@@ -265,12 +265,12 @@ void get_app_info(int argc, char** argv, appInfo & Info){
       Info.path=optarg;
     }
     else if(optidx==APP_OPTION_MEM_SIZE){
-      tmp = ascii2longlong(optarg);
+      tmp = static_cast<TPIE_OS_SIZE_T>(ascii2longlong(optarg));
       if(tmp < 0){
         cerr << "Invalid memory size. Exiting...\n";
         exit(1);
       }
-      else { Info.mem_size=tmp; }
+      else { Info.mem_size=static_cast<TPIE_OS_SIZE_T>(tmp); }
     }
     else if(!optset){
       //set optset flag if applicable
@@ -364,7 +364,7 @@ void get_app_info(int argc, char** argv, appInfo & Info){
 char* ll2size(TPIE_OS_LONGLONG n, char* buf){
   
   const int bufsize = 20;
-  float size;
+  double size;
   if(n > APP_GIG ){
     size = (n*1.)/APP_GIG;
     APP_SNPRINTF(buf, bufsize, "%.2f G",size);
@@ -390,7 +390,6 @@ void write_random_stream(char* fname, appInfo & info, progress_indicator_base* i
   
   TPIE_OS_OFFSET i,n,trunc;
   AMI_err ae=AMI_ERROR_NO_ERROR;
-  char buf[20];
   i=0;
   n=info.num_items;
 
@@ -513,7 +512,6 @@ void internal_sort_test(const appInfo& info){
   TPIE_OS_SIZE_T str_mem_usage;
   int i,nitems;
   SortItem *list;
-  AMI_err ae;
   cpu_timer clk;
   SortCompare cmp;
   char buf[20];
@@ -609,7 +607,7 @@ AMI_err test_3x_sort(appInfo& info, enum test_type ttype, progress_indicator_bas
   TP_LOG_APP_DEBUG_ID("Starting sort"); 
   SortCompare cmp;
   KeySortCompare kcmp;
-  long dummykey;
+  long dummykey = 0;
   switch(ttype){
     case APP_TEST_OBJ_OP:
       cout << "Using operator sorting and object heaps" << endl;
@@ -682,7 +680,7 @@ AMI_err test_2x_sort(appInfo& info, enum test_type ttype, progress_indicator_bas
   TP_LOG_APP_DEBUG_ID("Starting sort"); 
   SortCompare cmp;
   KeySortCompare kcmp;
-  long dummykey;
+  long dummykey=0;
   switch(ttype){
     case APP_TEST_OBJ_OP:
       cout << "Using operator sorting and object heaps" << endl;
@@ -736,7 +734,6 @@ AMI_err test_2x_sort(appInfo& info, enum test_type ttype, progress_indicator_bas
 
 int main(int argc, char **argv){
   appInfo info;
-  TPIE_OS_SIZE_T mSize;
   char buf[20];
   TPIE_OS_SRANDOM(time(NULL));
   get_app_info(argc, argv, info);
