@@ -7,7 +7,7 @@
 // Internal sorter class that can be used within AMI_sort() on small
 // streams/substreams
 //
-// $Id: internal_sort.h,v 1.2 2005-11-08 17:21:02 adanner Exp $
+// $Id: internal_sort.h,v 1.3 2005-11-15 15:40:21 jan Exp $
 //
 #ifndef _INTERNAL_SORT_H
 #define _INTERNAL_SORT_H
@@ -28,7 +28,7 @@ template<class T>
 class Internal_Sorter_Base{
   protected:
     T* ItemArray;        //Array that holds items to be sorted
-    TPIE_OS_OFFSET len;  //length of ItemArray
+    TPIE_OS_SIZE_T len;  //length of ItemArray
 
   public:
     //Constructor
@@ -36,12 +36,12 @@ class Internal_Sorter_Base{
     ~Internal_Sorter_Base(void); //Destructor
     
     //Allocate array that can hold nItems
-    void allocate(TPIE_OS_OFFSET nItems);
+    void allocate(TPIE_OS_SIZE_T nItems);
     
     void deallocate(void); //Clean up internal array
 
     // Maximum number of Items that can be sorted using memSize bytes
-    TPIE_OS_OFFSET MaxItemCount(TPIE_OS_OFFSET memSize);
+    TPIE_OS_SIZE_T MaxItemCount(TPIE_OS_SIZE_T memSize);
 
     // Memory usage per sort item
     TPIE_OS_SIZE_T space_per_item();
@@ -60,7 +60,7 @@ Internal_Sorter_Base<T>::~Internal_Sorter_Base(void){
 }
 
 template<class T>
-inline void Internal_Sorter_Base<T>::allocate(TPIE_OS_OFFSET nitems){
+inline void Internal_Sorter_Base<T>::allocate(TPIE_OS_SIZE_T nitems){
   len=nitems;
   ItemArray = new T[len];
 }
@@ -75,11 +75,11 @@ inline void Internal_Sorter_Base<T>::deallocate(void){
 }
 
 template<class T>
-inline TPIE_OS_OFFSET Internal_Sorter_Base<T>::MaxItemCount(
-                                              TPIE_OS_OFFSET memSize)
+inline TPIE_OS_SIZE_T Internal_Sorter_Base<T>::MaxItemCount(
+                                                  TPIE_OS_SIZE_T memSize)
 {
   //Space available for items
-  TPIE_OS_OFFSET memAvail=memSize-space_overhead();
+  TPIE_OS_SIZE_T memAvail=memSize-space_overhead();
   
   if(memAvail < space_per_item() ){ return -1; }
   else{ return memAvail/space_per_item(); }
@@ -121,7 +121,7 @@ class Internal_Sorter_Op: public Internal_Sorter_Base<T>{
 
     //Sort nItems from input stream and write to output stream
     AMI_err sort(AMI_STREAM<T>* InStr, AMI_STREAM<T>* OutStr,
-        TPIE_OS_OFFSET nItems);
+        TPIE_OS_SIZE_T nItems);
 };
 
 // Read nItems sequentially from InStr, starting at the current file
@@ -129,11 +129,11 @@ class Internal_Sorter_Op: public Internal_Sorter_Base<T>{
 // file position.
 template<class T>
 AMI_err Internal_Sorter_Op<T>::sort(AMI_STREAM<T>* InStr,
-                AMI_STREAM<T>* OutStr, TPIE_OS_OFFSET nItems){
+                AMI_STREAM<T>* OutStr, TPIE_OS_SIZE_T nItems){
 
   AMI_err ae;
   T    *next_item;
-  TPIE_OS_OFFSET i = 0;
+  TPIE_OS_SIZE_T i = 0;
 
   TP_LOG_DEBUG_ID("Sorting internal run of " << nItems 
                   << " items using \"<\" operator.");
@@ -200,7 +200,7 @@ class Internal_Sorter_Obj: public Internal_Sorter_Base<T>{
 
     //Sort nItems from input stream and write to output stream
     AMI_err sort(AMI_STREAM<T>* InStr, AMI_STREAM<T>* OutStr,
-        TPIE_OS_OFFSET nItems);
+        TPIE_OS_SIZE_T nItems);
 };
 
 // Read nItems sequentially from InStr, starting at the current file
@@ -208,11 +208,11 @@ class Internal_Sorter_Obj: public Internal_Sorter_Base<T>{
 // file position.
 template<class T, class CMPR>
 AMI_err Internal_Sorter_Obj<T, CMPR>::sort(AMI_STREAM<T>* InStr,
-                AMI_STREAM<T>* OutStr, TPIE_OS_OFFSET nItems){
+                AMI_STREAM<T>* OutStr, TPIE_OS_SIZE_T nItems){
 
   AMI_err ae;
   T    *next_item;
-  TPIE_OS_OFFSET i = 0;
+  TPIE_OS_SIZE_T i = 0;
 
   //make sure we called allocate earlier
   if(ItemArray==NULL){return AMI_ERROR_NULL_POINTER;}
@@ -269,7 +269,7 @@ class Internal_Sorter_KObj{
     T* ItemArray;                    //Array that holds original items
     qsort_item<KEY>* sortItemArray;  //Holds keys to be sorted
     CMPR *UsrObject;                 //Copy,compare keys
-    TPIE_OS_OFFSET len;              //length of ItemArray
+    TPIE_OS_SIZE_T len;              //length of ItemArray
 
   public:
     //Constructor:
@@ -281,16 +281,16 @@ class Internal_Sorter_KObj{
     ~Internal_Sorter_KObj(void); //Destructor
     
     //Allocate array that can hold nItems
-    void allocate(TPIE_OS_OFFSET nItems);
+    void allocate(TPIE_OS_SIZE_T nItems);
     
     //Sort nItems from input stream and write to output stream
     AMI_err sort(AMI_STREAM<T>* InStr, AMI_STREAM<T>* OutStr,
-        TPIE_OS_OFFSET nItems);
+        TPIE_OS_SIZE_T nItems);
     
     void deallocate(void); //Clean up internal array
 
     // Maximum number of Items that can be sorted using memSize bytes
-    TPIE_OS_OFFSET MaxItemCount(TPIE_OS_OFFSET memSize);
+    TPIE_OS_SIZE_T MaxItemCount(TPIE_OS_SIZE_T memSize);
 
     // Memory usage per sort item
     TPIE_OS_SIZE_T space_per_item();
@@ -313,7 +313,7 @@ Internal_Sorter_KObj<T, KEY, CMPR>::~Internal_Sorter_KObj(void){
 }
 
 template<class T, class KEY, class CMPR>
-inline void Internal_Sorter_KObj<T, KEY, CMPR>::allocate(TPIE_OS_OFFSET nitems){
+inline void Internal_Sorter_KObj<T, KEY, CMPR>::allocate(TPIE_OS_SIZE_T nitems){
   len=nitems;
   ItemArray = new T[len];
   sortItemArray = new qsort_item<KEY>[len];
@@ -336,11 +336,11 @@ class QsortKeyCmp{
 
 template<class T, class KEY, class CMPR>
 inline AMI_err Internal_Sorter_KObj<T, KEY, CMPR>::sort(AMI_STREAM<T>* InStr,
-                AMI_STREAM<T>* OutStr, TPIE_OS_OFFSET nItems){
+                AMI_STREAM<T>* OutStr, TPIE_OS_SIZE_T nItems){
 
   AMI_err ae;
   T    *next_item;
-  TPIE_OS_OFFSET i = 0;
+  TPIE_OS_SIZE_T i = 0;
 
   //make sure we called allocate earlier
   if(ItemArray==NULL || sortItemArray==NULL){return AMI_ERROR_NULL_POINTER;}
@@ -405,11 +405,11 @@ inline void Internal_Sorter_KObj<T, KEY, CMPR>::deallocate(void){
 }
 
 template<class T, class KEY, class CMPR>
-inline TPIE_OS_OFFSET Internal_Sorter_KObj<T, KEY, CMPR>::MaxItemCount(
-                                              TPIE_OS_OFFSET memSize)
+inline TPIE_OS_SIZE_T Internal_Sorter_KObj<T, KEY, CMPR>::MaxItemCount(
+                                              TPIE_OS_SIZE_T memSize)
 {
   //Space available for items
-  TPIE_OS_OFFSET memAvail=memSize-space_overhead();
+  TPIE_OS_SIZE_T memAvail=memSize-space_overhead();
   
   if(memAvail < space_per_item() ){ return -1; }
   else{ return memAvail/space_per_item(); }
