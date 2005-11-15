@@ -4,13 +4,14 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/30/94
 //
-// $Id: mm_register.h,v 1.11 2005-11-08 13:28:51 jan Exp $
+// $Id: mm_register.h,v 1.12 2005-11-15 15:38:10 jan Exp $
 //
 #ifndef _MM_REGISTER_H
 #define _MM_REGISTER_H
 
 // Get definitions for working with Unix and Windows
 #include <portability.h>
+#include <tpie_log.h>
 
 #define MM_REGISTER_VERSION 2
 
@@ -86,18 +87,22 @@ inline size_t MM_register::allocation_count_factor() const {
 }
 
 inline void MM_register::pause_allocation_counting() { 
-    if (++pause_allocation_depth == 1) 
-	unsetenv("GLIB_CPP_FORCE_NEW");
+    if (++pause_allocation_depth == 1) {
+        // Tell STL to use realloc for allocation (wherever possible)
+        TPIE_OS_UNSET_GLIBCPP_FORCE_NEW;
+    };
 }
 
 inline void MM_register::resume_allocation_counting() { 
     if (pause_allocation_depth > 0) {
-	if (--pause_allocation_depth == 0)
-	    setenv("GLIBCPP_FORCE_NEW", "1", 1);
-    }
-    else {
-	TP_LOG_WARNING("Unmatched MM_register::resume_allocation_counting()");
-	pause_allocation_depth = 0;
+        if (--pause_allocation_depth == 0){
+            // Tell STL always to use new/debug for allocation
+            TPIE_OS_SET_GLIBCPP_FORCE_NEW;
+        };
+    }       
+    else {  
+    	TP_LOG_WARNING("Unmatched MM_register::resume_allocation_counting()");
+	    pause_allocation_depth = 0;
     }
 }
 

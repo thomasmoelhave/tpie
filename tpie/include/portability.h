@@ -3,7 +3,7 @@
 // Created: 2002/10/30
 // Authors: Joerg Rotthowe, Jan Vahrenhold, Markus Vogel
 //
-// $Id: portability.h,v 1.32 2005-08-24 19:34:34 adanner Exp $
+// $Id: portability.h,v 1.33 2005-11-15 15:39:11 jan Exp $
 //
 // This header-file offers macros for independent use on Win and Unix systems.
 
@@ -843,7 +843,11 @@ inline int TPIE_OS_UNLINK(const char* filename) {
 }
 #endif
 
-
+#if defined(_WIN32) && !defined(__MINGW32__)
+#define TPIE_OS_SNPRINTF _snprintf
+#else
+#define TPIE_OS_SNPRINTF ::snprintf
+#endif
 
 
 
@@ -1113,6 +1117,14 @@ void * operator new(\
 #else							
 #define TPIE_OS_SPACE_OVERHEAD_BODY //
 #endif
+
+#ifdef _WIN32
+#define TPIE_OS_SET_GLIBCPP_FORCE_NEW //
+#define TPIE_OS_UNSET_GLIBCPP_FORCE_NEW //
+#else
+#define TPIE_OS_SET_GLIBCPP_FORCE_NEW setenv("GLIBCPP_FORCE_NEW", "1", 1);
+#define TPIE_OS_UNSET_GLIBCPP_FORCE_NEW unsetenv("GLIBCPP_FORCE_NEW");
+#endif 
 
 #endif 
 
