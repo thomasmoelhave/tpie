@@ -11,7 +11,7 @@
 // *  used in several of TPIE's merge variants                              *
 // *                                                                        *
 // **************************************************************************
-// 	$Id: merge_sorted_runs.h,v 1.2 2005-11-10 11:54:57 jan Exp $	
+// 	$Id: merge_sorted_runs.h,v 1.3 2005-11-15 15:40:21 jan Exp $	
 
 // Get definitions for working with Unix and Windows
 #include <portability.h>
@@ -24,7 +24,7 @@
 
 #include <progress_indicator_base.h>
 
-typedef int arity_t;
+typedef TPIE_OS_SIZE_T arity_t;
 
 // **************************************************************************
 // *                                                                        *

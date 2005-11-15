@@ -1,7 +1,7 @@
 //
 // File: sort_manager.h
 //
-// $Id: sort_manager.h,v 1.2 2005-11-10 11:54:57 jan Exp $
+// $Id: sort_manager.h,v 1.3 2005-11-15 15:40:21 jan Exp $
 //
 // This file contains the class sort_manager that actually performs sorting
 //      given an internal sort implementation and merge heap implementation
@@ -27,8 +27,6 @@
 #ifndef AMI_STREAM_IMP_SINGLE
 #warning Including __FILE__ when AMI_STREAM_IMP_SINGLE undefined.
 #endif
-
-typedef int arity_t;
 
 // A class of manager objects for merge sorting objects of type T.  We
 // will actually use one of two subclasses of this class which use
@@ -56,8 +54,7 @@ class sort_manager{
     AMI_err partition_and_sort_runs(); //make initial sorted runs
     AMI_err merge_to_output(); //loop over merge tree, create output stream
     // Merge a single group mrgArity streams to an output stream
-    AMI_err single_merge(AMI_STREAM<T>**, arity_t, AMI_STREAM<T>*,
-        TPIE_OS_OFFSET);
+    AMI_err single_merge(AMI_STREAM<T>**, arity_t, AMI_STREAM<T>*, TPIE_OS_OFFSET = -1);
     //helper function for creating filename
     inline void make_name(char *prepre, char *pre, int id, char *dest);
 
@@ -70,8 +67,8 @@ class sort_manager{
     AMI_STREAM<T>* inStream;   
     AMI_STREAM<T>* outStream;   
     AMI_err         ae;           //For catching error codes
-    TPIE_OS_OFFSET  nInputItems;  //Number of items in inStream;
-    TPIE_OS_OFFSET  mmBytesAvail; //Amount of spare memory we can use
+    TPIE_OS_OFFSET  nInputItems;      //Number of items in inStream;
+    TPIE_OS_SIZE_T  mmBytesAvail;     //Amount of spare memory we can use
     TPIE_OS_SIZE_T  mmBytesPerStream; //Memory consumed by each Stream obj
 
     progress_indicator_base* m_indicator; // pointer to progress indicator
@@ -81,7 +78,7 @@ class sort_manager{
 
     // The maximum number of stream items of type T that we can
     // sort in internal memory
-    TPIE_OS_OFFSET nItemsPerRun;
+    TPIE_OS_SIZE_T nItemsPerRun;
 
     TPIE_OS_OFFSET nRuns; //The number of sorted runs left to merge
     arity_t mrgArity; //Max runs we can merge at one time
@@ -97,9 +94,9 @@ class sort_manager{
     arity_t nXtraRuns;
 
     // The last run can have fewer than nItemsPerRun;
-    TPIE_OS_OFFSET nItemsInLastRun;
+    TPIE_OS_SIZE_T nItemsInLastRun;
     // How many items we will sort in a given run
-    TPIE_OS_OFFSET nItemsInThisRun;
+    TPIE_OS_SIZE_T nItemsInThisRun;
     // For each output stream, how many runs it should get
     TPIE_OS_OFFSET runsInStream;
 
@@ -204,17 +201,17 @@ AMI_err sort_manager<T,I,M>::start_sort(){
   }
 
   inStream->seek (0);
-  if (nInputItems<InternalSorter.MaxItemCount(mmBytesAvail)){
+  if (nInputItems < InternalSorter.MaxItemCount(mmBytesAvail)){
       if (m_indicator) {
 	  m_indicator->init("Sorting items internally");
       }
     // allocate the internal array items
-    InternalSorter.allocate(nInputItems);
+    InternalSorter.allocate(static_cast<TPIE_OS_SIZE_T>(nInputItems));
     // load the items into main memory, sort, and write to output.
     // InternalSorter also checks if inStream/outStream are the same and
     // truncates/rewrites inStream if they are. This probably should not
     // be the job of InternalSorter. TODO: build a cleaner interface
-    if ((ae = InternalSorter.sort(inStream, outStream, nInputItems))
+    if ((ae = InternalSorter.sort(inStream, outStream, static_cast<TPIE_OS_SIZE_T>(nInputItems)))
         != AMI_ERROR_NO_ERROR) {
       TP_LOG_FATAL_ID ("main_mem_operate failed");
       return ae;
@@ -310,7 +307,7 @@ AMI_err sort_manager<T,I,M>::compute_sort_params(void){
 
   TP_LOG_DEBUG_ID ("Computing merge sort parameters.");
 
-  TPIE_OS_OFFSET mmBytesAvailSort; // Bytes available for sorting
+  TPIE_OS_SIZE_T mmBytesAvailSort; // Bytes available for sorting
 
   TP_LOG_DEBUG_ID ("Each object of size " << sizeof(T) << " uses "
       << InternalSorter.space_per_item () << " bytes "
@@ -342,7 +339,7 @@ AMI_err sort_manager<T,I,M>::compute_sort_params(void){
   TPIE_OS_SIZE_T mmBytesFixedForMerge = MergeHeap.space_overhead() +
     mmBytesPerStream + 3*MM_manager.space_overhead();
 
-  TPIE_OS_OFFSET mmBytesAvailMerge = mmBytesAvail - mmBytesFixedForMerge;
+  TPIE_OS_SIZE_T mmBytesAvailMerge = mmBytesAvail - mmBytesFixedForMerge;
   // Need to support at least binary merge
   if(mmBytesAvailMerge<2*mmBytesPerMergeItem){
     TP_LOG_FATAL_ID ("Merge arity < 2 -- Insufficient memory for a merge.");
@@ -385,8 +382,7 @@ AMI_err sort_manager<T,I,M>::compute_sort_params(void){
 
   // The number of memory-sized runs that the original input stream
   // will be partitioned into.
-  nRuns = ((nInputItems + nItemsPerRun - 1) /
-      nItemsPerRun);
+  nRuns = ((nInputItems + nItemsPerRun - 1) / nItemsPerRun);
 
 #ifdef TPIE_SORT_SMALL_MRGARITY
   // KEEP OUT!!!
@@ -462,7 +458,12 @@ AMI_err sort_manager<T,I,M>::compute_sort_params(void){
 
   // If we have just a few runs, we don't need the
   // full mrgArity. This is the last change to mrgArity
-  if(mrgArity>nRuns){mrgArity=nRuns;}
+  // N.B. We need to "up"-cast mrgArity here!
+  if(static_cast<TPIE_OS_OFFSET>(mrgArity)>nRuns){
+        // N.B. We know that nRuns is small, so 
+        //      it is safr to downcast.
+        mrgArity=static_cast<TPIE_OS_SIZE_T>(nRuns);
+  }
 
   // We should always end up with at least two runs
   // otherwise why are we doing it externally?
@@ -504,7 +505,7 @@ AMI_err sort_manager<T,I,M>::partition_and_sort_runs(void){
 
   // The last run can have fewer than nItemsPerRun;
   // general case
-  nItemsInLastRun=(nInputItems % nItemsPerRun);
+  nItemsInLastRun = static_cast<TPIE_OS_SIZE_T>(nInputItems % nItemsPerRun);
   if(nItemsInLastRun==0){
     // Input size is an exact multiple of nItemsPerStream
     nItemsInLastRun=nItemsPerRun;
@@ -617,7 +618,8 @@ AMI_err sort_manager<T,I,M>::merge_to_output(void){
   // typically 1 or 2
   int mrgHeight = 0;
   int treeHeight; //for progress
-  TPIE_OS_OFFSET ii,jj; //index vars
+  TPIE_OS_SIZE_T ii; //index vars
+  TPIE_OS_OFFSET jj; //index vars
 
   // This Memory allocation accounted for in phase 2:
   //   mrgArity*space_per_merge_item
@@ -645,7 +647,7 @@ AMI_err sort_manager<T,I,M>::merge_to_output(void){
   while (nRuns > mrgArity){
       if (m_indicator) {
 	  char description[255];
-	  ::snprintf(description, sizeof(description), 
+	  TPIE_OS_SNPRINTF(description, sizeof(description), 
 		     "Merge pass %d of %d ",
 		     mrgHeight+1, treeHeight);
 	  m_indicator->set_percentage_range(0, nInputItems);
@@ -761,9 +763,10 @@ AMI_err sort_manager<T,I,M>::merge_to_output(void){
   // We are at the last merge phase, write to specified output stream
   // Open up the nRuns final merge streams to merge
   // These runs are packed in the LAST nRuns elements of the array
+  // nRuns is small, so it is safe to downcast.
   TP_LOG_DEBUG_ID ("Final merge. level="<<mrgHeight);
   TP_LOG_DEBUG_ID ("Merge runs left="<<nRuns);
-  for(ii = mrgArity-nRuns; ii < mrgArity; ii++){
+  for(ii = mrgArity-static_cast<TPIE_OS_SIZE_T>(nRuns); ii < mrgArity; ii++){
     // Make the input file name
     make_name(working_disk, suffixName[mrgHeight%2], ii, newName);
     /* Dynamically allocate the stream
@@ -773,9 +776,9 @@ AMI_err sort_manager<T,I,M>::merge_to_output(void){
        either one of mergeInputStreams loading or the call to
        single_merge is a little messy. I put the mess here. (abd) */
     TP_LOG_DEBUG_ID ("Putting merge stream "<< ii << " in slot "
-        << ii-(mrgArity-nRuns));
-    mergeInputStreams[ii-(mrgArity-nRuns)] = new AMI_STREAM<T>(newName);
-    mergeInputStreams[ii-(mrgArity-nRuns)]->seek(0);
+        << ii-(mrgArity-static_cast<TPIE_OS_SIZE_T>(nRuns)));
+    mergeInputStreams[ii-(mrgArity-static_cast<TPIE_OS_SIZE_T>(nRuns))] = new AMI_STREAM<T>(newName);
+    mergeInputStreams[ii-(mrgArity-static_cast<TPIE_OS_SIZE_T>(nRuns))]->seek(0);
   }
 
   if (m_indicator) {
@@ -784,7 +787,8 @@ AMI_err sort_manager<T,I,M>::merge_to_output(void){
   }
   // Merge last remaining runs to the output stream.
   // mergeInputStreams is address( address (the first input stream) )
-  ae = single_merge (mergeInputStreams, nRuns, outStream);
+  // N.B. nRuns is small, so it is safe to downcast.
+  ae = single_merge (mergeInputStreams, static_cast<arity_t>(nRuns), outStream);
 
   tp_assert(outStream->stream_len() == nInputItems, "item count mismatch");
 
@@ -814,7 +818,7 @@ AMI_err sort_manager<T,I,M>::merge_to_output(void){
 
 template<class T, class I, class M>
 AMI_err sort_manager<T,I,M>::single_merge( AMI_STREAM < T > **inStreams,
-    arity_t arity, AMI_STREAM < T >*outStream, TPIE_OS_OFFSET cutoff=-1 )
+    arity_t arity, AMI_STREAM < T >*outStream, TPIE_OS_OFFSET cutoff)
 {
 
    return merge_sorted_runs(inStreams, arity, outStream, MergeHeap,
