@@ -2,8 +2,8 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="7.10"
-	Name="apps_spatial_join_mbr"
-	ProjectGUID="{3EE09D5C-9EE4-4B00-AFED-D35CEF6318F9}"
+	Name="test_sort"
+	ProjectGUID="{21B1A558-94DE-480D-B5F3-148477404E8C}"
 	Keyword="Win32Proj">
 	<Platforms>
 		<Platform
@@ -12,8 +12,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="../../../bin/Debug"
-			IntermediateDirectory="./Debug"
+			OutputDirectory="..\..\..\bin\Debug"
+			IntermediateDirectory=".\Debug"
 			ConfigurationType="1"
 			CharacterSet="2">
 			<Tool
@@ -24,7 +24,7 @@
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="5"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
 				DebugInformationFormat="4"/>
@@ -33,10 +33,12 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="odbc32.lib odbccp32.lib tpie.lib"
+				OutputFile="$(OutDir)/test_sort.exe"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="../../../lib"
+				AdditionalLibraryDirectories="..\..\..\lib"
+				IgnoreDefaultLibraryNames="libc"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile="$(OutDir)/apps_spatial_join_mbr.pdb"
+				ProgramDatabaseFile="$(OutDir)/test_sort.pdb"
 				SubSystem="1"
 				TargetMachine="1"/>
 			<Tool
@@ -62,8 +64,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="../../../bin/Release"
-			IntermediateDirectory="Release"
+			OutputDirectory="..\..\..\bin\Release"
+			IntermediateDirectory=".\Release"
 			ConfigurationType="1"
 			CharacterSet="2">
 			<Tool
@@ -71,7 +73,7 @@
 				AdditionalIncludeDirectories="..\..\..\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="4"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
 				DebugInformationFormat="3"/>
@@ -80,9 +82,9 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="odbc32.lib odbccp32.lib tpie.lib"
+				OutputFile="$(OutDir)/test_sort.exe"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="../../../lib"
-				IgnoreDefaultLibraryNames="libcd;libcpd"
+				AdditionalLibraryDirectories="..\..\..\lib"
 				GenerateDebugInformation="TRUE"
 				SubSystem="1"
 				OptimizeReferences="2"
@@ -118,13 +120,13 @@
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
 			<File
-				RelativePath="..\..\..\apps\spatial_join\getopts.cpp">
+				RelativePath="..\..\..\test\app_config.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\apps\spatial_join\mbr.cpp">
+				RelativePath="..\..\..\test\getopts.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\apps\spatial_join\parse_args.cpp">
+				RelativePath="..\..\..\test\test_sort.cpp">
 			</File>
 		</Filter>
 		<Filter

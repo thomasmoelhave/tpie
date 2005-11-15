@@ -13,7 +13,7 @@
 	<Configurations>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\lib\Release"
+			OutputDirectory="..\..\..\lib"
 			IntermediateDirectory=".\Release"
 			ConfigurationType="4"
 			UseOfMFC="0"
@@ -23,7 +23,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="../../../include"
+				AdditionalIncludeDirectories="..\..\..\include"
 				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;TPIE_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="4"
@@ -35,6 +35,7 @@
 				ProgramDataBaseFileName=".\Release/"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
+				Detect64BitPortabilityProblems="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
@@ -65,7 +66,7 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory=".\Debug"
+			OutputDirectory="..\..\..\lib"
 			IntermediateDirectory=".\Debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
@@ -74,7 +75,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../../include"
+				AdditionalIncludeDirectories="..\..\..\include"
 				PreprocessorDefinitions="_DEBUG;TPIE_LIB;WIN32;_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="5"
@@ -207,25 +208,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\..\lib\src\ami_stream_single.cpp">
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BasicRuntimeChecks="3"
-						CompileAs="2"/>
-				</FileConfiguration>
+				RelativePath="..\..\..\lib\src\ami_stream_base.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\lib\src\bit.cpp">
