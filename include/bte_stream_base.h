@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/11/94
 //
-// $Id: bte_stream_base.h,v 1.12 2005-11-11 13:24:15 jan Exp $
+// $Id: bte_stream_base.h,v 1.13 2005-11-15 15:41:34 jan Exp $
 //
 #ifndef _BTE_STREAM_BASE_H
 #define _BTE_STREAM_BASE_H
@@ -254,7 +254,8 @@ BTE_err BTE_stream_base<T>::register_memory_deallocation (TPIE_OS_SIZE_T sz) {
 template < class T >
 BTE_err BTE_stream_base<T>::name (char **stream_name) const {
   
-    TPIE_OS_SIZE_T len = strlen (m_path);
+    // O.k. not to use TPIE_OS_SIZE_T
+    size_t len = strlen (m_path);
 
     tp_assert (len < BTE_STREAM_PATH_NAME_LEN, "Path length is too long.");
   
