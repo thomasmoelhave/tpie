@@ -4,7 +4,7 @@
 // Created: 10/7/94
 //
 
-static char parse_args_id[] = "$Id: parse_args.cpp,v 1.14 2004-08-12 12:36:23 jan Exp $";
+static char parse_args_id[] = "$Id: parse_args.cpp,v 1.15 2005-11-15 15:33:41 jan Exp $";
 
 #include <portability.h>
 
@@ -16,9 +16,9 @@ static char parse_args_id[] = "$Id: parse_args.cpp,v 1.14 2004-08-12 12:36:23 ja
 #include "app_config.h"
 #include "parse_args.h"
 
-static size_t parse_number(char *s) {
-  size_t n; 
-  size_t mult = 1;
+static TPIE_OS_SIZE_T parse_number(char *s) {
+  TPIE_OS_SIZE_T n; 
+  TPIE_OS_SIZE_T mult = 1;
   size_t len = strlen(s);
   if(isalpha(s[len-1])) {
     switch(s[len-1]) {
@@ -35,7 +35,7 @@ static size_t parse_number(char *s) {
     }
     s[len-1] = '\0';
   }
-  n = atol(s);
+  n = (TPIE_OS_SIZE_T)atol(s);
   return n * mult;
 }
 
@@ -49,7 +49,8 @@ void parse_args(int argc, char **argv, const char *as_opts,
   char *all_opts;
 
   if (as_opts != NULL) {
-    TPIE_OS_SIZE_T l_aso;
+      // It's o.k. to use size_t here.
+    size_t l_aso;
     
     all_opts = new char[sizeof(standard_opts) + (l_aso = strlen(as_opts))]; 
     strncpy(all_opts, standard_opts, sizeof(standard_opts));

@@ -8,7 +8,7 @@
 // A main memory version that generates and tabulates but does not maintain
 // the values it generates.
 
-static char nas_ep_mm_id[] = "$Id: nas_ep_mm.cpp,v 1.8 2004-08-12 12:37:04 jan Exp $";
+static char nas_ep_mm_id[] = "$Id: nas_ep_mm.cpp,v 1.9 2005-11-15 15:33:40 jan Exp $";
 
 #include <portability.h>
 
@@ -63,7 +63,7 @@ void parse_args(int argc, char *argv[])
   while((c = getopt(argc, argv, "at:")) != -1) {
     switch (c) {
     case 't':
-	test_size = (size_t)atol(optarg);
+	test_size = (TPIE_OS_SIZE_T)atol(optarg);
       break;
     case 'a':
       use_array = !use_array;
