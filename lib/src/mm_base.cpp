@@ -6,7 +6,7 @@
 //
 
 #include <versions.h>
-VERSION(mm_base_cpp,"$Id: mm_base.cpp,v 1.31 2005-11-08 14:19:53 jan Exp $");
+VERSION(mm_base_cpp,"$Id: mm_base.cpp,v 1.32 2005-11-15 15:37:51 jan Exp $");
 
 #include "lib_config.h"
 #include <mm_base.h>
@@ -108,7 +108,7 @@ void operator delete (void *ptr)
       return;
    }
 
-   const size_t dealloc_size =  
+   const TPIE_OS_SIZE_T dealloc_size =  
        (TPIE_OS_SIZE_T)*((size_t *) (((char *) ptr) - SIZE_SPACE));
 
    if (MM_manager.register_new != MM_IGNORE_MEMORY_EXCEEDED) {
@@ -134,7 +134,7 @@ void operator delete[] (void *ptr) {
       return;
    }
 
-   const size_t dealloc_size =  
+   const TPIE_OS_SIZE_T dealloc_size =  
        (TPIE_OS_SIZE_T)*((size_t *) (((char *) ptr) - SIZE_SPACE));
 
    if (MM_manager.register_new != MM_IGNORE_MEMORY_EXCEEDED) {

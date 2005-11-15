@@ -8,7 +8,7 @@
 // A simple registration based memory manager.
 
 #include <versions.h>
-VERSION(mm_register_cpp,"$Id: mm_register.cpp,v 1.24 2005-11-08 13:27:54 jan Exp $");
+VERSION(mm_register_cpp,"$Id: mm_register.cpp,v 1.25 2005-11-15 15:37:51 jan Exp $");
 
 //#include <assert.h>
 #include "lib_config.h"
@@ -231,7 +231,8 @@ mm_register_init::mm_register_init(void)
 {
     if (count++ == 0) {
 	MM_manager.set_memory_limit(MM_DEFAULT_MM_SIZE);
-	setenv("GLIBCPP_FORCE_NEW", "1", 1);
+    // Tell STL always to use new/debug for allocation
+    TPIE_OS_SET_GLIBCPP_FORCE_NEW;
     }
 }
 
