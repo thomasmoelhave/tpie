@@ -4,7 +4,7 @@
 //  Created:         05.11.1998
 //  Author:          Jan Vahrenhold
 //  mail:            jan@math.uni-muenster.de
-//  $Id: rstarnode.h,v 1.4 2005-01-21 17:22:15 tavi Exp $
+//  $Id: rstarnode.h,v 1.5 2005-11-15 15:33:41 jan Exp $
 //  Copyright (C) 1997-2001 by  
 // 
 //  Jan Vahrenhold
@@ -322,7 +322,8 @@ RStarNode<coord_t, BTECOLL>::RStarNode(AMI_collection_single<BTECOLL>* pcoll,
 
   //  If a user-defined maximum size of children is given, check whether
   //  this number fits into the block and is not equal to zero.
-  maxChildren_ = el.capacity();
+  //  el.capacity is small, so it is safe to cast.
+  maxChildren_ = static_cast<children_count_t>(el.capacity());
   if (maxChildren <= maxChildren_) {
     maxChildren_ = max((children_count_t) 2, maxChildren);
   }

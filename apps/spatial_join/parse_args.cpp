@@ -4,7 +4,7 @@
 // Created: 10/7/94
 //
 
-static char parse_args_id[] = "$Id: parse_args.cpp,v 1.3 2005-11-10 10:35:57 adanner Exp $";
+static char parse_args_id[] = "$Id: parse_args.cpp,v 1.4 2005-11-15 15:33:41 jan Exp $";
 
 #include <portability.h>
 
@@ -94,7 +94,7 @@ void parse_args(int argc, char **argv, struct options *application_opts,
   while ((idx = getopts(argc, argv, all_opts, &opt_arg)) != 0) {
     switch (idx) {
     case 1: 
-      mm_sz = max(size_t(128*1024), parse_number(opt_arg));
+      mm_sz = max(TPIE_OS_SIZE_T(128*1024), parse_number(opt_arg));
       break;
     case 2:
       verbose = true; 
