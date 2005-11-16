@@ -3,7 +3,7 @@
 // Created: 2002/10/30
 // Authors: Joerg Rotthowe, Jan Vahrenhold, Markus Vogel
 //
-// $Id: portability.h,v 1.33 2005-11-15 15:39:11 jan Exp $
+// $Id: portability.h,v 1.34 2005-11-16 16:55:04 jan Exp $
 //
 // This header-file offers macros for independent use on Win and Unix systems.
 
@@ -747,7 +747,7 @@ inline LPVOID TPIE_OS_MMAP(LPVOID addr,
 }
 #else	
 inline void* TPIE_OS_MMAP(void* addr, size_t len, int prot, int flags, TPIE_OS_FILE_DESCRIPTOR fildes, TPIE_OS_OFFSET off) {
-    return mmap((caddr_t)addr, len, prot, flags, fildes, off);
+    return mmap(static_cast<caddr_t>(addr), len, prot, flags, fildes, off);
 }
 #endif
 
@@ -758,7 +758,7 @@ inline int TPIE_OS_MUNMAP(LPVOID addr, size_t len) {
 }
 #else							
 inline int TPIE_OS_MUNMAP(void* addr, size_t len) {
-    return munmap((caddr_t)addr, len);
+    return munmap(static_cast<caddr_t>(addr), len);
 }
 #endif
 

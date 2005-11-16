@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 3/11/95
 //
-// $Id: ami_kb_dist.h,v 1.10 2004-08-12 12:35:30 jan Exp $
+// $Id: ami_kb_dist.h,v 1.11 2005-11-16 16:52:31 jan Exp $
 //
 // Radix based distribution for single or striped AMI layers.
 //
@@ -62,8 +62,8 @@ AMI_err _AMI_KB_DIST(KB_KEY)(AMI_STREAM<T> &instream,
 {
     AMI_err ae;
 
-    size_t sz_avail;
-    size_t single_stream_usage;
+    TPIE_OS_SIZE_T sz_avail;
+    TPIE_OS_SIZE_T single_stream_usage;
 
     // How many ouput streams will there be?
     unsigned int output_streams;
@@ -82,8 +82,11 @@ AMI_err _AMI_KB_DIST(KB_KEY)(AMI_STREAM<T> &instream,
 
     // How many output streams can we buffer in that amount of space?
     // Recall that we also need a pointer and a range for each stream.
-    output_streams = (unsigned int)((sz_avail - 2 * single_stream_usage) /
-        (single_stream_usage + sizeof(AMI_STREAM<T> *) + sizeof(range)));
+    output_streams = static_cast<unsigned int>((sz_avail - 
+						2 * single_stream_usage) /
+					       (single_stream_usage + 
+						sizeof(AMI_STREAM<T> *) + 
+						sizeof(range)));
     
     // We need at least two output streams.
     if (output_streams < 2) {
@@ -94,7 +97,7 @@ AMI_err _AMI_KB_DIST(KB_KEY)(AMI_STREAM<T> &instream,
     {
         unsigned available_streams = instream.available_streams();
 
-        if ((available_streams != (unsigned)-1) &&
+        if ((available_streams != -1u) &&
             (available_streams < output_streams)) {
             output_streams = available_streams;
         }
@@ -139,7 +142,9 @@ AMI_err _AMI_KB_DIST(KB_KEY)(AMI_STREAM<T> &instream,
             return ae;
         }
 
-        k = (unsigned int)KB_KEY(*in);
+	//  Why the cast?
+//        k = (unsigned int)KB_KEY(*in);
+        k = KB_KEY(*in);
 
 #ifdef AMI_RADIX_POWER_OF_TWO
         // Do it with shifting and masking.
@@ -196,13 +201,13 @@ AMI_err _AMI_KB_DIST(KB_KEY)(AMI_STREAM<T> &instream,
             // characters and tack it onto the stream name stream.
             // We then do the same thing with the length of the stream.
 
-            ae = name_stream.write_array((const char *)(out_ranges+ii),
+            ae = name_stream.write_array(reinterpret_cast<const char*>(out_ranges+ii),
                                          sizeof(key_range));
             if (ae != AMI_ERROR_NO_ERROR) {
                 return ae;
             }
                 
-            ae = name_stream.write_array((const char *)&stream_len,
+            ae = name_stream.write_array(reinterpret_cast<const char*>(&stream_len),
                                          sizeof(stream_len));
             if (ae != AMI_ERROR_NO_ERROR) {
                 return ae;

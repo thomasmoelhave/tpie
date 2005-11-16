@@ -1,7 +1,7 @@
 //
 // File: sort_manager.h
 //
-// $Id: sort_manager.h,v 1.3 2005-11-15 15:40:21 jan Exp $
+// $Id: sort_manager.h,v 1.4 2005-11-16 16:53:49 jan Exp $
 //
 // This file contains the class sort_manager that actually performs sorting
 //      given an internal sort implementation and merge heap implementation
@@ -351,8 +351,8 @@ AMI_err sort_manager<T,I,M>::compute_sort_params(void){
   // have more than 2 TerraBytes of memory, assuming 64 bit
   // (or smaller) TPIE_OS_OFFSETS. I look forward to the day
   // this comment seems silly and wrong
-  mrgArity =
-    (arity_t)(mmBytesAvail-mmBytesFixedForMerge)/mmBytesPerMergeItem;
+  mrgArity = static_cast<arity_t>(mmBytesAvail-mmBytesFixedForMerge) /
+      mmBytesPerMergeItem;
   TP_LOG_DEBUG_ID("mem avail=" << mmBytesAvail-mmBytesFixedForMerge
       << " bytes per merge item=" <<  mmBytesPerMergeItem
       << " initial mrgArity=" << mrgArity);
@@ -375,8 +375,9 @@ AMI_err sort_manager<T,I,M>::compute_sort_params(void){
 
   // Can at least do binary merge. See if availableStreams limits
   // maximum mrgArity
-  if (mrgArity > availableStreams - 1) {
-    mrgArity = (availableStreams - 1);
+  // Due to the previous test, we know that available_streams >= 3.
+  if (mrgArity > static_cast<arity_t>(availableStreams - 1)) {
+    mrgArity = static_cast<arity_t>(availableStreams - 1);
     TP_LOG_WARNING_ID ("Reduced merge arity due to AMI restrictions.");
   }
 
@@ -500,7 +501,7 @@ AMI_err sort_manager<T,I,M>::partition_and_sort_runs(void){
   // The number of extra runs or the number of streams that
   // get one additional run. This is less than mrgArity and
   // it is OK to downcast to an arity_t.
-  nXtraRuns = (arity_t) (nRuns - minRunsPerStream*mrgArity);
+  nXtraRuns = static_cast<arity_t>(nRuns - minRunsPerStream*mrgArity);
   tp_assert(nXtraRuns<mrgArity, "Too many extra runs");
 
   // The last run can have fewer than nItemsPerRun;
@@ -616,8 +617,8 @@ AMI_err sort_manager<T,I,M>::merge_to_output(void){
   // the number of iterations the main loop has gone through,
   // at most the height of the merge tree log_{M/B}(N/B),
   // typically 1 or 2
-  int mrgHeight = 0;
-  int treeHeight; //for progress
+  int mrgHeight  = 0;
+  int treeHeight = 0; //for progress
   TPIE_OS_SIZE_T ii; //index vars
   TPIE_OS_OFFSET jj; //index vars
 
@@ -636,8 +637,9 @@ AMI_err sort_manager<T,I,M>::merge_to_output(void){
   // *****************************************************************
 
   if (m_indicator) {
-    //compute merge depth, number of passes over data
-    treeHeight=(int)ceil(log((double)nRuns)/log((double)mrgArity));
+      //compute merge depth, number of passes over data
+      treeHeight= static_cast<int>(ceil(log(static_cast<float>(nRuns)) /
+					log(static_cast<float>(mrgArity))));
   }
   
   //nRuns is initially the number of runs we formed in partition_and_sort
@@ -673,7 +675,7 @@ AMI_err sort_manager<T,I,M>::merge_to_output(void){
     // The number of extra runs or the number of output streams that
     // get one additional run. This is less than mrgArity and
     // it is OK to downcast to an arity_t.
-    nXtraRuns = (arity_t) (nRuns - minRunsPerStream*mrgArity);
+    nXtraRuns = static_cast<arity_t>(nRuns - minRunsPerStream*mrgArity);
     tp_assert(nXtraRuns<mrgArity, "Too many extra runs");
 
     // How many Streams we will create at the next level

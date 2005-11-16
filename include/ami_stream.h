@@ -2,7 +2,7 @@
 // File: ami_stream.h (formerly part of ami.h and ami_imps.h)
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 //
-// $Id: ami_stream.h,v 1.8 2005-11-10 13:43:06 jan Exp $
+// $Id: ami_stream.h,v 1.9 2005-11-16 16:53:50 jan Exp $
 //
 #ifndef _AMI_STREAM_H
 #define _AMI_STREAM_H
@@ -305,7 +305,7 @@ AMI_err AMI_stream<T>::new_substream(AMI_stream_type st,
     // inlined.  If multiple implementations of BTE streams are
     // present it could be very dangerous.
     
-    ami_ss = new AMI_stream<T>((BTE_STREAM<T>*)bte_ss);
+    ami_ss = new AMI_stream<T>(static_cast<BTE_STREAM<T>*>(bte_ss));
     
     ami_ss->m_destructBTEStream = true;
     ae = ami_ss->seek(0);
@@ -470,7 +470,7 @@ char *AMI_stream<T>::sprint() {
     static char buf[BUFSIZ];
     char *s;
     name(&s);
-    sprintf(buf, "[AMI_STREAM %s %ld]", s, (long)stream_len());
+    sprintf(buf, "[AMI_STREAM %s %ld]", s, static_cast<long>(stream_len()));
     delete s;
     return buf;
 }

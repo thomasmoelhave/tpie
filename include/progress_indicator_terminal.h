@@ -194,7 +194,8 @@ protected:
     void display_percentage() {
 	if (m_percentageUnit) {
 	    cout << setw(6) << setiosflags(ios::fixed) << setprecision(2) 
-		 << (((double)m_current * 100.0) / (double)m_percentageUnit)
+		 << ((static_cast<double>(m_current) * 100.0) / 
+		     static_cast<double>(m_percentageUnit))
 		 << "%";
 	}
 	else {

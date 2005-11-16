@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/12/94
 //
-// $Id: ami_matrix_fill.h,v 1.7 2004-08-12 12:35:30 jan Exp $
+// $Id: ami_matrix_fill.h,v 1.8 2005-11-16 16:52:32 jan Exp $
 //
 #ifndef _AMI_MATRIX_FILL_H
 #define _AMI_MATRIX_FILL_H
@@ -65,7 +65,7 @@ AMI_err AMI_matrix_fill(AMI_matrix<T> *pem, AMI_matrix_filler<T> *pemf)
     
     AMI_matrix_fill_scan<T> emfs(pemf, pem->rows(), pem->cols());
     
-    return AMI_scan(&emfs, (AMI_STREAM<T> *)pem);
+    return AMI_scan(&emfs, dynamic_cast<AMI_STREAM<T>*>(pem));
 };
 
 #endif // _AMI_MATRIX_FILL_H 

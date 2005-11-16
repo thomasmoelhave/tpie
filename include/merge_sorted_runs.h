@@ -11,7 +11,7 @@
 // *  used in several of TPIE's merge variants                              *
 // *                                                                        *
 // **************************************************************************
-// 	$Id: merge_sorted_runs.h,v 1.3 2005-11-15 15:40:21 jan Exp $	
+// 	$Id: merge_sorted_runs.h,v 1.4 2005-11-16 16:53:52 jan Exp $	
 
 // Get definitions for working with Unix and Windows
 #include <portability.h>
@@ -115,7 +115,7 @@ AMI_err  merge_sorted_runs(AMI_STREAM<T> **inStreams, arity_t arity,
 	}
       } 
       if (ami_err == AMI_ERROR_END_OF_STREAM) {
-        MergeHeap.delete_min_and_insert ((T *) NULL);
+	  MergeHeap.delete_min_and_insert (NULL);
       } else { 
         nread[i]++;
         MergeHeap.delete_min_and_insert (in_objects[i]);

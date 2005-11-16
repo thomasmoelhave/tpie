@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 3/2/95
 //
-// $Id: ami_sparse_matrix.h,v 1.15 2005-11-09 12:19:46 adanner Exp $
+// $Id: ami_sparse_matrix.h,v 1.16 2005-11-16 16:53:50 jan Exp $
 //
 #ifndef AMI_SPARSE_MATRIX_H
 #define AMI_SPARSE_MATRIX_H
@@ -55,7 +55,7 @@ public:
 
 template<class T>
 AMI_sparse_matrix<T>::AMI_sparse_matrix(TPIE_OS_OFFSET row, TPIE_OS_OFFSET col) :
-        r(row), c(col), AMI_STREAM< AMI_sm_elem<T> >()
+    AMI_STREAM< AMI_sm_elem<T> >(), r(row), c(col)
 {
 }
 
@@ -114,8 +114,7 @@ AMI_err AMI_sparse_bandify(AMI_sparse_matrix<T> &sm,
 
     sm_band_comparator<T> cmp(rows_per_band);    
 
-    ae = AMI_sort((AMI_STREAM< AMI_sm_elem<T> > *)&sm,
-                  (AMI_STREAM< AMI_sm_elem<T> > *)&bsm, &cmp);
+    ae = AMI_sort(&sm, &bsm, &cmp);
 
 
     return ae;
@@ -152,8 +151,8 @@ AMI_err AMI_sparse_band_info(AMI_sparse_matrix<T> &opm,
 
     rows_per_band = (sz_avail - single_stream_usage * 5) / sizeof(T);
 
-    if (rows_per_band > rows) {
-        rows_per_band = (TPIE_OS_SIZE_T)rows;
+    if (static_cast<TPIE_OS_OFFSET>(rows_per_band) > rows) {
+        rows_per_band = static_cast<TPIE_OS_SIZE_T>(rows);
     }
     
     total_bands = (rows + rows_per_band - 1) / rows_per_band;
@@ -269,7 +268,7 @@ AMI_err AMI_sparse_mult_scan_banded(AMI_sparse_matrix<T> &banded_opm,
                 // The final band may not have exactly rows_per_band
                 // rows due to roundoff.  We make the appropropriate
                 // adjustments here.
-                rows_in_current_band = (TPIE_OS_SIZE_T)(rows - curr_band_start); 
+                rows_in_current_band = static_cast<TPIE_OS_SIZE_T>(rows - curr_band_start); 
                 next_band_start = rows;                
             } else {
                 rows_in_current_band = rows_per_band;

@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/11/94
 //
-// $Id: bte_stream_base.h,v 1.13 2005-11-15 15:41:34 jan Exp $
+// $Id: bte_stream_base.h,v 1.14 2005-11-16 16:53:51 jan Exp $
 //
 #ifndef _BTE_STREAM_BASE_H
 #define _BTE_STREAM_BASE_H
@@ -195,14 +195,14 @@ int BTE_stream_base<T>::check_header() {
     if (m_header->m_itemSize != sizeof (T)) {
 	TP_LOG_FATAL_ID ("header: incorrect item size (expected/obtained):");
 	TP_LOG_FATAL_ID (sizeof(T));
-	TP_LOG_FATAL_ID ((TPIE_OS_LONGLONG)m_header->m_itemSize);
+	TP_LOG_FATAL_ID (static_cast<TPIE_OS_LONGLONG>(m_header->m_itemSize));
 	return -1;
     }
 
     if (m_header->m_osBlockSize != os_block_size()) {
 	TP_LOG_FATAL_ID ("header: incorrect OS block size (expected/obtained):");
-	TP_LOG_FATAL_ID ((TPIE_OS_LONGLONG)os_block_size());
-	TP_LOG_FATAL_ID ((TPIE_OS_LONGLONG)m_header->m_osBlockSize);
+	TP_LOG_FATAL_ID (static_cast<TPIE_OS_LONGLONG>(os_block_size()));
+	TP_LOG_FATAL_ID (static_cast<TPIE_OS_LONGLONG>(m_header->m_osBlockSize));
 	return -1;
     }
 

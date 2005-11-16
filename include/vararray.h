@@ -7,7 +7,7 @@
 // Description: Templates classes for one-, two-, and 
 //              three-dimensional arrays. 
 //
-// $Id: vararray.h,v 1.3 2004-11-17 22:31:59 adanner Exp $
+// $Id: vararray.h,v 1.4 2005-11-16 16:55:04 jan Exp $
 //
 #ifndef _VARARRAY_H
 #define _VARARRAY_H
@@ -110,7 +110,7 @@ VarArray1D<T>::VarArray1D(TPIE_OS_SIZE_T dim) {
     data = new T[dim];
     
     //  Initialize memory.
-    memset((void*)data, 
+    memset(static_cast<void*>(data), 
 	   0, 
 	   dim * sizeof(T));
 }
@@ -178,7 +178,7 @@ VarArray2D<T>::VarArray2D(TPIE_OS_SIZE_T dim0, TPIE_OS_SIZE_T dim1) {
     data = new T[dim0 * dim1];
     
     //  Initialize memory.
-    memset((void*)data, 
+    memset(static_cast<void*>(data), 
 	   0, 
 	   dim0 * dim1 * sizeof(T));
 }
@@ -260,7 +260,7 @@ VarArray3D<T>::VarArray3D(TPIE_OS_SIZE_T dim0, TPIE_OS_SIZE_T dim1, TPIE_OS_SIZE
     data = new T[dim0 * dim1 * dim2];
     
     //  Initialize memory.
-    memset((void*)data, 
+    memset(static_cast<void*>(data), 
 	   0, 
 	   dim0 * dim1 * dim2 * sizeof(T));
 }

@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/9/94
 //
-// $Id: ami_matrix.h,v 1.14 2004-08-12 12:35:30 jan Exp $
+// $Id: ami_matrix.h,v 1.15 2005-11-16 16:52:31 jan Exp $
 //
 #ifndef _AMI_MATRIX_H
 #define _AMI_MATRIX_H
@@ -43,7 +43,7 @@ public:
 
 template<class T>
 AMI_matrix<T>::AMI_matrix(TPIE_OS_OFFSET row, TPIE_OS_OFFSET col) :
-        r(row), c(col), AMI_STREAM<T>()
+    AMI_STREAM<T>(), r(row), c(col)
 {
 }
 
@@ -74,8 +74,7 @@ AMI_err AMI_matrix_add(AMI_matrix<T> &op1, AMI_matrix<T> &op2,
 
     // We should do some bound checking here.
 
-    return AMI_scan((AMI_STREAM<T> *)&op1, (AMI_STREAM<T> *)&op2,
-                    &sa, (AMI_STREAM<T> *)&res);
+    return AMI_scan(&op1, &op2, &sa, &res);
 }
 
 // Subtract.
@@ -88,8 +87,7 @@ AMI_err AMI_matrix_sub(AMI_matrix<T> &op1, AMI_matrix<T> &op2,
 
     // We should do some bound checking here.
     
-    return AMI_scan((AMI_STREAM<T> *)&op1, (AMI_STREAM<T> *)&op2,
-                    &ss, (AMI_STREAM<T> *)&res);
+    return AMI_scan(&op1, &op2, &ss, &res);
 }
 
 
@@ -143,9 +141,12 @@ AMI_err AMI_matrix_mult(AMI_matrix<T> &op1, AMI_matrix<T> &op2,
             T *tmp_read;
             
             // Main memory copies of the matrices.
-            matrix<T> mm_op1((TPIE_OS_SIZE_T)op1.rows(), (TPIE_OS_SIZE_T)op1.cols());
-            matrix<T> mm_op2((TPIE_OS_SIZE_T)op2.rows(), (TPIE_OS_SIZE_T)op2.cols());
-            matrix<T> mm_res((TPIE_OS_SIZE_T)res.rows(), (TPIE_OS_SIZE_T)res.cols());
+            matrix<T> mm_op1(static_cast<TPIE_OS_SIZE_T>(op1.rows()), 
+			     static_cast<TPIE_OS_SIZE_T>(op1.cols()));
+            matrix<T> mm_op2(static_cast<TPIE_OS_SIZE_T>(op2.rows()), 
+			     static_cast<TPIE_OS_SIZE_T>(op2.cols()));
+            matrix<T> mm_res(static_cast<TPIE_OS_SIZE_T>(res.rows()), 
+			     static_cast<TPIE_OS_SIZE_T>(res.cols()));
             
             // Read in the matrices and solve in main memory.
 
@@ -224,12 +225,12 @@ AMI_err AMI_matrix_mult(AMI_matrix<T> &op1, AMI_matrix<T> &op2,
 #ifdef AGGARWAL_MATRIX_MULT_IN_PLACE
         // Recall that a temporary vector is used, so we solve x^2 + x = m
         // for x, instead of the usual x^2 = m.
-        mm_matrix_extent = (TPIE_OS_SIZE_T)(sqrt(1.0 +
-                                               4 * (double)mm_matrix_space /
-                                               sizeof(T)) / 2) - 1;
+        mm_matrix_extent = static_cast<TPIE_OS_SIZE_T>(sqrt(1.0 +
+							    4 * static_cast<double>(mm_matrix_space) /
+							    sizeof(T)) / 2) - 1;
 #else        
-        mm_matrix_extent = (TPIE_OS_SIZE_T)sqrt((double)mm_matrix_space /
-                                              sizeof(T));    
+	mm_matrix_extent = static_cast<TPIE_OS_SIZE_T>(sqrt(static_cast<double>(mm_matrix_space) /
+							    sizeof(T)));    
 #endif
         // How many rows and columns of chunks in each matrix?
         
@@ -246,14 +247,14 @@ AMI_err AMI_matrix_mult(AMI_matrix<T> &op1, AMI_matrix<T> &op2,
         // given the constraint that the number of chunk rows and cols
         // in each matrix cannot decrease.
 
-        TPIE_OS_SIZE_T min_rows_per_chunk1 = (TPIE_OS_SIZE_T)((op1.rows() + chunkrows1 - 1) /
+        TPIE_OS_SIZE_T min_rows_per_chunk1 = static_cast<TPIE_OS_SIZE_T>((op1.rows() + chunkrows1 - 1) /
                                             chunkrows1);
-        TPIE_OS_SIZE_T min_cols_per_chunk1 = (TPIE_OS_SIZE_T)((op1.cols() + chunkcols1 - 1) /
+        TPIE_OS_SIZE_T min_cols_per_chunk1 = static_cast<TPIE_OS_SIZE_T>((op1.cols() + chunkcols1 - 1) /
                                             chunkcols1);
         
-        TPIE_OS_SIZE_T min_rows_per_chunk2 = (TPIE_OS_SIZE_T)((op2.rows() + chunkrows2 - 1) /
+        TPIE_OS_SIZE_T min_rows_per_chunk2 = static_cast<TPIE_OS_SIZE_T>((op2.rows() + chunkrows2 - 1) /
                                             chunkrows2);
-        TPIE_OS_SIZE_T min_cols_per_chunk2 = (TPIE_OS_SIZE_T)((op2.cols() + chunkcols2 - 1) /
+        TPIE_OS_SIZE_T min_cols_per_chunk2 = static_cast<TPIE_OS_SIZE_T>((op2.cols() + chunkcols2 - 1) /
                                             chunkcols2);
         
         // Adjust the main memory matrix extent so that an integral
@@ -295,13 +296,11 @@ AMI_err AMI_matrix_mult(AMI_matrix<T> &op1, AMI_matrix<T> &op2,
             AMI_matrix_pad<T> smp1(op1.rows(), op1.cols(), mm_matrix_extent);
             AMI_matrix_pad<T> smp2(op2.rows(), op2.cols(), mm_matrix_extent);
 
-            ae = AMI_scan((AMI_STREAM<T> *)&op1, &smp1,
-                          (AMI_STREAM<T> *)op1p);
+            ae = AMI_scan(&op1, &smp1,op1p);
             if (ae != AMI_ERROR_NO_ERROR) {
                 return ae;
             }
-            ae = AMI_scan((AMI_STREAM<T> *)&op2, &smp2,
-                          (AMI_STREAM<T> *)op2p);
+            ae = AMI_scan(&op2, &smp2, op2p);
             if (ae != AMI_ERROR_NO_ERROR) {
                 return ae;
             }
@@ -322,16 +321,12 @@ AMI_err AMI_matrix_mult(AMI_matrix<T> &op1, AMI_matrix<T> &op2,
             perm_matrix_into_blocks pmib1(rowsp1, colsp1, mm_matrix_extent);
             perm_matrix_into_blocks pmib2(rowsp2, colsp2, mm_matrix_extent);
 
-            ae = AMI_general_permute((AMI_STREAM<T> *)op1p,
-                                     (AMI_STREAM<T> *)op1pp,
-                                     (AMI_gen_perm_object *)&pmib1); 
+            ae = AMI_general_permute(op1p, op1pp, &pmib1); 
             if (ae != AMI_ERROR_NO_ERROR) {
                 return ae;
             }
 
-            ae = AMI_general_permute((AMI_STREAM<T> *)op2p,
-                                     (AMI_STREAM<T> *)op2pp,
-                                     (AMI_gen_perm_object *)&pmib2); 
+            ae = AMI_general_permute(op2p, op2pp, &pmib2); 
             if (ae != AMI_ERROR_NO_ERROR) {
                 return ae;
             }
@@ -481,9 +476,7 @@ AMI_err AMI_matrix_mult(AMI_matrix<T> &op1, AMI_matrix<T> &op2,
         {
             perm_matrix_outof_blocks pmob(rowsp1, colsp1, mm_matrix_extent);
 
-            ae = AMI_general_permute((AMI_STREAM<T> *)respp,
-                                     (AMI_STREAM<T> *)resp,
-                                     (AMI_gen_perm_object *)&pmob); 
+            ae = AMI_general_permute(respp, resp, &pmob); 
             if (ae != AMI_ERROR_NO_ERROR) {
                 return ae;
             }            
@@ -499,8 +492,7 @@ AMI_err AMI_matrix_mult(AMI_matrix<T> &op1, AMI_matrix<T> &op2,
             AMI_matrix_unpad<T> smup(op1.rows(), op2.cols(),
                                       mm_matrix_extent);
 
-            ae = AMI_scan((AMI_STREAM<T> *)resp, &smup,
-                          (AMI_STREAM<T> *)&res);
+            ae = AMI_scan(resp, &smup, &res);
             if (ae != AMI_ERROR_NO_ERROR) {
                 return ae;
             }
