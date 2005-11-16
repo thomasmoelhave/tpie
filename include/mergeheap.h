@@ -1,7 +1,7 @@
 //
 // File: mergeheap.h
 // 
-// $Id: mergeheap.h,v 1.14 2005-11-09 13:55:58 adanner Exp $	
+// $Id: mergeheap.h,v 1.15 2005-11-16 17:00:50 jan Exp $	
 
 // This file contains several merge heap templates. 
 // Originally written by Rakesh Barve.  
@@ -634,8 +634,8 @@ protected:
 public:
 
   // Constructor/Destructor 
-  merge_heap_kop( CMPR* cmpptr) : UsrObject(cmpptr), Heaparray(NULL) {};
-  ~merge_heap_kop() { 
+    merge_heap_kop( CMPR* cmpptr) : Heaparray(NULL), UsrObject(cmpptr) {};
+    ~merge_heap_kop() { 
      //Cleanup if someone forgot de-allocate
      //(abd) This seems to cause double free errors, but I don't know why
      //This was just a safeguard anyways, turn off for now
