@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/11/94
 //
-// $Id: bte_stream_stdio.h,v 1.16 2005-11-11 17:39:17 adanner Exp $
+// $Id: bte_stream_stdio.h,v 1.17 2005-11-16 16:53:51 jan Exp $
 //
 #ifndef _BTE_STREAM_STDIO_H
 #define _BTE_STREAM_STDIO_H
@@ -208,7 +208,7 @@ BTE_stream_stdio < T >::BTE_stream_stdio (const char *dev_path,
 
 	    m_header->m_type = BTE_STREAM_STDIO;
 
-	    if (TPIE_OS_FWRITE ((char *) m_header, sizeof (BTE_stream_header), 1, m_file) != 1) {
+	    if (TPIE_OS_FWRITE (reinterpret_cast<char*>(m_header), sizeof (BTE_stream_header), 1, m_file) != 1) {
 
 		m_status = BTE_STREAM_STATUS_INVALID;
 
@@ -257,7 +257,7 @@ BTE_stream_stdio < T >::BTE_stream_stdio (const char *dev_path,
 		}
 
 		// Make sure there was at least a full block there to pass.
-		if (TPIE_OS_FTELL (m_file) < (long)m_osBlockSize) {
+		if (TPIE_OS_FTELL (m_file) < static_cast<TPIE_OS_LONG>(m_osBlockSize)) {
 
 		    m_status = BTE_STREAM_STATUS_INVALID;
 		    m_osErrno = errno;
@@ -328,9 +328,9 @@ BTE_err BTE_stream_stdio < T >::new_substream (BTE_stream_type st,
 	       "Bad things got through the permisssion checks.");
 
     if (m_substreamLevel) {
-	if ((sub_begin * (TPIE_OS_OFFSET)sizeof (T) >=
+	if ((sub_begin * static_cast<TPIE_OS_OFFSET>(sizeof(T)) >=
 	     (m_logicalEndOfStream - m_logicalBeginOfStream))
-	    || (sub_end * (TPIE_OS_OFFSET)sizeof (T) >
+	    || (sub_end * static_cast<TPIE_OS_OFFSET>(sizeof(T)) >
 		(m_logicalEndOfStream - m_logicalBeginOfStream))) {
 
 	    *sub_stream = NULL;
@@ -363,7 +363,7 @@ BTE_err BTE_stream_stdio < T >::new_substream (BTE_stream_type st,
     sub->m_substreamLevel = m_substreamLevel + 1;
     sub->m_persistenceStatus =
 	(m_persistenceStatus == PERSIST_READ_ONCE) ? PERSIST_READ_ONCE : PERSIST_PERSISTENT;
-    *sub_stream = (BTE_stream_base < T > *)sub;
+    *sub_stream = dynamic_cast<BTE_stream_base < T > *>(sub);
 
     record_statistics(SUBSTREAM_CREATE);
 
@@ -385,7 +385,7 @@ BTE_stream_stdio < T >::~BTE_stream_stdio() {
 	    TP_LOG_WARNING_ID(m_path);
 	}
 	else {
-	    if (TPIE_OS_FWRITE((char*) m_header, 
+	    if (TPIE_OS_FWRITE(reinterpret_cast<char*>(m_header), 
 			       sizeof (BTE_stream_header), 1, m_file) != 1) {
 
 		m_status = BTE_STREAM_STATUS_INVALID;
@@ -467,7 +467,7 @@ BTE_err BTE_stream_stdio < T >::read_item (T ** elt) {
 
     } else {
 
-	stdio_ret = TPIE_OS_FREAD ((char*)(&read_tmp), sizeof (T), 1, m_file);
+	stdio_ret = TPIE_OS_FREAD (reinterpret_cast<char*>(&read_tmp), sizeof (T), 1, m_file);
 
 	if (stdio_ret == 1) {
 
@@ -503,7 +503,7 @@ BTE_err BTE_stream_stdio < T >::write_item (const T & elt) {
 	be = BTE_ERROR_END_OF_STREAM;
     } 
     else {
-	stdio_ret = TPIE_OS_FWRITE ((char *) &elt, sizeof (T), 1, m_file);
+	stdio_ret = TPIE_OS_FWRITE (reinterpret_cast<const char*>(&elt), sizeof (T), 1, m_file);
 	if (stdio_ret == 1) {
 
 	    if (m_logicalEndOfStream == m_fileOffset) {
@@ -573,8 +573,8 @@ BTE_err BTE_stream_stdio < T >::seek (TPIE_OS_OFFSET offset) {
     } 
 
     if (m_substreamLevel) {
-	if (offset * (TPIE_OS_OFFSET)sizeof (T) > 
-	    (TPIE_OS_OFFSET)(m_logicalEndOfStream - m_logicalBeginOfStream)) {
+	if (offset * static_cast<TPIE_OS_OFFSET>(sizeof(T)) > 
+	    static_cast<TPIE_OS_OFFSET>(m_logicalEndOfStream - m_logicalBeginOfStream)) {
 	    TP_LOG_WARNING_ID ("seek() out of range (off/bos/eos)");
 	    TP_LOG_WARNING_ID (m_logicalBeginOfStream);
 	    TP_LOG_WARNING_ID (m_logicalEndOfStream);
@@ -657,7 +657,7 @@ BTE_stream_header* BTE_stream_stdio < T >::map_header () {
     BTE_stream_header *ptr_to_header = new BTE_stream_header();
 
     // Read the header.
-    if ((TPIE_OS_FREAD ((char *) ptr_to_header, 
+    if ((TPIE_OS_FREAD (reinterpret_cast<char*>(ptr_to_header), 
 			sizeof (BTE_stream_header), 1, m_file)) != 1) {
 	m_status = BTE_STREAM_STATUS_INVALID;
 	m_osErrno = errno;

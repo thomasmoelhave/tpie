@@ -41,7 +41,8 @@ public:
 	m_percentageChecker(0), m_percentageValue(0), m_percentageUnit(0) {
 	m_minRange  = min(minRange, maxRange);
 	m_maxRange  = max(minRange, maxRange);
-	m_stepValue = max(min(stepValue, (m_maxRange-m_minRange)), (TPIE_OS_OFFSET)1); 
+	m_stepValue = max(min(stepValue, (m_maxRange-m_minRange)), 
+			  static_cast<TPIE_OS_OFFSET>(1)); 
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -50,7 +51,7 @@ public:
     ///
     ////////////////////////////////////////////////////////////////////
 
-    ~progress_indicator_base() {
+    virtual ~progress_indicator_base() {
 	// Do nothing.
     };
     
@@ -70,7 +71,8 @@ public:
     void set_range(TPIE_OS_OFFSET minRange, TPIE_OS_OFFSET maxRange, TPIE_OS_OFFSET stepValue) {
 	set_min_range(min(minRange, maxRange));
 	set_max_range(max(minRange, maxRange));
-	set_step_value( max(min(stepValue, (m_maxRange-m_minRange)), (TPIE_OS_OFFSET)1));
+	set_step_value( max(min(stepValue, (m_maxRange-m_minRange)),
+			    static_cast<TPIE_OS_OFFSET>(1)));
 	m_percentageValue = 0;
 	m_percentageChecker = 0;
 	m_percentageUnit = 0;
@@ -93,7 +95,8 @@ public:
 	TPIE_OS_OFFSET localMin = min(minRange,maxRange);
 	TPIE_OS_OFFSET localMax = max(minRange,maxRange);
 	set_step_value(1);
-	m_percentageUnit  = max(percentageUnit, (unsigned short)1);
+	m_percentageUnit  = max(percentageUnit, 
+				static_cast<unsigned short>(1));
 	m_percentageValue = (localMax-localMin)/m_percentageUnit;
 	if (m_percentageValue > 0) {
 	    set_min_range(0);
@@ -257,18 +260,18 @@ protected:
     /**  The current progress count [m_minRange...m_maxRange].  */
     TPIE_OS_OFFSET m_current;
 
-    /**  The unit in which "percentage" is measure. Default is
-	 to measure in percent, i.e., the unit is 100. A value
-         other than 0 indicates that the counter is in percentage
-         mode, i.e., it displays percent instead of steps. */
-    unsigned short m_percentageUnit;
+    /**  A temporary counter in [0...m_percentageValue-1].  */
+    TPIE_OS_OFFSET m_percentageChecker;
 
     /**  The absolute value which constitutes one percent of 
 	 the counting range.  */
     TPIE_OS_OFFSET m_percentageValue;
 
-    /**  A temporary counter in [0...m_percentageValue-1].  */
-    TPIE_OS_OFFSET m_percentageChecker;
+    /**  The unit in which "percentage" is measure. Default is
+	 to measure in percent, i.e., the unit is 100. A value
+         other than 0 indicates that the counter is in percentage
+         mode, i.e., it displays percent instead of steps. */
+    unsigned short m_percentageUnit;
 
 private:
     progress_indicator_base();

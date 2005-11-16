@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 1/9/95
 //
-// $Id: ami_bit_permute.h,v 1.8 2004-08-12 12:35:29 jan Exp $
+// $Id: ami_bit_permute.h,v 1.9 2005-11-16 16:52:30 jan Exp $
 //
 // For the moment this is done in terms of general permutations.
 // This will obviously change in the future.
@@ -53,6 +53,11 @@ public:
         src_bits = new bit_matrix(c.rows(),1);
     };
     
+    //  This destructor was not present before 2005116---why?
+    virtual ~bmmc_as_gen_po() {
+	delete src_bits;
+    }
+
     AMI_err initialize(TPIE_OS_OFFSET /*stream_len*/) {
         return AMI_ERROR_NO_ERROR;
     }
@@ -117,8 +122,7 @@ AMI_err AMI_BMMC_permute(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
     bmmc_as_gen_po<T> gpo(*bpo);
     
     // Do the permutation.
-    return AMI_general_permute(instream, outstream,
-                               (AMI_gen_perm_object *)&gpo);
+    return AMI_general_permute(instream, outstream, &gpo);
 }
 
 #endif // ndef TPIE_LIBRARY

@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/13/94
 //
-// $Id: bte_stream_mmap.h,v 1.19 2005-11-11 17:39:17 adanner Exp $
+// $Id: bte_stream_mmap.h,v 1.20 2005-11-16 16:53:51 jan Exp $
 //
 // Memory mapped streams.  This particular implementation explicitly manages
 // blocks, and only ever maps in one block at a time.
@@ -634,7 +634,7 @@ BTE_err BTE_stream_mmap < T >::new_substream (BTE_stream_type st, TPIE_OS_OFFSET
     BTE_stream_mmap < T > *sub =
 	new BTE_stream_mmap < T > (this, st, sub_begin, sub_end);
 
-    *sub_stream = (BTE_stream_base < T > *)sub;
+    *sub_stream = dynamic_cast<BTE_stream_base < T > *>(sub);
 
     return BTE_ERROR_NO_ERROR;
 }
@@ -775,12 +775,15 @@ inline BTE_err BTE_stream_mmap < T >::read_item (T ** elt) {
 	return bte_err;
     }
 
-    // Check and make sure that the current pointer points into the current
-    // block.
-    tp_assert (((char *) m_currentItem - (char *) m_currentBlock <=
-		m_header->m_blockSize - sizeof (T)),
+    // Check and make sure that the current pointer points into the
+    // current block.
+    tp_assert ((static_cast<unsigned int>(
+		    reinterpret_cast<char*>(m_currentItem) - 
+		    reinterpret_cast<char*>(m_currentBlock)) <=
+		static_cast<unsigned int>(m_header->m_blockSize - sizeof (T))),
 	       "m_currentItem is past the end of the current block");
-    tp_assert (((char *) m_currentItem - (char *) m_currentBlock >= 0),
+    tp_assert ((reinterpret_cast<char*>(m_currentItem) - 
+		reinterpret_cast<char*>(m_currentBlock) >= 0),
 	       "m_currentItem is before the begining of the current block");
 
     record_statistics(ITEM_READ);
@@ -822,14 +825,16 @@ inline BTE_err BTE_stream_mmap < T >::write_item (const T & elt) {
 	return bte_err;
     }
 
-    // Check and make sure that the current pointer points into the current
-    // block.
-    tp_assert (((char *) m_currentItem - (char *) m_currentBlock <=
-		m_header->m_blockSize - sizeof (T)),
+    // Check and make sure that the current pointer points into the
+    // current block.
+    tp_assert ((static_cast<unsigned int>(
+		    reinterpret_cast<char*>(m_currentItem) - 
+		    reinterpret_cast<char*>(m_currentBlock)) <=
+		static_cast<unsigned int>(m_header->m_blockSize - sizeof (T))),
 	       "m_currentItem is past the end of the current block");
-    tp_assert (((char *) m_currentItem - (char *) m_currentBlock >= 0),
+    tp_assert ((reinterpret_cast<char*>(m_currentItem) - 
+		reinterpret_cast<char*>(m_currentBlock) >= 0),
 	       "m_currentItem is before the begining of the current block");
-    assert (m_currentItem);
     
     record_statistics(ITEM_WRITE);
     
@@ -932,7 +937,8 @@ BTE_err BTE_stream_mmap < T >::seek (TPIE_OS_OFFSET offset) {
 // we have the correct block mapped in (m_fileOffset does not always point into
 // the current block!)
     
-    if (((char *) m_currentItem - (char *) m_currentBlock >=
+    if ((static_cast<TPIE_OS_SIZE_T>(reinterpret_cast<char *>(m_currentItem) - 
+				     reinterpret_cast<char *>(m_currentBlock)) >=
 	 m_header->m_blockSize) ||
 	(((new_offset - m_osBlockSize) / m_header->m_blockSize) !=
 	 ((m_fileOffset - m_osBlockSize) / m_header->m_blockSize))) {
@@ -993,7 +999,8 @@ BTE_err BTE_stream_mmap < T >::truncate (TPIE_OS_OFFSET offset) {
     // (m_fileOffset does not always point into the current block!) -
     // see comment in seek()
 
-    if (((char *) m_currentItem - (char *) m_currentBlock >= 
+    if ((static_cast<TPIE_OS_SIZE_T>(reinterpret_cast<char *>(m_currentItem) - 
+				     reinterpret_cast<char *>(m_currentBlock)) >= 
 	 m_header->m_blockSize) ||
 	(((new_offset - m_osBlockSize) / m_header->m_blockSize) !=
 	 ((m_fileOffset - m_osBlockSize) / m_header->m_blockSize))) {
@@ -1098,12 +1105,13 @@ BTE_stream_header * BTE_stream_mmap < T >::map_header () {
     // block should be too.
     // took out the SYSTYPE_BSD ifdef for convenience
     // changed from MAP_FIXED to MAP_VARIABLE because we are using NULL
-    mmap_hdr = (BTE_stream_header *)
-	(call_mmap ((NULL), sizeof (BTE_stream_header),
-		    m_readOnly, m_writeOnly, 
-		    m_fileDescriptor, 0, 0));
+    mmap_hdr = reinterpret_cast<BTE_stream_header *>(
+	call_mmap ((NULL), 
+		   sizeof (BTE_stream_header), 
+		   m_readOnly, m_writeOnly, 
+		   m_fileDescriptor, 0, 0));
 
-    if (mmap_hdr == (BTE_stream_header *) (-1)) {
+    if (mmap_hdr == reinterpret_cast<BTE_stream_header *>(-1)) {
 
 	m_status = BTE_STREAM_STATUS_INVALID;
 	m_osErrno = errno;
@@ -1181,12 +1189,12 @@ template < class T > void BTE_stream_mmap < T >::unmap_header ()
     // block should be too.
     // took out the SYSTYPE_BSD ifdef for convenience
     // changed from MAP_FIXED to MAP_VARIABLE because we are using NULL
-    mmap_hdr = (BTE_stream_header *)
-	(call_mmap ((NULL), sizeof (BTE_stream_header),
-		    m_readOnly, m_writeOnly,
-		    m_fileDescriptor, 0, 0));
-
-    if (mmap_hdr == (BTE_stream_header *) (-1)) {
+    mmap_hdr = reinterpret_cast<BTE_stream_header *>(
+	call_mmap ((NULL), sizeof (BTE_stream_header),
+		   m_readOnly, m_writeOnly,
+		   m_fileDescriptor, 0, 0));
+    
+    if (mmap_hdr == reinterpret_cast<BTE_stream_header *>(-1)) {
 
 	m_status = BTE_STREAM_STATUS_INVALID;
 	m_osErrno = errno;
@@ -1222,7 +1230,8 @@ inline BTE_err BTE_stream_mmap < T >::validate_current () {
     if (m_blockValid) {
 	assert (m_currentItem);		// sanity check - rajiv
 	if ((blockSpace = m_header->m_blockSize -
-	     ((char *) m_currentItem - (char *) m_currentBlock)) >= 
+	     (reinterpret_cast<char *>(m_currentItem) - 
+	      reinterpret_cast<char *>(m_currentBlock))) >= 
 	    sizeof (T)) {
 	    return BTE_ERROR_NO_ERROR;
 	} 
@@ -1345,18 +1354,20 @@ template < class T > BTE_err BTE_stream_mmap < T >::map_current () {
 	    grow_file(blockOffset);
 	}
 
-	m_currentBlock = (T *) (call_mmap (m_currentBlock, 
-					   m_header->m_blockSize,
-					   m_readOnly, m_writeOnly, 
-					   m_fileDescriptor, 
-					   blockOffset,
-					   (m_currentBlock != NULL)));
+	m_currentBlock = reinterpret_cast<T *>(
+	    call_mmap (m_currentBlock, 
+		       m_header->m_blockSize,
+		       m_readOnly, m_writeOnly, 
+		       m_fileDescriptor, 
+		       blockOffset,
+		       (m_currentBlock != NULL)));
 	m_blockMapped = false;
     }
 
-    assert ((void *) m_currentBlock != (void *) m_header);
+    assert (reinterpret_cast<void *>(m_currentBlock) != 
+	    reinterpret_cast<void *>(m_header));
 
-    if (m_currentBlock == (T *) (-1)) {
+    if (m_currentBlock == reinterpret_cast<T *>(-1)) {
 
 	m_status = BTE_STREAM_STATUS_INVALID;
 	m_osErrno = errno;

@@ -7,7 +7,7 @@
 // lower level streams will use appropriate levels of buffering.  This
 // will be more critical for parallel disk implementations.
 //
-// $Id: ami_merge.h,v 1.39 2005-11-15 15:40:37 jan Exp $
+// $Id: ami_merge.h,v 1.40 2005-11-16 16:52:32 jan Exp $
 //
 #ifndef _AMI_MERGE_H
 #define _AMI_MERGE_H
@@ -144,7 +144,7 @@ AMI_generalized_merge(AMI_STREAM<T> **instreams, arity_t arity,
                arity * m_obj->space_usage_per_stream();
                
   //streams and m_obj must fit in memory!
-  if (sz_needed >= (TPIE_OS_OFFSET)sz_avail) {
+  if (sz_needed >= static_cast<TPIE_OS_OFFSET>(sz_avail)) {
    TP_LOG_WARNING("Insuficent main memory to perform a merge.\n");
     return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
   }
@@ -328,7 +328,7 @@ AMI_err AMI_main_mem_merge(AMI_STREAM<T> *instream,
   sz_avail = MM_manager.memory_available ();
 
   len = instream->stream_len();
-  if ((len * sizeof(T)) <= (TPIE_OS_OFFSET)sz_avail) {
+  if ((len * sizeof(T)) <= static_cast<TPIE_OS_OFFSET>(sz_avail)) {
     
     // If the whole input can fit in main memory just call
     // m_obj->main_mem_operate
@@ -342,7 +342,7 @@ AMI_err AMI_main_mem_merge(AMI_STREAM<T> *instream,
     T *mm_stream;
     TPIE_OS_OFFSET len1;
     //allocate and read input stream in memory we know it fits, so we may cast.
-    if ((mm_stream = new T[(TPIE_OS_SIZE_T)len]) == NULL) {
+    if ((mm_stream = new T[static_cast<TPIE_OS_SIZE_T>(len)]) == NULL) {
       return AMI_ERROR_MM_ERROR;
     };
     len1 = len;
@@ -355,14 +355,16 @@ AMI_err AMI_main_mem_merge(AMI_STREAM<T> *instream,
     
     //just call m_obj->main_mem_operate. We know that len items fit into
 	//main memory, so we may cast to TPIE_OS_SIZE_T
-    if ((ae = m_obj->main_mem_operate(mm_stream, (TPIE_OS_SIZE_T)len)) !=
+    if ((ae = m_obj->main_mem_operate(mm_stream, 
+				      static_cast<TPIE_OS_SIZE_T>(len))) !=
 	AMI_ERROR_NO_ERROR) {
      TP_LOG_WARNING_ID("main_mem_operate failed");
       return ae;
     }
 
     //write array back to stream
-    if ((ae = outstream->write_array(mm_stream, (TPIE_OS_SIZE_T)len)) !=
+    if ((ae = outstream->write_array(mm_stream, 
+				     static_cast<TPIE_OS_SIZE_T>(len))) !=
 	AMI_ERROR_NO_ERROR) {
      TP_LOG_WARNING_ID("write array failed");
       return ae;
@@ -408,7 +410,7 @@ AMI_err AMI_generalized_partition_and_merge(AMI_STREAM<T> *instream,
   // AMI_main_mem_merge() to deal with it by loading it once and
   // processing it.
   len = instream->stream_len();
-  if ((len * sizeof(T)) <= (TPIE_OS_OFFSET)sz_avail) {
+  if ((len * sizeof(T)) <= static_cast<TPIE_OS_OFFSET>(sz_avail)) {
     return AMI_main_mem_merge(instream, outstream, m_obj);
   } 
   //else {
@@ -485,15 +487,17 @@ AMI_err AMI_generalized_partition_and_merge(AMI_STREAM<T> *instream,
   }
 
   // number of memoryloads in input ceil(N/M) -R
-  nb_orig_substr = (arity_t)((len + sz_orig_substr - 1) / sz_orig_substr);
+  nb_orig_substr = static_cast<arity_t>((len + sz_orig_substr - 1) / 
+					sz_orig_substr);
   
   // Account for the space that a merge object will use.
   {
     TPIE_OS_SIZE_T sz_avail_during_merge = sz_avail - m_obj->space_usage_overhead();
     TPIE_OS_SIZE_T sz_stream_during_merge = sz_stream +m_obj->space_usage_per_stream();
     
-    merge_arity = (arity_t)((sz_avail_during_merge +
-		   sz_stream_during_merge - 1) / sz_stream_during_merge);
+    merge_arity = static_cast<arity_t>((sz_avail_during_merge +
+					sz_stream_during_merge - 1) / 
+				       sz_stream_during_merge);
   }
 
   // Make sure that the AMI is willing to provide us with the number
@@ -507,9 +511,10 @@ AMI_err AMI_generalized_partition_and_merge(AMI_STREAM<T> *instream,
       if (ami_available_streams <= 4) {
 	return AMI_ERROR_INSUFFICIENT_AVAILABLE_STREAMS;
       }
-      if (merge_arity > (arity_t)ami_available_streams - 2) {
-	merge_arity = ami_available_streams - 2;
-	TP_LOG_DEBUG_ID("Reduced merge arity due to AMI restrictions.");
+      //  safe to cast, since ami_available_streams > 4
+      if (merge_arity > static_cast<arity_t>(ami_available_streams) - 2) {
+	  merge_arity = ami_available_streams - 2;
+	  TP_LOG_DEBUG_ID("Reduced merge arity due to AMI restrictions.");
       }
     }
   }
@@ -558,7 +563,7 @@ AMI_err AMI_generalized_partition_and_merge(AMI_STREAM<T> *instream,
   // processing each one and writing it to the corresponding substream
   // of the temporary stream.
   initial_tmp_stream = new AMI_STREAM<T>;
-  mm_stream = new T[(TPIE_OS_SIZE_T)sz_orig_substr];
+  mm_stream = new T[static_cast<TPIE_OS_SIZE_T>(sz_orig_substr)];
   tp_assert(mm_stream != NULL, "Misjudged available main memory.");
   if (mm_stream == NULL) {
     return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
@@ -600,7 +605,7 @@ AMI_err AMI_generalized_partition_and_merge(AMI_STREAM<T> *instream,
 	      "\n\tmm_len_bak = " << mm_len_bak << '.');
     
     // Solve in main memory. We know it fits, so cast to TPIE_OS_SIZE_T
-    m_obj->main_mem_operate(mm_stream, (TPIE_OS_SIZE_T)mm_len);
+    m_obj->main_mem_operate(mm_stream, static_cast<TPIE_OS_SIZE_T>(mm_len));
     
     // Write the result out to the temporary stream.
     ae = initial_tmp_stream->write_array(mm_stream, mm_len);
@@ -636,7 +641,8 @@ AMI_err AMI_generalized_partition_and_merge(AMI_STREAM<T> *instream,
   k = 0;
   // The main loop.  At the outermost level we are looping over levels
   // of the merge tree.  Typically this will be very small, e.g. 1-3.
-  for( ; current_substream_len < (size_t)len;
+  // CAVEAT: is the cast o.k.??
+  for( ; current_substream_len < static_cast<TPIE_OS_SIZE_T>(len);
        current_substream_len *= merge_arity) {
     
     // The number of substreams to be processed at this level.
@@ -653,8 +659,8 @@ AMI_err AMI_generalized_partition_and_merge(AMI_STREAM<T> *instream,
     // the current level into the output stream?  If so, then we will
     // do so, if not then we need an additional level of iteration to
     // process the substreams in groups.
-    substream_count = (arity_t)((len + current_substream_len - 1) /
-      current_substream_len);
+    substream_count = static_cast<arity_t>((len + current_substream_len - 1) /
+					   current_substream_len);
     
     if (substream_count <= merge_arity) {
       
@@ -670,14 +676,13 @@ AMI_err AMI_generalized_partition_and_merge(AMI_STREAM<T> *instream,
 	  sub_end = len - 1;
 	}
 	current_input->new_substream(AMI_READ_STREAM, sub_start, sub_end,
-				     (AMI_stream_base<T> **)
-				     (the_substreams + ii));
+				     reinterpret_cast<AMI_stream_base<T> **>(the_substreams + ii));
 	// The substreams are read-once.
 	the_substreams[ii]->persist(PERSIST_READ_ONCE);
       }               
       
-      tp_assert(((int) sub_start >= (int) len) &&
-		((int) sub_start < (int) len + (int) current_substream_len),
+      tp_assert((sub_start >= len) &&
+		(sub_start < len + current_substream_len),
 		"Loop ended in wrong location.");
       
       // Fool the OS into unmapping the current block of the input
@@ -728,16 +733,16 @@ AMI_err AMI_generalized_partition_and_merge(AMI_STREAM<T> *instream,
 	  sub_end = len - 1;
 	}
 	current_input->new_substream(AMI_READ_STREAM, sub_start, sub_end,
-				     (AMI_stream_base<T> **)
-				     (the_substreams + jj));
+				     reinterpret_cast<AMI_stream_base<T> **>(the_substreams + jj)); 
 	// The substreams are read-once.
 	the_substreams[jj]->persist(PERSIST_READ_ONCE);
                     
 	// If we've got all we can handle or we've seen them all, then
 	// merge them.
-	if ((jj >= (int) merge_arity - 1) || (ii == substream_count - 1)) {
+	if ((jj >= static_cast<int>(merge_arity) - 1) || 
+	    (ii == substream_count - 1)) {
 	  
-	  tp_assert(jj <= (int) merge_arity - 1,
+	    tp_assert(jj <= static_cast<int>(merge_arity) - 1,
 		    "Index got too large.");
 #if DEBUG_ASSERTIONS
 	  // Check the lengths before the merge.

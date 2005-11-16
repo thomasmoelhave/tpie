@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/24/94
 //
-// $Id: ami_scan_mac.h,v 1.10 2003-04-25 00:06:56 tavi Exp $
+// $Id: ami_scan_mac.h,v 1.11 2005-11-16 16:52:33 jan Exp $
 //
 #ifndef _AMI_SCAN_MAC_H
 #define _AMI_SCAN_MAC_H
@@ -172,7 +172,7 @@ AMI_err AMI_scan( __SPARM_ ## in_arity (T,_ts_),			    \
     __FSPACE(_lif_,in_arity);						    \
     __FSPACE(_of_,out_arity);						    \
 	    								    \
-    AMI_err _op_err_, _ami_err_;					    \
+    AMI_err _op_err_ = AMI_ERROR_NO_ERROR, _ami_err_ = AMI_ERROR_NO_ERROR;  \
 	    								    \
     __CHKSTR_ ## in_arity (_ts_)                                            \
     __CHKSTR_ ## out_arity (_us_)                                           \
@@ -212,7 +212,7 @@ AMI_err AMI_scan( SC *soper, __SPARM_ ## out_arity (U,_us_))		    \
 	    								    \
     __FSPACE(_of_,out_arity);						    \
 	    								    \
-    AMI_err _op_err_, _ami_err_;					    \
+    AMI_err _op_err_ = AMI_ERROR_NO_ERROR, _ami_err_ = AMI_ERROR_NO_ERROR;  \
                                                                             \
     __CHKSTR_ ## out_arity (_us_)                                           \
     soper->initialize();						    \
@@ -243,7 +243,7 @@ AMI_err AMI_scan( __SPARM_ ## in_arity (T,_ts_), SC *soper)		    \
     __FSPACE(_if_,in_arity);						    \
     __FSPACE(_lif_,in_arity);						    \
 	    								    \
-    AMI_err _op_err_, _ami_err_;					    \
+    AMI_err _op_err_ = AMI_ERROR_NO_ERROR, _ami_err_ = AMI_ERROR_NO_ERROR;  \
 	    								    \
     __CHKSTR_ ## in_arity (_ts_)                                            \
     __REWIND_ ## in_arity (_ts_);					    \

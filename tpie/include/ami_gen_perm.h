@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 11/1/94
 //
-// $Id: ami_gen_perm.h,v 1.14 2004-08-12 12:35:30 jan Exp $
+// $Id: ami_gen_perm.h,v 1.15 2005-11-16 16:52:31 jan Exp $
 //
 // General permutation.
 //
@@ -116,8 +116,8 @@ AMI_err AMI_general_permute(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
     
     // Scan the stream, producing an output stream that labels each
     // item with its destination.
-    ae = AMI_scan((AMI_STREAM<T> *)instream, &gpad,
-                  (AMI_STREAM< dest_obj<T> > *)&sdo_in);
+    ae = AMI_scan(instream, &gpad,&sdo_in);
+
     if (ae != AMI_ERROR_NO_ERROR) {
         return ae;
     }
@@ -129,8 +129,8 @@ AMI_err AMI_general_permute(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
     }
 
     // Scan to strip off the destinations.
-    ae = AMI_scan((AMI_STREAM< dest_obj<T> > *)&sdo_out, &gpsd,
-                  (AMI_STREAM<T> *)outstream);
+    ae = AMI_scan(&sdo_out, &gpsd, outstream);
+
     if (ae != AMI_ERROR_NO_ERROR) {
         return ae;
     }

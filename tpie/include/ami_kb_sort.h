@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 3/12/95
 //
-// $Id: ami_kb_sort.h,v 1.10 2004-08-12 12:35:30 jan Exp $
+// $Id: ami_kb_sort.h,v 1.11 2005-11-16 16:52:31 jan Exp $
 //
 
 // This header file can be included in one of two ways, either with a
@@ -201,7 +201,7 @@ AMI_err _AMI_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
             // Read its range.
             {
                 TPIE_OS_OFFSET range_size = sizeof(stream_range);
-                ae = name_stream->read_array((char *)&stream_range,
+                ae = name_stream->read_array(reinterpret_cast<char*>(&stream_range),
                                              &range_size);
                 if (ae != AMI_ERROR_NO_ERROR) {
                     return ae;
@@ -211,7 +211,7 @@ AMI_err _AMI_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
             // Read its length.
             {
                 TPIE_OS_OFFSET length_size = sizeof(stream_len);
-                ae = name_stream->read_array((char *)&stream_len,
+                ae = name_stream->read_array(reinterpret_cast<char*>(&stream_len),
                                              &length_size);
                 if (ae != AMI_ERROR_NO_ERROR) {
                     return ae;
@@ -257,7 +257,7 @@ AMI_err _AMI_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
 
                     // Write the range.
                     
-                    ae = name_stream2->write_array((const char *)&stream_range,
+                    ae = name_stream2->write_array(reinterpret_cast<const char*>(&stream_range),
                                                    sizeof(stream_range));
                     if (ae != AMI_ERROR_NO_ERROR) {
                         return ae;
@@ -265,7 +265,7 @@ AMI_err _AMI_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
                     
                     // Write the length.
                     
-                    ae = name_stream2->write_array((const char *)&stream_len,
+                    ae = name_stream2->write_array(reinterpret_cast<const char*>(&stream_len),
                                                    sizeof(stream_len));
                     if (ae != AMI_ERROR_NO_ERROR) {
                         return ae;
@@ -355,7 +355,7 @@ AMI_err _AMI_MM_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
     size_t sz_avail;
     TPIE_OS_OFFSET stream_len;
 
-    TPIE_OS_OFFSET ii,jj;
+    TPIE_OS_SIZE_T ii,jj;
     
     // Check available main memory.
     sz_avail = MM_manager.memory_available ();
@@ -367,22 +367,28 @@ AMI_err _AMI_MM_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
     if (sz_avail < stream_len * (sizeof(T) +
                                  sizeof(AMI_bucket_list_elem<T> *) + 
                                  sizeof(AMI_bucket_list_elem<T>))) {
-        cerr << '\n' << (TPIE_OS_LONGLONG)sz_avail << ' ' << (TPIE_OS_LONGLONG)stream_len << '\n';
-        cerr << sizeof(T) << ' ' << sizeof(AMI_bucket_list_elem<T> *) <<
-            ' ' << sizeof(AMI_bucket_list_elem<T>);
+        cerr << '\n' 
+	     << static_cast<TPIE_OS_LONGLONG>(sz_avail)
+	     << ' ' 
+	     << static_cast<TPIE_OS_LONGLONG>(stream_len)
+	     << '\n';
+        cerr << sizeof(T) 
+	     << ' ' 
+	     << sizeof(AMI_bucket_list_elem<T> *) 
+	     << ' ' << sizeof(AMI_bucket_list_elem<T>);
 
         return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
     }
     
     // Allocate the space for the data and for the bucket list elements.
     // We know that stream_len items fit in main memory, so it is safe to cast.
-    T *indata = new T[(TPIE_OS_SIZE_T)stream_len];
+    T *indata = new T[static_cast<TPIE_OS_SIZE_T>(stream_len)];
     
     AMI_bucket_list_elem<T> **buckets =
-        new AMI_bucket_list_elem<T>*[(TPIE_OS_SIZE_T)stream_len];
+        new AMI_bucket_list_elem<T>*[static_cast<TPIE_OS_SIZE_T>(stream_len)];
 
     AMI_bucket_list_elem<T> *list_space =
-        new AMI_bucket_list_elem<T>[(TPIE_OS_SIZE_T)stream_len];
+        new AMI_bucket_list_elem<T>[static_cast<TPIE_OS_SIZE_T>(stream_len)];
 
     // Read the input stream.
 
@@ -408,7 +414,7 @@ AMI_err _AMI_MM_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
 
     AMI_bucket_list_elem<T> *list_elem;
     
-    unsigned int bucket_index_denom = (unsigned int)(((range.max - range.min) /
+    unsigned int bucket_index_denom = static_cast<unsigned int>(((range.max - range.min) /
                                        stream_len) + 1);
 
     if (!bucket_index_denom) {
@@ -419,10 +425,10 @@ AMI_err _AMI_MM_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
          ii--; list_elem++ ) {
         unsigned int bucket_index;
 
-        bucket_index = ((unsigned int)((KB_KEY)(indata[ii])) - range.min) /
+        bucket_index = (static_cast<unsigned int>(static_cast<KB_KEY>(indata[ii])) - range.min) /
             bucket_index_denom; 
 
-        tp_assert(bucket_index < (unsigned long)stream_len, "Bucket index too large.");
+        tp_assert(bucket_index < static_cast<unsigned long>(stream_len), "Bucket index too large.");
         
         list_elem->data = indata[ii];
         list_elem->next = buckets[bucket_index];
@@ -445,7 +451,7 @@ AMI_err _AMI_MM_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
         unsigned int max_occupancy = 0;
         unsigned int buckets_occupied = 0;
 #endif        
-    for (ii = 0, jj = 0; ii < (unsigned)stream_len; ii++) {
+	for (ii = 0, jj = 0; ii < static_cast<TPIE_OS_SIZE_T>(stream_len); ii++) {
 #if VERIFY_OCCUPANCY
         unsigned int cur_occupancy = 0;
 #endif        
