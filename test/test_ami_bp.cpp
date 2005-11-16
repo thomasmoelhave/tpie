@@ -11,7 +11,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_bp_cpp,"$Id: test_ami_bp.cpp,v 1.13 2005-02-15 00:23:06 tavi Exp $");
+VERSION(test_ami_bp_cpp,"$Id: test_ami_bp.cpp,v 1.14 2005-11-16 17:03:50 jan Exp $");
 
 // Get the application defaults.
 #include "app_config.h"
@@ -148,7 +148,7 @@ int main(int argc, char **argv)
     
     AMI_bit_perm_object bpo(A, c);
     
-    ae = AMI_BMMC_permute(&amis0, &amis1, (AMI_bit_perm_object *)&bpo);
+    ae = AMI_BMMC_permute(&amis0, &amis1, &bpo);
 
     if (verbose) {
         cout << "After permutation, stream length = " 

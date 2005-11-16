@@ -65,21 +65,21 @@ int getopts_usage(char *progName, struct options opts[]) {
   printf("Display this information.\n");
   for (count = 0; opts[count].description; count++) {
     if (opts[count].name && opts[count].shortName)  {
-      cmd = (char*) calloc(1, strlen(opts[count].name) + strlen(opts[count].shortName) + optlen);
+	cmd = reinterpret_cast<char*>(calloc(1, strlen(opts[count].name) + strlen(opts[count].shortName) + optlen));
       if (opts[count].args) {
 	sprintf(cmd, "--%s, -%s <args> ", opts[count].name, opts[count].shortName);
       } else {
 	sprintf(cmd, "--%s, -%s ", opts[count].name, opts[count].shortName);
       }
     } else if (opts[count].name) {
-      cmd = (char*) calloc(1, strlen(opts[count].name) + optlen);
+	cmd = reinterpret_cast<char*>(calloc(1, strlen(opts[count].name) + optlen));
       if (opts[count].args) {
 	sprintf(cmd, "--%s <args> ", opts[count].name);
       } else {
 	sprintf(cmd, "--%s ", opts[count].name);
       }
     } else if (opts[count].shortName) {
-      cmd = (char*) calloc(1, strlen(opts[count].shortName) + optlen);
+	cmd = reinterpret_cast<char*>(calloc(1, strlen(opts[count].shortName) + optlen)); 
       if (opts[count].args) {
 	sprintf(cmd, "-%s <args> ", opts[count].shortName);
       } else {
@@ -159,7 +159,7 @@ useage:
 /* End of gross hack for supporting '-' in arguments. */
                     }
                   sizeOfArgs = strlen(argv[option_index]);
-                  if ((*args = (char*) calloc(1, sizeOfArgs+1)) == NULL)
+                  if ((*args = reinterpret_cast<char*>(calloc(1, sizeOfArgs+1))) == NULL)
                     return -1;
                   strncpy(*args, argv[option_index], sizeOfArgs);
                 }

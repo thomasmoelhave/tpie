@@ -182,8 +182,6 @@ void init_opts(struct options* & opts, int argc, char** argv){
   
   opts = new struct options[APP_OPTION_NUM_OPTIONS];
 
-  const int bufsize = 160;
-    
   int i=0;
   opts[i].number=APP_OPTION_PATH;
   opts[i].name = "path-name";
@@ -259,7 +257,7 @@ void get_app_info(int argc, char** argv, appInfo & Info){
   Info.num_items=APP_DEFAULT_N_ITEMS;
 
   nopts=0;
-  while (optidx=getopts(argc, argv, opts, &optarg)){
+  while ( (optidx=getopts(argc, argv, opts, &optarg)) ){
     nopts++;
     if(optidx==-1){
       cerr << "Could not allocate space for arguments. Exiting...\n";
@@ -407,7 +405,7 @@ void progress_bar(float pct, TPIE_OS_LONGLONG nbytes){
   char* buf;
   
   //percent done as an integer
-  intpct = (int)(100*pct);
+  intpct = static_cast<int>(100*pct);
   
   cout <<"\r[";
   i=1;
@@ -443,10 +441,13 @@ void write_test(char* fname, appInfo & info){
   assert(str->is_valid());
   str->persist(PERSIST_PERSISTENT);
   
-  cout << "Opened file " << fname 
-       << "\nWriting "<< n << " items..." << endl;
+  cout << "Opened file " 
+       << fname 
+       << "\nWriting "
+       << n 
+       << " items..." << endl;
   
-  trunc=((TPIE_OS_OFFSET)(sizeof (x)))*n;
+  trunc=(static_cast<TPIE_OS_OFFSET>(sizeof (x)))*n;
   if(trunc<0 || trunc>(4*APP_GIG)){
     cout << "Initial file length computed as "<< trunc
          << "\nSetting to 4GB "<< endl;

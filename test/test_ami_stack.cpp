@@ -8,7 +8,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_stack_cpp,"$Id: test_ami_stack.cpp,v 1.9 2005-02-15 00:23:06 tavi Exp $");
+VERSION(test_ami_stack_cpp,"$Id: test_ami_stack.cpp,v 1.10 2005-11-16 17:03:52 jan Exp $");
 
 #include "app_config.h"        
 #include "parse_args.h"
@@ -108,7 +108,7 @@ int main(int argc, char **argv)
     // Push values.
     TPIE_OS_OFFSET ii;
     for (ii = test_size; ii--; ) {
-        amis0.push((double)ii+0.01);
+        amis0.push(static_cast<double>(ii)+0.01);
     }
 
     if (verbose) {
@@ -117,7 +117,7 @@ int main(int argc, char **argv)
     }
         
     if (report_results_count) {
-        ae = AMI_scan((AMI_STREAM<double> *)&amis0, rptc);
+        ae = AMI_scan(&amis0, rptc);
     }
 
     // Pop them all off.

@@ -8,7 +8,7 @@
 //
 
 
-static char scan_count_id[] = "$Id: scan_count.cpp,v 1.4 2004-08-12 15:15:11 jan Exp $";
+// static char scan_count_id[] = "$Id: scan_count.cpp,v 1.5 2005-11-16 17:03:49 jan Exp $"; 
 
 #include "app_config.h"
 #include "scan_count.h"

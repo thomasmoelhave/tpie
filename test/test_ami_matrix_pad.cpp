@@ -7,7 +7,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_matrix_cpp,"$Id: test_ami_matrix_pad.cpp,v 1.11 2005-02-15 00:23:06 tavi Exp $");
+VERSION(test_ami_matrix_cpp,"$Id: test_ami_matrix_pad.cpp,v 1.12 2005-11-16 17:03:51 jan Exp $");
 
 #include "app_config.h"        
 #include "parse_args.h"
@@ -87,36 +87,36 @@ int main(int argc, char **argv)
     // Set the amount of main memory:
     MM_manager.set_memory_limit (test_mm_size);
 
-    AMI_matrix<int> em0(test_size, test_size);
+    AMI_matrix<TPIE_OS_OFFSET> em0(test_size, test_size);
         
     // Streams for reporting values to ascii streams.
     
     ofstream *osc;
     ofstream *osi;
     ofstream *osf;
-    cxx_ostream_scan<int> *rptc = NULL;
-    cxx_ostream_scan<int> *rpti = NULL;
-    cxx_ostream_scan<int> *rptf = NULL;
+    cxx_ostream_scan<TPIE_OS_OFFSET> *rptc = NULL;
+    cxx_ostream_scan<TPIE_OS_OFFSET> *rpti = NULL;
+    cxx_ostream_scan<TPIE_OS_OFFSET> *rptf = NULL;
     
     if (report_results_count) {
         osc = new ofstream(count_results_filename);
-        rptc = new cxx_ostream_scan<int>(osc);
+        rptc = new cxx_ostream_scan<TPIE_OS_OFFSET>(osc);
     }
     
     if (report_results_intermediate) {
         osi = new ofstream(intermediate_results_filename);
-        rpti = new cxx_ostream_scan<int>(osi);
+        rpti = new cxx_ostream_scan<TPIE_OS_OFFSET>(osi);
     }
     
     if (report_results_final) {
         osf = new ofstream(final_results_filename);
-        rptf = new cxx_ostream_scan<int>(osf);
+        rptf = new cxx_ostream_scan<TPIE_OS_OFFSET>(osf);
     }
     
     // Write some ints.
     scan_count sc(test_size*test_size);
 
-    ae = AMI_scan(&sc, (AMI_STREAM<TPIE_OS_OFFSET> *)&em0);
+    ae = AMI_scan(&sc, &em0);
 
     if (verbose) {
       cout << "Wrote the initial sequence of values." << endl;
@@ -127,7 +127,7 @@ int main(int argc, char **argv)
     }
 
     if (report_results_count) {
-        ae = AMI_scan((AMI_STREAM<int> *)&em0, rptc);
+        ae = AMI_scan(&em0, rptc);
     }
 
     {
@@ -138,7 +138,7 @@ int main(int argc, char **argv)
         AMI_matrix<int> em1(7 * ((em0.rows() - 1)/7 + 1),
                             7 * ((em0.cols() - 1)/7 + 1));
 
-        ae = AMI_scan((AMI_STREAM<int> *)&em0, &smp, (AMI_STREAM<int> *)&em1);
+        ae = AMI_scan(&em0, &smp, &em1);
 
         
         // Block permute the matrix.
@@ -150,12 +150,10 @@ int main(int argc, char **argv)
                                       7 * ((em0.cols() - 1)/7 + 1),
                                       7);
 
-        ae = AMI_general_permute((AMI_STREAM<int> *)&em1,
-                                 (AMI_STREAM<int> *)&em1p,
-                                 (AMI_gen_perm_object *)&pmib1); 
+        ae = AMI_general_permute(&em1, &em1p, &pmib1); 
 
         if (report_results_intermediate) {
-            ae = AMI_scan((AMI_STREAM<int> *)&em1p, rpti);
+            ae = AMI_scan(&em1p, rpti);
         }
         
         // Un block permute it.
@@ -167,13 +165,11 @@ int main(int argc, char **argv)
                                        7 * ((em0.cols() - 1)/7 + 1),
                                        7);
 
-        ae = AMI_general_permute((AMI_STREAM<int> *)&em1p,
-                                 (AMI_STREAM<int> *)&em2,
-                                 (AMI_gen_perm_object *)&pmob1); 
+        ae = AMI_general_permute(&em1p, &em2, &pmob1); 
 
 #if 0        
         if (report_results_intermediate) {
-            ae = AMI_scan((AMI_stream_base<int> *)&em2, rpti);
+            ae = AMI_scan(&em2, rpti);
         }        
 #endif
         
@@ -183,11 +179,10 @@ int main(int argc, char **argv)
 
         AMI_matrix<int> em3(em0.rows(), em0.cols());
 
-        ae = AMI_scan((AMI_STREAM<int> *)&em2, &smup,
-                      (AMI_STREAM<int> *)&em3);
+        ae = AMI_scan(&em2, &smup, &em3);
 
         if (report_results_final) {
-            ae = AMI_scan((AMI_STREAM<int> *)&em3, rptf);
+            ae = AMI_scan(&em3, rptf);
         }
 
     }

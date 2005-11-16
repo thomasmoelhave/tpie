@@ -5,7 +5,7 @@
 //
 // An extensive test suite for TPIE functionality.
 //
-// $Id: test_correctness.cpp,v 1.9 2004-08-17 16:49:50 jan Exp $
+// $Id: test_correctness.cpp,v 1.10 2005-11-16 17:03:53 jan Exp $
 //
 
 #include <portability.h>
@@ -153,7 +153,7 @@ int main(int argc, char **argv) {
 void print_msg(const char* msg, int indent = 0) {
     if (msg == NULL)
 	return;
-    int len = (int)strlen(msg);
+    int len = static_cast<int>(strlen(msg));
     if (indent < 0)
 	for (int i=0; i<len; i++) fprintf(stdout, "\b");
     else
@@ -164,7 +164,7 @@ void print_msg(const char* msg, int indent = 0) {
     TP_LOG_APP_DEBUG("\n");
     if (indent >= 0) {
 	int current_pos = indent + len;
-	for (int i=current_pos; i<74; i++) fprintf(stdout, " ");
+	for (int i=current_pos; i<73; i++) fprintf(stdout, " ");
     }
     fflush(stdout);
 }
@@ -854,7 +854,12 @@ int test_large_files() {
     AMI_err err;
 
     TPIE_OS_OFFSET i;
-    TPIE_OS_OFFSET myLargeNumber = (TPIE_OS_OFFSET)3 * (TPIE_OS_OFFSET)1024 * (TPIE_OS_OFFSET)1024 * (TPIE_OS_OFFSET)1024 / (TPIE_OS_OFFSET)sizeof(TPIE_OS_OFFSET);
+    TPIE_OS_OFFSET myLargeNumber = 
+	static_cast<TPIE_OS_OFFSET>(3) * 
+	static_cast<TPIE_OS_OFFSET>(1024) * 
+	static_cast<TPIE_OS_OFFSET>(1024) * 
+	static_cast<TPIE_OS_OFFSET>(1024) / 
+	static_cast<TPIE_OS_OFFSET>(sizeof(TPIE_OS_OFFSET));
 
     char *fn  = new char[strlen(TMP_DIR)+strlen("tpie_large.stream")+1];
     strcpy(fn,TMP_DIR);

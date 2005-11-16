@@ -7,7 +7,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_merge_cpp,"$Id: test_ami_merge.cpp,v 1.19 2005-02-15 00:23:06 tavi Exp $");
+VERSION(test_ami_merge_cpp,"$Id: test_ami_merge.cpp,v 1.20 2005-11-16 17:03:51 jan Exp $");
 
 #include <iostream>
 
@@ -156,8 +156,7 @@ int main(int argc, char **argv)
     amirs[0] = &amis0;
     amirs[1] = &amis1;
     
-    ae = AMI_generalized_single_merge(amirs, arity, &amis2,
-                          (merge_interleave<TPIE_OS_OFFSET> *)&im);
+    ae = AMI_generalized_single_merge(amirs, arity, &amis2, &im);
 
     if (verbose) {
         cout << "Interleaved them; operate() called " << im.called 
@@ -171,16 +170,18 @@ int main(int argc, char **argv)
 
     // Divide the stream into two substreams, and interleave them.
 
-    AMI_stream_base<TPIE_OS_OFFSET>* amirs0 = amirs[0]; 
-    AMI_stream_base<TPIE_OS_OFFSET>* amirs1 = amirs[1]; 
+    AMI_STREAM<TPIE_OS_OFFSET>* amirs0 = amirs[0]; 
+    AMI_STREAM<TPIE_OS_OFFSET>* amirs1 = amirs[1]; 
 
     ae = amis2.new_substream(AMI_READ_STREAM, 0, test_size-1, &amirs0);
     ae = amis2.new_substream(AMI_READ_STREAM, 0, 2*test_size-1, &amirs1);
 
     if (verbose) {
-        cout << "Created substreams; lengths = " <<
-            ((AMI_STREAM<TPIE_OS_OFFSET> *)(amirs[0]))->stream_len() << " and " <<
-                ((AMI_STREAM<TPIE_OS_OFFSET> *)(amirs[1]))->stream_len() << '\n';
+        cout << "Created substreams; lengths = " 
+	     << amirs[0]->stream_len() 
+	     << " and " 
+	     << amirs[1]->stream_len() 
+	     << '\n';
     }
 
     // Get around the OS (HP_UX in particular) when using BTE_IMP_MMB
@@ -188,8 +189,7 @@ int main(int argc, char **argv)
     // block written to be unmapped.
     ae = amis2.seek(0);
     
-    ae = AMI_generalized_single_merge((AMI_STREAM<TPIE_OS_OFFSET> **)amirs, arity, &amis3,
-                          (merge_interleave<TPIE_OS_OFFSET> *)&im);
+    ae = AMI_generalized_single_merge(amirs, arity, &amis3, &im);
 
     if (verbose) {
         cout << "Interleaved them; operate() called " << im.called 

@@ -5,7 +5,7 @@
 //
 
 #include <versions.h>
-VERSION(parse_args,"$Id: parse_args.cpp,v 1.19 2005-11-15 15:42:08 jan Exp $");
+VERSION(parse_args,"$Id: parse_args.cpp,v 1.20 2005-11-16 17:03:49 jan Exp $");
 
 #include <portability.h>
 
@@ -111,7 +111,7 @@ void parse_args(int argc, char **argv, struct options *application_opts,
       test_size = parse_number(opt_arg); 
       break;
     case 4: 
-      rnd_seed = max(1u, (unsigned int) parse_number(opt_arg));
+	rnd_seed = max(1u, static_cast<unsigned int>(parse_number(opt_arg)));
       break;
     default:
       parse_app_opts(idx, opt_arg);
