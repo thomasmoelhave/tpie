@@ -17,7 +17,7 @@
 #include <mergeheap.h>
 
 #include <versions.h>
-VERSION(test_ami_pmerge_cpp,"$Id: test_ami_pmerge.cpp,v 1.29 2005-11-09 13:57:57 adanner Exp $");
+VERSION(test_ami_pmerge_cpp,"$Id: test_ami_pmerge.cpp,v 1.30 2005-11-16 17:03:51 jan Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -28,7 +28,7 @@ VERSION(test_ami_pmerge_cpp,"$Id: test_ami_pmerge.cpp,v 1.29 2005-11-09 13:57:57
 //extern "C" int c_int_cmp(const void *, const void *);
 int c_int_cmp(const void *p1, const void *p2)
 {
-    return *((int *)p1) - *((int *)p2);
+    return *(static_cast<const int*>(p1)) - *(static_cast<const int*>(p2));
 }
 
 
@@ -264,8 +264,7 @@ int main(int argc, char **argv)
 
     s_merge_manager sm;
     
-    ae = AMI_generalized_partition_and_merge(&amis0, &amis1,
-                                 (s_merge_manager *)&sm);
+    ae = AMI_generalized_partition_and_merge(&amis0, &amis1, &sm);
     
     if (verbose) {
       cout << "Sorted them."<< endl;

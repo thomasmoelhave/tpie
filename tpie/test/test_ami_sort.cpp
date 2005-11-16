@@ -21,7 +21,7 @@
 #include <ami_scan.h>
 #include <ami_sort.h>
 #include <cpu_timer.h>
-VERSION(test_ami_sort_cpp,"$Id: test_ami_sort.cpp,v 1.33 2005-11-09 13:57:57 adanner Exp $");
+VERSION(test_ami_sort_cpp,"$Id: test_ami_sort.cpp,v 1.34 2005-11-16 17:03:52 jan Exp $");
 
 #include <ami_kb_sort.h>
 
@@ -118,7 +118,7 @@ int main(int argc, char **argv)
 {
   int_cmp_class int_cmp_obj;
   cpu_timer timer;
-  AMI_err ae;
+  AMI_err ae = AMI_ERROR_NO_ERROR;
   bool random_input;
 
   // Log debugging info from the application, but not from the library. 
@@ -170,8 +170,12 @@ int main(int argc, char **argv)
 	 << "." << endl;
     cout << "Input size: " << test_size << " items." << endl
 	 << "Item size: " << sizeof(int) << " bytes." << endl
-	 << "TPIE memory size: " << (TPIE_OS_LONGLONG)MM_manager.memory_limit() << " bytes." << endl;
-    cout << "TPIE free memory: " << (TPIE_OS_LONGLONG)MM_manager.memory_available() << " bytes." << endl;
+	 << "TPIE memory size: " 
+	 << static_cast<TPIE_OS_LONGLONG>(MM_manager.memory_limit())
+	 << " bytes." << endl;
+    cout << "TPIE free memory: " 
+	 << static_cast<TPIE_OS_LONGLONG>(MM_manager.memory_available())
+	 << " bytes." << endl;
   }
 
   if (random_input) {
@@ -225,7 +229,9 @@ int main(int argc, char **argv)
   }
 
   if (verbose) {
-    cout << "TPIE free memory: " << (TPIE_OS_LONGLONG)MM_manager.memory_available() << " bytes.\n";
+    cout << "TPIE free memory: " 
+	 << static_cast<TPIE_OS_LONGLONG>(MM_manager.memory_available())
+	 << " bytes.\n";
   }
   cout << "Sorting input..." << flush;
   timer.start();  
@@ -251,7 +257,9 @@ int main(int argc, char **argv)
   timer.reset();
 
   if (verbose) {
-    cout << "TPIE free memory: " << (TPIE_OS_LONGLONG)MM_manager.memory_available() << " bytes." << endl;
+    cout << "TPIE free memory: " 
+	 << static_cast<TPIE_OS_LONGLONG>(MM_manager.memory_available()) 
+	 << " bytes." << endl;
   }
   if (report_results_sorted) {
     cout << "Writing sorted items in ASCII file " 
@@ -262,7 +270,9 @@ int main(int argc, char **argv)
       cerr << argv[0] << ": Error during writing of sorted ASCII file." << endl;
     }
     if (verbose) {
-      cout << "TPIE free memory: " << (TPIE_OS_LONGLONG)MM_manager.memory_available() << " bytes." << endl;
+      cout << "TPIE free memory: " << 
+	  static_cast<TPIE_OS_LONGLONG>(MM_manager.memory_available())
+	   << " bytes." << endl;
     }
   }
   
@@ -276,9 +286,12 @@ int main(int argc, char **argv)
     scan_diff<int> sd(-1);
     
     cout << "Sorting again using old sorting routine." << endl;
-    if (verbose)
-      cout << "TPIE free memory: " << (TPIE_OS_LONGLONG)MM_manager.memory_available() << " bytes." << endl;
-
+    if (verbose) {
+      cout << "TPIE free memory: " 
+	   << static_cast<TPIE_OS_LONGLONG>(MM_manager.memory_available()) 
+	   << " bytes." << endl;
+    }
+    
     cout << "Sorting input..." << flush;
     timer.start();  
     if (comparison_mode == COMPARISON_OPERATOR) {
@@ -296,7 +309,9 @@ int main(int argc, char **argv)
     cout << "Sorted stream length: " << amis3.stream_len() << endl;
     if (verbose) {
       cout << "Time taken: " << timer << endl;
-      cout << "TPIE free memory: " << (TPIE_OS_LONGLONG)MM_manager.memory_available() << " bytes.\n";
+      cout << "TPIE free memory: " 
+	   << static_cast<TPIE_OS_LONGLONG>(MM_manager.memory_available()) 
+	   << " bytes.\n";
     }
 
     ae = AMI_scan(ostr, &amis3, &sd, &amisd);

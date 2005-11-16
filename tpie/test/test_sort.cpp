@@ -116,7 +116,8 @@ class KeySortCompare{
 };
 
 int qcomp(const void* left, const void* right){
-  return (int)(((SortItem*)left)->key-((SortItem*)right)->key);
+    return static_cast<int>((static_cast<const SortItem*>(left)->key) -
+			    (static_cast<const SortItem*>(right)->key));
 }
 
 // Just like atoi or atol, but should also work for 64bit numbers
@@ -178,8 +179,6 @@ TPIE_OS_OFFSET ascii2longlong(char *s){
 void init_opts(struct options* & opts, int argc, char** argv){
   
   opts = new struct options[APP_OPTION_NUM_OPTIONS];
-
-  const int bufsize = 160;
     
   int i=0;
   opts[i].number=APP_OPTION_PATH;
@@ -255,9 +254,9 @@ void get_app_info(int argc, char** argv, appInfo & Info){
   Info.mem_size=APP_DEFAULT_MEM_SIZE;
 
   nopts=0;
-  while (optidx=getopts(argc, argv, opts, &optarg)){
+  while ( (optidx=getopts(argc, argv, opts, &optarg))) {
     nopts++;
-    if(optidx==-1){
+    if( (optidx==-1) ){
       cerr << "Could not allocate space for arguments. Exiting...\n";
       exit(1);
     }
@@ -389,7 +388,7 @@ char* ll2size(TPIE_OS_LONGLONG n, char* buf){
 void write_random_stream(char* fname, appInfo & info, progress_indicator_base* indicator=NULL){
   
   TPIE_OS_OFFSET i,n,trunc;
-  AMI_err ae=AMI_ERROR_NO_ERROR;
+  AMI_err ae = AMI_ERROR_NO_ERROR;
   i=0;
   n=info.num_items;
 
@@ -402,7 +401,7 @@ void write_random_stream(char* fname, appInfo & info, progress_indicator_base* i
   cout << "Opened file " << fname 
        << "\nWriting "<< n << " items..." << endl;
   
-  trunc=((TPIE_OS_OFFSET)(sizeof (SortItem)))*n;
+  trunc=(static_cast<TPIE_OS_OFFSET>(sizeof (SortItem)))*n;
   if(trunc<0 || trunc>(4*APP_GIG)){
     cout << "Initial file length computed as "<< trunc
          << "\nSetting to 4GB "<< endl;
@@ -472,8 +471,9 @@ void check_sorted(char * fname, appInfo & info, progress_indicator_base* indicat
     i++;
     if(i>1){ 
       if(x_prev.key > x->key){
-        printf("prev = %d, curr = %d, i=%d\n", x_prev.key, x->key,
-        i);
+	  cerr << "prev = " << x_prev.key
+	       << ", curr = " << x->key  
+	       << ", i = " <<  i << endl;
       }
       tp_assert(x_prev.key <= x->key, 
                        "List not sorted! Exiting");

@@ -14,7 +14,7 @@
 // Define it all.
 #include <ami_scan.h>
 
-VERSION(test_ami_sm_cpp,"$Id: test_ami_sm.cpp,v 1.12 2005-02-15 00:23:06 tavi Exp $");
+VERSION(test_ami_sm_cpp,"$Id: test_ami_sm.cpp,v 1.13 2005-11-16 17:03:52 jan Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -170,11 +170,10 @@ int main(int argc, char **argv)
     if (!read_banded_matrix) {
         scan_uniform_sm susm(test_size, test_size, density, random_seed);
     
-        ae = AMI_scan(&susm, (AMI_STREAM< AMI_sm_elem<double> > *)&esm0);
+        ae = AMI_scan(&susm, &esm0);
 
         if (report_results_count) {
-            ae = AMI_scan((AMI_STREAM< AMI_sm_elem<double> > *)&esm0,
-                          rptc);
+            ae = AMI_scan(&esm0, rptc);
         }
     }
     
@@ -184,7 +183,7 @@ int main(int argc, char **argv)
 
     fv.set_value(1.0);
 
-    ae = AMI_matrix_fill(&ev0, (AMI_matrix_filler<double> *)&fv);
+    ae = AMI_matrix_fill(&ev0, &fv);
 
     // Multiply the two
 
@@ -209,7 +208,7 @@ int main(int argc, char **argv)
 
             // Read in the banded order matrix from an input file.            
             TPIE_OS_SIZE_T file_test_mm_size;
-			TPIE_OS_OFFSET file_test_size;
+	    TPIE_OS_OFFSET file_test_size;
             TPIE_OS_SIZE_T file_rows_per_band;
 
             *isb >> file_test_mm_size >> file_test_size
@@ -217,8 +216,7 @@ int main(int argc, char **argv)
 
             rows_per_band = file_rows_per_band;
             
-            ae = AMI_scan(readb,
-                          (AMI_STREAM< AMI_sm_elem<double> > *)&esm0b);
+            ae = AMI_scan(readb, &esm0b);
 
             cput1.stop();
 
@@ -248,10 +246,12 @@ int main(int argc, char **argv)
         }
         
         if (report_results_intermediate) {
-            *osi << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << test_size << ' '
+            *osi << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size)
+		 << ' ' 
+		 << test_size 
+		 << ' '
                  << static_cast<TPIE_OS_OUTPUT_SIZE_T>(rows_per_band) << endl;
-            ae = AMI_scan((AMI_STREAM< AMI_sm_elem<double> > *)&esm0b,
-                          rpti);
+            ae = AMI_scan(&esm0b, rpti);
         }
 
         // Do the multiplication.
@@ -277,7 +277,7 @@ int main(int argc, char **argv)
     }
     
     if (report_results_final) {
-        ae = AMI_scan((AMI_STREAM<double> *)&ev1, rptf);
+        ae = AMI_scan(&ev1, rptf);
     }
     
     return 0;

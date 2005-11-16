@@ -8,7 +8,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_matrix_cpp,"$Id: test_ami_matrix.cpp,v 1.12 2005-02-15 00:23:06 tavi Exp $");
+VERSION(test_ami_matrix_cpp,"$Id: test_ami_matrix.cpp,v 1.13 2005-11-16 17:03:51 jan Exp $");
 
 #include "app_config.h"        
 #include "parse_args.h"
@@ -89,7 +89,7 @@ int main(int argc, char **argv)
     // Set the amount of main memory:
     MM_manager.set_memory_limit (test_mm_size);
 
-	TPIE_OS_OFFSET matrix_size = (TPIE_OS_OFFSET)(sqrt((double)test_size));
+    TPIE_OS_OFFSET matrix_size = static_cast<TPIE_OS_OFFSET>(sqrt(static_cast<double>(test_size)));
 
     AMI_matrix<double> em0(matrix_size, matrix_size);
     AMI_matrix<double> em1(matrix_size, matrix_size);
@@ -125,20 +125,20 @@ int main(int argc, char **argv)
     fill_upper_tri<double> fut(3.1415927);
     
     {
-        ae = AMI_matrix_fill(&em0, (AMI_matrix_filler<double> *)&fut);
+        ae = AMI_matrix_fill(&em0, &fut);
 
         if (verbose) {
 	  cout << "Wrote the initial sequence of values." << endl;
         }
         
         if (report_results_count) {
-            ae = AMI_scan((AMI_STREAM<double> *)&em0, rptc);
+            ae = AMI_scan(&em0, rptc);
             cout << "Stream length = " << em0.stream_len() << endl;
         }
     }
 
     {
-        ae = AMI_matrix_fill(&em1, (AMI_matrix_filler<double> *)&fut);
+        ae = AMI_matrix_fill(&em1, &fut);
 
         if (verbose) {
 	  cout << "Wrote the second sequence of values." << endl;
@@ -146,7 +146,7 @@ int main(int argc, char **argv)
         }
         
         if (report_results_intermediate) {
-            ae = AMI_scan((AMI_STREAM<double> *)&em1, rpti);
+            ae = AMI_scan(&em1, rpti);
         }
     }
 #endif
@@ -170,7 +170,7 @@ int main(int argc, char **argv)
     }
     
     if (report_results_final) {
-        ae = AMI_scan((AMI_STREAM<double> *)&em2, rptf);
+        ae = AMI_scan(&em2, rptf);
     }
     
     return 0;

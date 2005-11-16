@@ -13,7 +13,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_gp_cpp,"$Id: test_ami_gp.cpp,v 1.17 2005-02-15 00:23:06 tavi Exp $");
+VERSION(test_ami_gp_cpp,"$Id: test_ami_gp.cpp,v 1.18 2005-11-16 17:03:50 jan Exp $");
 
 // Get the application defaults.
 #include "app_config.h"
@@ -133,7 +133,7 @@ int main(int argc, char **argv)
 
     reverse_order ro;
     
-    ae = AMI_general_permute(&amis0, &amis1, (AMI_gen_perm_object *)&ro);
+    ae = AMI_general_permute(&amis0, &amis1, &ro);
 
     if (verbose) {
         cout << "After reversal, stream length = " 
