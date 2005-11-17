@@ -8,7 +8,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_sort24_cpp,"$Id: test_ami_sort24.cpp,v 1.16 2005-11-17 17:07:41 jan Exp $");
+VERSION(test_ami_sort24_cpp,"$Id: test_ami_sort24.cpp,v 1.17 2005-11-17 17:47:57 jan Exp $");
 
 // Get information on the configuration to test.
 #include "app_config.h"
@@ -41,7 +41,8 @@ union sort_obj
 // A scan object to generate random keys.
 class scan_random_so : AMI_scan_object {
 private:
-    TPIE_OS_OFFSET max, remaining;
+    TPIE_OS_OFFSET m_remaining;
+    TPIE_OS_OFFSET m_max;
 public:
     scan_random_so(TPIE_OS_OFFSET count = 1000, int seed = 17);
     virtual ~scan_random_so(void);
@@ -51,7 +52,7 @@ public:
 
 
 scan_random_so::scan_random_so(TPIE_OS_OFFSET count, int seed) : 
-    max(count), remaining(count) {
+    m_max(count), m_remaining(count) {
 
     TP_LOG_APP_DEBUG("scan_random_so seed = ");
     TP_LOG_APP_DEBUG(seed);
@@ -67,14 +68,14 @@ scan_random_so::~scan_random_so(void)
 
 AMI_err scan_random_so::initialize(void)
 {
-    this->remaining = this->max;
+    m_remaining = m_max;
 
     return AMI_ERROR_NO_ERROR;
 };
 
 AMI_err scan_random_so::operate(sort_obj *out1, AMI_SCAN_FLAG *sf)
 {
-    if ((*sf = (remaining-- >0))) {
+    if ((*sf = (m_remaining-- >0))) {
         out1->key_val = TPIE_OS_RANDOM();
         return AMI_SCAN_CONTINUE;
     } else {

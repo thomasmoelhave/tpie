@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/6/94
 //
-// $Id: scan_random.h,v 1.9 2004-08-12 15:15:11 jan Exp $
+// $Id: scan_random.h,v 1.10 2005-11-17 17:47:57 jan Exp $
 //
 #ifndef _SCAN_RANDOM_H
 #define _SCAN_RANDOM_H
@@ -15,8 +15,8 @@
 // A scan object to generate random integers.
 class scan_random : AMI_scan_object {
 private:
-    TPIE_OS_OFFSET max;
-	TPIE_OS_OFFSET remaining;
+    TPIE_OS_OFFSET m_max;
+	TPIE_OS_OFFSET m_remaining;
 public:
     scan_random(TPIE_OS_OFFSET count = 1000, int seed = 17);
     virtual ~scan_random(void);
