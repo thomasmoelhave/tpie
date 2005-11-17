@@ -11,12 +11,12 @@
 #include "app_config.h"
 
 #include <versions.h>
-VERSION(scan_random_cpp,"$Id: scan_random.cpp,v 1.12 2005-11-17 17:07:41 jan Exp $");
+VERSION(scan_random_cpp,"$Id: scan_random.cpp,v 1.13 2005-11-17 17:47:56 jan Exp $");
 
 #include "scan_random.h"
 
 scan_random::scan_random(TPIE_OS_OFFSET count, int seed) :
-    max(count), remaining(count) {
+    m_max(count), m_remaining(count) {
 
     TP_LOG_APP_DEBUG("scan_random seed = ");
     TP_LOG_APP_DEBUG(static_cast<TPIE_OS_LONGLONG>(seed));
@@ -32,14 +32,14 @@ scan_random::~scan_random(void)
 
 AMI_err scan_random::initialize(void)
 {
-    this->remaining = this->max;
+    m_remaining = m_max;
 
     return AMI_ERROR_NO_ERROR;
 };
 
 AMI_err scan_random::operate(int *out1, AMI_SCAN_FLAG *sf)
 {
-    if ((*sf = ((this->remaining)-- != 0))) {
+    if ((*sf = (m_remaining-- != 0))) {
         *out1 = TPIE_OS_RANDOM();
         return AMI_SCAN_CONTINUE;
     } else {
