@@ -2,7 +2,7 @@
 // File: bte_stream_ufs.h (formerly bte_ufs.h)
 // Author: Rakesh Barve <rbarve@cs.duke.edu>
 //
-// $Id: bte_stream_ufs.h,v 1.24 2005-11-16 16:53:51 jan Exp $
+// $Id: bte_stream_ufs.h,v 1.25 2005-11-17 17:11:25 jan Exp $
 //
 // BTE streams with blocks I/Oed using read()/write().  This particular
 // implementation explicitly manages blocks, and only ever maps in one
@@ -165,6 +165,10 @@ public:
 
 private:
 
+    // Prohibit these.
+    BTE_stream_ufs(const BTE_stream_ufs<T>& other);
+    BTE_stream_ufs<T>& operator=(const BTE_stream_ufs<T>& other);
+
     BTE_stream_header* map_header ();
 
     inline BTE_err validate_current ();
@@ -239,9 +243,19 @@ private:
 template < class T >
 BTE_stream_ufs < T >::BTE_stream_ufs (const char *dev_path,
 				      BTE_stream_type st,
-				      TPIE_OS_SIZE_T lbf) {
+				      TPIE_OS_SIZE_T lbf) : 
+    m_fileDescriptor(NULL),
+    m_itemsAlignedWithBlock(false),
+    m_filePointer(0),
+    m_currentItem(NULL),
+    m_currentBlock(NULL),
+    m_blockValid(false),
+    m_blockDirty(false),
+    m_currentBlockFileOffset(0), 
+    m_itemsPerBlock(0)
+{
 
-    m_status = BTE_STREAM_STATUS_NO_STATUS;
+//    m_status = BTE_STREAM_STATUS_NO_STATUS;
 
     // Check if we have available streams. Don't decrease the number
     // yet, since we may encounter an error.
@@ -540,9 +554,17 @@ template < class T >
 BTE_stream_ufs < T >::BTE_stream_ufs (BTE_stream_ufs * super_stream,
 				      BTE_stream_type st,
 				      TPIE_OS_OFFSET sub_begin, 
-				      TPIE_OS_OFFSET sub_end) {
-
-    m_status = BTE_STREAM_STATUS_NO_STATUS;
+				      TPIE_OS_OFFSET sub_end) :
+    m_fileDescriptor(NULL),
+    m_itemsAlignedWithBlock(false),
+    m_filePointer(0),
+    m_currentItem(NULL),
+    m_currentBlock(NULL),
+    m_blockValid(false),
+    m_blockDirty(false),
+    m_currentBlockFileOffset(0), 
+    m_itemsPerBlock(0)
+{
 
     // Reduce the number of streams avaialble.
     if (remaining_streams <= 0) {

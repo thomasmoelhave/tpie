@@ -13,7 +13,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_gp_cpp,"$Id: test_ami_gp.cpp,v 1.18 2005-11-16 17:03:50 jan Exp $");
+VERSION(test_ami_gp_cpp,"$Id: test_ami_gp.cpp,v 1.19 2005-11-17 17:07:41 jan Exp $");
 
 // Get the application defaults.
 #include "app_config.h"
@@ -67,6 +67,8 @@ class reverse_order : public AMI_gen_perm_object {
 private:
     TPIE_OS_OFFSET total_size;
 public:
+    reverse_order() : total_size(0) {};
+
     AMI_err initialize(TPIE_OS_OFFSET ts) {
         total_size = ts;
         return AMI_ERROR_NO_ERROR;

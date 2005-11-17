@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 11/1/94
 //
-// $Id: ami_gen_perm.h,v 1.15 2005-11-16 16:52:31 jan Exp $
+// $Id: ami_gen_perm.h,v 1.16 2005-11-17 17:11:24 jan Exp $
 //
 // General permutation.
 //
@@ -40,10 +40,14 @@ int operator>(const dest_obj<T> &s, const dest_obj<T> &t)
 template<class T>
 class gen_perm_add_dest : AMI_scan_object {
 private:
+    // Prohibit these
+    gen_perm_add_dest(const gen_perm_add_dest<T>& other);
+    gen_perm_add_dest<T> operator=(const gen_perm_add_dest<T>& other);
+
     AMI_gen_perm_object *pgp;
-    off_t input_offset;
+    TPIE_OS_OFFSET input_offset;
 public:
-    gen_perm_add_dest(AMI_gen_perm_object *gpo) : pgp(gpo) {};
+    gen_perm_add_dest(AMI_gen_perm_object *gpo) : pgp(gpo), input_offset(0) {};
     virtual ~gen_perm_add_dest(void) {};
     AMI_err initialize(void) { input_offset = 0; return AMI_ERROR_NO_ERROR; };
     AMI_err operate(const T &in, AMI_SCAN_FLAG *sfin, dest_obj<T> *out,
@@ -80,9 +84,9 @@ private:
     T t;
     TPIE_OS_OFFSET dest;
 public:
-    dest_obj(void) {};
+    dest_obj() : t(), dest(0) {};
     dest_obj(T t_in, TPIE_OS_OFFSET d) : t(t_in), dest(d) {};
-    ~dest_obj(void) {};
+    ~dest_obj() {};
 
 	// The second alternative caused problems on Win32 (jv)
 //#if (__GNUC__ > 2) || (__GNUC__ == 2 &&  __GNUC_MINOR__ >= 8)

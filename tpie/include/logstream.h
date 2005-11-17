@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/12/94
 //
-// $Id: logstream.h,v 1.21 2005-11-08 17:21:02 adanner Exp $
+// $Id: logstream.h,v 1.22 2005-11-17 17:11:25 jan Exp $
 //
 
 #ifndef _LOGSTREAM_H
@@ -60,6 +60,18 @@ public:
     friend logstream& operator<< (logstream& o, const logmanip<TP>& m) {
 	(*m._f)(o, m._a); 
 	return o;
+    }
+
+    logmanip(const logmanip<TP>& other) : _f(), _a() {
+	*this = other;
+    }
+
+    logmanip<TP>& operator=(const logmanip<TP>& other) {
+	if (this != &other) {
+	    _f = other._f;
+	    _a = other._a;
+	}
+	return *this;
     }
 };
 

@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 1/9/95
 //
-// $Id: ami_bit_permute.h,v 1.9 2005-11-16 16:52:30 jan Exp $
+// $Id: ami_bit_permute.h,v 1.10 2005-11-17 17:11:24 jan Exp $
 //
 // For the moment this is done in terms of general permutations.
 // This will obviously change in the future.
@@ -40,12 +40,16 @@ public:
 template<class T>
 class bmmc_as_gen_po : public AMI_gen_perm_object {
 private:
+    // Prohibit these
+    bmmc_as_gen_po(const bmmc_as_gen_po<T>& other);
+    bmmc_as_gen_po<T>& operator=(const bmmc_as_gen_po<T>& other);
+
     bit_matrix *src_bits;
     bit_matrix A;
     bit_matrix c;
 public:
     bmmc_as_gen_po(AMI_bit_perm_object &bpo) :
-        A(bpo.A()), c(bpo.c())
+        A(bpo.A()), c(bpo.c()), src_bits(NULL)
     {
         tp_assert(A.rows() == A.cols(), "A is not square.");
         tp_assert(c.cols() == 1, "c is not a column vector.");

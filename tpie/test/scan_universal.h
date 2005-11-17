@@ -4,7 +4,7 @@
 // Author: Octavian Procopiuc <tavi@cs.duke.edu>
 // Created: 04/23/03
 //
-// $Id: scan_universal.h,v 1.4 2004-08-12 15:15:11 jan Exp $
+// $Id: scan_universal.h,v 1.5 2005-11-17 17:07:41 jan Exp $
 //
 
 #ifndef _SCAN_UNIVERSAL_H
@@ -20,7 +20,7 @@ struct ifoo_t {
   int i;
   char el[sz-sizeof(int)];
   // Default constructor.
-  ifoo_t() { i = 0; }
+    ifoo_t(): i(0) { }
   // This class also acts as comparison class for MAI_sort.
   int compare(const ifoo_t<sz>& lhi, const ifoo_t<sz>& rhi) const {
     return (lhi.i > rhi.i ? 1: lhi.i < rhi.i ? -1: 0);
@@ -41,7 +41,7 @@ private:
   bool _have_prev;
 public:
   scan_universal(unsigned int count = 1000, int seed = 17): 
-    _max(count), _remaining(count) {
+      _max(count), _remaining(count), _even(0), _odd(0), _switches(0), _have_prev(false) {
     TP_LOG_APP_DEBUG_ID("scan_universal random seed:");
     TP_LOG_APP_DEBUG_ID(seed);
     TPIE_OS_SRANDOM(seed);     

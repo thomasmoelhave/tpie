@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 11/4/94
 //
-// $Id: matrix.h,v 1.11 2005-01-14 18:35:00 tavi Exp $
+// $Id: matrix.h,v 1.12 2005-11-17 17:11:25 jan Exp $
 //
 #ifndef MATRIX_H
 #define MATRIX_H
@@ -357,7 +357,7 @@ matrix<T> operator*(const matrix_base<T> &op1,
     
     matrix<T> temp(op1.rows(),op2.cols());
 
-    perform_mult_in_place(op1, op2, (matrix_base<T> &)temp);
+    perform_mult_in_place(op1, op2, temp);
     
     return temp;
 }
@@ -555,7 +555,7 @@ public:
 
 template<class T>
 matrix<T>::matrix(TPIE_OS_SIZE_T arows, TPIE_OS_SIZE_T acols) :
-        matrix_base<T>(arows, acols)
+    matrix_base<T>(arows, acols), data(NULL)
 {
     data = new T[arows * acols];
 
@@ -565,7 +565,7 @@ matrix<T>::matrix(TPIE_OS_SIZE_T arows, TPIE_OS_SIZE_T acols) :
 
 template<class T>
 matrix<T>::matrix(const matrix<T> &rhs) :
-        matrix_base<T>(rhs.rows(), rhs.cols())
+    matrix_base<T>(rhs.rows(), rhs.cols()), data(NULL)
 {
     TPIE_OS_SIZE_T ii;
     
@@ -578,7 +578,7 @@ matrix<T>::matrix(const matrix<T> &rhs) :
 
 template<class T>
 matrix<T>::matrix(const matrix_base<T> &rhs) :
-        matrix_base<T>(rhs.rows(), rhs.cols())
+    matrix_base<T>(rhs.rows(), rhs.cols()), data(NULL)
 {
     TPIE_OS_SIZE_T ii,jj;
     
@@ -593,7 +593,7 @@ matrix<T>::matrix(const matrix_base<T> &rhs) :
 
 template<class T>
 matrix<T>::matrix(const submatrix<T> &rhs) :
-        matrix_base<T>(rhs.rows(), rhs.cols())
+    matrix_base<T>(rhs.rows(), rhs.cols()), data(NULL)
 {
     TPIE_OS_SIZE_T ii,jj;
     
@@ -608,7 +608,7 @@ matrix<T>::matrix(const submatrix<T> &rhs) :
 
 template<class T>
 matrix<T>::matrix(const rowref<T> umrr) :
-        matrix_base<T>(1, umrr.m.cols())
+    matrix_base<T>(1, umrr.m.cols()), data(NULL)
 {
     data = new T[c];
 
@@ -617,7 +617,7 @@ matrix<T>::matrix(const rowref<T> umrr) :
 
 template<class T>
 matrix<T>::matrix(const colref<T> umcr) :
-        matrix_base<T>(umcr.m.rows(),1)        
+    matrix_base<T>(umcr.m.rows(),1), data(NULL)
 {
     data = new T[r];
 

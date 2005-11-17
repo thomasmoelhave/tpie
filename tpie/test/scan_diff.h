@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/7/94
 //
-// $Id: scan_diff.h,v 1.4 1999-02-03 22:05:47 tavi Exp $
+// $Id: scan_diff.h,v 1.5 2005-11-17 17:07:41 jan Exp $
 //
 // A scanner to diff two streams of the same type of object, to verify that
 // they are the same.
@@ -31,9 +31,7 @@ public:
 };
 
 template<class T>
-scan_diff<T>::scan_diff(const T &nt)
-{
-    null_t = nt;
+scan_diff<T>::scan_diff(const T &nt) : input_index(0), null_t(nt) {
 }
 
 template<class T>

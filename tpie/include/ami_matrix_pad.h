@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/11/94
 //
-// $Id: ami_matrix_pad.h,v 1.9 2005-11-16 16:52:32 jan Exp $
+// $Id: ami_matrix_pad.h,v 1.10 2005-11-17 17:11:25 jan Exp $
 //
 #ifndef _AMI_MATRIX_PAD_H
 #define _AMI_MATRIX_PAD_H
@@ -36,7 +36,10 @@ public:
 
 template<class T>
 AMI_matrix_pad<T>::AMI_matrix_pad(TPIE_OS_OFFSET rows, TPIE_OS_OFFSET cols,
-                                  TPIE_OS_OFFSET block_extent)
+                                  TPIE_OS_OFFSET block_extent) :
+    cur_row(0), cur_col(0),
+    orig_rows(0), orig_cols(0),
+    final_rows(0), final_cols(0)
 
 {
     orig_rows = rows;
@@ -115,7 +118,10 @@ public:
 
 template<class T>
 AMI_matrix_unpad<T>::AMI_matrix_unpad(TPIE_OS_OFFSET rows, TPIE_OS_OFFSET cols,
-                                      TPIE_OS_OFFSET block_extent)
+                                      TPIE_OS_OFFSET block_extent) :
+    cur_row(0), cur_col(0),
+    orig_rows(0), orig_cols(0),
+    final_rows(0), final_cols(0)
 
 {
     orig_rows = rows;

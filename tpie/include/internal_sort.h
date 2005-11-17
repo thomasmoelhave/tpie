@@ -7,7 +7,7 @@
 // Internal sorter class that can be used within AMI_sort() on small
 // streams/substreams
 //
-// $Id: internal_sort.h,v 1.3 2005-11-15 15:40:21 jan Exp $
+// $Id: internal_sort.h,v 1.4 2005-11-17 17:11:25 jan Exp $
 //
 #ifndef _INTERNAL_SORT_H
 #define _INTERNAL_SORT_H
@@ -32,8 +32,8 @@ class Internal_Sorter_Base{
 
   public:
     //Constructor
-    Internal_Sorter_Base(void): len(0) { ItemArray=NULL; }
-    ~Internal_Sorter_Base(void); //Destructor
+    Internal_Sorter_Base(void): ItemArray(NULL), len(0) {};
+    virtual ~Internal_Sorter_Base(void); //Destructor
     
     //Allocate array that can hold nItems
     void allocate(TPIE_OS_SIZE_T nItems);
@@ -48,6 +48,11 @@ class Internal_Sorter_Base{
     
     // Fixed memory usage overhead per class instantiation
     TPIE_OS_SIZE_T space_overhead();
+    
+private:
+    // Prohibit these
+    Internal_Sorter_Base(const Internal_Sorter_Base<T>& other);
+    Internal_Sorter_Base<T> operator=(const Internal_Sorter_Base<T>& other);
 };
 
 template<class T>
@@ -122,6 +127,10 @@ class Internal_Sorter_Op: public Internal_Sorter_Base<T>{
     //Sort nItems from input stream and write to output stream
     AMI_err sort(AMI_STREAM<T>* InStr, AMI_STREAM<T>* OutStr,
         TPIE_OS_SIZE_T nItems);
+private:
+    // Prohibit these
+    Internal_Sorter_Op(const Internal_Sorter_Op<T>& other);
+    Internal_Sorter_Op<T> operator=(const Internal_Sorter_Op<T>& other);
 };
 
 // Read nItems sequentially from InStr, starting at the current file
@@ -193,7 +202,7 @@ class Internal_Sorter_Obj: public Internal_Sorter_Base<T>{
     
   public:
     //Constructor/Destructor
-    Internal_Sorter_Obj(CMPR* cmp){cmp_o=cmp;};
+    Internal_Sorter_Obj(CMPR* cmp) :cmp_o(cmp) {};
     ~Internal_Sorter_Obj(){};
     
     using Internal_Sorter_Base<T>::space_overhead;
@@ -201,6 +210,11 @@ class Internal_Sorter_Obj: public Internal_Sorter_Base<T>{
     //Sort nItems from input stream and write to output stream
     AMI_err sort(AMI_STREAM<T>* InStr, AMI_STREAM<T>* OutStr,
         TPIE_OS_SIZE_T nItems);
+
+private:
+    // Prohibit these
+    Internal_Sorter_Obj(const Internal_Sorter_Obj<T,CMPR>& other);
+    Internal_Sorter_Obj<T,CMPR> operator=(const Internal_Sorter_Obj<T,CMPR>& other);
 };
 
 // Read nItems sequentially from InStr, starting at the current file
@@ -273,10 +287,7 @@ class Internal_Sorter_KObj{
 
   public:
     //Constructor:
-    Internal_Sorter_KObj(CMPR* cmp): len(0) {
-      ItemArray=NULL;
-      sortItemArray=NULL;
-      UsrObject=cmp;
+    Internal_Sorter_KObj(CMPR* cmp): ItemArray(NULL), sortItemArray(NULL), UsrObject(cmp), len(0) {
     }
     ~Internal_Sorter_KObj(void); //Destructor
     
@@ -297,6 +308,11 @@ class Internal_Sorter_KObj{
     
     // Fixed memory usage overhead per class instantiation
     TPIE_OS_SIZE_T space_overhead();
+
+private:
+    // Prohibit these
+    Internal_Sorter_KObj(const Internal_Sorter_KObj<T,KEY,CMPR>& other);
+    Internal_Sorter_KObj<T,KEY,CMPR> operator=(const Internal_Sorter_KObj<T,KEY,CMPR>& other);
 };
 
 template<class T, class KEY, class CMPR>
@@ -324,10 +340,14 @@ inline void Internal_Sorter_KObj<T, KEY, CMPR>::allocate(TPIE_OS_SIZE_T nitems){
 template<class KEY, class KCMP>
 class QsortKeyCmp{
   private:
-     KCMP *isLess; //Class with function compare that compares 2 keys
+    // Prohibit these.
+    QsortKeyCmp(const QsortKeyCmp<KEY,KCMP>& other);
+    QsortKeyCmp<KEY,KCMP>& operator=(const QsortKeyCmp<KEY,KCMP>& other);
+
+    KCMP *isLess; //Class with function compare that compares 2 keys    
 
   public:
-     QsortKeyCmp(KCMP* kcmp) {isLess=kcmp; }
+    QsortKeyCmp(KCMP* kcmp) : isLess(kcmp) { };
      inline int compare(const qsort_item<KEY>& left,
                         const qsort_item<KEY>& right){
        return isLess->compare(left.keyval, right.keyval);

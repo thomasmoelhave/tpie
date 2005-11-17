@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 3/12/95
 //
-// $Id: ami_kb_sort.h,v 1.11 2005-11-16 16:52:31 jan Exp $
+// $Id: ami_kb_sort.h,v 1.12 2005-11-17 17:11:24 jan Exp $
 //
 
 // This header file can be included in one of two ways, either with a
@@ -72,8 +72,22 @@ class AMI_bucket_list_elem
 public:
     T data;
     AMI_bucket_list_elem<T> *next;
-    AMI_bucket_list_elem() : next(0) {};
+    AMI_bucket_list_elem() : data(), next(0) {};
+
+    AMI_bucket_list_elem(const AMI_bucket_list_elem<T>& other) {
+	*this = other;
+    }
+
+    AMI_bucket_list_elem<T>& operator=(const AMI_bucket_list_elem<T>& other) {
+	if (this != &other) {
+	    data = other.data;
+	    next = other.next;
+	}
+	return *this;
+    }
+
     ~AMI_bucket_list_elem() {};
+
 };
 
 #endif

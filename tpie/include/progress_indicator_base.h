@@ -38,11 +38,40 @@ public:
 			    TPIE_OS_OFFSET minRange, 
 			    TPIE_OS_OFFSET maxRange, 
 			    TPIE_OS_OFFSET stepValue) : 
-	m_percentageChecker(0), m_percentageValue(0), m_percentageUnit(0) {
-	m_minRange  = min(minRange, maxRange);
-	m_maxRange  = max(minRange, maxRange);
-	m_stepValue = max(min(stepValue, (m_maxRange-m_minRange)), 
-			  static_cast<TPIE_OS_OFFSET>(1)); 
+	m_minRange(min(minRange, maxRange)),
+	m_maxRange(max(minRange, maxRange)),
+	m_stepValue(max(min(stepValue, (m_maxRange-m_minRange)), 
+			static_cast<TPIE_OS_OFFSET>(1))),
+	m_current(0),
+	m_percentageChecker(0), 
+	m_percentageValue(0), 
+	m_percentageUnit(0) {
+	// Do nothing.
+    }
+
+    progress_indicator_base(const progress_indicator_base& other) :
+	m_minRange(other.m_minRange),
+	m_maxRange(other.m_maxRange),
+	m_stepValue(other.m_stepValue),
+	m_current(other.m_current),
+	m_percentageChecker(other.m_percentageChecker),
+	m_percentageValue(other.m_percentageValue),
+	m_percentageUnit(other.m_percentageUnit)
+	{
+	    // Do nothing.
+    }
+
+    progress_indicator_base& operator=(const progress_indicator_base& other) {
+	if (this != &other) {
+	    m_percentageChecker = other.m_percentageChecker;
+	    m_percentageValue   = other.m_percentageValue;
+	    m_percentageUnit    = other.m_percentageUnit;
+	    m_maxRange          = other.m_maxRange;
+	    m_minRange          = other.m_minRange;
+	    m_stepValue         = other.m_stepValue;
+	    m_current           = other.m_current;
+	}
+	return *this;
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -246,7 +275,6 @@ public:
     virtual void refresh() = 0;
 
 protected:
-
 
     /**  The lower bound of the counting range.  */
     TPIE_OS_OFFSET m_minRange;

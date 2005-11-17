@@ -17,7 +17,7 @@
 #include <mergeheap.h>
 
 #include <versions.h>
-VERSION(test_ami_pmerge_cpp,"$Id: test_ami_pmerge.cpp,v 1.30 2005-11-16 17:03:51 jan Exp $");
+VERSION(test_ami_pmerge_cpp,"$Id: test_ami_pmerge.cpp,v 1.31 2005-11-17 17:07:41 jan Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -43,6 +43,9 @@ private:
 #if DEBUG_ASSERTIONS
     TPIE_OS_OFFSET input_count, output_count;
 #endif    
+    // Prohibit using the next two.
+    s_merge_manager(const s_merge_manager& other);
+    s_merge_manager& operator=(const s_merge_manager& other);
 public:
     s_merge_manager(void);
     virtual ~s_merge_manager(void);
@@ -57,9 +60,12 @@ public:
 };
 
 
-s_merge_manager::s_merge_manager(void)
+s_merge_manager::s_merge_manager(void) : mheap(NULL), input_arity(0)
+#if DEBUG_ASSERTIONS
+				       , input_count(0), output_count(0)
+#endif
 {
-    mheap = NULL;
+    // Do nothing.
 }
 
 

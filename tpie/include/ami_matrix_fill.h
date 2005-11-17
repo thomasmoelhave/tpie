@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/12/94
 //
-// $Id: ami_matrix_fill.h,v 1.8 2005-11-16 16:52:32 jan Exp $
+// $Id: ami_matrix_fill.h,v 1.9 2005-11-17 17:11:25 jan Exp $
 //
 #ifndef _AMI_MATRIX_FILL_H
 #define _AMI_MATRIX_FILL_H
@@ -24,14 +24,19 @@ public:
 template<class T>
 class AMI_matrix_fill_scan : AMI_scan_object {
 private:
+    // Prohibit these
+    AMI_matrix_fill_scan(const AMI_matrix_fill_scan<T>& other);
+    AMI_matrix_fill_scan<T>& operator=(const AMI_matrix_fill_scan<T>& other);
+
     TPIE_OS_OFFSET r, c;
     TPIE_OS_OFFSET cur_row, cur_col;
     AMI_matrix_filler<T> *pemf;
 public:
     AMI_matrix_fill_scan(AMI_matrix_filler<T> *pem_filler,
                          TPIE_OS_OFFSET rows, TPIE_OS_OFFSET cols) :
-            r(rows), c(cols),
-            pemf(pem_filler)
+	r(rows), c(cols), 
+	cur_row(0), cur_col(0),
+	pemf(pem_filler)
     {
     };
     AMI_err initialize(void)

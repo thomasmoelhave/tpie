@@ -1,7 +1,7 @@
 //
 // File: mergeheap.h
 // 
-// $Id: mergeheap.h,v 1.15 2005-11-16 17:00:50 jan Exp $	
+// $Id: mergeheap.h,v 1.16 2005-11-17 17:11:25 jan Exp $	
 
 // This file contains several merge heap templates. 
 // Originally written by Rakesh Barve.  
@@ -54,7 +54,7 @@
 template<class KEY>
 class heap_element {
 public:
-    heap_element(){};
+    heap_element() : key(), run_id(0) {}
     KEY            key;
     TPIE_OS_SIZE_T run_id;
 };
@@ -66,7 +66,17 @@ public:
 template<class REC>
 class heap_ptr {
 public:
-    heap_ptr(){};
+    heap_ptr() : recptr(NULL), run_id(0) {};
+    heap_ptr(const heap_ptr<REC>& other) {
+	*this = other;
+    }
+    heap_ptr<REC>& operator=(const heap_ptr<REC>& other) {
+	if (this != &other) {
+	    recptr = other.recptr;
+	    run_id = other.run_id;
+	}
+    }
+
     ~heap_ptr(){};
     REC            *recptr;
     TPIE_OS_SIZE_T run_id;
@@ -95,13 +105,31 @@ protected:
 public:
 
   // Constructor/Destructor 
-  merge_heap_ptr_op() { Heaparray=NULL; };
-  ~merge_heap_ptr_op() { 
-     //Cleanup if someone forgot de-allocate
-     //(abd) This seems to cause double free errors, but I don't know why
-     //This was just a safeguard anyways, turn off for now
-     //if(Heaparray != NULL){delete [] Heaparray;}
-  }
+    merge_heap_ptr_op() : Heaparray(NULL), Heapsize(0), maxHeapsize(0) {};
+    
+    ~merge_heap_ptr_op() { 
+	//Cleanup if someone forgot de-allocate
+	if(Heaparray != NULL){
+	    delete [] Heaparray;
+	}
+    }
+
+    merge_heap_ptr_op& operator=(const merge_heap_ptr_op& other) {
+	if (this != &other) {
+	    Heapsize    = other.Heapsize;
+	    maxHeapsize = other.maxHeapsize;
+
+	    if (Heaparray != NULL) {
+		delete[] Heaparray;
+	    }
+
+	    Heaparray = new heap_ptr<REC>[maxHeapsize+1];
+	    memcpy(Heaparray, 
+		   other.Heaparray, 
+		   maxHeapsize * sizeof(heap_ptr<REC>));
+	}
+	return *this;
+    }
 
   // Report size of Heap (number of elements)
   TPIE_OS_SIZE_T sizeofheap(void) {return Heapsize;}; 
@@ -273,6 +301,11 @@ public:
   // Delete the current minimum and insert the new item from the same
   // source / run.
   inline void delete_min_and_insert(REC *nextelement_same_run);
+
+private:
+    // Prohibit these
+    merge_heap_ptr_obj(const merge_heap_ptr_obj<REC,CMPR>& other);
+    merge_heap_ptr_obj<REC,CMPR> operator=(const merge_heap_ptr_obj<REC,CMPR>& other);
 };
 
 //Returns the index of the smallest element out of
@@ -361,13 +394,37 @@ protected:
 public:
 
   // Constructor/Destructor 
-  merge_heap_op() { Heaparray=NULL; };
-  ~merge_heap_op() { 
-     //Cleanup if someone forgot de-allocate
-     //(abd) This seems to cause double free errors, but I don't know why
-     //This was just a safeguard anyways, turn off for now
-     //if(Heaparray != NULL){delete [] Heaparray;}
-  }
+    merge_heap_op() : Heaparray(NULL), Heapsize(0), maxHeapsize(0) {
+	// Do nothing.
+    };
+
+    merge_heap_op(const merge_heap_op& other) {
+	*this = other;
+    }
+
+    ~merge_heap_op() { 
+	//Cleanup if someone forgot de-allocate
+	if(Heaparray != NULL){
+	    delete [] Heaparray;
+	}
+    }
+
+    merge_heap_op& operator=(const merge_heap_op& other) {
+	if (this != &other) {
+	    Heapsize    = other.Heapsize;
+	    maxHeapsize = other.maxHeapsize;
+
+	    if (Heaparray != NULL) {
+		delete[] Heaparray;
+	    }
+
+	    Heaparray = new heap_element<REC>[maxHeapsize+1];
+	    memcpy(Heaparray, 
+		   other.Heaparray, 
+		   maxHeapsize * sizeof(heap_element<REC>));
+	}
+	return *this;
+    }
 
   // Report size of Heap (number of elements)
   TPIE_OS_SIZE_T sizeofheap(void) {return Heapsize;}; 
@@ -541,6 +598,11 @@ public:
   // Delete the current minimum and insert the new item from the same
   // source / run.
   inline void delete_min_and_insert(REC *nextelement_same_run);
+
+private:
+    // Prohibit these
+    merge_heap_obj(const merge_heap_obj<REC,CMPR>& other);
+    merge_heap_obj<REC,CMPR> operator=(const merge_heap_obj<REC,CMPR>& other);
 };
 
 //Returns the index of the smallest element out of
@@ -634,7 +696,8 @@ protected:
 public:
 
   // Constructor/Destructor 
-    merge_heap_kop( CMPR* cmpptr) : Heaparray(NULL), UsrObject(cmpptr) {};
+    merge_heap_kop( CMPR* cmpptr) : 
+	Heaparray(NULL), Heapsize(0), maxHeapsize(0), UsrObject(cmpptr) {};
     ~merge_heap_kop() { 
      //Cleanup if someone forgot de-allocate
      //(abd) This seems to cause double free errors, but I don't know why
@@ -670,6 +733,10 @@ public:
   // heapify's an initial array of elements
   void initialize (void);
   
+private:
+    // Prohibit these
+    merge_heap_kop(const merge_heap_kop<REC,KEY,CMPR>& other);
+    merge_heap_kop<REC,KEY,CMPR> operator=(const merge_heap_kop<REC,KEY,CMPR>& other);
 };
 
 template<class REC, class KEY, class CMPR>

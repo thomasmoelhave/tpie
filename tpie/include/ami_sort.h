@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 6/10/94
 //
-// $Id: ami_sort.h,v 1.13 2005-11-10 11:54:57 jan Exp $
+// $Id: ami_sort.h,v 1.14 2005-11-17 17:11:25 jan Exp $
 //
 #ifndef _AMI_SORT_H
 #define _AMI_SORT_H
@@ -36,9 +36,12 @@ template<class T>
 AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
                  progress_indicator_base* indicator=NULL)
 {
-  return sort_manager< T, Internal_Sorter_Op<T>, merge_heap_op<T> >
-    (Internal_Sorter_Op<T>(), merge_heap_op<T>() ).sort
-    (instream, outstream, indicator);
+    Internal_Sorter_Op<T> myInternalSorter;
+    merge_heap_op<T>      myMergeHeap;
+    sort_manager< T, Internal_Sorter_Op<T>, merge_heap_op<T> > 
+	mySortManager(&myInternalSorter, &myMergeHeap);
+
+    return mySortManager.sort(instream, outstream, indicator);
 }
 
 // A version of AMI_sort that takes an input stream of elements of
@@ -50,10 +53,12 @@ template<class T, class CMPR>
 AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
     CMPR *cmp, progress_indicator_base* indicator=NULL)
 {
-  return sort_manager<T, Internal_Sorter_Obj<T, CMPR>,
-         merge_heap_obj<T,CMPR> >( Internal_Sorter_Obj<T, CMPR>(cmp),
-             merge_heap_obj<T,CMPR>(cmp) ).sort
-              (instream, outstream, indicator);
+    Internal_Sorter_Obj<T,CMPR> myInternalSorter(cmp);
+    merge_heap_obj<T,CMPR>      myMergeHeap(cmp);
+    sort_manager< T, Internal_Sorter_Obj<T,CMPR>, merge_heap_obj<T,CMPR> > 
+	mySortManager(&myInternalSorter, &myMergeHeap);
+
+    return mySortManager.sort(instream, outstream, indicator);
 }
 
 // ********************************************************************
@@ -68,9 +73,12 @@ template<class T>
 AMI_err AMI_ptr_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
                  progress_indicator_base* indicator=NULL)
 {
-  return sort_manager< T, Internal_Sorter_Op<T>, merge_heap_ptr_op<T> >
-    (Internal_Sorter_Op<T>(), merge_heap_ptr_op<T>()).sort
-    (instream, outstream, indicator);
+    Internal_Sorter_Op<T> myInternalSorter;
+    merge_heap_op<T>      myMergeHeap;
+    sort_manager< T, Internal_Sorter_Op<T>, merge_heap_op<T> > 
+	mySortManager(&myInternalSorter, &myMergeHeap);
+
+    return mySortManager.sort(instream, outstream, indicator);
 }
 
 // A version of AMI_sort that takes an input stream of elements of
@@ -82,10 +90,13 @@ template<class T, class CMPR>
 AMI_err AMI_ptr_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
     CMPR *cmp, progress_indicator_base* indicator=NULL)
 {
-  return sort_manager<T, Internal_Sorter_Obj<T, CMPR>,
-         merge_heap_ptr_obj<T,CMPR> >( Internal_Sorter_Obj<T, CMPR>(cmp),
-             merge_heap_ptr_obj<T,CMPR>(cmp) ).sort
-             (instream, outstream, indicator);
+    Internal_Sorter_Obj<T,CMPR> myInternalSorter(cmp);
+    merge_heap_ptr_obj<T,CMPR> myMergeHeap(cmp);
+    sort_manager< T, Internal_Sorter_Obj<T,CMPR>, merge_heap_ptr_obj<T,CMPR> > 
+	mySortManager(&myInternalSorter, &myMergeHeap);
+
+    return mySortManager.sort(instream, outstream, indicator);
+
 }
 
 // ********************************************************************
@@ -110,9 +121,12 @@ template<class T, class KEY, class CMPR>
 AMI_err  AMI_key_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
     KEY dummykey, CMPR *cmp, progress_indicator_base* indicator=NULL)
 {
-  return sort_manager<T, Internal_Sorter_KObj<T, KEY, CMPR>,
-        merge_heap_kobj<T,KEY,CMPR> >( Internal_Sorter_KObj<T,KEY,CMPR>(cmp),             merge_heap_kobj<T,KEY,CMPR>(cmp) ).sort
-          (instream, outstream, indicator);
+    Internal_Sorter_KObj<T,KEY,CMPR> myInternalSorter(cmp);
+    merge_heap_kobj<T,KEY,CMPR>      myMergeHeap(cmp);
+    sort_manager< T, Internal_Sorter_KObj<T,KEY,CMPR>, merge_heap_kobj<T,KEY,CMPR> > 
+	mySortManager(&myInternalSorter, &myMergeHeap);
+
+    return mySortManager.sort(instream, outstream, indicator);
 }
 
 // ********************************************************************
@@ -124,51 +138,70 @@ AMI_err  AMI_key_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
 
 // object heaps, < operator comparisons
 template<class T>
-AMI_err AMI_sort(AMI_STREAM<T> *instream, progress_indicator_base* indicator=NULL)
+AMI_err AMI_sort(AMI_STREAM<T> *instream, 
+                 progress_indicator_base* indicator=NULL)
 {
-  return sort_manager< T, Internal_Sorter_Op<T>, merge_heap_op<T> >
-  (Internal_Sorter_Op<T>(), merge_heap_op<T>() ).sort
-  (instream, indicator);
+    Internal_Sorter_Op<T> myInternalSorter;
+    merge_heap_op<T>      myMergeHeap;
+    sort_manager< T, Internal_Sorter_Op<T>, merge_heap_op<T> > 
+	mySortManager(&myInternalSorter, &myMergeHeap);
+
+    return mySortManager.sort(instream, indicator);
 }
 
 // object heaps, comparison object comparisions
 template<class T, class CMPR>
-AMI_err AMI_sort(AMI_STREAM<T> *instream, CMPR *cmp, progress_indicator_base* indicator=NULL)
+AMI_err AMI_sort(AMI_STREAM<T> *instream, 
+    CMPR *cmp, progress_indicator_base* indicator=NULL)
 {
-  return sort_manager<T, Internal_Sorter_Obj<T, CMPR>,
-         merge_heap_obj<T,CMPR> >( Internal_Sorter_Obj<T, CMPR>(cmp),
-             merge_heap_obj<T,CMPR>(cmp) ).sort
-           (instream, indicator);
+    Internal_Sorter_Obj<T,CMPR> myInternalSorter(cmp);
+    merge_heap_obj<T,CMPR>      myMergeHeap(cmp);
+    sort_manager< T, Internal_Sorter_Obj<T,CMPR>, merge_heap_obj<T,CMPR> > 
+	mySortManager(&myInternalSorter, &myMergeHeap);
+
+    return mySortManager.sort(instream, indicator);
 }
 
 // ptr heaps, < operator comparisons
 template<class T>
-AMI_err AMI_ptr_sort(AMI_STREAM<T> *instream, progress_indicator_base* indicator=NULL)
+AMI_err AMI_ptr_sort(AMI_STREAM<T> *instream, 
+                 progress_indicator_base* indicator=NULL)
 {
-  return sort_manager< T, Internal_Sorter_Op<T>, merge_heap_ptr_op<T> >
-    (Internal_Sorter_Op<T>(), merge_heap_ptr_op<T>()).sort
-    (instream, indicator);
+    Internal_Sorter_Op<T> myInternalSorter;
+    merge_heap_op<T>      myMergeHeap;
+    sort_manager< T, Internal_Sorter_Op<T>, merge_heap_op<T> > 
+	mySortManager(&myInternalSorter, &myMergeHeap);
+
+    return mySortManager.sort(instream, indicator);
 }
 
 // ptr heaps, comparison object comparisions
 template<class T, class CMPR>
-AMI_err AMI_ptr_sort(AMI_STREAM<T> *instream, CMPR *cmp, progress_indicator_base* indicator=NULL)
+AMI_err AMI_ptr_sort(AMI_STREAM<T> *instream, 
+    CMPR *cmp, progress_indicator_base* indicator=NULL)
 {
-  return sort_manager<T, Internal_Sorter_Obj<T, CMPR>,
-         merge_heap_ptr_obj<T,CMPR> >( Internal_Sorter_Obj<T, CMPR>(cmp),
-             merge_heap_ptr_obj<T,CMPR>(cmp) ).sort
-           (instream, indicator);
+    Internal_Sorter_Obj<T,CMPR> myInternalSorter(cmp);
+    merge_heap_ptr_obj<T,CMPR> myMergeHeap(cmp);
+    sort_manager< T, Internal_Sorter_Obj<T,CMPR>, merge_heap_ptr_obj<T,CMPR> > 
+	mySortManager(&myInternalSorter, &myMergeHeap);
+
+    return mySortManager.sort(instream, indicator);
+
 }
 
 // key/object heaps, key/object comparisons 
 template<class T, class KEY, class CMPR>
-AMI_err  AMI_key_sort(AMI_STREAM<T> *instream, KEY dummykey, CMPR *cmp,
-    progress_indicator_base* indicator=NULL)
+AMI_err  AMI_key_sort(AMI_STREAM<T> *instream, 
+    KEY dummykey, CMPR *cmp, progress_indicator_base* indicator=NULL)
 {
-  return sort_manager<T, Internal_Sorter_KObj<T, KEY, CMPR>,
-        merge_heap_kobj<T,KEY,CMPR> >( Internal_Sorter_KObj<T,KEY,CMPR>(cmp),             merge_heap_kobj<T,KEY,CMPR>(cmp) ).sort
-          (instream, indicator);
+    Internal_Sorter_KObj<T,KEY,CMPR> myInternalSorter(cmp);
+    merge_heap_kobj<T,KEY,CMPR>      myMergeHeap(cmp);
+    sort_manager< T, Internal_Sorter_KObj<T,KEY,CMPR>, merge_heap_kobj<T,KEY,CMPR> > 
+	mySortManager(&myInternalSorter, &myMergeHeap);
+
+    return mySortManager.sort(instream, indicator);
 }
+
 
 /*
 DEPRECATED: comparison function sorting

@@ -10,13 +10,13 @@
 #include "app_config.h"
 
 #include <versions.h>
-VERSION(scan_uniform_sm_cpp,"$Id: scan_uniform_sm.cpp,v 1.7 2004-08-12 15:15:11 jan Exp $");
+VERSION(scan_uniform_sm_cpp,"$Id: scan_uniform_sm.cpp,v 1.8 2005-11-17 17:07:41 jan Exp $");
 
 #include "scan_uniform_sm.h"
 
 scan_uniform_sm::scan_uniform_sm(TPIE_OS_OFFSET rows, TPIE_OS_OFFSET cols,
                                  double density, int seed) :
-        rmax(rows), cmax(cols), d(density)
+    r(0), c(0), rmax(rows), cmax(cols), d(density)
 {
     TP_LOG_APP_DEBUG("scan_uniform_sm seed = ");
     TP_LOG_APP_DEBUG(seed);

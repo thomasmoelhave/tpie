@@ -38,12 +38,34 @@ public:
 				TPIE_OS_OFFSET minRange, 
 				TPIE_OS_OFFSET maxRange, 
 				TPIE_OS_OFFSET stepValue) : 
-	progress_indicator_base(title, description, minRange, maxRange, stepValue) {
+	progress_indicator_base(title, description, minRange, maxRange, stepValue), m_title(NULL), m_description(NULL) {
 	m_title = new char[strlen(title)+1];
 	strcpy(m_title, title);
 
 	m_description = new char[strlen(description)+1];
 	strcpy(m_description, description);
+    }
+
+    progress_indicator_terminal(const progress_indicator_terminal& other) : 
+	progress_indicator_base(other), m_title(NULL), m_description(NULL) {
+	*this = other;
+    }
+
+    progress_indicator_terminal& operator=(const progress_indicator_terminal& other) {
+	if (this != &other) {
+
+	    progress_indicator_base::operator=(other);
+
+	    delete [] m_title;
+	    delete [] m_description;
+
+	    m_title = new char[strlen(other.m_title)+1];
+	    strcpy(m_title, other.m_title);
+	    
+	    m_description = new char[strlen(other.m_description)+1];
+	    strcpy(m_description, other.m_description);
+	}
+	return *this;
     }
 
     ////////////////////////////////////////////////////////////////////
