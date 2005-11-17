@@ -6,25 +6,25 @@
 //
 
 #include <versions.h>
-VERSION(bit_cpp,"$Id: bit.cpp,v 1.5 2003-09-12 18:46:44 jan Exp $");
+VERSION(bit_cpp,"$Id: bit.cpp,v 1.6 2005-11-17 17:04:22 jan Exp $");
 
 #include <bit.h>
 
-bit::bit(void)
+bit::bit(void) : data(0)
 {
 }
 
-bit::bit(bool b)
+bit::bit(bool b) : data(0)
 {
     data = (b == true);
 }
 
-bit::bit(int i)
+bit::bit(int i) : data(0)
 {
     data = (i != 0);
 }
 
-bit::bit(long int i)
+bit::bit(long int i) : data(0)
 {
     data = (i != 0);
 }

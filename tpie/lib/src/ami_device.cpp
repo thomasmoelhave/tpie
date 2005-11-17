@@ -5,7 +5,7 @@
 //
 
 #include "versions.h"
-VERSION(ami_device_cpp,"$Id: ami_device.cpp,v 1.14 2004-08-12 12:53:42 jan Exp $");
+VERSION(ami_device_cpp,"$Id: ami_device.cpp,v 1.15 2005-11-17 17:04:22 jan Exp $");
 
 #include "lib_config.h"
 
@@ -16,17 +16,16 @@ VERSION(ami_device_cpp,"$Id: ami_device.cpp,v 1.14 2004-08-12 12:53:42 jan Exp $
 #include <ami_device.h>
 
 
-AMI_device::AMI_device(void)
+AMI_device::AMI_device(void) : argc(0), argv(NULL)
 {
     TP_LOG_DEBUG_ID("In AMI_device(void).");
 }
 
 
-AMI_device::AMI_device(unsigned int count, char **strings)
+AMI_device::AMI_device(unsigned int count, char **strings) : argc(count), argv(NULL)
 {
     char *s, *t;
 
-    argc = count;
     if (argc) {
         argv = new char*[argc];
 
@@ -38,17 +37,45 @@ AMI_device::AMI_device(unsigned int count, char **strings)
                 ;
         }
                      
-    } else {
-        argv = NULL;
     }
 }
 
+AMI_device::AMI_device(const AMI_device& other) : argc(0), argv(NULL) {
+    *this = other;
+}
 
 AMI_device::~AMI_device(void)
 {
     dispose_contents();
 }
 
+
+AMI_device& AMI_device::operator=(const AMI_device& other) {
+
+    if (this != &other) {
+
+	char *s, *t;
+	
+	unsigned int count = other.argc;
+	argc = other.argc;;
+
+	if (argc) {
+	    argv = new char*[argc];
+	    
+	    while (count--) {
+		argv[count] = new char[strlen(other.argv[count]) + 1];
+		// for (s = strings[count], t = argv[count]; *t++ = *s++; )
+		// [tavi] modified to avoid warning.
+		for (s = other.argv[count], t = argv[count]; *t; *t++ = *s++)
+		    ;
+	    }
+	    
+	} else {
+	    argv = NULL;
+	}
+    }
+    return *this;
+};
 
 const char * AMI_device::operator[](unsigned int index)
 {

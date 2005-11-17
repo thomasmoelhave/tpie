@@ -6,7 +6,7 @@
 //
 
 #include <versions.h>
-VERSION(mm_base_cpp,"$Id: mm_base.cpp,v 1.32 2005-11-15 15:37:51 jan Exp $");
+VERSION(mm_base_cpp,"$Id: mm_base.cpp,v 1.33 2005-11-17 17:04:22 jan Exp $");
 
 #include "lib_config.h"
 #include <mm_base.h>
@@ -49,16 +49,18 @@ void *operator new (TPIE_OS_SIZE_T sz)
       switch(MM_manager.register_new) {
 	  case MM_ABORT_ON_MEMORY_EXCEEDED:
 		TP_LOG_FATAL_ID ("In operator new() - allocation request \"");
-		TP_LOG_FATAL ((TPIE_OS_LONG)(sz + SIZE_SPACE));
+		TP_LOG_FATAL (static_cast<TPIE_OS_LONG>(sz + SIZE_SPACE));
 		TP_LOG_FATAL ("\" plus previous allocation \"");
-		TP_LOG_FATAL ((TPIE_OS_LONG)(MM_manager.memory_used () - (sz + SIZE_SPACE)));
+		TP_LOG_FATAL (static_cast<TPIE_OS_LONG>(MM_manager.memory_used () - (sz + SIZE_SPACE)));
 		TP_LOG_FATAL ("\" exceeds user-defined limit \"");
-		TP_LOG_FATAL ((TPIE_OS_LONG)(MM_manager.memory_limit ()));
+		TP_LOG_FATAL (static_cast<TPIE_OS_LONG>(MM_manager.memory_limit ()));
 		TP_LOG_FATAL ("\" \n");
 		TP_LOG_FLUSH_LOG;
-		cerr << "memory manager: memory allocation limit " << 
-                         (TPIE_OS_LONG)MM_manager.memory_limit () << " exceeded "
-			 << "while allocating " << (TPIE_OS_LONG)sz << " bytes" << "\n";
+		cerr << "memory manager: memory allocation limit " 
+		     << static_cast<TPIE_OS_LONG>(MM_manager.memory_limit ()) 
+		     << " exceeded while allocating " 
+		     << static_cast<TPIE_OS_LONG>(sz)
+		     << " bytes" << "\n";
 #ifdef USE_DMALLOC
 		dmalloc_shutdown();
 #endif
@@ -67,16 +69,18 @@ void *operator new (TPIE_OS_SIZE_T sz)
 		break;
 	  case MM_WARN_ON_MEMORY_EXCEEDED:
 		TP_LOG_WARNING_ID ("In operator new() - allocation request \"");
-		TP_LOG_WARNING ((TPIE_OS_LONG)(sz + SIZE_SPACE));
+		TP_LOG_WARNING (static_cast<TPIE_OS_LONG>(sz + SIZE_SPACE));
 		TP_LOG_WARNING ("\" plus previous allocation \"");
-		TP_LOG_WARNING ((TPIE_OS_LONG)(MM_manager.memory_used () - (sz + SIZE_SPACE)));
+		TP_LOG_WARNING (static_cast<TPIE_OS_LONG>(MM_manager.memory_used () - (sz + SIZE_SPACE)));
 		TP_LOG_WARNING ("\" exceeds user-defined limit \"");
-		TP_LOG_WARNING ((TPIE_OS_LONG)(MM_manager.memory_limit ()));
+		TP_LOG_WARNING (static_cast<TPIE_OS_LONG>(MM_manager.memory_limit ()));
 		TP_LOG_WARNING ("\" \n");
 		TP_LOG_FLUSH_LOG;
-		cerr << "memory manager: memory allocation limit " << 
-                         (TPIE_OS_LONG)MM_manager.memory_limit () << " exceeded "
-			 << "while allocating " << (TPIE_OS_LONG)sz << " bytes" << "\n";
+		cerr << "memory manager: memory allocation limit " 
+		     << static_cast<TPIE_OS_LONG>(MM_manager.memory_limit ()) 
+		     << " exceeded while allocating " 
+		     << static_cast<TPIE_OS_LONG>(sz)
+		     << " bytes" << "\n";
 		break;
 	  case MM_IGNORE_MEMORY_EXCEEDED:
 		break;
@@ -91,13 +95,13 @@ void *operator new (TPIE_OS_SIZE_T sz)
    if (!p) {
       TP_LOG_FATAL_ID ("Out of memory. Cannot continue.");
       TP_LOG_FLUSH_LOG;
-	  cerr << "out of memory while allocating " << (TPIE_OS_LONG)sz << " bytes" << "\n";
+      cerr << "out of memory while allocating " << static_cast<TPIE_OS_LONG>(sz) << " bytes" << "\n";
       perror ("mm_base::new malloc");
 	  assert(0);
       exit (1);
    }
-   *((size_t *) p) = (MM_manager.allocation_count_factor() ? sz : 0);
-   return ((char *) p) + SIZE_SPACE;
+   *(reinterpret_cast<size_t *>(p)) = (MM_manager.allocation_count_factor() ? sz : 0);
+   return (reinterpret_cast<char *>(p)) + SIZE_SPACE;
 }
 
 
@@ -109,7 +113,7 @@ void operator delete (void *ptr)
    }
 
    const TPIE_OS_SIZE_T dealloc_size =  
-       (TPIE_OS_SIZE_T)*((size_t *) (((char *) ptr) - SIZE_SPACE));
+       static_cast<TPIE_OS_SIZE_T>(*(reinterpret_cast<size_t*>((reinterpret_cast<char*>(ptr)) - SIZE_SPACE)));
 
    if (MM_manager.register_new != MM_IGNORE_MEMORY_EXCEEDED) {
        if (MM_manager.register_deallocation (
@@ -117,7 +121,7 @@ void operator delete (void *ptr)
 	   TP_LOG_WARNING_ID("In operator delete - MM_manager.register_deallocation failed");
        }
    }
-   void *p = ((char *)ptr) - SIZE_SPACE;
+   void *p = (reinterpret_cast<char *>(ptr)) - SIZE_SPACE;
 
 #ifdef USE_DMALLOC
 	char	*file;
@@ -135,7 +139,7 @@ void operator delete[] (void *ptr) {
    }
 
    const TPIE_OS_SIZE_T dealloc_size =  
-       (TPIE_OS_SIZE_T)*((size_t *) (((char *) ptr) - SIZE_SPACE));
+       static_cast<TPIE_OS_SIZE_T>(*(reinterpret_cast<size_t*>((reinterpret_cast<char*>(ptr)) - SIZE_SPACE)));
 
    if (MM_manager.register_new != MM_IGNORE_MEMORY_EXCEEDED) {
        if (MM_manager.register_deallocation (
@@ -143,7 +147,7 @@ void operator delete[] (void *ptr) {
 	   TP_LOG_WARNING_ID("In operator delete [] - MM_manager.register_deallocation failed");
        }
    }
-   void *p = ((char *)ptr) - SIZE_SPACE;
+   void *p = (reinterpret_cast<char *>(ptr)) - SIZE_SPACE;
 #ifdef USE_DMALLOC
 	char	*file;
 	GET_RET_ADDR(file);
