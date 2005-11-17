@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 8/31/94
 //
-// $Id: ami_scan_utils.h,v 1.10 2003-09-12 01:46:38 jan Exp $
+// $Id: ami_scan_utils.h,v 1.11 2005-11-17 17:11:25 jan Exp $
 //
 #ifndef _AMI_SCAN_UTILS_H
 #define _AMI_SCAN_UTILS_H
@@ -23,6 +23,9 @@
 
 template<class T> class cxx_istream_scan : AMI_scan_object {
 private:
+    // Prohibit these.
+    cxx_istream_scan(const cxx_istream_scan<T>& other);
+    cxx_istream_scan<T>& operator=(const cxx_istream_scan<T>& other);
     istream *is;
 public:
     cxx_istream_scan(istream *instr = &cin);
@@ -62,9 +65,15 @@ AMI_err cxx_istream_scan<T>::operate(T *out, AMI_SCAN_FLAG *sfout)
 
 template<class T> class cxx_ostream_scan : AMI_scan_object {
 private:
+    // Prohibit these.
+    cxx_ostream_scan(const cxx_ostream_scan<T>& other);
+    cxx_ostream_scan<T>& operator=(const cxx_ostream_scan<T>& other);
     ostream *os;
 public:
     cxx_ostream_scan(ostream *outstr = &cout);
+    ~cxx_ostream_scan() {
+	// Do nothing.
+    }
     AMI_err initialize(void);
     AMI_err operate(const T &in, AMI_SCAN_FLAG *sfin);
 };

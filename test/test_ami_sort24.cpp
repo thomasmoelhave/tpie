@@ -8,7 +8,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_sort24_cpp,"$Id: test_ami_sort24.cpp,v 1.15 2005-02-15 00:23:06 tavi Exp $");
+VERSION(test_ami_sort24_cpp,"$Id: test_ami_sort24.cpp,v 1.16 2005-11-17 17:07:41 jan Exp $");
 
 // Get information on the configuration to test.
 #include "app_config.h"
@@ -50,9 +50,9 @@ public:
 };
 
 
-scan_random_so::scan_random_so(TPIE_OS_OFFSET count, int seed) {
-    this->max = count;
-    this->remaining = count;
+scan_random_so::scan_random_so(TPIE_OS_OFFSET count, int seed) : 
+    max(count), remaining(count) {
+
     TP_LOG_APP_DEBUG("scan_random_so seed = ");
     TP_LOG_APP_DEBUG(seed);
     TP_LOG_APP_DEBUG('\n');

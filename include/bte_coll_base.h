@@ -4,7 +4,7 @@
 // Authors: Octavian Procopiuc <tavi@cs.duke.edu>
 //          (using some code by Rakesh Barve)
 //
-// $Id: bte_coll_base.h,v 1.27 2004-08-17 16:48:06 jan Exp $
+// $Id: bte_coll_base.h,v 1.28 2005-11-17 17:11:25 jan Exp $
 //
 // BTE_collection_base class and various basic definitions.
 
@@ -105,14 +105,16 @@ public:
   
     // Default constructor.
   BTE_collection_header():
-    magic_number(BTE_COLLECTION_HEADER_MAGIC_NUMBER), 
+      magic_number(BTE_COLLECTION_HEADER_MAGIC_NUMBER), 
       version(1), 
       type(0),
       header_length(sizeof(BTE_collection_header)), 
       total_blocks(1), 
       last_block(1), 
-      used_blocks(0) {
-      os_block_size = TPIE_OS_BLOCKSIZE();
+      used_blocks(0),
+      block_size(0),
+      os_block_size(TPIE_OS_BLOCKSIZE())
+	{
   }
 };
 

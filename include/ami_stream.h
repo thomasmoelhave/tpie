@@ -2,7 +2,7 @@
 // File: ami_stream.h (formerly part of ami.h and ami_imps.h)
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 //
-// $Id: ami_stream.h,v 1.9 2005-11-16 16:53:50 jan Exp $
+// $Id: ami_stream.h,v 1.10 2005-11-17 17:11:25 jan Exp $
 //
 #ifndef _AMI_STREAM_H
 #define _AMI_STREAM_H
@@ -146,6 +146,10 @@ public:
     
 private:
 
+    // Prohibit these two.
+    AMI_stream(const  AMI_stream<T>& other);
+    AMI_stream<T>& operator=(const AMI_stream<T>& other);
+
     // Point to a base stream, since the particular type of BTE
     // stream we are using may vary.
     BTE_STREAM<T> * m_bteStream;
@@ -163,15 +167,16 @@ private:
 // device description. Persistence is PERSIST_DELETE by default. We
 // are given the index of the string describing the desired device.
 template<class T>
-AMI_stream<T>::AMI_stream(unsigned int device) {
+AMI_stream<T>::AMI_stream(unsigned int device) : m_bteStream(NULL),
+						 m_readOnly(false),
+						 m_destructBTEStream(true),
+						 m_status(AMI_STREAM_STATUS_INVALID)
+{
 
     // [tavi] Hack to fix an error that appears in gcc 2.8.1
     if (device == UINT_MAX) {
 	device = (device_index = ((device_index + 1) % default_device.arity())); 
     }
-    
-    m_readOnly          = false;
-    m_destructBTEStream = true;
     
     // Get a unique name.
     char *path = tpie_tempnam("AMI", default_device[device]);
@@ -183,9 +188,9 @@ AMI_stream<T>::AMI_stream(unsigned int device) {
     m_bteStream = new BTE_STREAM<T>(path, BTE_WRITE_STREAM);
     
     // (Short circuit evaluation...)
-    if (m_bteStream == NULL || m_bteStream->status() == BTE_STREAM_STATUS_INVALID) {
+    if (m_bteStream == NULL || 
+	m_bteStream->status() == BTE_STREAM_STATUS_INVALID) {
 	TP_LOG_FATAL_ID("BTE returned invalid or NULL stream.");
-	m_status = AMI_STREAM_STATUS_INVALID;
 	return;
     }
     
@@ -193,10 +198,10 @@ AMI_stream<T>::AMI_stream(unsigned int device) {
     
     if (seek(0) != AMI_ERROR_NO_ERROR) {
 	TP_LOG_FATAL_ID("seek(0) returned error.");
-	m_status = AMI_STREAM_STATUS_INVALID;
 	return;
     }
-    
+
+    //  Set status to VALID.
     m_status = AMI_STREAM_STATUS_VALID;
 };
 
@@ -205,7 +210,11 @@ AMI_stream<T>::AMI_stream(unsigned int device) {
 // location specified by the path name.
 template<class T>
 AMI_stream<T>::AMI_stream(const char *path_name,
-			  AMI_stream_type st) {
+			  AMI_stream_type st) :
+    m_bteStream(NULL),
+    m_readOnly(false),
+    m_destructBTEStream(true),
+    m_status(AMI_STREAM_STATUS_INVALID) {
     
   // Decide BTE stream type
     BTE_stream_type bst;
@@ -236,7 +245,6 @@ AMI_stream<T>::AMI_stream(const char *path_name,
     // (Short circuit evaluation...)
     if (m_bteStream == NULL || m_bteStream->status() == BTE_STREAM_STATUS_INVALID) {
 	TP_LOG_FATAL_ID("BTE returned invalid or NULL stream.");
-	m_status = AMI_STREAM_STATUS_INVALID;
 	return;
     }
     
@@ -246,7 +254,6 @@ AMI_stream<T>::AMI_stream(const char *path_name,
     if (st != AMI_APPEND_STREAM) {
 	if (seek(0) != AMI_ERROR_NO_ERROR) {
 	    TP_LOG_FATAL_ID("seek(0) returned error.");
-	    m_status = AMI_STREAM_STATUS_INVALID;
 	    return;
 	}
     }
@@ -256,14 +263,15 @@ AMI_stream<T>::AMI_stream(const char *path_name,
 
 
 template<class T>
-AMI_stream<T>::AMI_stream(BTE_STREAM<T> *bs) {
+AMI_stream<T>::AMI_stream(BTE_STREAM<T> *bs) :
+    m_bteStream(bs),
+    m_readOnly(false),
+    m_destructBTEStream(false),
+    m_status(AMI_STREAM_STATUS_INVALID) {
     
-    m_destructBTEStream = false;
     
-    m_bteStream = bs;
     if (m_bteStream == NULL || m_bteStream->status() == BTE_STREAM_STATUS_INVALID) {
 	TP_LOG_FATAL_ID("BTE returned invalid or NULL stream.");
-	m_status = AMI_STREAM_STATUS_INVALID;
 	return;
     }
     

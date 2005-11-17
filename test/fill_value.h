@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 3/6/95
 //
-// $Id: fill_value.h,v 1.4 2004-08-12 15:15:11 jan Exp $
+// $Id: fill_value.h,v 1.5 2005-11-17 17:07:40 jan Exp $
 //
 #ifndef _FILL_VALUE_H
 #define _FILL_VALUE_H
@@ -18,6 +18,7 @@ class fill_value : public AMI_matrix_filler<T> {
 private:
     T value;
 public:
+    fill_value() : value() {};
     void set_value(const T &v) {
         value = v;
     };

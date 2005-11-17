@@ -4,18 +4,20 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/6/94
 //
-// $Id: scan_square.h,v 1.2 1997-05-20 22:12:00 vengroff Exp $
+// $Id: scan_square.h,v 1.3 2005-11-17 17:07:41 jan Exp $
 //
 // A scan object to square numeric types.
 //
 #ifndef _SCAN_SQUARE_H
 #define _SCAN_SQUARE_H
 
+#include <portability.h>
 
 template<class T> class scan_square : AMI_scan_object {
 public:
     T ii;
-    unsigned long int called;
+    TPIE_OS_OFFSET called;
+    scan_square() : ii(), called(0) {};
     AMI_err initialize(void);
     AMI_err operate(const T &in, AMI_SCAN_FLAG *sfin,
                     T *out, AMI_SCAN_FLAG *sfout);

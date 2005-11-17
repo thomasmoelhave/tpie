@@ -11,7 +11,7 @@
 // *  used in several of TPIE's merge variants                              *
 // *                                                                        *
 // **************************************************************************
-// 	$Id: merge_sorted_runs.h,v 1.4 2005-11-16 16:53:52 jan Exp $	
+// 	$Id: merge_sorted_runs.h,v 1.5 2005-11-17 17:11:25 jan Exp $	
 
 // Get definitions for working with Unix and Windows
 #include <portability.h>
@@ -41,7 +41,7 @@ typedef TPIE_OS_SIZE_T arity_t;
 // stream and also a boolean flag for showing a progress indicator.
 template < class T, class M >
 AMI_err  merge_sorted_runs(AMI_STREAM<T> **inStreams, arity_t arity,
-			   AMI_STREAM<T> *outStream, M& MergeHeap,
+			   AMI_STREAM<T> *outStream, M* MergeHeap,
 			   TPIE_OS_OFFSET cutoff=-1, 
 			   progress_indicator_base* indicator=NULL)
 {
@@ -69,7 +69,7 @@ AMI_err  merge_sorted_runs(AMI_STREAM<T> **inStreams, arity_t arity,
          return ami_err;
        }
      } else {
-       MergeHeap.insert( in_objects[i], i );
+       MergeHeap->insert( in_objects[i], i );
      }
      nread[i]=1; 
      if (indicator) {
@@ -81,14 +81,14 @@ AMI_err  merge_sorted_runs(AMI_STREAM<T> **inStreams, arity_t arity,
    // * Build a heap from the smallest items of each stream   *
    // *********************************************************
 
-   MergeHeap.initialize ( );
+   MergeHeap->initialize ( );
 
    // *********************************************************
    // * Perform the merge until the inputs are exhausted.     *
    // *********************************************************
-   while (MergeHeap.sizeofheap() > 0) {
+   while (MergeHeap->sizeofheap() > 0) {
 
-      i = MergeHeap.get_min_run_id ();
+      i = MergeHeap->get_min_run_id ();
  
       if ((ami_err = outStream->write_item (*in_objects[i]))
           != AMI_ERROR_NO_ERROR) {
@@ -115,10 +115,10 @@ AMI_err  merge_sorted_runs(AMI_STREAM<T> **inStreams, arity_t arity,
 	}
       } 
       if (ami_err == AMI_ERROR_END_OF_STREAM) {
-	  MergeHeap.delete_min_and_insert (NULL);
+	  MergeHeap->delete_min_and_insert (NULL);
       } else { 
         nread[i]++;
-        MergeHeap.delete_min_and_insert (in_objects[i]);
+        MergeHeap->delete_min_and_insert (in_objects[i]);
 
       }
    }//while

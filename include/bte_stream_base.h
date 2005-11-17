@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/11/94
 //
-// $Id: bte_stream_base.h,v 1.14 2005-11-16 16:53:51 jan Exp $
+// $Id: bte_stream_base.h,v 1.15 2005-11-17 17:11:25 jan Exp $
 //
 #ifndef _BTE_STREAM_BASE_H
 #define _BTE_STREAM_BASE_H
@@ -56,10 +56,22 @@ template<class T>
 class BTE_stream_base: public BTE_stream_base_generic {
 
 public:
-    BTE_stream_base() {
+    BTE_stream_base() :
+	m_header(NULL),
+	m_persistenceStatus(PERSIST_DELETE),
+	m_status(BTE_STREAM_STATUS_NO_STATUS),
+	m_substreamLevel(0),
+	m_readOnly(true),
+	m_streamStatistics(),
+	m_osBlockSize(0),
+	m_fileOffset(0),
+	m_logicalBeginOfStream(0),
+	m_logicalEndOfStream(0),
+	m_fileLength(0),
+	m_osErrno(0) {
 	// Do nothing.
     };
-
+    
     // Tell the stream whether to leave its data on the disk or not
     // when it is destructed.
     void persist (persistence p) { 
@@ -155,6 +167,10 @@ protected:
     //  Name of the underlying file.
     char m_path[BTE_STREAM_PATH_NAME_LEN];
 
+private:
+    // Prohibit these.
+    BTE_stream_base(const BTE_stream_base<T>& other);
+    BTE_stream_base<T>& operator=(const BTE_stream_base<T>& other);
 };
 
 template<class T>
