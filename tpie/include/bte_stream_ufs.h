@@ -2,7 +2,7 @@
 // File: bte_stream_ufs.h (formerly bte_ufs.h)
 // Author: Rakesh Barve <rbarve@cs.duke.edu>
 //
-// $Id: bte_stream_ufs.h,v 1.25 2005-11-17 17:11:25 jan Exp $
+// $Id: bte_stream_ufs.h,v 1.26 2005-11-17 17:49:39 jan Exp $
 //
 // BTE streams with blocks I/Oed using read()/write().  This particular
 // implementation explicitly manages blocks, and only ever maps in one
@@ -244,7 +244,7 @@ template < class T >
 BTE_stream_ufs < T >::BTE_stream_ufs (const char *dev_path,
 				      BTE_stream_type st,
 				      TPIE_OS_SIZE_T lbf) : 
-    m_fileDescriptor(NULL),
+    m_fileDescriptor(),
     m_itemsAlignedWithBlock(false),
     m_filePointer(0),
     m_currentItem(NULL),
@@ -555,7 +555,7 @@ BTE_stream_ufs < T >::BTE_stream_ufs (BTE_stream_ufs * super_stream,
 				      BTE_stream_type st,
 				      TPIE_OS_OFFSET sub_begin, 
 				      TPIE_OS_OFFSET sub_end) :
-    m_fileDescriptor(NULL),
+    m_fileDescriptor(),
     m_itemsAlignedWithBlock(false),
     m_filePointer(0),
     m_currentItem(NULL),

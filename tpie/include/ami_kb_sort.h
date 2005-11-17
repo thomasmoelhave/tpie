@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 3/12/95
 //
-// $Id: ami_kb_sort.h,v 1.12 2005-11-17 17:11:24 jan Exp $
+// $Id: ami_kb_sort.h,v 1.13 2005-11-17 17:49:39 jan Exp $
 //
 
 // This header file can be included in one of two ways, either with a
@@ -420,7 +420,7 @@ AMI_err _AMI_MM_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
     
     // Empty out the buckets.
 
-    for (ii = stream_len; ii--; ) {
+    for (ii = static_cast<TPIE_OS_SIZE_T>(stream_len); ii--; ) {
         buckets[ii] = NULL;
     }
     
@@ -435,7 +435,7 @@ AMI_err _AMI_MM_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
         bucket_index_denom = 1;
     }
 
-    for (ii = stream_len, list_elem = list_space;
+    for (ii = static_cast<TPIE_OS_SIZE_T>(stream_len), list_elem = list_space;
          ii--; list_elem++ ) {
         unsigned int bucket_index;
 
