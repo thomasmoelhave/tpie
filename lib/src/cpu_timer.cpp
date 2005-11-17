@@ -6,17 +6,16 @@
 //
 
 #include <versions.h>
-VERSION(cpu_timer_cpp,"$Id: cpu_timer.cpp,v 1.9 2004-08-17 16:48:50 jan Exp $");
+VERSION(cpu_timer_cpp,"$Id: cpu_timer.cpp,v 1.10 2005-11-17 17:04:22 jan Exp $");
 
 #include <cpu_timer.h>
 
 cpu_timer::cpu_timer() :
-        running(false)
+    clock_tick(0), last_sync(), elapsed(), last_sync_real(0), elapsed_real(0),
+    running(false)
 {
     TPIE_OS_SET_CLOCK_TICK;
-
-    elapsed_real = 0;
-}
+    }
 
 cpu_timer::~cpu_timer()
 {

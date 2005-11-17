@@ -8,7 +8,7 @@
 // A simple registration based memory manager.
 
 #include <versions.h>
-VERSION(mm_register_cpp,"$Id: mm_register.cpp,v 1.25 2005-11-15 15:37:51 jan Exp $");
+VERSION(mm_register_cpp,"$Id: mm_register.cpp,v 1.26 2005-11-17 17:04:22 jan Exp $");
 
 //#include <assert.h>
 #include "lib_config.h"
@@ -95,11 +95,11 @@ MM_err MM_register::register_deallocation(TPIE_OS_SIZE_T sz)
 
     if (sz > used) {
        TP_LOG_WARNING("Error in deallocation sz=");
-       TP_LOG_WARNING((TPIE_OS_LONG)sz);
+       TP_LOG_WARNING(static_cast<TPIE_OS_LONG>(sz));
        TP_LOG_WARNING(", remaining=");
-       TP_LOG_WARNING((TPIE_OS_LONG)remaining);
+       TP_LOG_WARNING(static_cast<TPIE_OS_LONG>(remaining));
        TP_LOG_WARNING(", user_limit=");
-       TP_LOG_WARNING((TPIE_OS_LONG)user_limit);
+       TP_LOG_WARNING(static_cast<TPIE_OS_LONG>(user_limit));
        TP_LOG_WARNING("\n");
        TP_LOG_FLUSH_LOG;
        used = 0;
@@ -109,9 +109,9 @@ MM_err MM_register::register_deallocation(TPIE_OS_SIZE_T sz)
     used      -= sz;    
 
     TP_LOG_MEM_DEBUG("mm_register De-allocated ");
-    TP_LOG_MEM_DEBUG((unsigned int)sz);
+    TP_LOG_MEM_DEBUG(static_cast<TPIE_OS_LONG>(sz));
     TP_LOG_MEM_DEBUG("; ");
-    TP_LOG_MEM_DEBUG((unsigned int)remaining);
+    TP_LOG_MEM_DEBUG(static_cast<TPIE_OS_LONG>(remaining));
     TP_LOG_MEM_DEBUG(" now available.\n");
     TP_LOG_FLUSH_LOG;
     
