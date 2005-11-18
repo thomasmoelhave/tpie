@@ -46,7 +46,8 @@ AMI_STREAM, I get an AMI_stream_base, which is not an AMI_STREAM but
 something different. So different, in fact, that AMI_sort does not take it.
 So this concept of making substreams is not as transparent as I would like
 it to be."  This should be addressed somehow.
-Status: Open as of 1 April 2005
+Status: Issue resolved by merging AMI_stream_single and AMI_stream_base
+        November 2005 (J. Vahrenhold)
 ----------------------
 ID: 5
 General Area: Streams with variable length items
@@ -92,7 +93,8 @@ wrapper, once as the internal read/write pointer of the stream, and once
 in the statistics of the stream)..." Comment from Andrew Danner: "There is
 the tell() function, but as Herman notes, it is not defined in
 ami_stream_base, but it IS defined in ami_stream_single"
-Status: Open as of 21 April 2005
+Status: Issue resolved by merging AMI_stream_single and AMI_stream_base
+        November 2005 (J. Vahrenhold)
 ------------------------
 ID: 8
 General Area: Sorting
@@ -110,9 +112,8 @@ General Area: Sorting
 Priority:
 Description: Include a progress indicator for sorting. Users don't like it
 when the software seems to stall for ten minutes.
-Status: Initial attempt summer 2005 by A. Danner
-J. Vahrenhold looking into progress bar class for a general/flexible
-solution as of 8 Nov 2005
+Status: Issue resolved by progress_indicator_base and subclasses
+        November 2005 (J. Vahrenhold)
        
 ------------------------
 ID: 10
@@ -156,7 +157,8 @@ Description: Can ami_stream_base and ami_stream_single be merged? Are we
 seriously ever going to have another stream implementation other than
 ami_stream_single? If not, the code should be merged.
 See Also: wish-list ID 7
-Status: Open as of 21 April 2005
+Status: Issue resolved by merging AMI_stream_single and AMI_stream_base
+        November 2005 (J. Vahrenhold)
 --------------------------
 ID: 15
 General Area: Memory management/STL
@@ -194,6 +196,9 @@ A very quick summary:
  but no "delete"
 
  We need to decide what is the best way to handle this.
- Status: Open as of 3 Nov 2005
+ Status: Resolved by setting GLIBCPP_FORCE_NEW and extending
+         the memory manager to provide a pause/resume
+         mechanism for registering allocation sized
+         November 2005 (J. Vahrenhold)
  ------------------------------
 
