@@ -42,6 +42,22 @@ public:
 	m_indicatorLength = 40;
     }
     
+    progress_indicator_arrow(const progress_indicator_arrow& other) : 
+	progress_indicator_terminal(other), m_indicatorLength(40), m_progress(0) {
+	*this = other;
+    }
+
+    progress_indicator_arrow& operator=(const progress_indicator_arrow& other) {
+	if (this != &other) {
+
+	    progress_indicator_terminal::operator=(other);
+
+	    m_indicatorLength = other.m_indicatorLength;
+	    m_progress        = other.m_progress;
+	}
+	return *this;
+    }
+
     ////////////////////////////////////////////////////////////////////
     ///
     ///  The destructor. Nothing is done.
@@ -71,7 +87,7 @@ public:
     ///
     ////////////////////////////////////////////////////////////////////
 
-    void reset() {
+    virtual void reset() {
 	m_current  = m_minRange;
 	m_progress = 0;
     }
@@ -82,7 +98,7 @@ public:
     ///
     ////////////////////////////////////////////////////////////////////
 
-    void refresh() {
+    virtual void refresh() {
 	//  Compute the relative length of the arrow.
 	TPIE_OS_OFFSET progress = m_indicatorLength * 
 	    (m_current-m_minRange)/(m_maxRange-m_minRange); 
@@ -117,11 +133,11 @@ public:
 
 protected:
 
+    //* The maximal length of the indicator */
+    TPIE_OS_OFFSET m_indicatorLength;
 
     //* The current length of the indicator */
     TPIE_OS_OFFSET m_progress;
-    //* The maximal length of the indicator */
-    TPIE_OS_OFFSET m_indicatorLength;
 
 private:
     progress_indicator_arrow();
