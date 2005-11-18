@@ -1,7 +1,7 @@
 //
 // File: mergeheap.h
 // 
-// $Id: mergeheap.h,v 1.16 2005-11-17 17:11:25 jan Exp $	
+// $Id: mergeheap.h,v 1.17 2005-11-18 12:31:13 jan Exp $	
 
 // This file contains several merge heap templates. 
 // Originally written by Rakesh Barve.  
@@ -107,6 +107,10 @@ public:
   // Constructor/Destructor 
     merge_heap_ptr_op() : Heaparray(NULL), Heapsize(0), maxHeapsize(0) {};
     
+    merge_heap_ptr_op(const merge_heap_ptr_op<REC>& other) {
+	*this = other;
+    }
+
     ~merge_heap_ptr_op() { 
 	//Cleanup if someone forgot de-allocate
 	if(Heaparray != NULL){
@@ -114,7 +118,7 @@ public:
 	}
     }
 
-    merge_heap_ptr_op& operator=(const merge_heap_ptr_op& other) {
+    merge_heap_ptr_op& operator=(const merge_heap_ptr_op<REC>& other) {
 	if (this != &other) {
 	    Heapsize    = other.Heapsize;
 	    maxHeapsize = other.maxHeapsize;
@@ -305,7 +309,7 @@ public:
 private:
     // Prohibit these
     merge_heap_ptr_obj(const merge_heap_ptr_obj<REC,CMPR>& other);
-    merge_heap_ptr_obj<REC,CMPR> operator=(const merge_heap_ptr_obj<REC,CMPR>& other);
+    merge_heap_ptr_obj<REC,CMPR>& operator=(const merge_heap_ptr_obj<REC,CMPR>& other);
 };
 
 //Returns the index of the smallest element out of
@@ -602,7 +606,7 @@ public:
 private:
     // Prohibit these
     merge_heap_obj(const merge_heap_obj<REC,CMPR>& other);
-    merge_heap_obj<REC,CMPR> operator=(const merge_heap_obj<REC,CMPR>& other);
+    merge_heap_obj<REC,CMPR>& operator=(const merge_heap_obj<REC,CMPR>& other);
 };
 
 //Returns the index of the smallest element out of
@@ -736,7 +740,7 @@ public:
 private:
     // Prohibit these
     merge_heap_kop(const merge_heap_kop<REC,KEY,CMPR>& other);
-    merge_heap_kop<REC,KEY,CMPR> operator=(const merge_heap_kop<REC,KEY,CMPR>& other);
+    merge_heap_kop<REC,KEY,CMPR>& operator=(const merge_heap_kop<REC,KEY,CMPR>& other);
 };
 
 template<class REC, class KEY, class CMPR>
