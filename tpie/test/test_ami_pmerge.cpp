@@ -17,7 +17,7 @@
 #include <mergeheap.h>
 
 #include <versions.h>
-VERSION(test_ami_pmerge_cpp,"$Id: test_ami_pmerge.cpp,v 1.31 2005-11-17 17:07:41 jan Exp $");
+VERSION(test_ami_pmerge_cpp,"$Id: test_ami_pmerge.cpp,v 1.32 2005-11-18 12:42:56 jan Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -38,8 +38,8 @@ int c_int_cmp(const void *p1, const void *p2)
 
 class s_merge_manager : public AMI_generalized_merge_base<int> {
 private:
-    TPIE_OS_SIZE_T input_arity;
     merge_heap_op<int> *mheap;
+    TPIE_OS_SIZE_T input_arity;
 #if DEBUG_ASSERTIONS
     TPIE_OS_OFFSET input_count, output_count;
 #endif    

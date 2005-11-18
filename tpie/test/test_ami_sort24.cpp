@@ -8,7 +8,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_sort24_cpp,"$Id: test_ami_sort24.cpp,v 1.17 2005-11-17 17:47:57 jan Exp $");
+VERSION(test_ami_sort24_cpp,"$Id: test_ami_sort24.cpp,v 1.18 2005-11-18 12:42:56 jan Exp $");
 
 // Get information on the configuration to test.
 #include "app_config.h"
@@ -41,8 +41,8 @@ union sort_obj
 // A scan object to generate random keys.
 class scan_random_so : AMI_scan_object {
 private:
-    TPIE_OS_OFFSET m_remaining;
     TPIE_OS_OFFSET m_max;
+    TPIE_OS_OFFSET m_remaining;
 public:
     scan_random_so(TPIE_OS_OFFSET count = 1000, int seed = 17);
     virtual ~scan_random_so(void);
