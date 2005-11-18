@@ -4,7 +4,7 @@
 #include <portability.h>
 #include <algorithm>
 
-#include <progress_indicator_arrow.h>
+#include <progress_indicator_terminal.h>
 
 ///////////////////////////////////////////////////////////////////
 ///
@@ -17,7 +17,7 @@
 ///
 ///////////////////////////////////////////////////////////////////
 
-class progress_indicator_tpie : public progress_indicator_arrow {
+class progress_indicator_tpie : public progress_indicator_terminal {
 
 public:
 
@@ -35,14 +35,30 @@ public:
     ////////////////////////////////////////////////////////////////////
 
     progress_indicator_tpie(const char* title, 
-			    const char* description, 
-			    TPIE_OS_OFFSET minRange, 
-			    TPIE_OS_OFFSET maxRange, 
-			    TPIE_OS_OFFSET stepValue) : 
-	progress_indicator_arrow(title, description, minRange, maxRange, stepValue) {
-	m_progress = 0;
+			     const char* description, 
+			     TPIE_OS_OFFSET minRange, 
+			     TPIE_OS_OFFSET maxRange, 
+			     TPIE_OS_OFFSET stepValue) : 
+	progress_indicator_terminal(title, description, minRange, maxRange, stepValue), m_indicatorLength(0), m_progress(0) {
+	m_indicatorLength = 40;
     }
     
+    progress_indicator_tpie(const progress_indicator_tpie& other) : 
+	progress_indicator_terminal(other), m_indicatorLength(40), m_progress(0) {
+	*this = other;
+    }
+
+    progress_indicator_tpie& operator=(const progress_indicator_tpie& other) {
+	if (this != &other) {
+
+	    progress_indicator_terminal::operator=(other);
+
+	    m_indicatorLength = other.m_indicatorLength;
+	    m_progress        = other.m_progress;
+	}
+	return *this;
+    }
+
     ////////////////////////////////////////////////////////////////////
     ///
     ///  The destructor. Nothing is done.
@@ -52,6 +68,30 @@ public:
     virtual ~progress_indicator_tpie() {
 	// Do nothing.
     };
+    
+    ////////////////////////////////////////////////////////////////////
+    ///
+    ///  Set the maximum length of the indicator. The length is enforced
+    ///  to be an integer in [2,60].
+    ///
+    ///  \param  indicatorLength  The maximum length of the indicator.
+    ///
+    ////////////////////////////////////////////////////////////////////
+
+    void set_indicator_length(int indicatorLength) {
+	m_indicatorLength = max(2, min(60, indicatorLength));
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    ///
+    ///  Reset the current state of the indicator and its current length
+    ///
+    ////////////////////////////////////////////////////////////////////
+
+    virtual void reset() {
+	m_current  = m_minRange;
+	m_progress = 0;
+    }
 
     ////////////////////////////////////////////////////////////////////
     ///
@@ -92,6 +132,16 @@ public:
 	}
     }
     
+protected:
+
+
+    //* The maximal length of the indicator */
+    TPIE_OS_OFFSET m_indicatorLength;
+
+    //* The current length of the indicator */
+    TPIE_OS_OFFSET m_progress;
+
+
 private:
     progress_indicator_tpie();
 };

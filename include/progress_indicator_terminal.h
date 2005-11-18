@@ -105,7 +105,7 @@ public:
     ///
     ////////////////////////////////////////////////////////////////////
 
-    void reset() {
+    virtual void reset() {
 	m_current = m_minRange;
     }
 
@@ -198,7 +198,7 @@ public:
     ///
     ////////////////////////////////////////////////////////////////////
 
-    void refresh() {
+    virtual void refresh() {
 	cout << "\r" << m_description << " ";
 	display_percentage();
 	cout << flush;
@@ -225,12 +225,11 @@ protected:
 	}
     }
 
-    /**  A string holding the description of the current task */
-    char* m_description;
-
     /**  A string holding the description of the title */
     char* m_title;
 
+    /**  A string holding the description of the current task */
+    char* m_description;
 
 private:
     progress_indicator_terminal();
