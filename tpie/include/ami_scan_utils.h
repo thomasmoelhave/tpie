@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 8/31/94
 //
-// $Id: ami_scan_utils.h,v 1.11 2005-11-17 17:11:25 jan Exp $
+// $Id: ami_scan_utils.h,v 1.12 2005-11-18 12:29:52 jan Exp $
 //
 #ifndef _AMI_SCAN_UTILS_H
 #define _AMI_SCAN_UTILS_H
@@ -71,9 +71,6 @@ private:
     ostream *os;
 public:
     cxx_ostream_scan(ostream *outstr = &cout);
-    ~cxx_ostream_scan() {
-	// Do nothing.
-    }
     AMI_err initialize(void);
     AMI_err operate(const T &in, AMI_SCAN_FLAG *sfin);
 };
