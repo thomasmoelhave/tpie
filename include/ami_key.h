@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 3/12/95
 //
-// $Id: ami_key.h,v 1.2 2003-04-17 12:34:44 jan Exp $
+// $Id: ami_key.h,v 1.3 2005-11-18 12:29:00 jan Exp $
 //
 #ifndef _AMI_KEY_H
 #define _AMI_KEY_H
@@ -27,10 +27,28 @@ typedef UINT32 kb_key;
 // to have no keys < min and no keys >= max.
 class key_range {
 public:
-    kb_key min;
-    kb_key max;
-    key_range(void);
+    key_range();
     key_range(kb_key min_key, kb_key max_key);
+
+    kb_key get_min() const { 
+	return m_min; 
+    }
+
+    void put_min(kb_key min_key) {
+	m_min = min_key;
+    }
+
+    kb_key get_max() const { 
+	return m_max; 
+    }
+
+    void put_max(kb_key max_key) {
+	m_max = max_key;
+    }
+
+private:
+    kb_key m_min;
+    kb_key m_max;
 };
 
 #endif // _AMI_KEY_H 

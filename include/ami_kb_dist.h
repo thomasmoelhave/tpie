@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 3/11/95
 //
-// $Id: ami_kb_dist.h,v 1.11 2005-11-16 16:52:31 jan Exp $
+// $Id: ami_kb_dist.h,v 1.12 2005-11-18 12:28:59 jan Exp $
 //
 // Radix based distribution for single or striped AMI layers.
 //
@@ -120,15 +120,15 @@ AMI_err _AMI_KB_DIST(KB_KEY)(AMI_STREAM<T> &instream,
         // This should be done system-wide.
         out_streams[ii] = new AMI_STREAM<T>;
 
-        out_ranges[ii].min = KEY_MAX;
-        out_ranges[ii].max = KEY_MIN;
+        out_ranges[ii].put_min(KEY_MAX);  // Simulate +infty.
+        out_ranges[ii].put_max(KEY_MIN);  // Simulate -infty
     }
 
     // Scan the input putting each item in the right output stream.
 
     instream.seek(0);
 
-    unsigned int index_denom = (((range.max - range.min) / output_streams)
+    unsigned int index_denom = (((range.get_max() - range.get_min()) / output_streams)
                                 + 1);
 
     while (1) {
@@ -150,7 +150,7 @@ AMI_err _AMI_KB_DIST(KB_KEY)(AMI_STREAM<T> &instream,
         // Do it with shifting and masking.
     
 #else
-        ii = (k - range.min) / index_denom;
+        ii = (k - range.get_min()) / index_denom;
 #endif
 
         ae = out_streams[ii]->write_item(*in);
@@ -158,11 +158,11 @@ AMI_err _AMI_KB_DIST(KB_KEY)(AMI_STREAM<T> &instream,
             return ae;
         }
 
-        if (k < out_ranges[ii].min) {
-            out_ranges[ii].min = k;
+        if (k < out_ranges[ii].get_min()) {
+            out_ranges[ii].put_min(k);
         }
-        if (k > out_ranges[ii].max) {
-            out_ranges[ii].max = k;
+        if (k > out_ranges[ii].get_max()) {
+            out_ranges[ii].put_max(k);
         }
             
     }

@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 3/12/95
 //
-// $Id: ami_kb_sort.h,v 1.13 2005-11-17 17:49:39 jan Exp $
+// $Id: ami_kb_sort.h,v 1.14 2005-11-18 12:29:00 jan Exp $
 //
 
 // This header file can be included in one of two ways, either with a
@@ -237,7 +237,7 @@ AMI_err _AMI_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
                                    sizeof(AMI_bucket_list_elem<T> *) + 
                                    sizeof(AMI_bucket_list_elem<T>)) >
                                    sz_avail) &&
-                    (stream_range.max > stream_range.min + 1)) {
+                    (stream_range.get_max() > stream_range.get_min() + 1)) {
 
                     // If it is too big but does not contain all the same key,
                     // distribute it again.
@@ -300,7 +300,7 @@ AMI_err _AMI_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
                     
 		// Check whether it is truly small or just all one key.
                 
-                if (stream_range.min == stream_range.max) {
+                if (stream_range.get_min() == stream_range.get_max()) {
 
                     // If it is all one key, simply concatenate it
                     // onto the output.
@@ -428,7 +428,7 @@ AMI_err _AMI_MM_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
 
     AMI_bucket_list_elem<T> *list_elem;
     
-    unsigned int bucket_index_denom = static_cast<unsigned int>(((range.max - range.min) /
+    unsigned int bucket_index_denom = static_cast<unsigned int>(((range.get_max() - range.get_min()) /
                                        stream_len) + 1);
 
     if (!bucket_index_denom) {
@@ -439,7 +439,7 @@ AMI_err _AMI_MM_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
          ii--; list_elem++ ) {
         unsigned int bucket_index;
 
-        bucket_index = (static_cast<unsigned int>(static_cast<KB_KEY>(indata[ii])) - range.min) /
+        bucket_index = (static_cast<unsigned int>(static_cast<KB_KEY>(indata[ii])) - range.get_min()) /
             bucket_index_denom; 
 
         tp_assert(bucket_index < static_cast<unsigned long>(stream_len), "Bucket index too large.");
