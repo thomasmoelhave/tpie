@@ -8,19 +8,12 @@
 #include <versions.h>
 #include <ami_key.h>
 
-VERSION(ami_key_cpp,"$Id: ami_key.cpp,v 1.5 2005-11-17 17:23:44 jan Exp $");
+VERSION(ami_key_cpp,"$Id: ami_key.cpp,v 1.6 2005-11-18 12:41:05 jan Exp $");
 
-// Initializer are not possible due to an namespace ambiguity
-// with STL min/max. Need to rewrite this class (add selectors)
-
-key_range::key_range(void) {
-       this->min=0;
-       this->max=0;
+key_range::key_range() : m_min(0), m_max(0) {
 }
 
-key_range::key_range(kb_key min_key, kb_key max_key) {
-    this->min = min_key;
-    this->max = max_key;
+key_range::key_range(kb_key min_key, kb_key max_key) : m_min(min_key), m_max(max_key) {
 }
 
 
