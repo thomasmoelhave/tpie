@@ -5,7 +5,7 @@
 //
 
 #include "versions.h"
-VERSION(ami_device_cpp,"$Id: ami_device.cpp,v 1.15 2005-11-17 17:04:22 jan Exp $");
+VERSION(ami_device_cpp,"$Id: ami_device.cpp,v 1.16 2005-11-21 08:31:55 jan Exp $");
 
 #include "lib_config.h"
 
@@ -79,7 +79,10 @@ AMI_device& AMI_device::operator=(const AMI_device& other) {
 
 const char * AMI_device::operator[](unsigned int index)
 {
-    return argv[index];
+    if (argv)
+	return argv[index];
+
+    return NULL;
 }
 
 unsigned int AMI_device::arity()
