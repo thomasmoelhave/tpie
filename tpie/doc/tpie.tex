@@ -3,7 +3,7 @@
 %% Copyright (c) 2002 ...
 %% File: tpie.tex
 %%
-%% $Id: tpie.tex,v 1.29 2003-11-27 19:54:09 jan Exp $
+%% $Id: tpie.tex,v 1.30 2005-11-23 15:14:06 adanner Exp $
 %%
  
 \documentclass[10pt]{book}
@@ -22,7 +22,7 @@
 \input{definitions}
 
 %% Comment this out to produce distribution version of manual.
-%\withcomments
+\withcomments
 
 \makeindex
 
@@ -31,12 +31,18 @@
 \title{{\Huge TPIE}\\ User Manual and Reference}
 \author{%
 Lars Arge \and 
-Rakesh Barve \and 
+Rakesh Barve \and
+Andrew Danner \and
 David Hutchinson \and 
+Thomas M\o lhave, \and
 Octavian Procopiuc \and 
+J\"{o}rg Rotthowe \and
 Laura Toma \and
+Jan Vahrenhold \and
 Darren Erik Vengroff \and 
+Markus Vogel \and
 Rajiv Wickeremesinghe}
+
 
 \date{{\bf DRAFT} of \today}
 
@@ -54,8 +60,11 @@ Rajiv Wickeremesinghe}
 \vspace{2ex}
 
 \noindent Copyright \copyright 1994, 1995 Darren Erik Vengroff, 2002 Lars
-Arge, Rakesh Barve, David Hutchinson, Octavian Procopiuc, Laura Toma, Darren Erik
-Vengroff, Rajiv Wickeremesinghe.
+Arge, Rakesh Barve, David Hutchinson, Octavian Procopiuc, Laura Toma,
+Darren Erik Vengroff, Rajiv Wickeremesinghe, 2005 Lars Arge, Andrew
+Danner, Thomas M\o lhave, Octavian Procopiuc, J\"{o}rg Rotthowe,
+Laura Toma, Jan Vahrenhold, Markus Vogel.
+
 
 \vspace{2ex}
 
@@ -80,11 +89,11 @@ Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 \chapter*{Introduction}
 \addcontentsline{toc}{chapter}{Introduction}
 
-This manual describes TPIE, a Transparent Parallel I/O
-Environment, designed to assist programmers in writing high
-performance I/O-efficient programs for a variety of
-platforms.
-\comment{LA: Something about LEDA-SM somewhere?}
+This manual describes TPIE, a Transparent Parallel I/O Environment,
+designed to assist programmers in writing high performance
+I/O-efficient programs for a variety of platforms.\comment{LA: Before
+  distribution add a note about block collection stuff not documented
+  yet}
 
 \emph{This manual, like the whole of the TPIE project, is work in
   progress. The authors are making it available in its current state

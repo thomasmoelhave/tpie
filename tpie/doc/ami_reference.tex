@@ -1,13 +1,21 @@
 %%
-%% $Id: ami_reference.tex,v 1.17 2003-11-27 19:55:48 jan Exp $
+%% $Id: ami_reference.tex,v 1.18 2005-11-23 15:14:06 adanner Exp $
 %%
+
 \chapter{TPIE Programmer's Reference}
 \plabel{cha:reference}
 
-%%%%%%% Memory Manager %%%%%%%%%
+\comment{LA: Andy and Jan please check if this chapter is ok}
+
+\comment{LA: Add progress bar stuff?! (and what about in section 4?).
+  Jan?}
+
+%%%%%%%%% Memory Manager %%%%%%%%%
 \mysection{Registration-based Memory Manager}
 \plabel{sec:mm-ref}
 \index{memory manager|(}
+
+\comment{LA: Jan add STL stuff/flag}
 
 \subsection{Files}
   \btabb
@@ -50,8 +58,6 @@ interact with the memory manager.
 
   \etabb
   
-  \clearpage
-
   \btabb
     \entry{size\_t \textbf{memory\_limit}();} {Return the memory limit as
     set by the last call to method \lstinline|set_memory_limit|.}
@@ -84,7 +90,8 @@ interact with the memory manager.
   \etabb
 \index{memory manager|)}
 
-%%%%%%% AMI Stream %%%%%%%%%%
+
+%%%%%%%%%% AMI Stream %%%%%%%%%%
 \mysection{Streams}
 \index{streams!AMI|(}\plabel{sec:ref-ami-stream}
 \index{AMI_STREAM@{\tt AMI\_STREAM}}
@@ -106,7 +113,8 @@ type \lstinline|T| on external memory.
 \index{AMI_STREAM@{\tt AMI\_STREAM}!stream types|(}
 The stream type of an \lstinline|AMI_STREAM| indicates what
 operations are permitted on the stream.
-An \lstinline|AMI_STREAM<T>| object can have one of four different types:
+An \lstinline|AMI_STREAM<T>| object can have one of four different
+types:\comment{LA: Add something like this about persistance flag}
 \begin{itemize}
     
     \item \lstinline|AMI_READ_STREAM|: Input operations on
@@ -121,8 +129,7 @@ An \lstinline|AMI_STREAM<T>| object can have one of four different types:
     \lstinline|AMI_WRITE_STREAM| except that if the stream is
     constructed on a file containing an existing stream,
     objects written to the stream will be appended at the
-    end of the stream.\comment{LA: It this true?
-    DH: seems ok}
+    end of the stream.
 
     \item \lstinline|AMI_READ_WRITE_STREAM|: Both input and output
     operations are permitted.
@@ -132,60 +139,69 @@ An \lstinline|AMI_STREAM<T>| object can have one of four different types:
 \clearpage
 
 \subsection{Constructors, Destructor and Related Functions}
-  \btabb
 
-    \entry{\textbf{AMI\_STREAM}();} {A new stream of type
+\comment{LA: Jan please check (new substream). Also please add
+  ``tell'', right?}
+
+  \btabb
+  
+  \entry{\textbf{AMI\_STREAM}();} {A new stream of type
     \lstinline|AMI_READ_WRITE_STREAM| is constructed on a file with a
     randomly generated name.}
  
-    \entry{\textbf{AMI\_STREAM}(const char *path\_name);} {A stream of type
-    \lstinline|AMI_READ_WRITE_STREAM| is constructed on the file whose path
-    name is given. If the file does not already exist, a new stream is
-    constructed on a newly created file with the specified file name. If
-    the file already exists, it is checked if it contains a valid stream,
-    and if so, the new stream is constructed on this file. If the file does
-    not contain a valid stream, the status flag is set to
+  \entry{\textbf{AMI\_STREAM}(const char *path\_name);} {A stream of
+    type \lstinline|AMI_READ_WRITE_STREAM| is constructed on the file
+    whose path name is given. If the file does not already exist, a
+    new stream is constructed on a newly created file with the
+    specified file name. If the file already exists, it is checked if
+    it contains a valid stream, and if so, the new stream is
+    constructed on this file. If the file does not contain a valid
+    stream, the status flag is set to
     \lstinline|AMI_STREAM_STATUS_INVALID|.}
-
-    \entry{\textbf{AMI\_STREAM}(const char *path\_name, AMI\_stream\_type st);} {A
-    stream of type \lstinline|st| is constructed on the file whose pathname is
-    given.}
-
-    \entry{\textbf{AMI\_STREAM}(BTE\_STREAM<T> \&bs);} {A stream is constructed from
-    an existing \lstinline|BTE_STREAM| (see Section~\ref{sec:ref-bte}). This
-    constructor will not normally be used by a TPIE application
-    programmer\comment{LA: Why do we have it then? DH: for
-    completeness}. The new \lstinline|AMI_STREAM| gets the same type as the
+  
+  \entry{\textbf{AMI\_STREAM}(const char *path\_name,
+    AMI\_stream\_type st);} {A stream of type \lstinline|st| is
+    constructed on the file whose pathname is given.}
+  
+  \entry{\textbf{AMI\_STREAM}(BTE\_STREAM<T> \&bs);} {A stream is
+    constructed from an existing \lstinline|BTE_STREAM| (see
+    Section~\ref{sec:ref-bte}). This constructor will not normally be
+    used by a TPIE application programmer. The new
+    \lstinline|AMI_STREAM| gets the same type as the
     \lstinline|BTE_STREAM|.}
 
     \entry{\textbf{$\sim$AMI\_STREAM}();} {Destructor. Free the memory
     buffer and close the file. IF the persistence flag is
     \lstinline|PERSIST_DELETE|, also remove the file.}
+  
+  \index{new_substream()@{\tt new\_substream()}!AMI|)} 
+  \entry{AMI\_err \textbf{new\_substream}(AMI\_stream\_type st, off\_t
+    sub\_begin, off\_t sub\_end, AMI\_stream<T> **sub\_stream );} {A
+    substream is an AMI stream that is part of another AMI stream.
+    More precisely, a substream $B$ of a stream $A$ is defined as a
+    contiguous range of objects from the ordered collection of objects
+    that make up the stream $A$.  If desired, one can construct
+    substreams of substreams of substreams {\em ad infinitum}. Since a
+    substream is a stream in its own right, many of the stream member
+    functions can be applied to a substream. A substream can be
+    created via the pseudo-constructor\footnote{The reason we do not
+      use a real constructor is to get around the fact that
+      constructors can not be virtual. Please see
+      Section~\ref{cha:implementation} for more details.}
+    \lstinline|new_substream()|. Here, \lstinline|st| specifies the
+    type of the substream, and the offsets \lstinline|sub_begin| and
+    \lstinline|sub_end| define the positions in the original stream
+    $A$ where the new substream $B$ will begin and end. Upon
+    completion, \lstinline|*sub_stream| points to the newly created
+    substream.}\index{new_substream()@{\tt new\_substream()}!AMI|)}
 
-    \index{new_substream()@{\tt new\_substream()}!AMI|)}     
-    \entry{AMI\_err \textbf{new\_substream}(AMI\_stream\_type    st,
-                            off\_t              sub\_begin,
-                            off\_t              sub\_end,
-                            AMI\_base\_stream<T> **sub\_stream );} 
-    {A substream is an AMI stream that is part of another AMI stream. More
-    precisely, a substream $B$ of a stream $A$ is defined as a contiguous
-    range of objects from the ordered collection of objects that make up
-    the stream $A$.  If desired, one can construct substreams of substreams
-    of substreams {\em ad infinitum}. Since a substream is a stream in its
-    own right, many of the stream member functions can be applied to a
-    substream. A substream can be created via the
-    pseudo-constructor\footnote{The reason we do not use a real constructor
-    is to get around the fact that constructors can not be virtual.  Please
-    see Section~\ref{cha:implementation} for more details.}
-    \lstinline|new_substream()|. Here, \lstinline|st| specifies the type of the
-    substream, and the offsets \lstinline|sub_begin| and \lstinline|sub_end|
-    define the positions in the original stream $A$ where the new substream
-    $B$ will begin and end. Upon completion, \lstinline|*sub_stream| points
-    to the newly created substream.}
-    \index{new_substream()@{\tt new\_substream()}!AMI|)} 
-  \etabb
+\etabb
 
 \subsection{Public Member Functions}
+
+\comment{LA: Andy please check memory usage functions. Does the reader
+  know what ``data buffer'' is?}
+
   \btabb
 
     \entry{bool \textbf{operator!}() const;} {Return \lstinline|true| if the
@@ -206,75 +222,90 @@ An \lstinline|AMI_STREAM<T>| object can have one of four different types:
 
   \etabb
   
-  \clearpage
+\clearpage
 
-  \btabb
-    \index{main_memory_usage()@{\tt main\_memory\_usage()}!AMI|(}
-    \entry{AMI\_err \textbf{main\_memory\_usage}(size\_t *usage, MM\_stream\_usage
-usage\_type);} {This function is used for obtaining the amount of main memory used by an
-\lstinline|AMI_STREAM<T>| object (in bytes). \lstinline|usage_type| is one of the
-following:
-\begin{description}
-  \item\lstinline|MM_STREAM_USAGE_CURRENT:| Total amount of memory currently
-used by the stream.
-  \item\lstinline|MM_STREAM_USAGE_MAXIMUM:| Max amount of memory that will
-ever be used by the stream.
-  \item\lstinline|MM_STREAM_USAGE_OVERHEAD:| The amount of memory used by
-the object itself, without the data buffer.
-  \item\lstinline|MM_STREAM_USAGE_BUFFER:|  The amount of memory used by the
-data buffer.
-  \item\lstinline|MM_STREAM_USAGE_SUBSTREAM:| The additional amount of
-memory that will be used by  each substream created.
-\end{description}
-}
-    \index{main_memory_usage()@{\tt main\_memory\_usage()}!AMI|)}
-
-    \index{name()@{\tt name()}!AMI|(}
-    \entry{AMI\_err \textbf{name}(char **stream\_name);} {Store the path to the UNIX
-file name holding the stream, in newly allocated memory.}
-    \index{name()@{\tt name()}!AMI|)}
-
-    \entry{void \textbf{persist}(persistence p)} {Set the persistence flag to \lstinline|p|,
-    which can have one of two values: \lstinline|PERSIST_DELETE| and
-    \lstinline|PERSIST_PERSISTENT|.}
-
-    \index{read_array()@{\tt read\_array()}!AMI|(}
-    \entry{AMI\_err \textbf{read\_array}(T *mm\_array, off\_t *len);} {Read \lstinline|*len| items from
-the current position of the stream into the array \lstinline|mm_array|. The
-``current item'' pointer is increased accordingly. }
-    \index{read_array()@{\tt read\_array()}!AMI|)}
-
-    \index{read_item()@{\tt read\_item()}!AMI|(} 
-    \entry{AMI\_err
-    \textbf{read\_item}(T **elt);} {Read the current item from the stream and
-    advance the ``current item'' pointer to the next item. The item read is
-    pointed to by \lstinline|*elt|. If no error has occured, return
-\lstinline|AMI_ERROR_NO_ERROR|. If the ``current item'' pointer is beyond
-the last item in the stream, return \lstinline|AMI_ERROR_END_OF_STREAM|.}
-    \index{read_item()@{\tt read\_item()}!AMI|)}
-    
-    \index{seek()@{\tt seek()}!AMI|(}
-    \entry{AMI\_err \textbf{seek}(off\_t off);} {Move the current position to \lstinline|off|.}
-    \index{seek()@{\tt seek()}!AMI|)}
-
-    \entry{const tpie\_stats\_stream\& \textbf{stats}() const;} {Return an
-    object containing the statistics of this stream. The types of
-    statistics computed for a collection are tabulated below. See also
-    \lstinline|gstats()|.\\[1mm] \begin{tabular}{|l|l|} \hline \lstinline|BLOCK_READ|
-    & Number of block reads\\ \lstinline|BLOCK_WRITE| & Number of block
-    writes \\ \lstinline|ITEM_READ| & Number of item reads\\
-    \lstinline|ITEM_WRITE| & Number of item writes\\ \lstinline|ITEM_SEEK| &
-    Number of item seek operations\\ \lstinline|STREAM_OPEN| & Number of
-    stream open operations\\ \lstinline|STREAM_CLOSE| & Number of stream
-    close operations \\ \lstinline|STREAM_CREATE| & Number of stream create
-    operations\\ \lstinline|STREAM_DELETE| & Number of stream delete
-    operations \\ \lstinline|SUBSTREAM_CREATE| & Number of substream create
-    operations\\ \lstinline|SUBSTREAM_DELETE| & Number of substream delete
-    operations \\ \hline \end{tabular} }
-
-  \etabb
+\comment{LA: Is the ``current position''in the below defined?}
   
-  \clearpage
+  \btabb 
+  
+  \index{main_memory_usage()@{\tt main\_memory\_usage()}!AMI|(}
+  \entry{AMI\_err \textbf{main\_memory\_usage}(size\_t *usage,
+    MM\_stream\_usage usage\_type);} {This function is used for
+    obtaining the amount of main memory used by an
+    \lstinline|AMI_STREAM<T>| object (in bytes).
+    \lstinline|usage_type| is one of the following:
+
+  \begin{description}
+  \item\lstinline|MM_STREAM_USAGE_CURRENT:| Total amount of memory
+    currently used by the stream.
+  \item\lstinline|MM_STREAM_USAGE_MAXIMUM:| Max amount of memory that
+    will ever be used by the stream.
+  \item\lstinline|MM_STREAM_USAGE_OVERHEAD:| The amount of memory used
+    by the object itself, without the data buffer.
+  \item\lstinline|MM_STREAM_USAGE_BUFFER:| The amount of memory used
+    by the data buffer.
+  \item\lstinline|MM_STREAM_USAGE_SUBSTREAM:| The additional amount of
+    memory that will be used by each substream created.
+  \end{description}
+} \index{main_memory_usage()@{\tt main\_memory\_usage()}!AMI|)}
+
+  \index{name()@{\tt name()}!AMI|(}
+  \entry{AMI\_err \textbf{name}(char **stream\_name);} {Store the path
+  to the UNIX file name holding the stream, in newly allocated
+  memory.}
+  \index{name()@{\tt name()}!AMI|)}
+
+  \entry{void \textbf{persist}(persistence p)} {Set the persistence flag
+  to \lstinline|p|, which can have one of two values:
+  \lstinline|PERSIST_DELETE| and \lstinline|PERSIST_PERSISTENT|.}
+  
+\index{read_array()@{\tt read\_array()}!AMI|(} \entry{AMI\_err
+  \textbf{read\_array}(T *mm\_array, off\_t *len);} {Read
+  \lstinline|*len| items from the current position of the stream into
+  the array \lstinline|mm_array|. The ``current position'' pointer is
+  increased accordingly.  }  \index{read_array()@{\tt
+    read\_array()}!AMI|)}
+
+\index{read_item()@{\tt read\_item()}!AMI|(} \entry{AMI\_err
+  \textbf{read\_item}(T **elt);} {Read the current item from the
+  stream and advance the ``current item'' pointer to the next item.
+  The item read is pointed to by \lstinline|*elt|. If no error has
+  occured, return \lstinline|AMI_ERROR_NO_ERROR|. If the ``current
+  item'' pointer is beyond the last item in the stream, return
+  \lstinline|AMI_ERROR_END_OF_STREAM|.}  \index{read_item()@{\tt
+    read\_item()}!AMI|)}
+    
+\index{seek()@{\tt seek()}!AMI|(} \entry{AMI\_err \textbf{seek}(off\_t
+  off);} {Move the current position to \lstinline|off|.}
+\index{seek()@{\tt seek()}!AMI|)}
+    
+
+    \entry{const tpie\_stats\_stream\& \textbf{stats}() const;}
+    {Return an object containing the statistics of this
+      stream. The types of
+        statistics computed for a collection are tabulated
+        below. See also \lstinline|gstats()|.\\[1mm]
+      \begin{tabular}{|l|l|} \hline \lstinline|BLOCK_READ| & Number of
+        block reads\\ \lstinline|BLOCK_WRITE| & Number of block
+        writes \\ \lstinline|ITEM_READ| & Number of item reads\\
+        \lstinline|ITEM_WRITE| & Number of item writes\\ 
+        \lstinline|ITEM_SEEK| & Number of item seek operations\\ 
+        \lstinline|STREAM_OPEN| & Number of stream open operations\\ 
+        \lstinline|STREAM_CLOSE| & Number of stream close operations
+        \\ \lstinline|STREAM_CREATE| & Number of stream create
+        operations\\ \lstinline|STREAM_DELETE| & Number of stream
+        delete operations \\ \lstinline|SUBSTREAM_CREATE| & Number of
+        substream create operations\\ \lstinline|SUBSTREAM_DELETE| &
+        Number of substream delete operations \\ \hline \end{tabular}
+    }
+
+\etabb
+
+\comment{LA: We should really have different objects for
+         stats and gstats!! AND is it all correct?}
+
+  
+ \clearpage
 
   \btabb
     \entry{AMI\_stream\_status \textbf{status}() const;} {Return the status
@@ -284,44 +315,45 @@ the last item in the stream, return \lstinline|AMI_ERROR_END_OF_STREAM|.}
     leave the stream invalid is the constructor (if that happens, the log
     file contains more information). No items should be read from or
     written to an invalid stream.}
-
-    \index{stream_len()@{\tt stream\_len()}!AMI|(}
-    \entry{off\_t \textbf{stream\_len}(void);} {Return the number of items stored in
-the stream.}
-    \index{stream_len()@{\tt stream\_len()}!AMI|)}
-
-    \index{truncate()@{\tt truncate()}!AMI|(}
-    \entry{AMI\_err \textbf{truncate}(off\_t off);} {Resize the stream to
-\lstinline|off| items. If \lstinline|off| is less than the number of objects in the
-stream, \lstinline|truncate()| truncates the stream to
-\lstinline|off| objects. If \lstinline|off| is more than the
-number of objects in the stream, \lstinline|truncate()| extends
-the stream to the specified number of objects. In either
-case, the ``current item'' pointer will be moved to the new end of
-the stream.}
+  
+  \index{stream_len()@{\tt stream\_len()}!AMI|(} \entry{off\_t
+    \textbf{stream\_len}(void);} {Return the number of items stored in
+    the stream.}  \index{stream_len()@{\tt stream\_len()}!AMI|)}
+    
+    \index{truncate()@{\tt truncate()}!AMI|(} \entry{AMI\_err
+      \textbf{truncate}(off\_t off);} {Resize the stream to
+      \lstinline|off| items. If \lstinline|off| is less than the
+      number of objects in the stream, \lstinline|truncate()|
+      truncates the stream to \lstinline|off| objects. If
+      \lstinline|off| is more than the number of objects in the
+      stream, \lstinline|truncate()| extends the stream to the
+      specified number of objects. In either case, the ``current
+      item'' pointer will be moved to the new end of the stream.}
     \index{truncate()@{\tt truncate()}!AMI|)}
-
-    \index{write_array()@{\tt write\_array()}!AMI|(}
-    \entry{AMI\_err \textbf{write\_array}(const T *mm\_array, off\_t len);} {Write
-\lstinline|len| items from array \lstinline|mm_array| to the stream, starting in the
-current position. The ``current item'' pointer is increased accordingly.}
-    \index{write_array()@{\tt write\_array()}!AMI|)}
-
-    \index{write_item()@{\tt write\_item()}!AMI|(}
-    \entry{AMI\_err \textbf{write\_item}(const T \&elt);} {Write \lstinline|elt| to the
-stream in the current position. Advance the ``current item'' pointer to the
-next item. If no error has occured, return \lstinline|AMI_ERROR_NO_ERROR|.}
-    \index{write_item()@{\tt write\_item()}!AMI|)}
-        
+    
+    \index{write_array()@{\tt write\_array()}!AMI|(} \entry{AMI\_err
+      \textbf{write\_array}(const T *mm\_array, off\_t len);} {Write
+      \lstinline|len| items from array \lstinline|mm_array| to the
+      stream, starting in the current position. The ``current item''
+      pointer is increased accordingly.}  \index{write_array()@{\tt
+        write\_array()}!AMI|)}
+    
+    \index{write_item()@{\tt write\_item()}!AMI|(} \entry{AMI\_err
+      \textbf{write\_item}(const T \&elt);} {Write \lstinline|elt| to
+      the stream in the current position. Advance the ``current item''
+      pointer to the next item. If no error has occured
+      \lstinline|AMI_ERROR_NO_ERROR| is
+      returned.} \index{write_item()@{\tt write\_item()}!AMI|)}
+  
   \etabb
 \index{streams!AMI|)}
 
+\comment{LA: In above return values sometimes mentioned sometimes not}
+
 
 %%%%%%% Scanning %%%%%%%%
-\mysection{Scanning}
-\plabel{sec:ref-ami-scan}
-\index{scanning|(}
-\index{AMI_scan()@{\tt AMI\_scan()}|(}
+       \mysection{Scanning} \plabel{sec:ref-ami-scan}
+       \index{scanning|(} \index{AMI_scan()@{\tt AMI\_scan()}|(}
 
 \subsection{Files}
   \btabb
@@ -329,11 +361,10 @@ next item. If no error has occured, return \lstinline|AMI_ERROR_NO_ERROR|.}
   \etabb
 
 \subsection{Function Declaration}
-  \btabb
-    \entry{template<class T1, class T2, ..., class ST, class U1, class U2,
-...> AMI\_err \textbf{AMI\_scan}(AMI\_STREAM<T1> *in1, AMI\_STREAM<T2>
-*in2, ..., ST *smo, AMI\_STREAM<U1> *out1, AMI\_STREAM<U2> *out2, ...);} {}
-  \etabb
+\btabb \entry{template<class T1, class T2, ..., class ST, class U1,
+  class U2, ...> AMI\_err \textbf{AMI\_scan}(AMI\_STREAM<T1> *in1,
+  AMI\_STREAM<T2> *in2, ..., ST *smo, AMI\_STREAM<U1> *out1,
+  AMI\_STREAM<U2> *out2, ...);} {} \etabb
 
 \subsection{Description}
 
@@ -353,14 +384,15 @@ described below.
 
 \index{operation management objects!scan|(}
 
-A scan management object class must inherit from \lstinline|AMI_scan_object|:
+A scan management object class must inherit from
+\lstinline|AMI_scan_object|:
 \begin{lstlisting}
-template<class T1, class T2,..., class U1, class U2,...>
-class ST: public AMI_scan_object;
+  template<class T1, class T2,..., class U1, class U2,...> class ST:
+  public AMI_scan_object;
 \end{lstlisting}
-In addition, it must provide two member
-functions for \lstinline|AMI_scan()| to call: \lstinline|initialize()| and \lstinline|operate()|.
-\index{initialize()@{\tt initialize()}|(}
+In addition, it must provide two member functions for
+\lstinline|AMI_scan()| to call: \lstinline|initialize()| and
+\lstinline|operate()|.  \index{initialize()@{\tt initialize()}|(}
 \begin{lstlisting}
     AMI_err initialize(void);
 \end{lstlisting}
@@ -374,71 +406,60 @@ functions for \lstinline|AMI_scan()| to call: \lstinline|initialize()| and \lsti
     Section~\ref{sec:ami-errors} for a list of error codes.
 \index{initialize()@{\tt initialize()}|)}
     
-\index{operate()@{\tt operate()}|(}
-    Most of the work of a scan is typically done in the scan
-    management object's \lstinline|operate()| member function:
+\index{operate()@{\tt operate()}|(} Most of the work of a scan is
+typically done in the scan management object's \lstinline|operate()|
+member function:
 \begin{lstlisting}
-    AMI_err operate(const T1 &in1, const T2 &in2,...,  AMI_SCAN_FLAG *sfin,
-                    U1 *out1, U2 *out2,..., AMI_SCAN_FLAG *sfout);
+  AMI_err operate(const T1 &in1, const T2 &in2,..., AMI_SCAN_FLAG
+  *sfin, U1 *out1, U2 *out2,..., AMI_SCAN_FLAG *sfout);
 \end{lstlisting}
     
-    One or more input objects or one or more output
-    parameters must be specified.  These must correspond in
-    number and type to the streams passed to the polymorph
-    of \lstinline|AMI_scan()| with which this scan management
-    object is to be used.
+One or more input objects or one or more output parameters must be
+specified.  These must correspond in number and type to the streams
+passed to the polymorph of \lstinline|AMI_scan()| with which this scan
+management object is to be used.
     
-    If present, the inputs \lstinline|*in1, ...| are application
-    data items of type \lstinline|T1|, and \lstinline|sfin| points
-    to an array of flags, one for each input.  On entry to
-    \lstinline|operate()|, flags that are set (non-zero)
-    indicate that the corresponding inputs contain data.  If
-    on exit from \lstinline|operate()|, the input flags are
-    left untouched, \lstinline|AMI_scan()| assumes that the
-    corresponding inputs were processed.  If one or more
-    input flags are cleared (set to zero) then
-    \lstinline|AMI_scan()| assumes that the corresponding
-    inputs were not processed and should be presented again
-    on the next call to \lstinline|operate()|.  This permits
-    out of step scanning\index{scanning!out of step}, as
-    illustrated in Section~\ref{sec:tut-out-of-step}.
+If present, the inputs \lstinline|*in1, ...| are application data
+items of type \lstinline|T1|, and \lstinline|sfin| points to an array
+of flags, one for each input.  On entry to \lstinline|operate()|,
+flags that are set (non-zero) indicate that the corresponding inputs
+contain data.  If on exit from \lstinline|operate()|, the input flags
+are left untouched, \lstinline|AMI_scan()| assumes that the
+corresponding inputs were processed.  If one or more input flags are
+cleared (set to zero) then \lstinline|AMI_scan()| assumes that the
+corresponding inputs were not processed and should be presented again
+on the next call to \lstinline|operate()|.  This permits out of step
+scanning\index{scanning!out of step}, as illustrated in
+Section~\ref{sec:tut-out-of-step}.
     
-    If present, the outputs \lstinline|*out1, ...| are
-    application data items of type \lstinline|U1|, and
-    \lstinline|sfout| points to an array of flags, one for each
-    output. On exit from \lstinline|operate()|, the outputs
-    should contain any objects to be written to the output
-    streams, and the output flags must be set to indicate to
-    \lstinline|AMI_scan()| which outputs are valid and should
-    be written to the output streams.
+If present, the outputs \lstinline|*out1, ...| are application data
+items of type \lstinline|U1|, and \lstinline|sfout| points to an array
+of flags, one for each output. On exit from \lstinline|operate()|, the
+outputs should contain any objects to be written to the output
+streams, and the output flags must be set to indicate to
+\lstinline|AMI_scan()| which outputs are valid and should be written
+to the output streams.
     
-    The return value of \lstinline|operate()| will normally be
-    one of the following:
+The return value of \lstinline|operate()| will normally be one of the
+following:
     \begin{itemize}
-        \item \lstinline|AMI_SCAN_CONTINUE|:
-        \index{AMI_SCAN_CONTINUE@{\tt AMI\_SCAN\_CONTINUE}} indicates that
-        the function should be called again with any
-        ``taken'' inputs replaced by the next objects from
-        their respective streams
-        \item \lstinline|AMI_SCAN_DONE|: 
-        \index{AMI_SCAN_DONE@{\tt AMI\_SCAN\_DONE}}
-        indicates that the
-        scan is complete and no more input needs to be
-        processed.
+    \item \lstinline|AMI_SCAN_CONTINUE|: \index{AMI_SCAN_CONTINUE@{\tt
+          AMI\_SCAN\_CONTINUE}} indicates that the function should be
+      called again with any ``taken'' inputs replaced by the next
+      objects from their respective streams
+    \item \lstinline|AMI_SCAN_DONE|: \index{AMI_SCAN_DONE@{\tt
+          AMI\_SCAN\_DONE}} indicates that the scan is complete and no
+      more input needs to be processed.
     \end{itemize}
     
     Note that \lstinline|operate()| is permitted to return
-    \lstinline|AMI_SCAN_CONTINUE| even when the input flags
-    indicate that there is no more input to be processed.
-    This is useful if the scan management object maintains
-    some internal state that must be written out after all
-    input has been processed.  
+    \lstinline|AMI_SCAN_CONTINUE| even when the input flags indicate
+    that there is no more input to be processed.  This is useful if
+    the scan management object maintains some internal state that must
+    be written out after all input has been processed.
 
 \index{operate()@{\tt operate()}|)} 
 
-Examples of the use of scan management objects are given in
-Section~\ref{sec:tut-scanning} as well as in the test applications that
-appear in the TPIE distribution.
 
 \index{operation management objects!scan|)}
 \index{AMI_scan()@{\tt AMI\_scan()}|)}
@@ -463,16 +484,15 @@ appear in the TPIE distribution.
 \subsection{Description}
 A scan management class template for reading the contents of an
 ordinary \CPP{} input stream into a TPIE stream.  It works with
-streams of any type for which a \lstinline|>>| operator is defined for \CPP{}
-stream input.
+streams of any type for which a \lstinline|>>| operator is defined for
+\CPP{} stream input.
 
 \subsection{Constructor}
-  \btabb
-    \entry{\textbf{cxx\_istream\_scan}(istream *instr = \&cin);} {Create a
-scan management object for scanning the contents of \CPP{} stream
-\lstinline|*instr|. The actual scanning is done using \lstinline|AMI_scan| with
-no input streams and one output stream.}
-  \etabb
+\btabb \entry{\textbf{cxx\_istream\_scan}(istream *instr = \&cin);}
+{Create a scan management object for scanning the contents of \CPP{}
+  stream \lstinline|*instr|. The actual scanning is done using
+  \lstinline|AMI_scan| with no input streams and one output stream.}
+\etabb
 
 
 %%%%%%%%% Scanning into a C++ stream %%%%%%%%%%
@@ -486,72 +506,29 @@ no input streams and one output stream.}
 
 
 \subsection{Class Declaration}
-  \btabb
-    \entry{template<class T> class \textbf{cxx\_ostream\_scan};} {}
-  \etabb
+\btabb \entry{template<class T> class \textbf{cxx\_ostream\_scan};} {}
+\etabb
 
 \subsection{Description}
 A scan management class template for writing the contents of a TPIE
 stream into an ordinary \CPP{} output stream.  It works with streams
-of any type forwhich a \lstinline|<<| operator is defined for \CPP{} 
-stream output. 
+of any type forwhich a \lstinline|<<| operator is defined for \CPP{}
+stream output.
 
 \subsection{Constructor} 
-  \btabb
-    \entry{\textbf{cxx\_ostream\_scan}(istream *outstr = \&cout);} {Create a
-scan management object for scanning into \CPP{} stream
-\lstinline|*outstr|. The actual scanning is done using \lstinline|AMI_scan| with
-one input stream and no output streams.}
-  \etabb
+\btabb \entry{\textbf{cxx\_ostream\_scan}(istream *outstr = \&cout);}
+{Create a scan management object for scanning into \CPP{} stream
+  \lstinline|*outstr|. The actual scanning is done using
+  \lstinline|AMI_scan| with one input stream and no output streams.}
+\etabb
 
 
 %%%%%%%% Stream Merging %%%%%%%%%
 \mysection{Stream Merging}
 \index{merging|(}
-\index{AMI_merge()@{\tt AMI\_merge()}|(}
-\plabel{sec:ref-ami-merge}
+\index{AMI__merge()@{\tt AMI\_merge()}|(}
 
-\subsection{Files}
-  \btabb
-    \entry{\#include <ami\_merge.h>} {}
-  \etabb
-
-\subsection{Function Declarations}
-  \btabb
-    \entry{template<class T>\\  AMI\_err \textbf{AMI\_merge}(AMI\_STREAM<T> **instreams,
-                      arity\_t arity, AMI\_STREAM<T> *outstream);} {}
-    \entry{template<class T>\\  AMI\_err \textbf{AMI\_merge}(AMI\_STREAM<T> **instreams,
-                      arity\_t arity, AMI\_STREAM<T> * outstream,
-                      int (*cmp)(const T\&, const T\&));} {}
-    \entry{template<class T>\\ AMI\_err \textbf{AMI\_merge}(AMI\_STREAM<T> **instreams,
-                      arity\_t arity, AMI\_STREAM<T> * outstream, CmpObj *co);} {}
-    \entry{template<class T, class KEY>\\ AMI\_err \textbf{AMI\_merge}(AMI\_STREAM<T> **instreams,
-                   arity\_t arity, AMI\_STREAM<T> *outstream, int keyoff, KEY dummy);} {}
-  \etabb
-
-\subsection{Description}
-
-TPIE provides several merge entry points for merging sorted streams to
-produce a single, interleaved output stream. \lstinline|AMI_merge| has
-four polymorphs, described below. We will refer to these as the (1)
-comparison operator, (2) comparison function, (3) comparison class and (4) key-based
-versions of \lstinline|AMI_merge|. 
- The comparison operator version tends to
-be the fastest and most straightforward to use. The
-comparison class version is comparable in speed (maybe
-slightly slower), but somewhat more flexible, as it can support
-multiple, different merges on the same keys. The comparison
-function version is slightly easier to use than the
-comparison class version, but typically it is measureably slower.
-
-\index{AMI_merge()@{\tt AMI\_merge()}|)}
-\index{merging|)}
-
-
-%%%%%%%% Generalized Stream Merging %%%%%%%%%
-\mysection{Generalized Stream Merging}
-\index{merging!generalized|(}
-\index{AMI_generalized_merge()@{\tt AMI\_generalized\_merge()}|(}
+\comment{LA: Andy please check}
 
 \subsection{Files}
   \btabb
@@ -561,170 +538,164 @@ comparison class version, but typically it is measureably slower.
 \subsection{Function Declaration}
   \btabb
     \entry{template<class T, class MergeMgr>\\ 
-           AMI\_err \textbf{AMI\_generalized\_merge}(AMI\_STREAM<T> **instreams, 
+           AMI\_err \textbf{AMI\_merge}(AMI\_STREAM<T> **instreams, 
            arity\_t arity, AMI\_STREAM<T> *outstream, MergeMgr *mo);} {}
   \etabb
 
 \subsection{Description}
-TPIE entry point \lstinline|AMI_generalized_merge()| allows an
-arbitrary number of streams to be merged into one stream in one pass,
-subject to the available main memory.  TPIE will attempt to read the
-first block of each stream into the internal memory, and will update
-the contents of these buffers as the merge progresses. At least one
-block buffer is also required for the output stream from the merge.
-The function takes four arguments:
-\lstinline|instreams| is an array of pointers to the input streams, all of
-  which are of type \lstinline|AMI_STREAM<T>|,
+TPIE entry point \lstinline|AMI_merge()| allows an arbitrary number of
+streams to be merged into one stream in one pass, subject to the
+available main memory.  TPIE\comment{LA: This doesn't seem to fit in
+  reference manual} will attempt to read the first block of each
+stream into the internal memory, and will update the contents of these
+buffers as the merge progresses. At least one block buffer is also
+required for the output stream from the merge.  The function takes
+four arguments: \lstinline|instreams| is an array of pointers to the
+input streams, all of which are of type \lstinline|AMI_STREAM<T>|,
 \lstinline|arity| is the number of input streams,
-\lstinline|outstream| is the output stream, of type \lstinline|AMI_STREAM<T>|, and
-\lstinline|mo| points to a merge management object that controls the
-  merge (merge management objects are described below).
+\lstinline|outstream| is the output stream, of type
+\lstinline|AMI_STREAM<T>|, and \lstinline|mo| points to a merge
+management object that controls the merge (merge management objects
+are described below).
 
 If the merge cannot be completed in one pass due to insufficient
 memory, the function fails and it returns
 \lstinline|AMI_ERROR_INSUFFICIENT_MAIN_MEMORY|. Otherwise, it returns
 \lstinline|AMI_ERROR_NO_ERROR|.
 
-\index{AMI_generalized_merge()@{\tt AMI\_generalized\_merge()}|)}
+\index{AMI_merge()@{\tt AMI\_merge()}|)}
 
 
 \subsection{Merge Management Objects}\label{ssec:mmo}
 \index{operation management objects!merge|(} 
 
 A merge management object class must inherit from
-\lstinline|AMI_generalized_merge_base|:
+\lstinline|AMI_merge_base|:
 \begin{lstlisting}
 template<class T>
-class MergeMgr: public AMI_generalized_merge_base;
+class MergeMgr: public AMI_merge_base;
 \end{lstlisting}
-In addition, 
-a merge management object must provide \lstinline|initialize()|
-and \lstinline|operate()| member functions, whose purposes are
-analogous to their namesakes for scan management objects.
+In addition, a merge management object must provide
+\lstinline|initialize()| and \lstinline|operate()| member functions,
+whose purposes are analogous to their namesakes for scan management
+objects.
 
-\index{initialize()@{\tt initialize()}|(}
-    The user's \lstinline|initialize()| member function is
-    called by the merge function once so that
-    application-specific data structures (if any) can be
-    initialized.
+\index{initialize()@{\tt initialize()}|(} The user's
+\lstinline|initialize()| member function is called by the merge
+function once so that application-specific data structures (if any)
+can be initialized.
 \begin{lstlisting}
     AMI_err initialize(arity_t arity, const T * const *in,
                        AMI_merge_flag *taken_flags,
                        int &taken_index);
 \end{lstlisting}
  
-    where
+where
     \begin{itemize}
-        \item \lstinline|arity| is the number of input streams
-        in the merge,
-        \item \lstinline|in| is a pointer to an array of
-        pointers to input objects, each of which is the
-        first objects appearing in one of the input streams,    
-        \item \lstinline|taken_flags| an array of flags
-        indicating which of the inputs are present (i.e.
-        which of the input streams is not empty), and a
-        pointer to an output object.
+    \item \lstinline|arity| is the number of input streams in the
+      merge,
+      \item \lstinline|in| is a pointer to an array of pointers to
+        input objects, each of which is the first objects appearing in
+        one of the input streams,
+      \item \lstinline|taken_flags| an array of flags indicating which
+        of the inputs are present (i.e.  which of the input streams is
+        not empty), and a pointer to an output object.
     \end{itemize}
     
-    The typical behavior of \lstinline|initialize()| is to
-    place all the input objects into a data structure and
-    then return \lstinline|AMI_MERGE_READ_MULTIPLE| to
-    indicate that it used (and is now finished with) all of
-    the inputs which were indicated to be valid by
-    \lstinline|taken_flags|.  \lstinline|initialize| need not
+    The typical behavior of \lstinline|initialize()| is to place all
+    the input objects into a data structure and then return
+    \lstinline|AMI_MERGE_READ_MULTIPLE| to indicate that it used (and
+    is now finished with) all of the inputs which were indicated to be
+    valid by \lstinline|taken_flags|.  \lstinline|initialize| need not
     process all inputs; it can turn off any flags in
-    \lstinline|taken_flags| corresponding to inputs that
-    should be presented to \lstinline|operate()|.
-    Alternatively, it can set \lstinline|taken_index| to the
-    index of a single input it processed and return
-    \lstinline|AMI_MERGE_CONTINUE|.
-\index{initialize()@{\tt initialize()}|)}
-
-\index{operate()@{\tt operate()}|(}
-    When performing a merge, TPIE relies on the application
-    programmer to provide code to determine the order of any
-    two application data elements, and certain other
-    application-specific processing. By convention, TPIE
-    expects these decisions to be made by the
-    \lstinline|operate()| function:
-\begin{lstlisting}
-    AMI_err operate(const T * const *in, AMI_merge_flag *taken_flags,
-                    int &taken_index, T *out);
-\end{lstlisting}
-    The \lstinline|operate()| member function is called
-    repeatedly to process input objects.  Typically,
-    \lstinline|operate()| will choose a single input object to
-    process, and set \lstinline|taken_index| to the index of
-    the pointer to that object in the input array.  This
-    object is then typically added to a dynamic data
-    structure maintained by the merge management object.  If
-    output is generated, for example by removing an object
-    from the dynamic data structure, \lstinline|operate()|
-    should return \lstinline|AMI_MERGE_OUTPUT|, otherwise, it
-    returns either \lstinline|AMI_MERGE_CONTINUE| to indicate
-    that more input should be presented, or
-    \lstinline|AMI_MERGE_DONE| to indicate that the merge has
-    completed.
+    \lstinline|taken_flags| corresponding to inputs that should be
+    presented to \lstinline|operate()|.  Alternatively, it can set
+    \lstinline|taken_index| to the index of a single input it
+    processed and return \lstinline|AMI_MERGE_CONTINUE|.
+    \index{initialize()@{\tt initialize()}|)}
     
-    Alternatively, \lstinline|operate()| can clear the elements
-    of \lstinline|taken_flags| that correspond to inputs it
-    does not currently wish to process, and then return
-    \lstinline|AMI_MERGE_READ_MULTIPLE|.  This is generally
-    undesirable because, if only one input is taken, it is
-    far slower than using \lstinline|taken_index| to indicate
-    which input was taken.  The merge management object must
-    clear all other flags, and then TPIE must test all the
-    flags to see which inputs were or were not processed.
+    \index{operate()@{\tt operate()}|(} When performing a merge, TPIE
+    relies on the application programmer to provide code to determine
+    the order of any two application data elements, and certain other
+    application-specific processing. By convention, TPIE expects these
+    decisions to be made by the \lstinline|operate()| function:
+\begin{lstlisting}
+  AMI_err operate(const T * const *in, AMI_merge_flag *taken_flags,
+  int &taken_index, T *out);
+\end{lstlisting}
+The \lstinline|operate()| member function is called repeatedly to
+process input objects.  Typically, \lstinline|operate()| will choose a
+single input object to process, and set \lstinline|taken_index| to the
+index of the pointer to that object in the input array.  This object
+is then typically added to a dynamic data structure maintained by the
+merge management object.  If output is generated, for example by
+removing an object from the dynamic data structure,
+\lstinline|operate()| should return \lstinline|AMI_MERGE_OUTPUT|,
+otherwise, it returns either \lstinline|AMI_MERGE_CONTINUE| to
+indicate that more input should be presented, or
+\lstinline|AMI_MERGE_DONE| to indicate that the merge has completed.
+    
+Alternatively, \lstinline|operate()| can clear the elements of
+\lstinline|taken_flags| that correspond to inputs it does not
+currently wish to process, and then return
+\lstinline|AMI_MERGE_READ_MULTIPLE|.  This is generally undesirable
+because, if only one input is taken, it is far slower than using
+\lstinline|taken_index| to indicate which input was taken.  The merge
+management object must clear all other flags, and then TPIE must test
+all the flags to see which inputs were or were not processed.
 \index{operate()@{\tt operate()}|)}
 
 
 \index{operation management objects!merge|)}
-\index{merging!generalized|)}
+\index{merging|)}
 
 
-%%%%%%%% Stream Partitioning and Merging %%%%%%%%%
-\mysection{Stream Partitioning and Merging}
-\index{AMI_partition_and_merge()@{\tt AMI\_partition\_and\_merge()}|(}
-\plabel{sec:ref-ami-pmerge}
+%%%%%%%% Stream Merging %%%%%%%%%
+\mysection{Sorted Stream Merging}
+\index{merging!sorted runs|(}
+\index{AMI_merge_sorted_runs()@{\tt AMI\_merge\_sorted\_runs()}|(}
+\plabel{sec:ref-ami-merge}
+
 
 \subsection{Files}
+\comment{LA: Andy please check!}
   \btabb
     \entry{\#include <ami\_merge.h>} {}
   \etabb
 
-\subsection{Function Declaration}
+\subsection{Function Declarations}
   \btabb
-    \entry{template<class T>\\  AMI\_err \textbf{AMI\_partition\_and\_merge}(AMI\_STREAM<T> **instreams,
+    \entry{template<class T>\\  AMI\_err \textbf{AMI\_merge\_sorted\_runs}(AMI\_STREAM<T> **instreams,
                       arity\_t arity, AMI\_STREAM<T> *outstream);} {}
-    \entry{template<class T>\\  AMI\_err \textbf{AMI\_partition\_and\_merge}(AMI\_STREAM<T> **instreams,
-                      arity\_t arity, AMI\_STREAM<T> *outstream,
-                      int (*cmp)(const T\&, const T\&));} {}
-    \entry{template<class T, class KEY>\\ AMI\_err \textbf{AMI\_partition\_and\_merge}(AMI\_STREAM<T> **instreams,
-                      arity\_t arity, AMI\_STREAM<T> *outstream, int keyoffset, KEY dummy);} {}
+    \entry{template<class T>\\ AMI\_err \textbf{AMI\_merge\_sorted\_runs}(AMI\_STREAM<T> **instreams,
+                      arity\_t arity, AMI\_STREAM<T> * outstream, CmpObj *co);} {}
+    \entry{template<class T, class KEY>\\ AMI\_err \textbf{AMI\_merge\_sorted\_runs}(AMI\_STREAM<T> **instreams,
+                   arity\_t arity, AMI\_STREAM<T> *outstream, int keyoff, KEY dummy);} {}
   \etabb
 
 \subsection{Description}
-Each of these functions partitions a stream into substreams small
-enough to fit in main memory, sorts them in main memory, and then
-merges them together, possibly in several passes if low memory conditions
-dictate. The difference between the three polymorphs is the comparison
-method: in the first polymorph, comparison is done using the comparison
-operator of class \lstinline|T|; in the second polymorph, comparison is done
-using the comparison function \lstinline|cmp|; in the third polymorph,
-comparison is done using a key of type \lstinline|KEY|, extracted from objects
-of type \lstinline|T| at byte offset \lstinline|keyoffset|.
 
-In order to complete the merge successfully, these functions need sufficient
-memory for a binary merge. If not enough memory is available, the function
-fails and returns
-\lstinline|AMI_ERROR_INSUFFICIENT_MAIN_MEMORY|. Otherwise, it returns
-\lstinline|AMI_ERROR_NO_ERROR|.
-\index{AMI_partition_and_merge()@{\tt AMI\_partition\_and\_merge()}|)}
+TPIE provides several merge entry points for merging sorted streams to
+produce a single, interleaved output stream.
+\lstinline|AMI_merge_sorted_runs| has three polymorphs, namely the
+comparison operator, comparison class and the key-based
+polymorhhs.\comment{LA: Syntax of comparator?}  The comparison
+operator version tends to be the fastest and most straightforward to
+use. The comparison class version is comparable in speed (maybe
+slightly slower), but somewhat more flexible, as it can support
+multiple, different merges on the same keys.\comment{LA: Key based?}
 
-%%%%%%%% Generalized Stream Partitioning and Merging %%%%%%%%%
-\mysection{Generalized Stream Partitioning and Merging}
-\index{AMI_generalized_partition_and_merge()@{\tt AMI\_generalized\_partition\_and\_merge()}|(}
+\index{AMI_merge_sorted_runs()@{\tt AMI\_merge\_sorted\_runs()}|)}
+\index{merging!sorted runs|)}
+
+
+
+%%%%%%%% Stream Partitioning and Merging %%%%%%%%%
+\mysection{ Stream Partitioning and Merging}
+\index{AMI_partition_and_merge()@{\tt AMI\_partition\_and\_merge()}|(}
 \plabel{sec:ref-ami-gpmerge}
+
+\comment{LA: Andy please check}
 
 \subsection{Files}
   \btabb
@@ -734,75 +705,72 @@ fails and returns
 \subsection{Function Declaration}
   \btabb
     \entry{template<class T, class MergeMgr>\\
-           AMI\_err \textbf{AMI\_generalized\_partition\_and\_merge}(AMI\_STREAM<T> *instream, AMI\_STREAM<T> *outstream, MergeMgr *mo);} {}
+           AMI\_err \textbf{AMI\_partition\_and\_merge}(AMI\_STREAM<T> *instream, AMI\_STREAM<T> *outstream, MergeMgr *mo);} {}
   \etabb
 
 \subsection{Description}
-This function partitions a stream into substreams small
-enough to fit in main memory, operates on each in main memory, and then
-merges them together, possibly in several passes if low memory conditions
-dictate. This function takes three arguments:
-\lstinline|instream| points to the input stream,
-\lstinline|outstream| points to the output stream, and
-\lstinline|mo| points to a merge management object that controls the merge.
-This function takes care of all the details of determining how much main
-memory is available, how big the initial substreams can be, how many
-streams can be merged at a time, and how many levels of merging must take
-place.
+This function partitions a stream into substreams small enough to fit
+in main memory, operates on each in main memory, and then merges them
+together, possibly in several passes if low memory conditions dictate.
+This function takes three arguments: \lstinline|instream| points to
+the input stream, \lstinline|outstream| points to the output stream,
+and \lstinline|mo| points to a merge management object that controls
+the merge.  This function takes care of all the details of determining
+how much main memory is available, how big the initial substreams can
+be, how many streams can be merged at a time, and how many levels of
+merging must take place.
 
-In order to complete the merge successfully, the function needs sufficient
-memory for a binary merge. If not enough memory is available, the function
-fails and it returns
+In order to complete the merge successfully, the function needs
+sufficient memory for a binary merge. If not enough memory is
+available, the function fails and it returns
 \lstinline|AMI_ERROR_INSUFFICIENT_MAIN_MEMORY|. Otherwise, it returns
-\lstinline|AMI_ERROR_NO_ERROR|.
-\index{AMI_generalized_partition_and_merge()@{\tt AMI\_generalized\_partition\_and\_merge()}|)}
+\lstinline|AMI_ERROR_NO_ERROR|.  \index{AMI_partition_and_merge()@{\tt
+    AMI\_partition\_and\_merge()}|)}
 
 \subsection{Merge Management Objects}
-\index{operation management objects!merge|(} 
-The \lstinline|AMI_partition_and_generalized_merge()| entry point requires
-a merge management object similar to the one described in
-Section~\ref{ssec:mmo}. The following three additional member functions
-must also be provided.
+\index{operation management objects!merge|(}
+
+The \lstinline|AMI_partition_and_merge()| entry point requires a merge
+management object similar to the one described in
+Section~\ref{ssec:mmo}. The following three additional member
+functions must also be provided.
 
 \begin{itemize}
     \item \index{main_mem_operate()@{\tt main\_mem\_operate()}}
 \begin{lstlisting}
-    AMI_err main_mem_operate(T* mm_stream, size_t len);
+  AMI_err main_mem_operate(T* mm_stream, size_t len);
 \end{lstlisting}
 \noindent
 where
     \begin{itemize}
-        \item \lstinline|mm_stream| is a pointer to an array
-        of objects that have been read into main memory,
-        \item \lstinline|len| is the number of objects in the
-        array.
+    \item \lstinline|mm_stream| is a pointer to an array of objects
+      that have been read into main memory,
+    \item \lstinline|len| is the number of objects in the array.
     \end{itemize}
     
-    This function is called by
-    \lstinline|AMI_partition_and_merge()| when a substream of
-    the data is small enough to fit into main memory, and
-    the (application-specific) processing of this subset of
-    the data can therefore be completed in internal memory.
+    This function is called by \lstinline|AMI_partition_and_merge()|
+    when a substream of the data is small enough to fit into main
+    memory, and the (application-specific) processing of this subset
+    of the data can therefore be completed in internal memory.
 
     
-    \item \index{space_usage_per_stream()@{\tt space\_usage\_per\_stream()}}
+  \item \index{space_usage_per_stream()@{\tt
+        space\_usage\_per\_stream()}}
 \begin{lstlisting}
-    size_t space_usage_per_stream(void);
+  size_t space_usage_per_stream(void);
 \end{lstlisting}
-    This function should return the amount of main memory
-    that the merge management object will need per per input
-    stream. Merge management objects are allowed to maintain
-    data structures whose size is linear in the number of
-    input streams being processed.
+This function should return the amount of main memory that the merge
+management object will need per per input stream. Merge management
+objects are allowed to maintain data structures whose size is linear
+in the number of input streams being processed.
 
-    \item \index{space_usage_overhead()@{\tt space\_usage\_overhead()}}
+\item \index{space_usage_overhead()@{\tt space\_usage\_overhead()}}
 \begin{lstlisting}
-    size_t space_usage_overhead(void);
+  size_t space_usage_overhead(void);
 \end{lstlisting}
-    This function should return an upper bound on the number
-    of bytes of main memory\comment{LA: In bytes? DH: yes.}
-    the merge management object will allocate in addition to
-    the portion that is linear in the number of streams.
+This function should return an upper bound on the number of bytes of
+main memory the merge management object will allocate in addition to
+the portion that is linear in the number of streams.
     
 \end{itemize}
 
@@ -811,10 +779,11 @@ where
 
 %%%%%%%%% Merge Sorting %%%%%%%%
 \mysection{Merge Sorting}\plabel{sec:ref-ami-sort}
-\index{sorting!merge|)} 
-\index{AMI_key_sort@{\tt AMI\_key\_sort}|(}
-\index{AMI_ptr_sort@{\tt AMI\_ptr\_sort}|(}
-\index{AMI_sort@{\tt AMI\_sort}|(}
+\index{sorting!merge|)} \index{AMI_key_sort@{\tt AMI\_key\_sort}|(}
+\index{AMI_ptr_sort@{\tt AMI\_ptr\_sort}|(} \index{AMI_sort@{\tt
+    AMI\_sort}|(}
+
+\comment{LA: Andy please check + add 2x sort (others?)}
 
 \subsection{Files}
   \btabb
@@ -823,23 +792,22 @@ where
 
 \subsection{Function Declarations}
 
-  \btabb
-     \entry{template<class T>\\
-AMI\_err \textbf{AMI\_sort}(AMI\_STREAM<T> *instream, AMI\_STREAM<T> *outstream);} {}     \entry{template<class T>\\
-AMI\_err \textbf{AMI\_sort}(AMI\_STREAM<T> *instream, AMI\_STREAM<T> *outstream,
-                 int (*cmp)(const T\&, const T\&));} {}
-     \entry{template<class T, class CMPR>\\
-AMI\_err \textbf{AMI\_sort}(AMI\_STREAM<T> *instream, AMI\_STREAM<T> *outstream,
-                 CMPR *cmp);} {}
+\btabb
+\entry{template<class T>\\
+  AMI\_err \textbf{AMI\_sort}(AMI\_STREAM<T> *instream, AMI\_STREAM<T>
+  *outstream);} {}
+  
+  \entry{template<class T, class CMPR>\\
+    AMI\_err \textbf{AMI\_sort}(AMI\_STREAM<T> *instream,
+    AMI\_STREAM<T> *outstream, CMPR *cmp);} {}
 
-     \entry{template<class T>\\
-AMI\_err \textbf{AMI\_ptr\_sort}(AMI\_STREAM<T> *instream, AMI\_STREAM<T>
-*outstream);} {}
-     \entry{template<class T>\\
-AMI\_err \textbf{AMI\_ptr\_sort}(AMI\_STREAM<T> *instream, AMI\_STREAM<T> *outstream,
-                 int (*cmp)(const T\&, const T\&));} {}
+  \entry{template<class T>\\
+              AMI\_err \textbf{AMI\_ptr\_sort}(AMI\_STREAM<T> *instream,
+       AMI\_STREAM<T> *outstream);} {}
+
      \entry{template<class T, class CMPR>\\
-AMI\_err \textbf{AMI\_ptr\_sort}(AMI\_STREAM<T> *instream, AMI\_STREAM<T> *outstream, CMPR *cmp);} {}
+       AMI\_err \textbf{AMI\_ptr\_sort}(AMI\_STREAM<T> *instream,
+       AMI\_STREAM<T> *outstream, CMPR *cmp);} {}
 
      \entry{template<class T, class KEY, class CMPR>\\
 AMI\_err \textbf{AMI\_key\_sort}(AMI\_STREAM<T> *instream, AMI\_STREAM<T> *outstream,
@@ -847,151 +815,123 @@ AMI\_err \textbf{AMI\_key\_sort}(AMI\_STREAM<T> *instream, AMI\_STREAM<T> *outst
   \etabb
 
 \subsection{Description}
-TPIE offers several entry points for sorting which use
-merging as their underlying paradigm. Please see
-Section~\ref{sec:tut-mrg-sorting} for more details of this
-approach.
-
-Currently, TPIE offers three merge sorting variants. The
-user must decide which variant is most appropriate for their
-circumstances.  All accomplish the same goal, but the
-performance can vary depending on the situation. They differ
-mainly in the way they perform the merge phase of merge
-sort, specifically how they maintain their heap data
-structure used in the merge phase. The three variants are as
-follows:
+Currently,\comment{LA: Same text as in tutorial} TPIE offers three
+merge sorting variants. The user must decide which variant is most
+appropriate for their circumstances.  All accomplish the same goal,
+but the performance can vary depending on the situation. They differ
+mainly in the way they perform the merge phase of merge sort,
+specifically how they maintain their heap data structure used in the
+merge phase. The three variants are as follows:
 \begin{itemize}
-    \item \lstinline|AMI_sort|: keeps the (entire) first record
-    of each sorted run (each is a stream) in a heap. This
-    approach is most suitable when the record consists
-    entirely of the record key.
+\item \lstinline|AMI_sort|: keeps the (entire) first record of each
+  sorted run (each is a stream) in a heap. This approach is most
+  suitable when the record consists entirely of the record key.
     
-    \item \lstinline|AMI_ptr_sort|: keeps a pointer to the
-    first record of each stream in the heap. This approach
-    works best when records are very long and the key
-    field(s) take up a large percentage of the record.
-
-    \item \lstinline|AMI_key_sort|: keeps the key field(s) and
-    a pointer to the first record of each stream in the
-    heap. This approach works best when the key field(s) are
-    small in comparison to the record size.
+\item \lstinline|AMI_ptr_sort|: keeps a pointer to the first record of
+  each stream in the heap. This approach works best when records are
+  very long and the key field(s) take up a large percentage of the
+  record.
+  
+\item \lstinline|AMI_key_sort|: keeps the key field(s) and a pointer
+  to the first record of each stream in the heap. This approach works
+  best when the key field(s) are small in comparison to the record
+  size.
 \end{itemize}
 
-Any of these variants will accomplish the task of sorting an
-input stream in an I/O efficient way, but there can be
-noticeable differences in processing time between the
-variants. As an example, \lstinline|AMI_key_sort| appears to be
-more cache-efficient than the others in many cases, and
-therefore often uses less processor time, despite extra data
-movement relative to \lstinline|AMI_ptr_sort|.
+Any of these variants will accomplish the task of sorting an input
+stream in an I/O efficient way, but there can be noticeable
+differences in processing time between the variants. As an example,
+\lstinline|AMI_key_sort| appears to be more cache-efficient than the
+others in many cases, and therefore often uses less processor time,
+despite extra data movement relative to \lstinline|AMI_ptr_sort|.
 
-In addition to the three variants discussed above, there are
-multiple choices within each variant regarding how the
-actual comparison operations are to be performed. These
-choices are described in detail for \lstinline|AMI_sort|, below.
+In addition to the three variants discussed above, there are multiple
+choices within each variant regarding how the actual comparison
+operations are to be performed. These choices are described in detail
+for \lstinline|AMI_sort|, below.
 
 \subsubsection{AMI\_sort()}
-\lstinline|AMI_sort()| has three polymorphs, described below.
-We will refer to these as the (1) comparison operator, (2)
-comparison function, and (3) comparison class versions of
-\lstinline|AMI_sort|. The comparison operator version tends to
-be the fastest and most straightforward to use. The
-comparison class version is comparable in speed (maybe
-slightly slower), but somewhat more flexible, as it can support
-multiple, different sorts on the same keys. The comparison
-function version is slightly easier to use than the
-comparison object version, but typically it is measureably slower.
-Please refer to Section~\ref{sec:tut-mrg-sorting} for examples
-of the use of these versions of \lstinline|AMI_sort()|.
+\lstinline|AMI_sort()| has two polymorphs, namely the comparison
+operator and comparison class polymorphs. The comparison operator
+version tends to be the fastest and most straightforward to use. The
+comparison class version is comparable in speed (maybe slightly
+slower), but somewhat more flexible, as it can support multiple,
+different sorts on the same keys.
 
 \paragraph{Comparison operator version.} This version works on streams of
-objects for which the operator \lstinline|<| is defined. 
-
-\paragraph{Comparison function version.}
-This version uses an explicit function to determine the
-relative order of two objects in the input stream. The function takes two
-arguments of type \lstinline|T| and returns $-1$, $0$, or $1$, if the first
-object is less than, equal or greater than the second object in the desired
-order. This is useful in cases where we may want to sort a stream of
-objects in several different ways.  
+objects for which the operator \lstinline|<| is defined.
 
 \paragraph{Comparison class version.} 
-This version of \lstinline|AMI_sort()| is similar to the
-comparison function version, except that the comparison
-function is now a method of a user-defined comparison
-object. This object must have a public member function named
-\lstinline|compare|, having the following prototype:
+This version of \lstinline|AMI_sort()| uses a method of a user-defined
+comparison object to determine the order of two input objects. The
+object must have a public member function named \lstinline|compare|,
+having the following prototype:
 \begin{lstlisting}
-   inline int compare (const KEY & k1, const KEY & k2);
+  inline int compare (const KEY & k1, const KEY & k2);
 \end{lstlisting}
 
-The user-written \lstinline|compare| function computes the
-order of the two user-defined keys \lstinline|k1| and
-\lstinline|k2|, and returns $-1$, $0$, or $+1$ to indicate that
-$k1<k2$, $k1==k2$, or $k1>k2$ respectively.
-It will be called by the internals of \lstinline|AMI_key_sort| to
-determine the relative order of records during the sort.
-
+The user-written \lstinline|compare| function computes the order of
+the two user-defined keys \lstinline|k1| and \lstinline|k2|, and
+returns $-1$, $0$, or $+1$ to indicate that $k1<k2$, $k1==k2$, or
+$k1>k2$ respectively.
 
 \index{AMI_sort@{\tt AMI\_sort}|)}
 
 \subsubsection{AMI\_ptr\_sort()}
 
-The \lstinline|AMI_ptr_sort| variant of merge sort in TPIE
-keeps only a pointer to each record in the heap used to
-perform merging of runs. Similar to \lstinline|AMI_sort|
-above, it offers comparison operator, comparison function,
-and comparison class polymorphs. The syntax is identical to
-that illustrated in the \lstinline|AMI_sort| examples; simply
-replace \lstinline|AMI_sort| by \lstinline|AMI_ptr_sort|.
+The \lstinline|AMI_ptr_sort| variant of merge sort in TPIE keeps only
+a pointer to each record in the heap used to perform merging of runs.
+Similar to \lstinline|AMI_sort| above, it offers comparison operator,
+comparison function, and comparison class polymorphs. The syntax is
+identical to that illustrated in the \lstinline|AMI_sort| examples;
+simply replace \lstinline|AMI_sort| by \lstinline|AMI_ptr_sort|.
 
 \index{AMI_ptr_sort@{\tt AMI\_ptr\_sort}|)}
 
 \subsubsection{AMI\_key\_sort()}
 
-The \lstinline|AMI_key_sort| variant of TPIE merge sort keeps
-the key field(s) plus a pointer to the corresponding record
-in an internal heap during the merging phase of merge sort.
-It requires a sort management object with member functions
-\lstinline|compare| and \lstinline|copy|.
-The \lstinline|dummyKey| argument of \lstinline|AMI_key_sort()| is a a
-dummy argument having the same type as the user key, and
-\lstinline|*smo| is the sort management
-object, having user-defined \lstinline|compare| and
-\lstinline|copy| member functions as described below.
+The \lstinline|AMI_key_sort| variant of TPIE merge sort keeps the key
+field(s) plus a pointer to the corresponding record in an internal
+heap during the merging phase of merge sort.  It requires a sort
+management object with member functions \lstinline|compare| and
+\lstinline|copy|.  The \lstinline|dummyKey| argument of
+\lstinline|AMI_key_sort()| is a a dummy argument having the same type
+as the user key,\comment{LA: Clear why we do this?} and
+\lstinline|*smo| is the sort management object, having user-defined
+\lstinline|compare| and \lstinline|copy| member functions as described
+below.
 
 The \lstinline|compare| member function has the following
-prototype:
+prototype:\comment{LA: ``prototype''?}
 \begin{lstlisting}
-   inline int compare (const KEY & k1, const KEY & k2);
+  inline int compare (const KEY & k1, const KEY & k2);
 \end{lstlisting}
 
-The user-written \lstinline|compare| function computes the
-order of the two user-defined keys \lstinline|k1| and
-\lstinline|k2|, and returns $-1$, $0$, or $+1$ to indicate that
-$k1<k2$, $k1==k2$, or $k1>k2$ respectively.
-It will be called by the internals of \lstinline|AMI_key_sort| to
-determine the relative order of records during the sort.
+The user-written \lstinline|compare| function computes the order of
+the two user-defined keys \lstinline|k1| and \lstinline|k2|, and
+returns $-1$, $0$, or $+1$ to indicate that $k1<k2$, $k1==k2$, or
+$k1>k2$ respectively.
 
-The \lstinline|copy| member function has the following
-prototype:
+The \lstinline|copy| member function has the following prototype:
 \begin{lstlisting}
    inline void copy (KEY *key, const T &record);
 \end{lstlisting}
 
-The user-written \lstinline|copy| function constructs the
-user-defined key \lstinline|*key| from the contents of the
-user-defined record \lstinline|record|. It will be called by the
-internals of \lstinline|AMI_key_sort| to make copies of record
-keys as necessary during the sort.
+The user-written \lstinline|copy| function constructs the user-defined
+key \lstinline|*key| from the contents of the user-defined record
+\lstinline|record|. It will be called by the internals of
+\lstinline|AMI_key_sort| to make copies of record keys as necessary
+during the sort.
 
 \index{AMI_key_sort@{\tt AMI\_key\_sort}|)}
 \index{sorting!merge|)} 
 
+
 %%%%%%%%% Internal Memory Sorting %%%%%%%%
-\mysection{Internal Memory Sorting}
-\plabel{sec:ref-ami-memsort}
+\mysection{Internal Memory Sorting} \plabel{sec:ref-ami-memsort}
 \index{sorting!internal memory|(}
+
+\comment{LA: Andy please check + add STL stuff}
 
 \subsection{Files}
   \btabb
@@ -1005,10 +945,6 @@ keys as necessary during the sort.
      void \textbf{quick\_sort\_op}(T *data, size\_t len);} {}
 
      \entry{template<class T>\\
-     void \textbf{quick\_sort\_cmp}(T *data, size\_t len, 
-     int (*cmp)(const T\&, const T\&));} {}
-
-     \entry{template<class T>\\
      void \textbf{quick\_sort\_obj}(T *data, size\_t len, 
      CMPR *cmp);} {}
   \etabb
@@ -1016,20 +952,50 @@ keys as necessary during the sort.
 \subsection{Description}
 
 These are internal memory in-place sorting routines that implement the
-quicksort\index{quicksort} algorithm (randomized).  These routines are used by the external
-memory sorting routines (see Section~\ref{sec:ref-ami-sort}) on streams
-that are small enough to fit in memory.
-The three polymorphs use different comparison methods:
-\lstinline|quick_sort_op| uses the comparison operator $<$,
-\lstinline|quick_sort_cmp| uses the comparison function \lstinline|cmp|, and
-\lstinline|quick_sort_obj| uses a comparison object of type \lstinline|CMPR|.
+quicksort\index{quicksort} algorithm (randomized).\comment{LA:
+  Really?}  These routines are used by the external memory sorting
+routines (see Section~\ref{sec:ref-ami-sort}) on streams that are
+small enough to fit in memory.  The three polymorphs use different
+comparison methods: \lstinline|quick_sort_op| uses the comparison
+operator $<$ and \lstinline|quick_sort_obj| uses a comparison object
+of type \lstinline|CMPR|.
+
 \index{sorting!internal memory|)}
+
+
+%%%%%%%%% Distribution %%%%%%%%%
+\mysection{Distribution}
+\index{distribution|(}
+
+\tobewritten
+
+\index{distribution|)}
+
+%%%%%%%%% Key bucket sort %%%%%%%%%
+\mysection{Key bucket sort}
+\index{key bucket sort|(}
+
+\tobewritten
+
+\index{key bucket sort|)}
+
+
+%%%%%%%%% Permuting %%%%%%%%%
+\mysection{Permuting}
+\index{permuting|(}
+
+\tobewritten
+
+\index{permuting|)}
+
 
 %%%%%%%%% Stacks %%%%%%%%%
 \mysection{Stacks}
 \plabel{sec:ref-ami-stack}
 \index{AMI_stack@{\tt AMI\_stack}|(}
 \index{stacks|(}
+
+\comment{LA: Add queue!}
 
 \subsection{Files}
   \btabb
@@ -1042,29 +1008,53 @@ The three polymorphs use different comparison methods:
    \etabb
 
 \subsection{Description}
-External stacks are implemented through the templated class
-\lstinline|AMI_stack<T>|, 
-which is a subclass of \lstinline|AMI_STREAM<T>|. As a consequence, it
-inherits all public members of \lstinline|AMI_STREAM<T>|, including its
-constructors. See Section~\ref{sec:ref-ami-stream}.
+External stacks are implemented\comment{LA: Bad word here} through the
+templated class \lstinline|AMI_stack<T>|, which is a subclass of
+\lstinline|AMI_STREAM<T>|.\comment{LA: Do we care here?} As a
+consequence, it inherits all public members of
+\lstinline|AMI_STREAM<T>|, including its constructors. See
+Section~\ref{sec:ref-ami-stream}.
 
 \subsection{Public Member Functions}
    \btabb 
-
-      \entry{AMI\_err \textbf{push}(const \&T t);} {Insert a copy of the
-      object \lstinline|t| to the top of the stack, increasing its length by
-      one.}
-
-       \entry{AMI\_err \textbf{pop}(T **ppt);} {Remove the top object from
-       the stack, decreasing its length by one and returning the address of
-       a pointer to the popped object in \lstinline|ppt|.}
+   
+   \entry{AMI\_err \textbf{push}(const \&T t);} {Insert a copy of the
+     object \lstinline|t| to the top of the stack, increasing its
+     length by one.}
+   
+   \entry{AMI\_err \textbf{pop}(T **ppt);} {Remove the top object from
+     the stack, decreasing its length by one and returning the address
+     of a pointer to the popped object in \lstinline|ppt|.}
 
    \etabb
 
 \index{stacks|)}
 \index{AMI_stack@{\tt AMI\_stack}|)}
 
-%%%%%%%%% Blocks %%%%%%%%%
+
+
+
+%%%%%%%%% Distribution sweeping %%%%%%%%%
+\mysection{Distribution sweeping}
+\index{distribution sweeping|(}
+
+\tobewritten
+
+\index{distribution sweeping|)}
+
+
+%%%%%%%%% Matrix %%%%%%%%%
+\mysection{Matrix operations}
+\index{matrix operations|(}
+
+\tobewritten
+
+\index{matrix operations|)}
+
+
+
+
+%%%%%%%%Blocks %%%%%%%%%
 \mysection{Blocks}
 \index{AMI_block@{\tt AMI\_block}|(}
 
@@ -1312,7 +1302,7 @@ collection is identified by a block ID, of type \lstinline|AMI_bid|.
           \item[]\lstinline|AMI_WRITE_COLLECTION| If the files specified by
           \lstinline|base_file_name| exist, open a collection using those files
           for reading and writing. If the files do not exist, create a new
-          collection with read and write acces;
+          collection with read and write access;
         \end{itemize}
         The \lstinline|lbf| (logical block factor) parameter determines the size
         of the blocks stored (the block size is \lstinline|lbf| times the
@@ -1458,7 +1448,7 @@ the \lstinline|KeyOfValue| function object.
 \btabb
 
    \entry{bool \textbf{erase}(const Key\& k);} {Delete the element with key \lstinline|k|
-   from the tree. Return true if succeded, false otherwise (key not
+   from the tree. Return true if succeeded, false otherwise (key not
    found).}
 
    \entry{bool \textbf{find}(const Key\& k, Value\& v);} {Find an element based on
@@ -1468,7 +1458,7 @@ the \lstinline|KeyOfValue| function object.
    the leaf level. A value of $0$ represents an empty tree.}
 
    \entry{bool \textbf{insert}(const Value\& v);} {Insert an element \lstinline|v| into the
-   tree. Return true if the insertion succeded, false otherwise (duplicate
+   tree. Return true if the insertion succeeded, false otherwise (duplicate
    key).}
 
    \entry{bool \textbf{is\_valid}() const;} {Return \lstinline|true| if the status
@@ -1514,11 +1504,6 @@ the \lstinline|KeyOfValue| function object.
    AMI\_STREAM<Value>* os);} {Find all elements within the range given by
    keys \lstinline|k1| and \lstinline|k2| and write them to stream \lstinline|os|.}
 
-  \etabb
-  
-  \clearpage
-
-  \btabb
 
    \entry{size\_t \textbf{size}() const;} {Return the number of elements
    stored in the leaves of this tree.}
@@ -1556,7 +1541,7 @@ The \lstinline|AMI_btree_params| class encapsulates all user-definable B-tree
 parameters. These parameters dictate the layout of the tree and its
 behavior under insertions and deletions. An instance of the class created
 using the default constructor gives default values to all parameters. Each
-paramter can then be changed independently.
+parameter can then be changed independently.
 
 \subsubsection{Class Declaration}
 
@@ -1650,7 +1635,7 @@ paramter can then be changed independently.
 \subsection{Member Functions}
    \btabb
        \entry{bool \textbf{read}(size\_t k, T \& item);}{Read an item from the cache based on key \lstinline|k| and store it in \lstinline|item|. If found, the item is removed from the cache. Return true if the key was found.}
-      \entry{bool \textbf{write}(size\_t k, const T \& item);}{Write an item in the cache based on the given key \lstinline|k|. If the cache was full, the least recently used item is writen out using the \lstinline|W| function object, and it is removed from the cache.}
+      \entry{bool \textbf{write}(size\_t k, const T \& item);}{Write an item in the cache based on the given key \lstinline|k|. If the cache was full, the least recently used item is written out using the \lstinline|W| function object, and it is removed from the cache.}
       \entry{bool \textbf{erase}(size\_t k);}{Erase an item from the cache based on the given key \lstinline|k|. Return true if the key was found.}
    \etabb
 

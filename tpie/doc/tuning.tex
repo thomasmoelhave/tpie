@@ -1,58 +1,53 @@
 %%
-%% $Id: tuning.tex,v 1.14 2003-11-27 19:53:10 jan Exp $
+%% $Id: tuning.tex,v 1.15 2005-11-23 15:14:06 adanner Exp $
 %%
 \chapter{Configuration and Performance Tuning}
 \plabel{sec:tuning}\index{Configuration}\plabel{sec:configuration}
 
-\comment{LA: Should there be something about compiling in this chapter (and
-about e.g including ami.h)?}
+\comment{LA: Jan please check this and add something about
+  portability. Also add something about compiling?}
 
 \section{TPIE Configuration}
-Certain behaviours of TPIE at run-time are controlled by
-compile-time variables, whose values should be defined
-before including any TPIE headers. Depending on the options
-desired, the values of these variables can be specified as
-early as when TPIE is installed, or as late as when an
-individual application program is compiled. Section
+Certain behaviours of TPIE at run-time are controlled by compile-time
+variables, whose values should be defined before including any TPIE
+headers. Depending on the options desired, the values of these
+variables can be specified as early as when TPIE is installed, or as
+late as when an individual application program is compiled. Section
 \ref{sec:customization} described the options available at
-installation time. Section \ref{sec:tun-appconfig} describes
-how TPIE can be configured differently for individual TPIE
-applications.
+installation time. Section \ref{sec:tun-appconfig} describes how TPIE
+can be configured differently for individual TPIE applications.
 
 \subsection{Installation Options}
 \index{Customization} \plabel{sec:customization}
 
-\comment{LA: We need to change this when we change logging}
-It is possible to customize certain TPIE behaviours by
-providing arguments to the {configure} script when TPIE is
-first installed (see Section
+\comment{LA: Has this been updated after we changed logging, i.e., is
+  it correct?} It is possible to customize certain TPIE behaviours by
+providing arguments to the {configure} script when TPIE is first
+installed (see Section
 \ref{sec:tut-installation}).\index{configuration:options} None of
-these arguments are necessary and the first time you build
-TPIE you should not need any of them. The arguments
-recognized are as follows:
+these arguments are necessary and the first time you build TPIE you
+should not need any of them. The arguments recognized are as follows:
 
 \begin{description}
   
-\item[\texttt{--enable-log-lib}]
-  \index{enable-log-lib@{\tt --enable-log-lib}} Enable
-  logging in TPIE library code.  This can also be
-  accomplished at compile time by defining the macro
-  \lstinline|TP_LOG_LIB| using the syntax 
-  \lstinline|make lib TP_LOG_LIB=1|.  This is useful for debugging the
-  TPIE library, but slows it down.  This option works by
-  defining \lstinline|TPL_LOGGING| \index{TPL\_LOGGING@{\tt
-      TPL\_LOGGING}} when compiling the library.
-  Section \ref{sec:logging} discusses TPIE logging.
+\item[\texttt{--enable-log-lib}] \index{enable-log-lib@{\tt
+      --enable-log-lib}} Enable logging in TPIE library code.  This
+  can also be accomplished at compile time by defining the macro
+  \lstinline|TP_LOG_LIB| using the syntax
+\lstinline|make lib  TP_LOG_LIB=1|.  
+This is useful for debugging the TPIE library, but
+  slows it down.  This option works by defining
+  \lstinline|TPL_LOGGING| \index{TPL\_LOGGING@{\tt TPL\_LOGGING}} when
+  compiling the library.  Section \ref{sec:logging} discusses TPIE
+  logging.
   
-\item[\texttt{--enable-assert-lib}]
-  \index{enable-assert-lib@{\tt --enable-assert-lib}}
-  Enable assertions in the TPIE library code for debugging
-  purposes.  This can also be accomplished at compile time
-  by defining the macro \lstinline|TP_ASSERT_LIB| using the
-  syntax \lstinline|make lib TP_ASSERT_LIB=1|.  This option
-  works by defining \lstinline|DEBUG_ASSERTION|
-  \index{DEBUG_ASSERTIONS@{\tt DEBUG\_ASSERTIONS}} when
-  compiling the library.
+\item[\texttt{--enable-assert-lib}] \index{enable-assert-lib@{\tt
+      --enable-assert-lib}} Enable assertions in the TPIE library code
+  for debugging purposes.  This can also be accomplished at compile
+  time by defining the macro \lstinline|TP_ASSERT_LIB| using the
+  syntax \lstinline|make lib TP_ASSERT_LIB=1|.  This option works by
+  defining \lstinline|DEBUG_ASSERTION| \index{DEBUG_ASSERTIONS@{\tt
+      DEBUG\_ASSERTIONS}} when compiling the library.
 
 \item[\texttt{--enable-log-apps}] and
   
@@ -65,39 +60,38 @@ recognized are as follows:
   \lstinline|TP_LOG_APPS=1| and/or the option
   \lstinline|TP_ASSERT_APPS=1| accomplishes the same thing.
   
-\item[\texttt{--enable-expand-ami-scan}] Expand the
-  macros in the file \path"ami_scan.h" when making the
-  include directory with the command \lstinline|make include|
-  (or \lstinline|make all|).  This is mainly useful for
-  debugging the code in \path"ami_scan.h" itself, and
-  is not normally needed by TPIE programmers.  It may make
-  compilation of TPIE programs slightly faster because the
-  macro processor of the C++ compiler will have less work
-  to do.  In addition to the standard GNU tools mentioned
-  in Section~\ref{sec:tut-gnu-software}, this requires
+\item[\texttt{--enable-expand-ami-scan}] Expand the macros in the file
+  \path"ami_scan.h" when making the include directory with the command
+  \lstinline|make include| (or \lstinline|make all|).  This is mainly
+  useful for debugging the code in \path"ami_scan.h" itself, and is
+  not normally needed by TPIE programmers.  It may make compilation of
+  TPIE programs slightly faster because the macro processor of the C++
+  compiler will have less work to do.  In addition to the standard GNU
+  tools mentioned in Section~\ref{sec:tut-gnu-software}, this requires
   \texttt{perl}.
   
-\item[\texttt{--disable-*}] Any of the options above can
-  be explicitly disabled by using this syntax.  For
-  example \texttt{--disable-expand-ami-scan}.
+\item[\texttt{--disable-*}] Any of the options above can be explicitly
+  disabled by using this syntax.  For example
+  \texttt{--disable-expand-ami-scan}.
 \end{description}
 
-\subsection{Configuring TPIE for Individual Applications}\plabel{sec:tun-appconfig}
+\subsection{Configuring TPIE for Individual Applications}
+\plabel{sec:tun-appconfig}
 
-Certain TPIE configuration options can be selected by
-setting compile-time variables in the file
-\path"test/app_config.h"
-which is then included in an application program. A typical
-example of this file can be found in the \path"test/"
-directory. Selected parts of the file are shown
-and discussed below. \comment{LA: Something general about TPIE
-   configuration as set up by the configure-script needs to
-   be included here (e.g. discuss config.h file).}
+Certain TPIE configuration options can be selected by setting
+compile-time variables in the file \path"test/app_config.h" which is
+then included in an application program. A typical example of this
+file can be found in the \path"test/" directory. Selected parts of the
+file are shown and discussed below. \comment{LA: Something general
+  about TPIE configuration as set up by the configure-script needs to
+  be included here (e.g. discuss config.h file).}
 
 \subsubsection{The File \texttt{test/app\_config.h}}
 
 \lstinputlisting[numbers=left,caption={The application configuration
   file.}]{../test/app_config.h}
+
+\comment{LA: add some intro text here}
 
 \subsubsection{Compile-Time Options in \texttt{test/app\_config.h}}
 
@@ -122,10 +116,10 @@ and discussed below. \comment{LA: Something general about TPIE
 \end{description}
 
 \noindent
-If \lstinline|BTE_STREAM_IMP_MMAP| or \lstinline|BTE_STREAM_IMP_UFS| is
-defined, the following macros are used to control BTE
-options (how to set the options for maximal performance is
-discussed in the next section):
+If \lstinline|BTE_STREAM_IMP_MMAP| or \lstinline|BTE_STREAM_IMP_UFS|
+is defined, the following macros are used to control BTE options (how
+to set the options for maximal performance is discussed in the next
+section):
 
 \begin{description}
   
@@ -155,8 +149,8 @@ discussed in the next section):
 \end{description}
 
 \noindent
-The rest of the compile-time variables are normally not
-modified by TPIE application programmers:
+The rest of the compile-time variables are normally not modified by
+TPIE application programmers:
 
 \begin{description}
 \item\lstinline|AMI_STREAM_IMP_SINGLE:| This macro controls which
@@ -222,13 +216,12 @@ C-shell): \texttt{setenv AMI\_SINGLE\_DEVICE}
 \path"/usr/project/tmp/".  \index{configuration|)}
 
 
+
 \section{TPIE Performance Tuning}
 \index{performance tuning}
 
 \subsection{Choosing and Configuring a BTE Implementation}
 \plabel{sec:choosingbte}
-
-\comment{LA: This needs an overhaul!}
 
 Choosing an appropriate BTE implementation (and BTE parameter
 settings) for best performance is both application and system
@@ -260,11 +253,9 @@ times the operating system blocksize, so this roughly corresponds to
 the amount of data brought in or written out at the cost of a single
 disk operation. Increasing this parameter, therefore, can reduce the
 number of I/O operations required to read through a stream from
-beginning to end.
-
-However, the amount of memory dedicated to a stream is either
-\lstinline|BTE_LOGICAL_BLOCKSIZE_FACTOR| times the operating system
-blocksize (if prefetching is disabled) or twice
+beginning to end. However, the amount of memory dedicated to a stream
+is either \lstinline|BTE_LOGICAL_BLOCKSIZE_FACTOR| times the operating
+system blocksize (if prefetching is disabled) or twice
 \lstinline|BTE_LOGICAL_BLOCKSIZE_FACTOR| times the operating system
 blocksize (if prefetching is enabled). Consequently, the value of the
 parameter \lstinline|BTE_LOGICAL_BLOCKSIZE_FACTOR|, together with
@@ -273,18 +264,16 @@ streams) that can be active at the same time. This gives an upper
 bound on the arity of a multi-way merge or a multi-way distribution
 operation that can be undertaken by a TPIE application. This in turn
 can have a crucial impact on (say, the number of passes required in
-external sorting and hence the) net running time.
-
-%As discussed in Section~\ref{sec:ref-bte}, 
-A large value for \lstinline|BTE_LOGICAL_BLOCKSIZE_FACTOR| increases
-performance due to fewer kernel calls and due to the (track) buffering
-and prefetching in the disk controller. Too large a value results in
-decreased performance due to the BTE's use of main memory. Thus this
-parameter should be chosen carefully.
+external sorting and hence the) net running time. A large value for
+\lstinline|BTE_LOGICAL_BLOCKSIZE_FACTOR| increases performance due to
+fewer kernel calls and due to the (track) buffering and prefetching in
+the disk controller. Too large a value results in decreased
+performance due to the BTE's use of main memory. Thus this parameter
+should be chosen carefully.
 
 As far at the other BTE configuration parameters (prefetching) are
-concerned, the default settings in the \path"app_config.h" file in
-the \path"test/" directory are normally the best.
+concerned, the default settings in the \path"app_config.h" file in the
+\path"test/" directory are normally the best.
 
 %The latter observation suggests that
 %\lstinline|BTE_LOGICAL_BLOCKSIZE_FACTOR| should be set to a
@@ -301,9 +290,9 @@ the \path"test/" directory are normally the best.
 In order to help in deciding which BTE to choose for a given
 application/system, as well as deciding on what logical block size to
 use (in \lstinline|BTE_stream_mmap| and \lstinline|BTE_stream_ufs|),
-we have included a C program in the \path"test/" directory of the
-TPIE distribution called \path"bte_test.c".  This program can be used
-to determine the streaming speeds attained by
+we have included a C program in the \path"test/" directory of the TPIE
+distribution called \path"bte_test.c".  This program can be used to
+determine the streaming speeds attained by
 \lstinline|BTE_stream_stdio|, \lstinline|BTE_stream_mmap|, and
 \lstinline|BTE_stream_ufs| streams on a given system. The program
 simulates the buffering and I/O mechanisms used by each of the BTE
@@ -341,9 +330,9 @@ bte_test NumItems ItemSize NumStreams block_factor items_in_block DataFile
 \end{lstlisting}
 
 The output of the program (streaming speed) is appended to the file
-\path"DataFile". The streaming speed, alternatively called I/O Bandwidth,
-is given in units of MB/s, and can be used to decide which BTE to use and
-how to configure it.
+\path"DataFile". The streaming speed, alternatively called I/O
+Bandwidth, is given in units of MB/s, and can be used to decide which
+BTE to use and how to configure it.
 
 \subsection{Other Factors Affecting Performance}
 
@@ -352,7 +341,7 @@ factors, not all of which are TPIE specific, can effect the performance of
 a TPIE application.
 
 \begin{description}
-\item[Inlining operation management object methods] Failing to inline
+\item[Inlining operation management object methods.] Failing to inline
   the \lstinline|operate()| method of operation management objects can
   be a major source of lackluster performance of an application, since
   \lstinline|operate()| is called once for every object in a stream
@@ -363,13 +352,13 @@ a TPIE application.
   complex pieces of code that are called less often in separate
   functions.
   
-\item[\texttt{gcc} optimization] We recommend using the \texttt{-O2}
+\item[\texttt{gcc} optimization.] We recommend using the \texttt{-O2}
   level of optimization of \texttt{gcc} in order to obtain the best
   overall performance. Although better performance can normally be
   obtained using \texttt{-O3}, this optimization leads to increased
   program size which can potentially result in decreased performance.
   
-\item[Memory size] To insure that no disk swapping is done by the OS,
+\item[Memory size.] To insure that no disk swapping is done by the OS,
   the size of main memory used by TPIE (set by
   \lstinline|MM_manager.set_memory_limit()|, see
   Section~\ref{sec:tut-compiling} and Section~\ref{sec:mm-ref}) should
@@ -384,16 +373,15 @@ a TPIE application.
 \section{TPIE Logging}\index{logging}
 \plabel{sec:logging}
 
-\comment{LA: The whole logging thing needs to be reevaluated
-   and changed. DH: Now includes recent changes.}
-When logging is turned on (see Section \ref{sec:configuration}), TPIE
-creates a log file\index{log file} in \path"/tmp/TPLOG_XXXXXX", where
-\texttt{XXXXXX} is a unique system dependent identifier. TPIE writes into
-this file using a \lstinline|logstream| class, which is derived from
-\lstinline|ofstream| and has the additional functionality of setting a priority
-and a threshold for logging. If the priority of a message is below
- the threshold, the message is not logged. There are four priority
-levels defined in TPIE, as follows.
+\comment{LA: Is all this true?}  When logging is turned on (see
+Section \ref{sec:configuration}), TPIE creates a log file\index{log
+  file} in \path"/tmp/TPLOG_XXXXXX", where \texttt{XXXXXX} is a unique
+system dependent identifier. TPIE writes into this file using a
+\lstinline|logstream| class, which is derived from
+\lstinline|ofstream| and has the additional functionality of setting a
+priority and a threshold for logging. If the priority of a message is
+below the threshold, the message is not logged. There are four
+priority levels defined in TPIE, as follows.
 
 \begin{description}
 \item\lstinline|TP_LOG_FATAL| is the highest level and is used for

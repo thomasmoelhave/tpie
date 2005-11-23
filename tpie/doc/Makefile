@@ -1,15 +1,16 @@
 #
-# $Id: Makefile,v 1.3 2002-08-30 03:26:57 tavi Exp $
+# $Id: Makefile,v 1.4 2005-11-23 15:14:06 adanner Exp $
 #
 
 LATEX = latex
 BIBTEX = bibtex
 MAKEINDEX = makeindex
-DVIPS = dvips -Pamz -Pcmz
+#DVIPS = dvips -Pamz -Pcmz
+DVIPS = dvips -Ppdf
 LATEX2HTML = latex2html
 PS2PDF = ps2pdf
 
-all: tpie.ps
+all: tpie.pdf
 
 MAIN_SRC = tpie.tex
 
@@ -45,6 +46,6 @@ tpie.bbl: tpie.aux tpie.bib
 
 clean:
 	-rm -f tpie.log tpie.ilg tpie.blg tpie.bbl tpie.ind tpie.dvi 
-	-rm -f tpie.idx tpie.aux tpie.toc
+	-rm -f tpie.idx tpie.aux tpie.toc tpie.ps tpie.pdf
 	-rm -f *~
 	-rm -rf tpie
