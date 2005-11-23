@@ -1,5 +1,5 @@
 %%
-%% $Id: definitions.tex,v 1.5 2003-11-27 19:55:56 jan Exp $
+%% $Id: definitions.tex,v 1.6 2005-11-23 15:14:06 adanner Exp $
 %%
 
 \hbadness=10000
@@ -15,7 +15,7 @@
 \newcommand\mysection{\@startsection {section}{1}{\z@}%
                                    {-3.5ex \@plus -1ex \@minus -.2ex}%
                                    {2.3ex \@plus.2ex}%
-                                   {\normalfont\Large\bfseries\hspace*{-9mm}\colorbox{lgray}{\rule{0cm}{4.7mm}\rule{16.1cm}{0cm}}\hspace{-16.1cm} }}
+                                   {\normalfont\Large\bfseries\hspace*{-9mm}\colorbox{lgray}{\rule{0cm}{4.7mm}\rule{15.1cm}{0cm}}\hspace{-15.1cm} }}
 \makeatother
 
 % plabel allows the label value to be printed for easier
@@ -80,10 +80,11 @@
 
 % normal margins for US-size paper
 \setlength{\topmargin}{-.5in}   
-\setlength{\oddsidemargin}{.1in} % distance from left edge of page to text
-\setlength{\evensidemargin}{.1in} % distance from left edge of page to text
-\setlength{\textwidth}{6.3in}
+\setlength{\oddsidemargin}{.175in} % distance from left edge of page to text
+\setlength{\evensidemargin}{.175in} % distance from left edge of page to text
+\setlength{\textwidth}{6.1in}
 \setlength{\textheight}{9in}
+
 
 %% Macro for writing in the margin comments on what is left to be done.
 %% Use \withcomments in the preamble if you want comments to appear.
@@ -97,7 +98,7 @@
 \addtolength{\marginparwidth}{-2.0\marginparsep} 
 % To get the same space on both sides of the margin text
 % because Duke printers use weird margins:
-\addtolength{\marginparwidth}{-0.125in}
+\addtolength{\marginparwidth}{-0.3in} %was -0.125
 \newcounter{mycomments}
 \def\comment##1{\refstepcounter{mycomments}%
 \ifhmode%
@@ -106,6 +107,9 @@
 \raise\dimen1\llap{\tiny -\themycomments-}}\fi%
 \marginpar{\tiny [\themycomments]: ##1}}%
 }
+
+
+
 
 % Additions to makeidx.sty
 %\makeatletter

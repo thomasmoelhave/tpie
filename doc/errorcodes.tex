@@ -1,19 +1,21 @@
-%       $Id: errorcodes.tex,v 1.5 2003-11-27 19:56:00 jan Exp $    
+%       $Id: errorcodes.tex,v 1.6 2005-11-23 15:14:06 adanner Exp $    
 
-\chapter{TPIE Error Codes}
+\chapter{TPIE Error Codes and Management Object Return Values}
+
+\comment{LA: I added the managment object stuff in title since it was
+  there. Is there other stuff that needs to go in this appendix?}
 
 \section{AMI Error Codes}
 \label{sec:ami-errors}
 \index{error codes|(}
 
-AMI\comment{LA: Should we move this section to an appendix? Or just move it
-to the end of this section? What about appendix for management object
-return codes ect.?} entry points typically return error codes of the
-enumerated type \lstinline|AMI_err|.  Member functions of operation management
+
+AMI entry points typically return error codes of the enumerated type
+\lstinline|AMI_err|.  Member functions of operation management
 objects\index{operation management objects} also typically return this
-type.  Possible values for error codes include those listed below.  It is
-expected that in future releases of TPIE, many of these error codes will be
-replaced by exceptions.  
+type.  Possible values for error codes include those listed below.  It
+is expected that in future releases of TPIE, many of these error codes
+will be replaced by exceptions.
 %Exceptions are not currently used by TPIE because the {\tt
 %g++} compiler does not fully support them.
 
@@ -69,8 +71,11 @@ replaced by exceptions.
 \index{AMI\_ERROR\_*@{\tt AMI\_ERROR\_*}|)}
 \end{description}
 
+\section{Management Object Return Values}
+\index{Management object return values|(}
 
-\section{Return Values for Scan Management Objects}
+\subsection{Return Values for Scan Management Objects}
+
 
 More information on the precise semantics of these values appears in
 Section~\ref{sec:ref-ami-scan}.
@@ -83,7 +88,7 @@ AMI\_SCAN\_CONTINUE}} Tells \lstinline|AMI_scan()|\index{AMI\_scan()@{\tt AMI\_s
   complete. 
 \end{description}
 
-\section{Return Values for Merge Management Objects}
+\subsection{Return Values for Merge Management Objects}
 
 More information on the precise semantics of these values appears in
 Section~\ref{sec:ref-ami-merge}.
