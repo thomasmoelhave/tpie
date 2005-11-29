@@ -23,6 +23,10 @@ unsigned int AMI_stream_base::device_index;
 // Initializer
 unsigned int AMI_stream_base_device_initializer::count;
 
+// Trick to declare at least one initializer
+// The constructor for this will set up the default device properly
+AMI_stream_base_device_initializer one_sbd_initializer_per_source_file;
+
 AMI_stream_base_device_initializer::AMI_stream_base_device_initializer(){
     AMI_err ae;
     

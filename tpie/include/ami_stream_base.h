@@ -43,6 +43,6 @@ public:
 // This is a trick to make sure that at least one initializer is declared.
 // The constructor for this initializer will make sure that the default
 // device is set up properly.
-static AMI_stream_base_device_initializer one_sbd_initializer_per_source_file;
+extern AMI_stream_base_device_initializer one_sbd_initializer_per_source_file;
 
 #endif // _AMI_STREAM_BASE_H
