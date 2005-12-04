@@ -135,6 +135,7 @@ public:
 	    set_min_range(localMin);
 	    set_max_range(localMax);
 	    m_percentageValue = 1;
+      m_percentageUnit = (localMax-localMin);
 	}
 	m_percentageChecker = 0;
 	reset();
