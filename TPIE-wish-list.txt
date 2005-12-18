@@ -200,5 +200,15 @@ A very quick summary:
          the memory manager to provide a pause/resume
          mechanism for registering allocation sized
          November 2005 (J. Vahrenhold)
- ------------------------------
-
+------------------------------
+ID: 16
+General Area: Pipelining, BTE
+Priority: ?
+Description: Support some form of pipelining or FIFO buffers, so output of
+one algorithm can be used directly by another. This is likely a large
+change and may even require threading, so a frist step could be something
+like overloading the first/last scan in merge-sort, a sort of pseudo
+pipeling where we allow pre/post-processing of certain applications to be
+integrated better
+Status: Open as of Dec 2005
+------------------------------
