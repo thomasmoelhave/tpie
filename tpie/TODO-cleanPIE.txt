@@ -1,0 +1,79 @@
+CleanPIE to-do:
+===============
+
+* Change to fit code-guidelines:
+   - Namespace
+   - One-class-per-file
+   - Upper case
+   - DoXyGen
+   - Separate implementations from headers
+   - Group methods by visibility (public, protected, private
+* File cleanup:
+   - Delete garbage
+   - subdirectories
+* Exceptions (end-of-file)
+* New CMS
+* Change licensing/copyright stuff (LGPL, headers in unified format)
+* New Name?
+* New WWW! (+place?)
+* Rewrite manual
+
+TPIE to-do:
+===========
+
+Do now (and then make distibution - before christmas):
+------------------------------------------------------
+
+* Make sure all we just did works:
+   - sorting
+   - Substreams
+   - Streams without base class
+   - Progress bar
+   - Memory management
+
+* Andy+Jan+Lars check manual
+
+* Stack
+   - Does it work?
+   - Is it efficient?
+   - Document at least in reference manual
+
+* Queue
+   - Is it efficient?
+   - Include in distribution
+   - Document at least in reference manual
+
+Do soon (before CleanPIE! - some before distribution?):
+-------------------------------------------------------
+
+* Custom stream headers (as in block collection)
+
+* ami_single_base -> ami_merge_object
+
+* Merge heap + internal sort cleanup
+
+* Document block + block collection
+
+* Can different stream BTE's co-exist?
+   - Do we want it?
+   - Cleanup + update manual
+
+Check-old stuff:
+----------------
+
+* Distribution:
+   - Is it implemented?
+   - Does it work?
+* Key bucket sort:
+   - Does it work?
+   - Document at at least in reference manual
+* Permuting
+   - Does it work?
+   - Remove all but general permuting?
+   - Document at least in reference manual
+* Matrix stuff
+   - Does to work?
+   - Remove or document.
+* Distribution sweeping:
+   - Is it there?
+
