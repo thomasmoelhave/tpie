@@ -8,7 +8,7 @@
 
 // Define it all.
 #include <ami.h>
-#include <ami_optimized_merge.h>
+#include <ami_merge.h>
 
 
 class Compare_test
@@ -61,5 +61,5 @@ int main()
      instream[j]->write_item(100*j+i);
   }
 
-  ae = AMI_generalized_merge(instream, (arity_t)5, &outstream, comp);
+  ae = AMI_merge(instream, (arity_t)5, &outstream, comp);
 }

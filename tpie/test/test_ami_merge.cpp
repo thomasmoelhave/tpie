@@ -7,7 +7,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_merge_cpp,"$Id: test_ami_merge.cpp,v 1.20 2005-11-16 17:03:51 jan Exp $");
+VERSION(test_ami_merge_cpp,"$Id: test_ami_merge.cpp,v 1.21 2005-12-19 03:11:19 adanner Exp $");
 
 #include <iostream>
 
@@ -156,7 +156,7 @@ int main(int argc, char **argv)
     amirs[0] = &amis0;
     amirs[1] = &amis1;
     
-    ae = AMI_generalized_single_merge(amirs, arity, &amis2, &im);
+    ae = AMI_single_merge(amirs, arity, &amis2, &im);
 
     if (verbose) {
         cout << "Interleaved them; operate() called " << im.called 
@@ -189,7 +189,7 @@ int main(int argc, char **argv)
     // block written to be unmapped.
     ae = amis2.seek(0);
     
-    ae = AMI_generalized_single_merge(amirs, arity, &amis3, &im);
+    ae = AMI_single_merge(amirs, arity, &amis3, &im);
 
     if (verbose) {
         cout << "Interleaved them; operate() called " << im.called 

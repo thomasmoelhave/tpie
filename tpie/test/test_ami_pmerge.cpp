@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 9/17/94
 //
-// A test for AMI_generalized_partition_and_merge().
+// A test for AMI_partition_and_merge().
 
 
 #include <portability.h>
@@ -17,7 +17,7 @@
 #include <mergeheap.h>
 
 #include <versions.h>
-VERSION(test_ami_pmerge_cpp,"$Id: test_ami_pmerge.cpp,v 1.32 2005-11-18 12:42:56 jan Exp $");
+VERSION(test_ami_pmerge_cpp,"$Id: test_ami_pmerge.cpp,v 1.33 2005-12-19 03:11:19 adanner Exp $");
 
 // Utitlities for ascii output.
 #include <ami_scan_utils.h>
@@ -36,7 +36,7 @@ int c_int_cmp(const void *p1, const void *p2)
 // what is included as part of the TPIE system for sorting in
 // ami_sort_single.h.
 
-class s_merge_manager : public AMI_generalized_merge_base<int> {
+class s_merge_manager : public AMI_merge_base<int> {
 private:
     merge_heap_op<int> *mheap;
     TPIE_OS_SIZE_T input_arity;
@@ -270,7 +270,7 @@ int main(int argc, char **argv)
 
     s_merge_manager sm;
     
-    ae = AMI_generalized_partition_and_merge(&amis0, &amis1, &sm);
+    ae = AMI_partition_and_merge(&amis0, &amis1, &sm);
     
     if (verbose) {
       cout << "Sorted them."<< endl;
