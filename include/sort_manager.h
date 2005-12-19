@@ -1,7 +1,7 @@
 //
 // File: sort_manager.h
 //
-// $Id: sort_manager.h,v 1.5 2005-11-17 17:11:25 jan Exp $
+// $Id: sort_manager.h,v 1.6 2005-12-19 03:11:18 adanner Exp $
 //
 // This file contains the class sort_manager that actually performs sorting
 //      given an internal sort implementation and merge heap implementation
@@ -16,7 +16,7 @@
 #include <portability.h>
 #include <ami_stream.h> 
 #include <tpie_tempnam.h>
-#include <merge_sorted_runs.h>
+#include <ami_merge_sorted_runs.h>
 #include <mergeheap.h>  //For templated heaps
 #include <internal_sort.h> // Contains classes for sorting internal runs
                            // using different comparison types
@@ -850,7 +850,7 @@ AMI_err sort_manager<T,I,M>::single_merge( AMI_STREAM < T > **inStreams,
 					   arity_t arity, AMI_STREAM < T >*outStream, TPIE_OS_OFFSET cutoff)
 {
 
-    return merge_sorted_runs(inStreams, arity, outStream, m_mergeHeap,
+    return ami_merge_sorted_runs(inStreams, arity, outStream, m_mergeHeap,
 			     cutoff, m_indicator);
 }
 

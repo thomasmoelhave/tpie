@@ -4,7 +4,7 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/5/94
 //
-// $Id: merge_random.h,v 1.14 2005-11-17 17:07:41 jan Exp $
+// $Id: merge_random.h,v 1.15 2005-12-19 03:11:18 adanner Exp $
 //
 // A merge managment object that reorders the input stream in a random
 // way.
@@ -17,7 +17,7 @@
 #include <mergeheap.h>
 
 template<class T>
-class merge_random : public AMI_generalized_merge_base<T> {
+class merge_random : public AMI_merge_base<T> {
 private:
     // Prohibit these
     merge_random(const merge_random<T>& other);
