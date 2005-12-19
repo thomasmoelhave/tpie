@@ -1,5 +1,5 @@
 %%
-%% $Id: user_manual.tex,v 1.27 2005-11-23 15:14:06 adanner Exp $
+%% $Id: user_manual.tex,v 1.28 2005-12-19 03:47:02 adanner Exp $
 %%
 \chapter{Overview}
 
@@ -127,11 +127,11 @@ and sample applications.
 \section{Hardware Platforms}
 \index{hardware platforms}
 
-TPIE\comment{LA: Jan and Andy please check} has been tested on a
-variety of hardware platforms with a variety of UNIX and Windows
+TPIE\comment{LA: Jan and Andy please check. AD: correct} has been tested on a
+variety of hardware platforms with a variety of UNIX/Linux and Windows
 operating systems and using several C++ compliers.  Among others, TPIE
-is know to compile using the gcc compiler versions 2.95, 3.3, 3.4 and
-4.0, as well as using the visualstudio 2003 compiler (with large file
+is known to compile using the gcc compiler versions 2.95, 3.3, 3.4 and
+4.0, as well as using the MS Visual Studio 2003 compiler (with large file
 support - 64bit file offsets).
 
 
@@ -292,14 +292,16 @@ Directory & Contents \\
                    that TPIE is operating correctly.  This
                    directory also includes the code for the
                    sample program discussed in Chapter
-                   \ref{ch:samplepgmr}, and the example
-                   applications described in
-                   Appendix~\ref{ch:examples}.\index{test
-                   applications}  \\
+                   \ref{ch:samplepgmr}.\\
+ \path"bin/"      & Compiled executables from the test directory. \\
+ \path"apps/"     & More advanced applications than those in the test
+                    directory. Example applications are described in
+                    Appendix~\ref{ch:examples}.\index{test
+                    applications}\\ 
  \path"doc/"      & Written documentation for TPIE,
                    consisting of the document you are
                    reading now, in DVI and Postscript(TM)
-                   formats.\index{documentation} \\
+                   formats.\index{documentation}.\\
 \hline
 \end{tabular}}
 \caption{\plabel{fig:components} Components of the TPIE distribution.}
@@ -438,12 +440,14 @@ The sample program can be compiled as follows: (recall that Section
 required):
 
 \begin{lstlisting}
-g++ sample_pgm.cpp -I../include/ -L../lib/ -ltpie -o sample_pgm
+cd test
+make sample_pgm
 \end{lstlisting}
 
 By way of example, the program can be run with 1000000 random integers
 and 5000000 bytes of main memory as follows:
 \begin{lstlisting}
+cd ../bin
 sample_pgm 1000000 5000000
 \end{lstlisting}
 
@@ -598,7 +602,8 @@ Section \ref{sec:tut-scanning} for a discussion of scan management
 objects, Section \ref{sec:tut-merging} for a discussion of merge
 management objects, and Section \ref{sec:tut-sorting} for a discussion
 of sort management objects.\comment{LA: We don't have a sort
-  management object anymore do we?!}
+  management object anymore do we?! AD: We do, but it is never used
+  directly.}
 
 Creating a stream of objects in TPIE is very much like creating any
 other object in \CPP{}. The only difference is that the data placed in
@@ -1089,7 +1094,7 @@ select the best algorithm for the given hardware platform.
 Section~\ref{sec:tut-merging} was not intended as an illustration of
 how to sort in TPIE, it contains the main ideas of how merge sorting
 should be done in order to achieve I/O optimality, and how it is done
-internally by TPIE's merge sort services.\comment{LA: ``services''?
+internally by TPIE's merge sort manager.\comment{LA: ``services''?
   In general this whole section is not well written and should be
   rewritten at some point (note; the same text is in the reference -
   not good as they serve two very different purposes)}
@@ -1150,7 +1155,7 @@ for \lstinline|AMI_sort|, below.\comment{LA: Not really true
 
 
 \subsubsection{AMI\_sort()}
-\lstinline|AMI_sort()| has two polymorphs, described
+\lstinline|AMI_sort()| has two comparison polymorphs, described
 below.\comment{LA: More - e.g. 2X sort. Need to update! Andy?} We
 will refer to these as the comparison operator and the comparison
 object versions of \lstinline|AMI_sort|. The comparison operator
@@ -1188,7 +1193,7 @@ objects in several different ways. This polymorph of
 object must have a public member function named \lstinline|compare|.
 For example, the following code sorts a stream of complex numbers in
 two ways, by their real parts and by their imaginary
-parts.\comment{LA: Check that this is correct.}
+parts.\comment{LA: Check that this is correct. AD: yes, correct.}
 
 \lstinputlisting[basicstyle=\ttfamily\small]{src/compare_re_class.cpp}
 
@@ -1425,18 +1430,6 @@ streams.
 \index{elementwise arithmetic|)}
 
 \index{matrices|)}
-
-
-\section{External Stack}
-\plabel{sec:tut-stack}
-
-\index{External Stack}
-
-\comment{LA: put stack, external in index}
-
-\tobewritten\comment{LA: We need to check if this works correctly AND
-  add Queue! Andy?}
-
 
 \section{Compiling and Executing a TPIE Program}
 \plabel{sec:tut-compiling}

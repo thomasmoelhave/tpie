@@ -1,5 +1,5 @@
 %%
-%% $Id: ami_reference.tex,v 1.18 2005-11-23 15:14:06 adanner Exp $
+%% $Id: ami_reference.tex,v 1.19 2005-12-19 03:47:02 adanner Exp $
 %%
 
 \chapter{TPIE Programmer's Reference}
@@ -67,12 +67,12 @@ interact with the memory manager.
 
     \entry{MM\_err \textbf{set\_memory\_limit}(size\_t size);} {Set the
     application's memory limit. The memory limit is set to \lstinline|size|
-    bytes. If the specified mamory limit is greater than or equal to the
+    bytes. If the specified memory limit is greater than or equal to the
     amount of memory already allocated, \lstinline|set_memory_limit| returns
     \lstinline|MM_ERROR_NO_ERROR|, otherwise it returns
     \lstinline|MM_ERROR_EXCESSIVE_ALLOCATION|. By default, successive calls
     to operator \lstinline|new| will cause the program to abort if the
-    resulting memory usage would exceed \lstinline|size| bytes. This behaviour
+    resulting memory usage would exceed \lstinline|size| bytes. This behavior
     can be controlled explicitly by the use of methods
     \lstinline|enforce_memory_limit|, \lstinline|warn_memory_limit| and
     \lstinline|ignore_memory_limit|.}
@@ -114,7 +114,7 @@ type \lstinline|T| on external memory.
 The stream type of an \lstinline|AMI_STREAM| indicates what
 operations are permitted on the stream.
 An \lstinline|AMI_STREAM<T>| object can have one of four different
-types:\comment{LA: Add something like this about persistance flag}
+types:\comment{LA: Add something like this about persistence flag}
 \begin{itemize}
     
     \item \lstinline|AMI_READ_STREAM|: Input operations on
@@ -270,7 +270,7 @@ types:\comment{LA: Add something like this about persistance flag}
   \textbf{read\_item}(T **elt);} {Read the current item from the
   stream and advance the ``current item'' pointer to the next item.
   The item read is pointed to by \lstinline|*elt|. If no error has
-  occured, return \lstinline|AMI_ERROR_NO_ERROR|. If the ``current
+  occurred, return \lstinline|AMI_ERROR_NO_ERROR|. If the ``current
   item'' pointer is beyond the last item in the stream, return
   \lstinline|AMI_ERROR_END_OF_STREAM|.}  \index{read_item()@{\tt
     read\_item()}!AMI|)}
@@ -341,7 +341,7 @@ types:\comment{LA: Add something like this about persistance flag}
     \index{write_item()@{\tt write\_item()}!AMI|(} \entry{AMI\_err
       \textbf{write\_item}(const T \&elt);} {Write \lstinline|elt| to
       the stream in the current position. Advance the ``current item''
-      pointer to the next item. If no error has occured
+      pointer to the next item. If no error has occurred
       \lstinline|AMI_ERROR_NO_ERROR| is
       returned.} \index{write_item()@{\tt write\_item()}!AMI|)}
   
@@ -512,7 +512,7 @@ streams of any type for which a \lstinline|>>| operator is defined for
 \subsection{Description}
 A scan management class template for writing the contents of a TPIE
 stream into an ordinary \CPP{} output stream.  It works with streams
-of any type forwhich a \lstinline|<<| operator is defined for \CPP{}
+of any type for which a \lstinline|<<| operator is defined for \CPP{}
 stream output.
 
 \subsection{Constructor} 
@@ -526,9 +526,9 @@ stream output.
 %%%%%%%% Stream Merging %%%%%%%%%
 \mysection{Stream Merging}
 \index{merging|(}
-\index{AMI__merge()@{\tt AMI\_merge()}|(}
+\index{AMI_merge()@{\tt AMI\_merge()}|(}
 
-\comment{LA: Andy please check}
+\comment{LA: Andy please check. AD: OK}
 
 \subsection{Files}
   \btabb
@@ -658,9 +658,9 @@ all the flags to see which inputs were or were not processed.
 
 
 \subsection{Files}
-\comment{LA: Andy please check!}
+\comment{LA: Andy please check! AD: OK}
   \btabb
-    \entry{\#include <ami\_merge.h>} {}
+    \entry{\#include <ami\_merge\_sorted\_runs.h>} {}
   \etabb
 
 \subsection{Function Declarations}
@@ -679,7 +679,7 @@ TPIE provides several merge entry points for merging sorted streams to
 produce a single, interleaved output stream.
 \lstinline|AMI_merge_sorted_runs| has three polymorphs, namely the
 comparison operator, comparison class and the key-based
-polymorhhs.\comment{LA: Syntax of comparator?}  The comparison
+polymorphs.\comment{LA: Syntax of comparator?}  The comparison
 operator version tends to be the fastest and most straightforward to
 use. The comparison class version is comparable in speed (maybe
 slightly slower), but somewhat more flexible, as it can support
@@ -695,7 +695,7 @@ multiple, different merges on the same keys.\comment{LA: Key based?}
 \index{AMI_partition_and_merge()@{\tt AMI\_partition\_and\_merge()}|(}
 \plabel{sec:ref-ami-gpmerge}
 
-\comment{LA: Andy please check}
+\comment{LA: Andy please check. AD: OK}
 
 \subsection{Files}
   \btabb
@@ -783,7 +783,7 @@ the portion that is linear in the number of streams.
 \index{AMI_ptr_sort@{\tt AMI\_ptr\_sort}|(} \index{AMI_sort@{\tt
     AMI\_sort}|(}
 
-\comment{LA: Andy please check + add 2x sort (others?)}
+\comment{LA: Andy please check}
 
 \subsection{Files}
   \btabb
@@ -812,7 +812,24 @@ the portion that is linear in the number of streams.
      \entry{template<class T, class KEY, class CMPR>\\
 AMI\_err \textbf{AMI\_key\_sort}(AMI\_STREAM<T> *instream, AMI\_STREAM<T> *outstream,
          KEY dummykey, CMPR *cmp) ;} {}
-  \etabb
+
+  \entry{template<class T>\\
+  AMI\_err \textbf{AMI\_sort}(AMI\_STREAM<T> *instream);} {}
+
+  \entry{template<class T, class CMPR>\\
+   AMI\_err \textbf{AMI\_sort}(AMI\_STREAM<T> *instream, CMPR *cmp);} {}
+
+  \entry{template<class T>\\
+  AMI\_err \textbf{AMI\_ptr\_sort}(AMI\_STREAM<T> *instream);} {}
+
+  \entry{template<class T, class CMPR>\\
+  AMI\_err \textbf{AMI\_ptr\_sort}(AMI\_STREAM<T> *instream, CMPR *cmp);} {}
+
+  \entry{template<class T, class KEY, class CMPR>\\
+   AMI\_err \textbf{AMI\_key\_sort}(AMI\_STREAM<T> *instream,
+   KEY dummykey, CMPR *cmp) ;} {}
+
+\etabb
 
 \subsection{Description}
 Currently,\comment{LA: Same text as in tutorial} TPIE offers three
@@ -849,6 +866,20 @@ In addition to the three variants discussed above, there are multiple
 choices within each variant regarding how the actual comparison
 operations are to be performed. These choices are described in detail
 for \lstinline|AMI_sort|, below.
+ 
+Any sort variant above can sort given an input stream and output stream,
+or just an input stream. When just an input stream is specified, the
+original input elements are deleted the input stream is rewritten with the
+sorted output elements. If both the input stream and output stream are
+specified, the original input elements are saved. During sorting, a
+temporary copy of each element is stored on disk as part of intermediate
+sorting results. If $N$ is the size on disk of the original input stream,
+the polymorphs of sorting with both input and output streams use $3N$
+space, whereas if just an input stream is specified, $2N$ space is used.
+If the original unsorted input stream is not needed after sorting, it is
+recommended that users use the \lstinline|AMI_sort| polymorph with with just
+an input stream, to save space and avoid having to maintain both an input
+and output stream. 
 
 \subsubsection{AMI\_sort()}
 \lstinline|AMI_sort()| has two polymorphs, namely the comparison
@@ -902,7 +933,7 @@ as the user key,\comment{LA: Clear why we do this?} and
 below.
 
 The \lstinline|compare| member function has the following
-prototype:\comment{LA: ``prototype''?}
+prototype:\comment{LA: ``prototype''? AD: Yes, standard C++ term}
 \begin{lstlisting}
   inline int compare (const KEY & k1, const KEY & k2);
 \end{lstlisting}
@@ -931,7 +962,8 @@ during the sort.
 \mysection{Internal Memory Sorting} \plabel{sec:ref-ami-memsort}
 \index{sorting!internal memory|(}
 
-\comment{LA: Andy please check + add STL stuff}
+\comment{LA: Andy please check + add STL stuff. AD: OK, STL is part of
+internal\_sort.h, which is not exported to user here}
 
 \subsection{Files}
   \btabb
@@ -953,9 +985,9 @@ during the sort.
 
 These are internal memory in-place sorting routines that implement the
 quicksort\index{quicksort} algorithm (randomized).\comment{LA:
-  Really?}  These routines are used by the external memory sorting
+  Really? AD: yes}  These routines are used by the external memory sorting
 routines (see Section~\ref{sec:ref-ami-sort}) on streams that are
-small enough to fit in memory.  The three polymorphs use different
+small enough to fit in memory.  The two polymorphs use different
 comparison methods: \lstinline|quick_sort_op| uses the comparison
 operator $<$ and \lstinline|quick_sort_obj| uses a comparison object
 of type \lstinline|CMPR|.
@@ -995,8 +1027,6 @@ of type \lstinline|CMPR|.
 \index{AMI_stack@{\tt AMI\_stack}|(}
 \index{stacks|(}
 
-\comment{LA: Add queue!}
-
 \subsection{Files}
   \btabb
         \entry{\#include <ami\_stack.h>} {}
@@ -1008,9 +1038,9 @@ of type \lstinline|CMPR|.
    \etabb
 
 \subsection{Description}
-External stacks are implemented\comment{LA: Bad word here} through the
-templated class \lstinline|AMI_stack<T>|, which is a subclass of
-\lstinline|AMI_STREAM<T>|.\comment{LA: Do we care here?} As a
+External stacks are derived from  \lstinline|AMI_STREAM<T>|.
+\comment{LA: Do we care here? AD: means there
+are additional public member functions not listed below that we can use} As a
 consequence, it inherits all public members of
 \lstinline|AMI_STREAM<T>|, including its constructors. See
 Section~\ref{sec:ref-ami-stream}.
@@ -1030,6 +1060,43 @@ Section~\ref{sec:ref-ami-stream}.
 
 \index{stacks|)}
 \index{AMI_stack@{\tt AMI\_stack}|)}
+
+
+%%%%%%%%% Queues %%%%%%%%%
+\mysection{Queue}
+\plabel{sec:ref-ami-queue}
+\index{AMI_queue@{\tt AMI\_queue}|(}
+\index{queue|(}
+
+
+\subsection{Files}
+  \btabb
+        \entry{\#include <ami\_queue.h>} {}
+  \etabb
+
+\subsection{Class Declaration}
+   \btabb
+        \entry{template<class T> class \textbf{AMI\_queue};} {}
+   \etabb
+
+\subsection{Description}
+Provides an external FIFO queue. 
+
+\subsection{Public Member Functions}
+   \btabb 
+   
+   \entry{AMI\_err \textbf{enqueue}(const \&T t);} {Insert a copy of the
+     object \lstinline|t| to the back of queue, increasing its
+     length by one.}
+   
+   \entry{AMI\_err \textbf{dequeue}(T **ppt);} {Remove the first element
+     from the front of queue, decreasing its length by one and returning
+     the address of a pointer to the dequeued object in \lstinline|ppt|.}
+
+   \etabb
+
+\index{queue|)}
+\index{AMI_queue@{\tt AMI\_queue}|)}
 
 
 
@@ -1085,7 +1152,7 @@ and (b) to provide a structured access to the contents of the block.
 The first purpose is achieved through internal mechanisms, transparent
 to the user. When creating an instance of class \lstinline|AMI_block|, the
 constructor is responsible for making the contents of the block
-avilable in main memory. When the object is deleted, the destructor is
+available in main memory. When the object is deleted, the destructor is
 responsible for writing back the data, if necessary, and freeing the
 memory. Consequently, during the life of an \lstinline|AMI_block| object, the
 contents of the block is available in main memory.
@@ -1113,13 +1180,13 @@ block\_size} - (\mbox{\tt sizeof}(I) + \mbox{\tt sizeof(AMI\_bid)} *
         \entry{\textbf{AMI\_block}(AMI\_COLLECTION *pcoll, unsigned int l, AMI\_bid
         bid);} {{\em Read the block} with id \lstinline|bid| from block collection
         \lstinline|*pcoll| in newly allocated memory and format it using the
-        template types and the maximum number of links \lstinline|l|. Persistency
-        is set to \lstinline|PERSIST_PERSISTENT|.}
+        template types and the maximum number of links \lstinline|l|.
+        Persistence is set to \lstinline|PERSIST_PERSISTENT|.}
 
         \entry{\textbf{AMI\_block}(AMI\_COLLECTION *pcoll, unsigned int l);} {{\em
         Create a new block} in collection \lstinline|*pcoll|, allocate memory for
         it, and format it using the template types and the maximum number
-        of links \lstinline|l|. Persistency is set to \lstinline|PERSIST_PERSISTENT|. The id of the block can be inquired using the
+        of links \lstinline|l|. Persistence is set to \lstinline|PERSIST_PERSISTENT|. The id of the block can be inquired using the
         access member function \lstinline|bid()|.}
 
         \entry{\textbf{$\sim$AMI\_block}();} {Destructor. If persistency 
@@ -1472,7 +1539,7 @@ the \lstinline|KeyOfValue| function object.
 
    \entry{AMI\_err \textbf{load}(AMI\_btree<Key, Value, Compare,
    KeyOfValue>* bt, float leaf\_fill = .7, float node\_fill =
-   .5);}{Bulk load from another B-tree. This is a means of reoganizing a
+   .5);}{Bulk load from another B-tree. This is a means of reorganizing a
    B-tree after a lot of updates. A newly loaded structure may use less
    space and may answer range queries faster.}
 

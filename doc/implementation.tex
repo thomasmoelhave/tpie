@@ -1,5 +1,5 @@
 %%
-%% $Id: implementation.tex,v 1.20 2005-11-23 15:14:06 adanner Exp $
+%% $Id: implementation.tex,v 1.21 2005-12-19 03:47:02 adanner Exp $
 %%
 \chapter{The Implementation of TPIE}
 \plabel{cha:implementation}
@@ -1121,10 +1121,6 @@ be modified manually.
 \plabel{sec:imp-ami-generalized-merge}
 \index{merging|(}
 
-\tobeextended\comment{LA: Andy please check this section}
-
-\path"include/ami_merge_base.h"\comment{LA: true?}
-
 \subsubsection{Merging}
 
 \tobeextended\comment{LA: Merge management object etc}
@@ -1135,18 +1131,17 @@ be modified manually.
 %defined in the file \lstinline|ami_merge.h" can be used conveniently by
 %appropriately defining the member functions of the class.
 
-\path"include/ami_merge.h"\comment{LA: Remember something about
-  ami\_merge really called ami\_single\_merge.}
+\path"include/ami_merge.h"\comment{AD: The ``Darren'' version}
 
 
 
 \subsubsection{Merging sorted runs}
 
 
-\tobeextended\comment{ami\_merge\_sorted\_runs?}
+\tobeextended
 
-The \lstinline|AMI_merge()| polymorphs (defined in file
-\path"include/ami_optimized_merge.h") work without a merge management
+The \lstinline|AMI_merge_sorted()| polymorphs (defined in file
+\path"include/ami_merge_sorted_runs.h") work without a merge management
 object and perform standard (total order/comparison based) merging.
 The elimination of the merge management object object results in one
 less level of function calls and thus in improved efficiency over a
@@ -1182,9 +1177,9 @@ substreams output by that stage.\comment{LA: Extend this stuff so that
 \plabel{sec:ref-imp-ami-sort}
 \index{sorting!comparison|(}
 
-The\comment{LA: Andy please check this again}\comment{LA: Add 2x
-  sorting somewhere. Does progress bar stuff also go here or is it
-  more general?} TPIE sort implementation is a multi-way merge sort.
+The\comment{LA: Add 2x
+  sorting somewhere. AD: added in user Reference. Does progress bar stuff also go here or is it
+  more general? AD: More general} TPIE sort implementation is a multi-way merge sort.
 Merge sort consists of two phases: the run formation phase and the
 merging phase. During the \emphd{run formation phase}, the $N$ input
 elements are read approximately $M$ (one \emphd{memory-load}) at a
@@ -1196,15 +1191,7 @@ During each merge an internal \emph{merge heap} is used to select the
 next element to be output among the first element in each of the input
 runs. Below we discuss the sort implementation in more detail.
 
-%When implementing the TPIE merge sort, we had a number of design
-%decisions to make. For example, what internal memory sorting algorithm
-%should be used, how the merge heap should be implemented, how the
-%sorted runs should be stored and so on. In our design, we have tried
-%to remain flexible while not sacrificing performance. 
-
-
-\paragraph{Sort manager.}\comment{LA: I moved this from the end
-  (seemed much more natural).} The sort manager class in
+\paragraph{Sort manager.} The sort manager class in
 \path"include/sort_manager.h" is responsible for performing the
 general external merge sort. It takes as template arguments the type
 of object to sort, an \emph{internal sort object} to use for sorting
@@ -1214,53 +1201,21 @@ computes the size of internal runs to sort as well as the number of
 runs to merge at one time.\footnote{Often the number of streams that
   can be merged at one time is not limited by the amount of memory,
   but the number of open file descriptors a running process can open
-  at once in a given OS.}\comment{LA: Footnote really true?} The
+  at once in a given OS.}\comment{LA: Footnote really true? AD: Yes.
+  Number of default open file descriptors per process in Linux is
+  typically 1-4K} The
 manager then partitions the input data (stream) and use the internal
 sort object to sort the partitioned runs (streams). Then it loops over
 the sorted runs (streams) and merges runs using the merge heap object
 provided until a single output run (stream) is produced.\comment{LA:
   Something somewhere about why not using merge management object
-  (AMI\_merge)?} Various combinations of internal sort class and merge
-heap are exposed as easier to use \lstinline|AMI_sort| functions
-described in \ref{fig:imp-sort-variants}.\comment{LA: This sentence
-  (and figure) is not clear - especially now that its moved up from
-  bottom. Rewrite, or probably better, have a paragraph at the end
-  with this last sentence/stuff and a listing of all the different
-  sort calls (like in other sections).}
-
-\begin{figure}
-\begin{center}
-\begin{minipage}[hb]{1.0\linewidth}
-\raggedright
-\centering{
-\begin{tabular}{l|p{2in}|l|l}
-\hline
-Sorting  & Comparison & Class of Internal & Class of Merge \\
-Template & Variant    & Sorter   & Heap    \\
-\hline
-\lstinline|AMI_sort| & operator & \lstinline|Internal_Sorter_Op| &
-\lstinline|merge_heap_op| \\
-\lstinline|AMI_sort| & object   & \lstinline|Internal_Sorter_Obj| & \lstinline|merge_heap_obj| \\
-\lstinline|AMI_ptr_sort| & operator & \lstinline|Internal_Sorter_Op| &
-\lstinline|merge_heap_ptr_op| \\
-\lstinline|AMI_ptr_sort| & object   & \lstinline|Internal_Sorter_Obj| &
-\lstinline|merge_heap_ptr_obj| \\
-\lstinline|AMI_key_sort| & key object  & \lstinline|Internal_Sorter_KObj| & \lstinline|merge_heap_kobj| \\
-\hline
-\end{tabular}}
-\caption{\plabel{fig:imp-sort-variants} Customization of Arguments
-   to \lstinline|sort_manager|.}
-\end{minipage}
-\end{center}
-\end{figure}
-
+  (AMI\_merge)?}
 
 \paragraph{Internal sorting.} The details of how a set of elements
 is sorted in internal memory in the run formation phase is defined
-by\comment{LA: ``in''?} an internal sort class. Three different
-internal sort class objects, defined in
-\path"include/internal_sort.h", are used in TPIE.\comment{LA: Is it
-  clear why there is more than one?} Each class object has a public
+in an internal sort class. Three different
+internal sort class objects--one for each comparision type--are defined in
+\path"include/internal_sort.h". Each class object has a public
 function
 \begin{lstlisting}
   sort(AMI_STREAM<T>* in, AMI_STREAM<T>* out, TPIE_OS_OFFSET nItems)
@@ -1273,7 +1228,8 @@ Optionally STL \lstinline|sort| can be used by defining the flag
 quicksort have similar running times. Neither the quicksort
 implementation nor the STL \lstinline|sort| is a stable sort, i.e.,
 they do not preserve the relative order of input elements that compare
-equal.\comment{LA: And so what?}
+equal. If users need a stable sort, the sort key should be modified to
+include the initial item offset in the comparison.
 
 What distinguishes the different sort class objects is the way two
 input elements are compared in the quicksort algorithm. The tree
@@ -1296,7 +1252,8 @@ and
 The \lstinline|copy| method is used to extract a (presumably) small
 \lstinline|KEY| from each input data element of type \lstinline|T| and
 the \lstinline|compare| method is then used in to compare such keys in
-the quicksort algorithm.\comment{LA: Write more?} Note that the
+the quicksort algorithm.\comment{LA: Write more? AD: not in implementation
+details, discussed in user ref.} Note that the
 (natural) C-style comparison function pointer sorting variant is not
 implemented because each comparison would then incur a function call;
 the other methods can (and do) use inlined comparison methods and thus
@@ -1314,17 +1271,16 @@ class implements a function \lstinline|delete_min_and_insert| that
 removes the smallest element and inserts the next element from the
 corresponding stream in one atomic operation. This saves one
 \lstinline|heapify| operation for each delete min and
-insert.\comment{LA: Extend a little?}
+insert and greatly improves performance.
 
 Similar to the internal sort class objects, TPIE implements different
-variants\comment{LA: Should it say ``class object'' or something like
-  about? If so then also change below} of the mergeheap class that
+mergeheap class objects that
 utilize a comparison operator, a comparison object, and a key plus
 object comparison method, respectively, to compare elements. In
-addition, variants are implemented where pointers to elements are
+addition, mergeheap objects are implemented where pointers to elements are
 maintained in the heap rather than the elements themselves. While a
 pointer must now be dereference each time a comparison or heap
-operation is done, these variant may still be faster than non-pointer
+operation is done, these variants may still be faster than non-pointer
 variants for large elements, since the large elements do not have to
 be copied into and around the heap.\comment{LA: Is this clear/true?}
 Two pointer variants are implemented, namely variants that uses
@@ -1356,6 +1312,36 @@ the OS or disk to predict the file access pattern, leading to inferior
 performance.  The approach of using a number of streams equal to the
 number of merged runs result in sequential access to $k$ separate
 streams (files), often leading to improved performance.
+
+  
+Various combinations of internal sort class and merge
+heap are exposed as easier to use \lstinline|AMI_sort| functions
+described in \ref{fig:imp-sort-variants}.
+\begin{figure}
+\begin{center}
+\begin{minipage}[hb]{1.0\linewidth}
+\raggedright
+\centering{
+\begin{tabular}{l|p{2in}|l|l}
+\hline
+Sorting  & Comparison & Class of Internal & Class of Merge \\
+Template & Variant    & Sorter   & Heap    \\
+\hline
+\lstinline|AMI_sort| & operator & \lstinline|Internal_Sorter_Op| &
+\lstinline|merge_heap_op| \\
+\lstinline|AMI_sort| & object   & \lstinline|Internal_Sorter_Obj| & \lstinline|merge_heap_obj| \\
+\lstinline|AMI_ptr_sort| & operator & \lstinline|Internal_Sorter_Op| &
+\lstinline|merge_heap_ptr_op| \\
+\lstinline|AMI_ptr_sort| & object   & \lstinline|Internal_Sorter_Obj| &
+\lstinline|merge_heap_ptr_obj| \\
+\lstinline|AMI_key_sort| & key object  & \lstinline|Internal_Sorter_KObj| & \lstinline|merge_heap_kobj| \\
+\hline
+\end{tabular}}
+\caption{\plabel{fig:imp-sort-variants} Customization of Arguments
+   to \lstinline|sort_manager|.}
+\end{minipage}
+\end{center}
+\end{figure}
 
 
 %\comment{LA: Knuth forecasting stuff? }
@@ -1413,10 +1399,19 @@ streams (files), often leading to improved performance.
 \subsection{Stacks}
 \plabel{sec:ref-imp-ami-stack}
 
-\tobewritten\comment{LA: Add queue}
+\tobewritten
 
 \index{stacks|(}
 \index{stacks|)}
+
+\subsection{Queues}
+\plabel{sec:ref-imp-ami-queue}
+
+\tobewritten
+
+\index{queue|(}
+\index{queue|)}
+
 
 \subsection{Elementwise Arithmetic}
 \plabel{sec:ref-imp-ami-arith}
