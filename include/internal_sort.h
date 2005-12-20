@@ -7,7 +7,7 @@
 // Internal sorter class that can be used within AMI_sort() on small
 // streams/substreams
 //
-// $Id: internal_sort.h,v 1.4 2005-11-17 17:11:25 jan Exp $
+// $Id: internal_sort.h,v 1.5 2005-12-20 18:25:20 adanner Exp $
 //
 #ifndef _INTERNAL_SORT_H
 #define _INTERNAL_SORT_H
@@ -86,7 +86,7 @@ inline TPIE_OS_SIZE_T Internal_Sorter_Base<T>::MaxItemCount(
   //Space available for items
   TPIE_OS_SIZE_T memAvail=memSize-space_overhead();
   
-  if(memAvail < space_per_item() ){ return -1; }
+  if(memAvail < space_per_item() ){ return 0; }
   else{ return memAvail/space_per_item(); }
 }
 
@@ -431,7 +431,7 @@ inline TPIE_OS_SIZE_T Internal_Sorter_KObj<T, KEY, CMPR>::MaxItemCount(
   //Space available for items
   TPIE_OS_SIZE_T memAvail=memSize-space_overhead();
   
-  if(memAvail < space_per_item() ){ return -1; }
+  if(memAvail < space_per_item() ){ return 0; }
   else{ return memAvail/space_per_item(); }
 }
 
