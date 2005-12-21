@@ -1,5 +1,5 @@
 %%
-%% $Id: user_manual.tex,v 1.28 2005-12-19 03:47:02 adanner Exp $
+%% $Id: user_manual.tex,v 1.29 2005-12-21 13:49:29 jan Exp $
 %%
 \chapter{Overview}
 
@@ -127,12 +127,14 @@ and sample applications.
 \section{Hardware Platforms}
 \index{hardware platforms}
 
-TPIE\comment{LA: Jan and Andy please check. AD: correct} has been tested on a
-variety of hardware platforms with a variety of UNIX/Linux and Windows
-operating systems and using several C++ compliers.  Among others, TPIE
-is known to compile using the gcc compiler versions 2.95, 3.3, 3.4 and
-4.0, as well as using the MS Visual Studio 2003 compiler (with large file
-support - 64bit file offsets).
+TPIE
+%%\comment{LA: Jan and Andy please check. AD: correct, JV: correct} 
+has been tested on a variety of hardware platforms with a variety of
+UNIX, Linux, MacOS X, and Windows operating systems and using several
+C++ compilers.  Among others, TPIE is known to compile using the gcc
+compiler versions 2.95, 3.3, 3.4 and 4.0, as well as using the MS
+Visual Studio 2003 compiler (with large file support - 64bit file
+offsets).
 
 
 \section{Future releases}
@@ -201,7 +203,7 @@ downloading this file to your local machine.
 \index{GNU software}
 \plabel{sec:tut-gnu-software}
 
-To uncompress and unarchive the distribution, you will need either the
+To\comment{JV: This whole subsection is obsolete and should be removed.} uncompress and unarchive the distribution, you will need either the
 GNU \texttt{tar} utility, or \texttt{gzip} and a \texttt{tar} program.
 (the GNU version can decompress and untar at the same time with the
 '\texttt{z}' option). The GNU \texttt{make} utility is also needed.
@@ -234,6 +236,7 @@ URL \\%
 %{\tt tpie\_\version.tgz}, you must decide where to install it.
 %\texttt{/usr/local/tpie/} is a typical place.
 
+
 Place \texttt{tpie\_\version.tgz} in the directory in which TPIE is to
 be installed, \texttt{cd} into that directory, and execute the command
 
@@ -244,33 +247,9 @@ be installed, \texttt{cd} into that directory, and execute the command
 
 This will produce a directory \texttt{tpie\_\version} with
 subdirectories \path"include/", \path"lib/", \path"lib/src/",
-\path"test/", and \path"doc/".  Enter the directory
-\texttt{tpie\_\version}.  You must now configure TPIE for your
-particular system.  To do this, use the command
+\path"test/", and \path"doc/".  
 
-\begin{lstlisting}
-./configure
-\end{lstlisting}
-
-\index{configuration} Certain configuration options can be specified
-to the \texttt{configure} script, but usually these will not be of
-interest the first time TPIE is installed.  These options are
-described in Section \ref{sec:customization}.
-
-The configuration program will take some time to examine the
-parameters of your system.  Once it has done so, it will produce the
-various Makefiles and configuration files required to build TPIE on
-your system.  When this is done, simply invoke your version of GNU
-\texttt{make}:
-
-\begin{lstlisting}
-make all
-\end{lstlisting}
-to build the complete TPIE system.  This will build the components of
-TPIE that must be tailored to your system. This includes: the TPIE
-run-time library \texttt{tpie\_\version/lib/libtpie.a}, the test and
-sample programs in directory \texttt{tpie\_\version/test}, and certain
-header files in \texttt{tpie\_\version/include}.  You should now have
+You should now have
 a complete TPIE system, consisting of the directories listed in Figure
 \ref{fig:components}.
 \begin{figure}
@@ -309,7 +288,153 @@ Directory & Contents \\
 \end{center}
 \end{figure}
 
+\subsection{Configuration for use with gcc}
 
+Enter the directory \texttt{tpie\_\version}.  You must now configure
+TPIE for your particular system.  To do this, use the command
+
+\begin{lstlisting}
+./configure
+\end{lstlisting}
+
+\index{configuration} Certain configuration options can be specified
+to the \texttt{configure} script, but usually these will not be of
+interest the first time TPIE is installed.  These options are
+described in Section \ref{sec:customization}.
+
+The configuration program will take some time to examine the
+parameters of your system.  Once it has done so, it will produce the
+various Makefiles and configuration files required to build TPIE on
+your system.  When this is done, simply invoke your version of GNU
+\texttt{make}:
+
+\begin{lstlisting}
+make all
+\end{lstlisting}
+to build the complete TPIE system.  This will build the components of
+TPIE that must be tailored to your system. This includes: the TPIE
+run-time library \texttt{tpie\_\version/lib/libtpie.a}, the test and
+sample programs in directory \texttt{tpie\_\version/test}, and certain
+header files in \texttt{tpie\_\version/include}.  
+
+\subsection{Configuration for use with Microsoft Visual Studio .NET
+  2003}
+
+The TPIE directory contains a subdirectory named
+\texttt{MSVC60}\comment{JV: This should be renamed, but I do not know
+  how to rename files in CVS.} in which you can find a complete
+``solution'' for building TPIE. To compile TPIE, simply open the
+solution file \texttt{tpie.sln} and have Visual Studio build all
+projects (by invoking ``build all'').
+
+At this point, we find it helpful to briefly discuss how to add a
+project to the TPIE solution, and we will provide an illustrated
+walk-through that also explains which compilation parameters to set.
+
+\paragraph{Step 1: Creating a new project}
+
+Let us assume that the name of the project to be created is
+\texttt{MyTestProject}. To add an empty project, select ``Add Project
+$\rightarrow$ New Project\ldots'' from the ``File'' menu.
+
+\begin{center}
+  \includegraphics[scale=0.4]{figures/net_setup1.pdf}
+\end{center}
+
+Select ``Win32 Console Project'' as the type of project to be created
+and enter the name (in our example \texttt{MyTestProject}) in the
+dialog box. Then, click ``Ok''.
+
+\begin{center}
+  \includegraphics[scale=0.4]{figures/net_setup2.pdf}
+\end{center}
+
+To finalize creating an empty project, make sure to check the
+corresponding checkbox in the next dialog. To do so, first click on
+``Application Settings'', then select ``Empty project'', and confirm
+by clicking the ``Finish'' button.
+
+\begin{center}
+  \includegraphics[scale=0.4]{figures/net_setup3.pdf}
+\end{center}
+
+A new project entry \texttt{MyTestProject} should appear in the
+solution.
+
+\paragraph{Step 2: Adding a main file}
+
+To add an empty main file to the project, select ``Add New
+Item\ldots'' from the ``File'' menu. Select the ``\texttt{C++} File''
+template from the dialog and enter the file name, e.g.,
+\texttt{main.cpp} in the dialog box. Confirm by clicking ``Ok''.
+
+\begin{center}
+  \includegraphics[scale=0.4]{figures/net_setup8.pdf}
+\end{center}
+
+
+\paragraph{Step 3: Setting paths and compile-time parameters}
+
+To access the project's properties dialog, right-click on the project
+entry and select the ``Properties'' entry from the pop-up menu. To
+futher facilitate setting the parameters, choose the ``All
+Configurations'' configuration from the upper left pulldown menu
+located in the properties dialog.
+
+The first step is to specify the include directories. Select the
+``\texttt{C}/\texttt{C++}'' entry in the left column of the dialog
+(note that this entry exist only if you have added a (possibly empty)
+file to the project) and click on the ``General'' subentry. Enter
+``\path"..\..\..\include"'' in the field ``Additional Include
+Directories''. We strongly suggest to also turn on warning level 3
+(compile-time switch \texttt{/W3}) and
+to have the compile check for 64-bit portability issues (compile-time
+switch \texttt{/Wp64}). 
+ 
+\begin{center}
+  \includegraphics[scale=0.4]{figures/net_setup9.pdf}
+\end{center}
+
+TPIE needs to know about the TPIE library file \texttt{tpie.lib} and
+its location. This information can be set by opening the ``Linker''
+entry and accessing its subentries. The ``General'' subentry provides
+the means to set the ``Additional Library Directory'' to
+``\path"..\..\..\lib"''.
+
+\begin{center}
+  \includegraphics[scale=0.4]{figures/net_setup6.pdf}
+\end{center}
+
+The ``Input'' subentry provides means to force linking against the
+TPIE library (by setting ``Additional Dependencies'' to
+\texttt{tpie.lib}) and for also excluding to link
+against \texttt{libc} (by setting ``Ignore Specific Library'' to
+\texttt{libc}). The latter setting is needed to prevent conflicts
+between the standard \texttt{new}-operator and TPIE's memory
+management. 
+
+\begin{center}
+  \includegraphics[scale=0.4]{figures/net_setup7.pdf}
+\end{center}
+
+Finally, the output directory, i.e., the directory where the compile
+will put the executables, has to be set. To maintain executables for
+all configurations, this step has to be done seperately for the
+``Release'' and the ``Debug'' configuration, and we describe the
+process only for the latter. First, select ``Debug'' from the
+``Configuration'' pulldown menu, and then select the ``General'' entry
+from the left-hand side of the dialog box. In the ``Output
+Directory'', enter ``\path"..\..\..\bin\Debug"'', and in the
+``Intermediate Directory'', enter ``\path".\Debug"''. Confirm by
+clicking ``Ok'' and analogously proceed for the ``Release''
+configuration.
+
+\begin{center}
+  \includegraphics[scale=0.4]{figures/net_setup5.pdf}
+\end{center}
+
+You should be ready to proceed with the steps described in the next
+chapter of this manual.
 
 \chapter{A Taste of TPIE via a Sample Program}
 \plabel{ch:samplepgmr}
