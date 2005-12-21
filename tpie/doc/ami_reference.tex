@@ -1,5 +1,5 @@
 %%
-%% $Id: ami_reference.tex,v 1.19 2005-12-19 03:47:02 adanner Exp $
+%% $Id: ami_reference.tex,v 1.20 2005-12-21 16:18:24 jan Exp $
 %%
 
 \chapter{TPIE Programmer's Reference}
@@ -15,7 +15,7 @@
 \plabel{sec:mm-ref}
 \index{memory manager|(}
 
-\comment{LA: Jan add STL stuff/flag}
+%\comment{LA: Jan add STL stuff/flag}
 
 \subsection{Files}
   \btabb
@@ -77,6 +77,9 @@ interact with the memory manager.
     \lstinline|enforce_memory_limit|, \lstinline|warn_memory_limit| and
     \lstinline|ignore_memory_limit|.}
 
+    \entry{MM\_err \textbf{warn\_memory\_limit}();} {Instruct TPIE to
+    issue a warning when the memory limit is exceeded.}
+
     \entry{int \textbf{space\_overhead}();} {TPIE imposes a small space
     overhead on each memory allocation request received by operator
     \lstinline|new|. This involves increasing each allocation request by a
@@ -84,13 +87,48 @@ interact with the memory manager.
     dependent, but typically 8 bytes. Method \lstinline|space_overhead|
     returns the size of this increase.}
 
-    \entry{MM\_err \textbf{warn\_memory\_limit}();} {Instruct TPIE to
-    issue a warning when the memory limit is exceeded.}
+  \entry{void \textbf{pause\_allocation\_counting}();} {Instruct the
+    memory manager not to keep track of how much memory is allocated.
+    See below for a more detailled discussion of situtations in which
+    this feature may come in handy.}
+  
+  \entry{void \textbf{resume\_allocation\_counting}();} {Instruct the
+    memory manager to keep track of how much memory is allocated. This
+    behavior is the default behavior. See below for a more detailled
+    discussion of situtations in which this feature may come in
+    handy. The pause/resume calls may be nested.}
+
+  \entry{size\_t \textbf{allocation\_count\_factor}();} { Returns 1 iff
+    allocation is switched on. In all other cases, a value of zero is
+    returned.} 
 
   \etabb
+
+\paragraph{Allocation Counting}  When using certain implementations of
+STL, some dynamic data structures such as stacks or vectors change
+the size of their scratch space by invoking the system call
+\texttt{realloc}. Such calls will invalidate the memory manager's
+information about how much space is allocated, and eventually will
+lead the memory manager to loose track of the available space. The
+suggested solution is to instruct STL not to use \texttt{realloc} but
+corresponding \texttt{delete}/\texttt{new}-delete calls, and this
+behavior is implemented by TPIE.
+
+However, the performance-oriented programmer may not want to sacrifice
+potentially fast reallocation, and thus TPIE offers the possibility to
+switch off and on allocation counting. If allocation counting is
+switched off, reallocation is re-enabled in STL (if STL's
+implementation supports this), but TPIE cannot guarantee that the
+memory limit is respected. Thus, it is the programmer's responsibility
+to keep track of how much memory is allocated while allocation
+counting is switched off. Being in ``pause''-mode does not affect
+correct deallocation of objects that have been allocation with
+allocation counting switched on (and vice versa).
+
+
 \index{memory manager|)}
 
-
+\clearpage
 %%%%%%%%%% AMI Stream %%%%%%%%%%
 \mysection{Streams}
 \index{streams!AMI|(}\plabel{sec:ref-ami-stream}
