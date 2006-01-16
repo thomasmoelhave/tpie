@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/13/94
 //
-// $Id: bte_stream_mmap.h,v 1.20 2005-11-16 16:53:51 jan Exp $
+// $Id: bte_stream_mmap.h,v 1.21 2006-01-16 23:25:11 jan Exp $
 //
 // Memory mapped streams.  This particular implementation explicitly manages
 // blocks, and only ever maps in one block at a time.
@@ -120,9 +120,9 @@ public:
     // A psuedo-constructor for substreams.
     BTE_err new_substream(BTE_stream_type st, 
 			  TPIE_OS_OFFSET sub_begin,
-			   TPIE_OS_OFFSET sub_end,
-			   BTE_stream_base < T > **sub_stream);
-
+			  TPIE_OS_OFFSET sub_end,
+			  BTE_stream_base < T > **sub_stream);
+    
     // Destructor
     ~BTE_stream_mmap ();
 
@@ -142,7 +142,8 @@ public:
     inline TPIE_OS_OFFSET tell() const;
 
     // Query memory usage
-    BTE_err main_memory_usage(size_t * usage, MM_stream_usage usage_type);
+    BTE_err main_memory_usage(TPIE_OS_SIZE_T* usage, 
+			      MM_stream_usage usage_type);
 
     TPIE_OS_OFFSET chunk_size() const;
 
@@ -865,7 +866,7 @@ inline BTE_err BTE_stream_mmap < T >::write_item (const T & elt) {
 // Note that in a substream we do not charge for the memory used by
 // the header, since it is accounted for in the 0 level superstream.
 template < class T >
-BTE_err BTE_stream_mmap < T >::main_memory_usage (size_t * usage, MM_stream_usage usage_type) {
+BTE_err BTE_stream_mmap < T >::main_memory_usage (TPIE_OS_SIZE_T * usage, MM_stream_usage usage_type) {
     switch (usage_type) {
     case MM_STREAM_USAGE_OVERHEAD:
 	//Fixed costs. Only 2*mem overhead, because only class and base

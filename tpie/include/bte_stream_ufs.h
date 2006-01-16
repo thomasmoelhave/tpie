@@ -2,7 +2,7 @@
 // File: bte_stream_ufs.h (formerly bte_ufs.h)
 // Author: Rakesh Barve <rbarve@cs.duke.edu>
 //
-// $Id: bte_stream_ufs.h,v 1.26 2005-11-17 17:49:39 jan Exp $
+// $Id: bte_stream_ufs.h,v 1.27 2006-01-16 23:25:12 jan Exp $
 //
 // BTE streams with blocks I/Oed using read()/write().  This particular
 // implementation explicitly manages blocks, and only ever maps in one
@@ -159,7 +159,7 @@ public:
     inline TPIE_OS_OFFSET tell() const;
 
     // Query memory usage
-    BTE_err main_memory_usage(size_t * usage, MM_stream_usage usage_type);
+    BTE_err main_memory_usage(TPIE_OS_SIZE_T * usage, MM_stream_usage usage_type);
 
     TPIE_OS_OFFSET chunk_size() const;
 
@@ -1013,7 +1013,7 @@ inline BTE_err BTE_stream_ufs < T >::write_item (const T & elt) {
 // Note that in a substream we do not charge for the memory used by
 // the header, since it is accounted for in the 0 level superstream.
 template < class T >
-BTE_err BTE_stream_ufs < T >::main_memory_usage (size_t * usage,
+BTE_err BTE_stream_ufs < T >::main_memory_usage (TPIE_OS_SIZE_T * usage,
 						 MM_stream_usage
 						 usage_type)
 {
