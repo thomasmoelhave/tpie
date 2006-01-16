@@ -1,5 +1,5 @@
 %%
-%% $Id: implementation.tex,v 1.21 2005-12-19 03:47:02 adanner Exp $
+%% $Id: implementation.tex,v 1.22 2006-01-16 23:37:49 jan Exp $
 %%
 \chapter{The Implementation of TPIE}
 \plabel{cha:implementation}
@@ -95,10 +95,11 @@ stream-oriented input and output of data blocks. To further improve
 performance, some BTE implementations move data from disk directly
 into user space rather than using a kernel-level buffer
 cache\index{buffer cache}.  This saves both main memory space and
-copying time.\footnote{TPIE also provide a BTE implementation with
+copying time.\footnote{TPIE also provides a BTE implementation with
 support for random-access to disk blocks. Such functionality is useful
 when implementing external data structures (indexes). This BTE will be
-documented in a future version of this manual.}
+documented in a future version of this manual.}\comment{JV: Do you mean
+the block collection BTE?}
  
 %We hope that in most cases it will be possible for the BTE to work with
 %device drivers provided by the machine vendor's operating system.  In some
@@ -128,15 +129,35 @@ data offered by the corresponding file access primitives.\comment{LA:
 Version \version~of TPIE supports the following three BTE stream
 implementations:
 \begin{enumerate}
-\item \lstinline|BTE_stream_stdio|, which uses the UNIX
+\item \lstinline|BTE_stream_stdio|, which uses the
   \lstinline|stdio| library as its file access method;
     
-\item \lstinline|BTE_stream_ufs|, which performs I/O via UNIX
+\item \lstinline|BTE_stream_ufs|, which performs I/O via 
   \lstinline|read()/write()| system calls;
     
-\item \lstinline|BTE_stream_mmap|, which uses the UNIX
-  \lstinline|mmap()/munmap()| calls to perform I/O.
+\item \lstinline|BTE_stream_mmap|, which uses memory-mapping to
+  perform I/Os.
+%%  \lstinline|mmap()/munmap()| calls to perform I/O.
 \end{enumerate}
+
+The implementation of \lstinline|BTE_stream_stdio| can be regarded as
+an external direct-access array, since the position of the $i$-th
+element in the stream is given by 
+\lstinline|sizeof(BTE_stream_header) + i*sizeof(T)| 
+where \lstinline|T| is the type of objects stored in
+the stream. In this implementation, blocking disk accessed is
+completely at the hands of the operating system. 
+
+The other two implementation use (logically) blocked I/O, i.e., they
+allocate a larger chunk of memory (\emph{logical block}), place the
+objects to be written into this memory chunk, and then transfer it to
+disk with a single I/O. Since elements cannot be cross block
+boundaries, some space inside a block may be wasted, if
+\lstinline|sizeof(T)| does not divide the logical block size.  The two
+implementations differ in that \lstinline|BTE_stream_ufs| uses system
+calls which in turn are buffered by the operating system, whereas
+\lstinline|BTE_stream_mmap| directly maps files (or blocks thereof)
+into main memory thus bypassing the buffer cache.
 
 The choice of BTE in a given application is controlled by compile-time
 variables in the \path"app_config.h" file.  The
@@ -174,28 +195,21 @@ and a warning is generated at compile time.\comment{LA: Which BTE is
   default?}
 
 
-The\comment{LA: This is out of context} first block in a TPIE stream,
-referred to as the \emphd{header block}\index{streams!header block},
-contains contextual information for the stream. Currently, the format
-of the header block is BTE-dependent. Please refer to the descriptions
-of the individual BTEs in
-Sections~\ref{sec:ref-bte-stdio},\ref{sec:ref-bte-mmap}, and
-\ref{sec:ref-bte-ufs} for more details.
+%The\comment{LA: This is out of context} first block in a TPIE stream,
+%referred to as the \emphd{header block}\index{streams!header block},
+%contains contextual information for the stream. Currently, the format
+%of the header block is BTE-dependent. Please refer to the descriptions
+%of the individual BTEs in
+%Sections~\ref{sec:ref-bte-stdio},\ref{sec:ref-bte-mmap}, and
+%\ref{sec:ref-bte-ufs} for more details.
 
 \subsection{BTE Common Functionality}
 \plabel{sec:imp-bte-base}
 
-
 All BTE stream implementations inherit from class
-\lstinline|BTE_stream_base| (in file \path"bte_stream_base.h") and
-must support the member functions listed below.
+\lstinline|BTE_stream_base| (in file \path"include/bte_stream_base.h")
+and must support the member functions listed below.
 
-
-%In addition to the data elements stored in a stream, a TPIE
-%stream contains a ``header block'' which contains
-%BTE-dependent information, as well as context information
-%such as the length of the stream, the size of each item in
-%the stream, etc. 
 %A stream in TPIE is implemented via a file, and the
 %individual BTE choices available correspond to different
 %access methods for such a file. 
@@ -210,22 +224,39 @@ The implementations of the access methods \lstinline|BTE_stream_ufs|,
 defined in the respective files \path"include/bte_stream_ufs.h",
 \path"include/bte_stream_stdio.h", and
 \path"include/bte_stream_mmap.h".  Functionally, the member functions
-for each BTE are similar.
+for each BTE are similar and are outlined in the next subsection.
 
-The common BTE member functions\footnote{These functions can be
-  defined as \texttt{virtual} to assist in debugging a new BTE if the
-  compile-time variable \texttt{BTE\_VIRTUAL\_BASE} is defined to be
-  non-zero (see also file \texttt{app\_config.h}). For best run-time
-  performance, the default value for \texttt{BTE\_VIRTUAL\_BASE} is
-  zero.  }  and their usage are outlined below:
+%The common BTE member functions
+%\footnote{These functions can be
+%  defined as \texttt{virtual} to assist in debugging a new BTE if the
+%  compile-time variable \texttt{BTE\_VIRTUAL\_BASE} is defined to be
+%  non-zero (see also file \texttt{app\_config.h}). For best run-time
+%  performance, the default value for \texttt{BTE\_VIRTUAL\_BASE} is
+%  zero.  }  
+%and their usage are outlined below:
 
+\paragraph{Header Information} In addition to the data elements stored
+in a stream, a TPIE stream contains a ``header
+block''\index{streams!header block} which contains BTE-dependent
+information, as well as context information such as the length of the
+stream, the size of each item in the stream, etc.  Furthermore, to
+facilitate debugging, the stream header also records the type of BTE
+that was used to create the stream. The complete listing of all
+information stored in a BTE header block is given below:
+
+\lstinputlisting[numbers=left,basicstyle=\ttfamily\small,caption={The
+  definition of the header used for BTE streams.}]{../include/bte_stream_header.h}
+
+\vspace*{\baselineskip}
 \subsubsection{Stream Constructors}
+
 \begin{lstlisting}
     BTE_stream_mmap  ( const char *dev_path, BTE_stream_type st );
     BTE_stream_stdio ( const char *dev_path, BTE_stream_type st );
     BTE_stream_ufs   ( const char *dev_path, BTE_stream_type st );
 \end{lstlisting}
 
+\noindent
 These constructors each create a stream which is backed by the file
 whose path is pointed to by \lstinline|dev_path|.  The stream can be
 opened in one of several modes, depending on the value of
@@ -246,14 +277,25 @@ opened in one of several modes, depending on the value of
   This is valid only if the stream was previously created.
 \end{itemize}
 
+Each constructor also takes an optional, third argument
+\lstinline|lbf| of type \lstinline|TPIE_OS_OFFSET| that denotes the
+so-called \emph{logical block factor} and indicates of how many
+consecutive (physical) disk blocks a logical block is composed. This
+argument defaults to 1; it is not used in the
+\lstinline|BTE_stream_stdio| implementation.
 
+\vspace*{\baselineskip}
 \subsubsection{new\_substream}\index{new_substream()@{\tt new\_substream()}}
 \index{substreams!of BTE streams}
+
 \begin{lstlisting}
-    BTE_err new_substream(BTE_stream_type st, off_t sub_begin, off_t
-                          sub_end, BTE_stream_base<T> **sub_stream);
+    BTE_err new_substream(BTE_stream_type st, 
+                          TPIE_OS_OFFSET sub_begin, 
+                          TPIE_OS_OFFSET sub_end, 
+                          BTE_stream_base<T> **sub_stream);
 \end{lstlisting}
 
+\noindent
 Constructs a substream of the current stream.  A substream is a
 logical contiguous subset of a stream, i.e. from the implementation
 point of view, it is a contiguous subset of the data elements in a
@@ -273,43 +315,60 @@ file.  The parameters of \lstinline|new_substream()| are as follows:
 While it might seem logical to explicitly define a substream in TPIE
 as inheriting (in the \CPP{} sense) from a stream, this would imply a
 need for both to have a constructor, and hence for the stream
-constructor to be \lstinline|virtual|. This is a problem in
-\CPP{},\comment{LA: why?}  and so the ``pseudo-constructor'' approach
-described here is used instead.\comment{LA: Extend like in AMI ref.
-  Stream type?}  Because \lstinline|new_substream()| is not a
-constructor, but rather a function each particular implementation of
-which calls an appropriate constructor, it can be a pure virtual
-function in the stream base class, which forces it to be defined for
-all actual stream implementations. \comment{LA: I don't understand the
-  point of this paragraph.}
+constructor to be \lstinline|virtual|. This is technically impossible
+in \CPP{},\comment{LA: why?}  and so the ``pseudo-constructor''
+approach described here is used instead.\comment{LA: Extend like in
+  AMI ref.  Stream type?} Note that, in order to provide a generic
+interface, that may be used, e.g., from within the AMI, the type of
+the ``return value'' \lstinline|sub_stream| needs to be
+\lstinline|BTE_stream_base<T> **|, so the user will need to
+(dynamically) cast it to the appropriate type.
+% Because \lstinline|new_substream()| is not a
+%constructor, but rather a function each particular implementation of
+%which calls an appropriate constructor, it can be a pure virtual
+%function in the stream base class, which forces it to be defined for
+%all actual stream implementations. \comment{LA: I don't understand the
+%  point of this paragraph.}
 
+\vspace*{\baselineskip}
 \subsubsection{read\_item}\index{read_item()@{\tt read\_item()}!BTE}
+
 \begin{lstlisting}
     BTE_err read_item(T **elt);
 \end{lstlisting}
-Returns the address of a pointer to the next element in the stream in
-\lstinline|elt|. Since the application data elements are blocked, this
-often does not require a physical I/O operation. If the current block
-has been exhausted, the first element of the next block will be
-accessed. In some cases the BTE will try to prefetch the next block
-and it may already be in memory. (See descriptions of the individual
-BTEs for more details about prefetching or read-ahead.)
 
+\noindent
+Update the pointer pointed to by \lstinline|elt| to reference the next
+element in the stream. Since the application data elements are
+blocked, this often does not require a physical I/O operation. If the
+current block has been exhausted, the first element of the next block
+will be accessed. In some cases the BTE will try to prefetch the next
+block and it may already be in memory. (See descriptions of the
+individual BTEs for more details about prefetching or read-ahead.)
+
+\vspace*{\baselineskip}
 \subsubsection{write\_item}\index{write_item()@{\tt write\_item()}!BTE}
+
 \begin{lstlisting}
     BTE_err write_item(const T &elt);
 \end{lstlisting}
-Writes the data element pointed to by \lstinline|elt| to the current
-position in the stream. Streams are normally written in sequential
-order, and so the current position is usually directly after the
-previous element written. The current position (which we will refer to
-as the value of the \emphd{file pointer}) can be modified via the
-\lstinline|seek| command below.
 
+\noindent
+Writes the data element \lstinline|elt| to the current position in the
+stream. Streams are normally written in sequential order, and so the
+current position is usually directly after the previous element
+written. The current position (which we will refer to as the value of
+the \emphd{file pointer}) can be modified via the \lstinline|seek|
+command below.
+
+\vspace*{\baselineskip}
 \subsubsection{seek}\index{seek()@{\tt seek()}!BTE}
+
 \begin{lstlisting}
-    BTE_err seek(off_t offset);
+    BTE_err seek(TPIE_OS_OFFSET offset);
 \end{lstlisting}
+
+\noindent
 Seeks to the object offset \lstinline|offset| in the stream. The BTE
 \lstinline|seek| member function is similar to and utilizes the
 \lstinline|seek| function supported by the underlying file I/O system
@@ -317,23 +376,41 @@ being used. The difference is that TPIE performs a seek to the
 requested application data element in the stream rather than to a byte
 offset within a file of untyped data.
 
+\vspace*{\baselineskip}
+\subsubsection{tell}\index{seek()@{\tt tell()}!BTE}
 
-\subsubsection{truncate}\index{truncate()@{\tt truncate()}!BTE}
 \begin{lstlisting}
-    BTE_err truncate(off_t offset);
+    TPIE_OS_OFFSET tell() const;
 \end{lstlisting}
+
+\noindent
+Returns the file pointer of the current streams in terms of items.
+
+
+\vspace*{\baselineskip}
+\subsubsection{truncate}\index{truncate()@{\tt truncate()}!BTE}
+
+\begin{lstlisting}
+    BTE_err truncate(TPIE_OS_OFFSET offset);
+\end{lstlisting}
+
+\noindent
 Truncates/extends the stream to the specified number of application
 data elements. The file pointer will be moved to the end of the
 stream. This is analogous to the \lstinline|truncate| function of the
 underlying file access method.  Note: \lstinline|truncate| is not
 supported for substreams.
 
+\vspace*{\baselineskip}
 \subsubsection{main\_memory\_usage}
 \index{main_memory_usage()@{\tt main\_memory\_usage()}!BTE}
+
 \begin{lstlisting}
-    BTE_err main_memory_usage(size_t *usage,
-                              MM_stream_usage usage_type);
+    BTE_err main_memory_usage(TPIE_OS_SIZE_T *usage,
+                              MM_stream_usage usage_type) const;
 \end{lstlisting}
+
+\noindent
 Queries how much memory is used by the stream for
 \lstinline|usage_type| purposes. On return, \lstinline|usage| points
 to the value used. The valid values for \lstinline|usage_type| are as
@@ -356,12 +433,14 @@ follows:
   substream.
 \end{itemize}
 
-\subsubsection{get\_status}\index{get_status()@{\tt get\_status()}}
+\vspace*{\baselineskip}
+\subsubsection{status}\index{status()@{\tt status()}}
 
 \begin{lstlisting}
-    BTE_stream_status get_status(void);
+    BTE_stream_status status() const;
 \end{lstlisting}
 
+\noindent
 Returns the status of the stream as one of the following
 values:  \index{BTE\_STREAM\_STATUS_*@{\tt
     BTE\_STREAM\_STATUS\_*}}
@@ -375,57 +454,94 @@ values:  \index{BTE\_STREAM\_STATUS_*@{\tt
 \item \lstinline|BTE_STREAM_STATUS_END_OF_STREAM|: The end of stream
   was encountered.
 \end{itemize}
-The \lstinline|get_status| member function is one of the few that is
-implemented in \path"include/bte_stream_base.h" and its implementation
-is therefore common to all BTEs. The status is stored in the private
-variable \lstinline|status| of a BTE object.
 
+%The \lstinline|get_status| member function is one of the few that is
+%implemented in \path"include/bte_stream_base.h" and its implementation
+%is therefore common to all BTEs. The status is stored in the private
+%variable \lstinline|status| of a BTE object.
+
+\vspace*{\baselineskip}
 \subsubsection{stream\_len}\index{stream_len()@{\tt stream\_len()}!BTE}
+
 \begin{lstlisting}
-    off_t stream_len(void);
+    TPIE_OS_OFFSET stream_len() const;
 \end{lstlisting}
+
+\noindent
 Returns the current number of application data elements in the stream.
 
 
+\vspace*{\baselineskip}
 \subsubsection{name}\index{name()@{\tt name()}!BTE}
+
 \begin{lstlisting}
-    BTE_err name(char **stream_name);
+    BTE_err name(char **stream_name) const;
 \end{lstlisting}
+
+\noindent
 Returns the path name of the file backing the stream. The name will be
 stored in newly allocated space.
 
+\vspace*{\baselineskip}
 \subsubsection{read\_only}\index{read_only()@{\tt read\_only()}}
+
 \begin{lstlisting}
-  int read_only(void);
+  bool read_only() const;
 \end{lstlisting}
+
+\noindent
 Returns true if the stream mode is \lstinline|BTE_READ_STREAM|. The
 file mode is set when creating a stream. See BTE constructors, above
 for details.
 
+\vspace*{\baselineskip}
 \subsubsection{available\_streams}
 \index{available_streams()@{\tt available\_streams()}!BTE}
+
 \begin{lstlisting}
-    int available_streams(void);    
+    int available_streams() const;    
 \end{lstlisting}
+
+\noindent
 Returns the number of additional streams that can be activated (i.e.
 created) before an operating system limit on the number of open files
 would be exceeded. This reflects only the operating system limit on
 number of open files. The TPIE memory requirements for active streams
 are not reflected in this limit.
 
+\vspace*{\baselineskip}
 \subsubsection{chunk\_size}
+\index{chunk_size()@{\tt chunk\_size()}!BTE}
+
 \begin{lstlisting}
-    off_t chunk_size(void);
+    TPIE_OS_OFFSET chunk_size() const;
 \end{lstlisting}
+
 %Not clear what this does...
+\noindent
 Returns the number of application data elements that fit in
 a logical block of the current stream.
 
+\vspace*{\baselineskip}
+\subsubsection{os\_block\_size}
+\index{os_block_size()@{\tt os\_block\_size()}!BTE}
+
+\begin{lstlisting}
+    TPIE_OS_OFFSET os\_block\_size() const;
+\end{lstlisting}
+
+\noindent
+Returns the number of bytes in one physical disk block.
+
+\vspace*{\baselineskip}
 \subsubsection{persist}\index{persistence!BTE}
 \index{persist()@{\tt persist()}|see{persistence}}
+
 \begin{lstlisting}
-    void persist(persistence);
+    void persist(persistence per);
 \end{lstlisting}
+
+\noindent
 Sets the persistence attribute of the current stream to the value of
 \lstinline|persistence|. This may be one of the following values:
 \begin{itemize}
@@ -439,6 +555,33 @@ Sets the persistence attribute of the current stream to the value of
 
 By default, all streams are deleted when their destructors are called.
 
+\vspace*{\baselineskip}
+\subsubsection{persist}
+
+\begin{lstlisting}
+    persistence persist() const;
+\end{lstlisting}
+
+\noindent
+Returns the persistence attribute of the current stream.
+
+
+\vspace*{\baselineskip}
+\subsubsection{stats}
+\index{stats()@{\tt stats()}!BTE}
+
+\begin{lstlisting}
+    const tpie_stream_stats& stats() const;
+\end{lstlisting}
+
+\noindent
+Returns a reference to the internal object that maintains statistical
+information such as read and write operations performed.\comment{JV:
+  Do we have a discussion of \lstinline|tpie_stats| somewhere?}
+
+
+\vspace*{\baselineskip}
+
 \subsection{BTE \emphd{stdio}}
 \index{BTE stdio|see \tt{BTE\_stream\_stdio}}
 \plabel{sec:ref-bte-stdio}
@@ -446,60 +589,68 @@ By default, all streams are deleted when their destructors are called.
 The \emphd{stdio} BTE is implemented by the class
 \lstinline|BTE_stream_stdio|, defined in file
 \path"include/bte_stdio.h".  \lstinline|BTE_stream_stdio| streams are
-stored as ordinary UNIX files which are manipulated via the
-\emphd{stdio} file access method, i.e.  via the standard \lstinline|C|
-I/O library. The read/write primitives of \lstinline|BTE_stream_stdio|
-streams are implemented using the system calls \lstinline|fread| and
-\lstinline|fwrite|. The underlying operating system blocking and
-prefetching assure that stream accesses are done in blocks and so both
-blocking and prefetching are therefore automatic and invisible to the
-TPIE developer.  Note that this means that a (OS) kernel call is
-incurred every time a stream object is accessed, and that every object
-passes through kernel level buffer space on its way to user space.
-\comment{DH: this seems incorrect to me.}
+stored as ordinary operating system files which are manipulated via
+the \emphd{stdio} file access method, i.e., via the standard
+\lstinline|C| I/O library. The read/write primitives of
+\lstinline|BTE_stream_stdio| streams are implemented using the system
+calls \lstinline|fread| and \lstinline|fwrite|. The underlying
+operating system blocking and prefetching assure that stream accesses
+are done in blocks and so both blocking and prefetching are therefore
+automatic and invisible to the TPIE developer.  Note that this means
+that a (OS) kernel call is incurred every time a stream object is
+accessed, and that every object passes through kernel level buffer
+space on its way to user space.  \comment{DH: this seems incorrect to
+  me.}
 
-The \lstinline|BTE_stream_stdio| class inherits from
-\lstinline|BTE_stream_base| (in file
-\path"include/bte_stream_base.h"):\index{BTE_stream_base@{\tt
-    BTE\_stream\_base}}
-\begin{lstlisting}
-  class BTE_stream_stdio : public BTE_stream_base { private: FILE
-    *file; BTE_stdio_header header; ...  }
-\end{lstlisting}
+%The \lstinline|BTE_stream_stdio| class inherits from
+%\lstinline|BTE_stream_base| (in file
+%\path"include/bte_stream_base.h"):\index{BTE_stream_base@{\tt
+%    BTE\_stream\_base}}
+%\begin{lstlisting}
+%  class BTE_stream_stdio : public BTE_stream_base { 
+%    private: 
+%    FILE *file;
+%    BTE_stdio_header header; 
+%    ...  
+%  }
+%\end{lstlisting}
 
-\lstinline|BTE_stream_stdio| defines the public member functions
-defined for \lstinline|BTE_stream_base| (please see
+\lstinline|BTE_stream_stdio| implements the public member functions
+required for all BTEs---see
 Section~\ref{sec:imp-bte-base} for a list of these member functions
-and their semantics).  \comment{LA: Extend - discuss implementation!}
-Additionally, \lstinline|BTE_stream_stdio| defines its own
-constructors:\comment{LA: Substreams?}
+and their semantics.
+%  \comment{LA: Extend - discuss implementation!}
+%Additionally, \lstinline|BTE_stream_stdio| defines its own
+%constructors:\comment{LA: Substreams?}
 
-\index{BTE\_stream\_stdio@{\tt BTE\_stream\_stdio}!constructors}
+\comment{JV: There used to be a discussion of several constructors
+  none of which is in the code anymore. Why did they get deleted?}
+%\index{BTE\_stream\_stdio@{\tt BTE\_stream\_stdio}!constructors}
 
-\begin{lstlisting}
-     BTE_stream_stdio(const char *dev_path, const BTE_stream_type st); 
-     BTE_stream_stdio(const BTE_stream_type st); 
-     BTE_stream_stdio(const BTE_stream_stdio<T> &s);
-\end{lstlisting}
+%\begin{lstlisting}
+%     BTE_stream_stdio(const char *dev_path, const BTE_stream_type st); 
+%     BTE_stream_stdio(const BTE_stream_type st); 
+%     BTE_stream_stdio(const BTE_stream_stdio<T> &s);
+%\end{lstlisting}
 
-\comment{JV: The header stuff has changed completely. Someone has to
-  update this section accordingly.}
+%\comment{JV: The header stuff has changed completely. Someone has to
+%  update this section accordingly.}
 
-The first block of a TPIE \emphd{stdio} stream is a header
-block\index{BTE_stream_stdio@{\tt BTE\_stream\_stdio}!header}
-\index{streams!header block} with the following structure:
+%The first block of a TPIE \emphd{stdio} stream is a header
+%block\index{BTE_stream_stdio@{\tt BTE\_stream\_stdio}!header}
+%\index{streams!header block} with the following structure:
 
-\index{BTE_stdio_header@{\tt BTE\_stdio\_header}}
-\begin{lstlisting}
-typedef struct BTE_stdio_header_v1 { 
-    unsigned int magic_number;  // Set to BTE_STDIO_HEADER_MAGIC_NUMBER
-    unsigned int version;       // Should be 1 for current version.
-    unsigned int length;        // # of bytes in this structure.
-    unsigned int block_length;  // # of bytes in a block.
-    size_t item_size;           // The size of each item in the stream.
-} BTE_stdio_header;
-\end{lstlisting}
+%\index{BTE_stdio_header@{\tt BTE\_stdio\_header}}
 
+%\begin{lstlisting}
+%typedef struct BTE_stdio_header_v1 { 
+%    unsigned int magic_number;  // Set to BTE_STDIO_HEADER_MAGIC_NUMBER
+%    unsigned int version;       // Should be 1 for current version.
+%    unsigned int length;        // # of bytes in this structure.
+%    unsigned int block_length;  // # of bytes in a block.
+%    size_t item_size;           // The size of each item in the stream.
+%} BTE_stdio_header;
+%\end{lstlisting}
 
 \index{BTE_stream_stdio@{\tt BTE\_stream\_stdio}|)}
 
@@ -512,30 +663,29 @@ typedef struct BTE_stdio_header_v1 {
 The \emphd{mmap} BTE is implemented by the class
 \lstinline|BTE_stream_mmap|, defined in file
 \path"include/bte_stream_stdio.h".  \lstinline|BTE_stream_mmap|
-streams are stored as ordinary UNIX files.  The TPIE
-\lstinline|BTE_stream_mmap| implementation uses the Unix
-\lstinline|mmap| and \lstinline|munmap| calls to perform I/O. The UNIX
-\lstinline|mmap| call allows a part of a file to be associated with a
-corresponding section of internal memory.  When the memory is
-accessed, the corresponding portion of the file is copied directly
-into that memory buffer. The \lstinline|BTE_stream_mmap| primitives
-explicitly maintain the currently accessed block of the file mapped
-into memory.  When an object outside the current block boundaries is
-requested, the current block is unmapped and a new one is mapped from
-the source file.
+streams are stored as ordinary operating system files.  The TPIE
+\lstinline|BTE_stream_mmap| implementation uses memory-mapping and
+-unmapping mechanisms such as the Unix \lstinline|mmap| and
+\lstinline|munmap| calls to perform I/O. A memory-mapping call allows
+a part of a file to be associated with a corresponding section of
+internal memory.  When the memory is accessed, the corresponding
+portion of the file is copied directly into that memory buffer. The
+\lstinline|BTE_stream_mmap| primitives explicitly maintain the
+currently accessed block of the file mapped into memory.  When an
+object outside the current block boundaries is requested, the current
+block is unmapped and a new one is mapped from the source file.
 
 The \lstinline|BTE_stream_mmap| is not limited to mapping in blocks of
 size equal to the physical block size of the OS (typically 8K bytes).
 Often improved performance can be obtained by mapping blocks of much
-larger size (for example 256KB\footnote{We use the notation KB to mean
-  kilobytes.}).  This is typically due to (track) buffering and
-prefetching performed in the disk controller. The (logical) block size
-used by \lstinline|BTE_stream_mmap| can be set using the macro
-\lstinline|BTE_STREAM_MMAP_BLOCK_FACTOR| in the \path"app_config.h"
-file. However, choosing a large (logical) block size limits the amount
-of main memory available for an application program and thus the
-(logical) block size should be chosen very carefully in order to
-obtain maximal performance.
+larger size (for example 256KB).  This is typically due to (track)
+buffering and prefetching performed in the disk controller. The
+(logical) block size used by \lstinline|BTE_stream_mmap| can be set
+using the macro \lstinline|BTE_STREAM_MMAP_BLOCK_FACTOR| in the
+\path"app_config.h" file. However, choosing a large (logical) block
+size limits the amount of main memory available for an application
+program and thus the (logical) block size should be chosen very
+carefully in order to obtain maximal performance.
 
 Unlike in \lstinline|BTE_stream_stdio|, where a function call is
 incurred every time a stream object is accessed, the
@@ -546,7 +696,8 @@ prefetching of disk blocks is implicitly done by the operating system
 in \lstinline|BTE_stream_stdio|, \lstinline|BTE_stream_mmap| has to
 implement its own prefetching scheme. (Note on the other hand that
 unlike in \lstinline|BTE_stream_stdio| objects does not pass through
-the kernel level buffer space on its way to user space).
+the kernel level buffer space on its way to user space.)\comment{JV:
+  If DHs comment above is correct, this should go.}
 \lstinline|BTE_stream_mmap| prefetching can be turned on by defining
 the macro \lstinline|BTE_MMAP_READ_AHEAD| in the \path"app_config.h"
 file. If this compile-time variable is defined,
@@ -554,7 +705,8 @@ file. If this compile-time variable is defined,
 reading (mapping) blocks into main memory before the data they contain
 is actually needed. Two methods of read-ahead is provided:\comment{LA:
   Does the asynchronous stuff really work?}
-
+\comment{JV: A comment in the code says, AIO does not work, so we
+  should get rid of it for good.}
 \begin{itemize}
   
 \item If the \lstinline|USE_LIBAIO| macro is undefined (and
@@ -572,50 +724,68 @@ By default \lstinline|BTE_MMAP_READ_AHEAD| is defined,
 \lstinline|USE_LIBAIO| is not.\comment{LA: Discuss the two and how
   they differ.}
 
-\lstinline|BTE_stream_mmap| class inherits from \lstinline|BTE_stream_base|:\index{BTE_stream_base@{\tt BTE\_stream\_base}}
+%\lstinline|BTE_stream_mmap| class inherits from \lstinline|BTE_stream_base|:\index{BTE_stream_base@{\tt BTE\_stream\_base}}
+%\begin{lstlisting}
+%  class BTE_stream_mmap : public BTE_stream_base { private: //
+%    descriptor of the mapped file.  int fd; // A pointer to the mapped
+%    in header block for the stream.  mmap_stream_header *header; ...
+%  }
+%\end{lstlisting}
+
+%\lstinline|BTE_stream_mmap| defines the public member functions
+%defined for \lstinline|BTE_stream_base| (please see
+%Section~\ref{sec:imp-bte-base} for a list of these member functions
+%and their semantics).  In addition to these it defines its own
+%constructors: \index{BTE_stream_mmap@{\tt
+%    BTE\_stream\_mmap}!constructors} \comment{LA: Extend - discuss
+%  implementation.} 
+\lstinline|BTE_stream_mmap| implements the public member functions
+required for all BTEs---see Section~\ref{sec:imp-bte-base} for a list
+of these member functions and their semantics. In addition to that,
+\lstinline|BTE_stream_mmap| provides a substream constructor that can
+be used to create a stream as a substream of some other stream. 
 \begin{lstlisting}
-  class BTE_stream_mmap : public BTE_stream_base { private: //
-    descriptor of the mapped file.  int fd; // A pointer to the mapped
-    in header block for the stream.  mmap_stream_header *header; ...
-  }
+  BTE_stream_mmap(BTE_stream_mmap * super_stream,
+                  BTE_stream_type st, 
+                  TPIE_OS_OFFSET sub_begin, 
+                  TPIE_OS_OFFSET sub_end);
 \end{lstlisting}
 
-\lstinline|BTE_stream_mmap| defines the public member functions
-defined for \lstinline|BTE_stream_base| (please see
-Section~\ref{sec:imp-bte-base} for a list of these member functions
-and their semantics).  In addition to these it defines its own
-constructors: \index{BTE_stream_mmap@{\tt
-    BTE\_stream\_mmap}!constructors} \comment{LA: Extend - discuss
-  implementation.} 
+The parameters (except for the reference to the ``parent'' stream) are
+exactly the same as for the \lstinline|new_substream()| method, and
+we refer the reader to Section~\ref{sec:imp-bte-base} for their
+discussion.\comment{JV: Why don't we have a constructor like this for
+  the \lstinline|stdio| BTE? Is it because we need to re-open the
+  file? Strange\ldots}
 
-\begin{lstlisting}
-  BTE_stream_mmap(const char *dev_path, BTE_stream_type st);
-  BTE_stream_mmap(BTE_stream_type st); 
-  BTE_stream_mmap(BTE_stream_mmap<T> &s); 
+%\begin{lstlisting}
+%  BTE_stream_mmap(const char *dev_path, BTE_stream_type st);
+%  BTE_stream_mmap(BTE_stream_type st); 
+%  BTE_stream_mmap(BTE_stream_mmap<T> &s); 
   
-  // A substream constructor.
-  BTE_stream_mmap(BTE_stream_mmap *super_stream,
-                 BTE_stream_type st,
-                 off_t sub_begin, off_t sub_end);
-\end{lstlisting}
+%  // A substream constructor.
+%  BTE_stream_mmap(BTE_stream_mmap *super_stream,
+%                 BTE_stream_type st,
+%                 TPIE_OS_OFFSET sub_begin, TPIE_OS_OFFSET sub_end);
+%\end{lstlisting}
 
-The \lstinline|BTE_stream_mmap| header\index{BTE_stream_mmap@{\tt
-    BTE\_stream\_mmap}!header}\index{streams!header block} structure
-is as follows:
+%The \lstinline|BTE_stream_mmap| header\index{BTE_stream_mmap@{\tt
+%    BTE\_stream\_mmap}!header}\index{streams!header block} structure
+%is as follows:
 
-\begin{lstlisting}
-struct mmap_stream_header { 
-  public:
-    unsigned int magic_number;  // Set to MMAP_HEADER_MAGIC_NUMBER
-    unsigned int version;       // Should be 1 for current version.
-    unsigned int length;        // # of bytes in this structure.
-    off_t item_logical_eof;     // The number of items in the stream.
-    size_t item_size;           // The size of each item in the stream.
-    size_t block_size;          // The size of a physical block on the
-                                // device where this stream resides.
-    unsigned int items_per_block;
-};
-\end{lstlisting}
+%\begin{lstlisting}
+%struct mmap_stream_header { 
+%  public:
+%    unsigned int magic_number;  // Set to MMAP_HEADER_MAGIC_NUMBER
+%    unsigned int version;       // Should be 1 for current version.
+%    unsigned int length;        // # of bytes in this structure.
+%    TPIE_OS_OFFSET item_logical_eof;     // The number of items in the stream.
+%    size_t item_size;           // The size of each item in the stream.
+%    size_t block_size;          // The size of a physical block on the
+%                                // device where this stream resides.
+%    unsigned int items_per_block;
+%};
+%\end{lstlisting}
 
 \comment{LA: More here?}
 
@@ -630,9 +800,9 @@ struct mmap_stream_header {
 The \emphd{ufs} BTE is implemented by the class
 \lstinline|BTE_stream_ufs|, defined in file
 \path"include/bte_stdio.h".  \lstinline|BTE_stream_ufs| streams are
-stored as ordinary UNIX files.  \lstinline|BTE_stream_ufs| streams use
-the \lstinline|read()| and \lstinline|write()| calls to implement
-their I/O.
+stored as ordinary operating system files.  \lstinline|BTE_stream_ufs|
+streams use the \lstinline|read()| and \lstinline|write()| calls to
+implement their I/O.
 
 
 % The motivation behind implementing \lstinline|BTE_ufs| streams
@@ -662,13 +832,16 @@ their I/O.
 
 Like in the case of \lstinline|BTE_stream_mmap| the (logical) block
 size can be controlled using the macro
-\lstinline|BTE_STREAM_UFS_BLOCK_FACTOR|.  \lstinline|BTE_stream_ufs|
-also has the same advantage as \lstinline|BTE_stream_mmap| over
-\lstinline|BTE_stream_stdio| of only incurring one kernel call per
-block. However, unlike \lstinline|BTE_stream_mmap| (but like
-\lstinline|BTE_stream_stdio|), prefetching is done implicitly by the
-filesystem underlying TPIE (and objects have to pass through kernel
-level buffer space).
+\lstinline|BTE_STREAM_UFS_BLOCK_FACTOR| on a global basis or using the
+\lstinline|lbf| constructor parameter (see
+Section~\ref{sec:imp-bte-base}) on a per-stream basis.
+\lstinline|BTE_stream_ufs| also has the same advantage as
+\lstinline|BTE_stream_mmap| over \lstinline|BTE_stream_stdio| of only
+incurring one kernel call per block. However, unlike
+\lstinline|BTE_stream_mmap| (but like \lstinline|BTE_stream_stdio|),
+prefetching is done implicitly by the filesystem underlying TPIE (and
+objects have to pass through kernel level buffer space).\comment{JV:
+  Please double-check against DH's above comment.}
 %In fact, nowadays, in the case of sequential accesses, most filesystems
 %almost surely implement readahead prefetching, which should suffice for the
 %purpose of streaming operations in TPIE. (In the case of non-sequential
@@ -680,53 +853,71 @@ library \lstinline|libaio|\index{libaio library@{\tt libaio} library.}
 is available, there is a provision to do (user-level) prefetching
 within \lstinline|BTE_stream_ufs| streams but we do not recommend its
 use on account of the implicit filesystem prefetching.\comment{LA: So
-  why there?}
+  why there?}\comment{JV: LIBAIO should go, no?}
 
-\lstinline|BTE_stream_ufs| class inherits from
-\lstinline|BTE_stream_base|:
-\begin{lstlisting}
-class BTE_stream_ufs : public BTE_stream_base { 
-  private:
-     // descriptor of the mapped file.  
-     int fd;
-     // A pointer to the mapped in header block for  the stream.  
-     mmap_stream_header *header; 
-     ...  
-}
-\end{lstlisting}
+%\lstinline|BTE_stream_ufs| class inherits from
+%\lstinline|BTE_stream_base|:
+%\begin{lstlisting}
+%class BTE_stream_ufs : public BTE_stream_base { 
+%  private:
+%     // descriptor of the mapped file.  
+%     int fd;
+%     // A pointer to the mapped in header block for  the stream.  
+%     mmap_stream_header *header; 
+%     ...  
+%}
+%\end{lstlisting}
 
-\lstinline|BTE_stream_ufs| defines the public member
-functions defined for \lstinline|BTE_stream_base| (please see
-Section~\ref{sec:imp-bte-base} for a list of these member
-functions and their semantics).  In addition to these it
-defines its own constructors: 
-\index{BTE_stream_ufs@{\tt BTE\_stream\_ufs}!constructors}
+%\lstinline|BTE_stream_ufs| defines the public member
+%functions defined for \lstinline|BTE_stream_base| (please see
+%Section~\ref{sec:imp-bte-base} for a list of these member
+%functions and their semantics).  In addition to these it
+%defines its own constructors: 
+%\index{BTE_stream_ufs@{\tt BTE\_stream\_ufs}!constructors}
 
-\begin{lstlisting}
-  BTE_stream_ufs(const char *dev_path, BTE_stream_type st); 
-  BTE_stream_ufs(BTE_stream_type st); 
-  BTE_stream_ufs(BTE_stream_ufs<T> &s); 
+%\begin{lstlisting}
+%  BTE_stream_ufs(const char *dev_path, BTE_stream_type st); 
+%  BTE_stream_ufs(BTE_stream_type st); 
+%  BTE_stream_ufs(BTE_stream_ufs<T> &s); 
   
-  // A substream constructor.
-  BTE_stream_ufs(BTE_stream_ufs *super_stream,
-                 BTE_stream_type st,
-                 off_t sub_begin, off_t sub_end);
-\end{lstlisting}
-The \lstinline|BTE_stream_ufs| header structure is as follows:
-\index{BTE\_stream\_ufs@{\tt BTE\_stream\_ufs}!header}\index{streams!header block}
+%  // A substream constructor.
+%  BTE_stream_ufs(BTE_stream_ufs *super_stream,
+%                 BTE_stream_type st,
+%                 TPIE_OS_OFFSET sub_begin, TPIE_OS_OFFSET sub_end);
+%\end{lstlisting}
+%The \lstinline|BTE_stream_ufs| header structure is as follows:
+%\index{BTE\_stream\_ufs@{\tt BTE\_stream\_ufs}!header}\index{streams!header block}
+%\begin{lstlisting}
+%struct ufs_stream_header { 
+%  public:
+%    unsigned int magic_number;  // Set to UFS_HEADER_MAGIC_NUMBER
+%    unsigned int version;       // Should be 1 for current version.
+%    unsigned int length;        // # of bytes in this structure.
+%    TPIE_OS_OFFSET item_logical_eof;     // The number of items in the stream.
+%    size_t item_size;           // The size of each item in the stream.
+%    size_t block_size;          // The size of a physical block on the
+%                                // device where this stream resides.
+%    unsigned int items_per_block;
+%};
+%\end{lstlisting}
+\lstinline|BTE_stream_ufs| implements the public member functions
+required for all BTEs---see Section~\ref{sec:imp-bte-base} for a list
+of these member functions and their semantics. In addition to that,
+\lstinline|BTE_stream_ufs| provides a substream constructor that can
+be used to create a stream as a substream of some other stream. 
 \begin{lstlisting}
-struct ufs_stream_header { 
-  public:
-    unsigned int magic_number;  // Set to UFS_HEADER_MAGIC_NUMBER
-    unsigned int version;       // Should be 1 for current version.
-    unsigned int length;        // # of bytes in this structure.
-    off_t item_logical_eof;     // The number of items in the stream.
-    size_t item_size;           // The size of each item in the stream.
-    size_t block_size;          // The size of a physical block on the
-                                // device where this stream resides.
-    unsigned int items_per_block;
-};
+  BTE_stream_ufs(BTE_stream_ufs * super_stream,
+                  BTE_stream_type st, 
+                  TPIE_OS_OFFSET sub_begin, 
+                  TPIE_OS_OFFSET sub_end);
 \end{lstlisting}
+
+The parameters (except for the reference to the ``parent'' stream) are
+exactly the same as for the \lstinline|new_substream()| method, and
+we refer the reader to Section~\ref{sec:imp-bte-base} for their
+discussion.\comment{JV: Why don't we have a constructor like this for
+  the \lstinline|stdio| BTE? Is it because we need to re-open the
+  file? Strange\ldots}
 
 
 \index{BTE_stream_ufs@{\tt BTE\_stream\_ufs}|)}
@@ -753,7 +944,7 @@ management of internal memory:
 In version \version ~of TPIE, the memory manager
 \lstinline|MM_manager|, is built from the source files
 \path"lib/src/mm_register.cpp", \path"lib/src/mm_base.cpp",
-\path"include/mm_register.h", and \path"/include/mm_base.h".  The
+\path"include/mm_register.h", and \path"include/mm_base.h".  The
 memory manager traps memory allocation and deallocation requests in
 order to monitor and enforce memory usage limits. It provides a number
 of user-callable functions and services, which are documented in
@@ -787,6 +978,7 @@ Chapter \ref{cha:reference}.
 
 \comment{(Need some comments on the current simple MM that we have and
   some OS issues that come up in attempting to make it more robust.)}
+\comment{JV: Who wrote this? What are the issues mentioned?}
 
 \index{memory manager|)}
 
@@ -813,38 +1005,19 @@ within each service the relevant source files are itemized
 more direct way to find the documentation for a particular source
 file.
 
-\subsection{Using Multiple BTE Implementations}
-\plabel{sec:imp-multi-imp}
-
-For\comment{LA: What does this subsection do/say? Seem to be missing
-  something. And does it work??} instance, if a single implementation
-is needed, it is sufficient for the application code to create a
-stream of \lstinline|int| as follows:
-
-\begin{lstlisting}
-AMI_STREAM<int> aStream;
-\end{lstlisting}
-However, if different implementations, say a \lstinline|ufs| and an
-\lstinline|mmap| stream are desired, the code would be similar to the
-following:
-\begin{lstlisting}
-BTE_stream_mmap   firstStream(const char *dev_path, BTE_stream_type st);
-BTE_stream_stdio secondStream(const char *dev_path, BTE_stream_type st);
-\end{lstlisting}
-
 \subsection{General Considerations}
 
 The following TPIE files are fundamental and therefore involved in
 every TPIE program, no matter which TPIE services are
 accessed:\comment{DH: There may be a better place for some of the
-  stuff in this intro}\comment{LA: Portability somewhere?}
+  stuff in this intro}
 
 \begin{itemize}
 \item \path"include/ami.h": This file should be included in every TPIE
   application program that uses the AMI-level interface. It in turn
   inputs the definitions for the AMI-level services of TPIE. The files
   input by \path"include/ami.h" are itemized below.
-  
+    
 \item \path"test/app_config.h": This file contains TPIE flags and
   settings that can be customized to an individual application. The
   options available in this file are described in detail in
@@ -862,141 +1035,123 @@ accessed:\comment{DH: There may be a better place for some of the
   code at compile-time, application programs must also link with
   \path"lib/libtpie.a". This is described further in
   Section~\ref{sec:tut-compiling}.
+  
+\item \path"include/portability.h": This file should be included in
+  every TPIE application program since it provides the type
+  definitions and function declarations needed for compiling on
+  multiple platforms. Due to this particular importance, this file
+  gets automatically included from \path"include/ami.h", so the user
+  only should not need to explicitly include it. See
+  Section~\ref{sec:portability} for more details.\comment{JV: This
+    section needs to be written\ldots{}what is the best place for
+    putting it?}
+
 \end{itemize} 
 
-\subsubsection{File: \texttt{include/ami.h}} This \CPP{} include
-file inputs the various include files required for
-compilation of an application program with TPIE. 
-
-\comment{JV: Most of the file has changed. Someone has to update this
-  section accordingly.}
+\vspace*{\baselineskip}
+\subsubsection{File: \texttt{include/ami.h}} This include
+file inputs the various include files required for compilation of an
+application program with TPIE.
 
 \lstinputlisting[caption={The AMI configuration file.}]{../include/ami.h}
-%%The relevant portion of \path"include/ami.h" is included below:
-
-%%\begin{lstlisting}
-%%// Get the base class, enums, etc...
-%%#include <ami_base.h>
-%%
-%%// Get the device description class
-%%#include <ami_device.h>
-%%
-%%// Get an implementation definition
-%%#include <ami_imps.h>
-%%
-%%// Get templates for ami_scan().
-%%#include <ami_scan.h>
-%%
-%%// Get templates for ami_merge().
-%%#include <ami_merge.h>
-%%
-%%// Get templates for ami_sort().
-%%#include <ami_sort.h>
-%%
-%%// Get templates for general permutation.
-%%#include <ami_gen_perm.h>
-%%
-%%// Get templates for bit permuting.
-%%#include <ami_bit_permute.h>
-%%\end{lstlisting} 
 
 Each of these files is discussed in the sections that follow.
 
 \subsection{Creation of Streams}
 
-AMI\comment{LA: Jan please look at this subsection} stream objects are
-created in a TPIE program via the \lstinline|AMI_STREAM| keyword.
-\lstinline|AMI_STREAM| is a macro that resolves to a class template
-invocation appropriate to the declared target I/O architecture. This
-involves the declared AMI implementation (see
+AMI\comment{LA: Jan please look at this subsection. JV: Done} stream
+objects are created in a TPIE program via the \lstinline|AMI_STREAM|
+keyword.  \lstinline|AMI_STREAM| is a macro that resolves to a class
+template invocation appropriate to the declared target I/O
+architecture. This involves the declared AMI implementation (see
 Section~\ref{cha:reference}), BTE implementation\index{block transfer
   engine} (see Section~\ref{sec:ref-bte}) and whether one or multiple
 disks are used.  In the current version of TPIE an
 \lstinline|AMI_STREAM| is stored in a standard UNIX file on a single
 disk. For most applications, an \lstinline|AMI_STREAM| will have type
-\lstinline|AMI_stream_single|, which is the TPIE base class for a
-stream backed by a single file (normally on a single disk). The string
+\lstinline|AMI_stream|, which is the TPIE base class for a stream
+backed by a single file (normally on a single disk). The string
 \lstinline|AMI_STREAM| is \lstinline|#define|'d to be the string
-\lstinline|AMI_stream_single| in the header file
-\path"include/ami_imps.h". This arrangement is intended to permit
-alternative implementations of \lstinline|AMI_STREAM| if necessary in
-the future.
+\lstinline|AMI_stream| in the header file
+\path"include/ami_stream_compatibility.h". This arrangement is
+intended to permit alternative implementations of
+\lstinline|AMI_STREAM| if necessary in the future.
 
 The TPIE code associated with the creation and manipulation of stream
-objects is contained mainly within the following files:
+objects is contained mainly within \path"include/ami_stream.h": This
+include file defines the class \lstinline|AMI_stream|, which is the
+base class for all AMI-level streams backed by a single operating
+system file. By means of including \path"include/ami_device.h",
+\path"include/ami_err.h", and \path"include/ami_stream_base.h" the
+following basic definitions are made:
 
 \begin{itemize}
-\item \path"include/ami_base.h": 
+\item The code in these files defines means for accessing device
+  names and reading environment variables.
+\item Also, a non-templated base class for all
+  \lstinline|AMI_stream|s is defined that maintains basic device
+  information.  
+\item The code in this file defines the \lstinline|AMI_err| codes
+  returned by the AMI-level services (these and their meanings are
+  listed in Appendix~\ref{sec:ami-errors}.
+\end{itemize}    
 
-  \begin{enumerate}     
-  \item defines the \lstinline|AMI_err| codes returned by the
-    AMI-level services (these and their meanings are listed in
-    Appendix~\ref{sec:ami-errors}.
-    
-  \item defines the AMI stream types discussed in
-    Section~\ref{cha:reference} (\lstinline|AMI_READ_STREAM|,
-    \lstinline|AMI_WRITE_STREAM|, \lstinline|AMI_APPEND_STREAM|, and
-    \lstinline|AMI_READ_WRITE_STREAM|).
+Based upon these definitions, \lstinline|AMI_stream<T>| is defined
+as follows:
+
+\begin{enumerate}
   
-  \item defines the member functions of \lstinline|AMI_stream_base| as
-    \lstinline|virtual| (only if the compile time variable
-    \lstinline|AMI_VIRTUAL_BASE| is defined).
-  \end{enumerate}    
+\item The template parameter \lstinline|<T>| represents the type of
+  the application data element in the stream.
+  
+\item The code in this file defines the AMI stream types discussed
+  in Section~\ref{cha:reference} (\lstinline|AMI_READ_STREAM|,
+  \lstinline|AMI_WRITE_STREAM|, \lstinline|AMI_APPEND_STREAM|, and
+  \lstinline|AMI_READ_WRITE_STREAM|).
+  
+\item At construction time, an \lstinline|AMI_stream<T>| is
+  mapped onto a \lstinline|BTE_STREAM<T>| and the AMI stream type is
+  mapped as follows:
+  
+  \begin{itemize}
+  \item \lstinline|AMI_READ_STREAM| is mapped to
+    \lstinline|BTE_READ_STREAM|
+  \item \lstinline|AMI_APPEND_STREAM| is mapped to
+    \lstinline|BTE_APPEND_STREAM|
+  \item \lstinline|AMI_WRITE_STREAM| and
+    \lstinline|AMI_READ_WRITE_STREAM| are mapped to
+    \lstinline|BTE_WRITE_STREAM|
+  \end{itemize}
+  
+\item The AMI-level services for streams are implemented by
+  corresponding BTE-level services. The AMI member functions
+  described in Sections~\ref{sec:ref-ami-stream} (see examples of
+  use of some of these in Section~\ref{sec:tut-samplepgm}) are
+  implemented by calls to the BTE-level functions documented in
+  Section~\ref{sec:ref-bte}. An AMI stream has little internal
+  context information as a result. Two exceptions are the following:
+  
+  \begin{itemize}
+  \item \lstinline|r_only|: this flag is \lstinline|true| if the
+    stream is only readable, and not writable, corresponding to the
+    status \lstinline|AMI_READ_STREAM|. Maintaining this flag allows
+    the AMI stream member functions to catch erroneous attempt by
+    application-level code to write to a stream whose underlying
+    file was opened for reading.
     
-\item \path"include/ami_single.h": This include file defines the class
-  \lstinline|AMI_stream_single|, which is the base class for all
-  AMI-level streams backed by a single Unix file.
-
-  \begin{enumerate}
-    
-  \item the template parameter \lstinline|<T>| represents the type of
-    the application data element in the stream.
-        
-  \item At construction time, an \lstinline|AMI_stream_single<T>| is
-    mapped onto a \lstinline|BTE_STREAM<T>| and the AMI stream type is
-    mapped as follows:
-
-    \begin{itemize}
-    \item \lstinline|AMI_READ_STREAM| is mapped to
-      \lstinline|BTE_READ_STREAM|
-    \item \lstinline|AMI_APPEND_STREAM| is mapped to
-      \lstinline|BTE_APPEND_STREAM|
-    \item \lstinline|AMI_WRITE_STREAM| and
-      \lstinline|AMI_READ_WRITE_STREAM| are mapped to
-      \lstinline|BTE_WRITE_STREAM|
-    \end{itemize}
-        
-  \item The AMI-level services for streams are implemented by
-    corresponding BTE-level services. The AMI member functions
-    described in Sections~\ref{sec:ref-ami-stream} (see examples of
-    use of some of these in Section~\ref{sec:tut-samplepgm}) are
-    implemented by calls to the BTE-level functions documented in
-    Section~\ref{sec:ref-bte}. An AMI stream has little internal
-    context information as a result. Two exceptions are the following:
-
-    \begin{itemize}
-    \item \lstinline|r_only|: this flag is one (TRUE) if the stream is
-      only readable, and not writable, corresponding to the status
-      \lstinline|AMI_READ_STREAM|. Maintaining this flag allows the
-      AMI stream member functions to catch erroneous attempt by
-      application-level code to write to a stream whose underlying
-      file was opened for reading.
-            
-    \item \lstinline|destruct_bte|: this flag is one (TRUE) if the
-      destructor of the underlying BTE stream should be called by the
-      AMI-level destructor (the normal situation). If the AMI-level
-      stream was constructed from a pre-existing BTE stream via the
-      constructor
+  \item \lstinline|destruct_bte|: this flag is \lstinline|true| if
+    the destructor of the underlying BTE stream should be called by
+    the AMI-level destructor (the normal situation). If the
+    AMI-level stream was constructed from a pre-existing BTE stream
+    via the constructor
 \begin{lstlisting}
-    AMI_stream_single(BTE_STREAM<T> *bs);
-\end{lstlisting}
-      then a \lstinline|destruct_bte| value of zero is used
-      to prevent the destructor from deleting the BTE
-      stream (owned by another AMI stream).
-    \end{itemize}
-  \end{enumerate}
-  
-\end{itemize}
+    AMI_stream(BTE_STREAM<T> *bs);
+ \end{lstlisting}
+    then a \lstinline|destruct_bte| value of \lstinline|false| is
+    used to prevent the destructor from deleting the BTE stream
+    (owned by another AMI stream).
+  \end{itemize}
+\end{enumerate}
 
 
 % The public member functions of the \lstinline|AMI_STREAM|
@@ -1099,6 +1254,27 @@ objects is contained mainly within the following files:
 %flag to decide whether it need only close the backing Unix file or
 %delete it from disk.
 
+\subsection{Using Multiple BTE Implementations}
+\plabel{sec:imp-multi-imp}
+
+For\comment{LA: What does this subsection do/say? Seem to be missing
+  something. And does it work??}\comment{JV: Moved it here (it was
+  before the previous section).} instance, if a single implementation
+is needed, it is sufficient for the application code to create a
+stream of \lstinline|int| as follows:
+
+\begin{lstlisting}
+AMI_STREAM<int> aStream;
+\end{lstlisting}
+However, if different implementations, say a \lstinline|ufs| and an
+\lstinline|mmap| stream are desired, the code would be similar to the
+following:
+\begin{lstlisting}
+BTE_stream_mmap   firstStream(const char *dev_path, BTE_stream_type st);
+BTE_stream_stdio secondStream(const char *dev_path, BTE_stream_type st);
+\end{lstlisting}
+
+
 
 \subsection{Scanning}
 \index{scanning|(}
@@ -1123,6 +1299,8 @@ be modified manually.
 
 \subsubsection{Merging}
 
+The file \path"include/ami_merge.h"\ldots \comment{AD: The ``Darren'' version}
+
 \tobeextended\comment{LA: Merge management object etc}
 
 %\subsubsection{Merge Management Objects}
@@ -1130,9 +1308,6 @@ be modified manually.
 %Merge management objects based on the super class \lstinline|AMI_merge_base| 
 %defined in the file \lstinline|ami_merge.h" can be used conveniently by
 %appropriately defining the member functions of the class.
-
-\path"include/ami_merge.h"\comment{AD: The ``Darren'' version}
-
 
 
 \subsubsection{Merging sorted runs}
@@ -1177,19 +1352,21 @@ substreams output by that stage.\comment{LA: Extend this stuff so that
 \plabel{sec:ref-imp-ami-sort}
 \index{sorting!comparison|(}
 
-The\comment{LA: Add 2x
-  sorting somewhere. AD: added in user Reference. Does progress bar stuff also go here or is it
-  more general? AD: More general} TPIE sort implementation is a multi-way merge sort.
-Merge sort consists of two phases: the run formation phase and the
-merging phase. During the \emphd{run formation phase}, the $N$ input
-elements are read approximately $M$ (one \emphd{memory-load}) at a
-time, sorted in memory, and written to disk as sorted ``runs''. In the
-\emphd{merge phase}, the sorted runs are merged together approximately
-$M/B$ at a time (where $M$ is the internal memory size and $B$ is the
-block size) in a round-robin manner until a single sorted run remains;
-During each merge an internal \emph{merge heap} is used to select the
-next element to be output among the first element in each of the input
-runs. Below we discuss the sort implementation in more detail.
+The file \path"include/ami_sort.h" \ldots
+
+The\comment{LA: Add 2x sorting somewhere. AD: added in user Reference.
+  Does progress bar stuff also go here or is it more general? AD: More
+  general} TPIE sort implementation is a multi-way merge sort.  Merge
+sort consists of two phases: the run formation phase and the merging
+phase. During the \emphd{run formation phase}, the $N$ input elements
+are read approximately $M$ (one \emphd{memory-load}) at a time, sorted
+in memory, and written to disk as sorted ``runs''. In the \emphd{merge
+  phase}, the sorted runs are merged together approximately $M/B$ at a
+time (where $M$ is the internal memory size and $B$ is the block size)
+in a round-robin manner until a single sorted run remains; During each
+merge an internal \emph{merge heap} is used to select the next element
+to be output among the first element in each of the input runs. Below
+we discuss the sort implementation in more detail.
 
 \paragraph{Sort manager.} The sort manager class in
 \path"include/sort_manager.h" is responsible for performing the
@@ -1367,6 +1544,8 @@ Template & Variant    & Sorter   & Heap    \\
 \subsection{General Permuting}
 \plabel{sec:ref-imp-ami-gp}
 
+The file \path"include/ami_gen_perm.h" \ldots
+
 \tobewritten
 
 \index{permutation!general|(}
@@ -1375,10 +1554,23 @@ Template & Variant    & Sorter   & Heap    \\
 \subsection{Bit Permuting}
 \plabel{sec:ref-imp-ami-bp}
 
+The file \path"include/ami_bit_permute.h" \ldots \comment{JV: The
+  naming is inconsistent.}
+
 \tobewritten
 
 \index{permutation!bit|(}
 \index{permutation!bit|)}
+
+\fbox{JV: We're missing \path"include/ami\_coll.h",
+  \path"include/ami\_block.h", and \path"include/ami\_btree.h".}
+ 
+\fbox{JV: It's not obvious that they should be included by default,
+  though.}
+
+
+
+\fbox{JV: None of the following is included from \path"include/ami.h".}
 
 \subsection{Dense Matrices}
 \plabel{sec:ref-imp-ami-matrix}
