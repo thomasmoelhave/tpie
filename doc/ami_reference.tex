@@ -1,14 +1,15 @@
 %%
-%% $Id: ami_reference.tex,v 1.20 2005-12-21 16:18:24 jan Exp $
+%% $Id: ami_reference.tex,v 1.21 2006-01-16 23:37:49 jan Exp $
 %%
 
 \chapter{TPIE Programmer's Reference}
 \plabel{cha:reference}
 
-\comment{LA: Andy and Jan please check if this chapter is ok}
+\comment{LA: Andy and Jan please check if this chapter is ok. JV: As
+  far as I'm concerned, the mm and stream stuff is ok.}
 
-\comment{LA: Add progress bar stuff?! (and what about in section 4?).
-  Jan?}
+\comment{LA: Add progress bar stuff?! JV: Done. (and what about in section 4?).
+  Jan? No, the example is in this section.}
 
 %%%%%%%%% Memory Manager %%%%%%%%%
 \mysection{Registration-based Memory Manager}
@@ -97,10 +98,10 @@ interact with the memory manager.
     behavior is the default behavior. See below for a more detailled
     discussion of situtations in which this feature may come in
     handy. The pause/resume calls may be nested.}
-
-  \entry{size\_t \textbf{allocation\_count\_factor}();} { Returns 1 iff
-    allocation is switched on. In all other cases, a value of zero is
-    returned.} 
+  
+  \entry{size\_t \textbf{allocation\_count\_factor}() const;} {
+    Returns 1 iff allocation is switched on. In all other cases, a
+    value of zero is returned.}
 
   \etabb
 
@@ -174,18 +175,18 @@ types:\comment{LA: Add something like this about persistence flag}
 \end{itemize}
 \index{AMI_STREAM@{\tt AMI\_STREAM}!stream types|)}
 
-\clearpage
+%%\clearpage
 
 \subsection{Constructors, Destructor and Related Functions}
 
 \comment{LA: Jan please check (new substream). Also please add
-  ``tell'', right?}
+  ``tell'', right? Done (tell)}
 
   \btabb
   
-  \entry{\textbf{AMI\_STREAM}();} {A new stream of type
-    \lstinline|AMI_READ_WRITE_STREAM| is constructed on a file with a
-    randomly generated name.}
+  \entry{\textbf{AMI\_STREAM}(unsigned int device = UINT\_MAX);} {A new
+    stream of type \lstinline|AMI_READ_WRITE_STREAM| is constructed on
+    the given device as a file with a randomly generated name.}
  
   \entry{\textbf{AMI\_STREAM}(const char *path\_name);} {A stream of
     type \lstinline|AMI_READ_WRITE_STREAM| is constructed on the file
@@ -201,7 +202,7 @@ types:\comment{LA: Add something like this about persistence flag}
     AMI\_stream\_type st);} {A stream of type \lstinline|st| is
     constructed on the file whose pathname is given.}
   
-  \entry{\textbf{AMI\_STREAM}(BTE\_STREAM<T> \&bs);} {A stream is
+  \entry{\textbf{AMI\_STREAM}(BTE\_STREAM<T> *bs);} {A stream is
     constructed from an existing \lstinline|BTE_STREAM| (see
     Section~\ref{sec:ref-bte}). This constructor will not normally be
     used by a TPIE application programmer. The new
@@ -213,8 +214,9 @@ types:\comment{LA: Add something like this about persistence flag}
     \lstinline|PERSIST_DELETE|, also remove the file.}
   
   \index{new_substream()@{\tt new\_substream()}!AMI|)} 
-  \entry{AMI\_err \textbf{new\_substream}(AMI\_stream\_type st, off\_t
-    sub\_begin, off\_t sub\_end, AMI\_stream<T> **sub\_stream );} {A
+  \entry{AMI\_err \textbf{new\_substream}(AMI\_stream\_type st,
+    TPIE\_OS\_OFFSET sub\_begin, TPIE\_OS\_OFFSET sub\_end,
+    AMI\_stream<T> **sub\_stream );} {A 
     substream is an AMI stream that is part of another AMI stream.
     More precisely, a substream $B$ of a stream $A$ is defined as a
     contiguous range of objects from the ordered collection of objects
@@ -250,7 +252,7 @@ types:\comment{LA: Add something like this about persistence flag}
     \entry{off\_t \textbf{chunk\_size}() const;} {Return the maximum number
     of items (of type \lstinline|T|) that can be stored in one block.}
 
-    \entry{static const tpie\_stats\_stream\& \textbf{gstats}();}
+    \entry{static const tpie\_stats\_stream\& \textbf{gstats}() const;}
     {Return an object containing the statistics of all streams opened by the
     application (global statistics). See also \lstinline|stats()|.}
 
@@ -260,7 +262,7 @@ types:\comment{LA: Add something like this about persistence flag}
 
   \etabb
   
-\clearpage
+%%\clearpage
 
 \comment{LA: Is the ``current position''in the below defined?}
   
@@ -314,8 +316,13 @@ types:\comment{LA: Add something like this about persistence flag}
     read\_item()}!AMI|)}
     
 \index{seek()@{\tt seek()}!AMI|(} \entry{AMI\_err \textbf{seek}(off\_t
-  off);} {Move the current position to \lstinline|off|.}
+  off);} {Move the current position to \lstinline|off| (measured in
+  terms of items).}
 \index{seek()@{\tt seek()}!AMI|)}
+
+\index{tell()@{\tt tell()}!AMI|(} \entry{TPIE\_OS\_OFFSET
+  \textbf{tell}() const;} {Returns the current position in the stream
+  (measured in terms of items).}  \index{tell()@{\tt tell()}!AMI|)}
     
 
     \entry{const tpie\_stats\_stream\& \textbf{stats}() const;}
@@ -343,7 +350,7 @@ types:\comment{LA: Add something like this about persistence flag}
          stats and gstats!! AND is it all correct?}
 
   
- \clearpage
+%% \clearpage
 
   \btabb
     \entry{AMI\_stream\_status \textbf{status}() const;} {Return the status
@@ -388,7 +395,7 @@ types:\comment{LA: Add something like this about persistence flag}
 
 \comment{LA: In above return values sometimes mentioned sometimes not}
 
-
+\clearpage
 %%%%%%% Scanning %%%%%%%%
        \mysection{Scanning} \plabel{sec:ref-ami-scan}
        \index{scanning|(} \index{AMI_scan()@{\tt AMI\_scan()}|(}
@@ -503,7 +510,7 @@ following:
 \index{AMI_scan()@{\tt AMI\_scan()}|)}
 \index{scanning|)}
 
-
+\clearpage
 %%%%%%%%% Scanning from a C++ stream %%%%%%%%%%
 \mysection{Scanning from a \CPP{} stream}
 \plabel{sec:ref-cxx-stream-input}
@@ -532,7 +539,7 @@ streams of any type for which a \lstinline|>>| operator is defined for
   \lstinline|AMI_scan| with no input streams and one output stream.}
 \etabb
 
-
+\clearpage
 %%%%%%%%% Scanning into a C++ stream %%%%%%%%%%
 \mysection{Scanning into a \CPP{} stream}
 \plabel{sec:ref-cxx-stream-output}
@@ -560,7 +567,7 @@ stream output.
   \lstinline|AMI_scan| with one input stream and no output streams.}
 \etabb
 
-
+\clearpage
 %%%%%%%% Stream Merging %%%%%%%%%
 \mysection{Stream Merging}
 \index{merging|(}
@@ -687,7 +694,7 @@ all the flags to see which inputs were or were not processed.
 \index{operation management objects!merge|)}
 \index{merging|)}
 
-
+\clearpage
 %%%%%%%% Stream Merging %%%%%%%%%
 \mysection{Sorted Stream Merging}
 \index{merging!sorted runs|(}
@@ -727,7 +734,7 @@ multiple, different merges on the same keys.\comment{LA: Key based?}
 \index{merging!sorted runs|)}
 
 
-
+\clearpage
 %%%%%%%% Stream Partitioning and Merging %%%%%%%%%
 \mysection{ Stream Partitioning and Merging}
 \index{AMI_partition_and_merge()@{\tt AMI\_partition\_and\_merge()}|(}
@@ -814,7 +821,7 @@ the portion that is linear in the number of streams.
 
 \index{operation management objects!merge|)}
 
-
+\clearpage
 %%%%%%%%% Merge Sorting %%%%%%%%
 \mysection{Merge Sorting}\plabel{sec:ref-ami-sort}
 \index{sorting!merge|)} \index{AMI_key_sort@{\tt AMI\_key\_sort}|(}
@@ -995,7 +1002,7 @@ during the sort.
 \index{AMI_key_sort@{\tt AMI\_key\_sort}|)}
 \index{sorting!merge|)} 
 
-
+\clearpage
 %%%%%%%%% Internal Memory Sorting %%%%%%%%
 \mysection{Internal Memory Sorting} \plabel{sec:ref-ami-memsort}
 \index{sorting!internal memory|(}
@@ -1032,7 +1039,7 @@ of type \lstinline|CMPR|.
 
 \index{sorting!internal memory|)}
 
-
+\clearpage
 %%%%%%%%% Distribution %%%%%%%%%
 \mysection{Distribution}
 \index{distribution|(}
@@ -1041,6 +1048,7 @@ of type \lstinline|CMPR|.
 
 \index{distribution|)}
 
+\clearpage
 %%%%%%%%% Key bucket sort %%%%%%%%%
 \mysection{Key bucket sort}
 \index{key bucket sort|(}
@@ -1049,7 +1057,7 @@ of type \lstinline|CMPR|.
 
 \index{key bucket sort|)}
 
-
+\clearpage
 %%%%%%%%% Permuting %%%%%%%%%
 \mysection{Permuting}
 \index{permuting|(}
@@ -1058,7 +1066,7 @@ of type \lstinline|CMPR|.
 
 \index{permuting|)}
 
-
+\clearpage
 %%%%%%%%% Stacks %%%%%%%%%
 \mysection{Stacks}
 \plabel{sec:ref-ami-stack}
@@ -1076,12 +1084,15 @@ of type \lstinline|CMPR|.
    \etabb
 
 \subsection{Description}
-External stacks are derived from  \lstinline|AMI_STREAM<T>|.
-\comment{LA: Do we care here? AD: means there
-are additional public member functions not listed below that we can use} As a
-consequence, it inherits all public members of
-\lstinline|AMI_STREAM<T>|, including its constructors. See
-Section~\ref{sec:ref-ami-stream}.
+External stacks are derived from \lstinline|AMI_STREAM<T>|.
+\comment{LA: Do we care here? AD: means there are additional public
+  member functions not listed below that we can use} As a consequence,
+it inherits all public members of \lstinline|AMI_STREAM<T>|, including
+its constructors. See Section~\ref{sec:ref-ami-stream}.  \comment{JV:
+  I'm not sure inheriting from \lstinline|AMI\_STREAM| is the smartest
+  way of doing this. This would allow the user to do all kinds of
+  stuff with a stack (such as sorting it\ldots). Why don't we
+  aggregate a stream instead?}
 
 \subsection{Public Member Functions}
    \btabb 
@@ -1099,7 +1110,7 @@ Section~\ref{sec:ref-ami-stream}.
 \index{stacks|)}
 \index{AMI_stack@{\tt AMI\_stack}|)}
 
-
+\clearpage
 %%%%%%%%% Queues %%%%%%%%%
 \mysection{Queue}
 \plabel{sec:ref-ami-queue}
@@ -1138,7 +1149,7 @@ Provides an external FIFO queue.
 
 
 
-
+\clearpage
 %%%%%%%%% Distribution sweeping %%%%%%%%%
 \mysection{Distribution sweeping}
 \index{distribution sweeping|(}
@@ -1147,7 +1158,7 @@ Provides an external FIFO queue.
 
 \index{distribution sweeping|)}
 
-
+\clearpage
 %%%%%%%%% Matrix %%%%%%%%%
 \mysection{Matrix operations}
 \index{matrix operations|(}
@@ -1158,7 +1169,7 @@ Provides an external FIFO queue.
 
 
 
-
+\clearpage
 %%%%%%%%Blocks %%%%%%%%%
 \mysection{Blocks}
 \index{AMI_block@{\tt AMI\_block}|(}
@@ -1360,7 +1371,7 @@ interface). The items stored can be accessed through the array operator.
 
 \index{AMI_block@{\tt AMI\_block}|)}
 
-
+\clearpage
 %%%%%%%% AMI Block Collection %%%%%%%%%
 \mysection{Block Collections}
 \index{AMI_COLLECTION@{\tt AMI\_COLLECTION}|(}
@@ -1489,7 +1500,7 @@ collection is identified by a block ID, of type \lstinline|AMI_bid|.
    \etabb
 \index{AMI_COLLECTION@{\tt AMI\_COLLECTION}|)}
 
-
+\clearpage
 %%%%%%%%%% AMI B+-tree %%%%%%%%%%%
 \mysection{B+-tree}
 \index{AMI_btree@{\tt AMI\_btree}|(}
@@ -1715,6 +1726,7 @@ parameter can then be changed independently.
 \index{AMI_btree_params@{\tt AMI\_btree\_params}|)}
 \index{AMI_btree@{\tt AMI\_btree}|)}
 
+\clearpage
 %%%%%%%% AMI Cache Manager %%%%%%%%%%
 \mysection{Cache Manager}
 
@@ -1743,6 +1755,148 @@ parameter can then be changed independently.
       \entry{bool \textbf{write}(size\_t k, const T \& item);}{Write an item in the cache based on the given key \lstinline|k|. If the cache was full, the least recently used item is written out using the \lstinline|W| function object, and it is removed from the cache.}
       \entry{bool \textbf{erase}(size\_t k);}{Erase an item from the cache based on the given key \lstinline|k|. Return true if the key was found.}
    \etabb
+
+\clearpage
+%%%%%%%% Progress Indicators %%%%%%%%
+\mysection{Progress Indicators}
+
+\subsection{Files}
+\btabb
+   \entry{\#include <progress\_indicator\_arrow.h>} {}
+   \entry{\#include <progress\_indicator\_spin.h>} {}
+\etabb
+
+\subsection{Class Declaration}
+
+\btabb
+   \entry{class \textbf{progress\_indicator\_arrow};} {}
+   \entry{class \textbf{progress\_indicator\_spin};} {}
+\etabb
+
+\subsection{Description}
+
+At times, especially when processing large data sets, the user might
+want the program to provide information about how much progress has
+been made. TPIE provides a class hierarchy with an abstract base class
+\lstinline|progress_indicator_base| for realizing such
+indicators. TPIE offers terminal-based indicators, such as
+\lstinline|progress_indicator_arrow| that shows an extending arrow or
+\lstinline|progress_indicator_spin| that shows a spinning
+``wheel''. To allow for other types of indicators such as
+graphics-based indicators for (interfaces to) indicators provided by
+other APIs, the terminal-based indicators inherit from
+\lstinline|progress_indicator_terminal| which in turn inherits from
+\lstinline|progress_indicator_base|. To include other types of
+non-terminal-based indicators, the user thus should subclass
+\lstinline|progress_indicator_base|. 
+
+All indicators are based upon the following concept: The indicator is
+given a range $[\mathit{minRange},\mathit{maxRange}]$ and a parameter
+$\mathit{stepValue}$. For each update to the indicator and starting at
+$\mathit{minRange}$, the progress status will be advanced by
+$\mathit{stepValue}$ units.
+
+\subsection{Constructor}
+
+\btabb
+
+   \entry{\textbf{progress\_indicator\_arrow}(const char* title, 
+     const char* description, 
+     TPIE\_OS\_OFFSET minRange, 
+     TPIE\_OS\_OFFSET maxRange, 
+     TPIE\_OS\_OFFSET stepValue)}{Constructs a progress
+     indicator with a given title and task description that can
+     ``count'' from $\mathit{minRange}$ to $\mathit{maxRange}$ by
+     advancing $\mathit{stepValue}$ units per step.}
+
+\etabb
+
+\subsection{Member functions}
+
+\btabb
+
+    \entry{void init(const char* description=NULL)}{Display a zero
+      count. This method may also be used to simultaneously set a new
+      description.} 
+
+    \entry{void reset()}{Reset the counter. The current position is
+      reset to the lower bound of the counting range.}
+
+    \entry{void done(const char* text = NULL)}{Advance the indicator
+      to the end and print an (optional) message that is followed by a
+      newline.} 
+
+    \entry{void set\_range(TPIE\_OS\_OFFSET minRange, TPIE\_OS\_OFFSET
+      maxRange, TPIE\_OS\_OFFSET stepValue)}{Simultaneously set the
+      upper and lower bound of the counting range. Also, set the
+      increment for each step. There is a sanity check that ensures
+      that $\mathit{minRange} \leq \mathit{maxRange}$ and that
+      $\mathit{stepValue} \in [1,\mathit{maxRange}-\mathit{minRange}]$.}
+    
+    \entry{void set\_percentage\_range(TPIE\_OS\_OFFSET minRange,
+      TPIE\_OS\_OFFSET maxRange, unsigned short percentageUnit =
+      100)}{Simultaneously set the upper and lower bound of the
+      counting range and set the increment to be
+      $\max\{1,(1/\mathit{percentageUnit})(\mathit{maxRange}-\mathit{minRange})\}$.
+      There is a sanity check that ensures that $\mathit{minRange}
+      \leq \mathit{maxRange}$.}
+
+    \entry{void step()}{Record an increment to the indicator and advance
+      the indicator.} 
+    
+    \entry{void step\_percentage()}{Record an increment but only
+      advance the indicator if it will be advance by at least one
+      $\mathit{percentageUnit}$ (as defined in \lstinline|setPercentageRange|).}
+
+    \entry{void set\_min\_range(TPIE\_OS\_OFFSET minRange)}{Set the
+      lower bound of the counting range. This method also implies a
+      reset of the counter. In order to be able to set the lower bound
+      independent of setting the upper bound,  no range checking is
+      done.} 
+    
+    \entry{void set\_max\_range(TPIE\_OS\_OFFSET maxRange)}{Set the
+      upper bound of the counting range. This method also implies a
+      reset of the counter. In order to be able to set the upper bound
+      independent of setting the lower bound, no range checking is
+      done.}
+
+    \entry{void set\_step\_value(TPIE\_OS\_OFFSET stepValue)}{Set the
+      increment by which the counter is advanced upon each call to
+      \lstinline|step()|. In order to be able to reset the counter, no
+      range checking is done.} 
+
+    \entry{void set\_title(const char* title)}{Set the title of a new
+      task to be monitored. For terminal-based indicators, the
+      following holds: The terminal line will be newline'd, and the
+      title will be followed by a newline as well.}
+    
+    \entry{void set\_description(const char* description)}{Set the
+      description of the task currently being monitored. For
+      terminal-based indicators, the following holds: Invoking this
+      method will clear the terminal line.}  
+
+\etabb
+
+\vspace*{2\baselineskip}
+
+The following method is realized for terminal-based indicators only.
+
+\btabb
+    \entry{void set\_indicator\_length(int indicatorLength)}{Set the
+      maximum length of the indicator, i.e., the number of characters
+      the indicator occupies on a single line. The length is enforced 
+      to be an integer in $[2,60]$.}
+\etabb
+
+\vspace*{2\baselineskip}
+
+\clearpage
+\subsection{Example Program}
+The following program is meant to illustrate the use of a progress
+indicator:
+
+\lstinputlisting[numbers=left,basicstyle=\ttfamily\small,caption={A
+  sample program illustrating the use of a progress indicator.}]{src/progress.cpp}
 
 %%%
 %%% Local Variables: 
