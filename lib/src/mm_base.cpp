@@ -6,7 +6,7 @@
 //
 
 #include <versions.h>
-VERSION(mm_base_cpp,"$Id: mm_base.cpp,v 1.33 2005-11-17 17:04:22 jan Exp $");
+VERSION(mm_base_cpp,"$Id: mm_base.cpp,v 1.34 2006-01-17 19:03:51 jan Exp $");
 
 #include "lib_config.h"
 #include <mm_base.h>
@@ -104,6 +104,74 @@ void *operator new (TPIE_OS_SIZE_T sz)
    return (reinterpret_cast<char *>(p)) + SIZE_SPACE;
 }
 
+void *operator new[] (TPIE_OS_SIZE_T sz)
+{
+	void *p;
+#ifdef USE_DMALLOC
+	char	*file;
+	GET_RET_ADDR(file);
+#endif
+	
+	if ((MM_manager.register_new != MM_IGNORE_MEMORY_EXCEEDED)
+		&& (MM_manager.register_allocation (sz + SIZE_SPACE) !=
+			MM_ERROR_NO_ERROR)) {
+		switch(MM_manager.register_new) {
+			case MM_ABORT_ON_MEMORY_EXCEEDED:
+				TP_LOG_FATAL_ID ("In operator new() - allocation request \"");
+				TP_LOG_FATAL (static_cast<TPIE_OS_LONG>(sz + SIZE_SPACE));
+				TP_LOG_FATAL ("\" plus previous allocation \"");
+				TP_LOG_FATAL (static_cast<TPIE_OS_LONG>(MM_manager.memory_used () - (sz + SIZE_SPACE)));
+				TP_LOG_FATAL ("\" exceeds user-defined limit \"");
+				TP_LOG_FATAL (static_cast<TPIE_OS_LONG>(MM_manager.memory_limit ()));
+				TP_LOG_FATAL ("\" \n");
+				TP_LOG_FLUSH_LOG;
+				cerr << "memory manager: memory allocation limit " 
+					<< static_cast<TPIE_OS_LONG>(MM_manager.memory_limit ()) 
+					<< " exceeded while allocating " 
+					<< static_cast<TPIE_OS_LONG>(sz)
+					<< " bytes" << "\n";
+#ifdef USE_DMALLOC
+				dmalloc_shutdown();
+#endif
+				assert (0);		// core dump if debugging
+				exit (1);
+				break;
+			case MM_WARN_ON_MEMORY_EXCEEDED:
+				TP_LOG_WARNING_ID ("In operator new() - allocation request \"");
+				TP_LOG_WARNING (static_cast<TPIE_OS_LONG>(sz + SIZE_SPACE));
+				TP_LOG_WARNING ("\" plus previous allocation \"");
+				TP_LOG_WARNING (static_cast<TPIE_OS_LONG>(MM_manager.memory_used () - (sz + SIZE_SPACE)));
+				TP_LOG_WARNING ("\" exceeds user-defined limit \"");
+				TP_LOG_WARNING (static_cast<TPIE_OS_LONG>(MM_manager.memory_limit ()));
+				TP_LOG_WARNING ("\" \n");
+				TP_LOG_FLUSH_LOG;
+				cerr << "memory manager: memory allocation limit " 
+					<< static_cast<TPIE_OS_LONG>(MM_manager.memory_limit ()) 
+					<< " exceeded while allocating " 
+					<< static_cast<TPIE_OS_LONG>(sz)
+					<< " bytes" << "\n";
+				break;
+			case MM_IGNORE_MEMORY_EXCEEDED:
+				break;
+		}
+	}
+	
+#ifdef USE_DMALLOC
+	p = _malloc_leap(file, 0, sz + SIZE_SPACE);
+#else
+	p = malloc(sz + SIZE_SPACE);
+#endif
+	if (!p) {
+		TP_LOG_FATAL_ID ("Out of memory. Cannot continue.");
+		TP_LOG_FLUSH_LOG;
+		cerr << "out of memory while allocating " << static_cast<TPIE_OS_LONG>(sz) << " bytes" << "\n";
+		perror ("mm_base::new malloc");
+		assert(0);
+		exit (1);
+	}
+	*(reinterpret_cast<size_t *>(p)) = (MM_manager.allocation_count_factor() ? sz : 0);
+	return (reinterpret_cast<char *>(p)) + SIZE_SPACE;
+}
 
 void operator delete (void *ptr)
 {
