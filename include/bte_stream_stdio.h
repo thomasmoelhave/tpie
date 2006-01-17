@@ -3,7 +3,7 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/11/94
 //
-// $Id: bte_stream_stdio.h,v 1.18 2006-01-17 23:27:51 jan Exp $
+// $Id: bte_stream_stdio.h,v 1.19 2006-01-17 23:39:12 jan Exp $
 //
 #ifndef _BTE_STREAM_STDIO_H
 #define _BTE_STREAM_STDIO_H
@@ -94,16 +94,18 @@ public:
     TPIE_OS_OFFSET chunk_size () const;
 
 private:
+        /////////////////////////////////////////////////////////
 	// A substream constructor. This constructor is 
-    // cannot be used in a meaningful way, since,
-    // in order to get new file pointer for the 
-    // substream, we need to reopen the file...this
-	// is done in the "standard" constructor/
-	BTE_stream_stdio(BTE_stream_stdio * super_stream,
-				     BTE_stream_type st, 
-				     TPIE_OS_OFFSET sub_begin, 
-				     TPIE_OS_OFFSET sub_end) {};
-	
+        // cannot be used in a meaningful way, since,
+        // in order to get new file pointer for the 
+        // substream, we need to reopen the file...this
+	// is done in the "standard" constructor.
+        //
+        //	BTE_stream_stdio(BTE_stream_stdio * super_stream,
+	//			     BTE_stream_type st, 
+	//			     TPIE_OS_OFFSET sub_begin, 
+	//			     TPIE_OS_OFFSET sub_end) {};
+	///////////////////////////////////////////////////////////
 		
     BTE_stream_header* map_header ();
   
