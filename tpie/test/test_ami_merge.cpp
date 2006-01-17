@@ -7,7 +7,7 @@
 #include <portability.h>
 
 #include <versions.h>
-VERSION(test_ami_merge_cpp,"$Id: test_ami_merge.cpp,v 1.21 2005-12-19 03:11:19 adanner Exp $");
+VERSION(test_ami_merge_cpp,"$Id: test_ami_merge.cpp,v 1.22 2006-01-17 15:52:51 jan Exp $");
 
 #include <iostream>
 
@@ -200,9 +200,6 @@ int main(int argc, char **argv)
     if (report_results_final) {
         ae = AMI_scan(&amis3, rptf);
     }
-
-    delete amirs[0];
-    delete amirs[1];
     
     return 0;
 }
