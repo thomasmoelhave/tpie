@@ -5,7 +5,7 @@
 //
 // An extensive test suite for TPIE functionality.
 //
-// $Id: test_correctness.cpp,v 1.10 2005-11-16 17:03:53 jan Exp $
+// $Id: test_correctness.cpp,v 1.11 2006-01-17 23:31:26 jan Exp $
 //
 
 #include <portability.h>
@@ -777,19 +777,7 @@ int test_scan() {
     }
     print_status(status); if (status == FAIL) failed++;
 
-
-    print_msg("Running AMI_scan illegally with same stream in and out", INDENT);
-    TP_LOG_APP_DEBUG_ID("Length of stream before scan:");
-    TP_LOG_APP_DEBUG_ID(ps[1]->stream_len());
-    if (status != SKIP) {
-	err = AMI_scan(ps[1], &so, ps[1]);
-	status = (err == AMI_ERROR_NO_ERROR ? FAIL: PASS);
-    }
-    TP_LOG_APP_DEBUG_ID("Length of stream after scan:");
-    TP_LOG_APP_DEBUG_ID(ps[1]->stream_len());  
-    print_status(status); if (status == FAIL) failed++;
-
-
+	
     print_msg("Running AMI_scan illegally with non-valid in-stream", INDENT);
     if (status != SKIP) {
 	AMI_STREAM<int> *psn = new AMI_STREAM<int>("/glkdjldas");
