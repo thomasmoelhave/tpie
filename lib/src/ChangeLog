@@ -1,3 +1,102 @@
+Wed Jan 18 09:19:30 2006 Jan Vahrenhold (jan)
+
+       General Changes (applied to all files):
+    
+       * Update of the TPIE library to work with 64-bit data types.
+         This includes:
+         -  Introduction of TPIE_OS_SIZE_T typedef (0...M-1)
+            This replaces size_t variables. The exact type
+            may be set using TPIE_OS_SMALL_MEMORY.
+          - Consistent use of TPIE_OS_OFFSET typedef (0...N-1)
+            This replaces off_t, unsinged int, long long etc. used by
+            various programmers.
+          - Compile-time-check for potential "loss-of-data" problems
+            when using 64-bit data types.
+
+        * Added portability code and changed typedefs and/or
+          function names as necessary.
+
+        * Updated code to get rid of warnings that appeared when using
+          one of the following gcc compiler directives (description
+          are taken from the gcc man page):
+
+          -Wall 
+
+          -Wabi (C++ only)
+           Warn when G++ generates code that is probably not compatible with
+           the vendor-neutral C++ ABI.  Although an effort has been made to
+           warn about all such cases, there are probably some cases that are
+           not warned about, even though G++ is generating incompatible code.
+           There may also be cases where warnings are emitted even though the
+           code that is generated will be compatible.
+
+          -Wold-style-cast (C++ only)
+           Warn if an old-style (C-style) cast to a non-void type is used
+           within a C++ program.  The new-style casts (static_cast, reinter-
+           pret_cast, and const_cast) are less vulnerable to unintended
+           effects and much easier to search for.
+
+          -Woverloaded-virtual (C++ only)
+           Warn when a function declaration hides virtual functions from a
+           base class. 
+
+          -Weffc++ (C++ only)
+           Warn about violations of the following style guidelines from
+           Scott Meyers' Effective C++ book:
+
+           *   Item 11:  Define a copy constructor and an assignment operator
+               for classes with dynamically allocated memory.
+
+           *   Item 12:  Prefer initialization to assignment in constructors.
+
+           *   Item 14:  Make destructors virtual in base classes.
+
+           *   Item 15:  Have "operator=" return a reference to *this.
+
+           *   Item 23:  Don't try to return a reference when you must return
+               an object.
+
+           Also warn about violations of the following style guidelines from
+           Scott Meyers' More Effective C++ book:
+
+           *   Item 6:  Distinguish between prefix and postfix forms of incre-
+               ment and decrement operators.
+
+           *   Item 7:  Never overload "&&", "||", or ",".
+
+
+        File-specific Changes:
+
+        * ami_device.cpp: Changed device separator character from ':' to 
+         '|' to avoid conflicts with DOS path names.
+
+        * ami_key.cpp: Added selectors to key_range.
+  
+        * ami_stream_single.cpp -> ami_stream_base.cpp
+          Changed initializer object from static to extern to fix problems 
+          with default_device not being set up properly
+
+        * bte_stream_base.cpp: This file is new and contains code
+          for maintaining stream statistics.
+
+        * logstream.cpp: Changed operator<< for char*, since it was 
+          writing garbage in the log.
+
+        * mm_base.cpp: Added operator new[].
+  
+        * mm_base.cpp/mm_register.cpp: Added "pause/resume allocation 
+          counting" methods.        
+
+        * mm_register.cpp: added TPIE_LOG_MEM_DEBUG debugging level. 
+          TPIE_LOG_DEBUG now hides memory allocation/deallocation. 
+          LOG_DEBUG now will not show memory allocation/deallocation. 
+          use LOG_MEM_DEBUG for most verbose logging level
+
+        * portability.cpp: This file is new and contains _WIN32 code
+          for outputting TPIE_OS_OFFSET to cout.
+
+        * tpie_log.cpp: The log files now have a ".txt" suffix.
+
 Thu Apr 17 23:10:02 2003 Jan Vahrenhold (jan)
 	* all files: modified such as to reflect the "portability.h" code.
 	* ami_device.cpp, tpie_tempnam.cpp: changed device separator
@@ -7,51 +106,42 @@ Thu Apr 17 23:10:02 2003 Jan Vahrenhold (jan)
 	  to avoid conflicts with STL methods.
 
 Thu Aug 29 23:01:23 2002
-	* bte_coll_base.cpp,  bte_coll_mmap.cpp, bte_coll_ufs.cpp: Use bid_t to
-	represent the bid type at the bte collection level.
-
+	* bte_coll_base.cpp,  bte_coll_mmap.cpp, bte_coll_ufs.cpp: 
+          Use bid_t to represent the bid type at the bte collection level.
 	* bte_coll_mmap.cpp: Added the BTE_COLLECTION_MMAP_LAZY_WRITE
-	constant to specify the writing policy.
-
-	* tpie_log.cpp: Using tpie_tempnam instead of tempnam, to avoid warnings.
-	Changed prefix of log file name from "TPLOG" to "tpielog".
-
+	  constant to specify the writing policy.
+	* tpie_log.cpp: Using tpie_tempnam instead of tempnam, to avoid 
+	  warnings.
+	  Changed prefix of log file name from "TPLOG" to "tpielog".
 	* tpie_tempnam.cpp: Added include string.h to make it compile on
-	Linux.
-
+	  Linux.
 	* tpie_tempnam.cpp: Added tpie_mktemp to replace mktemp, since it
-	was giving warnings on FreeBSD and Linux. Added a parameter to
-	tpie_tempnam to optionally specify the directory. When missing, it
-	defaults to NULL and tpie_tempnam uses the environment variable
-	etc.
-	
+	  was giving warnings on FreeBSD and Linux. Added a parameter to
+	  tpie_tempnam to optionally specify the directory. When missing, 
+	  it defaults to NULL and tpie_tempnam uses the environment 
+	  variable etc.
+
 Mon Jan 14 12:09:41 2002
 	* this file is now ChangeLog instead of Changelog.
-
 	* Makefile.in: removed those ugly .d files. Introduced depend
-	target, which makes a file called Makefile.depend containing all
-	dependencies.
-
+	  target, which makes a file called Makefile.depend containing all
+	  dependencies.
 	* ami_single.cpp: deprecated; renamed ami_stream_single.cpp
-	
-	* bte_stdio.cpp. bte_ufs.cpp, bte_mmb.cpp: deprecated
+	* bte_stdio.cpp. bte_ufs.cpp, bte_mmb.cpp: deprecated	
 	* bte_coll_mmb.cpp: deprecated; renamed bte_coll_mmap.cpp
 	* counter.cpp: deprecated
-	
 	* bte_stream_base.cpp: initial revision, containing consolidated
-	code from bte_ufs.cpp, bte_mmb.cpp, bte_stdio.cpp
-
-	* cpu_timer.cpp: now contains methods to query the timings, not just
-	to print them
+	  code from bte_ufs.cpp, bte_mmb.cpp, bte_stdio.cpp
+	* cpu_timer.cpp: now contains methods to query the timings, not just 
+	  to print them
 
 Thu May 17 19:29:14 2001 Octavian Procopiuc (tavi)
 	* bte_coll_base.cpp, bte_coll_mmb.cpp, bte_coll_ufs.cpp: initial
-	revision
-
-Thu May 22 22:42 1997 Lars Arge (large)
-
-	* We should describe changed to file in this dir in this file!
+	  revision
 
 Tue Oct 28 15:05 1997 Jan Vahrenhold (jan)
+	* Added check whether pointer passed to ::operator new is NULL. 
 
-	* Added check whether pointer passed to ::operator new is NULL.
+Thu May 22 22:42 1997 Lars Arge (large)
+	* We should describe changed to file in this dir in this file!
+
