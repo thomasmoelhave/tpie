@@ -1,3 +1,369 @@
+2006-01-18  Jan Vahrenhold  <jan.vahrenhold@math.uni-muenster.de>
+
+	* ami_block.h: Changes in all block and collection classes to
+	reflect the fact that the BTE_collection_* classes are now
+	templated. The corresponding .cpp files have been eliminated.
+
+	
+	* ami_block_base.h: Changes in all block and collection classes to
+	reflect the fact that the BTE_collection_* classes are now
+	templated. The corresponding .cpp files have been eliminated. 
+
+
+	* ami_btree.h: Added a new member function: name(). 
+
+	Added modify method for use with Persistent B-tree.
+
+	Fixed insert() to not call insert_split() when a duplicate value
+	is inserted.
+
+	Fixed a missing check for empty btree in find().
+	
+	Added a new parameter: AMI_BTREE_UNIQUE_KEYS.
+	
+	Added more checks during initialization to avoid failed
+	assertions.
+
+	Added a new method: dfs_preorder for traversing the tree.
+
+	Changed bulk loading procedure to generate full nodes, instead of
+	half-full ones.
+
+	
+	* ami_coll.h: Changes in all block and collection classes to
+	reflect the fact that the BTE_collection_* classes are now
+	templated. The corresponding .cpp files have been eliminated. 
+
+	Redefined AMI_collection to by a synonym of AMI_collection_single,
+	and not AMI_collection_single<BTE_COLLECTION>
+
+	
+	* ami_coll_single.h:  Changes in all block and collection classes
+	to reflect the fact that the BTE_collection_* classes are now 
+	templated. The corresponding .cpp files have been eliminated. 
+
+	Added a persist() method for inquiring the persistence status.
+
+	
+	* ami_err.h: Added error codes used for representing errors that
+	might occur while sorting.
+
+	
+	* ami_kd_base.h/ami_kdtree.h/ami_kdbtree.h: These files are new
+	and contain the code for kd-trees and kdB-trees.
+
+	
+	* ami_key.h: Added selectors to key_range.
+
+	
+	* ami_logmethod.h: This file is new. It contains the code
+	for realizing the (internal and external) logarithmic method.
+
+	
+	* ami_merge.h/ami_merge_sorted_runs.h: Merge changes. 
+	ami_generalized_merge changed to ami_merge. merge_sorted_runs
+	moved to ami_merge_sorted_runs (in ami_merge_sorted_runs.h now too).
+
+	
+	* ami_point.h: This file is new. It contains the implementation of
+	a class for points in multidimensional Euclidean space.
+
+	
+	* ami_queue.h: This file is new. It contains the implementation of
+	a simple I/O efficient FIFO queue.
+
+	
+	* ami_scan_mac.h: Added better checks for stream validity for both
+	input streams and output streams. 
+
+	
+	* ami_sparse_matrix.h: Eliminated dependence on comparator
+	class (not used/needed). Migrated to use AMI_sort instead of
+	AMI_sort_V1. 
+
+	
+	* ami_stack.h: The seek() and truncate() have become public.
+
+	
+	* ami_stream.h: This file used to be called
+	ami_stream_single.h. It now contains code resulting from the merge
+	of ami_stream_single and ami_stream_base.
+
+	Added tell() and persist() methods.
+
+
+	* ami_stream_base.h: This file and its use is deprecated. See
+	ami_stream.h 
+
+	
+	* ami_stream_compatibility.h: Ensure backwards compatibility for
+	AMI_STREAM (after the collapse of AMI_stream* into AMI_stream).
+
+	
+	* ami_stream_single.h: This file and its use is deprecated. See
+	ami_stream.h 
+	
+ 	
+	* bte_coll.h: Changes in all block and collection classes to  
+	reflect the fact that the BTE_collection_* classes are now
+	templated. The corresponding .cpp files have been eliminated.
+
+
+	* bte_coll_base.h: Changes in all block and collection classes to
+	reflect the fact that the BTE_collection_* classes are now
+	templated. The corresponding .cpp files have been
+	eliminated. Updated file mapping mechanism such as to allow for
+	explicit file mapping in the constructor.
+
+
+	* bte_coll_mmap.h: Changes in all block and collection classes to 
+	reflect the fact that the BTE_collection_* classes are now
+	templated. The corresponding .cpp files have been
+	eliminated. Updated file mapping mechanism such as to allow for
+	explicit file mapping in the constructor. 
+	
+
+	* bte_coll_ufs.h: Changes in all block and collection classes to
+	reflect the fact that the BTE_collection_* classes are now
+	templated. The corresponding .cpp files have been
+	eliminated. Updated file mapping mechanism such as to allow for
+	explicit file mapping in the constructor.
+
+
+	* bte_stack_ufs.h: This file is new and contains code for a stack
+	implemented using BTE_stream_ufs. It is used by
+	BTE_collection_base to implement deletions.   
+
+
+	* bte_stream_base.h: Separated out bte_stream_base_generic
+	and bte_stream_header to a separate file each. 
+	Added a persist() method for inquiring persistence status. Merged
+	functionality from subclasses into this class (this also fixed a
+	bug in STDIO-seek that would allow to seek past the end of the
+	file without complaining). 
+
+
+	* bte_stream_base_generic.h: This file is new (see also
+	bte_stream_base.h).
+
+
+	* bte_stream_header.h: This file is new (see also
+	bte_stream_base.h). The class defined here has become struct.
+
+
+	* bte_stream_mmap.h: Changes file_length calculation in
+	::grow_file. Previous version would double the file size each
+	time, but this is bad for large large files. We don't want to
+	double files in the GB range. If the user knows in advance that
+	he/she will have a large file to write, use truncate from the
+	start. Previous version of bte_stream_mmap did not allow the
+	creation of large (4GB) files under solaris (and possible other
+	UNIXes). 
+
+	Cleaned up memory calculations, so that memory_usage matches
+	what appears in MM_register logging. 
+
+	Added the tell method that returns the current position in the
+	stream.  
+
+	Fixed problem in ::truncate where current item pointer does not
+	get updated but it should. 
+
+	Merged functionality into base class (see bte_stream_base.h).
+
+
+	* bte_stream_stdio.h: Cleaned up memory calculations, so that
+	memory_usage matches that appears in MM_register logging. 
+
+	Merged functionality into base class (see bte_stream_base.h).
+
+	Added the tell method that returns the current position in the
+	stream.  
+
+
+	* bte_stream_ufs.h: Changes file_length calculation in
+	::grow_file. Previous version would double the file size each
+	time, but this is bad for large large files. We don't want to
+	double files in the GB range. If the user knows in advance that
+	he/she will have a large file to write, use truncate from the
+	start. Previous version of bte_stream_mmap did not allow the
+	creation of large (4GB) files under solaris (and possible other
+	UNIXes). 
+
+	Cleaned up memory calculations, so that memory_usage matches
+	what appears in MM_register logging. 
+
+	Fixed problem in ::truncate where current item pointer does not
+	get updated but it should. 
+
+	Merged functionality into base class (see bte_stream_base.h).
+
+	Added the tell method that returns the current position in the
+	stream.  
+
+	Modified substream constructor so each subtream gets its own file
+	descriptor. Otherwise file_pointer and file descriptor file
+	pointer location may not match.
+
+
+	* comparator.h: Added helper classes that convert between
+	different comparison types (TPIE, STL, <). 
+
+
+	* internal_sort.h: Complete overhaul of previous AMI_sort
+	routines. Major code rewrite, better code organization, more
+	documentation, fix of memory problems, working support for merge
+	depths >2, removed dependence on substreams (cost too much in
+	terms of file descriptors/memory for this application).
+	Support for sorting with 2x space instead of 3x plus an optional
+	progress bar.  
+
+
+	* matrix.h: All entries are set to zero upon initialization (using
+	memset).
+
+	
+	* mergeheap.h: This file used to be mergeheap_dh.h and
+	repleaces the previous mergeheap.h file. Added extract_min
+	functionality to mergeheap in cases where it makes sense (not the
+	key-based heaps). Delete_min_and_insert is still used for sorting,
+	but for general heaps, extract_min may be a desired feature. 
+
+
+	* mm_register.h: Added "pause/resume allocation counting"
+	methods. 
+
+
+	* persist.h: Added a fix for OSs that do not support READ_ONCE
+	access.
+
+
+	* portability.h: Various fixes to ensure portability (also on
+	MINGW32). Use ANSI std rand/srand instead of BSD style
+	random/srandom. TPIE_OS_RANDOM() now generates 31 random bits
+	under WIN32 as well.
+	
+
+	* progress_indicator_base.h, progress_indicator_arrow.h,
+	progress_indicator_spin.h, progress_indicator_terminal.h,
+	progress_indicator_tpie.h: These files are new and provide 
+	interfaces (_base, _terminal) and instantiations (_arrow, _spin,
+	_tpie) for progress indicators.
+
+
+	* quicksort.h: Got rid of comparison function sorting. Changed
+	comparison object sorting to always test "compare < 0" just as in
+	the operator sorting case.
+
+	DEPRECATED: quick_sort_cmp
+	
+	Earlier TPIE versions allowed a quicksort that used a C-style
+	comparison function to sort. However, comparison functions cannot
+	be inlined, so each comparison requires one function call. Given
+	that the comparison operator < and comparison object classes can
+	be inlined and have better performance while providing the exact
+	same functionality, comparison functions have been removed from
+	TPIE. If you can provide us with a compelling argument on why they
+	should be in here, we may consider adding them again, but you must
+	demonstrate that comparision functions can outperform other
+	methods in at least some cases or give an example were it is
+	impossible to use a comparison operator or comparison object.
+
+
+
+	* sort_manager.h: This file is new. The new sort_manager class
+	that handles the bulk of sorting. A progress indicator can be used
+	to show the progress made so far.
+
+
+	* tpie_assert.h: Changed the system call assert(0) to
+	assert(condition) so user will see what test failed.
+
+
+	* tpie_log.h: Added a function that returns the name of the log
+	file: theLogName(). Added TPIE_LOG_MEM_DEBUG debugging
+	level. TPIE_LOG_DEBUG now hides memory
+	allocation/deallocation. LOG_DEBUG now will not show memory
+	allocation/deallocation. Use LOG_MEM_DEBUG for most verbose
+	logging level.
+
+
+	* tpie_tempnam.h: Changed "char* base" in tpie_tempnam to "const
+	char* base" to allow const base names. Matches tempnam from
+	stdio.h prototype.
+
+
+	* vararray.h: This file is new and contains code for variable-size
+	one-, two-, and three-dimensional arrays. These array are used for
+	use with compilers that do not like variable-size arrays (such as
+	"my_class myArray[aVariable]") on the stach. 
+
+
+	* General Changes (applied to all files):
+    
+         * Update of the TPIE library to work with 64-bit data types.
+          This includes:
+          -  Introduction of TPIE_OS_SIZE_T typedef (0...M-1)
+             This replaces size_t variables. The exact type
+             may be set using TPIE_OS_SMALL_MEMORY.
+           - Consistent use of TPIE_OS_OFFSET typedef (0...N-1)
+             This replaces off_t, unsinged int, long long etc. used by
+             various programmers.
+           - Compile-time-check for potential "loss-of-data" problems
+             when using 64-bit data types. 
+
+         * Added portability code and changed typedefs and/or
+           function names as necessary.
+
+         * Updated code to get rid of warnings that appeared when using
+           one of the following gcc compiler directives (description
+           are taken from the gcc man page):
+
+           -Wall 
+
+           -Wabi (C++ only)
+            Warn when G++ generates code that is probably not compatible with
+            the vendor-neutral C++ ABI.  Although an effort has been made to
+            warn about all such cases, there are probably some cases that are
+            not warned about, even though G++ is generating incompatible code.
+            There may also be cases where warnings are emitted even though the
+            code that is generated will be compatible.
+
+           -Wold-style-cast (C++ only)
+            Warn if an old-style (C-style) cast to a non-void type is used
+            within a C++ program.  The new-style casts (static_cast, reinter-
+            pret_cast, and const_cast) are less vulnerable to unintended
+            effects and much easier to search for.
+
+           -Woverloaded-virtual (C++ only)
+            Warn when a function declaration hides virtual functions from a
+            base class. 
+
+           -Weffc++ (C++ only)
+            Warn about violations of the following style guidelines from
+            Scott Meyers' Effective C++ book:
+
+           *   Item 11:  Define a copy constructor and an assignment operator
+               for classes with dynamically allocated memory.
+
+           *   Item 12:  Prefer initialization to assignment in constructors.
+
+           *   Item 14:  Make destructors virtual in base classes.
+
+           *   Item 15:  Have "operator=" return a reference to *this.
+
+           *   Item 23:  Don't try to return a reference when you must return
+               an object.
+
+           Also warn about violations of the following style guidelines from
+           Scott Meyers' More Effective C++ book:
+
+           *   Item 6:  Distinguish between prefix and postfix forms of incre-
+               ment and decrement operators.
+
+           *   Item 7:  Never overload "&&", "||", or ",".
+
+
 Thu Aug 29 22:40:43 2002 Octavian Procopiuc (tavi)
 
 	* ami_stream_single.h, bte_stream_base.h, bte_stream_mmap.h,
