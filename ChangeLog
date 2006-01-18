@@ -1,14 +1,26 @@
+2006-01-18  Jan Vahrenhold  <jan.vahrenhold@math.uni-muenster.de>
+
+	* CodingGuidelines.txt: This file is new. The purpose of (the text
+	contained in) this file is to provide guidelines for how to write
+	C++ code that is supposed to become part of the TPIE project. 
+
+	* TPIE-wish-list.txt: This file is new. It contains a list of
+	issues that should been addressed in upcoming versions of TPIE and
+	serves of a reminder who is responsible for which fix.
+
+	
 Wed Aug 26 22:40:43 2002 Octavian Procopiuc (tavi)
 
 	* configure.in: changed the default of logging to on.
+
 	* Makefile.in: Some reoganization.
 
 Thu Sep 29 12:54:06 1994  Darren Erik Vengroff  (darrenv@lazyboy)
 
 	* Makefile:
-	Misc. changes.  The overall organization of the makefiles could still
-	use some work, such as finding out exactly whaty header files things
-	are dependent on and building when those change.
+	Misc. changes.  The overall organization of the makefiles could
+	still use some work, such as finding out exactly what header
+	files things are dependent on and building when those change.
 
 Thu Sep 22 15:22:39 1994  Darren Erik Vengroff  (darrenv@lazyboy)
 
@@ -21,4 +33,4 @@ Fri Sep 16 13:14:02 1994  Darren Erik Vengroff  (darrenv@lazyboy)
 Wed May 25 19:46:14 1994  dev  (dev@lazyboy)
 
 	* meta-log.txt, Makefile: Initial revision
-
+	
