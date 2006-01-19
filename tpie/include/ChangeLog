@@ -82,8 +82,22 @@
 	AMI_sort_V1. 
 
 	
-	* ami_stack.h: The seek() and truncate() have become public.
+	* ami_stack.h: A complete overhaul of the code.
 
+	Class AMI_stack<T> no longer inherits from AMI_STREAM<T> but 
+	instead aggregates an AMI_STREAM<T>.
+
+	The stack now uses two main-memory blocks to maintaing the
+	topmost elements (as the theory says it should).
+	
+ 	The interface has been extended to provide "peek" functionality.
+
+	The interface now include persistence information and main memory
+	usage. 
+
+	Added a size() method (but still provide stream_len() for
+ 	backwards compatibility).
+	
 	
 	* ami_stream.h: This file used to be called
 	ami_stream_single.h. It now contains code resulting from the merge
