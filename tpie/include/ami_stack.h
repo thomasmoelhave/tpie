@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/15/94
 //
-// $Id: ami_stack.h,v 1.11 2006-01-19 23:02:32 jan Exp $
+// $Id: ami_stack.h,v 1.12 2006-01-20 15:40:28 jan Exp $
 //
 #ifndef _AMI_STACK_H
 #define _AMI_STACK_H
@@ -140,6 +140,17 @@ public:
 
     ////////////////////////////////////////////////////////////////////
     ///  
+    ///  Truncates the underlying stream to the exact size (rounded up
+    ///  to the next block) of items.
+    ///
+    ////////////////////////////////////////////////////////////////////
+
+    AMI_err trim() {
+	return m_amiStream->truncate(m_size); 
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    ///  
     ///  Compute the memory used by the stack and the aggregated stream.
     ///
     ///  \param  usage       Where the usage will be stored.
@@ -268,7 +279,7 @@ AMI_stack<T>::~AMI_stack() {
     delete[] m_block[1];
     
     //  Make sure there are no left-overs.
-    m_amiStream->truncate(m_size);
+    trim();
 
     delete m_amiStream;
 }
