@@ -41,7 +41,7 @@
 	initializers by renaming the attribute max to m_max. 
 
 
-	* scan_universal.h: This file is new and ontains definitions used
+	* scan_universal.h: This file is new and contains definitions used
 	in test_correctness.cpp. 
 
 
@@ -157,7 +157,7 @@ Fri Jan 25 17:58 2002 Octavian Procopiuc (tavi)
 
 Thu May 22 22:49 1997 Lars Arge	(large)
 
-	* There is a bog hole in time here, but now we start describing
+	* There is a big hole in time here, but now we start describing
 	changes again!
 
 
