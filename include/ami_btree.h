@@ -3,7 +3,7 @@
 // File:    ami_btree.h
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 //
-// $Id: ami_btree.h,v 1.35 2005-01-27 21:13:35 tavi Exp $
+// $Id: ami_btree.h,v 1.36 2006-02-10 17:49:25 adanner Exp $
 //
 // AMI_btree declaration and implementation.
 //
@@ -2330,7 +2330,7 @@ bool AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::erase(const Key& k) {
     return ans;
   }
 
-  AMI_BTREE_NODE * q;
+  AMI_BTREE_NODE * q=NULL;
   pair<AMI_bid, size_t> top;
 
   // Underflow. Balance or merge up the tree.
