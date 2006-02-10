@@ -3,6 +3,8 @@
 /// Pending Issues
 ///
 //////////////////////////////////////////////
+NEXT ID: 18
+
 ------------------
 ID: 2
 General Area: Priority Queues
@@ -33,6 +35,27 @@ structures. I don't think this is a problem for sorting as you can't do
 anything else while you are sorting and sort cleans up its memory when it
 is done.
 Status: Open as of 21 April 2005
+
+------------------------
+ID: 17
+General Area: Priority Queue
+Description:
+Kevin writes "can you add the following to the wish list of pqueue: Currently
+it uses both x < y and x.getPriorty() < y.getPriority(), which are assumed to
+be the same.  Ideally it should only use x < y.  Then the user can change the
+definition of x < y so that we can also have a max pqueue easily"
+
+I agree with Kevin that is does not make sense to require both "<" and
+"getPriority()", but I don't agree that we should overload "<" to mean ">"
+In this case it makes sense to support a version of the PQ that supports a
+comparison operator "<" and a version that supporst a comparison object or
+functor (). This is what is done in STL and TPIE sort has a similar
+mechanism, except the comparison object has a function called compare().
+In the next version of TPIE, this should probably be changed to match
+STL-style, but that is a separate wish-item.
+
+Status: Open as of 10 Feb 2006
+
 
 ------------------------
 ID: 10
