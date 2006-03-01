@@ -1,7 +1,7 @@
 //
 // File: mergeheap.h
 // 
-// $Id: mergeheap.h,v 1.17 2005-11-18 12:31:13 jan Exp $	
+// $Id: mergeheap.h,v 1.18 2006-03-01 08:11:57 aveng Exp $	
 
 // This file contains several merge heap templates. 
 // Originally written by Rakesh Barve.  
@@ -235,7 +235,7 @@ inline void merge_heap_ptr_op<REC>::extract_min(REC& el, TPIE_OS_SIZE_T& run_id)
 {
     el=*(Heaparray[1].recptr);
     run_id=Heaparray[1].run_id;
-    Heaparray[1]=Heaparray[--Heapsize];
+    Heaparray[1]=Heaparray[Heapsize--];
     Heapify(1);
 }
 
@@ -366,7 +366,7 @@ inline void merge_heap_ptr_obj<REC, CMPR>::extract_min
 {
     el=*(Heaparray[1].recptr);
     run_id=Heaparray[1].run_id;
-    Heaparray[1]=Heaparray[--Heapsize];
+    Heaparray[1]=Heaparray[Heapsize--];
     Heapify(1);
 }
 
@@ -531,7 +531,7 @@ inline void merge_heap_op<REC>::extract_min(REC& el, TPIE_OS_SIZE_T& run_id)
 {
     el=Heaparray[1].key;
     run_id=Heaparray[1].run_id;
-    Heaparray[1]=Heaparray[--Heapsize];
+    Heaparray[1]=Heaparray[Heapsize--];
     Heapify(1);
 }
 
@@ -663,7 +663,7 @@ inline void merge_heap_obj<REC, CMPR>::extract_min
 {
     el=Heaparray[1].key;
     run_id=Heaparray[1].run_id;
-    Heaparray[1]=Heaparray[--Heapsize];
+    Heaparray[1]=Heaparray[Heapsize--];
     Heapify(1);
 }
 
