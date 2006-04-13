@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/15/94
 //
-// $Id: ami_stack.h,v 1.12 2006-01-20 15:40:28 jan Exp $
+// $Id: ami_stack.h,v 1.13 2006-04-13 22:30:02 adanner Exp $
 //
 #ifndef _AMI_STACK_H
 #define _AMI_STACK_H
@@ -294,41 +294,41 @@ AMI_err AMI_stack<T>::push(const T &t) {
     //  Do we need to flush items to disk?
     if (m_itemsInMemory == 2*m_logicalBlockSize) {
 
-	//  Write the first block to disk.
-	ae = m_amiStream->write_array(m_block[0], m_logicalBlockSize);
+      //  Write the first block to disk.
+      ae = m_amiStream->write_array(m_block[0], m_logicalBlockSize);
 
-	if (ae != AMI_ERROR_NO_ERROR) {
-	    return ae;
-	}
+      if (ae != AMI_ERROR_NO_ERROR) {
+        return ae;
+      }
 
-	//  "Move" the second block to the place where the
-	//  first block used to be.
-	T* dummy      = m_block[0];
-	m_block[0] = m_block[1];
-	m_block[1] = dummy;
+      //  "Move" the second block to the place where the
+      //  first block used to be.
+      T* dummy      = m_block[0];
+      m_block[0] = m_block[1];
+      m_block[1] = dummy;
 
-	//  Zero the contents of the second block.
-	//  This may be commented out to increase performance
-	//  but for the time being, we'll keep it to aid 
-	//  debugging.
-	memset(m_block[1], 0, m_logicalBlockSize * sizeof(T));
+      //  Zero the contents of the second block.
+      //  This may be commented out to increase performance
+      //  but for the time being, we'll keep it to aid 
+      //  debugging.
+      memset(m_block[1], 0, m_logicalBlockSize * sizeof(T));
 
-	//  Decrease the number of items in main memory.
-	m_itemsInMemory -= m_logicalBlockSize;
+      //  Decrease the number of items in main memory.
+      m_itemsInMemory -= m_logicalBlockSize;
     }
 
     //  Check to which block to write the new element to.
     if (m_itemsInMemory < m_logicalBlockSize) {
 
-	//  First block.
-	(m_block[0])[m_itemsInMemory] = t;
+      //  First block.
+      (m_block[0])[m_itemsInMemory] = t;
     }
     else {
 
-	//  Second block.
-	(m_block[1])[m_itemsInMemory-m_logicalBlockSize] = t;
+      //  Second block.
+      (m_block[1])[m_itemsInMemory-m_logicalBlockSize] = t;
     }
-    
+
     //  There is one more item on the stack...
     m_size++;
 
@@ -343,74 +343,84 @@ AMI_err AMI_stack<T>::push(const T &t) {
 template<class T>
 AMI_err AMI_stack<T>::pop(T **t) {
 
-    AMI_err ae = AMI_ERROR_NO_ERROR;
+  AMI_err ae = AMI_ERROR_NO_ERROR;
 
-    //  Do we have items to work on?
-    if (m_size) {
+  //  Do we have items to work on?
+  if (m_size) {
 
-	if (!m_itemsInMemory) {
+    if (!m_itemsInMemory) {
 
-	    //  No items in memory, so try to fetch some from disk.
-	    if (m_size < m_logicalBlockSize) {
-		
-		// Can't do anything. This should not happen!
-		return AMI_ERROR_GENERIC_ERROR;
-	    }
-	    else {
-		
-		toBeRead = m_logicalBlockSize;
+      //  No items in memory, so try to fetch some from disk.
+      if (m_size < m_logicalBlockSize) {
+        assert(0);
+        // Can't do anything. This should not happen!
+        return AMI_ERROR_GENERIC_ERROR;
+      }
+      else {
 
-		//  Read one full block.
-		ae = m_amiStream->seek(m_size - m_logicalBlockSize);
-		
-		if (ae != AMI_ERROR_NO_ERROR) {
-		    return ae;
-		}
-		
-		ae = m_amiStream->read_array(m_block[0],
-					     &toBeRead);
+        toBeRead = m_logicalBlockSize;
 
-		if (ae != AMI_ERROR_NO_ERROR) {
-		    return ae;
-		}
-		
-		m_itemsInMemory += m_logicalBlockSize;
-		
-		//  Zero the contents of the second block.
-		//  This may be commented out to increase performance
-		//  but for the time being, we'll keep it to aid 
-		//  debugging.
-		memset(m_block[1], 0, m_logicalBlockSize * sizeof(T));
-		
-	    }
-	}
+        //  Seek back one full block.
+        ae = m_amiStream->seek(m_size - m_logicalBlockSize);
 
-	//  It is important to decrease m_itemsInMemory
-	//  at _this_ point.
-	m_itemsInMemory--;
-	
-	//  Check from which block to read the topmost element.
-	if (m_itemsInMemory < m_logicalBlockSize) {
+        if (ae != AMI_ERROR_NO_ERROR) {
+          return ae;
+        }
+        
+        // Read one full block from end
+        ae = m_amiStream->read_array(m_block[0],
+            &toBeRead);
 
-	    //  First block.
-	    *t = &((m_block[0])[m_itemsInMemory]);
-	}
-	else {
+        if (ae != AMI_ERROR_NO_ERROR) {
+          return ae;
+        }
+        
+        //  Seek back one full block.
+        //  Rewind stream one block again, so new blocks go at 
+        //  end of stack
+        ae = m_amiStream->seek(m_size - m_logicalBlockSize);
 
-	    //  Second block.
-	    *t = &((m_block[1])[m_itemsInMemory-m_logicalBlockSize]);
-	}
-	
-	//  One item less on the stack...
-	m_size--;
+        if (ae != AMI_ERROR_NO_ERROR) {
+          return ae;
+        }
+
+        m_itemsInMemory += m_logicalBlockSize;
+
+        //  Zero the contents of the second block.
+        //  This may be commented out to increase performance
+        //  but for the time being, we'll keep it to aid 
+        //  debugging.
+        memset(m_block[1], 0, m_logicalBlockSize * sizeof(T));
+
+      }
+    }
+
+    //  It is important to decrease m_itemsInMemory
+    //  at _this_ point.
+    m_itemsInMemory--;
+
+    //  Check from which block to read the topmost element.
+    if (m_itemsInMemory < m_logicalBlockSize) {
+
+      //  First block.
+      *t = &((m_block[0])[m_itemsInMemory]);
     }
     else {
 
-	//  Not in a physical but in a logical way.
-	return AMI_ERROR_END_OF_STREAM;
+      //  Second block.
+      *t = &((m_block[1])[m_itemsInMemory-m_logicalBlockSize]);
     }
 
-    return ae;
+    //  One item less on the stack...
+    m_size--;
+  }
+  else {
+
+    //  Not in a physical but in a logical way.
+    return AMI_ERROR_END_OF_STREAM;
+  }
+
+  return ae;
 }
 
 /////////////////////////////////////////////////////////////////////////
