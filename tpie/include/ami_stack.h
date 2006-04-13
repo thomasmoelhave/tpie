@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/15/94
 //
-// $Id: ami_stack.h,v 1.13 2006-04-13 22:30:02 adanner Exp $
+// $Id: ami_stack.h,v 1.14 2006-04-13 22:30:43 adanner Exp $
 //
 #ifndef _AMI_STACK_H
 #define _AMI_STACK_H
@@ -352,7 +352,6 @@ AMI_err AMI_stack<T>::pop(T **t) {
 
       //  No items in memory, so try to fetch some from disk.
       if (m_size < m_logicalBlockSize) {
-        assert(0);
         // Can't do anything. This should not happen!
         return AMI_ERROR_GENERIC_ERROR;
       }
