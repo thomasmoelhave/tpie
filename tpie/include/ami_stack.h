@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/15/94
 //
-// $Id: ami_stack.h,v 1.14 2006-04-13 22:30:43 adanner Exp $
+// $Id: ami_stack.h,v 1.15 2006-04-27 16:20:38 adanner Exp $
 //
 #ifndef _AMI_STACK_H
 #define _AMI_STACK_H
@@ -146,7 +146,13 @@ public:
     ////////////////////////////////////////////////////////////////////
 
     AMI_err trim() {
-	return m_amiStream->truncate(m_size); 
+      //Truncate to allow room for all elements (in mem + on disk)
+      AMI_err ae = m_amiStream->truncate(m_size);
+	    if(ae != AMI_ERROR_NO_ERROR){
+        return ae;
+      }
+      //Move file pointer to end of last element on disk
+      return m_amiStream->seek(m_size-m_itemsInMemory);
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -257,6 +263,9 @@ AMI_stack<T>::AMI_stack(const char* path, AMI_stream_type type) :
     m_amiStream->seek(numberOfFullBlocks * m_logicalBlockSize);
     m_amiStream->read_array(m_block[0], &toBeRead);
 
+    // Put file pointer at end of last full block
+    m_amiStream->seek(m_size-toBeRead);
+
     m_itemsInMemory = toBeRead;
 }
 
@@ -269,7 +278,7 @@ AMI_stack<T>::~AMI_stack() {
     if (m_itemsInMemory < m_logicalBlockSize) {
 	m_amiStream->write_array(m_block[0], m_itemsInMemory);
     }
-    else {
+    else { 
 	m_amiStream->write_array(m_block[0], m_logicalBlockSize);
 	m_amiStream->write_array(m_block[1], 
 				 m_itemsInMemory -  m_logicalBlockSize);  
@@ -277,6 +286,9 @@ AMI_stack<T>::~AMI_stack() {
 
     delete[] m_block[0];
     delete[] m_block[1];
+
+    //explicitly needed for correct operation of trim
+    m_itemsInMemory=0;
     
     //  Make sure there are no left-overs.
     trim();
