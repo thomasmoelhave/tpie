@@ -4,7 +4,7 @@
 // Author: Andrew Danner <adanner@cs.duke.edu>
 // Created: 2/22/05
 //
-// $Id: ami_queue.h,v 1.1 2005-04-25 19:08:06 adanner Exp $
+// $Id: ami_queue.h,v 1.2 2006-05-03 08:59:33 aveng Exp $
 //
 #ifndef _AMI_QUEUE_H
 #define _AMI_QUEUE_H
@@ -59,7 +59,7 @@ AMI_queue<T>::AMI_queue(const char* basename)
   deQstack = new AMI_stack<T>(fname);
   enQstack->persist(PERSIST_PERSISTENT);
   deQstack->persist(PERSIST_PERSISTENT);
-  Qsize=enQstack->stream_len()+deQstack->stream_len();
+  Qsize=enQstack->size()+deQstack->size();
 }
 
 template<class T>
@@ -67,6 +67,11 @@ AMI_queue<T>::~AMI_queue(void)
 {
   delete enQstack;
   delete deQstack;
+}
+
+template<class T>
+bool AMI_queue<T>::empty() {
+  return Qsize == 0;
 }
 
 template<class T>
@@ -92,7 +97,7 @@ AMI_err AMI_queue<T>::dequeue(T **t)
     AMI_err ae;
     T* tmp;
     //Elements popped from Dequeue stack
-    if(deQstack->stream_len()>0){
+    if(deQstack->size()>0){
       ae=deQstack->pop(t);
       if(ae == AMI_ERROR_NO_ERROR){
         Qsize--;
