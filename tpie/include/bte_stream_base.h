@@ -3,14 +3,14 @@
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/11/94
 //
-// $Id: bte_stream_base.h,v 1.15 2005-11-17 17:11:25 jan Exp $
+// $Id: bte_stream_base.h,v 1.16 2006-05-03 09:01:13 aveng Exp $
 //
 #ifndef _BTE_STREAM_BASE_H
 #define _BTE_STREAM_BASE_H
 
 // Get definitions for working with Unix and Windows
 #include <portability.h>
-
+#include <tpie_assert.h>
 #include <persist.h>
 // Get the BTE error codes.
 #include <bte_err.h>
