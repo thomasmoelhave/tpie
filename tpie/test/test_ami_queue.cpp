@@ -1,8 +1,6 @@
-// Copyright (c) 1994 Darren Vengroff
 //
-// File: test_ami_stack.cpp
-// Author: Darren Vengroff <darrenv@eecs.umich.edu>
-// Created: 12/15/94
+// File: test_ami_queue.cpp
+// Created: May 10th 2006
 //
 
 #include <portability.h>
@@ -10,13 +8,13 @@
 #include <versions.h>
 #include <progress_indicator_arrow.h>
 
-VERSION(test_ami_stack_cpp,"$Id: test_ami_stack.cpp,v 1.11 2006-05-10 11:39:19 aveng Exp $");
+VERSION(test_ami_stack_cpp,"$Id: test_ami_queue.cpp,v 1.1 2006-05-10 11:39:19 aveng Exp $");
 
 #include "app_config.h"        
 #include "parse_args.h"
 
 // Get the AMI_stack definition.
-#include <ami_stack.h>
+#include <ami_queue.h>
 
 struct options app_opts[] = {
   { 0, NULL, NULL, NULL, 0 }
@@ -43,38 +41,37 @@ int main(int argc, char **argv)
     // Set the amount of main memory:
     MM_manager.set_memory_limit(test_mm_size);
 
-    AMI_stack<TPIE_OS_OFFSET> stack;
+    AMI_queue<TPIE_OS_OFFSET> queue;
 
     pi->set_percentage_range(0,test_size);
-    pi->set_description("Push");
+    pi->set_description("Enqueue");
 
     // Push values.
     TPIE_OS_OFFSET ii;
-    for (ii = test_size; ii--; ) {
+    for (ii = 0; ii < test_size; ii++) {
       pi->step_percentage();
-      stack.push(ii);
+      queue.enqueue(ii);
     }
     pi->done("Done");
 
     if (verbose) {
-      cout << "Stack size = " << stack.size() << endl;
+      cout << "Queue size = " << queue.size() << endl;
     }
     
-    // Pop them all off.
     TPIE_OS_OFFSET *jj;
     TPIE_OS_OFFSET last;
     TPIE_OS_OFFSET read = 0;
-    stack.pop(&jj);
+    queue.dequeue(&jj);
     last = *jj;
     
-    pi->set_description("Pop ");
+    pi->set_description("Dequeue");
     pi->reset();
     read++;
     pi->step_percentage();
-    while(!stack.is_empty()) {
-      AMI_err ae = stack.pop(&jj);
+    while(!queue.is_empty()) {
+      AMI_err ae = queue.dequeue(&jj);
       if(ae != AMI_ERROR_NO_ERROR) {
-        cout << "Error from stack received" << endl;
+        cout << "Error from queue received" << endl;
       }
       read++;
       pi->step_percentage();
@@ -87,8 +84,8 @@ int main(int argc, char **argv)
       cout << "Error: Wrong amount of elements read, got: " << read << " expected: "<<test_size << endl;
     }
 
-    if (verbose) {
-        cout << "Stack size = " << stack.size() << endl;
+    if(verbose) {
+      cout << "Queue size = " << queue.size() << endl;
     }
     
     return 0;
