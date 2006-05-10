@@ -1,7 +1,7 @@
 # Makefile for TPIE test applications.
 # Use gmake on this Makefile.  It relies on the default rules, and 
 # Use gmake -p to see the default rules.
-# $Id: Makefile.in,v 1.42 2005-08-24 19:36:00 adanner Exp $
+# $Id: Makefile.in,v 1.43 2006-05-10 11:39:19 aveng Exp $
 
 CXX = @CXX@
 CC = @CC@
@@ -58,6 +58,7 @@ APPS := test_ami_pmerge \
 	test_ami_matrix	\
 	test_ami_matrix_pad \
 	test_ami_stack \
+	test_ami_queue \
 	test_ami_bp \
 	test_ami_sm \
 	test_ami_sort24	\
@@ -119,6 +120,7 @@ test_ami_arith: test_ami_arith.o scan_count.o $(COMMONOBJ)
 test_ami_matrix_pad: test_ami_matrix_pad.o scan_count.o	$(COMMONOBJ)
 test_ami_matrix: test_ami_matrix.o scan_count.o $(COMMONOBJ)
 test_ami_stack: test_ami_stack.o $(COMMONOBJ)
+test_ami_queue: test_ami_queue.o $(COMMONOBJ)
 test_ami_sm: test_ami_sm.o scan_uniform_sm.o $(COMMONOBJ)
 test_ami_sort24: test_ami_sort24.o $(COMMONOBJ)
 test_ami_btree: test_ami_btree.o

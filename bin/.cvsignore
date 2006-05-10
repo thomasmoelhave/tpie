@@ -1,1 +1,17 @@
+test_ami_arith
+test_ami_bp
+test_ami_btree
+test_ami_gp
+test_ami_matrix
+test_ami_matrix_pad
+test_ami_merge
+test_ami_pmerge
+test_ami_sm
+test_ami_sort
+test_ami_sort24
+test_ami_stack
+test_ami_queue
+test_big_scan
+test_correctness
+test_sort
 sample_pgm
