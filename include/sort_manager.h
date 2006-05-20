@@ -1,7 +1,7 @@
 //
 // File: sort_manager.h
 //
-// $Id: sort_manager.h,v 1.6 2005-12-19 03:11:18 adanner Exp $
+// $Id: sort_manager.h,v 1.7 2006-05-20 22:19:53 adanner Exp $
 //
 // This file contains the class sort_manager that actually performs sorting
 //      given an internal sort implementation and merge heap implementation
@@ -211,8 +211,8 @@ AMI_err sort_manager<T,I,M>::start_sort(){
 	return ae;
     }
 
-    TP_LOG_DEBUG_ID ("BTE says we use at most "<< mmBytesPerStream
-		     << "bytes per stream");
+    TP_LOG_DEBUG ("BTE says we use at most "<< mmBytesPerStream
+		     << "bytes per stream\n");
 
     // This is how much we can use for internal sort if
     // we are not doing general merge sort
@@ -336,9 +336,9 @@ AMI_err sort_manager<T,I,M>::compute_sort_params(void){
 
     TPIE_OS_SIZE_T mmBytesAvailSort; // Bytes available for sorting
 
-    TP_LOG_DEBUG_ID ("Each object of size " << sizeof(T) << " uses "
+    TP_LOG_DEBUG ("Each object of size " << sizeof(T) << " uses "
 		     << m_internalSorter->space_per_item () << " bytes "
-		     << "for sorting in memory");
+		     << "for sorting in memory\n");
 
     //Subtract off size of temp output stream
     //The size of the input stream was already subtracted from
@@ -380,9 +380,9 @@ AMI_err sort_manager<T,I,M>::compute_sort_params(void){
     // this comment seems silly and wrong
     mrgArity = static_cast<arity_t>(mmBytesAvail-mmBytesFixedForMerge) /
 	mmBytesPerMergeItem;
-    TP_LOG_DEBUG_ID("mem avail=" << mmBytesAvail-mmBytesFixedForMerge
+    TP_LOG_DEBUG("mem avail=" << mmBytesAvail-mmBytesFixedForMerge
 		    << " bytes per merge item=" <<  mmBytesPerMergeItem
-		    << " initial mrgArity=" << mrgArity);
+		    << " initial mrgArity=" << mrgArity << "\n");
 
     // Make sure that the AMI is willing to provide us with the
     // number of substreams we want.  It may not be able to due to
@@ -418,7 +418,7 @@ AMI_err sort_manager<T,I,M>::compute_sort_params(void){
     // testing/debugging purposes. ONLY define this flag and set a value
     // if you know what you are doing.
     TP_LOG_WARNING_ID("TPIE_SORT_SMALL_MRGARITY flag is set."
-		      "Did you mean to do this?");
+		      " Did you mean to do this?");
     if(mrgArity > TPIE_SORT_SMALL_MRGARITY) {
 	TP_LOG_WARNING_ID("Reducing merge arity due to compiler specified flag");
 	mrgArity=TPIE_SORT_SMALL_MRGARITY;
@@ -431,7 +431,7 @@ AMI_err sort_manager<T,I,M>::compute_sort_params(void){
     // testing/debugging purposes ONLY define this flag and set a value
     // if you know what you are doing.
     TP_LOG_WARNING_ID("TPIE_SORT_SMALL_RUNSIZE flag is set."
-		      "Did you mean to do this?");
+		      " Did you mean to do this?");
     if(nItemsPerRun > TPIE_SORT_SMALL_RUNSIZE) {
 	TP_LOG_WARNING_ID("Reducing run size due to compiler specified flag");
 	nItemsPerRun=TPIE_SORT_SMALL_RUNSIZE;
@@ -449,7 +449,7 @@ AMI_err sort_manager<T,I,M>::compute_sort_params(void){
     // runs and merge them than it is to quicksort fewer long 
     // runs and merge them.
     TP_LOG_DEBUG_ID ("Minimizing initial run lengths without increasing" <<
-		     "the height of the merge tree.");
+		     " the height of the merge tree.");
 
     // The tree height is the ceiling of the log base mrgArity of the
     // number of original runs.
@@ -471,13 +471,13 @@ AMI_err sort_manager<T,I,M>::compute_sort_params(void){
     nItemsPerRun = (TPIE_OS_SIZE_T) new_nItemsPerRun;
 
     TP_LOG_DEBUG_ID ("With long internal memory runs, nRuns = "
-		     << nRuns << '\n');
+		     << nRuns);
 
     nRuns = (nInputItems + nItemsPerRun - 1) / nItemsPerRun;
 
     TP_LOG_DEBUG_ID ("With shorter internal memory runs "
 		     << "and the same merge tree height, nRuns = "
-		     << nRuns << '\n');
+		     << nRuns );
 
     tp_assert (maxOrigRuns >= nRuns,
 	       "We increased the merge height when we weren't supposed to do so!");
@@ -502,10 +502,10 @@ AMI_err sort_manager<T,I,M>::compute_sort_params(void){
     tp_assert (nInputItems - (nRuns - 1) * nItemsPerRun <= nItemsPerRun,
 	       "Total expected output size is too small.");
 
-    TP_LOG_DEBUG_ID ("Input stream has " << nInputItems << " Items");
-    TP_LOG_DEBUG_ID ("Max number of items per runs " << nItemsPerRun );
-    TP_LOG_DEBUG_ID ("Initial number of runs " << nRuns );
-    TP_LOG_DEBUG_ID ("Merge arity is " << mrgArity );
+    TP_LOG_DEBUG_ID ("Input stream has " << nInputItems << " items");
+    TP_LOG_DEBUG ("Max number of items per runs " << nItemsPerRun );
+    TP_LOG_DEBUG ("\nInitial number of runs " << nRuns );
+    TP_LOG_DEBUG ("\nMerge arity is " << mrgArity << "\n" );
 
     return AMI_ERROR_NO_ERROR;
 }
@@ -685,7 +685,7 @@ AMI_err sort_manager<T,I,M>::merge_to_output(void){
 
 	// We are not yet at the top of the merge tree
 	// Write merged runs to temporary output streams
-	TP_LOG_DEBUG_ID ("Intermediate merge. level="<<mrgHeight);
+	TP_LOG_DEBUG ("Intermediate merge. level="<<mrgHeight << "\n");
     
 	// The number of output runs we will form after a mrgArity merge
 	nRuns = (nRuns + mrgArity - 1)/mrgArity;
@@ -730,9 +730,9 @@ AMI_err sort_manager<T,I,M>::merge_to_output(void){
 	// output streams needed, and we use the LAST nOutputStreams. This
 	// always keeps the one possible short run in the LAST of the
 	// mrgArity output streams.
-	TP_LOG_DEBUG_ID ("Writing " << nRuns << " runs to " << nOutputStreams
+	TP_LOG_DEBUG("Writing " << nRuns << " runs to " << nOutputStreams
 			 << " output files.\nEach output file has at least "
-			 << minRunsPerStream << " runs.");
+			 << minRunsPerStream << " runs.\n");
 
 	for(ii = mrgArity-nOutputStreams; ii < mrgArity; ii++){
 	    // Make the output file name
@@ -746,8 +746,8 @@ AMI_err sort_manager<T,I,M>::merge_to_output(void){
 	    // extra runs go in the LAST nXtraRuns streams so that
 	    // the one short run is always in the LAST output stream
 	    runsInStream = minRunsPerStream + ((ii >= mrgArity-nXtraRuns)?1:0);
-	    TP_LOG_DEBUG_ID ("Writing " << runsInStream << " runs to output "
-			     << " file " << ii);
+	    TP_LOG_DEBUG("Writing " << runsInStream << " runs to output "
+			     << " file " << ii << "\n");
 	    for( jj=0; jj < runsInStream; jj++ ) { // For each run in this stream
 		// See if this is the last run.
 		if( (ii==mrgArity-1) && (jj==runsInStream-1)) {
@@ -765,8 +765,9 @@ AMI_err sort_manager<T,I,M>::merge_to_output(void){
 	    } // For each output run in this stream
 
 	    // Commit new output stream to disk
-	    TP_LOG_DEBUG_ID ("Wrote " << runsInStream << " runs and "
-			     << curOutputRunStream->stream_len() << " items to file " << ii);
+	    TP_LOG_DEBUG("Wrote " << runsInStream << " runs and "
+			     << curOutputRunStream->stream_len() << " items " 
+           << "to file " << ii << "\n");
 	    check_size+=curOutputRunStream->stream_len();
 	    curOutputRunStream->persist(PERSIST_PERSISTENT);
 	    delete curOutputRunStream;
@@ -794,7 +795,7 @@ AMI_err sort_manager<T,I,M>::merge_to_output(void){
     // These runs are packed in the LAST nRuns elements of the array
     // nRuns is small, so it is safe to downcast.
     TP_LOG_DEBUG_ID ("Final merge. level="<<mrgHeight);
-    TP_LOG_DEBUG_ID ("Merge runs left="<<nRuns);
+    TP_LOG_DEBUG("Merge runs left="<<nRuns<<"\n");
     for(ii = mrgArity-static_cast<TPIE_OS_SIZE_T>(nRuns); ii < mrgArity; ii++){
 	// Make the input file name
 	make_name(working_disk, suffixName[mrgHeight%2], ii, newName);
@@ -804,8 +805,8 @@ AMI_err sort_manager<T,I,M>::merge_to_output(void){
 	   Put LAST nRuns files in FIRST nRuns spots here
 	   either one of mergeInputStreams loading or the call to
 	   single_merge is a little messy. I put the mess here. (abd) */
-	TP_LOG_DEBUG_ID ("Putting merge stream "<< ii << " in slot "
-			 << ii-(mrgArity-static_cast<TPIE_OS_SIZE_T>(nRuns)));
+	TP_LOG_DEBUG ("Putting merge stream "<< ii << " in slot "
+			 << ii-(mrgArity-static_cast<TPIE_OS_SIZE_T>(nRuns)) << "\n");
 	mergeInputStreams[ii-(mrgArity-static_cast<TPIE_OS_SIZE_T>(nRuns))] = new AMI_STREAM<T>(newName);
 	mergeInputStreams[ii-(mrgArity-static_cast<TPIE_OS_SIZE_T>(nRuns))]->seek(0);
     }
@@ -827,7 +828,7 @@ AMI_err sort_manager<T,I,M>::merge_to_output(void){
 	return ae;
     }
 
-    TP_LOG_DEBUG_ID ("merge cleanup");
+    TP_LOG_DEBUG("merge cleanup\n");
 
     // We are done, except for cleanup. Is anyone still reading this?
     // Delete temp input merge streams
@@ -841,7 +842,7 @@ AMI_err sort_manager<T,I,M>::merge_to_output(void){
     m_mergeHeap->deallocate();
     TP_LOG_DEBUG_ID ("Number of passes incl run formation is " <<
 		     mrgHeight+2 ); 
-    TP_LOG_DEBUG_ID ("AMI_partition_and_merge END");
+    TP_LOG_DEBUG("AMI_partition_and_merge END\n");
     return AMI_ERROR_NO_ERROR;
 }
 

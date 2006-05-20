@@ -7,7 +7,7 @@
 // Internal sorter class that can be used within AMI_sort() on small
 // streams/substreams
 //
-// $Id: internal_sort.h,v 1.5 2005-12-20 18:25:20 adanner Exp $
+// $Id: internal_sort.h,v 1.6 2006-05-20 22:19:53 adanner Exp $
 //
 #ifndef _INTERNAL_SORT_H
 #define _INTERNAL_SORT_H
@@ -144,9 +144,6 @@ AMI_err Internal_Sorter_Op<T>::sort(AMI_STREAM<T>* InStr,
   T    *next_item;
   TPIE_OS_SIZE_T i = 0;
 
-  TP_LOG_DEBUG_ID("Sorting internal run of " << nItems 
-                  << " items using \"<\" operator.");
-
   //make sure we called allocate earlier
   if(ItemArray==NULL){return AMI_ERROR_NULL_POINTER;}
   
@@ -166,7 +163,7 @@ AMI_err Internal_Sorter_Op<T>::sort(AMI_STREAM<T>* InStr,
   TP_LOG_DEBUG_ID("calling STL sort for " << nItems << " items");
   std::sort(ItemArray, ItemArray+nItems);
 #else 
-  TP_LOG_DEBUG_ID("calling quick_sort_op for " << nItems << " items");
+  TP_LOG_DEBUG("calling quick_sort_op for " << nItems << " items\n");
   quick_sort_op<T> (ItemArray, nItems);
 #endif
 
@@ -179,11 +176,10 @@ AMI_err Internal_Sorter_Op<T>::sort(AMI_STREAM<T>* InStr,
   //Write sorted array to OutStr
   for (i = 0; i < nItems; i++) {
     if ((ae = OutStr->write_item(ItemArray[i])) != AMI_ERROR_NO_ERROR) {
-      TP_LOG_FATAL_ID ("Internal Sorter: AMI write error" << ae );
+      TP_LOG_FATAL_ID ("Internal Sorter: AMI write error " << ae );
       return ae;
     }
   }
-  TP_LOG_DEBUG_ID("returning from Internal_Sorter_Op");
   return AMI_ERROR_NO_ERROR;
 }
 
@@ -231,8 +227,6 @@ AMI_err Internal_Sorter_Obj<T, CMPR>::sort(AMI_STREAM<T>* InStr,
   //make sure we called allocate earlier
   if(ItemArray==NULL){return AMI_ERROR_NULL_POINTER;}
   
-  TP_LOG_DEBUG_ID("Sorting internal run of " << nItems 
-                  << " items using TPIE comparison object.");
   tp_assert ( nItems <= len, "nItems more than interal buffer size.");
 
   // Read a memory load out of the input stream one item at a time,
@@ -247,10 +241,10 @@ AMI_err Internal_Sorter_Obj<T, CMPR>::sort(AMI_STREAM<T>* InStr,
   //Sort the array.
 #ifdef TPIE_USE_STL_SORT
   TP_LOG_DEBUG_ID("calling STL sort for " << nItems << " items");
-  TP_LOG_DEBUG_ID("converting TPIE comparison object to STL");
+  TP_LOG_DEBUG("converting TPIE comparison object to STL\n");
   std::sort(ItemArray, ItemArray+nItems, TPIE2STL_cmp<T,CMPR>(cmp_o));
 #else 
-  TP_LOG_DEBUG_ID("calling quick_sort_obj for " << nItems << " items");
+  TP_LOG_DEBUG("calling quick_sort_obj for " << nItems << " items\n");
   quick_sort_obj<T> (ItemArray, nItems, cmp_o);
 #endif
 
@@ -267,7 +261,6 @@ AMI_err Internal_Sorter_Obj<T, CMPR>::sort(AMI_STREAM<T>* InStr,
       return ae;
     }
   }
-  TP_LOG_DEBUG_ID("returning from Internal_Sorter_Op");
   return AMI_ERROR_NO_ERROR;
 }
 
@@ -365,8 +358,6 @@ inline AMI_err Internal_Sorter_KObj<T, KEY, CMPR>::sort(AMI_STREAM<T>* InStr,
   //make sure we called allocate earlier
   if(ItemArray==NULL || sortItemArray==NULL){return AMI_ERROR_NULL_POINTER;}
   
-  TP_LOG_DEBUG_ID("Sorting internal run of " << nItems 
-                  << " items using \"<\" operator.");
   tp_assert ( nItems <= len, "nItems more than interal buffer size.");
 
   // Read a memory load out of the input stream one item at a time,
@@ -383,13 +374,13 @@ inline AMI_err Internal_Sorter_KObj<T, KEY, CMPR>::sort(AMI_STREAM<T>* InStr,
   //Sort the array.
 #ifdef TPIE_USE_STL_SORT
   TP_LOG_DEBUG_ID("calling STL sort for " << nItems << " items");
-  TP_LOG_DEBUG_ID("converting TPIE Key comparison object to STL");
+  TP_LOG_DEBUG("converting TPIE Key comparison object to STL\n");
   std::sort(sortItemArray, ItemArray+nItems, 
       TPIE2STL_cmp<qsort_item<KEY>,QsortKeyCmp<KEY,CMPR> >
       (QsortKeyCmp<KEY, CMPR>(UsrObject)));
 #else
   QsortKeyCmp<KEY, CMPR> qcmp(UsrObject);
- TP_LOG_DEBUG_ID("calling quick_sort_obj for " << nItems << " items");
+ TP_LOG_DEBUG("calling quick_sort_obj for " << nItems << " items\n");
   quick_sort_obj< qsort_item<KEY> > (sortItemArray, nItems, &qcmp);
 #endif
   
@@ -407,7 +398,6 @@ inline AMI_err Internal_Sorter_KObj<T, KEY, CMPR>::sort(AMI_STREAM<T>* InStr,
       return ae;
     }
   }
-  TP_LOG_DEBUG_ID("returning from Internal_Sorter_Op");
   return AMI_ERROR_NO_ERROR;
 }
 
