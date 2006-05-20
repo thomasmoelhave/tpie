@@ -407,7 +407,9 @@ void write_random_stream(char* fname, appInfo & info, progress_indicator_base* i
          << "\nSetting to 4GB "<< endl;
     trunc=4*APP_GIG;
   }
-  ae = str->truncate(n); //Truncate is based on item count, not bytes
+  //AMI stream truncate is based on item count, not bytes
+  trunc/=sizeof(SortItem);
+  ae = str->truncate(trunc);
   if(ae != AMI_ERROR_NO_ERROR){
     cout << "\nError truncating file"<<endl;
   }
