@@ -4,7 +4,7 @@
 // Authors: Octavian Procopiuc <tavi@cs.duke.edu>
 //          (using some code by Rakesh Barve)
 //
-// $Id: bte_coll_base.h,v 1.28 2005-11-17 17:11:25 jan Exp $
+// $Id: bte_coll_base.h,v 1.29 2006-05-24 12:15:05 aveng Exp $
 //
 // BTE_collection_base class and various basic definitions.
 
@@ -112,8 +112,8 @@ public:
       total_blocks(1), 
       last_block(1), 
       used_blocks(0),
-      block_size(0),
-      os_block_size(TPIE_OS_BLOCKSIZE())
+      os_block_size(TPIE_OS_BLOCKSIZE()),
+      block_size(0)
 	{
   }
 };

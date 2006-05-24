@@ -4,7 +4,7 @@
 // Author: Andrew Danner <adanner@cs.duke.edu>
 // Created: 2/22/05
 //
-// $Id: ami_queue.h,v 1.3 2006-05-10 11:39:19 aveng Exp $
+// $Id: ami_queue.h,v 1.4 2006-05-24 12:15:05 aveng Exp $
 //
 #ifndef _AMI_QUEUE_H
 #define _AMI_QUEUE_H
@@ -259,8 +259,12 @@ AMI_err AMI_queue<T>::peek(T **t) {
 
 template<class T>
 AMI_err AMI_queue<T>::trim() {
-  m_enQstack->trim();
-  m_deQstack->trim(); 
+  AMI_err ae;
+  ae = m_enQstack->trim();
+  if(ae != AMI_ERROR_NO_ERROR) {
+    return ae;
+  }
+  return m_deQstack->trim(); 
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -297,7 +301,7 @@ AMI_err AMI_queue<T>::main_memory_usage(TPIE_OS_SIZE_T *usage,
     return AMI_ERROR_BTE_ERROR;
   }
 
-  if(m_deQstack->main_memory_usage(usage2, usage_type) != AMI_ERROR_NO_ERROR) {
+  if(m_deQstack->main_memory_usage(&usage2, usage_type) != AMI_ERROR_NO_ERROR) {
     TP_LOG_WARNING_ID("bte error");
     return AMI_ERROR_BTE_ERROR;
   }
