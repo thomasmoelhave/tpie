@@ -1,5 +1,5 @@
 %%
-%% $Id: ami_reference.tex,v 1.21 2006-01-16 23:37:49 jan Exp $
+%% $Id: ami_reference.tex,v 1.22 2006-05-24 12:15:05 aveng Exp $
 %%
 
 \chapter{TPIE Programmer's Reference}
@@ -1141,6 +1141,21 @@ Provides an external FIFO queue.
    \entry{AMI\_err \textbf{dequeue}(T **ppt);} {Remove the first element
      from the front of queue, decreasing its length by one and returning
      the address of a pointer to the dequeued object in \lstinline|ppt|.}
+
+   \entry{bool \textbf{is\_empty}();} {Return true if the queue is empty, 
+      false otherwise.}
+
+   \entry{TPIE\_OS\_OFFSET \textbf{size}();} {Returns the size of the 
+      queue.}
+
+   \entry{AMI\_err \textbf{peek}(T **t);} {Store the front element 
+      in \lstinline|t|.}
+
+   \entry{void \textbf{persist}(persistence p);} {Set persistence flag 
+      to \lstinline|p|.}
+
+   \entry{void \textbf{trim}();} {Truncates the underlying stream to 
+      the exact size (rounded up to the next block) of items.}
 
    \etabb
 

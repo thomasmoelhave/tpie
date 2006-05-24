@@ -4,7 +4,7 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/15/94
 //
-// $Id: ami_stack.h,v 1.15 2006-04-27 16:20:38 adanner Exp $
+// $Id: ami_stack.h,v 1.16 2006-05-24 12:15:05 aveng Exp $
 //
 #ifndef _AMI_STACK_H
 #define _AMI_STACK_H
@@ -473,7 +473,7 @@ AMI_err AMI_stack<T>::main_memory_usage(TPIE_OS_SIZE_T *usage,
     case MM_STREAM_USAGE_SUBSTREAM:
     case MM_STREAM_USAGE_BUFFER: 
 	*usage += sizeof(*this);            //  Attributes.
-	*usage += 2 * m_logicalBlockSize;   //  Two blocks.
+	*usage += 2 * m_logicalBlockSize * sizeof(T);   //  Two blocks.
 	break;
 
     default:
