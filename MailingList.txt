@@ -4,3 +4,4 @@ shahid.jabbar@cs.uni-dortmund.de
 Jonathan Day <imipak@yahoo.com>
 Quynh <nhquynh_sgt@yahoo.com>
 Wu GuoZhong-E13072 <E13072@motorola.com>
+Oliver Buechi <boli@student.ethz.ch>
