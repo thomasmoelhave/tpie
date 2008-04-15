@@ -3,7 +3,7 @@
 // Created: 2002/10/30
 // Authors: Joerg Rotthowe, Jan Vahrenhold, Markus Vogel
 //
-// $Id: portability.h,v 1.34 2005-11-16 16:55:04 jan Exp $
+// $Id: portability.h,v 1.35 2008-04-15 20:34:09 thomasm Exp $
 //
 // This header-file offers macros for independent use on Win and Unix systems.
 
@@ -47,6 +47,9 @@
 #include <errno.h>
 // For time()
 #include <time.h>
+
+//for UINT_MAX
+#include <limits.h>
 
 
 
