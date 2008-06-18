@@ -21,6 +21,7 @@
 #include <internal_sort.h> // Contains classes for sorting internal runs
                            // using different comparison types
 #include <math.h> //for log, ceil, etc.
+#include <string>
 
 #include <progress_indicator_base.h>
 
@@ -59,7 +60,8 @@ private:
     AMI_err single_merge(AMI_STREAM<T>**, arity_t, AMI_STREAM<T>*, 
 			 TPIE_OS_OFFSET = -1);
     //helper function for creating filename
-    inline void make_name(char *prepre, char *pre, int id, char *dest);
+    inline void make_name(
+				const std::string& prepre, const std::string& pre, int id, char *dest);
 
     // **************
     // * Attributes *
@@ -108,11 +110,11 @@ private:
     // which we are merging. The input file suffix is the opposite of the
     // output file suffix. After merging one level, the output streams
     // become the input for the next level.
-    char *suffixName[2];
+		std::string suffixName[2];
     // A buffer for building the output file names
     char   newName [BTE_STREAM_PATH_NAME_LEN];
     //prefix of temp files created during sort
-    char *working_disk;
+		std::string working_disk;
 
 private:
     sort_manager(const sort_manager<T,I,M>& other);
@@ -140,13 +142,12 @@ sort_manager<T, I, M>::sort_manager(I* isort, M* mheap):
     nXtraRuns(0),
     nItemsInLastRun(0),
     nItemsInThisRun(0),
-    runsInStream(0),
-    working_disk(NULL)
+    runsInStream(0)
 {
     suffixName[0]="_0_";
     suffixName[1]="_1_";
     //prefix of temp files created during sort
-    working_disk = tpie_tempnam("AMI");
+    working_disk = std::string(tpie_tempnam("AMI"));
 };
 
 template<class T, class I, class M>
@@ -857,16 +858,16 @@ AMI_err sort_manager<T,I,M>::single_merge( AMI_STREAM < T > **inStreams,
 
 
 template<class T, class I, class M>
-inline void sort_manager<T,I,M>::make_name(char *prepre, char *pre,
-					   int id, char *dest)
+inline void sort_manager<T,I,M>::make_name(
+		const std::string& prepre, const std::string& pre, int id, char *dest)
 {
     //This buffer must be long enough to hold the
     //largest possible stream id (in decimal)
     //largest ID is at most mrgArity
     char tmparray[6];
 
-    strcpy(dest, prepre);
-    strcat(dest, pre);
+    strcpy(dest, prepre.c_str());
+    strcat(dest, pre.c_str());
     sprintf(tmparray, "%d", id);
     strcat(dest, tmparray);
 }
