@@ -126,10 +126,6 @@ set(AMI ${AMI_HEADERS} ${AMI_SOURCES})
 set(BTE ${BTE_HEADERS} ${BTE_SOURCES})
 set(OTHER ${OTHER_HEADERS} ${OTHER_SOURCES})
 
-message(${AMI})
-message(${BTE})
-message(${OTHER})
-
 add_library(tpie ${BTE} ${AMI} ${OTHER})
 
 install(TARGETS tpie DESTINATION lib)
