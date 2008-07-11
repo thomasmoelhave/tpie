@@ -6,12 +6,13 @@
 #include <versions.h>
 VERSION(tpie_tempnam_cpp,"$Id: tpie_tempnam.cpp,v 1.7 2005-11-17 17:04:22 jan Exp $");
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include <time.h>
-#include <string.h>
+#include <cstring>
 #include "lib_config.h"
 #include <tpie_tempnam.h>
+#include <string>
 
 // Defined below.
 char *tpie_mktemp(char *str);
@@ -20,26 +21,24 @@ char *tpie_mktemp(char *str);
  * that the returned pointer is to static storage, so this function is
  * not re-entrant. */
 char *tpie_tempnam(const char *base, const char* dir) {
-  char *base_dir;
+  std::string base_dir;
   static char tmp_path[BUFSIZ];
-  char *path;
 
   if (dir == NULL) {
-    // get the dir
-    base_dir = getenv(AMI_SINGLE_DEVICE_ENV);
-    if (base_dir == NULL) {
-      base_dir = getenv(TMPDIR_ENV);
-      if (base_dir == NULL) {
-	base_dir = TMP_DIR;
-      }
-    }
-    sprintf(tmp_path, TPIE_OS_TEMPNAMESTR, base_dir, base);
+		// get the dir
+		base_dir = getenv(AMI_SINGLE_DEVICE_ENV);
+		if (base_dir.length() == 0) {
+			base_dir = getenv(TMPDIR_ENV);
+			if (base_dir.length() == 0) {
+				base_dir = TMP_DIR;
+			}
+		}
+    sprintf(tmp_path, TPIE_OS_TEMPNAMESTR, base_dir.c_str(), base);
   } else {
     sprintf(tmp_path, TPIE_OS_TEMPNAMESTR, dir, base);
   }
 
-  path = tpie_mktemp(tmp_path);    
-  return path;
+	return tpie_mktemp(tmp_path);    
 }
 
 char *tpie_mktemp(char *str) {
