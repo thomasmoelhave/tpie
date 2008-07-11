@@ -30,4 +30,13 @@
 
 #define TPIE_PATH_LENGTH 1024
 
+
+// recent visual studio versions gives heaps of compilation
+// warnings about security issues with fopen/strcpy and the like
+// this disables these warnings.
+#ifdef WIN32
+	#define _CRT_SECURE_NO_DEPRECATE 1
+	#define _CRT_SECURE_NO_WARNINGS 1 
+#endif
+
 #endif // _CONFIG_H 

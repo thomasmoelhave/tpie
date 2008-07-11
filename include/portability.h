@@ -10,6 +10,8 @@
 #ifndef _PORTABILITY_H
 #define _PORTABILITY_H
 
+#include <config.h>
+
 //  The following wil cause TPIE_OS_SIZE_T to be a 32-bit integer!
 #define _TPIE_SMALL_MAIN_MEMORY
 
@@ -484,7 +486,6 @@ inline TPIE_OS_SIZE_T  TPIE_OS_BLOCKSIZE() {
 
 //////////////////////////////////////////////
 //	   open functions		    //
-
 
 //there is no difference between the systemcalls
 //but for later adaptation to other systems it maybe useful

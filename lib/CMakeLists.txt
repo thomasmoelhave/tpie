@@ -65,6 +65,7 @@ set (OTHER_HEADERS
 		../include/b_vector.h
 		../include/comparator.h
 		../include/config.h
+		../include/config.h.cmake
 		../include/cpu_timer.h
 		../include/internal_sort.h
 		../include/logstream.h
