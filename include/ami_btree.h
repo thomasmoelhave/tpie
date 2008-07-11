@@ -1341,7 +1341,7 @@ void AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::shared_init(const char
     return;
   }
 
-#define PATH_NAME_LENGTH 128
+#define PATH_NAME_LENGTH TPIE_PATH_LENGTH
 
   char lcollname[PATH_NAME_LENGTH];
   char ncollname[PATH_NAME_LENGTH];

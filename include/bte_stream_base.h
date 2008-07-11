@@ -22,7 +22,7 @@
 #include <mm.h>
 
 // Max length of a stream file name.
-#define BTE_STREAM_PATH_NAME_LEN 128
+#define BTE_STREAM_PATH_NAME_LEN TPIE_PATH_LENGTH
 
 // The magic number of the file storing the stream.
 // (in network byteorder, it spells "TPST": TPie STream)

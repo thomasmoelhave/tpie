@@ -44,7 +44,7 @@ enum BTE_collection_status {
 
 
 // Maximum length of the file names.
-#define BTE_COLLECTION_PATH_NAME_LEN 128
+#define BTE_COLLECTION_PATH_NAME_LEN TPIE_PATH_LENGTH
 
 // Number of bytes in the header's user_data_ field.
 #define BTE_COLLECTION_USER_DATA_LEN 512

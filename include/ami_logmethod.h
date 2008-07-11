@@ -24,7 +24,7 @@
 
 #include <tpie_stats_tree.h>
 
-#define LM_PATH_NAME_LENGTH 128
+#define LM_PATH_NAME_LENGTH TPIE_PATH_LENGTH
 
 template<class Tp, class T0p=Tp>
 class Logmethod_params {
