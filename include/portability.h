@@ -1001,12 +1001,6 @@ return BTE_ERROR_OS_ERROR
 // #define HAVE_SYS_UNISTD_H 0
 // #endif
 
-#if defined(_WIN32) && !defined(__MINGW32__)
-#define HAVE_UNISTD_H 0
-#define HAVE_SYS_UNISTD_H 0
-#endif
-
-
 //  WIN32 does not support data type "long long", but does support "LONGLONG".//
 #ifdef _WIN32
 #define TPIE_OS_DECLARE_LOGSTREAM_LONGLONG _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const LONGLONG); 
