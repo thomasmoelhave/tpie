@@ -184,10 +184,10 @@ protected:
     TPIE_OS_OFFSET m_size;
 
     /**  The logical block size of the underlying stream (in items).  */
-    TPIE_OS_OFFSET m_logicalBlockSize; 
+    TPIE_OS_SIZE_T m_logicalBlockSize; 
 
     /**  The number of items currently present in memory.  */
-    TPIE_OS_OFFSET m_itemsInMemory;
+    TPIE_OS_SIZE_T m_itemsInMemory;
 
     /**  Pointers to the at most two blocks of items kept in memory.  */
     T* m_block[2];
