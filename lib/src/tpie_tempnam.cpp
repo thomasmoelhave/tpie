@@ -21,19 +21,19 @@ char *tpie_mktemp(char *str);
  * that the returned pointer is to static storage, so this function is
  * not re-entrant. */
 char *tpie_tempnam(const char *base, const char* dir) {
-  std::string base_dir;
+  const char* base_dir;
   static char tmp_path[BUFSIZ];
 
   if (dir == NULL) {
 		// get the dir
 		base_dir = getenv(AMI_SINGLE_DEVICE_ENV);
-		if (base_dir.length() == 0) {
+		if (base_dir == NULL) {
 			base_dir = getenv(TMPDIR_ENV);
-			if (base_dir.length() == 0) {
+			if (base_dir == NULL) {
 				base_dir = TMP_DIR;
 			}
 		}
-    sprintf(tmp_path, TPIE_OS_TEMPNAMESTR, base_dir.c_str(), base);
+    sprintf(tmp_path, TPIE_OS_TEMPNAMESTR, base_dir, base);
   } else {
     sprintf(tmp_path, TPIE_OS_TEMPNAMESTR, dir, base);
   }
