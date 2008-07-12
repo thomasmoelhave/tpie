@@ -18,3 +18,9 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 
 add_subdirectory(lib)
+
+option(COMPILE_TEST "Compile test programs" OFF)
+
+if (COMPILE_TEST)
+	add_subdirectory(test)
+endif (COMPILE_TEST)
