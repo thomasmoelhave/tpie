@@ -24,7 +24,7 @@ add_library(test_scan_common ${SCAN_DEPS})
 macro(add_tpie_test NAME)
 	add_executable(${NAME} ${NAME}.cpp) 
 	target_link_libraries(${NAME} tpie test_common test_scan_common)
-ENDMACRO(add_tpie_test)
+endmacro(add_tpie_test)
 
 add_tpie_test(test_ami_arith)
 add_tpie_test(test_ami_gp)
