@@ -211,7 +211,7 @@ inline TPIE_OS_TIME_T TPIE_OS_TIME(TPIE_OS_TIME_T* timep) {
 #endif
 
 #ifdef _WIN32
-typedef LONGLONG TPIE_OS_OFFSET;
+typedef __int64 TPIE_OS_OFFSET;
 #else
 typedef off_t TPIE_OS_OFFSET;
 #endif	
@@ -508,7 +508,7 @@ inline int TPIE_OS_FSEEK(FILE* file, TPIE_OS_OFFSET offset, int whence) {
 	//  Please note that the second parameter should be TPIE_OS_OFFSET
 	//  instead of int. This is due to the fact that VS2003 does not
 	//  support large files with fopen/fseek etc.
-    return fseek(file, static_cast<int>(offset), whence);
+	return _fseeki64(file, static_cast<TPIE_OS_OFFSET>(offset), whence);
 }
 #else
 inline int TPIE_OS_FSEEK(FILE* file, TPIE_OS_OFFSET offset, int whence) {
@@ -519,11 +519,11 @@ inline int TPIE_OS_FSEEK(FILE* file, TPIE_OS_OFFSET offset, int whence) {
 //there is no difference between the systemcalls
 //but for later adaptation to other systems it maybe useful
 #ifdef _WIN32
-inline TPIE_OS_LONG TPIE_OS_FTELL(FILE* file) {
-    return ftell(file);
+inline TPIE_OS_OFFSET TPIE_OS_FTELL(FILE* file) {
+    return _ftelli64(file);
 }
 #else
-inline TPIE_OS_LONG TPIE_OS_FTELL(FILE* file) {
+inline TPIE_OS_OFFSET TPIE_OS_FTELL(FILE* file) {
     return ftell(file);
 }
 #endif
@@ -699,7 +699,7 @@ inline TPIE_OS_OFFSET TPIE_OS_LSEEK(TPIE_OS_FILE_DESCRIPTOR &fd,TPIE_OS_OFFSET o
 	  return -1;
 	}
 	else{
-      return TPIE_OS_OUTPUT_SIZE_T((((ULONGLONG) highOrderOff)<<32)+(ULONGLONG) x);
+      return TPIE_OS_OFFSET((((ULONGLONG) highOrderOff)<<32)+(ULONGLONG) x);
 	}
 }
 #else
