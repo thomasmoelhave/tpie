@@ -56,7 +56,7 @@
 // UFS_DOUBLE_BUFFER and USE_LIBAIO set off is best.
 
 #if USE_LIBAIO
-#  if !HAVE_LIBAIO
+#  if !TPIE_HAVE_LIBAIO
 #    error USE_LIBAIO requested, but aio library not in configuration.
 #  endif
 #  if UFS_DOUBLE_BUFFER

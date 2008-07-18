@@ -32,7 +32,7 @@
 #endif
 
 #if USE_LIBAIO
-#  if !HAVE_LIBAIO
+#  if !TPIE_HAVE_LIBAIO
 #    error USE_LIBAIO requested, but aio library not in configuration.
 #  endif
 #  include <sys/asynch.h>

@@ -2,15 +2,14 @@
 #define _CONFIG_H
 
 // Define if asyncronous I/O is avaialable.
-#cmakedefine HAVE_LIBAIO
+#cmakedefine TPIE_HAVE_LIBAIO
 
+#cmakedefine TPIE_HAVE_UNISTD_H
+#cmakedefine TPIE_HAVE_SYS_UNISTD_H
 
-#cmakedefine HAVE_UNISTD_H
-#cmakedefine HAVE_SYS_UNISTD_H
-
-#if defined (HAVE_UNISTD_H)
+#if defined (TPIE_HAVE_UNISTD_H)
 #include <unistd.h>
-#elif defined(HAVE_SYS_UNISTD_H)
+#elif defined(TPIE_HAVE_SYS_UNISTD_H)
 #include <sys/unistd.h>
 #endif
 

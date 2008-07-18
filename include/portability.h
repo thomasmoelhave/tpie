@@ -995,12 +995,6 @@ return BTE_ERROR_OS_ERROR
 // Where is unistd.h?						 //
 
 
-// #ifndef HAVE_UNISTD_H
-// #define HAVE_UNISTD_H 0
-// #endif
-// #ifndef HAVE_SYS_UNISTD_H
-// #define HAVE_SYS_UNISTD_H 0
-// #endif
 
 //  WIN32 does not support data type "long long", but does support "LONGLONG".//
 #ifdef _WIN32

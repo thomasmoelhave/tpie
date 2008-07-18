@@ -16,7 +16,7 @@
 #define HAVE_MMAP 0
 
 // Define if asyncronous I/O is avaialable.
-#define HAVE_LIBAIO 0
+#define TPIE_HAVE_LIBAIO 0
 
 // Define if you have a prototype for mmap()
 #define HAVE_PROTOTYPE_MMAP 0
@@ -33,19 +33,19 @@
 
 // Where is unistd.h?
 #ifdef _WIN32
-#define HAVE_UNISTD_H 0
-#define HAVE_SYS_UNISTD_H 0
+#define TPIE_HAVE_UNISTD_H 0
+#define TPIE_HAVE_SYS_UNISTD_H 0
 #else
-#define HAVE_UNISTD_H 1
-#define HAVE_SYS_UNISTD_H 1
+#define TPIE_HAVE_UNISTD_H 1
+#define TPIE_HAVE_SYS_UNISTD_H 1
 #endif
 
 // Are we on a hacked kernel that supports zero()?
 #define HAVE_ZERO 0
 
-#if HAVE_UNISTD_H
+#if TPIE_HAVE_UNISTD_H
 #include <unistd.h>
-#elif HAVE_SYS_UNISTD_H
+#elif TPIE_HAVE_SYS_UNISTD_H
 #include <sys/unistd.h>
 #endif
 
