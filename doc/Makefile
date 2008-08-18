@@ -14,8 +14,8 @@ all: tpie.pdf
 
 MAIN_SRC = tpie.tex
 
-OTHER_SRC = GNUlicence.tex  ami_reference.tex  errorcodes.tex  \
-  acknowledgements.tex appendices.tex implementation.tex tuning.tex  \
+OTHER_SRC = lgpl-3.0.tex  ami_reference.tex  errorcodes.tex  \
+  acknowledgements.tex implementation.tex tuning.tex  \
   addexamples.tex applications.tex user_manual.tex sample_pgm.cpp 
 
 tpie.dvi: $(MAIN_SRC) $(OTHER_SRC) tpie.ind tpie.bbl

@@ -35,7 +35,7 @@ Copyright @copyright{} 1994 Darren Erik Vengroff
 This is a DRAFT version of this document.
 
 Permission will be granted to copy and distribute a future version of
-this manual under the terms of the GNU public license, version 2.
+this manual under the terms of the GNU lesser general public license, version 3.
 @end ifinfo
 
 @comment Un-comment the next line to get the GNU small book format.
@@ -54,13 +54,13 @@ Copyright @copyright{} 1994 Darren Erik Vengroff
 This is a DRAFT version of this document.
 
 Permission will be granted to copy and distribute a future version of
-this manual under the terms of the GNU public license, version 2.
+this manual under the terms of the GNU lesser general public license, version 3.
 
 @c If we are producing html, sneak the copyright notice in as part of
 @c the author's name so that it goes onto the table of contents page.
 
 @ifset html
-@author by <A HREF="http://www.cs.duke.edu/~dev/HomePage.html">Darren Erik Vengroff</A><P> <P> <P> Copyright @copyright{} 1994 Darren Erik Vengroff<P>@today{}<P>This is a DRAFT version of this document.<P>Permission will be granted to copy and distribute a future version of this manual under the terms of the GNU public license, version 2.
+@author by <A HREF="http://www.cs.duke.edu/~dev/HomePage.html">Darren Erik Vengroff</A><P> <P> <P> Copyright @copyright{} 1994 Darren Erik Vengroff<P>@today{}<P>This is a DRAFT version of this document.<P>Permission will be granted to copy and distribute a future version of this manual under the terms of the GNU lesser public license, version 3.
 @end ifset
 @end titlepage
 
@@ -218,7 +218,7 @@ by Ellis and Stroustrup, Addison Wesley, 1990.
 @section Licensing
 
 Once TPIE enters beta testing it will be made available to all under
-the terms of the GNU General Public License, version 2.
+the terms of the GNU Lesser General Public License, version 3.
 
 For now it is being made available to alpha testers with NO WARRANTEE
 whatsoever.
@@ -230,8 +230,8 @@ whatsoever.
 TPIE is currently available to alpha testers.  If you would like to be
 a tester, please send email to @code{dev@@cs.duke.edu} to make
 arrangements to receive a copy.  Once TPIE enters beta testing it will
-be make generally available under the terms of the GNU General Public
-license, version 2.
+be make generally available under the terms of the GNU  Lesser General Public
+License, version 3.
 
 @node Prerequisites, Installation, Where to get TPIE, Obtaining and Installing TPIE
 @comment  node-name,  next,  previous,  up
