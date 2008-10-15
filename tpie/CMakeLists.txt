@@ -91,17 +91,17 @@ set (OTHER_HEADERS
 		tpie_stats.h
 		tpie_stats_stream.h
 		tpie_stats_tree.h
-		tpie_tempnam.h
+		tempname.h
 		vararray.h
 		versions.h
 		lib_config.h
 		)
 
 set (AMI_SOURCES
-		bit_permute.cpp
+	#	bit_permute.cpp
 		device.cpp
 		key.cpp
-		matrix_blocks.cpp
+#		matrix_blocks.cpp
 		stream_base.cpp
 	)
 
@@ -110,8 +110,8 @@ set (BTE_SOURCES
 	)
 
 set (OTHER_SOURCES
-	bit.cpp
-	bit_matrix.cpp
+	#bit.cpp
+	#bit_matrix.cpp
 	cpu_timer.cpp
 	logstream.cpp
 	mm_base.cpp
