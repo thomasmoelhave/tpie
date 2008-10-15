@@ -28,7 +28,7 @@
 #include <gen_perm.h>
 
 // Get templates for bit permuting.
-#include <bit_permute.h>
+//#include <bit_permute.h>
 
 // Get a collection implementation.
 #include <coll.h>

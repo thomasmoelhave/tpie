@@ -25,6 +25,10 @@ VERSION(mm_base_cpp,"$Id: mm_base.cpp,v 1.34 2006-01-17 19:03:51 jan Exp $");
 #include <return.h>
 #endif
 
+#include <stream.h>
+#include <btree.h>
+#include <ami.h>
+
 #ifdef MM_BACKWARD_COMPATIBLE
 int   register_new = MM_IGNORE_MEMORY_EXCEEDED;
 #endif
