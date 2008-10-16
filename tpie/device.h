@@ -29,8 +29,8 @@ public:
     AMI_device(const AMI_device& other);
     ~AMI_device();
     AMI_device& operator=(const AMI_device& other);
-    AMI_err set_to_path(const char *path);
-    AMI_err read_environment(const char *name);
+    tpie::ami::err set_to_path(const char *path);
+    tpie::ami::err read_environment(const char *name);
     const char * operator[](unsigned int index);
     unsigned int arity(void);
 };

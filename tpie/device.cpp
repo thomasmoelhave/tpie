@@ -100,7 +100,7 @@ void AMI_device::dispose_contents(void)
     }
 }
 
-AMI_err AMI_device::set_to_path(const char *path)
+tpie::ami::err AMI_device::set_to_path(const char *path)
 {
     const char *s, *t;
     unsigned int ii;
@@ -141,16 +141,16 @@ AMI_err AMI_device::set_to_path(const char *path)
 				  argv[ii][strlen(argv[ii])] != '/', "no / suffix");
     }
 
-    return AMI_ERROR_NO_ERROR;
+    return tpie::ami::NO_ERROR;
 }
 
 
-AMI_err AMI_device::read_environment(const char *name)
+tpie::ami::err AMI_device::read_environment(const char *name)
 {
     char *env_value = getenv(name);
     
     if (env_value == NULL) {
-        return AMI_ERROR_ENV_UNDEFINED;
+        return tpie::ami::ENV_UNDEFINED;
     }
 
     return set_to_path(env_value);
