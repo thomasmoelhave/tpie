@@ -18,11 +18,7 @@ namespace tpie {
 
 ///////////////////////////////////////////////////////////////////
 ///
-<<<<<<< .mine
-///  \class AMI_stack
-=======
 ///  \class stack<T>
->>>>>>> .r1587
 ///
 ///  An implementation of an external-memory stack.
 ///
@@ -54,7 +50,7 @@ public:
     ///
     ////////////////////////////////////////////////////////////////////
 
-    stack(const char* path, 
+    stack(const std::string& path, 
 	  AMI_stream_type type = AMI_READ_WRITE_STREAM);
 
     ////////////////////////////////////////////////////////////////////
@@ -240,7 +236,7 @@ stack<T>::stack() :
 /////////////////////////////////////////////////////////////////////////
 
 template<class T>
-stack<T>::stack(const char* path, AMI_stream_type type) :
+stack<T>::stack(const std::string& path, AMI_stream_type type) :
     m_amiStream(NULL), 
     m_size(0),
     m_logicalBlockSize(0),
