@@ -9,6 +9,12 @@
 #ifndef _AMI_H
 #define _AMI_H
 
+///////////////////////////////////////////////////////////////////////////
+/// \namespace tpie TPIE's namespace.
+/// \namespace tpie::ami THe namespace within TPIE for the Access
+/// Method Interface elements.
+///////////////////////////////////////////////////////////////////////////
+
 // Get definitions for working with Unix and Windows
 #include <tpie/portability.h>
 
