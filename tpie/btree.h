@@ -234,7 +234,7 @@ namespace tpie {
 
 		@see load().
 	    */
-	    err sort(AMI_STREAM<Value>* in_stream, AMI_STREAM<Value>* &out_stream);
+	    err sort(stream<Value>* in_stream, stream<Value>* &out_stream);
 
 
 	    /** 
@@ -242,7 +242,7 @@ namespace tpie {
 		Leaves are filled to <em>leaf_fill</em> times capacity, and nodes are filled to 
 		<em>node_fill</em> times capacity.
 	    */
-	    err load_sorted(AMI_STREAM<Value>* stream_s, 
+	    err load_sorted(stream<Value>* stream_s, 
 			    float leaf_fill = .75, float node_fill = .60);
 
 	    /** 
@@ -251,7 +251,7 @@ namespace tpie {
 		Leaves are filled to <em>leaf_fill</em> times capacity, and nodes are filled to 
 		<em>node_fill</em> times capacity.
 	    */
-	    err load(AMI_STREAM<Value>* s, 
+	    err load(stream<Value>* s, 
 		     float leaf_fill = .75, float node_fill = .60);
 
 
@@ -259,7 +259,7 @@ namespace tpie {
 		Write all elements stored in the tree to the given stream, in sorted order.
 		No changes are performed on the tree.
 	    */
-	    err unload(AMI_STREAM<Value>* s);
+	    err unload(stream<Value>* s);
 
 
 	    /** 
@@ -343,7 +343,7 @@ namespace tpie {
 	    // This method is inlined such as to comply with MSVC++ "requirements".
 	    template<class Filter>
 	    size_t range_query(const Key& k1, const Key& k2, 
-			       AMI_STREAM<Value>* s, const Filter& filter_through)
+			       stream<Value>* s, const Filter& filter_through)
 		{
   
 		    Key kmin = comp_(k1, k2) ? k1: k2;
@@ -447,7 +447,7 @@ namespace tpie {
 	       in the stream and the number of elements found is returned. 
 	       Otherwise, the results are not stored, only the count is returned.
 	    */
-	    TPIE_OS_OFFSET range_query(const Key& k1, const Key& k2, AMI_STREAM<Value>* s)
+	    TPIE_OS_OFFSET range_query(const Key& k1, const Key& k2, stream<Value>* s)
 		{ return range_query(k1, k2, s, dummy_filter_t()); }
 
 
@@ -456,14 +456,14 @@ namespace tpie {
 	    */
 	    template<class Filter>
 	    size_t window_query(const Key& k1, const Key& k2, 
-				AMI_STREAM<Value>* s, const Filter& f) 
+				stream<Value>* s, const Filter& f) 
 		{ return range_query(k1, k2, s, f); }
 
 
 	    /**
 	       Same as range_query().
 	    */
-	    TPIE_OS_OFFSET window_query(const Key& k1, const Key& k2, AMI_STREAM<Value>* s)
+	    TPIE_OS_OFFSET window_query(const Key& k1, const Key& k2, stream<Value>* s)
 		{ return range_query(k1, k2, s, dummy_filter_t()); }
 
 
@@ -1428,7 +1428,7 @@ void btree<Key, Value, Compare, KeyOfValue, BTECOLL>::shared_init(const std::str
 
 /// *btree::sort* ///
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-err btree<Key, Value, Compare, KeyOfValue, BTECOLL>::sort(AMI_STREAM<Value>* in_stream, AMI_STREAM<Value>* &out_stream) {
+err btree<Key, Value, Compare, KeyOfValue, BTECOLL>::sort(stream<Value>* in_stream, stream<Value>* &out_stream) {
 
     if (status_ != BTREE_STATUS_VALID) {
 	TP_LOG_FATAL_ID("sort: tree is invalid.");
@@ -1447,7 +1447,7 @@ err btree<Key, Value, Compare, KeyOfValue, BTECOLL>::sort(AMI_STREAM<Value>* in_
     comp_for_sort cmp;
   
     if (out_stream == NULL) {
-	out_stream = new AMI_STREAM<Value>;
+	out_stream = new stream<Value>;
 	if (!out_stream->is_valid()) {
 	    TP_LOG_FATAL_ID("sort: error initializing temporary stream.");
 	    delete out_stream;
@@ -1456,7 +1456,7 @@ err btree<Key, Value, Compare, KeyOfValue, BTECOLL>::sort(AMI_STREAM<Value>* in_
 	out_stream->persist(PERSIST_DELETE);
     }
   
-    retval = AMI_sort(in_stream, out_stream, &cmp);
+    retval = sort(in_stream, out_stream, &cmp);
 
     if (retval != NO_ERROR)
 	TP_LOG_WARNING_ID("sort: sorting returned error.");
@@ -1470,7 +1470,7 @@ err btree<Key, Value, Compare, KeyOfValue, BTECOLL>::sort(AMI_STREAM<Value>* in_
 
 /// *btree::load_sorted* ///
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-err btree<Key, Value, Compare, KeyOfValue, BTECOLL>::load_sorted(AMI_STREAM<Value>* s, float leaf_fill, float node_fill) {
+err btree<Key, Value, Compare, KeyOfValue, BTECOLL>::load_sorted(stream<Value>* s, float leaf_fill, float node_fill) {
 
     if (status_ != BTREE_STATUS_VALID) {
 	TP_LOG_FATAL_ID("load: tree is invalid.");
@@ -1515,10 +1515,10 @@ err btree<Key, Value, Compare, KeyOfValue, BTECOLL>::load_sorted(AMI_STREAM<Valu
 
 /// *btree::load* ///
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-err btree<Key, Value, Compare, KeyOfValue, BTECOLL>::load(AMI_STREAM<Value>* s, float leaf_fill, float node_fill) {
+err btree<Key, Value, Compare, KeyOfValue, BTECOLL>::load(stream<Value>* s, float leaf_fill, float node_fill) {
 
     err retval;
-    AMI_STREAM<Value>* stream_s = new AMI_STREAM<Value>;
+    stream<Value>* stream_s = new stream<Value>;
 
     retval = sort(s, stream_s);
 
@@ -1533,7 +1533,7 @@ err btree<Key, Value, Compare, KeyOfValue, BTECOLL>::load(AMI_STREAM<Value>* s, 
 
 /// *btree::unload* ///
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-err btree<Key, Value, Compare, KeyOfValue, BTECOLL>::unload(AMI_STREAM<Value>* s) {
+err btree<Key, Value, Compare, KeyOfValue, BTECOLL>::unload(stream<Value>* s) {
 
     if (status_ != BTREE_STATUS_VALID) {
 	TP_LOG_WARNING_ID("unload: tree is invalid. unload aborted.");
