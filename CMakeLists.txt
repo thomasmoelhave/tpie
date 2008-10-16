@@ -10,6 +10,10 @@ add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
 #### CONFIG.H Checks:
 include(CheckIncludeFiles)
 
+if(NOT WIN32) 
+	add_definitions("-Wall")
+endif(NOT WIN32)
+
 check_include_files("unistd.h" TPIE_HAVE_UNISTD_H)
 check_include_files("sys/unistd.h" TPIE_HAVE_SYS_UNISTD_H)
 check_include_files("sys/async.h" TPIE_HAVE_LIBAIO)
