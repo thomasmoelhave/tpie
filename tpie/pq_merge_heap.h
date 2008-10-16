@@ -1,7 +1,11 @@
 #ifndef _TPIE_PQ_MERGE_HEAP_H_
 #define _TPIE_PQ_MERGE_HEAP_H_
 
-#include <ami.h>
+#include "ami.h"
+#include "tpie_log.h"
+#include <cassert>
+
+namespace tpie{
 
 /////////////////////////////////////////////////////////
 ///
@@ -109,5 +113,5 @@ class pq_merge_heap {
 };
 
 #include "pq_merge_heap.inl"
-
+}
 #endif

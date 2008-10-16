@@ -1,11 +1,15 @@
 #ifndef _TPIE_PRIORITY_QUEUE_H_
 #define _TPIE_PRIORITY_QUEUE_H_
 
-#include <ami.h>
+#include "ami.h"
+#include "tpie_log.h"
+#include <cassert>
 #include "pq_overflow_heap.h"
 #include <iostream>
 #include <fstream>
 #include "pq_merge_heap.h"
+
+namespace tpie{
 
 /////////////////////////////////////////////////////////
 ///
@@ -157,4 +161,5 @@ class priority_queue {
 
 #include "priority_queue.inl"
 
+}
 #endif

@@ -1,8 +1,4 @@
-/////////////////////////////
-// Public
-/////////////////////////////
-
-template <typename T, typename Comparator, typename OPQType>
+template<typename T, typename Comparator, typename OPQType>
 priority_queue<T, Comparator, OPQType>::priority_queue(double f) { // constructor 
 
 	TPIE_OS_SIZE_T mm_avail = MM_manager.memory_limit();
@@ -872,8 +868,8 @@ const void priority_queue<T, Comparator, OPQType>::seek_offset(AMI_STREAM<T>* da
 		exit(-1);
 	}
 }
-
- T* read_item(AMI_STREAM<T>* data) { 
+template <typename T, typename Comparator, typename OPQType>
+T* priority_queue<T, Comparator, OPQType>::read_item(AMI_STREAM<T>* data) { 
 	T* read_ptr;
 	if((err = data->read_item(&read_ptr)) != AMI_ERROR_NO_ERROR) {
 		TP_LOG_FATAL_ID("AMI error while reading item, code: " << err); 

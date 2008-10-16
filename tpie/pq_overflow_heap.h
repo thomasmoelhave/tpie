@@ -3,6 +3,8 @@
 
 #include "pq_internal_heap.h"
 
+namespace tpie{
+
 /////////////////////////////////////////////////////////
 ///
 ///  \class pq_overflow_heap
@@ -62,7 +64,7 @@ class pq_overflow_heap {
 		/// \return Queue size
 		///
 		/////////////////////////////////////////////////////////
-		const TPIE_OS_SIZE_T size();
+		const TPIE_OS_OFFSET size();
 
 		/////////////////////////////////////////////////////////
 		///
@@ -106,7 +108,7 @@ class pq_overflow_heap {
 		/// \return Size
 		///
 		/////////////////////////////////////////////////////////
-		const TPIE_OS_SIZE_T sorted_size();
+		const TPIE_OS_OFFSET sorted_size();
 
 		/////////////////////////////////////////////////////////
 		///
@@ -118,10 +120,11 @@ class pq_overflow_heap {
 	private:
 		Comparator comp_;
 		Heap<T, Comparator>* h;
-		TPIE_OS_SIZE_T maxsize;
+		TPIE_OS_OFFSET maxsize;
 		T dummy;
 };
 
 #include "pq_overflow_heap.inl"
 
+}
 #endif
