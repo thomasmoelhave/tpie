@@ -473,14 +473,14 @@ inline TPIE_OS_SIZE_T  TPIE_OS_BLOCKSIZE() {
 //there is no difference between the systemcalls
 //but for later adaptation to other systems it maybe useful
 #ifdef _WIN32
-inline FILE* TPIE_OS_FOPEN(const char* filename,
-			   const char* mode) {
-    return fopen(filename,mode);
+inline FILE* TPIE_OS_FOPEN(const std::string& filename,
+			   const std::string& mode) {
+    return fopen(filename.c_str(),mode.c_str());
 }
 #else
-inline FILE* TPIE_OS_FOPEN(const char* filename,
-			   const char* mode) {
-    return fopen(filename,mode);
+inline FILE* TPIE_OS_FOPEN(const std::string& filename,
+			   const std::string& mode) {
+    return fopen(filename.c_str(),mode.c_str());
 }
 #endif
 
@@ -619,34 +619,34 @@ inline TPIE_OS_FILE_DESCRIPTOR portabilityInternalOpen(LPCTSTR name, int flag, T
 
 
 #ifdef _WIN32
-inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_ORDONLY(const char* name,TPIE_OS_MAPPING_FLAG mappingFlag = TPIE_OS_FLAG_USE_MAPPING_FALSE) {
-    return portabilityInternalOpen(name, _O_RDONLY,mappingFlag);
+inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_ORDONLY(const std::string& name,TPIE_OS_MAPPING_FLAG mappingFlag = TPIE_OS_FLAG_USE_MAPPING_FALSE) {
+    return portabilityInternalOpen(name.c_str(), _O_RDONLY,mappingFlag);
 }
 #else
-inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_ORDONLY(const char* name,TPIE_OS_MAPPING_FLAG mappingFlag = TPIE_OS_FLAG_USE_MAPPING_FALSE) {
-    return ::open(name, O_RDONLY);
+inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_ORDONLY(const std::string& name,TPIE_OS_MAPPING_FLAG mappingFlag = TPIE_OS_FLAG_USE_MAPPING_FALSE) {
+    return ::open(name.c_str(), O_RDONLY);
 }
 #endif
 
 
 #ifdef _WIN32
-inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_OEXCL(const char* name, TPIE_OS_MAPPING_FLAG mappingFlag = TPIE_OS_FLAG_USE_MAPPING_FALSE) {
-    return portabilityInternalOpen(name, _O_EXCL, mappingFlag);
+inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_OEXCL(const string& name, TPIE_OS_MAPPING_FLAG mappingFlag = TPIE_OS_FLAG_USE_MAPPING_FALSE) {
+    return portabilityInternalOpen(name.c_str(), _O_EXCL, mappingFlag);
 }
 #else
-inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_OEXCL(const char* name, TPIE_OS_MAPPING_FLAG mappingFlag = TPIE_OS_FLAG_USE_MAPPING_FALSE) {
-    return ::open(name, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_OEXCL(const std::string& name, TPIE_OS_MAPPING_FLAG mappingFlag = TPIE_OS_FLAG_USE_MAPPING_FALSE) {
+    return ::open(name.c_str(), O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
 }
 #endif
 
 
 #ifdef _WIN32
-inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_ORDWR(const char* name, TPIE_OS_MAPPING_FLAG mappingFlag = TPIE_OS_FLAG_USE_MAPPING_FALSE) {
-    return portabilityInternalOpen(name, _O_RDWR, mappingFlag);
+inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_ORDWR(const std::string& name, TPIE_OS_MAPPING_FLAG mappingFlag = TPIE_OS_FLAG_USE_MAPPING_FALSE) {
+    return portabilityInternalOpen(name.c_str(), _O_RDWR, mappingFlag);
 }
 #else
-inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_ORDWR(const char* name, TPIE_OS_MAPPING_FLAG mappingFlag = TPIE_OS_FLAG_USE_MAPPING_FALSE) {
-    return ::open(name, O_RDWR);
+inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_ORDWR(const std::string&  name, TPIE_OS_MAPPING_FLAG mappingFlag = TPIE_OS_FLAG_USE_MAPPING_FALSE) {
+    return ::open(name.c_str(), O_RDWR);
 }
 #endif
 
@@ -821,12 +821,12 @@ inline int TPIE_OS_CLOSE(TPIE_OS_FILE_DESCRIPTOR fd) {
 
 
 #if defined(_WIN32) && !defined(__MINGW32__)
-inline int TPIE_OS_UNLINK(const char* filename) {
-    return _unlink(filename);
+inline int TPIE_OS_UNLINK(const std::string& filename) {
+    return _unlink(filename.c_str());
 }
 #else
-inline int TPIE_OS_UNLINK(const char* filename) {
-    return ::unlink(filename);
+inline int TPIE_OS_UNLINK(const std::string& filename) {
+    return ::unlink(filename.c_str());
 }
 #endif
 
@@ -936,7 +936,7 @@ inline int TPIE_OS_UNLINK(const char* filename) {
 #endif
 
 #ifdef _WIN32
-inline int TPIE_OS_TRUNCATE(FILE* file, const char* path, TPIE_OS_OFFSET offset) {
+inline int TPIE_OS_TRUNCATE(FILE* file, const std::string& path, TPIE_OS_OFFSET offset) {
 //    TPIE_OS_LONG highOrderOff = getHighOrderOff(offset);	
 //    DWORD x = SetFilePointer(fd.FileHandle,getLowOrderOff(offset),&highOrderOff, FILE_BEGIN);
 //	return SetEndOfFile(fd.FileHandle);
@@ -944,8 +944,8 @@ inline int TPIE_OS_TRUNCATE(FILE* file, const char* path, TPIE_OS_OFFSET offset)
 	return _chsize(file->_file, (LONG)offset);
 }
 #else
-inline int TPIE_OS_TRUNCATE(FILE* file, const char* path, TPIE_OS_OFFSET offset) {
-	return ::truncate(path, offset);
+inline int TPIE_OS_TRUNCATE(FILE* file, const std::string& path, TPIE_OS_OFFSET offset) {
+	return ::truncate(path.c_str(), offset);
 }
 #endif
 
