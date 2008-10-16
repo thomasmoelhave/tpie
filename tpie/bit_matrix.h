@@ -18,7 +18,7 @@
 #include <sys/types.h>
 
 
-namepsace tpie {
+namespace tpie {
 
     class bit_matrix : public matrix<bit> {
 

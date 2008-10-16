@@ -149,7 +149,7 @@ sort_manager<T, I, M>::sort_manager(I* isort, M* mheap):
     suffixName[0]="_0_";
     suffixName[1]="_1_";
     //prefix of temp files created during sort
-    working_disk = std::string(tpie_tempnam("AMI"));
+    working_disk = std::string(tpie_tempnam("sort"));
 };
 
 template<class T, class I, class M>

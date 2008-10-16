@@ -1317,7 +1317,8 @@ template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL
 btree<Key, Value, Compare, KeyOfValue, BTECOLL>::btree(const btree_params &params): header_(), params_(params), 
 										    status_(BTREE_STATUS_VALID) {
 
-    name_ = std::string(tpie_tempnam("AMI_BTREE"));
+
+    name_ = std::string(tpie_tempnam("btree"));
     shared_init(name_, WRITE_COLLECTION);
     if (status_ == BTREE_STATUS_VALID) {
 	persist(PERSIST_DELETE);

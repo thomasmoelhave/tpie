@@ -23,7 +23,7 @@ char* default_extension = NULL;
 /* like tempnam, but consults environment in an order we like; note
  * that the returned pointer is to static storage, so this function is
  * not re-entrant. */
-char *tpie_tempnam(const char *base, const char* dir, const char* ext) {
+char *tpie_tempnam(const char* post_base, const char* base, const char* dir, const char* ext) {
 	const char* base_dir;
 	const char* extension;
 	const char* basename;
@@ -40,7 +40,7 @@ char *tpie_tempnam(const char *base, const char* dir, const char* ext) {
 	if(basename == NULL) {
 		basename = default_base_name;
 		if(basename == NULL)
-			basename == "AMI";
+			basename = "TPIE";
 	}
 
 	base_dir = dir;
@@ -57,10 +57,12 @@ char *tpie_tempnam(const char *base, const char* dir, const char* ext) {
 		}
 	}
 	
-	std::cout << base_dir << " " << basename << " " << extension << std::endl;
-	sprintf(tmp_path, TPIE_OS_TEMPNAMESTR, base_dir, basename, extension);
-	std::cout << tmp_path << std::endl;
-
+	if(post_base == NULL) {
+		sprintf(tmp_path, TPIE_OS_TEMPNAMESTR, base_dir, basename, "", "", extension);
+	} else {
+		sprintf(tmp_path, TPIE_OS_TEMPNAMESTR, base_dir, basename, post_base, "_", extension);
+	}
+	
 	return tpie_mktemp(tmp_path, extension);    
 }
 
@@ -94,6 +96,18 @@ void set_default_tmp_names(char* path, char* base, char* extension) {
 	default_extension = extension;
 }
 
+void set_default_tmp_path(char* path) {
+	default_path = path;
+}
+
+void set_default_base_name(char* name) {
+	default_base_name = name;
+}
+
+void set_default_extension(char* ext) {
+	default_extension = ext;
+}
+
 char *get_default_tmp_path() {
 	return default_path;
 }
@@ -103,5 +117,5 @@ char *get_default_base_name() {
 }
 
 char *get_default_extension() {
-	return default_base_name;
+	return default_extension;
 }

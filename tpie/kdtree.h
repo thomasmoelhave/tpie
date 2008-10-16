@@ -1345,7 +1345,7 @@ AMI_KDTREE::AMI_kdtree(const AMI_kdtree_params& params)
                : header_(), params_(params), points_are_sample(false) {
   TPLOG("AMI_kdtree::AMI_kdtree Entering\n");
 
-  char *base_file_name = tpie_tempnam("AMI_KDTREE");
+  char *base_file_name = tpie_tempnam("kdtree");
   name_ = base_file_name;
   shared_init(base_file_name, AMI_WRITE_COLLECTION);
   if (status_ == AMI_KDTREE_STATUS_VALID) {

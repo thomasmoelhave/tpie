@@ -16,7 +16,6 @@ namespace tpie {
     namespace ami {
 	
 // AMI error codes.
-
 	enum err {
 	    NO_ERROR = 0,
 	    IO_ERROR,

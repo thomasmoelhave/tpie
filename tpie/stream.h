@@ -327,7 +327,6 @@ private:
      * AMI stream is destroyed. */
     bool m_destructBTEStream;
 
-    /** States if stream is valid or not. */
     stream_status m_status;
 };
 
@@ -347,7 +346,7 @@ private:
 	    }
     
 	    // Get a unique name.
-	    char *path = tpie_tempnam(NULL, default_device[device]);
+		char *path = tpie_tempnam(NULL);
     
 	    TP_LOG_DEBUG_ID("Temporary stream in file: ");
 	    TP_LOG_DEBUG_ID(path);
