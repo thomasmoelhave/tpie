@@ -47,10 +47,11 @@ enum MM_stream_usage {
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-/// The base class for pointers into memory being managed by memory
-/// managers.  In a uniprocessor, these objects will simply contain
-/// pointers.  In multiprocessors, they will be more complicated
+/// Originally intended to be the base class for pointers into memory being 
+/// managed by memory managers.  In a uniprocessor, these objects will simply 
+/// contain pointers.  In multiprocessors, they will be more complicated
 /// descriptions of the layout of memory.
+/// \deprecated Currently not used. 
 ///////////////////////////////////////////////////////////////////////////////
 class MM_ptr_base
 {
@@ -60,6 +61,8 @@ public:
     /// indicate an invalid one.  It is useful for tests and assertions.
     ///////////////////////////////////////////////////////////////////////////
     virtual operator int (void) = 0;
+    
+    virtual ~MM_ptr_base();
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -74,6 +77,8 @@ public:
   /// Returns how much memory (in bytes) is currently available to TPIE.
   ///////////////////////////////////////////////////////////////////////////
     virtual MM_err available (TPIE_OS_SIZE_T *sz_a) = 0;
+
+    virtual ~MM_manager_base();
 
 };
 
