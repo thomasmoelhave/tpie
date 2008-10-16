@@ -20,6 +20,8 @@
 #define APP_SNPRINTF snprintf
 #endif
 
+using namespace tpie;
+
 enum app_options { 
   APP_OPTION_PATH = 1,
   APP_OPTION_NUM_ITEMS,
