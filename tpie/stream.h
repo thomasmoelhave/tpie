@@ -349,10 +349,10 @@ private:
 		std::string path = tpie_tempnam(std::string());
     
 	    TP_LOG_DEBUG_ID("Temporary stream in file: ");
-	    TP_LOG_DEBUG_ID(path.c_str());
+	    TP_LOG_DEBUG_ID(path);
     
 	    // Create the BTE stream.
-	    m_bteStream = new BTE_STREAM<T>(path.c_str(), tpie::bte::WRITE_STREAM);
+	    m_bteStream = new BTE_STREAM<T>(path, tpie::bte::WRITE_STREAM);
     
 	    // (Short circuit evaluation...)
 	    if (m_bteStream == NULL || 

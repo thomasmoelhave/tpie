@@ -304,7 +304,7 @@ namespace tpie {
 	    
 		// Open the file for reading.
 		if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(m_fileDescriptor = 
-											  TPIE_OS_OPEN_ORDONLY(m_path.c_str()))) {
+											  TPIE_OS_OPEN_ORDONLY(m_path))) {
 		
 		    m_status = STREAM_STATUS_INVALID;
 		    m_osErrno = errno;
@@ -389,11 +389,11 @@ namespace tpie {
 		// already exists.  If this is the case, we will call open()
 		// again without it and read in the header block.
 		if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(m_fileDescriptor = 
-											  TPIE_OS_OPEN_OEXCL(m_path.c_str()))) {
+											  TPIE_OS_OPEN_OEXCL(m_path))) {
 		
 		    // Try again, hoping the file already exists.
 		    if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(m_fileDescriptor = 
-												  TPIE_OS_OPEN_ORDWR(m_path.c_str()))) {
+												  TPIE_OS_OPEN_ORDWR(m_path))) {
 		    
 			m_status = STREAM_STATUS_INVALID;
 			m_osErrno = errno;
@@ -628,12 +628,12 @@ namespace tpie {
 	    // Only READ and WRITE streams allowed
 	    switch(st){
 	    case READ_STREAM:
-			m_fileDescriptor=TPIE_OS_OPEN_ORDONLY(m_path.c_str());
+			m_fileDescriptor=TPIE_OS_OPEN_ORDONLY(m_path);
 		break;
 	    
 	    case WRITE_STREAM:
 		//file better exist if super_stream exists
-			m_fileDescriptor=TPIE_OS_OPEN_ORDWR(m_path.c_str());
+			m_fileDescriptor=TPIE_OS_OPEN_ORDWR(m_path);
 		break;
 	    
 	    default:
@@ -849,7 +849,7 @@ namespace tpie {
 			TP_LOG_WARNING_ID("PERSIST_DELETE for read-only stream in " << m_path);
 		    } 
 		    else  {
-				if (TPIE_OS_UNLINK (m_path.c_str())) {
+				if (TPIE_OS_UNLINK (m_path)) {
 			
 			    m_osErrno = errno;
 			

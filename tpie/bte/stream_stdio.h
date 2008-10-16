@@ -158,13 +158,13 @@ namespace tpie {
 		// Open the file for reading.
 		m_readOnly = true;
 	    
-		if ((m_file = TPIE_OS_FOPEN(dev_path.c_str(), "rb")) == NULL) {
+		if ((m_file = TPIE_OS_FOPEN(dev_path, "rb")) == NULL) {
 		
 		    m_status  = STREAM_STATUS_INVALID;
 		    m_osErrno = errno;
 		
 		    TP_LOG_FATAL_ID("Failed to open file:");
-		    TP_LOG_FATAL_ID(dev_path.c_str());
+		    TP_LOG_FATAL_ID(dev_path);
 
 		    return;
 		}
@@ -187,7 +187,7 @@ namespace tpie {
 		    m_osErrno = errno;
 		
 		    TP_LOG_FATAL_ID("Cannot seek in file:");
-		    TP_LOG_FATAL_ID(dev_path.c_str());
+		    TP_LOG_FATAL_ID(dev_path);
 
 		    return;
 		}
@@ -200,15 +200,15 @@ namespace tpie {
 		// Open the file for appending.
 		m_readOnly = false;
 	    
-		if ((m_file = TPIE_OS_FOPEN(dev_path.c_str(), "rb+")) == NULL) {
+		if ((m_file = TPIE_OS_FOPEN(dev_path, "rb+")) == NULL) {
 		    //m_file does not  exist - create it
-		    if ((m_file = TPIE_OS_FOPEN (dev_path.c_str(), "wb+")) == NULL) {
+		    if ((m_file = TPIE_OS_FOPEN (dev_path, "wb+")) == NULL) {
 		    
 			m_status = STREAM_STATUS_INVALID;
 			m_osErrno = errno;
 		    
 			TP_LOG_FATAL_ID("Failed to open file:");
-			TP_LOG_FATAL_ID(dev_path.c_str());
+			TP_LOG_FATAL_ID(dev_path);
 
 			return;
 		    }
@@ -225,7 +225,7 @@ namespace tpie {
 			m_status = STREAM_STATUS_INVALID;
 		    
 			TP_LOG_FATAL_ID("Failed to write header to file:");
-			TP_LOG_FATAL_ID(dev_path.c_str());
+			TP_LOG_FATAL_ID(dev_path);
 
 			return;
 		    }
@@ -234,7 +234,7 @@ namespace tpie {
 		    if (this->truncate(0) != NO_ERROR) {
 
 			TP_LOG_FATAL_ID("Cannot truncate in file:");
-			TP_LOG_FATAL_ID(dev_path.c_str());
+			TP_LOG_FATAL_ID(dev_path);
 		    
 			return;
 		    }
@@ -242,7 +242,7 @@ namespace tpie {
 		    if (this->seek(0) != NO_ERROR) {
 
 			TP_LOG_FATAL_ID("Cannot seek in file:");
-			TP_LOG_FATAL_ID(dev_path.c_str());
+			TP_LOG_FATAL_ID(dev_path);
 
 			return;
 		    }
@@ -433,12 +433,12 @@ namespace tpie {
 			    TP_LOG_WARNING_ID("Ignoring persistency request.");
 			} 
 			else {
-			    if (TPIE_OS_UNLINK (m_path.c_str())) {
+			    if (TPIE_OS_UNLINK (m_path)) {
 			    
 				m_osErrno = errno;
 			    
 				TP_LOG_WARNING_ID("Failed to unlink() file:");
-				TP_LOG_WARNING_ID(m_path.c_str());
+				TP_LOG_WARNING_ID(m_path);
 				TP_LOG_WARNING_ID(strerror(m_osErrno));
 			    } 
 			    else {
@@ -648,12 +648,12 @@ namespace tpie {
 	
 	    filePosition = offset * sizeof (T) + m_osBlockSize; 
 	
-	    if (TPIE_OS_TRUNCATE(m_file, m_path.c_str(), filePosition) == -1) {   
+	    if (TPIE_OS_TRUNCATE(m_file, m_path, filePosition) == -1) {   
 	    
 		m_osErrno = errno;   
 	    
 		TP_LOG_FATAL_ID("Failed to truncate() to the new end of file:");   
-		TP_LOG_FATAL_ID(m_path.c_str());   
+		TP_LOG_FATAL_ID(m_path);   
 		TP_LOG_FATAL_ID(strerror (m_osErrno));   
 	    
 		return OS_ERROR; 
@@ -694,7 +694,7 @@ namespace tpie {
 		m_osErrno = errno;
 	    
 		TP_LOG_FATAL_ID("Failed to read header from file:");
-		TP_LOG_FATAL_ID(m_path.c_str());
+		TP_LOG_FATAL_ID(m_path);
 	    
 		delete ptr_to_header;
 	    

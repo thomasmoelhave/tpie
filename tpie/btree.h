@@ -1349,7 +1349,7 @@ btree<Key, Value, Compare, KeyOfValue, BTECOLL>::btree(const std::string& base_f
 						       const btree_params &params):
     header_(), params_(params), status_(BTREE_STATUS_VALID), stats_(), kov_(), name_(base_file_name) {
 
-    shared_init(base_file_name.c_str(), type);
+    shared_init(base_file_name, type);
 
     if (status_ == BTREE_STATUS_VALID) {
 	if (pcoll_leaves_->size() > 0) {

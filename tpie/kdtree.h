@@ -1373,9 +1373,9 @@ template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 AMI_KDTREE::AMI_kdtree(const string& base_file_name, AMI_collection_type type, 
 		       const AMI_kdtree_params& params)
                 : header_(), params_(params), points_are_sample(false), name_(base_file_name) {
-  TPLOG("AMI_kdtree::AMI_kdtree Entering base_file_name="<<base_file_name.c_str()<<"\n");
+  TPLOG("AMI_kdtree::AMI_kdtree Entering base_file_name="<<base_file_name<<"\n");
 
-  shared_init(base_file_name.c_str(), type);
+  shared_init(base_file_name, type);
 
   TPLOG("AMI_kdtree::AMI_kdtree Exiting status="<<status_<<", size="<<header_.size<<"\n");
 }
