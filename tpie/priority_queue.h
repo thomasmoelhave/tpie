@@ -3,6 +3,9 @@
 
 #include <ami.h>
 #include "pq_overflow_heap.h"
+#include <iostream>
+#include <fstream>
+#include "pq_merge_heap.h"
 
 /////////////////////////////////////////////////////////
 ///

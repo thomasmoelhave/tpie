@@ -1,18 +1,18 @@
-#ifndef _MERGEHEAP_H_
-#define _MERGEHEAP_H_
+#ifndef _TPIE_PQ_MERGE_HEAP_H_
+#define _TPIE_PQ_MERGE_HEAP_H_
 
-using namespace std;
+#include <ami.h>
 
 /////////////////////////////////////////////////////////
 ///
-/// \class MergeHeap
+/// \class pq_merge_heap
 /// \author Lars Hvam Petersen
 ///
-/// MergeHeap
+/// pq_merge_heap
 ///
 /////////////////////////////////////////////////////////
 template<typename T, typename Comparator = std::less<T> >
-class MergeHeap {
+class pq_merge_heap {
 	public:
 		/////////////////////////////////////////////////////////
 		///
@@ -21,14 +21,14 @@ class MergeHeap {
 		/// \param elements Maximum allowed size of the heap
 		///
 		/////////////////////////////////////////////////////////
-		MergeHeap(TPIE_OS_OFFSET elements);
+		pq_merge_heap(TPIE_OS_OFFSET elements);
 
 		/////////////////////////////////////////////////////////
 		///
 		/// Destructor
 		///
 		/////////////////////////////////////////////////////////
-		~MergeHeap();
+		~pq_merge_heap();
 
 		/////////////////////////////////////////////////////////
 		///
@@ -108,8 +108,6 @@ class MergeHeap {
 		TPIE_OS_OFFSET maxsize;
 };
 
-#ifndef CPPMERGEHEAP
-#include "MergeHeap.cpp"
-#endif
+#include "pq_merge_heap.inl"
 
 #endif
