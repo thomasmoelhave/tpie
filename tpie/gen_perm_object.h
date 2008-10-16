@@ -19,6 +19,7 @@ class AMI_gen_perm_object {
 public:
     virtual AMI_err initialize(TPIE_OS_OFFSET len) = 0;
     virtual TPIE_OS_OFFSET destination(TPIE_OS_OFFSET src) = 0;
+    virtual ~AMI_gen_perm_object() {};
 };
 
 #endif // _AMI_GEN_PERM_OBJECT_H 

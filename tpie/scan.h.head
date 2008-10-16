@@ -26,6 +26,7 @@ typedef int AMI_SCAN_FLAG;
 class AMI_scan_object {
 public:
     virtual AMI_err initialize(void) = 0;
+    virtual AMI_scan_object() {};
 };
 
 // BEGIN MECHANICALLY GENERATED CODE.
