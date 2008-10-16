@@ -11,17 +11,23 @@
 #ifndef _PERSIST_H
 #define _PERSIST_H
 
+///////////////////////////////////////////////////////////////////////////
+/// \file persist.h Declares persistence tags for TPIE streams.
+///////////////////////////////////////////////////////////////////////////
+
+
 // Get definitions for working with Unix and Windows
 #include <portability.h>
 
+/** Declares for a stream under which circumstances it should be deleted. */
 enum persistence {
-    // Delete the stream from the disk when it is destructed.
+    /** Delete the stream from the disk when it is destructed. */
     PERSIST_DELETE = 0,
-    // Do not delete the stream from the disk when it is destructed.
+    /** Do not delete the stream from the disk when it is destructed. */
     PERSIST_PERSISTENT = 1,
-    // Delete each block of data from the disk as it is read.
-    // If not supported by the OS (see portability.h), delete
-    // the stream when it is destructed (see PERSIST_DELETE).
+    /** Delete each block of data from the disk as it is read.
+     * If not supported by the OS (see portability.h), delete
+     * the stream when it is destructed (see PERSIST_DELETE). */
     PERSIST_READ_ONCE = TPIE_OS_PERSIST_READ_ONCE
 };
 
