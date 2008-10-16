@@ -17,6 +17,9 @@ check_include_files("sys/async.h" TPIE_HAVE_LIBAIO)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tpie/config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
+if (WIN32)
+add_definitions(-DNOMINMAX)
+endif(WIN32)
 
 add_subdirectory(tpie)
 add_subdirectory(doc)
