@@ -347,45 +347,45 @@ typedef TPIE_OS_OFFSET TPIE_BLOCK_ID_TYPE;
 
 #ifdef _WIN32
 #define TPIE_OS_SET_CLOCK_TICK				\
-		clock_tick = CLOCKS_PER_SEC			
+		clock_tick_ = CLOCKS_PER_SEC			
 #else
-#define TPIE_OS_SET_CLOCK_TICK clock_tick = sysconf(_SC_CLK_TCK); elapsed.tms_utime = 0; elapsed.tms_stime = 0; elapsed.tms_cutime = 0; elapsed.tms_cstime = 0;
+#define TPIE_OS_SET_CLOCK_TICK clock_tick_ = sysconf(_SC_CLK_TCK); elapsed_.tms_utime = 0; elapsed_.tms_stime = 0; elapsed_.tms_cutime = 0; elapsed_.tms_cstime = 0;
 #endif
 		
 
 #ifdef _WIN32
 #define TPIE_OS_UNIX_ONLY_SET_ELAPSED_TIME(current)
 #else
-#define TPIE_OS_UNIX_ONLY_SET_ELAPSED_TIME(current) elapsed.tms_utime += (current).tms_utime - last_sync.tms_utime; elapsed.tms_stime += (current).tms_stime - last_sync.tms_stime; elapsed.tms_cutime += (current).tms_cutime - last_sync.tms_cutime; elapsed.tms_cstime += (current).tms_cstime - last_sync.tms_cstime;
+#define TPIE_OS_UNIX_ONLY_SET_ELAPSED_TIME(current) elapsed_.tms_utime += (current).tms_utime - last_sync_.tms_utime; elapsed_.tms_stime += (current).tms_stime - last_sync_.tms_stime; elapsed_.tms_cutime += (current).tms_cutime - last_sync_.tms_cutime; elapsed_.tms_cstime += (current).tms_cstime - last_sync_.tms_cstime;
 #endif
 
 
 #ifdef _WIN32
-#define TPIE_OS_SET_CURRENT_TIME(current) time(& current ); current_real = clock();
+#define TPIE_OS_SET_CURRENT_TIME(current) time(& current ); current_real_ = clock();
 #else
-#define TPIE_OS_SET_CURRENT_TIME(current) current_real = times(& current);
+#define TPIE_OS_SET_CURRENT_TIME(current) current_real_ = times(& current);
 #endif
 
 
 #ifdef _WIN32
-#define TPIE_OS_LAST_SYNC_REAL_DECLARATION last_sync_real = clock();
+#define TPIE_OS_LAST_SYNC_REAL_DECLARATION last_sync_real_ = clock();
 #else
-#define TPIE_OS_LAST_SYNC_REAL_DECLARATION last_sync_real = times(&last_sync);	
+#define TPIE_OS_LAST_SYNC_REAL_DECLARATION last_sync_real_ = times(&last_sync_);	
 #endif
 
 
 #ifdef _WIN32
-#define TPIE_OS_USER_TIME_BODY return double(elapsed_real) / double(clock_tick)
+#define TPIE_OS_USER_TIME_BODY return double(elapsed_real()) / double(clock_tick())
 #else
-#define TPIE_OS_USER_TIME_BODY return double(elapsed.tms_utime) / double(clock_tick)
+#define TPIE_OS_USER_TIME_BODY return double(elapsed().tms_utime) / double(clock_tick())
 #endif
 
 
 #ifdef _WIN32	
 #define TPIE_OS_OPERATOR_OVERLOAD \
- return s << double(wt.elapsed_real) / double(wt.clock_tick); 
+    return s << double(wt.elapsed_real()) / double(wt.clock_tick()); 
 #else
-#define TPIE_OS_OPERATOR_OVERLOAD return s << double(wt.elapsed.tms_utime) / double(wt.clock_tick) << "u " << double(wt.elapsed.tms_stime) / double(wt.clock_tick) << "s " << double(wt.elapsed_real) / double(wt.clock_tick);	
+#define TPIE_OS_OPERATOR_OVERLOAD return s << double(wt.elapsed().tms_utime) / double(wt.clock_tick()) << "u " << double(wt.elapsed().tms_stime) / double(wt.clock_tick()) << "s " << double(wt.elapsed_real()) / double(wt.clock_tick());	
 #endif
 
 // for ANSI conform arrays.

@@ -9,8 +9,8 @@
 // timer can be start()'ed, stop()'ed, and queried. Querying can be
 // done without stopping the timer, to report intermediate values.
 //
-#ifndef _CPU_TIMER_H
-#define _CPU_TIMER_H
+#ifndef _TPIE_CPU_TIMER_H
+#define _TPIE_CPU_TIMER_H
 
 // Get definitions for working with Unix and Windows
 #include <portability.h>
@@ -18,32 +18,63 @@
 #include <iostream>
 #include <timer.h>
 
-class cpu_timer : public timer {
-private:
-  long clock_tick;
+namespace tpie {
+    
+    class cpu_timer : public timer {
 
-  TPIE_OS_TMS last_sync;
-  TPIE_OS_TMS elapsed;
+    private:
+	long        clock_tick_;
+	
+	TPIE_OS_TMS last_sync_;
+	TPIE_OS_TMS elapsed_;
+	
+	clock_t     last_sync_real_;
+	clock_t     elapsed_real_;
 
-  clock_t last_sync_real;
-  clock_t elapsed_real;
-  bool running;
-public:
-  cpu_timer();
-  virtual ~cpu_timer();
-  
-  void start();
-  void stop();
-  void sync();
-  void reset();
+	bool        running_;
 
-  double user_time();
-  double system_time();
-  double wall_time();
-  
-  friend ostream &operator<<(ostream &s, cpu_timer &ct);
-};
+    public:
+	cpu_timer();
+	virtual ~cpu_timer();
+	
+	void start();
+	void stop();
+	void sync();
+	void reset();
+	
+	double user_time();
+	double system_time();
+	double wall_time();
 
-ostream &operator<<(ostream &s, cpu_timer &ct);
+	bool running() const { 
+	    return running_;
+	}
 
-#endif // _CPU_TIMER_H 
+	long clock_tick() const {
+	    return clock_tick_;
+	}
+
+	TPIE_OS_TMS last_sync() const {
+	    return last_sync_;
+	}
+	
+	TPIE_OS_TMS elapsed() const {
+	    return elapsed_;
+	}
+
+	clock_t last_sync_real() const {
+	    return last_sync_real_;
+	}
+	
+	clock_t elapsed_real() const {
+	    return elapsed_real_;
+	}
+	
+//	friend ostream &operator<<(ostream &s, cpu_timer &ct);
+    };
+    
+}
+ 
+ostream &operator<<(ostream &s, tpie::cpu_timer &ct);
+
+#endif // _TPIE_CPU_TIMER_H 

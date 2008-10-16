@@ -32,6 +32,8 @@
 #include "scan_diff.h" 
 #include "merge_random.h"
 
+using namespace tpie;
+
 enum comparison_mode_t {
   COMPARISON_OPERATOR,
   COMPARISON_CLASS

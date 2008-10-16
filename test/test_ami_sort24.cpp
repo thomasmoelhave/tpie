@@ -22,6 +22,8 @@
 
 #include <cpu_timer.h>
 
+using namespace tpie;
+
 // This is the type of object we will sort.
 
 union sort_obj
