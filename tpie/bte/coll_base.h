@@ -219,8 +219,8 @@ namespace bte {
 	    // any there, we will try to get one after last_block; if there are
 	    // no blocks past last_block, we will ftruncate() some more blocks
 	    // to the tail of the BCC and then get a free bid.
-	    BIDT *lbn;
-	    err retval;
+	    BIDT *lbn = NULL;
+	    err retval = ERROR_NO_ERROR;
 	    
 	    if (header_.used_blocks < header_.last_block - 1) {
 		tp_assert(freeblock_stack_ != NULL, 
@@ -228,8 +228,11 @@ namespace bte {
 		// TODO: this is a costly operation. improve!
 		TPIE_OS_OFFSET slen = freeblock_stack_->stream_len();
 		tp_assert(slen > 0, "BTE_collection_ufs internal error: empty stack");
-		if ((retval = freeblock_stack_->pop(&lbn)) != ERROR_NO_ERROR)
+
+		if ((retval = freeblock_stack_->pop(&lbn)) != ERROR_NO_ERROR) {
 		    return retval;
+		}
+
 		bid = *lbn;
 	    } 
 	    else {
@@ -239,30 +242,40 @@ namespace bte {
 		    // Increase the capacity for storing blocks in the stream by
 		    // 16 (only by 2 the first time around to be gentle with very
 		    // small coll's).
-		    if (header_.total_blocks == 1)
+		    if (header_.total_blocks == 1) {
 			header_.total_blocks += 2;
-		    else if (header_.total_blocks <= 161)
-			header_.total_blocks += 8;
-		    else
-			header_.total_blocks += 64;
+		    }
+		    else {
+			if (header_.total_blocks <= 161) {
+			    header_.total_blocks += 8;
+			}
+			else {
+			    header_.total_blocks += 64;
+			}
+		    }
 
 
 #if COLLECTION_USE_FTRUNCATE
 		    if (TPIE_OS_FTRUNCATE(bcc_fd_, 
 					  bid_to_file_offset(header_.total_blocks))) { 
+
 			TP_LOG_FATAL_ID("Failed to truncate to the new end of file.");
-			//LOG_FATAL_ID(strerror(errno));
+
 			return ERROR_OS_ERROR;
+
 		    }
 #else
 		    char* tbuf = new char[header_.os_block_size];
 		    TPIE_OS_OFFSET curr_off;
 		    
 		    if ((curr_off = TPIE_OS_LSEEK(bcc_fd_, 0, TPIE_OS_FLAG_SEEK_END)) == (TPIE_OS_OFFSET)(-1)) {
+
 			TP_LOG_FATAL_ID("Failed to seek to the end of file.");
-			//LOG_FATAL_ID(strerror(errno));
+
 			return ERROR_OS_ERROR;
+
 		    }
+
 		    while (curr_off < bid_to_file_offset(header_.total_blocks)) {
 			TPIE_OS_WRITE(bcc_fd_, tbuf, header_.os_block_size);
 			curr_off += header_.os_block_size;
@@ -273,10 +286,10 @@ namespace bte {
 		    
 		}
 		bid = header_.last_block++;
-	}
+	    }
 	    return ERROR_NO_ERROR;
-    }
-
+	}
+	
 	// Common code for all delete_block implementations. Inlined.
 	err delete_block_shared(BIDT bid) {
 	    if (bid == header_.last_block - 1) {
@@ -290,6 +303,7 @@ namespace bte {
 		//	"BTE_collection_ufs internal error: NULL stack pointer");
 		return freeblock_stack_->push(bid);
 	    }
+
 	    return ERROR_NO_ERROR;
 	}
 	
