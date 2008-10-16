@@ -7,8 +7,8 @@
 // Front end for the BTE collection classes.
 //
 
-#ifndef _BTE_COLL_H
-#define _BTE_COLL_H
+#ifndef _TPIE_BTE_COLL_H
+#define _TPIE_BTE_COLL_H
 
 // Get the base class and various definitions.
 #include <bte/coll_base.h>
@@ -52,4 +52,4 @@
    // Do not define BTE_COLLECTION. The user will define it.
 #endif
 
-#endif // _BTE_COLL_H
+#endif // _TPIE_BTE_COLL_H

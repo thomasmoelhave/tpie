@@ -8,30 +8,34 @@
 // BTE error codes, moved here from bte/base_stream.h
 //
 
-#ifndef _BTE_ERR_H
-#define _BTE_ERR_H
+#ifndef _TPIE_BTE_ERR_H
+#define _TPIE_BTE_ERR_H
 
 // Get definitions for working with Unix and Windows
 #include <portability.h>
 
+namespace bte {
+    
 //
 // BTE error codes are returned using the BTE_err type.
 //
-enum BTE_err {
-  BTE_ERROR_NO_ERROR = 0,
-  BTE_ERROR_IO_ERROR,
-  BTE_ERROR_END_OF_STREAM,
-  BTE_ERROR_READ_ONLY,
-  BTE_ERROR_OS_ERROR,
-  BTE_ERROR_BASE_METHOD,
-  BTE_ERROR_MEMORY_ERROR,
-  BTE_ERROR_PERMISSION_DENIED,
-  BTE_ERROR_OFFSET_OUT_OF_RANGE,
-  BTE_ERROR_OUT_OF_SPACE,
-  BTE_ERROR_STREAM_IS_SUBSTREAM,
-  BTE_ERROR_WRITE_ONLY,
-  BTE_ERROR_BAD_HEADER,
-  BTE_ERROR_INVALID_PLACEHOLDER
-};
+    enum err {
+	ERROR_NO_ERROR = 0,
+	ERROR_IO_ERROR,
+	ERROR_END_OF_STREAM,
+	ERROR_READ_ONLY,
+	ERROR_OS_ERROR,
+	ERROR_BASE_METHOD,
+	ERROR_MEMORY_ERROR,
+	ERROR_PERMISSION_DENIED,
+	ERROR_OFFSET_OUT_OF_RANGE,
+	ERROR_OUT_OF_SPACE,
+	ERROR_STREAM_IS_SUBSTREAM,
+	ERROR_WRITE_ONLY,
+	ERROR_BAD_HEADER,
+	ERROR_INVALID_PLACEHOLDER
+    };
+    
+}
 
-#endif // _BTE_ERR_H
+#endif // _TPIE_ERR_H
