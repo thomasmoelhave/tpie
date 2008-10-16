@@ -122,6 +122,6 @@ namespace tpie {
 	copy(pos, capacity_ - pos - 1, *this, pos + 1);
     }
 
-}
+} //  tpie namespace
 
 #endif // _B_VECTOR_H

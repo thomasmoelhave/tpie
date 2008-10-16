@@ -7,11 +7,32 @@
 //
 // Basic definitions for all AMI_COLLECTION implementations.
 //
-#ifndef _AMI_COLL_BASE_H
-#define _AMI_COLL_BASE_H
+#ifndef _TPIE_AMI_COLL_BASE_H
+#define _TPIE_AMI_COLL_BASE_H
 
 // Get definitions for working with Unix and Windows
 #include <portability.h>
+
+namespace tpie {
+
+    namespace ami {
+
+// AMI collection types passed to constructors
+	enum collection_type {
+	    READ_COLLECTION = 1,   // Open existing collection for reading
+	    WRITE_COLLECTION,      // Open for writing.  Create if non-existent
+	    READ_WRITE_COLLECTION  // Open to read and write.
+	};
+
+// AMI collection status.
+	enum collection_status {
+	    COLLECTION_STATUS_VALID = 0,
+	    COLLECTION_STATUS_INVALID = 1
+	};
+	
+    }  //  ami namespace
+    
+}  //  tpie namespace
 
 // AMI collection types passed to constructors
 enum AMI_collection_type {
@@ -26,4 +47,4 @@ enum AMI_collection_status {
   AMI_COLLECTION_STATUS_INVALID = 1
 };
 
-#endif // _AMI_COLL_BASE_H
+#endif // _TPIE_AMI_COLL_BASE_H

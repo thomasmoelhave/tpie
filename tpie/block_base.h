@@ -20,117 +20,150 @@
 // The AMI_COLLECTION class.
 #include <coll.h>
 
+namespace tpie {
+
+    namespace ami {
+	
 // AMI block id type.
-typedef TPIE_BLOCK_ID_TYPE AMI_bid;
-
+	typedef TPIE_BLOCK_ID_TYPE bid_t;
+	
 // Block status type.
-enum AMI_block_status {
-  AMI_BLOCK_STATUS_VALID = 0,
-  AMI_BLOCK_STATUS_INVALID = 1
-};
+	enum block_status {
+	    BLOCK_STATUS_VALID = 0,
+	    BLOCK_STATUS_INVALID = 1
+	};
 
+    }  //  ami namespace
 
-template<class BTECOLL>
-class AMI_block_base {
-public:
-  //  typedef typename BTECOLL::block_id_t id_t;
+}  //  tpie namespace
 
-protected:
+namespace tpie {
 
-  // Pointer to the block collection.
-  BTECOLL * pcoll_;
+    namespace ami {
+	
+	template<class BTECOLL>
 
-  // Unique ID. Represents the offset of the block in the blocks file.
-  AMI_bid bid_;
+	class block_base {
 
-  // Dirty bit. If set, the block needs to be written back.
-  char dirty_;
+	protected:
+	    
+	    // Pointer to the block collection.
+	    BTECOLL * pcoll_;
+	    
+	    // Unique ID. Represents the offset of the block in the blocks file.
+	    bid_t bid_;
+	    
+	    // Dirty bit. If set, the block needs to be written back.
+	    char dirty_;
+	    
+	    // Pointer to the actual data.
+	    void * pdata_;
+	    
+	    // Persistence flag.
+	    persistence per_;
+	    
+	public:
+	    
+	    // Constructor.
+	    // Read and initialize a block with a given ID.
+	    // When bid is missing or 0, a new block is created.
+	    block_base(collection_single<BTECOLL>* pacoll, bid_t bid = 0)
+		: bid_(bid), dirty_(0), per_(PERSIST_PERSISTENT) {
 
-  // Pointer to the actual data.
-  void * pdata_;
+		pcoll_ = pacoll->bte();
 
-  // Persistence flag.
-  persistence per_;
+		if (bid != 0) {
 
-public:
+		    // Get an existing block from disk.
+		    if (pcoll_->get_block(bid_, pdata_) != bte::NO_ERROR) {
+			pdata_ = NULL;
+		    }
 
-  // Constructor.
-  // Read and initialize a block with a given ID.
-  // When bid is missing or 0, a new block is created.
-  AMI_block_base(AMI_collection_single<BTECOLL>* pacoll, AMI_bid bid = 0)
-    : bid_(bid), dirty_(0), per_(PERSIST_PERSISTENT) {
-    pcoll_ = pacoll->bte();
-    if (bid != 0) {
-      // Get an existing block from disk.
-      if (pcoll_->get_block(bid_, pdata_) != tpie::bte::NO_ERROR)
-	pdata_ = NULL;
-    } else {
-      // Create a new block in the collection.
-      if (pcoll_->new_block(bid_, pdata_) != tpie::bte::NO_ERROR)
-	pdata_ = NULL;
-    }
-  }
+		} else {
 
-  AMI_err sync() {
-    if (pcoll_->sync_block(bid_, pdata_) != tpie::bte::NO_ERROR)
-      return AMI_ERROR_BTE_ERROR;
-    else
-      return AMI_ERROR_NO_ERROR;
-  }
+		    // Create a new block in the collection.
+		    if (pcoll_->new_block(bid_, pdata_) != bte::NO_ERROR) {
+			pdata_ = NULL;
+		    }
+		}
+	    }
 
-  // Get the block id.
-  AMI_bid bid() const { return bid_; }
+	    err sync() {
+		if (pcoll_->sync_block(bid_, pdata_) != bte::NO_ERROR)
+		    return BTE_ERROR;
+		else
+		    return NO_ERROR;
+	    }
 
-  // Get a reference to the dirty bit.
-  char& dirty() { return dirty_; };
-  char dirty() const { return dirty_; }
+	    // Get the block id.
+	    bid_t bid() const { 
+		return bid_; 
+	    }
 
-  // Copy block rhs into this block.
-  AMI_block_base<BTECOLL>& operator=(const AMI_block_base<BTECOLL>& rhs) { 
-    if (pcoll_ == rhs.pcoll_) {
-      memcpy(pdata_, rhs.pdata_, pcoll_->block_size());
-      dirty_ = 1;
-    } else 
-      pdata_ = NULL;
-    return *this; 
-  }
+	    // Get a reference to the dirty bit.
+	    char& dirty() { 
+		return dirty_; 
+	    };
+	    
+	    char dirty() const { 
+		return dirty_; 
+	    }
 
-  // Get the block's status.
-  AMI_block_status status() const { 
-    return (pdata_ == NULL) ? 
-      AMI_BLOCK_STATUS_INVALID: AMI_BLOCK_STATUS_VALID; 
-  }
+	    // Copy block rhs into this block.
+	    block_base<BTECOLL>& operator=(const block_base<BTECOLL>& rhs) { 
+		if (pcoll_ == rhs.pcoll_) {
+		    memcpy(pdata_, rhs.pdata_, pcoll_->block_size());
+		    dirty_ = 1;
+		} else 
+		    pdata_ = NULL;
+		return *this; 
+	    }
 
-  // Return true if the block is valid.
-  bool is_valid() const {
-    return (pdata_ != NULL);
-  }
+	    // Get the block's status.
+	    block_status status() const { 
+		return (pdata_ == NULL) ? 
+		    BLOCK_STATUS_INVALID : BLOCK_STATUS_VALID; 
+	    }
 
-  // Return true if the block is invalid.
-  bool operator!() const {
-    return (pdata_ == NULL);
-  }
+	    // Return true if the block is valid.
+	    bool is_valid() const {
+		return (pdata_ != NULL);
+	    }
 
-  void persist(persistence per) { per_ = per; }
+	    // Return true if the block is invalid.
+	    bool operator!() const {
+		return (pdata_ == NULL);
+	    }
 
-  persistence persist() const { return per_; }
+	    void persist(persistence per) { 
+		per_ = per; 
+	    }
 
-  size_t block_size() const { return pcoll_->block_size(); }
+	    persistence persist() const { 
+		return per_; 
+	    }
 
-  // Destructor.
-  ~AMI_block_base() {
-    // Check first the status of the collection. 
-    if (pdata_ != NULL){
-      if (per_ == PERSIST_PERSISTENT) {
-        // Write back the block.
-        pcoll_->put_block(bid_, pdata_); 
-      } else {
-	// Delete the block from the collection.
-	pcoll_->delete_block(bid_, pdata_);
-      }
-    }
-  }
-};
+	    size_t block_size() const {
+		return pcoll_->block_size(); 
+	    }
 
+	    // Destructor.
+	    ~block_base() {
+		// Check first the status of the collection. 
+		if (pdata_ != NULL){
+		    if (per_ == PERSIST_PERSISTENT) {
+			// Write back the block.
+			pcoll_->put_block(bid_, pdata_); 
+		    } else {
+			// Delete the block from the collection.
+			pcoll_->delete_block(bid_, pdata_);
+		    }
+		}
+	    }
+	};
 
-#endif //_AMI_BLOCK_BASE_H
+    }  //  ami namespace
+
+}  //  tpie namespace
+
+#endif //_TPIE_AMI_BLOCK_BASE_H
