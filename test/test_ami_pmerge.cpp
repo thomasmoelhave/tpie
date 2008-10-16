@@ -16,18 +16,16 @@
 #include <merge.h>
 #include <mergeheap.h>
 
-
-
-
 // Utitlities for ascii output.
 #include <scan_utils.h>
 
 #include "scan_random.h"
 
+using namespace tpie;
+
 // From int_cmp.c
 //extern "C" int c_int_cmp(const void *, const void *);
-int c_int_cmp(const void *p1, const void *p2)
-{
+int c_int_cmp(const void *p1, const void *p2) {
     return *(static_cast<const int*>(p1)) - *(static_cast<const int*>(p2));
 }
 
@@ -36,7 +34,7 @@ int c_int_cmp(const void *p1, const void *p2)
 // what is included as part of the TPIE system for sorting in
 // ami_sort_single.h.
 
-class s_merge_manager : public AMI_merge_base<int> {
+class s_merge_manager : public ami::merge_base<int> {
 private:
     merge_heap_op<int> *mheap;
     TPIE_OS_SIZE_T input_arity;
@@ -49,14 +47,14 @@ private:
 public:
     s_merge_manager(void);
     virtual ~s_merge_manager(void);
-    AMI_err initialize(TPIE_OS_SIZE_T arity, int **in,
-                       AMI_merge_flag *taken_flags,
-                       int &taken_index);
-    AMI_err operate(int **in, AMI_merge_flag *taken_flags,
-                    int &taken_index, int *out);
-    AMI_err main_mem_operate(int* mm_stream, TPIE_OS_SIZE_T len);
-	TPIE_OS_SIZE_T space_usage_overhead(void);
-	TPIE_OS_SIZE_T space_usage_per_stream(void);
+    ami::err initialize(TPIE_OS_SIZE_T arity, int **in,
+			ami::merge_flag *taken_flags,
+			int &taken_index);
+    ami::err operate(int **in, ami::merge_flag *taken_flags,
+		     int &taken_index, int *out);
+    ami::err main_mem_operate(int* mm_stream, TPIE_OS_SIZE_T len);
+    TPIE_OS_SIZE_T space_usage_overhead(void);
+    TPIE_OS_SIZE_T space_usage_per_stream(void);
 };
 
 
@@ -78,9 +76,9 @@ s_merge_manager::~s_merge_manager(void)
 }
 
 
-AMI_err s_merge_manager::initialize(TPIE_OS_SIZE_T arity, int **in,
-                                          AMI_merge_flag *taken_flags,
-                                          int &taken_index)
+ami::err s_merge_manager::initialize(TPIE_OS_SIZE_T arity, int **in,
+				     ami::merge_flag *taken_flags,
+				     int &taken_index)
 {
     TPIE_OS_SIZE_T ii;
 
@@ -111,7 +109,7 @@ AMI_err s_merge_manager::initialize(TPIE_OS_SIZE_T arity, int **in,
     }
 
     taken_index = -1;
-    return AMI_MERGE_READ_MULTIPLE;
+    return ami::MERGE_READ_MULTIPLE;
 }
 
 
@@ -127,10 +125,10 @@ TPIE_OS_SIZE_T s_merge_manager::space_usage_per_stream(void)
 }
 
 
-AMI_err s_merge_manager::operate(int **in,
-                                       AMI_merge_flag * /*taken_flags*/,
-                                       int &taken_index,
-                                       int *out)
+ami::err s_merge_manager::operate(int **in,
+				  ami::merge_flag * /*taken_flags*/,
+				  int &taken_index,
+				  int *out)
 {
     // If the queue is empty, we are done.  There should be no more
     // inputs.
@@ -148,7 +146,7 @@ AMI_err s_merge_manager::operate(int **in,
                   ", output_count = " << output_count << '.');
 #endif        
 
-        return AMI_MERGE_DONE;
+        return ami::MERGE_DONE;
 
     } else {
         TPIE_OS_SIZE_T min_source;
@@ -169,15 +167,15 @@ AMI_err s_merge_manager::operate(int **in,
 #if DEBUG_ASSERTIONS
         output_count++;
 #endif        
-        return AMI_MERGE_OUTPUT;
+        return ami::MERGE_OUTPUT;
     }
 }
 
 
-AMI_err s_merge_manager::main_mem_operate(int* mm_stream, TPIE_OS_SIZE_T len)
+ami::err s_merge_manager::main_mem_operate(int* mm_stream, TPIE_OS_SIZE_T len)
 {
     qsort(mm_stream, len, sizeof(int), c_int_cmp);
-    return AMI_ERROR_NO_ERROR;
+    return ami::NO_ERROR;
 }
 
 
@@ -191,26 +189,26 @@ static bool report_results_random = false;
 static bool report_results_sorted = false;
 
 struct options app_opts[] = {
-  { 10, "random-results-filename", "", "R", 1 },
-  { 11, "report-results-random", "", "r", 0 },
-  { 12, "sorted-results-filename", "", "S", 1 },
-  { 13, "report-results-sorted", "", "s", 0 },
-  { 0, NULL, NULL, NULL, 0 }
+    { 10, "random-results-filename", "", "R", 1 },
+    { 11, "report-results-random", "", "r", 0 },
+    { 12, "sorted-results-filename", "", "S", 1 },
+    { 13, "report-results-sorted", "", "s", 0 },
+    { 0, NULL, NULL, NULL, 0 }
 };
 
 void parse_app_opts(int idx, char *opt_arg)
 {
     switch (idx) {
-        case 10:
-            rand_results_filename = opt_arg;
-        case 11:
-            report_results_random = true;
-            break;
-        case 12:
-            sorted_results_filename = opt_arg;
-        case 13:
-            report_results_sorted = true;
-            break;
+    case 10:
+	rand_results_filename = opt_arg;
+    case 11:
+	report_results_random = true;
+	break;
+    case 12:
+	sorted_results_filename = opt_arg;
+    case 13:
+	report_results_sorted = true;
+	break;
     }
 }
 
@@ -218,14 +216,14 @@ void parse_app_opts(int idx, char *opt_arg)
 int main(int argc, char **argv)
 {
 
-    AMI_err ae;
+    ami::err ae;
 
     parse_args(argc, argv, app_opts, parse_app_opts);
 
     if (verbose) {
-      std::cout << "test_size = " << test_size << "." << std::endl;
-      std::cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << std::endl;
-      std::cout << "random_seed = " << random_seed << "." << std::endl;
+	std::cout << "test_size = " << test_size << "." << std::endl;
+	std::cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << std::endl;
+	std::cout << "random_seed = " << random_seed << "." << std::endl;
     } else {
         std::cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << random_seed;
     }
@@ -233,16 +231,16 @@ int main(int argc, char **argv)
     // Set the amount of main memory:
     MM_manager.set_memory_limit (test_mm_size);
         
-    AMI_STREAM<int> amis0;
-    AMI_STREAM<int> amis1;
+    ami::stream<int> amis0;
+    ami::stream<int> amis1;
         
     // Write some ints.
     scan_random rnds(test_size,random_seed);
     
-    ae = AMI_scan(&rnds, &amis0);
+    ae = ami::scan(&rnds, &amis0);
 
     if (verbose) {
-      std::cout << "Wrote the random values." << std::endl;
+	std::cout << "Wrote the random values." << std::endl;
         std::cout << "Stream length = " << amis0.stream_len() << std::endl;
     }
 
@@ -250,35 +248,35 @@ int main(int argc, char **argv)
     // streams.
     
     std::ofstream *oss;
-    cxx_ostream_scan<int> *rpts = NULL;
+    ami::cxx_ostream_scan<int> *rpts = NULL;
     std::ofstream *osr;
-    cxx_ostream_scan<int> *rptr = NULL;
+    ami::cxx_ostream_scan<int> *rptr = NULL;
     
     if (report_results_random) {
-        osr = new std::ofstream(rand_results_filename);
-        rptr = new cxx_ostream_scan<int>(osr);
+        osr  = new std::ofstream(rand_results_filename);
+        rptr = new ami::cxx_ostream_scan<int>(osr);
     }
     
     if (report_results_sorted) {
-        oss = new std::ofstream(sorted_results_filename);
-        rpts = new cxx_ostream_scan<int>(oss);
+        oss  = new std::ofstream(sorted_results_filename);
+        rpts = new ami::cxx_ostream_scan<int>(oss);
     }
     
     if (report_results_random) {
-        ae = AMI_scan(&amis0, rptr);
+        ae = ami::scan(&amis0, rptr);
     }
 
     s_merge_manager sm;
     
-    ae = AMI_partition_and_merge(&amis0, &amis1, &sm);
+    ae = ami::partition_and_merge(&amis0, &amis1, &sm);
     
     if (verbose) {
-      std::cout << "Sorted them."<< std::endl;
+	std::cout << "Sorted them."<< std::endl;
         std::cout << "Sorted stream length = " << amis1.stream_len() << std::endl;
     }
     
     if (report_results_sorted) {
-        ae = AMI_scan(&amis1, rpts);
+        ae = ami::scan(&amis1, rpts);
     }    
 
     std::cout << std::endl;
