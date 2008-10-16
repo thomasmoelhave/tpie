@@ -182,11 +182,11 @@ AMI_stream<T>::AMI_stream(unsigned int device) : m_bteStream(NULL),
     TP_LOG_DEBUG_ID(path);
     
     // Create the BTE stream.
-    m_bteStream = new BTE_STREAM<T>(path, BTE_WRITE_STREAM);
+    m_bteStream = new BTE_STREAM<T>(path, tpie::bte::WRITE_STREAM);
     
     // (Short circuit evaluation...)
     if (m_bteStream == NULL || 
-	m_bteStream->status() == BTE_STREAM_STATUS_INVALID) {
+	m_bteStream->status() == tpie::bte::STREAM_STATUS_INVALID) {
 	TP_LOG_FATAL_ID("BTE returned invalid or NULL stream.");
 	return;
     }
@@ -213,23 +213,23 @@ AMI_stream<T>::AMI_stream(const char* path_name, AMI_stream_type st) :
     m_status(AMI_STREAM_STATUS_INVALID) {
     
   // Decide BTE stream type
-    BTE_stream_type bst;
+    tpie::bte::stream_type bst;
     switch (st) {
     case AMI_READ_STREAM: 
-	bst = BTE_READ_STREAM;
+	bst = tpie::bte::READ_STREAM;
 	break;
     case AMI_APPEND_STREAM:
-	bst = BTE_APPEND_STREAM;
+	bst = tpie::bte::APPEND_STREAM;
 	break;
     case AMI_WRITE_STREAM:
     case AMI_READ_WRITE_STREAM:
-	bst = BTE_WRITE_STREAM; //BTE_WRITE_STREAM means both read and
+	bst = tpie::bte::WRITE_STREAM; //WRITE_STREAM means both read and
 	//write; this is inconsistent and should be modified..
 	break;
     default:
 	TP_LOG_WARNING_ID("Unknown stream type passed to constructor;");
 	TP_LOG_WARNING_ID("Defaulting to AMI_READ_WRITE_STREAM.");
-	bst = BTE_WRITE_STREAM;
+	bst = tpie::bte::WRITE_STREAM;
 	break;
     }
     
@@ -239,7 +239,7 @@ AMI_stream<T>::AMI_stream(const char* path_name, AMI_stream_type st) :
     // Create the BTE stream.
     m_bteStream = new BTE_STREAM<T>(path_name, bst);
     // (Short circuit evaluation...)
-    if (m_bteStream == NULL || m_bteStream->status() == BTE_STREAM_STATUS_INVALID) {
+    if (m_bteStream == NULL || m_bteStream->status() == tpie::bte::STREAM_STATUS_INVALID) {
 	TP_LOG_FATAL_ID("BTE returned invalid or NULL stream.");
 	return;
     }
@@ -266,7 +266,7 @@ AMI_stream<T>::AMI_stream(BTE_STREAM<T> *bs) :
     m_status(AMI_STREAM_STATUS_INVALID) {
     
     
-    if (m_bteStream == NULL || m_bteStream->status() == BTE_STREAM_STATUS_INVALID) {
+    if (m_bteStream == NULL || m_bteStream->status() == tpie::bte::STREAM_STATUS_INVALID) {
 	TP_LOG_FATAL_ID("BTE returned invalid or NULL stream.");
 	return;
     }
@@ -291,12 +291,12 @@ AMI_err AMI_stream<T>::new_substream(AMI_stream_type st,
         return AMI_ERROR_PERMISSION_DENIED;
     }
     
-    BTE_stream_base<T> *bte_ss;
+    tpie::bte::stream_base<T> *bte_ss;
     
-    if (m_bteStream->new_substream(((st == AMI_READ_STREAM) ? BTE_READ_STREAM :
-				    BTE_WRITE_STREAM),
+    if (m_bteStream->new_substream(((st == AMI_READ_STREAM) ? tpie::bte::READ_STREAM :
+				    tpie::bte::WRITE_STREAM),
 				   sub_begin, sub_end,
-				   &bte_ss) != BTE_ERROR_NO_ERROR) {
+				   &bte_ss) != tpie::bte::NO_ERROR) {
 	TP_LOG_DEBUG_ID("new_substream failed");		
 	*sub_stream = NULL;
 	return AMI_ERROR_BTE_ERROR;
@@ -323,8 +323,8 @@ AMI_err AMI_stream<T>::new_substream(AMI_stream_type st,
 
 template<class T>
 AMI_err AMI_stream<T>::name(char **stream_name) {
-    BTE_err be = m_bteStream->name(stream_name);
-    if (be != BTE_ERROR_NO_ERROR) {
+    tpie::bte::err be = m_bteStream->name(stream_name);
+    if (be != tpie::bte::NO_ERROR) {
 	TP_LOG_WARNING_ID("bte error");
 	return AMI_ERROR_BTE_ERROR;
     } else {
@@ -335,7 +335,7 @@ AMI_err AMI_stream<T>::name(char **stream_name) {
 // Move to a specific offset.
 template<class T>
 AMI_err AMI_stream<T>::seek(TPIE_OS_OFFSET offset) {
-    if (m_bteStream->seek(offset) != BTE_ERROR_NO_ERROR) {
+    if (m_bteStream->seek(offset) != tpie::bte::NO_ERROR) {
 	TP_LOG_WARNING_ID("bte error");		
 	return AMI_ERROR_BTE_ERROR;
     }
@@ -346,7 +346,7 @@ AMI_err AMI_stream<T>::seek(TPIE_OS_OFFSET offset) {
 // Truncate
 template<class T>
 AMI_err AMI_stream<T>::truncate(TPIE_OS_OFFSET offset) {
-    if (m_bteStream->truncate(offset) != BTE_ERROR_NO_ERROR) {
+    if (m_bteStream->truncate(offset) != tpie::bte::NO_ERROR) {
 	TP_LOG_WARNING_ID("bte error");
 	return AMI_ERROR_BTE_ERROR;
     }
@@ -358,7 +358,7 @@ AMI_err AMI_stream<T>::truncate(TPIE_OS_OFFSET offset) {
 template<class T>
 AMI_err AMI_stream<T>::main_memory_usage(TPIE_OS_SIZE_T *usage,
                                                 MM_stream_usage usage_type) {
-    if (m_bteStream->main_memory_usage(usage, usage_type) != BTE_ERROR_NO_ERROR) {
+    if (m_bteStream->main_memory_usage(usage, usage_type) != tpie::bte::NO_ERROR) {
 	TP_LOG_WARNING_ID("bte error");		
 	return AMI_ERROR_BTE_ERROR;
     }
@@ -389,15 +389,15 @@ AMI_stream<T>::~AMI_stream() {
 
 template<class T>
 AMI_err AMI_stream<T>::read_item(T **elt) {
-    BTE_err bte_err;
+    tpie::bte::err bte_err;
     AMI_err ae;
     
     bte_err = m_bteStream->read_item(elt);
     switch(bte_err) {
-    case BTE_ERROR_NO_ERROR:
+    case tpie::bte::NO_ERROR:
 	ae = AMI_ERROR_NO_ERROR;
 	break;
-    case BTE_ERROR_END_OF_STREAM:
+    case tpie::bte::END_OF_STREAM:
 	TP_LOG_DEBUG_ID("eos in read_item");
 	ae = AMI_ERROR_END_OF_STREAM;
 	break;
@@ -411,7 +411,7 @@ AMI_err AMI_stream<T>::read_item(T **elt) {
 
 template<class T>
 AMI_err AMI_stream<T>::write_item(const T &elt) {
-    if (m_bteStream->write_item(elt) != BTE_ERROR_NO_ERROR) {
+    if (m_bteStream->write_item(elt) != tpie::bte::NO_ERROR) {
 	TP_LOG_WARNING_ID("bte error");
 	return AMI_ERROR_BTE_ERROR;
     }
@@ -421,7 +421,7 @@ AMI_err AMI_stream<T>::write_item(const T &elt) {
 
 template<class T>
 AMI_err AMI_stream<T>::read_array(T *mm_space, TPIE_OS_OFFSET *len) {
-    BTE_err        be;
+    tpie::bte::err        be;
     T *            read;
     TPIE_OS_OFFSET ii;
     
@@ -430,8 +430,8 @@ AMI_err AMI_stream<T>::read_array(T *mm_space, TPIE_OS_OFFSET *len) {
             
     // Read them all.
     for (ii = str_len; ii--; ) {
-        if ((be = m_bteStream->read_item(&read)) != BTE_ERROR_NO_ERROR) {
-            if (be == BTE_ERROR_END_OF_STREAM) {
+        if ((be = m_bteStream->read_item(&read)) != tpie::bte::NO_ERROR) {
+            if (be == tpie::bte::END_OF_STREAM) {
                 return AMI_ERROR_END_OF_STREAM;
             } else { 
                 return AMI_ERROR_BTE_ERROR;
@@ -447,12 +447,12 @@ AMI_err AMI_stream<T>::read_array(T *mm_space, TPIE_OS_OFFSET *len) {
 
 template<class T>
 AMI_err AMI_stream<T>::write_array(const T *mm_space, TPIE_OS_OFFSET len) {
-    BTE_err        be;
+    tpie::bte::err        be;
     TPIE_OS_OFFSET ii;
     
     for (ii = len; ii--; ) {
-        if ((be = m_bteStream->write_item(*mm_space++)) != BTE_ERROR_NO_ERROR) {
-            if (be == BTE_ERROR_END_OF_STREAM) {
+        if ((be = m_bteStream->write_item(*mm_space++)) != tpie::bte::NO_ERROR) {
+            if (be == tpie::bte::END_OF_STREAM) {
                 return AMI_ERROR_END_OF_STREAM;
             } else { 
                 return AMI_ERROR_BTE_ERROR;
