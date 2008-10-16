@@ -82,38 +82,42 @@ public:
   AMI_err operate(const int& in0, AMI_SCAN_FLAG* sfin) {
     static int prev;
     if (*sfin) {
-      if (in0 % 2 == 0)
-	_even++;
-      else
-	_odd++;
-      if (_have_prev && in0 < prev)
-	_switches++;
-      prev = in0;
-      _have_prev = true;
+		if (in0 % 2 == 0) {
+			_even++;
+		} else {
+			_odd++;
+		}
+
+		if (_have_prev && in0 < prev) {
+			_switches++;
+		}
+		prev = in0;
+		_have_prev = true;
       return AMI_SCAN_CONTINUE;
-    } else {
-      return AMI_SCAN_DONE;
+	} else {
+		return AMI_SCAN_DONE;
     }
   }
 
   // Counting switches in stream of ifoo_t's
   AMI_err operate(const ifoo_t<sz>& in0, AMI_SCAN_FLAG* sfin) {
     static ifoo_t<sz> prev;
-    if (*sfin) {
-      if (_have_prev && in0 < prev)
-	_switches++;
-      prev = in0;
-      _have_prev = true;
-      return AMI_SCAN_CONTINUE;
-    } else {
-      return AMI_SCAN_DONE;
-    }    
+	if (*sfin) {
+		if (_have_prev && in0 < prev) {
+			_switches++;
+		}
+		prev = in0;
+		_have_prev = true;
+		return AMI_SCAN_CONTINUE;
+	} else {
+		return AMI_SCAN_DONE;
+	}    
   }
 
   // Halving each int.
   AMI_err operate(const int& in0, AMI_SCAN_FLAG *sfin,
 		  int *out0, AMI_SCAN_FLAG *sfout) {
-    if (*sfout = *sfin) {
+    if ( (*sfout = *sfin) ) {
       *out0 = in0 / 2;
       return AMI_SCAN_CONTINUE;
     } else {
@@ -124,15 +128,16 @@ public:
   // Taking min of each pair.
   AMI_err operate(const int& in0, const int& in1, AMI_SCAN_FLAG *sfin,
 		  int *out0, AMI_SCAN_FLAG *sfout) {
-    if (*sfout = sfin[0] || sfin[1]) {
-      if (sfin[0] && sfin[1])
-	*out0 = min(in0, in1);
-      else 
-	*out0 = (sfin[0] ? in0: in1);
-      return AMI_SCAN_CONTINUE;
-    } else {
-      return AMI_SCAN_DONE;
-    }
+    if ( (*sfout = sfin[0]) || sfin[1]) {
+      if (sfin[0] && sfin[1]) {
+		  *out0 = min(in0, in1);
+      } else  {
+		  *out0 = (sfin[0] ? in0: in1);
+	  }
+	  return AMI_SCAN_CONTINUE;
+	} else {
+		return AMI_SCAN_DONE;
+	}
   }
 
   // Even ints in first stream and odd ints in second stream.
@@ -140,28 +145,33 @@ public:
 		  int *out0, int *out1, AMI_SCAN_FLAG *sfout) {
     sfout[0] = sfout[1] = 0;
     
-    if (sfin[0])
-      if (in0 % 2 == 0) {
-	*out0 = in0;
-	sfout[0] = 1;
-      } else {
-	*out1 = in0;
-	sfout[1] = 1;
-      }
+    if (sfin[0]) {
+		if (in0 % 2 == 0) {
+			*out0 = in0;
+			sfout[0] = 1;
+		} else {
+			*out1 = in0;
+			sfout[1] = 1;
+		}
+	}
     
-    if (sfin[1])
-      if (in1 % 2 == 0)
-	if (!sfout[0]) {
-	  *out0 = in1;
-	  sfout[0] = 1;
-	} else
-	  sfin[1] = 0;
-      else 
-	if (!sfout[1]) {
-	  *out1 = in1;
-	  sfout[1] = 1;
-	} else
-	  sfin[1] = 0;
+    if (sfin[1]) {
+		if (in1 % 2 == 0) {
+			if (!sfout[0]) {
+				*out0 = in1;
+				sfout[0] = 1;
+			} else {
+				sfin[1] = 0;
+			}
+		} else { 
+			if (!sfout[1]) {
+				*out1 = in1;
+				sfout[1] = 1;
+			} else {
+				sfin[1] = 0;
+			}
+		}
+	}
     
     if (sfout[0] || sfout[1])
       return AMI_SCAN_CONTINUE;
@@ -174,7 +184,7 @@ public:
 		  const int& in2, const int& in3, AMI_SCAN_FLAG *sfin,
 		  int *out0, int *out1, int *out2,
 		  AMI_SCAN_FLAG *sfout) {
-    if (sfout[0] = sfout[1] = sfout[2] = sfin[0] || sfin[1] || sfin[2] || sfin[3]) {
+    if ( (sfout[0] = sfout[1] = sfout[2] = sfin[0]) || sfin[1] || sfin[2] || sfin[3]) {
       int c = 0;
       if (sfin[0]) c++;
       if (sfin[1]) c++;

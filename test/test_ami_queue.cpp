@@ -25,7 +25,6 @@ void parse_app_opts(int idx, char *opt_arg) {
 
 int main(int argc, char **argv)
 {
-    AMI_err ae;
     progress_indicator_arrow* pi = new progress_indicator_arrow("Title","Desc",0,100,1);
 
     parse_args(argc, argv, app_opts, parse_app_opts);

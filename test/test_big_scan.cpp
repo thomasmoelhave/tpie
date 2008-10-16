@@ -30,7 +30,7 @@ const char* APP_FILE_BASE =  "TPIE_Test";
 // Basic parameters for the test
 // better than having several global variables
 typedef struct app_info{
-    char * path;
+    const char * path;
     int item_size;
     TPIE_OS_LONGLONG num_items;
 } appInfo;

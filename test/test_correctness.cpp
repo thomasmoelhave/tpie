@@ -117,7 +117,7 @@ int main(int argc, char **argv) {
 	case 1:  
 	{
 	    int mem_limit = atoi(args);
-	    if (mem_limit < 2*1024*1024)
+	    if (mem_limit < (2*1024*1024) )
 		fprintf(stdout, "Attempting to set memory limit too low (min is 2MB). Did not change.\n");
 	    else {
 		fprintf(stdout, "Setting memory limit to %d KB.\n", mem_limit/1024);
@@ -152,20 +152,22 @@ int main(int argc, char **argv) {
 
 void print_msg(const char* msg, int indent = 0) {
     if (msg == NULL)
-	return;
+		return;
+
     int len = static_cast<int>(strlen(msg));
-    if (indent < 0)
-	for (int i=0; i<len; i++) fprintf(stdout, "\b");
-    else
-	for (int i=0; i<indent; i++) fprintf(stdout, " ");
+	if (indent < 0) {
+		for (int i=0; i<len; i++) fprintf(stdout, "\b");
+	} else {
+		for (int i=0; i<indent; i++) fprintf(stdout, " ");
+	}
     fprintf(stdout, msg);
     TP_LOG_APP_DEBUG(">>-");
     TP_LOG_APP_DEBUG(msg);
     TP_LOG_APP_DEBUG("\n");
     if (indent >= 0) {
-	int current_pos = indent + len;
-	for (int i=current_pos; i<73; i++) fprintf(stdout, " ");
-    }
+		int current_pos = indent + len;
+		for (int i=current_pos; i<73; i++) fprintf(stdout, " ");
+	}
     fflush(stdout);
 }
 
