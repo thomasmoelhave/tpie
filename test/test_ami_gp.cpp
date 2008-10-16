@@ -12,9 +12,6 @@
 
 #include <portability.h>
 
-
-
-
 // Get the application defaults.
 #include "app_config.h"
 
@@ -29,6 +26,8 @@
 
 #include "parse_args.h"
 #include "scan_count.h"
+
+using namespace tpie;
 
 static char def_irf[] = "osi.txt";
 static char def_frf[] = "osf.txt";
@@ -63,88 +62,90 @@ void parse_app_opts(int idx, char *opt_arg)
     }
 }
 
-class reverse_order : public AMI_gen_perm_object {
+class reverse_order : public ami::gen_perm_object {
 private:
     TPIE_OS_OFFSET total_size;
 public:
     reverse_order() : total_size(0) {};
-
-    AMI_err initialize(TPIE_OS_OFFSET ts) {
+    
+    ami::err initialize(TPIE_OS_OFFSET ts) {
         total_size = ts;
-        return AMI_ERROR_NO_ERROR;
+        return ami::NO_ERROR;
     };
+
     TPIE_OS_OFFSET destination(TPIE_OS_OFFSET source) {
         return total_size - 1 - source;
     };
 };
 
 
-int main(int argc, char **argv)
-{
-    AMI_err ae;
+int main(int argc, char **argv) {
+
+    ami::err ae;
     
     parse_args(argc, argv, app_opts, parse_app_opts);
-
+    
     if (verbose) {
-      std::cout << "test_size = " << test_size << "." << std::endl;
+	std::cout << "test_size = " << test_size << "." << std::endl;
         std::cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << std::endl;
         std::cout << "random_seed = " << random_seed << "." << std::endl;
-    } else {
+    }
+    else {
         std::cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << random_seed;
     }
-
+    
     TPIE_OS_SRANDOM(random_seed);
     
     // Set the amount of main memory:
     MM_manager.set_memory_limit (test_mm_size);
-
-    AMI_STREAM<TPIE_OS_OFFSET> amis0;
-    AMI_STREAM<TPIE_OS_OFFSET> amis1;
-
+    
+    ami::stream<TPIE_OS_OFFSET> amis0;
+    ami::stream<TPIE_OS_OFFSET> amis1;
+    
     // Streams for reporting values to ascii streams.
     
     std::ofstream *osi;
-    cxx_ostream_scan<TPIE_OS_OFFSET> *rpti = NULL;
+    ami::cxx_ostream_scan<TPIE_OS_OFFSET> *rpti = NULL;
 
     std::ofstream *osf;
-    cxx_ostream_scan<TPIE_OS_OFFSET> *rptf = NULL;
+    ami::cxx_ostream_scan<TPIE_OS_OFFSET> *rptf = NULL;
 
     if (report_results_initial) {
-        osi = new std::ofstream(initial_results_filename);
-        rpti = new cxx_ostream_scan<TPIE_OS_OFFSET>(osi);
+        osi  = new std::ofstream(initial_results_filename);
+        rpti = new ami::cxx_ostream_scan<TPIE_OS_OFFSET>(osi);
     }
 
     if (report_results_final) {
-        osf = new std::ofstream(final_results_filename);
-        rptf = new cxx_ostream_scan<TPIE_OS_OFFSET>(osf);
+        osf  = new std::ofstream(final_results_filename);
+        rptf = new ami::cxx_ostream_scan<TPIE_OS_OFFSET>(osf);
     }
-
+    
     scan_count my_scan_count(test_size);
-
-    ae = AMI_scan(&my_scan_count, &amis0);
-
+    
+    ae = ami::scan(&my_scan_count, &amis0);
+    
     if (verbose) {
         std::cout << "Initial stream length = " << amis0.stream_len() << std::endl;
     }
     
     if (report_results_initial) {
-        ae = AMI_scan(&amis0, rpti);
+        ae = ami::scan(&amis0, rpti);
     }
-
+    
     amis0.seek(0);
-
+    
     reverse_order ro;
     
-    ae = AMI_general_permute(&amis0, &amis1, &ro);
-
+    ae = ami::general_permute(&amis0, &amis1, &ro);
+    
     if (verbose) {
         std::cout << "After reversal, stream length = " 
-	     << amis1.stream_len() << std::endl;
+		  << amis1.stream_len() << std::endl;
     }
-
+    
     if (report_results_final) {
-        ae = AMI_scan(&amis1, rptf);
+        ae = ami::scan(&amis1, rptf);
     }
-
+    
     return 0;
 }
