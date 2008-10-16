@@ -46,7 +46,7 @@
 
 #include <iostream>
 #include <iomanip>
-#include <stdio.h>
+#include <cstdio>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -60,8 +60,8 @@
 
 
 // Get random functions //
-#include <stdlib.h>
-#include <assert.h>
+#include <cstdlib>
+#include <cassert>
 
 #ifdef _WIN32
 #if (_MSC_VER < 1300) && !defined(__MINGW32__)

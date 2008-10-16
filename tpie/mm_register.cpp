@@ -7,7 +7,7 @@
 
 // A simple registration based memory manager.
 
-//#include <assert.h>
+//#include <cassert>
 #include "lib_config.h"
 
 #define MM_IMP_REGISTER
@@ -22,7 +22,7 @@
 extern int register_new;
 #endif
 
-#include <stdlib.h>
+#include <cstdlib>
 
 MM_register::MM_register() : 
     remaining (0), user_limit(0), used(0), pause_allocation_depth (0) {

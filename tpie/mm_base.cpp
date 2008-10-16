@@ -11,9 +11,9 @@
 #include <mm_register.h>
 
 #include <iostream>
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cassert>
 
 // support for dmalloc (for tracking memory leaks)
 #ifdef USE_DMALLOC

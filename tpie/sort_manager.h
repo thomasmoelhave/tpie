@@ -20,7 +20,7 @@
 #include <mergeheap.h>  //For templated heaps
 #include <internal_sort.h> // Contains classes for sorting internal runs
                            // using different comparison types
-#include <math.h> //for log, ceil, etc.
+#include <cmath> //for log, ceil, etc.
 #include <string>
 
 #include <progress_indicator_base.h>

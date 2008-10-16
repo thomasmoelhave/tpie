@@ -4,7 +4,7 @@
 // Created: 10/7/94
 //
 #include "parse_args.h"
-#include <stdlib.h>
+#include <cstdlib>
 #include <string.h>
 #include <ctype.h>
 #include <iostream>

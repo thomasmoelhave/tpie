@@ -10,7 +10,7 @@
 // Get definitions for working with Unix and Windows
 #include <portability.h>
 
-#include <stdlib.h>
+#include <cstdlib>
 
 // Get information on the configuration to test.
 #include "app_config.h"

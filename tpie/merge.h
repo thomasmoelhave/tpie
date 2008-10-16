@@ -16,7 +16,7 @@
 #include <portability.h>
 
 // For log() and such as needed to compute tree heights.
-#include <math.h>
+#include <cmath>
 
 #include <stream.h>
 

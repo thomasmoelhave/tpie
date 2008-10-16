@@ -8,7 +8,7 @@
 // We are logging
 #define TPL_LOGGING	1
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <time.h>
 #include <tempname.h>
 #include <tpie_log.h>

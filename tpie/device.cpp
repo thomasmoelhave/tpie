@@ -6,7 +6,7 @@
 
 #include "lib_config.h"
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <string.h>
 
 #include <err.h>

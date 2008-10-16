@@ -8,7 +8,7 @@
 #include "getopts.h"
 #include "quicksort.h"  //TPIE internal sort
 #include <algorithm>    //STL internal sort
-#include <stdlib.h>     //C internal sort
+#include <cstdlib>     //C internal sort
 #include "cpu_timer.h"
 
 #include <progress_indicator_arrow.h>
