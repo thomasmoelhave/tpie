@@ -6,15 +6,19 @@
 //
 // $Id: ami_stack.h,v 1.16 2006-05-24 12:15:05 aveng Exp $
 //
-#ifndef _AMI_STACK_H
-#define _AMI_STACK_H
+#ifndef _TPIE_AMI_STACK_H
+#define _TPIE_AMI_STACK_H
 
 #include <portability.h>
 #include <stream.h>
 
+namespace tpie {
+
+    namespace ami {
+
 ///////////////////////////////////////////////////////////////////
 ///
-///  \class AMI_stack<T>
+///  \class stack<T>
 ///
 ///  An implementation of an external-memory stack.
 ///
@@ -23,7 +27,7 @@
 ///////////////////////////////////////////////////////////////////
 
 template<class T> 
-class AMI_stack {
+class stack {
 
 public:
    
@@ -34,7 +38,7 @@ public:
     ///
     ////////////////////////////////////////////////////////////////////
 
-    AMI_stack(); 
+    stack(); 
 
     ////////////////////////////////////////////////////////////////////
     ///
@@ -46,8 +50,8 @@ public:
     ///
     ////////////////////////////////////////////////////////////////////
 
-    AMI_stack(const char* path, 
-	      AMI_stream_type type = AMI_READ_WRITE_STREAM);
+    stack(const char* path, 
+	  AMI_stream_type type = AMI_READ_WRITE_STREAM);
 
     ////////////////////////////////////////////////////////////////////
     ///  
@@ -56,23 +60,23 @@ public:
     ///
     ////////////////////////////////////////////////////////////////////
 
-    ~AMI_stack();
+    ~stack();
 
     ////////////////////////////////////////////////////////////////////
     ///
-    ///  Pushes one item onto the stack. Returns AMI_ERROR_* as 
+    ///  Pushes one item onto the stack. Returns ERROR_* as 
     ///  given by the underlying stream.
     ///
     ///  \param  t    The item to be pushed onto the stack.
     ///
     ////////////////////////////////////////////////////////////////////
 
-    AMI_err push(const T &t);
+    err push(const T &t);
 
     ////////////////////////////////////////////////////////////////////
     ///
-    ///  Pops one item from the stack. Returns AMI_ERROR_* as 
-    ///  given by the underlying stream or AMI_ERROR_END_OF_STREAM
+    ///  Pops one item from the stack. Returns ERROR_* as 
+    ///  given by the underlying stream or END_OF_STREAM
     ///  if the stack is empty.
     ///
     ///  \param  t    A pointer to a pointer that will point to the 
@@ -80,12 +84,12 @@ public:
     ///
     ////////////////////////////////////////////////////////////////////
 
-    AMI_err pop(T **t); 
+    err pop(T **t); 
 
     ////////////////////////////////////////////////////////////////////
     ///
-    ///  Peeks at the topmost item on the stack. Returns AMI_ERROR_* as 
-    ///  given by the underlying stream or AMI_ERROR_END_OF_STREAM
+    ///  Peeks at the topmost item on the stack. Returns ERROR_* as 
+    ///  given by the underlying stream or END_OF_STREAM
     ///  if the stack is empty.
     ///
     ///  \param  t    A pointer to a pointer that will point to the 
@@ -93,7 +97,7 @@ public:
     ///
     ////////////////////////////////////////////////////////////////////
 
-    AMI_err peek(T **t); 
+    err peek(T **t); 
 
     ////////////////////////////////////////////////////////////////////
     ///  
@@ -145,14 +149,14 @@ public:
     ///
     ////////////////////////////////////////////////////////////////////
 
-    AMI_err trim() {
-      //Truncate to allow room for all elements (in mem + on disk)
-      AMI_err ae = m_amiStream->truncate(m_size);
-	    if(ae != AMI_ERROR_NO_ERROR){
-        return ae;
-      }
-      //Move file pointer to end of last element on disk
-      return m_amiStream->seek(m_size-m_itemsInMemory);
+    err trim() {
+	//Truncate to allow room for all elements (in mem + on disk)
+	err retval = m_amiStream->truncate(m_size);
+	if(retval != NO_ERROR){
+	    return retval;
+	}
+	//Move file pointer to end of last element on disk
+	return m_amiStream->seek(m_size-m_itemsInMemory);
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -165,13 +169,17 @@ public:
     ///
     ////////////////////////////////////////////////////////////////////
 
-    AMI_err main_memory_usage(TPIE_OS_SIZE_T *usage,
-			      MM_stream_usage usage_type) const;
+    err main_memory_usage(TPIE_OS_SIZE_T *usage,
+			  MM_stream_usage usage_type) const;
 
 
     //  This should go as soon as all old code has been migrated.
     TPIE_OS_OFFSET stream_len() const {
+<<<<<<< .mine
+	cerr << "Using stack<T>::stream_len() is deprecated." << endl;
+=======
 	std::cerr << "Using AMI_stack<T>::stream_len() is deprecated." << std::endl;
+>>>>>>> .r1580
 	return m_size;
     }
 
@@ -202,7 +210,7 @@ private:
 /////////////////////////////////////////////////////////////////////////
 
 template<class T>
-AMI_stack<T>::AMI_stack() : 
+stack<T>::stack() : 
     m_amiStream(NULL), 
     m_size(0),
     m_logicalBlockSize(0),
@@ -230,7 +238,7 @@ AMI_stack<T>::AMI_stack() :
 /////////////////////////////////////////////////////////////////////////
 
 template<class T>
-AMI_stack<T>::AMI_stack(const char* path, AMI_stream_type type) :
+stack<T>::stack(const char* path, AMI_stream_type type) :
     m_amiStream(NULL), 
     m_size(0),
     m_logicalBlockSize(0),
@@ -272,7 +280,7 @@ AMI_stack<T>::AMI_stack(const char* path, AMI_stream_type type) :
 /////////////////////////////////////////////////////////////////////////
 
 template<class T>
-AMI_stack<T>::~AMI_stack() {
+stack<T>::~stack() {
 
     //  Unload all in-memory data to disk.
     if (m_itemsInMemory < m_logicalBlockSize) {
@@ -299,46 +307,46 @@ AMI_stack<T>::~AMI_stack() {
 /////////////////////////////////////////////////////////////////////////
 
 template<class T>
-AMI_err AMI_stack<T>::push(const T &t) {
+err stack<T>::push(const T &t) {
 
-    AMI_err ae = AMI_ERROR_NO_ERROR;
+    err retval = NO_ERROR;
 
     //  Do we need to flush items to disk?
     if (m_itemsInMemory == 2*m_logicalBlockSize) {
 
-      //  Write the first block to disk.
-      ae = m_amiStream->write_array(m_block[0], m_logicalBlockSize);
+	//  Write the first block to disk.
+	retval = m_amiStream->write_array(m_block[0], m_logicalBlockSize);
 
-      if (ae != AMI_ERROR_NO_ERROR) {
-        return ae;
-      }
+	if (retval != NO_ERROR) {
+	    return retval;
+	}
 
-      //  "Move" the second block to the place where the
-      //  first block used to be.
-      T* dummy      = m_block[0];
-      m_block[0] = m_block[1];
-      m_block[1] = dummy;
+	//  "Move" the second block to the place where the
+	//  first block used to be.
+	T* dummy      = m_block[0];
+	m_block[0] = m_block[1];
+	m_block[1] = dummy;
 
-      //  Zero the contents of the second block.
-      //  This may be commented out to increase performance
-      //  but for the time being, we'll keep it to aid 
-      //  debugging.
-      memset(m_block[1], 0, m_logicalBlockSize * sizeof(T));
+	//  Zero the contents of the second block.
+	//  This may be commented out to increase performance
+	//  but for the time being, we'll keep it to aid 
+	//  debugging.
+	memset(m_block[1], 0, m_logicalBlockSize * sizeof(T));
 
-      //  Decrease the number of items in main memory.
-      m_itemsInMemory -= m_logicalBlockSize;
+	//  Decrease the number of items in main memory.
+	m_itemsInMemory -= m_logicalBlockSize;
     }
 
     //  Check to which block to write the new element to.
     if (m_itemsInMemory < m_logicalBlockSize) {
 
-      //  First block.
-      (m_block[0])[m_itemsInMemory] = t;
+	//  First block.
+	(m_block[0])[m_itemsInMemory] = t;
     }
     else {
 
-      //  Second block.
-      (m_block[1])[m_itemsInMemory-m_logicalBlockSize] = t;
+	//  Second block.
+	(m_block[1])[m_itemsInMemory-m_logicalBlockSize] = t;
     }
 
     //  There is one more item on the stack...
@@ -347,102 +355,102 @@ AMI_err AMI_stack<T>::push(const T &t) {
     //  ...which is also kept in main memory.
     m_itemsInMemory++;
 
-    return ae;
+    return retval;
 }
 
 /////////////////////////////////////////////////////////////////////////
 
 template<class T>
-AMI_err AMI_stack<T>::pop(T **t) {
+err stack<T>::pop(T **t) {
 
-  AMI_err ae = AMI_ERROR_NO_ERROR;
+    err retval = NO_ERROR;
 
-  //  Do we have items to work on?
-  if (m_size) {
+    //  Do we have items to work on?
+    if (m_size) {
 
-    if (!m_itemsInMemory) {
+	if (!m_itemsInMemory) {
 
-      //  No items in memory, so try to fetch some from disk.
-      if (m_size < m_logicalBlockSize) {
-        // Can't do anything. This should not happen!
-        return AMI_ERROR_GENERIC_ERROR;
-      }
-      else {
+	    //  No items in memory, so try to fetch some from disk.
+	    if (m_size < m_logicalBlockSize) {
+		// Can't do anything. This should not happen!
+		return GENERIC_ERROR;
+	    }
+	    else {
 
-        toBeRead = m_logicalBlockSize;
+		toBeRead = m_logicalBlockSize;
 
-        //  Seek back one full block.
-        ae = m_amiStream->seek(m_size - m_logicalBlockSize);
+		//  Seek back one full block.
+		retval = m_amiStream->seek(m_size - m_logicalBlockSize);
 
-        if (ae != AMI_ERROR_NO_ERROR) {
-          return ae;
-        }
+		if (retval != NO_ERROR) {
+		    return retval;
+		}
         
-        // Read one full block from end
-        ae = m_amiStream->read_array(m_block[0],
-            &toBeRead);
+		// Read one full block from end
+		retval = m_amiStream->read_array(m_block[0],
+						 &toBeRead);
 
-        if (ae != AMI_ERROR_NO_ERROR) {
-          return ae;
-        }
+		if (retval != NO_ERROR) {
+		    return retval;
+		}
         
-        //  Seek back one full block.
-        //  Rewind stream one block again, so new blocks go at 
-        //  end of stack
-        ae = m_amiStream->seek(m_size - m_logicalBlockSize);
+		//  Seek back one full block.
+		//  Rewind stream one block again, so new blocks go at 
+		//  end of stack
+		retval = m_amiStream->seek(m_size - m_logicalBlockSize);
 
-        if (ae != AMI_ERROR_NO_ERROR) {
-          return ae;
-        }
+		if (retval != NO_ERROR) {
+		    return retval;
+		}
 
-        m_itemsInMemory += m_logicalBlockSize;
+		m_itemsInMemory += m_logicalBlockSize;
 
-        //  Zero the contents of the second block.
-        //  This may be commented out to increase performance
-        //  but for the time being, we'll keep it to aid 
-        //  debugging.
-        memset(m_block[1], 0, m_logicalBlockSize * sizeof(T));
+		//  Zero the contents of the second block.
+		//  This may be commented out to increase performance
+		//  but for the time being, we'll keep it to aid 
+		//  debugging.
+		memset(m_block[1], 0, m_logicalBlockSize * sizeof(T));
 
-      }
-    }
+	    }
+	}
 
-    //  It is important to decrease m_itemsInMemory
-    //  at _this_ point.
-    m_itemsInMemory--;
+	//  It is important to decrease m_itemsInMemory
+	//  at _this_ point.
+	m_itemsInMemory--;
 
-    //  Check from which block to read the topmost element.
-    if (m_itemsInMemory < m_logicalBlockSize) {
+	//  Check from which block to read the topmost element.
+	if (m_itemsInMemory < m_logicalBlockSize) {
 
-      //  First block.
-      *t = &((m_block[0])[m_itemsInMemory]);
+	    //  First block.
+	    *t = &((m_block[0])[m_itemsInMemory]);
+	}
+	else {
+
+	    //  Second block.
+	    *t = &((m_block[1])[m_itemsInMemory-m_logicalBlockSize]);
+	}
+
+	//  One item less on the stack...
+	m_size--;
     }
     else {
 
-      //  Second block.
-      *t = &((m_block[1])[m_itemsInMemory-m_logicalBlockSize]);
+	//  Not in a physical but in a logical way.
+	return END_OF_STREAM;
     }
 
-    //  One item less on the stack...
-    m_size--;
-  }
-  else {
-
-    //  Not in a physical but in a logical way.
-    return AMI_ERROR_END_OF_STREAM;
-  }
-
-  return ae;
+    return retval;
 }
 
 /////////////////////////////////////////////////////////////////////////
 
 template<class T>
-AMI_err AMI_stack<T>::peek(T **t) {
+err stack<T>::peek(T **t) {
 
-    AMI_err ae = pop(t);
+    err retval = pop(t);
 
-    if (ae != AMI_ERROR_NO_ERROR) {
-	return ae;
+    if (retval != NO_ERROR) {
+	return retval;
     }
 
     return push(**t);
@@ -452,15 +460,15 @@ AMI_err AMI_stack<T>::peek(T **t) {
 /////////////////////////////////////////////////////////////////////////
 
 template<class T>
-AMI_err AMI_stack<T>::main_memory_usage(TPIE_OS_SIZE_T *usage,
-					MM_stream_usage usage_type) const {
+err stack<T>::main_memory_usage(TPIE_OS_SIZE_T *usage,
+				MM_stream_usage usage_type) const {
     
     //  Get the usage for the underlying stream.
     if (m_amiStream->main_memory_usage(usage, usage_type) 
-	!= AMI_ERROR_NO_ERROR) {
+	!= NO_ERROR) {
 
 	TP_LOG_WARNING_ID("bte error");		
-	return AMI_ERROR_BTE_ERROR;
+	return BTE_ERROR;
 
     }
     
@@ -480,9 +488,13 @@ AMI_err AMI_stack<T>::main_memory_usage(TPIE_OS_SIZE_T *usage,
 	tp_assert(0, "Unknown MM_stream_usage type added.");	
     }
     
-    return AMI_ERROR_NO_ERROR;
+    return NO_ERROR;
 }
 
 /////////////////////////////////////////////////////////////////////////
 
-#endif // _AMI_STACK_H 
+    }  //  ami namespace
+
+}  //  tpie namespace
+
+#endif // _TPIE_AMI_STACK_H 

@@ -14,20 +14,29 @@
 // $Id: ami_scan.h.head,v 1.5 2003-04-20 23:12:42 tavi Exp $
 //
 //
-#ifndef _AMI_SCAN_H
-#define _AMI_SCAN_H
+#ifndef _TPIE_AMI_SCAN_H
+#define _TPIE_AMI_SCAN_H
 
 #include <err.h>
 #include <stream.h>
 
-typedef int AMI_SCAN_FLAG;
+namespace tpie {
+    
+    namespace ami {
+	
+	typedef int SCAN_FLAG;
 
 // The base class for scan objects.
-class AMI_scan_object {
-public:
-    virtual AMI_err initialize(void) = 0;
-    virtual ~AMI_scan_object() {};
-};
+	class scan_object {
+
+	public:
+	    virtual err initialize(void) = 0;
+	    virtual ~scan_object() {};
+	};
+
+    }  //  ami namespace
+
+}  // tpie namespace
 
 // BEGIN MECHANICALLY GENERATED CODE.
 
@@ -41,11 +50,15 @@ public:
 //
 // $Id: ami_scan_mac.h,v 1.11 2005-11-16 16:52:33 jan Exp $
 //
-#ifndef _AMI_SCAN_MAC_H
-#define _AMI_SCAN_MAC_H
+#ifndef _TPIE_AMI_SCAN_MAC_H
+#define _TPIE_AMI_SCAN_MAC_H
+
+namespace tpie {
+
+    namespace ami {
 
 // Macros for defining parameters to AMI_scan()
-#define __SPARM_BASE(T,io,n) AMI_STREAM< T ## n > *io ## n
+#define __SPARM_BASE(T,io,n) stream< T ## n > *io ## n
 #define __SPARM_1(T,io) __SPARM_BASE(T,io,1)  
 #define __SPARM_2(T,io) __SPARM_1(T,io), __SPARM_BASE(T,io,2)
 #define __SPARM_3(T,io) __SPARM_2(T,io), __SPARM_BASE(T,io,3)
@@ -66,13 +79,13 @@ public:
 #define __STSPACE_4(T,t) __STSPACE_3(T,t) ; __STS_BASE(T,t,4) 
 
 // An array of flags.
-#define __FSPACE(f,n) AMI_SCAN_FLAG f[n]
+#define __FSPACE(f,n) SCAN_FLAG f[n]
 
 
 // Check stream validity.
 #define __CHK_BASE(T,n) {                                               \
-    if (T ## n == NULL || T ## n -> status() != AMI_STREAM_STATUS_VALID) {\
-        return AMI_ERROR_GENERIC_ERROR;                                 \
+    if (T ## n == NULL || T ## n -> status() != STREAM_STATUS_VALID) {\
+        return GENERIC_ERROR;                                 \
     }                                                                   \
 }
 
@@ -84,7 +97,7 @@ public:
 
 // Rewind the input streams prior to performing the scan.
 #define __REW_BASE(T,n) {						\
-    if ((_ami_err_ = T ## n -> seek(0)) != AMI_ERROR_NO_ERROR) {	\
+    if ((_ami_err_ = T ## n -> seek(0)) != NO_ERROR) {	\
         return _ami_err_;						\
     }									\
 }
@@ -114,8 +127,8 @@ public:
 #define __STSR_BASE(t,ts,f,g,e,n)					    \
 if (f[n-1]) {								    \
     if (!(f[n-1] = g[n-1] =						    \
-          ((e = ts ## n->read_item(&t ## n)) == AMI_ERROR_NO_ERROR))) {	    \
-        if (e != AMI_ERROR_END_OF_STREAM) {				    \
+          ((e = ts ## n->read_item(&t ## n)) == NO_ERROR))) {	    \
+        if (e != END_OF_STREAM) {				    \
             break;							    \
         }								    \
     }									    \
@@ -134,7 +147,7 @@ if (f[n-1]) {								    \
 // Write outputs.  Only write if the flag is set.  If there is an
 // error during the write, then break out of the scan loop.
 #define __STSW_BASE(u,us,f,e,n)						    \
-if (f[n-1] && (e = us ## n -> write_item(u ## n)) != AMI_ERROR_NO_ERROR) {  \
+if (f[n-1] && (e = us ## n -> write_item(u ## n)) != NO_ERROR) {  \
     break;								    \
 }
 
@@ -194,114 +207,114 @@ if (f[n-1] && (e = us ## n -> write_item(u ## n)) != AMI_ERROR_NO_ERROR) {  \
 #define __SCALL_OP_I_4(t,if,sop) __SCALL_BASE_I(t,4,if,sop)
 
 
-// The template for the whole AMI_scan(), with inputs and outputs.
-#define __STEMPLATE(in_arity, out_arity)				    \
-template< __STEMP_ ## in_arity (T), class SC, __STEMP_ ## out_arity (U) >   \
-AMI_err AMI_scan( __SPARM_ ## in_arity (T,_ts_),			    \
-                  SC *soper, __SPARM_ ## out_arity (U,_us_))		    \
-{	    								    \
-    __STSPACE_ ## in_arity (T,*_t_);					    \
-    __STSPACE_ ## out_arity (U,_u_);					    \
-	    								    \
-    __FSPACE(_if_,in_arity);						    \
-    __FSPACE(_lif_,in_arity);						    \
-    __FSPACE(_of_,out_arity);						    \
-	    								    \
-    AMI_err _op_err_ = AMI_ERROR_NO_ERROR, _ami_err_ = AMI_ERROR_NO_ERROR;  \
-	    								    \
-    __CHKSTR_ ## in_arity (_ts_)                                            \
-    __CHKSTR_ ## out_arity (_us_)                                           \
-    __REWIND_ ## in_arity (_ts_)					    \
-    soper->initialize();						    \
-                                                                            \
-    __SET_IF_ ## in_arity (_if_);					    \
-                                                                            \
-    do {	    						    	    \
-	    								    \
-        __STS_READ_ ## in_arity (_t_,_ts_,_if_,_lif_,_ami_err_)		    \
-            								    \
-        _op_err_ = __SCALL_OP_ ## in_arity ## _ ##			    \
-            out_arity(_t_,_if_,soper,_u_,_of_);				    \
-	    								    \
-        __STS_WRITE_ ## out_arity(_u_,_us_,_of_,_ami_err_)		    \
-            								    \
-    } while (_op_err_ == AMI_SCAN_CONTINUE);				    \
-	    								    \
-    if ((_ami_err_ != AMI_ERROR_NO_ERROR) &&				    \
-        (_ami_err_ != AMI_ERROR_END_OF_STREAM)) {			    \
-        return _ami_err_;						    \
-    }	    								    \
-    	    								    \
-    return AMI_ERROR_NO_ERROR;						    \
-}
+// The template for the whole scan(), with inputs and outputs.
+#define __STEMPLATE(in_arity, out_arity)				\
+	template< __STEMP_ ## in_arity (T), class SC, __STEMP_ ## out_arity (U) > \
+	err scan( __SPARM_ ## in_arity (T,_ts_),			\
+                  SC *soper, __SPARM_ ## out_arity (U,_us_))		\
+	{								\
+	    __STSPACE_ ## in_arity (T,*_t_);				\
+	    __STSPACE_ ## out_arity (U,_u_);				\
+	    								\
+	    __FSPACE(_if_,in_arity);					\
+	    __FSPACE(_lif_,in_arity);					\
+	    __FSPACE(_of_,out_arity);					\
+	    								\
+	    err _op_err_ = NO_ERROR, _ami_err_ =NO_ERROR;		\
+	    								\
+	    __CHKSTR_ ## in_arity (_ts_)				\
+		__CHKSTR_ ## out_arity (_us_)				\
+		__REWIND_ ## in_arity (_ts_)				\
+		soper->initialize();					\
+	    								\
+	    __SET_IF_ ## in_arity (_if_);				\
+	    								\
+	    do {							\
+	    								\
+		__STS_READ_ ## in_arity (_t_,_ts_,_if_,_lif_,_ami_err_)	\
+		    							\
+		    _op_err_ = __SCALL_OP_ ## in_arity ## _ ##		\
+		    out_arity(_t_,_if_,soper,_u_,_of_);			\
+									\
+		__STS_WRITE_ ## out_arity(_u_,_us_,_of_,_ami_err_)	\
+		    							\
+		    } while (_op_err_ == SCAN_CONTINUE);		\
+	    								\
+	    if ((_ami_err_ != NO_ERROR) &&				\
+		(_ami_err_ != END_OF_STREAM)) {				\
+		return _ami_err_;					\
+	    }								\
+	    								\
+	    return NO_ERROR;						\
+	}
 
 // The template for the whole AMI_scan(), with no inputs.  This is
 // based on __STEMPLATE_() and could be merged into one big macro at
 // the expense of having to define multiple versions of __STEMP_N()
 // and __SPARM_N() to handle the case N = 0.
-#define __STEMPLATE_O(out_arity)					    \
-template< class SC, __STEMP_ ## out_arity (U) >				    \
-AMI_err AMI_scan( SC *soper, __SPARM_ ## out_arity (U,_us_))		    \
-{	    								    \
-    __STSPACE_ ## out_arity (U,_u_);					    \
-	    								    \
-    __FSPACE(_of_,out_arity);						    \
-	    								    \
-    AMI_err _op_err_ = AMI_ERROR_NO_ERROR, _ami_err_ = AMI_ERROR_NO_ERROR;  \
-                                                                            \
-    __CHKSTR_ ## out_arity (_us_)                                           \
-    soper->initialize();						    \
-	    								    \
-    do {	    							    \
-	    								    \
-        _op_err_ = __SCALL_OP_O_ ## out_arity(soper,_u_,_of_);		    \
-	    								    \
-        __STS_WRITE_ ## out_arity(_u_,_us_,_of_,_ami_err_)		    \
-            								    \
-    } while (_op_err_ == AMI_SCAN_CONTINUE);				    \
-	    								    \
-    if ((_ami_err_ != AMI_ERROR_NO_ERROR) &&				    \
-        (_ami_err_ != AMI_ERROR_END_OF_STREAM)) {			    \
-        return _ami_err_;						    \
-    }	    								    \
-    	    								    \
-    return AMI_ERROR_NO_ERROR;						    \
-}
+#define __STEMPLATE_O(out_arity)					\
+	template< class SC, __STEMP_ ## out_arity (U) >			\
+	err scan( SC *soper, __SPARM_ ## out_arity (U,_us_))		\
+	{								\
+	    __STSPACE_ ## out_arity (U,_u_);				\
+	    								\
+	    __FSPACE(_of_,out_arity);					\
+	    								\
+	    err _op_err_ = NO_ERROR, _ami_err_ = NO_ERROR;		\
+	    								\
+	    __CHKSTR_ ## out_arity (_us_)				\
+		soper->initialize();					\
+	    								\
+	    do {							\
+	    								\
+		_op_err_ = __SCALL_OP_O_ ## out_arity(soper,_u_,_of_);	\
+									\
+		__STS_WRITE_ ## out_arity(_u_,_us_,_of_,_ami_err_)	\
+		    							\
+		    } while (_op_err_ == SCAN_CONTINUE);		\
+	    								\
+	    if ((_ami_err_ != NO_ERROR) &&				\
+		(_ami_err_ != END_OF_STREAM)) {				\
+		return _ami_err_;					\
+	    }								\
+	    								\
+	    return NO_ERROR;						\
+	}
 
 // The template for the whole AMI_scan(), with no outputs.
-#define __STEMPLATE_I(in_arity)						    \
-template< __STEMP_ ## in_arity (T), class SC >				    \
-AMI_err AMI_scan( __SPARM_ ## in_arity (T,_ts_), SC *soper)		    \
-{	    								    \
-    __STSPACE_ ## in_arity (T,*_t_);					    \
-	    								    \
-    __FSPACE(_if_,in_arity);						    \
-    __FSPACE(_lif_,in_arity);						    \
-	    								    \
-    AMI_err _op_err_ = AMI_ERROR_NO_ERROR, _ami_err_ = AMI_ERROR_NO_ERROR;  \
-	    								    \
-    __CHKSTR_ ## in_arity (_ts_)                                            \
-    __REWIND_ ## in_arity (_ts_);					    \
-	    								    \
-    soper->initialize();						    \
-                                                                            \
-    __SET_IF_ ## in_arity (_if_);					    \
-                                                                            \
-    do {	    							    \
-	    								    \
-        __STS_READ_ ## in_arity (_t_,_ts_,_if_,_lif_,_ami_err_)		    \
-            								    \
-        _op_err_ = __SCALL_OP_I_ ## in_arity (_t_,_if_,soper);		    \
-	    								    \
-    } while (_op_err_ == AMI_SCAN_CONTINUE);				    \
-	    								    \
-    if ((_ami_err_ != AMI_ERROR_NO_ERROR) &&				    \
-        (_ami_err_ != AMI_ERROR_END_OF_STREAM)) {			    \
-        return _ami_err_;						    \
-    }	    								    \
-    	    								    \
-    return AMI_ERROR_NO_ERROR;						    \
-}
+#define __STEMPLATE_I(in_arity)						\
+	template< __STEMP_ ## in_arity (T), class SC >			\
+	err scan( __SPARM_ ## in_arity (T,_ts_), SC *soper)		\
+	{								\
+	    __STSPACE_ ## in_arity (T,*_t_);				\
+	    								\
+	    __FSPACE(_if_,in_arity);					\
+	    __FSPACE(_lif_,in_arity);					\
+	    								\
+	    err _op_err_ = NO_ERROR, _ami_err_ = NO_ERROR;		\
+	    								\
+	    __CHKSTR_ ## in_arity (_ts_)				\
+		__REWIND_ ## in_arity (_ts_);				\
+	    								\
+	    soper->initialize();					\
+	    								\
+	    __SET_IF_ ## in_arity (_if_);				\
+	    								\
+	    do {							\
+									\
+		__STS_READ_ ## in_arity (_t_,_ts_,_if_,_lif_,_ami_err_)	\
+		    							\
+		    _op_err_ = __SCALL_OP_I_ ## in_arity (_t_,_if_,soper); \
+									\
+	    } while (_op_err_ == SCAN_CONTINUE);			\
+	    								\
+	    if ((_ami_err_ != NO_ERROR) &&				\
+		(_ami_err_ != END_OF_STREAM)) {				\
+		return _ami_err_;					\
+	    }								\
+	    								\
+	    return NO_ERROR;						\
+	}
 
 
 // Finally, the templates themsleves.
@@ -315,7 +328,12 @@ __STEMPLATE_O(1); __STEMPLATE_O(2); __STEMPLATE_O(3); __STEMPLATE_O(4);
 
 __STEMPLATE_I(1); __STEMPLATE_I(2); __STEMPLATE_I(3); __STEMPLATE_I(4);
 
-#endif // _AMI_SCAN_MAC_H 
+    }  //  ami namespace
+
+}  //  tpie namespace
+
+
+#endif // _TPIE_AMI_SCAN_MAC_H 
 
 // END MECHANICALLY GENERATED CODE.
 
@@ -325,36 +343,62 @@ __STEMPLATE_I(1); __STEMPLATE_I(2); __STEMPLATE_I(3); __STEMPLATE_I(4);
 //
 // $Id: ami_scan.h.tail,v 1.3 2002-01-14 16:02:43 tavi Exp $
 
+namespace tpie {
+
+    namespace ami {
+	
 // A class template for copying streams by scanning.
-template<class T>
-class AMI_identity_scan : public AMI_scan_object {
-public:
-    AMI_err initialize(void) { return AMI_ERROR_NO_ERROR; }
-    AMI_err operate(const T &in, AMI_SCAN_FLAG *sfin,
-                    T *out, AMI_SCAN_FLAG *sfout);
-};
+	template<class T>
+	class identity_scan : public scan_object {
 
-template<class T>
-AMI_err AMI_identity_scan<T>::operate(const T &in, AMI_SCAN_FLAG *sfin,
-                                      T *out, AMI_SCAN_FLAG *sfout)
-{
-    if (*sfout = *sfin) {
-        *out = in;
-        return AMI_SCAN_CONTINUE;
-    } else {
-        return AMI_SCAN_DONE;
-    }
-};
+	public:
+	    err initialize(void) { 
+		return NO_ERROR; 
+	    }
+	    
+	    err operate(const T &in,
+			SCAN_FLAG *sfin,
+			T *out, 
+			SCAN_FLAG *sfout);
+
+	};
+
+	template<class T>
+	err identity_scan<T>::operate(const T &in, 
+				      SCAN_FLAG *sfin,
+                                      T *out, 
+				      SCAN_FLAG *sfout)
+	{
+	    if (*sfout = *sfin) {
+		*out = in;
+		return SCAN_CONTINUE;
+	    } 
+	    else {
+		return SCAN_DONE;
+	    }
+	};
+
+    }  //  ami namespace
+
+}  //  tpie namespace
 
 
+namespace tpie {
+
+    namespace ami {
+	
 // A copy function for streams
-template<class T>
-AMI_err AMI_copy_stream(AMI_stream_base<T> *t, AMI_stream_base<T> *s)
-{
-    AMI_identity_scan<T> id;
+	template<class T>
+	err copy_stream(stream<T> *t, stream<T> *s) {
+	    
+	    identity_scan<T> id;
+	    
+	    return scan(t, &id, s);
+	}
 
-    return AMI_scan(t, &id, s);
-}
+    }  //  ami namespace
 
-#endif // _AMI_SCAN_H 
+}  //  tpie namespace
+
+#endif // _TPIE_AMI_SCAN_H 
 

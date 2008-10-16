@@ -10,8 +10,8 @@
 ///////////////////////////////////////////////////////////////////////////
 
 
-#ifndef _AMI_STREAM_H
-#define _AMI_STREAM_H
+#ifndef _TPIE_AMI_STREAM_H
+#define _TPIE_AMI_STREAM_H
 
 
 // Get definitions for working with Unix and Windows
@@ -35,23 +35,35 @@
 
 #include <tempname.h>
 
-/** AMI stream types passed to constructors */
-enum AMI_stream_type {
-    AMI_READ_STREAM = 1,	// Open existing stream for reading
-    AMI_WRITE_STREAM,		// Open for writing.  Create if non-existent
-    AMI_APPEND_STREAM,		// Open for writing at end.  Create if needed.
-    AMI_READ_WRITE_STREAM	// Open to read and write.
-};
+namespace tpie {
 
+    namespace ami {
+
+/** AMI stream types passed to constructors */
+	enum stream_type {
+	    READ_STREAM = 1,	// Open existing stream for reading
+	    WRITE_STREAM,		// Open for writing.  Create if non-existent
+	    APPEND_STREAM,		// Open for writing at end.  Create if needed.
+	    READ_WRITE_STREAM	// Open to read and write.
+	};
+	
 /**  AMI stream status. */
-enum AMI_stream_status {
-    /** Stream is valid */
-    AMI_STREAM_STATUS_VALID = 0,
-    /** Stream is invalid */
-    AMI_STREAM_STATUS_INVALID
-};
+	enum stream_status {
+	    /** Stream is valid */
+	    STREAM_STATUS_VALID = 0,
+	    /** Stream is invalid */
+	    STREAM_STATUS_INVALID
+	};
+
+    }  //  ami namespace
+
+}  //  tpie namespace
 
 #include <stream_base.h>
+
+namespace tpie {
+
+    namespace ami {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// A Stream<T> object stores an ordered collection of objects of
@@ -76,37 +88,33 @@ enum AMI_stream_status {
 /// Both input and output operations are permitted.
 ////////////////////////////////////////////////////////////////////////////////
 template<class T> 
-class AMI_stream : public AMI_stream_base {
+class stream : public stream_base {
     
 public:
-
-//    AMI_stream() { 
-//	m_status = AMI_STREAM_STATUS_INVALID;
-//    }
     
-  // We have a variety of constructors for different uses.
+    // We have a variety of constructors for different uses.
 
     ////////////////////////////////////////////////////////////////////////////
     /// A new stream of type \ref READ_WRITE_STREAM is constructed on
     /// the given device as a file with a randomly generated name, 
-    /// prefixed by "AMI_".  
+    /// prefixed by "".  
     ////////////////////////////////////////////////////////////////////////////
-    AMI_stream(unsigned int device = UINT_MAX);
+    stream(unsigned int device = UINT_MAX);
     
     ////////////////////////////////////////////////////////////////////////////
     /// A new stream is constructed and 
     /// named and placed according to the given parameter pathname.
     /// Its type is given by bst which defaults to \ref READ_WRITE_STREAM.
     ////////////////////////////////////////////////////////////////////////////
-    AMI_stream(const std::string& path_name, 
-	       AMI_stream_type st = AMI_READ_WRITE_STREAM);
+    stream(const std::string& path_name, 
+	   stream_type        st = READ_WRITE_STREAM);
     
     //////////////////////////////////////////////////////////////////////x//////
     // An new stream based on a specific existing BTE stream.  Note
     // that in this case the BTE stream will not be detroyed when the
     // destructor is called.
     ////////////////////////////////////////////////////////////////////////////
-    AMI_stream(BTE_STREAM<T> *bs);
+    stream(BTE_STREAM<T> *bs);
 
 
     ////////////////////////////////////////////////////////////////////////////
@@ -128,38 +136,38 @@ public:
     /// \param[out] sub_stream  upon completion points to the newly created
     /// substream.
     ////////////////////////////////////////////////////////////////////////////
-    AMI_err new_substream(AMI_stream_type st, 
-			  TPIE_OS_OFFSET  sub_begin, 
-			  TPIE_OS_OFFSET  sub_end,
-			  AMI_stream<T> **sub_stream);
+    err new_substream(stream_type     st, 
+		      TPIE_OS_OFFSET  sub_begin, 
+		      TPIE_OS_OFFSET  sub_end,
+		      stream<T>       **sub_stream);
   
     ////////////////////////////////////////////////////////////////////////////
     /// Destructor that frees the memory buffer and closes the file;
     /// if the persistence flag is set to PERSIST_DELETE, also removes the file.
     ////////////////////////////////////////////////////////////////////////////
-    ~AMI_stream();
+    ~stream();
     
     ////////////////////////////////////////////////////////////////////////////
     /// Returns the status of the stream instance; the result is either
-    /// AMI_STREAM_STATUS_VALID or AMI_STREAM_STATUS_INVALID. 
+    /// STREAM_STATUS_VALID or STREAM_STATUS_INVALID. 
     /// The only operation that can leave the stream invalid is the constructor
     /// (if that happens, the log file contains more information). No items 
     /// should be read from or written to an invalid stream.
     ////////////////////////////////////////////////////////////////////////////
-    AMI_stream_status status() const { 
+    stream_status status() const { 
 	return m_status; 
     }
     
     ////////////////////////////////////////////////////////////////////////////
-    /// Returns wether the status of the stream is AMI_STREAM_STATUS_VALID.
+    /// Returns wether the status of the stream is STREAM_STATUS_VALID.
     /// \sa status()
     ////////////////////////////////////////////////////////////////////////////
     bool is_valid() const { 
-	return m_status == AMI_STREAM_STATUS_VALID; 
+	return m_status == STREAM_STATUS_VALID; 
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    /// Returns true if the block's status is not AMI_BLOCK_STATUS_VALID. 
+    /// Returns true if the block's status is not BLOCK_STATUS_VALID. 
     /// \sa is_valid(), status()
     ////////////////////////////////////////////////////////////////////////////
     bool operator!() const { 
@@ -169,32 +177,32 @@ public:
     ////////////////////////////////////////////////////////////////////////////
     /// Reads the current item from the stream and advance the "current item"
     /// pointer to the next item. The item read is pointed to by 
-    /// *elt. If no error has occurred, return AMI_ERROR_NO_ERROR.
+    /// *elt. If no error has occurred, return ERROR_NO_ERROR.
     /// If the ``current item'' pointer is beyond the last item in the stream,
-    /// AMI_ERROR_END_OF_STREAM is returned
+    /// ERROR_END_OF_STREAM is returned
     ////////////////////////////////////////////////////////////////////////////
-    AMI_err read_item(T **elt);
+    err read_item(T **elt);
     
     ////////////////////////////////////////////////////////////////////////////
     /// Writes elt to the stream in the current position. Advance the 
     /// "current item" pointer to the next item. If no error has occurred
-    /// AMI_ERROR_NO_ERROR is returned.
+    /// ERROR_NO_ERROR is returned.
     ////////////////////////////////////////////////////////////////////////////
-    AMI_err write_item(const T &elt);
+    err write_item(const T &elt);
   
     ////////////////////////////////////////////////////////////////////////////
     /// Reads *len items from the current position of the stream into
     /// the array mm_array. The "current position" pointer is increased
     /// accordingly.
     ////////////////////////////////////////////////////////////////////////////
-    AMI_err read_array(T *mm_space, TPIE_OS_OFFSET *len);
+    err read_array(T *mm_space, TPIE_OS_OFFSET *len);
     
     ////////////////////////////////////////////////////////////////////////////
     /// Writes len items from array |mm_array to the
     /// stream, starting in the current position. The "current item"
     /// pointer is increased accordingly.
     ////////////////////////////////////////////////////////////////////////////
-    AMI_err write_array(const T *mm_space, TPIE_OS_OFFSET len);
+    err write_array(const T *mm_space, TPIE_OS_OFFSET len);
   
   
     ////////////////////////////////////////////////////////////////////////////
@@ -207,12 +215,12 @@ public:
     ////////////////////////////////////////////////////////////////////////////
     /// Returns the path name of this stream in newly allocated space.
     ////////////////////////////////////////////////////////////////////////////
-	std::string name() const;
+    std::string name() const;
   
     ////////////////////////////////////////////////////////////////////////////
     /// Move the current position to off (measured in terms of items.
     ////////////////////////////////////////////////////////////////////////////
-    AMI_err seek(TPIE_OS_OFFSET offset);
+    err seek(TPIE_OS_OFFSET offset);
     
     ////////////////////////////////////////////////////////////////////////////
     /// Returns the current position in the stream measured of items from the
@@ -231,7 +239,7 @@ public:
     /// specified number of objects. In either case, the "current
     /// item" pointer will be moved to the new end of the stream.
     ////////////////////////////////////////////////////////////////////////////
-    AMI_err truncate(TPIE_OS_OFFSET offset);
+    err truncate(TPIE_OS_OFFSET offset);
     
     ////////////////////////////////////////////////////////////////////////////
     /// This function is used for obtaining the amount of main memory used by an
@@ -249,8 +257,8 @@ public:
     /// \par MM_STREAM_USAGE_SUBSTREAM
     /// The additional amount of memory that will be used by each substream created.
     ////////////////////////////////////////////////////////////////////////////
-    AMI_err main_memory_usage(TPIE_OS_SIZE_T *usage,
-			      MM_stream_usage usage_type);
+    err main_memory_usage(TPIE_OS_SIZE_T *usage,
+			  MM_stream_usage usage_type);
   
     ////////////////////////////////////////////////////////////////////////////
     /// Returns a \ref tpie_stats_stream object containing  statistics of 
@@ -303,8 +311,8 @@ public:
 private:
 
     // Prohibit these two.
-    AMI_stream(const  AMI_stream<T>& other);
-    AMI_stream<T>& operator=(const AMI_stream<T>& other);
+    stream(const  stream<T>& other);
+    stream<T>& operator=(const stream<T>& other);
 
     // Point to a base stream, since the particular type of BTE
     // stream we are using may vary.
@@ -316,315 +324,380 @@ private:
     // AMI stream is destroyed.
     bool m_destructBTEStream;
 
-    AMI_stream_status m_status;
+    stream_status m_status;
 };
 
 // Create a temporary AMI stream on one of the devices in the default
 // device description. Persistence is PERSIST_DELETE by default. We
 // are given the index of the string describing the desired device.
-template<class T>
-AMI_stream<T>::AMI_stream(unsigned int device) : m_bteStream(NULL),
+	template<class T>
+	stream<T>::stream(unsigned int device) : m_bteStream(NULL),
 						 m_readOnly(false),
 						 m_destructBTEStream(true),
-						 m_status(AMI_STREAM_STATUS_INVALID)
-{
+						 m_status(STREAM_STATUS_INVALID)
+	{
 
-    // [tavi] Hack to fix an error that appears in gcc 2.8.1
-    if (device == UINT_MAX) {
-	device = (device_index = ((device_index + 1) % default_device.arity())); 
-    }
+	    // [tavi] Hack to fix an error that appears in gcc 2.8.1
+	    if (device == UINT_MAX) {
+		device = (device_index = ((device_index + 1) % default_device.arity())); 
+	    }
     
-    // Get a unique name.
-    char *path = tpie_tempnam(NULL, default_device[device]);
+	    // Get a unique name.
+	    char *path = tpie_tempnam(NULL, default_device[device]);
     
-    TP_LOG_DEBUG_ID("Temporary stream in file: ");
-    TP_LOG_DEBUG_ID(path);
+	    TP_LOG_DEBUG_ID("Temporary stream in file: ");
+	    TP_LOG_DEBUG_ID(path);
     
-    // Create the BTE stream.
-    m_bteStream = new BTE_STREAM<T>(path, tpie::bte::WRITE_STREAM);
+	    // Create the BTE stream.
+	    m_bteStream = new BTE_STREAM<T>(path, tpie::bte::WRITE_STREAM);
     
-    // (Short circuit evaluation...)
-    if (m_bteStream == NULL || 
-	m_bteStream->status() == tpie::bte::STREAM_STATUS_INVALID) {
-	TP_LOG_FATAL_ID("BTE returned invalid or NULL stream.");
-	return;
-    }
-    
-    m_bteStream->persist(PERSIST_DELETE);
-    
-    if (seek(0) != AMI_ERROR_NO_ERROR) {
-	TP_LOG_FATAL_ID("seek(0) returned error.");
-	return;
-    }
+	    // (Short circuit evaluation...)
+	    if (m_bteStream == NULL || 
+		m_bteStream->status() == tpie::bte::STREAM_STATUS_INVALID) {
 
-    //  Set status to VALID.
-    m_status = AMI_STREAM_STATUS_VALID;
-};
+		TP_LOG_FATAL_ID("BTE returned invalid or NULL stream.");
+
+		return;
+	    }
+    
+	    m_bteStream->persist(PERSIST_DELETE);
+    
+	    if (seek(0) != NO_ERROR) {
+
+		TP_LOG_FATAL_ID("seek(0) returned error.");
+
+		return;
+	    }
+
+	    //  Set status to VALID.
+	    m_status = STREAM_STATUS_VALID;
+
+	};
 
 
 // A stream created with this constructor will persist on disk at the
 // location specified by the path name.
-template<class T>
-AMI_stream<T>::AMI_stream(const std::string& path_name, AMI_stream_type st) :
-    m_bteStream(NULL),
-    m_readOnly(false),
-    m_destructBTEStream(true),
-    m_status(AMI_STREAM_STATUS_INVALID) {
+	template<class T>
+	stream<T>::stream(const std::string& path_name, stream_type st) :
+	    m_bteStream(NULL),
+	    m_readOnly(false),
+	    m_destructBTEStream(true),
+	    m_status(STREAM_STATUS_INVALID) {
     
-  // Decide BTE stream type
-    tpie::bte::stream_type bst;
-    switch (st) {
-    case AMI_READ_STREAM: 
-	bst = tpie::bte::READ_STREAM;
-	break;
-    case AMI_APPEND_STREAM:
-	bst = tpie::bte::APPEND_STREAM;
-	break;
-    case AMI_WRITE_STREAM:
-    case AMI_READ_WRITE_STREAM:
-	bst = tpie::bte::WRITE_STREAM; //WRITE_STREAM means both read and
-	//write; this is inconsistent and should be modified..
-	break;
-    default:
-	TP_LOG_WARNING_ID("Unknown stream type passed to constructor;");
-	TP_LOG_WARNING_ID("Defaulting to AMI_READ_WRITE_STREAM.");
-	bst = tpie::bte::WRITE_STREAM;
-	break;
-    }
+	    // Decide BTE stream type
+	    bte::stream_type bst;
+
+	    switch (st) {
+	    case READ_STREAM: 
+		bst = bte::READ_STREAM;
+
+		break;
+
+	    case APPEND_STREAM:
+		bst = bte::APPEND_STREAM;
+
+		break;
+
+	    case WRITE_STREAM:
+	    case READ_WRITE_STREAM:
+		bst = bte::WRITE_STREAM; //WRITE_STREAM means both read and
+		//write; this is inconsistent and should be modified..
+
+		break;
+
+	    default:
+
+		TP_LOG_WARNING_ID("Unknown stream type passed to constructor;");
+		TP_LOG_WARNING_ID("Defaulting to READ_WRITE_STREAM.");
+
+		bst = bte::WRITE_STREAM;
+
+		break;
+	    }
     
-    m_readOnly          = (st == AMI_READ_STREAM);
-    m_destructBTEStream = true;
+	    m_readOnly          = (st == READ_STREAM);
+	    m_destructBTEStream = true;
     
-    // Create the BTE stream.
-    m_bteStream = new BTE_STREAM<T>(path_name, bst);
-    // (Short circuit evaluation...)
-    if (m_bteStream == NULL || m_bteStream->status() == tpie::bte::STREAM_STATUS_INVALID) {
-	TP_LOG_FATAL_ID("BTE returned invalid or NULL stream.");
-	return;
-    }
+	    // Create the BTE stream.
+	    m_bteStream = new BTE_STREAM<T>(path_name, bst);
+	    // (Short circuit evaluation...)
+	    if (m_bteStream == NULL || m_bteStream->status() == bte::STREAM_STATUS_INVALID) {
+
+		TP_LOG_FATAL_ID("BTE returned invalid or NULL stream.");
+
+		return;
+	    }
     
-    m_bteStream->persist(PERSIST_PERSISTENT);
+	    m_bteStream->persist(PERSIST_PERSISTENT);
     
-    // If an APPEND stream, the BTE constructor seeks to its end;
-    if (st != AMI_APPEND_STREAM) {
-	if (seek(0) != AMI_ERROR_NO_ERROR) {
-	    TP_LOG_FATAL_ID("seek(0) returned error.");
-	    return;
-	}
-    }
+	    // If an APPEND stream, the BTE constructor seeks to its end;
+	    if (st != APPEND_STREAM) {
+		if (seek(0) != NO_ERROR) {
+
+		    TP_LOG_FATAL_ID("seek(0) returned error.");
+
+		    return;
+		}
+	    }
     
-    m_status = AMI_STREAM_STATUS_VALID;
-};
+	    m_status = STREAM_STATUS_VALID;
+	};
 
 
-template<class T>
-AMI_stream<T>::AMI_stream(BTE_STREAM<T> *bs) :
-    m_bteStream(bs),
-    m_readOnly(false),
-    m_destructBTEStream(false),
-    m_status(AMI_STREAM_STATUS_INVALID) {
+	template<class T>
+	stream<T>::stream(BTE_STREAM<T> *bs) :
+	    m_bteStream(bs),
+	    m_readOnly(false),
+	    m_destructBTEStream(false),
+	    m_status(STREAM_STATUS_INVALID) {
     
     
-    if (m_bteStream == NULL || m_bteStream->status() == tpie::bte::STREAM_STATUS_INVALID) {
-	TP_LOG_FATAL_ID("BTE returned invalid or NULL stream.");
-	return;
-    }
+	    if (m_bteStream == NULL || m_bteStream->status() == tpie::bte::STREAM_STATUS_INVALID) {
+
+		TP_LOG_FATAL_ID("BTE returned invalid or NULL stream.");
+
+		return;
+	    }
     
-    m_readOnly = bs->read_only();
-    m_status = AMI_STREAM_STATUS_VALID;
-};
+	    m_readOnly = bs->read_only();
+	    m_status = STREAM_STATUS_VALID;
+	};
 
 
-template<class T>
-AMI_err AMI_stream<T>::new_substream(AMI_stream_type st,
+	template<class T>
+	err stream<T>::new_substream(stream_type     st,
 				     TPIE_OS_OFFSET  sub_begin,
 				     TPIE_OS_OFFSET  sub_end,
-				     AMI_stream<T> **sub_stream)
-{
-    AMI_err ae = AMI_ERROR_NO_ERROR;
-    // Check permissions. Only READ and WRITE are allowed, and only READ is
-    // allowed if m_readOnly is set.
-    if ((st != AMI_READ_STREAM) && ((st != AMI_WRITE_STREAM) || m_readOnly)) {
-        *sub_stream = NULL;
-	TP_LOG_DEBUG_ID("permission denied");		
-        return AMI_ERROR_PERMISSION_DENIED;
-    }
+				     stream<T>       **sub_stream)
+	{
+	    err retval = NO_ERROR;
+
+	    // Check permissions. Only READ and WRITE are allowed, and only READ is
+	    // allowed if m_readOnly is set.
+	    if ((st != READ_STREAM) && ((st != WRITE_STREAM) || m_readOnly)) {
+
+		*sub_stream = NULL;
+
+		TP_LOG_DEBUG_ID("permission denied");		
+
+		return PERMISSION_DENIED;
+
+	    }
     
-    tpie::bte::stream_base<T> *bte_ss;
+	    bte::stream_base<T> *bte_ss;
     
-    if (m_bteStream->new_substream(((st == AMI_READ_STREAM) ? tpie::bte::READ_STREAM :
-				    tpie::bte::WRITE_STREAM),
-				   sub_begin, sub_end,
-				   &bte_ss) != tpie::bte::NO_ERROR) {
-	TP_LOG_DEBUG_ID("new_substream failed");		
-	*sub_stream = NULL;
-	return AMI_ERROR_BTE_ERROR;
-    }
+	    if (m_bteStream->new_substream(((st == READ_STREAM) ? bte::READ_STREAM :
+					    bte::WRITE_STREAM),
+					   sub_begin, sub_end,
+					   &bte_ss) != bte::NO_ERROR) {
+
+		*sub_stream = NULL;
+
+		TP_LOG_DEBUG_ID("new_substream failed");		
+
+		return BTE_ERROR;
+	    }
     
-    AMI_stream<T> *ami_ss;
+	    stream<T> *ami_ss;
     
-    // This is a potentially dangerous downcast.  It is being done for
-    // the sake of efficiency, so that calls to the BTE can be
-    // inlined.  If multiple implementations of BTE streams are
-    // present it could be very dangerous.
+	    // This is a potentially dangerous downcast.  It is being done for
+	    // the sake of efficiency, so that calls to the BTE can be
+	    // inlined.  If multiple implementations of BTE streams are
+	    // present it could be very dangerous.
     
-    ami_ss = new AMI_stream<T>(static_cast<BTE_STREAM<T>*>(bte_ss));
+	    ami_ss = new stream<T>(static_cast<BTE_STREAM<T>*>(bte_ss));
     
-    ami_ss->m_destructBTEStream = true;
-    ae = ami_ss->seek(0);
-    assert(ae == AMI_ERROR_NO_ERROR); // sanity check
+	    ami_ss->m_destructBTEStream = true;
+
+	    retval = ami_ss->seek(0);
+	    assert(retval == NO_ERROR); // sanity check
     
-    *sub_stream = ami_ss;
+	    *sub_stream = ami_ss;
     
-    return ae;
-}
+	    return retval;
+	}
 
 
-template<class T>
-std::string AMI_stream<T>::name() const 
-{
-	return m_bteStream->name();
-}
+	template<class T>
+	std::string stream<T>::name() const {
+	    return m_bteStream->name();
+	}
 
 // Move to a specific offset.
-template<class T>
-AMI_err AMI_stream<T>::seek(TPIE_OS_OFFSET offset) {
-    if (m_bteStream->seek(offset) != tpie::bte::NO_ERROR) {
-	TP_LOG_WARNING_ID("bte error");		
-	return AMI_ERROR_BTE_ERROR;
-    }
+	template<class T>
+	err stream<T>::seek(TPIE_OS_OFFSET offset) {
+
+	    if (m_bteStream->seek(offset) != bte::NO_ERROR) {
+
+		TP_LOG_WARNING_ID("bte error");		
+
+		return BTE_ERROR;
+	    }
     
-    return AMI_ERROR_NO_ERROR;
-}
+	    return NO_ERROR;
+	}
 
 // Truncate
-template<class T>
-AMI_err AMI_stream<T>::truncate(TPIE_OS_OFFSET offset) {
-    if (m_bteStream->truncate(offset) != tpie::bte::NO_ERROR) {
-	TP_LOG_WARNING_ID("bte error");
-	return AMI_ERROR_BTE_ERROR;
-    }
+	template<class T>
+	err stream<T>::truncate(TPIE_OS_OFFSET offset) {
+
+	    if (m_bteStream->truncate(offset) != bte::NO_ERROR) {
+
+		TP_LOG_WARNING_ID("bte error");
+
+		return BTE_ERROR;
+	    }
     
-    return AMI_ERROR_NO_ERROR;
-}
+	    return NO_ERROR;
+	}
 
 // Query memory usage
-template<class T>
-AMI_err AMI_stream<T>::main_memory_usage(TPIE_OS_SIZE_T *usage,
-                                                MM_stream_usage usage_type) {
-    if (m_bteStream->main_memory_usage(usage, usage_type) != tpie::bte::NO_ERROR) {
-	TP_LOG_WARNING_ID("bte error");		
-	return AMI_ERROR_BTE_ERROR;
-    }
+	template<class T>
+	err stream<T>::main_memory_usage(TPIE_OS_SIZE_T *usage,
+					 MM_stream_usage usage_type) {
+
+	    if (m_bteStream->main_memory_usage(usage, usage_type) != tpie::bte::NO_ERROR) {
+
+		TP_LOG_WARNING_ID("bte error");		
+
+		return BTE_ERROR;
+	    }
     
-    switch (usage_type) {
-    case MM_STREAM_USAGE_OVERHEAD:
-    case MM_STREAM_USAGE_CURRENT:
-    case MM_STREAM_USAGE_MAXIMUM:
-    case MM_STREAM_USAGE_SUBSTREAM:
-	*usage += sizeof(*this);
-	break;
-    case MM_STREAM_USAGE_BUFFER:
-	break;
-    default:
-	tp_assert(0, "Unknown MM_stream_usage type added.");
-	break;
-    }
+	    switch (usage_type) {
+	    case MM_STREAM_USAGE_OVERHEAD:
+	    case MM_STREAM_USAGE_CURRENT:
+	    case MM_STREAM_USAGE_MAXIMUM:
+	    case MM_STREAM_USAGE_SUBSTREAM:
+		*usage += sizeof(*this);
+
+		break;
+
+	    case MM_STREAM_USAGE_BUFFER:
+
+		break;
+
+	    default:
+
+		tp_assert(0, "Unknown MM_stream_usage type added.");
+
+	    }
     
-    return AMI_ERROR_NO_ERROR;
-}
+	    return NO_ERROR;
+	}
 
-template<class T>
-AMI_stream<T>::~AMI_stream() {
-    if (m_destructBTEStream) {
-        delete m_bteStream;
-    }
-}
+	template<class T>
+	stream<T>::~stream() {
+	    if (m_destructBTEStream) {
+		delete m_bteStream;
+	    }
+	}
 
-template<class T>
-AMI_err AMI_stream<T>::read_item(T **elt) {
-    tpie::bte::err bte_err;
-    AMI_err ae;
+	template<class T>
+	err stream<T>::read_item(T **elt) {
+
+	    err retval = NO_ERROR;
     
-    bte_err = m_bteStream->read_item(elt);
-    switch(bte_err) {
-    case tpie::bte::NO_ERROR:
-	ae = AMI_ERROR_NO_ERROR;
-	break;
-    case tpie::bte::END_OF_STREAM:
-	TP_LOG_DEBUG_ID("eos in read_item");
-	ae = AMI_ERROR_END_OF_STREAM;
-	break;
-    default:
-	TP_LOG_DEBUG_ID("bte error in read_item");
-	ae = AMI_ERROR_BTE_ERROR;
-	break;
-    }
-    return ae;
-}
+	    bte::err bte_err = m_bteStream->read_item(elt);
 
-template<class T>
-AMI_err AMI_stream<T>::write_item(const T &elt) {
-    if (m_bteStream->write_item(elt) != tpie::bte::NO_ERROR) {
-	TP_LOG_WARNING_ID("bte error");
-	return AMI_ERROR_BTE_ERROR;
-    }
-    return AMI_ERROR_NO_ERROR;
-}
+	    switch(bte_err) {
+	    case bte::NO_ERROR:
+		retval = NO_ERROR;
+
+		break;
+
+	    case bte::END_OF_STREAM:
+
+		retval = END_OF_STREAM;
+
+		TP_LOG_DEBUG_ID("eos in read_item");
+
+		break;
+
+	    default:
+		retval = BTE_ERROR;
+
+		TP_LOG_DEBUG_ID("bte error in read_item");
+
+		break;
+	    }
+
+	    return retval;
+	}
+
+	template<class T>
+	err stream<T>::write_item(const T &elt) {
+
+	    if (m_bteStream->write_item(elt) != bte::NO_ERROR) {
+
+		TP_LOG_WARNING_ID("bte error");
+
+		return BTE_ERROR;
+
+	    }
+
+	    return NO_ERROR;
+	}
 
 
-template<class T>
-AMI_err AMI_stream<T>::read_array(T *mm_space, TPIE_OS_OFFSET *len) {
-    tpie::bte::err        be;
-    T *            read;
-    TPIE_OS_OFFSET ii;
+	template<class T>
+	err stream<T>::read_array(T *mm_space, TPIE_OS_OFFSET *len) {
+	    bte::err       be = bte::NO_ERROR;
+	    T *            read;
+	    TPIE_OS_OFFSET ii;
     
-    // How long is it.
-    TPIE_OS_OFFSET str_len = *len;
+	    // How long is it.
+	    TPIE_OS_OFFSET str_len = *len;
             
-    // Read them all.
-    for (ii = str_len; ii--; ) {
-        if ((be = m_bteStream->read_item(&read)) != tpie::bte::NO_ERROR) {
-            if (be == tpie::bte::END_OF_STREAM) {
-                return AMI_ERROR_END_OF_STREAM;
-            } else { 
-                return AMI_ERROR_BTE_ERROR;
-            }
-        }
-        *mm_space++ = *read;
-    }
-    
-    *len = str_len;
-    
-    return AMI_ERROR_NO_ERROR;
-}
+	    // Read them all.
+	    for (ii = str_len; ii--; ) {
+		if ((be = m_bteStream->read_item(&read)) != bte::NO_ERROR) {
 
-template<class T>
-AMI_err AMI_stream<T>::write_array(const T *mm_space, TPIE_OS_OFFSET len) {
-    tpie::bte::err        be;
-    TPIE_OS_OFFSET ii;
+		    if (be == bte::END_OF_STREAM) {
+			return END_OF_STREAM;
+		    }
+		    else { 
+			return BTE_ERROR;
+		    }
+		}
+		*mm_space++ = *read;
+	    }
     
-    for (ii = len; ii--; ) {
-        if ((be = m_bteStream->write_item(*mm_space++)) != tpie::bte::NO_ERROR) {
-            if (be == tpie::bte::END_OF_STREAM) {
-                return AMI_ERROR_END_OF_STREAM;
-            } else { 
-                return AMI_ERROR_BTE_ERROR;
-            }
-        }
-    }
-    return AMI_ERROR_NO_ERROR;
-}        
+	    *len = str_len;
+    
+	    return NO_ERROR;
+	}
 
-template<class T>
-char *AMI_stream<T>::sprint() {
-    static char buf[BUFSIZ];
-	std::string s(name());
-    sprintf(buf, "[AMI_STREAM %s %ld]", s.c_str(), static_cast<long>(stream_len()));
-    return buf;
-}
+	template<class T>
+	err stream<T>::write_array(const T *mm_space, TPIE_OS_OFFSET len) {
+	    bte::err       be = bte::NO_ERROR;
+	    TPIE_OS_OFFSET ii;
+    
+	    for (ii = len; ii--; ) {
+		if ((be = m_bteStream->write_item(*mm_space++)) != bte::NO_ERROR) {
 
+		    if (be == bte::END_OF_STREAM) {
+			return END_OF_STREAM;
+		    } 
+		    else { 
+			return BTE_ERROR;
+		    }
+		}
+	    }
+	    return NO_ERROR;
+	}        
+
+	template<class T>
+	char *stream<T>::sprint() {
+	    static char buf[BUFSIZ];
+	    std::string s(name());
+	    sprintf(buf, "[STREAM %s %ld]", s.c_str(), static_cast<long>(stream_len()));
+	    return buf;
+	}
+
+    }  //  ami namespace
+
+}  //  tpie namespace
 
 #include <stream_compatibility.h>
 
-#endif // _AMI_STREAM_H
+#endif // _TPIE_AMI_STREAM_H
