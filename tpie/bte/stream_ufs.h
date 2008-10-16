@@ -1347,7 +1347,6 @@ namespace tpie {
 	inline err stream_ufs<T>::validate_current () {
 	
 	    unsigned int block_space;	// The space left in the current block.
-	    err retval = NO_ERROR;
 	
 	    // If the current block is valid and current points into it and has
 	    // enough room in the block for a full item, we are fine.  If it is
@@ -1362,8 +1361,9 @@ namespace tpie {
 		
 		} 
 		else {			// Not enough room left.
-		    if ((bte_err = unmap_current ()) != NO_ERROR) {
-			return bte_err;
+			err retval = NO_ERROR;
+		    if ((retval = unmap_current ()) != NO_ERROR) {
+			return retval;
 		    }
 		    m_fileOffset += block_space;
 		}
@@ -1596,7 +1596,6 @@ namespace tpie {
 		    m_osErrno = errno;
 		
 		    TP_LOG_FATAL_ID ("write() failed to unmap current block.");
-		    TP_LOG_FATAL_ID (bla);
 		    TP_LOG_FATAL_ID (static_cast<TPIE_OS_OFFSET>(m_header->m_blockSize));
 		    TP_LOG_FATAL_ID (strerror(m_osErrno));
 		
