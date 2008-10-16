@@ -20,8 +20,7 @@
 static char *__tpie_log_name() {
   static char tln[128];
   TPIE_OS_SRANDOM(static_cast<unsigned int>(TPIE_OS_TIME(NULL)));
-  strncpy(tln, tpie_tempnam(TPLOGPFX, TPLOGDIR), 124);
-  strcat(tln, ".txt");
+  strncpy(tln, tpie_tempnam(TPLOGPFX, TPLOGDIR, "txt"), 124);
   return tln;
 }
 

@@ -176,7 +176,7 @@ AMI_stream<T>::AMI_stream(unsigned int device) : m_bteStream(NULL),
     }
     
     // Get a unique name.
-    char *path = tpie_tempnam("AMI", default_device[device]);
+    char *path = tpie_tempnam(NULL, default_device[device]);
     
     TP_LOG_DEBUG_ID("Temporary stream in file: ");
     TP_LOG_DEBUG_ID(path);
@@ -206,8 +206,7 @@ AMI_stream<T>::AMI_stream(unsigned int device) : m_bteStream(NULL),
 // A stream created with this constructor will persist on disk at the
 // location specified by the path name.
 template<class T>
-AMI_stream<T>::AMI_stream(const char *path_name,
-			  AMI_stream_type st) :
+AMI_stream<T>::AMI_stream(const char* path_name, AMI_stream_type st) :
     m_bteStream(NULL),
     m_readOnly(false),
     m_destructBTEStream(true),

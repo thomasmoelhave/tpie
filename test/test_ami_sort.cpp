@@ -143,6 +143,8 @@ int main(int argc, char **argv)
 
   //  AMI_STREAM<int> amis0;
   //  AMI_STREAM<int> amis1;
+  cout << "setting default" << endl;
+  set_default_tmp_names("C:\\","SORT","sort");
   AMI_STREAM<int>* istr = (istr_name[0] == '\0') ? new AMI_STREAM<int>: new AMI_STREAM<int>(istr_name);
   if (!istr->is_valid()) {
     cerr << argv[0] << ": Error while initializing input stream. Aborting." << endl;

@@ -19,6 +19,10 @@
 // descriptions.
 #define AMI_SINGLE_DEVICE_ENV "AMI_SINGLE_DEVICE"
 
-char *tpie_tempnam(const char *base, const char *dir = NULL);
+char *tpie_tempnam(const char *base, const char *dir = NULL, const char* ext = NULL);
+void set_default_tmp_names(char* path, char* base, char* extension);
+char *get_default_tmp_path();
+char *get_default_base_name();
+char *get_default_extension();
 
 #endif // _TPIE_TEMPNAM_H 
