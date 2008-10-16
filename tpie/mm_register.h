@@ -233,7 +233,7 @@ extern MM_register MM_manager;
 ///////////////////////////////////////////////////////////////////////////
 /// A class to make sure that MM_manager gets set up properly.  It is
 /// based on the code in tpie_log.h that does the same thing for logs,
-/// which is in turn based on item 47 from sdm's book.
+/// which is in turn based on item 47 from Scott Meyer's book on effective C++.
 ///////////////////////////////////////////////////////////////////////////
 class mm_register_init {
 private:

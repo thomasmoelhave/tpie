@@ -18,7 +18,11 @@ namespace tpie {
 
 ///////////////////////////////////////////////////////////////////
 ///
+<<<<<<< .mine
+///  \class AMI_stack
+=======
 ///  \class stack<T>
+>>>>>>> .r1587
 ///
 ///  An implementation of an external-memory stack.
 ///
@@ -173,13 +177,11 @@ public:
 			  MM_stream_usage usage_type) const;
 
 
-    //  This should go as soon as all old code has been migrated.
+    ////////////////////////////////////////////////////////////////////
+    /// \deprecated This should go as soon as all old code has been migrated.
+    ////////////////////////////////////////////////////////////////////
     TPIE_OS_OFFSET stream_len() const {
-<<<<<<< .mine
-	cerr << "Using stack<T>::stream_len() is deprecated." << endl;
-=======
 	std::cerr << "Using AMI_stack<T>::stream_len() is deprecated." << std::endl;
->>>>>>> .r1580
 	return m_size;
     }
 

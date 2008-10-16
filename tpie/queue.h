@@ -18,10 +18,8 @@
 
 ///////////////////////////////////////////////////////////////////
 /// 
-///  \class AMI_queue<T>
-/// 
-///  Basic Implementation of I/O Efficient FIFO queue
-///  Uses two stacks
+///  Basic Implementation of I/O Efficient FIFO queue;
+///  uses two stacks
 /// 
 ///  \author The TPIE Project
 /// 

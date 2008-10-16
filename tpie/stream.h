@@ -6,7 +6,7 @@
 //
 
 ///////////////////////////////////////////////////////////////////////////
-/// \file stream.h Declares TPIE streams.
+/// \file tpie/stream.h Declares TPIE streams.
 ///////////////////////////////////////////////////////////////////////////
 
 
@@ -109,10 +109,10 @@ public:
     stream(const std::string& path_name, 
 	   stream_type        st = READ_WRITE_STREAM);
     
-    //////////////////////////////////////////////////////////////////////x//////
-    // An new stream based on a specific existing BTE stream.  Note
-    // that in this case the BTE stream will not be detroyed when the
-    // destructor is called.
+    ////////////////////////////////////////////////////////////////////////////
+    // A new stream based on a specific existing BTE stream.  Note
+    // that in this case the BTE stream will not be destroyed when the
+    // destructor for the constructed stream is called.
     ////////////////////////////////////////////////////////////////////////////
     stream(BTE_STREAM<T> *bs);
 
@@ -256,6 +256,7 @@ public:
     /// The amount of memory used by the data buffer.
     /// \par MM_STREAM_USAGE_SUBSTREAM
     /// The additional amount of memory that will be used by each substream created.
+    /// \param[out] usage amount of memory in bytes used by the stream
     ////////////////////////////////////////////////////////////////////////////
     err main_memory_usage(TPIE_OS_SIZE_T *usage,
 			  MM_stream_usage usage_type);
@@ -310,21 +311,33 @@ public:
     
 private:
 
-    // Prohibit these two.
+    /** Restricted copy constructor */
+<<<<<<< .mine
+    AMI_stream(const  AMI_stream<T>& other);
+    /** Restricted assignment operator*/
+    AMI_stream<T>& operator=(const AMI_stream<T>& other);
+=======
     stream(const  stream<T>& other);
     stream<T>& operator=(const stream<T>& other);
+>>>>>>> .r1587
 
-    // Point to a base stream, since the particular type of BTE
-    // stream we are using may vary.
+    /** Pointer to a base stream, since the particular type of BTE
+     * stream we are using may vary. */
     BTE_STREAM<T> * m_bteStream;
     
+    /** True if stream is not writable*/
     bool m_readOnly;
     
-    // Non-zero if we should destroy the bte stream when we the
-    // AMI stream is destroyed.
+    /** Non-zero if we should destroy the bte stream when we the
+     * AMI stream is destroyed. */
     bool m_destructBTEStream;
 
+<<<<<<< .mine
+    /** States if stream is valid or not. */
+    AMI_stream_status m_status;
+=======
     stream_status m_status;
+>>>>>>> .r1587
 };
 
 // Create a temporary AMI stream on one of the devices in the default

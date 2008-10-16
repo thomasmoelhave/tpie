@@ -28,7 +28,7 @@ Maintainers:
  
 - Thomas Molhave (tm, thomasm@daimi.au.dk)
 - Jan Vahrenhold (jv, jan@math.uni-muenster.de)
-
+- Henrik Blunck (hb, blunck@madalgo.au.dk)
 
 ******************************************************************
 
@@ -38,27 +38,28 @@ Section 1. Documentation.
 
 1.1.  Code has to be documented using doxygen (www.doxygen.org). (jv)
 
-1.2.  Comments have to be given for all public and protected
-      methods and attributes. (jv)
+1.2.  Comments have to be given at least for all public and protected
+      methods and attributes. (jv) 
+      Additionally, doxygen compatible comments for private members as
+      well as for functions, enumeration types and header files are
+      encouraged. (hb)
 
 1.3.  Old-C-style comments ( /*   */ ) shall not be used. (jv)
 
-1.4.  Comments for classes and methods shall be written using
+1.4.  Comments for classes, methods and functions shall be written using
       the "three-slash" style followed and preceeded by a line
-      of slashes. (jv)
+      of slashes. (hb)
 
       Example:
 
       /////////////////////////////////////////////////////////
-      ///
-      ///  \class  foo_bar
-      ///
+      ///		
       ///  This class serves as an example.
       ///
       /////////////////////////////////////////////////////////
 
 1.5.  Javadoc-style comments may be used for commenting 
-      attributes. (jv)
+      attributes and enumerations. (jv)
 
       Example:
 

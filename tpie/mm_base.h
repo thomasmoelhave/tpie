@@ -14,7 +14,7 @@
 /// Enum types and superclass declarations for memory management.
 ///////////////////////////////////////////////////////////////////////////
 
-/** Get definitions for working with Unix and Windows */
+// Get definitions for working with Unix and Windows
 #include <portability.h>
 
 /** MM accounting modes */
