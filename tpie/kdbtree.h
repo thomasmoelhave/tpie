@@ -168,7 +168,7 @@ protected:
 		      stream_t* stream);
 
   // Various initialization common to all constructors.
-  void shared_init(const char* base_file_name, AMI_collection_type type);
+  void shared_init(const std::string& base_file_name, AMI_collection_type type);
   void kd2kdb(const item_t& ki, b_vector<item_t >& bv);
   void kd2kdb_node( AMI_kdtree_node<coord_t, dim, Bin_node, BTECOLL>* bn, 
 		    size_t i, region_t<coord_t, dim> r, 
@@ -441,66 +441,63 @@ AMI_KDBTREE::AMI_kdbtree(const string &base_file_name, AMI_collection_type type,
 
 //// *AMI_kdbtree::shared_init* ////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-void AMI_KDBTREE::shared_init(const char* base_file_name, AMI_collection_type type) {
+void AMI_KDBTREE::shared_init(const std::string& base_file_name, AMI_collection_type type) 
+{
 
-  assert(base_file_name != NULL);
-  char collname[124];
+	assert(base_file_name.empty());
 
-  // Open the two block collections.
-  strncpy(collname, base_file_name, 124 - 2);
-  strcat(collname, ".l");
-  pcoll_leaves_ = new collection_t(collname, type, params_.leaf_block_factor);
+	std::string collname = base_file_name + ".l";
+	pcoll_leaves_ = new collection_t(collname, type, params_.leaf_block_factor);
 
-  strncpy(collname, base_file_name, 124 - 2);
-  strcat(collname, ".n");
-  pcoll_nodes_ = new collection_t(collname, type, params_.node_block_factor);
+	collname = base_file_name + ".n";
+	pcoll_nodes_ = new collection_t(collname, type, params_.node_block_factor);
 
-  if (pcoll_nodes_->status() != AMI_COLLECTION_STATUS_VALID ||
-      pcoll_leaves_->status() != AMI_COLLECTION_STATUS_VALID) {
-    status_ = AMI_KDBTREE_STATUS_INVALID;
-    delete pcoll_leaves_;
-    delete pcoll_nodes_;
-    return;
-  }
+	if (pcoll_nodes_->status() != AMI_COLLECTION_STATUS_VALID ||
+		pcoll_leaves_->status() != AMI_COLLECTION_STATUS_VALID) {
+		status_ = AMI_KDBTREE_STATUS_INVALID;
+		delete pcoll_leaves_;
+		delete pcoll_nodes_;
+		return;
+	}
 
-  // Read the header info, if relevant.
-  if (pcoll_leaves_->size() != 0) {
-    unsigned int magic = *((unsigned int *) pcoll_nodes_->user_data());
-    if (magic == AMI_KDTREE_HEADER_MAGIC_NUMBER) {
-      status_ = AMI_KDBTREE_STATUS_KDTREE;
-    } else if (magic == AMI_KDBTREE_HEADER_MAGIC_NUMBER) {
-      status_ = AMI_KDBTREE_STATUS_VALID;
-      //      header_ = *((header_t *) pcoll_nodes_->user_data());
-      memcpy((void *)(&header_), pcoll_nodes_->user_data(), sizeof(header_));
-      // TODO: sanity checks on the header.
-    } else {
-      status_ = AMI_KDBTREE_STATUS_INVALID;
-     TP_LOG_WARNING_ID("Invalid kdbtree magic number:"<<magic);
-      delete pcoll_leaves_;
-      delete pcoll_nodes_;
-      return;
-    }
-  }
+	// Read the header info, if relevant.
+	if (pcoll_leaves_->size() != 0) {
+		unsigned int magic = *((unsigned int *) pcoll_nodes_->user_data());
+		if (magic == AMI_KDTREE_HEADER_MAGIC_NUMBER) {
+			status_ = AMI_KDBTREE_STATUS_KDTREE;
+		} else if (magic == AMI_KDBTREE_HEADER_MAGIC_NUMBER) {
+			status_ = AMI_KDBTREE_STATUS_VALID;
+			//      header_ = *((header_t *) pcoll_nodes_->user_data());
+			memcpy((void *)(&header_), pcoll_nodes_->user_data(), sizeof(header_));
+			// TODO: sanity checks on the header.
+		} else {
+			status_ = AMI_KDBTREE_STATUS_INVALID;
+			TP_LOG_WARNING_ID("Invalid kdbtree magic number:"<<magic);
+			delete pcoll_leaves_;
+			delete pcoll_nodes_;
+			return;
+		}
+	}
 
-  // Initialize the caches.
-  leaf_cache_ = new AMI_CACHE_MANAGER<AMI_KDBTREE_LEAF*, remove_leaf>(params_.leaf_cache_size, 4);
-  node_cache_ = new AMI_CACHE_MANAGER<AMI_KDBTREE_NODE*, remove_node>(params_.node_cache_size, 1);
+	// Initialize the caches.
+	leaf_cache_ = new AMI_CACHE_MANAGER<AMI_KDBTREE_LEAF*, remove_leaf>(params_.leaf_cache_size, 4);
+	node_cache_ = new AMI_CACHE_MANAGER<AMI_KDBTREE_NODE*, remove_node>(params_.node_cache_size, 1);
   
-  // Give meaningful values to parameters, if necessary.
-  TPIE_OS_SIZE_T leaf_capacity = AMI_KDBTREE_LEAF::el_capacity(pcoll_leaves_->block_size());
-  if (params_.leaf_size_max == 0 || params_.leaf_size_max > leaf_capacity)
-    params_.leaf_size_max = leaf_capacity;
-  TPLOG("  AMI_kdbtree::shared_init leaf_size_max="<<params_.leaf_size_max<<"\n");
+	// Give meaningful values to parameters, if necessary.
+	TPIE_OS_SIZE_T leaf_capacity = AMI_KDBTREE_LEAF::el_capacity(pcoll_leaves_->block_size());
+	if (params_.leaf_size_max == 0 || params_.leaf_size_max > leaf_capacity)
+		params_.leaf_size_max = leaf_capacity;
+	TPLOG("  AMI_kdbtree::shared_init leaf_size_max="<<params_.leaf_size_max<<"\n");
   
-  TPIE_OS_SIZE_T node_capacity = AMI_KDBTREE_NODE::el_capacity(pcoll_nodes_->block_size());
-  if (params_.node_size_max == 0 || params_.node_size_max > node_capacity)
-    params_.node_size_max = node_capacity;
-  TPLOG("  AMI_kdbtree::shared_init node_size_max="<<params_.node_size_max<<"\n");
-  TPLOG("  sizeof(kdb_item_t)="<<sizeof(KDB_ITEM)<<"\n");
+	TPIE_OS_SIZE_T node_capacity = AMI_KDBTREE_NODE::el_capacity(pcoll_nodes_->block_size());
+	if (params_.node_size_max == 0 || params_.node_size_max > node_capacity)
+		params_.node_size_max = node_capacity;
+	TPLOG("  AMI_kdbtree::shared_init node_size_max="<<params_.node_size_max<<"\n");
+	TPLOG("  sizeof(kdb_item_t)="<<sizeof(KDB_ITEM)<<"\n");
 
-  // Set the right block factor parameters for the case of an existing tree.
-  params_.leaf_block_factor = pcoll_leaves_->block_factor();
-  params_.node_block_factor = pcoll_nodes_->block_factor();
+	// Set the right block factor parameters for the case of an existing tree.
+	params_.leaf_block_factor = pcoll_leaves_->block_factor();
+	params_.node_block_factor = pcoll_nodes_->block_factor();
 }
 
 
