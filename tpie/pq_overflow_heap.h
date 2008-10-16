@@ -81,8 +81,8 @@ class pq_overflow_heap {
 		/// sorted 
 		///
 		/////////////////////////////////////////////////////////
-		static const double sorted_factor = 1; 
-
+		static const double sorted_factor;
+		
 		/////////////////////////////////////////////////////////
 		///
 		/// Returns whether the overflow heap is full or not
@@ -123,6 +123,8 @@ class pq_overflow_heap {
 		TPIE_OS_OFFSET maxsize;
 		T dummy;
 };
+template<typename T, typename Comparator>
+double pq_overflow_heap<T,Comparator>::sorted_factor = 1.0;
 
 #include "pq_overflow_heap.inl"
 
