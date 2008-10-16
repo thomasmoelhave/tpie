@@ -65,17 +65,17 @@ void pq_internal_instance(){
 }
 
 void pq_small_instance(){
-  MM_manager.set_memory_limit(10*1024*1024);
+  //MM_manager.set_memory_limit(10*1024*1024);
   //cout << "LOGGING: " << logstream::log_initialized << "\n";
   //tpie_log_init(TPIE_LOG_WARNING);
   //cout << "LOGGING: " << logstream::log_initialized << "\n";
 
 
   cout << "tpie::priority_queue Debug - M test" << endl;
-    TPIE_OS_OFFSET iterations = 2500;
-    //    MM_manager.set_memory_limit(600);
+    TPIE_OS_OFFSET iterations = 1000000;
+    MM_manager.set_memory_limit(10*1024*1024);
     for(TPIE_OS_OFFSET it = 1100; it < iterations; it++)  {
-      cout << "Iteration: " << it << " avail: " << MM_manager.memory_available() << "\n";
+      cerr << "Iteration: " << it;
       tpie::priority_queue<int, std::greater<int> > pq;
       std::priority_queue<int, vector<int>,std::less<int> > pq2;
 

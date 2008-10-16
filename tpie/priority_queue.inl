@@ -6,25 +6,16 @@ priority_queue<T, Comparator, OPQType>::priority_queue(double f) { // constructo
 	mm_avail = (TPIE_OS_SIZE_T)((double)mm_avail*f);
 	TP_LOG_DEBUG("m_for_queue: " << mm_avail << "\n");
 	TP_LOG_DEBUG("memory before alloc: " << MM_manager.memory_available() << "b" << "\n");
-
-	if(mm_avail<10*1024*1024) {
-		TP_LOG_WARNING_ID("No calculation of settings!! Disabling memory manager");
-		MM_manager.set_memory_limit(10*1024*1024);
-		setting_k = 3; // maximal fanout
-		setting_m = 4; // in elements
-		setting_mmark = 2; // in elements
-	} else {
+	{
 		TPIE_OS_OFFSET max_k = 500;
 		AMI_STREAM<T> tmp;
 		TPIE_OS_SIZE_T usage;
 		tmp.main_memory_usage(&usage, MM_STREAM_USAGE_MAXIMUM);
-		
-		mm_avail = mm_avail 
-			- max_k*max_k*3*sizeof(TPIE_OS_OFFSET) // slot states
-			- max_k*2*sizeof(TPIE_OS_OFFSET) // group states
-			- 4*usage // aux streams
-			- 1000;
-		if(mm_avail < 0) {
+		TPIE_OS_OFFSET need = max_k*max_k*3*sizeof(TPIE_OS_OFFSET) // slot states
+			+ max_k*2*sizeof(TPIE_OS_OFFSET) // group states
+			+ 4*usage // aux streams
+			+ 1000;
+		if(mm_avail < need) {
 			TP_LOG_FATAL_ID("Priority Queue: Not enough memory available. Increase allowed memory.");
 			exit(-1);
 		}
@@ -33,8 +24,6 @@ priority_queue<T, Comparator, OPQType>::priority_queue(double f) { // constructo
 
 		//  1/8m+ 4m = total
 		// m = total/(1/8+4)
-
-		// Kasper and Mark, TODO: Fix me, 1/8 is always 0. Is this intentional?!
 		setting_m = (setting_m*8)/33; // opq, gbuffer0, and mergebuffer(2*m)
 		setting_mmark = (setting_m/8)/sizeof(T);
 		// one block from each stream plus one element from each: use merge buffer ram
