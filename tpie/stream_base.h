@@ -35,7 +35,7 @@ public:
     static unsigned int device_index;    
     
     static const tpie_stats_stream& gstats() { 
-	return BTE_stream_base_generic::gstats(); 
+	return tpie::bte::stream_base_generic::gstats(); 
     }
 };
 
