@@ -28,12 +28,16 @@
 #include <key.h>
 #include <kb_dist.h>
 
-#ifdef KB_KEY
+namespace tpie {
 
+    namespace ami {
+	
+#ifdef KB_KEY
+	
 #define _KB_CONCAT(a,b) a ## b
-#define _AMI_KB_SORT(kbk) _KB_CONCAT(AMI_kb_sort_,kbk)
-#define _AMI_MM_KB_SORT(kbk) _KB_CONCAT(AMI_mm_kb_sort_,kbk)
-#define _AMI_KB_DIST(kbk) _KB_CONCAT(AMI_kb_dist_,kbk)
+#define _KB_SORT(kbk) _KB_CONCAT(kb_sort_,kbk)
+#define _MM_KB_SORT(kbk) _KB_CONCAT(mm_kb_sort_,kbk)
+#define _KB_DIST(kbk) _KB_CONCAT(kb_dist_,kbk)
 
 #else
 
@@ -42,7 +46,7 @@
 // temporarily.  We also Set the macro for the name of the function
 // defined in this file.
 
-#define _AMI_KB_SORT_H
+#define _KB_SORT_H
 #define KB_KEY kb_key
 
 #ifdef _HAVE_TEMP_KB_KEY_DEFINITION_
@@ -51,477 +55,504 @@
 #define _HAVE_TEMP_KB_KEY_DEFINITION_
 #endif
 
-#define _AMI_KB_SORT(kbk) AMI_kb_sort
-#define _AMI_MM_KB_SORT(kbk) AMI_mm_kb_sort
-#define _AMI_KB_DIST(kbk) AMI_kb_dist
+#define _KB_SORT(kbk) kb_sort
+#define _MM_KB_SORT(kbk) mm_kb_sort
+#define _KB_DIST(kbk) kb_dist
 
 #endif
 
+    }  //  ami namespace
+
+}  //  tpie namespace
+
+
+namespace tpie {
+
+    namespace ami {
 
 #ifndef _DEFINED_STATIC_KEY_MIN_MAX
 #define _DEFINED_STATIC_KEY_MIN_MAX
-static key_range min_max(KEY_MIN, KEY_MAX);
+	static key_range min_max(KEY_MIN, KEY_MAX);
 #endif // _DEFINED_STATIC_KEY_MIN_MAX
+	
+    }  //  ami namespace
 
-#ifndef _AMI_BUCKET_LIST_ELEM
-#define _AMI_BUCKET_LIST_ELEM
+}  //  tpie namespace
 
-template<class T>
-class AMI_bucket_list_elem
-{
-public:
-    T data;
-    AMI_bucket_list_elem<T> *next;
-    AMI_bucket_list_elem() : data(), next(0) {};
+#ifndef _TPIE_AMI_BUCKET_LIST_ELEM
+#define _TPIE_AMI_BUCKET_LIST_ELEM
 
-    AMI_bucket_list_elem(const AMI_bucket_list_elem<T>& other) {
-	*this = other;
-    }
+namespace tpie {
+    
+    namespace ami {
+	
+	template<class T>
+	class bucket_list_elem {
 
-    AMI_bucket_list_elem<T>& operator=(const AMI_bucket_list_elem<T>& other) {
-	if (this != &other) {
-	    data = other.data;
-	    next = other.next;
-	}
-	return *this;
-    }
+	public:
+	    T data;
+	    bucket_list_elem<T> *next;
 
-    ~AMI_bucket_list_elem() {};
+	    bucket_list_elem() : data(), next(0) {
+		//  No code in this constructor.
+	    };
+	    
+	    bucket_list_elem(const bucket_list_elem<T>& other) {
+		*this = other;
+	    }
 
-};
+	    bucket_list_elem<T>& operator=(const bucket_list_elem<T>& other) {
+		if (this != &other) {
+		    data = other.data;
+		    next = other.next;
+		}
+		return *this;
+	    }
 
+	    ~bucket_list_elem() {
+		//  No code in this destructor.
+	    };
+
+	};
+
+    }  //  ami namespace
+
+}  //  tpie namespace
+	
 #endif
 
-
-
-template<class T>
-AMI_err _AMI_MM_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
-                                AMI_STREAM<T> &outstream,
-                                const key_range &range);
-
-
-template<class T>
-AMI_err _AMI_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
-                             AMI_STREAM<T> &outstream,
-                             const key_range &range)
-{
-    AMI_err ae;
-
-    // Memory sizes.
-    size_t sz_avail, sz_stream;
-    // Stream sizes.
-    TPIE_OS_OFFSET max_size, stream_len;
+namespace tpie {
     
-    // Check whether the problem fits in main memory.
+    namespace ami {
 
-    sz_avail = MM_manager.memory_available ();
+	template<class T>
+	err _MM_KB_SORT(KB_KEY)(stream<T> &instream,
+				stream<T> &outstream,
+				const key_range &range);
+	
+	
+	template<class T>
+	err _KB_SORT(KB_KEY)(stream<T> &instream,
+			     stream<T> &outstream,
+			     const key_range &range)
+	{
+	    err ae;
 
-    instream.main_memory_usage(&sz_stream, MM_STREAM_USAGE_MAXIMUM);
-
-    if (sz_avail < 4 * sz_stream) {
-        return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
-    }
-
-    // Account for the two name streams.
+	    // Memory sizes.
+	    size_t sz_avail, sz_stream;
+	    // Stream sizes.
+	    TPIE_OS_OFFSET max_size, stream_len;
     
-    sz_avail -= 2*sz_stream;
+	    // Check whether the problem fits in main memory.
+
+	    sz_avail = MM_manager.memory_available ();
+
+	    instream.main_memory_usage(&sz_stream, MM_STREAM_USAGE_MAXIMUM);
+
+	    if (sz_avail < 4 * sz_stream) {
+		return INSUFFICIENT_MAIN_MEMORY;
+	    }
+
+	    // Account for the two name streams.
     
-    // If it fits, simply read it, sort it, and write it.
-
-    stream_len = instream.stream_len();
-
-    if (sz_avail >= stream_len * (sizeof(T) + 
-                                  sizeof(AMI_bucket_list_elem<T> *) + 
-                                  sizeof(AMI_bucket_list_elem<T>))) {
-        return _AMI_MM_KB_SORT(KB_KEY)(instream, outstream, range);
-    }
-
-    // It did not fit, so we have to distribute it.
+	    sz_avail -= 2*sz_stream;
     
-    // Create streams of temporary file names.
-    AMI_STREAM<char> *name_stream, *name_stream2 = NULL;
+	    // If it fits, simply read it, sort it, and write it.
 
-    name_stream = new AMI_STREAM<char>;
+	    stream_len = instream.stream_len();
 
-    // Do the first level distribution.
+	    if (sz_avail >= stream_len * (sizeof(T) + 
+					  sizeof(bucket_list_elem<T> *) + 
+					  sizeof(bucket_list_elem<T>))) {
+		return _MM_KB_SORT(KB_KEY)(instream, outstream, range);
+	    }
 
-    ae = _AMI_KB_DIST(KB_KEY)(instream, *name_stream, range, max_size);
-
-    // Do the rest of the levels of distribution, continuing until all
-    // streams are small or have a single key and then, in a final
-    // iteration, sorting the streams internally and concatenating
-    // them.  In some bad cases we will end up with one or more large
-    // streams of all the same key, but these are detected and treated
-    // as small streams.
+	    // It did not fit, so we have to distribute it.
     
-    bool some_stream_is_large = ((max_size * 
-                                  (sizeof(T) + 4 +
-                                   sizeof(AMI_bucket_list_elem<T> *) + 
-                                   sizeof(AMI_bucket_list_elem<T>))) >
-                                  sz_avail);
+	    // Create streams of temporary file names.
+	    stream<char> *name_stream, *name_stream2 = NULL;
+
+	    name_stream = new stream<char>;
+
+	    // Do the first level distribution.
+
+	    ae = _KB_DIST(KB_KEY)(instream, *name_stream, range, max_size);
+
+	    // Do the rest of the levels of distribution, continuing until all
+	    // streams are small or have a single key and then, in a final
+	    // iteration, sorting the streams internally and concatenating
+	    // them.  In some bad cases we will end up with one or more large
+	    // streams of all the same key, but these are detected and treated
+	    // as small streams.
     
-    while (1) {
+	    bool some_stream_is_large = ((max_size * 
+					  (sizeof(T) + 4 +
+					   sizeof(bucket_list_elem<T> *) + 
+					   sizeof(bucket_list_elem<T>))) >
+					 sz_avail);
+    
+	    while (1) {
 
-        // Create a new stream of temporary stream names.
-        tp_assert(name_stream2 == NULL, "Non-null target name stream.");
-        name_stream2 = new AMI_STREAM<char>;       
+		// Create a new stream of temporary stream names.
+		tp_assert(name_stream2 == NULL, "Non-null target name stream.");
+		name_stream2 = new stream<char>;       
 
-        // Is this the last (special) iteration.
-        bool last_iteration = !some_stream_is_large;
+		// Is this the last (special) iteration.
+		bool last_iteration = !some_stream_is_large;
         
-        // We have not seen a large stream yet.
-        some_stream_is_large = false;
+		// We have not seen a large stream yet.
+		some_stream_is_large = false;
         
-        // Iterate over the streams by reading their names out of
-        // stream_name and recursing on each one.
+		// Iterate over the streams by reading their names out of
+		// stream_name and recursing on each one.
 
-        name_stream->seek(0);
+		name_stream->seek(0);
         
-        while (1) {
-            // The range of keys in the stream being read.
-            key_range stream_range;
-            char *pc_read;
-            char *pc;
-            char stream_name[255];
+		while (1) {
+		    // The range of keys in the stream being read.
+		    key_range stream_range;
+		    char *pc_read;
+		    char *pc;
+		    char stream_name[255];
             
-            // Read the next stream name.  We start by reading the
-            // first character and checking for an EOS condition
-            // indicating there are no more streams.
+		    // Read the next stream name.  We start by reading the
+		    // first character and checking for an EOS condition
+		    // indicating there are no more streams.
             
-            pc = stream_name;
-            ae = name_stream->read_item(&pc_read);
-            if (ae == AMI_ERROR_END_OF_STREAM) {
-                // We hit the end of the stream name stream, so we
-                // should break out of the while loop over the streams
-                // that are named.
-                break;
-            } else if (ae != AMI_ERROR_NO_ERROR) {
-                return ae;
-            }
-            *pc = *pc_read;
+		    pc = stream_name;
+		    ae = name_stream->read_item(&pc_read);
+		    if (ae == END_OF_STREAM) {
+			// We hit the end of the stream name stream, so we
+			// should break out of the while loop over the streams
+			// that are named.
+			break;
+		    } else if (ae != NO_ERROR) {
+			return ae;
+		    }
+		    *pc = *pc_read;
 
-            // Now loop to read the rest of the name.
+		    // Now loop to read the rest of the name.
 
-            while (*pc != '\0') {
-                ae = name_stream->read_item(&pc_read);
-                if (ae != AMI_ERROR_NO_ERROR) {
-                    return ae;
-                }
-                *(++pc) = *pc_read;
+		    while (*pc != '\0') {
+			ae = name_stream->read_item(&pc_read);
+			if (ae != NO_ERROR) {
+			    return ae;
+			}
+			*(++pc) = *pc_read;
 
-                tp_assert(pc < stream_name+254, "Read too far.");
-            } 
+			tp_assert(pc < stream_name+254, "Read too far.");
+		    } 
             
-            // Read its range.
-            {
-                TPIE_OS_OFFSET range_size = sizeof(stream_range);
-                ae = name_stream->read_array(reinterpret_cast<char*>(&stream_range),
-                                             &range_size);
-                if (ae != AMI_ERROR_NO_ERROR) {
-                    return ae;
-                }
-            }
+		    // Read its range.
+		    {
+			TPIE_OS_OFFSET range_size = sizeof(stream_range);
+			ae = name_stream->read_array(reinterpret_cast<char*>(&stream_range),
+						     &range_size);
+			if (ae != NO_ERROR) {
+			    return ae;
+			}
+		    }
             
-            // Read its length.
-            {
-                TPIE_OS_OFFSET length_size = sizeof(stream_len);
-                ae = name_stream->read_array(reinterpret_cast<char*>(&stream_len),
-                                             &length_size);
-                if (ae != AMI_ERROR_NO_ERROR) {
-                    return ae;
-                }            
-            }
+		    // Read its length.
+		    {
+			TPIE_OS_OFFSET length_size = sizeof(stream_len);
+			ae = name_stream->read_array(reinterpret_cast<char*>(&stream_len),
+						     &length_size);
+			if (ae != NO_ERROR) {
+			    return ae;
+			}            
+		    }
             
-            if (!last_iteration) {
-                if ((stream_len * (sizeof(T) + 4 +
-                                   sizeof(AMI_bucket_list_elem<T> *) + 
-                                   sizeof(AMI_bucket_list_elem<T>)) >
-                                   sz_avail) &&
-                    (stream_range.get_max() > stream_range.get_min() + 1)) {
+		    if (!last_iteration) {
+			if ((stream_len * (sizeof(T) + 4 +
+					   sizeof(bucket_list_elem<T> *) + 
+					   sizeof(bucket_list_elem<T>)) >
+			     sz_avail) &&
+			    (stream_range.get_max() > stream_range.get_min() + 1)) {
 
-                    // If it is too big but does not contain all the same key,
-                    // distribute it again.
+			    // If it is too big but does not contain all the same key,
+			    // distribute it again.
                 
-                    some_stream_is_large = true;
+			    some_stream_is_large = true;
                     
-                    AMI_STREAM<T> curr_stream(stream_name);
+			    stream<T> curr_stream(stream_name);
                 
-                    // We only need to read the intermediate stream once.
+			    // We only need to read the intermediate stream once.
 
-                    curr_stream.persist(PERSIST_READ_ONCE);
+			    curr_stream.persist(PERSIST_READ_ONCE);
                     
-                    ae = _AMI_KB_DIST(KB_KEY)(curr_stream, *name_stream2,
-                                              stream_range, max_size);
-                    if (ae != AMI_ERROR_NO_ERROR) {
-                        return ae;
-                    }
+			    ae = _KB_DIST(KB_KEY)(curr_stream, *name_stream2,
+						  stream_range, max_size);
+			    if (ae != NO_ERROR) {
+				return ae;
+			    }
 
-                } else {
+			} else {
 
-                    // It is either small or contains only a single
-                    // key, so just pass it without further
-                    // processing.
+			    // It is either small or contains only a single
+			    // key, so just pass it without further
+			    // processing.
                     
-                    // Write the name.
-                    ae = name_stream2->write_array(stream_name,
-                                                   strlen(stream_name) + 1);
-                    if (ae != AMI_ERROR_NO_ERROR) {
-                        return ae;
-                    }
+			    // Write the name.
+			    ae = name_stream2->write_array(stream_name,
+							   strlen(stream_name) + 1);
+			    if (ae != NO_ERROR) {
+				return ae;
+			    }
 
-                    // Write the range.
+			    // Write the range.
                     
-                    ae = name_stream2->write_array(reinterpret_cast<const char*>(&stream_range),
-                                                   sizeof(stream_range));
-                    if (ae != AMI_ERROR_NO_ERROR) {
-                        return ae;
-                    }
+			    ae = name_stream2->write_array(reinterpret_cast<const char*>(&stream_range),
+							   sizeof(stream_range));
+			    if (ae != NO_ERROR) {
+				return ae;
+			    }
                     
-                    // Write the length.
+			    // Write the length.
                     
-                    ae = name_stream2->write_array(reinterpret_cast<const char*>(&stream_len),
-                                                   sizeof(stream_len));
-                    if (ae != AMI_ERROR_NO_ERROR) {
-                        return ae;
-                    }    
+			    ae = name_stream2->write_array(reinterpret_cast<const char*>(&stream_len),
+							   sizeof(stream_len));
+			    if (ae != NO_ERROR) {
+				return ae;
+			    }    
                     
-                }
+			}
                 
-            } else {
-                // This is the last iteration.
+		    } else {
+			// This is the last iteration.
 
-                // Open the stream.
+			// Open the stream.
 
-                AMI_STREAM<T> curr_stream(stream_name);
+			stream<T> curr_stream(stream_name);
 
-                // We only need to read the intermediate stream once.
+			// We only need to read the intermediate stream once.
 
-                curr_stream.persist(PERSIST_READ_ONCE);
+			curr_stream.persist(PERSIST_READ_ONCE);
                     
-		// Check whether it is truly small or just all one key.
+			// Check whether it is truly small or just all one key.
                 
-                if (stream_range.get_min() == stream_range.get_max()) {
+			if (stream_range.get_min() == stream_range.get_max()) {
 
-                    // If it is all one key, simply concatenate it
-                    // onto the output.
+			    // If it is all one key, simply concatenate it
+			    // onto the output.
 
-                    T *pt;
+			    T *pt;
 
-                    while(1) {
-                        ae = curr_stream.read_item(&pt);
-                        if (ae == AMI_ERROR_END_OF_STREAM) {
-                            break;
-                        } else if (ae != AMI_ERROR_NO_ERROR) {
-                            return ae;
-                        }
-                        ae = outstream.write_item(*pt);
-                        if (ae != AMI_ERROR_NO_ERROR) {
-                            return ae;
-                        }
-                    }
+			    while(1) {
+				ae = curr_stream.read_item(&pt);
+				if (ae == END_OF_STREAM) {
+				    break;
+				} else if (ae != NO_ERROR) {
+				    return ae;
+				}
+				ae = outstream.write_item(*pt);
+				if (ae != NO_ERROR) {
+				    return ae;
+				}
+			    }
                     
-                } else {
+			} else {
 
-                    // Read the contents into main memory; sort them,
-                    // and write them out.
+			    // Read the contents into main memory; sort them,
+			    // and write them out.
                     
-                    ae = _AMI_MM_KB_SORT(KB_KEY)(curr_stream, outstream,
-                                                 stream_range);
-                    if (ae != AMI_ERROR_NO_ERROR) {
-                        return ae;
-                    }
-                }                
-            }
-        }
+			    ae = _MM_KB_SORT(KB_KEY)(curr_stream, outstream,
+						     stream_range);
+			    if (ae != NO_ERROR) {
+				return ae;
+			    }
+			}                
+		    }
+		}
         
-        // We just finished reading all named streams at the current
-        // level of recursion.  Now we want to set up for the next
-        // level.  To do this, we get rid of the names we just
-        // processed and replace them by the names we need to process
-        // next.  Of course, this is only done if we are not in the last
-        // iteration.
+		// We just finished reading all named streams at the current
+		// level of recursion.  Now we want to set up for the next
+		// level.  To do this, we get rid of the names we just
+		// processed and replace them by the names we need to process
+		// next.  Of course, this is only done if we are not in the last
+		// iteration.
         
-        delete name_stream;
+		delete name_stream;
 
-        if (!last_iteration) {
-            name_stream = name_stream2;
-            name_stream2 = NULL;
-        } else {
-            delete name_stream2;
-            break;
-        }
-    }
+		if (!last_iteration) {
+		    name_stream = name_stream2;
+		    name_stream2 = NULL;
+		} else {
+		    delete name_stream2;
+		    break;
+		}
+	    }
 
 
-    return AMI_ERROR_NO_ERROR;
-}
+	    return NO_ERROR;
+	}
 
 
 // Main memory key bucket sorting.
 
-template<class T>
-AMI_err _AMI_MM_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
-                                AMI_STREAM<T> &outstream,
+	template<class T>
+	err _MM_KB_SORT(KB_KEY)(stream<T> &instream,
+                                stream<T> &outstream,
                                 const key_range &range)
-{
-    AMI_err ae;
+	{
+	    err ae;
     
-    size_t sz_avail;
-    TPIE_OS_OFFSET stream_len;
+	    size_t sz_avail;
+	    TPIE_OS_OFFSET stream_len;
 
-    TPIE_OS_SIZE_T ii,jj;
+	    TPIE_OS_SIZE_T ii,jj;
     
-    // Check available main memory.
-    sz_avail = MM_manager.memory_available ();
+	    // Check available main memory.
+	    sz_avail = MM_manager.memory_available ();
     
-    // How long is the input stream?
-    stream_len = instream.stream_len();
+	    // How long is the input stream?
+	    stream_len = instream.stream_len();
 
-    // Verify that we have enough memory.
-    if (sz_avail < stream_len * (sizeof(T) +
-                                 sizeof(AMI_bucket_list_elem<T> *) + 
-                                 sizeof(AMI_bucket_list_elem<T>))) {
-        std::cerr << '\n' 
-	     << static_cast<TPIE_OS_LONGLONG>(sz_avail)
-	     << ' ' 
-	     << static_cast<TPIE_OS_LONGLONG>(stream_len)
-	     << '\n';
-        std::cerr << sizeof(T) 
-	     << ' ' 
-	     << sizeof(AMI_bucket_list_elem<T> *) 
-	     << ' ' << sizeof(AMI_bucket_list_elem<T>);
+	    // Verify that we have enough memory.
+	    if (sz_avail < stream_len * (sizeof(T) +
+					 sizeof(bucket_list_elem<T> *) + 
+					 sizeof(bucket_list_elem<T>))) {
+		std::cerr << '\n' 
+			  << static_cast<TPIE_OS_LONGLONG>(sz_avail)
+			  << ' ' 
+			  << static_cast<TPIE_OS_LONGLONG>(stream_len)
+			  << '\n';
+		std::cerr << sizeof(T) 
+			  << ' ' 
+			  << sizeof(bucket_list_elem<T> *) 
+			  << ' ' << sizeof(bucket_list_elem<T>);
 
-        return AMI_ERROR_INSUFFICIENT_MAIN_MEMORY;
-    }
+		return INSUFFICIENT_MAIN_MEMORY;
+	    }
     
-    // Allocate the space for the data and for the bucket list elements.
-    // We know that stream_len items fit in main memory, so it is safe to cast.
-    T *indata = new T[static_cast<TPIE_OS_SIZE_T>(stream_len)];
+	    // Allocate the space for the data and for the bucket list elements.
+	    // We know that stream_len items fit in main memory, so it is safe to cast.
+	    T *indata = new T[static_cast<TPIE_OS_SIZE_T>(stream_len)];
     
-    AMI_bucket_list_elem<T> **buckets =
-        new AMI_bucket_list_elem<T>*[static_cast<TPIE_OS_SIZE_T>(stream_len)];
+	    bucket_list_elem<T> **buckets =
+		new bucket_list_elem<T>*[static_cast<TPIE_OS_SIZE_T>(stream_len)];
 
-    AMI_bucket_list_elem<T> *list_space =
-        new AMI_bucket_list_elem<T>[static_cast<TPIE_OS_SIZE_T>(stream_len)];
+	    bucket_list_elem<T> *list_space =
+		new bucket_list_elem<T>[static_cast<TPIE_OS_SIZE_T>(stream_len)];
 
-    // Read the input stream.
+	    // Read the input stream.
 
-    instream.seek(0);
-    {
-        TPIE_OS_OFFSET sl2 = stream_len;
-        ae = instream.read_array(indata, &sl2);
-        if (ae != AMI_ERROR_NO_ERROR) {
-	    delete[] indata;
-	    delete[] buckets;
-	    delete[] list_space;
-            return ae;
-        }
-    }
+	    instream.seek(0);
+	    {
+		TPIE_OS_OFFSET sl2 = stream_len;
+		ae = instream.read_array(indata, &sl2);
+		if (ae != NO_ERROR) {
+		    delete[] indata;
+		    delete[] buckets;
+		    delete[] list_space;
+		    return ae;
+		}
+	    }
     
-    // Empty out the buckets.
+	    // Empty out the buckets.
 
-    for (ii = static_cast<TPIE_OS_SIZE_T>(stream_len); ii--; ) {
-        buckets[ii] = NULL;
-    }
+	    for (ii = static_cast<TPIE_OS_SIZE_T>(stream_len); ii--; ) {
+		buckets[ii] = NULL;
+	    }
     
-    // Scan the input, assigning each item to the appropriate bucket.
+	    // Scan the input, assigning each item to the appropriate bucket.
 
-    AMI_bucket_list_elem<T> *list_elem;
+	    bucket_list_elem<T> *list_elem;
     
-    unsigned int bucket_index_denom = static_cast<unsigned int>(((range.get_max() - range.get_min()) /
-                                       stream_len) + 1);
+	    unsigned int bucket_index_denom = static_cast<unsigned int>(((range.get_max() - range.get_min()) /
+									 stream_len) + 1);
 
-    if (!bucket_index_denom) {
-        bucket_index_denom = 1;
-    }
+	    if (!bucket_index_denom) {
+		bucket_index_denom = 1;
+	    }
 
-    for (ii = static_cast<TPIE_OS_SIZE_T>(stream_len), list_elem = list_space;
-         ii--; list_elem++ ) {
-        unsigned int bucket_index;
+	    for (ii = static_cast<TPIE_OS_SIZE_T>(stream_len), list_elem = list_space;
+		 ii--; list_elem++ ) {
+		unsigned int bucket_index;
 
-        bucket_index = (static_cast<unsigned int>(static_cast<KB_KEY>(indata[ii])) - range.get_min()) /
-            bucket_index_denom; 
+		bucket_index = (static_cast<unsigned int>(static_cast<KB_KEY>(indata[ii])) - range.get_min()) /
+		    bucket_index_denom; 
 
-        tp_assert(bucket_index < static_cast<unsigned long>(stream_len), "Bucket index too large.");
+		tp_assert(bucket_index < static_cast<unsigned long>(stream_len), "Bucket index too large.");
         
-        list_elem->data = indata[ii];
-        list_elem->next = buckets[bucket_index];
-        buckets[bucket_index] = list_elem;
-    }
+		list_elem->data = indata[ii];
+		list_elem->next = buckets[bucket_index];
+		buckets[bucket_index] = list_elem;
+	    }
 
-    tp_assert(list_elem == list_space + stream_len,
-              "Didn't use the right number of list elements.");
+	    tp_assert(list_elem == list_space + stream_len,
+		      "Didn't use the right number of list elements.");
 
     
-    // Scan the buckets to put the data back in the input array.  In
-    // order to make the sort stable, we have to be sure to read the
-    // lists corresponding to the buckets in the correct order.  The
-    // elements that appeared earlier in the orginal data were written
-    // later (i.e. towards the front of the lists) so we should
-    // rebuild the data array from the 0th element upwards.
+	    // Scan the buckets to put the data back in the input array.  In
+	    // order to make the sort stable, we have to be sure to read the
+	    // lists corresponding to the buckets in the correct order.  The
+	    // elements that appeared earlier in the orginal data were written
+	    // later (i.e. towards the front of the lists) so we should
+	    // rebuild the data array from the 0th element upwards.
     
 #define VERIFY_OCCUPANCY 0
 #if VERIFY_OCCUPANCY
-        unsigned int max_occupancy = 0;
-        unsigned int buckets_occupied = 0;
+	    unsigned int max_occupancy = 0;
+	    unsigned int buckets_occupied = 0;
 #endif        
-	for (ii = 0, jj = 0; ii < static_cast<TPIE_OS_SIZE_T>(stream_len); ii++) {
+	    for (ii = 0, jj = 0; ii < static_cast<TPIE_OS_SIZE_T>(stream_len); ii++) {
 #if VERIFY_OCCUPANCY
-        unsigned int cur_occupancy = 0;
+		unsigned int cur_occupancy = 0;
 #endif        
-        for (list_elem = buckets[ii]; list_elem != NULL;
-                                      list_elem = list_elem->next) {
+		for (list_elem = buckets[ii]; list_elem != NULL;
+		     list_elem = list_elem->next) {
 #if VERIFY_OCCUPANCY
-            cur_occupancy++;
+		    cur_occupancy++;
 #endif                    
-            indata[jj++] = list_elem->data; 
-        }
+		    indata[jj++] = list_elem->data; 
+		}
 #if VERIFY_OCCUPANCY
-        if (cur_occupancy > max_occupancy) {
-            max_occupancy = cur_occupancy;
-        }
-        if (cur_occupancy != 0) {
-            buckets_occupied++;
-        }
+		if (cur_occupancy > max_occupancy) {
+		    max_occupancy = cur_occupancy;
+		}
+		if (cur_occupancy != 0) {
+		    buckets_occupied++;
+		}
 #endif                    
-    }
+	    }
     
 #if VERIFY_OCCUPANCY
-    std::cerr << "Max occupancy = " << max_occupancy << '\n';
-    std::cerr << "Buckets occupied = " << buckets_occupied << '\n';
-    std::cerr << "Stream length = " << stream_len << '\n';
+	    std::cerr << "Max occupancy = " << max_occupancy << '\n';
+	    std::cerr << "Buckets occupied = " << buckets_occupied << '\n';
+	    std::cerr << "Stream length = " << stream_len << '\n';
 #endif
     
-    // Do an insertion sort across the whole data set.
+	    // Do an insertion sort across the whole data set.
 
-    {
-        T *p, *q, test;
+	    {
+		T *p, *q, test;
 
-        for (p = indata + 1; p < indata + stream_len; p++) {
-            for (q = p - 1, test = *p;
-                 (q >= indata) && (KB_KEY(*q) > KB_KEY(test)); q--) {
-                *(q+1) = *q;
-            }
-            *(q+1) = test;
-        }
-    }
+		for (p = indata + 1; p < indata + stream_len; p++) {
+		    for (q = p - 1, test = *p;
+			 (q >= indata) && (KB_KEY(*q) > KB_KEY(test)); q--) {
+			*(q+1) = *q;
+		    }
+		    *(q+1) = test;
+		}
+	    }
     
-    // Write the results.
+	    // Write the results.
 
-    ae = outstream.write_array(indata, stream_len);
-    if (ae != AMI_ERROR_NO_ERROR) {
-	delete [] indata;
-	delete [] buckets;
-	delete [] list_space;
-        return ae;
-    }    
+	    ae = outstream.write_array(indata, stream_len);
+	    if (ae != NO_ERROR) {
+		delete [] indata;
+		delete [] buckets;
+		delete [] list_space;
+		return ae;
+	    }    
 
-    delete [] indata;
-    delete [] buckets;
-    delete [] list_space;
+	    delete [] indata;
+	    delete [] buckets;
+	    delete [] list_space;
     
-    return AMI_ERROR_NO_ERROR;
-}
+	    return NO_ERROR;
+	}
 
 #ifdef _HAVE_TEMP_KB_KEY_DEFINITION_
 #undef _HAVE_TEMP_KB_KEY_DEFINITION_
@@ -531,9 +562,12 @@ AMI_err _AMI_MM_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
 #ifdef _KB_CONCAT
 #undef _KB_CONCAT
 #endif
-#undef _AMI_KB_SORT
-#undef _AMI_KB_MM_SORT
-#undef _AMI_KB_MM_DIST
+#undef _KB_SORT
+#undef _KB_MM_SORT
+#undef _KB_MM_DIST
 
+    }  //   ami namespace
+
+}  //  tpie namespace
 
 #endif // !(defined(_AMI_KB_SORT_H)) || defined(KB_KEY)
