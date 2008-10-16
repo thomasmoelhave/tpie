@@ -501,7 +501,7 @@ public:
 
 
 template<class coord_t, TPIE_OS_SIZE_T dim>
-ostream &operator<<(ostream& s, const kdb_item_t<coord_t, dim>& ki) {
+std::ostream &operator<<(std::ostream& s, const kdb_item_t<coord_t, dim>& ki) {
   s << "[";
   for (TPIE_OS_SIZE_T i = 0; i < dim; i++) {
     if (ki.region.is_bounded_lo(i))

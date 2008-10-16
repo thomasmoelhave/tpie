@@ -107,13 +107,13 @@ int main(int argc, char **argv)
     parse_args(argc, argv, app_opts, parse_app_opts);
 
     if (verbose) {
-      cout << "test_size = " << test_size << "." << endl;
-      cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << endl;
-      cout << "random_seed = " << random_seed << "." << endl;
-      cout << "density = " << density << "." << endl;
-      cout << "Call mult directly = " << call_mult << "." << endl;
+      std::cout << "test_size = " << test_size << "." << std::endl;
+      std::cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << std::endl;
+      std::cout << "random_seed = " << random_seed << "." << std::endl;
+      std::cout << "density = " << density << "." << std::endl;
+      std::cout << "Call mult directly = " << call_mult << "." << std::endl;
     } else {
-        cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << random_seed;
+        std::cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << random_seed;
     }
     
     // Set the amount of main memory:
@@ -135,33 +135,33 @@ int main(int argc, char **argv)
 
     // Streams for reporting values to ascii streams.
     
-    ofstream *osc;
-    ofstream *osi;
-    ofstream *osf;
+    std::ofstream *osc;
+    std::ofstream *osi;
+    std::ofstream *osf;
     cxx_ostream_scan< AMI_sm_elem<double> > *rptc = NULL;
     cxx_ostream_scan< AMI_sm_elem<double> > *rpti = NULL;
     cxx_ostream_scan<double> *rptf = NULL;
 
-    istream *isb;
+    std::istream *isb;
     cxx_istream_scan<AMI_sm_elem<double> > *readb = NULL;    
     
     if (report_results_count) {
-        osc = new ofstream(count_results_filename);
+        osc = new std::ofstream(count_results_filename);
         rptc = new cxx_ostream_scan< AMI_sm_elem<double> >(osc);
     }
 
     if (read_banded_matrix) {
-        isb = new ifstream(banded_read_filename);
+        isb = new std::ifstream(banded_read_filename);
         readb = new cxx_istream_scan<AMI_sm_elem<double> >(isb);
     }
     
     if (report_results_intermediate) {
-        osi = new ofstream(intermediate_results_filename);
+        osi = new std::ofstream(intermediate_results_filename);
         rpti = new cxx_ostream_scan< AMI_sm_elem<double> >(osi);
     }
     
     if (report_results_final) {
-        osf = new ofstream(final_results_filename);
+        osf = new std::ofstream(final_results_filename);
         rptf = new cxx_ostream_scan<double>(osf);
     }
     
@@ -202,8 +202,8 @@ int main(int argc, char **argv)
             cput1.start();
 
             if (verbose) {
-                cout << "Reading banded matrix from \""
-		     << banded_read_filename << "\"" << endl;
+                std::cout << "Reading banded matrix from \""
+		     << banded_read_filename << "\"" << std::endl;
             }
 
             // Read in the banded order matrix from an input file.            
@@ -220,12 +220,12 @@ int main(int argc, char **argv)
 
             cput1.stop();
 
-            cout << cput1 << endl;
+            std::cout << cput1 << std::endl;
             
         } else {
 
             if (verbose) {
-	      cout << "Generating banded matrix." << endl;
+	      std::cout << "Generating banded matrix." << std::endl;
             }
 
             cput0.reset();
@@ -241,7 +241,7 @@ int main(int argc, char **argv)
 
             cput0.stop();
 
-            cout << cput0 << endl;
+            std::cout << cput0 << std::endl;
             
         }
         
@@ -250,7 +250,7 @@ int main(int argc, char **argv)
 		 << ' ' 
 		 << test_size 
 		 << ' '
-                 << static_cast<TPIE_OS_OUTPUT_SIZE_T>(rows_per_band) << endl;
+                 << static_cast<TPIE_OS_OUTPUT_SIZE_T>(rows_per_band) << std::endl;
             ae = AMI_scan(&esm0b, rpti);
         }
 
@@ -266,14 +266,14 @@ int main(int argc, char **argv)
 
         if (read_banded_matrix) {
             cput1.stop();
-            cout << cput1 << endl;
+            std::cout << cput1 << std::endl;
         }
                 
     }
     
     if (verbose) {
-      cout << "Multiplied them." << endl;
-        cout << "Stream length = " << ev1.stream_len() << endl;
+      std::cout << "Multiplied them." << std::endl;
+        std::cout << "Stream length = " << ev1.stream_len() << std::endl;
     }
     
     if (report_results_final) {

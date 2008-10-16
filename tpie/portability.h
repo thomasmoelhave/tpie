@@ -64,7 +64,6 @@
 #include <fstream.h>
 #else
 #include <fstream>
-using namespace std;
 #endif
 #else
 #include <fstream>
@@ -87,26 +86,6 @@ using namespace std;
 #include <vector>
 #include <queue>
 #include <list>
-
-#ifdef _WIN32
-#if (_MSC_VER < 1300) && !defined(__MINGW32__)
-using std::ostringstream;
-using std::istringstream;
-using std::stack;
-using std::pair;
-using std::less;
-using std::lower_bound;
-using std::upper_bound;
-using std::unique;
-using std::sort;
-using std::vector;
-using std::list;
-using std::queue;
-using std::priority_queue;
-#endif
-#else
-using namespace std;
-#endif
 
 // Get class tms or time_t //
 #ifdef _WIN32
@@ -221,7 +200,7 @@ typedef off_t TPIE_OS_OFFSET;
 //of printing 64 bit integers
 //printf doesn't work either with %d, use %I64d in Win32
 #if (_MSC_VER < 1300) && !defined(__MINGW32__)
-extern ostream& operator<<(ostream& s, const TPIE_OS_OFFSET x);
+extern std::ostream& operator<<(std::ostream& s, const TPIE_OS_OFFSET x);
 #endif
 #endif
 
@@ -1067,7 +1046,7 @@ void * operator new(\
        TP_LOG_FATAL(" exceeds user-defined limit ");\
        TP_LOG_FATAL((TPIE_OS_LONG)(MM_manager.memory_limit()));\
        TP_LOG_FATAL(" ");\
-        cerr << "memory manager: memory allocation limit " << (TPIE_OS_LONG)MM_manager.memory_limit() << " exceeded while allocating " << (TPIE_OS_LONG)cb << " bytes" << endl;\
+        std::cerr << "memory manager: memory allocation limit " << (TPIE_OS_LONG)MM_manager.memory_limit() << " exceeded while allocating " << (TPIE_OS_LONG)cb << " bytes" << endl;\
         exit(1);\
         break;\
     case MM_WARN_ON_MEMORY_EXCEEDED: \
@@ -1079,7 +1058,7 @@ void * operator new(\
       TP_LOG_WARNING((TPIE_OS_LONG)(MM_manager.memory_limit ()));\
       TP_LOG_WARNING("\" \n");\
       TP_LOG_FLUSH_LOG;\
-       cerr << "memory manager: memory allocation limit " << (TPIE_OS_LONG)MM_manager.memory_limit () << " exceeded " << "while allocating " << (TPIE_OS_LONG)cb << " bytes" << endl;\
+       std::cerr << "memory manager: memory allocation limit " << (TPIE_OS_LONG)MM_manager.memory_limit () << " exceeded " << "while allocating " << (TPIE_OS_LONG)cb << " bytes" << endl;\
        break;\
    case MM_IGNORE_MEMORY_EXCEEDED:\
        break;\
@@ -1089,7 +1068,7 @@ void * operator new(\
    if (!p) {\
       TP_LOG_FATAL_ID("Out of memory. Cannot continue.");\
       TP_LOG_FLUSH_LOG;\
-       cerr << "out of memory while allocating " << (TPIE_OS_LONG)cb << " bytes" << endl;\
+       std::cerr << "out of memory while allocating " << (TPIE_OS_LONG)cb << " bytes" << endl;\
        perror ("mm_base::new malloc");\
        assert(0);\
        exit (1);\

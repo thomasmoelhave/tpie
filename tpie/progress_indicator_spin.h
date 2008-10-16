@@ -95,7 +95,7 @@ namespace tpie {
 	    if (m_current == m_maxRange) m_state = m_numberOfStates;
 
 	    //  Go to the beginning of the line and print the description.
-	    cout << "\r" << m_description << " " << m_symbols[m_state] << flush;
+	    std::cout << "\r" << m_description << " " << m_symbols[m_state] << flush;
 	
 	}
 

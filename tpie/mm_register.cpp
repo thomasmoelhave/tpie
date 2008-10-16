@@ -74,7 +74,7 @@ MM_err MM_register::register_allocation(TPIE_OS_SIZE_T request)
 
 #ifdef REPORT_LARGE_MEMOPS
 	if(request > user_limit/10) {
-	  cerr << "MEM alloc " << request
+	  std::cerr << "MEM alloc " << request
 		   << " (" << remaining << " remaining)" << endl;
 	}
 #endif
@@ -114,7 +114,7 @@ MM_err MM_register::register_deallocation(TPIE_OS_SIZE_T sz)
     
 #ifdef REPORT_LARGE_MEMOPS
 	if(sz > user_limit/10) {
-	  cerr << "MEM free " << sz 
+	  std::cerr << "MEM free " << sz 
 		   << " (" << remaining << " remaining)" << endl;
 	}
 #endif

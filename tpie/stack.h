@@ -171,7 +171,7 @@ public:
 
     //  This should go as soon as all old code has been migrated.
     TPIE_OS_OFFSET stream_len() const {
-	cerr << "Using AMI_stack<T>::stream_len() is deprecated." << endl;
+	std::cerr << "Using AMI_stack<T>::stream_len() is deprecated." << std::endl;
 	return m_size;
     }
 

@@ -967,13 +967,13 @@ bool AMI_KDBTREE::split_leaf_and_insert(const STACK_ITEM& top, AMI_KDBTREE_LEAF*
   POINT sp = bl->el[med];
 
   if (med + 1 >= bl->size()) {
-    cerr << "\nbl->bid()=" << bl->bid() << ", bl->size()=" << static_cast<TPIE_OS_OUTPUT_SIZE_T>(bl->size()) 
+    std::cerr << "\nbl->bid()=" << bl->bid() << ", bl->size()=" << static_cast<TPIE_OS_OUTPUT_SIZE_T>(bl->size()) 
 		<< ", med=" << static_cast<TPIE_OS_OUTPUT_SIZE_T>(med) << "\n";
-    cerr << "bl: ";
+    std::cerr << "bl: ";
     for (TPIE_OS_SIZE_T i = 0; i < bl->size(); i++) {
-      cerr << "[" << bl->el[i][0] << "," << bl->el[i][1] << "] ";
+      std::cerr << "[" << bl->el[i][0] << "," << bl->el[i][1] << "] ";
     }
-    cerr << "\n";
+    std::cerr << "\n";
   }
   assert(med + 1 < bl->size());
   bl_hi->size() = bl->size() - (med + 1); // the size of bl_hi

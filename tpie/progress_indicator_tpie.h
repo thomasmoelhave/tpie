@@ -109,7 +109,7 @@ namespace tpie {
 	    //  Make sure that the first item gets printed.
 	    if (progress == 0) progress = 1;
 	    
-	    //  Only print stuff to cout if the indicator needs to be updated.
+	    //  Only print stuff to std::cout if the indicator needs to be updated.
 	    if (progress > m_progress) {
 		
 		//  Don't print the last item.
@@ -119,11 +119,11 @@ namespace tpie {
 		cout << "\r" << m_description << " [t";
 		
 		//  Extend the e's.
-		for(TPIE_OS_OFFSET i = 0; i < progress; i++) cout << "e";
+		for(TPIE_OS_OFFSET i = 0; i < progress; i++) std::cout << "e";
 		cout << "pie";
 		
 		//  Print blank space.
-		for(TPIE_OS_OFFSET i = progress+1; i < m_indicatorLength; i++) cout << " ";
+		for(TPIE_OS_OFFSET i = progress+1; i < m_indicatorLength; i++) std::cout << " ";
 		cout << "] ";
 		
 		//  Print either a percentage sign or the maximum range.

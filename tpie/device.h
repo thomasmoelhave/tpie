@@ -17,7 +17,7 @@
 #include <err.h>
 
 class AMI_device {
-    friend ostream &operator<<(ostream &os, const AMI_device &dev);
+    friend std::ostream &operator<<(std::ostream &os, const AMI_device &dev);
 private:
     void dispose_contents();
 protected:
@@ -36,7 +36,7 @@ public:
 };
 
 // Output operator
-ostream &operator<<(ostream &os, const AMI_device &dev);
+std::ostream &operator<<(std::ostream &os, const AMI_device &dev);
 
 #endif // _AMI_DEVICE_H 
 

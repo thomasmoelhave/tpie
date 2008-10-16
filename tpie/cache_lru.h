@@ -24,7 +24,7 @@ namespace tpie {
 	    
 	protected:	    
 
-	    typedef pair<TPIE_OS_OFFSET,T> item_type_;
+	    typedef std::pair<TPIE_OS_OFFSET,T> item_type_;
 	    
 	    // The array of items.
 	    item_type_ * pdata_;

@@ -80,11 +80,11 @@ int main(int argc, char **argv)
     test_size = 1 << number_of_bits;
     
     if (verbose) {
-      cout << "test_size = " << test_size << "." << endl;
-      cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << endl;
-      cout << "random_seed = " << random_seed << "." << endl;
+      std::cout << "test_size = " << test_size << "." << std::endl;
+      std::cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << std::endl;
+      std::cout << "random_seed = " << random_seed << "." << std::endl;
     } else {
-        cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << random_seed;
+        std::cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << random_seed;
     }
 
     TPIE_OS_SRANDOM(random_seed);
@@ -97,19 +97,19 @@ int main(int argc, char **argv)
 
     // Streams for reporting values to ascii streams.
     
-    ofstream *osi;
+    std::ofstream *osi;
     cxx_ostream_scan<TPIE_OS_OFFSET> *rpti = NULL;
 
-    ofstream *osf;
+    std::ofstream *osf;
     cxx_ostream_scan<TPIE_OS_OFFSET> *rptf = NULL;
 
     if (report_results_initial) {
-        osi = new ofstream(initial_results_filename);
+        osi = new std::ofstream(initial_results_filename);
         rpti = new cxx_ostream_scan<TPIE_OS_OFFSET>(osi);
     }
 
     if (report_results_final) {
-        osf = new ofstream(final_results_filename);
+        osf = new std::ofstream(final_results_filename);
         rptf = new cxx_ostream_scan<TPIE_OS_OFFSET>(osf);
     }
 
@@ -118,7 +118,7 @@ int main(int argc, char **argv)
     ae = AMI_scan(&my_scan_count, &amis0);
 
     if (verbose) {
-        cout << "Initial stream length = " << amis0.stream_len() << endl;
+        std::cout << "Initial stream length = " << amis0.stream_len() << std::endl;
     }
     
     if (report_results_initial) {
@@ -142,8 +142,8 @@ int main(int argc, char **argv)
     }
 
     if (verbose) {
-        cout << "A = " << A << endl;
-        cout << "c = " << c << endl;
+        std::cout << "A = " << A << std::endl;
+        std::cout << "c = " << c << std::endl;
     }
     
     AMI_bit_perm_object bpo(A, c);
@@ -151,11 +151,11 @@ int main(int argc, char **argv)
     ae = AMI_BMMC_permute(&amis0, &amis1, &bpo);
 
     if (verbose) {
-        cout << "After permutation, stream length = " 
+        std::cout << "After permutation, stream length = " 
 	     << amis1.stream_len();
     }
 
-    cout << endl;
+    std::cout << std::endl;
 
     if (report_results_final) {
         ae = AMI_scan(&amis1, rptf);

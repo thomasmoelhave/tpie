@@ -79,11 +79,11 @@ int main(int argc, char **argv)
     parse_args(argc, argv, app_opts, parse_app_opts);
 
     if (verbose) {
-      cout << "test_size = " << test_size << "." << endl;
-      cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << endl;
-      cout << "random_seed = " << random_seed << "." << endl;
+      std::cout << "test_size = " << test_size << "." << std::endl;
+      std::cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << std::endl;
+      std::cout << "random_seed = " << random_seed << "." << std::endl;
     } else {
-        cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ';
+        std::cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ';
     }
     
     // Set the amount of main memory:
@@ -97,25 +97,25 @@ int main(int argc, char **argv)
         
     // Streams for reporting values to ascii streams.
     
-    ofstream *osc;
-    ofstream *osi;
-    ofstream *osf;
+    std::ofstream *osc;
+    std::ofstream *osi;
+    std::ofstream *osf;
     cxx_ostream_scan<double> *rptc = NULL;
     cxx_ostream_scan<double> *rpti = NULL;
     cxx_ostream_scan<double> *rptf = NULL;
     
     if (report_results_count) {
-        osc = new ofstream(count_results_filename);
+        osc = new std::ofstream(count_results_filename);
         rptc = new cxx_ostream_scan<double>(osc);
     }
     
     if (report_results_intermediate) {
-        osi = new ofstream(intermediate_results_filename);
+        osi = new std::ofstream(intermediate_results_filename);
         rpti = new cxx_ostream_scan<double>(osi);
     }
     
     if (report_results_final) {
-        osf = new ofstream(final_results_filename);
+        osf = new std::ofstream(final_results_filename);
         rptf = new cxx_ostream_scan<double>(osf);
     }
 
@@ -128,12 +128,12 @@ int main(int argc, char **argv)
         ae = AMI_matrix_fill(&em0, &fut);
 
         if (verbose) {
-	  cout << "Wrote the initial sequence of values." << endl;
+	  std::cout << "Wrote the initial sequence of values." << std::endl;
         }
         
         if (report_results_count) {
             ae = AMI_scan(&em0, rptc);
-            cout << "Stream length = " << em0.stream_len() << endl;
+            std::cout << "Stream length = " << em0.stream_len() << std::endl;
         }
     }
 
@@ -141,8 +141,8 @@ int main(int argc, char **argv)
         ae = AMI_matrix_fill(&em1, &fut);
 
         if (verbose) {
-	  cout << "Wrote the second sequence of values." << endl;
-            cout << "Stream length = " << em1.stream_len() << endl;
+	  std::cout << "Wrote the second sequence of values." << std::endl;
+            std::cout << "Stream length = " << em1.stream_len() << std::endl;
         }
         
         if (report_results_intermediate) {
@@ -162,11 +162,11 @@ int main(int argc, char **argv)
 
     cput.stop();
 
-    cout << cput << '\n';
+    std::cout << cput << '\n';
     
     if (verbose) {
-      cout << "Multiplied them." << endl;
-        cout << "Stream length = " << em2.stream_len() << endl;
+      std::cout << "Multiplied them." << std::endl;
+        std::cout << "Stream length = " << em2.stream_len() << std::endl;
     }
     
     if (report_results_final) {

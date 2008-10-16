@@ -12,6 +12,7 @@
 
 // Get definitions for working with Unix and Windows
 #include <portability.h>
+#include <iostream>
 #include <tpie_log.h>
 
 #if DEBUG_ASSERTIONS
@@ -20,7 +21,7 @@
   if (!(condition)) { \
    TP_LOG_FATAL_ID("Assertion failed:"); \
    TP_LOG_FATAL_ID(message); \
-    cerr << "Assertion failed: " << message << "\n"; \
+    std::cerr << "Assertion failed: " << message << "\n"; \
     assert(condition); \
   } \
 }

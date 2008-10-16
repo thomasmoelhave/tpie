@@ -158,7 +158,7 @@ AMI_err AMI_device::read_environment(const char *name)
 
 
 // Output of a device description:
-ostream &operator<<(ostream &os, const AMI_device &dev)
+std::ostream &operator<<(std::ostream &os, const AMI_device &dev)
 {
     unsigned int ii;
 

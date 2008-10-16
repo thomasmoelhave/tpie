@@ -57,9 +57,9 @@ char *tpie_tempnam(const char *base, const char* dir, const char* ext) {
 		}
 	}
 	
-	cout << base_dir << " " << basename << " " << extension << endl;
+	std::cout << base_dir << " " << basename << " " << extension << std::endl;
 	sprintf(tmp_path, TPIE_OS_TEMPNAMESTR, base_dir, basename, extension);
-	cout << tmp_path << endl;
+	std::cout << tmp_path << std::endl;
 
 	return tpie_mktemp(tmp_path, extension);    
 }

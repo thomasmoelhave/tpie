@@ -148,9 +148,9 @@ public:
 
   // Print out some stuff about the tree structure. For debugging
   // purposes only.
-  void print(ostream& s);
+  void print(std::ostream& s);
   // Print the BINARY kd-tree indented.
-  void print(ostream& s, bool print_mbr, bool print_level, char indent_char = ' ');
+  void print(std::ostream& s, bool print_mbr, bool print_level, char indent_char = ' ');
 
   // Inquire the base path name.
   const string& name() const { return name_; }
@@ -864,10 +864,10 @@ protected:
       
       // Eliminate duplicates.
       if ((new_last = unique(offsets, offsets + sz)) != offsets + sz) {
-	cerr << "    Warning: Duplicate samples found! Decreasing sample size accordingly.\n";
+	std::cerr << "    Warning: Duplicate samples found! Decreasing sample size accordingly.\n";
 	// Adjust sample size sz.
 	sz = new_last - offsets;
-	cerr << "    New sample size: " << (TPIE_OS_OFFSET)sz << "\n";
+	std::cerr << "    New sample size: " << (TPIE_OS_OFFSET)sz << "\n";
       }
       
       // Make space for one in-memory array (more later).
@@ -1133,7 +1133,7 @@ class AMI_kdtree_node: public AMI_block<Bin_node, _AMI_kdtree_node_info, BTECOLL
 ///////////////     ***Implementation***    ////////////////
 ////////////////////////////////////////////////////////////
 
-#define DBG(msg)      cerr << msg << flush
+#define DBG(msg)      std::cerr << msg << flush
 
 // Shortcuts for my convenience.
 #define AMI_KDTREE_LEAF  AMI_kdtree_leaf<coord_t, dim, BTECOLL>
@@ -1147,7 +1147,7 @@ class AMI_kdtree_node: public AMI_block<Bin_node, _AMI_kdtree_node_info, BTECOLL
 #define MEMDISPLAY_INIT  
 //cout<<"Avail. memory:      "<<flush;
 #define MEMDISPLAY 
-//cout<<"\b\b\b\b\b"; cout.setf(ios::showpoint); cout.setf(ios::fixed);cout.width(4); cout.precision(1); cout<<MEM_AVAIL<<"%"<<flush;
+//cout<<"\b\b\b\b\b"; std::cout.setf(ios::showpoint); std::cout.setf(ios::fixed);cout.width(4); std::cout.precision(1); std::cout<<MEM_AVAIL<<"%"<<flush;
 #define MEMDISPLAY_DONE 
 //cout << "\n";
 
@@ -2146,10 +2146,10 @@ void AMI_KDTREE::build_lower_tree_g(grid* g) {
       gc->streams[i] = new POINT_STREAM(gc->stream_names[i]);
       gc->streams[i]->persist(PERSIST_DELETE);
       if (gc->streams[i]->status() == AMI_STREAM_STATUS_INVALID) {
-	cerr << "AMI_kdtree bulk loading internal error.\n" 
+	std::cerr << "AMI_kdtree bulk loading internal error.\n" 
 	     << "[invalid stream restored from file "
 	     << gc->stream_names[i] << "].\n";
-	cerr << "Aborting.\n";
+	std::cerr << "Aborting.\n";
 	delete gc->streams[i];
 	exit(1);
       }
@@ -2615,7 +2615,7 @@ AMI_err AMI_KDTREE::load_sample(POINT_STREAM* s) {
   if (header_.size <= params_.leaf_size_max) {
 
     header_.root_type = BLOCK_LEAF;
-    cerr << "Size too small. Not implemented.\n";
+    std::cerr << "Size too small. Not implemented.\n";
     err = AMI_ERROR_GENERIC_ERROR;
     //    create_leaf(header_.root_bid, 0, s);
 
@@ -2699,7 +2699,7 @@ TPIE_OS_OFFSET AMI_KDTREE::k_nn_query(const POINT &p,
     return result;
   }
 
-  cerr << "k_nn_query: NOT IMPLEMENTED YET!\n";
+  std::cerr << "k_nn_query: NOT IMPLEMENTED YET!\n";
  TP_LOG_WARNING_ID("  k_nn_query: NOT IMPLEMENTED YET!");
   //  priority_queue<nn_pq_elem> q;
   //  nn_pq_elem cur((coord_t) 0, header_.root_bid, header_.root_type);
@@ -3054,7 +3054,7 @@ const tpie_stats_tree &AMI_KDTREE::stats() {
 
 //// *AMI_kdtree::print* ////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-void AMI_KDTREE::print(ostream& s) {
+void AMI_KDTREE::print(std::ostream& s) {
   s << "AMI_kdtree nodes: ";
   if (header_.root_type == BLOCK_NODE) {
     AMI_KDTREE_NODE* bn;
@@ -3123,7 +3123,7 @@ void AMI_KDTREE::print(ostream& s) {
 
 //// *AMI_kdtree::print* ////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-  void AMI_KDTREE::print(ostream& s, bool print_mbr, bool print_level, char indent_char) {
+  void AMI_KDTREE::print(std::ostream& s, bool print_mbr, bool print_level, char indent_char) {
 
 
   //  s << "AMI_kdtree nodes: ";
@@ -3341,9 +3341,9 @@ void AMI_KDTREE::build_lower_tree_s(sample* s) {
     sc->stream = new POINT_STREAM(sc->stream_name);
     sc->stream->persist(PERSIST_DELETE);
     if (!sc->stream->is_valid()) {
-      cerr << "AMI_kdtree bulk loading internal error.\n"
+      std::cerr << "AMI_kdtree bulk loading internal error.\n"
 	   << "[invalid stream restored from file]\n";
-      cerr << "Skipping.\n";
+      std::cerr << "Skipping.\n";
       delete sc->stream;
       sc->stream = NULL;
       continue;
@@ -3352,9 +3352,9 @@ void AMI_KDTREE::build_lower_tree_s(sample* s) {
     sc->stream_name = NULL;
 
     if (!can_do_mm(sc->stream->stream_len())) {
-      cerr << "Temp stream too big: " 
+      std::cerr << "Temp stream too big: " 
 	   << sc->stream->stream_len() << " items.\n";
-      cerr << "Aborting.\n";
+      std::cerr << "Aborting.\n";
       exit(1);
     }
     copy_to_mm(sc->stream, streams_mm, sz);

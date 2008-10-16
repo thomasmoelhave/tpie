@@ -14,9 +14,9 @@ logstream::logstream(const char *fname,
 		     unsigned int p,
 		     unsigned int tp) 
 #ifdef UNIFIED_LOGGING
-: ofstream(2), priority(p), threshold(tp) { log_initialized = true; } 
+: std::ofstream(2), priority(p), threshold(tp) { log_initialized = true; } 
 #else
-: ofstream(fname), priority(p), threshold(tp) { log_initialized = true; } 
+: std::ofstream(fname), priority(p), threshold(tp) { log_initialized = true; } 
 #endif
 
 bool logstream::log_initialized = false;
@@ -34,7 +34,7 @@ logstream::~logstream() {
 logstream& logstream::operator<<(const T x)		\
 {						       	\
     if (priority <= threshold) {		       	\
-	ofstream::operator<<(x);			\
+	std::ofstream::operator<<(x);			\
     }						       	\
     return *this;					\
 }

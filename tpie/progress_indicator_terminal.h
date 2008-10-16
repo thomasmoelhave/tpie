@@ -85,9 +85,9 @@ namespace tpie
 	    m_current = m_maxRange;
 	    refresh();
 	    if (!text.empty()) {
-		cout << " " << text;
+		std::cout << " " << text;
 	    }
-	    cout << endl;
+	    std::cout << std::endl;
 	}
 
 	////////////////////////////////////////////////////////////////////
@@ -160,7 +160,7 @@ namespace tpie
 	void set_title(const std::string& title) 
 	{
 	    m_title = title;
-	    cout << endl << title << endl;
+	    std::cout << std::endl << title << std::endl;
 	}
 
 	////////////////////////////////////////////////////////////////////
@@ -175,9 +175,9 @@ namespace tpie
 	void set_description(const std::string& description) 
 	{
 	    m_description = description;
-	    cout << "\r";
-	    for (int i = 0; i < 78; i++) cout << " ";
-	    cout << "\r" << description << flush;
+	    std::cout << "\r";
+	    for (int i = 0; i < 78; i++) std::cout << " ";
+	    std::cout << "\r" << description << std::flush;
 	}
 
 	////////////////////////////////////////////////////////////////////
@@ -187,9 +187,9 @@ namespace tpie
 	////////////////////////////////////////////////////////////////////
 
 	virtual void refresh() {
-	    cout << "\r" << m_description << " ";
+	    std::cout << "\r" << m_description << " ";
 	    display_percentage();
-	    cout << flush;
+	    std::cout << std::flush;
 	}
 
     protected:
@@ -204,13 +204,13 @@ namespace tpie
 	void display_percentage() 
 	{
 		if (m_percentageUnit) {
-			cout << setw(6) << setiosflags(ios::fixed) << setprecision(2) 
+			std::cout << std::setw(6) << std::setiosflags(std::ios::fixed) << std::setprecision(2) 
 				 << ((static_cast<double>(m_current) * 100.0) / 
 					 static_cast<double>(m_percentageUnit))
 				 << "%";
 	    }
 	    else {
-			cout << m_current << "/" << m_maxRange-m_minRange;
+			std::cout << m_current << "/" << m_maxRange-m_minRange;
 	    }
 	}
 

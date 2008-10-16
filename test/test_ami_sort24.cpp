@@ -137,11 +137,11 @@ int main(int argc, char **argv)
     parse_args(argc, argv, app_opts, parse_app_opts);
 
     if (verbose) {
-      cout << "test_size = " << test_size << "." << endl;
-      cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << endl;
-      cout << "random_seed = " << random_seed << "." << endl;
+      std::cout << "test_size = " << test_size << "." << std::endl;
+      std::cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << std::endl;
+      std::cout << "random_seed = " << random_seed << "." << std::endl;
     } else {
-        cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << random_seed << ' ';
+        std::cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << random_seed << ' ';
     }
     
     // Set the amount of main memory:
@@ -156,25 +156,25 @@ int main(int argc, char **argv)
     ae = AMI_scan(&rnds, &amis0);
 
     if (verbose) {
-      cout << "Wrote the random values." << endl;
-        cout << "Stream length = " << amis0.stream_len() << endl;
+      std::cout << "Wrote the random values." << std::endl;
+        std::cout << "Stream length = " << amis0.stream_len() << std::endl;
     }
 
     // Streams for reporting random vand/or sorted values to ascii
     // streams.
     
-    ofstream *oss;
+    std::ofstream *oss;
     cxx_ostream_scan<sort_obj> *rpts = NULL;
-    ofstream *osr;
+    std::ofstream *osr;
     cxx_ostream_scan<sort_obj> *rptr = NULL;
     
     if (report_results_random) {
-        osr = new ofstream(rand_results_filename);
+        osr = new std::ofstream(rand_results_filename);
         rptr = new cxx_ostream_scan<sort_obj>(osr);
     }
     
     if (report_results_sorted) {
-        oss = new ofstream(sorted_results_filename);
+        oss = new std::ofstream(sorted_results_filename);
         rpts = new cxx_ostream_scan<sort_obj>(oss);
     }
     
@@ -201,17 +201,17 @@ int main(int argc, char **argv)
     amis0.persist(PERSIST_DELETE);
     
     if (verbose) {
-      cout << "Sorted them." << endl;
-        cout << "ae = " << ae << endl;
-        cout << "Sorted stream length = " << amis1.stream_len() << endl;
+      std::cout << "Sorted them." << std::endl;
+        std::cout << "ae = " << ae << std::endl;
+        std::cout << "Sorted stream length = " << amis1.stream_len() << std::endl;
     }
 
-    cout << cput;
+    std::cout << cput;
     
     if (report_results_sorted) {
         ae = AMI_scan(&amis1, rpts);
     }
-    cout << endl;
+    std::cout << std::endl;
     
     return 0;
 }

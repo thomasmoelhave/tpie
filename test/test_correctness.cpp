@@ -533,12 +533,12 @@ int test_sort() {
 ////////////////////////////////////////////////////////
 
 // Define a << operator for pairs of ints.
-ostream& operator<<(ostream& os, const pair<int,int>& item) {
+std::ostream& operator<<(std::ostream& os, const std::pair<int,int>& item) {
     return os << item.first << " " << item.second << "\n";
 }
 
 // Define a << operator for pairs of ints.
-istream& operator>>(istream& is, pair<int,int>& item) {
+std::istream& operator>>(std::istream& is, std::pair<int,int>& item) {
     return is >> item.first >> item.second;
 }
 
@@ -548,7 +548,7 @@ int test_scan_cxx() {
     int failed = 0;
     AMI_err err;
     int i;
-    AMI_STREAM< pair<int,int> >* ts;
+    AMI_STREAM< std::pair<int,int> >* ts;
 
 	std::string fns = std::string(TMP_DIR) + "tpie00.stream";
 	std::string fnt0 = std::string(TMP_DIR) + "tpie00.txt";
@@ -568,7 +568,7 @@ int test_scan_cxx() {
 	{
 		unlink(fnt0.c_str());
 		unlink(fns.c_str());
-		ofstream xos;
+		std::ofstream xos;
 		xos.open(fnt0.c_str());
 		if (!xos) {
 			TP_LOG_APP_DEBUG_ID("Could not open C++ stream for writing to tpie00.txt");
@@ -585,14 +585,14 @@ int test_scan_cxx() {
 
     print_msg("Running AMI_scan with cxx_istream_scan", INDENT);
     if (status != SKIP) {
-	ifstream xis;    
+	std::ifstream xis;    
 	xis.open(fnt0.c_str());
 	if (!xis) {
 	    TP_LOG_APP_DEBUG_ID("Could not open C++ stream for reading from tpie00.txt");
 	    status = FAIL;
 	}
-	cxx_istream_scan< pair<int,int> > so(&xis);
-	ts = new AMI_STREAM< pair<int,int> >(fns);
+	cxx_istream_scan< std::pair<int,int> > so(&xis);
+	ts = new AMI_STREAM< std::pair<int,int> >(fns);
 	if (!ts->is_valid()) {
 	    TP_LOG_APP_DEBUG_ID("Could not open TPIE stream for writing in tpie00.stream");
 	    status = FAIL;
@@ -611,14 +611,14 @@ int test_scan_cxx() {
 
     print_msg("Running AMI_scan with cxx_ostream_scan", INDENT);
     if (status != SKIP) {
-	ofstream xos;
+	std::ofstream xos;
 	xos.open(fnt1.c_str());
 	if (!xos) {
 	    TP_LOG_APP_DEBUG_ID("Could not open C++ stream for writing to tpie01.txt");
 	    status = FAIL;
 	}
-	cxx_ostream_scan< pair<int,int> > so(&xos);
-	ts = new AMI_STREAM< pair<int,int> >(fns, AMI_READ_STREAM);
+	cxx_ostream_scan< std::pair<int,int> > so(&xos);
+	ts = new AMI_STREAM< std::pair<int,int> >(fns, AMI_READ_STREAM);
 	if (!ts->is_valid() || ts->stream_len() != 5000000) {
 	    TP_LOG_APP_DEBUG_ID("Error while re-opening stream from tpie00.stream");
 	    status = FAIL;
@@ -869,7 +869,7 @@ int test_large_files() {
 	status = (err == AMI_ERROR_NO_ERROR && s->stream_len() == myLargeNumber ? PASS: FAIL);
 	print_status(status); if (status == FAIL) failed++; 
 
-	cerr << "Writing data";
+	std::cerr << "Writing data";
 	err = s->seek(0);
 	TPIE_OS_OFFSET mbcount = 0;
 	TPIE_OS_OFFSET mbcount100 = 0;
@@ -881,18 +881,18 @@ int test_large_files() {
 		mbcount100++;
 		mbcount = 0;
 		if (mbcount100 == 100) {
-		    cerr << ".";
+		    std::cerr << ".";
 		    mbcount100 = 0;
 		    gbcount++;
 		    if (gbcount == 10) {
-			cerr << "|";
+			std::cerr << "|";
 			gbcount = 0;
 		    }
 		}
 	    }
 	}
 
-	cerr << endl;
+	std::cerr << std::endl;
 	status = (err == AMI_ERROR_NO_ERROR && s->stream_len() == myLargeNumber ? PASS: FAIL);
 	print_status(status); if (status == FAIL) failed++; 
     }

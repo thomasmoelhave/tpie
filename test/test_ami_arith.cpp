@@ -26,6 +26,8 @@
 // Get stream arithmetic.
 #include <stream_arith.h>
 
+using namespace std;
+
 static char def_crf[] = "osc.txt";
 static char def_irf[] = "osi.txt";
 static char def_frf[] = "osf.txt";
@@ -77,11 +79,11 @@ int main(int argc, char **argv)
     parse_args(argc, argv, app_opts, parse_app_opts);
 
     if (verbose) {
-      cout << "test_size = " << test_size << "." << endl;
-        cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << endl;
-        cout << "random_seed = " << random_seed << "." << endl;
+      std::cout << "test_size = " << test_size << "." << std::endl;
+        std::cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << std::endl;
+        std::cout << "random_seed = " << random_seed << "." << std::endl;
     } else {
-        cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << random_seed;
+        std::cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << random_seed;
     }
     
     // Set the amount of main memory:
@@ -93,25 +95,25 @@ int main(int argc, char **argv)
 
     // Streams for reporting values to ascii streams.
     
-    ofstream *osc;
-    ofstream *osi;
-    ofstream *osf;
+    std::ofstream *osc;
+    std::ofstream *osi;
+    std::ofstream *osf;
     cxx_ostream_scan<TPIE_OS_OFFSET> *rptc = NULL;
     cxx_ostream_scan<TPIE_OS_OFFSET> *rpti = NULL;
     cxx_ostream_scan<TPIE_OS_OFFSET> *rptf = NULL;
     
     if (report_results_count) {
-        osc = new ofstream(count_results_filename);
+        osc = new std::ofstream(count_results_filename);
         rptc = new cxx_ostream_scan<TPIE_OS_OFFSET>(osc);
     }
     
     if (report_results_intermediate) {
-        osi = new ofstream(intermediate_results_filename);
+        osi = new std::ofstream(intermediate_results_filename);
         rpti = new cxx_ostream_scan<TPIE_OS_OFFSET>(osi);
     }
     
     if (report_results_final) {
-        osf = new ofstream(final_results_filename);
+        osf = new std::ofstream(final_results_filename);
         rptf = new cxx_ostream_scan<TPIE_OS_OFFSET>(osf);
     }
     
@@ -121,11 +123,11 @@ int main(int argc, char **argv)
     ae = AMI_scan(&sc, &amis0);
 
     if (verbose) {
-      cout << "Wrote the initial sequence of values." << endl;
-        cout << "Stopped (didn't write) with ii = "
+      std::cout << "Wrote the initial sequence of values." << std::endl;
+        std::cout << "Stopped (didn't write) with ii = "
              << sc.ii << ". operate() called " 
-	     << sc.called << " times." << endl;
-        cout << "Stream length = " << amis0.stream_len() << endl;
+	     << sc.called << " times." << std::endl;
+        std::cout << "Stream length = " << amis0.stream_len() << std::endl;
     }
 
     if (report_results_count) {
@@ -138,10 +140,10 @@ int main(int argc, char **argv)
     ae = AMI_scan(&amis0, &ss, &amis1);
 
     if (verbose) {
-        cout << "Squared them; last squared was ii = "
+        std::cout << "Squared them; last squared was ii = "
              << ss.ii << ". operate() called " 
-	     << ss.called << " times." << endl;
-        cout << "Stream length = " << amis1.stream_len() << endl;
+	     << ss.called << " times." << std::endl;
+        std::cout << "Stream length = " << amis1.stream_len() << std::endl;
     }
     
     AMI_scan_div<TPIE_OS_OFFSET> sd;
@@ -149,8 +151,8 @@ int main(int argc, char **argv)
     ae = AMI_scan(&amis1, &amis0, &sd, &amis2);
         
     if (verbose) {
-      cout << "Divided them." << endl
-	   << "Stream length = " << amis2.stream_len() << endl;
+      std::cout << "Divided them." << std::endl
+	   << "Stream length = " << amis2.stream_len() << std::endl;
     }
     
     if (report_results_final) {

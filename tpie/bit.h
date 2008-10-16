@@ -40,7 +40,7 @@ namespace tpie {
 	friend bit operator+(bit op1, bit op2);
 	friend bit operator*(bit op1, bit op2);
 	
-	friend ostream &operator<<(ostream &s, bit b);
+	friend std::ostream &operator<<(std::ostream &s, bit b);
     };
 
 }  //  tpie namespace

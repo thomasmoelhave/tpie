@@ -13,6 +13,8 @@
 // Get definitions for working with Unix and Windows
 #include <portability.h>
 
+#include <fstream>
+
 // A macro for declaring output operators for log streams.
 #define _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(T) logstream& operator<<(T)
 
@@ -22,7 +24,7 @@
 // Otherwise, it does not.  Lower numbers have higher priority; 0 is
 // the highest.  1 is the default if not 
 
-class logstream : public ofstream {
+class logstream : public std::ofstream {
 
   public:
     static bool log_initialized;

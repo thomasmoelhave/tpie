@@ -40,9 +40,9 @@ namespace tpie {
 							TPIE_OS_OFFSET minRange, 
 							TPIE_OS_OFFSET maxRange, 
 							TPIE_OS_OFFSET stepValue) : 
-	    m_minRange(min(minRange, maxRange)),
-	    m_maxRange(max(minRange, maxRange)),
-	    m_stepValue(max(min(stepValue, (m_maxRange-m_minRange)), 
+	    m_minRange(std::min(minRange, maxRange)),
+	    m_maxRange(std::max(minRange, maxRange)),
+	    m_stepValue(std::max(std::min(stepValue, (m_maxRange-m_minRange)), 
 			    static_cast<TPIE_OS_OFFSET>(1))),
 	    m_current(0),
 	    m_percentageChecker(0), 
@@ -100,9 +100,9 @@ namespace tpie {
 	////////////////////////////////////////////////////////////////////
 
 	void set_range(TPIE_OS_OFFSET minRange, TPIE_OS_OFFSET maxRange, TPIE_OS_OFFSET stepValue) {
-	    set_min_range(min(minRange, maxRange));
-	    set_max_range(max(minRange, maxRange));
-	    set_step_value( max(min(stepValue, (m_maxRange-m_minRange)),
+	    set_min_range(std::min(minRange, maxRange));
+	    set_max_range(std::max(minRange, maxRange));
+	    set_step_value( std::max(std::min(stepValue, (m_maxRange-m_minRange)),
 				static_cast<TPIE_OS_OFFSET>(1)));
 	    m_percentageValue = 0;
 	    m_percentageChecker = 0;
@@ -123,10 +123,10 @@ namespace tpie {
 	////////////////////////////////////////////////////////////////////
 
 	void set_percentage_range(TPIE_OS_OFFSET minRange, TPIE_OS_OFFSET maxRange, unsigned short percentageUnit = 100) {
-	    TPIE_OS_OFFSET localMin = min(minRange,maxRange);
-	    TPIE_OS_OFFSET localMax = max(minRange,maxRange);
+	    TPIE_OS_OFFSET localMin = std::min(minRange,maxRange);
+	    TPIE_OS_OFFSET localMax = std::max(minRange,maxRange);
 	    set_step_value(1);
-	    m_percentageUnit  = max(percentageUnit, 
+	    m_percentageUnit  = std::max(percentageUnit, 
 				    static_cast<unsigned short>(1));
 	    m_percentageValue = (localMax-localMin)/m_percentageUnit;
 	    if (m_percentageValue > 0) {

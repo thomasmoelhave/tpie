@@ -70,11 +70,10 @@ namespace tpie {
 	    return elapsed_real_;
 	}
 	
-//	friend ostream &operator<<(ostream &s, cpu_timer &ct);
     };
     
 }
  
-ostream &operator<<(ostream &s, tpie::cpu_timer &ct);
+std::ostream &operator<<(std::ostream &s, tpie::cpu_timer &ct);
 
 #endif // _TPIE_CPU_TIMER_H 

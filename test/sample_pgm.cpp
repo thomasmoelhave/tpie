@@ -150,7 +150,7 @@ int main(int argc, char *argv[]) {
   //get length, mem size from command line
   get_app_info(argc, argv, Gen_Stream_Length, test_mm_size);
 
-  cout << "Writing " << Gen_Stream_Length << " random integers\n"
+  std::cout << "Writing " << Gen_Stream_Length << " random integers\n"
        << "using a maximum " << test_mm_size << " bytes of memory\n"<<endl;
   
   //Tell the memory manager to abort if the allocated 
@@ -171,7 +171,7 @@ int main(int argc, char *argv[]) {
    AMI_err ae;
    int src_int;
    TPIE_OS_OFFSET i;
-   cout << "Writing random stream..."<<endl;
+   std::cout << "Writing random stream..."<<endl;
    for (i = 0; i < Gen_Stream_Length; i++) {
       
       // Generate a random int.
@@ -180,13 +180,13 @@ int main(int argc, char *argv[]) {
       // Write out the integer into the AMI_STREAM source using 
       // the AMI_STREAM member function write_item()
       if ((ae = source.write_item(src_int)) != AMI_ERROR_NO_ERROR) {
-	cout << "AMI_ERROR " << ae << " during source.write_item()" << endl;
+	cout << "AMI_ERROR " << ae << " during source.write_item()" << std::endl;
          exit(1);
       }      
    }
 
    // Print stream length
-   cout << "source stream is of length " << source.stream_len() << endl;
+   std::cout << "source stream is of length " << source.stream_len() << std::endl;
    
    // ************************************************************
    // Pick the first 7 integers in source stream as partitioning elements
@@ -194,7 +194,7 @@ int main(int argc, char *argv[]) {
    
    // Seek to the beginning of the AMI_STREAM source.
    if ((ae = source.seek(0))!= AMI_ERROR_NO_ERROR) {
-     cout << "AMI_ERROR " << ae << " during source.seek()" << endl;
+     std::cout << "AMI_ERROR " << ae << " during source.seek()" << std::endl;
       exit(1);
    }
    
@@ -207,20 +207,20 @@ int main(int argc, char *argv[]) {
       // Obtain a pointer to the next integer in AMI_STREAM source
       // using the member function read_item().
       if ((ae = source.read_item(&read_ptr)) != AMI_ERROR_NO_ERROR) {
-	cout << "AMI_ERROR " << ae << " during source.read_item()" << endl;
+	cout << "AMI_ERROR " << ae << " during source.read_item()" << std::endl;
          exit(1);
       }
       
       // Copy the current source integer into the partitioning element array.
       partitioning[i]= *read_ptr;
    }
-   cout << "Loaded partitioning array" << endl;
+   std::cout << "Loaded partitioning array" << std::endl;
 
    // ************************************************************
    // Sort partitioning array
    
    quick_sort_op((int *)partitioning,7);
-   cout << "Sorted partitioning array" << endl;
+   std::cout << "Sorted partitioning array" << std::endl;
    partitioning[7] = INT_MAX;
 
    // ************************************************************
@@ -229,14 +229,14 @@ int main(int argc, char *argv[]) {
    // Binary search variables.
    int u, v, l, j;
    
-   cout << "Partitioning elements into 8 buckets..." <<endl;
+   std::cout << "Partitioning elements into 8 buckets..." <<endl;
    // Start the timer.
    cpu_timer timer;
    timer.start();
    
    // Seek to the beginning of the AMI_STREAM source.
    if ((ae = source.seek(0))!= AMI_ERROR_NO_ERROR) {
-     cout << "AMI_ERROR " << ae << " during source.seek()" << endl;
+     std::cout << "AMI_ERROR " << ae << " during source.seek()" << std::endl;
       exit(1);
    }
    
@@ -247,7 +247,7 @@ int main(int argc, char *argv[]) {
       // Obtain a pointer to the next integer in AMI_STREAM source
       // using the member function read_item()
       if ((ae =   source.read_item(&read_ptr)) != AMI_ERROR_NO_ERROR) {
-	cout << "AMI_ERROR " << ae << " during source.read_item()" << endl;
+	cout << "AMI_ERROR " << ae << " during source.read_item()" << std::endl;
          exit(1);
       }
       v = *read_ptr;
@@ -268,16 +268,16 @@ int main(int argc, char *argv[]) {
       // Write out the int into the AMI_STREAM buckets[l] using 
       // the AMI_STREAM member function write_item().
       if ((ae = buckets[l].write_item(v)) != AMI_ERROR_NO_ERROR) {
-         cout << "AMI_ERROR " << ae << " during buckets[" << l 
-	      << "].write_item()" << endl;
+         std::cout << "AMI_ERROR " << ae << " during buckets[" << l 
+	      << "].write_item()" << std::endl;
          exit(1);
       }
    }
    
    // Stop the timer.
    timer.stop();
-   cout << "Time taken to partition is " << timer.wall_time() 
-	<< " seconds" << endl;
+   std::cout << "Time taken to partition is " << timer.wall_time() 
+	<< " seconds" << std::endl;
    
    // Delete the file corresponding to the source stream when source
    // stream gets destructed (this is the default, so this call is not
@@ -286,10 +286,10 @@ int main(int argc, char *argv[]) {
    
    // Print the lengths of the bucket streams.
    for (i = 0; i < 8; i++) {
-      cout << "Length of bucket " << i << " is " 
-	   << buckets[i].stream_len() << endl;
+      std::cout << "Length of bucket " << i << " is " 
+	   << buckets[i].stream_len() << std::endl;
    }
 
-   cout << "Program ran successfully" << endl;
+   std::cout << "Program ran successfully" << std::endl;
    return 0;
 }

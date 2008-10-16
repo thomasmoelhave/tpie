@@ -97,7 +97,7 @@ void parse_app_opts(int idx, char *opt_arg) {
       comparison_mode = COMPARISON_CLASS;
       break;
     default:
-      cerr << "Invalid comparison device. Valid options are [o]perator and [c]lass." << endl;
+      std::cerr << "Invalid comparison device. Valid options are [o]perator and [c]lass." << std::endl;
       exit(1);
     }
     break;
@@ -132,7 +132,7 @@ int main(int argc, char **argv)
   parse_args(argc, argv, app_opts, parse_app_opts);
 
   if (test_size == 0 && istr_name[0] == '\0') {
-    cerr << argv[0] << ": No input size or input file specified. Use -h for help." << endl;
+    std::cerr << argv[0] << ": No input size or input file specified. Use -h for help." << std::endl;
     exit(1);
   }
 
@@ -145,61 +145,61 @@ int main(int argc, char **argv)
 
   //  AMI_STREAM<int> amis0;
   //  AMI_STREAM<int> amis1;
-  cout << "setting default" << endl;
+  std::cout << "setting default" << std::endl;
   set_default_tmp_names("C:\\","SORT","sort");
   AMI_STREAM<int>* istr = (istr_name[0] == '\0') ? new AMI_STREAM<int>: new AMI_STREAM<int>(istr_name);
   if (!istr->is_valid()) {
-    cerr << argv[0] << ": Error while initializing input stream. Aborting." << endl;
+    std::cerr << argv[0] << ": Error while initializing input stream. Aborting." << std::endl;
     exit(2);
   }
   AMI_STREAM<int>* ostr = NULL;
 
   if (verbose) {
-    cout << "BTE: ";
+    std::cout << "BTE: ";
 #ifdef BTE_STREAM_IMP_MMAP
-    cout << "BTE_STREAM_IMP_MMAP " << BTE_STREAM_MMAP_BLOCK_FACTOR;
+    std::cout << "BTE_STREAM_IMP_MMAP " << BTE_STREAM_MMAP_BLOCK_FACTOR;
 #endif
 #ifdef BTE_STREAM_IMP_STDIO
-    cout << "BTE_STREAM_IMP_STDIO ";
+    std::cout << "BTE_STREAM_IMP_STDIO ";
 #endif
 #ifdef BTE_STREAM_IMP_UFS
-    cout << "BTE_STREAM_IMP_UFS " << BTE_STREAM_UFS_BLOCK_FACTOR;
+    std::cout << "BTE_STREAM_IMP_UFS " << BTE_STREAM_UFS_BLOCK_FACTOR;
 #endif
 #ifdef BTE_MMB_READ_AHEAD
-    cout << " BTE_MMB_READ_AHEAD ";	  
+    std::cout << " BTE_MMB_READ_AHEAD ";	  
 #endif
-    cout << endl;
-    cout << "Comparison device: " 
+    std::cout << std::endl;
+    std::cout << "Comparison device: " 
 	 << (comparison_mode == COMPARISON_OPERATOR ? "Operator": "Class")
-	 << "." << endl;
-    cout << "Input size: " << test_size << " items." << endl
-	 << "Item size: " << sizeof(int) << " bytes." << endl
+	 << "." << std::endl;
+    std::cout << "Input size: " << test_size << " items." << std::endl
+	 << "Item size: " << sizeof(int) << " bytes." << std::endl
 	 << "TPIE memory size: " 
 	 << static_cast<TPIE_OS_LONGLONG>(MM_manager.memory_limit())
-	 << " bytes." << endl;
-    cout << "TPIE free memory: " 
+	 << " bytes." << std::endl;
+    std::cout << "TPIE free memory: " 
 	 << static_cast<TPIE_OS_LONGLONG>(MM_manager.memory_available())
-	 << " bytes." << endl;
+	 << " bytes." << std::endl;
   }
 
   if (random_input) {
     // Write some ints.
-    cout << "Generating input (" << test_size << " random integers)..." << flush;
+    std::cout << "Generating input (" << test_size << " random integers)..." << std::flush;
     timer.start();
     scan_random rnds(test_size,random_seed);
     ae = AMI_scan(&rnds, istr);
     timer.stop();
-    cout << "Done." << endl;
+    std::cout << "Done." << std::endl;
     if (ae != AMI_ERROR_NO_ERROR) {
-      cerr << argv[0] << ": Error while generating input. Aborting." << endl;
+      std::cerr << argv[0] << ": Error while generating input. Aborting." << std::endl;
       exit(2);
     } else {
       if (verbose) {
-	cout << "Input stream length: " << istr->stream_len() << "\n";
+	std::cout << "Input stream length: " << istr->stream_len() << "\n";
       }
     }
     if (verbose) {
-      cout << "Time taken: " << timer << endl;
+      std::cout << "Time taken: " << timer << std::endl;
     }
     timer.reset();
   } else {
@@ -208,36 +208,36 @@ int main(int argc, char **argv)
 
   // Streams for reporting random and/or sorted values to ascii
   // streams.    
-  ofstream *oss;
+  std::ofstream *oss;
   cxx_ostream_scan<int> *rpts = NULL;
-  ofstream *osr;
+  std::ofstream *osr;
   cxx_ostream_scan<int> *rptr = NULL;
   
   if (report_results_random) {
-    osr = new ofstream(rand_results_filename);
+    osr = new std::ofstream(rand_results_filename);
     rptr = new cxx_ostream_scan<int>(osr);
   }
   
   if (report_results_sorted) {
-    oss = new ofstream(sorted_results_filename);
+    oss = new std::ofstream(sorted_results_filename);
     rpts = new cxx_ostream_scan<int>(oss);
   }
   
   if (report_results_random) {
-    cout << "Writing input in ASCII file " << rand_results_filename << " ..." << flush;
+    std::cout << "Writing input in ASCII file " << rand_results_filename << " ..." << std::flush;
     ae = AMI_scan(istr, rptr);
-    cout << "Done." << endl;
+    std::cout << "Done." << std::endl;
     if (ae != AMI_ERROR_NO_ERROR) {
-      cerr << argv[0] << ": Error while writing input ASCII file." << endl;
+      std::cerr << argv[0] << ": Error while writing input ASCII file." << std::endl;
     }
   }
 
   if (verbose) {
-    cout << "TPIE free memory: " 
+    std::cout << "TPIE free memory: " 
 	 << static_cast<TPIE_OS_LONGLONG>(MM_manager.memory_available())
 	 << " bytes.\n";
   }
-  cout << "Sorting input..." << flush;
+  std::cout << "Sorting input..." << std::flush;
   timer.start();  
   ostr = (ostr_name[0] == '\0') ? new AMI_STREAM<int>: new AMI_STREAM<int>(ostr_name); 
   if (kb_sort) {
@@ -249,34 +249,34 @@ int main(int argc, char **argv)
     ae = AMI_sort(istr, ostr, &int_cmp_obj);
   }
   timer.stop();
-  cout << "Done." << endl;
+  std::cout << "Done." << std::endl;
   if (ae != AMI_ERROR_NO_ERROR) {
-    cerr << argv[0] << ": Error during sort (check the log). Aborting." << endl;
+    std::cerr << argv[0] << ": Error during sort (check the log). Aborting." << std::endl;
     exit(3);
   }
   if (verbose) {
-    cout << "Sorted stream length: " << ostr->stream_len() << endl;
-    cout << "Time taken: " << timer << endl;
+    std::cout << "Sorted stream length: " << ostr->stream_len() << std::endl;
+    std::cout << "Time taken: " << timer << std::endl;
   }
   timer.reset();
 
   if (verbose) {
-    cout << "TPIE free memory: " 
+    std::cout << "TPIE free memory: " 
 	 << static_cast<TPIE_OS_LONGLONG>(MM_manager.memory_available()) 
-	 << " bytes." << endl;
+	 << " bytes." << std::endl;
   }
   if (report_results_sorted) {
-    cout << "Writing sorted items in ASCII file " 
-	 << sorted_results_filename << " ..." << flush;
+    std::cout << "Writing sorted items in ASCII file " 
+	 << sorted_results_filename << " ..." << std::flush;
     ae = AMI_scan(ostr, rpts);
-    cout << "Done.\n";
+    std::cout << "Done.\n";
     if (ae != AMI_ERROR_NO_ERROR) {
-      cerr << argv[0] << ": Error during writing of sorted ASCII file." << endl;
+      std::cerr << argv[0] << ": Error during writing of sorted ASCII file." << std::endl;
     }
     if (verbose) {
-      cout << "TPIE free memory: " << 
+      std::cout << "TPIE free memory: " << 
 	  static_cast<TPIE_OS_LONGLONG>(MM_manager.memory_available())
-	   << " bytes." << endl;
+	   << " bytes." << std::endl;
     }
   }
   
@@ -289,14 +289,14 @@ int main(int argc, char **argv)
     merge_random<int> mr;
     scan_diff<int> sd(-1);
     
-    cout << "Sorting again using old sorting routine." << endl;
+    std::cout << "Sorting again using old sorting routine." << std::endl;
     if (verbose) {
-      cout << "TPIE free memory: " 
+      std::cout << "TPIE free memory: " 
 	   << static_cast<TPIE_OS_LONGLONG>(MM_manager.memory_available()) 
-	   << " bytes." << endl;
+	   << " bytes." << std::endl;
     }
     
-    cout << "Sorting input..." << flush;
+    std::cout << "Sorting input..." << std::flush;
     timer.start();  
     if (comparison_mode == COMPARISON_OPERATOR) {
       ae = AMI_sort(istr, &amis3);
@@ -304,23 +304,23 @@ int main(int argc, char **argv)
       ae = AMI_sort(istr, &amis3, &int_cmp_obj);
     }
     timer.stop();
-    cout << "Done." << endl;
+    std::cout << "Done." << std::endl;
 
     if (ae != AMI_ERROR_NO_ERROR) {
-      cerr << argv[0] << "Error during sort (check the log). Aborting." << endl;
+      std::cerr << argv[0] << "Error during sort (check the log). Aborting." << std::endl;
       exit(3);
     }
-    cout << "Sorted stream length: " << amis3.stream_len() << endl;
+    std::cout << "Sorted stream length: " << amis3.stream_len() << std::endl;
     if (verbose) {
-      cout << "Time taken: " << timer << endl;
-      cout << "TPIE free memory: " 
+      std::cout << "Time taken: " << timer << std::endl;
+      std::cout << "TPIE free memory: " 
 	   << static_cast<TPIE_OS_LONGLONG>(MM_manager.memory_available()) 
 	   << " bytes.\n";
     }
 
     ae = AMI_scan(ostr, &amis3, &sd, &amisd);
     
-    cout << "Length of diff stream: " << amisd.stream_len() << "." << endl;
+    std::cout << "Length of diff stream: " << amisd.stream_len() << "." << std::endl;
   }
 
   delete istr;

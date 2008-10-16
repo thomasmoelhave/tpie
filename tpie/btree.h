@@ -222,7 +222,7 @@ namespace tpie {
 	    /**
 	       @overload
 	    */
-	    btree(const string& base_file_name,
+	    btree(const std::string& base_file_name,
 		  collection_type type = WRITE_COLLECTION,
 		  const btree_params &params = btree_params_default);
 
@@ -276,10 +276,10 @@ namespace tpie {
 
 	    /**
 	       Traverse the tree in depth-first-search preorder.
-	       Returns a pair containing the next node to be visited and its level (root is on level 0). 
+	       Returns a std::pair containing the next node to be visited and its level (root is on level 0). 
 	       To initiate the process, the function should be called with -1 for <em>level</em>.
 	    */
-	    pair<bid_t, Key> dfs_preorder(int& level);
+	    std::pair<bid_t, Key> dfs_preorder(int& level);
 
 
 	    /**
@@ -576,7 +576,7 @@ namespace tpie {
 
 		@see btree()
 	    */
-	    const string& name() const { return name_; }
+	    const std::string& name() const { return name_; }
 
 
 	    /**
@@ -649,11 +649,11 @@ namespace tpie {
 	    btree_status status_;
 
 	    // Stack to store the path to a leaf.
-	    stack<pair<bid_t,TPIE_OS_SIZE_T> >path_stack_;
+	    std::stack<std::pair<bid_t,TPIE_OS_SIZE_T> >path_stack_;
 
 	    // Stack to store path during dfspreorder traversal. Each element is
-	    // a pair: block id and link index.
-	    stack<pair<bid_t,TPIE_OS_SIZE_T> >dfs_stack_;
+	    // a std::pair: block id and link index.
+	    std::stack<std::pair<bid_t,TPIE_OS_SIZE_T> >dfs_stack_;
 
 	    // Statistics.
 	    tpie_stats_tree stats_;
@@ -662,7 +662,7 @@ namespace tpie {
 	    KeyOfValue kov_;
 
 	    // Base path name.
-	    string name_;
+	    std::string name_;
 
 	    // Insert helpers.
 	    bool insert_split(const Value& v, 
@@ -680,7 +680,7 @@ namespace tpie {
 
 	    // Find the leaf where an element with key k might be.  Return the
 	    // bid of that leaf. The stack contains the path to that leaf (but
-	    // not the leaf itself). Each item in the stack is a pair of a bid
+	    // not the leaf itself). Each item in the stack is a std::pair of a bid
 	    // of a node and the position (in this node) of the link to the son
 	    // that is next on the path to the leaf.
 	    bid_t find_leaf(const Key& k);
@@ -1344,7 +1344,7 @@ btree<Key, Value, Compare, KeyOfValue, BTECOLL>::btree(const char *base_file_nam
 
 /// *btree::btree* ///
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-btree<Key, Value, Compare, KeyOfValue, BTECOLL>::btree(const string& base_file_name, collection_type type, 
+btree<Key, Value, Compare, KeyOfValue, BTECOLL>::btree(const std::string& base_file_name, collection_type type, 
 						       const btree_params &params):
     header_(), params_(params), status_(BTREE_STATUS_VALID), stats_(), kov_(), name_(base_file_name) {
 
@@ -1487,8 +1487,8 @@ err btree<Key, Value, Compare, KeyOfValue, BTECOLL>::load_sorted(AMI_STREAM<Valu
     Value* pv;
     err retval = NO_ERROR;
     btree_params params_saved = params_;
-    params_.leaf_size_max = min(params_.leaf_size_max, size_t(leaf_fill*params_.leaf_size_max));
-    params_.node_size_max = min(params_.node_size_max, size_t(node_fill*params_.node_size_max));
+    params_.leaf_size_max = std::min(params_.leaf_size_max, size_t(leaf_fill*params_.leaf_size_max));
+    params_.node_size_max = std::min(params_.node_size_max, size_t(node_fill*params_.node_size_max));
 
     BTREE_LEAF* lcl = NULL; // locally cached leaf.
 
@@ -1579,8 +1579,8 @@ err btree<Key, Value, Compare, KeyOfValue, BTECOLL>::load(BTREE* bt, float leaf_
 
     btree_params params_saved = params_;
     err retval = NO_ERROR;
-    params_.leaf_size_max = min(params_.leaf_size_max, size_t(leaf_fill*params_.leaf_size_max));
-    params_.node_size_max = min(params_.leaf_size_max, size_t(node_fill*params_.node_size_max));
+    params_.leaf_size_max = std::min(params_.leaf_size_max, size_t(leaf_fill*params_.leaf_size_max));
+    params_.node_size_max = std::min(params_.leaf_size_max, size_t(node_fill*params_.node_size_max));
     BTREE_LEAF* lcl = NULL; // locally cached leaf.
 
     // Get the bid of the min leaf in bt.
@@ -1614,7 +1614,7 @@ err btree<Key, Value, Compare, KeyOfValue, BTECOLL>::load(BTREE* bt, float leaf_
 
 /// *btree::dfs_preorder* ///
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-pair<bid_t, Key> btree<Key, Value, Compare, KeyOfValue, BTECOLL>::dfs_preorder(int& level) {
+std::pair<bid_t, Key> btree<Key, Value, Compare, KeyOfValue, BTECOLL>::dfs_preorder(int& level) {
 
     Key k;
     if (level == -1) {
@@ -1623,10 +1623,10 @@ pair<bid_t, Key> btree<Key, Value, Compare, KeyOfValue, BTECOLL>::dfs_preorder(i
 	while (!dfs_stack_.empty())
 	    dfs_stack_.pop();
 	// Push the root on the stack.
-	dfs_stack_.push(pair<bid_t, size_t>(header_.root_bid, 0));
+	dfs_stack_.push(std::pair<bid_t, size_t>(header_.root_bid, 0));
 
 	level = (int)dfs_stack_.size() - 1;
-	return pair<bid_t, Key>(header_.root_bid, k);
+	return std::pair<bid_t, Key>(header_.root_bid, k);
     } else {
 	BTREE_NODE* bn;
 	bid_t id = 0;
@@ -1636,7 +1636,7 @@ pair<bid_t, Key> btree<Key, Value, Compare, KeyOfValue, BTECOLL>::dfs_preorder(i
 	    bn = fetch_node(dfs_stack_.top().first);
 	    // ... and get the appropriate child.
 	    id = bn->lk[dfs_stack_.top().second];
-	    dfs_stack_.push(pair<bid_t, size_t>(id, 0));
+	    dfs_stack_.push(std::pair<bid_t, size_t>(id, 0));
 	    release_node(bn);
 	} else { // top of the stack is leaf
 	    dfs_stack_.pop();
@@ -1650,7 +1650,7 @@ pair<bid_t, Key> btree<Key, Value, Compare, KeyOfValue, BTECOLL>::dfs_preorder(i
 		if (dfs_stack_.top().second < bn->size() + 1) {
 		    id = bn->lk[dfs_stack_.top().second];
 		    k = bn->el[dfs_stack_.top().second-1];
-		    dfs_stack_.push(pair<bid_t, size_t>(id, 0));
+		    dfs_stack_.push(std::pair<bid_t, size_t>(id, 0));
 		    done = true;
 		} else
 		    dfs_stack_.pop();
@@ -1659,7 +1659,7 @@ pair<bid_t, Key> btree<Key, Value, Compare, KeyOfValue, BTECOLL>::dfs_preorder(i
 	    }
 	}
 	level = (int)dfs_stack_.size() - 1;
-	return pair<bid_t, Key>(id, k);
+	return std::pair<bid_t, Key>(id, k);
     }
 }
 
@@ -1955,7 +1955,7 @@ template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL
 bool btree<Key, Value, Compare, KeyOfValue, BTECOLL>::insert_split(const Value& v, BTREE_LEAF* p, bid_t& leaf_id, bool loading) {
 
     BTREE_LEAF *q, *r;
-    pair<bid_t, size_t> top;
+    std::pair<bid_t, size_t> top;
     bid_t bid;
     bool ans;
 
@@ -2084,7 +2084,7 @@ bid_t btree<Key, Value, Compare, KeyOfValue, BTECOLL>::find_leaf(const Key& k) {
 	// Find the position of the link to the child node.
 	pos = p->find(k);
 	// Push the current node and position on the path stack.
-	path_stack_.push(pair<bid_t, size_t>(bid, pos));
+	path_stack_.push(std::pair<bid_t, size_t>(bid, pos));
 	// Find the actual block id of the child node.
 	bid = p->lk[pos];
 	// Release the node.
@@ -2357,7 +2357,7 @@ bool btree<Key, Value, Compare, KeyOfValue, BTECOLL>::erase(const Key& k) {
     }
 
     BTREE_NODE * q=NULL;
-    pair<bid_t, size_t> top;
+    std::pair<bid_t, size_t> top;
 
     // Underflow. Balance or merge up the tree.
     // Treat the first iteration separately since it deals with leaves.

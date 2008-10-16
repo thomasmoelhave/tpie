@@ -10,7 +10,7 @@
 #ifndef _SCAN_UNIVERSAL_H
 #define _SCAN_UNIVERSAL_H
 
-// Get the STL min fonction.
+// Get the STL std::min fonction.
 #include <algorithm>
 // Get the AMI_scan_object definition.
 #include <scan.h>
@@ -125,12 +125,12 @@ public:
     }
   }
 
-  // Taking min of each pair.
+  // Taking std::min of each pair.
   AMI_err operate(const int& in0, const int& in1, AMI_SCAN_FLAG *sfin,
 		  int *out0, AMI_SCAN_FLAG *sfout) {
     if ( (*sfout = sfin[0]) || sfin[1]) {
       if (sfin[0] && sfin[1]) {
-		  *out0 = min(in0, in1);
+		  *out0 = std::min(in0, in1);
       } else  {
 		  *out0 = (sfin[0] ? in0: in1);
 	  }
@@ -179,7 +179,7 @@ public:
       return AMI_SCAN_DONE;    
   }
   
-  // Outputs: avg, min, max.
+  // Outputs: avg, std::min, std::max.
   AMI_err operate(const int& in0, const int& in1, 
 		  const int& in2, const int& in3, AMI_SCAN_FLAG *sfin,
 		  int *out0, int *out1, int *out2,
@@ -195,14 +195,14 @@ public:
 	(sfin[2] ? in2: 0) / c + (sfin[3] ? in3: 0) / c;
       
       *out1 = sfin[0] ? in0: sfin[1] ? in1: sfin[2] ? in2: in3;
-      if (sfin[1]) *out1 = min(*out1, in1);
-      if (sfin[2]) *out1 = min(*out1, in2);
-      if (sfin[3]) *out1 = min(*out1, in3);
+      if (sfin[1]) *out1 = std::min(*out1, in1);
+      if (sfin[2]) *out1 = std::min(*out1, in2);
+      if (sfin[3]) *out1 = std::min(*out1, in3);
       
       *out2 = sfin[0] ? in0: sfin[1] ? in1: sfin[2] ? in2: in3;
-      if (sfin[1]) *out2 = max(*out2, in1);
-      if (sfin[2]) *out2 = max(*out2, in2);
-      if (sfin[3]) *out2 = max(*out2, in3);
+      if (sfin[1]) *out2 = std::max(*out2, in1);
+      if (sfin[2]) *out2 = std::max(*out2, in2);
+      if (sfin[3]) *out2 = std::max(*out2, in3);
       
       return AMI_SCAN_CONTINUE;
     } else

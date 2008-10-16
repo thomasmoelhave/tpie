@@ -26,15 +26,15 @@ private:
     // Prohibit these.
     cxx_istream_scan(const cxx_istream_scan<T>& other);
     cxx_istream_scan<T>& operator=(const cxx_istream_scan<T>& other);
-    istream *is;
+    std::istream *is;
 public:
-    cxx_istream_scan(istream *instr = &cin);
+    cxx_istream_scan(std::istream *instr = &std::cin);
     AMI_err initialize(void);
     AMI_err operate(T *out, AMI_SCAN_FLAG *sfout);
 };
 
 template<class T>
-cxx_istream_scan<T>::cxx_istream_scan(istream *instr) : is(instr)
+cxx_istream_scan<T>::cxx_istream_scan(std::istream *instr) : is(instr)
 {
 };
 
@@ -68,15 +68,15 @@ private:
     // Prohibit these.
     cxx_ostream_scan(const cxx_ostream_scan<T>& other);
     cxx_ostream_scan<T>& operator=(const cxx_ostream_scan<T>& other);
-    ostream *os;
+    std::ostream *os;
 public:
-    cxx_ostream_scan(ostream *outstr = &cout);
+    cxx_ostream_scan(std::ostream *outstr = &std::cout);
     AMI_err initialize(void);
     AMI_err operate(const T &in, AMI_SCAN_FLAG *sfin);
 };
 
 template<class T>
-cxx_ostream_scan<T>::cxx_ostream_scan(ostream *outstr) : os(outstr)
+cxx_ostream_scan<T>::cxx_ostream_scan(std::ostream *outstr) : os(outstr)
 {
 };
 

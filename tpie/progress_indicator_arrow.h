@@ -80,7 +80,7 @@ namespace tpie {
 	////////////////////////////////////////////////////////////////////
 
 	void set_indicator_length(int indicatorLength) {
-	    m_indicatorLength = max(2, min(60, indicatorLength));
+	    m_indicatorLength = std::max(2, std::min(60, indicatorLength));
 	}
 
 	////////////////////////////////////////////////////////////////////
@@ -108,27 +108,27 @@ namespace tpie {
 	    //  Make sure that the first item gets printed.
 	    if (progress == 0) progress = 1;
 	
-	    //  Only print stuff to cout if the indicator needs to be updated.
+	    //  Only print stuff to std::cout if the indicator needs to be updated.
 	    if (progress > m_progress) {
 
 		//  Don't print the last item.
 		if (progress == m_indicatorLength) progress--;
 
 		//  Go to the beginning of the line and print the description.
-		cout << "\r" << m_description << " [";
+		std::cout << "\r" << m_description << " [";
 	    
 		//  Extend the arrow.
-		for(TPIE_OS_OFFSET i = 0; i < progress; i++) cout << "=";
-		cout << ">";
+		for(TPIE_OS_OFFSET i = 0; i < progress; i++) std::cout << "=";
+		std::cout << ">";
 
 		//  Print blank space.
-		for(TPIE_OS_OFFSET i = progress+1; i < m_indicatorLength; i++) cout << " ";
-		cout << "] ";
+		for(TPIE_OS_OFFSET i = progress+1; i < m_indicatorLength; i++) std::cout << " ";
+		std::cout << "] ";
 
 		//  Print either a percentage sign or the maximum range.
 		display_percentage();
 
-		cout << flush;
+		std::cout << std::flush;
 		m_progress = progress;
 	    }
 	}

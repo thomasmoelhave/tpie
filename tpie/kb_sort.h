@@ -381,12 +381,12 @@ AMI_err _AMI_MM_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
     if (sz_avail < stream_len * (sizeof(T) +
                                  sizeof(AMI_bucket_list_elem<T> *) + 
                                  sizeof(AMI_bucket_list_elem<T>))) {
-        cerr << '\n' 
+        std::cerr << '\n' 
 	     << static_cast<TPIE_OS_LONGLONG>(sz_avail)
 	     << ' ' 
 	     << static_cast<TPIE_OS_LONGLONG>(stream_len)
 	     << '\n';
-        cerr << sizeof(T) 
+        std::cerr << sizeof(T) 
 	     << ' ' 
 	     << sizeof(AMI_bucket_list_elem<T> *) 
 	     << ' ' << sizeof(AMI_bucket_list_elem<T>);
@@ -487,9 +487,9 @@ AMI_err _AMI_MM_KB_SORT(KB_KEY)(AMI_STREAM<T> &instream,
     }
     
 #if VERIFY_OCCUPANCY
-    cerr << "Max occupancy = " << max_occupancy << '\n';
-    cerr << "Buckets occupied = " << buckets_occupied << '\n';
-    cerr << "Stream length = " << stream_len << '\n';
+    std::cerr << "Max occupancy = " << max_occupancy << '\n';
+    std::cerr << "Buckets occupied = " << buckets_occupied << '\n';
+    std::cerr << "Stream length = " << stream_len << '\n';
 #endif
     
     // Do an insertion sort across the whole data set.

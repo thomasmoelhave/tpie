@@ -20,7 +20,7 @@ void pq_large_instance(){
     double th = (cos(i*2.0*PI/500000.0)+1.0)*(RAND_MAX/2);
     if(!pq.empty()){
       if(pq.top()!=pq2.top()){
-	cerr << "Priority queues differ, got " << pq.top() << " but expected " 
+	std::cerr << "Priority queues differ, got " << pq.top() << " but expected " 
 	     << pq2.top() << "\n";
 	assert(0);
       }
@@ -28,20 +28,20 @@ void pq_large_instance(){
       assert(cnt==0);
     }
     if(rand()<th){
-      //cout << "Insert\n";
+      //std::cout << "Insert\n";
       cnt++;
       int r = rand();
       pq.push(r);
       pq2.push(r);
     }else{
-      //cout << "Delete\n";
+      //std::cout << "Delete\n";
       if(pq.empty())
 	continue;
       cnt--;
       pq.pop();
       pq2.pop();
     }
-    cout << "Size: " << cnt << "\r";
+    std::cout << "Size: " << cnt << "\r";
   }
 }
 
@@ -56,7 +56,7 @@ void pq_internal_instance(){
   }
   while(!pq.empty()){
     if(pq.peekmin()!=pq2.top()){
-      cerr << "Internal memory heap failed.\n";
+      std::cerr << "Internal memory heap failed.\n";
       assert(0);
     }
     pq.delmin();
@@ -66,16 +66,16 @@ void pq_internal_instance(){
 
 void pq_small_instance(){
   //MM_manager.set_memory_limit(10*1024*1024);
-  //cout << "LOGGING: " << logstream::log_initialized << "\n";
+  //std::cout << "LOGGING: " << logstream::log_initialized << "\n";
   //tpie_log_init(TPIE_LOG_WARNING);
-  //cout << "LOGGING: " << logstream::log_initialized << "\n";
+  //std::cout << "LOGGING: " << logstream::log_initialized << "\n";
 
 
-  cout << "tpie::priority_queue Debug - M test" << endl;
+  std::cout << "tpie::priority_queue Debug - M test" << std::endl;
     TPIE_OS_OFFSET iterations = 1000000;
     MM_manager.set_memory_limit(10*1024*1024);
     for(TPIE_OS_OFFSET it = 1100; it < iterations; it++)  {
-      cerr << "Iteration: " << it;
+      std::cerr << "Iteration: " << it;
       tpie::priority_queue<int, std::greater<int> > pq;
       std::priority_queue<int, vector<int>,std::less<int> > pq2;
 
@@ -85,9 +85,9 @@ void pq_small_instance(){
         int src_int = TPIE_OS_RANDOM()%220;
         pq.push(src_int);
         pq2.push(src_int);
-//        cout << "push " << src_int << endl;
+//        std::cout << "push " << src_int << std::endl;
       }
-//cout << "all push done" << endl;
+//std::cout << "all push done" << std::endl;
           pq.pop();
           pq2.pop();
           pq.pop();
@@ -100,9 +100,9 @@ void pq_small_instance(){
       TPIE_OS_OFFSET pop = 61; 
       for(TPIE_OS_OFFSET i=0;i<pop;i++) {
         if(!pq.empty()) {
-//          cout << "pop " << pq.top() << " " << pq2.top() << endl;
+//          std::cout << "pop " << pq.top() << " " << pq2.top() << std::endl;
           if(pq.top() != pq2.top()) {
-            cout << "main, run21 error1, " << i << " got: " << pq.top() << " expected " << pq2.top() << endl;
+            std::cout << "main, run21 error1, " << i << " got: " << pq.top() << " expected " << pq2.top() << std::endl;
             //pq.dump();
             exit(-1);
           }
@@ -115,28 +115,28 @@ void pq_small_instance(){
         int src_int = TPIE_OS_RANDOM()%220;
         pq.push(src_int);
         pq2.push(src_int);
-//        cout << "push " << src_int << endl;
+//        std::cout << "push " << src_int << std::endl;
       }
-//      cout << "Pop remaining" << endl;
+//      std::cout << "Pop remaining" << std::endl;
 //pq.dump();
       while(!pq.empty()) {
         if(pq.top() != pq2.top()) {
-          cout << "main, run21 error2, got: " << pq.top() << " expected " << pq2.top() << endl;
+          std::cout << "main, run21 error2, got: " << pq.top() << " expected " << pq2.top() << std::endl;
           //pq.dump();
           exit(-1);
         }
-	//        cout << "pop " << pq.top() << endl;
+	//        std::cout << "pop " << pq.top() << std::endl;
         pq.pop();
         pq2.pop();
       }
-      cout << endl;
+      std::cout << std::endl;
     }
   }
 
 
 int main(int argc,char** argv){
   if(argc!=2){
-    cout << "Arguments are test_priority_queue <type>\nWhere type is either \"small\" , \"large\" or \"internal\"\n";
+    std::cout << "Arguments are test_priority_queue <type>\nWhere type is either \"small\" , \"large\" or \"internal\"\n";
   }
   if(strcmp(argv[1],"small")==0)
     pq_small_instance();

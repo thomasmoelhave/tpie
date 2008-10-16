@@ -60,7 +60,7 @@ bit operator*(bit op1, bit op2) {
     return bit(op1.data & op2.data);
 }
 
-ostream &operator<<(ostream &s, bit b) {
+std::ostream &operator<<(std::ostream &s, bit b) {
     return s << int(b.data);
 }
 

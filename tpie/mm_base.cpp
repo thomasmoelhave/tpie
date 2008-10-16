@@ -53,7 +53,7 @@ void *operator new (TPIE_OS_SIZE_T sz)
 		TP_LOG_FATAL (static_cast<TPIE_OS_LONG>(MM_manager.memory_limit ()));
 		TP_LOG_FATAL ("\" \n");
 		TP_LOG_FLUSH_LOG;
-		cerr << "memory manager: memory allocation limit " 
+		std::cerr << "memory manager: memory allocation limit " 
 		     << static_cast<TPIE_OS_LONG>(MM_manager.memory_limit ()) 
 		     << " exceeded while allocating " 
 		     << static_cast<TPIE_OS_LONG>(sz)
@@ -73,7 +73,7 @@ void *operator new (TPIE_OS_SIZE_T sz)
 		TP_LOG_WARNING (static_cast<TPIE_OS_LONG>(MM_manager.memory_limit ()));
 		TP_LOG_WARNING ("\" \n");
 		TP_LOG_FLUSH_LOG;
-		cerr << "memory manager: memory allocation limit " 
+		std::cerr << "memory manager: memory allocation limit " 
 		     << static_cast<TPIE_OS_LONG>(MM_manager.memory_limit ()) 
 		     << " exceeded while allocating " 
 		     << static_cast<TPIE_OS_LONG>(sz)
@@ -92,7 +92,7 @@ void *operator new (TPIE_OS_SIZE_T sz)
    if (!p) {
       TP_LOG_FATAL_ID ("Out of memory. Cannot continue.");
       TP_LOG_FLUSH_LOG;
-      cerr << "out of memory while allocating " << static_cast<TPIE_OS_LONG>(sz) << " bytes" << "\n";
+      std::cerr << "out of memory while allocating " << static_cast<TPIE_OS_LONG>(sz) << " bytes" << "\n";
       perror ("mm_base::new malloc");
 	  assert(0);
       exit (1);
@@ -122,7 +122,7 @@ void *operator new[] (TPIE_OS_SIZE_T sz)
 				TP_LOG_FATAL (static_cast<TPIE_OS_LONG>(MM_manager.memory_limit ()));
 				TP_LOG_FATAL ("\" \n");
 				TP_LOG_FLUSH_LOG;
-				cerr << "memory manager: memory allocation limit " 
+				std::cerr << "memory manager: memory allocation limit " 
 					<< static_cast<TPIE_OS_LONG>(MM_manager.memory_limit ()) 
 					<< " exceeded while allocating " 
 					<< static_cast<TPIE_OS_LONG>(sz)
@@ -142,7 +142,7 @@ void *operator new[] (TPIE_OS_SIZE_T sz)
 				TP_LOG_WARNING (static_cast<TPIE_OS_LONG>(MM_manager.memory_limit ()));
 				TP_LOG_WARNING ("\" \n");
 				TP_LOG_FLUSH_LOG;
-				cerr << "memory manager: memory allocation limit " 
+				std::cerr << "memory manager: memory allocation limit " 
 					<< static_cast<TPIE_OS_LONG>(MM_manager.memory_limit ()) 
 					<< " exceeded while allocating " 
 					<< static_cast<TPIE_OS_LONG>(sz)
@@ -161,7 +161,7 @@ void *operator new[] (TPIE_OS_SIZE_T sz)
 	if (!p) {
 		TP_LOG_FATAL_ID ("Out of memory. Cannot continue.");
 		TP_LOG_FLUSH_LOG;
-		cerr << "out of memory while allocating " << static_cast<TPIE_OS_LONG>(sz) << " bytes" << "\n";
+		std::cerr << "out of memory while allocating " << static_cast<TPIE_OS_LONG>(sz) << " bytes" << "\n";
 		perror ("mm_base::new malloc");
 		assert(0);
 		exit (1);

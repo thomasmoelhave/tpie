@@ -459,7 +459,7 @@ AMI_err AMI_matrix_mult(AMI_matrix<T> &op1, AMI_matrix<T> &op2,
 #ifdef INTERNAL_TIMING
 
         cput_internal.stop();
-        cout << cput_internal << ' ';
+        std::cout << cput_internal << ' ';
 
 #endif        
         

@@ -86,11 +86,11 @@ int main(int argc, char **argv)
     parse_args(argc, argv, app_opts, parse_app_opts);
 
     if (verbose) {
-      cout << "test_size = " << test_size << "." << endl;
-        cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << endl;
-        cout << "random_seed = " << random_seed << "." << endl;
+      std::cout << "test_size = " << test_size << "." << std::endl;
+        std::cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << std::endl;
+        std::cout << "random_seed = " << random_seed << "." << std::endl;
     } else {
-        cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << random_seed;
+        std::cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << random_seed;
     }
 
     TPIE_OS_SRANDOM(random_seed);
@@ -103,19 +103,19 @@ int main(int argc, char **argv)
 
     // Streams for reporting values to ascii streams.
     
-    ofstream *osi;
+    std::ofstream *osi;
     cxx_ostream_scan<TPIE_OS_OFFSET> *rpti = NULL;
 
-    ofstream *osf;
+    std::ofstream *osf;
     cxx_ostream_scan<TPIE_OS_OFFSET> *rptf = NULL;
 
     if (report_results_initial) {
-        osi = new ofstream(initial_results_filename);
+        osi = new std::ofstream(initial_results_filename);
         rpti = new cxx_ostream_scan<TPIE_OS_OFFSET>(osi);
     }
 
     if (report_results_final) {
-        osf = new ofstream(final_results_filename);
+        osf = new std::ofstream(final_results_filename);
         rptf = new cxx_ostream_scan<TPIE_OS_OFFSET>(osf);
     }
 
@@ -124,7 +124,7 @@ int main(int argc, char **argv)
     ae = AMI_scan(&my_scan_count, &amis0);
 
     if (verbose) {
-        cout << "Initial stream length = " << amis0.stream_len() << endl;
+        std::cout << "Initial stream length = " << amis0.stream_len() << std::endl;
     }
     
     if (report_results_initial) {
@@ -138,8 +138,8 @@ int main(int argc, char **argv)
     ae = AMI_general_permute(&amis0, &amis1, &ro);
 
     if (verbose) {
-        cout << "After reversal, stream length = " 
-	     << amis1.stream_len() << endl;
+        std::cout << "After reversal, stream length = " 
+	     << amis1.stream_len() << std::endl;
     }
 
     if (report_results_final) {

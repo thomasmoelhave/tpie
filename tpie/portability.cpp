@@ -4,7 +4,7 @@
 
 #ifdef _WIN32
 
-ostream& operator<<(ostream& s, const TPIE_OS_OFFSET x){
+std::ostream& operator<<(std::ostream& s, const TPIE_OS_OFFSET x){
   char buf[30];
   sprintf(buf,"%I64d",x);
   return s << buf;

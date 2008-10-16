@@ -175,7 +175,7 @@ AMI_err _AMI_KB_DIST(KB_KEY)(AMI_STREAM<T> &instream,
         
         if ((stream_len = out_streams[ii]->stream_len()) > 0) {
 
-            // cerr << stream_len << '\n';
+            // std::cerr << stream_len << '\n';
             
             // Is it the biggest one so far?
 

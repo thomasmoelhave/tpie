@@ -47,7 +47,7 @@ class Item{
     ~Item(){};
     TPIE_OS_LONGLONG convert();
     Item operator ++(int j);
-    friend ostream& operator << (ostream & out, const Item & it);
+    friend std::ostream& operator << (std::ostream & out, const Item & it);
     friend bool operator == (const Item & i1, const Item & i2);
   private:
     char item[APP_ITEM_SIZE];
@@ -105,7 +105,7 @@ bool operator == (const Item & it1, const Item & it2){
 
 // An output operator. For large arrays, displaying only the
 // last few characters should suffice
-ostream & operator << (ostream & out, const Item & it){
+std::ostream & operator << (std::ostream & out, const Item & it){
   
   //display only this many characters (at most)
   const int len = 10;
@@ -234,9 +234,9 @@ void init_opts(struct options* & opts, int argc, char** argv){
 inline void print_warning(){
   static bool done=false;
   if(!done){
-    cerr << "Warning: Only one of --2gig-test, --4gig-test\n"
+    std::cerr << "Warning: Only one of --2gig-test, --4gig-test\n"
          << "--numitems, or --size can be specified.\n"
-         << "Ignoring extra options\n" << endl;
+         << "Ignoring extra options\n" << std::endl;
     done=true;
   }
 }
@@ -260,7 +260,7 @@ void get_app_info(int argc, char** argv, appInfo & Info){
   while ( (optidx=getopts(argc, argv, opts, &optarg)) ){
     nopts++;
     if(optidx==-1){
-      cerr << "Could not allocate space for arguments. Exiting...\n";
+      std::cerr << "Could not allocate space for arguments. Exiting...\n";
       exit(1);
     }
 
@@ -290,7 +290,7 @@ void get_app_info(int argc, char** argv, appInfo & Info){
 	case APP_OPTION_NUM_ITEMS:
           tmp = ascii2longlong(optarg);
           if(tmp < 0){
-            cerr << "Invalid item count. Exiting...\n";
+            std::cerr << "Invalid item count. Exiting...\n";
             exit(1);
           }
           else { Info.num_items=tmp; }
@@ -298,13 +298,13 @@ void get_app_info(int argc, char** argv, appInfo & Info){
         case APP_OPTION_FILE_SIZE:
           tmp = ascii2longlong(optarg);
           if(tmp < 0){
-            cerr << "Invalid file size. Exiting...\n";
+            std::cerr << "Invalid file size. Exiting...\n";
             exit(1);
           }
           else { Info.num_items=(tmp/Info.item_size)+1; }
           break;
         default:
-	  cerr << "Warning: Unhandled option - " << optidx << endl;
+	  std::cerr << "Warning: Unhandled option - " << optidx << std::endl;
           break;
       }
     } //else if(!optset)
@@ -319,7 +319,7 @@ void get_app_info(int argc, char** argv, appInfo & Info){
           print_warning();
           break;
         default:
-	  cerr << "Warning: Unhandled option - " << optidx << endl;
+	  std::cerr << "Warning: Unhandled option - " << optidx << std::endl;
           break;
       } //switch
     } //else
@@ -357,8 +357,8 @@ void get_app_info(int argc, char** argv, appInfo & Info){
     TPIE_OS_UNLINK(tmpfname);
   }
   else{
-    cerr << "Unable to write to path " << Info.path 
-         << ".  Exiting..." << endl;
+    std::cerr << "Unable to write to path " << Info.path 
+         << ".  Exiting..." << std::endl;
     exit(1);
   }
   
@@ -407,22 +407,22 @@ void progress_bar(float pct, TPIE_OS_LONGLONG nbytes){
   //percent done as an integer
   intpct = static_cast<int>(100*pct);
   
-  cout <<"\r[";
+  std::cout <<"\r[";
   i=1;
   while( i <= (nticks*pct) ){
-    cout << ".";
+    std::cout << ".";
     i++;
   }
   while( i <= nticks ){
-    cout << " ";
+    std::cout << " ";
     i++;
   }
-  cout <<"] "<<intpct<<"%";
+  std::cout <<"] "<<intpct<<"%";
  
   buf = new char[bufsize];
   APP_SNPRINTF(buf, bufsize, " - %sB      ",ll2size(nbytes));
-  cout << buf;
-  cout.flush();
+  std::cout << buf;
+  std::cout.flush();
 }
 
 // Open a stream, write num_items, close stream
@@ -435,27 +435,27 @@ void write_test(char* fname, appInfo & info){
   i=0;
   n=info.num_items;
 
-  cout << "Starting write test." << endl;
+  std::cout << "Starting write test." << std::endl;
   
   AMI_STREAM<Item>* str = new AMI_STREAM<Item>(fname);
   assert(str->is_valid());
   str->persist(PERSIST_PERSISTENT);
   
-  cout << "Opened file " 
+  std::cout << "Opened file " 
        << fname 
        << "\nWriting "
        << n 
-       << " items..." << endl;
+       << " items..." << std::endl;
   
   trunc=(static_cast<TPIE_OS_OFFSET>(sizeof (x)))*n;
   if(trunc<0 || trunc>(4*APP_GIG)){
-    cout << "Initial file length computed as "<< trunc
-         << "\nSetting to 4GB "<< endl;
+    std::cout << "Initial file length computed as "<< trunc
+         << "\nSetting to 4GB "<< std::endl;
     trunc=4*APP_GIG;
   }
   ae = str->truncate(trunc);
   if(ae != AMI_ERROR_NO_ERROR){
-    cout << "\nError truncating file"<<endl;
+    std::cout << "\nError truncating file"<< std::endl;
   }
   str->seek(0);
 
@@ -475,14 +475,14 @@ void write_test(char* fname, appInfo & info){
   progress_bar(pct, i*info.item_size);
   
   if(ae != AMI_ERROR_NO_ERROR){
-    cout<< "\nWrite stopped early with AMI_ERROR: " << ae << endl;
+    std::cout<< "\nWrite stopped early with AMI_ERROR: " << ae << std::endl;
   }
   
-  cout << "\nWrote " << i 
+  std::cout << "\nWrote " << i 
        << " items\n" << "Closing file...";
-  cout.flush();
+  std::cout.flush();
   delete str;
-  cout << "done" << endl;
+  std::cout << "done" << std::endl;
   return;
 }
 
@@ -495,15 +495,15 @@ void read_test(char * fname, appInfo & info){
   i=0;
   n=info.num_items;
 
-  cout << "Starting read test." << endl;
+  std::cout << "Starting read test." << std::endl;
   
   AMI_STREAM<Item>* str = new AMI_STREAM<Item>(fname);
   assert(str->is_valid());
   str->persist(PERSIST_PERSISTENT);
   str->seek(0);
   
-  cout << "Opened file " << fname 
-       << "\nReading "<< n << " items..." << endl;
+  std::cout << "Opened file " << fname 
+       << "\nReading "<< n << " items..." << std::endl;
   
   float pct = 0.;
   progress_bar(pct, 0);
@@ -522,14 +522,14 @@ void read_test(char * fname, appInfo & info){
   progress_bar(pct, i*info.item_size);
   
   if(ae != AMI_ERROR_NO_ERROR){
-    cout<< "\nRead stopped early with AMI_ERROR: " << ae << endl;
+    std::cout<< "\nRead stopped early with AMI_ERROR: " << ae << std::endl;
   }
   
-  cout << "\nRead " << i 
+  std::cout << "\nRead " << i 
        << " items\n" << "Closing file...";
-  cout.flush();
+  std::cout.flush();
   delete str;
-  cout << "done" << endl;
+  std::cout << "done" << std::endl;
   return;
 }
 
@@ -544,21 +544,21 @@ int main(int argc, char **argv){
   get_app_info(argc, argv, info);
  
   TPIE_OS_LONGLONG filesize = info.num_items*info.item_size;
-  cout << "Path:  " << info.path 
+  std::cout << "Path:  " << info.path 
        << "\nNum Items: " << info.num_items 
        << "\nItem Size: " << info.item_size
-       << "\nFile Size: " << ll2size(filesize) << "B\n" <<endl;
+       << "\nFile Size: " << ll2size(filesize) << "B\n" << std::endl;
  
 
   char * fname = tpie_tempnam(APP_FILE_BASE, info.path);
   write_test(fname, info);
-  cout << endl;
+  std::cout << std::endl;
   read_test(fname, info);
 
   //delete stream from disk
-  cout << "\nDeleting stream " << fname << endl;
+  std::cout << "\nDeleting stream " << fname << std::endl;
   TPIE_OS_UNLINK(fname);
   
-  cout << "Test ran successfully " << endl;
+  std::cout << "Test ran successfully " << std::endl;
   return 0;
 }

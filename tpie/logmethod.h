@@ -410,11 +410,11 @@ bool LOGMETHOD2::insert(const Value& p) {
     tree0_->insert(p);
 
   } else {
-//     cout << "trees_[0]->os_block_count(): " << trees_[0]->os_block_count() << endl;
-//     cout << "  leaf_count: " << trees_[0]->leaf_count() 
+//     std::cout << "trees_[0]->os_block_count(): " << trees_[0]->os_block_count() << endl;
+//     std::cout << "  leaf_count: " << trees_[0]->leaf_count() 
 // 	 << "  node_count: " << trees_[0]->node_count() << endl;
-//     cout << "trees_[0]->size():        " << trees_[0]->size() << endl;
-//     cout << "  node_cache_size: " << trees_[0]->params().node_cache_size
+//     std::cout << "trees_[0]->size():        " << trees_[0]->size() << endl;
+//     std::cout << "  node_cache_size: " << trees_[0]->params().node_cache_size
 // 	 << "  leaf_cache_size: " << trees_[0]->params().leaf_cache_size << endl;
 
     // First unload all relevant trees to a stream.

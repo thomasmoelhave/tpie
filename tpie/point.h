@@ -137,7 +137,7 @@ class AMI_point: public AMI_point_base<coord_t, dim> {
 };
 
 template<class coord_t, size_t dim>
-ostream& operator<<(ostream& s, const AMI_point<coord_t, dim>& p) {
+std::ostream& operator<<(std::ostream& s, const AMI_point<coord_t, dim>& p) {
   for (size_t i = 0; i < dim-1; i++)
     s << p[i] << " ";
   return s << p[dim-1];
@@ -220,7 +220,7 @@ class AMI_point<coord_t, 2>: public AMI_point_base<coord_t, 2> {
 };
 
 template<class coord_t>
-ostream& operator<<(ostream& s, const AMI_point<coord_t, 2>& p) {
+std::ostream& operator<<(std::ostream& s, const AMI_point<coord_t, 2>& p) {
   return s << p[0] << " " << p[1];
 }
 #endif // !_WIN32
@@ -328,7 +328,7 @@ public:
 };
 
 template<class coord_t, class data_t, size_t dim>
-ostream& operator<<(ostream& s, const AMI_record<coord_t, data_t, dim>& p) {
+std::ostream& operator<<(std::ostream& s, const AMI_record<coord_t, data_t, dim>& p) {
   for (TPIE_OS_TIME_T i = 0; i < dim; i++)
     s << p[i] << " ";
   return s << (TPIE_OS_OFFSET)p.id();
@@ -423,7 +423,7 @@ public:
 };
 
 template<class coord_t, class data_t>
-ostream& operator<<(ostream& s, const AMI_record<coord_t, data_t, 2>& p) {
+std::ostream& operator<<(std::ostream& s, const AMI_record<coord_t, data_t, 2>& p) {
   return s << p[0] << " " << p[1] << " " << p.id();
 }
 #endif // !_WIN32

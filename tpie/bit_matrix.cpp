@@ -84,6 +84,6 @@ bit_matrix operator*(const bit_matrix &op1, const bit_matrix &op2) {
     return prod;
 }
 
-ostream &operator<<(ostream &s, bit_matrix &bm) {
+std::ostream &operator<<(std::ostream &s, bit_matrix &bm) {
     return s << (matrix<bit> &)bm;
 }

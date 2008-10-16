@@ -42,7 +42,7 @@ static TPIE_OS_OFFSET parse_number(char *s) {
       mult = 1 << 10;
       break;
     default:
-      cerr << "Error parsing arguments: bad number format: " << s << "\n";
+      std::cerr << "Error parsing arguments: bad number format: " << s << "\n";
       exit(-1);
       break;
     }
@@ -71,7 +71,7 @@ void parse_args(int argc, char **argv, struct options *application_opts,
   }
   struct options *all_opts;
   if (application_opts == NULL && l_app_o != 0) {
-    cerr << "Error parsing arguments: NULL pointer to options array." << endl;
+    std::cerr << "Error parsing arguments: NULL pointer to options array." << std::endl;
     return;
   }
   
@@ -101,7 +101,7 @@ void parse_args(int argc, char **argv, struct options *application_opts,
     switch (idx) {
     case 1: 
         // mm_size should be small.
-      mm_sz = max(size_t(128*1024), static_cast<TPIE_OS_SIZE_T>(parse_number(opt_arg)));
+      mm_sz = std::max(size_t(128*1024), static_cast<TPIE_OS_SIZE_T>(parse_number(opt_arg)));
       break;
     case 2:
       verbose = true; 
@@ -111,7 +111,7 @@ void parse_args(int argc, char **argv, struct options *application_opts,
       test_size = parse_number(opt_arg); 
       break;
     case 4: 
-	rnd_seed = max(1u, static_cast<unsigned int>(parse_number(opt_arg)));
+	rnd_seed = std::max(1u, static_cast<unsigned int>(parse_number(opt_arg)));
       break;
     default:
       parse_app_opts(idx, opt_arg);

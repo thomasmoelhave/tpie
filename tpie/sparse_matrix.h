@@ -29,7 +29,7 @@ public:
 
 
 template <class T>
-ostream &operator<<(ostream& s, const AMI_sm_elem<T> &a)
+std::ostream &operator<<(std::ostream& s, const AMI_sm_elem<T> &a)
 {
     return s << a.er << ' ' << a.ec << ' ' << a.val;
 };

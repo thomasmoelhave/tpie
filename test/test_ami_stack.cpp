@@ -31,11 +31,11 @@ int main(int argc, char **argv)
     parse_args(argc, argv, app_opts, parse_app_opts);
 
     if (verbose) {
-      cout << "test_size = " << test_size << "." << endl;
-      cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << endl;
-      cout << "random_seed = " << random_seed << "." << endl;
+      std::cout << "test_size = " << test_size << "." << std::endl;
+      std::cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << std::endl;
+      std::cout << "random_seed = " << random_seed << "." << std::endl;
     } else {
-      cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << random_seed;
+      std::cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << random_seed;
     }
     
     // Set the amount of main memory:
@@ -55,7 +55,7 @@ int main(int argc, char **argv)
     pi->done("Done");
 
     if (verbose) {
-      cout << "Stack size = " << stack.size() << endl;
+      std::cout << "Stack size = " << stack.size() << std::endl;
     }
     
     // Pop them all off.
@@ -72,21 +72,21 @@ int main(int argc, char **argv)
     while(!stack.is_empty()) {
       AMI_err ae = stack.pop(&jj);
       if(ae != AMI_ERROR_NO_ERROR) {
-        cout << "Error from stack received" << endl;
+        std::cout << "Error from stack received" << std::endl;
       }
       read++;
       pi->step_percentage();
       if(*jj != ++last) {
-        cout << endl << "Error in output: " << *jj << "!=" << last  << endl;
+        std::cout << std::endl << "Error in output: " << *jj << "!=" << last  << std::endl;
       }
     }
     pi->done("Done");
     if(read != test_size) {
-      cout << "Error: Wrong amount of elements read, got: " << read << " expected: "<<test_size << endl;
+      std::cout << "Error: Wrong amount of elements read, got: " << read << " expected: "<<test_size << std::endl;
     }
 
     if (verbose) {
-        cout << "Stack size = " << stack.size() << endl;
+        std::cout << "Stack size = " << stack.size() << std::endl;
     }
     
     return 0;

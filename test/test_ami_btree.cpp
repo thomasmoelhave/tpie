@@ -79,26 +79,26 @@ int main(int argc, char **argv) {
     if (argc > 2)
       base_file = argv[2];
   } else {
-    cerr << "Usage: " << argv[0] << " <point_count> [base_file_name]\n";
+    std::cerr << "Usage: " << argv[0] << " <point_count> [base_file_name]\n";
     exit(1);
   }
 
-  cout << "\n";
-  cout << "Element size: " << sizeof(el_t) << " bytes. "
+  std::cout << "\n";
+  std::cout << "Element size: " << sizeof(el_t) << " bytes. "
        << "Key size: " << sizeof(bkey_t) << " bytes.\n";
   TPIE_OS_SRANDOM((unsigned int)TPIE_OS_TIME(NULL));
 
   // Timing stream write.
-  cout << "BEGIN Stream write\n";
+  std::cout << "BEGIN Stream write\n";
   stream_t* is = (base_file == NULL) ? new stream_t:
     new stream_t(base_file);
-  cout << "\tCreating stream with " << bulk_load_count << " random elements.\n";
+  std::cout << "\tCreating stream with " << bulk_load_count << " random elements.\n";
   wt.start();
   for (j = 0; j < bulk_load_count; j++) {
     is->write_item(el_t(long((TPIE_OS_RANDOM()/MAX_RANDOM) * MAX_VALUE)));
   }
   wt.stop();
-  cout << "END Stream write " << wt << "\n";
+  std::cout << "END Stream write " << wt << "\n";
   wt.reset();
 
 
@@ -115,25 +115,25 @@ int main(int argc, char **argv) {
     new u_btree_t(base_file, AMI_WRITE_COLLECTION, params);
   
   if (!u_btree->is_valid()) {
-    cerr << argv[0] << ": Error initializing btree. Aborting.\n";
+    std::cerr << argv[0] << ": Error initializing btree. Aborting.\n";
     delete u_btree;
     exit(1);
   }
   
   if (u_btree->size() == 0) {
-    cout << "BEGIN Bulk Load\n";
-    //    cout << "\tBulk loading from the stream created.\n";
-    cout << "\tSorting... " << flush;
+    std::cout << "BEGIN Bulk Load\n";
+    //    std::cout << "\tBulk loading from the stream created.\n";
+    std::cout << "\tSorting... " << std::flush;
     wt.start();
     stream_t *os = new stream_t;
     if (u_btree->sort(is, os) != AMI_ERROR_NO_ERROR)
-      cerr << argv[0] << ": Error during sort.\n";
+      std::cerr << argv[0] << ": Error during sort.\n";
     else {
       wt.stop();
-      cout << "Done. " << wt << "\n";
+      std::cout << "Done. " << wt << "\n";
       wt.reset();
       wt.start();
-      cout << "\tLoading... " << flush;
+      std::cout << "\tLoading... " << std::flush;
       if (u_btree->load_sorted(os) != AMI_ERROR_NO_ERROR)
 	cerr << argv[0] << ": Error during bulk loading.\n";
       else
@@ -143,12 +143,12 @@ int main(int argc, char **argv) {
     os->persist(PERSIST_DELETE);
     delete os;
     ///    wt.stop();
-    cout << "END Bulk Load " /*<< wt*/ << "\n";
+    std::cout << "END Bulk Load " /*<< wt*/ << "\n";
   }
 
   delete is;
 
-  cout << "Tree size: " << u_btree->size() << " elements. Tree height: " 
+  std::cout << "Tree size: " << u_btree->size() << " elements. Tree height: " 
        << static_cast<TPIE_OS_OUTPUT_SIZE_T>(u_btree->height()) << ".\n";
   wt.reset();
 
@@ -164,14 +164,14 @@ int main(int argc, char **argv) {
     new u_btree_t(base_file, AMI_WRITE_COLLECTION, params);
 
   if (!u_btree->is_valid()) {
-    cerr << argv[0] << ": Error reinitializing btree. Aborting.\n";
+    std::cerr << argv[0] << ": Error reinitializing btree. Aborting.\n";
     delete u_btree;
     exit(1);
   }
 
-  cout << "BEGIN Insert\n";
-  cout << "\tInserting " << insert_count << " elements.\n";
-  cout << "\t" << flush;
+  std::cout << "BEGIN Insert\n";
+  std::cout << "\tInserting " << insert_count << " elements.\n";
+  std::cout << "\t" << std::flush;
   wt.start();
   for (i = 1; i <= insert_count; i++) {
     if (i <= DELETE_COUNT)
@@ -180,36 +180,36 @@ int main(int argc, char **argv) {
       ss = el_t(long((TPIE_OS_RANDOM()/MAX_RANDOM) * MAX_VALUE));
     u_btree->insert(ss);
     if (i % (insert_count/10) == 0)
-      cout << i << " " << flush;
+      std::cout << i << " " << std::flush;
   }
-  cout << "\n";
+  std::cout << "\n";
   wt.stop();
-  cout << "END Insert " << wt << "\n";
+  std::cout << "END Insert " << wt << "\n";
   
-  cout << "Tree size: " << u_btree->size() << " elements. Tree height: " 
+  std::cout << "Tree size: " << u_btree->size() << " elements. Tree height: " 
        << static_cast<TPIE_OS_OUTPUT_SIZE_T>(u_btree->height()) << ".\n";
   wt.reset();
 
 
   //////  Testing range query.  ///////
 
-  cout << "BEGIN Search\n";
-  cout << "\tSearching with range [" << range_search_lo << ", " 
+  std::cout << "BEGIN Search\n";
+  std::cout << "\tSearching with range [" << range_search_lo << ", " 
        << range_search_hi << "]\n";
 
   stream_t* os = new stream_t;
   wt.start();
   u_btree->range_query(range_search_lo, range_search_hi, os);
   wt.stop();
-  cout << "\tFound " << os->stream_len() << " elements.\n";
+  std::cout << "\tFound " << os->stream_len() << " elements.\n";
   delete os;
-  cout << "END Search " << wt << "\n";
+  std::cout << "END Search " << wt << "\n";
 
 
   ///////  Testing erase.  ///////
 
-  cout << "BEGIN Delete\n";
-  cout << "\tDeleting " << key_from_el()(s[0]) << " through " 
+  std::cout << "BEGIN Delete\n";
+  std::cout << "\tDeleting " << key_from_el()(s[0]) << " through " 
        <<  key_from_el()(s[DELETE_COUNT-1]) << ": \n";
   j = 0;
   for (i = 0; i < DELETE_COUNT ; i++) {
@@ -217,33 +217,33 @@ int main(int argc, char **argv) {
       j++;
   }
 
-  cout << "\t\tfound " << j << " keys. ";
+  std::cout << "\t\tfound " << j << " keys. ";
   if (j == DELETE_COUNT)
-    cout << "(OK)\n";
+    std::cout << "(OK)\n";
   else
-    cout << "(Potential problem!)\n";
+    std::cout << "(Potential problem!)\n";
   
-  cout << "\tDeleting " << (long)-1 << flush;
+  std::cout << "\tDeleting " << (long)-1 << std::flush;
   if (u_btree->erase((long)-1))
-    cout << ": found. (Potential problem!)\n";
+    std::cout << ": found. (Potential problem!)\n";
   else
-    cout << ": not found. (OK)\n";
+    std::cout << ": not found. (OK)\n";
 
-  cout << "\tDeleting " <<  key_from_el()(s[0]) << flush;
+  std::cout << "\tDeleting " <<  key_from_el()(s[0]) << std::flush;
   if (u_btree->erase(key_from_el()(s[0])))
-    cout << ": found. (Potential problem!)\n";
+    std::cout << ": found. (Potential problem!)\n";
   else
-    cout << ": not found. (OK)\n";
-  cout << "END Delete\n";
+    std::cout << ": not found. (OK)\n";
+  std::cout << "END Delete\n";
   
 
-  cout << "Tree size: " << u_btree->size() << " elements. Tree height: " 
+  std::cout << "Tree size: " << u_btree->size() << " elements. Tree height: " 
        << static_cast<TPIE_OS_OUTPUT_SIZE_T>(u_btree->height()) << ".\n";
 
   tpie_stats_tree bts = u_btree->stats();
   delete u_btree;
   
-  cout << "Block collection statistics (global):\n"
+  std::cout << "Block collection statistics (global):\n"
        << "\tGET BLOCK:    "
        << AMI_COLLECTION::gstats().get(BLOCK_GET) << "\n"
        << "\tPUT BLOCK:    "
@@ -253,7 +253,7 @@ int main(int argc, char **argv) {
        << "\tDELETE BLOCK: "
        << AMI_COLLECTION::gstats().get(BLOCK_DELETE) << "\n"
     ;
-  cout << "Tree statistics:\n"
+  std::cout << "Tree statistics:\n"
        << "\tREAD (LEAF+NODE):    " 
        << bts.get(LEAF_READ) + bts.get(NODE_READ) << "\n"
        << "\tCREATE (LEAF+NODE):  " 
@@ -267,7 +267,7 @@ int main(int argc, char **argv) {
        << "\tRELEASE (LEAF+NODE): " 
        << bts.get(LEAF_RELEASE) + bts.get(NODE_RELEASE) << "\n"
     ;
-  cout << "Stream statistics (global):\n"
+  std::cout << "Stream statistics (global):\n"
        << "\tREAD ITEM:    "
        << stream_t::gstats().get(ITEM_READ) << "\n"
        << "\tWRITE ITEM:   "

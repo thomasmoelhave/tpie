@@ -514,7 +514,7 @@ void priority_queue<T, Comparator, OPQType>::fill_group_buffer(TPIE_OS_OFFSET gr
 
 template <typename T, typename Comparator, typename OPQType>
 void priority_queue<T, Comparator, OPQType>::compact(TPIE_OS_OFFSET slot1) {
-	//  cout << "compact slot " << slot1 << "\n";
+	//  std::cout << "compact slot " << slot1 << "\n";
 	assert(slot_size(slot1) > 0);
 
 	for(TPIE_OS_OFFSET i = (slot1/setting_k)*setting_k; i < (slot1/setting_k)*setting_k + setting_k; i++) {
@@ -600,7 +600,7 @@ void priority_queue<T, Comparator, OPQType>::empty_group(TPIE_OS_OFFSET group) {
 	for(TPIE_OS_OFFSET i = 0; i<setting_k; i++) {
 		data[i] = new AMI_STREAM<T>(slot_data(group*setting_k+i));
 		if(slot_size(group*setting_k+i) == 0) {
-			//      cout << "no need to emtpy group "<<group<<", slot: " << group*setting_k+i << " is empty" << "\n";
+			//      std::cout << "no need to emtpy group "<<group<<", slot: " << group*setting_k+i << " is empty" << "\n";
 			ret = true;
 			break;
 		}
@@ -808,10 +808,10 @@ void priority_queue<T, Comparator, OPQType>::remove_group_buffer(TPIE_OS_OFFSET 
 	assert(group_size(group) > 0);
 	/* 
 		 for(TPIE_OS_OFFSET i = 0; i < group_size(group); i++) {
-		 cout << "arr[" << i << "]: " << arr[i] << "\n";
+		 std::cout << "arr[" << i << "]: " << arr[i] << "\n";
 		 }
 		 for(TPIE_OS_OFFSET i = group_start(0); i < group_start(0)+group_size(0); i++) {
-		 cout << "gbuffer0[" << (i%setting_m) << "]: " << gbuffer0[i%setting_m] << "\n";
+		 std::cout << "gbuffer0[" << (i%setting_m) << "]: " << gbuffer0[i%setting_m] << "\n";
 		 }
 		 */
 	// make sure that the new slot in group 0 is heap ordered with gbuffer0
@@ -831,10 +831,10 @@ void priority_queue<T, Comparator, OPQType>::remove_group_buffer(TPIE_OS_OFFSET 
 
 	/*
 		 for(TPIE_OS_OFFSET i = 0; i < group_size(group); i++) {
-		 cout << "arr[" << i << "]: " << arr[i] << "\n";
+		 std::cout << "arr[" << i << "]: " << arr[i] << "\n";
 		 }
 		 for(TPIE_OS_OFFSET i = group_start(0); i < group_start(0)+group_size(0); i++) {
-		 cout << "gbuffer0[" << (i%setting_m) << "]: " << gbuffer0[i%setting_m] << "\n";
+		 std::cout << "gbuffer0[" << (i%setting_m) << "]: " << gbuffer0[i%setting_m] << "\n";
 		 }
 		 */
 
@@ -846,7 +846,7 @@ void priority_queue<T, Comparator, OPQType>::remove_group_buffer(TPIE_OS_OFFSET 
 	delete[] arr;
 	//cout << "this dump" << "\n";
 	//dump();
-	//  cout << "remove grp buffer done" << "\n";
+	//  std::cout << "remove grp buffer done" << "\n";
 }
 
 //////////////////

@@ -363,7 +363,7 @@ matrix<T> operator*(const matrix_base<T> &op1,
 }
 
 template<class T>
-ostream &operator<<(ostream &s, matrix_base<T> &m)
+std::ostream &operator<<(std::ostream &s, matrix_base<T> &m)
 {
     TPIE_OS_SIZE_T ii,jj;
     
@@ -689,13 +689,13 @@ MAT_DUMMY_OP(submatrix<T>,matrix<T>,*)
 MAT_DUMMY_OP(submatrix<T>,submatrix<T>,*)
     
 template<class T>
-ostream &operator<<(ostream &s, const matrix<T> &m)
+std::ostream &operator<<(std::ostream &s, const matrix<T> &m)
 {
     return s << (matrix_base<T> &)m;
 }
 
 template<class T>
-ostream &operator<<(ostream &s, const submatrix<T> &m)
+std::ostream &operator<<(std::ostream &s, const submatrix<T> &m)
 {
     return s << (matrix_base<T> &)m;
 }
