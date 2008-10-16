@@ -103,7 +103,7 @@ priority_queue<T, Comparator, OPQType>::priority_queue(double f) { // constructo
 		TP_LOG_DEBUG("\tQueue max size(only external): " << maxsize << "\n");
 	}
 
-	sprintf(datafiles, "%s", tpie_tempnam("AMI_PQ_DATA"));
+	sprintf(datafiles.c_str(), "%s", tpie_tempnam("AMI_PQ_DATA"));
 	TP_LOG_DEBUG("memory after alloc: " << MM_manager.memory_available() << "b" << "\n");
 }
 
@@ -932,14 +932,14 @@ const  TPIE_OS_OFFSET priority_queue<T, Comparator, OPQType>::group_size(TPIE_OS
 
 template <typename T, typename Comparator, typename OPQType>
 const  char* priority_queue<T, Comparator, OPQType>::datafile(TPIE_OS_OFFSET id) {
-	sprintf(filename, "%s%i", datafiles, (int)id); // todo, not int really
-	return filename;
+	sprintf(filename.c_str(), "%s%i", datafiles.c_str(), (int)id); // todo, not int really
+	return filename.c_str();
 }
 
 template <typename T, typename Comparator, typename OPQType>
 const  char* priority_queue<T, Comparator, OPQType>::datafile_group(TPIE_OS_OFFSET id) {
-	sprintf(filename, "%sg%i", datafiles, (int)id); // todo, not int really
-	return filename;
+	sprintf(filename.c_str(), "%sg%i", datafiles.c_str(), (int)id); // todo, not int really
+	return filename.c_str();
 }
 
 template <typename T, typename Comparator, typename OPQType>

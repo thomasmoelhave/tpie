@@ -140,8 +140,8 @@ class priority_queue {
 		const TPIE_OS_OFFSET group_start(TPIE_OS_OFFSET group); 
 		void group_size_set(TPIE_OS_OFFSET group, TPIE_OS_OFFSET n); 
 		const TPIE_OS_OFFSET group_size(TPIE_OS_OFFSET group); 
-		char filename[BTE_STREAM_PATH_NAME_LEN];
-		char datafiles[BTE_STREAM_PATH_NAME_LEN];
+  	    std::string filename;
+	    std::string datafiles;
 		const char* datafile(TPIE_OS_OFFSET id); 
 		const char* datafile_group(TPIE_OS_OFFSET id); 
 		const char* slot_data(TPIE_OS_OFFSET slotid); 
