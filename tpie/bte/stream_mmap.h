@@ -106,7 +106,7 @@ namespace tpie {
 	    // the input stream may have different block size from the temporary
 	    // streams created later. Until these issues are addressed, the
 	    // usage of lbf is discouraged.
-	    stream_mmap(const char     *dev_path, 
+	    stream_mmap(const std::string& dev_path, 
 			stream_type    st, 
 			TPIE_OS_SIZE_T lbf = STREAM_MMAP_BLOCK_FACTOR);
 	
@@ -274,33 +274,19 @@ namespace tpie {
 // file whose path is given.
 //
     template <class T>
-    stream_mmap<T>::stream_mmap (const char *dev_path, stream_type st, size_t lbf) {
+	stream_mmap<T>::stream_mmap (const std::string& dev_path, stream_type st, size_t lbf) {
 	m_status = STREAM_STATUS_NO_STATUS;
 	
-	if (remaining_streams <= 0) {
-	    
+	if (remaining_streams <= 0) 
+	{
 	    m_status = STREAM_STATUS_INVALID;
-	    
 	    TP_LOG_FATAL_ID ("BTE internal error: cannot open more streams.");
-	    
 	    return;
 	}
 	
-	// Cache the path name
-	if (strlen (dev_path) > STREAM_PATH_NAME_LEN - 1) {
-	    
-	    m_status = STREAM_STATUS_INVALID;
-	    
-	    TP_LOG_FATAL_ID ("Path name \"" << dev_path << "\" too long.");
-	    
-	    return;
-	}
-	
-	strncpy (m_path, dev_path, STREAM_PATH_NAME_LEN);
-	
+	m_path = dev_path;
 	m_readOnly  = (st == READ_STREAM);
-	m_writeOnly = (st == WRITEONLY_STREAM);
-	
+	m_writeOnly = (st == WRITEONLY_STREAM);	
 	m_osBlockSize = os_block_size();
 	
 	// This is a top level stream
@@ -312,13 +298,13 @@ namespace tpie {
 	switch (st) {
 	case READ_STREAM:
 	    // Open the file for reading.
-	    if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(m_fileDescriptor = TPIE_OS_OPEN_ORDONLY(m_path, TPIE_OS_FLAG_USE_MAPPING_TRUE))) { 
+	    if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(m_fileDescriptor = TPIE_OS_OPEN_ORDONLY(m_path.c_str(), TPIE_OS_FLAG_USE_MAPPING_TRUE))) { 
 		
 		m_status  = STREAM_STATUS_INVALID;
 		m_osErrno = errno;
 		
 		TP_LOG_FATAL ("open() failed to open \"");
-		TP_LOG_FATAL (m_path);
+		TP_LOG_FATAL (m_path.c_str());
 		TP_LOG_FATAL ("\": ");
 		TP_LOG_FATAL (strerror (m_osErrno));
 		TP_LOG_FATAL ("\n");
@@ -372,16 +358,16 @@ namespace tpie {
 	    // is with the O_EXCL flag set.  This will fail if the file
 	    // already exists.  If this is the case, we will call open()
 	    // again without it and read in the header block.
-	    if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(m_fileDescriptor = TPIE_OS_OPEN_OEXCL(m_path, TPIE_OS_FLAG_USE_MAPPING_TRUE))) {
+	    if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(m_fileDescriptor = TPIE_OS_OPEN_OEXCL(m_path.c_str(), TPIE_OS_FLAG_USE_MAPPING_TRUE))) {
 		
 		// Try again, hoping the file already exists.
-		if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(m_fileDescriptor = TPIE_OS_OPEN_ORDWR(m_path, TPIE_OS_FLAG_USE_MAPPING_TRUE))) {
+		if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(m_fileDescriptor = TPIE_OS_OPEN_ORDWR(m_path.c_str(), TPIE_OS_FLAG_USE_MAPPING_TRUE))) {
 		    
 		    m_status = STREAM_STATUS_INVALID;
 		    m_osErrno = errno;
 		    
 		    TP_LOG_FATAL ("open() failed to open \"");
-		    TP_LOG_FATAL (m_path);
+		    TP_LOG_FATAL (m_path.c_str());
 		    TP_LOG_FATAL ("\": ");
 		    TP_LOG_FATAL (strerror (m_osErrno));
 		    TP_LOG_FATAL ("\n");
@@ -440,7 +426,7 @@ namespace tpie {
 		    m_osErrno = errno;
 		    
 		    TP_LOG_FATAL ("lseek() failed to move past header of \"");
-		    TP_LOG_FATAL (m_path);
+		    TP_LOG_FATAL (m_path.c_str());
 		    TP_LOG_FATAL ("\": ");
 		    TP_LOG_FATAL (strerror (m_osErrno));
 		    TP_LOG_FATAL ("\n");
@@ -596,7 +582,7 @@ namespace tpie {
 	m_readOnly  = super_stream->m_readOnly;
 	m_writeOnly = super_stream->m_writeOnly;
 	
-	strncpy (m_path, super_stream->m_path, STREAM_PATH_NAME_LEN);
+	m_path = super_stream->m_path;
 	
 	record_statistics(STREAM_OPEN);
 	record_statistics(SUBSTREAM_CREATE);
@@ -698,7 +684,7 @@ namespace tpie {
 		    TP_LOG_WARNING_ID("PERSIST_DELETE for read-only stream in " << m_path);
 		}
 		else {
-		    if (TPIE_OS_UNLINK (m_path)) {
+		    if (TPIE_OS_UNLINK (m_path.c_str())) {
 			
 			m_osErrno = errno;
 			
@@ -1006,7 +992,7 @@ namespace tpie {
 		m_osErrno = errno;
 		
 		TP_LOG_FATAL ("Failed to ftruncate() to the new end of \"");
-		TP_LOG_FATAL (m_path);
+		TP_LOG_FATAL (m_path.c_str());
 		TP_LOG_FATAL ("\": ");
 		TP_LOG_FATAL (strerror (m_osErrno));
 		TP_LOG_FATAL ('\n');
@@ -1052,7 +1038,7 @@ namespace tpie {
 		m_status = STREAM_STATUS_INVALID;
 		
 		TP_LOG_FATAL ("No header block in read only stream \"");
-		TP_LOG_FATAL (m_path);
+		TP_LOG_FATAL (m_path.c_str());
 		TP_LOG_FATAL ('\n');
 		TP_LOG_FLUSH_LOG;
 		
@@ -1067,7 +1053,7 @@ namespace tpie {
 		    m_osErrno = errno;
 		    
 		    TP_LOG_FATAL ("Failed to ftruncate() to end of header of \"");
-		    TP_LOG_FATAL (m_path);
+		    TP_LOG_FATAL (m_path.c_str());
 		    TP_LOG_FATAL ("\": ");
 		    TP_LOG_FATAL (strerror (m_osErrno));
 		    TP_LOG_FATAL ('\n');
@@ -1094,7 +1080,7 @@ namespace tpie {
 	    m_osErrno = errno;
 	    
 	    TP_LOG_FATAL ("mmap() failed to map in header from \"");
-	    TP_LOG_FATAL (m_path);
+	    TP_LOG_FATAL (m_path.c_str());
 	    TP_LOG_FATAL ("\": ");
 	    TP_LOG_FATAL (strerror (m_osErrno));
 	    TP_LOG_FATAL ("\n");
@@ -1130,7 +1116,7 @@ namespace tpie {
 		m_status = STREAM_STATUS_INVALID;
 		
 		TP_LOG_FATAL ("No header block in read only stream \"");
-		TP_LOG_FATAL (m_path);
+		TP_LOG_FATAL (m_path.c_str());
 		TP_LOG_FATAL ('\n');
 		TP_LOG_FLUSH_LOG;
 		
@@ -1145,7 +1131,7 @@ namespace tpie {
 		    m_osErrno = errno;
 		    
 		    TP_LOG_FATAL ("Failed to ftruncate() to end of header of \"");
-		    TP_LOG_FATAL (m_path);
+		    TP_LOG_FATAL (m_path.c_str());
 		    TP_LOG_FATAL ("\": ");
 		    TP_LOG_FATAL (strerror (m_osErrno));
 		    TP_LOG_FATAL ('\n');
@@ -1171,7 +1157,7 @@ namespace tpie {
 	    m_osErrno = errno;
 	    
 	    TP_LOG_FATAL ("mmap() failed to map in header from \"");
-	    TP_LOG_FATAL (m_path);
+	    TP_LOG_FATAL (m_path.c_str());
 	    TP_LOG_FATAL ("\": ");
 	    TP_LOG_FATAL (strerror (m_osErrno));
 	    TP_LOG_FATAL ("\n");
@@ -1341,7 +1327,7 @@ namespace tpie {
 	    TP_LOG_FATAL ("mmap() failed to map in block at ");
 	    TP_LOG_FATAL (blockOffset);
 	    TP_LOG_FATAL (" from \"");
-	    TP_LOG_FATAL (m_path);
+	    TP_LOG_FATAL (m_path.c_str());
 	    TP_LOG_FATAL ("\": ");
 	    TP_LOG_FATAL (strerror (m_osErrno));
 	    TP_LOG_FATAL ('\n');
@@ -1446,7 +1432,7 @@ namespace tpie {
 	    m_osErrno = errno;
 	    
 	    TP_LOG_FATAL ("Failed to ftruncate() out a new block of \"");
-	    TP_LOG_FATAL (m_path);
+	    TP_LOG_FATAL (m_path.c_str());
 	    TP_LOG_FATAL ("\": ");
 	    TP_LOG_FATAL (strerror (m_osErrno));
 	    TP_LOG_FATAL ('\n');

@@ -66,7 +66,7 @@ namespace tpie {
 // End: These are for gcc-3.4 compatibility
 	
 	    // Constructors
-	    stream_stdio (const char        *dev_path, 
+	    stream_stdio (const std::string& dev_path, 
 			  const stream_type st, 
 			  TPIE_OS_SIZE_T    lbf = 1);
 	
@@ -125,29 +125,18 @@ namespace tpie {
 	};
     
 	template <class T>
-	stream_stdio<T>::stream_stdio (const char *dev_path,
-				       const stream_type st,
-				       TPIE_OS_SIZE_T lbf) {
+	stream_stdio<T>::stream_stdio (const std::string& dev_path,
+								   const stream_type st,
+								   TPIE_OS_SIZE_T lbf) {
 	
 	    // Reduce the number of streams avaialble.
-	    if (remaining_streams <= 0) {
-		m_status = STREAM_STATUS_INVALID;
-
-		return;
+	    if (remaining_streams <= 0) 
+		{
+			m_status = STREAM_STATUS_INVALID;
+			return;
 	    }
 	
-	    // Cache the path name
-	    if (strlen (dev_path) > STREAM_PATH_NAME_LEN - 1) {
-	    
-		m_status = STREAM_STATUS_INVALID;
-	    
-		TP_LOG_FATAL_ID("Path name too long:");
-		TP_LOG_FATAL_ID(dev_path);
-
-		return;
-	    }
-	
-	    strncpy (m_path, dev_path, STREAM_PATH_NAME_LEN);
+		m_path = dev_path;
 	    m_status = STREAM_STATUS_NO_STATUS;
 	
 	    // Cache the OS block size.
@@ -169,13 +158,13 @@ namespace tpie {
 		// Open the file for reading.
 		m_readOnly = true;
 	    
-		if ((m_file = TPIE_OS_FOPEN(dev_path, "rb")) == NULL) {
+		if ((m_file = TPIE_OS_FOPEN(dev_path.c_str(), "rb")) == NULL) {
 		
 		    m_status  = STREAM_STATUS_INVALID;
 		    m_osErrno = errno;
 		
 		    TP_LOG_FATAL_ID("Failed to open file:");
-		    TP_LOG_FATAL_ID(dev_path);
+		    TP_LOG_FATAL_ID(dev_path.c_str());
 
 		    return;
 		}
@@ -198,7 +187,7 @@ namespace tpie {
 		    m_osErrno = errno;
 		
 		    TP_LOG_FATAL_ID("Cannot seek in file:");
-		    TP_LOG_FATAL_ID(dev_path);
+		    TP_LOG_FATAL_ID(dev_path.c_str());
 
 		    return;
 		}
@@ -211,15 +200,15 @@ namespace tpie {
 		// Open the file for appending.
 		m_readOnly = false;
 	    
-		if ((m_file = TPIE_OS_FOPEN(dev_path, "rb+")) == NULL) {
+		if ((m_file = TPIE_OS_FOPEN(dev_path.c_str(), "rb+")) == NULL) {
 		    //m_file does not  exist - create it
-		    if ((m_file = TPIE_OS_FOPEN (dev_path, "wb+")) == NULL) {
+		    if ((m_file = TPIE_OS_FOPEN (dev_path.c_str(), "wb+")) == NULL) {
 		    
 			m_status = STREAM_STATUS_INVALID;
 			m_osErrno = errno;
 		    
 			TP_LOG_FATAL_ID("Failed to open file:");
-			TP_LOG_FATAL_ID(dev_path);
+			TP_LOG_FATAL_ID(dev_path.c_str());
 
 			return;
 		    }
@@ -236,7 +225,7 @@ namespace tpie {
 			m_status = STREAM_STATUS_INVALID;
 		    
 			TP_LOG_FATAL_ID("Failed to write header to file:");
-			TP_LOG_FATAL_ID(dev_path);
+			TP_LOG_FATAL_ID(dev_path.c_str());
 
 			return;
 		    }
@@ -245,7 +234,7 @@ namespace tpie {
 		    if (this->truncate(0) != NO_ERROR) {
 
 			TP_LOG_FATAL_ID("Cannot truncate in file:");
-			TP_LOG_FATAL_ID(dev_path);
+			TP_LOG_FATAL_ID(dev_path.c_str());
 		    
 			return;
 		    }
@@ -253,7 +242,7 @@ namespace tpie {
 		    if (this->seek(0) != NO_ERROR) {
 
 			TP_LOG_FATAL_ID("Cannot seek in file:");
-			TP_LOG_FATAL_ID(dev_path);
+			TP_LOG_FATAL_ID(dev_path.c_str());
 
 			return;
 		    }
@@ -444,12 +433,12 @@ namespace tpie {
 			    TP_LOG_WARNING_ID("Ignoring persistency request.");
 			} 
 			else {
-			    if (TPIE_OS_UNLINK (m_path)) {
+			    if (TPIE_OS_UNLINK (m_path.c_str())) {
 			    
 				m_osErrno = errno;
 			    
 				TP_LOG_WARNING_ID("Failed to unlink() file:");
-				TP_LOG_WARNING_ID(m_path);
+				TP_LOG_WARNING_ID(m_path.c_str());
 				TP_LOG_WARNING_ID(strerror(m_osErrno));
 			    } 
 			    else {
@@ -659,12 +648,12 @@ namespace tpie {
 	
 	    filePosition = offset * sizeof (T) + m_osBlockSize; 
 	
-	    if (TPIE_OS_TRUNCATE(m_file, m_path, filePosition) == -1) {   
+	    if (TPIE_OS_TRUNCATE(m_file, m_path.c_str(), filePosition) == -1) {   
 	    
 		m_osErrno = errno;   
 	    
 		TP_LOG_FATAL_ID("Failed to truncate() to the new end of file:");   
-		TP_LOG_FATAL_ID(m_path);   
+		TP_LOG_FATAL_ID(m_path.c_str());   
 		TP_LOG_FATAL_ID(strerror (m_osErrno));   
 	    
 		return OS_ERROR; 
@@ -705,7 +694,7 @@ namespace tpie {
 		m_osErrno = errno;
 	    
 		TP_LOG_FATAL_ID("Failed to read header from file:");
-		TP_LOG_FATAL_ID(m_path);
+		TP_LOG_FATAL_ID(m_path.c_str());
 	    
 		delete ptr_to_header;
 	    
