@@ -35,11 +35,11 @@ namespace tpie {
 	///
 	////////////////////////////////////////////////////////////////////
 
-	progress_indicator_spin(const char* title, 
-				const char* description, 
-				TPIE_OS_OFFSET minRange, 
-				TPIE_OS_OFFSET maxRange, 
-				TPIE_OS_OFFSET stepValue) : 
+	progress_indicator_spin(const std::string& title, 
+							const std::string& description, 
+							TPIE_OS_OFFSET minRange, 
+							TPIE_OS_OFFSET maxRange, 
+							TPIE_OS_OFFSET stepValue) : 
 	    progress_indicator_terminal(title, description, minRange, maxRange, stepValue), m_symbols(NULL), m_numberOfStates(0), m_state(0) {
 	    m_numberOfStates = 4;
 	    m_symbols = new char[m_numberOfStates+2];

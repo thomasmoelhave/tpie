@@ -36,11 +36,11 @@ namespace tpie {
 	///
 	////////////////////////////////////////////////////////////////////
 	
-	progress_indicator_tpie(const char* title, 
-				const char* description, 
-				TPIE_OS_OFFSET minRange, 
-				TPIE_OS_OFFSET maxRange, 
-				TPIE_OS_OFFSET stepValue) : 
+	progress_indicator_tpie(const std::string& title, 
+							const std::string& description, 
+							TPIE_OS_OFFSET minRange, 
+							TPIE_OS_OFFSET maxRange, 
+							TPIE_OS_OFFSET stepValue) : 
 	    progress_indicator_terminal(title, description, minRange, maxRange, stepValue), m_indicatorLength(0), m_progress(0) {
 	    m_indicatorLength = 40;
 	}

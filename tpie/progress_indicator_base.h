@@ -35,11 +35,11 @@ namespace tpie {
 	///
 	////////////////////////////////////////////////////////////////////
 
-	progress_indicator_base(const char* title, 
-				const char* description, 
-				TPIE_OS_OFFSET minRange, 
-				TPIE_OS_OFFSET maxRange, 
-				TPIE_OS_OFFSET stepValue) : 
+	progress_indicator_base(const std::string& title, 
+							const std::string& description, 
+							TPIE_OS_OFFSET minRange, 
+							TPIE_OS_OFFSET maxRange, 
+							TPIE_OS_OFFSET stepValue) : 
 	    m_minRange(min(minRange, maxRange)),
 	    m_maxRange(max(minRange, maxRange)),
 	    m_stepValue(max(min(stepValue, (m_maxRange-m_minRange)), 
@@ -179,10 +179,10 @@ namespace tpie {
 	///
 	////////////////////////////////////////////////////////////////////
 
-	void init(const char* description=NULL) {
+	void init(const std::string& description = std::string()) {
 	    m_current = m_minRange;
-	    if (description) {
-		set_description(description);
+	    if (!description.empty()) {
+			set_description(description);
 	    }
 	    refresh();
 	}
@@ -206,7 +206,7 @@ namespace tpie {
 	///
 	////////////////////////////////////////////////////////////////////
 
-	virtual void done(const char* text = NULL) = 0;
+	virtual void done(const std::string& text = std::string()) = 0;
 
 	////////////////////////////////////////////////////////////////////
 	///
@@ -256,7 +256,7 @@ namespace tpie {
 	///
 	////////////////////////////////////////////////////////////////////
 
-	virtual void set_title(const char* title) = 0;
+	virtual void set_title(const std::string& title) = 0;
 
 	////////////////////////////////////////////////////////////////////
 	///
@@ -267,7 +267,7 @@ namespace tpie {
 	///
 	////////////////////////////////////////////////////////////////////
 
-	virtual void set_description(const char* description) = 0;
+	virtual void set_description(const std::string& description) = 0;
 
 	////////////////////////////////////////////////////////////////////
 	///

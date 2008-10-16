@@ -5,7 +5,8 @@
 
 #include <progress_indicator_base.h>
 
-namespace tpie {
+namespace tpie 
+{
 
 ///////////////////////////////////////////////////////////////////
 ///
@@ -35,17 +36,14 @@ namespace tpie {
 	///
 	////////////////////////////////////////////////////////////////////
 
-	progress_indicator_terminal(const char* title, 
-				    const char* description, 
-				    TPIE_OS_OFFSET minRange, 
-				    TPIE_OS_OFFSET maxRange, 
-				    TPIE_OS_OFFSET stepValue) : 
+	progress_indicator_terminal(const std::string& title, 
+								const std::string& description, 
+								TPIE_OS_OFFSET minRange, 
+								TPIE_OS_OFFSET maxRange, 
+								TPIE_OS_OFFSET stepValue) : 
 	    progress_indicator_base(title, description, minRange, maxRange, stepValue), m_title(NULL), m_description(NULL) {
-	    m_title = new char[strlen(title)+1];
-	    strcpy(m_title, title);
-
-	    m_description = new char[strlen(description)+1];
-	    strcpy(m_description, description);
+			m_title = title;
+			m_description = description;
 	}
 
 	progress_indicator_terminal(const progress_indicator_terminal& other) : 
@@ -53,20 +51,14 @@ namespace tpie {
 	    *this = other;
 	}
 
-	progress_indicator_terminal& operator=(const progress_indicator_terminal& other) {
-	    if (this != &other) {
-
-		progress_indicator_base::operator=(other);
-
-		delete [] m_title;
-		delete [] m_description;
-
-		m_title = new char[strlen(other.m_title)+1];
-		strcpy(m_title, other.m_title);
-	    
-		m_description = new char[strlen(other.m_description)+1];
-		strcpy(m_description, other.m_description);
-	    }
+	progress_indicator_terminal& operator=(const progress_indicator_terminal& other) 
+	{
+	    if (this != &other) 
+		{
+			progress_indicator_base::operator=(other);
+			m_title = other.m_title;
+			m_description = other.m_description;
+		}
 	    return *this;
 	}
 
@@ -76,10 +68,8 @@ namespace tpie {
 	///
 	////////////////////////////////////////////////////////////////////
 
-	virtual ~progress_indicator_terminal() {
-	    delete [] m_title;
-	    delete [] m_description;
-	};
+	virtual ~progress_indicator_terminal() 
+	{};
     
 	////////////////////////////////////////////////////////////////////
 	///
@@ -91,10 +81,10 @@ namespace tpie {
 	///
 	////////////////////////////////////////////////////////////////////
 
-	void done(const char* text = NULL) {
+	void done(const std::string& text = std::string()) {
 	    m_current = m_maxRange;
 	    refresh();
-	    if (text) {
+	    if (!text.empty()) {
 		cout << " " << text;
 	    }
 	    cout << endl;
@@ -167,11 +157,9 @@ namespace tpie {
 	///
 	////////////////////////////////////////////////////////////////////
 
-	void set_title(const char* title) {
-	    delete[] m_title;
-
-	    m_title = new char[strlen(title)+1];
-	    strcpy(m_title, title);
+	void set_title(const std::string& title) 
+	{
+	    m_title = title;
 	    cout << endl << title << endl;
 	}
 
@@ -184,11 +172,9 @@ namespace tpie {
 	///
 	////////////////////////////////////////////////////////////////////
 
-	void set_description(const char* description) {
-	    delete[] m_description;
-
-	    m_description = new char[strlen(description)+1];
-	    strcpy(m_description, description);
+	void set_description(const std::string& description) 
+	{
+	    m_description = description;
 	    cout << "\r";
 	    for (int i = 0; i < 78; i++) cout << " ";
 	    cout << "\r" << description << flush;
@@ -215,23 +201,24 @@ namespace tpie {
 	///
 	////////////////////////////////////////////////////////////////////
 
-	void display_percentage() {
-	    if (m_percentageUnit) {
-		cout << setw(6) << setiosflags(ios::fixed) << setprecision(2) 
-		     << ((static_cast<double>(m_current) * 100.0) / 
-			 static_cast<double>(m_percentageUnit))
-		     << "%";
+	void display_percentage() 
+	{
+		if (m_percentageUnit) {
+			cout << setw(6) << setiosflags(ios::fixed) << setprecision(2) 
+				 << ((static_cast<double>(m_current) * 100.0) / 
+					 static_cast<double>(m_percentageUnit))
+				 << "%";
 	    }
 	    else {
-		cout << m_current << "/" << m_maxRange-m_minRange;
+			cout << m_current << "/" << m_maxRange-m_minRange;
 	    }
 	}
 
 	/**  A string holding the description of the title */
-	char* m_title;
+	std::string m_title;
 
 	/**  A string holding the description of the current task */
-	char* m_description;
+	std::string m_description;
 
     private:
 	progress_indicator_terminal();
