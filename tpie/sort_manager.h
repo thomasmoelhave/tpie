@@ -60,8 +60,10 @@ private:
     AMI_err single_merge(AMI_STREAM<T>**, arity_t, AMI_STREAM<T>*, 
 			 TPIE_OS_OFFSET = -1);
     //helper function for creating filename
-    inline void make_name(
-				const std::string& prepre, const std::string& pre, int id, char *dest);
+    inline void make_name(const std::string& prepre, 
+						  const std::string& pre, 
+						  int id, 
+						  std::string& dest);
 
     // **************
     // * Attributes *
@@ -112,7 +114,7 @@ private:
     // become the input for the next level.
 		std::string suffixName[2];
     // A buffer for building the output file names
-    char   newName [TPIE_PATH_LENGTH];
+		std::string newName;
     //prefix of temp files created during sort
 		std::string working_disk;
 
@@ -676,10 +678,10 @@ AMI_err sort_manager<T,I,M>::merge_to_output(void){
     //complete a merge level. 
     while (nRuns > mrgArity){
 	if (m_indicator) {
-	    char description[255];
-	    TPIE_OS_SNPRINTF(description, sizeof(description), 
-			     "Merge pass %d of %d ",
-			     mrgHeight+1, treeHeight);
+		std::string description;
+		std::stringstream buf;
+		buf << "Merge pass " << mrgHeight+1 << " of " << treeHeight;
+		buf >> description;
 	    m_indicator->set_percentage_range(0, nInputItems);
 	    m_indicator->init(description);
 	}
@@ -858,18 +860,14 @@ AMI_err sort_manager<T,I,M>::single_merge( AMI_STREAM < T > **inStreams,
 
 
 template<class T, class I, class M>
-inline void sort_manager<T,I,M>::make_name(
-		const std::string& prepre, const std::string& pre, int id, char *dest)
+inline void sort_manager<T,I,M>::make_name(const std::string& prepre, 
+										   const std::string& pre, 
+										   int id, 
+										   std::string& dest)
 {
-    //This buffer must be long enough to hold the
-    //largest possible stream id (in decimal)
-    //largest ID is at most mrgArity
-    char tmparray[6];
-
-    strcpy(dest, prepre.c_str());
-    strcat(dest, pre.c_str());
-    sprintf(tmparray, "%d", id);
-    strcat(dest, tmparray);
+	std::stringstream buf;
+	buf << prepre.c_str() << pre.c_str() << id;
+	buf >> dest;
 }
 
 #endif // _SORT_MANAGER_H 
