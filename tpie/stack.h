@@ -45,13 +45,13 @@ public:
     ///  Initializes the stack by (re-)opening the file given.
     ///
     ///  \param  path    The path to a file used for storing the items.
-    ///  \param  type    An AMI_STREAM_TYPE that indicates the 
+    ///  \param  type    An stream_type that indicates the 
     ///                  read/write mode of the file.
     ///
     ////////////////////////////////////////////////////////////////////
 
     stack(const std::string& path, 
-	  AMI_stream_type type = AMI_READ_WRITE_STREAM);
+	  stream_type type = READ_WRITE_STREAM);
 
     ////////////////////////////////////////////////////////////////////
     ///  
@@ -184,7 +184,7 @@ public:
 protected:
 
     /**  The stream used for storing the items.  */
-    AMI_STREAM<T>* m_amiStream;
+    stream<T>* m_amiStream;
 
     /**  The current size of the stack (in items).  */
     TPIE_OS_OFFSET m_size;
@@ -216,7 +216,7 @@ stack<T>::stack() :
     toBeRead(0) {
 
     //  No error checking done for the time being.
-    m_amiStream = new AMI_STREAM<T>();
+    m_amiStream = new stream<T>();
 
     m_logicalBlockSize = m_amiStream->chunk_size();
 
@@ -236,7 +236,7 @@ stack<T>::stack() :
 /////////////////////////////////////////////////////////////////////////
 
 template<class T>
-stack<T>::stack(const std::string& path, AMI_stream_type type) :
+stack<T>::stack(const std::string& path, stream_type type) :
     m_amiStream(NULL), 
     m_size(0),
     m_logicalBlockSize(0),
@@ -244,7 +244,7 @@ stack<T>::stack(const std::string& path, AMI_stream_type type) :
     toBeRead(0) {
 
     //  No error checking done for the time being.
-    m_amiStream = new AMI_STREAM<T>(path, type);
+    m_amiStream = new stream<T>(path, type);
 
     //  Set the size of the stack to be the number of items present 
     //  in the underlying stream file. 

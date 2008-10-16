@@ -688,8 +688,7 @@ namespace tpie {
 			if (sub_end >= len) {
 			    sub_end = len - 1;
 			}
-			current_input->new_substream(READ_STREAM, sub_start, sub_end,
-						     reinterpret_cast<stream_base**>(the_substreams + ii));
+			current_input->new_substream(READ_STREAM, sub_start, sub_end, the_substreams + ii);
 			// The substreams are read-once.
 			the_substreams[ii]->persist(PERSIST_READ_ONCE);
 		    }               
@@ -745,8 +744,7 @@ namespace tpie {
 			if (sub_end >= len) {
 			    sub_end = len - 1;
 			}
-			current_input->new_substream(READ_STREAM, sub_start, sub_end,
-						     reinterpret_cast<stream_base**>(the_substreams + jj)); 
+			current_input->new_substream(READ_STREAM, sub_start, sub_end, the_substreams + jj); 
 			// The substreams are read-once.
 			the_substreams[jj]->persist(PERSIST_READ_ONCE);
                     
