@@ -22,7 +22,7 @@ enum TPIE_LOG_LEVEL {
 #include <logstream.h>
 
 // The file name of the log stream.
-char *tpie_log_name();
+std::string& tpie_log_name();
 
 // Returns the only logstream object. 
 logstream& tpie_log();

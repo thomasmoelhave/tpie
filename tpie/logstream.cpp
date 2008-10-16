@@ -10,13 +10,13 @@
 #include <logstream.h>
 
 // Constructor.
-logstream::logstream(const char *fname, 
+logstream::logstream(const std::string& fname, 
 		     unsigned int p,
 		     unsigned int tp) 
 #ifdef UNIFIED_LOGGING
 : std::ofstream(2), priority(p), threshold(tp) { log_initialized = true; } 
 #else
-: std::ofstream(fname), priority(p), threshold(tp) { log_initialized = true; } 
+: std::ofstream(fname.c_str()), priority(p), threshold(tp) { log_initialized = true; } 
 #endif
 
 bool logstream::log_initialized = false;

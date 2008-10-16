@@ -13,61 +13,59 @@
 #include <string>
 
 // Defined below.
-char* tpie_mktemp(char* str, const char* extension);
+std::string tpie_mktemp();
 
 //tmp file globals
-char* default_path = NULL; 
-char* default_base_name = NULL; 
-char* default_extension = NULL;
+std::string default_path;
+std::string default_base_name; 
+std::string default_extension;
 
 /* like tempnam, but consults environment in an order we like; note
  * that the returned pointer is to static storage, so this function is
  * not re-entrant. */
-char *tpie_tempnam(const char* post_base, const char* base, const char* dir, const char* ext) {
-	const char* base_dir;
-	const char* extension;
-	const char* basename;
-	static char tmp_path[BUFSIZ];
-
-	extension = ext;
-	if(extension == NULL) {
+std::string tpie_tempnam(const std::string& post_base, const std::string& base, 
+						 const std::string& dir, const std::string& ext) 
+{
+	std::string extension = ext;
+	if(extension.empty()) {
 		extension = default_extension;
-		if(extension == NULL)
+		if(extension.empty())
 			extension = "tpie";
 	}
 
-	basename = base;
-	if(basename == NULL) {
+	std::string basename = base;
+	if(basename.empty()) {
 		basename = default_base_name;
-		if(basename == NULL)
+		if(basename.empty())
 			basename = "TPIE";
 	}
 
-	base_dir = dir;
-	if (base_dir == NULL) {
+	std::string base_dir = dir;
+	if (base_dir.empty()) {
 		base_dir = getenv(AMI_SINGLE_DEVICE_ENV);
-		if (base_dir == NULL) {
+		if (base_dir.empty()) {
 			base_dir = getenv(TMPDIR_ENV);
-			if (base_dir == NULL) {
+			if (base_dir.empty()) {
 				base_dir = default_path;
-				if(base_dir == NULL) {
+				if(base_dir.empty()) {
 					base_dir = TMP_DIR;
 				}
 			}
 		}
 	}
 	
-	if(post_base == NULL) {
-		sprintf(tmp_path, TPIE_OS_TEMPNAMESTR, base_dir, basename, "", "", extension);
-	} else {
-		sprintf(tmp_path, TPIE_OS_TEMPNAMESTR, base_dir, basename, post_base, "_", extension);
-	}
-	
-	return tpie_mktemp(tmp_path, extension);    
+	if(post_base.empty())
+		return
+			base_dir + TPIE_OS_DIR_DELIMITER + basename + "_" + 
+			tpie_mktemp() + '.' + extension;
+	else 
+		return 
+			base_dir + TPIE_OS_DIR_DELIMITER + basename + "_" + 
+			post_base + '_' + tpie_mktemp() + '.' + extension;
 }
 
-char *tpie_mktemp(char* str, const char* extension) {
-	const int random_string_length = 7;
+std::string tpie_mktemp()
+{
 	const char chars[] = 
 	{ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 
 	'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 
@@ -76,18 +74,19 @@ char *tpie_mktemp(char* str, const char* extension) {
 	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
 	const int chars_count = 62;
 	static TPIE_OS_TIME_T counter = time(NULL) % (chars_count * chars_count); 
-	TPIE_OS_SIZE_T pos = static_cast<TPIE_OS_SIZE_T>(strlen(str) - strlen(extension) - random_string_length);
 
-	str[pos++] = chars[counter/chars_count];
-	str[pos++] = chars[counter%chars_count];
-
-	str[pos++] = chars[TPIE_OS_RANDOM() % chars_count];
-	str[pos++] = chars[TPIE_OS_RANDOM() % chars_count];
-	str[pos++] = chars[TPIE_OS_RANDOM() % chars_count];
-	str[pos]   = chars[TPIE_OS_RANDOM() % chars_count];
+	std::string result = "";
+	result +=
+		chars[counter/chars_count] +
+		chars[counter%chars_count] +
+		chars[TPIE_OS_RANDOM() % chars_count] +
+		chars[TPIE_OS_RANDOM() % chars_count] +
+		chars[TPIE_OS_RANDOM() % chars_count] +
+		chars[TPIE_OS_RANDOM() % chars_count];
 
 	counter = (counter + 1) % (chars_count * chars_count);
-	return str;
+
+	return result;
 }
 
 void set_default_tmp_names(char* path, char* base, char* extension) {
@@ -108,14 +107,14 @@ void set_default_extension(char* ext) {
 	default_extension = ext;
 }
 
-char *get_default_tmp_path() {
+std::string& get_default_tmp_path() {
 	return default_path;
 }
 
-char *get_default_base_name() {
+std::string& get_default_base_name() {
 	return default_base_name;
 }
 
-char *get_default_extension() {
+std::string& get_default_extension() {
 	return default_extension;
 }

@@ -294,11 +294,11 @@ typedef TPIE_OS_OFFSET TPIE_BLOCK_ID_TYPE;
 #ifdef _WIN32
 #define	 TMP_DIR ".\\"
 #define TPLOGDIR ".\\"
-#define TPIE_OS_TEMPNAMESTR "%s\\%s_%s%sXXXXXX.%s"
+#define TPIE_OS_DIR_DELIMITER "\\"
 #else
 #define	TMP_DIR	"/var/tmp/"
 #define TPLOGDIR "/tmp/"
-#define TPIE_OS_TEMPNAMESTR "%s/%s_%s%sXXXXXX.%s"
+#define TPIE_OS_DIR_DELIMITER "/"
 #endif
 
  

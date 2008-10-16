@@ -17,15 +17,16 @@
 
 // Local initialization function. Create a permanent repository for the log
 // file name. Should be called only once, by theLogName() below.
-static char *__tpie_log_name() {
-  static char tln[128];
-  TPIE_OS_SRANDOM(static_cast<unsigned int>(TPIE_OS_TIME(NULL)));
-  strncpy(tln, tpie_tempnam(TPLOGPFX, TPLOGDIR, "txt"), 124);
-  return tln;
+static std::string& __tpie_log_name() 
+{
+	static std::string tln;
+	TPIE_OS_SRANDOM(static_cast<unsigned int>(TPIE_OS_TIME(NULL)));
+	tln = tpie_tempnam(TPLOGPFX, TPLOGDIR, "txt");
+	return tln;
 }
 
-char *tpie_log_name() {
-  static char *tln = __tpie_log_name();
+std::string& tpie_log_name() {
+  static std::string& tln = __tpie_log_name();
   return tln;
 }
 

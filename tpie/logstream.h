@@ -31,7 +31,7 @@ class logstream : public std::ofstream {
     unsigned int priority;
     unsigned int threshold;
 
-    logstream(const char *fname, unsigned int p = 0, unsigned int tp = 0);
+    logstream(const std::string& fname, unsigned int p = 0, unsigned int tp = 0);
     ~logstream();
 
     // Output operators
