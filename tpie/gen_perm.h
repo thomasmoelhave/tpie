@@ -12,13 +12,13 @@
 #define _TPIE_AMI_GEN_PERM_H
 
 // Get definitions for working with Unix and Windows
-#include <portability.h>
+#include <tpie/portability.h>
 // Get AMI_scan_object.
-#include <scan.h>
+#include <tpie/scan.h>
 // Get AMI_sort
-#include <sort.h>
+#include <tpie/sort.h>
 
-#include <gen_perm_object.h>
+#include <tpie/gen_perm_object.h>
 
 namespace tpie {
 

@@ -1,6 +1,6 @@
 #include "app_config.h"
-#include <portability.h>
-#include <stream.h>
+#include <tpie/portability.h>
+#include <tpie/stream.h>
 #include "getopts.h"
 
 using namespace tpie;

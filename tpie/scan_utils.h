@@ -12,9 +12,9 @@
 #include <iostream>
 
 // Get definitions for working with Unix and Windows.
-#include <portability.h>
+#include <tpie/portability.h>
 // Get the AMI_scan_object definition.
-#include <scan.h>
+#include <tpie/scan.h>
 
 namespace tpie {
 

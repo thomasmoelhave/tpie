@@ -25,7 +25,7 @@
 #define _TPIE_BTE_STREAM_UFS_H
 
 // Get definitions for working with Unix and Windows
-#include <portability.h>
+#include <tpie/portability.h>
 
 // For header's type field (85 == 'U').
 #define STREAM_IMPLEMENTATION_UFS 85
@@ -65,11 +65,11 @@
 #endif
 
 // This code makes assertions and logs errors.
-#include <tpie_assert.h>
-#include <tpie_log.h>
+#include <tpie/tpie_assert.h>
+#include <tpie/tpie_log.h>
 
 // Get the stream_base class and related definitions.
-#include <bte/stream_base.h>
+#include <tpie/bte/stream_base.h>
 
 // Define a sensible logical block factor, if not already defined.
 #ifndef  STREAM_UFS_BLOCK_FACTOR

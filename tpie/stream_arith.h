@@ -10,9 +10,9 @@
 #define _TPIE_AMI_STREAM_ARITH_H
 
 // Get definitions for working with Unix and Windows
-#include <portability.h>
+#include <tpie/portability.h>
 // Get the definition of the scan_object class.
-#include <scan.h>
+#include <tpie/scan.h>
 
 namespace tpie {
 

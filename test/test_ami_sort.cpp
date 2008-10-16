@@ -8,7 +8,7 @@
 //
 
 // Get definitions for working with Unix and Windows
-#include <portability.h>
+#include <tpie/portability.h>
 
 #include <cstdlib>
 
@@ -17,16 +17,16 @@
 #include "parse_args.h"
 
 // Define it all.
-#include <stream.h>
-#include <scan.h>
-#include <sort.h>
-#include <cpu_timer.h>
+#include <tpie/stream.h>
+#include <tpie/scan.h>
+#include <tpie/sort.h>
+#include <tpie/cpu_timer.h>
 
 
-#include <kb_sort.h>
+#include <tpie/kb_sort.h>
 
 // Utilities for ascii output.
-#include <scan_utils.h>
+#include <tpie/scan_utils.h>
 
 #include "scan_random.h"
 #include "scan_diff.h" 

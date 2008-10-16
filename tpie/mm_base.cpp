@@ -5,10 +5,10 @@
 // Created: 9/2/94
 //
 
-#include "lib_config.h"
-#include <mm_base.h>
-#include <tpie_log.h>
-#include <mm_register.h>
+#include <tpie/lib_config.h>
+#include <tpie/mm_base.h>
+#include <tpie/tpie_log.h>
+#include <tpie/mm_register.h>
 
 #include <iostream>
 #include <cstdio>

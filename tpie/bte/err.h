@@ -12,7 +12,7 @@
 #define _TPIE_BTE_ERR_H
 
 // Get definitions for working with Unix and Windows
-#include <portability.h>
+#include <tpie/portability.h>
 
 namespace tpie {
 

@@ -13,17 +13,17 @@
 #define _TPIE_AMI_SORT_MANAGER_H
 
 // Get definitions for working with Unix and Windows
-#include <portability.h>
-#include <stream.h> 
-#include <tempname.h>
-#include <merge_sorted_runs.h>
-#include <mergeheap.h>  //For templated heaps
-#include <internal_sort.h> // Contains classes for sorting internal runs
+#include <tpie/portability.h>
+#include <tpie/stream.h> 
+#include <tpie/tempname.h>
+#include <tpie/merge_sorted_runs.h>
+#include <tpie/mergeheap.h>  //For templated heaps
+#include <tpie/internal_sort.h> // Contains classes for sorting internal runs
                            // using different comparison types
 #include <cmath> //for log, ceil, etc.
 #include <string>
 
-#include <progress_indicator_base.h>
+#include <tpie/progress_indicator_base.h>
 
 namespace tpie {
 

@@ -7,17 +7,17 @@
 // A test for AMI_partition_and_merge().
 
 
-#include <portability.h>
+#include <tpie/portability.h>
 
 // Get information on the configuration to test.
 #include "app_config.h"
 #include "parse_args.h"
 
-#include <merge.h>
-#include <mergeheap.h>
+#include <tpie/merge.h>
+#include <tpie/mergeheap.h>
 
 // Utitlities for ascii output.
-#include <scan_utils.h>
+#include <tpie/scan_utils.h>
 
 #include "scan_random.h"
 

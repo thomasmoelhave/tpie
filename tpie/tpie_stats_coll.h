@@ -11,9 +11,9 @@
 #define _TPIE_STATS_COLL_H
 
 // Get definitions for working with Unix and Windows
-#include <portability.h>
+#include <tpie/portability.h>
 
-#include <tpie_stats.h>
+#include <tpie/tpie_stats.h>
 
 #define TPIE_STATS_COLLECTION_COUNT 9
 enum TPIE_STATS_COLLECTION {

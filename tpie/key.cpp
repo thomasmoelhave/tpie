@@ -5,7 +5,7 @@
 // Created: 3/12/95
 //
 
-#include <key.h>
+#include <tpie/key.h>
 
 key_range::key_range() : m_min(0), m_max(0) {
 }

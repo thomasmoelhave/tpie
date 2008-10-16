@@ -7,7 +7,7 @@
 #ifndef _TPIE_AMI_CACHE_BASE_H
 #define _TPIE_AMI_CACHE_BASE_H
 
-#include <portability.h>
+#include <tpie/portability.h>
 
 namespace tpie {
     

@@ -10,9 +10,9 @@
 #define _TPIE_AMI_QUEUE_H
 
 // Get definitions for working with Unix and Windows
-#include <portability.h>
-#include <stream.h>
-#include <stack.h> 
+#include <tpie/portability.h>
+#include <tpie/stream.h>
+#include <tpie/stack.h> 
 
 
 namespace tpie {

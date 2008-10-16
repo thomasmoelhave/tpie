@@ -9,8 +9,8 @@
 #ifndef _TPIE_AMI_STACK_H
 #define _TPIE_AMI_STACK_H
 
-#include <portability.h>
-#include <stream.h>
+#include <tpie/portability.h>
+#include <tpie/stream.h>
 
 namespace tpie {
 

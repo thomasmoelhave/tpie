@@ -10,7 +10,7 @@
 //
 
 // Get definitions for working with Unix and Windows
-#include <portability.h>
+#include <tpie/portability.h>
 
 // If we have not already seen this file with KB_KEY undefined or
 // KB_KEY is defined, we will process the file.
@@ -50,8 +50,8 @@ namespace tpie {
 
 }  //  tpie namespace
 	
-#include <stream.h>
-#include <key.h>
+#include <tpie/stream.h>
+#include <tpie/key.h>
 	
 
 namespace tpie {

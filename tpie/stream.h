@@ -15,25 +15,25 @@
 
 
 // Get definitions for working with Unix and Windows
-#include <portability.h>
+#include <tpie/portability.h>
 
 // Include the configuration header.
 #include <config.h>
 
 // Get the error codes.
-#include <err.h>
+#include <tpie/err.h>
 
 // Get the device description class
-#include <device.h>
+#include <tpie/device.h>
 
 // Get an appropriate BTE.  Flags may have been set to determine
 // exactly what BTE implementaion will be used, but that should be of
 // little concern to us.  bte/stream.h and recursively included files
 // will worry about parsing the appropriate flags and getting us an
 // implementation.
-#include <bte/stream.h>
+#include <tpie/bte/stream.h>
 
-#include <tempname.h>
+#include <tpie/tempname.h>
 
 namespace tpie {
 
@@ -59,7 +59,7 @@ namespace tpie {
 
 }  //  tpie namespace
 
-#include <stream_base.h>
+#include <tpie/stream_base.h>
 
 namespace tpie {
 
@@ -701,6 +701,6 @@ private:
 
 }  //  tpie namespace
 
-#include <stream_compatibility.h>
+#include <tpie/stream_compatibility.h>
 
 #endif // _TPIE_AMI_STREAM_H

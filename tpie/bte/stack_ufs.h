@@ -13,9 +13,9 @@
 #define _TPIE_BTE_STACK_UFS_H
 
 // Get definitions for working with Unix and Windows
-#include <portability.h>
+#include <tpie/portability.h>
 
-#include <bte/stream_ufs.h>
+#include <tpie/bte/stream_ufs.h>
 
 namespace tpie {
 

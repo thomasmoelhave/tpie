@@ -13,12 +13,12 @@
 #define _TPIE_AMI_MERGE_H
 
 // Get definitions for working with Unix and Windows
-#include <portability.h>
+#include <tpie/portability.h>
 
 // For log() and such as needed to compute tree heights.
 #include <cmath>
 
-#include <stream.h>
+#include <tpie/stream.h>
 
 
 namespace tpie {

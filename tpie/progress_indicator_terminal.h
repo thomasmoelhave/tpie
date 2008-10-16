@@ -1,9 +1,9 @@
 #ifndef _TPIE_PROGRESS_INDICATOR_TERMINAL_H
 #define _TPIE_PROGRESS_INDICATOR_TERMINAL_H
 
-#include <portability.h>
+#include <tpie/portability.h>
 
-#include <progress_indicator_base.h>
+#include <tpie/progress_indicator_base.h>
 
 namespace tpie 
 {

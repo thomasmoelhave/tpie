@@ -17,7 +17,7 @@
 
 
 // Get definitions for working with Unix and Windows
-#include <portability.h>
+#include <tpie/portability.h>
 
 /** Declares for a stream under which circumstances it should be deleted. */
 enum persistence {

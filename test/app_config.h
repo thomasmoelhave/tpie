@@ -19,7 +19,7 @@
 
 // Set up some defaults for the test applications
 
-#include <portability.h>
+#include <tpie/portability.h>
 #include <sys/types.h> // for size_t
 #include <cstdlib> // for random()
 
@@ -135,13 +135,13 @@ extern int random_seed;
 #define TPL_LOGGING 1
 #endif
 
-#include <tpie_log.h>
+#include <tpie/tpie_log.h>
 
 // Enable assertions if requested.
 #if TP_ASSERT_APPS
 #define DEBUG_ASSERTIONS 1
 #endif
 
-#include <tpie_assert.h>
+#include <tpie/tpie_assert.h>
 
 #endif

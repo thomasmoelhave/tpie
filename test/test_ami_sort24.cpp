@@ -5,19 +5,19 @@
 // Created: 3/24/95
 //
 
-#include <portability.h>
+#include <tpie/portability.h>
 
 // Get information on the configuration to test.
 #include "app_config.h"
 #include "parse_args.h"
 
-#include <sort.h>
-#include <kb_sort.h>
+#include <tpie/sort.h>
+#include <tpie/kb_sort.h>
 
 // Utitlities for ascii output.
-#include <scan_utils.h>
+#include <tpie/scan_utils.h>
 
-#include <cpu_timer.h>
+#include <tpie/cpu_timer.h>
 
 using namespace tpie;
 

@@ -7,7 +7,7 @@
 
 #include "../lib_config.h"
 
-#include <bte/stream_base.h>
+#include <tpie/bte/stream_base.h>
 
 static unsigned long get_remaining_streams() {
     TPIE_OS_SET_LIMITS_BODY;

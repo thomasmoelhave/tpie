@@ -11,9 +11,9 @@
 #define _TPIE_ASSERT_H
 
 // Get definitions for working with Unix and Windows
-#include <portability.h>
+#include <tpie/portability.h>
 #include <iostream>
-#include <tpie_log.h>
+#include <tpie/tpie_log.h>
 
 #if DEBUG_ASSERTIONS
 

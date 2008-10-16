@@ -10,7 +10,7 @@
 #define _MM_H
 
 // Get the base class, enums, etc...
-#include <mm_base.h>
+#include <tpie/mm_base.h>
 
 
 ///////////////////////////////////////////////////////////////////////////
@@ -23,7 +23,7 @@
 // Get an implementation definition..
 
 #ifdef MM_IMP_REGISTER
-#include <mm_register.h>
+#include <tpie/mm_register.h>
 #else
 #error No MM implementation selected.
 #endif

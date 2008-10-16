@@ -8,7 +8,7 @@
 // $Id: test_correctness.cpp,v 1.11 2006-01-17 23:31:26 jan Exp $
 //
 
-#include <portability.h>
+#include <tpie/portability.h>
 
 // TPIE configuration: choose BTE, block size, etc.
 #include "app_config.h"
@@ -30,12 +30,12 @@
 #if TP_LOG_APPS
 #  define TPL_LOGGING 1
 #endif
-#include <tpie_log.h>
+#include <tpie/tpie_log.h>
 
 
 // TPIE core classes and functions.
-#include <ami.h>
-#include <scan_utils.h>
+#include <tpie/ami.h>
+#include <tpie/scan_utils.h>
 
 // The getopts() function for reading command-line arguments.
 #include "getopts.h"

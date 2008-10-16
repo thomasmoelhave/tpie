@@ -12,13 +12,13 @@
 #define _TPIE_AMI_BLOCK_H
 
 // Get definitions for working with Unix and Windows
-#include <portability.h>
+#include <tpie/portability.h>
 
 // The AMI_block_base class.
-#include <block_base.h>
+#include <tpie/block_base.h>
 
 // The b_vector class.
-#include <b_vector.h>
+#include <tpie/b_vector.h>
 
 namespace tpie {
 

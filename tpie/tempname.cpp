@@ -9,7 +9,7 @@
 #include <time.h>
 #include <cstring>
 #include "lib_config.h"
-#include <tempname.h>
+#include <tpie/tempname.h>
 #include <string>
 
 // Defined below.

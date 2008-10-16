@@ -13,7 +13,7 @@
 // Get the STL std::min fonction.
 #include <algorithm>
 // Get the AMI_scan_object definition.
-#include <scan.h>
+#include <tpie/scan.h>
 
 using namespace tpie;
 

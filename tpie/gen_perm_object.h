@@ -9,10 +9,10 @@
 #define _TPIE_AMI_GEN_PERM_OBJECT_H
 
 // Get definitions for working with Unix and Windows
-#include <portability.h>
+#include <tpie/portability.h>
 
 // For AMI_err.
-#include <err.h>
+#include <tpie/err.h>
 
 namespace tpie {
 

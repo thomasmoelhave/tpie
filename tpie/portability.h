@@ -140,7 +140,7 @@
 #include <sys/resource.h>	
 #endif
 
-#include <bte/err.h>
+#include <tpie/bte/err.h>
 
 //		Get functions for mapping			//
 #ifdef _WIN32
@@ -372,7 +372,7 @@ typedef TPIE_OS_OFFSET TPIE_BLOCK_ID_TYPE;
 #endif
 
 // for ANSI conform arrays.
-#include <vararray.h>
+#include <tpie/vararray.h>
 
 //////////////////////////////////////////////
 // functions				    //
@@ -630,7 +630,7 @@ inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_ORDONLY(const std::string& name,TPIE
 
 
 #ifdef _WIN32
-inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_OEXCL(const string& name, TPIE_OS_MAPPING_FLAG mappingFlag = TPIE_OS_FLAG_USE_MAPPING_FALSE) {
+inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_OEXCL(const std::string& name, TPIE_OS_MAPPING_FLAG mappingFlag = TPIE_OS_FLAG_USE_MAPPING_FALSE) {
     return portabilityInternalOpen(name.c_str(), _O_EXCL, mappingFlag);
 }
 #else

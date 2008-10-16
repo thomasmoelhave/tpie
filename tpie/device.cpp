@@ -9,8 +9,8 @@
 #include <cstdlib>
 #include <string.h>
 
-#include <err.h>
-#include <device.h>
+#include <tpie/err.h>
+#include <tpie/device.h>
 
 
 AMI_device::AMI_device(void) : argc(0), argv(NULL)

@@ -35,7 +35,7 @@
 #ifndef _GETOPTS_H_
 #define _GETOPTS_H_
 
-#include <portability.h>
+#include <tpie/portability.h>
 /*
 #ifdef __cplusplus
 extern "C" {

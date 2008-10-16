@@ -14,15 +14,15 @@
 // 	$Id: ami_merge_sorted_runs.h,v 1.1 2005-12-19 03:11:18 adanner Exp $	
 
 // Get definitions for working with Unix and Windows
-#include <portability.h>
+#include <tpie/portability.h>
 
 // Includes needed from TPIE
-#include <stream.h>
-#include <tempname.h>
-#include <mergeheap.h>	   //For templated heaps
-#include <quicksort.h>		//For templated qsort_items
+#include <tpie/stream.h>
+#include <tpie/tempname.h>
+#include <tpie/mergeheap.h>	   //For templated heaps
+#include <tpie/quicksort.h>		//For templated qsort_items
 
-#include <progress_indicator_base.h>
+#include <tpie/progress_indicator_base.h>
 
 namespace tpie {
 

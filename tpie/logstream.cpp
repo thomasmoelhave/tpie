@@ -7,7 +7,7 @@
 // The logstream class, for writing to the log.
 //
 
-#include <logstream.h>
+#include <tpie/logstream.h>
 
 // Constructor.
 logstream::logstream(const std::string& fname, 

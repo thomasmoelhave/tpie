@@ -11,7 +11,7 @@
 #define _TPIE_STATS_H
 
 // Get definitions for working with Unix and Windows
-#include <portability.h>
+#include <tpie/portability.h>
 
 ///////////////////////////////////////////////////////////////////////////
 /// Encapsulates statistics about a TPIE object.

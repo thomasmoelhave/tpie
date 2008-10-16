@@ -9,17 +9,17 @@
 #define _TPIE_BTE_STREAM_BASE_H
 
 // Get definitions for working with Unix and Windows
-#include <portability.h>
-#include <tpie_assert.h>
-#include <persist.h>
+#include <tpie/portability.h>
+#include <tpie/tpie_assert.h>
+#include <tpie/persist.h>
 // Get the BTE error codes.
-#include <bte/err.h>
+#include <tpie/bte/err.h>
 // Get statistics definitions.
-#include <tpie_stats_stream.h>
+#include <tpie/tpie_stats_stream.h>
 
 // Include the registration based memory manager.
 #define MM_IMP_REGISTER
-#include <mm.h>
+#include <tpie/mm.h>
 
 
 // The magic number of the file storing the stream.
@@ -51,8 +51,8 @@ namespace tpie {
 
 }  //  tpie namespace
 
-#include <bte/stream_header.h>
-#include <bte/stream_base_generic.h>
+#include <tpie/bte/stream_header.h>
+#include <tpie/bte/stream_base_generic.h>
     
 // An abstract class template which implements a single stream of objects 
 // of type T within the BTE.  This is the superclass of all actual 

@@ -1,10 +1,10 @@
 #ifndef _TPIE_PROGRESS_INDICATOR_ARROW_H
 #define _TPIE_PROGRESS_INDICATOR_ARROW_H
 
-#include <portability.h>
+#include <tpie/portability.h>
 #include <algorithm>
 
-#include <progress_indicator_terminal.h>
+#include <tpie/progress_indicator_terminal.h>
 
 namespace tpie {
 

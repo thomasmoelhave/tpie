@@ -1,11 +1,11 @@
 #ifndef _TPIE_AMI_STREAM_BASE_H
 #define _TPIE_AMI_STREAM_BASE_H
 
-#include <portability.h>
+#include <tpie/portability.h>
 
-#include <device.h>
-#include <bte/stream_base_generic.h>
-#include <tpie_stats_stream.h>
+#include <tpie/device.h>
+#include <tpie/bte/stream_base_generic.h>
+#include <tpie/tpie_stats_stream.h>
 
 namespace tpie {
 

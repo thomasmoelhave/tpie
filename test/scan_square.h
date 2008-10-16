@@ -11,7 +11,7 @@
 #ifndef _SCAN_SQUARE_H
 #define _SCAN_SQUARE_H
 
-#include <portability.h>
+#include <tpie/portability.h>
 
 using namespace tpie;
 

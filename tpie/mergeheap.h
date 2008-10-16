@@ -41,7 +41,7 @@
 #define _MERGE_HEAP_H
 
 // Get definitions for working with Unix and Windows
-#include <portability.h>
+#include <tpie/portability.h>
 
 // Macros for left and right.
 #define Left(i)   2*(i)

@@ -4,12 +4,12 @@
 // Created: 8/24/93
 //
 
-#include <stream_base.h>
+#include <tpie/stream_base.h>
 
 #include "lib_config.h"
 
 // For AMI_SINGLE_DEVICE_ENV and TMPDIR_ENV.
-#include <tempname.h>
+#include <tpie/tempname.h>
 
 using namespace tpie::ami;
 

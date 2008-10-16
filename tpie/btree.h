@@ -25,19 +25,19 @@
 #include <string>
 
 // Get a stream implementation.
-#include <stream.h>
+#include <tpie/stream.h>
 // Get templates for sort.
-#include <sort.h>
+#include <tpie/sort.h>
 // Get a collection implementation.
-#include <coll.h>
+#include <tpie/coll.h>
 // Get a block implementation.
-#include <block.h>
+#include <tpie/block.h>
 // The cache manager.
-#include <cache.h>
+#include <tpie/cache.h>
 // The tpie_stats_tree class for tree statistics.
-#include <tpie_stats_tree.h>
+#include <tpie/tpie_stats_tree.h>
 // The tpie_tempnam() function
-#include <tempname.h>
+#include <tpie/tempname.h>
 
 namespace tpie {
 

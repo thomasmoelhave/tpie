@@ -1,7 +1,7 @@
 #ifndef _TPIE_PROGRESS_INDICATOR_BASE_H
 #define _TPIE_PROGRESS_INDICATOR_BASE_H
 
-#include <portability.h>
+#include <tpie/portability.h>
 #include <algorithm>
 
 namespace tpie {

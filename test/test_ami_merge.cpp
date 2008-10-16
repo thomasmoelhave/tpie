@@ -4,7 +4,7 @@
 // Created: 6/2/94
 //
 
-#include <portability.h>
+#include <tpie/portability.h>
 
 
 #include <iostream>
@@ -13,12 +13,12 @@
 #include "parse_args.h"
 
 // Define it all.
-#include <stream.h>
-#include <scan.h>
-#include <merge.h>
+#include <tpie/stream.h>
+#include <tpie/scan.h>
+#include <tpie/merge.h>
 
 // Utitlities for ascii output.
-#include <scan_utils.h>
+#include <tpie/scan_utils.h>
 
 // Get some scanners and a merger.
 

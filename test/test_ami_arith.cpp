@@ -5,23 +5,23 @@
 // Created: 12/10/94
 //
 
-#include <portability.h>
+#include <tpie/portability.h>
 
 #include "app_config.h"        
 #include "parse_args.h"
 
 // Get AMI_scan().
-#include <scan.h>
+#include <tpie/scan.h>
 
 // Get utitlities for ascii output.
-#include <scan_utils.h>
+#include <tpie/scan_utils.h>
 
 // Get some scanners.
 #include "scan_square.h"
 #include "scan_count.h"
 
 // Get stream arithmetic.
-#include <stream_arith.h>
+#include <tpie/stream_arith.h>
 
 using namespace tpie;
 

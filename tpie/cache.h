@@ -12,8 +12,8 @@
 #ifndef _TPIE_AMI_CACHE_H
 #define _TPIE_AMI_CACHE_H
 
-#include <cache_base.h>
-#include <cache_lru.h>
+#include <tpie/cache_base.h>
+#include <tpie/cache_lru.h>
 
 namespace tpie {
     

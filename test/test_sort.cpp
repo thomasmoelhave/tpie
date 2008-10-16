@@ -1,17 +1,17 @@
 #include "app_config.h"
-#include <portability.h>
+#include <tpie/portability.h>
 //#include <ssort.h>
-#include <tpie_log.h>
-#include <stream.h>
-#include <sort.h>
-#include <err.h>
+#include <tpie/tpie_log.h>
+#include <tpie/stream.h>
+#include <tpie/sort.h>
+#include <tpie/err.h>
 #include "getopts.h"
-#include "quicksort.h"  //TPIE internal sort
+#include <tpie/quicksort.h>  //TPIE internal sort
 #include <algorithm>    //STL internal sort
 #include <cstdlib>     //C internal sort
-#include "cpu_timer.h"
+#include <tpie/cpu_timer.h>
 
-#include <progress_indicator_arrow.h>
+#include <tpie/progress_indicator_arrow.h>
 
 //snprintf is different on WIN/Unix platforms
 #ifdef _WIN32
@@ -599,13 +599,14 @@ void internal_sort_test(const appInfo& info){
 ami::err test_3x_sort(appInfo& info, enum test_type ttype, progress_indicator_base* indicator=NULL){
   //Make up some temp filenames
   std::cout << "****TEST START****" << std::endl;
+
 //  char fname[BUFSIZ], fname2[BUFSIZ];
 //  strncpy(fname, tpie_tempnam(APP_FILE_BASE, info.path), BUFSIZ);
 //  strncpy(fname2, tpie_tempnam(APP_FILE_BASE, info.path), BUFSIZ);
   
   std::string fname  = tpie_tempnam(APP_FILE_BASE, info.path);
   std::string fname2 = tpie_tempnam(APP_FILE_BASE, info.path);
-  
+
   //Create the input stream
   write_random_stream(fname, info, indicator);
   

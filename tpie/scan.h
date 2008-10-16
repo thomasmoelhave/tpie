@@ -17,8 +17,8 @@
 #ifndef _TPIE_AMI_SCAN_H
 #define _TPIE_AMI_SCAN_H
 
-#include <err.h>
-#include <stream.h>
+#include <tpie/err.h>
+#include <tpie/stream.h>
 
 namespace tpie {
     

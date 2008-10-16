@@ -15,7 +15,7 @@
 ///////////////////////////////////////////////////////////////////////////
 
 // Get definitions for working with Unix and Windows
-#include <portability.h>
+#include <tpie/portability.h>
 
 /** MM accounting modes */
 typedef enum {

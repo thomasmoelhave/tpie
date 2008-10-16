@@ -9,15 +9,15 @@
 #define _TPIE_BTE_STREAM_STDIO_H
 
 // Get definitions for working with Unix and Windows
-#include <portability.h>
+#include <tpie/portability.h>
 
 // For header's type field (83 == 'S').
 #define STREAM_IMPLEMENTATION_STDIO 83
 
-#include <tpie_assert.h>
-#include <tpie_log.h>
+#include <tpie/tpie_assert.h>
+#include <tpie/tpie_log.h>
 
-#include <bte/stream_base.h>
+#include <tpie/bte/stream_base.h>
 
 // File system streams are streams in a special format that is designed 
 // to be stored in an ordinary file in a UN*X file system.  They are 

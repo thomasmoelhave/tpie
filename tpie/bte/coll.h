@@ -11,16 +11,16 @@
 #define _TPIE_BTE_COLL_H
 
 // Get the base class and various definitions.
-#include <bte/coll_base.h>
+#include <tpie/bte/coll_base.h>
 
 // The MMAP implementation.
-#include <bte/coll_mmap.h>
+#include <tpie/bte/coll_mmap.h>
 
 // The UFS implementation.
-#include <bte/coll_ufs.h>
+#include <tpie/bte/coll_ufs.h>
 
 // Get definitions for working with Unix and Windows
-#include <portability.h>
+#include <tpie/portability.h>
 
 namespace tpie {
 

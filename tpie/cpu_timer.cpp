@@ -5,7 +5,7 @@
 // Created: 1/11/95
 //
 
-#include <cpu_timer.h>
+#include <tpie/cpu_timer.h>
 
 using namespace tpie;
 

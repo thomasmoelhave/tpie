@@ -9,10 +9,10 @@
 #define _TPIE_BTE_STREAM_BASE_GENERIC_H
 
 // Get definitions for working with Unix and Windows
-#include <portability.h>
+#include <tpie/portability.h>
 
 // Get statistics definitions.
-#include <tpie_stats_stream.h>
+#include <tpie/tpie_stats_stream.h>
 
 namespace tpie {
 

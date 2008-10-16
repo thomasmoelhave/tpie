@@ -10,8 +10,8 @@
 #define _MM_REGISTER_H
 
 /// Get definitions for working with Unix and Windows
-#include <portability.h>
-#include <tpie_log.h>
+#include <tpie/portability.h>
+#include <tpie/tpie_log.h>
 
 #define MM_REGISTER_VERSION 2
 

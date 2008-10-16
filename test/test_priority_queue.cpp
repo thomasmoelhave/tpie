@@ -1,8 +1,8 @@
 //#define TP_LOG_APPS
 
 #include "app_config.h"
-#include <portability.h>
-#include <priority_queue.h>
+#include <tpie/portability.h>
+#include <tpie/priority_queue.h>
 #include <iostream>
 #include <queue>
 #include <cstdlib>

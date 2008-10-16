@@ -10,11 +10,11 @@
 #define _AMI_DEVICE_H
 
 // Get definitions for working with Unix and Windows
-#include <portability.h>
+#include <tpie/portability.h>
 
 #include <iostream>
 
-#include <err.h>
+#include <tpie/err.h>
 
 class AMI_device {
     friend std::ostream &operator<<(std::ostream &os, const AMI_device &dev);

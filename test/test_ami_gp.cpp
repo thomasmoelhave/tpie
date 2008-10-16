@@ -10,19 +10,19 @@
 // the same integers, in reverse order.
 //
 
-#include <portability.h>
+#include <tpie/portability.h>
 
 // Get the application defaults.
 #include "app_config.h"
 
 // Get AMI_scan().
-#include <scan.h>
+#include <tpie/scan.h>
 // Get ASCII scan objects.
-#include <scan_utils.h>
+#include <tpie/scan_utils.h>
 // Get AMI_gen_perm_object.
-#include <gen_perm_object.h>
+#include <tpie/gen_perm_object.h>
 // Get AMI_general_permute().
-#include <gen_perm.h>
+#include <tpie/gen_perm.h>
 
 #include "parse_args.h"
 #include "scan_count.h"

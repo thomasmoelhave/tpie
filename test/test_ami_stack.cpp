@@ -5,15 +5,15 @@
 // Created: 12/15/94
 //
 
-#include <portability.h>
+#include <tpie/portability.h>
 
-#include <progress_indicator_arrow.h>
+#include <tpie/progress_indicator_arrow.h>
 
 #include "app_config.h"        
 #include "parse_args.h"
 
 // Get the AMI_stack definition.
-#include <stack.h>
+#include <tpie/stack.h>
 
 using namespace tpie;
 

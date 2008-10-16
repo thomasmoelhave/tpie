@@ -10,8 +10,8 @@
 
 #include <cstdlib>
 #include <time.h>
-#include <tempname.h>
-#include <tpie_log.h>
+#include <tpie/tempname.h>
+#include <tpie/tpie_log.h>
 
 #define TPLOGPFX "tpielog"
 

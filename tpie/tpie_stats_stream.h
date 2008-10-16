@@ -15,9 +15,9 @@
 #define _TPIE_STATS_STREAM_H
 
 // Get definitions for working with Unix and Windows
-#include <portability.h>
+#include <tpie/portability.h>
 
-#include <tpie_stats.h>
+#include <tpie/tpie_stats.h>
 
 #define TPIE_STATS_STREAM_COUNT 11
 

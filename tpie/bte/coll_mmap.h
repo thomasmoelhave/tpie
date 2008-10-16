@@ -10,9 +10,9 @@
 #define _TPIE_BTE_COLL_MMAP_H
 
 // Get definitions for working with Unix and Windows
-#include <portability.h>
+#include <tpie/portability.h>
 // Get the base class.
-#include <bte/coll_base.h>
+#include <tpie/bte/coll_base.h>
 
 // For header's type field (77 == 'M').
 #define COLLECTION_MMAP_ID 77

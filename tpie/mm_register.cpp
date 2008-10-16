@@ -11,8 +11,8 @@
 #include "lib_config.h"
 
 #define MM_IMP_REGISTER
-#include <mm.h>
-#include <mm_register.h>
+#include <tpie/mm.h>
+#include <tpie/mm_register.h>
 
 #ifdef REPORT_LARGE_MEMOPS
 #include <iostream>

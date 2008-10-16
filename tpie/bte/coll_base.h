@@ -13,18 +13,18 @@
 #define _TPIE_BTE_COLL_BASE_H
 
 // Get definitions for working with Unix and Windows
-#include <portability.h>
+#include <tpie/portability.h>
 
 // Include the registration based memory manager.
 #define MM_IMP_REGISTER
-#include <mm.h>
+#include <tpie/mm.h>
 
 // For persist.
-#include <persist.h>
+#include <tpie/persist.h>
 
-#include <bte/stack_ufs.h>
-#include <bte/err.h>
-#include <tpie_stats_coll.h>
+#include <tpie/bte/stack_ufs.h>
+#include <tpie/bte/err.h>
+#include <tpie/tpie_stats_coll.h>
 
 namespace tpie {
 

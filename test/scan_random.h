@@ -9,8 +9,8 @@
 #ifndef _SCAN_RANDOM_H
 #define _SCAN_RANDOM_H
 
-#include <portability.h>
-#include <scan.h>
+#include <tpie/portability.h>
+#include <tpie/scan.h>
 
 using namespace tpie;
 

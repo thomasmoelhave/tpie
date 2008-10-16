@@ -19,7 +19,7 @@ enum TPIE_LOG_LEVEL {
   TPIE_LOG_MEM_DEBUG		// Memory allocation de-allocation.
 };
 
-#include <logstream.h>
+#include <tpie/logstream.h>
 
 // The file name of the log stream.
 std::string& tpie_log_name();

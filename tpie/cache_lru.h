@@ -10,9 +10,9 @@
 // Get the STL pair class.
 #include <utility>
 // Get the logging macros.
-#include <tpie_log.h>
+#include <tpie/tpie_log.h>
 // Get the b_vector class.
-#include <b_vector.h>
+#include <tpie/b_vector.h>
 
 namespace tpie {
     

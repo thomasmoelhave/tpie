@@ -12,7 +12,7 @@
 
 // The new getopts() argument-parsing function.
 #include "getopts.h"
-#include <stream.h>
+#include <tpie/stream.h>
 
 static TPIE_OS_OFFSET parse_number(char *s) {
   TPIE_OS_OFFSET n; 

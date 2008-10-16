@@ -12,7 +12,7 @@
 #ifndef _VARARRAY_H
 #define _VARARRAY_H
 
-#include <portability.h>
+#include <tpie/portability.h>
 
 #include <cassert>
 #include <cstdlib>

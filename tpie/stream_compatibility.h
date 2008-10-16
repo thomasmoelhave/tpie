@@ -12,7 +12,7 @@
 #ifndef _AMI_STREAM_COMPATIBILITY_H
 #define _AMI_STREAM_COMPATIBILITY_H
 
-#include <portability.h>
+#include <tpie/portability.h>
 
 #if defined(AMI_IMP_SINGLE)
 	TPIE_OS_UNIX_ONLY_WARNING_AMI_IMP_SINGLE

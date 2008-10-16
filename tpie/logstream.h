@@ -11,7 +11,7 @@
 #define _LOGSTREAM_H
 
 // Get definitions for working with Unix and Windows
-#include <portability.h>
+#include <tpie/portability.h>
 
 #include <fstream>
 

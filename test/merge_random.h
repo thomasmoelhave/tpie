@@ -12,9 +12,9 @@
 #ifndef _MERGE_RANDOM_H
 #define _MERGE_RANDOM_H
 
-#include <portability.h>
-#include <merge.h>
-#include <mergeheap.h>
+#include <tpie/portability.h>
+#include <tpie/merge.h>
+#include <tpie/mergeheap.h>
 
 using namespace tpie;
 

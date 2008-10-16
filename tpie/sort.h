@@ -9,14 +9,14 @@
 #define _AMI_SORT_H
 
 // Get definitions for working with Unix and Windows
-#include <portability.h>
+#include <tpie/portability.h>
 
 // The class that actually does the sorting
-#include <sort_manager.h>
-#include <mergeheap.h>
-#include <internal_sort.h>
+#include <tpie/sort_manager.h>
+#include <tpie/mergeheap.h>
+#include <tpie/internal_sort.h>
 
-#include <progress_indicator_base.h>
+#include <tpie/progress_indicator_base.h>
 
 namespace tpie {
 

@@ -11,18 +11,18 @@
 #define _AMI_COLL_SINGLE_H
 
 // Get definitions for working with Unix and Windows
-#include <portability.h>
+#include <tpie/portability.h>
 
 // For persist type.
-#include <persist.h>
+#include <tpie/persist.h>
 // Get an appropriate BTE collection.
-#include <bte/coll.h>
+#include <tpie/bte/coll.h>
 // For AMI_collection_type and AMI_collection_status.
-#include <coll_base.h>
+#include <tpie/coll_base.h>
 // The tpie_tempnam() function.
-#include <tempname.h>
+#include <tpie/tempname.h>
 // Get the tpie_stats_coll class for collection statistics.
-#include <tpie_stats_coll.h>
+#include <tpie/tpie_stats_coll.h>
 
 namespace tpie {
 

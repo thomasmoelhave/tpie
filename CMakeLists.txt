@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.6)
 
 project(tpie)
 
-include_directories(tpie)
+include_directories(.)
 add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
 
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
