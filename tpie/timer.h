@@ -19,6 +19,7 @@ public:
     virtual void start(void) = 0;
     virtual void stop(void) = 0;
     virtual void reset(void) = 0;
+    virtual ~timer() {} ;
 };
 
 #endif // _TIMER_H 
