@@ -45,6 +45,25 @@ void pq_large_instance(){
   }
 }
 
+void pq_internal_instance(){
+  int size=100000;
+  tpie::pq_internal_heap<int, std::greater<int> > pq(size);
+  std::priority_queue<int, vector<int>,std::less<int> > pq2;
+  for(int i=0;i<size;i++){
+    int r = rand();
+    pq.insert(r);
+    pq2.push(r);
+  }
+  while(!pq.empty()){
+    if(pq.peekmin()!=pq2.top()){
+      cerr << "Internal memory heap failed.\n";
+      assert(0);
+    }
+    pq.delmin();
+    pq2.pop();
+  }
+}
+
 void pq_small_instance(){
   MM_manager.set_memory_limit(10*1024*1024);
   //cout << "LOGGING: " << logstream::log_initialized << "\n";
@@ -117,10 +136,12 @@ void pq_small_instance(){
 
 int main(int argc,char** argv){
   if(argc!=2){
-    cout << "Arguments are test_priority_queue <type>\nWhere type is either \"small\" or \"large\"\n";
+    cout << "Arguments are test_priority_queue <type>\nWhere type is either \"small\" , \"large\" or \"internal\"\n";
   }
   if(strcmp(argv[1],"small")==0)
     pq_small_instance();
   else if(strcmp(argv[1],"large")==0)
     pq_large_instance();
+  else if(strcmp(argv[1],"internal")==0)
+    pq_internal_instance();
 }

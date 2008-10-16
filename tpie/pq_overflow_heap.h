@@ -119,7 +119,7 @@ class pq_overflow_heap {
 
 	private:
 		Comparator comp_;
-		Heap<T, Comparator>* h;
+		pq_internal_heap<T, Comparator>* h;
 		TPIE_OS_OFFSET maxsize;
 		T dummy;
 };
