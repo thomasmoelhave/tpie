@@ -9,83 +9,86 @@
 // $Id: bte/stack_ufs.h,v 1.2 2005-01-14 18:47:22 tavi Exp $
 //
 
-#ifndef _BTE_STACK_UFS_H
-#define _BTE_STACK_UFS_H
+#ifndef _TPIE_BTE_STACK_UFS_H
+#define _TPIE_BTE_STACK_UFS_H
 
 // Get definitions for working with Unix and Windows
 #include <portability.h>
 
 #include <bte/stream_ufs.h>
 
-template<class T>
-class BTE_stack_ufs : public BTE_stream_ufs<T> {
-public:
-  using BTE_stream_ufs<T>::stream_len;
-  using BTE_stream_ufs<T>::seek;
-  using BTE_stream_ufs<T>::truncate;
-  
-  // Construct a new stack with the given name and access type.
-  BTE_stack_ufs(char *path, BTE_stream_type type = BTE_WRITE_STREAM); 
-  // Destroy this object.
-  ~BTE_stack_ufs(void);
-  // Push an element on top of the stack.
-  BTE_err push(const T &t);
-  // Pop an element from the top of the stack.
-  BTE_err pop(T **t);
-
-};
-
-
-template<class T>
-BTE_stack_ufs<T>::BTE_stack_ufs(char *path, 
-			    BTE_stream_type type) :
-  BTE_stream_ufs<T>(path, type, 1)
-{
-}
-
-template<class T>
-BTE_stack_ufs<T>::~BTE_stack_ufs(void)
-{
-}
-
-template<class T>
-BTE_err BTE_stack_ufs<T>::push(const T &t)
-{
-  BTE_err ae;
-  TPIE_OS_OFFSET slen;
+namespace bte {
     
-  ae = truncate((slen = stream_len())+1);
-  if (ae != BTE_ERROR_NO_ERROR) {
-    return ae;
-  }
+    template<class T>
+    class stack_ufs : public stream_ufs<T> {
 
-  ae = seek(slen);
-  if (ae != BTE_ERROR_NO_ERROR) {
-    return ae;
-  }
+    public:
+	using stream_ufs<T>::stream_len;
+	using stream_ufs<T>::seek;
+	using stream_ufs<T>::truncate;
+	
+	// Construct a new stack with the given name and access type.
+	stack_ufs(char *path, stream_type type = WRITE_STREAM); 
 
-  return write_item(t);
+	// Destroy this object.
+	~stack_ufs(void);
+
+	// Push an element on top of the stack.
+	err push(const T &t);
+	
+	// Pop an element from the top of the stack.
+	err pop(T **t);
+
+    };
+    
+    
+    template<class T>
+    stack_ufs<T>::stack_ufs(char *path, 
+			    stream_type type) :
+	stream_ufs<T>(path, type, 1) {
+	// No code in this constructor.
+    }
+    
+    template<class T>
+    stack_ufs<T>::~stack_ufs(void) {
+	// No code in this destructor.
+    }
+    
+    template<class T>
+    err stack_ufs<T>::push(const T &t) {
+
+	err retval = ERROR_NO_ERROR;
+	TPIE_OS_OFFSET slen = stream_len();
+           
+	if ((retval = truncate(slen+1)) != ERROR_NO_ERROR) {
+	    return retval;
+	}
+
+	if ((retval = seek(slen)) != ERROR_NO_ERROR) {
+	    return retval;
+	}
+	
+	return write_item(t);
+    }
+    
+    
+    template<class T>
+    err stack_ufs<T>::pop(T **t) {
+
+	err retval = ERROR_NO_ERROR;
+	TPIE_OS_OFFSET slen = stream_len();
+
+	if ((retval = seek(slen-1)) != ERROR_NO_ERROR) {
+	    return retval;
+	}
+  
+	if ((retval =  read_item(t)) != ERROR_NO_ERROR) {
+	    return retval;
+	}
+	
+	return truncate(slen-1);
+    }
+    
 }
 
-
-template<class T>
-BTE_err BTE_stack_ufs<T>::pop(T **t)
-{
-  BTE_err ae;
-  TPIE_OS_OFFSET slen;
-  
-  slen = stream_len();
-  ae = seek(slen-1);
-  if (ae != BTE_ERROR_NO_ERROR) {
-    return ae;
-  }
-  
-  ae = read_item(t);
-  if (ae != BTE_ERROR_NO_ERROR) {
-    return ae;
-  }
-
-  return truncate(slen-1);
-}
-
-#endif // _BTE_STACK_UFS_H 
+#endif // _TPIE_BTE_STACK_UFS_H 
