@@ -351,7 +351,7 @@ void get_app_info(int argc, char** argv, appInfo & Info){
     }  
   
     //check if path is valid
-    char * tmpfname = tpie_tempnam(APP_FILE_BASE,Info.path);
+    std::string tmpfname = tpie_tempnam(APP_FILE_BASE,Info.path);
     TPIE_OS_FILE_DESCRIPTOR fd;
     fd=TPIE_OS_OPEN_OEXCL(tmpfname);
     if(TPIE_OS_IS_VALID_FILE_DESCRIPTOR(fd)){
@@ -428,15 +428,15 @@ void progress_bar(float pct, TPIE_OS_LONGLONG nbytes){
 }
 
 // Open a stream, write num_items, close stream
-void write_test(char* fname, appInfo & info){
-  
+void write_test(const std::string& fname, appInfo & info){
+    
     TPIE_OS_OFFSET i,n,trunc;
     Item x;
     ami::err ae = ami::NO_ERROR;
-  
+    
     i=0;
     n=info.num_items;
-
+    
     std::cout << "Starting write test." << std::endl;
   
     ami::stream<Item>* str = new ami::stream<Item>(fname);
@@ -488,7 +488,7 @@ void write_test(char* fname, appInfo & info){
     return;
 }
 
-void read_test(char * fname, appInfo & info){
+void read_test(const std::string& fname, appInfo & info){
 
     TPIE_OS_LONGLONG i,n;
     Item *x1, x2;
@@ -552,7 +552,7 @@ int main(int argc, char **argv){
 	      << "\nFile Size: " << ll2size(filesize) << "B\n" << std::endl;
  
 
-    char * fname = tpie_tempnam(APP_FILE_BASE, info.path);
+    std::string fname = tpie_tempnam(APP_FILE_BASE, info.path);
     write_test(fname, info);
     std::cout << std::endl;
     read_test(fname, info);
