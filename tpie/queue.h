@@ -46,7 +46,7 @@ class AMI_queue {
     ///
     ////////////////////////////////////////////////////////////////////
 
-    AMI_queue(const char* basename);
+    AMI_queue(const std::string& basename);
 
     ////////////////////////////////////////////////////////////////////
     ///  
@@ -157,18 +157,15 @@ AMI_queue<T>::AMI_queue() {
 /////////////////////////////////////////////////////////////////////////
 
 template<class T>
-AMI_queue<T>::AMI_queue(const char* basename)
+AMI_queue<T>::AMI_queue(const std::string& basename)
 {
-  char fname[TPIE_PATH_LENGTH];
-  strncpy(fname, basename, TPIE_PATH_LENGTH-4);
-  strcat(fname,".nq"); 
-  m_enQstack = new AMI_stack<T>(fname);
-  strncpy(fname, basename, TPIE_PATH_LENGTH-4);
-  strcat(fname,".dq"); 
-  m_deQstack = new AMI_stack<T>(fname);
-  m_enQstack->persist(PERSIST_PERSISTENT);
-  m_deQstack->persist(PERSIST_PERSISTENT);
-  m_Qsize=m_enQstack->size()+m_deQstack->size();
+	std::string fname = basename + ".nq";
+	m_enQstack = new AMI_stack<T>(fname);
+	fname = basename + ".dq";
+	m_deQstack = new AMI_stack<T>(fname);
+	m_enQstack->persist(PERSIST_PERSISTENT);
+	m_deQstack->persist(PERSIST_PERSISTENT);
+	m_Qsize=m_enQstack->size()+m_deQstack->size();
 }
 
 /////////////////////////////////////////////////////////////////////////
