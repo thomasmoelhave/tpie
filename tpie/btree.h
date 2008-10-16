@@ -643,7 +643,7 @@ protected:
 		   leaf_t* &lcl);
 
   // Intialization routine shared by all constructors.
-  void shared_init(const char* base_file_name, AMI_collection_type type);
+  void shared_init(const std::string& base_file_name, AMI_collection_type type);
 
   // Empty the path stack.
   void empty_stack() { while (!path_stack_.empty()) path_stack_.pop(); }
@@ -1287,9 +1287,8 @@ template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL
 AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::AMI_btree(const AMI_btree_params &params): header_(), params_(params), 
   status_(AMI_BTREE_STATUS_VALID) {
 
-  char *base_name = tpie_tempnam("AMI_BTREE");
-  name_ = base_name;
-  shared_init(base_name, AMI_WRITE_COLLECTION);
+  name_ = std::string(tpie_tempnam("AMI_BTREE"));
+  shared_init(name_, AMI_WRITE_COLLECTION);
   if (status_ == AMI_BTREE_STATUS_VALID) {
     persist(PERSIST_DELETE);
   }
@@ -1333,69 +1332,66 @@ AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::AMI_btree(const string& bas
 
 //// *AMI_btree::shared_init* ////
 template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-void AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::shared_init(const char* base_file_name, AMI_collection_type type) {
-
-  if (base_file_name == NULL) {
-    status_ = AMI_BTREE_STATUS_INVALID;
-    TP_LOG_WARNING_ID("AMI_btree::AMI_btree: NULL file name.");
-    return;
-  }
+void AMI_btree<Key, Value, Compare, KeyOfValue, BTECOLL>::shared_init(const std::string& base_file_name, AMI_collection_type type) 
+{
+	if (base_file_name.empty()) {
+		status_ = AMI_BTREE_STATUS_INVALID;
+		TP_LOG_WARNING_ID("AMI_btree::AMI_btree: NULL file name.");
+		return;
+	}
 
 #define PATH_NAME_LENGTH TPIE_PATH_LENGTH
 
-  char lcollname[PATH_NAME_LENGTH];
-  char ncollname[PATH_NAME_LENGTH];
-  strncpy(lcollname, base_file_name, PATH_NAME_LENGTH - 2);
-  strncpy(ncollname, base_file_name, PATH_NAME_LENGTH - 2);
-  strcat(lcollname, ".l");
-  strcat(ncollname, ".n");
-  // Initialize these pointers to NULL to avoid errors in the
-  // destructor in case of premature return from this function.
-  node_cache_ = NULL;
-  leaf_cache_ = NULL;
-  pcoll_leaves_ = NULL;
-  pcoll_nodes_ = NULL;
+	std::string lcollname = base_file_name + ".l";
+	std::string ncollname = base_file_name + ".n";
 
-  pcoll_leaves_ = new collection_t(lcollname, type, params_.leaf_block_factor);
-  if (!pcoll_leaves_->is_valid()) {
-    status_ = AMI_BTREE_STATUS_INVALID;
-    TP_LOG_WARNING_ID("AMI_btree::AMI_btree: Could not open leaves collection.");
-    return;
-  }
+	// Initialize these pointers to NULL to avoid errors in the
+	// destructor in case of premature return from this function.
+	node_cache_ = NULL;
+	leaf_cache_ = NULL;
+	pcoll_leaves_ = NULL;
+	pcoll_nodes_ = NULL;
 
-  pcoll_nodes_ = new collection_t(ncollname, type, params_.node_block_factor);
-  if (!pcoll_nodes_->is_valid()) {
-    status_ = AMI_BTREE_STATUS_INVALID;
-    TP_LOG_WARNING_ID("AMI_btree::AMI_btree: Could not open nodes collection.");
-    return;
-  }    
+	pcoll_leaves_ = new collection_t(lcollname, type, params_.leaf_block_factor);
+	if (!pcoll_leaves_->is_valid()) {
+		status_ = AMI_BTREE_STATUS_INVALID;
+		TP_LOG_WARNING_ID("AMI_btree::AMI_btree: Could not open leaves collection.");
+		return;
+	}
 
-  // Initialize the caches (associativity = 8).
-  node_cache_ = new node_cache_t(params_.node_cache_size, 8);
-  leaf_cache_ = new leaf_cache_t(params_.leaf_cache_size, 8);
+	pcoll_nodes_ = new collection_t(ncollname, type, params_.node_block_factor);
+	if (!pcoll_nodes_->is_valid()) {
+		status_ = AMI_BTREE_STATUS_INVALID;
+		TP_LOG_WARNING_ID("AMI_btree::AMI_btree: Could not open nodes collection.");
+		return;
+	}    
 
-  // Give meaningful values to parameters, if necessary.
-  size_t leaf_capacity = AMI_BTREE_LEAF::el_capacity(pcoll_leaves_->block_size());
-  if (params_.leaf_size_max == 0 || params_.leaf_size_max > leaf_capacity)
-    params_.leaf_size_max = leaf_capacity;
-  if (params_.leaf_size_max == 1)
-    params_.leaf_size_max = 2;
+	// Initialize the caches (associativity = 8).
+	node_cache_ = new node_cache_t(params_.node_cache_size, 8);
+	leaf_cache_ = new leaf_cache_t(params_.leaf_cache_size, 8);
 
-  if (params_.leaf_size_min == 0)
-    params_.leaf_size_min = params_.leaf_size_max / 2;
+	// Give meaningful values to parameters, if necessary.
+	size_t leaf_capacity = AMI_BTREE_LEAF::el_capacity(pcoll_leaves_->block_size());
+	if (params_.leaf_size_max == 0 || params_.leaf_size_max > leaf_capacity)
+		params_.leaf_size_max = leaf_capacity;
+	if (params_.leaf_size_max == 1)
+		params_.leaf_size_max = 2;
 
-  size_t node_capacity = AMI_BTREE_NODE::el_capacity(pcoll_nodes_->block_size());
-  if (params_.node_size_max == 0 || params_.node_size_max > node_capacity)
-    params_.node_size_max = node_capacity;
-  if (params_.node_size_max == 1 || params_.node_size_max == 2)
-    params_.node_size_max = 3;
+	if (params_.leaf_size_min == 0)
+		params_.leaf_size_min = params_.leaf_size_max / 2;
 
-  if (params_.node_size_min == 0)
-    params_.node_size_min = params_.node_size_max / 2;
+	size_t node_capacity = AMI_BTREE_NODE::el_capacity(pcoll_nodes_->block_size());
+	if (params_.node_size_max == 0 || params_.node_size_max > node_capacity)
+		params_.node_size_max = node_capacity;
+	if (params_.node_size_max == 1 || params_.node_size_max == 2)
+		params_.node_size_max = 3;
 
-  // Set the right block factor parameters for the case of an existing tree.
-  params_.leaf_block_factor = pcoll_leaves_->block_factor();
-  params_.node_block_factor = pcoll_nodes_->block_factor();
+	if (params_.node_size_min == 0)
+		params_.node_size_min = params_.node_size_max / 2;
+
+	// Set the right block factor parameters for the case of an existing tree.
+	params_.leaf_block_factor = pcoll_leaves_->block_factor();
+	params_.node_block_factor = pcoll_nodes_->block_factor();
 }
 
 
