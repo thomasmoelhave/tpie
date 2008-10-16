@@ -12,9 +12,16 @@
 // Get the base class, enums, etc...
 #include <mm_base.h>
 
-// Get an implementation definition
 
-// For now only single address space memory management is supported.
+///////////////////////////////////////////////////////////////////////////
+/// \file mm.h Provides means to choose and set a specific memory
+/// management to use within TPIE.
+/// For now only single address space memory management is supported
+/// (through the class MM_Register).
+///////////////////////////////////////////////////////////////////////////
+
+// Get an implementation definition..
+
 #ifdef MM_IMP_REGISTER
 #include <mm_register.h>
 #else
