@@ -7,9 +7,6 @@
 
 #include <portability.h>
 
-
-
-
 #include "app_config.h"        
 #include "parse_args.h"
 
@@ -26,7 +23,7 @@
 // Get stream arithmetic.
 #include <stream_arith.h>
 
-using namespace std;
+using namespace tpie;
 
 static char def_crf[] = "osc.txt";
 static char def_irf[] = "osi.txt";
@@ -74,89 +71,90 @@ void parse_app_opts(int idx, char *opt_arg)
 
 int main(int argc, char **argv)
 {
-    AMI_err ae;
+    ami::err ae;
 
     parse_args(argc, argv, app_opts, parse_app_opts);
-
+    
     if (verbose) {
-      std::cout << "test_size = " << test_size << "." << std::endl;
+	std::cout << "test_size = " << test_size << "." << std::endl;
         std::cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << std::endl;
         std::cout << "random_seed = " << random_seed << "." << std::endl;
-    } else {
+    } 
+    else {
         std::cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << random_seed;
     }
     
     // Set the amount of main memory:
     MM_manager.set_memory_limit (test_mm_size);
-        
-    AMI_STREAM<TPIE_OS_OFFSET> amis0;
-    AMI_STREAM<TPIE_OS_OFFSET> amis1;
-    AMI_STREAM<TPIE_OS_OFFSET> amis2;
-
+    
+    ami::stream<TPIE_OS_OFFSET> amis0;
+    ami::stream<TPIE_OS_OFFSET> amis1;
+    ami::stream<TPIE_OS_OFFSET> amis2;
+    
     // Streams for reporting values to ascii streams.
     
     std::ofstream *osc;
     std::ofstream *osi;
     std::ofstream *osf;
-    cxx_ostream_scan<TPIE_OS_OFFSET> *rptc = NULL;
-    cxx_ostream_scan<TPIE_OS_OFFSET> *rpti = NULL;
-    cxx_ostream_scan<TPIE_OS_OFFSET> *rptf = NULL;
+    ami::cxx_ostream_scan<TPIE_OS_OFFSET> *rptc = NULL;
+    ami::cxx_ostream_scan<TPIE_OS_OFFSET> *rpti = NULL;
+    ami::cxx_ostream_scan<TPIE_OS_OFFSET> *rptf = NULL;
     
     if (report_results_count) {
-        osc = new std::ofstream(count_results_filename);
-        rptc = new cxx_ostream_scan<TPIE_OS_OFFSET>(osc);
+        osc  = new std::ofstream(count_results_filename);
+        rptc = new ami::cxx_ostream_scan<TPIE_OS_OFFSET>(osc);
     }
     
     if (report_results_intermediate) {
-        osi = new std::ofstream(intermediate_results_filename);
-        rpti = new cxx_ostream_scan<TPIE_OS_OFFSET>(osi);
+        osi  = new std::ofstream(intermediate_results_filename);
+        rpti = new ami::cxx_ostream_scan<TPIE_OS_OFFSET>(osi);
     }
     
     if (report_results_final) {
-        osf = new std::ofstream(final_results_filename);
-        rptf = new cxx_ostream_scan<TPIE_OS_OFFSET>(osf);
+        osf  = new std::ofstream(final_results_filename);
+        rptf = new ami::cxx_ostream_scan<TPIE_OS_OFFSET>(osf);
     }
     
     // Write some ints.
     scan_count sc(test_size);
 
-    ae = AMI_scan(&sc, &amis0);
+    ae = ami::scan(&sc, &amis0);
 
     if (verbose) {
-      std::cout << "Wrote the initial sequence of values." << std::endl;
+	std::cout << "Wrote the initial sequence of values." << std::endl;
         std::cout << "Stopped (didn't write) with ii = "
-             << sc.ii << ". operate() called " 
-	     << sc.called << " times." << std::endl;
+		  << sc.ii << ". operate() called " 
+		  << sc.called << " times." << std::endl;
         std::cout << "Stream length = " << amis0.stream_len() << std::endl;
     }
-
+    
     if (report_results_count) {
-        ae = AMI_scan(&amis0, rptc);
+        ae = ami::scan(&amis0, rptc);
     }
     
     // Square them.
     scan_square<TPIE_OS_OFFSET> ss;
-        
-    ae = AMI_scan(&amis0, &ss, &amis1);
-
+    
+    ae = ami::scan(&amis0, &ss, &amis1);
+    
     if (verbose) {
         std::cout << "Squared them; last squared was ii = "
-             << ss.ii << ". operate() called " 
-	     << ss.called << " times." << std::endl;
+		  << ss.ii << ". operate() called " 
+		  << ss.called << " times." << std::endl;
         std::cout << "Stream length = " << amis1.stream_len() << std::endl;
     }
     
-    AMI_scan_div<TPIE_OS_OFFSET> sd;
+    ami::scan_div<TPIE_OS_OFFSET> sd;
     
-    ae = AMI_scan(&amis1, &amis0, &sd, &amis2);
-        
+    ae = ami::scan(&amis1, &amis0, &sd, &amis2);
+    
     if (verbose) {
-      std::cout << "Divided them." << std::endl
-	   << "Stream length = " << amis2.stream_len() << std::endl;
+	std::cout << "Divided them." << std::endl
+		  << "Stream length = " << amis2.stream_len() << std::endl;
     }
     
     if (report_results_final) {
-        ae = AMI_scan(&amis2, rptf);
+        ae = ami::scan(&amis2, rptf);
     }
     
     return 0;

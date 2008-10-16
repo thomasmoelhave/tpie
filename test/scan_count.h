@@ -12,16 +12,21 @@
 #include <portability.h>
 #include <scan.h>
 
-class scan_count : AMI_scan_object {
+using namespace tpie;
+
+class scan_count : ami::scan_object {
+    
 private:
     TPIE_OS_OFFSET maximum;
+    
 public:
     TPIE_OS_OFFSET ii;
     TPIE_OS_OFFSET called;
-
+    
     scan_count(TPIE_OS_OFFSET max = 1000);
-    AMI_err initialize(void);
-    AMI_err operate(TPIE_OS_OFFSET *out1, AMI_SCAN_FLAG *sf);
+    ami::err initialize(void);
+    ami::err operate(TPIE_OS_OFFSET *out1, ami::SCAN_FLAG *sf);
 };
+
 
 #endif // _SCAN_COUNT_H 

@@ -13,35 +13,46 @@
 
 #include <portability.h>
 
-template<class T> class scan_square : AMI_scan_object {
+using namespace tpie;
+
+template<class T> class scan_square : ami::scan_object {
 public:
     T ii;
     TPIE_OS_OFFSET called;
     scan_square() : ii(), called(0) {};
-    AMI_err initialize(void);
-    AMI_err operate(const T &in, AMI_SCAN_FLAG *sfin,
-                    T *out, AMI_SCAN_FLAG *sfout);
+    ami::err initialize(void);
+    ami::err operate(const T &in, 
+		     ami::SCAN_FLAG *sfin,
+		     T *out, 
+		     ami::SCAN_FLAG *sfout);
 };
 
 template<class T>
-AMI_err scan_square<T>::initialize(void)
-{
+ami::err scan_square<T>::initialize(void) {
+
     ii = 0;
     called = 0;
-    return AMI_ERROR_NO_ERROR;
+
+    return ami::NO_ERROR;
 };
 
 template<class T>
-AMI_err scan_square<T>::operate(const T &in, AMI_SCAN_FLAG *sfin,
-                                T *out, AMI_SCAN_FLAG *sfout)
-{
+ami::err scan_square<T>::operate(const T &in, 
+				 ami::SCAN_FLAG *sfin,
+				 T *out, 
+				 ami::SCAN_FLAG *sfout) {
+
     called++;
+    
     if ((*sfout = *sfin)) {
         ii = in;
         *out = in * in;
-        return AMI_SCAN_CONTINUE;
-    } else {
-        return AMI_SCAN_DONE;
+
+	return ami::SCAN_CONTINUE;
+
+    } 
+    else {
+        return ami::SCAN_DONE;
     }
 };
 
