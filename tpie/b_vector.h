@@ -7,6 +7,12 @@
 // $Id: b_vector.h,v 1.7 2003-04-17 14:40:34 jan Exp $
 //
 
+///////////////////////////////////////////////////////////////////
+/// \file b_vector.h
+/// Definition of the  class b_vector.
+///////////////////////////////////////////////////////////////////
+
+
 #ifndef _B_VECTOR_H
 #define _B_VECTOR_H
 
@@ -17,48 +23,104 @@
 
 namespace tpie {
 
+    ///////////////////////////////////////////////////////////////////
+    /// The b_vector class stores an array of objects of a templated type T. 
+    /// It has a fixed maximum size, or capacity, which is set during 
+    /// construction (since instances of this class are created only by the 
+    /// \ref tpie::ami::block< E,I,BTECOLL > class, the constructors are not 
+    /// part of the public interface). The items stored can be  accessed through 
+    /// the array operator. 
+    ///
+    /// The type T should have a default constructor, as well as copy
+    /// constructor and assignment operator. 
+    ///////////////////////////////////////////////////////////////////
     template<class T>
     class b_vector {
 
     protected:
-	T* p_;
-	size_t capacity_;
+
+   /** Pointer meant to point to the "current" element in the b_vector.*/
+   T* p_;
+
+   /** The capacity of the b_vector, .i.e, its maximal size.*/
+   size_t capacity_;
 	
-    public:	
-	typedef T value_type;
+    public:
+      
+  /** Typef to template parameter specifying the value type in the b_vector */
+  typedef T value_type;
+
+  /** Typef tp  pointer to the template parameter specifying the value type in the b_vector */
 	typedef value_type* iterator;
+  
+	/** Typef to const pointer to template parameter specifying the value type in the b_vector */
 	typedef const value_type* const_iterator;
 	
+  ///////////////////////////////////////////////////////////////////
+  /// Constructor taking an array of elements and a capacity.
+  ///////////////////////////////////////////////////////////////////
 	b_vector(T* p, size_t cap): p_(p), capacity_(cap) {}
 	
+  ///////////////////////////////////////////////////////////////////
+  ///Iterator pointing initially to the first element in the b_vector.
+  ///////////////////////////////////////////////////////////////////
 	iterator begin() { return p_; }
+  
+	///////////////////////////////////////////////////////////////////
+	/// Const iterator pointing initially to the first element in the b_vector.
+	///////////////////////////////////////////////////////////////////
 	const_iterator begin() const { return p_; }
+  
+  ///////////////////////////////////////////////////////////////////
+  /// Iterator pointing initially behind the last element in the b_vector.
+  ///////////////////////////////////////////////////////////////////
 	iterator end() { return p_ + capacity_; }
+
+  ///////////////////////////////////////////////////////////////////
+  /// Const iterator pointing initially behind the last element in the b_vector.
+  ///////////////////////////////////////////////////////////////////
 	const_iterator end() const { return p_ + capacity_; }
 	
-	// Get a reference to the i'th element.
+  ///////////////////////////////////////////////////////////////////
+  /// Get a reference to the i'th element.
+  ///////////////////////////////////////////////////////////////////
 	T& operator[](size_t i) { return *(p_ + i); }
-	// Get a const reference to the i'th element.
+  
+  ///////////////////////////////////////////////////////////////////
+  /// Get a const reference to the i'th element.
+  ///////////////////////////////////////////////////////////////////
 	const T& operator[](size_t i) const { return *(p_ + i); }
 	
+  ///////////////////////////////////////////////////////////////////
+  /// Return the capacity (i.e., maximum number of T elements) of this b_vector.
+  ///////////////////////////////////////////////////////////////////
 	size_t capacity() const { return capacity_; }
 	
-	// Copy length elements from the source vector, starting with 
-	// element s_start, to this block, starting with element start. 
-	// Return the number of elements copied. Source can be *this.
+  ///////////////////////////////////////////////////////////////////
+	/// Copy length elements from the source vector, starting with 
+	/// element s_start, to this block, starting with element start. 
+	/// Return the number of elements copied. Source can be *this.
+  ///////////////////////////////////////////////////////////////////
 	size_t copy(size_t start, size_t length,
 		    const b_vector<T>& source, size_t s_start = 0);
 	
-	// Copy from an array of elements.
+  ///////////////////////////////////////////////////////////////////
+	/// Copy length items from the array src to this vector, starting in position
+	/// start. Return the number of items copied. 
+  ///////////////////////////////////////////////////////////////////
 	size_t copy(size_t start, size_t length, const T* source);
 	
-	// Insert item t in position pos; all items from position pos onward
-	// are shifted one position higher; the last item is lost.
+  ///////////////////////////////////////////////////////////////////
+	/// Insert item t in position pos; all items from position pos onward
+	/// are shifted one position higher; the last item is lost.
+  ///////////////////////////////////////////////////////////////////
 	void insert(const T& t, size_t pos);
 	
-	// Erase the item in position pos and shift all items from position
-	// pos+1 onward one position lower; the last item becomes identical
-	// with the next to last item.
+  ///////////////////////////////////////////////////////////////////
+	/// Erase the item in position pos and shift all items from position
+	/// pos+1 onward one position lower; the last item becomes identical
+	/// with the next to last item.
+  ///////////////////////////////////////////////////////////////////
 	void erase(size_t pos);
 	
     };
