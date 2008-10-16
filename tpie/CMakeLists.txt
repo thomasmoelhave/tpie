@@ -25,6 +25,8 @@ set (AMI_HEADERS
 		merge.h
 		merge_sorted_runs.h
 		point.h
+		priority_queue.h
+		priority_queue.inl
 		queue.h
 		scan.h
 		#scan.h.head
@@ -76,6 +78,12 @@ set (OTHER_HEADERS
 		mm_register.h
 		persist.h
 		portability.h
+		pq_internal_heap.h
+		pq_internal_heap.inl
+		pq_overflow_heap.h
+		pq_overflow_heap.inl
+		pq_merge_heap.h
+		pq_merge_heap.inl
 		progress_indicator_arrow.h
 		progress_indicator_base.h
 		progress_indicator_spin.h
