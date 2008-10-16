@@ -140,19 +140,19 @@ namespace tpie {
 	    }
 
       ///////////////////////////////////////////////////////////////////
-	    /// Returns the status of the block. The result is either 
-	    /// BLOCK_STATUS_VALID or  BLOCK_STATUS_INVALID. 
-	    /// The status of a
-	    /// block instance is set during construction. The methods of an
-	    /// invalid block can give erroneous results or fail.      
-	    ///////////////////////////////////////////////////////////////////
+      /// Returns the status of the block. The result is either 
+      /// \ref BLOCK_STATUS_VALID or  \ref BLOCK_STATUS_INVALID. 
+      /// The status of a
+      /// block instance is set during construction. The methods of an
+      /// invalid block can give erroneous results or fail.      
+      ///////////////////////////////////////////////////////////////////
 	    block_status status() const { 
 		return (pdata_ == NULL) ? 
 		    BLOCK_STATUS_INVALID : BLOCK_STATUS_VALID; 
 	    }
 
       ///////////////////////////////////////////////////////////////////
-	    /// Returns if the block's status is  BLOCK_STATUS_VALID. 
+	    /// Returns if the block's status is  \ref BLOCK_STATUS_VALID. 
 	    /// \sa status().      
 	    ///////////////////////////////////////////////////////////////////
 	    bool is_valid() const {
@@ -160,7 +160,7 @@ namespace tpie {
 	    }
 
       ///////////////////////////////////////////////////////////////////
-      /// Returns if the block's status is not  BLOCK_STATUS_VALID.
+      /// Returns if the block's status is not  \ref BLOCK_STATUS_VALID.
 	    /// \sa is_valid() and status().
 	    ///
 	    ///////////////////////////////////////////////////////////////////
