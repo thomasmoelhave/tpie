@@ -390,7 +390,7 @@ namespace tpie {
 	tpie_stats_collection collection_base<BIDT>::gstats_;
     
 	template<class BIDT>
-	void BTE_collection_base<BIDT>::create_stack() {
+	void collection_base<BIDT>::create_stack() {
 
 	    char stack_name[COLLECTION_PATH_NAME_LEN];
 

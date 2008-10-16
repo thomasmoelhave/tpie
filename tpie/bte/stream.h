@@ -106,6 +106,4 @@
 #  endif
 #endif
     
-}
-
 #endif // _TPIE_BTE_STREAM_H 

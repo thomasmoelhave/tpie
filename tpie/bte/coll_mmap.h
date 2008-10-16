@@ -110,7 +110,7 @@ namespace tpie {
 		}
 	    
 		if ((retval = delete_block_shared(bid)) != NO_ERROR) {
-		    return err;
+		    return retval;
 		}
 
 		header_.used_blocks--;
@@ -131,7 +131,7 @@ namespace tpie {
 
 		err retval = NO_ERROR;
 	    
-		if ((reval = get_block_internals(bid, place)) != NO_ERROR) {
+		if ((retval = get_block_internals(bid, place)) != NO_ERROR) {
 		    return retval;
 		}
 	    

@@ -22,34 +22,34 @@
 // Get definitions for working with Unix and Windows
 #include <portability.h>
 
+namespace tpie {
 
-#if defined(BTE_COLLECTION_IMP_MMB)
-//	TPIE_OS_UNIX_ONLY_WARNING_BTE_COLLECTION_IMP_MMB_UNIX_ONLY
-#  define BTE_COLLECTION_IMP_MMAP
-#endif
-
-#define _BTE_COLL_IMP_COUNT (defined(BTE_COLLECTION_IMP_UFS) + \
-                             defined(BTE_COLLECTION_IMP_MMAP) + \
-                             defined(BTE_COLLECTION_IMP_USER_DEFINED))
-
+    namespace bte {
+		
+#define _BTE_COLL_IMP_COUNT (defined(COLLECTION_IMP_UFS) +		\
+                             defined(COLLECTION_IMP_MMAP) +		\
+                             defined(COLLECTION_IMP_USER_DEFINED))
+	
 // Multiple implem. are included, but we have to choose a default one.
 #if (_BTE_COLL_IMP_COUNT > 1)
-//	TPIE_OS_UNIX_ONLY_WARNING_MULTIPLE_BTE_COLLECTION_IMP_DEFINED
-#  define BTE_COLLECTION_IMP_MMAP
+#  define COLLECTION_IMP_MMAP
 #elif (_BTE_COLL_IMP_COUNT == 0)
-//	TPIE_OS_UNIX_ONLY_WARNING_NO_DEFAULT_BTE_COLLECTION
-#  define BTE_COLLECTION_IMP_MMAP
+#  define COLLECTION_IMP_MMAP
 #endif
-
-#define BTE_COLLECTION_MMAP tpie::bte::collection_mmap<TPIE_BLOCK_ID_TYPE>
-#define BTE_COLLECTION_UFS  tpie::bte::collection_ufs<TPIE_BLOCK_ID_TYPE>
-
-#if defined(BTE_COLLECTION_IMP_MMAP)
-#  define BTE_COLLECTION BTE_COLLECTION_MMAP
-#elif defined(BTE_COLLECTION_IMP_UFS)
-#  define BTE_COLLECTION BTE_COLLECTION_UFS
-#elif defined(BTE_COLLECTION_IMP_USER_DEFINED)
+	
+#define COLLECTION_MMAP collection_mmap<TPIE_BLOCK_ID_TYPE>
+#define COLLECTION_UFS  collection_ufs<TPIE_BLOCK_ID_TYPE>
+	
+#if defined(COLLECTION_IMP_MMAP)
+#  define COLLECTION COLLECTION_MMAP
+#elif defined(COLLECTION_IMP_UFS)
+#  define COLLECTION COLLECTION_UFS
+#elif defined(COLLECTION_IMP_USER_DEFINED)
    // Do not define BTE_COLLECTION. The user will define it.
 #endif
 
+    }  //  bte namespace
+
+}  //  tpie namespace
+	
 #endif // _TPIE_BTE_COLL_H
