@@ -521,7 +521,7 @@ namespace tpie {
 	    }				// end of switch
 	
 	    // We can't handle streams of large objects.
-	    if (sizeof (T) > m_header->m_blockSize) {
+	    if (static_cast<TPIE_OS_SSIZE_T>(sizeof (T)) > m_header->m_blockSize) {
 	    
 		m_status = STREAM_STATUS_INVALID;
 	    
@@ -1104,7 +1104,7 @@ namespace tpie {
 	    new_offset = item_off_to_file_off (
 		file_off_to_item_off (m_logicalBeginOfStream) + offset);
 	
-	    if ((static_cast<TPIE_OS_SIZE_T>(reinterpret_cast<char*>(m_currentItem) - 
+	    if ((static_cast<TPIE_OS_SSIZE_T>(reinterpret_cast<char*>(m_currentItem) - 
 					     reinterpret_cast<char*>(m_currentBlock)) 
 		 >= m_header->m_blockSize)
 		|| (((new_offset - m_osBlockSize) / m_header->m_blockSize) !=
@@ -1164,7 +1164,7 @@ namespace tpie {
 	    // We also need to check that we have the correct block mapped in (
 	    // m_fileOffset does not always point into the current block!) 
 	    // - see comment in seek()
-	    if ((static_cast<unsigned int>(reinterpret_cast<char*>(m_currentItem) - 
+	    if ((static_cast<TPIE_OS_SSIZE_T>(reinterpret_cast<char*>(m_currentItem) - 
 					   reinterpret_cast<char*>(m_currentBlock)) 
 		 >= m_header->m_blockSize)
 		|| (((new_offset - m_osBlockSize) / m_header->m_blockSize) !=

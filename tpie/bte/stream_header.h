@@ -29,10 +29,10 @@ namespace tpie {
 	    TPIE_OS_SIZE_T m_itemSize;
 	
 	    // The size of a physical block on the device this stream resides.
-	    TPIE_OS_SIZE_T m_osBlockSize;
+	    TPIE_OS_SSIZE_T m_osBlockSize;
 	
 	    // Size in bytes of each logical block, if applicable.
-	    TPIE_OS_SIZE_T m_blockSize;
+	    TPIE_OS_SSIZE_T m_blockSize;
 	
 	    // For all intents and purposes, the length of the stream in number
 	    // of items.

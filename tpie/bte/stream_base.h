@@ -108,7 +108,7 @@ namespace tpie {
 	    }
 	
 	    // Inquire the OS block size.
-	    TPIE_OS_SIZE_T os_block_size () const {
+	    TPIE_OS_SSIZE_T os_block_size () const {
 		return TPIE_OS_BLOCKSIZE();
 	    }
 	
@@ -156,7 +156,7 @@ namespace tpie {
 	    tpie_stats_stream m_streamStatistics;
 	
 	    // The size of a physical block.
-	    TPIE_OS_SIZE_T m_osBlockSize;
+	    TPIE_OS_SSIZE_T m_osBlockSize;
 	
 	    // Offset of the current item in the file. This is the logical
 	    // offset of the item within the file, that is, the place we would
