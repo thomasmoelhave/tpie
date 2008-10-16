@@ -7,8 +7,6 @@
 #include <portability.h>
 
 
-
-
 #include <iostream>
 
 #include "app_config.h"        
@@ -28,6 +26,8 @@
 #include "scan_count.h"
 
 #include "merge_interleave.h"
+
+using namespace tpie;
 
 static char def_crf[] = "osc.txt";
 static char def_irf[] = "osi.txt";
@@ -75,10 +75,10 @@ void parse_app_opts(int idx, char *opt_arg)
 
 int main(int argc, char **argv)
 {
-    AMI_err ae;
-
+    ami::err ae;
+    
     parse_args(argc, argv, app_opts, parse_app_opts);
-
+    
     if (verbose) {
         std::cout << "test_size = " << test_size << ".\n";
         std::cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ".\n";
@@ -89,116 +89,116 @@ int main(int argc, char **argv)
     
     // Set the amount of main memory:
     MM_manager.set_memory_limit (test_mm_size);
-        
-    AMI_STREAM<TPIE_OS_OFFSET> amis0;
-    AMI_STREAM<TPIE_OS_OFFSET> amis1;
-    AMI_STREAM<TPIE_OS_OFFSET> amis2;
-    AMI_STREAM<TPIE_OS_OFFSET> amis3;
+    
+    ami::stream<TPIE_OS_OFFSET> amis0;
+    ami::stream<TPIE_OS_OFFSET> amis1;
+    ami::stream<TPIE_OS_OFFSET> amis2;
+    ami::stream<TPIE_OS_OFFSET> amis3;
 
     // Streams for reporting values to ascii streams.
     
     std::ofstream *osc;
     std::ofstream *osi;
     std::ofstream *osf;
-    cxx_ostream_scan<TPIE_OS_OFFSET> *rptc = NULL;
-    cxx_ostream_scan<TPIE_OS_OFFSET> *rpti = NULL;
-    cxx_ostream_scan<TPIE_OS_OFFSET> *rptf = NULL;
+    ami::cxx_ostream_scan<TPIE_OS_OFFSET> *rptc = NULL;
+    ami::cxx_ostream_scan<TPIE_OS_OFFSET> *rpti = NULL;
+    ami::cxx_ostream_scan<TPIE_OS_OFFSET> *rptf = NULL;
     
     if (report_results_count) {
-        osc = new std::ofstream(count_results_filename);
-        rptc = new cxx_ostream_scan<TPIE_OS_OFFSET>(osc);
+        osc  = new std::ofstream(count_results_filename);
+        rptc = new ami::cxx_ostream_scan<TPIE_OS_OFFSET>(osc);
     }
     
     if (report_results_interleave) {
-        osi = new std::ofstream(interleave_results_filename);
-        rpti = new cxx_ostream_scan<TPIE_OS_OFFSET>(osi);
+        osi  = new std::ofstream(interleave_results_filename);
+        rpti = new ami::cxx_ostream_scan<TPIE_OS_OFFSET>(osi);
     }
     
     if (report_results_final) {
-        osf = new std::ofstream(final_results_filename);
-        rptf = new cxx_ostream_scan<TPIE_OS_OFFSET>(osf);
+        osf  = new std::ofstream(final_results_filename);
+        rptf = new ami::cxx_ostream_scan<TPIE_OS_OFFSET>(osf);
     }
     
     // Write some ints.
     scan_count sc(test_size);
 
-    ae = AMI_scan(&sc, &amis0);
-
+    ae = ami::scan(&sc, &amis0);
+    
     if (verbose) {
         std::cout << "Wrote the initial sequence of values.\n";
         std::cout << "Stopped (didn't write) with ii = "
-             << sc.ii << ". operate() called " << sc.called << " times.\n";
+		  << sc.ii << ". operate() called " << sc.called << " times.\n";
         std::cout << "Stream length = " << amis0.stream_len() << '\n';
     }
 
     if (report_results_count) {
-        ae = AMI_scan(&amis0, rptc);
+        ae = ami::scan(&amis0, rptc);
     }
     
     // Square them.
     scan_square<TPIE_OS_OFFSET> ss;
         
-    ae = AMI_scan(&amis0, &ss, &amis1);
+    ae = ami::scan(&amis0, &ss, &amis1);
 
     if (verbose) {
         std::cout << "Squared them; last squared was ii = "
-             << ss.ii << ". operate() called " << ss.called << " times.\n";
+		  << ss.ii << ". operate() called " << ss.called << " times.\n";
         std::cout << "Stream length = " << amis1.stream_len() << '\n';
     }
     
     // Interleave the streams.
-    merge_interleave<TPIE_OS_OFFSET> im;
+    ami::merge_interleave<TPIE_OS_OFFSET> im;
 
-    arity_t arity = 2;
+    ami::arity_t arity = 2;
         
-    AMI_STREAM<TPIE_OS_OFFSET> *amirs[2];
+    ami::stream<TPIE_OS_OFFSET> *amirs[2];
 
     amirs[0] = &amis0;
     amirs[1] = &amis1;
     
-    ae = AMI_single_merge(amirs, arity, &amis2, &im);
+    ae = ami::single_merge(amirs, arity, &amis2, &im);
 
     if (verbose) {
         std::cout << "Interleaved them; operate() called " << im.called 
-             << " times.\n";
+		  << " times.\n";
         std::cout << "Stream length = " << amis2.stream_len() << '\n';
     }
-
+    
     if (report_results_interleave) {
-        ae = AMI_scan(&amis2, rpti);
+        ae = ami::scan(&amis2, rpti);
     }
 
     // Divide the stream into two substreams, and interleave them.
 
-    AMI_STREAM<TPIE_OS_OFFSET>* amirs0 = amirs[0]; 
-    AMI_STREAM<TPIE_OS_OFFSET>* amirs1 = amirs[1]; 
+    ami::stream<TPIE_OS_OFFSET>* amirs0 = amirs[0]; 
+    ami::stream<TPIE_OS_OFFSET>* amirs1 = amirs[1]; 
 
-    ae = amis2.new_substream(AMI_READ_STREAM, 0, test_size-1, &amirs0);
-    ae = amis2.new_substream(AMI_READ_STREAM, 0, 2*test_size-1, &amirs1);
+    ae = amis2.new_substream(ami::READ_STREAM, 0, test_size-1, &amirs0);
+    ae = amis2.new_substream(ami::READ_STREAM, 0, 2*test_size-1, &amirs1);
 
     if (verbose) {
         std::cout << "Created substreams; lengths = " 
-	     << amirs[0]->stream_len() 
-	     << " and " 
-	     << amirs[1]->stream_len() 
-	     << '\n';
+		  << amirs[0]->stream_len() 
+		  << " and " 
+		  << amirs[1]->stream_len() 
+		  << '\n';
     }
-
+    
     // Get around the OS (HP_UX in particular) when using BTE_IMP_MMB
     // by seeking back to 0 in the substream, which will force the last
     // block written to be unmapped.
     ae = amis2.seek(0);
     
-    ae = AMI_single_merge(amirs, arity, &amis3, &im);
-
+    ae = ami::single_merge(amirs, arity, &amis3, &im);
+    
     if (verbose) {
         std::cout << "Interleaved them; operate() called " << im.called 
-             << " times.\n";        
+		  << " times.\n";        
         std::cout << "Stream length = " << amis3.stream_len() << '\n';
     }
     
     if (report_results_final) {
-        ae = AMI_scan(&amis3, rptf);
+        ae = ami::scan(&amis3, rptf);
     }
     
     return 0;
