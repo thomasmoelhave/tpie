@@ -8,13 +8,13 @@
 
 #include <progress_indicator_arrow.h>
 
-
-
 #include "app_config.h"        
 #include "parse_args.h"
 
 // Get the AMI_stack definition.
 #include <queue.h>
+
+using namespace tpie;
 
 struct options app_opts[] = {
   { 0, NULL, NULL, NULL, 0 }
