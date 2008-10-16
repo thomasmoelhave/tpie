@@ -41,7 +41,6 @@ set (AMI_HEADERS
 		stream_base.h
 		stream_compatibility.h
 		stream.h
-		stream_single.h
 		)
 
 set (BTE_HEADERS
