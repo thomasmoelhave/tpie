@@ -5,8 +5,8 @@
 //
 // $Id: ami_gen_perm_object.h,v 1.4 2003-04-17 12:22:15 jan Exp $
 //
-#ifndef _AMI_GEN_PERM_OBJECT_H
-#define _AMI_GEN_PERM_OBJECT_H
+#ifndef _TPIE_AMI_GEN_PERM_OBJECT_H
+#define _TPIE_AMI_GEN_PERM_OBJECT_H
 
 // Get definitions for working with Unix and Windows
 #include <portability.h>
@@ -14,12 +14,20 @@
 // For AMI_err.
 #include <err.h>
 
-// A class of object that computes permutation destinations.
-class AMI_gen_perm_object {
-public:
-    virtual AMI_err initialize(TPIE_OS_OFFSET len) = 0;
-    virtual TPIE_OS_OFFSET destination(TPIE_OS_OFFSET src) = 0;
-    virtual ~AMI_gen_perm_object() {};
-};
+namespace tpie {
 
-#endif // _AMI_GEN_PERM_OBJECT_H 
+    namespace ami {
+
+// A class of object that computes permutation destinations.
+	class gen_perm_object {
+	public:
+	    virtual err initialize(TPIE_OS_OFFSET len) = 0;
+	    virtual TPIE_OS_OFFSET destination(TPIE_OS_OFFSET src) = 0;
+	    virtual ~gen_perm_object() {};
+	};
+
+    }  //  ami namespace
+
+}  //  tpie namespace
+ 
+#endif // _TPIE_AMI_GEN_PERM_OBJECT_H 
