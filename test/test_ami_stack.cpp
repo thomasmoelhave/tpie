@@ -18,7 +18,7 @@
 using namespace tpie;
 
 struct options app_opts[] = {
-  { 0, NULL, NULL, NULL, 0 }
+    { 0, NULL, NULL, NULL, 0 }
 };
 
 void parse_app_opts(int idx, char *opt_arg) {
@@ -31,17 +31,17 @@ int main(int argc, char **argv)
     parse_args(argc, argv, app_opts, parse_app_opts);
 
     if (verbose) {
-      std::cout << "test_size = " << test_size << "." << std::endl;
-      std::cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << std::endl;
-      std::cout << "random_seed = " << random_seed << "." << std::endl;
+	std::cout << "test_size = " << test_size << "." << std::endl;
+	std::cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << std::endl;
+	std::cout << "random_seed = " << random_seed << "." << std::endl;
     } else {
-      std::cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << random_seed;
+	std::cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << random_seed;
     }
     
     // Set the amount of main memory:
     MM_manager.set_memory_limit(test_mm_size);
 
-    AMI_stack<TPIE_OS_OFFSET> stack;
+    ami::stack<TPIE_OS_OFFSET> stack;
 
     pi->set_percentage_range(0,test_size);
     pi->set_description("Push");
@@ -49,13 +49,13 @@ int main(int argc, char **argv)
     // Push values.
     TPIE_OS_OFFSET ii;
     for (ii = test_size; ii--; ) {
-      pi->step_percentage();
-      stack.push(ii);
+	pi->step_percentage();
+	stack.push(ii);
     }
     pi->done("Done");
 
     if (verbose) {
-      std::cout << "Stack size = " << stack.size() << std::endl;
+	std::cout << "Stack size = " << stack.size() << std::endl;
     }
     
     // Pop them all off.
@@ -70,19 +70,19 @@ int main(int argc, char **argv)
     read++;
     pi->step_percentage();
     while(!stack.is_empty()) {
-      AMI_err ae = stack.pop(&jj);
-      if(ae != AMI_ERROR_NO_ERROR) {
-        std::cout << "Error from stack received" << std::endl;
-      }
-      read++;
-      pi->step_percentage();
-      if(*jj != ++last) {
-        std::cout << std::endl << "Error in output: " << *jj << "!=" << last  << std::endl;
-      }
+	ami::err ae = stack.pop(&jj);
+	if(ae != ami::NO_ERROR) {
+	    std::cout << "Error from stack received" << std::endl;
+	}
+	read++;
+	pi->step_percentage();
+	if(*jj != ++last) {
+	    std::cout << std::endl << "Error in output: " << *jj << "!=" << last  << std::endl;
+	}
     }
     pi->done("Done");
     if(read != test_size) {
-      std::cout << "Error: Wrong amount of elements read, got: " << read << " expected: "<<test_size << std::endl;
+	std::cout << "Error: Wrong amount of elements read, got: " << read << " expected: "<<test_size << std::endl;
     }
 
     if (verbose) {
