@@ -16,8 +16,10 @@
 #include <merge.h>
 #include <mergeheap.h>
 
+using namespace tpie;
+
 template<class T>
-class merge_random : public AMI_merge_base<T> {
+class merge_random : public ami::merge_base<T> {
 private:
     // Prohibit these
     merge_random(const merge_random<T>& other);
@@ -31,12 +33,12 @@ private:
 public:
     merge_random(int seed = 0);
     virtual ~merge_random(void);
-    AMI_err initialize(TPIE_OS_SIZE_T arity, CONST T * CONST *in,
-                       AMI_merge_flag *taken_flags,
+    ami::err initialize(TPIE_OS_SIZE_T arity, CONST T * CONST *in,
+                       ami::merge_flag *taken_flags,
                        int &taken_index);
-    AMI_err operate(CONST T * CONST *in, AMI_merge_flag *taken_flags,
+    ami::err operate(CONST T * CONST *in, ami::merge_flag *taken_flags,
                     int &taken_index, T *out);
-    AMI_err main_mem_operate(T* mm_stream, size_t len);
+    ami::err main_mem_operate(T* mm_stream, size_t len);
     size_t space_usage_overhead(void);
     size_t space_usage_per_stream(void);
 };
@@ -65,9 +67,9 @@ merge_random<T>::~merge_random(void)
 }
 
 template<class T>
-AMI_err merge_random<T>::initialize(TPIE_OS_SIZE_T arity,
+ami::err merge_random<T>::initialize(TPIE_OS_SIZE_T arity,
                                     CONST T * CONST *in,
-                                    AMI_merge_flag * /*taken_flags*/,
+                                    ami::merge_flag * /*taken_flags*/,
                                     int &taken_index)
 {
     TPIE_OS_SIZE_T ii;
@@ -97,12 +99,12 @@ AMI_err merge_random<T>::initialize(TPIE_OS_SIZE_T arity,
 #endif    
 
     taken_index = -1;
-    return AMI_ERROR_NO_ERROR;
+    return ami::NO_ERROR;
 }
 
 template<class T>
-AMI_err merge_random<T>::operate(CONST T * CONST *in,
-                                 AMI_merge_flag * /*taken_flags*/,
+ami::err merge_random<T>::operate(CONST T * CONST *in,
+                                 ami::merge_flag * /*taken_flags*/,
                                  int &taken_index, T *out)
 {
     
@@ -122,7 +124,7 @@ AMI_err merge_random<T>::operate(CONST T * CONST *in,
                   ", output_count = " << output_count << '.');
 #endif        
 
-        return AMI_MERGE_DONE;
+        return ami::MERGE_DONE;
 
     } else {
         TPIE_OS_SIZE_T min_source;
@@ -139,10 +141,10 @@ AMI_err merge_random<T>::operate(CONST T * CONST *in,
             min=TPIE_OS_RANDOM();
             mheap->insert(&min,min_source);
             taken_index = min_source;
-            return AMI_MERGE_OUTPUT;
+            return ami::MERGE_OUTPUT;
         } else {
             taken_index = -1;
-            return AMI_MERGE_CONTINUE;
+            return ami::MERGE_CONTINUE;
         }
     }
 }
@@ -153,7 +155,7 @@ AMI_err merge_random<T>::operate(CONST T * CONST *in,
 // Randomly shuffle a small file in main memory.
 
 template<class T>
-AMI_err merge_random<T>::main_mem_operate(T* mm_stream,
+ami::err merge_random<T>::main_mem_operate(T* mm_stream,
                                           size_t len)
 {
     size_t ii;
@@ -166,7 +168,7 @@ AMI_err merge_random<T>::main_mem_operate(T* mm_stream,
         mm_stream[ii] = mm_stream[rand_index];
         mm_stream[rand_index] = temp;
     }
-    return AMI_ERROR_NO_ERROR;
+    return ami::NO_ERROR;
 }
 
 template<class T>
