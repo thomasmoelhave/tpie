@@ -391,7 +391,7 @@ void priority_queue<T, Comparator, OPQType>::fill_buffer() {
 	//cout << "current_r: " << current_r << std::endl;
 	delete[] mergebuffer;
 
-	MergeHeap<T, Comparator> heap(current_r);
+	pq_merge_heap<T, Comparator> heap(current_r);
 	AMI_STREAM<T>* data[current_r];
 	for(TPIE_OS_OFFSET i = 0; i<current_r; i++) {
 		if(i == 0 && group_size(i)>0) {
@@ -465,7 +465,7 @@ void priority_queue<T, Comparator, OPQType>::fill_group_buffer(TPIE_OS_OFFSET gr
 
 		delete[] mergebuffer;
 
-		MergeHeap<T, Comparator> heap(setting_k);
+		pq_merge_heap<T, Comparator> heap(setting_k);
 		AMI_STREAM<T>* data[setting_k];
 		for(TPIE_OS_OFFSET i = 0; i<setting_k; i++) {
 			if(slot_size(group*setting_k+i)>0) {
@@ -608,7 +608,7 @@ void priority_queue<T, Comparator, OPQType>::empty_group(TPIE_OS_OFFSET group) {
 	delete[] mergebuffer;
 
 	AMI_STREAM<T>* newstream = new AMI_STREAM<T>(slot_data(newslot));
-	MergeHeap<T, Comparator> heap(setting_k);
+	pq_merge_heap<T, Comparator> heap(setting_k);
 
 	AMI_STREAM<T>* data[setting_k];
 	for(TPIE_OS_OFFSET i = 0; i<setting_k; i++) {

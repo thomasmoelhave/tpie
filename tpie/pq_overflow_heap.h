@@ -1,20 +1,18 @@
-#ifndef _OPQHEAP_H_
-#define _OPQHEAP_H_
+#ifndef _TPIE_PQ_OVERFLOW_HEAP_H_
+#define _TPIE_PQ_OVERFLOW_HEAP_H_
 
 #include "pq_internal_heap.h"
 
-using namespace std;
-
 /////////////////////////////////////////////////////////
 ///
-///  \class OPQHeap
+///  \class pq_overflow_heap
 ///  \author Lars Hvam Petersen
 ///
 ///  Overflow Priority Queue, based on a simple Heap
 ///
 /////////////////////////////////////////////////////////
 template<typename T, typename Comparator = std::less<T> >
-class OPQHeap {
+class pq_overflow_heap {
 	public:
 		/////////////////////////////////////////////////////////
 		///
@@ -23,14 +21,14 @@ class OPQHeap {
 		/// \param maxsize Maximal size of queue
 		///
 		/////////////////////////////////////////////////////////
-		OPQHeap(TPIE_OS_SIZE_T maxsize);
+		pq_overflow_heap(TPIE_OS_SIZE_T maxsize);
 
 		/////////////////////////////////////////////////////////
 		///
 		/// Destructor
 		///
 		/////////////////////////////////////////////////////////
-		~OPQHeap();
+		~pq_overflow_heap();
 
 		/////////////////////////////////////////////////////////
 		///
@@ -85,18 +83,18 @@ class OPQHeap {
 
 		/////////////////////////////////////////////////////////
 		///
-		/// fixme 
+		/// Returns whether the overflow heap is full or not
 		///
-		/// \return fixme
+		/// \return Boolean - full or not
 		///
 		/////////////////////////////////////////////////////////
 		const bool full();
 
 		/////////////////////////////////////////////////////////
 		///
-		/// fixme
+		/// Sorts the underlying array and returns a pointer to it, this operation invalidades the heap.
 		///
-		/// \return fixme
+		/// \return A pointer to the sorted underlying array
 		///
 		/////////////////////////////////////////////////////////
 		T* sorted_array();
@@ -124,8 +122,6 @@ class OPQHeap {
 		T dummy;
 };
 
-#ifndef CPPOPQHEAP
-#include "pq_internal_heap.inl"
-#endif
+#include "pq_overflow_heap.inl"
 
 #endif
