@@ -24,7 +24,7 @@
 // Get the tpie_stats_coll class for collection statistics.
 #include <tpie_stats_coll.h>
 
-template < class BTECOLL = BTE_COLLECTION >
+template < class BTECOLL = tpie::bte::COLLECTION >
 class AMI_collection_single {
 public:
 
@@ -74,7 +74,7 @@ private:
   BTECOLL *btec_;
   AMI_collection_status status_;
 
-  // Allow AMI_block base direct access to the BTE_COLLECTION.
+  // Allow AMI_block base direct access to the tpie::bte::COLLECTION.
   //  friend class AMI_block_base;
 };
 
@@ -83,11 +83,11 @@ AMI_collection_single<BTECOLL>::AMI_collection_single(TPIE_OS_SIZE_T lbf) {
 
   char *temp_path = tpie_tempnam("AMI");
 
-  btec_ = new BTECOLL(temp_path, BTE_WRITE_COLLECTION, lbf);
+  btec_ = new BTECOLL(temp_path, tpie::bte::WRITE_COLLECTION, lbf);
   tp_assert(btec_ != NULL, "new failed to create a new BTE_COLLECTION.");
   btec_->persist(PERSIST_DELETE);
 
-  if (btec_->status() == BTE_COLLECTION_STATUS_VALID)
+  if (btec_->status() == tpie::bte::COLLECTION_STATUS_VALID)
     status_ = AMI_COLLECTION_STATUS_VALID;
   else
     status_ = AMI_COLLECTION_STATUS_INVALID;
@@ -97,18 +97,18 @@ template <class BTECOLL>
 AMI_collection_single<BTECOLL>::AMI_collection_single(char* path_name,
 		       AMI_collection_type ct, TPIE_OS_SIZE_T lbf) {
 
-  BTE_collection_type btect;
+  tpie::bte::collection_type btect;
 
   if (ct == AMI_READ_COLLECTION)
-    btect = BTE_READ_COLLECTION;
+    btect = tpie::bte::READ_COLLECTION;
   else
-    btect = BTE_WRITE_COLLECTION;
+    btect = tpie::bte::WRITE_COLLECTION;
    
   btec_ = new BTECOLL(path_name, btect, lbf);
   tp_assert(btec_ != NULL, "new failed to create a new BTE_COLLECTION.");
   btec_->persist(PERSIST_PERSISTENT);
 
-  if (btec_->status() == BTE_COLLECTION_STATUS_VALID)
+  if (btec_->status() == tpie::bte::COLLECTION_STATUS_VALID)
     status_ = AMI_COLLECTION_STATUS_VALID;
   else
     status_ = AMI_COLLECTION_STATUS_INVALID;

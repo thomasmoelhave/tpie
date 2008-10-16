@@ -62,17 +62,17 @@ public:
     pcoll_ = pacoll->bte();
     if (bid != 0) {
       // Get an existing block from disk.
-      if (pcoll_->get_block(bid_, pdata_) != BTE_ERROR_NO_ERROR)
+      if (pcoll_->get_block(bid_, pdata_) != tpie::bte::NO_ERROR)
 	pdata_ = NULL;
     } else {
       // Create a new block in the collection.
-      if (pcoll_->new_block(bid_, pdata_) != BTE_ERROR_NO_ERROR)
+      if (pcoll_->new_block(bid_, pdata_) != tpie::bte::NO_ERROR)
 	pdata_ = NULL;
     }
   }
 
   AMI_err sync() {
-    if (pcoll_->sync_block(bid_, pdata_) != BTE_ERROR_NO_ERROR)
+    if (pcoll_->sync_block(bid_, pdata_) != tpie::bte::NO_ERROR)
       return AMI_ERROR_BTE_ERROR;
     else
       return AMI_ERROR_NO_ERROR;

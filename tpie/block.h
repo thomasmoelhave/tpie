@@ -20,7 +20,7 @@
 // The b_vector class.
 #include <b_vector.h>
  
-template<class E, class I, class BTECOLL = BTE_COLLECTION >
+template<class E, class I, class BTECOLL = tpie::bte::COLLECTION >
 class AMI_block: public AMI_block_base<BTECOLL> {
   protected:
   using AMI_block_base<BTECOLL>::bid_;

@@ -135,7 +135,7 @@ class AMI_btree_node;
 
   Example of usage: test_ami_btree.cpp
 */
-template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL = BTE_COLLECTION>
+template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL = tpie::bte::COLLECTION>
 class AMI_btree {
 public:
 
@@ -725,7 +725,7 @@ struct _AMI_btree_leaf_info {
 
 // The AMI_btree_leaf class.
 // Stores size() elements of type Value.
-template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL = BTE_COLLECTION >
+template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL = tpie::bte::COLLECTION >
 class AMI_btree_leaf: public AMI_block<Value, _AMI_btree_leaf_info, BTECOLL> {
 
   Compare comp_;
@@ -817,7 +817,7 @@ public:
 // An internal node of the AMI_btree.
 // It stores size() keys and size()+1 links representing 
 // the following pattern: Link0 Key0 Link1 Key1 ... LinkS KeyS Link(S+1)
-template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL = BTE_COLLECTION >
+template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL = tpie::bte::COLLECTION >
 class AMI_btree_node: public AMI_block<Key, size_t, BTECOLL> {
 
   Compare comp_;
