@@ -141,7 +141,7 @@ namespace bte {
 	stream_cache *ss;
     
 	if (st == APPEND_STREAM) {
-	    return ERROR_PERMISSION_DENIED;
+	    return PERMISSION_DENIED;
 	} 
 	else {
 
@@ -150,7 +150,7 @@ namespace bte {
 		(sub_begin >= data_max - data) ||
 		(sub_end >= data_max - data) ||
 		(sub_end < sub_begin)) {
-		return ERROR_OFFSET_OUT_OF_RANGE;
+		return OFFSET_OUT_OF_RANGE;
 	    }
 
 	    ss = new stream_cache;
@@ -161,7 +161,7 @@ namespace bte {
 
 	    *sub_stream = (stream_base<T> *)ss;                       
 
-	    return ERROR_NO_ERROR;
+	    return NO_ERROR;
 	}
     };           
     
@@ -189,7 +189,7 @@ namespace bte {
             break;
 
 	}
-	return ERROR_NO_ERROR;
+	return NO_ERROR;
     };
     
 
@@ -204,13 +204,13 @@ namespace bte {
     err stream_cache<T>::seek(TPIE_OS_OFFSET offset) {
 	
 	if (offset > data_hard_end - data) {
-	    return ERROR_OFFSET_OUT_OF_RANGE;
+	    return OFFSET_OUT_OF_RANGE;
 	} 
 	else {
 	    current = data + offset;
 	}
 
-	return ERROR_NO_ERROR;
+	return NO_ERROR;
     };
 
 
@@ -225,13 +225,13 @@ namespace bte {
     err stream_cache<T>::read_item(T **elt) {
 
 	if (current >= data_max) {
-	    return ERROR_END_OF_STREAM;
+	    return END_OF_STREAM;
 	}
 	else {
 	    *elt = current++;
 	}
 	
-        return ERROR_NO_ERROR;
+        return NO_ERROR;
 	
     };
 
@@ -239,11 +239,11 @@ namespace bte {
     err stream_cache<T>::write_item(const T &elt) {
 
 	if (r_only) {	    
-	    return ERROR_PERMISSION_DENIED;
+	    return PERMISSION_DENIED;
 	}
 
 	if (current >= data_hard_end) {
-	    return ERROR_OUT_OF_SPACE;
+	    return OUT_OF_SPACE;
 	} 
 	else {
 	    *current++ = elt;
@@ -252,7 +252,7 @@ namespace bte {
 	    }
 	}
 
-        return ERROR_NO_ERROR;
+        return NO_ERROR;
     
     };
 

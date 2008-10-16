@@ -273,11 +273,11 @@ namespace bte {
 	    
 	    TP_LOG_FATAL_ID("Memory manager error in allocation.");
 	    
-	    return ERROR_MEMORY_ERROR;
+	    return MEMORY_ERROR;
 
 	}
 
-	return ERROR_NO_ERROR;
+	return NO_ERROR;
 	
     }
 
@@ -290,10 +290,10 @@ namespace bte {
 	    
 	    TP_LOG_FATAL_ID("Memory manager error in deallocation.");
 	    
-	    return ERROR_MEMORY_ERROR;
+	    return MEMORY_ERROR;
 	}
 	
-	return ERROR_NO_ERROR;
+	return NO_ERROR;
     }
     
 // Return the path name in newly allocated space.
@@ -310,7 +310,7 @@ namespace bte {
 	strncpy (newPath, m_path, len + 1);
 	*stream_name = newPath;
 	
-	return ERROR_NO_ERROR;
+	return NO_ERROR;
     }
 
     template < class T >
