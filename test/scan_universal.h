@@ -13,7 +13,7 @@
 // Get the STL min fonction.
 #include <algorithm>
 // Get the AMI_scan_object definition.
-#include <ami_scan.h>
+#include <scan.h>
 
 template <int sz>
 struct ifoo_t {

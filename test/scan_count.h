@@ -10,7 +10,7 @@
 #define _SCAN_COUNT_H
 
 #include <portability.h>
-#include <ami_scan.h>
+#include <scan.h>
 
 class scan_count : AMI_scan_object {
 private:

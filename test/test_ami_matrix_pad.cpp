@@ -6,23 +6,23 @@
 
 #include <portability.h>
 
-#include <versions.h>
-VERSION(test_ami_matrix_cpp,"$Id: test_ami_matrix_pad.cpp,v 1.12 2005-11-16 17:03:51 jan Exp $");
+
+
 
 #include "app_config.h"        
 #include "parse_args.h"
 
 // Define it all.
-#include <ami_scan.h>
+#include <scan.h>
 
 // Utitlities for ascii output.
-#include <ami_scan_utils.h>
+#include <scan_utils.h>
 
 // Get some scanners.
 #include "scan_count.h"
 
 // Get matrices.
-#include <ami_matrix.h>
+#include <matrix.h>
 
 static char def_crf[] = "osc.txt";
 static char def_irf[] = "osi.txt";

@@ -1,6 +1,6 @@
 #include "app_config.h"
 #include <portability.h>
-#include <ami_stream.h>
+#include <stream.h>
 #include "getopts.h"
 
 //snprintf is different on WIN/Unix platforms

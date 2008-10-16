@@ -12,20 +12,20 @@
 #include "parse_args.h"
 
 // Define it all.
-#include <ami_scan.h>
+#include <scan.h>
 
-VERSION(test_ami_sm_cpp,"$Id: test_ami_sm.cpp,v 1.13 2005-11-16 17:03:52 jan Exp $");
+
 
 // Utitlities for ascii output.
-#include <ami_scan_utils.h>
+#include <scan_utils.h>
 
 // Get matrices.
 
-#include <ami_matrix.h>
-#include <ami_matrix_fill.h>
+#include <matrix.h>
+#include <matrix_fill.h>
 #include "fill_value.h"
 
-#include <ami_sparse_matrix.h>
+#include <sparse_matrix.h>
 
 #include "scan_uniform_sm.h"
 

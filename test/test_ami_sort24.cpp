@@ -7,18 +7,18 @@
 
 #include <portability.h>
 
-#include <versions.h>
-VERSION(test_ami_sort24_cpp,"$Id: test_ami_sort24.cpp,v 1.18 2005-11-18 12:42:56 jan Exp $");
+
+
 
 // Get information on the configuration to test.
 #include "app_config.h"
 #include "parse_args.h"
 
-#include <ami_sort.h>
-#include <ami_kb_sort.h>
+#include <sort.h>
+#include <kb_sort.h>
 
 // Utitlities for ascii output.
-#include <ami_scan_utils.h>
+#include <scan_utils.h>
 
 #include <cpu_timer.h>
 

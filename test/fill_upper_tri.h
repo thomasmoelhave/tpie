@@ -11,7 +11,7 @@
 
 #include <portability.h>
 
-#include <ami_matrix_fill.h>
+#include <matrix_fill.h>
 
 template<class T>
 class fill_upper_tri : public AMI_matrix_filler<T> {

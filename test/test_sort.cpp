@@ -1,7 +1,10 @@
 #include "app_config.h"
 #include <portability.h>
-#include <ami_sort.h>
+//#include <ssort.h>
 #include <tpie_log.h>
+#include <stream.h>
+#include <sort.h>
+#include <err.h>
 #include "getopts.h"
 #include "quicksort.h"  //TPIE internal sort
 #include <algorithm>    //STL internal sort
@@ -244,8 +247,8 @@ void get_app_info(int argc, char** argv, appInfo & Info){
   init_opts(opts, argc, argv); 
 
   // get the dir
-  char* base_dir = getenv(AMI_SINGLE_DEVICE_ENV);
-  if (base_dir == NULL) { base_dir = getenv(TMPDIR_ENV); }
+  char* base_dir = getenv("AMI_SINGLE_DEVICE");
+  if (base_dir == NULL) { base_dir = getenv("TMPDIR_ENV"); }
   if (base_dir == NULL) { base_dir = TMP_DIR; }
   
   Info.path=base_dir;
@@ -394,7 +397,7 @@ void write_random_stream(char* fname, appInfo & info, progress_indicator_base* i
 
   cout << "Writing random input data." << endl;
   TP_LOG_APP_DEBUG_ID("Writing stream"); 
-  AMI_STREAM<SortItem>* str = new AMI_STREAM<SortItem>(fname);
+  AMI_stream<SortItem>* str = new AMI_stream<SortItem>(fname);
   assert(str->is_valid());
   str->persist(PERSIST_PERSISTENT);
   
@@ -454,7 +457,7 @@ void check_sorted(char * fname, appInfo & info, progress_indicator_base* indicat
   cout << "Checking that output is sorted." << endl;
   TP_LOG_APP_DEBUG_ID("Checking that output is sorted"); 
   
-  AMI_STREAM<SortItem>* str = new AMI_STREAM<SortItem>(fname);
+  AMI_stream<SortItem>* str = new AMI_stream<SortItem>(fname);
   assert(str->is_valid());
   str->persist(PERSIST_PERSISTENT);
   str->seek(0);
@@ -500,7 +503,7 @@ void check_sorted(char * fname, appInfo & info, progress_indicator_base* indicat
   return;
 }
 
-void load_list(AMI_STREAM<SortItem>* str, SortItem* list, int nitems){
+void load_list(AMI_stream<SortItem>* str, SortItem* list, int nitems){
   SortItem *s_item;
   str->seek(0);
   for(int i=0; i<nitems; i++){
@@ -517,8 +520,8 @@ void internal_sort_test(const appInfo& info){
   cpu_timer clk;
   SortCompare cmp;
   char buf[20];
-  AMI_STREAM<SortItem>* Str = 
-    new AMI_STREAM<SortItem>(tpie_tempnam(APP_FILE_BASE, info.path));
+  AMI_stream<SortItem>* Str = 
+    new AMI_stream<SortItem>(tpie_tempnam(APP_FILE_BASE, info.path));
 
   Str->seek(0);
   Str->main_memory_usage(&str_mem_usage, MM_STREAM_USAGE_MAXIMUM);
@@ -602,8 +605,8 @@ AMI_err test_3x_sort(appInfo& info, enum test_type ttype, progress_indicator_bas
   
   //Sort
   AMI_err ae;
-  AMI_STREAM<SortItem>* inStr = new AMI_STREAM<SortItem>(fname);
-  AMI_STREAM<SortItem>* outStr = new AMI_STREAM<SortItem>(fname2);
+  AMI_stream<SortItem>* inStr = new AMI_stream<SortItem>(fname);
+  AMI_stream<SortItem>* outStr = new AMI_stream<SortItem>(fname2);
   cout << "\nMem available: " << MM_manager.memory_available()
        << "\nSorting "<< fname << " to " << fname2 << endl; 
   TP_LOG_APP_DEBUG_ID("Starting sort"); 
@@ -676,7 +679,7 @@ AMI_err test_2x_sort(appInfo& info, enum test_type ttype, progress_indicator_bas
   
   //Sort
   AMI_err ae;
-  AMI_STREAM<SortItem>* inStr = new AMI_STREAM<SortItem>(fname);
+  AMI_stream<SortItem>* inStr = new AMI_stream<SortItem>(fname);
   cout << "\nMem available: " << MM_manager.memory_available()
        << "\nSorting "<< fname << " to itself" << endl; 
   TP_LOG_APP_DEBUG_ID("Starting sort"); 

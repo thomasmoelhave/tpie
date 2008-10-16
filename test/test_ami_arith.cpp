@@ -7,24 +7,24 @@
 
 #include <portability.h>
 
-#include <versions.h>
-VERSION(test_ami_arith_cpp,"$Id: test_ami_arith.cpp,v 1.13 2005-02-15 00:23:06 tavi Exp $");
+
+
 
 #include "app_config.h"        
 #include "parse_args.h"
 
 // Get AMI_scan().
-#include <ami_scan.h>
+#include <scan.h>
 
 // Get utitlities for ascii output.
-#include <ami_scan_utils.h>
+#include <scan_utils.h>
 
 // Get some scanners.
 #include "scan_square.h"
 #include "scan_count.h"
 
 // Get stream arithmetic.
-#include <ami_stream_arith.h>
+#include <stream_arith.h>
 
 static char def_crf[] = "osc.txt";
 static char def_irf[] = "osi.txt";

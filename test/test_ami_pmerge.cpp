@@ -13,14 +13,14 @@
 #include "app_config.h"
 #include "parse_args.h"
 
-#include <ami_merge.h>
+#include <merge.h>
 #include <mergeheap.h>
 
-#include <versions.h>
-VERSION(test_ami_pmerge_cpp,"$Id: test_ami_pmerge.cpp,v 1.33 2005-12-19 03:11:19 adanner Exp $");
+
+
 
 // Utitlities for ascii output.
-#include <ami_scan_utils.h>
+#include <scan_utils.h>
 
 #include "scan_random.h"
 

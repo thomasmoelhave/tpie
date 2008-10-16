@@ -5,8 +5,8 @@
 // Created: 10/7/94
 //
 
-#include <versions.h>
-VERSION(app_config,"$Id: app_config.cpp,v 1.9 2004-10-20 08:58:05 jan Exp $");
+
+
 
 #include "app_config.h"
 

@@ -8,11 +8,11 @@
 #include "app_config.h"
 #include <portability.h>
 
-#include <versions.h>
-VERSION(test_ami_btree_cpp, "$Id: test_ami_btree.cpp,v 1.22 2004-08-12 15:15:12 jan Exp $");
+
+
 
 #include <cpu_timer.h>
-#include <ami_btree.h>
+#include <btree.h>
 
 #define SIZE_OF_STRUCTURE 128
 

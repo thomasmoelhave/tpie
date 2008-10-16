@@ -6,8 +6,8 @@
 
 #include <portability.h>
 
-#include <versions.h>
-VERSION(test_ami_merge_cpp,"$Id: test_ami_merge.cpp,v 1.22 2006-01-17 15:52:51 jan Exp $");
+
+
 
 #include <iostream>
 
@@ -15,12 +15,12 @@ VERSION(test_ami_merge_cpp,"$Id: test_ami_merge.cpp,v 1.22 2006-01-17 15:52:51 j
 #include "parse_args.h"
 
 // Define it all.
-#include <ami_stream.h>
-#include <ami_scan.h>
-#include <ami_merge.h>
+#include <stream.h>
+#include <scan.h>
+#include <merge.h>
 
 // Utitlities for ascii output.
-#include <ami_scan_utils.h>
+#include <scan_utils.h>
 
 // Get some scanners and a merger.
 

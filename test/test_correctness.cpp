@@ -35,7 +35,7 @@
 
 // TPIE core classes and functions.
 #include <ami.h>
-#include <ami_scan_utils.h>
+#include <scan_utils.h>
 
 // The getopts() function for reading command-line arguments.
 #include "getopts.h"

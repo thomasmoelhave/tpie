@@ -12,20 +12,20 @@
 
 #include <portability.h>
 
-#include <versions.h>
-VERSION(test_ami_gp_cpp,"$Id: test_ami_gp.cpp,v 1.19 2005-11-17 17:07:41 jan Exp $");
+
+
 
 // Get the application defaults.
 #include "app_config.h"
 
 // Get AMI_scan().
-#include <ami_scan.h>
+#include <scan.h>
 // Get ASCII scan objects.
-#include <ami_scan_utils.h>
+#include <scan_utils.h>
 // Get AMI_gen_perm_object.
-#include <ami_gen_perm_object.h>
+#include <gen_perm_object.h>
 // Get AMI_general_permute().
-#include <ami_gen_perm.h>
+#include <gen_perm.h>
 
 #include "parse_args.h"
 #include "scan_count.h"

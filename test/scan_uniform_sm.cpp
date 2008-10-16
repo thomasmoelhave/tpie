@@ -9,8 +9,8 @@
 // Get information on the configuration to test.
 #include "app_config.h"
 
-#include <versions.h>
-VERSION(scan_uniform_sm_cpp,"$Id: scan_uniform_sm.cpp,v 1.8 2005-11-17 17:07:41 jan Exp $");
+
+
 
 #include "scan_uniform_sm.h"
 

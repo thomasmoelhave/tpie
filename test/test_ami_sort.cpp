@@ -17,16 +17,16 @@
 #include "parse_args.h"
 
 // Define it all.
-#include <ami_stream.h>
-#include <ami_scan.h>
-#include <ami_sort.h>
+#include <stream.h>
+#include <scan.h>
+#include <sort.h>
 #include <cpu_timer.h>
-VERSION(test_ami_sort_cpp,"$Id: test_ami_sort.cpp,v 1.34 2005-11-16 17:03:52 jan Exp $");
 
-#include <ami_kb_sort.h>
+
+#include <kb_sort.h>
 
 // Utilities for ascii output.
-#include <ami_scan_utils.h>
+#include <scan_utils.h>
 
 #include "scan_random.h"
 #include "scan_diff.h" 

@@ -5,16 +5,16 @@
 
 #include <portability.h>
 
-#include <versions.h>
+
 #include <progress_indicator_arrow.h>
 
-VERSION(test_ami_stack_cpp,"$Id: test_ami_queue.cpp,v 1.1 2006-05-10 11:39:19 aveng Exp $");
+
 
 #include "app_config.h"        
 #include "parse_args.h"
 
 // Get the AMI_stack definition.
-#include <ami_queue.h>
+#include <queue.h>
 
 struct options app_opts[] = {
   { 0, NULL, NULL, NULL, 0 }

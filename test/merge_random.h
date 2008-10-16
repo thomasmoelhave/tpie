@@ -13,7 +13,7 @@
 #define _MERGE_RANDOM_H
 
 #include <portability.h>
-#include <ami_merge.h>
+#include <merge.h>
 #include <mergeheap.h>
 
 template<class T>

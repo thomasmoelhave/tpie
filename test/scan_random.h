@@ -10,7 +10,7 @@
 #define _SCAN_RANDOM_H
 
 #include <portability.h>
-#include <ami_scan.h>
+#include <scan.h>
 
 // A scan object to generate random integers.
 class scan_random : AMI_scan_object {

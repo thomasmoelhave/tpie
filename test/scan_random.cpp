@@ -10,8 +10,8 @@
 // Get information on the configuration to test.
 #include "app_config.h"
 
-#include <versions.h>
-VERSION(scan_random_cpp,"$Id: scan_random.cpp,v 1.13 2005-11-17 17:47:56 jan Exp $");
+
+
 
 #include "scan_random.h"
 

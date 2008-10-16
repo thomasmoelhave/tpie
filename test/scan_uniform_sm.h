@@ -9,7 +9,7 @@
 #ifndef _SCAN_UNIFORM_SM_H
 #define _SCAN_UNIFORM_SM_H
 
-#include <ami_sparse_matrix.h>
+#include <sparse_matrix.h>
 
 class scan_uniform_sm : public AMI_scan_object {
 private:

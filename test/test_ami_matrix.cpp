@@ -7,21 +7,21 @@
 
 #include <portability.h>
 
-#include <versions.h>
-VERSION(test_ami_matrix_cpp,"$Id: test_ami_matrix.cpp,v 1.13 2005-11-16 17:03:51 jan Exp $");
+
+
 
 #include "app_config.h"        
 #include "parse_args.h"
 
 // Get AMI_scan().
-#include <ami_scan.h>
+#include <scan.h>
 
 // Utitlities for ascii output.
-#include <ami_scan_utils.h>
+#include <scan_utils.h>
 
 // Get matrices.
-#include <ami_matrix.h>
-#include <ami_matrix_fill.h>
+#include <matrix.h>
+#include <matrix_fill.h>
 #include "fill_upper_tri.h"
 
 #include <cpu_timer.h>
