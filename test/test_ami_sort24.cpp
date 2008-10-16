@@ -7,9 +7,6 @@
 
 #include <portability.h>
 
-
-
-
 // Get information on the configuration to test.
 #include "app_config.h"
 #include "parse_args.h"
@@ -33,23 +30,25 @@ union sort_obj
 
     // How to extract the key for key bucket sorting.
     inline operator kb_key(void) const
-    {
-        return key_val;
-    }
+	{
+	    return key_val;
+	}
 };
 
 
 
 // A scan object to generate random keys.
-class scan_random_so : AMI_scan_object {
+class scan_random_so : ami::scan_object {
+
 private:
     TPIE_OS_OFFSET m_max;
     TPIE_OS_OFFSET m_remaining;
+
 public:
     scan_random_so(TPIE_OS_OFFSET count = 1000, int seed = 17);
     virtual ~scan_random_so(void);
-    AMI_err initialize(void);
-    AMI_err operate(sort_obj *out1, AMI_SCAN_FLAG *sf);
+    ami::err initialize(void);
+    ami::err operate(sort_obj *out1, ami::SCAN_FLAG *sf);
 };
 
 
@@ -68,20 +67,20 @@ scan_random_so::~scan_random_so(void)
 }
 
 
-AMI_err scan_random_so::initialize(void)
+ami::err scan_random_so::initialize(void)
 {
     m_remaining = m_max;
 
-    return AMI_ERROR_NO_ERROR;
+    return ami::NO_ERROR;
 };
 
-AMI_err scan_random_so::operate(sort_obj *out1, AMI_SCAN_FLAG *sf)
+ami::err scan_random_so::operate(sort_obj *out1, ami::SCAN_FLAG *sf)
 {
     if ((*sf = (m_remaining-- >0))) {
         out1->key_val = TPIE_OS_RANDOM();
-        return AMI_SCAN_CONTINUE;
+        return ami::SCAN_CONTINUE;
     } else {
-        return AMI_SCAN_DONE;
+        return ami::SCAN_DONE;
     }
 };
 
@@ -99,47 +98,45 @@ static bool report_results_sorted = false;
 static bool kb_sort = false;
 
 struct options app_opts[] = {
-  { 10, "random-results-filename", "", "R", 1 },
-  { 11, "report-results-random", "", "r", 0 },
-  { 12, "sorted-results-filename", "", "S", 1 },
-  { 13, "report-results-sorted", "", "s", 0 },
-  { 14, "kb-sort", "", "k", 0 },
-  { 0, NULL, NULL, NULL, 0 }
+    { 10, "random-results-filename", "", "R", 1 },
+    { 11, "report-results-random", "", "r", 0 },
+    { 12, "sorted-results-filename", "", "S", 1 },
+    { 13, "report-results-sorted", "", "s", 0 },
+    { 14, "kb-sort", "", "k", 0 },
+    { 0, NULL, NULL, NULL, 0 }
 };
 
 void parse_app_opts(int idx, char *opt_arg)
 {
     switch (idx) {
-        case 10:
-            rand_results_filename = opt_arg;
-        case 11:
-            report_results_random = true;
-            break;
-        case 12:
-            sorted_results_filename = opt_arg;
-        case 13:
-            report_results_sorted = true;
-            break;
-        case 14:
-            kb_sort = !kb_sort;
-	    break;
+    case 10:
+	rand_results_filename = opt_arg;
+    case 11:
+	report_results_random = true;
+	break;
+    case 12:
+	sorted_results_filename = opt_arg;
+    case 13:
+	report_results_sorted = true;
+	break;
+    case 14:
+	kb_sort = !kb_sort;
+	break;
     }
 }
 
-
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
     
-    AMI_err ae;
+    ami::err ae;
 
     cpu_timer cput;
     
     parse_args(argc, argv, app_opts, parse_app_opts);
 
     if (verbose) {
-      std::cout << "test_size = " << test_size << "." << std::endl;
-      std::cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << std::endl;
-      std::cout << "random_seed = " << random_seed << "." << std::endl;
+	std::cout << "test_size = " << test_size << "." << std::endl;
+	std::cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << std::endl;
+	std::cout << "random_seed = " << random_seed << "." << std::endl;
     } else {
         std::cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << random_seed << ' ';
     }
@@ -147,16 +144,16 @@ int main(int argc, char **argv)
     // Set the amount of main memory:
     MM_manager.set_memory_limit (test_mm_size);
         
-    AMI_STREAM<sort_obj> amis0;
-    AMI_STREAM<sort_obj> amis1;
+    ami::stream<sort_obj> amis0;
+    ami::stream<sort_obj> amis1;
         
     // Write some ints.
     scan_random_so rnds(test_size,random_seed);
     
-    ae = AMI_scan(&rnds, &amis0);
+    ae = ami::scan(&rnds, &amis0);
 
     if (verbose) {
-      std::cout << "Wrote the random values." << std::endl;
+	std::cout << "Wrote the random values." << std::endl;
         std::cout << "Stream length = " << amis0.stream_len() << std::endl;
     }
 
@@ -164,22 +161,22 @@ int main(int argc, char **argv)
     // streams.
     
     std::ofstream *oss;
-    cxx_ostream_scan<sort_obj> *rpts = NULL;
+    ami::cxx_ostream_scan<sort_obj> *rpts = NULL;
     std::ofstream *osr;
-    cxx_ostream_scan<sort_obj> *rptr = NULL;
+    ami::cxx_ostream_scan<sort_obj> *rptr = NULL;
     
     if (report_results_random) {
-        osr = new std::ofstream(rand_results_filename);
-        rptr = new cxx_ostream_scan<sort_obj>(osr);
+        osr  = new std::ofstream(rand_results_filename);
+        rptr = new ami::cxx_ostream_scan<sort_obj>(osr);
     }
     
     if (report_results_sorted) {
-        oss = new std::ofstream(sorted_results_filename);
-        rpts = new cxx_ostream_scan<sort_obj>(oss);
+        oss  = new std::ofstream(sorted_results_filename);
+        rpts = new ami::cxx_ostream_scan<sort_obj>(oss);
     }
     
     if (report_results_random) {
-        ae = AMI_scan(&amis0, rptr);
+        ae = ami::scan(&amis0, rptr);
     }
 
     // Make the input stream read-once.
@@ -191,9 +188,9 @@ int main(int argc, char **argv)
 
     if (kb_sort) {
         key_range range(KEY_MIN, KEY_MAX);
-        ae = AMI_kb_sort(amis0, amis1, range);
+        ae = ami::kb_sort(amis0, amis1, range);
     } else {
-        ae = AMI_sort(&amis0, &amis1);
+        ae = ami::sort(&amis0, &amis1);
     }
 
     cput.stop();
@@ -201,7 +198,7 @@ int main(int argc, char **argv)
     amis0.persist(PERSIST_DELETE);
     
     if (verbose) {
-      std::cout << "Sorted them." << std::endl;
+	std::cout << "Sorted them." << std::endl;
         std::cout << "ae = " << ae << std::endl;
         std::cout << "Sorted stream length = " << amis1.stream_len() << std::endl;
     }
@@ -209,7 +206,7 @@ int main(int argc, char **argv)
     std::cout << cput;
     
     if (report_results_sorted) {
-        ae = AMI_scan(&amis1, rpts);
+        ae = ami::scan(&amis1, rpts);
     }
     std::cout << std::endl;
     
