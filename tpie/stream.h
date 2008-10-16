@@ -312,14 +312,9 @@ public:
 private:
 
     /** Restricted copy constructor */
-<<<<<<< .mine
-    AMI_stream(const  AMI_stream<T>& other);
-    /** Restricted assignment operator*/
-    AMI_stream<T>& operator=(const AMI_stream<T>& other);
-=======
     stream(const  stream<T>& other);
+    /** Restricted assignment operator*/
     stream<T>& operator=(const stream<T>& other);
->>>>>>> .r1587
 
     /** Pointer to a base stream, since the particular type of BTE
      * stream we are using may vary. */
@@ -332,12 +327,8 @@ private:
      * AMI stream is destroyed. */
     bool m_destructBTEStream;
 
-<<<<<<< .mine
     /** States if stream is valid or not. */
-    AMI_stream_status m_status;
-=======
     stream_status m_status;
->>>>>>> .r1587
 };
 
 // Create a temporary AMI stream on one of the devices in the default
