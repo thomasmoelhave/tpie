@@ -243,11 +243,8 @@ int test_stream() {
     AMI_STREAM<foo_t<40> >* s;
     int failed = 0;
     AMI_err err;
-    char *fn  = new char[strlen(TMP_DIR)+strlen("tpie00.stream")+1];
-    strcpy(fn,TMP_DIR);
-    strcpy(fn+strlen(fn),"tpie00.stream");
-
-    char *pfn = NULL; // Pointer to a file name.
+	std::string fn = std::string(TMP_DIR) + "tpie00.stream";
+	std::string pfn;
     foo_t<40> afoo = thefoo;
     foo_t<40> *pafoo;
     int i;
@@ -277,9 +274,9 @@ int test_stream() {
 	print_status(status); if (status == FAIL) failed++;
   
 	print_msg("Inquiring file name: ", INDENT);
-	err = s->name(&pfn);
-	status = (err != AMI_ERROR_NO_ERROR || pfn == NULL || strlen(pfn) == 0 ? FAIL: PASS);
-	if (pfn != NULL) print_msg(pfn, -1);
+	pfn = s->name();
+	status = (err != AMI_ERROR_NO_ERROR || pfn.empty() ? FAIL: PASS);
+	print_msg(pfn.c_str(), -1);
 	print_status(status); if (status == FAIL) failed++;
 
 	print_msg("Checking persist() (should return PERSIST_DELETE)", INDENT);
@@ -333,8 +330,8 @@ int test_stream() {
  
     print_msg("Destroying temp stream (file should be removed) (calling op. delete)", INDENT);
     delete s;
-    status = (stat(pfn, &buf) == -1 && errno == ENOENT ? PASS: FAIL);
-    delete pfn;
+    status = (stat(pfn.c_str(), &buf) == -1 && errno == ENOENT ? PASS: FAIL);
+	pfn.clear();
     print_status(status); if (status == FAIL) failed++;
 
 
@@ -344,7 +341,7 @@ int test_stream() {
 
     print_msg("Creating named writable stream (calling op. new)", INDENT);
     // Make sure there's no old file lingering around.
-    unlink(fn);
+    unlink(fn.c_str());
     s = new AMI_STREAM<foo_t<40> >(fn);
     status = (s != NULL && s->is_valid() ? PASS: FAIL);
     print_status(status); if (status == FAIL) failed++;
@@ -352,10 +349,10 @@ int test_stream() {
     if (status != FAIL) {
 
 	print_msg("Inquiring file name; should be called", INDENT);
-	print_msg(fn, -1);
-	err = s->name(&pfn);
-	status = (err != AMI_ERROR_NO_ERROR || pfn == NULL || strcmp(pfn, fn) != 0 ? FAIL: PASS);
-	if (pfn != NULL) print_msg(pfn, -1);
+	print_msg(fn.c_str(), -1);
+	pfn = s->name();
+	status = (err != AMI_ERROR_NO_ERROR || pfn != fn ? FAIL: PASS);
+	print_msg(pfn.c_str(), -1);
 	print_status(status); if (status == FAIL) failed++;
 
 	print_msg("Checking persist() (should return PERSIST_PERSISTENT)", INDENT);
@@ -381,8 +378,8 @@ int test_stream() {
 
     print_msg("Closing named stream (file should NOT be removed) (calling op. delete)", INDENT);
     delete s;
-    status = (stat(pfn, &buf) == 0 ? PASS: FAIL);
-    delete pfn;
+    status = (stat(pfn.c_str(), &buf) == 0 ? PASS: FAIL);
+	pfn.clear();
     print_status(status); if (status == FAIL) failed++;
 
     print_msg("Reopening named stream read-only (calling op. new)", INDENT);
@@ -405,7 +402,7 @@ int test_stream() {
 
     print_msg("Closing named stream (file should NOT be removed) (calling op. delete)", INDENT);
     delete s;
-    status = (stat(fn, &buf) == 0 ? PASS: FAIL);
+    status = (stat(fn.c_str(), &buf) == 0 ? PASS: FAIL);
     print_status(status); if (status == FAIL) failed++;  
 
 
@@ -424,12 +421,10 @@ int test_stream() {
 
     print_msg("Destroying named stream (file should be removed) (calling op. delete)", INDENT);
     delete s;
-    status = (stat(fn, &buf) == -1 && errno == ENOENT ? PASS: FAIL);
+    status = (stat(fn.c_str(), &buf) == -1 && errno == ENOENT ? PASS: FAIL);
     print_status(status); if (status == FAIL) failed++;
   
     print_status(EMPTY);
-
-    delete[] fn;
 
     return (failed ? 1: 0);
 }
@@ -555,17 +550,9 @@ int test_scan_cxx() {
     int i;
     AMI_STREAM< pair<int,int> >* ts;
 
-    char *fns  = new char[strlen(TMP_DIR)+strlen("tpie00.stream")+1];
-    strcpy(fns,TMP_DIR);
-    strcpy(fns+strlen(fns),"tpie00.stream");
-
-    char *fnt0  = new char[strlen(TMP_DIR)+strlen("tpie00.txt")+1];
-    strcpy(fnt0,TMP_DIR);
-    strcpy(fnt0+strlen(fnt0),"tpie00.txt");
-
-    char *fnt1  = new char[strlen(TMP_DIR)+strlen("tpie01.txt")+1];
-    strcpy(fnt1,TMP_DIR);
-    strcpy(fnt1+strlen(fnt1),"tpie01.txt");
+	std::string fns = std::string(TMP_DIR) + "tpie00.stream";
+	std::string fnt0 = std::string(TMP_DIR) + "tpie00.txt";
+	std::string fnt1 = std::string(TMP_DIR) + "tpie01.txt";
 
     // Print the test heading.
     print_msg("Testing AMI_scan with C++ streams", 0);
@@ -577,20 +564,21 @@ int test_scan_cxx() {
     print_status(EMPTY); // New line.
 
     print_msg("Creating an ASCII file with 5m pairs of integers", INDENT);
-    if (status != SKIP) {
-	unlink(fnt0);
-	unlink(fns);
-	ofstream xos;
-	xos.open(fnt0);
-	if (!xos) {
-	    TP_LOG_APP_DEBUG_ID("Could not open C++ stream for writing to tpie00.txt");
-	    status = FAIL;
-	} else {
-	    for (i = 0; i < 5000000; i++) {
-		xos << TPIE_OS_RANDOM() << " " << TPIE_OS_RANDOM() << "\n";
-	    }
-	}
-	xos.close();
+    if (status != SKIP) 
+	{
+		unlink(fnt0.c_str());
+		unlink(fns.c_str());
+		ofstream xos;
+		xos.open(fnt0.c_str());
+		if (!xos) {
+			TP_LOG_APP_DEBUG_ID("Could not open C++ stream for writing to tpie00.txt");
+			status = FAIL;
+		} else {
+			for (i = 0; i < 5000000; i++) {
+				xos << TPIE_OS_RANDOM() << " " << TPIE_OS_RANDOM() << "\n";
+			}
+		}
+		xos.close();
     }
     print_status(status); if (status == FAIL) { failed++; status = SKIP; }
 
@@ -598,7 +586,7 @@ int test_scan_cxx() {
     print_msg("Running AMI_scan with cxx_istream_scan", INDENT);
     if (status != SKIP) {
 	ifstream xis;    
-	xis.open(fnt0);
+	xis.open(fnt0.c_str());
 	if (!xis) {
 	    TP_LOG_APP_DEBUG_ID("Could not open C++ stream for reading from tpie00.txt");
 	    status = FAIL;
@@ -624,7 +612,7 @@ int test_scan_cxx() {
     print_msg("Running AMI_scan with cxx_ostream_scan", INDENT);
     if (status != SKIP) {
 	ofstream xos;
-	xos.open(fnt1);
+	xos.open(fnt1.c_str());
 	if (!xos) {
 	    TP_LOG_APP_DEBUG_ID("Could not open C++ stream for writing to tpie01.txt");
 	    status = FAIL;
@@ -644,9 +632,9 @@ int test_scan_cxx() {
     }
     print_status(status); if (status == FAIL) failed++;
   
-    unlink(fns); delete[] fns;
-    unlink(fnt0); delete[] fnt0;
-    unlink(fnt1); delete[] fnt1;
+    unlink(fns.c_str());
+    unlink(fnt0.c_str());
+    unlink(fnt1.c_str());
     print_status(EMPTY); // New line.
     return (failed ? 1: 0);
 }
@@ -804,8 +792,7 @@ int test_scan() {
     if (status != SKIP) {
 	AMI_STREAM<int> *psn = new AMI_STREAM<int>;
 	psn->persist(PERSIST_PERSISTENT);
-	char *fn;
-	psn->name(&fn);
+	std::string fn = psn->name();
 	delete psn;
 	psn = new AMI_STREAM<int>(fn, AMI_READ_STREAM);
 	if (!psn->is_valid())
@@ -819,7 +806,6 @@ int test_scan() {
 	psn = new AMI_STREAM<int>(fn);
 	psn->persist(PERSIST_DELETE);
 	delete psn;
-	delete fn;
     }
     print_status(status); if (status == FAIL) failed++;
 
