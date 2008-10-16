@@ -931,7 +931,7 @@ namespace tpie {
 
 	    // Validate the current block.
 	    if ((retval = validate_current ()) != NO_ERROR) {
-		return reval;
+			return retval;
 	    }
 	
 	    // Check and make sure that the current pointer points into the
