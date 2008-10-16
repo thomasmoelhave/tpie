@@ -47,9 +47,9 @@ extern int option_index;
 struct options
 {
   int number;		/* Number, which is returned from getopt() */
-  char *name;		/* Long name */
-  char *description;	/* Description */
-  char *shortName;	/* Short name */
+  const char *name;		/* Long name */
+  const char *description;	/* Description */
+  const char *shortName;	/* Short name */
   int args;		/* Does the option take an argument? */
 };
 
