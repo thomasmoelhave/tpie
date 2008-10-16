@@ -19,6 +19,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 
 add_subdirectory(tpie)
+add_subdirectory(doc)
 
 option(COMPILE_TEST "Compile test programs" ON)
 
