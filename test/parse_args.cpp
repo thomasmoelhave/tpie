@@ -3,24 +3,15 @@
 // Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
 // Created: 10/7/94
 //
-
-
-
-
-#include <portability.h>
-
+#include "parse_args.h"
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <iostream>
 #include <algorithm>
-//using std::max;
 
 // The new getopts() argument-parsing function.
 #include "getopts.h"
-
-#include "app_config.h"
-#include "parse_args.h"
 #include <stream.h>
 
 static TPIE_OS_OFFSET parse_number(char *s) {

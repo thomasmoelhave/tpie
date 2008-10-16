@@ -9,6 +9,7 @@
 #define _PARSE_ARGS_H
 
 #include "app_config.h"
+#include <portability.h>
 #include "getopts.h"
 
 
