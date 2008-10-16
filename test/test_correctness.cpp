@@ -42,6 +42,7 @@
 // The scan_random class for generating random ints.
 #include "scan_universal.h"
 
+using namespace tpie;
 
 // Number of spaces to indent messages written during a test.
 #define INDENT 2
@@ -152,22 +153,22 @@ int main(int argc, char **argv) {
 
 void print_msg(const char* msg, int indent = 0) {
     if (msg == NULL)
-		return;
+	return;
 
     int len = static_cast<int>(strlen(msg));
-	if (indent < 0) {
-		for (int i=0; i<len; i++) fprintf(stdout, "\b");
-	} else {
-		for (int i=0; i<indent; i++) fprintf(stdout, " ");
-	}
+    if (indent < 0) {
+	for (int i=0; i<len; i++) fprintf(stdout, "\b");
+    } else {
+	for (int i=0; i<indent; i++) fprintf(stdout, " ");
+    }
     fprintf(stdout, msg);
     TP_LOG_APP_DEBUG(">>-");
     TP_LOG_APP_DEBUG(msg);
     TP_LOG_APP_DEBUG("\n");
     if (indent >= 0) {
-		int current_pos = indent + len;
-		for (int i=current_pos; i<73; i++) fprintf(stdout, " ");
-	}
+	int current_pos = indent + len;
+	for (int i=current_pos; i<73; i++) fprintf(stdout, " ");
+    }
     fflush(stdout);
 }
 
@@ -240,17 +241,17 @@ void print_cfg() {
 int test_stream() {
     static bool been_here = false;
     status_t status = EMPTY;
-    AMI_STREAM<foo_t<40> >* s;
+    ami::stream<foo_t<40> >* s;
     int failed = 0;
-    AMI_err err;
-	std::string fn = std::string(TMP_DIR) + "tpie00.stream";
-	std::string pfn;
+    ami::err err;
+    std::string fn = std::string(TMP_DIR) + "tpie00.stream";
+    std::string pfn;
     foo_t<40> afoo = thefoo;
     foo_t<40> *pafoo;
     int i;
     struct stat buf;
 
-    print_msg("Testing AMI_STREAM creation and destruction", 0);
+    print_msg("Testing ami::stream creation and destruction", 0);
     if (been_here) {
 	print_status(SKIP);
 	return 0;
@@ -263,7 +264,7 @@ int test_stream() {
     //////// Part 1: temporary stream.       //////////
 
     print_msg("Creating temporary stream (calling op. new)", INDENT);
-    s = new AMI_STREAM<foo_t<40> >;
+    s = new ami::stream<foo_t<40> >;
     status = (s != NULL && s->is_valid() ? PASS: FAIL);
     print_status(status); if (status == FAIL) failed++;
 
@@ -275,7 +276,7 @@ int test_stream() {
   
 	print_msg("Inquiring file name: ", INDENT);
 	pfn = s->name();
-	status = (err != AMI_ERROR_NO_ERROR || pfn.empty() ? FAIL: PASS);
+	status = (err != ami::NO_ERROR || pfn.empty() ? FAIL: PASS);
 	print_msg(pfn.c_str(), -1);
 	print_status(status); if (status == FAIL) failed++;
 
@@ -284,33 +285,33 @@ int test_stream() {
 	print_status(status); if (status == FAIL) failed++;    
     
 	print_msg("Checking write_item() (writing 1M items)", INDENT);
-	err = AMI_ERROR_NO_ERROR;
+	err = ami::NO_ERROR;
 	for (i=0; i<1000000; i++) {
 	    afoo.el[0] = i % 128;
 	    afoo.el[38] = (i+5) % 128;
-	    if ((err = s->write_item(afoo)) != AMI_ERROR_NO_ERROR)
+	    if ((err = s->write_item(afoo)) != ami::NO_ERROR)
 		break;
 	}
-	status = (err == AMI_ERROR_NO_ERROR && s->stream_len() == 1000000 ? PASS: FAIL);
+	status = (err == ami::NO_ERROR && s->stream_len() == 1000000 ? PASS: FAIL);
 	print_status(status); if (status == FAIL) failed++; 
 
 	print_msg("Checking seek() (seeking to illegal position 1000001)", INDENT);
 	err = s->seek(1000001);
-	status = (err == AMI_ERROR_NO_ERROR ? FAIL: PASS);
+	status = (err == ami::NO_ERROR ? FAIL: PASS);
 	print_status(status); if (status == FAIL) failed++; 
 
 	print_msg("Checking seek() (seeking to position 50000)", INDENT);
 	err = s->seek(50000);
-	status = (err == AMI_ERROR_NO_ERROR ? PASS: FAIL);
+	status = (err == ami::NO_ERROR ? PASS: FAIL);
 	print_status(status); if (status == FAIL) failed++; 
 
 	print_msg("Checking read_item() (reading 10k items from current pos)", INDENT);
 	for (i=50000; i<60000; i++) {
 	    err = s->read_item(&pafoo);
-	    if (err != AMI_ERROR_NO_ERROR || pafoo->el[0] != (i%128) || pafoo->el[38] != ((i+5)%128))
+	    if (err != ami::NO_ERROR || pafoo->el[0] != (i%128) || pafoo->el[38] != ((i+5)%128))
 		break;
 	}
-	status = (err == AMI_ERROR_NO_ERROR && i == 60000 ? PASS: FAIL);
+	status = (err == ami::NO_ERROR && i == 60000 ? PASS: FAIL);
 	print_status(status); if (status == FAIL) failed++; 
 
 	print_msg("Checking tell() (should return 60000)", INDENT);
@@ -319,7 +320,7 @@ int test_stream() {
 
 	print_msg("Checking truncate() (to 50000)", INDENT);
 	err = s->truncate(50000);
-	status = (err == AMI_ERROR_NO_ERROR && s->stream_len() == 50000 ? PASS: FAIL);
+	status = (err == ami::NO_ERROR && s->stream_len() == 50000 ? PASS: FAIL);
 	print_status(status); if (status == FAIL) failed++; 
 
 	print_msg("Checking tell() again (should return 50000)", INDENT);
@@ -331,7 +332,7 @@ int test_stream() {
     print_msg("Destroying temp stream (file should be removed) (calling op. delete)", INDENT);
     delete s;
     status = (stat(pfn.c_str(), &buf) == -1 && errno == ENOENT ? PASS: FAIL);
-	pfn.clear();
+    pfn.clear();
     print_status(status); if (status == FAIL) failed++;
 
 
@@ -342,7 +343,7 @@ int test_stream() {
     print_msg("Creating named writable stream (calling op. new)", INDENT);
     // Make sure there's no old file lingering around.
     unlink(fn.c_str());
-    s = new AMI_STREAM<foo_t<40> >(fn);
+    s = new ami::stream<foo_t<40> >(fn);
     status = (s != NULL && s->is_valid() ? PASS: FAIL);
     print_status(status); if (status == FAIL) failed++;
 
@@ -351,7 +352,7 @@ int test_stream() {
 	print_msg("Inquiring file name; should be called", INDENT);
 	print_msg(fn.c_str(), -1);
 	pfn = s->name();
-	status = (err != AMI_ERROR_NO_ERROR || pfn != fn ? FAIL: PASS);
+	status = (err != ami::NO_ERROR || pfn != fn ? FAIL: PASS);
 	print_msg(pfn.c_str(), -1);
 	print_status(status); if (status == FAIL) failed++;
 
@@ -360,18 +361,18 @@ int test_stream() {
 	print_status(status); if (status == FAIL) failed++;    
  
 	print_msg("Checking write_item() (writing 1M items)", INDENT);
-	err = AMI_ERROR_NO_ERROR;
+	err = ami::NO_ERROR;
 	for (i=0; i<1000000; i++) {
 	    afoo.el[0] = i % 128;
 	    afoo.el[38] = (i+5) % 128;
-	    if ((err = s->write_item(afoo)) != AMI_ERROR_NO_ERROR) break;
+	    if ((err = s->write_item(afoo)) != ami::NO_ERROR) break;
 	}
-	status = (err == AMI_ERROR_NO_ERROR && s->stream_len() == 1000000 ? PASS: FAIL);
+	status = (err == ami::NO_ERROR && s->stream_len() == 1000000 ? PASS: FAIL);
 	print_status(status); if (status == FAIL) failed++; 
 
 	print_msg("Checking illegal read_item() at current pos", INDENT);
 	err = s->read_item(&pafoo);
-	status = (err == AMI_ERROR_END_OF_STREAM ? PASS: FAIL);
+	status = (err == ami::END_OF_STREAM ? PASS: FAIL);
 	print_status(status); if (status == FAIL) failed++;
 
     }
@@ -379,11 +380,11 @@ int test_stream() {
     print_msg("Closing named stream (file should NOT be removed) (calling op. delete)", INDENT);
     delete s;
     status = (stat(pfn.c_str(), &buf) == 0 ? PASS: FAIL);
-	pfn.clear();
+    pfn.clear();
     print_status(status); if (status == FAIL) failed++;
 
     print_msg("Reopening named stream read-only (calling op. new)", INDENT);
-    s = new AMI_STREAM<foo_t<40> >(fn, AMI_READ_STREAM);
+    s = new ami::stream<foo_t<40> >(fn, ami::READ_STREAM);
     status = (s != NULL && s->is_valid() ? PASS: FAIL);
     print_status(status); if (status == FAIL) failed++;  
   
@@ -395,7 +396,7 @@ int test_stream() {
 
 	print_msg("Checking illegal write_item() in read-only stream", INDENT);
 	err = s->write_item(afoo);
-	status = (err == AMI_ERROR_NO_ERROR || s->stream_len() != 1000000 ? FAIL: PASS);
+	status = (err == ami::NO_ERROR || s->stream_len() != 1000000 ? FAIL: PASS);
 	print_status(status); if (status == FAIL) failed++;
     
     }
@@ -407,7 +408,7 @@ int test_stream() {
 
 
     print_msg("Reopening named stream for reading and writing (calling op. new)", INDENT);
-    s = new AMI_STREAM<foo_t<40> >(fn, AMI_READ_WRITE_STREAM);
+    s = new ami::stream<foo_t<40> >(fn, ami::READ_WRITE_STREAM);
     status = (s != NULL && s->is_valid() ? PASS: FAIL);
     print_status(status); if (status == FAIL) failed++;  
   
@@ -442,12 +443,12 @@ int test_sort() {
     status_t status = EMPTY;
     int failed = 0;
     int i;
-    AMI_err err;
+    ami::err err;
     scan_universal<40> so(1000000, 47);
-    AMI_STREAM< ifoo_t<40> > *ps[2];
+    ami::stream< ifoo_t<40> > *ps[2];
 
     // Print the test heading.
-    print_msg("Testing AMI_sort", 0);
+    print_msg("Testing ami::sort", 0);
     if (been_here) {
 	print_status(SKIP);
 	return 0;
@@ -457,7 +458,7 @@ int test_sort() {
 
     print_msg("Preliminary: Initializing temporary streams.", INDENT);
     for (i = 0; i < 2; i++) {
-	ps[i] = new AMI_STREAM< ifoo_t<40> >;
+	ps[i] = new ami::stream< ifoo_t<40> >;
 	if (!ps[i]->is_valid()) {
 	    status = FAIL;
 	    break;
@@ -469,26 +470,26 @@ int test_sort() {
 
     print_msg("Preliminary: Generating stream with 1m 40-byte items", INDENT);
     if (status != SKIP) {
-	err = AMI_scan(&so, ps[0]);
-	status = (err == AMI_ERROR_NO_ERROR && ps[0]->stream_len() == 1000000 ? PASS: FAIL);
+	err = ami::scan(&so, ps[0]);
+	status = (err == ami::NO_ERROR && ps[0]->stream_len() == 1000000 ? PASS: FAIL);
     }
     print_status(status); if (status == FAIL) { failed++; status = SKIP; }
 
 
-    print_msg("Running AMI_sort on 1m 40-byte-item stream (key:int, comp:op)", INDENT);
+    print_msg("Running ami::sort on 1m 40-byte-item stream (key:int, comp:op)", INDENT);
     if (status != SKIP) {
-	err = AMI_sort(ps[0], ps[1]);
-	status = (err == AMI_ERROR_NO_ERROR && 
+	err = ami::sort(ps[0], ps[1]);
+	status = (err == ami::NO_ERROR && 
 		  ps[1]->stream_len() == ps[0]->stream_len()
 		  ? PASS: FAIL);
     }
     print_status(status); if (status == FAIL) failed++;
   
   
-    print_msg("Running AMI_scan to verify sorted order", INDENT);
+    print_msg("Running ami::scan to verify sorted order", INDENT);
     if (status != SKIP) {
-	err = AMI_scan(ps[1], &so);
-	status = (err == AMI_ERROR_NO_ERROR && 
+	err = ami::scan(ps[1], &so);
+	status = (err == ami::NO_ERROR && 
 		  so.switches() == 0 
 		  ? PASS: FAIL);
 	TP_LOG_APP_DEBUG_ID("Number of switches:");
@@ -497,20 +498,20 @@ int test_sort() {
     print_status(status); if (status == FAIL) failed++;
   
 
-    print_msg("Running AMI_sort on 1m 40-byte-item stream (key:int, comp:cl)", INDENT);
+    print_msg("Running ami::sort on 1m 40-byte-item stream (key:int, comp:cl)", INDENT);
     if (status != SKIP) {
 	ifoo_t<40> comparison_obj;
 	ps[1]->truncate(0);
-	err = AMI_sort(ps[0], ps[1], &comparison_obj);
-	status = (err == AMI_ERROR_NO_ERROR && ps[1]->stream_len() == 1000000 ? PASS: FAIL);
+	err = ami::sort(ps[0], ps[1], &comparison_obj);
+	status = (err == ami::NO_ERROR && ps[1]->stream_len() == 1000000 ? PASS: FAIL);
     }
     print_status(status); if (status == FAIL) failed++;
     
 
-    print_msg("Running AMI_scan to verify sorted order", INDENT);
+    print_msg("Running ami::scan to verify sorted order", INDENT);
     if (status != SKIP) {
-	err = AMI_scan(ps[1], &so);
-	status = (err == AMI_ERROR_NO_ERROR && 
+	err = ami::scan(ps[1], &so);
+	status = (err == ami::NO_ERROR && 
 		  ps[1]->stream_len() == 1000000 && 
 		  so.switches() == 0 
 		  ? PASS: FAIL);
@@ -546,16 +547,16 @@ int test_scan_cxx() {
     static bool been_here = false;
     status_t status = EMPTY;
     int failed = 0;
-    AMI_err err;
+    ami::err err;
     int i;
-    AMI_STREAM< std::pair<int,int> >* ts;
+    ami::stream< std::pair<int,int> >* ts;
 
-	std::string fns = std::string(TMP_DIR) + "tpie00.stream";
-	std::string fnt0 = std::string(TMP_DIR) + "tpie00.txt";
-	std::string fnt1 = std::string(TMP_DIR) + "tpie01.txt";
+    std::string fns = std::string(TMP_DIR) + "tpie00.stream";
+    std::string fnt0 = std::string(TMP_DIR) + "tpie00.txt";
+    std::string fnt1 = std::string(TMP_DIR) + "tpie01.txt";
 
     // Print the test heading.
-    print_msg("Testing AMI_scan with C++ streams", 0);
+    print_msg("Testing ami::scan with C++ streams", 0);
     if (been_here) {
 	print_status(SKIP);
 	return 0;
@@ -565,25 +566,25 @@ int test_scan_cxx() {
 
     print_msg("Creating an ASCII file with 5m pairs of integers", INDENT);
     if (status != SKIP) 
-	{
-		unlink(fnt0.c_str());
-		unlink(fns.c_str());
-		std::ofstream xos;
-		xos.open(fnt0.c_str());
-		if (!xos) {
-			TP_LOG_APP_DEBUG_ID("Could not open C++ stream for writing to tpie00.txt");
-			status = FAIL;
-		} else {
-			for (i = 0; i < 5000000; i++) {
-				xos << TPIE_OS_RANDOM() << " " << TPIE_OS_RANDOM() << "\n";
-			}
-		}
-		xos.close();
+    {
+	unlink(fnt0.c_str());
+	unlink(fns.c_str());
+	std::ofstream xos;
+	xos.open(fnt0.c_str());
+	if (!xos) {
+	    TP_LOG_APP_DEBUG_ID("Could not open C++ stream for writing to tpie00.txt");
+	    status = FAIL;
+	} else {
+	    for (i = 0; i < 5000000; i++) {
+		xos << TPIE_OS_RANDOM() << " " << TPIE_OS_RANDOM() << "\n";
+	    }
+	}
+	xos.close();
     }
     print_status(status); if (status == FAIL) { failed++; status = SKIP; }
 
 
-    print_msg("Running AMI_scan with cxx_istream_scan", INDENT);
+    print_msg("Running ami::scan with ami::cxx_istream_scan", INDENT);
     if (status != SKIP) {
 	std::ifstream xis;    
 	xis.open(fnt0.c_str());
@@ -591,17 +592,17 @@ int test_scan_cxx() {
 	    TP_LOG_APP_DEBUG_ID("Could not open C++ stream for reading from tpie00.txt");
 	    status = FAIL;
 	}
-	cxx_istream_scan< std::pair<int,int> > so(&xis);
-	ts = new AMI_STREAM< std::pair<int,int> >(fns);
+	ami::cxx_istream_scan< std::pair<int,int> > so(&xis);
+	ts = new ami::stream< std::pair<int,int> >(fns);
 	if (!ts->is_valid()) {
 	    TP_LOG_APP_DEBUG_ID("Could not open TPIE stream for writing in tpie00.stream");
 	    status = FAIL;
 	} 
 	if (status != FAIL) {
-	    err = AMI_scan(&so, ts);
+	    err = ami::scan(&so, ts);
 	    TP_LOG_APP_DEBUG_ID("Length of TPIE stream in tpie00.stream:");
 	    TP_LOG_APP_DEBUG_ID(ts->stream_len());
-	    status = (err == AMI_ERROR_NO_ERROR && ts->stream_len() == 5000000 ? PASS: FAIL);
+	    status = (err == ami::NO_ERROR && ts->stream_len() == 5000000 ? PASS: FAIL);
 	}
 	xis.close();
 	delete ts;
@@ -609,7 +610,7 @@ int test_scan_cxx() {
     print_status(status); if (status == FAIL) { failed++; status = SKIP; }
 
 
-    print_msg("Running AMI_scan with cxx_ostream_scan", INDENT);
+    print_msg("Running ami::scan with ami::cxx_ostream_scan", INDENT);
     if (status != SKIP) {
 	std::ofstream xos;
 	xos.open(fnt1.c_str());
@@ -617,15 +618,15 @@ int test_scan_cxx() {
 	    TP_LOG_APP_DEBUG_ID("Could not open C++ stream for writing to tpie01.txt");
 	    status = FAIL;
 	}
-	cxx_ostream_scan< std::pair<int,int> > so(&xos);
-	ts = new AMI_STREAM< std::pair<int,int> >(fns, AMI_READ_STREAM);
+	ami::cxx_ostream_scan< std::pair<int,int> > so(&xos);
+	ts = new ami::stream< std::pair<int,int> >(fns, ami::READ_STREAM);
 	if (!ts->is_valid() || ts->stream_len() != 5000000) {
 	    TP_LOG_APP_DEBUG_ID("Error while re-opening stream from tpie00.stream");
 	    status = FAIL;
 	}
 	if (status != FAIL) {
-	    err = AMI_scan(ts, &so);
-	    status = (err == AMI_ERROR_NO_ERROR ? PASS: FAIL);
+	    err = ami::scan(ts, &so);
+	    status = (err == ami::NO_ERROR ? PASS: FAIL);
 	}
 	xos.close();
 	delete ts;
@@ -650,14 +651,14 @@ int test_scan() {
     static bool been_here = false;
     status_t status = EMPTY;
     int failed = 0;
-//  AMI_STREAM<foo_t<40> > *s;
-    AMI_STREAM<int> *ps[9];
-    AMI_err err;
+//  ami::stream<foo_t<40> > *s;
+    ami::stream<int> *ps[9];
+    ami::err err;
     int i;
     scan_universal<40> so(10000000, 43); // scan object.
 
 
-    print_msg("Testing AMI_scan", 0);
+    print_msg("Testing ami::scan", 0);
     if (been_here) {
 	print_status(SKIP);
 	return 0;
@@ -668,7 +669,7 @@ int test_scan() {
 
     print_msg("Initializing temporary streams.", INDENT);
     for (i = 0; i < 9; i++) {
-	ps[i] = new AMI_STREAM<int>;
+	ps[i] = new ami::stream<int>;
 	if (!ps[i]->is_valid()) {
 	    status = FAIL;
 	    break;
@@ -678,27 +679,27 @@ int test_scan() {
     if (status == FAIL) { failed++; status = SKIP; }
 
   
-    print_msg("Running AMI_scan with 0 in and 1 out (10m random integers)", INDENT);
+    print_msg("Running ami::scan with 0 in and 1 out (10m random integers)", INDENT);
     if (status != SKIP) {
-	err = AMI_scan(&so, ps[0]);
-	status = (err == AMI_ERROR_NO_ERROR && ps[0]->stream_len() == 10000000 ? PASS: FAIL);
+	err = ami::scan(&so, ps[0]);
+	status = (err == ami::NO_ERROR && ps[0]->stream_len() == 10000000 ? PASS: FAIL);
     }
     print_status(status); if (status == FAIL) failed++;
 
-    print_msg("Running AMI_scan with 1 in and 0 out (counting switches)", INDENT);
+    print_msg("Running ami::scan with 1 in and 0 out (counting switches)", INDENT);
     if (status != SKIP) {
-	err = AMI_scan(ps[0], &so);
-	status = (err == AMI_ERROR_NO_ERROR && ps[0]->stream_len() == 10000000 ? PASS: FAIL);
+	err = ami::scan(ps[0], &so);
+	status = (err == ami::NO_ERROR && ps[0]->stream_len() == 10000000 ? PASS: FAIL);
 	TP_LOG_APP_DEBUG_ID("Number of switches:");
 	TP_LOG_APP_DEBUG_ID(so.switches());
     }
     print_status(status); if (status == FAIL) failed++;
 
   
-    print_msg("Running AMI_scan with 1 in and 1 out (halving each of 10m integers)", INDENT);
+    print_msg("Running ami::scan with 1 in and 1 out (halving each of 10m integers)", INDENT);
     if (status != SKIP) {
-	err = AMI_scan(ps[0], &so, ps[1]);
-	status = (err == AMI_ERROR_NO_ERROR && ps[0]->stream_len() == 10000000 && ps[1]->stream_len() == 10000000 ? PASS: FAIL);
+	err = ami::scan(ps[0], &so, ps[1]);
+	status = (err == ami::NO_ERROR && ps[0]->stream_len() == 10000000 && ps[1]->stream_len() == 10000000 ? PASS: FAIL);
     }
     print_status(status); if (status == FAIL) failed++;
 
@@ -714,10 +715,10 @@ int test_scan() {
     print_status(status); if (status == FAIL) failed++;
   
 
-    print_msg("Running AMI_scan with 2 in and 1 out (min of 10m pairs of integers)", INDENT);
+    print_msg("Running ami::scan with 2 in and 1 out (min of 10m pairs of integers)", INDENT);
     if (status != SKIP) {
-	err = AMI_scan(ps[0], ps[1], &so, ps[2]);
-	status = (err == AMI_ERROR_NO_ERROR && ps[0]->stream_len() == 10000000 && ps[1]->stream_len() == 10000000 && ps[2]->stream_len() == 10000000 ? PASS: FAIL);
+	err = ami::scan(ps[0], ps[1], &so, ps[2]);
+	status = (err == ami::NO_ERROR && ps[0]->stream_len() == 10000000 && ps[1]->stream_len() == 10000000 && ps[2]->stream_len() == 10000000 ? PASS: FAIL);
     }
     print_status(status); if (status == FAIL) failed++;
 
@@ -725,15 +726,15 @@ int test_scan() {
     print_msg("Same as above, with non-equal-size inputs: 9m and 10m  ", INDENT);
     if (status != SKIP) {
 	err = ps[0]->truncate(9000000);
-	err = AMI_scan(ps[0], ps[1], &so, ps[3]);
-	status = (err == AMI_ERROR_NO_ERROR && ps[0]->stream_len() == 9000000 && ps[1]->stream_len() == 10000000 && ps[3]->stream_len() == 10000000 ? PASS: FAIL);
+	err = ami::scan(ps[0], ps[1], &so, ps[3]);
+	status = (err == ami::NO_ERROR && ps[0]->stream_len() == 9000000 && ps[1]->stream_len() == 10000000 && ps[3]->stream_len() == 10000000 ? PASS: FAIL);
     }
     print_status(status); if (status == FAIL) failed++;
 
-    print_msg("Running AMI_scan with 2 in and 2 out (off-synch: even and odd)", INDENT);
+    print_msg("Running ami::scan with 2 in and 2 out (off-synch: even and odd)", INDENT);
     if (status != SKIP) {
-	err = AMI_scan(ps[0], ps[1], &so, ps[4], ps[5]);
-	status = (err == AMI_ERROR_NO_ERROR && ps[0]->stream_len() == 9000000 && ps[1]->stream_len() == 10000000 && ps[4]->stream_len() + ps[5]->stream_len() == 19000000 ? PASS: FAIL);
+	err = ami::scan(ps[0], ps[1], &so, ps[4], ps[5]);
+	status = (err == ami::NO_ERROR && ps[0]->stream_len() == 9000000 && ps[1]->stream_len() == 10000000 && ps[4]->stream_len() + ps[5]->stream_len() == 19000000 ? PASS: FAIL);
 	TP_LOG_APP_DEBUG_ID("Length of \"even\" stream: ");
 	TP_LOG_APP_DEBUG_ID(ps[4]->stream_len());
 	TP_LOG_APP_DEBUG_ID("Length of \"odd\" stream: ");
@@ -743,67 +744,67 @@ int test_scan() {
     print_status(status); if (status == FAIL) failed++;
 
 
-    print_msg("Running AMI_scan with 1 in and 0 out to verify \"even\" stream", INDENT);
+    print_msg("Running ami::scan with 1 in and 0 out to verify \"even\" stream", INDENT);
     if (status != SKIP) {
-	err = AMI_scan(ps[4], &so);
-	status = (err == AMI_ERROR_NO_ERROR && so.even() == ps[4]->stream_len() && so.odd() == 0 ? PASS: FAIL);
+	err = ami::scan(ps[4], &so);
+	status = (err == ami::NO_ERROR && so.even() == ps[4]->stream_len() && so.odd() == 0 ? PASS: FAIL);
     }
     print_status(status); if (status == FAIL) failed++;
 
 
-    print_msg("Running AMI_scan with 1 in and 0 out to verify \"odd\" stream", INDENT);
+    print_msg("Running ami::scan with 1 in and 0 out to verify \"odd\" stream", INDENT);
     if (status != SKIP) {
-	err = AMI_scan(ps[5], &so);
-	status = (err == AMI_ERROR_NO_ERROR && so.odd() == ps[5]->stream_len() && so.even() == 0 ? PASS: FAIL);
+	err = ami::scan(ps[5], &so);
+	status = (err == ami::NO_ERROR && so.odd() == ps[5]->stream_len() && so.even() == 0 ? PASS: FAIL);
     }
     print_status(status); if (status == FAIL) failed++;
 
 
-    print_msg("Running AMI_scan with 4 in and 3 out (avg, min, max)", INDENT);
+    print_msg("Running ami::scan with 4 in and 3 out (avg, min, max)", INDENT);
     if (status != SKIP) {
 	ps[3]->truncate(2000000);
-	err = AMI_scan(ps[0], ps[1], ps[2], ps[3], &so, ps[6], ps[7], ps[8]);
-	status = (err == AMI_ERROR_NO_ERROR && ps[6]->stream_len() == 10000000 && ps[7]->stream_len() == 10000000 && ps[8]->stream_len() == 10000000 ? PASS: FAIL);
+	err = ami::scan(ps[0], ps[1], ps[2], ps[3], &so, ps[6], ps[7], ps[8]);
+	status = (err == ami::NO_ERROR && ps[6]->stream_len() == 10000000 && ps[7]->stream_len() == 10000000 && ps[8]->stream_len() == 10000000 ? PASS: FAIL);
     }
     print_status(status); if (status == FAIL) failed++;
 
 	
-    print_msg("Running AMI_scan illegally with non-valid in-stream", INDENT);
+    print_msg("Running ami::scan illegally with non-valid in-stream", INDENT);
     if (status != SKIP) {
-	AMI_STREAM<int> *psn = new AMI_STREAM<int>("/glkdjldas");
-	err = AMI_scan(psn, &so);
-	status = (err == AMI_ERROR_NO_ERROR && !psn->is_valid() ? FAIL: PASS);
+	ami::stream<int> *psn = new ami::stream<int>("/glkdjldas");
+	err = ami::scan(psn, &so);
+	status = (err == ami::NO_ERROR && !psn->is_valid() ? FAIL: PASS);
 	delete psn;
     }
     print_status(status); if (status == FAIL) failed++;
 
 
-    print_msg("Running AMI_scan illegally with non-valid out-stream", INDENT);
+    print_msg("Running ami::scan illegally with non-valid out-stream", INDENT);
     if (status != SKIP) {
-	AMI_STREAM<int> *psn = new AMI_STREAM<int>("/glkdjldas");
-	err = AMI_scan(ps[2], &so, psn);
-	status = (err == AMI_ERROR_NO_ERROR && !psn->is_valid() ? FAIL: PASS);
+	ami::stream<int> *psn = new ami::stream<int>("/glkdjldas");
+	err = ami::scan(ps[2], &so, psn);
+	status = (err == ami::NO_ERROR && !psn->is_valid() ? FAIL: PASS);
 	delete psn;
     }
     print_status(status); if (status == FAIL) failed++;
 
 
-    print_msg("Running AMI_scan illegally with read-only out-stream", INDENT);
+    print_msg("Running ami::scan illegally with read-only out-stream", INDENT);
     if (status != SKIP) {
-	AMI_STREAM<int> *psn = new AMI_STREAM<int>;
+	ami::stream<int> *psn = new ami::stream<int>;
 	psn->persist(PERSIST_PERSISTENT);
 	std::string fn = psn->name();
 	delete psn;
-	psn = new AMI_STREAM<int>(fn, AMI_READ_STREAM);
+	psn = new ami::stream<int>(fn, ami::READ_STREAM);
 	if (!psn->is_valid())
 	    status = FAIL;
 	else {
-	    err = AMI_scan(ps[3], &so, psn);
-	    status = (err == AMI_ERROR_NO_ERROR ? FAIL: PASS);
+	    err = ami::scan(ps[3], &so, psn);
+	    status = (err == ami::NO_ERROR ? FAIL: PASS);
 	}
 	delete psn;
 	// open it again, to delete the file.
-	psn = new AMI_STREAM<int>(fn);
+	psn = new ami::stream<int>(fn);
 	psn->persist(PERSIST_DELETE);
 	delete psn;
     }
@@ -825,9 +826,9 @@ int test_scan() {
 int test_large_files() {
     static bool been_here = false;
     status_t status = EMPTY;
-    AMI_STREAM<TPIE_OS_OFFSET>* s;
+    ami::stream<TPIE_OS_OFFSET>* s;
     int failed = 0;
-    AMI_err err;
+    ami::err err;
 
     TPIE_OS_OFFSET i;
     TPIE_OS_OFFSET myLargeNumber = 
@@ -854,7 +855,7 @@ int test_large_files() {
     //////// Part 1: temporary stream.       //////////
 
     print_msg("Creating temporary stream (calling op. new)", INDENT);
-    s = new AMI_STREAM<TPIE_OS_OFFSET>("large.stream");
+    s = new ami::stream<TPIE_OS_OFFSET>("large.stream");
     status = (s != NULL && s->is_valid() ? PASS: FAIL);
     s->persist(PERSIST_PERSISTENT);
     print_status(status); if (status == FAIL) failed++;
@@ -862,11 +863,11 @@ int test_large_files() {
     print_status(EMPTY); // New line.
 
     if (status != FAIL) {
-	err = AMI_ERROR_NO_ERROR;
+	err = ami::NO_ERROR;
 
 	print_msg("Truncating temporary stream ", INDENT);
 	err = s->truncate(myLargeNumber);
-	status = (err == AMI_ERROR_NO_ERROR && s->stream_len() == myLargeNumber ? PASS: FAIL);
+	status = (err == ami::NO_ERROR && s->stream_len() == myLargeNumber ? PASS: FAIL);
 	print_status(status); if (status == FAIL) failed++; 
 
 	std::cerr << "Writing data";
@@ -875,7 +876,7 @@ int test_large_files() {
 	TPIE_OS_OFFSET mbcount100 = 0;
 	TPIE_OS_OFFSET gbcount = 0;
 	for (i=0; i< myLargeNumber; i++) {
-	    if ((err = s->write_item(i)) != AMI_ERROR_NO_ERROR) break; 
+	    if ((err = s->write_item(i)) != ami::NO_ERROR) break; 
 	    mbcount++;
 	    if (mbcount > 1024 * 1024 / sizeof(TPIE_OS_OFFSET)) {
 		mbcount100++;
@@ -893,7 +894,7 @@ int test_large_files() {
 	}
 
 	std::cerr << std::endl;
-	status = (err == AMI_ERROR_NO_ERROR && s->stream_len() == myLargeNumber ? PASS: FAIL);
+	status = (err == ami::NO_ERROR && s->stream_len() == myLargeNumber ? PASS: FAIL);
 	print_status(status); if (status == FAIL) failed++; 
     }
 
