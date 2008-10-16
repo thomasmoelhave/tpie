@@ -71,15 +71,15 @@ namespace bte {
 	// initialized Block. Main memory usage increases.
 	err new_block(BIDT &bid, void * &place) {
 
-	    err retval = ERROR_NO_ERROR;
+	    err retval = NO_ERROR;
 
 	    // Get a block id.
-	    if ((retval = new_block_getid(bid)) != ERROR_NO_ERROR) {
+	    if ((retval = new_block_getid(bid)) != NO_ERROR) {
 		return retval;
 	    }
 
 	    // We have a bid, so we can call the get_block routine.
-	    if ((retval = get_block_internals(bid, place)) != ERROR_NO_ERROR) {
+	    if ((retval = get_block_internals(bid, place)) != NO_ERROR) {
 		return retval;   
 	    }
 
@@ -88,7 +88,7 @@ namespace bte {
 	    stats_.record(BLOCK_NEW);
 	    gstats_.record(BLOCK_NEW);
 
-	    return ERROR_NO_ERROR;
+	    return NO_ERROR;
 	    
 	}
 
@@ -101,13 +101,13 @@ namespace bte {
 	// blocks. Main memory usage goes down.
 	err delete_block(BIDT bid, void * place) {
 	    
-	    err retval = ERROR_NO_ERROR;
+	    err retval = NO_ERROR;
 	    
-	    if ((retval = put_block_internals(bid, place, 1)) != ERROR_NO_ERROR) {
+	    if ((retval = put_block_internals(bid, place, 1)) != NO_ERROR) {
 		return retval; 
 	    }
 	    
-	    if ((retval = delete_block_shared(bid)) != ERROR_NO_ERROR) {
+	    if ((retval = delete_block_shared(bid)) != NO_ERROR) {
 		return err;
 	    }
 
@@ -116,7 +116,7 @@ namespace bte {
 	    stats_.record(BLOCK_DELETE);
 	    gstats_.record(BLOCK_DELETE);
 
-	    return ERROR_NO_ERROR;
+	    return NO_ERROR;
 
 	}
 
@@ -127,16 +127,16 @@ namespace bte {
 	// memory usage increases.
 	err get_block(BIDT bid, void * &place) {
 
-	    err retval = ERROR_NO_ERROR;
+	    err retval = NO_ERROR;
 	    
-	    if ((reval = get_block_internals(bid, place)) != ERROR_NO_ERROR) {
+	    if ((reval = get_block_internals(bid, place)) != NO_ERROR) {
 		return retval;
 	    }
 	    
 	    stats_.record(BLOCK_GET);
 	    gstats_.record(BLOCK_GET);
 
-	    return ERROR_NO_ERROR;
+	    return NO_ERROR;
 	}
 	
 	// Unmap a currently mapped in block. NOTE once more that it is the user's
@@ -144,16 +144,16 @@ namespace bte {
 	// to ensure that that is indeed the case. Main memory usage decreases.
 	err put_block(BIDT bid, void * place, char dirty = 1) {
 
-	    err retval = ERROR_NO_ERROR;
+	    err retval = NO_ERROR;
 
-	    if ((retval = put_block_internals(bid, place, dirty)) != ERROR_NO_ERROR) {	       
+	    if ((retval = put_block_internals(bid, place, dirty)) != NO_ERROR) {	       
 		return retval;
 	    }
 	    
 	    stats_.record(BLOCK_PUT);
 	    gstats_.record(BLOCK_PUT);
 
-	    return ERROR_NO_ERROR;
+	    return NO_ERROR;
 	}
 
 	// Synchronize the in-memory block with the on-disk block.
@@ -183,7 +183,7 @@ namespace bte {
 	    TP_LOG_FATAL_ID("mmap() failed to map in a block from file.");
 	    TP_LOG_FATAL_ID(strerror(errno));
 	    
-	    return ERROR_MEMORY_ERROR;
+	    return MEMORY_ERROR;
 	}
 
 	//  madvise(place, header_.block_size, MADV_RANDOM);
@@ -194,7 +194,7 @@ namespace bte {
 	
 	in_memory_blocks_++;
 	
-	return ERROR_NO_ERROR;
+	return NO_ERROR;
     }
 
 
@@ -207,7 +207,7 @@ namespace bte {
 
 	    TP_LOG_FATAL_ID("Incorrect block ID in placeholder.");
 
-	    return ERROR_INVALID_PLACEHOLDER;
+	    return INVALID_PLACEHOLDER;
 	}
 	
 #if (COLLECTION_MMAP_LAZY_WRITE < 2)
@@ -223,7 +223,7 @@ namespace bte {
 		TP_LOG_FATAL_ID("Failed to msync() block to file.");
 		TP_LOG_FATAL_ID(strerror(errno));
 
-		return ERROR_IO_ERROR;
+		return IO_ERROR;
 	    }    
 	}
 #endif
@@ -233,14 +233,14 @@ namespace bte {
 	    TP_LOG_FATAL_ID("Failed to unmap() block of file.");
 	    TP_LOG_FATAL_ID(strerror(errno));
 	    
-	    return ERROR_IO_ERROR;
+	    return IO_ERROR;
 	}
 
 	register_memory_deallocation(header_.block_size);
 	
 	in_memory_blocks_--;
 	
-	return ERROR_NO_ERROR;
+	return NO_ERROR;
     }
     
 
@@ -251,7 +251,7 @@ namespace bte {
 	    
 	    TP_LOG_FATAL_ID("Incorrect block ID in placeholder.");
 	    
-	    return ERROR_INVALID_PLACEHOLDER;
+	    return INVALID_PLACEHOLDER;
 	}
 	
 	if (!read_only_) {
@@ -260,14 +260,14 @@ namespace bte {
 		TP_LOG_FATAL_ID("Failed to msync() block to file.");
 		TP_LOG_FATAL_ID(strerror(errno));
 		
-		return ERROR_IO_ERROR;
+		return IO_ERROR;
 	    }
 	}
 	
 	stats_.record(BLOCK_SYNC);
 	gstats_.record(BLOCK_SYNC);
 
-	return ERROR_NO_ERROR;
+	return NO_ERROR;
     }
 
 }

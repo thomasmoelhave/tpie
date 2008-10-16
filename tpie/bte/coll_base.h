@@ -192,9 +192,9 @@ namespace bte {
 	    if (MM_manager.register_allocation(sz) != MM_ERROR_NO_ERROR) {
 		status_ = COLLECTION_STATUS_INVALID;
 		TP_LOG_FATAL_ID("Memory manager error in allocation.");
-		return ERROR_MEMORY_ERROR;
+		return MEMORY_ERROR;
 	    }
-	    return ERROR_NO_ERROR;
+	    return NO_ERROR;
 	}
 	
 	// Needs to be inlined!
@@ -202,9 +202,9 @@ namespace bte {
 	    if (MM_manager.register_deallocation(sz) != MM_ERROR_NO_ERROR) {
 		status_ = COLLECTION_STATUS_INVALID;
 		TP_LOG_FATAL_ID("Memory manager error in deallocation.");
-		return ERROR_MEMORY_ERROR;
+		return MEMORY_ERROR;
 	    }
-	    return ERROR_NO_ERROR;
+	    return NO_ERROR;
 	}
 
 	TPIE_OS_OFFSET bid_to_file_offset(BIDT bid) const { 
@@ -220,7 +220,7 @@ namespace bte {
 	    // no blocks past last_block, we will ftruncate() some more blocks
 	    // to the tail of the BCC and then get a free bid.
 	    BIDT *lbn = NULL;
-	    err retval = ERROR_NO_ERROR;
+	    err retval = NO_ERROR;
 	    
 	    if (header_.used_blocks < header_.last_block - 1) {
 		tp_assert(freeblock_stack_ != NULL, 
@@ -229,7 +229,7 @@ namespace bte {
 		TPIE_OS_OFFSET slen = freeblock_stack_->stream_len();
 		tp_assert(slen > 0, "BTE_collection_ufs internal error: empty stack");
 
-		if ((retval = freeblock_stack_->pop(&lbn)) != ERROR_NO_ERROR) {
+		if ((retval = freeblock_stack_->pop(&lbn)) != NO_ERROR) {
 		    return retval;
 		}
 
@@ -261,7 +261,7 @@ namespace bte {
 
 			TP_LOG_FATAL_ID("Failed to truncate to the new end of file.");
 
-			return ERROR_OS_ERROR;
+			return OS_ERROR;
 
 		    }
 #else
@@ -272,7 +272,7 @@ namespace bte {
 
 			TP_LOG_FATAL_ID("Failed to seek to the end of file.");
 
-			return ERROR_OS_ERROR;
+			return OS_ERROR;
 
 		    }
 
@@ -287,7 +287,7 @@ namespace bte {
 		}
 		bid = header_.last_block++;
 	    }
-	    return ERROR_NO_ERROR;
+	    return NO_ERROR;
 	}
 	
 	// Common code for all delete_block implementations. Inlined.
@@ -304,7 +304,7 @@ namespace bte {
 		return freeblock_stack_->push(bid);
 	    }
 
-	    return ERROR_NO_ERROR;
+	    return NO_ERROR;
 	}
 	
     public:
@@ -481,7 +481,7 @@ namespace bte {
 		return;
 	    }
 
-	    if (read_header(bcc_name) != ERROR_NO_ERROR) {
+	    if (read_header(bcc_name) != NO_ERROR) {
 		status_ = COLLECTION_STATUS_INVALID;
 		return;
 	    }
@@ -524,7 +524,7 @@ namespace bte {
 		    return;
 		}
       
-		if (read_header(bcc_name) != ERROR_NO_ERROR) {
+		if (read_header(bcc_name) != NO_ERROR) {
 
 		    status_ = COLLECTION_STATUS_INVALID;
 
@@ -553,7 +553,7 @@ namespace bte {
 
 		header_.block_size = logical_block_factor * header_.os_block_size;
 		
-		if (write_header(bcc_name) != ERROR_NO_ERROR) {
+		if (write_header(bcc_name) != NO_ERROR) {
 
 		    status_ = COLLECTION_STATUS_INVALID;
 
@@ -595,7 +595,7 @@ namespace bte {
 	    TP_LOG_FATAL_ID("Failed to lseek in file:");
 	    TP_LOG_FATAL_ID(bcc_name);
 
-	    return ERROR_IO_ERROR;
+	    return IO_ERROR;
 	}
 	
 	if (TPIE_OS_READ(bcc_fd_, (char *)tmp_buffer, os_block_size_) != (int)os_block_size_) {
@@ -603,7 +603,7 @@ namespace bte {
 	    TP_LOG_FATAL_ID("Failed to read() in file:");
 	    TP_LOG_FATAL_ID(bcc_name);
 
-	    return ERROR_IO_ERROR;
+	    return IO_ERROR;
 	}
 	
 	file_pointer = os_block_size_;
@@ -622,7 +622,7 @@ namespace bte {
 	    TP_LOG_FATAL_ID("Invalid header in file: ");
 	    TP_LOG_FATAL_ID(bcc_name);
 	    
-	    return ERROR_BAD_HEADER;
+	    return BAD_HEADER;
 	}
 	
 	TPIE_OS_OFFSET lseek_retval;
@@ -641,12 +641,12 @@ namespace bte {
 	    TP_LOG_FATAL(header_.total_blocks);
 	    TP_LOG_FATAL("\n");
 	    
-	    return ERROR_BAD_HEADER;
+	    return BAD_HEADER;
 	}
 	
 	file_pointer = lseek_retval;
 	
-	return ERROR_NO_ERROR;
+	return NO_ERROR;
     }
 
 
@@ -658,7 +658,7 @@ namespace bte {
 	    TP_LOG_FATAL_ID("Failed to lseek() in file:");
 	    TP_LOG_FATAL_ID(bcc_name);
 
-	    return ERROR_IO_ERROR;
+	    return IO_ERROR;
 	}
 
 	char * tmp_buffer = new char[os_block_size_];
@@ -674,14 +674,14 @@ namespace bte {
 
 	    delete[] tmp_buffer;
 
-	    return ERROR_IO_ERROR;
+	    return IO_ERROR;
 	}
 	
 	file_pointer = os_block_size_;
 	
 	delete [] tmp_buffer;
 
-	return ERROR_NO_ERROR;
+	return NO_ERROR;
     }
     
     

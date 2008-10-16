@@ -61,15 +61,15 @@ namespace bte {
 	// Block. Main memory usage increases.
 	err new_block(BIDT &bid, void * &place) {
 
-	    err retval = ERROR_NO_ERROR;
+	    err retval = NO_ERROR;
 
 	    // Get a block id.
-	    if ((retval = new_block_getid(bid)) != ERROR_NO_ERROR) {
+	    if ((retval = new_block_getid(bid)) != NO_ERROR) {
 		return retval;
 	    }
 
 	    // We have a bid, so we can call the get_block routine.
-	    if ((retval = new_block_internals(bid, place)) != ERROR_NO_ERROR) {
+	    if ((retval = new_block_internals(bid, place)) != NO_ERROR) {
 		return retval;
 	    }
 	    
@@ -78,7 +78,7 @@ namespace bte {
 	    stats_.record(BLOCK_NEW);
 	    gstats_.record(BLOCK_NEW);
 
-	    return ERROR_NO_ERROR;
+	    return NO_ERROR;
 
 	}
 
@@ -91,13 +91,13 @@ namespace bte {
 	// stdio_stack of free blocks. Main memory usage goes down.
 	err delete_block(BIDT bid, void * place) {
 	    
-	    err retval = ERROR_NO_ERROR;
+	    err retval = NO_ERROR;
 	    
-	    if ((retval = put_block_internals(bid, place, 1)) != ERROR_NO_ERROR) {
+	    if ((retval = put_block_internals(bid, place, 1)) != NO_ERROR) {
 		return retval;
 	    }
 
-	    if ((retval = delete_block_shared(bid)) != ERROR_NO_ERROR) {
+	    if ((retval = delete_block_shared(bid)) != NO_ERROR) {
 		return retval;
 	    }
 
@@ -106,7 +106,7 @@ namespace bte {
 	    stats_.record(BLOCK_DELETE);
 	    gstats_.record(BLOCK_DELETE);
 	    
-	    return ERROR_NO_ERROR;
+	    return NO_ERROR;
 
 	}
 	
@@ -117,16 +117,16 @@ namespace bte {
 	// memory usage increases.
 	err get_block(BIDT bid, void * &place) {
 	    
-	    err retval = ERROR_NO_ERROR;
+	    err retval = NO_ERROR;
 	    
-	    if ((retval = get_block_internals(bid, place)) != ERROR_NO_ERROR) {
+	    if ((retval = get_block_internals(bid, place)) != NO_ERROR) {
 		return retval;
 	    }
 	    
 	    stats_.record(BLOCK_GET);
 	    gstats_.record(BLOCK_GET);
 	    
-	    return ERROR_NO_ERROR;
+	    return NO_ERROR;
 	}
 
 	// Write a currently in-memory block. NOTE once more that it is the
@@ -135,16 +135,16 @@ namespace bte {
 	// decreases.
 	err put_block(BIDT bid, void * place, char dirty = 1) {
 	    
-	    err retval = ERROR_NO_ERROR;
+	    err retval = NO_ERROR;
 	    
-	    if ((retval = put_block_internals(bid, place, dirty)) != ERROR_NO_ERROR) {		
+	    if ((retval = put_block_internals(bid, place, dirty)) != NO_ERROR) {		
 		return retval;
 	    }
 	    	 
 	    stats_.record(BLOCK_PUT);
 	    gstats_.record(BLOCK_PUT);
 	    
-	    return ERROR_NO_ERROR;
+	    return NO_ERROR;
 	}
 	
 	// Synchronize the in-memory block with the on-disk block.
@@ -166,12 +166,12 @@ namespace bte {
 
 	    TP_LOG_FATAL_ID("new() failed to alloc space for a block from file.");
 
-	    return ERROR_MEMORY_ERROR;
+	    return MEMORY_ERROR;
 	}
 
 	in_memory_blocks_++;
 	
-	return ERROR_NO_ERROR;
+	return NO_ERROR;
     }
 
 // CHECK THIS
@@ -180,7 +180,7 @@ namespace bte {
     err collection_ufs<BIDT>::new_block_getid_specific(BIDT& bid) {
 
 	BIDT *lbn = NULL;
-	err retval = ERROR_NO_ERROR;
+	err retval = NO_ERROR;
 	
 	if (header_.used_blocks < header_.last_block - 1) {
 	    
@@ -191,7 +191,7 @@ namespace bte {
 	    
 	    tp_assert(slen > 0, "collection_ufs internal error: empty stack");
 
-	    if ((retval = freeblock_stack_->pop(&lbn)) != ERROR_NO_ERROR) {
+	    if ((retval = freeblock_stack_->pop(&lbn)) != NO_ERROR) {
 		return retval;
 	    }
 
@@ -224,7 +224,7 @@ namespace bte {
 		    TP_LOG_FATAL_ID("Failed to ftruncate() to the new end of file.");
 		    TP_LOG_FATAL_ID(strerror(errno));
 
-		    return ERROR_OS_ERROR;
+		    return OS_ERROR;
 		}
 #else
 		TPIE_OS_OFFSET curr_off;
@@ -235,7 +235,7 @@ namespace bte {
 		    TP_LOG_FATAL_ID("Failed to lseek() to the end of file.");
 		    TP_LOG_FATAL_ID(strerror(errno));
 		    
-		    return ERROR_OS_ERROR;
+		    return OS_ERROR;
 		}
 
 		while (curr_off < bid_to_file_offset(header_.total_blocks)) {
@@ -249,7 +249,7 @@ namespace bte {
 	    }
 	    bid = header_.last_block++;
 	}
-	return ERROR_NO_ERROR;
+	return NO_ERROR;
     }
 #endif
 
@@ -260,7 +260,7 @@ namespace bte {
 	    
 	    TP_LOG_FATAL_ID("new() failed to alloc space for a block from file.");
 	    
-	    return ERROR_MEMORY_ERROR;
+	    return MEMORY_ERROR;
 	}
 
 	if (file_pointer != bid_to_file_offset(bid)) {
@@ -269,7 +269,7 @@ namespace bte {
 		
 		TP_LOG_FATAL_ID("lseek failed in file.");
 		
-		return ERROR_IO_ERROR;
+		return IO_ERROR;
 	    }
 	}
 
@@ -278,14 +278,14 @@ namespace bte {
 	    
 	    TP_LOG_FATAL_ID("Failed to read() from file.");
 	    
-	    return ERROR_IO_ERROR;
+	    return IO_ERROR;
 	}
 
 	file_pointer = bid_to_file_offset(bid) + header_.block_size;
 	
 	in_memory_blocks_++;
 	
-	return ERROR_NO_ERROR;
+	return NO_ERROR;
     }
     
 
@@ -296,14 +296,14 @@ namespace bte {
 	    
 	    TP_LOG_FATAL_ID("Incorrect block ID in placeholder.");
 	    
-	    return ERROR_INVALID_PLACEHOLDER;
+	    return INVALID_PLACEHOLDER;
 	}
 	
 	if (place == NULL) {
 	    
 	    TP_LOG_FATAL_ID("Null block ptr field in placeholder.");
 	    
-	    return ERROR_INVALID_PLACEHOLDER;
+	    return INVALID_PLACEHOLDER;
 	}
 
 	if (!read_only_) {
@@ -314,7 +314,7 @@ namespace bte {
 		    
 		    TP_LOG_FATAL_ID("Failed to lseek() in file.");
 		    
-		    return ERROR_IO_ERROR;
+		    return IO_ERROR;
 		}
 	       		
 	    }
@@ -323,7 +323,7 @@ namespace bte {
 		
 		TP_LOG_FATAL_ID("Failed to write() block to file.");
 		
-		return ERROR_IO_ERROR;
+		return IO_ERROR;
 	    }
 	    
 	    file_pointer = bid_to_file_offset(bid) + header_.block_size;
@@ -333,7 +333,7 @@ namespace bte {
 	
 	in_memory_blocks_--;
 	
-	return ERROR_NO_ERROR;
+	return NO_ERROR;
     }
     
     template<class BIDT>
@@ -343,14 +343,14 @@ namespace bte {
 	    
 	    TP_LOG_FATAL_ID("Incorrect block ID in placeholder.");
 	    
-	    return ERROR_INVALID_PLACEHOLDER;
+	    return INVALID_PLACEHOLDER;
 	}
 	
 	if (place == NULL) {
 	    
 	    TP_LOG_FATAL_ID("Null block pointer.");
 	    
-	    return ERROR_INVALID_PLACEHOLDER;
+	    return INVALID_PLACEHOLDER;
 	}
 
 	if (!read_only_) {
@@ -360,14 +360,14 @@ namespace bte {
 		
 		TP_LOG_FATAL_ID("Failed to lseek() in file.");
 		
-		return ERROR_IO_ERROR;
+		return IO_ERROR;
 	    }
     
 	    if (TPIE_OS_WRITE(bcc_fd_, place, header_.block_size) != (TPIE_OS_SSIZE_T)header_.block_size) { 
 		
 		TP_LOG_FATAL_ID("Failed to write() block to file.");
 		
-		return ERROR_IO_ERROR;
+		return IO_ERROR;
 	    }
 
 	    file_pointer = bid_to_file_offset(bid) + header_.block_size;
@@ -376,7 +376,7 @@ namespace bte {
 	stats_.record(BLOCK_SYNC);
 	gstats_.record(BLOCK_SYNC);
 	
-	return ERROR_NO_ERROR;
+	return NO_ERROR;
     }
     
 }

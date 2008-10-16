@@ -57,14 +57,14 @@ namespace bte {
     template<class T>
     err stack_ufs<T>::push(const T &t) {
 
-	err retval = ERROR_NO_ERROR;
+	err retval = NO_ERROR;
 	TPIE_OS_OFFSET slen = stream_len();
            
-	if ((retval = truncate(slen+1)) != ERROR_NO_ERROR) {
+	if ((retval = truncate(slen+1)) != NO_ERROR) {
 	    return retval;
 	}
 
-	if ((retval = seek(slen)) != ERROR_NO_ERROR) {
+	if ((retval = seek(slen)) != NO_ERROR) {
 	    return retval;
 	}
 	
@@ -75,14 +75,14 @@ namespace bte {
     template<class T>
     err stack_ufs<T>::pop(T **t) {
 
-	err retval = ERROR_NO_ERROR;
+	err retval = NO_ERROR;
 	TPIE_OS_OFFSET slen = stream_len();
 
-	if ((retval = seek(slen-1)) != ERROR_NO_ERROR) {
+	if ((retval = seek(slen-1)) != NO_ERROR) {
 	    return retval;
 	}
   
-	if ((retval =  read_item(t)) != ERROR_NO_ERROR) {
+	if ((retval =  read_item(t)) != NO_ERROR) {
 	    return retval;
 	}
 	
