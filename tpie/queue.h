@@ -159,11 +159,11 @@ AMI_queue<T>::AMI_queue() {
 template<class T>
 AMI_queue<T>::AMI_queue(const char* basename)
 {
-  char fname[BTE_STREAM_PATH_NAME_LEN];
-  strncpy(fname, basename, BTE_STREAM_PATH_NAME_LEN-4);
+  char fname[TPIE_PATH_LENGTH];
+  strncpy(fname, basename, TPIE_PATH_LENGTH-4);
   strcat(fname,".nq"); 
   m_enQstack = new AMI_stack<T>(fname);
-  strncpy(fname, basename, BTE_STREAM_PATH_NAME_LEN-4);
+  strncpy(fname, basename, TPIE_PATH_LENGTH-4);
   strcat(fname,".dq"); 
   m_deQstack = new AMI_stack<T>(fname);
   m_enQstack->persist(PERSIST_PERSISTENT);

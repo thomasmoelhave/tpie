@@ -112,7 +112,7 @@ private:
     // become the input for the next level.
 		std::string suffixName[2];
     // A buffer for building the output file names
-    char   newName [BTE_STREAM_PATH_NAME_LEN];
+    char   newName [TPIE_PATH_LENGTH];
     //prefix of temp files created during sort
 		std::string working_disk;
 
