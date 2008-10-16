@@ -44,7 +44,7 @@ template < class T, class M >
 AMI_err  ami_merge_sorted_runs(AMI_STREAM<T> **inStreams, arity_t arity,
 			   AMI_STREAM<T> *outStream, M* MergeHeap,
 			   TPIE_OS_OFFSET cutoff=-1, 
-			   progress_indicator_base* indicator=NULL)
+			       tpie::progress_indicator_base* indicator=NULL)
 {
 
    TPIE_OS_SIZE_T i;

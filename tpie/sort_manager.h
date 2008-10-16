@@ -41,11 +41,11 @@ public:
     ~sort_manager(){};
     //Sort in stream to out stream an save in stream (uses 3x space)
     AMI_err sort(AMI_STREAM<T>* in, AMI_STREAM<T>* out, 
-		 progress_indicator_base* indicator = NULL);
+		 tpie::progress_indicator_base* indicator = NULL);
     //Sort in stream and overwrite unsorted input with sorted output
     //(uses 2x space)
     AMI_err sort(AMI_STREAM<T>* in, 
-		 progress_indicator_base* indicator = NULL); 
+		 tpie::progress_indicator_base* indicator = NULL); 
 
 private:
     // *************
@@ -76,7 +76,7 @@ private:
     TPIE_OS_SIZE_T  mmBytesAvail;     //Amount of spare memory we can use
     TPIE_OS_SIZE_T  mmBytesPerStream; //Memory consumed by each Stream obj
 
-    progress_indicator_base* m_indicator; // pointer to progress indicator
+    tpie::progress_indicator_base* m_indicator; // pointer to progress indicator
     TPIE_OS_OFFSET progCount; //counter for showing progress
 
     bool use2xSpace; //flag to indicate if we are doing a 2x sort
@@ -152,7 +152,7 @@ sort_manager<T, I, M>::sort_manager(I* isort, M* mheap):
 
 template<class T, class I, class M>
 AMI_err sort_manager<T,I,M>::sort(AMI_STREAM<T>* in, AMI_STREAM<T>* out,
-                                  progress_indicator_base* indicator){
+                                  tpie::progress_indicator_base* indicator){
 
     //This version saves the original input and uses 3x space
     //(input, current temp runs, output runs)
@@ -171,7 +171,7 @@ AMI_err sort_manager<T,I,M>::sort(AMI_STREAM<T>* in, AMI_STREAM<T>* out,
 }
 
 template<class T, class I, class M>
-AMI_err sort_manager<T,I,M>::sort(AMI_STREAM<T>* in, progress_indicator_base* indicator){
+AMI_err sort_manager<T,I,M>::sort(AMI_STREAM<T>* in, tpie::progress_indicator_base* indicator){
 
     //This version overwrites the original input and uses 2x space
     //The input stream is truncated to length 0 after forming initial runs

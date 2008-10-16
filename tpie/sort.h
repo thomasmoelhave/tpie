@@ -34,7 +34,7 @@
 // T, and an output stream, and and uses the < operator to sort
 template<class T>
 AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
-                 progress_indicator_base* indicator=NULL)
+                 tpie::progress_indicator_base* indicator=NULL)
 {
     Internal_Sorter_Op<T> myInternalSorter;
     merge_heap_op<T>      myMergeHeap;
@@ -51,7 +51,7 @@ AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
 // which is used for sorting the input stream.
 template<class T, class CMPR>
 AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
-    CMPR *cmp, progress_indicator_base* indicator=NULL)
+    CMPR *cmp, tpie::progress_indicator_base* indicator=NULL)
 {
     Internal_Sorter_Obj<T,CMPR> myInternalSorter(cmp);
     merge_heap_obj<T,CMPR>      myMergeHeap(cmp);
@@ -71,7 +71,7 @@ AMI_err AMI_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
 // T, and an output stream, and and uses the < operator to sort
 template<class T>
 AMI_err AMI_ptr_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
-                 progress_indicator_base* indicator=NULL)
+                 tpie::progress_indicator_base* indicator=NULL)
 {
     Internal_Sorter_Op<T> myInternalSorter;
     merge_heap_op<T>      myMergeHeap;
@@ -88,7 +88,7 @@ AMI_err AMI_ptr_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
 // which is used for sorting the input stream.
 template<class T, class CMPR>
 AMI_err AMI_ptr_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
-    CMPR *cmp, progress_indicator_base* indicator=NULL)
+    CMPR *cmp, tpie::progress_indicator_base* indicator=NULL)
 {
     Internal_Sorter_Obj<T,CMPR> myInternalSorter(cmp);
     merge_heap_ptr_obj<T,CMPR> myMergeHeap(cmp);
@@ -119,7 +119,7 @@ AMI_err AMI_ptr_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
 // sorted).
 template<class T, class KEY, class CMPR>
 AMI_err  AMI_key_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
-    KEY dummykey, CMPR *cmp, progress_indicator_base* indicator=NULL)
+    KEY dummykey, CMPR *cmp, tpie::progress_indicator_base* indicator=NULL)
 {
     Internal_Sorter_KObj<T,KEY,CMPR> myInternalSorter(cmp);
     merge_heap_kobj<T,KEY,CMPR>      myMergeHeap(cmp);
@@ -139,7 +139,7 @@ AMI_err  AMI_key_sort(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
 // object heaps, < operator comparisons
 template<class T>
 AMI_err AMI_sort(AMI_STREAM<T> *instream, 
-                 progress_indicator_base* indicator=NULL)
+                 tpie::progress_indicator_base* indicator=NULL)
 {
     Internal_Sorter_Op<T> myInternalSorter;
     merge_heap_op<T>      myMergeHeap;
@@ -152,7 +152,7 @@ AMI_err AMI_sort(AMI_STREAM<T> *instream,
 // object heaps, comparison object comparisions
 template<class T, class CMPR>
 AMI_err AMI_sort(AMI_STREAM<T> *instream, 
-    CMPR *cmp, progress_indicator_base* indicator=NULL)
+    CMPR *cmp, tpie::progress_indicator_base* indicator=NULL)
 {
     Internal_Sorter_Obj<T,CMPR> myInternalSorter(cmp);
     merge_heap_obj<T,CMPR>      myMergeHeap(cmp);
@@ -165,7 +165,7 @@ AMI_err AMI_sort(AMI_STREAM<T> *instream,
 // ptr heaps, < operator comparisons
 template<class T>
 AMI_err AMI_ptr_sort(AMI_STREAM<T> *instream, 
-                 progress_indicator_base* indicator=NULL)
+                 tpie::progress_indicator_base* indicator=NULL)
 {
     Internal_Sorter_Op<T> myInternalSorter;
     merge_heap_op<T>      myMergeHeap;
@@ -178,7 +178,7 @@ AMI_err AMI_ptr_sort(AMI_STREAM<T> *instream,
 // ptr heaps, comparison object comparisions
 template<class T, class CMPR>
 AMI_err AMI_ptr_sort(AMI_STREAM<T> *instream, 
-    CMPR *cmp, progress_indicator_base* indicator=NULL)
+    CMPR *cmp, tpie::progress_indicator_base* indicator=NULL)
 {
     Internal_Sorter_Obj<T,CMPR> myInternalSorter(cmp);
     merge_heap_ptr_obj<T,CMPR> myMergeHeap(cmp);
@@ -192,7 +192,7 @@ AMI_err AMI_ptr_sort(AMI_STREAM<T> *instream,
 // key/object heaps, key/object comparisons 
 template<class T, class KEY, class CMPR>
 AMI_err  AMI_key_sort(AMI_STREAM<T> *instream, 
-    KEY dummykey, CMPR *cmp, progress_indicator_base* indicator=NULL)
+    KEY dummykey, CMPR *cmp, tpie::progress_indicator_base* indicator=NULL)
 {
     Internal_Sorter_KObj<T,KEY,CMPR> myInternalSorter(cmp);
     merge_heap_kobj<T,KEY,CMPR>      myMergeHeap(cmp);
