@@ -1,6 +1,6 @@
 #include <iostream>
 #include <fstream>
-#include "MergeHeap.h" // TODO: Find MergeHeap and insert.
+#include "pq_merge_heap.h"
 
 /////////////////////////////
 // Public
@@ -26,7 +26,7 @@ priority_queue<T, Comparator, OPQType>::priority_queue(double f) { // constructo
 		AMI_STREAM<T> tmp;
 		TPIE_OS_SIZE_T usage;
 		tmp.main_memory_usage(&usage, MM_STREAM_USAGE_MAXIMUM);
-
+		
 		mm_avail = mm_avail 
 			- max_k*max_k*3*sizeof(TPIE_OS_OFFSET) // slot states
 			- max_k*2*sizeof(TPIE_OS_OFFSET) // group states
@@ -279,7 +279,7 @@ void priority_queue<T, Comparator, OPQType>::dump() {
 			<< (i<buffer_start || buffer_start+buffer_size <=i ?")":"") 
 			<< " ");
 	}
-	TP_LOG_DEBUG("" << std::endl);
+	TP_LOG_DEBUG(std::endl);
 
 	// output groups
 	for(TPIE_OS_OFFSET i =0; i<current_r; i++) {
@@ -293,43 +293,44 @@ void priority_queue<T, Comparator, OPQType>::dump() {
 			for(k = 0; k < setting_m; k++) {
 				TP_LOG_DEBUG(gbuffer0[k] << " ");
 			} 
-			TP_LOG_DEBUG("" << std::endl);
+			TP_LOG_DEBUG(std::endl);
 		} else {  
 			// output group buffer contents
 			AMI_STREAM<T>* stream = new AMI_STREAM<T>(group_data(i));
 			TPIE_OS_OFFSET k = 0;
 			if(group_size(i) > 0) {
 				for(k = 0; k < setting_m; k++) {
-					cout << *read_item(stream) << " ";
+					TP_LOG_DEBUG(*read_item(stream) << " ");
 				} 
 			}
 			delete stream;
 			for(TPIE_OS_OFFSET l = k; l < setting_m; l++) {
-				cout << "() ";
+				TP_LOG_DEBUG("() ");
 			}
-			cout << std::endl;
+			TP_LOG_DEBUG(std::endl);
 		}
 
 		// output slots
 		for(TPIE_OS_OFFSET j = i*setting_k; j<i*setting_k+setting_k; j++) {
-			cout << "\t\tSlot " << j << "(size: " << slot_size(j) 
-				<< " start: " << slot_start(j) << "):";
+			TP_LOG_DEBUG("\t\tSlot " << j << "(size: " << slot_size(j) 
+				     << " start: " << slot_start(j) << "):");
 
 			AMI_STREAM<T>* stream = new AMI_STREAM<T>(slot_data(j));
 			TPIE_OS_OFFSET k;
 			for(k = 0; k < slot_start(j)+slot_size(j); k++) {
-				cout << (k>=slot_start(j)?"":"(") << *read_item(stream) 
-					<< (k>=slot_start(j)?"":")") << " ";
+				TP_LOG_DEBUG((k>=slot_start(j)?"":"(") << 
+					     *read_item(stream)<< 
+					     (k>=slot_start(j)?"":")") << " ");
 			}
 			delete stream;
 			for(TPIE_OS_OFFSET l = k; l < slot_max_size(j); l++) {
-				cout << "() ";
+				TP_LOG_DEBUG(cout << "() ");
 			}
 
-			cout << std::endl;
+			TP_LOG_DEBUG(std::endl);
 		} 
 	}
-	cout << "--------------------------------------------------------------" << std::endl;
+	TP_LOG_DEBUG("--------------------------------------------------------------" << std::endl);
 }
 
 /////////////////////////////
@@ -341,7 +342,7 @@ TPIE_OS_OFFSET priority_queue<T, Comparator, OPQType>::free_slot(TPIE_OS_OFFSET 
 	//cout << "free slot group " << group << "?" << std::endl;
 	TPIE_OS_OFFSET i;
 	if(group>=setting_k) {
-		cout << "Error, queue is full no free slots in invalid group " << group << ". Increase k." << std::endl;
+		TP_LOG_FATAL_ID("Error, queue is full no free slots in invalid group " << group << ". Increase k.");
 		exit(-1);
 	}
 	for(i = group*setting_k; i < group*setting_k+setting_k; i++) {
@@ -392,7 +393,7 @@ void priority_queue<T, Comparator, OPQType>::fill_buffer() {
 	//cout << "done filling groups" << std::endl;
 	// merge to buffer
 	//cout << "current_r: " << current_r << std::endl;
-	delete mergebuffer;
+	delete[] mergebuffer;
 
 	MergeHeap<T, Comparator> heap(current_r);
 	AMI_STREAM<T>* data[current_r];
@@ -460,13 +461,13 @@ void priority_queue<T, Comparator, OPQType>::fill_group_buffer(TPIE_OS_OFFSET gr
 		//cout << "seek to " << (group_start(group)+group_size(group))%setting_m << std::endl;
 		if(group > 0) {
 			if((err = out.seek((group_start(group)+group_size(group))%setting_m))!= AMI_ERROR_NO_ERROR) {
-				cout << "AMI_ERROR " << err << " while seeking node" << std::endl;
+				TP_LOG_FATAL_ID("AMI_ERROR " << err << " while seeking node");
 				exit(-1);
 			}
 		}
 		//  seek_offset(out, (group_start(group)+group_size(group))%setting_m);
 
-		delete mergebuffer;
+		delete[] mergebuffer;
 
 		MergeHeap<T, Comparator> heap(setting_k);
 		AMI_STREAM<T>* data[setting_k];
@@ -495,7 +496,7 @@ void priority_queue<T, Comparator, OPQType>::fill_group_buffer(TPIE_OS_OFFSET gr
 				}
 				//    write_item(out, heap.top());
 				if((err = out.write_item(heap.top())) != AMI_ERROR_NO_ERROR) {
-					cout << "AMI error while reading item, code: " << err << std::endl;
+					TP_LOG_FATAL_ID("AMI error while reading item, code: " << err);
 					exit(-1);
 				}
 			}
@@ -593,7 +594,7 @@ template <typename T, typename Comparator, typename OPQType>
 void priority_queue<T, Comparator, OPQType>::empty_group(TPIE_OS_OFFSET group) {
 	//cout << "Empty group " << group << std::endl;
 	if(group > setting_k) {
-		cout << "Error: Priority queue is full" << std::endl;
+		TP_LOG_FATAL_ID("Error: Priority queue is full");
 		exit(-1);
 	}
 
@@ -608,7 +609,7 @@ void priority_queue<T, Comparator, OPQType>::empty_group(TPIE_OS_OFFSET group) {
 
 	bool ret = false;
 
-	delete mergebuffer;
+	delete[] mergebuffer;
 
 	AMI_STREAM<T>* newstream = new AMI_STREAM<T>(slot_data(newslot));
 	MergeHeap<T, Comparator> heap(setting_k);
@@ -664,6 +665,7 @@ void priority_queue<T, Comparator, OPQType>::empty_group(TPIE_OS_OFFSET group) {
 template <typename T, typename Comparator, typename OPQType>
 void priority_queue<T, Comparator, OPQType>::validate() {
 #ifndef NDEBUG
+#ifdef PQ_VALIDATE
 	//cout << "validate start" << std::endl;
 	// validate size
 	TPIE_OS_OFFSET size = 0;
@@ -676,7 +678,7 @@ void priority_queue<T, Comparator, OPQType>::validate() {
 		size = size + slot_size(i);
 	}
 	if(m_size != size) {
-		cout << "Error: Validate: Size not ok" << std::endl;
+		TP_LOG_FATAL_ID("Error: Validate: Size not ok");
 		exit(-1);
 	}
 
@@ -685,7 +687,8 @@ void priority_queue<T, Comparator, OPQType>::validate() {
 		T last = buffer[buffer_start];
 		for(TPIE_OS_OFFSET i = buffer_start; i<buffer_start+buffer_size;i++) {
 			if(comp_(buffer[i],last)) {
-				cout << "Error: Buffer ordered validation failed" << std::endl;
+				//Kasper and Mark: Should this exit(-1)?
+				TP_LOG_WARNING_ID("Error: Buffer ordered validation failed");
 			}
 			last = buffer[i];
 		}
@@ -706,8 +709,7 @@ void priority_queue<T, Comparator, OPQType>::validate() {
 				T read = *read_item(stream);
 				if(comp_(read, last)) { // compare
 					dump();
-					cout << "Error: Group buffer " << i << " order invalid (last: " 
-						<< last << ", read: " << read << ")" << std::endl;
+					TP_LOG_FATAL_ID("Error: Group buffer " << i << " order invalid (last: " << last << ", read: " << read << ")");
 					exit(-1);
 				} 
 			}
@@ -722,15 +724,14 @@ void priority_queue<T, Comparator, OPQType>::validate() {
 			for(TPIE_OS_OFFSET j = 1; j < slot_size(i); j++) {
 				T read = *read_item(stream);
 				if(comp_(read, last)) { // compare
-					cout << "Error: Slot " << i << " order invalid (last: "
-						<< last << ", read: " << read << ")" << std::endl;
+					TP_LOG_FATAL_ID("Error: Slot " << i << " order invalid (last: " << last << ", read: " << read << ")");
 					exit(-1);
 				}
 			}
 			delete stream;
 		}
 	}
-
+	
 	// validate heap properties
 	if(buffer_size > 0) { // buffer --> group buffers
 		T buf_max = buffer[buffer_start+buffer_size-1];
@@ -744,15 +745,14 @@ void priority_queue<T, Comparator, OPQType>::validate() {
 				T first = *read_item(stream);
 				if(comp_(first, buf_max)) { // compare
 					dump();
-					cout << "Error: Heap property invalid, buffer -> group buffer " << i 
-						<< "(buffer: " << buf_max << ", first: " << first << ")"<< std::endl;
+					TP_LOG_FATAL_ID("Error: Heap property invalid, buffer -> group buffer " << i << "(buffer: " << buf_max << ", first: " << first << ")");
 					exit(-1);
 				}
 				delete stream;
 			}
 		}
 	}
-
+	
 	// todo: gbuffer0
 	for(TPIE_OS_OFFSET i = 1; i < setting_k; i++) { // group buffers --> slots
 		if(group_size(i) > 0) {
@@ -768,12 +768,10 @@ void priority_queue<T, Comparator, OPQType>::validate() {
 					seek_offset(stream, slot_start(j));
 					T item_slot = *read_item(stream);
 					delete stream;
-
+					
 					if(comp_(item_slot, item_group)) { // compare
 						dump();
-						cout << "Error: Heap property invalid, group buffer " << i 
-							<< " -> slot " << j << "(group: " << item_group 
-							<< ", slot: " << item_slot << ")" << std::endl;
+						TP_LOG_FATAL_ID("Error: Heap property invalid, group buffer " << i << " -> slot " << j << "(group: " << item_group << ", slot: " << item_slot << ")");
 						exit(-1);
 					}
 				}
@@ -782,6 +780,7 @@ void priority_queue<T, Comparator, OPQType>::validate() {
 	}
 	//cout << "validate end" << std::endl;
 #endif
+#endif
 }
 
 template <typename T, typename Comparator, typename OPQType>
@@ -789,7 +788,7 @@ void priority_queue<T, Comparator, OPQType>::remove_group_buffer(TPIE_OS_OFFSET 
 	//cout << "remove group buffer " << group << std::endl;
 #ifndef NDEBUG
 	if(group == 0) {
-		cout << "remove group buffer 0, fy!" << std::endl;
+		TP_LOG_FATAL_ID("remove group buffer 0, fy!");
 		exit(-1);
 	}
 #endif
@@ -805,7 +804,7 @@ void priority_queue<T, Comparator, OPQType>::remove_group_buffer(TPIE_OS_OFFSET 
 	TPIE_OS_OFFSET size = group_size(group);
 	if(group_start(group) + group_size(group) <= setting_m) {
 		if((err = data->read_array(arr, &size)) != AMI_ERROR_NO_ERROR) {
-			cout << "AMI_ERROR " << err << " during read_array()" << std::endl;
+			TP_LOG_FATAL_ID("AMI_ERROR " << err << " during read_array()");
 			exit(1);
 		}
 	} else {
@@ -814,12 +813,12 @@ void priority_queue<T, Comparator, OPQType>::remove_group_buffer(TPIE_OS_OFFSET 
 		TPIE_OS_OFFSET second_read = size - first_read;
 		//cout << "read array " << first_read << " " << second_read << std::endl;
 		if((err = data->read_array(arr, &first_read)) != AMI_ERROR_NO_ERROR) {
-			cout << "AMI_ERROR " << err << " during read_array()" << std::endl;
+			TP_LOG_FATAL_ID("AMI_ERROR " << err << " during read_array()");
 			exit(1);
 		}
 		seek_offset(data,0);
 		if((err = data->read_array(arr+first_read, &second_read)) != AMI_ERROR_NO_ERROR) {
-			cout << "AMI_ERROR " << err << " during read_array()" << std::endl;
+			TP_LOG_FATAL_ID("AMI_ERROR " << err << " during read_array()");
 			exit(1);
 		}
 	}
@@ -862,7 +861,7 @@ void priority_queue<T, Comparator, OPQType>::remove_group_buffer(TPIE_OS_OFFSET 
 	group_size_set(group, 0);
 	//cout << "compact from remove_group_buffer" << std::endl;
 	//  compact(slot);
-	delete arr;
+	delete[] arr;
 	//cout << "this dump" << std::endl;
 	//dump();
 	//  cout << "remove grp buffer done" << std::endl;
@@ -870,17 +869,10 @@ void priority_queue<T, Comparator, OPQType>::remove_group_buffer(TPIE_OS_OFFSET 
 
 //////////////////
 // TPIE wrappers
-
-template <typename T, typename Comparator, typename OPQType>
-
-const void 
-
-priority_queue<T, Comparator, OPQType>::seek_offset(AMI_STREAM<T>* data, TPIE_OS_OFFSET offset) {
-
 template <typename T, typename Comparator, typename OPQType>
 const void priority_queue<T, Comparator, OPQType>::seek_offset(AMI_STREAM<T>* data, TPIE_OS_OFFSET offset) {
 	if((err = data->seek(offset))!= AMI_ERROR_NO_ERROR) {
-		std::cerr << "AMI_ERROR " << err << " while seeking node" << std::std::endl;
+		TP_LOG_FATAL_ID("AMI_ERROR " << err << " while seeking node");
 		exit(-1);
 	}
 }
@@ -888,7 +880,7 @@ const void priority_queue<T, Comparator, OPQType>::seek_offset(AMI_STREAM<T>* da
  T* read_item(AMI_STREAM<T>* data) { 
 	T* read_ptr;
 	if((err = data->read_item(&read_ptr)) != AMI_ERROR_NO_ERROR) {
-		cout << "AMI error while reading item, code: " << err << std::endl;
+		TP_LOG_FATAL_ID("AMI error while reading item, code: " << err); 
 		exit(-1);
 	}
 	return read_ptr;
@@ -897,7 +889,7 @@ const void priority_queue<T, Comparator, OPQType>::seek_offset(AMI_STREAM<T>* da
 template <typename T, typename Comparator, typename OPQType>
 void priority_queue<T, Comparator, OPQType>::write_item(AMI_STREAM<T>* data, T write) { 
 	if((err = data->write_item(write)) != AMI_ERROR_NO_ERROR) {
-		cout << "AMI error while reading item, code: " << err << std::endl;
+		TP_LOG_FATAL_ID("AMI error while reading item, code: " << err);
 		exit(-1);
 	}
 }
@@ -986,7 +978,7 @@ void priority_queue<T, Comparator, OPQType>::write_slot(TPIE_OS_OFFSET slotid, T
 	AMI_STREAM<T>* data = new AMI_STREAM<T>(slot_data(slotid));
 	//cout << "write slot new done" << std::endl;
 	if((err = data->write_array(arr, len)) != AMI_ERROR_NO_ERROR) {
-		cout << "AMI_ERROR " << err << " during write_slot()" << std::endl;
+		TP_LOG_FATAL_ID("AMI_ERROR " << err << " during write_slot()");
 		exit(1);
 	}
 	delete data;
