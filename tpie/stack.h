@@ -18,7 +18,7 @@ namespace tpie {
 
 ///////////////////////////////////////////////////////////////////
 ///
-///  \class stack<T>
+///  \class stack
 ///
 ///  An implementation of an external-memory stack.
 ///
