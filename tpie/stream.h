@@ -60,7 +60,7 @@ public:
     AMI_stream(unsigned int device = UINT_MAX);
     
     // An AMI stream based on a specific path name.
-    AMI_stream(const char *path_name, 
+    AMI_stream(const std::string& path_name, 
 	       AMI_stream_type st = AMI_READ_WRITE_STREAM);
     
     // An AMI stream based on a specific existing BTE stream.  Note
@@ -102,7 +102,7 @@ public:
     }
   
     // Return the path name of this stream in newly allocated space.
-    AMI_err name(char **stream_name);
+	std::string name() const;
   
     // Move to a specific position in the stream.
     AMI_err seek(TPIE_OS_OFFSET offset);
@@ -206,7 +206,7 @@ AMI_stream<T>::AMI_stream(unsigned int device) : m_bteStream(NULL),
 // A stream created with this constructor will persist on disk at the
 // location specified by the path name.
 template<class T>
-AMI_stream<T>::AMI_stream(const char* path_name, AMI_stream_type st) :
+AMI_stream<T>::AMI_stream(const std::string& path_name, AMI_stream_type st) :
     m_bteStream(NULL),
     m_readOnly(false),
     m_destructBTEStream(true),
@@ -322,14 +322,9 @@ AMI_err AMI_stream<T>::new_substream(AMI_stream_type st,
 
 
 template<class T>
-AMI_err AMI_stream<T>::name(char **stream_name) {
-    tpie::bte::err be = m_bteStream->name(stream_name);
-    if (be != tpie::bte::NO_ERROR) {
-	TP_LOG_WARNING_ID("bte error");
-	return AMI_ERROR_BTE_ERROR;
-    } else {
-	return AMI_ERROR_NO_ERROR;
-    }
+std::string AMI_stream<T>::name() const 
+{
+	return m_bteStream->name();
 }
 
 // Move to a specific offset.
@@ -472,10 +467,8 @@ AMI_err AMI_stream<T>::write_array(const T *mm_space, TPIE_OS_OFFSET len) {
 template<class T>
 char *AMI_stream<T>::sprint() {
     static char buf[BUFSIZ];
-    char *s;
-    name(&s);
-    sprintf(buf, "[AMI_STREAM %s %ld]", s, static_cast<long>(stream_len()));
-    delete s;
+	std::string s(name());
+    sprintf(buf, "[AMI_STREAM %s %ld]", s.c_str(), static_cast<long>(stream_len()));
     return buf;
 }
 

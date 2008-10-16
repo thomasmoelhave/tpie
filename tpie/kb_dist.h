@@ -169,8 +169,8 @@ AMI_err _AMI_KB_DIST(KB_KEY)(AMI_STREAM<T> &instream,
 
     // Write the names and ranges of all non-empty output streams.
 
-    for (ii = 0, max_size = 0; ii < output_streams; ii++) {
-        char *stream_name;
+    for (ii = 0, max_size = 0; ii < output_streams; ++ii) {
+		std::string stream_name;
         TPIE_OS_OFFSET stream_len;
         
         if ((stream_len = out_streams[ii]->stream_len()) > 0) {
@@ -185,13 +185,13 @@ AMI_err _AMI_KB_DIST(KB_KEY)(AMI_STREAM<T> &instream,
 
             // Get the and write the name of the stream.
 
-            ae = out_streams[ii]->name(&stream_name);
+            stream_name = out_streams[ii]->name();
+            ae = name_stream.write_array(stream_name.c_str(),
+                                         stream_name.size());
             if (ae != AMI_ERROR_NO_ERROR) {
                 return ae;
             }
-
-            ae = name_stream.write_array(stream_name,
-                                         strlen(stream_name) + 1);
+			ae = name_stream.write_item('\0');
             if (ae != AMI_ERROR_NO_ERROR) {
                 return ae;
             }
@@ -213,10 +213,6 @@ AMI_err _AMI_KB_DIST(KB_KEY)(AMI_STREAM<T> &instream,
                 return ae;
             }
             
-            // The semantics of name() are to allocate space for the
-            // buffer it returns.  We are responsible for giving it back.
-            delete [] stream_name;
-    
             // Make this stream persist on disk since it is not empty.
             out_streams[ii]->persist(PERSIST_PERSISTENT);
 

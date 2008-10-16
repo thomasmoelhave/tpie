@@ -22,9 +22,6 @@
 #include <mm.h>
 
 
-// Max length of a stream file name.
-#define STREAM_PATH_NAME_LEN TPIE_PATH_LENGTH
-    
 // The magic number of the file storing the stream.
 // (in network byteorder, it spells "TPST": TPie STream)
 #define STREAM_HEADER_MAGIC_NUMBER	0x54505354 
@@ -117,7 +114,7 @@ namespace tpie {
 	    }
 	
 	    // Return the path name in newly allocated space.
-	    err name (char **stream_name) const;
+	    std::string name() const;
 	
 	protected:
 	
@@ -179,7 +176,7 @@ namespace tpie {
 	    int m_osErrno;
 	
 	    //  Name of the underlying file.
-	    char m_path[STREAM_PATH_NAME_LEN];
+	    std::string m_path;
 	
 	private:
 	    // Prohibit these.
@@ -310,19 +307,9 @@ namespace tpie {
     
 // Return the path name in newly allocated space.
 	template < class T >
-	err stream_base<T>::name (char **stream_name) const {
-	
-	    // O.k. not to use TPIE_OS_SIZE_T
-	    size_t len = strlen (m_path);
-	
-	    tp_assert (len < STREAM_PATH_NAME_LEN, "Path length is too long.");
-	
-	    // Return the path name in newly allocated space.
-	    char *newPath = new char[len + 1];
-	    strncpy (newPath, m_path, len + 1);
-	    *stream_name = newPath;
-	
-	    return NO_ERROR;
+	std::string stream_base<T>::name() const 
+	{
+	    return std::string(m_path);
 	}
 
 	template < class T >

@@ -129,7 +129,7 @@ namespace tpie {
 	    // the input stream may have different block size from the temporary
 	    // streams created later. Until these issues are addressed, the
 	    // usage of lbf is discouraged.
-	    stream_ufs(const char     *dev_path, 
+	    stream_ufs(const std::string& dev_path, 
 		       stream_type    st,
 		       TPIE_OS_SIZE_T lbf = STREAM_UFS_BLOCK_FACTOR);
 	
@@ -248,7 +248,7 @@ namespace tpie {
 // This constructor creates a stream whose contents are taken from the
 // file whose path is given.
 	template <class T>
-	stream_ufs<T>::stream_ufs (const char     *dev_path,
+	stream_ufs<T>::stream_ufs (const std::string& dev_path,
 				   stream_type    st,
 				   TPIE_OS_SIZE_T lbf) : 
 	    m_fileDescriptor(),
@@ -263,26 +263,16 @@ namespace tpie {
 	
 	    // Check if we have available streams. Don't decrease the number
 	    // yet, since we may encounter an error.
-	    if (remaining_streams <= 0) {
+	    if (remaining_streams <= 0) 
+		{
+			m_status = STREAM_STATUS_INVALID;
 	    
-		m_status = STREAM_STATUS_INVALID;
+			TP_LOG_FATAL_ID ("BTE internal error: cannot open more streams.");
 	    
-		TP_LOG_FATAL_ID ("BTE internal error: cannot open more streams.");
-	    
-		return;
+			return;
 	    }
 	
-	    // Cache the path name
-	    if (strlen (dev_path) > STREAM_PATH_NAME_LEN - 1) {
-	    
-		m_status = STREAM_STATUS_INVALID;
-	    
-		TP_LOG_FATAL_ID ("Path name \"" << dev_path << "\" too long.");
-	    
-		return;
-	    }
-	
-	    strncpy (m_path, dev_path, STREAM_PATH_NAME_LEN);
+	    m_path = dev_path;
 	
 	    // Cache the OS block size.
 	    m_osBlockSize = os_block_size();
@@ -314,7 +304,7 @@ namespace tpie {
 	    
 		// Open the file for reading.
 		if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(m_fileDescriptor = 
-						      TPIE_OS_OPEN_ORDONLY(m_path))) {
+											  TPIE_OS_OPEN_ORDONLY(m_path.c_str()))) {
 		
 		    m_status = STREAM_STATUS_INVALID;
 		    m_osErrno = errno;
@@ -399,11 +389,11 @@ namespace tpie {
 		// already exists.  If this is the case, we will call open()
 		// again without it and read in the header block.
 		if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(m_fileDescriptor = 
-						      TPIE_OS_OPEN_OEXCL(m_path))) {
+											  TPIE_OS_OPEN_OEXCL(m_path.c_str()))) {
 		
 		    // Try again, hoping the file already exists.
 		    if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(m_fileDescriptor = 
-							  TPIE_OS_OPEN_ORDWR(m_path))) {
+												  TPIE_OS_OPEN_ORDWR(m_path.c_str()))) {
 		    
 			m_status = STREAM_STATUS_INVALID;
 			m_osErrno = errno;
@@ -623,7 +613,7 @@ namespace tpie {
 	
 	    // Copy the relevant fields from the super_stream.
 	
-	    strncpy (m_path, super_stream->m_path, STREAM_PATH_NAME_LEN);
+	    m_path = super_stream->m_path;
 	
 	    m_readOnly              = super_stream->read_only();
 	    m_osBlockSize           = super_stream->m_osBlockSize;
@@ -638,12 +628,12 @@ namespace tpie {
 	    // Only READ and WRITE streams allowed
 	    switch(st){
 	    case READ_STREAM:
-		m_fileDescriptor=TPIE_OS_OPEN_ORDONLY(m_path);
+			m_fileDescriptor=TPIE_OS_OPEN_ORDONLY(m_path.c_str());
 		break;
 	    
 	    case WRITE_STREAM:
 		//file better exist if super_stream exists
-		m_fileDescriptor=TPIE_OS_OPEN_ORDWR(m_path);
+			m_fileDescriptor=TPIE_OS_OPEN_ORDWR(m_path.c_str());
 		break;
 	    
 	    default:
@@ -859,7 +849,7 @@ namespace tpie {
 			TP_LOG_WARNING_ID("PERSIST_DELETE for read-only stream in " << m_path);
 		    } 
 		    else  {
-			if (TPIE_OS_UNLINK (m_path)) {
+				if (TPIE_OS_UNLINK (m_path.c_str())) {
 			
 			    m_osErrno = errno;
 			
