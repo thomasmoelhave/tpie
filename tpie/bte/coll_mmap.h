@@ -71,7 +71,7 @@ namespace bte {
 	// initialized Block. Main memory usage increases.
 	err new_block(BIDT &bid, void * &place) {
 
-	    err retval;
+	    err retval = ERROR_NO_ERROR;
 
 	    // Get a block id.
 	    if ((retval = new_block_getid(bid)) != ERROR_NO_ERROR) {
@@ -101,7 +101,7 @@ namespace bte {
 	// blocks. Main memory usage goes down.
 	err delete_block(BIDT bid, void * place) {
 	    
-	    err retval;
+	    err retval = ERROR_NO_ERROR;
 	    
 	    if ((retval = put_block_internals(bid, place, 1)) != ERROR_NO_ERROR) {
 		return retval; 
@@ -127,7 +127,7 @@ namespace bte {
 	// memory usage increases.
 	err get_block(BIDT bid, void * &place) {
 
-	    err retval;
+	    err retval = ERROR_NO_ERROR;
 	    
 	    if ((reval = get_block_internals(bid, place)) != ERROR_NO_ERROR) {
 		return retval;
@@ -143,7 +143,9 @@ namespace bte {
 	// onus to ensure that the bid is correct and so on; no checks made here
 	// to ensure that that is indeed the case. Main memory usage decreases.
 	err put_block(BIDT bid, void * place, char dirty = 1) {
-	    err_err retval;
+
+	    err retval = ERROR_NO_ERROR;
+
 	    if ((retval = put_block_internals(bid, place, dirty)) != ERROR_NO_ERROR) {	       
 		return retval;
 	    }

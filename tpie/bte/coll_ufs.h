@@ -61,7 +61,7 @@ namespace bte {
 	// Block. Main memory usage increases.
 	err new_block(BIDT &bid, void * &place) {
 
-	    err retval;
+	    err retval = ERROR_NO_ERROR;
 
 	    // Get a block id.
 	    if ((retval = new_block_getid(bid)) != ERROR_NO_ERROR) {
@@ -91,7 +91,7 @@ namespace bte {
 	// stdio_stack of free blocks. Main memory usage goes down.
 	err delete_block(BIDT bid, void * place) {
 	    
-	    err retval;
+	    err retval = ERROR_NO_ERROR;
 	    
 	    if ((retval = put_block_internals(bid, place, 1)) != ERROR_NO_ERROR) {
 		return retval;
@@ -117,7 +117,7 @@ namespace bte {
 	// memory usage increases.
 	err get_block(BIDT bid, void * &place) {
 	    
-	    err retval;
+	    err retval = ERROR_NO_ERROR;
 	    
 	    if ((retval = get_block_internals(bid, place)) != ERROR_NO_ERROR) {
 		return retval;
@@ -135,7 +135,7 @@ namespace bte {
 	// decreases.
 	err put_block(BIDT bid, void * place, char dirty = 1) {
 	    
-	    err retval;
+	    err retval = ERROR_NO_ERROR;
 	    
 	    if ((retval = put_block_internals(bid, place, dirty)) != ERROR_NO_ERROR) {		
 		return retval;
@@ -179,8 +179,8 @@ namespace bte {
     template<class BIDT>
     err collection_ufs<BIDT>::new_block_getid_specific(BIDT& bid) {
 
-	BIDT *lbn;
-	err retval;
+	BIDT *lbn = NULL;
+	err retval = ERROR_NO_ERROR;
 	
 	if (header_.used_blocks < header_.last_block - 1) {
 	    
