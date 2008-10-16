@@ -14,10 +14,12 @@ check_include_files("unistd.h" TPIE_HAVE_UNISTD_H)
 check_include_files("sys/unistd.h" TPIE_HAVE_SYS_UNISTD_H)
 check_include_files("sys/async.h" TPIE_HAVE_LIBAIO)
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tpie/config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h)
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/tpie)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tpie/config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/tpie/config.h)
 add_subdirectory(tpie)
+
+
 add_subdirectory(doc)
 
 option(COMPILE_TEST "Compile test programs" ON)
