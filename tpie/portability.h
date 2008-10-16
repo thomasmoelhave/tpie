@@ -290,11 +290,11 @@ typedef TPIE_OS_OFFSET TPIE_BLOCK_ID_TYPE;
 #ifdef _WIN32
 #define	 TMP_DIR ".\\"
 #define TPLOGDIR ".\\"
-#define TPIE_OS_TEMPNAMESTR "%s\\%s_XXXXXX.%s"
+#define TPIE_OS_TEMPNAMESTR "%s\\%s_%s%sXXXXXX.%s"
 #else
 #define	TMP_DIR	"/var/tmp/"
 #define TPLOGDIR "/tmp/"
-#define TPIE_OS_TEMPNAMESTR "%s/%s_XXXXXX.%s"
+#define TPIE_OS_TEMPNAMESTR "%s/%s_%s%sXXXXXX.%s"
 #endif
 
  
@@ -989,7 +989,7 @@ logstream& logstream::operator<<(const LONGLONG x)\
     char buf[30];\
     sprintf(buf,"%I64d",x);\
     if (priority <= threshold) {\
-          ofstream::operator<<(buf);\
+	std::ofstream::operator<<(buf);\
     }\
     return *this;\
 }
@@ -1046,7 +1046,7 @@ void * operator new(\
        TP_LOG_FATAL(" exceeds user-defined limit ");\
        TP_LOG_FATAL((TPIE_OS_LONG)(MM_manager.memory_limit()));\
        TP_LOG_FATAL(" ");\
-        std::cerr << "memory manager: memory allocation limit " << (TPIE_OS_LONG)MM_manager.memory_limit() << " exceeded while allocating " << (TPIE_OS_LONG)cb << " bytes" << endl;\
+	   std::cerr << "memory manager: memory allocation limit " << (TPIE_OS_LONG)MM_manager.memory_limit() << " exceeded while allocating " << (TPIE_OS_LONG)cb << " bytes" << std::endl;\
         exit(1);\
         break;\
     case MM_WARN_ON_MEMORY_EXCEEDED: \
@@ -1058,7 +1058,7 @@ void * operator new(\
       TP_LOG_WARNING((TPIE_OS_LONG)(MM_manager.memory_limit ()));\
       TP_LOG_WARNING("\" \n");\
       TP_LOG_FLUSH_LOG;\
-       std::cerr << "memory manager: memory allocation limit " << (TPIE_OS_LONG)MM_manager.memory_limit () << " exceeded " << "while allocating " << (TPIE_OS_LONG)cb << " bytes" << endl;\
+	  std::cerr << "memory manager: memory allocation limit " << (TPIE_OS_LONG)MM_manager.memory_limit () << " exceeded " << "while allocating " << (TPIE_OS_LONG)cb << " bytes" << std::endl;\
        break;\
    case MM_IGNORE_MEMORY_EXCEEDED:\
        break;\
@@ -1068,7 +1068,7 @@ void * operator new(\
    if (!p) {\
       TP_LOG_FATAL_ID("Out of memory. Cannot continue.");\
       TP_LOG_FLUSH_LOG;\
-       std::cerr << "out of memory while allocating " << (TPIE_OS_LONG)cb << " bytes" << endl;\
+	  std::cerr << "out of memory while allocating " << (TPIE_OS_LONG)cb << " bytes" << std::endl;\
        perror ("mm_base::new malloc");\
        assert(0);\
        exit (1);\
@@ -1087,7 +1087,12 @@ void * operator new(\
 #else
 #define TPIE_OS_SET_GLIBCPP_FORCE_NEW setenv("GLIBCPP_FORCE_NEW", "1", 1);
 #define TPIE_OS_UNSET_GLIBCPP_FORCE_NEW unsetenv("GLIBCPP_FORCE_NEW");
-#endif 
+#endif
+
+#ifdef _WIN32
+#define NOMINMAX  //ensures that the windows min/max macros are not defined 
+#undef NO_ERROR //ensures that the NO_ERROR macro of windows is not defined
+#endif
 
 #endif 
 
