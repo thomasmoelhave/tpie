@@ -18,8 +18,6 @@
 // Get the base class, enums, etc...
 #include <bte/stream_base.h>
 
-namespace bte {
-    
 #ifdef BTE_IMP_UFS
 #  define BTE_STREAM_IMP_UFS
 #endif
@@ -64,7 +62,7 @@ namespace bte {
 // that will be used.
     
 #ifdef BTE_STREAM_IMP_MULTI_IMP
-#  define BTE_STREAM stream_base
+#  define BTE_STREAM tpie::bte::stream_base
 #endif
     
 // User defined implementation.
@@ -80,7 +78,7 @@ namespace bte {
 #    ifdef BTE_STREAM
 #      undef BTE_STREAM
 #    endif
-#    define BTE_STREAM stream_stdio
+#    define BTE_STREAM tpie::bte::stream_stdio
 #  endif
 #endif
 
@@ -92,7 +90,7 @@ namespace bte {
 #    ifdef BTE_STREAM
 #      undef BTE_STREAM
 #    endif
-#    define BTE_STREAM stream_mmap
+#    define BTE_STREAM tpie::bte::stream_mmap
 #  endif
 #endif
 
@@ -104,7 +102,7 @@ namespace bte {
 #    ifdef BTE_STREAM
 #      undef BTE_STREAM
 #    endif
-#    define BTE_STREAM stream_ufs
+#    define BTE_STREAM tpie::bte::stream_ufs
 #  endif
 #endif
     

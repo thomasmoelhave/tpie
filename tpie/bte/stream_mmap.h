@@ -47,7 +47,9 @@
 #  define STREAM_MMAP_BLOCK_FACTOR 8
 #endif
 
-namespace bte {
+namespace tpie {
+
+    namespace bte {
 
 // Figure out the block offset for an offset (pos) in file.
 // os_block_size_ is assumed to be the header size.
@@ -62,160 +64,162 @@ namespace bte {
 // BTE stream of objects of type T.  This version maps in only one
 // block of the file at a time. 
 //
-    template <class T> 
-    class stream_mmap: public stream_base < T > {
+	template <class T> 
+	class stream_mmap: public stream_base < T > {
 	
-	// CHECK THIS: Is this needed anymore?      
+	    // CHECK THIS: Is this needed anymore?      
 // These are for gcc-3.4 compatibility
-    protected:
-	using stream_base<T>::remaining_streams;
-	using stream_base<T>::m_substreamLevel;
-	using stream_base<T>::m_status;
-	using stream_base<T>::m_persistenceStatus;
-	using stream_base<T>::m_readOnly;
-	using stream_base<T>::m_path;
-	using stream_base<T>::m_osBlockSize;
-	using stream_base<T>::m_fileOffset;
-	using stream_base<T>::m_logicalBeginOfStream;
-	using stream_base<T>::m_logicalEndOfStream;
-	using stream_base<T>::m_fileLength;
-	using stream_base<T>::m_osErrno;
-	using stream_base<T>::m_header;
+	protected:
+	    using stream_base<T>::remaining_streams;
+	    using stream_base<T>::m_substreamLevel;
+	    using stream_base<T>::m_status;
+	    using stream_base<T>::m_persistenceStatus;
+	    using stream_base<T>::m_readOnly;
+	    using stream_base<T>::m_path;
+	    using stream_base<T>::m_osBlockSize;
+	    using stream_base<T>::m_fileOffset;
+	    using stream_base<T>::m_logicalBeginOfStream;
+	    using stream_base<T>::m_logicalEndOfStream;
+	    using stream_base<T>::m_fileLength;
+	    using stream_base<T>::m_osErrno;
+	    using stream_base<T>::m_header;
 	
-	using stream_base<T>::check_header;
-	using stream_base<T>::init_header;
-	using stream_base<T>::register_memory_allocation;
-	using stream_base<T>::register_memory_deallocation;
-	using stream_base<T>::record_statistics;
+	    using stream_base<T>::check_header;
+	    using stream_base<T>::init_header;
+	    using stream_base<T>::register_memory_allocation;
+	    using stream_base<T>::register_memory_deallocation;
+	    using stream_base<T>::record_statistics;
 	
-    public:
-	using stream_base<T>::name;
-	using stream_base<T>::os_block_size;
+	public:
+	    using stream_base<T>::name;
+	    using stream_base<T>::os_block_size;
 // End: These are for gcc-3.4 compatibility
 	
-    public:
-	// Constructor.
-	// [tavi 01/09/02] Careful with the lbf (logical block factor)
-	// parameter. I introduced it in order to avoid errors when reading
-	// a stream having a different block factor from the default, but
-	// this may cause errors in applications. For example,
-	// AMI_partition_and merge computes memory requirements of temporary
-	// streams based on the memory usage of the INPUT stream. However,
-	// the input stream may have different block size from the temporary
-	// streams created later. Until these issues are addressed, the
-	// usage of lbf is discouraged.
-	stream_mmap(const char     *dev_path, 
-		    stream_type    st, 
-		    TPIE_OS_SIZE_T lbf = STREAM_MMAP_BLOCK_FACTOR);
+	public:
+	    // Constructor.
+	    // [tavi 01/09/02] Careful with the lbf (logical block factor)
+	    // parameter. I introduced it in order to avoid errors when reading
+	    // a stream having a different block factor from the default, but
+	    // this may cause errors in applications. For example,
+	    // AMI_partition_and merge computes memory requirements of temporary
+	    // streams based on the memory usage of the INPUT stream. However,
+	    // the input stream may have different block size from the temporary
+	    // streams created later. Until these issues are addressed, the
+	    // usage of lbf is discouraged.
+	    stream_mmap(const char     *dev_path, 
+			stream_type    st, 
+			TPIE_OS_SIZE_T lbf = STREAM_MMAP_BLOCK_FACTOR);
 	
-	// A substream constructor.
-	stream_mmap(stream_mmap    *super_stream,
-		    stream_type    st, 
-		    TPIE_OS_OFFSET sub_begin, 
-		    TPIE_OS_OFFSET sub_end);
+	    // A substream constructor.
+	    stream_mmap(stream_mmap    *super_stream,
+			stream_type    st, 
+			TPIE_OS_OFFSET sub_begin, 
+			TPIE_OS_OFFSET sub_end);
 	
-	// A psuedo-constructor for substreams.
-	err new_substream(stream_type    st, 
-			  TPIE_OS_OFFSET sub_begin,
-			  TPIE_OS_OFFSET sub_end,
-			  stream_base<T> **sub_stream);
+	    // A psuedo-constructor for substreams.
+	    err new_substream(stream_type    st, 
+			      TPIE_OS_OFFSET sub_begin,
+			      TPIE_OS_OFFSET sub_end,
+			      stream_base<T> **sub_stream);
 	
-	// Destructor
-	~stream_mmap ();
+	    // Destructor
+	    ~stream_mmap ();
 	
-	inline err read_item(T ** elt);
-	inline err write_item(const T & elt);
+	    inline err read_item(T ** elt);
+	    inline err write_item(const T & elt);
 	
-	// Move to a specific position in the stream.
-	err seek(TPIE_OS_OFFSET offset);
+	    // Move to a specific position in the stream.
+	    err seek(TPIE_OS_OFFSET offset);
 	
-	// Truncate the stream.
-	err truncate(TPIE_OS_OFFSET offset);
+	    // Truncate the stream.
+	    err truncate(TPIE_OS_OFFSET offset);
 	
-	// Return the number of items in the stream.
-	inline TPIE_OS_OFFSET stream_len() const;
+	    // Return the number of items in the stream.
+	    inline TPIE_OS_OFFSET stream_len() const;
 	
-	// Return the current position in the stream.
-	inline TPIE_OS_OFFSET tell() const;
+	    // Return the current position in the stream.
+	    inline TPIE_OS_OFFSET tell() const;
 	
-	// Query memory usage
-	err main_memory_usage(TPIE_OS_SIZE_T* usage, 
-			      MM_stream_usage usage_type);
+	    // Query memory usage
+	    err main_memory_usage(TPIE_OS_SIZE_T* usage, 
+				  MM_stream_usage usage_type);
 	
-	TPIE_OS_OFFSET chunk_size() const;
+	    TPIE_OS_OFFSET chunk_size() const;
 	
 	
-	inline err grow_file (TPIE_OS_OFFSET block_offset);
+	    inline err grow_file (TPIE_OS_OFFSET block_offset);
 	
-    private:
+	private:
 	
 #ifdef STREAM_MMAP_READ_AHEAD
-	// Read ahead into the next logical block.
-	void read_ahead ();
+	    // Read ahead into the next logical block.
+	    void read_ahead ();
 #endif
 	
-	void initialize ();
+	    void initialize ();
 	
-	stream_header *map_header ();
-	void unmap_header ();
+	    stream_header *map_header ();
+	    void unmap_header ();
 	
-	inline err validate_current ();
-	inline err invalidate_current ();
+	    inline err validate_current ();
+	    inline err invalidate_current ();
 	
-	err map_current ();
-	err unmap_current ();
+	    err map_current ();
+	    err unmap_current ();
 
-	inline err advance_current ();
+	    inline err advance_current ();
 	
-	inline TPIE_OS_OFFSET item_off_to_file_off (TPIE_OS_OFFSET item_off) const;
-	inline TPIE_OS_OFFSET file_off_to_item_off (TPIE_OS_OFFSET item_off) const;
+	    inline TPIE_OS_OFFSET item_off_to_file_off (TPIE_OS_OFFSET item_off) const;
+	    inline TPIE_OS_OFFSET file_off_to_item_off (TPIE_OS_OFFSET item_off) const;
 
 #ifdef COLLECT_STATS
-	long stats_hits;
-	long stats_misses;
-	long stats_compulsory;
-	long stats_eos;
+	    long stats_hits;
+	    long stats_misses;
+	    long stats_compulsory;
+	    long stats_eos;
 #endif
 	
-	unsigned int m_mmapStatus;
+	    unsigned int m_mmapStatus;
 	
-	// descriptor of the mapped file.
-	TPIE_OS_FILE_DESCRIPTOR m_fileDescriptor;	
+	    // descriptor of the mapped file.
+	    TPIE_OS_FILE_DESCRIPTOR m_fileDescriptor;	
 	
-	// Pointer to the current item (mapped in).
-	T *m_currentItem;
+	    // Pointer to the current item (mapped in).
+	    T *m_currentItem;
 	
-	// Pointer to beginning of the currently mapped block.
-	T *m_currentBlock;
+	    // Pointer to beginning of the currently mapped block.
+	    T *m_currentBlock;
 	
-	// True if current points to a valid, mapped block.
-	bool m_blockValid;
+	    // True if current points to a valid, mapped block.
+	    bool m_blockValid;
 	
-	// True if the m_currentBlock is mapped.
-	bool m_blockMapped;
+	    // True if the m_currentBlock is mapped.
+	    bool m_blockMapped;
 	
-	// for use in double buffering
-	T *m_nextBlock;		        // ptr to next block
-	TPIE_OS_OFFSET m_nextBlockOffset;	// position of next block
-	bool m_haveNextBlock;		// is next block mapped
-	bool m_writeOnly;			// stream is write-only
+	    // for use in double buffering
+	    T *m_nextBlock;		        // ptr to next block
+	    TPIE_OS_OFFSET m_nextBlockOffset;	// position of next block
+	    bool m_haveNextBlock;		// is next block mapped
+	    bool m_writeOnly;			// stream is write-only
 	
 	
 #ifdef STREAM_MMAP_READ_AHEAD
-	T* m_nextBlock;
+	    T* m_nextBlock;
 #endif
 	
 #if USE_LIBAIO
-	// A buffer to read the first word of each OS block in the next logical
-	// block for read ahead.
-	int read_ahead_buffer[STREAM_MMAP_BLOCK_FACTOR];
+	    // A buffer to read the first word of each OS block in the next logical
+	    // block for read ahead.
+	    int read_ahead_buffer[STREAM_MMAP_BLOCK_FACTOR];
 	
-	// Results of asyncronous I/O.
-	aio_result_t aio_results[STREAM_MMAP_BLOCK_FACTOR];
+	    // Results of asyncronous I/O.
+	    aio_result_t aio_results[STREAM_MMAP_BLOCK_FACTOR];
 #endif
 	
-    };
+	};
     
+    }
+
 /* ********************************************************************** */
     
 /* definitions start here */
@@ -507,7 +511,7 @@ namespace bte {
 	// [The header is allocated using "new", so no need to register.]
 	// Since blocks and header are allocated by mmap and not "new",
 	// register memory manually. No mem overhead with mmap
-        // register_memory_allocation (sizeof (stream_header));
+	// register_memory_allocation (sizeof (stream_header));
 	register_memory_allocation (STREAM_MMAP_MM_BUFFERS * m_header->m_blockSize);
 	
 	record_statistics(STREAM_OPEN);
@@ -1589,7 +1593,8 @@ namespace bte {
 #endif				// STREAM_MMAP_READ_AHEAD
     
 #undef STREAM_MMAP_MM_BUFFERS
-    
-}
+} //  bte namespace
+
+} // tpie namespace
 
 #endif	// _TPIE_BTE_STREAM_MMAP_H

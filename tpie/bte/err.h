@@ -14,28 +14,32 @@
 // Get definitions for working with Unix and Windows
 #include <portability.h>
 
-namespace bte {
-    
+namespace tpie {
+
+    namespace bte {
+	
 //
-// BTE error codes are returned using the BTE_err type.
+// BTE error codes.
 //
-    enum err {
-	NO_ERROR = 0,
-	IO_ERROR,
-	END_OF_STREAM,
-	READ_ONLY,
-	OS_ERROR,
-	BASE_METHOD,
-	MEMORY_ERROR,
-	PERMISSION_DENIED,
-	OFFSET_OUT_OF_RANGE,
-	OUT_OF_SPACE,
-	STREAM_IS_SUBSTREAM,
-	WRITE_ONLY,
-	BAD_HEADER,
-	INVALID_PLACEHOLDER
-    };
+	enum err {
+	    NO_ERROR = 0,
+	    IO_ERROR,
+	    END_OF_STREAM,
+	    READ_ONLY,
+	    OS_ERROR,
+	    BASE_METHOD,
+	    MEMORY_ERROR,
+	    PERMISSION_DENIED,
+	    OFFSET_OUT_OF_RANGE,
+	    OUT_OF_SPACE,
+	    STREAM_IS_SUBSTREAM,
+	    WRITE_ONLY,
+	    BAD_HEADER,
+	    INVALID_PLACEHOLDER
+	};
     
-}
+    }  //  bte namespace
+    
+}  //  tpie namespace
 
 #endif // _TPIE_ERR_H

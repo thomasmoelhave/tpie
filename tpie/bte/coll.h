@@ -41,8 +41,8 @@
 #  define BTE_COLLECTION_IMP_MMAP
 #endif
 
-#define BTE_COLLECTION_MMAP BTE_collection_mmap<TPIE_BLOCK_ID_TYPE>
-#define BTE_COLLECTION_UFS  BTE_collection_ufs<TPIE_BLOCK_ID_TYPE>
+#define BTE_COLLECTION_MMAP tpie::bte::collection_mmap<TPIE_BLOCK_ID_TYPE>
+#define BTE_COLLECTION_UFS  tpie::bte::collection_ufs<TPIE_BLOCK_ID_TYPE>
 
 #if defined(BTE_COLLECTION_IMP_MMAP)
 #  define BTE_COLLECTION BTE_COLLECTION_MMAP
