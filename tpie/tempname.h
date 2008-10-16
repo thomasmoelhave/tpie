@@ -24,11 +24,11 @@ std::string tpie_tempnam(const std::string& post_base,
 						 const std::string& dir = std::string(), 
 						 const std::string& ext = std::string());
 
-void set_default_tmp_names(char* path, char* base, char* extension);
+void set_default_tmp_names(const std::string& path, const std::string& base, const std::string& extension);
 
-void set_default_tmp_path(char* path);
-void set_default_base_name(char* name);
-void set_default_extension(char* ext);
+void set_default_tmp_path(const std::string& path);
+void set_default_base_name(const std::string& name);
+void set_default_extension(const std::string& ext);
 
 std::string& get_default_tmp_path();
 std::string& get_default_base_name();

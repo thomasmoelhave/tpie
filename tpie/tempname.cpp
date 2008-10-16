@@ -89,21 +89,21 @@ std::string tpie_mktemp()
 	return result;
 }
 
-void set_default_tmp_names(char* path, char* base, char* extension) {
+void set_default_tmp_names(const std::string& path, const std::string& base, const std::string& extension) {
 	default_path = path;
 	default_base_name = base;
 	default_extension = extension;
 }
 
-void set_default_tmp_path(char* path) {
+void set_default_tmp_path(const std::string&  path) {
 	default_path = path;
 }
 
-void set_default_base_name(char* name) {
+void set_default_base_name(const std::string& name) {
 	default_base_name = name;
 }
 
-void set_default_extension(char* ext) {
+void set_default_extension(const std::string& ext) {
 	default_extension = ext;
 }
 
