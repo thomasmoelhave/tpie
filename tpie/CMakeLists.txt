@@ -93,7 +93,6 @@ set (OTHER_HEADERS
 		tpie_stats_tree.h
 		tempname.h
 		vararray.h
-		versions.h
 		lib_config.h
 		)
 
