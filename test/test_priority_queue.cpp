@@ -1,16 +1,62 @@
-#include "priority_queue.h"
+//#define TP_LOG_APPS
+
+#include "app_config.h"
+#include <portability.h>
+#include <priority_queue.h>
 #include <iostream>
 #include <queue>
+#include <cstdlib>
 
 using namespace std;
 
+const double PI = acos(-1.0);
+
+void pq_large_instance(){
+  MM_manager.set_memory_limit(10*1024*1024);
+  int cnt=0;
+  tpie::priority_queue<int, std::greater<int> > pq;
+  std::priority_queue<int, vector<int>,std::less<int> > pq2;
+  for(int i=0;;i++){
+    double th = (cos(i*2.0*PI/500000.0)+1.0)*(RAND_MAX/2);
+    if(!pq.empty()){
+      if(pq.top()!=pq2.top()){
+	cerr << "Priority queues differ, got " << pq.top() << " but expected " 
+	     << pq2.top() << "\n";
+	assert(0);
+      }
+    }else{
+      assert(cnt==0);
+    }
+    if(rand()<th){
+      //cout << "Insert\n";
+      cnt++;
+      int r = rand();
+      pq.push(r);
+      pq2.push(r);
+    }else{
+      //cout << "Delete\n";
+      if(pq.empty())
+	continue;
+      cnt--;
+      pq.pop();
+      pq2.pop();
+    }
+    cout << "Size: " << cnt << "\r";
+  }
+}
 
 void pq_small_instance(){
-    cout << "tpie::priority_queue Debug - M test" << endl;
-    TPIE_OS_OFFSET iterations = 1000000;
-    MM_manager.set_memory_limit(600);
+  MM_manager.set_memory_limit(10*1024*1024);
+  //cout << "LOGGING: " << logstream::log_initialized << "\n";
+  //tpie_log_init(TPIE_LOG_WARNING);
+  //cout << "LOGGING: " << logstream::log_initialized << "\n";
+
+
+  cout << "tpie::priority_queue Debug - M test" << endl;
+    TPIE_OS_OFFSET iterations = 2500;
+    //    MM_manager.set_memory_limit(600);
     for(TPIE_OS_OFFSET it = 1100; it < iterations; it++)  {
-      cout << "Iteration: " << it << endl;
+      cout << "Iteration: " << it << " avail: " << MM_manager.memory_available() << "\n";
       tpie::priority_queue<int, std::greater<int> > pq;
       std::priority_queue<int, vector<int>,std::less<int> > pq2;
 
@@ -60,7 +106,7 @@ void pq_small_instance(){
           //pq.dump();
           exit(-1);
         }
-//        cout << "pop " << pq.top() << endl;
+	//        cout << "pop " << pq.top() << endl;
         pq.pop();
         pq2.pop();
       }
@@ -69,18 +115,12 @@ void pq_small_instance(){
   }
 
 
-int main(){
-
-  tpie::priority_queue<int> pq;
-  pq.push(5);
-  pq.push(2);
-  pq.push(11);
-  cout << pq.top() << "\n";
-  pq.pop();
-  cout << pq.top() << "\n";
-  pq.pop();
-  cout << pq.top() << "\n";
-  pq.pop();  
-
-  pq_small_instance();
+int main(int argc,char** argv){
+  if(argc!=2){
+    cout << "Arguments are test_priority_queue <type>\nWhere type is either \"small\" or \"large\"\n";
+  }
+  if(strcmp(argv[1],"small")==0)
+    pq_small_instance();
+  else if(strcmp(argv[1],"large")==0)
+    pq_large_instance();
 }

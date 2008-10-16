@@ -172,5 +172,5 @@ void pq_merge_heap<T, Comparator>::dump() {
 	for(TPIE_OS_OFFSET i = 0; i<m_size; i++) {
 		TP_LOG_DEBUG(heap[i] << ", ");
 	}
-	TP_LOG_DEBUG(std::endl);
+	TP_LOG_DEBUG("\n");
 }
