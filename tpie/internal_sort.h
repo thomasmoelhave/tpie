@@ -417,7 +417,7 @@ namespace tpie {
 
 	    // Make sure we called allocate earlier
 	    if (ItemArray==NULL || sortItemArray==NULL) {
-		return AMI_ERROR_NULL_POINTER;
+		return NULL_POINTER;
 	    }
 	    
 	    tp_assert ( nItems <= len, "nItems more than interal buffer size.");

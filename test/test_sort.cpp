@@ -346,7 +346,7 @@ void get_app_info(int argc, char** argv, appInfo & Info){
   }  
   
   //check if path is valid
-  string tmpfname = tpie_tempnam(APP_FILE_BASE,Info.path);
+  std::string tmpfname = tpie_tempnam(APP_FILE_BASE,Info.path);
   TPIE_OS_FILE_DESCRIPTOR fd;
   fd=TPIE_OS_OPEN_OEXCL(tmpfname);
   if(TPIE_OS_IS_VALID_FILE_DESCRIPTOR(fd)){
@@ -390,7 +390,7 @@ char* ll2size(TPIE_OS_LONGLONG n, char* buf){
 }
 
 // Open a stream, write num_items, close stream
-void write_random_stream(char* fname, appInfo & info, progress_indicator_base* indicator=NULL){
+void write_random_stream(std::string fname, appInfo & info, progress_indicator_base* indicator=NULL){
   
   TPIE_OS_OFFSET i,n,trunc;
   ami::err ae = ami::NO_ERROR;
@@ -448,7 +448,7 @@ void write_random_stream(char* fname, appInfo & info, progress_indicator_base* i
 }
 
 // Read sorted stream from fname and check that its elements are sorted
-void check_sorted(char * fname, appInfo & info, progress_indicator_base* indicator=NULL){
+void check_sorted(std::string fname, appInfo & info, progress_indicator_base* indicator=NULL){
 
   TPIE_OS_LONGLONG i,n;
   SortItem *x, x_prev;
@@ -599,9 +599,13 @@ void internal_sort_test(const appInfo& info){
 ami::err test_3x_sort(appInfo& info, enum test_type ttype, progress_indicator_base* indicator=NULL){
   //Make up some temp filenames
   std::cout << "****TEST START****" << std::endl;
-  char fname[BUFSIZ], fname2[BUFSIZ];
-  strncpy(fname, tpie_tempnam(APP_FILE_BASE, info.path), BUFSIZ);
-  strncpy(fname2, tpie_tempnam(APP_FILE_BASE, info.path), BUFSIZ);
+//  char fname[BUFSIZ], fname2[BUFSIZ];
+//  strncpy(fname, tpie_tempnam(APP_FILE_BASE, info.path), BUFSIZ);
+//  strncpy(fname2, tpie_tempnam(APP_FILE_BASE, info.path), BUFSIZ);
+  
+  std::string fname  = tpie_tempnam(APP_FILE_BASE, info.path);
+  std::string fname2 = tpie_tempnam(APP_FILE_BASE, info.path);
+  
   //Create the input stream
   write_random_stream(fname, info, indicator);
   
@@ -660,7 +664,9 @@ ami::err test_3x_sort(appInfo& info, enum test_type ttype, progress_indicator_ba
   delete outStr;
 
   //Check the output
-  if(ae==ami::NO_ERROR){ check_sorted(fname2, info, indicator); }
+  if(ae==ami::NO_ERROR) { 
+      check_sorted(fname2, info, indicator); 
+  }
 
   //delete stream from disk
   std::cout << "\nDeleting streams " << fname << " and " << fname2 << std::endl;
@@ -674,8 +680,10 @@ ami::err test_3x_sort(appInfo& info, enum test_type ttype, progress_indicator_ba
 ami::err test_2x_sort(appInfo& info, enum test_type ttype, progress_indicator_base* indicator=NULL){
   //Make up some temp filenames
   std::cout << "****TEST START****" << std::endl;
-  char fname[BUFSIZ];
-  strncpy(fname, tpie_tempnam(APP_FILE_BASE, info.path), BUFSIZ);
+//  char fname[BUFSIZ];
+//  strncpy(fname, tpie_tempnam(APP_FILE_BASE, info.path), BUFSIZ);
+
+  std::string fname = tpie_tempnam(APP_FILE_BASE, info.path);
   //Create the input stream
   write_random_stream(fname, info, indicator);
   

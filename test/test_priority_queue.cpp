@@ -14,7 +14,7 @@ const double PI = acos(-1.0);
 void pq_large_instance(){
   MM_manager.set_memory_limit(64*1024*1024);
   int cnt=0;
-  tpie::priority_queue<int, std::greater<int> > pq(0.75);
+  tpie::ami::priority_queue<int, std::greater<int> > pq(0.75);
   std::priority_queue<int, vector<int>,std::less<int> > pq2;
   for(int i=0;;i++){
     double th = (cos(i*2.0*PI/500000.0)+1.0)*(RAND_MAX/2);
@@ -76,7 +76,7 @@ void pq_small_instance(){
     MM_manager.set_memory_limit(16*1024*1024);
     for(TPIE_OS_OFFSET it = 1100; it < iterations; it++)  {
       std::cerr << "Iteration: " << it;
-      tpie::priority_queue<int, std::greater<int> > pq(0.75);
+      tpie::ami::priority_queue<int, std::greater<int> > pq(0.75);
       std::priority_queue<int, vector<int>,std::less<int> > pq2;
 
       TPIE_OS_OFFSET elements = 71;
