@@ -10,9 +10,6 @@
 // Get definitions for working with Unix and Windows
 #include <portability.h>
 
-// include definition of VERSION macro
-#include <versions.h>
-
 // Include the configuration header.
 #include <config.h>
 
