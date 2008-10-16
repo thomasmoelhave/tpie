@@ -16,6 +16,10 @@
 #define _TPIE_SMALL_MAIN_MEMORY
 
 #ifdef _WIN32
+#define NOMINMAX  //ensures that the windows min/max macros are not defined 
+#endif
+
+#ifdef _WIN32
 #ifndef __MINGW32__
 #pragma warning (disable : 4018) // signed/unsigned comparison mismatch
 #pragma warning (disable : 4786) // debug identifier truncated to 255 chars.
@@ -1090,9 +1094,9 @@ void * operator new(\
 #endif
 
 #ifdef _WIN32
-#define NOMINMAX  //ensures that the windows min/max macros are not defined 
 #undef NO_ERROR //ensures that the NO_ERROR macro of windows is not defined
 #endif
+
 
 #endif 
 
