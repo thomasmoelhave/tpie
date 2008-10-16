@@ -47,12 +47,12 @@ priority_queue<T, Comparator, OPQType>::priority_queue(double f) { // constructo
 		setting_mmark = (setting_m/8)/sizeof(T);
 		// one block from each stream plus one element from each: use merge buffer ram
 		setting_k = std::min((unsigned int)max_k,(int)((setting_m*2/sizeof(T))-sizeof(T)*max_k)/((usage/sizeof(T))+sizeof(T)));
-		//cout << "max calc k:" << (int)((setting_m*2/sizeof(T))-sizeof(T)*max_k)/((usage/sizeof(T))+sizeof(T)) << endl;
+		//cout << "max calc k:" << (int)((setting_m*2/sizeof(T))-sizeof(T)*max_k)/((usage/sizeof(T))+sizeof(T)) << std::endl;
 		if(setting_k <= 2) {
-			cerr << "Priority Queue: Fanout too small" << endl;
+			TP_LOG_FATAL_ID( "Priority Queue: Fanout too small.");
 			exit(-1);
 		}
-		//cout << "stream usage(bytes): " << usage << endl;
+		TP_LOG_DEBUG("stream usage(bytes): " << usage << std::endl);
 	}
 
 	current_r = 0;
@@ -60,10 +60,10 @@ priority_queue<T, Comparator, OPQType>::priority_queue(double f) { // constructo
 	buffer_size = 0;
 	buffer_start = 0;
 
-	cout << "priority_queue" << endl 
-		<< "\tsetting_k: " << setting_k << endl 
-		<< "\tsetting_mmark: " << setting_mmark << endl 
-		<< "\tsetting_m: " << setting_m << endl;
+	TP_LOG_DEBUG("priority_queue" << std::endl 
+		<< "\tsetting_k: " << setting_k << std::endl 
+		<< "\tsetting_mmark: " << setting_mmark << std::endl 
+		<< "\tsetting_m: " << setting_m << std::endl);
 
 	assert(setting_k > 0);
 	assert(current_r == 0);
@@ -71,10 +71,10 @@ priority_queue<T, Comparator, OPQType>::priority_queue(double f) { // constructo
 	assert(setting_mmark > 0);
 	assert(setting_m > setting_mmark);
 	if(setting_m < setting_mmark) {
-		cout << "wrong settings" << endl;
+		TP_LOG_FATAL_ID("wrong settings");
 		exit(-1);
 	}
-
+	
 	opq = new OPQType(setting_m);
 	assert(OPQType::sorted_factor == 1);
 	if(opq == NULL) throw std::bad_alloc();
@@ -102,18 +102,17 @@ priority_queue<T, Comparator, OPQType>::priority_queue(double f) { // constructo
 		group_state[i] = 0;
 	}
 
-	// calculate maximum size of queue
+	// calculate maximum size of queue for debugging purposes
 	if(setting_k < 5) { // the maxsize variable easily overflows...
 		TPIE_OS_OFFSET maxsize = 0;
 		for(TPIE_OS_OFFSET i = 0; i< setting_k; i++) {
 			maxsize = maxsize + setting_k*slot_max_size(setting_k*i);
 		}
-
-		cout << "\tQueue max size(only external): " << maxsize << endl;
+		TP_LOG_DEBUG("\tQueue max size(only external): " << maxsize << std::endl);
 	}
 
 	sprintf(datafiles, "%s", tpie_tempnam("AMI_PQ_DATA"));
-	cout << "memory after alloc: " << MM_manager.memory_available() << "b" << endl;
+	TP_LOG_DEBUG("memory after alloc: " << MM_manager.memory_available() << "b" << std::endl);
 }
 
 template <typename T, typename Comparator, typename OPQType>
@@ -126,20 +125,20 @@ priority_queue<T, Comparator, OPQType>::~priority_queue() { // destructor
 	}
 
 	delete opq;
-	delete slot_state;
-	delete group_state;
-	delete buffer;
-	delete gbuffer0;
-	delete mergebuffer;
+	delete[] slot_state;
+	delete[] group_state;
+	delete[] buffer;
+	delete[] gbuffer0;
+	delete[] mergebuffer;
 }
 
 template <typename T, typename Comparator, typename OPQType>
 void priority_queue<T, Comparator, OPQType>::push(const T& x) {
-	//cout << "push start" << endl;
+	//cout << "push start" << std::endl;
 	if(opq->full()) {
-		//cout << "----calling free" << endl;
+		//cout << "----calling free" << std::endl;
 		TPIE_OS_OFFSET slot = free_slot(0);
-		//cout << "done calling free, free found: " << slot << endl;
+		//cout << "done calling free, free found: " << slot << std::endl;
 		assert(opq->sorted_size() == setting_m);
 		T* arr = opq->sorted_array();
 		if(buffer_size > 0) { // maintain heap invariant for buffer
@@ -175,13 +174,13 @@ void priority_queue<T, Comparator, OPQType>::push(const T& x) {
 
 template <typename T, typename Comparator, typename OPQType>
 void priority_queue<T, Comparator, OPQType>::pop() {
-	//cout << "pop" << endl;
+	//cout << "pop" << std::endl;
 	if(m_size == 0) {
-		cout << "Error, queue is empty, pop" << endl;
+		TP_LOG_FATAL_ID("Error, queue is empty, pop");
 		exit(-1);
 	}
 	top();
-	//cout << "return to pop from top" << endl;
+	//cout << "return to pop from top" << std::endl;
 	if(min_in_buffer) {
 		buffer_size--;
 		buffer_start++;
@@ -195,22 +194,22 @@ void priority_queue<T, Comparator, OPQType>::pop() {
 #ifndef NDEBUG
 	validate();
 #endif
-	//cout << "end pop" << endl;
+	//cout << "end pop" << std::endl;
 }
 
 template <typename T, typename Comparator, typename OPQType>
 const T& priority_queue<T, Comparator, OPQType>::top() {
-	//cout << "top of top" << endl;
+	//cout << "top of top" << std::endl;
 	//dump();
 	if(buffer_size == 0 && opq->size() != m_size) {
-		//cout << "fill min buffer" << endl;
+		//cout << "fill min buffer" << std::endl;
 		fill_buffer();
-		//cout << "done fill min buffer" << endl;
+		//cout << "done fill min buffer" << std::endl;
 	}
-	//cout << "buffer filled" << endl;
+	//cout << "buffer filled" << std::endl;
 	if(buffer_size == 0 && opq->size() == 0) {
 		//    dump();
-		cout << "Error, queue is empty, top" << endl;
+		TP_LOG_FATAL_ID("Error, queue is empty, top");
 		exit(-1);
 	} else if(opq->size() == 0) {
 		min=buffer[buffer_start];
@@ -225,8 +224,8 @@ const T& priority_queue<T, Comparator, OPQType>::top() {
 		min=opq->top();
 		min_in_buffer = false;
 	}
-	//cout << "min in buffer: " << min_in_buffer << endl;
-	//cout << "end of top" << endl;
+	//cout << "min in buffer: " << min_in_buffer << std::endl;
+	//cout << "end of top" << std::endl;
 #ifndef NDEBUG
 	validate();
 #endif
@@ -261,40 +260,40 @@ F priority_queue<T, Comparator, OPQType>::pop_equals(F f) {
 
 template <typename T, typename Comparator, typename OPQType>
 void priority_queue<T, Comparator, OPQType>::dump() {
-	cout << "--------------------------------------------------------------" << endl
+	TP_LOG_DEBUG( "--------------------------------------------------------------" << std::endl
 		<< "DUMP:\tTotal size: " << m_size << ", OPQ size: " << opq->size() 
-		<< ", OPQ top: ";
+		<< ", OPQ top: ");
 	if(opq->size()>0) {
-		cout << opq->top();
+		TP_LOG_DEBUG("" << opq->top());
 	} else {
-		cout << "empty";
+		TP_LOG_DEBUG("empty");
 	}
-	cout << ", current_r: " << current_r << endl
+	TP_LOG_DEBUG(", current_r: " << current_r << std::endl
 		<< "\tBuffer size: " << buffer_size << ", buffer start: " << buffer_start 
-		<< endl << "\t";
+		<< std::endl << "\t");
 
 	// output main buffer
 	for(TPIE_OS_OFFSET i = 0; i<setting_mmark; i++) {
-		cout << (i<buffer_start || buffer_start+buffer_size <=i ?"(":"") 
+		TP_LOG_DEBUG((i<buffer_start || buffer_start+buffer_size <=i ?"(":"") 
 			<< buffer[i] 
 			<< (i<buffer_start || buffer_start+buffer_size <=i ?")":"") 
-			<< " ";
+			<< " ");
 	}
-	cout << endl;
+	TP_LOG_DEBUG("" << std::endl);
 
 	// output groups
 	for(TPIE_OS_OFFSET i =0; i<current_r; i++) {
-		cout << "GROUP " << i << " ------------------------------------------------------" << endl;
-		cout << "\tGroup Buffer, size: " << group_size(i) << ", start: " 
-			<< group_start(i) << endl << "\t\tBuffer(no ('s): ";
+		TP_LOG_DEBUG("GROUP " << i << " ------------------------------------------------------" << std::endl);
+		TP_LOG_DEBUG("\tGroup Buffer, size: " << group_size(i) << ", start: " 
+			<< group_start(i) << std::endl << "\t\tBuffer(no ('s): ");
 
 		if(i == 0) { // group buffer 0 is special
-			cout << "internal: ";
+			TP_LOG_DEBUG("internal: ");
 			TPIE_OS_OFFSET k = 0;
 			for(k = 0; k < setting_m; k++) {
-				cout << gbuffer0[k] << " ";
+				TP_LOG_DEBUG(gbuffer0[k] << " ");
 			} 
-			cout << endl;
+			TP_LOG_DEBUG("" << std::endl);
 		} else {  
 			// output group buffer contents
 			AMI_STREAM<T>* stream = new AMI_STREAM<T>(group_data(i));
@@ -308,7 +307,7 @@ void priority_queue<T, Comparator, OPQType>::dump() {
 			for(TPIE_OS_OFFSET l = k; l < setting_m; l++) {
 				cout << "() ";
 			}
-			cout << endl;
+			cout << std::endl;
 		}
 
 		// output slots
@@ -327,10 +326,10 @@ void priority_queue<T, Comparator, OPQType>::dump() {
 				cout << "() ";
 			}
 
-			cout << endl;
+			cout << std::endl;
 		} 
 	}
-	cout << "--------------------------------------------------------------" << endl;
+	cout << "--------------------------------------------------------------" << std::endl;
 }
 
 /////////////////////////////
@@ -339,25 +338,25 @@ void priority_queue<T, Comparator, OPQType>::dump() {
 
 template <typename T, typename Comparator, typename OPQType>
 TPIE_OS_OFFSET priority_queue<T, Comparator, OPQType>::free_slot(TPIE_OS_OFFSET group) {
-	//cout << "free slot group " << group << "?" << endl;
+	//cout << "free slot group " << group << "?" << std::endl;
 	TPIE_OS_OFFSET i;
 	if(group>=setting_k) {
-		cout << "Error, queue is full no free slots in invalid group " << group << ". Increase k." << endl;
+		cout << "Error, queue is full no free slots in invalid group " << group << ". Increase k." << std::endl;
 		exit(-1);
 	}
 	for(i = group*setting_k; i < group*setting_k+setting_k; i++) {
 		if(slot_size(i) == 0) {
-			//cout << "Slot " << i << " is good" << endl;
+			//cout << "Slot " << i << " is good" << std::endl;
 			break;
 		}
 	}
 
 	// it all goes to next level, wee
 	if(i == group*setting_k+setting_k) {
-		//cout << "empty group from free slot" << endl;
+		//cout << "empty group from free slot" << std::endl;
 		empty_group(group);
 		if(slot_size(group*setting_k) != 0) {
-			//cout << "again" << endl; 
+			//cout << "again" << std::endl; 
 			return free_slot(group); // some group buffers might have been moved
 		}
 		return group*setting_k;
@@ -367,7 +366,7 @@ TPIE_OS_OFFSET priority_queue<T, Comparator, OPQType>::free_slot(TPIE_OS_OFFSET 
 
 template <typename T, typename Comparator, typename OPQType>
 void priority_queue<T, Comparator, OPQType>::fill_buffer() {
-	//cout << "fill buffer" << endl;
+	//cout << "fill buffer" << std::endl;
 	//dump();
 	if(buffer_size !=0) {
 		return;
@@ -377,12 +376,12 @@ void priority_queue<T, Comparator, OPQType>::fill_buffer() {
 	}
 
 	// refill group buffers, if needed
-	//cout << "refill group buffers" << endl;
+	//cout << "refill group buffers" << std::endl;
 	for(TPIE_OS_OFFSET i=0;i<current_r;i++) {
 		if(group_size(i)<setting_mmark) {
-			//cout << "fill group buffer " << i << endl;
+			//cout << "fill group buffer " << i << std::endl;
 			fill_group_buffer(i);
-			//cout << "fill group buffer " << i << " done" << endl;
+			//cout << "fill group buffer " << i << " done" << std::endl;
 			//dump();
 		}
 		if(group_size(i) == 0 && i==current_r-1) {
@@ -390,9 +389,9 @@ void priority_queue<T, Comparator, OPQType>::fill_buffer() {
 		}
 	}
 
-	//cout << "done filling groups" << endl;
+	//cout << "done filling groups" << std::endl;
 	// merge to buffer
-	//cout << "current_r: " << current_r << endl;
+	//cout << "current_r: " << current_r << std::endl;
 	delete mergebuffer;
 
 	MergeHeap<T, Comparator> heap(current_r);
@@ -407,17 +406,17 @@ void priority_queue<T, Comparator, OPQType>::fill_buffer() {
 			heap.push(*read_item(data[i]), i);
 		} else if(i > 0) {
 			// dummy, well :o/
-			//cout << "create dummy " << i << endl;
+			//cout << "create dummy " << i << std::endl;
 			data[i] = new AMI_STREAM<T>();
 			data[i]->persist(PERSIST_DELETE);
 		}
 	}
-	//cout << "init done" << endl;
+	//cout << "init done" << std::endl;
 
 	while(!heap.empty() && buffer_size!=setting_mmark) {
 		TPIE_OS_OFFSET current_group = heap.top_run();
 		if(current_group!= 0 && data[current_group]->tell() == setting_m) {
-			//cout << "fill group seeking to 0" << endl;
+			//cout << "fill group seeking to 0" << std::endl;
 			seek_offset(data[current_group], 0);
 		}
 		buffer[(buffer_size+buffer_start)%setting_m] = heap.top();
@@ -430,22 +429,22 @@ void priority_queue<T, Comparator, OPQType>::fill_buffer() {
 			heap.pop();
 		} else {
 			if(current_group == 0) {
-				//cout << "0 push: " << endl;
-				//cout << gbuffer0[group_start(0)] << endl;
+				//cout << "0 push: " << std::endl;
+				//cout << gbuffer0[group_start(0)] << std::endl;
 				heap.pop_and_push(gbuffer0[group_start(0)], 0);
 			} else {
 				heap.pop_and_push(*read_item(data[current_group]), current_group);
 			}
 		}
 	}
-	//cout << "while done" << endl;
+	//cout << "while done" << std::endl;
 	mergebuffer = new T[setting_m*2];
 	if(mergebuffer == NULL) throw std::bad_alloc();
 
 	for(TPIE_OS_OFFSET i = 1; i<current_r; i++) {
 		delete data[i];
 	}
-	//cout << "end fill buffer" << endl;
+	//cout << "end fill buffer" << std::endl;
 }
 
 template <typename T, typename Comparator, typename OPQType>
@@ -458,10 +457,10 @@ void priority_queue<T, Comparator, OPQType>::fill_group_buffer(TPIE_OS_OFFSET gr
 	// merge
 	{
 		AMI_STREAM<T> out(group_data(group));
-		//cout << "seek to " << (group_start(group)+group_size(group))%setting_m << endl;
+		//cout << "seek to " << (group_start(group)+group_size(group))%setting_m << std::endl;
 		if(group > 0) {
 			if((err = out.seek((group_start(group)+group_size(group))%setting_m))!= AMI_ERROR_NO_ERROR) {
-				cout << "AMI_ERROR " << err << " while seeking node" << endl;
+				cout << "AMI_ERROR " << err << " while seeking node" << std::endl;
 				exit(-1);
 			}
 		}
@@ -490,13 +489,13 @@ void priority_queue<T, Comparator, OPQType>::fill_group_buffer(TPIE_OS_OFFSET gr
 				gbuffer0[(group_start(0)+group_size(0))%setting_m] = heap.top();
 			} else {
 				if(out.tell() == setting_m) {
-					//cout << "fill group seeking to 0" << endl;
+					//cout << "fill group seeking to 0" << std::endl;
 					//      seek_offset(out, 0);
 					out.seek(0);
 				}
 				//    write_item(out, heap.top());
 				if((err = out.write_item(heap.top())) != AMI_ERROR_NO_ERROR) {
-					cout << "AMI error while reading item, code: " << err << endl;
+					cout << "AMI error while reading item, code: " << err << std::endl;
 					exit(-1);
 				}
 			}
@@ -522,7 +521,7 @@ void priority_queue<T, Comparator, OPQType>::fill_group_buffer(TPIE_OS_OFFSET gr
 	// compact if needed
 	/*  for(TPIE_OS_OFFSET i=group*setting_k;i<group*setting_k+setting_k; i++) {
 			if(slot_size(i) <= slot_max_size(i)/2 && slot_size(i) >  0) {
-	//cout << "compact from fill group buffer slot: " << i << endl;
+	//cout << "compact from fill group buffer slot: " << i << std::endl;
 	compact(i);
 	}
 	}
@@ -532,14 +531,14 @@ void priority_queue<T, Comparator, OPQType>::fill_group_buffer(TPIE_OS_OFFSET gr
 
 template <typename T, typename Comparator, typename OPQType>
 void priority_queue<T, Comparator, OPQType>::compact(TPIE_OS_OFFSET slot1) {
-	//  cout << "compact slot " << slot1 << endl;
+	//  cout << "compact slot " << slot1 << std::endl;
 	assert(slot_size(slot1) > 0);
 
 	for(TPIE_OS_OFFSET i = (slot1/setting_k)*setting_k; i < (slot1/setting_k)*setting_k + setting_k; i++) {
 		if(i != slot1) {
 			if(slot_size(i) > 0 && slot_size(i) + slot_size(slot1) <= slot_max_size(slot1)) {
 				TPIE_OS_OFFSET slot2 = i;
-				//cout << "compacting slot " << slot1 << " with " << slot2 << endl;
+				//cout << "compacting slot " << slot1 << " with " << slot2 << std::endl;
 
 				AMI_STREAM<T>* stream1 = new AMI_STREAM<T>(slot_data(slot1));
 				seek_offset(stream1, slot_start(slot1));
@@ -592,9 +591,9 @@ void priority_queue<T, Comparator, OPQType>::compact(TPIE_OS_OFFSET slot1) {
 
 template <typename T, typename Comparator, typename OPQType>
 void priority_queue<T, Comparator, OPQType>::empty_group(TPIE_OS_OFFSET group) {
-	//cout << "Empty group " << group << endl;
+	//cout << "Empty group " << group << std::endl;
 	if(group > setting_k) {
-		cout << "Error: Priority queue is full" << endl;
+		cout << "Error: Priority queue is full" << std::endl;
 		exit(-1);
 	}
 
@@ -603,7 +602,7 @@ void priority_queue<T, Comparator, OPQType>::empty_group(TPIE_OS_OFFSET group) {
 	assert(slot_size(newslot) == 0);
 	slot_start_set(newslot, 0);
 	if(current_r < newslot/setting_k+1) {
-		//cout << "increasing current_r, empty_group" << endl; 
+		//cout << "increasing current_r, empty_group" << std::endl; 
 		current_r = newslot/setting_k+1;
 	}
 
@@ -618,7 +617,7 @@ void priority_queue<T, Comparator, OPQType>::empty_group(TPIE_OS_OFFSET group) {
 	for(TPIE_OS_OFFSET i = 0; i<setting_k; i++) {
 		data[i] = new AMI_STREAM<T>(slot_data(group*setting_k+i));
 		if(slot_size(group*setting_k+i) == 0) {
-			//      cout << "no need to emtpy group "<<group<<", slot: " << group*setting_k+i << " is empty" << endl;
+			//      cout << "no need to emtpy group "<<group<<", slot: " << group*setting_k+i << " is empty" << std::endl;
 			ret = true;
 			break;
 		}
@@ -626,13 +625,13 @@ void priority_queue<T, Comparator, OPQType>::empty_group(TPIE_OS_OFFSET group) {
 		seek_offset(data[i], slot_start(group*setting_k+i));
 		heap.push(*read_item(data[i]), group*setting_k+i);
 	}
-	//cout << "init done" << endl;
+	//cout << "init done" << std::endl;
 
 	while(!heap.empty() && !ret) {
 		TPIE_OS_OFFSET current_slot = heap.top_run();
 		write_item(newstream, heap.top());
 		slot_size_set(newslot,slot_size(newslot)+1);
-		//cout << heap.top() << " from slot " << current_slot << endl;
+		//cout << heap.top() << " from slot " << current_slot << std::endl;
 		slot_start_set(current_slot, slot_start(current_slot)+1);
 		slot_size_set(current_slot, slot_size(current_slot)-1);
 		if(slot_size(current_slot) == 0) {
@@ -642,7 +641,7 @@ void priority_queue<T, Comparator, OPQType>::empty_group(TPIE_OS_OFFSET group) {
 		}
 	}
 
-	//cout << "start delete" << endl;
+	//cout << "start delete" << std::endl;
 	for(TPIE_OS_OFFSET i = 0; i<setting_k; i++) {
 		if(ret == false) {
 			delete data[i];
@@ -650,7 +649,7 @@ void priority_queue<T, Comparator, OPQType>::empty_group(TPIE_OS_OFFSET group) {
 			delete data[i];
 		}
 	}
-	//cout << "end delete" << endl;
+	//cout << "end delete" << std::endl;
 
 	delete newstream;
 
@@ -665,7 +664,7 @@ void priority_queue<T, Comparator, OPQType>::empty_group(TPIE_OS_OFFSET group) {
 template <typename T, typename Comparator, typename OPQType>
 void priority_queue<T, Comparator, OPQType>::validate() {
 #ifndef NDEBUG
-	//cout << "validate start" << endl;
+	//cout << "validate start" << std::endl;
 	// validate size
 	TPIE_OS_OFFSET size = 0;
 	size = size + opq->size();
@@ -677,7 +676,7 @@ void priority_queue<T, Comparator, OPQType>::validate() {
 		size = size + slot_size(i);
 	}
 	if(m_size != size) {
-		cout << "Error: Validate: Size not ok" << endl;
+		cout << "Error: Validate: Size not ok" << std::endl;
 		exit(-1);
 	}
 
@@ -686,7 +685,7 @@ void priority_queue<T, Comparator, OPQType>::validate() {
 		T last = buffer[buffer_start];
 		for(TPIE_OS_OFFSET i = buffer_start; i<buffer_start+buffer_size;i++) {
 			if(comp_(buffer[i],last)) {
-				cout << "Error: Buffer ordered validation failed" << endl;
+				cout << "Error: Buffer ordered validation failed" << std::endl;
 			}
 			last = buffer[i];
 		}
@@ -708,7 +707,7 @@ void priority_queue<T, Comparator, OPQType>::validate() {
 				if(comp_(read, last)) { // compare
 					dump();
 					cout << "Error: Group buffer " << i << " order invalid (last: " 
-						<< last << ", read: " << read << ")" << endl;
+						<< last << ", read: " << read << ")" << std::endl;
 					exit(-1);
 				} 
 			}
@@ -724,7 +723,7 @@ void priority_queue<T, Comparator, OPQType>::validate() {
 				T read = *read_item(stream);
 				if(comp_(read, last)) { // compare
 					cout << "Error: Slot " << i << " order invalid (last: "
-						<< last << ", read: " << read << ")" << endl;
+						<< last << ", read: " << read << ")" << std::endl;
 					exit(-1);
 				}
 			}
@@ -746,7 +745,7 @@ void priority_queue<T, Comparator, OPQType>::validate() {
 				if(comp_(first, buf_max)) { // compare
 					dump();
 					cout << "Error: Heap property invalid, buffer -> group buffer " << i 
-						<< "(buffer: " << buf_max << ", first: " << first << ")"<< endl;
+						<< "(buffer: " << buf_max << ", first: " << first << ")"<< std::endl;
 					exit(-1);
 				}
 				delete stream;
@@ -760,7 +759,7 @@ void priority_queue<T, Comparator, OPQType>::validate() {
 			AMI_STREAM<T>* stream = new AMI_STREAM<T>(group_data(i));
 			seek_offset(stream, (group_start(i)+group_size(i)-1)%setting_m);
 			T item_group = *read_item(stream);
-			//cout << "item_group: " << item_group << endl;
+			//cout << "item_group: " << item_group << std::endl;
 			delete stream;
 
 			for(TPIE_OS_OFFSET j = i*setting_k; j<i*setting_k+setting_k;j++) {
@@ -774,23 +773,23 @@ void priority_queue<T, Comparator, OPQType>::validate() {
 						dump();
 						cout << "Error: Heap property invalid, group buffer " << i 
 							<< " -> slot " << j << "(group: " << item_group 
-							<< ", slot: " << item_slot << ")" << endl;
+							<< ", slot: " << item_slot << ")" << std::endl;
 						exit(-1);
 					}
 				}
 			}
 		}
 	}
-	//cout << "validate end" << endl;
+	//cout << "validate end" << std::endl;
 #endif
 }
 
 template <typename T, typename Comparator, typename OPQType>
 void priority_queue<T, Comparator, OPQType>::remove_group_buffer(TPIE_OS_OFFSET group) {
-	//cout << "remove group buffer " << group << endl;
+	//cout << "remove group buffer " << group << std::endl;
 #ifndef NDEBUG
 	if(group == 0) {
-		cout << "remove group buffer 0, fy!" << endl;
+		cout << "remove group buffer 0, fy!" << std::endl;
 		exit(-1);
 	}
 #endif
@@ -806,21 +805,21 @@ void priority_queue<T, Comparator, OPQType>::remove_group_buffer(TPIE_OS_OFFSET 
 	TPIE_OS_OFFSET size = group_size(group);
 	if(group_start(group) + group_size(group) <= setting_m) {
 		if((err = data->read_array(arr, &size)) != AMI_ERROR_NO_ERROR) {
-			cout << "AMI_ERROR " << err << " during read_array()" << endl;
+			cout << "AMI_ERROR " << err << " during read_array()" << std::endl;
 			exit(1);
 		}
 	} else {
 		// two reads
 		TPIE_OS_OFFSET first_read = setting_m - data->tell();
 		TPIE_OS_OFFSET second_read = size - first_read;
-		//cout << "read array " << first_read << " " << second_read << endl;
+		//cout << "read array " << first_read << " " << second_read << std::endl;
 		if((err = data->read_array(arr, &first_read)) != AMI_ERROR_NO_ERROR) {
-			cout << "AMI_ERROR " << err << " during read_array()" << endl;
+			cout << "AMI_ERROR " << err << " during read_array()" << std::endl;
 			exit(1);
 		}
 		seek_offset(data,0);
 		if((err = data->read_array(arr+first_read, &second_read)) != AMI_ERROR_NO_ERROR) {
-			cout << "AMI_ERROR " << err << " during read_array()" << endl;
+			cout << "AMI_ERROR " << err << " during read_array()" << std::endl;
 			exit(1);
 		}
 	}
@@ -828,10 +827,10 @@ void priority_queue<T, Comparator, OPQType>::remove_group_buffer(TPIE_OS_OFFSET 
 	assert(group_size(group) > 0);
 	/* 
 		 for(TPIE_OS_OFFSET i = 0; i < group_size(group); i++) {
-		 cout << "arr[" << i << "]: " << arr[i] << endl;
+		 cout << "arr[" << i << "]: " << arr[i] << std::endl;
 		 }
 		 for(TPIE_OS_OFFSET i = group_start(0); i < group_start(0)+group_size(0); i++) {
-		 cout << "gbuffer0[" << (i%setting_m) << "]: " << gbuffer0[i%setting_m] << endl;
+		 cout << "gbuffer0[" << (i%setting_m) << "]: " << gbuffer0[i%setting_m] << std::endl;
 		 }
 		 */
 	// make sure that the new slot in group 0 is heap ordered with gbuffer0
@@ -851,22 +850,22 @@ void priority_queue<T, Comparator, OPQType>::remove_group_buffer(TPIE_OS_OFFSET 
 
 	/*
 		 for(TPIE_OS_OFFSET i = 0; i < group_size(group); i++) {
-		 cout << "arr[" << i << "]: " << arr[i] << endl;
+		 cout << "arr[" << i << "]: " << arr[i] << std::endl;
 		 }
 		 for(TPIE_OS_OFFSET i = group_start(0); i < group_start(0)+group_size(0); i++) {
-		 cout << "gbuffer0[" << (i%setting_m) << "]: " << gbuffer0[i%setting_m] << endl;
+		 cout << "gbuffer0[" << (i%setting_m) << "]: " << gbuffer0[i%setting_m] << std::endl;
 		 }
 		 */
 
 	write_slot(slot, arr, group_size(group));
 	group_start_set(group, 0);
 	group_size_set(group, 0);
-	//cout << "compact from remove_group_buffer" << endl;
+	//cout << "compact from remove_group_buffer" << std::endl;
 	//  compact(slot);
 	delete arr;
-	//cout << "this dump" << endl;
+	//cout << "this dump" << std::endl;
 	//dump();
-	//  cout << "remove grp buffer done" << endl;
+	//  cout << "remove grp buffer done" << std::endl;
 }
 
 //////////////////
@@ -881,7 +880,7 @@ priority_queue<T, Comparator, OPQType>::seek_offset(AMI_STREAM<T>* data, TPIE_OS
 template <typename T, typename Comparator, typename OPQType>
 const void priority_queue<T, Comparator, OPQType>::seek_offset(AMI_STREAM<T>* data, TPIE_OS_OFFSET offset) {
 	if((err = data->seek(offset))!= AMI_ERROR_NO_ERROR) {
-		std::cerr << "AMI_ERROR " << err << " while seeking node" << std::endl;
+		std::cerr << "AMI_ERROR " << err << " while seeking node" << std::std::endl;
 		exit(-1);
 	}
 }
@@ -889,7 +888,7 @@ const void priority_queue<T, Comparator, OPQType>::seek_offset(AMI_STREAM<T>* da
  T* read_item(AMI_STREAM<T>* data) { 
 	T* read_ptr;
 	if((err = data->read_item(&read_ptr)) != AMI_ERROR_NO_ERROR) {
-		cout << "AMI error while reading item, code: " << err << endl;
+		cout << "AMI error while reading item, code: " << err << std::endl;
 		exit(-1);
 	}
 	return read_ptr;
@@ -898,7 +897,7 @@ const void priority_queue<T, Comparator, OPQType>::seek_offset(AMI_STREAM<T>* da
 template <typename T, typename Comparator, typename OPQType>
 void priority_queue<T, Comparator, OPQType>::write_item(AMI_STREAM<T>* data, T write) { 
 	if((err = data->write_item(write)) != AMI_ERROR_NO_ERROR) {
-		cout << "AMI error while reading item, code: " << err << endl;
+		cout << "AMI error while reading item, code: " << err << std::endl;
 		exit(-1);
 	}
 }
@@ -916,7 +915,7 @@ const  TPIE_OS_OFFSET priority_queue<T, Comparator, OPQType>::slot_start(TPIE_OS
 
 template <typename T, typename Comparator, typename OPQType>
 void priority_queue<T, Comparator, OPQType>::slot_size_set(TPIE_OS_OFFSET slot, TPIE_OS_OFFSET n) {
-	//cout << "change slot " << slot << " size" << endl;
+	//cout << "change slot " << slot << " size" << std::endl;
 	assert(slot<setting_k*setting_k);
 	slot_state[slot*3+1] = n;
 }
@@ -982,12 +981,12 @@ TPIE_OS_OFFSET priority_queue<T, Comparator, OPQType>::slot_max_size(TPIE_OS_OFF
 template <typename T, typename Comparator, typename OPQType>
 void priority_queue<T, Comparator, OPQType>::write_slot(TPIE_OS_OFFSET slotid, T* arr, TPIE_OS_OFFSET len) {
 	assert(len > 0);
-	//cout << "write slot " << slotid << " " << len << endl;
-	//cout << "write slot " << slot_data(slotid) << endl;
+	//cout << "write slot " << slotid << " " << len << std::endl;
+	//cout << "write slot " << slot_data(slotid) << std::endl;
 	AMI_STREAM<T>* data = new AMI_STREAM<T>(slot_data(slotid));
-	//cout << "write slot new done" << endl;
+	//cout << "write slot new done" << std::endl;
 	if((err = data->write_array(arr, len)) != AMI_ERROR_NO_ERROR) {
-		cout << "AMI_ERROR " << err << " during write_slot()" << endl;
+		cout << "AMI_ERROR " << err << " during write_slot()" << std::endl;
 		exit(1);
 	}
 	delete data;
@@ -996,7 +995,7 @@ void priority_queue<T, Comparator, OPQType>::write_slot(TPIE_OS_OFFSET slotid, T
 	if(current_r == 0 && slotid < setting_k) {
 		current_r = 1;
 	}
-	//cout << "write slot done" << endl;
+	//cout << "write slot done" << std::endl;
 }
 
 /////////////////////
