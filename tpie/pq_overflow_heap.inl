@@ -5,7 +5,7 @@
 using namespace std;
 
 template<typename T, typename Comparator>
-OPQHeap<T, Comparator>::OPQHeap(TPIE_OS_OFFSET maxsize) {
+OPQHeap<T, Comparator>::OPQHeap(TPIE_OS_SIZE_T maxsize) {
 	h = new Heap<T, Comparator>(maxsize);
 	//cout << "OPQ constructor" << endl;
 	this->maxsize = maxsize;
