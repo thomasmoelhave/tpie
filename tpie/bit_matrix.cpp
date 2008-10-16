@@ -10,26 +10,28 @@ VERSION(bit_matrix_cpp,"$Id: bit_matrix.cpp,v 1.15 2005-01-14 18:42:24 tavi Exp 
 
 #include <bit_matrix.h>
 
+using namespace tpie;
+
 bit_matrix::bit_matrix(TPIE_OS_SIZE_T arows, TPIE_OS_SIZE_T acols) :
-        matrix<bit>(arows, acols)
-{
+        matrix<bit>(arows, acols) {
+
+    //  No code in this constructor.
 }
 
 bit_matrix::bit_matrix(matrix<bit> &mb) :
-        matrix<bit>(mb)
-{
+        matrix<bit>(mb) {
+    //  No code in this constructor.
 }
     
-bit_matrix::~bit_matrix(void)
-{
+bit_matrix::~bit_matrix(void) {
+    //  No code in this destructor.
 }
 
 bit_matrix bit_matrix::operator=(const bit_matrix &rhs) {
     return this->matrix<bit>::operator=((matrix<bit> &)rhs);
 }
 
-bit_matrix & bit_matrix::operator=(const TPIE_OS_OFFSET &rhs)
-{
+bit_matrix & bit_matrix::operator=(const TPIE_OS_OFFSET &rhs) {
     TPIE_OS_SIZE_T rows = this->rows();
     TPIE_OS_SIZE_T ii;
 
@@ -48,8 +50,7 @@ bit_matrix & bit_matrix::operator=(const TPIE_OS_OFFSET &rhs)
     return *this;
 }    
 
-bit_matrix::operator TPIE_OS_OFFSET(void)
-{
+bit_matrix::operator TPIE_OS_OFFSET(void) {
     TPIE_OS_OFFSET res;
 
     TPIE_OS_SIZE_T rows = this->rows();
@@ -71,21 +72,18 @@ bit_matrix::operator TPIE_OS_OFFSET(void)
 }
 
 
-bit_matrix operator+(const bit_matrix &op1, const bit_matrix &op2)
-{
+bit_matrix operator+(const bit_matrix &op1, const bit_matrix &op2) {
     matrix<bit> sum = ((matrix<bit> &)op1) + ((matrix<bit> &)op2);
 
     return sum;
 }
 
-bit_matrix operator*(const bit_matrix &op1, const bit_matrix &op2)
-{
+bit_matrix operator*(const bit_matrix &op1, const bit_matrix &op2) {
     matrix<bit> prod = ((matrix<bit> &)op1) * ((matrix<bit> &)op2);
 
     return prod;
 }
 
-ostream &operator<<(ostream &s, bit_matrix &bm)
-{
+ostream &operator<<(ostream &s, bit_matrix &bm) {
     return s << (matrix<bit> &)bm;
 }

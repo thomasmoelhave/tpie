@@ -12,23 +12,25 @@ VERSION(ami_bit_permute_cpp,"$Id: ami_bit_permute.cpp,v 1.4 2003-04-20 06:44:01 
 
 #include <bit_permute.h>
 
-AMI_bit_perm_object::AMI_bit_perm_object(const bit_matrix &A,
-                                         const bit_matrix &c) :
-                                                 mA(A), mc(c)
-{
+using tpie::ami;
+
+bit_perm_object::bit_perm_object(const bit_matrix &A,
+				 const bit_matrix &c) :
+    mA(A), mc(c) {
+    //  No code in this constructor.
 }
 
-AMI_bit_perm_object::~AMI_bit_perm_object(void)
-{
+bit_perm_object::~bit_perm_object(void) {
+
+    //  No code in this destructor.
+
 }
 
-bit_matrix AMI_bit_perm_object::A(void)
-{
+bit_matrix bit_perm_object::A(void) {
     return mA;
 }
 
-bit_matrix AMI_bit_perm_object::c(void)
-{
+bit_matrix bit_perm_object::c(void) {
     return mc;
 }
 
