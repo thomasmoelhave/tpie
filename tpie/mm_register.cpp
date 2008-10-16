@@ -7,9 +7,6 @@
 
 // A simple registration based memory manager.
 
-#include <versions.h>
-VERSION(mm_register_cpp,"$Id: mm_register.cpp,v 1.26 2005-11-17 17:04:22 jan Exp $");
-
 //#include <assert.h>
 #include "lib_config.h"
 

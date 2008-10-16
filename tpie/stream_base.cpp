@@ -6,9 +6,6 @@
 
 #include <stream_base.h>
 
-#include <versions.h>
-VERSION(ami_stream_base_cpp,"$Id:");
-
 #include "lib_config.h"
 
 // For AMI_SINGLE_DEVICE_ENV and TMPDIR_ENV.

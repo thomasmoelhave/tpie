@@ -5,9 +5,6 @@
 // Created: 5/12/94
 //
 
-#include <versions.h>
-VERSION(tpie_log_cpp,"$Id: tpie_log.cpp,v 1.17 2005-11-17 17:04:22 jan Exp $");
-
 // We are logging
 #define TPL_LOGGING	1
 

@@ -4,9 +4,6 @@
 // Created: 8/22/93
 //
 
-#include "versions.h"
-VERSION(ami_device_cpp,"$Id: ami_device.cpp,v 1.16 2005-11-21 08:31:55 jan Exp $");
-
 #include "lib_config.h"
 
 #include <stdlib.h>

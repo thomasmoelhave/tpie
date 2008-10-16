@@ -5,9 +5,6 @@
 // Created: 1/11/95
 //
 
-#include <versions.h>
-VERSION(cpu_timer_cpp,"$Id: cpu_timer.cpp,v 1.10 2005-11-17 17:04:22 jan Exp $");
-
 #include <cpu_timer.h>
 
 cpu_timer::cpu_timer() :

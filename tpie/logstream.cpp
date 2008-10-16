@@ -7,9 +7,6 @@
 // The logstream class, for writing to the log.
 //
 
-#include <versions.h>
-VERSION(logstream_cpp,"$Id: logstream.cpp,v 1.20 2004-08-17 16:48:53 jan Exp $");
-
 #include <logstream.h>
 
 // Constructor.

@@ -6,8 +6,6 @@
 //
 
 #include "../lib_config.h"
-#include <versions.h>
-VERSION(bte/stream_base_cpp,"$Id: bte/stream_base.cpp,v 1.3 2003-04-23 07:32:15 tavi Exp $");
 
 #include <bte/stream_base.h>
 

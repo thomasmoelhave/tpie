@@ -5,10 +5,7 @@
 // Created: 3/12/95
 //
 
-#include <versions.h>
 #include <key.h>
-
-VERSION(ami_key_cpp,"$Id: ami_key.cpp,v 1.6 2005-11-18 12:41:05 jan Exp $");
 
 key_range::key_range() : m_min(0), m_max(0) {
 }

@@ -5,9 +5,6 @@
 // Created: 9/2/94
 //
 
-#include <versions.h>
-VERSION(mm_base_cpp,"$Id: mm_base.cpp,v 1.34 2006-01-17 19:03:51 jan Exp $");
-
 #include "lib_config.h"
 #include <mm_base.h>
 #include <tpie_log.h>

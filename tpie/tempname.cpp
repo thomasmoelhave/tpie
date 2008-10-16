@@ -3,8 +3,6 @@
 // Author: 
 // Created: 02/02/02
 //
-#include <versions.h>
-VERSION(tpie_tempnam_cpp,"$Id: tpie_tempnam.cpp,v 1.7 2005-11-17 17:04:22 jan Exp $");
 
 #include <cstdio>
 #include <cstdlib>

@@ -1020,14 +1020,6 @@ logstream& logstream::operator<<(const LONGLONG x)\
 #endif
 
 
-#ifdef _WIN32	
-#define VERSION(name,id) static char __ ## name[] = id;      
-#else
-#define VERSION(name,id) 
-// static char __ ## name[] = id;
-//#define VERSION(name,id) static char __ ## name[] = ## id; static struct __ ## name ## _compiler_fooler {	char *pc; __ ## name ## _compiler_fooler *next; } the__ ## name ## _compiler_fooler = { __ ## name, & the__ ## name ## _compiler_fooler};
-#endif
-
 
     //		//**
     //		*void * operator new() - Get a block of memory from the debug heap
