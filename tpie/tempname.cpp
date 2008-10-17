@@ -39,18 +39,16 @@ std::string tpie_tempnam(const std::string& post_base, const std::string& dir, c
 	if(base_name.empty())
 		base_name = "TPIE";
 	
-	base_dir = dir;
-	if (base_dir.empty()) {
+	if(getenv(AMI_SINGLE_DEVICE_ENV) != NULL) 
+		base_dir = getenv(AMI_SINGLE_DEVICE_ENV);
+	else if(getenv(TMPDIR_ENV) != NULL) 
+		base_dir = getenv(TMPDIR_ENV);
+	else if(!dir.empty())
+		base_dir = dir;
+	else if(!default_path.empty())
 		base_dir = default_path;
-		if(base_dir.empty()) {
-			if(getenv(AMI_SINGLE_DEVICE_ENV) != NULL) 
-				base_dir = getenv(AMI_SINGLE_DEVICE_ENV);
-			else if(getenv(TMPDIR_ENV)) 
-				base_dir = getenv(TMPDIR_ENV);
-			else 
-				base_dir = TMP_DIR;
-		}
-	}
+	else 
+		base_dir = TMP_DIR;
 
 	if(post_base.empty())
 		return base_dir + TPIE_OS_DIR_DELIMITER + base_name + "_" + tpie_mktemp() + "." + extension;
