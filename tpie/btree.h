@@ -632,94 +632,142 @@ namespace tpie {
 		}
 	    }; 
 
-	    // The status. Set during construction.
+	    /** The status. Set during construction. */
 	    btree_status status_;
 
-	    // Stack to store the path to a leaf.
+	    /** Stack to store the path to a leaf. */
 	    std::stack<std::pair<bid_t,TPIE_OS_SIZE_T> >path_stack_;
 
-	    // Stack to store path during dfspreorder traversal. Each element is
-	    // a std::pair: block id and link index.
+	    /** Stack to store path during dfspreorder traversal. Each element is
+	     * a std::pair: block id and link index. */
 	    std::stack<std::pair<bid_t,TPIE_OS_SIZE_T> >dfs_stack_;
 
-	    // Statistics.
+	    /** Statistics. */
 	    stats_tree stats_;
 
-	    // Use this to obtain keys from Value elements.
+	    /** Use this to obtain keys from Value elements. */
 	    KeyOfValue kov_;
 
-	    // Base path name.
+	    /** Base path name. */
 	    std::string name_;
 
-	    // Insert helpers.
+	    /** Helper function for inserting into a btree. */
 	    bool insert_split(const Value& v, 
 			      leaf_t* p, 
 			      bid_t& leaf_id, bool loading = false);
+
+	    /** Helper function for inserting into a btree. */
 	    bool insert_empty(const Value& v);
+
+	    /** Helper function for inserting into a btree. */
 	    bool insert_load(const Value& v,   
 			     leaf_t* &lcl);
 
-	    // Intialization routine shared by all constructors.
+	    /** Intialization routine shared by all constructors. */
 	    void shared_init(const std::string& base_file_name, collection_type type);
 
-	    // Empty the path stack.
+	    /** Empty the path stack. */
 	    void empty_stack() { while (!path_stack_.empty()) path_stack_.pop(); }
 
-	    // Find the leaf where an element with key k might be.  Return the
-	    // bid of that leaf. The stack contains the path to that leaf (but
-	    // not the leaf itself). Each item in the stack is a std::pair of a bid
-	    // of a node and the position (in this node) of the link to the son
-	    // that is next on the path to the leaf.
+	    ///////////////////////////////////////////////////////////////////////////
+      /// Find the leaf where an element with key k might be.  Return the
+      /// bid of that leaf. The stack contains the path to that leaf (but
+      /// not the leaf itself). Each item in the stack is a std::pair of a bid
+      /// of a node and the position (in this node) of the link to the son
+      /// that is next on the path to the leaf.
+	    ///////////////////////////////////////////////////////////////////////////
 	    bid_t find_leaf(const Key& k);
 
-	    // Return the leaf with the minimum key element. Nothing is pushed
-	    // on the stack.
+      ///////////////////////////////////////////////////////////////////////////
+	    /// Returns the leaf with the minimum key element. Nothing is pushed
+	    /// on the stack.
+      ///////////////////////////////////////////////////////////////////////////
 	    bid_t find_min_leaf();
 
-	    // Return true if leaf p is underflow.
+      ///////////////////////////////////////////////////////////////////////////
+	    /// Returns true if leaf p is underflow.
+      ///////////////////////////////////////////////////////////////////////////
 	    bool underflow_leaf(leaf_t *p) const;
 
-	    // Return true if node p is underflow.
+      ///////////////////////////////////////////////////////////////////////////
+	    /// Returns true if node p is underflow.
+      ///////////////////////////////////////////////////////////////////////////
 	    bool underflow_node(node_t *p) const;
 
-	    // Return the underflow size of a leaf. Moved this function from the
-	    // leaf class here for saving the space of the minimum fanout, a.
+      ///////////////////////////////////////////////////////////////////////////
+	    /// Returns the underflow size of a leaf. This function does reside here and 
+	    /// not in the btree_lead class for saving the space of the minimum fanout, a.
+      ///////////////////////////////////////////////////////////////////////////
 	    TPIE_OS_SIZE_T cutoff_leaf(leaf_t *p) const;
 
-	    // Return the underflow size of a node.  Moved this function from the
-	    // node class here for saving the space of the minimum fanout, a.
+      ///////////////////////////////////////////////////////////////////////////
+	    /// Returns the underflow size of a node. his function does reside here and 
+      /// not in the btree_lead class for saving the space of the minimum fanout, a.
+      ///////////////////////////////////////////////////////////////////////////
 	    TPIE_OS_SIZE_T cutoff_node(node_t *p) const;
 
-	    // Return true if leaf p is full.
+      ///////////////////////////////////////////////////////////////////////////
+	    // Returns true if leaf p is full.
+      ///////////////////////////////////////////////////////////////////////////
 	    bool full_leaf(const leaf_t *p) const;
 
-	    // Return true if node p is full.
+      ///////////////////////////////////////////////////////////////////////////
+      // Returns true if node p is full.
+      ///////////////////////////////////////////////////////////////////////////
 	    bool full_node(const node_t *p) const;
 
-	    // Try to balance p (when underflow) by borrowing one element from a sibling.
-	    // f is the father of p and pos is the position of the link to p in f.
-	    // Return false if unsuccessful.
+      ///////////////////////////////////////////////////////////////////////////
+	    /// Tries to balance p (when underflow) by borrowing one element from 
+	    /// a sibling. f is the father of p and pos is the 
+	    /// position of the link to p in f.
+	    /// Returns false if unsuccessful.
+      ///////////////////////////////////////////////////////////////////////////
 	    bool balance_leaf(node_t *f, 
 			      leaf_t *p, size_t pos);
 
-	    // Same as above, but p is a node.
+      ///////////////////////////////////////////////////////////////////////////
+	    // Same as balance_leaf(), but p is a node.
+      ///////////////////////////////////////////////////////////////////////////
 	    bool balance_node(node_t *f, 
 			      node_t *p, size_t pos);
 
-	    // (When balancing fails,) merge p with a sibling.  f is the father
-	    // of p and pos is the position of the link to p in f.
+      ///////////////////////////////////////////////////////////////////////////
+	    /// Merges p with a sibling; to call when balancing fails.
+	    /// f is the father of p and pos is the position of the link to p in f.
+      ///////////////////////////////////////////////////////////////////////////
 	    void merge_leaf(node_t *f, 
 			    leaf_t* &p, size_t pos);
 
-	    // Same as above, but p is a node.
+      ///////////////////////////////////////////////////////////////////////////
+      /// Same as merge_leaf(), but p is a node.
+	    /// Merges p with a sibling; called when balancing fails.
+      /// f is the father of p and pos is the position of the link to p in f.
+      ///////////////////////////////////////////////////////////////////////////
 	    void merge_node(node_t *f, 
 			    node_t* &p, size_t pos);
 
 	public:
+	    ///////////////////////////////////////////////////////////////////////////
+	    /// Fetch a node by its block id.
+	    ///////////////////////////////////////////////////////////////////////////
 	    node_t* fetch_node(bid_t bid = 0);
+
+	    ///////////////////////////////////////////////////////////////////////////
+      /// Fetch a leaf by its block id.
+      ///////////////////////////////////////////////////////////////////////////
 	    leaf_t* fetch_leaf(bid_t bid = 0);
 
+      ///////////////////////////////////////////////////////////////////////////
+      /// Writes leaf p back to disk if p's persistence  is
+	    /// \ref PERSIST_PERSISTENT, and just deletes p otherwise
+      ///////////////////////////////////////////////////////////////////////////
 	    void release_leaf(leaf_t* p);
+
+	    ///////////////////////////////////////////////////////////////////////////
+      /// Writes node p back to disk if p' persistence is 
+	    /// \ref PERSIST_PERSISTENT, and just 
+      /// deletes p otherwise
+      ///////////////////////////////////////////////////////////////////////////
 	    void release_node(node_t* p);
 	};
 
@@ -733,7 +781,9 @@ namespace tpie {
 
 
 
-// The Info element of a leaf.
+	///////////////////////////////////////////////////////////////////////////
+	/// Holding metainformation about a btree_leaf.
+  ///////////////////////////////////////////////////////////////////////////
 	struct _btree_leaf_info {
 	    TPIE_OS_SIZE_T size;
 	    bid_t prev;
@@ -749,13 +799,20 @@ namespace tpie {
 
 	    Compare comp_;
 
-	    // This is a hack. It allows comparison between 
-	    // Values and Keys for STL's lower_bound().
+      ///////////////////////////////////////////////////////////////////////////
+	    /// This allows comparison between 
+	    /// Values and Keys for STL's lower_bound().
+      ///////////////////////////////////////////////////////////////////////////
 	    struct Compare_value_key { 
 		bool operator()(const Value& v, const Key& k) const { 
 		    return Compare()(KeyOfValue()(v), k); 
 		}
 	    };
+
+	    ///////////////////////////////////////////////////////////////////////////
+      /// This allows comparison between 
+      /// Values and Keys for STL's lower_bound().
+      ///////////////////////////////////////////////////////////////////////////
 	    struct Compare_value_value { 
 		bool operator()(const Value& v1, const Value& v2) const { 
 		    return Compare()(KeyOfValue()(v1), KeyOfValue()(v2)); 
@@ -769,66 +826,120 @@ namespace tpie {
 	    using block<Value, _btree_leaf_info, BTECOLL>::el;
 	    using block<Value, _btree_leaf_info, BTECOLL>::dirty;
   
-	    // Compute the capacity of the el vector STATICALLY (but you have to
-	    // give it the correct logical block size!).
+      ///////////////////////////////////////////////////////////////////////////
+	    /// Compute the capacity of the el vector STATICALLY (but you have to
+	    /// give it the correct logical block size!).
+      ///////////////////////////////////////////////////////////////////////////
 	    static TPIE_OS_SIZE_T el_capacity(size_t block_size);
 
-	    // Find and return the position of key k 
-	    // (ie, the lowest position where it would be inserted).
+      ///////////////////////////////////////////////////////////////////////////
+	    /// Find and return the position of key k 
+	    /// (ie, the lowest position where it would be inserted).
+      ///////////////////////////////////////////////////////////////////////////
 	    TPIE_OS_SIZE_T find(const Key& k);
 
-	    // Predecessor of k.
+      ///////////////////////////////////////////////////////////////////////////
+	    /// Retrieves the predecessor of k.
+      ///////////////////////////////////////////////////////////////////////////
 	    TPIE_OS_SIZE_T pred(const Key& k);
     
-	    // Successor of k.
+      ///////////////////////////////////////////////////////////////////////////
+      /// Retrieves the Successor of k.
+      ///////////////////////////////////////////////////////////////////////////
 	    TPIE_OS_SIZE_T succ(const Key& k);
 
-	    // Constructor.
+      ///////////////////////////////////////////////////////////////////////////
+      /// Construcor.
+      ///////////////////////////////////////////////////////////////////////////
 	    btree_leaf(collection_single<BTECOLL>* pcoll, bid_t bid = 0);
 
-	    // Number of elements stored in this leaf.
+      ///////////////////////////////////////////////////////////////////////////
+      /// Returns the number of elements stored in this leaf.
+      ///////////////////////////////////////////////////////////////////////////
 	    TPIE_OS_SIZE_T & size() { return info()->size; }
+
+      ///////////////////////////////////////////////////////////////////////////
+      /// Returns the number of elements stored in this leaf as a const reference.
+      ///////////////////////////////////////////////////////////////////////////
 	    const TPIE_OS_SIZE_T & size() const { return info()->size; }
 
-	    // Maximum number of elements that can be stored in this leaf.
+      ///////////////////////////////////////////////////////////////////////////
+      /// Returns maximum number of elements that can be stored in this leaf.
+      ///////////////////////////////////////////////////////////////////////////
 	    TPIE_OS_SIZE_T capacity() const { return el.capacity(); }
 
+      ///////////////////////////////////////////////////////////////////////////
+      /// Retrieves the block_id of the previous leaf in the btree. Calls btree_leaf_info#prev()
+      ///////////////////////////////////////////////////////////////////////////
 	    bid_t& prev() { return info()->prev; }
+
+      ///////////////////////////////////////////////////////////////////////////
+      /// Retrieves the block_id of the previous leaf in the btree. Calls btree_leaf_info#prev()
+      ///////////////////////////////////////////////////////////////////////////
 	    const bid_t& prev() const { return info()->prev; }
 
+      ///////////////////////////////////////////////////////////////////////////
+      /// Retrieves the block_id of the next leaf in the btree. Calls btree_leaf_info#next()
+      ///////////////////////////////////////////////////////////////////////////
 	    bid_t& next() { return info()->next; }
+
+      ///////////////////////////////////////////////////////////////////////////
+      /// Retrieves the block_id of the next leaf in the btree. Calls btree_leaf_info#next()
+      ///////////////////////////////////////////////////////////////////////////
 	    const bid_t& next() const { return info()->next; }
 
+      ///////////////////////////////////////////////////////////////////////////
+      /// Returns true if the leaf's capacity is reached.
+      ///////////////////////////////////////////////////////////////////////////
 	    bool full() const { return size() == capacity(); }
 
+      ///////////////////////////////////////////////////////////////////////////
+      /// Returns true if the leaf is empty.
+      ///////////////////////////////////////////////////////////////////////////
 	    bool empty() const { return size() == 0; }
 
-	    // Split into two leaves containing the same number of elements.
-	    // Return the median key (ie, the key of the last elem. stored 
-	    // in this leaf, after split).
+      ///////////////////////////////////////////////////////////////////////////
+	    /// Split into two leaves containing the same number of elements.
+	    /// Return the median key (i.e., the key of the last element stored 
+	    /// in this leaf, after split).
+      ///////////////////////////////////////////////////////////////////////////
 	    Key split(BTREE_LEAF &right);
 
-	    // Merge this leaf with another leaf.
+      ///////////////////////////////////////////////////////////////////////////
+	    /// Merge this leaf with a leaf given.
+      ///////////////////////////////////////////////////////////////////////////
 	    void merge(const BTREE_LEAF &right);
 
-	    // Insert a data element. The leaf should NOT be full.
-	    // Return false if the key is already in the tree.
+      ///////////////////////////////////////////////////////////////////////////
+	    /// Insert a data element. The leaf should NOT be full.
+	    /// Return false if the key is already in the tree.
+      ///////////////////////////////////////////////////////////////////////////
 	    bool insert(const Value& v);
 
-	    // Insert element into position pos.
+      ///////////////////////////////////////////////////////////////////////////
+	    /// Insert element into position pos.
+      ///////////////////////////////////////////////////////////////////////////
 	    void insert_pos(const Value& v, TPIE_OS_SIZE_T pos);
 
-	    // Delete an element given by its key. The leaf should NOT be empty.
-	    // Return false if the key is not found in the tree.
+      ///////////////////////////////////////////////////////////////////////////
+	    /// Delete an element given by its key. The leaf should NOT be empty.
+	    /// Return false if the key is not found in the tree.
+      ///////////////////////////////////////////////////////////////////////////
 	    bool erase(const Key& k);
 
-	    // Erase element from position pos.
+      ///////////////////////////////////////////////////////////////////////////
+	    /// Erase element from position pos.
+      ///////////////////////////////////////////////////////////////////////////
 	    void erase_pos(size_t pos);
 
-	    // Sort elements.
+      ///////////////////////////////////////////////////////////////////////////
+	    /// Sort elements.
+      ///////////////////////////////////////////////////////////////////////////
 	    void sort();
 
-	    // Destructor.
+      ///////////////////////////////////////////////////////////////////////////
+	    /// Destructor.
+      ///////////////////////////////////////////////////////////////////////////
 	    ~btree_leaf();
 	};
 
@@ -848,49 +959,82 @@ namespace tpie {
 	    using block<Key, size_t, BTECOLL>::lk;
 	    using block<Key, size_t, BTECOLL>::dirty;
   
-	    // Compute the capacity of the lk vector STATICALLY (but you have to
-	    // give it the correct logical block size!).
+      ///////////////////////////////////////////////////////////////////////////
+	    /// Compute the capacity of the lk vector STATICALLY (but you have to
+	    /// give it the correct logical block size!).
+      ///////////////////////////////////////////////////////////////////////////
 	    static size_t lk_capacity(size_t block_size);
-	    // Compute the capacity of the el vector STATICALLY.
+
+      ///////////////////////////////////////////////////////////////////////////
+	    /// Compute the capacity of the el vector STATICALLY.
+      ///////////////////////////////////////////////////////////////////////////
 	    static TPIE_OS_SIZE_T el_capacity(size_t block_size);
 
-	    // Find and return the position of key k 
-	    // (ie, the lowest position in the array of keys where it would be inserted).
+      ///////////////////////////////////////////////////////////////////////////
+	    /// Find and return the position of key k 
+	    /// (ie, the lowest position in the array of keys where it would be inserted).
+      ///////////////////////////////////////////////////////////////////////////
 	    TPIE_OS_SIZE_T find(const Key& k);
 
-	    // Constructor. Calls the block constructor with the 
-	    // appropriate number of links.
+      ///////////////////////////////////////////////////////////////////////////
+	    /// Constructor. Calls the block constructor with the 
+	    /// appropriate number of links.
+      ///////////////////////////////////////////////////////////////////////////
 	    btree_node(collection_single<BTECOLL>* pcoll, bid_t bid = 0);
 
-	    // Number of keys stored in this node.
+      ///////////////////////////////////////////////////////////////////////////
+	    /// Number of keys stored in this node.
+      ///////////////////////////////////////////////////////////////////////////
 	    TPIE_OS_SIZE_T& size() { return (TPIE_OS_SIZE_T&) (*info()); }
 	    const TPIE_OS_SIZE_T& size() const { return (TPIE_OS_SIZE_T&) (*info()); }
 
-	    // Maximum number of keys that can be stored in this node.
+      ///////////////////////////////////////////////////////////////////////////
+	    /// Maximum number of keys that can be stored in this node.
+      ///////////////////////////////////////////////////////////////////////////
 	    TPIE_OS_SIZE_T capacity() const { return el.capacity(); }
 
+      ///////////////////////////////////////////////////////////////////////////
+      /// Returns true if the node's capacity is reached.
+      ///////////////////////////////////////////////////////////////////////////
 	    bool full() const { return size() == capacity(); }
 
+      ///////////////////////////////////////////////////////////////////////////
+      /// Returns true if the leaf is empty.
+      ///////////////////////////////////////////////////////////////////////////
 	    bool empty() const { return size() == 0; }
 
-	    // Split into two leaves containing the same number of elements.
-	    // Return the median key, to be stored in the father node.
+      ///////////////////////////////////////////////////////////////////////////
+      /// Split into two leafes containing the same number of elements.
+      /// Return the median key (i.e., the key of the last element stored 
+      /// in this leaf, after split).
+      ///////////////////////////////////////////////////////////////////////////
 	    Key split(BTREE_NODE &right);
 
-	    // Merge this node with another node.
+      ///////////////////////////////////////////////////////////////////////////
+      /// Merge this node with a node given.
+      ///////////////////////////////////////////////////////////////////////////
 	    void merge(const BTREE_NODE &right, const Key& k);
 
-	    // Insert a key and link into a non-full node in a given position.
-	    // No validity checks.
+      ///////////////////////////////////////////////////////////////////////////
+	    /// Insert a key and link into a non-full node in a given position.
+	    /// No validity checks.
+      ///////////////////////////////////////////////////////////////////////////
 	    void insert_pos(const Key& k, bid_t l, TPIE_OS_SIZE_T k_pos, TPIE_OS_SIZE_T l_pos);
 
-	    // Insert a key and link into a non-full node 
-	    // (uses the key k to find the right position).
+      ///////////////////////////////////////////////////////////////////////////
+	    /// Insert a key and link into a non-full node 
+	    /// (uses the key k to find the right position).
+      ///////////////////////////////////////////////////////////////////////////
 	    void insert(const Key& k, bid_t l);
 
-	    // Delete an element given by its key.
+      ///////////////////////////////////////////////////////////////////////////
+	    /// Delete an element given by its key.
+      ///////////////////////////////////////////////////////////////////////////
 	    void erase_pos(size_t k_pos, size_t l_pos);
 
+      ///////////////////////////////////////////////////////////////////////////
+	    /// Desctructor.
+	    ///////////////////////////////////////////////////////////////////////////
 	    ~btree_node();
 	};
 
