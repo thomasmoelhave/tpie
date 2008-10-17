@@ -45,7 +45,7 @@ namespace tpie {
 	    
 	public:
 	    // The default device description for AMI streams.
-	    static AMI_device default_device;
+	    static device default_device;
 	    
 	    // The index into the device list for the next stream.    
 	    static unsigned int device_index;    

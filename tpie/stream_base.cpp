@@ -14,7 +14,7 @@
 using namespace tpie::ami;
 
 // The default device description for AMI single streams.
-AMI_device stream_base::default_device;
+device stream_base::default_device;
 
 // The device index of the most recently created stream.
 unsigned int stream_base::device_index;
@@ -53,7 +53,9 @@ stream_base_device_initializer::stream_base_device_initializer(){
         }
 	
         TP_LOG_DEBUG_ID("Default device description for AMI single streams:");
-        TP_LOG_DEBUG_ID(stream_base::default_device);
+
+//  CHECK THIS: How do we output ami::devide (the operator<< is gone)?
+//        TP_LOG_DEBUG_ID(stream_base::default_device);
 	
         // Set the last device index used to the last device index, so
         // that the first stream will wrap around to go on device 0.

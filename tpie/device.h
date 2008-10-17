@@ -6,8 +6,8 @@
 //
 // $Id: ami_device.h,v 1.6 2005-11-17 17:11:24 jan Exp $
 //
-#ifndef _AMI_DEVICE_H
-#define _AMI_DEVICE_H
+#ifndef _TPIE_AMI_DEVICE_H
+#define _TPIE_AMI_DEVICE_H
 
 // Get definitions for working with Unix and Windows
 #include <tpie/portability.h>
@@ -16,27 +16,39 @@
 
 #include <tpie/err.h>
 
-class AMI_device {
-    friend std::ostream &operator<<(std::ostream &os, const AMI_device &dev);
-private:
-    void dispose_contents();
-protected:
-    unsigned int argc;
-    char **argv;
-public:
-    AMI_device();
-    AMI_device(unsigned int count, char **strings);
-    AMI_device(const AMI_device& other);
-    ~AMI_device();
-    AMI_device& operator=(const AMI_device& other);
-    tpie::ami::err set_to_path(const char *path);
-    tpie::ami::err read_environment(const char *name);
-    const char * operator[](unsigned int index);
-    unsigned int arity(void);
-};
+namespace tpie {
 
-// Output operator
-std::ostream &operator<<(std::ostream &os, const AMI_device &dev);
+    namespace ami {
+	
+	class device {
 
-#endif // _AMI_DEVICE_H 
+	private:
+	    void dispose_contents();
+
+	protected:
+	    unsigned int argc;
+	    char         **argv;
+
+	public:
+	    device();
+	    device(unsigned int count, char **strings);
+	    device(const device& other);
+
+	    ~device();
+
+	    device& operator=(const device& other);
+	    
+	    err set_to_path(const char *path);
+	    err read_environment(const char *name);
+	    
+	    const char * operator[](unsigned int index);
+
+	    unsigned int arity(void);
+	};
+
+    }  //  ami namespace
+
+}  //  tpie namespace
+
+#endif // _TPIE_AMI_DEVICE_H 
 
