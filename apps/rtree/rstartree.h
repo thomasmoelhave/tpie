@@ -19,7 +19,9 @@
 #ifndef RSTARTREE_H
 #define RSTARTREE_H
 
-#include <portability.h>
+
+#include "common.h"
+#include <tpie/portability.h>
 
 //  Include <iostream> for output operator.
 //#include <iostream>
@@ -32,11 +34,11 @@
 #include <list>
 #include <vector>
 
-//  Include TPIE AMI declarations and template AMI_stack.
-#include <ami_stream.h>
-#include <ami_coll.h>
-#include <ami_block.h>
-#include <ami_stack.h>
+//  Include TPIE AMI declarations and template stack.
+#include <tpie/stream.h>
+#include <tpie/coll.h>
+#include <tpie/block.h>
+#include <tpie/stack.h>
 
 //  Include class rectangle.
 #include "rectangle.h"
@@ -46,10 +48,10 @@
 
 //  Define a meaningfull symbolic constant used for indicating
 //  that the block to be read is a new one.
-const AMI_bid nextFreeBlock = 0;
+const bid_t nextFreeBlock = 0;
 
 //- RStarTree
-template<class coord_t, class BTECOLL = BTE_COLLECTION>
+template<class coord_t, class BTECOLL = bte::COLLECTION>
 class RStarTree {
 //. R*-tree as described by Beckmann et al. [BKSS90].
 public:
@@ -77,11 +79,11 @@ public:
     unsigned short fanOut() const;
     unsigned short treeHeight() const;
 	TPIE_OS_OFFSET totalObjects() const;
-    AMI_bid rootPosition() const;
+    bid_t rootPosition() const;
     //. These are several methods to inquire tree metadata.
 
     //- readNode
-    RStarNode<coord_t, BTECOLL>* readNode(AMI_bid position);
+    RStarNode<coord_t, BTECOLL>* readNode(bid_t position);
     //. The method "readNode" loads the block with ID "position" and
     //. creates a new node object from the block's contents. Note that
     //. it is the responsibility of the programmer to delete this
@@ -90,20 +92,20 @@ public:
     //. is be done automatically upon calling the node's destructor.
  
     //- insert
-    AMI_err insert(const rectangle<coord_t, AMI_bid>& r);
+    err insert(const rectangle<coord_t, bid_t>& r);
     //. This method provides the standard way to insert an object
     //. into the tree. [BKSS90]
  
     //- delete
-    AMI_err remove(const rectangle<coord_t, AMI_bid>& r);
+    err remove(const rectangle<coord_t, bid_t>& r);
     //. This method provides the standard way to delete an object
     //. from the tree. [BKSS90]
 
     //- query
-    AMI_err query(
-	const rectangle<coord_t, AMI_bid>&       r, 
-	AMI_STREAM<rectangle<coord_t, AMI_bid> >* matches,
-	AMI_stack<AMI_bid>*   candidates,
+    err query(
+	const rectangle<coord_t, bid_t>&       r, 
+	stream<rectangle<coord_t, bid_t> >* matches,
+	ami::stack<bid_t>*   candidates,
 	bool                   bruteForce = false);
     //. This method realizes the "single shot" query algorithm for R-trees.
     //. Given a query rectangle "r" we look for all subtrees whose bounding
@@ -115,9 +117,9 @@ public:
     //. tree is traversed.
 
     //- findNode
-    AMI_err findNode(
-	AMI_bid             nodeID,  
-	AMI_stack<AMI_bid>* candidates);
+    err findNode(
+	bid_t             nodeID,  
+	ami::stack<bid_t>* candidates);
     //. This method realized a depth-first search looking for a node
     //. with a given ID and prints all its contents. For a more detailed
     //. description see "findOverlappingChildren".
@@ -136,7 +138,7 @@ public:
 
     //- setTreeInformation
     void setTreeInformation(
-	AMI_bid        root, 
+	bid_t        root, 
 	unsigned short height,
 	TPIE_OS_OFFSET objects);
     //. After bulk loading by bottom-up construction, this method needs
@@ -152,15 +154,15 @@ public:
     //.  A read attempt returns a success flag.
 
 protected:
-  AMI_collection_single<BTECOLL> *storageArea_;      //  Pointer to the disk.
+  collection_single<BTECOLL> *storageArea_;      //  Pointer to the disk.
     children_count_t              fanOut_;           //  Fan-out of each node.
     children_count_t              minFanOut_;        //  Minimum fan-out.
     TPIE_OS_SIZE_T                blockSize_;        //  Block size in bytes.
     unsigned short                treeHeight_;       //  Height of the tree.
-    AMI_bid                       rootPosition_;     //  ID of the root.
+    bid_t                       rootPosition_;     //  ID of the root.
     TPIE_OS_OFFSET                totalObjects_;     //  Objects in the tree.
     char*                         name_;
-    list<pair<rectangle<coord_t, AMI_bid>, unsigned short> > reinsertObjects_; 
+    list<pair<rectangle<coord_t, bid_t>, unsigned short> > reinsertObjects_; 
     vector<bool>                           overflowOnLevel_;
 
     //  This method splits a given node "toSplit" into two new nodes.
@@ -170,36 +172,36 @@ protected:
 
     //  This method inserts a given rectangle making sure that 
     //  the level of the node where the rectangle is placed is 'level'.
-    AMI_err insertOnLevel(
-	const rectangle<coord_t, AMI_bid>& r, 
+    err insertOnLevel(
+	const rectangle<coord_t, bid_t>& r, 
 	unsigned short   level);
 
     //  This method selects a node on level 'level' suitable to insert
     //  the given rectangle into. See "Algorithm ChooseSubtree" [BKSS90].
     RStarNode<coord_t, BTECOLL>* chooseNodeOnLevel(
-	const rectangle<coord_t, AMI_bid>& r, 
+	const rectangle<coord_t, bid_t>& r, 
 	unsigned short   level);
 
     //  This method selects a leaf node suitable to insert
     //  the given rectangle into. This corrensponds to calling
     //  chooseNodeOnLevel(r, 0).
-    RStarNode<coord_t, BTECOLL>* chooseLeaf(const rectangle<coord_t, AMI_bid>& r);
+    RStarNode<coord_t, BTECOLL>* chooseLeaf(const rectangle<coord_t, bid_t>& r);
 
     //  This method handles underflow treatment after deletions.
     //  See "Algorithm CondenseTree" [Gutt84].
-    AMI_err condenseTree(RStarNode<coord_t, BTECOLL>* n, unsigned short level);
+    err condenseTree(RStarNode<coord_t, BTECOLL>* n, unsigned short level);
 
 
     //  This method is called upon returning from a deletion
     //  if there are objects to be reinserted.
-    AMI_err handleReinsertions();
+    err handleReinsertions();
 
     //  Given a (pointer to a) node, its bounding rectangle, this method
     //  reinserts the node on level 'level' making sure that any
     //  overflow is treated properly.
-    AMI_err reinsert(
+    err reinsert(
 	RStarNode<coord_t, BTECOLL>*       n, 
-	const rectangle<coord_t, AMI_bid>& r, 
+	const rectangle<coord_t, bid_t>& r, 
 	unsigned short   level);
 
     // This method realized a depth-first search looking for a leaf
@@ -208,7 +210,7 @@ protected:
     // description see "findOverlappingChildren". Note that this 
     // algorithm keeps track of all node to be visited in internal
     // memory.
-    AMI_bid findLeaf(const rectangle<coord_t, AMI_bid>& r);
+    bid_t findLeaf(const rectangle<coord_t, bid_t>& r);
 
     //  Install an old node 'node1' and a new node 'node2' to 'node1's 
     //  parent node. If necessary, split the parent node and propagate the
@@ -217,7 +219,7 @@ protected:
     void adjustTreeOnLevel(
 	RStarNode<coord_t, BTECOLL>*     node1, 
 	RStarNode<coord_t, BTECOLL>*     node2,
-	AMI_bid       childToBeReplaced,
+	bid_t       childToBeReplaced,
 	unsigned short level);
 
 private:
@@ -240,7 +242,7 @@ TPIE_OS_OFFSET RStarTree<coord_t, BTECOLL>::totalObjects() const {
 }
 
 template<class coord_t, class BTECOLL>
-AMI_bid RStarTree<coord_t, BTECOLL>::rootPosition() const {
+bid_t RStarTree<coord_t, BTECOLL>::rootPosition() const {
     return rootPosition_;
 }
 
@@ -259,7 +261,7 @@ const char* RStarTree<coord_t, BTECOLL>::name() const {
 }
 
 template<class coord_t, class BTECOLL>
-RStarNode<coord_t, BTECOLL>* RStarTree<coord_t, BTECOLL>::readNode(AMI_bid position) {
+RStarNode<coord_t, BTECOLL>* RStarTree<coord_t, BTECOLL>::readNode(bid_t position) {
 
     //  Try to fetch the node from the buffer.
     RStarNode<coord_t, BTECOLL>* node = new RStarNode<coord_t, BTECOLL>(storageArea_,
@@ -273,7 +275,7 @@ RStarNode<coord_t, BTECOLL>* RStarTree<coord_t, BTECOLL>::readNode(AMI_bid posit
 }
 
 template<class coord_t, class BTECOLL>
-void RStarTree<coord_t, BTECOLL>::setTreeInformation(AMI_bid root, unsigned short height, TPIE_OS_OFFSET objects) {
+void RStarTree<coord_t, BTECOLL>::setTreeInformation(bid_t root, unsigned short height, TPIE_OS_OFFSET objects) {
     rootPosition_ = root;
     treeHeight_   = height;
     totalObjects_ = objects;
@@ -312,7 +314,7 @@ RStarTree<coord_t, BTECOLL>::RStarTree(const char* name, children_count_t fanOut
     name_ = new char[strlen(name)+1];
     strcpy(name_, name);
 
-    storageArea_ = new AMI_collection_single<BTECOLL>(name_);
+    storageArea_ = new collection_single<BTECOLL>(name_);
     storageArea_->persist(PERSIST_PERSISTENT);
 
     //  Set all attributes to the initial values.
@@ -326,7 +328,7 @@ RStarTree<coord_t, BTECOLL>::RStarTree(const char* name, children_count_t fanOut
 	sizeof(fanOut) +
 	sizeof(blockSize_) +
 	sizeof(rootPosition_);
-    const unsigned short childInfoSize = sizeof(rectangle<coord_t, AMI_bid>);
+    const unsigned short childInfoSize = sizeof(rectangle<coord_t, bid_t>);
 
     fanOut_   = static_cast<children_count_t>((blockSize_ - nodeInfoSize) / childInfoSize);
 
@@ -349,7 +351,7 @@ RStarTree<coord_t, BTECOLL>::RStarTree(const char* name, children_count_t fanOut
 	//  Create a "fresh" block collection.
 	storageArea_->persist(PERSIST_DELETE);
 	delete storageArea_;
-	storageArea_  = new AMI_collection_single<BTECOLL>(name_);
+	storageArea_  = new collection_single<BTECOLL>(name_);
 	
 	//  Create an empty root.
 	RStarNode<coord_t, BTECOLL>* root = new RStarNode<coord_t, BTECOLL>(
@@ -408,10 +410,10 @@ bool RStarTree<coord_t, BTECOLL>::operator!=(const RStarTree<coord_t, BTECOLL>& 
 }
 
 template<class coord_t, class BTECOLL>
-AMI_err RStarTree<coord_t, BTECOLL>::query(const rectangle<coord_t, AMI_bid>& bb, AMI_STREAM<rectangle<coord_t, AMI_bid> >* matches, AMI_stack<AMI_bid>* candidates, bool bruteForce) {
+err RStarTree<coord_t, BTECOLL>::query(const rectangle<coord_t, bid_t>& bb, stream<rectangle<coord_t, bid_t> >* matches, ami::stack<bid_t>* candidates, bool bruteForce) {
      RStarNode<coord_t, BTECOLL>* n = NULL;
-     AMI_bid*  current = NULL;
-     AMI_err    result = AMI_ERROR_NO_ERROR;
+     bid_t*  current = NULL;
+     err    result = NO_ERROR;
      off_t      candidatesCounter = 0;
      off_t      leafCounter = 0;
 
@@ -426,7 +428,7 @@ AMI_err RStarTree<coord_t, BTECOLL>::query(const rectangle<coord_t, AMI_bid>& bb
 	 result = candidates->pop(&current);
 	 --candidatesCounter;
 	 
-	 if (result != AMI_ERROR_NO_ERROR) {
+	 if (result != NO_ERROR) {
 	     break;
 	 }
 	 
@@ -445,10 +447,10 @@ AMI_err RStarTree<coord_t, BTECOLL>::query(const rectangle<coord_t, AMI_bid>& bb
 }
 
 template<class coord_t, class BTECOLL>
-AMI_err RStarTree<coord_t, BTECOLL>::findNode(AMI_bid nodeID,  AMI_stack<AMI_bid>* candidates) {
+err RStarTree<coord_t, BTECOLL>::findNode(bid_t nodeID,  ami::stack<bid_t>* candidates) {
      RStarNode<coord_t, BTECOLL>* n = NULL;
-     AMI_bid*  current = NULL;
-     AMI_err    result = AMI_ERROR_NO_ERROR;
+     bid_t*  current = NULL;
+     err    result = NO_ERROR;
      off_t      candidatesCounter = 0;
 
      cout << "Looking for : " << nodeID << "\n";
@@ -464,7 +466,7 @@ AMI_err RStarTree<coord_t, BTECOLL>::findNode(AMI_bid nodeID,  AMI_stack<AMI_bid
 	 result = candidates->pop(&current);
 	 --candidatesCounter;
 	 
-	 if (result != AMI_ERROR_NO_ERROR) {
+	 if (result != NO_ERROR) {
 	     break;
 	 }
 	 
@@ -480,15 +482,15 @@ AMI_err RStarTree<coord_t, BTECOLL>::findNode(AMI_bid nodeID,  AMI_stack<AMI_bid
 
 template<class coord_t, class BTECOLL>
 void RStarTree<coord_t, BTECOLL>::checkTree() {
-    list<pair<AMI_bid, rectangle<coord_t, AMI_bid> > > l;
-    rectangle<coord_t, AMI_bid>                        checkNode;
+    list<pair<bid_t, rectangle<coord_t, bid_t> > > l;
+    rectangle<coord_t, bid_t>                        checkNode;
     RStarNode<coord_t, BTECOLL>*                       n = NULL;
     TPIE_OS_OFFSET                                     objectCounter = 0;
 
     cerr << "Checking tree " << name() << "\n";
 
     //  Initialize the process by pushing the root's ID into the queue.
-    l.push_back(pair<AMI_bid, rectangle<coord_t, AMI_bid> >(rootPosition_, checkNode));
+    l.push_back(pair<bid_t, rectangle<coord_t, bid_t> >(rootPosition_, checkNode));
 
     //  Explore the tree by breadth-first traversal.
     while (!l.empty()) {
@@ -508,14 +510,14 @@ void RStarTree<coord_t, BTECOLL>::checkTree() {
 }
 
 template<class coord_t, class BTECOLL>
-RStarNode<coord_t, BTECOLL>* RStarTree<coord_t, BTECOLL>::chooseLeaf(const rectangle<coord_t, AMI_bid>& r) { 
+RStarNode<coord_t, BTECOLL>* RStarTree<coord_t, BTECOLL>::chooseLeaf(const rectangle<coord_t, bid_t>& r) { 
     return chooseNodeOnLevel(r, 0);
 }
 
 template<class coord_t, class BTECOLL>
-RStarNode<coord_t, BTECOLL>* RStarTree<coord_t, BTECOLL>::chooseNodeOnLevel(const rectangle<coord_t, AMI_bid>& r, unsigned short level) {
+RStarNode<coord_t, BTECOLL>* RStarTree<coord_t, BTECOLL>::chooseNodeOnLevel(const rectangle<coord_t, bid_t>& r, unsigned short level) {
     RStarNode<coord_t, BTECOLL>*     N  = readNode(rootPosition_);
-    AMI_bid       ID;
+    bid_t       ID;
     unsigned short lookingAtLevel = treeHeight();
     
     //  Proceed on a root-to-leaf path.
@@ -539,10 +541,10 @@ RStarNode<coord_t, BTECOLL>* RStarTree<coord_t, BTECOLL>::chooseNodeOnLevel(cons
 }
 
 template<class coord_t, class BTECOLL>
-AMI_bid RStarTree<coord_t, BTECOLL>::findLeaf(const rectangle<coord_t, AMI_bid>& r) {
+bid_t RStarTree<coord_t, BTECOLL>::findLeaf(const rectangle<coord_t, bid_t>& r) {
      RStarNode<coord_t, BTECOLL>*     n = NULL;
-     AMI_bid       current = (AMI_bid) 0;     
-     list<AMI_bid> candidateList;
+     bid_t       current = (bid_t) 0;     
+     list<bid_t> candidateList;
 
      //  Initialize the process by pushing the root's ID onto the stack.
      candidateList.push_back(rootPosition_);
@@ -565,14 +567,14 @@ AMI_bid RStarTree<coord_t, BTECOLL>::findLeaf(const rectangle<coord_t, AMI_bid>&
 }
 
 template<class coord_t, class BTECOLL>
-AMI_err RStarTree<coord_t, BTECOLL>::condenseTree(RStarNode<coord_t, BTECOLL>* n, unsigned short level) {
+err RStarTree<coord_t, BTECOLL>::condenseTree(RStarNode<coord_t, BTECOLL>* n, unsigned short level) {
 
-    //  The return value is always AMI_ERROR_NO_ERROR.
+    //  The return value is always NO_ERROR.
     //  You might want to check for I/O errors every time
     //  an I/O has been performed.
-    AMI_err result = AMI_ERROR_NO_ERROR;
+    err result = NO_ERROR;
     
-    while ((!n->isRoot()) && (result == AMI_ERROR_NO_ERROR)) {
+    while ((!n->isRoot()) && (result == NO_ERROR)) {
 	RStarNode<coord_t, BTECOLL>*     parent = readNode(n->getParent());
 	unsigned short sonID = parent->findChild(n->bid());
 	unsigned short counter = 0;	
@@ -583,7 +585,7 @@ AMI_err RStarTree<coord_t, BTECOLL>::condenseTree(RStarNode<coord_t, BTECOLL>* n
 	    //  Move all children of node n to the list of objects to
 	    //  be reinserted.
 	    for (counter = 0; counter < n->numberOfChildren(); ++counter) {
-		reinsertObjects_.push_back(pair<rectangle<coord_t, AMI_bid>, unsigned short>(n->getChild(counter), level));
+		reinsertObjects_.push_back(pair<rectangle<coord_t, bid_t>, unsigned short>(n->getChild(counter), level));
 	    }
 	    
 	    //  Remove n from its parent.
@@ -598,7 +600,7 @@ AMI_err RStarTree<coord_t, BTECOLL>::condenseTree(RStarNode<coord_t, BTECOLL>* n
 	else {
 	    
 	    //  Compute the exact boundingbox of n.
-	    rectangle<coord_t, AMI_bid> cover = n->getChild(0);
+	    rectangle<coord_t, bid_t> cover = n->getChild(0);
 	    for (counter = 1; counter < n->numberOfChildren(); ++counter) {
 		cover.extend(n->getChild(counter));
 	    }
@@ -623,14 +625,14 @@ AMI_err RStarTree<coord_t, BTECOLL>::condenseTree(RStarNode<coord_t, BTECOLL>* n
     //  the height decreases.
 //    unsigned short th = treeHeight();
 
-    if (result == AMI_ERROR_NO_ERROR) {
+    if (result == NO_ERROR) {
 
 	//  Node n is the root of the tree.
 	if (!n->isLeaf()) {
 	    if (n->numberOfChildren() == 1) {
 		
 		//  Check whether there is an underflow in node n.
-		AMI_bid newRootPosition = n->getChild(0).getID();
+		bid_t newRootPosition = n->getChild(0).getID();
 		
 		//  If the only child of the root is a node make it
 		//  the new root.
@@ -668,9 +670,9 @@ AMI_err RStarTree<coord_t, BTECOLL>::condenseTree(RStarNode<coord_t, BTECOLL>* n
 }
 
 template<class coord_t, class BTECOLL>
-AMI_err RStarTree<coord_t, BTECOLL>::remove(const rectangle<coord_t, AMI_bid>& r) {
-    AMI_err   result = AMI_ERROR_NO_ERROR;
-    AMI_bid  nodeID = findLeaf(r);
+err RStarTree<coord_t, BTECOLL>::remove(const rectangle<coord_t, bid_t>& r) {
+    err   result = NO_ERROR;
+    bid_t  nodeID = findLeaf(r);
 
     if (nodeID > 0) {
 	//  If the node contained the objects proceed as
@@ -685,34 +687,34 @@ AMI_err RStarTree<coord_t, BTECOLL>::remove(const rectangle<coord_t, AMI_bid>& r
 	//  Node n will be deleted within this method.
 	result = condenseTree(n, 0);  
 	
-	if (result == AMI_ERROR_NO_ERROR) {
+	if (result == NO_ERROR) {
 
 	    //  Reinsert orphaned entries.
 	    result = handleReinsertions();
 	}
 
-	if (result != AMI_ERROR_NO_ERROR) {
+	if (result != NO_ERROR) {
 	    cerr << "After deletion of " << r.getID() << "\n";
-	    cerr << "AMI_ERROR " << result << " occurred." << "\n";
+	    cerr << "ERROR " << result << " occurred." << "\n";
 	}
 
     }
     else {
 	cerr << "Object to be deleted (ID=" << r.getID() << ") not found." << "\n";
 	checkTree();
-	result = AMI_ERROR_END_OF_STREAM;
+	result = END_OF_STREAM;
     }
 
     return result;    
 }
 
 template<class coord_t, class BTECOLL>
-AMI_err RStarTree<coord_t, BTECOLL>::handleReinsertions() {
-    AMI_err        result = AMI_ERROR_NO_ERROR;
-    rectangle<coord_t, AMI_bid>      r;
+err RStarTree<coord_t, BTECOLL>::handleReinsertions() {
+    err        result = NO_ERROR;
+    rectangle<coord_t, bid_t>      r;
     unsigned short level = 0;
 
-    while ((result == AMI_ERROR_NO_ERROR) && (!reinsertObjects_.empty())) { 
+    while ((result == NO_ERROR) && (!reinsertObjects_.empty())) { 
 
 	r     = (*reinsertObjects_.begin()).first;
 	level = (*reinsertObjects_.begin()).second;
@@ -727,9 +729,9 @@ AMI_err RStarTree<coord_t, BTECOLL>::handleReinsertions() {
 }
 
 template<class coord_t, class BTECOLL>
-AMI_err RStarTree<coord_t, BTECOLL>::insert(const rectangle<coord_t, AMI_bid>& r) {
+err RStarTree<coord_t, BTECOLL>::insert(const rectangle<coord_t, bid_t>& r) {
 
-    AMI_err result = AMI_ERROR_NO_ERROR;
+    err result = NO_ERROR;
 
     //  Initialize the overflow array
     unsigned short counter;
@@ -741,7 +743,7 @@ AMI_err RStarTree<coord_t, BTECOLL>::insert(const rectangle<coord_t, AMI_bid>& r
 
     result = insertOnLevel(r, 0);
 
-    if (result == AMI_ERROR_NO_ERROR) {
+    if (result == NO_ERROR) {
 	handleReinsertions();
     }
     // [tavi] added return statement.
@@ -749,12 +751,12 @@ AMI_err RStarTree<coord_t, BTECOLL>::insert(const rectangle<coord_t, AMI_bid>& r
 }
 
 template<class coord_t, class BTECOLL>
-AMI_err RStarTree<coord_t, BTECOLL>::insertOnLevel(const rectangle<coord_t, AMI_bid>& r, unsigned short level) {
+err RStarTree<coord_t, BTECOLL>::insertOnLevel(const rectangle<coord_t, bid_t>& r, unsigned short level) {
 
-    //  The return value is always AMI_ERROR_NO_ERROR.
+    //  The return value is always NO_ERROR.
     //  You might want to check for I/O errors every time
     //  an I/O has been performed.
-    AMI_err    result        = AMI_ERROR_NO_ERROR;
+    err    result        = NO_ERROR;
 
     RStarNode<coord_t, BTECOLL>* insertionNode = chooseNodeOnLevel(r, level);
 
@@ -786,7 +788,7 @@ AMI_err RStarTree<coord_t, BTECOLL>::insertOnLevel(const rectangle<coord_t, AMI_
 
 	    pair<RStarNode<coord_t, BTECOLL>*, RStarNode<coord_t, BTECOLL>*> nodeTupel = splitNode(insertionNode);
 
-	    AMI_bid childToBeReplaced = insertionNode->bid();
+	    bid_t childToBeReplaced = insertionNode->bid();
 
 	    //  Delete the node that has been split.
 	    insertionNode->persist(PERSIST_DELETE);
@@ -847,12 +849,12 @@ struct sortByCenterDistance {
 };
 
 template<class coord_t, class BTECOLL>
-AMI_err RStarTree<coord_t, BTECOLL>::reinsert(RStarNode<coord_t, BTECOLL>* n, const rectangle<coord_t, AMI_bid>& r, unsigned short level) {
-    rectangle<coord_t, AMI_bid>                              cover = n->getChild(0);
+err RStarTree<coord_t, BTECOLL>::reinsert(RStarNode<coord_t, BTECOLL>* n, const rectangle<coord_t, bid_t>& r, unsigned short level) {
+    rectangle<coord_t, bid_t>                              cover = n->getChild(0);
     vector<pair<unsigned short, coord_t> > sortVector;
     unsigned short                         counter;
 
-    AMI_err result = AMI_ERROR_NO_ERROR;
+    err result = NO_ERROR;
 
     for (counter=1; counter < n->numberOfChildren(); ++counter) {
 	cover.extend(n->getChild(counter));
@@ -930,8 +932,8 @@ AMI_err RStarTree<coord_t, BTECOLL>::reinsert(RStarNode<coord_t, BTECOLL>* n, co
     n->persist(PERSIST_DELETE);
 
     RStarNode<coord_t, BTECOLL>* currentNode = newNode;
-    AMI_bid   lastID      = newNode->bid();
-    AMI_bid   newParent   = newNode->getParent();
+    bid_t   lastID      = newNode->bid();
+    bid_t   newParent   = newNode->getParent();
     //  Adjust bounding rectangles along the path to the root.
     //  Note: At this point the first node in question cannot be the root.
     do {
@@ -945,7 +947,7 @@ AMI_err RStarTree<coord_t, BTECOLL>::reinsert(RStarNode<coord_t, BTECOLL>* n, co
 
 	newParent = currentNode->getParent();
 
-	//  Save the AMI_bid necessary for the next iteration.
+	//  Save the bid_t necessary for the next iteration.
 	if (currentNode == newNode) {
 	    lastID    = n->bid();  // We are replacing "n" by "newNode".
 	    delete newNode;
@@ -972,13 +974,13 @@ AMI_err RStarTree<coord_t, BTECOLL>::reinsert(RStarNode<coord_t, BTECOLL>* n, co
     currentNode = NULL;
 
     //  Reinsert the remaining 30% of the entries.
-    while ((result == AMI_ERROR_NO_ERROR) && (vi != sortVector.end())) {
+    while ((result == NO_ERROR) && (vi != sortVector.end())) {
 
 	if ((*vi).first == n->numberOfChildren()) {
-	    reinsertObjects_.push_back(pair<rectangle<coord_t, AMI_bid>, unsigned short>(r, level));
+	    reinsertObjects_.push_back(pair<rectangle<coord_t, bid_t>, unsigned short>(r, level));
 	}
 	else {
-	    reinsertObjects_.push_back(pair<rectangle<coord_t, AMI_bid>, unsigned short>(n->getChild((*vi).first), level));
+	    reinsertObjects_.push_back(pair<rectangle<coord_t, bid_t>, unsigned short>(n->getChild((*vi).first), level));
 	}
 	++vi;
     }
@@ -990,7 +992,7 @@ AMI_err RStarTree<coord_t, BTECOLL>::reinsert(RStarNode<coord_t, BTECOLL>* n, co
 
 
 template<class coord_t, class BTECOLL>
-void RStarTree<coord_t, BTECOLL>::adjustTreeOnLevel(RStarNode<coord_t, BTECOLL>* node1, RStarNode<coord_t, BTECOLL>* node2, AMI_bid childToBeReplaced, unsigned short level) {
+void RStarTree<coord_t, BTECOLL>::adjustTreeOnLevel(RStarNode<coord_t, BTECOLL>* node1, RStarNode<coord_t, BTECOLL>* node2, bid_t childToBeReplaced, unsigned short level) {
 
     RStarNode<coord_t, BTECOLL>*     parent = NULL;
     unsigned short index;
@@ -1014,7 +1016,7 @@ void RStarTree<coord_t, BTECOLL>::adjustTreeOnLevel(RStarNode<coord_t, BTECOLL>*
 	    //  Split the parent node.
 	    pair<RStarNode<coord_t, BTECOLL>*, RStarNode<coord_t, BTECOLL>*> nodeTupel = splitNode(parent);
 
-	    AMI_bid childToBeReplaced = parent->bid();
+	    bid_t childToBeReplaced = parent->bid();
 
 	    //  Delete the node that has been split.
 	    parent->persist(PERSIST_DELETE);
@@ -1059,7 +1061,7 @@ void RStarTree<coord_t, BTECOLL>::adjustTreeOnLevel(RStarNode<coord_t, BTECOLL>*
 	    //  Mark the level.
 	    overflowOnLevel_[level] = true;
 
-	    rectangle<coord_t, AMI_bid> r = node2->getCoveringRectangle();
+	    rectangle<coord_t, bid_t> r = node2->getCoveringRectangle();
 	    r.setID(node2->bid());
 
 	    //  Write the nodes to disk.
@@ -1113,16 +1115,16 @@ RStarTree<coord_t, BTECOLL>::splitNode(RStarNode<coord_t, BTECOLL>* toSplit) {
 					nextFreeBlock,
 					fanOut_);
     RStarNode<coord_t, BTECOLL>*     newRoot         = NULL;
-    AMI_bid       newRootPosition = 0;
+    bid_t       newRootPosition = 0;
     unsigned short counter         = 0;
 
     //  Determine split axis and distribution.
-    pair<vector<rectangle<coord_t, AMI_bid> >*, unsigned short> seeds = toSplit->chooseSplitAxisAndIndex();
+    pair<vector<rectangle<coord_t, bid_t> >*, unsigned short> seeds = toSplit->chooseSplitAxisAndIndex();
 
     unsigned short firstGroupNumber = (unsigned short)(fanOut_/ MIN_FANOUT_FACTOR) + seeds.second;
 
-    rectangle<coord_t, AMI_bid> b1 = (*(seeds.first))[0];
-    rectangle<coord_t, AMI_bid> b2 = (*(seeds.first))[firstGroupNumber];
+    rectangle<coord_t, bid_t> b1 = (*(seeds.first))[0];
+    rectangle<coord_t, bid_t> b2 = (*(seeds.first))[firstGroupNumber];
 
     for(counter = 0; counter < firstGroupNumber; ++counter) {
 	newNode1->addChild((*(seeds.first))[counter]);
@@ -1234,7 +1236,7 @@ bool RStarTree<coord_t, BTECOLL>::readTreeInfo() {
 	returnValue = false;
     }
     else {
-	treeinfo_file_stream->read((char *) &rootPosition_, sizeof(AMI_bid));
+	treeinfo_file_stream->read((char *) &rootPosition_, sizeof(bid_t));
 	treeinfo_file_stream->read((char *) &treeHeight_, sizeof(unsigned short));
 	treeinfo_file_stream->read((char *) &totalObjects_, sizeof(off_t));
 	treeinfo_file_stream->read((char *) &fanOut_, sizeof(off_t));
@@ -1257,7 +1259,7 @@ void RStarTree<coord_t, BTECOLL>::writeTreeInfo() {
     strcat(treeinfo_filename, ".info");
     //  Write some info.
     ofstream *treeinfo_file_stream = new ofstream(treeinfo_filename);
-    treeinfo_file_stream->write((char *) &rootPosition_, sizeof(AMI_bid));
+    treeinfo_file_stream->write((char *) &rootPosition_, sizeof(bid_t));
     treeinfo_file_stream->write((char *) &treeHeight_, sizeof(unsigned short));
     treeinfo_file_stream->write((char *) &totalObjects_, sizeof(off_t));  
     treeinfo_file_stream->write((char *) &fanOut_, sizeof(unsigned short));  

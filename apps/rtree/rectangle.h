@@ -14,6 +14,8 @@
 #ifndef _RECTANGLE_H_
 #define _RECTANGLE_H_
 
+#include "common.h"
+
 #include <iostream>
 // Include min and max from STL.
 #include <algorithm>

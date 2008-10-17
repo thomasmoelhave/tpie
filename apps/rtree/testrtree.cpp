@@ -1,7 +1,8 @@
+#include "common.h"
 #include <iostream>
 #include <list>
 #include "app_config.h"
-#include <ami_block.h>
+#include <tpie/block.h>
 #include "rstartree.h"
 
 const unsigned short fanOut = 10;
@@ -13,7 +14,7 @@ void insertIntoTree(RStarTree<double>* r, int numberOfObjects) {
 	if (i == 89) {
 	    cerr << numberOfObjects << endl;
 	}
- 	r->insert(rectangle<double, AMI_bid>(i, i*5,i*5, i*5+2, i*5+2));
+ 	r->insert(rectangle<double, bid_t>(i, i*5,i*5, i*5+2, i*5+2));
 	cerr << i << " ";
     }
 
@@ -24,7 +25,7 @@ void insertIntoTree(RStarTree<double>* r, int numberOfObjects) {
 void deleteFromTree(RStarTree<double>* r, int numberOfObjects) {
 
     for(int i = 0; i < numberOfObjects; ++i) {
- 	r->remove(rectangle<double, AMI_bid>(i, i*5,i*5, i*5+2, i*5+2));
+ 	r->remove(rectangle<double, bid_t>(i, i*5,i*5, i*5+2, i*5+2));
     }
 
     r->show_stats();
@@ -34,12 +35,12 @@ void deleteFromTree(RStarTree<double>* r, int numberOfObjects) {
 void printTree(RStarTree<double>* r) {
     
     RStarNode<double>* n=NULL;
-    list<AMI_bid> l;
+    list<bid_t> l;
     
     l.push_back(r->rootPosition());
     
     while (!l.empty()) {
-	AMI_bid next = l.front();
+	bid_t next = l.front();
 	l.pop_front();
 	n = r->readNode(next);
 	cout << "-------------------------------------------"<<endl;

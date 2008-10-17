@@ -19,9 +19,8 @@
 #define INFINITY DBL_MAX
 #define MINUSINFINITY -(DBL_MAX-1)
 
-#include <portability.h>
-
-#include "app_config.h"
+#include "common.h"
+#include <tpie/portability.h>
 #include "bulkloader.h"
 
 int main(int argc, char** argv) {
@@ -53,7 +52,7 @@ int main(int argc, char** argv) {
 	cerr << "-Tree (fanout=" << atol(argv[2]) << ") for " << argv[1] << "...";
 
 	BulkLoader<double> bl(argv[1], (unsigned short)atol(argv[2]));
-	AMI_err result = AMI_ERROR_NO_ERROR;
+	err result = NO_ERROR;
 
 	if (!strcmp(argv[3], "H")) {
 	    result = bl.createHilbertRTree(&tree);
@@ -62,11 +61,11 @@ int main(int argc, char** argv) {
 	    result = bl.createRStarTree(&tree);
 	}
 
-	if (result != AMI_ERROR_NO_ERROR) {
+	if (result != NO_ERROR) {
 	    cerr << "Error " << hex << result;
 	}
 
-        cerr << "...done (" << tree->totalObjects() << " objects)." << "\n";
+	cerr << "...done (" << tree->totalObjects() << " objects)." << "\n";
 	tree->show_stats();
 
 //

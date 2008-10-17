@@ -7,16 +7,16 @@
 // Transforms an ASCII file containing rectangles (as in rectangle.h)
 // into a TPIE stream.
 //
-#include "app_config.h"
+#include "common.h"
 #include <fstream>
 #include "rectangle.h"
-#include <ami_block.h>
-#include <ami_scan_utils.h>
+#include <tpie/block.h>
+#include <tpie/scan_utils.h>
 
 
 int main(int argc, char **argv) {
 
-  AMI_err err;
+  err err;
   istream *file_stream;
   char *out_filename;
   if (argc < 2) {
@@ -30,17 +30,17 @@ int main(int argc, char **argv) {
     file_stream = new ifstream(argv[1]);
     out_filename = argv[2];
   }
-  cxx_istream_scan<rectangle<double, AMI_bid> > scanner(file_stream);
-  AMI_STREAM<rectangle<double, AMI_bid> > *out_stream;
-  out_stream = new AMI_STREAM<rectangle<double, AMI_bid> >(out_filename);
+  cxx_istream_scan<rectangle<double, bid_t> > scanner(file_stream);
+  stream<rectangle<double, bid_t> > *out_stream;
+  out_stream = new stream<rectangle<double, bid_t> >(out_filename);
   out_stream->persist(PERSIST_PERSISTENT);
   
   cerr << "Working...";
-  err = AMI_scan(&scanner, out_stream);
+  err = scan(&scanner, out_stream);
 
   delete out_stream;
 
-  if (err != AMI_ERROR_NO_ERROR) {
+  if (err != NO_ERROR) {
     cerr << "\nError while parsing data: " << hex 
 	 << err << " (see ami_err.H)" << endl;
     exit(-1);

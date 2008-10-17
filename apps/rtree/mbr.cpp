@@ -15,33 +15,33 @@
 #define INFINITY DBL_MAX
 #define MINUSINFINITY -(DBL_MAX-1)
 
-#include "app_config.h"
+#include "common.h"
 #include "rectangle.h"
-#include <ami_scan.h>
-#include <ami_block.h>
+#include <tpie/scan.h>
+#include <tpie/block.h>
 #include <string.h>
 #include <fstream>
 //#include <limits.h>
 
 template<class coord_t, class oid_t>
-class MBRScanner: public AMI_scan_object {
+class MBRScanner: public scan_object {
 protected:
   rectangle<coord_t, oid_t> mbr;
   ofstream *out;
 public:
-  MBRScanner(char *out_filename) {
-    out = new ofstream(out_filename);
+  MBRScanner(std::string out_filename) {
+    out = new ofstream(out_filename.c_str());
     mbr.xlo = INFINITY;
     mbr.ylo = INFINITY;
     mbr.xhi = MINUSINFINITY;
     mbr.yhi = MINUSINFINITY;
   }
     
-  AMI_err initialize() {
-	return AMI_ERROR_NO_ERROR;
+  err initialize() {
+	return NO_ERROR;
   }
 
-  AMI_err operate(const rectangle<coord_t, oid_t> &in, AMI_SCAN_FLAG *sfin) {
+  err operate(const rectangle<coord_t, oid_t> &in, SCAN_FLAG *sfin) {
 
     if (*sfin) {
       if (in.xlo < mbr.xlo) mbr.xlo = in.xlo;
@@ -52,9 +52,9 @@ public:
       out->write((char *) &mbr, sizeof(mbr));
       cerr << " " << mbr.xlo << " " << mbr.ylo 
       	   << " " << mbr.xhi << " " << mbr.yhi << " ";
-      return AMI_SCAN_DONE;
+      return SCAN_DONE;
     }
-    return AMI_SCAN_CONTINUE; 
+    return SCAN_CONTINUE; 
   }
 };
 
@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
   }
 
   cerr << "Working...";
-  AMI_STREAM<rectangle<double, AMI_bid> > input_stream(argv[1]);
+  stream<rectangle<double, bid_t> > input_stream(argv[1]);
   input_stream.persist(PERSIST_PERSISTENT);
 
   cerr << "Stream length : " << input_stream.stream_len() << endl;
@@ -74,8 +74,8 @@ int main(int argc, char **argv) {
   char *output_filename = new char[strlen(argv[1])+5];
   strcpy(output_filename, argv[1]);
   strcat(output_filename, ".mbr");
-  MBRScanner<double, AMI_bid> scan(output_filename);
-  AMI_err err = AMI_scan(&input_stream, &scan);
+  MBRScanner<double, bid_t> scan(output_filename);
+  err aerr = ami::scan(&input_stream, &scan);
   cerr << "done." << endl;
 
 	return 0;

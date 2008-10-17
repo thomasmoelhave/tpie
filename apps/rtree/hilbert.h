@@ -18,7 +18,11 @@
 #ifndef HILBERT_H
 #define HILBERT_H
 
-#include <portability.h>
+#include <tpie/portability.h>
+#include <tpie/stream.h>
+using namespace tpie;
+using namespace tpie::ami;
+
 
 TPIE_OS_LONGLONG computeHilbertValue(TPIE_OS_LONGLONG x, TPIE_OS_LONGLONG y, TPIE_OS_LONGLONG side);
 

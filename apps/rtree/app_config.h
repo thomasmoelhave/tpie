@@ -11,7 +11,7 @@
 #define _APP_CONFIG_H
 
 // Get the configuration set up by the configure script.
-#include <config.h>
+#include <tpie/config.h>
 
 #define LOG_BLK_SZ 8*1024  /* HERE WE NEED TO PUT SOMETHING MEANINGFUL */
 
@@ -92,7 +92,7 @@
 // Use logs if requested.
 #if TP_LOG_APPS
 #define TPL_LOGGING 1
-#include <tpie_log.h>
+#include <tpie/tpie_log.h>
 #endif
 
 // Enable assertions if requested.
@@ -100,7 +100,7 @@
 #define DEBUG_ASSERTIONS 1
 #define DEBUG_CERR 1
 #define DEBUG_STR 1
-#include <tpie_assert.h>
+#include <tpie/tpie_assert.h>
 #endif
 
 

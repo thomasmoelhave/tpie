@@ -32,3 +32,5 @@ if (COMPILE_TEST)
 	add_subdirectory(test)
 endif (COMPILE_TEST)
 
+add_subdirectory(apps)
+
