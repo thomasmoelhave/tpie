@@ -19,13 +19,13 @@
 #define _TPIE_BTE_STREAM_MMAP_H
 
 // Get definitions for working with Unix and Windows
-#include <portability.h>
+#include <tpie/portability.h>
 
 // For header's type field (77 == 'M').
 #define STREAM_IMPLEMENTATION_MMAP 77
 
-#include <tpie_assert.h>
-#include <tpie_log.h>
+#include <tpie/tpie_assert.h>
+#include <tpie/tpie_log.h>
 
 #if USE_LIBAIO
 #  if !TPIE_HAVE_LIBAIO
@@ -41,7 +41,7 @@
 #endif
 
 // Get the stream_base class and other definitions.
-#include <bte/stream_base.h>
+#include <tpie/bte/stream_base.h>
 
 #ifndef  STREAM_MMAP_BLOCK_FACTOR
 #  define STREAM_MMAP_BLOCK_FACTOR 8
@@ -142,7 +142,7 @@ namespace tpie {
 	
 			// Query memory usage
 			err main_memory_usage(TPIE_OS_SIZE_T* usage, 
-								  MM_stream_usage usage_type);
+								  mem::stream_usage usage_type);
 	
 			TPIE_OS_OFFSET chunk_size() const;
 	
@@ -827,11 +827,11 @@ namespace tpie {
 // Note that in a substream we do not charge for the memory used by
 // the header, since it is accounted for in the 0 level superstream.
 		template <class T>
-			err stream_mmap<T>::main_memory_usage (TPIE_OS_SIZE_T * usage, MM_stream_usage usage_type) {
+			err stream_mmap<T>::main_memory_usage (TPIE_OS_SIZE_T * usage, mem::stream_usage usage_type) {
 
 			switch (usage_type) {
 
-			case MM_STREAM_USAGE_OVERHEAD:
+			case mem::STREAM_USAGE_OVERHEAD:
 				//Fixed costs. Only 2*mem overhead, because only class and base
 				//are allocated dynamicall via "new". Header is read via mmap
 				*usage = sizeof(*this) + sizeof(stream_header) +
@@ -839,13 +839,13 @@ namespace tpie {
 
 				break;
 	    
-			case MM_STREAM_USAGE_BUFFER:
+			case mem::STREAM_USAGE_BUFFER:
 				//no mem manager overhead when allocated via mmap
 				*usage = STREAM_MMAP_MM_BUFFERS * m_header->m_blockSize;
 
 				break;
 	    
-			case MM_STREAM_USAGE_CURRENT:
+			case mem::STREAM_USAGE_CURRENT:
 				*usage = (sizeof(*this) + sizeof(stream_header) +
 						  2*MM_manager.space_overhead() + 
 						  ((m_currentBlock == NULL) ? 0 :
@@ -853,8 +853,8 @@ namespace tpie {
 	    
 				break;
 	    
-			case MM_STREAM_USAGE_MAXIMUM:
-			case MM_STREAM_USAGE_SUBSTREAM:
+			case mem::STREAM_USAGE_MAXIMUM:
+			case mem::STREAM_USAGE_SUBSTREAM:
 				*usage = (sizeof(*this) + sizeof(stream_header) +
 						  2*MM_manager.space_overhead() + 
 						  STREAM_MMAP_MM_BUFFERS * m_header->m_blockSize);

@@ -84,7 +84,7 @@
 
 // mmap implementation.
 #if defined(BTE_STREAM_IMP_MMAP)
-#  include <bte/stream_mmap.h>    
+#  include <tpie/bte/stream_mmap.h>    
 // If this is the only implementation, then make it easier to get to.
 #  ifndef BTE_STREAM_IMP_MULTI_IMP
 #    ifdef BTE_STREAM
