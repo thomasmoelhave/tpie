@@ -234,7 +234,7 @@ namespace tpie {
 	    // Space for internal buffers for the input and output stream may not
 	    // have been allocated yet. Query the space usage and subtract.
 	    if ((ae = inStream->main_memory_usage
-		 (&mmBytesPerStream,MM_STREAM_USAGE_MAXIMUM))
+		 (&mmBytesPerStream,mem::STREAM_USAGE_MAXIMUM))
 		!= NO_ERROR) {
 		
 		TP_LOG_DEBUG_ID ("Error returned from main_memory_usage");

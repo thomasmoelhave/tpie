@@ -136,7 +136,7 @@ namespace tpie {
 	    ////////////////////////////////////////////////////////////////////
 
 	    err main_memory_usage(TPIE_OS_SIZE_T *usage,
-				  MM_stream_usage usage_type) const;
+				  mem::stream_usage usage_type) const;
     
 	private:
 	    err refill();
@@ -286,7 +286,7 @@ err queue<T>::refill() {
 
 template<class T>
 err queue<T>::main_memory_usage(TPIE_OS_SIZE_T *usage,
-				MM_stream_usage usage_type) const {
+				mem::stream_usage usage_type) const {
     
     TPIE_OS_SIZE_T usage2;
 
@@ -304,17 +304,17 @@ err queue<T>::main_memory_usage(TPIE_OS_SIZE_T *usage,
     *usage += usage2;
 
     switch (usage_type) {
-    case MM_STREAM_USAGE_OVERHEAD:
-    case MM_STREAM_USAGE_CURRENT:
-    case MM_STREAM_USAGE_MAXIMUM:
-    case MM_STREAM_USAGE_SUBSTREAM:
-    case MM_STREAM_USAGE_BUFFER:
+    case mem::STREAM_USAGE_OVERHEAD:
+    case mem::STREAM_USAGE_CURRENT:
+    case mem::STREAM_USAGE_MAXIMUM:
+    case mem::STREAM_USAGE_SUBSTREAM:
+    case mem::STREAM_USAGE_BUFFER:
 	*usage += sizeof(*this);            //  Attributes.
 
 	break;
 
     default:
-	tp_assert(0, "Unknown MM_stream_usage type added.");
+	tp_assert(0, "Unknown mem::stream_usage type added.");
     }
 
     return NO_ERROR;
