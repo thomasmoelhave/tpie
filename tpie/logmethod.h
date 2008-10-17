@@ -24,8 +24,6 @@
 
 #include <tpie/stats_tree.h>
 
-#define LM_PATH_NAME_LENGTH TPIE_PATH_LENGTH
-
 namespace tpie {
 
     namespace ami {
@@ -107,7 +105,7 @@ namespace tpie {
 	    // Constructor. Create a new struct. with the given base name for
 	    // all its files.  Protected to avoid instantiation of this base
 	    // class.
-	    Logmethod_base(const char *base_file_name, const Logmethod_params<Tp, T0p>& params);
+	Logmethod_base(const std::string& base_file_name, const Logmethod_params<Tp, T0p>& params);
 	    
 	    class header_type {
 	    public:
@@ -129,10 +127,10 @@ namespace tpie {
 	    vector< T* > trees_;
 	    
 	    // The base name of all trees.
-	    char base_file_name_[LM_PATH_NAME_LENGTH];
+	    std::string base_file_name_;
 	    
 	    // String used for constructing tree names.
-	    char temp_name_[LM_PATH_NAME_LENGTH];
+	    std::string temp_name_;
 
 	    // Minimum bounding rectangle.
 	    pair<Value, Value> mbr_;
@@ -172,7 +170,7 @@ namespace tpie {
 	public:
 	    using Logmethod_base<Key, Value, T, Tp, T0, T0p>::create_tree;
 	    
-	    Logmethod2(const char *base_file_name, const Logmethod_params<Tp, T0p> &params);
+	    Logmethod2(const std::string& base_file_name, const Logmethod_params<Tp, T0p> &params);
 	    bool insert(const Value& p);
 	};
 
@@ -198,7 +196,7 @@ namespace tpie {
 	public:
 	    using Logmethod_base<Key, Value, T, Tp, T0, T0p>::create_tree;
 	    
-	    LogmethodB(const char *base_file_name, const Logmethod_params<Tp, T0p> &params);
+	    LogmethodB(const std::string& base_file_name, const Logmethod_params<Tp, T0p> &params);
 	    bool insert(const Value& p);
 	    static TPIE_OS_SIZE_T B;
 	};
@@ -235,15 +233,15 @@ namespace tpie {
 
 //// *Logmethod_base::Logmethod_base* ////
 	template<class Key, class Value, class T, class Tp, class T0, class T0p>
-	LOGMETHOD_BASE::Logmethod_base(const char *base_file_name, 
+	LOGMETHOD_BASE::Logmethod_base(const std::string& base_file_name, 
 				       const Logmethod_params<Tp, T0p> &params):
 	    header_(), params_(params), tree0_(NULL), trees_(0), per_(PERSIST_PERSISTENT), stats_() {
 	    
 	    // Copy the name and make sure it has two free positions, to be
 	    // filled later with a unique number for each tree.
-	    strncpy(base_file_name_, base_file_name, LM_PATH_NAME_LENGTH - 4);
+		base_file_name_ = base_file_name;
 	    mbr_is_set_ = false;
-	    strcpy(temp_name_, base_file_name_);
+		temp_name_ = base_file_name_;
 	    
 	    TPIE_OS_FILE_DESCRIPTOR fd; // file descriptor for the header file.
 	    
@@ -445,30 +443,33 @@ namespace tpie {
 
 //// *Logmethod_base::create_tree* ////
 	template<class Key, class Value, class T, class Tp, class T0, class T0p>
-	void LOGMETHOD_BASE::create_tree(TPIE_OS_TPIE_OS_SIZE_T idx) {
-	    
-	    TPIE_OS_TPIE_OS_SIZE_T i = strlen(base_file_name_);
-	    temp_name_[i  ] = '0' + (char)((idx/10) % 10);
-	    temp_name_[i+1] = '0' + (char)(idx % 10);
-	    temp_name_[i+2] = '\0';
+	void LOGMETHOD_BASE::create_tree(TPIE_OS_TPIE_OS_SIZE_T idx) 
+	{
+		TPIE_OS_SIZE_T i = base_file_name_.size();
+		// untested: temp_name_ should become base_file_name_
+		// plus two digits.
+		temp_name_ = 
+			temp_name_.substring(0, base_file_name.size()) +
+			('0' + (char)((idx/10) % 10)) +
+			('0' + (char)(idx % 10));
 	    
 	    if (idx == 0) {
-		if (sizeof(T0p) == 0) {
-		    tree0_ = new T0(temp_name_, AMI_WRITE_COLLECTION);
-		}
-		else {
-		    tree0_ = new T0(temp_name_, AMI_WRITE_COLLECTION, 
-				    params_.tree0_params);
-		}
+			if (sizeof(T0p) == 0) {
+				tree0_ = new T0(temp_name_, AMI_WRITE_COLLECTION);
+			}
+			else {
+				tree0_ = new T0(temp_name_, AMI_WRITE_COLLECTION, 
+								params_.tree0_params);
+			}
 	    } 
 	    else {
-		if (sizeof(Tp) == 0) {
-		    trees_[idx] = new T(temp_name_, AMI_WRITE_COLLECTION);
-		}
-		else {
-		    trees_[idx] = new T(temp_name_, AMI_WRITE_COLLECTION, 
-					params_.tree_params);
-		}
+			if (sizeof(Tp) == 0) {
+				trees_[idx] = new T(temp_name_, AMI_WRITE_COLLECTION);
+			}
+			else {
+				trees_[idx] = new T(temp_name_, AMI_WRITE_COLLECTION, 
+									params_.tree_params);
+			}
 	    }
 	}
 	
@@ -496,7 +497,7 @@ namespace tpie {
 	
 //// *Logmethod2::Logmethod2* ////
 	template<class Key, class Value, class T, class Tp, class T0, class T0p>
-	LOGMETHOD2::Logmethod2(const char* base_file_name, 
+	LOGMETHOD2::Logmethod2(const std::string& base_file_name, 
 			       const Logmethod_params<Tp, T0p> &params):
 	    Logmethod_base<Key, Value, T, Tp, T0, T0p>(base_file_name, params) {
 	}
@@ -582,7 +583,7 @@ namespace tpie {
 
 //// *LogmethodB::LogmethodB* ////
 	template<class Key, class Value, class T, class Tp, class T0, class T0p>
-	LOGMETHODB::LogmethodB(const char* base_file_name,
+	LOGMETHODB::LogmethodB(const std::string& base_file_name,
 			       const Logmethod_params<Tp, T0p> &params): 
 	    Logmethod_base<Key, Value, T, Tp, T0, T0p>(base_file_name, params) {
 	}
