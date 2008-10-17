@@ -5,6 +5,7 @@
 /// \file block_base.h
 /// Definition of the block_base class and supporting types:
 ///  bid, block_status.
+/// \sa block.h
 ///////////////////////////////////////////////////////////////////
 
 

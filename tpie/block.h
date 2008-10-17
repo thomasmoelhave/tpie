@@ -1,12 +1,7 @@
-// Copyright (C) 2001 Octavian Procopiuc
-//
-// File:    ami_block.h
-// Authors: Octavian Procopiuc <tavi@cs.duke.edu>
-//
-// Definition and implementation of the AMI_block class.
-//
-// $Id: ami_block.h,v 1.9 2005-01-21 17:29:26 tavi Exp $
-//
+///////////////////////////////////////////////////////////////////////////
+/// \file tpie/block.h 
+/// Definitions for the TPIE block metaphor.
+///////////////////////////////////////////////////////////////////////////
 
 #ifndef _TPIE_AMI_BLOCK_H
 #define _TPIE_AMI_BLOCK_H
@@ -14,7 +9,7 @@
 // Get definitions for working with Unix and Windows
 #include <tpie/portability.h>
 
-// The AMI_block_base class.
+// The block_base class.
 #include <tpie/block_base.h>
 
 // The b_vector class.
@@ -25,19 +20,19 @@ namespace tpie {
     namespace ami {
 
     ///////////////////////////////////////////////////////////////////
-    /// An instance of class AMI_block<E,I> is a typed
+    /// An instance of class block<E,I> is a typed
     /// view of a logical block, which is the unit amount of data transfered
     /// between external storage and main memory. 
     
-    /// The AMI_block class serves a dual purpose: (a) to provide an
+    /// The block class serves a dual purpose: (a) to provide an
     /// interface for seamless transfer of blocks between disk and main memory,
     /// and (b) to provide a structured access to the contents of the block.
     /// The first purpose is achieved through internal mechanisms, transparent
-    /// to the user. When creating an instance of class AMI_block, the
+    /// to the user. When creating an instance of class block, the
     /// constructor is responsible for making the contents of the block
     /// available in main memory. When the object is deleted, the destructor is
     /// responsible for writing back the data, if necessary, and freeing the
-    /// memory. Consequently, during the life of an AMI_block object, the
+    /// memory. Consequently, during the life of an block object, the
     /// contents of the block is available in main memory.
     /// The second purpose is achieved by partitioning the contents of the block
     /// into three fields:
@@ -57,6 +52,9 @@ namespace tpie {
     ///
     /// number_of_elements = abs(block_size - (sizeof(I) + sizeof(AMI_bid) *
     /// number_of_links) / sizeof(E))
+    ///
+    /// Blocks are supposed to be organized within TPIE in block collections, see
+    /// also \ref collection_single< BTECOLL >.
     ///////////////////////////////////////////////////////////////////
   template<class E, class I, class BTECOLL = bte::COLLECTION>
 	class block: public block_base<BTECOLL> {
