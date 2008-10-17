@@ -1,39 +1,59 @@
 template<typename T, typename Comparator, typename OPQType>
 priority_queue<T, Comparator, OPQType>::priority_queue(double f) { // constructor 
-
+	
     TPIE_OS_SIZE_T mm_avail = MM_manager.memory_limit();
     TP_LOG_DEBUG("priority_queue: Memory limit: " << mm_avail/1024/1024 << "mb("<< mm_avail << "bytes)" << "\n");
     mm_avail = (TPIE_OS_SIZE_T)((double)mm_avail*f);
     TP_LOG_DEBUG("m_for_queue: " << mm_avail << "\n");
     TP_LOG_DEBUG("memory before alloc: " << MM_manager.memory_available() << "b" << "\n");
     {
-	TPIE_OS_OFFSET max_k = 500;
-	stream<T> tmp;
-	TPIE_OS_SIZE_T usage;
-	tmp.main_memory_usage(&usage, MM_STREAM_USAGE_MAXIMUM);
-	TPIE_OS_OFFSET need = max_k*max_k*3*sizeof(TPIE_OS_OFFSET) // slot states
-	    + max_k*2*sizeof(TPIE_OS_OFFSET) // group states
-	    + 4*usage // aux streams
-	    + 1000;
-	if(mm_avail < need) {
-	    TP_LOG_FATAL_ID("Priority Queue: Not enough memory available. Increase allowed memory.");
-	    exit(-1);
-	}
+	    //Calculate M
+	    setting_m = mm_avail/sizeof(T);
+	    //Get stream memory usage
+	    stream<T> tmp;
+	    TPIE_OS_SIZE_T usage;
+	    tmp.main_memory_usage(&usage, MM_STREAM_USAGE_MAXIMUM);
 
-	setting_m = mm_avail/sizeof(T);
 
-	//  1/8m+ 4m = total
-	// m = total/(1/8+4)
-	setting_m = (setting_m*8)/33; // opq, gbuffer0, and mergebuffer(2*m)
-	setting_mmark = (setting_m/8)/sizeof(T);
-	// one block from each stream plus one element from each: use merge buffer ram
-	setting_k = std::min((TPIE_OS_SIZE_T)max_k,(int)((setting_m*2/sizeof(T))-sizeof(T)*max_k)/((usage/sizeof(T))+sizeof(T)));
-	//cout << "max calc k:" << (int)((setting_m*2/sizeof(T))-sizeof(T)*max_k)/((usage/sizeof(T))+sizeof(T)) << "\n";
-	if(setting_k <= 2) {
-	    TP_LOG_FATAL_ID( "Priority Queue: Fanout too small.");
-	    exit(-1);
-	}
-	TP_LOG_DEBUG("stream usage(bytes): " << usage << "\n");
+	    //Compute overhead of the parameters
+	    const TPIE_OS_SIZE_T fanout_overhead = 2*sizeof(TPIE_OS_OFFSET)// group state
+		    + (usage+sizeof(stream<T>*)) //temporary streams
+		    + (sizeof(T)+sizeof(TPIE_OS_OFFSET)); //mergeheap
+	    const TPIE_OS_SIZE_T sq_fanout_overhead = 3*sizeof(TPIE_OS_OFFSET); //slot_state
+	    const TPIE_OS_SIZE_T heap_m_overhead = sizeof(T) //opg
+		    + sizeof(T) //gbuffer0
+		    + 2*sizeof(T); //mergebuffer
+	    const TPIE_OS_SIZE_T buffer_m_overhead = sizeof(T); //buffer
+	    const TPIE_OS_SIZE_T extra_overhead = 2*(usage+sizeof(stream<T>*)) //temporary streams
+		    + 2*(sizeof(T)+sizeof(TPIE_OS_OFFSET)); //mergeheap
+	    const TPIE_OS_SIZE_T additional_overhead = 16*1024; //Just leave a bit unused
+
+	    //Check that there is enough space for the simple overhead
+	    if(mm_avail < extra_overhead+additional_overhead){
+		    TP_LOG_FATAL_ID("Priority Queue: Not enough memory. Increase allowed memory.");
+		    exit(-1);
+	    }
+
+	    //Setup the fanout, heap_m and buffer_m
+	    mm_avail-=additional_overhead+extra_overhead; //Subtract the extra space used
+	    setting_mmark = (mm_avail/16)/buffer_m_overhead; //Set the buffer size
+	    mm_avail-=setting_mmark*buffer_m_overhead;
+	    setting_k = (mm_avail/2); 
+	    const TPIE_OS_SIZE_T root_discriminant = 
+		    sqrt(fanout_overhead*fanout_overhead+4*sq_fanout_overhead*setting_k);
+	    setting_k = (root_discriminant-fanout_overhead)/(2*sq_fanout_overhead); //Set fanout
+	    mm_avail-=setting_k*heap_m_overhead+setting_k*setting_k*sq_fanout_overhead;
+	    setting_m = (mm_avail)/heap_m_overhead;
+
+	    //Check that minimum requirements on fanout and buffersizes are met
+	    const TPIE_OS_SIZE_T min_fanout=3;
+	    const TPIE_OS_SIZE_T min_heap_m=4;
+	    const TPIE_OS_SIZE_T min_buffer_m=2;
+	    if(setting_k<min_fanout || setting_m<min_heap_m || setting_mmark<min_buffer_m){
+		    TP_LOG_FATAL_ID("Priority Queue: Not enough memory. Increase allowed memory.");
+		    exit(-1);
+	    }
+	    
     }
 
     current_r = 0;
