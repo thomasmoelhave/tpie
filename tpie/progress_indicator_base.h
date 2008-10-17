@@ -8,12 +8,23 @@ namespace tpie {
 
 ///////////////////////////////////////////////////////////////////
 ///
-///  \class progress_indicator_base
-///
 ///  The base class for indicating the progress of some task.
 ///
-///  \author The TPIE Project
-///
+/// At times, especially when processing large data sets, the user might want
+/// the program to provide information about how much progress has been made. 
+/// TPIE provides a class hierarchy with an abstract base class 
+/// \ref progress_indicator_base for realizing such indicators. TPIE offers 
+/// terminal-based indicators, such as progress_indicator_arrow that shows an 
+/// extending arrow or progress_indicator_spin that shows a spinning "wheel". 
+/// To allow for other types of indicators such as graphics-based indicators
+/// for (interfaces to) indicators provided by other APIs, the terminal-based
+/// indicators inherit from progress_indicator_terminal which in turn inherits
+/// from progress_indicator_base. To include other types of non-terminal-based
+/// indicators, the user thus should subclass progress_indicator_base. All
+/// indicators are based upon the following concept: The indicator is given
+/// a range [minRange , maxRange ] and a parameter stepValue/ 
+/// For each update to the indicator and starting at minRange , the progress 
+/// status will be advanced by stepValue units. 
 ///////////////////////////////////////////////////////////////////
 
     class progress_indicator_base {
@@ -51,6 +62,10 @@ namespace tpie {
 	    // Do nothing.
 	}
 
+  ////////////////////////////////////////////////////////////////////
+  ///  Copy-constructor.
+  ////////////////////////////////////////////////////////////////////
+
 	progress_indicator_base(const progress_indicator_base& other) :
 	    m_minRange(other.m_minRange),
 	    m_maxRange(other.m_maxRange),
@@ -62,6 +77,10 @@ namespace tpie {
 	    {
 		// Do nothing.
 	    }
+
+  ////////////////////////////////////////////////////////////////////
+  ///  Assignment operator.
+  ////////////////////////////////////////////////////////////////////
 
 	progress_indicator_base& operator=(const progress_indicator_base& other) {
 	    if (this != &other) {

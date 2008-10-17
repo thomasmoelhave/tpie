@@ -44,10 +44,18 @@ namespace tpie {
 	    m_indicatorLength = 40;
 	}
     
+  ////////////////////////////////////////////////////////////////////
+  ///  Copy-constructor.
+  ////////////////////////////////////////////////////////////////////
+
 	progress_indicator_arrow(const progress_indicator_arrow& other) : 
 	    progress_indicator_terminal(other), m_indicatorLength(40), m_progress(0) {
 	    *this = other;
 	}
+
+  ////////////////////////////////////////////////////////////////////
+  ///  Assignment operator.
+  ////////////////////////////////////////////////////////////////////
 
 	progress_indicator_arrow& operator=(const progress_indicator_arrow& other) {
 	    if (this != &other) {
@@ -135,14 +143,18 @@ namespace tpie {
 
     protected:
 
-	//* The maximal length of the indicator */
+	/** The maximal length of the indicator */
 	TPIE_OS_OFFSET m_indicatorLength;
 
-	//* The current length of the indicator */
+	/** The current length of the indicator */
 	TPIE_OS_OFFSET m_progress;
 
     private:
-	progress_indicator_arrow();
+
+  ////////////////////////////////////////////////////////////////////
+  ///  Empty constructor.
+  ////////////////////////////////////////////////////////////////////
+  progress_indicator_arrow();
     };
 
 }

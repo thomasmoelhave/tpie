@@ -10,12 +10,8 @@ namespace tpie {
 
 ///////////////////////////////////////////////////////////////////
 ///
-///  \class progress_indicator_tpie
-///
 ///  A class that indicates the progress by expanding the
 ///  word tpie.
-///
-///  \author The TPIE Project
 ///
 ///////////////////////////////////////////////////////////////////
     
@@ -45,11 +41,19 @@ namespace tpie {
 	    m_indicatorLength = 40;
 	}
 	
+  ////////////////////////////////////////////////////////////////////
+  ///  Copy-constructor.
+  ////////////////////////////////////////////////////////////////////
+
 	progress_indicator_tpie(const progress_indicator_tpie& other) : 
 	    progress_indicator_terminal(other), m_indicatorLength(40), m_progress(0) {
 	    *this = other;
 	}
 	
+  ////////////////////////////////////////////////////////////////////
+  ///  Assignment operator.
+  ////////////////////////////////////////////////////////////////////
+
 	progress_indicator_tpie& operator=(const progress_indicator_tpie& other) {
 	    if (this != &other) {
 		
@@ -137,10 +141,10 @@ namespace tpie {
     protected:
 	
 	
-	//* The maximal length of the indicator */
+	/** The maximal length of the indicator */
 	TPIE_OS_OFFSET m_indicatorLength;
 	
-	//* The current length of the indicator */
+	/** The current length of the indicator */
 	TPIE_OS_OFFSET m_progress;
 	
 	
