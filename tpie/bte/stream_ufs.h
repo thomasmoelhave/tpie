@@ -165,7 +165,7 @@ namespace tpie {
 	
 	    // Query memory usage
 	    err main_memory_usage(TPIE_OS_SIZE_T  *usage,
-				  MM_stream_usage usage_type);
+				  mem::stream_usage usage_type);
 	
 	    TPIE_OS_SIZE_T chunk_size() const;
 	
@@ -1020,11 +1020,11 @@ namespace tpie {
 // the header, since it is accounted for in the 0 level superstream.
 	template <class T>
 	err stream_ufs<T>::main_memory_usage (TPIE_OS_SIZE_T  *usage,
-					      MM_stream_usage usage_type) {
+					      mem::stream_usage usage_type) {
 
 	    switch (usage_type) {
 	    
-	    case MM_STREAM_USAGE_OVERHEAD:
+	    case mem::STREAM_USAGE_OVERHEAD:
 		//sizeof(*this) includes base class. 
 		//m_header is allocated dynamically, but always allocated, 
 		//even for substreams. Don't forget space overhead per
@@ -1034,14 +1034,14 @@ namespace tpie {
 
 		break;
 	    
-	    case MM_STREAM_USAGE_BUFFER: 
+	    case mem::STREAM_USAGE_BUFFER: 
 		//space used by buffers, when allocated
 		*usage = STREAM_UFS_MM_BUFFERS * m_header->m_blockSize +
 		    MM_manager.space_overhead();
 
 		break;
 	    
-	    case MM_STREAM_USAGE_CURRENT:
+	    case mem::STREAM_USAGE_CURRENT:
 		//overhead + buffers (if in use)
 		*usage = sizeof(*this) +  sizeof(stream_header) +
 		    3*MM_manager.space_overhead() + 
@@ -1051,8 +1051,8 @@ namespace tpie {
 
 		break;
 	
-	    case MM_STREAM_USAGE_MAXIMUM:
-	    case MM_STREAM_USAGE_SUBSTREAM:
+	    case mem::STREAM_USAGE_MAXIMUM:
+	    case mem::STREAM_USAGE_SUBSTREAM:
 		*usage = sizeof(*this) +  sizeof(stream_header) +
 		    STREAM_UFS_MM_BUFFERS * m_header->m_blockSize +
 		    4*MM_manager.space_overhead();
