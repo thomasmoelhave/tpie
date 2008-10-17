@@ -542,7 +542,7 @@ void internal_sort_test(const appInfo& info){
   std::cout << "TPIE quick_sort_op: ";
   clk.reset();
   clk.start();
-  quick_sort_op(list, nitems, 20);
+  ami::quick_sort_op(list, nitems, 20);
   clk.stop();
   std::cout << clk.wall_time() << std::endl;
   
@@ -550,7 +550,7 @@ void internal_sort_test(const appInfo& info){
   std::cout << "TPIE quick_sort_obj: ";
   clk.reset();
   clk.start();
-  quick_sort_obj(list, nitems, &cmp, 20);
+  ami::quick_sort_obj(list, nitems, &cmp, 20);
   clk.stop();
   std::cout << clk.wall_time() << std::endl;
   
