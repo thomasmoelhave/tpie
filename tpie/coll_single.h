@@ -44,9 +44,7 @@ namespace tpie {
 	    
 	    //////////////////////////////////////////////////////////////////////////
 	    /// Create a new collection with access type AMI_WRITE_COLLECTION using
-	    /// temporary file names. The files are created in a directory given by the 
-	    /// AMI_SINGLE_DEVICE environment variable (or /var/tmp/ if that variable
-	    /// is not set). 
+	    /// temporary file names.  
 	    /// \param[in] logical_block_factor parameter determines the size of the
 	    /// blocks stored (as the parameter value times the operating system page 
 	    /// size in bytes. The persistency of the collection is set to 

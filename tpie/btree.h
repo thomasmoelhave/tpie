@@ -186,13 +186,11 @@ namespace tpie {
 	    
 	    
       //////////////////////////////////////////////////////////////////////////
-      /// Construct an empty B-tree using temporary files. The tree is stored in a
-      /// directory given by the <em>SINGLE_DEVICE</em> environment variable 
-      /// (or "/var/tmp/" if that variable is not set). The persistency flag is 
+      /// Construct an empty B-tree using temporary files. The persistency flag is 
       /// set to \ref PERSIST_DELETE. The <em>params</em> object contains the
       /// user-definable parameters.
-	    /// \sa btree_params.
-	    //////////////////////////////////////////////////////////////////////////
+	  /// \sa btree_params.
+	  //////////////////////////////////////////////////////////////////////////
 	    btree(const btree_params &params = btree_params_default);
 	    
       //////////////////////////////////////////////////////////////////////////

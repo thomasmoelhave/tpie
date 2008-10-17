@@ -8,7 +8,6 @@
 
 #include "lib_config.h"
 
-// For AMI_SINGLE_DEVICE_ENV and TMPDIR_ENV.
 #include <tpie/tempname.h>
 
 using namespace tpie::ami;
