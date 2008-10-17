@@ -231,9 +231,9 @@ namespace tpie {
 	
 
 /** This is the only instance of the MM_manager class that should exist in a program. */
-	extern manager MM_manager;
-
     }  //  mem namespace 
+
+    extern mem::manager MM_manager;
 
 }  //  tpie namespace
 

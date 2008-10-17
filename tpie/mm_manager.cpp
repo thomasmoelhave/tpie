@@ -121,14 +121,13 @@ err manager::register_deallocation(TPIE_OS_SIZE_T sz)
 	}
 #endif
 
-    return NO_ERROR;
+	return NO_ERROR;
 }
 
 #ifdef MM_BACKWARD_COMPATIBLE
 // (Old) way to query how much memory is available
 
-err manager::available (TPIE_OS_SIZE_T *sz)
-{
+err manager::available (TPIE_OS_SIZE_T *sz) {
     *sz = remaining;
     return NO_ERROR;    
 }
@@ -137,8 +136,7 @@ err manager::available (TPIE_OS_SIZE_T *sz)
 // It is retained for backward compatibility. 
 // dh. 1999 09 29
 
-err manager::resize_heap(TPIE_OS_SIZE_T sz)
-{
+err manager::resize_heap(TPIE_OS_SIZE_T sz) {
    return set_memory_limit(sz);
 }
 #endif
@@ -150,13 +148,13 @@ err manager::set_memory_limit (TPIE_OS_SIZE_T new_limit)
 {
     // by default, we keep track and abort if memory limit exceeded
     if (register_new == IGNORE_MEMORY_EXCEEDED){
-       register_new = ABORT_ON_MEMORY_EXCEEDED;
+	register_new = ABORT_ON_MEMORY_EXCEEDED;
     }
     // dh. unless the user indicates otherwise
     if (new_limit == 0){
-       register_new = IGNORE_MEMORY_EXCEEDED;
-       remaining = used = user_limit = 0;
-       return NO_ERROR;
+	register_new = IGNORE_MEMORY_EXCEEDED;
+	remaining = used = user_limit = 0;
+	return NO_ERROR;
     } 
 
     if (used > new_limit) {
@@ -174,20 +172,17 @@ err manager::set_memory_limit (TPIE_OS_SIZE_T new_limit)
 }
 
 // dh. only warn if memory limit exceeded
-void manager::warn_memory_limit()
-{
+void manager::warn_memory_limit() {
     register_new = WARN_ON_MEMORY_EXCEEDED;
 }
 
 // dh. abort if memory limit exceeded
-void manager::enforce_memory_limit()
-{
+void manager::enforce_memory_limit() {
     register_new = ABORT_ON_MEMORY_EXCEEDED;
 }
 
 // dh. ignore memory limit accounting
-void manager::ignore_memory_limit()
-{
+void manager::ignore_memory_limit() {
     register_new = IGNORE_MEMORY_EXCEEDED;
 }
 
@@ -199,24 +194,21 @@ mode manager::get_limit_mode() {
 
 // dh. return the amount of memory available before user-specified 
 // memory limit exceeded 
-TPIE_OS_SIZE_T manager::memory_available()
-{
+TPIE_OS_SIZE_T manager::memory_available() {
     return remaining;    
 }
 
-size_t manager::memory_used()
-{
+size_t manager::memory_used() {
     return used;    
 }
 
-size_t manager::memory_limit()
-{
+size_t manager::memory_limit() {
     return user_limit;    
 }
 
 // Instantiate the actual memory manager, and allocate the 
 // its static data members
-manager MM_manager;
+manager tpie::MM_manager;
 
 int manager::instances = 0; // Number of instances. (init)
 // TPIE's "register memory requests" flag
