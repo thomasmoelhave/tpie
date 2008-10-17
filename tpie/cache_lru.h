@@ -18,45 +18,62 @@ namespace tpie {
     
     namespace ami {
 	
-// Implementation using an LRU replacement policy.
+    ////////////////////////////////////////////////////////////////////
+    /// Implementation using an Least-Recently-Used replacement policy.
+    ////////////////////////////////////////////////////////////////////
 	template<class T, class W>
 	class cache_manager_lru: public cache_manager_base {
 	    
 	protected:	    
 
+	    /** Typedef for the item_type in  the cache. */
 	    typedef std::pair<TPIE_OS_OFFSET,T> item_type_;
 	    
-	    // The array of items.
+	    /** The array of items. */
 	    item_type_ * pdata_;
 	    
-	    // The number of sets (equals capacity / associativity).
+	    /** The number of sets (equals capacity / associativity). */
 	    TPIE_OS_SIZE_T sets_;
 	    
-	    // The writeout function object.
+	    /** The writeout function object. */
 	    W writeout_;
 	    
 	public:
 	    
+      ////////////////////////////////////////////////////////////////////
+      ///  Construct a fully-associative cache manager with the given capacity.
+      ////////////////////////////////////////////////////////////////////
 	    cache_manager_lru(TPIE_OS_SIZE_T capacity,
 			      TPIE_OS_SIZE_T assoc = 0);
 
-	    // Read an item from the cache based on the key k. The item is
-	    // passed to the user and *removed* from the cache (but not written
-	    // out).
+      ////////////////////////////////////////////////////////////////////
+	    /// Read an item from the cache based on the key k. The item is
+	    /// passed to the user and *removed* from the cache (but not written
+	    /// out).
+      ////////////////////////////////////////////////////////////////////
 	    bool read(TPIE_OS_OFFSET k, T& item);
 	    
-	    // Write an item to the cache based on the key k. If the set where
-	    // the item should go is full, the last item (ie, the l.r.u. item)
-	    // is written out.
+      ////////////////////////////////////////////////////////////////////
+	    /// Write an item to the cache based on the key k. If the set where
+	    /// the item should go is full, the last item (ie, the l.r.u. item)
+	    /// is written out.
+      ////////////////////////////////////////////////////////////////////
 	    bool write(TPIE_OS_OFFSET k, const T& item);
 	    
-	    // Erase an item from the cache based on the key k. The item is
-	    // written out first.
+      ////////////////////////////////////////////////////////////////////
+	    /// Erase an item from the cache based on the key k. The item is
+	    /// written out first.
+      ////////////////////////////////////////////////////////////////////
 	    bool erase(TPIE_OS_OFFSET k);
 	    
-	    // Write out all items in the cache.
+      ////////////////////////////////////////////////////////////////////
+	    /// Writes out all items in the cache.
+      ////////////////////////////////////////////////////////////////////
 	    void flush();
 	    
+      ////////////////////////////////////////////////////////////////////
+      /// Destructor writing out all items still in the cache.
+	    ////////////////////////////////////////////////////////////////////
 	    ~cache_manager_lru();
 	};
 	

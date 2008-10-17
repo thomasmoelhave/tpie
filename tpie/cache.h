@@ -1,13 +1,10 @@
-// Copyright (C) 2001 Octavian Procopiuc
-//
-// File:    ami_cache.h
-// Author:  Octavian Procopiuc <tavi@cs.duke.edu>
-//
-// $Id: ami_cache.h,v 1.10 2004-08-12 12:35:30 jan Exp $
-//
-// Declaration and definition of AMI_CACHE_MANAGER
-// implementation(s).
-//
+///////////////////////////////////////////////////////////////////////////
+/// \file mm.h 
+/// Declaration and definition of CACHE_MANAGER implementation(s).
+/// Provides means to choose and set a specific cache manager/
+/// For now the only cache memory manager implemented is 
+///  \ref cache_manager_lru.
+///////////////////////////////////////////////////////////////////////////
 
 #ifndef _TPIE_AMI_CACHE_H
 #define _TPIE_AMI_CACHE_H

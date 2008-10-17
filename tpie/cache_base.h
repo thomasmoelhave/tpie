@@ -13,20 +13,26 @@ namespace tpie {
     
     namespace ami {
 
-// Base class for all implementations.
-	class cache_manager_base {
+    ////////////////////////////////////////////////////////////////////
+    /// Base class for all cache manager implementations.
+    /// For now the only cache memory manager implemented is 
+    ///  \ref cache_manager_lru.
+    ////////////////////////////////////////////////////////////////////
+    class cache_manager_base {
 
 	protected:
-	    // Max size.
+	    /** Max size in bytes. */
 	    TPIE_OS_SIZE_T capacity_;
 	    
-	    // Associativity.
+	    /** Associativity */.
 	    TPIE_OS_SIZE_T assoc_;
 	    
-	    // Behavior.
+	    /** Behavior. */
 	    int behavior_;
 	    
-	    // Constructor. Protected to prevent instantiation of this class.
+	    ////////////////////////////////////////////////////////////////////
+	    ///  Construct a fully-associative cache manager with the given capacity.
+	    ////////////////////////////////////////////////////////////////////
 	    cache_manager_base(TPIE_OS_SIZE_T capacity, 
 			       TPIE_OS_SIZE_T assoc):
 		capacity_(capacity), 
@@ -36,13 +42,13 @@ namespace tpie {
 	    }
 	    
 	public:
-	    // Set behavior. TODO: Expand.
+	    /** Set behavior. TODO: Expand. */
 	    int behavior(int b) { 
 		behavior_ = b; 
 		return behavior_; 
 	    }
 	    
-	    // Inquire behavior.
+	    /**  Inquire behavior. */
 	    int behavior() const { 
 		return behavior_; 
 	    }
