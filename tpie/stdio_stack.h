@@ -14,79 +14,98 @@
 // $Id: stdio_stack.h,v 1.7 2003-04-17 19:57:25 jan Exp $
 //
 
-#ifndef _STDIO_STACK_H
-#define _STDIO_STACK_H
+#ifndef _TPIE_AMI_STDIO_STACK_H_
+#define _TPIE_AMI_STDIO_STACK_H_
 
 // Get definitions for working with Unix and Windows
 #include <portability.h>
 
 #include <bte/stream_stdio.h>
 
-template<class T>
-class stdio_stack : public BTE_stream_stdio<T> {
-public:
+namespace tpie {
 
-  stdio_stack(std::string& path, BTE_stream_type type = BTE_WRITE_STREAM); 
+    namespace ami {
 
-  ~stdio_stack(void);
+	template<class T>
+	class stdio_stack : public bte::stream_stdio<T> {
+	public:
+	    
+	    stdio_stack(std::string& path, bte::stream_type type = bte::WRITE_STREAM); 
+	    
+	    ~stdio_stack(void);
+	    
+	    err push(const T &t);
+	    
+	    err pop(T **t);
+	    
+	};
+	
+	
+	template<class T>
+	stdio_stack<T>::stdio_stack(std::string& path, 
+				    bte::stream_type type) :
+	    bte::stream_stdio<T>(path, type) {
+	    //  No code in this constructor.
+	}
+	
+	template<class T>
+	stdio_stack<T>::~stdio_stack(void) {
+	    //  No code in this destructor.
+	}
+	
+	template<class T>
+	err stdio_stack<T>::push(const T &t) {
+	    bte::err be;
+	    TPIE_OS_OFFSET slen;
+	    
+	    be = truncate((slen = stream_len())+1);
+	    if (be != bte::NO_ERROR) {
+		return BTE_ERROR;
+	    }
+	    
+	    be = seek(slen);
+	    if (be != NO_ERROR) {
+		return BTE_ERROR;
+	    }
+	    
+	    be = write_item(t);
 
-  BTE_err push(const T &t);
+	    if (be != NO_ERROR) {
+		return BTE_ERROR;
+	    }
+	    
+	    return NO_ERROR;
+	}
+	
+	
+	template<class T>
+	err stdio_stack<T>::pop(T **t) {
+	    bte::err be;
+	    TPIE_OS_OFFSET slen;
+	    
+	    slen = stream_len();
 
-  BTE_err pop(T **t);
+	    be = seek(slen-1);
+	    if (be != bte::NO_ERROR) {
+		return BTE_ERROR;
+	    }
+	    
+	    be = read_item(t);
+	    if (be != bte::NO_ERROR) {
+		return BTE_ERROR;
+	    }
+	    
+	    br = truncate(slen-1);
+	    if (be != bte::NO_ERROR) {
+		return BTE_ERROR;
+	    }
 
-};
+	    return NO_ERROR;
+	    
+	}
 
+    }  //  ami namespace
 
-template<class T>
-stdio_stack<T>::stdio_stack(std::string& path, 
-			    BTE_stream_type type) :
-  BTE_stream_stdio<T>(path, type)
-{
-}
+}  //  tpie namespaxe
 
-template<class T>
-stdio_stack<T>::~stdio_stack(void)
-{
-}
-
-template<class T>
-BTE_err stdio_stack<T>::push(const T &t)
-{
-  BTE_err ae;
-  TPIE_OS_OFFSET slen;
-    
-  ae = truncate((slen = stream_len())+1);
-  if (ae != BTE_ERROR_NO_ERROR) {
-    return ae;
-  }
-
-  ae = seek(slen);
-  if (ae != BTE_ERROR_NO_ERROR) {
-    return ae;
-  }
-
-  return write_item(t);
-}
-
-
-template<class T>
-BTE_err stdio_stack<T>::pop(T **t)
-{
-  BTE_err ae;
-  TPIE_OS_OFFSET slen;
-  
-  slen = stream_len();
-  ae = seek(slen-1);
-  if (ae != BTE_ERROR_NO_ERROR) {
-    return ae;
-  }
-  
-  ae = read_item(t);
-  if (ae != BTE_ERROR_NO_ERROR) {
-    return ae;
-  }
-
-  return truncate(slen-1);
-}
-
-#endif // _stdio_stack_H 
+#endif // _TPIE_AMI_STDIO_STACK_H_ 
