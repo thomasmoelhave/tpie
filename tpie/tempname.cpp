@@ -23,45 +23,38 @@ std::string default_extension;
 /* like tempnam, but consults environment in an order we like; note
  * that the returned pointer is to static storage, so this function is
  * not re-entrant. */
-std::string tpie_tempnam(const std::string& post_base, const std::string& base, 
-						 const std::string& dir, const std::string& ext) 
-{
-	std::string extension = ext;
-	if(extension.empty()) {
+std::string tpie_tempnam(const std::string& post_base, const std::string& dir, const std::string& ext) 
+{	std::string extension;
+	std::string base_name;	
+	std::string base_dir;
+	
+	extension = ext;
+	if(extension.empty()) { 
 		extension = default_extension;
 		if(extension.empty())
 			extension = "tpie";
 	}
-
-	std::string basename = base;
-	if(basename.empty()) {
-		basename = default_base_name;
-		if(basename.empty())
-			basename = "TPIE";
-	}
-
-	std::string base_dir = dir;
+	
+	base_name = default_base_name;
+	if(base_name.empty())
+		base_name = "TPIE";
+	
+	base_dir = dir;
 	if (base_dir.empty()) {
-		base_dir = getenv(AMI_SINGLE_DEVICE_ENV);
-		if (base_dir.empty()) {
-			base_dir = getenv(TMPDIR_ENV);
-			if (base_dir.empty()) {
-				base_dir = default_path;
-				if(base_dir.empty()) {
-					base_dir = TMP_DIR;
-				}
-			}
+		base_dir = default_path;
+		if(base_dir.empty()) {
+			base_dir = getenv(AMI_SINGLE_DEVICE_ENV);
+			if(base_dir.empty()) 
+				base_dir = getenv(TMPDIR_ENV);
+			else 
+				base_dir = TMP_DIR;
 		}
 	}
 	
 	if(post_base.empty())
-		return
-			base_dir + TPIE_OS_DIR_DELIMITER + basename + "_" + 
-			tpie_mktemp() + '.' + extension;
+		return base_dir + TPIE_OS_DIR_DELIMITER + base_name + "_" + tpie_mktemp() + '.' + extension;
 	else 
-		return 
-			base_dir + TPIE_OS_DIR_DELIMITER + basename + "_" + 
-			post_base + '_' + tpie_mktemp() + '.' + extension;
+		return base_dir + TPIE_OS_DIR_DELIMITER + base_name + "_" + post_base + '_' + tpie_mktemp() + '.' + extension;
 }
 
 std::string tpie_mktemp()
@@ -89,13 +82,8 @@ std::string tpie_mktemp()
 	return result;
 }
 
-void set_default_tmp_names(const std::string& path, const std::string& base, const std::string& extension) {
-	default_path = path;
-	default_base_name = base;
-	default_extension = extension;
-}
 
-void set_default_tmp_path(const std::string&  path) {
+void set_default_path(const std::string&  path) {
 	default_path = path;
 }
 
@@ -106,6 +94,7 @@ void set_default_base_name(const std::string& name) {
 void set_default_extension(const std::string& ext) {
 	default_extension = ext;
 }
+
 
 std::string& get_default_tmp_path() {
 	return default_path;

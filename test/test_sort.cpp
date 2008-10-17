@@ -346,7 +346,9 @@ void get_app_info(int argc, char** argv, appInfo & Info){
   }  
   
   //check if path is valid
-  std::string tmpfname = tpie_tempnam(APP_FILE_BASE,Info.path);
+  set_default_base_name(APP_FILE_BASE);
+  set_default_path(Info.path);
+  std::string tmpfname = tpie_tempnam();
   TPIE_OS_FILE_DESCRIPTOR fd;
   fd=TPIE_OS_OPEN_OEXCL(tmpfname);
   if(TPIE_OS_IS_VALID_FILE_DESCRIPTOR(fd)){
@@ -522,8 +524,10 @@ void internal_sort_test(const appInfo& info){
   cpu_timer clk;
   SortCompare cmp;
   char buf[20];
-  ami::stream<SortItem>* Str = 
-      new ami::stream<SortItem>(tpie_tempnam(APP_FILE_BASE, info.path));
+
+  set_default_base_name(APP_FILE_BASE);
+  set_default_path(info.path);
+  ami::stream<SortItem>* Str = new ami::stream<SortItem>();
   
   Str->seek(0);
   Str->main_memory_usage(&str_mem_usage, MM_STREAM_USAGE_MAXIMUM);
@@ -604,8 +608,10 @@ ami::err test_3x_sort(appInfo& info, enum test_type ttype, progress_indicator_ba
 //  strncpy(fname, tpie_tempnam(APP_FILE_BASE, info.path), BUFSIZ);
 //  strncpy(fname2, tpie_tempnam(APP_FILE_BASE, info.path), BUFSIZ);
   
-  std::string fname  = tpie_tempnam(APP_FILE_BASE, info.path);
-  std::string fname2 = tpie_tempnam(APP_FILE_BASE, info.path);
+  set_default_base_name(APP_FILE_BASE);
+  set_default_path(info.path);
+  std::string fname  = tpie_tempnam();
+  std::string fname2 = tpie_tempnam();
 
   //Create the input stream
   write_random_stream(fname, info, indicator);
@@ -684,7 +690,10 @@ ami::err test_2x_sort(appInfo& info, enum test_type ttype, progress_indicator_ba
 //  char fname[BUFSIZ];
 //  strncpy(fname, tpie_tempnam(APP_FILE_BASE, info.path), BUFSIZ);
 
-  std::string fname = tpie_tempnam(APP_FILE_BASE, info.path);
+  set_default_base_name(APP_FILE_BASE);
+  set_default_path(info.path);
+  std::string fname = tpie_tempnam();
+
   //Create the input stream
   write_random_stream(fname, info, indicator);
   

@@ -346,7 +346,7 @@ private:
 	    }
     
 	    // Get a unique name.
-		std::string path = tpie_tempnam(std::string());
+		std::string path = tpie_tempnam("");
     
 	    TP_LOG_DEBUG_ID("Temporary stream in file: ");
 	    TP_LOG_DEBUG_ID(path);

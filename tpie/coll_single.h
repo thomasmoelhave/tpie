@@ -22,7 +22,7 @@
 // The tpie_tempnam() function.
 #include <tpie/tempname.h>
 // Get the tpie_stats_coll class for collection statistics.
-#include <tpie/tpie_stats_coll.h>
+//#include <tpie/tpie_stats_coll.h>
 
 namespace tpie {
 
@@ -199,7 +199,7 @@ namespace tpie {
 	template <class BTECOLL>
 	collection_single<BTECOLL>::collection_single(TPIE_OS_SIZE_T lbf) {
 	    
-		std::string temp_path = tpie_tempnam("AMI");
+	    char *temp_path = tpie_tempnam("ami");
 	    
 	    btec_ = new BTECOLL(temp_path, bte::WRITE_COLLECTION, lbf);
 	    tp_assert(btec_ != NULL, "new failed to create a new BTE_COLLECTION."); 
