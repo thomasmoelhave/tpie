@@ -209,14 +209,8 @@ namespace tpie {
       /// user-definable parameters.
       /// \sa btree_params, persist(), tpie::ami::collection_single< BTECOLL > 
       //////////////////////////////////////////////////////////////////////////
-      btree(const char *base_file_name,
-      collection_type type = WRITE_COLLECTION,
-      const btree_params &params = btree_params_default);
 
-	    /**
-	       @overload
-	    */
-	    btree(const std::string& base_file_name,
+	  btree(const std::string& base_file_name,
 		  collection_type type = WRITE_COLLECTION,
 		  const btree_params &params = btree_params_default);
 
@@ -1450,24 +1444,6 @@ btree<Key, Value, Compare, KeyOfValue, BTECOLL>::btree(const btree_params &param
     shared_init(name_, WRITE_COLLECTION);
     if (status_ == BTREE_STATUS_VALID) {
 	persist(PERSIST_DELETE);
-    }
-}
-
-/// *btree::btree* ///
-template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-btree<Key, Value, Compare, KeyOfValue, BTECOLL>::btree(const char *base_file_name, collection_type type, 
-						       const btree_params &params):
-    header_(), params_(params), status_(BTREE_STATUS_VALID), stats_(), kov_(), name_(base_file_name) {
-
-    shared_init(base_file_name, type);
-
-    if (status_ == BTREE_STATUS_VALID) {
-	if (pcoll_leaves_->size() > 0) {
-	    // Read root bid, height and size from header.
-	    header_ = *((header_t *) pcoll_nodes_->user_data());
-	    // TODO: sanity checks.
-	}
-	persist(PERSIST_PERSISTENT);
     }
 }
 
