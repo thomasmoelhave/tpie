@@ -9,6 +9,8 @@
 
 using namespace std;
 
+using namespace tpie;
+
 const double PI = acos(-1.0);
 
 void pq_large_instance(bool crash_test){
@@ -16,7 +18,7 @@ void pq_large_instance(bool crash_test){
   tpie_log_init(TPIE_LOG_DEBUG);
   int cnt=0;
   double mem_frac = crash_test ? 1.0 : 0.5;
-  tpie::ami::priority_queue<long long, std::greater<long long> > pq(mem_frac);
+  ami::priority_queue<long long, std::greater<long long> > pq(mem_frac);
   std::priority_queue<long long, vector<long long>,std::less<long long> > pq2;
   double cycle = crash_test ? 20000000000.0 : 500000.0;
   for(long long j=0;;j++){
@@ -56,7 +58,7 @@ void pq_large_instance(bool crash_test){
 
 void pq_internal_instance(){
   int size=100000;
-  tpie::pq_internal_heap<int, std::greater<int> > pq(size);
+  ami::pq_internal_heap<int, std::greater<int> > pq(size);
   std::priority_queue<int, vector<int>,std::less<int> > pq2;
   for(int i=0;i<size;i++){
     int r = rand();
@@ -85,7 +87,7 @@ void pq_small_instance(){
     MM_manager.set_memory_limit(16*1024*1024);
     for(TPIE_OS_OFFSET it = 1100; it < iterations; it++)  {
       std::cerr << "Iteration: " << it;
-      tpie::ami::priority_queue<int, std::greater<int> > pq(0.75);
+      ami::priority_queue<int, std::greater<int> > pq(0.75);
       std::priority_queue<int, vector<int>,std::less<int> > pq2;
 
       TPIE_OS_OFFSET elements = 71;

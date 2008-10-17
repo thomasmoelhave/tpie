@@ -87,7 +87,7 @@ namespace tpie {
 	    
 	    // How much memory does a single stream need in the worst case?
 	    if ((ae = instream.main_memory_usage(&single_stream_usage,
-						 MM_STREAM_USAGE_MAXIMUM)) !=
+						 mem::STREAM_USAGE_MAXIMUM)) !=
 		NO_ERROR) {
 		return ae;
 	    }

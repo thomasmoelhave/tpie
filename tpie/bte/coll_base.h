@@ -191,7 +191,7 @@ namespace tpie {
 	
 	    // Needs to be inlined!
 	    err register_memory_allocation(TPIE_OS_SIZE_T sz) {
-		if (MM_manager.register_allocation(sz) != MM_ERROR_NO_ERROR) {
+		if (MM_manager.register_allocation(sz) != mem::NO_ERROR) {
 		    status_ = COLLECTION_STATUS_INVALID;
 		    TP_LOG_FATAL_ID("Memory manager error in allocation.");
 		    return MEMORY_ERROR;
@@ -201,7 +201,7 @@ namespace tpie {
 	
 	    // Needs to be inlined!
 	    err register_memory_deallocation(TPIE_OS_SIZE_T sz) {
-		if (MM_manager.register_deallocation(sz) != MM_ERROR_NO_ERROR) {
+		if (MM_manager.register_deallocation(sz) != mem::NO_ERROR) {
 		    status_ = COLLECTION_STATUS_INVALID;
 		    TP_LOG_FATAL_ID("Memory manager error in deallocation.");
 		    return MEMORY_ERROR;

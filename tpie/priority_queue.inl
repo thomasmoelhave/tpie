@@ -12,7 +12,7 @@ priority_queue<T, Comparator, OPQType>::priority_queue(double f) { // constructo
 	    //Get stream memory usage
 	    stream<T> tmp;
 	    TPIE_OS_SIZE_T usage;
-	    tmp.main_memory_usage(&usage, MM_STREAM_USAGE_MAXIMUM);
+	    tmp.main_memory_usage(&usage, mem::STREAM_USAGE_MAXIMUM);
 
 
 	    //Compute overhead of the parameters

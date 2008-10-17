@@ -36,7 +36,7 @@ int c_int_cmp(const void *p1, const void *p2) {
 
 class s_merge_manager : public ami::merge_base<int> {
 private:
-    merge_heap_op<int> *mheap;
+    ami::merge_heap_op<int> *mheap;
     TPIE_OS_SIZE_T input_arity;
 #if DEBUG_ASSERTIONS
     TPIE_OS_OFFSET input_count, output_count;
@@ -90,7 +90,7 @@ ami::err s_merge_manager::initialize(TPIE_OS_SIZE_T arity, int **in,
         mheap->deallocate();
         delete mheap;
     }
-    mheap = new merge_heap_op<int>();
+    mheap = new ami::merge_heap_op<int>();
     mheap->allocate(arity);
 
 #if DEBUG_ASSERTIONS

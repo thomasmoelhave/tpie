@@ -26,7 +26,7 @@ private:
     merge_random<T>& operator=(const merge_random<T>& other);
 
     TPIE_OS_SIZE_T input_arity;
-    merge_heap_op<int> *mheap;
+    ami::merge_heap_op<int> *mheap;
 #if DEBUG_ASSERTIONS
     unsigned int input_count, output_count;
 #endif    
@@ -83,7 +83,7 @@ ami::err merge_random<T>::initialize(TPIE_OS_SIZE_T arity,
         mheap->deallocate();
         delete mheap;
     }
-    mheap = new merge_heap_op<int>();
+    mheap = new ami::merge_heap_op<int>();
     mheap->allocate(arity);
 
     // Insert an element with random priority for each non-empty stream.

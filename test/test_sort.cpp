@@ -1,6 +1,5 @@
 #include "app_config.h"
 #include <tpie/portability.h>
-//#include <ssort.h>
 #include <tpie/tpie_log.h>
 #include <tpie/stream.h>
 #include <tpie/sort.h>
@@ -530,7 +529,7 @@ void internal_sort_test(const appInfo& info){
   ami::stream<SortItem>* Str = new ami::stream<SortItem>();
   
   Str->seek(0);
-  Str->main_memory_usage(&str_mem_usage, MM_STREAM_USAGE_MAXIMUM);
+  Str->main_memory_usage(&str_mem_usage, mem::STREAM_USAGE_MAXIMUM);
   nitems=(MM_manager.memory_available()-str_mem_usage-16)/sizeof(SortItem);
   list=new SortItem[nitems];
   for(i=0; i<nitems; i++){

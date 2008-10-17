@@ -147,7 +147,7 @@ namespace tpie {
 
 	    sz_avail = MM_manager.memory_available ();
 
-	    instream.main_memory_usage(&sz_stream, MM_STREAM_USAGE_MAXIMUM);
+	    instream.main_memory_usage(&sz_stream, mem::STREAM_USAGE_MAXIMUM);
 
 	    if (sz_avail < 4 * sz_stream) {
 		return INSUFFICIENT_MAIN_MEMORY;
