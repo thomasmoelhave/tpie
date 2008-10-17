@@ -32,7 +32,7 @@ namespace tpie {
 	enum err {
 	    NO_ERROR = 0,
 	    INSUFFICIENT_SPACE,
-	    UNDERFLOW,
+	    EXCESSIVE_DEALLOCATION,
 	    EXCESSIVE_ALLOCATION
 	};
 	

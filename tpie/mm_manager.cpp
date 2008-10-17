@@ -102,7 +102,7 @@ err manager::register_deallocation(TPIE_OS_SIZE_T sz)
        TP_LOG_WARNING("\n");
        TP_LOG_FLUSH_LOG;
        used = 0;
-       return UNDERFLOW;
+       return EXCESSIVE_DEALLOCATION;
     }
 
     used      -= sz;    

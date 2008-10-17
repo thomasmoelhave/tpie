@@ -145,9 +145,9 @@ namespace tpie {
 	    // which case their current memory usage is just the header block);
 	    // count also the output stream
 	    for (unsigned int ii = 0; ii < arity + 1; ii++) {
-		instreams[ii]->main_memory_usage(&sz_stream, MM_STREAM_USAGE_MAXIMUM);
+		instreams[ii]->main_memory_usage(&sz_stream, mem::STREAM_USAGE_MAXIMUM);
 		sz_needed += sz_stream;
-		instreams[ii]->main_memory_usage(&sz_stream, MM_STREAM_USAGE_CURRENT);
+		instreams[ii]->main_memory_usage(&sz_stream, mem::STREAM_USAGE_CURRENT);
 		sz_needed -= sz_stream;
 	    }                              
   
@@ -474,7 +474,7 @@ namespace tpie {
 	    // How many substreams will there be?  The main memory
 	    // available to us is the total amount available, minus what
 	    // is needed for the input stream and the temporary stream.
-	    if ((ae = instream->main_memory_usage(&sz_stream, MM_STREAM_USAGE_MAXIMUM)) 
+	    if ((ae = instream->main_memory_usage(&sz_stream, mem::STREAM_USAGE_MAXIMUM)) 
 		!= NO_ERROR) {
 		return ae;
 	    }                                     
