@@ -73,7 +73,7 @@ set (OTHER_HEADERS
 		mergeheap.h
 		mm_base.h
 		mm.h
-		mm_register.h
+		mm_manager.h
 		persist.h
 		portability.h
 		pq_internal_heap.h
@@ -120,7 +120,7 @@ set (OTHER_SOURCES
 	cpu_timer.cpp
 	logstream.cpp
 	mm_base.cpp
-	mm_register.cpp
+	mm_manager.cpp
 	portability.cpp
 	log.cpp
 	tempname.cpp

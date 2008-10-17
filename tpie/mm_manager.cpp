@@ -12,7 +12,7 @@
 
 #define MM_IMP_REGISTER
 #include <tpie/mm.h>
-#include <tpie/mm_register.h>
+#include <tpie/mm_manager.h>
 
 #ifdef REPORT_LARGE_MEMOPS
 #include <iostream>
