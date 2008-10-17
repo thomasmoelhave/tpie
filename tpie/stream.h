@@ -307,7 +307,7 @@ public:
     /// Return a string describing the stream.
     // This function gives easy access to the stream's file name and its length.
     ////////////////////////////////////////////////////////////////////////////
-    char *sprint();
+	std::string& sprint();
     
 private:
 
@@ -690,10 +690,11 @@ private:
 	}        
 
 	template<class T>
-	char *stream<T>::sprint() {
-	    static char buf[BUFSIZ];
-	    std::string s(name());
-	    sprintf(buf, "[STREAM %s %ld]", s.c_str(), static_cast<long>(stream_len()));
+	std::string& stream<T>::sprint() {
+	    static std::string buf;
+		std::stringstream ss;
+		ss << "STREAM " << name() <<  " " << static_cast<long>(stream_len());
+		ss >> buf;
 	    return buf;
 	}
 
