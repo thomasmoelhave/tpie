@@ -73,7 +73,7 @@ double cpu_timer::wall_time() {
     return double(elapsed_real_) / double(clock_tick_);
 }
 
-std::ostream &operator<<(std::ostream &s, cpu_timer &wt) {
+std::ostream &tpie::operator<<(std::ostream &s, cpu_timer &wt) {
     if (wt.running()) {
         wt.sync();
     }
