@@ -1501,8 +1501,6 @@ void btree<Key, Value, Compare, KeyOfValue, BTECOLL>::shared_init(const std::str
 	return;
     }
 
-#define PATH_NAME_LENGTH TPIE_PATH_LENGTH
-
     std::string lcollname = base_file_name + ".l";
     std::string ncollname = base_file_name + ".n";
 

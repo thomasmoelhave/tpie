@@ -48,9 +48,6 @@ namespace tpie {
 
 }  //  tpie namespace
     
-// Maximum length of the file names.
-#define COLLECTION_PATH_NAME_LEN TPIE_PATH_LENGTH
-
 // Number of bytes in the header's user_data_ field.
 #define COLLECTION_USER_DATA_LEN 512
 
