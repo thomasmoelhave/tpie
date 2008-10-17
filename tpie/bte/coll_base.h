@@ -24,7 +24,7 @@
 
 #include <tpie/bte/stack_ufs.h>
 #include <tpie/bte/err.h>
-#include <tpie/tpie_stats_coll.h>
+#include <tpie/stats_coll.h>
 
 namespace tpie {
 
@@ -172,10 +172,10 @@ namespace tpie {
 	    TPIE_OS_OFFSET file_pointer;
 	
 	    // Statistics for this object.
-	    tpie_stats_collection stats_;
+	    stats_collection stats_;
 
 	    // Global collection statistics.
-	    static tpie_stats_collection gstats_;
+	    static stats_collection gstats_;
 
 	private:
 	    // Helper functions. We don't want them inherited.
@@ -368,12 +368,12 @@ namespace tpie {
 	    }
 
 	    // Local statistics (for this object).
-	    const tpie_stats_collection& stats() const {
+	    const stats_collection& stats() const {
 		return stats_; 
 	    }
 
 	    // Global statistics (for all collections).
-	    static const tpie_stats_collection& gstats() { 
+	    static const stats_collection& gstats() { 
 		return gstats_; 
 	    }
 
@@ -387,7 +387,7 @@ namespace tpie {
     
     
 	template<class BIDT>
-	tpie_stats_collection collection_base<BIDT>::gstats_;
+	stats_collection collection_base<BIDT>::gstats_;
     
 	template<class BIDT>
 	void collection_base<BIDT>::create_stack() {
