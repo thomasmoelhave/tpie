@@ -243,7 +243,7 @@ int test_stream() {
     status_t status = EMPTY;
     ami::stream<foo_t<40> >* s;
     int failed = 0;
-    ami::err err;
+	ami::err err = ami::NO_ERROR;
     std::string fn = std::string(TMP_DIR) + "tpie00.stream";
     std::string pfn;
     foo_t<40> afoo = thefoo;
@@ -342,7 +342,7 @@ int test_stream() {
 
     print_msg("Creating named writable stream (calling op. new)", INDENT);
     // Make sure there's no old file lingering around.
-    unlink(fn.c_str());
+    TPIE_OS_UNLINK(fn.c_str());
     s = new ami::stream<foo_t<40> >(fn);
     status = (s != NULL && s->is_valid() ? PASS: FAIL);
     print_status(status); if (status == FAIL) failed++;
@@ -567,8 +567,8 @@ int test_scan_cxx() {
     print_msg("Creating an ASCII file with 5m pairs of integers", INDENT);
     if (status != SKIP) 
     {
-	unlink(fnt0.c_str());
-	unlink(fns.c_str());
+	TPIE_OS_UNLINK(fnt0.c_str());
+	TPIE_OS_UNLINK(fns.c_str());
 	std::ofstream xos;
 	xos.open(fnt0.c_str());
 	if (!xos) {
@@ -633,9 +633,9 @@ int test_scan_cxx() {
     }
     print_status(status); if (status == FAIL) failed++;
   
-    unlink(fns.c_str());
-    unlink(fnt0.c_str());
-    unlink(fnt1.c_str());
+    TPIE_OS_UNLINK(fns.c_str());
+    TPIE_OS_UNLINK(fnt0.c_str());
+    TPIE_OS_UNLINK(fnt1.c_str());
     print_status(EMPTY); // New line.
     return (failed ? 1: 0);
 }

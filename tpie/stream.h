@@ -283,7 +283,7 @@ public:
     /// Returns the maximum number of items (of type T) 
     /// that can be stored in one block.
     ////////////////////////////////////////////////////////////////////////////
-    TPIE_OS_OFFSET chunk_size(void) const { 
+    TPIE_OS_SIZE_T chunk_size(void) const { 
 	return m_bteStream->chunk_size(); 
     }
     

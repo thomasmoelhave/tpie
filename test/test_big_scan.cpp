@@ -378,19 +378,19 @@ char* ll2size(TPIE_OS_LONGLONG n){
     float size;
     char* buf = new char[bufsize];
     if(n > APP_GIG ){
-	size = (n*1.)/APP_GIG;
+	size = (n*1.0f)/APP_GIG;
 	APP_SNPRINTF(buf, bufsize, "%.2f G",size);
     }
     else if (n > APP_MEG ){
-	size = (n*1.)/APP_MEG;
+	size = (n*1.0f)/APP_MEG;
 	APP_SNPRINTF(buf, bufsize, "%.2f M",size);
     } 
     else if (n > 1024 ){
-	size = (n*1.)/1024.;
+	size = (n*1.0f)/1024.0f;
 	APP_SNPRINTF(buf, bufsize, "%.2f K",size);
     }
     else {
-	size = (n*1.);
+	size = (n*1.0f);
 	APP_SNPRINTF(buf,bufsize, "%.0f", size);
     }
   
@@ -470,12 +470,12 @@ void write_test(const std::string& fname, appInfo & info){
 	x++;
 	i++;
 	if( (( i/(n*1.) ) - pct) > 0.001 ){
-	    pct = i/(n*1.);
+	    pct = i/(n*1.0f);
 	    progress_bar(pct, i*info.item_size);
 	}
     }
   
-    pct = i/(n*1.);
+    pct = i/(n*1.0f);
     progress_bar(pct, i*info.item_size);
   
     if(ae != ami::NO_ERROR){
@@ -517,12 +517,12 @@ void read_test(const std::string& fname, appInfo & info){
 	x2++;
 	i++;
 	if( (( i/(n*1.) ) - pct) > 0.001 ){
-	    pct = i/(n*1.);
+	    pct = i/(n*1.0f);
 	    progress_bar(pct, i*info.item_size);
 	}
     }
 
-    pct = i/(n*1.);
+    pct = i/(n*1.0f);
     progress_bar(pct, i*info.item_size);
   
     if(ae != ami::NO_ERROR){

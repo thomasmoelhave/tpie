@@ -167,7 +167,7 @@ namespace tpie {
 	    err main_memory_usage(TPIE_OS_SIZE_T  *usage,
 				  MM_stream_usage usage_type);
 	
-	    TPIE_OS_OFFSET chunk_size() const;
+	    TPIE_OS_SIZE_T chunk_size() const;
 	
 	private:
 	
@@ -1668,7 +1668,7 @@ namespace tpie {
 	}
     
 	template <class T> 
-	TPIE_OS_OFFSET stream_ufs<T>::chunk_size (void) const {
+	TPIE_OS_SIZE_T stream_ufs<T>::chunk_size (void) const {
 	    return m_itemsPerBlock;
 	}
     
