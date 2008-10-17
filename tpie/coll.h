@@ -15,9 +15,16 @@
 #include <tpie/coll_base.h>
 #include <tpie/coll_single.h>
 
-// AMI_collection_single is the only implementation, so make it easy
-// to get to.
+///////////////////////////////////////////////////////////////////////////
+/// \file tpie/coll.h Provides means to choose and set a specific collection type.
+/// For now \ref tpie::ami::collection_single is the only implementation.
+///////////////////////////////////////////////////////////////////////////
 
+
+///////////////////////////////////////////////////////////////////////////
+/// As \ref tpie::ami::collection_single is for now the only collection implementation,
+/// define collection to point to collection_single.
+///////////////////////////////////////////////////////////////////////////
 #define AMI_collection AMI_collection_single
 
 #ifdef BTE_COLLECTION

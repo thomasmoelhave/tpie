@@ -28,82 +28,170 @@ namespace tpie {
 
     namespace ami {
 
+  ///////////////////////////////////////////////////////////////////
+  /// Class representing a collection of fixed size blocks. 
+  /// Ech block can have links to other
+  /// blocks and is identified by a block ID of type \ref bid_t.
+  ///
+  /// collection_single<BTE_COLL> is the for now the only implementation of a block
+  /// collection in TPIE; therefore \ref AMI_collection is defined as
+  /// \ref collection_single in coll.h
+  ///////////////////////////////////////////////////////////////////////////
 	template <class BTECOLL = bte::COLLECTION>       
 	class collection_single {
 	    
 	public:
 	    
-	    // Initialize a temporary collection.
+	    //////////////////////////////////////////////////////////////////////////
+	    /// Create a new collection with access type AMI_WRITE_COLLECTION using
+	    /// temporary file names. The files are created in a directory given by the 
+	    /// AMI_SINGLE_DEVICE environment variable (or /var/tmp/ if that variable
+	    /// is not set). 
+	    /// \param[in] logical_block_factor parameter determines the size of the
+	    /// blocks stored (as the parameter value times the operating system page 
+	    /// size in bytes. The persistency of the collection is set to 
+	    /// \ref PERSIST_DELETE. 
+	    //////////////////////////////////////////////////////////////////////////
 	    collection_single(TPIE_OS_SIZE_T logical_block_factor = 1);
 	    
-	    // Initialize a named collection.
+      //////////////////////////////////////////////////////////////////////////
+	    /// Create a new or open an existing collection.
+	    /// \param[in] path_name location and name of the collection file. 
+	    /// \param[in] ct The access pattern of type \ref collection_type
+      /// \param[in] logical_block_factor parameter determines the size of the
+      /// blocks stored (as the parameter value times the operating system page 
+      /// size in bytes. The persistency of the collection is set to 
+      /// \ref PERSIST_DELETE. 
+	    //////////////////////////////////////////////////////////////////////////
 	    collection_single(char* path_name,
 			      collection_type ct = READ_WRITE_COLLECTION,
 			      TPIE_OS_SIZE_T logical_block_factor = 1);
 
-	    // Return the total number of used blocks.
+      //////////////////////////////////////////////////////////////////////////
+      /// Returns the total number of blocks used by the collection.
+	    //////////////////////////////////////////////////////////////////////////
 	    TPIE_OS_OFFSET size() const { 
 		return btec_->size(); 
 	    }
 
+      //////////////////////////////////////////////////////////////////////////
+	    /// Return the size of a block stored in this collection, in bytes
+	    /// (all blocks in a collection have the same size). 
+	    //////////////////////////////////////////////////////////////////////////
 	    // Return the logical block size in bytes.
 	    TPIE_OS_SIZE_T block_size() const { 
 		return btec_->block_size(); 
 	    }
 	    
-	    // Return the logical block factor.
+      //////////////////////////////////////////////////////////////////////////
+	    /// Returns the logical block factor. The block size is obtained by 
+	    /// multiplying the operating system page size in bytes by this value. 
+	    //////////////////////////////////////////////////////////////////////////
 	    TPIE_OS_SIZE_T block_factor() const {
 		return btec_->block_factor(); 
 	    }
 
+      //////////////////////////////////////////////////////////////////////////
+	    //// Set the persistency flag to p. The possible values for p are 
+	    /// \ref PERSIST_PERSISTENT and \ref PERSIST_DELETE. 
+	    //////////////////////////////////////////////////////////////////////////
 	    // Set the persistence flag. 
 	    void persist(persistence p) { 
 		btec_->persist(p); 
 	    }
 
-	    // Inquire the persistence status.
+      //////////////////////////////////////////////////////////////////////////
+	    /// Return the value of the persistency flag.
+	    //////////////////////////////////////////////////////////////////////////
 	    persistence persist() const {
 		return btec_->persist(); 
 	    }
 
-	    // Inquire the status.
+      //////////////////////////////////////////////////////////////////////////
+	    /// Return the status of the collection. The result is either 
+	    /// \ref COLLECTION_STATUS_VALID or 
+	    /// \ref COLLECTION_STATUS_INVALID. 
+	    /// The only operation that can leave the collection invalid 
+	    /// is the constructor (if that happens, the log file contains more i
+	    /// nformation). No blocks should be read from or written to an invalid 
+	    /// collection.
+	    //////////////////////////////////////////////////////////////////////////
 	    collection_status status() const { 
 		return status_; 
 	    }
 	    
+      //////////////////////////////////////////////////////////////////////////
+      /// Return if the status of the collection is 
+	    /// \ref COLLECTION_STATUS_VALID.
+	    /// \sa status()
+	    //////////////////////////////////////////////////////////////////////////
 	    bool is_valid() const { 
 		return status_ == COLLECTION_STATUS_VALID; 
 	    }
 	    
+      //////////////////////////////////////////////////////////////////////////
+      /// Return if the status of the collection is not 
+	    /// \ref COLLECTION_STATUS_VALID. 
+	    /// \sa is_valid(), status()
+	    //////////////////////////////////////////////////////////////////////////
 	    bool operator!() const { 
 		return !is_valid(); 
 	    }
 	    
-	    // User data to be stored in the header.
+      //////////////////////////////////////////////////////////////////////////
+      /// Return a pointer to a 512-byte array stored in the header of the 
+	    /// collection. This can be used by the application to store
+	    /// initialization information (e.g., in case the collection represents 
+	    /// a B-tree, the id of the block containing the root of the B-tree).
+	    //////////////////////////////////////////////////////////////////////////
 	    void *user_data() { 
 		return btec_->user_data(); 
 	    }
 	    
-	    // Destructor.
+	    //////////////////////////////////////////////////////////////////////////
+	    /// Destructor. Closes all files of the collection. If persistency is set to 
+	    /// \ref PERSIST_DELETE, it also removes the files. There should be no
+	    /// blocks in memory; if the destructor detects in-memory blocks, it 
+	    /// issues a warning in the TPIE log file (if logging is turned on). 
+	    /// Note, that The memory held by those blocks cannot be recoeverd and is 
+	    /// lost to the TPIE program instance.  	    
+	    //////////////////////////////////////////////////////////////////////////
 	    ~collection_single() { 
 		delete btec_; 
 	    }
 	    
+      //////////////////////////////////////////////////////////////////////////
+      /// Returns a pointer to the BTE collection underlying this collection.
+	    //////////////////////////////////////////////////////////////////////////
 	    BTECOLL* bte() { 
 		return btec_; 
 	    }
 	    
+      //////////////////////////////////////////////////////////////////////////
+      /// Returns an object of type \ref tpie::tpie_stats_collection containing the 
+	    ////statistics of this collection. 
+	    /// \sa gstats().
+	    //////////////////////////////////////////////////////////////////////////
 	    const tpie_stats_collection& stats() const { 
 		return btec_->stats(); 
 	    }
 	    
+      //////////////////////////////////////////////////////////////////////////
+	    /// Returns an object of type \ref tpie_stats_collection containing the 
+	    /// statistics of all collections opened by the application (global 
+	    /// statistics). 
+	    /// \sa stats().
+	    //////////////////////////////////////////////////////////////////////////
 	    static const tpie_stats_collection& gstats() { 
 		return BTECOLL::gstats(); 
 	    }
 	    
 	private:
 	    
+	    /** The BTE collection underlying this collection. */
 	    BTECOLL *btec_;
+	    
+	    /** Validity status information about this collection. */
 	    collection_status status_;
 	    
 	};
