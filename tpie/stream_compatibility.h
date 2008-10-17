@@ -32,9 +32,9 @@
 #  warning Please contact the TPIE Project.
 #endif // AMI_STREAM_IMP_MULTI_IMP
 
-#define AMI_STREAM AMI_stream
+#define AMI_STREAM tpie::ami::stream
 
-#define AMI_stream_base AMI_stream
-#define AMI_stream_single AMI_stream
+#define AMI_stream_base tpie::ami::stream
+#define AMI_stream_single tpie::ami::stream
 
 #endif // _AMI_STREAM_COMPATIBILITY_H
