@@ -259,7 +259,7 @@ public:
     /// \param[out] usage amount of memory in bytes used by the stream
     ////////////////////////////////////////////////////////////////////////////
     err main_memory_usage(TPIE_OS_SIZE_T *usage,
-			  MM_stream_usage usage_type);
+			  mem::stream_usage usage_type);
   
     ////////////////////////////////////////////////////////////////////////////
     /// Returns a \ref tpie_stats_stream object containing  statistics of 
@@ -557,7 +557,7 @@ private:
 // Query memory usage
 	template<class T>
 	err stream<T>::main_memory_usage(TPIE_OS_SIZE_T *usage,
-					 MM_stream_usage usage_type) {
+					 mem::stream_usage usage_type) {
 
 	    if (m_bteStream->main_memory_usage(usage, usage_type) != bte::NO_ERROR) {
 
@@ -567,15 +567,15 @@ private:
 	    }
     
 	    switch (usage_type) {
-	    case MM_STREAM_USAGE_OVERHEAD:
-	    case MM_STREAM_USAGE_CURRENT:
-	    case MM_STREAM_USAGE_MAXIMUM:
-	    case MM_STREAM_USAGE_SUBSTREAM:
+	    case mem::STREAM_USAGE_OVERHEAD:
+	    case mem::STREAM_USAGE_CURRENT:
+	    case mem::STREAM_USAGE_MAXIMUM:
+	    case mem::STREAM_USAGE_SUBSTREAM:
 		*usage += sizeof(*this);
 
 		break;
 
-	    case MM_STREAM_USAGE_BUFFER:
+	    case mem::STREAM_USAGE_BUFFER:
 
 		break;
 
