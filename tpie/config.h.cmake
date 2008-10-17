@@ -27,8 +27,6 @@
 #define TP_LOG_APPS 1
 #define TP_LOG_LIB 1
 
-#define TPIE_PATH_LENGTH 1024
-
 
 // recent visual studio versions gives heaps of compilation
 // warnings about security issues with fopen/strcpy and the like
