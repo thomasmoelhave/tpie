@@ -1557,8 +1557,8 @@ err btree<Key, Value, Compare, KeyOfValue, BTECOLL>::sort(stream<Value>* in_stre
 	}
 	out_stream->persist(PERSIST_DELETE);
     }
-  
-    retval = sort(in_stream, out_stream, &cmp);
+
+    retval = tpie::ami::sort<Value,comp_for_sort>(in_stream, out_stream, &cmp);
 
     if (retval != NO_ERROR)
 	TP_LOG_WARNING_ID("sort: sorting returned error.");
