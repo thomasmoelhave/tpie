@@ -1039,10 +1039,10 @@ void * operator new(\
 		    )\
 {\
   void *p;\
-  if ((MM_manager.register_new != MM_IGNORE_MEMORY_EXCEEDED)\
-      && (MM_manager.register_allocation (cb + SIZE_SPACE) !=	MM_ERROR_NO_ERROR)) {\
+  if ((MM_manager.register_new != mem::IGNORE_MEMORY_EXCEEDED)\
+      && (MM_manager.register_allocation (cb + SIZE_SPACE) !=	mem::ERROR_NO_ERROR)) {\
     switch(MM_manager.register_new) {\
-    case MM_ABORT_ON_MEMORY_EXCEEDED:\
+    case mem::ABORT_ON_MEMORY_EXCEEDED:\
        TP_LOG_FATAL_ID("In operator new() - allocation request ");\
        TP_LOG_FATAL((TPIE_OS_LONG)(cb + SIZE_SPACE));\
        TP_LOG_FATAL(" plus previous allocation ");\
@@ -1053,7 +1053,7 @@ void * operator new(\
 	   std::cerr << "memory manager: memory allocation limit " << (TPIE_OS_LONG)MM_manager.memory_limit() << " exceeded while allocating " << (TPIE_OS_LONG)cb << " bytes" << std::endl;\
         exit(1);\
         break;\
-    case MM_WARN_ON_MEMORY_EXCEEDED: \
+    case mem::WARN_ON_MEMORY_EXCEEDED: \
       TP_LOG_WARNING_ID("In operator new() - allocation request \"");\
       TP_LOG_WARNING((TPIE_OS_LONG)(cb + SIZE_SPACE));\
       TP_LOG_WARNING("\" plus previous allocation \"");\
@@ -1064,7 +1064,7 @@ void * operator new(\
       TP_LOG_FLUSH_LOG;\
 	  std::cerr << "memory manager: memory allocation limit " << (TPIE_OS_LONG)MM_manager.memory_limit () << " exceeded " << "while allocating " << (TPIE_OS_LONG)cb << " bytes" << std::endl;\
        break;\
-   case MM_IGNORE_MEMORY_EXCEEDED:\
+   case mem::IGNORE_MEMORY_EXCEEDED:\
        break;\
    }\
    }\
