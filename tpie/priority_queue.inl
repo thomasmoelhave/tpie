@@ -946,21 +946,25 @@ const  TPIE_OS_OFFSET priority_queue<T, Comparator, OPQType>::group_size(TPIE_OS
 }
 
 template <typename T, typename Comparator, typename OPQType>
-const  char* priority_queue<T, Comparator, OPQType>::datafile(TPIE_OS_OFFSET id) {
+const std::string& priority_queue<T, Comparator, OPQType>::datafile(TPIE_OS_OFFSET id) 
+{
     std::stringstream ss;
     ss << datafiles << id;
-    return (filename = ss.str()).c_str();
+	filename = ss.str();
+    return filename;
 }
 
 template <typename T, typename Comparator, typename OPQType>
-const  char* priority_queue<T, Comparator, OPQType>::datafile_group(TPIE_OS_OFFSET id) {
+const std::string& priority_queue<T, Comparator, OPQType>::datafile_group(TPIE_OS_OFFSET id) 
+{
     std::stringstream ss;
     ss << datafiles << "g" <<id;
-    return (filename = ss.str()).c_str();
+	filename = ss.str();
+    return filename;
 }
 
 template <typename T, typename Comparator, typename OPQType>
-const  char* priority_queue<T, Comparator, OPQType>::slot_data(TPIE_OS_OFFSET slotid) {
+const std::string& priority_queue<T, Comparator, OPQType>::slot_data(TPIE_OS_OFFSET slotid) {
     return datafile(slot_state[slotid*3+2]);
 }
 
@@ -970,7 +974,7 @@ void priority_queue<T, Comparator, OPQType>::slot_data_set(TPIE_OS_OFFSET slotid
 }
 
 template <typename T, typename Comparator, typename OPQType>
-const  char* priority_queue<T, Comparator, OPQType>::group_data(TPIE_OS_OFFSET groupid) {
+const std::string& priority_queue<T, Comparator, OPQType>::group_data(TPIE_OS_OFFSET groupid) {
     return datafile_group(groupid);
 }
 
