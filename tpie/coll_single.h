@@ -63,9 +63,9 @@ namespace tpie {
       /// size in bytes. The persistency of the collection is set to 
       /// \ref PERSIST_DELETE. 
 	    //////////////////////////////////////////////////////////////////////////
-	    collection_single(char* path_name,
-			      collection_type ct = READ_WRITE_COLLECTION,
-			      TPIE_OS_SIZE_T logical_block_factor = 1);
+	collection_single(const std::string& path_name,
+					  collection_type ct = READ_WRITE_COLLECTION,
+					  TPIE_OS_SIZE_T logical_block_factor = 1);
 
       //////////////////////////////////////////////////////////////////////////
       /// Returns the total number of blocks used by the collection.
@@ -199,7 +199,7 @@ namespace tpie {
 	template <class BTECOLL>
 	collection_single<BTECOLL>::collection_single(TPIE_OS_SIZE_T lbf) {
 	    
-	    char *temp_path = tpie_tempnam("AMI");
+		std::string temp_path = tpie_tempnam("AMI");
 	    
 	    btec_ = new BTECOLL(temp_path, bte::WRITE_COLLECTION, lbf);
 	    tp_assert(btec_ != NULL, "new failed to create a new BTE_COLLECTION."); 
@@ -214,9 +214,9 @@ namespace tpie {
 	}
 	
 	template <class BTECOLL>
-	collection_single<BTECOLL>::collection_single(char* path_name,
-						      collection_type ct, 
-						      TPIE_OS_SIZE_T lbf) {
+	collection_single<BTECOLL>::collection_single(const std::string& path_name,
+												  collection_type ct, 
+												  TPIE_OS_SIZE_T lbf) {
 
 	    bte::collection_type btect;
 	    
