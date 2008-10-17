@@ -405,7 +405,7 @@ namespace tpie {
 	void collection_base<BIDT>::remove_stack_file() {
 
 		std::string stack_name =
-			base_file_name + COLLECTION_STK_SUFFIX;
+			base_file_name_ + COLLECTION_STK_SUFFIX;
 
 	    TPIE_OS_UNLINK(stack_name);
 	}
