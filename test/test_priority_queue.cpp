@@ -1,5 +1,3 @@
-#define TP_LOG_APPS
-
 #include "app_config.h"
 #include <tpie/portability.h>
 #include <tpie/priority_queue.h>
