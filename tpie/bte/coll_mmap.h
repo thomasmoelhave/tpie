@@ -57,7 +57,7 @@ namespace tpie {
 	public:
 	    // Constructor. Read and verify the header of the
 	    // collection. Implemented in the base class.
-	    collection_mmap(const char *base_file_name,
+	    collection_mmap(const std::string& base_file_name,
 			    collection_type type = WRITE_COLLECTION,
 			    TPIE_OS_SIZE_T logical_block_factor = 1):
 		collection_base<BIDT>(base_file_name, 

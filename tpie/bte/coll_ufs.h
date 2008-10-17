@@ -47,7 +47,7 @@ namespace tpie {
 	public:
 	
 	    // Constructors.
-	    collection_ufs(const char *base_file_name,
+	    collection_ufs(const std::string& base_file_name,
 			   collection_type type = WRITE_COLLECTION,
 			   TPIE_OS_SIZE_T logical_block_factor = 1):
 		collection_base<BIDT>(base_file_name, 
