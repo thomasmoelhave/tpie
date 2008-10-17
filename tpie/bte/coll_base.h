@@ -118,7 +118,7 @@ namespace tpie {
 	    TPIE_OS_SIZE_T block_size;
 
 	    // Some data to be filled by the user of the collection.
-	    char user_data[COLLECTION_USER_DATA_LEN];
+		std::string user_data;
   
 	    // Default constructor.
 	    collection_header():
@@ -151,7 +151,7 @@ namespace tpie {
 	    // File descriptor for the file backing the block collection.
 	    TPIE_OS_FILE_DESCRIPTOR bcc_fd_;
 	
-	    char base_file_name_[COLLECTION_PATH_NAME_LEN];
+		std::string base_file_name_;
 	
 	    TPIE_OS_SIZE_T os_block_size_;
 	
@@ -186,10 +186,10 @@ namespace tpie {
 			     TPIE_OS_MAPPING_FLAG mapping);
 	
 	    // Read header from disk.
-	    err read_header(char *bcc_name);
+	    err read_header(std::string& bcc_name);
 
 	    // Write header to disk.
-	    err write_header(char* bcc_name);
+	    err write_header(std::string& bcc_name);
 
 	    void remove_stack_file();
 
@@ -273,7 +273,7 @@ namespace tpie {
 
 			}
 #else
-			char* tbuf = new char[header_.os_block_size];
+			std::string tbuf;
 			TPIE_OS_OFFSET curr_off;
 		    
 			if ((curr_off = TPIE_OS_LSEEK(bcc_fd_, 0, TPIE_OS_FLAG_SEEK_END)) == (TPIE_OS_OFFSET)(-1)) {
@@ -285,10 +285,9 @@ namespace tpie {
 			}
 
 			while (curr_off < bid_to_file_offset(header_.total_blocks)) {
-			    TPIE_OS_WRITE(bcc_fd_, tbuf, header_.os_block_size);
+			    TPIE_OS_WRITE(bcc_fd_, tbuf.c_str(), header_.os_block_size);
 			    curr_off += header_.os_block_size;
 			}
-			delete [] tbuf;
 			file_pointer = curr_off;
 #endif
 		    
@@ -319,7 +318,7 @@ namespace tpie {
 	
 	    typedef BIDT block_id_t;
 	
-	    collection_base(const char           *base_name, 
+	    collection_base(const std::string& base_name, 
 			    collection_type      ct, 
 			    TPIE_OS_SIZE_T       logical_block_factor, 
 			    TPIE_OS_MAPPING_FLAG mapping = TPIE_OS_FLAG_USE_MAPPING_FALSE);
@@ -359,7 +358,7 @@ namespace tpie {
 		return per_; 
 	    }
 
-	    const char *base_file_name() const { 
+	    const std::string& base_file_name() const { 
 		return base_file_name_; 
 	    }
 
@@ -392,19 +391,11 @@ namespace tpie {
 	template<class BIDT>
 	void collection_base<BIDT>::create_stack() {
 
-	    char stack_name[COLLECTION_PATH_NAME_LEN];
-
-	    // Fill in the stack file name.
-	    strncpy((char *) stack_name, 
-		    base_file_name_, 
-		    COLLECTION_PATH_NAME_LEN - 4); 
-
-	    // Add suffix.
-	    strcat((char *) stack_name, 
-		   COLLECTION_STK_SUFFIX);
+		std::string stack_name =
+			base_file_name_ + COLLECTION_STK_SUFFIX;
 
 	    // Construct the pre-existing freeblock_stack.
-	    freeblock_stack_ = new stack_ufs<BIDT>((char *) stack_name, 
+	    freeblock_stack_ = new stack_ufs<BIDT>(stack_name, 
 						   read_only_? 
 						   READ_STREAM : WRITE_STREAM);
   
@@ -413,40 +404,28 @@ namespace tpie {
 	template<class BIDT>
 	void collection_base<BIDT>::remove_stack_file() {
 
-	    char stack_name[COLLECTION_PATH_NAME_LEN];
-
-	    // Fill in the stack file name.
-	    strncpy((char *) stack_name, 
-		    base_file_name_,
-		    COLLECTION_PATH_NAME_LEN - 4);
-	
-	    // Add suffix
-	    strcat((char *) stack_name, 
-		   COLLECTION_STK_SUFFIX);
+		std::string& stack_name =
+			base_file_name + COLLECTION_STK_SUFFIX;
 
 	    TPIE_OS_UNLINK(stack_name);
 	}
 
 	template<class BIDT>
-	collection_base<BIDT>::collection_base(const char *base_name, 
+	collection_base<BIDT>::collection_base(const std::string& base_name, 
 					       collection_type type, 
 					       TPIE_OS_SIZE_T logical_block_factor, 
 					       TPIE_OS_MAPPING_FLAG mapping):
 	    header_(), 
 	    freeblock_stack_(NULL) {
 
-	    if (base_name == NULL) {
-
-		status_ = COLLECTION_STATUS_INVALID;
-
-		TP_LOG_FATAL_ID("NULL file name passed to constructor");
-
-		return;
+		if (base_name.empty()) 
+		{
+			status_ = COLLECTION_STATUS_INVALID;
+			TP_LOG_FATAL_ID("NULL file name passed to constructor");
+			return;
 	    }
   
-	    strncpy((char*) base_file_name_,
-		    base_name,
-		    COLLECTION_PATH_NAME_LEN - 4);
+		base_file_name_ = base_name;
 
 	    // A collection with a given name is not deleted upon destruction.
 	    per_ = PERSIST_PERSISTENT;
@@ -466,16 +445,8 @@ namespace tpie {
 	    file_pointer = -1;
 	    os_block_size_ = TPIE_OS_BLOCKSIZE();
 	
-	    char bcc_name[COLLECTION_PATH_NAME_LEN];
-
-	    // Fill in the blocks file name.
-	    strncpy((char *) bcc_name, 
-		    base_file_name_, 
-		    COLLECTION_PATH_NAME_LEN - 4);  
-
-	    // Add suffix.
-	    strcat((char *) bcc_name, 
-		   COLLECTION_BLK_SUFFIX);
+		std::string bcc_name =
+			base_file_name_ + COLLECTION_BLK_SUFFIX;
 
 	    if (read_only_) {
 	    
@@ -594,9 +565,9 @@ namespace tpie {
     
     
 	template<class BIDT>
-	err collection_base<BIDT>::read_header(char* bcc_name) {
+	err collection_base<BIDT>::read_header(std::string& bcc_name) {
 	
-	    char * tmp_buffer = new char[os_block_size_];
+	    char *tmp_buffer = new char[os_block_size_];
 	
 	    if (TPIE_OS_LSEEK(bcc_fd_, 0, TPIE_OS_FLAG_SEEK_SET) != 0) {
 
@@ -659,7 +630,7 @@ namespace tpie {
 
 
 	template<class BIDT>
-	err collection_base<BIDT>::write_header(char *bcc_name) {
+	err collection_base<BIDT>::write_header(std::string& bcc_name) {
 	
 	    if (TPIE_OS_LSEEK(bcc_fd_, 0, TPIE_OS_FLAG_SEEK_SET) != 0) {
 
@@ -696,16 +667,8 @@ namespace tpie {
 	template<class BIDT>
 	collection_base<BIDT>::~collection_base() {
 	
-	    char bcc_name[COLLECTION_PATH_NAME_LEN];
-	
-	    // Fill in the blocks file name.
-	    strncpy((char *) bcc_name, 
-		    base_file_name_, 
-		    COLLECTION_PATH_NAME_LEN - 4);
-
-	    // Add suffix.
-	    strcat((char *) bcc_name,
-		   COLLECTION_BLK_SUFFIX);
+		std::string bcc_name =
+			base_file_name_ + COLLECTION_BLK_SUFFIX;
 
 	    // No block should be in memory at the time of destruction.
 	    if (in_memory_blocks_) {
