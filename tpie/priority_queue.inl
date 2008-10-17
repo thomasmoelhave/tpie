@@ -40,7 +40,7 @@ priority_queue<T, Comparator, OPQType>::priority_queue(double f) { // constructo
 	    mm_avail-=setting_mmark*buffer_m_overhead;
 	    setting_k = (mm_avail/2); 
 	    const TPIE_OS_SIZE_T root_discriminant = 
-		    sqrt(fanout_overhead*fanout_overhead+4*sq_fanout_overhead*setting_k);
+		    sqrt((float)fanout_overhead*fanout_overhead+4*sq_fanout_overhead*setting_k);
 	    setting_k = (root_discriminant-fanout_overhead)/(2*sq_fanout_overhead); //Set fanout
 	    mm_avail-=setting_k*heap_m_overhead+setting_k*setting_k*sq_fanout_overhead;
 	    setting_m = (mm_avail)/heap_m_overhead;
