@@ -13,7 +13,7 @@ find_package(Doxygen)
 if (DOXYGEN)
     #If Doxygen is present, add docs custom target
     #that executes doxygen
-    ADD_CUSTOM_TARGET(docs ${DOXYGEN} ${DOXYFILE})
+    ADD_CUSTOM_TARGET(apidocs ${DOXYGEN} ${DOXYFILE})
 else (DOXYGEN)
     message(STATUS "Doxygon not found, api documentation can not be generated.") 
 endif(DOXYGEN)
