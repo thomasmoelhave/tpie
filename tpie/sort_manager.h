@@ -68,7 +68,7 @@ namespace tpie {
 	    // helper function for creating filename
 	    inline void make_name(
 		const std::string& prepre, 
-		const std::string& pre, int id, char *dest);
+		const std::string& pre, int id, std::string& dest);
 	    
 	    // **************
 	    // * Attributes *
@@ -121,7 +121,7 @@ namespace tpie {
 	    std::string suffixName[2];
 
 	    // A buffer for building the output file names
-	    char   newName [TPIE_PATH_LENGTH];
+		std::string   newName;
 
 	    //prefix of temp files created during sort
 	    std::string working_disk;
@@ -913,17 +913,14 @@ namespace tpie {
 
 	template<class T, class I, class M>
 	inline void sort_manager<T,I,M>::make_name(
-	    const std::string& prepre, const std::string& pre, int id, char *dest)
+	    const std::string& prepre, const std::string& pre, int id, std::string& dest)
 	{
 	    //This buffer must be long enough to hold the
 	    //largest possible stream id (in decimal)
 	    //largest ID is at most mrgArity
-	    char tmparray[6];
-
-	    strcpy(dest, prepre.c_str());
-	    strcat(dest, pre.c_str());
-	    sprintf(tmparray, "%d", id);
-	    strcat(dest, tmparray);
+		std::stringstream buf;
+		buf << prepre << pre << id;
+		buf >> dest;
 	}
 
     }  //  ami namespace
