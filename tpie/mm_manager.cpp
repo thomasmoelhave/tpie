@@ -1,6 +1,6 @@
 // Copyright (c) 1994 Darren Erik Vengroff
 //
-// File: mm_register.cpp
+// File: mm_manager.cpp
 // Author: Darren Erik Vengroff <dev@cs.duke.edu>
 // Created: 5/31/94
 //
@@ -24,19 +24,21 @@ extern int register_new;
 
 #include <cstdlib>
 
-MM_register::MM_register() : 
+using namespace tpie::mem;
+
+manager::manager() : 
     remaining (0), user_limit(0), used(0), pause_allocation_depth (0) {
     instances++;
 
     tp_assert(instances == 1,
-              "Only 1 instance of MM_register_base should exist.");
+              "Only 1 instance of manager_base should exist.");
 }
  
 
-MM_register::~MM_register(void)
+manager::~manager(void)
 {
     tp_assert(instances == 1,
-              "Only 1 instance of MM_register_base should exist.");
+              "Only 1 instance of manager_base should exist.");
 
     instances--;
 }
@@ -44,12 +46,12 @@ MM_register::~MM_register(void)
 // check that new allocation request is below user-defined limit.
 // This should be a private method, only called by operator new.
 
-MM_err MM_register::register_allocation(TPIE_OS_SIZE_T request)
+err manager::register_allocation(TPIE_OS_SIZE_T request)
 {
   // quick hack to allow operation before limit is set
   // XXX 
     if(!user_limit || pause_allocation_depth) {
-	return MM_ERROR_NO_ERROR;
+	return NO_ERROR;
     }
     
     used      += request;     
@@ -60,12 +62,12 @@ MM_err MM_register::register_allocation(TPIE_OS_SIZE_T request)
        TP_LOG_WARNING(": User-specified memory limit exceeded.");
        TP_LOG_FLUSH_LOG;
        remaining = 0;
-       return MM_ERROR_INSUFFICIENT_SPACE;
+       return INSUFFICIENT_SPACE;
     }
 
     remaining -= request; 
 
-    TP_LOG_MEM_DEBUG("MM_register Allocated ");
+    TP_LOG_MEM_DEBUG("manager Allocated ");
     TP_LOG_MEM_DEBUG(static_cast<TPIE_OS_OUTPUT_SIZE_T>(request));
     TP_LOG_MEM_DEBUG("; ");
     TP_LOG_MEM_DEBUG(static_cast<TPIE_OS_OUTPUT_SIZE_T>(remaining));
@@ -79,14 +81,14 @@ MM_err MM_register::register_allocation(TPIE_OS_SIZE_T request)
 	}
 #endif
     
-    return MM_ERROR_NO_ERROR;
+    return NO_ERROR;
 }
 
 // do the accounting for a memory deallocation request.
 // This should be a private method, only called by operators 
 // delete and delete [].
 
-MM_err MM_register::register_deallocation(TPIE_OS_SIZE_T sz)
+err manager::register_deallocation(TPIE_OS_SIZE_T sz)
 {
     remaining += sz;
 
@@ -100,7 +102,7 @@ MM_err MM_register::register_deallocation(TPIE_OS_SIZE_T sz)
        TP_LOG_WARNING("\n");
        TP_LOG_FLUSH_LOG;
        used = 0;
-       return MM_ERROR_UNDERFLOW;
+       return UNDERFLOW;
     }
 
     used      -= sz;    
@@ -119,23 +121,23 @@ MM_err MM_register::register_deallocation(TPIE_OS_SIZE_T sz)
 	}
 #endif
 
-    return MM_ERROR_NO_ERROR;
+    return NO_ERROR;
 }
 
 #ifdef MM_BACKWARD_COMPATIBLE
 // (Old) way to query how much memory is available
 
-MM_err MM_register::available (TPIE_OS_SIZE_T *sz)
+err manager::available (TPIE_OS_SIZE_T *sz)
 {
     *sz = remaining;
-    return MM_ERROR_NO_ERROR;    
+    return NO_ERROR;    
 }
 
 // resize_heap has the same purpose as set_memory_limit.
 // It is retained for backward compatibility. 
 // dh. 1999 09 29
 
-MM_err MM_register::resize_heap(TPIE_OS_SIZE_T sz)
+err manager::resize_heap(TPIE_OS_SIZE_T sz)
 {
    return set_memory_limit(sz);
 }
@@ -144,21 +146,21 @@ MM_err MM_register::resize_heap(TPIE_OS_SIZE_T sz)
 
 // User-callable method to set allowable memory size
 
-MM_err MM_register::set_memory_limit (TPIE_OS_SIZE_T new_limit)
+err manager::set_memory_limit (TPIE_OS_SIZE_T new_limit)
 {
     // by default, we keep track and abort if memory limit exceeded
-    if (register_new == MM_IGNORE_MEMORY_EXCEEDED){
-       register_new = MM_ABORT_ON_MEMORY_EXCEEDED;
+    if (register_new == IGNORE_MEMORY_EXCEEDED){
+       register_new = ABORT_ON_MEMORY_EXCEEDED;
     }
     // dh. unless the user indicates otherwise
     if (new_limit == 0){
-       register_new = MM_IGNORE_MEMORY_EXCEEDED;
+       register_new = IGNORE_MEMORY_EXCEEDED;
        remaining = used = user_limit = 0;
-       return MM_ERROR_NO_ERROR;
+       return NO_ERROR;
     } 
 
     if (used > new_limit) {
-        return MM_ERROR_EXCESSIVE_ALLOCATION;
+        return EXCESSIVE_ALLOCATION;
     } else {
         // These are unsigned, so be careful.
         if (new_limit < user_limit) {
@@ -167,64 +169,65 @@ MM_err MM_register::set_memory_limit (TPIE_OS_SIZE_T new_limit)
             remaining += new_limit - user_limit;
         }
         user_limit = new_limit;
-        return MM_ERROR_NO_ERROR;
+        return NO_ERROR;
     }
 }
 
 // dh. only warn if memory limit exceeded
-void MM_register::warn_memory_limit()
+void manager::warn_memory_limit()
 {
-    register_new = MM_WARN_ON_MEMORY_EXCEEDED;
+    register_new = WARN_ON_MEMORY_EXCEEDED;
 }
 
 // dh. abort if memory limit exceeded
-void MM_register::enforce_memory_limit()
+void manager::enforce_memory_limit()
 {
-    register_new = MM_ABORT_ON_MEMORY_EXCEEDED;
+    register_new = ABORT_ON_MEMORY_EXCEEDED;
 }
 
 // dh. ignore memory limit accounting
-void MM_register::ignore_memory_limit()
+void manager::ignore_memory_limit()
 {
-    register_new = MM_IGNORE_MEMORY_EXCEEDED;
+    register_new = IGNORE_MEMORY_EXCEEDED;
 }
 
 // rw. provide accounting state
-MM_mode MM_register::get_limit_mode() {
+mode manager::get_limit_mode() {
   return register_new;
 }
 
 
 // dh. return the amount of memory available before user-specified 
 // memory limit exceeded 
-TPIE_OS_SIZE_T MM_register::memory_available()
+TPIE_OS_SIZE_T manager::memory_available()
 {
     return remaining;    
 }
 
-size_t MM_register::memory_used()
+size_t manager::memory_used()
 {
     return used;    
 }
 
-size_t MM_register::memory_limit()
+size_t manager::memory_limit()
 {
     return user_limit;    
 }
 
 // Instantiate the actual memory manager, and allocate the 
 // its static data members
-MM_register MM_manager;
-int MM_register::instances = 0; // Number of instances. (init)
+manager MM_manager;
+
+int manager::instances = 0; // Number of instances. (init)
 // TPIE's "register memory requests" flag
-MM_mode MM_register::register_new = MM_ABORT_ON_MEMORY_EXCEEDED; 
+mode manager::register_new = ABORT_ON_MEMORY_EXCEEDED; 
 
 // The counter of mm_register_init instances. 
-unsigned int mm_register_init::count = 0;
+unsigned int manager_init::count = 0;
 
 // The constructor and destructor that ensure that the memory manager is
 // created exactly once, and destroyed when appropriate.
-mm_register_init::mm_register_init(void)
+manager_init::manager_init(void)
 {
     if (count++ == 0) {
 	MM_manager.set_memory_limit(MM_DEFAULT_MM_SIZE);
@@ -233,7 +236,7 @@ mm_register_init::mm_register_init(void)
     }
 }
 
-mm_register_init::~mm_register_init(void)
+manager_init::~manager_init(void)
 {
     --count;
 }

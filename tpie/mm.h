@@ -6,12 +6,11 @@
 //
 // $Id: mm.h,v 1.4 2005-11-08 17:21:02 adanner Exp $
 //
-#ifndef _MM_H
-#define _MM_H
+#ifndef _TPIE_MM_H
+#define _TPIE_MM_H
 
 // Get the base class, enums, etc...
 #include <tpie/mm_base.h>
-
 
 ///////////////////////////////////////////////////////////////////////////
 /// \file mm.h Provides means to choose and set a specific memory
@@ -23,9 +22,9 @@
 // Get an implementation definition..
 
 #ifdef MM_IMP_REGISTER
-#include <tpie/mm_register.h>
+#include <tpie/mm_manager.h>
 #else
 #error No MM implementation selected.
 #endif
 
-#endif // _MM_H 
+#endif // _TPIE_MM_H 

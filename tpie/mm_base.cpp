@@ -8,7 +8,7 @@
 #include <tpie/lib_config.h>
 #include <tpie/mm_base.h>
 #include <tpie/tpie_log.h>
-#include <tpie/mm_register.h>
+#include <tpie/mm_manager.h>
 
 #include <iostream>
 #include <cstdio>
@@ -22,9 +22,12 @@
 #include <return.h>
 #endif
 
+using namespace tpie::mem;
+
 #ifdef MM_BACKWARD_COMPATIBLE
-int   register_new = MM_IGNORE_MEMORY_EXCEEDED;
+int   register_new = IGNORE_MEMORY_EXCEEDED;
 #endif
+
 
 // SIZE_SPACE is to ensure alignment on quad word boundaries.  It may be
 // possible to check whether a machine needs this at configuration
@@ -40,11 +43,11 @@ void *operator new (TPIE_OS_SIZE_T sz)
 	GET_RET_ADDR(file);
 #endif
 
-   if ((MM_manager.register_new != MM_IGNORE_MEMORY_EXCEEDED)
+   if ((MM_manager.register_new != IGNORE_MEMORY_EXCEEDED)
        && (MM_manager.register_allocation (sz + SIZE_SPACE) !=
-	   MM_ERROR_NO_ERROR)) {
+	   NO_ERROR)) {
       switch(MM_manager.register_new) {
-	  case MM_ABORT_ON_MEMORY_EXCEEDED:
+	  case ABORT_ON_MEMORY_EXCEEDED:
 		TP_LOG_FATAL_ID ("In operator new() - allocation request \"");
 		TP_LOG_FATAL (static_cast<TPIE_OS_LONG>(sz + SIZE_SPACE));
 		TP_LOG_FATAL ("\" plus previous allocation \"");
@@ -64,7 +67,7 @@ void *operator new (TPIE_OS_SIZE_T sz)
 		assert (0);		// core dump if debugging
 		exit (1);
 		break;
-	  case MM_WARN_ON_MEMORY_EXCEEDED:
+	  case WARN_ON_MEMORY_EXCEEDED:
 		TP_LOG_WARNING_ID ("In operator new() - allocation request \"");
 		TP_LOG_WARNING (static_cast<TPIE_OS_LONG>(sz + SIZE_SPACE));
 		TP_LOG_WARNING ("\" plus previous allocation \"");
@@ -79,7 +82,7 @@ void *operator new (TPIE_OS_SIZE_T sz)
 		     << static_cast<TPIE_OS_LONG>(sz)
 		     << " bytes" << "\n";
 		break;
-	  case MM_IGNORE_MEMORY_EXCEEDED:
+	  case IGNORE_MEMORY_EXCEEDED:
 		break;
       }
    }
@@ -109,11 +112,11 @@ void *operator new[] (TPIE_OS_SIZE_T sz)
 	GET_RET_ADDR(file);
 #endif
 	
-	if ((MM_manager.register_new != MM_IGNORE_MEMORY_EXCEEDED)
+	if ((MM_manager.register_new != IGNORE_MEMORY_EXCEEDED)
 		&& (MM_manager.register_allocation (sz + SIZE_SPACE) !=
-			MM_ERROR_NO_ERROR)) {
+			NO_ERROR)) {
 		switch(MM_manager.register_new) {
-			case MM_ABORT_ON_MEMORY_EXCEEDED:
+			case ABORT_ON_MEMORY_EXCEEDED:
 				TP_LOG_FATAL_ID ("In operator new() - allocation request \"");
 				TP_LOG_FATAL (static_cast<TPIE_OS_LONG>(sz + SIZE_SPACE));
 				TP_LOG_FATAL ("\" plus previous allocation \"");
@@ -133,7 +136,7 @@ void *operator new[] (TPIE_OS_SIZE_T sz)
 				assert (0);		// core dump if debugging
 				exit (1);
 				break;
-			case MM_WARN_ON_MEMORY_EXCEEDED:
+			case WARN_ON_MEMORY_EXCEEDED:
 				TP_LOG_WARNING_ID ("In operator new() - allocation request \"");
 				TP_LOG_WARNING (static_cast<TPIE_OS_LONG>(sz + SIZE_SPACE));
 				TP_LOG_WARNING ("\" plus previous allocation \"");
@@ -148,7 +151,7 @@ void *operator new[] (TPIE_OS_SIZE_T sz)
 					<< static_cast<TPIE_OS_LONG>(sz)
 					<< " bytes" << "\n";
 				break;
-			case MM_IGNORE_MEMORY_EXCEEDED:
+			case IGNORE_MEMORY_EXCEEDED:
 				break;
 		}
 	}
@@ -180,9 +183,9 @@ void operator delete (void *ptr)
    const TPIE_OS_SIZE_T dealloc_size =  
        static_cast<TPIE_OS_SIZE_T>(*(reinterpret_cast<size_t*>((reinterpret_cast<char*>(ptr)) - SIZE_SPACE)));
 
-   if (MM_manager.register_new != MM_IGNORE_MEMORY_EXCEEDED) {
+   if (MM_manager.register_new != IGNORE_MEMORY_EXCEEDED) {
        if (MM_manager.register_deallocation (
-	       dealloc_size ? dealloc_size + SIZE_SPACE : 0) != MM_ERROR_NO_ERROR) {
+	       dealloc_size ? dealloc_size + SIZE_SPACE : 0) != NO_ERROR) {
 	   TP_LOG_WARNING_ID("In operator delete - MM_manager.register_deallocation failed");
        }
    }
@@ -206,9 +209,9 @@ void operator delete[] (void *ptr) {
    const TPIE_OS_SIZE_T dealloc_size =  
        static_cast<TPIE_OS_SIZE_T>(*(reinterpret_cast<size_t*>((reinterpret_cast<char*>(ptr)) - SIZE_SPACE)));
 
-   if (MM_manager.register_new != MM_IGNORE_MEMORY_EXCEEDED) {
+   if (MM_manager.register_new != IGNORE_MEMORY_EXCEEDED) {
        if (MM_manager.register_deallocation (
-	       dealloc_size ? dealloc_size + SIZE_SPACE : 0) != MM_ERROR_NO_ERROR) {
+	       dealloc_size ? dealloc_size + SIZE_SPACE : 0) != NO_ERROR) {
 	   TP_LOG_WARNING_ID("In operator delete [] - MM_manager.register_deallocation failed");
        }
    }
@@ -223,8 +226,7 @@ void operator delete[] (void *ptr) {
 }
 
 // return the overhead on each memory allocation request 
-int   MM_register::space_overhead ()
-{
+int manager::space_overhead () {
    return SIZE_SPACE;
 }
 

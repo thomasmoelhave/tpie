@@ -276,7 +276,7 @@ namespace tpie {
 	template<class T>
 	err stream_base<T>::register_memory_allocation (TPIE_OS_SIZE_T sz) {
 	
-	    if (MM_manager.register_allocation(sz) != MM_ERROR_NO_ERROR) {
+	    if (mem::MM_manager.register_allocation(sz) != mem::NO_ERROR) {
 	    
 		m_status = STREAM_STATUS_INVALID;
 	    
@@ -293,7 +293,7 @@ namespace tpie {
 	template<class T>
 	err stream_base<T>::register_memory_deallocation (TPIE_OS_SIZE_T sz) {
 	
-	    if (MM_manager.register_deallocation (sz) != MM_ERROR_NO_ERROR) {
+	    if (mem::MM_manager.register_deallocation (sz) != mem::NO_ERROR) {
 	    
 		m_status = STREAM_STATUS_INVALID;
 	    
