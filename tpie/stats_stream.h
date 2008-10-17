@@ -45,13 +45,13 @@ namespace tpie {
 	SUBSTREAM_CREATE,
 	/** Number of substream delete operations */ 
 	SUBSTREAM_DELETE,
-	NUMBER_OF_STATISTICS
+	NUMBER_OF_STREAM_STATISTICS
     };
     
     ///////////////////////////////////////////////////////////////////////////
     /// Encapsulates statistics about a TPIE stream.
     ///////////////////////////////////////////////////////////////////////////
-    typedef stats<NUMBER_OF_STATISTICS> stats_stream;
+    typedef stats<NUMBER_OF_STREAM_STATISTICS> stats_stream;
 
 }  //  tpie namespace
 
