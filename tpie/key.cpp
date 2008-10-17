@@ -7,6 +7,8 @@
 
 #include <tpie/key.h>
 
+using namespace tpie::ami;
+
 key_range::key_range() : m_min(0), m_max(0) {
 }
 

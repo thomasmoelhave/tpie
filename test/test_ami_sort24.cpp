@@ -25,11 +25,11 @@ using namespace tpie;
 
 union sort_obj
 {
-    kb_key key_val;
+    ami::kb_key key_val;
     char filler[24];
 
     // How to extract the key for key bucket sorting.
-    inline operator kb_key(void) const
+    inline operator ami::kb_key(void) const
 	{
 	    return key_val;
 	}
@@ -187,7 +187,7 @@ int main(int argc, char **argv) {
     cput.start();
 
     if (kb_sort) {
-        key_range range(KEY_MIN, KEY_MAX);
+	ami::key_range range(KEY_MIN, KEY_MAX);
         ae = ami::kb_sort(amis0, amis1, range);
     } else {
         ae = ami::sort(&amis0, &amis1);

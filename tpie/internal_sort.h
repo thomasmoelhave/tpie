@@ -19,7 +19,7 @@
 // Use our quicksort, or the sort from STL
 #ifdef TPIE_USE_STL_SORT
 // portability.h includes <algorithm> for us in the case of STL sort
-#include <comparator.h> //to convert TPIE comparisons to STL
+#include <tpie/comparator.h> //to convert TPIE comparisons to STL
 #endif
 
 namespace tpie {

@@ -239,7 +239,7 @@ int main(int argc, char **argv)  {
     timer.start();  
     ostr = (ostr_name[0] == '\0') ? new ami::stream<int>: new ami::stream<int>(ostr_name); 
     if (kb_sort) {
-	key_range range(KEY_MIN, KEY_MAX);
+	ami::key_range range(KEY_MIN, KEY_MAX);
 	ae = ami::kb_sort(*istr, *ostr, range);
     } else if (comparison_mode == COMPARISON_OPERATOR) {
 	ae = ami::sort(istr, ostr);
