@@ -75,7 +75,7 @@ int main(int argc, char **argv) {
   strcpy(output_filename, argv[1]);
   strcat(output_filename, ".mbr");
   MBRScanner<double, bid_t> scan(output_filename);
-  err aerr = ami::scan(&input_stream, &scan);
+  ami::scan(&input_stream, &scan);
   cerr << "done." << endl;
 
 	return 0;
