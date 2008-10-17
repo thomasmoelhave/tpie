@@ -1,16 +1,8 @@
-// Copyright (C) 2001 Octavian Procopiuc
-//
-// File:    ami_btree.h
-// Author:  Octavian Procopiuc <tavi@cs.duke.edu>
-//
-// $Id: ami_btree.h,v 1.36 2006-02-10 17:49:25 adanner Exp $
-//
-// AMI_btree declaration and implementation.
-//
+///////////////////////////////////////////////////////////////////////////
+/// \file tpie/btree.h
+/// Definition and implementation of the TPIE B-tree data type.
+///////////////////////////////////////////////////////////////////////////
 
-/** @file ami_btree.h
-    A templated implementation of a B+-tree.
-*/
 
 #ifndef _TPIE_AMI_BTREE_H
 #define _TPIE_AMI_BTREE_H
@@ -75,9 +67,11 @@ namespace tpie {
 namespace tpie {
 
     namespace ami {
-	
-	enum btree_status {
+    /** TPIE btree validity status */
+    enum btree_status {
+    /** Signaling validity of the btree. */ 
 	    BTREE_STATUS_VALID,
+      /** Signaling invalidity of the btree. */ 
 	    BTREE_STATUS_INVALID
 	};
 
@@ -91,41 +85,48 @@ namespace tpie {
     
     namespace ami {
 	
-// Parameters for the btree. Passed to the btree constructor.
 	
-	class btree_params {
+    ///////////////////////////////////////////////////////////////////////////
+    /// The btree_params class encapsulates all user-definable B-tree parameters.
+    /// These parameters dictate the layout of the tree and its behavior under
+    /// insertions and deletions. An instance of the class created using the 
+    /// default constructor gives default values to all parameters. Each
+    /// parameter can then be changed independently.  
+    ///////////////////////////////////////////////////////////////////////////
+    class btree_params {
 
 	public:
 
-	    // Min number of Value's in a leaf. 0 means use default B-tree behavior.
+	    /** Min number of Value's in a leaf. 0 means use default B-tree behavior. */
 	    TPIE_OS_SIZE_T leaf_size_min;
-	    // Min number of Key's in a node. 0 means use default B-tree behavior.
+	    /** Min number of Key's in a node. 0 means use default B-tree behavior. */
 	    TPIE_OS_SIZE_T node_size_min;
-	    // Max number of Value's in a leaf. 0 means use all available capacity.
+	    /** Max number of Value's in a leaf. 0 means use all available capacity. */
 	    TPIE_OS_SIZE_T leaf_size_max;
-	    // Max number of Key's in a node. 0 means use all available capacity.
+	    /**  Max number of Key's in a node. 0 means use all available capacity. */
 	    TPIE_OS_SIZE_T node_size_max;
-	    // How much bigger is the leaf logical block than the system block.
+	    /**  How much bigger is the leaf logical block than the system block. */
 	    TPIE_OS_SIZE_T leaf_block_factor;
-	    // How much bigger is the node logical block than the system block.
+	    /**  How much bigger is the node logical block than the system block. */
 	    TPIE_OS_SIZE_T node_block_factor;
-	    // The max number of leaves cached.
+	    /** The max number of leaves cached. */
 	    TPIE_OS_SIZE_T leaf_cache_size;
-	    // The max number of nodes cached.
+	    /** The max number of nodes cached. */
 	    TPIE_OS_SIZE_T node_cache_size;
 
-	    // Set default parameter values.
-	    // <table>
-	    // <tr><td>leaf_size_min</td><td>0</td><td>(default B-tree behavior; true value is set during B-tree construction)</td></tr>
-	    // <tr><td>node_size_min</td><td>0</td><td>(default B-tree behavior; true value is set during B-tree construction)</td></tr>
-	    // <tr><td>leaf_size_max</td><td>0</td><td>(default B-tree behavior; true value is set during B-tree construction)</td></tr>
-	    // <tr><td>node_size_max</td><td>0</td><td>(default B-tree behavior; true value is set during B-tree construction)</td></tr>
-	    // <tr><td>leaf_block_factor</td><td>1</td><td></td></tr>
-	    // <tr><td>node_block_factor</td><td>1</td><td></td></tr>
-	    // <tr><td>leaf_cache_size</td><td>32</td><td></td></tr>
-	    // <tr><td>node_cache_size</td><td>64</td><td></td></tr>
-	    // </table>
 	    
+	    ///////////////////////////////////////////////////////////////////////////
+      /// Construtor setting default parameter values.
+	    /// The default parameter values are as follows:
+	    /// \par leaf_size_min0
+	    /// \par node_size_min 0 
+	    /// \par leaf_size_max 0 
+	    /// \par node_size_max 0 
+	    /// \par leaf_block_factor 1 
+	    /// \par node_block_factor 1 
+	    /// \par leaf_cache_size 5 
+	    /// \par node_cache_size 10 
+	    ///////////////////////////////////////////////////////////////////////////
 	    btree_params(): 
 		leaf_size_min(0), node_size_min(0), 
 		leaf_size_max(0), node_size_max(0),
@@ -136,34 +137,31 @@ namespace tpie {
 	};
 	
 
-// A global object storing the default parameter values.
+  /** A global object storing the default parameter values. */
 	const btree_params btree_params_default = btree_params();
 	
-// Forward references.
+	// Forward references.
 	template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL> 
 	class btree_leaf;
 	template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL> 
 	class btree_node;
 	
-/** 
-    An implementation of the B<sup>+</sup>-tree.
-    The btree class implements the
-    behavior of a dynamic B<sup>+</sup>-tree or (a,b)-tree storing fixed-size data
-    items. All data elements (of type <em>Value</em>) are stored in the leaves of
-    the tree, with internal nodes containing keys (of type <em>Key</em>) and links
-    to other nodes. The keys are ordered using the Compare function
-    object, which should define a strict weak ordering (as in the STL sorting
-    algorithms). Keys are extracted from the <em>Value</em> data elements using
-    the <em>KeyOfValue</em> function object.
-    
-    @param Key The key type.
-    @param Value The type of the data elements.
-    @param Compare A function object which defines a strict weak ordering for the keys.
-    @param KeyOfValue A function object for extracting a <em>Key</em> from a <em>Value</em>.
-    @param BTECOLL The underlying BTE collection type. It defaults to <em>BTE_COLLECTION</em>.
-    
-    Example of usage: test_ami_btree.cpp
-*/
+	///////////////////////////////////////////////////////////////////////////
+  /// An implementation of the B<sup>+</sup>-tree. The btree class implements the
+  /// behavior of a dynamic B<sup>+</sup>-tree or (a,b)-tree storing fixed-size data
+  /// items. All data elements (of type <em>Value</em>) are stored in the leaves of
+  /// the tree, with internal nodes containing keys (of type <em>Key</em>) and links
+  /// to other nodes. The keys are ordered using the Compare function
+  /// object, which should define a strict weak ordering (as in the STL sorting
+  /// algorithms). Keys are extracted from the <em>Value</em> data elements using
+  /// the <em>KeyOfValue</em> function object.
+  /// 
+  /// @param Key The key type.
+  /// @param Value The type of the data elements.
+  /// @param Compare A function object which defines a strict weak ordering for the keys.
+  /// @param KeyOfValue A function object for extracting a <em>Key</em> from a <em>Value</em>.
+  /// @param BTECOLL The underlying BTE collection type. It defaults to  bte::COLLECTION.
+  ///////////////////////////////////////////////////////////////////////////
 	template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL = bte::COLLECTION>
 	class btree {
 
@@ -176,48 +174,46 @@ namespace tpie {
 	    typedef Value record_t;
 	    typedef btree_params params_t;
 
-	    /** 
-		Default filter for range queries.
-		This is a function object that returns true 
-		(i.e., it lets every result of the query pass through).
-	    */
+	    //////////////////////////////////////////////////////////////////////////
+      /// Default filter for range queries.
+      /// This is a function object that always returns true 
+      /// (i.e., it lets every result of the query pass through).
+      //////////////////////////////////////////////////////////////////////////
 	    class dummy_filter_t {
 	    public:
 		bool operator()(const Value& v) const { return true; }
 	    };
 	    
 	    
-	    /** Construct an empty B-tree using temporary storage.
-		The tree is stored in a
-		directory given by the <em>SINGLE_DEVICE</em> environment variable 
-		(or "/var/tmp/" if that variable is not set). The persistency flag is set to
-		<em>PERSIST_DELETE</em>. The <em>params</em> object contains the
-		user-definable parameters.
-		
-		@see btree_params.
-	    */
+      //////////////////////////////////////////////////////////////////////////
+      /// Construct an empty B-tree using temporary files. The tree is stored in a
+      /// directory given by the <em>SINGLE_DEVICE</em> environment variable 
+      /// (or "/var/tmp/" if that variable is not set). The persistency flag is 
+      /// set to \ref PERSIST_DELETE. The <em>params</em> object contains the
+      /// user-definable parameters.
+	    /// \sa btree_params.
+	    //////////////////////////////////////////////////////////////////////////
 	    btree(const btree_params &params = btree_params_default);
 	    
-	    
-	    /** Construct a B-tree from the given leaves and nodes.
-		The files
-		created/used by a Btree instance are outlined in the following
-		table.
-		<table>
-		<tr><td>".l.blk"</td><td>Contains the leaves block collection.</td></tr>
-		<tr><td>".l.stk"</td><td>Contains the free blocks stack for the leaves block collection.</td></tr>
-		<tr><td>".n.blk"</td><td>Contains the nodes block collection.</td></tr>
-		<tr><td>".n.stk"</td><td>Contains the free block stack for the nodes block collection.</td></tr>
-		</table>
-		The persistency flag is
-		set to <em>PERSIST_PERSISTENT</em>. The <em>params</em> object contains the
-		user-definable parameters.
-		
-		@see btree_params, persist().
-	    */
-	    btree(const char *base_file_name,
-		  collection_type type = WRITE_COLLECTION,
-		  const btree_params &params = btree_params_default);
+      //////////////////////////////////////////////////////////////////////////
+      /// Construct a B-tree from the given leaves and nodes. The files 
+	    /// created/used by a Btree instance are outlined below:
+	    /// \par .l.blk 
+	    /// Contains the leaves block collection.
+      /// \par .l.stk 
+      /// Contains the free blocks stack for the leaves block collection.
+      /// \par .n.blk 
+      /// Contains the nodes block collection.
+      /// \par .n.stk 
+      /// Contains the free blocks stack for the leaves block collection.
+	    /// The persistency flag is 
+      /// set to \ref PERSIST_PERSISTENT. The <em>params</em> object contains the
+      /// user-definable parameters.
+      /// \sa btree_params, persist(), tpie::ami::collection_single< BTECOLL > 
+      //////////////////////////////////////////////////////////////////////////
+      btree(const char *base_file_name,
+      collection_type type = WRITE_COLLECTION,
+      const btree_params &params = btree_params_default);
 
 	    /**
 	       @overload
@@ -226,125 +222,122 @@ namespace tpie {
 		  collection_type type = WRITE_COLLECTION,
 		  const btree_params &params = btree_params_default);
 
-	    /** Sort <em>in_stream</em> and place the result in <em>out_stream</em>.
-		This is a convenience function, used as an initial step in bulk loading.
-
-		If out_stream is NULL, a new temporary stream is created and <em>out_stream</em> 
-		points to it.
-
-		@see load().
-	    */
+      //////////////////////////////////////////////////////////////////////////
+	    /// As a convenience, this function sorts the stream <em>in_stream</em>
+	    /// and stores the result in <em>out_stream</em>. If the value
+	    /// of <em>out_stream</em> passed to the function is NULL, a new stream 
+	    /// is created and os points to it. 
+      /// \sa load().
+      //////////////////////////////////////////////////////////////////////////
 	    err sort(stream<Value>* in_stream, stream<Value>* &out_stream);
 
 
-	    /** 
-		Bulk load the tree from a sorted stream. 
-		Leaves are filled to <em>leaf_fill</em> times capacity, and nodes are filled to 
-		<em>node_fill</em> times capacity.
-	    */
+      //////////////////////////////////////////////////////////////////////////
+	    /// Bulk load the tree from a sorted stream. Same as \ref load() but assumes
+	    /// the input stream to be srted.
+	    /// Leaves are filled to <em>leaf_fill</em> times capacity, and nodes are 
+	    /// filled to <em>node_fill</em> times capacity.
+      /// \sa load().
+      //////////////////////////////////////////////////////////////////////////
 	    err load_sorted(stream<Value>* stream_s, 
 			    float leaf_fill = .75, float node_fill = .60);
 
-	    /** 
-		Bulk load from given stream. 
-		Calls sort() and then load_sorted(). 
-		Leaves are filled to <em>leaf_fill</em> times capacity, and nodes are filled to 
-		<em>node_fill</em> times capacity.
-	    */
+      //////////////////////////////////////////////////////////////////////////
+	    ///  Bulk load from given stream. 
+	    /// Calls sort() and then load_sorted(). 
+	    /// Leaves are filled to <em>leaf_fill</em> times capacity, and nodes 
+	    /// are filled to	<em>node_fill</em> times capacity.
+      //////////////////////////////////////////////////////////////////////////
 	    err load(stream<Value>* s, 
 		     float leaf_fill = .75, float node_fill = .60);
 
 
-	    /** 
-		Write all elements stored in the tree to the given stream, in sorted order.
-		No changes are performed on the tree.
-	    */
+      //////////////////////////////////////////////////////////////////////////
+	    /// Write all elements stored in the tree to the given stream, in sorted
+	    /// order. No changes are performed on the tree.
+      //////////////////////////////////////////////////////////////////////////
 	    err unload(stream<Value>* s);
 
 
-	    /** 
-		Bulk load from another B-tree.
-		This is a means of reoganizing a
-		B-tree after a lot of updates. A newly loaded structure may use less
-		space and may answer range queries faster. 
-		Leaves are filled to <em>leaf_fill</em> times capacity, and nodes are filled to 
-		<em>node_fill</em> times capacity.
-	    */
+      //////////////////////////////////////////////////////////////////////////
+	    /// Bulk load from another B-tree. This is a means of reoganizing a
+	    /// B-tree after a lot of updates. A newly loaded structure may use less
+	    /// space and may answer range queries faster. 
+	    /// Leaves are filled to <em>leaf_fill</em> times capacity, and nodes are
+	    /// filled to <em>node_fill</em> times capacity.
+      //////////////////////////////////////////////////////////////////////////
 	    err load(btree<Key, Value, Compare, KeyOfValue, BTECOLL>* bt,
 		     float leaf_fill = .75, float node_fill = .60);
 
 
-	    /**
-	       Traverse the tree in depth-first-search preorder.
-	       Returns a std::pair containing the next node to be visited and its level (root is on level 0). 
-	       To initiate the process, the function should be called with -1 for <em>level</em>.
-	    */
+      //////////////////////////////////////////////////////////////////////////
+	    /// Traverse the tree in depth-first-search preorder.
+	    /// Returns a std::pair containing the next node to be visited and its 
+	    /// level (root is on level 0). To initiate the process, the function 
+	    /// should be called with -1 for <em>level</em>.
+      //////////////////////////////////////////////////////////////////////////
 	    std::pair<bid_t, Key> dfs_preorder(int& level);
 
 
-	    /**
-	       Insert the given element into the tree.
-	       Returns <em>true</em> if the insertion succeeded, <em>false</em> otherwise 
-	       (duplicate key)
-	    */
+      //////////////////////////////////////////////////////////////////////////
+	    /// Insert the given element into the tree.
+	    /// Returns <em>true</em> if the insertion succeeded, <em>false</em> 
+	    /// otherwise (duplicate key).
+	    //////////////////////////////////////////////////////////////////////////
 	    bool insert(const Value& v);
 
 
-	    /**
-	       Modify a given element.
-	       If the given element is not found in the tree, it is inserted.
-	       Equivalent to erase() followed by insert(), but using a single search operation.
-	    */
+      //////////////////////////////////////////////////////////////////////////
+	    /// Modify a given element.
+	    /// If the given element is not found in the tree, it is inserted.
+	    /// Equivalent to erase() followed by insert(), but using a single search operation.
+      //////////////////////////////////////////////////////////////////////////
 	    bool modify(const Value& v);
 
 
-	    /**
-	       Delete the element with the given key from the tree.
-	       If an element was found and deleted, the function returns <em>true</em>.
-	       Otherwise, it returns <em>false</em>.
-	    */
+      //////////////////////////////////////////////////////////////////////////
+	    /// Delete the element with the given key from the tree.
+	    /// If an element was found and deleted, the function returns <em>true</em>.
+	    //////////////////////////////////////////////////////////////////////////
 	    bool erase(const Key& k);
 
 
-	    /** 
-		Find an element based on the given key. 
-		If found, return <em>true</em> and store the element in <em>v</em>.
-		Otherwise, return false.
-	    */
+      //////////////////////////////////////////////////////////////////////////
+	    /// Find an element based on the given key. 
+	    /// If found, return <em>true</em> and store the element in <em>v</em>.
+      //////////////////////////////////////////////////////////////////////////
 	    bool find(const Key& k, Value& v);
 
 
-	    /**
-	       Find the highest element stored in the tree whose key is lower than the given key. 
-	       If such an element exists, the function returns <em>true</em> and stores the result in
-	       <em>v</em>. Otherwise, it returns <em>false</em>.
-
-	       @see succ()
-	    */ 
+      //////////////////////////////////////////////////////////////////////////
+	    /// Find the highest element stored in the tree whose key is lower than 
+	    /// the given key. If such an element exists, the function returns
+	    /// <em>true</em> and stores the result in <em>v</em>. 
+      /// @see succ()
+      //////////////////////////////////////////////////////////////////////////
 	    bool pred(const Key& k, Value& v);
 
 
-	    /**
-	       Find the lowest element stored in the tree whose key is higher than the given key. 
-	       If such an element exists, the function returns <em>true</em> and stores the result in
-	       <em>v</em>. Otherwise, it returns <em>false</em>.
-
-	       @see pred()
-	    */
+      //////////////////////////////////////////////////////////////////////////
+	    /// Find the lowest element stored in the tree whose key is higher than
+	    /// the given key. If such an element exists, the function returns 
+	    /// <em>true</em> and stores the result in <em>v</em>. 
+	    /// @see pred()
+	    //////////////////////////////////////////////////////////////////////////
 	    bool succ(const Key& k, Value& v);
 
 
-	    /**
-	       Find all elements within the given range.
-	       If <em>s</em> is not <em>NULL</em>, the elements found are stored 
-	       in the stream and the number of elements found is returned. 
-	       Otherwise, the results are not stored, only the count is returned.
-	    */
-	    // This method is inlined such as to comply with MSVC++ "requirements".
+      //////////////////////////////////////////////////////////////////////////
+	    /// Find all elements within the given range.
+	    /// If <em>s</em> is not <em>NULL</em>, the elements found are stored
+	    /// in the stream and the number of elements found is returned.
+	    /// Otherwise, the results are not stored, only the count is returned.
+      //////////////////////////////////////////////////////////////////////////
 	    template<class Filter>
 	    size_t range_query(const Key& k1, const Key& k2, 
 			       stream<Value>* s, const Filter& filter_through)
 		{
+	      // This method is inlined such as to comply with MSVC++ "requirements".
   
 		    Key kmin = comp_(k1, k2) ? k1: k2;
 		    Key kmax = comp_(k1, k2) ? k2: k1;
@@ -441,162 +434,153 @@ namespace tpie {
 		}
 
 
-	    /**
-	       Find all elements within the given range.
-	       If <em>s</em> is not <em>NULL</em>, the elements found are stored 
-	       in the stream and the number of elements found is returned. 
-	       Otherwise, the results are not stored, only the count is returned.
-	    */
+      //////////////////////////////////////////////////////////////////////////
+	    /// Find all elements within the given range.
+	    /// If <em>s</em> is not <em>NULL</em>, the elements found are stored
+	    /// in the stream and the number of elements found is returned. 
+	    /// Otherwise, the results are not stored, only the count is returned.
+      //////////////////////////////////////////////////////////////////////////
 	    TPIE_OS_OFFSET range_query(const Key& k1, const Key& k2, stream<Value>* s)
 		{ return range_query(k1, k2, s, dummy_filter_t()); }
 
 
-	    /**
-	       Same as range_query().
-	    */
+      //////////////////////////////////////////////////////////////////////////
+	    /// Same as \ref range_query().
+	    //////////////////////////////////////////////////////////////////////////
 	    template<class Filter>
 	    size_t window_query(const Key& k1, const Key& k2, 
 				stream<Value>* s, const Filter& f) 
 		{ return range_query(k1, k2, s, f); }
 
 
-	    /**
-	       Same as range_query().
-	    */
+      //////////////////////////////////////////////////////////////////////////
+      /// Same as \ref range_query().
+      //////////////////////////////////////////////////////////////////////////
 	    TPIE_OS_OFFSET window_query(const Key& k1, const Key& k2, stream<Value>* s)
 		{ return range_query(k1, k2, s, dummy_filter_t()); }
 
 
-	    /** 
-		Inquire the number of elements stored in the leaves of this tree.
-	    */
+      //////////////////////////////////////////////////////////////////////////
+      /// Inquire the number of elements stored in the leaves of this tree.
+      //////////////////////////////////////////////////////////////////////////
 	    TPIE_OS_OFFSET size() const { return header_.size; }
 
 
-	    /**
-	       Inquire the number of leaf nodes of this tree.
-	    */
+      //////////////////////////////////////////////////////////////////////////
+      /// Inquire the number of leaf nodes of this tree.
+      //////////////////////////////////////////////////////////////////////////
 	    TPIE_OS_OFFSET leaf_count() const { return pcoll_leaves_->size(); }
 
 
-	    /**
-	       Inquire the number of internal (non-leaf) nodes of this tree.
-	    */
+      //////////////////////////////////////////////////////////////////////////
+      /// Inquire the number of internal (non-leaf) nodes of this tree.
+      //////////////////////////////////////////////////////////////////////////
 	    TPIE_OS_OFFSET node_count() const { return pcoll_nodes_->size(); }
 
 
+      //////////////////////////////////////////////////////////////////////////
+      /// Inquire the number of os-blocks used by the btree leaves. The 
+	    /// value is calculated by the node count of the btree and the 
+	    /// \ref leaf_block_factor and \ref node_block_factor, resp.
+      //////////////////////////////////////////////////////////////////////////
 	    TPIE_OS_OFFSET os_block_count() const { 
 		return pcoll_leaves_->size() * params_.leaf_block_factor + 
 		    pcoll_nodes_->size() * params_.node_block_factor; 
 	    }
 
 
-	    // Return the bid of the root. Make this protected or remove it.
+      //TODO Make this method protected or remove it!
+      //////////////////////////////////////////////////////////////////////////
+      /// Returns the block id of type \ref bid_t  of the root. 
+      //////////////////////////////////////////////////////////////////////////
 	    bid_t root_bid() const { return header_.root_bid; }
 
-	    /**
-	       Return the height of the tree, including the leaf level. 
-	       A value of 0 represents an empty tree. 
-	       A value of 1 represents a tree with only one leaf node (which is also the root node).
-	    */
+      //////////////////////////////////////////////////////////////////////////
+	    /// Returns the height of the tree, including the leaf level.
+	    /// A value of 0 represents an empty tree. A value of 1 represents a tree
+	    /// with only one leaf node (which is also the root node).
+      //////////////////////////////////////////////////////////////////////////
 	    TPIE_OS_SIZE_T height() const { return header_.height; }
 
 
-	    /**
-	       Set the persistency flag of the B-tree. 
-	       The persistency flag dictates the behavior of the destructor of
-	       this <em>btree</em> instance. 
-	       If <em>per</em> is <em>PERSIST_DELETE</em>, all files
-	       associated with the tree will be removed, and all the elements stored in
-	       the tree will be lost after the destruction of this <em>btree</em> instance. 
-	       If <em>per</em> is <em>PERSIST_PERSISTENT</em>, all files associated with the tree
-	       will be closed during the destruction, and all the
-	       information needed to reopen this tree will be saved.
-	    */
+      //////////////////////////////////////////////////////////////////////////
+	    /// Set the \ref persistency flag of the B-tree. 
+	    /// The persistency flag dictates the behavior of the destructor of
+	    /// this btree instance. If <em>per</em> is <em>PERSIST_DELETE</em>, all 
+	    /// files associated with the tree will be removed, and all the elements
+	    /// stored in the tree will be lost after the destruction of this btree 
+	    /// instance. If <em>per</em> is \ref PERSIST_PERSISTENT, all files 
+	    /// associated with the tree will be closed during the destruction, and
+	    /// all the information needed to reopen this tree will be saved.
+      //////////////////////////////////////////////////////////////////////////
 	    void persist(persistence per);
 
 
-	    /**
-	       Return a const
-	       reference to the <em>btree_params</em> object used by the B-tree. 
-	       This object contains the true values of all parameters (unlike the object
-	       passed to the constructor, which may contain 0-valued parameters to
-	       indicate default behavior).
-
-	       @see btree_params
-	    */
+      //////////////////////////////////////////////////////////////////////////
+	    /// Returns a const reference to the \ref btree_params object used by the
+	    /// B-tree. This object contains the true values of all parameters
+	    /// (unlike the object passed to the constructor, which may contain 
+	    /// 0-valued parameters to indicate default behavior).
+	    /// @see btree_params
+	    //////////////////////////////////////////////////////////////////////////
 	    const btree_params& params() const { return params_; }
 
 
-	    /**
-	       Return the status of the collection. 
-	       The result is either
-	       <em>BTREE_STATUS_VALID</em> or
-	       <em>BTREE_STATUS_INVALID</em>. The only operation that can leave
-	       the tree invalid is the constructor (if that happens, the log file
-	       contains more information).
-
-	       @see is_valid()
-	    */
+      //////////////////////////////////////////////////////////////////////////
+	    /// Returns the status of the collection. The result is either
+	    /// \ref BTREE_STATUS_VALID or \ref BTREE_STATUS_INVALID. The only
+	    /// operation that can leave the tree invalid is the constructor
+	    /// (if that happens, the log file contains more information).
+	    /// @see is_valid()
+      //////////////////////////////////////////////////////////////////////////
 	    btree_status status() const { return status_; }
 
 
-	    /**
-	       Return <em>true</em> if the status
-	       of the tree is <em>BTREE_STATUS_VALID</em>, <em>false</em>
-	       otherwise.
-
-	       @see status()
-	    */
+      //////////////////////////////////////////////////////////////////////////
+	    /// Returns <em>true</em> if the status of the tree is 
+	    /// \ref BTREE_STATUS_VALID</em>, <em>false</em> otherwise.
+	    /// @see status()
+      //////////////////////////////////////////////////////////////////////////
 	    bool is_valid() const { return status_ == BTREE_STATUS_VALID; }
 
 
-	    /**
-	       Return an object containing the statistics of this B-tree.
-	       The following statistics are collected:
-	       <table>
-	       <tr><td>BLOCK_GET</td><td>Number of block reads</td></tr>
-	       <tr><td>BLOCK_PUT</td><td>Number of block writes</td></tr>
-	       <tr><td>BLOCK_DELETE</td><td>Number of block deletes</td></tr>
-	       <tr><td>BLOCK_SYNC</td><td>Number of block sync operations</td></tr>
-	       <tr><td>COLLECTION_OPEN</td><td>Number of collection open operations</td></tr>
-	       <tr><td>COLLECTION_CLOSE</td><td>Number of collection close operations</td></tr>
-	       <tr><td>COLLECTION_CREATE</td><td>Number of collection create operations</td></tr>
-	       <tr><td>COLLECTION_DELETE</td><td>Number of collection delete operations</td></tr>
-	       </table>
-	       The statistics refer to this B-tree instance only.
-     
-	       @see gstats()
-	    */
+      //////////////////////////////////////////////////////////////////////////
+	    /// Returns an object containing the statistics of this B-tree.
+	    ///The statistics refer to this B-tree instance only.
+      /// @see gstats()
+      //////////////////////////////////////////////////////////////////////////
 	    const stats_tree &stats();
 
-	    /** 
-		Inquire the base path name.
-		This is the name of the B-tree, determined during construction. 
-
-		@see btree()
-	    */
+      //////////////////////////////////////////////////////////////////////////
+	    /// Inquire the base path name.
+	    /// This is the name of the B-tree, determined during construction.
+	    /// @see btree()
+      //////////////////////////////////////////////////////////////////////////
 	    const std::string& name() const { return name_; }
 
 
-	    /**
-	       Close (and potentially destroy) this B-tree.
-	       If the persistency flag is <em>PERSIST_DELETE</em>, all files
-	       associated with the tree will be removed.
-
-	       @see persist()
-	    */
+      //////////////////////////////////////////////////////////////////////////
+	    /// Close (and potentially destroy) this B-tree.
+	    /// If the persistency flag is \ref PERSIST_DELETE, all files
+	    /// associated with the tree will be removed.
+	    /// @see persist()
+      //////////////////////////////////////////////////////////////////////////
 	    ~btree();
 
 	protected:
 
 
-	    // Function object for the node cache write out.
+      //////////////////////////////////////////////////////////////////////////
+	    /// Function object for the node cache write out.
+	    //////////////////////////////////////////////////////////////////////////
 	    class remove_node {
 	    public:
 		void operator()(node_t* p) { delete p; }
 	    };
-	    // Function object for the leaf cache write out.
+
+	    //////////////////////////////////////////////////////////////////////////
+      /// Function object for the leaf cache write out.
+      //////////////////////////////////////////////////////////////////////////
 	    class remove_leaf { 
 	    public:
 		void operator()(leaf_t* p) { delete p; }
@@ -605,6 +589,9 @@ namespace tpie {
 	    typedef CACHE_MANAGER<node_t*, remove_node> node_cache_t;
 	    typedef CACHE_MANAGER<leaf_t*, remove_leaf> leaf_cache_t;
 
+      //////////////////////////////////////////////////////////////////////////
+      /// Holds meta information about a btree.
+      //////////////////////////////////////////////////////////////////////////
 	    class header_t {
 	    public:
 		bid_t root_bid;
@@ -614,25 +601,25 @@ namespace tpie {
 		header_t(): root_bid(0), height(0), size(0) {}
 	    };
 
-	    // Critical information: root bid, height, size (will be stored into
-	    // the header of the nodes collection).
+	    /** Critical information: root bid, height, size (will be stored into
+	    / the header of the nodes collection). */
 	    header_t header_;
 
-	    // The node cache.
+	    /** The node cache. */
 	    node_cache_t* node_cache_;
-	    // The leaf cache.
+	    /** The leaf cache. */
 	    leaf_cache_t* leaf_cache_;
 
-	    // Run-time parameters.
+	    /** Run-time parameters. */
 	    btree_params params_;
 
-	    // The collection storing the leaves.
+	    /** The collection storing the leaves. */
 	    collection_t* pcoll_leaves_;
 
-	    // The collection storing the internal nodes (could be the same).
+	    /** The collection storing the internal nodes (could be the same). */
 	    collection_t* pcoll_nodes_;
 
-	    // Comparison object.
+	    /** Comparison object. */
 	    Compare comp_;
 
 	    class comp_for_sort {
@@ -753,8 +740,10 @@ namespace tpie {
 	    bid_t next;
 	};
 
-// The btree_leaf class.
-// Stores size() elements of type Value.
+  //////////////////////////////////////////////////////////////////////////
+	/// The btree_leaf class for storing \ref size() elements of type Value 
+	/// in a \ref btree.
+  //////////////////////////////////////////////////////////////////////////
 	template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL = tpie::bte::COLLECTION >
 	class btree_leaf: public block<Value, _btree_leaf_info, BTECOLL> {
 
@@ -843,10 +832,11 @@ namespace tpie {
 	    ~btree_leaf();
 	};
 
-// The btree_node class.
-// An internal node of the btree.
-// It stores size() keys and size()+1 links representing 
-// the following pattern: Link0 Key0 Link1 Key1 ... LinkS KeyS Link(S+1)
+  //////////////////////////////////////////////////////////////////////////
+	/// The btree_node class for representing an internal node of a \ref  btree.
+	/// It stores size() keys and size()+1 links representing 
+	/// the following pattern: Link0 Key0 Link1 Key1 ... LinkS KeyS Link(S+1)
+  //////////////////////////////////////////////////////////////////////////
 	template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL = tpie::bte::COLLECTION >
 	class btree_node: public block<Key, size_t, BTECOLL> {
 
@@ -905,14 +895,10 @@ namespace tpie {
 	};
 
 
-///////////////////////////////////////
-			  //////////// ***Implementation*** /////////////
-			  ///////////////////////////////////////
+// --------------------***Implementation*** ---------------------------------
 
 
-			  ////////////////////////
-			  ////// **btree_leaf** //////
-			  ////////////////////////
+// --------------------***btree_leaf*** ---------------------------------
 
 			  template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
 			  TPIE_OS_SIZE_T BTREE_LEAF::el_capacity(TPIE_OS_SIZE_T block_size) {
@@ -932,7 +918,7 @@ BTREE_LEAF::btree_leaf(collection_single<BTECOLL>* pcoll, bid_t lbid)
     }
 }
 
-/// *btree_leaf::split* ///
+// --------------------***btree_leaf::split*** ---------------------------------
 template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
 Key  BTREE_LEAF::split(BTREE_LEAF &right) {
 
