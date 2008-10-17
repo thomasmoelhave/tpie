@@ -5,7 +5,6 @@
 
 #include <tpie/device.h>
 #include <tpie/bte/stream_base_generic.h>
-#include <tpie/tpie_stats_stream.h>
 
 namespace tpie {
 
@@ -50,7 +49,7 @@ namespace tpie {
 	    // The index into the device list for the next stream.    
 	    static unsigned int device_index;    
 	    
-	    static const tpie_stats_stream& gstats() { 
+	    static const stats_stream& gstats() { 
 		return bte::stream_base_generic::gstats(); 
 	    }
 	};

@@ -15,7 +15,7 @@
 // Get the BTE error codes.
 #include <tpie/bte/err.h>
 // Get statistics definitions.
-#include <tpie/tpie_stats_stream.h>
+#include <tpie/stats_stream.h>
 
 // Include the registration based memory manager.
 #define MM_IMP_REGISTER
@@ -109,7 +109,7 @@ namespace tpie {
 		return TPIE_OS_BLOCKSIZE();
 	    }
 	
-	    const tpie_stats_stream& stats() const { 
+	    const stats_stream& stats() const { 
 		return m_streamStatistics; 
 	    }
 	
@@ -132,7 +132,7 @@ namespace tpie {
 	
 	    // Record statistics both globally (on base-class level) and
 	    // locally (on instance level).
-	    inline void record_statistics(TPIE_STATS_STREAM event);
+	    inline void record_statistics(stats_stream_id event);
 	
 	    // A pointer to the mapped in header block for the stream.
 	    stream_header     *m_header;
@@ -150,26 +150,26 @@ namespace tpie {
 	    bool              m_readOnly; 
 	
 	    // Statistics for this stream only.
-	    tpie_stats_stream m_streamStatistics;
+	    stats_stream      m_streamStatistics;
 	
 	    // The size of a physical block.
-	    TPIE_OS_SSIZE_T m_osBlockSize;
+	    TPIE_OS_SSIZE_T    m_osBlockSize;
 	
 	    // Offset of the current item in the file. This is the logical
 	    // offset of the item within the file, that is, the place we would
 	    // have to lseek() to in order to read() or write() the item if we
 	    // were using ordinary (i.e. non-mmap()) file access methods.
-	    TPIE_OS_OFFSET m_fileOffset;
+	    TPIE_OS_OFFSET      m_fileOffset;
 	
 	    // Beginning of the file.  Can't write before here.
-	    TPIE_OS_OFFSET m_logicalBeginOfStream;
+	    TPIE_OS_OFFSET      m_logicalBeginOfStream;
 	
 	    // Offset just past the end of the last item in the stream. If this
 	    // is a substream, we can't write here or anywhere beyond.
-	    TPIE_OS_OFFSET m_logicalEndOfStream;
+	    TPIE_OS_OFFSET      m_logicalEndOfStream;
 	
 	    // Length of the underlying file.
-	    TPIE_OS_OFFSET m_fileLength;
+	    TPIE_OS_OFFSET       m_fileLength;
 	
 	    // A place to cache OS error values. It is normally set after each
 	    // call to the OS.
@@ -313,7 +313,7 @@ namespace tpie {
 	}
 
 	template < class T >
-	inline void stream_base<T>::record_statistics(TPIE_STATS_STREAM event) {
+	inline void stream_base<T>::record_statistics(stats_stream_id event) {
 	
 	    //  Record for base class, i.e., globally.
 	    gstats_.record(event);

@@ -13,65 +13,77 @@
 // Get definitions for working with Unix and Windows
 #include <tpie/portability.h>
 
+namespace tpie {
+    
 ///////////////////////////////////////////////////////////////////////////
 /// Encapsulates statistics about a TPIE object.
-/// \sa tpie_stats_stream
+/// \sa stats_stream
 ///////////////////////////////////////////////////////////////////////////
-template<int C>
-class tpie_stats {
-private:
+    template<int C>
+    class stats {
+    private:
+	
+	// The array storing the C statistics.
+	TPIE_OS_OFFSET stats_[C];
+	
+    public:
+	
+	// Reset all counts to 0.
+	void reset() {
+	    for (int i = 0; i < C; i++)
+		stats_[i] = 0;
+	}
 
-  // The array storing the C statistics.
-  TPIE_OS_OFFSET stats_[C];
+	// Default constructor. Set all counts to 0.
+	stats() {
+	    reset();
+	}
 
-public:
+	// Copy constructor.
+	stats(const stats<C>& ts) {
+	    for (int i = 0; i < C; i++)
+		stats_[i] = ts.stats_[i];
+	}
 
-  // Reset all counts to 0.
-  void reset() {
-    for (int i = 0; i < C; i++)
-      stats_[i] = 0;
-  }
-  // Default constructor. Set all counts to 0.
-  tpie_stats() {
-    reset();
-  }
-  // Copy constructor.
-  tpie_stats(const tpie_stats<C>& ts) {
-    for (int i = 0; i < C; i++)
-      stats_[i] = ts.stats_[i];
-  }
-  // Record ONE event of type t.
-  void record(int t) {
-    stats_[t]++;
-  }
-  // Record k events of type t.
-  void record(int t, TPIE_OS_OFFSET k) {
-    stats_[t] += k;
-  }
-  // Record the events stored in s.
-  void record(const tpie_stats<C>& s) {
-    for (int i = 0; i < C; i++)
-      stats_[i] += s.stats_[i];
-  }
-  // Set the number of type t events to k.
-  void set(int t, TPIE_OS_OFFSET k) {
-    stats_[t] = k;
-  }
-  // Inquire the number of type t events.
-  TPIE_OS_OFFSET get(int t) const {
-    return stats_[t];
-  }
-  // Destructor.
-  ~tpie_stats() {}
-};
+	// Record ONE event of type t.
+	void record(int t) {
+	    stats_[t]++;
+	}
 
-template<int C>
-const tpie_stats<C> operator-(const tpie_stats<C> & lhs, 
-			      const tpie_stats<C> & rhs) {
-  tpie_stats<C> res;
-  for (int i = 0; i < C; i++)
-    res.stats_[i] = lhs.stats_[i] - rhs.stats_[i];
-  return res;
-}
+	// Record k events of type t.
+	void record(int t, TPIE_OS_OFFSET k) {
+	    stats_[t] += k;
+	}
+
+	// Record the events stored in s.
+	void record(const stats<C>& s) {
+	    for (int i = 0; i < C; i++)
+		stats_[i] += s.stats_[i];
+	}
+	
+	// Set the number of type t events to k.
+	void set(int t, TPIE_OS_OFFSET k) {
+	    stats_[t] = k;
+	}
+	
+	// Inquire the number of type t events.
+	TPIE_OS_OFFSET get(int t) const {
+	    return stats_[t];
+	}
+	
+	// Destructor.
+	~stats() {}
+    };
+
+    template<int C>
+    const stats<C> operator-(const stats<C> & lhs, 
+			     const stats<C> & rhs) {
+	stats<C> res;
+	for (int i = 0; i < C; i++)
+	    res.stats_[i] = lhs.stats_[i] - rhs.stats_[i];
+	return res;
+    }
+
+}  //  tpie namespace
 
 #endif //_TPIE_STATS_H

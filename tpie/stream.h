@@ -265,7 +265,7 @@ public:
     /// Returns a \ref tpie_stats_stream object containing  statistics of 
     /// the stream. 
     ////////////////////////////////////////////////////////////////////////////
-    const tpie_stats_stream& stats() const { 
+    const stats_stream& stats() const { 
 	return m_bteStream->stats(); 
     }
 
@@ -352,11 +352,11 @@ private:
 	    TP_LOG_DEBUG_ID(path);
     
 	    // Create the BTE stream.
-	    m_bteStream = new BTE_STREAM<T>(path, tpie::bte::WRITE_STREAM);
+	    m_bteStream = new BTE_STREAM<T>(path, bte::WRITE_STREAM);
     
 	    // (Short circuit evaluation...)
 	    if (m_bteStream == NULL || 
-		m_bteStream->status() == tpie::bte::STREAM_STATUS_INVALID) {
+		m_bteStream->status() == bte::STREAM_STATUS_INVALID) {
 
 		TP_LOG_FATAL_ID("BTE returned invalid or NULL stream.");
 
@@ -455,7 +455,7 @@ private:
 	    m_status(STREAM_STATUS_INVALID) {
     
     
-	    if (m_bteStream == NULL || m_bteStream->status() == tpie::bte::STREAM_STATUS_INVALID) {
+	    if (m_bteStream == NULL || m_bteStream->status() == bte::STREAM_STATUS_INVALID) {
 
 		TP_LOG_FATAL_ID("BTE returned invalid or NULL stream.");
 
@@ -559,7 +559,7 @@ private:
 	err stream<T>::main_memory_usage(TPIE_OS_SIZE_T *usage,
 					 MM_stream_usage usage_type) {
 
-	    if (m_bteStream->main_memory_usage(usage, usage_type) != tpie::bte::NO_ERROR) {
+	    if (m_bteStream->main_memory_usage(usage, usage_type) != bte::NO_ERROR) {
 
 		TP_LOG_WARNING_ID("bte error");		
 

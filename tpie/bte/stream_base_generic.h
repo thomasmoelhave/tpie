@@ -12,7 +12,7 @@
 #include <tpie/portability.h>
 
 // Get statistics definitions.
-#include <tpie/tpie_stats_stream.h>
+#include <tpie/stats_stream.h>
 
 namespace tpie {
 
@@ -24,7 +24,7 @@ namespace tpie {
 	class stream_base_generic {
 	
 	protected:
-	    static tpie_stats_stream gstats_;
+	    static stats_stream gstats_;
 	    static int remaining_streams;
 
 	public:
@@ -34,7 +34,7 @@ namespace tpie {
 	    }
 	
 	    // The global stats.
-	    static const tpie_stats_stream& gstats() { 
+	    static const stats_stream& gstats() { 
 		return gstats_; 
 	    }
 	};

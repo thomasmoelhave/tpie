@@ -9,11 +9,13 @@
 
 #include <tpie/bte/stream_base.h>
 
+using namespace tpie;
+
 static unsigned long get_remaining_streams() {
     TPIE_OS_SET_LIMITS_BODY;
 }
 
-tpie_stats_stream tpie::bte::stream_base_generic::gstats_;
+stats_stream bte::stream_base_generic::gstats_;
 
-int tpie::bte::stream_base_generic::remaining_streams = get_remaining_streams();
+int bte::stream_base_generic::remaining_streams = get_remaining_streams();
 
