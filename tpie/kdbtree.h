@@ -38,7 +38,7 @@ public:
   typedef AMI_kdbtree_leaf<coord_t, dim, BTECOLL> leaf_t;
   typedef kdb_item_t<coord_t, dim> item_t;
 
-  AMI_kdbtree(const char *base_file_name, AMI_collection_type type, 
+  AMI_kdbtree(const std::string& base_file_name, AMI_collection_type type, 
 	  const AMI_kdbtree_params& params);
 
   AMI_kdbtree(const string& base_file_name, AMI_collection_type type, 
@@ -425,18 +425,18 @@ TPIE_OS_SIZE_T AMI_KDBTREE_NODE::el_capacity(TPIE_OS_SIZE_T block_size) {
 
 //// *AMI_kdbtree::AMI_kdbtree* ////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-AMI_KDBTREE::AMI_kdbtree(const char *base_file_name, AMI_collection_type type, 
-			 const AMI_kdbtree_params& params): header_(), params_(params), name_(base_file_name) {
-
+AMI_KDBTREE::AMI_kdbtree(const std::string& base_file_name, AMI_collection_type type, 
+			 const AMI_kdbtree_params& params): header_(), params_(params), name_(base_file_name) 
+{
   shared_init(base_file_name, type);
 }
 
 //// *AMI_kdbtree::AMI_kdbtree* ////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 AMI_KDBTREE::AMI_kdbtree(const string &base_file_name, AMI_collection_type type, 
-			 const AMI_kdbtree_params& params): header_(), params_(params), name_(base_file_name) {
-
-  shared_init(base_file_name.c_str(), type);
+			 const AMI_kdbtree_params& params): header_(), params_(params), name_(base_file_name) 
+{
+  shared_init(base_file_name, type);
 }
 
 //// *AMI_kdbtree::shared_init* ////
