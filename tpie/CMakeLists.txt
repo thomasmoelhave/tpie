@@ -94,10 +94,10 @@ set (OTHER_HEADERS
 		timer.h
 		tpie_assert.h
 		tpie_log.h
-		tpie_stats_coll.h
-		tpie_stats.h
-		tpie_stats_stream.h
-		tpie_stats_tree.h
+		stats_coll.h
+		stats.h
+		stats_stream.h
+		stats_tree.h
 		tempname.h
 		vararray.h
 		lib_config.h
