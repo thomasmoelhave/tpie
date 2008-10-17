@@ -65,7 +65,6 @@ set (OTHER_HEADERS
 		bit_matrix.h
 		b_vector.h
 		comparator.h
-		config.h
 		config.h.cmake
 		cpu_timer.h
 		internal_sort.h

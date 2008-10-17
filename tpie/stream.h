@@ -18,7 +18,7 @@
 #include <tpie/portability.h>
 
 // Include the configuration header.
-#include <config.h>
+#include <tpie/config.h>
 
 // Get the error codes.
 #include <tpie/err.h>

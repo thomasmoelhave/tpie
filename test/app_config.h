@@ -11,7 +11,7 @@
 #define _APP_CONFIG_H
 
 // Get the configuration as set up by the TPIE configure script.
-#include <config.h>
+#include <tpie/config.h>
 
 // <><><><><><><><><><><><><><><><><><><><><><> //
 // <><><><><><><> Developer use  <><><><><><><> //

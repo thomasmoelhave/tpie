@@ -8,7 +8,7 @@
 #ifndef _LIB_CONFIG_H
 #define _LIB_CONFIG_H
 
-#include <config.h>
+#include <tpie/config.h>
 
 // Use logs if requested.
 #if TP_LOG_LIB

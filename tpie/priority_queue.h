@@ -1,7 +1,7 @@
 #ifndef _TPIE_PRIORITY_QUEUE_H_
 #define _TPIE_PRIORITY_QUEUE_H_
 
-#include <config.h>
+#include <tpie/config.h>
 #include "portability.h"
 #include "ami.h"
 #include "tpie_log.h"

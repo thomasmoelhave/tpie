@@ -19,7 +19,7 @@ check_include_files("sys/unistd.h" TPIE_HAVE_SYS_UNISTD_H)
 check_include_files("sys/async.h" TPIE_HAVE_LIBAIO)
 
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/tpie)
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tpie/config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/tpie/config.h)
 add_subdirectory(tpie)
 
@@ -31,3 +31,4 @@ option(COMPILE_TEST "Compile test programs" ON)
 if (COMPILE_TEST)
 	add_subdirectory(test)
 endif (COMPILE_TEST)
+
