@@ -13,7 +13,7 @@
 // TPIE configuration: choose BTE, block size, etc.
 #include "app_config.h"
 
-#include <config.h>
+#include <tpie/config.h>
 
 #if (!defined(BTE_STREAM_IMP_UFS) && !defined(BTE_STREAM_IMP_MMAP) && !defined(BTE_STREAM_IMP_STDIO))
 #  define BTE_STREAM_IMP_UFS
