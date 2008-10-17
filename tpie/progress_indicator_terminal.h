@@ -41,7 +41,7 @@ namespace tpie
 								TPIE_OS_OFFSET minRange, 
 								TPIE_OS_OFFSET maxRange, 
 								TPIE_OS_OFFSET stepValue) : 
-	    progress_indicator_base(title, description, minRange, maxRange, stepValue), m_title(NULL), m_description(NULL) {
+	    progress_indicator_base(title, description, minRange, maxRange, stepValue), m_title(""), m_description("") {
 			m_title = title;
 			m_description = description;
 	}
