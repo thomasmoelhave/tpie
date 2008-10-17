@@ -23,7 +23,7 @@ static std::string& __tpie_log_name()
 {
 	static std::string tln;
 	TPIE_OS_SRANDOM(static_cast<unsigned int>(TPIE_OS_TIME(NULL)));
-	tln = tpie_tempnam(TPLOGPFX, TPLOGDIR, "txt");
+	tln = tempname::tpie_name(TPLOGPFX, TPLOGDIR, "txt");
 	return tln;
 }
 

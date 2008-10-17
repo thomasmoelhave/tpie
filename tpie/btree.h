@@ -1440,7 +1440,7 @@ btree<Key, Value, Compare, KeyOfValue, BTECOLL>::btree(const btree_params &param
 										    status_(BTREE_STATUS_VALID) {
 
 
-    name_ = std::string(tpie_tempnam("btree"));
+    name_ = std::string(tempname::tpie_name("btree"));
     shared_init(name_, WRITE_COLLECTION);
     if (status_ == BTREE_STATUS_VALID) {
 	persist(PERSIST_DELETE);

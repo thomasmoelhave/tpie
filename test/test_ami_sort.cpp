@@ -143,7 +143,7 @@ int main(int argc, char **argv)  {
     // Set the amount of main memory:
     MM_manager.set_memory_limit (test_mm_size);
 
-	set_default_base_name("TEST_AMI_SORT");
+	tempname::set_default_base_name("TEST_AMI_SORT");
     ami::stream<int>* istr = (istr_name[0] == '\0') ? new ami::stream<int>: new ami::stream<int>(istr_name);
     if (!istr->is_valid()) {
 	std::cerr << argv[0] << ": Error while initializing input stream. Aborting." << std::endl;

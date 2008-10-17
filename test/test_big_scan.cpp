@@ -351,9 +351,9 @@ void get_app_info(int argc, char** argv, appInfo & Info){
     }  
   
     //check if path is valid
-	set_default_path(Info.path);
-	set_default_base_name(APP_FILE_BASE);
-    std::string tmpfname = tpie_tempnam();
+	tempname::set_default_path(Info.path);
+	tempname::set_default_base_name(APP_FILE_BASE);
+	std::string tmpfname = tempname::tpie_name();
     TPIE_OS_FILE_DESCRIPTOR fd;
     fd=TPIE_OS_OPEN_OEXCL(tmpfname);
     if(TPIE_OS_IS_VALID_FILE_DESCRIPTOR(fd)){
@@ -553,9 +553,9 @@ int main(int argc, char **argv){
 	      << "\nItem Size: " << info.item_size
 	      << "\nFile Size: " << ll2size(filesize) << "B\n" << std::endl;
  
-	set_default_base_name(APP_FILE_BASE);
-	set_default_path(info.path);
-    std::string fname = tpie_tempnam();
+	tempname::set_default_base_name(APP_FILE_BASE);
+	tempname::set_default_path(info.path);
+	std::string fname = tempname::tpie_name();
     write_test(fname, info);
     std::cout << std::endl;
     read_test(fname, info);

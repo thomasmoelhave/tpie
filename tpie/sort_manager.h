@@ -158,7 +158,7 @@ namespace tpie {
 	    suffixName[1]="_1_";
 
 	    // Prefix of temp files created during sort
-	    working_disk = std::string(tpie_tempnam("sort"));
+		working_disk = std::string(tempname::tpie_name("sort"));
 	};
 
 	template<class T, class I, class M>

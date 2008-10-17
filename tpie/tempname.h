@@ -21,16 +21,25 @@
 
 namespace tpie {
 
-std::string tpie_tempnam(const std::string& post_base = "", const std::string& dir = "", const std::string& ext = ""); 
+	class tempname {
+	public:	
+		static std::string tpie_name(const std::string& post_base = "", const std::string& dir = "", const std::string& ext = ""); 
 
-void set_default_path(const std::string& path);
-void set_default_base_name(const std::string& name);
-void set_default_extension(const std::string& ext);
+		static void set_default_path(const std::string& path);
+		static void set_default_base_name(const std::string& name);
+		static void set_default_extension(const std::string& ext);
 
-std::string& get_default_tmp_path();
-std::string& get_default_base_name();
-std::string& get_default_extension();
+		static std::string& get_default_tmp_path();
+		static std::string& get_default_base_name();
+		static std::string& get_default_extension();
+	
+	private:
+		static std::string default_path;
+		static std::string default_base_name; 
+		static std::string default_extension;
 
+		static std::string tpie_mktemp();
+	};
 }
 
 #endif // _TPIE_TEMPNAM_H 

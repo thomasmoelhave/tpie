@@ -104,7 +104,7 @@ priority_queue<T, Comparator, OPQType>::priority_queue(double f) { // constructo
     }
 
     std::stringstream ss;
-    ss << tpie_tempnam("pq_data");
+	ss << tempname::tpie_name("pq_data");
     datafiles = ss.str();
     TP_LOG_DEBUG("memory after alloc: " << MM_manager.memory_available() << "b" << "\n");
 }

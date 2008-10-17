@@ -12,18 +12,17 @@
 #include <tpie/tempname.h>
 #include <string>
 
-// Defined below.
-std::string tpie_mktemp();
+using namespace tpie;
 
-//tmp file globals
-std::string default_path;
-std::string default_base_name; 
-std::string default_extension;
+std::string tempname::default_path;
+std::string tempname::default_base_name; 
+std::string tempname::default_extension;
+
 
 /* like tempnam, but consults environment in an order we like; note
  * that the returned pointer is to static storage, so this function is
  * not re-entrant. */
-std::string tpie::tpie_tempnam(const std::string& post_base, const std::string& dir, const std::string& ext) 
+std::string tempname::tpie_name(const std::string& post_base, const std::string& dir, const std::string& ext) 
 {	std::string extension;
 	std::string base_name;	
 	std::string base_dir;
@@ -56,7 +55,7 @@ std::string tpie::tpie_tempnam(const std::string& post_base, const std::string& 
 		return base_dir + TPIE_OS_DIR_DELIMITER + base_name + "_" + post_base + "_" + tpie_mktemp() + "." + extension;
 }
 
-std::string tpie_mktemp()
+std::string tempname::tpie_mktemp()
 {
 	const std::string chars[] = 
 	{ "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", 
@@ -82,27 +81,27 @@ std::string tpie_mktemp()
 }
 
 
-void tpie::set_default_path(const std::string&  path) {
+void tempname::set_default_path(const std::string&  path) {
 	default_path = path;
 }
 
-void tpie::set_default_base_name(const std::string& name) {
+void tempname::set_default_base_name(const std::string& name) {
 	default_base_name = name;
 }
 
-void tpie::set_default_extension(const std::string& ext) {
+void tempname::set_default_extension(const std::string& ext) {
 	default_extension = ext;
 }
 
 
-std::string& tpie::get_default_tmp_path() {
+std::string& tempname::get_default_tmp_path() {
 	return default_path;
 }
 
-std::string& tpie::get_default_base_name() {
+std::string& tempname::get_default_base_name() {
 	return default_base_name;
 }
 
-std::string& tpie::get_default_extension() {
+std::string& tempname::get_default_extension() {
 	return default_extension;
 }
