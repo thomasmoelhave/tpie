@@ -30,7 +30,7 @@ namespace tpie {
 	    using stream_ufs<T>::truncate;
 	
 	    // Construct a new stack with the given name and access type.
-	    stack_ufs(char *path, stream_type type = WRITE_STREAM); 
+	    stack_ufs(std::string& path, stream_type type = WRITE_STREAM); 
 
 	    // Destroy this object.
 	    ~stack_ufs(void);
@@ -45,8 +45,8 @@ namespace tpie {
     
     
 	template<class T>
-	stack_ufs<T>::stack_ufs(char *path, 
-				stream_type type) :
+		stack_ufs<T>::stack_ufs(std::string& path, 
+								stream_type type) :
 	    stream_ufs<T>(path, type, 1) {
 	    // No code in this constructor.
 	}
