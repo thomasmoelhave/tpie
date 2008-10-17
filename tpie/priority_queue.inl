@@ -103,14 +103,6 @@ priority_queue<T, Comparator, OPQType>::priority_queue(double f) { // constructo
 	group_state[i] = 0;
     }
 
-    // calculate maximum size of queue for debugging purposes
-    if(setting_k < 5) { // the maxsize variable easily overflows...
-	TPIE_OS_OFFSET maxsize = 0;
-	for(TPIE_OS_OFFSET i = 0; i< setting_k; i++) {
-	    maxsize = maxsize + setting_k*slot_max_size(setting_k*i);
-	}
-	TP_LOG_DEBUG("\tQueue max size(only external): " << maxsize << "\n");
-    }
     std::stringstream ss;
     ss << tpie_tempnam("pq_data");
     datafiles = ss.str();

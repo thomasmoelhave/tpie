@@ -24,7 +24,7 @@ namespace tpie {
 	    /** Max size in bytes. */
 	    TPIE_OS_SIZE_T capacity_;
 	    
-	    /** Associativity */.
+	    /** Associativity */
 	    TPIE_OS_SIZE_T assoc_;
 	    
 	    /** Behavior. */
