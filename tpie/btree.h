@@ -34,8 +34,8 @@
 #include <tpie/block.h>
 // The cache manager.
 #include <tpie/cache.h>
-// The tpie_stats_tree class for tree statistics.
-#include <tpie/tpie_stats_tree.h>
+// The stats_tree class for tree statistics.
+#include <tpie/stats_tree.h>
 // The tpie_tempnam() function
 #include <tpie/tempname.h>
 
@@ -568,7 +568,7 @@ namespace tpie {
      
 	       @see gstats()
 	    */
-	    const tpie_stats_tree &stats();
+	    const stats_tree &stats();
 
 	    /** 
 		Inquire the base path name.
@@ -656,7 +656,7 @@ namespace tpie {
 	    std::stack<std::pair<bid_t,TPIE_OS_SIZE_T> >dfs_stack_;
 
 	    // Statistics.
-	    tpie_stats_tree stats_;
+	    stats_tree stats_;
 
 	    // Use this to obtain keys from Value elements.
 	    KeyOfValue kov_;
@@ -2502,7 +2502,7 @@ bool btree<Key, Value, Compare, KeyOfValue, BTECOLL>::erase(const Key& k) {
 	}
 
 	template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-	const tpie_stats_tree& btree<Key, Value, Compare, KeyOfValue, BTECOLL>::stats() {
+	const stats_tree& btree<Key, Value, Compare, KeyOfValue, BTECOLL>::stats() {
 	    node_cache_->flush();
 	    leaf_cache_->flush();
 	    stats_.set(LEAF_READ, pcoll_leaves_->stats().get(BLOCK_GET));
