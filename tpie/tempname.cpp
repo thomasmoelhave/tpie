@@ -23,7 +23,7 @@ std::string default_extension;
 /* like tempnam, but consults environment in an order we like; note
  * that the returned pointer is to static storage, so this function is
  * not re-entrant. */
-std::string tpie_tempnam(const std::string& post_base, const std::string& dir, const std::string& ext) 
+std::string tpie::tpie_tempnam(const std::string& post_base, const std::string& dir, const std::string& ext) 
 {	std::string extension;
 	std::string base_name;	
 	std::string base_dir;
@@ -82,27 +82,27 @@ std::string tpie_mktemp()
 }
 
 
-void set_default_path(const std::string&  path) {
+void tpie::set_default_path(const std::string&  path) {
 	default_path = path;
 }
 
-void set_default_base_name(const std::string& name) {
+void tpie::set_default_base_name(const std::string& name) {
 	default_base_name = name;
 }
 
-void set_default_extension(const std::string& ext) {
+void tpie::set_default_extension(const std::string& ext) {
 	default_extension = ext;
 }
 
 
-std::string& get_default_tmp_path() {
+std::string& tpie::get_default_tmp_path() {
 	return default_path;
 }
 
-std::string& get_default_base_name() {
+std::string& tpie::get_default_base_name() {
 	return default_base_name;
 }
 
-std::string& get_default_extension() {
+std::string& tpie::get_default_extension() {
 	return default_extension;
 }

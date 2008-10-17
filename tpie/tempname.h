@@ -19,6 +19,8 @@
 // descriptions.
 #define AMI_SINGLE_DEVICE_ENV "AMI_SINGLE_DEVICE"
 
+namespace tpie {
+
 std::string tpie_tempnam(const std::string& post_base = "", const std::string& dir = "", const std::string& ext = ""); 
 
 void set_default_path(const std::string& path);
@@ -28,5 +30,7 @@ void set_default_extension(const std::string& ext);
 std::string& get_default_tmp_path();
 std::string& get_default_base_name();
 std::string& get_default_extension();
+
+}
 
 #endif // _TPIE_TEMPNAM_H 
