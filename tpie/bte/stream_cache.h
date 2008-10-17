@@ -55,7 +55,7 @@ namespace tpie {
 	public:
 	
 	    // Constructors
-	    stream_cache(const char *path, stream_type st, TPIE_OS_OFFSET max_len); 
+	    stream_cache(const std::string& path, stream_type st, TPIE_OS_OFFSET max_len); 
 	
 	    // A psuedo-constructor for substreams.
 	    err new_substream(stream_type st, 
@@ -94,9 +94,9 @@ namespace tpie {
 	};
     
 	template<class T>
-	stream_cache<T>::stream_cache(const char *path, 
-				      stream_type st,
-				      TPIE_OS_OFFSET max_len) {
+	stream_cache<T>::stream_cache(const std::string& path, 
+								  stream_type st,
+								  TPIE_OS_OFFSET max_len) {
 
 	    // A stream being created out of the blue must be writable, so we
 	    // return an error if it is not.
