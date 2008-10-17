@@ -26,7 +26,7 @@ template<class T>
 class stdio_stack : public BTE_stream_stdio<T> {
 public:
 
-  stdio_stack(char *path, BTE_stream_type type = BTE_WRITE_STREAM); 
+  stdio_stack(std::string& path, BTE_stream_type type = BTE_WRITE_STREAM); 
 
   ~stdio_stack(void);
 
@@ -38,7 +38,7 @@ public:
 
 
 template<class T>
-stdio_stack<T>::stdio_stack(char *path, 
+stdio_stack<T>::stdio_stack(std::string& path, 
 			    BTE_stream_type type) :
   BTE_stream_stdio<T>(path, type)
 {
