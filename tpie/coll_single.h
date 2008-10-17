@@ -21,8 +21,8 @@
 #include <tpie/coll_base.h>
 // The tpie_tempnam() function.
 #include <tpie/tempname.h>
-// Get the tpie_stats_coll class for collection statistics.
-//#include <tpie/tpie_stats_coll.h>
+// Get the stats_coll class for collection statistics.
+#include <tpie/stats_coll.h>
 
 namespace tpie {
 
@@ -168,21 +168,21 @@ namespace tpie {
 	    }
 	    
       //////////////////////////////////////////////////////////////////////////
-      /// Returns an object of type \ref tpie::tpie_stats_collection containing the 
+      /// Returns an object of type \ref tpie::stats_collection containing the 
 	    ////statistics of this collection. 
 	    /// \sa gstats().
 	    //////////////////////////////////////////////////////////////////////////
-	    const tpie_stats_collection& stats() const { 
+	    const stats_collection& stats() const { 
 		return btec_->stats(); 
 	    }
 	    
       //////////////////////////////////////////////////////////////////////////
-	    /// Returns an object of type \ref tpie_stats_collection containing the 
+	    /// Returns an object of type \ref stats_collection containing the 
 	    /// statistics of all collections opened by the application (global 
 	    /// statistics). 
 	    /// \sa stats().
 	    //////////////////////////////////////////////////////////////////////////
-	    static const tpie_stats_collection& gstats() { 
+	    static const stats_collection& gstats() { 
 		return BTECOLL::gstats(); 
 	    }
 	    
