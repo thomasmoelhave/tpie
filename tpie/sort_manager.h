@@ -730,10 +730,10 @@ namespace tpie {
 	    //complete a merge level. 
 	    while (nRuns > mrgArity){
 		if (m_indicator) {
-		    char description[255];
-		    TPIE_OS_SNPRINTF(description, sizeof(description), 
-				     "Merge pass %d of %d ",
-				     mrgHeight+1, treeHeight);
+			std::string description;
+			std::stringstream buf;
+			buf << "Merge pass " << mrgHeight+1 << " of " << treeHeight << " ";
+			buf >> description;
 		    m_indicator->set_percentage_range(0, nInputItems);
 		    m_indicator->init(description);
 		}
