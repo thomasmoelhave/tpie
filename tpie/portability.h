@@ -1040,7 +1040,7 @@ void * operator new(\
 {\
   void *p;\
   if ((MM_manager.register_new != mem::IGNORE_MEMORY_EXCEEDED)\
-      && (MM_manager.register_allocation (cb + SIZE_SPACE) !=	mem::ERROR_NO_ERROR)) {\
+      && (MM_manager.register_allocation (cb + SIZE_SPACE) !=	mem::NO_ERROR)) {\
     switch(MM_manager.register_new) {\
     case mem::ABORT_ON_MEMORY_EXCEEDED:\
        TP_LOG_FATAL_ID("In operator new() - allocation request ");\
