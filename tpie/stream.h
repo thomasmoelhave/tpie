@@ -87,7 +87,7 @@ namespace tpie {
 /// \anchor READ_WRITE_STREAM \par READ_WRITE_STREAM:
 /// Both input and output operations are permitted.
 ////////////////////////////////////////////////////////////////////////////////
-template<class T> 
+template<class T, class bte_t=BTE_STREAM<T> > 
 class stream : public stream_base {
     
 public:
@@ -114,7 +114,7 @@ public:
     // that in this case the BTE stream will not be destroyed when the
     // destructor for the constructed stream is called.
     ////////////////////////////////////////////////////////////////////////////
-    stream(BTE_STREAM<T> *bs);
+    stream(bte_t *bs);
 
 
     ////////////////////////////////////////////////////////////////////////////
@@ -139,7 +139,7 @@ public:
     err new_substream(stream_type     st, 
 		      TPIE_OS_OFFSET  sub_begin, 
 		      TPIE_OS_OFFSET  sub_end,
-		      stream<T>       **sub_stream);
+		      stream<T,bte_t>       **sub_stream);
   
     ////////////////////////////////////////////////////////////////////////////
     /// Destructor that frees the memory buffer and closes the file;
@@ -312,13 +312,13 @@ public:
 private:
 
     /** Restricted copy constructor */
-    stream(const  stream<T>& other);
+    stream(const  stream<T,bte_t>& other);
     /** Restricted assignment operator*/
-    stream<T>& operator=(const stream<T>& other);
+    stream<T,bte_t>& operator=(const stream<T,bte_t>& other);
 
     /** Pointer to a base stream, since the particular type of BTE
      * stream we are using may vary. */
-    BTE_STREAM<T> * m_bteStream;
+    bte_t * m_bteStream;
     
     /** True if stream is not writable*/
     bool m_readOnly;
@@ -333,8 +333,8 @@ private:
 // Create a temporary AMI stream on one of the devices in the default
 // device description. Persistence is PERSIST_DELETE by default. We
 // are given the index of the string describing the desired device.
-	template<class T>
-	stream<T>::stream(unsigned int device) : m_bteStream(NULL),
+	template<class T, class bte_t>
+	stream<T,bte_t>::stream(unsigned int device) : m_bteStream(NULL),
 						 m_readOnly(false),
 						 m_destructBTEStream(true),
 						 m_status(STREAM_STATUS_INVALID)
@@ -352,7 +352,7 @@ private:
 	    TP_LOG_DEBUG_ID(path);
     
 	    // Create the BTE stream.
-	    m_bteStream = new BTE_STREAM<T>(path, bte::WRITE_STREAM);
+	    m_bteStream = new bte_t(path, bte::WRITE_STREAM);
     
 	    // (Short circuit evaluation...)
 	    if (m_bteStream == NULL || 
@@ -380,8 +380,8 @@ private:
 
 // A stream created with this constructor will persist on disk at the
 // location specified by the path name.
-	template<class T>
-	stream<T>::stream(const std::string& path_name, stream_type st) :
+	template<class T, class bte_t>
+	stream<T,bte_t>::stream(const std::string& path_name, stream_type st) :
 	    m_bteStream(NULL),
 	    m_readOnly(false),
 	    m_destructBTEStream(true),
@@ -422,7 +422,7 @@ private:
 	    m_destructBTEStream = true;
     
 	    // Create the BTE stream.
-	    m_bteStream = new BTE_STREAM<T>(path_name, bst);
+	    m_bteStream = new bte_t(path_name, bst);
 	    // (Short circuit evaluation...)
 	    if (m_bteStream == NULL || m_bteStream->status() == bte::STREAM_STATUS_INVALID) {
 
@@ -447,8 +447,8 @@ private:
 	};
 
 
-	template<class T>
-	stream<T>::stream(BTE_STREAM<T> *bs) :
+	template<class T, class bte_t>
+	stream<T,bte_t>::stream(bte_t *bs) :
 	    m_bteStream(bs),
 	    m_readOnly(false),
 	    m_destructBTEStream(false),
@@ -467,11 +467,11 @@ private:
 	};
 
 
-	template<class T>
-	err stream<T>::new_substream(stream_type     st,
+	template<class T, class bte_t>
+	err stream<T,bte_t>::new_substream(stream_type     st,
 				     TPIE_OS_OFFSET  sub_begin,
 				     TPIE_OS_OFFSET  sub_end,
-				     stream<T>       **sub_stream)
+				     stream<T,bte_t>       **sub_stream)
 	{
 	    err retval = NO_ERROR;
 
@@ -501,14 +501,14 @@ private:
 		return BTE_ERROR;
 	    }
     
-	    stream<T> *ami_ss;
+	    stream<T,bte_t> *ami_ss;
     
 	    // This is a potentially dangerous downcast.  It is being done for
 	    // the sake of efficiency, so that calls to the BTE can be
 	    // inlined.  If multiple implementations of BTE streams are
 	    // present it could be very dangerous.
     
-	    ami_ss = new stream<T>(static_cast<BTE_STREAM<T>*>(bte_ss));
+	    ami_ss = new stream<T,bte_t>(static_cast<bte_t*>(bte_ss));
     
 	    ami_ss->m_destructBTEStream = true;
 
@@ -521,14 +521,14 @@ private:
 	}
 
 
-	template<class T>
-	std::string stream<T>::name() const {
+	template<class T, class bte_t>
+	std::string stream<T,bte_t>::name() const {
 	    return m_bteStream->name();
 	}
 
 // Move to a specific offset.
-	template<class T>
-	err stream<T>::seek(TPIE_OS_OFFSET offset) {
+	template<class T, class bte_t>
+	err stream<T,bte_t>::seek(TPIE_OS_OFFSET offset) {
 
 	    if (m_bteStream->seek(offset) != bte::NO_ERROR) {
 
@@ -541,8 +541,8 @@ private:
 	}
 
 // Truncate
-	template<class T>
-	err stream<T>::truncate(TPIE_OS_OFFSET offset) {
+	template<class T, class bte_t>
+	err stream<T,bte_t>::truncate(TPIE_OS_OFFSET offset) {
 
 	    if (m_bteStream->truncate(offset) != bte::NO_ERROR) {
 
@@ -555,8 +555,8 @@ private:
 	}
 
 // Query memory usage
-	template<class T>
-	err stream<T>::main_memory_usage(TPIE_OS_SIZE_T *usage,
+	template<class T, class bte_t>
+	err stream<T,bte_t>::main_memory_usage(TPIE_OS_SIZE_T *usage,
 					 mem::stream_usage usage_type) {
 
 	    if (m_bteStream->main_memory_usage(usage, usage_type) != bte::NO_ERROR) {
@@ -588,15 +588,15 @@ private:
 	    return NO_ERROR;
 	}
 
-	template<class T>
-	stream<T>::~stream() {
+	template<class T, class bte_t>
+	stream<T,bte_t>::~stream() {
 	    if (m_destructBTEStream) {
 		delete m_bteStream;
 	    }
 	}
 
-	template<class T>
-	err stream<T>::read_item(T **elt) {
+	template<class T, class bte_t>
+	err stream<T,bte_t>::read_item(T **elt) {
 
 	    err retval = NO_ERROR;
     
@@ -627,8 +627,8 @@ private:
 	    return retval;
 	}
 
-	template<class T>
-	err stream<T>::write_item(const T &elt) {
+	template<class T, class bte_t>
+	err stream<T,bte_t>::write_item(const T &elt) {
 
 	    if (m_bteStream->write_item(elt) != bte::NO_ERROR) {
 
@@ -642,8 +642,8 @@ private:
 	}
 
 
-	template<class T>
-	err stream<T>::read_array(T *mm_space, TPIE_OS_OFFSET *len) {
+	template<class T, class bte_t>
+	err stream<T,bte_t>::read_array(T *mm_space, TPIE_OS_OFFSET *len) {
 	    bte::err       be = bte::NO_ERROR;
 	    T *            read;
 	    TPIE_OS_OFFSET ii;
@@ -670,8 +670,8 @@ private:
 	    return NO_ERROR;
 	}
 
-	template<class T>
-	err stream<T>::write_array(const T *mm_space, TPIE_OS_OFFSET len) {
+	template<class T, class bte_t>
+	err stream<T,bte_t>::write_array(const T *mm_space, TPIE_OS_OFFSET len) {
 	    bte::err       be = bte::NO_ERROR;
 	    TPIE_OS_OFFSET ii;
     
@@ -689,8 +689,8 @@ private:
 	    return NO_ERROR;
 	}        
 
-	template<class T>
-	std::string& stream<T>::sprint() {
+	template<class T, class bte_t>
+	std::string& stream<T,bte_t>::sprint() {
 	    static std::string buf;
 		std::stringstream ss;
 		ss << "STREAM " << name() <<  " " << static_cast<long>(stream_len());

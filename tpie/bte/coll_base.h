@@ -112,7 +112,7 @@ namespace tpie {
 	    TPIE_OS_SIZE_T block_size;
 
 	    // Some data to be filled by the user of the collection.
-		std::string user_data;
+		char* user_data;
   
 	    // Default constructor.
 	    collection_header():

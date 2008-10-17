@@ -1,20 +1,26 @@
-//
+	//
 // File:    test_ami_btree.cpp
 // Author:  Octavian Procopiuc <tavi@cs.duke.edu>
 // 
-// Test file for class AMI_btree.
+// Test file for class btree.
 //
 
 #include "app_config.h"
-#include <portability.h>
+#include <tpie/portability.h>
+#include <tpie/tpie_log.h>
+#include <tpie/coll.h>
 
 
 
 
-#include <cpu_timer.h>
-#include <btree.h>
+#include <tpie/cpu_timer.h>
+#include <tpie/btree.h>
 
 #define SIZE_OF_STRUCTURE 128
+
+using namespace tpie;
+using namespace tpie::ami;
+using namespace std;
 
 // Key type.
 typedef TPIE_OS_OFFSET bkey_t;
@@ -33,18 +39,18 @@ struct key_from_el {
 // Temporary distinction btw UN*X and WIN, since there are some
 // problems with the MMAP collection implementation.
 #ifdef _WIN32
-typedef AMI_btree< bkey_t,el_t,less<bkey_t>,key_from_el,BTE_COLLECTION_UFS > u_btree_t;
+typedef btree< bkey_t,el_t,less<bkey_t>,key_from_el,BTE_COLLECTION_UFS > u_btree_t;
 #else
-typedef AMI_btree< bkey_t,el_t,less<bkey_t>,key_from_el > u_btree_t;
+typedef btree< bkey_t,el_t,less<bkey_t>,key_from_el > u_btree_t;
 #endif
 
-typedef AMI_STREAM< el_t > stream_t;
+typedef stream< el_t > stream_t;
 
 // Template instantiations (to get meaningful output from gprof)
-//template class AMI_btree_node<bkey_t,el_t,less<bkey_t>,key_from_el>;
-//template class AMI_btree_leaf<bkey_t,el_t,less<bkey_t>,key_from_el>;
-//template class AMI_btree< bkey_t,el_t,less<bkey_t>,key_from_el,BTE_COLLECTION_UFS >;
-//template class AMI_STREAM< el_t >;
+//template class btree_node<bkey_t,el_t,less<bkey_t>,key_from_el>;
+//template class btree_leaf<bkey_t,el_t,less<bkey_t>,key_from_el>;
+//template class btree< bkey_t,el_t,less<bkey_t>,key_from_el,BTE_COLLECTION_UFS >;
+//template class STREAM< el_t >;
 
 
 // This is 2**31-1, the max value returned by random().
@@ -69,7 +75,7 @@ int main(int argc, char **argv) {
   char *base_file = NULL;
 
   // Log debugging info from the application, but not from the library. 
-  tpie_log_init(TPIE_LOG_APP_DEBUG); 
+  tpie_log_init(LOG_APP_DEBUG); 
  
   MM_manager.set_memory_limit(64*1024*1024);
   MM_manager.enforce_memory_limit();
@@ -105,14 +111,14 @@ int main(int argc, char **argv) {
   //////  Testing Bulk loading. ///////
 
   u_btree_t *u_btree;
-  AMI_btree_params params;
+  btree_params params;
   params.node_block_factor = 1;
   params.leaf_block_factor = 1;
   params.leaf_cache_size = 32;
   params.node_cache_size = 64;
 
   u_btree = (base_file == NULL) ? new u_btree_t(params): 
-    new u_btree_t(base_file, AMI_WRITE_COLLECTION, params);
+    new u_btree_t(base_file, WRITE_COLLECTION, params);
   
   if (!u_btree->is_valid()) {
     std::cerr << argv[0] << ": Error initializing btree. Aborting.\n";
@@ -126,15 +132,15 @@ int main(int argc, char **argv) {
     std::cout << "\tSorting... " << std::flush;
     wt.start();
     stream_t *os = new stream_t;
-    if (u_btree->sort(is, os) != AMI_ERROR_NO_ERROR)
+    if (u_btree->sort(is, os) != NO_ERROR) {
       std::cerr << argv[0] << ": Error during sort.\n";
-    else {
+    } else {
       wt.stop();
       std::cout << "Done. " << wt << "\n";
       wt.reset();
       wt.start();
       std::cout << "\tLoading... " << std::flush;
-      if (u_btree->load_sorted(os) != AMI_ERROR_NO_ERROR)
+      if (u_btree->load_sorted(os) != NO_ERROR)
 	cerr << argv[0] << ": Error during bulk loading.\n";
       else
 	cout << "Done. " << wt << "\n";
@@ -161,7 +167,7 @@ int main(int argc, char **argv) {
   params.node_cache_size = 64;
 
   u_btree = (base_file == NULL) ? new u_btree_t(params): 
-    new u_btree_t(base_file, AMI_WRITE_COLLECTION, params);
+    new u_btree_t(base_file, WRITE_COLLECTION, params);
 
   if (!u_btree->is_valid()) {
     std::cerr << argv[0] << ": Error reinitializing btree. Aborting.\n";
@@ -240,18 +246,18 @@ int main(int argc, char **argv) {
   std::cout << "Tree size: " << u_btree->size() << " elements. Tree height: " 
        << static_cast<TPIE_OS_OUTPUT_SIZE_T>(u_btree->height()) << ".\n";
 
-  tpie_stats_tree bts = u_btree->stats();
+  stats_tree bts = u_btree->stats();
   delete u_btree;
   
   std::cout << "Block collection statistics (global):\n"
        << "\tGET BLOCK:    "
-       << AMI_COLLECTION::gstats().get(BLOCK_GET) << "\n"
+       << collection_single<bte::COLLECTION>::gstats().get(BLOCK_GET) << "\n"
        << "\tPUT BLOCK:    "
-       << AMI_COLLECTION::gstats().get(BLOCK_PUT) << "\n"
+       << collection_single<bte::COLLECTION>::gstats().get(BLOCK_PUT) << "\n"
        << "\tNEW BLOCK     "
-       << AMI_COLLECTION::gstats().get(BLOCK_NEW) << "\n"
+       << collection_single<bte::COLLECTION>::gstats().get(BLOCK_NEW) << "\n"
        << "\tDELETE BLOCK: "
-       << AMI_COLLECTION::gstats().get(BLOCK_DELETE) << "\n"
+       << collection_single<bte::COLLECTION>::gstats().get(BLOCK_DELETE) << "\n"
     ;
   std::cout << "Tree statistics:\n"
        << "\tREAD (LEAF+NODE):    " 
