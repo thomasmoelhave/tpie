@@ -15,7 +15,7 @@ const double PI = acos(-1.0);
 
 void pq_large_instance(bool crash_test){
   MM_manager.set_memory_limit(256*1024*1024);
-  tpie_log_init(TPIE_LOG_DEBUG);
+  tpie_log_init(LOG_DEBUG);
   int cnt=0;
   double mem_frac = crash_test ? 1.0 : 0.1;
   ami::priority_queue<long long, std::greater<long long> > pq(mem_frac);

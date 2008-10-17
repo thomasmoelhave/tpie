@@ -124,7 +124,7 @@ int main(int argc, char **argv)  {
     bool random_input;
 
     // Log debugging info from the application, but not from the library. 
-    tpie_log_init(TPIE_LOG_APP_DEBUG); 
+    tpie_log_init(LOG_APP_DEBUG); 
 
     test_size = 0;
     istr_name[0] = ostr_name[0] = '\0';

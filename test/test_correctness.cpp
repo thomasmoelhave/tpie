@@ -32,9 +32,21 @@
 #endif
 #include <tpie/tpie_log.h>
 
-
 // TPIE core classes and functions.
 #include <tpie/ami.h>
+
+namespace tpie {
+// Define a << operator for pairs of ints.
+std::ostream& operator<<(std::ostream& os, const std::pair<int,int>& item) {
+    return os << item.first << " " << item.second << "\n";
+}
+
+// Define a << operator for pairs of ints.
+std::istream& operator>>(std::istream& is, std::pair<int,int>& item) {
+    return is >> item.first >> item.second;
+}
+
+}
 #include <tpie/scan_utils.h>
 
 // The getopts() function for reading command-line arguments.
@@ -101,7 +113,7 @@ int main(int argc, char **argv) {
     int fail = 0;
 
     // Log debugging info from the application, but not from the library. 
-    tpie_log_init(TPIE_LOG_APP_DEBUG); 
+    tpie_log_init(LOG_APP_DEBUG); 
  
     MM_manager.set_memory_limit(40*1024*1024);
     MM_manager.enforce_memory_limit();
@@ -532,16 +544,6 @@ int test_sort() {
 ////////////////////////////////////////////////////////
 //////////////    test_scan_cxx()     //////////////////
 ////////////////////////////////////////////////////////
-
-// Define a << operator for pairs of ints.
-std::ostream& operator<<(std::ostream& os, const std::pair<int,int>& item) {
-    return os << item.first << " " << item.second << "\n";
-}
-
-// Define a << operator for pairs of ints.
-std::istream& operator>>(std::istream& is, std::pair<int,int>& item) {
-    return is >> item.first >> item.second;
-}
 
 int test_scan_cxx() {
     static bool been_here = false;

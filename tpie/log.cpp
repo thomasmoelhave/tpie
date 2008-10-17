@@ -15,6 +15,8 @@
 
 #define TPLOGPFX "tpielog"
 
+using namespace tpie;
+
 // Local initialization function. Create a permanent repository for the log
 // file name. Should be called only once, by theLogName() below.
 static std::string& __tpie_log_name() 
@@ -25,17 +27,17 @@ static std::string& __tpie_log_name()
 	return tln;
 }
 
-std::string& tpie_log_name() {
+std::string& tpie::tpie_log_name() {
   static std::string& tln = __tpie_log_name();
   return tln;
 }
 
 
-logstream &tpie_log() {
-  static logstream log(tpie_log_name(), TPIE_LOG_DEBUG, TPIE_LOG_DEBUG);
+logstream& tpie::tpie_log() {
+  static logstream log(tpie_log_name(), LOG_DEBUG, LOG_DEBUG);
   return log;
 }
 
-void tpie_log_init(TPIE_LOG_LEVEL level) {
+void tpie::tpie_log_init(log_level level) {
   TP_LOG_SET_THRESHOLD(level);
 }

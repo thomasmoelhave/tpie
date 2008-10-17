@@ -14,6 +14,8 @@
 #include "getopts.h"
 #include <tpie/stream.h>
 
+using namespace tpie;
+
 static TPIE_OS_OFFSET parse_number(char *s) {
   TPIE_OS_OFFSET n; 
   TPIE_OS_OFFSET mult = 1;
@@ -96,7 +98,7 @@ void parse_args(int argc, char **argv, struct options *application_opts,
       break;
     case 2:
       verbose = true; 
-     TP_LOG_APP_DEBUG_ID("Setting verbose flag.");
+      TP_LOG_APP_DEBUG_ID("Setting verbose flag.");
       break;
     case 3: 
       test_size = parse_number(opt_arg); 

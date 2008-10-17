@@ -15,20 +15,24 @@
 #include <iostream>
 #include <tpie/tpie_log.h>
 
+namespace tpie {
+    
 #if DEBUG_ASSERTIONS
-
-#define tp_assert(condition,message) { \
-  if (!(condition)) { \
-   TP_LOG_FATAL_ID("Assertion failed:"); \
-   TP_LOG_FATAL_ID(message); \
-    std::cerr << "Assertion failed: " << message << "\n"; \
-    assert(condition); \
-  } \
-}
-
+    
+#define tp_assert(condition,message) {		\
+	if (!(condition)) {			\
+	    TP_LOG_FATAL_ID("Assertion failed:");	\
+	    TP_LOG_FATAL_ID(message);			  \
+	    std::cerr << "Assertion failed: " << message << "\n";	\
+	    assert(condition);						\
+	}								\
+    }
+    
 #else
 #define tp_assert(condition,message)
 #endif
+
+}  // tpie namespace
 
 #endif // _TPIE_ASSERT_H
 

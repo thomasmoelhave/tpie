@@ -9,6 +9,8 @@
 
 #include <tpie/logstream.h>
 
+using namespace tpie;
+
 // Constructor.
 logstream::logstream(const std::string& fname, 
 		     unsigned int p,
@@ -31,7 +33,7 @@ logstream::~logstream() {
 // A macro to define a log stream output operator for a given type.
 // The type can be any type that has an ofstream output operator.
 #define _DEFINE_LOGSTREAM_OUTPUT_OPERATOR(T)		\
-logstream& logstream::operator<<(const T x)		\
+    tpie::logstream& tpie::logstream::operator<<(const T x)	\
 {						       	\
     if (priority <= threshold) {		       	\
 	std::ofstream::operator<<(x);			\
@@ -63,24 +65,24 @@ TPIE_OS_DEFINE_LOGSTREAM_LONGLONG
 
 // Setting priority and threshold on the fly with manipulators.
 
-logstream& manip_priority(logstream& tpl, unsigned long p)
+logstream& tpie::manip_priority(logstream& tpl, unsigned long p)
 {
     tpl.priority = p;
     return tpl;
 }
 
-logmanip<unsigned long> setpriority(unsigned long p)
+logmanip<unsigned long> tpie::setpriority(unsigned long p)
 {
    return logmanip<unsigned long>(&manip_priority, p);
 } 
 
-logstream& manip_threshold(logstream& tpl, unsigned long p)
+logstream& tpie::manip_threshold(logstream& tpl, unsigned long p)
 {
     tpl.threshold = p;
     return tpl;
 }
 
-logmanip<unsigned long> setthreshold(unsigned long p)
+logmanip<unsigned long> tpie::setthreshold(unsigned long p)
 {
    return logmanip<unsigned long>(&manip_threshold, p);
 } 
