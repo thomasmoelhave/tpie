@@ -92,7 +92,7 @@ priority_queue<T, Comparator, OPQType>::priority_queue(double f) { // constructo
 	TP_LOG_DEBUG("\tQueue max size(only external): " << maxsize << "\n");
     }
     std::stringstream ss;
-    ss << tpie_tempnam("AMI_PQ_DATA");
+    ss << tpie_tempnam("pq_data");
     datafiles = ss.str();
     TP_LOG_DEBUG("memory after alloc: " << MM_manager.memory_available() << "b" << "\n");
 }
@@ -378,7 +378,7 @@ void priority_queue<T, Comparator, OPQType>::fill_buffer() {
     delete[] mergebuffer;
 
     pq_merge_heap<T, Comparator> heap(current_r);
-    stream<T>* data[current_r];
+    stream<T>** data = new stream<T>*[current_r];
     for(TPIE_OS_OFFSET i = 0; i<current_r; i++) {
 	if(i == 0 && group_size(i)>0) {
 	    heap.push(gbuffer0[group_start(0)], 0);
@@ -425,8 +425,10 @@ void priority_queue<T, Comparator, OPQType>::fill_buffer() {
     if(mergebuffer == NULL) throw std::bad_alloc();
 
     for(TPIE_OS_OFFSET i = 1; i<current_r; i++) {
-	delete data[i];
-    }
+		delete data[i];
+	}
+
+	delete[] data;
     //cout << "end fill buffer" << "\n";
 }
 
@@ -452,7 +454,7 @@ void priority_queue<T, Comparator, OPQType>::fill_group_buffer(TPIE_OS_OFFSET gr
 	delete[] mergebuffer;
 
 	pq_merge_heap<T, Comparator> heap(setting_k);
-	stream<T>* data[setting_k];
+	stream<T>** data = new stream<T>*[setting_k];
 	for(TPIE_OS_OFFSET i = 0; i<setting_k; i++) {
 	    if(slot_size(group*setting_k+i)>0) {
 		data[i] = new stream<T>(slot_data(group*setting_k+i));
@@ -496,7 +498,8 @@ void priority_queue<T, Comparator, OPQType>::fill_group_buffer(TPIE_OS_OFFSET gr
 	    delete data[i];
 	}
 	//  delete out;
-    }
+	delete[] data;
+	}
 
     mergebuffer = new T[setting_m*2];
     if(mergebuffer == NULL) throw std::bad_alloc();
@@ -596,7 +599,7 @@ void priority_queue<T, Comparator, OPQType>::empty_group(TPIE_OS_OFFSET group) {
     stream<T>* newstream = new stream<T>(slot_data(newslot));
     pq_merge_heap<T, Comparator> heap(setting_k);
 
-    stream<T>* data[setting_k];
+    stream<T>** data = new stream<T>*[setting_k];
     for(TPIE_OS_OFFSET i = 0; i<setting_k; i++) {
 	data[i] = new stream<T>(slot_data(group*setting_k+i));
 	if(slot_size(group*setting_k+i) == 0) {
@@ -631,7 +634,9 @@ void priority_queue<T, Comparator, OPQType>::empty_group(TPIE_OS_OFFSET group) {
 	} else if(ret == true && slot_size(group*setting_k+i) >0 ) {
 	    delete data[i];
 	}
-    }
+	}
+
+	delete[] data;
     //cout << "end delete" << "\n";
 
     delete newstream;
