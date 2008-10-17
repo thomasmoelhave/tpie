@@ -106,7 +106,7 @@ public:
     
     err operate(const rectangle<coord_t, bid_t>& in, SCAN_FLAG* sfin,
                     pair<rectangle<coord_t, bid_t>, TPIE_OS_LONGLONG>* out, SCAN_FLAG* sfout) {
-        if (*sfout = *sfin) {
+        if ((*sfout = *sfin)) {
 
 	    //  Translate the rectangle by the given offset and
 	    //  compute the midpoint in scaled integer coordinates.
@@ -243,7 +243,7 @@ inline void BulkLoader<coord_t, BTECOLL>::show_stats() {
 
 
 template<class coord_t, class BTECOLL>
-BulkLoader<coord_t, BTECOLL>::BulkLoader(const char* inputStream, children_count_t fanOut) : inputStream_(NULL), fanOut_(0), cachedNodes_(), xOffset_((coord_t) 0), yOffset_((coord_t) 0), factor_(0), size_(0), statistics_(false), tree_(NULL) {
+BulkLoader<coord_t, BTECOLL>::BulkLoader(const char* inputStream, children_count_t fanOut) : inputStream_(NULL), fanOut_(0),  xOffset_((coord_t) 0), yOffset_((coord_t) 0), factor_(0), size_(0), tree_(NULL), statistics_(false), cachedNodes_() {
     setInputStream(inputStream);   
     setFanOut(fanOut);
 }
@@ -828,11 +828,9 @@ err BulkLoader<coord_t, BTECOLL>::createHilbertRTree(RStarTree<coord_t, BTECOLL>
     TPIE_OS_OFFSET              streamLength = 0;
     TPIE_OS_OFFSET              streamCounter = 0;
     unsigned short              level = 0;
-    unsigned short              counter = 0;
-    children_count_t              childCounter = 0;
+    children_count_t            childCounter = 0;
     unsigned short              nodesCreated = 0;
     pair<rectangle<coord_t, bid_t>, TPIE_OS_LONGLONG>* currentObject = NULL;
-//    bid_t                       parentID;
     rectangle<coord_t, bid_t>                   bb;
     RStarNode<coord_t, BTECOLL>*                  currentNode = tree_->readNode(nextFreeBlock);
 
@@ -1076,7 +1074,6 @@ err BulkLoader<coord_t, BTECOLL>::createRStarTree(RStarTree<coord_t, BTECOLL>** 
     children_count_t          childCounter = 0;
     unsigned short          nodesCreated = 0;
     pair<rectangle<coord_t, bid_t>, TPIE_OS_LONGLONG>* currentObject = NULL;
-    bid_t                    parentID = 0;
     rectangle<coord_t, bid_t>               bb;
     RStarNode<coord_t, BTECOLL>*              currentNode = tree_->readNode(nextFreeBlock);
 

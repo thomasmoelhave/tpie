@@ -312,7 +312,7 @@ RStarNode<coord_t, BTECOLL>::RStarNode(collection_single<BTECOLL>* pcoll,
 					      bid_t parent, 
 					      bid_t ID, 
 					      children_count_t maxChildren): 
-  tree_(tree), block<rectangle<coord_t, bid_t>, _RStarNode_info, BTECOLL>(pcoll, 0, ID) {
+    block<rectangle<coord_t, bid_t>, _RStarNode_info, BTECOLL>(pcoll, 0, ID), tree_(tree) {
     
   //  Initialize the four info fields.
   if (ID == 0) {

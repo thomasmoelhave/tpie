@@ -95,7 +95,7 @@ namespace tpie {
 	
 	    // Query memory usage
 	    err main_memory_usage (TPIE_OS_SIZE_T * usage, 
-				   MM_stream_usage usage_type);
+				   mem::stream_usage usage_type);
 	
 	    TPIE_OS_OFFSET chunk_size () const;
 	
@@ -552,11 +552,11 @@ namespace tpie {
     
 	template <class T>
 	err stream_stdio<T>::main_memory_usage (TPIE_OS_SIZE_T * usage,
-						MM_stream_usage
+						mem::stream_usage
 						usage_type) {
 
 	    switch (usage_type) {
-	    case MM_STREAM_USAGE_OVERHEAD:
+	    case mem::STREAM_USAGE_OVERHEAD:
 		//Fixed overhead per object. *this includes base class.
 		//Need to include 2*overhead per "new" that sizeof doesn't 
 		//know about.
@@ -564,15 +564,15 @@ namespace tpie {
 
 		break;
 	    
-	    case MM_STREAM_USAGE_BUFFER:
+	    case mem::STREAM_USAGE_BUFFER:
 		//Amount used by stdio buffers. No "new" calls => no overhead
 		*usage = 2 * m_osBlockSize;
 	    
 		break;
 	    
-	    case MM_STREAM_USAGE_CURRENT:
-	    case MM_STREAM_USAGE_MAXIMUM:
-	    case MM_STREAM_USAGE_SUBSTREAM:
+	    case mem::STREAM_USAGE_CURRENT:
+	    case mem::STREAM_USAGE_MAXIMUM:
+	    case mem::STREAM_USAGE_SUBSTREAM:
 		*usage = sizeof(*this) + 2*m_osBlockSize +
 		    2*MM_manager.space_overhead();
 	    

@@ -47,7 +47,7 @@ void printTree(RStarTree<double>* r) {
 	cout << *n << endl;
 	n->showChildren();
 	if (!n->isLeaf()) {
-	    for(int i=0; i<n->numberOfChildren(); ++i) {
+	    for(unsigned short i=0; i<n->numberOfChildren(); ++i) {
 		l.push_back(n->getChild(i).getID());
 	    }
 	}
