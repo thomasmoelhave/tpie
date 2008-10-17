@@ -48,9 +48,6 @@ namespace tpie {
 
 }  //  tpie namespace
     
-// Number of bytes in the header's user_data_ field.
-#define COLLECTION_USER_DATA_LEN 512
-
 // The magic number of the files storing blocks.
 // (in network byteorder, it spells "TPBC": TPie Block Collection)
 #define COLLECTION_HEADER_MAGIC_NUMBER 0x54504243
