@@ -20,31 +20,31 @@ namespace tpie {
 
     namespace ami {
 	
-	class device {
+	///*class device {
 
-	private:
-	    void dispose_contents();
+	//private:
+	//    void dispose_contents();
 
-	protected:
-	    unsigned int argc;
-	    char         **argv;
+	//protected:
+	//    unsigned int argc;
+	//    char         **argv;
 
-	public:
-	    device();
-	    device(unsigned int count, char **strings);
-	    device(const device& other);
+	//public:
+	//    device();
+	//    device(unsigned int count, char **strings);
+	//    device(const device& other);
 
-	    ~device();
+	//    ~device();
 
-	    device& operator=(const device& other);
-	    
-	    err set_to_path(const char *path);
-	    err read_environment(const char *name);
-	    
-	    const char * operator[](unsigned int index);
+	//    device& operator=(const device& other);
+	//    
+	//    err set_to_path(const char *path);
+	//    err read_environment(const char *name);
+	//    
+	//    const char * operator[](unsigned int index);
 
-	    unsigned int arity(void);
-	};
+	//    unsigned int arity(void);
+	//};*/
 
     }  //  ami namespace
 

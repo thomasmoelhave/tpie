@@ -29,7 +29,7 @@ namespace tpie {
 		static void set_default_base_name(const std::string& name);
 		static void set_default_extension(const std::string& ext);
 
-		static std::string& get_default_tmp_path();
+		static std::string& get_default_path();
 		static std::string& get_default_base_name();
 		static std::string& get_default_extension();
 	

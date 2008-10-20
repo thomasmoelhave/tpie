@@ -94,7 +94,7 @@ void tempname::set_default_extension(const std::string& ext) {
 }
 
 
-std::string& tempname::get_default_tmp_path() {
+std::string& tempname::get_default_path() {
 	return default_path;
 }
 

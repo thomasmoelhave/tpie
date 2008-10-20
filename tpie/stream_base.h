@@ -12,18 +12,18 @@ namespace tpie {
 
 // An initializer class to set the default device for the
 // AMI_stream_single_base class.
-	class stream_base_device_initializer {
+	//class stream_base_device_initializer {
 
-	private:
-	    static unsigned int count;
+	//private:
+	//    static unsigned int count;
 
-	public:
-	    stream_base_device_initializer();
-	    
-	    ~stream_base_device_initializer() {
-		// Do nothing.
-	    }
-	};
+	//public:
+	//    stream_base_device_initializer();
+	//    
+	//    ~stream_base_device_initializer() {
+	//	// Do nothing.
+	//    }
+	//};
 
     }  //  ami namespace
 
@@ -38,27 +38,27 @@ namespace tpie {
 // default device description for AMI single streams regardless of the
 // particular type of object in the stream.
 	
-	class stream_base {
+	//class stream_base {
 
-	    friend stream_base_device_initializer::stream_base_device_initializer();
-	    
-	public:
-	    // The default device description for AMI streams.
-	    static device default_device;
-	    
-	    // The index into the device list for the next stream.    
-	    static unsigned int device_index;    
-	    
-	    static const stats_stream& gstats() { 
-		return bte::stream_base_generic::gstats(); 
-	    }
-	};
-	
+	//    friend stream_base_device_initializer::stream_base_device_initializer();
+	//    
+	//public:
+	//    // The default device description for AMI streams.
+	//    static device default_device;
+	//    
+	//    // The index into the device list for the next stream.    
+	//    static unsigned int device_index;    
+	//    
+	//    static const stats_stream& gstats() { 
+	//	return bte::stream_base_generic::gstats(); 
+	//    }
+	//};
+	//
 	
 // This is a trick to make sure that at least one initializer is declared.
 // The constructor for this initializer will make sure that the default
 // device is set up properly.
-	extern stream_base_device_initializer one_sbd_initializer_per_source_file;
+	//extern stream_base_device_initializer one_sbd_initializer_per_source_file;
 
     }  //  ami namespace
 

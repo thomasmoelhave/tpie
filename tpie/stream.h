@@ -88,7 +88,7 @@ namespace tpie {
 /// Both input and output operations are permitted.
 ////////////////////////////////////////////////////////////////////////////////
 template<class T, class bte_t=BTE_STREAM<T> > 
-class stream : public stream_base {
+class stream {
     
 public:
     
@@ -99,15 +99,15 @@ public:
     /// the given device as a file with a randomly generated name, 
     /// prefixed by "".  
     ////////////////////////////////////////////////////////////////////////////
-    stream(unsigned int device = UINT_MAX);
+    stream();
     
     ////////////////////////////////////////////////////////////////////////////
     /// A new stream is constructed and 
     /// named and placed according to the given parameter pathname.
-    /// Its type is given by bst which defaults to \ref READ_WRITE_STREAM.
+    /// Its type is given by st which defaults to \ref READ_WRITE_STREAM.
     ////////////////////////////////////////////////////////////////////////////
     stream(const std::string& path_name, 
-	   stream_type        st = READ_WRITE_STREAM);
+	   stream_type st = READ_WRITE_STREAM);
     
     ////////////////////////////////////////////////////////////////////////////
     // A new stream based on a specific existing BTE stream.  Note
@@ -334,17 +334,12 @@ private:
 // device description. Persistence is PERSIST_DELETE by default. We
 // are given the index of the string describing the desired device.
 	template<class T, class bte_t>
-	stream<T,bte_t>::stream(unsigned int device) : m_bteStream(NULL),
+	stream<T,bte_t>::stream() : m_bteStream(NULL),
 						 m_readOnly(false),
 						 m_destructBTEStream(true),
 						 m_status(STREAM_STATUS_INVALID)
 	{
 
-	    // [tavi] Hack to fix an error that appears in gcc 2.8.1
-	    if (device == UINT_MAX) {
-		device = (device_index = ((device_index + 1) % default_device.arity())); 
-	    }
-    
 	    // Get a unique name.
 		std::string path = tempname::tpie_name("");
 		
