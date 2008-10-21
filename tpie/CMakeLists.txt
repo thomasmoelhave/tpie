@@ -6,7 +6,6 @@ set (AMI_HEADERS
 		coll_base.h
 		coll.h
 		coll_single.h
-		device.h
 		err.h
 		gen_perm.h
 		gen_perm_object.h
@@ -38,7 +37,6 @@ set (AMI_HEADERS
 		sparse_matrix.h
 		stack.h
 		stream_arith.h
-		stream_base.h
 		stream_compatibility.h
 		stream.h
 		)
@@ -104,10 +102,8 @@ set (OTHER_HEADERS
 
 set (AMI_SOURCES
 	#	bit_permute.cpp
-		device.cpp
 		key.cpp
 #		matrix_blocks.cpp
-		stream_base.cpp
 	)
 
 set (BTE_SOURCES

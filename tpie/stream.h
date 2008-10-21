@@ -24,7 +24,6 @@
 #include <tpie/err.h>
 
 // Get the device description class
-#include <tpie/device.h>
 
 // Get an appropriate BTE.  Flags may have been set to determine
 // exactly what BTE implementaion will be used, but that should be of
@@ -59,7 +58,6 @@ namespace tpie {
 
 }  //  tpie namespace
 
-#include <tpie/stream_base.h>
 
 namespace tpie {
 
