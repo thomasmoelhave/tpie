@@ -268,6 +268,14 @@ public:
     }
 
     ////////////////////////////////////////////////////////////////////////////
+    /// Returns a \ref tpie_stats_stream object containing  statistics of 
+    /// the entire tpie system. 
+    ////////////////////////////////////////////////////////////////////////////
+	static const stats_stream& gstats() {
+	        return bte::stream_base_generic::gstats();
+	}
+
+    ////////////////////////////////////////////////////////////////////////////
     /// Returns the number of globally available streams.
     /// The number should resemble the the maximum
     /// number of streams allowed (which is OS-dependent) minus the number
