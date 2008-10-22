@@ -67,7 +67,6 @@ set (OTHER_HEADERS
 		cpu_timer.h
 		internal_sort.h
 		logstream.h
-		matrix.h
 		mergeheap.h
 		mm_base.h
 		mm.h

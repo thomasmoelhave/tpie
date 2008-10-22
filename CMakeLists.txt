@@ -22,7 +22,7 @@ check_include_files("sys/async.h" TPIE_HAVE_LIBAIO)
 #Default paths
 set(BIN_INSTALL_DIR bin)
 set(LIB_INSTALL_DIR lib)
-set(HEADERS_INSTALL_DIR include)
+set(HEADERS_INSTALL_DIR include/tpie)
 if (WIN32)
 	set(DOC_INSTALL_DIR doc)
 else(WIN32)
