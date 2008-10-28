@@ -106,17 +106,17 @@ extern int random_seed;
 
 #ifdef BTE_STREAM_IMP_UFS
  // Define logical blocksize factor (default is 32)
-#ifndef BTE_STREAM_UFS_BLOCK_FACTOR
+#ifndef STREAM_UFS_BLOCK_FACTOR
 #ifdef _WIN32
-#define BTE_STREAM_UFS_BLOCK_FACTOR 4
+#define STREAM_UFS_BLOCK_FACTOR 4
 #else
-#define BTE_STREAM_UFS_BLOCK_FACTOR 32
+#define STREAM_UFS_BLOCK_FACTOR 32
 #endif
 #endif
 
  // Enable/disable TPIE read ahead; default is disabled (set to 0)
-#define BTE_STREAM_UFS_READ_AHEAD 0
-// read ahead method, ignored unless BTE_STREAM_UFS_READ_AHEAD is set
+#define STREAM_UFS_READ_AHEAD 0
+// read ahead method, ignored unless STREAM_UFS_READ_AHEAD is set
 // to 1; if USE_LIBAIO is set to 1, use asynchronous IO read ahead;
 // otherwise no TPIE read ahead is done; default is disabled (set to 0)
 #define USE_LIBAIO 0

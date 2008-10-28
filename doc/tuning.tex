@@ -124,14 +124,14 @@ section):
 \begin{description}
   
 \item\lstinline|BTE_STREAM_MMAP_BLOCK_FACTOR:|
-\item\lstinline|BTE_STREAM_UFS_BLOCK_FACTOR:| The value of this
+\item\lstinline|STREAM_UFS_BLOCK_FACTOR:| The value of this
   variable determines the logical blocksize used by the BTE as a
   multiple of the physical block size (refer to
   Section~\ref{sec:ref-bte}). A value of 1 indicates that the logical
   blocksize is the same as the physical blocksize of the OS.
 
 \item\lstinline|BTE_STREAM_MMAP_READ_AHEAD:| 
-\item\lstinline|BTE_STREAM_UFS_READ_AHEAD:| Defining this variable
+\item\lstinline|STREAM_UFS_READ_AHEAD:| Defining this variable
   instructs the corresponding BTE (\lstinline|BTE_stream_mmap| or
   \lstinline|BTE_stream_ufs|) to optimize for sequential read speed by
   reading blocks into main memory before the data they contain is

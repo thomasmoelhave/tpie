@@ -19,8 +19,8 @@
 #  define BTE_STREAM_IMP_UFS
 #endif
 
-#ifndef BTE_STREAM_UFS_BLOCK_FACTOR
-#  define BTE_STREAM_UFS_BLOCK_FACTOR 32
+#ifndef STREAM_UFS_BLOCK_FACTOR
+#  define STREAM_UFS_BLOCK_FACTOR 32
 #endif
 #ifndef BTE_STREAM_MMAP_BLOCK_FACTOR
 #  define BTE_STREAM_MMAP_BLOCK_FACTOR 32
@@ -223,7 +223,7 @@ void print_cfg() {
     fprintf(stdout, "TPIE Configuration\n");
     fprintf(stdout, "    Stream BTE: ");
 #if defined(BTE_STREAM_IMP_UFS)
-    fprintf(stdout, "UFS (%d)", BTE_STREAM_UFS_BLOCK_FACTOR);
+    fprintf(stdout, "UFS (%d)", STREAM_UFS_BLOCK_FACTOR);
 #elif defined(BTE_STREAM_IMP_MMAP)
     fprintf(stdout, "MMAP (%d)", BTE_STREAM_MMAP_BLOCK_FACTOR);
 #elif defined(BTE_STREAM_IMP_STDIO)

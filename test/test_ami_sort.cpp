@@ -160,7 +160,7 @@ int main(int argc, char **argv)  {
 	std::cout << "BTE_STREAM_IMP_STDIO ";
 #endif
 #ifdef BTE_STREAM_IMP_UFS
-	std::cout << "BTE_STREAM_IMP_UFS " << BTE_STREAM_UFS_BLOCK_FACTOR;
+	std::cout << "BTE_STREAM_IMP_UFS " << STREAM_UFS_BLOCK_FACTOR;
 #endif
 #ifdef BTE_MMB_READ_AHEAD
 	std::cout << " BTE_MMB_READ_AHEAD ";	  

@@ -16,7 +16,7 @@
 
 // TODO: Get rid of or fix the LIBAIO stuff. As it is now it has no
 // chance of working, since it uses the static
-// BTE_STREAM_UFS_BLOCK_FACTOR, which is no longer the true
+// STREAM_UFS_BLOCK_FACTOR, which is no longer the true
 // factor. The true block factor is determined dynamically, from the
 // header.
 //
@@ -72,7 +72,10 @@
 #include <tpie/bte/stream_base.h>
 
 // Define a sensible logical block factor, if not already defined.
-#ifndef  STREAM_UFS_BLOCK_FACTOR
+#ifndef STREAM_UFS_BLOCK_FACTOR
+#  ifdef BTE_STREAM_UFS_BLOCK_FACTOR
+#    warning The deprecated BTE_STREAM_UFS_BLOCK_FACTOR is defined, please use STREAM_UFS_BLOCK_FACTOR instead
+#  endif
 #  define STREAM_UFS_BLOCK_FACTOR 8
 #endif
 
