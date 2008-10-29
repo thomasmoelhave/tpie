@@ -25,8 +25,8 @@ namespace tpie {
 
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \class MM_manager 
-/// The TPIE memory manager MM_manager, the only instance of class MM_manager, 
+/// \class manager 
+/// The TPIE memory manager \ref MM_manager, the only instance of class xmanager, 
 /// traps memory allocation and deallocation requests in order to monitor and 
 /// enforce memory usage limits.
 /// The actual memory allocation requests are done using the standard C++ 

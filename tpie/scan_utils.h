@@ -1,13 +1,11 @@
-// Copyright (c) 1994 Darren Erik Vengroff
-//
-// File: ami_scan_utils.h
-// Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
-// Created: 8/31/94
-//
-// $Id: ami_scan_utils.h,v 1.12 2005-11-18 12:29:52 jan Exp $
-//
 #ifndef _TPIE_AMI_SCAN_UTILS_H
 #define _TPIE_AMI_SCAN_UTILS_H
+
+///////////////////////////////////////////////////////////////////////////
+/// \file scan_utils.h 
+/// Declares scan_object subclasses for writing a C++ stream into a TPIE
+/// stream and for writing a TPIE stream to a C++ stream.
+///////////////////////////////////////////////////////////////////////////
 
 #include <iostream>
 
@@ -20,11 +18,12 @@ namespace tpie {
 
     namespace ami {
 
-// A scan object class template for reading the contents of an
-// ordinary C++ input stream into a TPIE stream.  It works with
-// streams of any type for which an >> operator is defined for C++
-// stream input.
-	
+  ///////////////////////////////////////////////////////////////////////////
+  /// A scan object class template for reading the contents of an
+  /// ordinary C++ input stream into a TPIE stream.  It works with
+  /// streams of any type for which an >> operator is defined for C++
+  /// stream input.
+  ///////////////////////////////////////////////////////////////////////////
 	template<class T> class cxx_istream_scan : scan_object {
 	    
 	private:
@@ -34,7 +33,12 @@ namespace tpie {
 	    std::istream *is;
 
 	public:
-	    cxx_istream_scan(std::istream *instr = &std::cin);
+	  ///////////////////////////////////////////////////////////////////////////
+	  /// Create a scan management ob ject for scanning the contents of C++ stream 
+	  /// *instr. The actual scanning is done using AMI_scan with no input streams
+	  /// and one output stream.
+	  ///////////////////////////////////////////////////////////////////////////
+	  cxx_istream_scan(std::istream *instr = &std::cin);
 	    err initialize(void);
 	    err operate(T *out, SCAN_FLAG *sfout);
 	};
@@ -70,12 +74,11 @@ namespace tpie {
     
     namespace ami {
 	
-	
-// A scan object to print the contents of a TPIE stream to a C++
-// output stream.  One item per line is written.  It works with
-// streams of any type for which an << operator is defined for C++
-// stream output.
-	
+  ///////////////////////////////////////////////////////////////////////////
+  /// A scan management class template for writing the contents of a TPIE
+  /// stream into an ordinary C++ output stream. It works with streams of
+  /// any type for which a << operator is defined for C++ stream output. 
+  ///////////////////////////////////////////////////////////////////////////
 	template<class T> class cxx_ostream_scan : scan_object {
 
 	private:
@@ -85,7 +88,13 @@ namespace tpie {
 	    std::ostream *os;
 
 	public:
-	    cxx_ostream_scan(std::ostream *outstr = &std::cout);
+
+    ///////////////////////////////////////////////////////////////////////////
+	  /// Create a scan management ob ject for scanning into C++ stream *outstr.
+	  /// The actual scanning is done using AMI_scan with one input stream and no 
+	  /// output streams.
+    ///////////////////////////////////////////////////////////////////////////
+	  cxx_ostream_scan(std::ostream *outstr = &std::cout);
 	    err initialize(void);
 	    err operate(const T &in, SCAN_FLAG *sfin);
 	};

@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-/// @private \file scan.h 
+/// \file scan.h 
 /// The function AMI_scan() reads zero, one or multiple input streams (up
 /// to four), each potentially of a different type, and writes zero, one
 /// or multiple output streams (up to four), each potentially of a
@@ -26,16 +26,16 @@ namespace tpie {
 	/// A scan management object class must inherit from
 	/// scan_object ass follows:
 	/// template<class T1, class T2,..., class U1, class U2,...> class ST:
-	/// public AMI_scan_object;
+	/// public scan_object;
 	/// In addition, it must provide two member functions for
-	/// AMI_scan() to call: scan_object#initialize() and
+	/// scan() to call: scan_object#initialize() and
 	/// operate().
 	///    \par operate() 
 	/// Most of the work of a scan is
 	/// typically done in the scan management object's operate() member function:
 	///
-	/// AMI_err operate(const T1 &in1, const T2 &in2,..., AMI_SCAN_FLAG
-	/// *sfin, U1 *out1, U2 *out2,..., AMI_SCAN_FLAG *sfout);
+	/// err operate(const T1 &in1, const T2 &in2,..., SCAN_FLAG
+	/// *sfin, U1 *out1, U2 *out2,..., SCAN_FLAG *sfout);
 	/// 
 	/// One or more input objects or one or more output parameters must be
 	/// specified. These must correspond in number and type to the streams
@@ -94,16 +94,6 @@ namespace tpie {
 
 // BEGIN MECHANICALLY GENERATED CODE.
 
-
-
-// Copyright (c) 1994 Darren Erik Vengroff
-//
-// File: ami_scan_mac.h
-// Author: Darren Erik Vengroff <dev@cs.duke.edu>
-// Created: 5/24/94
-//
-// $Id: ami_scan_mac.h,v 1.11 2005-11-16 16:52:33 jan Exp $
-//
 #ifndef _TPIE_AMI_SCAN_MAC_H
 #define _TPIE_AMI_SCAN_MAC_H
 
@@ -401,12 +391,14 @@ namespace tpie {
 
     namespace ami {
 	
-// A class template for copying streams by scanning.
+  ///////////////////////////////////////////////////////////////////////////
+  /// A class template for copying streams by scanning. 
+  ///////////////////////////////////////////////////////////////////////////
 	template<class T>
 	class identity_scan : public scan_object {
 
 	public:
-	    err initialize(void) { 
+	  err initialize(void) { 
 		return NO_ERROR; 
 	    }
 	    
@@ -441,7 +433,9 @@ namespace tpie {
 
     namespace ami {
 	
-// A copy function for streams
+  ///////////////////////////////////////////////////////////////////////////
+  /// A copy function for streams
+  ///////////////////////////////////////////////////////////////////////////
 	template<class T>
 	err copy_stream(stream<T> *t, stream<T> *s) {
 	    

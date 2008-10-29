@@ -467,7 +467,7 @@ private:
 	    m_status = STREAM_STATUS_VALID;
 	};
 
-
+	    // *stream::new_substream* //
 	template<class T, class bte_t>
 	err stream<T,bte_t>::new_substream(stream_type     st,
 				     TPIE_OS_OFFSET  sub_begin,

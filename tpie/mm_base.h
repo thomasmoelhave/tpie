@@ -1,11 +1,3 @@
-// Copyright (c) 1994 Darren Erik Vengroff
-//
-// File: mm_base.h
-// Author: Darren Erik Vengroff <dev@cs.duke.edu>
-// Created: 5/30/94
-//
-// $Id: mm_base.h,v 1.9 2005-11-08 17:21:02 adanner Exp $
-//
 #ifndef _TPIE_MEM_MM_BASE_H
 #define _TPIE_MEM_MM_BASE_H
 

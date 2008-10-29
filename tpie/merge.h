@@ -1,16 +1,11 @@
-//
-// File: ami_merge.h
-// Author: Darren Erik Vengroff <dev@cs.duke.edu>
-// Created: 5/31/94
-//
-// First cut at a merger.  Obviously missing is code to verify that
-// lower level streams will use appropriate levels of buffering.  This
-// will be more critical for parallel disk implementations.
-//
-// $Id: ami_merge.h,v 1.41 2005-12-19 03:11:18 adanner Exp $
-//
 #ifndef _TPIE_AMI_MERGE_H
 #define _TPIE_AMI_MERGE_H
+
+///////////////////////////////////////////////////////////////////////////
+/// \file merge.h 
+/// Declares merge management objects.
+///////////////////////////////////////////////////////////////////////////
+
 
 // Get definitions for working with Unix and Windows
 #include <tpie/portability.h>
@@ -44,40 +39,43 @@ namespace tpie {
 #define CONST const
 
 
-// CLASSES AND FUNCTIONS DEFINED IN THIS MODULE
-//------------------------------------------------------------
-
-//A superclass for merge management objects
 	template<class T> class merge_base;
 
 
-//merge <arity> streams using a merge management object and write
-//result into <outstream>; it is assumed that the available memory can
-//fit the <arity> streams, the output stream and also the space
-//required by the merge management object; merge() checks this and
-//then calls single_merge();
+  ///////////////////////////////////////////////////////////////////////////
+  /// Merges <arity> streams using a merge management object and writes
+  /// result into <outstream>; it is assumed that the available memory can
+  /// fit the <arity> streams, the output stream and also the space
+  /// required by the merge management object; merge() checks this and
+  /// then calls single_merge();
+  ///////////////////////////////////////////////////////////////////////////
 	template<class T, class M>
 	err merge(stream<T> **instreams, arity_t arity,
 		  stream<T> *outstream, M *m_obj);
 
 
-// divide the input stream in substreams, merge each substream
-// recursively, and merge them together using single_merge()
+  ///////////////////////////////////////////////////////////////////////////
+  /// Divides the input stream into substreams, merges each substream
+  /// recursively, and finally merges them together using single_merge()
+  ///////////////////////////////////////////////////////////////////////////
 	template<class T, class M>
 	err partition_and_merge(stream<T> *instream,
 				stream<T> *outstream, M *m_obj);
 
 
-//merge <arity> streams in memory using a merge management object and
-//write result into <outstream>; 
+  ///////////////////////////////////////////////////////////////////////////
+	/// Merges <arity> streams in memory using a merge management object and
+	/// write result into <outstream>; 
+  ///////////////////////////////////////////////////////////////////////////
 	template<class T, class M>
 	err  single_merge(stream<T> **instreams, arity_t arity,
 			  stream<T> *outstream, M *m_obj);
 
 
-//read <instream> in memory and merge it using
-//m_obj->main_mem_operate(); if <instream> does not fit in main memory
-//return INSUFFICIENT_MAIN_MEMORY;
+  ///////////////////////////////////////////////////////////////////////////
+	///Reads <instream> in memory and merges it using
+	///m_obj->main_mem_operate(); if <instream> does not fit in main memory
+	///returns INSUFFICIENT_MAIN_MEMORY;
 	template<class T, class M>
 	err main_mem_merge(stream<T> *instream,
 			   stream<T> *outstream, M *m_obj);
@@ -90,9 +88,9 @@ namespace tpie {
 
 
 
-//------------------------------------------------------------
-// A superclass for merge management objects
-//------------------------------------------------------------
+  ///////////////////////////////////////////////////////////////////////////
+  /// Superclass for merge management objects
+  ///////////////////////////////////////////////////////////////////////////
 	template<class T>
 	class merge_base {
 	public:
