@@ -786,44 +786,50 @@ int main(int argc, char **argv){
       new progress_indicator_arrow("Title", "Description", 0, 100, 1);
   
   ami::err ae=ami::NO_ERROR;
-  /*
   std::cout << "++++start 3X space tests++++" << std::endl;
-  ae=test_3x_sort(info, APP_TEST_OBJ_OP, true);
+#if 0
   if(ae==ami::NO_ERROR){
-    ae=test_3x_sort(info, APP_TEST_PTR_OP, true);
+    ae=test_3x_sort(info, APP_TEST_OBJ_OP, myIndicator);
   }
   if(ae==ami::NO_ERROR){
-    ae=test_3x_sort(info, APP_TEST_OBJ_CMPOBJ, true);
+    ae=test_3x_sort(info, APP_TEST_PTR_OP, myIndicator);
   }
   if(ae==ami::NO_ERROR){
-    ae=test_3x_sort(info, APP_TEST_PTR_CMPOBJ, true);
+    ae=test_3x_sort(info, APP_TEST_OBJ_CMPOBJ, myIndicator);
   }
   if(ae==ami::NO_ERROR){
-    ae=test_3x_sort(info, APP_TEST_KOBJ, true);
+    ae=test_3x_sort(info, APP_TEST_PTR_CMPOBJ, myIndicator);
   }
+  if(ae==ami::NO_ERROR){
+    ae=test_3x_sort(info, APP_TEST_KOBJ, myIndicator);
+  }
+#endif
   std::cout << "++++end 3X space tests++++" << std::endl;
-*/
   std::cout << "++++start 2X space tests++++" << std::endl;
-  ae=test_2x_sort(info, APP_TEST_OBJ_OP, myIndicator);
-/*
   if(ae==ami::NO_ERROR){
-    ae=test_2x_sort(info, APP_TEST_PTR_OP, true);
+    ae=test_2x_sort(info, APP_TEST_OBJ_OP, myIndicator);
+  }
+#if 0
+  if(ae==ami::NO_ERROR){
+    ae=test_2x_sort(info, APP_TEST_PTR_OP, myIndicator);
   }
   if(ae==ami::NO_ERROR){
-    ae=test_2x_sort(info, APP_TEST_OBJ_CMPOBJ, true);
+    ae=test_2x_sort(info, APP_TEST_OBJ_CMPOBJ, myIndicator);
   }
   if(ae==ami::NO_ERROR){
-    ae=test_2x_sort(info, APP_TEST_PTR_CMPOBJ, true);
+    ae=test_2x_sort(info, APP_TEST_PTR_CMPOBJ, myIndicator);
   }
   if(ae==ami::NO_ERROR){
     ae=test_2x_sort(info, APP_TEST_KOBJ, myIndicator);
   }
-*/
+#endif
   std::cout << "++++end 2X space tests++++" << std::endl;
-  
-  //cout << "Internal sort testing..." << std::endl;
-  //internal_sort_test(info);
-  
+
+#if 0
+  std::cout << "Internal sort testing..." << std::endl;
+  internal_sort_test(info);
+#endif
+
   if(ae==ami::NO_ERROR){ std::cout << "Test ran successfully " << std::endl; }
   else { std::cout << "Test at least ran without crashing" << std::endl; }
 
