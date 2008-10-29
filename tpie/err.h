@@ -1,45 +1,86 @@
-//
-// File: ami_err.h
-// Author: Octavian Procopiuc <tavi@cs.duke.edu>
-//         (from Darren's ami_base.h)
-// Created: 12/29/01
-// $Id: ami_err.h,v 1.4 2005-07-07 20:38:39 adanner Exp $
-//
-// AMI error codes, moved here from ami_base.h
-//
-
 #ifndef _TPIE_AMI_ERR_H
 #define _TPIE_AMI_ERR_H
+
+///////////////////////////////////////////////////////////////////////////
+/// \file tpie/err.h 
+/// Declares error types.
+///////////////////////////////////////////////////////////////////////////
 
 namespace tpie {
 
     namespace ami {
 	
-// AMI error codes.
-	enum err {
-	    NO_ERROR = 0,
-	    IO_ERROR,
-	    END_OF_STREAM,
-	    READ_ONLY,
-	    OS_ERROR,
+    ///////////////////////////////////////////////////////////////////////////
+    /// TPIE error codes.
+    /// TPIE entry points typically return error codes of the enumerated type
+    /// err.  Member functions of operation management objects 
+    /// also typically return this type.  Possible values for error codes 
+    /// include those listed below.  It is expected that in future releases 
+    /// of TPIE, many of these error codes will be replaced by exceptions.
+    ///////////////////////////////////////////////////////////////////////////
+    enum err {
+      /** No error occurred.  The call the the entry point returned normally. */
+      NO_ERROR = 0,
+	    /** A low level I/O error occurred. */
+      IO_ERROR,
+	    /** An attempt was made to read past the end of a stream or 
+	     * write past the end of a substream. */
+      END_OF_STREAM,
+	    /** An attempt was made to write to a read-only stream. */
+      READ_ONLY,
+	    /** An unexpected operating system error occurred.  Details should appear
+	     *  in the log file if logging is  enabled. \sa sec_logging */
+      OS_ERROR,
+	    /** An attempt was made to call a member function of the virtual base
+	     *  class of tpie::ami::stream.  This indicates a bug in the implementation of 
+	     * TPIE streams. */
 	    BASE_METHOD,
+	    /** An error occurred at the BTE level. */
 	    BTE_ERROR,
+	    /** An error occurred within the memory manager 
+	     * (of type \ref tpie::mem::manager). */
 	    MM_ERROR,
+	    /** An TPIE entry point was not able to properly initialize the operation
+	     *  management object that was passed to it.  This generally indicates 
+	     * a bug in the operation management object's initialization code. */
 	    OBJECT_INITIALIZATION,
-	    OBJECT_INVALID,
+      OBJECT_INVALID,
 	    PERMISSION_DENIED,
-	    INSUFFICIENT_MAIN_MEMORY,
+      /** The memory manger (of type \ref tpie::mem::manager) could not make 
+       * adequate main memory available to complete the 
+       * requested operation.  Many operations adapt themselves to use whatever 
+       * main memory is available, but in some cases, when memory is extremely
+       * tight, they may not be able to function. */
+      INSUFFICIENT_MAIN_MEMORY,
+      /** TPIE could not allocate enough intermediate streams to perform
+       * the requested operation.  Certain operating system restrictions
+       * limit the number of streams that can be created on certain
+       * platforms.  Only in unusual circumstances, such as when the
+       *  application itself has a very large number of open streams, will
+       * this error occur. */ 
 	    INSUFFICIENT_AVAILABLE_STREAMS,
+	    /** An environment variable necessary to initialize the TPIE
+	     * accessing environment was not defined. */
 	    ENV_UNDEFINED,
 	    NO_MAIN_MEMORY_OPERATION,
+	    /** A bit matrix larger than the number of bits in an offset into a
+       * stream was passed. */ 
 	    BIT_MATRIX_BOUNDS,
+	    /** The length of a stream on which a bit permutation was to be
+       * performed is not a power of two. */
 	    NOT_POWER_OF_2,
+	    /** An attempt was made to perform a
+       * matrix operation on matrices whose bounds did not match appropriately. */
 	    NULL_POINTER,
 
 	    GENERIC_ERROR = 0xfff,
 
-	    // Values returned by scan objects.
+	    /** Value returned by a scan_object: Indicates that the function should be 
+	     * called again with any "taken" inputs replaced by the next objects from 
+	     * their respective streams */
 	    SCAN_DONE = 0x1000,
+	    /**  Value returned by a scan_object: Indicates that the scan is complete 
+	     * and no more input needs to be processed. */
 	    SCAN_CONTINUE,
 
 	    // Values returned by merge objects.
