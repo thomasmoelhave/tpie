@@ -74,7 +74,7 @@
 // Define a sensible logical block factor, if not already defined.
 #ifndef STREAM_UFS_BLOCK_FACTOR
 #  ifdef BTE_STREAM_UFS_BLOCK_FACTOR
-#    warning The deprecated BTE_STREAM_UFS_BLOCK_FACTOR is defined, please use STREAM_UFS_BLOCK_FACTOR instead
+#    error The deprecated BTE_STREAM_UFS_BLOCK_FACTOR is defined, please use STREAM_UFS_BLOCK_FACTOR instead
 #  endif
 #  define STREAM_UFS_BLOCK_FACTOR 8
 #endif
