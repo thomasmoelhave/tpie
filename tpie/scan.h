@@ -1,19 +1,12 @@
-// Copyright (c) 1994 Darren Erik Vengroff
-//
-// File: ami_scan.h
-// Author: Darren Erik Vengroff <dev@cs.duke.edu>
-// Header Created: 5/25/94
-//
-// This file was created mechanically by make, as specified in Makefile.
-// There is no reason it should ever be edited by hand.
-//
-// The following Id string applies to the header used in the processs of
-// generating this file.  The header, stored in ami_scan.h.head, may be
-// edited if necessary.
-//
-// $Id: ami_scan.h.head,v 1.5 2003-04-20 23:12:42 tavi Exp $
-//
-//
+///////////////////////////////////////////////////////////////////////////
+/// @private \file scan.h 
+/// The function AMI_scan() reads zero, one or multiple input streams (up
+/// to four), each potentially of a different type, and writes zero, one
+/// or multiple output streams (up to four), each potentially of a
+/// different type. 
+/// \sa tpie::ami::scan_object
+///////////////////////////////////////////////////////////////////////////
+
 #ifndef _TPIE_AMI_SCAN_H
 #define _TPIE_AMI_SCAN_H
 
@@ -26,12 +19,73 @@ namespace tpie {
 	
 	typedef int SCAN_FLAG;
 
-// The base class for scan objects.
+	///////////////////////////////////////////////////////////////////////////
+	/// The base class for scan objects. 
+	/// \anchor scan_management_objects
+	/// \par Scan Management Objects
+	/// A scan management object class must inherit from
+	/// scan_object ass follows:
+	/// template<class T1, class T2,..., class U1, class U2,...> class ST:
+	/// public AMI_scan_object;
+	/// In addition, it must provide two member functions for
+	/// AMI_scan() to call: scan_object#initialize() and
+	/// operate().
+	///    \par operate() 
+	/// Most of the work of a scan is
+	/// typically done in the scan management object's operate() member function:
+	///
+	/// AMI_err operate(const T1 &in1, const T2 &in2,..., AMI_SCAN_FLAG
+	/// *sfin, U1 *out1, U2 *out2,..., AMI_SCAN_FLAG *sfout);
+	/// 
+	/// One or more input objects or one or more output parameters must be
+	/// specified. These must correspond in number and type to the streams
+	/// passed to the polymorph of AMI_scan() with which this scan
+	/// management object is to be used.
+	/// 
+	/// If present, the inputs *in1, ... are application data
+	/// items of type T1, and sfin points to an array
+	/// of flags, one for each input. On entry to operate(),
+	/// flags that are set (non-zero) indicate that the corresponding inputs
+	/// contain data. If on exit from operate(), the input flags
+	/// are left untouched, AMI_scan() assumes that the
+	/// corresponding inputs were processed. If one or more input flags are
+	/// cleared (set to zero) then AMI_scan() assumes that the
+	/// corresponding inputs were not processed and should be presented again
+	/// on the next call to operate(). This permits out of step
+	/// scanning \anchor scanning_out_of_step, as illustrated in Section  
+	/// "Out of step scanning" in the manual.
+	/// 
+	/// If present, the outputs *out1, ... are application data
+	/// items of type U1, and sfout points to an array
+	/// of flags, one for each output. On exit from operate(), the
+	/// outputs should contain any objects to be written to the output
+	/// streams, and the output flags must be set to indicate to
+	/// AMI_scan() which outputs are valid and should be written
+	/// to the output streams.
+	/// 
+	/// The return value of operate() will normally be either \ref SCAN_CONTINUE, or
+	/// \ref SCAN_DONE. Note that operate() is permitted to return
+	/// SCAN_CONTINUE even when the input flags indicate
+	/// that there is no more input to be processed. This is useful if
+	/// the scan management object maintains some internal state that must
+	/// be written out after all input has been processed.
+	/// \sa scan.h, scan_management_objects
+  ///////////////////////////////////////////////////////////////////////////
 	class scan_object {
 
 	public:
-	    virtual err initialize(void) = 0;
-	    virtual ~scan_object() {};
+	  ///////////////////////////////////////////////////////////////////////////
+	  /// Semantics for subclass implementations: Initializes a scan management object to prepare 
+	  /// it for a scan.
+	  /// This member function is called once by
+	  /// each call to AMI_scan() in order to initialize
+	  /// the scan management object before any data processing
+	  /// takes place. This function should return
+	  /// AMI_ERROR_NO_ERROR if successful, or an appropriate error otherwise. See
+	  /// Section \ref sec:ami-errors for a list of error codes.
+	  ///////////////////////////////////////////////////////////////////////////
+	  virtual err initialize(void) = 0;
+	  virtual ~scan_object() {};
 	};
 
     }  //  ami namespace
