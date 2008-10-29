@@ -76,8 +76,8 @@
 
 #ifdef BTE_STREAM_IMP_UFS
    // Define logical blocksize factor (default is 32)
-#  ifndef BTE_STREAM_UFS_BLOCK_FACTOR
-#    define BTE_STREAM_UFS_BLOCK_FACTOR 32
+#  ifndef STREAM_UFS_BLOCK_FACTOR
+#    define STREAM_UFS_BLOCK_FACTOR 32
 #  endif
    // Enable/disable TPIE read ahead; default is disabled (set to 0)
 #  define BTE_STREAM_UFS_READ_AHEAD 0
