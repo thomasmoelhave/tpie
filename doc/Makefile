@@ -1,8 +1,6 @@
-#
-# $Id: Makefile,v 1.4 2005-11-23 15:14:06 adanner Exp $
-#
 
-LATEX = latex
+#LATEX = latex
+LATEX = pdflatex
 BIBTEX = bibtex
 MAKEINDEX = makeindex
 #DVIPS = dvips -Pamz -Pcmz
@@ -28,8 +26,12 @@ html:	tpie.aux tpie.bbl tpie.dvi
 tpie.ps: tpie.dvi
 	$(DVIPS) -o $@ $<
 
-tpie.pdf: tpie.ps
-	$(PS2PDF) $<
+#tpie.pdf: tpie.ps
+#	$(PS2PDF) $<
+
+tpie.pdf: $(MAIN_SRC) $(OTHER_SRC) tpie.ind tpie.bbl
+	$(LATEX) $<
+	$(LATEX) $<
 
 tpie.idx: $(MAIN_SRC) $(OTHER_SRC)
 	-rm -f $@
