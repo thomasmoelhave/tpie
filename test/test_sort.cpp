@@ -49,7 +49,7 @@ const char* APP_FILE_BASE =  "TPIE_Test";
 // Basic parameters for the test
 // better than having several global variables
 typedef struct app_info{
-    char * path;
+    const char * path;
     int item_size;
     TPIE_OS_OFFSET num_items;
     TPIE_OS_SIZE_T mem_size;
@@ -248,7 +248,7 @@ void get_app_info(int argc, char** argv, appInfo & Info){
   init_opts(opts, argc, argv); 
 
   // get the dir
-  char* base_dir = getenv("AMI_SINGLE_DEVICE");
+  const char* base_dir = getenv("AMI_SINGLE_DEVICE");
   if (base_dir == NULL) { base_dir = getenv("TMPDIR_ENV"); }
   if (base_dir == NULL) { base_dir = TMP_DIR; }
   
