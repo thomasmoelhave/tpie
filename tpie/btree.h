@@ -799,6 +799,9 @@ namespace tpie {
 		bool operator()(const Value& v, const Key& k) const { 
 		    return Compare()(KeyOfValue()(v), k); 
 		}
+		bool operator()(const Value& v1, const Value& v2) const { 
+		    return Compare()(KeyOfValue()(v1), KeyOfValue()(v2)); 
+		}
 	    };
 
 	    ///////////////////////////////////////////////////////////////////////////

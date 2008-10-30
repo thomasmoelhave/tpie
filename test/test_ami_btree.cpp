@@ -39,7 +39,7 @@ struct key_from_el {
 // Temporary distinction btw UN*X and WIN, since there are some
 // problems with the MMAP collection implementation.
 #ifdef _WIN32
-typedef btree< bkey_t,el_t,less<bkey_t>,key_from_el,BTE_COLLECTION_UFS > u_btree_t;
+typedef btree< bkey_t,el_t,less<bkey_t>,key_from_el,bte::COLLECTION_UFS > u_btree_t;
 #else
 typedef btree< bkey_t,el_t,less<bkey_t>,key_from_el > u_btree_t;
 #endif
