@@ -20,6 +20,7 @@
 
 #include <ami_stream.h>
 
+/** @depricated */
 enum AMI_merge_output_type {
     AMI_MERGE_OUTPUT_OVERWRITE = 1,
     AMI_MERGE_OUTPUT_APPEND

@@ -1,17 +1,10 @@
-// TODO: Document better
-
-// File: merge_sorted_runs.h 
-
 #ifndef _MERGE_SORTED_RUNS_H
 #define _MERGE_SORTED_RUNS_H
-// **************************************************************************
-// *                                                                        *
-// *  This include file contains the routine                                *
-// *    merge_sorted_runs                                                    *
-// *  used in several of TPIE's merge variants                              *
-// *                                                                        *
-// **************************************************************************
-// 	$Id: merge_sorted_runs.h,v 1.2 2005-11-10 11:54:57 jan Exp $	
+
+///////////////////////////////////////////////////////////////////////////
+/// \file tpie/merge_sorted_runs.h
+///  Contains the routine merge_sorted_runs used in several of TPIE's merge variants
+///////////////////////////////////////////////////////////////////////////
 
 // Get definitions for working with Unix and Windows
 #include <portability.h>
