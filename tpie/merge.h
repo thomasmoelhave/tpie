@@ -20,6 +20,7 @@ namespace tpie {
 
     namespace ami {
 	
+  /** \deprecated */
 	enum merge_output_type {
 	    MERGE_OUTPUT_OVERWRITE = 1,
 	    MERGE_OUTPUT_APPEND
@@ -33,7 +34,9 @@ namespace tpie {
 
     namespace ami {
 	
+  /** Intended to signal in a merge which of the input streams are non-empty */ 
 	typedef int            merge_flag;
+	/** Intended to signal the number of input streams in a merge */ 
 	typedef TPIE_OS_SIZE_T arity_t;
 	
 #define CONST const
@@ -43,9 +46,9 @@ namespace tpie {
 
 
   ///////////////////////////////////////////////////////////////////////////
-  /// Merges <arity> streams using a merge management object and writes
-  /// result into <outstream>; it is assumed that the available memory can
-  /// fit the <arity> streams, the output stream and also the space
+  /// Merges arity streams using a merge management object and writes
+  /// result into outstream. It is assumed that the available memory can
+  /// fit the arity streams, the output stream and also the space
   /// required by the merge management object; merge() checks this and
   /// then calls single_merge();
   ///////////////////////////////////////////////////////////////////////////
@@ -55,20 +58,61 @@ namespace tpie {
 
 
   ///////////////////////////////////////////////////////////////////////////
-  /// Divides the input stream into substreams, merges each substream
-  /// recursively, and finally merges them together using single_merge()
+	/// Partitions a stream into substreams small enough to fit
+  /// in main memory, operates on each in main memory, and then merges them
+  /// together, possibly in several passes if low memory conditions dictate.
+  /// This function takes three arguments: \p instream  points to
+  /// the input stream,  \p outstream points to the output stream,
+  /// and \p mo points to a merge management object that controls
+  /// the merge.  This function takes care of all the details of determining
+  /// how much main memory is available, how big the initial substreams can
+  /// be, how many streams can be merged at a time, and how many levels of
+  /// merging must take place.
+  /// 
+  /// In order to complete the merge successfully, the function needs
+  /// sufficient memory for a binary merge. If not enough memory is
+  /// available, the function fails and it returns
+  /// \ref INSUFFICIENT_MAIN_MEMORY. Otherwise, it returns
+  /// \ref NO_ERROR.
+	
+	
+  /// \par Merge Management Objects for partition_and_merge:
+  /// The partition_and_merge() entry point requires a merge
+  /// management object similar to the one described 
+  /// \ref merge_management_object	"here". 
+  /// The following three additional member
+  /// functions must also be provided.
+  /// \par main_mem_operate():
+  /// <tt> err main_mem_operate(T* mm_stream, size_t len);</tt>
+  /// where
+	/// \p mm_stream is a pointer to an array of objects that have been read into 
+	/// main memory, \p len is the number of objects in the array.
+	/// This function is called by AMI_partition_and_merge()
+  /// when a substream of the data is small enough to fit into main
+  /// memory, and the (application-specific) processing of this subset
+  /// of the data can therefore be completed in internal memory.
+  /// \par space_usage_per_stream():
+  /// <tt> size_t space_usage_per_stream(void); </tt>
+  /// This function should return the amount of main memory that the merge
+  /// management object will need per per input stream. Merge management
+  /// objects are allowed to maintain data structures whose size is linear
+  /// in the number of input streams being processed.
+  ///  \par space_usage_overhead():
+	/// <tt>size_t space_usage_overhead(void);</tt>
+  /// This function should return an upper bound on the number of bytes of
+  /// main memory the merge management object will allocate in addition to
+  /// the portion that is linear in the number of streams.
   ///////////////////////////////////////////////////////////////////////////
 	template<class T, class M>
 	err partition_and_merge(stream<T> *instream,
 				stream<T> *outstream, M *m_obj);
 
-
+	///////////////////////////////////////////////////////////////////////////
+  /// Merges <arity> streams in memory using a merge management object and
+  /// write result into outstream.
   ///////////////////////////////////////////////////////////////////////////
-	/// Merges <arity> streams in memory using a merge management object and
-	/// write result into <outstream>; 
-  ///////////////////////////////////////////////////////////////////////////
-	template<class T, class M>
-	err  single_merge(stream<T> **instreams, arity_t arity,
+  template<class T, class M>
+  err  single_merge(stream<T> **instreams, arity_t arity,
 			  stream<T> *outstream, M *m_obj);
 
 
@@ -80,8 +124,6 @@ namespace tpie {
 	err main_mem_merge(stream<T> *instream,
 			   stream<T> *outstream, M *m_obj);
 
-//------------------------------------------------------------
-
 
 
 
@@ -89,7 +131,74 @@ namespace tpie {
 
 
   ///////////////////////////////////////////////////////////////////////////
-  /// Superclass for merge management objects
+  /// Superclass for merge management objects.
+  /// \anchor merge_management_object
+  /// A merge management object class must inherit from
+  /// merge_base:
+  ///
+  /// <tt>template<class T> class MergeMgr: public merge_base;</tt>
+  ///
+  /// In addition, a merge management object must provide
+  /// \ref initialize() and \ref operate() member functions,
+  /// whose purposes are analogous to their namesakes for scan management
+  /// objects.
+	///
+	/// \anchor initialize() \par initialize()
+	/// The user's initialize() member function is called by the merge
+  /// function once so that application-specific data structures (if any)
+  /// can be initialized.
+  ///
+  /// <tt>err initialize(arity_t arity, const T * const *in, merge_flag *taken_flags,
+  /// int &taken_index); </tt>
+	/// 
+	/// where \p arity is the number of input streams in the merge,
+	/// \p in is a pointer to an array of pointers to
+	/// input objects, each of which is the first objects appearing in
+	/// one of the input streams,
+	/// \p taken_flags an array of flags indicating which
+	/// of the inputs are present (i.e.  which of the input streams is
+	/// not empty), and a pointer to an output object.
+	///
+	/// The typical behavior of initialize() is to place all
+  /// the input objects into a data structure and then return
+  /// \ref MERGE_READ_MULTIPLE to indicate that it used (and
+  /// is now finished with) all of the inputs which were indicated to be
+  /// valid by \p taken_flags.  initialize need not
+  /// process all inputs; it can turn off any flags in
+  /// \p taken_flags corresponding to inputs that should be
+  /// presented to operate().  Alternatively, it can set
+  /// \p taken_index to the index of a single input it
+  /// processed and return \ref MERGE_CONTINUE.
+  ///    
+  /// \anchor operate() \par operate() 
+  /// When performing a merge, TPIE
+  /// relies on the application programmer to provide code to determine
+  /// the order of any two application data elements, and certain other
+  /// application-specific processing. By convention, TPIE expects these
+  /// decisions to be made by the operate() function:
+  /// 
+  /// <tt>err operate(const T * const *in, merge_flag *taken_flags, int &taken_index, T *out);</tt>
+  ///
+  /// The operate() member function is called repeatedly to
+  /// process input objects. Typically, operate() will choose a
+  /// single input object to process, and set \p taken_index to the
+  /// index of the pointer to that object in the input array. This object
+  /// is then typically added to a dynamic data structure maintained by the
+  /// merge management object. If output is generated, for example by
+  /// removing an object from the dynamic data structure,
+  /// operate() should return \ref MERGE_OUTPUT,
+  /// otherwise, it returns either \ref MERGE_CONTINUE to
+  /// indicate that more input should be presented, or
+  /// \ref MERGE_DONE to indicate that the merge has completed.
+  /// 
+  /// Alternatively, operate() can clear the elements of
+  /// \p taken_flags that correspond to inputs it does not
+  /// currently wish to process, and then return
+  /// \ref  MERGE_READ_MULTIPLE. This is generally undesirable
+  /// because, if only one input is taken, it is far slower than using
+  /// \p taken_index to indicate which input was taken. The merge
+  /// management object must clear all other flags, and then TPIE must test
+  /// all the flags to see which inputs were or were not processed.
   ///////////////////////////////////////////////////////////////////////////
 	template<class T>
 	class merge_base {
@@ -114,16 +223,6 @@ namespace tpie {
 
 
 
-
-//------------------------------------------------------------ 
-
-//merge <arity> streams using a merge management object and write
-//result into <outstream>; it is assumed that the available memory can
-//fit the <arity> streams, the output stream and also the space
-//required by the merge management object; merge() checks this and
-//then calls single_merge();
-
-//------------------------------------------------------------ 
 	template<class T, class M>
 	err 
 	merge(stream<T> **instreams, arity_t arity,
@@ -169,12 +268,6 @@ namespace tpie {
 
 
 
-//------------------------------------------------------------
-
-//merge <arity> streams in memory using a merge management object and
-//write result into <outstream>; 
-
-//------------------------------------------------------------
 	template<class T, class M>
 	err 
 	single_merge(stream<T> **instreams, arity_t arity,
@@ -320,13 +413,6 @@ namespace tpie {
 
 
 
-//------------------------------------------------------------
-
-//read <instream> in memory and merge it using
-//m_obj->main_mem_operate(); if <instream> does not fit in main memory
-//return INSUFFICIENT_MAIN_MEMORY;
-
-//------------------------------------------------------------
 	template<class T, class M>
 	err main_mem_merge(stream<T> *instream,
 			   stream<T> *outstream, M *m_obj)  {
@@ -398,12 +484,6 @@ namespace tpie {
 
 
 
-//------------------------------------------------------------
-
-// divide the input stream in substreams, merge each substream
-// recursively, and merge them together using single_merge()
-
-//------------------------------------------------------------
 	template<class T, class M>
 	err partition_and_merge(stream<T> *instream,
 				stream<T> *outstream, M *m_obj) {

@@ -175,7 +175,7 @@ public:
     ////////////////////////////////////////////////////////////////////////////
     /// Reads the current item from the stream and advance the "current item"
     /// pointer to the next item. The item read is pointed to by 
-    /// *elt. If no error has occurred, return ERROR_NO_ERROR.
+    /// *elt. If no error has occurred, return \ref NO_ERROR.
     /// If the ``current item'' pointer is beyond the last item in the stream,
     /// ERROR_END_OF_STREAM is returned
     ////////////////////////////////////////////////////////////////////////////
@@ -184,7 +184,7 @@ public:
     ////////////////////////////////////////////////////////////////////////////
     /// Writes elt to the stream in the current position. Advance the 
     /// "current item" pointer to the next item. If no error has occurred
-    /// ERROR_NO_ERROR is returned.
+    /// \ref NO_ERROR is returned.
     ////////////////////////////////////////////////////////////////////////////
     err write_item(const T &elt);
   

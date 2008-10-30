@@ -78,10 +78,10 @@ namespace tpie {
 	  /// Semantics for subclass implementations: Initializes a scan management object to prepare 
 	  /// it for a scan.
 	  /// This member function is called once by
-	  /// each call to AMI_scan() in order to initialize
+	  /// each call to scan() in order to initialize
 	  /// the scan management object before any data processing
 	  /// takes place. This function should return
-	  /// AMI_ERROR_NO_ERROR if successful, or an appropriate error otherwise. See
+	  /// \ref NO_ERROR if successful, or an appropriate error otherwise. See
 	  /// Section \ref sec:ami-errors for a list of error codes.
 	  ///////////////////////////////////////////////////////////////////////////
 	  virtual err initialize(void) = 0;

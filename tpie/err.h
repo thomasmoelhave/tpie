@@ -83,10 +83,18 @@ namespace tpie {
 	     * and no more input needs to be processed. */
 	    SCAN_CONTINUE,
 
-	    // Values returned by merge objects.
+	    /** Value returned by a \ref merge_management_object, signaling that the merge() completed. */
 	    MERGE_DONE = 0x2000,
-	    MERGE_CONTINUE,
+      /** Value returned by a \ref merge_management_object, telling merge()
+       * to continue to call the operate() member function of the
+       * management object with more data */
+       MERGE_CONTINUE,
+      /** Value returned by a \ref merge_management_object, signaling that the last 
+       * merge() call generated output for the output stream. */
 	    MERGE_OUTPUT,
+	     /** Value returned by a \ref merge_management_object, telling merge() 
+	      * that more than one input ob ject was consumed and
+	      * thus the input flags should be consulted. */
 	    MERGE_READ_MULTIPLE,
 
 	    // Matrix related errors
