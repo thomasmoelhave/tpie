@@ -16,6 +16,27 @@
 /// The threshold level can be reset as many times as needed in a program. 
 /// This enables the developer to focus the debugging eFFort on a certain part
 /// of the program. 
+///
+/// The following compile-time macros are provided for writing into the log:
+///
+/// TP_LOG_FATAL(msg), TP_LOG_FATAL_ID(msg) 
+///
+/// TP_LOG_WARNING(msg), TP_LOG_WARNING_ID(msg) 
+///
+/// TP_LOG_APP_DEBUG(msg), TP_LOG_APP_DEBUG_ID(msg) 
+///
+/// TP_LOG_DEBUG(msg), TP_LOG_DEBUG_ID(msg) 
+///
+/// ,where \p msg is the information to be logged; \p msg can be any type that is
+/// supported by the C++ fstream class. Each of these macros sets the
+/// corresponding priority and sends \p msg to the log stream.
+/// The macros ending in _ID record the source code filename and line number
+/// in the log, while the corresponding macros without the _ID suffix do not.
+///
+/// \internal \todo make it happen (ticket 33):
+/// Note that logging can be toggled on and off for both the TPIE library
+/// as well as for TPIE apps by using the switches in the CMAKE
+/// interface for building TPIE. 
 ///////////////////////////////////////////////////////////////////////////
 
 
@@ -83,13 +104,13 @@ namespace tpie {
     };
     
     
-    ///////////////////////////////////////////////////////////////////////////
-    /// The logmanip template is based on the omanip template from iomanip.h 
-    /// in the libg++ sources.
-    ///////////////////////////////////////////////////////////////////////////
-    template <class TP> class logmanip {
-	logstream& (*_f)(logstream&, TP);
-	TP _a;
+  ///////////////////////////////////////////////////////////////////////////
+  /// The logmanip template is based on the omanip template from iomanip.h 
+  /// in the libg++ sources.
+  ///////////////////////////////////////////////////////////////////////////
+  template <class TP> class logmanip {
+  	logstream& (*_f)(logstream&, TP);
+  	TP _a;
     public:
   ///////////////////////////////////////////////////////////////////////////
   /// Constructor.

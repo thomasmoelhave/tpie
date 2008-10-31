@@ -59,29 +59,40 @@ namespace tpie {
     
 // eg: LOG_FATAL(LOG_ID_MSG)
 #define TP_LOG_ID_MSG __FILE__ << " line " << __LINE__ << ": "
-    
+
+/** Macro to simplify \ref logging. \sa log_lecel. */
 #define TP_LOG_FATAL(msg)						\
     (!logstream::log_initialized || tpie_log() << setpriority(LOG_FATAL) << msg)
+/** Macro to simplify \ref logging. \sa log_lecel. */
 #define TP_LOG_WARNING(msg)						\
     (!logstream::log_initialized || tpie_log() << setpriority(LOG_WARNING) << msg)
+/** Macro to simplify \ref logging. \sa log_lecel. */
 #define TP_LOG_APP_DEBUG(msg)						\
     (!logstream::log_initialized || tpie_log() << setpriority(LOG_APP_DEBUG)  << msg)
+/** Macro to simplify \ref logging. \sa log_lecel. */
 #define TP_LOG_DEBUG(msg)						\
     (!logstream::log_initialized || tpie_log() << setpriority(LOG_DEBUG)  << msg)
+/** Macro to simplify \ref logging. \sa log_lecel. */
 #define TP_LOG_MEM_DEBUG(msg)						\
     (!logstream::log_initialized || tpie_log() << setpriority(LOG_MEM_DEBUG)  << msg)
     
+/** Macro to simplify \ref logging. \sa log_lecel. */
 #define TP_LOG_FATAL_ID(msg)						\
     (TP_LOG_FATAL(TP_LOG_ID_MSG << msg << "\n"), TP_LOG_FLUSH_LOG)
+/** Macro to simplify \ref logging. \sa log_lecel. */
 #define TP_LOG_WARNING_ID(msg)						\
     (TP_LOG_WARNING(TP_LOG_ID_MSG << msg << "\n"), TP_LOG_FLUSH_LOG)
+/** Macro to simplify \ref logging. \sa log_lecel. */
 #define TP_LOG_APP_DEBUG_ID(msg)					\
     (TP_LOG_APP_DEBUG(TP_LOG_ID_MSG << msg << "\n"), TP_LOG_FLUSH_LOG)
+/** Macro to simplify \ref logging. \sa log_lecel. */
 #define TP_LOG_DEBUG_ID(msg)						\
     (TP_LOG_DEBUG(TP_LOG_ID_MSG << msg << "\n"), TP_LOG_FLUSH_LOG)
+/** Macro to simplify \ref logging. \sa log_lecel. */
 #define TP_LOG_MEM_DEBUG_ID(msg)					\
     (TP_LOG_MEM_DEBUG(TP_LOG_ID_MSG << msg << "\n"), TP_LOG_FLUSH_LOG)
     
+/** Set the current \ref log_level threshold for \ref logging in TPIE. */
 #define TP_LOG_SET_THRESHOLD(level) (tpie_log() << setthreshold(level))
     
 #else // !TPL_LOGGING

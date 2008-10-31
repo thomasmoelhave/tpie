@@ -26,7 +26,7 @@
 /// very long and the key field(s) take up a large percentage of the
 /// record.
 ///
-/// \par AMI_key_sort()
+/// \par key_sort()
 /// keeps the key field(s) and a pointer
 /// to the first record of each stream in the heap. This approach works
 /// best when the key field(s) are small in comparison to the record
@@ -55,7 +55,7 @@
 /// the polymorphs of sorting with both input and output streams use 3N
 /// space, whereas if just an input stream is specified, 2N space is used.
 /// If the original unsorted input stream is not needed after sorting, it is
-/// recommended that users use the AMI_sort() polymorph with with just
+/// recommended that users use the sort() polymorph with with just
 /// an input stream, to save space and avoid having to maintain both an input
 /// and output stream. 
 /// \internal \todo make sure doc is ame as in overview manual
@@ -93,7 +93,7 @@ namespace tpie {
   /// objects for which the operator "<" is defined.
   /// 
   /// \par Comparison class version:
-  /// This version of AMI_sort() uses a method of a user-defined
+  /// This version of sort() uses a method of a user-defined
   /// comparison object to determine the order of two input objects. The
   /// object must have a public member function named compare(),
   /// having the following prototype:
@@ -207,7 +207,7 @@ namespace tpie {
 
 	///////////////////////////////////////////////////////////////////////////
   /// \anchor keysort
-	/// The AMI_key_sort variant of TPIE merge sort keeps the key
+	/// The Akey_sort variant of TPIE merge sort keeps the key
   /// field(s) plus a pointer to the corresponding record in an internal
   /// heap during the merging phase of merge sort,   
 	/// see also \ref sorting_in_tpie "Sorting in TPIE".
