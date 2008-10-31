@@ -1,17 +1,14 @@
-// Copyright (c) 2005 Andrew Danner
-//
-// File: internal_sorter.h
-// Author: Andrew Danner <adanner@cs.duke.edu>
-// Created: 28 Jun 2005
-//
-// Internal sorter class that can be used within AMI_sort() on small
-// streams/substreams
-//
-// $Id: internal_sort.h,v 1.6 2006-05-20 22:19:53 adanner Exp $
-//
 #ifndef _INTERNAL_SORT_H
 #define _INTERNAL_SORT_H
- 
+
+///////////////////////////////////////////////////////////////////////////
+/// \file internal_sort.h
+/// Provides base class Internal_Sorter_Base for internal sorter objects and two subclass
+/// implementations Internal_Sorter_Op and Internal_Sorter_Obj. Both
+/// implementations rely on quicksort variants quick_sort_op() and 
+/// quick_sort_obj(), resp.
+///////////////////////////////////////////////////////////////////////////
+
 // Get definitions for working with Unix and Windows
 #include <tpie/portability.h>
 #include <tpie/quicksort.h>
@@ -26,35 +23,55 @@ namespace tpie {
 
     namespace ami {
 
-// The base class. This class does not have a sort() function, so it
-// cannot be used directly
+  ///////////////////////////////////////////////////////////////////////////
+  /// The base class for internal sorters. 
+  /// This class does not have a sort() function, so it cannot be used directly.
+  ///////////////////////////////////////////////////////////////////////////
 	template<class T>
 	class Internal_Sorter_Base {
 	    
 	protected:
-	    T* ItemArray;        //Array that holds items to be sorted
-	    TPIE_OS_SIZE_T len;  //length of ItemArray
+	    /** Array that holds items to be sorted */
+	    T* ItemArray;        
+	    /** length of ItemArray */
+	    TPIE_OS_SIZE_T len;  
 	    
 	public:
-	    //  Constructor
+	    ///////////////////////////////////////////////////////////////////////////
+	    ///  Empty constructor.
+	    ///////////////////////////////////////////////////////////////////////////
 	    Internal_Sorter_Base(void): ItemArray(NULL), len(0) {
 		//  No code in this constructor.
 	    };
 	    
-	    virtual ~Internal_Sorter_Base(void); // Destructor
+      ///////////////////////////////////////////////////////////////////////////
+      ///  Destructor.
+      ///////////////////////////////////////////////////////////////////////////
+	    virtual ~Internal_Sorter_Base(void); 
     
-	    //Allocate array that can hold nItems
+      ///////////////////////////////////////////////////////////////////////////
+      /// Allocate ItemArray as array that can hold \p nItems.
+      ///////////////////////////////////////////////////////////////////////////
 	    void allocate(TPIE_OS_SIZE_T nItems);
 	    
-	    void deallocate(void); //Clean up internal array
+      ///////////////////////////////////////////////////////////////////////////
+      /// Clean up internal array ItemArray.
+      ///////////////////////////////////////////////////////////////////////////
+      void deallocate(void); 
 	    
-	    // Maximum number of Items that can be sorted using memSize bytes
+	    ///////////////////////////////////////////////////////////////////////////
+	    /// Returns maximum number of items that can be sorted using \p memSize bytes.
+	    ///////////////////////////////////////////////////////////////////////////
 	    TPIE_OS_SIZE_T MaxItemCount(TPIE_OS_SIZE_T memSize);
 	    
-	    // Memory usage per sort item
+      ///////////////////////////////////////////////////////////////////////////
+      /// Returns memory usage in bytes per sort item.
+      ///////////////////////////////////////////////////////////////////////////
 	    TPIE_OS_SIZE_T space_per_item();
 	    
-	    // Fixed memory usage overhead per class instantiation
+      ///////////////////////////////////////////////////////////////////////////
+      /// Returns fixed memory usage overhead in bytes per class instantiation.
+      ///////////////////////////////////////////////////////////////////////////
 	    TPIE_OS_SIZE_T space_overhead();
 	    
 	private:
@@ -122,12 +139,10 @@ namespace tpie {
 
     namespace ami {
 
-// *********************************************************************
-// *                                                                   *
-// * Operator based Internal Sorter.                                   *
-// *                                                                   *
-// *********************************************************************
-	
+  ///////////////////////////////////////////////////////////////////////////
+  /// Comparision operator based Internal_Sorter_base subclass implementation; uses 
+  /// quick_sort_op().
+  ///////////////////////////////////////////////////////////////////////////
 	template<class T>
 	class Internal_Sorter_Op: public Internal_Sorter_Base<T>{
 
@@ -156,9 +171,11 @@ namespace tpie {
 	    Internal_Sorter_Op<T> operator=(const Internal_Sorter_Op<T>& other);
 	};
 	
-// Read nItems sequentially from InStr, starting at the current file
-// position. Write the sorted output to OutStr, starting from the current
-// file position.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Reads nItems sequentially from InStr, starting at the current file
+  /// position; writes the sorted output to OutStr, starting from the current
+  /// file position.
+  ///////////////////////////////////////////////////////////////////////////
 	template<class T>
 	err Internal_Sorter_Op<T>::sort(stream<T>* InStr, stream<T>* OutStr, TPIE_OS_SIZE_T nItems){
 	    
@@ -223,24 +240,29 @@ namespace tpie {
 
     namespace ami {
 	
-// *********************************************************************
-// *                                                                   *
-// * Comparison object based Internal Sorter.                          *
-// *                                                                   *
-// *********************************************************************
-	
+  ///////////////////////////////////////////////////////////////////////////
+  /// Comparision object based Internal_Sorter_base subclass implementation; uses 
+  /// quick_sort_obj().
+  ///////////////////////////////////////////////////////////////////////////
 	template<class T, class CMPR>
 	class Internal_Sorter_Obj: public Internal_Sorter_Base<T>{
 
 	protected:
 	    using Internal_Sorter_Base<T>::ItemArray;
 	    using Internal_Sorter_Base<T>::len;
-	    CMPR *cmp_o; //Comparison object used for sorting
+	    /** Comparison object used for sorting */
+	    CMPR *cmp_o;
 	    
 	public:
-	    //Constructor/Destructor
-	    Internal_Sorter_Obj(CMPR* cmp) :cmp_o(cmp) {};
-	    ~Internal_Sorter_Obj(){};
+      ///////////////////////////////////////////////////////////////////////////
+      /// Empty constructor.
+      ///////////////////////////////////////////////////////////////////////////
+      Internal_Sorter_Obj(CMPR* cmp) :cmp_o(cmp) {};
+
+      ///////////////////////////////////////////////////////////////////////////
+      /// Empty destructor.
+      ///////////////////////////////////////////////////////////////////////////
+      ~Internal_Sorter_Obj(){};
 	    
 	    using Internal_Sorter_Base<T>::space_overhead;
 	    
@@ -253,9 +275,11 @@ namespace tpie {
 	    Internal_Sorter_Obj<T,CMPR> operator=(const Internal_Sorter_Obj<T,CMPR>& other);
 	};
 	
-// Read nItems sequentially from InStr, starting at the current file
-// position. Write the sorted output to OutStr, starting from the current
-// file position.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Reads nItems sequentially from InStr, starting at the current file
+  /// position; writes the sorted output to OutStr, starting from the current
+  /// file position.
+  ///////////////////////////////////////////////////////////////////////////
 	template<class T, class CMPR>
 	err Internal_Sorter_Obj<T, CMPR>::sort(stream<T>* InStr, stream<T>* OutStr, TPIE_OS_SIZE_T nItems) {
 	    
@@ -316,47 +340,69 @@ namespace tpie {
 
 }  //  tpie namespace
 
-// *********************************************************************
-// *                                                                   *
-// * Key + Object based Internal Sorter                                *
-// *                                                                   *
-// *********************************************************************
 
 namespace tpie {
 
     namespace ami {
 
-	template<class T, class KEY, class CMPR>
-	class Internal_Sorter_KObj{
+  ////////////////////////////////////////////////////////////////////////
+  /// Key + Object based Internal Sorter.
+  /// \internal \todo model inheritance from Internal_Sorter_Base ?
+  ////////////////////////////////////////////////////////////////////////
+  template<class T, class KEY, class CMPR>
+  class Internal_Sorter_KObj {
 
 	protected:
-	    T* ItemArray;                    // Array that holds original items
-	    qsort_item<KEY>* sortItemArray;  // Holds keys to be sorted
-	    CMPR *UsrObject;                 // Copy,compare keys
-	    TPIE_OS_SIZE_T len;              // length of ItemArray
+	    /** Array that holds original items */
+	    T* ItemArray;                    
+	    /** Holds keys to be sorted */
+	    qsort_item<KEY>* sortItemArray;  
+	    /** Copy,compare keys */ 
+	    CMPR *UsrObject;              
+	    /** length of ItemArray */
+	    TPIE_OS_SIZE_T len;
 
 	public:
+      ///////////////////////////////////////////////////////////////////////////
+      ///  Empty constructor.
+      ///////////////////////////////////////////////////////////////////////////
 	    Internal_Sorter_KObj(CMPR* cmp): ItemArray(NULL), sortItemArray(NULL), UsrObject(cmp), len(0) {
 		//  No code in this constructor.
 	    }
 	    
+      //////////////////////////////////////////////////////////////////////////
+      ///  Destructor calling deallocate.
+      //////////////////////////////////////////////////////////////////////////
 	    ~Internal_Sorter_KObj(void); //Destructor
     
-	    // Allocate array that can hold nItems
+      //////////////////////////////////////////////////////////////////////////
+      /// Allocate array that can hold nItems.
+      //////////////////////////////////////////////////////////////////////////
 	    void allocate(TPIE_OS_SIZE_T nItems);
 	    
-	    // Sort nItems from input stream and write to output stream
+      //////////////////////////////////////////////////////////////////////////
+      /// Sort nItems from input stream and write to output stream.
+      //////////////////////////////////////////////////////////////////////////
 	    err sort(stream<T>* InStr, stream<T>* OutStr, TPIE_OS_SIZE_T nItems);
 	    
-	    void deallocate(void); //Clean up internal array
+      //////////////////////////////////////////////////////////////////////////
+      /// Clean up internal array.
+      //////////////////////////////////////////////////////////////////////////
+      void deallocate(void); 
 
-	    // Maximum number of Items that can be sorted using memSize bytes
+      //////////////////////////////////////////////////////////////////////////
+      /// Returns maximum number of items that can be sorted using \p memSize bytes.
+      //////////////////////////////////////////////////////////////////////////
 	    TPIE_OS_SIZE_T MaxItemCount(TPIE_OS_SIZE_T memSize);
 	    
-	    // Memory usage per sort item
+      //////////////////////////////////////////////////////////////////////////
+      /// Returns memory usage in bytes per sort item.
+      //////////////////////////////////////////////////////////////////////////
 	    TPIE_OS_SIZE_T space_per_item();
 	    
-	    // Fixed memory usage overhead per class instantiation
+      //////////////////////////////////////////////////////////////////////////
+      /// Returns fixed memory usage overhead in bytes per class instantiation.
+      //////////////////////////////////////////////////////////////////////////
 	    TPIE_OS_SIZE_T space_overhead();
 	    
 	private:
@@ -387,10 +433,12 @@ namespace tpie {
 	    sortItemArray = new qsort_item<KEY>[len];
 	}
 
-// A helper class to quick sort qsort_item<KEY> types
-// given a comparison object for comparing keys
-	template<class KEY, class KCMP>
-	class QsortKeyCmp {
+  ///////////////////////////////////////////////////////////////////////////
+  /// A helper class to quick sort qsort_item types
+  /// given a comparison object for comparing keys.
+  ///////////////////////////////////////////////////////////////////////////
+  template<class KEY, class KCMP>
+  class QsortKeyCmp {
 
 	private:
 	    // Prohibit these.
@@ -400,8 +448,17 @@ namespace tpie {
 	    KCMP *isLess; //Class with function compare that compares 2 keys    
 	    
 	public:
-	    QsortKeyCmp(KCMP* kcmp) : isLess(kcmp) { };
-	    inline int compare(const qsort_item<KEY>& left,
+      ///////////////////////////////////////////////////////////////////////////
+      ///  Constructor.
+      ///////////////////////////////////////////////////////////////////////////
+      QsortKeyCmp(KCMP* kcmp) : isLess(kcmp) { };
+
+      ///////////////////////////////////////////////////////////////////////////
+      /// Comparision method;
+      /// returns -1, 0, or +1 to indicate that <tt>left<right</tt>, <tt>left==right</tt>, or
+      /// <tt>left>right</tt> respectively.
+      ///////////////////////////////////////////////////////////////////////////
+      inline int compare(const qsort_item<KEY>& left,
 			       const qsort_item<KEY>& right){
 		return isLess->compare(left.keyval, right.keyval);
 	    }

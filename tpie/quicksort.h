@@ -1,17 +1,29 @@
-// Copyright (c) 1994 Darren Erik Vengroff
-//
-// File: quicksort.h
-// Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
-// Created: 9/28/94
-//
-// A basic implementation of quicksort for use in core by AMI_sort() on
-// streams or substreams that are small enough.
-//
-// $Id: quicksort.h,v 1.23 2005-07-07 20:42:31 adanner Exp $
-//
 #ifndef _QUICKSORT_H
 #define _QUICKSORT_H
  
+///////////////////////////////////////////////////////////////////////////
+/// \file quicksort.h
+/// Contains internal memory in-place sorting routines that implement the quicksort algorithm (random- 
+/// ized). 
+/// These routines are used by the external memory sorting routines (see Section 5.9) on streams
+/// that are small enough to fit in memory. The two polymorphs use different comparison methods: 
+/// quick_sort_op() uses the comparison operator < and quick_sort_obj() uses a comparison object of 
+/// type CMPR.
+/// \deprecated 
+///  Earlier TPIE versions allowed a quicksort that used a C-style
+///  comparison function to sort. However, comparison functions cannot be
+///  inlined, so each comparison requires one function call. Given that the
+///  comparison operator < and comparison object classes can be inlined and 
+///  have better performance while providing the exact same functionality,
+///  comparison functions have been removed from TPIE. If you can provide us
+///  with a compelling argument on why they should be in here, we may consider
+///  adding them again, but you must demonstrate that comparision functions
+///  can outperform other methods in at least some cases or give an example
+///  were it is impossible to use a comparison operator or comparison object
+///////////////////////////////////////////////////////////////////////////
+
+
+
 // Get definitions for working with Unix and Windows
 #include <tpie/portability.h>
 
@@ -19,12 +31,13 @@ namespace tpie {
 
     namespace ami {
 
-//A simple class that facilitates doing key sorting followed 
-//by in-memory permuting to sort items in-memory. This is 
-//particularly useful when key size is much smaller than 
-//item size. Note that using this requires that the class Key
-//have the comparison operators defined appropriately.
-	
+  ///////////////////////////////////////////////////////////////////////////
+  /// A simple class that facilitates doing key sorting followed 
+  /// by in-memory permuting to sort items in-memory. This is 
+  /// particularly useful when key size is much smaller than 
+  /// item size. Note that using this requires that the class Key
+  /// have the comparison operators defined appropriately.
+  ///////////////////////////////////////////////////////////////////////////
 	template<class Key>
 	class qsort_item {
 	public:
@@ -60,14 +73,21 @@ namespace tpie {
 
     namespace ami {
 	
-// A version that uses the < operator.  This should be faster for
-// intrinsic types such as int, where the compiler can generate very
-// good code and avoid a function call inside the innermost loop of
-// partition().
-	
+  ///////////////////////////////////////////////////////////////////////////
+  /// A variant for partitioning \p data in two parts 
+  /// that uses the < operator and a randomly
+  /// choosen element in \p data as dividing pivot element.
+  /// This should be faster than partition_obj() for
+  /// intrinsic types such as int, where the compiler can generate very
+  /// good code and avoid a function call inside the innermost loop of
+  /// partition().
+  ///////////////////////////////////////////////////////////////////////////
 	template<class T>
 	void partition_op(T *data, size_t len, size_t &partition);
 	
+  ///////////////////////////////////////////////////////////////////////////
+  /// Internal routine supposed to be calles through quick_sort_op()
+  ///////////////////////////////////////////////////////////////////////////
 	template<class T>
 	void __quick_sort_op(T *data, size_t len,
 			     size_t min_file_len = 2)
@@ -136,10 +156,19 @@ namespace tpie {
 
     namespace ami {
 
+  /////////////////////////////////////////////////////////////////////////
+  /// A simple insertion sort implementation that uses the
+  /// comparison operator <; note that this much less efficient
+  /// for sorting large data sets than quick_sort_op().
+  /////////////////////////////////////////////////////////////////////////
 	template<class T>
 	void insertion_sort_op(T *data, size_t len);
 	
-	template<class T>
+  /////////////////////////////////////////////////////////////////////////
+  /// A randomized quicksort implementation for sorting that uses the 
+  /// comparison operator "<".
+  /////////////////////////////////////////////////////////////////////////
+  template<class T>
 	void quick_sort_op(T *data, size_t len,
 			   size_t min_file_len = 20)
 	{
@@ -172,11 +201,18 @@ namespace tpie {
 
 namespace tpie {
 
-// A version that uses a comparison object.
+    ///////////////////////////////////////////////////////////////////////////
+    /// A variant of partition_op() for partitioning \p data in two parts 
+    /// that uses a comparision object \cmp and a randomly
+    /// choosen element in \p data as dividing pivot element.
+    ///////////////////////////////////////////////////////////////////////////
     template<class T, class CMPR>
     void partition_obj(T *data, size_t len, size_t &partition,
 		       CMPR  *cmp);
     
+    ///////////////////////////////////////////////////////////////////////////
+    /// Internal routine supposed to be calles through quick_sort_obj()
+    ///////////////////////////////////////////////////////////////////////////
     template<class T, class CMPR>
     void __quick_sort_obj(T *data, size_t len, CMPR *cmp,
 			  size_t min_file_len = 2)
@@ -245,10 +281,19 @@ namespace tpie {
 
     namespace ami {
 	
+  ///////////////////////////////////////////////////////////////////////////
+  /// A simple insertion sort implementation that uses a comparison object of
+  /// type CMPR; note that this much less efficient
+  /// for sorting large data sets than quick_sort_obj().
+  ///////////////////////////////////////////////////////////////////////////
 	template<class T, class CMPR>
 	void insertion_sort_obj(T *data, size_t len,
 				CMPR *cmp);
 	
+	///////////////////////////////////////////////////////////////////////////
+	/// A randomized quicksort implementation for sorting that uses a comparison
+	/// object of type CMPR.
+	///////////////////////////////////////////////////////////////////////////
 	template<class T, class CMPR>
 	void quick_sort_obj(T *data, size_t len,
 			    CMPR *cmp,
@@ -281,19 +326,6 @@ namespace tpie {
 }  //  tpie namepsace
 
 
-/* 
-   DEPRECATED: quick_sort_cmp
-   Earlier TPIE versions allowed a quicksort that used a C-style
-   comparison function to sort. However, comparison functions cannot be
-   inlined, so each comparison requires one function call. Given that the
-   comparison operator < and comparison object classes can be inlined and 
-   have better performance while providing the exact same functionality,
-   comparison functions have been removed from TPIE. If you can provide us
-   with a compelling argument on why they should be in here, we may consider
-   adding them again, but you must demonstrate that comparision functions
-   can outperform other methods in at least some cases or give an example
-   were it is impossible to use a comparison operator or comparison object
-*/
 
 #endif // _QUICKSORT_H 
 

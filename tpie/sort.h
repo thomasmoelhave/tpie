@@ -134,10 +134,10 @@ namespace tpie {
   /// object. The comparison object "cmp", of (user-defined) class
   /// represented by CMPR, must have a member function called "compare"
   /// which is used for sorting the input stream; see also 
-	/// \ref comp_sorting "Comparing within Sorting".
+  /// \ref comp_sorting "Comparing within Sorting".
   ///////////////////////////////////////////////////////////////////////////
-	template<class T, class CMPR>
-	err sort(stream<T> *instream, stream<T> *outstream,
+  template<class T, class CMPR>
+  err sort(stream<T> *instream, stream<T> *outstream,
 		 CMPR *cmp, progress_indicator_base* indicator=NULL) {
 	    Internal_Sorter_Obj<T,CMPR> myInternalSorter(cmp);
 	    merge_heap_obj<T,CMPR>      myMergeHeap(cmp);
@@ -157,13 +157,13 @@ namespace tpie {
   /// This variant of merge sort in TPIE that uses the < operator and keeps only
   /// a pointer to each record in the heap used to perform merging of runs,
   /// see also \ref sorting_in_tpie "Sorting in TPIE".
-	/// The syntax is identical to that illustrated in the sort() examples;
+  /// The syntax is identical to that illustrated in the sort() examples;
   /// simply replace sort by ptr_sort.
-	/// Takes an input stream of elements of type T and an output stream.
-	///////////////////////////////////////////////////////////////////////////
-	template<class T>
-	err ptr_sort(stream<T> *instream, stream<T> *outstream,
-		     progress_indicator_base* indicator=NULL) {
+  /// Takes an input stream of elements of type T and an output stream.
+  ///////////////////////////////////////////////////////////////////////////
+  template<class T>
+  err ptr_sort(stream<T> *instream, stream<T> *outstream,
+	     progress_indicator_base* indicator=NULL) {
 	    Internal_Sorter_Op<T> myInternalSorter;
 	    merge_heap_op<T>      myMergeHeap;
 	    sort_manager< T, Internal_Sorter_Op<T>, merge_heap_op<T> > 
