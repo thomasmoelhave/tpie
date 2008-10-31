@@ -346,11 +346,10 @@ namespace tpie {
     namespace ami {
 
   ////////////////////////////////////////////////////////////////////////
-  /// Key + Object based Internal Sorter.
-  /// \internal \todo model inheritance from Internal_Sorter_Base ?
+  /// Key + Object based Internal Sorter; used by key_sort() routines.
   ////////////////////////////////////////////////////////////////////////
   template<class T, class KEY, class CMPR>
-  class Internal_Sorter_KObj {
+  class Internal_Sorter_KObj : public Internal_Sorter_Base<T> {
 
 	protected:
 	    /** Array that holds original items */
