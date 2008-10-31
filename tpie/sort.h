@@ -1,12 +1,65 @@
-//
-// File: ami_sort.h
-// Author: Darren Erik Vengroff <dev@cs.duke.edu>
-// Created: 6/10/94
-//
-// $Id: ami_sort.h,v 1.14 2005-11-17 17:11:25 jan Exp $
-//
 #ifndef _AMI_SORT_H
 #define _AMI_SORT_H
+
+///////////////////////////////////////////////////////////////////////////
+/// \file sort.h
+///  Contains sorting algorithms.
+/// \anchor sorting_in_tpie \par Sorting in TPIE:
+/// TPIE offers three
+/// merge sorting variants. The user must decide which variant is most
+/// appropriate for their circumstances. All accomplish the same goal,
+/// but the performance can vary depending on the situation. They differ
+/// mainly in the way they perform the merge phase of merge sort,
+/// specifically how they maintain their heap data structure used in the
+/// merge phase. The three variants are the following: 
+/// sort(), ptr_sort(), key_sort().
+///
+///
+/// \par sort()
+/// keeps the (entire) first record of each
+/// sorted run (each is a stream) in a heap. This approach is most
+/// suitable when the record consists entirely of the record key.
+/// 
+/// \par ptr_sort() 
+/// keeps a pointer to the first record of
+/// each stream in the heap. This approach works best when records are
+/// very long and the key field(s) take up a large percentage of the
+/// record.
+///
+/// \par AMI_key_sort()
+/// keeps the key field(s) and a pointer
+/// to the first record of each stream in the heap. This approach works
+/// best when the key field(s) are small in comparison to the record
+/// size.
+/// 
+/// Any of these variants will accomplish the task of sorting an input
+/// stream in an I/O efficient way, but there can be noticeable
+/// differences in processing time between the variants. As an example,
+/// key_sort() appears to be more cache-efficient than the
+/// others in many cases, and therefore often uses less processor time,
+/// despite extra data movement relative to ptr_sort().
+/// 
+/// In addition to the three variants discussed above, there are multiple
+/// choices within each variant regarding how the actual comparison
+/// operations are to be performed. These choices are described in some detail
+/// for sort().
+///  
+/// \anchor sortingspace_in_tpie \par In-place Variants for Sorting in TPIE:
+/// Any sort variant above can sort given an input stream and output stream,
+/// or just an input stream. When just an input stream is specified, the
+/// original input elements are deleted the input stream is rewritten with the
+/// sorted output elements. If both the input stream and output stream are
+/// specified, the original input elements are saved. During sorting, a
+/// temporary copy of each element is stored on disk as part of intermediate
+/// sorting results. If N is the size on disk of the original input stream,
+/// the polymorphs of sorting with both input and output streams use 3N
+/// space, whereas if just an input stream is specified, 2N space is used.
+/// If the original unsorted input stream is not needed after sorting, it is
+/// recommended that users use the AMI_sort() polymorph with with just
+/// an input stream, to save space and avoid having to maintain both an input
+/// and output stream. 
+/// \internal \todo make sure doc is ame as in overview manual
+///////////////////////////////////////////////////////////////////////////
 
 // Get definitions for working with Unix and Windows
 #include <tpie/portability.h>
@@ -22,20 +75,48 @@ namespace tpie {
 
     namespace ami {
 	
-// *******************************************************************
-// *                                                                 *
-// *           The actual sort calls                                 *
-// *                                                                 *
-// *******************************************************************
-
-// ********************************************************************
-// *                                                                  *
-// *  These first two versions use a mergeheap on actual objecet      *
-// *                                                                  *
-// ********************************************************************
-
-// A version of sort that takes an input stream of elements of type
-// T, and an output stream, and and uses the < operator to sort
+  //////////////////////////////////////////////////////////////////////////
+  /// A version of sort that takes an input stream of elements of type
+  /// T, and an output stream, and and uses the < operator to sort,
+  /// see also \ref sorting_in_tpie "Sorting in TPIE".
+  /// 
+  /// \anchor comp_sorting \par Comparing within Sorting:
+  /// TPIE's sort() has two polymorphs, namely the comparison
+  /// operator and comparison class polymorphs. The comparison operator
+  /// version tends to be the fastest and most straightforward to use. The
+  /// comparison class version is comparable in speed (maybe slightly
+  /// slower), but somewhat more flexible, as it can support multiple,
+  /// different sorts on the same keys.
+  /// 
+  /// \par Comparison operator version:
+  /// This version works on streams of
+  /// objects for which the operator "<" is defined.
+  /// 
+  /// \par Comparison class version:
+  /// This version of AMI_sort() uses a method of a user-defined
+  /// comparison object to determine the order of two input objects. The
+  /// object must have a public member function named compare(),
+  /// having the following prototype:
+  ///
+  /// <tt>inline int compare (const KEY & k1, const KEY & k2);</tt>
+  /// 
+  /// The user-written compare() function computes the order of
+  /// the two user-defined keys \p k1  and \p k2, and
+  /// returns -1, 0, or +1 to indicate that <tt>k1<k2</tt>, <tt>k1==k2</tt>, or
+  /// <tt>k1>k2</tt> respectively.
+  ///
+  /// \internal \deprecated \par  Deprecated Comparison Function Sorting:
+  /// Earlier TPIE versions allowed a sort that used a C-style
+  /// comparison function to sort. However, comparison functions cannot be
+  /// inlined, so each comparison requires one function call. Given that the
+  /// comparison operator < and comparison object classes can be inlined and
+  /// have better performance while providing the exact same functionality,
+  /// comparison functions have been removed from TPIE. If you can provide us
+  /// with a compelling argument on why they should be in here, we may consider
+  /// adding them again, but you must demonstrate that comparision functions
+  /// can outperform other methods in at least some cases or give an example
+  /// were it is impossible to use a comparison operator or comparison object.
+  //////////////////////////////////////////////////////////////////////////
 	template<class T>
 	err sort(stream<T> *instream, stream<T> *outstream,
 		 tpie::progress_indicator_base* indicator=NULL)	{
@@ -47,11 +128,14 @@ namespace tpie {
 	    return mySortManager.sort(instream, outstream, indicator);
 	}
 
-// A version of sort that takes an input stream of elements of
-// type T, an output stream, and a user-specified comparison
-// object. The comparison object "cmp", of (user-defined) class
-// represented by CMPR, must have a member function called "compare"
-// which is used for sorting the input stream.
+  ///////////////////////////////////////////////////////////////////////////
+  /// A version of sort that takes an input stream of elements of
+  /// type T, an output stream, and a user-specified comparison
+  /// object. The comparison object "cmp", of (user-defined) class
+  /// represented by CMPR, must have a member function called "compare"
+  /// which is used for sorting the input stream; see also 
+	/// \ref comp_sorting "Comparing within Sorting".
+  ///////////////////////////////////////////////////////////////////////////
 	template<class T, class CMPR>
 	err sort(stream<T> *instream, stream<T> *outstream,
 		 CMPR *cmp, progress_indicator_base* indicator=NULL) {
@@ -63,14 +147,20 @@ namespace tpie {
 	    return mySortManager.sort(instream, outstream, indicator);
 	}
 
-// ********************************************************************
-// *                                                                  *
-// *  These versions build  a heap on pointers to objects             *
-// *                                                                  *
-// ********************************************************************
+// --------------------------------------------------------------------
+// -                                                                  -
+// -  These versions build  a heap on pointers to objects             -
+// -                                                                  -
+// --------------------------------------------------------------------
 
-// A version of sort that takes an input stream of elements of type
-// T, and an output stream, and and uses the < operator to sort
+  ///////////////////////////////////////////////////////////////////////////
+  /// This variant of merge sort in TPIE that uses the < operator and keeps only
+  /// a pointer to each record in the heap used to perform merging of runs,
+  /// see also \ref sorting_in_tpie "Sorting in TPIE".
+	/// The syntax is identical to that illustrated in the sort() examples;
+  /// simply replace sort by ptr_sort.
+	/// Takes an input stream of elements of type T and an output stream.
+	///////////////////////////////////////////////////////////////////////////
 	template<class T>
 	err ptr_sort(stream<T> *instream, stream<T> *outstream,
 		     progress_indicator_base* indicator=NULL) {
@@ -82,11 +172,20 @@ namespace tpie {
 	    return mySortManager.sort(instream, outstream, indicator);
 	}
 	
-// A version of sort that takes an input stream of elements of
-// type T, an output stream, and a user-specified comparison
-// object. The comparison object "cmp", of (user-defined) class
-// represented by CMPR, must have a member function called "compare"
-// which is used for sorting the input stream.
+  ///////////////////////////////////////////////////////////////////////////
+  /// This variant of merge sort in TPIE that uses the < operator and keeps only
+  /// a pointer to each record in the heap used to perform merging of runs,
+  /// see also \ref sorting_in_tpie "Sorting in TPIE".
+  /// The syntax is
+  /// identical to that illustrated in the sort() examples;
+  /// simply replace sort by ptr_sort.
+	/// Takes an input stream of elements of
+	/// type T, an output stream, and a user-specified comparison
+	/// object. The comparison object "cmp", of (user-defined) class
+	/// represented by CMPR, must have a member function called "compare"
+	/// which is used for sorting the input stream: see 
+	/// also \ref comp_sorting "Comparing within Sorting".
+	///////////////////////////////////////////////////////////////////////////
 	template<class T, class CMPR>
 	err ptr_sort(stream<T> *instream, stream<T> *outstream,
 		     CMPR *cmp, progress_indicator_base* indicator=NULL) {
@@ -105,17 +204,43 @@ namespace tpie {
 // *  when objects are very large but the sort key is small           *
 // *                                                                  *
 // ********************************************************************
-// A version of sort that takes an input stream of elements of
-// type T, an output stream, a key specification, and a user-specified
-// comparison object.
 
-// The key specification consists of an example key, which is used to
-// infer the type of the key field. The comparison object "cmp", of
-// (user-defined) class represented by CMPR, must have a member
-// function called "compare" which is used for sorting the input
-// stream, and a member function called "copy" which is used for
-// copying the key of type KEY from a record of type T (the type to be
-// sorted).
+	///////////////////////////////////////////////////////////////////////////
+  /// \anchor keysort
+	/// The AMI_key_sort variant of TPIE merge sort keeps the key
+  /// field(s) plus a pointer to the corresponding record in an internal
+  /// heap during the merging phase of merge sort,   
+	/// see also \ref sorting_in_tpie "Sorting in TPIE".
+  /// Takes an input stream of elements of
+  /// type T, an output stream, a key specification, and a user-specified
+  /// comparison object.
+  /// It requires a sort
+  /// management object with member functions compare() and
+  /// copy(). The \p dummyKey argument has the same type
+  /// as the user key, and
+  /// \p smo is the sort management object, having user-defined
+  /// compare and copy member functions as described
+  /// below.
+  /// 
+  /// The compare member function has the following
+  /// prototype:
+  ///
+  /// <tt>inline int compare (const KEY & k1, const KEY & k2);</tt>
+  /// 
+  /// The user-written compare() function computes the order of
+  /// the two user-defined keys \p k1 and \p k2, and
+  /// returns -1, 0, or +1 to indicate that <tt>k1<k2</tt>, <tt>k1==k2</tt>, or
+  /// <tt>k1>k2</tt> respectively.
+  /// 
+  /// The copy() member function has the following prototype:
+  ///  <tt>inline void copy (KEY *key, const T &record);</tt>
+  /// 
+  /// The user-written copy function constructs the user-defined
+  /// key \p key from the contents of the user-defined record
+  /// \p record. It will be called by the internals of
+  /// key_sort() to make copies of record keys as necessary
+  /// during the sort.
+	///////////////////////////////////////////////////////////////////////////
 	template<class T, class KEY, class CMPR>
 	err  key_sort(stream<T> *instream, stream<T> *outstream,
 		      KEY dummykey, CMPR *cmp, progress_indicator_base* indicator=NULL)	{
@@ -132,9 +257,12 @@ namespace tpie {
 // * Duplicates of the above versions that only use 2x space and      *
 // * overwrite the original input stream                              *
 // *                                                                  *
-// ********************************************************************
+// ********************************************************************/
 
-// object heaps, < operator comparisons
+  ///////////////////////////////////////////////////////////////////////////
+  /// In-place sorting variant of \ref sort(stream<T> *instream, stream<T> *outstream, tpie::progress_indicator_base* indicator=NULL),
+  /// see also \ref sortingspace_in_tpie "In-place Variants for Sorting in TPIE".
+  ///////////////////////////////////////////////////////////////////////////
 	template<class T>
 	err sort(stream<T> *instream, 
 		 progress_indicator_base* indicator=NULL) {
@@ -146,7 +274,10 @@ namespace tpie {
 	    return mySortManager.sort(instream, indicator);
 	}
 	
-// object heaps, comparison object comparisions
+	///////////////////////////////////////////////////////////////////////////
+	/// In-place sorting variant of \ref  sort(stream<T> *instream, stream<T> *outstream, CMPR *cmp, progress_indicator_base* indicator=NULL), 
+	/// see also \ref sortingspace_in_tpie "In-place Variants for Sorting in TPIE".
+	///////////////////////////////////////////////////////////////////////////
 	template<class T, class CMPR>
 	err sort(stream<T> *instream, 
 		 CMPR *cmp, progress_indicator_base* indicator=NULL) {
@@ -158,7 +289,10 @@ namespace tpie {
 	    return mySortManager.sort(instream, indicator);
 	}
 
-// ptr heaps, < operator comparisons
+  ///////////////////////////////////////////////////////////////////////////
+  /// In-place sorting variant of \ref ptr_sort(stream<T> *instream, stream<T> *outstream, progress_indicator_base* indicator=NULL),
+  /// see also \ref sortingspace_in_tpie "In-place Variants for Sorting in TPIE".
+  ///////////////////////////////////////////////////////////////////////////
 	template<class T>
 	err ptr_sort(stream<T> *instream, 
 		     progress_indicator_base* indicator=NULL) {
@@ -170,10 +304,14 @@ namespace tpie {
 	    return mySortManager.sort(instream, indicator);
 	}
 
-// ptr heaps, comparison object comparisions
+  ///////////////////////////////////////////////////////////////////////////
+  /// In-place sorting variant of \ref ptr_sort(stream<T> *instream, stream<T> *outstream, CMPR *cmp, progress_indicator_base* indicator=NULL),
+  /// see also \ref sortingspace_in_tpie "In-place Variants for Sorting in TPIE".
+  ///////////////////////////////////////////////////////////////////////////
 	template<class T, class CMPR>
 	err ptr_sort(stream<T> *instream, 
 		     CMPR *cmp, progress_indicator_base* indicator=NULL) {
+	  // ptr heaps, comparison object comparisions
 	    Internal_Sorter_Obj<T,CMPR> myInternalSorter(cmp);
 	    merge_heap_ptr_obj<T,CMPR> myMergeHeap(cmp);
 	    sort_manager< T, Internal_Sorter_Obj<T,CMPR>, merge_heap_ptr_obj<T,CMPR> > 
@@ -182,10 +320,14 @@ namespace tpie {
 	    return mySortManager.sort(instream, indicator);
 	}
 
-// key/object heaps, key/object comparisons 
+  ///////////////////////////////////////////////////////////////////////////
+  /// In-place sorting variant of \ref key_sort(stream<T> *instream, stream<T> *outstream, KEY dummykey, CMPR *cmp, progress_indicator_base* indicator=NULL),
+  /// see also \ref sortingspace_in_tpie "In-place Variants for Sorting in TPIE".
+  ///////////////////////////////////////////////////////////////////////////
 	template<class T, class KEY, class CMPR>
 	err  key_sort(stream<T> *instream, 
 		      KEY dummykey, CMPR *cmp, progress_indicator_base* indicator=NULL)	{
+	  // key/object heaps, key/object comparisons 
 	    Internal_Sorter_KObj<T,KEY,CMPR> myInternalSorter(cmp);
 	    merge_heap_kobj<T,KEY,CMPR>      myMergeHeap(cmp);
 	    sort_manager< T, Internal_Sorter_KObj<T,KEY,CMPR>, merge_heap_kobj<T,KEY,CMPR> > 
@@ -198,21 +340,5 @@ namespace tpie {
 
 }  //  tpie namespace
 
-/*
-  DEPRECATED: comparison function sorting
-  Earlier TPIE versions allowed a sort that used a C-style
-  comparison function to sort. However, comparison functions cannot be
-  inlined, so each comparison requires one function call. Given that the
-  comparison operator < and comparison object classes can be inlined and
-  have better performance while providing the exact same functionality,
-  comparison functions have been removed from TPIE. If you can provide us
-  with a compelling argument on why they should be in here, we may consider
-  adding them again, but you must demonstrate that comparision functions
-  can outperform other methods in at least some cases or give an example
-  were it is impossible to use a comparison operator or comparison object
-
-  Sincerely,
-  the management
-*/
 
 #endif // _AMI_SORT_H 
