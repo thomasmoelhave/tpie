@@ -1,14 +1,24 @@
-// Copyright (c) 1994 Darren Erik Vengroff
-//
-// File: logstream.h
-// Author: Darren Erik Vengroff <dev@cs.duke.edu>
-// Created: 5/12/94
-//
-// $Id: logstream.h,v 1.22 2005-11-17 17:11:25 jan Exp $
-//
-
 #ifndef _TPIE_LOGSTREAM_H
 #define _TPIE_LOGSTREAM_H
+///////////////////////////////////////////////////////////////////////////
+/// \file logstream.h 
+/// Provides stream definitions specifically for logging purposes in TPIE.
+/// \anchor logging \par logging in TPIE
+/// When logging is turned on, TPIE creates a log file TPLOG_XXXXXX, where 
+/// XXXXXX is a unique system dependent identifier.
+/// TPIE writes into this file using a logstream class, 
+/// which is derived from ofstream and has the additional functionality of
+/// setting a priority and a threshold for logging. If the priority of a message
+/// is below the threshold, the message is not logged. There are four priority
+/// levels defined in TPIE, see \ref log_level. 
+/// By default, the threshold of the log is set to the lowest level, 
+/// TP_LOG_WARNING. To change the threshold level, use LOG_SET_THRESHOLD().
+/// The threshold level can be reset as many times as needed in a program. 
+/// This enables the developer to focus the debugging eFFort on a certain part
+/// of the program. 
+///////////////////////////////////////////////////////////////////////////
+
+
 
 // Get definitions for working with Unix and Windows
 #include <tpie/portability.h>
@@ -17,23 +27,44 @@
 
 namespace tpie {
     
-// A macro for declaring output operators for log streams.
+/** A macro for declaring output operators for log streams. */
 #define _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(T) logstream& operator<<(T)
     
-// A log is like a regular output stream, but it also supports messages
-// at different priorities.  If a message's priority is at least as high
-// as the current priority threshold, then it appears in the log.  
-// Otherwise, it does not.  Lower numbers have higher priority; 0 is
-// the highest.  1 is the default if not 
-    
+    ///////////////////////////////////////////////////////////////////////////
+    /// A log is like a regular output stream, but it also supports messages
+    /// at different priorities, see \ref log_level.  If a message's priority is at least as high
+    /// as the current priority threshold, then it appears in the log.  
+    /// Otherwise, it does not.  Lower numbers have higher priority; 0 is
+    /// the highest.
+    /// \internal \todo document members
+    ///////////////////////////////////////////////////////////////////////////
     class logstream : public std::ofstream {
 	
     public:
+
+  ///////////////////////////////////////////////////////////////////////////
+  /// Flag signaling whether the log is initialized. 
+  ///////////////////////////////////////////////////////////////////////////
 	static bool log_initialized;
+
+  ///////////////////////////////////////////////////////////////////////////
+  /// Current priority, i.e. \ref log_level. 
+  ///////////////////////////////////////////////////////////////////////////
 	unsigned int priority;
+
+  ///////////////////////////////////////////////////////////////////////////
+  /// The current threshold level for \ref logging.
+  ///////////////////////////////////////////////////////////////////////////
 	unsigned int threshold;
-	
+
+  ///////////////////////////////////////////////////////////////////////////
+  /// Constructor.
+  ///////////////////////////////////////////////////////////////////////////
 	logstream(const std::string& fname, unsigned int p = 0, unsigned int tp = 0);
+
+  ///////////////////////////////////////////////////////////////////////////
+  /// Destructor.
+  ///////////////////////////////////////////////////////////////////////////
 	~logstream();
 	
 	// Output operators
@@ -52,24 +83,38 @@ namespace tpie {
     };
     
     
-// The logmanip template is based on the omanip template from iomanip.h 
-// in the libg++ sources.
-    
+    ///////////////////////////////////////////////////////////////////////////
+    /// The logmanip template is based on the omanip template from iomanip.h 
+    /// in the libg++ sources.
+    ///////////////////////////////////////////////////////////////////////////
     template <class TP> class logmanip {
 	logstream& (*_f)(logstream&, TP);
 	TP _a;
     public:
+  ///////////////////////////////////////////////////////////////////////////
+  /// Constructor.
+  ///////////////////////////////////////////////////////////////////////////
 	logmanip(logstream& (*f)(logstream&, TP), TP a) : _f(f), _a(a) {}
 	
-	friend logstream& operator<< (logstream& o, const logmanip<TP>& m) {
+  ///////////////////////////////////////////////////////////////////////////
+  /// Extracts a message from the logmanip object and inserting it into 
+  /// the logstream \p o.
+  ///////////////////////////////////////////////////////////////////////////
+  friend logstream& operator<< (logstream& o, const logmanip<TP>& m) {
 	    (*m._f)(o, m._a); 
 	    return o;
 	}
 	
+  ///////////////////////////////////////////////////////////////////////////
+  /// Copy constructor.
+  ///////////////////////////////////////////////////////////////////////////
 	logmanip(const logmanip<TP>& other) : _f(), _a() {
 	    *this = other;
 	}
 	
+  ///////////////////////////////////////////////////////////////////////////
+  /// Assigment operator.
+  ///////////////////////////////////////////////////////////////////////////
 	logmanip<TP>& operator=(const logmanip<TP>& other) {
 	    if (this != &other) {
 		_f = other._f;
@@ -80,8 +125,11 @@ namespace tpie {
     };
     
     logstream& manip_priority(logstream& tpl, unsigned long p);
+
     logmanip<unsigned long> setthreshold(unsigned long p);
+
     logstream& manip_threshold(logstream& tpl, unsigned long p);
+
     logmanip<unsigned long> setpriority(unsigned long p);
     
 }  //  tpie namespace

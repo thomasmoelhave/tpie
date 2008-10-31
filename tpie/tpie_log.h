@@ -1,39 +1,53 @@
-// Copyright (c) 1994 Darren Erik Vengroff
-//
-// File: tpie_log.h
-// Author: Darren Erik Vengroff <dev@cs.duke.edu>
-// Created: 5/12/94
-//
-// $Id: tpie_log.h,v 1.26 2005-11-08 17:21:02 adanner Exp $
-//
-
 #ifndef _TPIE_LOG_H
 #define _TPIE_LOG_H
+///////////////////////////////////////////////////////////////////////////
+/// \file tpie_log.h
+/// Provides \ref logging functionalities and log_level codes for different priorities of log messages.
+///////////////////////////////////////////////////////////////////////////
+
+
 
 namespace tpie {
 
-// Logging levels, from higest priority to lowest.
-    enum log_level {
-	LOG_FATAL = 0,	// Fatal errors are always logged no matter what;
-	LOG_WARNING,	// Warning about some internal condition;
-	LOG_APP_DEBUG,     // Debugging info for the application only;
-	LOG_DEBUG,		// Debugging info.
-	LOG_MEM_DEBUG		// Memory allocation de-allocation.
+
+///////////////////////////////////////////////////////////////////////////
+/// TPIE \ref logging levels, from higest priority to lowest.
+///////////////////////////////////////////////////////////////////////////
+enum log_level {
+    /** LOG_FATAL is the highest error level and is used for all kinds of errors
+     *  that would normally impair subsequent computations; LOG_FATAL errors are
+     *  always logged */
+    LOG_FATAL = 0,	
+    /** LOG_WARNING is the next lowest and is used for warnings. */
+    LOG_WARNING,	
+  	/** LOG_APP_DEBUG can be used by applications built on top of TPIE, for 
+  	 * logging debugging information. */ 
+  	LOG_APP_DEBUG,     
+  	/** LOG_DEBUG is the lowest level and is used by the TPIE library for 
+  	 * logging debugging information. */ 
+  	LOG_DEBUG,		
+  	/** Logging level for warnings concerning memory allocation and deallocation. */
+  	LOG_MEM_DEBUG
     };
-    
 }
 
 #include <tpie/logstream.h>
 
 namespace tpie {
 
-// The file name of the log stream.
+    ///////////////////////////////////////////////////////////////////////////
+    /// Returns the file name of the log stream.
+    ///////////////////////////////////////////////////////////////////////////
     std::string& tpie_log_name();
     
-// Returns the only logstream object. 
+    ///////////////////////////////////////////////////////////////////////////
+    /// Returns the only logstream object. 
+    ///////////////////////////////////////////////////////////////////////////
     logstream& tpie_log();
     
-// Initialize the log.
+    ///////////////////////////////////////////////////////////////////////////
+    /// Initializes the log.
+    ///////////////////////////////////////////////////////////////////////////
     void tpie_log_init(log_level level = LOG_WARNING);
     
 #if TPL_LOGGING		
