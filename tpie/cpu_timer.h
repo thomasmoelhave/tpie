@@ -1,16 +1,10 @@
-//
-// File: cpu_timer.h
-// Author: Darren Vengroff <darrenv@eecs.umich.edu>
-// Created: 1/11/95
-//
-// $Id: cpu_timer.h,v 1.8 2004-08-17 16:48:11 jan Exp $
-//
-// A timer measuring user time, system time and wall clock time.  The
-// timer can be start()'ed, stop()'ed, and queried. Querying can be
-// done without stopping the timer, to report intermediate values.
-//
 #ifndef _TPIE_CPU_TIMER_H
 #define _TPIE_CPU_TIMER_H
+
+///////////////////////////////////////////////////////////////////////////
+/// \file cpu_timer.h
+// Provides a timer measuring user time, system time and wall clock time.  
+///////////////////////////////////////////////////////////////////////////
 
 // Get definitions for working with Unix and Windows
 #include <tpie/portability.h>
@@ -20,6 +14,12 @@
 
 namespace tpie {
     
+    ///////////////////////////////////////////////////////////////////////////
+    /// A timer measuring user time, system time and wall clock time.  The
+    /// timer can be start()'ed, stop()'ed, and queried. Querying can be
+    /// done without stopping the timer, to report intermediate values.
+    /// \internal \ todo document!
+    ///////////////////////////////////////////////////////////////////////////
     class cpu_timer : public timer {
 
     private:

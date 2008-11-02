@@ -1,41 +1,51 @@
-//
-// File: mergeheap.h
-// 
-// $Id: mergeheap.h,v 1.18 2006-03-01 08:11:57 aveng Exp $	
-
-// This file contains several merge heap templates. 
-// Originally written by Rakesh Barve.  
-
-// The heap is basically the heap from CLR except that there is
-// provision to exploit the fact that when you are merging you know
-// you will be inserting a new element whenever you are doing a
-// delete_min.
-
-// Modified by David Hutchinson 2000 03 02
-
-//     - main purpose of the mods is to allow the merge heap to be
-//     part of a sort management object. The sort management object
-//     contains several procedures and data structures needed for
-//     sorting, but the precise versions of these procedures and data
-//     structures depend on the sorting approach used (this permits
-//     parameterization of the sorting procedure via the sort
-//     management object, and avoids having multiple versions of large
-//     pieces of code that are highly redundant and difficult to
-//     maintain).
-
-//     - move initialization from constructor to an explicit
-//     "initialize" member function
-
-//     - add a "comparison object" version of the merge heap
-//     object. This allows a comparison object with a "compare" member
-//     function to be specified for comparing keys. "Comparison
-//     operator" and "comparison function" versions previously
-//     existed.
-
-//     - add a set of two (comparison object, operator)
-//     versions of the merge heap that maintain pointers to the
-//     current records at the head of the streams being merged. The
-//     previous versions kept the entire corresponding record in the heap.
+///////////////////////////////////////////////////////////////////////////
+/// \file mergeheap.h
+/// This file contains several merge heap templates. 
+/// Originally written by Rakesh Barve.  
+///
+/// The heap is basically the heap from CLR except that there is
+/// provision to exploit the fact that when you are merging you know
+/// you will be inserting a new element whenever you are doing a
+/// delete_min.
+///
+/// Modified by David Hutchinson 2000 03 02
+///
+///     - main purpose of the mods is to allow the merge heap to be
+///     part of a sort management object. The sort management object
+///     contains several procedures and data structures needed for
+///     sorting, but the precise versions of these procedures and data
+///     structures depend on the sorting approach used (this permits
+///     parameterization of the sorting procedure via the sort
+///     management object, and avoids having multiple versions of large
+///     pieces of code that are highly redundant and difficult to
+///     maintain).
+///
+///     - move initialization from constructor to an explicit
+///     "initialize" member function
+///
+///     - add a "comparison object" version of the merge heap
+///     object. This allows a comparison object with a "compare" member
+///     function to be specified for comparing keys. "Comparison
+///     operator" and "comparison function" versions previously
+///     existed.
+///
+///     - add a set of two (comparison object, operator)
+///     versions of the merge heap that maintain pointers to the
+///     current records at the head of the streams being merged. The
+///     previous versions kept the entire corresponding record in the heap.
+/// \deprecated 
+///  Additional to the still valid functionality in this file, 
+///  earlier TPIE versions allowed a heap that uses C-style
+///  comparison functions. However, comparison functions cannot be
+///  inlined, so each comparison requires one function call. Given that the
+///  comparison operator < and comparison object classes can be inlined and
+///  have better performance while providing the exact same functionality,
+///  comparison functions have been removed from TPIE. If you can provide us
+///  with a compelling argument on why they should be in here, we may consider
+///  adding them again, but you must demonstrate that comparision functions
+///  can outperform other methods in at least some cases or give an example
+///  were it is impossible to use a comparison operator or comparison object
+///////////////////////////////////////////////////////////////////////////
 
 #ifndef _MERGE_HEAP_H
 #define _MERGE_HEAP_H
@@ -52,9 +62,10 @@ namespace tpie {
 
     namespace ami {
 	
-// This is a heap element. Encapsulates the key, along with
-// the label run_id indicating the run the key originates from.
-	
+  ///////////////////////////////////////////////////////////////////////////
+  /// This is a heap element. Encapsulates the key, along with
+  /// the label run_id indicating the run the key originates from.
+  ///////////////////////////////////////////////////////////////////////////
 	template<class KEY>
 	class heap_element {
 	public:
@@ -71,11 +82,11 @@ namespace tpie {
 namespace tpie {
 
     namespace ami {
-
-// This is a record pointer element. Encapsulates the record pointer,
-// along with the label run_id indicating the run the record
-// originates from.
-	
+  ///////////////////////////////////////////////////////////////////////////
+  /// This is a record pointer element. Encapsulates the record pointer,
+  /// along with the label run_id indicating the run the record
+  /// originates from.
+  ///////////////////////////////////////////////////////////////////////////
 	template<class REC>
 	class heap_ptr {
 	public:
@@ -105,11 +116,10 @@ namespace tpie {
 
     namespace ami {
 	
-// ********************************************************************
-// * A record pointer heap base class - also serves as the full       *
-// * implementation for objects with a < comparison operator         *
-// ********************************************************************
-	
+  ///////////////////////////////////////////////////////////////////////////
+  /// A record pointer heap base class - also serves as the full
+  /// implementation for objects with a < comparison operator.
+  ///////////////////////////////////////////////////////////////////////////
 	template<class REC>
 	class merge_heap_ptr_op{
 	    
@@ -121,19 +131,29 @@ namespace tpie {
 	    
 	    inline void Exchange(TPIE_OS_SIZE_T i, TPIE_OS_SIZE_T j); 
 	    
-	    //These functions will typically be overridden by subclasses
+	    ///////////////////////////////////////////////////////////////////////////
+	    /// These functions will typically be overridden by subclasses/
+	    ///////////////////////////////////////////////////////////////////////////
 	    inline TPIE_OS_SIZE_T get_smallest(TPIE_OS_SIZE_T i);
 	    inline void Heapify(TPIE_OS_SIZE_T i);
 	    
 	public:
 	    
-	    // Constructor/Destructor 
+  	  ///////////////////////////////////////////////////////////////////////////
+  	  /// Constructor/
+  	  ///////////////////////////////////////////////////////////////////////////
 	    merge_heap_ptr_op() : Heaparray(NULL), Heapsize(0), maxHeapsize(0) {};
 	    
+      ///////////////////////////////////////////////////////////////////////////
+      /// Copy Constructor.
+      ///////////////////////////////////////////////////////////////////////////
 	    merge_heap_ptr_op(const merge_heap_ptr_op<REC>& other) {
 	*this = other;
 	    }
 	    
+      ///////////////////////////////////////////////////////////////////////////
+      /// Destructor.
+      ///////////////////////////////////////////////////////////////////////////
 	    ~merge_heap_ptr_op() { 
 		//Cleanup if someone forgot de-allocate
 		if(Heaparray != NULL){
@@ -141,6 +161,9 @@ namespace tpie {
 		}
 	    }
 
+      ///////////////////////////////////////////////////////////////////////////
+      /// Assignment operator.
+      ///////////////////////////////////////////////////////////////////////////
 	    merge_heap_ptr_op& operator=(const merge_heap_ptr_op<REC>& other) {
 		if (this != &other) {
 		    Heapsize    = other.Heapsize;
@@ -158,33 +181,62 @@ namespace tpie {
 		return *this;
 	    }
 	    
-	    // Report size of Heap (number of elements)
+	    ///////////////////////////////////////////////////////////////////////////
+	    /// Reports the size of Heap (number of elements).
+	    ///////////////////////////////////////////////////////////////////////////
 	    TPIE_OS_SIZE_T sizeofheap(void) {
 		return Heapsize;
 	    }; 
 
-	    // Return the run with the minimum key.
+	    ///////////////////////////////////////////////////////////////////////////
+	    /// Returns the run with the minimum key.
+	    ///////////////////////////////////////////////////////////////////////////
 	    inline TPIE_OS_SIZE_T get_min_run_id(void) {
 		return Heaparray[1].run_id;
 	    };
 	    
+	    ///////////////////////////////////////////////////////////////////////////
+	    /// Allocates space for the heap.
+	    ///////////////////////////////////////////////////////////////////////////
 	    void allocate   (TPIE_OS_SIZE_T size);
+
+	    ///////////////////////////////////////////////////////////////////////////
+	     /// Copies an (initial) element into the heap array.
+	     ///////////////////////////////////////////////////////////////////////////
 	    void insert     (REC *ptr, TPIE_OS_SIZE_T run_id);
+	    
+	    ///////////////////////////////////////////////////////////////////////////
+	    /// Extracts minimum element from heap array.
+	    /// If you follow this with an immediate insert, consider using
+	    /// delete_min_and_insert().
+	    ///////////////////////////////////////////////////////////////////////////
 	    void extract_min(REC& el, TPIE_OS_SIZE_T& run_id);
+
+	    ///////////////////////////////////////////////////////////////////////////
+	    /// Deallocates the space used by the heap.
+	    ///////////////////////////////////////////////////////////////////////////
 	    void deallocate (void);
 	    
-	    // heapify's an initial array of elements
-	    // typically overridden in sub class. 
+	    ///////////////////////////////////////////////////////////////////////////
+	    /// Heapifies an initial array of elements;
+	    /// typically overridden in sub class. 
+	    ///////////////////////////////////////////////////////////////////////////
 	    void initialize (void);
 	    
-	    // Delete the current minimum and insert the new item from the same
+	    ///////////////////////////////////////////////////////////////////////////
+	    // Deletes the current minimum and inserts the new item from the same
 	    // source / run.
+	    ///////////////////////////////////////////////////////////////////////////
 	    inline void delete_min_and_insert(REC *nextelement_same_run);
 	    
-	    // Return main memory space usage per item
+	    ///////////////////////////////////////////////////////////////////////////
+	    /// Returns the main memory space usage per item.
+	    ///////////////////////////////////////////////////////////////////////////
 	    inline TPIE_OS_SIZE_T space_per_item(void) { return sizeof(heap_ptr<REC>); }
 	    
-	    // Return fixed main memory space overhead, regardless of item count
+	    ///////////////////////////////////////////////////////////////////////////
+	    /// Returns the fixed main memory space overhead, regardless of item count.
+	    ///////////////////////////////////////////////////////////////////////////
 	    inline TPIE_OS_SIZE_T space_overhead(void) { 
 		// One extra array item is defined to make heap indexing easier
 		return sizeof(heap_ptr<REC>)+MM_manager.space_overhead();
@@ -206,8 +258,10 @@ namespace tpie {
 	    Heaparray[j].run_id = tmpid;
 	}
 	
-//Returns the index of the smallest element out of
-//i, the left child of i, and the right child of i
+	///////////////////////////////////////////////////////////////////////////
+	/// Returns the index of the smallest element out of
+	/// \p i, the left child of \p i, and the right child of \p i.
+	///////////////////////////////////////////////////////////////////////////
 	template<class REC>
 	inline TPIE_OS_SIZE_T merge_heap_ptr_op<REC>::get_smallest(
 	    TPIE_OS_SIZE_T i)
@@ -226,8 +280,10 @@ namespace tpie {
 	    return smallest;
 	}
 	
-// This is the primary function; note that we have unfolded the 
-// recursion.
+	///////////////////////////////////////////////////////////////////////////
+	/// This is the primary heapify function; note that we have unfolded the 
+	/// recursion.
+	///////////////////////////////////////////////////////////////////////////
 	template<class REC>
 	inline void merge_heap_ptr_op<REC>::Heapify(TPIE_OS_SIZE_T i) {
 	    
@@ -254,9 +310,6 @@ namespace tpie {
 	    Heapify(1);
 	}
 	
-// Extract minimum element from heap array
-// If you follow this with an immediate insert, consider using
-// delete_min_and_insert
 	template<class REC>
 	inline void merge_heap_ptr_op<REC>::extract_min(REC& el, TPIE_OS_SIZE_T& run_id)
 	{
@@ -266,7 +319,6 @@ namespace tpie {
 	    Heapify(1);
 	}
 	
-// Allocate space for the heap
 	template<class REC>
 	inline void merge_heap_ptr_op<REC>::allocate ( TPIE_OS_SIZE_T size ) {
 	    Heaparray = new heap_ptr<REC> [size+1];
@@ -274,7 +326,6 @@ namespace tpie {
 	    maxHeapsize = size;
 	}
 	
-// Copy an (initial) element into the heap array
 	template<class REC>
 	inline void merge_heap_ptr_op<REC>::insert (REC *ptr, TPIE_OS_SIZE_T run_id)
 	{
@@ -283,9 +334,8 @@ namespace tpie {
 	    Heapsize++;
 	}
 	
-// Deallocate the space used by the heap
 	template<class REC>
-	inline void merge_heap_ptr_op<REC>::deallocate () {
+  inline void merge_heap_ptr_op<REC>::deallocate () {
 	    if (Heaparray){
 		delete [] Heaparray; 
 		Heaparray=NULL;
@@ -308,10 +358,10 @@ namespace tpie {
 namespace tpie {
 
     namespace ami {
-// ********************************************************************
-// * A record pointer heap that uses a comparison object              *
-// ********************************************************************
-	
+
+  ///////////////////////////////////////////////////////////////////////////
+  /// A record pointer heap that uses a comparison object
+  ///////////////////////////////////////////////////////////////////////////
 	template<class REC, class CMPR>
 	class merge_heap_ptr_obj: public merge_heap_ptr_op<REC>{
 	    
@@ -328,18 +378,27 @@ namespace tpie {
 	public:
 	    using merge_heap_ptr_op<REC>::sizeofheap;
 	    
-	    // Constructor initializes a pointer to the user's comparison object
-	    // The object may contain dynamic data although the 'compare' method is const
-	    // and therefore inline'able.
+	    ///////////////////////////////////////////////////////////////////////////
+	    /// Constructor; initializes a pointer to the user's comparison object.
+	    /// The object may contain dynamic data although the 'compare' method is const
+	    /// and therefore inline'able.
+	    ///////////////////////////////////////////////////////////////////////////
 	    merge_heap_ptr_obj ( CMPR *cmptr ) : cmp(cmptr) {};
 	    ~merge_heap_ptr_obj(){};
 	    
+      ///////////////////////////////////////////////////////////////////////////
+      /// Extracts minimum element from heap array.
+      /// If you follow this with an immediate insert, consider using
+      /// delete_min_and_insert().
+      ///////////////////////////////////////////////////////////////////////////
 	    void extract_min(REC& el, TPIE_OS_SIZE_T& run_id);
 	    
 	    void initialize (void);
   
-	    // Delete the current minimum and insert the new item from the same
-	    // source / run.
+	    ///////////////////////////////////////////////////////////////////////////
+	    /// Deletes the current minimum and inserts the new item from the same
+	    /// source / run.
+	    ///////////////////////////////////////////////////////////////////////////
 	    inline void delete_min_and_insert(REC *nextelement_same_run);
 
 	private:
@@ -348,8 +407,10 @@ namespace tpie {
 	    merge_heap_ptr_obj<REC,CMPR>& operator=(const merge_heap_ptr_obj<REC,CMPR>& other);
 	};
 	
-//Returns the index of the smallest element out of
-//i, the left child of i, and the right child of i
+	///////////////////////////////////////////////////////////////////////////
+	/// Returns the index of the smallest element out of
+	/// \p i, the left child of \p i, and the right child of \p i.
+	///////////////////////////////////////////////////////////////////////////
 	template<class REC, class CMPR>
 	inline TPIE_OS_SIZE_T merge_heap_ptr_obj<REC,CMPR>::get_smallest(
 	    TPIE_OS_SIZE_T i)
@@ -393,9 +454,11 @@ namespace tpie {
 	    Heapify(1);
 	}
 	
-// Extract minimum element from heap array
-// If you follow this with an immediate insert, consider using
-// delete_min_and_insert
+	///////////////////////////////////////////////////////////////////////////
+  /// Extracts the minimum element from heap array.
+  /// If you follow this with an immediate insert, consider using
+  /// delete_min_and_insert().
+	///////////////////////////////////////////////////////////////////////////
 	template<class REC, class CMPR>
 	inline void merge_heap_ptr_obj<REC, CMPR>::extract_min
 	(REC& el, TPIE_OS_SIZE_T& run_id)
@@ -422,11 +485,10 @@ namespace tpie {
 
     namespace ami {
 	
-// ********************************************************************
-// * A merge heap object base class - also serves as the full         *
-// * implementation for objects with a < comparison operator          *
-// ********************************************************************
-	
+  ///////////////////////////////////////////////////////////////////////////
+  /// A merge heap object base class - also serves as the full
+  /// implementation for objects with a < comparison operator
+  ///////////////////////////////////////////////////////////////////////////
 	template<class REC>
 	class merge_heap_op{
 	    
@@ -438,20 +500,30 @@ namespace tpie {
 	    
 	    inline void Exchange(TPIE_OS_SIZE_T i, TPIE_OS_SIZE_T j); 
 	    inline void Heapify(TPIE_OS_SIZE_T i);
-	    //This function will typically be overridden by subclasses
+	    ///////////////////////////////////////////////////////////////////////////
+	    /// This function will typically be overridden by subclasses.
+	    ///////////////////////////////////////////////////////////////////////////
 	    inline TPIE_OS_SIZE_T get_smallest(TPIE_OS_SIZE_T i);
 	    
 	public:
 	    
-	    // Constructor/Destructor 
+	    ///////////////////////////////////////////////////////////////////////////
+	    /// Constructor.
+	    ///////////////////////////////////////////////////////////////////////////
 	    merge_heap_op() : Heaparray(NULL), Heapsize(0), maxHeapsize(0) {
 		// Do nothing.
 	    };
 	    
+      ///////////////////////////////////////////////////////////////////////////
+      /// Copy Constructor.
+      ///////////////////////////////////////////////////////////////////////////
 	    merge_heap_op(const merge_heap_op& other) {
 		*this = other;
 	    }
 	    
+      ///////////////////////////////////////////////////////////////////////////
+      /// Destructor.
+      ///////////////////////////////////////////////////////////////////////////
 	    ~merge_heap_op() { 
 		//Cleanup if someone forgot de-allocate
 		if(Heaparray != NULL){
@@ -459,6 +531,9 @@ namespace tpie {
 		}
 	    }
 	    
+      ///////////////////////////////////////////////////////////////////////////
+      /// Assignment operator.
+      ///////////////////////////////////////////////////////////////////////////
 	    merge_heap_op& operator=(const merge_heap_op& other) {
 		if (this != &other) {
 		    Heapsize    = other.Heapsize;
@@ -476,34 +551,63 @@ namespace tpie {
 		return *this;
 	    }
 	    
-	    // Report size of Heap (number of elements)
+	    ///////////////////////////////////////////////////////////////////////////
+	    /// Reports the  size of Heap (number of elements).
+	    ///////////////////////////////////////////////////////////////////////////
 	    TPIE_OS_SIZE_T sizeofheap(void) {
 		return Heapsize;
 	    }; 
 	    
-	    // Return the run with the minimum key.
+	    ///////////////////////////////////////////////////////////////////////////
+	    /// Returns the run with the minimum key.
+	    ///////////////////////////////////////////////////////////////////////////
 	    inline TPIE_OS_SIZE_T get_min_run_id(void) {
 		return Heaparray[1].run_id;
 	    };
 	    
+	    ///////////////////////////////////////////////////////////////////////////
+	    /// Allocates space for the heap.
+	    ///////////////////////////////////////////////////////////////////////////
 	    void allocate   (TPIE_OS_SIZE_T size);
-	    void insert     (REC *ptr, TPIE_OS_SIZE_T run_id);
+
+	    ///////////////////////////////////////////////////////////////////////////
+      /// Copies an (initial) element into the heap array/
+      ///////////////////////////////////////////////////////////////////////////
+      void insert     (REC *ptr, TPIE_OS_SIZE_T run_id);
+
+	    ///////////////////////////////////////////////////////////////////////////
+      /// Extracts minimum element from heap array.
+      /// If you follow this with an immediate insert, consider using
+      /// delete_min_and_insert().
+      ///////////////////////////////////////////////////////////////////////////
 	    void extract_min(REC& el, TPIE_OS_SIZE_T& run_id);
+
+	    ///////////////////////////////////////////////////////////////////////////
+	    /// Deallocates the space used by the heap.
+	    ///////////////////////////////////////////////////////////////////////////
 	    void deallocate (void);
 	    
-	    // heapify's an initial array of elements
+	    ///////////////////////////////////////////////////////////////////////////
+	    /// Heapifies an initial array of elements.
+	    ///////////////////////////////////////////////////////////////////////////
 	    void initialize (void);
 	    
-	    // Delete the current minimum and insert the new item from the same
+	    ///////////////////////////////////////////////////////////////////////////
+	    // Deletes the current minimum and inserts the new item from the same
 	    // source / run.
+	    ///////////////////////////////////////////////////////////////////////////
 	    inline void delete_min_and_insert(REC *nextelement_same_run);
 	    
-	    // Return main memory space usage per item
+	    ///////////////////////////////////////////////////////////////////////////
+	    /// Returns the  main memory space usage per item
+	    ///////////////////////////////////////////////////////////////////////////
 	    inline TPIE_OS_SIZE_T space_per_item(void) {
 		return sizeof(heap_element<REC>);
 	    }
 	    
-	    // Return fixed main memory space overhead, regardless of item count
+	    ///////////////////////////////////////////////////////////////////////////
+	    /// Returns the  fixed main memory space overhead, regardless of item count.
+	    ///////////////////////////////////////////////////////////////////////////
 	    inline TPIE_OS_SIZE_T space_overhead(void) { 
 		// One extra array item is defined to make heap indexing easier
 		return sizeof(heap_element<REC>)+MM_manager.space_overhead();
@@ -1018,18 +1122,6 @@ namespace tpie {
 #undef Right
 #undef Parent
 
-/*
-   DEPRECATED: comparision function heaps
-   Earlier TPIE versions allowed a heap that uses C-style
-   comparison functions. However, comparison functions cannot be
-   inlined, so each comparison requires one function call. Given that the
-   comparison operator < and comparison object classes can be inlined and
-   have better performance while providing the exact same functionality,
-   comparison functions have been removed from TPIE. If you can provide us
-   with a compelling argument on why they should be in here, we may consider
-   adding them again, but you must demonstrate that comparision functions
-   can outperform other methods in at least some cases or give an example
-   were it is impossible to use a comparison operator or comparison object
-*/
+
 
 #endif // _MERGE_HEAP_H

@@ -1,12 +1,7 @@
-// Copyright (C) 2001 Octavian Procopiuc
-//
-// File:    ami_kdtree.h
-// Author:  Octavian Procopiuc <tavi@cs.duke.edu>
-//
-// Blocked kd-tree definition and implementation.
-//
-// $Id: ami_kdtree.h,v 1.19 2005-02-12 20:27:36 tavi Exp $
-//
+///////////////////////////////////////////////////////////////////////////
+/// \file kdtree.h
+/// Providese definition and implementation of a blocked kd-tree.
+///////////////////////////////////////////////////////////////////////////
 
 #ifndef _AMI_KDTREE_H
 #define _AMI_KDTREE_H
@@ -45,7 +40,7 @@
 template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL> class AMI_kdtree_leaf;
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL> class AMI_kdtree_node;
 
-// A global object storing the default parameter values.
+/** A global object storing the default parameter values. */
 const AMI_kdtree_params _AMI_kdtree_params_default = AMI_kdtree_params();
 
 #define AMI_KDTREE_HEADER_MAGIC_NUMBER 0xA9420E
@@ -54,7 +49,9 @@ const AMI_kdtree_params _AMI_kdtree_params_default = AMI_kdtree_params();
 //  (LOG_APP_DEBUG(msg),LOG_FLUSH_LOG)
 
 
-// The AMI_kdtree class.
+///////////////////////////////////////////////////////////////////////////
+// The kdtree class.
+///////////////////////////////////////////////////////////////////////////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node=AMI_kdtree_bin_node_default<coord_t, dim>, class BTECOLL = BTE_COLLECTION >
 class AMI_kdtree {
 public:
@@ -67,100 +64,157 @@ public:
   typedef AMI_kdtree_node<coord_t, dim, Bin_node, BTECOLL> node_t;
   typedef AMI_kdtree_leaf<coord_t, dim, BTECOLL> leaf_t;
 
-  // Constructor.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Constructor.
+  ///////////////////////////////////////////////////////////////////////////
   AMI_kdtree(const AMI_kdtree_params& params = _AMI_kdtree_params_default);
 
-  // Constructor. Open/create a new kdtree with the given name, type
-  // and parameters.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Constructor; opens/creates a new kdtree with the given name, type
+  /// and parameters.
+  /// \deprecated Use \ref AMI_kdtree(const string& base_file_name, AMI_collection_type type = AMI_WRITE_COLLECTION, const AMI_kdtree_params& params = _AMI_kdtree_params_default).
+  ///////////////////////////////////////////////////////////////////////////
   AMI_kdtree(const char* base_file_name, 
 	     AMI_collection_type type = AMI_WRITE_COLLECTION,
 	     const AMI_kdtree_params& params = _AMI_kdtree_params_default);
 
+  ///////////////////////////////////////////////////////////////////////////
+  /// Constructor; opens/creates a new kdtree with the given name, type
+  /// and parameters.
+  ///////////////////////////////////////////////////////////////////////////
   AMI_kdtree(const string& base_file_name,
 	     AMI_collection_type type = AMI_WRITE_COLLECTION, 
 	     const AMI_kdtree_params& params = _AMI_kdtree_params_default);
 
-  // Sort in_stream on each of the dim coordinates and store the
-  // sorted streams in the given array. If out_streams[i] is NULL, a
-  // new temporary stream is created.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Sorts \p in_stream on each of the dim coordinates and stores the
+  /// sorted streams in the given array. If \p out_streams[i] is \p NULL, a
+  /// new temporary stream is created.
+  ///////////////////////////////////////////////////////////////////////////
   AMI_err sort(stream_t* in_stream, stream_t* out_streams[]);
 
-  // Bulk load a kd-tree from the stream of points set during
-  // construction.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Bulk loads a kd-tree from the stream of points set during
+  /// construction.
+  ///////////////////////////////////////////////////////////////////////////
   AMI_err load_sorted(stream_t* streams_s[],
 		      float lfill = 0.75, float nfill = 0.75,
 		      int load_method = AMI_KDTREE_LOAD_SORT | AMI_KDTREE_LOAD_GRID);
 
-  // A shortcut for sort+load_sorted.
+  ///////////////////////////////////////////////////////////////////////////
+  /// A shortcut for calling sort() followed by load_sorted().
+  ///////////////////////////////////////////////////////////////////////////
   AMI_err load(stream_t* in_stream, 
 	       float lfill = 0.75, float nfill = 0.75,
 	       int load_method = AMI_KDTREE_LOAD_SORT | AMI_KDTREE_LOAD_GRID);
 
-  // Bulk load using sampling, thus avoiding the sorting step.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Bulk load using sampling, thus avoiding the sorting step.
+  ///////////////////////////////////////////////////////////////////////////
   AMI_err load_sample(stream_t* in_stream);
 
-  // Write all points stored in the tree to the given stream. No
-  // changes are made to the tree.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Writes all points stored in the tree to the given stream. No
+  /// changes are made to the tree.
+  ///////////////////////////////////////////////////////////////////////////
   AMI_err unload(stream_t* s);
 
-  // Report the k nearest neighbors of point p.
+  ///////////////////////////////////////////////////////////////////////////
+  // Reports the \p k nearest neighbors of point \p p.
+  ///////////////////////////////////////////////////////////////////////////
   TPIE_OS_OFFSET k_nn_query(const point_t &p, stream_t* stream, TPIE_OS_OFFSET k);
 
-  // Report all points inside the window determined by p1 and p2. If
-  // stream is NULL, only *count* the points inside the window. NB:
-  // Counting is much faster than reporting, because (a) no points are
-  // written out, and (b) the weights of nodes and leaves are used to
-  // speed up the search.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Reports all points inside the window determined by \p p1 and \p p2. If
+  /// \p stream is \p NULL, only *count* the points inside the window. NB:
+  /// Note that counting is much faster than reporting, because (a) no points are
+  /// written out, and (b) the weights of nodes and leaves are used to
+  /// speed up the search.
+  ///////////////////////////////////////////////////////////////////////////
   TPIE_OS_OFFSET window_query(const point_t& p1, const point_t& p2, stream_t* stream);
 
-  // Find a point. Return true if found, false otherwise.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Finds a point within the tree; returns true if found, false otherwise.
+  ///////////////////////////////////////////////////////////////////////////
   bool find(const point_t& p);
 
-  // (Try to) insert a point. Return true if successful.
+  ///////////////////////////////////////////////////////////////////////////
+  /// (Tries to) insert a point. Return true if successful.
+  ///////////////////////////////////////////////////////////////////////////
   bool insert(const point_t& p);
 
-  // Delete a point. Return true if found and deleted. No tree
-  // reorganizaton is performed. Leaves with no points are kept in the
-  // tree (to insure correctness of leaves' threading).
+  ///////////////////////////////////////////////////////////////////////////
+  /// Deletes a point. Returns true if found and deleted. No tree
+  /// reorganizaton is performed. Leaves with no points are kept in the
+  /// tree (to insure correctness of leaves' threading).
+  ///////////////////////////////////////////////////////////////////////////
   bool erase(const point_t& p);
 
-  // Return the number of points stored in the tree.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Return the number of points stored in the tree.
+  ///////////////////////////////////////////////////////////////////////////
   TPIE_OS_OFFSET size() const { return header_.size; }
 
-  // Set the persistence. It passes per along to the two block
-  // collections.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Sets the persistence. It passes per along to the two block
+  /// collections.
+  ///////////////////////////////////////////////////////////////////////////
   void persist(persistence per);
 
-  // Inquire the (real) parameters.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Inquires the (real) parameters.
+  ///////////////////////////////////////////////////////////////////////////
   const AMI_kdtree_params& params() const { return params_; }
 
-  // Inquire the status.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Inquire the status.
+  ///////////////////////////////////////////////////////////////////////////
   AMI_kdtree_status status() const { return status_; };
 
-  // Inquire the mbr_lo point.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Inquires the \ref mbr_lo point.
+  ///////////////////////////////////////////////////////////////////////////
   point_t mbr_lo() const { return header_.mbr_lo; }
 
-  // Inquire the mbr_hi point.
+  ///////////////////////////////////////////////////////////////////////////
+  // Inquires the \ref mbr_hi point.
+  ///////////////////////////////////////////////////////////////////////////
   point_t mbr_hi() const { return header_.mbr_hi; }
 
-  // Inquire the statistics.
+  ///////////////////////////////////////////////////////////////////////////
+  // Inquires the statistics.
+  ///////////////////////////////////////////////////////////////////////////
   const tpie_stats_tree &stats();
 
-  // Print out some stuff about the tree structure. For debugging
-  // purposes only.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Prints out some stuff about the tree structure. For debugging
+  /// purposes only.
+  ///////////////////////////////////////////////////////////////////////////
   void print(std::ostream& s);
-  // Print the BINARY kd-tree indented.
+
+  ///////////////////////////////////////////////////////////////////////////
+  /// Prints the BINARY kd-tree indented.
+  ///////////////////////////////////////////////////////////////////////////
   void print(std::ostream& s, bool print_mbr, bool print_level, char indent_char = ' ');
 
-  // Inquire the base path name.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Inquires the base path name.
+  ///////////////////////////////////////////////////////////////////////////
   const string& name() const { return name_; }
 
-  // Destructor.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Destructor.
+  ///////////////////////////////////////////////////////////////////////////
   ~AMI_kdtree();
 
-  // Inquire the number of Bin_node's.
+  ///////////////////////////////////////////////////////////////////////////
+  // Inquires the number of Bin_node's.
+  ///////////////////////////////////////////////////////////////////////////
   TPIE_OS_OFFSET bin_node_count() const { return bin_node_count_; }
 
+  ///////////////////////////////////////////////////////////////////////////
+  /// Metainformation about the tree.
+  ///////////////////////////////////////////////////////////////////////////
   class header_t {
   public:
     unsigned int magic_number;
@@ -186,12 +240,17 @@ public:
 
 protected:
 
-  // Function object for the node cache write out.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Function object for the node cache write out.
+  ///////////////////////////////////////////////////////////////////////////
   class remove_node {
   public:
     void operator()(node_t* p) { delete p; }
   };
-  // Function object for the leaf cache write out.
+
+  ///////////////////////////////////////////////////////////////////////////
+  /// Function object for the leaf cache write out.
+  ///////////////////////////////////////////////////////////////////////////
   class remove_leaf { 
   public:
     void operator()(leaf_t* p) { delete p; }
@@ -200,53 +259,55 @@ protected:
   typedef AMI_CACHE_MANAGER<node_t*, remove_node> node_cache_t;
   typedef AMI_CACHE_MANAGER<leaf_t*, remove_leaf> leaf_cache_t;
 
-  // The node cache.
+  /** The node cache. */
   node_cache_t* node_cache_;
-  // The leaf cache.
+  /** The leaf cache. */
   leaf_cache_t* leaf_cache_;
 
-  // The collection storing the leaves.
+  /** The collection storing the leaves. */
   collection_t* pcoll_leaves_;
 
-  // The collection storing the internal nodes (could be the same).
+  /** The collection storing the internal nodes (could be the same). */
   collection_t* pcoll_nodes_;
 
-  // Critical information: root bid and type, mbr, size (will be
-  // stored into the header of the nodes collection).
+  /** Critical information: root bid and type, mbr, size (will be
+   * stored into the header of the nodes collection). */
   header_t header_;
 
-  // This points to the first leaf in the order given by the next
-  // pointers stored in leaves. Used by unload to start the leaf
-  // traversal.
+  /** This points to the first leaf in the order given by the next
+   * pointers stored in leaves. Used by unload to start the leaf
+   * traversal. */
   AMI_bid first_leaf_id_;
 
   leaf_t* previous_leaf_;
 
-  // The status.
+  /** The status. */
   AMI_kdtree_status status_;
 
-  // Run-time parameters.
+  /** Run-time parameters. */
   AMI_kdtree_params params_;
 
-  // One comparison object for each dimension.
+  /** One comparison object for each dimension. */
   typename point_t::cmp* comp_obj_[dim];
 
-  // Statistics object.
+  /** Statistics object. */
   tpie_stats_tree stats_;
 
-  // The total number of bin nodes.
+  /** The total number of bin nodes. */
   TPIE_OS_OFFSET bin_node_count_;
 
-  // Base path name.
+  /** Base path name. */
   string name_;
 
-  // Various initialization common to all constructors.
+  /** Various initialization common to all constructors. */
   void shared_init(const char* base_file_name, AMI_collection_type type);
 
   TPIE_OS_OFFSET real_median(TPIE_OS_OFFSET sz) { return (sz - 1) / 2; }
   TPIE_OS_SIZE_T real_median(TPIE_OS_SIZE_T sz) { return (sz - 1) / 2; }
 
-  // Return the position of the median point.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Returns the position of the median point.
+  ///////////////////////////////////////////////////////////////////////////
   TPIE_OS_OFFSET median(TPIE_OS_OFFSET sz) {
 #if AMI_KDTREE_USE_REAL_MEDIAN
     return real_median(sz);
@@ -259,7 +320,9 @@ protected:
 #endif
   }
 
-  // Return the position of the median point.
+  ///////////////////////////////////////////////////////////////////////////
+  // Returns the position of the median point.
+  ///////////////////////////////////////////////////////////////////////////
   TPIE_OS_SIZE_T median(TPIE_OS_SIZE_T sz) {
 #if AMI_KDTREE_USE_REAL_MEDIAN
     return real_median(sz);
@@ -278,38 +341,45 @@ protected:
 	    params_.max_intranode_height);
   }
 
-  // Used during binary bulk loading to pass parameters in the recursion.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Used during binary bulk loading to pass parameters in the recursion.
+  ///////////////////////////////////////////////////////////////////////////
   class bn_context {
   public:
     bn_context() {}
     bn_context(TPIE_OS_SIZE_T _i, TPIE_OS_SIZE_T _h, TPIE_OS_SIZE_T _d): 
       i(_i), h(_h), d(_d) {}
-    TPIE_OS_SIZE_T i; // the index of the current bin node.
-    TPIE_OS_SIZE_T h; // the depth (height) of the current bin node.
-    TPIE_OS_SIZE_T d; // the split dimension of the current bin node.
+    /** the index of the current bin node. */
+    TPIE_OS_SIZE_T i; 
+    /** the depth (height) of the current bin node. */
+    TPIE_OS_SIZE_T h; 
+    /** the split dimension of the current bin node. */ 
+    TPIE_OS_SIZE_T d; 
   };
 
   // Forward reference.
   class grid;
 
-  // The grid matrix containing the cell counts of a sub-grid.
+  ///////////////////////////////////////////////////////////////////////////
+  /// The grid matrix containing the cell counts of a sub-grid.
+  ///////////////////////////////////////////////////////////////////////////
   class grid_matrix {
   public:
-    // The grid to which this matrix refers to. 
+    /** The grid to which this matrix refers to. */ 
     grid* g;
-    // The number of strips in g spanned by this sub-grid.
+    /** The number of strips in g spanned by this sub-grid. */
     TPIE_OS_SIZE_T gt[dim];
-    // The coordinates of the grid lines relative to g. The real
-    // coordinates: g->l[i][gl[i]]
+    /** The coordinates of the grid lines relative to g. The real
+     * coordinates: g->l[i][gl[i]] */
     TPIE_OS_SIZE_T gl[dim];
-    // The grid counts. It's an array of length sz (the number of cells).
+    /** The grid counts. It's an array of length sz (the number of cells). */
     TPIE_OS_SIZE_T* c;
-    // Total number of cells: gt[0] * gt[1] *...* gt[dim-1].
+    /** Total number of cells: gt[0] * gt[1] *...* gt[dim-1]. */
     TPIE_OS_SIZE_T sz;
-    // Total number of points represented by this sub-grid.
+    /** Total number of points represented by this sub-grid. */
     TPIE_OS_OFFSET point_count;
-    // The low and high coordinates. The boolean bit is false iff the
-    // value is unbounded on that dimension.
+    /** The low and high coordinates. The boolean bit is false iff the
+     * value is unbounded on that dimension. */
 #if AMI_KDTREE_USE_EXACT_SPLIT
     pair<point_t, bool> lo[dim];
     pair<point_t, bool> hi[dim];
@@ -318,7 +388,9 @@ protected:
     pair<coord_t, bool> hi[dim];
 #endif
 
-    // Construct a grid_matrix.
+    ///////////////////////////////////////////////////////////////////////////
+    /// Constructs a grid_matrix.
+    ///////////////////////////////////////////////////////////////////////////
     grid_matrix(TPIE_OS_SIZE_T* tt, grid *gg) {
       size_t i;
       sz = 1;
@@ -334,7 +406,9 @@ protected:
       c = NULL;
     }
     
-    // Copy constructor.
+    ///////////////////////////////////////////////////////////////////////////
+    /// Copy constructor.
+    ///////////////////////////////////////////////////////////////////////////
     grid_matrix(const grid_matrix& x) {
       size_t i;
       sz = 1;
@@ -349,9 +423,11 @@ protected:
       c = NULL;
     }
 
-    // Split along strip s orthogonal to dimension d. The lower
-    // coordinates are kept here, and the high ones are returned in a
-    // newly created object.
+    ///////////////////////////////////////////////////////////////////////////
+    /// Splits along strip \p s orthogonal to dimension \p d. The lower
+    /// coordinates are kept here, and the high ones are returned in a
+    /// newly created object.
+    ///////////////////////////////////////////////////////////////////////////
     grid_matrix* split(TPIE_OS_SIZE_T s, const point_t& p, TPIE_OS_SIZE_T d) {
       TPLOG("  ::grid_matrix::split Entering\n");
       
@@ -508,8 +584,10 @@ protected:
     }
 
 
-    // Find the median point, store it in p, split according to the
-    // median point, and return the "high" sub-grid.
+    ///////////////////////////////////////////////////////////////////////////
+    /// Finds the median point, store it in \p p, splits according to the
+    /// median point, and returns the "high" sub-grid.
+    ///////////////////////////////////////////////////////////////////////////
     grid_matrix* find_median_and_split(point_t& p, TPIE_OS_SIZE_T d, TPIE_OS_OFFSET median_pos) {
       TPLOG("  ::grid_matrix::find_median_and_split Entering dim="<<d<<"\n");
       TPIE_OS_SIZE_T s = 0, i;
@@ -666,28 +744,32 @@ protected:
       bid(_bid), ctx(_ctx), low(_low), gmx(_gmx) {}
   };
   
-  // The grid info for the new bulk loading alg.
+  ///////////////////////////////////////////////////////////////////////////
+  /// The grid info for the new bulk loading alg.
+  ///////////////////////////////////////////////////////////////////////////
   class grid {
   public:
-    // The number of strips on each dimension. To avoid confusion: the
-    // tic-tac-toe board has t[0]=t[1]=3. There should be at least 2
-    // strips on each dimension. The leftmost and rightmost strips on
-    // each dimension are unbounded.
+    /** The number of strips on each dimension. To avoid confusion: the
+     * tic-tac-toe board has t[0]=t[1]=3. There should be at least 2
+     * strips on each dimension. The leftmost and rightmost strips on
+     * each dimension are unbounded. */
     TPIE_OS_SIZE_T t[dim];
-    // Pointer to an array of dim streams containing the points. These
-    // are neither initialized nor destroyed here.
+    /** Pointer to an array of dim streams containing the points. These
+     * are neither initialized nor destroyed here. */
     stream_t** streams;
-    // The coordinates of the grid lines. l[i] is an array of length
-    // t[i]-1. 
+    /** The coordinates of the grid lines. l[i] is an array of length
+     *  t[i]-1. */ 
     coord_t* l[dim]; 
-    // o[i][j] is the offset in streams[i] of the point that defines
-    // grid line l[i][j-1]. o[i] is an array of length t[i].
+    /** o[i][j] is the offset in streams[i] of the point that defines
+     * grid line l[i][j-1]. o[i] is an array of length t[i]. */
     TPIE_OS_OFFSET *o[dim];
     TPIE_OS_OFFSET point_count;
-    // The queue of unfinished business.
+    /** The queue of unfinished business. */
     vector<grid_context> q;
 
-    // Constructor.
+    ///////////////////////////////////////////////////////////////////////////
+    /// Constructor.
+    ///////////////////////////////////////////////////////////////////////////
     grid(TPIE_OS_SIZE_T t_all, stream_t** in_streams) {
 
       streams = in_streams;
@@ -726,7 +808,9 @@ protected:
     }
 
 
-    // Destructor
+    ///////////////////////////////////////////////////////////////////////////
+    /// Destructor.
+    ///////////////////////////////////////////////////////////////////////////
     ~grid() {
       size_t i;
       for (i = 0; i < dim; i++) {
@@ -812,7 +896,9 @@ protected:
   };
 
 
-  // Used by the sample bulk loader. Similar to grid_context. 
+  ///////////////////////////////////////////////////////////////////////////
+  /// Used by the sample bulk loader. Similar to grid_context. 
+  ///////////////////////////////////////////////////////////////////////////
   class sample_context {
   public:
     AMI_bid bid;
@@ -825,7 +911,9 @@ protected:
       bid(_bid), ctx(_ctx), low(_low) {}
   };
 
-  // Sample info for the sample-based bulk loader.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Sample info for the sample-based bulk loader.
+  ///////////////////////////////////////////////////////////////////////////
   class sample {
   public:
     // Pointer to the input stream.
@@ -915,7 +1003,9 @@ protected:
     }
   };
 
-  // Pair of dim flags. Used in window_query.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Pair of dim flags. Used in window_query.
+  ///////////////////////////////////////////////////////////////////////////
   struct podf {
     bool first[dim];
     bool second[dim];
@@ -931,12 +1021,14 @@ protected:
   typedef pair<podf, pair<AMI_bid,link_type_t> > outer_stack_elem;
   typedef pair<podf, size_t>                   inner_stack_elem;
 
-  // Used for printing the binary kd-tree.
-  // An element represents a binary kd-tree
-  // node and the number of times it was visited. 
-  // bid id the block id of the block node, and idx is the index
-  // of the bin node (or -1 for a leaf node).
-  // lo and hi form the mbr of the node.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Used for printing the binary kd-tree.
+  /// An element represents a binary kd-tree
+  /// node and the number of times it was visited. 
+  /// bid id the block id of the block node, and idx is the index
+  /// of the bin node (or -1 for a leaf node).
+  /// lo and hi form the mbr of the node.
+  ///////////////////////////////////////////////////////////////////////////
   struct print_stack_elem {
     AMI_bid bid;
     int idx;
@@ -946,30 +1038,48 @@ protected:
     print_stack_elem(AMI_bid _bid, int _idx, int _visits, point_t _lo, point_t _hi): bid(_bid), idx(_idx), visits(_visits), lo(_lo), hi(_hi) {}
   };
 
-  // Used for nearest neighbor searching.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Used for nearest neighbor searching.
+  ///////////////////////////////////////////////////////////////////////////
   struct nn_pq_elem {
     double p; // the priority (the distance squared)
     AMI_bid bid;
     link_type_t type;
   };
 
-  // Helpers for binary distribution bulk loading.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Helper for binary distribution bulk loading.
+  ///////////////////////////////////////////////////////////////////////////
   void create_bin_node(node_t *b, bn_context ctx, 
 		  stream_t** in_streams, 
 		  size_t& next_free_el, size_t& next_free_lk);
+  ///////////////////////////////////////////////////////////////////////////
+  /// Helper for binary distribution bulk loading.
+  ///////////////////////////////////////////////////////////////////////////
   void create_node(AMI_bid& bid, TPIE_OS_SIZE_T d,
 	      stream_t** in_streams);
+  ///////////////////////////////////////////////////////////////////////////
+  /// Helper for binary distribution bulk loading.
+  ///////////////////////////////////////////////////////////////////////////
   void create_leaf(AMI_bid& bid, TPIE_OS_SIZE_T d,
 	      stream_t** in_streams);
 
-  // Helpers for in-memory bulk loading.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Helper for in-memory bulk loading.
+  ///////////////////////////////////////////////////////////////////////////
   bool can_do_mm(TPIE_OS_OFFSET sz);
-  // Copy the given sorted streams into newly created in-memory
-  // streams. The input streams are deleted.
+ 
+  ///////////////////////////////////////////////////////////////////////////
+  /// Copies the given sorted streams into newly created in-memory
+  /// streams. The input streams are deleted.
+  ///////////////////////////////////////////////////////////////////////////
   void copy_to_mm(stream_t** in_streams, 
 		  point_t** mm_streams, TPIE_OS_SIZE_T& sz);
-  // Copy the given stream in memory, make dim copy of it, and sort
-  // them on the dim dimensions.
+
+  ///////////////////////////////////////////////////////////////////////////
+  /// Copies the given stream in memory, makes \p dim copies of it, and sorts
+  /// them on the \p dim dimensions.
+  ///////////////////////////////////////////////////////////////////////////
   void copy_to_mm(stream_t* in_stream, 
 		  point_t** mm_streams, TPIE_OS_SIZE_T& sz);
   void create_bin_node_mm(node_t *b, bn_context ctx, 
@@ -988,24 +1098,37 @@ protected:
   void distribute_g(AMI_bid bid, TPIE_OS_SIZE_T d, grid* g);
   void build_lower_tree_g(grid* g);
 
-  // Helpers for sample-based bulk loading. 
   bool points_are_sample;
-  // Global sample object.
+  /** Global sample object.*/
   sample* gso;
+  // Helpers for sample-based bulk loading. 
   void create_sample(AMI_bid& bid, TPIE_OS_SIZE_T d, stream_t* in_stream);
   void distribute_s(AMI_bid bid, TPIE_OS_SIZE_T d, sample* s);
   void build_lower_tree_s(sample* s);
 
-  // Find the leaf where p might be.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Finds the leaf where \p p might be.
+  ///////////////////////////////////////////////////////////////////////////
   AMI_bid find_leaf(const point_t &p);
 
-  // Fetch a node from cache or disk. If bid is 0, a new node is created.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Fetches a node from cache or disk. If bid is 0, a new node is created.
+  ///////////////////////////////////////////////////////////////////////////
   node_t* fetch_node(AMI_bid bid = 0);
-  // Fetch a leaf.
+
+  ///////////////////////////////////////////////////////////////////////////
+  /// Fetches a leaf.
+  ///////////////////////////////////////////////////////////////////////////
   leaf_t* fetch_leaf(AMI_bid bid = 0);
-  // Release a node (put it into the cache).
+
+  ///////////////////////////////////////////////////////////////////////////
+  /// Releases a node (put it into the cache).
+  ///////////////////////////////////////////////////////////////////////////
   void release_node(node_t* q);
-  // Release a leaf.
+
+  ///////////////////////////////////////////////////////////////////////////
+  /// Releases a leaf.
+  ///////////////////////////////////////////////////////////////////////////
   void release_leaf(leaf_t* q);
 };
 
@@ -1018,9 +1141,11 @@ struct _AMI_kdtree_leaf_info {
 #endif
 };
 
-// A kdtree leaf is a block of AMI_point's. The info field contains the
-// number of points actually stored (ie, the size) and the id of
-// another leaf. All leaves in a tree are threaded this way.
+///////////////////////////////////////////////////////////////////////////
+/// A kdtree leaf is a block of AMI_point's. The info field contains the
+/// number of points actually stored (ie, the size) and the id of
+/// another leaf. All leaves in a tree are threaded this way.
+///////////////////////////////////////////////////////////////////////////
 template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL> 
 class AMI_kdtree_leaf: public AMI_block<AMI_record<coord_t, TPIE_OS_SIZE_T, dim>, _AMI_kdtree_leaf_info, BTECOLL> 
 {
@@ -1038,16 +1163,22 @@ class AMI_kdtree_leaf: public AMI_block<AMI_record<coord_t, TPIE_OS_SIZE_T, dim>
 
   AMI_kdtree_leaf(collection_t* pcoll, AMI_bid bid = 0);
 
-  // Number of points stored in this leaf.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Returns the number of points stored in this leaf.
+  ///////////////////////////////////////////////////////////////////////////
   TPIE_OS_SIZE_T& size() { return info()->size; }
   const TPIE_OS_SIZE_T& size() const { return info()->size; }
 
-  // The weight of a leaf is the size. Just for symmetry with the
+  ///////////////////////////////////////////////////////////////////////////
+  // Returns the weight of a leaf, being its size. Just for symmetry with the
   // nodes.
+  ///////////////////////////////////////////////////////////////////////////
   const TPIE_OS_OFFSET weight() const { return info()->size; }
 
-  // Next leaf. All leaves of a tree are chained together for easy
+  ///////////////////////////////////////////////////////////////////////////
+  // Returns the next leaf. All leaves of a tree are chained together for easy
   // retrieval.
+  ///////////////////////////////////////////////////////////////////////////
   const AMI_bid& next() const { return info()->next; }
   AMI_bid& next() { return info()->next; }
 
@@ -1056,27 +1187,41 @@ class AMI_kdtree_leaf: public AMI_block<AMI_record<coord_t, TPIE_OS_SIZE_T, dim>
   const TPIE_OS_SIZE_T& split_dim() const { return info()->split_dim; }
 #endif 
 
-  // Maximum number of points that can be stored in this leaf.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Returns the maximum number of points that can be stored in this leaf.
+  ///////////////////////////////////////////////////////////////////////////
   TPIE_OS_SIZE_T capacity() const { return el.capacity(); }
 
-  // Find a point. Return the index of the point found in the el
-  // vector (if not found, return size()).
+  ///////////////////////////////////////////////////////////////////////////
+  /// Finds a point. Returns the index of the point found in the el
+  /// vector (if not found, return size()).
+  ///////////////////////////////////////////////////////////////////////////
   TPIE_OS_SIZE_T find(const point_t &p) const;
 
+  ///////////////////////////////////////////////////////////////////////////
+  /// Performs a window_query, defined by points \p lop and \p hip.
+  /// The result is written to \p stream.
+  ///////////////////////////////////////////////////////////////////////////
   TPIE_OS_OFFSET window_query(const point_t &lop, 
 		    const point_t &hip, 
 		    stream_t* stream) const;
 
-  // Insert a point, assuming the leaf is not full.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Inserts a point, assuming the leaf is not full.
+  ///////////////////////////////////////////////////////////////////////////
   bool insert(const point_t &p);
 
   bool erase(const point_t &p);
 
-  // Sort points on the given dimension.
+  ///////////////////////////////////////////////////////////////////////////
+  // Sorts points on the given dimension.
+  ///////////////////////////////////////////////////////////////////////////
   void sort(TPIE_OS_SIZE_T d);
 
-  // Find median point on the given dimension. Return the index of the
+  ///////////////////////////////////////////////////////////////////////////
+  // Finds median point on the given dimension. Returns the index of the
   // median in the el vector.
+  ///////////////////////////////////////////////////////////////////////////
   TPIE_OS_SIZE_T find_median(TPIE_OS_SIZE_T d);
 };
 
@@ -1086,10 +1231,12 @@ struct _AMI_kdtree_node_info {
   TPIE_OS_OFFSET weight;
 };
 
-// A kdtree node is a block of binary kdtree nodes (of templated type
-// Bin_node). The info field contains the number of Bin_node's
-// actually stored and the weight of the node (ie, the number of
-// points stored in the subtree rooted on this node).
+///////////////////////////////////////////////////////////////////////////
+/// A kdtree node is a block of binary kdtree nodes (of templated type
+/// Bin_node). The info field contains the number of Bin_node's
+/// actually stored and the weight of the node (ie, the number of
+/// points stored in the subtree rooted on this node).
+///////////////////////////////////////////////////////////////////////////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 class AMI_kdtree_node: public AMI_block<Bin_node, _AMI_kdtree_node_info, BTECOLL> {
  public:
@@ -1102,27 +1249,38 @@ class AMI_kdtree_node: public AMI_block<Bin_node, _AMI_kdtree_node_info, BTECOLL
   typedef AMI_STREAM<point_t> stream_t;
   typedef AMI_collection_single<BTECOLL> collection_t;
 
-  // Compute the capacity of the lk vector STATICALLY (but you have to
-  // give it the correct logical block size!).
+  ///////////////////////////////////////////////////////////////////////////
+  /// Computes the capacity of the lk vector STATICALLY (but you have to
+  /// give it the correct logical block size!).
+  ///////////////////////////////////////////////////////////////////////////
   static TPIE_OS_SIZE_T lk_capacity(TPIE_OS_SIZE_T block_size);
-  // Compute the capacity of the el vector STATICALLY.
+
+  ///////////////////////////////////////////////////////////////////////////
+  /// Computes the capacity of the el vector STATICALLY.
+  ///////////////////////////////////////////////////////////////////////////
   static TPIE_OS_SIZE_T el_capacity(TPIE_OS_SIZE_T block_size);
 
   AMI_kdtree_node(collection_t* pcoll, AMI_bid bid = 0);
 
-  // Number of binary nodes stored in this node.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Returns the number of binary nodes stored in this node.
+  ///////////////////////////////////////////////////////////////////////////
   TPIE_OS_SIZE_T& size() { return info()->size; }
   const TPIE_OS_SIZE_T& size() const { return info()->size; }
 
   TPIE_OS_OFFSET& weight() { return info()->weight; }
   const TPIE_OS_OFFSET weight() const { return info()->weight; }
 
-  // Maximum number of binary nodes that can be stored in this node.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Returns the maximum number of binary nodes that can be stored in this node.
+  ///////////////////////////////////////////////////////////////////////////
   TPIE_OS_SIZE_T capacity() const { return el.capacity(); }
 
-  // Find the child node that leads to p. The second
-  // entry in the pair tells whether that pointer is a leaf AMI_bid
-  // or a node AMI_bid.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Finds the child node that leads to \p p. The second
+  /// entry in the pair tells whether that pointer is a leaf AMI_bid
+  /// or a node AMI_bid.
+  ///////////////////////////////////////////////////////////////////////////
   pair<AMI_bid, link_type_t> find(const point_t &p) const;
 
   pair<TPIE_OS_SIZE_T, link_type_t> find_index(const point_t &p) const;

@@ -1,15 +1,13 @@
-// Copyright (c) 2005 Andrew Danner
-//
-// File: comparator.h
-// Author: Andrew Danner
-// Created: 28 Jun 2005
-//
-// Mappings/Wrappers for converting between different comparison types
-//
-// $Id: comparator.h,v 1.4 2005-07-07 20:39:22 adanner Exp $
-//
 #ifndef _COMPARATOR_H
 #define _COMPARATOR_H
+
+///////////////////////////////////////////////////////////////////////////
+/// \file comparator.h
+/// \internal 
+/// Provides convertion between STL and TPIE comparisions.
+/// Used in \ref internal_sort.h.
+///////////////////////////////////////////////////////////////////////////
+
 
 // Get definitions for working with Unix and Windows
 #include <portability.h>

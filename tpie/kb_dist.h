@@ -1,13 +1,8 @@
-// Copyright (c) 1995 Darren Erik Vengroff
-//
-// File: ami_kb_dist.h
-// Author: Darren Erik Vengroff <dev@cs.duke.edu>
-// Created: 3/11/95
-//
-// $Id: ami_kb_dist.h,v 1.12 2005-11-18 12:28:59 jan Exp $
-//
-// Radix based distribution for single or striped AMI layers.
-//
+///////////////////////////////////////////////////////////////////////////
+/// \file kb_dist.h
+/// Radix based distribution for single or striped AMI layers.
+///////////////////////////////////////////////////////////////////////////
+
 
 // Get definitions for working with Unix and Windows
 #include <tpie/portability.h>

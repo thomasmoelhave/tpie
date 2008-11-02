@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-/// \file mm.h 
+/// \file cache.h 
 /// Declaration and definition of CACHE_MANAGER implementation(s).
 /// Provides means to choose and set a specific cache manager/
 /// For now the only cache memory manager implemented is 
@@ -16,7 +16,7 @@ namespace tpie {
     
     namespace ami {
 	
-// The only implementation is AMI_cache_manager_lru.
+/** The only cache manager implementation so far is cache_manager_lru. */
 #define CACHE_MANAGER cache_manager_lru
 
     }  //  ami namespace

@@ -1,8 +1,8 @@
-//
-// Copyright (C) 2001 Octavian Procopiuc
-//
-// Declaration and definition of CACHE_MANAGER based upon LRU
-//
+///////////////////////////////////////////////////////////////////
+/// \file b_vector.h
+/// Declaration and definition of a CACHE_MANAGER based upon 
+/// Least-Recently-Used (LRU) replacement policy.
+///////////////////////////////////////////////////////////////////
 
 #ifndef _TPIE_AMI_CACHE_LRU_H
 #define _TPIE_AMI_CACHE_LRU_H

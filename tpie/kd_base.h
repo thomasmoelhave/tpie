@@ -1,16 +1,11 @@
-// Copyright (C) 2001 Octavian Procopiuc
-//
-// File:    ami_kdtree_base.h
-// Author:  Octavian Procopiuc <tavi@cs.duke.edu>
-//
-// Supporting types for AMI_kdtree and AMI_kdbtree: 
-// AMI_kdtree_status, link_type_t,
-// AMI_kdtree_params, Bin_node_default,
-// AMI_kdbtree_status, AMI_kdbtree_params, 
-// region_t, kdb_item_t, path_stack_item_t.
-//
-// $Id: ami_kd_base.h,v 1.9 2005-02-12 20:29:10 tavi Exp $
-//
+///////////////////////////////////////////////////////////////////////////
+/// \file kd_base.h
+/// Provides supporting types for kdtree and kdbtree: 
+/// AMI_kdtree_status, link_type_t,
+/// AMI_kdtree_params, Bin_node_default,
+/// AMI_kdbtree_status, AMI_kdbtree_params, 
+/// region_t, kdb_item_t, path_stack_item_t.
+///////////////////////////////////////////////////////////////////////////
 
 #ifndef _AMI_KD_BASE_H
 #define _AMI_KD_BASE_H
@@ -22,53 +17,53 @@
 #include <block_base.h>
 #include <point.h>
 
-// AMI_KDTREE_STORE_WEIGHTS determines whether weights are stored in all
-// binary kd-tree nodes (when set to 1), or just in block nodes (when set
-// to 0). Setting to 1 results in bigger binary nodes and, consequently,
-// smaller fanout. The weights are used to dramatically improve the
-// performance of range *counting* queries (not range reporting
-// queries). Caveat emptor: avoid often change of this parameter. Trying to
-// open an existing kd-tree with the wrong value for this parameter will
-// generate an invalid kd-tree.
+/** AMI_KDTREE_STORE_WEIGHTS determines whether weights are stored in all
+ * binary kd-tree nodes (when set to 1), or just in block nodes (when set
+ * to 0). Setting to 1 results in bigger binary nodes and, consequently,
+ * smaller fanout. The weights are used to dramatically improve the
+ * performance of range *counting* queries (not range reporting
+ * queries). Caveat emptor: avoid often change of this parameter. Trying to
+ * open an existing kd-tree with the wrong value for this parameter will
+ * generate an invalid kd-tree. */
 #ifndef AMI_KDTREE_STORE_WEIGHTS
 #  define AMI_KDTREE_STORE_WEIGHTS 0
 #endif
 
-// AMI_KDTREE_USE_EXACT_SPLIT determines how points on the median line are
-// distributed. If set to 1, some of the points go into the left child,
-// some into the right child; the search procedure should look into both
-// children. If set to 0, only the left child contains those points. In
-// theory, this is a tradeoff between space utilization and query
-// performance. However, query performance is rarely affected, so a value
-// of 1 is appropriate for most instances. Trying to open an existing
-// kd-tree with the wrong value for this parameter will generate an invalid
-// kd-tree.
+/** AMI_KDTREE_USE_EXACT_SPLIT determines how points on the median line are
+ * distributed. If set to 1, some of the points go into the left child,
+ * some into the right child; the search procedure should look into both
+ * children. If set to 0, only the left child contains those points. In
+ * theory, this is a tradeoff between space utilization and query
+ * performance. However, query performance is rarely affected, so a value
+ * of 1 is appropriate for most instances. Trying to open an existing
+ * kd-tree with the wrong value for this parameter will generate an invalid
+ * kd-tree. */
 #ifndef AMI_KDTREE_USE_EXACT_SPLIT
 #  define AMI_KDTREE_USE_EXACT_SPLIT 1
 #endif
 
-// AMI_KDTREE_USE_KDBTREE_LEAF determines what the info field of a leaf
-// contains. Setting to 1 gives a three-element info field, similar to
-// the one used by the K-D-B-tree. This allows a kd-tree to be
-// transformed into a K-D-B-tree without touching the leaves, but it
-// wastes 4 bytes in every leaf. If set to 0, the info field of a leaf
-// contains only two 4-byte elements. Caveat emptor: avoid often
-// change of this parameter. Trying to open an existing kd-tree with
-// the wrong value for this parameter will generate an invalid kd-tree.
+/** AMI_KDTREE_USE_KDBTREE_LEAF determines what the info field of a leaf
+ * contains. Setting to 1 gives a three-element info field, similar to
+ * the one used by the K-D-B-tree. This allows a kd-tree to be
+ * transformed into a K-D-B-tree without touching the leaves, but it
+ * wastes 4 bytes in every leaf. If set to 0, the info field of a leaf
+ * contains only two 4-byte elements. Caveat emptor: avoid often
+ * change of this parameter. Trying to open an existing kd-tree with
+ * the wrong value for this parameter will generate an invalid kd-tree. */
 #ifndef AMI_KDTREE_USE_KDBTREE_LEAF
 #  define AMI_KDTREE_USE_KDBTREE_LEAF 1
 #endif
 
-// AMI_KDTREE_USE_REAL_MEDIAN determines the kd-tree splitting method.  If
-// set to 1, medians are used. If set to 0, the weight of the left branch
-// is always a power of 2. This allows kd-trees to be very compact in terms
-// of storage utilization. The only place this value is checked is the
-// median() method of the kd-tree.
+/** AMI_KDTREE_USE_REAL_MEDIAN determines the kd-tree splitting method.  If
+ * set to 1, medians are used. If set to 0, the weight of the left branch
+ * is always a power of 2. This allows kd-trees to be very compact in terms
+ * of storage utilization. The only place this value is checked is the
+ * median() method of the kd-tree. */
 #ifndef AMI_KDTREE_USE_REAL_MEDIAN
 #  define AMI_KDTREE_USE_REAL_MEDIAN 0
 #endif
 
-// The default grid size (on each dimension) for the grid bulk loading.
+/** The default grid size (on each dimension) for the grid bulk loading. */
 #ifndef AMI_KDTREE_GRID_SIZE
 #  define AMI_KDTREE_GRID_SIZE  256
 #endif
@@ -81,13 +76,13 @@
 #define AMI_KDTREE_LOAD_GRID    0x8
 
 
-// AMI_kdtree status type.
+/** AMI_kdtree status type. */
 enum AMI_kdtree_status {
   AMI_KDTREE_STATUS_VALID = 0,
   AMI_KDTREE_STATUS_INVALID = 1,
 };
 
-// Node type type.
+/** Node type type. */
 typedef unsigned short int link_type_t;
 #define BLOCK_NODE 0u
 #define BLOCK_LEAF 1u
@@ -95,34 +90,36 @@ typedef unsigned short int link_type_t;
 #define GRID_INDEX 3u
 
 
-// AMI_kdtree run-time parameters.
+/** AMI_kdtree run-time parameters. */
 class AMI_kdtree_params {
 public:
 
-  // Max number of Value's in a leaf. 0 means use all available capacity.
+  /** Max number of Value's in a leaf. 0 means use all available capacity. */
   TPIE_OS_SIZE_T leaf_size_max;
-  // Max number of Key's in a node. 0 means use all available capacity.
+  /** Max number of Key's in a node. 0 means use all available capacity. */
   TPIE_OS_SIZE_T node_size_max;
-   // How much bigger is the leaf logical block than the system block.
+  /** How much bigger is the leaf logical block than the system block. */
   TPIE_OS_SIZE_T leaf_block_factor;
-  // How much bigger is the node logical block than the system block.
+  /** How much bigger is the node logical block than the system block. */
   TPIE_OS_SIZE_T node_block_factor; 
-  // The max number of leaves cached.
+  /** The max number of leaves cached. */
   TPIE_OS_SIZE_T leaf_cache_size;
-  // The max number of nodes cached.
+  /** The max number of nodes cached. */
   TPIE_OS_SIZE_T node_cache_size;
-  // Max height of a binary node inside a block node (other than
-  // root). The root binary node has height 0. A default value, based
-  // on node capacity, is used if set to 0.
+  /** Max height of a binary node inside a block node (other than
+   * root). The root binary node has height 0. A default value, based
+   * on node capacity, is used if set to 0. */
   TPIE_OS_SIZE_T max_intranode_height;
-  // Max height of a binary node inside the root block node. The root
-  // binary node has height 0. A default value, based on node
-  // capacity, is used if set to 0.
+  /** Max height of a binary node inside the root block node. The root
+   * binary node has height 0. A default value, based on node
+   * capacity, is used if set to 0. */
   TPIE_OS_SIZE_T max_intraroot_height;
-  // The grid size on each dimension, for grid bulk loading.
+  /** The grid size on each dimension, for grid bulk loading. */
   TPIE_OS_SIZE_T grid_size;
 
-  // The default parameter values.
+  ///////////////////////////////////////////////////////////////////////////
+  // Setting the default parameter values.
+  ///////////////////////////////////////////////////////////////////////////
   AMI_kdtree_params(): 
     leaf_size_max(0), node_size_max(0),
     leaf_block_factor(1), node_block_factor(1), 
@@ -132,8 +129,10 @@ public:
 };
 
 
-// A base class for all binary node implementations. This is not a complete
-// implementation of a kd-tree binary node!
+///////////////////////////////////////////////////////////////////////////
+/// A base class for all binary node implementations. This is not a complete
+/// implementation of a kd-tree binary node!
+///////////////////////////////////////////////////////////////////////////
 template<class coord_t, TPIE_OS_SIZE_T dim>
 class AMI_kdtree_bin_node_base {
 public:
@@ -175,16 +174,18 @@ private:
 #endif
 
 private:
-  // The split coordinate (the split hyperplane crosses the orthogonal
-  // axis in this value).
+  /** The split coordinate (the split hyperplane crosses the orthogonal
+   * axis in this value). */
   coord_t discr_val_; 
-  // The dimension orthogonal to the split hyperplane. Should be less than dim.
+  /** The dimension orthogonal to the split hyperplane. Should be less than dim. */
   TPIE_OS_SIZE_T discr_dim_;
 };
 
 
+///////////////////////////////////////////////////////////////////////////
 // The default binary node implementation. 
 // (All binary node implementations should have the same public interface).
+///////////////////////////////////////////////////////////////////////////
 template<class coord_t, TPIE_OS_SIZE_T dim>
 class AMI_kdtree_bin_node_default: public AMI_kdtree_bin_node_base<coord_t, dim> {
 public:
@@ -207,17 +208,19 @@ public:
   }
 
 private:
-  // The low child (i.e., its position in the block node).
+  /** The low child (i.e., its position in the block node). */
   TPIE_OS_SIZE_T lo_child_;
   link_type_t lo_type_;
-  // The high child (i.e., its position in the block node).
+  /** The high child (i.e., its position in the block node). */
   TPIE_OS_SIZE_T hi_child_;
   link_type_t hi_type_;  
 };
 
 
-// Another binary node implementation, smaller than the default (uses short
-// int instead of TPIE_OS_SIZE_T and link_type_t).
+///////////////////////////////////////////////////////////////////////////
+/// Another binary node implementation, smaller than the default (uses short
+/// int instead of TPIE_OS_SIZE_T and link_type_t).
+///////////////////////////////////////////////////////////////////////////
 template<class coord_t, TPIE_OS_SIZE_T dim>
 class AMI_kdtree_bin_node_short: public AMI_kdtree_bin_node_base<coord_t, dim> {
 public:
@@ -240,17 +243,19 @@ public:
   }
 
 private:
-  // The low child (i.e., its position in the block node).
+  /** The low child (i.e., its position in the block node). */
   unsigned short lo_child_;
   unsigned short lo_type_;
-  // The high child (i.e., its position in the block node).
+  /** The high child (i.e., its position in the block node). */
   unsigned short hi_child_;
   unsigned short hi_type_;
 };
 
 
-// Yet another binary node type. Same functionality as the default
-// type, but much more compact. 
+///////////////////////////////////////////////////////////////////////////
+/// Yet another binary node type. Same functionality as the default
+/// type, but much more compact. 
+///////////////////////////////////////////////////////////////////////////
 template<class coord_t, TPIE_OS_SIZE_T dim>
 class AMI_kdtree_bin_node_small: public AMI_kdtree_bin_node_base<coord_t, dim> {
 public:
@@ -272,16 +277,18 @@ public:
   }
 
 private:
-  // The low child and type together.
+  /** The low child and type together. */
   unsigned short lo_child_;
-  // The high child and type together.
+  /** The high child and type together. */
   unsigned short hi_child_;
 };
 
 
-// A binary node larger than the default. Stores an entire point as a
-// discriminator, instead of just one value. Does not inherit from the base
-// class.
+///////////////////////////////////////////////////////////////////////////
+/// A binary node larger than the default. Stores an entire point as a
+/// discriminator, instead of just one value. Does not inherit from the base
+/// class.
+///////////////////////////////////////////////////////////////////////////
 template<class coord_t, TPIE_OS_SIZE_T dim>
 class AMI_kdtree_bin_node_large {
 public:
@@ -331,14 +338,14 @@ private:
 
 
 private:
-  // The split point.
+  /** The split point. */
   AMI_point<coord_t, dim> discr_val_; 
-  // The dimension orthogonal to the split hyperplane. Should be less than dim.
+  /** The dimension orthogonal to the split hyperplane. Should be less than dim. */
   TPIE_OS_SIZE_T discr_dim_;
-  // The low child (i.e., its position in the block node).
+  /** The low child (i.e., its position in the block node). */
   TPIE_OS_SIZE_T lo_child_;
   link_type_t lo_type_;
-  // The high child (i.e., its position in the block node).
+  /** The high child (i.e., its position in the block node). */
   TPIE_OS_SIZE_T hi_child_;
   link_type_t hi_type_;   
 };
@@ -373,7 +380,9 @@ public:
       //      lo_bd_[i] = hi_bd_[i] = 0; //false;
   }
 
-  // Initialize this box with the values stored in points p1 and p2.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Initializes this box with the values stored in points p1 and p2.
+  ///////////////////////////////////////////////////////////////////////////
   region_t(const AMI_point<coord_t, dim>& p1, const AMI_point<coord_t, dim>& p2) {
     for (TPIE_OS_SIZE_T i = 0; i < dim; i++) {
       lo_[i] = min(p1[i], p2[i]);
@@ -424,23 +433,29 @@ public:
     return p;
   }
 
-  // Cutout the portion of the region that's higher than the given
-  // coordinate.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Cuts out the portion of the region that's higher than the given
+  /// coordinate.
+  ///////////////////////////////////////////////////////////////////////////
   void cutout_hi(coord_t v, TPIE_OS_SIZE_T d) {
     hi_[d] = v;
     //    hi_bd_[d] = 1;//true;
     bd_[d] |= HI_BD_MASK;
   }
 
-  // Cutout the portion of the region that's lower than the given
+  ///////////////////////////////////////////////////////////////////////////
+  // Cuts out the portion of the region that's lower than the given
   // coordinate.
+  ///////////////////////////////////////////////////////////////////////////
   void cutout_lo(coord_t v, TPIE_OS_SIZE_T d) {
     lo_[d] = v;
     //    lo_bd_[d] = 1;//true;
     bd_[d] |= LO_BD_MASK;
   }
 
-  // Return true if this box contains point p.
+  ///////////////////////////////////////////////////////////////////////////
+  // Returns true if this box contains point \p p.
+  ///////////////////////////////////////////////////////////////////////////
   bool contains(const AMI_point<coord_t, dim>& p) const {
     TPIE_OS_SIZE_T i;
     for (i = 0; i < dim; i++) {
@@ -451,7 +466,9 @@ public:
     return (i == dim);
   }
 
-  // Return true if this box intersects box r.
+  ///////////////////////////////////////////////////////////////////////////
+  // Returns true if this box intersects box \p r.
+  ///////////////////////////////////////////////////////////////////////////
   bool intersects(const region_t<coord_t, dim>& r) const {
     TPIE_OS_SIZE_T i;
     for (i = 0; i < dim; i++) {
@@ -462,10 +479,12 @@ public:
     return (i == dim); 
   }
 
-  // Return the position of this box relative to the hyperplane
-  // orthogonal to dimension d and passing through sp: -1 if left of
+  ///////////////////////////////////////////////////////////////////////////
+  // Returns the position of this box relative to the hyperplane
+  // orthogonal to dimension d and passing through \p sp: -1 if left of
   // the hyperplane, 1 if right of the hyperplane, and 0 if it
   // intersects the hyperplane.
+  ///////////////////////////////////////////////////////////////////////////
   int relative_to_plane(coord_t sp, TPIE_OS_SIZE_T d) const {
     if (is_bounded_hi(d) && !(sp < hi_[d]))
       return -1;
@@ -485,8 +504,8 @@ __attribute__((packed))
 template<class coord_t, TPIE_OS_SIZE_T dim>
 class kdb_item_t {
 public:
-  // For this purpose, every interval in region is considered open on
-  // the left and closed on the right.
+  /** For this purpose, every interval in region is considered open on
+   * the left and closed on the right. */
   region_t<coord_t, dim> region;
   link_type_t type;
   AMI_bid bid;
@@ -532,14 +551,14 @@ struct path_stack_item_t {
   path_stack_item_t() {}
 };
 
-// Kdtree status type.
+/** Kdtree status type. */
 enum AMI_kdbtree_status {
   AMI_KDBTREE_STATUS_VALID = 0,
   AMI_KDBTREE_STATUS_INVALID = 1,
   AMI_KDBTREE_STATUS_KDTREE = 2, // For opening the kdb-tree as a kd-tree.
 };
 
-// Split heuristics
+/** Split heuristics. */
 enum split_heuristic_t {
   CYCLICAL,
   LONGEST_SPAN,

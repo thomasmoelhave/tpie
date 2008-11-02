@@ -1,13 +1,13 @@
-// Copyright (c) 1994 Darren Erik Vengroff
-//
-// File: ami.h
-// Author: Darren Erik Vengroff <dev@cs.duke.edu>
-// Created: 5/19/94
-//
-// $Id: ami.h,v 1.19 2003-04-17 11:59:40 jan Exp $
-//
 #ifndef _AMI_H
 #define _AMI_H
+///////////////////////////////////////////////////////////////////////////
+/// \file ami.h
+/// This include file inputs the various include files required to compile
+/// an application program with TPIE.
+/// This file should be included in every TPIE application program that uses the 
+/// AMI-level interface. It in turn inputs the definitions for the 
+/// AMI-level services of TPIE.  
+///////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////
 /// \namespace tpie TPIE's namespace.

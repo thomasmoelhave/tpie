@@ -1,8 +1,8 @@
-//
-// Copyright (C) 2001 Octavian Procopiuc
-//
-// Declaration and definition of AMI_CACHE_MANAGER
-//
+///////////////////////////////////////////////////////////////////
+/// \file cache_base.h
+/// Provides the base class \ref cache_manager_base for all cache manager
+/// implementations.
+///////////////////////////////////////////////////////////////////
 
 #ifndef _TPIE_AMI_CACHE_BASE_H
 #define _TPIE_AMI_CACHE_BASE_H

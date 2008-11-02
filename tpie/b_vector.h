@@ -1,20 +1,9 @@
-//
-// File:    b_vector.h
-// Authors: Octavian Procopiuc <tavi@cs.duke.edu>
-//
-// Definition of the b_vector class.
-//
-// $Id: b_vector.h,v 1.7 2003-04-17 14:40:34 jan Exp $
-//
-
+#ifndef _B_VECTOR_H
+#define _B_VECTOR_H
 ///////////////////////////////////////////////////////////////////
 /// \file b_vector.h
 /// Definition of the  class b_vector.
 ///////////////////////////////////////////////////////////////////
-
-
-#ifndef _B_VECTOR_H
-#define _B_VECTOR_H
 
 // Get definitions for working with Unix and Windows
 #include <tpie/portability.h>

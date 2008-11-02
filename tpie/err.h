@@ -44,7 +44,9 @@ namespace tpie {
 	     *  management object that was passed to it.  This generally indicates 
 	     * a bug in the operation management object's initialization code. */
 	    OBJECT_INITIALIZATION,
-      OBJECT_INVALID,
+      /** A passed object is invalid */
+	    OBJECT_INVALID,
+	    /** A passed object is inaccessible due to insufficient permissions. */
 	    PERMISSION_DENIED,
       /** The memory manger (of type \ref tpie::mem::manager) could not make 
        * adequate main memory available to complete the 
@@ -97,10 +99,10 @@ namespace tpie {
 	      * thus the input flags should be consulted. */
 	    MERGE_READ_MULTIPLE,
 
-	    // Matrix related errors
+	    /** Matrix related error */
 	    MATRIX_BOUNDS = 0x3000,
 
-	    // Values returned by sort routines.
+	    /** Values returned by sort routines if input does not require sorting */
 	    SORT_ALREADY_SORTED = 0x4000
   
 	};

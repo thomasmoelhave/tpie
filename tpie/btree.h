@@ -1,11 +1,9 @@
+#ifndef _TPIE_AMI_BTREE_H
+#define _TPIE_AMI_BTREE_H
 ///////////////////////////////////////////////////////////////////////////
 /// \file tpie/btree.h
 /// Definition and implementation of the TPIE B-tree data type.
 ///////////////////////////////////////////////////////////////////////////
-
-
-#ifndef _TPIE_AMI_BTREE_H
-#define _TPIE_AMI_BTREE_H
 
 // STL files.
 #include <algorithm>
@@ -614,6 +612,9 @@ namespace tpie {
 	    /** Comparison object. */
 	    Compare comp_;
 
+      //////////////////////////////////////////////////////////////////////////
+      /// Comparator class.
+      //////////////////////////////////////////////////////////////////////////
 	    class comp_for_sort {
 		Compare comp_;
 		KeyOfValue kov_;

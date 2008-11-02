@@ -1,16 +1,13 @@
-// Copyright (c) 2001 Octavian Procopiuc
-//
-// File:    ami_logmethod.h
-// Author:  Octavian Procopiuc <tavi@cs.duke.edu>
-//
-// $Id: ami_logmethod.h,v 1.9 2005-01-21 16:55:48 tavi Exp $
-//
-// Logmethod_base, Logmethod2 and LogmethodB declarations and
-// definitions.
-//
-
 #ifndef _TPIE_AMI_LOGMETHOD_H
 #define _TPIE_AMI_LOGMETHOD_H
+
+///////////////////////////////////////////////////////////////////////////
+/// \file logmethod.h
+/// Logmethod_base, Logmethod2 and LogmethodB declarations and definitions.
+/// Used for now only for building trees in build_bkdtree.cpp and 
+/// build_btree.cpp.
+///////////////////////////////////////////////////////////////////////////
+
 
 #include <portability.h>
 

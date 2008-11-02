@@ -1,12 +1,7 @@
-// Copyright (C) 2001,2002 Octavian Procopiuc
-//
-// File:    ami_kdbtree.h
-// Author:  Octavian Procopiuc <tavi@cs.duke.edu>
-//
+///////////////////////////////////////////////////////////////////////////
+/// \file kdbtree.h
 // K-D-B-tree definition and implementation. 
-//
-// $Id: ami_kdbtree.h,v 1.15 2005-01-27 20:42:11 tavi Exp $
-//
+///////////////////////////////////////////////////////////////////////////
 
 #ifndef _AMI_KDBTREE_H
 #define _AMI_KDBTREE_H
@@ -24,7 +19,9 @@
 template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL> class AMI_kdbtree_node;
 template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL> class AMI_kdbtree_leaf;
 
-// The AMI_kdbtree class. 
+///////////////////////////////////////////////////////////////////////////
+/// The kdbtree class. 
+///////////////////////////////////////////////////////////////////////////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node=AMI_kdtree_bin_node_default<coord_t, dim>, class BTECOLL = BTE_COLLECTION > 
 class AMI_kdbtree {
 public:
@@ -38,62 +35,104 @@ public:
   typedef AMI_kdbtree_leaf<coord_t, dim, BTECOLL> leaf_t;
   typedef kdb_item_t<coord_t, dim> item_t;
 
+  ///////////////////////////////////////////////////////////////////////////
+  /// Constructor. 
+  ///////////////////////////////////////////////////////////////////////////
   AMI_kdbtree(const std::string& base_file_name, AMI_collection_type type, 
 	  const AMI_kdbtree_params& params);
 
+  ///////////////////////////////////////////////////////////////////////////
+  /// Constructor. 
+  /// \internal \todo duplicate constructor?
+  ///////////////////////////////////////////////////////////////////////////
   AMI_kdbtree(const string& base_file_name, AMI_collection_type type, 
 	  const AMI_kdbtree_params& params);
 
-  // Transform a kdtree into a kdbtree, in place. Returns true if
-  // succesful, false otherwise (i.e., the status is not
-  // AMI_KDBTREE_STATUS_KDTREE or the kdtree nodes contain too many keys).
+  ///////////////////////////////////////////////////////////////////////////
+  /// Transform a kdtree into a kdbtree, in place. Returns true if
+  /// succesful, false otherwise (i.e., the status is not
+  /// AMI_KDBTREE_STATUS_KDTREE or the kdtree nodes contain too many keys).
+  ///////////////////////////////////////////////////////////////////////////
   bool kd2kdb();
 
+  ///////////////////////////////////////////////////////////////////////////
+  /// Performs a window_query, defined by points \p p1 and \p p2.
+  /// The result is written to \p stream.
+  ///////////////////////////////////////////////////////////////////////////
   TPIE_OS_OFFSET window_query(const point_t& p1, const point_t& p2, 
 		      stream_t* stream);
 
-  // Find a point.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Returns whether the point \p is stored within the kdbtree.
+  ///////////////////////////////////////////////////////////////////////////
   bool find(const point_t& p);
 
-  // Insert p into the kdbtree. Return true if successful.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Insert point \p p into the kdbtree. Returns true if successful.
+  ///////////////////////////////////////////////////////////////////////////
   bool insert(const point_t& p);
 
-  // Traverse the tree in dfs preorder. Return next node and its level
-  // (root is on level 0). Start the process by calling this with
-  // level=-1.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Executes on step in the traversal of the the tree in dfs preorder. 
+  /// Returns next node and its level
+  /// (root is on level 0). Initialize the process by calling this with
+  /// level=-1.
+  ///////////////////////////////////////////////////////////////////////////
   item_t dfs_preorder(int& level);
 
-  // Set persistence. It passes per along to the two collections.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Sets persistence. It passes per along to the two collections.
+  ///////////////////////////////////////////////////////////////////////////
   void persist(persistence per);
 
-  // Inquire the (real) parameters.
+  ///////////////////////////////////////////////////////////////////////////
+  // Inquires the (real) parameters.
+  ///////////////////////////////////////////////////////////////////////////
   const AMI_kdbtree_params& params() const { return params_; }
 
-  // Inquire the status.
+  ///////////////////////////////////////////////////////////////////////////
+  // Inquires the status.
+  ///////////////////////////////////////////////////////////////////////////
   AMI_kdbtree_status status() const { return status_; };
 
-  // Inquire the size (number of points stored).
+  ///////////////////////////////////////////////////////////////////////////
+  // Inquires the size (number of points stored).
+  ///////////////////////////////////////////////////////////////////////////
   TPIE_OS_OFFSET size() const { return header_.size; }
 
-  // Inquire the mbr_lo point.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Inquires the mbr_lo point.
+  ///////////////////////////////////////////////////////////////////////////
   point_t mbr_lo() const { return header_.mbr_lo; }
 
-  // Inquire the mbr_hi point.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Inquires the mbr_hi point.
+  ///////////////////////////////////////////////////////////////////////////
   point_t mbr_hi() const { return header_.mbr_hi; }
 
-  // Inquire the statistics.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Inquires the statistics.
+  ///////////////////////////////////////////////////////////////////////////
   const tpie_stats_tree &stats();
 
-  // Inquire the leaf block size (in bytes)
+  ///////////////////////////////////////////////////////////////////////////
+  /// Inquires the leaf block size (in bytes)
+  ///////////////////////////////////////////////////////////////////////////
   TPIE_OS_SIZE_T leaf_block_size() const { return pcoll_leaves_->block_size(); }
 
-  // Inquire the node block size (in bytes)
+  ///////////////////////////////////////////////////////////////////////////
+  /// Inquires the node block size (in bytes)
+  ///////////////////////////////////////////////////////////////////////////
   TPIE_OS_SIZE_T node_block_size() const { return pcoll_nodes_->block_size(); }
 
-  // Inquire the base path name.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Inquires the base path name.
+  ///////////////////////////////////////////////////////////////////////////
   const string& name() const { return name_; }
 
-  // Destructor.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Destructor.
+  ///////////////////////////////////////////////////////////////////////////
   ~AMI_kdbtree();
 
   node_t* fetch_node(AMI_bid bid = 0);
@@ -101,6 +140,9 @@ public:
   void release_node(node_t* q);
   void release_leaf(leaf_t* q);
 
+  ///////////////////////////////////////////////////////////////////////////
+  /// Metainformation about the tree.
+  ///////////////////////////////////////////////////////////////////////////
   class header_t {
   public:
     unsigned int magic_number;
@@ -118,48 +160,53 @@ public:
 
 protected:
 
-  // Function object for the node cache write out.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Function object for the node cache write out.
+  ///////////////////////////////////////////////////////////////////////////
   class remove_node {
   public:
     void operator()(node_t* p) { delete p; }
   };
-  // Function object for the leaf cache write out.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Function object for the leaf cache write out.
+  ///////////////////////////////////////////////////////////////////////////
   class remove_leaf { 
   public:
     void operator()(leaf_t* p) { delete p; }
   };
 
-  // The node cache.
+  /** The node cache. */
   AMI_CACHE_MANAGER<node_t*, remove_node>* node_cache_;
-  // The leaf cache.
+  
+  /** The leaf cache. */
   AMI_CACHE_MANAGER<leaf_t*, remove_leaf>* leaf_cache_;
 
-  // The collection storing the leaves.
+  /** The collection storing the leaves. */
   collection_t * pcoll_leaves_;
 
-  // The collection storing the internal nodes (could be the same).
+  /** The collection storing the internal nodes (could be the same). */
   collection_t * pcoll_nodes_;
 
-  // Critical information: root bid and type, mbr, size (will be
-  // stored into the header of the nodes collection).
+  /** Critical information: root bid and type, mbr, size (will be
+   * stored into the header of the nodes collection). */
   header_t header_;
 
-  // The status.
+  /** The status. */
   AMI_kdbtree_status status_;
 
-  // Run-time parameters.
+  /** Run-time parameters. */
   AMI_kdbtree_params params_;
 
-  // Stack to store the path to a leaf.
+  /** Stack to store the path to a leaf. */
   stack<path_stack_item_t<coord_t, dim> > path_stack_;
 
-  // Stack for dfs_preorder
+  /** Stack for dfs_preorder. */
   stack<path_stack_item_t<coord_t, dim> > dfs_stack_;
 
-  // Statistics object.
+  /** Statistics object. */
   tpie_stats_tree stats_;
 
-  // Base path name.
+  /** Base path name. */
   string name_;
 
   bool insert_empty(const point_t& p);
@@ -195,6 +242,9 @@ struct _AMI_kdbtree_leaf_info {
   TPIE_OS_SIZE_T split_dim;
 };
 
+///////////////////////////////////////////////////////////////////////////
+/// The kdbtree_leaf class. 
+///////////////////////////////////////////////////////////////////////////
 template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL>
 class AMI_kdbtree_leaf: public AMI_block<AMI_record<coord_t, TPIE_OS_SIZE_T, dim>, _AMI_kdbtree_leaf_info, BTECOLL> {
 public:
@@ -219,27 +269,38 @@ public:
     }      
   }
 
-  // Number of points stored in this leaf.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Returns number of points stored in this leaf.
+  ///////////////////////////////////////////////////////////////////////////
   TPIE_OS_SIZE_T& size() { return info()->size; }
+
   const TPIE_OS_SIZE_T& size() const { return info()->size; }
 
-  // The weight of a leaf is the size. Just for symmetry with the
-  // nodes.
+  ///////////////////////////////////////////////////////////////////////////
+  /// The weight of a leaf is the size. Just for symmetry with the
+  /// nodes.
+  ///////////////////////////////////////////////////////////////////////////
   const TPIE_OS_OFFSET& weight() const { return info()->size; }
   
-  // Next leaf. All leaves of a tree are chained togther for easy
-  // retrieval.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Returns next leaf. All leaves of a tree are chained togther for easy
+  /// retrieval.
+  ///////////////////////////////////////////////////////////////////////////
   const AMI_bid& next() const { return info()->next; }
   AMI_bid& next() { return info()->next; }
 
   TPIE_OS_SIZE_T& split_dim() { return info()->split_dim; }
   const TPIE_OS_SIZE_T& split_dim() const { return info()->split_dim; }
  
-  // Maximum number of points that can be stored in this leaf.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Maximum number of points that can be stored in this leaf.
+  ///////////////////////////////////////////////////////////////////////////
   TPIE_OS_SIZE_T capacity() const { return el.capacity(); }
 
-  // Find a point. Return the index of the point found in the el
-  // vector (if not found, return size()).
+  ///////////////////////////////////////////////////////////////////////////
+  /// Finds a point. Return the index of the point found in the el
+  /// vector (if not found, return size()).
+  ///////////////////////////////////////////////////////////////////////////
   TPIE_OS_SIZE_T find(const point_t &p) const {
     TPIE_OS_SIZE_T i = 0;
     while (i < size()) {
@@ -265,7 +326,9 @@ public:
     return result;
   }
 
-  // Insert a point, assuming the leaf is not full.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Inserts a point, assuming the leaf is not full.
+  ///////////////////////////////////////////////////////////////////////////
   bool insert(const point_t &p) {
     assert(size() < el.capacity());
     if (size() > 0 && find(p) < size())
@@ -293,14 +356,18 @@ public:
     return ans;
   }
 
-  // Sort points on the given dimension.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Sorts the points on the given dimension.
+  ///////////////////////////////////////////////////////////////////////////
   void sort(TPIE_OS_SIZE_T d) {
     typename AMI_record<coord_t, TPIE_OS_SIZE_T, dim>::cmp cmpd(d);
     std::sort(&el[0], &el[0] + size(), cmpd);
   }
 
-  // Find median point on the given dimension. Return the index of the
-  // median in the el vector.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Find median point on the given dimension. Return the index of the
+  //ß/ median in the el vector.
+  ///////////////////////////////////////////////////////////////////////////
   TPIE_OS_SIZE_T find_median(TPIE_OS_SIZE_T d) {
     sort(d);
     TPIE_OS_SIZE_T ans = (size() - 1) / 2; // preliminary median.
@@ -318,7 +385,9 @@ struct _AMI_kdbtree_node_info {
   TPIE_OS_SIZE_T split_dim;
 };
 
-// The AMI_kdbtree_node class. 
+///////////////////////////////////////////////////////////////////////////
+/// The kdbtree_node class. 
+///////////////////////////////////////////////////////////////////////////
 template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL>
 class AMI_kdbtree_node: public AMI_block<kdb_item_t<coord_t, dim>, _AMI_kdbtree_node_info, BTECOLL> {
 public:
@@ -335,7 +404,9 @@ public:
 
   static TPIE_OS_SIZE_T el_capacity(TPIE_OS_SIZE_T block_size);
 
-  // A node is an AMI_block containing kdb_item_t's as elements and no links.
+  ///////////////////////////////////////////////////////////////////////////
+  /// A node is an block containing kdb_item_t's as elements and no links.
+  ///////////////////////////////////////////////////////////////////////////
   AMI_kdbtree_node(collection_t* pcoll, AMI_bid bid = 0):
     AMI_block<kdb_item_t<coord_t, dim>, _AMI_kdbtree_node_info, BTECOLL>(pcoll, 0, bid) {
     if (bid == 0) {
@@ -345,24 +416,34 @@ public:
     }
   }
 
-  // Number of kdb_item_t's stored in this node.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Return number of kdb_item_t's stored in this node.
+  ///////////////////////////////////////////////////////////////////////////
   TPIE_OS_SIZE_T& size() { return info()->size; }
   const TPIE_OS_SIZE_T& size() const { return info()->size; }
 
-  // Weight (ie, number of points stored in the subtree rooted at this
-  // node).
+  ///////////////////////////////////////////////////////////////////////////
+  /// Returns weight (ie, number of points stored in the subtree rooted at this
+  /// node).
+  ///////////////////////////////////////////////////////////////////////////
   TPIE_OS_OFFSET& weight() { return info()->weight; }
   const TPIE_OS_OFFSET& weight() const { return info()->weight; }
 
-  // Splitting dimension.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Returns splitting dimension.
+  ///////////////////////////////////////////////////////////////////////////
   TPIE_OS_SIZE_T& split_dim() { return info()->split_dim; }
   const TPIE_OS_SIZE_T& split_dim() const { return info()->split_dim; }
 
-  // Maximum number of kdb_item_t's that can be stored in this node.
-  TPIE_OS_SIZE_T capacity() const { return el.capacity(); }
+  ///////////////////////////////////////////////////////////////////////////
+  /// Returns maximum number of kdb_item_t's that can be stored in this node.
+  ///////////////////////////////////////////////////////////////////////////
+TPIE_OS_SIZE_T capacity() const { return el.capacity(); }
 
-  // Find the index of the kdb_item_t containing the given point. If
-  // no item contains the point, return size().
+  ///////////////////////////////////////////////////////////////////////////
+  /// Finds the index of the kdb_item_t containing the given point. If
+  /// no item contains the point, return size().
+  ///////////////////////////////////////////////////////////////////////////
   TPIE_OS_SIZE_T find(const point_t& p) {
     TPIE_OS_SIZE_T i;
     for (i = 0; i < size(); i++) {
@@ -372,7 +453,9 @@ public:
     return i;
   }
 
-  // Insert a kdb_item_t in this node.
+  ///////////////////////////////////////////////////////////////////////////
+  /// Inserts a kdb_item_t in this node.
+  ///////////////////////////////////////////////////////////////////////////
   bool insert(const item_t& ki) {
     //    assert(size() < el.capacity());
     el[size()] = ki;

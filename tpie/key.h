@@ -1,11 +1,7 @@
-// Copyright (c) 1995 Darren Erik Vengroff
-//
-// File: ami_key.h
-// Author: Darren Erik Vengroff <dev@cs.duke.edu>
-// Created: 3/12/95
-//
-// $Id: ami_key.h,v 1.3 2005-11-18 12:29:00 jan Exp $
-//
+///////////////////////////////////////////////////////////////////////////
+/// File: ami_key.h
+/// Defines keys and key ranges; used only in \ref kb_dist.h.
+///////////////////////////////////////////////////////////////////////////
 #ifndef _TPIE_AMI_KEY_H
 #define _TPIE_AMI_KEY_H
 
@@ -22,14 +18,16 @@ namespace tpie {
 #define UINT32 unsigned long
 	
 	
-// Radix keys are unsigned 32 bit integers.
+/** Radix keys are unsigned 32 bit integers. */
 	typedef UINT32 kb_key;
 	
 #define KEY_MAX 0x80000000
 #define KEY_MIN 0
 	
-// A range of keys.  A stream having this range of keys is guarantted
-// to have no keys < min and no keys >= max.
+	///////////////////////////////////////////////////////////////////////////
+	/// A range of keys.  A stream having this range of keys is guaranteed
+	/// to have no keys < min and no keys >= max.
+	///////////////////////////////////////////////////////////////////////////
 	class key_range {
 	public:
 	    key_range();

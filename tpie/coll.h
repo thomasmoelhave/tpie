@@ -1,13 +1,10 @@
-//
-// File:   ami_coll.h
-// Author: Octavian Procopiuc <tavi@cs.duke.edu>
-//
-// $Id: ami_coll.h,v 1.8 2003-05-08 22:12:21 tavi Exp $
-//
-// Front end for the AMI_COLLECTION implementations.
-//
 #ifndef _TPIE_AMI_COLL_H
 #define _TPIE_AMI_COLL_H
+
+///////////////////////////////////////////////////////////////////////////
+/// \file tpie/coll.h Provides means to choose and set a specific collection type.
+/// For now \ref tpie::ami::collection_single is the only implementation.
+///////////////////////////////////////////////////////////////////////////
 
 // Get definitions for working with Unix and Windows
 #include <tpie/portability.h>
@@ -19,10 +16,6 @@ namespace tpie {
 
     namespace ami {
 
-///////////////////////////////////////////////////////////////////////////
-/// \file tpie/coll.h Provides means to choose and set a specific collection type.
-/// For now \ref tpie::ami::collection_single is the only implementation.
-///////////////////////////////////////////////////////////////////////////
 
 
 ///////////////////////////////////////////////////////////////////////////
