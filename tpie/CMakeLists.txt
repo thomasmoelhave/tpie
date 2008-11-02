@@ -117,7 +117,7 @@ set (OTHER_SOURCES
 	mm_base.cpp
 	mm_manager.cpp
 	portability.cpp
-	log.cpp
+	tpie_log.cpp
 	tempname.cpp
 	)
 
