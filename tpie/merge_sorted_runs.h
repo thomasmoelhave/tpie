@@ -12,8 +12,6 @@
 #include <portability.h>
 
 // Includes needed from TPIE
-#include <ami_stream.h>
-#include <tpie_tempnam.h>
 #include <mergeheap.h>     //For templated heaps
 #include <quicksort.h>    //For templated qsort_items
 
