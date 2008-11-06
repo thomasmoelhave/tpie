@@ -11,8 +11,8 @@
 // Get definitions for working with Unix and Windows
 #include <tpie/portability.h>
 
-#ifndef BTE_VIRTUAL_BASE
-#  define BTE_VIRTUAL_BASE 0
+#ifdef BTE_VIRTUAL_BASE
+#error BTE_VIRTUAL_BASE has been deprecated.
 #endif
 
 // Get the base class, enums, etc...
