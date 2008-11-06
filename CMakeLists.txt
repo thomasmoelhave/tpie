@@ -49,7 +49,6 @@ add_subdirectory(doc)
 option(COMPILE_TEST "Compile test programs" ON)
 
 if (COMPILE_TEST)
-	include_directories(${CMAKE_CURRENT_SOURCE_DIR}/tpie/)
 	add_subdirectory(test)
 	add_subdirectory(apps)
 endif (COMPILE_TEST)
