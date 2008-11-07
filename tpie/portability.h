@@ -487,12 +487,18 @@ inline FILE* TPIE_OS_FOPEN(const std::string& filename,
 //there is no difference between the systemcalls
 //but for later adaptation to other systems it maybe useful
 #ifdef _WIN32
+#ifdef __MINGW32__
+inline int TPIE_OS_FSEEK(FILE* file, TPIE_OS_OFFSET offset, int whence) {
+	return fseeko64(file, static_cast<TPIE_OS_OFFSET>(offset), whence);
+}
+#else
 inline int TPIE_OS_FSEEK(FILE* file, TPIE_OS_OFFSET offset, int whence) {
 	//  Please note that the second parameter should be TPIE_OS_OFFSET
 	//  instead of int. This is due to the fact that VS2003 does not
 	//  support large files with fopen/fseek etc.
 	return _fseeki64(file, static_cast<TPIE_OS_OFFSET>(offset), whence);
 }
+#endif
 #else
 inline int TPIE_OS_FSEEK(FILE* file, TPIE_OS_OFFSET offset, int whence) {
     return fseek(file, offset, whence);
@@ -502,9 +508,15 @@ inline int TPIE_OS_FSEEK(FILE* file, TPIE_OS_OFFSET offset, int whence) {
 //there is no difference between the systemcalls
 //but for later adaptation to other systems it maybe useful
 #ifdef _WIN32
+#ifdef __MINGW32__
+inline TPIE_OS_OFFSET TPIE_OS_FTELL(FILE* file) {
+    return ftello64(file);
+}
+#else
 inline TPIE_OS_OFFSET TPIE_OS_FTELL(FILE* file) {
     return _ftelli64(file);
 }
+#endif
 #else
 inline TPIE_OS_OFFSET TPIE_OS_FTELL(FILE* file) {
     return ftell(file);
