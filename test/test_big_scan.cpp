@@ -338,7 +338,7 @@ void get_app_info(int argc, char** argv, appInfo & Info){
 	       "TPIE files larger than 2GB and 4GB\n\n");
 	getopts_usage(argv[0], opts);
 	printf("\nEach item is %d bytes\n", APP_ITEM_SIZE);
-	printf("--path-name is \"%s\" by default\n", TMP_DIR);
+	printf("--path-name is \"%s\" by default\n", tpie::tempname::get_default_path().c_str());
 	printf("Suffixes K, M, and G can be appended to the\n"
 	       "--numitems and --size options to mean\n"
 	       "*1024, *1024*1024, and *2^30 respectively\n"
@@ -352,7 +352,7 @@ void get_app_info(int argc, char** argv, appInfo & Info){
   
     //check if path is valid
 	tempname::set_default_path(Info.path);
-	tempname::set_default_base_name(APP_FILE_BASE);
+//  tempname::set_default_base_name(APP_FILE_BASE);
 	std::string tmpfname = tempname::tpie_name();
     TPIE_OS_FILE_DESCRIPTOR fd;
     fd=TPIE_OS_OPEN_OEXCL(tmpfname);
@@ -432,7 +432,7 @@ void progress_bar(float pct, TPIE_OS_LONGLONG nbytes){
 // Open a stream, write num_items, close stream
 void write_test(const std::string& fname, appInfo & info){
     
-    TPIE_OS_OFFSET i,n,trunc;
+    TPIE_OS_OFFSET i,n,trunc_bytes;
     Item x;
     ami::err ae = ami::NO_ERROR;
     
@@ -451,13 +451,13 @@ void write_test(const std::string& fname, appInfo & info){
 	      << n 
 	      << " items..." << std::endl;
   
-    trunc=(static_cast<TPIE_OS_OFFSET>(sizeof (x)))*n;
-    if(trunc<0 || trunc>(4*APP_GIG)){
-	std::cout << "Initial file length computed as "<< trunc
+    trunc_bytes=(static_cast<TPIE_OS_OFFSET>(sizeof (x)))*n;
+    if(trunc_bytes<0 || trunc_bytes>(4*APP_GIG)){
+	std::cout << "Initial file length computed as "<< trunc_bytes
 		  << "\nSetting to 4GB "<< std::endl;
-	trunc=4*APP_GIG;
+	trunc_bytes=4*APP_GIG;
     }
-    ae = str->truncate(trunc);
+    ae = str->truncate(trunc_bytes / sizeof (x));
     if(ae != ami::NO_ERROR){
 	std::cout << "\nError truncating file"<< std::endl;
     }
