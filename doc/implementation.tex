@@ -1398,15 +1398,8 @@ function
   sort(AMI_STREAM<T>* in, AMI_STREAM<T>* out, TPIE_OS_OFFSET nItems)
 \end{lstlisting}
 that reads \lstinline|nItems| from \lstinline|in|, sorts them and
-writes the sorted run to \lstinline|out|. They all use an
-implementation of quicksort defined in \path"include/quicksort.h".
-Optionally STL \lstinline|sort| can be used by defining the flag
-\lstinline|TPIE_USE_STL_SORT|. In our experiments both the STL and our
-quicksort have similar running times. Neither the quicksort
-implementation nor the STL \lstinline|sort| is a stable sort, i.e.,
-they do not preserve the relative order of input elements that compare
-equal. If users need a stable sort, the sort key should be modified to
-include the initial item offset in the comparison.
+writes the sorted run to \lstinline|out|.
+They all use STL \lstinline|sort| (not that this is not a stable sorter).
 
 What distinguishes the different sort class objects is the way two
 input elements are compared in the quicksort algorithm. The tree

@@ -5,7 +5,6 @@
 #include <tpie/sort.h>
 #include <tpie/err.h>
 #include "getopts.h"
-#include <tpie/quicksort.h>  //TPIE internal sort
 #include <algorithm>    //STL internal sort
 #include <cstdlib>     //C internal sort
 #include <tpie/cpu_timer.h>
@@ -539,22 +538,6 @@ void internal_sort_test(const appInfo& info){
        << ll2size(nitems*sizeof(SortItem),buf) << std::endl;
        
   load_list(Str, list, nitems);
-  std::cout << "TPIE quick_sort_op: ";
-  clk.reset();
-  clk.start();
-  ami::quick_sort_op(list, nitems, 20);
-  clk.stop();
-  std::cout << clk.wall_time() << std::endl;
-  
-  load_list(Str, list, nitems);
-  std::cout << "TPIE quick_sort_obj: ";
-  clk.reset();
-  clk.start();
-  ami::quick_sort_obj(list, nitems, &cmp, 20);
-  clk.stop();
-  std::cout << clk.wall_time() << std::endl;
-  
-  load_list(Str, list, nitems);
   std::cout << "STL sort: ";
   clk.reset();
   clk.start();
@@ -586,14 +569,6 @@ void internal_sort_test(const appInfo& info){
   clk.stop();
   std::cout << clk.wall_time() << std::endl;
  
-  load_list(Str, list, nitems);
-  std::cout << "Old school stdlib qsort: ";
-  clk.reset();
-  clk.start();
-  qsort(list, nitems, sizeof(SortItem), qcomp);
-  clk.stop();
-  std::cout << clk.wall_time() << std::endl;
-  
   Str->persist(PERSIST_DELETE);
   delete [] list;
   delete Str;

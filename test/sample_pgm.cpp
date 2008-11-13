@@ -25,9 +25,6 @@
 // Include timer that will allow us to time the program.
 #include <cpu_timer.h>
 
-// Include TPIE's internal memory sorting routines.
-#include <quicksort.h>
-
 // Include command line parsing functions
 #include "getopts.h"
 
@@ -219,7 +216,7 @@ int main(int argc, char *argv[]) {
    // ************************************************************
    // Sort partitioning array
    
-   quick_sort_op((int *)partitioning,7);
+   std::sort(&partitioning[0],&partitioning[6]);
    std::cout << "Sorted partitioning array" << std::endl;
    partitioning[7] = INT_MAX;
 

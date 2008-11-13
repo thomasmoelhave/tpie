@@ -84,7 +84,6 @@ set (OTHER_HEADERS
 		progress_indicator_spin.h
 		progress_indicator_terminal.h
 		progress_indicator_tpie.h
-		quicksort.h
 		sort_manager.h
 		stdio_stack.h
 		timer.h

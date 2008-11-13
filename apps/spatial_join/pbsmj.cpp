@@ -31,9 +31,7 @@ using std::endl;
 #include "intertree.h"
 #include "joinlog.h"
 
-#ifdef USE_STL_SORT
 #include <algorithm>
-#endif
 
 bool verbose = false;
 TPIE_OS_SIZE_T test_mm_size = 64*1024*1024; // Default mem. size.
@@ -570,13 +568,8 @@ void pbsmJoin()
     delete blue_parts[i];
     //cerr << "lengths: " << red_length << " " << blue_length << endl;
     // Sort the two arrays in memory.
-#ifdef USE_STL_SORT    
     sort(red_array, red_array+red_length);
     sort(blue_array, blue_array+blue_length);
-#else
-    quick_sort_op(red_array, (TPIE_OS_SIZE_T)red_length);
-    quick_sort_op(blue_array, (TPIE_OS_SIZE_T)blue_length);
-#endif
 
     if (algorithm == ORIGINAL) {
 

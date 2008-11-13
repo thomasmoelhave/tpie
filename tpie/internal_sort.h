@@ -11,17 +11,44 @@
 
 // Get definitions for working with Unix and Windows
 #include <tpie/portability.h>
-#include <tpie/quicksort.h>
 
-// Use our quicksort, or the sort from STL
-#ifdef TPIE_USE_STL_SORT
-// portability.h includes <algorithm> for us in the case of STL sort
+#include <algorithm>
 #include <tpie/comparator.h> //to convert TPIE comparisons to STL
-#endif
 
 namespace tpie {
+namespace ami {
 
-    namespace ami {
+	//A simple class that facilitates doing key sorting followed 
+	//by in-memory permuting to sort items in-memory. This is 
+	//particularly useful when key size is much smaller than 
+	//item size. Note that using this requires that the class Key
+	//have the comparison operators defined appropriately.
+	template<class Key>
+		class qsort_item {
+			public:
+				Key keyval;
+				unsigned int source;
+
+				friend int operator==(const qsort_item &x, const qsort_item &y)
+				{return  (x.keyval ==  y.keyval);}
+
+				friend int operator!=(const qsort_item &x, const qsort_item &y)
+				{return  (x.keyval !=  y.keyval);}    
+
+				friend int operator<=(const qsort_item &x, const qsort_item &y)
+				{return  (x.keyval <=  y.keyval);}
+
+				friend int operator>=(const qsort_item &x, const qsort_item &y)
+				{return  (x.keyval >=  y.keyval);}
+
+				friend int operator<(const qsort_item &x, const qsort_item &y)
+				{return  (x.keyval <  y.keyval);}
+
+				friend int operator>(const qsort_item &x, const qsort_item &y)
+				{return  (x.keyval >  y.keyval);}
+
+		};
+		
 
   ///////////////////////////////////////////////////////////////////////////
   /// The base class for internal sorters. 
@@ -203,13 +230,9 @@ namespace tpie {
 	    }
 
 	    //Sort the array.
-#ifdef TPIE_USE_STL_SORT
 	    TP_LOG_DEBUG_ID("calling STL sort for " << nItems << " items");
 	    std::sort(ItemArray, ItemArray+nItems);
-#else 
 	    TP_LOG_DEBUG("calling quick_sort_op for " << nItems << " items\n");
-	    quick_sort_op<T> (ItemArray, nItems);
-#endif
 	    
 	    if(InStr==OutStr){ //Do the right thing if we are doing 2x sort
 		//Internal sort objects should probably be re-written so that
@@ -307,14 +330,9 @@ namespace tpie {
 	    }
 
 	    //Sort the array.
-#ifdef TPIE_USE_STL_SORT
 	    TP_LOG_DEBUG_ID("calling STL sort for " << nItems << " items");
 	    TP_LOG_DEBUG("converting TPIE comparison object to STL\n");
 	    std::sort(ItemArray, ItemArray+nItems, TPIE2STL_cmp<T,CMPR>(cmp_o));
-#else 
-	    TP_LOG_DEBUG("calling quick_sort_obj for " << nItems << " items\n");
-	    quick_sort_obj<T> (ItemArray, nItems, cmp_o);
-#endif
 	    
 	    if (InStr==OutStr) { //Do the right thing if we are doing 2x sort
 		//Internal sort objects should probably be re-written so that
@@ -493,17 +511,13 @@ namespace tpie {
 	    }
 	    
 	    //Sort the array.
-#ifdef TPIE_USE_STL_SORT
 	    TP_LOG_DEBUG_ID("calling STL sort for " << nItems << " items");
 	    TP_LOG_DEBUG("converting TPIE Key comparison object to STL\n");
-	    std::sort(sortItemArray, ItemArray+nItems, 
-		      TPIE2STL_cmp<qsort_item<KEY>,QsortKeyCmp<KEY,CMPR> >
-		      (QsortKeyCmp<KEY, CMPR>(UsrObject)));
-#else
-	    QsortKeyCmp<KEY, CMPR> qcmp(UsrObject);
-	    TP_LOG_DEBUG("calling quick_sort_obj for " << nItems << " items\n");
-	    quick_sort_obj< qsort_item<KEY> > (sortItemArray, nItems, &qcmp);
-#endif
+		QsortKeyCmp<KEY, CMPR> kc(UsrObject);
+		TPIE2STL_cmp<qsort_item<KEY>,QsortKeyCmp<KEY,CMPR> > stlcomp(&kc);
+	    std::sort(
+				sortItemArray, sortItemArray+nItems/*, stlcomp */
+			  );
   
 	    if (InStr==OutStr) { //Do the right thing if we are doing 2x sort
 		//Internal sort objects should probably be re-written so that

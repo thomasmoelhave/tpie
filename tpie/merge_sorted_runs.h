@@ -13,7 +13,6 @@
 
 // Includes needed from TPIE
 #include <tpie/mergeheap.h>     //For templated heaps
-#include <tpie/quicksort.h>    //For templated qsort_items
 
 #include <tpie/progress_indicator_base.h>
 
