@@ -1241,9 +1241,7 @@ namespace tpie {
 		    // write optimizations that are useful unless non-sequential
 		    // accesses to data are made.
 		
-			//create zeroed out dummy block
 		    char *tmp_buffer = new char[m_osBlockSize];
-			memset(tmp_buffer,0,sizeof(char)*m_osBlockSize);
 		
 		    if (file_end != 0) {
 		    
