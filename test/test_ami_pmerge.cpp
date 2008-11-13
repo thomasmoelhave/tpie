@@ -23,13 +23,6 @@
 
 using namespace tpie;
 
-// From int_cmp.c
-//extern "C" int c_int_cmp(const void *, const void *);
-int c_int_cmp(const void *p1, const void *p2) {
-    return *(static_cast<const int*>(p1)) - *(static_cast<const int*>(p2));
-}
-
-
 // A merge object to merge sorted streams.  This code looks a lot like
 // what is included as part of the TPIE system for sorting in
 // ami_sort_single.h.
@@ -174,7 +167,7 @@ ami::err s_merge_manager::operate(int **in,
 
 ami::err s_merge_manager::main_mem_operate(int* mm_stream, TPIE_OS_SIZE_T len)
 {
-    qsort(mm_stream, len, sizeof(int), c_int_cmp);
+	std::sort(mm_stream,mm_stream+len);
     return ami::NO_ERROR;
 }
 
