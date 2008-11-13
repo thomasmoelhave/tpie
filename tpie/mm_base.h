@@ -8,8 +8,16 @@
 
 // Get definitions for working with Unix and Windows
 #include <tpie/portability.h>
+#include <stdexcept>
+
 
 namespace tpie {
+
+	#ifdef TPIE_USE_EXCEPTIONS
+	struct out_of_memory_error : public std::runtime_error {
+		out_of_memory_error(const std::string& s) : std::runtime_error(s) { }
+	};
+	#endif
 
     namespace mem {
 	

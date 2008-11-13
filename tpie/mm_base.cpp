@@ -95,11 +95,18 @@ void *operator new (TPIE_OS_SIZE_T sz)
 	if (!p) {
 	    TP_LOG_FATAL_ID ("Out of memory. Cannot continue.");
 	    TP_LOG_FLUSH_LOG;
-	    std::cerr << "out of memory while allocating " 
-		      << static_cast<TPIE_OS_LONG>(sz) << " bytes" << "\n";
-	    perror ("mm_base::new malloc");
-	    assert(0);
-	    exit (1);
+		std::stringstream ss;
+		ss << "out of memory while allocating " 
+			<< sz << " bytes.";
+		perror ("mm_base::new malloc");
+
+#ifdef TPIE_USE_EXCEPTIONS
+		throw out_of_memory_error(ss.str());
+#else
+		std::cerr << ss.str() << std::endl;
+		assert(0);
+		exit (1);
+#endif
 	}
 	*(reinterpret_cast<size_t *>(p)) = (MM_manager.allocation_count_factor() ? sz : 0);
 	return (reinterpret_cast<char *>(p)) + SIZE_SPACE;
@@ -165,11 +172,18 @@ void *operator new[] (TPIE_OS_SIZE_T sz)
     if (!p) {
 	TP_LOG_FATAL_ID ("Out of memory. Cannot continue.");
 	TP_LOG_FLUSH_LOG;
-	std::cerr << "out of memory while allocating " 
-		  << static_cast<TPIE_OS_LONG>(sz) << " bytes" << "\n";
+	std::stringstream ss;
+	ss << "out of memory while allocating " 
+		  << sz << " bytes.";
 	perror ("mm_base::new malloc");
+
+#ifdef TPIE_USE_EXCEPTIONS
+	throw out_of_memory_error(ss.str());
+#else
+	std::cerr << ss.str() << std::endl;
 	assert(0);
 	exit (1);
+#endif
     }
     *(reinterpret_cast<size_t *>(p)) = (MM_manager.allocation_count_factor() ? sz : 0);
 	return (reinterpret_cast<char *>(p)) + SIZE_SPACE;
