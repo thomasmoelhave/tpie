@@ -7,6 +7,8 @@
 #cmakedefine TPIE_HAVE_UNISTD_H
 #cmakedefine TPIE_HAVE_SYS_UNISTD_H
 
+#cmakedefine TPIE_USE_EXCEPTIONS
+
 #if defined (TPIE_HAVE_UNISTD_H)
 #include <unistd.h>
 #elif defined(TPIE_HAVE_SYS_UNISTD_H)

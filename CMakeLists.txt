@@ -47,6 +47,7 @@ add_subdirectory(tpie)
 add_subdirectory(doc)
 
 option(COMPILE_TEST "Compile test programs" ON)
+option(TPIE_USE_EXCEPTIONS "Throw exceptions on certain errors." OFF)
 
 if (COMPILE_TEST)
 	add_subdirectory(test)
