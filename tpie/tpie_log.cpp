@@ -6,8 +6,6 @@
 #include <tpie/tempname.h>
 #include <tpie/tpie_log.h>
 
-#define TPLOGPFX "tpielog"
-
 using namespace tpie;
 
 ///////////////////////////////////////////////////////////////////////////
@@ -17,8 +15,7 @@ using namespace tpie;
 static std::string& __tpie_log_name() 
 {
 	static std::string tln;
-	TPIE_OS_SRANDOM(static_cast<unsigned int>(TPIE_OS_TIME(NULL)));
-	tln = tempname::tpie_name(TPLOGPFX, TPLOGDIR, "txt");
+	tln = tempname::tpie_name("log", "" , "txt");
 	return tln;
 }
 
