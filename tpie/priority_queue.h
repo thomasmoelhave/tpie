@@ -38,6 +38,17 @@ public:
     /////////////////////////////////////////////////////////
     priority_queue(double f=1.0);
 
+	/////////////////////////////////////////////////////////
+    ///
+    /// Constructor
+    ///
+    /// \param mmavail Number of bytes the priority queue is
+    /// allowed to use.
+    ///
+    /////////////////////////////////////////////////////////
+    priority_queue(TPIE_OS_SIZE_T mm_avail);
+
+
     /////////////////////////////////////////////////////////
     ///
     /// Destructor
@@ -129,6 +140,8 @@ private:
     //////////////////
     // TPIE wrappers
     ami::err err;
+
+	void init(TPIE_OS_SIZE_T mm_avail);
 
     const  void seek_offset(stream<T>* data, TPIE_OS_OFFSET offset);
 

@@ -1,9 +1,21 @@
 template<typename T, typename Comparator, typename OPQType>
-priority_queue<T, Comparator, OPQType>::priority_queue(double f) { // constructor 
-	
-    TPIE_OS_SIZE_T mm_avail = MM_manager.memory_limit();
-    TP_LOG_DEBUG("priority_queue: Memory limit: " << mm_avail/1024/1024 << "mb("<< mm_avail << "bytes)" << "\n");
+priority_queue<T, Comparator, OPQType>::priority_queue(double f) { // constructor mem fraction
+	assert(f<= 1.0 && f > 0);
+	TPIE_OS_SIZE_T mm_avail = MM_manager.memory_limit();
+	TP_LOG_DEBUG("priority_queue: Memory limit: " << mm_avail/1024/1024 << "mb("<< mm_avail << "bytes)" << "\n");
     mm_avail = (TPIE_OS_SIZE_T)((double)mm_avail*f);
+	init(mm_avail);
+}
+
+template<typename T, typename Comparator, typename OPQType>
+priority_queue<T, Comparator, OPQType>::priority_queue(TPIE_OS_SIZE_T mm_avail) { // constructor absolute mem
+	assert(mm_avail <= MM_manager.memory_limit() && mm_avail > 0);
+	TP_LOG_DEBUG("priority_queue: Memory limit: " << mm_avail/1024/1024 << "mb("<< mm_avail << "bytes)" << "\n");
+	init(mm_avail);
+}
+
+template<typename T, typename Comparator, typename OPQType>
+void priority_queue<T, Comparator, OPQType>::init(TPIE_OS_SIZE_T mm_avail) { // init 
     TP_LOG_DEBUG("m_for_queue: " << mm_avail << "\n");
     TP_LOG_DEBUG("memory before alloc: " << MM_manager.memory_available() << "b" << "\n");
     {
