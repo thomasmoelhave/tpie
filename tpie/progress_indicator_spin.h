@@ -1,10 +1,10 @@
 #ifndef _TPIE_PROGRESS_INDICATOR_SPIN_H
 #define _TPIE_PROGRESS_INDICATOR_SPIN_H
 
-#include <portability.h>
+#include <tpie/portability.h>
 #include <algorithm>
 
-#include <progress_indicator_terminal.h>
+#include <tpie/progress_indicator_terminal.h>
 
 namespace tpie {
 
@@ -99,7 +99,7 @@ namespace tpie {
 	    if (m_current == m_maxRange) m_state = m_numberOfStates;
 
 	    //  Go to the beginning of the line and print the description.
-	    std::cout << "\r" << m_description << " " << m_symbols[m_state] << flush;
+	    std::cout << "\r" << m_description << " " << m_symbols[m_state] << std::flush;
 	
 	}
 
