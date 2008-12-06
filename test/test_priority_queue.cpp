@@ -20,7 +20,7 @@ void pq_large_instance(bool crash_test){
   std::priority_queue<long long, vector<long long>,std::less<long long> > pq2;
   double cycle = crash_test ? 20000000000.0 : 50000000.0;
   for(long long j=0;;j++){
-    double i(j);
+    double i = static_cast<double>(j);
     double th = (cos(i*2.0*PI/cycle)+1.0)*(RAND_MAX/2);
     if(!crash_test && !pq.empty()){
       if(pq.top()!=pq2.top()){
@@ -89,7 +89,7 @@ void pq_small_instance(){
       std::priority_queue<int, vector<int>,std::less<int> > pq2;
 
       TPIE_OS_OFFSET elements = 71;
-      TPIE_OS_SRANDOM(it);
+      TPIE_OS_SRANDOM(static_cast<unsigned int>(it));
       for(TPIE_OS_OFFSET i=0;i<elements;i++) {
         int src_int = TPIE_OS_RANDOM()%220;
         pq.push(src_int);
