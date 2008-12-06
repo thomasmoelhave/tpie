@@ -126,16 +126,16 @@ private:
     TPIE_OS_OFFSET* slot_state;
     TPIE_OS_OFFSET* group_state;
 
-    TPIE_OS_OFFSET setting_k;
-    TPIE_OS_OFFSET current_r;
-    TPIE_OS_OFFSET setting_m;
-    TPIE_OS_OFFSET setting_mmark;
+    TPIE_OS_SIZE_T setting_k;
+    TPIE_OS_SIZE_T current_r;
+    TPIE_OS_SIZE_T setting_m;
+    TPIE_OS_SIZE_T setting_mmark;
 
     TPIE_OS_OFFSET slot_data_id;
 
     TPIE_OS_OFFSET m_size;
-    TPIE_OS_OFFSET buffer_size;
-    TPIE_OS_OFFSET buffer_start;
+    TPIE_OS_SIZE_T buffer_size;
+    TPIE_OS_SIZE_T buffer_start;
 
     //////////////////
     // TPIE wrappers
@@ -151,30 +151,30 @@ private:
     // end TPIE wrappers
     /////////////////////
 
-    void slot_start_set(TPIE_OS_OFFSET slot, TPIE_OS_OFFSET n); 
-    const TPIE_OS_OFFSET slot_start(TPIE_OS_OFFSET slot); 
-    void slot_size_set(TPIE_OS_OFFSET slot, TPIE_OS_OFFSET n); 
-    const TPIE_OS_OFFSET slot_size(TPIE_OS_OFFSET slot); 
-    void group_start_set(TPIE_OS_OFFSET group, TPIE_OS_OFFSET n); 
-    const TPIE_OS_OFFSET group_start(TPIE_OS_OFFSET group); 
-    void group_size_set(TPIE_OS_OFFSET group, TPIE_OS_OFFSET n); 
-    const TPIE_OS_OFFSET group_size(TPIE_OS_OFFSET group); 
+    void slot_start_set(TPIE_OS_SIZE_T slot, TPIE_OS_OFFSET n); 
+    const TPIE_OS_OFFSET slot_start(TPIE_OS_SIZE_T slot); 
+    void slot_size_set(TPIE_OS_SIZE_T slot, TPIE_OS_OFFSET n); 
+    const TPIE_OS_OFFSET slot_size(TPIE_OS_SIZE_T slot); 
+    void group_start_set(TPIE_OS_SIZE_T group, TPIE_OS_OFFSET n); 
+    const TPIE_OS_OFFSET group_start(TPIE_OS_SIZE_T group); 
+    void group_size_set(TPIE_OS_SIZE_T group, TPIE_OS_OFFSET n); 
+    const TPIE_OS_OFFSET group_size(TPIE_OS_SIZE_T group); 
     std::string filename;
     std::string datafiles;
     const std::string& datafile(TPIE_OS_OFFSET id); 
     const std::string& datafile_group(TPIE_OS_OFFSET id); 
-    const std::string& slot_data(TPIE_OS_OFFSET slotid); 
-    void slot_data_set(TPIE_OS_OFFSET slotid, TPIE_OS_OFFSET n); 
-    const std::string& group_data(TPIE_OS_OFFSET groupid); 
-    TPIE_OS_OFFSET slot_max_size(TPIE_OS_OFFSET slotid); 
-    void write_slot(TPIE_OS_OFFSET slotid, T* arr, TPIE_OS_OFFSET len); 
-    TPIE_OS_OFFSET free_slot(TPIE_OS_OFFSET group);
-    void empty_group(TPIE_OS_OFFSET group);
+    const std::string& slot_data(TPIE_OS_SIZE_T slotid); 
+    void slot_data_set(TPIE_OS_SIZE_T slotid, TPIE_OS_OFFSET n); 
+    const std::string& group_data(TPIE_OS_SIZE_T groupid); 
+    TPIE_OS_OFFSET slot_max_size(TPIE_OS_SIZE_T slotid); 
+    void write_slot(TPIE_OS_SIZE_T slotid, T* arr, TPIE_OS_OFFSET len); 
+    TPIE_OS_SIZE_T free_slot(TPIE_OS_SIZE_T group);
+    void empty_group(TPIE_OS_SIZE_T group);
     void fill_buffer();
-    void fill_group_buffer(TPIE_OS_OFFSET group);
-    void compact(TPIE_OS_OFFSET slot);
+    void fill_group_buffer(TPIE_OS_SIZE_T group);
+    void compact(TPIE_OS_SIZE_T slot);
     void validate();
-    void remove_group_buffer(TPIE_OS_OFFSET group);
+    void remove_group_buffer(TPIE_OS_SIZE_T group);
     void dump();
 };
 

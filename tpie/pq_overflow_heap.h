@@ -66,7 +66,7 @@ public:
     /// \return Queue size
     ///
     /////////////////////////////////////////////////////////
-    const TPIE_OS_OFFSET size();
+    TPIE_OS_SIZE_T size() const;
 
     /////////////////////////////////////////////////////////
     ///
@@ -75,7 +75,7 @@ public:
     /// \return Boolean - empty or not
     ///
     /////////////////////////////////////////////////////////
-    const bool empty();
+    bool empty() const;
 
     /////////////////////////////////////////////////////////
     ///
@@ -92,7 +92,7 @@ public:
     /// \return Boolean - full or not
     ///
     /////////////////////////////////////////////////////////
-    const bool full();
+    bool full() const;
 
     /////////////////////////////////////////////////////////
     ///
@@ -110,7 +110,7 @@ public:
     /// \return Size
     ///
     /////////////////////////////////////////////////////////
-    const TPIE_OS_OFFSET sorted_size();
+    TPIE_OS_SIZE_T sorted_size() const;
 
     /////////////////////////////////////////////////////////
     ///
@@ -122,7 +122,7 @@ public:
 private:
     Comparator comp_;
     pq_internal_heap<T, Comparator>* h;
-    TPIE_OS_OFFSET maxsize;
+    TPIE_OS_SIZE_T maxsize;
     T dummy;
 };
 	

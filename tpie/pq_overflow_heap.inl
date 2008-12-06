@@ -37,12 +37,12 @@ inline const T& pq_overflow_heap<T, Comparator>::top() {
 }
 
 template<typename T, typename Comparator>
-inline const TPIE_OS_OFFSET pq_overflow_heap<T, Comparator>::size() {
+inline TPIE_OS_SIZE_T pq_overflow_heap<T, Comparator>::size() const {
 	return h->size();
 }
 
 template<typename T, typename Comparator>
-inline const bool pq_overflow_heap<T, Comparator>::full() {
+inline bool pq_overflow_heap<T, Comparator>::full() const {
 	return maxsize == h->size();
 }
 
@@ -53,7 +53,7 @@ inline T* pq_overflow_heap<T, Comparator>::sorted_array() {
 }
 
 template<typename T, typename Comparator>
-inline const TPIE_OS_OFFSET pq_overflow_heap<T, Comparator>::sorted_size() {
+inline TPIE_OS_SIZE_T pq_overflow_heap<T, Comparator>::sorted_size() const{
 	return maxsize;
 }
 
@@ -63,6 +63,6 @@ inline void pq_overflow_heap<T, Comparator>::sorted_pop() {
 }
 
 template<typename T, typename Comparator>
-inline const bool pq_overflow_heap<T, Comparator>::empty() {
+inline bool pq_overflow_heap<T, Comparator>::empty() const {
 	return h->empty();
 } 

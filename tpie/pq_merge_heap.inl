@@ -1,10 +1,10 @@
 
 template <typename T, typename Comparator>
-pq_merge_heap<T, Comparator>::pq_merge_heap(TPIE_OS_OFFSET elements) {
+pq_merge_heap<T, Comparator>::pq_merge_heap(TPIE_OS_SIZE_T elements) {
 	maxsize = elements;
 	heap = new T[elements];
 	if(heap == NULL) throw std::bad_alloc();
-	runs = new TPIE_OS_OFFSET[elements];
+	runs = new TPIE_OS_SIZE_T[elements];
 	if(runs == NULL) throw std::bad_alloc();
 
 	m_size = 0;
@@ -17,11 +17,11 @@ pq_merge_heap<T, Comparator>::~pq_merge_heap() {
 }
 
 template <typename T, typename Comparator>
-void pq_merge_heap<T, Comparator>::push(const T& x, TPIE_OS_OFFSET run) {
+void pq_merge_heap<T, Comparator>::push(const T& x, TPIE_OS_SIZE_T run) {
 	heap[m_size] = x;
 	runs[m_size] = run;
-	TPIE_OS_OFFSET parent;
-	TPIE_OS_OFFSET child;
+	TPIE_OS_SIZE_T parent;
+	TPIE_OS_SIZE_T child;
 	child = m_size;
 	parent = ( child - 1 ) / 2;
 	m_size++;
@@ -52,7 +52,7 @@ void pq_merge_heap<T, Comparator>::pop() {
 }
 
 template <typename T, typename Comparator>
-void pq_merge_heap<T, Comparator>::pop_and_push(const T& x, TPIE_OS_OFFSET run) {
+void pq_merge_heap<T, Comparator>::pop_and_push(const T& x, TPIE_OS_SIZE_T run) {
 	heap[0] = x;
 	runs[0] = run;
 	fixDown();
@@ -68,12 +68,12 @@ const T& pq_merge_heap<T, Comparator>::top() {
 }
 
 template <typename T, typename Comparator>
-const TPIE_OS_OFFSET pq_merge_heap<T, Comparator>::top_run() {
+const TPIE_OS_SIZE_T pq_merge_heap<T, Comparator>::top_run() {
 	return runs[0];
 }
 
 template <typename T, typename Comparator>
-const TPIE_OS_OFFSET pq_merge_heap<T, Comparator>::size() {
+const TPIE_OS_SIZE_T pq_merge_heap<T, Comparator>::size() {
 	return m_size;
 }
 
@@ -149,8 +149,8 @@ template <typename T, typename Comparator>
 void pq_merge_heap<T, Comparator>::validate() {
 #ifndef NDEBUG
 #ifdef PQ_VALIDATE
-	TPIE_OS_OFFSET child1, child2;
-	for(TPIE_OS_OFFSET i = 0; i<m_size; i++) {
+	TPIE_OS_SIZE_T child1, child2;
+	for(TPIE_OS_SIZE_T i = 0; i<m_size; i++) {
 		child1 = i * 2 + 1;
 		child2 = i * 2 + 2;
 		if(child1<m_size) {
@@ -169,7 +169,7 @@ void pq_merge_heap<T, Comparator>::validate() {
 template <typename T, typename Comparator>
 void pq_merge_heap<T, Comparator>::dump() {
 	TP_LOG_DEBUG("pq_merge_heap: "); 
-	for(TPIE_OS_OFFSET i = 0; i<m_size; i++) {
+	for(TPIE_OS_SIZE_T i = 0; i<m_size; i++) {
 		TP_LOG_DEBUG(heap[i] << ", ");
 	}
 	TP_LOG_DEBUG("\n");
