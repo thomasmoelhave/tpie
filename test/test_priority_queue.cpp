@@ -2,6 +2,7 @@
 #include <tpie/portability.h>
 #include <tpie/priority_queue.h>
 #include <iostream>
+#include <tpie/progress_indicator_arrow.h>
 #include <queue>
 #include <cstdlib>
 
@@ -19,7 +20,10 @@ void pq_large_instance(bool crash_test){
   ami::priority_queue<long long, std::greater<long long> > pq(mem_frac);
   std::priority_queue<long long, vector<long long>,std::less<long long> > pq2;
   double cycle = crash_test ? 20000000000.0 : 50000000.0;
+  const long long iterations=1000000000;
+  progress_indicator_arrow progress("Running test","Running test:",0,iterations,1);
   for(long long j=0;;j++){
+	progress.step();
     double i = static_cast<double>(j);
     double th = (cos(i*2.0*PI/cycle)+1.0)*(RAND_MAX/2);
     if(!crash_test && !pq.empty()){
@@ -49,9 +53,10 @@ void pq_large_instance(bool crash_test){
 	pq2.pop();
     }
     assert(pq.size()==cnt);
-    if(j%10000==0)
-      std::cout << "Size: " << cnt << "\n";
+    if(j%5000000==0)
+      std::cout << "\nElements in pq: " << cnt << " (" << cnt/1024/1024 << " mebielements).\n";
   }
+  progress.done("Done");
 }
 
 void pq_internal_instance(){
@@ -81,12 +86,11 @@ void pq_small_instance(){
 
 
   std::cout << "tpie::priority_queue Debug - M test" << std::endl;
-    TPIE_OS_OFFSET iterations = 1000000;
+    TPIE_OS_OFFSET iterations = 10000;
     MM_manager.set_memory_limit(16*1024*1024);
+  progress_indicator_arrow progress("Running test","Running test:",1100,iterations,1);
     for(TPIE_OS_OFFSET it = 1100; it < iterations; it++)  {
-      if ( (it%5000) == 0) {
-        std::cerr << "Iteration: " << it << std::endl;
-      }
+	  progress.step();
       ami::priority_queue<int, std::greater<int> > pq(0.75);
       std::priority_queue<int, vector<int>,std::less<int> > pq2;
 
@@ -141,6 +145,7 @@ void pq_small_instance(){
         pq2.pop();
       }
     }
+	progress.done("Done");
   }
 
 
