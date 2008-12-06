@@ -85,7 +85,7 @@ void pq_small_instance(){
     MM_manager.set_memory_limit(16*1024*1024);
     for(TPIE_OS_OFFSET it = 1100; it < iterations; it++)  {
       if ( (it%5000) == 0) {
-        std::cerr << "Iteration: " << it;
+        std::cerr << "Iteration: " << it << std::endl;
       }
       ami::priority_queue<int, std::greater<int> > pq(0.75);
       std::priority_queue<int, vector<int>,std::less<int> > pq2;
@@ -140,7 +140,6 @@ void pq_small_instance(){
         pq.pop();
         pq2.pop();
       }
-      std::cout << std::endl;
     }
   }
 
