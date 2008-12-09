@@ -9,6 +9,7 @@
 #include "pq_overflow_heap.h"
 #include <iostream>
 #include <fstream>
+#include <cmath>
 #include <string>
 #include <sstream>
 #include "pq_merge_heap.h"

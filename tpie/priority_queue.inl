@@ -51,9 +51,21 @@ void priority_queue<T, Comparator, OPQType>::init(TPIE_OS_SIZE_T mm_avail) { // 
 	    setting_mmark = (mm_avail/16)/buffer_m_overhead; //Set the buffer size
 	    mm_avail-=setting_mmark*buffer_m_overhead;
 	    setting_k = (mm_avail/2); 
-	    const TPIE_OS_SIZE_T root_discriminant = 
-		    static_cast<TPIE_OS_SIZE_T>(sqrt((float)fanout_overhead*fanout_overhead+4*sq_fanout_overhead*setting_k));
-	    setting_k = (root_discriminant-fanout_overhead)/(2*sq_fanout_overhead); //Set fanout
+
+		{
+			//compute setting_k
+			//some of these numbers get big which is the reason for all this
+			//careful casting.
+			TPIE_OS_OFFSET squared_tmp = static_cast<TPIE_OS_OFFSET>(fanout_overhead)*static_cast<TPIE_OS_OFFSET>(fanout_overhead); 
+			squared_tmp += static_cast<TPIE_OS_OFFSET>(4*sq_fanout_overhead)*static_cast<TPIE_OS_OFFSET>(setting_k);
+			long double dsquared_tmp = static_cast<long double>(squared_tmp);
+			const TPIE_OS_SIZE_T root_discriminant = static_cast<TPIE_OS_SIZE_T>(std::floor(std::sqrt(dsquared_tmp)));
+	
+			const TPIE_OS_OFFSET nominator = root_discriminant-fanout_overhead;
+			const TPIE_OS_OFFSET denominator = 2*sq_fanout_overhead;
+			setting_k = nominator/denominator; //Set fanout
+		}
+
 	    mm_avail-=setting_k*heap_m_overhead+setting_k*setting_k*sq_fanout_overhead;
 	    setting_m = (mm_avail)/heap_m_overhead;
 
