@@ -100,10 +100,12 @@ void *operator new (TPIE_OS_SIZE_T sz)
 		std::stringstream ss;
 		const char* err = strerror(errno);
 		ss << "Could not allocate " 
-			<< sz/1024/1024 << " megabytebytes (" 
+			<< sz/1024/1024 << " megabytes (" 
 			<< sz << " bytes) from the heap."
 			<<" malloc returned a null pointer, errno is "
-			<< errno << " (" << err << ")\n";
+			<< errno << " (" << err << "). Available memory accoding to TPIE is "
+			<< MM_manager.memory_available()/1024/1024 << " megabytes ("
+			<< MM_manager.memory_available() << " bytes)\n";
 
 #ifdef TPIE_USE_EXCEPTIONS
 		throw out_of_memory_error(ss.str());
@@ -180,10 +182,12 @@ void *operator new[] (TPIE_OS_SIZE_T sz)
 	std::stringstream ss;
 	const char* err = strerror(errno);
 	ss << "Could not allocate " 
-		<< sz/1024/1024 << " megabytebytes (" 
-		<< sz << " bytes) from the heap."
-		<<" malloc returned a null pointer, errno is "
-		<< errno << " (" << err << ")\n";
+			<< sz/1024/1024 << " megabytes (" 
+			<< sz << " bytes) from the heap."
+			<<" malloc returned a null pointer, errno is "
+			<< errno << " (" << err << "). Available memory accoding to TPIE is "
+			<< MM_manager.memory_available()/1024/1024 << " megabytes ("
+			<< MM_manager.memory_available() << " bytes)\n";
 
 #ifdef TPIE_USE_EXCEPTIONS
 	throw out_of_memory_error(ss.str());
