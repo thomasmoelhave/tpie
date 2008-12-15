@@ -14,6 +14,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cassert>
+#include <cstring>
+#include <errno.h>
 
 // support for dmalloc (for tracking memory leaks)
 #ifdef USE_DMALLOC
@@ -96,9 +98,12 @@ void *operator new (TPIE_OS_SIZE_T sz)
 	    TP_LOG_FATAL_ID ("Out of memory. Cannot continue.");
 	    TP_LOG_FLUSH_LOG;
 		std::stringstream ss;
-		ss << "out of memory while allocating " 
-			<< sz << " bytes.";
-		perror ("mm_base::new malloc");
+		const char* err = strerror(errno);
+		ss << "Could not allocate " 
+			<< sz/1024/1024 << " megabytebytes (" 
+			<< sz << " bytes) from the heap."
+			<<" malloc returned a null pointer, errno is "
+			<< errno << " (" << err << ")\n";
 
 #ifdef TPIE_USE_EXCEPTIONS
 		throw out_of_memory_error(ss.str());
@@ -173,9 +178,12 @@ void *operator new[] (TPIE_OS_SIZE_T sz)
 	TP_LOG_FATAL_ID ("Out of memory. Cannot continue.");
 	TP_LOG_FLUSH_LOG;
 	std::stringstream ss;
-	ss << "out of memory while allocating " 
-		  << sz << " bytes.";
-	perror ("mm_base::new malloc");
+	const char* err = strerror(errno);
+	ss << "Could not allocate " 
+		<< sz/1024/1024 << " megabytebytes (" 
+		<< sz << " bytes) from the heap."
+		<<" malloc returned a null pointer, errno is "
+		<< errno << " (" << err << ")\n";
 
 #ifdef TPIE_USE_EXCEPTIONS
 	throw out_of_memory_error(ss.str());

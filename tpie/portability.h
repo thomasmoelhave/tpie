@@ -16,7 +16,9 @@
 #define _TPIE_SMALL_MAIN_MEMORY
 
 #ifdef _WIN32
+#ifndef NOMINMAX
 #define NOMINMAX  //ensures that the windows min/max macros are not defined 
+#endif
 #endif
 
 #ifdef _WIN32
