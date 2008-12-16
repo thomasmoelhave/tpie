@@ -198,13 +198,86 @@ TPIE_OS_SIZE_T manager::memory_available() {
     return remaining;    
 }
 
-size_t manager::memory_used() {
+TPIE_OS_SIZE_T manager::memory_used() {
     return used;    
 }
 
-size_t manager::memory_limit() {
+TPIE_OS_SIZE_T manager::memory_limit() {
     return user_limit;    
 }
+
+TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound, TPIE_OS_SIZE_T granularity) {
+    
+    //lower bound of search
+    size_t low = lower_bound;
+
+	//don't try to get more than the amount of bytes currently
+	//available
+	size_t high = memory_available()-space_overhead();
+	
+	const TPIE_OS_SIZE_T MEGA=1024*1024;
+		
+	TP_LOG_DEBUG_ID("\n- - - - - - - MEMORY SEARCH - - - - - -\n");
+
+	if (high< low) {
+		low=high;
+	}
+	
+	//first check quickly if we can get "high" bytes of memory
+	//directly.
+	try {
+		char* mem = new char[high];
+		delete[] mem;
+		TP_LOG_DEBUG_ID("Successfully allocated " << high << " bytes.\n");
+		return high;
+	} catch (...) {
+		TP_LOG_DEBUG_ID("Failed to get " << high/MEGA << " megabytes of memory. "
+			<< "Performing binary search to find largest amount "
+			<< "of memory available. This might take a few moments.\n");
+	}
+
+	//we should be able to get at least lower_limit bytes
+	try {
+		char* mem = new char[low];
+		delete[] mem;
+	} catch (...) {
+		TP_LOG_DEBUG_ID("Failed to get lower limit" << low/MEGA << " megabytes of memory. Aborting\n. ");
+		return 0;
+	}
+
+	//perform a binary search in [low,high] for highest possible 
+	//memory allocation within a granularity given by 
+	//the "granularity" variable.
+    do {
+		//middle of search interval, beware of overflows
+        size_t mid = size_t((static_cast<TPIE_OS_OFFSET>(low)+high)/2);
+		
+		TP_LOG_DEBUG_ID("Search area is  [" << low << "," << high << "]"
+			<< " query amount is: " << mid << ":\n");
+
+		if (mid < low || mid > high) {
+			throw std::logic_error(
+					"Memory interval calculation failed. Try setting the "
+					" memory value to something smaller.");
+		}
+
+		//try to allocate "mid" bytes of memory
+		//TPIE throws an exception if memory allocation fails
+        try {
+            char* mem = new char[mid];
+			low = mid;
+			delete[] mem;
+        } catch (...) {
+            high = mid;
+            TP_LOG_DEBUG_ID("failed.\n");
+        }
+    } while (high - low > granularity);
+
+	TP_LOG_DEBUG_ID("\n- - - - - - - END MEMORY SEARCH - - - - - -\n\n");
+
+	return low;
+}
+
 
 // Instantiate the actual memory manager, and allocate the 
 // its static data members

@@ -232,7 +232,7 @@ namespace tpie {
 	    TPIE_OS_OFFSET sz_stream, sz_needed = 0;
   
 	    // How much main memory is available?
-	    sz_avail = MM_manager.memory_available ();
+	    sz_avail = MM_manager.consecutive_memory_available ();
 
 	    // Iterate through the streams, finding out how much additional
 	    // memory each stream will need in the worst case (the streams are
@@ -422,7 +422,7 @@ namespace tpie {
 	    TPIE_OS_SIZE_T sz_avail;
   
 	    // How much memory is available?
-	    sz_avail = MM_manager.memory_available ();
+	    sz_avail = MM_manager.consecutive_memory_available ();
 
 	    len = instream->stream_len();
 	    if ((len * sizeof(T)) <= static_cast<TPIE_OS_OFFSET>(sz_avail)) {
@@ -495,7 +495,7 @@ namespace tpie {
 	    int jj;
   
 	    //How much memory is available?
-	    sz_avail = MM_manager.memory_available ();
+	    sz_avail = MM_manager.consecutive_memory_available ();
 
 	    // If the whole input can fit in main memory then just call
 	    // main_mem_merge() to deal with it by loading it once and

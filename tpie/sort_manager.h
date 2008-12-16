@@ -229,7 +229,7 @@ namespace tpie {
 	    // ********************************************************************
 	    	    
 	    // Figure out how much memory we've got to work with.
-	    mmBytesAvail = MM_manager.memory_available();
+	    mmBytesAvail = MM_manager.consecutive_memory_available();
 	    
 	    // Space for internal buffers for the input and output stream may not
 	    // have been allocated yet. Query the space usage and subtract.
@@ -694,7 +694,7 @@ namespace tpie {
 			    << " bytes for " << mrgArity << " merge input stream pointers.\n"
 			    << "Allocated " << MM_manager.space_overhead() << " bytes" 
 			    << " of overhead on \"new\" call.\n" 
-			    << "Mem. avail. is " << MM_manager.memory_available () );
+			    << "Mem. avail. is " << MM_manager.consecutive_memory_available () );
 
 	    // the number of iterations the main loop has gone through,
 	    // at most the height of the merge tree log_{M/B}(N/B),

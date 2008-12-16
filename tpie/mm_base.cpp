@@ -31,10 +31,11 @@ int   register_new = IGNORE_MEMORY_EXCEEDED;
 #endif
 
 
-// SIZE_SPACE is to ensure alignment on quad word boundaries.  It may be
-// possible to check whether a machine needs this at configuration
-// time or if dword alignment is ok.  On the HP 9000, bus errors occur
-// when loading doubles that are not qword aligned.
+/// Ensures alignment on quad word boundaries.  It may be
+/// possible to check whether a machine needs this at configuration
+/// time or if dword alignment is ok.  On the HP 9000, bus errors occur
+/// when loading doubles that are not qword aligned.
+/// It is also used to keep the allocation size counter.
 static const TPIE_OS_SIZE_T SIZE_SPACE=(sizeof(TPIE_OS_SIZE_T) > 8 ? sizeof(TPIE_OS_SIZE_T) : 8);
 
 void *operator new (TPIE_OS_SIZE_T sz)

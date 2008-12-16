@@ -1,7 +1,7 @@
 template<typename T, typename Comparator, typename OPQType>
 priority_queue<T, Comparator, OPQType>::priority_queue(double f) { // constructor mem fraction
 	assert(f<= 1.0 && f > 0);
-	TPIE_OS_SIZE_T mm_avail = MM_manager.memory_limit();
+	TPIE_OS_SIZE_T mm_avail = MM_manager.consecutive_memory_available();
 	TP_LOG_DEBUG("priority_queue: Memory limit: " << mm_avail/1024/1024 << "mb("<< mm_avail << "bytes)" << "\n");
     mm_avail = (TPIE_OS_SIZE_T)((double)mm_avail*f);
 	init(mm_avail);

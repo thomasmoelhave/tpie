@@ -150,6 +150,22 @@ namespace tpie {
 	    /// user-specified limit is reached.
 	    ///////////////////////////////////////////////////////////////////////////
 	    TPIE_OS_SIZE_T memory_available ();
+	    
+	    ///////////////////////////////////////////////////////////////////////////
+	    /// Return the number of bytes of memory that can safely be allocated as one
+	    /// consecutive array. This is never bigger than the value returned by
+	    /// method memory_available(). The time complexity of this method is
+	    /// log_2(2^32/granularity).
+	    /// \param[in] lower_bound the lower bound on the amount of memory to get
+	    /// it TPIE cannot allocate this much it returns 0;
+	    /// \param[in] granularity the "resolution" of the search. If the actual
+	    /// maximum consecutive memory size is X this method will return Y where
+	    /// Y is smaller by X by at most \ref granularity bytes.
+	    ///////////////////////////////////////////////////////////////////////////
+	    TPIE_OS_SIZE_T consecutive_memory_available (
+	                TPIE_OS_SIZE_T lower_bound=0,
+	                TPIE_OS_SIZE_T granularity=5*1024*1024
+	                );
     
 	    ///////////////////////////////////////////////////////////////////////////
 	    /// Return the number of bytes of memory currently allocated.

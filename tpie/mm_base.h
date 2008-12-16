@@ -20,7 +20,7 @@ namespace tpie {
 	#endif
 
     namespace mem {
-	
+    
 /** MM accounting modes */
         enum mode {
 	    IGNORE_MEMORY_EXCEEDED=0,
