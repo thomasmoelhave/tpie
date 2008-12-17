@@ -207,7 +207,10 @@ TPIE_OS_SIZE_T manager::memory_limit() {
 }
 
 TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound, TPIE_OS_SIZE_T granularity) {
-    
+    #ifndef TPIE_USE_EXCEPTIONS
+	TP_LOG_DEBUG_ID("consecutive_memory_available only works with exceptions\n");
+	return memory_available();
+	#endif
     //lower bound of search
     size_t low = lower_bound;
 

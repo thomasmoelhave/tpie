@@ -109,6 +109,12 @@ void *operator new (TPIE_OS_SIZE_T sz)
 			<< MM_manager.memory_available() << " bytes)\n";
 
 #ifdef TPIE_USE_EXCEPTIONS
+		//deregister the allocation again
+		if (MM_manager.register_new != mem::IGNORE_MEMORY_EXCEEDED) {
+			if (MM_manager.register_deallocation (sz + SIZE_SPACE) != mem::NO_ERROR) {
+			    TP_LOG_WARNING_ID("In operator delete [] - MM_manager.register_deallocation failed");
+			}
+		}
 		throw out_of_memory_error(ss.str());
 #else
 		std::cerr << ss.str() << std::endl;
@@ -191,6 +197,12 @@ void *operator new[] (TPIE_OS_SIZE_T sz)
 			<< MM_manager.memory_available() << " bytes)\n";
 
 #ifdef TPIE_USE_EXCEPTIONS
+	//deregister the allocation again
+	if (MM_manager.register_new != mem::IGNORE_MEMORY_EXCEEDED) {
+		if (MM_manager.register_deallocation (sz + SIZE_SPACE) != mem::NO_ERROR) {
+		    TP_LOG_WARNING_ID("In operator delete [] - MM_manager.register_deallocation failed");
+		}
+    }
 	throw out_of_memory_error(ss.str());
 #else
 	std::cerr << ss.str() << std::endl;
