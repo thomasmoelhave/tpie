@@ -30,7 +30,6 @@ set (AMI_HEADERS
 		#scan_mac.h
 		#scan_utils.h
 		sort.h
-		sparse_matrix.h
 		stack.h
 		stream_arith.h
 		stream_compatibility.h
