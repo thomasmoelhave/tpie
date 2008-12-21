@@ -17,10 +17,6 @@ set (AMI_HEADERS
 		kdtree.h
 		key.h
 		logmethod.h
-		matrix_blocks.h
-		matrix_fill.h
-		matrix.h
-		matrix_pad.h
 		merge.h
 		merge_sorted_runs.h
 		point.h

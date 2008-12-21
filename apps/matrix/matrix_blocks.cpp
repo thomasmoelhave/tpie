@@ -4,36 +4,33 @@
 // Created: 12/11/94
 //
 
-#include <versions.h>
-VERSION(ami_matrix_blocks_cpp,"$Id: ami_matrix_blocks.cpp,v 1.6 2004-08-12 12:53:42 jan Exp $");
-#include "lib_config.h"
+#include <tpie/lib_config.h>
 
 #include <sys/types.h>
 
-#include <err.h>
-#include <gen_perm_object.h>
-#include <matrix_blocks.h>
+#include <tpie/err.h>
+#include <tpie/gen_perm_object.h>
+#include "matrix_blocks.h"
+
+using namespace tpie::apps;
 
 perm_matrix_into_blocks::perm_matrix_into_blocks(TPIE_OS_OFFSET rows,
                                                  TPIE_OS_OFFSET cols,
                                                  TPIE_OS_OFFSET block_extent) :
-                                                         r(rows),
-                                                         c(cols),
-                                                         be(block_extent)
-{
+    r(rows),
+    c(cols),
+    be(block_extent) {
 }
 
-perm_matrix_into_blocks::~perm_matrix_into_blocks()
-{
+perm_matrix_into_blocks::~perm_matrix_into_blocks() {
 }
 
-AMI_err perm_matrix_into_blocks::initialize(TPIE_OS_OFFSET len)
-{
-    return static_cast<TPIE_OS_OUTPUT_SIZE_T>( (r * c) == len) ? AMI_ERROR_NO_ERROR : AMI_MATRIX_BOUNDS;
+tpie::ami::err perm_matrix_into_blocks::initialize(TPIE_OS_OFFSET len) {
+    return static_cast<TPIE_OS_OUTPUT_SIZE_T>( (r * c) == len) ? tpie::ami::NO_ERROR : tpie::ami::MATRIX_BOUNDS;
 }
 
-TPIE_OS_OFFSET perm_matrix_into_blocks::destination(TPIE_OS_OFFSET source)
-{
+TPIE_OS_OFFSET perm_matrix_into_blocks::destination(TPIE_OS_OFFSET source) {
+
     tp_assert(r % be == 0, "Rows not a multiple of block extent.");
     tp_assert(c % be == 0, "Cols not a multiple of block extent.");
 
@@ -67,27 +64,23 @@ TPIE_OS_OFFSET perm_matrix_into_blocks::destination(TPIE_OS_OFFSET source)
     return obj_b_above + obj_b_left + bpos;
 }
 
-
 perm_matrix_outof_blocks::perm_matrix_outof_blocks(TPIE_OS_OFFSET rows,
                                                    TPIE_OS_OFFSET cols,
                                                    TPIE_OS_OFFSET block_extent) :
-                                                           r(rows),
-                                                           c(cols),
-                                                           be(block_extent)
-{
+    r(rows),
+    c(cols),
+    be(block_extent) {
 }
 
-perm_matrix_outof_blocks::~perm_matrix_outof_blocks()
-{
+perm_matrix_outof_blocks::~perm_matrix_outof_blocks() {
 }
 
-AMI_err perm_matrix_outof_blocks::initialize(TPIE_OS_OFFSET len)
-{
-    return static_cast<TPIE_OS_OUTPUT_SIZE_T>( (r * c) == len) ? AMI_ERROR_NO_ERROR : AMI_MATRIX_BOUNDS;
+tpie::ami::err perm_matrix_outof_blocks::initialize(TPIE_OS_OFFSET len) {
+    return static_cast<TPIE_OS_OUTPUT_SIZE_T>( (r * c) == len) ? tpie::ami::NO_ERROR : tpie::ami::MATRIX_BOUNDS;
 }
 
-TPIE_OS_OFFSET perm_matrix_outof_blocks::destination(TPIE_OS_OFFSET source)
-{
+TPIE_OS_OFFSET perm_matrix_outof_blocks::destination(TPIE_OS_OFFSET source) {
+
     tp_assert(r % be == 0, "Rows not a multiple of block extent.");
     tp_assert(c % be == 0, "Cols not a multiple of block extent.");
 
