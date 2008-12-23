@@ -477,68 +477,90 @@ void priority_queue<T, Comparator, OPQType>::fill_group_buffer(TPIE_OS_SIZE_T gr
 
     // merge
     {
+	
+	//group output stream, not used if group==0 in this case 
+	//the in-memory gbuffer0 is used
 	stream<T> out(group_data(group));
-	//cout << "seek to " << (group_start(group)+group_size(group))%setting_m << "\n";
 	if(group > 0) {
 	    if((err = out.seek((group_start(group)+group_size(group))%setting_m))!= NO_ERROR) {
 		TP_LOG_FATAL_ID("AMI error " << err << " while seeking node");
 		exit(-1);
 	    }
 	}
-	//  seek_offset(out, (group_start(group)+group_size(group))%setting_m);
 
+	//get rid of mergebuffer so that we enough memory
+	//for the heap and misc structures below
+	//this array is reallocated below
 	delete[] mergebuffer;
 
+	//merge heap for the setting_k slots
 	pq_merge_heap<T, Comparator> heap(setting_k);
+
+	//Create streams for the non-empty slots and initialize
+	//internal heap with one element per slot
 	stream<T>** data = new stream<T>*[setting_k];
 	for(TPIE_OS_SIZE_T i = 0; i<setting_k; i++) {
+		
 	    if(slot_size(group*setting_k+i)>0) {
-		data[i] = new stream<T>(slot_data(group*setting_k+i));
-		//      assert(slot_size(group*setting_k+i>0));
-		seek_offset(data[i], slot_start(group*setting_k+i));
-		heap.push(*read_item(data[i]), group*setting_k+i);
+		//slot is non-empry, opening stream
+		TPIE_OS_SIZE_T slotid = group*setting_k+i;
+		data[i] = new stream<T>(slot_data(slotid));
+
+		//seek to start of slot
+		seek_offset(data[i], slot_start(slotid));
+
+		//push first item of slot on the stream
+		heap.push(*read_item(data[i]), slotid);
 	    } else {
-		// dummy, well :o/
-		data[i] = new stream<T>();
-		data[i]->persist(PERSIST_DELETE);
+		data[i] = NULL;
 	    }
 	}
 
+	//perform actual reading until group if full or all 
+	//the slots are empty
 	while(!heap.empty() && group_size(group)!=setting_m) {
 	    TPIE_OS_SIZE_T current_slot = heap.top_run();
+
 	    if(group == 0) {
+		//use in-memory array for group 0
 		gbuffer0[(group_start(0)+group_size(0))%setting_m] = heap.top();
 	    } else {
+		//write to disk for group >0
 		if(out.tell() == setting_m) {
-		    //cout << "fill group seeking to 0" << "\n";
-		    //      seek_offset(out, 0);
 		    out.seek(0);
 		}
-		//    write_item(out, heap.top());
+
 		if((err = out.write_item(heap.top())) != NO_ERROR) {
 		    TP_LOG_FATAL_ID("AMI error while reading item, code: " << err);
 		    exit(-1);
 		}
 	    }
+
+		//increase group size
 	    group_size_set(group, group_size(group) + 1);
+
+		//decrease slot size and increase starting index
 	    slot_start_set(current_slot, slot_start(current_slot)+1);
 	    slot_size_set(current_slot, slot_size(current_slot)-1);
+
+		//pop from heap and insert next element (if any) from the slot
 	    if(slot_size(current_slot) == 0) {
 		heap.pop();
 	    } else {
 		heap.pop_and_push(*read_item(data[current_slot-group*setting_k]), current_slot);
 	    }
 	}
-
+	
+	//cleanup
 	for(TPIE_OS_OFFSET i = 0; i<setting_k; i++) {
+		// deleting a NULL pointer is safe
 	    delete data[i];
 	}
-	//  delete out;
 	delete[] data;
 	}
 
+	//restore mergebuffer
     mergebuffer = new T[setting_m*2];
-    if(mergebuffer == NULL) throw std::bad_alloc();
 
     // compact if needed
     /*  for(TPIE_OS_OFFSET i=group*setting_k;i<group*setting_k+setting_k; i++) {
