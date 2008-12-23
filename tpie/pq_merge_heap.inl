@@ -21,8 +21,8 @@ void pq_merge_heap<T, Comparator>::push(const T& x, TPIE_OS_SIZE_T run) {
 	assert(m_size < maxsize);
 	heap[m_size] = x;
 	runs[m_size] = run;
-	TPIE_OS_SIZE_T parent;
-	TPIE_OS_SIZE_T child;
+	TPIE_OS_SSIZE_T parent;
+	TPIE_OS_SSIZE_T child;
 	child = m_size;
 	parent = ( child - 1 ) / 2;
 	m_size++;
