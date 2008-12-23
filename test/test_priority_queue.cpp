@@ -20,9 +20,9 @@ void pq_large_instance(bool crash_test){
   ami::priority_queue<long long, std::greater<long long> > pq(mem_frac);
   std::priority_queue<long long, vector<long long>,std::less<long long> > pq2;
   double cycle = crash_test ? 20000000000.0 : 50000000.0;
-  const long long iterations=1000000000;
+  const long long iterations=2000000000;
   progress_indicator_arrow progress("Running test","Running test:",0,iterations,1);
-  for(long long j=0;;j++){
+  for(long long j=0; j<iterations; j++){
 	progress.step();
     double i = static_cast<double>(j);
     double th = (cos(i*2.0*PI/cycle)+1.0)*(RAND_MAX/2);
