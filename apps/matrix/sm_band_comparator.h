@@ -47,4 +47,5 @@ namespace tpie {
 
 }  // namespace tpie
 
-#endif _TPIE_APPS_SM_BAND_COMPARATOR_H
+#endif 
+
