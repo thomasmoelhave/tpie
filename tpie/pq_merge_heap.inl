@@ -18,6 +18,7 @@ pq_merge_heap<T, Comparator>::~pq_merge_heap() {
 
 template <typename T, typename Comparator>
 void pq_merge_heap<T, Comparator>::push(const T& x, TPIE_OS_SIZE_T run) {
+	assert(m_size < maxsize);
 	heap[m_size] = x;
 	runs[m_size] = run;
 	TPIE_OS_SIZE_T parent;
@@ -40,6 +41,7 @@ void pq_merge_heap<T, Comparator>::push(const T& x, TPIE_OS_SIZE_T run) {
 
 template <typename T, typename Comparator>
 void pq_merge_heap<T, Comparator>::pop() {
+	assert(m_size > 0);
 	m_size--;
 	if(m_size != 0) {
 		heap[0] = heap[m_size];
@@ -53,6 +55,7 @@ void pq_merge_heap<T, Comparator>::pop() {
 
 template <typename T, typename Comparator>
 void pq_merge_heap<T, Comparator>::pop_and_push(const T& x, TPIE_OS_SIZE_T run) {
+	assert(m_size > 0);
 	heap[0] = x;
 	runs[0] = run;
 	fixDown();
@@ -63,12 +66,14 @@ void pq_merge_heap<T, Comparator>::pop_and_push(const T& x, TPIE_OS_SIZE_T run) 
 
 template <typename T, typename Comparator>
 const T& pq_merge_heap<T, Comparator>::top() {
+	assert(m_size > 0);
 	min = heap[0];
 	return min;
 }
 
 template <typename T, typename Comparator>
 const TPIE_OS_SIZE_T pq_merge_heap<T, Comparator>::top_run() {
+	assert(m_size > 0);
 	return runs[0];
 }
 
