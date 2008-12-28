@@ -48,6 +48,9 @@ namespace tpie {
 
 }  //  tpie namespace
     
+// Number of bytes in the header's user_data_ field.
+#define COLLECTION_USER_DATA_LEN 512
+
 // The magic number of the files storing blocks.
 // (in network byteorder, it spells "TPBC": TPie Block Collection)
 #define COLLECTION_HEADER_MAGIC_NUMBER 0x54504243
@@ -112,7 +115,7 @@ namespace tpie {
 	    TPIE_OS_SIZE_T block_size;
 
 	    // Some data to be filled by the user of the collection.
-		char* user_data;
+		char user_data[COLLECTION_USER_DATA_LEN];
   
 	    // Default constructor.
 	    collection_header():
