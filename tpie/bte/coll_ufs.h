@@ -162,7 +162,7 @@ namespace tpie {
 	};
 
 	template<class BIDT>
-	err collection_ufs<BIDT>::new_block_internals(BIDT bid, void* &place) {
+	err collection_ufs<BIDT>::new_block_internals(BIDT /* bid */, void* &place) {
 	
 	    if ((place = new char[header_.block_size]) == NULL) {    
 
@@ -292,7 +292,7 @@ namespace tpie {
     
 
 	template<class BIDT>
-	err collection_ufs<BIDT>::put_block_internals(BIDT bid, void * place, char dirty) {
+	err collection_ufs<BIDT>::put_block_internals(BIDT bid, void * place, char /* dirty */) {
 	
 	    if ((bid < 0) || (bid >= header_.last_block)) {
 	    

@@ -27,7 +27,7 @@ namespace ami {
 		class qsort_item {
 			public:
 				Key keyval;
-				unsigned int source;
+				TPIE_OS_SIZE_T source;
 
 				friend int operator==(const qsort_item &x, const qsort_item &y)
 				{return  (x.keyval ==  y.keyval);}
@@ -230,9 +230,9 @@ namespace tpie {
 	    }
 
 	    //Sort the array.
-	    TP_LOG_DEBUG_ID("calling STL sort for " << nItems << " items");
+	    TP_LOG_DEBUG_ID("calling STL sort for " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(nItems) << " items");
 	    std::sort(ItemArray, ItemArray+nItems);
-	    TP_LOG_DEBUG("calling quick_sort_op for " << nItems << " items\n");
+	    TP_LOG_DEBUG("calling quick_sort_op for " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(nItems) << " items\n");
 	    
 	    if(InStr==OutStr){ //Do the right thing if we are doing 2x sort
 		//Internal sort objects should probably be re-written so that
@@ -330,7 +330,7 @@ namespace tpie {
 	    }
 
 	    //Sort the array.
-	    TP_LOG_DEBUG_ID("calling STL sort for " << nItems << " items");
+	    TP_LOG_DEBUG_ID("calling STL sort for " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(nItems) << " items");
 	    TP_LOG_DEBUG("converting TPIE comparison object to STL\n");
 	    std::sort(ItemArray, ItemArray+nItems, TPIE2STL_cmp<T,CMPR>(cmp_o));
 	    
@@ -511,7 +511,7 @@ namespace tpie {
 	    }
 	    
 	    //Sort the array.
-	    TP_LOG_DEBUG_ID("calling STL sort for " << nItems << " items");
+	    TP_LOG_DEBUG_ID("calling STL sort for " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(nItems) << " items");
 	    TP_LOG_DEBUG("converting TPIE Key comparison object to STL\n");
 		QsortKeyCmp<KEY, CMPR> kc(UsrObject);
 		TPIE2STL_cmp<qsort_item<KEY>,QsortKeyCmp<KEY,CMPR> > stlcomp(&kc);

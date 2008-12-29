@@ -119,7 +119,7 @@ public:
     // Halving each int.
     ami::err operate(const int& in0, ami::SCAN_FLAG *sfin,
 		     int *out0, ami::SCAN_FLAG *sfout) {
-	if ( (*sfout = *sfin) ) {
+	if ( (*sfout = *sfin) != 0 ) {
 	    *out0 = in0 / 2;
 	    return ami::SCAN_CONTINUE;
 	} else {
@@ -130,7 +130,7 @@ public:
     // Taking std::min of each pair.
     ami::err operate(const int& in0, const int& in1, ami::SCAN_FLAG *sfin,
 		     int *out0, ami::SCAN_FLAG *sfout) {
-	if ( (*sfout = sfin[0]) || sfin[1]) {
+	if ( ((*sfout = sfin[0]) != 0) || (sfin[1] != 0)) {
 	    if (sfin[0] && sfin[1]) {
 		*out0 = std::min(in0, in1);
 	    } else  {
@@ -186,7 +186,10 @@ public:
 		     const int& in2, const int& in3, ami::SCAN_FLAG *sfin,
 		     int *out0, int *out1, int *out2,
 		     ami::SCAN_FLAG *sfout) {
-	if ( (sfout[0] = sfout[1] = sfout[2] = sfin[0]) || sfin[1] || sfin[2] || sfin[3]) {
+	if ( ((sfout[0] = sfout[1] = sfout[2] = sfin[0]) != 0) || 
+		(sfin[1] != 0) || 
+		(sfin[2] != 0) || 
+		(sfin[3] != 0) ) {
 	    int c = 0;
 	    if (sfin[0]) c++;
 	    if (sfin[1]) c++;

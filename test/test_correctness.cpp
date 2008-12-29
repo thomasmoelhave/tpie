@@ -234,7 +234,7 @@ void print_cfg() {
     fprintf(stdout, "UNSPECIFIED");
 #endif
     fprintf(stdout, "\n");
-    fprintf(stdout, "    TPIE Memory limit: %d KB\n", MM_manager.memory_limit()/1024);
+    fprintf(stdout, "    TPIE Memory limit: %d KB\n", (int)(MM_manager.memory_limit()/1024));
 #if TP_LOG_APPS
     fprintf(stdout, "    Logging in file %s\n", tpie_log_name().c_str());
 #else

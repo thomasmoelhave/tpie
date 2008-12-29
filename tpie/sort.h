@@ -243,7 +243,7 @@ namespace tpie {
 	///////////////////////////////////////////////////////////////////////////
 	template<class T, class KEY, class CMPR>
 	err  key_sort(stream<T> *instream, stream<T> *outstream,
-		      KEY dummykey, CMPR *cmp, progress_indicator_base* indicator=NULL)	{
+		      KEY /* dummykey */, CMPR *cmp, progress_indicator_base* indicator=NULL)	{
 	    Internal_Sorter_KObj<T,KEY,CMPR> myInternalSorter(cmp);
 	    merge_heap_kobj<T,KEY,CMPR>      myMergeHeap(cmp);
 	    sort_manager< T, Internal_Sorter_KObj<T,KEY,CMPR>, merge_heap_kobj<T,KEY,CMPR> > 
@@ -326,7 +326,7 @@ namespace tpie {
   ///////////////////////////////////////////////////////////////////////////
 	template<class T, class KEY, class CMPR>
 	err  key_sort(stream<T> *instream, 
-		      KEY dummykey, CMPR *cmp, progress_indicator_base* indicator=NULL)	{
+		      KEY /* dummykey */, CMPR *cmp, progress_indicator_base* indicator=NULL)	{
 	  // key/object heaps, key/object comparisons 
 	    Internal_Sorter_KObj<T,KEY,CMPR> myInternalSorter(cmp);
 	    merge_heap_kobj<T,KEY,CMPR>      myMergeHeap(cmp);

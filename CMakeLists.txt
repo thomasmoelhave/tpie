@@ -14,7 +14,7 @@ if(WIN32)
 	#Get rid of safety warnings about fopen_s and friends
 	add_definitions("-D_CRT_SECURE_NO_WARNINGS")
 else(WIN32)
-	add_definitions("-Wall")
+	add_definitions("-Wall -Wextra")
 endif(WIN32)
 
 check_include_files("unistd.h" TPIE_HAVE_UNISTD_H)

@@ -21,7 +21,7 @@ struct options app_opts[] = {
     { 0, NULL, NULL, NULL, 0 }
 };
 
-void parse_app_opts(int idx, char *opt_arg) {
+void parse_app_opts(int /* idx */, char* /* opt_arg */) {
 }
 
 int main(int argc, char **argv)

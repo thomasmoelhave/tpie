@@ -31,6 +31,8 @@ namespace tpie {
 	    
 	    T &operator[](const TPIE_OS_SIZE_T col) const;
 	    
+	    mm_rowref<T> &operator=(const mm_rowref<T> &rhs);
+
 	    friend class mm_matrix_base<T>;
 	    friend class mm_matrix<T>;
 	};
@@ -50,7 +52,20 @@ namespace tpie {
 	T &mm_rowref<T>::operator[](const TPIE_OS_SIZE_T col) const {
 	    return m.elt(r,col);
 	}
-	
+
+	template<class T>
+	mm_rowref<T> &mm_rowref<T>::operator=(const mm_rowref<T> &rhs) {
+
+	    if (r != rhs.r ) {
+			tp_assert(0, "Range error.");
+	    }
+	    	    
+		m = rhs.m;
+
+	    return *this;
+	}
+
+
     }  //  namespace apps
     
 } // namespace ami

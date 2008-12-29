@@ -18,16 +18,20 @@
 namespace tpie {
     
 #if DEBUG_ASSERTIONS
-    
+
+#ifdef _WIN32
+#pragma warning ( disable : 4127 )
+#endif 
+
 #define tp_assert(condition,message) {		\
-	if (!(condition)) {			\
+	if (!(condition && 1)) {			\
 	    TP_LOG_FATAL_ID("Assertion failed:");	\
 	    TP_LOG_FATAL_ID(message);			  \
 	    std::cerr << "Assertion failed: " << message << "\n";	\
 	    assert(condition);						\
 	}								\
     }
-    
+
 #else
 #define tp_assert(condition,message)
 #endif

@@ -127,7 +127,8 @@ int qcomp(const void* left, const void* right){
 // Also supports KMG suffixes (e.g. 2K = 2*1024)
 TPIE_OS_OFFSET ascii2longlong(char *s){
 
-  size_t i, len, digit, multfactor;
+  TPIE_OS_SIZE_T i, len, multfactor;
+  TPIE_OS_SSIZE_T digit;
   TPIE_OS_OFFSET val;
   bool ok, neg;
   
@@ -179,7 +180,7 @@ TPIE_OS_OFFSET ascii2longlong(char *s){
 }
 
 // init_opts sets up the options structures for use in getopts
-void init_opts(struct options* & opts, int argc, char** argv){
+void init_opts(struct options* & opts, int /* argc */, char** /* argv */){
   
   opts = new struct options[APP_OPTION_NUM_OPTIONS];
     
@@ -257,7 +258,7 @@ void get_app_info(int argc, char** argv, appInfo & Info){
   Info.mem_size=APP_DEFAULT_MEM_SIZE;
 
   nopts=0;
-  while ( (optidx=getopts(argc, argv, opts, &optarg))) {
+  while ( (optidx=getopts(argc, argv, opts, &optarg)) != 0) {
     nopts++;
     if( (optidx==-1) ){
       std::cerr << "Could not allocate space for arguments. Exiting...\n";
@@ -348,7 +349,7 @@ void get_app_info(int argc, char** argv, appInfo & Info){
   tempname::set_default_path(Info.path);
   std::string tmpfname = tempname::tpie_name();
   TPIE_OS_FILE_DESCRIPTOR fd;
-  fd=TPIE_OS_OPEN_OEXCL(tmpfname);
+  fd=TPIE_OS_OPEN_OEXCL(tmpfname, TPIE_OS_FLAG_USE_MAPPING_FALSE);
   if(TPIE_OS_IS_VALID_FILE_DESCRIPTOR(fd)){
     TPIE_OS_CLOSE(fd);
     TPIE_OS_UNLINK(tmpfname);
@@ -505,10 +506,10 @@ void check_sorted(std::string fname, appInfo & info, progress_indicator_base* in
   return;
 }
 
-void load_list(ami::stream<SortItem>* str, SortItem* list, int nitems){
+void load_list(ami::stream<SortItem>* str, SortItem* list, TPIE_OS_SIZE_T nitems){
   SortItem *s_item;
   str->seek(0);
-  for(int i=0; i<nitems; i++){
+  for(TPIE_OS_SIZE_T i=0; i<nitems; i++){
     str->read_item(&s_item);
     list[i]=*s_item;
   }
@@ -517,7 +518,7 @@ void load_list(ami::stream<SortItem>* str, SortItem* list, int nitems){
 // Internal sort tests
 void internal_sort_test(const appInfo& info){  
   TPIE_OS_SIZE_T str_mem_usage;
-  int i,nitems;
+  TPIE_OS_SIZE_T i,nitems;
   SortItem *list;
   cpu_timer clk;
   SortCompare cmp;
@@ -731,7 +732,7 @@ ami::err test_2x_sort(appInfo& info, enum test_type ttype, progress_indicator_ba
   return ae;
 }
 
-int main(int argc, char **argv){
+int main(int argc, char** argv){
   appInfo info;
   char buf[20];
   TPIE_OS_SRANDOM(time(NULL));

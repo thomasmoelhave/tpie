@@ -72,7 +72,7 @@ namespace tpie {
 	    };
 
 	    err operate(const T &in, SCAN_FLAG *sfin, dest_obj<T> *out, SCAN_FLAG *sfout) {
-		if (!(*sfout = *sfin)) {
+		if ((*sfout = *sfin) == 0) {
 		    return SCAN_DONE;
 		}
 
@@ -101,7 +101,7 @@ namespace tpie {
 	    
 	    err operate(const dest_obj<T> &in, SCAN_FLAG *sfin, T *out, SCAN_FLAG *sfout) {
 
-		if (!(*sfout = *sfin)) {
+		if ((*sfout = *sfin)==0) {
 		    return SCAN_DONE;
 		}
 

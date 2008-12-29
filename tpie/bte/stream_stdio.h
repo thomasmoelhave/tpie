@@ -127,7 +127,7 @@ namespace tpie {
 	template <class T>
 	stream_stdio<T>::stream_stdio (const std::string& dev_path,
 								   const stream_type st,
-								   TPIE_OS_SIZE_T lbf) {
+								   TPIE_OS_SIZE_T /* lbf */) {
 	
 	    // Reduce the number of streams avaialble.
 	    if (remaining_streams <= 0) 

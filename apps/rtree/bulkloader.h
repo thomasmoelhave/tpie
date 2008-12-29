@@ -67,7 +67,7 @@ public:
     };
     
     err operate(const rectangle<coord_t, bid_t>& in, SCAN_FLAG* sfin,
-                    pair<rectangle<coord_t, bid_t>, TPIE_OS_LONGLONG>* out, SCAN_FLAG* sfout) {
+                    pair<rectangle<coord_t, bid_t>, TPIE_OS_LONGLONG>* /* out */, SCAN_FLAG* sfout) {
 	//  Write nothing to the output stream.
 	*sfout = false;
         if (*sfin) {
@@ -106,7 +106,7 @@ public:
     
     err operate(const rectangle<coord_t, bid_t>& in, SCAN_FLAG* sfin,
                     pair<rectangle<coord_t, bid_t>, TPIE_OS_LONGLONG>* out, SCAN_FLAG* sfout) {
-        if ((*sfout = *sfin)) {
+        if ((*sfout = *sfin) != 0) {
 
 	    //  Translate the rectangle by the given offset and
 	    //  compute the midpoint in scaled integer coordinates.

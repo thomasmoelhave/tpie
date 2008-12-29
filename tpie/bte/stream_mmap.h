@@ -222,13 +222,23 @@ namespace tpie {
 /* ********************************************************************** */
     
 /* definitions start here */
-    
+
+#ifdef _WIN32
+		// Suppress warning 4505 (removed non-referenced local function) once.
+#pragma warning(disable : 4505)
+#endif    
+
 		static int call_munmap (void *addr, size_t len) {
 			return TPIE_OS_MUNMAP (addr, len);
 		}
     
 		static void *call_mmap (void *addr, size_t len, 
-								bool r_only, bool w_only,
+								bool r_only, 
+#ifdef MACH_ALPHA
+								bool w_only,
+#else
+								bool /* w_only */,
+#endif
 								TPIE_OS_FILE_DESCRIPTOR fd, 
 								TPIE_OS_OFFSET off, int fixed) {
 			void *ptr;
@@ -255,7 +265,6 @@ namespace tpie {
 			return ptr;
 
 		}
-
 
 		template <class T> void stream_mmap<T>::initialize () {
 #ifdef COLLECT_STATS

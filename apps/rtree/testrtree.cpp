@@ -55,7 +55,7 @@ void printTree(RStarTree<double>* r) {
     }
 }
 
-int main(int argc, char** argv) {
+int main(int /* argc */, char** /* argv */) {
 
     RStarTree<double>* r = new RStarTree<double>("rectangles100.rtree", fanOut);        
     r->show_stats();

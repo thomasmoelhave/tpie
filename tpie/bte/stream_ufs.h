@@ -306,8 +306,7 @@ namespace tpie {
 		m_readOnly = true;
 	    
 		// Open the file for reading.
-		if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(m_fileDescriptor = 
-											  TPIE_OS_OPEN_ORDONLY(m_path))) {
+		if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(m_fileDescriptor = TPIE_OS_OPEN_ORDONLY(m_path, TPIE_OS_FLAG_USE_MAPPING_FALSE))) {
 		
 		    m_status = STREAM_STATUS_INVALID;
 		    m_osErrno = errno;
@@ -391,12 +390,10 @@ namespace tpie {
 		// is with the O_EXCL flag set.  This will fail if the file
 		// already exists.  If this is the case, we will call open()
 		// again without it and read in the header block.
-		if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(m_fileDescriptor = 
-											  TPIE_OS_OPEN_OEXCL(m_path))) {
+		if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(m_fileDescriptor = TPIE_OS_OPEN_OEXCL(m_path, TPIE_OS_FLAG_USE_MAPPING_FALSE))) {
 		
 		    // Try again, hoping the file already exists.
-		    if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(m_fileDescriptor = 
-												  TPIE_OS_OPEN_ORDWR(m_path))) {
+		  if (!TPIE_OS_IS_VALID_FILE_DESCRIPTOR(m_fileDescriptor = TPIE_OS_OPEN_ORDWR(m_path, TPIE_OS_FLAG_USE_MAPPING_FALSE))) {
 		    
 			m_status = STREAM_STATUS_INVALID;
 			m_osErrno = errno;
@@ -631,12 +628,12 @@ namespace tpie {
 	    // Only READ and WRITE streams allowed
 	    switch(st){
 	    case READ_STREAM:
-			m_fileDescriptor=TPIE_OS_OPEN_ORDONLY(m_path);
+	      m_fileDescriptor=TPIE_OS_OPEN_ORDONLY(m_path, TPIE_OS_FLAG_USE_MAPPING_FALSE);
 		break;
 	    
 	    case WRITE_STREAM:
 		//file better exist if super_stream exists
-			m_fileDescriptor=TPIE_OS_OPEN_ORDWR(m_path);
+	      m_fileDescriptor=TPIE_OS_OPEN_ORDWR(m_path, TPIE_OS_FLAG_USE_MAPPING_FALSE);
 		break;
 	    
 	    default:
@@ -1097,7 +1094,7 @@ namespace tpie {
 	    new_offset = item_off_to_file_off (
 		file_off_to_item_off (m_logicalBeginOfStream) + offset);
 	
-	    if ((static_cast<TPIE_OS_SSIZE_T>(reinterpret_cast<char*>(m_currentItem) - 
+	    if ((static_cast<TPIE_OS_SIZE_T>(reinterpret_cast<char*>(m_currentItem) - 
 					     reinterpret_cast<char*>(m_currentBlock)) 
 		 >= m_header->m_blockSize)
 		|| (((new_offset - m_osBlockSize) / m_header->m_blockSize) !=
@@ -1157,7 +1154,7 @@ namespace tpie {
 	    // We also need to check that we have the correct block mapped in (
 	    // m_fileOffset does not always point into the current block!) 
 	    // - see comment in seek()
-	    if ((static_cast<TPIE_OS_SSIZE_T>(reinterpret_cast<char*>(m_currentItem) - 
+	    if ((static_cast<TPIE_OS_SIZE_T>(reinterpret_cast<char*>(m_currentItem) - 
 					   reinterpret_cast<char*>(m_currentBlock)) 
 		 >= m_header->m_blockSize)
 		|| (((new_offset - m_osBlockSize) / m_header->m_blockSize) !=
@@ -1339,16 +1336,16 @@ namespace tpie {
 	template <class T>
 	inline err stream_ufs<T>::validate_current () {
 	
-	    unsigned int block_space;	// The space left in the current block.
+	    TPIE_OS_SIZE_T block_space;	// The space left in the current block.
 	
 	    // If the current block is valid and current points into it and has
 	    // enough room in the block for a full item, we are fine.  If it is
 	    // valid but there is not enough room, unmap it.
 	    if (m_blockValid) {
-		if ((block_space = static_cast<unsigned int>(m_header->m_blockSize) -
+		if ((block_space = m_header->m_blockSize -
 		     (reinterpret_cast<char*>(m_currentItem) - 
 		      reinterpret_cast<char*>(m_currentBlock))) >= 
-		    static_cast<unsigned int>(sizeof (T))) {
+		    sizeof (T)) {
 		
 		    return NO_ERROR;
 		
@@ -1580,10 +1577,9 @@ namespace tpie {
 		    m_fileLength += m_header->m_blockSize;
 		}
 
-		if (TPIE_OS_WRITE (m_fileDescriptor, 
+		if (m_header->m_blockSize - TPIE_OS_WRITE (m_fileDescriptor, 
 				   reinterpret_cast<char*>(m_currentBlock), 
-				   m_header->m_blockSize) !=
-		    m_header->m_blockSize) {
+				   m_header->m_blockSize) != 0) {
 		
 		    m_status  = STREAM_STATUS_INVALID;
 		    m_osErrno = errno;

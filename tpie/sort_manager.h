@@ -68,7 +68,7 @@ namespace tpie {
 	    // helper function for creating filename
 	    inline void make_name(
 		const std::string& prepre, 
-		const std::string& pre, int id, std::string& dest);
+		const std::string& pre, TPIE_OS_SIZE_T id, std::string& dest);
 	    
 	    // **************
 	    // * Attributes *
@@ -242,7 +242,7 @@ namespace tpie {
 		return ae;
 	    }
 
-	    TP_LOG_DEBUG ("BTE says we use at most "<< mmBytesPerStream
+	    TP_LOG_DEBUG ("BTE says we use at most "<< static_cast<TPIE_OS_OFFSET>(mmBytesPerStream)
 			  << "bytes per stream\n");
 	    
 	    // This is how much we can use for internal sort if
@@ -382,8 +382,8 @@ namespace tpie {
 	    
 	    TPIE_OS_SIZE_T mmBytesAvailSort; // Bytes available for sorting
 	    
-	    TP_LOG_DEBUG ("Each object of size " << sizeof(T) << " uses "
-			  << m_internalSorter->space_per_item () << " bytes "
+	    TP_LOG_DEBUG ("Each object of size " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(sizeof(T)) << " uses "
+			  << static_cast<TPIE_OS_OUTPUT_SIZE_T>(m_internalSorter->space_per_item ()) << " bytes "
 			  << "for sorting in memory\n");
 	    
 	    // Subtract off size of temp output stream
@@ -431,9 +431,9 @@ namespace tpie {
 	    // this comment seems silly and wrong
 	    mrgArity = static_cast<arity_t>(mmBytesAvail-mmBytesFixedForMerge) /
 		mmBytesPerMergeItem;
-	    TP_LOG_DEBUG("mem avail=" << mmBytesAvail-mmBytesFixedForMerge
-			 << " bytes per merge item=" <<  mmBytesPerMergeItem
-			 << " initial mrgArity=" << mrgArity << "\n");
+	    TP_LOG_DEBUG("mem avail=" << static_cast<TPIE_OS_OUTPUT_SIZE_T>(mmBytesAvail-mmBytesFixedForMerge)
+			 << " bytes per merge item=" <<  static_cast<TPIE_OS_OUTPUT_SIZE_T>(mmBytesPerMergeItem)
+			 << " initial mrgArity=" << static_cast<TPIE_OS_OUTPUT_SIZE_T>(mrgArity) << "\n");
 	    
 	    // Make sure that the AMI is willing to provide us with the
 	    // number of substreams we want.  It may not be able to due to
@@ -558,9 +558,9 @@ namespace tpie {
 		       "Total expected output size is too small.");
 
 	    TP_LOG_DEBUG_ID ("Input stream has " << nInputItems << " items");
-	    TP_LOG_DEBUG ("Max number of items per runs " << nItemsPerRun );
+	    TP_LOG_DEBUG ("Max number of items per runs " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(nItemsPerRun) );
 	    TP_LOG_DEBUG ("\nInitial number of runs " << nRuns );
-	    TP_LOG_DEBUG ("\nMerge arity is " << mrgArity << "\n" );
+	    TP_LOG_DEBUG ("\nMerge arity is " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(mrgArity) << "\n" );
 
 	    return NO_ERROR;
 	}
@@ -647,7 +647,8 @@ namespace tpie {
 
 		// All runs created for this stream, clean up
 		TP_LOG_DEBUG_ID ("Wrote " << runsInStream << " runs and "
-				 << curOutputRunStream->stream_len() << " items to file " << ii);
+				 << curOutputRunStream->stream_len() << " items to file " 
+				 << static_cast<TPIE_OS_OUTPUT_SIZE_T>(ii));
 		check_size+=curOutputRunStream->stream_len();
 		curOutputRunStream->persist(PERSIST_PERSISTENT);
 		delete curOutputRunStream;
@@ -690,11 +691,11 @@ namespace tpie {
 	    //   mrgArity*sizeof(stream<T>*) + space_overhead()[fixed cost]
 	    stream<T> **mergeInputStreams = new stream<T>*[mrgArity];
 
-	    TP_LOG_DEBUG_ID("Allocated " << sizeof(stream<T>*)*mrgArity
-			    << " bytes for " << mrgArity << " merge input stream pointers.\n"
-			    << "Allocated " << MM_manager.space_overhead() << " bytes" 
+	    TP_LOG_DEBUG_ID("Allocated " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(sizeof(stream<T>*)*mrgArity)
+			    << " bytes for " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(mrgArity) << " merge input stream pointers.\n"
+			    << "Allocated " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(MM_manager.space_overhead()) << " bytes" 
 			    << " of overhead on \"new\" call.\n" 
-			    << "Mem. avail. is " << MM_manager.consecutive_memory_available () );
+			    << "Mem. avail. is " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(MM_manager.consecutive_memory_available ()) );
 
 	    // the number of iterations the main loop has gone through,
 	    // at most the height of the merge tree log_{M/B}(N/B),
@@ -785,7 +786,7 @@ namespace tpie {
 		// output streams needed, and we use the LAST nOutputStreams. This
 		// always keeps the one possible short run in the LAST of the
 		// mrgArity output streams.
-		TP_LOG_DEBUG("Writing " << nRuns << " runs to " << nOutputStreams
+		TP_LOG_DEBUG("Writing " << nRuns << " runs to " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(nOutputStreams)
 			     << " output files.\nEach output file has at least "
 			     << minRunsPerStream << " runs.\n");
 
@@ -801,8 +802,8 @@ namespace tpie {
 		    // extra runs go in the LAST nXtraRuns streams so that
 		    // the one short run is always in the LAST output stream
 		    runsInStream = minRunsPerStream + ((ii >= mrgArity-nXtraRuns)?1:0);
-		    TP_LOG_DEBUG("Writing " << runsInStream << " runs to output "
-				 << " file " << ii << "\n");
+		    TP_LOG_DEBUG("Writing " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(runsInStream) << " runs to output "
+				 << " file " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(ii) << "\n");
 		    for( jj=0; jj < runsInStream; jj++ ) { // For each run in this stream
 			// See if this is the last run.
 			if( (ii==mrgArity-1) && (jj==runsInStream-1)) {
@@ -820,9 +821,9 @@ namespace tpie {
 		    } // For each output run in this stream
 
 		    // Commit new output stream to disk
-		    TP_LOG_DEBUG("Wrote " << runsInStream << " runs and "
+		    TP_LOG_DEBUG("Wrote " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(runsInStream) << " runs and "
 				 << curOutputRunStream->stream_len() << " items " 
-				 << "to file " << ii << "\n");
+				 << "to file " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(ii) << "\n");
 		    check_size+=curOutputRunStream->stream_len();
 		    curOutputRunStream->persist(PERSIST_PERSISTENT);
 		    delete curOutputRunStream;
@@ -860,8 +861,8 @@ namespace tpie {
 		   Put LAST nRuns files in FIRST nRuns spots here
 		   either one of mergeInputStreams loading or the call to
 		   single_merge is a little messy. I put the mess here. (abd) */
-		TP_LOG_DEBUG ("Putting merge stream "<< ii << " in slot "
-			      << ii-(mrgArity-static_cast<TPIE_OS_SIZE_T>(nRuns)) << "\n");
+		TP_LOG_DEBUG ("Putting merge stream "<< static_cast<TPIE_OS_OUTPUT_SIZE_T>(ii) << " in slot "
+			      << static_cast<TPIE_OS_OUTPUT_SIZE_T>(ii-(mrgArity-static_cast<TPIE_OS_SIZE_T>(nRuns))) << "\n");
 		mergeInputStreams[ii-(mrgArity-static_cast<TPIE_OS_SIZE_T>(nRuns))] = new stream<T>(newName);
 		mergeInputStreams[ii-(mrgArity-static_cast<TPIE_OS_SIZE_T>(nRuns))]->seek(0);
 	    }
@@ -913,7 +914,7 @@ namespace tpie {
 
 	template<class T, class I, class M>
 	inline void sort_manager<T,I,M>::make_name(
-	    const std::string& prepre, const std::string& pre, int id, std::string& dest)
+	    const std::string& prepre, const std::string& pre, TPIE_OS_SIZE_T id, std::string& dest)
 	{
 	    //This buffer must be long enough to hold the
 	    //largest possible stream id (in decimal)

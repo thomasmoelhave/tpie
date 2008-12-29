@@ -201,7 +201,7 @@ namespace tpie {
 
 
 	template<class BIDT>
-	err collection_mmap<BIDT>::put_block_internals(BIDT bid, void* place, char dirty) {
+	err collection_mmap<BIDT>::put_block_internals(BIDT bid, void* place, char /* dirty */) {
 	
 	    // The dirty parameter is not used in this implemetation.
 	

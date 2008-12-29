@@ -74,10 +74,10 @@ public:
     //. copy the tree (i.e. the assignment operator is incomplete :-( )
  
     //- blockSize, name, fanOut, treeHeight, totalObjects, rootPosition
-    unsigned short blockSize() const;
+    TPIE_OS_SIZE_T blockSize() const;
     const char* name() const;
-    unsigned short fanOut() const;
-    unsigned short treeHeight() const;
+    TPIE_OS_SIZE_T fanOut() const;
+    TPIE_OS_SIZE_T treeHeight() const;
 	TPIE_OS_OFFSET totalObjects() const;
     bid_t rootPosition() const;
     //. These are several methods to inquire tree metadata.
@@ -139,7 +139,7 @@ public:
     //- setTreeInformation
     void setTreeInformation(
 	bid_t        root, 
-	unsigned short height,
+	TPIE_OS_SIZE_T height,
 	TPIE_OS_OFFSET objects);
     //. After bulk loading by bottom-up construction, this method needs
     //. to be called to set the information about the root's block ID,
@@ -158,11 +158,11 @@ protected:
     children_count_t              fanOut_;           //  Fan-out of each node.
     children_count_t              minFanOut_;        //  Minimum fan-out.
     TPIE_OS_SIZE_T                blockSize_;        //  Block size in bytes.
-    unsigned short                treeHeight_;       //  Height of the tree.
+    TPIE_OS_SIZE_T                treeHeight_;       //  Height of the tree.
     bid_t                       rootPosition_;     //  ID of the root.
     TPIE_OS_OFFSET                totalObjects_;     //  Objects in the tree.
     char*                         name_;
-    list<pair<rectangle<coord_t, bid_t>, unsigned short> > reinsertObjects_; 
+    list<pair<rectangle<coord_t, bid_t>, TPIE_OS_SIZE_T> > reinsertObjects_; 
     vector<bool>                           overflowOnLevel_;
 
     //  This method splits a given node "toSplit" into two new nodes.
@@ -174,13 +174,13 @@ protected:
     //  the level of the node where the rectangle is placed is 'level'.
     err insertOnLevel(
 	const rectangle<coord_t, bid_t>& r, 
-	unsigned short   level);
+	TPIE_OS_SIZE_T   level);
 
     //  This method selects a node on level 'level' suitable to insert
     //  the given rectangle into. See "Algorithm ChooseSubtree" [BKSS90].
     RStarNode<coord_t, BTECOLL>* chooseNodeOnLevel(
 	const rectangle<coord_t, bid_t>& r, 
-	unsigned short   level);
+	TPIE_OS_SIZE_T   level);
 
     //  This method selects a leaf node suitable to insert
     //  the given rectangle into. This corrensponds to calling
@@ -189,7 +189,7 @@ protected:
 
     //  This method handles underflow treatment after deletions.
     //  See "Algorithm CondenseTree" [Gutt84].
-    err condenseTree(RStarNode<coord_t, BTECOLL>* n, unsigned short level);
+    err condenseTree(RStarNode<coord_t, BTECOLL>* n, TPIE_OS_SIZE_T level);
 
 
     //  This method is called upon returning from a deletion
@@ -202,7 +202,7 @@ protected:
     err reinsert(
 	RStarNode<coord_t, BTECOLL>*       n, 
 	const rectangle<coord_t, bid_t>& r, 
-	unsigned short   level);
+	TPIE_OS_SIZE_T   level);
 
     // This method realized a depth-first search looking for a leaf
     // containing a given object and returns this leaf's ID (or 0 if
@@ -220,19 +220,19 @@ protected:
 	RStarNode<coord_t, BTECOLL>*     node1, 
 	RStarNode<coord_t, BTECOLL>*     node2,
 	bid_t       childToBeReplaced,
-	unsigned short level);
+	TPIE_OS_SIZE_T level);
 
 private:
     //  No private members.
 };
 
 template<class coord_t, class BTECOLL>
-unsigned short RStarTree<coord_t, BTECOLL>::blockSize() const {
+TPIE_OS_SIZE_T RStarTree<coord_t, BTECOLL>::blockSize() const {
     return blockSize_;
 }
 
 template<class coord_t, class BTECOLL>
-unsigned short RStarTree<coord_t, BTECOLL>::treeHeight() const {
+TPIE_OS_SIZE_T RStarTree<coord_t, BTECOLL>::treeHeight() const {
     return treeHeight_;
 }
 
@@ -247,7 +247,7 @@ bid_t RStarTree<coord_t, BTECOLL>::rootPosition() const {
 }
 
 template<class coord_t, class BTECOLL>
-unsigned short RStarTree<coord_t, BTECOLL>::fanOut() const {
+TPIE_OS_SIZE_T RStarTree<coord_t, BTECOLL>::fanOut() const {
     return fanOut_;
 }
 
@@ -275,7 +275,7 @@ RStarNode<coord_t, BTECOLL>* RStarTree<coord_t, BTECOLL>::readNode(bid_t positio
 }
 
 template<class coord_t, class BTECOLL>
-void RStarTree<coord_t, BTECOLL>::setTreeInformation(bid_t root, unsigned short height, TPIE_OS_OFFSET objects) {
+void RStarTree<coord_t, BTECOLL>::setTreeInformation(bid_t root, TPIE_OS_SIZE_T height, TPIE_OS_OFFSET objects) {
     rootPosition_ = root;
     treeHeight_   = height;
     totalObjects_ = objects;
@@ -324,11 +324,11 @@ RStarTree<coord_t, BTECOLL>::RStarTree(const char* name, children_count_t fanOut
 
     //  Compute the maximal number of children that can be packed
     //  into a disk block.
-    const unsigned short nodeInfoSize = 
+    const TPIE_OS_SIZE_T nodeInfoSize = 
 	sizeof(fanOut) +
 	sizeof(blockSize_) +
 	sizeof(rootPosition_);
-    const unsigned short childInfoSize = sizeof(rectangle<coord_t, bid_t>);
+    const TPIE_OS_SIZE_T childInfoSize = sizeof(rectangle<coord_t, bid_t>);
 
     fanOut_   = static_cast<children_count_t>((blockSize_ - nodeInfoSize) / childInfoSize);
 
@@ -339,7 +339,7 @@ RStarTree<coord_t, BTECOLL>::RStarTree(const char* name, children_count_t fanOut
 	fanOut_ = fanOut;
     }
 
-    minFanOut_ = (unsigned short) ((double)fanOut_ / MIN_FANOUT_FACTOR);
+    minFanOut_ = (TPIE_OS_SIZE_T) ((double)fanOut_ / MIN_FANOUT_FACTOR);
     
     overflowOnLevel_.push_back(false);
 
@@ -515,10 +515,10 @@ RStarNode<coord_t, BTECOLL>* RStarTree<coord_t, BTECOLL>::chooseLeaf(const recta
 }
 
 template<class coord_t, class BTECOLL>
-RStarNode<coord_t, BTECOLL>* RStarTree<coord_t, BTECOLL>::chooseNodeOnLevel(const rectangle<coord_t, bid_t>& r, unsigned short level) {
+RStarNode<coord_t, BTECOLL>* RStarTree<coord_t, BTECOLL>::chooseNodeOnLevel(const rectangle<coord_t, bid_t>& r, TPIE_OS_SIZE_T level) {
     RStarNode<coord_t, BTECOLL>*     N  = readNode(rootPosition_);
     bid_t       ID;
-    unsigned short lookingAtLevel = treeHeight();
+    TPIE_OS_SIZE_T lookingAtLevel = treeHeight();
     
     //  Proceed on a root-to-leaf path.
     while(lookingAtLevel > level) {
@@ -567,7 +567,7 @@ bid_t RStarTree<coord_t, BTECOLL>::findLeaf(const rectangle<coord_t, bid_t>& r) 
 }
 
 template<class coord_t, class BTECOLL>
-err RStarTree<coord_t, BTECOLL>::condenseTree(RStarNode<coord_t, BTECOLL>* n, unsigned short level) {
+err RStarTree<coord_t, BTECOLL>::condenseTree(RStarNode<coord_t, BTECOLL>* n, TPIE_OS_SIZE_T level) {
 
     //  The return value is always NO_ERROR.
     //  You might want to check for I/O errors every time
@@ -576,8 +576,8 @@ err RStarTree<coord_t, BTECOLL>::condenseTree(RStarNode<coord_t, BTECOLL>* n, un
     
     while ((!n->isRoot()) && (result == NO_ERROR)) {
 	RStarNode<coord_t, BTECOLL>*     parent = readNode(n->getParent());
-	unsigned short sonID = parent->findChild(n->bid());
-	unsigned short counter = 0;	
+	children_count_t sonID = parent->findChild(n->bid());
+	children_count_t counter = 0;	
 
 	//  Check whether there is an underflow in node n.
 	if (n->numberOfChildren() < minFanOut_) {
@@ -585,7 +585,7 @@ err RStarTree<coord_t, BTECOLL>::condenseTree(RStarNode<coord_t, BTECOLL>* n, un
 	    //  Move all children of node n to the list of objects to
 	    //  be reinserted.
 	    for (counter = 0; counter < n->numberOfChildren(); ++counter) {
-		reinsertObjects_.push_back(pair<rectangle<coord_t, bid_t>, unsigned short>(n->getChild(counter), level));
+		reinsertObjects_.push_back(pair<rectangle<coord_t, bid_t>, TPIE_OS_SIZE_T>(n->getChild(counter), level));
 	    }
 	    
 	    //  Remove n from its parent.
@@ -623,7 +623,7 @@ err RStarTree<coord_t, BTECOLL>::condenseTree(RStarNode<coord_t, BTECOLL>* n, un
     //  Uncomment the following line, if you don't trust
     //  the algorithm and want to check the tree every time
     //  the height decreases.
-//    unsigned short th = treeHeight();
+//    TPIE_OS_SIZE_T th = treeHeight();
 
     if (result == NO_ERROR) {
 
@@ -712,7 +712,7 @@ template<class coord_t, class BTECOLL>
 err RStarTree<coord_t, BTECOLL>::handleReinsertions() {
     err        result = NO_ERROR;
     rectangle<coord_t, bid_t>      r;
-    unsigned short level = 0;
+    TPIE_OS_SIZE_T level = 0;
 
     while ((result == NO_ERROR) && (!reinsertObjects_.empty())) { 
 
@@ -734,7 +734,7 @@ err RStarTree<coord_t, BTECOLL>::insert(const rectangle<coord_t, bid_t>& r) {
     err result = NO_ERROR;
 
     //  Initialize the overflow array
-    unsigned short counter;
+    TPIE_OS_SIZE_T counter;
     for (counter = 0; counter < overflowOnLevel_.size(); ++counter) {
 	overflowOnLevel_[counter] = false;
     }
@@ -751,7 +751,7 @@ err RStarTree<coord_t, BTECOLL>::insert(const rectangle<coord_t, bid_t>& r) {
 }
 
 template<class coord_t, class BTECOLL>
-err RStarTree<coord_t, BTECOLL>::insertOnLevel(const rectangle<coord_t, bid_t>& r, unsigned short level) {
+err RStarTree<coord_t, BTECOLL>::insertOnLevel(const rectangle<coord_t, bid_t>& r, TPIE_OS_SIZE_T level) {
 
     //  The return value is always NO_ERROR.
     //  You might want to check for I/O errors every time
@@ -843,16 +843,16 @@ err RStarTree<coord_t, BTECOLL>::insertOnLevel(const rectangle<coord_t, bid_t>& 
 
 template<class coord_t>
 struct sortByCenterDistance {
-    bool operator()(const pair<unsigned short, coord_t>& t1, const pair<unsigned short, coord_t>& t2) {
+    bool operator()(const pair<TPIE_OS_SIZE_T, coord_t>& t1, const pair<TPIE_OS_SIZE_T, coord_t>& t2) {
 	return (t1. second < t2.second);
     }
 };
 
 template<class coord_t, class BTECOLL>
-err RStarTree<coord_t, BTECOLL>::reinsert(RStarNode<coord_t, BTECOLL>* n, const rectangle<coord_t, bid_t>& r, unsigned short level) {
+err RStarTree<coord_t, BTECOLL>::reinsert(RStarNode<coord_t, BTECOLL>* n, const rectangle<coord_t, bid_t>& r, TPIE_OS_SIZE_T level) {
     rectangle<coord_t, bid_t>                              cover = n->getChild(0);
-    vector<pair<unsigned short, coord_t> > sortVector;
-    unsigned short                         counter;
+    vector<pair<TPIE_OS_SIZE_T, coord_t> > sortVector;
+    TPIE_OS_SIZE_T                         counter;
 
     err result = NO_ERROR;
 
@@ -867,14 +867,14 @@ err RStarTree<coord_t, BTECOLL>::reinsert(RStarNode<coord_t, BTECOLL>* n, const 
     //  rectangle's distance to the centerpoint into an array.
     for(counter=0; counter < n->numberOfChildren(); ++counter) {
 	cover = n->getChild(counter);
-	sortVector.push_back(pair<unsigned short, coord_t>(
+	sortVector.push_back(pair<TPIE_OS_SIZE_T, coord_t>(
 	    counter, 
 	    (((cover.left()+cover.right()) / 2.0) - midX)*
 	    (((cover.left()+cover.right()) / 2.0) - midX) +
 	    (((cover.lower()+cover.upper()) / 2.0) - midY)*
 	    (((cover.lower()+cover.upper()) / 2.0) - midY)));
     }
-    sortVector.push_back(pair<unsigned short, coord_t>(
+    sortVector.push_back(pair<TPIE_OS_SIZE_T, coord_t>(
 	counter, 
 	(((r.left()+r.right()) / 2.0) - midX)*
 	(((r.left()+r.right()) / 2.0) - midX) +
@@ -896,7 +896,7 @@ err RStarTree<coord_t, BTECOLL>::reinsert(RStarNode<coord_t, BTECOLL>* n, const 
 				       fanOut_);
     newNode->setFlag(n->getFlag());
 
-    typename std::vector<pair<unsigned short, coord_t> >::iterator vi = sortVector.begin();
+    typename std::vector<pair<TPIE_OS_SIZE_T, coord_t> >::iterator vi = sortVector.begin();
 
     //  Copy the entries into the new node.
     for(counter = 0; counter < (n->numberOfChildren() * 70) / 100; ++counter, ++vi) {
@@ -977,10 +977,10 @@ err RStarTree<coord_t, BTECOLL>::reinsert(RStarNode<coord_t, BTECOLL>* n, const 
     while ((result == NO_ERROR) && (vi != sortVector.end())) {
 
 	if ((*vi).first == n->numberOfChildren()) {
-	    reinsertObjects_.push_back(pair<rectangle<coord_t, bid_t>, unsigned short>(r, level));
+	    reinsertObjects_.push_back(pair<rectangle<coord_t, bid_t>, TPIE_OS_SIZE_T>(r, level));
 	}
 	else {
-	    reinsertObjects_.push_back(pair<rectangle<coord_t, bid_t>, unsigned short>(n->getChild((*vi).first), level));
+	    reinsertObjects_.push_back(pair<rectangle<coord_t, bid_t>, TPIE_OS_SIZE_T>(n->getChild((*vi).first), level));
 	}
 	++vi;
     }
@@ -992,10 +992,10 @@ err RStarTree<coord_t, BTECOLL>::reinsert(RStarNode<coord_t, BTECOLL>* n, const 
 
 
 template<class coord_t, class BTECOLL>
-void RStarTree<coord_t, BTECOLL>::adjustTreeOnLevel(RStarNode<coord_t, BTECOLL>* node1, RStarNode<coord_t, BTECOLL>* node2, bid_t childToBeReplaced, unsigned short level) {
+void RStarTree<coord_t, BTECOLL>::adjustTreeOnLevel(RStarNode<coord_t, BTECOLL>* node1, RStarNode<coord_t, BTECOLL>* node2, bid_t childToBeReplaced, TPIE_OS_SIZE_T level) {
 
     RStarNode<coord_t, BTECOLL>*     parent = NULL;
-    unsigned short index;
+    children_count_t index;
 
     parent = readNode(node1->getParent());
     
@@ -1116,12 +1116,12 @@ RStarTree<coord_t, BTECOLL>::splitNode(RStarNode<coord_t, BTECOLL>* toSplit) {
 					fanOut_);
     RStarNode<coord_t, BTECOLL>*     newRoot         = NULL;
     bid_t       newRootPosition = 0;
-    unsigned short counter         = 0;
+    TPIE_OS_SIZE_T counter         = 0;
 
     //  Determine split axis and distribution.
-    pair<vector<rectangle<coord_t, bid_t> >*, unsigned short> seeds = toSplit->chooseSplitAxisAndIndex();
+    pair<vector<rectangle<coord_t, bid_t> >*, TPIE_OS_SIZE_T> seeds = toSplit->chooseSplitAxisAndIndex();
 
-    unsigned short firstGroupNumber = (unsigned short)(fanOut_/ MIN_FANOUT_FACTOR) + seeds.second;
+    TPIE_OS_SIZE_T firstGroupNumber = (TPIE_OS_SIZE_T)(fanOut_/ MIN_FANOUT_FACTOR) + seeds.second;
 
     rectangle<coord_t, bid_t> b1 = (*(seeds.first))[0];
     rectangle<coord_t, bid_t> b2 = (*(seeds.first))[firstGroupNumber];
@@ -1237,7 +1237,7 @@ bool RStarTree<coord_t, BTECOLL>::readTreeInfo() {
     }
     else {
 	treeinfo_file_stream->read((char *) &rootPosition_, sizeof(bid_t));
-	treeinfo_file_stream->read((char *) &treeHeight_, sizeof(unsigned short));
+	treeinfo_file_stream->read((char *) &treeHeight_, sizeof(TPIE_OS_SIZE_T));
 	treeinfo_file_stream->read((char *) &totalObjects_, sizeof(off_t));
 	treeinfo_file_stream->read((char *) &fanOut_, sizeof(off_t));
 	returnValue = true;
@@ -1260,9 +1260,9 @@ void RStarTree<coord_t, BTECOLL>::writeTreeInfo() {
     //  Write some info.
     ofstream *treeinfo_file_stream = new ofstream(treeinfo_filename);
     treeinfo_file_stream->write((char *) &rootPosition_, sizeof(bid_t));
-    treeinfo_file_stream->write((char *) &treeHeight_, sizeof(unsigned short));
+    treeinfo_file_stream->write((char *) &treeHeight_, sizeof(TPIE_OS_SIZE_T));
     treeinfo_file_stream->write((char *) &totalObjects_, sizeof(off_t));  
-    treeinfo_file_stream->write((char *) &fanOut_, sizeof(unsigned short));  
+    treeinfo_file_stream->write((char *) &fanOut_, sizeof(TPIE_OS_SIZE_T));  
     
     delete treeinfo_file_stream;
     delete [] treeinfo_filename;

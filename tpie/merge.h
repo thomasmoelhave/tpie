@@ -273,7 +273,7 @@ namespace tpie {
 	single_merge(stream<T> **instreams, arity_t arity,
 		     stream<T> *outstream, M *m_obj) {
 
-	    unsigned int ii;
+	    TPIE_OS_SIZE_T ii;
 	    err ami_err;
   
 	    // Create an array of pointers for the input.
@@ -609,7 +609,8 @@ namespace tpie {
 		    }
 		}
 	    }
-	    TP_LOG_DEBUG_ID("partition_and_merge(): merge arity = "<< merge_arity);
+	    TP_LOG_DEBUG_ID("partition_and_merge(): merge arity = "
+				<< static_cast<TPIE_OS_OUTPUT_SIZE_T>(merge_arity));
 	    if (merge_arity < 2) {
 		return INSUFFICIENT_MAIN_MEMORY;
 	    }
@@ -725,8 +726,9 @@ namespace tpie {
   
 	    //Monitoring prints.
 	    TP_LOG_DEBUG_ID("Number of runs from run formation is "
-			    << nb_orig_substr);
-	    TP_LOG_DEBUG_ID("Merge arity is " << merge_arity);
+			    << static_cast<TPIE_OS_OUTPUT_SIZE_T>(nb_orig_substr));
+	    TP_LOG_DEBUG_ID("Merge arity is " 
+				<< static_cast<TPIE_OS_OUTPUT_SIZE_T>(merge_arity));
   
   
 	    k = 0;

@@ -223,17 +223,20 @@ typedef unsigned long long int TPIE_OS_ULONGLONG;
 #if defined (_WIN32) && !defined(__MINGW32__)
 typedef SSIZE_T TPIE_OS_SSIZE_T;
 #ifdef _TPIE_SMALL_MAIN_MEMORY
+#if (_MSC_VER < 1400)
 typedef unsigned __int32 TPIE_OS_SIZE_T;
-#define TPIE_OS_OUTPUT_SIZE_T TPIE_OS_SIZE_T
 #else
-#define TPIE_OS_OUTPUT_SIZE_T TPIE_OS_OFFSET
+typedef size_t TPIE_OS_SIZE_T;
+#endif
+#else
 typedef size_t TPIE_OS_SIZE_T;
 #endif
 #else
 typedef ssize_t TPIE_OS_SSIZE_T;
 typedef size_t TPIE_OS_SIZE_T;
-#define TPIE_OS_OUTPUT_SIZE_T TPIE_OS_OFFSET
 #endif
+
+#define TPIE_OS_OUTPUT_SIZE_T TPIE_OS_OFFSET
 
 #ifdef _WIN32
 enum TPIE_OS_FLAG {
@@ -399,8 +402,8 @@ inline int TPIE_OS_RANDOM() {
 #endif
 
 #ifdef _WIN32
-inline void TPIE_OS_SRANDOM(unsigned int seed) {
-    srand(seed);
+inline void TPIE_OS_SRANDOM(time_t seed) {
+    srand((unsigned int)seed);
 }
 #else
 inline void TPIE_OS_SRANDOM(unsigned int seed) {
@@ -635,7 +638,7 @@ inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_ORDONLY(const std::string& name,TPIE
     return portabilityInternalOpen(name.c_str(), _O_RDONLY,mappingFlag);
 }
 #else
-inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_ORDONLY(const std::string& name,TPIE_OS_MAPPING_FLAG mappingFlag = TPIE_OS_FLAG_USE_MAPPING_FALSE) {
+inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_ORDONLY(const std::string& name,TPIE_OS_MAPPING_FLAG /* mappingFlag */ ) {
     return ::open(name.c_str(), O_RDONLY);
 }
 #endif
@@ -646,7 +649,7 @@ inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_OEXCL(const std::string& name, TPIE_
     return portabilityInternalOpen(name.c_str(), _O_EXCL, mappingFlag);
 }
 #else
-inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_OEXCL(const std::string& name, TPIE_OS_MAPPING_FLAG mappingFlag = TPIE_OS_FLAG_USE_MAPPING_FALSE) {
+inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_OEXCL(const std::string& name, TPIE_OS_MAPPING_FLAG /* mappingFlag */) {
     return ::open(name.c_str(), O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
 }
 #endif
@@ -657,7 +660,7 @@ inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_ORDWR(const std::string& name, TPIE_
     return portabilityInternalOpen(name.c_str(), _O_RDWR, mappingFlag);
 }
 #else
-inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_ORDWR(const std::string&  name, TPIE_OS_MAPPING_FLAG mappingFlag = TPIE_OS_FLAG_USE_MAPPING_FALSE) {
+inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_ORDWR(const std::string&  name, TPIE_OS_MAPPING_FLAG /* mappingFlag */ ) {
     return ::open(name.c_str(), O_RDWR);
 }
 #endif
@@ -732,10 +735,10 @@ inline TPIE_OS_SSIZE_T TPIE_OS_READ(TPIE_OS_FILE_DESCRIPTOR fd, void* buffer, si
 // The suggested starting address of the mmap call has to be
 // a multiple of the systems granularity (else the mapping fails)
 // Hence, the parameter addr is not used at present.
-inline LPVOID TPIE_OS_MMAP(LPVOID addr, 
-			   size_t len, 
+inline LPVOID TPIE_OS_MMAP(LPVOID /* addr */, 
+			   TPIE_OS_SIZE_T  len, 
 			   int     prot, 
-			   int     flags, 
+			   int     /* flags */ , 
 			   TPIE_OS_FILE_DESCRIPTOR fildes, 
 			   TPIE_OS_OFFSET off) {
     return MapViewOfFileEx( fildes.mapFileHandle,
@@ -752,7 +755,7 @@ inline void* TPIE_OS_MMAP(void* addr, size_t len, int prot, int flags, TPIE_OS_F
 
 
 #ifdef _WIN32
-inline int TPIE_OS_MUNMAP(LPVOID addr, size_t len) {
+inline int TPIE_OS_MUNMAP(LPVOID addr, size_t /* len */) {
     return (UnmapViewOfFile(addr) == 0 ? -1 : 0);
 }
 #else							
@@ -763,7 +766,7 @@ inline int TPIE_OS_MUNMAP(void* addr, size_t len) {
 
 
 #ifdef _WIN32
-inline int TPIE_OS_MSYNC(LPVOID addr, size_t len, int flags=0) {
+inline int TPIE_OS_MSYNC(LPVOID addr, size_t len, int /* flags */) {
     return (FlushViewOfFile(addr,len) ? 0 : -1);
 }
 #else							
@@ -948,7 +951,7 @@ inline int TPIE_OS_UNLINK(const std::string& filename) {
 #endif
 
 #ifdef _WIN32
-inline int TPIE_OS_TRUNCATE(FILE* file, const std::string& path, TPIE_OS_OFFSET offset) {
+inline int TPIE_OS_TRUNCATE(FILE* file, const std::string& /* path */, TPIE_OS_OFFSET offset) {
 //    TPIE_OS_LONG highOrderOff = getHighOrderOff(offset);	
 //    DWORD x = SetFilePointer(fd.FileHandle,getLowOrderOff(offset),&highOrderOff, FILE_BEGIN);
 //	return SetEndOfFile(fd.FileHandle);
@@ -956,7 +959,7 @@ inline int TPIE_OS_TRUNCATE(FILE* file, const std::string& path, TPIE_OS_OFFSET 
 	return _chsize(file->_file, (LONG)offset);
 }
 #else
-inline int TPIE_OS_TRUNCATE(FILE* file, const std::string& path, TPIE_OS_OFFSET offset) {
+inline int TPIE_OS_TRUNCATE(FILE* /* file */, const std::string& path, TPIE_OS_OFFSET offset) {
 	return ::truncate(path.c_str(), offset);
 }
 #endif
@@ -1042,12 +1045,12 @@ logstream& logstream::operator<<(const LONGLONG x)\
 #ifdef _WIN32	
 #ifndef NDEBUG
 #define TPIE_OS_SPACE_OVERHEAD_BODY \
-void * __cdecl _nh_malloc_dbg ( size_t, int, int, const char *,	int );\
+void * __cdecl _nh_malloc_dbg (TPIE_OS_SIZE_T, int, int, const char *,	int );\
 void * operator new(\
-		    unsigned int cb,\
-		    int nBlockUse,\
-		    const char * szFileName,\
-		    int nLine\
+		    TPIE_OS_SIZE_T cb,\
+		    int /* nBlockUse */,\
+		    const char * /* szFileName */,\
+		    int /* nLine */ \
 		    )\
 {\
   void *p;\
@@ -1089,7 +1092,7 @@ void * operator new(\
        assert(0);\
        exit (1);\
    }\
-   *((size_t *) p) = cb;\
+   *((TPIE_OS_SIZE_T *) p) = cb;\
    return ((char *) p) + SIZE_SPACE;\
 };
 #endif

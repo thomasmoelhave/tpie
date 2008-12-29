@@ -16,35 +16,6 @@
 
 using namespace tpie;
 
-static TPIE_OS_OFFSET parse_number(char *s) {
-  TPIE_OS_OFFSET n; 
-  TPIE_OS_OFFSET mult = 1;
-  size_t len = strlen(s);
-  if(isalpha(s[len-1])) {
-    switch(s[len-1]) {
-    case 'G':
-    case 'g':
-      mult = 1 << 30;
-      break;
-    case 'M':
-    case 'm':
-      mult = 1 << 20;
-      break;
-    case 'K':
-    case 'k':
-      mult = 1 << 10;
-      break;
-    default:
-      std::cerr << "Error parsing arguments: bad number format: " << s << "\n";
-      exit(-1);
-      break;
-    }
-    s[len-1] = '\0';
-  }
-  n = TPIE_OS_OFFSET(atof(s) * mult);
-  return n;
-}
-
 void parse_args(int argc, char **argv, struct options *application_opts,
 		void (*parse_app_opts)(int idx, char *opt_arg), bool stop_if_no_args) {
   bool do_exit = false;
@@ -94,17 +65,26 @@ void parse_args(int argc, char **argv, struct options *application_opts,
     switch (idx) {
     case 1: 
         // mm_size should be small.
-      mm_sz = std::max(size_t(128*1024), static_cast<TPIE_OS_SIZE_T>(parse_number(opt_arg)));
+      mm_sz = std::max(size_t(128*1024), parse_number<TPIE_OS_SIZE_T>(opt_arg));
       break;
     case 2:
       verbose = true; 
       TP_LOG_APP_DEBUG_ID("Setting verbose flag.");
       break;
     case 3: 
-      test_size = parse_number(opt_arg); 
+      test_size = parse_number<TPIE_OS_OFFSET>(opt_arg); 
       break;
     case 4: 
-	rnd_seed = std::max(1u, static_cast<unsigned int>(parse_number(opt_arg)));
+#ifdef _WIN32
+		// Suppress warning 4267 (size mismatch of size_t and unsigned int) once.
+		// This is recommended by Visual Studio's dynamic help for warning C4267.
+#pragma warning(disable : 4267)
+#endif
+		rnd_seed = std::max<unsigned int>(1, parse_number<unsigned int>(opt_arg));
+#ifdef _WIN32
+		//  Reset to the default state.
+#pragma warning(default : 4267)
+#endif
       break;
     default:
       parse_app_opts(idx, opt_arg);

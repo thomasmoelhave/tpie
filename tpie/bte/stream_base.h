@@ -105,7 +105,7 @@ namespace tpie {
 	    }
 	
 	    // Inquire the OS block size.
-	    TPIE_OS_SSIZE_T os_block_size () const {
+	    TPIE_OS_SIZE_T os_block_size () const {
 		return TPIE_OS_BLOCKSIZE();
 	    }
 	
@@ -153,7 +153,7 @@ namespace tpie {
 	    stats_stream      m_streamStatistics;
 	
 	    // The size of a physical block.
-	    TPIE_OS_SSIZE_T    m_osBlockSize;
+	    TPIE_OS_SIZE_T    m_osBlockSize;
 	
 	    // Offset of the current item in the file. This is the logical
 	    // offset of the item within the file, that is, the place we would
@@ -186,7 +186,14 @@ namespace tpie {
     
 	template<class T>
 	int stream_base<T>::check_header() {
-    
+
+#ifdef _WIN32
+		// Suppress warning 4267 (size mismatch of size_t and unsigned int) once.
+		// This is recommended by Visual Studio's dynamic help for warning C4267.
+#pragma warning(disable : 4267)
+#endif
+
+
 	    if (m_header == NULL) {
 	
 		TP_LOG_FATAL_ID ("Could not map header.");
@@ -253,6 +260,11 @@ namespace tpie {
 		return -1;
 	    
 	    }
+
+#ifdef _WIN32
+		//  Reset to the default state.
+#pragma warning(default : 4267)
+#endif
 	
 	    return 0;
 	}

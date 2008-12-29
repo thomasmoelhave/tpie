@@ -179,7 +179,7 @@ namespace tpie {
       //////////////////////////////////////////////////////////////////////////
 	    class dummy_filter_t {
 	    public:
-		bool operator()(const Value& v) const { return true; }
+		bool operator()(const Value& /* v */) const { return true; }
 	    };
 	    
 	    

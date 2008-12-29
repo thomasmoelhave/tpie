@@ -131,14 +131,14 @@ int main(int argc, char **argv)
 
     // Streams for reporting values to ascii streams.
     
-    std::ofstream *osc;
-    std::ofstream *osi;
-    std::ofstream *osf;
+    std::ofstream *osc = NULL;
+    std::ofstream *osi = NULL;
+    std::ofstream *osf = NULL;
     ami::cxx_ostream_scan< apps::sm_elem<double> > *rptc = NULL;
     ami::cxx_ostream_scan< apps::sm_elem<double> > *rpti = NULL;
     ami::cxx_ostream_scan<double> *rptf = NULL;
 
-    std::istream *isb;
+    std::istream *isb = NULL;
     ami::cxx_istream_scan<apps::sm_elem<double> > *readb = NULL;    
     
     if (report_results_count) {

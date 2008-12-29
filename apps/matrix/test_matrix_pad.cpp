@@ -75,7 +75,7 @@ int main(int argc, char **argv) {
     parse_args(argc, argv, app_opts, parse_app_opts);
 
     if (verbose) {
-	std::cout << "test_size = " << test_size << "." << std::endl;
+	std::cout << "test_size = " << (int)test_size << "." << std::endl;
 	std::cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << std::endl;
 	std::cout << "random_seed = " << random_seed << "." << std::endl;
     } else {
@@ -85,7 +85,7 @@ int main(int argc, char **argv) {
     // Set the amount of main memory:
     MM_manager.set_memory_limit (test_mm_size);
 
-    apps::matrix<TPIE_OS_OFFSET> em0(test_size, test_size);
+    apps::matrix<TPIE_OS_OFFSET> em0((int)test_size, (int)test_size);
         
     // Streams for reporting values to ascii streams.
     
@@ -131,9 +131,9 @@ int main(int argc, char **argv) {
     {
         // Pad the matrix.
 
-	apps::matrix_pad<int> smp(test_size, test_size, 7);
+	apps::matrix_pad<TPIE_OS_OFFSET> smp(test_size, test_size, 7);
 
-	apps::matrix<int> em1(7 * ((em0.rows() - 1)/7 + 1),
+	apps::matrix<TPIE_OS_OFFSET> em1(7 * ((em0.rows() - 1)/7 + 1),
 			      7 * ((em0.cols() - 1)/7 + 1));
 
         ae = ami::scan(&em0, &smp, &em1);
@@ -141,7 +141,7 @@ int main(int argc, char **argv) {
         
         // Block permute the matrix.
 
-	apps::matrix<int> em1p(7 * ((em0.rows() - 1)/7 + 1),
+	apps::matrix<TPIE_OS_OFFSET> em1p(7 * ((em0.rows() - 1)/7 + 1),
 			       7 * ((em0.cols() - 1)/7 + 1));
 
 	apps::perm_matrix_into_blocks pmib1(7 * ((em0.rows() - 1)/7 + 1),
@@ -156,7 +156,7 @@ int main(int argc, char **argv) {
         
         // Un block permute it.
 
-	apps::matrix<int> em2(7 * ((em0.rows() - 1)/7 + 1),
+	apps::matrix<TPIE_OS_OFFSET> em2(7 * ((em0.rows() - 1)/7 + 1),
 			      7 * ((em0.cols() - 1)/7 + 1));
 
 	apps::perm_matrix_outof_blocks pmob1(7 * ((em0.rows() - 1)/7 + 1),
@@ -167,9 +167,9 @@ int main(int argc, char **argv) {
         
         // Unpad the matrix.
 
-	apps::matrix_unpad<int> smup(test_size, test_size, 7);
+	apps::matrix_unpad<TPIE_OS_OFFSET> smup(test_size, test_size, 7);
 
-	apps::matrix<int> em3(em0.rows(), em0.cols());
+	apps::matrix<TPIE_OS_OFFSET> em3(em0.rows(), em0.cols());
 
         ae = ami::scan(&em2, &smup, &em3);
 

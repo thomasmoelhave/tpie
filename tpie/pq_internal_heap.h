@@ -24,12 +24,12 @@ public:
     /// \param max_size Maximum size of queue
     ///
     /////////////////////////////////////////////////////////
-    pq_internal_heap(unsigned int max_size) { 
+    pq_internal_heap(TPIE_OS_SIZE_T max_size) { 
 	pq = new T[max_size]; 
 	sz = 0; 
     }
 
-    pq_internal_heap(T* arr, unsigned int length) {
+    pq_internal_heap(T* arr, TPIE_OS_SIZE_T length) {
 	pq = arr;
 	sz = length;
     }
@@ -57,7 +57,7 @@ public:
     /// \return Queue size
     ///
     /////////////////////////////////////////////////////////
-    unsigned size() {
+    TPIE_OS_SIZE_T size() {
 	return sz;
     }
 
@@ -104,7 +104,7 @@ public:
     /// \param ne Size
     ///
     /////////////////////////////////////////////////////////
-    void set_size(unsigned int ne) {
+    void set_size(TPIE_OS_SIZE_T ne) {
 	sz = ne; 
     }
 	
@@ -122,21 +122,21 @@ public:
 private:
     Comparator comp_;
 
-    inline unsigned int left_child(unsigned int k) {
+    inline TPIE_OS_SIZE_T left_child(TPIE_OS_SIZE_T k) {
 	return 2*k+1;
     }
 
-    inline unsigned int right_child(unsigned int k){
+    inline TPIE_OS_SIZE_T right_child(TPIE_OS_SIZE_T k){
 	return 2*k+2;
     }
 
-    inline unsigned int parent(unsigned int k){
+    inline TPIE_OS_SIZE_T parent(TPIE_OS_SIZE_T k){
 	return (k-1)/2;
     }
 
     void bubbleDown() { 
-	unsigned int k=0;
-	unsigned int j;
+	TPIE_OS_SIZE_T k=0;
+	TPIE_OS_SIZE_T j;
 	while((j=left_child(k)) < sz) {
 	    if(j < sz-1 && comp_(pq[j+1], pq[j])) j++; // compare, pq[j] > pq[j+1]
 	    if(! comp_(pq[j], pq[k]) ) break; // compare, pq[k] > pq[j]
@@ -145,8 +145,9 @@ private:
 	}
     }
   
-    void bubbleUp(int k) {
-	unsigned int j;
+	//  Parameter has to be signed!
+    void bubbleUp(TPIE_OS_SSIZE_T k) {
+	TPIE_OS_SSIZE_T j;
 	while(k > 0 && comp_(pq[k], pq[(j=parent(k))])) { // compare, pq[k/2] > pq[k]
 	    swap(pq[k], pq[j]);
 	    k = j; 
@@ -154,7 +155,7 @@ private:
     }
 		
     T *pq; 
-    unsigned int sz;
+    TPIE_OS_SIZE_T sz;
 };
 
     }  // ami namespace

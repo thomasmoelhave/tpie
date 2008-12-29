@@ -46,8 +46,8 @@ namespace tpie {
 	///
 	////////////////////////////////////////////////////////////////////
 
-	progress_indicator_base(const std::string& title, 
-							const std::string& description, 
+	progress_indicator_base(const std::string& /* title */, 
+							const std::string& /* description */, 
 							TPIE_OS_OFFSET minRange, 
 							TPIE_OS_OFFSET maxRange, 
 							TPIE_OS_OFFSET stepValue) : 

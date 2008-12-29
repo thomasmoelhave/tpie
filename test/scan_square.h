@@ -44,7 +44,7 @@ ami::err scan_square<T>::operate(const T &in,
 
     called++;
     
-    if ((*sfout = *sfin)) {
+    if ( (*sfout = *sfin) != 0) {
         ii = in;
         *out = in * in;
 

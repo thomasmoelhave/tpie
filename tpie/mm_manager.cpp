@@ -58,7 +58,7 @@ err manager::register_allocation(TPIE_OS_SIZE_T request)
 
     if (request > remaining) {
        TP_LOG_WARNING("Memory allocation request: ");
-       TP_LOG_WARNING(static_cast<TPIE_OS_OUTPUT_SIZE_T>(request));
+       TP_LOG_WARNING(static_cast<TPIE_OS_OFFSET>(request));
        TP_LOG_WARNING(": User-specified memory limit exceeded.");
        TP_LOG_FLUSH_LOG;
        remaining = 0;
@@ -68,9 +68,9 @@ err manager::register_allocation(TPIE_OS_SIZE_T request)
     remaining -= request; 
 
     TP_LOG_MEM_DEBUG("manager Allocated ");
-    TP_LOG_MEM_DEBUG(static_cast<TPIE_OS_OUTPUT_SIZE_T>(request));
+    TP_LOG_MEM_DEBUG(static_cast<TPIE_OS_OFFSET>(request));
     TP_LOG_MEM_DEBUG("; ");
-    TP_LOG_MEM_DEBUG(static_cast<TPIE_OS_OUTPUT_SIZE_T>(remaining));
+    TP_LOG_MEM_DEBUG(static_cast<TPIE_OS_OFFSET>(remaining));
     TP_LOG_MEM_DEBUG(" remaining.\n");
     TP_LOG_FLUSH_LOG;
 
@@ -207,25 +207,27 @@ TPIE_OS_SIZE_T manager::memory_limit() {
 }
 
 TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound, TPIE_OS_SIZE_T granularity) {
-    #ifndef TPIE_USE_EXCEPTIONS
+#ifndef TPIE_USE_EXCEPTIONS
+	TPIE_OS_SIZE_T _prevent_compiler_warning = lower_bound + granularity;
+	_prevent_compiler_warning++;
 	TP_LOG_DEBUG_ID("consecutive_memory_available only works with exceptions\n");
 	return memory_available();
-	#endif
-    //lower bound of search
-    size_t low = lower_bound;
+#else
+	//lower bound of search
+	TPIE_OS_SIZE_T low = lower_bound;
 
 	//don't try to get more than the amount of bytes currently
 	//available
-	size_t high = memory_available()-space_overhead();
-	
+	TPIE_OS_SIZE_T high = memory_available()-space_overhead();
+
 	const TPIE_OS_SIZE_T MEGA=1024*1024;
-		
+
 	TP_LOG_DEBUG_ID("\n- - - - - - - MEMORY SEARCH - - - - - -\n");
 
 	if (high< low) {
 		low=high;
 	}
-	
+
 	//first check quickly if we can get "high" bytes of memory
 	//directly.
 	try {
@@ -251,34 +253,36 @@ TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound,
 	//perform a binary search in [low,high] for highest possible 
 	//memory allocation within a granularity given by 
 	//the "granularity" variable.
-    do {
+	do {
 		//middle of search interval, beware of overflows
-        size_t mid = size_t((static_cast<TPIE_OS_OFFSET>(low)+high)/2);
-		
+		size_t mid = size_t((static_cast<TPIE_OS_OFFSET>(low)+high)/2);
+
 		TP_LOG_DEBUG_ID("Search area is  [" << low << "," << high << "]"
 			<< " query amount is: " << mid << ":\n");
 
 		if (mid < low || mid > high) {
 			throw std::logic_error(
-					"Memory interval calculation failed. Try setting the "
-					" memory value to something smaller.");
+				"Memory interval calculation failed. Try setting the "
+				" memory value to something smaller.");
 		}
 
 		//try to allocate "mid" bytes of memory
 		//TPIE throws an exception if memory allocation fails
-        try {
-            char* mem = new char[mid];
+		try {
+			char* mem = new char[mid];
 			low = mid;
 			delete[] mem;
-        } catch (...) {
-            high = mid;
-            TP_LOG_DEBUG_ID("failed.\n");
-        }
-    } while (high - low > granularity);
+		} catch (...) {
+			high = mid;
+			TP_LOG_DEBUG_ID("failed.\n");
+		}
+	} while (high - low > granularity);
 
 	TP_LOG_DEBUG_ID("\n- - - - - - - END MEMORY SEARCH - - - - - -\n\n");
 
 	return low;
+#endif
+
 }
 
 

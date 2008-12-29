@@ -149,7 +149,7 @@ ami::err s_merge_manager::operate(int **in,
         *out = min_t;
         if (in[min_source] != NULL) {
             mheap->insert(in[min_source], min_source);
-            taken_index = min_source;
+            taken_index = (int)min_source;
             //taken_flags[min_source] = 1;
 #if DEBUG_ASSERTIONS
             input_count++;

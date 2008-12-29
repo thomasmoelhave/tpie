@@ -82,7 +82,7 @@ TPIE_OS_LONGLONG Item::convert(){
 }
 
 // A simple increment operator
-Item Item::operator ++(int j){
+Item Item::operator ++(int /* j */){
     int i = APP_ITEM_SIZE-2;
 
     //carry 
@@ -128,7 +128,8 @@ std::ostream & operator << (std::ostream & out, const Item & it){
 
 TPIE_OS_LONGLONG ascii2longlong(char *s){
 
-    int i, len, digit, multfactor;
+    TPIE_OS_SIZE_T i, len, multfactor;
+    TPIE_OS_SSIZE_T digit;
     TPIE_OS_LONGLONG val;
     bool ok, neg;
   
@@ -180,7 +181,7 @@ TPIE_OS_LONGLONG ascii2longlong(char *s){
 }
 
 // init_opts sets up the options structures for use in getopts
-void init_opts(struct options* & opts, int argc, char** argv){
+void init_opts(struct options* & opts, int /* argc */, char** /* argv */){
   
     opts = new struct options[APP_OPTION_NUM_OPTIONS];
 
@@ -259,7 +260,7 @@ void get_app_info(int argc, char** argv, appInfo & Info){
     Info.num_items=APP_DEFAULT_N_ITEMS;
 
     nopts=0;
-    while ( (optidx=getopts(argc, argv, opts, &optarg)) ){
+    while ( (optidx=getopts(argc, argv, opts, &optarg)) != 0 ){
 	nopts++;
 	if(optidx==-1){
 	    std::cerr << "Could not allocate space for arguments. Exiting...\n";
@@ -355,7 +356,7 @@ void get_app_info(int argc, char** argv, appInfo & Info){
 //  tempname::set_default_base_name(APP_FILE_BASE);
 	std::string tmpfname = tempname::tpie_name();
     TPIE_OS_FILE_DESCRIPTOR fd;
-    fd=TPIE_OS_OPEN_OEXCL(tmpfname);
+    fd=TPIE_OS_OPEN_OEXCL(tmpfname, TPIE_OS_FLAG_USE_MAPPING_FALSE);
     if(TPIE_OS_IS_VALID_FILE_DESCRIPTOR(fd)){
 	TPIE_OS_CLOSE(fd);
 	TPIE_OS_UNLINK(tmpfname);

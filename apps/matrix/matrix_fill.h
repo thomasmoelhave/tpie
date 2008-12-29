@@ -64,7 +64,7 @@ namespace tpie {
 	    ami::err operate(T *out, ami::SCAN_FLAG *sf) {
 		if ((*sf = (cur_row < r))) {
 		    *out = pemf->element(cur_row,cur_col);
-		    if (!(cur_col = (cur_col+1) % c)) {
+		    if ((cur_col = (cur_col+1) % c)==0) {
 			cur_row++;
 		    }
 		    return ami::SCAN_CONTINUE;

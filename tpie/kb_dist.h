@@ -103,11 +103,20 @@ namespace tpie {
 	    // Make sure we don't use more streams than are available.
 	    {
 		unsigned available_streams = instream.available_streams();
-		
+
+#ifdef _WIN32
+		// Suppress warning 4146 (unary minus for unsigned type) once.
+		// Is there a better way to do this (w/o using exceptions)?
+#pragma warning(disable : 4146)
+#endif		
 		if ((available_streams != -1u) &&
 		    (available_streams < output_streams)) {
 		    output_streams = available_streams;
 		}
+#ifdef _WIN32
+		//  Reset to the default state.
+#pragma warning(default : 4146)
+#endif
 	    }
 	    
 #ifdef RADIX_POWER_OF_TWO

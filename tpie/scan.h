@@ -363,6 +363,11 @@ if (f[n-1] && (e = us ## n -> write_item(u ## n)) != NO_ERROR) {  \
 
 // Finally, the templates themsleves.
 
+#ifdef _WIN32
+		// Suppress warning 4706 (assignment in if-clause).
+#pragma warning(disable : 4706)
+#endif
+
 __STEMPLATE(1,1); __STEMPLATE(1,2); __STEMPLATE(1,3); __STEMPLATE(1,4);
 __STEMPLATE(2,1); __STEMPLATE(2,2); __STEMPLATE(2,3); __STEMPLATE(2,4);
 __STEMPLATE(3,1); __STEMPLATE(3,2); __STEMPLATE(3,3); __STEMPLATE(3,4);
@@ -371,6 +376,11 @@ __STEMPLATE(4,1); __STEMPLATE(4,2); __STEMPLATE(4,3); __STEMPLATE(4,4);
 __STEMPLATE_O(1); __STEMPLATE_O(2); __STEMPLATE_O(3); __STEMPLATE_O(4);
 
 __STEMPLATE_I(1); __STEMPLATE_I(2); __STEMPLATE_I(3); __STEMPLATE_I(4);
+
+#ifdef _WIN32
+		// Reset to default state.
+#pragma warning(default : 4706)
+#endif
 
     }  //  ami namespace
 
