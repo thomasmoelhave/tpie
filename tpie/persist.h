@@ -31,7 +31,7 @@ namespace tpie {
 	 * the stream when it is destructed (see PERSIST_DELETE). */
 	PERSIST_READ_ONCE = TPIE_OS_PERSIST_READ_ONCE
     };
-    
+
 }  //  tpie namespace 
 
-#endif // _TPIE_AMI_PERSIST_H 
+#endif // _TPIE_PERSIST_H 
