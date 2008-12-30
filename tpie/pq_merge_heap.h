@@ -69,7 +69,7 @@ class pq_merge_heap {
 		/// \return Top element
 		///
 		/////////////////////////////////////////////////////////
-		const T& top();
+		const T& top() const;
 
 		/////////////////////////////////////////////////////////
 		///
@@ -78,7 +78,7 @@ class pq_merge_heap {
 		/// \return Top element run number
 		///
 		/////////////////////////////////////////////////////////
-		const TPIE_OS_SIZE_T top_run();
+		TPIE_OS_SIZE_T top_run() const;
 
 		/////////////////////////////////////////////////////////
 		///
@@ -87,7 +87,7 @@ class pq_merge_heap {
 		/// \return Queue size
 		///
 		/////////////////////////////////////////////////////////
-		const TPIE_OS_SIZE_T size();
+		TPIE_OS_SIZE_T size() const;
 
 		/////////////////////////////////////////////////////////
 		///
@@ -96,7 +96,7 @@ class pq_merge_heap {
 		/// \return Boolean - empty or not
 		///
 		/////////////////////////////////////////////////////////
-		const bool empty();
+		bool empty() const;
 
 	private:
 		void fixDown();
@@ -104,7 +104,6 @@ class pq_merge_heap {
 		void dump();
 
 		TPIE_OS_SIZE_T m_size;
-		T min;
 		Comparator comp_;
 
 		T* heap;
@@ -114,4 +113,6 @@ class pq_merge_heap {
 
 #include "pq_merge_heap.inl"
 }
+
 #endif
+

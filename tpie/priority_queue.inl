@@ -258,12 +258,12 @@ const T& priority_queue<T, Comparator, OPQType>::top() {
 }
 
 template <typename T, typename Comparator, typename OPQType>
-const TPIE_OS_OFFSET priority_queue<T, Comparator, OPQType>::size() {
+TPIE_OS_OFFSET priority_queue<T, Comparator, OPQType>::size() const {
 	return m_size;
 }
 
 template <typename T, typename Comparator, typename OPQType>
-const bool priority_queue<T, Comparator, OPQType>::empty() {
+bool priority_queue<T, Comparator, OPQType>::empty() const {
 	return m_size == 0;
 }
 
@@ -931,7 +931,7 @@ void priority_queue<T, Comparator, OPQType>::remove_group_buffer(TPIE_OS_SIZE_T 
 //////////////////
 // TPIE wrappers
 template <typename T, typename Comparator, typename OPQType>
-const void priority_queue<T, Comparator, OPQType>::seek_offset(stream<T>* data, TPIE_OS_OFFSET offset) {
+void priority_queue<T, Comparator, OPQType>::seek_offset(stream<T>* data, TPIE_OS_OFFSET offset) {
 	if((err = data->seek(offset))!= NO_ERROR) {
 		TP_LOG_FATAL_ID("AMI_ERROR " << err << " while seeking node");
 		exit(-1);
@@ -962,7 +962,7 @@ void priority_queue<T, Comparator, OPQType>::slot_start_set(TPIE_OS_SIZE_T slot,
 }
 
 template <typename T, typename Comparator, typename OPQType>
-const  TPIE_OS_OFFSET priority_queue<T, Comparator, OPQType>::slot_start(TPIE_OS_SIZE_T slot) {
+TPIE_OS_OFFSET priority_queue<T, Comparator, OPQType>::slot_start(TPIE_OS_SIZE_T slot) const {
 	return slot_state[slot*3];
 }
 
@@ -974,7 +974,7 @@ void priority_queue<T, Comparator, OPQType>::slot_size_set(TPIE_OS_SIZE_T slot, 
 }
 
 template <typename T, typename Comparator, typename OPQType>
-const  TPIE_OS_OFFSET priority_queue<T, Comparator, OPQType>::slot_size(TPIE_OS_SIZE_T slot) {
+TPIE_OS_OFFSET priority_queue<T, Comparator, OPQType>::slot_size(TPIE_OS_SIZE_T slot) const {
 	return slot_state[slot*3+1];
 }
 
@@ -984,7 +984,7 @@ void priority_queue<T, Comparator, OPQType>::group_start_set(TPIE_OS_SIZE_T grou
 }
 
 template <typename T, typename Comparator, typename OPQType>
-const  TPIE_OS_OFFSET priority_queue<T, Comparator, OPQType>::group_start(TPIE_OS_SIZE_T group) {
+TPIE_OS_OFFSET priority_queue<T, Comparator, OPQType>::group_start(TPIE_OS_SIZE_T group) const {
 	return group_state[group*2];
 }
 
@@ -995,7 +995,7 @@ void priority_queue<T, Comparator, OPQType>::group_size_set(TPIE_OS_SIZE_T group
 }
 
 template <typename T, typename Comparator, typename OPQType>
-const  TPIE_OS_OFFSET priority_queue<T, Comparator, OPQType>::group_size(TPIE_OS_SIZE_T group) {
+TPIE_OS_OFFSET priority_queue<T, Comparator, OPQType>::group_size(TPIE_OS_SIZE_T group) const {
 	return group_state[group*2+1];
 }
 

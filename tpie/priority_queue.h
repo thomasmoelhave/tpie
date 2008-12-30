@@ -89,7 +89,7 @@ public:
     /// \return Queue size
     ///
     /////////////////////////////////////////////////////////
-    const TPIE_OS_OFFSET size();
+    TPIE_OS_OFFSET size() const;
 
     /////////////////////////////////////////////////////////
     ///
@@ -98,7 +98,7 @@ public:
     /// \return Boolean - empty or not
     ///
     /////////////////////////////////////////////////////////
-    const bool empty();
+    bool empty() const;
 
     /////////////////////////////////////////////////////////
     ///
@@ -144,7 +144,7 @@ private:
 
 	void init(TPIE_OS_SIZE_T mm_avail);
 
-    const  void seek_offset(stream<T>* data, TPIE_OS_OFFSET offset);
+    void seek_offset(stream<T>* data, TPIE_OS_OFFSET offset);
 
     T* read_item(stream<T>* data); 
 
@@ -153,13 +153,13 @@ private:
     /////////////////////
 
     void slot_start_set(TPIE_OS_SIZE_T slot, TPIE_OS_OFFSET n); 
-    const TPIE_OS_OFFSET slot_start(TPIE_OS_SIZE_T slot); 
+    TPIE_OS_OFFSET slot_start(TPIE_OS_SIZE_T slot) const; 
     void slot_size_set(TPIE_OS_SIZE_T slot, TPIE_OS_OFFSET n); 
-    const TPIE_OS_OFFSET slot_size(TPIE_OS_SIZE_T slot); 
+    TPIE_OS_OFFSET slot_size(TPIE_OS_SIZE_T slot) const; 
     void group_start_set(TPIE_OS_SIZE_T group, TPIE_OS_OFFSET n); 
-    const TPIE_OS_OFFSET group_start(TPIE_OS_SIZE_T group); 
+    TPIE_OS_OFFSET group_start(TPIE_OS_SIZE_T group) const; 
     void group_size_set(TPIE_OS_SIZE_T group, TPIE_OS_OFFSET n); 
-    const TPIE_OS_OFFSET group_size(TPIE_OS_SIZE_T group); 
+    TPIE_OS_OFFSET group_size(TPIE_OS_SIZE_T group) const; 
     std::string filename;
     std::string datafiles;
     const std::string& datafile(TPIE_OS_OFFSET id); 
