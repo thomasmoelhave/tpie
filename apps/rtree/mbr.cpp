@@ -10,73 +10,103 @@
 // minimum bounding rectangle (MBR).
 //
 
-#include <float.h>
-// Quick hack.
-#define INFINITY DBL_MAX
-#define MINUSINFINITY -(DBL_MAX-1)
+#include "app_config.h"
 
-#include "common.h"
+#include <tpie/portability.h>
+
+#include <tpie/stream.h>
+
 #include "rectangle.h"
 #include <tpie/scan.h>
 #include <tpie/block.h>
-#include <string.h>
-#include <fstream>
-//#include <limits.h>
+#include <iostream>
 
+using namespace tpie::ami;
+
+///////////////////////////////////////////////////////////////////////////
+/// Scan all rectangles in the input stream, computes the mininum 
+/// bounding box, and write it to an output file.
+///////////////////////////////////////////////////////////////////////////
 template<class coord_t, class oid_t>
 class MBRScanner: public scan_object {
-protected:
-  rectangle<coord_t, oid_t> mbr;
-  ofstream *out;
+
+#define MAGIC_NUMBER_UNINITIALIZED_RECTANGLE (oid_t)17
+
+private:
+    rectangle<coord_t, oid_t> mbr;
+    std::ofstream *out;
+
 public:
-  MBRScanner(std::string out_filename) {
-    out = new ofstream(out_filename.c_str());
-    mbr.xlo = INFINITY;
-    mbr.ylo = INFINITY;
-    mbr.xhi = MINUSINFINITY;
-    mbr.yhi = MINUSINFINITY;
-  }
-    
-  err initialize() {
-	return NO_ERROR;
-  }
 
-  err operate(const rectangle<coord_t, oid_t> &in, SCAN_FLAG *sfin) {
+    ///////////////////////////////////////////////////////////////////////////
+    /// The constructor expects a filename for the output file where the
+    /// minimum bounding rectangle is to be written to
+    /// \param out_filename filename for the output file
+    ///////////////////////////////////////////////////////////////////////////
+    MBRScanner(std::string out_filename) {
+	out = new std::ofstream(out_filename.c_str());
 
-    if (*sfin) {
-      if (in.xlo < mbr.xlo) mbr.xlo = in.xlo;
-      if (in.ylo < mbr.ylo) mbr.ylo = in.ylo;
-      if (in.xhi > mbr.xhi) mbr.xhi = in.xhi;
-      if (in.yhi > mbr.yhi) mbr.yhi = in.yhi;
-    } else {
-      out->write((char *) &mbr, sizeof(mbr));
-      cerr << " " << mbr.xlo << " " << mbr.ylo 
-      	   << " " << mbr.xhi << " " << mbr.yhi << " ";
-      return SCAN_DONE;
+	assert(MAGIC_NUMBER_UNINITIALIZED_RECTANGLE != 0);
+	// ...otherwise the hack won't work.
+
+	mbr.set_id(MAGIC_NUMBER_UNINITIALIZED_RECTANGLE);
     }
-    return SCAN_CONTINUE; 
-  }
+    
+    ///////////////////////////////////////////////////////////////////////////
+    /// Nothing happens here
+    ///////////////////////////////////////////////////////////////////////////
+    err initialize() {
+	return NO_ERROR;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// The current minimum bounding rectangle is extended to enclose the
+    /// rectangle passed to this method.
+    /// \param[in] in current rectangle read from input stream
+    /// \param[in] sfin (scan flag)
+    ///////////////////////////////////////////////////////////////////////////
+    err operate(const rectangle<coord_t, oid_t> &in, SCAN_FLAG *sfin) {
+
+	if (*sfin) {
+	    if (mbr.get_id() == MAGIC_NUMBER_UNINITIALIZED_RECTANGLE) {
+		mbr = in;
+		// ...un-hack.
+		mbr.set_id(0);
+	    }
+	    else {
+		mbr.extend(in);
+	    }
+	} else {
+	    out->write((char *) &mbr, sizeof(mbr));
+	    std::cerr << " " << mbr.get_left() << " " << mbr.get_lower() 
+		      << " " << mbr.get_right() << " " << mbr.get_upper() << " ";
+	    return SCAN_DONE;
+	}
+	return SCAN_CONTINUE; 
+    }
 };
 
 int main(int argc, char **argv) {
 
-  if (argc < 2) {
-    cerr << "Usage: " << argv[0] << " <input_file>" << endl;
-    exit(-1);
-  }
+    if (argc < 2) {
+	std::cerr << "Usage: " << argv[0] << " <input_file>" << std::endl;
+	exit(-1);
+    }
 
-  cerr << "Working...";
-  stream<rectangle<double, bid_t> > input_stream(argv[1]);
-  input_stream.persist(PERSIST_PERSISTENT);
+    std::cerr << "Working...";
+    stream<rectangle<double, bid_t> > input_stream(argv[1]);
+    input_stream.persist(tpie::PERSIST_PERSISTENT);
 
-  cerr << "Stream length : " << input_stream.stream_len() << endl;
+    std::cerr << "Stream length : "
+	      << input_stream.stream_len() 
+	      << std::endl;
 
-  char *output_filename = new char[strlen(argv[1])+5];
-  strcpy(output_filename, argv[1]);
-  strcat(output_filename, ".mbr");
-  MBRScanner<double, bid_t> scan(output_filename);
-  ami::scan(&input_stream, &scan);
-  cerr << "done." << endl;
+    std::string output_filename(argv[1]);
 
-	return 0;
+    MBRScanner<double, bid_t> scanObject(output_filename+".mbr");
+    scan(&input_stream, &scanObject);
+
+    std::cerr << "done." << std::endl;
+
+    return 0;
 }
