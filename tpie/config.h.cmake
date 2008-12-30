@@ -34,8 +34,11 @@
 // warnings about security issues with fopen/strcpy and the like
 // this disables these warnings.
 #ifdef WIN32
-	#define _CRT_SECURE_NO_DEPRECATE 1
-	#define _CRT_SECURE_NO_WARNINGS 1 
+	//disable windows crt security and deprecation warnings
+	#define _CRT_SECURE_NO_DEPRECATE 
+	#define _CRT_NONSTDC_NO_DEPRECATE
+	#define _CRT_SECURE_NO_WARNINGS
+	#pragma warning(disable : 4996) 
 #endif
 
 #endif // _CONFIG_H 
