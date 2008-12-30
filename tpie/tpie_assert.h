@@ -24,7 +24,7 @@ namespace tpie {
 #endif 
 
 #define tp_assert(condition,message) {		\
-	if (!(condition && 1)) {			\
+	if (!((condition) && 1)) {			\
 	    TP_LOG_FATAL_ID("Assertion failed:");	\
 	    TP_LOG_FATAL_ID(message);			  \
 	    std::cerr << "Assertion failed: " << message << "\n";	\
