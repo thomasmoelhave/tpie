@@ -103,24 +103,25 @@ void pq_merge_heap<T, Comparator>::fixDown() {
 	//cout << "Loop Start, heap size:" << m_size<< endl;
 	while(!done) {
 		//cout << "pq_merge_heap: loop top" << child1 << " " << child2 << " " << m_size << endl;
-		if(child1 == m_size-1) {
+		assert(m_size>0);
+		if(child1 == TPIE_OS_OFFSET(m_size-1)) {
 			//cout << "pq_merge_heap: fixdown 0" << endl;
 			if(comp_(heap[child1],heap[parent])) {
 				//cout << "pq_merge_heap: swap, fixdown 0 " << heap[child1] << " " << heap[parent] << endl;
-				assert(child1 < maxsize);
-				assert(parent < maxsize);
+				assert(child1 < TPIE_OS_OFFSET(maxsize));
+				assert(parent < TPIE_OS_OFFSET(maxsize));
 				std::swap(heap[child1],heap[parent]);
 				std::swap(runs[child1],runs[parent]);
 			}
 			done = true;
 			continue;
 		} 
-		if(child1 > m_size-1) {
+		if(child1 > TPIE_OS_OFFSET(m_size-1)) {
 			//cout << "pq_merge_heap done 1" << endl;
 			done = true;
 			continue;
 		}
-		if(child2 > m_size-1) {
+		if(child2 > TPIE_OS_OFFSET(m_size-1)) {
 			//cout << "pq_merge_heap done 2" << endl;
 			done = true;
 			continue;
@@ -128,15 +129,15 @@ void pq_merge_heap<T, Comparator>::fixDown() {
 		//cout << "pq_merge_heap: loop step " << child1 << " " << child2 << " " << parent << " " << m_size << endl; 
 		if(comp_(heap[child1],heap[child2]) && comp_(heap[child1],heap[parent])) {
 			//cout << "pq_merge_heap: fixdown 1: " << heap[child1] << "(" << child1 << ") " << heap[parent] << "("<<parent << ")" << endl;
-			assert(child1 < maxsize);
-			assert(parent < maxsize);
+			assert(child1 < TPIE_OS_OFFSET(maxsize));
+			assert(parent < TPIE_OS_OFFSET(maxsize));
 			std::swap(heap[child1],heap[parent]);
 			std::swap(runs[child1],runs[parent]);
 			parent = child1;
 		} else if(comp_(heap[child2],heap[parent])) {
 			//cout << "pq_merge_heap: fixdown 2: " << heap[child2] << "(" << child2 << ") " << heap[parent] << "("<<parent << ")" << endl;
-			assert(child2 < maxsize);
-			assert(parent < maxsize);
+			assert(child2 < TPIE_OS_OFFSET(maxsize));
+			assert(parent < TPIE_OS_OFFSET(maxsize));
 			std::swap(heap[child2],heap[parent]);
 			std::swap(runs[child2],runs[parent]);
 			parent = child2;

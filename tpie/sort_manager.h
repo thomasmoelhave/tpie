@@ -260,7 +260,7 @@ namespace tpie {
 	    
 	    inStream->seek (0);
 	    
-	    if (nInputItems < m_internalSorter->MaxItemCount(mmBytesAvail)){
+	    if (nInputItems < TPIE_OS_OFFSET(m_internalSorter->MaxItemCount(mmBytesAvail))){
 		if (m_indicator) {
 		    m_indicator->init("Sorting items internally");
 		}
@@ -603,9 +603,8 @@ namespace tpie {
 
 	    // nItemsPerRun except for last run.
 	    nItemsInThisRun=nItemsPerRun;
-	    arity_t ii,jj;  //Some index vars
-
-	    // Rewind the input stream, we are about to begin
+	    
+        // Rewind the input stream, we are about to begin
 	    inStream->seek(0);
 
 	    // ********************************************************************
@@ -620,7 +619,7 @@ namespace tpie {
 		m_indicator->refresh();
 	    }
 
-	    for( ii=0; ii<mrgArity; ii++){   //For each output stream
+	    for(arity_t ii=0; ii<mrgArity; ii++){   //For each output stream
 		// Make the output file name
 		make_name(working_disk, suffixName[0], ii, newName);
 		// Dynamically allocate the stream
@@ -631,7 +630,7 @@ namespace tpie {
 		// the one short run is always in the LAST output stream
 		runsInStream = minRunsPerStream + ((ii >= mrgArity-nXtraRuns)?1:0);
 
-		for( jj=0; jj < runsInStream; jj++ ) { // For each run in this stream
+		for(TPIE_OS_OFFSET  jj=0; jj < runsInStream; jj++ ) { // For each run in this stream
 		    // See if this is the last run
 		    if( (ii==mrgArity-1) && (jj==runsInStream-1)) {
 			nItemsInThisRun=nItemsInLastRun;
@@ -729,7 +728,7 @@ namespace tpie {
 	    //phase. nXtraRuns is initially the number of outputs streams that
 	    //contain one extra run. Runs and nXtraRuns are updated as we 
 	    //complete a merge level. 
-	    while (nRuns > mrgArity){
+	    while (nRuns > TPIE_OS_OFFSET(mrgArity)) {
 		if (m_indicator) {
 			std::string description;
 			std::stringstream buf;
@@ -844,7 +843,7 @@ namespace tpie {
 	    } // while (nRuns > mrgArity)
 
 	    tp_assert( nRuns > 1, "Not enough runs to merge to final output");
-	    tp_assert( nRuns <= mrgArity, "Too many runs to merge to final output");
+	    tp_assert( nRuns <= TPIE_OS_OFFSET(mrgArity), "Too many runs to merge to final output");
 
 	    // We are at the last merge phase, write to specified output stream
 	    // Open up the nRuns final merge streams to merge
@@ -888,7 +887,8 @@ namespace tpie {
 
 	    // We are done, except for cleanup. Is anyone still reading this?
 	    // Delete temp input merge streams
-	    for(ii = 0; ii < nRuns; ii++){
+	    // N.B. nRuns is small, so it is safe to downcast.
+	    for(ii = 0; ii < arity_t(nRuns); ii++){
 		mergeInputStreams[ii]->persist(PERSIST_DELETE);
 		delete mergeInputStreams[ii];
 	    }

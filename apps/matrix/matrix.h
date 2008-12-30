@@ -133,7 +133,7 @@ namespace tpie {
 		if (sz_avail > sz_op1 + sz_op2 + sz_res + 3 * single_stream_usage +
 		    3 * sizeof(matrix<T>)) {
 		    
-		    TPIE_OS_SIZE_T ii,jj;
+		    TPIE_OS_SSIZE_T ii,jj;
 		    T *tmp_read;
 		    
 		    // Main memory copies of the matrices.
@@ -368,11 +368,11 @@ namespace tpie {
 		    
 		    // ii loops over block rows of op1pp.
 		    
-		    for (ii = 0; ii < rowsp1 / mm_matrix_extent; ii++ ) {
+		    for (ii = 0; ii < TPIE_OS_OFFSET(rowsp1 / mm_matrix_extent); ii++ ) {
 			
 			// jj loops over block cols of op2pp.
 			
-			for (jj = 0; jj < colsp2 / mm_matrix_extent; jj++ ) {
+			for (jj = 0; jj < TPIE_OS_OFFSET(colsp2 / mm_matrix_extent); jj++ ) {
 			    
 			    // These are for looping over rows and cols of MM
 			    // matrices.
@@ -390,7 +390,7 @@ namespace tpie {
 			    
 			    tp_assert(rowsp2 == colsp1, "Matrix extent mismatch.");
 			    
-			    for (kk = 0; kk < rowsp2 / mm_matrix_extent; kk++ ) {
+			    for (kk = 0; kk < TPIE_OS_OFFSET(rowsp2 / mm_matrix_extent); kk++ ) {
 				
 				// Read a block from op1pp.
 

@@ -880,7 +880,7 @@ int test_large_files() {
 	for (i=0; i< myLargeNumber; i++) {
 	    if ((err = s->write_item(i)) != ami::NO_ERROR) break; 
 	    mbcount++;
-	    if (mbcount > 1024 * 1024 / sizeof(TPIE_OS_OFFSET)) {
+	    if (mbcount > TPIE_OS_OFFSET(1024 * 1024 / sizeof(TPIE_OS_OFFSET))) {
 		mbcount100++;
 		mbcount = 0;
 		if (mbcount100 == 100) {

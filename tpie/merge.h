@@ -425,7 +425,7 @@ namespace tpie {
 	    sz_avail = MM_manager.consecutive_memory_available ();
 
 	    len = instream->stream_len();
-	    if ((len * sizeof(T)) <= static_cast<TPIE_OS_OFFSET>(sz_avail)) {
+	    if ((len * static_cast<TPIE_OS_OFFSET>(sizeof(T))) <= static_cast<TPIE_OS_OFFSET>(sz_avail)) {
     
 		// If the whole input can fit in main memory just call
 		// m_obj->main_mem_operate
@@ -501,7 +501,7 @@ namespace tpie {
 	    // main_mem_merge() to deal with it by loading it once and
 	    // processing it.
 	    len = instream->stream_len();
-	    if ((len * sizeof(T)) <= static_cast<TPIE_OS_OFFSET>(sz_avail)) {
+	    if ((len * static_cast<TPIE_OS_OFFSET>(sizeof(T))) <= static_cast<TPIE_OS_OFFSET>(sz_avail)) {
 		return main_mem_merge(instream, outstream, m_obj);
 	    } 
 	    //else {
@@ -664,9 +664,9 @@ namespace tpie {
 	    instream->seek(0);
 	    assert(ae == NO_ERROR);
 
-	    tp_assert(nb_orig_substr * sz_orig_substr - len < sz_orig_substr,
+	    tp_assert(static_cast<TPIE_OS_OFFSET>(nb_orig_substr * sz_orig_substr - len) < sz_orig_substr,
 		      "Total substream length too long or too many.");
-	    tp_assert(len - (nb_orig_substr - 1) * sz_orig_substr <= sz_orig_substr,
+	    tp_assert(static_cast<TPIE_OS_OFFSET>(len - (nb_orig_substr - 1)) * sz_orig_substr <= sz_orig_substr,
 		      "Total substream length too short or too few.");        
   
 	    for (ii = 0; ii++ < nb_orig_substr; ) {
@@ -735,7 +735,7 @@ namespace tpie {
 	    // The main loop.  At the outermost level we are looping over levels
 	    // of the merge tree.  Typically this will be very small, e.g. 1-3.
 	    // CAVEAT: is the cast o.k.??
-	    for( ; current_substream_len < static_cast<TPIE_OS_SIZE_T>(len);
+	    for( ; current_substream_len < len;
 		 current_substream_len *= merge_arity) {
     
 		// The number of substreams to be processed at this level.

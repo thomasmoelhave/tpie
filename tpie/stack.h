@@ -365,7 +365,7 @@ err stack<T>::pop(T **t) {
 	if (!m_itemsInMemory) {
 
 	    //  No items in memory, so try to fetch some from disk.
-	    if (m_size < m_logicalBlockSize) {
+	    if (m_size < TPIE_OS_OFFSET(m_logicalBlockSize)) {
 		// Can't do anything. This should not happen!
 		return GENERIC_ERROR;
 	    }
