@@ -21,12 +21,6 @@
 #endif
 #endif
 
-#ifdef _WIN32
-#ifndef __MINGW32__
-#pragma warning (disable : 4018) // signed/unsigned comparison mismatch
-#pragma warning (disable : 4786) // debug identifier truncated to 255 chars.
-#endif
-#endif
 // overview of this file:				//
 //////////////////////////////////////////
 // includes								//
