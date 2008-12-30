@@ -69,7 +69,7 @@ void priority_queue<T, Comparator, OPQType>::init(TPIE_OS_SIZE_T mm_avail) { // 
 
 			const TPIE_OS_OFFSET nominator = root_discriminant-fanout_overhead;
 			const TPIE_OS_OFFSET denominator = 2*sq_fanout_overhead;
-			setting_k = nominator/denominator; //Set fanout
+			setting_k = static_cast<TPIE_OS_SIZE_T>(nominator/denominator); //Set fanout
 		}
 
 		mm_avail-=setting_k*heap_m_overhead+setting_k*setting_k*sq_fanout_overhead;
@@ -182,7 +182,7 @@ void priority_queue<T, Comparator, OPQType>::push(const T& x) {
 			}
 			memcpy(&mergebuffer[j], &arr[0], sizeof(T)*opq->sorted_size());
 			std::sort(mergebuffer, mergebuffer+(group_size(0)+opq->sorted_size()), comp_);
-			memcpy(&gbuffer0[0], &mergebuffer[0], sizeof(T)*group_size(0));
+			memcpy(&gbuffer0[0], &mergebuffer[0], static_cast<size_t>(sizeof(T)*group_size(0)));
 			group_start_set(0,0);
 			memcpy(&arr[0], &mergebuffer[group_size(0)], sizeof(T)*opq->sorted_size());
 		}
@@ -859,7 +859,7 @@ void priority_queue<T, Comparator, OPQType>::remove_group_buffer(TPIE_OS_SIZE_T 
 	if(group_size(group) == 0) return;
 
 	assert(group < setting_k);
-	T* arr = new T[group_size(group)];
+	T* arr = new T[static_cast<size_t>(group_size(group))];
 	stream<T>* data = new stream<T>(group_data(group));
 	seek_offset(data, group_start(group));
 	TPIE_OS_OFFSET size = group_size(group);
@@ -901,11 +901,11 @@ void priority_queue<T, Comparator, OPQType>::remove_group_buffer(TPIE_OS_SIZE_T 
 			mergebuffer[j] = gbuffer0[i%setting_m];
 			++j;
 		}
-		memcpy(&mergebuffer[j], &arr[0], sizeof(T)*group_size(group));
+		memcpy(&mergebuffer[j], &arr[0], static_cast<size_t>(sizeof(T)*group_size(group)));
 		std::sort(mergebuffer, mergebuffer+(group_size(0)+group_size(group)), comp_);
-		memcpy(&gbuffer0[0], &mergebuffer[0], sizeof(T)*group_size(0));
+		memcpy(&gbuffer0[0], &mergebuffer[0], static_cast<size_t>(sizeof(T)*group_size(0)));
 		group_start_set(0,0);
-		memcpy(&arr[0], &mergebuffer[group_size(0)], sizeof(T)*group_size(group));
+		memcpy(&arr[0], &mergebuffer[group_size(0)], static_cast<size_t>(sizeof(T)*group_size(group)));
 	}
 
 	/*
