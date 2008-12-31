@@ -19,9 +19,6 @@ std::string tempname::default_base_name;
 std::string tempname::default_extension;
 
 
-/* like tempnam, but consults environment in an order we like; note
- * that the returned pointer is to static storage, so this function is
- * not re-entrant. */
 std::string tempname::tpie_name(const std::string& post_base, const std::string& dir, const std::string& ext) 
 {	std::string extension;
 	std::string base_name;	
@@ -38,21 +35,31 @@ std::string tempname::tpie_name(const std::string& post_base, const std::string&
 	if(base_name.empty())
 		base_name = "TPIE";
 	
-	if(getenv(AMI_SINGLE_DEVICE_ENV) != NULL) 
-		base_dir = getenv(AMI_SINGLE_DEVICE_ENV);
-	else if(getenv(TMPDIR_ENV) != NULL) 
-		base_dir = getenv(TMPDIR_ENV);
-	else if(!dir.empty())
+	if(!dir.empty())
 		base_dir = dir;
-	else if(!default_path.empty())
-		base_dir = default_path;
 	else 
-		base_dir = TMP_DIR;
+		base_dir = tempname::get_actual_path();
 
 	if(post_base.empty())
 		return base_dir + TPIE_OS_DIR_DELIMITER + base_name + "_" + tpie_mktemp() + "." + extension;
 	else 
 		return base_dir + TPIE_OS_DIR_DELIMITER + base_name + "_" + post_base + "_" + tpie_mktemp() + "." + extension;
+}
+
+std::string tempname::get_actual_path() {
+	//information about the search order is in the header
+	std::string dir;
+
+	if(!default_path.empty()) 
+		dir = default_path; //user specified path
+	else if(getenv(AMI_SINGLE_DEVICE_ENV) != NULL)  //TPIE env variable
+		dir = getenv(AMI_SINGLE_DEVICE_ENV);
+	else if(getenv(TMPDIR_ENV) != NULL)  
+		dir = getenv(TMPDIR_ENV); //OS env variable (from portability.h)
+	else  
+		dir = TMP_DIR; //OS hardcoded path (from portability.h)
+
+	return dir;
 }
 
 std::string tempname::tpie_mktemp()
@@ -94,14 +101,14 @@ void tempname::set_default_extension(const std::string& ext) {
 }
 
 
-std::string& tempname::get_default_path() {
+const std::string& tempname::get_default_path() {
 	return default_path;
 }
 
-std::string& tempname::get_default_base_name() {
+const std::string& tempname::get_default_base_name() {
 	return default_base_name;
 }
 
-std::string& tempname::get_default_extension() {
+const std::string& tempname::get_default_extension() {
 	return default_extension;
 }

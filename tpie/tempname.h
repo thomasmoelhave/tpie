@@ -29,9 +29,30 @@ namespace tpie {
 		static void set_default_base_name(const std::string& name);
 		static void set_default_extension(const std::string& ext);
 
-		static std::string& get_default_path();
-		static std::string& get_default_base_name();
-		static std::string& get_default_extension();
+		static const std::string& get_default_path();
+		static const std::string& get_default_base_name();
+		static const std::string& get_default_extension();
+
+
+		/////////////////////////////////////////////////////////
+		///
+		/// Return The actual path used for temporary files
+		///	taking environment variables into account. The path is 
+		/// the found by querying the following in order:
+		///
+		/// TPIE2
+		///    TPIE global temp dir as set using set_default_path from source:/trunk/tpie/tempname.h 
+		/// TPIE1
+		///    TPIE environment varables (currently AMI_SINGLE_DEVICE) 
+		/// OS2
+		///    OS specific environment variables (like TMPDIR/TMP) 
+		/// OS1
+		///    OS specific standard path (/tmp or /var/tmp on unices and some windows thing for windows) 
+		///
+		/// \returns a string containing the path
+		///
+		/////////////////////////////////////////////////////////
+		static std::string get_actual_path();
 	
 	private:
 		static std::string default_path;
