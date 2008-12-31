@@ -173,7 +173,7 @@ void print_msg(const char* msg, int indent = 0) {
     } else {
 	for (int i=0; i<indent; i++) fprintf(stdout, " ");
     }
-    fprintf(stdout, msg);
+    fputs(msg, stdout);
     TP_LOG_APP_DEBUG(">>-");
     TP_LOG_APP_DEBUG(msg);
     TP_LOG_APP_DEBUG("\n");
