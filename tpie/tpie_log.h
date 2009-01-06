@@ -61,17 +61,23 @@ namespace tpie {
 #define TP_LOG_ID_MSG __FILE__ << " line " << __LINE__ << ": "
 
 /** Macro to simplify \ref logging. \sa log_lecel. */
+#ifndef TP_LOG_FATAL
 #define TP_LOG_FATAL(msg)						\
     (!logstream::log_initialized || tpie_log() << setpriority(LOG_FATAL) << msg)
+#endif
 /** Macro to simplify \ref logging. \sa log_lecel. */
+#ifndef TP_LOG_WARNING
 #define TP_LOG_WARNING(msg)						\
     (!logstream::log_initialized || tpie_log() << setpriority(LOG_WARNING) << msg)
+#endif
 /** Macro to simplify \ref logging. \sa log_lecel. */
 #define TP_LOG_APP_DEBUG(msg)						\
     (!logstream::log_initialized || tpie_log() << setpriority(LOG_APP_DEBUG)  << msg)
 /** Macro to simplify \ref logging. \sa log_lecel. */
+#ifndef TP_LOG_DEBUG
 #define TP_LOG_DEBUG(msg)						\
     (!logstream::log_initialized || tpie_log() << setpriority(LOG_DEBUG)  << msg)
+#endif
 /** Macro to simplify \ref logging. \sa log_lecel. */
 #define TP_LOG_MEM_DEBUG(msg)						\
     (!logstream::log_initialized || tpie_log() << setpriority(LOG_MEM_DEBUG)  << msg)
