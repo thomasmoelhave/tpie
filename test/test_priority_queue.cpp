@@ -13,14 +13,14 @@ using namespace tpie;
 const double PI = acos(-1.0);
 
 void pq_large_instance(bool crash_test){
-  MM_manager.set_memory_limit(26*1024*1024);
+  MM_manager.set_memory_limit(50*1024*1024);
   tpie_log_init(LOG_DEBUG);
-  int cnt=0;
+  TPIE_OS_OFFSET cnt=0;
   double mem_frac = crash_test ? 1.0 : 0.1;
   ami::priority_queue<long long, std::greater<long long> > pq(mem_frac);
   std::priority_queue<long long, vector<long long>,std::less<long long> > pq2;
   double cycle = crash_test ? 20000000000.0 : 50000000.0;
-  const long long iterations=2000000000;
+  const long long iterations=5000000000;
   progress_indicator_arrow progress("Running test","Running test:",0,iterations,1);
   for(long long j=0; j<iterations; j++){
 	progress.step();
