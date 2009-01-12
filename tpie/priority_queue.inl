@@ -119,7 +119,6 @@ void priority_queue<T, Comparator, OPQType>::init(TPIE_OS_SIZE_T mm_avail) { // 
 	gbuffer0 = new T[setting_m];
 	if(gbuffer0 == NULL) throw std::bad_alloc();
 	mergebuffer = new T[setting_m*2];
-	if(mergebuffer == NULL) throw std::bad_alloc();
 
 	// clear memory
 	for(TPIE_OS_OFFSET i = 0; i<TPIE_OS_OFFSET(setting_k*setting_k); i++) {
@@ -428,6 +427,7 @@ void priority_queue<T, Comparator, OPQType>::fill_buffer() {
 	// merge to buffer
 	//cout << "current_r: " << current_r << "\n";
 	delete[] mergebuffer;
+	mergebuffer=NULL;
 
 	pq_merge_heap<T, Comparator> heap(current_r);
 	stream<T>** data = new stream<T>*[current_r];
@@ -473,8 +473,8 @@ void priority_queue<T, Comparator, OPQType>::fill_buffer() {
 		}
 	}
 	//cout << "while done" << "\n";
+	assert(mergebuffer==NULL);
 	mergebuffer = new T[setting_m*2];
-	if(mergebuffer == NULL) throw std::bad_alloc();
 
 	for(TPIE_OS_SIZE_T i = 1; i<current_r; i++) {
 		delete data[i];
@@ -508,6 +508,7 @@ void priority_queue<T, Comparator, OPQType>::fill_group_buffer(TPIE_OS_SIZE_T gr
 		//for the heap and misc structures below
 		//this array is reallocated below
 		delete[] mergebuffer;
+		mergebuffer=NULL;
 
 		//merge heap for the setting_k slots
 		pq_merge_heap<T, Comparator> heap(setting_k);
@@ -576,6 +577,7 @@ void priority_queue<T, Comparator, OPQType>::fill_group_buffer(TPIE_OS_SIZE_T gr
 	}
 
 	//restore mergebuffer
+	assert(mergebuffer==NULL);
 	mergebuffer = new T[setting_m*2];
 
 	// compact if needed
@@ -669,6 +671,7 @@ void priority_queue<T, Comparator, OPQType>::empty_group(TPIE_OS_SIZE_T group) {
 	bool ret = false;
 
 	delete[] mergebuffer;
+	mergebuffer=NULL;
 
 	stream<T>* newstream = new stream<T>(slot_data(newslot));
 	pq_merge_heap<T, Comparator> heap(setting_k);
@@ -703,11 +706,7 @@ void priority_queue<T, Comparator, OPQType>::empty_group(TPIE_OS_SIZE_T group) {
 
 	//cout << "start delete" << "\n";
 	for(TPIE_OS_SIZE_T i = 0; i<setting_k; i++) {
-		if(ret == false) {
-			delete data[i];
-		} else if(ret == true && slot_size(group*setting_k+i) >0 ) {
-			delete data[i];
-		}
+		delete data[i];
 	}
 
 	delete[] data;
@@ -715,8 +714,8 @@ void priority_queue<T, Comparator, OPQType>::empty_group(TPIE_OS_SIZE_T group) {
 
 	delete newstream;
 
+	assert(mergebuffer==NULL);
 	mergebuffer = new T[setting_m*2];
-	if(mergebuffer == NULL) throw std::bad_alloc();
 
 	if(group_size(group+1) > 0 && !ret) {
 		remove_group_buffer(group+1); // todo, this might recurse?

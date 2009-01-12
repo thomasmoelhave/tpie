@@ -13,7 +13,7 @@ using namespace tpie;
 const double PI = acos(-1.0);
 
 void pq_large_instance(bool crash_test){
-  MM_manager.set_memory_limit(256*1024*1024);
+  MM_manager.set_memory_limit(26*1024*1024);
   tpie_log_init(LOG_DEBUG);
   int cnt=0;
   double mem_frac = crash_test ? 1.0 : 0.1;
@@ -53,8 +53,10 @@ void pq_large_instance(bool crash_test){
 	pq2.pop();
     }
     assert(pq.size()==cnt);
-    if(j%5000000==0)
+    if(j%5000000==0) {
       std::cout << "\nElements in pq: " << cnt << " (" << cnt/1024/1024 << " mebielements).\n";
+      std::cout << "\nMemory available: " << MM_manager.memory_available() << " (" << MM_manager.memory_available()/1024/1024 << " mebibytes).\n";
+	}
   }
   progress.done("Done");
 }
