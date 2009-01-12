@@ -32,17 +32,20 @@ void priority_queue<T, Comparator, OPQType>::init(TPIE_OS_SIZE_T mm_avail) { // 
 		TPIE_OS_SIZE_T usage;
 		tmp.main_memory_usage(&usage, mem::STREAM_USAGE_MAXIMUM);
 
+		TPIE_OS_SIZE_T alloc_overhead = MM_manager.space_overhead();
+
 
 		//Compute overhead of the parameters
 		const TPIE_OS_SIZE_T fanout_overhead = 2*sizeof(TPIE_OS_OFFSET)// group state
-			+ (usage+sizeof(stream<T>*)) //temporary streams
+			+ (usage+sizeof(stream<T>*)+alloc_overhead) //temporary streams
 			+ (sizeof(T)+sizeof(TPIE_OS_OFFSET)); //mergeheap
 		const TPIE_OS_SIZE_T sq_fanout_overhead = 3*sizeof(TPIE_OS_OFFSET); //slot_state
 		const TPIE_OS_SIZE_T heap_m_overhead = sizeof(T) //opg
 			+ sizeof(T) //gbuffer0
+			+ sizeof(T) //extra buffer for remove_group_buffer
 			+ 2*sizeof(T); //mergebuffer
-		const TPIE_OS_SIZE_T buffer_m_overhead = sizeof(T); //buffer
-		const TPIE_OS_SIZE_T extra_overhead = 2*(usage+sizeof(stream<T>*)) //temporary streams
+		const TPIE_OS_SIZE_T buffer_m_overhead = sizeof(T) + 2*sizeof(T); //buffer
+		const TPIE_OS_SIZE_T extra_overhead = 2*(usage+sizeof(stream<T>*)+alloc_overhead) //temporary streams
 			+ 2*(sizeof(T)+sizeof(TPIE_OS_OFFSET)); //mergeheap
 		const TPIE_OS_SIZE_T additional_overhead = 16*1024; //Just leave a bit unused
 
@@ -856,6 +859,8 @@ void priority_queue<T, Comparator, OPQType>::remove_group_buffer(TPIE_OS_SIZE_T 
 	// this is the easiest thing to do
 	TPIE_OS_SIZE_T slot = free_slot(0);
 	if(group_size(group) == 0) return;
+
+	TP_LOG_DEBUG_ID("Remove group buffer " << group << " of size " << group_size(group) << " with available memory " << MM_manager.memory_available());
 
 	assert(group < setting_k);
 	T* arr = new T[static_cast<size_t>(group_size(group))];
