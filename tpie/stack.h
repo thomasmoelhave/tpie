@@ -268,7 +268,7 @@ stack<T>::stack(const std::string& path, stream_type type) :
     // Put file pointer at end of last full block
     m_amiStream->seek(m_size-toBeRead);
 
-    m_itemsInMemory = toBeRead;
+    m_itemsInMemory = static_cast<TPIE_OS_SIZE_T>(toBeRead);
 }
 
 /////////////////////////////////////////////////////////////////////////
