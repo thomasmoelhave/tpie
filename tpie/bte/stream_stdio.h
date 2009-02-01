@@ -120,9 +120,14 @@ namespace tpie {
 
 	    // Descriptor of the underlying file.
 	    FILE * m_file;
-	
-	    T read_tmp;
+
+		//This holds the temporary item used in read_item
+		//It's really just a type "T" variable but it's
+		//declared like this to avoid requiring that type
+		//T has a default constructor.
+	    char read_tmp[sizeof(T)];
 	};
+
     
 	template <class T>
 	stream_stdio<T>::stream_stdio (const std::string& dev_path,
@@ -488,13 +493,12 @@ namespace tpie {
 	    
 	    } else {
 	    
-		stdio_ret = TPIE_OS_FREAD (reinterpret_cast<char*>(&read_tmp), 
-					   sizeof (T), 1, m_file);
+		stdio_ret = TPIE_OS_FREAD (read_tmp, sizeof (T), 1, m_file);
 	    
 		if (stdio_ret == 1) {
 		
 		    m_fileOffset += sizeof(T);
-		    *elt = &read_tmp;
+		    *elt = reinterpret_cast<T*>(read_tmp);
 		
 		    retval = NO_ERROR;
 		}
