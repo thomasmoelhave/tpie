@@ -666,7 +666,7 @@ namespace tpie {
 
 	    tp_assert(static_cast<TPIE_OS_OFFSET>(nb_orig_substr * sz_orig_substr - len) < sz_orig_substr,
 		      "Total substream length too long or too many.");
-	    tp_assert(static_cast<TPIE_OS_OFFSET>(len - (nb_orig_substr - 1)) * sz_orig_substr <= sz_orig_substr,
+	    tp_assert(len - static_cast<TPIE_OS_OFFSET>(nb_orig_substr - 1) * sz_orig_substr <= sz_orig_substr,
 		      "Total substream length too short or too few.");        
   
 	    for (ii = 0; ii++ < nb_orig_substr; ) {
