@@ -136,6 +136,7 @@ public:
 	    } else  {
 		*out0 = (sfin[0] ? in0: in1);
 	    }
+		*sfout = 1; // There was input so we've produced output
 	    return ami::SCAN_CONTINUE;
 	} else {
 	    return ami::SCAN_DONE;
@@ -208,7 +209,9 @@ public:
 	    if (sfin[1]) *out2 = std::max(*out2, in1);
 	    if (sfin[2]) *out2 = std::max(*out2, in2);
 	    if (sfin[3]) *out2 = std::max(*out2, in3);
-      
+
+		sfout[0] = sfout[1] = sfout[2] = 1; // Make sure we keep writing output even if the first stream is empty    
+
 	    return ami::SCAN_CONTINUE;
 	} else
 	    return ami::SCAN_DONE;    
