@@ -54,6 +54,7 @@ namespace tpie {
 	/// on the next call to operate(). This permits out of step
 	/// scanning \anchor scanning_out_of_step, as illustrated in Section  
 	/// "Out of step scanning" in the manual.
+	/// \internal \todo Do not refer to the manual in the docs
 	/// 
 	/// If present, the outputs *out1, ... are application data
 	/// items of type U1, and sfout points to an array
