@@ -24,10 +24,6 @@ set (AMI_HEADERS
 		priority_queue.inl
 		queue.h
 		scan.h
-		#scan.h.head
-		#scan.h.tail
-		#scan_mac.cpp
-		#scan_mac.h
 		#scan_utils.h
 		sort.h
 		stack.h
