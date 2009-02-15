@@ -1,11 +1,3 @@
-// Copyright (c) 1994 Darren Erik Vengroff
-//
-// File: mm.h (plus contents from mm_imps.h, now deprecated)
-// Author: Darren Erik Vengroff <dev@cs.duke.edu>
-// Created: 5/30/94
-//
-// $Id: mm.h,v 1.4 2005-11-08 17:21:02 adanner Exp $
-//
 #ifndef _TPIE_MM_H
 #define _TPIE_MM_H
 

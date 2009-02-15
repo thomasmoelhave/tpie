@@ -1,14 +1,7 @@
-// Copyright (c) 1994 Darren Vengroff
-//
-// File: test_ami_gp.cpp
-// Author: Darren Vengroff <darrenv@eecs.umich.edu>
-// Created: 11/1/94
-//
 // Tests general permutation using AMI_general_permute() and 
 // the AMI_gen_perm_object class. The program generates an input stream
 // consisting of sequential integers and outputs a stream consisting of 
 // the same integers, in reverse order.
-//
 
 #include <tpie/portability.h>
 

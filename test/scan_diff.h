@@ -1,14 +1,6 @@
-// Copyright (c) 1994 Darren Erik Vengroff
-//
-// File: scan_diff.h
-// Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
-// Created: 10/7/94
-//
-// $Id: scan_diff.h,v 1.5 2005-11-17 17:07:41 jan Exp $
-//
 // A scanner to diff two streams of the same type of object, to verify that
 // they are the same.
-//
+
 #ifndef _SCAN_DIFF_H
 #define _SCAN_DIFF_H
 

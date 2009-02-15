@@ -1,10 +1,3 @@
-// Copyright (c) 1994 Darren Vengroff
-//
-// File: test_ami_arith.cpp
-// Author: Darren Vengroff <darrenv@eecs.umich.edu>
-// Created: 12/10/94
-//
-
 #include <tpie/portability.h>
 
 #include "app_config.h"        

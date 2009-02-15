@@ -1,14 +1,5 @@
-//
-// File:     bte/stack_ufs.h
-// Author:   Octavian Procopiuc <tavi@cs.duke.edu>
-// Created:  09/15/03
-//
 // A stack implemented using BTE_stream_ufs. It is used by
 // BTE_collection_base to implement deletions.  
-//
-// $Id: bte/stack_ufs.h,v 1.2 2005-01-14 18:47:22 tavi Exp $
-//
-
 #ifndef _TPIE_BTE_STACK_UFS_H
 #define _TPIE_BTE_STACK_UFS_H
 

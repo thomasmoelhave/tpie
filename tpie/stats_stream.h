@@ -1,11 +1,3 @@
-//
-// File:    tpie_stats_stream.h
-// Authors: Octavian Procopiuc <tavi@cs.duke.edu>
-//
-// $Id: tpie_stats_stream.h,v 1.3 2004-08-17 16:48:25 jan Exp $
-//
-// Statistics for streams.
-
 ////////////////////////////////////////////////////////////////////////////////
 /// \file tpie_stats_stream.h Declares status information tags for TPIE Streams
 /// \sa tpie_stats, stream#stats()

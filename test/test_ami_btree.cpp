@@ -1,9 +1,4 @@
-	//
-// File:    test_ami_btree.cpp
-// Author:  Octavian Procopiuc <tavi@cs.duke.edu>
-// 
 // Test file for class btree.
-//
 
 #include "app_config.h"
 #include <tpie/portability.h>

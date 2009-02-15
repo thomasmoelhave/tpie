@@ -1,12 +1,5 @@
-// Copyright (C) 2001 Octavian Procopiuc
-//
-// File:   ami_coll_single.h
-// Author: Octavian Procopiuc <tavi@cs.duke.edu>
-//
-// $Id: ami_coll_single.h,v 1.14 2004-08-12 12:35:30 jan Exp $
-//
 // AMI collection entry points implemented on top of a single BTE.
-//
+
 #ifndef _AMI_COLL_SINGLE_H
 #define _AMI_COLL_SINGLE_H
 

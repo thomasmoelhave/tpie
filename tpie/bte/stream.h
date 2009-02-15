@@ -1,10 +1,3 @@
-//
-// File: bte/stream.h (formerly bte.h)
-// Author: Darren Erik Vengroff <dev@cs.duke.edu>
-// Created: 5/9/94
-//
-// $Id: bte/stream.h,v 1.3 2003-04-17 14:59:16 jan Exp $
-//
 #ifndef _TPIE_BTE_STREAM_H
 #define _TPIE_BTE_STREAM_H
 

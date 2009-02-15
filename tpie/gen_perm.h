@@ -1,13 +1,4 @@
-// Copyright (c) 1994 Darren Vengroff
-//
-// File: ami_gen_perm.h
-// Author: Darren Vengroff <darrenv@eecs.umich.edu>
-// Created: 11/1/94
-//
-// $Id: ami_gen_perm.h,v 1.16 2005-11-17 17:11:24 jan Exp $
-//
 // General permutation.
-//
 #ifndef _TPIE_AMI_GEN_PERM_H
 #define _TPIE_AMI_GEN_PERM_H
 

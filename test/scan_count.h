@@ -1,11 +1,3 @@
-// Copyright (c) 1994 Darren Erik Vengroff
-//
-// File: scan_count.h
-// Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
-// Created: 10/6/94
-//
-// $Id: scan_count.h,v 1.4 2004-08-12 15:15:11 jan Exp $
-//
 #ifndef _SCAN_COUNT_H
 #define _SCAN_COUNT_H
 

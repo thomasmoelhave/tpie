@@ -1,10 +1,3 @@
-// Copyright (c) 1994 Darren Vengroff
-//
-// File: test_ami_stack.cpp
-// Author: Darren Vengroff <darrenv@eecs.umich.edu>
-// Created: 12/15/94
-//
-
 #include <tpie/portability.h>
 
 #include <tpie/progress_indicator_arrow.h>

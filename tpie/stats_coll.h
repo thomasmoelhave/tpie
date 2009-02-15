@@ -1,10 +1,3 @@
-// Copyright (C) 2001 Octavian Procopiuc
-//
-// File:    tpie_stats_coll.h
-// Authors: Octavian Procopiuc <tavi@cs.duke.edu>
-//
-// $Id: tpie_stats_coll.h,v 1.4 2003-04-17 20:05:10 jan Exp $
-//
 // Statistics for block collections.
 
 #ifndef _TPIE_STATS_COLL_H

@@ -1,13 +1,4 @@
-//
-// File: bte/stream_cache.h (formerly bte/cache.h)
-// Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
-// Created: 9/19/94
-//
-// $Id: bte/stream_cache.h,v 1.4 2004-08-12 12:35:31 jan Exp $
-//
 // BTE streams for main memory caches.
-//
-
 #ifndef _TPIE_BTE_STREAM_CACHE_H
 #define _TPIE_BTE_STREAM_CACHE_H
 

@@ -1,10 +1,3 @@
-// Copyright (c) 1995 Darren Erik Vengroff
-//
-// File: ami_key.cpp
-// Author: Darren Erik Vengroff <dev@cs.duke.edu>
-// Created: 3/12/95
-//
-
 #include <tpie/key.h>
 
 using namespace tpie::ami;

@@ -1,7 +1,3 @@
-//
-// File:	stdio_stack.h
-// Authors:	Rakesh Barve
-//
 // Defining a stack based on bte_stdio separately specifically
 // for use in block collection class and related apps.
 // The reason we don't want to use ami_stack is because 
@@ -10,9 +6,6 @@
 // stacks related to block collections since such a stack is only
 // a meta data structure accessed no more than once every block
 // is created or destroyed. 
-//
-// $Id: stdio_stack.h,v 1.7 2003-04-17 19:57:25 jan Exp $
-//
 
 #ifndef _TPIE_AMI_STDIO_STACK_H_
 #define _TPIE_AMI_STDIO_STACK_H_

@@ -1,12 +1,3 @@
-// Copyright (c) 2003 Octavian Procopiuc
-//
-// File: scan_universal.h
-// Author: Octavian Procopiuc <tavi@cs.duke.edu>
-// Created: 04/23/03
-//
-// $Id: scan_universal.h,v 1.5 2005-11-17 17:07:41 jan Exp $
-//
-
 #ifndef _SCAN_UNIVERSAL_H
 #define _SCAN_UNIVERSAL_H
 

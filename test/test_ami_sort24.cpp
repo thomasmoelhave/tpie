@@ -1,10 +1,3 @@
-// Copyright (c) 1995 Darren Vengroff
-//
-// File: test_ami_sort24.cpp
-// Author: Darren Vengroff <darrenv@eecs.umich.edu>
-// Created: 3/24/95
-//
-
 #include <tpie/portability.h>
 
 // Get information on the configuration to test.

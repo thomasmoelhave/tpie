@@ -1,10 +1,3 @@
-//
-// File: bte/stream_mmap.h (formerly bte/mmb.h)
-// Author: Darren Erik Vengroff <dev@cs.duke.edu>
-// Created: 5/13/94
-//
-// $Id: bte/stream_mmap.h,v 1.21 2006-01-16 23:25:11 jan Exp $
-//
 // Memory mapped streams.  This particular implementation explicitly manages
 // blocks, and only ever maps in one block at a time.
 //
@@ -13,8 +6,6 @@
 // BTE_STREAM_MMAP_BLOCK_FACTOR, which is no longer the true
 // factor. The true block factor is determined dynamically, from the
 // header.
-//
-
 #ifndef _TPIE_BTE_STREAM_MMAP_H
 #define _TPIE_BTE_STREAM_MMAP_H
 

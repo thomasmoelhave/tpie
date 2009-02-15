@@ -1,14 +1,6 @@
-// Copyright (c) 1995 Darren Vengroff
-//
-// File: ami_bit_permute.h
-// Author: Darren Vengroff <darrenv@eecs.umich.edu>
-// Created: 1/9/95
-//
-// $Id: ami_bit_permute.h,v 1.10 2005-11-17 17:11:24 jan Exp $
-//
 // For the moment this is done in terms of general permutations.
 // This will obviously change in the future.
-//
+
 #ifndef _TPIE_AMI_BIT_PERMUTE_H
 #define _TPIE_AMI_BIT_PERMUTE_H
 

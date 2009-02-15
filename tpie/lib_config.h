@@ -1,10 +1,3 @@
-//
-// File: lib_config.h
-// Author: Darren Vengroff <darrenv@eecs.umich.edu>
-// Created: 10/31/94
-//
-// $Id: lib_config.h,v 1.4 2003-04-17 21:00:01 jan Exp $
-//
 #ifndef _LIB_CONFIG_H
 #define _LIB_CONFIG_H
 

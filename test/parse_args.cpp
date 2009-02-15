@@ -1,8 +1,3 @@
-//
-// File: parse_args.cpp
-// Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
-// Created: 10/7/94
-//
 #include "parse_args.h"
 #include <cstdlib>
 #include <string.h>

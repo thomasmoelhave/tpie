@@ -1,11 +1,4 @@
-//
-// File:    bte/coll_mmap.h (formerly bte/coll_mmb.h)
-// Author:  Octavian Procopiuc <tavi@cs.duke.edu>
-//
-// $Id: bte/coll_mmap.h,v 1.12 2005-01-14 18:58:32 tavi Exp $
-//
 // BTE_collection_mmap class definition.
-//
 #ifndef _TPIE_BTE_COLL_MMAP_H
 #define _TPIE_BTE_COLL_MMAP_H
 

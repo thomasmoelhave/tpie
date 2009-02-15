@@ -1,9 +1,3 @@
-//
-// File: test_ami_merge.cpp
-// Author: Darren Erik Vengroff <dev@cs.duke.edu>
-// Created: 6/2/94
-//
-
 #include <tpie/portability.h>
 
 

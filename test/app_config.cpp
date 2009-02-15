@@ -1,13 +1,3 @@
-// Copyright (c) 1994 Darren Erik Vengroff
-//
-// File: app_config.cpp
-// Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
-// Created: 10/7/94
-//
-
-
-
-
 #include "app_config.h"
 
 #ifdef NDEBUG

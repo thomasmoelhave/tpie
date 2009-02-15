@@ -1,12 +1,4 @@
-// Copyright (c) 1994 Darren Erik Vengroff
-//
-// File: logstream.cpp
-// Author: Darren Erik Vengroff <dev@cs.duke.edu>
-// Created: 5/12/94
-//
 // The logstream class, for writing to the log.
-//
-
 #include <tpie/logstream.h>
 
 using namespace tpie;

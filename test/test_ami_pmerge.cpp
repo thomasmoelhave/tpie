@@ -1,11 +1,4 @@
-// Copyright (c) 1994 Darren Erik Vengroff
-//
-// File: test_ami_pmerge.cpp
-// Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
-// Created: 9/17/94
-//
 // A test for AMI_partition_and_merge().
-
 
 #include <tpie/portability.h>
 

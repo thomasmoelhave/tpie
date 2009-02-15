@@ -1,9 +1,3 @@
-//
-// File: tpie_tempnam.cpp
-// Author: 
-// Created: 02/02/02
-//
-
 #include <cstdio>
 #include <cstdlib>
 #include <time.h>

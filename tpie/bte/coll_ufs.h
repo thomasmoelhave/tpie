@@ -1,11 +1,4 @@
-//
-// File:    bte/coll_ufs.h
-// Author:  Octavian Procopiuc <tavi@cs.duke.edu>
-//
-// $Id: bte/coll_ufs.h,v 1.12 2005-01-14 18:58:32 tavi Exp $
-//
 // BTE_collection_ufs class definition.
-//
 #ifndef _TPIE_BTE_COLL_UFS_H
 #define _TPIE_BTE_COLL_UFS_H
 

@@ -1,11 +1,4 @@
-//
-// File: test_ami_sort.cpp
-// Author: Darren Erik Vengroff <darrenv@eecs.umich.edu> and
-//         Octavian Procopiuc <tavi@cs.duke.edu>
-// Created: 10/7/94
-//
 // A test for AMI_sort().
-//
 
 // Get definitions for working with Unix and Windows
 #include <tpie/portability.h>

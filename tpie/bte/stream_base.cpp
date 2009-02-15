@@ -1,10 +1,3 @@
-//
-// File: bte/stream_base.cpp
-// Author: Octavian Procopiuc <tavi@cs.duke.edu>
-//         (using some code by Darren Erik Vengroff)
-// Created: 01/08/02
-//
-
 #include "../lib_config.h"
 
 #include <tpie/bte/stream_base.h>

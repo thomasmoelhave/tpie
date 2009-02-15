@@ -1,8 +1,3 @@
-// File: bte/stream_ufs.h (formerly bte/ufs.h)
-// Author: Rakesh Barve <rbarve@cs.duke.edu>
-//
-// $Id: bte/stream_ufs.h,v 1.27 2006-01-16 23:25:12 jan Exp $
-//
 // BTE streams with blocks I/Oed using read()/write().  This particular
 // implementation explicitly manages blocks, and only ever maps in one
 // block at a time.  This relies on the filesystem to do lookahead. It
@@ -18,8 +13,6 @@
 // STREAM_UFS_BLOCK_FACTOR, which is no longer the true
 // factor. The true block factor is determined dynamically, from the
 // header.
-//
-
 #ifndef _TPIE_BTE_STREAM_UFS_H
 #define _TPIE_BTE_STREAM_UFS_H
 

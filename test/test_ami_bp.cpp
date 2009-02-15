@@ -1,12 +1,5 @@
-// Copyright (c) 1995 Darren Vengroff
-//
-// File: test_ami_bp.cpp
-// Author: Darren Vengroff <darrenv@eecs.umich.edu>
-// Created: 1/9/95
-//
 // Test for AMI_BMMC_permute(). See the Tutorial for an explanation of 
 // this particular example.
-//
 
 #include <portability.h>
 

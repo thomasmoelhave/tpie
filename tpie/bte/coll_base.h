@@ -1,14 +1,4 @@
-// Copyright (c) 2001 Octavian Procopiuc
-//
-// File:    bte/coll_base.h
-// Authors: Octavian Procopiuc <tavi@cs.duke.edu>
-//          (using some code by Rakesh Barve)
-//
-// $Id: bte/coll_base.h,v 1.29 2006-05-24 12:15:05 aveng Exp $
-//
 // BTE_collection_base class and various basic definitions.
-
-
 #ifndef _TPIE_BTE_COLL_BASE_H
 #define _TPIE_BTE_COLL_BASE_H
 

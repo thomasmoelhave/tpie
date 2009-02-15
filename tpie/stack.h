@@ -1,11 +1,3 @@
-// Copyright (c) 1994 Darren Vengroff
-//
-// File: ami_stack.h
-// Author: Darren Vengroff <darrenv@eecs.umich.edu>
-// Created: 12/15/94
-//
-// $Id: ami_stack.h,v 1.16 2006-05-24 12:15:05 aveng Exp $
-//
 #ifndef _TPIE_AMI_STACK_H
 #define _TPIE_AMI_STACK_H
 

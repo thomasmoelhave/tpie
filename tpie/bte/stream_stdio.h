@@ -1,10 +1,3 @@
-//
-// File: bte/stream_stdio.h (formerly bte/stdio.h)
-// Author: Darren Erik Vengroff <dev@cs.duke.edu>
-// Created: 5/11/94
-//
-// $Id: bte/stream_stdio.h,v 1.19 2006-01-17 23:39:12 jan Exp $
-//
 #ifndef _TPIE_BTE_STREAM_STDIO_H
 #define _TPIE_BTE_STREAM_STDIO_H
 

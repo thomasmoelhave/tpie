@@ -1,14 +1,4 @@
-// Copyright (c) 1994 Darren Erik Vengroff
-//
-// File: scan_count.cpp
-// Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
-// Created: 10/6/94
-//
 // A scan object to generate a stream of intergers in ascending order.
-//
-
-
-// static char scan_count_id[] = "$Id: scan_count.cpp,v 1.5 2005-11-16 17:03:49 jan Exp $"; 
 
 #include "app_config.h"
 #include "scan_count.h"

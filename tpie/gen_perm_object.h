@@ -1,10 +1,3 @@
-//
-// File: ami_gen_perm_object.h
-// Author: Darren Vengroff <darrenv@eecs.umich.edu>
-// Created: 12/15/94
-//
-// $Id: ami_gen_perm_object.h,v 1.4 2003-04-17 12:22:15 jan Exp $
-//
 #ifndef _TPIE_AMI_GEN_PERM_OBJECT_H
 #define _TPIE_AMI_GEN_PERM_OBJECT_H
 

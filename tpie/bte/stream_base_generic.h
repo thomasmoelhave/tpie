@@ -1,10 +1,3 @@
-//
-// File: bte/stream_base_generic.h (formerly bte/base_stream.h)
-// Author: Darren Erik Vengroff <dev@cs.duke.edu>
-// Created: 5/11/94
-//
-// $Id: bte/stream_base_generic.h,v 1.1 2005-11-10 12:00:00 jan Exp $
-//
 #ifndef _TPIE_BTE_STREAM_BASE_GENERIC_H
 #define _TPIE_BTE_STREAM_BASE_GENERIC_H
 

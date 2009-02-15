@@ -1,14 +1,7 @@
-//
-// File: sort_manager.h
-//
-// $Id: sort_manager.h,v 1.7 2006-05-20 22:19:53 adanner Exp $
-//
 // This file contains the class sort_manager that actually performs sorting
-//      given an internal sort implementation and merge heap implementation
-
+// given an internal sort implementation and merge heap implementation
 // The merge heap classes can be found in the file mergeheap.h, 
 // and the internal sort classes can be found in the file  internal_sort.h
-
 #ifndef _TPIE_AMI_SORT_MANAGER_H
 #define _TPIE_AMI_SORT_MANAGER_H
 

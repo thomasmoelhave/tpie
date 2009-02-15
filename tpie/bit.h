@@ -1,11 +1,3 @@
-// Copyright (c) 1994 Darren Vengroff
-//
-// File: bit.h
-// Author: Darren Vengroff <darrenv@eecs.umich.edu>
-// Created: 11/4/94
-//
-// $Id: bit.h,v 1.5 2003-09-12 01:46:38 jan Exp $
-//
 #ifndef _TPIE_BIT_H
 #define _TPIE_BIT_H
 

@@ -1,12 +1,3 @@
-//
-// File: app_config.h
-// Authors: Darren Erik Vengroff
-//          Octavian Procopiuc <tavi@cs.duke.edu>
-//
-// Created: 10/6/94
-//
-// $Id: app_config.h,v 1.36 2004-08-17 16:49:16 jan Exp $
-//
 #ifndef _APP_CONFIG_H
 #define _APP_CONFIG_H
 

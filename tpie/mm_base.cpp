@@ -1,10 +1,3 @@
-// Copyright (c) 1994 Darren Erik Vengroff
-//
-// File: mm_base.cpp
-// Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
-// Created: 9/2/94
-//
-
 #include <tpie/lib_config.h>
 #include <tpie/mm_base.h>
 #include <tpie/tpie_log.h>

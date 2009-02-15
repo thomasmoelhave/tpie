@@ -1,14 +1,3 @@
-//
-// File: ami_stream_compatibility.h
-// Purpose: To ensure backwards compatibility to ami_stream_*.
-
-//
-// Taken from: ami_stream.h 
-// Author: Darren Erik Vengroff <dev@cs.duke.edu>
-//
-// $Id: ami_stream_compatibility.h,v 1.1 2005-11-10 11:59:20 jan Exp $
-//
-
 #ifndef _AMI_STREAM_COMPATIBILITY_H
 #define _AMI_STREAM_COMPATIBILITY_H
 

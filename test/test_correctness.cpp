@@ -1,12 +1,4 @@
-// Copyright (C) 2003 Octavian Procopiuc
-//
-// File:    test_correctness.cpp
-// Author:  Octavian Procopiuc <tavi@cs.duke.edu>
-//
 // An extensive test suite for TPIE functionality.
-//
-// $Id: test_correctness.cpp,v 1.11 2006-01-17 23:31:26 jan Exp $
-//
 
 #include <tpie/portability.h>
 

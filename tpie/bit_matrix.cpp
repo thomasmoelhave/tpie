@@ -1,13 +1,3 @@
-// Copyright (c) 1995 Darren Vengroff
-//
-// File: bit_matrix.cpp
-// Author: Darren Vengroff <darrenv@eecs.umich.edu>
-// Created: 1/9/95
-//
-
-#include <versions.h>
-VERSION(bit_matrix_cpp,"$Id: bit_matrix.cpp,v 1.15 2005-01-14 18:42:24 tavi Exp $");
-
 #include <bit_matrix.h>
 
 using namespace tpie;

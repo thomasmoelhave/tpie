@@ -1,12 +1,3 @@
-// Copyright (c) 1995 Darren Erik Vengroff
-//
-// File: ami_kb_sort.h
-// Author: Darren Erik Vengroff <dev@cs.duke.edu>
-// Created: 3/12/95
-//
-// $Id: ami_kb_sort.h,v 1.14 2005-11-18 12:29:00 jan Exp $
-//
-
 // This header file can be included in one of two ways, either with a
 // KB_KEY macro defined, in which case it is assumed to be the name of
 // a function (typically inline) for extracting a key from an object
@@ -14,10 +5,8 @@
 // kb_key() will be used by default.  This file can be included
 // multiple times in the former case, but only once in the latter.
 
-
 // If we have not already seen this file with KB_KEY undefined or
 // KB_KEY is defined, we will process the file.
-
 #if !(defined(_AMI_KB_SORT_H)) || defined(KB_KEY)
 
 #include <iostream>

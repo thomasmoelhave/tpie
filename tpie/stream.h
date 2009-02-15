@@ -1,15 +1,6 @@
-//
-// File: stream.h (formerly part of ami.h and ami_imps.h)
-// Author: Darren Erik Vengroff <dev@cs.duke.edu>
-//
-// $Id: ami_stream.h,v 1.10 2005-11-17 17:11:25 jan Exp $
-//
-
 ///////////////////////////////////////////////////////////////////////////
 /// \file tpie/stream.h Declares TPIE streams.
 ///////////////////////////////////////////////////////////////////////////
-
-
 #ifndef _TPIE_AMI_STREAM_H
 #define _TPIE_AMI_STREAM_H
 

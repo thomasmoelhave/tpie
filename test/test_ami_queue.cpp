@@ -1,8 +1,3 @@
-//
-// File: test_ami_queue.cpp
-// Created: May 10th 2006
-//
-
 #include <tpie/portability.h>
 
 

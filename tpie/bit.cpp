@@ -1,13 +1,3 @@
-// Copyright (c) 1994 Darren Vengroff
-//
-// File: bit.cpp
-// Author: Darren Vengroff <darrenv@eecs.umich.edu>
-// Created: 11/4/94
-//
-
-#include <versions.h>
-VERSION(bit_cpp,"$Id: bit.cpp,v 1.6 2005-11-17 17:04:22 jan Exp $");
-
 #include <bit.h>
 
 using namespace tpie;

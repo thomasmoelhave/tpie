@@ -1,12 +1,4 @@
-// Copyright (C) 2001 Octavian Procopiuc
-//
-// File:   ami_coll_base.h
-// Author: Octavian Procopiuc <tavi@cs.duke.edu>
-//
-// $Id: ami_coll_base.h,v 1.4 2004-08-17 16:47:45 jan Exp $
-//
 // Basic definitions for all AMI_COLLECTION implementations.
-//
 #ifndef _TPIE_AMI_COLL_BASE_H
 #define _TPIE_AMI_COLL_BASE_H
 

@@ -1,11 +1,4 @@
-// Copyright (c) 1994 Darren Erik Vengroff
-//
-// File: scan_random.cpp
-// Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
-// Created: 10/6/94
-//
 // A scan management object to write a stream of random integers.
-//
 
 // Get information on the configuration to test.
 #include "app_config.h"

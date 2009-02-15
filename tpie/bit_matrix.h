@@ -1,11 +1,3 @@
-// Copyright (c) 1994 Darren Vengroff
-//
-// File: bit_matrix.h
-// Author: Darren Vengroff <darrenv@eecs.umich.edu>
-// Created: 11/4/94
-//
-// $Id: bit_matrix.h,v 1.14 2005-01-14 18:35:00 tavi Exp $
-//
 #ifndef _TPIE_BIT_MATRIX_H
 #define _TPIE_BIT_MATRIX_H
 

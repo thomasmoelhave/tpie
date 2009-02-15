@@ -1,11 +1,3 @@
-// Copyright (c) 1994 Darren Erik Vengroff
-//
-// File: mm_manager.h
-// Author: Darren Erik Vengroff <dev@cs.duke.edu>
-// Created: 5/30/94
-//
-// $Id: mm_manager.h,v 1.12 2005-11-15 15:38:10 jan Exp $
-//
 #ifndef _MM_MANAGER_H
 #define _MM_MANAGER_H
 

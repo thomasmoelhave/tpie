@@ -1,13 +1,4 @@
-// Copyright (c) 1995 Darren Erik Vengroff
-//
-// File: persist.h
-// Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
-// Created: 4/7/95
-//
-// $Id: persist.h,v 1.3 2003-09-13 17:42:27 jan Exp $
-//
 // Persistence flags for TPIE streams.
-//
 #ifndef _TPIE_PERSIST_H
 #define _TPIE_PERSIST_H
 

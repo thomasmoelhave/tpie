@@ -1,11 +1,3 @@
-// Copyright (c) 1994 Darren Vengroff
-//
-// File: ami_stream_arith.h
-// Author: Darren Vengroff <darrenv@eecs.umich.edu>
-// Created: 12/10/94
-//
-// $Id: ami_stream_arith.h,v 1.6 2003-04-20 23:56:38 tavi Exp $
-//
 #ifndef _TPIE_AMI_STREAM_ARITH_H
 #define _TPIE_AMI_STREAM_ARITH_H
 

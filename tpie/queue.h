@@ -1,11 +1,3 @@
-// Copyright (c) 2005 Andrew Danner
-//
-// File: ami_queue.h
-// Author: Andrew Danner <adanner@cs.duke.edu>
-// Created: 2/22/05
-//
-// $Id: ami_queue.h,v 1.4 2006-05-24 12:15:05 aveng Exp $
-//
 #ifndef _TPIE_AMI_QUEUE_H
 #define _TPIE_AMI_QUEUE_H
 

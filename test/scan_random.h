@@ -1,11 +1,3 @@
-// Copyright (c) 1994 Darren Erik Vengroff
-//
-// File: scan_random.h
-// Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
-// Created: 10/6/94
-//
-// $Id: scan_random.h,v 1.10 2005-11-17 17:47:57 jan Exp $
-//
 #ifndef _SCAN_RANDOM_H
 #define _SCAN_RANDOM_H
 

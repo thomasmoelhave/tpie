@@ -1,10 +1,3 @@
-//
-// File: bte/stream_base.h (formerly bte/base_stream.h)
-// Author: Darren Erik Vengroff <dev@cs.duke.edu>
-// Created: 5/11/94
-//
-// $Id: bte/stream_base.h,v 1.16 2006-05-03 09:01:13 aveng Exp $
-//
 #ifndef _TPIE_BTE_STREAM_BASE_H
 #define _TPIE_BTE_STREAM_BASE_H
 

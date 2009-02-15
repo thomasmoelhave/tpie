@@ -1,10 +1,3 @@
-// Copyright (c) 1994 Darren Erik Vengroff
-//
-// File: mm_manager.cpp
-// Author: Darren Erik Vengroff <dev@cs.duke.edu>
-// Created: 5/31/94
-//
-
 // A simple registration based memory manager.
 
 //#include <cassert>

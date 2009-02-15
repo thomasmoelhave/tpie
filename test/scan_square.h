@@ -1,13 +1,5 @@
-// Copyright (c) 1994 Darren Erik Vengroff
-//
-// File: scan_square.h
-// Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
-// Created: 10/6/94
-//
-// $Id: scan_square.h,v 1.3 2005-11-17 17:07:41 jan Exp $
-//
 // A scan object to square numeric types.
-//
+
 #ifndef _SCAN_SQUARE_H
 #define _SCAN_SQUARE_H
 

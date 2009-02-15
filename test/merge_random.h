@@ -1,11 +1,3 @@
-// Copyright (c) 1994 Darren Erik Vengroff
-//
-// File: merge_random.h
-// Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
-// Created: 10/5/94
-//
-// $Id: merge_random.h,v 1.15 2005-12-19 03:11:18 adanner Exp $
-//
 // A merge managment object that reorders the input stream in a random
 // way.
 

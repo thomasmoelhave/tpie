@@ -1,13 +1,5 @@
-// Copyright (c) 1994 Darren Erik Vengroff
-//
-// File: merge_interleave.h
-// Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
-// Created: 10/6/94
-//
-// $Id: merge_interleave.h,v 1.5 2004-02-05 17:42:07 jan Exp $
-//
 // A merge object to interleave two streams.
-//
+
 #ifndef _MERGE_INTERLEAVE_H
 #define _MERGE_INTERLEAVE_H
 

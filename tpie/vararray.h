@@ -1,14 +1,4 @@
-// Copyright (c) 2002 Jan Vahrenhold
-//
-// File: vararray.h
-// Author: Jan Vahrenhold <jan@math.uni-muenster.de>
-// Created: 2002/12/02
-//
-// Description: Templates classes for one-, two-, and 
-//              three-dimensional arrays. 
-//
-// $Id: vararray.h,v 1.4 2005-11-16 16:55:04 jan Exp $
-//
+// Templates classes for one-, two-, and three-dimensional arrays. 
 #ifndef _VARARRAY_H
 #define _VARARRAY_H
 

@@ -1,6 +1,3 @@
-#include <versions.h>
-VERSION(sample_pgm_cpp,"$Id: sample_pgm.cpp,v 1.3 2002-06-26 23:38:11 tavi Exp $");	
-
 #include <iostream.h>
 #include <stdlib.h>
 #include <sys/time.h>

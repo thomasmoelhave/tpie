@@ -1,10 +1,3 @@
-//
-// File: parse_args.h
-// Author: Darren Erik Vengroff <darrenv@eecs.umich.edu>
-// Created: 10/7/94
-//
-// $Id: parse_args.h,v 1.5 2005-02-15 00:20:03 tavi Exp $
-//
 #ifndef _PARSE_ARGS_H
 #define _PARSE_ARGS_H
 

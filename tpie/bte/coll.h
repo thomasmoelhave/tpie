@@ -1,12 +1,4 @@
-//
-// File:    bte/coll.h
-// Authors: Octavian Procopiuc <tavi@cs.duke.edu>
-//
-// $Id: bte/coll.h,v 1.4 2003-04-29 05:29:42 tavi Exp $
-//
 // Front end for the BTE collection classes.
-//
-
 #ifndef _TPIE_BTE_COLL_H
 #define _TPIE_BTE_COLL_H
 

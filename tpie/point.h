@@ -1,13 +1,4 @@
-// Copyright (C) 2002 Octavian Procopiuc
-//
-// File:    ami_point.h
-// Author:  Octavian Procopiuc <tavi@cs.duke.edu>
-//
 // The AMI_point and AMI_record classes.
-//
-// $Id: ami_point.h,v 1.9 2005-01-21 16:55:29 tavi Exp $
-//
-
 #ifndef AMI_POINT_H_
 #define AMI_POINT_H_
 

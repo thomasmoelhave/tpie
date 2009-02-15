@@ -1,10 +1,3 @@
-// Copyright (c) 1995 Darren Vengroff
-//
-// File: cpu_timer.cpp
-// Author: Darren Vengroff <darrenv@eecs.umich.edu>
-// Created: 1/11/95
-//
-
 #include <tpie/cpu_timer.h>
 
 using namespace tpie;
