@@ -1,3 +1,20 @@
+// Copyright 2008, The TPIE development team
+// 
+// This file is part of TPIE.
+// 
+// TPIE is free software: you can redistribute it and/or modify it under
+// the terms of the GNU Lesser General Public License as published by the
+// Free Software Foundation, either version 3 of the License, or (at your
+// option) any later version.
+// 
+// TPIE is distributed in the hope that it will be useful, but WITHOUT ANY
+// WARRANTY; without even the implied warranty of MERCHANTABILITY or
+// FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
+// License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public License
+// along with TPIE.  If not, see <http://www.gnu.org/licenses/>
+
 // This program writes out an AMI_STREAM of random integers of
 // user-specified length, and then, based on 7 partitioning elements
 // chosen from that stream, partitions that stream into 8 buckets. Each
