@@ -1,4 +1,3 @@
-//
 // File: bte/stream_ufs.h (formerly bte/ufs.h)
 // Author: Rakesh Barve <rbarve@cs.duke.edu>
 //
@@ -26,6 +25,9 @@
 
 // Get definitions for working with Unix and Windows
 #include <tpie/portability.h>
+
+// Get error definitions
+#include <tpie/bte/err.h>
 
 // For header's type field (85 == 'U').
 #define STREAM_IMPLEMENTATION_UFS 85
@@ -1587,6 +1589,10 @@ namespace tpie {
 		    TP_LOG_FATAL_ID ("write() failed to unmap current block.");
 		    TP_LOG_FATAL_ID (static_cast<TPIE_OS_OFFSET>(m_header->m_blockSize));
 		    TP_LOG_FATAL_ID (strerror(m_osErrno));
+
+			#ifdef TPIE_USE_EXCEPTIONS
+			throw out_of_space_error("Out of space writing to stream: " + m_path);
+			#endif 
 		
 		    return OS_ERROR;
 		}

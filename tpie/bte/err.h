@@ -14,9 +14,23 @@
 // Get definitions for working with Unix and Windows
 #include <tpie/portability.h>
 
+#ifdef TPIE_USE_EXCEPTIONS
+#include <stdexcept>
+#endif
+
 namespace tpie {
 
     namespace bte {
+
+	#ifdef TPIE_USE_EXCEPTIONS
+	class out_of_space_error : public std::runtime_error {
+		public:
+			out_of_space_error(const std::string& what) 
+			: std::runtime_error(what) 
+			{ ; }
+	};
+	#endif 
+		
 	
 //
 // BTE error codes.
