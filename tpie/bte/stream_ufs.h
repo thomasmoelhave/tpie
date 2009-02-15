@@ -818,6 +818,14 @@ namespace tpie {
 			TP_LOG_FATAL_ID ("write() failed during stream destruction for "
 					 << m_path);
 			TP_LOG_FATAL_ID (strerror (m_osErrno));
+
+			#ifdef TPIE_USE_EXCEPTIONS
+			if (m_osErrno == ENOSPC) {
+				throw out_of_space_error
+					("Out of space writing to stream: " + m_path);
+			}
+			#endif 
+			
 			// [tavi 01/07/02] Commented this out. Why panic?
 			//assert (0);
 			// TODO: Should we really return? If we do, we have memory leaks.
@@ -1263,6 +1271,14 @@ namespace tpie {
 			TP_LOG_FATAL_ID ("Failed to write() in stream " << m_path);
 			TP_LOG_FATAL_ID (strerror (m_osErrno));
 		    
+			#ifdef TPIE_USE_EXCEPTIONS
+			if (m_osErrno == ENOSPC) {
+				throw out_of_space_error
+					("Out of space writing to stream: " + m_path);
+			}
+			#endif 
+
+
 			return NULL;
 		    }
 	    
@@ -1591,7 +1607,10 @@ namespace tpie {
 		    TP_LOG_FATAL_ID (strerror(m_osErrno));
 
 			#ifdef TPIE_USE_EXCEPTIONS
-			throw out_of_space_error("Out of space writing to stream: " + m_path);
+			if (m_osErrno == ENOSPC) {
+				throw out_of_space_error
+					("Out of space writing to stream: " + m_path);
+			}
 			#endif 
 		
 		    return OS_ERROR;
