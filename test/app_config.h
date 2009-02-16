@@ -57,8 +57,8 @@ extern int random_seed;
 // <><><><><><><><><><><><><><><><><><><><><><> //
 
 // Define only one (default is BTE_STREAM_IMP_UFS)
-//#define BTE_STREAM_IMP_UFS
-#define BTE_STREAM_IMP_MMAP
+#define BTE_STREAM_IMP_UFS
+//#define BTE_STREAM_IMP_MMAP
 //#define BTE_STREAM_IMP_STDIO
 //#define BTE_STREAM_IMP_USER_DEFINED
 
