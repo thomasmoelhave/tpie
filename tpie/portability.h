@@ -105,63 +105,18 @@
 
 #ifdef _WIN32 
 #include <io.h>
-#else
-#define DO_NOTHING  
-#endif 
-
-
-#ifdef _WIN32
-#define DO_NOTHING  
-#else
-#include <unistd.h>					
-#endif	
-
-#ifdef _WIN32
-#define DO_NOTHING
-#else
-#include <sys/time.h>				  
-#endif									
-
-
-#ifdef _WIN32					
 #include <time.h>				
-#else
-#include <sys/times.h>				
-#endif
-
-
-#ifdef _WIN32
-#define DO_NOTHING
-#else
-#include <sys/resource.h>	
-#endif
-
-#include <tpie/bte/err.h>
-
-//		Get functions for mapping			//
-#ifdef _WIN32
 #include <windows.h>
 #else
-//extern "C" {
+#include <sys/times.h>				
+#define DO_NOTHING  
+#include <unistd.h>					
+#include <sys/time.h>				  
+#include <sys/resource.h>	
 #include <sys/mman.h>
-//}
-#if !HAVE_PROTOTYPE_MMAP
-//extern "C" mmap(caddr_t addr, size_t len, int prot, int flags,
-//		int filedes, off_t off);
-#endif	
+#endif 
 
-#if !HAVE_PROTOTYPE_MUNMAP
-//extern "C" int munmap(caddr_t addr, int len);
-//extern "C" int madvise(caddr_t addr, int len, int advice);
-#endif
-
-#if !HAVE_PROTOTYPE_FTRUNCATE
-//extern "C" int ftruncate(int fd, off_t length);
-#endif
-#endif
-
-
-
+#include <tpie/bte/err.h>
 
 
 //////////////////////////////////////////////
