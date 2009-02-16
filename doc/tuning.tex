@@ -150,15 +150,17 @@ section):
   \lstinline|BTE_stream_ufs|) to optimize for sequential read speed by
   reading blocks into main memory before the data they contain is
   actually needed.  \index{read ahead}
-  
-\item\lstinline|USE_LIBAIO:| If \lstinline|BTE_STREAM_MMAP_READ_AHEAD|
-  is defined, defining \lstinline|USE_LIBAIO| results in read ahead
-  being performed using the asynchronous I/O library
-  \lstinline|libaio|. If the macro \lstinline|USE_LIBAIO| is not
-  defined the read ahead is done using \lstinline|mmap| and double
-  buffering in the case of \lstinline|BTE_STREAM_IMP_MMAP| and not
-  done at all in the case of \lstinline|BTE_STREAM_IMP_UFS| (refer to
-  Section~\ref{sec:ref-bte}).  \index{libaio library@{\tt libaio}}
+ 
+
+% AIO is no longer supported
+%\item\lstinline|USE_LIBAIO:| If \lstinline|BTE_STREAM_MMAP_READ_AHEAD|
+%  is defined, defining \lstinline|USE_LIBAIO| results in read ahead
+%  being performed using the asynchronous I/O library
+%  \lstinline|libaio|. If the macro \lstinline|USE_LIBAIO| is not
+%  defined the read ahead is done using \lstinline|mmap| and double
+%  buffering in the case of \lstinline|BTE_STREAM_IMP_MMAP| and not
+%  done at all in the case of \lstinline|BTE_STREAM_IMP_UFS| (refer to
+%  Section~\ref{sec:ref-bte}).  \index{libaio library@{\tt libaio}}
   %%  \index{USE\_LIBAIO }
 \end{description}
 

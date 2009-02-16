@@ -25,11 +25,6 @@
 // Completely different from the old bte/ufs.h since this does
 // blocking like bte/mmb, only it uses read()/write() to do so.
 
-// TODO: Get rid of or fix the LIBAIO stuff. As it is now it has no
-// chance of working, since it uses the static
-// STREAM_UFS_BLOCK_FACTOR, which is no longer the true
-// factor. The true block factor is determined dynamically, from the
-// header.
 #ifndef _TPIE_BTE_STREAM_UFS_H
 #define _TPIE_BTE_STREAM_UFS_H
 
@@ -45,12 +40,8 @@
 //the code for double buffering is not here..
 #define UFS_DOUBLE_BUFFER 0
 
-// Either double buffer explicitly using aio or aio can be used Darren
-// style or more directly. Using it directly will probably be better,
-// but right now that is not supported. (Solaris and Digital/FreeBSD
-// use different aio interfaces.
 #if STREAM_UFS_READ_AHEAD	
-#  if !USE_LIBAIO && !UFS_DOUBLE_BUFFER
+#  if !UFS_DOUBLE_BUFFER
 #    error STREAM_UFS_READ_AHEAD requested, but no double buff mechanism in config.
 #  endif
 #  define STREAM_UFS_MM_BUFFERS 2
@@ -60,20 +51,6 @@
 
 #if UFS_DOUBLE_BUFFER
 #  error At present explicit DOUBLE BUFFER not supported.
-#endif
-
-// The double buffering mechanism will use lib_aio on Solaris and the
-// asynch.h interface on Digital Unix and FreeBSD.  Gut feeling is
-// that if file access is maintained sequential performance with both
-// UFS_DOUBLE_BUFFER and USE_LIBAIO set off is best.
-
-#if USE_LIBAIO
-#  if !TPIE_HAVE_LIBAIO
-#    error USE_LIBAIO requested, but aio library not in configuration.
-#  endif
-#  if UFS_DOUBLE_BUFFER
-#    error Darren-style USE_LIBAIO requested, but so is DOUBLE BUFFER
-#  endif
 #endif
 
 // This code makes assertions and logs errors.
@@ -242,15 +219,6 @@ namespace tpie {
 	    int            have_next_block;		// is next block mapped?
 	
 #endif	/* UFS_DOUBLE_BUFFER */
-	
-#if USE_LIBAIO
-	    // A buffer to read the first word of each OS block in the next logical
-	    // block for read ahead.
-	    int read_ahead_buffer[STREAM_UFS_BLOCK_FACTOR];
-
-	    // Results of asyncronous I/O.
-	    aio_result_t aio_results[STREAM_UFS_BLOCK_FACTOR];
-#endif	/* USE_LIBAIO */
 	
 #if STREAM_UFS_READ_AHEAD
 	    // Read ahead into the next logical block.
@@ -1708,7 +1676,6 @@ namespace tpie {
     
     
 #if STREAM_UFS_READ_AHEAD
-    
 	template <class T> void stream_ufs<T>::read_ahead (void) {
 
 	    TPIE_OS_OFFSET f_curr_block;
@@ -1728,39 +1695,6 @@ namespace tpie {
 	    }
 	
 	    f_next_block = f_curr_block + m_header->m_blockSize;
-	
-#if USE_LIBAIO
-	    // Asyncronously read the first word of each os block in the next
-	    // logical block.
-	
-	    for (unsigned int ii = 0; ii < STREAM_UFS_BLOCK_FACTOR; ii++) {
-	    
-		// Make sure there is not a pending request for this block
-		// before requesting it.  
-		if (aio_results[ii].aio_return != AIO_INPROGRESS) {
-		    aio_results[ii].aio_return = AIO_INPROGRESS;
-		
-		    // We have to cancel the last one, even though it completed,
-		    // in order to allow another one with the same result.
-		    aiocancel (aio_results + ii);
-		
-		    // Start the async I/O.
-		    if (::aioread (m_fileDescriptor, 
-				   reinterpret_cast<char*>((read_ahead_buffer + ii)), 
-				   sizeof (int),
-				   f_next_block + ii * m_osBlockSize, TPIE_OS_FLAG_SEEK_SET,
-				   aio_results + ii)) {
-		    		    
-			m_osErrno = errno;
-		    
-			TP_LOG_FATAL_ID ("aioread() failed to read ahead");
-			TP_LOG_FATAL_ID (strerror (m_osErrno));
-		    
-		    }
-		}
-	    }
-	
-#endif // USE_LIBAIO
 	
 #if UFS_DOUBLE_BUFFER
 #error Explicit double buffering not supported using read/write BTE

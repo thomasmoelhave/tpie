@@ -18,11 +18,6 @@
 // Memory mapped streams.  This particular implementation explicitly manages
 // blocks, and only ever maps in one block at a time.
 //
-// TODO: Get rid of or fix the LIBAIO stuff. As it is now it has no
-// chance of working, since it uses the static
-// BTE_STREAM_MMAP_BLOCK_FACTOR, which is no longer the true
-// factor. The true block factor is determined dynamically, from the
-// header.
 #ifndef _TPIE_BTE_STREAM_MMAP_H
 #define _TPIE_BTE_STREAM_MMAP_H
 
@@ -34,13 +29,6 @@
 
 #include <tpie/tpie_assert.h>
 #include <tpie/tpie_log.h>
-
-#if USE_LIBAIO
-#  if !TPIE_HAVE_LIBAIO
-#    error USE_LIBAIO requested, but aio library not in configuration.
-#  endif
-#  include <sys/asynch.h>
-#endif
 
 #ifdef STREAM_MMAP_READ_AHEAD
 #  define STREAM_MMAP_MM_BUFFERS 2
@@ -213,15 +201,6 @@ namespace tpie {
 	
 #ifdef STREAM_MMAP_READ_AHEAD
 			T* m_nextBlock;
-#endif
-	
-#if USE_LIBAIO
-			// A buffer to read the first word of each OS block in the next logical
-			// block for read ahead.
-			int read_ahead_buffer[STREAM_MMAP_BLOCK_FACTOR];
-	
-			// Results of asyncronous I/O.
-			aio_result_t aio_results[STREAM_MMAP_BLOCK_FACTOR];
 #endif
 	
 		};
@@ -1550,46 +1529,13 @@ namespace tpie {
 			// Rajiv
 			assert (m_nextBlockOffset + m_header->m_blockSize <= m_fileLength);
 			assert (m_nextBlock != m_currentBlock);
-#if !USE_LIBAIO
+			
 			// took out the SYSTYPE_BSD ifdef for readability Rajiv
 			m_nextBlock = (T *) (call_mmap (m_nextBlock, m_header->m_blockSize,
 											m_readOnly, m_writeOnly,
 											m_fileDescriptor, m_nextBlockOffset, (m_nextBlock != NULL)));
 			assert (m_nextBlock != (T *) - 1);
 			m_haveNextBlock = true;
-#endif				// !USE_LIBAIO
-	
-#if USE_LIBAIO
-			// Asyncronously read the first word of each os block in the next
-			// logical block.
-			for (unsigned int ii = 0; ii < STREAM_MMAP_BLOCK_FACTOR; ii++) {
-	    
-				// Make sure there is not a pending request for this block
-				// before requesting it.
-	    
-				if (aio_results[ii].aio_return != AIO_INPROGRESS) {
-					aio_results[ii].aio_return = AIO_INPROGRESS;
-		
-					// We have to cancel the last one, even though it completed,
-					// in order to allow another one with the same result.
-					aiocancel (aio_results + ii);
-		
-					// Start the async I/O.
-					if (aioread (m_fileDescriptor, (char *) (read_ahead_buffer + ii), sizeof (int),
-								 m_nextBlockOffset + ii * m_osBlockSize, SEEK_SET,
-								 aio_results + ii)) {
-		    
-						m_osErrno = errno;
-		    
-						TP_LOG_FATAL ("aioread() failed to read ahead");
-						TP_LOG_FATAL ("\": ");
-						TP_LOG_FATAL (strerror (m_osErrno));
-						TP_LOG_FATAL ('\n');
-						TP_LOG_FLUSH_LOG;
-					}
-				}
-			}
-#endif				// USE_LIBAIO
 		}
     
 #endif				// STREAM_MMAP_READ_AHEAD

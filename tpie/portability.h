@@ -116,15 +116,6 @@
 #include <unistd.h>					
 #endif	
 
-
-#ifdef _WIN32
-#  define DO_NOTHING  
-#else
-#  if USE_LIBAIO
-#    include <sys/asynch.h>
-#  endif
-#endif
-
 #ifdef _WIN32
 #define DO_NOTHING
 #else

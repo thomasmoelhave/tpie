@@ -132,7 +132,6 @@ BTE:
 * BTE_ufs cleanup
   - name should be BTE_stream_ufs instead of BTE_single_disk (for
     consistency)
-  - Should we remove aio option?
   - fix references to MMB in UFS code
   - rename mmap_stream_header
   (Status: Dave to cleanup)

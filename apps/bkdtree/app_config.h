@@ -106,12 +106,6 @@ extern int random_seed;
  // Enable/disable TPIE read ahead; default is enabled (set to 1)
 #define BTE_STREAM_MMAP_READ_AHEAD 1
 
-// read ahead method, ignored unless BTE_STREAM_MMAP_READ_AHEAD is set
-// to 1; if USE_LIBAIO is enabled, use asynchronous IO read ahead;
-// otherwise use use mmap-based read ahead; default is mmap-based read
-// ahead (USE_LIBAIO not defined)
-
-//#define USE_LIBAIO
 #endif
 
 

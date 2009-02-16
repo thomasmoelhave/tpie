@@ -1,9 +1,6 @@
 #ifndef _CONFIG_H
 #define _CONFIG_H
 
-// Define if asyncronous I/O is avaialable.
-#cmakedefine TPIE_HAVE_LIBAIO
-
 #cmakedefine TPIE_HAVE_UNISTD_H
 #cmakedefine TPIE_HAVE_SYS_UNISTD_H
 

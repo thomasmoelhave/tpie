@@ -16,7 +16,6 @@ endif(NOT WIN32)
 
 check_include_files("unistd.h" TPIE_HAVE_UNISTD_H)
 check_include_files("sys/unistd.h" TPIE_HAVE_SYS_UNISTD_H)
-check_include_files("sys/async.h" TPIE_HAVE_LIBAIO)
 
 #### Installation paths
 #Default paths

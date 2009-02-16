@@ -57,8 +57,8 @@ extern int random_seed;
 // <><><><><><><><><><><><><><><><><><><><><><> //
 
 // Define only one (default is BTE_STREAM_IMP_UFS)
-#define BTE_STREAM_IMP_UFS
-//#define BTE_STREAM_IMP_MMAP
+//#define BTE_STREAM_IMP_UFS
+#define BTE_STREAM_IMP_MMAP
 //#define BTE_STREAM_IMP_STDIO
 //#define BTE_STREAM_IMP_USER_DEFINED
 
@@ -96,15 +96,8 @@ extern int random_seed;
 #endif
 #endif
 
- // Enable/disable TPIE read ahead; default is enabled (set to 1)
+// Enable/disable TPIE read ahead; default is enabled (set to 1)
 //#define BTE_STREAM_MMAP_READ_AHEAD 1
-
-// read ahead method, ignored unless BTE_STREAM_MMAP_READ_AHEAD is set
-// to 1; if USE_LIBAIO is enabled, use asynchronous IO read ahead;
-// otherwise use use mmap-based read ahead; default is mmap-based read
-// ahead (USE_LIBAIO not defined)
-
-//#define USE_LIBAIO
 #endif
 
 
@@ -124,10 +117,6 @@ extern int random_seed;
 
  // Enable/disable TPIE read ahead; default is disabled (set to 0)
 #define STREAM_UFS_READ_AHEAD 0
-// read ahead method, ignored unless STREAM_UFS_READ_AHEAD is set
-// to 1; if USE_LIBAIO is set to 1, use asynchronous IO read ahead;
-// otherwise no TPIE read ahead is done; default is disabled (set to 0)
-#define USE_LIBAIO 0
 #endif
 
 

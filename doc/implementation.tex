@@ -717,26 +717,30 @@ the macro \lstinline|BTE_MMAP_READ_AHEAD| in the \path"app_config.h"
 file. If this compile-time variable is defined,
 \lstinline|BTE_stream_mmap| optimize for sequential read speed by
 reading (mapping) blocks into main memory before the data they contain
-is actually needed. Two methods of read-ahead is provided:\comment{LA:
+is actually needed. 
+%Two methods of read-ahead is provided:
+\comment{LA:
   Does the asynchronous stuff really work?}
 \comment{JV: A comment in the code says, AIO does not work, so we
   should get rid of it for good.}
-\begin{itemize}
-  
-\item If the \lstinline|USE_LIBAIO| macro is undefined (and
-  \lstinline|BTE_MMAP_READ_AHEAD| is set), read ahead is done using
-  \lstinline|mmap| calls.
-  
-\item If the \lstinline|USE_LIBAIO| macro is defined (and
-  \lstinline|BTE_MMAP_READ_AHEAD| is set), read ahead is done using
-  the asynchronous I/O library. This feature requires the asynchronous
-  I/O library \lstinline|libaio|.\index{libaio library@{\tt libaio}
-    library.}
+\comment{TM: LIBAIO stuff has been removed}
+%\begin{itemize}
+ % 
+%\item If the \lstinline|USE_LIBAIO| macro is undefined (and
+%  \lstinline|BTE_MMAP_READ_AHEAD| is set), read ahead is done using
+%  \lstinline|mmap| calls.
+%  
+%\item If the \lstinline|USE_LIBAIO| macro is defined (and
+%  \lstinline|BTE_MMAP_READ_AHEAD| is set), read ahead is done using
+%  the asynchronous I/O library. This feature requires the asynchronous
+%  I/O library \lstinline|libaio|.\index{libaio library@{\tt libaio}
+%    library.}
+%
+%\end{itemize}
+\lstinline|BTE_MMAP_READ_AHEAD| is defined by default.
 
-\end{itemize}
-By default \lstinline|BTE_MMAP_READ_AHEAD| is defined,
-\lstinline|USE_LIBAIO| is not.\comment{LA: Discuss the two and how
-  they differ.}
+%\lstinline|USE_LIBAIO| is not.\comment{LA: Discuss the two and how
+%  they differ.}
 
 %\lstinline|BTE_stream_mmap| class inherits from \lstinline|BTE_stream_base|:\index{BTE_stream_base@{\tt BTE\_stream\_base}}
 %\begin{lstlisting}
@@ -862,12 +866,12 @@ objects have to pass through kernel level buffer space).\comment{JV:
 %access, the next block to be accessed is more often than not dependent on
 %the processing of the contents of the current block, so prefetching is
 %difficult to implement or impossible.)
-In \lstinline|BTE_stream_ufs| streams, when the asynchronous I/O
-library \lstinline|libaio|\index{libaio library@{\tt libaio} library.}
-is available, there is a provision to do (user-level) prefetching
-within \lstinline|BTE_stream_ufs| streams but we do not recommend its
-use on account of the implicit filesystem prefetching.\comment{LA: So
-  why there?}\comment{JV: LIBAIO should go, no?}
+%In \lstinline|BTE_stream_ufs| streams, when the asynchronous I/O
+%library \lstinline|libaio|\index{libaio library@{\tt libaio} library.}
+%is available, there is a provision to do (user-level) prefetching
+%within \lstinline|BTE_stream_ufs| streams but we do not recommend its
+%use on account of the implicit filesystem prefetching.
+\comment{LA: So why there?}\comment{JV: LIBAIO should go, no?}\comment{TM: It's gone.}
 
 %\lstinline|BTE_stream_ufs| class inherits from
 %\lstinline|BTE_stream_base|:
