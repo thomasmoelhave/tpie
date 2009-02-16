@@ -96,20 +96,13 @@
 #include <queue>
 #include <list>
 
-// Get class tms or time_t //
-#ifdef _WIN32
-#include <time.h>
-#else
-#include <sys/times.h>
-#endif
-
 #ifdef _WIN32 
+#include <time.h>				
 #include <io.h>
 #include <time.h>				
 #include <windows.h>
 #else
 #include <sys/times.h>				
-#define DO_NOTHING  
 #include <unistd.h>					
 #include <sys/time.h>				  
 #include <sys/resource.h>	
