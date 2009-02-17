@@ -96,7 +96,7 @@
 #include <queue>
 #include <list>
 
-#ifdef _WIN32 
+#ifdef _WIN32
 #include <time.h>				
 #include <io.h>
 #include <time.h>				
@@ -108,9 +108,6 @@
 #include <sys/resource.h>	
 #include <sys/mman.h>
 #endif 
-
-#include <tpie/bte/err.h>
-
 
 //////////////////////////////////////////////
 // typedefs, enum etc.						//
@@ -315,9 +312,6 @@ typedef TPIE_OS_OFFSET TPIE_BLOCK_ID_TYPE;
 #else
 #define TPIE_OS_OPERATOR_OVERLOAD return s << double(wt.elapsed().tms_utime) / double(wt.clock_tick()) << "u " << double(wt.elapsed().tms_stime) / double(wt.clock_tick()) << "s " << double(wt.elapsed_real()) / double(wt.clock_tick());	
 #endif
-
-// for ANSI conform arrays.
-#include <tpie/vararray.h>
 
 //////////////////////////////////////////////
 // functions				    //

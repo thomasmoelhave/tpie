@@ -28,12 +28,13 @@
 #include "app_config.h"
 #include <tpie/portability.h>
 #include "getopts.h"
+#include <cstring>
 
 template <typename T>
 T parse_number(char *s) {
   T n; 
   T mult = 1;
-  size_t len = strlen(s);
+  size_t len = std::strlen(s);
   if(isalpha(s[len-1])) {
     switch(s[len-1]) {
     case 'G':

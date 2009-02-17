@@ -34,6 +34,9 @@
 // Get error definitions
 #include <tpie/bte/err.h>
 
+// For memcpy
+#include <cstring>
+
 // For header's type field (85 == 'U').
 #define STREAM_IMPLEMENTATION_UFS 85
 
@@ -1319,7 +1322,7 @@ namespace tpie {
 	    m_filePointer = m_osBlockSize;
 	
 	    ptr_to_header = new stream_header();
-	    memcpy(ptr_to_header, tmp_buffer, sizeof(stream_header));
+	    std::memcpy(ptr_to_header, tmp_buffer, sizeof(stream_header));
 	    delete [] tmp_buffer;	// should use vector delete -RW
 	
 	    return ptr_to_header;

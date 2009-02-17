@@ -55,6 +55,7 @@
 #include <tpie/block.h>
 #include <tpie/coll.h>
 #include <tpie/stack.h>
+#include <tpie/vararray.h>
 
 //  Include declaration of bounding boxes.
 #include "rectangle.h"
