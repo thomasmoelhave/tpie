@@ -22,11 +22,12 @@
 #define _TPIE_AMI_STREAM_H
 
 
-// Get definitions for working with Unix and Windows
-#include <tpie/portability.h>
 
 // Include the configuration header.
 #include <tpie/config.h>
+
+// Get definitions for working with Unix and Windows
+#include <tpie/portability.h>
 
 // Get the error codes.
 #include <tpie/err.h>

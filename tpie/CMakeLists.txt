@@ -86,7 +86,6 @@ set (OTHER_HEADERS
 		stats_tree.h
 		tempname.h
 		vararray.h
-		lib_config.h
 		)
 
 set (AMI_SOURCES

@@ -15,11 +15,11 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
+#include <tpie/config.h>
 #include <cstdio>
 #include <cstdlib>
 #include <time.h>
 #include <cstring>
-#include "lib_config.h"
 #include <tpie/tempname.h>
 #include <string>
 

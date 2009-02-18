@@ -18,6 +18,8 @@
 #ifndef _TPIE_MM_H
 #define _TPIE_MM_H
 
+#include <tpie/config.h>
+
 // Get the base class, enums, etc...
 #include <tpie/mm_base.h>
 

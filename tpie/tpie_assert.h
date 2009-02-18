@@ -18,6 +18,8 @@
 #ifndef _TPIE_ASSERT_H
 #define _TPIE_ASSERT_H
 
+#include <tpie/config.h>
+
 // Get definitions for working with Unix and Windows
 #include <tpie/portability.h>
 #include <iostream>
@@ -25,7 +27,7 @@
 
 namespace tpie {
     
-#if DEBUG_ASSERTIONS
+#ifdef DEBUG_ASSERTIONS
 
 #ifdef _WIN32
 #pragma warning ( disable : 4127 )

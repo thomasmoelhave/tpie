@@ -18,6 +18,8 @@
 #ifndef _TPIE_BTE_STREAM_H
 #define _TPIE_BTE_STREAM_H
 
+#include <tpie/config.h>
+
 // Get definitions for working with Unix and Windows
 #include <tpie/portability.h>
 

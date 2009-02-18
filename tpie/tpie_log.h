@@ -23,6 +23,8 @@
 ///////////////////////////////////////////////////////////////////////////
 
 
+#include <tpie/config.h>
+#include <tpie/logstream.h>
 
 namespace tpie {
 
@@ -48,7 +50,6 @@ enum log_level {
     };
 }
 
-#include <tpie/logstream.h>
 
 namespace tpie {
 

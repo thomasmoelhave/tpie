@@ -57,6 +57,7 @@
 ///////////////////////////////////////////////////////////////////////////
 
 
+#include <tpie/config.h>
 
 // Get definitions for working with Unix and Windows
 #include <tpie/portability.h>

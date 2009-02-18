@@ -18,6 +18,8 @@
 #ifndef _MM_MANAGER_H
 #define _MM_MANAGER_H
 
+#include <tpie/config.h>
+
 /// Get definitions for working with Unix and Windows
 #include <tpie/portability.h>
 #include <tpie/tpie_log.h>

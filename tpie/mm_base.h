@@ -23,6 +23,8 @@
 /// Enum types and superclass declarations for memory management.
 ///////////////////////////////////////////////////////////////////////////
 
+#include <tpie/config.h>
+
 // Get definitions for working with Unix and Windows
 #include <tpie/portability.h>
 #include <stdexcept>

@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-#include <tpie/lib_config.h>
+#include <tpie/config.h>
 #include <tpie/mm_base.h>
 #include <tpie/tpie_log.h>
 #include <tpie/mm_manager.h>

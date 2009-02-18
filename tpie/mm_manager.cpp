@@ -18,7 +18,10 @@
 // A simple registration based memory manager.
 
 //#include <cassert>
-#include "lib_config.h"
+#include <tpie/config.h>
+
+#include <tpie/tpie_assert.h>
+#include <tpie/tpie_log.h>
 
 #define MM_IMP_REGISTER
 #include <tpie/mm.h>

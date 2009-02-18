@@ -21,7 +21,8 @@
 // Created: 12/11/94
 //
 
-#include <tpie/lib_config.h>
+#include <tpie/tpie_assert.h>
+#include <tpie/config.h>
 
 #include <sys/types.h>
 

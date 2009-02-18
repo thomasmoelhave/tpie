@@ -18,14 +18,8 @@
 #define _SC_PAGE_SIZE _SC_PAGESIZE
 #endif
 
-// Flags to enable or disable various features of the system.
-
-#define TP_ASSERT_APPS 1
-#define TP_ASSERT_LIB 1
-
-#define TP_LOG_APPS 1
-#define TP_LOG_LIB 1
-
+#cmakedefine TPL_LOGGING 1
+#cmakedefine DEBUG_ASSERTIONS 1
 
 // recent visual studio versions gives heaps of compilation
 // warnings about security issues with fopen/strcpy and the like

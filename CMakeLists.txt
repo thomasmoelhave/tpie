@@ -34,9 +34,6 @@ set(INSTALL_TARGETS_DEFAULT_ARGS
 	ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
 )
 
-
-
-
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tpie/config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/tpie/config.h)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/tpie/config.h DESTINATION ${HEADERS_INSTALL_DIR})
@@ -47,6 +44,8 @@ add_subdirectory(doc)
 
 option(COMPILE_TEST "Compile test programs" ON)
 option(TPIE_USE_EXCEPTIONS "Throw exceptions on certain errors." OFF)
+option(DEBUG_ASSERTIONS "Enable tpie_assert." ON)
+option(TPL_LOGGING "Enable tpie logging." ON)
 
 if (COMPILE_TEST)
 	add_subdirectory(test)

@@ -95,20 +95,4 @@
 #  define BTE_STREAM_UFS_READ_AHEAD 0
 #endif
 
-
-// Use logs if requested.
-#if TP_LOG_APPS
-#define TPL_LOGGING 1
-#include <tpie/tpie_log.h>
-#endif
-
-// Enable assertions if requested.
-#if TP_ASSERT_APPS
-#define DEBUG_ASSERTIONS 1
-#define DEBUG_CERR 1
-#define DEBUG_STR 1
-#include <tpie/tpie_assert.h>
-#endif
-
-
 #endif

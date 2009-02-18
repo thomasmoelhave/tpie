@@ -133,26 +133,4 @@ extern int random_seed;
 #define USE_LIBAIO 0
 #endif
 
-
-// <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><> //
-//                   logging and assertions;                    //
-//            this should NOT be modified by user!!!            //
-//   in order to enable/disable library/application logging,    //
-//     run tpie configure script with appropriate options       //
-// <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><> //
-
-// Use logs if requested.
-#if TP_LOG_APPS
-#define TPL_LOGGING 1
-#endif
-
-#include <tpie/tpie_log.h>
-
-// Enable assertions if requested.
-#if TP_ASSERT_APPS
-#define DEBUG_ASSERTIONS 1
-#endif
-
-#include <tpie/tpie_assert.h>
-
 #endif
