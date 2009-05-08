@@ -29,6 +29,9 @@
 
 #include <tpie/bte/stream_base.h>
 
+#include <cstring>
+#include <cstdio>
+
 // File system streams are streams in a special format that is designed 
 // to be stored in an ordinary file in a UN*X file system.  They are 
 // predominatly designed to be used to store streams in a persistent way.
