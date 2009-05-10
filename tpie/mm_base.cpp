@@ -25,7 +25,7 @@
 #include <cstdlib>
 #include <cassert>
 #include <cstring>
-#include <errno.h>
+#include <cerrno>
 
 // support for dmalloc (for tracking memory leaks)
 #ifdef USE_DMALLOC
