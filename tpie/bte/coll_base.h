@@ -72,8 +72,8 @@ namespace tpie {
 // FreeBSD for an explanation. When set to 0, lseek(2) and write(2)
 // are used to extend the files. This should be set to 1 for WIN32
 // (see portability.h)
-#ifndef COLLECTION_USE_FTRUNCATE
-#define COLLECTION_USE_FTRUNCATE 0
+#ifndef BTE_COLLECTION_USE_FTRUNCATE
+#define BTE_COLLECTION_USE_FTRUNCATE 0
 #endif
 
 namespace tpie {
@@ -267,7 +267,7 @@ namespace tpie {
 			}
 
 
-#if COLLECTION_USE_FTRUNCATE
+#if BTE_COLLECTION_USE_FTRUNCATE
 			if (TPIE_OS_FTRUNCATE(bcc_fd_, 
 					      bid_to_file_offset(header_.total_blocks))) { 
 
