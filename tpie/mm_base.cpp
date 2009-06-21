@@ -48,7 +48,13 @@ int   register_new = IGNORE_MEMORY_EXCEEDED;
 /// It is also used to keep the allocation size counter.
 static const TPIE_OS_SIZE_T SIZE_SPACE=(sizeof(TPIE_OS_SIZE_T) > 8 ? sizeof(TPIE_OS_SIZE_T) : 8);
 
-void *operator new (TPIE_OS_SIZE_T sz)
+#ifdef TPIE_USE_EXCEPTIONS
+#define EXCEPTIONS_PARAM(x) x
+#else
+#define EXCEPTIONS_PARAM(x)
+#endif
+
+static void *do_new (TPIE_OS_SIZE_T sz, bool EXCEPTIONS_PARAM(allow_throw))
 {
    void *p;
 #ifdef USE_DMALLOC
@@ -80,18 +86,19 @@ void *operator new (TPIE_OS_SIZE_T sz)
 #endif
 				assert (0);		// core dump if debugging
 #ifdef TPIE_USE_EXCEPTIONS
-				std::stringstream ss;
-				ss << "Could not allocate " 
-					<< (sz+SIZE_SPACE)/1024/1024 << " megabytes (" 
-					<< sz+SIZE_SPACE << " bytes) from the heap."
-					<<" The TPIE memory limit was exceeded "
-					<< " Available memory accoding to TPIE is "
-					<< MM_manager.memory_available()/1024/1024 << " megabytes ("
-					<< MM_manager.memory_available() << " bytes)\n";
-				throw out_of_memory_error(ss.str());
-#else
-				exit (1);
+				if (allow_throw) {
+					std::stringstream ss;
+					ss << "Could not allocate " 
+						<< (sz+SIZE_SPACE)/1024/1024 << " megabytes (" 
+						<< sz+SIZE_SPACE << " bytes) from the heap."
+						<<" The TPIE memory limit was exceeded "
+						<< " Available memory accoding to TPIE is "
+						<< MM_manager.memory_available()/1024/1024 << " megabytes ("
+						<< MM_manager.memory_available() << " bytes)\n";
+					throw out_of_memory_error(ss.str());
+				}
 #endif
+				exit (1);
 			} break;
 			case mem::WARN_ON_MEMORY_EXCEEDED:
 			{
@@ -143,18 +150,29 @@ void *operator new (TPIE_OS_SIZE_T sz)
 			<< MM_manager.memory_available() << " bytes)\n";
 
 #ifdef TPIE_USE_EXCEPTIONS
-		throw out_of_memory_error(ss.str());
-#else
+		if (allow_throw) {
+			throw out_of_memory_error(ss.str());
+		}
+#endif
 		std::cerr << ss.str() << std::endl;
 		assert(0);
 		exit (1);
-#endif
 	}
 	*(reinterpret_cast<size_t *>(p)) = (MM_manager.allocation_count_factor() ? sz : 0);
 	return (reinterpret_cast<char *>(p)) + SIZE_SPACE;
 }
 
-void *operator new[] (TPIE_OS_SIZE_T sz)
+void *operator new (TPIE_OS_SIZE_T sz)
+{
+    return do_new(sz, true);
+}
+
+void *operator new (TPIE_OS_SIZE_T sz, const std::nothrow_t &)
+{
+    return do_new(sz, false);
+}
+
+static void *do_new_array (TPIE_OS_SIZE_T sz, bool EXCEPTIONS_PARAM(allow_throw))
 {
     void *p;
 #ifdef USE_DMALLOC
@@ -236,15 +254,26 @@ void *operator new[] (TPIE_OS_SIZE_T sz)
 			<< MM_manager.memory_available() << " bytes)\n";
 
 #ifdef TPIE_USE_EXCEPTIONS
-	throw out_of_memory_error(ss.str());
-#else
+	if (allow_throw) {
+		throw out_of_memory_error(ss.str());
+	}
+#endif
 	std::cerr << ss.str() << std::endl;
 	assert(0);
 	exit (1);
-#endif
     }
     *(reinterpret_cast<size_t *>(p)) = (MM_manager.allocation_count_factor() ? sz : 0);
 	return (reinterpret_cast<char *>(p)) + SIZE_SPACE;
+}
+
+void *operator new[] (TPIE_OS_SIZE_T sz)
+{
+    return do_new_array(sz, true);
+}
+
+void *operator new[] (TPIE_OS_SIZE_T sz, const std::nothrow_t &)
+{
+    return do_new_array(sz, false);
 }
 
 void operator delete (void *ptr)
@@ -303,6 +332,8 @@ void operator delete[] (void *ptr) {
 int mem::manager::space_overhead () {
     return SIZE_SPACE;
 }
+
+#undef EXCEPTIONS_PARAM
 
 #ifndef NDEBUG
 TPIE_OS_SPACE_OVERHEAD_BODY
