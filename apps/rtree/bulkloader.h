@@ -713,7 +713,7 @@ namespace tpie {
 	    
 #if (COORD_T==INT)
 	    coord_t scaleFactor = 1;
-#elif
+#else
 	    coord_t scaleFactor = 1000000.0;
 #endif
 	    
@@ -942,7 +942,7 @@ namespace tpie {
 	    
 #if (COORD_T==INT)
 	    coord_t scaleFactor = 1;
-#elif
+#else
 	    coord_t scaleFactor = 1000000;
 #endif
 
