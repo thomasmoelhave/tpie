@@ -45,6 +45,8 @@
 #  define STREAM_MMAP_BLOCK_FACTOR 8
 #endif
 
+#include<cstring> //for memcpy 
+
 namespace tpie {
 
     namespace bte {
