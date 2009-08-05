@@ -74,8 +74,10 @@ namespace tpie {
 namespace tpie {
 
     namespace bte {
+
+
     
-	template<class T> 
+	template<class T, class C> 
 	class stream_base: public bte::stream_base_generic {
 	
 	public:
@@ -127,7 +129,25 @@ namespace tpie {
 	
 	    // Return the path name in newly allocated space.
 	    std::string name() const;
-	
+
+		inline err write_array(const T * elms, TPIE_OS_SIZE_T count) {
+			for(TPIE_OS_SIZE_T i=0; i < count; ++i) {
+				err e = reinterpret_cast<C*>(this)->write_item(elms[i]);
+				if(e != NO_ERROR) return e;
+			}
+			return NO_ERROR;
+		}
+
+		inline err read_array(T * elms, TPIE_OS_SIZE_T & count) {
+			TPIE_OS_SIZE_T c=count;
+			for(count=0; count < c; ++count) {
+				T * x;
+				err e = reinterpret_cast<C*>(this)->read_item(&x);
+				if(e != NO_ERROR) return e;
+				elms[count] = *x;
+			}
+			return NO_ERROR;
+		}
 	protected:
 	
 	    using stream_base_generic::remaining_streams;
@@ -192,12 +212,12 @@ namespace tpie {
 	
 	private:
 	    // Prohibit these.
-	    stream_base(const stream_base<T>& other);
-	    stream_base<T>& operator=(const stream_base<T>& other);
+	    stream_base(const stream_base<T,C>& other);
+	    stream_base<T,C>& operator=(const stream_base<T,C>& other);
 	};
     
-	template<class T>
-	int stream_base<T>::check_header() {
+	template<class T,class C>
+	int stream_base<T,C>::check_header() {
 
 #ifdef _WIN32
 		// Suppress warning 4267 (size mismatch of size_t and unsigned int) once.
@@ -281,8 +301,8 @@ namespace tpie {
 	    return 0;
 	}
     
-	template<class T>
-	void stream_base<T>::init_header () {
+	template<class T,class C>
+	void stream_base<T,C>::init_header () {
 
 	    tp_assert(m_header != NULL, "NULL header pointer");
 	
@@ -297,8 +317,8 @@ namespace tpie {
 
 	}
     
-	template<class T>
-	err stream_base<T>::register_memory_allocation (TPIE_OS_SIZE_T sz) {
+	template<class T,class C>
+	err stream_base<T,C>::register_memory_allocation (TPIE_OS_SIZE_T sz) {
 	
 	    if (MM_manager.register_allocation(sz) != mem::NO_ERROR) {
 	    
@@ -314,8 +334,8 @@ namespace tpie {
 	
 	}
 
-	template<class T>
-	err stream_base<T>::register_memory_deallocation (TPIE_OS_SIZE_T sz) {
+	template<class T,class C>
+	err stream_base<T,C>::register_memory_deallocation (TPIE_OS_SIZE_T sz) {
 	
 	    if (MM_manager.register_deallocation (sz) != mem::NO_ERROR) {
 	    
@@ -330,14 +350,14 @@ namespace tpie {
 	}
     
 // Return the path name in newly allocated space.
-	template < class T >
-	std::string stream_base<T>::name() const 
+	template <class T, class C>
+	std::string stream_base<T,C>::name() const 
 	{
 	    return std::string(m_path);
 	}
 
-	template < class T >
-	inline void stream_base<T>::record_statistics(stats_stream_id event) {
+	template <class T, class C>
+	inline void stream_base<T,C>::record_statistics(stats_stream_id event) {
 	
 	    //  Record for base class, i.e., globally.
 	    gstats_.record(event);
@@ -348,7 +368,5 @@ namespace tpie {
 	};
 
     }  //  bte namespace
-    
 }  //  tpie namespace
-
 #endif // _TPIE_BTE_STREAM_BASE_H 

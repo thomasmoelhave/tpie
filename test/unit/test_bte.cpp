@@ -21,6 +21,7 @@
 #include <tpie/bte/stream_ufs.h>
 #include <tpie/bte/stream_mmap.h>
 #include <tpie/bte/stream_cache.h>
+#include <tpie/stream.h>
 #include <tpie/bte/err.h>
 #include <cstring>
 #include <cstdlib>
@@ -70,10 +71,27 @@ int test_bte(T & bte, char * test) {
 		}
 		delete[] buf;
 		return 0;
+	} else if(!strcmp(test,"array")) {
+		srand(42);
+		int buf[1024];
+		for(size_t i= 0; i < size; i += 1024) {
+			for(size_t j=0; j < 1024; ++j) buf[j] = rand();
+			if(bte.write_array(buf, 1024) != NO_ERROR) ERR("Write failed");
+		}
+		if(bte.stream_len() != size) ERR("Stream size wrong");
+		if(bte.tell() != size) ERR("Tell failed");
+		if(bte.seek(0) != NO_ERROR) ERR("Seek failed");
+		if(bte.tell() != 0) ERR("Tell failed");
+		srand(42);
+		for(size_t i= 0; i < size; i += 1024) {
+			size_t x=1024;
+			if(bte.read_array(buf, x) != NO_ERROR || x != 1024) ERR("Write failed");
+			for(size_t j=0; j < 1024; ++j) 	if(buf[j] != rand()) ERR("Wrong value returned");
+		}
+		return 0;
 	}
 	return 1;
 }
-
 
 int main(int argc, char **argv) {
 	if(argc != 3) return 1;
@@ -83,6 +101,9 @@ int main(int argc, char **argv) {
 		return test_bte(stream, argv[2]);
 	} else if(!strcmp(argv[1],"cache")) {
 		stream_cache<int> stream("/tmp/stream", WRITE_STREAM, size*sizeof(int));
+		return test_bte(stream, argv[2]);
+	} else if(!strcmp(argv[1],"ami_stream")) {
+		tpie::ami::stream<int> stream("/tmp/stream", tpie::ami::WRITE_STREAM);
 		return test_bte(stream, argv[2]);
 #ifndef WIN32
 	} else if(!strcmp(argv[1],"mmap")) {

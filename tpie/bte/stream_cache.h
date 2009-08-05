@@ -49,8 +49,9 @@ namespace tpie {
 //
     
 		template <class T>
-		class stream_cache : public stream_base<T> {
-
+		class stream_cache : public stream_base<T, stream_cache<T> > {
+		public:
+			typedef stream_base<T, stream_cache<T> > base_t;
 		private:
 			T *data;
 			T *current;
@@ -71,7 +72,7 @@ namespace tpie {
 			err new_substream(stream_type st, 
 							  TPIE_OS_OFFSET sub_begin,
 							  TPIE_OS_OFFSET sub_end, 
-							  stream_base<T> **sub_stream);
+							  base_t **sub_stream);
     
 
 			// Query memory usage
@@ -150,7 +151,7 @@ namespace tpie {
 		err stream_cache<T>::new_substream(stream_type st, 
 										   TPIE_OS_OFFSET sub_begin,
 										   TPIE_OS_OFFSET sub_end,
-										   stream_base<T> **sub_stream) {
+										   base_t **sub_stream) {
 			stream_cache *ss;
     
 			if (st == APPEND_STREAM) {
@@ -172,7 +173,7 @@ namespace tpie {
 				ss->current = ss->data = data + sub_begin;
 				ss->data_max = ss->data_hard_end = data + sub_end + 1;
 
-				*sub_stream = (stream_base<T> *)ss;                       
+				*sub_stream = (base_t *)ss;                       
 
 				return NO_ERROR;
 			}

@@ -203,17 +203,24 @@ public:
     /// Reads *len items from the current position of the stream into
     /// the array mm_array. The "current position" pointer is increased
     /// accordingly.
+	/// \deprecated
     ////////////////////////////////////////////////////////////////////////////
     err read_array(T *mm_space, TPIE_OS_OFFSET *len);
+
+    ////////////////////////////////////////////////////////////////////////////
+    /// Reads len items from the current position of the stream into
+    /// the array mm_array. The "current position" pointer is increased
+    /// accordingly.
+    ////////////////////////////////////////////////////////////////////////////
+    err read_array(T *mm_space, TPIE_OS_SIZE_T & len);
     
     ////////////////////////////////////////////////////////////////////////////
     /// Writes len items from array |mm_array to the
     /// stream, starting in the current position. The "current item"
     /// pointer is increased accordingly.
     ////////////////////////////////////////////////////////////////////////////
-    err write_array(const T *mm_space, TPIE_OS_OFFSET len);
-  
-  
+    err write_array(const T *mm_space, TPIE_OS_SIZE_T len);
+    
     ////////////////////////////////////////////////////////////////////////////
     /// Returns the number of items in the stream.
     ////////////////////////////////////////////////////////////////////////////
@@ -499,7 +506,7 @@ private:
 
 	    }
     
-	    bte::stream_base<T> *bte_ss;
+		typename bte_t::base_t *bte_ss;
     
 	    if (m_bteStream->new_substream(((st == READ_STREAM) ? bte::READ_STREAM :
 					    bte::WRITE_STREAM),
@@ -656,50 +663,31 @@ private:
 
 	template<class T, class bte_t>
 	err stream<T,bte_t>::read_array(T *mm_space, TPIE_OS_OFFSET *len) {
-	    bte::err       be = bte::NO_ERROR;
-	    T *            read;
-	    TPIE_OS_OFFSET ii;
-    
-	    // How long is it.
-	    TPIE_OS_OFFSET str_len = *len;
-            
-	    // Read them all.
-	    for (ii = str_len; ii--; ) {
-		if ((be = m_bteStream->read_item(&read)) != bte::NO_ERROR) {
-
-		    if (be == bte::END_OF_STREAM) {
-			return END_OF_STREAM;
-		    }
-		    else { 
-			return BTE_ERROR;
-		    }
-		}
-		*mm_space++ = *read;
-	    }
-    
-	    *len = str_len;
-    
-	    return NO_ERROR;
+		TPIE_OS_SIZE_T l=*len;
+		err e = read_array(mm_space, l);
+		*len = l;
+		return e;
 	}
 
 	template<class T, class bte_t>
-	err stream<T,bte_t>::write_array(const T *mm_space, TPIE_OS_OFFSET len) {
-	    bte::err       be = bte::NO_ERROR;
-	    TPIE_OS_OFFSET ii;
-    
-	    for (ii = len; ii--; ) {
-		if ((be = m_bteStream->write_item(*mm_space++)) != bte::NO_ERROR) {
-
-		    if (be == bte::END_OF_STREAM) {
-			return END_OF_STREAM;
-		    } 
-		    else { 
-			return BTE_ERROR;
-		    }
+	err stream<T,bte_t>::read_array(T *mm_space, TPIE_OS_SIZE_T & len) {
+	    bte::err bte_err = m_bteStream->read_array(mm_space, len);
+		switch(bte_err) {
+	    case bte::NO_ERROR:	return NO_ERROR;
+		case bte::END_OF_STREAM: return END_OF_STREAM;
+		default: return BTE_ERROR;
 		}
-	    }
-	    return NO_ERROR;
-	}        
+	}
+
+	template<class T, class bte_t>
+	err stream<T,bte_t>::write_array(const T *mm_space, TPIE_OS_SIZE_T len) {
+		bte::err bte_err = m_bteStream->write_array(mm_space,len);
+		switch(bte_err) {
+	    case bte::NO_ERROR:	return NO_ERROR;
+		case bte::END_OF_STREAM: return END_OF_STREAM;
+		default: return BTE_ERROR;
+		}
+	}
 
 	template<class T, class bte_t>
 	std::string& stream<T,bte_t>::sprint() {

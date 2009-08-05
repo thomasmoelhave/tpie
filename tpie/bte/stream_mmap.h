@@ -65,34 +65,35 @@ namespace tpie {
 // block of the file at a time. 
 //
 		template <class T> 
-			class stream_mmap: public stream_base < T > {
-	
+		class stream_mmap: public stream_base<T, stream_mmap<T> > {
+		public:
+			typedef stream_base<T, stream_mmap<T> > base_t;
 			// CHECK THIS: Is this needed anymore?      
 // These are for gcc-3.4 compatibility
 		protected:
-			using stream_base<T>::remaining_streams;
-			using stream_base<T>::m_substreamLevel;
-			using stream_base<T>::m_status;
-			using stream_base<T>::m_persistenceStatus;
-			using stream_base<T>::m_readOnly;
-			using stream_base<T>::m_path;
-			using stream_base<T>::m_osBlockSize;
-			using stream_base<T>::m_fileOffset;
-			using stream_base<T>::m_logicalBeginOfStream;
-			using stream_base<T>::m_logicalEndOfStream;
-			using stream_base<T>::m_fileLength;
-			using stream_base<T>::m_osErrno;
-			using stream_base<T>::m_header;
+			using base_t::remaining_streams;
+			using base_t::m_substreamLevel;
+			using base_t::m_status;
+			using base_t::m_persistenceStatus;
+			using base_t::m_readOnly;
+			using base_t::m_path;
+			using base_t::m_osBlockSize;
+			using base_t::m_fileOffset;
+			using base_t::m_logicalBeginOfStream;
+			using base_t::m_logicalEndOfStream;
+			using base_t::m_fileLength;
+			using base_t::m_osErrno;
+			using base_t::m_header;
 	
-			using stream_base<T>::check_header;
-			using stream_base<T>::init_header;
-			using stream_base<T>::register_memory_allocation;
-			using stream_base<T>::register_memory_deallocation;
-			using stream_base<T>::record_statistics;
+			using base_t::check_header;
+			using base_t::init_header;
+			using base_t::register_memory_allocation;
+			using base_t::register_memory_deallocation;
+			using base_t::record_statistics;
 	
 		public:
-			using stream_base<T>::name;
-			using stream_base<T>::os_block_size;
+			using base_t::name;
+			using base_t::os_block_size;
 // End: These are for gcc-3.4 compatibility
 	
 		public:
@@ -120,7 +121,7 @@ namespace tpie {
 			err new_substream(stream_type    st, 
 							  TPIE_OS_OFFSET sub_begin,
 							  TPIE_OS_OFFSET sub_end,
-							  stream_base<T> **sub_stream);
+							  base_t **sub_stream);
 	
 			// Destructor
 			~stream_mmap ();
@@ -593,7 +594,7 @@ namespace tpie {
 // the constructor above in order to get around the fact that one
 // cannot have virtual constructors.
 		template <class T>
-			err stream_mmap<T>::new_substream (stream_type st, TPIE_OS_OFFSET sub_begin, TPIE_OS_OFFSET sub_end, stream_base < T > **sub_stream) {
+			err stream_mmap<T>::new_substream (stream_type st, TPIE_OS_OFFSET sub_begin, TPIE_OS_OFFSET sub_end, base_t **sub_stream) {
 			// Check permissions.
 	
 			if ((st != READ_STREAM) && ((st != WRITE_STREAM) || m_readOnly)) {
@@ -610,7 +611,7 @@ namespace tpie {
 			stream_mmap < T > *sub =
 				new stream_mmap < T > (this, st, sub_begin, sub_end);
 	
-			*sub_stream = dynamic_cast<stream_base < T > *>(sub);
+			*sub_stream = dynamic_cast<base_t *>(sub);
 	
 			return NO_ERROR;
 		}
