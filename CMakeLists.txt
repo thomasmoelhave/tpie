@@ -48,6 +48,7 @@ option(DEBUG_ASSERTIONS "Enable tpie_assert." ON)
 option(TPL_LOGGING "Enable tpie logging." ON)
 
 if (COMPILE_TEST)
+	ENABLE_TESTING()
 	add_subdirectory(test)
 	add_subdirectory(apps)
 endif (COMPILE_TEST)

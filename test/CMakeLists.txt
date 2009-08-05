@@ -47,3 +47,5 @@ add_tpie_test(test_priority_queue)
 if(NOT WIN32)
   add_subdirectory(speed_regression)
 endif(NOT WIN32)
+
+add_subdirectory(unit)
