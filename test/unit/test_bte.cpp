@@ -16,6 +16,9 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
+#include "../app_config.h"
+
+#include <tpie/portability.h>
 
 #include <tpie/bte/stream_stdio.h>
 #include <tpie/bte/stream_ufs.h>
