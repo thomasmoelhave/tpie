@@ -20,7 +20,7 @@
 #include <tpie/bte/stream_stdio.h>
 #include <tpie/bte/stream_ufs.h>
 #include <tpie/bte/stream_mmap.h>
-//#include <tpie/bte/stream_cache.h>
+#include <tpie/bte/stream_cache.h>
 #include <tpie/bte/err.h>
 #include <cstring>
 #include <cstdlib>
@@ -31,10 +31,11 @@ using namespace tpie::bte;
 using namespace std;
 
 #define ERR(x) {cerr << x << endl; return 1;}
+const size_t size = 1024*1024*10;
 
 template <class T> 
 int test_bte(T & bte, char * test) {
-	const size_t size = 1024*1024*10;
+
 	if(!strcmp(test,"basic")) {
 		srand(42);
 		for(size_t i= 0; i < size; ++i) 
@@ -80,9 +81,9 @@ int main(int argc, char **argv) {
 	if(!strcmp(argv[1],"stdio")) {
 		stream_stdio<int> stream("/tmp/stream", WRITE_STREAM);
 		return test_bte(stream, argv[2]);
-/*	} else if(!strcmp(argv[1],"cache")) {
-		stream_cache<int> stream("/tmp/stream", WRITE_STREAM);
-		return test_bte(stream, argv[2]);*/
+	} else if(!strcmp(argv[1],"cache")) {
+		stream_cache<int> stream("/tmp/stream", WRITE_STREAM, size*sizeof(int));
+		return test_bte(stream, argv[2]);
 #ifndef WIN32
 	} else if(!strcmp(argv[1],"mmap")) {
 		stream_mmap<int> stream("/tmp/stream", WRITE_STREAM);
