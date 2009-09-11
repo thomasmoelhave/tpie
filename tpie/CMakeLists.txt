@@ -3,6 +3,8 @@ set (AMI_HEADERS
 		block.h
 		btree.h
 		cache.h
+		cache_base.h
+		cache_lru.h
 		coll_base.h
 		coll.h
 		coll_single.h
