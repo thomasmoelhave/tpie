@@ -235,8 +235,6 @@ TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound,
 	//available
 	TPIE_OS_SIZE_T high = memory_available()-space_overhead();
 
-	const TPIE_OS_SIZE_T MEGA=1024*1024;
-
 	TP_LOG_DEBUG_ID("\n- - - - - - - MEMORY SEARCH - - - - - -\n");
 
 	if (high< low) {
@@ -251,7 +249,7 @@ TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound,
 		TP_LOG_DEBUG_ID("Successfully allocated " << high << " bytes.\n");
 		return high;
 	} catch (...) {
-		TP_LOG_DEBUG_ID("Failed to get " << high/MEGA << " megabytes of memory. "
+		TP_LOG_DEBUG_ID("Failed to get " << high/(1024*1024) << " megabytes of memory. "
 			<< "Performing binary search to find largest amount "
 			<< "of memory available. This might take a few moments.\n");
 	}
@@ -261,7 +259,7 @@ TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound,
 		char* mem = new char[low];
 		delete[] mem;
 	} catch (...) {
-		TP_LOG_DEBUG_ID("Failed to get lower limit" << low/MEGA << " megabytes of memory. Aborting\n. ");
+		TP_LOG_DEBUG_ID("Failed to get lower limit" << low/(1024*1024) << " megabytes of memory. Aborting\n. ");
 		return 0;
 	}
 
