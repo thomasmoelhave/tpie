@@ -420,7 +420,7 @@ namespace tpie {
 				
 					// what does this do??? Rajiv
 					// Create and map in the header.
-					if (TPIE_OS_LSEEK(m_fileDescriptor, m_osBlockSize - 1, TPIE_OS_FLAG_SEEK_SET) != m_osBlockSize - 1) {
+					if (TPIE_OS_LSEEK(m_fileDescriptor, m_osBlockSize - 1, TPIE_OS_FLAG_SEEK_SET) != static_cast<TPIE_OS_OFFSET>(m_osBlockSize - 1)) {
 		    
 						m_status = STREAM_STATUS_INVALID;
 						m_osErrno = errno;
@@ -726,7 +726,7 @@ namespace tpie {
 			}
 	
 			// Make sure we are not currently at the EOS.
-			if (m_fileOffset + sizeof (T) > m_logicalEndOfStream) {
+			if (static_cast<TPIE_OS_OFFSET>(m_fileOffset + sizeof (T)) > m_logicalEndOfStream) {
 				return END_OF_STREAM;
 			}
 	
@@ -1032,7 +1032,8 @@ namespace tpie {
 			// If the underlying file is not at least long enough to contain
 			// the header block, then, assuming the stream is writable, we have
 			// to create the space on disk by doing an explicit write().
-			if ((file_end = TPIE_OS_LSEEK(m_fileDescriptor, 0, TPIE_OS_FLAG_SEEK_END)) < m_osBlockSize) {
+			if ((file_end = TPIE_OS_LSEEK(m_fileDescriptor, 0, TPIE_OS_FLAG_SEEK_END)) 
+				< static_cast<TPIE_OS_OFFSET>(m_osBlockSize) ) {
 				if (m_readOnly) {
 		
 					m_status = STREAM_STATUS_INVALID;
@@ -1109,7 +1110,8 @@ namespace tpie {
 			// If the underlying file is not at least long enough to contain
 			// the header block, then, assuming the stream is writable, we have
 			// to create the space on disk by doing an explicit write().
-			if ((file_end = TPIE_OS_LSEEK(m_fileDescriptor, 0, TPIE_OS_FLAG_SEEK_END)) < m_osBlockSize) {
+			if ((file_end = TPIE_OS_LSEEK(m_fileDescriptor, 0, TPIE_OS_FLAG_SEEK_END)) 
+			< static_cast<TPIE_OS_OFFSET>(m_osBlockSize)) {
 
 				if (m_readOnly) {
 		
@@ -1214,8 +1216,8 @@ namespace tpie {
 	
 	
 			// Rajiv
-			tp_assert (m_fileOffset + sizeof (T) <= m_fileLength,
-					   "Advanced too far somehow.");
+			tp_assert (static_cast<TPIE_OS_OFFSET>(m_fileOffset + sizeof (T)) <=
+				m_fileLength, "Advanced too far somehow.");
 
 			return retval;
 		}
@@ -1242,7 +1244,9 @@ namespace tpie {
 					m_fileLength);
 	
 			// removed -1 from rhs of comparison below Rajiv
-			if (m_fileLength < blockOffset + m_header->m_blockSize) {
+			if (m_fileLength < 
+				  static_cast<TPIE_OS_OFFSET>(blockOffset + m_header->m_blockSize) ) 
+			{
 				if (m_readOnly) {
 					return END_OF_STREAM;
 				} 
@@ -1253,8 +1257,8 @@ namespace tpie {
 				}
 			}
 			// this is what we just fixed. Rajiv
-			tp_assert (m_fileOffset + sizeof (T) <= m_fileLength,
-					   "Advanced too far somehow.");
+			tp_assert (static_cast<TPIE_OS_OFFSET>(m_fileOffset + sizeof (T))
+					<= m_fileLength, "Advanced too far somehow.");
 	
 			// If the current block is already mapped in by this process then
 			// some systems, (e.g. HP-UX), will not allow us to map it in
@@ -1302,7 +1306,7 @@ namespace tpie {
 				// took out the SYSTYPE_BSD ifdef for convenience
 				// MAP_VARIABLE the first time round
 				// (m_currentBlock ? MAP_FIXED : MAP_VARIABLE) |
-				if (blockOffset + m_header->m_blockSize > m_fileLength) {
+				if (static_cast<TPIE_OS_OFFSET>(blockOffset + m_header->m_blockSize) > m_fileLength) {
 					grow_file(blockOffset);
 				}
 	    

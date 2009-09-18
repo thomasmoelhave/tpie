@@ -35,21 +35,21 @@ using namespace tpie::bte;
 using namespace std;
 
 #define ERR(x) {cerr << x << endl; return 1;}
-const size_t size = 1024*1024*10;
+const TPIE_OS_OFFSET size = 1024*1024*10;
 
 template <class T> 
 int test_bte(T & bte, char * test) {
 
 	if(!strcmp(test,"basic")) {
 		srand(42);
-		for(size_t i= 0; i < size; ++i) 
+		for(TPIE_OS_OFFSET i= 0; i < size; ++i) 
 			if(bte.write_item(rand()) != NO_ERROR) ERR("Write failed");
 		if(bte.stream_len() != size) ERR("Stream size wrong");
 		if(bte.tell() != size) ERR("Tell failed");
 		if(bte.seek(0) != NO_ERROR) ERR("Seek failed");
 		if(bte.tell() != 0) ERR("Tell failed");
 		srand(42);
-		for(size_t i= 0; i < size; ++i) {
+		for(TPIE_OS_OFFSET i= 0; i < size; ++i) {
 			int * x;
 			if(bte.read_item(&x) != NO_ERROR) ERR("Read failed");
 			if(*x != rand()) ERR("Wrong value returned");
@@ -59,7 +59,7 @@ int test_bte(T & bte, char * test) {
 		int * buf = new int[size];
 		srand(42);
 		if(bte.seek(0) != NO_ERROR) ERR("Seek failed (0)");
-		for(size_t i =0; i < size; ++i) {
+		for(TPIE_OS_OFFSET i =0; i < size; ++i) {
 			int r = rand();
 			buf[i] = r;
 			if(bte.write_item(r)) ERR("Write failed");
@@ -77,8 +77,8 @@ int test_bte(T & bte, char * test) {
 	} else if(!strcmp(test,"array")) {
 		srand(42);
 		int buf[1024];
-		for(size_t i= 0; i < size; i += 1024) {
-			for(size_t j=0; j < 1024; ++j) buf[j] = rand();
+		for(TPIE_OS_OFFSET i= 0; i < size; i += 1024) {
+			for(TPIE_OS_OFFSET j=0; j < 1024; ++j) buf[j] = rand();
 			if(bte.write_array(buf, 1024) != NO_ERROR) ERR("Write failed");
 		}
 		if(bte.stream_len() != size) ERR("Stream size wrong");
@@ -86,10 +86,10 @@ int test_bte(T & bte, char * test) {
 		if(bte.seek(0) != NO_ERROR) ERR("Seek failed");
 		if(bte.tell() != 0) ERR("Tell failed");
 		srand(42);
-		for(size_t i= 0; i < size; i += 1024) {
+		for(TPIE_OS_OFFSET i= 0; i < size; i += 1024) {
 			size_t x=1024;
 			if(bte.read_array(buf, x) != NO_ERROR || x != 1024) ERR("Write failed");
-			for(size_t j=0; j < 1024; ++j) 	if(buf[j] != rand()) ERR("Wrong value returned");
+			for(TPIE_OS_OFFSET j=0; j < 1024; ++j) 	if(buf[j] != rand()) ERR("Wrong value returned");
 		}
 		return 0;
 	}
