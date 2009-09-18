@@ -241,6 +241,8 @@ namespace tpie {
 			      "BTE_collection_ufs internal error: NULL stack pointer");
 		    // TODO: this is a costly operation. improve!
 		    TPIE_OS_OFFSET slen = freeblock_stack_->stream_len();
+			//silence compiler warning about unused slen if tp_assert is disabled
+			slen=slen;
 		    tp_assert(slen > 0, "BTE_collection_ufs internal error: empty stack");
 
 		    if ((retval = freeblock_stack_->pop(&lbn)) != NO_ERROR) {
@@ -572,7 +574,11 @@ namespace tpie {
     
 	template<class BIDT>
 	err collection_base<BIDT>::read_header(std::string& bcc_name) {
-	
+
+		//silence compiler warnings, the name is used in the logging routines
+		//which may be empty depending on the settings of the logging system
+		bcc_name=bcc_name;
+
 	    char *tmp_buffer = new char[os_block_size_];
 	
 	    if (TPIE_OS_LSEEK(bcc_fd_, 0, TPIE_OS_FLAG_SEEK_SET) != 0) {
@@ -637,6 +643,9 @@ namespace tpie {
 
 	template<class BIDT>
 	err collection_base<BIDT>::write_header(std::string& bcc_name) {
+		//silence compiler warnings, the name is used in the logging routines
+		//which may be empty depending on the settings of the logging system
+		bcc_name=bcc_name;
 	
 	    if (TPIE_OS_LSEEK(bcc_fd_, 0, TPIE_OS_FLAG_SEEK_SET) != 0) {
 

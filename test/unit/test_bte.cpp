@@ -115,7 +115,7 @@ int main(int argc, char **argv) {
 	} else if(!strcmp(argv[1],"ufs")) {
 		stream_ufs<int> stream("/tmp/stream", WRITE_STREAM);
 		return test_bte(stream, argv[2]);
-#endif WIN32
+#endif 
 	}
 	return 1;
 }
