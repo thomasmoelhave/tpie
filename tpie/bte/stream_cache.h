@@ -59,14 +59,15 @@ namespace tpie {
 			T *data_hard_end;
 			unsigned int substream_level;
 			unsigned int valid;
-			unsigned int r_only;
+			bool r_only;
+			bool w_only;
     
 			stream_cache(void);
 
 		public:
 	
 			// Constructors
-			stream_cache(const std::string& path, stream_type st, TPIE_OS_OFFSET max_len); 
+			stream_cache(const std::string& /*path*/, stream_type st, TPIE_OS_OFFSET max_len); 
 	
 			// A psuedo-constructor for substreams.
 			err new_substream(stream_type st, 
@@ -91,7 +92,8 @@ namespace tpie {
 			err read_item(T **elt);
 			err write_item(const T &elt);
 
-			int read_only(void) { return r_only; };
+			bool read_only(void) { return r_only; };
+			bool write_only(void) { return w_only; };
 	
 			int available_streams(void) { return -1; };    
 
@@ -106,7 +108,7 @@ namespace tpie {
 		};
     
 		template<class T>
-		stream_cache<T>::stream_cache(const std::string& path, 
+		stream_cache<T>::stream_cache(const std::string& /*path*/, 
 									  stream_type st,
 									  TPIE_OS_OFFSET max_len) {
 
@@ -116,13 +118,18 @@ namespace tpie {
 			switch (st) {
 
 			case READ_STREAM:
+				r_only=true; //intentional fallthrough
 			case APPEND_STREAM:
+				r_only=false;
+				w_only=true;
 				valid = 0;
 
 				break;
 
+			case WRITEONLY_STREAM:
+				w_only = true; //intentional fallthrough
 			case WRITE_STREAM:
-				r_only = 0;
+				w_only = r_only = false;
 
 				if (!max_len) {
 					max_len = STREAM_CACHE_DEFAULT_MAX_LEN;
@@ -172,6 +179,7 @@ namespace tpie {
 				ss->substream_level = substream_level + 1;
 				ss->current = ss->data = data + sub_begin;
 				ss->data_max = ss->data_hard_end = data + sub_end + 1;
+				ss->w_only= (st == WRITEONLY_STREAM);
 
 				*sub_stream = (base_t *)ss;                       
 
@@ -237,6 +245,10 @@ namespace tpie {
 
 		template<class T>
 		err stream_cache<T>::read_item(T **elt) {
+
+			if (w_only) {	    
+				return PERMISSION_DENIED;
+			}
 
 			if (current >= data_max) {
 				return END_OF_STREAM;
