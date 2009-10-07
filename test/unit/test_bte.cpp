@@ -29,7 +29,6 @@
 #include <cstring>
 #include <cstdlib>
 #include <iostream>
-#include <stdint.h>
 using namespace tpie::bte;
 using namespace std;
 
