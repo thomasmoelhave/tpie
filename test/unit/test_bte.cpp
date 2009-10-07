@@ -28,7 +28,6 @@
 #include <tpie/bte/err.h>
 #include <cstring>
 #include <cstdlib>
-#include <unistd.h>
 #include <iostream>
 #include <stdint.h>
 using namespace tpie::bte;
@@ -98,7 +97,7 @@ int test_bte(T & bte, char * test, ERROR_ENUM errorval) {
 
 int main(int argc, char **argv) {
 	if(argc != 3) return 1;
-	unlink("/tmp/stream");
+	remove("/tmp/stream");
 	if(!strcmp(argv[1],"stdio")) {
 		stream_stdio<int> stream("/tmp/stream", WRITE_STREAM);
 		return test_bte<stream_stdio<int>,tpie::bte::err>
