@@ -715,7 +715,17 @@ inline int TPIE_OS_MSYNC(char* addr, size_t len,int flags) {
 
 
 #ifdef _WIN32
+inline bool TPIE_OS_EXISTS(const std::string & path) {
+	return (GetFileAttributes(fileName) != 0xFFFFFFFF);
+}
+#else
+inline bool TPIE_OS_EXISTS(const std::string & path) {							
+	return access(path.c_str(),R_OK) == 0 || errno == EACCES;
+}
+#endif
 
+
+#ifdef _WIN32
 // Force the use of truncate to lengthen a collection under WIN32, due
 // to mapping issues.
 #ifdef BTE_COLLECTION_USE_FTRUNCATE

@@ -24,6 +24,8 @@
 #include <cstring>
 #include <tpie/tempname.h>
 #include <string>
+#include <tpie/portability.h>
+#include <stdexcept>
 
 using namespace tpie;
 
@@ -53,10 +55,16 @@ std::string tempname::tpie_name(const std::string& post_base, const std::string&
 	else 
 		base_dir = tempname::get_actual_path();
 
-	if(post_base.empty())
-		return base_dir + TPIE_OS_DIR_DELIMITER + base_name + "_" + tpie_mktemp() + "." + extension;
-	else 
-		return base_dir + TPIE_OS_DIR_DELIMITER + base_name + "_" + post_base + "_" + tpie_mktemp() + "." + extension;
+	std::string path;	
+	for(int i=0; i < 42; ++i) {
+		if(post_base.empty())
+			path = base_dir + TPIE_OS_DIR_DELIMITER + base_name + "_" + tpie_mktemp() + "." + extension;
+		else 
+			path = base_dir + TPIE_OS_DIR_DELIMITER + base_name + "_" + post_base + "_" + tpie_mktemp() + "." + extension;
+		if ( !TPIE_OS_EXISTS(path) )
+			return path;
+	}
+	throw std::runtime_error("Unable to find free name for temporery file");
 }
 
 std::string tempname::get_actual_path() {
@@ -90,6 +98,8 @@ std::string tempname::tpie_mktemp()
 	result +=
 		chars[counter/chars_count] +
 		chars[counter%chars_count] +
+		chars[TPIE_OS_RANDOM() % chars_count] +
+		chars[TPIE_OS_RANDOM() % chars_count] +
 		chars[TPIE_OS_RANDOM() % chars_count] +
 		chars[TPIE_OS_RANDOM() % chars_count] +
 		chars[TPIE_OS_RANDOM() % chars_count] +
