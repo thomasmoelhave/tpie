@@ -115,11 +115,11 @@ int main(int argc, char **argv) {
 		stream_mmap<int> stream("/tmp/stream", WRITE_STREAM);
 		return test_bte<stream_mmap<int>,tpie::bte::err>
 				(stream, argv[2], tpie::bte::NO_ERROR);
+#endif 
 	} else if(!strcmp(argv[1],"ufs")) {
 		stream_ufs<int> stream("/tmp/stream", WRITE_STREAM);
 		return test_bte<stream_ufs<int>,tpie::bte::err>
 				(stream, argv[2], tpie::bte::NO_ERROR);
-#endif 
 	}
 	return 1;
 }

@@ -100,6 +100,7 @@ template<class T, class bte_t=BTE_STREAM<T> >
 class stream {
     
 public:
+	typedef T item_type;
     
     // We have a variety of constructors for different uses.
 
