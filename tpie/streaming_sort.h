@@ -39,6 +39,8 @@ namespace tpie {
 	public:
 		typedef typename dest_t::item_type item_type;
 	private:
+		typedef std::pair<item_type, TPIE_OS_SIZE_T> queue_item;
+		
 		struct icomp_t {
 			comp_t comp;
 			key_t key;
@@ -50,21 +52,133 @@ namespace tpie {
 		
 		icomp_t comp;
 		dest_t & dest;
-		std::vector<item_type> mem;
-	public:
-		streaming_sort(dest_t & d, comp_t c=comp_t(), key_t k=key_t()):
-			comp(c,k), dest(d) {};
+		item_type * buffer;
+		
+		TPIE_OS_SIZE_T bufferSize;
+		TPIE_OS_SIZE_T bufferIndex;
+		TPIE_OS_OFFSET size;
 
-		void begin(TPIE_OS_OFFSET size=0) {}
+		std::queue< std::string > files;
+	public:
+
+
+		streaming_sort(dest_t & d, comp_t c=comp_t(), key_t k=key_t()):
+			comp(c,k), dest(d) {
+			bufferSize = 12;
+		};
+
+		void setMemoryUsage(TPIE_OS_SIZE_T memory) {
+			this->bufferSize = (
+				memory 
+				- 1024 * 10  //Substract the size of a single stream sink (TODO fix)
+				- 1024 * 500 //Reserve space to store the names of the temporery files
+				- sizeof(streaming_sort))
+				/ sizeof(item_type);
+		}
+
+		void setMemoryUsage(double f=1.0) {
+			setMemoryUsage(1024*1024*50 * f);
+		}
+
+		void begin(TPIE_OS_OFFSET size=0) {
+			if (size > 0 && size <= bufferSize)
+				buffer = new item_type[size];
+			else
+				buffer = new item_type[bufferSize];
+			bufferIndex=0;
+			size=0;
+		}
+
+		void flush() {
+			std::string tmp = tempname::tpie_name("ssort");
+			ami::stream<item_type> stream(tmp);
+			stream_sink<ami::stream<item_type> > sink(&stream);
+			sink.begin(bufferIndex);
+			
+			item_type * end=buffer+bufferIndex;
+			std::sort(buffer, end, comp);
+			for(item_type * item=buffer; item != end; ++item)
+				sink.push(*item);
+			size += bufferIndex;
+			bufferIndex = 0;
+			files.push(tmp);
+		}
+
+		struct qcomp_t: public std::binary_function<queue_item, queue_item, bool > {
+			icomp_t comp;
+			qcomp_t (icomp_t & _): comp(_) {}
+			inline bool operator()(const queue_item & a, const queue_item & b) const {
+				return !comp(a.first, b.first);
+			}
+		};
+		
+
+		template <class T> 
+		void merge(TPIE_OS_SIZE_T count, T & out) {
+			ami::stream<item_type> ** streams = new ami::stream<item_type> *[count];
+
+			qcomp_t c(comp);
+			std::priority_queue<queue_item, std::vector<queue_item>, qcomp_t> queue(c);
+			for (int i=0; i < count; ++i) {
+				streams[i] = new ami::stream<item_type>(files.front());
+				files.pop();
+				item_type * item;
+				if (streams[i]->read_item(&item) != ami::END_OF_STREAM)
+					queue.push( make_pair(*item, i) );
+			}
+			
+			while (!queue.empty()) {
+				queue_item p = queue.top();
+				queue.pop();
+				out.push(p.first);
+				
+				item_type * item;
+				if (streams[p.second]->read_item(&item) != ami::END_OF_STREAM)
+					queue.push( make_pair(*item, p.second) );
+			}
+			
+			
+			for (int i=0; i < count; ++i)
+				delete streams[i];
+			delete[] streams;
+		}
+		
 		void end() {
-			std::sort(mem.begin(), mem.end(), comp);
-			dest.begin(mem.size());
-			for(size_t i=0; i < mem.size(); ++i)
-				dest.push(mem[i]);
+			if (files.size() == 0) {
+				item_type * end = buffer+bufferIndex;
+				std::sort(buffer, end, comp);
+				dest.begin(bufferIndex);		
+				for(item_type * item=buffer; item != end; ++item)
+					dest.push(*item);
+				dest.end();
+				delete[] buffer;
+				return;
+			}
+			flush();
+			delete[] buffer;
+			
+			TPIE_OS_SIZE_T fanout=1024;
+			
+			while(files.size() > fanout) {
+				std::string tmp = tempname::tpie_name("ssort");
+				
+				ami::stream<item_type> stream(tmp);
+				stream_sink<ami::stream<item_type> > sink(&stream);
+				sink.begin();
+				merge(fanout, sink);
+				sink.end();
+				files.push(tmp);
+			}
+			
+			dest.begin(size);
+			merge(files.size(), dest);
 			dest.end();
 		}
-		void push(const item_type & item) {
-			mem.push_back(item);
+
+
+		inline void push(const item_type & item) {
+			if (bufferIndex >= bufferSize) flush();
+			buffer[bufferIndex++] = item;
 		}
 	};
 
