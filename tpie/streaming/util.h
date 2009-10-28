@@ -16,12 +16,22 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
+#ifndef _TPIE_STREAMING_UTIL_H
+#define _TPIE_STREAMING_UTIL_H
 
-#ifndef _TPIE_STREAMING_H
-#define _TPIE_STREAMING_H
+namespace tpie {
+	namespace streaming {
+		template <class s_t>
+		class null_sink {
+		public:
+			typedef typename s_t::item_type item_type;
+			inline void begin(TPIE_OS_OFFSET size=0) {}
+			inline void push(const item_type & item) {}
+			inline void end() {}
+		};
 
-#include <tpie/streaming/stream.h>
-#include <tpie/streaming/buffer.h>
-#include <tpie/streaming/util.h>
-#include <tpie/streaming/sort.h>
-#endif //_TPIE_STREAMING_H
+	}
+}
+
+
+#endif //_TPIE_STREAMING_UTIL_H

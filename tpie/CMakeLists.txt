@@ -32,6 +32,7 @@ set (AMI_HEADERS
 		stream_arith.h
 		stream_compatibility.h
 		stream.h
+		streaming.h
 		)
 
 set (BTE_HEADERS
@@ -50,6 +51,14 @@ set (BTE_HEADERS
 		bte/stream_stdio.h
 		bte/stream_ufs.h
 	)
+
+set (STREAMING_HEADERS
+  streaming/sort.h
+  streaming/buffer.h
+  streaming/stream.h
+  streaming/util.h
+  )
+
 
 set (OTHER_HEADERS
 		bit.h   
@@ -88,7 +97,7 @@ set (OTHER_HEADERS
 		stats_tree.h
 		tempname.h
 		vararray.h
-		)
+	)
 
 set (AMI_SOURCES
 	#	bit_permute.cpp
@@ -117,10 +126,12 @@ source_group("BTE" FILES ${BTE_HEADERS} ${BTE_SOURCES})
 set(AMI ${AMI_HEADERS} ${AMI_SOURCES})
 set(BTE ${BTE_HEADERS} ${BTE_SOURCES})
 set(OTHER ${OTHER_HEADERS} ${OTHER_SOURCES})
+set(STREAMING ${STREAMING_HEADERS})
 
-add_library(tpie ${BTE} ${AMI} ${OTHER})
+add_library(tpie ${BTE} ${AMI} ${OTHER} ${STREAMING})
 
 install(TARGETS tpie DESTINATION ${LIB_INSTALL_DIR}) 
 install(FILES ${OTHER_HEADERS} ${AMI_HEADERS} DESTINATION ${HEADERS_INSTALL_DIR})
 install(FILES ${BTE_HEADERS} DESTINATION ${HEADERS_INSTALL_DIR}/bte)
+install(FILES ${STREAMING_HEADERS} DESTINATION ${HEADERS_INSTALL_DIR}/streaming)
 

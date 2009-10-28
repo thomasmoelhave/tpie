@@ -277,6 +277,13 @@ public:
     ////////////////////////////////////////////////////////////////////////////
     err main_memory_usage(TPIE_OS_SIZE_T *usage,
 			  mem::stream_usage usage_type);
+
+
+
+	////////////////////////////////////////////////////////////////////////////
+    /// Returns the number of bytes that count streams will maximaly consume
+    ////////////////////////////////////////////////////////////////////////////
+	static TPIE_OS_SIZE_T memory_usage(TPIE_OS_SIZE_T count);
   
     ////////////////////////////////////////////////////////////////////////////
     /// Returns a \ref tpie_stats_stream object containing  statistics of 
@@ -573,6 +580,13 @@ private:
     
 	    return NO_ERROR;
 	}
+
+
+template<class T, class bte_t>
+TPIE_OS_SIZE_T stream<T,bte_t>::memory_usage(TPIE_OS_SIZE_T count) {
+	return bte_t::memory_usage(count) + sizeof(stream<T,bte_t>)*count;
+}
+	
 
 // Query memory usage
 	template<class T, class bte_t>

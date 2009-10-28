@@ -17,11 +17,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-#ifndef _TPIE_STREAMING_H
-#define _TPIE_STREAMING_H
+namespace tpie {
+namespace streaming {
 
-#include <tpie/streaming/stream.h>
-#include <tpie/streaming/buffer.h>
-#include <tpie/streaming/util.h>
-#include <tpie/streaming/sort.h>
-#endif //_TPIE_STREAMING_H
+
