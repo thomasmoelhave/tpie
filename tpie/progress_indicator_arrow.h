@@ -129,8 +129,8 @@ namespace tpie {
 
 	virtual void refresh() {
 	    //  Compute the relative length of the arrow.
-	    TPIE_OS_OFFSET progress = m_indicatorLength * 
-		(m_current-m_minRange)/(m_maxRange-m_minRange); 
+	    TPIE_OS_OFFSET progress = (m_maxRange != m_minRange ) ? 
+			m_indicatorLength * (m_current-m_minRange)/(m_maxRange-m_minRange) : 0; 
 
 	    //  Make sure that the first item gets printed.
 	    if (progress == 0) progress = 1;
