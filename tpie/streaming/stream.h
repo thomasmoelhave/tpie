@@ -40,7 +40,7 @@ public:
 	}
 
 	static TPIE_OS_SIZE_T memory(TPIE_OS_SIZE_T cnt=1) {
-		return sizeof(stream_source)*cnt + stream_t::memory(cnt);
+		return sizeof(stream_source)*cnt + stream_t::memory_usage(cnt);
 	}
 };
 
@@ -61,14 +61,14 @@ public:
 	inline const item_type & pull() {
 		item_type * item;
 		stream->read_item(&item);
-		return &item;
+		return *item;
 	}
 	
 	static TPIE_OS_SIZE_T memory(TPIE_OS_SIZE_T cnt=1) {
-		return sizeof(pull_stream_source)*cnt + stream_t::memory(cnt);
+		return sizeof(pull_stream_source)*cnt + stream_t::memory_usage(cnt);
 	}
 
-	void free();
+	void free() {}
 };
 
 
@@ -87,7 +87,7 @@ public:
 	inline void end() {}
 	
 	static TPIE_OS_SIZE_T memory(TPIE_OS_SIZE_T cnt=1) {
-		return sizeof(stream_sink)*cnt + stream_t::memory(cnt);
+		return sizeof(stream_sink)*cnt + stream_t::memory_usage(cnt);
 	}
 };
 

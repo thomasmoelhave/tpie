@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <tpie/streaming/stream.h>
 #include <tpie/streaming/memory.h>
+#include <iostream>
 
 namespace tpie {
 namespace streaming {
@@ -59,18 +60,19 @@ protected:
 	TPIE_OS_SIZE_T bufferIndex;
 	TPIE_OS_OFFSET size;
 	
-	std::string file_base;
-	TPIE_OS_SIZE_T next_file;
+	std::string fileBase;
+	TPIE_OS_SIZE_T firstFile;
+	TPIE_OS_SIZE_T nextFile;
 
 	TPIE_OS_SIZE_T baseMinMem() {
-		return sizeof(super_t) + file_base.capacity() + stream_sink< ami::stream<item_type> >::memory();
+		return sizeof(super_t) + fileBase.capacity() + stream_sink< ami::stream<item_type> >::memory();
 	}
 
 public:
 	sort_base(comp_t c=comp_t(), key_t k=key_t()):
 		comp(c,k) {
 		bufferSize = 12;
-		file_base = tempname::tpie_name("ssort");
+		fileBase = tempname::tpie_name("ssort");
 	};
 	
 	TPIE_OS_SIZE_T miminumInMemony() {
@@ -82,25 +84,29 @@ public:
 	}
 	
 	void begin(TPIE_OS_OFFSET size=0) {
-		bufferSize = (min(memoryIn(), memoryOut()) - miminumInMemony()) / sizeof(item_t);
+		TPIE_OS_SIZE_T mem = min(memoryIn(), memoryOut()) - miminumInMemony();
+		//TODO ensure that mem is less then "consecutive_memory_available"
+		bufferSize = mem / sizeof(item_t);
+		bufferSize = 3;
 		if (size > 0 && size <= bufferSize)
 			buffer = new item_type[size];
 		else
 			buffer = new item_type[bufferSize];
 		bufferIndex=0;
 		size=0;
-		next_file = 0;
+		firstFile = 0;
+		nextFile = 0;
 	}
 	
 	std::string name(TPIE_OS_SIZE_T number) {
 		std::ostringstream ss;
-		ss << file_base << "_" << number;
+		ss << fileBase << "_" << number;
 		return ss.str();
 	}
 
 
 	void flush() {
-		ami::stream<item_type> stream( name(next_file) );
+		ami::stream<item_type> stream( name(nextFile) );
 		stream_sink<ami::stream<item_type> > sink(&stream);
 		sink.begin(bufferIndex);
 		
@@ -111,53 +117,98 @@ public:
 		size += bufferIndex;
 		bufferIndex = 0;
 
-		++next_file;
+		++nextFile;
 	}
 	
-	struct qcomp_t: public std::binary_function<queue_item, queue_item, bool > {
-		icomp_t comp;
-		qcomp_t (icomp_t & _): comp(_) {}
-		inline bool operator()(const queue_item & a, const queue_item & b) const {
-			return !comp(a.first, b.first);
+
+	class Merger {
+	public:
+		struct qcomp_t: public std::binary_function<queue_item, queue_item, bool > {
+			icomp_t comp;
+			qcomp_t (const icomp_t & _): comp(_) {}
+			inline bool operator()(const queue_item & a, const queue_item & b) const {
+				return !comp(a.first, b.first);
+			}
+		};
+		
+		qcomp_t comp;
+		std::string fileBase;
+		TPIE_OS_SIZE_T first;
+		TPIE_OS_SIZE_T last;
+		ami::stream<item_type> ** streams;
+		pull_stream_source< ami::stream<item_type> > ** sources;
+		item_type item;
+		std::priority_queue<queue_item, std::vector<queue_item>, qcomp_t> queue;
+		
+		std::string name(TPIE_OS_SIZE_T number) {
+			std::ostringstream ss;
+			ss << fileBase << "_" << number;
+			return ss.str();
+		}
+		
+		Merger(const std::string & fb, const icomp_t & c, TPIE_OS_SIZE_T f, TPIE_OS_SIZE_T l)
+			: comp(c), fileBase(fb), first(f), last(l), queue(comp)
+		{
+			streams = new ami::stream<item_type> *[last-first];
+			sources = new pull_stream_source< ami::stream<item_type> > *[last-first];
+
+			for (int i=0; i < last-first; ++i) {
+				streams[i] = new ami::stream<item_type>( name(i+first) );
+				sources[i] = new pull_stream_source< ami::stream<item_type> >( streams[i] );
+				item_type * item;
+				if (!sources[i]->atEnd()) 
+					queue.push( make_pair(sources[i]->pull() , i) );
+			}
+		}
+		
+		~Merger() {
+			for (int i=0; i < last-first; ++i) {
+				sources[i]->free();
+				delete streams[i];
+				delete sources[i];
+				remove(name(i+first).c_str());
+			}
+			delete[] streams;
+			delete[] sources;
+		}
+		
+		inline item_type & pull() {
+			queue_item p = queue.top();
+			item = p.first;
+			queue.pop();
+			if (!sources[p.second]->atEnd())
+ 				queue.push( make_pair(sources[p.second]->pull() , p.second) );
+			return item;
+		}
+
+		inline bool atEnd() {
+			return queue.empty();
 		}
 	};
+	
+	
+	template <class T> 
+	void merge(TPIE_OS_SIZE_T first, TPIE_OS_SIZE_T last, T & out) {
+		Merger merger(fileBase, comp, first, last);
+		while (!merger.atEnd())
+			out.push(merger.pull());
+	}
+		
+	void baseMerge(TPIE_OS_SIZE_T arity) {
+		TPIE_OS_SIZE_T highArity  = memory_fits< pull_stream_source< ami::stream<item_type> > >::fits(MM_manager.memory_available() - baseMinMem());
+		//TODO analasys of what yields the lowest number of IO's is required
+		while( nextFile - firstFile > arity ) {
+			TPIE_OS_SIZE_T count = std::min(nextFile - firstFile - arity+1, highArity);
+ 			ami::stream<item_type> stream(name(nextFile));
+ 			stream_sink<ami::stream<item_type> > sink(&stream);
+ 			sink.begin();
+ 			merge(firstFile, firstFile+count, sink);
+ 			sink.end();
+			firstFile += count;
+			nextFile += 1;
+		}
+	}
 
-	class merger {
-
-	};
-	
-template <class T>
-	
-	
-// 	template <class T> 
-// 	void merge(TPIE_OS_SIZE_T count, T & out) {
-// 		ami::stream<item_type> ** streams = new ami::stream<item_type> *[count];
-		
-// 		qcomp_t c(comp);
-// 		std::priority_queue<queue_item, std::vector<queue_item>, qcomp_t> queue(c);
-// 		for (int i=0; i < count; ++i) {
-// 			streams[i] = new ami::stream<item_type>(files.front());
-// 			files.pop();
-// 			item_type * item;
-// 			if (streams[i]->read_item(&item) != ami::END_OF_STREAM)
-// 				queue.push( make_pair(*item, i) );
-// 		}
-		
-// 		while (!queue.empty()) {
-// 			queue_item p = queue.top();
-// 			queue.pop();
-// 			out.push(p.first);
-			
-// 			item_type * item;
-// 			if (streams[p.second]->read_item(&item) != ami::END_OF_STREAM)
-// 				queue.push( make_pair(*item, p.second) );
-// 		}
-		
-		
-// 		for (int i=0; i < count; ++i)
-// 			delete streams[i];
-// 		delete[] streams;
-// 	}
 	
 	inline void push(const item_type & item) {
 		if (bufferIndex >= bufferSize) flush();
@@ -202,12 +253,16 @@ public:
 		buffer = NULL;
 		TPIE_OS_SIZE_T arity = memory_fits< pull_stream_source< ami::stream<item_type> > >::fits(memoryOut() - baseMinMem());
 		baseMerge(arity);
-		merger = new typename parent_t::Merger(nextFile-firstFile);
+		merger = new typename parent_t::Merger(parent_t::fileBase, comp, firstFile, nextFile);
 	}
+
+	inline void beginPoll() {}
 
 	inline const item_type & pull() {
 		if (nextFile == 0)
 			return buffer[index++];
+		else
+			return merger->pull();
 	}
 
 
@@ -218,7 +273,7 @@ public:
 			return merger->atEnd();
 	}
 
-	void free() {
+	inline void endPool() {
 		if (buffer) delete[] buffer;
 		buffer = NULL;
 		if (merger) delete merger;
@@ -264,40 +319,13 @@ public:
 		flush();
 		delete[] buffer;
 		buffer = NULL;
-
 		TPIE_OS_SIZE_T arity = memory_fits< pull_stream_source< ami::stream<item_type> > >::fits(memoryOut() - baseMinMem());
+		arity=2;
 		baseMerge(arity);
-		
 		dest.begin(size);
- 		merge(nextFile-firstFile, dest);
+ 		merge(firstFile, nextFile, dest);
 		dest.end();
-	}
-
-
-// 		flush();
-// 		delete[] buffer;
-
-// 		TPIE_OS_SIZE_T highfanout = stream_source<ami::stream<item_type> >::fits(MM_manager.consecutive_memory_available() - minimumMemory())+2;
-// 		TPIE_OS_SIZE_T lowfanout = stream_source<ami::stream<item_type> >::fits(memory() - minimumMemory())+2;
-		
-// 		while(files.size() > lowfanout) {
-
-// 		}
-
-		
-// 		while(files.size() > fanout) {
-// 			std::string tmp = tempname::tpie_name("ssort");
-			
-// 			ami::stream<item_type> stream(tmp);
-// 			stream_sink<ami::stream<item_type> > sink(&stream);
-// 			sink.begin();
-// 			merge(fanout, sink);
-// 			sink.end();
-// 			files.push(tmp);
-// 		}
-		
-// 	}
-	
+	}	
 
 };
 

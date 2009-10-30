@@ -1010,8 +1010,7 @@ namespace tpie {
 	template <class T>
 	TPIE_OS_SIZE_T stream_ufs<T>::memory_usage(TPIE_OS_SIZE_T count) {
 		return (sizeof(stream_ufs<T>) + sizeof(stream_header) +
-			STREAM_UFS_MM_BUFFERS * m_header->m_blockSize +
-			STREAM_UFS_BLOCK_FACTOR * os_block_size() +
+			STREAM_UFS_MM_BUFFERS * STREAM_UFS_BLOCK_FACTOR * os_block_size() +
 				4*MM_manager.space_overhead()) * count;
 	}
 

@@ -119,8 +119,8 @@ namespace tpie {
 	    }
 	
 	    // Inquire the OS block size.
-	    TPIE_OS_SIZE_T os_block_size () const {
-		return TPIE_OS_BLOCKSIZE();
+	    static TPIE_OS_SIZE_T os_block_size () {
+			return TPIE_OS_BLOCKSIZE();
 	    }
 	
 	    const stats_stream& stats() const { 

@@ -16,7 +16,7 @@ set(BTES ${BTES} ufs mmap)
 endif(NOT WIN32)
 set(BTES ${BTES} ami_stream cache stdio)
 
-foreach(test source sink sort) 
+foreach(test source sink sort pull_sort buffer pull_buffer) 
   add_test(streaming_${test} streaming ${test})
 endforeach(test)
 add_test(array_basic test_array basic)

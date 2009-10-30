@@ -21,6 +21,7 @@
 #define _TPIE_STREAMING_MEMORY_H
 
 #include <vector>
+#include <map>
 #include <tpie/portability.h>
 
 namespace tpie {
@@ -33,11 +34,9 @@ struct memory_fits {
 		while(T::memory(high) <= mem)
 			high *= 2;
 		TPIE_OS_SIZE_T low=high/2;
-
 		TPIE_OS_SIZE_T best=low;
 		while(low <= high) {
 			TPIE_OS_SIZE_T c = (high+low)/2;
-			
 			TPIE_OS_SIZE_T m = T::memory(c);
 			if(m <= mem) {
 				best = c;
@@ -48,38 +47,56 @@ struct memory_fits {
 		return best;
 	}
 };
-	
-		
+ 
+
 class memory_base {
-private:
-	double memory_priority;
-	TPIE_OS_SIZE_T mem;
 public:
-	void setMemoryPriority(double priority) {
-		memory_priority=priority;
-	}
-	TPIE_OS_SIZE_T memory() {return mem;}
-	void setMemory(double f) {
-		mem = (double)MM_manager.consecutive_memory_available() * f;
-	}
-	
-	void setMemory(TPIE_OS_SIZE_T m) {
-		mem = m;
-	}
+	enum memory_type {
+		SINGLE, SPLIT, WRAPPER
+	};
+
 	virtual void memoryNext(std::vector<memory_base *> &) {}
 	virtual void memoryPrev(std::vector<memory_base *> &) {}
-	virtual TPIE_OS_SIZE_T minimumMemory() {
-		throw std::runtime_error("minimumMemory() not impremented");
-	}
-	void registerDataStructure(TPIE_OS_SIZE_T id, double priority) {}
-	virtual void isSplit();
+	virtual void dataStructures(std::map<TPIE_OS_SIZE_T, double>) {}
+	virtual memory_type memoryType() = 0;
+};
+
+class memory_single: public memory_base {
+private:
+	double priority;
+	TPIE_OS_SIZE_T allocatedMemory;
+public:
+	memory_single();
+	double memoryPriority();
+	void setMemoryPriority(double priority);
+	TPIE_OS_SIZE_T memory();
+	void setMemory(double f);
+	void setMemory(TPIE_OS_SIZE_T m);
+	memory_base::memory_type memoryType();
+	virtual TPIE_OS_SIZE_T minimumMemory();
 };
 
 class memory_split: public memory_base {
 private:
+	double priorityIn;
+	double priorityOut;
+	double allocatedMemoryIn;
+	double allocatedMemoryOut;
 public:
+	memory_split();
+	double memoryInPriority();
+	void setMemoryInPriority(double p);
+	double memoryOutPriority();
+	void setMemoryOutPriority(double p);
 	TPIE_OS_SIZE_T memoryIn();
 	TPIE_OS_SIZE_T memoryOut();
+	void setMemoryIn(double f);
+	void setMemoryOut(double f);
+	void setMemoryIn(TPIE_OS_SIZE_T m);
+	void setMemoryOut(TPIE_OS_SIZE_T m);
+	virtual TPIE_OS_SIZE_T minimumMemoryIn();
+	virtual TPIE_OS_SIZE_T minimumMemoryOut();
+	memory_base::memory_type memoryType();
 };
 		
 

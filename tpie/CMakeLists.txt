@@ -110,6 +110,7 @@ set (BTE_SOURCES
 	)
 
 set (OTHER_SOURCES
+        streaming/memory.cpp
 	#bit.cpp
 	#bit_matrix.cpp
 	cpu_timer.cpp
