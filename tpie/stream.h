@@ -617,34 +617,16 @@ private:
 
 	template<class T, class bte_t>
 	err stream<T,bte_t>::read_item(T **elt) {
-
-	    err retval = NO_ERROR;
-    
-	    bte::err bte_err = m_bteStream->read_item(elt);
-
-	    switch(bte_err) {
-	    case bte::NO_ERROR:
-		retval = NO_ERROR;
-
-		break;
-
-	    case bte::END_OF_STREAM:
-
-		retval = END_OF_STREAM;
-
-		TP_LOG_DEBUG_ID("eos in read_item");
-
-		break;
-
-	    default:
-		retval = BTE_ERROR;
-
-		TP_LOG_DEBUG_ID("bte error in read_item");
-
-		break;
-	    }
-
-	    return retval;
+		switch(m_bteStream->read_item(elt)) {
+			case bte::NO_ERROR:
+				return NO_ERROR;
+			case bte::END_OF_STREAM:
+				TP_LOG_DEBUG_ID("eos in read_item");
+				return END_OF_STREAM;
+			default:
+				TP_LOG_DEBUG_ID("bte error in read_item");
+				return BTE_ERROR;
+		}
 	}
 
 	template<class T, class bte_t>
