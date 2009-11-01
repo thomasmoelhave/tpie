@@ -96,18 +96,21 @@ int test_bte(T & bte, char * test, ERROR_ENUM errorval) {
 
 int main(int argc, char **argv) {
 	if(argc != 3) return 1;
-	remove("/tmp/stream");
-	if(!strcmp(argv[1],"stdio")) {
-		stream_stdio<int> stream("/tmp/stream", WRITE_STREAM);
+	const std::string temp_stream_name = tpie::tempname::tpie_name();
+	const std::string stream_type = argv[1];
+	std::cout << "using: " << temp_stream_name << std::endl;
+	remove(temp_stream_name.c_str());
+	if(stream_type == "stdio") {
+		stream_stdio<int> stream(temp_stream_name, WRITE_STREAM);
 		return test_bte<stream_stdio<int>,tpie::bte::err>
 				(stream, argv[2], tpie::bte::NO_ERROR);
 
-	} else if(!strcmp(argv[1],"cache")) {
-		stream_cache<int> stream("/tmp/stream", WRITE_STREAM, size*sizeof(int));
+	} else if(stream_type == "cache") {
+		stream_cache<int> stream(temp_stream_name, WRITE_STREAM, size*sizeof(int));
 		return test_bte<stream_cache<int>,tpie::bte::err>
 				(stream, argv[2], tpie::bte::NO_ERROR);
-	} else if(!strcmp(argv[1],"ami_stream")) {
-		tpie::ami::stream<int> stream("/tmp/stream", tpie::ami::WRITE_STREAM);
+	} else if(stream_type == "ami_stream") {
+		tpie::ami::stream<int> stream(temp_stream_name, tpie::ami::WRITE_STREAM);
 		return test_bte<tpie::ami::stream<int>,tpie::ami::err>
 				(stream, argv[2], tpie::ami::NO_ERROR);
 #ifndef WIN32
@@ -116,8 +119,8 @@ int main(int argc, char **argv) {
 		return test_bte<stream_mmap<int>,tpie::bte::err>
 				(stream, argv[2], tpie::bte::NO_ERROR);
 #endif 
-	} else if(!strcmp(argv[1],"ufs")) {
-		stream_ufs<int> stream("/tmp/stream", WRITE_STREAM);
+	} else if(stream_type == "ufs") {
+		stream_ufs<int> stream(temp_stream_name, WRITE_STREAM);
 		return test_bte<stream_ufs<int>,tpie::bte::err>
 				(stream, argv[2], tpie::bte::NO_ERROR);
 	}
