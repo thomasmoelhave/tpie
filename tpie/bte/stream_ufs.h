@@ -902,17 +902,13 @@ namespace tpie {
 	template <class T>
 	inline err stream_ufs<T>::read_item (T ** elt) {
 	
-	    err retval = NO_ERROR;
-	
 	    // Make sure we are not currently at the EOS.
 	    if (m_fileOffset >= m_logicalEndOfStream) {
-
-		tp_assert (m_logicalEndOfStream == m_fileOffset, "Can't read past eos.");
-
-		return END_OF_STREAM;
-
+			tp_assert (m_logicalEndOfStream == m_fileOffset, "Can't read past eos.");
+			return END_OF_STREAM;
 	    }
 
+		err retval;
 	    // Validate the current block.
 	    if ((retval = validate_current ()) != NO_ERROR) {
 			return retval;
@@ -949,8 +945,6 @@ namespace tpie {
 	template <class T>
 	inline err stream_ufs<T>::write_item (const T & elt) {
 	
-	    err retval = NO_ERROR;
-	
 	    // This better be a writable stream.
 	    if (m_readOnly) {
 		return READ_ONLY;
@@ -965,6 +959,7 @@ namespace tpie {
 	    
 	    }
 	
+		err retval;
 	    // Validate the current block.
 	    if ((retval = validate_current ()) != NO_ERROR) {	   
 		return retval;
