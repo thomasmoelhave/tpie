@@ -715,8 +715,8 @@ inline int TPIE_OS_MSYNC(char* addr, size_t len,int flags) {
 
 
 #ifdef _WIN32
-inline bool TPIE_OS_EXISTS(const std::string & path) {
-	return (GetFileAttributes(fileName) != 0xFFFFFFFF);
+inline bool TPIE_OS_EXISTS(const std::string & fileName) {
+	return (GetFileAttributes(fileName.c_str()) != 0xFFFFFFFF);
 }
 #else
 inline bool TPIE_OS_EXISTS(const std::string & path) {							
