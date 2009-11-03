@@ -55,7 +55,6 @@ protected:
 	
 	icomp_t comp;
 	item_type * buffer;
-	
 	TPIE_OS_SIZE_T bufferSize;
 	TPIE_OS_SIZE_T bufferIndex;
 	TPIE_OS_OFFSET size;
@@ -65,9 +64,9 @@ protected:
 	TPIE_OS_SIZE_T nextFile;
 
 	TPIE_OS_SIZE_T baseMinMem() {
-		return sizeof(super_t) + fileBase.capacity() + stream_sink< ami::stream<item_type> >::memory();
+		return memoryBase() + stream_sink< ami::stream<item_type> >::memory();
 	}
-
+	
 public:
 	sort_base(comp_t c=comp_t(), key_t k=key_t()):
 		comp(c,k) {
@@ -75,19 +74,24 @@ public:
 		fileBase = tempname::tpie_name("ssort");
 	};
 	
-	TPIE_OS_SIZE_T miminumInMemony() {
+	TPIE_OS_SIZE_T memoryBase() {
+		return sizeof(super_t) + fileBase.capacity();
+	}
+
+	TPIE_OS_SIZE_T minimumMemoryIn() {
 		return baseMinMem();
 	}
 
-	TPIE_OS_SIZE_T miminumOutMemony() {
+	TPIE_OS_SIZE_T minimumMemoryOut() {
 		return baseMinMem() + pull_stream_source< ami::stream<item_type> >::memory() * 2;
 	}
 	
 	void begin(TPIE_OS_OFFSET size=0) {
-		TPIE_OS_SIZE_T mem = min(memoryIn(), memoryOut()) - miminumInMemony();
+		assert(memoryOut() > minimumMemoryOut());
+		assert(memoryIn() > minimumMemoryOut());
+		TPIE_OS_SIZE_T mem = std::min(memoryIn(), memoryOut()) - minimumMemoryOut();
 		//TODO ensure that mem is less then "consecutive_memory_available"
 		bufferSize = mem / sizeof(item_t);
-		bufferSize = 3;
 		if (size > 0 && size <= bufferSize)
 			buffer = new item_type[size];
 		else
@@ -104,7 +108,6 @@ public:
 		return ss.str();
 	}
 
-
 	void flush() {
 		ami::stream<item_type> stream( name(nextFile) );
 		stream_sink<ami::stream<item_type> > sink(&stream);
@@ -120,7 +123,6 @@ public:
 		++nextFile;
 	}
 	
-
 	class Merger {
 	public:
 		struct qcomp_t: public std::binary_function<queue_item, queue_item, bool > {
@@ -149,15 +151,17 @@ public:
 		Merger(const std::string & fb, const icomp_t & c, TPIE_OS_SIZE_T f, TPIE_OS_SIZE_T l)
 			: comp(c), fileBase(fb), first(f), last(l), queue(comp)
 		{
+			std::cerr << "Sort arity " << last-first << std::endl;
 			streams = new ami::stream<item_type> *[last-first];
 			sources = new pull_stream_source< ami::stream<item_type> > *[last-first];
+			assert(last-first >= 2);
 
 			for (int i=0; i < last-first; ++i) {
 				streams[i] = new ami::stream<item_type>( name(i+first) );
 				sources[i] = new pull_stream_source< ami::stream<item_type> >( streams[i] );
 				item_type * item;
 				if (!sources[i]->atEnd()) 
-					queue.push( make_pair(sources[i]->pull() , i) );
+					queue.push(std::make_pair(sources[i]->pull(), i));
 			}
 		}
 		
@@ -177,7 +181,7 @@ public:
 			item = p.first;
 			queue.pop();
 			if (!sources[p.second]->atEnd())
- 				queue.push( make_pair(sources[p.second]->pull() , p.second) );
+ 				queue.push(std::make_pair(sources[p.second]->pull(), p.second));
 			return item;
 		}
 
@@ -235,7 +239,6 @@ private:
 	using parent_t::baseMerge;
 	typename parent_t::Merger * merger;
 	TPIE_OS_SIZE_T index;
-
 public:
 	typedef item_t item_type;
 
@@ -246,6 +249,7 @@ public:
 			item_type * end = buffer+bufferIndex;
 			std::sort(buffer, end, comp);
 			index=0;
+			merger=NULL;
 			return;
 		}
 		flush();
@@ -256,7 +260,7 @@ public:
 		merger = new typename parent_t::Merger(parent_t::fileBase, comp, firstFile, nextFile);
 	}
 
-	inline void beginPoll() {}
+	inline void beginPull() {}
 
 	inline const item_type & pull() {
 		if (nextFile == 0)
@@ -273,7 +277,7 @@ public:
 			return merger->atEnd();
 	}
 
-	inline void endPool() {
+	inline void endPull() {
 		if (buffer) delete[] buffer;
 		buffer = NULL;
 		if (merger) delete merger;
@@ -286,8 +290,9 @@ template <class dest_t,
 		  class key_t=key_identity<typename dest_t::item_type>
 		  >
 class sort: public sort_base<typename dest_t::item_type, comp_t, key_t, sort<dest_t, comp_t, key_t> > {
-private:
+public:
 	typedef typename dest_t::item_type item_type;
+private:
 	typedef sort_base<item_type, comp_t, key_t, sort<dest_t, comp_t, key_t> > parent_t;
 	using parent_t::baseMerge;
 	using parent_t::baseMinMem;
@@ -303,7 +308,6 @@ private:
 	dest_t & dest;
 public:
 	sort(dest_t & d, comp_t c=comp_t(), key_t k=key_t()): parent_t(c, k), dest(d) {};
-
 
 	void end() {
 		if (nextFile == 0) {
@@ -327,6 +331,9 @@ public:
 		dest.end();
 	}	
 
+	virtual void memoryNext(std::vector<memory_base *> & next) {
+		next.push_back(&dest);
+	}
 };
 
 }

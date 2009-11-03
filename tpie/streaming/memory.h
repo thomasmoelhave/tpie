@@ -27,6 +27,8 @@
 namespace tpie {
 namespace streaming {
 
+class priority_memory_manager;
+
 template <typename T>
 struct memory_fits {
 	static TPIE_OS_SIZE_T fits(TPIE_OS_SIZE_T mem) {
@@ -48,17 +50,25 @@ struct memory_fits {
 	}
 };
  
-
 class memory_base {
+private:
+	char name[128];
+	priority_memory_manager * mm;
+	memory_base(const memory_base &) {}
 public:
 	enum memory_type {
 		SINGLE, SPLIT, WRAPPER
 	};
-
+	memory_base();
 	virtual void memoryNext(std::vector<memory_base *> &) {}
 	virtual void memoryPrev(std::vector<memory_base *> &) {}
-	virtual void dataStructures(std::map<TPIE_OS_SIZE_T, double>) {}
+	virtual void dataStructures(std::map<TPIE_OS_SIZE_T, std::pair<TPIE_OS_SIZE_T, double> > &) {}
+	std::string memoryName();
+	void setMemoryName(const char * name, bool useAddr=false);
+	virtual TPIE_OS_SIZE_T memoryBase();
 	virtual memory_type memoryType() = 0;
+	priority_memory_manager * memoryManager();
+	void setMemoryManager(priority_memory_manager * man);
 };
 
 class memory_single: public memory_base {
@@ -98,8 +108,18 @@ public:
 	virtual TPIE_OS_SIZE_T minimumMemoryOut();
 	memory_base::memory_type memoryType();
 };
-		
 
+
+class memory_wrapper: public memory_base {
+public:
+	memory_base::memory_type memoryType();
+	virtual memory_base * first() = 0;
+	virtual memory_base * last() = 0;
+};
+
+// class common_wrapper: public memory_base {
+// public:
+// };
 
 class priority_memory_manager_private;
 
@@ -110,10 +130,11 @@ public:
 	priority_memory_manager();
 	~priority_memory_manager();
 	void add(memory_base * object);
-	void allocate();
-	void allocate(double f);
-	void allocate(TPIE_OS_SIZE_T mem);
+	void allocate(double f=1.0, bool verbose=false);
+	void allocate(TPIE_OS_SIZE_T mem, bool verbose=false);
+	TPIE_OS_SIZE_T dataStructureMemory(TPIE_OS_SIZE_T ds);
 };
+
 }
 }
 

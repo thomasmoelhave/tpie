@@ -1,4 +1,4 @@
-// -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
+ // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet :
 // Copyright 2009, The TPIE development team
 
@@ -56,7 +56,7 @@ int test[] = {
 
 #define ERR(x) {cerr << x << endl; exit(1);}
 
-struct test_sink {
+struct test_sink: public memory_single {
 	typedef int item_type;
 	bool b;
 	bool e;
@@ -153,13 +153,13 @@ int main(int argc, char ** argv) {
 			sort.push(t2[i]);
 		sort.end();
 		
-		sort.beginPoll();
+		sort.beginPull();
 		for (int i=0; test[i]; ++i) {
 			if (sort.atEnd() ) ERR("atEnd()");
 			if (sort.pull() != test[i]) ERR("pull()");
 		}
 		if (!sort.atEnd() ) ERR("atEnd()");
-		sort.endPool();
+		sort.endPull();
 		
 	} else if (!strcmp(argv[1], "buffer")) {
 		test_sink sink;

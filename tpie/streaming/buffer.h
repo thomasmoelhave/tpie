@@ -38,13 +38,17 @@ protected:
 	ami::stream<item_type> * stream;
 	stream_sink< ami::stream<item_type> > * sink;
 public:
-	TPIE_OS_SIZE_T mininumMemoryIn() {
+	TPIE_OS_SIZE_T memoryBase() {
+		return sizeof(super_t);
+	};
+
+	TPIE_OS_SIZE_T minimumMemoryIn() {
 		//TODO substract allocation overhead here
-		return sizeof(super_t) + stream_sink<ami::stream<item_type> >::memory(1);
+		return memoryBase() + stream_sink<ami::stream<item_type> >::memory(1);
 	}
 	
 	inline void begin(TPIE_OS_OFFSET size=0) {
-		TPIE_OS_SIZE_T bs = std::min(memoryIn() - mininumMemoryIn(), 
+		TPIE_OS_SIZE_T bs = std::min(memoryIn() - minimumMemoryIn(), 
 									 memoryOut() - minimumMemoryOut());
 		buffIndex = 0;
 		buffSize = std::min(size, TPIE_OS_OFFSET(bs/sizeof(item_t)));
@@ -78,7 +82,7 @@ private:
 	using parent_t::buffIndex;
 	using parent_t::sink;
 	using parent_t::stream;
-
+	using parent_t::memoryBase;
 	pull_stream_source<ami::stream<item_type> > * source;
 	TPIE_OS_SIZE_T index;
 public:
@@ -93,9 +97,9 @@ public:
 		}
 	}
 
-	virtual TPIE_OS_SIZE_T minimumMemoryOut() {
+	TPIE_OS_SIZE_T minimumMemoryOut() {
 		//TODO substract allocation overhead here
-		return sizeof(pull_buffer) + pull_stream_source<ami::stream<item_type> >::memory(1);
+		return memoryBase() + pull_stream_source<ami::stream<item_type> >::memory(1);
 	}
 	
 	inline void beginPull() {
@@ -143,13 +147,14 @@ private:
 	using parent_t::buffIndex;
 	using parent_t::stream;
 	using parent_t::sink;
+	using parent_t::memoryBase;
 	dest_t & dest;
 public:
 	buffer(dest_t & d): dest(d) {};
 
-	virtual TPIE_OS_SIZE_T minimumMemoryOut() {
+	TPIE_OS_SIZE_T minimumMemoryOut() {
 		//TODO substract allocation overhead here
-		return sizeof(buffer) + pull_stream_source<ami::stream<item_type> >::memory(1);
+		return memoryBase() + pull_stream_source<ami::stream<item_type> >::memory(1);
 	}
 	
 	void end() {
@@ -174,9 +179,10 @@ public:
 		}
 		dest.end();
 	}
-	//virtual void memoryNext(std::vector<memory_base *> & next) {
-	//	next.push_back(&dest);
-	//}
+	
+	virtual void memoryNext(std::vector<memory_base *> & next) {
+		next.push_back(&dest);
+	}
 };
 
 }

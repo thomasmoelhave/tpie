@@ -57,6 +57,7 @@ set (STREAMING_HEADERS
   streaming/buffer.h
   streaming/stream.h
   streaming/util.h
+  streaming/memory.h
   )
 
 
