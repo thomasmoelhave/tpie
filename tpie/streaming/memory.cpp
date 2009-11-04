@@ -339,18 +339,17 @@ public:
 					TPIE_OS_SIZE_T b=comp[j]->obj->memoryBase();
 					s += comp[j]->mem;
 					std::cerr << "  " << comp[j]->obj->memoryName() << " " << (comp[j]->mmin+b) << " " << (comp[j]->mem+b) ;
-					if( comp[j]->obj->memoryType() ==  memory_base::SPLIT) {
-						if (comp[j]->in.size() == 0) std::cerr << " out";
-						else std::cerr << " in";
-					}
+// 					if( comp[j]->obj->memoryType() ==  memory_base::SPLIT) {
+// 						if (comp[j]->in.size() == 0) std::cerr << " out";
+// 						else std::cerr << " in";
+// 					}
 					std::cerr << std::endl;
-
-					for(std::set<node *>::iterator k=comp[j]->in.begin();
-						k != comp[j]->in.end(); ++k) 
-						std::cerr << "    i " << (*k)->obj->memoryName() << std::endl; 
-					for(std::set<node *>::iterator k=comp[j]->out.begin();
-						k != comp[j]->out.end(); ++k) 
-						std::cerr << "    o " << (*k)->obj->memoryName() << std::endl; 
+				// 	for(std::set<node *>::iterator k=comp[j]->in.begin();
+// 						k != comp[j]->in.end(); ++k) 
+// 						std::cerr << "    i " << (*k)->obj->memoryName() << std::endl; 
+// 					for(std::set<node *>::iterator k=comp[j]->out.begin();
+// 						k != comp[j]->out.end(); ++k) 
+// 						std::cerr << "    o " << (*k)->obj->memoryName() << std::endl; 
 				}
 				
 				for(std::map<TPIE_OS_SIZE_T, std::pair<TPIE_OS_SIZE_T, double> >::iterator j=dss[i].begin();

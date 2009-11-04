@@ -80,7 +80,7 @@ public:
 	typedef typename stream_t::item_type item_type;
 	
 	inline stream_sink(stream_t * s): stream(s) {}
-	inline void begin(TPIE_OS_OFFSET size=0) {}
+	inline void begin(TPIE_OS_OFFSET =0) {}
 	inline void push(const item_type & item) {
 		stream->write_item(item);
 	}

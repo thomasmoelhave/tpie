@@ -92,7 +92,7 @@ public:
 		TPIE_OS_SIZE_T mem = std::min(memoryIn(), memoryOut()) - minimumMemoryOut();
 		//TODO ensure that mem is less then "consecutive_memory_available"
 		bufferSize = mem / sizeof(item_t);
-		if (size > 0 && size <= bufferSize)
+		if (size > 0 && size <= TPIE_OS_OFFSET(bufferSize))
 			buffer = new item_type[size];
 		else
 			buffer = new item_type[bufferSize];
@@ -156,17 +156,16 @@ public:
 			sources = new pull_stream_source< ami::stream<item_type> > *[last-first];
 			assert(last-first >= 2);
 
-			for (int i=0; i < last-first; ++i) {
+			for (TPIE_OS_SIZE_T i=0; i < last-first; ++i) {
 				streams[i] = new ami::stream<item_type>( name(i+first) );
 				sources[i] = new pull_stream_source< ami::stream<item_type> >( streams[i] );
-				item_type * item;
 				if (!sources[i]->atEnd()) 
 					queue.push(std::make_pair(sources[i]->pull(), i));
 			}
 		}
 		
 		~Merger() {
-			for (int i=0; i < last-first; ++i) {
+			for (TPIE_OS_SIZE_T i=0; i < last-first; ++i) {
 				sources[i]->free();
 				delete streams[i];
 				delete sources[i];
@@ -245,11 +244,11 @@ public:
 	pull_sort(comp_t c=comp_t(), key_t k=key_t()): parent_t(c, k) {};
 
 	void end() {
+		merger=NULL;
 		if (nextFile == 0) {
 			item_type * end = buffer+bufferIndex;
 			std::sort(buffer, end, comp);
 			index=0;
-			merger=NULL;
 			return;
 		}
 		flush();
@@ -257,10 +256,12 @@ public:
 		buffer = NULL;
 		TPIE_OS_SIZE_T arity = memory_fits< pull_stream_source< ami::stream<item_type> > >::fits(memoryOut() - baseMinMem());
 		baseMerge(arity);
-		merger = new typename parent_t::Merger(parent_t::fileBase, comp, firstFile, nextFile);
 	}
 
-	inline void beginPull() {}
+	inline void beginPull() {
+		if (nextFile != 0)
+			merger = new typename parent_t::Merger(parent_t::fileBase, comp, firstFile, nextFile);
+	}
 
 	inline const item_type & pull() {
 		if (nextFile == 0)
