@@ -10,6 +10,9 @@ target_link_libraries(test_simplequeue tpie)
 add_executable(streaming streaming.cpp)
 target_link_libraries(streaming tpie)
 
+add_executable(stream_test stream.cpp)
+target_link_libraries(stream_test tpie)
+
 
 if(NOT WIN32) 
 set(BTES ${BTES} ufs mmap)

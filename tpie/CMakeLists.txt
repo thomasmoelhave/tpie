@@ -60,8 +60,20 @@ set (STREAMING_HEADERS
   streaming/memory.h
   )
 
+set (STREAM_HEADERS
+  stream/exception.h
+  stream/concepts.h
+  stream/posix_bte.h
+  )
+
+set (STREAM_SOURCES
+  stream/posix_bte.cpp
+  )
 
 set (OTHER_HEADERS
+  concepts.h
+  exception.h
+		util.h
 		bit.h   
 		bit_matrix.h
 		b_vector.h
@@ -128,9 +140,10 @@ source_group("BTE" FILES ${BTE_HEADERS} ${BTE_SOURCES})
 set(AMI ${AMI_HEADERS} ${AMI_SOURCES})
 set(BTE ${BTE_HEADERS} ${BTE_SOURCES})
 set(OTHER ${OTHER_HEADERS} ${OTHER_SOURCES})
+set(STREAM ${STREAM_HEADERS} ${STREAM_SOURCES})
 set(STREAMING ${STREAMING_HEADERS})
 
-add_library(tpie ${BTE} ${AMI} ${OTHER} ${STREAMING})
+add_library(tpie ${BTE} ${AMI} ${OTHER} ${STREAMING} ${STREAM})
 
 install(TARGETS tpie DESTINATION ${LIB_INSTALL_DIR}) 
 install(FILES ${OTHER_HEADERS} ${AMI_HEADERS} DESTINATION ${HEADERS_INSTALL_DIR})
