@@ -1,0 +1,82 @@
+// -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
+// vi:set ts=4 sts=4 sw=4 noet :
+// Copyright 2009, The TPIE development team
+// 
+// This file is part of TPIE.
+// 
+// TPIE is free software: you can redistribute it and/or modify it under
+// the terms of the GNU Lesser General Public License as published by the
+// Free Software Foundation, either version 3 of the License, or (at your
+// option) any later version.
+// 
+// TPIE is distributed in the hope that it will be useful, but WITHOUT ANY
+// WARRANTY; without even the implied warranty of MERCHANTABILITY or
+// FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
+// License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public License
+// along with TPIE.  If not, see <http://www.gnu.org/licenses/>
+
+#ifndef __TPIE_STREAM_CONSEPTS_H__
+#define __TPIE_STREAM_CONSEPTS_H__
+#ifdef TPIE_USE_CONSEPTS
+#include <tpie/util.h>
+#include <tpie/concepts.h>
+
+namespace tpie {
+namespace stream {
+
+template <class T>
+class block_transfer_engine {
+public:
+	BOOST_CONCEPT_ASSERT((memory_calculatable<T>));
+	BOOST_CONCEPT_USAGE(block_transfer_engine) {
+		T y(true, true, 1024, 123);
+		y.open("str");
+		y.open();
+		y.close();
+		offset_type z = static_cast<const T*>(&y)->size();
+		unused(z);
+		const std::string & p = static_cast<const T*>(&y)->path();
+		size_type s = y.read((void *)0, (offset_type)0, (size_type)0);
+		y.write((void*)0, (offset_type)0, (size_type)0);
+	}
+};
+
+template <class T> 
+class file_stream {
+public:
+	typedef typename T::file_type file_type;
+	typedef typename T::item_type item_type;
+	
+	BOOST_CONCEPT_ASSERT((memory_calculatable<T>));
+	BOOST_CONCEPT_USAGE(file_stream) {
+		file_type * x;
+		T stream(*x, 0);
+		stream.seek(1234);
+		offset_type o = stream.offset();
+		unused(o);
+		bool h = stream.hasMore();
+		usuned(o);
+		const item_type & item = stream.read();
+		stream.write(item);
+	}
+};
+
+template <class T>
+class file {
+public:
+	BOOST_CONCEPT_ASSERT((file_stream<T::stream>));
+	BOOST_CONCEPT_ASSERT((memory_calculatable<T>));
+	BOOST_CONCEPT_USAGE(file) {
+		T f(1024, 123);
+		f.open("str");
+		f.open();
+		f.close();
+		offset_type o = f.size();
+		unused(o);
+	}
+};
+
+#endif //TPIE_USE_CONSEPTS
+#endif //__TPIE_STREAM_CONSEPTS_H__
