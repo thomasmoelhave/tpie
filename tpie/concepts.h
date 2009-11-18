@@ -17,21 +17,22 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-#ifndef __TPIE_CONSEPTS_H__
-#define __TPIE_CONSEPTS_H__
-#ifdef TPIE_USE_CONSEPTS
+#ifndef __TPIE_CONCEPTS_H__
+#define __TPIE_CONCEPTS_H__
+#ifdef TPIE_USE_CONCEPTS
 #include <tpie/util.h>
+#include <boost/concept_check.hpp>
 namespace tpie {
 
 template <class T>
 class memory_calculatable {
 public:
-	BOOST_CONSEPT_USAGE(memory_calculatable) {
-		T * x=0;
-		size_type n = x->memory(42);
+	BOOST_CONCEPT_USAGE(memory_calculatable) {
+		size_type n = T::memory(42);
 		unused(n);
 	}
 };
 
-#endif //TPIE_USE_CONSEPTS
-#endif //__TPIE_CONSEPTS_H__
+}
+#endif //TPIE_USE_CONREPTS
+#endif //__TPIE_CONCEPTS_H__

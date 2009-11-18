@@ -17,9 +17,9 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-#ifndef __TPIE_STREAM_CONSEPTS_H__
-#define __TPIE_STREAM_CONSEPTS_H__
-#ifdef TPIE_USE_CONSEPTS
+#ifndef __TPIE_STREAM_CONCEPTS_H__
+#define __TPIE_STREAM_CONCEPTS_H__
+#ifdef TPIE_USE_CONCEPTS
 #include <tpie/util.h>
 #include <tpie/concepts.h>
 
@@ -38,7 +38,9 @@ public:
 		offset_type z = static_cast<const T*>(&y)->size();
 		unused(z);
 		const std::string & p = static_cast<const T*>(&y)->path();
+		unused(p);
 		size_type s = y.read((void *)0, (offset_type)0, (size_type)0);
+		unused(s);
 		y.write((void*)0, (offset_type)0, (size_type)0);
 	}
 };
@@ -54,10 +56,10 @@ public:
 		file_type * x;
 		T stream(*x, 0);
 		stream.seek(1234);
-		offset_type o = stream.offset();
+		offset_type o = static_cast<const T*>(&stream)->offset();
 		unused(o);
-		bool h = stream.hasMore();
-		usuned(o);
+		bool h = static_cast<const T*>(&stream)->hasMore();
+		unused(o);
 		const item_type & item = stream.read();
 		stream.write(item);
 	}
@@ -66,17 +68,19 @@ public:
 template <class T>
 class file {
 public:
-	BOOST_CONCEPT_ASSERT((file_stream<T::stream>));
+	BOOST_CONCEPT_ASSERT((file_stream<typename T::stream>));
 	BOOST_CONCEPT_ASSERT((memory_calculatable<T>));
 	BOOST_CONCEPT_USAGE(file) {
 		T f(1024, 123);
 		f.open("str");
 		f.open();
 		f.close();
-		offset_type o = f.size();
+		offset_type o = static_cast<const T*>(&f)->size();
 		unused(o);
 	}
 };
 
-#endif //TPIE_USE_CONSEPTS
-#endif //__TPIE_STREAM_CONSEPTS_H__
+}
+}
+#endif //TPIE_USE_CONCEPTS
+#endif //__TPIE_STREAM_CONCEPTS_H__
