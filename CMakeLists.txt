@@ -37,6 +37,12 @@ else(WIN32)
 	set(DOC_INSTALL_DIR "share/doc/tpie")
 endif(WIN32)
 
+find_package( Boost 1.36.0 COMPONENTS concept_check )
+if(Boost_FOUND)
+  include_directories(${Boost_INCLUDE_DIRS})
+endif()
+
+
 set(INSTALL_TARGETS_DEFAULT_ARGS
 	RUNTIME DESTINATION ${BIN_INSTALL_DIR}
 	LIBRARY DESTINATION ${LIB_INSTALL_DIR}
