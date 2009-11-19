@@ -63,7 +63,6 @@ void posix_block_transfer_engine_p::read_header() {
 	size = header.size;
 }
 
-
 void posix_block_transfer_engine_p::throw_errno() {
 	throw io_exception(strerror(errno));
 }
@@ -71,12 +70,14 @@ void posix_block_transfer_engine_p::throw_errno() {
 void posix_block_transfer_engine_p::write_header() {
 	header_t header;
 	header.magic = header_t::magicConst;
+	header.version = header_t::versionConst;
 	header.itemSize = itemSize;
 	header.typeMagic = typeMagic;
 	header.size = size;
 	for(int i=0; i < header_t::reservedCount; ++ i) header.reserved[i]=0;
 	if (::lseek(fd, 0, SEEK_SET) != 0) throw_errno();
 	if (::write(fd, &header, sizeof(header)) != sizeof(header)) throw_errno();
+	headerDirty=false;
 }
 
 posix_block_transfer_engine::posix_block_transfer_engine(bool read, bool write, size_type itemSize, uint64_t typeMagic) {
