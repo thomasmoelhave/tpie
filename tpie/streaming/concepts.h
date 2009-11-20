@@ -16,22 +16,44 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
+#ifndef _TPIE_STREAMING_CONCEPTS_H
+#define _TPIE_STREAMING_CONCEPTS_H
+#include <boost/concept_check.hpp>
 
-#ifndef __TPIE_UTIL_H__
-#define __TPIE_UTIL_H__
-
-#include <tpie/portability.h>
 namespace tpie {
+namespace streaming {
+
+#define TPIE_UNUSED(x) (void)x
 
 template <typename T>
-inline void unused(const T & x) {(void)x;}
+struct pushable {
+	typedef typename T::item_type item_type;
+	
+	BOOST_CONCEPT_USAGE(pushable) {
+		T * x=0;
+		const item_type * i=0;
+		x->begin();
+		x->begin(42);
+		x->push(*i);
+		x->end();
+	}
+};
 
-typedef TPIE_OS_OFFSET offset_type;
-typedef TPIE_OS_SIZE_T size_type;
-typedef TPIE_OS_SSIZE_T ssize_type;
+template <typename T>
+struct pullable {
+	typedef typename T::pull_type pull_type;
+	
+	BOOST_CONCEPT_USAGE(pullable) {
+		T * x=0;
+		x->beginPull();
+		x->atEnd()==true;
+		const pull_type & i = x->pull();
+		TPIE_UNUSED(i);
+		x->endPull();
+	}
+};
 
-#define TPIE_CONCEPT_ASSERT BOOST_CONCEPT_ASSERT
-#define TPIE_USE_CONCEPTS
+}
 }
 
-#endif //__TPIE_UTIL_H__
+#endif //_TPIE_STREAMING_CONCEPTS_H

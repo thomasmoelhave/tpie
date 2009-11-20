@@ -25,6 +25,7 @@
 #include <tpie/streaming/stream.h>
 #include <tpie/streaming/memory.h>
 #include <iostream>
+#include <tpie/streaming/concepts.h>
 
 namespace tpie {
 namespace streaming {
@@ -240,6 +241,7 @@ private:
 	TPIE_OS_SIZE_T index;
 public:
 	typedef item_t item_type;
+	typedef item_t pull_type;
 
 	pull_sort(comp_t c=comp_t(), key_t k=key_t()): parent_t(c, k) {};
 

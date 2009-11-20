@@ -22,6 +22,7 @@
 #include <tpie/streaming/stream.h>
 #include <tpie/streaming/memory.h>
 #include <utility>
+#include <tpie/streaming/concepts.h>
 
 namespace tpie {
 namespace streaming {
@@ -76,6 +77,7 @@ template <class T>
 class pull_buffer: public buffer_base<T, pull_buffer<T> > {
 public:
 	typedef T item_type;
+	typedef T pull_type;
 private:
 	typedef buffer_base<T, pull_buffer<T> > parent_t;
 	using parent_t::buff;
@@ -109,7 +111,7 @@ public:
 		}
 	}
 	
-
+	
 	const item_type & pull() {
 		if(index < buffIndex) return buff[index++];
 		return source->pull();
@@ -142,6 +144,8 @@ class buffer: public buffer_base<typename dest_t::item_type, buffer<dest_t> > {
 public:
 	typedef typename dest_t::item_type item_type;
 private:
+	BOOST_CONCEPT_ASSERT((pushable<dest_t>));
+
 	typedef buffer_base<item_type, buffer<dest_t> > parent_t;
 	using parent_t::buff;
 	using parent_t::buffIndex;
