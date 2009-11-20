@@ -18,12 +18,21 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #ifndef _TPIE_STREAMING_CONCEPTS_H
 #define _TPIE_STREAMING_CONCEPTS_H
-#include <boost/concept_check.hpp>
+#include <tpie/util.h>
+#ifdef TPIE_USE_CONCEPTS
+#include <tpie/concepts.h>
 
 namespace tpie {
 namespace streaming {
 
-#define TPIE_UNUSED(x) (void)x
+template <typename T>
+struct memory_managable {
+	BOOST_CONCEPT_USAGE(memory_managable) {
+		T * x=0;
+		memory_base * y = static_cast<memory_base *>(x);
+		unused(y);
+	}
+};
 
 template <typename T>
 struct pushable {
@@ -48,7 +57,7 @@ struct pullable {
 		x->beginPull();
 		x->atEnd()==true;
 		const pull_type & i = x->pull();
-		TPIE_UNUSED(i);
+		unused(i);
 		x->endPull();
 	}
 };
@@ -56,4 +65,5 @@ struct pullable {
 }
 }
 
+#endif //TPIE_USE_CONCEPTS
 #endif //_TPIE_STREAMING_CONCEPTS_H

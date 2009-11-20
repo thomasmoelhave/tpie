@@ -20,33 +20,36 @@
 #ifndef _TPIE_STREAMING_STREAM_H
 #define _TPIE_STREAMING_STREAM_H
 #include <tpie/stream.h>
+#include <tpie/streaming/memory.h>
+#include <tpie/streaming/util.h>
 
 namespace tpie {
 namespace streaming {
 
 template <class stream_t, class dest_t> 
-class stream_source {
+class stream_source : public common_single<dest_t> {
 private:
+	typedef common_single<dest_t> parent_t;
+	using parent_t::dest;
 	stream_t * stream;
-	dest_t & dest;
 public:
-	stream_source(stream_t * s, dest_t & d): stream(s), dest(d) {};
+	stream_source(stream_t * s, dest_t & dest):
+		parent_t(dest, 0.0f), stream(s) {}
+
 	inline void run() {
 		typename stream_t::item_type * item;
-		dest.begin(stream->stream_len());
+		dest().begin(stream->stream_len());
 		while(stream->read_item(&item) != ami::END_OF_STREAM) 
-			dest.push(*item);
-		dest.end();
+			dest().push(*item);
+		dest().end();
 	}
 
-	static TPIE_OS_SIZE_T memory(TPIE_OS_SIZE_T cnt=1) {
-		return sizeof(stream_source)*cnt + stream_t::memory_usage(cnt);
-	}
+	virtual TPIE_OS_SIZE_T memoryBase() {return sizeof(*this);}
 };
 
 		
 template <class stream_t>
-class pull_stream_source {
+class pull_stream_source: public memory_single {
 private:
 	stream_t * stream;
 public:
@@ -68,12 +71,14 @@ public:
 		return sizeof(pull_stream_source)*cnt + stream_t::memory_usage(cnt);
 	}
 
+	virtual TPIE_OS_SIZE_T memoryBase() {return sizeof(*this);}
+	
 	void free() {}
 };
 
 
 template <class stream_t> 
-class stream_sink {
+class stream_sink: public memory_single {
 private:
 	stream_t * stream;
 public:
@@ -89,6 +94,7 @@ public:
 	static TPIE_OS_SIZE_T memory(TPIE_OS_SIZE_T cnt=1) {
 		return sizeof(stream_sink)*cnt + stream_t::memory_usage(cnt);
 	}
+	virtual TPIE_OS_SIZE_T memoryBase() {return sizeof(*this);}
 };
 
 }

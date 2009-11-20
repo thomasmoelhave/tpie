@@ -87,6 +87,19 @@ struct test_sink: public memory_single {
 };
 
 int main(int argc, char ** argv) {
+	BOOST_CONCEPT_ASSERT((pushable< tpie::streaming::stream_sink<stream<int> > >));
+	BOOST_CONCEPT_ASSERT((pushable< tpie::streaming::sort<test_sink> >));
+	BOOST_CONCEPT_ASSERT((pushable< tpie::streaming::pull_sort<int> >));
+	BOOST_CONCEPT_ASSERT((pullable< tpie::streaming::pull_sort<int> >));
+	BOOST_CONCEPT_ASSERT((pushable< tpie::streaming::buffer<test_sink> >));
+	BOOST_CONCEPT_ASSERT((pushable< tpie::streaming::pull_buffer<int> >));
+	BOOST_CONCEPT_ASSERT((pullable< tpie::streaming::pull_buffer<int> >));
+	BOOST_CONCEPT_ASSERT((memory_managable< tpie::streaming::stream_sink<stream<int> > >));
+	BOOST_CONCEPT_ASSERT((memory_managable< tpie::streaming::sort<test_sink> >));
+	BOOST_CONCEPT_ASSERT((memory_managable< tpie::streaming::pull_sort<int> >));
+	BOOST_CONCEPT_ASSERT((memory_managable< tpie::streaming::buffer<test_sink> >));
+	BOOST_CONCEPT_ASSERT((memory_managable< tpie::streaming::pull_buffer<int> >));
+	
 	if (argc != 2) return 1;
 	remove("/tmp/stream");
   
