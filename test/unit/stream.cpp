@@ -22,6 +22,7 @@
 #include <tpie/stream/posix_bte.h>
 #include <tpie/stream/concepts.h>
 #include <tpie/stream/exception.h>
+#include <tpie/stream/fd_file.h>
 #include <tpie/util.h>
 
 using namespace tpie;
@@ -106,7 +107,86 @@ void test_bte() {
 
 int main(int argc, char ** argv) {
 	TPIE_CONCEPT_ASSERT((block_transfer_engine<posix_block_transfer_engine>));
-	test_bte<posix_block_transfer_engine>();
-	remove("tmp");
+	TPIE_CONCEPT_ASSERT((file< fd_file<int, true, false> >));
+
+	if (argc == 2 && !strcmp(argv[1], "posix_bte")) {
+		test_bte<posix_block_transfer_engine>();
+		remove("tmp");
+	} else if (argc == 2 && !strcmp(argv[1], "fd_file")) {
+		{
+			//First a simple test
+			remove("tmp");
+			fd_file<int, false, true, 8> file;
+			file.open("tmp");
+			{
+				fd_file<int, false, true, 8>::stream stream(file, 0);
+				if (file.size() != 0) ERR("size failed(1)");
+				for(int i=0; i < 40; ++i)
+					stream.write((i*8209)%8273);
+			}
+			if (file.size() != 40) ERR("size failed(2)");
+			file.close();
+		}
+
+		{
+			fd_file<int, true, false, 13> file;
+			file.open("tmp");
+			if (file.size() != 40) ERR("size failed(3)");
+			{
+				fd_file<int, true, false, 13>::stream stream(file, 0);
+				for(int i=0; i< 40; ++i) {
+					if (stream.has_more() == false) ERR("has_more failed");
+					if (stream.read() != (i*8209)%8273) ERR("read failed");
+				}
+				if (stream.has_more() == true) ERR("has_more failed (2)");
+				try {
+					int r =stream.read();
+					unused(r);
+					ERR("read did not fail as expected");
+				} catch(end_of_stream_exception &) {
+					//Do nothing
+				}			
+			}
+			file.close();
+
+		}
+
+		{
+			fd_file<int, true, true, 16> file;
+			file.open("tmp");
+			srandom(1234);
+			const int cnt=4;
+			const int size=128;
+			fd_file<int, true, true, 16>::stream ** streams = new fd_file<int, true, true, 16>::stream*[cnt];
+			for(int i=0; i < cnt; ++i) 
+				streams[i] = new fd_file<int, true, true, 16>::stream(file, 0);
+			
+			int content[size];
+			for(int i=0; i < size; ++i) {
+				content[i] = random();
+				streams[0]->write(content[i]);
+			}
+			
+			for(int i=0; i < 200000; ++i ) {
+				int l=random()%size;
+				int s=random()%cnt;
+				streams[s]->seek(l);
+				if (random() % 2 == 0) {
+					if (streams[s]->read() != content[l]) ERR("read failed(2)");
+				} else {
+					content[l] = random();
+					streams[s]->write(content[l]);
+				}
+			}
+			for(int i=0; i < cnt; ++i)
+				delete streams[i];
+			delete[] streams;
+			
+			file.close();
+		}
+		
+	} else {
+		return 1;
+	}
 	return 0;
 }

@@ -58,8 +58,10 @@ public:
 		stream.seek(1234);
 		offset_type o = static_cast<const T*>(&stream)->offset();
 		unused(o);
-		bool h = static_cast<const T*>(&stream)->hasMore();
-		unused(o);
+		bool h = static_cast<const T*>(&stream)->has_more();
+		unused(h);
+		offset_type s = static_cast<const T*>(&stream)->size();
+		unused(s);
 		const item_type & item = stream.read();
 		stream.write(item);
 	}
@@ -68,10 +70,11 @@ public:
 template <class T>
 class file {
 public:
+	typedef typename T::item_type item_type;
 	BOOST_CONCEPT_ASSERT((file_stream<typename T::stream>));
 	BOOST_CONCEPT_ASSERT((memory_calculatable<T>));
 	BOOST_CONCEPT_USAGE(file) {
-		T f(1024, 123);
+		T f(123);
 		f.open("str");
 		f.open();
 		f.close();

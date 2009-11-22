@@ -122,6 +122,9 @@ void posix_block_transfer_engine::open(const std::string & path) {
 		
 }
 
+void posix_block_transfer_engine::open() {
+}
+
 void posix_block_transfer_engine::close() {
 	if (p->headerDirty) p->write_header();
 	if (p->fd != -1) ::close(p->fd);

@@ -68,6 +68,7 @@ set (STREAM_HEADERS
 
 set (STREAM_SOURCES
   stream/posix_bte.cpp
+  stream/fd_file_base.cpp
   )
 
 set (OTHER_HEADERS
