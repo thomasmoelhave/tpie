@@ -19,12 +19,24 @@
 
 #ifndef __TPIE_STREAM_FD_FILE_H__
 #define __TPIE_STREAM_FD_FILE_H__
+
+#ifdef WIN32
+
+#else
 #include <tpie/stream/posix_bte.h>
+#endif
+
 #include <tpie/stream/concepts.h>
 #include <tpie/stream/exception.h>
+#include <boost/cstdint.hpp>
 #include <limits>
 namespace tpie {
 namespace stream {
+
+#ifdef WIN32
+#else
+typedef posix_block_transfer_engine default_bte;
+#endif
 
 template <typename BTE>
 class fd_file_base {
@@ -38,7 +50,7 @@ protected:
 	bool canRead;
 	bool canWrite;
 
-	fd_file_base(size_type blockSize, size_type itemSize, bool canRead, bool canWrite, uint64_t typeMagic);
+	fd_file_base(size_type blockSize, size_type itemSize, bool canRead, bool canWrite, boost::uint64_t typeMagic);
 	
 	struct block_t {
 		size_type size;
@@ -110,12 +122,12 @@ public:
 	~fd_file_base();
 };
 
-template <typename T, bool canRead, bool canWrite, size_type blockSize=1024*1024, typename BTE=posix_block_transfer_engine>
+template <typename T, bool canRead, bool canWrite, size_type blockSize=1024*1024, typename BTE=default_bte>
 class fd_file: public fd_file_base<BTE> {
 public:
  	typedef T item_type;
 
-	inline fd_file(uint64_t typeMagic=0):
+	inline fd_file(boost::uint64_t typeMagic=0):
 		fd_file_base<BTE>(blockSize, sizeof(T), canRead, canWrite, typeMagic) {};
 
  	class stream: public fd_file_base<BTE>::stream {

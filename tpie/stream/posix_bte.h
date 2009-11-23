@@ -20,6 +20,7 @@
 #ifndef __TPIE_STREAM_POSIX_BTE_H__
 #define __TPIE_STREAM_POSIX_BTE_H__
 #include <tpie/stream/header.h>
+#include <boost/cstdint.hpp>
 #include <string>
 
 namespace tpie {
@@ -31,7 +32,7 @@ class posix_block_transfer_engine {
 private:
 	posix_block_transfer_engine_p * p;
 public:
-	posix_block_transfer_engine(bool read, bool write, size_type itemSize, uint64_t typeMagic);
+	posix_block_transfer_engine(bool read, bool write, size_type itemSize, boost::uint64_t typeMagic);
 	~posix_block_transfer_engine();
 	void open(const std::string & p);
 	void open();

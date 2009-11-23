@@ -33,13 +33,13 @@ public:
 	int fd;
 	size_t size;
 	size_t itemSize;
-	uint64_t typeMagic;
+	boost::uint64_t typeMagic;
 	std::string path;
 	bool headerDirty;
 	bool read;
 	bool write;
 
-	posix_block_transfer_engine_p(bool r, bool w, size_type is, uint64_t tm);
+	posix_block_transfer_engine_p(bool r, bool w, size_type is, boost::uint64_t tm);
 
 	void read_header();
 	void write_header();
@@ -47,7 +47,7 @@ public:
 };
 
 posix_block_transfer_engine_p::posix_block_transfer_engine_p(
-	bool r, bool w, size_type is, uint64_t tm) :
+	bool r, bool w, size_type is, boost::uint64_t tm) :
 	fd(-1), size(0), itemSize(is), typeMagic(tm), path(),
 	headerDirty(false), read(r), write(w) {}
 
@@ -80,7 +80,7 @@ void posix_block_transfer_engine_p::write_header() {
 	headerDirty=false;
 }
 
-posix_block_transfer_engine::posix_block_transfer_engine(bool read, bool write, size_type itemSize, uint64_t typeMagic) {
+posix_block_transfer_engine::posix_block_transfer_engine(bool read, bool write, size_type itemSize, boost::uint64_t typeMagic) {
 	p = new posix_block_transfer_engine_p(read, write, itemSize, typeMagic);
 }
 

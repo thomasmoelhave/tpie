@@ -26,7 +26,7 @@ namespace tpie {
 namespace stream {
 
 template <typename BTE>
-fd_file_base<BTE>::fd_file_base(size_type bs, size_type is, bool cr, bool cw, uint64_t typeMagic):
+fd_file_base<BTE>::fd_file_base(size_type bs, size_type is, bool cr, bool cw, boost::uint64_t typeMagic):
 	blockItems(bs/is), m_size(0), canRead(cr), canWrite(cw), itemSize(is),
 	firstUsed(0), firstFree(0), bte(canRead, canWrite, itemSize, typeMagic) {
 

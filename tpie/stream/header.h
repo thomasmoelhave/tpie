@@ -19,21 +19,25 @@
 
 #ifndef __TPIE_STREAM_HEADER_H__
 #define __TPIE_STREAM_HEADER_H__
-#include <stdint.h>
-
+#include <boost/cstdint.hpp>
 #include <tpie/util.h>
 
-struct header_t {
-	static const uint64_t magicConst = 0x521cbe927dd6056all;
-	static const int reservedCount = 6;
-	static const uint64_t versionConst = 1;
+namespace tpie {
+namespace stream {
 
-	uint64_t magic;
-	uint64_t version;
-	uint64_t itemSize;
-	uint64_t typeMagic;
-	uint64_t size;
-	uint64_t reserved[reservedCount];
+struct header_t {
+	static const boost::uint64_t magicConst = 0x521cbe927dd6056all;
+	static const int reservedCount = 6;
+	static const boost::uint64_t versionConst = 1;
+
+	boost::uint64_t magic;
+	boost::uint64_t version;
+	boost::uint64_t itemSize;
+	boost::uint64_t typeMagic;
+	boost::uint64_t size;
+	boost::uint64_t reserved[reservedCount];
 };
 
+}
+}
 #endif //__TPIE_STREAM_HEADER_H__

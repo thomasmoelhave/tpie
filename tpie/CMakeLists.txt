@@ -63,13 +63,18 @@ set (STREAMING_HEADERS
 set (STREAM_HEADERS
   stream/exception.h
   stream/concepts.h
-  stream/posix_bte.h
   )
 
 set (STREAM_SOURCES
-  stream/posix_bte.cpp
   stream/fd_file_base.cpp
   )
+
+if (WIN32)
+  
+else(WIN32)
+  set (STREAM_SOURCES ${STREAM_SOURCES} stream/posix_bte.cpp)
+  set (STREAM_HEADERS ${STREAM_HEADERS} stream/posix_bte.h)
+endif(WIN32)
 
 set (OTHER_HEADERS
   concepts.h
