@@ -54,7 +54,7 @@ stdio_block_transfer_engine_p::stdio_block_transfer_engine_p(
 void stdio_block_transfer_engine_p::read_header() {
 	header_t header;
 
-	if (::fseek(fd, 0, SEEK_SET) != 0) throw_errno();
+	if (::fseeko(fd, 0, SEEK_SET) != 0) throw_errno();
 	if (::fread(&header, 1, sizeof(header), fd) != sizeof(header)) throw_errno();
 	if (header.magic != header_t::magicConst ||
 		header.version != header_t::versionConst ||
@@ -76,7 +76,7 @@ void stdio_block_transfer_engine_p::write_header() {
 	header.typeMagic = typeMagic;
 	header.size = size;
 	for(int i=0; i < header_t::reservedCount; ++ i) header.reserved[i]=0;
-	if (::fseek(fd, 0, SEEK_SET) != 0) throw_errno();
+	if (::fseeko(fd, 0, SEEK_SET) != 0) throw_errno();
 	if (::fwrite(&header, 1, sizeof(header), fd) != sizeof(header)) throw_errno();
 	headerDirty=false;
 }
@@ -142,9 +142,9 @@ const std::string & stdio_block_transfer_engine::path() const {
 
 size_type stdio_block_transfer_engine::read(void * data, offset_type offset, size_type size) {
 	off_t loc=sizeof(header_t) + offset*p->itemSize;
-	if (::fseek(p->fd, loc, SEEK_SET) != 0) p->throw_errno();
+	if (::fseeko(p->fd, loc, SEEK_SET) != 0) p->throw_errno();
 	if (offset + size > p->size) size = p->size - offset;
-	ssize_t z=size*p->itemSize;
+	size_type z=size*p->itemSize;
 	if (::fread(data, 1, z, p->fd) != z) p->throw_errno();
 	return size;
 }
@@ -153,8 +153,8 @@ void stdio_block_transfer_engine::write(void * data, offset_type offset, size_ty
 	off_t loc=sizeof(header_t) + offset*p->itemSize;
 	//if (offset > (offset_type)p->size) 
 	//	if (::ftruncate(p->fd, loc) == -1) p->throw_errno();
-	if (::fseek(p->fd, loc, SEEK_SET) != 0) p->throw_errno();
-	ssize_t z=size*p->itemSize;
+	if (::fseeko(p->fd, loc, SEEK_SET) != 0) p->throw_errno();
+	size_type z=size*p->itemSize;
 	if (::fwrite(data, 1, z, p->fd) != z) p->throw_errno();
 	if (offset+size > p->size) {
 		p->headerDirty=true;
