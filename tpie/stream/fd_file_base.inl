@@ -68,7 +68,7 @@ typename fd_file_base<BTE>::block_t * fd_file_base<BTE>::get_block(offset_type b
 		if ((offset_type)b->size + b->number * (offset_type)blockItems > size())
 			b->size = size() - b->number * blockItems;
 
-		if (canRead && b->size > 0) {
+		if (b->size > 0) {
 			if (bte.read(b->data, b->number * blockItems, b->size) != b->size) 
 				throw io_exception("Incorrect number of items read");
 		}

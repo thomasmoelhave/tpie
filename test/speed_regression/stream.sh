@@ -1,8 +1,15 @@
 #!/bin/bash
 d=$(pwd)
 rm -rf stream.dat
-for rev in 1644 1700 1800 HEAD; do
+cp stream.cpp stream.cpp~ 
+for rev in 1644 1700 1800 1875 HEAD; do
     cd $d
+    rrev=$rev
+    if [[ $rev == "HEAD" ]]; then
+	rrev=100000
+    fi
+    sed -re "s/\#define REV .*/\#define REV $rev/" -i stream.cpp
+    cat stream.cpp
     if cd ../../tpie/ && svn up -r "$rev" && make clean && make && cd $d && make clean && make stream CFLAGS="-DREV=$rev"; then
 		cd ../../tpie/
 		R=$(svn info | sed -nre 's/Revision: //p')
@@ -15,6 +22,7 @@ for rev in 1644 1700 1800 HEAD; do
 		echo "$rev Build failed" | tee -a stream.dat
     fi
 done
+mv stream.cpp~ stream.cpp
 gnuplot stream.gp
 if which okular >/dev/null; then
     okular stream.ps

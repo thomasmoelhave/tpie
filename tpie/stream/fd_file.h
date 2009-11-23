@@ -20,13 +20,9 @@
 #ifndef __TPIE_STREAM_FD_FILE_H__
 #define __TPIE_STREAM_FD_FILE_H__
 
-#ifdef WIN32
-
-#else
-#include <tpie/stream/posix_bte.h>
-#endif
 #include <tpie/stream/stdio_bte.h>
-
+#include <tpie/mm_base.h>
+#include <tpie/mm_manager.h>
 #include <tpie/stream/concepts.h>
 #include <tpie/stream/exception.h>
 #include <boost/cstdint.hpp>
@@ -34,10 +30,7 @@
 namespace tpie {
 namespace stream {
 
-#ifdef WIN32
-#else
 typedef stdio_block_transfer_engine default_bte;
-#endif
 
 template <typename BTE>
 class fd_file_base {
@@ -102,7 +95,7 @@ public:
 			file.m_size = std::max(file.m_size, (offset_type)index+block->number*(offset_type)file.blockItems);
 		}
 	public:
-		stream(fd_file_base & file, offset_type offset);
+		stream(fd_file_base & file, offset_type offset=0);
 		~stream();
 		void seek(offset_type offset);
 
@@ -145,7 +138,7 @@ public:
 		using parent_t::block_items;
 	public:
 		static size_type memory(size_type count=1) {
-			return (sizeof(stream) + blockSize + sizeof(block_t))*count;
+			return (sizeof(stream) + blockSize + sizeof(block_t) + MM_manager.space_overhead())*count ;
 		}
 
 		stream(file_type & f, offset_type o):
@@ -165,6 +158,18 @@ public:
 			reinterpret_cast<T*>(block->data)[index++] = item;
 			if (canRead) parent_t::write_update();
 		}
+
+		template <typename IT>
+		inline void write(const IT & start, const IT & end) {
+			for(IT i=start; i != end; ++i) 
+				write(*i);
+		};
+
+		template <typename IT>
+		inline void read(const IT & start, const IT & end) {
+			for(IT i=start; i != end; ++i) 
+				*i = read();
+		};
  	};
 
  	static size_type memory(size_type count=1) {
