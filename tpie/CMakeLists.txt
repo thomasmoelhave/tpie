@@ -63,10 +63,12 @@ set (STREAMING_HEADERS
 set (STREAM_HEADERS
   stream/exception.h
   stream/concepts.h
+  stream/stdio_bte.h
   )
 
 set (STREAM_SOURCES
   stream/fd_file_base.cpp
+  stream/stdio_bte.cpp
   )
 
 if (WIN32)

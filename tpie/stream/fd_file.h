@@ -25,6 +25,7 @@
 #else
 #include <tpie/stream/posix_bte.h>
 #endif
+#include <tpie/stream/stdio_bte.h>
 
 #include <tpie/stream/concepts.h>
 #include <tpie/stream/exception.h>
@@ -35,7 +36,7 @@ namespace stream {
 
 #ifdef WIN32
 #else
-typedef posix_block_transfer_engine default_bte;
+typedef stdio_block_transfer_engine default_bte;
 #endif
 
 template <typename BTE>

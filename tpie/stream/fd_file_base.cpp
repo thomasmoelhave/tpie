@@ -8,3 +8,6 @@ using namespace tpie::stream;
 template
 class fd_file_base<posix_block_transfer_engine>;
 #endif
+
+template
+class fd_file_base<stdio_block_transfer_engine>;
