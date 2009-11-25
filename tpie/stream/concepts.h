@@ -19,17 +19,17 @@
 
 #ifndef __TPIE_STREAM_CONCEPTS_H__
 #define __TPIE_STREAM_CONCEPTS_H__
-#ifdef TPIE_USE_CONCEPTS
 #include <tpie/util.h>
 #include <tpie/concepts.h>
 
 namespace tpie {
 namespace stream {
+namespace concepts {
 
 template <class T>
 class block_transfer_engine {
 public:
-	BOOST_CONCEPT_ASSERT((memory_calculatable<T>));
+	BOOST_CONCEPT_ASSERT((tpie::concepts::memory_calculatable<T>));
 	BOOST_CONCEPT_USAGE(block_transfer_engine) {
 		T y(true, true, 1024, 123);
 		y.open("str");
@@ -51,7 +51,7 @@ public:
 	typedef typename T::file_type file_type;
 	typedef typename T::item_type item_type;
 	
-	BOOST_CONCEPT_ASSERT((memory_calculatable<T>));
+	BOOST_CONCEPT_ASSERT((tpie::concepts::memory_calculatable<T>));
 	BOOST_CONCEPT_USAGE(file_stream) {
 		file_type * x;
 		T stream(*x, 0);
@@ -64,6 +64,9 @@ public:
 		unused(s);
 		const item_type & item = stream.read();
 		stream.write(item);
+		
+		stream.read((item_type*)0, (item_type*)0);
+		stream.write((item_type*)0, (item_type*)0);
 	}
 };
 
@@ -72,7 +75,7 @@ class file {
 public:
 	typedef typename T::item_type item_type;
 	BOOST_CONCEPT_ASSERT((file_stream<typename T::stream>));
-	BOOST_CONCEPT_ASSERT((memory_calculatable<T>));
+	BOOST_CONCEPT_ASSERT((tpie::concepts::memory_calculatable<T>));
 	BOOST_CONCEPT_USAGE(file) {
 		T f(123);
 		f.open("str");
@@ -80,10 +83,12 @@ public:
 		f.close();
 		offset_type o = static_cast<const T*>(&f)->size();
 		unused(o);
+		std::string path = static_cast<const T*>(&f)->path();
+		unused(path);
 	}
 };
 
 }
 }
-#endif //TPIE_USE_CONCEPTS
+}
 #endif //__TPIE_STREAM_CONCEPTS_H__

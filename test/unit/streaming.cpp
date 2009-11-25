@@ -27,6 +27,7 @@ using namespace tpie::ami;
 using namespace tpie;
 using namespace std;
 using namespace tpie::streaming;
+namespace sc = tpie::streaming::concepts;
 
 int test[] = {
      2,    3,    5,    7,   11,   13,   17,   19,   23,   29, 
@@ -65,6 +66,7 @@ struct test_sink: public memory_single {
 	test_sink(): b(false), e(false), c(0), o(false) {}
 	
 	void begin(size_t count=0) {
+		unused(count);
 		if (e || b) ERR("begin()");
 		b=true;
 	}
@@ -87,18 +89,18 @@ struct test_sink: public memory_single {
 };
 
 int main(int argc, char ** argv) {
-	BOOST_CONCEPT_ASSERT((pushable< tpie::streaming::stream_sink<stream<int> > >));
-	BOOST_CONCEPT_ASSERT((pushable< tpie::streaming::sort<test_sink> >));
-	BOOST_CONCEPT_ASSERT((pushable< tpie::streaming::pull_sort<int> >));
-	BOOST_CONCEPT_ASSERT((pullable< tpie::streaming::pull_sort<int> >));
-	BOOST_CONCEPT_ASSERT((pushable< tpie::streaming::buffer<test_sink> >));
-	BOOST_CONCEPT_ASSERT((pushable< tpie::streaming::pull_buffer<int> >));
-	BOOST_CONCEPT_ASSERT((pullable< tpie::streaming::pull_buffer<int> >));
-	BOOST_CONCEPT_ASSERT((memory_managable< tpie::streaming::stream_sink<stream<int> > >));
-	BOOST_CONCEPT_ASSERT((memory_managable< tpie::streaming::sort<test_sink> >));
-	BOOST_CONCEPT_ASSERT((memory_managable< tpie::streaming::pull_sort<int> >));
-	BOOST_CONCEPT_ASSERT((memory_managable< tpie::streaming::buffer<test_sink> >));
-	BOOST_CONCEPT_ASSERT((memory_managable< tpie::streaming::pull_buffer<int> >));
+	BOOST_CONCEPT_ASSERT((sc::pushable< tpie::streaming::stream_sink<stream<int> > >));
+	BOOST_CONCEPT_ASSERT((sc::pushable< tpie::streaming::sort<test_sink> >));
+	BOOST_CONCEPT_ASSERT((sc::pushable< tpie::streaming::pull_sort<int> >));
+	BOOST_CONCEPT_ASSERT((sc::pullable< tpie::streaming::pull_sort<int> >));
+	BOOST_CONCEPT_ASSERT((sc::pushable< tpie::streaming::buffer<test_sink> >));
+	BOOST_CONCEPT_ASSERT((sc::pushable< tpie::streaming::pull_buffer<int> >));
+	BOOST_CONCEPT_ASSERT((sc::pullable< tpie::streaming::pull_buffer<int> >));
+	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::stream_sink<stream<int> > >));
+	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::sort<test_sink> >));
+	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::pull_sort<int> >));
+	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::buffer<test_sink> >));
+	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::pull_buffer<int> >));
 	
 	if (argc != 2) return 1;
 	remove("/tmp/stream");
@@ -209,10 +211,7 @@ int main(int argc, char ** argv) {
 	} else {
 		return 1;
 	}
-
-
-  return 0;
-
+	return 0;
 }
 
 

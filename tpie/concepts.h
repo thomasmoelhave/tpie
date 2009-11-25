@@ -19,10 +19,10 @@
 
 #ifndef __TPIE_CONCEPTS_H__
 #define __TPIE_CONCEPTS_H__
-#ifdef TPIE_USE_CONCEPTS
 #include <tpie/util.h>
 #include <boost/concept_check.hpp>
 namespace tpie {
+namespace concepts {
 
 template <class T>
 class memory_calculatable {
@@ -34,5 +34,5 @@ public:
 };
 
 }
-#endif //TPIE_USE_CONREPTS
+}
 #endif //__TPIE_CONCEPTS_H__

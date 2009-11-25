@@ -36,8 +36,6 @@ template <typename BTE>
 class fd_file_base {
 public:
 	typedef BTE bte_type;
-	TPIE_CONCEPT_ASSERT((block_transfer_engine<bte_type>));
-	
 protected:
 	size_type blockItems;
 	offset_type m_size;
@@ -68,6 +66,8 @@ private:
 	block_t* firstFree;
 	bte_type bte;
 public:
+	BOOST_CONCEPT_ASSERT((concepts::block_transfer_engine<bte_type>));
+
 	inline void open() {
 		bte.open();
 		m_size = bte.size();
@@ -77,7 +77,9 @@ public:
 		m_size = bte.size();
 	}
 	inline void close() {bte.close();}
-	offset_type size() const {return m_size;}
+	inline offset_type size() const {return m_size;}
+
+	inline const std::string & path() const {return bte.path();}
 
 	class stream {
 	protected:
@@ -113,16 +115,20 @@ public:
  		}
 	};
 
-	~fd_file_base();
+	~fd_file_base();	   
 };
 
-template <typename T, bool canRead, bool canWrite, size_type blockSize=1024*1024, typename BTE=default_bte>
+template <typename T, bool canRead, bool canWrite, int blockFactor=100, typename BTE=default_bte>
 class fd_file: public fd_file_base<BTE> {
 public:
  	typedef T item_type;
 
+	static inline size_type blockSize() {
+		return 1024*1024 * blockFactor / 100;
+	}
+
 	inline fd_file(boost::uint64_t typeMagic=0):
-		fd_file_base<BTE>(blockSize, sizeof(T), canRead, canWrite, typeMagic) {};
+		fd_file_base<BTE>(blockSize(), sizeof(T), canRead, canWrite, typeMagic) {};
 
  	class stream: public fd_file_base<BTE>::stream {
 	public:
@@ -138,7 +144,7 @@ public:
 		using parent_t::block_items;
 	public:
 		static size_type memory(size_type count=1) {
-			return (sizeof(stream) + blockSize + sizeof(block_t) + MM_manager.space_overhead())*count ;
+			return (sizeof(stream) + blockSize() + sizeof(block_t) + MM_manager.space_overhead())*count ;
 		}
 
 		stream(file_type & f, offset_type o):
@@ -170,6 +176,7 @@ public:
 			for(IT i=start; i != end; ++i) 
 				*i = read();
 		};
+
  	};
 
  	static size_type memory(size_type count=1) {

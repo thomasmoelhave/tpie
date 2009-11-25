@@ -19,11 +19,11 @@
 #ifndef _TPIE_STREAMING_CONCEPTS_H
 #define _TPIE_STREAMING_CONCEPTS_H
 #include <tpie/util.h>
-#ifdef TPIE_USE_CONCEPTS
 #include <tpie/concepts.h>
 
 namespace tpie {
 namespace streaming {
+namespace concepts {
 
 template <typename T>
 struct memory_managable {
@@ -64,6 +64,6 @@ struct pullable {
 
 }
 }
+}
 
-#endif //TPIE_USE_CONCEPTS
 #endif //_TPIE_STREAMING_CONCEPTS_H

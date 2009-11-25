@@ -144,7 +144,7 @@ class buffer: public buffer_base<typename dest_t::item_type, buffer<dest_t> > {
 public:
 	typedef typename dest_t::item_type item_type;
 private:
-        TPIE_CONCEPT_ASSERT((pushable<dest_t>));
+	BOOST_CONCEPT_ASSERT((tpie::streaming::concepts::pushable<dest_t>));
 
 	typedef buffer_base<item_type, buffer<dest_t> > parent_t;
 	using parent_t::buff;

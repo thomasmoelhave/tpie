@@ -8,8 +8,7 @@ for rev in 1644 1700 1800 1875 HEAD; do
     if [[ $rev == "HEAD" ]]; then
 	rrev=100000
     fi
-    sed -re "s/\#define REV .*/\#define REV $rev/" -i stream.cpp
-    cat stream.cpp
+    sed -re "s/\#define REV .*/\#define REV $rrev/" -i stream.cpp
     if cd ../../tpie/ && svn up -r "$rev" && make clean && make && cd $d && make clean && make stream CFLAGS="-DREV=$rev"; then
 		cd ../../tpie/
 		R=$(svn info | sed -nre 's/Revision: //p')

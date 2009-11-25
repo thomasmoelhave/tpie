@@ -25,8 +25,10 @@
 #include <tpie/stream/fd_file.h>
 #include <tpie/util.h>
 
-using namespace tpie;
+
 using namespace std;
+using namespace tpie;
+using namespace tpie::concepts;
 using namespace tpie::stream;
 
 #define ERR(x) {cerr << x << endl; exit(1);}
@@ -106,8 +108,8 @@ void test_bte() {
 }
 
 int main(int argc, char ** argv) {
-	TPIE_CONCEPT_ASSERT((block_transfer_engine<posix_block_transfer_engine>));
-	TPIE_CONCEPT_ASSERT((file< fd_file<int, true, false> >));
+	BOOST_CONCEPT_ASSERT((stream::concepts::block_transfer_engine<posix_block_transfer_engine>));
+	BOOST_CONCEPT_ASSERT((stream::concepts::file< stream::fd_file<int, true, false> >));
 
 	if (argc == 2 && !strcmp(argv[1], "posix_bte")) {
 		test_bte<posix_block_transfer_engine>();

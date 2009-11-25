@@ -30,8 +30,6 @@ typedef TPIE_OS_OFFSET offset_type;
 typedef TPIE_OS_SIZE_T size_type;
 typedef TPIE_OS_SSIZE_T ssize_type;
 
-#define TPIE_CONCEPT_ASSERT BOOST_CONCEPT_ASSERT
-#define TPIE_USE_CONCEPTS
 }
 
 #endif //__TPIE_UTIL_H__
