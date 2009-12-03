@@ -152,7 +152,6 @@ public:
 		Merger(const std::string & fb, const icomp_t & c, TPIE_OS_SIZE_T f, TPIE_OS_SIZE_T l)
 			: comp(c), fileBase(fb), first(f), last(l), queue(comp)
 		{
-			std::cerr << "Sort arity " << last-first << std::endl;
 			streams = new ami::stream<item_type> *[last-first];
 			sources = new pull_stream_source< ami::stream<item_type> > *[last-first];
 			assert(last-first >= 2);
@@ -327,7 +326,6 @@ public:
 		delete[] buffer;
 		buffer = NULL;
 		TPIE_OS_SIZE_T arity = memory_fits< pull_stream_source< ami::stream<item_type> > >::fits(memoryOut() - baseMinMem());
-		arity=2;
 		baseMerge(arity);
 		dest.begin(size);
  		merge(firstFile, nextFile, dest);
