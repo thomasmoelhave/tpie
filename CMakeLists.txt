@@ -58,6 +58,12 @@ option(TPIE_USE_EXCEPTIONS "Throw exceptions on certain errors." ON)
 option(DEBUG_ASSERTIONS "Enable tpie_assert." OFF)
 option(TPL_LOGGING "Enable tpie logging." ON)
 
+option(PROFILING "Use profiling." OFF)
+if (PROFILING) 
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
+endif(PROFILING) 
+
+
 if (COMPILE_TEST)
 	ENABLE_TESTING()
 	add_subdirectory(test)
