@@ -37,7 +37,7 @@ public:
 	}
 };
 
-template <typename dest_t> 
+template <typename super_t, typename dest_t> 
 class common_single: public memory_single {
 private:
 	dest_t & d;
@@ -47,15 +47,27 @@ protected:
     common_single(dest_t & de, double prio): d(de) {
 		setMemoryPriority(prio);
 	}
-	
+public:	
 	void memoryNext(std::vector<memory_base *> &ds) {
 		ds.push_back(&d);
 	}
-		
 
 	TPIE_OS_SIZE_T minimumMemory() {
 		return memoryBase();
-	};
+	}
+	
+	virtual TPIE_OS_SIZE_T memoryBase() {
+		return sizeof(super_t);
+	}
+
+	void begin(TPIE_OS_OFFSET size=0) {
+		d.begin(size);
+	}
+	
+	void end() {
+		d.end();
+	}
+
 };
 
 

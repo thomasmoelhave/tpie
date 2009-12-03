@@ -27,9 +27,9 @@ namespace tpie {
 namespace streaming {
 
 template <class stream_t, class dest_t> 
-class stream_source : public common_single<dest_t> {
+class stream_source : public common_single<stream_source<stream_t, dest_t>, dest_t> {
 private:
-	typedef common_single<dest_t> parent_t;
+	typedef common_single<stream_source<stream_t, dest_t>, dest_t> parent_t;
 	using parent_t::dest;
 	stream_t * stream;
 public:
@@ -43,8 +43,6 @@ public:
 			dest().push(*item);
 		dest().end();
 	}
-
-	virtual TPIE_OS_SIZE_T memoryBase() {return sizeof(*this);}
 };
 
 		
