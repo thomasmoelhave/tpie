@@ -30,6 +30,7 @@
 
 #if(REV < 1876)
 using namespace tpie::ami;
+
 #else
 using namespace tpie::stream;
 #endif
