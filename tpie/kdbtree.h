@@ -22,8 +22,8 @@
 // K-D-B-tree definition and implementation. 
 ///////////////////////////////////////////////////////////////////////////
 
-#ifndef _AMI_KDBTREE_H
-#define _AMI_KDBTREE_H
+#ifndef _TPIE_AMI_KDBTREE_H
+#define _TPIE_AMI_KDBTREE_H
 
 #include <iostream>
 #include <tpie/portability.h>
@@ -31,46 +31,44 @@
 #include <tpie/kdtree.h>
 #include <tpie/kd_base.h>
 #include <string> // STL string.
+#include <stack>
 
-#define AMI_KDBTREE_HEADER_MAGIC_NUMBER 0xA9542F
+#define TPIE_AMI_KDBTREE_HEADER_MAGIC_NUMBER 0xA9542F
+
+namespace tpie {
+
+namespace ami {
 
 // Forward declarations.
-template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL> class AMI_kdbtree_node;
-template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL> class AMI_kdbtree_leaf;
+template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL> class kdbtree_node;
+template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL> class kdbtree_leaf;
 
 ///////////////////////////////////////////////////////////////////////////
 /// The kdbtree class. 
 ///////////////////////////////////////////////////////////////////////////
-template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node=AMI_kdtree_bin_node_default<coord_t, dim>, class BTECOLL = BTE_COLLECTION > 
-class AMI_kdbtree {
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node=kdtree_bin_node_default<coord_t, dim>, class BTECOLL = bte::COLLECTION > 
+class kdbtree {
 public:
 
-  typedef AMI_record<coord_t, TPIE_OS_SIZE_T, dim> point_t;
-  typedef AMI_record<coord_t, TPIE_OS_SIZE_T, dim> record_t;
-  typedef AMI_point<coord_t, dim> key_t;
-  typedef AMI_STREAM<point_t> stream_t;
-  typedef AMI_collection_single<BTECOLL> collection_t;
-  typedef AMI_kdbtree_node<coord_t, dim, BTECOLL> node_t;
-  typedef AMI_kdbtree_leaf<coord_t, dim, BTECOLL> leaf_t;
+  typedef record<coord_t, TPIE_OS_SIZE_T, dim> point_t;
+  typedef record<coord_t, TPIE_OS_SIZE_T, dim> record_t;
+  typedef point<coord_t, dim> key_t;
+  typedef stream<point_t> stream_t;
+  typedef collection_single<BTECOLL> collection_t;
+  typedef kdbtree_node<coord_t, dim, BTECOLL> node_t;
+  typedef kdbtree_leaf<coord_t, dim, BTECOLL> leaf_t;
   typedef kdb_item_t<coord_t, dim> item_t;
 
   ///////////////////////////////////////////////////////////////////////////
   /// Constructor. 
   ///////////////////////////////////////////////////////////////////////////
-  AMI_kdbtree(const std::string& base_file_name, AMI_collection_type type, 
-	  const AMI_kdbtree_params& params);
-
-  ///////////////////////////////////////////////////////////////////////////
-  /// Constructor. 
-  /// \internal \todo duplicate constructor?
-  ///////////////////////////////////////////////////////////////////////////
-  AMI_kdbtree(const string& base_file_name, AMI_collection_type type, 
-	  const AMI_kdbtree_params& params);
+  kdbtree(const std::string& base_file_name, collection_type type, 
+	  const kdbtree_params& params);
 
   ///////////////////////////////////////////////////////////////////////////
   /// Transform a kdtree into a kdbtree, in place. Returns true if
   /// succesful, false otherwise (i.e., the status is not
-  /// AMI_KDBTREE_STATUS_KDTREE or the kdtree nodes contain too many keys).
+  /// tpie::ami::KDBTREE_STATUS_KDTREE or the kdtree nodes contain too many keys).
   ///////////////////////////////////////////////////////////////////////////
   bool kd2kdb();
 
@@ -107,12 +105,12 @@ public:
   ///////////////////////////////////////////////////////////////////////////
   // Inquires the (real) parameters.
   ///////////////////////////////////////////////////////////////////////////
-  const AMI_kdbtree_params& params() const { return params_; }
+  const kdbtree_params& params() const { return params_; }
 
   ///////////////////////////////////////////////////////////////////////////
   // Inquires the status.
   ///////////////////////////////////////////////////////////////////////////
-  AMI_kdbtree_status status() const { return status_; };
+  kdbtree_status status() const { return status_; };
 
   ///////////////////////////////////////////////////////////////////////////
   // Inquires the size (number of points stored).
@@ -132,7 +130,7 @@ public:
   ///////////////////////////////////////////////////////////////////////////
   /// Inquires the statistics.
   ///////////////////////////////////////////////////////////////////////////
-  const tpie_stats_tree &stats();
+  const stats_tree &stats();
 
   ///////////////////////////////////////////////////////////////////////////
   /// Inquires the leaf block size (in bytes)
@@ -147,15 +145,15 @@ public:
   ///////////////////////////////////////////////////////////////////////////
   /// Inquires the base path name.
   ///////////////////////////////////////////////////////////////////////////
-  const string& name() const { return name_; }
+  const std::string& name() const { return name_; }
 
   ///////////////////////////////////////////////////////////////////////////
   /// Destructor.
   ///////////////////////////////////////////////////////////////////////////
-  ~AMI_kdbtree();
+  ~kdbtree();
 
-  node_t* fetch_node(AMI_bid bid = 0);
-  leaf_t* fetch_leaf(AMI_bid bid = 0);
+  node_t* fetch_node(bid_t bid = 0);
+  leaf_t* fetch_leaf(bid_t bid = 0);
   void release_node(node_t* q);
   void release_leaf(leaf_t* q);
 
@@ -167,12 +165,12 @@ public:
     unsigned int magic_number;
     point_t mbr_lo;
     point_t mbr_hi;
-    AMI_bid root_bid;
+    bid_t root_bid;
     TPIE_OS_OFFSET size;
     link_type_t root_type;
     
     header_t():
-      magic_number(AMI_KDBTREE_HEADER_MAGIC_NUMBER), mbr_lo(0), mbr_hi(0), 
+      magic_number(TPIE_AMI_KDBTREE_HEADER_MAGIC_NUMBER), mbr_lo(0), mbr_hi(0), 
       root_bid(0), root_type(BLOCK_LEAF), size(0) {}
   };
 
@@ -195,10 +193,10 @@ protected:
   };
 
   /** The node cache. */
-  AMI_CACHE_MANAGER<node_t*, remove_node>* node_cache_;
+  tpie::ami::CACHE_MANAGER<node_t*, remove_node>* node_cache_;
   
   /** The leaf cache. */
-  AMI_CACHE_MANAGER<leaf_t*, remove_leaf>* leaf_cache_;
+  tpie::ami::CACHE_MANAGER<leaf_t*, remove_leaf>* leaf_cache_;
 
   /** The collection storing the leaves. */
   collection_t * pcoll_leaves_;
@@ -211,22 +209,22 @@ protected:
   header_t header_;
 
   /** The status. */
-  AMI_kdbtree_status status_;
+  kdbtree_status status_;
 
   /** Run-time parameters. */
-  AMI_kdbtree_params params_;
+  kdbtree_params params_;
 
   /** Stack to store the path to a leaf. */
-  stack<path_stack_item_t<coord_t, dim> > path_stack_;
+  std::stack<path_stack_item_t<coord_t, dim> > path_stack_;
 
   /** Stack for dfs_preorder. */
-  stack<path_stack_item_t<coord_t, dim> > dfs_stack_;
+  std::stack<path_stack_item_t<coord_t, dim> > dfs_stack_;
 
   /** Statistics object. */
-  tpie_stats_tree stats_;
+  stats_tree stats_;
 
   /** Base path name. */
-  string name_;
+  std::string name_;
 
   bool insert_empty(const point_t& p);
 
@@ -234,9 +232,9 @@ protected:
 		      stream_t* stream);
 
   // Various initialization common to all constructors.
-  void shared_init(const std::string& base_file_name, AMI_collection_type type);
+  void shared_init(const std::string& base_file_name, collection_type type);
   void kd2kdb(const item_t& ki, b_vector<item_t >& bv);
-  void kd2kdb_node( AMI_kdtree_node<coord_t, dim, Bin_node, BTECOLL>* bn, 
+  void kd2kdb_node( kdtree_node<coord_t, dim, Bin_node, BTECOLL>* bn, 
 		    size_t i, region_t<coord_t, dim> r, 
 		    b_vector<item_t >& bv, size_t& bv_pos);
   inline TPIE_OS_SIZE_T split_dim_longest_span(const path_stack_item_t<coord_t, dim>& top);
@@ -255,9 +253,9 @@ protected:
   inline void empty_stack(bool update_weight = false);
 };
 
-struct _AMI_kdbtree_leaf_info {
+struct _kdbtree_leaf_info {
   TPIE_OS_SIZE_T size;
-  AMI_bid next;
+  bid_t next;
   TPIE_OS_SIZE_T split_dim;
 };
 
@@ -265,22 +263,22 @@ struct _AMI_kdbtree_leaf_info {
 /// The kdbtree_leaf class. 
 ///////////////////////////////////////////////////////////////////////////
 template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL>
-class AMI_kdbtree_leaf: public AMI_block<AMI_record<coord_t, TPIE_OS_SIZE_T, dim>, _AMI_kdbtree_leaf_info, BTECOLL> {
+class kdbtree_leaf: public block<record<coord_t, TPIE_OS_SIZE_T, dim>, _kdbtree_leaf_info, BTECOLL> {
 public:
-  using AMI_block<AMI_record<coord_t, TPIE_OS_SIZE_T, dim>, _AMI_kdbtree_leaf_info, BTECOLL>::info;
-  using AMI_block<AMI_record<coord_t, TPIE_OS_SIZE_T, dim>, _AMI_kdbtree_leaf_info, BTECOLL>::el;
-  using AMI_block<AMI_record<coord_t, TPIE_OS_SIZE_T, dim>, _AMI_kdbtree_leaf_info, BTECOLL>::dirty;
+  using block<record<coord_t, TPIE_OS_SIZE_T, dim>, _kdbtree_leaf_info, BTECOLL>::info;
+  using block<record<coord_t, TPIE_OS_SIZE_T, dim>, _kdbtree_leaf_info, BTECOLL>::el;
+  using block<record<coord_t, TPIE_OS_SIZE_T, dim>, _kdbtree_leaf_info, BTECOLL>::dirty;
   
-  typedef AMI_record<coord_t, TPIE_OS_SIZE_T, dim> point_t;
-  typedef AMI_record<coord_t, TPIE_OS_SIZE_T, dim> record_t;
-  typedef AMI_STREAM<point_t> stream_t;
-  typedef AMI_collection_single<BTECOLL> collection_t;
-  typedef _AMI_kdbtree_leaf_info info_t;
+  typedef record<coord_t, TPIE_OS_SIZE_T, dim> point_t;
+  typedef record<coord_t, TPIE_OS_SIZE_T, dim> record_t;
+  typedef stream<point_t> stream_t;
+  typedef collection_single<BTECOLL> collection_t;
+  typedef _kdbtree_leaf_info info_t;
 
   static TPIE_OS_SIZE_T el_capacity(TPIE_OS_SIZE_T block_size);
 
-  AMI_kdbtree_leaf(collection_t* pcoll, AMI_bid bid = 0): 
-    AMI_block<AMI_record<coord_t, TPIE_OS_SIZE_T, dim>, _AMI_kdbtree_leaf_info, BTECOLL>(pcoll, 0, bid) {
+  kdbtree_leaf(collection_t* pcoll, bid_t bid = 0): 
+    block<record<coord_t, TPIE_OS_SIZE_T, dim>, _kdbtree_leaf_info, BTECOLL>(pcoll, 0, bid) {
     if (bid == 0) {
       size() = 0;
       next() = 0;
@@ -305,8 +303,8 @@ public:
   /// Returns next leaf. All leaves of a tree are chained togther for easy
   /// retrieval.
   ///////////////////////////////////////////////////////////////////////////
-  const AMI_bid& next() const { return info()->next; }
-  AMI_bid& next() { return info()->next; }
+  const bid_t& next() const { return info()->next; }
+  bid_t& next() { return info()->next; }
 
   TPIE_OS_SIZE_T& split_dim() { return info()->split_dim; }
   const TPIE_OS_SIZE_T& split_dim() const { return info()->split_dim; }
@@ -379,7 +377,7 @@ public:
   /// Sorts the points on the given dimension.
   ///////////////////////////////////////////////////////////////////////////
   void sort(TPIE_OS_SIZE_T d) {
-    typename AMI_record<coord_t, TPIE_OS_SIZE_T, dim>::cmp cmpd(d);
+    typename record<coord_t, TPIE_OS_SIZE_T, dim>::cmp cmpd(d);
     std::sort(&el[0], &el[0] + size(), cmpd);
   }
 
@@ -398,7 +396,7 @@ public:
 };
 
 
-struct _AMI_kdbtree_node_info {
+struct _kdbtree_node_info {
   TPIE_OS_SIZE_T size;
   TPIE_OS_OFFSET weight;
   TPIE_OS_SIZE_T split_dim;
@@ -408,26 +406,26 @@ struct _AMI_kdbtree_node_info {
 /// The kdbtree_node class. 
 ///////////////////////////////////////////////////////////////////////////
 template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL>
-class AMI_kdbtree_node: public AMI_block<kdb_item_t<coord_t, dim>, _AMI_kdbtree_node_info, BTECOLL> {
+class kdbtree_node: public block<kdb_item_t<coord_t, dim>, _kdbtree_node_info, BTECOLL> {
 public:
-  using AMI_block<kdb_item_t<coord_t, dim>, _AMI_kdbtree_node_info, BTECOLL>::info;
-  using AMI_block<kdb_item_t<coord_t, dim>, _AMI_kdbtree_node_info, BTECOLL>::el;
-  using AMI_block<kdb_item_t<coord_t, dim>, _AMI_kdbtree_node_info, BTECOLL>::lk;
-  using AMI_block<kdb_item_t<coord_t, dim>, _AMI_kdbtree_node_info, BTECOLL>::dirty;
+  using block<kdb_item_t<coord_t, dim>, _kdbtree_node_info, BTECOLL>::info;
+  using block<kdb_item_t<coord_t, dim>, _kdbtree_node_info, BTECOLL>::el;
+  using block<kdb_item_t<coord_t, dim>, _kdbtree_node_info, BTECOLL>::lk;
+  using block<kdb_item_t<coord_t, dim>, _kdbtree_node_info, BTECOLL>::dirty;
   
-  typedef AMI_record<coord_t, TPIE_OS_SIZE_T, dim> point_t;
-  typedef AMI_STREAM<point_t> stream_t;
-  typedef AMI_collection_single<BTECOLL> collection_t;
+  typedef record<coord_t, TPIE_OS_SIZE_T, dim> point_t;
+  typedef stream<point_t> stream_t;
+  typedef collection_single<BTECOLL> collection_t;
   typedef kdb_item_t<coord_t, dim> item_t;
-  typedef _AMI_kdbtree_node_info info_t;
+  typedef _kdbtree_node_info info_t;
 
   static TPIE_OS_SIZE_T el_capacity(TPIE_OS_SIZE_T block_size);
 
   ///////////////////////////////////////////////////////////////////////////
   /// A node is an block containing kdb_item_t's as elements and no links.
   ///////////////////////////////////////////////////////////////////////////
-  AMI_kdbtree_node(collection_t* pcoll, AMI_bid bid = 0):
-    AMI_block<kdb_item_t<coord_t, dim>, _AMI_kdbtree_node_info, BTECOLL>(pcoll, 0, bid) {
+  kdbtree_node(collection_t* pcoll, bid_t bid = 0):
+    block<kdb_item_t<coord_t, dim>, _kdbtree_node_info, BTECOLL>(pcoll, 0, bid) {
     if (bid == 0) {
       size() = 0;
       weight() = 0;
@@ -490,11 +488,11 @@ TPIE_OS_SIZE_T capacity() const { return el.capacity(); }
 ////////////////////////////////////////////////////////////
 
 // Define local shortcuts.
-#define AMI_KDBTREE       AMI_kdbtree<coord_t, dim, Bin_node, BTECOLL>
-#define AMI_KDBTREE_NODE  AMI_kdbtree_node<coord_t, dim, BTECOLL>
-#define AMI_KDBTREE_LEAF  AMI_kdbtree_leaf<coord_t, dim, BTECOLL>
-#define POINT            AMI_record<coord_t, TPIE_OS_SIZE_T, dim>
-#define POINT_STREAM     AMI_STREAM< POINT >
+#define TPIE_AMI_KDBTREE       kdbtree<coord_t, dim, Bin_node, BTECOLL>
+#define TPIE_AMI_KDBTREE_NODE  kdbtree_node<coord_t, dim, BTECOLL>
+#define TPIE_AMI_KDBTREE_LEAF  kdbtree_leaf<coord_t, dim, BTECOLL>
+#define POINT            record<coord_t, TPIE_OS_SIZE_T, dim>
+#define POINT_STREAM     stream< POINT >
 #define REGION        region_t<coord_t, dim>
 #define KDB_ITEM      kdb_item_t<coord_t, dim>
 #define STACK_ITEM    path_stack_item_t<coord_t, dim>
@@ -503,47 +501,39 @@ TPIE_OS_SIZE_T capacity() const { return el.capacity(); }
 //   (LOG_APP_DEBUG(msg),LOG_FLUSH_LOG)
 
 //////////////////////////////////////
-////////// **AMI_kdbtree_leaf** //////////
+////////// **kdbtree_leaf** //////////
 //////////////////////////////////////
 
 template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL>
-TPIE_OS_SIZE_T AMI_KDBTREE_LEAF::el_capacity(TPIE_OS_SIZE_T block_size) {
-  return AMI_block<AMI_record<coord_t, TPIE_OS_SIZE_T, dim>, _AMI_kdbtree_leaf_info, BTECOLL>::el_capacity(block_size, 0);
+TPIE_OS_SIZE_T TPIE_AMI_KDBTREE_LEAF::el_capacity(TPIE_OS_SIZE_T block_size) {
+  return block<record<coord_t, TPIE_OS_SIZE_T, dim>, _kdbtree_leaf_info, BTECOLL>::el_capacity(block_size, 0);
 }
 
 //////////////////////////////////////
-////////// **AMI_kdbtree_node** //////////
+////////// **kdbtree_node** //////////
 //////////////////////////////////////
 
 template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL>
-TPIE_OS_SIZE_T AMI_KDBTREE_NODE::el_capacity(TPIE_OS_SIZE_T block_size) {
-  return AMI_block<KDB_ITEM, _AMI_kdbtree_node_info, BTECOLL>::el_capacity(block_size, 0);
+TPIE_OS_SIZE_T TPIE_AMI_KDBTREE_NODE::el_capacity(TPIE_OS_SIZE_T block_size) {
+  return block<KDB_ITEM, _kdbtree_node_info, BTECOLL>::el_capacity(block_size, 0);
 }
 
 
 //////////////////////////////////////
-///////////// **AMI_kdbtree** ////////////
+///////////// **kdbtree** ////////////
 //////////////////////////////////////
 
-//// *AMI_kdbtree::AMI_kdbtree* ////
+//// *kdbtree::kdbtree* ////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-AMI_KDBTREE::AMI_kdbtree(const std::string& base_file_name, AMI_collection_type type, 
-			 const AMI_kdbtree_params& params): header_(), params_(params), name_(base_file_name) 
+TPIE_AMI_KDBTREE::kdbtree(const std::string& base_file_name, collection_type type, 
+			 const kdbtree_params& params): header_(), params_(params), name_(base_file_name) 
 {
   shared_init(base_file_name, type);
 }
 
-//// *AMI_kdbtree::AMI_kdbtree* ////
+//// *kdbtree::shared_init* ////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-AMI_KDBTREE::AMI_kdbtree(const string &base_file_name, AMI_collection_type type, 
-			 const AMI_kdbtree_params& params): header_(), params_(params), name_(base_file_name) 
-{
-  shared_init(base_file_name, type);
-}
-
-//// *AMI_kdbtree::shared_init* ////
-template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-void AMI_KDBTREE::shared_init(const std::string& base_file_name, AMI_collection_type type) 
+void TPIE_AMI_KDBTREE::shared_init(const std::string& base_file_name, collection_type type) 
 {
 
 	assert(base_file_name.empty());
@@ -554,9 +544,9 @@ void AMI_KDBTREE::shared_init(const std::string& base_file_name, AMI_collection_
 	collname = base_file_name + ".n";
 	pcoll_nodes_ = new collection_t(collname, type, params_.node_block_factor);
 
-	if (pcoll_nodes_->status() != AMI_COLLECTION_STATUS_VALID ||
-		pcoll_leaves_->status() != AMI_COLLECTION_STATUS_VALID) {
-		status_ = AMI_KDBTREE_STATUS_INVALID;
+	if (pcoll_nodes_->status() != tpie::ami::COLLECTION_STATUS_VALID ||
+		pcoll_leaves_->status() != tpie::ami::COLLECTION_STATUS_VALID) {
+		status_ = tpie::ami::KDBTREE_STATUS_INVALID;
 		delete pcoll_leaves_;
 		delete pcoll_nodes_;
 		return;
@@ -565,15 +555,15 @@ void AMI_KDBTREE::shared_init(const std::string& base_file_name, AMI_collection_
 	// Read the header info, if relevant.
 	if (pcoll_leaves_->size() != 0) {
 		unsigned int magic = *((unsigned int *) pcoll_nodes_->user_data());
-		if (magic == AMI_KDTREE_HEADER_MAGIC_NUMBER) {
-			status_ = AMI_KDBTREE_STATUS_KDTREE;
-		} else if (magic == AMI_KDBTREE_HEADER_MAGIC_NUMBER) {
-			status_ = AMI_KDBTREE_STATUS_VALID;
+		if (magic == TPIE_AMI_KDTREE_HEADER_MAGIC_NUMBER) {
+			status_ = tpie::ami::KDBTREE_STATUS_KDTREE;
+		} else if (magic == TPIE_AMI_KDBTREE_HEADER_MAGIC_NUMBER) {
+			status_ = tpie::ami::KDBTREE_STATUS_VALID;
 			//      header_ = *((header_t *) pcoll_nodes_->user_data());
 			memcpy((void *)(&header_), pcoll_nodes_->user_data(), sizeof(header_));
 			// TODO: sanity checks on the header.
 		} else {
-			status_ = AMI_KDBTREE_STATUS_INVALID;
+			status_ = tpie::ami::KDBTREE_STATUS_INVALID;
 			TP_LOG_WARNING_ID("Invalid kdbtree magic number:"<<magic);
 			delete pcoll_leaves_;
 			delete pcoll_nodes_;
@@ -582,19 +572,19 @@ void AMI_KDBTREE::shared_init(const std::string& base_file_name, AMI_collection_
 	}
 
 	// Initialize the caches.
-	leaf_cache_ = new AMI_CACHE_MANAGER<AMI_KDBTREE_LEAF*, remove_leaf>(params_.leaf_cache_size, 4);
-	node_cache_ = new AMI_CACHE_MANAGER<AMI_KDBTREE_NODE*, remove_node>(params_.node_cache_size, 1);
+	leaf_cache_ = new tpie::ami::CACHE_MANAGER<TPIE_AMI_KDBTREE_LEAF*, remove_leaf>(params_.leaf_cache_size, 4);
+	node_cache_ = new tpie::ami::CACHE_MANAGER<TPIE_AMI_KDBTREE_NODE*, remove_node>(params_.node_cache_size, 1);
   
 	// Give meaningful values to parameters, if necessary.
-	TPIE_OS_SIZE_T leaf_capacity = AMI_KDBTREE_LEAF::el_capacity(pcoll_leaves_->block_size());
+	TPIE_OS_SIZE_T leaf_capacity = TPIE_AMI_KDBTREE_LEAF::el_capacity(pcoll_leaves_->block_size());
 	if (params_.leaf_size_max == 0 || params_.leaf_size_max > leaf_capacity)
 		params_.leaf_size_max = leaf_capacity;
-	TPLOG("  AMI_kdbtree::shared_init leaf_size_max="<<params_.leaf_size_max<<"\n");
+	TPLOG("  kdbtree::shared_init leaf_size_max="<<params_.leaf_size_max<<"\n");
   
-	TPIE_OS_SIZE_T node_capacity = AMI_KDBTREE_NODE::el_capacity(pcoll_nodes_->block_size());
+	TPIE_OS_SIZE_T node_capacity = TPIE_AMI_KDBTREE_NODE::el_capacity(pcoll_nodes_->block_size());
 	if (params_.node_size_max == 0 || params_.node_size_max > node_capacity)
 		params_.node_size_max = node_capacity;
-	TPLOG("  AMI_kdbtree::shared_init node_size_max="<<params_.node_size_max<<"\n");
+	TPLOG("  kdbtree::shared_init node_size_max="<<params_.node_size_max<<"\n");
 	TPLOG("  sizeof(kdb_item_t)="<<sizeof(KDB_ITEM)<<"\n");
 
 	// Set the right block factor parameters for the case of an existing tree.
@@ -603,17 +593,17 @@ void AMI_KDBTREE::shared_init(const std::string& base_file_name, AMI_collection_
 }
 
 
-//// *AMI_kdbtree::kd2kdb* ////
+//// *kdbtree::kd2kdb* ////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-bool AMI_KDBTREE::kd2kdb() {
-  TPLOG("AMI_kdbtree::kd2kdb() Entering " << "\n");
-  if (status_ != AMI_KDBTREE_STATUS_KDTREE) {
-   TP_LOG_WARNING_ID("  kd2kdb: status is not AMI_KDBTREE_STATUS_KDTREE. operation aborted.");
+bool TPIE_AMI_KDBTREE::kd2kdb() {
+  TPLOG("kdbtree::kd2kdb() Entering " << "\n");
+  if (status_ != tpie::ami::KDBTREE_STATUS_KDTREE) {
+   TP_LOG_WARNING_ID("  kd2kdb: status is not tpie::ami::KDBTREE_STATUS_KDTREE. operation aborted.");
     return false;
   }
 
   bool ans = true;
-  typename AMI_kdtree<coord_t, dim, Bin_node, BTECOLL>::header_t kdheader;
+  typename kdtree<coord_t, dim, Bin_node, BTECOLL>::header_t kdheader;
   memcpy((void *)(&kdheader), pcoll_nodes_->user_data(), sizeof(kdheader));
   header_.root_bid = kdheader.root_bid;
   header_.root_type = kdheader.root_type;
@@ -626,7 +616,7 @@ bool AMI_KDBTREE::kd2kdb() {
   if (ki.type == BLOCK_NODE) {
 
     // Create temporary buffer.
-    AMI_KDBTREE_NODE* buffer = new AMI_KDBTREE_NODE(pcoll_nodes_);
+    TPIE_AMI_KDBTREE_NODE* buffer = new TPIE_AMI_KDBTREE_NODE(pcoll_nodes_);
     // Do the job.
     kd2kdb(ki, buffer->el);
     // Dispose of the temporary buffer.
@@ -637,19 +627,19 @@ bool AMI_KDBTREE::kd2kdb() {
     // Just a leaf. Nothing to do.
   }
 
-  if (status_ == AMI_KDBTREE_STATUS_KDTREE)
-    status_ = AMI_KDBTREE_STATUS_VALID;
+  if (status_ == tpie::ami::KDBTREE_STATUS_KDTREE)
+    status_ = tpie::ami::KDBTREE_STATUS_VALID;
   else
     ans = false;
 
-  TPLOG("AMI_kdbtree::kd2kdb() Exiting ans=" << ans << "\n");
+  TPLOG("kdbtree::kd2kdb() Exiting ans=" << ans << "\n");
   return ans;
 }
 
 
-//// *AMI_kdbtree::window_query* ////
+//// *kdbtree::window_query* ////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-TPIE_OS_OFFSET AMI_KDBTREE::window_query(const POINT &p1, const POINT& p2, 
+TPIE_OS_OFFSET TPIE_AMI_KDBTREE::window_query(const POINT &p1, const POINT& p2, 
 			     POINT_STREAM* stream) {
   TPLOG("  query window: "<<p1[0]<<" "<<p1[1]<<" "<<p2[0]<<" "<<p2[1]<<"\n");
   // The number of points found.
@@ -657,7 +647,7 @@ TPIE_OS_OFFSET AMI_KDBTREE::window_query(const POINT &p1, const POINT& p2,
 
   // We can afford to do some error checking, since this is usually a
   // lengthy operation.
-  if (status_ != AMI_KDBTREE_STATUS_VALID) {
+  if (status_ != tpie::ami::KDBTREE_STATUS_VALID) {
    TP_LOG_WARNING_ID("  window_query: tree is invalid or not loaded. query aborted.");
     return result;
   }
@@ -671,13 +661,13 @@ TPIE_OS_OFFSET AMI_KDBTREE::window_query(const POINT &p1, const POINT& p2,
   return result;
 }
 
-//// *AMI_kdbtree::window_query* ////
+//// *kdbtree::window_query* ////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-TPIE_OS_OFFSET AMI_KDBTREE::window_query(const KDB_ITEM& ki, const REGION& r, POINT_STREAM* stream) {
+TPIE_OS_OFFSET TPIE_AMI_KDBTREE::window_query(const KDB_ITEM& ki, const REGION& r, POINT_STREAM* stream) {
   TPLOG("  window query recusion: " << ki << "\n");
   TPIE_OS_OFFSET result = 0;
   if (ki.type == BLOCK_NODE) {
-    AMI_KDBTREE_NODE* bn = fetch_node(ki.bid);
+    TPIE_AMI_KDBTREE_NODE* bn = fetch_node(ki.bid);
     TPIE_OS_SIZE_T i;
     for (i = 0; i < bn->size(); i++) {
       if (bn->el[i].region.intersects(r))
@@ -686,22 +676,22 @@ TPIE_OS_OFFSET AMI_KDBTREE::window_query(const KDB_ITEM& ki, const REGION& r, PO
     release_node(bn);
   } else {
     assert(ki.type == BLOCK_LEAF);
-    AMI_KDBTREE_LEAF* bl = fetch_leaf(ki.bid);
+    TPIE_AMI_KDBTREE_LEAF* bl = fetch_leaf(ki.bid);
     result += bl->window_query(r.point_lo(), r.point_hi(), stream);
     release_leaf(bl);
   }
   return result;
 }
 
-//// *AMI_kdbtree::kd2kdb* ////
+//// *kdbtree::kd2kdb* ////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-void AMI_KDBTREE::kd2kdb(const KDB_ITEM& ki, b_vector<KDB_ITEM >& bv) {
-  TPLOG("AMI_kdbtree::kd2kdb Entering bid=" << ki.bid << "\n");
+void TPIE_AMI_KDBTREE::kd2kdb(const KDB_ITEM& ki, b_vector<KDB_ITEM >& bv) {
+  TPLOG("kdbtree::kd2kdb Entering bid=" << ki.bid << "\n");
 
-  AMI_kdtree_node<coord_t, dim, Bin_node, BTECOLL> *bno;
-  AMI_KDBTREE_NODE *bn;
+  kdtree_node<coord_t, dim, Bin_node, BTECOLL> *bno;
+  TPIE_AMI_KDBTREE_NODE *bn;
   //  link_type_t ni_type;
-  bno = new AMI_kdtree_node<coord_t, dim, Bin_node, BTECOLL>(pcoll_nodes_, ki.bid);
+  bno = new kdtree_node<coord_t, dim, Bin_node, BTECOLL>(pcoll_nodes_, ki.bid);
   if (bno->size() + 1 > params_.node_size_max) {
    TP_LOG_FATAL_ID("  kd2kdb: wrong kdtree node size;");
    TP_LOG_FATAL_ID("  kd2kdb: kdbtree node capacity: " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(params_.node_size_max));
@@ -709,35 +699,35 @@ void AMI_KDBTREE::kd2kdb(const KDB_ITEM& ki, b_vector<KDB_ITEM >& bv) {
    TP_LOG_FATAL_ID("  kd2kdb: found kdtree node with size: " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(bno->size()));
    TP_LOG_FATAL_ID("  kd2kdb: operation aborted.");
     delete bno;
-    status_ = AMI_KDBTREE_STATUS_INVALID;
+    status_ = tpie::ami::KDBTREE_STATUS_INVALID;
   } else {
     TPIE_OS_SIZE_T free_pos = 0;
     kd2kdb_node(bno, 0, ki.region, bv, free_pos);
     delete bno;
-    TPLOG("  AMI_kdbtree_node size="<<free_pos<<"\n");
+    TPLOG("  kdbtree_node size="<<free_pos<<"\n");
 
-    // Open the same block, but as a AMI_KDBTREE_NODE.
-    bn = new AMI_KDBTREE_NODE(pcoll_nodes_, ki.bid);
+    // Open the same block, but as a TPIE_AMI_KDBTREE_NODE.
+    bn = new TPIE_AMI_KDBTREE_NODE(pcoll_nodes_, ki.bid);
     bn->el.copy(0, free_pos, bv, 0);
     bn->size() = free_pos;
     bn->split_dim() = 0;
     
     for (TPIE_OS_SIZE_T i = 0; i < free_pos; i++) {
-      if (bn->el[i].type == BLOCK_NODE && status_ != AMI_KDBTREE_STATUS_INVALID)
+      if (bn->el[i].type == BLOCK_NODE && status_ != tpie::ami::KDBTREE_STATUS_INVALID)
 	kd2kdb(bn->el[i], bv);
     }
     delete bn;
   }
 
-  TPLOG("AMI_kdbtree::kd2kdb Exiting bid=" << ki.bid << "\n");
+  TPLOG("kdbtree::kd2kdb Exiting bid=" << ki.bid << "\n");
 }
 
-//// *AMI_kdbtree::kd2kdb_node* ////
+//// *kdbtree::kd2kdb_node* ////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-void AMI_KDBTREE::kd2kdb_node(AMI_kdtree_node<coord_t, dim, Bin_node, BTECOLL> *bn, 
+void TPIE_AMI_KDBTREE::kd2kdb_node(kdtree_node<coord_t, dim, Bin_node, BTECOLL> *bn, 
 			      size_t i, REGION r, 
 			      b_vector<KDB_ITEM >& bv, size_t& bv_pos) {
-  TPLOG("AMI_kdbtree::kd2kdb_node Entering " << "\n");
+  TPLOG("kdbtree::kd2kdb_node Entering " << "\n");
 
   REGION ni_r;
   size_t ni;
@@ -768,14 +758,14 @@ void AMI_KDBTREE::kd2kdb_node(AMI_kdtree_node<coord_t, dim, Bin_node, BTECOLL> *
     bv[bv_pos].type = ni_type;
     bv_pos++;
   }
-  TPLOG("AMI_kdbtree::kd2kdb_node Exiting " << "\n");  
+  TPLOG("kdbtree::kd2kdb_node Exiting " << "\n");  
 }
 
-//// *AMI_kdbtree::insert_empty* ////
+//// *kdbtree::insert_empty* ////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-bool AMI_KDBTREE::insert_empty(const AMI_record<coord_t, TPIE_OS_SIZE_T, dim>& p) {
+bool TPIE_AMI_KDBTREE::insert_empty(const record<coord_t, TPIE_OS_SIZE_T, dim>& p) {
   bool ans;
-  AMI_KDBTREE_LEAF* bl = fetch_leaf();
+  TPIE_AMI_KDBTREE_LEAF* bl = fetch_leaf();
   ans = bl->insert(p);
   assert(ans);
   bl->split_dim() = 0;
@@ -789,16 +779,16 @@ bool AMI_KDBTREE::insert_empty(const AMI_record<coord_t, TPIE_OS_SIZE_T, dim>& p
   header_.mbr_hi = p;
   header_.mbr_hi.id() = 1;
 
-  status_ = AMI_KDBTREE_STATUS_VALID;
+  status_ = tpie::ami::KDBTREE_STATUS_VALID;
   release_leaf(bl);
   return ans;
 }
 
-//// *AMI_kdbtree::find* ////
+//// *kdbtree::find* ////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-bool AMI_KDBTREE::find(const AMI_record<coord_t, TPIE_OS_SIZE_T, dim>& p) {
+bool TPIE_AMI_KDBTREE::find(const record<coord_t, TPIE_OS_SIZE_T, dim>& p) {
 
-  TPLOG("AMI_kdbtree::find Entering "<<"\n");
+  TPLOG("kdbtree::find Entering "<<"\n");
 
   if (header_.size == 0)
     return false;
@@ -806,7 +796,7 @@ bool AMI_KDBTREE::find(const AMI_record<coord_t, TPIE_OS_SIZE_T, dim>& p) {
   bool ans;
   TPIE_OS_SIZE_T i;
 
-  AMI_KDBTREE_NODE* bn;
+  TPIE_AMI_KDBTREE_NODE* bn;
   REGION r;
   KDB_ITEM ki(r, header_.root_bid, header_.root_type);
   STACK_ITEM si(ki, 0);
@@ -824,22 +814,22 @@ bool AMI_KDBTREE::find(const AMI_record<coord_t, TPIE_OS_SIZE_T, dim>& p) {
   assert(si.item.type == BLOCK_LEAF);
 
   // Fetch the leaf.
-  AMI_KDBTREE_LEAF* bl = fetch_leaf(si.item.bid);
+  TPIE_AMI_KDBTREE_LEAF* bl = fetch_leaf(si.item.bid);
   // Check whether item is in the leaf.
   ans = (bl->find(p) < bl->size());
   // Release the leaf.
   release_leaf(bl);
 
-  TPLOG("AMI_kdbtree::find Exiting ans="<<ans<<"\n");
+  TPLOG("kdbtree::find Exiting ans="<<ans<<"\n");
   return ans;
 }
 
 
-//// *AMI_kdbtree::insert* ////
+//// *kdbtree::insert* ////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-bool AMI_KDBTREE::insert(const AMI_record<coord_t, TPIE_OS_SIZE_T, dim>& p) {
+bool TPIE_AMI_KDBTREE::insert(const record<coord_t, TPIE_OS_SIZE_T, dim>& p) {
 
-  TPLOG("AMI_kdbtree::insert Entering "<<"\n");
+  TPLOG("kdbtree::insert Entering "<<"\n");
   TPIE_OS_SIZE_T i;
 
   // The first insertion is treated separately.
@@ -853,7 +843,7 @@ bool AMI_KDBTREE::insert(const AMI_record<coord_t, TPIE_OS_SIZE_T, dim>& p) {
   }
 
   bool ans;
-  AMI_KDBTREE_NODE* bn;
+  TPIE_AMI_KDBTREE_NODE* bn;
   REGION r; // Infinite region.
   KDB_ITEM ki(r, header_.root_bid, header_.root_type);
 
@@ -879,7 +869,7 @@ bool AMI_KDBTREE::insert(const AMI_record<coord_t, TPIE_OS_SIZE_T, dim>& p) {
   assert(si.item.type == BLOCK_LEAF);
 
   // Fetch the leaf.
-  AMI_KDBTREE_LEAF* bl = fetch_leaf(si.item.bid);
+  TPIE_AMI_KDBTREE_LEAF* bl = fetch_leaf(si.item.bid);
 
   // Check for duplicate key. For now, just exit with false answer if found.
   if (bl->find(p) < bl->size()) { // Found.
@@ -966,13 +956,13 @@ bool AMI_KDBTREE::insert(const AMI_record<coord_t, TPIE_OS_SIZE_T, dim>& p) {
 
   if (ans) header_.size++;
 
-  TPLOG("AMI_kdbtree::insert Exiting ans="<<ans<<"\n");
+  TPLOG("kdbtree::insert Exiting ans="<<ans<<"\n");
   return ans;
 }
 
-//// *AMI_kdbtree::dfs_preorder* ////
+//// *kdbtree::dfs_preorder* ////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-KDB_ITEM AMI_KDBTREE::dfs_preorder(int& level) {
+KDB_ITEM TPIE_AMI_KDBTREE::dfs_preorder(int& level) {
 
   // level signals the start/end of the traversal. All necessary state
   // information is kept on dfs_stack_.
@@ -993,7 +983,7 @@ KDB_ITEM AMI_KDBTREE::dfs_preorder(int& level) {
 
   } else {
 
-    AMI_KDBTREE_NODE* bn;
+    TPIE_AMI_KDBTREE_NODE* bn;
     KDB_ITEM ki;
     if (dfs_stack_.top().item.type == BLOCK_NODE) {
       // Fetch the node ...
@@ -1029,9 +1019,9 @@ KDB_ITEM AMI_KDBTREE::dfs_preorder(int& level) {
   }
 }
 
-//// *AMI_kdbtree::split_leaf_and_insert* ////
+//// *kdbtree::split_leaf_and_insert* ////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-TPIE_OS_SIZE_T AMI_KDBTREE::split_dim_longest_span(const STACK_ITEM& top) {
+TPIE_OS_SIZE_T TPIE_AMI_KDBTREE::split_dim_longest_span(const STACK_ITEM& top) {
   TPIE_OS_SIZE_T d;
 
   coord_t longest_span =
@@ -1050,13 +1040,13 @@ TPIE_OS_SIZE_T AMI_KDBTREE::split_dim_longest_span(const STACK_ITEM& top) {
   return d;
 }
 
-//// *AMI_kdbtree::split_leaf_and_insert* ////
+//// *kdbtree::split_leaf_and_insert* ////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-bool AMI_KDBTREE::split_leaf_and_insert(const STACK_ITEM& top, AMI_KDBTREE_LEAF* bl,
+bool TPIE_AMI_KDBTREE::split_leaf_and_insert(const STACK_ITEM& top, TPIE_AMI_KDBTREE_LEAF* bl,
 				    KDB_ITEM& ki1, KDB_ITEM& ki2, const POINT& p) {
   // Get the median point.
   // Move points higher than the median in bl_hi.
-  AMI_KDBTREE_LEAF* bl_hi = fetch_leaf();
+  TPIE_AMI_KDBTREE_LEAF* bl_hi = fetch_leaf();
   bool ans;
   TPIE_OS_SIZE_T d;
   if (params_.split_heuristic == CYCLICAL)
@@ -1104,14 +1094,14 @@ bool AMI_KDBTREE::split_leaf_and_insert(const STACK_ITEM& top, AMI_KDBTREE_LEAF*
   return ans;
 }
 
-//// *AMI_kdbtree::split_leaf* ////
+//// *kdbtree::split_leaf* ////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-void AMI_KDBTREE::split_leaf(coord_t sp, TPIE_OS_SIZE_T d,  const KDB_ITEM& kis, 
+void TPIE_AMI_KDBTREE::split_leaf(coord_t sp, TPIE_OS_SIZE_T d,  const KDB_ITEM& kis, 
 			 KDB_ITEM& ki1, KDB_ITEM& ki2) {
 
   assert(kis.type == BLOCK_LEAF);
-  AMI_KDBTREE_LEAF* bl = fetch_leaf(kis.bid);
-  AMI_KDBTREE_LEAF* bl_hi = fetch_leaf();
+  TPIE_AMI_KDBTREE_LEAF* bl = fetch_leaf(kis.bid);
+  TPIE_AMI_KDBTREE_LEAF* bl_hi = fetch_leaf();
   TPIE_OS_SIZE_T bl_size = bl->size();
   POINT p;
 
@@ -1134,9 +1124,9 @@ void AMI_KDBTREE::split_leaf(coord_t sp, TPIE_OS_SIZE_T d,  const KDB_ITEM& kis,
   release_leaf(bl);
 }
 
-//// *AMI_kdbtree::split_node_and_insert* ////
+//// *kdbtree::split_node_and_insert* ////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-void AMI_KDBTREE::split_node_and_insert(const STACK_ITEM& top,
+void TPIE_AMI_KDBTREE::split_node_and_insert(const STACK_ITEM& top,
 				    KDB_ITEM& ki1, KDB_ITEM& ki2, const KDB_ITEM& ki) {
   // The split position.
   coord_t sp;
@@ -1150,7 +1140,7 @@ void AMI_KDBTREE::split_node_and_insert(const STACK_ITEM& top,
   split_node(sp, d, top.item, ki1, ki2);
 
   // Insert ki.
-  AMI_KDBTREE_NODE *bn, *bn_hi;
+  TPIE_AMI_KDBTREE_NODE *bn, *bn_hi;
   bn = fetch_node(ki1.bid);
   bn_hi = fetch_node(ki2.bid);
   int pos = ki.region.relative_to_plane(sp, d);
@@ -1179,10 +1169,10 @@ void AMI_KDBTREE::split_node_and_insert(const STACK_ITEM& top,
   release_node(bn);
 }
 
-//// *AMI_kdbtree::find_split_position* ////
+//// *kdbtree::find_split_position* ////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-void AMI_KDBTREE::find_split_position(const STACK_ITEM& top, coord_t& sp, TPIE_OS_SIZE_T& d) {
-  AMI_KDBTREE_NODE *bn;
+void TPIE_AMI_KDBTREE::find_split_position(const STACK_ITEM& top, coord_t& sp, TPIE_OS_SIZE_T& d) {
+  TPIE_AMI_KDBTREE_NODE *bn;
   bn = fetch_node(top.item.bid);
 
   // Find split dimension.
@@ -1197,7 +1187,7 @@ void AMI_KDBTREE::find_split_position(const STACK_ITEM& top, coord_t& sp, TPIE_O
   d = bn->split_dim();
 #endif
 
-  vector<coord_t > cv(0);
+  std::vector<coord_t > cv(0);
   TPIE_OS_SIZE_T unbounded = 0;
   // Collect all low boundaries from bn and, if they are bounded,
   // store them in cv. The unbounded ones are counted only.
@@ -1221,12 +1211,12 @@ void AMI_KDBTREE::find_split_position(const STACK_ITEM& top, coord_t& sp, TPIE_O
   release_node(bn);
 }
 
-//// *AMI_kdbtree::split_node* ////
+//// *kdbtree::split_node* ////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-void AMI_KDBTREE::split_node(coord_t sp, TPIE_OS_SIZE_T d, const KDB_ITEM& kis, 
+void TPIE_AMI_KDBTREE::split_node(coord_t sp, TPIE_OS_SIZE_T d, const KDB_ITEM& kis, 
 			 KDB_ITEM& ki1, KDB_ITEM& ki2) {
   assert(kis.type == BLOCK_NODE);
-  AMI_KDBTREE_NODE *bn, *bn_hi;
+  TPIE_AMI_KDBTREE_NODE *bn, *bn_hi;
 
   bn = fetch_node(kis.bid);
   bn_hi = fetch_node();
@@ -1271,9 +1261,9 @@ void AMI_KDBTREE::split_node(coord_t sp, TPIE_OS_SIZE_T d, const KDB_ITEM& kis,
   release_node(bn);
 }
 
-//// *AMI_kdbtree::empty_stack* ////
+//// *kdbtree::empty_stack* ////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-void AMI_KDBTREE::empty_stack(bool update_weight) {
+void TPIE_AMI_KDBTREE::empty_stack(bool update_weight) {
   node_t* bn;
   while (!path_stack_.empty()) {
     if (update_weight && path_stack_.top().item.type == BLOCK_NODE) {
@@ -1285,40 +1275,40 @@ void AMI_KDBTREE::empty_stack(bool update_weight) {
   }
 }
 
-//// *AMI_kdbtree::persist* ////
+//// *kdbtree::persist* ////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-void AMI_KDBTREE::persist(persistence per) {
+void TPIE_AMI_KDBTREE::persist(persistence per) {
   pcoll_leaves_->persist(per);
   pcoll_nodes_->persist(per);
 }
 
-//// *AMI_kdbtree::fetch_node* ////
+//// *kdbtree::fetch_node* ////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-AMI_KDBTREE_NODE* AMI_KDBTREE::fetch_node(AMI_bid bid) {
-  AMI_KDBTREE_NODE* q;
+TPIE_AMI_KDBTREE_NODE* TPIE_AMI_KDBTREE::fetch_node(bid_t bid) {
+  TPIE_AMI_KDBTREE_NODE* q;
   stats_.record(NODE_FETCH);
   // Warning: using short-circuit evaluation. Order is important.
   if ((bid == 0) || !node_cache_->read(bid, q)) {
-    q = new AMI_KDBTREE_NODE(pcoll_nodes_, bid);
+    q = new TPIE_AMI_KDBTREE_NODE(pcoll_nodes_, bid);
   }
   return q;
 }
 
-//// *AMI_kdbtree::fetch_leaf* ////
+//// *kdbtree::fetch_leaf* ////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-AMI_KDBTREE_LEAF* AMI_KDBTREE::fetch_leaf(AMI_bid bid) {
-  AMI_KDBTREE_LEAF* q;
+TPIE_AMI_KDBTREE_LEAF* TPIE_AMI_KDBTREE::fetch_leaf(bid_t bid) {
+  TPIE_AMI_KDBTREE_LEAF* q;
   stats_.record(LEAF_FETCH);
   // Warning: using short-circuit evaluation. Order is important.
   if ((bid == 0) || !leaf_cache_->read(bid, q)) {
-    q = new AMI_KDBTREE_LEAF(pcoll_leaves_, bid);
+    q = new TPIE_AMI_KDBTREE_LEAF(pcoll_leaves_, bid);
   }
   return q;
 }
 
-//// *AMI_kdbtree::release_node* ////
+//// *kdbtree::release_node* ////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-void AMI_KDBTREE::release_node(AMI_KDBTREE_NODE* q) {
+void TPIE_AMI_KDBTREE::release_node(TPIE_AMI_KDBTREE_NODE* q) {
   stats_.record(NODE_RELEASE);
   if (q->persist() == PERSIST_DELETE)
     delete q;
@@ -1326,9 +1316,9 @@ void AMI_KDBTREE::release_node(AMI_KDBTREE_NODE* q) {
     node_cache_->write(q->bid(), q);
 }
 
-//// *AMI_kdbtree::release_leaf* ////
+//// *kdbtree::release_leaf* ////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-void AMI_KDBTREE::release_leaf(AMI_KDBTREE_LEAF* q) {
+void TPIE_AMI_KDBTREE::release_leaf(TPIE_AMI_KDBTREE_LEAF* q) {
   stats_.record(LEAF_RELEASE);
   if (q->persist() == PERSIST_DELETE)
     delete q;
@@ -1336,9 +1326,9 @@ void AMI_KDBTREE::release_leaf(AMI_KDBTREE_LEAF* q) {
     leaf_cache_->write(q->bid(), q);
 }
 
-//// *AMI_kdbtree::stats* ////
+//// *kdbtree::stats* ////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-const tpie_stats_tree &AMI_KDBTREE::stats() {
+const stats_tree &TPIE_AMI_KDBTREE::stats() {
   node_cache_->flush();
   leaf_cache_->flush();
   stats_.set(LEAF_READ, pcoll_leaves_->stats().get(BLOCK_GET));
@@ -1355,11 +1345,11 @@ const tpie_stats_tree &AMI_KDBTREE::stats() {
 }
 
 
-//// *AMI_kdbtree::~AMI_kdbtree* ////
+//// *kdbtree::~kdbtree* ////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-AMI_KDBTREE::~AMI_kdbtree() {
+TPIE_AMI_KDBTREE::~kdbtree() {
   
-  if (status_ == AMI_KDBTREE_STATUS_VALID) {
+  if (status_ == tpie::ami::KDBTREE_STATUS_VALID) {
     // Write initialization info into the pcoll_nodes_ header.
     //    *((header_t *) pcoll_nodes_->user_data()) = header_;
     memcpy(pcoll_nodes_->user_data(), (void *)(&header_), sizeof(header_));
@@ -1375,13 +1365,15 @@ AMI_KDBTREE::~AMI_kdbtree() {
 }
 
 // Undefine shortcuts.
-#undef AMI_KDBTREE       
-#undef AMI_KDBTREE_NODE  
-#undef AMI_KDBTREE_LEAF  
+#undef TPIE_AMI_KDBTREE       
+#undef TPIE_AMI_KDBTREE_NODE  
+#undef TPIE_AMI_KDBTREE_LEAF  
 #undef POINT            
 #undef POINT_STREAM     
 #undef REGION        
 #undef KDB_ITEM      
 #undef STACK_ITEM    
 
-#endif // _AMI_KDBTREE_H
+} } //end of tpie::ami namespace
+
+#endif // _TPIE_AMI_KDBTREE_H
