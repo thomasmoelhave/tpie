@@ -75,33 +75,33 @@ namespace tpie {
 // Macros to simplify logging.  The argument to the macro can be any type
 // that log streams have an output operator for.
     
-#define TP_LOG_FLUSH_LOG (!logstream::log_initialized || tpie_log().flush())
+#define TP_LOG_FLUSH_LOG (!tpie::logstream::log_initialized || tpie::tpie_log().flush())
     
-// eg: LOG_FATAL(LOG_ID_MSG)
+// eg: LOG_FATAL(tpie::LOG_ID_MSG)
 #define TP_LOG_ID_MSG __FILE__ << " line " << __LINE__ << ": "
 
 /** Macro to simplify \ref logging. \sa log_lecel. */
 #ifndef TP_LOG_FATAL
 #define TP_LOG_FATAL(msg)						\
-    (!logstream::log_initialized || tpie_log() << setpriority(LOG_FATAL) << msg)
+    (!tpie::logstream::log_initialized || tpie::tpie_log() << tpie::setpriority(tpie::LOG_FATAL) << msg)
 #endif
 /** Macro to simplify \ref logging. \sa log_lecel. */
 #ifndef TP_LOG_WARNING
 #define TP_LOG_WARNING(msg)						\
-    (!logstream::log_initialized || tpie_log() << setpriority(LOG_WARNING) << msg)
+    (!tpie::logstream::log_initialized || tpie::tpie_log() << tpie::setpriority(tpie::LOG_WARNING) << msg)
 #endif
 /** Macro to simplify \ref logging. \sa log_lecel. */
 #define TP_LOG_APP_DEBUG(msg)						\
-    (!logstream::log_initialized || tpie_log() << setpriority(LOG_APP_DEBUG)  << msg)
+    (!tpie::logstream::log_initialized || tpie::tpie_log() << tpie::setpriority(tpie::LOG_APP_DEBUG)  << msg)
 /** Macro to simplify \ref logging. \sa log_lecel. */
 #ifndef TP_LOG_DEBUG
 #define TP_LOG_DEBUG(msg)						\
-    (!logstream::log_initialized || tpie_log() << setpriority(LOG_DEBUG)  << msg)
+    (!tpie::logstream::log_initialized || tpie::tpie_log() << tpie::setpriority(tpie::LOG_DEBUG)  << msg)
 #endif
 /** Macro to simplify \ref logging. \sa log_lecel. */
 #ifndef TP_LOG_MEM_DEBUG
 #define TP_LOG_MEM_DEBUG(msg)						\
-    (!logstream::log_initialized || tpie_log() << setpriority(LOG_MEM_DEBUG)  << msg)
+    (!tpie::logstream::log_initialized || tpie::tpie_log() << tpie::setpriority(tpie::LOG_MEM_DEBUG)  << msg)
 #endif
     
 /** Macro to simplify \ref logging. \sa log_lecel. */
