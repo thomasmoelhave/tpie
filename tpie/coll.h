@@ -25,6 +25,8 @@
 /// For now \ref tpie::ami::collection_single is the only implementation.
 ///////////////////////////////////////////////////////////////////////////
 
+#include <tpie/config.h>
+
 // Get definitions for working with Unix and Windows
 #include <tpie/portability.h>
 
