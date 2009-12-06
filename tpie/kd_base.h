@@ -20,23 +20,29 @@
 ///////////////////////////////////////////////////////////////////////////
 /// \file kd_base.h
 /// Provides supporting types for kdtree and kdbtree: 
-/// AMI_kdtree_status, link_type_t,
-/// AMI_kdtree_params, Bin_node_default,
-/// AMI_kdbtree_status, AMI_kdbtree_params, 
+/// kdtree_status, link_type_t,
+/// kdtree_params, Bin_node_default,
+/// kdbtree_status, kdbtree_params, 
 /// region_t, kdb_item_t, path_stack_item_t.
 ///////////////////////////////////////////////////////////////////////////
 
-#ifndef _AMI_KD_BASE_H
-#define _AMI_KD_BASE_H
+#ifndef _TPIE_AMI_KD_BASE_H
+#define _TPIE_AMI_KD_BASE_H
 
 // For ostream.
 #include <iostream>
 // For min, max.
 #include <algorithm>
-#include <block_base.h>
-#include <point.h>
+#include <tpie/block_base.h>
+#include <tpie/point.h>
+#include <tpie/tpie_log.h>
 
-/** AMI_KDTREE_STORE_WEIGHTS determines whether weights are stored in all
+
+namespace tpie {
+
+namespace ami {
+
+/** TPIE_AMI_KDTREE_STORE_WEIGHTS determines whether weights are stored in all
  * binary kd-tree nodes (when set to 1), or just in block nodes (when set
  * to 0). Setting to 1 results in bigger binary nodes and, consequently,
  * smaller fanout. The weights are used to dramatically improve the
@@ -44,11 +50,11 @@
  * queries). Caveat emptor: avoid often change of this parameter. Trying to
  * open an existing kd-tree with the wrong value for this parameter will
  * generate an invalid kd-tree. */
-#ifndef AMI_KDTREE_STORE_WEIGHTS
-#  define AMI_KDTREE_STORE_WEIGHTS 0
+#ifndef TPIE_AMI_KDTREE_STORE_WEIGHTS
+#  define TPIE_AMI_KDTREE_STORE_WEIGHTS 0
 #endif
 
-/** AMI_KDTREE_USE_EXACT_SPLIT determines how points on the median line are
+/** TPIE_AMI_KDTREE_USE_EXACT_SPLIT determines how points on the median line are
  * distributed. If set to 1, some of the points go into the left child,
  * some into the right child; the search procedure should look into both
  * children. If set to 0, only the left child contains those points. In
@@ -57,11 +63,11 @@
  * of 1 is appropriate for most instances. Trying to open an existing
  * kd-tree with the wrong value for this parameter will generate an invalid
  * kd-tree. */
-#ifndef AMI_KDTREE_USE_EXACT_SPLIT
-#  define AMI_KDTREE_USE_EXACT_SPLIT 1
+#ifndef TPIE_AMI_KDTREE_USE_EXACT_SPLIT
+#  define TPIE_AMI_KDTREE_USE_EXACT_SPLIT 1
 #endif
 
-/** AMI_KDTREE_USE_KDBTREE_LEAF determines what the info field of a leaf
+/** TPIE_AMI_KDTREE_USE_KDBTREE_LEAF determines what the info field of a leaf
  * contains. Setting to 1 gives a three-element info field, similar to
  * the one used by the K-D-B-tree. This allows a kd-tree to be
  * transformed into a K-D-B-tree without touching the leaves, but it
@@ -69,36 +75,36 @@
  * contains only two 4-byte elements. Caveat emptor: avoid often
  * change of this parameter. Trying to open an existing kd-tree with
  * the wrong value for this parameter will generate an invalid kd-tree. */
-#ifndef AMI_KDTREE_USE_KDBTREE_LEAF
-#  define AMI_KDTREE_USE_KDBTREE_LEAF 1
+#ifndef TPIE_AMI_KDTREE_USE_KDBTREE_LEAF
+#  define TPIE_AMI_KDTREE_USE_KDBTREE_LEAF 1
 #endif
 
-/** AMI_KDTREE_USE_REAL_MEDIAN determines the kd-tree splitting method.  If
+/** TPIE_AMI_KDTREE_USE_REAL_MEDIAN determines the kd-tree splitting method.  If
  * set to 1, medians are used. If set to 0, the weight of the left branch
  * is always a power of 2. This allows kd-trees to be very compact in terms
  * of storage utilization. The only place this value is checked is the
  * median() method of the kd-tree. */
-#ifndef AMI_KDTREE_USE_REAL_MEDIAN
-#  define AMI_KDTREE_USE_REAL_MEDIAN 0
+#ifndef TPIE_AMI_KDTREE_USE_REAL_MEDIAN
+#  define TPIE_AMI_KDTREE_USE_REAL_MEDIAN 0
 #endif
 
 /** The default grid size (on each dimension) for the grid bulk loading. */
-#ifndef AMI_KDTREE_GRID_SIZE
-#  define AMI_KDTREE_GRID_SIZE  256
+#ifndef TPIE_AMI_KDTREE_GRID_SIZE
+#  define TPIE_AMI_KDTREE_GRID_SIZE  256
 #endif
 
 // Loading methods. These bits can be combined, but not all
 // combinations are valid.
-#define AMI_KDTREE_LOAD_SORT    0x1
-#define AMI_KDTREE_LOAD_SAMPLE  0x2
-#define AMI_KDTREE_LOAD_BINARY  0x4
-#define AMI_KDTREE_LOAD_GRID    0x8
+#define TPIE_AMI_KDTREE_LOAD_SORT    0x1
+#define TPIE_AMI_KDTREE_LOAD_SAMPLE  0x2
+#define TPIE_AMI_KDTREE_LOAD_BINARY  0x4
+#define TPIE_AMI_KDTREE_LOAD_GRID    0x8
 
 
-/** AMI_kdtree status type. */
-enum AMI_kdtree_status {
-  AMI_KDTREE_STATUS_VALID = 0,
-  AMI_KDTREE_STATUS_INVALID = 1,
+/** kdtree status type. */
+enum kdtree_status {
+  KDTREE_STATUS_VALID = 0,
+  KDTREE_STATUS_INVALID = 1,
 };
 
 /** Node type type. */
@@ -109,8 +115,8 @@ typedef unsigned short int link_type_t;
 #define GRID_INDEX 3u
 
 
-/** AMI_kdtree run-time parameters. */
-class AMI_kdtree_params {
+/** kdtree run-time parameters. */
+class kdtree_params {
 public:
 
   /** Max number of Value's in a leaf. 0 means use all available capacity. */
@@ -139,12 +145,12 @@ public:
   ///////////////////////////////////////////////////////////////////////////
   // Setting the default parameter values.
   ///////////////////////////////////////////////////////////////////////////
-  AMI_kdtree_params(): 
+  kdtree_params(): 
     leaf_size_max(0), node_size_max(0),
     leaf_block_factor(1), node_block_factor(1), 
     leaf_cache_size(8), node_cache_size(8),
     max_intranode_height(0), max_intraroot_height(0),
-    grid_size(AMI_KDTREE_GRID_SIZE) {}
+    grid_size(TPIE_AMI_KDTREE_GRID_SIZE) {}
 };
 
 
@@ -153,10 +159,10 @@ public:
 /// implementation of a kd-tree binary node!
 ///////////////////////////////////////////////////////////////////////////
 template<class coord_t, TPIE_OS_SIZE_T dim>
-class AMI_kdtree_bin_node_base {
+class kdtree_bin_node_base {
 public:
 
-  void initialize(const AMI_point<coord_t, dim> &p, TPIE_OS_SIZE_T d) {
+  void initialize(const point<coord_t, dim> &p, TPIE_OS_SIZE_T d) {
     assert(d < dim);
     discr_val_ = p[d];
     discr_dim_ = d;
@@ -167,14 +173,14 @@ public:
   coord_t get_discriminator_val() {
     return discr_val_;
   }
-  int discriminate(const AMI_point<coord_t, dim> &p) const {
+  int discriminate(const point<coord_t, dim> &p) const {
     return (p[discr_dim_] < discr_val_) ? -1: (p[discr_dim_] > discr_val_) ? 1: 0;
   }
-  //  int discriminate(const AMI_point<coord_t, dim> &p) const {
+  //  int discriminate(const point<coord_t, dim> &p) const {
   //    return (p[discr_dim_] <= discr_val_) ? -1: 1;
   //  }
 
-#if AMI_KDTREE_STORE_WEIGHTS
+#if TPIE_AMI_KDTREE_STORE_WEIGHTS
   TPIE_OS_OFFSET &low_weight() {
     return lo_weight_;
   }
@@ -206,7 +212,7 @@ private:
 // (All binary node implementations should have the same public interface).
 ///////////////////////////////////////////////////////////////////////////
 template<class coord_t, TPIE_OS_SIZE_T dim>
-class AMI_kdtree_bin_node_default: public AMI_kdtree_bin_node_base<coord_t, dim> {
+class kdtree_bin_node_default: public kdtree_bin_node_base<coord_t, dim> {
 public:
 
   void set_low_child(TPIE_OS_SIZE_T idx, link_type_t idx_type) {
@@ -241,7 +247,7 @@ private:
 /// int instead of TPIE_OS_SIZE_T and link_type_t).
 ///////////////////////////////////////////////////////////////////////////
 template<class coord_t, TPIE_OS_SIZE_T dim>
-class AMI_kdtree_bin_node_short: public AMI_kdtree_bin_node_base<coord_t, dim> {
+class kdtree_bin_node_short: public kdtree_bin_node_base<coord_t, dim> {
 public:
 
   void set_low_child(TPIE_OS_SIZE_T idx, link_type_t idx_type) {
@@ -276,7 +282,7 @@ private:
 /// type, but much more compact. 
 ///////////////////////////////////////////////////////////////////////////
 template<class coord_t, TPIE_OS_SIZE_T dim>
-class AMI_kdtree_bin_node_small: public AMI_kdtree_bin_node_base<coord_t, dim> {
+class kdtree_bin_node_small: public kdtree_bin_node_base<coord_t, dim> {
 public:
 
   void set_low_child(TPIE_OS_SIZE_T idx, link_type_t idx_type) {
@@ -309,9 +315,9 @@ private:
 /// class.
 ///////////////////////////////////////////////////////////////////////////
 template<class coord_t, TPIE_OS_SIZE_T dim>
-class AMI_kdtree_bin_node_large {
+class kdtree_bin_node_large {
 public:
-  void initialize(const AMI_point<coord_t, dim> &p, TPIE_OS_SIZE_T d) {
+  void initialize(const point<coord_t, dim> &p, TPIE_OS_SIZE_T d) {
     discr_val_ = p;
     discr_dim_ = d;
   }
@@ -323,7 +329,7 @@ public:
     hi_child_ = idx;
     hi_type_ = idx_type;
   }
-  int discriminate(const AMI_point<coord_t, dim> &p) const {
+  int discriminate(const point<coord_t, dim> &p) const {
     return (p[discr_dim_] < discr_val_[discr_dim_]) ? -1: 
       (p[discr_dim_] > discr_val_[discr_dim_]) ? 1: 
       (p[(discr_dim_+1)%dim] < discr_val_[(discr_dim_+1)%dim]) ? -1 : 
@@ -337,7 +343,7 @@ public:
     idx = hi_child_;
     idx_type = hi_type_;
   }
-#if AMI_KDTREE_STORE_WEIGHTS
+#if TPIE_AMI_KDTREE_STORE_WEIGHTS
   TPIE_OS_OFFSET &low_weight() {
     return lo_weight_;
   }
@@ -358,7 +364,7 @@ private:
 
 private:
   /** The split point. */
-  AMI_point<coord_t, dim> discr_val_; 
+  point<coord_t, dim> discr_val_; 
   /** The dimension orthogonal to the split hyperplane. Should be less than dim. */
   TPIE_OS_SIZE_T discr_dim_;
   /** The low child (i.e., its position in the block node). */
@@ -370,7 +376,7 @@ private:
 };
 
 
-///// AMI_kdbtree stuff /////
+///// kdbtree stuff /////
 
 template<class coord_t, TPIE_OS_SIZE_T dim>
 class region_t {
@@ -402,7 +408,7 @@ public:
   ///////////////////////////////////////////////////////////////////////////
   /// Initializes this box with the values stored in points p1 and p2.
   ///////////////////////////////////////////////////////////////////////////
-  region_t(const AMI_point<coord_t, dim>& p1, const AMI_point<coord_t, dim>& p2) {
+  region_t(const point<coord_t, dim>& p1, const point<coord_t, dim>& p2) {
     for (TPIE_OS_SIZE_T i = 0; i < dim; i++) {
       lo_[i] = min(p1[i], p2[i]);
       //      lo_bd_[i] = 1;//true;
@@ -438,15 +444,15 @@ public:
 
   coord_t span(TPIE_OS_SIZE_T d) const { return hi(d) - lo(d); }
 
-  AMI_point<coord_t, dim> point_lo() const {
-    AMI_point<coord_t, dim> p;
+  point<coord_t, dim> point_lo() const {
+    point<coord_t, dim> p;
     for (TPIE_OS_SIZE_T i = 0; i < dim; i++)
       p[i] = lo_[i];
     return p;
   }
 
-  AMI_point<coord_t, dim> point_hi() const {
-    AMI_point<coord_t, dim> p;
+  point<coord_t, dim> point_hi() const {
+    point<coord_t, dim> p;
     for (TPIE_OS_SIZE_T i = 0; i < dim; i++)
       p[i] = hi_[i];
     return p;
@@ -475,7 +481,7 @@ public:
   ///////////////////////////////////////////////////////////////////////////
   // Returns true if this box contains point \p p.
   ///////////////////////////////////////////////////////////////////////////
-  bool contains(const AMI_point<coord_t, dim>& p) const {
+  bool contains(const point<coord_t, dim>& p) const {
     TPIE_OS_SIZE_T i;
     for (i = 0; i < dim; i++) {
       if ((is_bounded_lo(i) && p[i] <  lo_[i]) || 
@@ -527,8 +533,8 @@ public:
    * the left and closed on the right. */
   region_t<coord_t, dim> region;
   link_type_t type;
-  AMI_bid bid;
-  kdb_item_t(const region_t<coord_t, dim>& r, AMI_bid b, link_type_t t): 
+  bid_t bid;
+  kdb_item_t(const region_t<coord_t, dim>& r, bid_t b, link_type_t t): 
     region(r), bid(b), type(t) {}
   kdb_item_t() {}
 }
@@ -571,10 +577,10 @@ struct path_stack_item_t {
 };
 
 /** Kdtree status type. */
-enum AMI_kdbtree_status {
-  AMI_KDBTREE_STATUS_VALID = 0,
-  AMI_KDBTREE_STATUS_INVALID = 1,
-  AMI_KDBTREE_STATUS_KDTREE = 2, // For opening the kdb-tree as a kd-tree.
+enum kdbtree_status {
+  KDBTREE_STATUS_VALID = 0,
+  KDBTREE_STATUS_INVALID = 1,
+  KDBTREE_STATUS_KDTREE = 2, // For opening the kdb-tree as a kd-tree.
 };
 
 /** Split heuristics. */
@@ -584,11 +590,13 @@ enum split_heuristic_t {
   RANDOM,
 };
 
-class AMI_kdbtree_params: public AMI_kdtree_params {
+class kdbtree_params: public kdtree_params {
 public:
-  AMI_kdbtree_params(): AMI_kdtree_params(), split_heuristic(LONGEST_SPAN) {}
-  AMI_kdbtree_params(AMI_kdtree_params p): AMI_kdtree_params(p), split_heuristic(LONGEST_SPAN) {}
+  kdbtree_params(): kdtree_params(), split_heuristic(LONGEST_SPAN) {}
+  kdbtree_params(kdtree_params p): kdtree_params(p), split_heuristic(LONGEST_SPAN) {}
   split_heuristic_t split_heuristic;
 };
 
-#endif // _AMI_KD_BASE_H
+} }  //end tpie::ami namespace
+
+#endif // _TPIE_AMI_KD_BASE_H
