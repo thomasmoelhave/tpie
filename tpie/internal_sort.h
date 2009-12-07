@@ -176,15 +176,6 @@ namespace ami {
 	    return sizeof(T);
 	}
 	
-    }  //  ami namespace
-
-}  //  tpie namespace
-
-
-namespace tpie {
-
-    namespace ami {
-
   ///////////////////////////////////////////////////////////////////////////
   /// Comparision operator based Internal_Sorter_base subclass implementation; uses 
   /// quick_sort_op().
@@ -273,15 +264,6 @@ namespace tpie {
 	    return NO_ERROR;
 	}
 
-    }  //  ami namespace
-
-}  //  tpie namespace
-
-
-namespace tpie {
-
-    namespace ami {
-	
   ///////////////////////////////////////////////////////////////////////////
   /// Comparision object based Internal_Sorter_base subclass implementation; uses 
   /// quick_sort_obj().
@@ -373,14 +355,6 @@ namespace tpie {
 	    return NO_ERROR;
 	}
 	
-    }  //  ami namespace
-
-}  //  tpie namespace
-
-
-namespace tpie {
-
-    namespace ami {
 
   ////////////////////////////////////////////////////////////////////////
   /// Key + Object based Internal Sorter; used by key_sort() routines.
@@ -603,7 +577,8 @@ namespace tpie {
 	    return sizeof(T) + sizeof(qsort_item<KEY>);
 	}
 
-    }  //  ami namespace
+
+}  //  ami namespace
 
 }  //  tpie namespace
 

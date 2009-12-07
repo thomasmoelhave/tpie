@@ -463,29 +463,29 @@ namespace tpie {
 	template<class Key, class Value, class T, class Tp, class T0, class T0p>
 	void LOGMETHOD_BASE::create_tree(TPIE_OS_SIZE_T idx) 
 	{
-		TPIE_OS_SIZE_T i = base_file_name_.size();
 		// untested: temp_name_ should become base_file_name_
 		// plus two digits.
-		temp_name_ = 
-			temp_name_.substr(0, base_file_name_.size()) +
-			std::string('0' + (char)((idx/10) % 10)) +
-			std::string('0' + (char)(idx % 10));
+		std::stringstream ss;
+		ss	<< temp_name_ 
+			<< '0' << ((idx/10) % 10) 
+			<< '0' << (char)(idx % 10);
+		temp_name_ = ss.str();
 	    
 	    if (idx == 0) {
 			if (sizeof(T0p) == 0) {
-				tree0_ = new T0(temp_name_, AMI_WRITE_COLLECTION);
+				tree0_ = new T0(temp_name_, WRITE_COLLECTION);
 			}
 			else {
-				tree0_ = new T0(temp_name_, AMI_WRITE_COLLECTION, 
+				tree0_ = new T0(temp_name_, WRITE_COLLECTION, 
 								params_.tree0_params);
 			}
 	    } 
 	    else {
 			if (sizeof(Tp) == 0) {
-				trees_[idx] = new T(temp_name_, AMI_WRITE_COLLECTION);
+				trees_[idx] = new T(temp_name_, WRITE_COLLECTION);
 			}
 			else {
-				trees_[idx] = new T(temp_name_, AMI_WRITE_COLLECTION, 
+				trees_[idx] = new T(temp_name_, WRITE_COLLECTION, 
 									params_.tree_params);
 			}
 	    }

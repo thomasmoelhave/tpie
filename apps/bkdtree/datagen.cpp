@@ -25,23 +25,26 @@
 //
 // $Id: datagen.cpp,v 1.2 2004-08-12 12:36:05 jan Exp $
 
-#include <portability.h>
-
-// For floor.
-#include <math.h>
-
-#include <vector>
-
 // TPIE config: choose BTE, block size, etc.
 #include "app_config.h"
+#include <tpie/portability.h>
+
+// For floor.
+#include <cmath>
+#include <vector>
+#include <iostream>
 
 // TPIE streams.
-#include <ami_stream.h>
-#include <ami_scan.h>
-#include <ami_scan_utils.h>
-#include <cpu_timer.h>
+#include <tpie/stream.h>
+#include <tpie/scan.h>
+#include <tpie/scan_utils.h>
+#include <tpie/cpu_timer.h>
 
-#include <ami_point.h>
+#include <tpie/point.h>
+
+using namespace tpie;
+using namespace ami;
+using namespace std;
 
 // Default side length of the bounding rectangle for random points.
 #define MBR_SIDE_LENGTH 100000000
@@ -103,9 +106,9 @@
 
 
 #ifdef NOID
-typedef AMI_point<COORDT, DIM> point_t;
+typedef point<COORDT, DIM> point_t;
 #else
-typedef AMI_record<COORDT, IDT, DIM> point_t;
+typedef record<COORDT, IDT, DIM> point_t;
 #endif
 
 class cmp_eps {
@@ -114,12 +117,12 @@ public:
   cmp_eps(COORDT eps = COORDT(1)): eps_(eps) {}
   int compare(const point_t& p1, const point_t& p2) const {
     size_t j = 0;
-    while ((j < DIM) && (floor(double(p1[j]/eps_)) == floor(double(p2[j]/eps_))))
+    while ((j < DIM) && (std::floor(double(p1[j]/eps_)) == std::floor(double(p2[j]/eps_))))
       j++;
     if (j == DIM)
       return 0;
     else
-      return (floor(double(p1[j]/eps_)) < floor(double(p2[j]/eps_))) ? -1: 1;
+      return (std::floor(double(p1[j]/eps_)) < std::floor(double(p2[j]/eps_))) ? -1: 1;
   }
 };
     
@@ -151,30 +154,30 @@ istream& operator>>(istream& s, point_t& p) {
 }
 
 template<class T>
-class scan_cat: AMI_scan_object {
+class scan_cat: scan_object {
   T lop_;
   T hip_;
   FILE* rawout_;
 public:
   scan_cat(const T& lop, const T& hip, FILE* rawout = NULL): lop_(lop), hip_(hip), rawout_(rawout) {}
-  AMI_err initialize() { return AMI_ERROR_NO_ERROR; }
-  AMI_err operate(const T &in, AMI_SCAN_FLAG *sfin, T* out, AMI_SCAN_FLAG *sfout) {
+  err initialize() { return tpie::ami::NO_ERROR; }
+  err operate(const T &in, tpie::ami::SCAN_FLAG *sfin, T* out, tpie::ami::SCAN_FLAG *sfout) {
     if (*sfin) {
       *sfout = (lop_ < in) && (in < hip_);
       *out = in;
-      return AMI_SCAN_CONTINUE;
+      return tpie::ami::SCAN_CONTINUE;
     } else 
-      return AMI_SCAN_DONE;
+      return tpie::ami::SCAN_DONE;
   }
-  AMI_err operate(const T &in, AMI_SCAN_FLAG *sfin) {
+  err operate(const T &in, tpie::ami::SCAN_FLAG *sfin) {
     if (*sfin) {
       if ((lop_ < in) && (in < hip_)) {
 	if (rawout_ != NULL)
 	  fwrite(&in, sizeof(T), 1, rawout_);
       }
-      return AMI_SCAN_CONTINUE;
+      return tpie::ami::SCAN_CONTINUE;
     } else 
-      return AMI_SCAN_DONE;
+      return tpie::ami::SCAN_DONE;
   }
 };
 
@@ -182,14 +185,14 @@ public:
 int main(int argc, char **argv) {
 
   // Log debugging info from the application, but not from the library. 
-  tpie_log_init(TPIE_LOG_APP_DEBUG); 
+  tpie_log_init(LOG_APP_DEBUG); 
  
    MM_manager.ignore_memory_limit();
 
   int input_type = INPUT_UNDEFINED;
   int output_type = OUTPUT_UNDEFINED;
   char* base_file_name = NULL;
-  vector<char*> inputs;
+  std::vector<char*> inputs;
   char* input_file_name = NULL;
   TPIE_OS_OFFSET point_count = 10000;
   // The size of the box as a percentage of the max box (should be
@@ -349,9 +352,9 @@ int main(int argc, char **argv) {
 	point_t *pp, p;
 	atimer.start();
 	AMI_STREAM<point_t> *is = 
-	  new AMI_STREAM<point_t>(argv[++i], AMI_READ_STREAM);
+	  new AMI_STREAM<point_t>(argv[++i], READ_STREAM);
 	cout << "Reading " << is->stream_len() << " points..." << flush;
-	while (is->read_item(&pp) == AMI_ERROR_NO_ERROR)
+	while (is->read_item(&pp) == tpie::ami::NO_ERROR)
 	  ;
 	delete is;
 	cout << "Done.\n";
@@ -421,7 +424,7 @@ int main(int argc, char **argv) {
   ofstream* out_cxxstr = NULL;
   if (output_type == OUTPUT_STREAM || output_type == OUTPUT_SORTED) {
     out_stream = new AMI_STREAM<point_t>(base_file_name);
-    if (out_stream->status() == AMI_STREAM_STATUS_INVALID) {
+    if (out_stream->status() == STREAM_STATUS_INVALID) {
       cerr << "Error opening output stream in file " 
 	   << base_file_name << ".\n";
       cerr << "Aborting.\n";
@@ -508,27 +511,27 @@ int main(int argc, char **argv) {
     {
       int i;
       cout << "Reading TPIE input... " << flush;
-      AMI_err err = AMI_ERROR_NO_ERROR;
+      err err = tpie::ami::NO_ERROR;
       AMI_STREAM<point_t>* s;
       scan_cat<point_t> cat(lop, hip, out_raw);
       point_count = 0;
-      for (i = 0; i < inputs.size() && err == AMI_ERROR_NO_ERROR; i++) {
-	s = new AMI_STREAM<point_t>(inputs[i], AMI_READ_STREAM);
-	if (s->status() == AMI_STREAM_STATUS_INVALID) {
+      for (i = 0; i < inputs.size() && err == tpie::ami::NO_ERROR; i++) {
+	s = new AMI_STREAM<point_t>(inputs[i], READ_STREAM);
+	if (s->status() == STREAM_STATUS_INVALID) {
 	  cerr << "Error opening input stream in file " << inputs[i] << ".\n";
 	} else {
 	  point_count += s->stream_len();
 	  if (output_type == OUTPUT_STREAM)
-	    err = AMI_scan(s, &cat, out_stream);
+	    err = scan(s, &cat, out_stream);
 	  else if (output_type == OUTPUT_RAW)
-	    err = AMI_scan(s, &cat);
+	    err = scan(s, &cat);
 	  else if (output_type == OUTPUT_SORTED) {
 #if 0
 	    if (epsilon == 0)
 	      cerr << "Error: epsilon is 0.\n";
 	    else {
 	      cmp_eps ce(epsilon);
-	      if (AMI_sort(s, out_stream, &ce) != AMI_ERROR_NO_ERROR)
+	      if (sort(s, out_stream, &ce) != tpie::ami::NO_ERROR)
 		cerr << "Error sorting stream.\n";
 	    }
 #else
@@ -546,7 +549,7 @@ int main(int argc, char **argv) {
 
       cout << "\nDone (" 
 	   << (output_type == OUTPUT_RAW ? point_count: out_stream->stream_len()) << " points).\n";
-      if (err != AMI_ERROR_NO_ERROR) {
+      if (err != tpie::ami::NO_ERROR) {
 	cerr << argv[0] << ": Error reading ascii input.\n";
 	exit(1);
       }
@@ -556,8 +559,8 @@ int main(int argc, char **argv) {
     {
       int i;
       cout << "Reading ascii input... " << flush;
-      AMI_err err = AMI_ERROR_NO_ERROR;
-      for (i = 0; i < inputs.size() && err == AMI_ERROR_NO_ERROR; i++) {
+      err err = tpie::ami::NO_ERROR;
+      for (i = 0; i < inputs.size() && err == tpie::ami::NO_ERROR; i++) {
 	ifstream ifs(inputs[i]);
 	if (!ifs) {
 	  cerr << argv[0] << ": Error opening input file " << argv[i] << "\n";
@@ -565,14 +568,14 @@ int main(int argc, char **argv) {
 	}
 	cxx_istream_scan<point_t> read_input(&ifs);
 	// Read ascii input.
-	err = AMI_scan(&read_input, out_stream);
+	err = scan(&read_input, out_stream);
 	cout << inputs[i] << " " << flush;
 	delete [] inputs[i];
       }
       point_count = out_stream->stream_len();
       cout << "\nDone (" << point_count << " points).\n";
       
-      if (err != AMI_ERROR_NO_ERROR) {
+      if (err != tpie::ami::NO_ERROR) {
 	cerr << argv[0] << ": Error reading ascii input.\n";
 	exit(1);
       }

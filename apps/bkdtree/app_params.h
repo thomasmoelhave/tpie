@@ -31,17 +31,24 @@
 #ifndef _APP_PARAMS_H
 #define _APP_PARAMS_H
 
-#include <portability.h>
+#include <tpie/portability.h>
+
+#include <iostream>
+#include <sstream>
 
 // For STL's max()
 #include <algorithm>
 // TPIE streams.
-#include <ami_stream.h>
+#include <tpie/stream.h>
 // TPIE tree statistics.
-#include <tpie_stats_tree.h>
-// For AMI_KDTREE_GRID_SIZE, AMI_KDTREE_LOAD_SORT, AMI_KDTREE_LOAD_GRID.
+#include <tpie/stats_tree.h>
+// For TPIE_AMI_KDTREE_GRID_SIZE, TPIE_AMI_KDTREE_LOAD_SORT, TPIE_AMI_KDTREE_LOAD_GRID.
 // For split_heuristic_t.
-#include <ami_kd_base.h>
+#include <tpie/kd_base.h>
+
+using namespace tpie;
+using namespace tpie::ami;
+
 
 #define MAX_PATH_LENGTH 122
 #define MAX_VALUE 1000000000
@@ -56,10 +63,10 @@
 class app_params_t {
 public:
   typedef int coord_t;
-  typedef AMI_STREAM<AMI_record<coord_t, size_t, DIM> > stream_t;
-  typedef AMI_point<coord_t, DIM> point_t;
-  typedef AMI_record<coord_t, size_t, DIM> record_t;
-  typedef AMI_record_key<coord_t, size_t, DIM> record_key_t;
+  typedef tpie::ami::stream<tpie::ami::record<coord_t, size_t, DIM> > stream_t;
+  typedef tpie::ami::point<coord_t, DIM> point_t;
+  typedef tpie::ami::record<coord_t, size_t, DIM> record_t;
+  typedef tpie::ami::record_key<coord_t, size_t, DIM> record_key_t;
 
   record_t mbr_lo;
   record_t mbr_hi;
@@ -106,7 +113,7 @@ public:
   TPIE_OS_SIZE_T B_for_LMB;
   stream_t *in_stream;
   stream_t *streams_sorted[DIM];
-  ostringstream stats;
+  std::ostringstream stats;
   split_heuristic_t split_heuristic;
 
 
@@ -114,7 +121,7 @@ public:
   app_params_t(): mbr_lo(), mbr_hi() {
     point_count = 0;
     structure_name = "UNKNOWN"; // The application should override this.
-    load_method = AMI_KDTREE_LOAD_SORT | AMI_KDTREE_LOAD_GRID;
+    load_method = TPIE_AMI_KDTREE_LOAD_SORT | TPIE_AMI_KDTREE_LOAD_GRID;
     memory_limit = 64*1024*1024;
     do_sort = true;
     do_load = true;
@@ -140,10 +147,10 @@ public:
     // 3-sided for epstree, 2-sided for Btree.
     query_type = 0;
     wquery_count = 0; // refers to the random window queries.
-    grid_size = AMI_KDTREE_GRID_SIZE;
-    leaf_block_factor = max((TPIE_OS_SIZE_T)16384/TPIE_OS_BLOCKSIZE(),
+    grid_size = TPIE_AMI_KDTREE_GRID_SIZE;
+    leaf_block_factor = std::max((TPIE_OS_SIZE_T)16384/TPIE_OS_BLOCKSIZE(),
                             (TPIE_OS_SIZE_T)1);
-    node_block_factor = max((TPIE_OS_SIZE_T)16384/TPIE_OS_BLOCKSIZE(),
+    node_block_factor = std::max((TPIE_OS_SIZE_T)16384/TPIE_OS_BLOCKSIZE(),
                             (TPIE_OS_SIZE_T)1);
     // For the EPS-tree catalog nodes. A value of 0 means 2*node_block_factor.
     catalog_block_factor = 0;
@@ -160,7 +167,7 @@ public:
     split_heuristic = CYCLICAL;
   }
 
-  void write_block_stats(const tpie_stats_tree& bts) {
+  void write_block_stats(const stats_tree& bts) {
     // Shortcuts.
     TPIE_OS_SIZE_T lbf = leaf_block_factor;
     TPIE_OS_SIZE_T nbf = node_block_factor;
@@ -170,49 +177,49 @@ public:
 	  << " x" << (TPIE_OS_OFFSET)lbf
 	  << "\t n" << bts.get(NODE_READ)
 	  << " x" << (TPIE_OS_OFFSET)nbf
-	  << endl
+	  << std::endl
 	  << "BLOCKS:CREATE         " 
 	  << bts.get(LEAF_CREATE) * lbf + bts.get(NODE_CREATE) *nbf
 	  << "\t l" << bts.get(LEAF_CREATE) 
 	  << " x" << (TPIE_OS_OFFSET)lbf
 	  << "\t n" << bts.get(NODE_CREATE) 
 	  << " x" << (TPIE_OS_OFFSET)nbf
-	  << endl
+	  << std::endl
 	  << "BLOCKS:FETCH          " 
 	  << bts.get(LEAF_FETCH) * lbf + bts.get(NODE_FETCH) * nbf
 	  << "\t l" << bts.get(LEAF_FETCH) 
 	  << " x" << (TPIE_OS_OFFSET)lbf
 	  << "\t n" << bts.get(NODE_FETCH)
 	  << " x" << (TPIE_OS_OFFSET)nbf
-	  << endl
+	  << std::endl
 	  << "BLOCKS:WRITE          " 
 	  << bts.get(LEAF_WRITE) * lbf + bts.get(NODE_WRITE) * nbf 
 	  << "\t l" << bts.get(LEAF_WRITE) 
 	  << " x" << (TPIE_OS_OFFSET)lbf
 	  << "\t n" << bts.get(NODE_WRITE)
 	  << " x" << (TPIE_OS_OFFSET)nbf
-	  << endl
+	  << std::endl
 	  << "BLOCKS:DELETE         " 
 	  << bts.get(LEAF_DELETE) * lbf + bts.get(NODE_DELETE)  * nbf
 	  << "\t l" << bts.get(LEAF_DELETE) 
 	  << " x" << (TPIE_OS_OFFSET)lbf
 	  << "\t n" << bts.get(NODE_DELETE)
 	  << " x" << (TPIE_OS_OFFSET)nbf
-	  << endl
+	  << std::endl
 	  << "BLOCKS:RELEASE        " 
 	  << bts.get(LEAF_RELEASE) * lbf + bts.get(NODE_RELEASE) * nbf 
 	  << "\t l" << bts.get(LEAF_RELEASE)
 	  << " x" << (TPIE_OS_OFFSET)lbf
 	  << "\t n" << bts.get(NODE_RELEASE)
 	  << " x" << (TPIE_OS_OFFSET)nbf
-	  << endl
+	  << std::endl
 	  << "BLOCKS:COUNT          "
 	  << bts.get(LEAF_COUNT) * lbf + bts.get(NODE_COUNT) * nbf
 	  << "\t l" << bts.get(LEAF_COUNT)
 	  << " x" << (TPIE_OS_OFFSET)lbf
 	  << "\t n" << bts.get(NODE_COUNT)
 	  << " x" << (TPIE_OS_OFFSET)nbf
-	  << endl
+	  << std::endl
       ;
   }
 };
@@ -221,13 +228,13 @@ public:
 extern app_params_t params;
 
 void usage(char* argv0);
-void print_configuration(ostream& os = cerr);
-void print_statistics(ostream& os = cerr);
+void print_configuration(std::ostream& os = std::cerr);
+void print_statistics(std::ostream& os = std::cerr);
 void parse_args(int argc, char** argv);
 
 template<class T> 
 void add_to_stats(TPIE_OS_SIZE_T width, const char* header, T value) {
-    params.stats << header << " " << value << endl;
+    params.stats << header << " " << value << std::endl;
 }
 
 

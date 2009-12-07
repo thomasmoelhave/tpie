@@ -27,28 +27,47 @@
 // It uses the run-time parameters from app_params.cpp
 //
 // $Id: build_kdbtree.cpp,v 1.2 2004-08-12 12:36:05 jan Exp $
+//
 
-#include <portability.h>
+#include <tpie/config.h>
+#include <tpie/portability.h>
 
 // STL stuff.
 #include <functional>
 // TPIE configuration: choose BTE, block size, etc.
 #include "app_config.h"
 // TPIE streams and collections.
-#include <ami_stream.h>
-#include <ami_coll.h>
+#include <tpie/stream.h>
+#include <tpie/coll.h>
 // TPIE timer.
-#include <cpu_timer.h>
+#include <tpie/cpu_timer.h>
 // The K-D-B-tree implementation.
-#include <ami_kdbtree.h>
+#include <tpie/kdbtree.h>
+
+#include <tpie/portability.h>
+
+// STL stuff.
+#include <functional>
+// TPIE configuration: choose BTE, block size, etc.
+#include "app_config.h"
+// TPIE streams and collections.
+#include <tpie/stream.h>
+#include <tpie/coll.h>
+// TPIE timer.
+#include <tpie/cpu_timer.h>
+// The K-D-B-tree implementation.
+#include <tpie/kdbtree.h>
 // Run-time parameters.
 #include "app_params.h"
 
-// Template instantiations.
-#define KDBTREEint2 AMI_kdbtree<int, 2, AMI_kdtree_bin_node_small<int, 2> >
-template class KDBTREEint2;
+using namespace tpie;
+using namespace tpie::ami;
+using namespace std;
 
-bool tiger_constrained(const AMI_record<int, size_t, 2>& p) {
+// Template instantiations.
+typedef kdbtree<int, 2, kdtree_bin_node_small<int, 2> > KDBTREEint2;
+
+bool tiger_constrained(const record<int, size_t, 2>& p) {
   // Constrain TIGER data to continental US.
   // Numbers represent longitude and latitude times 1 million.
   return (p[0] > -128000000 && p[0] < -65000000 && 
@@ -59,7 +78,7 @@ int main(int argc, char** argv) {
 
   KDBTREEint2* kdbtree;
   KDBTREEint2::point_t *pp;
-  AMI_kdbtree_params kdb_params;
+  kdbtree_params kdb_params;
   cpu_timer atimer;
   double t_wall, t_io;
 
@@ -71,7 +90,7 @@ int main(int argc, char** argv) {
   // <><><><><><><><><><><><><><><><><><><><>
 
   // Log debugging info from the application, but not from the library. 
-  tpie_log_init(TPIE_LOG_APP_DEBUG); 
+  tpie_log_init(LOG_APP_DEBUG); 
  
    // Parse command-line arguments (see app_params.cpp)
   parse_args(argc, argv);
@@ -89,9 +108,9 @@ int main(int argc, char** argv) {
 
   // Open a kdb-tree.
   kdbtree = new KDBTREEint2(params.base_file_name_t, 
-			    AMI_WRITE_COLLECTION, kdb_params);
+			    tpie::ami::WRITE_COLLECTION, kdb_params);
   // Check its status.
-  if (kdbtree->status() == AMI_KDBTREE_STATUS_INVALID) {
+  if (kdbtree->status() == tpie::ami::KDBTREE_STATUS_INVALID) {
     cerr << "Error opening the kdbtree (see log for details). Aborting.\n";
     return 1;
   }
@@ -122,7 +141,7 @@ int main(int argc, char** argv) {
   //     Build from kd-tree.
   // <><><><><><><><><><><><><><><><><><><><>
 
-  if (kdbtree->status() == AMI_KDBTREE_STATUS_KDTREE) {
+  if (kdbtree->status() == tpie::ami::KDBTREE_STATUS_KDTREE) {
     cerr << "Kd-tree -> K-D-B-tree... " << flush;
     if (kdbtree->kd2kdb())
       cerr << "Done.\n";
@@ -144,11 +163,11 @@ int main(int argc, char** argv) {
     assert(params.in_stream != NULL);
 
     // Temporary stream (no-duplicates stream).
-    AMI_STREAM<KDBTREEint2::point_t> *nodup_stream;
+    stream<KDBTREEint2::point_t> *nodup_stream;
     bool ans;
 
     if (params.do_eliminate_duplicates) {
-      nodup_stream = new AMI_STREAM<KDBTREEint2::point_t>(params.nodup_file_name);
+      nodup_stream = new stream<KDBTREEint2::point_t>(params.nodup_file_name);
       nodup_stream->persist(PERSIST_PERSISTENT);
     }
 
@@ -156,7 +175,7 @@ int main(int argc, char** argv) {
     TPIE_OS_OFFSET i = 0;
     atimer.start();
     params.in_stream->seek(0);
-    while (params.in_stream->read_item(&pp) == AMI_ERROR_NO_ERROR) {
+    while (params.in_stream->read_item(&pp) == tpie::ami::NO_ERROR) {
 
       // Insert *pp into the K-D-B-tree.
       ans = kdbtree->insert(*pp);
@@ -202,8 +221,8 @@ int main(int argc, char** argv) {
     } else {
       TPIE_OS_OFFSET count = 0, result = 0;
       KDBTREEint2::point_t lop, hip;
-      AMI_STREAM<KDBTREEint2::point_t> *tempstr = 
-	(params.do_query_count_only ? NULL: new AMI_STREAM<KDBTREEint2::point_t>);
+      stream<KDBTREEint2::point_t> *tempstr = 
+	(params.do_query_count_only ? NULL: new stream<KDBTREEint2::point_t>);
       cerr << "Window queries from file " << params.file_name_wquery << " ...\n";
       atimer.start();  
 
@@ -255,7 +274,7 @@ int main(int argc, char** argv) {
   //    Clean up and print statistics.
   // <><><><><><><><><><><><><><><><><><><><>
   
-  tpie_stats_tree bts;
+  stats_tree bts;
   params.point_count = kdbtree->size();
   bts = kdbtree->stats();
   params.stats << "Space utilization:    " 
@@ -277,3 +296,4 @@ int main(int argc, char** argv) {
 
   return 0;
 }
+

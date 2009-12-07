@@ -25,9 +25,14 @@
 // $Id: d_vector.h,v 1.2 2003-09-17 03:07:21 tavi Exp $
 //
 
-#include <vector>
 #include "app_config.h"
-#include <ami.h>
+#include <tpie/portability.h>
+#include <tpie/stream.h>
+#include <vector>
+#include <string>
+
+using namespace tpie;
+using namespace tpie::ami;
 
 //
 // Class d_vector. It is an in-memory vector which can be read from a
@@ -42,19 +47,19 @@ class d_vector {
 public:
   typedef Key key_t;
   typedef Value record_t;
-  typedef AMI_STREAM<Value> stream_t;
+  typedef stream<Value> stream_t;
 
 private:
-  vector<Value> *v_;
+  std::vector<Value> *v_;
   persistence per_;
   stream_t* str_;
   size_t max_block_count_;
   size_t os_block_size_;
 
 public:
-  d_vector(const char* base_file_name, AMI_collection_type t, size_t params = 0): 
+  d_vector(std::string base_file_name, tpie::ami::collection_type t, size_t params = 0): 
     max_block_count_(params) {
-    AMI_err err;
+    err err;
     Value* pp;
     os_block_size_ = TPIE_OS_BLOCKSIZE();
     v_ = new vector<Value>(0);

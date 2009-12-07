@@ -28,34 +28,33 @@
 
 #define DIRECTIO_STREAMS 0
 
-#include <portability.h>
+// Configuration: choose BTE, block size, etc.
+#include "app_config.h"
+
+#include <tpie/portability.h>
 
 // STL files.
 #include <vector>
 #include <functional>
-// Configuration: choose BTE, block size, etc.
-#include "app_config.h"
 // TPIE streams.
-#include <ami_stream.h>
-// The AMI_btree class.
-#include <ami_btree.h>
+#include <tpie/stream.h>
+// The btree class.
+#include <tpie/btree.h>
 // TPIE timer.
-#include <cpu_timer.h>
+#include <tpie/cpu_timer.h>
 // The logarithmic method.
-#include "ami_logmethod.h"
+#include "tpie/logmethod.h"
 // Point.
-#include "ami_point.h"
+#include "tpie/point.h"
 // Run-time parameters.
 #include "app_params.h"
 
+using namespace std;
+using namespace tpie;
+using namespace tpie::ami;
 
-#define BTREEint2 AMI_btree<app_params_t::point_t, app_params_t::record_t, app_params_t::point_t::cmp, app_params_t::record_key_t>
-#define LOGMETHOD2int2 Logmethod2<app_params_t::point_t, app_params_t::record_t, BTREEint2, AMI_btree_params, BTREEint2, AMI_btree_params>
-
-// Template instantiations. gprof will not give meaningful output
-// without these.
-template class BTREEint2;
-template class LOGMETHOD2int2;
+typedef btree<app_params_t::point_t, app_params_t::record_t, app_params_t::point_t::cmp, app_params_t::record_key_t >BTREEint2;
+typedef  Logmethod2<app_params_t::point_t, app_params_t::record_t, BTREEint2, btree_params, BTREEint2, btree_params> LOGMETHOD2int2;
 
 // Filter to get 3-sided queries from 2-sided range queries.
 class filter_hiy_t {
@@ -72,7 +71,7 @@ public:
 int main(int argc, char **argv) {
 
   // Log debugging info from the application, but not from the library.
-  tpie_log_init(TPIE_LOG_APP_DEBUG);
+  tpie_log_init(LOG_APP_DEBUG);
 
   size_t os_block_size = TPIE_OS_BLOCKSIZE();
   parse_args(argc, argv);
@@ -81,20 +80,19 @@ int main(int argc, char **argv) {
 
   BTREEint2 *btree;
   LOGMETHOD2int2 *lm;
-  AMI_btree_params btree_params;
-  AMI_err err = AMI_ERROR_NO_ERROR;
+  btree_params btree_parameters;
+  err err = tpie::ami::NO_ERROR;
   // Filter for 3-sided queries.
   filter_hiy_t filter3sq;
 
-  btree_params.leaf_block_factor = params.leaf_block_factor;
-  btree_params.node_block_factor = params.node_block_factor;
+  btree_parameters.leaf_block_factor = params.leaf_block_factor;
+  btree_parameters.node_block_factor = params.node_block_factor;
 
   if (params.do_logmethod) {
-    //    Logmethod_params<AMI_btree_params> lm_params;
-    Logmethod_params<AMI_btree_params, AMI_btree_params> lm_params;
+    Logmethod_params<btree_params, btree_params> lm_params;
     lm_params.cached_blocks = params.cached_blocks;
-    lm_params.tree_params = btree_params;
-    lm_params.tree0_params = btree_params;
+    lm_params.tree_params = btree_parameters;
+    lm_params.tree0_params = btree_parameters;
 
     lm_params.tree0_params.node_cache_size = 64;
     lm_params.tree0_params.leaf_cache_size = (params.cached_blocks+7)/8 * 8;
@@ -103,9 +101,9 @@ int main(int argc, char **argv) {
     params.leaf_block_factor = lm->params().tree_params.leaf_block_factor;
     params.node_block_factor = lm->params().tree_params.node_block_factor;
   } else {
-    btree_params.node_cache_size = params.node_cache_size;
-    btree_params.leaf_cache_size = params.leaf_cache_size;
-    btree = new BTREEint2(params.base_file_name_t, AMI_WRITE_COLLECTION, btree_params);
+    btree_parameters.node_cache_size = params.node_cache_size;
+    btree_parameters.leaf_cache_size = params.leaf_cache_size;
+    btree = new BTREEint2(params.base_file_name_t, WRITE_COLLECTION, btree_parameters);
     btree->persist(params.keep_tree ? PERSIST_PERSISTENT : PERSIST_DELETE);
     params.leaf_block_factor = btree->params().leaf_block_factor;
     params.node_block_factor = btree->params().node_block_factor;
@@ -116,7 +114,7 @@ int main(int argc, char **argv) {
   double time_wall, time_io;
   int i;
 
-  if (params.do_sort && err == AMI_ERROR_NO_ERROR) {
+  if (params.do_sort && err == tpie::ami::NO_ERROR) {
     cerr << "Sorting..." << endl;
     atimer.start();
     if (params.do_logmethod)
@@ -125,7 +123,7 @@ int main(int argc, char **argv) {
       app_params_t::record_t::cmp cmp;
       if (params.streams_sorted[0] == NULL)
 	params.streams_sorted[0] = new app_params_t::stream_t;
-      AMI_sort(params.in_stream, params.streams_sorted[0], &cmp);
+      sort(params.in_stream, params.streams_sorted[0], &cmp);
       //      btree->sort(params.in_stream, params.streams_sorted[0]);
     }
     atimer.stop();
@@ -142,7 +140,7 @@ int main(int argc, char **argv) {
 		 << int(time_io*100/time_wall) << endl;
   } 
 
-  if (params.do_verify_sorting && err == AMI_ERROR_NO_ERROR) {
+  if (params.do_verify_sorting && err == tpie::ami::NO_ERROR) {
     app_params_t::record_t p1;
     TPIE_OS_OFFSET ii = 0;
     app_params_t::record_t::cmp comp;
@@ -150,7 +148,7 @@ int main(int argc, char **argv) {
     params.streams_sorted[0]->seek(0);
     params.streams_sorted[0]->read_item(&pp);
     p1 = *pp;
-    while (params.streams_sorted[0]->read_item(&pp) == AMI_ERROR_NO_ERROR) {
+    while (params.streams_sorted[0]->read_item(&pp) == tpie::ami::NO_ERROR) {
       if (comp(*pp, p1)) {
 	cerr << "\tStream not properly sorted: items " 
 	     << ii << " and " << ii+1 << endl;
@@ -161,7 +159,7 @@ int main(int argc, char **argv) {
     }
   }
 
-  if (params.do_load && err == AMI_ERROR_NO_ERROR) {
+  if (params.do_load && err == tpie::ami::NO_ERROR) {
     assert(params.streams_sorted[0] != NULL);
     cerr << "Loading..." << endl;
     atimer.start();
@@ -185,14 +183,14 @@ int main(int argc, char **argv) {
 		 << int(time_io*100/time_wall) << endl;
   }
 
-  if (params.do_insert && err == AMI_ERROR_NO_ERROR) {
+  if (params.do_insert && err == tpie::ami::NO_ERROR) {
     cerr << "Inserting..." << endl;
     i = 0;
     assert(params.in_stream != NULL);
     atimer.start();
     params.in_stream->seek(0);
     while (i < params.point_count && 
-	   params.in_stream->read_item(&pp) == AMI_ERROR_NO_ERROR) {
+	   params.in_stream->read_item(&pp) == tpie::ami::NO_ERROR) {
       if (params.do_logmethod)
 	lm->insert(*pp);
       else
@@ -216,7 +214,7 @@ int main(int argc, char **argv) {
   }
 
 
-  if (params.do_wquery_from_file && err == AMI_ERROR_NO_ERROR) {
+  if (params.do_wquery_from_file && err == tpie::ami::NO_ERROR) {
     ifstream ifs(params.file_name_wquery);
     if (!ifs) {
       cerr << argv[0] << ": Error opening window queries file " 
@@ -261,7 +259,7 @@ int main(int argc, char **argv) {
     }
   }
     
-  if (params.wquery_count > 0 && err == AMI_ERROR_NO_ERROR) {
+  if (params.wquery_count > 0 && err == tpie::ami::NO_ERROR) {
     app_params_t::point_t lop, hip;
     int mbrdx = MAX_VALUE;
     int mbrdy = MAX_VALUE;
@@ -302,7 +300,7 @@ int main(int argc, char **argv) {
   }
 
 
-  if (params.do_stress_test && err == AMI_ERROR_NO_ERROR) {
+  if (params.do_stress_test && err == tpie::ami::NO_ERROR) {
     cerr << "Begin stress test." << endl;
     app_params_t::record_t p;
     app_params_t::record_t pa[100];
@@ -330,8 +328,7 @@ int main(int argc, char **argv) {
     cerr << "End stress test." << endl;
   }
 
-
-  tpie_stats_tree bts;
+  stats_tree bts;
 
   if (params.do_logmethod) {
     params.point_count = lm->size();
@@ -343,7 +340,7 @@ int main(int argc, char **argv) {
     delete btree;
   }
 
-  if (err == AMI_ERROR_NO_ERROR) {
+  if (err == tpie::ami::NO_ERROR) {
     params.write_block_stats(bts);
 
     print_configuration();

@@ -29,28 +29,32 @@
 //
 // $Id: build_bkdtree.cpp,v 1.2 2004-08-12 12:36:05 jan Exp $
 //
-
 #define DIRECTIO_STREAMS 0
 
-#include <portability.h>
+#include <tpie/portability.h>
 
 // STL stuff.
 #include <functional>
 // TPIE configuration: choose BTE, block size, etc.
 #include "app_config.h"
 // TPIE streams.
-#include <ami_stream.h>
+#include <tpie/stream.h>
 // TPIE timer.
-#include <cpu_timer.h>
+#include <tpie/cpu_timer.h>
 // TPIE tree statistics.
-#include <tpie_stats_tree.h>
+#include <tpie/stats_tree.h>
+// TPIE tree statistics.
+#include <tpie/stats_tree.h>
 // Logarithmic method.
-#include <ami_logmethod.h>
+#include <tpie/logmethod.h>
 // The kd-tree. 
-#include <ami_kdtree.h>
+#include <tpie/kdtree.h>
 // Run-time parameters.
 #include "app_params.h"
 
+using namespace std;
+using namespace tpie;
+using namespace tpie::ami;
 
 // Two types are available for the internal memory structure (Tree0)
 // of the log. method.
@@ -60,29 +64,21 @@
 // structure of the log. method.
 #define TREE0_TYPE TREE0_VECTOR
 
-// Template instantiations.
-
-//template class AMI_kdtree_bin_node_default<int, DIM>;
-//#define KDTREEintd AMI_kdtree<int, DIM, AMI_kdtree_bin_node_default<int, DIM> >
-#define KDTREEintd AMI_kdtree<int, DIM, AMI_kdtree_bin_node_small<int, DIM> >
-template class KDTREEintd;
+//template class kdtree_bin_node_default<int, DIM>;
+//#define KDTREEintd kdtree<int, DIM, kdtree_bin_node_default<int, DIM> >
+typedef kdtree<int, DIM, kdtree_bin_node_small<int, DIM> > KDTREEintd;
 
 #if (TREE0_TYPE==TREE0_BTREE)
-#  include <ami_btree.h>
-#  define BTREEintd AMI_btree<app_params_t::point_t, app_params_t::record_t, app_params_t::point_t::cmp, app_params_t::record_key_t>
-   template class BTREEintd;
-#  define LOGMETHOD2intd Logmethod2<app_params_t::point_t, app_params_t::record_t, KDTREEintd, AMI_kdtree_params, BTREEintd, AMI_btree_params>
-#  define LOGMETHODBintd LogmethodB<app_params_t::point_t, app_params_t::record_t, KDTREEintd, AMI_kdtree_params, BTREEintd, AMI_btree_params>
+#  include <tpie/btree.h>
+typename btree<app_params_t::point_t, app_params_t::record_t, app_params_t::point_t::cmp, app_params_t::record_key_t> BTREEintd;
+typename Logmethod2<app_params_t::point_t, app_params_t::record_t, KDTREEintd, kdtree_params, BTREEintd, btree_params> LOGMETHOD2intd;
+typename LogmethodB<app_params_t::point_t, app_params_t::record_t, KDTREEintd, kdtree_params, BTREEintd, btree_params> LOGMETHODBintd;
 #elif (TREE0_TYPE==TREE0_VECTOR)
 #  include "d_vector.h"
-#  define D_VECTORintd d_vector<app_params_t::point_t, app_params_t::record_t, app_params_t::record_key_t>
-   template class D_VECTORintd;
-#  define LOGMETHOD2intd Logmethod2<app_params_t::point_t, app_params_t::record_t, KDTREEintd, AMI_kdtree_params, D_VECTORintd, size_t>
-#  define LOGMETHODBintd LogmethodB<app_params_t::point_t, app_params_t::record_t, KDTREEintd, AMI_kdtree_params, D_VECTORintd, size_t>
+typedef d_vector<app_params_t::point_t, app_params_t::record_t, app_params_t::record_key_t> D_VECTORintd;
+typedef Logmethod2<app_params_t::point_t, app_params_t::record_t, KDTREEintd, kdtree_params, D_VECTORintd, size_t> LOGMETHOD2intd;
+typedef LogmethodB<app_params_t::point_t, app_params_t::record_t, KDTREEintd, kdtree_params, D_VECTORintd, size_t> LOGMETHODBintd;
 #endif
-
-template class LOGMETHOD2intd;
-template class LOGMETHODBintd;
 
 bool tiger_constrained(const app_params_t::record_t& p) {
   // Constrain TIGER data to continental US.
@@ -96,20 +92,20 @@ int main(int argc, char** argv) {
   KDTREEintd* kdtree;
   LOGMETHOD2intd *lm2;
   LOGMETHODBintd* lmB;
-  AMI_kdtree_params kd_params;
+  kdtree_params kd_params;
   cpu_timer atimer;
   int i, ii;
   app_params_t::record_t p, q, *pp;
   double load_wall, sort_wall, load_io, sort_io;
   double wq_wall, wq_io;
-  AMI_err err = AMI_ERROR_NO_ERROR;
+  err err = tpie::ami::NO_ERROR;
 
   // <><><><><><><><><><><><><><><><><><><><>
   //    Initialize.
   // <><><><><><><><><><><><><><><><><><><><>
 
   // Log debugging info from the application, but not from the library. 
-  tpie_log_init(TPIE_LOG_APP_DEBUG);
+  tpie_log_init(LOG_APP_DEBUG);
   // Write a warning in the log file when the memory limit is exceeded. 
   MM_manager.warn_memory_limit();
   parse_args(argc, argv);
@@ -128,13 +124,13 @@ int main(int argc, char** argv) {
   if (params.do_logmethod) {
 
 #if (TREE0_TYPE==TREE0_BTREE)
-    Logmethod_params<AMI_kdtree_params, AMI_btree_params> lm_params;
+    Logmethod_params<kdtree_params, btree_params> lm_params;
     lm_params.tree0_params.leaf_block_factor = leaf_block_factor;
     lm_params.tree0_params.node_block_factor = node_block_factor;
     lm_params.tree0_params.node_cache_size = 64;
     lm_params.tree0_params.leaf_cache_size = (cached_blocks+7)/8 * 8;
 #elif (TREE0_TYPE==TREE0_VECTOR)
-    Logmethod_params<AMI_kdtree_params, size_t> lm_params;
+    Logmethod_params<kdtree_params, size_t> lm_params;
     lm_params.tree0_params = params.cached_blocks;
 #endif
 
@@ -155,8 +151,8 @@ int main(int argc, char** argv) {
 
   } else {
 
-    kdtree = new KDTREEintd(params.base_file_name_t, AMI_WRITE_COLLECTION, kd_params);
-    if (kdtree->status() == AMI_KDTREE_STATUS_INVALID) {
+    kdtree = new KDTREEintd(params.base_file_name_t, WRITE_COLLECTION, kd_params);
+    if (kdtree->status() == KDTREE_STATUS_INVALID) {
       cerr << "Error opening the kdtree (see log for details). Aborting." << endl;
       delete kdtree;
       exit(1);
@@ -174,7 +170,7 @@ int main(int argc, char** argv) {
   //    Sort.
   // <><><><><><><><><><><><><><><><><><><><>
   
-  if (params.do_sort && err == AMI_ERROR_NO_ERROR) {
+  if (params.do_sort && err == tpie::ami::NO_ERROR) {
     cerr << "Sorting..." << endl;
     atimer.start();
     if (params.do_logmethod)
@@ -201,25 +197,25 @@ int main(int argc, char** argv) {
   //   Eliminate duplicates.
   // <><><><><><><><><><><><><><><><><><><><>
 
-  if (params.do_eliminate_duplicates && err == AMI_ERROR_NO_ERROR) {
+  if (params.do_eliminate_duplicates && err == tpie::ami::NO_ERROR) {
     // Temporary stream. 
     app_params_t::stream_t *tmps;
-    char *sname, *tmpname;
+    std::string sname, tmpname;
     cerr << "Eliminating duplicates..." << flush;
     assert(params.streams_sorted[0] != NULL && params.streams_sorted[1] != NULL);
     for (ii = 0; ii < DIM; ii++) {
       params.streams_sorted[ii]->seek(0);
       params.streams_sorted[ii]->read_item(&pp);
       params.streams_sorted[ii]->persist(PERSIST_DELETE);
-      params.streams_sorted[ii]->name(&sname);
+      sname = params.streams_sorted[ii]->name();
 
       tmps = new app_params_t::stream_t;
       tmps->persist(PERSIST_PERSISTENT);
-      tmps->name(&tmpname);
+      tmpname = tmps->name();
       if (!params.do_constrain_tiger_data || tiger_constrained(*pp))
 	tmps->write_item(*pp);	
       p = *pp;
-      while (params.streams_sorted[ii]->read_item(&pp) == AMI_ERROR_NO_ERROR) {
+      while (params.streams_sorted[ii]->read_item(&pp) == tpie::ami::NO_ERROR) {
 	if (!(p == *pp) && (!params.do_constrain_tiger_data || tiger_constrained(*pp))) {
 	  tmps->write_item(*pp);
 	  p = *pp;
@@ -228,19 +224,17 @@ int main(int argc, char** argv) {
       delete params.streams_sorted[ii];
       delete tmps;
 
-      char mv_command[250];
+      char mv_command[450];
       strcpy(mv_command, "/bin/mv ");
-      strcat(mv_command, tmpname);
+      strcat(mv_command, tmpname.c_str());
       strcat(mv_command, " ");
-      strcat(mv_command, sname);
+      strcat(mv_command, sname.c_str());
       if (system(mv_command) == -1) {
 	perror("Error renaming the file");
 	exit(1);
       }
-      params.streams_sorted[ii] = new app_params_t::stream_t(sname, AMI_READ_STREAM);
+      params.streams_sorted[ii] = new app_params_t::stream_t(sname, READ_STREAM);
       params.streams_sorted[ii]->persist(PERSIST_PERSISTENT);
-      delete [] sname;
-      delete [] tmpname;
     }
     cerr << "Done." << endl; 
   }
@@ -250,12 +244,12 @@ int main(int argc, char** argv) {
   //   Bulk load.
   // <><><><><><><><><><><><><><><><><><><><>
 
-  if (params.do_load && err == AMI_ERROR_NO_ERROR) {
+  if (params.do_load && err == tpie::ami::NO_ERROR) {
     cerr << "Loading..." << endl;
     atimer.start();
     if (params.do_logmethod)
       cerr << "Error: options do_logmethod and do_load are incompatible." << endl;
-    else if (params.load_method & AMI_KDTREE_LOAD_SAMPLE) {
+    else if (params.load_method & TPIE_AMI_KDTREE_LOAD_SAMPLE) {
       assert(params.in_stream != NULL);
       err = kdtree->load_sample(params.in_stream);
       delete params.in_stream;
@@ -278,8 +272,8 @@ int main(int argc, char** argv) {
     
     atimer.reset();
     params.stats << "Loading method:       " 
-		 << (params.load_method & AMI_KDTREE_LOAD_BINARY? "BINARY ": (params.load_method & AMI_KDTREE_LOAD_SAMPLE ? "SAMPLE ": "GRID ")) 
-		 << static_cast<TPIE_OS_OUTPUT_SIZE_T>((params.load_method & AMI_KDTREE_LOAD_GRID ? params.grid_size: 0)) << endl;
+		 << (params.load_method & TPIE_AMI_KDTREE_LOAD_BINARY? "BINARY ": (params.load_method & TPIE_AMI_KDTREE_LOAD_SAMPLE ? "SAMPLE ": "GRID ")) 
+		 << static_cast<TPIE_OS_OUTPUT_SIZE_T>((params.load_method & TPIE_AMI_KDTREE_LOAD_GRID ? params.grid_size: 0)) << endl;
     params.stats << "LOAD:Wall_IO_%IO      "
 		 << double(int(load_wall*1000)) / 1000 << "\t "
 		 << double(int(load_io*100))/100 << "\t "
@@ -296,7 +290,7 @@ int main(int argc, char** argv) {
   //    Insert.
   // <><><><><><><><><><><><><><><><><><><><>
 
-  if (params.do_insert && err == AMI_ERROR_NO_ERROR) {
+  if (params.do_insert && err == tpie::ami::NO_ERROR) {
     cerr << "Inserting..." << endl;
     assert(params.in_stream != NULL);
     atimer.start();
@@ -305,20 +299,20 @@ int main(int argc, char** argv) {
     if (params.do_logmethod) {
       if (params.B_for_LMB == 0) {
 	while (i < params.point_count && 
-	       params.in_stream->read_item(&pp) == AMI_ERROR_NO_ERROR) {
+	       params.in_stream->read_item(&pp) == tpie::ami::NO_ERROR) {
 	  lm2->insert(*pp);
 	  i++;
 	}
       } else {
 	while (i < params.point_count && 
-	       params.in_stream->read_item(&pp) == AMI_ERROR_NO_ERROR) {
+	       params.in_stream->read_item(&pp) == tpie::ami::NO_ERROR) {
 	  lmB->insert(*pp);
 	  i++;
 	}
       }
     } else {
       while (i < params.point_count && 
-	     params.in_stream->read_item(&pp) == AMI_ERROR_NO_ERROR) {
+	     params.in_stream->read_item(&pp) == tpie::ami::NO_ERROR) {
 	kdtree->insert(*pp);
 	i++;
       }
@@ -339,7 +333,7 @@ int main(int argc, char** argv) {
   //    Query from ASCII file.
   // <><><><><><><><><><><><><><><><><><><><>
    
-  if (params.do_wquery_from_file && err == AMI_ERROR_NO_ERROR) {
+  if (params.do_wquery_from_file && err == tpie::ami::NO_ERROR) {
     ifstream ifs(params.file_name_wquery);
     if (!ifs) {
       cerr << argv[0] << ": Error opening window queries file " 
@@ -410,7 +404,7 @@ int main(int argc, char** argv) {
   //   Query using random boxes.
   // <><><><><><><><><><><><><><><><><><><><>
 
-  if (params.wquery_count > 0 && err == AMI_ERROR_NO_ERROR) {
+  if (params.wquery_count > 0 && err == tpie::ami::NO_ERROR) {
     app_params_t::point_t lop, hip;
     TPIE_OS_OFFSET result = 0;
     cerr << "Doing " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(params.wquery_count) << " window queries." << endl;
@@ -469,7 +463,7 @@ int main(int argc, char** argv) {
   //    Clean up and print statistics.
   // <><><><><><><><><><><><><><><><><><><><>
  
-  tpie_stats_tree bts;
+  stats_tree bts;
 
   if (params.do_logmethod) {
     if (params.B_for_LMB == 0) {
@@ -489,7 +483,7 @@ int main(int argc, char** argv) {
     delete kdtree;
   }
 
-  if (err == AMI_ERROR_NO_ERROR) {
+  if (err == tpie::ami::NO_ERROR) {
     params.write_block_stats(bts);
 
     print_configuration();
@@ -506,3 +500,4 @@ int main(int argc, char** argv) {
 
   return 0;
 }
+

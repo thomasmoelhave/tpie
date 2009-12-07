@@ -27,20 +27,25 @@
 //
 // $Id: app_params.cpp,v 1.7 2004-08-12 12:36:04 jan Exp $
 
-
-#include <portability.h>
-
-#include <algorithm>
-
 #include "app_config.h"
+#include <tpie/config.h>
+#include <tpie/portability.h>
+#include <algorithm>
+#include "app_config.h"
+#include <tpie/kd_base.h>
 
-#include <ami_kd_base.h>
+
+#include <tpie/kd_base.h>
 #include "app_params.h"
-#include <ami_stream.h>
-#include <ami_scan.h>
-#include <ami_scan_utils.h>
-#include <ami_coll.h>
-#include <tpie_tempnam.h>
+#include <tpie/stream.h>
+#include <tpie/scan.h>
+#include <tpie/scan_utils.h>
+#include <tpie/coll.h>
+#include <tpie/tempname.h>
+
+using namespace tpie;
+using namespace tpie::ami;
+using namespace std;
 
 // Initialize a global object with all run-time parameters.
 app_params_t params;
@@ -98,11 +103,11 @@ void print_configuration(ostream& os) {
 
   os   << "BTE_STREAM:           "
 #if defined(BTE_STREAM_IMP_MMAP)
-       << "MMAP " << BTE_STREAM_MMAP_BLOCK_FACTOR
+       << "MMAP " << STREAM_MMAP_BLOCK_FACTOR
 #elif defined(BTE_STREAM_IMP_STDIO)
        << "STDIO"
 #elif defined(BTE_STREAM_IMP_UFS)
-       << "UFS " << BTE_STREAM_UFS_BLOCK_FACTOR
+       << "UFS " << STREAM_UFS_BLOCK_FACTOR
 #else
        << "UNKNOWN"
 #endif
@@ -160,7 +165,7 @@ void parse_args(int argc, char** argv) {
   //  bool do_compute_mbr = true;
 
   // The default base name for the tree files.
-  strcpy(params.base_file_name_t, tpie_tempnam("AMI"));
+  strcpy(params.base_file_name_t, tempname::tpie_name("AMI").c_str());
   strcpy(params.file_name_stats, "results.txt");
   params.base_file_name_s[0] = 0;
   params.base_file_name[0] = 0;
@@ -174,13 +179,13 @@ void parse_args(int argc, char** argv) {
     }
     switch (argv[i][1]) {
     case 'g':
-      params.load_method = AMI_KDTREE_LOAD_SORT|AMI_KDTREE_LOAD_GRID;
+      params.load_method = TPIE_AMI_KDTREE_LOAD_SORT|TPIE_AMI_KDTREE_LOAD_GRID;
       break;
     case 'b':
       if (argv[i][2] == 'l')
 	params.bulk_load_fill = (float)min(atof(argv[++i]), 1.0);
       else
-	params.load_method = AMI_KDTREE_LOAD_SORT|AMI_KDTREE_LOAD_BINARY;
+	params.load_method = TPIE_AMI_KDTREE_LOAD_SORT|TPIE_AMI_KDTREE_LOAD_BINARY;
       break;
     case 'h':
       // Split heuristic for the K-D-B-tree.
@@ -198,7 +203,7 @@ void parse_args(int argc, char** argv) {
       break;
     case 's':
       params.do_sort = false;
-      params.load_method = AMI_KDTREE_LOAD_SAMPLE;
+      params.load_method = TPIE_AMI_KDTREE_LOAD_SAMPLE;
       break;
     case 'm':
       params.memory_limit = atoi(argv[++i])*1024*1024;
@@ -237,7 +242,7 @@ void parse_args(int argc, char** argv) {
 	keep_input = true;
 	strncpy(params.base_file_name, argv[++i], MAX_PATH_LENGTH);
 	params.in_stream = new app_params_t::stream_t(params.base_file_name, 
-					AMI_READ_STREAM);
+					tpie::ami::READ_STREAM);
 	if (!params.in_stream->is_valid()) {
 	  cerr << "Invalid input stream." << endl;
 	  delete params.in_stream;
@@ -276,7 +281,7 @@ void parse_args(int argc, char** argv) {
 	  // Read ascii input.
 	  err = AMI_scan(&read_input, params.in_stream);
 
-	  if (err != AMI_ERROR_NO_ERROR) {
+	  if (err != tpie::ami::NO_ERROR) {
 	    cerr << "\n" << argv[0] << ": Error reading ascii input." << endl;
 	    exit(1);
 	  }
@@ -425,29 +430,23 @@ void parse_args(int argc, char** argv) {
   MM_manager.set_memory_limit(params.memory_limit);
   MM_manager.enforce_memory_limit();
 
-  char* buf;
-
   if (params.in_stream != NULL) {
     params.in_stream->persist(keep_input? PERSIST_PERSISTENT : PERSIST_DELETE);
     
     if (output_unsorted) {
       params.in_stream->persist(PERSIST_PERSISTENT);
-      params.in_stream->name(&buf);
+	  std::string mv_command =
+		"/bin/nmv " + params.in_stream->name()
+		+ std::string(" ") + params.base_file_name;
       delete params.in_stream;
-      char mv_command[250];
-      strcpy(mv_command, "/bin/mv ");
-      strcat(mv_command, buf);
-      strcat(mv_command, " ");
-      strcat(mv_command, params.base_file_name);
-      if (system(mv_command) == -1) {
-	perror("Error renaming the file");	
-	exit(1);
+	  if (system(mv_command.c_str()) == -1) {
+		  perror("Error renaming the file");	
+		  exit(1);
       }
 
       params.in_stream = new app_params_t::stream_t(params.base_file_name,
-				      AMI_READ_STREAM);
+				      tpie::ami::READ_STREAM);
       params.in_stream->persist(PERSIST_PERSISTENT);
-      delete [] buf;
     }
 
 #if 0 // Commented out.
@@ -507,3 +506,4 @@ void parse_args(int argc, char** argv) {
   }
 
 }
+

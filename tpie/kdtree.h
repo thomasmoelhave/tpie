@@ -97,18 +97,9 @@ public:
   ///////////////////////////////////////////////////////////////////////////
   /// Constructor; opens/creates a new kdtree with the given name, type
   /// and parameters.
-  /// \deprecated Use \ref kdtree(const std::string& base_file_name, collection_type type = AMI_WRITE_COLLECTION, const kdtree_params& params = _kdtree_params_default).
-  ///////////////////////////////////////////////////////////////////////////
-  kdtree(const char* base_file_name, 
-	     collection_type type = AMI_WRITE_COLLECTION,
-	     const kdtree_params& params = _kdtree_params_default);
-
-  ///////////////////////////////////////////////////////////////////////////
-  /// Constructor; opens/creates a new kdtree with the given name, type
-  /// and parameters.
   ///////////////////////////////////////////////////////////////////////////
   kdtree(const std::string& base_file_name,
-	     collection_type type = AMI_WRITE_COLLECTION, 
+	     collection_type type = WRITE_COLLECTION, 
 	     const kdtree_params& params = _kdtree_params_default);
 
   ///////////////////////////////////////////////////////////////////////////
@@ -325,7 +316,7 @@ protected:
   std::string name_;
 
   /** Various initialization common to all constructors. */
-  void shared_init(const char* base_file_name, collection_type type);
+  void shared_init(const std::string& base_file_name, collection_type type);
 
   TPIE_OS_OFFSET real_median(TPIE_OS_OFFSET sz) { return (sz - 1) / 2; }
   TPIE_OS_SIZE_T real_median(TPIE_OS_SIZE_T sz) { return (sz - 1) / 2; }
@@ -756,7 +747,7 @@ protected:
     bid_t bid;
     bn_context ctx;
     stream_t* streams[dim];
-    char *stream_names[dim];
+    std::string stream_names[dim];
     bool low;
 
 #define NEW_DISTRIBUTE_G 1
@@ -930,7 +921,7 @@ protected:
     bn_context ctx;
     bool low;
     stream_t* stream;
-    char *stream_name;
+    std::string stream_name;
 
     sample_context(bid_t _bid, bn_context _ctx, bool _low):
       bid(_bid), ctx(_ctx), low(_low) {}
@@ -1009,7 +1000,7 @@ protected:
       typename point_t::cmp* comp_obj;
       for (i = 0; i < dim; i++) {
 	comp_obj = new typename point_t::cmp(i);
-	quick_sort_obj(mm_streams[i], sz, comp_obj);
+	std::sort(mm_streams[i], mm_streams[i]+sz, *comp_obj);
 	delete comp_obj;
       }
     }
@@ -1528,7 +1519,7 @@ TPIE_AMI_KDTREE::kdtree(const kdtree_params& params)
                : header_(), params_(params), points_are_sample(false) {
   TPLOG("kdtree::kdtree Entering\n");
 
-  char *base_file_name = tempname::tpie_name("kdtree");
+  std::string base_file_name = tempname::tpie_name("kdtree");
   name_ = base_file_name;
   shared_init(base_file_name, AMI_WRITE_COLLECTION);
   if (status_ == KDTREE_STATUS_VALID) {
@@ -1541,7 +1532,7 @@ TPIE_AMI_KDTREE::kdtree(const kdtree_params& params)
 
 //// *kdtree::kdtree* ////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-TPIE_AMI_KDTREE::kdtree(const char *base_file_name, collection_type type, 
+TPIE_AMI_KDTREE::kdtree(const std::string& base_file_name, collection_type type, 
 		       const kdtree_params& params) 
                : header_(), params_(params), points_are_sample(false), name_(base_file_name) {
   TPLOG("kdtree::kdtree Entering base_file_name="<<base_file_name<<"\n");
@@ -1551,41 +1542,19 @@ TPIE_AMI_KDTREE::kdtree(const char *base_file_name, collection_type type,
   TPLOG("kdtree::kdtree Exiting status="<<status_<<", size="<<header_.size<<"\n");
 }
 
-//// *kdtree::kdtree* ////
-template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-TPIE_AMI_KDTREE::kdtree(const std::string& base_file_name, collection_type type, 
-		       const kdtree_params& params)
-                : header_(), params_(params), points_are_sample(false), name_(base_file_name) {
-  TPLOG("kdtree::kdtree Entering base_file_name="<<base_file_name<<"\n");
-
-  shared_init(base_file_name, type);
-
-  TPLOG("kdtree::kdtree Exiting status="<<status_<<", size="<<header_.size<<"\n");
-}
-
 //// *kdtree::shared_init* ////
 template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-void TPIE_AMI_KDTREE::shared_init(const char* base_file_name, collection_type type) {
+void TPIE_AMI_KDTREE::shared_init(const std::string& base_file_name, collection_type type) {
   TPLOG("kdtree::shared_init Entering "<<"\n");
 
   status_ = KDTREE_STATUS_VALID;
 
-  if (base_file_name == NULL) {
-    status_ = KDTREE_STATUS_INVALID;
-   TP_LOG_WARNING_ID("NULL pointer passed to kdtree constructor.");
-    return;
-  }
 
-  char collname[124];
+  std::string collname = base_file_name;
 
   // Open the two block collections.
-  strncpy(collname, base_file_name, 124 - 2);
-  strcat(collname, ".l");
-  pcoll_leaves_ = new collection_t(collname, type, params_.leaf_block_factor);
-
-  strncpy(collname, base_file_name, 124 - 2);
-  strcat(collname, ".n");
-  pcoll_nodes_ = new collection_t(collname, type, params_.node_block_factor);
+  pcoll_leaves_ = new collection_t(collname+".l", type, params_.leaf_block_factor);
+  pcoll_nodes_ = new collection_t(collname+".n", type, params_.node_block_factor);
 
   if (!pcoll_nodes_->is_valid() || !pcoll_leaves_->is_valid()) {
     status_ = KDTREE_STATUS_INVALID;
@@ -2255,7 +2224,7 @@ void TPIE_AMI_KDTREE::copy_to_mm(POINT_STREAM* in_stream, POINT** streams_mm, TP
   // Sort the dim in-memory streams (and update the mbr).
   for (j = 0; j < dim; j++) {
 
-    quick_sort_obj(streams_mm[j], sz, comp_obj_[j]);
+    std::sort(streams_mm[j], streams_mm[j]+sz, *comp_obj_[j]);
 
     if (header_.mbr_lo.id() == 0 || header_.mbr_hi.id() == 0) {
       header_.mbr_lo[j] = streams_mm[j][0][j];
@@ -2336,8 +2305,6 @@ void TPIE_AMI_KDTREE::build_lower_tree_g(grid* g) {
 	delete gc->streams[i];
 	exit(1);
       }
-      delete [] gc->stream_names[i];
-      gc->stream_names[i] = NULL;
     }
 
     copy_to_mm(gc->streams, streams_mm, sz);
@@ -2402,7 +2369,7 @@ void TPIE_AMI_KDTREE::distribute_g(bid_t bid, TPIE_OS_SIZE_T d, grid* g) {
   for (j = 0; j < g->q.size(); j++) {
     for (i = 0; i < dim; i++) {
       g->q[j].streams[i] = new POINT_STREAM;
-      g->q[j].streams[i]->name(&g->q[j].stream_names[i]);
+      g->q[j].stream_names[i] = g->q[j].streams[i]->name();
       g->q[j].streams[i]->persist(PERSIST_PERSISTENT);
     }
   }
@@ -2619,7 +2586,7 @@ err TPIE_AMI_KDTREE::sort(POINT_STREAM* in_stream, POINT_STREAM* out_streams[]) 
     }
 
     // Sort points on the ith coordinate.
-    err = sort(in_stream, out_streams[i], comp_obj_[i]);
+    err = tpie::ami::sort(in_stream, out_streams[i], comp_obj_[i]);
     if (err != tpie::ami::NO_ERROR)
       break;
     assert(in_stream->stream_len() == out_streams[i]->stream_len());
@@ -3531,8 +3498,6 @@ void TPIE_AMI_KDTREE::build_lower_tree_s(sample* s) {
       sc->stream = NULL;
       continue;
     }
-    delete [] sc->stream_name;
-    sc->stream_name = NULL;
 
     if (!can_do_mm(sc->stream->stream_len())) {
       std::cerr << "Temp stream too big: " 
@@ -3605,7 +3570,7 @@ void TPIE_AMI_KDTREE::distribute_s(bid_t bid, TPIE_OS_SIZE_T d, sample* s) {
   // Create all streams. Could we run out of memory here?
   for (j = 0; j < s->q.size(); j++) {
     s->q[j].stream = new POINT_STREAM;
-    s->q[j].stream->name(&s->q[j].stream_name);
+    s->q[j].stream_name = s->q[j].stream->name();
     s->q[j].stream->persist(PERSIST_PERSISTENT);
   }
 
