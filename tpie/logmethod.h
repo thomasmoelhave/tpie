@@ -28,15 +28,16 @@
 ///////////////////////////////////////////////////////////////////////////
 
 
-#include <portability.h>
+#include <tpie/config.h>
+#include <tpie/portability.h>
 
 // For vector
 #include <vector>
 // For pair
 #include <utility>
 // TPIE stuff.
-#include <stream.h>
-#include <coll.h>
+#include <tpie/stream.h>
+#include <tpie/coll.h>
 
 #include <tpie/stats_tree.h>
 
@@ -103,7 +104,7 @@ namespace tpie {
 	    void persist(persistence per);
 
 	    // Inquire the mbr.
-	    const pair<Value, Value> &mbr();
+	    const std::pair<Value, Value> &mbr();
 
 	    // Inquire the size.
 	    TPIE_OS_OFFSET size() const { return header_.size; }
@@ -140,7 +141,7 @@ namespace tpie {
 	    T0 *tree0_;
 	    
 	    // The vector of trees, in increasing size.
-	    vector< T* > trees_;
+	    std::vector< T* > trees_;
 	    
 	    // The base name of all trees.
 	    std::string base_file_name_;
@@ -149,7 +150,7 @@ namespace tpie {
 	    std::string temp_name_;
 
 	    // Minimum bounding rectangle.
-	    pair<Value, Value> mbr_;
+	    std::pair<Value, Value> mbr_;
 	    
 	    bool mbr_is_set_;
 
@@ -157,11 +158,11 @@ namespace tpie {
 	    persistence per_;
 	    
 	    // Statistics.
-	    tpie_stats_tree stats_;
+	    stats_tree stats_;
 	    
 	    // Create a tree name in temp_name_ from base_file_name_ and the
 	    // given index.
-	    void create_tree(size_t idx);
+	    void create_tree(TPIE_OS_SIZE_T idx);
 	};
 
     }  //  ami namespace
@@ -262,7 +263,8 @@ namespace tpie {
 	    TPIE_OS_FILE_DESCRIPTOR fd; // file descriptor for the header file.
 	    
 	    // Try to open header file read-only.
-	    if (TPIE_OS_IS_VALID_FILE_DESCRIPTOR(fd = TPIE_OS_OPEN_ORDONLY(base_file_name_))) {
+		fd = TPIE_OS_OPEN_ORDONLY(base_file_name_);
+	    if (TPIE_OS_IS_VALID_FILE_DESCRIPTOR(fd)) {
 		if (TPIE_OS_READ(fd, &header_, sizeof(header_)) != sizeof(header_)) {
 
 		    TP_LOG_WARNING_ID("Corrupt header file.");
@@ -351,7 +353,7 @@ namespace tpie {
 	TPIE_OS_OFFSET LOGMETHOD_BASE::window_query(const Key &lop, const Key &hip, 
 						    AMI_STREAM<Value>* stream) {
 	    TPIE_OS_OFFSET result = 0;
-	    TPIE_OS_TPIE_OS_SIZE_T i;
+	    TPIE_OS_SIZE_T i;
 	    
 	    if (tree0_->size() > 0) {
 		result += tree0_->window_query(lop, hip, stream);
@@ -424,7 +426,7 @@ namespace tpie {
 
 //// *Logmethod_base::mbr* ////
 	template<class Key, class Value, class T, class Tp, class T0, class T0p>
-	const pair<Value, Value>& LOGMETHOD_BASE::mbr() {
+	const std::pair<Value, Value>& LOGMETHOD_BASE::mbr() {
 
 	    TPIE_OS_SIZE_T i;
 
@@ -459,15 +461,15 @@ namespace tpie {
 
 //// *Logmethod_base::create_tree* ////
 	template<class Key, class Value, class T, class Tp, class T0, class T0p>
-	void LOGMETHOD_BASE::create_tree(TPIE_OS_TPIE_OS_SIZE_T idx) 
+	void LOGMETHOD_BASE::create_tree(TPIE_OS_SIZE_T idx) 
 	{
 		TPIE_OS_SIZE_T i = base_file_name_.size();
 		// untested: temp_name_ should become base_file_name_
 		// plus two digits.
 		temp_name_ = 
-			temp_name_.substring(0, base_file_name.size()) +
-			('0' + (char)((idx/10) % 10)) +
-			('0' + (char)(idx % 10));
+			temp_name_.substr(0, base_file_name_.size()) +
+			std::string('0' + (char)((idx/10) % 10)) +
+			std::string('0' + (char)(idx % 10));
 	    
 	    if (idx == 0) {
 			if (sizeof(T0p) == 0) {

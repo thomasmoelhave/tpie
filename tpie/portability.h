@@ -581,7 +581,7 @@ inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_ORDONLY(const std::string& name,TPIE
     return portabilityInternalOpen(name.c_str(), _O_RDONLY,mappingFlag);
 }
 #else
-inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_ORDONLY(const std::string& name,TPIE_OS_MAPPING_FLAG /* mappingFlag */ ) {
+inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_ORDONLY(const std::string& name,TPIE_OS_MAPPING_FLAG = TPIE_OS_FLAG_USE_MAPPING_FALSE /* mappingFlag */ ) {
     return ::open(name.c_str(), O_RDONLY);
 }
 #endif
@@ -592,7 +592,7 @@ inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_OEXCL(const std::string& name, TPIE_
     return portabilityInternalOpen(name.c_str(), _O_EXCL, mappingFlag);
 }
 #else
-inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_OEXCL(const std::string& name, TPIE_OS_MAPPING_FLAG /* mappingFlag */) {
+inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_OEXCL(const std::string& name, TPIE_OS_MAPPING_FLAG = TPIE_OS_FLAG_USE_MAPPING_FALSE /* mappingFlag */) {
     return ::open(name.c_str(), O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
 }
 #endif
@@ -603,7 +603,7 @@ inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_ORDWR(const std::string& name, TPIE_
     return portabilityInternalOpen(name.c_str(), _O_RDWR, mappingFlag);
 }
 #else
-inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_ORDWR(const std::string&  name, TPIE_OS_MAPPING_FLAG /* mappingFlag */ ) {
+inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_ORDWR(const std::string&  name, TPIE_OS_MAPPING_FLAG = TPIE_OS_FLAG_USE_MAPPING_FALSE /* mappingFlag */ ) {
     return ::open(name.c_str(), O_RDWR);
 }
 #endif
