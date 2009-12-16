@@ -50,16 +50,16 @@ namespace concepts {
 /// \tparam T The type of the items contained in the file
 /// \tparam canRead Indicate that we want to be able to read from the file.
 /// \tparam canWrite Indicate that we want to be able to write to the file.
-/// \tparam blockSizeMultiplyer The file will be opened with the globally configured block size multiplied with this parameter.
+/// \tparam blockFactor The file will be opened with the globally configured block size multiplied with this parameter diveded by 100.
 ///
-/// The following policies will imply when opening a file
+/// The following policies will occure when opening a file
 /// \li canRead && !canWrite: The file is opened for reading, an exception will be throw if it does not exist.
 /// \li !canRead && !canWrite: The file is opened for writing, it is created if it does not exist, and truncated otherwize.
 /// \li canRead && canWrite: The file is opened for reading and writing, it is created if it does not exist.
 /// \li !canRead && !canWrite: An exception will be thrown
 /// 
 /////////////////////////////////////////////////////////////////////////// 
-template <typedef T, bool canRead, bool canWrite, float blockSizeMultiplyer=1.0> 
+template <typedef T, bool canRead, bool canWrite, int blockFactor=100> 
 class file_interface {
 public:
 	//////////////////////////////////////////////////////////////////////////////////

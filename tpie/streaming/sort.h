@@ -37,6 +37,62 @@ struct key_identity {
 	}
 };
 
+//struct turnament_pq;
+//struct heap_pq;
+
+template <typename value_t,
+		  typename stream_t,
+		  typename comp_t> 
+struct stl_heap_pq {
+public:
+	typedef std::pair<value_t, stream_t> item_t;
+	
+	struct mcomp_t {
+		comp_t c;
+		inline bool operator()(const item_t & a, const item_t & b) const {
+			return c(a.first, b.first);
+		};
+	};
+	
+	typedef std::priority_queue<item_t, std::vector<item_t>, mcomp_t> pq_t;
+	pq_t pq;
+
+	inline stream_t minStream() const {
+		return pq.top().second;
+	}
+	
+	inline bool empty() const {
+		return pq.empty();
+	}
+
+	inline void insert(const value_t & value, const stream_t & stream) {
+		pq.push( item_t(value, stream) );
+	}
+
+	inline bool hasDeleteMinAndInsert() const {return false;}
+	inline value_t deleteMinAndInsert(const value_t & nw);
+	
+	inline value_t deleteMin() {
+		value_t v = pq.top().first;
+		pq.pop();
+		return v;
+	}
+	
+	stl_heap_pq(int n) {}
+	
+};
+
+// template <typename value_t,
+// 		  typedef stream_t,
+// 		  typename comp_t,> 
+// struct stl_rb_pq {
+
+	
+// };
+
+
+#define MY_SORT_PQ stl_heap_pq
+
 template <typename item_t, typename comp_t,
 		  typename key_t, typename super_t>
 class sort_base: public memory_split {
