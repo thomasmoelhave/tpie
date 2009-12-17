@@ -57,7 +57,7 @@ private:
   size_t os_block_size_;
 
 public:
-  d_vector(std::string base_file_name, tpie::ami::collection_type t, size_t params = 0): 
+  d_vector(std::string base_file_name, tpie::ami::collection_type, size_t params = 0): 
     max_block_count_(params) {
     err err;
     Value* pp;
@@ -66,7 +66,7 @@ public:
     v_->reserve(max_block_count_ * (os_block_size_/sizeof(Value) + 1));
     str_ = new stream_t(base_file_name);
     if (str_->stream_len() > 0) {
-      while ((err = str_->read_item(&pp)) == AMI_ERROR_NO_ERROR) {
+	  while ((err = str_->read_item(&pp)) == AMI_ERROR_NO_ERROR) {
 	v_->push_back(*pp);
       } 
     }
@@ -81,7 +81,7 @@ public:
 
   size_t window_query(const Key& lop, const Key& hip, stream_t* s) { 
     size_t result = 0;
-    for (int i = 0; i < v_->size(); i++) {
+    for (TPIE_OS_SIZE_T i = 0; i < v_->size(); i++) {
       if (lop < KeyOfValue()((*v_)[i]) && KeyOfValue()((*v_)[i]) < hip) {
 	if (s != NULL)
 	  s->write_item((*v_)[i]);
@@ -95,7 +95,7 @@ public:
 
   void unload(stream_t* s) {
     assert(s != NULL);
-    for (int i = 0; i < v_->size(); i++) 
+    for (TPIE_OS_SIZE_T i = 0; i < v_->size(); i++) 
       s->write_item((*v_)[i]);
   }
 
@@ -112,7 +112,7 @@ public:
   ~d_vector() {
     assert(str_ != NULL);
     if (per_ == PERSIST_PERSISTENT) {
-      for (int i = 0; i < v_->size(); i++) {
+      for (TPIE_OS_SIZE_T i = 0; i < v_->size(); i++) {
 	str_->write_item((*v_)[i]);
       }
     }

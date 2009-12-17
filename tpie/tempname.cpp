@@ -78,7 +78,7 @@ std::string tempname::get_actual_path() {
 	else if(getenv(TMPDIR_ENV) != NULL)  
 		dir = getenv(TMPDIR_ENV); //OS env variable (from portability.h)
 	else  
-		dir = TMP_DIR; //OS hardcoded path (from portability.h)
+		dir = tpie::tempDir; //OS hardcoded path (from portability.h)
 
 	return dir;
 }

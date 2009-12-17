@@ -252,7 +252,7 @@ namespace tpie {
 	template<class Key, class Value, class T, class Tp, class T0, class T0p>
 	LOGMETHOD_BASE::Logmethod_base(const std::string& base_file_name, 
 				       const Logmethod_params<Tp, T0p> &params):
-	    header_(), params_(params), tree0_(NULL), trees_(0), per_(PERSIST_PERSISTENT), stats_() {
+	    params_(params), header_(), tree0_(NULL), trees_(0), per_(PERSIST_PERSISTENT), stats_() {
 	    
 	    // Copy the name and make sure it has two free positions, to be
 	    // filled later with a unique number for each tree.
@@ -494,7 +494,7 @@ namespace tpie {
 //// *Logmethod_base::stats* ////
 	template<class Key, class Value, class T, class Tp, class T0, class T0p>
 	const stats_tree &LOGMETHOD_BASE::stats() {
-	    for (int i = 1; i < trees_.size(); i++) {
+	    for (TPIE_OS_SIZE_T i = 1; i < trees_.size(); i++) {
 		if (trees_[i]->size() > 0)
 		    stats_.record(trees_[i]->stats());
 	    }
@@ -578,7 +578,7 @@ namespace tpie {
 		    delete stream;
 		    
 		    // Create empty trees in positions 0 to fi-1.
-		    for (int ii = 0; ii < fi; ii++)
+		    for (TPIE_OS_SIZE_T ii = 0; ii < fi; ii++)
 			create_tree(ii);
 	    }
 	    
@@ -661,7 +661,7 @@ namespace tpie {
 		
 		trees_[fi]->load(stream);
 		
-		for (int ii = 0; ii < fi; ii++)
+		for (TPIE_OS_SIZE_T ii = 0; ii < fi; ii++)
 		    create_tree(ii);
 		
 		delete stream;

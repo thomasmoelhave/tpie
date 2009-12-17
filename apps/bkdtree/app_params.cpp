@@ -50,13 +50,12 @@ using namespace std;
 // Initialize a global object with all run-time parameters.
 app_params_t params;
 
-static istream& operator>>(istream& s, app_params_t::record_t& p) {
-  for (int i = 0; i < DIM; i++)
-    s >> p[i];
-  return s >> p.id();
-}
-
-
+// static istream& operator>>(istream& s, app_params_t::record_t& p) {
+//  for (int i = 0; i < DIM; i++)
+//    s >> p[i];
+//  return s >> p.id();
+//  }
+ 
 void usage(char* argv0) {
   cerr << "Usage: " << argv0 << "\n"
        << "   [-m <memory_size_in_MB>] (TPIE memory size in megabytes)\n"

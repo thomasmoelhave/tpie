@@ -21,6 +21,11 @@
 #cmakedefine TPL_LOGGING 1
 #cmakedefine DEBUG_ASSERTIONS 1
 
+#include <string>
+namespace tpie {
+const std::string tempDir = "${TEMP_DIR}";
+} 
+
 // recent visual studio versions gives heaps of compilation
 // warnings about security issues with fopen/strcpy and the like
 // this disables these warnings.

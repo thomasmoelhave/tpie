@@ -5,14 +5,23 @@ project(tpie)
 include_directories(.)
 add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
 
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-
 #### CONFIG.H Checks:
 include(CheckIncludeFiles)
 
 if(NOT WIN32) 
 	add_definitions("-Wall -Wextra")
 endif(NOT WIN32)
+
+
+if (WIN32)
+  set(__TEMP_DIR ".\\")
+else(WIN32)
+  set(__TEMP_DIR "/var/tmp/")
+endif(WIN32)
+
+set(TEMP_DIR ${__TEMP_DIR} CACHE STRING "The default path for storing temporery files")
+
+
 
 check_include_files("unistd.h" TPIE_HAVE_UNISTD_H)
 check_include_files("sys/unistd.h" TPIE_HAVE_SYS_UNISTD_H)
@@ -39,11 +48,10 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tpie/config.h.cmake ${CMAKE_CURRENT_B
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/tpie/config.h DESTINATION ${HEADERS_INSTALL_DIR})
 add_subdirectory(tpie)
 
-
 add_subdirectory(doc)
 
 option(COMPILE_TEST "Compile test programs" ON)
-option(TPIE_USE_EXCEPTIONS "Throw exceptions on certain errors." OFF)
+option(TPIE_USE_EXCEPTIONS "Throw exceptions on certain errors." ON)
 option(DEBUG_ASSERTIONS "Enable tpie_assert." OFF)
 option(TPL_LOGGING "Enable tpie logging." ON)
 

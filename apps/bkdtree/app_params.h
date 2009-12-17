@@ -79,7 +79,7 @@ public:
   char file_name_stats[MAX_PATH_LENGTH];
   char file_name_wquery[MAX_PATH_LENGTH];
   char nodup_file_name[MAX_PATH_LENGTH];
-  char* structure_name;
+  const char* structure_name;
   bool do_sort;
   bool do_load;
   bool do_wquery_from_file;
@@ -233,7 +233,7 @@ void print_statistics(std::ostream& os = std::cerr);
 void parse_args(int argc, char** argv);
 
 template<class T> 
-void add_to_stats(TPIE_OS_SIZE_T width, const char* header, T value) {
+void add_to_stats(TPIE_OS_SIZE_T, const char* header, T value) {
     params.stats << header << " " << value << std::endl;
 }
 
