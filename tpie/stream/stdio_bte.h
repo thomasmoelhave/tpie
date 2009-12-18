@@ -35,7 +35,6 @@ public:
 	stdio_block_transfer_engine(bool read, bool write, size_type itemSize, boost::uint64_t typeMagic);
 	~stdio_block_transfer_engine();
 	void open(const std::string & p);
-	void open();
 	void close();
 	offset_type size() const;
 	const std::string & path() const;

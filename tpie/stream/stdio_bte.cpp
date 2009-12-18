@@ -31,8 +31,8 @@ namespace stream {
 class stdio_block_transfer_engine_p {
 public:
 	FILE * fd;
-	size_t size;
-	size_t itemSize;
+	size_type size;
+	size_type itemSize;
 	boost::uint64_t typeMagic;
 	std::string path;
 	bool headerDirty;
@@ -54,8 +54,12 @@ stdio_block_transfer_engine_p::stdio_block_transfer_engine_p(
 void stdio_block_transfer_engine_p::read_header() {
 	header_t header;
 
-	if (::fseeko(fd, 0, SEEK_SET) != 0) throw_errno();
-	if (::fread(&header, 1, sizeof(header), fd) != sizeof(header)) throw_errno();
+	if (::fseeko(fd, 0, SEEK_SET) != 0)
+		throw_errno();
+
+	if (::fread(&header, 1, sizeof(header), fd) != sizeof(header))
+		throw_errno();
+
 	if (header.magic != header_t::magicConst ||
 		header.version != header_t::versionConst ||
 		header.itemSize != itemSize ||
@@ -75,7 +79,8 @@ void stdio_block_transfer_engine_p::write_header() {
 	header.itemSize = itemSize;
 	header.typeMagic = typeMagic;
 	header.size = size;
-	for(int i=0; i < header_t::reservedCount; ++ i) header.reserved[i]=0;
+	for (size_type i=0; i < header_t::reservedCount; ++ i)
+		header.reserved[i] = 0;
 	if (::fseeko(fd, 0, SEEK_SET) != 0) throw_errno();
 	if (::fwrite(&header, 1, sizeof(header), fd) != sizeof(header)) throw_errno();
 	headerDirty=false;
@@ -94,9 +99,9 @@ void stdio_block_transfer_engine::open(const std::string & path) {
 	close();
 	p->path = path;
 	
-	if (!p->write && !p->read) {
-		//throw invalid params
-	}	
+	if (!p->write && !p->read)
+		throw invalid_argument_exception("Either read or write must be specified");
+
 	if (p->write && !p->read) {
 		p->fd = ::fopen(path.c_str(), "wb");
 		if (p->fd == 0) p->throw_errno();
@@ -121,9 +126,6 @@ void stdio_block_transfer_engine::open(const std::string & path) {
 		}
 	}
 	setvbuf(p->fd, NULL, _IONBF, 0);
-}
-
-void stdio_block_transfer_engine::open() {
 }
 
 void stdio_block_transfer_engine::close() {
@@ -151,8 +153,6 @@ size_type stdio_block_transfer_engine::read(void * data, offset_type offset, siz
 
 void stdio_block_transfer_engine::write(void * data, offset_type offset, size_type size) {
 	off_t loc=sizeof(header_t) + offset*p->itemSize;
-	//if (offset > (offset_type)p->size) 
-	//	if (::ftruncate(p->fd, loc) == -1) p->throw_errno();
 	if (::fseeko(p->fd, loc, SEEK_SET) != 0) p->throw_errno();
 	size_type z=size*p->itemSize;
 	if (::fwrite(data, 1, z, p->fd) != z) p->throw_errno();
@@ -163,7 +163,7 @@ void stdio_block_transfer_engine::write(void * data, offset_type offset, size_ty
 }
 
 size_type stdio_block_transfer_engine::memory(size_type count) {
-	return (sizeof(stdio_block_transfer_engine) + sizeof(stdio_block_transfer_engine_p) + MM_manager.space_overhead()) * count;
+	return (sizeof(stdio_block_transfer_engine) + sizeof(stdio_block_transfer_engine_p) + MM_manager.space_overhead() + sizeof(FILE)) * count;
 }
 
 }

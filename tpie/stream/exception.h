@@ -37,7 +37,7 @@ struct invalid_file_exception: public exception {
 };
 
 struct end_of_stream_exception: public exception {
-	end_of_stream_exception(const std::string & s): exception(s) {};
+	end_of_stream_exception(): exception("") {};
 };
 
 

@@ -27,7 +27,7 @@ namespace stream {
 
 struct header_t {
 	static const boost::uint64_t magicConst = 0x521cbe927dd6056all;
-	static const int reservedCount = 6;
+	static const size_type reservedCount = 6;
 	static const boost::uint64_t versionConst = 1;
 
 	boost::uint64_t magic;

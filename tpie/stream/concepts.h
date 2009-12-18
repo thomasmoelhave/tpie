@@ -33,7 +33,6 @@ public:
 	BOOST_CONCEPT_USAGE(block_transfer_engine) {
 		T y(true, true, 1024, 123);
 		y.open("str");
-		y.open();
 		y.close();
 		offset_type z = static_cast<const T*>(&y)->size();
 		unused(z);
@@ -79,7 +78,6 @@ public:
 	BOOST_CONCEPT_USAGE(file) {
 		T f(123);
 		f.open("str");
-		f.open();
 		f.close();
 		offset_type o = static_cast<const T*>(&f)->size();
 		unused(o);

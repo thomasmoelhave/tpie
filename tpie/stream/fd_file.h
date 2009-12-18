@@ -68,10 +68,6 @@ private:
 public:
 	BOOST_CONCEPT_ASSERT((concepts::block_transfer_engine<bte_type>));
 
-	inline void open() {
-		bte.open();
-		m_size = bte.size();
-	}
 	inline void open(const std::string & path) {
 		bte.open(path);
 		m_size = bte.size();
@@ -153,7 +149,7 @@ public:
  		inline const item_type & read() {
 			if (index >= block->size) {
 				if(parent_t::offset() >= file.size())
-					throw end_of_stream_exception("");
+					throw end_of_stream_exception();
 				parent_t::update_block();
 			}
 			return reinterpret_cast<T*>(block->data)[index++];
