@@ -14,7 +14,7 @@ endif(NOT WIN32)
 
 
 if (WIN32)
-  set(__TEMP_DIR ".\\")
+  set(__TEMP_DIR ".\\\\")
 else(WIN32)
   set(__TEMP_DIR "/var/tmp/")
 endif(WIN32)
