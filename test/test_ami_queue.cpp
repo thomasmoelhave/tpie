@@ -54,13 +54,13 @@ int main(int argc, char **argv)
     // Set the amount of main memory:
     MM_manager.set_memory_limit(test_mm_size);
 
-    ami::queue<TPIE_OS_OFFSET> queue;
+    ami::queue<stream_offset_type> queue;
     
     pi->set_percentage_range(0,test_size);
     pi->set_description("Enqueue");
     
     // Push values.
-    TPIE_OS_OFFSET ii;
+    stream_offset_type ii;
     for (ii = 0; ii < test_size; ii++) {
 	pi->step_percentage();
 	queue.enqueue(ii);
@@ -71,9 +71,9 @@ int main(int argc, char **argv)
 	std::cout << "Queue size = " << queue.size() << std::endl;
     }
     
-    TPIE_OS_OFFSET *jj;
-    TPIE_OS_OFFSET last;
-    TPIE_OS_OFFSET read = 0;
+    stream_offset_type *jj;
+    stream_offset_type last;
+    stream_offset_type read = 0;
 
     queue.dequeue(&jj);
     last = *jj;

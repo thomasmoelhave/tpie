@@ -149,7 +149,7 @@ namespace tpie {
 	    // Memory sizes.
 	    size_t sz_avail, sz_stream;
 	    // Stream sizes.
-	    TPIE_OS_OFFSET max_size, stream_len;
+	    stream_offset_type max_size, stream_len;
     
 	    // Check whether the problem fits in main memory.
 
@@ -253,7 +253,7 @@ namespace tpie {
             
 		    // Read its range.
 		    {
-			TPIE_OS_OFFSET range_size = sizeof(stream_range);
+			stream_offset_type range_size = sizeof(stream_range);
 			ae = name_stream->read_array(reinterpret_cast<char*>(&stream_range),
 						     &range_size);
 			if (ae != NO_ERROR) {
@@ -263,7 +263,7 @@ namespace tpie {
             
 		    // Read its length.
 		    {
-			TPIE_OS_OFFSET length_size = sizeof(stream_len);
+			stream_offset_type length_size = sizeof(stream_len);
 			ae = name_stream->read_array(reinterpret_cast<char*>(&stream_len),
 						     &length_size);
 			if (ae != NO_ERROR) {
@@ -406,9 +406,9 @@ namespace tpie {
 	    err ae;
     
 	    size_t sz_avail;
-	    TPIE_OS_OFFSET stream_len;
+	    stream_offset_type stream_len;
 
-	    TPIE_OS_SIZE_T ii,jj;
+	    memory_size_type ii,jj;
     
 	    // Check available main memory.
 	    sz_avail = MM_manager.memory_available ();
@@ -421,9 +421,9 @@ namespace tpie {
 					 sizeof(bucket_list_elem<T> *) + 
 					 sizeof(bucket_list_elem<T>))) {
 		std::cerr << '\n' 
-			  << static_cast<TPIE_OS_LONGLONG>(sz_avail)
+			  << sz_avail
 			  << ' ' 
-			  << static_cast<TPIE_OS_LONGLONG>(stream_len)
+			  << stream_len
 			  << '\n';
 		std::cerr << sizeof(T) 
 			  << ' ' 
@@ -435,19 +435,19 @@ namespace tpie {
     
 	    // Allocate the space for the data and for the bucket list elements.
 	    // We know that stream_len items fit in main memory, so it is safe to cast.
-	    T *indata = new T[static_cast<TPIE_OS_SIZE_T>(stream_len)];
+	    T *indata = new T[static_cast<memory_size_type>(stream_len)];
     
 	    bucket_list_elem<T> **buckets =
-		new bucket_list_elem<T>*[static_cast<TPIE_OS_SIZE_T>(stream_len)];
+		new bucket_list_elem<T>*[static_cast<memory_size_type>(stream_len)];
 
 	    bucket_list_elem<T> *list_space =
-		new bucket_list_elem<T>[static_cast<TPIE_OS_SIZE_T>(stream_len)];
+		new bucket_list_elem<T>[static_cast<memory_size_type>(stream_len)];
 
 	    // Read the input stream.
 
 	    instream.seek(0);
 	    {
-		TPIE_OS_OFFSET sl2 = stream_len;
+		stream_offset_type sl2 = stream_len;
 		ae = instream.read_array(indata, &sl2);
 		if (ae != NO_ERROR) {
 		    delete[] indata;
@@ -459,7 +459,7 @@ namespace tpie {
     
 	    // Empty out the buckets.
 
-	    for (ii = static_cast<TPIE_OS_SIZE_T>(stream_len); ii--; ) {
+	    for (ii = static_cast<memory_size_type>(stream_len); ii--; ) {
 		buckets[ii] = NULL;
 	    }
     
@@ -474,7 +474,7 @@ namespace tpie {
 		bucket_index_denom = 1;
 	    }
 
-	    for (ii = static_cast<TPIE_OS_SIZE_T>(stream_len), list_elem = list_space;
+	    for (ii = static_cast<memory_size_type>(stream_len), list_elem = list_space;
 		 ii--; list_elem++ ) {
 		unsigned int bucket_index;
 
@@ -504,7 +504,7 @@ namespace tpie {
 	    unsigned int max_occupancy = 0;
 	    unsigned int buckets_occupied = 0;
 #endif        
-	    for (ii = 0, jj = 0; ii < static_cast<TPIE_OS_SIZE_T>(stream_len); ii++) {
+	    for (ii = 0, jj = 0; ii < static_cast<memory_size_type>(stream_len); ii++) {
 #if VERIFY_OCCUPANCY
 		unsigned int cur_occupancy = 0;
 #endif        

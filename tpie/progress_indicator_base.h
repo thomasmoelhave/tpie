@@ -67,13 +67,13 @@ namespace tpie {
 
 	progress_indicator_base(const std::string& /* title */, 
 							const std::string& /* description */, 
-							TPIE_OS_OFFSET minRange, 
-							TPIE_OS_OFFSET maxRange, 
-							TPIE_OS_OFFSET stepValue) : 
+							stream_offset_type minRange, 
+							stream_offset_type maxRange, 
+							stream_offset_type stepValue) : 
 	    m_minRange(std::min(minRange, maxRange)),
 	    m_maxRange(std::max(minRange, maxRange)),
 	    m_stepValue(std::max(std::min(stepValue, (m_maxRange-m_minRange)), 
-			    static_cast<TPIE_OS_OFFSET>(1))),
+			    static_cast<stream_offset_type>(1))),
 	    m_current(0),
 	    m_percentageChecker(0), 
 	    m_percentageValue(0), 
@@ -137,11 +137,11 @@ namespace tpie {
 	///
 	////////////////////////////////////////////////////////////////////
 
-	void set_range(TPIE_OS_OFFSET minRange, TPIE_OS_OFFSET maxRange, TPIE_OS_OFFSET stepValue) {
+	void set_range(stream_offset_type minRange, stream_offset_type maxRange, stream_offset_type stepValue) {
 	    set_min_range(std::min(minRange, maxRange));
 	    set_max_range(std::max(minRange, maxRange));
 	    set_step_value( std::max(std::min(stepValue, (m_maxRange-m_minRange)),
-				static_cast<TPIE_OS_OFFSET>(1)));
+				static_cast<stream_offset_type>(1)));
 	    m_percentageValue = 0;
 	    m_percentageChecker = 0;
 	    m_percentageUnit = 0;
@@ -160,9 +160,9 @@ namespace tpie {
 	///
 	////////////////////////////////////////////////////////////////////
 
-	void set_percentage_range(TPIE_OS_OFFSET minRange, TPIE_OS_OFFSET maxRange, unsigned short percentageUnit = 100) {
-	    TPIE_OS_OFFSET localMin = std::min(minRange,maxRange);
-	    TPIE_OS_OFFSET localMax = std::max(minRange,maxRange);
+	void set_percentage_range(stream_offset_type minRange, stream_offset_type maxRange, unsigned short percentageUnit = 100) {
+	    stream_offset_type localMin = std::min(minRange,maxRange);
+	    stream_offset_type localMax = std::max(minRange,maxRange);
 	    set_step_value(1);
 	    m_percentageUnit  = std::max(percentageUnit, 
 				    static_cast<unsigned short>(1));
@@ -257,7 +257,7 @@ namespace tpie {
 	///
 	////////////////////////////////////////////////////////////////////
 
-	virtual void set_min_range(TPIE_OS_OFFSET minRange) = 0;
+	virtual void set_min_range(stream_offset_type minRange) = 0;
 
 	////////////////////////////////////////////////////////////////////
 	///
@@ -270,7 +270,7 @@ namespace tpie {
 	///
 	////////////////////////////////////////////////////////////////////
 
-	virtual void set_max_range(TPIE_OS_OFFSET maxRange) = 0;
+	virtual void set_max_range(stream_offset_type maxRange) = 0;
 
 	////////////////////////////////////////////////////////////////////
 	///
@@ -282,7 +282,7 @@ namespace tpie {
 	///
 	////////////////////////////////////////////////////////////////////
 
-	virtual void set_step_value(TPIE_OS_OFFSET stepValue) = 0;
+	virtual void set_step_value(stream_offset_type stepValue) = 0;
   
 	////////////////////////////////////////////////////////////////////
 	///
@@ -318,23 +318,23 @@ namespace tpie {
     protected:
 
 	/**  The lower bound of the counting range.  */
-	TPIE_OS_OFFSET m_minRange;
+	stream_offset_type m_minRange;
 
 	/**  The upper bound of the counting range.  */
-	TPIE_OS_OFFSET m_maxRange;
+	stream_offset_type m_maxRange;
 
 	/**  The increment for each step.  */
-	TPIE_OS_OFFSET m_stepValue;
+	stream_offset_type m_stepValue;
 
 	/**  The current progress count [m_minRange...m_maxRange].  */
-	TPIE_OS_OFFSET m_current;
+	stream_offset_type m_current;
 
 	/**  A temporary counter in [0...m_percentageValue-1].  */
-	TPIE_OS_OFFSET m_percentageChecker;
+	stream_offset_type m_percentageChecker;
 
 	/**  The absolute value which constitutes one percent of 
 	     the counting range.  */
-	TPIE_OS_OFFSET m_percentageValue;
+	stream_offset_type m_percentageValue;
 
 	/**  The unit in which "percentage" is measure. Default is
 	     to measure in percent, i.e., the unit is 100. A value

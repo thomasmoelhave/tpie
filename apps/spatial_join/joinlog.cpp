@@ -51,7 +51,7 @@ static struct timeval UsageTime;
 JoinLog::JoinLog() : program_(NULL), redName_(NULL), blueName_(NULL), redLength_(0), blueLength_(0), fanOut_(0) {
 }
 
-JoinLog::JoinLog(const char* program, const char* redName, TPIE_OS_OFFSET redLength, const char* blueName, TPIE_OS_OFFSET blueLength, unsigned short fanOut) {
+JoinLog::JoinLog(const char* program, const char* redName, stream_offset_type redLength, const char* blueName, stream_offset_type blueLength, unsigned short fanOut) {
     COPYSTRING(program_,program);
 
     COPYSTRING(blueName_,blueName);
@@ -88,7 +88,7 @@ void JoinLog::subtimeval(struct timeval* diff, struct timeval* t1, struct timeva
 #endif
 }
 
-void JoinLog::UsageEnd(const char *where, TPIE_OS_OFFSET resultLength) {
+void JoinLog::UsageEnd(const char *where, stream_offset_type resultLength) {
 
 #ifndef _WIN32
 	struct rusage usage;
@@ -174,7 +174,7 @@ void JoinLog::UsageEnd(const char *where, TPIE_OS_OFFSET resultLength) {
   cerr << usage.ru_nivcsw << " -- invol ctx sw" << endl;
   MemUsageEnd();
 #else
-	cerr << "UsageEnd(const char*, TPIE_OS_OFFSET) is not implemented for this platform." << endl;
+	cerr << "UsageEnd(const char*, stream_offset_type) is not implemented for this platform." << endl;
 #endif
 }
 

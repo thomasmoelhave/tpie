@@ -58,13 +58,13 @@ VERSION(lr_cpp,"$Id: lr.cpp,v 1.27 2005-12-19 03:11:19 adanner Exp $");
 //
 ////////////////////////////////////////////////////////////////////////
 
-int main_mem_list_rank(edge *edges, TPIE_OS_SIZE_T count)
+int main_mem_list_rank(edge *edges, memory_size_type count)
 {
     edge *edges_copy;
-    TPIE_OS_SIZE_T ii,jj,kk;
-    TPIE_OS_SIZE_T head_index, tail_index;
-    TPIE_OS_SIZE_T head_node, tail_node;
-    TPIE_OS_OFFSET total_weight;
+    memory_size_type ii,jj,kk;
+    memory_size_type head_index, tail_index;
+    memory_size_type head_node, tail_node;
+    stream_offset_type total_weight;
     edgefromcmp from_cmp;
     edgetocmp to_cmp;
 
@@ -96,7 +96,7 @@ int main_mem_list_rank(edge *edges, TPIE_OS_SIZE_T count)
                 tp_assert(!tail_found, "We already found the tail.");
                 tp_assert(kk == count-1, "kk is too far behind.");
                 tail_index = kk;
-                tail_node = (TPIE_OS_SIZE_T)edges_copy[kk++].to;
+                tail_node = (memory_size_type)edges_copy[kk++].to;
                 tail_found = true;
                 break;
             } else if (kk == count) {
@@ -104,21 +104,21 @@ int main_mem_list_rank(edge *edges, TPIE_OS_SIZE_T count)
                 tp_assert(!head_found, "We already found the tail.");
                 tp_assert(ii == count-1, "ii is too far behind.");
                 head_index = ii;
-                head_node = (TPIE_OS_SIZE_T)edges[ii++].to;
+                head_node = (memory_size_type)edges[ii++].to;
                 head_found = true;
                 break;
             } else if (edges[ii].from < edges_copy[kk].to) {
                 // ii is the index of the head of the list.
                 tp_assert(!head_found, "We already found the head.");
                 head_index = ii;
-                head_node = (TPIE_OS_SIZE_T)edges[ii++].from;
+                head_node = (memory_size_type)edges[ii++].from;
                 if ((head_found = true) && tail_found)
                     break;
             } else if (edges[ii].from > edges_copy[kk].to) {
                 // kk is the index of the tail of the list.
                 tp_assert(!tail_found, "We already found the tail.");
                 tail_index = kk;
-                tail_node = (TPIE_OS_SIZE_T)edges_copy[kk++].to;
+                tail_node = (memory_size_type)edges_copy[kk++].to;
                 if ((tail_found = true) && head_found)
                     break;
             }
@@ -178,7 +178,7 @@ int main_mem_list_rank(edge *edges, TPIE_OS_SIZE_T count)
 	// We are working on a reduced list that fits in main memory,
 	// so we can safely cast the indices. 
     for (ii = head_index, jj = count, total_weight = 0;
-         jj--; ii = (TPIE_OS_SIZE_T)edges_copy[ii].to) {
+         jj--; ii = (memory_size_type)edges_copy[ii].to) {
 
         tp_assert(ii < count, "ii (= " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(ii) <<
                   ") out of range (jj = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(jj) << ").");
@@ -501,7 +501,7 @@ int list_rank(AMI_STREAM<edge> *istream, AMI_STREAM<edge> *ostream,
 {
     AMI_err ae;
     
-    TPIE_OS_OFFSET stream_len = istream->stream_len();
+    stream_offset_type stream_len = istream->stream_len();
 
     AMI_STREAM<edge> *edges_rand;
     AMI_STREAM<edge> *active;
@@ -533,10 +533,10 @@ int list_rank(AMI_STREAM<edge> *istream, AMI_STREAM<edge> *ostream,
         if (stream_len * sizeof(edge) < mm_avail / 2) {
 			// Ww know that stream_len edges fit in main memory,
 			// so it is safe to cast.
-            edge *mm_buf = new edge[(TPIE_OS_SIZE_T)stream_len];
+            edge *mm_buf = new edge[(memory_size_type)stream_len];
             istream->seek(0);
             istream->read_array(mm_buf,&stream_len);
-            main_mem_list_rank(mm_buf,(TPIE_OS_SIZE_T)stream_len);
+            main_mem_list_rank(mm_buf,(memory_size_type)stream_len);
             ostream->write_array(mm_buf,stream_len);
             delete [] mm_buf;
             // Get rid of the input stream.

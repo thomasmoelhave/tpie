@@ -43,7 +43,7 @@ namespace tpie {
     namespace ami {
     
     /** TPIE block id type. */
-    typedef TPIE_BLOCK_ID_TYPE bid_t;
+    typedef block_id_type bid_t;
 
     /** Status info about the block */
     enum block_status {

@@ -53,9 +53,9 @@ namespace tpie
 
 	progress_indicator_terminal(const std::string& title, 
 								const std::string& description, 
-								TPIE_OS_OFFSET minRange, 
-								TPIE_OS_OFFSET maxRange, 
-								TPIE_OS_OFFSET stepValue) : 
+								stream_offset_type minRange, 
+								stream_offset_type maxRange, 
+								stream_offset_type stepValue) : 
 	    progress_indicator_base(title, description, minRange, maxRange, stepValue), m_title(""), m_description("") {
 			m_title = title;
 			m_description = description;
@@ -135,7 +135,7 @@ namespace tpie
 	///
 	////////////////////////////////////////////////////////////////////
 
-	void set_min_range(TPIE_OS_OFFSET minRange) {
+	void set_min_range(stream_offset_type minRange) {
 	    m_minRange = minRange;
 	    reset();
 	}
@@ -151,7 +151,7 @@ namespace tpie
 	///
 	////////////////////////////////////////////////////////////////////
 
-	void set_max_range(TPIE_OS_OFFSET maxRange) {
+	void set_max_range(stream_offset_type maxRange) {
 	    m_maxRange = maxRange;
 	    reset();
 	}
@@ -166,7 +166,7 @@ namespace tpie
 	///
 	////////////////////////////////////////////////////////////////////
 
-	void set_step_value(TPIE_OS_OFFSET stepValue) {
+	void set_step_value(stream_offset_type stepValue) {
 	    m_stepValue = stepValue;
 	}
   

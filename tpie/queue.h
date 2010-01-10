@@ -81,7 +81,7 @@ namespace tpie {
 	    ///
 	    ////////////////////////////////////////////////////////////////////
 
-	    TPIE_OS_OFFSET size() { 
+	    stream_offset_type size() { 
 		return m_Qsize; 
 	    }
 
@@ -146,14 +146,14 @@ namespace tpie {
 	    ///
 	    ////////////////////////////////////////////////////////////////////
 
-	    err main_memory_usage(TPIE_OS_SIZE_T *usage,
+	    err main_memory_usage(memory_size_type *usage,
 				  mem::stream_usage usage_type) const;
     
 	private:
 	    err refill();
 	    stack<T>* m_enQstack;
 	    stack<T>* m_deQstack;
-	    TPIE_OS_OFFSET m_Qsize;
+	    stream_offset_type m_Qsize;
 	};
 
 /////////////////////////////////////////////////////////////////////////
@@ -296,10 +296,10 @@ err queue<T>::refill() {
 /////////////////////////////////////////////////////////////////////////
 
 template<class T>
-err queue<T>::main_memory_usage(TPIE_OS_SIZE_T *usage,
+err queue<T>::main_memory_usage(memory_size_type *usage,
 				mem::stream_usage usage_type) const {
     
-    TPIE_OS_SIZE_T usage2;
+    memory_size_type usage2;
 
     //  Get the usage for the underlying stacks
     if(m_enQstack->main_memory_usage(usage, usage_type) != NO_ERROR) {

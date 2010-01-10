@@ -75,7 +75,7 @@ void parse_app_opts(int idx, char *opt_arg)
 int main(int argc, char **argv)
 {
     AMI_err ae;
-    TPIE_OS_SIZE_T number_of_bits;
+    memory_size_type number_of_bits;
 
 	verbose = false;
 	test_size = 32 * 1024;
@@ -104,25 +104,25 @@ int main(int argc, char **argv)
     // Set the amount of main memory:
     MM_manager.set_memory_limit (test_mm_size);
 
-    AMI_STREAM<TPIE_OS_OFFSET> amis0;
-    AMI_STREAM<TPIE_OS_OFFSET> amis1;
+    AMI_STREAM<stream_offset_type> amis0;
+    AMI_STREAM<stream_offset_type> amis1;
 
     // Streams for reporting values to ascii streams.
     
     std::ofstream *osi;
-    cxx_ostream_scan<TPIE_OS_OFFSET> *rpti = NULL;
+    cxx_ostream_scan<stream_offset_type> *rpti = NULL;
 
     std::ofstream *osf;
-    cxx_ostream_scan<TPIE_OS_OFFSET> *rptf = NULL;
+    cxx_ostream_scan<stream_offset_type> *rptf = NULL;
 
     if (report_results_initial) {
         osi = new std::ofstream(initial_results_filename);
-        rpti = new cxx_ostream_scan<TPIE_OS_OFFSET>(osi);
+        rpti = new cxx_ostream_scan<stream_offset_type>(osi);
     }
 
     if (report_results_final) {
         osf = new std::ofstream(final_results_filename);
-        rptf = new cxx_ostream_scan<TPIE_OS_OFFSET>(osf);
+        rptf = new cxx_ostream_scan<stream_offset_type>(osf);
     }
 
     scan_count my_scan_count(test_size);
@@ -143,7 +143,7 @@ int main(int argc, char **argv)
     bit_matrix c(number_of_bits, 1);
 
     {
-        TPIE_OS_SIZE_T ii,jj;
+        memory_size_type ii,jj;
 
         for (ii = number_of_bits; ii--; ) {
             c[ii][0] = 0;

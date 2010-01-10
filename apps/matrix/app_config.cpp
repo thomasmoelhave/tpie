@@ -35,7 +35,7 @@ bool verbose = false;
 bool verbose = true;
 #endif
 
-TPIE_OS_SIZE_T test_mm_size = DEFAULT_TEST_MM_SIZE;
-TPIE_OS_OFFSET test_size = DEFAULT_TEST_SIZE;
+memory_size_type test_mm_size = DEFAULT_TEST_MM_SIZE;
+stream_offset_type test_size = DEFAULT_TEST_SIZE;
 int random_seed = 17;
 

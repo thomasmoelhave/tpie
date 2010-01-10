@@ -339,7 +339,7 @@ int main(int argc, char** argv) {
       cerr << argv[0] << ": Error opening window queries file " 
 	   << params.file_name_wquery << endl;
     } else {
-      TPIE_OS_OFFSET count = 0, result = 0;
+      stream_offset_type count = 0, result = 0;
       app_params_t::point_t lop, hip;
       app_params_t::stream_t *tempstr = (params.do_query_count_only ? NULL: new app_params_t::stream_t);
       cerr << "Window queries from file " 
@@ -406,7 +406,7 @@ int main(int argc, char** argv) {
 
   if (params.wquery_count > 0 && err == tpie::ami::NO_ERROR) {
     app_params_t::point_t lop, hip;
-    TPIE_OS_OFFSET result = 0;
+    stream_offset_type result = 0;
     cerr << "Doing " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(params.wquery_count) << " window queries." << endl;
     int mbrlox, mbrloy, mbrdx, mbrdy;
 

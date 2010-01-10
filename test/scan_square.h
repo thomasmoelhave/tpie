@@ -29,7 +29,7 @@ using namespace tpie;
 template<class T> class scan_square : ami::scan_object {
 public:
     T ii;
-    TPIE_OS_OFFSET called;
+    stream_offset_type called;
     scan_square() : ii(), called(0) {};
     ami::err initialize(void);
     ami::err operate(const T &in, 

@@ -48,8 +48,8 @@ namespace tpie {
 #  define COLLECTION_IMP_MMAP
 #endif
 	
-#define COLLECTION_MMAP collection_mmap<TPIE_BLOCK_ID_TYPE>
-#define COLLECTION_UFS  collection_ufs<TPIE_BLOCK_ID_TYPE>
+#define COLLECTION_MMAP collection_mmap<block_id_type>
+#define COLLECTION_UFS  collection_ufs<block_id_type>
 	
 #if defined(COLLECTION_IMP_MMAP)
 #  define COLLECTION COLLECTION_MMAP

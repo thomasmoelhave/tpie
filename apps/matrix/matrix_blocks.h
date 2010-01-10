@@ -40,15 +40,15 @@ namespace tpie {
 	class perm_matrix_into_blocks : public ami::gen_perm_object {
 
 	private:
-	    TPIE_OS_OFFSET r,c,be;
+	    stream_offset_type r,c,be;
 
 	public:    
-	    perm_matrix_into_blocks(TPIE_OS_OFFSET rows, TPIE_OS_OFFSET cols,
-				    TPIE_OS_OFFSET block_extent);
+	    perm_matrix_into_blocks(stream_offset_type rows, stream_offset_type cols,
+				    stream_offset_type block_extent);
 	    virtual ~perm_matrix_into_blocks();
 	    
-	    ami::err initialize(TPIE_OS_OFFSET len);
-	    TPIE_OS_OFFSET destination(TPIE_OS_OFFSET source);
+	    ami::err initialize(stream_offset_type len);
+	    stream_offset_type destination(stream_offset_type source);
 	};
 	
     }  //  namespace apps
@@ -62,15 +62,15 @@ namespace tpie {
 	class perm_matrix_outof_blocks : public ami::gen_perm_object {
 
 	private:
-	    TPIE_OS_OFFSET r,c,be;
+	    stream_offset_type r,c,be;
 
 	public:    
-	    perm_matrix_outof_blocks(TPIE_OS_OFFSET rows, TPIE_OS_OFFSET cols,
-				     TPIE_OS_OFFSET block_extent);
+	    perm_matrix_outof_blocks(stream_offset_type rows, stream_offset_type cols,
+				     stream_offset_type block_extent);
 	    virtual ~perm_matrix_outof_blocks();
 
-	    ami::err initialize(TPIE_OS_OFFSET len);
-	    TPIE_OS_OFFSET destination(TPIE_OS_OFFSET source);
+	    ami::err initialize(stream_offset_type len);
+	    stream_offset_type destination(stream_offset_type source);
 	};
 
 

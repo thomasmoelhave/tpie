@@ -68,7 +68,7 @@ namespace tpie {
 	template<class T>
 	err stdio_stack<T>::push(const T &t) {
 	    bte::err be;
-	    TPIE_OS_OFFSET slen;
+	    stream_offset_type slen;
 	    
 	    be = truncate((slen = stream_len())+1);
 	    if (be != bte::NO_ERROR) {
@@ -93,7 +93,7 @@ namespace tpie {
 	template<class T>
 	err stdio_stack<T>::pop(T **t) {
 	    bte::err be;
-	    TPIE_OS_OFFSET slen;
+	    stream_offset_type slen;
 	    
 	    slen = stream_len();
 

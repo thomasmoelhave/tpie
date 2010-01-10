@@ -184,10 +184,10 @@ int main(int argc, char **argv)  {
 	std::cout << "Input size: " << test_size << " items." << std::endl
 		  << "Item size: " << sizeof(int) << " bytes." << std::endl
 		  << "TPIE memory size: " 
-		  << static_cast<TPIE_OS_LONGLONG>(MM_manager.memory_limit())
+		  << MM_manager.memory_limit()
 		  << " bytes." << std::endl;
 	std::cout << "TPIE free memory: " 
-		  << static_cast<TPIE_OS_LONGLONG>(MM_manager.memory_available())
+		  << MM_manager.memory_available()
 		  << " bytes." << std::endl;
     }
 
@@ -243,7 +243,7 @@ int main(int argc, char **argv)  {
 
     if (verbose) {
 	std::cout << "TPIE free memory: " 
-		  << static_cast<TPIE_OS_LONGLONG>(MM_manager.memory_available())
+		  << MM_manager.memory_available()
 		  << " bytes.\n";
     }
     std::cout << "Sorting input..." << std::flush;
@@ -271,7 +271,7 @@ int main(int argc, char **argv)  {
 
     if (verbose) {
 	std::cout << "TPIE free memory: " 
-		  << static_cast<TPIE_OS_LONGLONG>(MM_manager.memory_available()) 
+		  << MM_manager.memory_available()
 		  << " bytes." << std::endl;
     }
     if (report_results_sorted) {
@@ -284,7 +284,7 @@ int main(int argc, char **argv)  {
 	}
 	if (verbose) {
 	    std::cout << "TPIE free memory: " << 
-		static_cast<TPIE_OS_LONGLONG>(MM_manager.memory_available())
+			MM_manager.memory_available()
 		      << " bytes." << std::endl;
 	}
     }
@@ -301,7 +301,7 @@ int main(int argc, char **argv)  {
 	std::cout << "Sorting again using old sorting routine." << std::endl;
 	if (verbose) {
 	    std::cout << "TPIE free memory: " 
-		      << static_cast<TPIE_OS_LONGLONG>(MM_manager.memory_available()) 
+				  << MM_manager.memory_available()
 		      << " bytes." << std::endl;
 	}
     
@@ -323,7 +323,7 @@ int main(int argc, char **argv)  {
 	if (verbose) {
 	    std::cout << "Time taken: " << timer << std::endl;
 	    std::cout << "TPIE free memory: " 
-		      << static_cast<TPIE_OS_LONGLONG>(MM_manager.memory_available()) 
+		      << MM_manager.memory_available()
 		      << " bytes.\n";
 	}
 

@@ -48,9 +48,9 @@ namespace tpie {
 	    err operate(CONST T * CONST *in, merge_flag *taken_flags,
 			int &taken_index, T *out);
 	    
-	    err main_mem_operate(T* mm_stream, TPIE_OS_SIZE_T len);
-	    TPIE_OS_SIZE_T space_usage_overhead(void);
-	    TPIE_OS_SIZE_T space_usage_per_stream(void);    
+	    err main_mem_operate(T* mm_stream, memory_size_type len);
+	    memory_size_type space_usage_overhead(void);
+	    memory_size_type space_usage_per_stream(void);    
 	};
 	
 	template<class T>
@@ -168,17 +168,17 @@ namespace tpie {
 
 	template<class T>
 	err merge_interleave<T>::main_mem_operate(T* /*mm_stream*/,
-						  TPIE_OS_SIZE_T /*len*/) {
+						  memory_size_type /*len*/) {
 	    return NO_MAIN_MEMORY_OPERATION;
 	};
 	
 	template<class T>
-	TPIE_OS_SIZE_T merge_interleave<T>::space_usage_overhead(void) {
+	memory_size_type merge_interleave<T>::space_usage_overhead(void) {
 	    return sizeof(*this);
 	}
 	
 	template<class T>
-	TPIE_OS_SIZE_T merge_interleave<T>::space_usage_per_stream(void) {
+	memory_size_type merge_interleave<T>::space_usage_per_stream(void) {
 	    return 0;
 	}
 

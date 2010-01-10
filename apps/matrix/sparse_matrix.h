@@ -48,17 +48,17 @@ namespace tpie {
 
 	private:
 	    // How many rows and columns.
-	    TPIE_OS_OFFSET r,c;
+	    stream_offset_type r,c;
 
 	public:
-	    sparse_matrix(TPIE_OS_OFFSET row, TPIE_OS_OFFSET col);
+	    sparse_matrix(stream_offset_type row, stream_offset_type col);
 	    ~sparse_matrix(void);
-	    TPIE_OS_OFFSET rows();
-	    TPIE_OS_OFFSET cols();
+	    stream_offset_type rows();
+	    stream_offset_type cols();
 	};
 
 	template<class T>
-	sparse_matrix<T>::sparse_matrix(TPIE_OS_OFFSET row, TPIE_OS_OFFSET col) :
+	sparse_matrix<T>::sparse_matrix(stream_offset_type row, stream_offset_type col) :
 	    ami::stream< sm_elem<T> >(), r(row), c(col) {
 	}
 
@@ -67,12 +67,12 @@ namespace tpie {
 	}
 	
 	template<class T>
-	TPIE_OS_OFFSET sparse_matrix<T>::rows(void) {
+	stream_offset_type sparse_matrix<T>::rows(void) {
 	    return r;
 	}
 
 	template<class T>
-	TPIE_OS_OFFSET sparse_matrix<T>::cols(void) {
+	stream_offset_type sparse_matrix<T>::cols(void) {
 	    return c;
 	}
 
@@ -82,7 +82,7 @@ namespace tpie {
 	template<class T>
 	ami::err sparse_bandify(sparse_matrix<T> &sm,
 				sparse_matrix<T> &bsm,
-				TPIE_OS_SIZE_T rows_per_band) {
+				memory_size_type rows_per_band) {
 	    
 	    ami::err ae = ami::NO_ERROR;
 	    
@@ -98,12 +98,12 @@ namespace tpie {
 	
 	template<class T>
 	ami::err sparse_band_info(sparse_matrix<T> &opm,
-				  TPIE_OS_SIZE_T &rows_per_band,
-				  TPIE_OS_OFFSET &total_bands) {
+				  memory_size_type &rows_per_band,
+				  stream_offset_type &total_bands) {
 	    
-	    TPIE_OS_SIZE_T sz_avail, single_stream_usage;
+	    memory_size_type sz_avail, single_stream_usage;
 	    
-	    TPIE_OS_OFFSET rows = opm.rows();
+	    stream_offset_type rows = opm.rows();
 	    
 	    ami::err ae = ami::NO_ERROR;
 	    
@@ -124,8 +124,8 @@ namespace tpie {
 	    
 	    rows_per_band = (sz_avail - single_stream_usage * 5) / sizeof(T);
 	    
-	    if (static_cast<TPIE_OS_OFFSET>(rows_per_band) > rows) {
-		rows_per_band = static_cast<TPIE_OS_SIZE_T>(rows);
+	    if (static_cast<stream_offset_type>(rows_per_band) > rows) {
+		rows_per_band = static_cast<memory_size_type>(rows);
 	    }
 	    
 	    total_bands = (rows + rows_per_band - 1) / rows_per_band;
@@ -142,14 +142,14 @@ namespace tpie {
 	template<class T>
 	ami::err sparse_mult_scan_banded(sparse_matrix<T> &banded_opm,
 					 matrix<T> &opv, matrix<T> &res,
-					 TPIE_OS_OFFSET rows, TPIE_OS_OFFSET /*cols*/,
-					 TPIE_OS_SIZE_T rows_per_band) {
+					 stream_offset_type rows, stream_offset_type /*cols*/,
+					 memory_size_type rows_per_band) {
 
 	    ami::err ae = ami::NO_ERROR;
 	    
 	    sm_elem<T> *sparse_current;
 	    T *vec_current;
-	    TPIE_OS_OFFSET vec_row;
+	    stream_offset_type vec_row;
 	    
 	    banded_opm.seek(0);
 	    ae = banded_opm.read_item(&sparse_current);
@@ -166,12 +166,12 @@ namespace tpie {
 	    
 	    res.seek(0);
 	    
-	    TPIE_OS_OFFSET next_band_start = rows_per_band;
+	    stream_offset_type next_band_start = rows_per_band;
 	    
-	    TPIE_OS_OFFSET ii;
+	    stream_offset_type ii;
 	    
-	    TPIE_OS_OFFSET curr_band_start = 0;
-	    TPIE_OS_SIZE_T rows_in_current_band = rows_per_band;
+	    stream_offset_type curr_band_start = 0;
+	    memory_size_type rows_in_current_band = rows_per_band;
 	    
 	    bool sparse_done = false;
 	    
@@ -241,7 +241,7 @@ namespace tpie {
 			// The final band may not have exactly rows_per_band
 			// rows due to roundoff.  We make the appropropriate
 			// adjustments here.
-			rows_in_current_band = static_cast<TPIE_OS_SIZE_T>(rows - curr_band_start); 
+			rows_in_current_band = static_cast<memory_size_type>(rows - curr_band_start); 
 			next_band_start = rows;                
 		    } else {
 			rows_in_current_band = rows_per_band;
@@ -294,11 +294,11 @@ namespace tpie {
 	ami::err sparse_mult(sparse_matrix<T> &opm, matrix<T> &opv,
 			     matrix<T> &res) {
 	    
-	    TPIE_OS_SIZE_T rows_per_band;
-	    TPIE_OS_OFFSET total_bands;
+	    memory_size_type rows_per_band;
+	    stream_offset_type total_bands;
 	    
-	    TPIE_OS_OFFSET rows;
-	    TPIE_OS_OFFSET cols;
+	    stream_offset_type rows;
+	    stream_offset_type cols;
 	    
 	    // size_t sz_avail, single_stream_usage;
 	    

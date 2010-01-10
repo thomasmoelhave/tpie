@@ -34,12 +34,12 @@
 
 class scan_list : AMI_scan_object {
 private:
-    TPIE_OS_OFFSET maximum;
+    stream_offset_type maximum;
 public:
-    TPIE_OS_OFFSET last_to;
-    TPIE_OS_OFFSET called;
+    stream_offset_type last_to;
+    stream_offset_type called;
 
-    scan_list(TPIE_OS_OFFSET max = 1000);
+    scan_list(stream_offset_type max = 1000);
     AMI_err initialize(void);
     AMI_err operate(edge *out1, AMI_SCAN_FLAG *sf);
 };

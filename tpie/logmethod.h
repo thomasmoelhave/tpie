@@ -99,7 +99,7 @@ namespace tpie {
 	    bool find(const Value& p);
 
 	    // Window query. Report results in stream os.
-	    TPIE_OS_OFFSET window_query(const Key &lop, const Key &hip, stream_t* os);
+	    stream_offset_type window_query(const Key &lop, const Key &hip, stream_t* os);
 
 	    void persist(persistence per);
 
@@ -107,7 +107,7 @@ namespace tpie {
 	    const std::pair<Value, Value> &mbr();
 
 	    // Inquire the size.
-	    TPIE_OS_OFFSET size() const { return header_.size; }
+	    stream_offset_type size() const { return header_.size; }
 
 	    // Inquire the run-time parameters.
 	    const Logmethod_params<Tp, T0p>& params() const { return params_; }
@@ -126,8 +126,8 @@ namespace tpie {
 	    
 	    class header_type {
 	    public:
-		TPIE_OS_OFFSET size; // The total number of elements stored in the structure.
-		TPIE_OS_SIZE_T last_tree; // the index of the last tree in the trees_ vector
+		stream_offset_type size; // The total number of elements stored in the structure.
+		memory_size_type last_tree; // the index of the last tree in the trees_ vector
 		header_type(): size(0), last_tree(0) {}
 	    };
 	    
@@ -162,7 +162,7 @@ namespace tpie {
 	    
 	    // Create a tree name in temp_name_ from base_file_name_ and the
 	    // given index.
-	    void create_tree(TPIE_OS_SIZE_T idx);
+	    void create_tree(memory_size_type idx);
 	};
 
     }  //  ami namespace
@@ -215,7 +215,7 @@ namespace tpie {
 	    
 	    LogmethodB(const std::string& base_file_name, const Logmethod_params<Tp, T0p> &params);
 	    bool insert(const Value& p);
-	    static TPIE_OS_SIZE_T B;
+	    static memory_size_type B;
 	};
 	
     }  //  ami namespace
@@ -276,7 +276,7 @@ namespace tpie {
 		
 		assert(header_.last_tree < 100);
 
-		TPIE_OS_SIZE_T i;
+		memory_size_type i;
 		
 		// Initialize trees.
 		for (i = 0; i <= header_.last_tree; i++) {
@@ -311,7 +311,7 @@ namespace tpie {
 		ans = true;
 	    } 
 	    else {
-		for (TPIE_OS_SIZE_T i = 1; i < trees_.size(); i++) {
+		for (memory_size_type i = 1; i < trees_.size(); i++) {
 		    if (trees_[i]->size() > 0 && trees_[i]->erase(p)) {
 			ans = true;
 			break;
@@ -336,7 +336,7 @@ namespace tpie {
 		ans = true;
 	    } 
 	    else {
-		for (TPIE_OS_SIZE_T i = 1; i < trees_.size(); i++) {
+		for (memory_size_type i = 1; i < trees_.size(); i++) {
 		    // Order is important! Short circuit evaluation.
 		    if (trees_[i]->size() > 0 && trees_[i]->find(p)) {
 			ans = true;
@@ -350,10 +350,10 @@ namespace tpie {
 
 //// *Logmethod_base::window_query* ////
 	template<class Key, class Value, class T, class Tp, class T0, class T0p>
-	TPIE_OS_OFFSET LOGMETHOD_BASE::window_query(const Key &lop, const Key &hip, 
+	stream_offset_type LOGMETHOD_BASE::window_query(const Key &lop, const Key &hip, 
 						    AMI_STREAM<Value>* stream) {
-	    TPIE_OS_OFFSET result = 0;
-	    TPIE_OS_SIZE_T i;
+	    stream_offset_type result = 0;
+	    memory_size_type i;
 	    
 	    if (tree0_->size() > 0) {
 		result += tree0_->window_query(lop, hip, stream);
@@ -417,7 +417,7 @@ namespace tpie {
 	    delete tree0_;
 	    tree0_ = NULL;
 	    
-	    for (TPIE_OS_SIZE_T i = 1; i < trees_.size(); i++) {
+	    for (memory_size_type i = 1; i < trees_.size(); i++) {
 		trees_[i]->persist(per_);
 		delete trees_[i];
 		trees_[i] = NULL;
@@ -428,7 +428,7 @@ namespace tpie {
 	template<class Key, class Value, class T, class Tp, class T0, class T0p>
 	const std::pair<Value, Value>& LOGMETHOD_BASE::mbr() {
 
-	    TPIE_OS_SIZE_T i;
+	    memory_size_type i;
 
 	    if (!mbr_is_set_) {
 		if (tree0_->size() > 0) {
@@ -461,7 +461,7 @@ namespace tpie {
 
 //// *Logmethod_base::create_tree* ////
 	template<class Key, class Value, class T, class Tp, class T0, class T0p>
-	void LOGMETHOD_BASE::create_tree(TPIE_OS_SIZE_T idx) 
+	void LOGMETHOD_BASE::create_tree(memory_size_type idx) 
 	{
 		// untested: temp_name_ should become base_file_name_
 		// plus two digits.
@@ -494,7 +494,7 @@ namespace tpie {
 //// *Logmethod_base::stats* ////
 	template<class Key, class Value, class T, class Tp, class T0, class T0p>
 	const stats_tree &LOGMETHOD_BASE::stats() {
-	    for (TPIE_OS_SIZE_T i = 1; i < trees_.size(); i++) {
+	    for (memory_size_type i = 1; i < trees_.size(); i++) {
 		if (trees_[i]->size() > 0)
 		    stats_.record(trees_[i]->stats());
 	    }
@@ -552,7 +552,7 @@ namespace tpie {
 		///    create_tree(0);
 		    
 		    // Free index. The index of the first empty tree.
-		    TPIE_OS_SIZE_T fi = 1;
+		    memory_size_type fi = 1;
 		    while (fi < trees_.size() && trees_[fi]->size() > 0) {
 			trees_[fi]->unload(stream);
 			trees_[fi]->persist(PERSIST_DELETE);
@@ -578,7 +578,7 @@ namespace tpie {
 		    delete stream;
 		    
 		    // Create empty trees in positions 0 to fi-1.
-		    for (TPIE_OS_SIZE_T ii = 0; ii < fi; ii++)
+		    for (memory_size_type ii = 0; ii < fi; ii++)
 			create_tree(ii);
 	    }
 	    
@@ -620,7 +620,7 @@ namespace tpie {
 	    } 
 	    else {
 		
-		TPIE_OS_SIZE_T fi;
+		memory_size_type fi;
 		typename LOGMETHOD_BASE::stream_t *stream = new typename LOGMETHOD_BASE::stream_t;
 		stream->persist(PERSIST_DELETE);
 		
@@ -633,7 +633,7 @@ namespace tpie {
 		
 		// Now unload all relevant trees to stream.
 		fi = 0;
-		TPIE_OS_OFFSET b_to_fi = stream->stream_len();
+		stream_offset_type b_to_fi = stream->stream_len();
 		
 		while (stream->stream_len() >= b_to_fi) {
 		    fi++;
@@ -661,7 +661,7 @@ namespace tpie {
 		
 		trees_[fi]->load(stream);
 		
-		for (TPIE_OS_SIZE_T ii = 0; ii < fi; ii++)
+		for (memory_size_type ii = 0; ii < fi; ii++)
 		    create_tree(ii);
 		
 		delete stream;
@@ -673,7 +673,7 @@ namespace tpie {
 	
 //// *LogmethodB::B* ////
 	template<class Key, class Value, class T, class Tp, class T0, class T0p>
-	TPIE_OS_SIZE_T LOGMETHODB::B = 100;
+	memory_size_type LOGMETHODB::B = 100;
 
     }  //  ami namespace
 

@@ -107,7 +107,7 @@ int main(int argc, char **argv)
     // Set the amount of main memory:
     MM_manager.set_memory_limit (test_mm_size);
 
-    TPIE_OS_OFFSET matrix_size = static_cast<TPIE_OS_OFFSET>(sqrt(static_cast<double>(test_size)));
+    stream_offset_type matrix_size = static_cast<stream_offset_type>(sqrt(static_cast<double>(test_size)));
 
     apps::matrix<double> em0(matrix_size, matrix_size);
     apps::matrix<double> em1(matrix_size, matrix_size);

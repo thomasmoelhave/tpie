@@ -87,9 +87,9 @@ public:
     JoinLog(
 	const char*    program, 
 	const char*    redName, 
-	TPIE_OS_OFFSET redLength, 
+	stream_offset_type redLength, 
 	const char*    blueName, 
-	TPIE_OS_OFFSET blueLength, 
+	stream_offset_type blueLength, 
 	unsigned short fanOut = 0);
     ~JoinLog();
     //.  The constructor expects the identifier of the program from which it
@@ -100,14 +100,14 @@ public:
     void UsageStart();
     void UsageEnd(
 	const char*   where = NULL,
-	TPIE_OS_OFFSET resultLength = 0);
+	stream_offset_type resultLength = 0);
     void UsageEndBrief(const char* where = NULL);
     //.  UsageStart starts recording statistics, whereas UsageEnd and 
     //.  UsageEndBrief stop recording and print the statistics.
 
     //- setRedLength, setBlueLength
-    void setRedLength(TPIE_OS_OFFSET redSize);
-    void setBlueLength(TPIE_OS_OFFSET redSize);
+    void setRedLength(stream_offset_type redSize);
+    void setBlueLength(stream_offset_type redSize);
     //.  The size of the input data can be explicitly set. This is 
     //.  necessary for working with "sortjoin".
 
@@ -120,20 +120,20 @@ protected:
 
     char*          program_;     //  Identifier of the program.
     char*          redName_;     //  Red input stream.
-    TPIE_OS_OFFSET redLength_;   //  Number of red objects.
+    stream_offset_type redLength_;   //  Number of red objects.
     char*          blueName_;    //  Blue input stream.
-    TPIE_OS_OFFSET blueLength_;  //  Number of blue objects.
+    stream_offset_type blueLength_;  //  Number of blue objects.
     unsigned short fanOut_;      //  Fanout of the tree.
 
 private:
 
 };
 
-inline void JoinLog::setRedLength(TPIE_OS_OFFSET redLength) {
+inline void JoinLog::setRedLength(stream_offset_type redLength) {
     redLength_ = redLength;
 }
 
-inline void JoinLog::setBlueLength(TPIE_OS_OFFSET blueLength) {
+inline void JoinLog::setBlueLength(stream_offset_type blueLength) {
     blueLength_ = blueLength;
 }
 

@@ -36,7 +36,7 @@ namespace tpie {
     private:
 	
 	// The array storing the C statistics.
-	TPIE_OS_OFFSET stats_[C];
+	stream_offset_type stats_[C];
 	
     public:
 	
@@ -63,7 +63,7 @@ namespace tpie {
 	}
 
 	// Record k events of type t.
-	void record(int t, TPIE_OS_OFFSET k) {
+	void record(int t, stream_offset_type k) {
 	    stats_[t] += k;
 	}
 
@@ -74,12 +74,12 @@ namespace tpie {
 	}
 	
 	// Set the number of type t events to k.
-	void set(int t, TPIE_OS_OFFSET k) {
+	void set(int t, stream_offset_type k) {
 	    stats_[t] = k;
 	}
 	
 	// Inquire the number of type t events.
-	TPIE_OS_OFFSET get(int t) const {
+	stream_offset_type get(int t) const {
 	    return stats_[t];
 	}
 	

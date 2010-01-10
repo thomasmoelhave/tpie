@@ -56,7 +56,7 @@ namespace tpie {
   /** Intended to signal in a merge which of the input streams are non-empty */ 
 	typedef int            merge_flag;
 	/** Intended to signal the number of input streams in a merge */ 
-	typedef TPIE_OS_SIZE_T arity_t;
+	typedef memory_size_type arity_t;
 	
 #define CONST const
 
@@ -232,9 +232,9 @@ namespace tpie {
 				merge_flag *taken_flags,
 				int &taken_index,
 				T *out) = 0;
-	    virtual err main_mem_operate(T* mm_stream, TPIE_OS_SIZE_T len) = 0;
-	    virtual TPIE_OS_SIZE_T space_usage_overhead(void) = 0;
-	    virtual TPIE_OS_SIZE_T space_usage_per_stream(void) = 0;
+	    virtual err main_mem_operate(T* mm_stream, memory_size_type len) = 0;
+	    virtual memory_size_type space_usage_overhead(void) = 0;
+	    virtual memory_size_type space_usage_per_stream(void) = 0;
 #endif // VIRTUAL_BASE
 
 	};
@@ -247,8 +247,8 @@ namespace tpie {
 	merge(stream<T> **instreams, arity_t arity,
 	      stream<T> *outstream, M *m_obj) {
 
-	    TPIE_OS_SIZE_T sz_avail;
-	    TPIE_OS_OFFSET sz_stream, sz_needed = 0;
+	    memory_size_type sz_avail;
+	    stream_offset_type sz_stream, sz_needed = 0;
   
 	    // How much main memory is available?
 	    sz_avail = MM_manager.consecutive_memory_available ();
@@ -273,7 +273,7 @@ namespace tpie {
 		arity * m_obj->space_usage_per_stream();
                
 	    //streams and m_obj must fit in memory!
-	    if (sz_needed >= static_cast<TPIE_OS_OFFSET>(sz_avail)) {
+	    if (sz_needed >= static_cast<stream_offset_type>(sz_avail)) {
 		TP_LOG_WARNING("Insuficent main memory to perform a merge.\n");
 		return INSUFFICIENT_MAIN_MEMORY;
 	    }
@@ -292,7 +292,7 @@ namespace tpie {
 	single_merge(stream<T> **instreams, arity_t arity,
 		     stream<T> *outstream, M *m_obj) {
 
-	    TPIE_OS_SIZE_T ii;
+	    memory_size_type ii;
 	    err ami_err;
   
 	    // Create an array of pointers for the input.
@@ -437,14 +437,14 @@ namespace tpie {
 			   stream<T> *outstream, M *m_obj)  {
 
 	    err ae;
-	    TPIE_OS_OFFSET len;
-	    TPIE_OS_SIZE_T sz_avail;
+	    stream_offset_type len;
+	    memory_size_type sz_avail;
   
 	    // How much memory is available?
 	    sz_avail = MM_manager.consecutive_memory_available ();
 
 	    len = instream->stream_len();
-	    if ((len * static_cast<TPIE_OS_OFFSET>(sizeof(T))) <= static_cast<TPIE_OS_OFFSET>(sz_avail)) {
+	    if ((len * static_cast<stream_offset_type>(sizeof(T))) <= static_cast<stream_offset_type>(sz_avail)) {
     
 		// If the whole input can fit in main memory just call
 		// m_obj->main_mem_operate
@@ -456,9 +456,9 @@ namespace tpie {
 		// parallel buffer allocation.  It will not work with anything
 		// other than a registration based memory manager.
 		T *mm_stream;
-		TPIE_OS_OFFSET len1;
+		stream_offset_type len1;
 		//allocate and read input stream in memory we know it fits, so we may cast.
-		if ((mm_stream = new T[static_cast<TPIE_OS_SIZE_T>(len)]) == NULL) {
+		if ((mm_stream = new T[static_cast<memory_size_type>(len)]) == NULL) {
 		    return MM_ERROR;
 		};
 		len1 = len;
@@ -470,9 +470,9 @@ namespace tpie {
 			  "Allocated space for " << len << ", read " << len1 << '.');
     
 		//just call m_obj->main_mem_operate. We know that len items fit into
-		//main memory, so we may cast to TPIE_OS_SIZE_T
+		//main memory, so we may cast to memory_size_type
 		if ((ae = m_obj->main_mem_operate(mm_stream, 
-						  static_cast<TPIE_OS_SIZE_T>(len))) !=
+						  static_cast<memory_size_type>(len))) !=
 		    NO_ERROR) {
 		    TP_LOG_WARNING_ID("main_mem_operate failed");
 		    return ae;
@@ -480,7 +480,7 @@ namespace tpie {
 
 		//write array back to stream
 		if ((ae = outstream->write_array(mm_stream, 
-						 static_cast<TPIE_OS_SIZE_T>(len))) !=
+						 static_cast<memory_size_type>(len))) !=
 		    NO_ERROR) {
 		    TP_LOG_WARNING_ID("write array failed");
 		    return ae;
@@ -508,8 +508,8 @@ namespace tpie {
 				stream<T> *outstream, M *m_obj) {
 
 	    err ae;
-	    TPIE_OS_OFFSET len;
-	    TPIE_OS_SIZE_T sz_avail, sz_stream;
+	    stream_offset_type len;
+	    memory_size_type sz_avail, sz_stream;
 	    unsigned int ii;
 	    int jj;
   
@@ -520,7 +520,7 @@ namespace tpie {
 	    // main_mem_merge() to deal with it by loading it once and
 	    // processing it.
 	    len = instream->stream_len();
-	    if ((len * static_cast<TPIE_OS_OFFSET>(sizeof(T))) <= static_cast<TPIE_OS_OFFSET>(sz_avail)) {
+	    if ((len * static_cast<stream_offset_type>(sizeof(T))) <= static_cast<stream_offset_type>(sz_avail)) {
 		return main_mem_merge(instream, outstream, m_obj);
 	    } 
 	    //else {
@@ -536,7 +536,7 @@ namespace tpie {
   
 	    // length (nb obj of type T) of the original substreams of the input
 	    // stream.  The last one may be shorter than this.
-	    TPIE_OS_OFFSET sz_orig_substr;
+	    stream_offset_type sz_orig_substr;
   
 	    // The initial temporary stream, to which substreams of the
 	    // original input stream are written.
@@ -558,13 +558,13 @@ namespace tpie {
 	    // merged.  The last one may be smaller.  This value should be
 	    // sz_orig_substr * (merge_arity ** k) where k is the
 	    // number of iterations the loop has gone through.
-	    TPIE_OS_OFFSET current_substream_len;
+	    stream_offset_type current_substream_len;
 
 	    // The exponenent used to verify that current_substream_len is
 	    // correct.
 	    unsigned int k;
   
-	    TPIE_OS_OFFSET sub_start, sub_end;
+	    stream_offset_type sub_start, sub_end;
   
   
   
@@ -589,7 +589,7 @@ namespace tpie {
 	    // overlapping regions.  It is also required for BTE's that are
 	    // capable of freeing chunks as they are read.
 	    {
-		TPIE_OS_OFFSET sz_chunk_size = instream->chunk_size();
+		stream_offset_type sz_chunk_size = instream->chunk_size();
     
 		sz_orig_substr = sz_chunk_size *
 		    ((sz_orig_substr + sz_chunk_size - 1) /sz_chunk_size);
@@ -602,8 +602,8 @@ namespace tpie {
   
 	    // Account for the space that a merge object will use.
 	    {
-		TPIE_OS_SIZE_T sz_avail_during_merge = sz_avail - m_obj->space_usage_overhead();
-		TPIE_OS_SIZE_T sz_stream_during_merge = sz_stream +m_obj->space_usage_per_stream();
+		memory_size_type sz_avail_during_merge = sz_avail - m_obj->space_usage_overhead();
+		memory_size_type sz_stream_during_merge = sz_stream +m_obj->space_usage_per_stream();
     
 		merge_arity = static_cast<arity_t>((sz_avail_during_merge +
 						    sz_stream_during_merge - 1) / 
@@ -674,7 +674,7 @@ namespace tpie {
 	    // processing each one and writing it to the corresponding substream
 	    // of the temporary stream.
 	    initial_tmp_stream = new stream<T>;
-	    mm_stream = new T[static_cast<TPIE_OS_SIZE_T>(sz_orig_substr)];
+	    mm_stream = new T[static_cast<memory_size_type>(sz_orig_substr)];
 	    tp_assert(mm_stream != NULL, "Misjudged available main memory.");
 	    if (mm_stream == NULL) {
 		return INSUFFICIENT_MAIN_MEMORY;
@@ -683,14 +683,14 @@ namespace tpie {
 	    instream->seek(0);
 	    assert(ae == NO_ERROR);
 
-	    tp_assert(static_cast<TPIE_OS_OFFSET>(nb_orig_substr * sz_orig_substr - len) < sz_orig_substr,
+	    tp_assert(static_cast<stream_offset_type>(nb_orig_substr * sz_orig_substr - len) < sz_orig_substr,
 		      "Total substream length too long or too many.");
-	    tp_assert(len - static_cast<TPIE_OS_OFFSET>(nb_orig_substr - 1) * sz_orig_substr <= sz_orig_substr,
+	    tp_assert(len - static_cast<stream_offset_type>(nb_orig_substr - 1) * sz_orig_substr <= sz_orig_substr,
 		      "Total substream length too short or too few.");        
   
 	    for (ii = 0; ii++ < nb_orig_substr; ) {
     
-		TPIE_OS_OFFSET mm_len;
+		stream_offset_type mm_len;
 		if (ii == nb_orig_substr) {
 		    mm_len = len % sz_orig_substr;
 		    // If it is an exact multiple, then the mod will come out 0,
@@ -702,7 +702,7 @@ namespace tpie {
 		    mm_len = sz_orig_substr;
 		}
 #if DEBUG_ASSERTIONS
-		TPIE_OS_OFFSET mm_len_bak = mm_len;
+		stream_offset_type mm_len_bak = mm_len;
 #endif
     
 		// Read a memory load out of the input stream.
@@ -715,8 +715,8 @@ namespace tpie {
 			  "\n\tmm_len = " << mm_len <<
 			  "\n\tmm_len_bak = " << mm_len_bak << '.');
     
-		// Solve in main memory. We know it fits, so cast to TPIE_OS_SIZE_T
-		m_obj->main_mem_operate(mm_stream, static_cast<TPIE_OS_SIZE_T>(mm_len));
+		// Solve in main memory. We know it fits, so cast to memory_size_type
+		m_obj->main_mem_operate(mm_stream, static_cast<memory_size_type>(mm_len));
     
 		// Write the result out to the temporary stream.
 		ae = initial_tmp_stream->write_array(mm_stream, mm_len);
@@ -856,8 +856,8 @@ namespace tpie {
 				      "Index got too large.");
 #if DEBUG_ASSERTIONS
 			    // Check the lengths before the merge.
-			    TPIE_OS_OFFSET sz_output, sz_output_after_merge;
-			    TPIE_OS_OFFSET sz_substream_total;
+			    stream_offset_type sz_output, sz_output_after_merge;
+			    stream_offset_type sz_substream_total;
 	  
 			    {
 				unsigned int kk;

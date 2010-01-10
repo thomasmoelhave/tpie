@@ -85,7 +85,7 @@ namespace tpie {
 	    using mm_matrix_base<T>::cols;
 
 	    // Construction/destruction.
-	    mm_matrix(TPIE_OS_SIZE_T arows, TPIE_OS_SIZE_T acols);
+	    mm_matrix(memory_size_type arows, memory_size_type acols);
 	    mm_matrix(const mm_matrix<T> &rhs);
 	    mm_matrix(const mm_matrix_base<T> &rhs);
 	    mm_matrix(const mm_submatrix<T> &rhs);
@@ -103,13 +103,13 @@ namespace tpie {
 	    mm_matrix<T> &operator=(const mm_submatrix<T> &rhs);
     
 	    // Access to elements.
-	    T &elt(TPIE_OS_SIZE_T row, TPIE_OS_SIZE_T col) const;
+	    T &elt(memory_size_type row, memory_size_type col) const;
 
 	};
 
 
 	template<class T>
-	mm_matrix<T>::mm_matrix(TPIE_OS_SIZE_T arows, TPIE_OS_SIZE_T acols) :
+	mm_matrix<T>::mm_matrix(memory_size_type arows, memory_size_type acols) :
 	    mm_matrix_base<T>(arows, acols), data(NULL)	{
 
 	    data = new T[arows * acols];
@@ -122,7 +122,7 @@ namespace tpie {
 	mm_matrix<T>::mm_matrix(const mm_matrix<T> &rhs) :
 	    mm_matrix_base<T>(rhs.rows(), rhs.cols()), data(NULL) {
 
-	    TPIE_OS_SIZE_T ii;
+	    memory_size_type ii;
     
 	    data = new T[r*c];
 
@@ -135,7 +135,7 @@ namespace tpie {
 	mm_matrix<T>::mm_matrix(const mm_matrix_base<T> &rhs) :
 	    mm_matrix_base<T>(rhs.rows(), rhs.cols()), data(NULL) {
 
-	    TPIE_OS_SIZE_T ii,jj;
+	    memory_size_type ii,jj;
     
 	    data = new T[r*c];
 
@@ -150,7 +150,7 @@ namespace tpie {
 	mm_matrix<T>::mm_matrix(const mm_submatrix<T> &rhs) :
 	    mm_matrix_base<T>(rhs.rows(), rhs.cols()), data(NULL) {
 
-	    TPIE_OS_SIZE_T ii,jj;
+	    memory_size_type ii,jj;
     
 	    data = new T[r*c];
 
@@ -207,7 +207,7 @@ namespace tpie {
 
 
 	template<class T>
-	T& mm_matrix<T>::elt(TPIE_OS_SIZE_T row, TPIE_OS_SIZE_T col) const {
+	T& mm_matrix<T>::elt(memory_size_type row, memory_size_type col) const {
 
 	    if ((row >= rows()) || (col >= cols())) {
 		tp_assert(0, "Range error.");
@@ -274,8 +274,8 @@ namespace tpie {
 #endif
 	    }
 
-	    TPIE_OS_SIZE_T ii,jj,kk;
-	    TPIE_OS_SIZE_T r1,r2,c1,c2,cres;
+	    memory_size_type ii,jj,kk;
+	    memory_size_type r1,r2,c1,c2,cres;
 	    T t;
 
 	    r1 = op1.rows();
@@ -316,8 +316,8 @@ namespace tpie {
 		tp_assert(0, "Range error.");
 	    }
 
-	    TPIE_OS_SIZE_T ii,jj,kk;
-	    TPIE_OS_SIZE_T r1,r2,c1,c2,cres;
+	    memory_size_type ii,jj,kk;
+	    memory_size_type r1,r2,c1,c2,cres;
 	    T t;
 
 	    r1 = op1.rows();
@@ -359,8 +359,8 @@ namespace tpie {
 		tp_assert(0, "Range error.");
 	    }
 
-	    TPIE_OS_SIZE_T ii,jj,kk;
-	    TPIE_OS_SIZE_T r1,r2,c1,c2,cres;
+	    memory_size_type ii,jj,kk;
+	    memory_size_type r1,r2,c1,c2,cres;
 
 	    r1 = op1.rows();
 	    r2 = op2.rows();
@@ -415,8 +415,8 @@ namespace tpie {
 		tp_assert(0, "Range error.");
 	    }
 
-	    TPIE_OS_SIZE_T ii,jj,kk;
-	    TPIE_OS_SIZE_T r1,r2,c1,c2,cres;
+	    memory_size_type ii,jj,kk;
+	    memory_size_type r1,r2,c1,c2,cres;
 
 	    r1 = op1.rows();
 	    r2 = op2.rows();

@@ -147,8 +147,8 @@ public:
     /// substream.
     ////////////////////////////////////////////////////////////////////////////
     err new_substream(stream_type     st, 
-		      TPIE_OS_OFFSET  sub_begin, 
-		      TPIE_OS_OFFSET  sub_end,
+		      stream_offset_type  sub_begin, 
+		      stream_offset_type  sub_end,
 		      stream<T,bte_t>       **sub_stream);
   
     ////////////////////////////////////////////////////////////////////////////
@@ -206,26 +206,26 @@ public:
     /// accordingly.
 	/// \deprecated
     ////////////////////////////////////////////////////////////////////////////
-    err read_array(T *mm_space, TPIE_OS_OFFSET *len);
+    err read_array(T *mm_space, stream_offset_type *len);
 
     ////////////////////////////////////////////////////////////////////////////
     /// Reads len items from the current position of the stream into
     /// the array mm_array. The "current position" pointer is increased
     /// accordingly.
     ////////////////////////////////////////////////////////////////////////////
-    err read_array(T *mm_space, TPIE_OS_SIZE_T & len);
+    err read_array(T *mm_space, memory_size_type & len);
     
     ////////////////////////////////////////////////////////////////////////////
     /// Writes len items from array |mm_array to the
     /// stream, starting in the current position. The "current item"
     /// pointer is increased accordingly.
     ////////////////////////////////////////////////////////////////////////////
-    err write_array(const T *mm_space, TPIE_OS_SIZE_T len);
+    err write_array(const T *mm_space, memory_size_type len);
     
     ////////////////////////////////////////////////////////////////////////////
     /// Returns the number of items in the stream.
     ////////////////////////////////////////////////////////////////////////////
-    TPIE_OS_OFFSET stream_len(void) const { 
+    stream_offset_type stream_len(void) const { 
 	return m_bteStream->stream_len(); 
     }
   
@@ -237,13 +237,13 @@ public:
     ////////////////////////////////////////////////////////////////////////////
     /// Move the current position to off (measured in terms of items.
     ////////////////////////////////////////////////////////////////////////////
-    err seek(TPIE_OS_OFFSET offset);
+    err seek(stream_offset_type offset);
     
     ////////////////////////////////////////////////////////////////////////////
     /// Returns the current position in the stream measured of items from the
     /// beginning of the stream.
     ////////////////////////////////////////////////////////////////////////////
-    TPIE_OS_OFFSET tell() const { 
+    stream_offset_type tell() const { 
 	return m_bteStream->tell(); 
     }
 
@@ -256,7 +256,7 @@ public:
     /// specified number of objects. In either case, the "current
     /// item" pointer will be moved to the new end of the stream.
     ////////////////////////////////////////////////////////////////////////////
-    err truncate(TPIE_OS_OFFSET offset);
+    err truncate(stream_offset_type offset);
     
     ////////////////////////////////////////////////////////////////////////////
     /// This function is used for obtaining the amount of main memory used by an
@@ -275,7 +275,7 @@ public:
     /// The additional amount of memory that will be used by each substream created.
     /// \param[out] usage amount of memory in bytes used by the stream
     ////////////////////////////////////////////////////////////////////////////
-    err main_memory_usage(TPIE_OS_SIZE_T *usage,
+    err main_memory_usage(memory_size_type *usage,
 			  mem::stream_usage usage_type);
 
 
@@ -315,7 +315,7 @@ public:
     /// Returns the maximum number of items (of type T) 
     /// that can be stored in one block.
     ////////////////////////////////////////////////////////////////////////////
-    TPIE_OS_SIZE_T chunk_size(void) const { 
+    memory_size_type chunk_size(void) const { 
 	return m_bteStream->chunk_size(); 
     }
     
@@ -496,8 +496,8 @@ private:
 	    // *stream::new_substream* //
 	template<class T, class bte_t>
 	err stream<T,bte_t>::new_substream(stream_type     st,
-				     TPIE_OS_OFFSET  sub_begin,
-				     TPIE_OS_OFFSET  sub_end,
+				     stream_offset_type  sub_begin,
+				     stream_offset_type  sub_end,
 				     stream<T,bte_t>       **sub_stream)
 	{
 	    err retval = NO_ERROR;
@@ -555,7 +555,7 @@ private:
 
 // Move to a specific offset.
 	template<class T, class bte_t>
-	err stream<T,bte_t>::seek(TPIE_OS_OFFSET offset) {
+	err stream<T,bte_t>::seek(stream_offset_type offset) {
 
 	    if (m_bteStream->seek(offset) != bte::NO_ERROR) {
 
@@ -569,7 +569,7 @@ private:
 
 // Truncate
 	template<class T, class bte_t>
-	err stream<T,bte_t>::truncate(TPIE_OS_OFFSET offset) {
+	err stream<T,bte_t>::truncate(stream_offset_type offset) {
 
 	    if (m_bteStream->truncate(offset) != bte::NO_ERROR) {
 
@@ -590,7 +590,7 @@ TPIE_OS_SIZE_T stream<T,bte_t>::memory_usage(TPIE_OS_SIZE_T count) {
 
 // Query memory usage
 	template<class T, class bte_t>
-	err stream<T,bte_t>::main_memory_usage(TPIE_OS_SIZE_T *usage,
+	err stream<T,bte_t>::main_memory_usage(memory_size_type *usage,
 					 mem::stream_usage usage_type) {
 
 	    if (m_bteStream->main_memory_usage(usage, usage_type) != bte::NO_ERROR) {
@@ -659,15 +659,15 @@ TPIE_OS_SIZE_T stream<T,bte_t>::memory_usage(TPIE_OS_SIZE_T count) {
 
 
 	template<class T, class bte_t>
-	err stream<T,bte_t>::read_array(T *mm_space, TPIE_OS_OFFSET *len) {
-		TPIE_OS_SIZE_T l=*len;
+	err stream<T,bte_t>::read_array(T *mm_space, stream_offset_type *len) {
+		memory_size_type l=*len;
 		err e = read_array(mm_space, l);
 		*len = l;
 		return e;
 	}
 
 	template<class T, class bte_t>
-	err stream<T,bte_t>::read_array(T *mm_space, TPIE_OS_SIZE_T & len) {
+	err stream<T,bte_t>::read_array(T *mm_space, memory_size_type & len) {
 	    bte::err bte_err = m_bteStream->read_array(mm_space, len);
 		switch(bte_err) {
 	    case bte::NO_ERROR:	return NO_ERROR;
@@ -677,7 +677,7 @@ TPIE_OS_SIZE_T stream<T,bte_t>::memory_usage(TPIE_OS_SIZE_T count) {
 	}
 
 	template<class T, class bte_t>
-	err stream<T,bte_t>::write_array(const T *mm_space, TPIE_OS_SIZE_T len) {
+	err stream<T,bte_t>::write_array(const T *mm_space, memory_size_type len) {
 		bte::err bte_err = m_bteStream->write_array(mm_space,len);
 		switch(bte_err) {
 	    case bte::NO_ERROR:	return NO_ERROR;

@@ -119,7 +119,7 @@ namespace tpie {
 	    }
 	
 	    // Inquire the OS block size.
-	    static TPIE_OS_SIZE_T os_block_size () {
+	    memory_size_type os_block_size () const {
 			return TPIE_OS_BLOCKSIZE();
 	    }
 	
@@ -130,16 +130,16 @@ namespace tpie {
 	    // Return the path name in newly allocated space.
 	    std::string name() const;
 
-		inline err write_array(const T * elms, TPIE_OS_SIZE_T count) {
-			for(TPIE_OS_SIZE_T i=0; i < count; ++i) {
+		inline err write_array(const T * elms, memory_size_type count) {
+			for(memory_size_type i=0; i < count; ++i) {
 				err e = reinterpret_cast<C*>(this)->write_item(elms[i]);
 				if(e != NO_ERROR) return e;
 			}
 			return NO_ERROR;
 		}
 
-		inline err read_array(T * elms, TPIE_OS_SIZE_T & count) {
-			TPIE_OS_SIZE_T c=count;
+		inline err read_array(T * elms, memory_size_type & count) {
+			memory_size_type c=count;
 			for(count=0; count < c; ++count) {
 				T * x;
 				err e = reinterpret_cast<C*>(this)->read_item(&x);
@@ -159,8 +159,8 @@ namespace tpie {
 	    // Initialize the header with as much information as is known here.
 	    void init_header();
 	
-	    inline err register_memory_allocation (TPIE_OS_SIZE_T sz);
-	    inline err register_memory_deallocation (TPIE_OS_SIZE_T sz);
+	    inline err register_memory_allocation (memory_size_type sz);
+	    inline err register_memory_deallocation (memory_size_type sz);
 	
 	    // Record statistics both globally (on base-class level) and
 	    // locally (on instance level).
@@ -185,23 +185,23 @@ namespace tpie {
 	    stats_stream      m_streamStatistics;
 	
 	    // The size of a physical block.
-	    TPIE_OS_SIZE_T    m_osBlockSize;
+	    memory_size_type    m_osBlockSize;
 	
 	    // Offset of the current item in the file. This is the logical
 	    // offset of the item within the file, that is, the place we would
 	    // have to lseek() to in order to read() or write() the item if we
 	    // were using ordinary (i.e. non-mmap()) file access methods.
-	    TPIE_OS_OFFSET      m_fileOffset;
+	    stream_offset_type      m_fileOffset;
 	
 	    // Beginning of the file.  Can't write before here.
-	    TPIE_OS_OFFSET      m_logicalBeginOfStream;
+	    stream_offset_type      m_logicalBeginOfStream;
 	
 	    // Offset just past the end of the last item in the stream. If this
 	    // is a substream, we can't write here or anywhere beyond.
-	    TPIE_OS_OFFSET      m_logicalEndOfStream;
+	    stream_offset_type      m_logicalEndOfStream;
 	
 	    // Length of the underlying file.
-	    TPIE_OS_OFFSET       m_fileLength;
+	    stream_offset_type       m_fileLength;
 	
 	    // A place to cache OS error values. It is normally set after each
 	    // call to the OS.
@@ -318,7 +318,7 @@ namespace tpie {
 	}
     
 	template<class T,class C>
-	err stream_base<T,C>::register_memory_allocation (TPIE_OS_SIZE_T sz) {
+	err stream_base<T,C>::register_memory_allocation (memory_size_type sz) {
 	
 	    if (MM_manager.register_allocation(sz) != mem::NO_ERROR) {
 	    
@@ -335,7 +335,7 @@ namespace tpie {
 	}
 
 	template<class T,class C>
-	err stream_base<T,C>::register_memory_deallocation (TPIE_OS_SIZE_T sz) {
+	err stream_base<T,C>::register_memory_deallocation (memory_size_type sz) {
 	
 	    if (MM_manager.register_deallocation (sz) != mem::NO_ERROR) {
 	    

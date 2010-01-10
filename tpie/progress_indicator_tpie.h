@@ -53,9 +53,9 @@ namespace tpie {
 	
 	progress_indicator_tpie(const std::string& title, 
 							const std::string& description, 
-							TPIE_OS_OFFSET minRange, 
-							TPIE_OS_OFFSET maxRange, 
-							TPIE_OS_OFFSET stepValue) : 
+							stream_offset_type minRange, 
+							stream_offset_type maxRange, 
+							stream_offset_type stepValue) : 
 	    progress_indicator_terminal(title, description, minRange, maxRange, stepValue), m_indicatorLength(0), m_progress(0) {
 	    m_indicatorLength = 40;
 	}
@@ -126,7 +126,7 @@ namespace tpie {
 	
 	void refresh() {
 	    //  Compute the relative length of the arrow.
-	    TPIE_OS_OFFSET progress = m_indicatorLength * 
+	    stream_offset_type progress = m_indicatorLength * 
 		(m_current-m_minRange)/(m_maxRange-m_minRange); 
 	    
 	    //  Make sure that the first item gets printed.
@@ -142,11 +142,11 @@ namespace tpie {
 		cout << "\r" << m_description << " [t";
 		
 		//  Extend the e's.
-		for(TPIE_OS_OFFSET i = 0; i < progress; i++) std::cout << "e";
+		for(stream_offset_type i = 0; i < progress; i++) std::cout << "e";
 		cout << "pie";
 		
 		//  Print blank space.
-		for(TPIE_OS_OFFSET i = progress+1; i < m_indicatorLength; i++) std::cout << " ";
+		for(stream_offset_type i = progress+1; i < m_indicatorLength; i++) std::cout << " ";
 		cout << "] ";
 		
 		//  Print either a percentage sign or the maximum range.
@@ -161,10 +161,10 @@ namespace tpie {
 	
 	
 	/** The maximal length of the indicator */
-	TPIE_OS_OFFSET m_indicatorLength;
+	stream_offset_type m_indicatorLength;
 	
 	/** The current length of the indicator */
-	TPIE_OS_OFFSET m_progress;
+	stream_offset_type m_progress;
 	
 	
     private:

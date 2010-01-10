@@ -345,7 +345,7 @@ template<class coord_t, class data_t, size_t dim>
 std::ostream& operator<<(std::ostream& s, const record<coord_t, data_t, dim>& p) {
   for (TPIE_OS_TIME_T i = 0; i < dim; i++)
     s << p[i] << " ";
-  return s << (TPIE_OS_OFFSET)p.id();
+  return s << (stream_offset_type)p.id();
 }
 
 #ifdef _WIN32

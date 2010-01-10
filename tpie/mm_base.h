@@ -118,7 +118,7 @@ namespace tpie {
 	///////////////////////////////////////////////////////////////////////////
 	/// Returns how much memory (in bytes) is currently available to TPIE.
 	///////////////////////////////////////////////////////////////////////////
-	virtual err available (TPIE_OS_SIZE_T *sz_a) = 0;
+	virtual err available (memory_size_type *sz_a) = 0;
 	
 	virtual ~manager_base();       
     };

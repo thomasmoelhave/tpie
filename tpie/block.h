@@ -105,8 +105,8 @@ namespace tpie {
   	  /// Returns the capacity (in number of elements) of the el vector, given the 
   	  /// correct block size and number of links.
       ///////////////////////////////////////////////////////////////////
-	    static TPIE_OS_SIZE_T el_capacity(TPIE_OS_SIZE_T block_size, 
-					      TPIE_OS_SIZE_T links);
+	    static memory_size_type el_capacity(memory_size_type block_size, 
+					      memory_size_type links);
 	    
       ///////////////////////////////////////////////////////////////////
       /// Read the block with id bid from block collection
@@ -116,7 +116,7 @@ namespace tpie {
       ///  If the ID is missing or 0, a new block is created.
       ///////////////////////////////////////////////////////////////////
 	    block(collection_single<BTECOLL>* pacoll, 
-		  TPIE_OS_SIZE_T links, 
+		  memory_size_type links, 
 		  bid_t bid = 0);
 
 	    ///////////////////////////////////////////////////////////////////
@@ -140,13 +140,13 @@ namespace tpie {
 ////////////////////////////////////
 	
 	template<class E, class I, class BTECOLL>
-	TPIE_OS_SIZE_T block<E,I,BTECOLL>::el_capacity(TPIE_OS_SIZE_T block_size, TPIE_OS_SIZE_T links) {
-	    return (TPIE_OS_SIZE_T) ((block_size - sizeof(I) - links * sizeof(bid_t)) / sizeof(E));
+	memory_size_type block<E,I,BTECOLL>::el_capacity(memory_size_type block_size, memory_size_type links) {
+	    return (memory_size_type) ((block_size - sizeof(I) - links * sizeof(bid_t)) / sizeof(E));
 	}
 	
 	template<class E, class I, class BTECOLL>
 	block<E,I,BTECOLL>::block(collection_single<BTECOLL>* pacoll, 
-				  TPIE_OS_SIZE_T links, 
+				  memory_size_type links, 
 				  bid_t _bid):
 	    block_base<BTECOLL>(pacoll, _bid), 
 	    lk((bid_t*)pdata_, links),

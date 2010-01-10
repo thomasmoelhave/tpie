@@ -44,7 +44,7 @@ class pq_merge_heap {
 		/// \param elements Maximum allowed size of the heap
 		///
 		/////////////////////////////////////////////////////////
-		pq_merge_heap(TPIE_OS_SIZE_T elements);
+		pq_merge_heap(memory_size_type elements);
 
 		/////////////////////////////////////////////////////////
 		///
@@ -61,7 +61,7 @@ class pq_merge_heap {
 		/// \param run Where it comes from
 		///
 		/////////////////////////////////////////////////////////
-		void push(const T& x, TPIE_OS_SIZE_T run);
+		void push(const T& x, memory_size_type run);
 
 		/////////////////////////////////////////////////////////
 		///
@@ -79,7 +79,7 @@ class pq_merge_heap {
 		/// \param run Where it comes from
 		///
 		/////////////////////////////////////////////////////////
-		void pop_and_push(const T& x, TPIE_OS_SIZE_T run);
+		void pop_and_push(const T& x, memory_size_type run);
 
 		/////////////////////////////////////////////////////////
 		///
@@ -97,7 +97,7 @@ class pq_merge_heap {
 		/// \return Top element run number
 		///
 		/////////////////////////////////////////////////////////
-		TPIE_OS_SIZE_T top_run() const;
+		memory_size_type top_run() const;
 
 		/////////////////////////////////////////////////////////
 		///
@@ -106,7 +106,7 @@ class pq_merge_heap {
 		/// \return Queue size
 		///
 		/////////////////////////////////////////////////////////
-		TPIE_OS_SIZE_T size() const;
+		memory_size_type size() const;
 
 		/////////////////////////////////////////////////////////
 		///
@@ -122,12 +122,12 @@ class pq_merge_heap {
 		void validate();
 		void dump();
 
-		TPIE_OS_SIZE_T m_size;
+		memory_size_type m_size;
 		Comparator comp_;
 
 		T* heap;
-		TPIE_OS_SIZE_T* runs;
-		TPIE_OS_SIZE_T maxsize;
+		memory_size_type* runs;
+		memory_size_type maxsize;
 };
 
 #include "pq_merge_heap.inl"

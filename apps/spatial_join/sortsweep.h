@@ -48,7 +48,7 @@ protected:
   SortingAdaptor *adaptor_[2];
   //  InterTree *iTree_[2];
   AMI_STREAM<pair_of_rectangles> *outStream_;
-  TPIE_OS_OFFSET intersection_count;
+  stream_offset_type intersection_count;
 
 public:
   sort_sweep(const char* red_filename, const char* blue_filename, 
@@ -57,9 +57,9 @@ public:
   // run() takes the smallest item from the adaptor and runs 
   // the sweepline algorithm on it.
   AMI_err run();
-  TPIE_OS_OFFSET getIntersectionCount() { return intersection_count; }
-  TPIE_OS_OFFSET redSize() const { return adaptor_[0]->size();}
-  TPIE_OS_OFFSET blueSize() const { return adaptor_[1]->size();}
+  stream_offset_type getIntersectionCount() { return intersection_count; }
+  stream_offset_type redSize() const { return adaptor_[0]->size();}
+  stream_offset_type blueSize() const { return adaptor_[1]->size();}
   void getMbr(const char *input_filename, rectangle *mbr);
 };
 

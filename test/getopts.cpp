@@ -42,6 +42,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <string.h>
+#include <tpie/types.h>
+using namespace tpie;
 
 #include "getopts.h"
 
@@ -55,7 +57,7 @@ int getopts_usage(char *progName, struct options opts[]) {
   size_t count;
   size_t i;
   char *cmd=NULL;
-  TPIE_OS_SIZE_T optlen = 30;
+  memory_size_type optlen = 30;
 
   printf("Usage: %s [options]\nOptions:\n", progName);
   printf("  --help, -h ");

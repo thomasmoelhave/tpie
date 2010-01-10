@@ -21,7 +21,7 @@
 
 using namespace tpie;
 
-bit_matrix::bit_matrix(TPIE_OS_SIZE_T arows, TPIE_OS_SIZE_T acols) :
+bit_matrix::bit_matrix(memory_size_type arows, memory_size_type acols) :
         matrix<bit>(arows, acols) {
 
     //  No code in this constructor.
@@ -40,9 +40,9 @@ bit_matrix bit_matrix::operator=(const bit_matrix &rhs) {
     return this->matrix<bit>::operator=((matrix<bit> &)rhs);
 }
 
-bit_matrix & bit_matrix::operator=(const TPIE_OS_OFFSET &rhs) {
-    TPIE_OS_SIZE_T rows = this->rows();
-    TPIE_OS_SIZE_T ii;
+bit_matrix & bit_matrix::operator=(const stream_offset_type &rhs) {
+    memory_size_type rows = this->rows();
+    memory_size_type ii;
 
     if (this->cols() != 1) {
 #if HANDLE_EXCEPTIONS
@@ -59,11 +59,11 @@ bit_matrix & bit_matrix::operator=(const TPIE_OS_OFFSET &rhs) {
     return *this;
 }    
 
-bit_matrix::operator TPIE_OS_OFFSET(void) {
-    TPIE_OS_OFFSET res;
+bit_matrix::operator stream_offset_type(void) {
+    stream_offset_type res;
 
-    TPIE_OS_SIZE_T rows = this->rows();
-    TPIE_OS_SIZE_T ii;
+    memory_size_type rows = this->rows();
+    memory_size_type ii;
 
     if (this->cols() != 1) {
 #if HANDLE_EXCEPTIONS

@@ -319,8 +319,8 @@ namespace tpie {
 		const rectangle<coord_t, bid_t>&    bb, 
 		ami::stack<bid_t>*                  candidates, 
 		stream<rectangle<coord_t, bid_t> >* matches,
-		TPIE_OS_OFFSET&                     candidatesCounter,
-		TPIE_OS_OFFSET&                     leafCounter,
+		stream_offset_type&                     candidatesCounter,
+		stream_offset_type&                     leafCounter,
 		bool                                bruteForce = false) const;
 
             ///////////////////////////////////////////////////////////////////////////
@@ -334,7 +334,7 @@ namespace tpie {
 	    void find_node(
 		bid_t              nodeID,
 		ami::stack<bid_t>* candidates, 
-		TPIE_OS_OFFSET&    candidatesCounter) const;
+		stream_offset_type&    candidatesCounter) const;
 
             ///////////////////////////////////////////////////////////////////////////
 	    /// This method realizes a depth-first search looking for a leaf
@@ -361,7 +361,7 @@ namespace tpie {
 	    void check_children(
 		const rectangle<coord_t, bid_t>&                          bb, 
 		std::list<std::pair<bid_t, rectangle<coord_t, bid_t> > >& l, 
-		TPIE_OS_OFFSET&                                           objectCounter);
+		stream_offset_type&                                           objectCounter);
 
             ///////////////////////////////////////////////////////////////////////////
 	    /// This method returns the axis perpendicular to which the split
@@ -553,7 +553,7 @@ namespace tpie {
 	void rstarnode<coord_t, BTECOLL>::check_children(
 	    const rectangle<coord_t, bid_t>&                          bb,
 	    std::list<std::pair<bid_t, rectangle<coord_t, bid_t> > >& l,
-	    TPIE_OS_OFFSET&                                           objectCounter) {
+	    stream_offset_type&                                           objectCounter) {
 	    
 	    rectangle<coord_t, bid_t> toCompare = el[0];
 	    toCompare.set_id(bid_t());
@@ -620,8 +620,8 @@ namespace tpie {
 	    const rectangle<coord_t, bid_t>&    bb, 
 	    ami::stack<bid_t>*                  candidates, 
 	    stream<rectangle<coord_t, bid_t> >* matches,
-	    TPIE_OS_OFFSET&                     candidatesCounter, 
-	    TPIE_OS_OFFSET&                     leafCounter, 
+	    stream_offset_type&                     candidatesCounter, 
+	    stream_offset_type&                     leafCounter, 
 	    bool                                bruteForce) const {
 
 	    rectangle<coord_t, bid_t> rb;
@@ -692,7 +692,7 @@ namespace tpie {
 	void rstarnode<coord_t, BTECOLL>::find_node(
 	    bid_t              nodeID, 
 	    ami::stack<bid_t>* candidates, 
-	    TPIE_OS_OFFSET&    candidatesCounter) const {
+	    stream_offset_type&    candidatesCounter) const {
 
 	    if (is_leaf()) {
 		//  If the current node is a leaf, check whether its ID matches

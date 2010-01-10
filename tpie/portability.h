@@ -21,9 +21,10 @@
 #ifndef _PORTABILITY_H
 #define _PORTABILITY_H
 
+#include <tpie/types.h>
 #include <tpie/config.h>
 
-//  The following wil cause TPIE_OS_SIZE_T to be a 32-bit integer!
+//  The following wil cause tpie::memory_size_type to be a 32-bit integer!
 #define _TPIE_SMALL_MAIN_MEMORY
 
 #ifdef _WIN32
@@ -34,16 +35,9 @@
 
 // overview of this file:				//
 //////////////////////////////////////////
-// includes								//
-// typedef, enum, etc.					//
-// functions							//
-//		non tpie specific				//
-//		tpie specific					//
-//			open functions				//
-//			working with open files		//
-//			close file functions		//
-// warnings								//
-// others								//
+// includes // typedef, enum, etc.  // functions // non tpie specific
+// // tpie specific // open functions // working with open files //
+// close file functions // warnings // others //
 
 
 
@@ -137,9 +131,9 @@ inline TPIE_OS_TIME_T TPIE_OS_TIME(TPIE_OS_TIME_T* timep) {
 #endif
 
 #ifdef _WIN32
-typedef __int64 TPIE_OS_OFFSET;
+//typedef __int64 tpie::stream_offset_type;
 #else
-typedef off_t TPIE_OS_OFFSET;
+//typedef off_t tpie::stream_offset_type;
 #endif	
 
 #ifdef _WIN32
@@ -147,37 +141,37 @@ typedef off_t TPIE_OS_OFFSET;
 //of printing 64 bit integers
 //printf doesn't work either with %d, use %I64d in Win32
 #if (_MSC_VER < 1300) && !defined(__MINGW32__)
-extern std::ostream& operator<<(std::ostream& s, const TPIE_OS_OFFSET x);
+extern std::ostream& operator<<(std::ostream& s, const tpie::stream_size_type x);
 #endif
 #endif
 
 #if defined (_WIN32) && !defined(__MINGW32__)
-typedef long TPIE_OS_LONG;
-typedef __int64 TPIE_OS_LONGLONG;
-typedef unsigned __int64 TPIE_OS_ULONGLONG;
+// typedef long TPIE_OS_LONG;
+// typedef __int64 TPIE_OS_LONGLONG;
+// typedef unsigned __int64 TPIE_OS_ULONGLONG;
 #else
-typedef long TPIE_OS_LONG;
-typedef long long int TPIE_OS_LONGLONG;
-typedef unsigned long long int TPIE_OS_ULONGLONG;
+// typedef long TPIE_OS_LONG;
+// typedef long long int TPIE_OS_LONGLONG;
+// typedef unsigned long long int TPIE_OS_ULONGLONG;
 #endif	
 
 #if defined (_WIN32) && !defined(__MINGW32__)
-typedef SSIZE_T TPIE_OS_SSIZE_T;
+// typedef SSIZE_T tpie::memory_offset_type;
 #ifdef _TPIE_SMALL_MAIN_MEMORY
 #if (_MSC_VER < 1400)
-typedef unsigned __int32 TPIE_OS_SIZE_T;
+// typedef unsigned __int32 tpie::memory_size_type;
 #else
-typedef size_t TPIE_OS_SIZE_T;
+// typedef size_t tpie::memory_size_type;
 #endif
 #else
-typedef size_t TPIE_OS_SIZE_T;
+// typedef size_t tpie::memory_size_type;	
 #endif
 #else
-typedef ssize_t TPIE_OS_SSIZE_T;
-typedef size_t TPIE_OS_SIZE_T;
-#endif
+// typedef ssize_t tpie::memory_offset_type; 
+// typedef size_t tpie::memory_size_type;
+#endif	
 
-#define TPIE_OS_OUTPUT_SIZE_T TPIE_OS_OFFSET
+#define TPIE_OS_OUTPUT_SIZE_T tpie::stream_offset_type
 
 #ifdef _WIN32
 enum TPIE_OS_FLAG {
@@ -229,35 +223,18 @@ typedef int TPIE_OS_FILE_DESCRIPTOR;
 
 
 // Default block id type
-typedef TPIE_OS_OFFSET TPIE_BLOCK_ID_TYPE;
+typedef tpie::stream_size_type block_id_type;
 
 
 //////////////////////////////////////////////
-// macros				    //
+// macros                                   //
 //////////////////////////////////////////////
-
 
 #ifdef _WIN32
-#define	 TMP_DIR ".\\"
 #define TPIE_OS_DIR_DELIMITER "\\"
 #else
-#define	TMP_DIR	"/var/tmp/"
 #define TPIE_OS_DIR_DELIMITER "/"
 #endif
-
- 
-#ifdef _WIN32					
-#define TPIE_OS_STL_STACK stack				
-#else							
-#define TPIE_OS_STL_STACK stack					
-#endif							
-
-
-#ifdef _WIN32					
-#define TPIE_OS_STL_PAIR pair				
-#else 			
-#define TPIE_OS_STL_PAIR pair					
-#endif	
 
 #ifdef _WIN32	
 #define TPIE_OS_SET_LIMITS_BODY	\
@@ -352,14 +329,14 @@ inline void TPIE_OS_SRANDOM(unsigned int seed) {
 #ifdef _WIN32
 // Win32 File Seeks use high/low order offsets 
 // Getting Highorder 32 Bit OFFSET
-inline LONG getHighOrderOff(TPIE_OS_OFFSET off) {
+inline LONG getHighOrderOff(tpie::stream_offset_type off) {
     //Be careful with sign bits. 
     return (LONG)((ULONGLONG)(off)>>32);
 }
  
      
 // Getting Loworder 32 Bit OFFSET
-inline LONG getLowOrderOff(TPIE_OS_OFFSET off) {
+inline LONG getLowOrderOff(tpie::stream_offset_type off) {
     return (LONG)((ULONGLONG)(off) % 0x000100000000ULL);
 }
 #endif
@@ -370,18 +347,18 @@ inline LONG getLowOrderOff(TPIE_OS_OFFSET off) {
 //       tpie specific functions            //
 
 #ifdef _WIN32
-inline TPIE_OS_SIZE_T  TPIE_OS_PAGESIZE() {
+inline tpie::memory_size_type  TPIE_OS_PAGESIZE() {
     SYSTEM_INFO systemInfos;
     GetSystemInfo(&systemInfos);
-    return (TPIE_OS_SIZE_T )systemInfos.dwPageSize;
+    return (tpie::memory_size_type )systemInfos.dwPageSize;
 }
 #else
 #ifdef _SC_PAGE_SIZE
-inline TPIE_OS_SIZE_T  TPIE_OS_PAGESIZE() {
+inline tpie::memory_size_type  TPIE_OS_PAGESIZE() {
     return sysconf (_SC_PAGE_SIZE);
 }
 #else
-inline TPIE_OS_SIZE_T  TPIE_OS_PAGESIZE() {
+inline tpie::memory_size_type  TPIE_OS_PAGESIZE() {
     return getpagesize();
 }
 #endif
@@ -389,18 +366,18 @@ inline TPIE_OS_SIZE_T  TPIE_OS_PAGESIZE() {
 
 
 #ifdef _WIN32
-inline TPIE_OS_SIZE_T  TPIE_OS_BLOCKSIZE() {
+inline tpie::memory_size_type  TPIE_OS_BLOCKSIZE() {
     SYSTEM_INFO systemInfos;
     GetSystemInfo(&systemInfos);
     return systemInfos.dwAllocationGranularity;
 }
 #else
 #ifdef _SC_PAGE_SIZE
-inline TPIE_OS_SIZE_T TPIE_OS_BLOCKSIZE() {
+inline tpie::memory_size_type TPIE_OS_BLOCKSIZE() {
     return sysconf (_SC_PAGE_SIZE);
 }
 #else
-inline TPIE_OS_SIZE_T  TPIE_OS_BLOCKSIZE() {
+inline tpie::memory_size_type  TPIE_OS_BLOCKSIZE() {
     return getpagesize();
 }
 #endif
@@ -429,19 +406,19 @@ inline FILE* TPIE_OS_FOPEN(const std::string& filename,
 //but for later adaptation to other systems it maybe useful
 #ifdef _WIN32
 #ifdef __MINGW32__
-inline int TPIE_OS_FSEEK(FILE* file, TPIE_OS_OFFSET offset, int whence) {
-	return fseeko64(file, static_cast<TPIE_OS_OFFSET>(offset), whence);
+inline int TPIE_OS_FSEEK(FILE* file, tpie::stream_offset_type offset, int whence) {
+	return fseeko64(file, static_cast<tpie::stream_offset_type>(offset), whence);
 }
 #else
-inline int TPIE_OS_FSEEK(FILE* file, TPIE_OS_OFFSET offset, int whence) {
-	//  Please note that the second parameter should be TPIE_OS_OFFSET
+inline int TPIE_OS_FSEEK(FILE* file, tpie::stream_offset_type offset, int whence) {
+	//  Please note that the second parameter should be tpie::stream_offset_type
 	//  instead of int. This is due to the fact that VS2003 does not
 	//  support large files with fopen/fseek etc.
-	return _fseeki64(file, static_cast<TPIE_OS_OFFSET>(offset), whence);
+	return _fseeki64(file, static_cast<tpie::stream_offset_type>(offset), whence);
 }
 #endif
 #else
-inline int TPIE_OS_FSEEK(FILE* file, TPIE_OS_OFFSET offset, int whence) {
+inline int TPIE_OS_FSEEK(FILE* file, tpie::stream_offset_type offset, int whence) {
     return fseek(file, offset, whence);
 }
 #endif
@@ -450,16 +427,16 @@ inline int TPIE_OS_FSEEK(FILE* file, TPIE_OS_OFFSET offset, int whence) {
 //but for later adaptation to other systems it maybe useful
 #ifdef _WIN32
 #ifdef __MINGW32__
-inline TPIE_OS_OFFSET TPIE_OS_FTELL(FILE* file) {
+inline tpie::stream_offset_type TPIE_OS_FTELL(FILE* file) {
     return ftello64(file);
 }
 #else
-inline TPIE_OS_OFFSET TPIE_OS_FTELL(FILE* file) {
+inline tpie::stream_offset_type TPIE_OS_FTELL(FILE* file) {
     return _ftelli64(file);
 }
 #endif
 #else
-inline TPIE_OS_OFFSET TPIE_OS_FTELL(FILE* file) {
+inline tpie::stream_offset_type TPIE_OS_FTELL(FILE* file) {
     return ftell(file);
 }
 #endif
@@ -631,7 +608,7 @@ inline bool TPIE_OS_IS_VALID_FILE_DESCRIPTOR(TPIE_OS_FILE_DESCRIPTOR& fd) {
 
 // for working with HANDLEs under Windows we have to use SetFilePointer instead of _lseek //
 #ifdef _WIN32
-inline TPIE_OS_OFFSET TPIE_OS_LSEEK(TPIE_OS_FILE_DESCRIPTOR &fd,TPIE_OS_OFFSET offset,TPIE_OS_FLAG origin) {	
+inline tpie::stream_offset_type TPIE_OS_LSEEK(TPIE_OS_FILE_DESCRIPTOR &fd,tpie::stream_offset_type offset,TPIE_OS_FLAG origin) {	
     LONG highOrderOff = getHighOrderOff(offset);	
     DWORD x = SetFilePointer(fd.FileHandle,getLowOrderOff(offset),&highOrderOff,origin);
 
@@ -640,36 +617,36 @@ inline TPIE_OS_OFFSET TPIE_OS_LSEEK(TPIE_OS_FILE_DESCRIPTOR &fd,TPIE_OS_OFFSET o
 	  return -1;
 	}
 	else{
-      return TPIE_OS_OFFSET((((ULONGLONG) highOrderOff)<<32)+(ULONGLONG) x);
+      return tpie::stream_offset_type((((ULONGLONG) highOrderOff)<<32)+(ULONGLONG) x);
 	}
 }
 #else
-inline TPIE_OS_OFFSET TPIE_OS_LSEEK(TPIE_OS_FILE_DESCRIPTOR &fd,TPIE_OS_OFFSET offset,TPIE_OS_FLAG origin) {
+inline tpie::stream_offset_type TPIE_OS_LSEEK(TPIE_OS_FILE_DESCRIPTOR &fd,tpie::stream_offset_type offset,TPIE_OS_FLAG origin) {
     return ::lseek(fd, offset, origin);
 }
 #endif
 
     
 #ifdef _WIN32
-inline TPIE_OS_SSIZE_T TPIE_OS_WRITE(TPIE_OS_FILE_DESCRIPTOR fd, const void* buffer, TPIE_OS_SIZE_T count) {
+inline tpie::memory_offset_type TPIE_OS_WRITE(TPIE_OS_FILE_DESCRIPTOR fd, const void* buffer, tpie::memory_size_type count) {
     DWORD bytesWritten = 0;
 	::WriteFile(fd.FileHandle, buffer, (DWORD)count, &bytesWritten, 0);
-    return (TPIE_OS_SSIZE_T)(bytesWritten > 0 ? bytesWritten : -1);
+    return (tpie::memory_offset_type)(bytesWritten > 0 ? bytesWritten : -1);
 }
 #else
-inline TPIE_OS_SSIZE_T TPIE_OS_WRITE(TPIE_OS_FILE_DESCRIPTOR fd, const void* buffer, size_t count) {
+inline tpie::memory_offset_type TPIE_OS_WRITE(TPIE_OS_FILE_DESCRIPTOR fd, const void* buffer, size_t count) {
     return ::write(fd,buffer,count);
 }
 #endif
 
 #ifdef _WIN32
-inline TPIE_OS_SSIZE_T TPIE_OS_READ(TPIE_OS_FILE_DESCRIPTOR fd, void* buffer, TPIE_OS_SIZE_T count) {
+inline tpie::memory_offset_type TPIE_OS_READ(TPIE_OS_FILE_DESCRIPTOR fd, void* buffer, tpie::memory_size_type count) {
     DWORD bytesRead = 0;
     ReadFile(fd.FileHandle, buffer, (DWORD)count, &bytesRead, 0);
     return (bytesRead > 0 ? bytesRead : -1);
 }
 #else
-inline TPIE_OS_SSIZE_T TPIE_OS_READ(TPIE_OS_FILE_DESCRIPTOR fd, void* buffer, size_t count) {
+inline tpie::memory_offset_type TPIE_OS_READ(TPIE_OS_FILE_DESCRIPTOR fd, void* buffer, size_t count) {
     return ::read(fd,buffer,count);
 }
 #endif
@@ -679,11 +656,11 @@ inline TPIE_OS_SSIZE_T TPIE_OS_READ(TPIE_OS_FILE_DESCRIPTOR fd, void* buffer, si
 // a multiple of the systems granularity (else the mapping fails)
 // Hence, the parameter addr is not used at present.
 inline LPVOID TPIE_OS_MMAP(LPVOID /* addr */, 
-			   TPIE_OS_SIZE_T  len, 
+			   tpie::memory_size_type  len, 
 			   int     prot, 
 			   int     /* flags */ , 
 			   TPIE_OS_FILE_DESCRIPTOR fildes, 
-			   TPIE_OS_OFFSET off) {
+			   tpie::stream_offset_type off) {
     return MapViewOfFileEx( fildes.mapFileHandle,
 			    prot,
 			    getHighOrderOff(off),		       
@@ -691,7 +668,7 @@ inline LPVOID TPIE_OS_MMAP(LPVOID /* addr */,
 			    len, NULL);
 }
 #else	
-inline void* TPIE_OS_MMAP(void* addr, size_t len, int prot, int flags, TPIE_OS_FILE_DESCRIPTOR fildes, TPIE_OS_OFFSET off) {
+inline void* TPIE_OS_MMAP(void* addr, size_t len, int prot, int flags, TPIE_OS_FILE_DESCRIPTOR fildes, tpie::stream_offset_type off) {
     return mmap(static_cast<caddr_t>(addr), len, prot, flags, fildes, off);
 }
 #endif
@@ -738,9 +715,9 @@ inline bool TPIE_OS_EXISTS(const std::string & path) {
 #endif
 #define BTE_COLLECTION_USE_FTRUNCATE 1
 
-inline int TPIE_OS_FTRUNCATE(TPIE_OS_FILE_DESCRIPTOR& fd, TPIE_OS_OFFSET length) {
+inline int TPIE_OS_FTRUNCATE(TPIE_OS_FILE_DESCRIPTOR& fd, tpie::stream_offset_type length) {
   // Save the offset
-  TPIE_OS_OFFSET so = TPIE_OS_LSEEK(fd, 0, TPIE_OS_FLAG_SEEK_CUR);
+  tpie::stream_offset_type so = TPIE_OS_LSEEK(fd, 0, TPIE_OS_FLAG_SEEK_CUR);
   if (fd.useFileMapping == TPIE_OS_FLAG_USE_MAPPING_TRUE) {
     CloseHandle(fd.mapFileHandle);	
   }
@@ -761,7 +738,7 @@ inline int TPIE_OS_FTRUNCATE(TPIE_OS_FILE_DESCRIPTOR& fd, TPIE_OS_OFFSET length)
   return x;
 }
 #else							
-inline int TPIE_OS_FTRUNCATE(TPIE_OS_FILE_DESCRIPTOR& fd, TPIE_OS_OFFSET length) {
+inline int TPIE_OS_FTRUNCATE(TPIE_OS_FILE_DESCRIPTOR& fd, tpie::stream_offset_type length) {
     return ftruncate(fd, length);
 }
 #endif
@@ -904,7 +881,7 @@ inline int TPIE_OS_UNLINK(const std::string& filename) {
 #endif
 
 #ifdef _WIN32
-inline int TPIE_OS_TRUNCATE(FILE* file, const std::string& /* path */, TPIE_OS_OFFSET offset) {
+inline int TPIE_OS_TRUNCATE(FILE* file, const std::string& /* path */, tpie::stream_offset_type offset) {
 //    TPIE_OS_LONG highOrderOff = getHighOrderOff(offset);	
 //    DWORD x = SetFilePointer(fd.FileHandle,getLowOrderOff(offset),&highOrderOff, FILE_BEGIN);
 //	return SetEndOfFile(fd.FileHandle);
@@ -917,7 +894,7 @@ inline int TPIE_OS_TRUNCATE(FILE* file, const std::string& /* path */, TPIE_OS_O
 	return _chsize(file->_file, loffset);
 }
 #else
-inline int TPIE_OS_TRUNCATE(FILE* /* file */, const std::string& path, TPIE_OS_OFFSET offset) {
+inline int TPIE_OS_TRUNCATE(FILE* /* file */, const std::string& path, tpie::stream_offset_type offset) {
 	return ::truncate(path.c_str(), offset);
 }
 #endif
@@ -1003,9 +980,9 @@ logstream& logstream::operator<<(const LONGLONG x)\
 #ifdef _WIN32	
 #ifndef NDEBUG
 #define TPIE_OS_SPACE_OVERHEAD_BODY \
-void * __cdecl _nh_malloc_dbg (TPIE_OS_SIZE_T, int, int, const char *,	int );\
+void * __cdecl _nh_malloc_dbg (tpie::memory_size_type, int, int, const char *,	int );\
 void * operator new(\
-		    TPIE_OS_SIZE_T cb,\
+		    tpie::memory_size_type cb,\
 		    int /* nBlockUse */,\
 		    const char * /* szFileName */,\
 		    int /* nLine */ \
@@ -1050,7 +1027,7 @@ void * operator new(\
        assert(0);\
        exit (1);\
    }\
-   *((TPIE_OS_SIZE_T *) p) = cb;\
+   *((tpie::memory_size_type *) p) = cb;\
    return ((char *) p) + SIZE_SPACE;\
 };
 #endif

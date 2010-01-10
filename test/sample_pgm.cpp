@@ -77,9 +77,9 @@ void print_usage(char * progname){
 // Convert a string to a number
 // Just like atoi or atol, but should also work for 64bit numbers
 // Also supports KMG suffixes (e.g. 2K = 2*1024)
-TPIE_OS_OFFSET ascii2offset(char *s){
+stream_offset_type ascii2offset(char *s){
   int i, len, digit;
-  TPIE_OS_OFFSET multfactor, value;
+  stream_offset_type multfactor, value;
   bool ok;
   
   i=0;
@@ -120,7 +120,7 @@ TPIE_OS_OFFSET ascii2offset(char *s){
 }
 
 void get_app_info(int argc, char** argv, 
-                  TPIE_OS_OFFSET& len, TPIE_OS_OFFSET& mem){
+                  stream_offset_type& len, stream_offset_type& mem){
 
   int optidx, opts_set=0;
   char* optarg;
@@ -160,8 +160,8 @@ void get_app_info(int argc, char** argv,
 // The user needs to specify the length of the initial stream of
 // integers and the size of the main memory that can be used.
 int main(int argc, char *argv[]) { 
-  TPIE_OS_OFFSET Gen_Stream_Length;
-  TPIE_OS_OFFSET test_mm_size;
+  stream_offset_type Gen_Stream_Length;
+  stream_offset_type test_mm_size;
  
   //get length, mem size from command line
   get_app_info(argc, argv, Gen_Stream_Length, test_mm_size);
@@ -186,7 +186,7 @@ int main(int argc, char *argv[]) {
    // Generate the stream of randon integers
    AMI_err ae;
    int src_int;
-   TPIE_OS_OFFSET i;
+   stream_offset_type i;
    std::cout << "Writing random stream..."<<endl;
    for (i = 0; i < Gen_Stream_Length; i++) {
       

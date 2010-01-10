@@ -41,8 +41,8 @@ namespace tpie {
 	class matrix_filler {
 
 	public:
-	    virtual ami::err initialize(TPIE_OS_OFFSET rows, TPIE_OS_OFFSET cols) = 0;
-	    virtual T element(TPIE_OS_OFFSET row, TPIE_OS_OFFSET col) = 0;
+	    virtual ami::err initialize(stream_offset_type rows, stream_offset_type cols) = 0;
+	    virtual T element(stream_offset_type row, stream_offset_type col) = 0;
 	    virtual ~matrix_filler() {};
 	};
 
@@ -63,13 +63,13 @@ namespace tpie {
 	    matrix_fill_scan(const matrix_fill_scan<T>& other);
 	    matrix_fill_scan<T>& operator=(const matrix_fill_scan<T>& other);
 	    
-	    TPIE_OS_OFFSET r, c;
-	    TPIE_OS_OFFSET cur_row, cur_col;
+	    stream_offset_type r, c;
+	    stream_offset_type cur_row, cur_col;
 	    matrix_filler<T> *pemf;
 
 	public:
 	    matrix_fill_scan(matrix_filler<T> *pem_filler,
-			     TPIE_OS_OFFSET rows, TPIE_OS_OFFSET cols) :
+			     stream_offset_type rows, stream_offset_type cols) :
 		r(rows), c(cols), 
 		cur_row(0), cur_col(0),
 		pemf(pem_filler) {

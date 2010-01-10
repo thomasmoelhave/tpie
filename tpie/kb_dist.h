@@ -85,11 +85,11 @@ namespace tpie {
 	template<class T>
 	err _KB_DIST(KB_KEY)(stream<T> &instream,
                              type_amisc &name_stream,
-                             const key_range &range, TPIE_OS_OFFSET &max_size) {
+                             const key_range &range, stream_offset_type &max_size) {
 	    err ae;
 	    
-	    TPIE_OS_SIZE_T sz_avail;
-	    TPIE_OS_SIZE_T single_stream_usage;
+	    memory_size_type sz_avail;
+	    memory_size_type single_stream_usage;
 	    
 	    // How many ouput streams will there be?
 	    unsigned int output_streams;
@@ -204,7 +204,7 @@ namespace tpie {
 	    // Write the names and ranges of all non-empty output streams.	    
 	    for (ii = 0, max_size = 0; ii < output_streams; ++ii) {
 		std::string stream_name;
-		TPIE_OS_OFFSET stream_len;
+		stream_offset_type stream_len;
 		
 		if ((stream_len = out_streams[ii]->stream_len()) > 0) {
 		    

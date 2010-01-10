@@ -36,11 +36,11 @@ namespace tpie {
 	
 	class scan_uniform_sm : public ami::scan_object {
 	private:
-	    TPIE_OS_OFFSET r,c, rmax, cmax;
+	    stream_offset_type r,c, rmax, cmax;
 	    double d;
 
 	public:
-	    scan_uniform_sm(TPIE_OS_OFFSET rows, TPIE_OS_OFFSET cols,
+	    scan_uniform_sm(stream_offset_type rows, stream_offset_type cols,
 			    double density, int seed);
 	    virtual ~scan_uniform_sm(void);
 

@@ -53,13 +53,13 @@ int main(int argc, char **argv)
     // Set the amount of main memory:
     MM_manager.set_memory_limit(test_mm_size);
 
-    ami::stack<TPIE_OS_OFFSET> stack;
+    ami::stack<stream_offset_type> stack;
 
     pi->set_percentage_range(0,test_size);
     pi->set_description("Push");
 
     // Push values.
-    TPIE_OS_OFFSET ii;
+    stream_offset_type ii;
     for (ii = test_size; ii--; ) {
 	pi->step_percentage();
 	stack.push(ii);
@@ -71,9 +71,9 @@ int main(int argc, char **argv)
     }
     
     // Pop them all off.
-    TPIE_OS_OFFSET *jj;
-    TPIE_OS_OFFSET last;
-    TPIE_OS_OFFSET read = 0;
+    stream_offset_type *jj;
+    stream_offset_type last;
+    stream_offset_type read = 0;
     stack.pop(&jj);
     last = *jj;
     

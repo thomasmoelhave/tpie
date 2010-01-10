@@ -194,7 +194,7 @@ int main(int argc, char **argv) {
   char* base_file_name = NULL;
   std::vector<char*> inputs;
   char* input_file_name = NULL;
-  TPIE_OS_OFFSET point_count = 10000;
+  stream_offset_type point_count = 10000;
   // The size of the box as a percentage of the max box (should be
   // between 0.0 and 100.0)
   double box_size = 0.0;

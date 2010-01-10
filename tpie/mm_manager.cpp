@@ -21,6 +21,7 @@
 
 //#include <cassert>
 #include <tpie/config.h>
+#include <tpie/types.h>
 
 #include <tpie/tpie_assert.h>
 #include <tpie/tpie_log.h>
@@ -40,6 +41,7 @@ extern int register_new;
 #include <cstdlib>
 
 using namespace tpie::mem;
+using namespace tpie;
 
 manager::manager() : 
     remaining (0), user_limit(0), used(0), pause_allocation_depth (0) {
@@ -61,7 +63,7 @@ manager::~manager(void)
 // check that new allocation request is below user-defined limit.
 // This should be a private method, only called by operator new.
 
-err manager::register_allocation(TPIE_OS_SIZE_T request)
+err manager::register_allocation(memory_size_type request)
 {
   // quick hack to allow operation before limit is set
   // XXX 
@@ -73,7 +75,7 @@ err manager::register_allocation(TPIE_OS_SIZE_T request)
 
     if (request > remaining) {
        TP_LOG_WARNING("Memory allocation request: ");
-       TP_LOG_WARNING(static_cast<TPIE_OS_OFFSET>(request));
+       TP_LOG_WARNING(static_cast<stream_offset_type>(request));
        TP_LOG_WARNING(": User-specified memory limit exceeded.");
        TP_LOG_FLUSH_LOG;
        remaining = 0;
@@ -83,9 +85,9 @@ err manager::register_allocation(TPIE_OS_SIZE_T request)
     remaining -= request; 
 
     TP_LOG_MEM_DEBUG("manager Allocated ");
-    TP_LOG_MEM_DEBUG(static_cast<TPIE_OS_OFFSET>(request));
+    TP_LOG_MEM_DEBUG(static_cast<stream_offset_type>(request));
     TP_LOG_MEM_DEBUG("; ");
-    TP_LOG_MEM_DEBUG(static_cast<TPIE_OS_OFFSET>(remaining));
+    TP_LOG_MEM_DEBUG(static_cast<stream_offset_type>(remaining));
     TP_LOG_MEM_DEBUG(" remaining.\n");
     TP_LOG_FLUSH_LOG;
 
@@ -103,7 +105,7 @@ err manager::register_allocation(TPIE_OS_SIZE_T request)
 // This should be a private method, only called by operators 
 // delete and delete [].
 
-err manager::register_deallocation(TPIE_OS_SIZE_T sz)
+err manager::register_deallocation(memory_size_type sz)
 {
     remaining += sz;
 
@@ -142,7 +144,7 @@ err manager::register_deallocation(TPIE_OS_SIZE_T sz)
 #ifdef MM_BACKWARD_COMPATIBLE
 // (Old) way to query how much memory is available
 
-err manager::available (TPIE_OS_SIZE_T *sz) {
+err manager::available (memory_size_type *sz) {
     *sz = remaining;
     return NO_ERROR;    
 }
@@ -151,7 +153,7 @@ err manager::available (TPIE_OS_SIZE_T *sz) {
 // It is retained for backward compatibility. 
 // dh. 1999 09 29
 
-err manager::resize_heap(TPIE_OS_SIZE_T sz) {
+err manager::resize_heap(memory_size_type sz) {
    return set_memory_limit(sz);
 }
 #endif
@@ -159,7 +161,7 @@ err manager::resize_heap(TPIE_OS_SIZE_T sz) {
 
 // User-callable method to set allowable memory size
 
-err manager::set_memory_limit (TPIE_OS_SIZE_T new_limit)
+err manager::set_memory_limit (memory_size_type new_limit)
 {
     // by default, we keep track and abort if memory limit exceeded
     if (register_new == IGNORE_MEMORY_EXCEEDED){
@@ -209,31 +211,31 @@ mode manager::get_limit_mode() {
 
 // dh. return the amount of memory available before user-specified 
 // memory limit exceeded 
-TPIE_OS_SIZE_T manager::memory_available() {
+memory_size_type manager::memory_available() {
     return remaining;    
 }
 
-TPIE_OS_SIZE_T manager::memory_used() {
+memory_size_type manager::memory_used() {
     return used;    
 }
 
-TPIE_OS_SIZE_T manager::memory_limit() {
+memory_size_type manager::memory_limit() {
     return user_limit;    
 }
 
-TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound, TPIE_OS_SIZE_T granularity) {
+memory_size_type manager::consecutive_memory_available(memory_size_type lower_bound, memory_size_type granularity) {
 #ifndef TPIE_USE_EXCEPTIONS
-	TPIE_OS_SIZE_T _prevent_compiler_warning = lower_bound + granularity;
+	memory_size_type _prevent_compiler_warning = lower_bound + granularity;
 	_prevent_compiler_warning++;
 	TP_LOG_DEBUG_ID("consecutive_memory_available only works with exceptions\n");
 	return memory_available();
 #else
 	//lower bound of search
-	TPIE_OS_SIZE_T low = lower_bound;
+	memory_size_type low = lower_bound;
 
 	//don't try to get more than the amount of bytes currently
 	//available
-	TPIE_OS_SIZE_T high = memory_available()-space_overhead();
+	memory_size_type high = memory_available()-space_overhead();
 
 	TP_LOG_DEBUG_ID("\n- - - - - - - MEMORY SEARCH - - - - - -\n");
 
@@ -268,7 +270,7 @@ TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound,
 	//the "granularity" variable.
 	do {
 		//middle of search interval, beware of overflows
-		size_t mid = size_t((static_cast<TPIE_OS_OFFSET>(low)+high)/2);
+		size_t mid = size_t((static_cast<stream_offset_type>(low)+high)/2);
 
 		TP_LOG_DEBUG_ID("Search area is  [" << low << "," << high << "]"
 			<< " query amount is: " << mid << ":\n");

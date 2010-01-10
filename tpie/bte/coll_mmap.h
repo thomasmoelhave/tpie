@@ -42,7 +42,7 @@ namespace tpie {
 
     namespace bte {
 
-	template<class BIDT = TPIE_BLOCK_ID_TYPE>
+	template<class BIDT = block_id_type>
 	class collection_mmap: public collection_base<BIDT> {
 
 	protected:
@@ -71,7 +71,7 @@ namespace tpie {
 	    // collection. Implemented in the base class.
 	    collection_mmap(const std::string& base_file_name,
 			    collection_type type = WRITE_COLLECTION,
-			    TPIE_OS_SIZE_T logical_block_factor = 1):
+			    memory_size_type logical_block_factor = 1):
 		collection_base<BIDT>(base_file_name, 
 				      type, 
 				      logical_block_factor, 

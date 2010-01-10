@@ -70,16 +70,16 @@ public:
 
   record_t mbr_lo;
   record_t mbr_hi;
-  TPIE_OS_OFFSET point_count;
+  stream_offset_type point_count;
   int load_method;
-  TPIE_OS_SIZE_T memory_limit;
+  memory_size_type memory_limit;
   char base_file_name[MAX_PATH_LENGTH];
   char base_file_name_s[MAX_PATH_LENGTH];
   char base_file_name_t[MAX_PATH_LENGTH];
   char file_name_stats[MAX_PATH_LENGTH];
   char file_name_wquery[MAX_PATH_LENGTH];
   char nodup_file_name[MAX_PATH_LENGTH];
-  char* structure_name;
+  const char* structure_name;
   bool do_sort;
   bool do_load;
   bool do_wquery_from_file;
@@ -98,19 +98,19 @@ public:
   double wquery_size_y;
   float child_cache_fill;
   float bulk_load_fill;
-  TPIE_OS_SIZE_T query_type;
-  TPIE_OS_OFFSET wquery_count;
-  TPIE_OS_SIZE_T grid_size;
-  TPIE_OS_SIZE_T leaf_block_factor;
-  TPIE_OS_SIZE_T node_block_factor;
-  TPIE_OS_SIZE_T catalog_block_factor;
-  TPIE_OS_SIZE_T leaf_size_max;
-  TPIE_OS_SIZE_T node_size_max;
-  TPIE_OS_SIZE_T max_intraroot_height;
-  TPIE_OS_SIZE_T cached_blocks;
-  TPIE_OS_SIZE_T node_cache_size;
-  TPIE_OS_SIZE_T leaf_cache_size;
-  TPIE_OS_SIZE_T B_for_LMB;
+  memory_size_type query_type;
+  stream_offset_type wquery_count;
+  memory_size_type grid_size;
+  memory_size_type leaf_block_factor;
+  memory_size_type node_block_factor;
+  memory_size_type catalog_block_factor;
+  memory_size_type leaf_size_max;
+  memory_size_type node_size_max;
+  memory_size_type max_intraroot_height;
+  memory_size_type cached_blocks;
+  memory_size_type node_cache_size;
+  memory_size_type leaf_cache_size;
+  memory_size_type B_for_LMB;
   stream_t *in_stream;
   stream_t *streams_sorted[DIM];
   std::ostringstream stats;
@@ -148,10 +148,10 @@ public:
     query_type = 0;
     wquery_count = 0; // refers to the random window queries.
     grid_size = TPIE_AMI_KDTREE_GRID_SIZE;
-    leaf_block_factor = std::max((TPIE_OS_SIZE_T)16384/TPIE_OS_BLOCKSIZE(),
-                            (TPIE_OS_SIZE_T)1);
-    node_block_factor = std::max((TPIE_OS_SIZE_T)16384/TPIE_OS_BLOCKSIZE(),
-                            (TPIE_OS_SIZE_T)1);
+    leaf_block_factor = std::max((memory_size_type)16384/TPIE_OS_BLOCKSIZE(),
+                            (memory_size_type)1);
+    node_block_factor = std::max((memory_size_type)16384/TPIE_OS_BLOCKSIZE(),
+                            (memory_size_type)1);
     // For the EPS-tree catalog nodes. A value of 0 means 2*node_block_factor.
     catalog_block_factor = 0;
     leaf_size_max = 0;
@@ -169,56 +169,56 @@ public:
 
   void write_block_stats(const stats_tree& bts) {
     // Shortcuts.
-    TPIE_OS_SIZE_T lbf = leaf_block_factor;
-    TPIE_OS_SIZE_T nbf = node_block_factor;
+    memory_size_type lbf = leaf_block_factor;
+    memory_size_type nbf = node_block_factor;
     stats << "BLOCKS:READ           " 
 	  << bts.get(LEAF_READ) * lbf + bts.get(NODE_READ)  * nbf
 	  << "\t l" << bts.get(LEAF_READ) 
-	  << " x" << (TPIE_OS_OFFSET)lbf
+	  << " x" << (stream_offset_type)lbf
 	  << "\t n" << bts.get(NODE_READ)
-	  << " x" << (TPIE_OS_OFFSET)nbf
+	  << " x" << (stream_offset_type)nbf
 	  << std::endl
 	  << "BLOCKS:CREATE         " 
 	  << bts.get(LEAF_CREATE) * lbf + bts.get(NODE_CREATE) *nbf
 	  << "\t l" << bts.get(LEAF_CREATE) 
-	  << " x" << (TPIE_OS_OFFSET)lbf
+	  << " x" << (stream_offset_type)lbf
 	  << "\t n" << bts.get(NODE_CREATE) 
-	  << " x" << (TPIE_OS_OFFSET)nbf
+	  << " x" << (stream_offset_type)nbf
 	  << std::endl
 	  << "BLOCKS:FETCH          " 
 	  << bts.get(LEAF_FETCH) * lbf + bts.get(NODE_FETCH) * nbf
 	  << "\t l" << bts.get(LEAF_FETCH) 
-	  << " x" << (TPIE_OS_OFFSET)lbf
+	  << " x" << (stream_offset_type)lbf
 	  << "\t n" << bts.get(NODE_FETCH)
-	  << " x" << (TPIE_OS_OFFSET)nbf
+	  << " x" << (stream_offset_type)nbf
 	  << std::endl
 	  << "BLOCKS:WRITE          " 
 	  << bts.get(LEAF_WRITE) * lbf + bts.get(NODE_WRITE) * nbf 
 	  << "\t l" << bts.get(LEAF_WRITE) 
-	  << " x" << (TPIE_OS_OFFSET)lbf
+	  << " x" << (stream_offset_type)lbf
 	  << "\t n" << bts.get(NODE_WRITE)
-	  << " x" << (TPIE_OS_OFFSET)nbf
+	  << " x" << (stream_offset_type)nbf
 	  << std::endl
 	  << "BLOCKS:DELETE         " 
 	  << bts.get(LEAF_DELETE) * lbf + bts.get(NODE_DELETE)  * nbf
 	  << "\t l" << bts.get(LEAF_DELETE) 
-	  << " x" << (TPIE_OS_OFFSET)lbf
+	  << " x" << (stream_offset_type)lbf
 	  << "\t n" << bts.get(NODE_DELETE)
-	  << " x" << (TPIE_OS_OFFSET)nbf
+	  << " x" << (stream_offset_type)nbf
 	  << std::endl
 	  << "BLOCKS:RELEASE        " 
 	  << bts.get(LEAF_RELEASE) * lbf + bts.get(NODE_RELEASE) * nbf 
 	  << "\t l" << bts.get(LEAF_RELEASE)
-	  << " x" << (TPIE_OS_OFFSET)lbf
+	  << " x" << (stream_offset_type)lbf
 	  << "\t n" << bts.get(NODE_RELEASE)
-	  << " x" << (TPIE_OS_OFFSET)nbf
+	  << " x" << (stream_offset_type)nbf
 	  << std::endl
 	  << "BLOCKS:COUNT          "
 	  << bts.get(LEAF_COUNT) * lbf + bts.get(NODE_COUNT) * nbf
 	  << "\t l" << bts.get(LEAF_COUNT)
-	  << " x" << (TPIE_OS_OFFSET)lbf
+	  << " x" << (stream_offset_type)lbf
 	  << "\t n" << bts.get(NODE_COUNT)
-	  << " x" << (TPIE_OS_OFFSET)nbf
+	  << " x" << (stream_offset_type)nbf
 	  << std::endl
       ;
   }
@@ -233,7 +233,7 @@ void print_statistics(std::ostream& os = std::cerr);
 void parse_args(int argc, char** argv);
 
 template<class T> 
-void add_to_stats(TPIE_OS_SIZE_T width, const char* header, T value) {
+void add_to_stats(memory_size_type, const char* header, T value) {
     params.stats << header << " " << value << std::endl;
 }
 

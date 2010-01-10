@@ -51,8 +51,8 @@ static char *input_filename_blue = def_if_blue;
 static char *output_filename = def_of;
 
 bool verbose = false;
-TPIE_OS_SIZE_T test_mm_size = 64*1024*1024; // Default mem. size.
-TPIE_OS_OFFSET test_size = 0; // Not used.
+memory_size_type test_mm_size = 64*1024*1024; // Default mem. size.
+stream_offset_type test_size = 0; // Not used.
 int random_seed = 17;
 
 
@@ -92,7 +92,7 @@ AMI_err join() {
   sort_sweep* sweeper;
   AMI_STREAM<pair_of_rectangles>* output_stream;
   AMI_err err;
-  TPIE_OS_SIZE_T sz_avail;
+  memory_size_type sz_avail;
 
   // Create the output stream.
   output_stream = new AMI_STREAM<pair_of_rectangles>(output_filename);

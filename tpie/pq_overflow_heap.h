@@ -44,7 +44,7 @@ public:
     /// \param maxsize Maximal size of queue
     ///
     /////////////////////////////////////////////////////////
-    pq_overflow_heap(TPIE_OS_SIZE_T maxsize);
+    pq_overflow_heap(memory_size_type maxsize);
 
     /////////////////////////////////////////////////////////
     ///
@@ -85,7 +85,7 @@ public:
     /// \return Queue size
     ///
     /////////////////////////////////////////////////////////
-    TPIE_OS_SIZE_T size() const;
+    memory_size_type size() const;
 
     /////////////////////////////////////////////////////////
     ///
@@ -129,7 +129,7 @@ public:
     /// \return Size
     ///
     /////////////////////////////////////////////////////////
-    TPIE_OS_SIZE_T sorted_size() const;
+    memory_size_type sorted_size() const;
 
     /////////////////////////////////////////////////////////
     ///
@@ -141,7 +141,7 @@ public:
 private:
     Comparator comp_;
     pq_internal_heap<T, Comparator>* h;
-    TPIE_OS_SIZE_T maxsize;
+    memory_size_type maxsize;
     T dummy;
 };
 	

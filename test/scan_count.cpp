@@ -30,14 +30,14 @@ ami::err scan_count::initialize(void) {
     return ami::NO_ERROR;
 };
 
-scan_count::scan_count(TPIE_OS_OFFSET max) :
+scan_count::scan_count(stream_offset_type max) :
         maximum(max),
         ii(0) {
 
     //  No code in this constructor
 };
 
-ami::err scan_count::operate(TPIE_OS_OFFSET *out1, ami::SCAN_FLAG *sf) {
+ami::err scan_count::operate(stream_offset_type *out1, ami::SCAN_FLAG *sf) {
     called++;
     *out1 = ++ii;
     return (*sf = (ii <= maximum)) ? ami::SCAN_CONTINUE : ami::SCAN_DONE;

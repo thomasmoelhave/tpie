@@ -29,7 +29,7 @@ namespace tpie {
 
     namespace ami {
 
-	typedef TPIE_OS_SIZE_T children_count_t;
+	typedef memory_size_type children_count_t;
 
 	////////////////////////////////////////////////////////////////////////////
         /// Metadata for a node in an R*-tree.

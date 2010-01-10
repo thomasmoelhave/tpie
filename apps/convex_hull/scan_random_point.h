@@ -33,9 +33,9 @@
 // A scan object to generate random integers.
 class scan_random_point : AMI_scan_object {
 private:
-    TPIE_OS_OFFSET max, remaining;
+    stream_offset_type max, remaining;
 public:
-    scan_random_point(TPIE_OS_OFFSET count = 1000, int seed = 17);
+    scan_random_point(stream_offset_type count = 1000, int seed = 17);
     virtual ~scan_random_point(void);
     AMI_err initialize(void);
     AMI_err operate(point<int> *out1, AMI_SCAN_FLAG *sf);

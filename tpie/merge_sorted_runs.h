@@ -41,7 +41,7 @@ namespace tpie {
     namespace ami {
 
   /** Intended to signal the number of input streams in a merge */ 
-	typedef TPIE_OS_SIZE_T arity_t;
+	typedef memory_size_type arity_t;
 	
   //////////////////////////////////////////////////////////////////////////
   /// This is a common merge routine for all of the AMI_merge_sorted,
@@ -70,15 +70,15 @@ namespace tpie {
 	template <class T, class M>
 	err  merge_sorted_runs(stream<T> **inStreams, arity_t arity,
 			       stream<T> *outStream,  M* MergeHeap,
-			       TPIE_OS_OFFSET cutoff=-1, 
+			       stream_offset_type cutoff=-1, 
 			       progress_indicator_base* indicator = NULL) {
 	    
-	    TPIE_OS_SIZE_T i;
+	    memory_size_type i;
 	    err ami_err;
 
 	    //Pointers to current leading elements of streams
 	    T** in_objects = new T*[arity];
-	    TPIE_OS_OFFSET* nread = new TPIE_OS_OFFSET[arity]; 
+	    stream_offset_type* nread = new stream_offset_type[arity]; 
 	    
 	    // **************************************************************
 	    // * Read first element from stream. Do not rewind! We may read *

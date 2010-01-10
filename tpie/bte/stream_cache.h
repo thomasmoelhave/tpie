@@ -67,24 +67,24 @@ namespace tpie {
 		public:
 	
 			// Constructors
-			stream_cache(const std::string& /*path*/, stream_type st, TPIE_OS_OFFSET max_len); 
+			stream_cache(const std::string& /*path*/, stream_type st, stream_offset_type max_len); 
 	
 			// A psuedo-constructor for substreams.
 			err new_substream(stream_type st, 
-							  TPIE_OS_OFFSET sub_begin,
-							  TPIE_OS_OFFSET sub_end, 
+							  stream_offset_type sub_begin,
+							  stream_offset_type sub_end, 
 							  base_t **sub_stream);
     
 
 			// Query memory usage
-			err main_memory_usage(TPIE_OS_SIZE_T *usage,
+			err main_memory_usage(memory_size_type *usage,
 								  mem::stream_usage usage_type);
 
 			// Return the number of items in the stream.
-			TPIE_OS_OFFSET stream_len(void);
+			stream_offset_type stream_len(void);
 	
 			// Move to a specific position in the stream.
-			err seek(TPIE_OS_OFFSET offset);
+			err seek(stream_offset_type offset);
 	
 			// Destructor
 			~stream_cache(void);
@@ -97,8 +97,8 @@ namespace tpie {
 	
 			int available_streams(void) { return -1; };    
 
-			TPIE_OS_OFFSET tell(void);
-			TPIE_OS_OFFSET chunk_size(void);
+			stream_offset_type tell(void);
+			stream_offset_type chunk_size(void);
 		};
     
     
@@ -110,7 +110,7 @@ namespace tpie {
 		template<class T>
 		stream_cache<T>::stream_cache(const std::string& /*path*/, 
 									  stream_type st,
-									  TPIE_OS_OFFSET max_len) {
+									  stream_offset_type max_len) {
 
 			// A stream being created out of the blue must be writable, so we
 			// return an error if it is not.
@@ -156,8 +156,8 @@ namespace tpie {
     
 		template<class T>
 		err stream_cache<T>::new_substream(stream_type st, 
-										   TPIE_OS_OFFSET sub_begin,
-										   TPIE_OS_OFFSET sub_end,
+										   stream_offset_type sub_begin,
+										   stream_offset_type sub_end,
 										   base_t **sub_stream) {
 			stream_cache *ss;
     
@@ -189,7 +189,7 @@ namespace tpie {
     
 
 		template<class T>
-		err stream_cache<T>::main_memory_usage(TPIE_OS_SIZE_T *usage,
+		err stream_cache<T>::main_memory_usage(memory_size_type *usage,
 											   mem::stream_usage usage_type) {
 			switch (usage_type) {
 
@@ -216,14 +216,14 @@ namespace tpie {
     
 
 		template<class T>
-		TPIE_OS_OFFSET stream_cache<T>::stream_len(void) {
+		stream_offset_type stream_cache<T>::stream_len(void) {
 			return data_max - data;
 		};
     
     
     
 		template<class T>
-		err stream_cache<T>::seek(TPIE_OS_OFFSET offset) {
+		err stream_cache<T>::seek(stream_offset_type offset) {
 	
 			if (offset > data_hard_end - data) {
 				return OFFSET_OUT_OF_RANGE;
@@ -284,12 +284,12 @@ namespace tpie {
 
 
 		template<class T>
-		TPIE_OS_OFFSET stream_cache<T>::chunk_size(void) {
+		stream_offset_type stream_cache<T>::chunk_size(void) {
 			return STREAM_CACHE_LINE_SIZE / sizeof(T);       
 		}
 
 		template<class T>
-		TPIE_OS_OFFSET stream_cache<T>::tell(void) {
+		stream_offset_type stream_cache<T>::tell(void) {
 			return current - data;
 		}   
     }  //  bte namespace

@@ -121,7 +121,7 @@ namespace tpie {
 	    ////////////////////////////////////////////////////////////////////////////
 	    /// Return the block size of the underlying BTE collection.
 	    ////////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_SIZE_T block_size() const;
+	    memory_size_type block_size() const;
 
 	    ////////////////////////////////////////////////////////////////////////////
 	    /// Return the name of the underlying BTE collection.
@@ -131,17 +131,17 @@ namespace tpie {
 	    ////////////////////////////////////////////////////////////////////////////
 	    /// Return the fanout of the R*-tree.
 	    ////////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_SIZE_T fanout() const;
+	    memory_size_type fanout() const;
 
 	    ////////////////////////////////////////////////////////////////////////////
 	    /// Return the height of the R*-tree (starting at zero).
 	    ////////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_SIZE_T tree_height() const;
+	    memory_size_type tree_height() const;
 
 	    ////////////////////////////////////////////////////////////////////////////
 	    /// Return the number of data objects stored in the R*-tree.
 	    ////////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_OFFSET total_objects() const;
+	    stream_offset_type total_objects() const;
 
 	    ////////////////////////////////////////////////////////////////////////////
 	    /// Return the ID of the block that stores the root of the tree.
@@ -224,8 +224,8 @@ namespace tpie {
 	    ////////////////////////////////////////////////////////////////////////////
 	    void set_tree_information(
 		bid_t          root, 
-		TPIE_OS_SIZE_T height,
-		TPIE_OS_OFFSET objects);
+		memory_size_type height,
+		stream_offset_type objects);
 	    
 	    ////////////////////////////////////////////////////////////////////////////
 	    /// Write the tree's metadata (height, fanout, number of objects, and block
@@ -262,12 +262,12 @@ namespace tpie {
 	    ////////////////////////////////////////////////////////////////////////////
             /// Block size of the underlying storage area in bytes.
 	    ////////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_SIZE_T              block_size_;        
+	    memory_size_type              block_size_;        
 
 	    ////////////////////////////////////////////////////////////////////////////
             /// Height of the tree.
 	    ////////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_SIZE_T              tree_height_;       
+	    memory_size_type              tree_height_;       
 
 	    ////////////////////////////////////////////////////////////////////////////
             /// ID of the block storing the root.
@@ -277,7 +277,7 @@ namespace tpie {
 	    ////////////////////////////////////////////////////////////////////////////
             /// Number of objects in the tree.
 	    ////////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_OFFSET              total_objects_;     
+	    stream_offset_type              total_objects_;     
 
 	    ////////////////////////////////////////////////////////////////////////////
             /// Name of the storage area's file.
@@ -303,7 +303,7 @@ namespace tpie {
 	    ////////////////////////////////////////////////////////////////////////////
 	    err insert_on_level(
 		const rectangle<coord_t, bid_t>& r, 
-		TPIE_OS_SIZE_T                   level);
+		memory_size_type                   level);
 
 	    ////////////////////////////////////////////////////////////////////////////
 	    /// This method selects a node on a given level suitable to insert
@@ -314,7 +314,7 @@ namespace tpie {
 	    ////////////////////////////////////////////////////////////////////////////
 	    rstarnode<coord_t, BTECOLL>* choose_node_on_level(
 		const rectangle<coord_t, bid_t>& r, 
-		TPIE_OS_SIZE_T                   level);
+		memory_size_type                   level);
 	    
 	    ////////////////////////////////////////////////////////////////////////////
 	    /// This method selects a leaf node suitable to insert
@@ -331,7 +331,7 @@ namespace tpie {
 	    /// \param[in] level level on which the node n resides
 	    ////////////////////////////////////////////////////////////////////////////
 	    err condense_tree(rstarnode<coord_t, BTECOLL>* n, 
-			      TPIE_OS_SIZE_T               level);
+			      memory_size_type               level);
 	    
 	    ////////////////////////////////////////////////////////////////////////////
 	    /// Given a (pointer to a) node, its bounding rectangle, this method
@@ -344,7 +344,7 @@ namespace tpie {
 	    err reinsert(
 		rstarnode<coord_t, BTECOLL>*     n, 
 		const rectangle<coord_t, bid_t>& r, 
-		TPIE_OS_SIZE_T                   level);
+		memory_size_type                   level);
 	    
 	    ////////////////////////////////////////////////////////////////////////////
 	    /// This method realized a depth-first search looking for a leaf
@@ -369,7 +369,7 @@ namespace tpie {
 		rstarnode<coord_t, BTECOLL>*  node1, 
 		rstarnode<coord_t, BTECOLL>*  node2,
 		bid_t                         childToBeReplaced,
-		TPIE_OS_SIZE_T                level);
+		memory_size_type                level);
 	    
 	private:
 	    ////////////////////////////////////////////////////////////////////////////
@@ -389,7 +389,7 @@ namespace tpie {
 	    ////////////////////////////////////////////////////////////////////////////
 	    rstartree<coord_t, BTECOLL>& operator=(const rstartree<coord_t, BTECOLL>& other);
 
-	    std::list<std::pair<rectangle<coord_t, bid_t>, TPIE_OS_SIZE_T> > reinsertObjects_; 
+	    std::list<std::pair<rectangle<coord_t, bid_t>, memory_size_type> > reinsertObjects_; 
 	    std::vector<bool>           overflowOnLevel_;
 
 	    //  This method is called upon returning from a deletion
@@ -401,21 +401,21 @@ namespace tpie {
 	////////////////////////////////////////////////////////////////////////////
 
 	template<class coord_t, class BTECOLL>
-	TPIE_OS_SIZE_T rstartree<coord_t, BTECOLL>::block_size() const {
+	memory_size_type rstartree<coord_t, BTECOLL>::block_size() const {
 	    return block_size_;
 	}
 	
 	////////////////////////////////////////////////////////////////////////////
 
 	template<class coord_t, class BTECOLL>
-	TPIE_OS_SIZE_T rstartree<coord_t, BTECOLL>::tree_height() const {
+	memory_size_type rstartree<coord_t, BTECOLL>::tree_height() const {
 	    return tree_height_;
 	}
 	
 	////////////////////////////////////////////////////////////////////////////
 
 	template<class coord_t, class BTECOLL>
-	TPIE_OS_OFFSET rstartree<coord_t, BTECOLL>::total_objects() const {
+	stream_offset_type rstartree<coord_t, BTECOLL>::total_objects() const {
 	    return total_objects_;
 	}
 	
@@ -429,7 +429,7 @@ namespace tpie {
 	////////////////////////////////////////////////////////////////////////////
 
 	template<class coord_t, class BTECOLL>
-	TPIE_OS_SIZE_T rstartree<coord_t, BTECOLL>::fanout() const {
+	memory_size_type rstartree<coord_t, BTECOLL>::fanout() const {
 	    return fanout_;
 	}
 	
@@ -462,8 +462,8 @@ namespace tpie {
 
 	template<class coord_t, class BTECOLL>
 	void rstartree<coord_t, BTECOLL>::set_tree_information(bid_t          root, 
-							       TPIE_OS_SIZE_T height, 
-							       TPIE_OS_OFFSET objects) {
+							       memory_size_type height, 
+							       stream_offset_type objects) {
 	    root_position_ = root;
 	    tree_height_   = height;
 	    total_objects_ = objects;
@@ -473,7 +473,7 @@ namespace tpie {
 
 	template<class coord_t, class BTECOLL>
 	void rstartree<coord_t, BTECOLL>::show_stats() {
-	    TPIE_OS_OFFSET nodes = storage_area_->size();
+	    stream_offset_type nodes = storage_area_->size();
 	    std::cout << std::endl;
 	    std::cout << "R*-tree statistics for file: " << name() << std::endl;
 	    std::cout << "- root position     : " << root_position_ << std::endl;
@@ -506,11 +506,11 @@ namespace tpie {
 
 	    //  Compute the maximal number of children that can be packed
 	    //  into a disk block.
-	    const TPIE_OS_SIZE_T nodeInfoSize = 
+	    const memory_size_type nodeInfoSize = 
 		sizeof(fanout) +
 		sizeof(block_size_) +
 		sizeof(root_position_);
-	    const TPIE_OS_SIZE_T childInfoSize = sizeof(rectangle<coord_t, bid_t>);
+	    const memory_size_type childInfoSize = sizeof(rectangle<coord_t, bid_t>);
 
 	    fanout_   = static_cast<children_count_t>((block_size_ - nodeInfoSize) / childInfoSize);
 
@@ -521,7 +521,7 @@ namespace tpie {
 		fanout_ = fanout;
 	    }
 
-	    minFanOut_ = (TPIE_OS_SIZE_T) ((double)fanout_ / MIN_FANOUT_FACTOR);
+	    minFanOut_ = (memory_size_type) ((double)fanout_ / MIN_FANOUT_FACTOR);
     
 	    overflowOnLevel_.push_back(false);
 
@@ -592,8 +592,8 @@ namespace tpie {
 	    rstarnode<coord_t, BTECOLL>* n = NULL;
 	    bid_t*                       current = NULL;
 	    err                          result = NO_ERROR;
-	    TPIE_OS_OFFSET               candidatesCounter = 0;
-	    TPIE_OS_OFFSET               leafCounter = 0;
+	    stream_offset_type               candidatesCounter = 0;
+	    stream_offset_type               leafCounter = 0;
 
 	    //  Initialize the process by pushing the root's ID onto the stack.
 	    candidates->push(root_position_);
@@ -632,7 +632,7 @@ namespace tpie {
 	    rstarnode<coord_t, BTECOLL>* n = NULL;
 	    bid_t*                       current = NULL;
 	    err                          result = NO_ERROR;
-	    TPIE_OS_OFFSET               candidatesCounter = 0;
+	    stream_offset_type               candidatesCounter = 0;
 
 	    std::cout << "Looking for : " << nodeID << std::endl;
 
@@ -669,7 +669,7 @@ namespace tpie {
 	    std::list<std::pair<bid_t, rectangle<coord_t, bid_t> > > l;
 	    rectangle<coord_t, bid_t>                                checkNode;
 	    rstarnode<coord_t, BTECOLL>*                             n = NULL;
-	    TPIE_OS_OFFSET                                           objectCounter = 0;
+	    stream_offset_type                                           objectCounter = 0;
 
 	    std::cerr << "Checking tree " << name() << std::endl;
 
@@ -705,11 +705,11 @@ namespace tpie {
 	template<class coord_t, class BTECOLL>
 	rstarnode<coord_t, BTECOLL>* rstartree<coord_t, BTECOLL>::choose_node_on_level(
 	    const rectangle<coord_t, bid_t>& r, 
-	    TPIE_OS_SIZE_T                   level) {
+	    memory_size_type                   level) {
 
 	    rstarnode<coord_t, BTECOLL>*  N  = read_node(root_position_);
 	    bid_t                         ID = 0;
-	    TPIE_OS_SIZE_T                lookingAtLevel = tree_height();
+	    memory_size_type                lookingAtLevel = tree_height();
     
 	    //  Proceed on a root-to-leaf path.
 	    while(lookingAtLevel > level) {
@@ -763,7 +763,7 @@ namespace tpie {
 
 	template<class coord_t, class BTECOLL>
 	err rstartree<coord_t, BTECOLL>::condense_tree(rstarnode<coord_t, BTECOLL>* n, 
-						      TPIE_OS_SIZE_T level) {
+						      memory_size_type level) {
 
 	    //  The return value is always NO_ERROR.
 	    //  You might want to check for I/O errors every time
@@ -781,7 +781,7 @@ namespace tpie {
 		    //  Move all children of node n to the list of objects to
 		    //  be reinserted.
 		    for (counter = 0; counter < n->children(); ++counter) {
-			reinsertObjects_.push_back(std::pair<rectangle<coord_t, bid_t>, TPIE_OS_SIZE_T>(n->get_child(counter), level));
+			reinsertObjects_.push_back(std::pair<rectangle<coord_t, bid_t>, memory_size_type>(n->get_child(counter), level));
 		    }
 	    
 		    //  Remove n from its parent.
@@ -819,7 +819,7 @@ namespace tpie {
 	    //  Uncomment the following line, if you don't trust
 	    //  the algorithm and want to check the tree every time
 	    //  the height decreases.
-//    TPIE_OS_SIZE_T th = tree_height();
+//    memory_size_type th = tree_height();
 
 	    if (result == NO_ERROR) {
 
@@ -913,7 +913,7 @@ namespace tpie {
 
 	    err                       result = NO_ERROR;
 	    rectangle<coord_t, bid_t> r;
-	    TPIE_OS_SIZE_T            level = 0;
+	    memory_size_type            level = 0;
 
 	    while ((result == NO_ERROR) && (!reinsertObjects_.empty())) { 
 
@@ -937,7 +937,7 @@ namespace tpie {
 	    err result = NO_ERROR;
 
 	    //  Initialize the overflow array
-	    TPIE_OS_SIZE_T counter;
+	    memory_size_type counter;
 	    for (counter = 0; counter < overflowOnLevel_.size(); ++counter) {
 		overflowOnLevel_[counter] = false;
 	    }
@@ -957,7 +957,7 @@ namespace tpie {
 
 	template<class coord_t, class BTECOLL>
 	err rstartree<coord_t, BTECOLL>::insert_on_level(const rectangle<coord_t, bid_t>& r,
-							 TPIE_OS_SIZE_T level) {
+							 memory_size_type level) {
 
 	    //  The return value is always NO_ERROR.
 	    //  You might want to check for I/O errors every time
@@ -1053,11 +1053,11 @@ namespace tpie {
 	template<class coord_t, class BTECOLL>
 	err rstartree<coord_t, BTECOLL>::reinsert(rstarnode<coord_t, BTECOLL>*     n, 
 						  const rectangle<coord_t, bid_t>& r, 
-						  TPIE_OS_SIZE_T                   level) {
+						  memory_size_type                   level) {
 
 	    rectangle<coord_t, bid_t>                        cover = n->get_child(0);
-	    std::vector<std::pair<TPIE_OS_SIZE_T, coord_t> > sortVector;
-	    TPIE_OS_SIZE_T                                   counter = 0;
+	    std::vector<std::pair<memory_size_type, coord_t> > sortVector;
+	    memory_size_type                                   counter = 0;
 
 	    err result = NO_ERROR;
 
@@ -1072,14 +1072,14 @@ namespace tpie {
 	    //  rectangle's distance to the centerpoint into an array.
 	    for(counter=0; counter < n->children(); ++counter) {
 		cover = n->get_child(counter);
-		sortVector.push_back(std::pair<TPIE_OS_SIZE_T, coord_t>(
+		sortVector.push_back(std::pair<memory_size_type, coord_t>(
 					 counter, 
 					 (((cover.get_left()+cover.get_right()) / 2.0) - midX)*
 					 (((cover.get_left()+cover.get_right()) / 2.0) - midX) +
 					 (((cover.get_lower()+cover.get_upper()) / 2.0) - midY)*
 					 (((cover.get_lower()+cover.get_upper()) / 2.0) - midY)));
 	    }
-	    sortVector.push_back(std::pair<TPIE_OS_SIZE_T, coord_t>(
+	    sortVector.push_back(std::pair<memory_size_type, coord_t>(
 				     counter, 
 				     (((r.get_left()+r.get_right()) / 2.0) - midX)*
 				     (((r.get_left()+r.get_right()) / 2.0) - midX) +
@@ -1103,7 +1103,7 @@ namespace tpie {
 						fanout_);
 	    newNode->set_flag(n->get_flag());
 
-	    typename std::vector<std::pair<TPIE_OS_SIZE_T, coord_t> >::iterator vi = sortVector.begin();
+	    typename std::vector<std::pair<memory_size_type, coord_t> >::iterator vi = sortVector.begin();
 
 	    //  Copy the entries into the new node.
 	    for(counter = 0; counter < (n->children() * 70) / 100; ++counter, ++vi) {
@@ -1184,10 +1184,10 @@ namespace tpie {
 	    while ((result == NO_ERROR) && (vi != sortVector.end())) {
 
 		if ((*vi).first == n->children()) {
-		    reinsertObjects_.push_back(std::pair<rectangle<coord_t, bid_t>, TPIE_OS_SIZE_T>(r, level));
+		    reinsertObjects_.push_back(std::pair<rectangle<coord_t, bid_t>, memory_size_type>(r, level));
 		}
 		else {
-		    reinsertObjects_.push_back(std::pair<rectangle<coord_t, bid_t>, TPIE_OS_SIZE_T>(n->get_child((*vi).first), level));
+		    reinsertObjects_.push_back(std::pair<rectangle<coord_t, bid_t>, memory_size_type>(n->get_child((*vi).first), level));
 		}
 		++vi;
 	    }
@@ -1204,7 +1204,7 @@ namespace tpie {
 	    rstarnode<coord_t, BTECOLL>* node1, 
 	    rstarnode<coord_t, BTECOLL>* node2,
 	    bid_t                        childToBeReplaced,
-	    TPIE_OS_SIZE_T               level) {
+	    memory_size_type               level) {
 
 	    rstarnode<coord_t, BTECOLL>* parent = NULL;
 	    children_count_t             index  = 0;
@@ -1337,13 +1337,13 @@ namespace tpie {
 	    rstarnode<coord_t, BTECOLL>* newRoot         = NULL;
 
 	    bid_t          newRootPosition = 0;
-	    TPIE_OS_SIZE_T counter         = 0;
+	    memory_size_type counter         = 0;
 
 	    //  Determine split axis and distribution.
-	    std::pair<std::vector<rectangle<coord_t, bid_t> >*, TPIE_OS_SIZE_T> seeds = 
+	    std::pair<std::vector<rectangle<coord_t, bid_t> >*, memory_size_type> seeds = 
 		toSplit->choose_split_axis_and_index();
 
-	    TPIE_OS_SIZE_T firstGroupNumber = (TPIE_OS_SIZE_T)(fanout_/ MIN_FANOUT_FACTOR)
+	    memory_size_type firstGroupNumber = (memory_size_type)(fanout_/ MIN_FANOUT_FACTOR)
  + seeds.second;
 
 	    rectangle<coord_t, bid_t> b1 = (*(seeds.first))[0];
@@ -1465,11 +1465,11 @@ namespace tpie {
 		treeinfo_file_stream->read((char *) &root_position_, 
 					   sizeof(bid_t));
 		treeinfo_file_stream->read((char *) &tree_height_, 
-					   sizeof(TPIE_OS_SIZE_T));
+					   sizeof(memory_size_type));
 		treeinfo_file_stream->read((char *) &total_objects_, 
-					   sizeof(TPIE_OS_OFFSET));
+					   sizeof(stream_offset_type));
 		treeinfo_file_stream->read((char *) &fanout_, 
-					   sizeof(TPIE_OS_OFFSET));
+					   sizeof(stream_offset_type));
 		returnValue = true;
 	    }
     
@@ -1494,11 +1494,11 @@ namespace tpie {
 	    treeinfo_file_stream->write((char *) &root_position_, 
 					sizeof(bid_t));
 	    treeinfo_file_stream->write((char *) &tree_height_, 
-					sizeof(TPIE_OS_SIZE_T));
+					sizeof(memory_size_type));
 	    treeinfo_file_stream->write((char *) &total_objects_, 
-					sizeof(TPIE_OS_OFFSET));  
+					sizeof(stream_offset_type));  
 	    treeinfo_file_stream->write((char *) &fanout_, 
-					sizeof(TPIE_OS_SIZE_T));  
+					sizeof(memory_size_type));  
     
 	    delete treeinfo_file_stream;
 	}

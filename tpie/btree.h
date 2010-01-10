@@ -115,21 +115,21 @@ namespace tpie {
 	public:
 
 	    /** Min number of Value's in a leaf. 0 means use default B-tree behavior. */
-	    TPIE_OS_SIZE_T leaf_size_min;
+	    memory_size_type leaf_size_min;
 	    /** Min number of Key's in a node. 0 means use default B-tree behavior. */
-	    TPIE_OS_SIZE_T node_size_min;
+	    memory_size_type node_size_min;
 	    /** Max number of Value's in a leaf. 0 means use all available capacity. */
-	    TPIE_OS_SIZE_T leaf_size_max;
+	    memory_size_type leaf_size_max;
 	    /**  Max number of Key's in a node. 0 means use all available capacity. */
-	    TPIE_OS_SIZE_T node_size_max;
+	    memory_size_type node_size_max;
 	    /**  How much bigger is the leaf logical block than the system block. */
-	    TPIE_OS_SIZE_T leaf_block_factor;
+	    memory_size_type leaf_block_factor;
 	    /**  How much bigger is the node logical block than the system block. */
-	    TPIE_OS_SIZE_T node_block_factor;
+	    memory_size_type node_block_factor;
 	    /** The max number of leaves cached. */
-	    TPIE_OS_SIZE_T leaf_cache_size;
+	    memory_size_type leaf_cache_size;
 	    /** The max number of nodes cached. */
-	    TPIE_OS_SIZE_T node_cache_size;
+	    memory_size_type node_cache_size;
 
 	    
 	    ///////////////////////////////////////////////////////////////////////////
@@ -449,7 +449,7 @@ namespace tpie {
 	    /// in the stream and the number of elements found is returned. 
 	    /// Otherwise, the results are not stored, only the count is returned.
       //////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_OFFSET range_query(const Key& k1, const Key& k2, stream<Value>* s)
+	    stream_offset_type range_query(const Key& k1, const Key& k2, stream<Value>* s)
 		{ return range_query(k1, k2, s, dummy_filter_t()); }
 
 
@@ -465,26 +465,26 @@ namespace tpie {
       //////////////////////////////////////////////////////////////////////////
       /// Same as \ref range_query().
       //////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_OFFSET window_query(const Key& k1, const Key& k2, stream<Value>* s)
+	    stream_offset_type window_query(const Key& k1, const Key& k2, stream<Value>* s)
 		{ return range_query(k1, k2, s, dummy_filter_t()); }
 
 
       //////////////////////////////////////////////////////////////////////////
       /// Inquire the number of elements stored in the leaves of this tree.
       //////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_OFFSET size() const { return header_.size; }
+	    stream_offset_type size() const { return header_.size; }
 
 
       //////////////////////////////////////////////////////////////////////////
       /// Inquire the number of leaf nodes of this tree.
       //////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_OFFSET leaf_count() const { return pcoll_leaves_->size(); }
+	    stream_offset_type leaf_count() const { return pcoll_leaves_->size(); }
 
 
       //////////////////////////////////////////////////////////////////////////
       /// Inquire the number of internal (non-leaf) nodes of this tree.
       //////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_OFFSET node_count() const { return pcoll_nodes_->size(); }
+	    stream_offset_type node_count() const { return pcoll_nodes_->size(); }
 
 
       //////////////////////////////////////////////////////////////////////////
@@ -492,7 +492,7 @@ namespace tpie {
 	    /// value is calculated by the node count of the btree and the 
 	    /// \ref leaf_block_factor and \ref node_block_factor, resp.
       //////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_OFFSET os_block_count() const { 
+	    stream_offset_type os_block_count() const { 
 		return pcoll_leaves_->size() * params_.leaf_block_factor + 
 		    pcoll_nodes_->size() * params_.node_block_factor; 
 	    }
@@ -509,7 +509,7 @@ namespace tpie {
 	    /// A value of 0 represents an empty tree. A value of 1 represents a tree
 	    /// with only one leaf node (which is also the root node).
       //////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_SIZE_T height() const { return header_.height; }
+	    memory_size_type height() const { return header_.height; }
 
 
       //////////////////////////////////////////////////////////////////////////
@@ -604,8 +604,8 @@ namespace tpie {
 	    class header_t {
 	    public:
 		bid_t root_bid;
-		TPIE_OS_SIZE_T height;
-		TPIE_OS_OFFSET size;
+		memory_size_type height;
+		stream_offset_type size;
 
 		header_t(): root_bid(0), height(0), size(0) {}
 	    };
@@ -648,11 +648,11 @@ namespace tpie {
 	    btree_status status_;
 
 	    /** Stack to store the path to a leaf. */
-	    std::stack<std::pair<bid_t,TPIE_OS_SIZE_T> >path_stack_;
+	    std::stack<std::pair<bid_t,memory_size_type> >path_stack_;
 
 	    /** Stack to store path during dfspreorder traversal. Each element is
 	     * a std::pair: block id and link index. */
-	    std::stack<std::pair<bid_t,TPIE_OS_SIZE_T> >dfs_stack_;
+	    std::stack<std::pair<bid_t,memory_size_type> >dfs_stack_;
 
 	    /** Statistics. */
 	    stats_tree stats_;
@@ -710,13 +710,13 @@ namespace tpie {
 	    /// Returns the underflow size of a leaf. This function does reside here and 
 	    /// not in the btree_lead class for saving the space of the minimum fanout, a.
       ///////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_SIZE_T cutoff_leaf(leaf_t *p) const;
+	    memory_size_type cutoff_leaf(leaf_t *p) const;
 
       ///////////////////////////////////////////////////////////////////////////
 	    /// Returns the underflow size of a node. his function does reside here and 
       /// not in the btree_lead class for saving the space of the minimum fanout, a.
       ///////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_SIZE_T cutoff_node(node_t *p) const;
+	    memory_size_type cutoff_node(node_t *p) const;
 
       ///////////////////////////////////////////////////////////////////////////
 	    // Returns true if leaf p is full.
@@ -797,7 +797,7 @@ namespace tpie {
 	/// Holding metainformation about a btree_leaf.
   ///////////////////////////////////////////////////////////////////////////
 	struct _btree_leaf_info {
-	    TPIE_OS_SIZE_T size;
+	    memory_size_type size;
 	    bid_t prev;
 	    bid_t next;
 	};
@@ -845,23 +845,23 @@ namespace tpie {
 	    /// Compute the capacity of the el vector STATICALLY (but you have to
 	    /// give it the correct logical block size!).
       ///////////////////////////////////////////////////////////////////////////
-	    static TPIE_OS_SIZE_T el_capacity(size_t block_size);
+	    static memory_size_type el_capacity(size_t block_size);
 
       ///////////////////////////////////////////////////////////////////////////
 	    /// Find and return the position of key k 
 	    /// (ie, the lowest position where it would be inserted).
       ///////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_SIZE_T find(const Key& k);
+	    memory_size_type find(const Key& k);
 
       ///////////////////////////////////////////////////////////////////////////
 	    /// Retrieves the predecessor of k.
       ///////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_SIZE_T pred(const Key& k);
+	    memory_size_type pred(const Key& k);
     
       ///////////////////////////////////////////////////////////////////////////
       /// Retrieves the Successor of k.
       ///////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_SIZE_T succ(const Key& k);
+	    memory_size_type succ(const Key& k);
 
       ///////////////////////////////////////////////////////////////////////////
       /// Construcor.
@@ -871,17 +871,17 @@ namespace tpie {
       ///////////////////////////////////////////////////////////////////////////
       /// Returns the number of elements stored in this leaf.
       ///////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_SIZE_T & size() { return info()->size; }
+	    memory_size_type & size() { return info()->size; }
 
       ///////////////////////////////////////////////////////////////////////////
       /// Returns the number of elements stored in this leaf as a const reference.
       ///////////////////////////////////////////////////////////////////////////
-	    const TPIE_OS_SIZE_T & size() const { return info()->size; }
+	    const memory_size_type & size() const { return info()->size; }
 
       ///////////////////////////////////////////////////////////////////////////
       /// Returns maximum number of elements that can be stored in this leaf.
       ///////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_SIZE_T capacity() const { return el.capacity(); }
+	    memory_size_type capacity() const { return el.capacity(); }
 
       ///////////////////////////////////////////////////////////////////////////
       /// Retrieves the block_id of the previous leaf in the btree. Calls btree_leaf_info#prev()
@@ -934,7 +934,7 @@ namespace tpie {
       ///////////////////////////////////////////////////////////////////////////
 	    /// Insert element into position pos.
       ///////////////////////////////////////////////////////////////////////////
-	    void insert_pos(const Value& v, TPIE_OS_SIZE_T pos);
+	    void insert_pos(const Value& v, memory_size_type pos);
 
       ///////////////////////////////////////////////////////////////////////////
 	    /// Delete an element given by its key. The leaf should NOT be empty.
@@ -983,13 +983,13 @@ namespace tpie {
       ///////////////////////////////////////////////////////////////////////////
 	    /// Compute the capacity of the el vector STATICALLY.
       ///////////////////////////////////////////////////////////////////////////
-	    static TPIE_OS_SIZE_T el_capacity(size_t block_size);
+	    static memory_size_type el_capacity(size_t block_size);
 
       ///////////////////////////////////////////////////////////////////////////
 	    /// Find and return the position of key k 
 	    /// (ie, the lowest position in the array of keys where it would be inserted).
       ///////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_SIZE_T find(const Key& k);
+	    memory_size_type find(const Key& k);
 
       ///////////////////////////////////////////////////////////////////////////
 	    /// Constructor. Calls the block constructor with the 
@@ -1000,13 +1000,13 @@ namespace tpie {
       ///////////////////////////////////////////////////////////////////////////
 	    /// Number of keys stored in this node.
       ///////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_SIZE_T& size() { return (TPIE_OS_SIZE_T&) (*info()); }
-	    const TPIE_OS_SIZE_T& size() const { return (TPIE_OS_SIZE_T&) (*info()); }
+	    memory_size_type& size() { return (memory_size_type&) (*info()); }
+	    const memory_size_type& size() const { return (memory_size_type&) (*info()); }
 
       ///////////////////////////////////////////////////////////////////////////
 	    /// Maximum number of keys that can be stored in this node.
       ///////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_SIZE_T capacity() const { return el.capacity(); }
+	    memory_size_type capacity() const { return el.capacity(); }
 
       ///////////////////////////////////////////////////////////////////////////
       /// Returns true if the node's capacity is reached.
@@ -1034,7 +1034,7 @@ namespace tpie {
 	    /// Insert a key and link into a non-full node in a given position.
 	    /// No validity checks.
       ///////////////////////////////////////////////////////////////////////////
-	    void insert_pos(const Key& k, bid_t l, TPIE_OS_SIZE_T k_pos, TPIE_OS_SIZE_T l_pos);
+	    void insert_pos(const Key& k, bid_t l, memory_size_type k_pos, memory_size_type l_pos);
 
       ///////////////////////////////////////////////////////////////////////////
 	    /// Insert a key and link into a non-full node 
@@ -1060,7 +1060,7 @@ namespace tpie {
 // --------------------***btree_leaf*** ---------------------------------
 
 			  template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-			  TPIE_OS_SIZE_T BTREE_LEAF::el_capacity(TPIE_OS_SIZE_T block_size) {
+			  memory_size_type BTREE_LEAF::el_capacity(memory_size_type block_size) {
 			      return block<Value, _btree_leaf_info, BTECOLL>::el_capacity(block_size, 0);
 			  }
 
@@ -1086,7 +1086,7 @@ Key  BTREE_LEAF::split(BTREE_LEAF &right) {
 #endif
 
     // save the original size of this leaf.
-    TPIE_OS_SIZE_T original_size = size();
+    memory_size_type original_size = size();
 
     // The new leaf will have half of this leaf's elements.
     // If the original size is odd, the new leaf will have fewer elements.
@@ -1118,7 +1118,7 @@ void BTREE_LEAF::merge(const BTREE_LEAF &right) {
 #endif
 
     // save the original size of this leaf.
-    TPIE_OS_SIZE_T original_size = size();
+    memory_size_type original_size = size();
    
     // Update this leaf's size.
     size() = original_size + right.size();
@@ -1281,7 +1281,7 @@ bool BTREE_LEAF::erase(const Key& k) {
 
 /// *btree_leaf::erase_pos* ///
 template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-void BTREE_LEAF::erase_pos(TPIE_OS_SIZE_T pos) {
+void BTREE_LEAF::erase_pos(memory_size_type pos) {
  
     // Erase mechanics.
     el.erase(pos);
@@ -1315,12 +1315,12 @@ BTREE_LEAF::~btree_leaf() {
 	}
 
 	template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-	TPIE_OS_SIZE_T BTREE_NODE::el_capacity(TPIE_OS_SIZE_T block_size) {
+	memory_size_type BTREE_NODE::el_capacity(memory_size_type block_size) {
 	    // Sanity check. Two different methods of computing the el capacity.
 	    // [tavi 01/26/02]: Changed == into >= since I could fit one more
 	    // element, but not one more link.
-	    assert((block<Key, TPIE_OS_SIZE_T>::el_capacity(block_size, lk_capacity(block_size))) >= (TPIE_OS_SIZE_T) (lk_capacity(block_size) - 1));
-	    return (TPIE_OS_SIZE_T) (lk_capacity(block_size) - 1);
+	    assert((block<Key, memory_size_type>::el_capacity(block_size, lk_capacity(block_size))) >= (memory_size_type) (lk_capacity(block_size) - 1));
+	    return (memory_size_type) (lk_capacity(block_size) - 1);
 	}
 
 /// *btree_node::btree_node* ///
@@ -1401,7 +1401,7 @@ void BTREE_NODE::insert(const Key& k, bid_t l) {
 
 /// *btree_node::erase_pos* ///
 template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
-void BTREE_NODE::erase_pos(TPIE_OS_SIZE_T k_pos, TPIE_OS_SIZE_T l_pos) {
+void BTREE_NODE::erase_pos(memory_size_type k_pos, memory_size_type l_pos) {
 
     assert(!empty());
 
@@ -2198,7 +2198,7 @@ bid_t btree<Key, Value, Compare, KeyOfValue, BTECOLL>::find_leaf(const Key& k) {
     BTREE_NODE * p;
     bid_t bid = header_.root_bid;
     size_t pos;
-    TPIE_OS_SIZE_T level;
+    memory_size_type level;
 
     assert(header_.height >= 1);
     assert(path_stack_.empty());

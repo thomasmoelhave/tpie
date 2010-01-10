@@ -40,18 +40,18 @@ namespace tpie {
 namespace ami {
 
 // Forward declarations.
-template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL> class kdbtree_node;
-template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL> class kdbtree_leaf;
+template<class coord_t, memory_size_type dim, class BTECOLL> class kdbtree_node;
+template<class coord_t, memory_size_type dim, class BTECOLL> class kdbtree_leaf;
 
 ///////////////////////////////////////////////////////////////////////////
 /// The kdbtree class. 
 ///////////////////////////////////////////////////////////////////////////
-template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node=kdtree_bin_node_default<coord_t, dim>, class BTECOLL = bte::COLLECTION > 
+template<class coord_t, memory_size_type dim, class Bin_node=kdtree_bin_node_default<coord_t, dim>, class BTECOLL = bte::COLLECTION > 
 class kdbtree {
 public:
 
-  typedef record<coord_t, TPIE_OS_SIZE_T, dim> point_t;
-  typedef record<coord_t, TPIE_OS_SIZE_T, dim> record_t;
+  typedef record<coord_t, memory_size_type, dim> point_t;
+  typedef record<coord_t, memory_size_type, dim> record_t;
   typedef point<coord_t, dim> key_t;
   typedef stream<point_t> stream_t;
   typedef collection_single<BTECOLL> collection_t;
@@ -76,7 +76,7 @@ public:
   /// Performs a window_query, defined by points \p p1 and \p p2.
   /// The result is written to \p stream.
   ///////////////////////////////////////////////////////////////////////////
-  TPIE_OS_OFFSET window_query(const point_t& p1, const point_t& p2, 
+  stream_offset_type window_query(const point_t& p1, const point_t& p2, 
 		      stream_t* stream);
 
   ///////////////////////////////////////////////////////////////////////////
@@ -115,7 +115,7 @@ public:
   ///////////////////////////////////////////////////////////////////////////
   // Inquires the size (number of points stored).
   ///////////////////////////////////////////////////////////////////////////
-  TPIE_OS_OFFSET size() const { return header_.size; }
+  stream_offset_type size() const { return header_.size; }
 
   ///////////////////////////////////////////////////////////////////////////
   /// Inquires the mbr_lo point.
@@ -135,12 +135,12 @@ public:
   ///////////////////////////////////////////////////////////////////////////
   /// Inquires the leaf block size (in bytes)
   ///////////////////////////////////////////////////////////////////////////
-  TPIE_OS_SIZE_T leaf_block_size() const { return pcoll_leaves_->block_size(); }
+  memory_size_type leaf_block_size() const { return pcoll_leaves_->block_size(); }
 
   ///////////////////////////////////////////////////////////////////////////
   /// Inquires the node block size (in bytes)
   ///////////////////////////////////////////////////////////////////////////
-  TPIE_OS_SIZE_T node_block_size() const { return pcoll_nodes_->block_size(); }
+  memory_size_type node_block_size() const { return pcoll_nodes_->block_size(); }
 
   ///////////////////////////////////////////////////////////////////////////
   /// Inquires the base path name.
@@ -166,7 +166,7 @@ public:
     point_t mbr_lo;
     point_t mbr_hi;
     bid_t root_bid;
-    TPIE_OS_OFFSET size;
+    stream_offset_type size;
     link_type_t root_type;
     
     header_t():
@@ -228,7 +228,7 @@ protected:
 
   bool insert_empty(const point_t& p);
 
-  TPIE_OS_OFFSET window_query(const item_t& ki, const region_t<coord_t, dim>& r,
+  stream_offset_type window_query(const item_t& ki, const region_t<coord_t, dim>& r,
 		      stream_t* stream);
 
   // Various initialization common to all constructors.
@@ -237,48 +237,48 @@ protected:
   void kd2kdb_node( kdtree_node<coord_t, dim, Bin_node, BTECOLL>* bn, 
 		    size_t i, region_t<coord_t, dim> r, 
 		    b_vector<item_t >& bv, size_t& bv_pos);
-  inline TPIE_OS_SIZE_T split_dim_longest_span(const path_stack_item_t<coord_t, dim>& top);
+  inline memory_size_type split_dim_longest_span(const path_stack_item_t<coord_t, dim>& top);
   bool split_leaf_and_insert(const path_stack_item_t<coord_t, dim>& top, 
 			     leaf_t* bl, item_t& ki1, 
 			     item_t& ki2, const point_t& p);
-  void split_leaf(coord_t sp, TPIE_OS_SIZE_T d, const item_t& kis, 
+  void split_leaf(coord_t sp, memory_size_type d, const item_t& kis, 
 		  item_t& ki1, item_t& ki2);
   void split_node_and_insert(const path_stack_item_t<coord_t, dim>& top,
 			     item_t& ki1, item_t& ki2, const item_t& ki);
-  void split_node(coord_t sp, TPIE_OS_SIZE_T d, const item_t& kis, 
+  void split_node(coord_t sp, memory_size_type d, const item_t& kis, 
 		  item_t& ki1, item_t& ki2);
   void find_split_position(const path_stack_item_t<coord_t, dim>& top, 
-			   coord_t& sp, TPIE_OS_SIZE_T& d);
+			   coord_t& sp, memory_size_type& d);
   // Empty the path stack.
   inline void empty_stack(bool update_weight = false);
 };
 
 struct _kdbtree_leaf_info {
-  TPIE_OS_SIZE_T size;
+  memory_size_type size;
   bid_t next;
-  TPIE_OS_SIZE_T split_dim;
+  memory_size_type split_dim;
 };
 
 ///////////////////////////////////////////////////////////////////////////
 /// The kdbtree_leaf class. 
 ///////////////////////////////////////////////////////////////////////////
-template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL>
-class kdbtree_leaf: public block<record<coord_t, TPIE_OS_SIZE_T, dim>, _kdbtree_leaf_info, BTECOLL> {
+template<class coord_t, memory_size_type dim, class BTECOLL>
+class kdbtree_leaf: public block<record<coord_t, memory_size_type, dim>, _kdbtree_leaf_info, BTECOLL> {
 public:
-  using block<record<coord_t, TPIE_OS_SIZE_T, dim>, _kdbtree_leaf_info, BTECOLL>::info;
-  using block<record<coord_t, TPIE_OS_SIZE_T, dim>, _kdbtree_leaf_info, BTECOLL>::el;
-  using block<record<coord_t, TPIE_OS_SIZE_T, dim>, _kdbtree_leaf_info, BTECOLL>::dirty;
+  using block<record<coord_t, memory_size_type, dim>, _kdbtree_leaf_info, BTECOLL>::info;
+  using block<record<coord_t, memory_size_type, dim>, _kdbtree_leaf_info, BTECOLL>::el;
+  using block<record<coord_t, memory_size_type, dim>, _kdbtree_leaf_info, BTECOLL>::dirty;
   
-  typedef record<coord_t, TPIE_OS_SIZE_T, dim> point_t;
-  typedef record<coord_t, TPIE_OS_SIZE_T, dim> record_t;
+  typedef record<coord_t, memory_size_type, dim> point_t;
+  typedef record<coord_t, memory_size_type, dim> record_t;
   typedef stream<point_t> stream_t;
   typedef collection_single<BTECOLL> collection_t;
   typedef _kdbtree_leaf_info info_t;
 
-  static TPIE_OS_SIZE_T el_capacity(TPIE_OS_SIZE_T block_size);
+  static memory_size_type el_capacity(memory_size_type block_size);
 
   kdbtree_leaf(collection_t* pcoll, bid_t bid = 0): 
-    block<record<coord_t, TPIE_OS_SIZE_T, dim>, _kdbtree_leaf_info, BTECOLL>(pcoll, 0, bid) {
+    block<record<coord_t, memory_size_type, dim>, _kdbtree_leaf_info, BTECOLL>(pcoll, 0, bid) {
     if (bid == 0) {
       size() = 0;
       next() = 0;
@@ -289,15 +289,15 @@ public:
   ///////////////////////////////////////////////////////////////////////////
   /// Returns number of points stored in this leaf.
   ///////////////////////////////////////////////////////////////////////////
-  TPIE_OS_SIZE_T& size() { return info()->size; }
+  memory_size_type& size() { return info()->size; }
 
-  const TPIE_OS_SIZE_T& size() const { return info()->size; }
+  const memory_size_type& size() const { return info()->size; }
 
   ///////////////////////////////////////////////////////////////////////////
   /// The weight of a leaf is the size. Just for symmetry with the
   /// nodes.
   ///////////////////////////////////////////////////////////////////////////
-  const TPIE_OS_OFFSET& weight() const { return info()->size; }
+  const stream_offset_type& weight() const { return info()->size; }
   
   ///////////////////////////////////////////////////////////////////////////
   /// Returns next leaf. All leaves of a tree are chained togther for easy
@@ -306,20 +306,20 @@ public:
   const bid_t& next() const { return info()->next; }
   bid_t& next() { return info()->next; }
 
-  TPIE_OS_SIZE_T& split_dim() { return info()->split_dim; }
-  const TPIE_OS_SIZE_T& split_dim() const { return info()->split_dim; }
+  memory_size_type& split_dim() { return info()->split_dim; }
+  const memory_size_type& split_dim() const { return info()->split_dim; }
  
   ///////////////////////////////////////////////////////////////////////////
   /// Maximum number of points that can be stored in this leaf.
   ///////////////////////////////////////////////////////////////////////////
-  TPIE_OS_SIZE_T capacity() const { return el.capacity(); }
+  memory_size_type capacity() const { return el.capacity(); }
 
   ///////////////////////////////////////////////////////////////////////////
   /// Finds a point. Return the index of the point found in the el
   /// vector (if not found, return size()).
   ///////////////////////////////////////////////////////////////////////////
-  TPIE_OS_SIZE_T find(const point_t &p) const {
-    TPIE_OS_SIZE_T i = 0;
+  memory_size_type find(const point_t &p) const {
+    memory_size_type i = 0;
     while (i < size()) {
       if (p == el[i])
 	break;
@@ -328,10 +328,10 @@ public:
     return i; 
   }
 
-  TPIE_OS_OFFSET window_query(const point_t &lop, const point_t &hip,
+  stream_offset_type window_query(const point_t &lop, const point_t &hip,
 		      stream_t* stream) const {
-    TPIE_OS_SIZE_T i;
-	TPIE_OS_OFFSET result = 0;
+    memory_size_type i;
+	stream_offset_type result = 0;
     for (i = 0; i < size(); i++) {
       // Test on all dimensions.
       if (lop < el[i] && el[i] < hip) {
@@ -359,7 +359,7 @@ public:
 
   bool erase(const point_t &p) {
     bool ans = false;
-    TPIE_OS_SIZE_T idx;
+    memory_size_type idx;
     if ((idx = find(p)) < size()) {
       if (idx < size() - 1) {
 	// Copy the last item indo pos idx. We could use el.erase() as
@@ -376,8 +376,8 @@ public:
   ///////////////////////////////////////////////////////////////////////////
   /// Sorts the points on the given dimension.
   ///////////////////////////////////////////////////////////////////////////
-  void sort(TPIE_OS_SIZE_T d) {
-    typename record<coord_t, TPIE_OS_SIZE_T, dim>::cmp cmpd(d);
+  void sort(memory_size_type d) {
+    typename record<coord_t, memory_size_type, dim>::cmp cmpd(d);
     std::sort(&el[0], &el[0] + size(), cmpd);
   }
 
@@ -385,9 +385,9 @@ public:
   /// Find median point on the given dimension. Return the index of the
   //ß/ median in the el vector.
   ///////////////////////////////////////////////////////////////////////////
-  TPIE_OS_SIZE_T find_median(TPIE_OS_SIZE_T d) {
+  memory_size_type find_median(memory_size_type d) {
     sort(d);
-    TPIE_OS_SIZE_T ans = (size() - 1) / 2; // preliminary median.
+    memory_size_type ans = (size() - 1) / 2; // preliminary median.
     ///    while ((ans + 1 < size()) && (cmpd.compare(el[ans], el[ans+1]) == 0))
     while ((ans + 1 < size()) && (el[ans][d] == el[ans+1][d]))
       ans++;
@@ -397,15 +397,15 @@ public:
 
 
 struct _kdbtree_node_info {
-  TPIE_OS_SIZE_T size;
-  TPIE_OS_OFFSET weight;
-  TPIE_OS_SIZE_T split_dim;
+  memory_size_type size;
+  stream_offset_type weight;
+  memory_size_type split_dim;
 };
 
 ///////////////////////////////////////////////////////////////////////////
 /// The kdbtree_node class. 
 ///////////////////////////////////////////////////////////////////////////
-template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL>
+template<class coord_t, memory_size_type dim, class BTECOLL>
 class kdbtree_node: public block<kdb_item_t<coord_t, dim>, _kdbtree_node_info, BTECOLL> {
 public:
   using block<kdb_item_t<coord_t, dim>, _kdbtree_node_info, BTECOLL>::info;
@@ -413,13 +413,13 @@ public:
   using block<kdb_item_t<coord_t, dim>, _kdbtree_node_info, BTECOLL>::lk;
   using block<kdb_item_t<coord_t, dim>, _kdbtree_node_info, BTECOLL>::dirty;
   
-  typedef record<coord_t, TPIE_OS_SIZE_T, dim> point_t;
+  typedef record<coord_t, memory_size_type, dim> point_t;
   typedef stream<point_t> stream_t;
   typedef collection_single<BTECOLL> collection_t;
   typedef kdb_item_t<coord_t, dim> item_t;
   typedef _kdbtree_node_info info_t;
 
-  static TPIE_OS_SIZE_T el_capacity(TPIE_OS_SIZE_T block_size);
+  static memory_size_type el_capacity(memory_size_type block_size);
 
   ///////////////////////////////////////////////////////////////////////////
   /// A node is an block containing kdb_item_t's as elements and no links.
@@ -436,33 +436,33 @@ public:
   ///////////////////////////////////////////////////////////////////////////
   /// Return number of kdb_item_t's stored in this node.
   ///////////////////////////////////////////////////////////////////////////
-  TPIE_OS_SIZE_T& size() { return info()->size; }
-  const TPIE_OS_SIZE_T& size() const { return info()->size; }
+  memory_size_type& size() { return info()->size; }
+  const memory_size_type& size() const { return info()->size; }
 
   ///////////////////////////////////////////////////////////////////////////
   /// Returns weight (ie, number of points stored in the subtree rooted at this
   /// node).
   ///////////////////////////////////////////////////////////////////////////
-  TPIE_OS_OFFSET& weight() { return info()->weight; }
-  const TPIE_OS_OFFSET& weight() const { return info()->weight; }
+  stream_offset_type& weight() { return info()->weight; }
+  const stream_offset_type& weight() const { return info()->weight; }
 
   ///////////////////////////////////////////////////////////////////////////
   /// Returns splitting dimension.
   ///////////////////////////////////////////////////////////////////////////
-  TPIE_OS_SIZE_T& split_dim() { return info()->split_dim; }
-  const TPIE_OS_SIZE_T& split_dim() const { return info()->split_dim; }
+  memory_size_type& split_dim() { return info()->split_dim; }
+  const memory_size_type& split_dim() const { return info()->split_dim; }
 
   ///////////////////////////////////////////////////////////////////////////
   /// Returns maximum number of kdb_item_t's that can be stored in this node.
   ///////////////////////////////////////////////////////////////////////////
-TPIE_OS_SIZE_T capacity() const { return el.capacity(); }
+memory_size_type capacity() const { return el.capacity(); }
 
   ///////////////////////////////////////////////////////////////////////////
   /// Finds the index of the kdb_item_t containing the given point. If
   /// no item contains the point, return size().
   ///////////////////////////////////////////////////////////////////////////
-  TPIE_OS_SIZE_T find(const point_t& p) {
-    TPIE_OS_SIZE_T i;
+  memory_size_type find(const point_t& p) {
+    memory_size_type i;
     for (i = 0; i < size(); i++) {
       if (el[i].region.contains(p.key))
 	break;
@@ -491,7 +491,7 @@ TPIE_OS_SIZE_T capacity() const { return el.capacity(); }
 #define TPIE_AMI_KDBTREE       kdbtree<coord_t, dim, Bin_node, BTECOLL>
 #define TPIE_AMI_KDBTREE_NODE  kdbtree_node<coord_t, dim, BTECOLL>
 #define TPIE_AMI_KDBTREE_LEAF  kdbtree_leaf<coord_t, dim, BTECOLL>
-#define POINT            record<coord_t, TPIE_OS_SIZE_T, dim>
+#define POINT            record<coord_t, memory_size_type, dim>
 #define POINT_STREAM     stream< POINT >
 #define REGION        region_t<coord_t, dim>
 #define KDB_ITEM      kdb_item_t<coord_t, dim>
@@ -504,17 +504,17 @@ TPIE_OS_SIZE_T capacity() const { return el.capacity(); }
 ////////// **kdbtree_leaf** //////////
 //////////////////////////////////////
 
-template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL>
-TPIE_OS_SIZE_T TPIE_AMI_KDBTREE_LEAF::el_capacity(TPIE_OS_SIZE_T block_size) {
-  return block<record<coord_t, TPIE_OS_SIZE_T, dim>, _kdbtree_leaf_info, BTECOLL>::el_capacity(block_size, 0);
+template<class coord_t, memory_size_type dim, class BTECOLL>
+memory_size_type TPIE_AMI_KDBTREE_LEAF::el_capacity(memory_size_type block_size) {
+  return block<record<coord_t, memory_size_type, dim>, _kdbtree_leaf_info, BTECOLL>::el_capacity(block_size, 0);
 }
 
 //////////////////////////////////////
 ////////// **kdbtree_node** //////////
 //////////////////////////////////////
 
-template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL>
-TPIE_OS_SIZE_T TPIE_AMI_KDBTREE_NODE::el_capacity(TPIE_OS_SIZE_T block_size) {
+template<class coord_t, memory_size_type dim, class BTECOLL>
+memory_size_type TPIE_AMI_KDBTREE_NODE::el_capacity(memory_size_type block_size) {
   return block<KDB_ITEM, _kdbtree_node_info, BTECOLL>::el_capacity(block_size, 0);
 }
 
@@ -524,7 +524,7 @@ TPIE_OS_SIZE_T TPIE_AMI_KDBTREE_NODE::el_capacity(TPIE_OS_SIZE_T block_size) {
 //////////////////////////////////////
 
 //// *kdbtree::kdbtree* ////
-template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
 TPIE_AMI_KDBTREE::kdbtree(const std::string& base_file_name, collection_type type, 
 			 const kdbtree_params& params): header_(), params_(params), name_(base_file_name) 
 {
@@ -532,7 +532,7 @@ TPIE_AMI_KDBTREE::kdbtree(const std::string& base_file_name, collection_type typ
 }
 
 //// *kdbtree::shared_init* ////
-template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
 void TPIE_AMI_KDBTREE::shared_init(const std::string& base_file_name, collection_type type) 
 {
 
@@ -576,12 +576,12 @@ void TPIE_AMI_KDBTREE::shared_init(const std::string& base_file_name, collection
 	node_cache_ = new tpie::ami::CACHE_MANAGER<TPIE_AMI_KDBTREE_NODE*, remove_node>(params_.node_cache_size, 1);
   
 	// Give meaningful values to parameters, if necessary.
-	TPIE_OS_SIZE_T leaf_capacity = TPIE_AMI_KDBTREE_LEAF::el_capacity(pcoll_leaves_->block_size());
+	memory_size_type leaf_capacity = TPIE_AMI_KDBTREE_LEAF::el_capacity(pcoll_leaves_->block_size());
 	if (params_.leaf_size_max == 0 || params_.leaf_size_max > leaf_capacity)
 		params_.leaf_size_max = leaf_capacity;
 	TPLOG("  kdbtree::shared_init leaf_size_max="<<params_.leaf_size_max<<"\n");
   
-	TPIE_OS_SIZE_T node_capacity = TPIE_AMI_KDBTREE_NODE::el_capacity(pcoll_nodes_->block_size());
+	memory_size_type node_capacity = TPIE_AMI_KDBTREE_NODE::el_capacity(pcoll_nodes_->block_size());
 	if (params_.node_size_max == 0 || params_.node_size_max > node_capacity)
 		params_.node_size_max = node_capacity;
 	TPLOG("  kdbtree::shared_init node_size_max="<<params_.node_size_max<<"\n");
@@ -594,7 +594,7 @@ void TPIE_AMI_KDBTREE::shared_init(const std::string& base_file_name, collection
 
 
 //// *kdbtree::kd2kdb* ////
-template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
 bool TPIE_AMI_KDBTREE::kd2kdb() {
   TPLOG("kdbtree::kd2kdb() Entering " << "\n");
   if (status_ != tpie::ami::KDBTREE_STATUS_KDTREE) {
@@ -638,12 +638,12 @@ bool TPIE_AMI_KDBTREE::kd2kdb() {
 
 
 //// *kdbtree::window_query* ////
-template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-TPIE_OS_OFFSET TPIE_AMI_KDBTREE::window_query(const POINT &p1, const POINT& p2, 
+template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+stream_offset_type TPIE_AMI_KDBTREE::window_query(const POINT &p1, const POINT& p2, 
 			     POINT_STREAM* stream) {
   TPLOG("  query window: "<<p1[0]<<" "<<p1[1]<<" "<<p2[0]<<" "<<p2[1]<<"\n");
   // The number of points found.
-  TPIE_OS_OFFSET result = 0;
+  stream_offset_type result = 0;
 
   // We can afford to do some error checking, since this is usually a
   // lengthy operation.
@@ -662,13 +662,13 @@ TPIE_OS_OFFSET TPIE_AMI_KDBTREE::window_query(const POINT &p1, const POINT& p2,
 }
 
 //// *kdbtree::window_query* ////
-template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-TPIE_OS_OFFSET TPIE_AMI_KDBTREE::window_query(const KDB_ITEM& ki, const REGION& r, POINT_STREAM* stream) {
+template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+stream_offset_type TPIE_AMI_KDBTREE::window_query(const KDB_ITEM& ki, const REGION& r, POINT_STREAM* stream) {
   TPLOG("  window query recusion: " << ki << "\n");
-  TPIE_OS_OFFSET result = 0;
+  stream_offset_type result = 0;
   if (ki.type == BLOCK_NODE) {
     TPIE_AMI_KDBTREE_NODE* bn = fetch_node(ki.bid);
-    TPIE_OS_SIZE_T i;
+    memory_size_type i;
     for (i = 0; i < bn->size(); i++) {
       if (bn->el[i].region.intersects(r))
 	result += window_query(bn->el[i], r, stream);
@@ -684,7 +684,7 @@ TPIE_OS_OFFSET TPIE_AMI_KDBTREE::window_query(const KDB_ITEM& ki, const REGION& 
 }
 
 //// *kdbtree::kd2kdb* ////
-template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
 void TPIE_AMI_KDBTREE::kd2kdb(const KDB_ITEM& ki, b_vector<KDB_ITEM >& bv) {
   TPLOG("kdbtree::kd2kdb Entering bid=" << ki.bid << "\n");
 
@@ -701,7 +701,7 @@ void TPIE_AMI_KDBTREE::kd2kdb(const KDB_ITEM& ki, b_vector<KDB_ITEM >& bv) {
     delete bno;
     status_ = tpie::ami::KDBTREE_STATUS_INVALID;
   } else {
-    TPIE_OS_SIZE_T free_pos = 0;
+    memory_size_type free_pos = 0;
     kd2kdb_node(bno, 0, ki.region, bv, free_pos);
     delete bno;
     TPLOG("  kdbtree_node size="<<free_pos<<"\n");
@@ -712,7 +712,7 @@ void TPIE_AMI_KDBTREE::kd2kdb(const KDB_ITEM& ki, b_vector<KDB_ITEM >& bv) {
     bn->size() = free_pos;
     bn->split_dim() = 0;
     
-    for (TPIE_OS_SIZE_T i = 0; i < free_pos; i++) {
+    for (memory_size_type i = 0; i < free_pos; i++) {
       if (bn->el[i].type == BLOCK_NODE && status_ != tpie::ami::KDBTREE_STATUS_INVALID)
 	kd2kdb(bn->el[i], bv);
     }
@@ -723,7 +723,7 @@ void TPIE_AMI_KDBTREE::kd2kdb(const KDB_ITEM& ki, b_vector<KDB_ITEM >& bv) {
 }
 
 //// *kdbtree::kd2kdb_node* ////
-template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
 void TPIE_AMI_KDBTREE::kd2kdb_node(kdtree_node<coord_t, dim, Bin_node, BTECOLL> *bn, 
 			      size_t i, REGION r, 
 			      b_vector<KDB_ITEM >& bv, size_t& bv_pos) {
@@ -762,8 +762,8 @@ void TPIE_AMI_KDBTREE::kd2kdb_node(kdtree_node<coord_t, dim, Bin_node, BTECOLL> 
 }
 
 //// *kdbtree::insert_empty* ////
-template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-bool TPIE_AMI_KDBTREE::insert_empty(const record<coord_t, TPIE_OS_SIZE_T, dim>& p) {
+template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+bool TPIE_AMI_KDBTREE::insert_empty(const record<coord_t, memory_size_type, dim>& p) {
   bool ans;
   TPIE_AMI_KDBTREE_LEAF* bl = fetch_leaf();
   ans = bl->insert(p);
@@ -785,8 +785,8 @@ bool TPIE_AMI_KDBTREE::insert_empty(const record<coord_t, TPIE_OS_SIZE_T, dim>& 
 }
 
 //// *kdbtree::find* ////
-template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-bool TPIE_AMI_KDBTREE::find(const record<coord_t, TPIE_OS_SIZE_T, dim>& p) {
+template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+bool TPIE_AMI_KDBTREE::find(const record<coord_t, memory_size_type, dim>& p) {
 
   TPLOG("kdbtree::find Entering "<<"\n");
 
@@ -794,7 +794,7 @@ bool TPIE_AMI_KDBTREE::find(const record<coord_t, TPIE_OS_SIZE_T, dim>& p) {
     return false;
 
   bool ans;
-  TPIE_OS_SIZE_T i;
+  memory_size_type i;
 
   TPIE_AMI_KDBTREE_NODE* bn;
   REGION r;
@@ -826,11 +826,11 @@ bool TPIE_AMI_KDBTREE::find(const record<coord_t, TPIE_OS_SIZE_T, dim>& p) {
 
 
 //// *kdbtree::insert* ////
-template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-bool TPIE_AMI_KDBTREE::insert(const record<coord_t, TPIE_OS_SIZE_T, dim>& p) {
+template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+bool TPIE_AMI_KDBTREE::insert(const record<coord_t, memory_size_type, dim>& p) {
 
   TPLOG("kdbtree::insert Entering "<<"\n");
-  TPIE_OS_SIZE_T i;
+  memory_size_type i;
 
   // The first insertion is treated separately.
   if (header_.size == 0)
@@ -904,7 +904,7 @@ bool TPIE_AMI_KDBTREE::insert(const record<coord_t, TPIE_OS_SIZE_T, dim>& p) {
     release_leaf(bl);
 
     bool done = false;
-    TPIE_OS_SIZE_T el_idx;
+    memory_size_type el_idx;
 
     while (!path_stack_.empty() && !done) {
       // Save top.el_idx.
@@ -961,7 +961,7 @@ bool TPIE_AMI_KDBTREE::insert(const record<coord_t, TPIE_OS_SIZE_T, dim>& p) {
 }
 
 //// *kdbtree::dfs_preorder* ////
-template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
 KDB_ITEM TPIE_AMI_KDBTREE::dfs_preorder(int& level) {
 
   // level signals the start/end of the traversal. All necessary state
@@ -1020,15 +1020,15 @@ KDB_ITEM TPIE_AMI_KDBTREE::dfs_preorder(int& level) {
 }
 
 //// *kdbtree::split_leaf_and_insert* ////
-template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-TPIE_OS_SIZE_T TPIE_AMI_KDBTREE::split_dim_longest_span(const STACK_ITEM& top) {
-  TPIE_OS_SIZE_T d;
+template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+memory_size_type TPIE_AMI_KDBTREE::split_dim_longest_span(const STACK_ITEM& top) {
+  memory_size_type d;
 
   coord_t longest_span =
     (top.item.region.is_bounded_hi(0) ? top.item.region.hi(0): header_.mbr_hi[0]) - 
     (top.item.region.is_bounded_lo(0) ? top.item.region.lo(0): header_.mbr_lo[0]);
   d = 0;
-  for (TPIE_OS_SIZE_T i = 1; i < dim; i++)
+  for (memory_size_type i = 1; i < dim; i++)
     if ((top.item.region.is_bounded_hi(i) ? top.item.region.hi(i): header_.mbr_hi[i]) -
 	(top.item.region.is_bounded_lo(i) ? top.item.region.lo(i): header_.mbr_lo[i]) > longest_span) {
       longest_span = 
@@ -1041,28 +1041,28 @@ TPIE_OS_SIZE_T TPIE_AMI_KDBTREE::split_dim_longest_span(const STACK_ITEM& top) {
 }
 
 //// *kdbtree::split_leaf_and_insert* ////
-template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
 bool TPIE_AMI_KDBTREE::split_leaf_and_insert(const STACK_ITEM& top, TPIE_AMI_KDBTREE_LEAF* bl,
 				    KDB_ITEM& ki1, KDB_ITEM& ki2, const POINT& p) {
   // Get the median point.
   // Move points higher than the median in bl_hi.
   TPIE_AMI_KDBTREE_LEAF* bl_hi = fetch_leaf();
   bool ans;
-  TPIE_OS_SIZE_T d;
+  memory_size_type d;
   if (params_.split_heuristic == CYCLICAL)
     d = bl->split_dim();
   else if (params_.split_heuristic == LONGEST_SPAN)
     d = split_dim_longest_span(top);   
   else if (params_.split_heuristic == RANDOM)
     d = TPIE_OS_RANDOM() % dim;
-  TPIE_OS_SIZE_T med = bl->find_median(d); // the index of the median point in bl->el.
+  memory_size_type med = bl->find_median(d); // the index of the median point in bl->el.
   POINT sp = bl->el[med];
 
   if (med + 1 >= bl->size()) {
     std::cerr << "\nbl->bid()=" << bl->bid() << ", bl->size()=" << static_cast<TPIE_OS_OUTPUT_SIZE_T>(bl->size()) 
 		<< ", med=" << static_cast<TPIE_OS_OUTPUT_SIZE_T>(med) << "\n";
     std::cerr << "bl: ";
-    for (TPIE_OS_SIZE_T i = 0; i < bl->size(); i++) {
+    for (memory_size_type i = 0; i < bl->size(); i++) {
       std::cerr << "[" << bl->el[i][0] << "," << bl->el[i][1] << "] ";
     }
     std::cerr << "\n";
@@ -1095,19 +1095,19 @@ bool TPIE_AMI_KDBTREE::split_leaf_and_insert(const STACK_ITEM& top, TPIE_AMI_KDB
 }
 
 //// *kdbtree::split_leaf* ////
-template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-void TPIE_AMI_KDBTREE::split_leaf(coord_t sp, TPIE_OS_SIZE_T d,  const KDB_ITEM& kis, 
+template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+void TPIE_AMI_KDBTREE::split_leaf(coord_t sp, memory_size_type d,  const KDB_ITEM& kis, 
 			 KDB_ITEM& ki1, KDB_ITEM& ki2) {
 
   assert(kis.type == BLOCK_LEAF);
   TPIE_AMI_KDBTREE_LEAF* bl = fetch_leaf(kis.bid);
   TPIE_AMI_KDBTREE_LEAF* bl_hi = fetch_leaf();
-  TPIE_OS_SIZE_T bl_size = bl->size();
+  memory_size_type bl_size = bl->size();
   POINT p;
 
   bl->size() = 0;
   assert(bl_hi->size() == 0);
-  for (TPIE_OS_SIZE_T i = 0; i < bl_size; i++) {
+  for (memory_size_type i = 0; i < bl_size; i++) {
     p = bl->el[i];
     (sp < p[d] ? bl_hi: bl)->insert(p);
   }
@@ -1125,13 +1125,13 @@ void TPIE_AMI_KDBTREE::split_leaf(coord_t sp, TPIE_OS_SIZE_T d,  const KDB_ITEM&
 }
 
 //// *kdbtree::split_node_and_insert* ////
-template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
 void TPIE_AMI_KDBTREE::split_node_and_insert(const STACK_ITEM& top,
 				    KDB_ITEM& ki1, KDB_ITEM& ki2, const KDB_ITEM& ki) {
   // The split position.
   coord_t sp;
   // The split dimension.
-  TPIE_OS_SIZE_T d;
+  memory_size_type d;
 
   // Find a split position and store it in sp.
   find_split_position(top, sp, d);
@@ -1170,8 +1170,8 @@ void TPIE_AMI_KDBTREE::split_node_and_insert(const STACK_ITEM& top,
 }
 
 //// *kdbtree::find_split_position* ////
-template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-void TPIE_AMI_KDBTREE::find_split_position(const STACK_ITEM& top, coord_t& sp, TPIE_OS_SIZE_T& d) {
+template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+void TPIE_AMI_KDBTREE::find_split_position(const STACK_ITEM& top, coord_t& sp, memory_size_type& d) {
   TPIE_AMI_KDBTREE_NODE *bn;
   bn = fetch_node(top.item.bid);
 
@@ -1188,10 +1188,10 @@ void TPIE_AMI_KDBTREE::find_split_position(const STACK_ITEM& top, coord_t& sp, T
 #endif
 
   std::vector<coord_t > cv(0);
-  TPIE_OS_SIZE_T unbounded = 0;
+  memory_size_type unbounded = 0;
   // Collect all low boundaries from bn and, if they are bounded,
   // store them in cv. The unbounded ones are counted only.
-  for (TPIE_OS_SIZE_T i = 0; i < bn->size(); i++) {
+  for (memory_size_type i = 0; i < bn->size(); i++) {
     if (bn->el[i].region.is_bounded_lo(d))
       cv.push_back(bn->el[i].region.lo(d));
     else
@@ -1201,7 +1201,7 @@ void TPIE_AMI_KDBTREE::find_split_position(const STACK_ITEM& top, coord_t& sp, T
   // Sort.
   std::sort(cv.begin(), cv.end());
   // Get median value.
-  TPIE_OS_SIZE_T median = (bn->size() / 2 > unbounded ? bn->size() / 2 - unbounded: 0);
+  memory_size_type median = (bn->size() / 2 > unbounded ? bn->size() / 2 - unbounded: 0);
   // Make sure we don't return the leftmost boundary.
   if (unbounded == 0)
     while (cv[median] == cv[0])
@@ -1212,8 +1212,8 @@ void TPIE_AMI_KDBTREE::find_split_position(const STACK_ITEM& top, coord_t& sp, T
 }
 
 //// *kdbtree::split_node* ////
-template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-void TPIE_AMI_KDBTREE::split_node(coord_t sp, TPIE_OS_SIZE_T d, const KDB_ITEM& kis, 
+template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+void TPIE_AMI_KDBTREE::split_node(coord_t sp, memory_size_type d, const KDB_ITEM& kis, 
 			 KDB_ITEM& ki1, KDB_ITEM& ki2) {
   assert(kis.type == BLOCK_NODE);
   TPIE_AMI_KDBTREE_NODE *bn, *bn_hi;
@@ -1221,7 +1221,7 @@ void TPIE_AMI_KDBTREE::split_node(coord_t sp, TPIE_OS_SIZE_T d, const KDB_ITEM& 
   bn = fetch_node(kis.bid);
   bn_hi = fetch_node();
   KDB_ITEM ki;
-  ///  TPIE_OS_SIZE_T d = bn->split_dim();
+  ///  memory_size_type d = bn->split_dim();
 
   ki1 = ki2 = kis;
   ki1.region.cutout_hi(sp, d);
@@ -1229,8 +1229,8 @@ void TPIE_AMI_KDBTREE::split_node(coord_t sp, TPIE_OS_SIZE_T d, const KDB_ITEM& 
   ki2.region.cutout_lo(sp, d);
   ki2.bid = bn_hi->bid();
 
-  TPIE_OS_SIZE_T next_free_lo = 0, next_free_hi = 0, i;
-  TPIE_OS_SIZE_T bn_size = bn->size();
+  memory_size_type next_free_lo = 0, next_free_hi = 0, i;
+  memory_size_type bn_size = bn->size();
   int pos;
   bn->size() = 0;
   assert(bn_hi->size() == 0);
@@ -1262,7 +1262,7 @@ void TPIE_AMI_KDBTREE::split_node(coord_t sp, TPIE_OS_SIZE_T d, const KDB_ITEM& 
 }
 
 //// *kdbtree::empty_stack* ////
-template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
 void TPIE_AMI_KDBTREE::empty_stack(bool update_weight) {
   node_t* bn;
   while (!path_stack_.empty()) {
@@ -1276,14 +1276,14 @@ void TPIE_AMI_KDBTREE::empty_stack(bool update_weight) {
 }
 
 //// *kdbtree::persist* ////
-template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
 void TPIE_AMI_KDBTREE::persist(persistence per) {
   pcoll_leaves_->persist(per);
   pcoll_nodes_->persist(per);
 }
 
 //// *kdbtree::fetch_node* ////
-template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
 TPIE_AMI_KDBTREE_NODE* TPIE_AMI_KDBTREE::fetch_node(bid_t bid) {
   TPIE_AMI_KDBTREE_NODE* q;
   stats_.record(NODE_FETCH);
@@ -1295,7 +1295,7 @@ TPIE_AMI_KDBTREE_NODE* TPIE_AMI_KDBTREE::fetch_node(bid_t bid) {
 }
 
 //// *kdbtree::fetch_leaf* ////
-template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
 TPIE_AMI_KDBTREE_LEAF* TPIE_AMI_KDBTREE::fetch_leaf(bid_t bid) {
   TPIE_AMI_KDBTREE_LEAF* q;
   stats_.record(LEAF_FETCH);
@@ -1307,7 +1307,7 @@ TPIE_AMI_KDBTREE_LEAF* TPIE_AMI_KDBTREE::fetch_leaf(bid_t bid) {
 }
 
 //// *kdbtree::release_node* ////
-template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
 void TPIE_AMI_KDBTREE::release_node(TPIE_AMI_KDBTREE_NODE* q) {
   stats_.record(NODE_RELEASE);
   if (q->persist() == PERSIST_DELETE)
@@ -1317,7 +1317,7 @@ void TPIE_AMI_KDBTREE::release_node(TPIE_AMI_KDBTREE_NODE* q) {
 }
 
 //// *kdbtree::release_leaf* ////
-template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
 void TPIE_AMI_KDBTREE::release_leaf(TPIE_AMI_KDBTREE_LEAF* q) {
   stats_.record(LEAF_RELEASE);
   if (q->persist() == PERSIST_DELETE)
@@ -1327,7 +1327,7 @@ void TPIE_AMI_KDBTREE::release_leaf(TPIE_AMI_KDBTREE_LEAF* q) {
 }
 
 //// *kdbtree::stats* ////
-template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
 const stats_tree &TPIE_AMI_KDBTREE::stats() {
   node_cache_->flush();
   leaf_cache_->flush();
@@ -1346,7 +1346,7 @@ const stats_tree &TPIE_AMI_KDBTREE::stats() {
 
 
 //// *kdbtree::~kdbtree* ////
-template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
 TPIE_AMI_KDBTREE::~kdbtree() {
   
   if (status_ == tpie::ami::KDBTREE_STATUS_VALID) {

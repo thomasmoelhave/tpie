@@ -36,9 +36,9 @@ class progress_indicator_null : public progress_indicator_base {
 public:
     progress_indicator_null (const std::string& title, 
 			     const std::string& description, 
-			     TPIE_OS_OFFSET minRange, 
-			     TPIE_OS_OFFSET maxRange, 
-			     TPIE_OS_OFFSET stepValue) :  
+			     stream_offset_type minRange, 
+			     stream_offset_type maxRange, 
+			     stream_offset_type stepValue) :  
 	progress_indicator_base(title, description, minRange, maxRange, stepValue) {
     }
 
@@ -76,7 +76,7 @@ public:
     ///
     ////////////////////////////////////////////////////////////////////
 
-    virtual void set_min_range(TPIE_OS_OFFSET /*minRange*/) { }
+    virtual void set_min_range(stream_offset_type /*minRange*/) { }
 
     ////////////////////////////////////////////////////////////////////
     ///
@@ -89,7 +89,7 @@ public:
     ///
     ////////////////////////////////////////////////////////////////////
 
-    virtual void set_max_range(TPIE_OS_OFFSET /*maxRange*/) { }
+    virtual void set_max_range(stream_offset_type /*maxRange*/) { }
 
     ////////////////////////////////////////////////////////////////////
     ///
@@ -101,7 +101,7 @@ public:
     ///
     ////////////////////////////////////////////////////////////////////
 
-    virtual void set_step_value(TPIE_OS_OFFSET /*stepValue*/) { }
+    virtual void set_step_value(stream_offset_type /*stepValue*/) { }
   
     ////////////////////////////////////////////////////////////////////
     ///

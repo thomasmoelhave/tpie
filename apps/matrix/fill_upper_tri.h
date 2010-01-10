@@ -46,11 +46,11 @@ namespace tpie {
 	    fill_upper_tri(T t) : val(t) {};
 	    virtual ~fill_upper_tri() {};
 	    
-	    ami::err initialize(TPIE_OS_OFFSET /*rows*/, TPIE_OS_OFFSET /*cols*/) {
+	    ami::err initialize(stream_offset_type /*rows*/, stream_offset_type /*cols*/) {
 		return ami::NO_ERROR;
 	    };
 	    
-	    T element(TPIE_OS_OFFSET row, TPIE_OS_OFFSET col) {
+	    T element(stream_offset_type row, stream_offset_type col) {
 		return (row <= col) ? val : 0;
 	    };
 	};

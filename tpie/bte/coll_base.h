@@ -105,23 +105,23 @@ namespace tpie {
 	    unsigned int type;
 
 	    // The number of bytes in this structure.
-	    TPIE_OS_SIZE_T header_length;
+	    memory_size_type header_length;
 
 	    // The number of blocks consumed by this collection, plus 1.
-	    TPIE_OS_OFFSET total_blocks;
+	    stream_offset_type total_blocks;
 
 	    // The highest bid any block of this block collection has, PLUS 1
 	    // (always <= total_blocks).
-	    TPIE_OS_OFFSET last_block; 
+	    stream_offset_type last_block; 
 
 	    // The number of valid blocks in this block collection.
-	    TPIE_OS_OFFSET used_blocks;
+	    stream_offset_type used_blocks;
 
 	    // The size of a physical block on the device this stream resides.
-	    TPIE_OS_SIZE_T os_block_size;
+	    memory_size_type os_block_size;
 
 	    // Size in bytes of each logical block.
-	    TPIE_OS_SIZE_T block_size;
+	    memory_size_type block_size;
 
 	    // Some data to be filled by the user of the collection.
 		char user_data[COLLECTION_USER_DATA_LEN];
@@ -151,7 +151,7 @@ namespace tpie {
 	    // Various parameters (will be stored into the file header block).
 	    collection_header header_;
 	
-	    // A stack of TPIE_OS_OFFSET's.
+	    // A stack of stream_offset_type's.
 	    stack_ufs<BIDT> *freeblock_stack_; 
 	
 	    // File descriptor for the file backing the block collection.
@@ -159,7 +159,7 @@ namespace tpie {
 	
 		std::string base_file_name_;
 	
-	    TPIE_OS_SIZE_T os_block_size_;
+	    memory_size_type os_block_size_;
 	
 	    // Persistency flag. Set during construction and using the persist()
 	    // method.
@@ -172,10 +172,10 @@ namespace tpie {
 	    bool read_only_;
 	
 	    // Number of blocks from this collection that are currently in memory
-	    TPIE_OS_SIZE_T in_memory_blocks_;
+	    memory_size_type in_memory_blocks_;
 	
 	    // File pointer position. A value of -1 signals unknown position.
-	    TPIE_OS_OFFSET file_pointer;
+	    stream_offset_type file_pointer;
 	
 	    // Statistics for this object.
 	    stats_collection stats_;
@@ -188,7 +188,7 @@ namespace tpie {
 	
 	    // Initialization common to all constructors.
 	    void shared_init(collection_type      type, 
-			     TPIE_OS_SIZE_T       logical_block_factor, 
+			     memory_size_type       logical_block_factor, 
 			     TPIE_OS_MAPPING_FLAG mapping);
 	
 	    // Read header from disk.
@@ -202,7 +202,7 @@ namespace tpie {
 	protected:
 	
 	    // Needs to be inlined!
-	    err register_memory_allocation(TPIE_OS_SIZE_T sz) {
+	    err register_memory_allocation(memory_size_type sz) {
 		if (MM_manager.register_allocation(sz) != mem::NO_ERROR) {
 		    status_ = COLLECTION_STATUS_INVALID;
 		    TP_LOG_FATAL_ID("Memory manager error in allocation.");
@@ -212,7 +212,7 @@ namespace tpie {
 	    }
 	
 	    // Needs to be inlined!
-	    err register_memory_deallocation(TPIE_OS_SIZE_T sz) {
+	    err register_memory_deallocation(memory_size_type sz) {
 		if (MM_manager.register_deallocation(sz) != mem::NO_ERROR) {
 		    status_ = COLLECTION_STATUS_INVALID;
 		    TP_LOG_FATAL_ID("Memory manager error in deallocation.");
@@ -221,7 +221,7 @@ namespace tpie {
 		return NO_ERROR;
 	    }
 
-	    TPIE_OS_OFFSET bid_to_file_offset(BIDT bid) const { 
+	    stream_offset_type bid_to_file_offset(BIDT bid) const { 
 		return header_.os_block_size + header_.block_size * (bid-1); 
 	    }
 
@@ -240,7 +240,7 @@ namespace tpie {
 		    tp_assert(freeblock_stack_ != NULL, 
 			      "BTE_collection_ufs internal error: NULL stack pointer");
 		    // TODO: this is a costly operation. improve!
-		    TPIE_OS_OFFSET slen = freeblock_stack_->stream_len();
+		    stream_offset_type slen = freeblock_stack_->stream_len();
 			//silence compiler warning about unused slen if tp_assert is disabled
 			slen=slen;
 		    tp_assert(slen > 0, "BTE_collection_ufs internal error: empty stack");
@@ -282,9 +282,9 @@ namespace tpie {
 			}
 #else
 			std::string tbuf;
-			TPIE_OS_OFFSET curr_off;
+			stream_offset_type curr_off;
 		    
-			if ((curr_off = TPIE_OS_LSEEK(bcc_fd_, 0, TPIE_OS_FLAG_SEEK_END)) == (TPIE_OS_OFFSET)(-1)) {
+			if ((curr_off = TPIE_OS_LSEEK(bcc_fd_, 0, TPIE_OS_FLAG_SEEK_END)) == (stream_offset_type)(-1)) {
 
 			    TP_LOG_FATAL_ID("Failed to seek to the end of file.");
 
@@ -328,26 +328,26 @@ namespace tpie {
 	
 	    collection_base(const std::string& base_name, 
 			    collection_type      ct, 
-			    TPIE_OS_SIZE_T       logical_block_factor, 
+			    memory_size_type       logical_block_factor, 
 			    TPIE_OS_MAPPING_FLAG mapping = TPIE_OS_FLAG_USE_MAPPING_FALSE);
 
 	    // Return the total number of used blocks.
-	    TPIE_OS_OFFSET size() const { 
+	    stream_offset_type size() const { 
 		return header_.used_blocks; 
 	    }
         
 	    // Return the total number of blocks consumed by the block collection.
-	    TPIE_OS_OFFSET file_size() const { 
+	    stream_offset_type file_size() const { 
 		return header_.total_blocks - 1; 
 	    }
 
 	    // Return the logical block size in bytes.
-	    TPIE_OS_SIZE_T block_size() const {
+	    memory_size_type block_size() const {
 		return header_.block_size; 
 	    }
 
 	    // Return the logical block factor.
-	    TPIE_OS_SIZE_T block_factor() const { 
+	    memory_size_type block_factor() const { 
 		return header_.block_size / header_.os_block_size; 
 	    }
 
@@ -421,7 +421,7 @@ namespace tpie {
 	template<class BIDT>
 	collection_base<BIDT>::collection_base(const std::string& base_name, 
 					       collection_type type, 
-					       TPIE_OS_SIZE_T logical_block_factor, 
+					       memory_size_type logical_block_factor, 
 					       TPIE_OS_MAPPING_FLAG mapping):
 	    header_(), 
 	    freeblock_stack_(NULL) {
@@ -444,7 +444,7 @@ namespace tpie {
 
 	template<class BIDT>
 	void collection_base<BIDT>::shared_init(collection_type type,
-						TPIE_OS_SIZE_T logical_block_factor,
+						memory_size_type logical_block_factor,
 						TPIE_OS_MAPPING_FLAG mapping) {
 	
 	    read_only_ = (type == READ_COLLECTION);
@@ -616,7 +616,7 @@ namespace tpie {
 		return BAD_HEADER;
 	    }
 	
-	    TPIE_OS_OFFSET lseek_retval;
+	    stream_offset_type lseek_retval;
 
 	    // Some more error checking.
 	    if ((lseek_retval = TPIE_OS_LSEEK(bcc_fd_, 0, TPIE_OS_FLAG_SEEK_END)) != 

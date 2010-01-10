@@ -208,8 +208,8 @@ int main(int argc, char **argv)
 
         cpu_timer cput0, cput1;
         
-	TPIE_OS_SIZE_T rows_per_band;
-        TPIE_OS_OFFSET total_bands;
+	memory_size_type rows_per_band;
+        stream_offset_type total_bands;
         
         if (read_banded_matrix) {
 
@@ -222,9 +222,9 @@ int main(int argc, char **argv)
             }
 
             // Read in the banded order matrix from an input file.            
-            TPIE_OS_SIZE_T file_test_mm_size;
-	    TPIE_OS_OFFSET file_test_size;
-            TPIE_OS_SIZE_T file_rows_per_band;
+            memory_size_type file_test_mm_size;
+	    stream_offset_type file_test_size;
+            memory_size_type file_rows_per_band;
 
             *isb >> file_test_mm_size >> file_test_size
 		 >> file_rows_per_band;

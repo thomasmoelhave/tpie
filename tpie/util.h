@@ -26,10 +26,5 @@ namespace tpie {
 template <typename T>
 inline void unused(const T & x) {(void)x;}
 
-typedef TPIE_OS_OFFSET offset_type;
-typedef TPIE_OS_SIZE_T size_type;
-typedef TPIE_OS_SSIZE_T ssize_type;
-
 }
-
 #endif //__TPIE_UTIL_H__

@@ -109,18 +109,18 @@ namespace tpie {
 			// usage of lbf is discouraged.
 			stream_mmap(const std::string& dev_path, 
 						stream_type    st, 
-						TPIE_OS_SIZE_T lbf = STREAM_MMAP_BLOCK_FACTOR);
+						memory_size_type lbf = STREAM_MMAP_BLOCK_FACTOR);
 	
 			// A substream constructor.
 			stream_mmap(stream_mmap    *super_stream,
 						stream_type    st, 
-						TPIE_OS_OFFSET sub_begin, 
-						TPIE_OS_OFFSET sub_end);
+						stream_offset_type sub_begin, 
+						stream_offset_type sub_end);
 	
 			// A psuedo-constructor for substreams.
 			err new_substream(stream_type    st, 
-							  TPIE_OS_OFFSET sub_begin,
-							  TPIE_OS_OFFSET sub_end,
+							  stream_offset_type sub_begin,
+							  stream_offset_type sub_end,
 							  base_t **sub_stream);
 	
 			// Destructor
@@ -130,25 +130,25 @@ namespace tpie {
 			inline err write_item(const T & elt);
 	
 			// Move to a specific position in the stream.
-			err seek(TPIE_OS_OFFSET offset);
+			err seek(stream_offset_type offset);
 	
 			// Truncate the stream.
-			err truncate(TPIE_OS_OFFSET offset);
+			err truncate(stream_offset_type offset);
 	
 			// Return the number of items in the stream.
-			inline TPIE_OS_OFFSET stream_len() const;
+			inline stream_offset_type stream_len() const;
 	
 			// Return the current position in the stream.
-			inline TPIE_OS_OFFSET tell() const;
+			inline stream_offset_type tell() const;
 	
 			// Query memory usage
-			err main_memory_usage(TPIE_OS_SIZE_T* usage, 
+			err main_memory_usage(memory_size_type* usage, 
 								  mem::stream_usage usage_type);
 	
-			TPIE_OS_OFFSET chunk_size() const;
+			stream_offset_type chunk_size() const;
 	
 	
-			inline err grow_file (TPIE_OS_OFFSET block_offset);
+			inline err grow_file (stream_offset_type block_offset);
 	
 		private:
 	
@@ -170,8 +170,8 @@ namespace tpie {
 
 			inline err advance_current ();
 	
-			inline TPIE_OS_OFFSET item_off_to_file_off (TPIE_OS_OFFSET item_off) const;
-			inline TPIE_OS_OFFSET file_off_to_item_off (TPIE_OS_OFFSET item_off) const;
+			inline stream_offset_type item_off_to_file_off (stream_offset_type item_off) const;
+			inline stream_offset_type file_off_to_item_off (stream_offset_type item_off) const;
 
 #ifdef COLLECT_STATS
 			long stats_hits;
@@ -199,7 +199,7 @@ namespace tpie {
 	
 			// for use in double buffering
 			T *m_nextBlock;		        // ptr to next block
-			TPIE_OS_OFFSET m_nextBlockOffset;	// position of next block
+			stream_offset_type m_nextBlockOffset;	// position of next block
 			bool m_haveNextBlock;		// is next block mapped
 			bool m_writeOnly;			// stream is write-only
 	
@@ -232,7 +232,7 @@ namespace tpie {
 								bool /* w_only */,
 #endif
 								TPIE_OS_FILE_DESCRIPTOR fd, 
-								TPIE_OS_OFFSET off, int fixed) {
+								stream_offset_type off, int fixed) {
 			void *ptr;
 			int flags = 0;
 	
@@ -420,7 +420,7 @@ namespace tpie {
 				
 					// what does this do??? Rajiv
 					// Create and map in the header.
-					if (TPIE_OS_LSEEK(m_fileDescriptor, m_osBlockSize - 1, TPIE_OS_FLAG_SEEK_SET) != static_cast<TPIE_OS_OFFSET>(m_osBlockSize - 1)) {
+					if (TPIE_OS_LSEEK(m_fileDescriptor, m_osBlockSize - 1, TPIE_OS_FLAG_SEEK_SET) != static_cast<stream_offset_type>(m_osBlockSize - 1)) {
 		    
 						m_status = STREAM_STATUS_INVALID;
 						m_osErrno = errno;
@@ -513,7 +513,7 @@ namespace tpie {
 // For example, if a stream contains [A,B,C,D,...] then substream(1,3)
 // will contain [B,C,D].
 		template <class T>
-			stream_mmap<T>::stream_mmap (stream_mmap * super_stream, stream_type st, TPIE_OS_OFFSET sub_begin, TPIE_OS_OFFSET sub_end) {
+			stream_mmap<T>::stream_mmap (stream_mmap * super_stream, stream_type st, stream_offset_type sub_begin, stream_offset_type sub_end) {
 	
 			m_status = STREAM_STATUS_NO_STATUS;
 
@@ -562,7 +562,7 @@ namespace tpie {
 			// within the stream.  We need to convert them to offsets within
 			// the stream where items are found.
 	
-			TPIE_OS_OFFSET super_item_begin = file_off_to_item_off (super_stream->m_logicalBeginOfStream);
+			stream_offset_type super_item_begin = file_off_to_item_off (super_stream->m_logicalBeginOfStream);
 	
 			m_logicalBeginOfStream = item_off_to_file_off (super_item_begin + sub_begin);
 			m_logicalEndOfStream   = item_off_to_file_off (super_item_begin + sub_end + 1);
@@ -594,7 +594,7 @@ namespace tpie {
 // the constructor above in order to get around the fact that one
 // cannot have virtual constructors.
 		template <class T>
-			err stream_mmap<T>::new_substream (stream_type st, TPIE_OS_OFFSET sub_begin, TPIE_OS_OFFSET sub_end, base_t **sub_stream) {
+			err stream_mmap<T>::new_substream (stream_type st, stream_offset_type sub_begin, stream_offset_type sub_end, base_t **sub_stream) {
 			// Check permissions.
 	
 			if ((st != READ_STREAM) && ((st != WRITE_STREAM) || m_readOnly)) {
@@ -726,7 +726,7 @@ namespace tpie {
 			}
 	
 			// Make sure we are not currently at the EOS.
-			if (static_cast<TPIE_OS_OFFSET>(m_fileOffset + sizeof (T)) > m_logicalEndOfStream) {
+			if (static_cast<stream_offset_type>(m_fileOffset + sizeof (T)) > m_logicalEndOfStream) {
 				return END_OF_STREAM;
 			}
 	
@@ -828,7 +828,7 @@ namespace tpie {
 // Note that in a substream we do not charge for the memory used by
 // the header, since it is accounted for in the 0 level superstream.
 		template <class T>
-			err stream_mmap<T>::main_memory_usage (TPIE_OS_SIZE_T * usage, mem::stream_usage usage_type) {
+			err stream_mmap<T>::main_memory_usage (memory_size_type * usage, mem::stream_usage usage_type) {
 
 			switch (usage_type) {
 
@@ -868,17 +868,17 @@ namespace tpie {
     
 // Return the number of items in the stream.
 		template <class T> 
-			TPIE_OS_OFFSET stream_mmap<T>::stream_len () const {
+			stream_offset_type stream_mmap<T>::stream_len () const {
 			return file_off_to_item_off (m_logicalEndOfStream) - 
 				file_off_to_item_off (m_logicalBeginOfStream);
 		};
     
 // Move to a specific position.
 		template <class T> 
-			err stream_mmap<T>::seek (TPIE_OS_OFFSET offset) {
+			err stream_mmap<T>::seek (stream_offset_type offset) {
 	
 			err retval = NO_ERROR;
-			TPIE_OS_OFFSET new_offset;
+			stream_offset_type new_offset;
     
 			// Looks like we can only seek within the file Rajiv
 			if ((offset < 0) ||
@@ -899,7 +899,7 @@ namespace tpie {
 			}
 	
 	
-			if ((static_cast<TPIE_OS_SIZE_T>(reinterpret_cast<char *>(m_currentItem) - 
+			if ((static_cast<memory_size_type>(reinterpret_cast<char *>(m_currentItem) - 
 											 reinterpret_cast<char *>(m_currentBlock)) >=
 				 m_header->m_blockSize) ||
 				(((new_offset - m_osBlockSize) / m_header->m_blockSize) !=
@@ -914,7 +914,7 @@ namespace tpie {
 				if (m_blockValid) {
 		
 					// We have to adjust current.
-					register TPIE_OS_OFFSET internal_block_offset;
+					register stream_offset_type internal_block_offset;
 		
 					internal_block_offset = file_off_to_item_off (new_offset) %
 						(m_header->m_blockSize / sizeof (T));
@@ -931,17 +931,17 @@ namespace tpie {
 		}
 
 		template <class T> 
-			TPIE_OS_OFFSET stream_mmap<T>::tell() const {
+			stream_offset_type stream_mmap<T>::tell() const {
 			return file_off_to_item_off(m_fileOffset);
 		}
     
 // Truncate the stream.
 		template <class T> 
-			err stream_mmap<T>::truncate (TPIE_OS_OFFSET offset) {
+			err stream_mmap<T>::truncate (stream_offset_type offset) {
 	
 			err retval = NO_ERROR;
-			TPIE_OS_OFFSET new_offset;
-			TPIE_OS_OFFSET block_offset;
+			stream_offset_type new_offset;
+			stream_offset_type block_offset;
 	
 			// Sorry, we can't truncate a substream.
 			if (m_substreamLevel) {
@@ -963,7 +963,7 @@ namespace tpie {
 			// (m_fileOffset does not always point into the current block!) -
 			// see comment in seek()
 	
-			if ((static_cast<TPIE_OS_SIZE_T>(reinterpret_cast<char *>(m_currentItem) - 
+			if ((static_cast<memory_size_type>(reinterpret_cast<char *>(m_currentItem) - 
 											 reinterpret_cast<char *>(m_currentBlock)) >= 
 				 m_header->m_blockSize) ||
 				(((new_offset - m_osBlockSize) / m_header->m_blockSize) !=
@@ -1007,7 +1007,7 @@ namespace tpie {
 				// and stayed within the current block
 				// then the current block is still valid, but the current item
 				// pointer may not be valid. We have to adjust current.
-				TPIE_OS_OFFSET internal_block_offset;
+				stream_offset_type internal_block_offset;
 				internal_block_offset = file_off_to_item_off (new_offset) %
 					(m_header->m_blockSize / sizeof (T));
 				m_currentItem = m_currentBlock + internal_block_offset;
@@ -1025,7 +1025,7 @@ namespace tpie {
 		template <class T>
 			stream_header * stream_mmap<T>::map_header () {
 	
-			TPIE_OS_OFFSET file_end;
+			stream_offset_type file_end;
 			stream_header *mmap_hdr;
 			stream_header *ptr_to_header;
 	
@@ -1033,7 +1033,7 @@ namespace tpie {
 			// the header block, then, assuming the stream is writable, we have
 			// to create the space on disk by doing an explicit write().
 			if ((file_end = TPIE_OS_LSEEK(m_fileDescriptor, 0, TPIE_OS_FLAG_SEEK_END)) 
-				< static_cast<TPIE_OS_OFFSET>(m_osBlockSize) ) {
+				< static_cast<stream_offset_type>(m_osBlockSize) ) {
 				if (m_readOnly) {
 		
 					m_status = STREAM_STATUS_INVALID;
@@ -1105,13 +1105,13 @@ namespace tpie {
 	
 	
 			stream_header *mmap_hdr;
-			TPIE_OS_OFFSET file_end;
+			stream_offset_type file_end;
 	
 			// If the underlying file is not at least long enough to contain
 			// the header block, then, assuming the stream is writable, we have
 			// to create the space on disk by doing an explicit write().
 			if ((file_end = TPIE_OS_LSEEK(m_fileDescriptor, 0, TPIE_OS_FLAG_SEEK_END)) 
-			< static_cast<TPIE_OS_OFFSET>(m_osBlockSize)) {
+			< static_cast<stream_offset_type>(m_osBlockSize)) {
 
 				if (m_readOnly) {
 		
@@ -1182,7 +1182,7 @@ namespace tpie {
 			inline err stream_mmap<T>::validate_current () {
 
 			err retval = NO_ERROR;
-			TPIE_OS_SIZE_T blockSpace;		// The space left in the current block.
+			memory_size_type blockSpace;		// The space left in the current block.
 	
 			// If the current block is valid and current points into it and has
 			// enough room in the block for a full item, we are fine.  If it is
@@ -1216,7 +1216,7 @@ namespace tpie {
 	
 	
 			// Rajiv
-			tp_assert (static_cast<TPIE_OS_OFFSET>(m_fileOffset + sizeof (T)) <=
+			tp_assert (static_cast<stream_offset_type>(m_fileOffset + sizeof (T)) <=
 				m_fileLength, "Advanced too far somehow.");
 
 			return retval;
@@ -1228,7 +1228,7 @@ namespace tpie {
 			err stream_mmap<T>::map_current () {
 	
 			err retval = NO_ERROR;
-			TPIE_OS_OFFSET blockOffset;
+			stream_offset_type blockOffset;
 			bool do_mmap = false;
 	
 			// We should not currently have a valid block.
@@ -1245,7 +1245,7 @@ namespace tpie {
 	
 			// removed -1 from rhs of comparison below Rajiv
 			if (m_fileLength < 
-				  static_cast<TPIE_OS_OFFSET>(blockOffset + m_header->m_blockSize) ) 
+				  static_cast<stream_offset_type>(blockOffset + m_header->m_blockSize) ) 
 			{
 				if (m_readOnly) {
 					return END_OF_STREAM;
@@ -1257,7 +1257,7 @@ namespace tpie {
 				}
 			}
 			// this is what we just fixed. Rajiv
-			tp_assert (static_cast<TPIE_OS_OFFSET>(m_fileOffset + sizeof (T))
+			tp_assert (static_cast<stream_offset_type>(m_fileOffset + sizeof (T))
 					<= m_fileLength, "Advanced too far somehow.");
 	
 			// If the current block is already mapped in by this process then
@@ -1306,7 +1306,7 @@ namespace tpie {
 				// took out the SYSTYPE_BSD ifdef for convenience
 				// MAP_VARIABLE the first time round
 				// (m_currentBlock ? MAP_FIXED : MAP_VARIABLE) |
-				if (static_cast<TPIE_OS_OFFSET>(blockOffset + m_header->m_blockSize) > m_fileLength) {
+				if (static_cast<stream_offset_type>(blockOffset + m_header->m_blockSize) > m_fileLength) {
 					grow_file(blockOffset);
 				}
 	    
@@ -1351,7 +1351,7 @@ namespace tpie {
 			// The offset, in terms of number of items, that current should
 			// have relative to m_currentBlock.
 	
-			register TPIE_OS_OFFSET internalBlockOffset;
+			register stream_offset_type internalBlockOffset;
 	
 			internalBlockOffset = file_off_to_item_off (m_fileOffset) %
 				(m_header->m_blockSize / sizeof (T));
@@ -1420,7 +1420,7 @@ namespace tpie {
 // increase the length of the file, to at least 
 // blockOffset + m_header->m_blockSize
 		template <class T> inline err
-			stream_mmap<T>::grow_file (TPIE_OS_OFFSET blockOffset)
+			stream_mmap<T>::grow_file (stream_offset_type blockOffset)
 		{
 			// can't grow substreams (except if called for the
 			// last substream in a stream. this may happen if map_current
@@ -1453,9 +1453,9 @@ namespace tpie {
 
 
 		template <class T>
-			TPIE_OS_OFFSET stream_mmap<T>::item_off_to_file_off (TPIE_OS_OFFSET itemOffset) const {
+			stream_offset_type stream_mmap<T>::item_off_to_file_off (stream_offset_type itemOffset) const {
 
-			TPIE_OS_OFFSET fileOffset;
+			stream_offset_type fileOffset;
 	
 			// Move past the header.
 			fileOffset = m_osBlockSize;
@@ -1472,9 +1472,9 @@ namespace tpie {
 		}
     
 		template <class T>
-			TPIE_OS_OFFSET stream_mmap<T>::file_off_to_item_off (TPIE_OS_OFFSET fileOffset) const {
+			stream_offset_type stream_mmap<T>::file_off_to_item_off (stream_offset_type fileOffset) const {
 
-			TPIE_OS_OFFSET itemOffset;
+			stream_offset_type itemOffset;
 	
 			// Subtract off the header.
 			fileOffset -= m_osBlockSize;
@@ -1490,7 +1490,7 @@ namespace tpie {
 		}
     
 		template <class T> 
-			TPIE_OS_OFFSET stream_mmap<T>::chunk_size () const {
+			stream_offset_type stream_mmap<T>::chunk_size () const {
 			return m_header->m_blockSize / sizeof (T);
 		}
     
@@ -1499,7 +1499,7 @@ namespace tpie {
 		template <class T> 
 			void stream_mmap<T>::read_ahead () {
 	
-			TPIE_OS_OFFSET currentBlock;
+			stream_offset_type currentBlock;
 	
 			// The current block had better already be valid or we made a
 			// mistake in being here.

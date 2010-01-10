@@ -37,7 +37,7 @@ using namespace tpie::ami;
 using namespace std;
 
 // Key type.
-typedef TPIE_OS_OFFSET bkey_t;
+typedef stream_offset_type bkey_t;
 
 // Element type for the btree.
 struct el_t {
@@ -75,15 +75,15 @@ typedef stream< el_t > stream_t;
 #define DELETE_COUNT 500
 
 // Global variables.
-TPIE_OS_OFFSET bulk_load_count;
-TPIE_OS_OFFSET insert_count = 5000;
-TPIE_OS_OFFSET range_search_lo = 0;
-TPIE_OS_OFFSET range_search_hi = 10000000;
+stream_offset_type bulk_load_count;
+stream_offset_type insert_count = 5000;
+stream_offset_type range_search_lo = 0;
+stream_offset_type range_search_hi = 10000000;
 
 int main(int argc, char **argv) {
 
-  TPIE_OS_OFFSET i;
-  TPIE_OS_OFFSET j;
+  stream_offset_type i;
+  stream_offset_type j;
   el_t s[DELETE_COUNT], ss;
   cpu_timer wt;
   char *base_file = NULL;

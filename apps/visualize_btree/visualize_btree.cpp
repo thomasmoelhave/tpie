@@ -83,7 +83,7 @@ int main(int argc, char **argv) {
   bool do_extra_inserts = false;
   bool do_input_file = false;
   btree_t *btree;
-  TPIE_OS_OFFSET input_size = 0;
+  stream_offset_type input_size = 0;
   AMI_btree_params params;
   params.node_block_factor = 1;
   params.leaf_block_factor = 1;
@@ -217,8 +217,8 @@ int main(int argc, char **argv) {
   long elem;
   int prevlevel = 0;
   int level = -1;
-  TPIE_OS_SIZE_T height = btree->height();
-  TPIE_OS_SIZE_T fc = max(0, int(9 - height)); // index of first color.
+  memory_size_type height = btree->height();
+  memory_size_type fc = max(0, int(9 - height)); // index of first color.
   float avg_leaf_size = 0.0;
   float avg_fanout = 0.0;
   pair<AMI_bid, long> idkey = btree->dfs_preorder(level);

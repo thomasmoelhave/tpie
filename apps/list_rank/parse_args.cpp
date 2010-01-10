@@ -35,9 +35,9 @@ static char parse_args_id[] = "$Id: parse_args.cpp,v 1.15 2005-11-15 15:33:40 ja
 #include "app_config.h"
 #include "parse_args.h"
 
-static TPIE_OS_OFFSET parse_number(char *s) {
-  TPIE_OS_OFFSET n; 
-  TPIE_OS_OFFSET mult = 1;
+static stream_offset_type parse_number(char *s) {
+  stream_offset_type n; 
+  stream_offset_type mult = 1;
   size_t len = strlen(s);
   if(isalpha(s[len-1])) {
     switch(s[len-1]) {
@@ -54,7 +54,7 @@ static TPIE_OS_OFFSET parse_number(char *s) {
     }
     s[len-1] = '\0';
   }
-  n = (TPIE_OS_OFFSET)atol(s);
+  n = (stream_offset_type)atol(s);
   return n * mult;
 }
 
@@ -87,7 +87,7 @@ void parse_args(int argc, char **argv, const char *as_opts,
       break;
     case 'm':
       // mm_size should be small.
-      test_mm_size = static_cast<TPIE_OS_SIZE_T>(parse_number(optarg));
+      test_mm_size = static_cast<memory_size_type>(parse_number(optarg));
       break;                
     case 't':
       test_size = parse_number(optarg);

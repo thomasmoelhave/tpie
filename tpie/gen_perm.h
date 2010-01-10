@@ -65,7 +65,7 @@ namespace tpie {
 	    gen_perm_add_dest<T> operator=(const gen_perm_add_dest<T>& other);
 	    
 	    gen_perm_object *pgp;
-	    TPIE_OS_OFFSET input_offset;
+	    stream_offset_type input_offset;
 	    
 	public:
 	    gen_perm_add_dest(gen_perm_object *gpo) : pgp(gpo), input_offset(0) {
@@ -134,14 +134,14 @@ namespace tpie {
 
 	private:
 	    T t;
-	    TPIE_OS_OFFSET dest;
+	    stream_offset_type dest;
 
 	public:
 	    dest_obj() : t(), dest(0) {
 		//  No code in this constructor.
 	    };
 	    
-	    dest_obj(T t_in, TPIE_OS_OFFSET d) : t(t_in), dest(d) {
+	    dest_obj(T t_in, stream_offset_type d) : t(t_in), dest(d) {
 		//  No code in this constructor
 	    };
 	    

@@ -36,15 +36,15 @@ using namespace tpie;
 class scan_count : ami::scan_object {
     
 private:
-    TPIE_OS_OFFSET maximum;
+    stream_offset_type maximum;
     
 public:
-    TPIE_OS_OFFSET ii;
-    TPIE_OS_OFFSET called;
+    stream_offset_type ii;
+    stream_offset_type called;
     
-    scan_count(TPIE_OS_OFFSET max = 1000);
+    scan_count(stream_offset_type max = 1000);
     ami::err initialize(void);
-    ami::err operate(TPIE_OS_OFFSET *out1, ami::SCAN_FLAG *sf);
+    ami::err operate(stream_offset_type *out1, ami::SCAN_FLAG *sf);
 };
 
 

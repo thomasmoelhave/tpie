@@ -44,13 +44,13 @@ namespace tpie {
 
 	private:
 	    mm_matrix_base<T> &m;
-	    TPIE_OS_SIZE_T c;
+	    memory_size_type c;
 
 	public:
-	    mm_colref(mm_matrix_base<T> &amatrix, TPIE_OS_SIZE_T col);
+	    mm_colref(mm_matrix_base<T> &amatrix, memory_size_type col);
 	    ~mm_colref(void);
 	    
-	    T &operator[](const TPIE_OS_SIZE_T col) const;
+	    T &operator[](const memory_size_type col) const;
 	    
 	    mm_colref<T> &operator=(const mm_colref<T> &rhs);
 
@@ -61,7 +61,7 @@ namespace tpie {
 
 
 	template<class T>
-	mm_colref<T>::mm_colref(mm_matrix_base<T> &amatrix, TPIE_OS_SIZE_T col) :
+	mm_colref<T>::mm_colref(mm_matrix_base<T> &amatrix, memory_size_type col) :
 	    m(amatrix),
 	    c(col) {
 	}
@@ -71,7 +71,7 @@ namespace tpie {
 	}
 	
 	template<class T>
-	T &mm_colref<T>::operator[](const TPIE_OS_SIZE_T row) const {
+	T &mm_colref<T>::operator[](const memory_size_type row) const {
 	    return m.elt(row,c);
 	}
 

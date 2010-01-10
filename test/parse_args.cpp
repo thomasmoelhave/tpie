@@ -71,7 +71,7 @@ void parse_args(int argc, char **argv, struct options *application_opts,
   }
 
   int idx;
-  TPIE_OS_SIZE_T mm_sz = DEFAULT_TEST_MM_SIZE;
+  memory_size_type mm_sz = DEFAULT_TEST_MM_SIZE;
   unsigned int rnd_seed = DEFAULT_RANDOM_SEED;
   char *opt_arg;
 
@@ -79,14 +79,14 @@ void parse_args(int argc, char **argv, struct options *application_opts,
     switch (idx) {
     case 1: 
         // mm_size should be small.
-      mm_sz = std::max(size_t(128*1024), parse_number<TPIE_OS_SIZE_T>(opt_arg));
+      mm_sz = std::max(size_t(128*1024), parse_number<memory_size_type>(opt_arg));
       break;
     case 2:
       verbose = true; 
       TP_LOG_APP_DEBUG_ID("Setting verbose flag.");
       break;
     case 3: 
-      test_size = parse_number<TPIE_OS_OFFSET>(opt_arg); 
+      test_size = parse_number<stream_offset_type>(opt_arg); 
       break;
     case 4: 
 #ifdef _WIN32

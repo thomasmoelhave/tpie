@@ -80,13 +80,13 @@ namespace tpie {
 	    static int instances;
 	    
 	    /** The amount of space remaining to be allocated. */
-	    TPIE_OS_SIZE_T   remaining;
+	    memory_size_type   remaining;
 	    
 	    /** The user-specified limit on memory. */ 
-	    TPIE_OS_SIZE_T   user_limit;
+	    memory_size_type   user_limit;
 	    
 	    /** The amount that has been allocated. */
-	    TPIE_OS_SIZE_T   used;
+	    memory_size_type   used;
 	    
 	    /** The depth of possibly nested "pause"-calls. */
 	    unsigned long pause_allocation_depth;
@@ -107,18 +107,18 @@ namespace tpie {
 	    /// Checks that new allocation request is below user-defined limit.
 	    /// This should be a private method, only called by operator new.
 	    ///////////////////////////////////////////////////////////////////////////
-	    err register_allocation  (TPIE_OS_SIZE_T sz);
+	    err register_allocation  (memory_size_type sz);
 	    
 	    ///////////////////////////////////////////////////////////////////////////
 	    /// Does the accounting for a memory deallocation request.
 	    /// This should be a private method, only called by operators 
 	    /// delete and delete [].
 	    ///////////////////////////////////////////////////////////////////////////
-	    err register_deallocation(TPIE_OS_SIZE_T sz);
+	    err register_deallocation(memory_size_type sz);
 #ifdef MM_BACKWARD_COMPATIBLE
 // retained for backward compatibility
-	    err available        (TPIE_OS_SIZE_T *sz);
-	    err resize_heap      (TPIE_OS_SIZE_T sz);
+	    err available        (memory_size_type *sz);
+	    err resize_heap      (memory_size_type sz);
 #endif
 
 	    ///////////////////////////////////////////////////////////////////////////
@@ -135,7 +135,7 @@ namespace tpie {
 	    /// \param[in] sz The amount of memory in bytes tpie is allowed to use
 	    /// in the further.
 	    ///////////////////////////////////////////////////////////////////////////
-	    err set_memory_limit(TPIE_OS_SIZE_T sz); 
+	    err set_memory_limit(memory_size_type sz); 
 	    
 	    ///////////////////////////////////////////////////////////////////////////
 	    /// Instruct TPIE to abort computation when the memory limit is exceeded.
@@ -162,7 +162,7 @@ namespace tpie {
 	    /// Return the number of bytes of memory which can be allocated before the 
 	    /// user-specified limit is reached.
 	    ///////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_SIZE_T memory_available ();
+	    memory_size_type memory_available ();
 	    
 	    ///////////////////////////////////////////////////////////////////////////
 	    /// Return the number of bytes of memory that can safely be allocated as one
@@ -175,21 +175,21 @@ namespace tpie {
 	    /// maximum consecutive memory size is X this method will return Y where
 	    /// Y is smaller by X by at most \ref granularity bytes.
 	    ///////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_SIZE_T consecutive_memory_available (
-	                TPIE_OS_SIZE_T lower_bound=0,
-	                TPIE_OS_SIZE_T granularity=5*1024*1024
+	    memory_size_type consecutive_memory_available (
+	                memory_size_type lower_bound=0,
+	                memory_size_type granularity=5*1024*1024
 	                );
     
 	    ///////////////////////////////////////////////////////////////////////////
 	    /// Return the number of bytes of memory currently allocated.
 	    ///////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_SIZE_T memory_used ();             
+	    memory_size_type memory_used ();             
 	    
 	    ///////////////////////////////////////////////////////////////////////////
 	    /// Return the memory limit as set by the last call to 
 	    /// method set_memory_limit().
 	    ///////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_SIZE_T memory_limit ();         
+	    memory_size_type memory_limit ();         
 	    
 	    ///////////////////////////////////////////////////////////////////////////
 	    /// Returns the space overhead, that TPIE imposes on each memory

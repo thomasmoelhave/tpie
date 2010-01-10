@@ -90,18 +90,18 @@ namespace tpie {
 		delete src_bits;
 	    }
 	    
-	    AMI_err initialize(TPIE_OS_OFFSET /*stream_len*/) {
+	    AMI_err initialize(stream_offset_type /*stream_len*/) {
 		return ami::NO_ERROR;
 	    }
 	    
-	    TPIE_OS_OFFSET destination(TPIE_OS_OFFSET input_offset) {
+	    stream_offset_type destination(stream_offset_type input_offset) {
 		
 		*src_bits = input_offset;
 		
 		bit_matrix r1 = A * *src_bits;
 		bit_matrix res = r1 + c;
 		
-		return TPIE_OS_OFFSET(res);
+		return stream_offset_type(res);
 	    }
 	};
 
@@ -115,9 +115,9 @@ template<class T>
 AMI_err AMI_BMMC_permute(AMI_STREAM<T> *instream, AMI_STREAM<T> *outstream,
                          tpie::ami::bit_perm_object *bpo)
 {
-    TPIE_OS_OFFSET sz_len = instream->stream_len();
+    stream_offset_type sz_len = instream->stream_len();
 
-    TPIE_OS_OFFSET sz_pow2;
+    stream_offset_type sz_pow2;
     unsigned int bits;
     
     // Make sure the length of the input stream is a power of two.

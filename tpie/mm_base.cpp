@@ -48,7 +48,7 @@ int   register_new = IGNORE_MEMORY_EXCEEDED;
 /// time or if dword alignment is ok.  On the HP 9000, bus errors occur
 /// when loading doubles that are not qword aligned.
 /// It is also used to keep the allocation size counter.
-static const TPIE_OS_SIZE_T SIZE_SPACE=(sizeof(TPIE_OS_SIZE_T) > 8 ? sizeof(TPIE_OS_SIZE_T) : 8);
+static const memory_size_type SIZE_SPACE=(sizeof(memory_size_type) > 8 ? sizeof(memory_size_type) : 8);
 
 #ifdef TPIE_USE_EXCEPTIONS
 #define EXCEPTIONS_PARAM(x) x
@@ -56,7 +56,7 @@ static const TPIE_OS_SIZE_T SIZE_SPACE=(sizeof(TPIE_OS_SIZE_T) > 8 ? sizeof(TPIE
 #define EXCEPTIONS_PARAM(x)
 #endif
 
-static void *do_new (TPIE_OS_SIZE_T sz, bool EXCEPTIONS_PARAM(allow_throw))
+static void *do_new (memory_size_type sz, bool EXCEPTIONS_PARAM(allow_throw))
 {
    void *p;
 #ifdef USE_DMALLOC
@@ -71,17 +71,17 @@ static void *do_new (TPIE_OS_SIZE_T sz, bool EXCEPTIONS_PARAM(allow_throw))
 			case mem::ABORT_ON_MEMORY_EXCEEDED: 
 			{
 				TP_LOG_FATAL_ID ("In operator new() - allocation request \"");
-				TP_LOG_FATAL (static_cast<TPIE_OS_LONG>(sz + SIZE_SPACE));
+				TP_LOG_FATAL (sz + SIZE_SPACE);
 				TP_LOG_FATAL ("\" plus previous allocation \"");
-				TP_LOG_FATAL (static_cast<TPIE_OS_LONG>(MM_manager.memory_used () - (sz + SIZE_SPACE)));
+				TP_LOG_FATAL (MM_manager.memory_used () - (sz + SIZE_SPACE));
 				TP_LOG_FATAL ("\" exceeds user-defined limit \"");
-				TP_LOG_FATAL (static_cast<TPIE_OS_LONG>(MM_manager.memory_limit ()));
+				TP_LOG_FATAL (MM_manager.memory_limit ());
 				TP_LOG_FATAL ("\" \n");
 				TP_LOG_FLUSH_LOG;
 				std::cerr << "memory manager: memory allocation limit " 
-					<< static_cast<TPIE_OS_LONG>(MM_manager.memory_limit ()) 
+					<< MM_manager.memory_limit () 
 					<< " exceeded while allocating " 
-					<< static_cast<TPIE_OS_LONG>(sz)
+					<< sz
 					<< " bytes" << "\n";
 #ifdef USE_DMALLOC
 				dmalloc_shutdown();
@@ -105,17 +105,17 @@ static void *do_new (TPIE_OS_SIZE_T sz, bool EXCEPTIONS_PARAM(allow_throw))
 			case mem::WARN_ON_MEMORY_EXCEEDED:
 			{
 				TP_LOG_WARNING_ID ("In operator new() - allocation request \"");
-				TP_LOG_WARNING (static_cast<TPIE_OS_LONG>(sz + SIZE_SPACE));
+				TP_LOG_WARNING (sz + SIZE_SPACE);
 				TP_LOG_WARNING ("\" plus previous allocation \"");
-				TP_LOG_WARNING (static_cast<TPIE_OS_LONG>(MM_manager.memory_used () - (sz + SIZE_SPACE)));
+				TP_LOG_WARNING (MM_manager.memory_used () - (sz + SIZE_SPACE));
 				TP_LOG_WARNING ("\" exceeds user-defined limit \"");
-				TP_LOG_WARNING (static_cast<TPIE_OS_LONG>(MM_manager.memory_limit ()));
+				TP_LOG_WARNING (MM_manager.memory_limit ());
 				TP_LOG_WARNING ("\" \n");
 				TP_LOG_FLUSH_LOG;
 				std::cerr << "memory manager: memory allocation limit " 
-					<< static_cast<TPIE_OS_LONG>(MM_manager.memory_limit ()) 
+					<< MM_manager.memory_limit () 
 					<< " exceeded while allocating " 
-					<< static_cast<TPIE_OS_LONG>(sz)
+					<< sz
 					<< " bytes" << "\n";
 			} break;
 			case mem::IGNORE_MEMORY_EXCEEDED:
@@ -164,17 +164,17 @@ static void *do_new (TPIE_OS_SIZE_T sz, bool EXCEPTIONS_PARAM(allow_throw))
 	return (reinterpret_cast<char *>(p)) + SIZE_SPACE;
 }
 
-void *operator new (TPIE_OS_SIZE_T sz)
+void *operator new (memory_size_type sz)
 {
     return do_new(sz, true);
 }
 
-void *operator new (TPIE_OS_SIZE_T sz, const std::nothrow_t &)
+void *operator new (memory_size_type sz, const std::nothrow_t &)
 {
     return do_new(sz, false);
 }
 
-static void *do_new_array (TPIE_OS_SIZE_T sz, bool EXCEPTIONS_PARAM(allow_throw))
+static void *do_new_array (memory_size_type sz, bool EXCEPTIONS_PARAM(allow_throw))
 {
     void *p;
 #ifdef USE_DMALLOC
@@ -189,17 +189,17 @@ static void *do_new_array (TPIE_OS_SIZE_T sz, bool EXCEPTIONS_PARAM(allow_throw)
 			case mem::ABORT_ON_MEMORY_EXCEEDED:
 			{
 				TP_LOG_FATAL_ID ("In operator new() - allocation request \"");
-				TP_LOG_FATAL (static_cast<TPIE_OS_LONG>(sz + SIZE_SPACE));
+				TP_LOG_FATAL (sz + SIZE_SPACE);
 				TP_LOG_FATAL ("\" plus previous allocation \"");
-				TP_LOG_FATAL (static_cast<TPIE_OS_LONG>(MM_manager.memory_used () - (sz + SIZE_SPACE)));
+				TP_LOG_FATAL (MM_manager.memory_used () - (sz + SIZE_SPACE));
 				TP_LOG_FATAL ("\" exceeds user-defined limit \"");
-				TP_LOG_FATAL (static_cast<TPIE_OS_LONG>(MM_manager.memory_limit ()));
+				TP_LOG_FATAL (MM_manager.memory_limit ());
 				TP_LOG_FATAL ("\" \n");
 				TP_LOG_FLUSH_LOG;
 				std::cerr << "memory manager: memory allocation limit " 
-					<< static_cast<TPIE_OS_LONG>(MM_manager.memory_limit ()) 
+					<< MM_manager.memory_limit () 
 					<< " exceeded while allocating " 
-					<< static_cast<TPIE_OS_LONG>(sz)
+					<< sz
 					<< " bytes" << "\n";
 #ifdef USE_DMALLOC
 				dmalloc_shutdown();
@@ -210,17 +210,17 @@ static void *do_new_array (TPIE_OS_SIZE_T sz, bool EXCEPTIONS_PARAM(allow_throw)
 		case mem::WARN_ON_MEMORY_EXCEEDED:
 		{
 			TP_LOG_WARNING_ID ("In operator new() - allocation request \"");
-			TP_LOG_WARNING (static_cast<TPIE_OS_LONG>(sz + SIZE_SPACE));
+			TP_LOG_WARNING (sz + SIZE_SPACE);
 			TP_LOG_WARNING ("\" plus previous allocation \"");
-			TP_LOG_WARNING (static_cast<TPIE_OS_LONG>(MM_manager.memory_used () - (sz + SIZE_SPACE)));
+			TP_LOG_WARNING (MM_manager.memory_used () - (sz + SIZE_SPACE));
 			TP_LOG_WARNING ("\" exceeds user-defined limit \"");
-			TP_LOG_WARNING (static_cast<TPIE_OS_LONG>(MM_manager.memory_limit ()));
+			TP_LOG_WARNING (MM_manager.memory_limit ());
 			TP_LOG_WARNING ("\" \n");
 			TP_LOG_FLUSH_LOG;
 			std::cerr << "memory manager: memory allocation limit " 
-				<< static_cast<TPIE_OS_LONG>(MM_manager.memory_limit ()) 
+				<< MM_manager.memory_limit () 
 				<< " exceeded while allocating " 
-				<< static_cast<TPIE_OS_LONG>(sz)
+				<< sz
 				<< " bytes" << "\n";
 		} break;
 		case mem::IGNORE_MEMORY_EXCEEDED:
@@ -268,12 +268,12 @@ static void *do_new_array (TPIE_OS_SIZE_T sz, bool EXCEPTIONS_PARAM(allow_throw)
 	return (reinterpret_cast<char *>(p)) + SIZE_SPACE;
 }
 
-void *operator new[] (TPIE_OS_SIZE_T sz)
+void *operator new[] (memory_size_type sz)
 {
     return do_new_array(sz, true);
 }
 
-void *operator new[] (TPIE_OS_SIZE_T sz, const std::nothrow_t &)
+void *operator new[] (memory_size_type sz, const std::nothrow_t &)
 {
     return do_new_array(sz, false);
 }
@@ -285,8 +285,8 @@ void operator delete (void *ptr)
 	return;
     }
     
-    const TPIE_OS_SIZE_T dealloc_size =  
-	static_cast<TPIE_OS_SIZE_T>(*(reinterpret_cast<size_t*>((reinterpret_cast<char*>(ptr)) - SIZE_SPACE)));
+    const memory_size_type dealloc_size =  
+	static_cast<memory_size_type>(*(reinterpret_cast<size_t*>((reinterpret_cast<char*>(ptr)) - SIZE_SPACE)));
     
     if (MM_manager.register_new != mem::IGNORE_MEMORY_EXCEEDED) {
 	if (MM_manager.register_deallocation (
@@ -311,8 +311,8 @@ void operator delete[] (void *ptr) {
 	return;
     }
     
-    const TPIE_OS_SIZE_T dealloc_size =  
-	static_cast<TPIE_OS_SIZE_T>(*(reinterpret_cast<size_t*>((reinterpret_cast<char*>(ptr)) - SIZE_SPACE)));
+    const memory_size_type dealloc_size =  
+	static_cast<memory_size_type>(*(reinterpret_cast<size_t*>((reinterpret_cast<char*>(ptr)) - SIZE_SPACE)));
     
     if (MM_manager.register_new != mem::IGNORE_MEMORY_EXCEEDED) {
 	if (MM_manager.register_deallocation (

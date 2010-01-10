@@ -33,8 +33,8 @@ namespace tpie {
 // A class of object that computes permutation destinations.
 	class gen_perm_object {
 	public:
-	    virtual err initialize(TPIE_OS_OFFSET len) = 0;
-	    virtual TPIE_OS_OFFSET destination(TPIE_OS_OFFSET src) = 0;
+	    virtual err initialize(stream_offset_type len) = 0;
+	    virtual stream_offset_type destination(stream_offset_type src) = 0;
 	    virtual ~gen_perm_object() {};
 	};
 

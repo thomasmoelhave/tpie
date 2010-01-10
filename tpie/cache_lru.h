@@ -46,13 +46,13 @@ namespace tpie {
 	protected:	    
 
 	    /** Typedef for the item_type in  the cache. */
-	    typedef std::pair<TPIE_OS_OFFSET,T> item_type_;
+	    typedef std::pair<stream_offset_type,T> item_type_;
 	    
 	    /** The array of items. */
 	    item_type_ * pdata_;
 	    
 	    /** The number of sets (equals capacity / associativity). */
-	    TPIE_OS_SIZE_T sets_;
+	    memory_size_type sets_;
 	    
 	    /** The writeout function object. */
 	    W writeout_;
@@ -62,28 +62,28 @@ namespace tpie {
       ////////////////////////////////////////////////////////////////////
       ///  Construct a fully-associative cache manager with the given capacity.
       ////////////////////////////////////////////////////////////////////
-	    cache_manager_lru(TPIE_OS_SIZE_T capacity,
-			      TPIE_OS_SIZE_T assoc = 0);
+	    cache_manager_lru(memory_size_type capacity,
+			      memory_size_type assoc = 0);
 
       ////////////////////////////////////////////////////////////////////
 	    /// Read an item from the cache based on the key k. The item is
 	    /// passed to the user and *removed* from the cache (but not written
 	    /// out).
       ////////////////////////////////////////////////////////////////////
-	    bool read(TPIE_OS_OFFSET k, T& item);
+	    bool read(stream_offset_type k, T& item);
 	    
       ////////////////////////////////////////////////////////////////////
 	    /// Write an item to the cache based on the key k. If the set where
 	    /// the item should go is full, the last item (ie, the l.r.u. item)
 	    /// is written out.
       ////////////////////////////////////////////////////////////////////
-	    bool write(TPIE_OS_OFFSET k, const T& item);
+	    bool write(stream_offset_type k, const T& item);
 	    
       ////////////////////////////////////////////////////////////////////
 	    /// Erase an item from the cache based on the key k. The item is
 	    /// written out first.
       ////////////////////////////////////////////////////////////////////
-	    bool erase(TPIE_OS_OFFSET k);
+	    bool erase(stream_offset_type k);
 	    
       ////////////////////////////////////////////////////////////////////
 	    /// Writes out all items in the cache.
@@ -97,12 +97,12 @@ namespace tpie {
 	};
 	
 	template<class T, class W>
-	cache_manager_lru<T,W>::cache_manager_lru(TPIE_OS_SIZE_T capacity, 
-						  TPIE_OS_SIZE_T assoc):
+	cache_manager_lru<T,W>::cache_manager_lru(memory_size_type capacity, 
+						  memory_size_type assoc):
 	    cache_manager_base(capacity, assoc == 0 ? capacity: assoc), 
 	    writeout_() {
 
-	    TPIE_OS_SIZE_T i;
+	    memory_size_type i;
 	    
 	    if (capacity_ != 0) {
 		if (assoc_ > capacity_) {
@@ -140,9 +140,9 @@ namespace tpie {
 	}
 	
 	template<class T, class W>
-	inline bool cache_manager_lru<T,W>::read(TPIE_OS_OFFSET k, T& item) {
+	inline bool cache_manager_lru<T,W>::read(stream_offset_type k, T& item) {
 	    
-	    TPIE_OS_SIZE_T i;
+	    memory_size_type i;
 	    if (capacity_ == 0)
 		return false;
 	    
@@ -175,7 +175,7 @@ namespace tpie {
 	}
 	
 	template<class T, class W>
-	inline bool cache_manager_lru<T,W>::write(TPIE_OS_OFFSET k, 
+	inline bool cache_manager_lru<T,W>::write(stream_offset_type k, 
 						  const T& item) { 
 	    
 	    assert(k != 0);
@@ -206,9 +206,9 @@ namespace tpie {
 	}
 	
 	template<class T, class W>
-	bool cache_manager_lru<T,W>::erase(TPIE_OS_OFFSET k) {
+	bool cache_manager_lru<T,W>::erase(stream_offset_type k) {
 	    
-	    TPIE_OS_SIZE_T i;
+	    memory_size_type i;
 	    assert(k != 0);
 	    
 	    // The cache line, based on the key k.
@@ -239,7 +239,7 @@ namespace tpie {
 	template<class T, class W>
 	void cache_manager_lru<T,W>::flush() {
 
-	    TPIE_OS_SIZE_T i;
+	    memory_size_type i;
 	    
 	    for (i = 0; i < capacity_; i++) {
 		if (pdata_[i].first != 0) {

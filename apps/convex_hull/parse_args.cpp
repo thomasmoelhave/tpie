@@ -35,9 +35,9 @@ static char parse_args_id[] = "$Id: parse_args.cpp,v 1.15 2005-11-15 15:33:41 ja
 #include "app_config.h"
 #include "parse_args.h"
 
-static TPIE_OS_SIZE_T parse_number(char *s) {
-  TPIE_OS_SIZE_T n; 
-  TPIE_OS_SIZE_T mult = 1;
+static memory_size_type parse_number(char *s) {
+  memory_size_type n; 
+  memory_size_type mult = 1;
   size_t len = strlen(s);
   if(isalpha(s[len-1])) {
     switch(s[len-1]) {
@@ -54,7 +54,7 @@ static TPIE_OS_SIZE_T parse_number(char *s) {
     }
     s[len-1] = '\0';
   }
-  n = (TPIE_OS_SIZE_T)atol(s);
+  n = (memory_size_type)atol(s);
   return n * mult;
 }
 

@@ -62,7 +62,7 @@ namespace tpie {
 	    /// size in bytes. The persistency of the collection is set to 
 	    /// \ref PERSIST_DELETE. 
 	    //////////////////////////////////////////////////////////////////////////
-	    collection_single(TPIE_OS_SIZE_T logical_block_factor = 1);
+	    collection_single(memory_size_type logical_block_factor = 1);
 	    
       //////////////////////////////////////////////////////////////////////////
 	    /// Create a new or open an existing collection.
@@ -75,12 +75,12 @@ namespace tpie {
 	    //////////////////////////////////////////////////////////////////////////
 	collection_single(const std::string& path_name,
 					  collection_type ct = READ_WRITE_COLLECTION,
-					  TPIE_OS_SIZE_T logical_block_factor = 1);
+					  memory_size_type logical_block_factor = 1);
 
       //////////////////////////////////////////////////////////////////////////
       /// Returns the total number of blocks used by the collection.
 	    //////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_OFFSET size() const { 
+	    stream_offset_type size() const { 
 		return btec_->size(); 
 	    }
 
@@ -89,7 +89,7 @@ namespace tpie {
 	    /// (all blocks in a collection have the same size). 
 	    //////////////////////////////////////////////////////////////////////////
 	    // Return the logical block size in bytes.
-	    TPIE_OS_SIZE_T block_size() const { 
+	    memory_size_type block_size() const { 
 		return btec_->block_size(); 
 	    }
 	    
@@ -97,7 +97,7 @@ namespace tpie {
 	    /// Returns the logical block factor. The block size is obtained by 
 	    /// multiplying the operating system page size in bytes by this value. 
 	    //////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_SIZE_T block_factor() const {
+	    memory_size_type block_factor() const {
 		return btec_->block_factor(); 
 	    }
 
@@ -207,7 +207,7 @@ namespace tpie {
 	};
 	
 	template <class BTECOLL>
-	collection_single<BTECOLL>::collection_single(TPIE_OS_SIZE_T lbf) {
+	collection_single<BTECOLL>::collection_single(memory_size_type lbf) {
 	    
 		std::string temp_path = tempname::tpie_name("");
 	    
@@ -226,7 +226,7 @@ namespace tpie {
 	template <class BTECOLL>
 	collection_single<BTECOLL>::collection_single(const std::string& path_name,
 												  collection_type ct, 
-												  TPIE_OS_SIZE_T lbf) {
+												  memory_size_type lbf) {
 
 	    bte::collection_type btect;
 	    

@@ -65,7 +65,7 @@ public:
     //.  Checks whether both priority queues are empty.
 
     //- size
-    TPIE_OS_OFFSET size() const;
+    stream_offset_type size() const;
     //.  Returns the size of the input stream.
 
 protected:
@@ -74,7 +74,7 @@ protected:
     rectangle*             currentRect_;  //  Current rectangle.
     rectangle*             nextRect_;     //  Next rectangle.
     bool                   empty_;
-    TPIE_OS_OFFSET         size_;
+    stream_offset_type         size_;
 
 private:
 
@@ -87,7 +87,7 @@ inline bool SortingAdaptor::empty() const {
     return (nextRect_ == NULL);
 }
 
-inline TPIE_OS_OFFSET SortingAdaptor::size() const {
+inline stream_offset_type SortingAdaptor::size() const {
     return size_;
 }
 

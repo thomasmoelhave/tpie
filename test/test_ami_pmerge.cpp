@@ -42,9 +42,9 @@ using namespace tpie;
 class s_merge_manager : public ami::merge_base<int> {
 private:
     ami::merge_heap_op<int> *mheap;
-    TPIE_OS_SIZE_T input_arity;
+    memory_size_type input_arity;
 #if DEBUG_ASSERTIONS
-    TPIE_OS_OFFSET input_count, output_count;
+    stream_offset_type input_count, output_count;
 #endif    
     // Prohibit using the next two.
     s_merge_manager(const s_merge_manager& other);
@@ -52,14 +52,14 @@ private:
 public:
     s_merge_manager(void);
     virtual ~s_merge_manager(void);
-    ami::err initialize(TPIE_OS_SIZE_T arity, int **in,
+    ami::err initialize(memory_size_type arity, int **in,
 			ami::merge_flag *taken_flags,
 			int &taken_index);
     ami::err operate(int **in, ami::merge_flag *taken_flags,
 		     int &taken_index, int *out);
-    ami::err main_mem_operate(int* mm_stream, TPIE_OS_SIZE_T len);
-    TPIE_OS_SIZE_T space_usage_overhead(void);
-    TPIE_OS_SIZE_T space_usage_per_stream(void);
+    ami::err main_mem_operate(int* mm_stream, memory_size_type len);
+    memory_size_type space_usage_overhead(void);
+    memory_size_type space_usage_per_stream(void);
 };
 
 
@@ -81,11 +81,11 @@ s_merge_manager::~s_merge_manager(void)
 }
 
 
-ami::err s_merge_manager::initialize(TPIE_OS_SIZE_T arity, int **in,
+ami::err s_merge_manager::initialize(memory_size_type arity, int **in,
 				     ami::merge_flag *taken_flags,
 				     int &taken_index)
 {
-    TPIE_OS_SIZE_T ii;
+    memory_size_type ii;
 
     input_arity = arity;
 
@@ -118,15 +118,15 @@ ami::err s_merge_manager::initialize(TPIE_OS_SIZE_T arity, int **in,
 }
 
 
-TPIE_OS_SIZE_T s_merge_manager::space_usage_overhead(void)
+memory_size_type s_merge_manager::space_usage_overhead(void)
 {
     return mheap->space_overhead();
 }
 
 
-TPIE_OS_SIZE_T s_merge_manager::space_usage_per_stream(void)
+memory_size_type s_merge_manager::space_usage_per_stream(void)
 {
-    return sizeof(TPIE_OS_SIZE_T) + sizeof(int);
+    return sizeof(memory_size_type) + sizeof(int);
 }
 
 
@@ -140,7 +140,7 @@ ami::err s_merge_manager::operate(int **in,
     if (!mheap->sizeofheap()) {
 
 #if DEBUG_ASSERTIONS
-        TPIE_OS_SIZE_T ii;
+        memory_size_type ii;
         
         for (ii = input_arity; ii--; ) {
             tp_assert(in[ii] == NULL, "Empty queue but more input.");
@@ -154,7 +154,7 @@ ami::err s_merge_manager::operate(int **in,
         return ami::MERGE_DONE;
 
     } else {
-        TPIE_OS_SIZE_T min_source;
+        memory_size_type min_source;
         int min_t;
 
         mheap->extract_min(min_t, min_source);
@@ -177,7 +177,7 @@ ami::err s_merge_manager::operate(int **in,
 }
 
 
-ami::err s_merge_manager::main_mem_operate(int* mm_stream, TPIE_OS_SIZE_T len)
+ami::err s_merge_manager::main_mem_operate(int* mm_stream, memory_size_type len)
 {
 	std::sort(mm_stream,mm_stream+len);
     return ami::NO_ERROR;

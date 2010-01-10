@@ -112,7 +112,7 @@ public:
     ///
     ////////////////////////////////////////////////////////////////////
 
-    TPIE_OS_OFFSET size() const {
+    stream_offset_type size() const {
 	return m_size;
     }
 
@@ -176,14 +176,14 @@ public:
     ///
     ////////////////////////////////////////////////////////////////////
 
-    err main_memory_usage(TPIE_OS_SIZE_T *usage,
+    err main_memory_usage(memory_size_type *usage,
 			  mem::stream_usage usage_type) const;
 
 
     ////////////////////////////////////////////////////////////////////
     /// \deprecated This should go as soon as all old code has been migrated.
     ////////////////////////////////////////////////////////////////////
-    TPIE_OS_OFFSET stream_len() const {
+    stream_offset_type stream_len() const {
 	std::cerr << "Using AMI_stack<T>::stream_len() is deprecated." << std::endl;
 	return m_size;
     }
@@ -194,13 +194,13 @@ protected:
     stream<T>* m_amiStream;
 
     /**  The current size of the stack (in items).  */
-    TPIE_OS_OFFSET m_size;
+    stream_offset_type m_size;
 
     /**  The logical block size of the underlying stream (in items).  */
-    TPIE_OS_SIZE_T m_logicalBlockSize; 
+    memory_size_type m_logicalBlockSize; 
 
     /**  The number of items currently present in memory.  */
-    TPIE_OS_SIZE_T m_itemsInMemory;
+    memory_size_type m_itemsInMemory;
 
     /**  Pointers to the at most two blocks of items kept in memory.  */
     T* m_block[2];
@@ -208,7 +208,7 @@ protected:
 private:
 
     /**  How many items should be read. (To avoid local variables.)  */
-    TPIE_OS_OFFSET toBeRead;
+    stream_offset_type toBeRead;
 
 };
 
@@ -267,7 +267,7 @@ stack<T>::stack(const std::string& path, stream_type type) :
     memset(m_block[0], 0, m_logicalBlockSize * sizeof(T));
     memset(m_block[1], 0, m_logicalBlockSize * sizeof(T));
 
-    TPIE_OS_OFFSET numberOfFullBlocks = m_size / m_logicalBlockSize;
+    stream_offset_type numberOfFullBlocks = m_size / m_logicalBlockSize;
     
     //  Read the remainder.
     toBeRead = m_size - (numberOfFullBlocks * m_logicalBlockSize);
@@ -279,7 +279,7 @@ stack<T>::stack(const std::string& path, stream_type type) :
     // Put file pointer at end of last full block
     m_amiStream->seek(m_size-toBeRead);
 
-    m_itemsInMemory = static_cast<TPIE_OS_SIZE_T>(toBeRead);
+    m_itemsInMemory = static_cast<memory_size_type>(toBeRead);
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -376,7 +376,7 @@ err stack<T>::pop(T **t) {
 	if (!m_itemsInMemory) {
 
 	    //  No items in memory, so try to fetch some from disk.
-	    if (m_size < TPIE_OS_OFFSET(m_logicalBlockSize)) {
+	    if (m_size < stream_offset_type(m_logicalBlockSize)) {
 		// Can't do anything. This should not happen!
 		return GENERIC_ERROR;
 	    }
@@ -465,7 +465,7 @@ err stack<T>::peek(T **t) {
 /////////////////////////////////////////////////////////////////////////
 
 template<class T>
-err stack<T>::main_memory_usage(TPIE_OS_SIZE_T *usage,
+err stack<T>::main_memory_usage(memory_size_type *usage,
 				mem::stream_usage usage_type) const {
     
     //  Get the usage for the underlying stream.

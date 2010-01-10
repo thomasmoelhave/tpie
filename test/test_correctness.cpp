@@ -267,7 +267,7 @@ int test_stream() {
     ami::stream<foo_t<40> >* s;
     int failed = 0;
 	ami::err err = ami::NO_ERROR;
-    std::string fn = std::string(TMP_DIR) + "tpie00.stream";
+    std::string fn = tpie::tempDir + "tpie00.stream";
     std::string pfn;
     foo_t<40> afoo = thefoo;
     foo_t<40> *pafoo;
@@ -564,9 +564,9 @@ int test_scan_cxx() {
     int i;
     ami::stream< std::pair<int,int> >* ts;
 
-    std::string fns = std::string(TMP_DIR) + "tpie00.stream";
-    std::string fnt0 = std::string(TMP_DIR) + "tpie00.txt";
-    std::string fnt1 = std::string(TMP_DIR) + "tpie01.txt";
+    std::string fns = tpie::tempDir + "tpie00.stream";
+    std::string fnt0 = tpie::tempDir + "tpie00.txt";
+    std::string fnt1 = tpie::tempDir + "tpie01.txt";
 
     // Print the test heading.
     print_msg("Testing ami::scan with C++ streams", 0);
@@ -839,21 +839,19 @@ int test_scan() {
 int test_large_files() {
     static bool been_here = false;
     status_t status = EMPTY;
-    ami::stream<TPIE_OS_OFFSET>* s;
+    ami::stream<stream_offset_type>* s;
     int failed = 0;
     ami::err err;
 
-    TPIE_OS_OFFSET i;
-    TPIE_OS_OFFSET myLargeNumber = 
-	static_cast<TPIE_OS_OFFSET>(3) * 
-	static_cast<TPIE_OS_OFFSET>(1024) * 
-	static_cast<TPIE_OS_OFFSET>(1024) * 
-	static_cast<TPIE_OS_OFFSET>(1024) / 
-	static_cast<TPIE_OS_OFFSET>(sizeof(TPIE_OS_OFFSET));
+    stream_offset_type i;
+    stream_offset_type myLargeNumber = 
+	static_cast<stream_offset_type>(3) * 
+	static_cast<stream_offset_type>(1024) * 
+	static_cast<stream_offset_type>(1024) * 
+	static_cast<stream_offset_type>(1024) / 
+	static_cast<stream_offset_type>(sizeof(stream_offset_type));
 
-    char *fn  = new char[strlen(TMP_DIR)+strlen("tpie_large.stream")+1];
-    strcpy(fn,TMP_DIR);
-    strcpy(fn+strlen(fn),"tpie_large.stream");
+	std::string fn = tpie::tempDir + "tpie_large.stream"; 
 
     print_msg("Testing large file support", 0);
     if (been_here) {
@@ -868,7 +866,7 @@ int test_large_files() {
     //////// Part 1: temporary stream.       //////////
 
     print_msg("Creating temporary stream (calling op. new)", INDENT);
-    s = new ami::stream<TPIE_OS_OFFSET>("large.stream");
+    s = new ami::stream<stream_offset_type>("large.stream");
     status = (s != NULL && s->is_valid() ? PASS: FAIL);
     s->persist(PERSIST_PERSISTENT);
     print_status(status); if (status == FAIL) failed++;
@@ -885,13 +883,13 @@ int test_large_files() {
 
 	std::cerr << "Writing data";
 	err = s->seek(0);
-	TPIE_OS_OFFSET mbcount = 0;
-	TPIE_OS_OFFSET mbcount100 = 0;
-	TPIE_OS_OFFSET gbcount = 0;
+	stream_offset_type mbcount = 0;
+	stream_offset_type mbcount100 = 0;
+	stream_offset_type gbcount = 0;
 	for (i=0; i< myLargeNumber; i++) {
 	    if ((err = s->write_item(i)) != ami::NO_ERROR) break; 
 	    mbcount++;
-	    if (mbcount > TPIE_OS_OFFSET(1024 * 1024 / sizeof(TPIE_OS_OFFSET))) {
+	    if (mbcount > stream_offset_type(1024 * 1024 / sizeof(stream_offset_type))) {
 		mbcount100++;
 		mbcount = 0;
 		if (mbcount100 == 100) {

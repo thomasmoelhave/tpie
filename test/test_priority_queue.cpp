@@ -34,14 +34,14 @@ const double PI = acos(-1.0);
 void pq_large_instance(bool crash_test){
   MM_manager.set_memory_limit(50*1024*1024);
   tpie_log_init(LOG_DEBUG);
-  TPIE_OS_OFFSET cnt=0;
+  stream_offset_type cnt=0;
   double mem_frac = crash_test ? 1.0 : 0.1;
   ami::priority_queue<long long, std::greater<long long> > pq(mem_frac);
   std::priority_queue<long long, vector<long long>,std::less<long long> > pq2;
   double cycle = crash_test ? 20000000000.0 : 50000000.0;
-  const TPIE_OS_OFFSET iterations=500000000;
+  const stream_offset_type iterations=500000000;
   progress_indicator_arrow progress("Running test","Running test:",0,iterations,1);
-  for(TPIE_OS_OFFSET j=0; j<iterations; j++){
+  for(stream_offset_type j=0; j<iterations; j++){
 	progress.step();
     double i = static_cast<double>(j);
     double th = (cos(i*2.0*PI/cycle)+1.0)*(RAND_MAX/2);
@@ -107,17 +107,17 @@ void pq_small_instance(){
 
 
   std::cout << "tpie::priority_queue Debug - M test" << std::endl;
-    TPIE_OS_OFFSET iterations = 10000;
+    stream_offset_type iterations = 10000;
     MM_manager.set_memory_limit(16*1024*1024);
   progress_indicator_arrow progress("Running test","Running test:",1100,iterations,1);
-    for(TPIE_OS_OFFSET it = 1100; it < iterations; it++)  {
+    for(stream_offset_type it = 1100; it < iterations; it++)  {
 	  progress.step();
       ami::priority_queue<int, std::greater<int> > pq(0.75);
       std::priority_queue<int, vector<int>,std::less<int> > pq2;
 
-      TPIE_OS_OFFSET elements = 71;
+      stream_offset_type elements = 71;
       TPIE_OS_SRANDOM(static_cast<unsigned int>(it));
-      for(TPIE_OS_OFFSET i=0;i<elements;i++) {
+      for(stream_offset_type i=0;i<elements;i++) {
         int src_int = TPIE_OS_RANDOM()%220;
         pq.push(src_int);
         pq2.push(src_int);
@@ -133,8 +133,8 @@ void pq_small_instance(){
 //          pq.pop();
 //          pq2.pop();
 //pq2.dump("internal.dot");
-      TPIE_OS_OFFSET pop = 61; 
-      for(TPIE_OS_OFFSET i=0;i<pop;i++) {
+      stream_offset_type pop = 61; 
+      for(stream_offset_type i=0;i<pop;i++) {
         if(!pq.empty()) {
 //          std::cout << "pop " << pq.top() << " " << pq2.top() << std::endl;
           if(pq.top() != pq2.top()) {
@@ -147,7 +147,7 @@ void pq_small_instance(){
           pq2.pop();
         }
       }
-      for(TPIE_OS_OFFSET i=0;i<elements;i++) {
+      for(stream_offset_type i=0;i<elements;i++) {
         int src_int = TPIE_OS_RANDOM()%220;
         pq.push(src_int);
         pq2.push(src_int);

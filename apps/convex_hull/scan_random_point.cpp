@@ -34,7 +34,7 @@ VERSION(scan_random_point_cpp,"$Id: scan_random_point.cpp,v 1.9 2004-08-12 12:36
 
 #include "scan_random_point.h"
 
-scan_random_point::scan_random_point(TPIE_OS_OFFSET count, int seed) 
+scan_random_point::scan_random_point(stream_offset_type count, int seed) 
 {
     this->max = count;
     this->remaining = count;

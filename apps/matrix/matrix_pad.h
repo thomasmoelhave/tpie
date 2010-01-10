@@ -45,12 +45,12 @@ namespace tpie {
 	template<class T>
 	class matrix_pad : ami::scan_object {
 	private:
-	    TPIE_OS_OFFSET cur_row, cur_col;
-	    TPIE_OS_OFFSET orig_rows, orig_cols;
-	    TPIE_OS_OFFSET final_rows, final_cols;
+	    stream_offset_type cur_row, cur_col;
+	    stream_offset_type orig_rows, orig_cols;
+	    stream_offset_type final_rows, final_cols;
 	public:
-	    matrix_pad(TPIE_OS_OFFSET rows, TPIE_OS_OFFSET cols,
-		       TPIE_OS_OFFSET block_extent);
+	    matrix_pad(stream_offset_type rows, stream_offset_type cols,
+		       stream_offset_type block_extent);
 	    virtual ~matrix_pad();
 	    ami::err initialize(void);
 	    ami::err operate(const T &in, ami::SCAN_FLAG *sfin,
@@ -59,8 +59,8 @@ namespace tpie {
 
 
 	template<class T>
-	matrix_pad<T>::matrix_pad(TPIE_OS_OFFSET rows, TPIE_OS_OFFSET cols,
-                                  TPIE_OS_OFFSET block_extent) :
+	matrix_pad<T>::matrix_pad(stream_offset_type rows, stream_offset_type cols,
+                                  stream_offset_type block_extent) :
 	    cur_row(0), cur_col(0),
 	    orig_rows(0), orig_cols(0),
 	    final_rows(0), final_cols(0)
@@ -132,12 +132,12 @@ namespace tpie {
 	template<class T>
 	class matrix_unpad : ami::scan_object {
 	private:
-	    TPIE_OS_OFFSET cur_row, cur_col;
-	    TPIE_OS_OFFSET orig_rows, orig_cols;
-	    TPIE_OS_OFFSET final_rows, final_cols;
+	    stream_offset_type cur_row, cur_col;
+	    stream_offset_type orig_rows, orig_cols;
+	    stream_offset_type final_rows, final_cols;
 	public:
-	    matrix_unpad(TPIE_OS_OFFSET rows, TPIE_OS_OFFSET cols,
-			 TPIE_OS_OFFSET block_extent);
+	    matrix_unpad(stream_offset_type rows, stream_offset_type cols,
+			 stream_offset_type block_extent);
 	    virtual ~matrix_unpad();
 	    ami::err initialize(void);
 	    ami::err operate(const T &in, ami::SCAN_FLAG *sfin,
@@ -145,8 +145,8 @@ namespace tpie {
 	};
 	
 	template<class T>
-	matrix_unpad<T>::matrix_unpad(TPIE_OS_OFFSET rows, TPIE_OS_OFFSET cols,
-                                      TPIE_OS_OFFSET block_extent) :
+	matrix_unpad<T>::matrix_unpad(stream_offset_type rows, stream_offset_type cols,
+                                      stream_offset_type block_extent) :
 	    cur_row(0), cur_col(0),
 	    orig_rows(0), orig_cols(0),
 	    final_rows(0), final_cols(0)

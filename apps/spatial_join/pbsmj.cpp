@@ -53,8 +53,8 @@ using std::endl;
 #include <algorithm>
 
 bool verbose = false;
-TPIE_OS_SIZE_T test_mm_size = 64*1024*1024; // Default mem. size.
-TPIE_OS_OFFSET test_size = 0; // Not used.
+memory_size_type test_mm_size = 64*1024*1024; // Default mem. size.
+stream_offset_type test_size = 0; // Not used.
 int random_seed = 17;
  
 
@@ -75,7 +75,7 @@ static char *input_filename_blue = def_if_blue;
 static char *output_filename = def_of;
 
 extern int register_new;
-static TPIE_OS_SIZE_T part_count;
+static memory_size_type part_count;
 
 // Default sweeping algorithm.
 static int algorithm = ORIGINAL;
@@ -173,10 +173,10 @@ public:
   }
 
   // method to scan from an array.
-  TPIE_OS_OFFSET inMemoryScan(rectangle* red_a, TPIE_OS_OFFSET red_l, 
-		    rectangle* blue_a, TPIE_OS_OFFSET blue_l)
+  stream_offset_type inMemoryScan(rectangle* red_a, stream_offset_type red_l, 
+		    rectangle* blue_a, stream_offset_type blue_l)
   {
-    TPIE_OS_OFFSET red_i, blue_i;
+    stream_offset_type red_i, blue_i;
     rectangle r;
     if (inter0 != NULL)
       delete inter0;
@@ -224,13 +224,13 @@ public:
 class Distributor : AMI_scan_object {
   AMI_STREAM<rectangle> **red_parts;
   AMI_STREAM<rectangle> **blue_parts;
-  TPIE_OS_SIZE_T tile_count_row, tile_count_col, part_count;
+  memory_size_type tile_count_row, tile_count_col, part_count;
   double  tile_height, tile_width;
   rectangle mbr, tile;
   bool *written;
 public:
   Distributor(rectangle ambr, 
-	      TPIE_OS_SIZE_T tcr, TPIE_OS_SIZE_T tcc, TPIE_OS_SIZE_T pc) :mbr(ambr)
+	      memory_size_type tcr, memory_size_type tcc, memory_size_type pc) :mbr(ambr)
   {
     tile_count_row = tcr; tile_count_col = tcc;  part_count = pc;
     red_parts = new AMI_STREAM<rectangle>*[pc];
@@ -242,7 +242,7 @@ public:
 
   ~Distributor()
   {
-    TPIE_OS_SIZE_T i;
+    memory_size_type i;
     delete [] written; 
     for (i = 0; i < part_count; i++) {
       delete red_parts[i];
@@ -256,15 +256,15 @@ public:
   {
     // round robin.
     
-    TPIE_OS_SIZE_T i, j, rowLow, colLow, rowHigh, colHigh;
+    memory_size_type i, j, rowLow, colLow, rowHigh, colHigh;
     for (i=0; i<part_count; i++)
       written[i] = false;
-    rowLow = (TPIE_OS_SIZE_T) ceil((r.ylo - mbr.ylo) / tile_height) - 1;
+    rowLow = (memory_size_type) ceil((r.ylo - mbr.ylo) / tile_height) - 1;
     rowLow = (rowLow > 0) ? rowLow: 0;
-    rowHigh = (TPIE_OS_SIZE_T) floor((r.yhi - mbr.ylo) / tile_height);
-    colLow = (TPIE_OS_SIZE_T) ceil((r.xlo - mbr.xlo) / tile_width) - 1;
+    rowHigh = (memory_size_type) floor((r.yhi - mbr.ylo) / tile_height);
+    colLow = (memory_size_type) ceil((r.xlo - mbr.xlo) / tile_width) - 1;
     colLow = (colLow > 0) ? colLow : 0;
-    colHigh = (TPIE_OS_SIZE_T) floor((r.xhi - mbr.xlo) / tile_width);
+    colHigh = (memory_size_type) floor((r.xhi - mbr.xlo) / tile_width);
     for (i = rowLow; i <= rowHigh; i++) {
       //cout << "i:" << i << endl;
       for (j = i*tile_count_row+colLow; j <= i*tile_count_row+colHigh; j++) {
@@ -303,7 +303,7 @@ public:
     
   AMI_err initialize(void) 
   {
-    TPIE_OS_SIZE_T i;
+    memory_size_type i;
     for (i = 0; i < part_count; i++) {
       red_parts[i] = new AMI_STREAM<rectangle>;
       red_parts[i]->persist(PERSIST_PERSISTENT);
@@ -371,12 +371,12 @@ public:
 
 // Implements the original PBSM sweeping algorithms.
 // Returns the number of intersections found.
-TPIE_OS_OFFSET pseudoScan(rectangle* red_a, TPIE_OS_OFFSET red_l, 
-			 rectangle* blue_a, TPIE_OS_OFFSET blue_l,
+stream_offset_type pseudoScan(rectangle* red_a, stream_offset_type red_l, 
+			 rectangle* blue_a, stream_offset_type blue_l,
 			 AMI_STREAM<pair_of_rectangles> *outStream) 
 {
   rectangle rr, br;
-  TPIE_OS_OFFSET i, red_st, blue_st, intersection_count;
+  stream_offset_type i, red_st, blue_st, intersection_count;
   pair_of_rectangles intersection;
   red_st = blue_st = intersection_count = 0;
   while (red_st < red_l && blue_st < blue_l) {
@@ -428,13 +428,13 @@ void getMbr(char *input_filename, rectangle *mbr) {
   delete [] mbr_filename;
 }
 
-TPIE_OS_SIZE_T computePartitionCount(TPIE_OS_OFFSET rect_count) {
-  TPIE_OS_SIZE_T p;
-  TPIE_OS_SIZE_T sz_avail;
-  TPIE_OS_OFFSET sz_of_all_rects;
+memory_size_type computePartitionCount(stream_offset_type rect_count) {
+  memory_size_type p;
+  memory_size_type sz_avail;
+  stream_offset_type sz_of_all_rects;
   sz_avail = MM_manager.memory_available();
   //  MM_manager.available(&sz_avail);
-  TPIE_OS_OFFSET space_needed, prev_space_needed = 0;
+  stream_offset_type space_needed, prev_space_needed = 0;
 
   sz_of_all_rects = sizeof(rectangle) * (rect_count);
   for (p = 1; 1; p++) {
@@ -461,8 +461,8 @@ void pbsmJoin()
   rectangle mbr_red, mbr_blue, mbr;
   Distributor *distributor;
   Reader *reader;
-  TPIE_OS_SIZE_T sz_avail;
-  TPIE_OS_SIZE_T tile_count_row, tile_count_col, i;
+  memory_size_type sz_avail;
+  memory_size_type tile_count_row, tile_count_col, i;
  
   cerr << "*******\tPBSM Join (" 
        << (algorithm==STRIPED?"STRIPED":(algorithm==ORIGINAL?"ORIGINAL":"TREE")) 
@@ -539,10 +539,10 @@ void pbsmJoin()
   // *******************************************************//
 
   rectangle *red_array, *blue_array;
-  TPIE_OS_OFFSET red_length, blue_length;
+  stream_offset_type red_length, blue_length;
   AMI_STREAM<pair_of_rectangles> *outStream;
   inter_rect *interObj;
-  TPIE_OS_OFFSET intersection_count = 0;
+  stream_offset_type intersection_count = 0;
  
   outStream = new AMI_STREAM<pair_of_rectangles>(output_filename);
   outStream->persist(PERSIST_PERSISTENT);
@@ -574,14 +574,14 @@ void pbsmJoin()
     cerr << "opened the streams " << name_array_red[i] << " and " << name_array_blue[i] << endl;
     // Read red rectangles into red_array
     red_length = red_parts[i]->stream_len();
-    red_array = new rectangle[(TPIE_OS_SIZE_T)red_length];
+    red_array = new rectangle[(memory_size_type)red_length];
     reader->setArray(red_array);
     AMI_scan(red_parts[i], reader);
     delete red_parts[i];
 
     // Read blue rectangles into red_array
     blue_length = blue_parts[i]->stream_len();
-    blue_array = new rectangle[(TPIE_OS_SIZE_T)blue_length];
+    blue_array = new rectangle[(memory_size_type)blue_length];
     reader->setArray(blue_array);
     AMI_scan(blue_parts[i], reader);
     delete blue_parts[i];

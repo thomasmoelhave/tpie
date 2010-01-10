@@ -42,20 +42,20 @@ namespace tpie {
 	    unsigned int m_type;
 	
 	    // The number of bytes in this structure.
-	    TPIE_OS_SIZE_T m_headerLength;
+	    memory_size_type m_headerLength;
 	
 	    // The size of each item in the stream.
-	    TPIE_OS_SIZE_T m_itemSize;
+	    memory_size_type m_itemSize;
 	
 	    // The size of a physical block on the device this stream resides.
-	    TPIE_OS_SIZE_T m_osBlockSize;
+	    memory_size_type m_osBlockSize;
 	
 	    // Size in bytes of each logical block, if applicable.
-	    TPIE_OS_SIZE_T m_blockSize;
+	    memory_size_type m_blockSize;
 	
 	    // For all intents and purposes, the length of the stream in number
 	    // of items.
-	    TPIE_OS_OFFSET m_itemLogicalEOF;
+	    stream_offset_type m_itemLogicalEOF;
 	};
     
     }  //  bte namespace

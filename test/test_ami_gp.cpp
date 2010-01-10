@@ -76,16 +76,16 @@ void parse_app_opts(int idx, char *opt_arg)
 
 class reverse_order : public ami::gen_perm_object {
 private:
-    TPIE_OS_OFFSET total_size;
+    stream_offset_type total_size;
 public:
     reverse_order() : total_size(0) {};
     
-    ami::err initialize(TPIE_OS_OFFSET ts) {
+    ami::err initialize(stream_offset_type ts) {
         total_size = ts;
         return ami::NO_ERROR;
     };
 
-    TPIE_OS_OFFSET destination(TPIE_OS_OFFSET source) {
+    stream_offset_type destination(stream_offset_type source) {
         return total_size - 1 - source;
     };
 };
@@ -111,25 +111,25 @@ int main(int argc, char **argv) {
     // Set the amount of main memory:
     MM_manager.set_memory_limit (test_mm_size);
     
-    ami::stream<TPIE_OS_OFFSET> amis0;
-    ami::stream<TPIE_OS_OFFSET> amis1;
+    ami::stream<stream_offset_type> amis0;
+    ami::stream<stream_offset_type> amis1;
     
     // Streams for reporting values to ascii streams.
     
     std::ofstream *osi;
-    ami::cxx_ostream_scan<TPIE_OS_OFFSET> *rpti = NULL;
+    ami::cxx_ostream_scan<stream_offset_type> *rpti = NULL;
 
     std::ofstream *osf;
-    ami::cxx_ostream_scan<TPIE_OS_OFFSET> *rptf = NULL;
+    ami::cxx_ostream_scan<stream_offset_type> *rptf = NULL;
 
     if (report_results_initial) {
         osi  = new std::ofstream(initial_results_filename);
-        rpti = new ami::cxx_ostream_scan<TPIE_OS_OFFSET>(osi);
+        rpti = new ami::cxx_ostream_scan<stream_offset_type>(osi);
     }
 
     if (report_results_final) {
         osf  = new std::ofstream(final_results_filename);
-        rptf = new ami::cxx_ostream_scan<TPIE_OS_OFFSET>(osf);
+        rptf = new ami::cxx_ostream_scan<stream_offset_type>(osf);
     }
     
     scan_count my_scan_count(test_size);

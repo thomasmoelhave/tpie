@@ -36,7 +36,7 @@ private:
     merge_random(const merge_random<T>& other);
     merge_random<T>& operator=(const merge_random<T>& other);
 
-    TPIE_OS_SIZE_T input_arity;
+    memory_size_type input_arity;
     ami::merge_heap_op<int> *mheap;
 #if DEBUG_ASSERTIONS
     unsigned int input_count, output_count;
@@ -44,7 +44,7 @@ private:
 public:
     merge_random(int seed = 0);
     virtual ~merge_random(void);
-    ami::err initialize(TPIE_OS_SIZE_T arity, CONST T * CONST *in,
+    ami::err initialize(memory_size_type arity, CONST T * CONST *in,
                        ami::merge_flag *taken_flags,
                        int &taken_index);
     ami::err operate(CONST T * CONST *in, ami::merge_flag *taken_flags,
@@ -78,12 +78,12 @@ merge_random<T>::~merge_random(void)
 }
 
 template<class T>
-ami::err merge_random<T>::initialize(TPIE_OS_SIZE_T arity,
+ami::err merge_random<T>::initialize(memory_size_type arity,
                                     CONST T * CONST *in,
                                     ami::merge_flag * /*taken_flags*/,
                                     int &taken_index)
 {
-    TPIE_OS_SIZE_T ii;
+    memory_size_type ii;
     int rnum;
     
     input_arity = arity;
@@ -124,7 +124,7 @@ ami::err merge_random<T>::operate(CONST T * CONST *in,
     if (!mheap->sizeofheap()) {
 
 #if DEBUG_ASSERTIONS
-        TPIE_OS_SIZE_T ii;
+        memory_size_type ii;
         
         for (ii = input_arity; ii--; ) {
             tp_assert(in[ii] == NULL, "Empty queue but more input.");
@@ -138,7 +138,7 @@ ami::err merge_random<T>::operate(CONST T * CONST *in,
         return ami::MERGE_DONE;
 
     } else {
-        TPIE_OS_SIZE_T min_source;
+        memory_size_type min_source;
         int min;
 
         mheap->extract_min(min,min_source);
@@ -191,7 +191,7 @@ size_t merge_random<T>::space_usage_overhead(void)
 template<class T>
 size_t merge_random<T>::space_usage_per_stream(void)
 {
-    return sizeof(int) + sizeof(TPIE_OS_SIZE_T);
+    return sizeof(int) + sizeof(memory_size_type);
 }
 
 #endif // _MERGE_RANDOM_H 

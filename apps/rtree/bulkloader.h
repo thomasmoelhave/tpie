@@ -737,11 +737,11 @@ namespace tpie {
 	    delete boxUnsorted;
 	    boxUnsorted = NULL;
 	    
-	    TPIE_OS_OFFSET               streamLength = 0;
-	    TPIE_OS_OFFSET               streamCounter = 0;
-	    TPIE_OS_SIZE_T               level = 0;
+	    stream_offset_type               streamLength = 0;
+	    stream_offset_type               streamCounter = 0;
+	    memory_size_type               level = 0;
 	    children_count_t             childCounter = 0;
-	    TPIE_OS_OFFSET               nodesCreated = 0;
+	    stream_offset_type               nodesCreated = 0;
 	    std::pair<rectangle<coord_t, bid_t>, TPIE_OS_LONGLONG>* currentObject = NULL;
 	    rectangle<coord_t, bid_t>    bb;
 	    rstarnode<coord_t, BTECOLL>* currentNode = tree_->read_node(NEXT_FREE_BLOCK);
@@ -967,12 +967,12 @@ namespace tpie {
 	    delete boxUnsorted;
 	    boxUnsorted = NULL;
 	    
-	    TPIE_OS_OFFSET               streamLength = 0;
-	    TPIE_OS_OFFSET               streamCounter = 0;
-	    TPIE_OS_SIZE_T               level = 0;
+	    stream_offset_type               streamLength = 0;
+	    stream_offset_type               streamCounter = 0;
+	    memory_size_type               level = 0;
 	    unsigned short               counter = 0;
 	    children_count_t             childCounter = 0;
-	    TPIE_OS_OFFSET               nodesCreated = 0;
+	    stream_offset_type               nodesCreated = 0;
 	    std::pair<rectangle<coord_t, bid_t>, TPIE_OS_LONGLONG>* currentObject = NULL;
 	    rectangle<coord_t, bid_t>    bb;
 	    rstarnode<coord_t, BTECOLL>* currentNode = tree_->read_node(NEXT_FREE_BLOCK);

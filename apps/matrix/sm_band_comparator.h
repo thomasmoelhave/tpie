@@ -43,10 +43,10 @@ namespace tpie {
 	template<class T>
 	class sm_band_comparator {
 	private:
-	    TPIE_OS_SIZE_T rpb;
+	    memory_size_type rpb;
 	    
 	public:
-	    sm_band_comparator(TPIE_OS_SIZE_T rows_per_band) :
+	    sm_band_comparator(memory_size_type rows_per_band) :
 		rpb(rows_per_band) {};
 	    
 	    virtual ~sm_band_comparator(void) {};

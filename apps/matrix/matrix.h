@@ -57,16 +57,16 @@ namespace tpie {
 	class matrix : public ami::stream<T> {
 
 	private:
-	    TPIE_OS_OFFSET r,c;
+	    stream_offset_type r,c;
 	public:
-	    matrix(TPIE_OS_OFFSET row, TPIE_OS_OFFSET col);
+	    matrix(stream_offset_type row, stream_offset_type col);
 	    ~matrix(void);
-	    TPIE_OS_OFFSET rows();
-	    TPIE_OS_OFFSET cols();
+	    stream_offset_type rows();
+	    stream_offset_type cols();
 	};
 	
 	template<class T>
-	matrix<T>::matrix(TPIE_OS_OFFSET row, TPIE_OS_OFFSET col) :
+	matrix<T>::matrix(stream_offset_type row, stream_offset_type col) :
 	    ami::stream<T>(), r(row), c(col)	{
 	}
 	
@@ -75,12 +75,12 @@ namespace tpie {
 	}
 	
 	template<class T>
-	TPIE_OS_OFFSET matrix<T>::rows(void) {
+	stream_offset_type matrix<T>::rows(void) {
 	    return r;
 	}
 	
 	template<class T>
-	TPIE_OS_OFFSET matrix<T>::cols(void) {
+	stream_offset_type matrix<T>::cols(void) {
 	    return c;
 	}
 	
@@ -121,9 +121,9 @@ namespace tpie {
                         matrix<T> &res)	{
 	    ami::err ae = ami::NO_ERROR;
 	    
-	    TPIE_OS_SIZE_T sz_avail;
-	    TPIE_OS_SIZE_T mm_matrix_extent;
-	    TPIE_OS_SIZE_T single_stream_usage;    
+	    memory_size_type sz_avail;
+	    memory_size_type mm_matrix_extent;
+	    memory_size_type single_stream_usage;    
 	    
 	    // Check bounds on the matrices to make sure they match up.
 	    if ((op1.cols() != op2.rows()) || (res.rows() != op1.rows()) ||
@@ -145,23 +145,23 @@ namespace tpie {
 	    // Will the problem fit in main memory?
 	    
 	    {
-		TPIE_OS_OFFSET sz_op1 = op1.rows() * op1.cols() * sizeof(T);
-		TPIE_OS_OFFSET sz_op2 = op2.rows() * op2.cols() * sizeof(T);
-		TPIE_OS_OFFSET sz_res = res.rows() * res.cols() * sizeof(T);
+		stream_offset_type sz_op1 = op1.rows() * op1.cols() * sizeof(T);
+		stream_offset_type sz_op2 = op2.rows() * op2.cols() * sizeof(T);
+		stream_offset_type sz_res = res.rows() * res.cols() * sizeof(T);
 		
 		if (sz_avail > sz_op1 + sz_op2 + sz_res + 3 * single_stream_usage +
 		    3 * sizeof(matrix<T>)) {
 		    
-		    TPIE_OS_SSIZE_T ii,jj;
+		    memory_offset_type ii,jj;
 		    T *tmp_read;
 		    
 		    // Main memory copies of the matrices.
-		    mm_matrix<T> mm_op1(static_cast<TPIE_OS_SIZE_T>(op1.rows()), 
-				     static_cast<TPIE_OS_SIZE_T>(op1.cols()));
-		    mm_matrix<T> mm_op2(static_cast<TPIE_OS_SIZE_T>(op2.rows()), 
-				     static_cast<TPIE_OS_SIZE_T>(op2.cols()));
-		    mm_matrix<T> mm_res(static_cast<TPIE_OS_SIZE_T>(res.rows()), 
-				     static_cast<TPIE_OS_SIZE_T>(res.cols()));
+		    mm_matrix<T> mm_op1(static_cast<memory_size_type>(op1.rows()), 
+				     static_cast<memory_size_type>(op1.cols()));
+		    mm_matrix<T> mm_op2(static_cast<memory_size_type>(op2.rows()), 
+				     static_cast<memory_size_type>(op2.cols()));
+		    mm_matrix<T> mm_res(static_cast<memory_size_type>(res.rows()), 
+				     static_cast<memory_size_type>(res.cols()));
 		    
 		    // Read in the matrices and solve in main memory.
 		    
@@ -217,9 +217,9 @@ namespace tpie {
 	    
 	    {
 		
-		TPIE_OS_SIZE_T num_active_streams = 4 + 4;
-		TPIE_OS_SIZE_T mm_matrix_space;
-		TPIE_OS_SIZE_T single_stream_usage;
+		memory_size_type num_active_streams = 4 + 4;
+		memory_size_type mm_matrix_space;
+		memory_size_type single_stream_usage;
 		
 		// What is the maximum extent of any matrix we will try to
 		// load into memory?  We may have up to four in memory at any
@@ -240,36 +240,36 @@ namespace tpie {
 #ifdef AGGARWAL_MATRIX_MULT_IN_PLACE
 		// Recall that a temporary vector is used, so we solve x^2 + x = m
 		// for x, instead of the usual x^2 = m.
-		mm_matrix_extent = static_cast<TPIE_OS_SIZE_T>(sqrt(1.0 +
+		mm_matrix_extent = static_cast<memory_size_type>(sqrt(1.0 +
 								    4 * static_cast<double>(mm_matrix_space) /
 								    sizeof(T)) / 2) - 1;
 #else        
-		mm_matrix_extent = static_cast<TPIE_OS_SIZE_T>(sqrt(static_cast<double>(mm_matrix_space) /
+		mm_matrix_extent = static_cast<memory_size_type>(sqrt(static_cast<double>(mm_matrix_space) /
 								    sizeof(T)));    
 #endif
 		// How many rows and columns of chunks in each matrix?
 		
-		TPIE_OS_OFFSET chunkrows1 = ((op1.rows() - 1) /
+		stream_offset_type chunkrows1 = ((op1.rows() - 1) /
 					     mm_matrix_extent) + 1;
-		TPIE_OS_OFFSET chunkcols1 = ((op1.cols() - 1) /
+		stream_offset_type chunkcols1 = ((op1.cols() - 1) /
 					     mm_matrix_extent) + 1;
-		TPIE_OS_OFFSET chunkrows2 = ((op2.rows() - 1) /
+		stream_offset_type chunkrows2 = ((op2.rows() - 1) /
 					     mm_matrix_extent) + 1;
-		TPIE_OS_OFFSET chunkcols2 = ((op2.cols() - 1) /
+		stream_offset_type chunkcols2 = ((op2.cols() - 1) /
 					     mm_matrix_extent) + 1;
 		
 		// Now shrink the main memory matrix extent as much as possible
 		// given the constraint that the number of chunk rows and cols
 		// in each matrix cannot decrease.
 		
-		TPIE_OS_SIZE_T min_rows_per_chunk1 = static_cast<TPIE_OS_SIZE_T>((op1.rows() + chunkrows1 - 1) /
+		memory_size_type min_rows_per_chunk1 = static_cast<memory_size_type>((op1.rows() + chunkrows1 - 1) /
 										 chunkrows1);
-		TPIE_OS_SIZE_T min_cols_per_chunk1 = static_cast<TPIE_OS_SIZE_T>((op1.cols() + chunkcols1 - 1) /
+		memory_size_type min_cols_per_chunk1 = static_cast<memory_size_type>((op1.cols() + chunkcols1 - 1) /
 										 chunkcols1);
 		
-		TPIE_OS_SIZE_T min_rows_per_chunk2 = static_cast<TPIE_OS_SIZE_T>((op2.rows() + chunkrows2 - 1) /
+		memory_size_type min_rows_per_chunk2 = static_cast<memory_size_type>((op2.rows() + chunkrows2 - 1) /
 										 chunkrows2);
-		TPIE_OS_SIZE_T min_cols_per_chunk2 = static_cast<TPIE_OS_SIZE_T>((op2.cols() + chunkcols2 - 1) /
+		memory_size_type min_cols_per_chunk2 = static_cast<memory_size_type>((op2.cols() + chunkcols2 - 1) /
 										 chunkcols2);
 		
 		// Adjust the main memory matrix extent so that an integral
@@ -289,14 +289,14 @@ namespace tpie {
 		
 		// How many rows and cols in padded matrices.
 		
-		TPIE_OS_OFFSET rowsp1 = mm_matrix_extent * (((op1.rows() - 1) /
+		stream_offset_type rowsp1 = mm_matrix_extent * (((op1.rows() - 1) /
 							     mm_matrix_extent) + 1);
-		TPIE_OS_OFFSET colsp1 = mm_matrix_extent * (((op1.cols() - 1) /
+		stream_offset_type colsp1 = mm_matrix_extent * (((op1.cols() - 1) /
 							     mm_matrix_extent) + 1);
 		
-		TPIE_OS_OFFSET rowsp2 = mm_matrix_extent * (((op2.rows() - 1) /
+		stream_offset_type rowsp2 = mm_matrix_extent * (((op2.rows() - 1) /
 							     mm_matrix_extent) + 1);
-		TPIE_OS_OFFSET colsp2 = mm_matrix_extent * (((op2.cols() - 1) /
+		stream_offset_type colsp2 = mm_matrix_extent * (((op2.cols() - 1) /
 							     mm_matrix_extent) + 1);
 		
 		
@@ -380,22 +380,22 @@ namespace tpie {
 		    mm_matrix<T> mm_op2(mm_matrix_extent, mm_matrix_extent);
 		    mm_matrix<T> mm_accum(mm_matrix_extent, mm_matrix_extent);
 		    
-		    TPIE_OS_OFFSET ii,jj,kk;
+		    stream_offset_type ii,jj,kk;
 		    T *tmp_read;
 		    
 		    respp->seek(0);
 		    
 		    // ii loops over block rows of op1pp.
 		    
-		    for (ii = 0; ii < TPIE_OS_OFFSET(rowsp1 / mm_matrix_extent); ii++ ) {
+		    for (ii = 0; ii < stream_offset_type(rowsp1 / mm_matrix_extent); ii++ ) {
 			
 			// jj loops over block cols of op2pp.
 			
-			for (jj = 0; jj < TPIE_OS_OFFSET(colsp2 / mm_matrix_extent); jj++ ) {
+			for (jj = 0; jj < stream_offset_type(colsp2 / mm_matrix_extent); jj++ ) {
 			    
 			    // These are for looping over rows and cols of MM
 			    // matrices.
-			    TPIE_OS_SIZE_T ii1,jj1;
+			    memory_size_type ii1,jj1;
 			    
 			    // Clear the temporary result.
 			    for (ii1 = 0; ii1 < mm_matrix_extent; ii1++ ) {
@@ -409,7 +409,7 @@ namespace tpie {
 			    
 			    tp_assert(rowsp2 == colsp1, "Matrix extent mismatch.");
 			    
-			    for (kk = 0; kk < TPIE_OS_OFFSET(rowsp2 / mm_matrix_extent); kk++ ) {
+			    for (kk = 0; kk < stream_offset_type(rowsp2 / mm_matrix_extent); kk++ ) {
 				
 				// Read a block from op1pp.
 

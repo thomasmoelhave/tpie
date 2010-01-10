@@ -142,7 +142,7 @@ int main(int argc, char **argv) {
 
   if (params.do_verify_sorting && err == tpie::ami::NO_ERROR) {
     app_params_t::record_t p1;
-    TPIE_OS_OFFSET ii = 0;
+    stream_offset_type ii = 0;
     app_params_t::record_t::cmp comp;
     cerr << "Verifying sorting..." << endl;
     params.streams_sorted[0]->seek(0);
@@ -220,7 +220,7 @@ int main(int argc, char **argv) {
       cerr << argv[0] << ": Error opening window queries file " 
 	   << params.file_name_wquery << endl;
     } else {
-      TPIE_OS_OFFSET count = 0;
+      stream_offset_type count = 0;
       app_params_t::point_t lop, hip;
       app_params_t::stream_t *tempstr = new app_params_t::stream_t;
       cerr << "Window queries from file " 
@@ -304,7 +304,7 @@ int main(int argc, char **argv) {
     cerr << "Begin stress test." << endl;
     app_params_t::record_t p;
     app_params_t::record_t pa[100];
-    TPIE_OS_SIZE_T insert_count = 50000;
+    memory_size_type insert_count = 50000;
     cerr << "\tInserting " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(insert_count) << " random points..." << flush;
     for (i = 0; i < insert_count; i++) {
       p[0] = TPIE_OS_RANDOM() % MAX_VALUE;

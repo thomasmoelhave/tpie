@@ -46,7 +46,7 @@
 
 typedef struct _ch {
   _ch *next; 
-  TPIE_OS_OFFSET num;
+  stream_offset_type num;
   rectangle rects[C_SIZE];    /* array of rectangles */
 } chunk;
 

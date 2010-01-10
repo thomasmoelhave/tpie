@@ -41,10 +41,10 @@ namespace tpie {
 
 	protected:
 	    /** Max size in bytes. */
-	    TPIE_OS_SIZE_T capacity_;
+	    memory_size_type capacity_;
 	    
 	    /** Associativity */
-	    TPIE_OS_SIZE_T assoc_;
+	    memory_size_type assoc_;
 	    
 	    /** Behavior. */
 	    int behavior_;
@@ -52,8 +52,8 @@ namespace tpie {
 	    ////////////////////////////////////////////////////////////////////
 	    ///  Construct a fully-associative cache manager with the given capacity.
 	    ////////////////////////////////////////////////////////////////////
-	    cache_manager_base(TPIE_OS_SIZE_T capacity, 
-			       TPIE_OS_SIZE_T assoc):
+	    cache_manager_base(memory_size_type capacity, 
+			       memory_size_type assoc):
 		capacity_(capacity), 
 		assoc_(assoc), 
 		behavior_(0) {

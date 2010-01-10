@@ -99,32 +99,32 @@ int main(int argc, char **argv)
     // Set the amount of main memory:
     MM_manager.set_memory_limit (test_mm_size);
     
-    ami::stream<TPIE_OS_OFFSET> amis0;
-    ami::stream<TPIE_OS_OFFSET> amis1;
-    ami::stream<TPIE_OS_OFFSET> amis2;
+    ami::stream<stream_offset_type> amis0;
+    ami::stream<stream_offset_type> amis1;
+    ami::stream<stream_offset_type> amis2;
     
     // Streams for reporting values to ascii streams.
     
     std::ofstream *osc;
     std::ofstream *osi;
     std::ofstream *osf;
-    ami::cxx_ostream_scan<TPIE_OS_OFFSET> *rptc = NULL;
-    ami::cxx_ostream_scan<TPIE_OS_OFFSET> *rpti = NULL;
-    ami::cxx_ostream_scan<TPIE_OS_OFFSET> *rptf = NULL;
+    ami::cxx_ostream_scan<stream_offset_type> *rptc = NULL;
+    ami::cxx_ostream_scan<stream_offset_type> *rpti = NULL;
+    ami::cxx_ostream_scan<stream_offset_type> *rptf = NULL;
     
     if (report_results_count) {
         osc  = new std::ofstream(count_results_filename);
-        rptc = new ami::cxx_ostream_scan<TPIE_OS_OFFSET>(osc);
+        rptc = new ami::cxx_ostream_scan<stream_offset_type>(osc);
     }
     
     if (report_results_intermediate) {
         osi  = new std::ofstream(intermediate_results_filename);
-        rpti = new ami::cxx_ostream_scan<TPIE_OS_OFFSET>(osi);
+        rpti = new ami::cxx_ostream_scan<stream_offset_type>(osi);
     }
     
     if (report_results_final) {
         osf  = new std::ofstream(final_results_filename);
-        rptf = new ami::cxx_ostream_scan<TPIE_OS_OFFSET>(osf);
+        rptf = new ami::cxx_ostream_scan<stream_offset_type>(osf);
     }
     
     // Write some ints.
@@ -145,7 +145,7 @@ int main(int argc, char **argv)
     }
     
     // Square them.
-    scan_square<TPIE_OS_OFFSET> ss;
+    scan_square<stream_offset_type> ss;
     
     ae = ami::scan(&amis0, &ss, &amis1);
     
@@ -156,7 +156,7 @@ int main(int argc, char **argv)
         std::cout << "Stream length = " << amis1.stream_len() << std::endl;
     }
     
-    ami::scan_div<TPIE_OS_OFFSET> sd;
+    ami::scan_div<stream_offset_type> sd;
     
     ae = ami::scan(&amis1, &amis0, &sd, &amis2);
     

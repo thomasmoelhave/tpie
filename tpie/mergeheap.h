@@ -90,7 +90,7 @@ namespace tpie {
 	public:
 	    heap_element() : key(), run_id(0) {}
 	    KEY            key;
-	    TPIE_OS_SIZE_T run_id;
+	    memory_size_type run_id;
 	};
 	
     }  //  ami namespace
@@ -122,7 +122,7 @@ namespace tpie {
 	    
 	    ~heap_ptr(){};
 	    REC            *recptr;
-	    TPIE_OS_SIZE_T run_id;
+	    memory_size_type run_id;
 	};
 	
 
@@ -145,16 +145,16 @@ namespace tpie {
 	protected:
 	    
 	    heap_ptr<REC> *Heaparray;
-	    TPIE_OS_SIZE_T  Heapsize;
-	    TPIE_OS_SIZE_T  maxHeapsize;
+	    memory_size_type  Heapsize;
+	    memory_size_type  maxHeapsize;
 	    
-	    inline void Exchange(TPIE_OS_SIZE_T i, TPIE_OS_SIZE_T j); 
+	    inline void Exchange(memory_size_type i, memory_size_type j); 
 	    
 	    ///////////////////////////////////////////////////////////////////////////
 	    /// These functions will typically be overridden by subclasses/
 	    ///////////////////////////////////////////////////////////////////////////
-	    inline TPIE_OS_SIZE_T get_smallest(TPIE_OS_SIZE_T i);
-	    inline void Heapify(TPIE_OS_SIZE_T i);
+	    inline memory_size_type get_smallest(memory_size_type i);
+	    inline void Heapify(memory_size_type i);
 	    
 	public:
 	    
@@ -203,33 +203,33 @@ namespace tpie {
 	    ///////////////////////////////////////////////////////////////////////////
 	    /// Reports the size of Heap (number of elements).
 	    ///////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_SIZE_T sizeofheap(void) {
+	    memory_size_type sizeofheap(void) {
 		return Heapsize;
 	    }; 
 
 	    ///////////////////////////////////////////////////////////////////////////
 	    /// Returns the run with the minimum key.
 	    ///////////////////////////////////////////////////////////////////////////
-	    inline TPIE_OS_SIZE_T get_min_run_id(void) {
+	    inline memory_size_type get_min_run_id(void) {
 		return Heaparray[1].run_id;
 	    };
 	    
 	    ///////////////////////////////////////////////////////////////////////////
 	    /// Allocates space for the heap.
 	    ///////////////////////////////////////////////////////////////////////////
-	    void allocate   (TPIE_OS_SIZE_T size);
+	    void allocate   (memory_size_type size);
 
 	    ///////////////////////////////////////////////////////////////////////////
 	     /// Copies an (initial) element into the heap array.
 	     ///////////////////////////////////////////////////////////////////////////
-	    void insert     (REC *ptr, TPIE_OS_SIZE_T run_id);
+	    void insert     (REC *ptr, memory_size_type run_id);
 	    
 	    ///////////////////////////////////////////////////////////////////////////
 	    /// Extracts minimum element from heap array.
 	    /// If you follow this with an immediate insert, consider using
 	    /// delete_min_and_insert().
 	    ///////////////////////////////////////////////////////////////////////////
-	    void extract_min(REC& el, TPIE_OS_SIZE_T& run_id);
+	    void extract_min(REC& el, memory_size_type& run_id);
 
 	    ///////////////////////////////////////////////////////////////////////////
 	    /// Deallocates the space used by the heap.
@@ -251,12 +251,12 @@ namespace tpie {
 	    ///////////////////////////////////////////////////////////////////////////
 	    /// Returns the main memory space usage per item.
 	    ///////////////////////////////////////////////////////////////////////////
-	    inline TPIE_OS_SIZE_T space_per_item(void) { return sizeof(heap_ptr<REC>); }
+	    inline memory_size_type space_per_item(void) { return sizeof(heap_ptr<REC>); }
 	    
 	    ///////////////////////////////////////////////////////////////////////////
 	    /// Returns the fixed main memory space overhead, regardless of item count.
 	    ///////////////////////////////////////////////////////////////////////////
-	    inline TPIE_OS_SIZE_T space_overhead(void) { 
+	    inline memory_size_type space_overhead(void) { 
 		// One extra array item is defined to make heap indexing easier
 		return sizeof(heap_ptr<REC>)+MM_manager.space_overhead();
 	    }
@@ -264,11 +264,11 @@ namespace tpie {
 	};
 	
 	template<class REC>
-	inline void merge_heap_ptr_op<REC>::Exchange(TPIE_OS_SIZE_T i,
-						     TPIE_OS_SIZE_T j)
+	inline void merge_heap_ptr_op<REC>::Exchange(memory_size_type i,
+						     memory_size_type j)
 	{
 	    REC* tmpptr;
-	    TPIE_OS_SIZE_T tmpid;
+	    memory_size_type tmpid;
 	    tmpptr = Heaparray[i].recptr;
 	    tmpid = Heaparray[i].run_id;   
 	    Heaparray[i].recptr = Heaparray[j].recptr;
@@ -282,10 +282,10 @@ namespace tpie {
 	/// \p i, the left child of \p i, and the right child of \p i.
 	///////////////////////////////////////////////////////////////////////////
 	template<class REC>
-	inline TPIE_OS_SIZE_T merge_heap_ptr_op<REC>::get_smallest(
-	    TPIE_OS_SIZE_T i)
+	inline memory_size_type merge_heap_ptr_op<REC>::get_smallest(
+	    memory_size_type i)
 	{
-	    TPIE_OS_SIZE_T l,r, smallest;
+	    memory_size_type l,r, smallest;
  
 	    l = Left(i);
 	    r = Right(i);
@@ -304,9 +304,9 @@ namespace tpie {
 	/// recursion.
 	///////////////////////////////////////////////////////////////////////////
 	template<class REC>
-	inline void merge_heap_ptr_op<REC>::Heapify(TPIE_OS_SIZE_T i) {
+	inline void merge_heap_ptr_op<REC>::Heapify(memory_size_type i) {
 	    
-	    TPIE_OS_SIZE_T smallest = get_smallest(i);
+	    memory_size_type smallest = get_smallest(i);
 	    
 	    while (smallest != i) {
 		this->Exchange(i,smallest);
@@ -330,7 +330,7 @@ namespace tpie {
 	}
 	
 	template<class REC>
-	inline void merge_heap_ptr_op<REC>::extract_min(REC& el, TPIE_OS_SIZE_T& run_id)
+	inline void merge_heap_ptr_op<REC>::extract_min(REC& el, memory_size_type& run_id)
 	{
 	    el=*(Heaparray[1].recptr);
 	    run_id=Heaparray[1].run_id;
@@ -339,14 +339,14 @@ namespace tpie {
 	}
 	
 	template<class REC>
-	inline void merge_heap_ptr_op<REC>::allocate ( TPIE_OS_SIZE_T size ) {
+	inline void merge_heap_ptr_op<REC>::allocate ( memory_size_type size ) {
 	    Heaparray = new heap_ptr<REC> [size+1];
 	    Heapsize  = 0;
 	    maxHeapsize = size;
 	}
 	
 	template<class REC>
-	inline void merge_heap_ptr_op<REC>::insert (REC *ptr, TPIE_OS_SIZE_T run_id)
+	inline void merge_heap_ptr_op<REC>::insert (REC *ptr, memory_size_type run_id)
 	{
 	    Heaparray[Heapsize+1].recptr    = ptr;
 	    Heaparray[Heapsize+1].run_id = run_id;
@@ -365,7 +365,7 @@ namespace tpie {
 	
 	template<class REC>
 	void merge_heap_ptr_op<REC>::initialize () {
-	    for ( TPIE_OS_SIZE_T i = Heapsize/2; i >= 1; i--){ Heapify(i); }
+	    for ( memory_size_type i = Heapsize/2; i >= 1; i--){ Heapify(i); }
 	}
 	
 
@@ -391,8 +391,8 @@ namespace tpie {
 	    using merge_heap_ptr_op<REC>::maxHeapsize;
 	    CMPR* cmp;
 	    
-	    inline TPIE_OS_SIZE_T get_smallest(TPIE_OS_SIZE_T i);
-	    inline void Heapify(TPIE_OS_SIZE_T i);
+	    inline memory_size_type get_smallest(memory_size_type i);
+	    inline void Heapify(memory_size_type i);
 	    
 	public:
 	    using merge_heap_ptr_op<REC>::sizeofheap;
@@ -410,7 +410,7 @@ namespace tpie {
       /// If you follow this with an immediate insert, consider using
       /// delete_min_and_insert().
       ///////////////////////////////////////////////////////////////////////////
-	    void extract_min(REC& el, TPIE_OS_SIZE_T& run_id);
+	    void extract_min(REC& el, memory_size_type& run_id);
 	    
 	    void initialize (void);
   
@@ -431,10 +431,10 @@ namespace tpie {
 	/// \p i, the left child of \p i, and the right child of \p i.
 	///////////////////////////////////////////////////////////////////////////
 	template<class REC, class CMPR>
-	inline TPIE_OS_SIZE_T merge_heap_ptr_obj<REC,CMPR>::get_smallest(
-	    TPIE_OS_SIZE_T i)
+	inline memory_size_type merge_heap_ptr_obj<REC,CMPR>::get_smallest(
+	    memory_size_type i)
 	{
-	    TPIE_OS_SIZE_T l,r, smallest;
+	    memory_size_type l,r, smallest;
 	    
 	    l = Left(i);
 	    r = Right(i);
@@ -450,8 +450,8 @@ namespace tpie {
 	}
 	
 	template<class REC, class CMPR>
-	inline void merge_heap_ptr_obj<REC, CMPR>::Heapify(TPIE_OS_SIZE_T i) {
-	    TPIE_OS_SIZE_T smallest = get_smallest(i);
+	inline void merge_heap_ptr_obj<REC, CMPR>::Heapify(memory_size_type i) {
+	    memory_size_type smallest = get_smallest(i);
 	    while (smallest != i) {
 		this->Exchange(i,smallest);
 		i = smallest;
@@ -480,7 +480,7 @@ namespace tpie {
 	///////////////////////////////////////////////////////////////////////////
 	template<class REC, class CMPR>
 	inline void merge_heap_ptr_obj<REC, CMPR>::extract_min
-	(REC& el, TPIE_OS_SIZE_T& run_id)
+	(REC& el, memory_size_type& run_id)
 	{
 	    el=*(Heaparray[1].recptr);
 	    run_id=Heaparray[1].run_id;
@@ -491,7 +491,7 @@ namespace tpie {
 	
 	template<class REC, class CMPR>
 	void merge_heap_ptr_obj<REC, CMPR>::initialize () {
-	    for ( TPIE_OS_SIZE_T i = Heapsize/2; i >= 1; i--){ Heapify(i); }
+	    for ( memory_size_type i = Heapsize/2; i >= 1; i--){ Heapify(i); }
 	}
 
 
@@ -514,15 +514,15 @@ namespace tpie {
 	protected:
 	    
 	    heap_element<REC> *Heaparray;
-	    TPIE_OS_SIZE_T  Heapsize;
-	    TPIE_OS_SIZE_T  maxHeapsize;
+	    memory_size_type  Heapsize;
+	    memory_size_type  maxHeapsize;
 	    
-	    inline void Exchange(TPIE_OS_SIZE_T i, TPIE_OS_SIZE_T j); 
-	    inline void Heapify(TPIE_OS_SIZE_T i);
+	    inline void Exchange(memory_size_type i, memory_size_type j); 
+	    inline void Heapify(memory_size_type i);
 	    ///////////////////////////////////////////////////////////////////////////
 	    /// This function will typically be overridden by subclasses.
 	    ///////////////////////////////////////////////////////////////////////////
-	    inline TPIE_OS_SIZE_T get_smallest(TPIE_OS_SIZE_T i);
+	    inline memory_size_type get_smallest(memory_size_type i);
 	    
 	public:
 	    
@@ -573,33 +573,33 @@ namespace tpie {
 	    ///////////////////////////////////////////////////////////////////////////
 	    /// Reports the  size of Heap (number of elements).
 	    ///////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_SIZE_T sizeofheap(void) {
+	    memory_size_type sizeofheap(void) {
 		return Heapsize;
 	    }; 
 	    
 	    ///////////////////////////////////////////////////////////////////////////
 	    /// Returns the run with the minimum key.
 	    ///////////////////////////////////////////////////////////////////////////
-	    inline TPIE_OS_SIZE_T get_min_run_id(void) {
+	    inline memory_size_type get_min_run_id(void) {
 		return Heaparray[1].run_id;
 	    };
 	    
 	    ///////////////////////////////////////////////////////////////////////////
 	    /// Allocates space for the heap.
 	    ///////////////////////////////////////////////////////////////////////////
-	    void allocate   (TPIE_OS_SIZE_T size);
+	    void allocate   (memory_size_type size);
 
 	    ///////////////////////////////////////////////////////////////////////////
       /// Copies an (initial) element into the heap array/
       ///////////////////////////////////////////////////////////////////////////
-      void insert     (REC *ptr, TPIE_OS_SIZE_T run_id);
+      void insert     (REC *ptr, memory_size_type run_id);
 
 	    ///////////////////////////////////////////////////////////////////////////
       /// Extracts minimum element from heap array.
       /// If you follow this with an immediate insert, consider using
       /// delete_min_and_insert().
       ///////////////////////////////////////////////////////////////////////////
-	    void extract_min(REC& el, TPIE_OS_SIZE_T& run_id);
+	    void extract_min(REC& el, memory_size_type& run_id);
 
 	    ///////////////////////////////////////////////////////////////////////////
 	    /// Deallocates the space used by the heap.
@@ -620,14 +620,14 @@ namespace tpie {
 	    ///////////////////////////////////////////////////////////////////////////
 	    /// Returns the  main memory space usage per item
 	    ///////////////////////////////////////////////////////////////////////////
-	    inline TPIE_OS_SIZE_T space_per_item(void) {
+	    inline memory_size_type space_per_item(void) {
 		return sizeof(heap_element<REC>);
 	    }
 	    
 	    ///////////////////////////////////////////////////////////////////////////
 	    /// Returns the  fixed main memory space overhead, regardless of item count.
 	    ///////////////////////////////////////////////////////////////////////////
-	    inline TPIE_OS_SIZE_T space_overhead(void) { 
+	    inline memory_size_type space_overhead(void) { 
 		// One extra array item is defined to make heap indexing easier
 		return sizeof(heap_element<REC>)+MM_manager.space_overhead();
 	    }
@@ -635,11 +635,11 @@ namespace tpie {
 	};
 	
 	template<class REC>
-	inline void merge_heap_op<REC>::Exchange(TPIE_OS_SIZE_T i,
-						 TPIE_OS_SIZE_T j)
+	inline void merge_heap_op<REC>::Exchange(memory_size_type i,
+						 memory_size_type j)
 	{
 	    REC tmpkey;
-	    TPIE_OS_SIZE_T tmpid;
+	    memory_size_type tmpid;
 	    tmpkey = Heaparray[i].key;
 	    tmpid = Heaparray[i].run_id;   
 	    Heaparray[i].key = Heaparray[j].key;
@@ -651,10 +651,10 @@ namespace tpie {
 //Returns the index of the smallest element out of
 //i, the left child of i, and the right child of i
 	template<class REC>
-	inline TPIE_OS_SIZE_T merge_heap_op<REC>::get_smallest(
-	    TPIE_OS_SIZE_T i)
+	inline memory_size_type merge_heap_op<REC>::get_smallest(
+	    memory_size_type i)
 	{
-	    TPIE_OS_SIZE_T l,r, smallest;
+	    memory_size_type l,r, smallest;
 	    
 	    l = Left(i);
 	    r = Right(i);
@@ -671,9 +671,9 @@ namespace tpie {
 // This is the primary function; note that we have unfolded the 
 // recursion.
 	template<class REC>
-	inline void merge_heap_op<REC>::Heapify(TPIE_OS_SIZE_T i) {
+	inline void merge_heap_op<REC>::Heapify(memory_size_type i) {
 	    
-	    TPIE_OS_SIZE_T smallest = get_smallest(i);
+	    memory_size_type smallest = get_smallest(i);
 	    
 	    while (smallest != i) {
 		this->Exchange(i,smallest);
@@ -700,7 +700,7 @@ namespace tpie {
 // If you follow this with an immediate insert, consider using
 // delete_min_and_insert
 	template<class REC>
-	inline void merge_heap_op<REC>::extract_min(REC& el, TPIE_OS_SIZE_T& run_id)
+	inline void merge_heap_op<REC>::extract_min(REC& el, memory_size_type& run_id)
 	{
 	    el=Heaparray[1].key;
 	    run_id=Heaparray[1].run_id;
@@ -710,7 +710,7 @@ namespace tpie {
 	
 // Allocate space for the heap
 	template<class REC>
-	inline void merge_heap_op<REC>::allocate ( TPIE_OS_SIZE_T size ) {
+	inline void merge_heap_op<REC>::allocate ( memory_size_type size ) {
 	    Heaparray = new heap_element<REC> [size+1];
 	    Heapsize  = 0;
 	    maxHeapsize = size;
@@ -718,7 +718,7 @@ namespace tpie {
 	
 // Copy an (initial) element into the heap array
 	template<class REC>
-	inline void merge_heap_op<REC>::insert (REC *ptr, TPIE_OS_SIZE_T run_id)
+	inline void merge_heap_op<REC>::insert (REC *ptr, memory_size_type run_id)
 	{
 	    Heaparray[Heapsize+1].key    = *ptr;
 	    Heaparray[Heapsize+1].run_id = run_id;
@@ -738,7 +738,7 @@ namespace tpie {
 	
 	template<class REC>
 	void merge_heap_op<REC>::initialize () {
-	    for ( TPIE_OS_SIZE_T i = Heapsize/2; i >= 1; i--){ Heapify(i); }
+	    for ( memory_size_type i = Heapsize/2; i >= 1; i--){ Heapify(i); }
 	}
 	       
     }  //  ami namespace
@@ -763,9 +763,9 @@ namespace tpie {
 	    using merge_heap_op<REC>::maxHeapsize;
 	    CMPR* cmp;
 	    
-	    inline TPIE_OS_SIZE_T get_smallest(TPIE_OS_SIZE_T i);
+	    inline memory_size_type get_smallest(memory_size_type i);
 	    
-	    inline void Heapify(TPIE_OS_SIZE_T i);
+	    inline void Heapify(memory_size_type i);
 	    
 	public:
 	    using merge_heap_op<REC>::sizeofheap;
@@ -776,7 +776,7 @@ namespace tpie {
 	    merge_heap_obj ( CMPR *cmptr ) : cmp(cmptr) {};
 	    ~merge_heap_obj(){};
 	    
-	    void extract_min(REC& el, TPIE_OS_SIZE_T& run_id);
+	    void extract_min(REC& el, memory_size_type& run_id);
 	    
 	    // heapify's an initial array of elements
 	    void initialize (void);
@@ -794,10 +794,10 @@ namespace tpie {
 //Returns the index of the smallest element out of
 //i, the left child of i, and the right child of i
 	template<class REC, class CMPR>
-	inline TPIE_OS_SIZE_T merge_heap_obj<REC,CMPR>::get_smallest(
-	    TPIE_OS_SIZE_T i)
+	inline memory_size_type merge_heap_obj<REC,CMPR>::get_smallest(
+	    memory_size_type i)
 	{
-	    TPIE_OS_SIZE_T l,r, smallest;
+	    memory_size_type l,r, smallest;
 	    
 	    l = Left(i);
 	    r = Right(i);
@@ -813,8 +813,8 @@ namespace tpie {
 	}
 	
 	template<class REC, class CMPR>
-	inline void merge_heap_obj<REC, CMPR>::Heapify(TPIE_OS_SIZE_T i) {
-	    TPIE_OS_SIZE_T smallest = get_smallest(i);
+	inline void merge_heap_obj<REC, CMPR>::Heapify(memory_size_type i) {
+	    memory_size_type smallest = get_smallest(i);
 	    while (smallest != i) {
 		this->Exchange(i,smallest);
 		i = smallest;
@@ -841,7 +841,7 @@ namespace tpie {
 // delete_min_and_insert
 	template<class REC, class CMPR>
 	inline void merge_heap_obj<REC, CMPR>::extract_min
-	(REC& el, TPIE_OS_SIZE_T& run_id)
+	(REC& el, memory_size_type& run_id)
 	{
 	    el=Heaparray[1].key;
 	    run_id=Heaparray[1].run_id;
@@ -852,7 +852,7 @@ namespace tpie {
 
 	template<class REC, class CMPR>
 	void merge_heap_obj<REC, CMPR>::initialize () {
-	    for ( TPIE_OS_SIZE_T i = Heapsize/2; i >= 1; i--){ Heapify(i); }
+	    for ( memory_size_type i = Heapsize/2; i >= 1; i--){ Heapify(i); }
 	}
 	
     }  //  ami namespace
@@ -880,12 +880,12 @@ namespace tpie {
 	protected:
 	    
 	    heap_element<KEY> *Heaparray;
-	    TPIE_OS_SIZE_T  Heapsize;
-	    TPIE_OS_SIZE_T  maxHeapsize;
-	    inline void Exchange(TPIE_OS_SIZE_T i, TPIE_OS_SIZE_T j);
-	    inline void Heapify(TPIE_OS_SIZE_T i);
+	    memory_size_type  Heapsize;
+	    memory_size_type  maxHeapsize;
+	    inline void Exchange(memory_size_type i, memory_size_type j);
+	    inline void Heapify(memory_size_type i);
 	    //This function will typically be overridden by subclasses
-	    inline TPIE_OS_SIZE_T get_smallest(TPIE_OS_SIZE_T i);
+	    inline memory_size_type get_smallest(memory_size_type i);
 	    CMPR *UsrObject;
 	    
 	public:
@@ -901,13 +901,13 @@ namespace tpie {
 	    }
 	    
 	    // Report size of Heap (number of elements)
-	    TPIE_OS_SIZE_T sizeofheap(void) {return Heapsize;}; 
+	    memory_size_type sizeofheap(void) {return Heapsize;}; 
 	    
 	    // Return the run with the minimum key.
-	    inline TPIE_OS_SIZE_T get_min_run_id(void) {return Heaparray[1].run_id;};
+	    inline memory_size_type get_min_run_id(void) {return Heaparray[1].run_id;};
 	    
-	    void allocate   (TPIE_OS_SIZE_T size);
-	    void insert     (REC *ptr, TPIE_OS_SIZE_T run_id);
+	    void allocate   (memory_size_type size);
+	    void insert     (REC *ptr, memory_size_type run_id);
 	    void deallocate ();
 	    
 	    // Delete the current minimum and insert the new item from the same
@@ -915,12 +915,12 @@ namespace tpie {
 	    inline void delete_min_and_insert(REC *nextelement_same_run);
 	    
 	    // Return main memory space usage per item
-	    inline TPIE_OS_SIZE_T space_per_item(void) {
+	    inline memory_size_type space_per_item(void) {
 		return sizeof(heap_element<REC>);
 	    }
 	    
 	    // Return fixed main memory space overhead, regardless of item count
-	    inline TPIE_OS_SIZE_T space_overhead(void) { 
+	    inline memory_size_type space_overhead(void) { 
 		// One extra array item is defined to make heap indexing easier
 		return sizeof(heap_ptr<REC>)+MM_manager.space_overhead();
 	    }
@@ -935,11 +935,11 @@ namespace tpie {
 	};
 	
 	template<class REC, class KEY, class CMPR>
-	inline void merge_heap_kop<REC,KEY,CMPR>::Exchange(TPIE_OS_SIZE_T i,
-							   TPIE_OS_SIZE_T j)
+	inline void merge_heap_kop<REC,KEY,CMPR>::Exchange(memory_size_type i,
+							   memory_size_type j)
 	{
 	    KEY tmpkey;
-	    TPIE_OS_SIZE_T tmpid;
+	    memory_size_type tmpid;
 	    tmpkey = Heaparray[i].key;
 	    tmpid = Heaparray[i].run_id;   
 	    Heaparray[i].key = Heaparray[j].key;
@@ -964,7 +964,7 @@ namespace tpie {
 	
 // Allocate space for the heap
 	template<class REC, class KEY, class CMPR>
-	inline void merge_heap_kop<REC,KEY,CMPR>::allocate ( TPIE_OS_SIZE_T size ) {
+	inline void merge_heap_kop<REC,KEY,CMPR>::allocate ( memory_size_type size ) {
 	    Heaparray = new heap_element<KEY> [size+1];
 	    Heapsize  = 0;
 	    maxHeapsize = size;
@@ -973,7 +973,7 @@ namespace tpie {
 // Copy an (initial) element into the heap array
 	template<class REC, class KEY, class CMPR>
 	inline void merge_heap_kop<REC,KEY,CMPR>::insert (REC *ptr,
-							  TPIE_OS_SIZE_T run_id)
+							  memory_size_type run_id)
 	{
 	    UsrObject->copy(&Heaparray[Heapsize+1].key, *ptr);
 	    Heaparray[Heapsize+1].run_id = run_id;
@@ -994,10 +994,10 @@ namespace tpie {
 //Returns the index of the smallest element out of
 //i, the left child of i, and the right child of i
 	template<class REC, class KEY, class CMPR>
-	inline TPIE_OS_SIZE_T merge_heap_kop<REC,KEY,CMPR>::get_smallest(
-	    TPIE_OS_SIZE_T i)
+	inline memory_size_type merge_heap_kop<REC,KEY,CMPR>::get_smallest(
+	    memory_size_type i)
 	{
-	    TPIE_OS_SIZE_T l,r, smallest;
+	    memory_size_type l,r, smallest;
 	    
 	    l = Left(i);
 	    r = Right(i);
@@ -1014,9 +1014,9 @@ namespace tpie {
 // This is the primary function; note that we have unfolded the 
 // recursion.
 	template<class REC, class KEY, class CMPR>
-	inline void merge_heap_kop<REC,KEY,CMPR>::Heapify(TPIE_OS_SIZE_T i) {
+	inline void merge_heap_kop<REC,KEY,CMPR>::Heapify(memory_size_type i) {
 	    
-	    TPIE_OS_SIZE_T smallest=get_smallest(i);
+	    memory_size_type smallest=get_smallest(i);
 	    
 	    while (smallest != i) {
 		this->Exchange(i,smallest);
@@ -1027,7 +1027,7 @@ namespace tpie {
 	
 	template<class REC, class KEY, class CMPR>
 	void merge_heap_kop<REC,KEY,CMPR>::initialize ( ) {
-	    for ( TPIE_OS_SIZE_T i = Heapsize/2; i >= 1; i--) 
+	    for ( memory_size_type i = Heapsize/2; i >= 1; i--) 
 		this->Heapify(i);
 	}
 	
@@ -1061,9 +1061,9 @@ namespace tpie {
 	    using merge_heap_kop<REC,KEY,CMPR>::maxHeapsize;
 	    using merge_heap_kop<REC,KEY,CMPR>::UsrObject;
 	    
-	    inline TPIE_OS_SIZE_T get_smallest(TPIE_OS_SIZE_T i);
+	    inline memory_size_type get_smallest(memory_size_type i);
 	    
-	    inline void Heapify(TPIE_OS_SIZE_T);
+	    inline void Heapify(memory_size_type);
 	public:
 	    using merge_heap_kop<REC,KEY,CMPR>::sizeofheap;
 	    
@@ -1086,10 +1086,10 @@ namespace tpie {
 //Returns the index of the smallest element out of
 //i, the left child of i, and the right child of i
 	template<class REC, class KEY, class CMPR>
-	inline TPIE_OS_SIZE_T merge_heap_kobj<REC,KEY,CMPR>::get_smallest(
-	    TPIE_OS_SIZE_T i)
+	inline memory_size_type merge_heap_kobj<REC,KEY,CMPR>::get_smallest(
+	    memory_size_type i)
 	{
-	    TPIE_OS_SIZE_T l,r, smallest;
+	    memory_size_type l,r, smallest;
 	    
 	    l = Left(i);
 	    r = Right(i);
@@ -1105,8 +1105,8 @@ namespace tpie {
 	}
 	
 	template<class REC, class KEY, class CMPR>
-	inline void merge_heap_kobj<REC, KEY, CMPR>::Heapify(TPIE_OS_SIZE_T i) {
-	    TPIE_OS_SIZE_T smallest = get_smallest(i);
+	inline void merge_heap_kobj<REC, KEY, CMPR>::Heapify(memory_size_type i) {
+	    memory_size_type smallest = get_smallest(i);
 	    while (smallest != i) {
 		this->Exchange(i,smallest);
 		i = smallest;
@@ -1130,7 +1130,7 @@ namespace tpie {
 	
 	template<class REC, class KEY, class CMPR>
 	void merge_heap_kobj<REC, KEY, CMPR>::initialize () {
-	    for ( TPIE_OS_SIZE_T i = Heapsize/2; i >= 1; i--){ Heapify(i); }
+	    for ( memory_size_type i = Heapsize/2; i >= 1; i--){ Heapify(i); }
 	}
 	
     }   //  ami namespace

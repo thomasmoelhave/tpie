@@ -28,10 +28,10 @@ using namespace tpie;
 // A scan object to generate random integers.
 class scan_random : ami::scan_object {
 private:
-    TPIE_OS_OFFSET m_max;
-    TPIE_OS_OFFSET m_remaining;
+    stream_offset_type m_max;
+    stream_offset_type m_remaining;
 public:
-    scan_random(TPIE_OS_OFFSET count = 1000, int seed = 17);
+    scan_random(stream_offset_type count = 1000, int seed = 17);
     virtual ~scan_random(void);
     ami::err initialize(void);
     ami::err operate(int *out1, ami::SCAN_FLAG *sf);

@@ -94,8 +94,8 @@ namespace tpie {
 	    ////////////////////////////////////////////////////////////////////////
 	    /// Sort by the second component of the pair.
 	    ////////////////////////////////////////////////////////////////////////
-	    bool operator()(const std::pair<TPIE_OS_SIZE_T, coord_t>& t1, 
-			    const std::pair<TPIE_OS_SIZE_T, coord_t>& t2) {
+	    bool operator()(const std::pair<memory_size_type, coord_t>& t1, 
+			    const std::pair<memory_size_type, coord_t>& t2) {
 		return (t1. second < t2.second);
 	    }
 	};

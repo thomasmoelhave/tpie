@@ -45,7 +45,7 @@ namespace tpie {
 
 	private:	    
 	    mm_matrix_base<T> &m;
-	    TPIE_OS_SIZE_T r1,r2,c1,c2;
+	    memory_size_type r1,r2,c1,c2;
 
 	public:
 	    using mm_matrix_base<T>::rows;
@@ -53,8 +53,8 @@ namespace tpie {
 	    
 	    // Construction/destruction.
 	    mm_submatrix(mm_matrix_base<T> &amatrix,
-		      TPIE_OS_SIZE_T row1, TPIE_OS_SIZE_T row2,
-		      TPIE_OS_SIZE_T col1, TPIE_OS_SIZE_T col2);
+		      memory_size_type row1, memory_size_type row2,
+		      memory_size_type col1, memory_size_type col2);
 	    
 	    virtual ~mm_submatrix(void);
 	    
@@ -67,13 +67,13 @@ namespace tpie {
 	    mm_submatrix<T> &operator=(const mm_matrix<T> &rhs);
 	    
 	    // Access to elements.
-	    T& elt(TPIE_OS_SIZE_T row, TPIE_OS_SIZE_T col) const;
+	    T& elt(memory_size_type row, memory_size_type col) const;
 	};
 	
 	template<class T>
 	mm_submatrix<T>::mm_submatrix(mm_matrix_base<T> &amatrix,
-				TPIE_OS_SIZE_T row1, TPIE_OS_SIZE_T row2,
-				TPIE_OS_SIZE_T col1, TPIE_OS_SIZE_T col2) :
+				memory_size_type row1, memory_size_type row2,
+				memory_size_type col1, memory_size_type col2) :
 	    mm_matrix_base<T>(row2 - row1 + 1,
 			   col2 - col1 + 1),
 	    m(amatrix),
@@ -106,7 +106,7 @@ namespace tpie {
 	}
 	
 	template<class T>
-	T& mm_submatrix<T>::elt(TPIE_OS_SIZE_T row, TPIE_OS_SIZE_T col) const {
+	T& mm_submatrix<T>::elt(memory_size_type row, memory_size_type col) const {
 
 	    if ((row >= rows()) || (col >= cols())) {
 		tp_assert(0, "Range error.");

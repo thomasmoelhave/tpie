@@ -43,8 +43,8 @@ namespace tpie {
 	class sm_elem {
 
 	public:
-	    TPIE_OS_OFFSET er;
-	    TPIE_OS_OFFSET ec;
+	    stream_offset_type er;
+	    stream_offset_type ec;
 	    T val;
 
 	};

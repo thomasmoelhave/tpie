@@ -52,7 +52,7 @@ VERSION(scan_list_cpp,"$Id: scan_list.cpp,v 1.3 2004-08-12 12:36:45 jan Exp $");
 #define LIST_NODE_INFINITY MODULUS
 
 
-scan_list::scan_list(TPIE_OS_OFFSET max) : maximum(max), called(0)
+scan_list::scan_list(stream_offset_type max) : maximum(max), called(0)
 {
 }
 

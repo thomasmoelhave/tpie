@@ -24,7 +24,7 @@
 
 #include "scan_random.h"
 
-scan_random::scan_random(TPIE_OS_OFFSET count, int seed) :
+scan_random::scan_random(stream_offset_type count, int seed) :
     m_max(count), m_remaining(count) {
 
     TP_LOG_APP_DEBUG("scan_random seed = ");

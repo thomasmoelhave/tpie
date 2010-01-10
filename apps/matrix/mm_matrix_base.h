@@ -46,24 +46,24 @@ namespace tpie {
 	template<class T> class mm_matrix_base {
 
 	protected:
-	    TPIE_OS_SIZE_T r,c;
+	    memory_size_type r,c;
 	    
 	public:
 
-	    mm_matrix_base(TPIE_OS_SIZE_T rows, TPIE_OS_SIZE_T cols);
+	    mm_matrix_base(memory_size_type rows, memory_size_type cols);
 	    virtual ~mm_matrix_base(void);
 	    
 	    // What is the size of the matrix?
-	    TPIE_OS_SIZE_T rows(void) const;
-	    TPIE_OS_SIZE_T cols(void) const;
+	    memory_size_type rows(void) const;
+	    memory_size_type cols(void) const;
 	    
 	    // Access to the contents of the matrix.
-	    virtual T &elt(TPIE_OS_SIZE_T row, TPIE_OS_SIZE_T col) const  = 0;
+	    virtual T &elt(memory_size_type row, memory_size_type col) const  = 0;
 	    
-	    mm_rowref<T> row(TPIE_OS_SIZE_T row) ;
-	    mm_colref<T> col(TPIE_OS_SIZE_T col) ;
+	    mm_rowref<T> row(memory_size_type row) ;
+	    mm_colref<T> col(memory_size_type col) ;
 	    
-	    mm_rowref<T> operator[](TPIE_OS_SIZE_T row) ;
+	    mm_rowref<T> operator[](memory_size_type row) ;
 	    
 	    // Assignement.
 	    mm_matrix_base<T> &operator=(const mm_matrix_base<T> &rhs);
@@ -76,7 +76,7 @@ namespace tpie {
 	
 	
 	template<class T>
-	mm_matrix_base<T>::mm_matrix_base(TPIE_OS_SIZE_T rows, TPIE_OS_SIZE_T cols) :
+	mm_matrix_base<T>::mm_matrix_base(memory_size_type rows, memory_size_type cols) :
 	    r(rows),
 	    c(cols) {
 	}
@@ -86,17 +86,17 @@ namespace tpie {
 	}
 	
 	template<class T>
-	TPIE_OS_SIZE_T mm_matrix_base<T>::rows(void) const {
+	memory_size_type mm_matrix_base<T>::rows(void) const {
 	    return r;
 	}
 
 	template<class T>
-	TPIE_OS_SIZE_T mm_matrix_base<T>::cols(void) const {
+	memory_size_type mm_matrix_base<T>::cols(void) const {
 	    return c;
 	}
 	
 	template<class T>
-	mm_rowref<T> mm_matrix_base<T>::row(TPIE_OS_SIZE_T row) {
+	mm_rowref<T> mm_matrix_base<T>::row(memory_size_type row) {
 	    if (row >= r) {
 		tp_assert(0, "Range error.");
 	    }
@@ -105,7 +105,7 @@ namespace tpie {
 	}
 
 	template<class T>
-	mm_colref<T> mm_matrix_base<T>::col(TPIE_OS_SIZE_T col) {
+	mm_colref<T> mm_matrix_base<T>::col(memory_size_type col) {
 	    if (col >= c) {
 		tp_assert(0, "Range error.");
 	    }
@@ -114,7 +114,7 @@ namespace tpie {
 	}
 	
 	template<class T>
-	mm_rowref<T> mm_matrix_base<T>::operator[](TPIE_OS_SIZE_T row) {
+	mm_rowref<T> mm_matrix_base<T>::operator[](memory_size_type row) {
 	    return this->row(row);
 	}
 		
@@ -125,7 +125,7 @@ namespace tpie {
 		tp_assert(0, "Range error.");
 	    }
 	    	    
-	    TPIE_OS_SIZE_T ii,jj;
+	    memory_size_type ii,jj;
 	    
 	    for (ii = rows(); ii--; ) {
 		for (jj = cols(); jj--; ) {
@@ -144,7 +144,7 @@ namespace tpie {
 		tp_assert(0, "Range error.");
 	    }
 	    
-	    TPIE_OS_SIZE_T ii;
+	    memory_size_type ii;
 	    
 	    for (ii = cols(); ii--; ) {
 		elt(0,ii) = rhs[ii];
@@ -161,7 +161,7 @@ namespace tpie {
 		tp_assert(0, "Range error.");
 	    }
 	    
-	    TPIE_OS_SIZE_T ii;
+	    memory_size_type ii;
 	    T t;
 	    
 	    for (ii = rows(); ii--; ) {
@@ -181,7 +181,7 @@ namespace tpie {
 		tp_assert(0, "Range error.");
 	    }
 	    	    
-	    TPIE_OS_SIZE_T ii,jj;
+	    memory_size_type ii,jj;
 	    
 	    for (ii = rows(); ii--; ) {
 		for (jj = cols(); jj--; ) {
@@ -202,7 +202,7 @@ namespace tpie {
 		tp_assert(0, "Range error.");
 	    }
 	    
-	    TPIE_OS_SIZE_T ii,jj,kk;
+	    memory_size_type ii,jj,kk;
 	    T t;
 	    
 	    // Iterate over rows of op1.
@@ -232,7 +232,7 @@ namespace tpie {
 		tp_assert(0, "Range error.");
 	    }
 	    
-	    TPIE_OS_SIZE_T ii,jj,kk;
+	    memory_size_type ii,jj,kk;
 	    T t;
 	    
 	    // Iterate over rows of op1.
@@ -257,7 +257,7 @@ namespace tpie {
 template<class T>
 std::ostream &operator<<(std::ostream &s, tpie::apps::mm_matrix_base<T> &m) 	{
     
-    TPIE_OS_SIZE_T ii,jj;
+    memory_size_type ii,jj;
     
     // Iterate over rows
     for (ii = 0; ii < m.rows(); ii++) {

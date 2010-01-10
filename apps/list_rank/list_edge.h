@@ -34,9 +34,9 @@
 
 class edge {
 public:
-    TPIE_OS_OFFSET from;        // Node it is from
-    TPIE_OS_OFFSET to;          // Node it is to
-    TPIE_OS_OFFSET weight;      // Position when ranked.
+    stream_offset_type from;        // Node it is from
+    stream_offset_type to;          // Node it is to
+    stream_offset_type weight;      // Position when ranked.
     bool flag;                  // A flag used to randomly select some edges.
 
     friend ostream& operator<<(ostream& s, const edge &e);

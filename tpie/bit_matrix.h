@@ -38,16 +38,16 @@ namespace tpie {
 	using matrix<bit>::cols;
 	
 	bit_matrix(matrix<bit> &mb);
-	bit_matrix(TPIE_OS_SIZE_T rows, TPIE_OS_SIZE_T cols);
+	bit_matrix(memory_size_type rows, memory_size_type cols);
 	virtual ~bit_matrix(void);
 	
 	bit_matrix operator=(const bit_matrix &rhs);
 	
 	// We can assign from an offset, which is typically a source
 	// address for a BMMC permutation.
-	bit_matrix &operator=(const TPIE_OS_OFFSET &rhs);
+	bit_matrix &operator=(const stream_offset_type &rhs);
 	
-	operator TPIE_OS_OFFSET(void);
+	operator stream_offset_type(void);
 	
 	friend bit_matrix operator+(const bit_matrix &op1, const bit_matrix &op2);
 	friend bit_matrix operator*(const bit_matrix &op1, const bit_matrix &op2);

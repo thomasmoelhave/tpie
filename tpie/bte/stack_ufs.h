@@ -70,7 +70,7 @@ namespace tpie {
 	err stack_ufs<T>::push(const T &t) {
 
 	    err retval = NO_ERROR;
-	    TPIE_OS_OFFSET slen = stream_len();
+	    stream_offset_type slen = stream_len();
            
 	    if ((retval = truncate(slen+1)) != NO_ERROR) {
 		return retval;
@@ -88,7 +88,7 @@ namespace tpie {
 	err stack_ufs<T>::pop(T **t) {
 
 	    err retval = NO_ERROR;
-	    TPIE_OS_OFFSET slen = stream_len();
+	    stream_offset_type slen = stream_len();
 
 	    if ((retval = seek(slen-1)) != NO_ERROR) {
 		return retval;

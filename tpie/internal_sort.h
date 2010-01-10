@@ -46,7 +46,7 @@ namespace ami {
 		class qsort_item {
 			public:
 				Key keyval;
-				TPIE_OS_SIZE_T source;
+				memory_size_type source;
 
 				friend int operator==(const qsort_item &x, const qsort_item &y)
 				{return  (x.keyval ==  y.keyval);}
@@ -80,7 +80,7 @@ namespace ami {
 	    /** Array that holds items to be sorted */
 	    T* ItemArray;        
 	    /** length of ItemArray */
-	    TPIE_OS_SIZE_T len;  
+	    memory_size_type len;  
 	    
 	public:
 	    ///////////////////////////////////////////////////////////////////////////
@@ -98,7 +98,7 @@ namespace ami {
       ///////////////////////////////////////////////////////////////////////////
       /// Allocate ItemArray as array that can hold \p nItems.
       ///////////////////////////////////////////////////////////////////////////
-	    void allocate(TPIE_OS_SIZE_T nItems);
+	    void allocate(memory_size_type nItems);
 	    
       ///////////////////////////////////////////////////////////////////////////
       /// Clean up internal array ItemArray.
@@ -108,17 +108,17 @@ namespace ami {
 	    ///////////////////////////////////////////////////////////////////////////
 	    /// Returns maximum number of items that can be sorted using \p memSize bytes.
 	    ///////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_SIZE_T MaxItemCount(TPIE_OS_SIZE_T memSize);
+	    memory_size_type MaxItemCount(memory_size_type memSize);
 	    
       ///////////////////////////////////////////////////////////////////////////
       /// Returns memory usage in bytes per sort item.
       ///////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_SIZE_T space_per_item();
+	    memory_size_type space_per_item();
 	    
       ///////////////////////////////////////////////////////////////////////////
       /// Returns fixed memory usage overhead in bytes per class instantiation.
       ///////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_SIZE_T space_overhead();
+	    memory_size_type space_overhead();
 	    
 	private:
 	    // Prohibit these
@@ -136,7 +136,7 @@ namespace ami {
 	}
 	
 	template<class T>
-	inline void Internal_Sorter_Base<T>::allocate(TPIE_OS_SIZE_T nitems) {
+	inline void Internal_Sorter_Base<T>::allocate(memory_size_type nitems) {
 	    len=nitems;
 	    ItemArray = new T[len];
 	}
@@ -151,9 +151,9 @@ namespace ami {
 	}
 	
 	template<class T>
-	inline TPIE_OS_SIZE_T Internal_Sorter_Base<T>::MaxItemCount(TPIE_OS_SIZE_T memSize) {
+	inline memory_size_type Internal_Sorter_Base<T>::MaxItemCount(memory_size_type memSize) {
 	    //Space available for items
-	    TPIE_OS_SIZE_T memAvail=memSize-space_overhead();
+	    memory_size_type memAvail=memSize-space_overhead();
 	    
 	    if (memAvail < space_per_item() ){
 		return 0; 
@@ -165,14 +165,14 @@ namespace ami {
 	
 	
 	template<class T>
-	inline TPIE_OS_SIZE_T Internal_Sorter_Base<T>::space_overhead(void) {
+	inline memory_size_type Internal_Sorter_Base<T>::space_overhead(void) {
 	    // Space usage independent of space_per_item
 	    // accounts MM_manager space overhead on "new" call
 	    return MM_manager.space_overhead();
 	}
 
 	template<class T>
-	inline TPIE_OS_SIZE_T Internal_Sorter_Base<T>::space_per_item(void) {
+	inline memory_size_type Internal_Sorter_Base<T>::space_per_item(void) {
 	    return sizeof(T);
 	}
 	
@@ -200,7 +200,7 @@ namespace ami {
 	    using Internal_Sorter_Base<T>::space_overhead;
 	    
 	    //Sort nItems from input stream and write to output stream
-	    err sort(stream<T>* InStr, stream<T>* OutStr, TPIE_OS_SIZE_T nItems);
+	    err sort(stream<T>* InStr, stream<T>* OutStr, memory_size_type nItems);
 	    
 	private:
 	    // Prohibit these
@@ -214,11 +214,11 @@ namespace ami {
   /// file position.
   ///////////////////////////////////////////////////////////////////////////
 	template<class T>
-	err Internal_Sorter_Op<T>::sort(stream<T>* InStr, stream<T>* OutStr, TPIE_OS_SIZE_T nItems){
+	err Internal_Sorter_Op<T>::sort(stream<T>* InStr, stream<T>* OutStr, memory_size_type nItems){
 	    
 	    err ae  = NO_ERROR;
 	    T    *next_item;
-	    TPIE_OS_SIZE_T i = 0;
+	    memory_size_type i = 0;
 	    
 	    // make sure we called allocate earlier
 	    if (ItemArray==NULL){
@@ -291,7 +291,7 @@ namespace ami {
 	    using Internal_Sorter_Base<T>::space_overhead;
 	    
 	    //Sort nItems from input stream and write to output stream
-	    err sort(stream<T>* InStr, stream<T>* OutStr, TPIE_OS_SIZE_T nItems);
+	    err sort(stream<T>* InStr, stream<T>* OutStr, memory_size_type nItems);
 	    
 	private:
 	    // Prohibit these
@@ -305,11 +305,11 @@ namespace ami {
   /// file position.
   ///////////////////////////////////////////////////////////////////////////
 	template<class T, class CMPR>
-	err Internal_Sorter_Obj<T, CMPR>::sort(stream<T>* InStr, stream<T>* OutStr, TPIE_OS_SIZE_T nItems) {
+	err Internal_Sorter_Obj<T, CMPR>::sort(stream<T>* InStr, stream<T>* OutStr, memory_size_type nItems) {
 	    
 	    err ae = NO_ERROR;
 	    T    *next_item;
-	    TPIE_OS_SIZE_T i = 0;
+	    memory_size_type i = 0;
 
 	    //make sure we called allocate earlier
 	    if (ItemArray==NULL) { 
@@ -370,7 +370,7 @@ namespace ami {
 	    /** Copy,compare keys */ 
 	    CMPR *UsrObject;              
 	    /** length of ItemArray */
-	    TPIE_OS_SIZE_T len;
+	    memory_size_type len;
 
 	public:
       ///////////////////////////////////////////////////////////////////////////
@@ -388,12 +388,12 @@ namespace ami {
       //////////////////////////////////////////////////////////////////////////
       /// Allocate array that can hold nItems.
       //////////////////////////////////////////////////////////////////////////
-	    void allocate(TPIE_OS_SIZE_T nItems);
+	    void allocate(memory_size_type nItems);
 	    
       //////////////////////////////////////////////////////////////////////////
       /// Sort nItems from input stream and write to output stream.
       //////////////////////////////////////////////////////////////////////////
-	    err sort(stream<T>* InStr, stream<T>* OutStr, TPIE_OS_SIZE_T nItems);
+	    err sort(stream<T>* InStr, stream<T>* OutStr, memory_size_type nItems);
 	    
       //////////////////////////////////////////////////////////////////////////
       /// Clean up internal array.
@@ -403,17 +403,17 @@ namespace ami {
       //////////////////////////////////////////////////////////////////////////
       /// Returns maximum number of items that can be sorted using \p memSize bytes.
       //////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_SIZE_T MaxItemCount(TPIE_OS_SIZE_T memSize);
+	    memory_size_type MaxItemCount(memory_size_type memSize);
 	    
       //////////////////////////////////////////////////////////////////////////
       /// Returns memory usage in bytes per sort item.
       //////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_SIZE_T space_per_item();
+	    memory_size_type space_per_item();
 	    
       //////////////////////////////////////////////////////////////////////////
       /// Returns fixed memory usage overhead in bytes per class instantiation.
       //////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_SIZE_T space_overhead();
+	    memory_size_type space_overhead();
 	    
 	private:
 	    // Prohibit these
@@ -437,7 +437,7 @@ namespace ami {
 	}
 
 	template<class T, class KEY, class CMPR>
-	inline void Internal_Sorter_KObj<T, KEY, CMPR>::allocate(TPIE_OS_SIZE_T nitems){
+	inline void Internal_Sorter_KObj<T, KEY, CMPR>::allocate(memory_size_type nitems){
 	    len=nitems;
 	    ItemArray = new T[len];
 	    sortItemArray = new qsort_item<KEY>[len];
@@ -476,11 +476,11 @@ namespace ami {
 	
 	template<class T, class KEY, class CMPR>
 	inline err Internal_Sorter_KObj<T, KEY, CMPR>::sort(stream<T>* InStr,
-							    stream<T>* OutStr, TPIE_OS_SIZE_T nItems) {
+							    stream<T>* OutStr, memory_size_type nItems) {
 	    
 	    err  ae;
 	    T    *next_item;
-	    TPIE_OS_SIZE_T i = 0;
+	    memory_size_type i = 0;
 
 	    // Make sure we called allocate earlier
 	    if (ItemArray==NULL || sortItemArray==NULL) {
@@ -550,10 +550,10 @@ namespace ami {
 	}
 
 	template<class T, class KEY, class CMPR>
-	inline TPIE_OS_SIZE_T Internal_Sorter_KObj<T, KEY, CMPR>::MaxItemCount(TPIE_OS_SIZE_T memSize) {
+	inline memory_size_type Internal_Sorter_KObj<T, KEY, CMPR>::MaxItemCount(memory_size_type memSize) {
 
 	    //Space available for items
-	    TPIE_OS_SIZE_T memAvail=memSize-space_overhead();
+	    memory_size_type memAvail=memSize-space_overhead();
 	    
 	    if (memAvail < space_per_item() ){
 		return 0; 
@@ -565,7 +565,7 @@ namespace ami {
 	
 	
 	template<class T, class KEY, class CMPR>
-	inline TPIE_OS_SIZE_T Internal_Sorter_KObj<T, KEY, CMPR>::space_overhead(void) { 
+	inline memory_size_type Internal_Sorter_KObj<T, KEY, CMPR>::space_overhead(void) { 
 	    
 	    // Space usage independent of space_per_item
 	    // accounts MM_manager space overhead on "new" call
@@ -573,7 +573,7 @@ namespace ami {
 	}
 
 	template<class T, class KEY, class CMPR>
-	inline TPIE_OS_SIZE_T Internal_Sorter_KObj<T, KEY, CMPR>::space_per_item(void) {
+	inline memory_size_type Internal_Sorter_KObj<T, KEY, CMPR>::space_per_item(void) {
 	    return sizeof(T) + sizeof(qsort_item<KEY>);
 	}
 

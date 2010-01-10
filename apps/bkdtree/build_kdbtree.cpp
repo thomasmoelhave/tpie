@@ -172,7 +172,7 @@ int main(int argc, char** argv) {
     }
 
     cerr << "Inserting..." << flush;
-    TPIE_OS_OFFSET i = 0;
+    stream_offset_type i = 0;
     atimer.start();
     params.in_stream->seek(0);
     while (params.in_stream->read_item(&pp) == tpie::ami::NO_ERROR) {
@@ -219,7 +219,7 @@ int main(int argc, char** argv) {
     if (!ifs) {
       cerr << argv[0] << ": Error opening window query file " << params.file_name_wquery << "\n";
     } else {
-      TPIE_OS_OFFSET count = 0, result = 0;
+      stream_offset_type count = 0, result = 0;
       KDBTREEint2::point_t lop, hip;
       stream<KDBTREEint2::point_t> *tempstr = 
 	(params.do_query_count_only ? NULL: new stream<KDBTREEint2::point_t>);

@@ -32,7 +32,7 @@
 
 using namespace tpie;
 
-apps::scan_uniform_sm::scan_uniform_sm(TPIE_OS_OFFSET rows, TPIE_OS_OFFSET cols,
+apps::scan_uniform_sm::scan_uniform_sm(stream_offset_type rows, stream_offset_type cols,
 				       double density, int seed) :
     r(0), c(0), rmax(rows), cmax(cols), d(density)
 {

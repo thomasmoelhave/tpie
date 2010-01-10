@@ -84,12 +84,12 @@ namespace tpie {
 	    // Constructors
 	    stream_stdio (const std::string& dev_path, 
 			  const stream_type st, 
-			  TPIE_OS_SIZE_T    lbf = 1);
+			  memory_size_type    lbf = 1);
 	
 	    // A psuedo-constructor for substreams.
 	    err new_substream (stream_type    st, 
-			       TPIE_OS_OFFSET sub_begin,
-			       TPIE_OS_OFFSET sub_end,
+			       stream_offset_type sub_begin,
+			       stream_offset_type sub_end,
 			       base_t **sub_stream);
   
 	    ~stream_stdio();
@@ -98,22 +98,22 @@ namespace tpie {
 	    inline err write_item(const T & elt);
 	
 	    // Move to a specific position in the stream.
-	    err seek (TPIE_OS_OFFSET offset);
+	    err seek (stream_offset_type offset);
 	
 	    // Truncate the stream.
-	    err truncate (TPIE_OS_OFFSET offset);
+	    err truncate (stream_offset_type offset);
 	
 	    // Return the number of items in the stream.
-	    inline TPIE_OS_OFFSET stream_len () const;
+	    inline stream_offset_type stream_len () const;
 	
 	    // Return the current position in the stream.
-	    inline TPIE_OS_OFFSET tell () const;
+	    inline stream_offset_type tell () const;
 	
 	    // Query memory usage
-	    err main_memory_usage (TPIE_OS_SIZE_T * usage, 
+	    err main_memory_usage (memory_size_type * usage, 
 				   mem::stream_usage usage_type);
 	
-	    TPIE_OS_OFFSET chunk_size () const;
+	    stream_offset_type chunk_size () const;
 	
 	private:
 	    /////////////////////////////////////////////////////////
@@ -125,14 +125,14 @@ namespace tpie {
 	    //
 	    //	stream_stdio(stream_stdio * super_stream,
 	    //       	     stream_type st, 
-	    //		     TPIE_OS_OFFSET sub_begin, 
-	    //		     TPIE_OS_OFFSET sub_end) {};
+	    //		     stream_offset_type sub_begin, 
+	    //		     stream_offset_type sub_end) {};
 	    ///////////////////////////////////////////////////////////
 		
 	    stream_header* map_header ();
 	
-	    inline TPIE_OS_OFFSET file_off_to_item_off(TPIE_OS_OFFSET fileOffset) const;
-	    inline TPIE_OS_OFFSET item_off_to_file_off(TPIE_OS_OFFSET itemOffset) const;
+	    inline stream_offset_type file_off_to_item_off(stream_offset_type fileOffset) const;
+	    inline stream_offset_type item_off_to_file_off(stream_offset_type itemOffset) const;
 
 	    // Descriptor of the underlying file.
 	    FILE * m_file;
@@ -148,7 +148,7 @@ namespace tpie {
 	template <class T>
 	stream_stdio<T>::stream_stdio (const std::string& dev_path,
 								   const stream_type st,
-								   TPIE_OS_SIZE_T /* lbf */) {
+								   memory_size_type /* lbf */) {
 	
 	    // Reduce the number of streams avaialble.
 	    if (remaining_streams <= 0) 
@@ -350,8 +350,8 @@ namespace tpie {
 // the fact that one cannot have virtual constructors.
 	template <class T>
 	err stream_stdio<T>::new_substream (stream_type    st,
-					    TPIE_OS_OFFSET sub_begin,
-					    TPIE_OS_OFFSET sub_end,
+					    stream_offset_type sub_begin,
+					    stream_offset_type sub_end,
 					    base_t **sub_stream) {
 	    // Check permissions.
 	    if ((st != READ_STREAM) && 
@@ -367,9 +367,9 @@ namespace tpie {
 		       "Bad things got through the permisssion checks.");
 	
 	    if (m_substreamLevel) {
-		if ((sub_begin * static_cast<TPIE_OS_OFFSET>(sizeof(T)) >=
+		if ((sub_begin * static_cast<stream_offset_type>(sizeof(T)) >=
 		     (m_logicalEndOfStream - m_logicalBeginOfStream))
-		    || (sub_end * static_cast<TPIE_OS_OFFSET>(sizeof(T)) >
+		    || (sub_end * static_cast<stream_offset_type>(sizeof(T)) >
 			(m_logicalEndOfStream - m_logicalBeginOfStream))) {
 		
 		    *sub_stream = NULL;
@@ -495,7 +495,7 @@ namespace tpie {
 	template <class T> 
 	err stream_stdio<T>::read_item (T ** elt) {
 
-	    TPIE_OS_SIZE_T stdio_ret;
+	    memory_size_type stdio_ret;
 	    err retval = NO_ERROR;
 	
 	    if ((m_logicalEndOfStream >= 0) && 
@@ -533,7 +533,7 @@ namespace tpie {
 	template <class T> 
 	err stream_stdio<T>::write_item (const T & elt) {
 	
-	    TPIE_OS_SIZE_T stdio_ret;
+	    memory_size_type stdio_ret;
 	    err retval = NO_ERROR;
 	
 	    if ((m_logicalEndOfStream >= 0) && 
@@ -571,7 +571,7 @@ namespace tpie {
     
     
 	template <class T>
-	err stream_stdio<T>::main_memory_usage (TPIE_OS_SIZE_T * usage,
+	err stream_stdio<T>::main_memory_usage (memory_size_type * usage,
 						mem::stream_usage
 						usage_type) {
 
@@ -604,9 +604,9 @@ namespace tpie {
     
 // Move to a specific position.
 	template <class T> 
-	err stream_stdio<T>::seek (TPIE_OS_OFFSET offset) {
+	err stream_stdio<T>::seek (stream_offset_type offset) {
 	
-	    TPIE_OS_OFFSET filePosition;
+	    stream_offset_type filePosition;
 	
 	    if ((offset < 0) ||
 		(offset  > file_off_to_item_off(m_logicalEndOfStream))) {
@@ -619,8 +619,8 @@ namespace tpie {
 	    } 
 	
 	    if (m_substreamLevel) {
-		if (offset * static_cast<TPIE_OS_OFFSET>(sizeof(T)) > 
-		    static_cast<TPIE_OS_OFFSET>(m_logicalEndOfStream - m_logicalBeginOfStream)) {
+		if (offset * static_cast<stream_offset_type>(sizeof(T)) > 
+		    static_cast<stream_offset_type>(m_logicalEndOfStream - m_logicalBeginOfStream)) {
 
 		    TP_LOG_WARNING_ID ("seek() out of range (off/bos/eos)");
 		    TP_LOG_WARNING_ID (m_logicalBeginOfStream);
@@ -654,9 +654,9 @@ namespace tpie {
     
 // Truncate the stream.
 	template <class T>
-	err stream_stdio<T>::truncate (TPIE_OS_OFFSET offset) {
+	err stream_stdio<T>::truncate (stream_offset_type offset) {
 //	TPIE_OS_TRUNCATE_STREAM_TEMPLATE_CLASS_BODY;
-	    TPIE_OS_OFFSET filePosition; 
+	    stream_offset_type filePosition; 
 	
 	    if (m_substreamLevel) { 
 		return STREAM_IS_SUBSTREAM; 
@@ -695,7 +695,7 @@ namespace tpie {
 	}
     
 	template <class T> 
-	TPIE_OS_OFFSET stream_stdio<T>::chunk_size () const {
+	stream_offset_type stream_stdio<T>::chunk_size () const {
 	    // Quick and dirty guess.
 	    return (m_osBlockSize * 2) / sizeof (T);
 	}
@@ -725,24 +725,24 @@ namespace tpie {
 	}
 
 	template <class T> 
-	TPIE_OS_OFFSET stream_stdio<T>::tell() const {
+	stream_offset_type stream_stdio<T>::tell() const {
 	    return file_off_to_item_off(m_fileOffset);
 	}
     
 // Return the number of items in the stream.
 	template <class T> 
-	TPIE_OS_OFFSET stream_stdio<T>::stream_len () const {
+	stream_offset_type stream_stdio<T>::stream_len () const {
 	    return file_off_to_item_off (m_logicalEndOfStream) - 
 		file_off_to_item_off (m_logicalBeginOfStream);
 	};
     
 	template<class T> 
-	TPIE_OS_OFFSET stream_stdio<T>::file_off_to_item_off (TPIE_OS_OFFSET fileOffset) const {
+	stream_offset_type stream_stdio<T>::file_off_to_item_off (stream_offset_type fileOffset) const {
 	    return (fileOffset - m_osBlockSize) / sizeof (T);
 	}
     
 	template<class T> 
-	TPIE_OS_OFFSET stream_stdio<T>::item_off_to_file_off (TPIE_OS_OFFSET itemOffset) const {
+	stream_offset_type stream_stdio<T>::item_off_to_file_off (stream_offset_type itemOffset) const {
 	    return (m_osBlockSize + itemOffset * sizeof (T));
 	}
     

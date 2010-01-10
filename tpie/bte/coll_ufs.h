@@ -33,7 +33,7 @@ namespace tpie {
 
     namespace bte {
 
-	template<class BIDT = TPIE_BLOCK_ID_TYPE>
+	template<class BIDT = block_id_type>
 	class collection_ufs: public collection_base<BIDT> {
 
 	protected:
@@ -61,7 +61,7 @@ namespace tpie {
 	    // Constructors.
 	    collection_ufs(const std::string& base_file_name,
 			   collection_type type = WRITE_COLLECTION,
-			   TPIE_OS_SIZE_T logical_block_factor = 1):
+			   memory_size_type logical_block_factor = 1):
 		collection_base<BIDT>(base_file_name, 
 				      type, 
 				      logical_block_factor) {
@@ -201,7 +201,7 @@ namespace tpie {
 		tp_assert(freeblock_stack_ != NULL, 
 			  "collection_ufs internal error: NULL stack pointer");
 	    
-		TPIE_OS_OFFSET slen = freeblock_stack_->stream_len();
+		stream_offset_type slen = freeblock_stack_->stream_len();
 	    
 		tp_assert(slen > 0, "collection_ufs internal error: empty stack");
 
@@ -241,10 +241,10 @@ namespace tpie {
 			return OS_ERROR;
 		    }
 #else
-		    TPIE_OS_OFFSET curr_off;
+		    stream_offset_type curr_off;
 
 		    char* tbuf = new char[header_.os_block_size];
-		    if ((curr_off = TPIE_OS_LSEEK(bcc_fd_, 0, TPIE_OS_FLAG_SEEK_END)) == (TPIE_OS_OFFSET)-1) {
+		    if ((curr_off = TPIE_OS_LSEEK(bcc_fd_, 0, TPIE_OS_FLAG_SEEK_END)) == (stream_offset_type)-1) {
 		    
 			TP_LOG_FATAL_ID("Failed to lseek() to the end of file.");
 			TP_LOG_FATAL_ID(strerror(errno));
@@ -288,7 +288,7 @@ namespace tpie {
 	    }
 
 	    if (TPIE_OS_READ(bcc_fd_, (char *) place, header_.block_size) != 
-		(TPIE_OS_SSIZE_T)header_.block_size) {
+		(memory_offset_type)header_.block_size) {
 	    
 		TP_LOG_FATAL_ID("Failed to read() from file.");
 	    
@@ -333,7 +333,7 @@ namespace tpie {
 	       		
 		}
 	    
-		if (TPIE_OS_WRITE(bcc_fd_, place, header_.block_size) != (TPIE_OS_SSIZE_T)header_.block_size) {
+		if (TPIE_OS_WRITE(bcc_fd_, place, header_.block_size) != (memory_offset_type)header_.block_size) {
 		
 		    TP_LOG_FATAL_ID("Failed to write() block to file.");
 		
@@ -377,7 +377,7 @@ namespace tpie {
 		    return IO_ERROR;
 		}
     
-		if (TPIE_OS_WRITE(bcc_fd_, place, header_.block_size) != (TPIE_OS_SSIZE_T)header_.block_size) { 
+		if (TPIE_OS_WRITE(bcc_fd_, place, header_.block_size) != (memory_offset_type)header_.block_size) { 
 		
 		    TP_LOG_FATAL_ID("Failed to write() block to file.");
 		
