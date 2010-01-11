@@ -407,10 +407,7 @@ namespace tpie {
 	    }
 
 	    if (per_ == PERSIST_DELETE) {
-		if (TPIE_OS_UNLINK(base_file_name_)) {
-		    TP_LOG_FATAL_ID("Failed to unlink() ");
-		    TP_LOG_FATAL_ID(base_file_name_);
-		}
+			remove(base_file_name_);
 	    }
 
 	    tree0_->persist(per_);

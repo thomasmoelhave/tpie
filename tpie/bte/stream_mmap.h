@@ -684,16 +684,8 @@ namespace tpie {
 						TP_LOG_WARNING_ID("PERSIST_DELETE for read-only stream in " << m_path);
 					}
 					else {
-						if (TPIE_OS_UNLINK (m_path)) {
-			
-							m_osErrno = errno;
-			
-							TP_LOG_WARNING_ID ("unlink() failed during destruction of " << m_path);
-							TP_LOG_WARNING_ID (strerror (m_osErrno));
-						} 
-						else {
-							record_statistics(STREAM_DELETE);
-						}
+						remove (m_path);
+						record_statistics(STREAM_DELETE);
 					}
 				}
 	    

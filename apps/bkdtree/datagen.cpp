@@ -341,7 +341,7 @@ int main(int argc, char **argv) {
       sz = atoi(argv[++i])*1024*1024;
       buf = new char[sz];
       for (j = 0; j < sz; j++) 
-	// buf[j] = (j <= 64000000 ? j % 128: buf[int((TPIE_OS_RANDOM()/MAX_RANDOM)*64000000)]);
+	// buf[j] = (j <= 64000000 ? j % 128: buf[int((random()/MAX_RANDOM)*64000000)]);
         buf[j] = j % 128;
       delete [] buf;
       exit(0);
@@ -374,7 +374,7 @@ int main(int argc, char **argv) {
 
   point_t p;
   cpu_timer atimer;
-  TPIE_OS_SRANDOM((unsigned int)TPIE_OS_TIME(NULL));
+  seed_random((unsigned int)TPIE_OS_TIME(NULL));
 
   if (output_type == OUTPUT_UNDEFINED) {
     cerr << argv[0] << ": " << "No output file specified.\n";
@@ -407,7 +407,7 @@ int main(int argc, char **argv) {
 
     for (i = 0; i < point_count; i++) {
       for (j = 0; j < DIM; j++)
-	p[j] = COORDT((TPIE_OS_RANDOM()/MAX_RANDOM) * (hip[j] - lop[j] - side_length[j]))
+		  p[j] = COORDT((tpie::random()/MAX_RANDOM) * (hip[j] - lop[j] - side_length[j]))
 	  + lop[j];
       for (j = 0; j < DIM; j++)
 	ofs << p[j] << " ";
@@ -461,19 +461,19 @@ int main(int argc, char **argv) {
       cout << hip[j] << ",";
     cout << "\b]\n";
 
-    TPIE_OS_SRANDOM((unsigned int)TPIE_OS_TIME(NULL));
+    seed_random((unsigned int)TPIE_OS_TIME(NULL));
     atimer.start();
     for (i = 0; i < point_count; i++) {
       switch (distribution) {
       case UNIFORM:
 	for (j = 0; j < DIM; j++)
-	  p[j] = COORDT((TPIE_OS_RANDOM()/MAX_RANDOM) * (hip[j] - lop[j])) + lop[j];
+		p[j] = COORDT((tpie::random()/MAX_RANDOM) * (hip[j] - lop[j])) + lop[j];
 	break;
       case DIAGONAL:
 	for (j = 0; j < DIM; j++) {
 	  COORDT left_corner = int(i / diagonal_chunk) * diagonal_chunk;
 	  p[j] = COORDT(left_corner * 10 + 
-			diagonal_chunk * 10 * (TPIE_OS_RANDOM() / MAX_RANDOM));
+					diagonal_chunk * 10 * (tpie::random() / MAX_RANDOM));
 	}
 	break;
       case CLUSTERED:

@@ -18,6 +18,8 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #include <boost/random.hpp>
 #include <tpie/util.h>
+#include <boost/filesystem.hpp>
+#include <stdexcept>
 
 namespace tpie {
   
@@ -29,6 +31,11 @@ void seed_random(uint32_t seed) {
 
 uint32_t random() {
     return rng();
+}
+
+void remove(const std::string & path) {
+	if (!boost::filesystem::remove(path))
+		throw std::runtime_error(std::string("Unable to delete ")+path);
 }
 
 }

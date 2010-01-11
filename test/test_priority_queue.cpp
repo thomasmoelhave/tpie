@@ -116,9 +116,9 @@ void pq_small_instance(){
       std::priority_queue<int, vector<int>,std::less<int> > pq2;
 
       stream_offset_type elements = 71;
-      TPIE_OS_SRANDOM(static_cast<unsigned int>(it));
+      seed_random(static_cast<unsigned int>(it));
       for(stream_offset_type i=0;i<elements;i++) {
-        int src_int = TPIE_OS_RANDOM()%220;
+		  int src_int = tpie::random()%220;
         pq.push(src_int);
         pq2.push(src_int);
 //        std::cout << "push " << src_int << std::endl;
@@ -148,7 +148,7 @@ void pq_small_instance(){
         }
       }
       for(stream_offset_type i=0;i<elements;i++) {
-        int src_int = TPIE_OS_RANDOM()%220;
+		  int src_int = tpie::random()%220;
         pq.push(src_int);
         pq2.push(src_int);
 //        std::cout << "push " << src_int << std::endl;

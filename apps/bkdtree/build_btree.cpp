@@ -269,12 +269,12 @@ int main(int argc, char **argv) {
     cerr << "  width: " << params.wquery_size_x << "% of " << mbrdx
 	 << ", height: " << params.wquery_size_y << "% of " << mbrdy << endl;
     app_params_t::stream_t* tempstr = new app_params_t::stream_t;
-    TPIE_OS_SRANDOM((unsigned int)TPIE_OS_TIME(NULL));
+    seed_random((unsigned int)TPIE_OS_TIME(NULL));
 
     atimer.start();  
     for (i = 0; i < params.wquery_count; i++) {
-      lop[0] = TPIE_OS_RANDOM() % mbrdx  - wqdx / 2;
-      lop[1] = TPIE_OS_RANDOM() % mbrdy  - wqdy / 2;
+		lop[0] = tpie::random() % mbrdx  - wqdx / 2;
+		lop[1] = tpie::random() % mbrdy  - wqdy / 2;
       hip[0] = lop[0] + wqdx;
       hip[1] = lop[1] + wqdy;
       if (params.do_logmethod)
@@ -307,8 +307,8 @@ int main(int argc, char **argv) {
     memory_size_type insert_count = 50000;
     cerr << "\tInserting " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(insert_count) << " random points..." << flush;
     for (i = 0; i < insert_count; i++) {
-      p[0] = TPIE_OS_RANDOM() % MAX_VALUE;
-      p[1] = TPIE_OS_RANDOM() % MAX_VALUE;
+		p[0] = tpie::random() % MAX_VALUE;
+		p[1] = tpie::random() % MAX_VALUE;
       if (i < 100)
 	pa[i] = p;
       btree->insert(p);

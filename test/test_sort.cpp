@@ -369,7 +369,7 @@ void get_app_info(int argc, char** argv, appInfo & Info){
   fd=TPIE_OS_OPEN_OEXCL(tmpfname, TPIE_OS_FLAG_USE_MAPPING_FALSE);
   if(TPIE_OS_IS_VALID_FILE_DESCRIPTOR(fd)){
     TPIE_OS_CLOSE(fd);
-    TPIE_OS_UNLINK(tmpfname);
+    remove(tmpfname);
   }
   else{
     std::cerr << "Unable to write to path " << Info.path 
@@ -444,7 +444,7 @@ void write_random_stream(std::string fname, appInfo & info, progress_indicator_b
       indicator->init("Items written:");
   }
   while((i<n) && (ae==ami::NO_ERROR)){
-    ae=str->write_item(SortItem(TPIE_OS_RANDOM()));   
+	  ae=str->write_item(SortItem(tpie::random()));   
     i++;
     if (indicator) {
 	indicator->step_percentage();
@@ -550,7 +550,7 @@ void internal_sort_test(const appInfo& info){
   nitems=(MM_manager.memory_available()-str_mem_usage-16)/sizeof(SortItem);
   list=new SortItem[nitems];
   for(i=0; i<nitems; i++){
-    Str->write_item(SortItem(TPIE_OS_RANDOM()));   
+	  Str->write_item(SortItem(tpie::random()));   
   }
   std::cout << "Number items: " << nitems << " size: "
        << ll2size(nitems*sizeof(SortItem),buf) << std::endl;
@@ -669,8 +669,8 @@ ami::err test_3x_sort(appInfo& info, enum test_type ttype, progress_indicator_ba
 
   //delete stream from disk
   std::cout << "\nDeleting streams " << fname << " and " << fname2 << std::endl;
-  TPIE_OS_UNLINK(fname);
-  TPIE_OS_UNLINK(fname2);
+  remove(fname);
+  remove(fname2);
 
   std::cout << "****TEST STOP****\n" << std::endl;
   return ae;
@@ -744,7 +744,7 @@ ami::err test_2x_sort(appInfo& info, enum test_type ttype, progress_indicator_ba
 
   //delete stream from disk
   std::cout << "\nDeleting stream " << fname << std::endl;
-  TPIE_OS_UNLINK(fname);
+  remove(fname);
   std::cout << "****TEST STOP****\n" << std::endl;
   return ae;
 }
@@ -752,7 +752,7 @@ ami::err test_2x_sort(appInfo& info, enum test_type ttype, progress_indicator_ba
 int main(int argc, char** argv){
   appInfo info;
   char buf[20];
-  TPIE_OS_SRANDOM(time(NULL));
+  seed_random(time(NULL));
   get_app_info(argc, argv, info);
 
   //Set up TPIE memory manager

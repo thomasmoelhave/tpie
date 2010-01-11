@@ -301,32 +301,6 @@ typedef tpie::stream_size_type block_id_type;
 //    non-tpie specific functions	    //
 
 #ifdef _WIN32
-// Generate 31 random bits using rand(), which normally generates only
-// 15 random bits.
-inline int TPIE_OS_RANDOM() {
-  return rand() % 0x8000 + (rand() % 0x8000 << 15) + (rand() % 0x2 << 30);
-}
-#else
-inline int TPIE_OS_RANDOM() {
-    //adanner: rand and srand are ANSI standards
-    //random and srandom are from old BSD systems
-    //use the standard unless we run into problems
-    //http://www.gnu.org/software/libc/manual/html_node/Pseudo_002dRandom-Numbers.html
-    return rand();
-}
-#endif
-
-#ifdef _WIN32
-inline void TPIE_OS_SRANDOM(time_t seed) {
-    srand((unsigned int)seed);
-}
-#else
-inline void TPIE_OS_SRANDOM(unsigned int seed) {
-    srand(seed);
-}
-#endif
-
-#ifdef _WIN32
 // Win32 File Seeks use high/low order offsets 
 // Getting Highorder 32 Bit OFFSET
 inline LONG getHighOrderOff(tpie::stream_offset_type off) {
@@ -761,17 +735,6 @@ inline int TPIE_OS_CLOSE(TPIE_OS_FILE_DESCRIPTOR fd) {
 #else
 inline int TPIE_OS_CLOSE(TPIE_OS_FILE_DESCRIPTOR fd) {
     return ::close(fd);
-}
-#endif
-
-
-#if defined(_WIN32) && !defined(__MINGW32__)
-inline int TPIE_OS_UNLINK(const std::string& filename) {
-    return _unlink(filename.c_str());
-}
-#else
-inline int TPIE_OS_UNLINK(const std::string& filename) {
-    return ::unlink(filename.c_str());
 }
 #endif
 

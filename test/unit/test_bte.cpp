@@ -99,7 +99,7 @@ int main(int argc, char **argv) {
 	const std::string temp_stream_name = tpie::tempname::tpie_name();
 	const std::string stream_type = argv[1];
 	std::cout << "using: " << temp_stream_name << std::endl;
-	remove(temp_stream_name.c_str());
+	tpie::remove(temp_stream_name.c_str());
 	if(stream_type == "stdio") {
 		stream_stdio<int> stream(temp_stream_name, WRITE_STREAM);
 		return test_bte<stream_stdio<int>,tpie::bte::err>

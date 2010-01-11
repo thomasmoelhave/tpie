@@ -40,7 +40,7 @@ apps::scan_uniform_sm::scan_uniform_sm(stream_offset_type rows, stream_offset_ty
     TP_LOG_APP_DEBUG(seed);
     TP_LOG_APP_DEBUG('\n');
     
-    TPIE_OS_SRANDOM(seed);
+    seed_random(seed);
 }
 
 apps::scan_uniform_sm::~scan_uniform_sm(void) {
@@ -54,7 +54,7 @@ ami::err apps::scan_uniform_sm::initialize(void) {
 
 ami::err apps::scan_uniform_sm::operate(apps::sm_elem<double> *out, ami::SCAN_FLAG *sf)
 {
-    double dr = double(TPIE_OS_RANDOM() & 0xFFF) / double(0x1000);
+    double dr = double(random() & 0xFFF) / double(0x1000);
     
     if ((*sf = (dr < d))) {
         out->er = r;

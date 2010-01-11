@@ -71,7 +71,7 @@ scan_random_so::scan_random_so(stream_offset_type count, int seed) :
     TP_LOG_APP_DEBUG(seed);
     TP_LOG_APP_DEBUG('\n');
 
-    TPIE_OS_SRANDOM(seed);
+    seed_random(seed);
 }
 
 scan_random_so::~scan_random_so(void)
@@ -89,7 +89,7 @@ ami::err scan_random_so::initialize(void)
 ami::err scan_random_so::operate(sort_obj *out1, ami::SCAN_FLAG *sf)
 {
     if ((*sf = (m_remaining-- >0))) {
-        out1->key_val = TPIE_OS_RANDOM();
+        out1->key_val = tpie::random();
         return ami::SCAN_CONTINUE;
     } else {
         return ami::SCAN_DONE;

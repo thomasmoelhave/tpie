@@ -42,7 +42,7 @@ scan_random_point::scan_random_point(stream_offset_type count, int seed)
     TP_LOG_APP_DEBUG(seed);
     TP_LOG_APP_DEBUG('\n');
 
-    TPIE_OS_SRANDOM(seed);
+    seed_random(seed);
 }
 
 scan_random_point::~scan_random_point(void)
@@ -61,8 +61,8 @@ AMI_err scan_random_point::operate(point<int> *out1, AMI_SCAN_FLAG *sf)
 {
     if ((*sf = (remaining-- > 0))) {
         do {
-        out1->x = TPIE_OS_RANDOM() & 0xFFFF;
-        out1->y = TPIE_OS_RANDOM() & 0xFFFF;
+        out1->x = random() & 0xFFFF;
+        out1->y = random() & 0xFFFF;
         } while (((out1->x - 0x7FFF) * (out1->x - 0x7FFF) +
                   (out1->y - 0x7FFF) * (out1->y - 0x7FFF)) > 0x7000 * 0x7000);
         return AMI_SCAN_CONTINUE;

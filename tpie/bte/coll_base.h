@@ -415,7 +415,7 @@ namespace tpie {
 		std::string stack_name =
 			base_file_name_ + COLLECTION_STK_SUFFIX;
 
-	    TPIE_OS_UNLINK(stack_name);
+		remove(stack_name);
 	}
 
 	template<class BIDT>
@@ -490,7 +490,7 @@ namespace tpie {
 
 		// If a new collection, remove any existing files with the same names.
 		if (type == WRITE_NEW_COLLECTION) {
-		    TPIE_OS_UNLINK(bcc_name);
+		    remove(bcc_name);
 		    remove_stack_file();
 		}
       
@@ -729,17 +729,9 @@ namespace tpie {
 		    return;
 		} 
 
-		if (TPIE_OS_UNLINK(bcc_name)) {
-		
-		    TP_LOG_FATAL_ID("Failed to unlink() ");
-		    TP_LOG_FATAL_ID(bcc_name);
-
-		    return;
-		} 
-		else {
+		remove(bcc_name);
 		    gstats_.record(COLLECTION_DELETE);
 		    stats_.record(COLLECTION_DELETE);
-		}
 	    }
 
 	    gstats_.record(COLLECTION_CLOSE);

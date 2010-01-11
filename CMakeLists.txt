@@ -37,7 +37,7 @@ else(WIN32)
 	set(DOC_INSTALL_DIR "share/doc/tpie")
 endif(WIN32)
 
-find_package(Boost 1.37.0 REQUIRED)
+find_package(Boost 1.37.0 REQUIRED filesystem)
 include_directories(${Boost_INCLUDE_DIRS})
 
 set(INSTALL_TARGETS_DEFAULT_ARGS

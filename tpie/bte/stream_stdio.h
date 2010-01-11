@@ -25,7 +25,7 @@
 
 // For header's type field (83 == 'S').
 #define STREAM_IMPLEMENTATION_STDIO 83
-
+#include <tpie/util.h>
 #include <tpie/tpie_assert.h>
 #include <tpie/tpie_log.h>
 
@@ -454,17 +454,8 @@ namespace tpie {
 			    TP_LOG_WARNING_ID("Ignoring persistency request.");
 			} 
 			else {
-			    if (TPIE_OS_UNLINK (m_path)) {
-			    
-				m_osErrno = errno;
-			    
-				TP_LOG_WARNING_ID("Failed to unlink() file:");
-				TP_LOG_WARNING_ID(m_path);
-				TP_LOG_WARNING_ID(strerror(m_osErrno));
-			    } 
-			    else {
+				tpie::remove(m_path);
 				record_statistics(STREAM_DELETE);
-			    }
 			}
 		    }
 		} 

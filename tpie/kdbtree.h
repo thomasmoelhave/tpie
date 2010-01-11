@@ -1054,7 +1054,7 @@ bool TPIE_AMI_KDBTREE::split_leaf_and_insert(const STACK_ITEM& top, TPIE_AMI_KDB
   else if (params_.split_heuristic == LONGEST_SPAN)
     d = split_dim_longest_span(top);   
   else if (params_.split_heuristic == RANDOM)
-    d = TPIE_OS_RANDOM() % dim;
+    d = random() % dim;
   memory_size_type med = bl->find_median(d); // the index of the median point in bl->el.
   POINT sp = bl->el[med];
 
@@ -1182,7 +1182,7 @@ void TPIE_AMI_KDBTREE::find_split_position(const STACK_ITEM& top, coord_t& sp, m
   else if (params_.split_heuristic == LONGEST_SPAN)
     d = split_dim_longest_span(top);   
   else if (params_.split_heuristic == RANDOM)
-    d = TPIE_OS_RANDOM() % dim;
+    d = random() % dim;
 #else
   d = bn->split_dim();
 #endif

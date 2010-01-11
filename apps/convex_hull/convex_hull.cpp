@@ -326,7 +326,7 @@ int main(int argc, char **argv)
         cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << random_seed;
     }
 
-    TPIE_OS_SRANDOM(random_seed);
+    seed_random(random_seed);
     
     // Set the amount of main memory:
     MM_manager.set_memory_limit (test_mm_size);

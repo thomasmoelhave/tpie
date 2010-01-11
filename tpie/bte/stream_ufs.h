@@ -32,6 +32,7 @@
 
 // Get definitions for working with Unix and Windows
 #include <tpie/portability.h>
+#include <tpie/util.h>
 
 // Get error definitions
 #include <tpie/bte/err.h>
@@ -841,21 +842,10 @@ namespace tpie {
 		// If it should not persist, unlink the file.
 		if (m_persistenceStatus == PERSIST_DELETE) {
 		    if (m_readOnly) {
-			TP_LOG_WARNING_ID("PERSIST_DELETE for read-only stream in " << m_path);
-		    } 
-		    else  {
-				if (TPIE_OS_UNLINK (m_path)) {
-			
-			    m_osErrno = errno;
-			
-			    TP_LOG_WARNING_ID ("unlink failed during destruction of:");
-			    TP_LOG_WARNING_ID (m_path);
-			    TP_LOG_WARNING_ID (strerror (m_osErrno));
-
-			}
-			else {
-			    record_statistics(STREAM_DELETE);
-			}
+				TP_LOG_WARNING_ID("PERSIST_DELETE for read-only stream in " << m_path);
+		    }  else  {
+				tpie::remove(m_path);
+				record_statistics(STREAM_DELETE);
 		    }
 		}
 	    } 

@@ -378,7 +378,7 @@ void get_app_info(int argc, char** argv, appInfo & Info){
     fd=TPIE_OS_OPEN_OEXCL(tmpfname, TPIE_OS_FLAG_USE_MAPPING_FALSE);
     if(TPIE_OS_IS_VALID_FILE_DESCRIPTOR(fd)){
 	TPIE_OS_CLOSE(fd);
-	TPIE_OS_UNLINK(tmpfname);
+	remove(tmpfname);
     }
     else{
 	std::cerr << "Unable to write to path " << Info.path 
@@ -582,7 +582,7 @@ int main(int argc, char **argv){
 
     //delete stream from disk
     std::cout << "\nDeleting stream " << fname << std::endl;
-    TPIE_OS_UNLINK(fname);
+    remove(fname);
   
     std::cout << "Test ran successfully " << std::endl;
     return 0;

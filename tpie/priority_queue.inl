@@ -161,10 +161,10 @@ void priority_queue<T, Comparator, OPQType>::init(memory_size_type mm_avail) { /
 template <typename T, typename Comparator, typename OPQType>
 priority_queue<T, Comparator, OPQType>::~priority_queue() { // destructor
 	for(memory_size_type i = 0; i < setting_k*setting_k; i++) { // unlink slots
-		TPIE_OS_UNLINK(slot_data(i));
+		remove(slot_data(i));
 	}
 	for(memory_size_type i = 0; i < setting_k; i++) { // unlink groups 
-		TPIE_OS_UNLINK(group_data(i));
+		remove(group_data(i));
 	}
 
 	delete opq;
@@ -654,7 +654,7 @@ void priority_queue<T, Comparator, OPQType>::compact(memory_size_type slot1) {
 				delete stream2;
 
 				slot_start_set(slot1, 0);
-				TPIE_OS_UNLINK(slot_data(slot1));
+				remove(slot_data(slot1));
 				slot_data_set(slot1, new_data_id);
 				slot_size_set(slot1, slot_size(slot1) + slot_size(slot2));
 				slot_size_set(slot2, 0);

@@ -27,6 +27,7 @@
 // The new getopts() argument-parsing function.
 #include "getopts.h"
 #include <tpie/stream.h>
+#include <tpie/util.h>
 
 using namespace tpie;
 
@@ -110,7 +111,7 @@ void parse_args(int argc, char **argv, struct options *application_opts,
   tpie::MM_manager.set_memory_limit(mm_sz);
   //LOG_APP_DEBUG_ID2("Setting TPIE memory size to: ", mm_sz);
 
-  TPIE_OS_SRANDOM(rnd_seed);
+  tpie::seed_random(rnd_seed);
   //LOG_APP_DEBUG_ID2("Setting random seed to: ", rnd_seed);
   
   delete [] all_opts;

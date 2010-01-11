@@ -106,7 +106,7 @@ int main(int argc, char **argv) {
   std::cout << "\n";
   std::cout << "Element size: " << sizeof(el_t) << " bytes. "
        << "Key size: " << sizeof(bkey_t) << " bytes.\n";
-  TPIE_OS_SRANDOM((unsigned int)TPIE_OS_TIME(NULL));
+  seed_random((unsigned int)TPIE_OS_TIME(NULL));
 
   // Timing stream write.
   std::cout << "BEGIN Stream write\n";
@@ -115,7 +115,7 @@ int main(int argc, char **argv) {
   std::cout << "\tCreating stream with " << bulk_load_count << " random elements.\n";
   wt.start();
   for (j = 0; j < bulk_load_count; j++) {
-    is->write_item(el_t(long((TPIE_OS_RANDOM()/MAX_RANDOM) * MAX_VALUE)));
+	  is->write_item(el_t(long((tpie::random()/MAX_RANDOM) * MAX_VALUE)));
   }
   wt.stop();
   std::cout << "END Stream write " << wt << "\n";
@@ -197,7 +197,7 @@ int main(int argc, char **argv) {
     if (i <= DELETE_COUNT)
       s[i-1] = ss = el_t(i+100000);
     else
-      ss = el_t(long((TPIE_OS_RANDOM()/MAX_RANDOM) * MAX_VALUE));
+		ss = el_t(long((tpie::random()/MAX_RANDOM) * MAX_VALUE));
     u_btree->insert(ss);
     if (i % (insert_count/10) == 0)
       std::cout << i << " " << std::flush;

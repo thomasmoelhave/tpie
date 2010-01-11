@@ -254,10 +254,10 @@ void parse_args(int argc, char** argv) {
 #if 0
 	params.point_count = atoi(argv[++i]);
 	params.in_stream = new app_params_t::stream_t;
-	TPIE_OS_SRANDOM(time(NULL));
+	seed_random(time(NULL));
 	for (j = 0; j < params.point_count; j++) {
 	  for (int jj = 0; jj < DIM; jj++)
-	    p[jj] = int((TPIE_OS_RANDOM()/MAX_RANDOM) * MAX_VALUE);
+	    p[jj] = int((random()/MAX_RANDOM) * MAX_VALUE);
 	  params.in_stream->write_item(p);
 	}
 #else
@@ -465,7 +465,7 @@ void parse_args(int argc, char** argv) {
 	// Read item from position 2*i in in_stream.
 	params.in_stream->read_item(&pp1);
 	// Go to a random odd position in random_stream.
-	j = (TPIE_OS_RANDOM() % (l/2)) * 2 + 1;
+	j = (random() % (l/2)) * 2 + 1;
 	random_stream->seek(j);
 	random_stream->read_item(&pp2);
 	p2 = *pp2;

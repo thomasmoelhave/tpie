@@ -956,11 +956,11 @@ protected:
 				point_t *p;
 				memory_size_type i;
 
-				TPIE_OS_SRANDOM(10);
+				seed_random(10);
       
 				// Sample sz offsets in the interval [0, input_sz].
 				for (i = 0; i < sz; i++) {
-					offsets[i] = stream_offset_type((TPIE_OS_RANDOM()/MAX_RANDOM) * input_sz);
+					offsets[i] = stream_offset_type((random()/MAX_RANDOM) * input_sz);
 				}
       
 				// Sort the sampled offsets.

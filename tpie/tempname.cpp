@@ -26,6 +26,7 @@
 #include <string>
 #include <tpie/portability.h>
 #include <stdexcept>
+#include <tpie/util.h>
 
 using namespace tpie;
 
@@ -98,12 +99,12 @@ std::string tempname::tpie_mktemp()
 	result +=
 		chars[counter/chars_count] +
 		chars[counter%chars_count] +
-		chars[TPIE_OS_RANDOM() % chars_count] +
-		chars[TPIE_OS_RANDOM() % chars_count] +
-		chars[TPIE_OS_RANDOM() % chars_count] +
-		chars[TPIE_OS_RANDOM() % chars_count] +
-		chars[TPIE_OS_RANDOM() % chars_count] +
-		chars[TPIE_OS_RANDOM() % chars_count];
+		chars[random() % chars_count] +
+		chars[random() % chars_count] +
+		chars[random() % chars_count] +
+		chars[random() % chars_count] +
+		chars[random() % chars_count] +
+		chars[random() % chars_count];
 
 	counter = (counter + 1) % (chars_count * chars_count);
 

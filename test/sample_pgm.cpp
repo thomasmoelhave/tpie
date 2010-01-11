@@ -191,7 +191,7 @@ int main(int argc, char *argv[]) {
    for (i = 0; i < Gen_Stream_Length; i++) {
       
       // Generate a random int.
-      src_int = TPIE_OS_RANDOM();
+      src_int = random();
       
       // Write out the integer into the AMI_STREAM source using 
       // the AMI_STREAM member function write_item()

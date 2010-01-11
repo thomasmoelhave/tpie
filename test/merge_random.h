@@ -64,7 +64,7 @@ merge_random<T>::merge_random(int seed) :
 #endif    
 {
     if (seed) {
-        TPIE_OS_SRANDOM(seed);
+        seed_random(seed);
     }
 }
 
@@ -100,7 +100,7 @@ ami::err merge_random<T>::initialize(memory_size_type arity,
     // Insert an element with random priority for each non-empty stream.
     for (ii = arity; ii--; ) {
         if (in[ii] != NULL) {
-            rnum=TPIE_OS_RANDOM();
+            rnum=tpie::random();
             mheap->insert(&rnum,ii);
         }
     }
@@ -149,7 +149,7 @@ ami::err merge_random<T>::operate(CONST T * CONST *in,
 
         if (in[min_source] != NULL) {
             *out = *(in[min_source]);
-            min=TPIE_OS_RANDOM();
+            min=tpie::random();
             mheap->insert(&min,min_source);
             taken_index = min_source;
             return ami::MERGE_OUTPUT;
@@ -174,7 +174,7 @@ ami::err merge_random<T>::main_mem_operate(T* mm_stream,
     int rand_index;
     
     for (ii = 0; ii < len - 1; ii++) {
-        rand_index = ii + (TPIE_OS_RANDOM() % (len - ii));
+        rand_index = ii + (tpie::random() % (len - ii));
         temp = mm_stream[ii];
         mm_stream[ii] = mm_stream[rand_index];
         mm_stream[rand_index] = temp;

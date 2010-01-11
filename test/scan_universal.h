@@ -56,7 +56,7 @@ public:
 	_max(count), _remaining(count), _even(0), _odd(0), _switches(0), _have_prev(false) {
 	TP_LOG_APP_DEBUG_ID("scan_universal random seed:");
 	TP_LOG_APP_DEBUG_ID(seed);
-	TPIE_OS_SRANDOM(seed);     
+	seed_random(seed);     
     }
 
     virtual ~scan_universal(void) {}
@@ -72,7 +72,7 @@ public:
     // Generating random ints.
     ami::err operate(int *out0, ami::SCAN_FLAG *sf) {
 	if ((*sf = (_remaining-- != 0))) {
-	    *out0 = TPIE_OS_RANDOM();
+	    *out0 = tpie::random();
 	    return ami::SCAN_CONTINUE;
 	} else {
 	    return ami::SCAN_DONE;
@@ -82,7 +82,7 @@ public:
     // Generate ifoo_t's with random ints.
     ami::err operate(ifoo_t<sz>* out0, ami::SCAN_FLAG *sf) {
 	if ((*sf = (_remaining-- != 0))) {
-	    out0->i = TPIE_OS_RANDOM();
+	    out0->i = tpie::random();
 	    //    out0->el[0] = char (out0.i % 128);
 	    return ami::SCAN_CONTINUE;
 	} else {
