@@ -1000,8 +1000,6 @@ void * operator new(\
 #undef NO_ERROR //ensures that the NO_ERROR macro of windows is not defined
 #endif
 
-
-
 #include <tpie/util.h>
 
 #ifdef __GNUC__
@@ -1032,7 +1030,6 @@ DEPRECATED(uint32_t TPIE_OS_RANDOM());
 uint32_t TPIE_OS_RANDOM() {
 	return tpie::random();
 }
-
 
 
 #undef DEPRECATED

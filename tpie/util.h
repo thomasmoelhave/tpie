@@ -23,15 +23,16 @@
 #include <tpie/types.h>
 namespace tpie {
 
+///////////////////////////////////////////////////////////////////////////
+/// \brief Ignore an unused variable warning
+/// \param x The variable that we are well aware is not beeing used
+///////////////////////////////////////////////////////////////////////////
 template <typename T>
 inline void unused(const T & x) {(void)x;}
 
 void seed_random(uint32_t seed);
-
 uint32_t random();
-
 void remove(const std::string & path);
-
 bool file_exists(const std::string & path);
 
 }
