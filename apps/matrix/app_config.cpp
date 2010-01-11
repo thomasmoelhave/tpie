@@ -25,8 +25,6 @@
 //
 
 
-
-
 #include "app_config.h"
 
 #ifdef NDEBUG
@@ -35,7 +33,7 @@ bool verbose = false;
 bool verbose = true;
 #endif
 
-memory_size_type test_mm_size = DEFAULT_TEST_MM_SIZE;
-stream_offset_type test_size = DEFAULT_TEST_SIZE;
+tpie::memory_size_type test_mm_size = DEFAULT_TEST_MM_SIZE;
+tpie::stream_offset_type test_size = DEFAULT_TEST_SIZE;
 int random_seed = 17;
 

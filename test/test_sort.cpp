@@ -267,11 +267,9 @@ void get_app_info(int argc, char** argv, appInfo & Info){
   init_opts(opts, argc, argv); 
 
   // get the dir
-  const char* base_dir = getenv("AMI_SINGLE_DEVICE");
-  if (base_dir == NULL) { base_dir = getenv("TMPDIR_ENV"); }
-  if (base_dir == NULL) { base_dir = TMP_DIR; }
-  
-  Info.path=base_dir;
+  std::string base_dir = tempname::get_actual_path();
+
+  Info.path=base_dir.c_str();
   Info.item_size=sizeof(SortItem);
   Info.num_items=APP_DEFAULT_N_ITEMS;
   Info.mem_size=APP_DEFAULT_MEM_SIZE;
@@ -351,7 +349,7 @@ void get_app_info(int argc, char** argv, appInfo & Info){
            "Useful for testing basic AMI_sort routine\n\n");
     getopts_usage(argv[0], opts);
     printf("\nEach item is %d bytes\n", APP_ITEM_SIZE);
-    printf("--path-name is \"%s\" by default\n", TMP_DIR);
+    printf("--path-name is \"%s\" by default\n", base_dir.c_str() );
     printf("Suffixes K, M, and G can be appended to the\n"
            "--numitems and --size options to mean\n"
            "*1024, *1024*1024, and *2^30 respectively\n"

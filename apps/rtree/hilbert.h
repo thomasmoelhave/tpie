@@ -58,8 +58,8 @@ namespace tpie {
 	    ///  The larger Hilbert value has a higher priority.
 	    ////////////////////////////////////////////////////////////////////////
 	    inline bool operator()(
-		const std::pair<rstarnode<coord_t, BTECOLL>*, TPIE_OS_LONGLONG>& t1, 
-		const std::pair<rstarnode<coord_t, BTECOLL>*, TPIE_OS_LONGLONG>& t2) const {
+		const std::pair<rstarnode<coord_t, BTECOLL>*, stream_offset_type>& t1, 
+		const std::pair<rstarnode<coord_t, BTECOLL>*, stream_offset_type>& t2) const {
 		return t1.second > t2.second;
 	    }
 	};
@@ -79,9 +79,9 @@ namespace tpie {
         ///  in: Proceedings of the 1990 ACM SIGMOD International Conference on 
         ///  Management of Data (1990), 332-342.
 	////////////////////////////////////////////////////////////////////////
-	TPIE_OS_LONGLONG compute_hilbert_value(TPIE_OS_LONGLONG x, 
-					       TPIE_OS_LONGLONG y, 
-					       TPIE_OS_LONGLONG side);
+	stream_offset_type compute_hilbert_value(stream_offset_type x, 
+					       stream_offset_type y, 
+					       stream_offset_type side);
 
     }  //  ami namespace
 
@@ -105,7 +105,7 @@ namespace tpie {
 	    coord_t   xOffset_;
 	    coord_t   yOffset_;
 	    coord_t   factor_;
-	    TPIE_OS_LONGLONG  side_;
+	    stream_offset_type  side_;
 
 	public:
 	    
@@ -117,7 +117,7 @@ namespace tpie {
 	    /// \param[in] side side length of the grid
 	    ////////////////////////////////////////////////////////////////////
 	    scan_scale_and_compute_hilbert_value(coord_t xOffset, coord_t yOffset, 
-						 coord_t factor, TPIE_OS_LONGLONG side) :
+						 coord_t factor, stream_offset_type side) :
 		xOffset_(xOffset), yOffset_(yOffset), factor_(factor), side_(side) {};
 	    
 	    ////////////////////////////////////////////////////////////////////
@@ -137,15 +137,15 @@ namespace tpie {
 	    ////////////////////////////////////////////////////////////////////
 	    err operate(const rectangle<coord_t, bid_t>& in, 
 			SCAN_FLAG* sfin,
-			std::pair<rectangle<coord_t, bid_t>, TPIE_OS_LONGLONG>* out,
+			std::pair<rectangle<coord_t, bid_t>, stream_offset_type>* out,
 			SCAN_FLAG* sfout) {
 		
 		if ((*sfout = *sfin) != 0) {
 		    
-		    TPIE_OS_LONGLONG x = (TPIE_OS_LONGLONG)(factor_ * (TPIE_OS_LONGLONG)((in.get_left() + in.get_right()) / 2.0 - xOffset_));
-		    TPIE_OS_LONGLONG y = (TPIE_OS_LONGLONG)(factor_ * (TPIE_OS_LONGLONG)((in.get_lower() + in.get_upper()) / 2.0 - yOffset_));
+		    stream_offset_type x = (stream_offset_type)(factor_ * (stream_offset_type)((in.get_left() + in.get_right()) / 2.0 - xOffset_));
+		    stream_offset_type y = (stream_offset_type)(factor_ * (stream_offset_type)((in.get_lower() + in.get_upper()) / 2.0 - yOffset_));
 		    
-		    *out = std::pair<rectangle<coord_t, bid_t>, TPIE_OS_LONGLONG>(in, compute_hilbert_value(x, y, side_));
+		    *out = std::pair<rectangle<coord_t, bid_t>, stream_offset_type>(in, compute_hilbert_value(x, y, side_));
 		    
 		    return SCAN_CONTINUE;
 		} 

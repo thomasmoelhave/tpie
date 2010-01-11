@@ -83,7 +83,7 @@ namespace tpie {
 	    ///////////////////////////////////////////////////////////////////////////
 	    err operate(const rectangle<coord_t, bid_t>& in, 
 			SCAN_FLAG* sfin,
-			std::pair<rectangle<coord_t, bid_t>, TPIE_OS_LONGLONG>* /* out */, 
+			std::pair<rectangle<coord_t, bid_t>, stream_offset_type>* /* out */, 
 			SCAN_FLAG* sfout) {
 		
 		//  Write nothing to the output stream.

@@ -54,9 +54,9 @@ namespace tpie {
 					   {{2,3},{1,0}},
 					   {{3,0},{2,1}} };
 	
-	TPIE_OS_LONGLONG compute_hilbert_value(TPIE_OS_LONGLONG x, 
-					       TPIE_OS_LONGLONG y, 
-					       TPIE_OS_LONGLONG side) {
+	stream_offset_type compute_hilbert_value(stream_offset_type x, 
+					       stream_offset_type y, 
+					       stream_offset_type side) {
 	    
 	    assert(0 <= x);
 	    assert(0 <= y);
@@ -66,10 +66,10 @@ namespace tpie {
 	    
 	    int              rotation = 0;
 	    int              sense    = 1;
-	    TPIE_OS_LONGLONG num      = 0;
-	    TPIE_OS_LONGLONG k        = 0;
-	    TPIE_OS_LONGLONG xbit     = 0;
-	    TPIE_OS_LONGLONG ybit     = 0;
+	    stream_offset_type num      = 0;
+	    stream_offset_type k        = 0;
+	    stream_offset_type xbit     = 0;
+	    stream_offset_type ybit     = 0;
 	    int              quad     = 0;
 	    
 	    for(k = side/2; k > 0; k = k/2) {

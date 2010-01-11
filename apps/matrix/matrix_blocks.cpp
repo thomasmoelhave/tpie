@@ -33,6 +33,7 @@
 #include "matrix_blocks.h"
 
 using namespace tpie::apps;
+using namespace tpie;
 
 perm_matrix_into_blocks::perm_matrix_into_blocks(stream_offset_type rows,
                                                  stream_offset_type cols,

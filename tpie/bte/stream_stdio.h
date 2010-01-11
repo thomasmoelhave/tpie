@@ -298,7 +298,7 @@ namespace tpie {
 			}
 		
 			// Make sure there was at least a full block there to pass.
-			if (TPIE_OS_FTELL (m_file) < static_cast<TPIE_OS_LONG>(m_osBlockSize)) {
+			if (TPIE_OS_FTELL (m_file) < static_cast<stream_offset_type>(m_osBlockSize)) {
 		    
 			    m_status = STREAM_STATUS_INVALID;
 			    m_osErrno = errno;

@@ -22,11 +22,12 @@
 #define _VARARRAY_H
 
 #include <tpie/portability.h>
-
+#include <tpie/types.h>
 #include <cassert>
 #include <cstdlib>
 #include <string.h>
 
+using namespace tpie;
 //----------------------------------------------------------------------
 
 template <class T> class VarArray1D {

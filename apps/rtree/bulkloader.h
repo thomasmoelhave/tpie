@@ -157,13 +157,13 @@ namespace tpie {
 
 	    coord_t          xOffset_;      //  Minimun x-coordinate of data set.
 	    coord_t          yOffset_;      //  Minimun y-coordinate of data set.
-	    TPIE_OS_LONGLONG factor_;       //  Scaling factor for coordinates.
-	    TPIE_OS_LONGLONG size_;         //  Size of the integer grid.
+	    stream_offset_type factor_;       //  Scaling factor for coordinates.
+	    stream_offset_type size_;         //  Size of the integer grid.
 
 	    rstartree<coord_t, BTECOLL>*     tree_;         //  Output object.
 	    bool             statistics_;   //  Whether to record stats or not.
 	    
-	    std::priority_queue<std::pair<rstarnode<coord_t, BTECOLL>*, TPIE_OS_LONGLONG>, std::vector<std::pair<rstarnode<coord_t, BTECOLL>*, TPIE_OS_LONGLONG> >, hilbert_priority<coord_t, BTECOLL> >   cachedNodes_; //  Cache
+	    std::priority_queue<std::pair<rstarnode<coord_t, BTECOLL>*, stream_offset_type>, std::vector<std::pair<rstarnode<coord_t, BTECOLL>*, stream_offset_type> >, hilbert_priority<coord_t, BTECOLL> >   cachedNodes_; //  Cache
 
 	    bulkloader(const bulkloader& other);
 	    bulkloader& operator=(const bulkloader& other);
@@ -413,16 +413,16 @@ namespace tpie {
 	    
 	    //  Translate the rectangle by the given offset and
 	    //  compute the midpoint in scaled integer coordinates.
-	    TPIE_OS_LONGLONG x = factor_ * 
-		(TPIE_OS_LONGLONG)((newBB.get_left() + newBB.get_right()) / 2.0 - xOffset_);
-	    TPIE_OS_LONGLONG y = factor_ * 
-		(TPIE_OS_LONGLONG)((newBB.get_lower() + newBB.get_upper()) / 2.0 - yOffset_);
+	    stream_offset_type x = factor_ * 
+		(stream_offset_type)((newBB.get_left() + newBB.get_right()) / 2.0 - xOffset_);
+	    stream_offset_type y = factor_ * 
+		(stream_offset_type)((newBB.get_lower() + newBB.get_upper()) / 2.0 - yOffset_);
 	    
 	    //  Compute and set the Hilbert value.
-	    TPIE_OS_LONGLONG hv = compute_hilbert_value(x, y, size_);
+	    stream_offset_type hv = compute_hilbert_value(x, y, size_);
 	    
 	    //  Add the last node to the stream.
-	    cachedNodes_.push(std::pair<rstarnode<coord_t, BTECOLL>*, TPIE_OS_LONGLONG>(*lastNode, hv));
+	    cachedNodes_.push(std::pair<rstarnode<coord_t, BTECOLL>*, stream_offset_type>(*lastNode, hv));
 	    *lastNode = NULL;
 	    
 	    //  Wait until there are three or more entries in the cache.
@@ -564,15 +564,15 @@ namespace tpie {
 		    //  Translate the rectangle by the given offset and
 		    //  compute the midpoint in scaled integer coordinates.
 		    x = factor_ * 
-			(TPIE_OS_LONGLONG)((newBB.get_left() + newBB.get_right()) / 2.0 - xOffset_);
+			(stream_offset_type)((newBB.get_left() + newBB.get_right()) / 2.0 - xOffset_);
 		    y = factor_ * 
-			(TPIE_OS_LONGLONG)((newBB.get_lower() + newBB.get_upper()) / 2.0 - yOffset_);
+			(stream_offset_type)((newBB.get_lower() + newBB.get_upper()) / 2.0 - yOffset_);
 		    
 		    //  Compute and set the Hilbert value.
 		    hv = compute_hilbert_value(x, y, size_);
 		    
 		    //  Cache the new node.
-		    cachedNodes_.push(std::pair<rstarnode<coord_t, BTECOLL>*, TPIE_OS_LONGLONG>(newNode, hv)); // 
+		    cachedNodes_.push(std::pair<rstarnode<coord_t, BTECOLL>*, stream_offset_type>(newNode, hv)); // 
 		    
 		    //  Do not delete this node.
 		    newNode = NULL;	    
@@ -612,16 +612,16 @@ namespace tpie {
 		    
 		    //  Translate the rectangle by the given offset and
 		    //  compute the midpoint in scaled integer coordinates.
-		    TPIE_OS_LONGLONG x = factor_ * 
-			(TPIE_OS_LONGLONG)((newBB.get_left() + newBB.get_right()) / 2.0 - xOffset_);
-		    TPIE_OS_LONGLONG y = factor_ *
-			(TPIE_OS_LONGLONG)((newBB.get_lower() + newBB.get_upper()) / 2.0 - yOffset_);
+		    stream_offset_type x = factor_ * 
+			(stream_offset_type)((newBB.get_left() + newBB.get_right()) / 2.0 - xOffset_);
+		    stream_offset_type y = factor_ *
+			(stream_offset_type)((newBB.get_lower() + newBB.get_upper()) / 2.0 - yOffset_);
 		    
 		    //  Compute and set the Hilbert value.
-		    TPIE_OS_LONGLONG hv = compute_hilbert_value(x, y, size_);
+		    stream_offset_type hv = compute_hilbert_value(x, y, size_);
 		    
 		    //  Cache the new node.
-		    cachedNodes_.push(std::pair<rstarnode<coord_t, BTECOLL>*, TPIE_OS_LONGLONG>(newNode, hv));
+		    cachedNodes_.push(std::pair<rstarnode<coord_t, BTECOLL>*, stream_offset_type>(newNode, hv));
 
 		    //  Do not delete this node.
 		    newNode = NULL;	    
@@ -681,8 +681,8 @@ namespace tpie {
 	    
 	    
 	    stream<rectangle<coord_t, bid_t> > amis(get_input_stream());
-	    stream<std::pair<rectangle<coord_t, bid_t>, TPIE_OS_LONGLONG> >* boxUnsorted = new stream<std::pair<rectangle<coord_t, bid_t>, TPIE_OS_LONGLONG> >("unsorted.boxes");
-	    stream<std::pair<rectangle<coord_t, bid_t>, TPIE_OS_LONGLONG> >* boxSorted = new stream<std::pair<rectangle<coord_t, bid_t>, TPIE_OS_LONGLONG> >("sorted.boxes");
+	    stream<std::pair<rectangle<coord_t, bid_t>, stream_offset_type> >* boxUnsorted = new stream<std::pair<rectangle<coord_t, bid_t>, stream_offset_type> >("unsorted.boxes");
+	    stream<std::pair<rectangle<coord_t, bid_t>, stream_offset_type> >* boxSorted = new stream<std::pair<rectangle<coord_t, bid_t>, stream_offset_type> >("sorted.boxes");
 	    
 	    amis.persist(PERSIST_PERSISTENT);
 	    boxUnsorted->persist(PERSIST_PERSISTENT);
@@ -720,7 +720,7 @@ namespace tpie {
 #endif
 	    
 	    coord_t maxExtent = std::max(xMax-xOffset_, yMax-yOffset_) * scaleFactor;
-	    size_ = (TPIE_OS_LONGLONG)(pow((float)2, (int)((log((float)maxExtent)/log((float)2)) + 1.0)));
+	    size_ = (stream_offset_type)(pow((float)2, (int)((log((float)maxExtent)/log((float)2)) + 1.0)));
 	    scan_scale_and_compute_hilbert_value<coord_t> ssb(xOffset_, yOffset_, scaleFactor, size_);
 	    
 	    //  Scan data to scale the midpoint of each MBR such that it fits
@@ -742,12 +742,12 @@ namespace tpie {
 	    memory_size_type               level = 0;
 	    children_count_t             childCounter = 0;
 	    stream_offset_type               nodesCreated = 0;
-	    std::pair<rectangle<coord_t, bid_t>, TPIE_OS_LONGLONG>* currentObject = NULL;
+	    std::pair<rectangle<coord_t, bid_t>, stream_offset_type>* currentObject = NULL;
 	    rectangle<coord_t, bid_t>    bb;
 	    rstarnode<coord_t, BTECOLL>* currentNode = tree_->read_node(NEXT_FREE_BLOCK);
 
-	    stream<std::pair<rectangle<coord_t, bid_t>, TPIE_OS_LONGLONG> >* currentLevel_ = boxSorted;
-	    stream<std::pair<rectangle<coord_t, bid_t>, TPIE_OS_LONGLONG> >* nextLevel_;
+	    stream<std::pair<rectangle<coord_t, bid_t>, stream_offset_type> >* currentLevel_ = boxSorted;
+	    stream<std::pair<rectangle<coord_t, bid_t>, stream_offset_type> >* nextLevel_;
 	    
 	    children_count_t minimumPacking = (fanout_ * 3) / 4;
 	    double increaseRatio = 1.20;
@@ -768,7 +768,7 @@ namespace tpie {
 		currentLevel_->seek(0);
 		
 		//  Create a repository for the next level.
-		nextLevel_   = new stream<std::pair<rectangle<coord_t, bid_t>, TPIE_OS_LONGLONG> >;
+		nextLevel_   = new stream<std::pair<rectangle<coord_t, bid_t>, stream_offset_type> >;
 		childCounter = 0;
 		
 		//  Scan the current level and group up to 'fanout_' items 
@@ -798,7 +798,7 @@ namespace tpie {
 			currentNode->set_covering_rectangle(bb);
 			
 			//  Write the bounding box to the next level's stream.
-			nextLevel_->write_item(std::pair<rectangle<coord_t, bid_t>, TPIE_OS_LONGLONG>(bb,0));
+			nextLevel_->write_item(std::pair<rectangle<coord_t, bid_t>, stream_offset_type>(bb,0));
 			
 			//  Save the node in the tree.
 			delete currentNode;
@@ -839,7 +839,7 @@ namespace tpie {
 		    currentNode->set_covering_rectangle(bb);
 		    
 		    //  Write the bounding box to the next level's stream
-		    nextLevel_->write_item(std::pair<rectangle<coord_t, bid_t>, TPIE_OS_LONGLONG>(bb,0));
+		    nextLevel_->write_item(std::pair<rectangle<coord_t, bid_t>, stream_offset_type>(bb,0));
 		    
 		    //  Save the node in the tree.
 		    delete currentNode;
@@ -910,8 +910,8 @@ namespace tpie {
 	    
 	    
 	    stream<rectangle<coord_t, bid_t> > amis(get_input_stream());
-	    stream<std::pair<rectangle<coord_t, bid_t>, TPIE_OS_LONGLONG> >* boxUnsorted = new stream<std::pair<rectangle<coord_t, bid_t>, TPIE_OS_LONGLONG> >("unsorted.boxes");
-	    stream<std::pair<rectangle<coord_t, bid_t>, TPIE_OS_LONGLONG> >* boxSorted = new stream<std::pair<rectangle<coord_t, bid_t>, TPIE_OS_LONGLONG> >("sorted.boxes");
+	    stream<std::pair<rectangle<coord_t, bid_t>, stream_offset_type> >* boxUnsorted = new stream<std::pair<rectangle<coord_t, bid_t>, stream_offset_type> >("unsorted.boxes");
+	    stream<std::pair<rectangle<coord_t, bid_t>, stream_offset_type> >* boxSorted = new stream<std::pair<rectangle<coord_t, bid_t>, stream_offset_type> >("sorted.boxes");
 	    
 	    amis.persist(PERSIST_PERSISTENT);
 	    boxUnsorted->persist(PERSIST_PERSISTENT);
@@ -949,7 +949,7 @@ namespace tpie {
 #endif
 
 	    coord_t maxExtent = std::max(xMax-xOffset_, yMax-yOffset_) * scaleFactor;
-	    size_ = (TPIE_OS_LONGLONG)(pow((float)2, (int)((log((float)maxExtent)/log((float)2)) + 1.0)));
+	    size_ = (stream_offset_type)(pow((float)2, (int)((log((float)maxExtent)/log((float)2)) + 1.0)));
 	    
 	    scan_scale_and_compute_hilbert_value<coord_t> ssb(xOffset_, yOffset_, scaleFactor, size_);
 	    
@@ -973,12 +973,12 @@ namespace tpie {
 	    unsigned short               counter = 0;
 	    children_count_t             childCounter = 0;
 	    stream_offset_type               nodesCreated = 0;
-	    std::pair<rectangle<coord_t, bid_t>, TPIE_OS_LONGLONG>* currentObject = NULL;
+	    std::pair<rectangle<coord_t, bid_t>, stream_offset_type>* currentObject = NULL;
 	    rectangle<coord_t, bid_t>    bb;
 	    rstarnode<coord_t, BTECOLL>* currentNode = tree_->read_node(NEXT_FREE_BLOCK);
 	    
-	    stream<std::pair<rectangle<coord_t, bid_t>, TPIE_OS_LONGLONG> >* currentLevel_ = boxSorted;
-	    stream<std::pair<rectangle<coord_t, bid_t>, TPIE_OS_LONGLONG> >* nextLevel_;
+	    stream<std::pair<rectangle<coord_t, bid_t>, stream_offset_type> >* currentLevel_ = boxSorted;
+	    stream<std::pair<rectangle<coord_t, bid_t>, stream_offset_type> >* nextLevel_;
 	    
 	    children_count_t minimumPacking = (fanout_ * 3) / 4;
 	    double increaseRatio = 1.20;
@@ -998,7 +998,7 @@ namespace tpie {
 		currentLevel_->seek(0);
 		
 		//  Create a repository for the next level.
-		nextLevel_   = new stream<std::pair<rectangle<coord_t, bid_t>, TPIE_OS_LONGLONG> >;
+		nextLevel_   = new stream<std::pair<rectangle<coord_t, bid_t>, stream_offset_type> >;
 		childCounter = 0;
 		
 		//  Scan the current level and group up to 'fanout_' items 
@@ -1044,7 +1044,7 @@ namespace tpie {
 			    tempNode->set_covering_rectangle(bb);
 			    
 			    //  Write the bounding box to the next level's stream.
-			    nextLevel_->write_item(std::pair<rectangle<coord_t, bid_t>, TPIE_OS_LONGLONG>(bb,0));
+			    nextLevel_->write_item(std::pair<rectangle<coord_t, bid_t>, stream_offset_type>(bb,0));
 			    
 			    //  Save the node in the tree.
 			    tempNode->persist(PERSIST_PERSISTENT);
@@ -1105,7 +1105,7 @@ namespace tpie {
 			tempNode->set_covering_rectangle(bb);
 			
 			//  Write the bounding box to the next level's stream.
-			nextLevel_->write_item(std::pair<rectangle<coord_t, bid_t>, TPIE_OS_LONGLONG>(bb,0));
+			nextLevel_->write_item(std::pair<rectangle<coord_t, bid_t>, stream_offset_type>(bb,0));
 			
 			//  Save the node in the tree.
 			tempNode->persist(PERSIST_PERSISTENT);

@@ -257,7 +257,7 @@ namespace tpie {
 template<class T>
 std::ostream &operator<<(std::ostream &s, tpie::apps::mm_matrix_base<T> &m) 	{
     
-    memory_size_type ii,jj;
+	tpie::memory_size_type ii,jj;
     
     // Iterate over rows
     for (ii = 0; ii < m.rows(); ii++) {

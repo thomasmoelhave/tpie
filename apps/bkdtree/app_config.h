@@ -38,8 +38,8 @@
 #define DEFAULT_TEST_MM_SIZE (1024 * 1024 * 32)
 
 extern bool verbose;
-extern memory_size_type test_mm_size;
-extern stream_offset_type test_size;
+extern tpie::memory_size_type test_mm_size;
+extern tpie::stream_offset_type test_size;
 extern int random_seed;
 
 
