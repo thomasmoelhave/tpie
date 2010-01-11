@@ -1010,29 +1010,30 @@ void * operator new(\
 #define DEPRECATED(func) func
 #endif
 
-
 DEPRECATED(bool TPIE_OS_EXISTS(const std::string & path));
-bool TPIE_OS_EXISTS(const std::string & path) {
+inline bool TPIE_OS_EXISTS(const std::string & path) {
 	return tpie::file_exists(path);
 }
 
 DEPRECATED(bool TPIE_OS_UNLINK(const std::string & path));
-bool TPIE_OS_UNLINK(const std::string & path) {
+inline bool TPIE_OS_UNLINK(const std::string & path) {
 	return tpie::remove(path),true;
 }
 
 DEPRECATED(void TPIE_OS_SRANDOM(unsigned int seed));
-void TPIE_OS_SRANDOM(unsigned int seed) {
+inline void TPIE_OS_SRANDOM(unsigned int seed) {
 	tpie::seed_random(seed);
 }
 
 DEPRECATED(uint32_t TPIE_OS_RANDOM());
-uint32_t TPIE_OS_RANDOM() {
+inline uint32_t TPIE_OS_RANDOM() {
 	return tpie::random();
 }
 
+DEPRECATED(typedef tpie::stream_offset_type TPIE_OS_OFFSET);
+DEPRECATED(typedef tpie::memory_offset_type TPIE_OS_SSIZE_T);
+DEPRECATED(typedef tpie::memory_size_type TPIE_OS_SIZE_T);
 
 #undef DEPRECATED
 
-#endif 
-// _portability_H  //
+#endif // _portability_H
