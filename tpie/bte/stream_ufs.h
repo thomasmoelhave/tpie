@@ -421,7 +421,7 @@ namespace tpie {
 		    if (m_header->m_blockSize != 
 			STREAM_UFS_BLOCK_FACTOR * m_osBlockSize) {
 			TP_LOG_WARNING_ID("Stream has different block factor than the default;");
-			TP_LOG_WARNING_ID("\tStream block factor: " << static_cast<TPIE_OS_LONGLONG>(m_header->m_blockSize/m_osBlockSize));
+			TP_LOG_WARNING_ID("\tStream block factor: " << (m_header->m_blockSize/m_osBlockSize));
 			TP_LOG_WARNING_ID("\tDefault block factor: " << STREAM_UFS_BLOCK_FACTOR);
 			TP_LOG_WARNING_ID("This may cause problems in some existing applications.");
 		    }
@@ -504,7 +504,7 @@ namespace tpie {
 	    
 		TP_LOG_FATAL_ID ("Object is too big (object size/block size):");
 		TP_LOG_FATAL_ID (sizeof(T));
-		TP_LOG_FATAL_ID (static_cast<TPIE_OS_LONGLONG>(m_header->m_blockSize));
+		TP_LOG_FATAL_ID (m_header->m_blockSize);
 	    
 		return;
 	    }

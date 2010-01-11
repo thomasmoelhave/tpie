@@ -111,11 +111,11 @@ err manager::register_deallocation(memory_size_type sz)
 
     if (sz > used) {
        TP_LOG_WARNING("Error in deallocation sz=");
-       TP_LOG_WARNING(static_cast<TPIE_OS_LONG>(sz));
+       TP_LOG_WARNING(sz);
        TP_LOG_WARNING(", remaining=");
-       TP_LOG_WARNING(static_cast<TPIE_OS_LONG>(remaining));
+       TP_LOG_WARNING(remaining);
        TP_LOG_WARNING(", user_limit=");
-       TP_LOG_WARNING(static_cast<TPIE_OS_LONG>(user_limit));
+       TP_LOG_WARNING(user_limit);
        TP_LOG_WARNING("\n");
        TP_LOG_FLUSH_LOG;
        used = 0;
@@ -125,9 +125,9 @@ err manager::register_deallocation(memory_size_type sz)
     used      -= sz;    
 
     TP_LOG_MEM_DEBUG("mm_register De-allocated ");
-    TP_LOG_MEM_DEBUG(static_cast<TPIE_OS_LONG>(sz));
+    TP_LOG_MEM_DEBUG(sz);
     TP_LOG_MEM_DEBUG("; ");
-    TP_LOG_MEM_DEBUG(static_cast<TPIE_OS_LONG>(remaining));
+    TP_LOG_MEM_DEBUG(remaining);
     TP_LOG_MEM_DEBUG(" now available.\n");
     TP_LOG_FLUSH_LOG;
     

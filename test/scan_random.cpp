@@ -28,7 +28,7 @@ scan_random::scan_random(stream_offset_type count, int seed) :
     m_max(count), m_remaining(count) {
 
     TP_LOG_APP_DEBUG("scan_random seed = ");
-    TP_LOG_APP_DEBUG(static_cast<TPIE_OS_LONGLONG>(seed));
+    TP_LOG_APP_DEBUG(seed);
     TP_LOG_APP_DEBUG('\n');
 
     TPIE_OS_SRANDOM(seed);

@@ -277,7 +277,7 @@ namespace tpie {
 
 		TP_LOG_FATAL_ID ("header: incorrect item size (expected/obtained):");
 		TP_LOG_FATAL_ID (sizeof(T));
-		TP_LOG_FATAL_ID (static_cast<TPIE_OS_LONGLONG>(m_header->m_itemSize));
+		TP_LOG_FATAL_ID (m_header->m_itemSize);
 	    
 		return -1;
 	    
@@ -286,8 +286,8 @@ namespace tpie {
 	    if (m_header->m_osBlockSize != os_block_size()) {
 	    
 		TP_LOG_FATAL_ID ("header: incorrect OS block size (expected/obtained):");
-		TP_LOG_FATAL_ID (static_cast<TPIE_OS_LONGLONG>(os_block_size()));
-		TP_LOG_FATAL_ID (static_cast<TPIE_OS_LONGLONG>(m_header->m_osBlockSize));
+		TP_LOG_FATAL_ID (os_block_size());
+		TP_LOG_FATAL_ID (m_header->m_osBlockSize);
 	    
 		return -1;
 	    
