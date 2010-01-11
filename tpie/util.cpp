@@ -16,18 +16,19 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
+#include <boost/random.hpp>
+#include <tpie/util.h>
 
-#ifndef __TPIE_UTIL_H__
-#define __TPIE_UTIL_H__
-
-#include <tpie/types.h>
 namespace tpie {
+  
+static boost::mt19937 rng;
 
-template <typename T>
-inline void unused(const T & x) {(void)x;}
+void seed_random(uint32_t seed) {
+    rng.seed(seed);
+}
 
-void seed_random(uint32_t seed);
-uint32_t random();
+uint32_t random() {
+    return rng();
+}
 
 }
-#endif //__TPIE_UTIL_H__
