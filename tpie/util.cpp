@@ -38,4 +38,8 @@ void remove(const std::string & path) {
 		throw std::runtime_error(std::string("Unable to delete ")+path);
 }
 
+bool file_exists(const std::string & path) {
+	return boost::filesystem::exists(path);
+}
+
 }

@@ -27,9 +27,12 @@ template <typename T>
 inline void unused(const T & x) {(void)x;}
 
 void seed_random(uint32_t seed);
+
 uint32_t random();
 
 void remove(const std::string & path);
+
+bool file_exists(const std::string & path);
 
 }
 #endif //__TPIE_UTIL_H__
