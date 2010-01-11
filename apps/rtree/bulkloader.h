@@ -273,9 +273,9 @@ namespace tpie {
 	    //                 margin[bb(second group)]
 	    //  overlap-value: area[bb(first group) \cap bb(second group)]
 	    
-	    VarArray2D<coord_t> areaValue(2,distributions);
-	    VarArray2D<coord_t> marginValue(2,distributions);
-	    VarArray2D<coord_t> overlapValue(2,distributions);
+	    var_array_2d<coord_t> areaValue(2,distributions);
+	    var_array_2d<coord_t> marginValue(2,distributions);
+	    var_array_2d<coord_t> overlapValue(2,distributions);
 	    
 	    //  "For each axis 
 	    //     Sort the entries by their lower then by their upper 
