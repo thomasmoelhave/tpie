@@ -629,7 +629,7 @@ namespace tpie {
 		}
 	    }
 	    TP_LOG_DEBUG_ID("partition_and_merge(): merge arity = "
-				<< static_cast<TPIE_OS_OUTPUT_SIZE_T>(merge_arity));
+				<< merge_arity);
 	    if (merge_arity < 2) {
 		return INSUFFICIENT_MAIN_MEMORY;
 	    }
@@ -745,9 +745,9 @@ namespace tpie {
   
 	    //Monitoring prints.
 	    TP_LOG_DEBUG_ID("Number of runs from run formation is "
-			    << static_cast<TPIE_OS_OUTPUT_SIZE_T>(nb_orig_substr));
+			    << nb_orig_substr);
 	    TP_LOG_DEBUG_ID("Merge arity is " 
-				<< static_cast<TPIE_OS_OUTPUT_SIZE_T>(merge_arity));
+				<< merge_arity);
   
   
 	    k = 0;

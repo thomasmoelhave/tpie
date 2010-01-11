@@ -169,7 +169,7 @@ int main(int argc, char **argv) {
   delete is;
 
   std::cout << "Tree size: " << u_btree->size() << " elements. Tree height: " 
-       << static_cast<TPIE_OS_OUTPUT_SIZE_T>(u_btree->height()) << ".\n";
+       << (u_btree->height()) << ".\n";
   wt.reset();
 
   delete u_btree;
@@ -207,7 +207,7 @@ int main(int argc, char **argv) {
   std::cout << "END Insert " << wt << "\n";
   
   std::cout << "Tree size: " << u_btree->size() << " elements. Tree height: " 
-       << static_cast<TPIE_OS_OUTPUT_SIZE_T>(u_btree->height()) << ".\n";
+       << (u_btree->height()) << ".\n";
   wt.reset();
 
 
@@ -258,7 +258,7 @@ int main(int argc, char **argv) {
   
 
   std::cout << "Tree size: " << u_btree->size() << " elements. Tree height: " 
-       << static_cast<TPIE_OS_OUTPUT_SIZE_T>(u_btree->height()) << ".\n";
+       << (u_btree->height()) << ".\n";
 
   stats_tree bts = u_btree->stats();
   delete u_btree;

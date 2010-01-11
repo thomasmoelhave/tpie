@@ -59,10 +59,10 @@ std::string tempname::tpie_name(const std::string& post_base, const std::string&
 	std::string path;	
 	for(int i=0; i < 42; ++i) {
 		if(post_base.empty())
-			path = base_dir + TPIE_OS_DIR_DELIMITER + base_name + "_" + tpie_mktemp() + "." + extension;
+			path = base_dir + directory_delimiter + base_name + "_" + tpie_mktemp() + "." + extension;
 		else 
-			path = base_dir + TPIE_OS_DIR_DELIMITER + base_name + "_" + post_base + "_" + tpie_mktemp() + "." + extension;
-		if ( !TPIE_OS_EXISTS(path) )
+			path = base_dir + directory_delimiter + base_name + "_" + post_base + "_" + tpie_mktemp() + "." + extension;
+		if ( !file_exists(path) )
 			return path;
 	}
 	throw std::runtime_error("Unable to find free name for temporary file");

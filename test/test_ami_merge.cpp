@@ -94,10 +94,10 @@ int main(int argc, char **argv)
     
     if (verbose) {
         std::cout << "test_size = " << test_size << ".\n";
-        std::cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ".\n";
+        std::cout << "test_mm_size = " << test_mm_size << ".\n";
         std::cout << "random_seed = " << random_seed << ".\n";
     } else {
-        std::cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << random_seed;
+        std::cout << test_size << ' ' << test_mm_size << ' ' << random_seed;
     }
     
     // Set the amount of main memory:

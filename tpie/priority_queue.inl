@@ -20,8 +20,8 @@ priority_queue<T, Comparator, OPQType>::priority_queue(double f) { // constructo
 	assert(f<= 1.0 && f > 0);
 	memory_size_type mm_avail = MM_manager.consecutive_memory_available();
 	TP_LOG_DEBUG("priority_queue: Memory limit: " 
-		<< static_cast<TPIE_OS_OUTPUT_SIZE_T>(mm_avail/1024/1024) << "mb("
-		<< static_cast<TPIE_OS_OUTPUT_SIZE_T>(mm_avail) << "bytes)" << "\n");
+		     << (mm_avail/1024/1024) << "mb("
+		<< mm_avail << "bytes)" << "\n");
 	mm_avail = (memory_size_type)((double)mm_avail*f);
 	init(mm_avail);
 }
@@ -30,17 +30,17 @@ template<typename T, typename Comparator, typename OPQType>
 priority_queue<T, Comparator, OPQType>::priority_queue(memory_size_type mm_avail) { // constructor absolute mem
 	assert(mm_avail <= MM_manager.memory_limit() && mm_avail > 0);
 	TP_LOG_DEBUG("priority_queue: Memory limit: " 
-		<< static_cast<TPIE_OS_OUTPUT_SIZE_T>(mm_avail/1024/1024) << "mb("
-		<< static_cast<TPIE_OS_OUTPUT_SIZE_T>(mm_avail) << "bytes)" << "\n");
+		<< (mm_avail/1024/1024) << "mb("
+		<< mm_avail << "bytes)" << "\n");
 	init(mm_avail);
 }
 
 template<typename T, typename Comparator, typename OPQType>
 void priority_queue<T, Comparator, OPQType>::init(memory_size_type mm_avail) { // init 
 	TP_LOG_DEBUG("m_for_queue: " 
-		<< static_cast<TPIE_OS_OUTPUT_SIZE_T>(mm_avail) << "\n");
+		<< mm_avail << "\n");
 	TP_LOG_DEBUG("memory before alloc: " 
-		<< static_cast<TPIE_OS_OUTPUT_SIZE_T>(MM_manager.memory_available()) << "b" << "\n");
+		<< MM_manager.memory_available() << "b" << "\n");
 	{
 		//Calculate M
 		setting_m = mm_avail/sizeof(T);
@@ -111,9 +111,9 @@ void priority_queue<T, Comparator, OPQType>::init(memory_size_type mm_avail) { /
 	buffer_start = 0;
 
 	TP_LOG_DEBUG("priority_queue" << "\n" 
-			<< "\tsetting_k: " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(setting_k) << "\n" 
-			<< "\tsetting_mmark: " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(setting_mmark) << "\n" 
-			<< "\tsetting_m: " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(setting_m) << "\n");
+			<< "\tsetting_k: " << setting_k << "\n" 
+			<< "\tsetting_mmark: " << setting_mmark << "\n" 
+			<< "\tsetting_m: " << setting_m << "\n");
 
 	assert(setting_k > 0);
 	assert(current_r == 0);
@@ -155,7 +155,7 @@ void priority_queue<T, Comparator, OPQType>::init(memory_size_type mm_avail) { /
 	ss << tempname::tpie_name("pq_data");
 	datafiles = ss.str();
 	TP_LOG_DEBUG("memory after alloc: " 
-		<< static_cast<TPIE_OS_OUTPUT_SIZE_T>(MM_manager.memory_available()) << "b" << "\n");
+		<< MM_manager.memory_available() << "b" << "\n");
 }
 
 template <typename T, typename Comparator, typename OPQType>
@@ -302,8 +302,8 @@ template <typename T, typename Comparator, typename OPQType>
 void priority_queue<T, Comparator, OPQType>::dump() {
 	TP_LOG_DEBUG( "--------------------------------------------------------------" << "\n"
 			<< "DUMP:\tTotal size: " 
-			<< static_cast<TPIE_OS_OUTPUT_SIZE_T>(m_size) << ", OPQ size: " 
-			<< static_cast<TPIE_OS_OUTPUT_SIZE_T>(opq->size()) 
+			<< m_size << ", OPQ size: " 
+			<< opq->size()
 			<< ", OPQ top: ");
 	if(opq->size()>0) {
 		TP_LOG_DEBUG("" << opq->top());
@@ -311,11 +311,11 @@ void priority_queue<T, Comparator, OPQType>::dump() {
 		TP_LOG_DEBUG("empty");
 	}
 	TP_LOG_DEBUG(", current_r: " 
-			<< static_cast<TPIE_OS_OUTPUT_SIZE_T>(current_r) << "\n"
+			<< current_r << "\n"
 			<< "\tBuffer size: " 
-			<< static_cast<TPIE_OS_OUTPUT_SIZE_T>(buffer_size) 
+			<< buffer_size 
 			<< ", buffer start: " 
-			<< static_cast<TPIE_OS_OUTPUT_SIZE_T>(buffer_start) 
+			<< buffer_start
 			<< "\n" << "\t");
 
 	// output main buffer
@@ -331,8 +331,8 @@ void priority_queue<T, Comparator, OPQType>::dump() {
 	for(stream_offset_type i =0; i<current_r; i++) {
 		TP_LOG_DEBUG("GROUP " << i << " ------------------------------------------------------" << "\n");
 		TP_LOG_DEBUG("\tGroup Buffer, size: " 
-				<< static_cast<TPIE_OS_OUTPUT_SIZE_T>(group_size(i)) << ", start: " 
-				<< static_cast<TPIE_OS_OUTPUT_SIZE_T>(group_start(i)) << "\n" << "\t\tBuffer(no ('s): ");
+				<< group_size(i) << ", start: " 
+				<< group_start(i) << "\n" << "\t\tBuffer(no ('s): ");
 
 		if(i == 0) { // group buffer 0 is special
 			TP_LOG_DEBUG("internal: ");
@@ -360,7 +360,7 @@ void priority_queue<T, Comparator, OPQType>::dump() {
 		// output slots
 		for(stream_offset_type j = i*setting_k; j<i*setting_k+setting_k; j++) {
 			TP_LOG_DEBUG("\t\tSlot " << j << "(size: " 
-					<< static_cast<TPIE_OS_OUTPUT_SIZE_T>(slot_size(j)) 
+					<< slot_size(j)
 					<< " start: " << slot_start(j) << "):");
 
 			stream<T>* instream = new stream<T>(slot_data(j));
@@ -391,7 +391,7 @@ memory_size_type priority_queue<T, Comparator, OPQType>::free_slot(memory_size_t
 	memory_size_type i;
 	if(group>=setting_k) {
 		TP_LOG_FATAL_ID("Error, queue is full no free slots in invalid group " 
-			<< static_cast<TPIE_OS_OUTPUT_SIZE_T>(group) << ". Increase k.");
+			<< group << ". Increase k.");
 		exit(-1);
 	}
 	for(i = group*setting_k; i < group*setting_k+setting_k; i++) {

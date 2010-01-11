@@ -130,11 +130,6 @@ inline TPIE_OS_TIME_T TPIE_OS_TIME(TPIE_OS_TIME_T* timep) {
 }
 #endif
 
-#ifdef _WIN32
-//typedef __int64 tpie::stream_offset_type;
-#else
-//typedef off_t tpie::stream_offset_type;
-#endif	
 
 #ifdef _WIN32
 //windows doesn't have a default way
@@ -170,8 +165,6 @@ extern std::ostream& operator<<(std::ostream& s, const tpie::stream_size_type x)
 // typedef ssize_t tpie::memory_offset_type; 
 // typedef size_t tpie::memory_size_type;
 #endif	
-
-#define TPIE_OS_OUTPUT_SIZE_T tpie::stream_offset_type
 
 #ifdef _WIN32
 enum TPIE_OS_FLAG {
@@ -229,12 +222,6 @@ typedef tpie::stream_size_type block_id_type;
 //////////////////////////////////////////////
 // macros                                   //
 //////////////////////////////////////////////
-
-#ifdef _WIN32
-#define TPIE_OS_DIR_DELIMITER "\\"
-#else
-#define TPIE_OS_DIR_DELIMITER "/"
-#endif
 
 #ifdef _WIN32	
 #define TPIE_OS_SET_LIMITS_BODY	\
@@ -1033,6 +1020,7 @@ inline uint32_t TPIE_OS_RANDOM() {
 DEPRECATED(typedef tpie::stream_offset_type TPIE_OS_OFFSET);
 DEPRECATED(typedef tpie::memory_offset_type TPIE_OS_SSIZE_T);
 DEPRECATED(typedef tpie::memory_size_type TPIE_OS_SIZE_T);
+DEPRECATED(typedef tpie::stream_size_type TPIE_OS_OUTPUT_SIZE_T);
 
 #undef DEPRECATED
 
