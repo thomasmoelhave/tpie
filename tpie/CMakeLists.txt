@@ -53,29 +53,30 @@ set (BTE_HEADERS
 	)
 
 set (STREAMING_HEADERS
-  streaming/sort.h
-  streaming/buffer.h
-  streaming/stream.h
-  streaming/util.h
-  streaming/memory.h
+#  streaming/sort.h
+#  streaming/buffer.h
+#  streaming/stream.h
+#  streaming/util.h
+#  streaming/memory.h
   )
 
 set (STREAM_HEADERS
-  stream/exception.h
-  stream/concepts.h
-  stream/stdio_bte.h
+#  stream/exception.h
+#  stream/concepts.h
+#  stream/stdio_bte.h
   )
 
 set (STREAM_SOURCES
-  stream/fd_file_base.cpp
-  stream/stdio_bte.cpp
+#  stream/fd_file_base.cpp
+#  stream/stdio_bte.cpp
+   file_accessor/stdio.cpp
   )
 
 if (WIN32)
   
 else(WIN32)
-  set (STREAM_SOURCES ${STREAM_SOURCES} stream/posix_bte.cpp)
-  set (STREAM_HEADERS ${STREAM_HEADERS} stream/posix_bte.h)
+#  set (STREAM_SOURCES ${STREAM_SOURCES} stream/posix_bte.cpp)
+#  set (STREAM_HEADERS ${STREAM_HEADERS} stream/posix_bte.h)
 endif(WIN32)
 
 set (OTHER_HEADERS
@@ -131,7 +132,7 @@ set (BTE_SOURCES
 	)
 
 set (OTHER_SOURCES
-        streaming/memory.cpp
+#        streaming/memory.cpp
 	#bit.cpp
 	#bit_matrix.cpp
 	cpu_timer.cpp

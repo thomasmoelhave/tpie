@@ -31,5 +31,21 @@ struct invalid_argument_exception: public exception {
 	invalid_argument_exception(const std::string & s): exception(s) {};
 };
 
+struct stream_exception : public exception {
+	stream_exception(const std::string & s): exception(s) {};
+};
+
+struct io_exception: public stream_exception {
+	io_exception(const std::string & s): stream_exception(s) {};
+};
+
+struct invalid_file_exception: public stream_exception {
+	invalid_file_exception(const std::string & s): stream_exception(s) {};
+};
+
+struct end_of_stream_exception: public stream_exception {
+	end_of_stream_exception(): stream_exception("") {};
+};
+
 }
 #endif //__TPIE_EXCEPTION_H__
