@@ -35,6 +35,7 @@ foreach(bte ${BTES})
   endforeach(test)
 endforeach(bte)
 
-
 add_test(file_accessor_stdio stream_test file_accessor_stdio)
+add_test(file_stream stream_test file_stream)
+add_test(substreams stream_test substreams)
 #add_test(fd_file stream_test fd_file)

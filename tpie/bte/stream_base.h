@@ -119,7 +119,7 @@ namespace tpie {
 	    }
 	
 	    // Inquire the OS block size.
-	    memory_size_type os_block_size () const {
+	    static memory_size_type os_block_size () {
 			return TPIE_OS_BLOCKSIZE();
 	    }
 	

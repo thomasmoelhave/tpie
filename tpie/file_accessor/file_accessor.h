@@ -28,6 +28,7 @@ class file_accessor {
 protected:
 	std::string m_path;
 	stream_size_type m_size;
+	memory_size_type m_userDataSize;
 public:
 	virtual void open(const std::string & path, 
 					  bool read, 
@@ -45,6 +46,10 @@ public:
 	}
 	inline const std::string & path() const {
 		return m_path;
+	}
+
+	inline memory_size_type user_data_size() const {
+		return m_userDataSize;
 	}
 };
 

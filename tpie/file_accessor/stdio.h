@@ -28,7 +28,7 @@ class stdio: public file_accessor {
 private:
 	FILE * m_fd;
 	memory_size_type m_itemSize;
-	memory_size_type m_userDataSize;
+
 	bool m_read;
 	bool m_write;
 
