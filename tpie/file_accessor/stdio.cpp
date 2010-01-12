@@ -21,12 +21,15 @@
 //#include <tpie/stream/header.h>
 #include <tpie/mm_base.h>
 #include <tpie/mm_manager.h>
-#include <tpie/stream/exception.h>
+#include <tpie/exception.h>
 #include <string.h>
 
 #include <tpie/file_accessor/stdio.h>
 namespace tpie {
 namespace file_accessor {
+
+stdio::stdio():
+	m_fd(0) {}
 
 void stdio::read_header() {
 	stream_header_t header;
@@ -82,9 +85,10 @@ void stdio::open(const std::string & path,
 	m_path = path;
 	m_itemSize=itemSize;
 	m_userDataSize=userDataSize;
+	m_read = read;
+	m_write = write;
 	if (!write && !read)
 		throw invalid_argument_exception("Either read or write must be specified");
-
 	if (write && !read) {
 		m_fd = ::fopen(path.c_str(), "wb");
 		if (m_fd == 0) throw_errno();
@@ -101,19 +105,17 @@ void stdio::open(const std::string & path,
 			m_fd = ::fopen(path.c_str(), "w+b");
 			if (m_fd == 0) throw_errno();
 			m_size=0;
-			write_header(true);
+			write_header(false);
 		} else {
 			read_header();
-			write_header(true);
+			write_header(false);
 		}
 	}
 	setvbuf(m_fd, NULL, _IONBF, 0);
-	m_read = read;
-	m_write = write;
 }
 
 void stdio::close() {
-	if (m_fd && m_write) write_header(false);
+	if (m_fd && m_write) write_header(true);
 	if (m_fd != 0) ::fclose(m_fd);
 	m_fd=0;
 }

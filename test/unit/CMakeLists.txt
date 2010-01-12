@@ -36,5 +36,5 @@ foreach(bte ${BTES})
 endforeach(bte)
 
 
-add_test(posix_bte stream_test posix_bte)
-add_test(fd_file stream_test fd_file)
+add_test(file_accessor_stdio stream_test file_accessor_stdio)
+#add_test(fd_file stream_test fd_file)

@@ -37,6 +37,7 @@ private:
 	void throw_errno();
 	
 public:
+	stdio();
 	virtual void open(const std::string & path, 
 					  bool read, 
 					  bool write, 
