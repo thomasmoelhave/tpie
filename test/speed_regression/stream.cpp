@@ -18,21 +18,18 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #include "../app_config.h"
 
-#define REV 10000
+#define REV 100000
 
-#if(REV < 1876)
+#if(REV < 5)
 #include <tpie/stream.h>
 #else
-#include <tpie/stream/fd_file.h>
+#include <tpie/file_stream.h>
 #endif
 #include <iostream>
 #include "testtime.h"
 
-#if(REV < 1876)
+#if(REV < 5)
 using namespace tpie::ami;
-
-#else
-using namespace tpie::stream;
 #endif
 using namespace tpie::test;
 
@@ -50,13 +47,10 @@ int main() {
 		uint64_t x=42;
 		for(size_t i=0; i < size*1024; ++i) s.write_item(x);
 #else
-		fd_file<uint64_t, false, true> f;
-		f.open("tmp");
-		{
-			fd_file<uint64_t, false, true>::stream s(f, 0);
-			uint64_t x=42;
-			for(size_t i=0; i < size*1024; ++i) s.write(x);
-		}
+		file_stream<uint64_t> s;
+		s.open("tmp", file_base::write);
+		uint64_t x=42;
+		for(size_t i=0; i < size*1024; ++i) s.write(x);
 #endif
 	}
 	getTestRealtime(end);
@@ -65,19 +59,20 @@ int main() {
 	
 	getTestRealtime(start);
 	{
-#if(REV < 1876)
+		uint64_t y=0;
+#if(REV < 5)
 		stream<uint64_t> s("tmp", READ_STREAM);
-		uint64_t * x;
-		for(size_t i=0; i < size*1024; ++i) s.read_item(&x);
-#else
-		fd_file<uint64_t, true, false> f;
-		f.open("tmp");
-		{
-			fd_file<uint64_t, true, false>::stream s(f, 0);
-			uint64_t x;
-			for(size_t i=0; i < size*1024; ++i) x = s.read();
+		for(size_t i=0; i < size*1024; ++i) {
+			uint64_t * x;
+			s.read_item(&x);
+			y ^= x;
 		}
+#else
+		file_stream<uint64_t> s;
+		s.open("tmp", file_base::read);
+		for(size_t i=0; i < size*1024; ++i) y ^= s.read();
 #endif
+		if (y==777) std::cout << " " << std::endl;
 	}
 	getTestRealtime(end);
 	std::cout << " " << testRealtimeDiff(start,end);
@@ -87,16 +82,13 @@ int main() {
 	{
 		uint64_t x[1024];
 		for(int i=0; i < 1024; ++i) x[i]=42;
-#if(REV < 1876)
+#if(REV < 5)
 		stream<uint64_t> s("tmp", WRITE_STREAM);
 		for(size_t i=0; i < size; ++i) s.write_array(x,1024);
 #else
-		fd_file<uint64_t, false, true> f;
-		f.open("tmp");
-		{
-			fd_file<uint64_t, false, true>::stream s(f, 0);
-			for(size_t i=0; i < size; ++i) s.write((uint64_t*)x, x+1024);
-		}
+		file_stream<uint64_t> s;
+		s.open("tmp", file_base::write);
+		for(size_t i=0; i < size; ++i) s.write((uint64_t*)x, x+1024);
 #endif
 	}
 	getTestRealtime(end);
@@ -106,19 +98,24 @@ int main() {
 	getTestRealtime(start);
 	{
 		uint64_t x[1024];
+		uint64_t y=0;
 		for(uint64_t i=0; i < 1024; ++i) x[i]=42;
-		
-#if(REV < 1876)
+#if(REV < 5)
 		stream<uint64_t> s("tmp", READ_STREAM);
-		for(size_t i=0; i < size; ++i) {TPIE_OS_OFFSET y=1024; s.read_array(x,&y);}
-#else
-		fd_file<uint64_t, true, false> f;
-		f.open("tmp");
-		{
-			fd_file<uint64_t, true, false>::stream s(f, 0);
-			for(size_t i=0; i < size; ++i) s.read((uint64_t*)x, x+1024);
+        for(size_t i=0; i < size; ++i) {
+			stream_offset_type z=1024; 
+			s.read_array(x,&z);
+			for(uint64_t j=0; j < y; ++j) y ^= x[j];
 		}
+#else
+		file_stream<uint64_t> s;
+		s.open("tmp", file_base::read);
+		for(size_t i=0; i < size; ++i) {
+			s.read((uint64_t*)x, x+1024);
+			for(uint64_t j=0; j < y; ++j) y ^= x[j];
+		}			
 #endif
+		if (y==777) std::cout << " " << std::endl;
 	}
 	getTestRealtime(end);
 	std::cout << " " << testRealtimeDiff(start,end) << std::endl;

@@ -2,23 +2,24 @@
 d=$(pwd)
 rm -rf stream.dat
 cp stream.cpp stream.cpp~ 
-for rev in 1644 1700 1800 1875 HEAD; do
+branch=$(git branch -a | sed -nre 's/[*] //p')
+for rev in 0 1 2 3 4 HEAD; do
     cd $d
     rrev=$rev
+    tag=stream_speed_regression_test_point_$rev
     if [[ $rev == "HEAD" ]]; then
 	rrev=100000
+	tag=$branch
     fi
     sed -re "s/\#define REV .*/\#define REV $rrev/" -i stream.cpp
-    if cd ../../tpie/ && svn up -r "$rev" && make clean && make && cd $d && make clean && make stream CFLAGS="-DREV=$rev"; then
-		cd ../../tpie/
-		R=$(svn info | sed -nre 's/Revision: //p')
-		cd $d
-		printf "$R" | tee -a stream.dat
-		rm -rf tmp
-		./stream | tee -a stream.dat
+    if cd ../../ && git checkout $tag -f tpie/ && cd tpie && make clean && make && cd $d && make clean && make stream CFLAGS="-DREV=$rev"; then
+	cd $d
+	printf "$rrev" | tee -a stream.dat
+	rm -rf tmp
+	./stream | tee -a stream.dat
     else
-		cd $d
-		echo "$rev Build failed" | tee -a stream.dat
+	cd $d
+	echo "$rev Build failed" | tee -a stream.dat
     fi
 done
 mv stream.cpp~ stream.cpp
