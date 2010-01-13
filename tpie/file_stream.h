@@ -72,7 +72,7 @@ public:
 		m_stream.write(start, end);
 	}
 
-	inline const item_type & read() {
+	inline item_type & read() {
 		return m_stream.read();
 	}
 	
@@ -83,6 +83,10 @@ public:
 
 	inline stream_size_type offset() const {
 		return m_stream.offset();
+	}
+
+	inline const std::string & path() const {
+		return m_file.path();
 	}
 
 	inline stream_size_type size() const {

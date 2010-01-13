@@ -62,8 +62,8 @@ namespace tpie {
 namespace ami {
 
 // Forward references.
-template<class coord_t, memory_size_type dim, class BTECOLL> class kdtree_leaf;
-template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL> class kdtree_node;
+template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL> class kdtree_leaf;
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL> class kdtree_node;
 
 /** A global object storing the default parameter values. */
 const kdtree_params _kdtree_params_default = kdtree_params();
@@ -77,7 +77,7 @@ const kdtree_params _kdtree_params_default = kdtree_params();
 ///////////////////////////////////////////////////////////////////////////
 // The kdtree class.
 ///////////////////////////////////////////////////////////////////////////
-template<class coord_t, memory_size_type dim, class Bin_node=kdtree_bin_node_default<coord_t, dim>, class BTECOLL = bte::COLLECTION >
+template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node=kdtree_bin_node_default<coord_t, dim>, class BTECOLL = bte::COLLECTION >
 class kdtree {
 public:
 
@@ -138,7 +138,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// Reports the \p k nearest neighbors of point \p p.
 	///////////////////////////////////////////////////////////////////////////
-	stream_offset_type k_nn_query(const point_t &p, stream_t* stream, stream_offset_type k);
+	TPIE_OS_OFFSET k_nn_query(const point_t &p, stream_t* stream, TPIE_OS_OFFSET k);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// Reports all points inside the window determined by \p p1 and \p p2. If
@@ -147,7 +147,7 @@ public:
 	/// written out, and (b) the weights of nodes and leaves are used to
 	/// speed up the search.
 	///////////////////////////////////////////////////////////////////////////
-	stream_offset_type window_query(const point_t& p1, const point_t& p2, stream_t* stream);
+	TPIE_OS_OFFSET window_query(const point_t& p1, const point_t& p2, stream_t* stream);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// Finds a point within the tree; returns true if found, false otherwise.
@@ -169,7 +169,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// Return the number of points stored in the tree.
 	///////////////////////////////////////////////////////////////////////////
-	stream_offset_type size() const { return header_.size; }
+	TPIE_OS_OFFSET size() const { return header_.size; }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// Sets the persistence. It passes per along to the two block
@@ -226,7 +226,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// Inquires the number of Bin_node's.
 	///////////////////////////////////////////////////////////////////////////
-	stream_offset_type bin_node_count() const { return bin_node_count_; }
+	TPIE_OS_OFFSET bin_node_count() const { return bin_node_count_; }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// Metainformation about the tree.
@@ -237,7 +237,7 @@ public:
 		point_t mbr_lo;
 		point_t mbr_hi;
 		bid_t root_bid;
-		stream_offset_type size;
+		TPIE_OS_OFFSET size;
 		link_type_t root_type;
 		unsigned char store_weights;
 		unsigned char use_exact_split;
@@ -310,7 +310,7 @@ protected:
 	stats_tree stats_;
 
 	/** The total number of bin nodes. */
-	stream_offset_type bin_node_count_;
+	TPIE_OS_OFFSET bin_node_count_;
 
 	/** Base path name. */
 	std::string name_;
@@ -318,13 +318,13 @@ protected:
 	/** Various initialization common to all constructors. */
 	void shared_init(const std::string& base_file_name, collection_type type);
 
-	stream_offset_type real_median(stream_offset_type sz) { return (sz - 1) / 2; }
-	memory_size_type real_median(memory_size_type sz) { return (sz - 1) / 2; }
+	TPIE_OS_OFFSET real_median(TPIE_OS_OFFSET sz) { return (sz - 1) / 2; }
+	TPIE_OS_SIZE_T real_median(TPIE_OS_SIZE_T sz) { return (sz - 1) / 2; }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// Returns the position of the median point.
 	///////////////////////////////////////////////////////////////////////////
-	stream_offset_type median(stream_offset_type sz) {
+	TPIE_OS_OFFSET median(TPIE_OS_OFFSET sz) {
 #if TPIE_AMI_KDTREE_USE_REAL_MEDIAN
 		return real_median(sz);
 #else
@@ -339,7 +339,7 @@ protected:
 	///////////////////////////////////////////////////////////////////////////
 	// Returns the position of the median point.
 	///////////////////////////////////////////////////////////////////////////
-	memory_size_type median(memory_size_type sz) {
+	TPIE_OS_SIZE_T median(TPIE_OS_SIZE_T sz) {
 #if TPIE_AMI_KDTREE_USE_REAL_MEDIAN
 		return real_median(sz);
 #else
@@ -351,7 +351,7 @@ protected:
 #endif
 	}
 
-	memory_size_type max_intranode_height(bid_t bid) {
+	TPIE_OS_SIZE_T max_intranode_height(bid_t bid) {
 		return (bid == header_.root_bid ? 
 				params_.max_intraroot_height: 
 				params_.max_intranode_height);
@@ -363,14 +363,14 @@ protected:
 	class bn_context {
 	public:
 		bn_context() {}
-		bn_context(memory_size_type _i, memory_size_type _h, memory_size_type _d): 
+		bn_context(TPIE_OS_SIZE_T _i, TPIE_OS_SIZE_T _h, TPIE_OS_SIZE_T _d): 
 			i(_i), h(_h), d(_d) {}
 		/** the index of the current bin node. */
-		memory_size_type i; 
+		TPIE_OS_SIZE_T i; 
 		/** the depth (height) of the current bin node. */
-		memory_size_type h; 
+		TPIE_OS_SIZE_T h; 
 		/** the split dimension of the current bin node. */ 
-		memory_size_type d; 
+		TPIE_OS_SIZE_T d; 
 	};
 
 	// Forward reference.
@@ -384,16 +384,16 @@ protected:
 		/** The grid to which this matrix refers to. */ 
 		grid* g;
 		/** The number of strips in g spanned by this sub-grid. */
-		memory_size_type gt[dim];
+		TPIE_OS_SIZE_T gt[dim];
 		/** The coordinates of the grid lines relative to g. The real
 		 * coordinates: g->l[i][gl[i]] */
-		memory_size_type gl[dim];
+		TPIE_OS_SIZE_T gl[dim];
 		/** The grid counts. It's an array of length sz (the number of cells). */
-		memory_size_type* c;
+		TPIE_OS_SIZE_T* c;
 		/** Total number of cells: gt[0] * gt[1] *...* gt[dim-1]. */
-		memory_size_type sz;
+		TPIE_OS_SIZE_T sz;
 		/** Total number of points represented by this sub-grid. */
-		stream_offset_type point_count;
+		TPIE_OS_OFFSET point_count;
 		/** The low and high coordinates. The boolean bit is false iff the
 		 * value is unbounded on that dimension. */
 #if TPIE_AMI_KDTREE_USE_EXACT_SPLIT
@@ -407,7 +407,7 @@ protected:
 		///////////////////////////////////////////////////////////////////////////
 		/// Constructs a grid_matrix.
 		///////////////////////////////////////////////////////////////////////////
-		grid_matrix(memory_size_type* tt, grid *gg) {
+		grid_matrix(TPIE_OS_SIZE_T* tt, grid *gg) {
 			size_t i;
 			sz = 1;
 			for (i = 0; i < dim; i++) {
@@ -444,12 +444,12 @@ protected:
 		/// coordinates are kept here, and the high ones are returned in a
 		/// newly created object.
 		///////////////////////////////////////////////////////////////////////////
-		grid_matrix* split(memory_size_type s, const point_t& p, memory_size_type d) {
+		grid_matrix* split(TPIE_OS_SIZE_T s, const point_t& p, TPIE_OS_SIZE_T d) {
 			TPLOG("  ::grid_matrix::split Entering\n");
       
 			assert(d < dim);
 			assert(s < gt[d]);
-			memory_size_type i, j, ni;
+			TPIE_OS_SIZE_T i, j, ni;
       
 			// The high matrix will be returned in gmx.
 			grid_matrix* gmx = new grid_matrix(*this);
@@ -480,18 +480,18 @@ protected:
 			for (i = 1; i <= dim; i++)
 				lo_mult[i] = lo_mult[i-1] * gt[i-1];
 			// The low matrix. Will replace matrix c later, when we're done with it.
-			memory_size_type* lo_c = new memory_size_type[lo_mult[dim]];
+			TPIE_OS_SIZE_T* lo_c = new TPIE_OS_SIZE_T[lo_mult[dim]];
 			// The new size.
 			sz = lo_mult[dim];
 			TPLOG("    low size: "<<sz<<"\n");
       
 			// Multipliers for the high matrix.
-			memory_size_type hi_mult[dim+1];
+			TPIE_OS_SIZE_T hi_mult[dim+1];
 			hi_mult[0] = 1;
 			for (i = 1; i <= dim; i++)
 				hi_mult[i] = hi_mult[i-1] * gmx->gt[i-1];
 			// The high matrix.
-			gmx->c = new memory_size_type[hi_mult[dim]];
+			gmx->c = new TPIE_OS_SIZE_T[hi_mult[dim]];
 			// The size of gmx.
 			gmx->sz = hi_mult[dim];
 			TPLOG("    high size: "<<gmx->sz<<"\n");
@@ -538,17 +538,17 @@ protected:
       
 			err err;
 			point_t* p1;
-			memory_size_type i_i, m;
-			stream_offset_type median_strip = gl[d] + s; // refers to the big grid!
+			TPIE_OS_SIZE_T i_i, m;
+			TPIE_OS_OFFSET median_strip = gl[d] + s; // refers to the big grid!
 			TPLOG("    median strip in grid: "<<median_strip<<"\n");
 #if TPIE_AMI_KDTREE_USE_EXACT_SPLIT
-			hi[d] = std::pair<record<coord_t, memory_size_type, dim>, bool>(p, true);
-			gmx->lo[d] = std::pair<record<coord_t, memory_size_type, dim>, bool>(p, true);
+			hi[d] = std::pair<record<coord_t, TPIE_OS_SIZE_T, dim>, bool>(p, true);
+			gmx->lo[d] = std::pair<record<coord_t, TPIE_OS_SIZE_T, dim>, bool>(p, true);
 #else
 			hi[d] = std::pair<coord_t, bool>(p[d], true);
 			gmx->lo[d] = std::pair<coord_t, bool>(p[d], true);
 #endif
-			stream_offset_type off = g->o[d][median_strip];
+			TPIE_OS_OFFSET off = g->o[d][median_strip];
 			TPLOG("    stream offset of first pnt in median strip: "<<off<<"\n");
 			g->streams[d]->seek(off);
       
@@ -604,18 +604,18 @@ protected:
 		/// Finds the median point, store it in \p p, splits according to the
 		/// median point, and returns the "high" sub-grid.
 		///////////////////////////////////////////////////////////////////////////
-		grid_matrix* find_median_and_split(point_t& p, memory_size_type d, stream_offset_type median_pos) {
+		grid_matrix* find_median_and_split(point_t& p, TPIE_OS_SIZE_T d, TPIE_OS_OFFSET median_pos) {
 			TPLOG("  ::grid_matrix::find_median_and_split Entering dim="<<d<<"\n");
-			memory_size_type s = 0, i;
-			stream_offset_type acc = 0;
+			TPIE_OS_SIZE_T s = 0, i;
+			TPIE_OS_OFFSET acc = 0;
 			grid_matrix* gmx;
 			err err;
       
 			// Preparation: compute point counts for each strip orthogonal to d.
-			stream_offset_type *strip_count = new stream_offset_type[gt[d]];
+			TPIE_OS_OFFSET *strip_count = new TPIE_OS_OFFSET[gt[d]];
 			for (i = 0; i < gt[d]; i++)
 				strip_count[i] = 0;
-			stream_offset_type mult[dim+1]; // mult[i] = t[0] * .. * t[i-1]
+			TPIE_OS_OFFSET mult[dim+1]; // mult[i] = t[0] * .. * t[i-1]
 			mult[0] = 1;
 			for (i = 1; i <= dim; i++)
 				mult[i] = mult[i-1] * gt[i-1];
@@ -635,7 +635,7 @@ protected:
 			// Store the index of the median strip in s.
 			s = i;
       
-			stream_offset_type offset_in_strip = median_pos - acc; // refers to this subgrid.
+			TPIE_OS_OFFSET offset_in_strip = median_pos - acc; // refers to this subgrid.
 			assert(offset_in_strip < strip_count[s]);
 			delete [] strip_count;
       
@@ -653,7 +653,7 @@ protected:
 				assert((*p1)[d] <  g->l[d][gl[d]+s]);
 	
 				if (is_inside(*p1)) {
-					if ((stream_offset_type)i == offset_in_strip) {
+					if ((TPIE_OS_OFFSET)i == offset_in_strip) {
 						ap = *p1;
 						break;
 					}
@@ -663,7 +663,7 @@ protected:
 				err = g->streams[d]->read_item(&p1);
 			}
       
-			assert((stream_offset_type)i == offset_in_strip);
+			assert((TPIE_OS_OFFSET)i == offset_in_strip);
 			TPLOG("    preliminary median point: ("<<ap[0]<<","<<ap[1]<<")\n");
 			assert(err == tpie::ami::NO_ERROR);
       
@@ -713,7 +713,7 @@ protected:
 			// Return true if given point is inside the box defined by hi and lo.
 			bool is_inside(const point_t& p) {
 				bool ans = true;
-				memory_size_type i;
+				TPIE_OS_SIZE_T i;
 				for (i = 0; i < dim; i++) {
 #if TPIE_AMI_KDTREE_USE_EXACT_SPLIT
 					if (lo[i].second && typename point_t::cmp(i).compare(p, lo[i].first) <= 0) {
@@ -769,7 +769,7 @@ protected:
 			 * tic-tac-toe board has t[0]=t[1]=3. There should be at least 2
 			 * strips on each dimension. The leftmost and rightmost strips on
 			 * each dimension are unbounded. */
-			memory_size_type t[dim];
+			TPIE_OS_SIZE_T t[dim];
 			/** Pointer to an array of dim streams containing the points. These
 			 * are neither initialized nor destroyed here. */
 			stream_t** streams;
@@ -778,21 +778,21 @@ protected:
 			coord_t* l[dim]; 
 			/** o[i][j] is the offset in streams[i] of the point that defines
 			 * grid line l[i][j-1]. o[i] is an array of length t[i]. */
-			stream_offset_type *o[dim];
-			stream_offset_type point_count;
+			TPIE_OS_OFFSET *o[dim];
+			TPIE_OS_OFFSET point_count;
 			/** The queue of unfinished business. */
 			std::vector<grid_context> q;
 
 			///////////////////////////////////////////////////////////////////////////
 			/// Constructor.
 			///////////////////////////////////////////////////////////////////////////
-			grid(memory_size_type t_all, stream_t** in_streams) {
+			grid(TPIE_OS_SIZE_T t_all, stream_t** in_streams) {
 
 				streams = in_streams;
       
 				point_count = in_streams[0]->stream_len();
-				memory_size_type i, j;
-				stream_offset_type off;
+				TPIE_OS_SIZE_T i, j;
+				TPIE_OS_OFFSET off;
 				record<coord_t, size_t, dim> *p1, ap;
 				err err;
       
@@ -800,8 +800,8 @@ protected:
 				for (i = 0; i < dim; i++) {
 					t[i] = t_all;
 					l[i] = new coord_t[t[i] - 1];
-					o[i] = new stream_offset_type[t[i]];
-					assert((memory_size_type)point_count > 2 * t[i]); // TODO: make this more meaningful.
+					o[i] = new TPIE_OS_OFFSET[t[i]];
+					assert((TPIE_OS_SIZE_T)point_count > 2 * t[i]); // TODO: make this more meaningful.
 					o[i][0] = 0;
 					for (j = 0; j < t[i]-1; j++) {
 						off = (j + 1) * (point_count / t[i]) - 1;
@@ -848,7 +848,7 @@ protected:
       
 				grid_matrix* gmx = new grid_matrix(t, this);
       
-				gmx->c = new memory_size_type[gmx->sz];
+				gmx->c = new TPIE_OS_SIZE_T[gmx->sz];
 				for (j = 0; j < gmx->sz; j++)
 					gmx->c[j] = 0;
       
@@ -937,30 +937,30 @@ protected:
 			// The in-memory streams containing the sampled points.
 			point_t* mm_streams[dim];
 			// The number of sample points.
-			memory_size_type sz;
+			TPIE_OS_SIZE_T sz;
 			// The queue of unfinished business.
 			std::vector<sample_context> q;
 
 			// Construct a sample.
-			sample(memory_size_type _sz, stream_t* _in_stream) {
+			sample(TPIE_OS_SIZE_T _sz, stream_t* _in_stream) {
 #define MAX_RANDOM ((double)0x7fffffff)
 
 				// Preliminary sample size.
 				sz = _sz;
 				in_stream = _in_stream;
-				stream_offset_type input_sz = in_stream->stream_len();
-				assert(sz > 0 && (stream_offset_type)sz < input_sz);
+				TPIE_OS_OFFSET input_sz = in_stream->stream_len();
+				assert(sz > 0 && (TPIE_OS_OFFSET)sz < input_sz);
       
-				stream_offset_type* offsets = new stream_offset_type[sz];
-				stream_offset_type* new_last;
+				TPIE_OS_OFFSET* offsets = new TPIE_OS_OFFSET[sz];
+				TPIE_OS_OFFSET* new_last;
 				point_t *p;
-				memory_size_type i;
+				TPIE_OS_SIZE_T i;
 
-				seed_random(10);
+				TPIE_OS_SRANDOM(10);
       
 				// Sample sz offsets in the interval [0, input_sz].
 				for (i = 0; i < sz; i++) {
-					offsets[i] = stream_offset_type((random()/MAX_RANDOM) * input_sz);
+					offsets[i] = TPIE_OS_OFFSET((TPIE_OS_RANDOM()/MAX_RANDOM) * input_sz);
 				}
       
 				// Sort the sampled offsets.
@@ -971,7 +971,7 @@ protected:
 					std::cerr << "    Warning: Duplicate samples found! Decreasing sample size accordingly.\n";
 					// Adjust sample size sz.
 					sz = new_last - offsets;
-					std::cerr << "    New sample size: " << (stream_offset_type)sz << "\n";
+					std::cerr << "    New sample size: " << (TPIE_OS_OFFSET)sz << "\n";
 				}
       
 				// Make space for one in-memory array (more later).
@@ -1072,54 +1072,54 @@ protected:
 		///////////////////////////////////////////////////////////////////////////
 		/// Helper for binary distribution bulk loading.
 		///////////////////////////////////////////////////////////////////////////
-		void create_node(bid_t& bid, memory_size_type d,
+		void create_node(bid_t& bid, TPIE_OS_SIZE_T d,
 						 stream_t** in_streams);
 		///////////////////////////////////////////////////////////////////////////
 		/// Helper for binary distribution bulk loading.
 		///////////////////////////////////////////////////////////////////////////
-		void create_leaf(bid_t& bid, memory_size_type d,
+		void create_leaf(bid_t& bid, TPIE_OS_SIZE_T d,
 						 stream_t** in_streams);
 
 		///////////////////////////////////////////////////////////////////////////
 		/// Helper for in-memory bulk loading.
 		///////////////////////////////////////////////////////////////////////////
-		bool can_do_mm(stream_offset_type sz);
+		bool can_do_mm(TPIE_OS_OFFSET sz);
  
 		///////////////////////////////////////////////////////////////////////////
 		/// Copies the given sorted streams into newly created in-memory
 		/// streams. The input streams are deleted.
 		///////////////////////////////////////////////////////////////////////////
 		void copy_to_mm(stream_t** in_streams, 
-						point_t** mm_streams, memory_size_type& sz);
+						point_t** mm_streams, TPIE_OS_SIZE_T& sz);
 
 		///////////////////////////////////////////////////////////////////////////
 		/// Copies the given stream in memory, makes \p dim copies of it, and sorts
 		/// them on the \p dim dimensions.
 		///////////////////////////////////////////////////////////////////////////
 		void copy_to_mm(stream_t* in_stream, 
-						point_t** mm_streams, memory_size_type& sz);
+						point_t** mm_streams, TPIE_OS_SIZE_T& sz);
 		void create_bin_node_mm(node_t *b, bn_context ctx, 
-								point_t** in_streams, memory_size_type sz,
+								point_t** in_streams, TPIE_OS_SIZE_T sz,
 								size_t& next_free_el, size_t& next_free_lk);
-		void create_node_mm(bid_t& bid, memory_size_type d,
-							point_t** in_streams, memory_size_type sz);
-		void create_leaf_mm(bid_t& bid, memory_size_type d,
-							point_t** in_streams, memory_size_type sz);
+		void create_node_mm(bid_t& bid, TPIE_OS_SIZE_T d,
+							point_t** in_streams, TPIE_OS_SIZE_T sz);
+		void create_leaf_mm(bid_t& bid, TPIE_OS_SIZE_T d,
+							point_t** in_streams, TPIE_OS_SIZE_T sz);
 
 		// Helpers for grid-based bulk loading.
 		void create_bin_node_g(node_t *b, bn_context ctx, 
 							   grid_matrix *gmx, size_t& next_free_el, size_t& next_free_lk);
-		void create_node_g(bid_t& bid, memory_size_type d, grid_matrix* gmx);
-		void create_grid(bid_t& bid, memory_size_type d, stream_t** in_streams, memory_size_type t);
-		void distribute_g(bid_t bid, memory_size_type d, grid* g);
+		void create_node_g(bid_t& bid, TPIE_OS_SIZE_T d, grid_matrix* gmx);
+		void create_grid(bid_t& bid, TPIE_OS_SIZE_T d, stream_t** in_streams, TPIE_OS_SIZE_T t);
+		void distribute_g(bid_t bid, TPIE_OS_SIZE_T d, grid* g);
 		void build_lower_tree_g(grid* g);
 
 		bool points_are_sample;
 		/** Global sample object.*/
 		sample* gso;
 		// Helpers for sample-based bulk loading. 
-		void create_sample(bid_t& bid, memory_size_type d, stream_t* in_stream);
-		void distribute_s(bid_t bid, memory_size_type d, sample* s);
+		void create_sample(bid_t& bid, TPIE_OS_SIZE_T d, stream_t* in_stream);
+		void distribute_s(bid_t bid, TPIE_OS_SIZE_T d, sample* s);
 		void build_lower_tree_s(sample* s);
 
 		///////////////////////////////////////////////////////////////////////////
@@ -1150,10 +1150,10 @@ protected:
 
 
 	struct _kdtree_leaf_info {
-		memory_size_type size;
+		TPIE_OS_SIZE_T size;
 		bid_t next;
 #if TPIE_AMI_KDTREE_USE_KDBTREE_LEAF
-		memory_size_type split_dim;
+		TPIE_OS_SIZE_T split_dim;
 #endif
 	};
 
@@ -1162,34 +1162,34 @@ protected:
 /// number of points actually stored (ie, the size) and the id of
 /// another leaf. All leaves in a tree are threaded this way.
 ///////////////////////////////////////////////////////////////////////////
-	template<class coord_t, memory_size_type dim, class BTECOLL> 
-	class kdtree_leaf: public block<record<coord_t, memory_size_type, dim>, _kdtree_leaf_info, BTECOLL> 
+	template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL> 
+	class kdtree_leaf: public block<record<coord_t, TPIE_OS_SIZE_T, dim>, _kdtree_leaf_info, BTECOLL> 
 	{
 	public:
-		using block<record<coord_t, memory_size_type, dim>, _kdtree_leaf_info, BTECOLL>::info;
-		using block<record<coord_t, memory_size_type, dim>, _kdtree_leaf_info, BTECOLL>::el;
-		using block<record<coord_t, memory_size_type, dim>, _kdtree_leaf_info, BTECOLL>::dirty;
+		using block<record<coord_t, TPIE_OS_SIZE_T, dim>, _kdtree_leaf_info, BTECOLL>::info;
+		using block<record<coord_t, TPIE_OS_SIZE_T, dim>, _kdtree_leaf_info, BTECOLL>::el;
+		using block<record<coord_t, TPIE_OS_SIZE_T, dim>, _kdtree_leaf_info, BTECOLL>::dirty;
   
-		typedef record<coord_t, memory_size_type, dim> point_t;
+		typedef record<coord_t, TPIE_OS_SIZE_T, dim> point_t;
 		typedef stream<point_t> stream_t;
 		typedef collection_single<BTECOLL> collection_t;
 		typedef _kdtree_leaf_info info_t;
 
-		static memory_size_type el_capacity(memory_size_type block_size);
+		static TPIE_OS_SIZE_T el_capacity(TPIE_OS_SIZE_T block_size);
 
 		kdtree_leaf(collection_t* pcoll, bid_t bid = 0);
 
 		///////////////////////////////////////////////////////////////////////////
 		/// Returns the number of points stored in this leaf.
 		///////////////////////////////////////////////////////////////////////////
-		memory_size_type& size() { return info()->size; }
-		const memory_size_type& size() const { return info()->size; }
+		TPIE_OS_SIZE_T& size() { return info()->size; }
+		const TPIE_OS_SIZE_T& size() const { return info()->size; }
 
 		///////////////////////////////////////////////////////////////////////////
 		// Returns the weight of a leaf, being its size. Just for symmetry with the
 		// nodes.
 		///////////////////////////////////////////////////////////////////////////
-		stream_offset_type weight() const { return info()->size; }
+		TPIE_OS_OFFSET weight() const { return info()->size; }
 
 		///////////////////////////////////////////////////////////////////////////
 		// Returns the next leaf. All leaves of a tree are chained together for easy
@@ -1199,26 +1199,26 @@ protected:
 		bid_t& next() { return info()->next; }
 
 #if TPIE_AMI_KDTREE_USE_KDBTREE_LEAF
-		memory_size_type& split_dim() { return info()->split_dim; }
-		const memory_size_type& split_dim() const { return info()->split_dim; }
+		TPIE_OS_SIZE_T& split_dim() { return info()->split_dim; }
+		const TPIE_OS_SIZE_T& split_dim() const { return info()->split_dim; }
 #endif 
 
 		///////////////////////////////////////////////////////////////////////////
 		/// Returns the maximum number of points that can be stored in this leaf.
 		///////////////////////////////////////////////////////////////////////////
-		memory_size_type capacity() const { return el.capacity(); }
+		TPIE_OS_SIZE_T capacity() const { return el.capacity(); }
 
 		///////////////////////////////////////////////////////////////////////////
 		/// Finds a point. Returns the index of the point found in the el
 		/// vector (if not found, return size()).
 		///////////////////////////////////////////////////////////////////////////
-		memory_size_type find(const point_t &p) const;
+		TPIE_OS_SIZE_T find(const point_t &p) const;
 
 		///////////////////////////////////////////////////////////////////////////
 		/// Performs a window_query, defined by points \p lop and \p hip.
 		/// The result is written to \p stream.
 		///////////////////////////////////////////////////////////////////////////
-		stream_offset_type window_query(const point_t &lop, 
+		TPIE_OS_OFFSET window_query(const point_t &lop, 
 									const point_t &hip, 
 									stream_t* stream) const;
 
@@ -1232,19 +1232,19 @@ protected:
 		///////////////////////////////////////////////////////////////////////////
 		// Sorts points on the given dimension.
 		///////////////////////////////////////////////////////////////////////////
-		void sort(memory_size_type d);
+		void sort(TPIE_OS_SIZE_T d);
 
 		///////////////////////////////////////////////////////////////////////////
 		// Finds median point on the given dimension. Returns the index of the
 		// median in the el vector.
 		///////////////////////////////////////////////////////////////////////////
-		memory_size_type find_median(memory_size_type d);
+		TPIE_OS_SIZE_T find_median(TPIE_OS_SIZE_T d);
 	};
 
 
 	struct _kdtree_node_info {
-		memory_size_type size;
-		stream_offset_type weight;
+		TPIE_OS_SIZE_T size;
+		TPIE_OS_OFFSET weight;
 	};
 
 ///////////////////////////////////////////////////////////////////////////
@@ -1253,7 +1253,7 @@ protected:
 /// actually stored and the weight of the node (ie, the number of
 /// points stored in the subtree rooted on this node).
 ///////////////////////////////////////////////////////////////////////////
-	template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+	template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 	class kdtree_node: public block<Bin_node, _kdtree_node_info, BTECOLL> {
 	public:
 		using block<Bin_node, _kdtree_node_info, BTECOLL>::info;
@@ -1261,7 +1261,7 @@ protected:
 		using block<Bin_node, _kdtree_node_info, BTECOLL>::lk;
 		using block<Bin_node, _kdtree_node_info, BTECOLL>::dirty;
   
-		typedef record<coord_t, memory_size_type, dim> point_t;
+		typedef record<coord_t, TPIE_OS_SIZE_T, dim> point_t;
 		typedef stream<point_t> stream_t;
 		typedef collection_single<BTECOLL> collection_t;
 
@@ -1269,28 +1269,28 @@ protected:
 		/// Computes the capacity of the lk vector STATICALLY (but you have to
 		/// give it the correct logical block size!).
 		///////////////////////////////////////////////////////////////////////////
-		static memory_size_type lk_capacity(memory_size_type block_size);
+		static TPIE_OS_SIZE_T lk_capacity(TPIE_OS_SIZE_T block_size);
 
 		///////////////////////////////////////////////////////////////////////////
 		/// Computes the capacity of the el vector STATICALLY.
 		///////////////////////////////////////////////////////////////////////////
-		static memory_size_type el_capacity(memory_size_type block_size);
+		static TPIE_OS_SIZE_T el_capacity(TPIE_OS_SIZE_T block_size);
 
 		kdtree_node(collection_t* pcoll, bid_t bid = 0);
 
 		///////////////////////////////////////////////////////////////////////////
 		/// Returns the number of binary nodes stored in this node.
 		///////////////////////////////////////////////////////////////////////////
-		memory_size_type& size() { return info()->size; }
-		const memory_size_type& size() const { return info()->size; }
+		TPIE_OS_SIZE_T& size() { return info()->size; }
+		const TPIE_OS_SIZE_T& size() const { return info()->size; }
 
-		stream_offset_type& weight() { return info()->weight; }
-		stream_offset_type weight() const { return info()->weight; }
+		TPIE_OS_OFFSET& weight() { return info()->weight; }
+		TPIE_OS_OFFSET weight() const { return info()->weight; }
 
 		///////////////////////////////////////////////////////////////////////////
 		/// Returns the maximum number of binary nodes that can be stored in this node.
 		///////////////////////////////////////////////////////////////////////////
-		memory_size_type capacity() const { return el.capacity(); }
+		TPIE_OS_SIZE_T capacity() const { return el.capacity(); }
 
 		///////////////////////////////////////////////////////////////////////////
 		/// Finds the child node that leads to \p p. The second
@@ -1299,7 +1299,7 @@ protected:
 		///////////////////////////////////////////////////////////////////////////
 		std::pair<bid_t, link_type_t> find(const point_t &p) const;
 
-		std::pair<memory_size_type, link_type_t> find_index(const point_t &p) const;
+		std::pair<TPIE_OS_SIZE_T, link_type_t> find_index(const point_t &p) const;
 	};
 
 
@@ -1313,7 +1313,7 @@ protected:
 #define TPIE_AMI_KDTREE_LEAF  kdtree_leaf<coord_t, dim, BTECOLL>
 #define TPIE_AMI_KDTREE_NODE  kdtree_node<coord_t, dim, Bin_node, BTECOLL>
 #define TPIE_AMI_KDTREE       kdtree<coord_t, dim, Bin_node, BTECOLL>
-#define POINT            record<coord_t, memory_size_type, dim>
+#define POINT            record<coord_t, TPIE_OS_SIZE_T, dim>
 #define POINT_STREAM     stream< POINT >
 
 #define MEM_AVAIL 
@@ -1340,13 +1340,13 @@ protected:
 ////////////////////////////////
 
 //// *kdtree_leaf::el_capacity* ////
-	template<class coord_t, memory_size_type dim, class BTECOLL>
-	memory_size_type TPIE_AMI_KDTREE_LEAF::el_capacity(memory_size_type block_size) {
-		return block<record<coord_t, memory_size_type, dim>, _kdtree_leaf_info, BTECOLL>::el_capacity(block_size, 0);
+	template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL>
+	TPIE_OS_SIZE_T TPIE_AMI_KDTREE_LEAF::el_capacity(TPIE_OS_SIZE_T block_size) {
+		return block<record<coord_t, TPIE_OS_SIZE_T, dim>, _kdtree_leaf_info, BTECOLL>::el_capacity(block_size, 0);
 	}
 
 //// *kdtree_leaf::kdtree_leaf* ////
-	template<class coord_t, memory_size_type dim, class BTECOLL>
+	template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL>
 	TPIE_AMI_KDTREE_LEAF::kdtree_leaf(collection_single<BTECOLL>* pcoll, bid_t bid):
 		block<POINT, _kdtree_leaf_info, BTECOLL>(pcoll, 0, bid) {
 		TPLOG("kdtree_leaf::kdtree_leaf Entering bid="<<bid<<"\n");
@@ -1357,10 +1357,10 @@ protected:
 	}
 
 //// *kdtree_leaf::find* ////
-	template<class coord_t, memory_size_type dim, class BTECOLL>
-	memory_size_type TPIE_AMI_KDTREE_LEAF::find(const POINT &p) const {
+	template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL>
+	TPIE_OS_SIZE_T TPIE_AMI_KDTREE_LEAF::find(const POINT &p) const {
 		TPLOG("kdtree_leaf::find Entering bid="<<bid()<<" size="<<size()<<"\n");
-		memory_size_type i = 0;
+		TPIE_OS_SIZE_T i = 0;
 		while (i < size()) {
 			if (p == el[i])
 				break;
@@ -1371,7 +1371,7 @@ protected:
 	}
 
 //// *kdtree_leaf::insert* ////
-	template<class coord_t, memory_size_type dim, class BTECOLL>
+	template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL>
 	bool TPIE_AMI_KDTREE_LEAF::insert(const POINT &p) {
 		TPLOG("kdtree_leaf::insert Entering "<<"\n");
 		assert(size() < el.capacity());
@@ -1384,11 +1384,11 @@ protected:
 	}
 
 //// *kdtree_leaf::erase* ////
-	template<class coord_t, memory_size_type dim, class BTECOLL>
+	template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL>
 	bool TPIE_AMI_KDTREE_LEAF::erase(const POINT &p) {
 		TPLOG("kdtree_leaf::erase Entering "<<"\n");
 		bool ans = false;
-		memory_size_type idx;
+		TPIE_OS_SIZE_T idx;
 		if ((idx = find(p)) < size()) {
 			if (idx < size() - 1) {
 				// Copy the last item indo pos idx. We could use el.erase() as
@@ -1405,12 +1405,12 @@ protected:
 	}
 
 //// *kdtree_leaf::window_query* ////
-	template<class coord_t, memory_size_type dim, class BTECOLL>
-	stream_offset_type TPIE_AMI_KDTREE_LEAF::window_query(const POINT &lop, const POINT &hip, 
+	template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL>
+	TPIE_OS_OFFSET TPIE_AMI_KDTREE_LEAF::window_query(const POINT &lop, const POINT &hip, 
 													  POINT_STREAM* stream) const {
 		TPLOG("kdtree_leaf::window_query Entering "<<"\n");
-		memory_size_type i;
-		stream_offset_type result = 0;
+		TPIE_OS_SIZE_T i;
+		TPIE_OS_OFFSET result = 0;
 		for (i = 0; i < size(); i++) {
 			// Test on all dimensions.
 			if (lop < el[i] && el[i] < hip) {
@@ -1425,15 +1425,15 @@ protected:
 	}
 
 //// *kdtree_leaf::sort* ////
-	template<class coord_t, memory_size_type dim, class BTECOLL>
-	void TPIE_AMI_KDTREE_LEAF::sort(memory_size_type d) {
+	template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL>
+	void TPIE_AMI_KDTREE_LEAF::sort(TPIE_OS_SIZE_T d) {
 		typename POINT::cmp cmpd(d);
 		std::sort(&el[0], &el[0] + size(), cmpd);
 	}
 
 //// *kdtree_leaf::find_median* ////
-	template<class coord_t, memory_size_type dim, class BTECOLL>
-	size_t TPIE_AMI_KDTREE_LEAF::find_median(memory_size_type d) {
+	template<class coord_t, TPIE_OS_SIZE_T dim, class BTECOLL>
+	size_t TPIE_AMI_KDTREE_LEAF::find_median(TPIE_OS_SIZE_T d) {
 		typename POINT::cmp cmpd(d);
 		sort(d);
 		size_t ans = (size() - 1) / 2; // preliminary median.
@@ -1448,7 +1448,7 @@ protected:
 ////////////////////////////////
 
 //// *kdtree_node::lk_capacity* ////
-	template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+	template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 	size_t TPIE_AMI_KDTREE_NODE::lk_capacity(size_t block_size) {
 		return (size_t) ((block_size - sizeof(std::pair<size_t, size_t>) - 
 						  sizeof(bid_t)) / 
@@ -1456,7 +1456,7 @@ protected:
 	}
 
 //// *kdtree_node::el_capacity* ////
-	template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+	template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 	size_t TPIE_AMI_KDTREE_NODE::el_capacity(size_t block_size) {
 		TPLOG("kdtree_node::el_capacity Entering\n");
 		TPLOG("  block<Bin_node, _kdtree_node_info>::el_capacity(block_size, lk_capacity(block_size))="<<(block<Bin_node, _kdtree_node_info, BTECOLL>::el_capacity(block_size, lk_capacity(block_size)))<<"\n");
@@ -1469,7 +1469,7 @@ protected:
 	}
 
 //// *kdtree_node::kdtree_node* ////
-	template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+	template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 	TPIE_AMI_KDTREE_NODE::kdtree_node(collection_single<BTECOLL>* pcoll, bid_t bid):
 		block<Bin_node, _kdtree_node_info, BTECOLL>(pcoll, 
 													lk_capacity(pcoll->block_size()), bid) {
@@ -1478,10 +1478,10 @@ protected:
 	}
 
 //// *kdtree_node::find_index* ////
-	template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
-	inline std::pair<memory_size_type, link_type_t> TPIE_AMI_KDTREE_NODE::find_index(const POINT &p) const {
+	template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+	inline std::pair<TPIE_OS_SIZE_T, link_type_t> TPIE_AMI_KDTREE_NODE::find_index(const POINT &p) const {
 		TPLOG("kdtree_node::find_index Entering "<<"\n");
-		memory_size_type idx1 = 0, idx2; // the root bin node is always in pos 0.
+		TPIE_OS_SIZE_T idx1 = 0, idx2; // the root bin node is always in pos 0.
 		link_type_t idx_type = BIN_NODE;
 		while (idx_type == BIN_NODE) {
 			//    assert(idx1 < el.capacity());
@@ -1494,11 +1494,11 @@ protected:
 			idx1 = idx2;
 		}
 		TPLOG("kdtree_node::find_index Exiting "<<"\n");
-		return std::pair<memory_size_type, link_type_t>(idx1, idx_type);
+		return std::pair<TPIE_OS_SIZE_T, link_type_t>(idx1, idx_type);
 	}
 
 //// *kdtree_node::find* ////
-	template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+	template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 	std::pair<bid_t, link_type_t> TPIE_AMI_KDTREE_NODE::find(const POINT &p) const {
 		TPLOG("kdtree_node::find Entering bid="<<bid()<<"\n");
 		std::pair<size_t, link_type_t> ans = find_index(p);
@@ -1514,7 +1514,7 @@ protected:
 
 
 //// *kdtree::kdtree* ////
-	template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+	template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 	TPIE_AMI_KDTREE::kdtree(const kdtree_params& params) 
 		: header_(), params_(params), points_are_sample(false) {
 		TPLOG("kdtree::kdtree Entering\n");
@@ -1531,7 +1531,7 @@ protected:
 
 
 //// *kdtree::kdtree* ////
-	template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+	template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 	TPIE_AMI_KDTREE::kdtree(const std::string& base_file_name, collection_type type, 
 							const kdtree_params& params) 
 		: header_(), params_(params), name_(base_file_name), points_are_sample(false) {
@@ -1543,7 +1543,7 @@ protected:
 	}
 
 //// *kdtree::shared_init* ////
-	template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+	template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 	void TPIE_AMI_KDTREE::shared_init(const std::string& base_file_name, collection_type type) {
 		TPLOG("kdtree::shared_init Entering "<<"\n");
 
@@ -1650,7 +1650,7 @@ protected:
 	}
 
 //// *kdtree::create_bin_node* ////
-	template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+	template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 	void TPIE_AMI_KDTREE::create_bin_node(TPIE_AMI_KDTREE_NODE *b, bn_context ctx, 
 										  POINT_STREAM** in_streams, 
 										  size_t& next_free_el, size_t& next_free_lk) {
@@ -1664,8 +1664,8 @@ protected:
 
  
 		POINT *p1, ap;
-		stream_offset_type len = in_streams[ctx.d]->stream_len();
-		assert(len > (stream_offset_type)params_.leaf_size_max);
+		TPIE_OS_OFFSET len = in_streams[ctx.d]->stream_len();
+		assert(len > (TPIE_OS_OFFSET)params_.leaf_size_max);
 		TPLOG("  kdtree::create_bin_node in_len="<<len<<"\n");
   
 		// Go to the median position in the in_stream sorted on d'th coordinate.
@@ -1725,7 +1725,7 @@ protected:
 #if TPIE_AMI_KDTREE_STORE_WEIGHTS
 		b->el[ctx.i].low_weight() = lo_streams[0]->stream_len();
 #endif
-		if (lo_streams[0]->stream_len() <= (stream_offset_type)params_.leaf_size_max) {
+		if (lo_streams[0]->stream_len() <= (TPIE_OS_OFFSET)params_.leaf_size_max) {
 
 			b->el[ctx.i].set_low_child(next_free_lk++, BLOCK_LEAF);
 			TPLOG("  b("<<b->bid()<<")->el["<<ctx.i<<"].lo: ("<<next_free_lk-1<<", BLOCK_LEAF)\n");
@@ -1773,7 +1773,7 @@ protected:
 #if TPIE_AMI_KDTREE_STORE_WEIGHTS
 		b->el[ctx.i].high_weight() = hi_streams[0]->stream_len();
 #endif
-		if (hi_streams[0]->stream_len() <= (stream_offset_type)params_.leaf_size_max) {
+		if (hi_streams[0]->stream_len() <= (TPIE_OS_OFFSET)params_.leaf_size_max) {
 
 			b->el[ctx.i].set_high_child(next_free_lk++, BLOCK_LEAF);
 			TPLOG("  b("<<b->bid()<<")->el["<<ctx.i<<"].hi: ("<<next_free_lk-1<<", BLOCK_LEAF)\n");
@@ -1821,8 +1821,8 @@ protected:
 
 
 //// *kdtree::create_node* ////
-	template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
-	void TPIE_AMI_KDTREE::create_node(bid_t& bid, memory_size_type d, 
+	template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+	void TPIE_AMI_KDTREE::create_node(bid_t& bid, TPIE_OS_SIZE_T d, 
 									  POINT_STREAM** in_streams) {
 		TPLOG("kdtree::create_node Entering dim="<<d<<"\n");
 
@@ -1832,7 +1832,7 @@ protected:
 		n->weight() = in_streams[0]->stream_len();
 
 		assert(d < dim);
-		assert(in_streams[0]->stream_len() > (stream_offset_type)params_.leaf_size_max);
+		assert(in_streams[0]->stream_len() > (TPIE_OS_OFFSET)params_.leaf_size_max);
 
 		bn_context ctx(0, 0, d);
 		size_t next_free_el = 1; // because the root bin node goes in pos 0.
@@ -1857,8 +1857,8 @@ protected:
 
 
 //// *kdtree::create_leaf* ////
-	template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
-	void TPIE_AMI_KDTREE::create_leaf(bid_t& bid, memory_size_type d, 
+	template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+	void TPIE_AMI_KDTREE::create_leaf(bid_t& bid, TPIE_OS_SIZE_T d, 
 									  POINT_STREAM** in_streams) {
 		TPLOG("kdtree::create_leaf Entering "<<"\n");
 		HEIGHTDISPLAY_IN(" O ")
@@ -1869,11 +1869,11 @@ protected:
 		assert(d < dim);
 
 		in_streams[d]->seek(0);
-		assert(in_streams[d]->stream_len() <= (stream_offset_type)params_.leaf_size_max);
+		assert(in_streams[d]->stream_len() <= (TPIE_OS_OFFSET)params_.leaf_size_max);
   
 		// We are constructing a leaf, so we know that we have
 		// little enough points to safely cast.
-		l->size() = (memory_size_type)in_streams[d]->stream_len();
+		l->size() = (TPIE_OS_SIZE_T)in_streams[d]->stream_len();
 
 		if (previous_leaf_ == NULL) {
 			first_leaf_id_ = l->bid();
@@ -1903,9 +1903,9 @@ protected:
 	}
 
 //// *kdtree::create_bin_node_mm* ////
-	template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+	template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 	void TPIE_AMI_KDTREE::create_bin_node_mm(TPIE_AMI_KDTREE_NODE *b, bn_context ctx, 
-											 POINT** in_streams, memory_size_type sz,
+											 POINT** in_streams, TPIE_OS_SIZE_T sz,
 											 size_t& next_free_el, size_t& next_free_lk) {
 		TPLOG("kdtree::create_bin_node_mm Entering bid="<<b->bid()<<", dim="<<ctx.d<<", idx="<<ctx.i<<"\n");
 		MEMDISPLAY;
@@ -1914,12 +1914,12 @@ protected:
 		POINT* lo_streams[dim];
 		POINT* hi_streams[dim];
 		POINT* current_stream;
-		memory_size_type lo_sz;
+		TPIE_OS_SIZE_T lo_sz;
 
 		assert(sz > params_.leaf_size_max);
 		POINT *p1, *p2, ap;
-		memory_size_type read_pos;
-		memory_size_type hi_j, lo_j, i, j;
+		TPIE_OS_SIZE_T read_pos;
+		TPIE_OS_SIZE_T hi_j, lo_j, i, j;
 
 		if (points_are_sample)
 			// Get the real median. There's no point in doing anything fancy
@@ -2014,7 +2014,7 @@ protected:
 
 				b->el[ctx.i].set_low_child(gso->q.size(), GRID_INDEX);
 				gso->q.push_back(sample_context(b->bid(), ctx, true));
-				for (memory_size_type  ii = 0; ii < dim; ii++) {
+				for (TPIE_OS_SIZE_T  ii = 0; ii < dim; ii++) {
 					delete [] lo_streams[ii];
 					lo_streams[ii] = NULL;
 				}
@@ -2055,7 +2055,7 @@ protected:
 			if (points_are_sample) {
 				b->el[ctx.i].set_high_child(gso->q.size(), GRID_INDEX);
 				gso->q.push_back(sample_context(b->bid(), ctx, false));
-				for (memory_size_type ii = 0; ii < dim; ii++) {
+				for (TPIE_OS_SIZE_T ii = 0; ii < dim; ii++) {
 					delete [] hi_streams[ii];
 					hi_streams[ii] = NULL;
 				}
@@ -2087,9 +2087,9 @@ protected:
 	}
 
 //// *kdtree::create_leaf_mm* ////
-	template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
-	void TPIE_AMI_KDTREE::create_leaf_mm(bid_t& bid, memory_size_type d, 
-										 POINT** in_streams, memory_size_type sz) {
+	template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+	void TPIE_AMI_KDTREE::create_leaf_mm(bid_t& bid, TPIE_OS_SIZE_T d, 
+										 POINT** in_streams, TPIE_OS_SIZE_T sz) {
 		TPLOG("kdtree::create_leaf_mm Entering "<<"\n");
 
 		// Brand new leaf.
@@ -2124,9 +2124,9 @@ protected:
 
 
 //// *kdtree::create_node_mm* ////
-	template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
-	void TPIE_AMI_KDTREE::create_node_mm(bid_t& bid, memory_size_type d, 
-										 POINT** in_streams, memory_size_type sz) {
+	template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+	void TPIE_AMI_KDTREE::create_node_mm(bid_t& bid, TPIE_OS_SIZE_T d, 
+										 POINT** in_streams, TPIE_OS_SIZE_T sz) {
 		TPLOG("kdtree::create_node_mm Entering dim="<<d<<"\n");
 
 		// New node.
@@ -2154,29 +2154,29 @@ protected:
 	}
 
 //// *kdtree::can_do_mm* ////
-	template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
-	bool TPIE_AMI_KDTREE::can_do_mm(stream_offset_type sz) {
-		bool ans = ((stream_offset_type) (sz * sizeof(POINT) * stream_offset_type(dim + 1) + 
+	template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+	bool TPIE_AMI_KDTREE::can_do_mm(TPIE_OS_OFFSET sz) {
+		bool ans = ((TPIE_OS_OFFSET) (sz * sizeof(POINT) * TPIE_OS_OFFSET(dim + 1) + 
 					pcoll_nodes_->block_size() * params_.node_cache_size +
 					pcoll_leaves_->block_size() * params_.leaf_cache_size +
-					stream_offset_type(8192 * 4)) < (stream_offset_type) MM_manager.memory_available());
+					TPIE_OS_OFFSET(8192 * 4)) < (TPIE_OS_OFFSET) MM_manager.memory_available());
 		TPLOG("kdtree::can_do_mm needed = " << 
-			  (stream_offset_type) ((stream_offset_type) sz * sizeof(POINT) * stream_offset_type(dim + 1) + 
+			  (TPIE_OS_OFFSET) ((TPIE_OS_OFFSET) sz * sizeof(POINT) * TPIE_OS_OFFSET(dim + 1) + 
 								pcoll_nodes_->block_size() * params_.node_cache_size +
 								pcoll_leaves_->block_size() * params_.leaf_cache_size +
-								stream_offset_type(8192 * 4)) << ", avail = " << 
+								TPIE_OS_OFFSET(8192 * 4)) << ", avail = " << 
 			  MM_manager.memory_available() << " ans = " << ans << "\n");
 		return ans;
 	}
 
 //// *kdtree::copy_to_mm* ////
-	template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
-	void TPIE_AMI_KDTREE::copy_to_mm(POINT_STREAM** in_streams, POINT** mm_streams, memory_size_type& sz) {
+	template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+	void TPIE_AMI_KDTREE::copy_to_mm(POINT_STREAM** in_streams, POINT** mm_streams, TPIE_OS_SIZE_T& sz) {
 		TPLOG("kdtree::copy_to_mm Entering "<<"\n");
 		// The call to this method should have been preceeded by a call
 		// to can_do_mm, so casting should be o.k.
-		sz = (memory_size_type)in_streams[0]->stream_len();
-		memory_size_type i, j;
+		sz = (TPIE_OS_SIZE_T)in_streams[0]->stream_len();
+		TPIE_OS_SIZE_T i, j;
 		POINT* p;
    
 		for (i = 0; i < dim; i++) {
@@ -2195,13 +2195,13 @@ protected:
 	}
 
 //// *kdtree::copy_to_mm* ////
-	template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
-	void TPIE_AMI_KDTREE::copy_to_mm(POINT_STREAM* in_stream, POINT** streams_mm, memory_size_type& sz) {
+	template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+	void TPIE_AMI_KDTREE::copy_to_mm(POINT_STREAM* in_stream, POINT** streams_mm, TPIE_OS_SIZE_T& sz) {
 		TPLOG("kdtree::copy_to_mm Entering "<<"\n");
 		// This method call should have been preceeded by a call to can_do_mm
 		// so casting should be o.k.
-		sz = (memory_size_type)in_stream->stream_len();
-		memory_size_type i, j;
+		sz = (TPIE_OS_SIZE_T)in_stream->stream_len();
+		TPIE_OS_SIZE_T i, j;
 		POINT* p;
 		//  bool set_mbr;
 
@@ -2244,12 +2244,12 @@ protected:
 	}
 
 //// *kdtree::create_grid* ////
-	template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
-	void TPIE_AMI_KDTREE::create_grid(bid_t&, memory_size_type, POINT_STREAM** in_streams, memory_size_type t) {
+	template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+	void TPIE_AMI_KDTREE::create_grid(bid_t&, TPIE_OS_SIZE_T, POINT_STREAM** in_streams, TPIE_OS_SIZE_T t) {
 		TPLOG("kdtree::create_grid Entering "<<"\n");
 		// Note: only one grid level implemented.
 
-		DBG("  Computing grid lines [" << (stream_offset_type)dim*t << " (random seek + read)]...\n");
+		DBG("  Computing grid lines [" << (TPIE_OS_OFFSET)dim*t << " (random seek + read)]...\n");
 		grid *g = new grid(t, in_streams);
 
 		DBG("  Creating matrix [1 linear scan]...\n");
@@ -2260,10 +2260,10 @@ protected:
 		create_node_g(header_.root_bid, 0, gmx);
 
 		// Distribute the points.
-		DBG("  Distributing in " << (stream_offset_type)g->q.size() << "x" << (stream_offset_type)dim << " streams [" << (stream_offset_type)dim << " linear scans, distribution writing]...\n");
+		DBG("  Distributing in " << (TPIE_OS_OFFSET)g->q.size() << "x" << (TPIE_OS_OFFSET)dim << " streams [" << (TPIE_OS_OFFSET)dim << " linear scans, distribution writing]...\n");
 		distribute_g(header_.root_bid, 0, g);
 
-		DBG("  Building lower levels [" << (stream_offset_type)g->q.size() << "x" << (stream_offset_type)dim << " small linear scans, lots of block writes]...\n");
+		DBG("  Building lower levels [" << (TPIE_OS_OFFSET)g->q.size() << "x" << (TPIE_OS_OFFSET)dim << " small linear scans, lots of block writes]...\n");
 		build_lower_tree_g(g);
 
 		delete g;
@@ -2271,7 +2271,7 @@ protected:
 	}
 
 //// *kdtree::build_lower_tree_g* ////
-	template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+	template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 	void TPIE_AMI_KDTREE::build_lower_tree_g(grid* g) {
 		TPLOG("kdtree::build_lower_tree_g Entering "<<"\n");
 
@@ -2280,8 +2280,8 @@ protected:
 		//  POINT* p;
 		POINT* streams_mm[dim];
 		//  err err;
-		memory_size_type next_free_el;
-		memory_size_type next_free_lk;
+		TPIE_OS_SIZE_T next_free_el;
+		TPIE_OS_SIZE_T next_free_lk;
 		TPIE_AMI_KDTREE_NODE* b;
 
 		for (j = 0; j < g->q.size(); j++) {
@@ -2289,7 +2289,7 @@ protected:
 			gc = &(g->q[j]);
 			b = fetch_node(gc->bid);
 			next_free_el = b->size();
-			next_free_lk = (memory_size_type)b->lk[b->lk.capacity()-1];
+			next_free_lk = (TPIE_OS_SIZE_T)b->lk[b->lk.capacity()-1];
 			b->lk[b->lk.capacity()-1] = 0;
 
 			// Create the streams and load them into memory.
@@ -2310,7 +2310,7 @@ protected:
 			copy_to_mm(gc->streams, streams_mm, sz);
 
 			// Build the subtree.
-			DBG("B"<<(stream_offset_type)sz);
+			DBG("B"<<(TPIE_OS_OFFSET)sz);
 			if (sz <= params_.leaf_size_max) {
 
 				if (gc->low)
@@ -2356,12 +2356,12 @@ protected:
 	}
 
 //// *kdtree::distribute_g* ////
-	template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
-	void TPIE_AMI_KDTREE::distribute_g(bid_t, memory_size_type, grid* g) {
+	template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+	void TPIE_AMI_KDTREE::distribute_g(bid_t, TPIE_OS_SIZE_T, grid* g) {
 		TPLOG("TPIE_AMI_KDTREE::distribute_g Entering\n");
 		err err;
-		memory_size_type i, j, jj;
-		stream_offset_type sz;
+		TPIE_OS_SIZE_T i, j, jj;
+		TPIE_OS_OFFSET sz;
 		POINT* p1;
 
 		TPLOG("  Queue size: " << g->q.size());
@@ -2381,7 +2381,7 @@ protected:
 			g->streams[i]->seek(0);
 			while ((err = g->streams[i]->read_item(&p1)) == tpie::ami::NO_ERROR) {
 				if (jj % 200000 == 0)
-					DBG("\b\b\b"<<stream_offset_type(((float)jj / sz) * 100.0)<<"%");
+					DBG("\b\b\b"<<TPIE_OS_OFFSET(((float)jj / sz) * 100.0)<<"%");
 				jj++;
 
 				for (j = 0; j < g->q.size(); j++) {
@@ -2447,8 +2447,8 @@ protected:
 	}
 
 //// *kdtree::create_node_g* ////
-	template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
-	void TPIE_AMI_KDTREE::create_node_g(bid_t& bid, memory_size_type d, grid_matrix* gmx) {
+	template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+	void TPIE_AMI_KDTREE::create_node_g(bid_t& bid, TPIE_OS_SIZE_T d, grid_matrix* gmx) {
 		TPLOG("kdtree::create_node_g Entering "<<"\n");
   
 		TPIE_AMI_KDTREE_NODE *n = fetch_node();
@@ -2476,7 +2476,7 @@ protected:
 	} 
 
 //// *kdtree::create_bin_node_g* ////
-	template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+	template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 	void TPIE_AMI_KDTREE::create_bin_node_g(TPIE_AMI_KDTREE_NODE *b, bn_context ctx, grid_matrix *gmx, 
 											size_t& next_free_el, size_t& next_free_lk) {
 		TPLOG("kdtree::create_bin_node_g Entering "<<"\n");
@@ -2564,7 +2564,7 @@ protected:
 	}
 
 //// *kdtree::sort* ////
-	template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+	template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 	err TPIE_AMI_KDTREE::sort(POINT_STREAM* in_stream, POINT_STREAM* out_streams[]) {
 		TPLOG("kdtree::sort Entering"<<"\n");
 
@@ -2601,7 +2601,7 @@ protected:
 	}
 
 //// *kdtree::load_sorted* ////
-	template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+	template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 	err TPIE_AMI_KDTREE::load_sorted(POINT_STREAM* streams_s[], 
 									 float lfill, float nfill, int load_method) {
 		TPLOG("kdtree::load_sorted Entering"<<"\n");
@@ -2676,7 +2676,7 @@ protected:
 		HEIGHTDISPLAY_INIT;
 
 		// The actual loading.
-		if (header_.size <= (stream_offset_type)params_.leaf_size_max) {
+		if (header_.size <= (TPIE_OS_OFFSET)params_.leaf_size_max) {
 			header_.root_type = BLOCK_LEAF;
 			create_leaf(header_.root_bid, 0, streams_s);
 		} else {
@@ -2684,7 +2684,7 @@ protected:
 			header_.root_type = BLOCK_NODE;
 			if (can_do_mm(header_.size)) {
 				POINT* streams_mm[dim];
-				memory_size_type sz;
+				TPIE_OS_SIZE_T sz;
 				copy_to_mm(streams_s, streams_mm, sz);
 				create_node_mm(header_.root_bid, 0, streams_mm, sz);
 			} else if (load_method & TPIE_AMI_KDTREE_LOAD_BINARY) {
@@ -2724,7 +2724,7 @@ protected:
 
 
 //// *kdtree::load* ////
-	template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+	template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 	err TPIE_AMI_KDTREE::load(POINT_STREAM* s, float lfill, float nfill, int load_method) {
 		TPLOG("kdtree::load Entering "<<"\n");
 		POINT_STREAM* streams_s[dim];
@@ -2746,7 +2746,7 @@ protected:
 	}
 
 //// *kdtree::load_sample* ////
-	template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+	template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 	err TPIE_AMI_KDTREE::load_sample(POINT_STREAM* s) {
 		TPLOG("kdtree::load_sample Entering"<<"\n");
 
@@ -2762,7 +2762,7 @@ protected:
 				 % params_.max_intranode_height + 1) % params_.max_intranode_height + 1;
   
 
-		if (header_.size <= (stream_offset_type)params_.leaf_size_max) {
+		if (header_.size <= (TPIE_OS_OFFSET)params_.leaf_size_max) {
 
 			header_.root_type = BLOCK_LEAF;
 			std::cerr << "Size too small. Not implemented.\n";
@@ -2806,7 +2806,7 @@ protected:
 	}
 
 //// *kdtree::unload* ////
-	template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+	template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 	err TPIE_AMI_KDTREE::unload(POINT_STREAM* s) {
 		TPLOG("kdtree::unload Entering "<<"\n");
 		bid_t lid = first_leaf_id_;
@@ -2837,11 +2837,11 @@ protected:
 	}
 
 //// *kdtree::k_nn_query* ////
-	template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
-	stream_offset_type TPIE_AMI_KDTREE::k_nn_query(const POINT &p, 
-											   POINT_STREAM* stream, stream_offset_type k) {
+	template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+	TPIE_OS_OFFSET TPIE_AMI_KDTREE::k_nn_query(const POINT &p, 
+											   POINT_STREAM* stream, TPIE_OS_OFFSET k) {
 		TPLOG("kdtree::k_nn_query Entering "<<"\n");
-		stream_offset_type result = 0;
+		TPIE_OS_OFFSET result = 0;
 
 		// Do some error checking.
 		if (status_ != KDTREE_STATUS_VALID) {
@@ -2861,14 +2861,14 @@ protected:
 	}
 
 //// *kdtree::window_query* ////
-	template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
-	stream_offset_type TPIE_AMI_KDTREE::window_query(const POINT &p1, const POINT& p2, 
+	template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+	TPIE_OS_OFFSET TPIE_AMI_KDTREE::window_query(const POINT &p1, const POINT& p2, 
 												 POINT_STREAM* stream) {
 		TPLOG("kdtree::window_query Entering "<<"\n");
 		POINT lop, hip;
 		// The number of points found.
-		stream_offset_type result = 0;
-		memory_size_type i;
+		TPIE_OS_OFFSET result = 0;
+		TPIE_OS_SIZE_T i;
 
 		// Do some error checking.
 		if (status_ != KDTREE_STATUS_VALID) {
@@ -2902,7 +2902,7 @@ protected:
 
 		std::pair<bid_t,link_type_t> top;
 		podf topflags, tempflags;
-		memory_size_type child;
+		TPIE_OS_SIZE_T child;
 		link_type_t childtype;
 		TPIE_AMI_KDTREE_NODE *bn, *bn2;
 		TPIE_AMI_KDTREE_LEAF *bl;
@@ -3060,7 +3060,7 @@ protected:
 		}
 
 //// *kdtree::find_leaf* ////
-		template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+		template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 			bid_t TPIE_AMI_KDTREE::find_leaf(const POINT &p) {
 			TPLOG("kdtree::find_leaf Entering "<<"\n");
 			std::pair<bid_t, link_type_t> n = 
@@ -3081,7 +3081,7 @@ protected:
 		}
 
 //// *kdtree::find* ////
-		template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+		template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 			bool TPIE_AMI_KDTREE::find(const POINT &p) {
 
 			TPLOG("kdtree::find Entering "<<"\n");
@@ -3097,7 +3097,7 @@ protected:
 		}
 
 //// *kdtree::insert* ////
-		template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+		template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 			bool TPIE_AMI_KDTREE::insert(const POINT& p) {
 			TPLOG("kdtree::insert Entering "<<"\n");
 			bool ans = false;
@@ -3115,7 +3115,7 @@ protected:
 		}
 
 //// *kdtree::erase* ////
-		template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+		template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 			bool TPIE_AMI_KDTREE::erase(const POINT& p) {
 			TPLOG("kdtree::erase Entering "<<"\n");
 			bool ans;
@@ -3130,7 +3130,7 @@ protected:
 		}
 
 //// *kdtree::persist* ////
-		template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+		template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 			void TPIE_AMI_KDTREE::persist(persistence per) {
 			TPLOG("kdtree::persist Entering "<<"\n");
 
@@ -3141,7 +3141,7 @@ protected:
 		}
 
 //// *kdtree::fetch_node* ////
-		template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+		template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 			TPIE_AMI_KDTREE_NODE* TPIE_AMI_KDTREE::fetch_node(bid_t bid) {
 			TPIE_AMI_KDTREE_NODE* q;
 			stats_.record(NODE_FETCH);
@@ -3153,7 +3153,7 @@ protected:
 		}
 
 //// *kdtree::fetch_leaf* ////
-		template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+		template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 			TPIE_AMI_KDTREE_LEAF* TPIE_AMI_KDTREE::fetch_leaf(bid_t bid) {
 			TPIE_AMI_KDTREE_LEAF* q;
 			stats_.record(LEAF_FETCH);
@@ -3165,7 +3165,7 @@ protected:
 		}
 
 //// *kdtree::release_node* ////
-		template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+		template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 			void TPIE_AMI_KDTREE::release_node(TPIE_AMI_KDTREE_NODE* q) {
 			stats_.record(NODE_RELEASE);
 			if (q->persist() == PERSIST_DELETE)
@@ -3175,7 +3175,7 @@ protected:
 		}
 
 //// *kdtree::release_leaf* ////
-		template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+		template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 			void TPIE_AMI_KDTREE::release_leaf(TPIE_AMI_KDTREE_LEAF* q) {
 			stats_.record(LEAF_RELEASE);
 			if (q->persist() == PERSIST_DELETE)
@@ -3185,7 +3185,7 @@ protected:
 		}
 
 //// *kdtree::stats* ////
-		template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+		template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 			const stats_tree &TPIE_AMI_KDTREE::stats() {
 			node_cache_->flush();
 			leaf_cache_->flush();
@@ -3203,7 +3203,7 @@ protected:
 		}
 
 //// *kdtree::print* ////
-		template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+		template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 			void TPIE_AMI_KDTREE::print(std::ostream& s) {
 			s << "kdtree nodes: ";
 			if (header_.root_type == BLOCK_NODE) {
@@ -3228,7 +3228,7 @@ protected:
 						i = iq.front();
 						iq.pop();
 
-						s << "B" << (stream_offset_type)bn->el[i].get_discriminator_dim() << " " 
+						s << "B" << (TPIE_OS_OFFSET)bn->el[i].get_discriminator_dim() << " " 
 						  << bn->el[i].get_discriminator_val() << "\n";
 
 						bn->el[i].get_low_child(idx, idx_type);
@@ -3262,7 +3262,7 @@ protected:
 							s << " ";
 						}
 					}
-					s << "\b) fo=" << (stream_offset_type)fo << "]\n";
+					s << "\b) fo=" << (TPIE_OS_OFFSET)fo << "]\n";
 					release_node(bn);
 				}
 			} else
@@ -3272,7 +3272,7 @@ protected:
 
 
 //// *kdtree::print* ////
-		template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+		template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 			void TPIE_AMI_KDTREE::print(std::ostream& s, bool print_mbr, bool print_level, char indent_char) {
 
 
@@ -3410,7 +3410,7 @@ protected:
 
 
 //// *kdtree::~kdtree* ////
-		template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+		template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 			TPIE_AMI_KDTREE::~kdtree() {
 			TPLOG("kdtree::~kdtree Entering status="<<status_<<"\n");
 
@@ -3435,8 +3435,8 @@ protected:
 		}
 
 //// *kdtree::create_sample* ////
-		template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
-			void TPIE_AMI_KDTREE::create_sample(bid_t&, memory_size_type, POINT_STREAM* in_stream) {
+		template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+			void TPIE_AMI_KDTREE::create_sample(bid_t&, TPIE_OS_SIZE_T, POINT_STREAM* in_stream) {
 
 			// New sample.
 			DBG("  Sampling [" << 20000 << " (random seek + read)]...\n");
@@ -3458,7 +3458,7 @@ protected:
 			points_are_sample = false;
 			gso->cleanup();
 
-			DBG("  Distributing into " << (stream_offset_type)gso->q.size() << " streams...\n");
+			DBG("  Distributing into " << (TPIE_OS_OFFSET)gso->q.size() << " streams...\n");
 			distribute_s(header_.root_bid, 0, gso);
 
 			DBG("  Building lower levels...\n");
@@ -3468,14 +3468,14 @@ protected:
 		}
 
 //// *kdtree::build_lower_tree_s* ////
-		template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
+		template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 			void TPIE_AMI_KDTREE::build_lower_tree_s(sample* s) {
 			sample_context* sc;
 			size_t j;
 			//  POINT* p;
 			TPIE_AMI_KDTREE_NODE* b;
-			memory_size_type next_free_el, next_free_lk;
-			memory_size_type sz;
+			TPIE_OS_SIZE_T next_free_el, next_free_lk;
+			TPIE_OS_SIZE_T sz;
 			POINT* streams_mm[dim];
 
 			for (j = 0; j < s->q.size(); j++) {
@@ -3484,7 +3484,7 @@ protected:
 
 				b = fetch_node(sc->bid);
 				next_free_el = b->size();
-				next_free_lk = (memory_size_type)b->lk[b->lk.capacity()-1];
+				next_free_lk = (TPIE_OS_SIZE_T)b->lk[b->lk.capacity()-1];
 				b->lk[b->lk.capacity()-1] = 0;
 
 				DBG("L");
@@ -3509,7 +3509,7 @@ protected:
 				delete sc->stream;
 				sc->stream = NULL;
 
-				DBG("B" << (stream_offset_type)sz);
+				DBG("B" << (TPIE_OS_OFFSET)sz);
 				// Build the subtree.
 
 				if (sz <= params_.leaf_size_max) {
@@ -3557,15 +3557,15 @@ protected:
 		}
 
 //// *kdtree::distribute_s* ////
-		template<class coord_t, memory_size_type dim, class Bin_node, class BTECOLL>
-			void TPIE_AMI_KDTREE::distribute_s(bid_t bid, memory_size_type, sample* s) {
+		template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
+			void TPIE_AMI_KDTREE::distribute_s(bid_t bid, TPIE_OS_SIZE_T, sample* s) {
 
 			TPIE_AMI_KDTREE_NODE* n, *r = fetch_node(bid);
 			bid_t nbid;
 			POINT* p;
 			std::pair<size_t, link_type_t> a;
-			memory_size_type j;
-			stream_offset_type sz;
+			TPIE_OS_SIZE_T j;
+			TPIE_OS_OFFSET sz;
 
 			// Create all streams. Could we run out of memory here?
 			for (j = 0; j < s->q.size(); j++) {
@@ -3579,7 +3579,7 @@ protected:
 			sz = s->in_stream->stream_len();
 			while ((s->in_stream->read_item(&p)) == tpie::ami::NO_ERROR) {
 				if (j % 200000 == 0)
-					DBG("\b\b\b"<<stream_offset_type(((float)j / sz) * 100.0)<<"%");
+					DBG("\b\b\b"<<TPIE_OS_OFFSET(((float)j / sz) * 100.0)<<"%");
 				j++;
 				a = r->find_index(*p);
 				if (a.second == BLOCK_NODE)

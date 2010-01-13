@@ -193,7 +193,7 @@ public:
 		stream(file_type & file, stream_size_type offset=0):
 			file_base::stream(file, offset) {}
 
- 		inline const item_type & read() {
+ 		inline item_type & read() {
 			if (m_index >= m_block->size) {
 				if (offset() >= m_file.size())
 					throw end_of_stream_exception();
