@@ -149,6 +149,13 @@ void stdio::write_user_data(const void * data) {
 
 void stdio::truncate(stream_size_type size) {
 	//Since there is no reliable way of trunacing a file, we will just fake it
+	if(size > m_size) {
+		char * buff = new char[m_itemSize*1024*256];
+		while(size > m_size) {
+			write(buff, m_size, m_itemSize*1024*256);
+			m_size += m_itemSize*1024*256;
+		}
+	}
 	m_size = size;
 }
 
