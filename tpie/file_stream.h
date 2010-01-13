@@ -40,7 +40,6 @@ private:
 	file_type m_file;
 	stream_type m_stream;
 public:
-
 	inline file_stream(float blockFactor=1.0, file_accessor::file_accessor * fileAccessor=NULL):
 		m_file(blockFactor, fileAccessor), m_stream(m_file, 0) {};
 
@@ -100,7 +99,14 @@ public:
 	inline void seek(stream_size_type offset) {
 		return m_stream.seek(offset);
 	}
+
+	inline static memory_size_type memory_usage(memory_size_type count=1, float bf=1.0, bool includeDefaultFileAccessor=true) {
+		return file_type::memory_usage(count, includeDefaultFileAccessor) + stream_type::memory_usage(count, bf);
+	}
 	
+	inline void truncate(stream_size_type size) {
+		m_file.truncate(size);
+	}
 };
 }
 

@@ -35,7 +35,7 @@ private:
 	void read_header();
 	void write_header(bool clean);
 	void throw_errno();
-	
+
 public:
 	stdio();
 	virtual void open(const std::string & path, 
@@ -48,7 +48,11 @@ public:
 	virtual void write(const void * data, stream_size_type offset, memory_size_type size); 
 	virtual void read_user_data(void * data);
 	virtual void write_user_data(const void * data);
+	virtual void truncate(stream_size_type size);
 	virtual ~stdio();
+	static inline memory_size_type memory_usage(memory_size_type count) {
+		return (sizeof(stdio) + 100) * count;
+	}
 };
 
 }

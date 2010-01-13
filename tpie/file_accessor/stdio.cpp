@@ -147,6 +147,11 @@ void stdio::write_user_data(const void * data) {
 	if (::fwrite(data, 1, m_userDataSize, m_fd) != m_userDataSize) throw_errno();
 }
 
+void stdio::truncate(stream_size_type size) {
+	//Since there is no reliable way of trunacing a file, we will just fake it
+	m_size = size;
+}
+
 stdio::~stdio() {
 	close();
 }

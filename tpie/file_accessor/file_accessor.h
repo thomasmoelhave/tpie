@@ -40,6 +40,7 @@ public:
 	virtual void write(const void * data, stream_size_type offset, memory_size_type size) = 0; 
 	virtual void read_user_data(void * data) = 0;
 	virtual void write_user_data(const void * data) = 0;
+	virtual void truncate(stream_size_type size) = 0;
 	virtual ~file_accessor() {}
 	inline stream_size_type size() const {
 		return m_size;

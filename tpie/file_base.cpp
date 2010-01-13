@@ -44,7 +44,7 @@ file_base::file_base(memory_size_type itemSize,
 	m_emptyBlock.number = std::numeric_limits<stream_size_type>::max();
 	m_emptyBlock.next = 0;
 
-	m_blockItems = 2*1024*1024/m_itemSize;
+	m_blockItems = blockSize(blockFactor)/m_itemSize;
 }
 	
 

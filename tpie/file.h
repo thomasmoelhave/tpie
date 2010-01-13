@@ -48,11 +48,12 @@ protected:
 	bool m_canRead;
 	bool m_canWrite;
 
-	//static inline size_type blockSize() {
-	//	return 1024*1024 * blockFactor / 100;
-	//}
+	static inline memory_size_type blockSize(float blockFactor) {
+		return 2 * 1024*1024 * blockFactor;
+	}
+
 	file_base(memory_size_type item_size, 
-			  float block_factor=1.0, 
+			  float blockFactor=1.0, 
 			  file_accessor::file_accessor * fileAccessor=NULL);
 				  
 	struct block_t {
@@ -128,6 +129,7 @@ public:
 			m_file.m_size = std::max(m_file.m_size, static_cast<stream_size_type>(m_index)+m_block->number*static_cast<stream_size_type>(m_file.m_blockItems));
 		}
 	public:
+
 		stream(file_base & file, stream_size_type offset=0);
 		void free();
 		inline ~stream() {free();}
@@ -160,6 +162,10 @@ public:
  		}
 	};
 
+	void truncate(stream_size_type size) {
+		m_fileAccessor->truncate(size);
+	}
+
 	~file_base();
 };
 
@@ -170,14 +176,16 @@ class file: public file_base {
 public:
  	typedef T item_type;
 
-	//static inline size_type blockSize() {
-	//	return 1024*1024 * blockFactor / 100;
-	//}
+	static inline memory_size_type memory_usage(memory_size_type count=1, bool includeDefaultFileAccessor=true) {
+		memory_size_type x = sizeof(file) * count;
+		if (includeDefaultFileAccessor)
+			x += MM_manager.space_overhead()*count + default_file_accessor::memory_usage(count);
+		return x;
+	}
 
 	file(float blockFactor=1.0, 
 		 file_accessor::file_accessor * fileAccessor=NULL):
 		file_base(sizeof(T), blockFactor, fileAccessor) {};
-
 
  	class stream: public file_base::stream {
 	public:
@@ -186,9 +194,9 @@ public:
 	private:
 		typedef typename file::block_t block_t;
 	public:
-		//static size_type memory(size_type count=1) {
-		//	return (sizeof(stream) + blockSize() + sizeof(block_t) + MM_manager.space_overhead())*count ;
-		//}
+		inline static memory_size_type memory_usage(memory_size_type count=1, float blockFactor=1.0) {
+			return (sizeof(stream) + blockSize(blockFactor) +  MM_manager.space_overhead() + sizeof(block_t)) * count;
+		}
 
 		stream(file_type & file, stream_size_type offset=0):
 			file_base::stream(file, offset) {}
