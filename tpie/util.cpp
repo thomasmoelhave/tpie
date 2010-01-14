@@ -52,10 +52,14 @@ uint32_t random() {
 }
 
 ///////////////////////////////////////////////////////////////////////////
-/// \brief Remove a file from the filesystem
+/// \brief Remove a file from the filesystem, if the file does not exist
+/// the function returns witout doing anything.
 /// \param path The path of the file to remove
 ///////////////////////////////////////////////////////////////////////////
 void remove(const std::string & path) {
+	if (!boost::filesystem::exists(path))
+		return;
+
 	if (!boost::filesystem::remove(path))
 		throw std::runtime_error(std::string("Unable to delete ")+path);
 }
