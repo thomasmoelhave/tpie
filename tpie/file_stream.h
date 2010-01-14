@@ -105,6 +105,8 @@ public:
 	}
 	
 	inline void truncate(stream_size_type size) {
+		if (offset() > size) 
+			seek(size);
 		m_file.truncate(size);
 	}
 };

@@ -42,11 +42,11 @@ public:
 		read_write
 	};
 
+	bool m_canWrite;
 protected:
 	memory_size_type m_blockItems;
 	stream_size_type m_size;
 	bool m_canRead;
-	bool m_canWrite;
 
 	static inline memory_size_type blockSize(float blockFactor) {
 		return 2 * 1024*1024 * blockFactor;
@@ -135,6 +135,8 @@ public:
 		inline ~stream() {free();}
 
 		inline void seek(stream_size_type offset) {
+			if (offset > size()) 
+				throw io_exception("Tried to seek out of file");
 			update_vars();
 			stream_size_type b = offset / m_file.m_blockItems;
 			m_index = offset - b*m_file.m_blockItems;
@@ -162,14 +164,13 @@ public:
  		}
 	};
 
-	void truncate(stream_size_type size) {
-		m_fileAccessor->truncate(size);
+	void truncate(stream_size_type s) {
+		m_size = s;
+		m_fileAccessor->truncate(s);
 	}
 
 	~file_base();
 };
-
-
 
 template <typename T>
 class file: public file_base {
@@ -211,6 +212,10 @@ public:
 		}
 
  		inline void write(const item_type& item) {
+#ifndef NDEBUG
+			if (!m_file.m_canWrite) 
+				throw io_exception("Cannot write to read only stream");
+#endif
 			if (m_index >= block_items()) update_block();
 			reinterpret_cast<T*>(m_block->data)[m_index++] = item;
 			write_update();
