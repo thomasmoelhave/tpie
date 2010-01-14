@@ -93,7 +93,10 @@ void stdio::open(const std::string & path,
 		m_fd = ::fopen(path.c_str(), "wb");
 		if (m_fd == 0) throw_errno();
 		m_size = 0;
-		write_header(true);
+		write_header(false);
+		char * buf = new char[userDataSize];
+		write_user_data(buf);
+		delete[] buf;
 	} else if (!write && read) {
 		m_fd = ::fopen(path.c_str(), "rb");
 		if (m_fd == 0) throw_errno();
@@ -106,6 +109,9 @@ void stdio::open(const std::string & path,
 			if (m_fd == 0) throw_errno();
 			m_size=0;
 			write_header(false);
+			char * buf = new char[userDataSize];
+			write_user_data(buf);
+			delete[] buf;
 		} else {
 			read_header();
 			write_header(false);
@@ -147,15 +153,25 @@ void stdio::write_user_data(const void * data) {
 	if (::fwrite(data, 1, m_userDataSize, m_fd) != m_userDataSize) throw_errno();
 }
 
+#ifndef WIN32
+#include <unistd.h>
+#include <sys/types.h>
+#endif
+
 void stdio::truncate(stream_size_type size) {
+#ifndef WIN32
+	::truncate(m_path.c_str(), sizeof(stream_header_t) + m_userDataSize + size*m_itemSize);
+#else
 	//Since there is no reliable way of trunacing a file, we will just fake it
 	if(size > m_size) {
 		char * buff = new char[m_itemSize*1024*256];
 		while(size > m_size) {
-			write(buff, m_size, m_itemSize*1024*256);
-			m_size += m_itemSize*1024*256;
+			write(buff, m_size, 1024*256);
+			m_size += 1024*256;
 		}
+		delete [] buff;
 	}
+#endif
 	m_size = size;
 }
 
