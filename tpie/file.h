@@ -16,46 +16,22 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
-
 #ifndef __TPIE_FILE_H__
 #define __TPIE_FILE_H__
 
-//#include <tpie/stream/stdio_bte.h>
+#include <limits>
+#include <tpie/exception.h>
+#include <tpie/file_accessor/file_accessor.h>
+#include <tpie/file_accessor/stdio.h>
 #include <tpie/mm_base.h>
 #include <tpie/mm_manager.h>
-///#include <tpie/stream/concepts.h>
-#include <tpie/exception.h>
-#include <boost/cstdint.hpp>
-#include <limits>
-
-#include <tpie/file_accessor/stdio.h>
 
 namespace tpie {
 
 typedef tpie::file_accessor::stdio default_file_accessor;
 
 class file_base {
-public:
-	enum access_type {
-		read, 
-		write, 
-		read_write
-	};
-
-	bool m_canWrite;
 protected:
-	memory_size_type m_blockItems;
-	stream_size_type m_size;
-	bool m_canRead;
-
-	static inline memory_size_type blockSize(float blockFactor) {
-		return 2 * 1024*1024 * blockFactor;
-	}
-
-	file_base(memory_size_type item_size, 
-			  float blockFactor=1.0, 
-			  file_accessor::file_accessor * fileAccessor=NULL);
-				  
 	struct block_t {
 		memory_size_type size;
 		memory_size_type usage;
@@ -64,37 +40,95 @@ protected:
  		block_t * next;
 		char data[0];
 	};
-	
-	void create_block();
-	void delete_block();
-	block_t * get_block(stream_size_type block);
-	void free_block(block_t * block);
 
-	block_t m_emptyBlock;
-private:
-	//TODO this should realy be a hash map
-	memory_size_type m_itemSize;
-	block_t * m_firstUsed;
-	block_t* m_firstFree;
-	file_accessor::file_accessor * m_fileAccessor;
 public:
-	template <typename T>
-	void read_user_data(T & ud) {
-		if (sizeof(T) != m_fileAccessor->user_data_size()) throw io_exception("Wrong user data size");
-		m_fileAccessor->read_user_data(reinterpret_cast<void*>(&ud));
+	/** Type describing how the offset supplied when seeking should be interpeted */
+	enum offset_type {
+		beginning,
+		end,
+		current
+	};
+
+	/** Type describing how we want to access a file */
+	enum access_type {
+		read, 
+		write, 
+		read_write
+	};
+
+	////////////////////////////////////////////////////////////////////////////////
+	/// Check if we can read from the file
+	///
+	/// \returns True if we can read from the file
+	////////////////////////////////////////////////////////////////////////////////
+	bool can_read() const throw() {
+		return m_canRead;
 	}
 
-	template <typename T>
-	void write_user_data(const T & ud) {
-		if (sizeof(T) != m_fileAccessor->user_data_size()) throw io_exception("Wrong user data size");
-		m_fileAccessor->write_user_data(reinterpret_cast<const void*>(&ud));
+	////////////////////////////////////////////////////////////////////////////////
+	/// Check if we can write to the file
+	///
+	/// \returns True if we can write to the file
+	////////////////////////////////////////////////////////////////////////////////
+	bool can_write() const throw() {
+		return m_canWrite;
+	}
+
+	////////////////////////////////////////////////////////////////////////////////
+	/// Calculate the block size in bytes used by a stream.
+	///
+	/// \param blockFactor Factor of the global block size to use
+	/// \returns Size in Bytes
+	////////////////////////////////////////////////////////////////////////////////
+	static inline memory_size_type blockSize(float blockFactor) throw () {
+		return 2 * 1024*1024 * blockFactor;
 	}
 	
-	inline void close() {
+	/////////////////////////////////////////////////////////////////////////
+	/// \brief Read the user data associated with the file
+	///
+	/// \param data Where to store the user data
+	/// \tparam TT The type of user data. This must be the same size as the
+	/// user_data_size supplied to the open call.
+	/////////////////////////////////////////////////////////////////////////
+	template <typename TT>
+	void read_user_data(TT & data) throw(stream_exception) {
+		if (sizeof(TT) != m_fileAccessor->user_data_size()) throw io_exception("Wrong user data size");
+		m_fileAccessor->read_user_data(reinterpret_cast<void*>(&data));
+	}
+
+	/////////////////////////////////////////////////////////////////////////
+	/// \brief Write user data to the stream
+	///
+	/// \param data The user data to store in the stream
+	/// \tparam TT The type of user data. This must be the same size as the
+	/// user_data_size supplied to the open call.
+	/////////////////////////////////////////////////////////////////////////
+	template <typename TT>
+	void write_user_data(const TT & data) throw(stream_exception) {
+		if (sizeof(TT) != m_fileAccessor->user_data_size()) throw io_exception("Wrong user data size");
+		m_fileAccessor->write_user_data(reinterpret_cast<const void*>(&data));
+	}
+
+	/////////////////////////////////////////////////////////////////////////
+	/// \brief Close the file
+	///
+	/// Note all streams into the will must be freed, before you call close
+	/////////////////////////////////////////////////////////////////////////
+	inline void close() throw(stream_exception){
 		m_fileAccessor->close();
 	}
 
-	inline void open(const std::string & path, access_type accessType, memory_size_type userDataSize=0) {
+	/////////////////////////////////////////////////////////////////////////
+	/// \brief Open a file
+	///
+	/// \param path The path of the file to open
+	/// \param accessType The way in which we want the file to be opened
+	/// \param userDataSize The size of the userdata we want to store in the file
+	/////////////////////////////////////////////////////////////////////////
+	inline void open(const std::string & path, 
+					 access_type accessType=read_write, 
+					 memory_size_type userDataSize=0) throw(stream_exception) {
 		close();
 		m_canRead = accessType == read || accessType == read_write;
 		m_canWrite = accessType == write || accessType == read_write,
@@ -102,9 +136,23 @@ public:
 		m_size = m_fileAccessor->size();
 	}
 
-	inline stream_size_type size() const {return m_size;}
+	/////////////////////////////////////////////////////////////////////////
+	/// \brief Calculate the size of the file in items.
+	///
+	/// \returns The number of items is the file
+	/////////////////////////////////////////////////////////////////////////
+	inline stream_size_type size() const throw() {
+		return m_size;
+	}
 
-	inline const std::string & path() const {return m_fileAccessor->path();}
+	/////////////////////////////////////////////////////////////////////////
+	/// \brief The path of the file opened or the empty string
+	///
+	/// \returns The path of the currently opened file
+	/////////////////////////////////////////////////////////////////////////
+	inline const std::string & path() const throw() {
+		return m_fileAccessor->path();
+	}
 
 	class stream {
 	protected:
@@ -134,11 +182,22 @@ public:
 		void free();
 		inline ~stream() {free();}
 
-		inline void seek(stream_size_type offset) {
-			if (offset > size()) 
+		/////////////////////////////////////////////////////////////////////////
+		/// \brief Moves the logical offset in the stream
+		///
+		/// \param offset Where to move the logical offset to
+		/// \param whence Move the offset relative to what
+		/////////////////////////////////////////////////////////////////////////
+		inline void seek(stream_offset_type offset, offset_type whence=beginning) {
+			if (whence == end)
+				offset += size();
+			else if (whence == current) 
+				offset += this->offset();
+			
+			if (0 > offset || offset > size()) 
 				throw io_exception("Tried to seek out of file");
 			update_vars();
-			stream_size_type b = offset / m_file.m_blockItems;
+			stream_size_type b = static_cast<stream_size_type>(offset) / m_file.m_blockItems;
 			m_index = offset - b*m_file.m_blockItems;
 			if (b == m_block->number) {
 				m_nextBlock = std::numeric_limits<stream_size_type>::max();
@@ -152,12 +211,28 @@ public:
 
  		inline stream_size_type size() const {return m_file.size();}
 
+		/////////////////////////////////////////////////////////////////////////
+		/// \brief Calculate the current offset in the stream.
+		///
+		/// \returns The current offset in the stream
+		/////////////////////////////////////////////////////////////////////////
  		inline stream_size_type offset() const {
  			if (m_nextBlock == std::numeric_limits<stream_size_type>::max())
  				return m_index + m_block->number * m_file.m_blockItems;
  			return m_nextIndex + m_nextBlock * m_file.m_blockItems;
  		}
 
+		/////////////////////////////////////////////////////////////////////////
+		/// \brief Check if we can read more items from the stream
+		///
+		/// This is logicaly equivalent to:
+		/// \code
+		/// return offset() < size();
+		/// \endcode
+		/// But it might be faster
+		///
+		/// \returns Wether or not we can read more items
+		/////////////////////////////////////////////////////////////////////////
  		inline bool has_more() const {
  			if (m_index < m_block->size) return true;
  			return offset() < size();
@@ -170,6 +245,29 @@ public:
 	}
 
 	~file_base();
+
+protected:
+	memory_size_type m_blockItems;
+	stream_size_type m_size;
+	bool m_canRead;
+	bool m_canWrite;
+	block_t m_emptyBlock;	
+	
+	file_base(memory_size_type item_size, 
+			  float blockFactor=1.0, 
+			  file_accessor::file_accessor * fileAccessor=NULL);
+				  
+	void create_block();
+	void delete_block();
+	block_t * get_block(stream_size_type block);
+	void free_block(block_t * block);
+
+private:
+	//TODO this should realy be a hash map
+	memory_size_type m_itemSize;
+	block_t * m_firstUsed;
+	block_t* m_firstFree;
+	file_accessor::file_accessor * m_fileAccessor;
 };
 
 template <typename T>
@@ -202,6 +300,13 @@ public:
 		stream(file_type & file, stream_size_type offset=0):
 			file_base::stream(file, offset) {}
 
+		/////////////////////////////////////////////////////////////////////////
+		/// \brief Read an item from the stream.
+		///
+		/// This will throw an end_of_stream_exception if there are no more items
+		/// left in the stream.  This can also be checkout with has_more.
+		/// \returns The item read from the stream
+		/////////////////////////////////////////////////////////////////////////
  		inline item_type & read() {
 			if (m_index >= m_block->size) {
 				if (offset() >= m_file.size())
@@ -211,9 +316,14 @@ public:
 			return reinterpret_cast<T*>(m_block->data)[m_index++];
 		}
 
- 		inline void write(const item_type& item) {
+		/////////////////////////////////////////////////////////////////////////
+		/// \brief Write an item to the stream
+		///
+		/// \param item The item to write to the stream
+		/////////////////////////////////////////////////////////////////////////
+ 		inline void write(const item_type& item) throw(stream_exception) {
 #ifndef NDEBUG
-			if (!m_file.m_canWrite) 
+			if (!m_file.can_write()) 
 				throw io_exception("Cannot write to read only stream");
 #endif
 			if (m_index >= block_items()) update_block();
@@ -221,22 +331,34 @@ public:
 			write_update();
 		}
 
+		/////////////////////////////////////////////////////////////////////////
+		/// \brief Write several itmes to the stream
+		///
+		/// \tparam IT The type of Random Access Iteractors used to supplie the 
+		/// items
+		/// \param start Iterator to the first item to write
+		/// \param end Iterator parst the last item to write
+		/////////////////////////////////////////////////////////////////////////
 		template <typename IT>
 		inline void write(const IT & start, const IT & end) {
 			for(IT i=start; i != end; ++i) 
 				write(*i);
-		};
+		}
 
+		/////////////////////////////////////////////////////////////////////////
+		/// \brief Reads several items from the stream
+		///
+		/// \tparam IT The type of Random Access Iteractors used to supplie 
+		/// storage
+		/// \param start Iterator pointing to the first place to store an item
+		/// \param end Iterator pointing past the last place to store an item
+		/////////////////////////////////////////////////////////////////////////
 		template <typename IT>
 		inline void read(const IT & start, const IT & end) {
 			for(IT i=start; i != end; ++i) 
 				*i = read();
-		};
-
+		}
  	};
-
 };
-
 }
-
-#endif //__TPIE_STREAM_FD_FILE_H
+#endif //__TPIE_FILE_H
