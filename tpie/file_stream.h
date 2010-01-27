@@ -56,14 +56,16 @@ public:
 	/////////////////////////////////////////////////////////////////////////
 	inline file_stream(float blockFactor=1.0, 
 					   file_accessor::file_accessor * fileAccessor=NULL)
-		throw(stream_exception) : 
+		throw() : 
 		m_file(blockFactor, fileAccessor), m_stream(m_file, 0)  {};
 
 	/////////////////////////////////////////////////////////////////////////
 	/// \copydoc file_base::open
 	/// \sa file_base::open
 	/////////////////////////////////////////////////////////////////////////
-	inline void open(const std::string & path, file_base::access_type accessType=file_base::read_write, memory_size_type user_data_size=0) {
+	inline void open(const std::string & path,
+					 file_base::access_type accessType=file_base::read_write,
+					 memory_size_type user_data_size=0) throw (stream_exception) {
 		m_file.open(path, accessType, user_data_size);
 	}
 
@@ -120,6 +122,10 @@ public:
 		return m_stream.read();
 	}
 
+	inline item_type & read_back() throw(stream_exception) {
+		return m_stream.read_back();
+	}
+
 	/////////////////////////////////////////////////////////////////////////
 	/// \copydoc file<T>::stream::read(const IT & start, const IT & end)
 	/// \sa file<T>::stream::read(const IT & start, const IT & end)
@@ -158,6 +164,10 @@ public:
 	/// \sa file_base::stream::size()
 	/////////////////////////////////////////////////////////////////////////
 	inline bool has_more() const throw() {
+		return m_stream.has_more();
+	}
+
+	inline bool has_prev() const throw() {
 		return m_stream.has_more();
 	}
 
@@ -222,7 +232,6 @@ public:
 private:
 	file_type m_file;
 	stream_type m_stream;
-
 };
 }
 

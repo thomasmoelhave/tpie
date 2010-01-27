@@ -161,7 +161,7 @@ public:
 		stream_size_type m_nextBlock;
 		memory_size_type m_nextIndex;
 		block_t * m_block;
-		inline void update_vars() {
+		inline void update_vars() throw() {
 			if (m_index != std::numeric_limits<memory_size_type>::max()) 
 				m_block->size = std::max(m_block->size, m_index);
 			if (m_index != std::numeric_limits<memory_size_type>::max() &&
@@ -177,7 +177,6 @@ public:
 			m_file.m_size = std::max(m_file.m_size, static_cast<stream_size_type>(m_index)+m_block->number*static_cast<stream_size_type>(m_file.m_blockItems));
 		}
 	public:
-
 		stream(file_base & file, stream_size_type offset=0);
 		void free();
 		inline ~stream() {free();}
@@ -188,7 +187,7 @@ public:
 		/// \param offset Where to move the logical offset to
 		/// \param whence Move the offset relative to what
 		/////////////////////////////////////////////////////////////////////////
-		inline void seek(stream_offset_type offset, offset_type whence=beginning) {
+		inline void seek(stream_offset_type offset, offset_type whence=beginning) throw(stream_exception){
 			if (whence == end)
 				offset += size();
 			else if (whence == current) 
@@ -209,14 +208,16 @@ public:
 			m_index = std::numeric_limits<memory_size_type>::max();
 		}
 
- 		inline stream_size_type size() const {return m_file.size();}
+ 		inline stream_size_type size() const throw() {
+			return m_file.size();
+		}
 
 		/////////////////////////////////////////////////////////////////////////
 		/// \brief Calculate the current offset in the stream.
 		///
 		/// \returns The current offset in the stream
 		/////////////////////////////////////////////////////////////////////////
- 		inline stream_size_type offset() const {
+ 		inline stream_size_type offset() const throw() {
  			if (m_nextBlock == std::numeric_limits<stream_size_type>::max())
  				return m_index + m_block->number * m_file.m_blockItems;
  			return m_nextIndex + m_nextBlock * m_file.m_blockItems;
@@ -233,18 +234,30 @@ public:
 		///
 		/// \returns Wether or not we can read more items
 		/////////////////////////////////////////////////////////////////////////
- 		inline bool has_more() const {
+ 		inline bool has_more() const throw() {
  			if (m_index < m_block->size) return true;
  			return offset() < size();
  		}
+
+		inline bool has_prev() const throw() {
+ 			if (m_index < m_block->size) return true;
+			if (m_nextBlock == std::numeric_limits<stream_size_type>::max())
+				return m_block != 0;
+			else
+				return true;
+		}
 	};
 
-	void truncate(stream_size_type s) {
+	void truncate(stream_size_type s) throw(stream_exception) {
 		m_size = s;
 		m_fileAccessor->truncate(s);
 	}
 
 	~file_base();
+	
+	memory_size_type blockItems() {
+		return m_blockItems;
+	}
 
 protected:
 	memory_size_type m_blockItems;
@@ -262,9 +275,9 @@ protected:
 	block_t * get_block(stream_size_type block);
 	void free_block(block_t * block);
 
+	memory_size_type m_itemSize;
 private:
 	//TODO this should realy be a hash map
-	memory_size_type m_itemSize;
 	block_t * m_firstUsed;
 	block_t* m_firstFree;
 	file_accessor::file_accessor * m_fileAccessor;
@@ -314,6 +327,21 @@ public:
 				update_block();
 			}
 			return reinterpret_cast<T*>(m_block->data)[m_index++];
+		}
+
+		inline item_type & read_back() { 
+			//The first index in a block is 0, when that is read 
+			// m_index will underflow and become max int
+			if (m_index >= m_block->size) {
+				if (m_nextBlock == std::numeric_limits<stream_size_type>::max()) {
+					if (m_block == 0)
+						throw end_of_stream_exception();
+ 					m_nextBlock = m_block->number-1;
+					m_nextIndex = m_file.blockItems()-1;
+				} 
+				update_block();
+			}
+			return reinterpret_cast<T*>(m_block->data)[m_index--];
 		}
 
 		/////////////////////////////////////////////////////////////////////////

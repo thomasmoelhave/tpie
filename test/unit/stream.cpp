@@ -121,23 +121,24 @@ int main(int argc, char ** argv) {
  	} else if (argc == 2 && !strcmp(argv[1], "file_stream")) {
 		///First a simple test
 		remove("tmp");
+		int count=40*1024*1024;
 		{
 			file_stream<int> stream;
 			stream.open("tmp", file_base::write, sizeof(int));
 
 			stream.write_user_data<int>(42);
 			if (stream.size() != 0) ERR("size failed(1)");
-			for(int i=0; i < 40; ++i)
+			for(int i=0; i < count; ++i)
 				stream.write((i*8209)%8273);
- 			if (stream.size() != 40) ERR("size failed(2)");
+ 			if (stream.size() != count) ERR("size failed(2)");
  			stream.close();
 		}
 
 		{
 			file_stream<int> stream;
 			stream.open("tmp", file_base::read, sizeof(int));
-			if (stream.size() != 40) ERR("size failed(3)");
-			for(int i=0; i< 40; ++i) {
+			if (stream.size() != count) ERR("size failed(3)");
+			for(int i=0; i< count; ++i) {
 				if (stream.has_more() == false) ERR("has_more failed");
 				if (stream.read() != (i*8209)%8273) ERR("read failed");
 			}
@@ -149,6 +150,12 @@ int main(int argc, char ** argv) {
 			} catch(end_of_stream_exception &) {
 				//Do nothing
 			}		
+			stream.seek(-1, file_base::end);
+			for(int i=count-1; i >= 0; --i) {
+				if (stream.has_prev() == false) ERR("has_prev failed");
+				if (stream.read_back() != (i*8209)%8273) ERR("read back failed");
+			}
+			if (stream.has_prev() == true) ERR("has_prev failed (2)");
 			
 			int y;
 			stream.read_user_data<int>(y);
