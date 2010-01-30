@@ -68,8 +68,7 @@ void priority_queue<T, Comparator, OPQType>::init(TPIE_OS_SIZE_T mm_avail) { // 
 
 		//Check that there is enough space for the simple overhead
 		if(mm_avail < extra_overhead+additional_overhead){
-			TP_LOG_FATAL_ID("Priority Queue: Not enough memory. Increase allowed memory.");
-			exit(-1);
+			throw priority_queue_error("Not enough memory available for priority queue");
 		}
 
 		//Setup the fanout, heap_m and buffer_m
@@ -219,9 +218,8 @@ void priority_queue<T, Comparator, OPQType>::push(const T& x) {
 template <typename T, typename Comparator, typename OPQType>
 void priority_queue<T, Comparator, OPQType>::pop() {
 	//cout << "pop" << "\n";
-	if(m_size == 0) {
-		TP_LOG_FATAL_ID("Error, queue is empty, pop");
-		exit(-1);
+	if(empty()) {
+		throw priority_queue_error("pop() invoked on empty priority queue");
 	}
 	top();
 	//cout << "return to pop from top" << "\n";
@@ -252,9 +250,7 @@ const T& priority_queue<T, Comparator, OPQType>::top() {
 	}
 	//cout << "buffer filled" << "\n";
 	if(buffer_size == 0 && opq->size() == 0) {
-		//    dump();
-		TP_LOG_FATAL_ID("Error, queue is empty, top");
-		exit(-1);
+		throw priority_queue_error("top() invoked on empty priority queue");
 	} else if(opq->size() == 0) {
 		min=buffer[buffer_start];
 		min_in_buffer = true;

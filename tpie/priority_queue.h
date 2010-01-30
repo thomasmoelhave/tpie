@@ -28,6 +28,7 @@
 #include "pq_overflow_heap.h"
 #include <iostream>
 #include <fstream>
+#include <stdexcept>
 #include <cmath>
 #include <string>
 #include <sstream>
@@ -36,6 +37,11 @@
 namespace tpie {
 
     namespace ami {
+
+	struct priority_queue_error : public std::logic_error {
+		priority_queue_error(const std::string& what) : std::logic_error(what)
+		{ }
+	};
 	
 /////////////////////////////////////////////////////////
 ///
