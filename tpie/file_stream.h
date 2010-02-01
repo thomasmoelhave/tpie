@@ -122,16 +122,30 @@ public:
 		return m_stream.read();
 	}
 
-	inline item_type & read_back() throw(stream_exception) {
-		return m_stream.read_back();
-	}
-
 	/////////////////////////////////////////////////////////////////////////
 	/// \copydoc file<T>::stream::read(const IT & start, const IT & end)
 	/// \sa file<T>::stream::read(const IT & start, const IT & end)
 	/////////////////////////////////////////////////////////////////////////
 	template <typename IT>
 	inline void read(const IT & start, const IT & end) throw(stream_exception) {
+		m_stream.read(start, end);
+	}
+
+	/////////////////////////////////////////////////////////////////////////
+	/// \copydoc file<T>::stream::read_back()
+	/// \sa file<T>::stream::read_back()
+	/////////////////////////////////////////////////////////////////////////
+	inline item_type & read_back() throw(stream_exception) {
+		return m_stream.read_back();
+	}
+
+
+	/////////////////////////////////////////////////////////////////////////
+	/// \copydoc file<T>::stream::read(const IT & start, const IT & end)
+	/// \sa file<T>::stream::read(const IT & start, const IT & end)
+	/////////////////////////////////////////////////////////////////////////
+	template <typename IT>
+	inline void read_back(const IT & start, const IT & end) throw(stream_exception) {
 		m_stream.read(start, end);
 	}
 
@@ -160,15 +174,19 @@ public:
 	}
 
 	/////////////////////////////////////////////////////////////////////////
-	/// \copydoc file_base::stream::size()
-	/// \sa file_base::stream::size()
+	/// \copydoc file_base::stream::can_read()
+	/// \sa file_base::stream::can_read()
 	/////////////////////////////////////////////////////////////////////////
-	inline bool has_more() const throw() {
-		return m_stream.has_more();
+	inline bool can_read() const throw() {
+		return m_stream.can_read();
 	}
 
-	inline bool has_prev() const throw() {
-		return m_stream.has_more();
+	/////////////////////////////////////////////////////////////////////////
+	/// \copydoc file_base::stream::can_read_back()
+	/// \sa file_base::stream::can_read_back()
+	/////////////////////////////////////////////////////////////////////////
+	inline bool can_read_back() const throw() {
+		return m_stream.can_read_back();
 	}
 
 	/////////////////////////////////////////////////////////////////////////

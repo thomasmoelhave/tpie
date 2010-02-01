@@ -139,10 +139,10 @@ int main(int argc, char ** argv) {
 			stream.open("tmp", file_base::read, sizeof(int));
 			if (stream.size() != count) ERR("size failed(3)");
 			for(int i=0; i< count; ++i) {
-				if (stream.has_more() == false) ERR("has_more failed");
+				if (stream.can_read() == false) ERR("can_read failed");
 				if (stream.read() != (i*8209)%8273) ERR("read failed");
 			}
-			if (stream.has_more() == true) ERR("has_more failed (2)");
+			if (stream.can_read() == true) ERR("can_read failed (2)");
 			try {
 				int r =stream.read();
 				unused(r);
@@ -152,10 +152,10 @@ int main(int argc, char ** argv) {
 			}		
 			stream.seek(-1, file_base::end);
 			for(int i=count-1; i >= 0; --i) {
-				if (stream.has_prev() == false) ERR("has_prev failed");
+				if (stream.can_read_back() == false) ERR("can_read_back failed");
 				if (stream.read_back() != (i*8209)%8273) ERR("read back failed");
 			}
-			if (stream.has_prev() == true) ERR("has_prev failed (2)");
+			if (stream.can_read_back() == true) ERR("can_read_back failed (2)");
 			
 			int y;
 			stream.read_user_data<int>(y);

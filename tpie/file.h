@@ -61,7 +61,7 @@ public:
 	///
 	/// \returns True if we can read from the file
 	////////////////////////////////////////////////////////////////////////////////
-	bool can_read() const throw() {
+	bool is_readable() const throw() {
 		return m_canRead;
 	}
 
@@ -70,7 +70,7 @@ public:
 	///
 	/// \returns True if we can write to the file
 	////////////////////////////////////////////////////////////////////////////////
-	bool can_write() const throw() {
+	bool is_writable() const throw() {
 		return m_canWrite;
 	}
 
@@ -224,7 +224,7 @@ public:
  		}
 
 		/////////////////////////////////////////////////////////////////////////
-		/// \brief Check if we can read more items from the stream
+		/// \brief Check if we can read an item with read()
 		///
 		/// This is logicaly equivalent to:
 		/// \code
@@ -234,12 +234,17 @@ public:
 		///
 		/// \returns Wether or not we can read more items
 		/////////////////////////////////////////////////////////////////////////
- 		inline bool has_more() const throw() {
+ 		inline bool can_read() const throw() {
  			if (m_index < m_block->size) return true;
  			return offset() < size();
  		}
 
-		inline bool has_prev() const throw() {
+		/////////////////////////////////////////////////////////////////////////
+		/// \brief Check if we can read an item with read_back()
+		///
+		/// \returns Wether or not we can an item with read_back()
+		/////////////////////////////////////////////////////////////////////////
+		inline bool can_read_back() const throw() {
  			if (m_index < m_block->size) return true;
 			if (m_nextBlock == std::numeric_limits<stream_size_type>::max())
 				return m_block != 0;
@@ -316,8 +321,10 @@ public:
 		/////////////////////////////////////////////////////////////////////////
 		/// \brief Read an item from the stream.
 		///
+		/// Read current item from the stream, and increment the offset
+		/// by one item.
 		/// This will throw an end_of_stream_exception if there are no more items
-		/// left in the stream.  This can also be checkout with has_more.
+		/// left in the stream.  This can also be checkout with can_read.
 		/// \returns The item read from the stream
 		/////////////////////////////////////////////////////////////////////////
  		inline item_type & read() {
@@ -329,6 +336,15 @@ public:
 			return reinterpret_cast<T*>(m_block->data)[m_index++];
 		}
 
+		/////////////////////////////////////////////////////////////////////////
+		/// \brief Read an item from the stream.
+		///
+		/// Read current item from the stream, and decrement the offset
+		/// by one item.
+		/// This will throw an end_of_stream_exception if there are no more items
+		/// left in the stream.  This can also be checkout with can_read_back.
+		/// \returns The item read from the stream
+		/////////////////////////////////////////////////////////////////////////
 		inline item_type & read_back() { 
 			//The first index in a block is 0, when that is read 
 			// m_index will underflow and become max int
