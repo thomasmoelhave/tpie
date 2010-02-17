@@ -162,3 +162,14 @@ install(FILES ${OTHER_HEADERS} ${AMI_HEADERS} DESTINATION ${HEADERS_INSTALL_DIR}
 install(FILES ${BTE_HEADERS} DESTINATION ${HEADERS_INSTALL_DIR}/bte)
 install(FILES ${STREAMING_HEADERS} DESTINATION ${HEADERS_INSTALL_DIR}/streaming)
 
+if(${STREAMING_VIRTUAL_CALL_BUFFER_SIZE} STREQUAL auto) 
+  add_executable(vbufftest streaming/vbufftest.cpp)
+  add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/streaming/vbuffsize.inc COMMAND vbufftest ${CMAKE_CURRENT_BINARY_DIR}/streaming/vbuffsize.inc DEPENDS vbufftest)
+else(${STREAMING_VIRTUAL_CALL_BUFFER_SIZE} STREQUAL auto) 
+  configure_file(streaming/vbuffsize.inc.cmake ${CMAKE_CURRENT_BINARY_DIR}/streaming/vbuffsize.inc)
+endif(${STREAMING_VIRTUAL_CALL_BUFFER_SIZE} STREQUAL auto)
+
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/streaming/vbuffsize.inc DESTINATION ${HEADERS_INSTALL_DIR}/streaming)
+
+set_source_files_properties(streaming/tmp.cc PROPERTIES OBJECT_DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/streaming/vbuffsize.inc)
+add_executable(tmp streaming/tmp.cc )

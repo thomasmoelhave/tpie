@@ -19,9 +19,8 @@ else(WIN32)
   set(__TEMP_DIR "/var/tmp/")
 endif(WIN32)
 
-set(TEMP_DIR ${__TEMP_DIR} CACHE STRING "The default path for storing temporary files")
-
-
+set(TEMP_DIR ${__TEMP_DIR} CACHE STRING "The default path for storing temporery files")
+set(STREAMING_VIRTUAL_CALL_BUFFER_SIZE auto CACHE STRING "Number of element to buffer when making a virtual call if auto an optimal value for this machine will be calculated at compile time")
 
 check_include_files("unistd.h" TPIE_HAVE_UNISTD_H)
 check_include_files("sys/unistd.h" TPIE_HAVE_SYS_UNISTD_H)
