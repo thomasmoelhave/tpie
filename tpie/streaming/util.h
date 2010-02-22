@@ -19,53 +19,67 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #ifndef _TPIE_STREAMING_UTIL_H
 #define _TPIE_STREAMING_UTIL_H
+#include <limits>
 
 namespace tpie {
 namespace streaming {
 
-template <class item_t>
+const stream_size_type max_items=std::numeric_limits<stream_size_type>::max();
+class empty_type {};
+
+template <class item_t, class begin_data_t=empty_type, class end_data_t=empty_type>
 class null_sink: public memory_single {
 public:
+	typedef begin_data_t begin_data_type;
+	typedef end_data_t end_data_type;
 	typedef item_t item_type;
-	inline void begin(TPIE_OS_OFFSET size=0) {}
+	inline void begin(stream_size_type items=max_items,
+					  begin_data_type * data=0) {}
 	inline void push(const item_type & item) {}
-	inline void end() {}
-	virtual TPIE_OS_SIZE_T memoryBase() {return sizeof(null_sink);}
-
+	inline void end(end_data_type * data=0) {}
+	virtual memory_size_type base_memory() {
+		return sizeof(*this);
+	}
 	null_sink() {
-		setMemoryPriority(0);
+		set_memory_priority(0);
 	}
 };
 
-template <typename super_t, typename dest_t> 
+template <typename super_t, 
+		  typename dest_t, 
+		  typename begin_data_t=typename dest_t::begin_data_type,
+		  typename end_data_t=typename dest_t::end_data_type>
 class common_single: public memory_single {
+public:
+	typedef begin_data_t begin_data_type;
+	typedef end_data_t end_data_type;
 private:
 	dest_t & d;
 protected:
 	dest_t & dest() {return d;}
 	
     common_single(dest_t & de, double prio): d(de) {
-		setMemoryPriority(prio);
+		set_memory_priority(prio);
 	}
 public:	
-	void memoryNext(std::vector<memory_base *> &ds) {
+	void memory_next(std::vector<memory_base *> &ds) {
 		ds.push_back(&d);
 	}
 
-	TPIE_OS_SIZE_T minimumMemory() {
-		return memoryBase();
+	memory_size_type minimum_memory() {
+		return base_memory();
 	}
 	
-	virtual TPIE_OS_SIZE_T memoryBase() {
+	virtual memory_size_type base_memory() {
 		return sizeof(super_t);
 	}
 
-	void begin(TPIE_OS_OFFSET size=0) {
-		d.begin(size);
+	void begin(stream_size_type items=max_items, begin_data_t * data=0) {
+		d.begin(items, data);
 	}
 	
-	void end() {
-		d.end();
+	void end(end_data_t & data=0) {
+		d.end(data);
 	}
 
 };
@@ -80,26 +94,29 @@ protected:
 
     common_split(dest_t & de): d(de) {}
 	
-	void memoryNext(std::vector<memory_base *> &ds) {
+	void memory_next(std::vector<memory_base *> &ds) {
 		ds.push_back(&d);
 	}
 };
 
-template <typename first_t> 
+template <typename first_t>
 class common_wrapper: public memory_wrapper {
 private:
 	first_t * f;
 public:
 	typedef typename first_t::item_type item_type;
-	
+	typedef typename first_t::begin_data_type begin_data_type;
+	typedef typename first_t::end_data_type end_data_type;
+
 	common_wrapper(first_t * fi): f(fi) {}
 
-	inline void begin(TPIE_OS_SIZE_T count=0) {
-		f->begin(count);
+	inline void begin(stream_size_type items=max_items,
+					  begin_data_type * data=0) {
+		f->begin(items, data);
 	}
 
-	inline void end() {
-		f->end();
+	inline void end(end_data_type * data=0) {
+		f->end(data);
 	}
 	
 	inline void push(const typename first_t::item_type & item) {

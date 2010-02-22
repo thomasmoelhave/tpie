@@ -22,7 +22,7 @@
 
 #include <vector>
 #include <map>
-#include <tpie/portability.h>
+#include <tpie/types.h>
 
 namespace tpie {
 namespace streaming {
@@ -31,15 +31,15 @@ class priority_memory_manager;
 
 template <typename T>
 struct memory_fits {
-	static TPIE_OS_SIZE_T fits(TPIE_OS_SIZE_T mem) {
-		TPIE_OS_SIZE_T high=1;
+	static memory_size_type fits(memory_size_type mem) {
+		memory_size_type high=1;
 		while(T::memory(high) <= mem)
 			high *= 2;
-		TPIE_OS_SIZE_T low=high/2;
-		TPIE_OS_SIZE_T best=low;
+		memory_size_type low=high/2;
+		memory_size_type best=low;
 		while(low <= high) {
-			TPIE_OS_SIZE_T c = (high+low)/2;
-			TPIE_OS_SIZE_T m = T::memory(c);
+			memory_size_type c = (high+low)/2;
+			memory_size_type m = T::memory(c);
 			if(m <= mem) {
 				best = c;
 				low = c+1;
@@ -60,30 +60,30 @@ public:
 		SINGLE, SPLIT, WRAPPER
 	};
 	memory_base();
-	virtual void memoryNext(std::vector<memory_base *> &) {}
-	virtual void memoryPrev(std::vector<memory_base *> &) {}
-	virtual void dataStructures(std::map<TPIE_OS_SIZE_T, std::pair<TPIE_OS_SIZE_T, double> > &) {}
-	std::string memoryName();
-	void setMemoryName(const char * name, bool useAddr=false);
-	virtual TPIE_OS_SIZE_T memoryBase();
-	virtual memory_type memoryType() = 0;
-	priority_memory_manager * memoryManager();
-	void setMemoryManager(priority_memory_manager * man);
+	virtual void memory_next(std::vector<memory_base *> &) {}
+	virtual void memory_prev(std::vector<memory_base *> &) {}
+	virtual void data_structures(std::map<memory_size_type, std::pair<memory_size_type, double> > &) {}
+	std::string memory_name();
+	void set_memory_name(const char * name, bool useAddr=false);
+	virtual memory_size_type base_memory() ;
+	virtual memory_type get_memory_type() = 0;
+	priority_memory_manager * memory_manager();
+	void set_memory_manager(priority_memory_manager * memoryManager);
 };
 
 class memory_single: public memory_base {
 private:
 	double priority;
-	TPIE_OS_SIZE_T allocatedMemory;
+	memory_size_type allocatedMemory;
 public:
 	memory_single();
-	double memoryPriority();
-	void setMemoryPriority(double priority);
-	TPIE_OS_SIZE_T memory();
-	void setMemory(double f);
-	void setMemory(TPIE_OS_SIZE_T m);
-	memory_base::memory_type memoryType();
-	virtual TPIE_OS_SIZE_T minimumMemory();
+	double memory_priority();
+	void set_memory_priority(double priority);
+	memory_size_type memory();
+	void set_memory(double f);
+	void set_memory(memory_size_type m);
+	memory_base::memory_type get_memory_type();
+	virtual memory_size_type minimum_memory();
 };
 
 class memory_split: public memory_base {
@@ -94,25 +94,25 @@ private:
 	double allocatedMemoryOut;
 public:
 	memory_split();
-	double memoryInPriority();
-	void setMemoryInPriority(double p);
-	double memoryOutPriority();
-	void setMemoryOutPriority(double p);
-	TPIE_OS_SIZE_T memoryIn();
-	TPIE_OS_SIZE_T memoryOut();
-	void setMemoryIn(double f);
-	void setMemoryOut(double f);
-	void setMemoryIn(TPIE_OS_SIZE_T m);
-	void setMemoryOut(TPIE_OS_SIZE_T m);
-	virtual TPIE_OS_SIZE_T minimumMemoryIn();
-	virtual TPIE_OS_SIZE_T minimumMemoryOut();
-	memory_base::memory_type memoryType();
+	double memory_in_priority();
+	void set_memory_in_priority(double p);
+	double memory_out_priority();
+	void set_memory_out_priority(double p);
+	memory_size_type memory_in();
+	memory_size_type memory_out();
+	void set_memory_in(double f);
+	void set_memory_out(double f);
+	void set_memory_in(memory_size_type m);
+	void set_memory_out(memory_size_type m);
+	virtual memory_size_type minimum_memory_in();
+	virtual memory_size_type minimum_memory_out();
+	memory_base::memory_type get_memory_type();
 };
 
 
 class memory_wrapper: public memory_base {
 public:
-	memory_base::memory_type memoryType();
+	memory_base::memory_type get_memory_type();
 	virtual memory_base * first() = 0;
 	virtual memory_base * last() = 0;
 };
@@ -131,8 +131,8 @@ public:
 	~priority_memory_manager();
 	void add(memory_base * object);
 	void allocate(double f=1.0, bool verbose=false);
-	void allocate(TPIE_OS_SIZE_T mem, bool verbose=false);
-	TPIE_OS_SIZE_T dataStructureMemory(TPIE_OS_SIZE_T ds);
+	void allocate(memory_size_type mem, bool verbose=false);
+	memory_size_type data_structure_memory(memory_size_type ds);
 };
 
 }
