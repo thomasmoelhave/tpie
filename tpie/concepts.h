@@ -19,7 +19,7 @@
 
 #ifndef __TPIE_CONCEPTS_H__
 #define __TPIE_CONCEPTS_H__
-#include <tpie/util.h>
+#include <tpie/types.h>
 #include <boost/concept_check.hpp>
 namespace tpie {
 namespace concepts {
@@ -28,7 +28,7 @@ template <class T>
 class memory_calculatable {
 public:
 	BOOST_CONCEPT_USAGE(memory_calculatable) {
-		size_type n = T::memory(42);
+		memory_size_type n = T::memory(42);
 		unused(n);
 	}
 };
