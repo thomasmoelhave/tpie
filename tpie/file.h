@@ -247,7 +247,7 @@ public:
 		inline bool can_read_back() const throw() {
  			if (m_index < m_block->size) return true;
 			if (m_nextBlock == std::numeric_limits<stream_size_type>::max())
-				return m_block != 0;
+				return m_block->number != 0;
 			else
 				return true;
 		}
