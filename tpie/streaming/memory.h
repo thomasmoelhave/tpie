@@ -23,7 +23,7 @@
 #include <vector>
 #include <map>
 #include <tpie/types.h>
-
+#include <string>
 namespace tpie {
 namespace streaming {
 

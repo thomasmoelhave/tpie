@@ -2,33 +2,45 @@
 #include <iostream>
 #include "virtual_real.h"
 #include <boost/timer.hpp>
+#include <tpie/util.h>
 
 using namespace tpie::streaming;
+using namespace tpie;
 
-class test_sink {
+class test_sink: public memory_single {
 public:
+  typedef empty_type begin_data_type;
+  typedef empty_type end_data_type;
+
   typedef int item_type;
   int val;
-  void begin(size_t count=0) {val=0;}
+  void begin(stream_size_type items=max_items, empty_type *data=0) {
+    unused(items);
+    unused(data);
+    val=0;
+  }
   void push(int x) {
     val += x;
   }
-  void end() {
+  void end(empty_type * data=0) {
+    unused(data);
     if (val == 42) printf("Im only here to cheat the optimizer\n");
   }
 };
 
 template <typename dest_t>
-class test_source {
+class test_source: public common_single<test_source<dest_t>, dest_t> {
 public:
-  dest_t & dest;
-  test_source(dest_t & d) : dest(d) {};
+  typedef common_single<test_source<dest_t>, dest_t> parent_t;
+  using parent_t::dest;
+
+  test_source(dest_t & dest): parent_t(dest, 0.0) {}
   void run() {
-    dest.begin();
+    dest().begin();
     for(int j=0; j < 150; ++j)
       for(int i=0; i < 1000000; ++i)
-	dest.push(i);
-    dest.end();
+	dest().push(i);
+    dest().end();
   }
 };
 

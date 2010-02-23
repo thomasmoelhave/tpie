@@ -16,28 +16,29 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
-
-#include <stdexcept>
-#include <tpie/streaming/memory.h>
+#include <cassert>
+#include <cstring>
 #include <iostream>
 #include <set>
-#include <cstring>
+#include <sstream>
+#include <stdexcept>
+#include <tpie/streaming/memory.h>
 namespace tpie {
 namespace streaming {
 
-priority_memory_manager * memory_base::memoryManager() {
+priority_memory_manager * memory_base::memory_manager() {
 	return mm;
 }
 
-void memory_base::setMemoryManager(priority_memory_manager * man) {
+void memory_base::set_memory_manager(priority_memory_manager * man) {
 	mm = man;
 }
 
-std::string memory_base::memoryName() {
+std::string memory_base::memory_name() {
 	return name;
 }
 
-void memory_base::setMemoryName(const char * na, bool addr) {
+void memory_base::set_memory_name(const char * na, bool addr) {
 	std::ostringstream n;
 	n << na;
 	if (addr)
@@ -49,44 +50,43 @@ void memory_base::setMemoryName(const char * na, bool addr) {
 
 memory_base::memory_base() {
 	name[0] = 0;
-	setMemoryName("MO",true);
+	set_memory_name("MO",true);
 }
 
-TPIE_OS_SIZE_T memory_base::memoryBase() {
-	throw std::runtime_error("memoryBase() not implemented");
+memory_size_type memory_base::base_memory() {
+	throw std::runtime_error("base_memory() not implemented");
 }
-
 
 memory_single::memory_single(): 
 	priority(1.0f),
 	allocatedMemory(0) {}
 
-double memory_single::memoryPriority() {
+double memory_single::memory_priority() {
 	return priority;
 }
 
-void memory_single::setMemoryPriority(double p) {
+void memory_single::set_memory_priority(double p) {
 	priority = p;
 }
 
-TPIE_OS_SIZE_T memory_single::memory() {
+memory_size_type memory_single::memory() {
 	return allocatedMemory;
 }
 
-void memory_single::setMemory(double f) {
+void memory_single::set_memory(double f) {
 	throw std::runtime_error("Not implemented");
 }
 
-void memory_single::setMemory(TPIE_OS_SIZE_T m) {
-	allocatedMemory = m;
+void memory_single::set_memory(memory_size_type memory) {
+	allocatedMemory = memory;
 }
 
-memory_base::memory_type memory_single::memoryType() {
+memory_base::memory_type memory_single::get_memory_type() {
 	return memory_base::SINGLE;
 }
 
-TPIE_OS_SIZE_T memory_single::minimumMemory() {
-	return memoryBase();
+memory_size_type memory_single::minimum_memory() {
+	return base_memory();
 }
 
 memory_split::memory_split(): 
@@ -94,57 +94,59 @@ memory_split::memory_split():
 	allocatedMemoryIn(0), allocatedMemoryOut(0) 
 {}
 	
-double memory_split::memoryInPriority() {
+double memory_split::memory_in_priority() {
 	return priorityIn;
 }
 
-void memory_split::setMemoryInPriority(double p) {
+void memory_split::set_memory_in_priority(double p) {
 	priorityIn = p;
 }
 
-double memory_split::memoryOutPriority() {
+double memory_split::memory_out_priority() {
 	return priorityOut;
 }
 
-void memory_split::setMemoryOutPriority(double p) {
+void memory_split::set_memory_out_priority(double p) {
 	priorityOut = p;
 }
 
-TPIE_OS_SIZE_T memory_split::memoryIn() {
+memory_size_type memory_split::memory_in() {
 	return allocatedMemoryIn;
 }
 
-TPIE_OS_SIZE_T memory_split::memoryOut() {
+memory_size_type memory_split::memory_out() {
 	return allocatedMemoryOut;
 }
 
-void memory_split::setMemoryIn(double f) {
-	
+void memory_split::set_memory_in(double f) {
+	throw std::runtime_error("Not implemented");
 }
 
-void memory_split::setMemoryOut(double f) {
+void memory_split::set_memory_out(double f) {
+	throw std::runtime_error("Not implemented");
 }
 
-void memory_split::setMemoryIn(TPIE_OS_SIZE_T m) {
+void memory_split::set_memory_in(memory_size_type m) {
 	allocatedMemoryIn = m;
 }
-void memory_split::setMemoryOut(TPIE_OS_SIZE_T m) {
+
+void memory_split::set_memory_out(memory_size_type m) {
 	allocatedMemoryOut = m;
 }
 
-TPIE_OS_SIZE_T memory_split::minimumMemoryIn() {
-	throw std::runtime_error("minimumMemoryIn() not implemented");
+memory_size_type memory_split::minimum_memory_in() {
+	throw std::runtime_error("minimumMemory_in() not implemented");
 }
 
-TPIE_OS_SIZE_T memory_split::minimumMemoryOut() {
-	throw std::runtime_error("minimumMemoryOut() not implemented");
+memory_size_type memory_split::minimum_memory_out() {
+	throw std::runtime_error("minimumMemory_out() not implemented");
 }
 
-memory_base::memory_type memory_split::memoryType() {
+memory_base::memory_type memory_split::get_memory_type() {
 	return memory_base::SPLIT;
 }
 
-memory_base::memory_type memory_wrapper::memoryType() {
+memory_base::memory_type memory_wrapper::get_memory_type() {
 	return memory_base::WRAPPER;
 }
 
@@ -157,8 +159,8 @@ public:
  		std::set<node *> out;
  		memory_base * obj;
 		double prio;
-		TPIE_OS_SIZE_T mmin;
-		TPIE_OS_SIZE_T mem;
+		memory_size_type mmin;
+		memory_size_type mem;
  	};
 
  	std::map<memory_base *, node *> in;
@@ -166,12 +168,8 @@ public:
  	std::set<memory_base *> visited;
 	std::vector<node *> nodes;
 	
-	TPIE_OS_SIZE_T base;
-	std::map<TPIE_OS_SIZE_T, TPIE_OS_SIZE_T> dsm;
-
- 	void allocate(TPIE_OS_SIZE_T mem) {
-		
- 	}
+	memory_size_type base;
+	std::map<memory_size_type, memory_size_type> dsm;
 
 	priority_memory_manager_private(priority_memory_manager & o): outer(o) {
 		base = sizeof(priority_memory_manager_private);
@@ -179,25 +177,25 @@ public:
 	
  	void add(memory_base * object) {
 		if (visited.count(object) == 1) return;
- 		object->setMemoryManager(&outer);
+ 		object->set_memory_manager(&outer);
 		visited.insert(object);
  		std::vector<memory_base *> i;
  		std::vector<memory_base *> o;
- 		object->memoryNext(o);
- 		object->memoryPrev(i);
+ 		object->memory_next(o);
+ 		object->memory_prev(i);
 		
-		base += object->memoryBase();
+		base += object->base_memory();
 		
  		node * a;
  		node * b;
-		switch(object->memoryType()) {
+		switch(object->get_memory_type()) {
 		case memory_base::SINGLE:
 		{
 			memory_single* o = static_cast<memory_single*>(object);
 			a = b = new node();
  			a->twin = NULL;
-			a->prio = o->memoryPriority();
-			a->mmin = o->minimumMemory() - object->memoryBase();
+			a->prio = o->memory_priority();
+			a->mmin = o->minimum_memory() - object->base_memory();
 			break;
 		}
 		case memory_base::SPLIT:
@@ -207,10 +205,10 @@ public:
  			b = new node();
  			a->twin = b;
  			b->twin = a;
-			a->prio = o->memoryInPriority();
-			b->prio = o->memoryOutPriority();
-			a->mmin = o->minimumMemoryIn() - object->memoryBase();
-			b->mmin = o->minimumMemoryOut() - object->memoryBase();
+			a->prio = o->memory_in_priority();
+			b->prio = o->memory_out_priority();
+			a->mmin = o->minimum_memory_in() - object->base_memory();
+			b->mmin = o->minimum_memory_out() - object->base_memory();
 			nodes.push_back(b);
 			break;
 		}
@@ -242,20 +240,20 @@ public:
  		}
  	}
 
-	void allocate(TPIE_OS_SIZE_T mem, bool verbose) {
+	void allocate(memory_size_type mem, bool verbose) {
 		if(verbose) std::cerr << "Distributing " << mem << " memory" << std::endl;
 		mem -= base;
 
 		//For each connected component destribute acording to priorities.
 		std::set<node*> handledNodes;
 		std::vector< std::vector<node*> > components;
-		std::vector< std::map<TPIE_OS_SIZE_T, std::pair<TPIE_OS_SIZE_T, double> > > dss;
+		std::vector< std::map<memory_size_type, std::pair<memory_size_type, double> > > dss;
 		
 		for(std::vector<node*>::const_iterator i=nodes.begin(); 
 			i != nodes.end(); ++i) {
 			if (handledNodes.count(*i)) continue;
 			components.push_back( std::vector<node *>() );
-			dss.push_back( std::map<TPIE_OS_SIZE_T, std::pair<TPIE_OS_SIZE_T, double> >() );
+			dss.push_back( std::map<memory_size_type, std::pair<memory_size_type, double> >() );
 			std::vector<node *> stack;
 			stack.push_back(*i);
 			
@@ -265,7 +263,7 @@ public:
 				if (handledNodes.count(n)) continue;
 				handledNodes.insert(n);
 				components.back().push_back(n);
-				n->obj->dataStructures(dss.back());
+				n->obj->data_structures(dss.back());
 				for(std::set<node *>::const_iterator i=n->in.begin();
 					i != n->in.end(); ++i) 
 					stack.push_back(*i);
@@ -276,23 +274,23 @@ public:
 		}
 		
 		//Do initial fair memory assignment
-		for(int i=0; i < components.size(); ++i) {
+		for(memory_size_type i=0; i < components.size(); ++i) {
 			std::vector<node*> & comp = components[i];
 			double p=0;
-			for(int j=0; j != comp.size(); ++j)
+			for(memory_size_type j=0; j != comp.size(); ++j)
 				p += comp[j]->prio;
 
-			for(std::map<TPIE_OS_SIZE_T, std::pair<TPIE_OS_SIZE_T, double> >::const_iterator j=	dss[i].begin();
+			for(std::map<memory_size_type, std::pair<memory_size_type, double> >::const_iterator j=	dss[i].begin();
 				j != dss[i].end(); ++j) {
 				p += j->second.second;
 			}
 
-			for(int j = 0; j != comp.size(); ++j) 
-				comp[j]->mem = std::max(comp[j]->mmin, TPIE_OS_SIZE_T(comp[j]->prio * mem / p));
+			for(memory_size_type j = 0; j != comp.size(); ++j) 
+				comp[j]->mem = std::max(comp[j]->mmin, memory_size_type(comp[j]->prio * mem / p));
 
-			for(std::map<TPIE_OS_SIZE_T, std::pair<TPIE_OS_SIZE_T, double> >::const_iterator j=	dss[i].begin();
+			for(std::map<memory_size_type, std::pair<memory_size_type, double> >::const_iterator j=	dss[i].begin();
 				j != dss[i].end(); ++j) {
-				TPIE_OS_SIZE_T m=std::max(j->second.first, TPIE_OS_SIZE_T(j->second.second * mem / p));
+				memory_size_type m=std::max(j->second.first, memory_size_type(j->second.second * mem / p));
 				if( dsm.count(j->first) == 0 || dsm[j->first] > m) 
 					dsm[j->first] = m;
 			}
@@ -300,23 +298,23 @@ public:
 
 		//Now we might have distributed to much and to litle memory
 		//so we redistribute
- 		for(int i=0; i < components.size(); ++i) {
+ 		for(memory_size_type i=0; i < components.size(); ++i) {
  			std::vector<node*> & comp = components[i];
 			std::vector<bool> skip(comp.size(), false);;
- 			TPIE_OS_SIZE_T am=mem;
+ 			memory_size_type am=mem;
 			
  			double p=0;
- 			for(int j=0; j != comp.size(); ++j)
+ 			for(memory_size_type j=0; j != comp.size(); ++j)
 				p += comp[j]->prio;
 			
- 			for(std::map<TPIE_OS_SIZE_T, std::pair<TPIE_OS_SIZE_T, double> >::const_iterator j=	dss[i].begin();
+ 			for(std::map<memory_size_type, std::pair<memory_size_type, double> >::const_iterator j=	dss[i].begin();
  				j != dss[i].end(); ++j) 
  				am -= dsm[j->first];
 			
  			bool go = true;
  			while(go) {
  				go=false;
- 				for(int j = 0; j != comp.size(); ++j) {
+ 				for(memory_size_type j = 0; j != comp.size(); ++j) {
 					if(skip[j]) continue;
  					comp[j]->mem = comp[j]->prio * am / p;
  					if(comp[j]->mem <= comp[j]->mmin) {
@@ -331,14 +329,14 @@ public:
  		}
 
 		if (verbose) {
-			for(int i=0; i < components.size(); ++i) {
+			for(memory_size_type i=0; i < components.size(); ++i) {
 				std::vector<node*> & comp = components[i];
-				TPIE_OS_SIZE_T s=0;
+				memory_size_type s=0;
 				std::cerr << "Phase " << i << std::endl;
-				for(int j = 0; j != comp.size(); ++j) {
-					TPIE_OS_SIZE_T b=comp[j]->obj->memoryBase();
+				for(memory_size_type j = 0; j != comp.size(); ++j) {
+					memory_size_type b=comp[j]->obj->base_memory();
 					s += comp[j]->mem;
-					std::cerr << "  " << comp[j]->obj->memoryName() << " " << (comp[j]->mmin+b) << " " << (comp[j]->mem+b) ;
+					std::cerr << "  " << comp[j]->obj->memory_name() << " " << (comp[j]->mmin+b) << " " << (comp[j]->mem+b) ;
 // 					if( comp[j]->obj->memoryType() ==  memory_base::SPLIT) {
 // 						if (comp[j]->in.size() == 0) std::cerr << " out";
 // 						else std::cerr << " in";
@@ -352,7 +350,7 @@ public:
 // 						std::cerr << "    o " << (*k)->obj->memoryName() << std::endl; 
 				}
 				
-				for(std::map<TPIE_OS_SIZE_T, std::pair<TPIE_OS_SIZE_T, double> >::iterator j=dss[i].begin();
+				for(std::map<memory_size_type, std::pair<memory_size_type, double> >::iterator j=dss[i].begin();
 					j != dss[i].end(); j++) {
 					s += dsm[j->first];
 					std::cerr << "  " << j->first << " " << dsm[j->first] << std::endl;
@@ -362,33 +360,35 @@ public:
 			}
 		}
 
-		for(int i=0; i < components.size(); ++i) {
+		for(memory_size_type i=0; i < components.size(); ++i) {
 			std::vector<node*> & comp = components[i];
-			for(int j = 0; j != components[i].size(); ++j) {
-				std::vector<node*> & comp = components[i];
-				TPIE_OS_SIZE_T m = comp[j]->mem+comp[j]->obj->memoryBase();
-				switch(comp[j]->obj->memoryType()) {
+			for(memory_size_type j = 0; j != components[i].size(); ++j) {
+				memory_size_type m = comp[j]->mem+comp[j]->obj->base_memory();
+				switch(comp[j]->obj->get_memory_type()) {
 				case memory_base::SINGLE:
 				{
 					memory_single* o = static_cast<memory_single*>(comp[j]->obj);
-					o->setMemory(comp[j]->mem+comp[j]->obj->memoryBase());
+					o->set_memory(comp[j]->mem+comp[j]->obj->base_memory());
 					break;
 				}
 				case memory_base::SPLIT:
 				{
 					memory_split* o = static_cast<memory_split*>(comp[j]->obj);
 					if (comp[j]->in.size() == 0) {
-						o->setMemoryOut(m);
+						o->set_memory_out(m);
 					} else {
-						o->setMemoryIn(m);
+						o->set_memory_in(m);
 					}
 					break;
-				}}
+				}
+				case memory_base::WRAPPER:
+					break;
+				}
 			}
 		}
 	}
 
-	TPIE_OS_SIZE_T dataStructureMemory(TPIE_OS_SIZE_T ds) {
+	memory_size_type data_structure_memory(memory_size_type ds) {
 		return dsm[ds];
 	}
 	
@@ -407,15 +407,15 @@ void priority_memory_manager::add(memory_base * object) {
 }
 
 void priority_memory_manager::allocate(double f, bool verbose) {
-	
+	throw std::runtime_error("Not implemented");		
 }
 
-void priority_memory_manager::allocate(TPIE_OS_SIZE_T mem, bool verbose) {
+void priority_memory_manager::allocate(memory_size_type mem, bool verbose) {
 	p->allocate(mem, verbose);
 }
 
-TPIE_OS_SIZE_T priority_memory_manager::dataStructureMemory(TPIE_OS_SIZE_T ds) {
-	p->dataStructureMemory(ds);
+memory_size_type priority_memory_manager::data_structure_memory(memory_size_type ds) {
+	return p->data_structure_memory(ds);
 }
 
 

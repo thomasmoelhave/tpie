@@ -25,9 +25,8 @@
 namespace tpie {
 namespace streaming {
 
-template <typename item_t>
-class virtual_source: public virtual_source_real<item_t, TPIE_STREAMING_VBUFF_SIZE> {};
-
+template <typename item_t, typename begin_data_t=empty_type, typename end_data_t=empty_type>
+class virtual_source: public virtual_source_real<item_t, TPIE_STREAMING_VBUFF_SIZE, begin_data_t, end_data_t> {};
 
 template <typename dest_t>
 class virtual_source_impl 
@@ -38,13 +37,23 @@ private:
 	typedef virtual_source_impl_real<typename dest_t::item_type, TPIE_STREAMING_VBUFF_SIZE> parent_t;
 public:
 	virtual_source_impl(dest_t & dest): parent_t(dest) {};
+	virtual memory_size_type base_memory() {
+		return sizeof(*this);
+	}
 };
 
-template <typename item_t> 
-class virtual_sink_impl: public virtual_sink_real_impl<item_t, TPIE_STREAMING_VBUFF_SIZE> {
+template <typename item_t, typename begin_data_t=empty_type, typename end_data_t=empty_type> 
+class virtual_sink_impl: public virtual_sink_real_impl<item_t, TPIE_STREAMING_VBUFF_SIZE, begin_data_t, end_data_t> {
+private:
+	typedef virtual_sink_real_impl<item_t, TPIE_STREAMING_VBUFF_SIZE, begin_data_t, end_data_t> parent_t;
+
 public:
-	typedef virtual_source<item_t> dest_t;
-	virtual_sink_impl(dest_t * d): virtual_sink_real_impl<item_t, TPIE_STREAMING_VBUFF_SIZE>(d) {}
+	typedef virtual_source<item_t, begin_data_t, end_data_t> dest_t;
+	virtual_sink_impl(dest_t * dest): parent_t(dest) {}
+
+	virtual memory_size_type base_memory() {
+		return sizeof(*this);
+	}
 };
 
 }
