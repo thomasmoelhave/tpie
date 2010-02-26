@@ -33,7 +33,7 @@ namespace tpie {
 // }
 
 file_base::file_base(memory_size_type itemSize, 
-					 float blockFactor, 
+					 double blockFactor, 
 					 file_accessor::file_accessor * fileAccessor) :
 	m_size(0), 	m_itemSize(itemSize),  m_firstUsed(0), m_firstFree(0)
 {
@@ -44,7 +44,7 @@ file_base::file_base(memory_size_type itemSize,
 	m_emptyBlock.number = std::numeric_limits<stream_size_type>::max();
 	m_emptyBlock.next = 0;
 
-	m_blockItems = blockSize(blockFactor)/m_itemSize;
+	m_blockItems = block_size(blockFactor)/m_itemSize;
 }
 	
 

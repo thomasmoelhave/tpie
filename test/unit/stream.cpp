@@ -120,10 +120,12 @@ int main(int argc, char ** argv) {
  		test_file_accessor<file_accessor::stdio>();
  	} else if (argc == 2 && !strcmp(argv[1], "file_stream")) {
 		///First a simple test
+		double blockFactor=file_base::calculate_block_factor(128*sizeof(int));
+		
 		remove("tmp");
-		int count=40*1024*1024;
+		int count=40*1024;
 		{
-			file_stream<int> stream;
+			file_stream<int> stream(blockFactor);
 			stream.open("tmp", file_base::write, sizeof(int));
 
 			stream.write_user_data<int>(42);
@@ -135,7 +137,7 @@ int main(int argc, char ** argv) {
 		}
 
 		{
-			file_stream<int> stream;
+			file_stream<int> stream(blockFactor);
 			stream.open("tmp", file_base::read, sizeof(int));
 			if (stream.size() != count) ERR("size failed(3)");
 			for(int i=0; i< count; ++i) {
@@ -152,9 +154,13 @@ int main(int argc, char ** argv) {
 			}		
 			stream.seek(-1, file_base::end);
 			for(int i=count-1; i >= 0; --i) {
-				if (stream.can_read_back() == false) ERR("can_read_back failed");
+				if (stream.can_read_back() == false) {
+					ERR("can_read_back failed");
+				}
 				if (stream.read_back() != (i*8209)%8273) ERR("read back failed");
+
 			}
+			std::cout << "Offset: " <<  stream.offset() << std::endl;
 			if (stream.can_read_back() == true) ERR("can_read_back failed (2)");
 			
 			int y;
@@ -164,9 +170,12 @@ int main(int argc, char ** argv) {
 			stream.close();
 		}
 	} else if (argc == 2 && !strcmp(argv[1], "substreams")) {
+		double blockFactor=file_base::calculate_block_factor(128*sizeof(int));
+		
+		temp_file tmp;
 		tpie::remove("tmp");
-		file<int> f;
-		f.open("tmp", file_base::read_write);
+		file<int> f(blockFactor);
+		f.open(tmp.path(), file_base::read_write);
  			
 		tpie::seed_random(1234);
 		const int cnt=4;
@@ -182,7 +191,7 @@ int main(int argc, char ** argv) {
 			streams[0]->write(content[i]);
 		}
 		
-		for(int i=0; i < 200000; ++i ) {
+		for(int i=0; i < 20000; ++i ) {
 			int l=tpie::random()%size;
 			int s=tpie::random()%cnt;
 			streams[s]->seek(l);

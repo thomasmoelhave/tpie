@@ -136,3 +136,16 @@ const std::string& tempname::get_default_base_name() {
 const std::string& tempname::get_default_extension() {
 	return default_extension;
 }
+
+temp_file::temp_file() {}
+
+const std::string & temp_file::path() {
+	if (m_path.empty())
+		m_path = tempname::tpie_name();
+	return m_path;
+}
+
+temp_file::~temp_file() {
+	if (!m_path.empty() && file_exists(m_path)) 
+		remove(m_path);
+}

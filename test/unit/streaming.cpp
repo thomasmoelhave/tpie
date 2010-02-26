@@ -1,33 +1,31 @@
- // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
+// -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet :
 // Copyright 2009, The TPIE development team
-
+//
 // This file is part of TPIE.
-
+//
 // TPIE is free software: you can redistribute it and/or modify it under
 // the terms of the GNU Lesser General Public License as published by the
 // Free Software Foundation, either version 3 of the License, or (at your
 // option) any later version.
-
+//
 // TPIE is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or
 // FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 // License for more details.
-
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #include "../app_config.h"
+#include <cstring>
 #include <tpie/bte/err.h>
 #include <tpie/portability.h>
-#include <cstring>
 #include <tpie/streaming.h>
 
-using namespace tpie::bte;
-using namespace tpie::ami;
 using namespace tpie;
 using namespace std;
 using namespace tpie::streaming;
-namespace sc = tpie::streaming::concepts;
+//namespace sc = tpie::streaming::concepts;
 
 int test[] = {
      2,    3,    5,    7,   11,   13,   17,   19,   23,   29, 
@@ -59,21 +57,25 @@ int test[] = {
 
 struct test_sink: public memory_single {
 	typedef int item_type;
+	typedef empty_type begin_data_type;
+	typedef empty_type end_data_type;
 	bool b;
 	bool e;
 	int c;
 	bool o;
 	test_sink(): b(false), e(false), c(0), o(false) {}
 	
-	void begin(size_t count=0) {
-		unused(count);
+	void begin(stream_size_type items=max_items, empty_type * data=0) {
+		unused(items);
+		unused(data);
 		if (e || b) ERR("begin()");
 		b=true;
 	}
 	
 	void ok() {o=true;}
 	
-	void end() {
+	void end(empty_type * data=0) {
+		unused(data);
 		if (!b || e) ERR("end()");
 		e=true;
 	}
@@ -89,51 +91,53 @@ struct test_sink: public memory_single {
 };
 
 int main(int argc, char ** argv) {
-	BOOST_CONCEPT_ASSERT((sc::pushable< tpie::streaming::stream_sink<stream<int> > >));
-	BOOST_CONCEPT_ASSERT((sc::pushable< tpie::streaming::sort<test_sink> >));
-	BOOST_CONCEPT_ASSERT((sc::pushable< tpie::streaming::pull_sort<int> >));
-	BOOST_CONCEPT_ASSERT((sc::pullable< tpie::streaming::pull_sort<int> >));
-	BOOST_CONCEPT_ASSERT((sc::pushable< tpie::streaming::buffer<test_sink> >));
-	BOOST_CONCEPT_ASSERT((sc::pushable< tpie::streaming::pull_buffer<int> >));
-	BOOST_CONCEPT_ASSERT((sc::pullable< tpie::streaming::pull_buffer<int> >));
-	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::stream_sink<stream<int> > >));
-	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::sort<test_sink> >));
-	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::pull_sort<int> >));
-	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::buffer<test_sink> >));
-	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::pull_buffer<int> >));
+//  BOOST_CONCEPT_ASSERT((sc::pushable< tpie::streaming::stream_sink<stream<int> > >));
+// 	BOOST_CONCEPT_ASSERT((sc::pushable< tpie::streaming::sort<test_sink> >));
+// 	BOOST_CONCEPT_ASSERT((sc::pushable< tpie::streaming::pull_sort<int> >));
+// 	BOOST_CONCEPT_ASSERT((sc::pullable< tpie::streaming::pull_sort<int> >));
+// 	BOOST_CONCEPT_ASSERT((sc::pushable< tpie::streaming::buffer<test_sink> >));
+// 	BOOST_CONCEPT_ASSERT((sc::pushable< tpie::streaming::pull_buffer<int> >));
+// 	BOOST_CONCEPT_ASSERT((sc::pullable< tpie::streaming::pull_buffer<int> >));
+// 	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::stream_sink<stream<int> > >));
+// 	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::sort<test_sink> >));
+// 	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::pull_sort<int> >));
+// 	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::buffer<test_sink> >));
+// 	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::pull_buffer<int> >));
 	
+	double blockFactor=file_base::calculate_block_factor(32*sizeof(int));
+			
 	if (argc != 2) return 1;
 	remove("/tmp/stream");
   
 	if (!strcmp(argv[1], "source")) {
-		stream<int> s;
-		for(int i=0; test[i]; ++i)
-			s.write_item(test[i]);
+		file_stream<int> s(blockFactor);
+		s.open();
+		for(memory_size_type i=0; test[i]; ++i)
+			s.write(test[i]);
 		s.seek(0);
 		
 		test_sink sink;
 		sink.ok();
-		stream_source<stream<int>, test_sink> ss(&s, sink);
-		ss.run();
+		stream_source<test_sink> ss(s, sink);
+		ss.process();
 		sink.final();
 	} else if (!strcmp(argv[1], "sink")) {
-	  
-		stream<int> s;
-		stream_sink<stream<int> > sink(&s);
+		file_stream<int> s(blockFactor);
+		s.open();
+		stream_sink<int> sink(s);
 	  
 		sink.begin();
-		for(int i=0; test[i]; ++i)
+		for(memory_size_type i=0; test[i]; ++i)
 			sink.push(test[i]);
 		sink.end();
 		
 		s.seek(0);
 		
-		int * item;
-		int i=0;
-		while(s.read_item(&item) != tpie::ami::END_OF_STREAM) 
-			if (*item != test[i++] ) ERR("sink");
+		memory_size_type i=0;
+		while(s.can_read()) 
+			if (s.read() != test[i++] ) ERR("sink");
 		if(test[i] != 0) ERR("sink");
-	} else if (!strcmp(argv[1], "sort")) {
+	} /*else if (!strcmp(argv[1], "sort")) {
 		vector<int> t2;
 		for(int i=0; test[i]; ++i)
 			t2.push_back(test[i]);
@@ -152,7 +156,7 @@ int main(int argc, char ** argv) {
 		sort.end();
 		sink.final();
 		
-	} else if (!strcmp(argv[1], "pull_sort")) {
+		} else if (!strcmp(argv[1], "pull_sort")) {
 		vector<int> t2;
 		for(int i=0; test[i]; ++i)
 			t2.push_back(test[i]);
@@ -176,12 +180,13 @@ int main(int argc, char ** argv) {
 		if (!sort.atEnd() ) ERR("atEnd()");
 		sort.endPull();
 		
-	} else if (!strcmp(argv[1], "buffer")) {
+		} */ 
+	else if (!strcmp(argv[1], "buffer")) {
 		test_sink sink;
 		tpie::streaming::buffer<test_sink> buffer(sink);
-		TPIE_OS_SIZE_T mem = 50*1024*1024;
-		buffer.setMemoryIn(mem);
-		buffer.setMemoryOut(mem);
+		memory_size_type mem = 50*1024*1024;
+		buffer.set_memory_in(mem);
+		buffer.set_memory_out(mem);
 		
 		buffer.begin();
 		for(int i=0; test[i]; ++i)
@@ -192,22 +197,22 @@ int main(int argc, char ** argv) {
 		
 	} else if (!strcmp(argv[1], "pull_buffer")) {
 		tpie::streaming::pull_buffer<int> buffer;
-		TPIE_OS_SIZE_T mem = 50*1024*1024;
-		buffer.setMemoryIn(mem);
-		buffer.setMemoryOut(mem);
+		memory_size_type mem = 50*1024*1024;
+		buffer.set_memory_in(mem);
+		buffer.set_memory_out(mem);
 		
 		buffer.begin();
 		for (int i=0; test[i]; ++i)
 			buffer.push(test[i]);
 		buffer.end();
 		
-		buffer.beginPull();
+		buffer.pull_begin();
 		for (int i=0; test[i]; ++i) {
-			if (buffer.atEnd() ) ERR("atEnd()");
+			if (!buffer.can_pull() ) ERR("can_pull");
 			if (buffer.pull() != test[i]) ERR("pull()");
 		}
-		if (!buffer.atEnd() ) ERR("atEnd()");
-		buffer.endPull();
+		if (buffer.can_pull() ) ERR("can_pull 2");
+		buffer.pull_end();
 	} else {
 		return 1;
 	}

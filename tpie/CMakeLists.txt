@@ -55,9 +55,9 @@ set (BTE_HEADERS
 set (STREAMING_HEADERS
 #  streaming/sort.h
 #  streaming/buffer.h
-#  streaming/stream.h
-#  streaming/util.h
-#  streaming/memory.h
+streaming/stream.h
+streaming/util.h
+streaming/memory.h
   )
 
 set (STREAM_HEADERS
@@ -133,7 +133,7 @@ set (BTE_SOURCES
 	)
 
 set (OTHER_SOURCES
-#        streaming/memory.cpp
+        streaming/memory.cpp
 	#bit.cpp
 	#bit_matrix.cpp
 	cpu_timer.cpp

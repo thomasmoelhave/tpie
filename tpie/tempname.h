@@ -22,6 +22,7 @@
 
 // Get definitions for working with Unix and Windows
 #include <tpie/portability.h>
+#include <tpie/util.h>
 
 // The name of the environment variable pointing to a tmp directory.
 #define TMPDIR_ENV "TMPDIR"
@@ -72,6 +73,16 @@ namespace tpie {
 
 		static std::string tpie_mktemp();
 	};
+
+	class temp_file {
+	private:
+		std::string m_path;
+	public:
+		temp_file();
+		~temp_file();
+		const std::string & path();
+	};
+	
 }
 
 #endif // _TPIE_TEMPNAM_H 

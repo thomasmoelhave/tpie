@@ -41,6 +41,5 @@ const char directory_delimiter = '\\';
 const char directory_delimiter = '/';
 #endif
 
-
 }
 #endif //__TPIE_UTIL_H__

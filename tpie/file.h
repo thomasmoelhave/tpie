@@ -80,9 +80,14 @@ public:
 	/// \param blockFactor Factor of the global block size to use
 	/// \returns Size in Bytes
 	////////////////////////////////////////////////////////////////////////////////
-	static inline memory_size_type blockSize(float blockFactor) throw () {
+	static inline memory_size_type block_size(double blockFactor) throw () {
 		return 2 * 1024*1024 * blockFactor;
 	}
+
+	static inline double calculate_block_factor(memory_size_type blockSize) throw () {
+		return (double)blockSize / (double)block_size(1.0);
+	}
+
 	
 	/////////////////////////////////////////////////////////////////////////
 	/// \brief Read the user data associated with the file
@@ -272,7 +277,7 @@ protected:
 	block_t m_emptyBlock;	
 	
 	file_base(memory_size_type item_size, 
-			  float blockFactor=1.0, 
+			  double blockFactor=1.0, 
 			  file_accessor::file_accessor * fileAccessor=NULL);
 				  
 	void create_block();
@@ -300,7 +305,7 @@ public:
 		return x;
 	}
 
-	file(float blockFactor=1.0, 
+	file(double blockFactor=1.0, 
 		 file_accessor::file_accessor * fileAccessor=NULL):
 		file_base(sizeof(T), blockFactor, fileAccessor) {};
 
@@ -311,8 +316,8 @@ public:
 	private:
 		typedef typename file::block_t block_t;
 	public:
-		inline static memory_size_type memory_usage(memory_size_type count=1, float blockFactor=1.0) {
-			return (sizeof(stream) + blockSize(blockFactor) +  MM_manager.space_overhead() + sizeof(block_t)) * count;
+		inline static memory_size_type memory_usage(memory_size_type count=1, double blockFactor=1.0) {
+			return (sizeof(stream) + block_size(blockFactor) +  MM_manager.space_overhead() + sizeof(block_t)) * count;
 		}
 
 		stream(file_type & file, stream_size_type offset=0):
@@ -367,7 +372,7 @@ public:
 		/////////////////////////////////////////////////////////////////////////
  		inline void write(const item_type& item) throw(stream_exception) {
 #ifndef NDEBUG
-			if (!m_file.can_write()) 
+			if (!m_file.is_writable()) 
 				throw io_exception("Cannot write to read only stream");
 #endif
 			if (m_index >= block_items()) update_block();
