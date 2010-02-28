@@ -137,56 +137,52 @@ int main(int argc, char ** argv) {
 		while(s.can_read()) 
 			if (s.read() != test[i++] ) ERR("sink");
 		if(test[i] != 0) ERR("sink");
-	} /*else if (!strcmp(argv[1], "sort")) {
+	} else if (!strcmp(argv[1], "sort")) {
 		vector<int> t2;
-		for(int i=0; test[i]; ++i)
+		for(memory_size_type i=0; test[i]; ++i)
 			t2.push_back(test[i]);
 		std::random_shuffle(t2.begin(), t2.end());
 		
 		test_sink sink;
-		tpie::streaming::sort<test_sink> sort(sink);
-		TPIE_OS_SIZE_T mem = 50*1024*1024;
-		sort.setMemoryIn(mem);
-		sort.setMemoryOut(mem);
+		tpie::streaming::sort<test_sink> sort(sink, std::less<int>(), blockFactor);
+		sort.set_memory_in(sort.minimum_memory_in());
+		sort.set_memory_out(sort.minimum_memory_out());
 		
 		sort.begin();
-		for(int i=0; test[i]; ++i)
+		for(memory_size_type i=0; test[i]; ++i)
 			sort.push(t2[i]);
 		sink.ok();
 		sort.end();
 		sink.final();
 		
-		} else if (!strcmp(argv[1], "pull_sort")) {
+	} else if (!strcmp(argv[1], "pull_sort")) {
 		vector<int> t2;
-		for(int i=0; test[i]; ++i)
+		for(memory_size_type i=0; test[i]; ++i)
 			t2.push_back(test[i]);
 		std::random_shuffle(t2.begin(), t2.end());
 		
-		tpie::streaming::pull_sort<int> sort;
-		TPIE_OS_SIZE_T mem = 50*1024*1024;
-		sort.setMemoryIn(mem);
-		sort.setMemoryOut(mem);
+		tpie::streaming::pull_sort<int> sort(std::less<int>(), blockFactor);
+		sort.set_memory_in(sort.minimum_memory_in());
+		sort.set_memory_out(sort.minimum_memory_out());
 		
 		sort.begin();
-		for (int i=0; test[i]; ++i)
+		for (memory_size_type i=0; test[i]; ++i)
 			sort.push(t2[i]);
 		sort.end();
 		
-		sort.beginPull();
-		for (int i=0; test[i]; ++i) {
-			if (sort.atEnd() ) ERR("atEnd()");
+		sort.pull_begin();
+		for (memory_size_type i=0; test[i]; ++i) {
+			if (!sort.can_pull() ) ERR("can_pull()");
 			if (sort.pull() != test[i]) ERR("pull()");
 		}
-		if (!sort.atEnd() ) ERR("atEnd()");
-		sort.endPull();
+		if (sort.can_pull() ) ERR("can_pull");
+		sort.pull_end();
 		
-		} */ 
-	else if (!strcmp(argv[1], "buffer")) {
+	} else if (!strcmp(argv[1], "buffer")) {
 		test_sink sink;
 		tpie::streaming::buffer<test_sink> buffer(sink);
-		memory_size_type mem = 50*1024*1024;
-		buffer.set_memory_in(mem);
-		buffer.set_memory_out(mem);
+		buffer.set_memory_in(buffer.minimum_memory_in());
+		buffer.set_memory_out(buffer.minimum_memory_out());
 		
 		buffer.begin();
 		for(int i=0; test[i]; ++i)
@@ -197,9 +193,8 @@ int main(int argc, char ** argv) {
 		
 	} else if (!strcmp(argv[1], "pull_buffer")) {
 		tpie::streaming::pull_buffer<int> buffer;
-		memory_size_type mem = 50*1024*1024;
-		buffer.set_memory_in(mem);
-		buffer.set_memory_out(mem);
+		buffer.set_memory_in(buffer.minimum_memory_in());
+		buffer.set_memory_out(buffer.minimum_memory_out());
 		
 		buffer.begin();
 		for (int i=0; test[i]; ++i)
@@ -218,6 +213,3 @@ int main(int argc, char ** argv) {
 	}
 	return 0;
 }
-
-
-

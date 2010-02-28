@@ -146,7 +146,10 @@ public:
 
 	bool can_pull() {
 		if (source) return source->can_pull();
-		return index != memory_size_type(-1);
+		if (backwards) 
+			return index != memory_size_type(-1);
+		else
+			return index != buffIndex;
 	}
 
 	void pull_end(pull_end_data_t * data=0) {
