@@ -134,9 +134,10 @@ public:
 	}
 	
 	void begin(stream_size_type items=max_items, begin_data_type * data=0) {
-		assert(memory_out() > minimum_memory_out());
-		assert(memory_in() > minimum_memory_out());
-		memory_size_type mem = std::min(memory_in(), memory_out()) - minimum_memory_out();
+		assert(memory_out() >= minimum_memory_out());
+		assert(memory_in() >= minimum_memory_in());
+		//memory_size_type mem = std::min(memory_in(), memory_out()) - minimum_memory_out() + file_base::block_size(m_blockFactor);
+		memory_size_type mem = memory_in() - minimum_memory_in() + file_base::block_size(m_blockFactor);
 		//TODO ensure that mem is less then "consecutive_memory_available"
 		beginData=data;
 		bufferSize = std::min( stream_size_type(mem / sizeof(item_t)), items );
@@ -242,7 +243,7 @@ public:
 	
 	template <class T> 
 	void merge(memory_size_type first, memory_size_type last, T & out) {
-		Merger merger(fileBase, m_comp, first, last, m_blockFactor);
+		Merger merger(fileBase, m_comp, m_blockFactor, first, last);
 		while (merger.can_pull())
 			out.push(merger.pull());
 	}
@@ -327,7 +328,7 @@ public:
 		unused(data);
 		if (nextFile != 0) {
 			if (items) *items=size;
-			merger = new typename parent_t::Merger(parent_t::fileBase, m_comp, firstFile, nextFile, m_blockFactor);
+			merger = new typename parent_t::Merger(parent_t::fileBase, m_comp, m_blockFactor, firstFile, nextFile);
 		} else {
 			if (items) *items=bufferIndex;
 		}
