@@ -186,11 +186,58 @@ struct test_split_memory_limit {
 			t->push(i);
 			monitor.sample();
 		}
-		memory_size_type in_usage = monitor.usage(1);
+		memory_size_type in_usage = monitor.usage(2);
 		monitor.empty();
 		t->end();
 		monitor.sample();
-		memory_size_type out_usage = monitor.usage(1);
+		memory_size_type out_usage = monitor.usage(2);
+		destruct(t);
+		monitor.clear();
+		memory_size_type aa = monitor.usage(0);
+		std::cout << "In memory used: " << in_usage << "; In memory allowed: " << in_memory 
+				  << "; Out memory used: " << out_usage << "; Out memory allowed: " << out_memory 
+				  << "; After dealocation: " << aa << ";" << std::endl;
+		if (in_usage > in_memory) ERR("Used more memory then allocated");
+		if (out_usage > out_memory) ERR("Used more memory then allocated");
+		if (aa > 0) ERR("Did not deallocate all its memory");
+	}
+};
+
+template <typename T>
+struct test_pull_split_memory_limit {
+	virtual T * construct(memory_monitor & monitor) = 0;
+	virtual void destruct(T * elm) {delete elm;}
+	void operator() (memory_size_type in_memory, memory_size_type out_memory ) { 
+		memory_monitor monitor;
+		monitor.begin();
+		T * t = construct(monitor);
+		monitor.sample();
+		in_memory = max(in_memory, t->minimum_memory_in());
+		out_memory = max(out_memory, t->minimum_memory_out());
+		t->set_memory_in(in_memory);
+		t->set_memory_out(out_memory);
+		monitor.sample();
+		t->begin();
+		monitor.sample();
+		for(int i=0; i < 42; ++i) {
+			t->push(i);
+			monitor.sample();
+		}
+		memory_size_type in_usage = monitor.usage(2);
+		monitor.empty();
+		t->end();
+		monitor.empty();
+		t->pull_begin();
+		monitor.empty();
+		int x=0;
+		for(int i=0; i < 42; ++i) {
+			x ^= t->pull();
+			monitor.empty();
+		}
+		if (x == 42) std::cout << "" << std::endl;
+		t->pull_end();
+		monitor.sample();
+		memory_size_type out_usage = monitor.usage(2);
 		destruct(t);
 		monitor.clear();
 		memory_size_type aa = monitor.usage(0);
@@ -370,6 +417,12 @@ void test_sort(char * testName) {
 	}
 }
 
+struct test_pull_sort_memory_limit: public test_pull_split_memory_limit< tpie::streaming::pull_sort<int> > {
+	virtual tpie::streaming::pull_sort<int> * construct(memory_monitor & mm) {
+		return new tpie::streaming::pull_sort<int>();
+	}
+};
+
 void test_pull_sort(char * testName) { 
  	BOOST_CONCEPT_ASSERT((sc::pushable< tpie::streaming::pull_sort<int, std::less<int>, X, Y> >));
  	BOOST_CONCEPT_ASSERT((sc::pullable< tpie::streaming::pull_sort<int, std::less<int>, X, Y> >));
@@ -379,7 +432,8 @@ void test_pull_sort(char * testName) {
 		tpie::streaming::pull_sort<int> sort(std::less<int>(), blockFactor);
 		memory_test_split(&sort, 0, sizeof(sort), 1.0, 1.0);
 	} else if (!strcmp(testName, "minimum_memory")) {
-		ERR("Test not implemented");		
+		test_pull_sort_memory_limit test;
+		test(0, 0);
 	} else if (!strcmp(testName, "process")) {
 		vector<int> t2;
 		for(memory_size_type i=0; test[i]; ++i)
@@ -440,6 +494,12 @@ void test_buffer(char * testName) {
 		ERR("No such test");
 }
 
+struct test_pull_buffer_memory_limit: public test_pull_split_memory_limit< tpie::streaming::pull_buffer<int> > {
+	virtual tpie::streaming::pull_buffer<int> * construct(memory_monitor & mm) {
+		return new tpie::streaming::pull_buffer<int>();
+	}
+};
+
 void test_pull_buffer(char * testName) {
  	BOOST_CONCEPT_ASSERT((sc::pushable< tpie::streaming::pull_buffer<int, false, X, Y> >));
  	BOOST_CONCEPT_ASSERT((sc::pullable< tpie::streaming::pull_buffer<int, false, X, Y> >));
@@ -448,7 +508,8 @@ void test_pull_buffer(char * testName) {
 		tpie::streaming::pull_buffer<int> buffer(blockFactor);
 		memory_test_split(&buffer, 0, sizeof(buffer), 1.0, 1.0);
 	} else if (!strcmp(testName, "minimum_memory")) {
-		ERR("Test not implemented");
+		test_pull_buffer_memory_limit test;
+		test(0, 0);
 	} else if (!strcmp(testName, "process")) {
 		tpie::streaming::pull_buffer<int> buffer(blockFactor);
 		buffer.set_memory_in(buffer.minimum_memory_in()+sizeof(int)*3);
