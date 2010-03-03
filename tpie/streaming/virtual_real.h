@@ -53,7 +53,6 @@ public:
 };
 
 
-
 template <typename item_t, 
 		  memory_size_type buff_size,
 		  typename begin_data_t=empty_type,
@@ -124,7 +123,7 @@ public:
 
 template <typename dest_t, unsigned buff_size>
 class virtual_source_impl_real
-	: public virtual_source_real<typename dest_t::item_type, buff_size, typename dest_t::begin_data_type, typename dest_t::end_data_type> {
+	: public virtual virtual_source_real<typename dest_t::item_type, buff_size, typename dest_t::begin_data_type, typename dest_t::end_data_type> {
 private:
 	typedef virtual_source_real<typename dest_t::item_type, buff_size, typename dest_t::begin_data_type, typename dest_t::end_data_type> parent_t;
  	dest_t & m_dest;
@@ -133,7 +132,9 @@ public:
 	typedef typename dest_t::begin_data_type begin_data_type;
 	typedef typename dest_t::end_data_type end_data_type;
 
- 	virtual_source_impl_real(dest_t & dest): m_dest(dest) {}
+ 	virtual_source_impl_real(dest_t & dest): m_dest(dest) {
+		parent_t::set_memory_priority(0.0);
+	}
 
 	virtual void begin(stream_size_type items=max_items, begin_data_type * data=0) {
 		m_dest.begin(items, data);

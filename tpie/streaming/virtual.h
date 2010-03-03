@@ -43,9 +43,15 @@ public:
  	virtual void begin(stream_size_type size=0, typename dest_t::begin_data_type *data=0) {
  		parent_t::begin(size, data);
  	}
+#if TPIE_STREAMING_VBUFF_SIZE==1
  	virtual void push(const typename dest_t::item_type & item) {
  		parent_t::push(item);
  	}
+#else
+ 	virtual void push(const typename dest_t::item_type * items, memory_size_type count) {
+ 		parent_t::push(items, count);
+ 	}
+#endif
  	virtual void end(typename dest_t::end_data_type *data=0) {
  		parent_t::end(data);
  	}

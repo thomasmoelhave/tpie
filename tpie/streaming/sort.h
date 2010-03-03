@@ -409,7 +409,7 @@ public:
 		m_dest.end(endData);
 	}	
 
-	virtual void memoryNext(std::vector<memory_base *> & next) {
+	virtual void memory_next(std::vector<memory_base *> & next) {
 		next.push_back(&m_dest);
 	}
 };

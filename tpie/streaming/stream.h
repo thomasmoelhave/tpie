@@ -48,12 +48,16 @@ public:
 	inline stream_sink(stream_type & stream) throw() : 
 		m_stream(stream), 
 		m_beginData(0), 
-		m_endData(0) {}
+		m_endData(0) {
+		set_memory_priority(0.0);
+	}
 	
 	inline stream_sink(file_stream<item_type> & stream) throw() : 
 		m_stream(stream.get_stream()), 
 		m_beginData(0), 
-		m_endData(0) {}
+		m_endData(0) {
+		set_memory_priority(0.0);
+	}
 	
 	inline void begin(stream_size_type items=max_items, 
 					  begin_data_type * data=0) throw() 
