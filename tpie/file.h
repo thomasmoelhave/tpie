@@ -205,7 +205,6 @@ public:
 				offset += size();
 			else if (whence == current) 
 				offset += this->offset();
-			
 			if (0 > offset || offset > size()) 
 				throw io_exception("Tried to seek out of file");
 			update_vars();
@@ -214,11 +213,13 @@ public:
 			if (b == m_block->number) {
 				m_nextBlock = std::numeric_limits<stream_size_type>::max();
 				m_nextIndex = std::numeric_limits<memory_size_type>::max();
+				assert(this->offset() == offset);
 				return;
 			}
 			m_nextBlock = b;
 			m_nextIndex = m_index;
 			m_index = std::numeric_limits<memory_size_type>::max();
+			assert(this->offset() == offset);
 		}
 
  		inline stream_size_type size() const throw() {

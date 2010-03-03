@@ -270,16 +270,16 @@ void test_stream_source(char * testName) {
 		s.open();
 		for(memory_size_type i=0; test[i]; ++i)
 			s.write(test[i]);
-		s.seek(0);
+		s.seek(14);
 		sink.ok();
 		stream_source<test_sink> ss(s, sink);
 		ss.process();
 		sink.final();
 	} else if (!strcmp(testName, "process_back")) {
 		s.open();
-		for(memory_size_type i=the_test_size; i != memory_size_type(-1); --i)
+		for(memory_size_type i=the_test_size-1; i != memory_size_type(-1); --i)
 			s.write(test[i]);
-		s.seek(0);
+		s.seek(14);
 		test_sink sink;
 		sink.ok();
 		stream_source<test_sink> ss(s, sink);
