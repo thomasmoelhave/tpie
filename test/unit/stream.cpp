@@ -116,6 +116,7 @@ void test_file_accessor() {
 }
 
 int main(int argc, char ** argv) {
+	//TODO add memory allocation tests
  	if (argc == 2 && !strcmp(argv[1], "file_accessor_stdio")) {
  		test_file_accessor<file_accessor::stdio>();
  	} else if (argc == 2 && !strcmp(argv[1], "file_stream")) {

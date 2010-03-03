@@ -98,6 +98,7 @@ public:
 	/////////////////////////////////////////////////////////////////////////
 	template <typename TT>
 	void read_user_data(TT & data) throw(stream_exception) {
+		assert(m_open);
 		if (sizeof(TT) != m_fileAccessor->user_data_size()) throw io_exception("Wrong user data size");
 		m_fileAccessor->read_user_data(reinterpret_cast<void*>(&data));
 	}
@@ -111,6 +112,7 @@ public:
 	/////////////////////////////////////////////////////////////////////////
 	template <typename TT>
 	void write_user_data(const TT & data) throw(stream_exception) {
+		assert(m_open);
 		if (sizeof(TT) != m_fileAccessor->user_data_size()) throw io_exception("Wrong user data size");
 		m_fileAccessor->write_user_data(reinterpret_cast<const void*>(&data));
 	}
@@ -121,6 +123,7 @@ public:
 	/// Note all streams into the will must be freed, before you call close
 	/////////////////////////////////////////////////////////////////////////
 	inline void close() throw(stream_exception){
+		m_open = false;
 		m_fileAccessor->close();
 	}
 
@@ -139,6 +142,9 @@ public:
 		m_canWrite = accessType == write || accessType == read_write,
 		m_fileAccessor->open(path, m_canRead, m_canWrite, m_itemSize, userDataSize);
 		m_size = m_fileAccessor->size();
+		#ifndef NDEBUG
+		m_open = true;
+		#endif
 	}
 
 	/////////////////////////////////////////////////////////////////////////
@@ -156,6 +162,7 @@ public:
 	/// \returns The path of the currently opened file
 	/////////////////////////////////////////////////////////////////////////
 	inline const std::string & path() const throw() {
+		assert(m_open);
 		return m_fileAccessor->path();
 	}
 
@@ -193,6 +200,7 @@ public:
 		/// \param whence Move the offset relative to what
 		/////////////////////////////////////////////////////////////////////////
 		inline void seek(stream_offset_type offset, offset_type whence=beginning) throw(stream_exception){
+			assert(m_file.m_open);
 			if (whence == end)
 				offset += size();
 			else if (whence == current) 
@@ -214,6 +222,7 @@ public:
 		}
 
  		inline stream_size_type size() const throw() {
+			assert(m_file.m_open);
 			return m_file.size();
 		}
 
@@ -223,6 +232,7 @@ public:
 		/// \returns The current offset in the stream
 		/////////////////////////////////////////////////////////////////////////
  		inline stream_size_type offset() const throw() {
+			assert(m_file.m_open);
  			if (m_nextBlock == std::numeric_limits<stream_size_type>::max())
  				return m_index + m_block->number * m_file.m_blockItems;
  			return m_nextIndex + m_nextBlock * m_file.m_blockItems;
@@ -240,6 +250,7 @@ public:
 		/// \returns Wether or not we can read more items
 		/////////////////////////////////////////////////////////////////////////
  		inline bool can_read() const throw() {
+			assert(m_file.m_open);
  			if (m_index < m_block->size) return true;
  			return offset() < size();
  		}
@@ -250,6 +261,7 @@ public:
 		/// \returns Wether or not we can an item with read_back()
 		/////////////////////////////////////////////////////////////////////////
 		inline bool can_read_back() const throw() {
+			assert(m_file.m_open);
  			if (m_index < m_block->size) return true;
 			if (m_nextBlock == std::numeric_limits<stream_size_type>::max())
 				return m_block->number != 0;
@@ -259,16 +271,18 @@ public:
 	};
 
 	void truncate(stream_size_type s) throw(stream_exception) {
+		assert(m_open);
 		m_size = s;
 		m_fileAccessor->truncate(s);
 	}
 
 	~file_base();
 	
-	memory_size_type blockItems() {
+	memory_size_type blockItems() {		
 		return m_blockItems;
 	}
 
+	bool m_open;
 protected:
 	memory_size_type m_blockItems;
 	stream_size_type m_size;
@@ -333,6 +347,7 @@ public:
 		/// \returns The item read from the stream
 		/////////////////////////////////////////////////////////////////////////
  		inline item_type & read() {
+			assert(m_file.m_open);
 			if (m_index >= m_block->size) {
 				if (offset() >= m_file.size())
 					throw end_of_stream_exception();
@@ -351,6 +366,7 @@ public:
 		/// \returns The item read from the stream
 		/////////////////////////////////////////////////////////////////////////
 		inline item_type & read_back() { 
+			assert(m_file.m_open);
 			//The first index in a block is 0, when that is read 
 			// m_index will underflow and become max int
 			if (m_index >= m_block->size) {
@@ -371,6 +387,7 @@ public:
 		/// \param item The item to write to the stream
 		/////////////////////////////////////////////////////////////////////////
  		inline void write(const item_type& item) throw(stream_exception) {
+			assert(m_file.m_open);
 #ifndef NDEBUG
 			if (!m_file.is_writable()) 
 				throw io_exception("Cannot write to read only stream");
@@ -390,6 +407,7 @@ public:
 		/////////////////////////////////////////////////////////////////////////
 		template <typename IT>
 		inline void write(const IT & start, const IT & end) {
+			assert(m_file.m_open);
 			for(IT i=start; i != end; ++i) 
 				write(*i);
 		}
@@ -404,6 +422,7 @@ public:
 		/////////////////////////////////////////////////////////////////////////
 		template <typename IT>
 		inline void read(const IT & start, const IT & end) {
+			assert(m_file.m_open);			
 			for(IT i=start; i != end; ++i) 
 				*i = read();
 		}

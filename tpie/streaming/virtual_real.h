@@ -24,33 +24,34 @@ namespace tpie {
 namespace streaming {
 
 template <typename item_t, 
-		  memory_size_type buff_size,
-		  typename begin_data_t=empty_type,
-		  typename end_data_t=empty_type>
+ 		  memory_size_type buff_size,
+ 		  typename begin_data_t=empty_type,
+ 		  typename end_data_t=empty_type>
 class virtual_source_real: public memory_single {
 public:
-	typedef begin_data_t begin_data_type;
-	typedef end_data_t end_data_type;
-	typedef item_t item_type;
+ 	typedef begin_data_t begin_data_type;
+ 	typedef end_data_t end_data_type;
+ 	typedef item_t item_type;
 	
-	virtual void begin(stream_size_type items=max_items, begin_data_type * data=0) = 0;
-	virtual void push(const item_t * items, memory_size_type count) = 0;
-	virtual void end(end_data_type * data = 0) = 0;
+ 	virtual void begin(stream_size_type items=max_items, begin_data_type * data=0) = 0;
+ 	virtual void push(const item_t * items, memory_size_type count) = 0;
+ 	virtual void end(end_data_type * data = 0) = 0;
 };
 
 template <typename item_t, 
-		  typename begin_data_t,
-		  typename end_data_t>
+ 		  typename begin_data_t,
+ 		  typename end_data_t>
 class virtual_source_real<item_t, 1, begin_data_t, end_data_t>: public memory_single {
 public:
-	typedef begin_data_t begin_data_type;
-	typedef end_data_t end_data_type;
-	typedef item_t item_type;
+ 	typedef begin_data_t begin_data_type;
+ 	typedef end_data_t end_data_type;
+ 	typedef item_t item_type;
 
-	virtual void begin(stream_size_type items=max_items, begin_data_type *data=0) = 0;
-	virtual void push(const item_t & item) = 0;
-	virtual void end(end_data_type * data=0) = 0;
+ 	virtual void begin(stream_size_type items=max_items, begin_data_type *data=0) = 0;
+ 	virtual void push(const item_t & item) = 0;
+ 	virtual void end(end_data_type * data=0) = 0;
 };
+
 
 
 template <typename item_t, 
@@ -72,6 +73,10 @@ private:
  		m_bufferUsed = 0;
  	}
 public:
+	typedef begin_data_t begin_data_type;
+	typedef end_data_t end_data_type;
+	typedef item_t item_type;
+
  	inline virtual_sink_real_impl(dest_t * dest) throw ()
 		:parent_t(*dest, 0.0), m_bufferUsed(0) {}
 	
@@ -101,6 +106,10 @@ private:
 	typedef common_single< virtual_sink_real_impl<item_t, 1, begin_data_t, end_data_t>, dest_t > parent_t;
 	using parent_t::dest;
 public:
+	typedef begin_data_t begin_data_type;
+	typedef end_data_t end_data_type;
+	typedef item_t item_type;
+
 	virtual_sink_real_impl(dest_t * dest): parent_t(*dest, 0.0) {}
 	inline void begin(stream_size_type items=max_items, begin_data_t * data=0) {
 		dest().begin(items, data);
@@ -120,9 +129,9 @@ private:
 	typedef virtual_source_real<typename dest_t::item_type, buff_size, typename dest_t::begin_data_type, typename dest_t::end_data_type> parent_t;
  	dest_t & m_dest;
 public:
-	typedef typename parent_t::item_type item_type;
-	typedef typename parent_t::begin_data_type begin_data_type;
-	typedef typename parent_t::end_data_type end_data_type;
+	typedef typename dest_t::item_type item_type;
+	typedef typename dest_t::begin_data_type begin_data_type;
+	typedef typename dest_t::end_data_type end_data_type;
 
  	virtual_source_impl_real(dest_t & dest): m_dest(dest) {}
 
@@ -150,7 +159,7 @@ public:
 
 template <typename dest_t>
 class virtual_source_impl_real<dest_t, 1>
-	: public virtual_source_real<typename dest_t::item_type, 1, typename dest_t::begin_data_type, typename dest_t::end_data_type> {
+	: public virtual virtual_source_real<typename dest_t::item_type, 1, typename dest_t::begin_data_type, typename dest_t::end_data_type> {
 private:
 	typedef virtual_source_real<typename dest_t::item_type, 1, typename dest_t::begin_data_type, typename dest_t::end_data_type>  parent_t;
  	dest_t & m_dest;
@@ -183,7 +192,3 @@ public:
 
 }
 }
-
-
-
-

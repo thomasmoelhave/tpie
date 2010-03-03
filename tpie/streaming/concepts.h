@@ -37,16 +37,21 @@ struct memory_managable {
 template <typename T>
 struct pushable {
 	typedef typename T::item_type item_type;
-	
+	typedef typename T::begin_data_type begin_data_type;
+	typedef typename T::end_data_type end_data_type;
+	 
 	BOOST_CONCEPT_USAGE(pushable) {
-		T * x=0;
-		const item_type * i=0;
-		x->begin();
-		x->begin(42);
-		x->push(*i);
-		x->end();
+ 		T * x=0;
+ 		const item_type * i=0;
+ 		x->begin();
+ 		x->begin((stream_size_type)42);
+ 		x->begin((stream_size_type)42,(begin_data_type*)0);
+ 		x->push(*i);
+ 		x->end();
+ 		x->end((end_data_type*)0);
 	}
 };
+
 
 template <typename T>
 struct pullable {
@@ -54,11 +59,12 @@ struct pullable {
 	
 	BOOST_CONCEPT_USAGE(pullable) {
 		T * x=0;
-		x->beginPull();
-		x->atEnd()==true;
+		x->pull_begin();
+		x->pull_begin((stream_size_type*)0);
+		x->can_pull()==true;
 		const pull_type & i = x->pull();
 		unused(i);
-		x->endPull();
+		x->pull_end();
 	}
 };
 

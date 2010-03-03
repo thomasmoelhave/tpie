@@ -37,6 +37,7 @@ file_base::file_base(memory_size_type itemSize,
 					 file_accessor::file_accessor * fileAccessor) :
 	m_size(0), 	m_itemSize(itemSize),  m_firstUsed(0), m_firstFree(0)
 {
+	m_open = false;
 	if (fileAccessor == 0)
 		fileAccessor = new default_file_accessor();
 	m_fileAccessor = fileAccessor;
@@ -133,7 +134,8 @@ file_base::stream::stream(file_base & f, stream_size_type offset):
 	m_index = std::numeric_limits<memory_size_type>::max();;
 	m_block = &m_file.m_emptyBlock;
 	m_file.create_block();
-	seek(offset);
+	if (m_file.m_open)
+		seek(offset);
 }
 
 void file_base::stream::free() {

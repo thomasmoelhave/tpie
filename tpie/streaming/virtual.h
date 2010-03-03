@@ -26,20 +26,29 @@ namespace tpie {
 namespace streaming {
 
 template <typename item_t, typename begin_data_t=empty_type, typename end_data_t=empty_type>
-class virtual_source: public virtual_source_real<item_t, TPIE_STREAMING_VBUFF_SIZE, begin_data_t, end_data_t> {};
+class virtual_source: public virtual virtual_source_real<item_t, TPIE_STREAMING_VBUFF_SIZE, begin_data_t, end_data_t> {};
 
 template <typename dest_t>
 class virtual_source_impl 
-	: public virtual_source_impl_real<typename dest_t::item_type, TPIE_STREAMING_VBUFF_SIZE>,
-	virtual_source<typename dest_t::item_type>
+	: public virtual_source_impl_real<dest_t, TPIE_STREAMING_VBUFF_SIZE>,
+	public virtual_source<typename dest_t::item_type>
 {
 private:
-	typedef virtual_source_impl_real<typename dest_t::item_type, TPIE_STREAMING_VBUFF_SIZE> parent_t;
+	typedef virtual_source_impl_real<dest_t, TPIE_STREAMING_VBUFF_SIZE> parent_t;
 public:
 	virtual_source_impl(dest_t & dest): parent_t(dest) {};
 	virtual memory_size_type base_memory() {
 		return sizeof(*this);
 	}
+ 	virtual void begin(stream_size_type size=0, typename dest_t::begin_data_type *data=0) {
+ 		parent_t::begin(size, data);
+ 	}
+ 	virtual void push(const typename dest_t::item_type & item) {
+ 		parent_t::push(item);
+ 	}
+ 	virtual void end(typename dest_t::end_data_type *data=0) {
+ 		parent_t::end(data);
+ 	}
 };
 
 template <typename item_t, typename begin_data_t=empty_type, typename end_data_t=empty_type> 

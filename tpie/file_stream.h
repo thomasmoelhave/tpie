@@ -68,6 +68,7 @@ public:
 					 file_base::access_type accessType=file_base::read_write,
 					 memory_size_type user_data_size=0) throw (stream_exception) {
 		m_file.open(path, accessType, user_data_size);
+		m_stream.seek(0);
 	}
 
 	/////////////////////////////////////////////////////////////////////////
