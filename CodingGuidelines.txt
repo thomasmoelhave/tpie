@@ -27,7 +27,7 @@ How to modify this document:
 Maintainers: 
  
 - Thomas Molhave (tm, thomasm@daimi.au.dk)
-- Jan Vahrenhold (jv, jan@math.uni-muenster.de)
+- Jan Vahrenhold (jv, jan.vahrenhold@cs.tu-dortmund.de)
 - Henrik Blunck (hb, blunck@madalgo.au.dk)
 
 ******************************************************************
