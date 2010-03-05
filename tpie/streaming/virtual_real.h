@@ -123,7 +123,7 @@ public:
 
 template <typename dest_t, unsigned buff_size>
 class virtual_source_impl_real
-	: public virtual virtual_source_real<typename dest_t::item_type, buff_size, typename dest_t::begin_data_type, typename dest_t::end_data_type> {
+	: public virtual_source_real<typename dest_t::item_type, buff_size, typename dest_t::begin_data_type, typename dest_t::end_data_type> {
 private:
 	typedef virtual_source_real<typename dest_t::item_type, buff_size, typename dest_t::begin_data_type, typename dest_t::end_data_type> parent_t;
  	dest_t & m_dest;
@@ -160,7 +160,7 @@ public:
 
 template <typename dest_t>
 class virtual_source_impl_real<dest_t, 1>
-	: public virtual virtual_source_real<typename dest_t::item_type, 1, typename dest_t::begin_data_type, typename dest_t::end_data_type> {
+	: public virtual_source_real<typename dest_t::item_type, 1, typename dest_t::begin_data_type, typename dest_t::end_data_type> {
 private:
 	typedef virtual_source_real<typename dest_t::item_type, 1, typename dest_t::begin_data_type, typename dest_t::end_data_type>  parent_t;
  	dest_t & m_dest;
