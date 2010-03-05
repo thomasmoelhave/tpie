@@ -3,9 +3,11 @@
 #include "virtual_real.h"
 #include <boost/timer.hpp>
 #include <tpie/util.h>
+#include <boost/filesystem.hpp>
 
 using namespace tpie::streaming;
 using namespace tpie;
+using namespace boost::filesystem;
 
 class test_sink: public memory_single {
 public:
@@ -80,7 +82,15 @@ int main(int argc, char ** argv) {
   vbufftest<40>();
   vbufftest<64>();
   printf("Virtual buffer size choosen to %d\n", bestValue);
-  FILE * f = fopen(argv[1],"wb");
+
+  
+  create_directories( path(argv[1]).parent_path() );
+  FILE * f = fopen(argv[1], "wb");
+  if (f == NULL) {
+    std::cerr << "Unable to write to file \"" << argv[1] << "\", build system is broken" << std::endl;
+    return 1;
+  }
   fprintf(f, "#define TPIE_STREAMING_VBUFF_SIZE %d\n", bestValue);
   fclose(f);
+  return 0;
 }

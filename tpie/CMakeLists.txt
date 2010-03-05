@@ -164,6 +164,7 @@ install(FILES ${STREAMING_HEADERS} DESTINATION ${HEADERS_INSTALL_DIR}/streaming)
 
 if(${STREAMING_VIRTUAL_CALL_BUFFER_SIZE} STREQUAL auto) 
   add_executable(vbufftest streaming/vbufftest.cpp streaming/memory.cpp)
+target_link_libraries(vbufftest ${Boost_LIBRARIES})
   add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/streaming/vbuffsize.inc COMMAND vbufftest ${CMAKE_CURRENT_BINARY_DIR}/streaming/vbuffsize.inc DEPENDS vbufftest)
 else(${STREAMING_VIRTUAL_CALL_BUFFER_SIZE} STREQUAL auto) 
   configure_file(streaming/vbuffsize.inc.cmake ${CMAKE_CURRENT_BINARY_DIR}/streaming/vbuffsize.inc)
