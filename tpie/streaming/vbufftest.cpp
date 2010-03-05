@@ -51,17 +51,32 @@ double bestTime;
 
 template <int buff_size> 
 void vbufftest() {
-  typedef test_sink dst_t;
-  typedef virtual_source_impl_real<dst_t, buff_size> vsrc_t;
-  typedef virtual_sink_real_impl<int, buff_size> vsink_t;
-  typedef test_source<vsink_t> src_t;
-  dst_t dest;
-  vsrc_t vsrc(dest);
-  vsink_t vsink(&vsrc);
-  src_t src(vsink);
-  boost::timer t;
-  src.run();
-  double time = t.elapsed();
+  double time;
+  if (buff_size == 1) {
+    typedef test_sink dst_t;
+    typedef virtual_source_impl_real_single<dst_t> vsrc_t;
+    typedef virtual_sink_real_impl_single<int> vsink_t;
+    typedef test_source<vsink_t> src_t;
+    dst_t dest;
+    vsrc_t vsrc(dest);
+    vsink_t vsink(&vsrc);
+    src_t src(vsink);
+    boost::timer t;
+    src.run();
+    time = t.elapsed();
+  } else {
+    typedef test_sink dst_t;
+    typedef virtual_source_impl_real<dst_t, buff_size> vsrc_t;
+    typedef virtual_sink_real_impl<int, buff_size> vsink_t;
+    typedef test_source<vsink_t> src_t;
+    dst_t dest;
+    vsrc_t vsrc(dest);
+    vsink_t vsink(&vsrc);
+    src_t src(vsink);
+    boost::timer t;
+    src.run();
+    time = t.elapsed();
+  }
   printf("%2d: %2.3lf\n", buff_size, time);
   if (time < bestTime*0.90) {
     bestTime = time;
@@ -82,7 +97,6 @@ int main(int argc, char ** argv) {
   vbufftest<40>();
   vbufftest<64>();
   printf("Virtual buffer size choosen to %d\n", bestValue);
-
   
   create_directories( path(argv[1]).parent_path() );
   FILE * f = fopen(argv[1], "wb");

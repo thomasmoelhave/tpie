@@ -41,7 +41,7 @@ public:
 template <typename item_t, 
  		  typename begin_data_t,
  		  typename end_data_t>
-class virtual_source_real<item_t, 1, begin_data_t, end_data_t>: public memory_single {
+class virtual_source_real_single: public memory_single {
 public:
  	typedef begin_data_t begin_data_type;
  	typedef end_data_t end_data_type;
@@ -96,20 +96,20 @@ public:
 };
 
 template <typename item_t, 
-		  typename begin_data_t,
-		  typename end_data_t>
-class virtual_sink_real_impl<item_t, 1, begin_data_t, end_data_t>
-	: public common_single< virtual_sink_real_impl<item_t, 1, begin_data_t, end_data_t>, virtual_source_real<item_t, 1, begin_data_t, end_data_t> > {
+		  typename begin_data_t=empty_type,
+		  typename end_data_t=empty_type>
+class virtual_sink_real_impl_single
+	: public common_single< virtual_sink_real_impl_single<item_t, begin_data_t, end_data_t>, virtual_source_real_single<item_t, begin_data_t, end_data_t> > {
 private:
-	typedef virtual_source_real<item_t, 1, begin_data_t, end_data_t> dest_t;
-	typedef common_single< virtual_sink_real_impl<item_t, 1, begin_data_t, end_data_t>, dest_t > parent_t;
+	typedef virtual_source_real_single<item_t, begin_data_t, end_data_t> dest_t;
+	typedef common_single< virtual_sink_real_impl_single<item_t, begin_data_t, end_data_t>, dest_t > parent_t;
 	using parent_t::dest;
 public:
 	typedef begin_data_t begin_data_type;
 	typedef end_data_t end_data_type;
 	typedef item_t item_type;
 
-	virtual_sink_real_impl(dest_t * dest): parent_t(*dest, 0.0) {}
+	virtual_sink_real_impl_single(dest_t * dest): parent_t(*dest, 0.0) {}
 	inline void begin(stream_size_type items=max_items, begin_data_t * data=0) {
 		dest().begin(items, data);
 	}
@@ -159,17 +159,18 @@ public:
 };
 
 template <typename dest_t>
-class virtual_source_impl_real<dest_t, 1>
-	: public virtual_source_real<typename dest_t::item_type, 1, typename dest_t::begin_data_type, typename dest_t::end_data_type> {
+class virtual_source_impl_real_single
+	: public virtual_source_real_single<typename dest_t::item_type, typename dest_t::begin_data_type, typename dest_t::end_data_type> {
 private:
-	typedef virtual_source_real<typename dest_t::item_type, 1, typename dest_t::begin_data_type, typename dest_t::end_data_type>  parent_t;
+	typedef virtual_source_real_single<typename dest_t::item_type, typename dest_t::begin_data_type, typename dest_t::end_data_type>  parent_t;
  	dest_t & m_dest;
 public:
 	typedef typename parent_t::item_type item_type;
 	typedef typename parent_t::begin_data_type begin_data_type;
 	typedef typename parent_t::end_data_type end_data_type;
 
- 	virtual_source_impl_real(dest_t & dest): m_dest(dest) {};
+ 	virtual_source_impl_real_single(dest_t & dest): m_dest(dest) {};
+
 	virtual void begin(memory_size_type items=max_items, begin_data_type * data=0) {
 		m_dest.begin(items, data);
 	}

@@ -25,6 +25,40 @@
 namespace tpie {
 namespace streaming {
 
+#if TPIE_STREAMING_VBUFF_SIZE == 1
+template <typename item_t, typename begin_data_t=empty_type, typename end_data_t=empty_type>
+struct virtual_source_td {
+	typedef virtual_source_real_single<item_t, begin_data_t, end_data_t> type;
+};
+
+template <typename dest_t>
+class virtual_source_impl 
+	: public virtual_source_impl_real_single<dest_t>
+{
+private:
+	typedef virtual_source_impl_real_single<dest_t> parent_t;
+public:
+	virtual_source_impl(dest_t & dest): parent_t(dest) {};
+	virtual memory_size_type base_memory() {
+		return sizeof(*this);
+	}
+};
+
+
+template <typename item_t, typename begin_data_t=empty_type, typename end_data_t=empty_type> 
+class virtual_sink_impl: public virtual_sink_real_impl_single<item_t, begin_data_t, end_data_t> {
+private:
+	typedef virtual_sink_real_impl_single<item_t, begin_data_t, end_data_t> parent_t;
+
+public:
+	typedef typename virtual_source_td<item_t, begin_data_t, end_data_t>::type dest_t;
+	virtual_sink_impl(dest_t * dest): parent_t(dest) {}
+
+	virtual memory_size_type base_memory() {
+		return sizeof(*this);
+	}
+};
+#else
 template <typename item_t, typename begin_data_t=empty_type, typename end_data_t=empty_type>
 struct virtual_source_td {
 	typedef virtual_source_real<item_t, TPIE_STREAMING_VBUFF_SIZE, begin_data_t, end_data_t> type;
@@ -41,21 +75,6 @@ public:
 	virtual memory_size_type base_memory() {
 		return sizeof(*this);
 	}
- 	virtual void begin(stream_size_type size=0, typename dest_t::begin_data_type *data=0) {
- 		parent_t::begin(size, data);
- 	}
-#if TPIE_STREAMING_VBUFF_SIZE==1
- 	virtual void push(const typename dest_t::item_type & item) {
- 		parent_t::push(item);
- 	}
-#else
- 	virtual void push(const typename dest_t::item_type * items, memory_size_type count) {
- 		parent_t::push(items, count);
- 	}
-#endif
- 	virtual void end(typename dest_t::end_data_type *data=0) {
- 		parent_t::end(data);
- 	}
 };
 
 template <typename item_t, typename begin_data_t=empty_type, typename end_data_t=empty_type> 
@@ -71,7 +90,7 @@ public:
 		return sizeof(*this);
 	}
 };
-
+#endif
 }
 }
 
