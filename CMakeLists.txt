@@ -36,7 +36,14 @@ else(WIN32)
 	set(DOC_INSTALL_DIR "share/doc/tpie")
 endif(WIN32)
 
-find_package(Boost 1.37.0 REQUIRED filesystem system)
+#Link statically to Boost libraries on windows
+if (WIN32)
+set(Boost_USE_STATIC_LIBS ON)
+endif(WIN32)
+
+#extra version numbers for boost, needed by FindBoost.
+set(Boost_ADDITIONAL_VERSIONS "1.40.0" "1.40" "1.41" "1.41.0" "1.42" "1.42.0" "1.43" "1.43.0" "1.44" "1.44.0")
+find_package(Boost COMPONENTS filesystem system REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
 set(INSTALL_TARGETS_DEFAULT_ARGS
