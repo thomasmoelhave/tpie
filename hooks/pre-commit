@@ -1,0 +1,8 @@
+#!/usr/bin/python
+from sys import exit
+from subprocess import Popen, PIPE, call
+import re
+(out,err) = Popen(['git','status','--untracked-files=no'], stdout=PIPE).communicate()
+fs = re.match("(.*\n)*# Changes to be committed:\n.*\n.*\n((.*\n)*).*\n# Changed but not updated:", out).group(2)
+call(["python", "tools/fixup.py"] + re.sub("#[ \t]*(new file|modified):[ \t]*(.*)\n",r'\2\n',fs).split("\n")[:-1])
+
