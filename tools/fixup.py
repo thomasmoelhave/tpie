@@ -2,6 +2,7 @@
 import re
 from sys import argv
 import time
+from sys import exit
 
 def fixCopyright(d):
     o=re.search("// Copyright ([0-9]{2,4}( ?,?[0-9]{2,4})*), The TPIE development team",d)
@@ -58,6 +59,7 @@ def fixHeader(d):
         c = mo.group(11)
     return mo.group(1) + "#ifndef %s\n#define %s\n%s#endif //%s\n"%(p,p,c,p)
 
+changed=False
 import os
 for path in argv[1:]:
     if os.path.exists(path):
@@ -70,5 +72,10 @@ for path in argv[1:]:
                 ne = fixHeader(ne)
             ne = fixWhiteSpace(ne)
             if ne != d:
+                changed=True
                 print "Updated style in "+path
                 open(path,'w').write(ne)
+if changed:
+    exit(1)
+exit(0)
+
