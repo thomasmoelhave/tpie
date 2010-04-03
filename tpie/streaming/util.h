@@ -1,26 +1,25 @@
-// -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
-
+// -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2009, The TPIE development team
-// 
+// Copyright 2010, The TPIE development team
+//
 // This file is part of TPIE.
-// 
+//
 // TPIE is free software: you can redistribute it and/or modify it under
 // the terms of the GNU Lesser General Public License as published by the
 // Free Software Foundation, either version 3 of the License, or (at your
 // option) any later version.
-// 
+//
 // TPIE is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or
 // FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 // License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #ifndef _TPIE_STREAMING_UTIL_H
 #define _TPIE_STREAMING_UTIL_H
 #include <limits>
-
+#include <tpie/streaming/memory.h>
 namespace tpie {
 namespace streaming {
 
@@ -45,8 +44,8 @@ public:
 	}
 };
 
-template <typename super_t, 
-		  typename dest_t, 
+template <typename super_t,
+		  typename dest_t,
 		  typename begin_data_t=typename dest_t::begin_data_type,
 		  typename end_data_t=typename dest_t::end_data_type>
 class push_single: public memory_single {
@@ -57,11 +56,11 @@ private:
 	dest_t & d;
 protected:
 	inline dest_t & dest() {return d;}
-	
-    push_single(dest_t & de, double prio): d(de) {
+
+	push_single(dest_t & de, double prio): d(de) {
 		set_memory_priority(prio);
 	}
-public:	
+public:
 	void memory_next(std::vector<memory_base *> &ds) {
 		ds.push_back(&d);
 	}
@@ -69,7 +68,7 @@ public:
 	memory_size_type minimum_memory() {
 		return base_memory();
 	}
-	
+
 	virtual memory_size_type base_memory() {
 		return sizeof(super_t);
 	}
@@ -77,7 +76,7 @@ public:
 	void begin(stream_size_type items=max_items, begin_data_t * data=0) {
 		d.begin(items, data);
 	}
-	
+
 	void end(end_data_t & data=0) {
 		d.end(data);
 	}
@@ -85,19 +84,19 @@ public:
 };
 
 
-template <typename super_t, 
-		  typename source_t, 
+template <typename super_t,
+		  typename source_t,
 		  typename pull_begin_data_t=typename source_t::pull_begin_data_type,
 		  typename pull_end_data_t=typename source_t::end_data_type>
 class pull_single: public memory_single {
 	source_t & s;
 protected:
 	inline source_t & source() {return s;}
-	
-    pull_single(source_t & source, double prio): s(source) {
+
+	pull_single(source_t & source, double prio): s(source) {
 		set_memory_priority(prio);
 	}
-public:	
+public:
 	typedef pull_begin_data_t pull_begin_data_type;
 	typedef pull_end_data_t pull_end_data_type;
 
@@ -108,7 +107,7 @@ public:
 	memory_size_type minimum_memory() {
 		return base_memory();
 	}
-	
+
 	virtual memory_size_type base_memory() {
 		return sizeof(super_t);
 	}
@@ -117,7 +116,7 @@ public:
 	void pull_begin(stream_size_type * items=0, pull_begin_data_t * data=0) {
 		s.begin(items, data);
 	}
-	
+
 	void pull_end(pull_end_data_t & data=0) {
 		s.end(data);
 	}
@@ -131,8 +130,8 @@ private:
 protected:
 	dest_t & dest() {return d;}
 
-    common_split(dest_t & de): d(de) {}
-	
+	common_split(dest_t & de): d(de) {}
+
 	void memory_next(std::vector<memory_base *> &ds) {
 		ds.push_back(&d);
 	}
@@ -157,7 +156,7 @@ public:
 	inline void end(end_data_type * data=0) {
 		f->end(data);
 	}
-	
+
 	inline void push(const typename first_t::item_type & item) {
 		f->push(item);
 	}

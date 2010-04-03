@@ -18,6 +18,7 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #ifndef _TPIE_STREAMING_BLOCKBUFFER_H
 #define _TPIE_STREAMING_BLOCKBUFFER_H
+#include <tpie/file.h>
 #include <tpie/streaming/util.h>
 namespace tpie {
 namespace streaming {
