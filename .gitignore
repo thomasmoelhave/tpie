@@ -6,3 +6,22 @@
 *CTestTestfile.cmake
 *CMakeCache.txt
 
+test/test_ami_arith
+test/test_ami_btree
+test/test_sort
+test/test_priority_queue
+test/test/test_correctness
+test/test_big_scan
+tpie/vbufftest
+test/test_correctness
+test/test_ami_stack
+test/test_ami_sort24
+test/test_ami_sort
+test/test_ami_queue
+test/test_ami_gp
+doc/api
+build/
+tpie/config.h
+test/speed_regression/stream
+test/speed_regression/stream.dat
+test/speed_regression/stream.ps
