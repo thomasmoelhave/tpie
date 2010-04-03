@@ -31,9 +31,9 @@ public:
 };
 
 template <typename dest_t>
-class test_source: public common_single<test_source<dest_t>, dest_t> {
+class test_source: public push_single<test_source<dest_t>, dest_t> {
 public:
-  typedef common_single<test_source<dest_t>, dest_t> parent_t;
+	typedef push_single<test_source<dest_t>, dest_t> parent_t;
   using parent_t::dest;
 
   test_source(dest_t & dest): parent_t(dest, 0.0) {}

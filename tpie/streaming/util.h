@@ -49,16 +49,16 @@ template <typename super_t,
 		  typename dest_t, 
 		  typename begin_data_t=typename dest_t::begin_data_type,
 		  typename end_data_t=typename dest_t::end_data_type>
-class common_single: public memory_single {
+class push_single: public memory_single {
 public:
 	typedef begin_data_t begin_data_type;
 	typedef end_data_t end_data_type;
 private:
 	dest_t & d;
 protected:
-	dest_t & dest() {return d;}
+	inline dest_t & dest() {return d;}
 	
-    common_single(dest_t & de, double prio): d(de) {
+    push_single(dest_t & de, double prio): d(de) {
 		set_memory_priority(prio);
 	}
 public:	
@@ -84,6 +84,45 @@ public:
 
 };
 
+
+template <typename super_t, 
+		  typename source_t, 
+		  typename pull_begin_data_t=typename source_t::pull_begin_data_type,
+		  typename pull_end_data_t=typename source_t::end_data_type>
+class pull_single: public memory_single {
+	source_t & s;
+protected:
+	inline source_t & source() {return s;}
+	
+    pull_single(source_t & source, double prio): s(source) {
+		set_memory_priority(prio);
+	}
+public:	
+	typedef pull_begin_data_t pull_begin_data_type;
+	typedef pull_end_data_t pull_end_data_type;
+
+	void memory_prev(std::vector<memory_base *> &ds) {
+		ds.push_back(&s);
+	}
+
+	memory_size_type minimum_memory() {
+		return base_memory();
+	}
+	
+	virtual memory_size_type base_memory() {
+		return sizeof(super_t);
+	}
+
+
+	void pull_begin(stream_size_type * items=0, pull_begin_data_t * data=0) {
+		s.begin(items, data);
+	}
+	
+	void pull_end(pull_end_data_t & data=0) {
+		s.end(data);
+	}
+
+};
 
 template <typename dest_t>
 class common_split: public memory_split {

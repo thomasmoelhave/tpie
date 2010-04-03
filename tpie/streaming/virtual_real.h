@@ -58,10 +58,10 @@ template <typename item_t,
 		  typename begin_data_t=empty_type,
 		  typename end_data_t=empty_type>
 class virtual_sink_real_impl
-	: public common_single< virtual_sink_real_impl<item_t , buff_size, begin_data_t, end_data_t>, virtual_source_real<item_t, buff_size, begin_data_t, end_data_t> > {
+	: public push_single< virtual_sink_real_impl<item_t , buff_size, begin_data_t, end_data_t>, virtual_source_real<item_t, buff_size, begin_data_t, end_data_t> > {
 private:
 	typedef virtual_source_real<item_t, buff_size, begin_data_t, end_data_t> dest_t;
-	typedef common_single< virtual_sink_real_impl<item_t , buff_size, begin_data_t, end_data_t>, dest_t> parent_t;
+	typedef push_single< virtual_sink_real_impl<item_t , buff_size, begin_data_t, end_data_t>, dest_t> parent_t;
 	using parent_t::dest;
 private:
  	item_t m_buffer[buff_size];
@@ -99,10 +99,10 @@ template <typename item_t,
 		  typename begin_data_t=empty_type,
 		  typename end_data_t=empty_type>
 class virtual_sink_real_impl_single
-	: public common_single< virtual_sink_real_impl_single<item_t, begin_data_t, end_data_t>, virtual_source_real_single<item_t, begin_data_t, end_data_t> > {
+	: public push_single< virtual_sink_real_impl_single<item_t, begin_data_t, end_data_t>, virtual_source_real_single<item_t, begin_data_t, end_data_t> > {
 private:
 	typedef virtual_source_real_single<item_t, begin_data_t, end_data_t> dest_t;
-	typedef common_single< virtual_sink_real_impl_single<item_t, begin_data_t, end_data_t>, dest_t > parent_t;
+	typedef push_single< virtual_sink_real_impl_single<item_t, begin_data_t, end_data_t>, dest_t > parent_t;
 	using parent_t::dest;
 public:
 	typedef begin_data_t begin_data_type;
