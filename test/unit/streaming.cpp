@@ -22,6 +22,7 @@
 #include <tpie/portability.h>
 #include <tpie/streaming.h>
 #include <tpie/streaming/concepts.h>
+#include <tpie/streaming/util.h>
 
 using namespace tpie;
 using namespace std;
@@ -58,8 +59,8 @@ int test[] = {
   1381, 1399, 1409, 1423, 1427, 1429, 1433, 1439, 1447, 0};
 
 #define ERR(x) {cerr << x << endl; exit(1);}
-
-struct test_sink: public memory_single {
+//================================> push test <=================================
+struct push_test_sink: public memory_single {
 	typedef int item_type;
 	typedef empty_type begin_data_type;
 	typedef empty_type end_data_type;
@@ -67,7 +68,7 @@ struct test_sink: public memory_single {
 	bool e;
 	int c;
 	bool o;
-	test_sink(): b(false), e(false), c(0), o(false) {}
+	push_test_sink(): b(false), e(false), c(0), o(false) {}
 
 	void begin(stream_size_type items=max_items, empty_type * data=0) {
 		if (items != the_test_size) ERR("begin() wrong item count");
@@ -94,6 +95,24 @@ struct test_sink: public memory_single {
 		if (!e || test[c] != 0) ERR("final()");
 	};
 };
+
+template <typename T>
+struct push_test_source: public push_single<push_test_source<T>, T> {
+	typedef push_single<push_test_source<T>, T> parent_t;
+	using parent_t::dest;
+	push_test_source(T & d): parent_t(d, 0.0) {};
+
+	template <typename I>
+	void run(push_test_sink & sink, const I & start, const I & end) {
+		dest().begin();
+		for(I i=start; i != end; ++i)
+			dest().push(*i);
+		sink.ok();
+		dest().end();
+		sink.final();
+	}
+};
+
 
 // struct test_pull_source {
 // 	void
@@ -325,12 +344,12 @@ void memory_test_split(memory_base * elm,
 
 //==============================> stream_source <===============================
 void test_stream_source(char * testName) {
- 	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::stream_source<test_sink> >));
+ 	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::stream_source<push_test_sink> >));
 	file_stream<int> s(blockFactor);
-	test_sink sink;
+	push_test_sink sink;
 	//TODO test if begin and end data are proccess correctly
 	if (!strcmp(testName, "memory")) {
-		stream_source<test_sink> ss(s, sink);
+		stream_source<push_test_sink> ss(s, sink);
 		memory_test_single(&ss,&sink, sizeof(s), 0);
 	} else if(!strcmp(testName, "minimum_memory")) {
 		s.open();
@@ -361,7 +380,7 @@ void test_stream_source(char * testName) {
 			s.write(test[i]);
 		s.seek(14);
 		sink.ok();
-		stream_source<test_sink> ss(s, sink);
+		stream_source<push_test_sink> ss(s, sink);
 		ss.process();
 		sink.final();
 	} else if (!strcmp(testName, "process_back")) {
@@ -369,9 +388,9 @@ void test_stream_source(char * testName) {
 		for(memory_size_type i=the_test_size-1; i != memory_size_type(-1); --i)
 			s.write(test[i]);
 		s.seek(14);
-		test_sink sink;
+		push_test_sink sink;
 		sink.ok();
-		stream_source<test_sink> ss(s, sink);
+		stream_source<push_test_sink> ss(s, sink);
 		ss.process_back();
 		sink.final();
 	} else
@@ -393,9 +412,9 @@ struct test_stream_sink_memory_limit: public test_single_memory_limit< stream_si
 void test_stream_sink(char * testName) {
 	BOOST_CONCEPT_ASSERT((sc::pushable< tpie::streaming::stream_sink<int, X, Y> >));
  	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::stream_sink<int, X, Y> >));
- 	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::stream_source<test_sink> >));
+ 	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::stream_source<push_test_sink> >));
 	file_stream<int> s(blockFactor);
-	test_sink sink;
+	push_test_sink sink;
 	//TODO test if begin and end data are proccess correctly
 	if (!strcmp(testName, "memory")) {
 		stream_sink<int> ss(s);
@@ -432,11 +451,11 @@ struct test_sort_memory_limit: public test_split_memory_limit< tpie::streaming::
 };
 
 void test_sort(char * testName) {
-	BOOST_CONCEPT_ASSERT((sc::pushable< tpie::streaming::sort<test_sink> >));
- 	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::sort<test_sink> >));
+	BOOST_CONCEPT_ASSERT((sc::pushable< tpie::streaming::sort<push_test_sink> >));
+ 	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::sort<push_test_sink> >));
 	if (!strcmp(testName, "memory")) {
-		test_sink sink;
-		tpie::streaming::sort<test_sink> sort(sink, std::less<int>(), blockFactor);
+		push_test_sink sink;
+		tpie::streaming::sort<push_test_sink> sort(sink, std::less<int>(), blockFactor);
 		memory_test_split(&sort, &sink, sizeof(sort), 1.0, 1.0);
 	} else if (!strcmp(testName, "minimum_memory")) {
 		test_sort_memory_limit test;
@@ -447,17 +466,13 @@ void test_sort(char * testName) {
 			t2.push_back(test[i]);
 		std::random_shuffle(t2.begin(), t2.end());
 
-		test_sink sink;
-		tpie::streaming::sort<test_sink> sort(sink, std::less<int>(), blockFactor);
+		push_test_sink sink;
+		tpie::streaming::sort<push_test_sink> sort(sink, std::less<int>(), blockFactor);
+		push_test_source<tpie::streaming::sort<push_test_sink>> source(sort);
 		sort.set_memory_in(sort.minimum_memory_in()+sizeof(int)*3);
 		sort.set_memory_out(sort.minimum_memory_out()+sizeof(int)*3);
 
-		sort.begin();
-		for(memory_size_type i=0; test[i]; ++i)
-			sort.push(t2[i]);
-		sink.ok();
-		sort.end();
-		sink.final();
+		source.run(sink, t2.begin(), t2.end());
 	}
 }
 
@@ -515,27 +530,23 @@ struct test_buffer_memory_limit: public test_split_memory_limit< tpie::streaming
 };
 
 void test_buffer(char * testName) {
-	BOOST_CONCEPT_ASSERT((sc::pushable< tpie::streaming::buffer<test_sink> >));
- 	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::buffer<test_sink> >));
+	BOOST_CONCEPT_ASSERT((sc::pushable< tpie::streaming::buffer<push_test_sink> >));
+ 	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::buffer<push_test_sink> >));
 	if (!strcmp(testName, "memory")) {
-		test_sink sink;
-		tpie::streaming::buffer<test_sink> buffer(sink, blockFactor);
+		push_test_sink sink;
+		tpie::streaming::buffer<push_test_sink> buffer(sink, blockFactor);
 		memory_test_split(&buffer, &sink, sizeof(buffer), 1.0, 1.0);
 	} else if (!strcmp(testName, "minimum_memory")) {
 		test_buffer_memory_limit test;
 		test(0,0);
 	} else if (!strcmp(testName, "process")) {
-		test_sink sink;
-		tpie::streaming::buffer<test_sink> buffer(sink, blockFactor);
+		push_test_sink sink;
+		tpie::streaming::buffer<push_test_sink> buffer(sink, blockFactor);
+		push_test_source<tpie::streaming::buffer<push_test_sink> > source(buffer);
 		buffer.set_memory_in(buffer.minimum_memory_in()+sizeof(int)*3);
 		buffer.set_memory_out(buffer.minimum_memory_out()+sizeof(int)*3);
 
-		buffer.begin();
-		for(int i=0; test[i]; ++i)
-			buffer.push(test[i]);
-		sink.ok();
-		buffer.end();
-		sink.final();
+		source.run(sink, (int*)test, test+the_test_size);
 	} else
 		ERR("No such test");
 }
@@ -582,10 +593,10 @@ void test_pull_buffer(char * testName) {
 void test_virtual(char * testName) {
 	BOOST_CONCEPT_ASSERT((sc::pushable< tpie::streaming::virtual_sink_impl<int, X, Y> >));
 	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::virtual_sink_impl<int, X, Y> >));
-	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::virtual_source_impl<test_sink> >));
+	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::virtual_source_impl<push_test_sink> >));
 	if (!strcmp(testName, "memory")) {
-		test_sink c;
-		tpie::streaming::virtual_source_impl<test_sink> b(c);
+		push_test_sink c;
+		tpie::streaming::virtual_source_impl<push_test_sink> b(c);
 		tpie::streaming::virtual_sink_impl<int> a(&b);
 		memory_test_single(&b, &c, sizeof(b), 0.0);
 		memory_test_single(&a, &b, sizeof(a), 0.0);
@@ -620,15 +631,11 @@ void test_virtual(char * testName) {
 		if (usage > b_memory+a_memory) ERR("Used more memory then allocated");
 		if (aa > 0) ERR("Did not deallocate all its memory");
 	} else if (!strcmp(testName, "process")) {
-		test_sink c;
-		tpie::streaming::virtual_source_impl<test_sink> b(c);
+		push_test_sink c;
+		tpie::streaming::virtual_source_impl<push_test_sink> b(c);
 		tpie::streaming::virtual_sink_impl<int> a(&b);
-		a.begin(the_test_size);
-		c.ok();
-		for(memory_size_type i=0; test[i]; ++i)
-			a.push(test[i]);
-		a.end();
-		c.final();
+		push_test_source<tpie::streaming::virtual_sink_impl<int> > z(a);
+		z.run(c, (int*)test, test+the_test_size);
 	} else
 		ERR("No such test");
 }
@@ -643,24 +650,20 @@ struct test_push_block_buffer_memory_limit: public test_push_single_memory_limit
 };
 
 void test_push_block_buffer(char * testName) {
-	BOOST_CONCEPT_ASSERT((sc::pushable< tpie::streaming::push_block_buffer<test_sink> >));
- 	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::push_block_buffer<test_sink> >));
+	BOOST_CONCEPT_ASSERT((sc::pushable< tpie::streaming::push_block_buffer<push_test_sink> >));
+ 	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::push_block_buffer<push_test_sink> >));
 	if (!strcmp(testName, "memory")) {
-		test_sink sink;
-		tpie::streaming::push_block_buffer<test_sink> buffer(sink, blockFactor);
+		push_test_sink sink;
+		tpie::streaming::push_block_buffer<push_test_sink> buffer(sink, blockFactor);
 		memory_test_single(&buffer, &sink, sizeof(buffer), 0.0);
 	} else if (!strcmp(testName, "minimum_memory")) {
 		test_push_block_buffer_memory_limit test;
 		test(0);
 	} else if (!strcmp(testName, "process")) {
-		test_sink sink;
-		tpie::streaming::push_block_buffer<test_sink> buffer(sink, blockFactor);
-		buffer.begin();
-		for(int i=0; test[i]; ++i)
-			buffer.push(test[i]);
-		sink.ok();
-		buffer.end();
-		sink.final();
+		push_test_sink sink;
+		push_block_buffer<push_test_sink> push_buffer(sink, blockFactor);
+		push_test_source<push_block_buffer<push_test_sink> > source(push_buffer);
+		source.run(sink, (int*)test, test+the_test_size);
 	} else
 		ERR("No such test");
 }
