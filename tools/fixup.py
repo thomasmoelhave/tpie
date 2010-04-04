@@ -5,7 +5,7 @@ import time
 from sys import exit
 
 def fixCopyright(d):
-    o=re.search("// Copyright ([0-9]{2,4}( ?,?[0-9]{2,4})*), The TPIE development team",d)
+    o=re.search("// Copyright ([0-9]{2,4}([ \t,]+[0-9]{2,4})*), The TPIE development team",d)
     if o:
         x=set([x.strip() for x in o.group(1).split(",")])
     else:
@@ -38,7 +38,16 @@ def fixCopyright(d):
         return m + d
 
 def fixWhiteSpace(d):
-    return re.sub("    ","\t", re.sub("[ \t]+\n","\n",d))
+    while True:
+        d2 = re.sub(r"    ",r"\t", d)
+        if d2 == d: break
+        d = d2
+    d = re.sub(r"[ \t]+\n",r"\n",d)
+    d = re.sub(r"([^a-zA-Z])if\(",r"\1if (",d);
+    d = re.sub(r"([^a-zA-Z])while\(",r"\1while (",d);
+    d = re.sub(r"([^a-zA-Z])for\(",r"\1for (",d);
+    d = re.sub(r"\)[\t \n]*{",r") {",d)
+    return d
 
 def sortIncludes(d):
     b=0
