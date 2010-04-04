@@ -103,11 +103,12 @@ struct push_test_source: public push_single<push_test_source<T>, T> {
 	push_test_source(T & d): parent_t(d, 0.0) {};
 
 	template <typename I>
-	void run(push_test_sink & sink, const I & start, const I & end) {
-		dest().begin();
+	void run(push_test_sink & sink, const I & start, const I & end, bool split) {
+		dest().begin(the_test_size);
+		if (!split) sink.ok();
 		for (I i=start; i != end; ++i)
 			dest().push(*i);
-		sink.ok();
+		if (split) sink.ok();
 		dest().end();
 		sink.final();
 	}
@@ -552,7 +553,7 @@ void test_sort(char * testName) {
 		sort.set_memory_in(sort.minimum_memory_in()+sizeof(int)*3);
 		sort.set_memory_out(sort.minimum_memory_out()+sizeof(int)*3);
 
-		source.run(sink, t2.begin(), t2.end());
+		source.run(sink, t2.begin(), t2.end(), true);
 	}
 }
 
@@ -627,7 +628,7 @@ void test_buffer(char * testName) {
 		buffer.set_memory_in(buffer.minimum_memory_in()+sizeof(int)*3);
 		buffer.set_memory_out(buffer.minimum_memory_out()+sizeof(int)*3);
 
-		source.run(sink, (int*)test, test+the_test_size);
+		source.run(sink, (int*)test, test+the_test_size, true);
 	} else
 		ERR("No such test");
 }
@@ -717,7 +718,7 @@ void test_virtual(char * testName) {
 		tpie::streaming::virtual_source_impl<push_test_sink> b(c);
 		tpie::streaming::virtual_sink_impl<int> a(&b);
 		push_test_source<tpie::streaming::virtual_sink_impl<int> > z(a);
-		z.run(c, (int*)test, test+the_test_size);
+		z.run(c, (int*)test, test+the_test_size, false);
 	} else
 		ERR("No such test");
 }
@@ -745,7 +746,7 @@ void test_push_block_buffer(char * testName) {
 		push_test_sink sink;
 		push_block_buffer<push_test_sink> push_buffer(sink, blockFactor);
 		push_test_source<push_block_buffer<push_test_sink> > source(push_buffer);
-		source.run(sink, (int*)test, test+the_test_size);
+		source.run(sink, (int*)test, test+the_test_size, false);
 	} else
 		ERR("No such test");
 }

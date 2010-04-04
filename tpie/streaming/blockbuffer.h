@@ -38,6 +38,7 @@ public:
 
 	void begin(stream_size_type items=max_items, begin_data_type * data=0) {
 		dest().begin(items, data);
+		bufferCount = 0;
 		buffer = new item_type[bufferSize];
 	}
 
