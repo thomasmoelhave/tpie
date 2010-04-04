@@ -64,7 +64,7 @@ private:
 	memory_size_type bufferSize;
 	//Explecitly not inlined
 	void flush() {
-		for(memory_size_type i=0; i < bufferCount; ++i)
+		for (memory_size_type i=0; i < bufferCount; ++i)
 			dest().push(buffer[i]);
 		bufferCount = 0;
 	}
@@ -73,35 +73,35 @@ private:
 };
 
 template <typename source_t>
-class pull_block_buffer: pull_single< pull_block_buffer<source_t>, source_t > {
+class pull_block_buffer: public pull_single< pull_block_buffer<source_t>, source_t > {
 private:
 	typedef pull_single< pull_block_buffer<source_t>, source_t > parent_t;
 public:
 	typedef typename source_t::pull_begin_data_type pull_begin_data_type;
 	typedef typename source_t::pull_end_data_type pull_end_data_type;
-	typedef typename source_t::pull_item_type pull_item_type;
+	typedef typename source_t::pull_type pull_type;
 
 	pull_block_buffer(source_t & source, double blockFactor=1.0):
-		parent_t(source),
-		bufferSize( file_base::block_size(blockFactor) / sizeof(pull_item_type) ) {};
+		parent_t(source, 0.0),
+		bufferSize( file_base::block_size(blockFactor) / sizeof(pull_type) ) {};
 
 	void pull_begin(stream_size_type * size=0, pull_begin_data_type * data=0) {
-		source()->pull_begin(size, data);
+		source().pull_begin(size, data);
 		bufferSize = 1024;
-		buffer = new pull_item_type[bufferSize];
+		buffer = new pull_type[bufferSize];
 		fill();
 	}
 
 	void pull_end(pull_end_data_type * data=0) {
 		delete[] buffer;
-		source()->pull_end(data);
+		source().pull_end(data);
 	}
 
 	inline bool can_pull() const {
 		return m_canPull || (index < bufferCount);
 	}
 
-	inline pull_item_type & pull() {
+	inline pull_type & pull() {
 		if (index == bufferCount) fill();
 		return buffer[index++];
 	}
@@ -111,14 +111,14 @@ private:
 	memory_size_type index;
 	memory_size_type bufferCount;
 	memory_size_type bufferSize;
-	pull_item_type * buffer;
+	pull_type * buffer;
 	using parent_t::source;
 
 	void fill() {
 		index=0;
-		for (bufferCount=0; bufferCount < bufferSize && source()->can_pull(); ++bufferCount)
-			buffer[bufferCount] = source()->pull();
-		m_canPull = source()->can_pull();
+		for (bufferCount=0; bufferCount < bufferSize && source().can_pull(); ++bufferCount)
+			buffer[bufferCount] = source().pull();
+		m_canPull = source().can_pull();
 	}
 };
 

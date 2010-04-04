@@ -83,11 +83,10 @@ public:
 
 };
 
-
 template <typename super_t,
 		  typename source_t,
 		  typename pull_begin_data_t=typename source_t::pull_begin_data_type,
-		  typename pull_end_data_t=typename source_t::end_data_type>
+		  typename pull_end_data_t=typename source_t::pull_end_data_type>
 class pull_single: public memory_single {
 	source_t & s;
 protected:

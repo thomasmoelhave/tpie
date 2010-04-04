@@ -34,29 +34,29 @@ struct Y{};
 
 const memory_size_type the_test_size=229;
 int test[] = {
-	 2,	3,	5,	7,   11,   13,   17,   19,   23,   29,
+	2, 	3, 	5, 	7,   11,   13,   17,   19,   23,   29,
 	31,   37,   41,   43,   47,   53,   59,   61,   67,   71,
 	73,   79,   83,   89,   97,  101,  103,  107,  109,  113,
-   127,  131,  137,  139,  149,  151,  157,  163,  167,  173,
-   179,  181,  191,  193,  197,  199,  211,  223,  227,  229,
-   233,  239,  241,  251,  257,  263,  269,  271,  277,  281,
-   283,  293,  307,  311,  313,  317,  331,  337,  347,  349,
-   353,  359,  367,  373,  379,  383,  389,  397,  401,  409,
-   419,  421,  431,  433,  439,  443,  449,  457,  461,  463,
-   467,  479,  487,  491,  499,  503,  509,  521,  523,  541,
-   547,  557,  563,  569,  571,  577,  587,  593,  599,  601,
-   607,  613,  617,  619,  631,  641,  643,  647,  653,  659,
-   661,  673,  677,  683,  691,  701,  709,  719,  727,  733,
-   739,  743,  751,  757,  761,  769,  773,  787,  797,  809,
-   811,  821,  823,  827,  829,  839,  853,  857,  859,  863,
-   877,  881,  883,  887,  907,  911,  919,  929,  937,  941,
-   947,  953,  967,  971,  977,  983,  991,  997, 1009, 1013,
-  1019, 1021, 1031, 1033, 1039, 1049, 1051, 1061, 1063, 1069,
-  1087, 1091, 1093, 1097, 1103, 1109, 1117, 1123, 1129, 1151,
-  1153, 1163, 1171, 1181, 1187, 1193, 1201, 1213, 1217, 1223,
-  1229, 1231, 1237, 1249, 1259, 1277, 1279, 1283, 1289, 1291,
-  1297, 1301, 1303, 1307, 1319, 1321, 1327, 1361, 1367, 1373,
-  1381, 1399, 1409, 1423, 1427, 1429, 1433, 1439, 1447, 0};
+	127,  131,  137,  139,  149,  151,  157,  163,  167,  173,
+	179,  181,  191,  193,  197,  199,  211,  223,  227,  229,
+	233,  239,  241,  251,  257,  263,  269,  271,  277,  281,
+	283,  293,  307,  311,  313,  317,  331,  337,  347,  349,
+	353,  359,  367,  373,  379,  383,  389,  397,  401,  409,
+	419,  421,  431,  433,  439,  443,  449,  457,  461,  463,
+	467,  479,  487,  491,  499,  503,  509,  521,  523,  541,
+	547,  557,  563,  569,  571,  577,  587,  593,  599,  601,
+	607,  613,  617,  619,  631,  641,  643,  647,  653,  659,
+	661,  673,  677,  683,  691,  701,  709,  719,  727,  733,
+	739,  743,  751,  757,  761,  769,  773,  787,  797,  809,
+	811,  821,  823,  827,  829,  839,  853,  857,  859,  863,
+	877,  881,  883,  887,  907,  911,  919,  929,  937,  941,
+	947,  953,  967,  971,  977,  983,  991,  997, 1009, 1013,
+	1019, 1021, 1031, 1033, 1039, 1049, 1051, 1061, 1063, 1069,
+	1087, 1091, 1093, 1097, 1103, 1109, 1117, 1123, 1129, 1151,
+	1153, 1163, 1171, 1181, 1187, 1193, 1201, 1213, 1217, 1223,
+	1229, 1231, 1237, 1249, 1259, 1277, 1279, 1283, 1289, 1291,
+	1297, 1301, 1303, 1307, 1319, 1321, 1327, 1361, 1367, 1373,
+	1381, 1399, 1409, 1423, 1427, 1429, 1433, 1439, 1447, 0};
 
 #define ERR(x) {cerr << x << endl; exit(1);}
 //================================> push test <=================================
@@ -105,7 +105,7 @@ struct push_test_source: public push_single<push_test_source<T>, T> {
 	template <typename I>
 	void run(push_test_sink & sink, const I & start, const I & end) {
 		dest().begin();
-		for(I i=start; i != end; ++i)
+		for (I i=start; i != end; ++i)
 			dest().push(*i);
 		sink.ok();
 		dest().end();
@@ -113,18 +113,48 @@ struct push_test_source: public push_single<push_test_source<T>, T> {
 	}
 };
 
+//================================> pull_test <=================================
 
-// struct test_pull_source {
-// 	void
-// };
+template <typename T>
+struct pull_test_source: public memory_single {
+	typedef int pull_type;
+	typedef empty_type pull_begin_data_type;
+	typedef empty_type pull_end_data_type;
 
-// struct test_pull_sink {
-// 	void run() {
+	T iter;
+	const T & end;
+	pull_test_source(const T & start, const T & e): iter(start), end(e) {};
 
-// 	}
-// };
+	bool can_pull() {return iter != end;}
+	int pull() {
+		int x = *iter;
+		iter++;
+		return x;
+	};
+	void pull_begin(stream_size_type * size=0, pull_begin_data_type * data=0) {};
+	void pull_end(pull_end_data_type *data=0) {};
+};
 
+template <typename T>
+struct pull_test_sink: public pull_single<pull_test_sink<T>, T> {
+	typedef pull_single<pull_test_sink<T>, T> parent_t;
+	using parent_t::source;
 
+	pull_test_sink(T & src): parent_t(src, 0.0) {};
+
+	void run() {
+		source().pull_begin();
+
+		for (int i=0; i < the_test_size; ++i) {
+			if (!source().can_pull()) ERR("can_pull() returned false when it should return true");
+			if (test[i] != source().pull()) ERR("pull() returned wrong item");
+		}
+		if (source.can_pull()) ERR("can_pull() returned true when it should return false");
+		source().pull_end();
+	}
+};
+
+//==================================> memory <==================================
 struct memory_monitor {
 	memory_size_type base;
 	memory_size_type used;
@@ -180,7 +210,7 @@ struct test_single_memory_limit {
 		monitor.sample();
 		t->begin();
 		monitor.sample();
-		for(int i=0; i < 42; ++i) {
+		for (int i=0; i < 42; ++i) {
 			t->push(i);
 			monitor.sample();
 		}
@@ -210,7 +240,7 @@ struct test_push_single_memory_limit {
 		monitor.sample();
 		t->begin();
 		monitor.sample();
-		for(int i=0; i < 42; ++i) {
+		for (int i=0; i < 42; ++i) {
 			t->push(i);
 			monitor.sample();
 		}
@@ -244,7 +274,7 @@ struct test_split_memory_limit {
 		monitor.sample();
 		t->begin();
 		monitor.sample();
-		for(int i=0; i < 42; ++i) {
+		for (int i=0; i < 42; ++i) {
 			t->push(i);
 			monitor.sample();
 		}
@@ -281,7 +311,7 @@ struct test_pull_split_memory_limit {
 		monitor.sample();
 		t->begin();
 		monitor.sample();
-		for(int i=0; i < 42; ++i) {
+		for (int i=0; i < 42; ++i) {
 			t->push(i);
 			monitor.sample();
 		}
@@ -292,7 +322,7 @@ struct test_pull_split_memory_limit {
 		t->pull_begin();
 		monitor.empty();
 		int x=0;
-		for(int i=0; i < 42; ++i) {
+		for (int i=0; i < 42; ++i) {
 			x ^= t->pull();
 			monitor.empty();
 		}
@@ -315,9 +345,9 @@ struct test_pull_split_memory_limit {
 
 double blockFactor;
 void memory_test_single(memory_base * elm,
-				 memory_base * next,
-				 memory_size_type minSize,
-				 double priority) {
+						memory_base * next,
+						memory_size_type minSize,
+						double priority) {
 	std::vector<memory_base *> n;
 	elm->memory_next(n);
 	if (n.size() != (next==0?0:1) ) ERR("memory_next() returned the wrong size");
@@ -344,16 +374,16 @@ void memory_test_split(memory_base * elm,
 
 //==============================> stream_source <===============================
 void test_stream_source(char * testName) {
- 	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::stream_source<push_test_sink> >));
+	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::stream_source<push_test_sink> >));
 	file_stream<int> s(blockFactor);
 	push_test_sink sink;
 	//TODO test if begin and end data are proccess correctly
 	if (!strcmp(testName, "memory")) {
 		stream_source<push_test_sink> ss(s, sink);
-		memory_test_single(&ss,&sink, sizeof(s), 0);
-	} else if(!strcmp(testName, "minimum_memory")) {
+		memory_test_single(&ss, &sink, sizeof(s), 0);
+	} else if (!strcmp(testName, "minimum_memory")) {
 		s.open();
-		for(memory_size_type i=0; test[i]; ++i)
+		for (memory_size_type i=0; test[i]; ++i)
 			s.write(test[i]);
 		s.seek(0);
 		sink.ok();
@@ -376,7 +406,7 @@ void test_stream_source(char * testName) {
 		if (aa > 0) ERR("Did not deallocate all its memory");
 	} else if (!strcmp(testName, "process")) {
 		s.open();
-		for(memory_size_type i=0; test[i]; ++i)
+		for (memory_size_type i=0; test[i]; ++i)
 			s.write(test[i]);
 		s.seek(14);
 		sink.ok();
@@ -385,7 +415,7 @@ void test_stream_source(char * testName) {
 		sink.final();
 	} else if (!strcmp(testName, "process_back")) {
 		s.open();
-		for(memory_size_type i=the_test_size-1; i != memory_size_type(-1); --i)
+		for (memory_size_type i=the_test_size-1; i != memory_size_type(-1); --i)
 			s.write(test[i]);
 		s.seek(14);
 		push_test_sink sink;
@@ -411,15 +441,15 @@ struct test_stream_sink_memory_limit: public test_single_memory_limit< stream_si
 
 void test_stream_sink(char * testName) {
 	BOOST_CONCEPT_ASSERT((sc::pushable< tpie::streaming::stream_sink<int, X, Y> >));
- 	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::stream_sink<int, X, Y> >));
- 	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::stream_source<push_test_sink> >));
+	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::stream_sink<int, X, Y> >));
+	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::stream_source<push_test_sink> >));
 	file_stream<int> s(blockFactor);
 	push_test_sink sink;
 	//TODO test if begin and end data are proccess correctly
 	if (!strcmp(testName, "memory")) {
 		stream_sink<int> ss(s);
 		memory_test_single(&ss, 0, sizeof(ss), 0);
-	} else if(!strcmp(testName, "minimum_memory")) {
+	} else if (!strcmp(testName, "minimum_memory")) {
 		test_stream_sink_memory_limit test;
 		test(0);
 	} else if (!strcmp(testName, "process")) {
@@ -427,15 +457,15 @@ void test_stream_sink(char * testName) {
 		s.open();
 		stream_sink<int> sink(s);
 		sink.begin();
-		for(memory_size_type i=0; test[i]; ++i)
+		for (memory_size_type i=0; test[i]; ++i)
 			sink.push(test[i]);
 		sink.end();
 
 		s.seek(0);
 		memory_size_type i=0;
-		while(s.can_read())
+		while (s.can_read())
 			if (s.read() != test[i++] ) ERR("sink");
-		if(test[i] != 0) ERR("sink");
+		if (test[i] != 0) ERR("sink");
 	} else
 		ERR("No such test");
 }
@@ -452,7 +482,7 @@ struct test_sort_memory_limit: public test_split_memory_limit< tpie::streaming::
 
 void test_sort(char * testName) {
 	BOOST_CONCEPT_ASSERT((sc::pushable< tpie::streaming::sort<push_test_sink> >));
- 	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::sort<push_test_sink> >));
+	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::sort<push_test_sink> >));
 	if (!strcmp(testName, "memory")) {
 		push_test_sink sink;
 		tpie::streaming::sort<push_test_sink> sort(sink, std::less<int>(), blockFactor);
@@ -462,7 +492,7 @@ void test_sort(char * testName) {
 		test(0, 0);
 	} else if (!strcmp(testName, "process")) {
 		vector<int> t2;
-		for(memory_size_type i=0; test[i]; ++i)
+		for (memory_size_type i=0; test[i]; ++i)
 			t2.push_back(test[i]);
 		std::random_shuffle(t2.begin(), t2.end());
 
@@ -484,9 +514,9 @@ struct test_pull_sort_memory_limit: public test_pull_split_memory_limit< tpie::s
 };
 
 void test_pull_sort(char * testName) {
- 	BOOST_CONCEPT_ASSERT((sc::pushable< tpie::streaming::pull_sort<int, std::less<int>, X, Y> >));
- 	BOOST_CONCEPT_ASSERT((sc::pullable< tpie::streaming::pull_sort<int, std::less<int>, X, Y> >));
- 	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::pull_sort<int> >));
+	BOOST_CONCEPT_ASSERT((sc::pushable< tpie::streaming::pull_sort<int, std::less<int>, X, Y> >));
+	BOOST_CONCEPT_ASSERT((sc::pullable< tpie::streaming::pull_sort<int, std::less<int>, X, Y> >));
+	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::pull_sort<int> >));
 
 	if (!strcmp(testName, "memory")) {
 		tpie::streaming::pull_sort<int> sort(std::less<int>(), blockFactor);
@@ -496,7 +526,7 @@ void test_pull_sort(char * testName) {
 		test(0, 0);
 	} else if (!strcmp(testName, "process")) {
 		vector<int> t2;
-		for(memory_size_type i=0; test[i]; ++i)
+		for (memory_size_type i=0; test[i]; ++i)
 			t2.push_back(test[i]);
 		std::random_shuffle(t2.begin(), t2.end());
 
@@ -531,14 +561,14 @@ struct test_buffer_memory_limit: public test_split_memory_limit< tpie::streaming
 
 void test_buffer(char * testName) {
 	BOOST_CONCEPT_ASSERT((sc::pushable< tpie::streaming::buffer<push_test_sink> >));
- 	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::buffer<push_test_sink> >));
+	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::buffer<push_test_sink> >));
 	if (!strcmp(testName, "memory")) {
 		push_test_sink sink;
 		tpie::streaming::buffer<push_test_sink> buffer(sink, blockFactor);
 		memory_test_split(&buffer, &sink, sizeof(buffer), 1.0, 1.0);
 	} else if (!strcmp(testName, "minimum_memory")) {
 		test_buffer_memory_limit test;
-		test(0,0);
+		test(0, 0);
 	} else if (!strcmp(testName, "process")) {
 		push_test_sink sink;
 		tpie::streaming::buffer<push_test_sink> buffer(sink, blockFactor);
@@ -559,9 +589,9 @@ struct test_pull_buffer_memory_limit: public test_pull_split_memory_limit< tpie:
 };
 
 void test_pull_buffer(char * testName) {
- 	BOOST_CONCEPT_ASSERT((sc::pushable< tpie::streaming::pull_buffer<int, false, X, Y> >));
- 	BOOST_CONCEPT_ASSERT((sc::pullable< tpie::streaming::pull_buffer<int, false, X, Y> >));
- 	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::pull_buffer<int, false, X, Y> >));
+	BOOST_CONCEPT_ASSERT((sc::pushable< tpie::streaming::pull_buffer<int, false, X, Y> >));
+	BOOST_CONCEPT_ASSERT((sc::pullable< tpie::streaming::pull_buffer<int, false, X, Y> >));
+	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::pull_buffer<int, false, X, Y> >));
 	if (!strcmp(testName, "memory")) {
 		tpie::streaming::pull_buffer<int> buffer(blockFactor);
 		memory_test_split(&buffer, 0, sizeof(buffer), 1.0, 1.0);
@@ -616,7 +646,7 @@ void test_virtual(char * testName) {
 		monitor.sample();
 		a->begin();
 		monitor.sample();
-		for(int i=0; i < 42; ++i) {
+		for (int i=0; i < 42; ++i) {
 			a->push(i);
 			monitor.sample();
 		}
@@ -651,7 +681,7 @@ struct test_push_block_buffer_memory_limit: public test_push_single_memory_limit
 
 void test_push_block_buffer(char * testName) {
 	BOOST_CONCEPT_ASSERT((sc::pushable< tpie::streaming::push_block_buffer<push_test_sink> >));
- 	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::push_block_buffer<push_test_sink> >));
+	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::push_block_buffer<push_test_sink> >));
 	if (!strcmp(testName, "memory")) {
 		push_test_sink sink;
 		tpie::streaming::push_block_buffer<push_test_sink> buffer(sink, blockFactor);
@@ -671,8 +701,13 @@ void test_push_block_buffer(char * testName) {
 //============================> pull_block_buffer <=============================
 
 void test_pull_block_buffer(char * testName) {
-
-
+	BOOST_CONCEPT_ASSERT((sc::pullable< tpie::streaming::pull_block_buffer<pull_test_source<int*> > >));
+ 	BOOST_CONCEPT_ASSERT((sc::memory_managable< tpie::streaming::pull_block_buffer<pull_test_source<int*> > >));
+	if (!strcmp(testName, "memory")) {
+		pull_test_source<int*> source((int*)test, test+the_test_size);
+		pull_block_buffer< pull_test_source<int*> > buffer(source, blockFactor);
+		//memory_test_pull_single
+	}
 }
 
 //===================================> main <===================================
