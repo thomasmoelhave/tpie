@@ -106,6 +106,11 @@ public:
 		return buffer[index++];
 	}
 
+	memory_size_type minimum_memory() {
+		return parent_t::base_memory() + //Space for our self
+			1*MM_manager.space_overhead() +
+			bufferSize*sizeof(pull_type);
+	}
 private:
 	bool m_canPull;
 	memory_size_type index;

@@ -123,16 +123,32 @@ struct pull_test_source: public memory_single {
 
 	T iter;
 	const T & end;
-	pull_test_source(const T & start, const T & e): iter(start), end(e) {};
-
+	bool beginCalled;
+	bool endCalled;
+	pull_test_source(const T & start, const T & e): iter(start), end(e),
+													beginCalled(false), endCalled(false) {}
+	int d;
 	bool can_pull() {return iter != end;}
-	int pull() {
-		int x = *iter;
+	const int & pull() {
+		if (endCalled) ERR("pull_end() called before pull()");
+		if (!beginCalled) ERR("pull_begin() must be called before pull()");
+		d = *iter;
 		iter++;
-		return x;
+		return d;
 	};
-	void pull_begin(stream_size_type * size=0, pull_begin_data_type * data=0) {};
-	void pull_end(pull_end_data_type *data=0) {};
+	void pull_begin(stream_size_type * size=0, pull_begin_data_type * data=0) {
+		unused(size);
+		unused(data);
+		if (beginCalled) ERR("pull_begin() called twice");
+		if (endCalled) ERR("pull_end() called before pull_begin()");
+		beginCalled = true;
+	};
+	void pull_end(pull_end_data_type *data=0) {
+		unused(data);
+		if (!beginCalled) ERR("pull_end() called before pull_begin()");
+		if (endCalled) ERR("pull_end() called twice");
+		endCalled = true;
+	};
 };
 
 template <typename T>
@@ -144,12 +160,11 @@ struct pull_test_sink: public pull_single<pull_test_sink<T>, T> {
 
 	void run() {
 		source().pull_begin();
-
-		for (int i=0; i < the_test_size; ++i) {
+		for (memory_size_type i=0; i < the_test_size; ++i) {
 			if (!source().can_pull()) ERR("can_pull() returned false when it should return true");
 			if (test[i] != source().pull()) ERR("pull() returned wrong item");
 		}
-		if (source.can_pull()) ERR("can_pull() returned true when it should return false");
+		if (source().can_pull()) ERR("can_pull() returned true when it should return false");
 		source().pull_end();
 	}
 };
@@ -185,6 +200,8 @@ struct memory_test_sink: public memory_single {
 	memory_test_sink(memory_monitor * m=0): monitor(m) {};
 
 	void begin(stream_size_type items=max_items, empty_type * data=0) {
+		unused(items);
+		unused(data);
 		cnt=0;
 	}
 	void push(const int & x) {
@@ -192,37 +209,34 @@ struct memory_test_sink: public memory_single {
 		monitor->sample();
 	}
 	void end(empty_type * data=0) {
+		unused(data);
 		if (cnt == 42) std::cout << "";
 	}
 };
 
-template <typename T>
-struct test_single_memory_limit {
-	virtual T * construct(memory_monitor & monitor) = 0;
-	virtual void destruct(T * elm) {delete elm;}
-	void operator() (memory_size_type memory) {
-		memory_monitor monitor;
-		monitor.begin();
-		T * t = construct(monitor);
-		monitor.sample();
-		memory = max(memory, t->minimum_memory());
-		t->set_memory(memory);
-		monitor.sample();
-		t->begin();
-		monitor.sample();
-		for (int i=0; i < 42; ++i) {
-			t->push(i);
-			monitor.sample();
-		}
-		t->end();
-		monitor.sample();
-		memory_size_type usage = monitor.usage(1);
-		destruct(t);
-		monitor.clear();
-		memory_size_type aa = monitor.usage(0);
-		std::cout << "Memory used: " << usage << "; Allowed: " << memory << "; After dealocation: " << aa << ";" << std::endl;
-		if (usage > memory) ERR("Used more memory then allocated");
-		if (aa > 0) ERR("Did not deallocate all its memory");
+struct memory_test_source: public memory_single {
+	typedef int pull_type;
+	typedef empty_type pull_begin_data_type;
+	typedef empty_type pull_end_data_type;
+	int cnt;
+	memory_monitor * monitor;
+	memory_test_source(memory_monitor * m=0): monitor(m) {};
+
+	void pull_begin(stream_size_type * items=0, empty_type * data=0) {
+		unused(items);
+		unused(data);
+		cnt=0;
+	}
+
+	inline const int & pull() {
+		cnt++;
+		return cnt;
+	}
+	void pull_end(empty_type * data=0) {
+		unused(data);
+	}
+	inline bool can_pull() const {
+		return cnt<42;
 	}
 };
 
@@ -230,7 +244,7 @@ template <typename T>
 struct test_push_single_memory_limit {
 	virtual T * construct(memory_monitor & monitor) = 0;
 	virtual void destruct(T * elm) {delete elm;}
-	void operator() (memory_size_type memory ) {
+	void operator() (memory_size_type memory) {
 		memory_monitor monitor;
 		monitor.begin();
 		T * t = construct(monitor);
@@ -250,13 +264,44 @@ struct test_push_single_memory_limit {
 		destruct(t);
 		monitor.clear();
 		memory_size_type aa = monitor.usage(0);
-		std::cout << "memory used: " << usage << "; Allowed: " << memory
+		std::cout << "Memory used: " << usage << "; Allowed: " << memory
 				  << "; After dealocation: " << aa << ";" << std::endl;
 		if (usage > memory) ERR("Used more memory then allocated");
 		if (aa > 0) ERR("Did not deallocate all its memory");
 	}
 };
 
+template <typename T>
+struct test_pull_single_memory_limit {
+	virtual T * construct(memory_monitor & monitor) = 0;
+	virtual void destruct(T * elm) {delete elm;}
+	void operator() (memory_size_type memory ) {
+		memory_monitor monitor;
+		monitor.begin();
+		T * t = construct(monitor);
+		monitor.sample();
+		memory = max(memory, t->minimum_memory());
+		t->set_memory(memory);
+		monitor.sample();
+		t->pull_begin();
+		monitor.sample();
+		int x=0;
+		while (t->can_pull()) {
+			x ^= t->pull();
+			monitor.sample();
+		}
+		t->pull_end();
+		monitor.sample();
+		memory_size_type usage = monitor.usage(2);
+		destruct(t);
+		monitor.clear();
+		memory_size_type aa = monitor.usage(0);
+		std::cout << "memory used: " << usage << "; Allowed: " << memory
+				  << "; After dealocation: " << aa << ";" << std::endl;
+		if (usage > memory) ERR("Used more memory then allocated");
+		if (aa > 0) ERR("Did not deallocate all its memory");
+	}
+};
 
 template <typename T>
 struct test_split_memory_limit {
@@ -342,16 +387,20 @@ struct test_pull_split_memory_limit {
 	}
 };
 
-
 double blockFactor;
 void memory_test_single(memory_base * elm,
 						memory_base * next,
+						memory_base * prev,
 						memory_size_type minSize,
 						double priority) {
 	std::vector<memory_base *> n;
 	elm->memory_next(n);
+	std::vector<memory_base *> p;
+	elm->memory_prev(p);
 	if (n.size() != (next==0?0:1) ) ERR("memory_next() returned the wrong size");
 	if (next != 0 && n[0] != next) ERR("memory_next() returned the wrong value");
+	if (p.size() != (prev==0?0:1) ) ERR("memory_prev() returned the wrong size");
+	if (prev != 0 && p[0] != prev) ERR("memory_prev() returned the wrong value");
 	if (elm->base_memory() < minSize) ERR("base_memory() return to small a value");
 	//if (elm->memory_type() != memory_base::SINGLE) ERR("memory_type() should be SINGLE");
 	if (static_cast<memory_single*>(elm)->memory_priority() != priority) ERR("memory_priority() returned unexpected value");
@@ -380,7 +429,7 @@ void test_stream_source(char * testName) {
 	//TODO test if begin and end data are proccess correctly
 	if (!strcmp(testName, "memory")) {
 		stream_source<push_test_sink> ss(s, sink);
-		memory_test_single(&ss, &sink, sizeof(s), 0);
+		memory_test_single(&ss, &sink, 0, sizeof(s), 0);
 	} else if (!strcmp(testName, "minimum_memory")) {
 		s.open();
 		for (memory_size_type i=0; test[i]; ++i)
@@ -428,13 +477,14 @@ void test_stream_source(char * testName) {
 }
 
 //===============================> stream_sink <================================
-struct test_stream_sink_memory_limit: public test_single_memory_limit< stream_sink<int> > {
+struct test_stream_sink_memory_limit: public test_push_single_memory_limit< stream_sink<int> > {
 	file_stream<int> fs;
 	test_stream_sink_memory_limit() {
 		fs.open();
 	}
 
 	virtual stream_sink<int> * construct(memory_monitor & mm) {
+		unused(mm);
 		return new stream_sink<int>(fs);
 	}
 };
@@ -448,7 +498,7 @@ void test_stream_sink(char * testName) {
 	//TODO test if begin and end data are proccess correctly
 	if (!strcmp(testName, "memory")) {
 		stream_sink<int> ss(s);
-		memory_test_single(&ss, 0, sizeof(ss), 0);
+		memory_test_single(&ss, 0, 0, sizeof(ss), 0);
 	} else if (!strcmp(testName, "minimum_memory")) {
 		test_stream_sink_memory_limit test;
 		test(0);
@@ -509,6 +559,7 @@ void test_sort(char * testName) {
 //================================> pull_sort <=================================
 struct test_pull_sort_memory_limit: public test_pull_split_memory_limit< tpie::streaming::pull_sort<int> > {
 	virtual tpie::streaming::pull_sort<int> * construct(memory_monitor & mm) {
+		unused(mm);
 		return new tpie::streaming::pull_sort<int>();
 	}
 };
@@ -584,6 +635,7 @@ void test_buffer(char * testName) {
 //===============================> pull_buffer <================================
 struct test_pull_buffer_memory_limit: public test_pull_split_memory_limit< tpie::streaming::pull_buffer<int> > {
 	virtual tpie::streaming::pull_buffer<int> * construct(memory_monitor & mm) {
+		unused(mm);
 		return new tpie::streaming::pull_buffer<int>();
 	}
 };
@@ -628,8 +680,8 @@ void test_virtual(char * testName) {
 		push_test_sink c;
 		tpie::streaming::virtual_source_impl<push_test_sink> b(c);
 		tpie::streaming::virtual_sink_impl<int> a(&b);
-		memory_test_single(&b, &c, sizeof(b), 0.0);
-		memory_test_single(&a, &b, sizeof(a), 0.0);
+		memory_test_single(&b, &c, 0, sizeof(b), 0.0);
+		memory_test_single(&a, &b, 0, sizeof(a), 0.0);
 	} else if (!strcmp(testName, "minimum_memory")) {
 		memory_monitor monitor;
 		memory_test_sink c(&monitor);
@@ -685,7 +737,7 @@ void test_push_block_buffer(char * testName) {
 	if (!strcmp(testName, "memory")) {
 		push_test_sink sink;
 		tpie::streaming::push_block_buffer<push_test_sink> buffer(sink, blockFactor);
-		memory_test_single(&buffer, &sink, sizeof(buffer), 0.0);
+		memory_test_single(&buffer, &sink, 0, sizeof(buffer), 0.0);
 	} else if (!strcmp(testName, "minimum_memory")) {
 		test_push_block_buffer_memory_limit test;
 		test(0);
@@ -699,6 +751,13 @@ void test_push_block_buffer(char * testName) {
 }
 
 //============================> pull_block_buffer <=============================
+struct test_pull_block_buffer_memory_limit: public test_pull_single_memory_limit< tpie::streaming::pull_block_buffer<memory_test_source> > {
+	memory_test_source source;
+	virtual tpie::streaming::pull_block_buffer<memory_test_source> * construct(memory_monitor & mm) {
+		source.monitor = &mm;
+		return new tpie::streaming::pull_block_buffer<memory_test_source>(source);
+	}
+};
 
 void test_pull_block_buffer(char * testName) {
 	BOOST_CONCEPT_ASSERT((sc::pullable< tpie::streaming::pull_block_buffer<pull_test_source<int*> > >));
@@ -706,8 +765,17 @@ void test_pull_block_buffer(char * testName) {
 	if (!strcmp(testName, "memory")) {
 		pull_test_source<int*> source((int*)test, test+the_test_size);
 		pull_block_buffer< pull_test_source<int*> > buffer(source, blockFactor);
-		//memory_test_pull_single
-	}
+		memory_test_single(&buffer, 0, &source, sizeof(buffer), 0.0);
+	} else if (!strcmp(testName, "minimum_memory")) {
+		test_pull_block_buffer_memory_limit test;
+		test(0);
+	} else if (!strcmp(testName, "process")) {
+		pull_test_source<int*> source((int*)test, test+the_test_size);
+		pull_block_buffer< pull_test_source<int*> > buffer(source, blockFactor);
+		pull_test_sink< pull_block_buffer< pull_test_source<int*> > > sink(buffer);
+		sink.run();
+	} else
+		ERR("No such test");
 }
 
 //===================================> main <===================================
