@@ -1,23 +1,23 @@
-// -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
+// -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2009, The TPIE development team
-// 
+// Copyright 2009, 2010, The TPIE development team
+//
 // This file is part of TPIE.
-// 
+//
 // TPIE is free software: you can redistribute it and/or modify it under
 // the terms of the GNU Lesser General Public License as published by the
 // Free Software Foundation, either version 3 of the License, or (at your
 // option) any later version.
-// 
+//
 // TPIE is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or
 // FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 // License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
-#ifndef __TPIE_FILE_H__
-#define __TPIE_FILE_H__
+#ifndef _TPIE_FILE_H
+#define _TPIE_FILE_H
 
 #include <limits>
 #include <tpie/exception.h>
@@ -51,8 +51,8 @@ public:
 
 	/** Type describing how we want to access a file */
 	enum access_type {
-		read, 
-		write, 
+		read,
+		write,
 		read_write
 	};
 
@@ -88,7 +88,7 @@ public:
 		return (double)blockSize / (double)block_size(1.0);
 	}
 
-	
+
 	/////////////////////////////////////////////////////////////////////////
 	/// \brief Read the user data associated with the file
 	///
@@ -122,7 +122,7 @@ public:
 	///
 	/// Note all streams into the will must be freed, before you call close
 	/////////////////////////////////////////////////////////////////////////
-	inline void close() throw(stream_exception){
+	inline void close() throw(stream_exception) {
 		m_open = false;
 		m_fileAccessor->close();
 	}
@@ -134,8 +134,8 @@ public:
 	/// \param accessType The way in which we want the file to be opened
 	/// \param userDataSize The size of the userdata we want to store in the file
 	/////////////////////////////////////////////////////////////////////////
-	inline void open(const std::string & path, 
-					 access_type accessType=read_write, 
+	inline void open(const std::string & path,
+					 access_type accessType=read_write,
 					 memory_size_type userDataSize=0) throw(stream_exception) {
 		close();
 		m_canRead = accessType == read || accessType == read_write;
@@ -174,7 +174,7 @@ public:
 		memory_size_type m_nextIndex;
 		block_t * m_block;
 		inline void update_vars() throw() {
-			if (m_index != std::numeric_limits<memory_size_type>::max()) 
+			if (m_index != std::numeric_limits<memory_size_type>::max())
 				m_block->size = std::max(m_block->size, m_index);
 			if (m_index != std::numeric_limits<memory_size_type>::max() &&
 				m_block->number != std::numeric_limits<stream_size_type>::max())
@@ -199,13 +199,13 @@ public:
 		/// \param offset Where to move the logical offset to
 		/// \param whence Move the offset relative to what
 		/////////////////////////////////////////////////////////////////////////
-		inline void seek(stream_offset_type offset, offset_type whence=beginning) throw(stream_exception){
+		inline void seek(stream_offset_type offset, offset_type whence=beginning) throw(stream_exception) {
 			assert(m_file.m_open);
 			if (whence == end)
 				offset += size();
-			else if (whence == current) 
+			else if (whence == current)
 				offset += this->offset();
-			if (0 > offset || offset > size()) 
+			if (0 > offset || (stream_size_type)offset > size())
 				throw io_exception("Tried to seek out of file");
 			update_vars();
 			stream_size_type b = static_cast<stream_size_type>(offset) / m_file.m_blockItems;
@@ -213,13 +213,13 @@ public:
 			if (b == m_block->number) {
 				m_nextBlock = std::numeric_limits<stream_size_type>::max();
 				m_nextIndex = std::numeric_limits<memory_size_type>::max();
-				assert(this->offset() == offset);
+				assert(this->offset() == (stream_size_type)offset);
 				return;
 			}
 			m_nextBlock = b;
 			m_nextIndex = m_index;
 			m_index = std::numeric_limits<memory_size_type>::max();
-			assert(this->offset() == offset);
+			assert(this->offset() == (stream_size_type)offset);
 		}
 
  		inline stream_size_type size() const throw() {
@@ -278,8 +278,8 @@ public:
 	}
 
 	~file_base();
-	
-	memory_size_type blockItems() {		
+
+	memory_size_type blockItems() {
 		return m_blockItems;
 	}
 
@@ -289,12 +289,12 @@ protected:
 	stream_size_type m_size;
 	bool m_canRead;
 	bool m_canWrite;
-	block_t m_emptyBlock;	
-	
-	file_base(memory_size_type item_size, 
-			  double blockFactor=1.0, 
+	block_t m_emptyBlock;
+
+	file_base(memory_size_type item_size,
+			  double blockFactor=1.0,
 			  file_accessor::file_accessor * fileAccessor=NULL);
-				  
+
 	void create_block();
 	void delete_block();
 	block_t * get_block(stream_size_type block);
@@ -320,7 +320,7 @@ public:
 		return x;
 	}
 
-	file(double blockFactor=1.0, 
+	file(double blockFactor=1.0,
 		 file_accessor::file_accessor * fileAccessor=NULL):
 		file_base(sizeof(T), blockFactor, fileAccessor) {};
 
@@ -366,9 +366,9 @@ public:
 		/// left in the stream.  This can also be checkout with can_read_back.
 		/// \returns The item read from the stream
 		/////////////////////////////////////////////////////////////////////////
-		inline item_type & read_back() { 
+		inline item_type & read_back() {
 			assert(m_file.m_open);
-			//The first index in a block is 0, when that is read 
+			//The first index in a block is 0, when that is read
 			// m_index will underflow and become max int
 			if (m_index >= m_block->size) {
 				if (m_nextBlock == std::numeric_limits<stream_size_type>::max()) {
@@ -376,7 +376,7 @@ public:
 						throw end_of_stream_exception();
  					m_nextBlock = m_block->number-1;
 					m_nextIndex = m_file.blockItems()-1;
-				} 
+				}
 				update_block();
 			}
 			return reinterpret_cast<T*>(m_block->data)[m_index--];
@@ -390,7 +390,7 @@ public:
  		inline void write(const item_type& item) throw(stream_exception) {
 			assert(m_file.m_open);
 #ifndef NDEBUG
-			if (!m_file.is_writable()) 
+			if (!m_file.is_writable())
 				throw io_exception("Cannot write to read only stream");
 #endif
 			if (m_index >= block_items()) update_block();
@@ -401,7 +401,7 @@ public:
 		/////////////////////////////////////////////////////////////////////////
 		/// \brief Write several itmes to the stream
 		///
-		/// \tparam IT The type of Random Access Iteractors used to supplie the 
+		/// \tparam IT The type of Random Access Iteractors used to supplie the
 		/// items
 		/// \param start Iterator to the first item to write
 		/// \param end Iterator parst the last item to write
@@ -409,25 +409,25 @@ public:
 		template <typename IT>
 		inline void write(const IT & start, const IT & end) {
 			assert(m_file.m_open);
-			for(IT i=start; i != end; ++i) 
+			for (IT i=start; i != end; ++i)
 				write(*i);
 		}
 
 		/////////////////////////////////////////////////////////////////////////
 		/// \brief Reads several items from the stream
 		///
-		/// \tparam IT The type of Random Access Iteractors used to supplie 
+		/// \tparam IT The type of Random Access Iteractors used to supplie
 		/// storage
 		/// \param start Iterator pointing to the first place to store an item
 		/// \param end Iterator pointing past the last place to store an item
 		/////////////////////////////////////////////////////////////////////////
 		template <typename IT>
 		inline void read(const IT & start, const IT & end) {
-			assert(m_file.m_open);			
-			for(IT i=start; i != end; ++i) 
+			assert(m_file.m_open);
+			for (IT i=start; i != end; ++i)
 				*i = read();
 		}
  	};
 };
 }
-#endif //__TPIE_FILE_H
+#endif //_TPIE_FILE_H
