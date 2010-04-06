@@ -549,7 +549,7 @@ void test_sort(char * testName) {
 
 		push_test_sink sink;
 		tpie::streaming::sort<push_test_sink> sort(sink, std::less<int>(), blockFactor);
-		push_test_source<tpie::streaming::sort<push_test_sink>> source(sort);
+		push_test_source<tpie::streaming::sort<push_test_sink> > source(sort);
 		sort.set_memory_in(sort.minimum_memory_in()+sizeof(int)*3);
 		sort.set_memory_out(sort.minimum_memory_out()+sizeof(int)*3);
 
