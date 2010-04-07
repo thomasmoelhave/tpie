@@ -44,7 +44,6 @@ public:
 	}
 };
 
-
 template <typename item_t, typename begin_data_t=empty_type, typename end_data_t=empty_type> 
 class virtual_sink_impl: public virtual_sink_real_impl_single<item_t, begin_data_t, end_data_t> {
 private:

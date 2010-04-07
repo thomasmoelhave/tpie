@@ -169,7 +169,9 @@ public:
 	typedef typename parent_t::begin_data_type begin_data_type;
 	typedef typename parent_t::end_data_type end_data_type;
 
- 	virtual_source_impl_real_single(dest_t & dest): m_dest(dest) {};
+ 	virtual_source_impl_real_single(dest_t & dest): m_dest(dest) {
+		parent_t::set_memory_priority(0.0);
+	};
 
 	virtual void begin(memory_size_type items=max_items, begin_data_type * data=0) {
 		m_dest.begin(items, data);
