@@ -1,24 +1,24 @@
-// -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
+// -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2009, The TPIE development team
-// 
+// Copyright 2009, 2010, The TPIE development team
+//
 // This file is part of TPIE.
-// 
+//
 // TPIE is free software: you can redistribute it and/or modify it under
 // the terms of the GNU Lesser General Public License as published by the
 // Free Software Foundation, either version 3 of the License, or (at your
 // option) any later version.
-// 
+//
 // TPIE is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or
 // FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 // License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-#include <tpie/file.h>
 #include <tpie/exception.h>
+#include <tpie/file.h>
 
 namespace tpie {
 
@@ -32,11 +32,10 @@ namespace tpie {
 // 	emptyBlock.next = 0;
 // }
 
-file_base::file_base(memory_size_type itemSize, 
-					 double blockFactor, 
+file_base::file_base(memory_size_type itemSize,
+					 double blockFactor,
 					 file_accessor::file_accessor * fileAccessor) :
-	m_size(0), 	m_itemSize(itemSize),  m_firstUsed(0), m_firstFree(0)
-{
+	m_size(0), 	m_itemSize(itemSize),  m_firstUsed(0), m_firstFree(0) {
 	m_open = false;
 	if (fileAccessor == 0)
 		fileAccessor = new default_file_accessor();
@@ -47,7 +46,7 @@ file_base::file_base(memory_size_type itemSize,
 
 	m_blockItems = block_size(blockFactor)/m_itemSize;
 }
-	
+
 
 void file_base::create_block() {
 	block_t * block = reinterpret_cast<block_t*>( new char[sizeof(block_t) + m_itemSize*m_blockItems] );
@@ -64,7 +63,7 @@ void file_base::delete_block() {
 
 file_base::block_t * file_base::get_block(stream_size_type block) {
 	block_t * b = m_firstUsed;
-	while(b && b->number != block)
+	while (b && b->number != block)
 		b = b->next;
 	if (b == 0) {
 		b = m_firstFree;
@@ -74,13 +73,13 @@ file_base::block_t * file_base::get_block(stream_size_type block) {
 		m_firstUsed = b;
 		b->number = block;
 		b->usage = 0;
-		
+
 		b->size = m_blockItems;
 		if (static_cast<stream_size_type>(b->size) + b->number * static_cast<stream_size_type>(m_blockItems) > size())
 			b->size = size() - b->number * m_blockItems;
 
 		if (b->size > 0 &&
-			m_fileAccessor->read(b->data, b->number * static_cast<stream_size_type>(m_blockItems), b->size) != b->size) 
+			m_fileAccessor->read(b->data, b->number * static_cast<stream_size_type>(m_blockItems), b->size) != b->size)
 			throw io_exception("Incorrect number of items read");
 	}
 	++b->usage;
@@ -95,15 +94,15 @@ void file_base::free_block(block_t * block) {
 		assert(m_canWrite);
 		m_fileAccessor->write(block->data, block->number * static_cast<stream_size_type>(m_blockItems), block->size);
 	}
-	
+
 	block_t * prev=m_firstUsed;
-	while(prev && prev->next != block) prev = prev->next;
+	while (prev && prev->next != block) prev = prev->next;
 	if (prev == 0) {
 		assert(m_firstUsed == block);
 		m_firstUsed = block->next;
 	} else
 		prev->next = block->next;
-	
+
 	block->next = m_firstFree;
 	m_firstFree = block;
 }
@@ -147,6 +146,6 @@ void file_base::stream::free() {
 	m_block = 0;
 }
 
-
+file_base::block_t file_base::m_emptyBlock;
 }
 

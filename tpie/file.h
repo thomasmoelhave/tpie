@@ -289,7 +289,7 @@ protected:
 	stream_size_type m_size;
 	bool m_canRead;
 	bool m_canWrite;
-	block_t m_emptyBlock;
+	static block_t m_emptyBlock;
 
 	file_base(memory_size_type item_size,
 			  double blockFactor=1.0,

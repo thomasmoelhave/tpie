@@ -20,6 +20,9 @@
 #define _TPIE_TYPES_H
 
 #include <boost/cstdint.hpp>
+#ifdef _WIN32
+#include <basetsd.h>
+#endif
 
 namespace tpie {
 

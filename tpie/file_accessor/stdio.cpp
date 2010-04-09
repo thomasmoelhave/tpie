@@ -1,32 +1,36 @@
-// -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
+// -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2009, The TPIE development team
-// 
+// Copyright 2009, 2010, The TPIE development team
+//
 // This file is part of TPIE.
-// 
+//
 // TPIE is free software: you can redistribute it and/or modify it under
 // the terms of the GNU Lesser General Public License as published by the
 // Free Software Foundation, either version 3 of the License, or (at your
 // option) any later version.
-// 
+//
 // TPIE is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or
 // FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 // License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #include <tpie/config.h>
 //#include <tpie/stream/stdio_bte.h>
 //#include <tpie/stream/header.h>
+#include <string.h>
+#include <tpie/exception.h>
 #include <tpie/mm_base.h>
 #include <tpie/mm_manager.h>
-#include <tpie/exception.h>
-#include <string.h>
 
 #include <tpie/file_accessor/stdio.h>
 namespace tpie {
 namespace file_accessor {
+
+#ifdef _WIN32
+#define fseeko _fseeki64
+#endif
 
 stdio::stdio():
 	m_fd(0) {}
@@ -45,15 +49,15 @@ void stdio::read_header() {
 
 	if (header.version != stream_header_t::versionConst)
 		throw invalid_file_exception("Invalid file, header version wrong");
-	
+
 	if (header.itemSize != m_itemSize)
 		throw invalid_file_exception("Invalid file, item size is wrong");
 
 	if (header.userDataSize != m_userDataSize )
-		throw invalid_file_exception("Invalid file, wrong userdata size"); 
+		throw invalid_file_exception("Invalid file, wrong userdata size");
 
 	if (header.cleanClose != 1 )
-		throw invalid_file_exception("Invalid file, the file was not closed properly"); 
+		throw invalid_file_exception("Invalid file, the file was not closed properly");
 
 	m_size = header.size;
 }
@@ -76,9 +80,9 @@ void stdio::write_header(bool clean) {
 	if (::fwrite(&header, 1, sizeof(header), m_fd) != sizeof(header)) throw_errno();
 }
 
-void stdio::open(const std::string & path, 
-				 bool read, 
-				 bool write, 
+void stdio::open(const std::string & path,
+				 bool read,
+				 bool write,
 				 memory_size_type itemSize,
 				 memory_size_type userDataSize) {
 	close();
@@ -154,8 +158,8 @@ void stdio::write_user_data(const void * data) {
 }
 
 #ifndef WIN32
-#include <unistd.h>
 #include <sys/types.h>
+#include <unistd.h>
 #endif
 
 void stdio::truncate(stream_size_type size) {
@@ -163,9 +167,9 @@ void stdio::truncate(stream_size_type size) {
 	::truncate(m_path.c_str(), sizeof(stream_header_t) + m_userDataSize + size*m_itemSize);
 #else
 	//Since there is no reliable way of trunacing a file, we will just fake it
-	if(size > m_size) {
+	if (size > m_size) {
 		char * buff = new char[m_itemSize*1024*256];
-		while(size > m_size) {
+		while (size > m_size) {
 			write(buff, m_size, 1024*256);
 			m_size += 1024*256;
 		}

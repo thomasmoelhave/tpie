@@ -1,29 +1,31 @@
-// -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
+// -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2009, The TPIE development team
-// 
+// Copyright 2009, 2010, The TPIE development team
+//
 // This file is part of TPIE.
-// 
+//
 // TPIE is free software: you can redistribute it and/or modify it under
 // the terms of the GNU Lesser General Public License as published by the
 // Free Software Foundation, either version 3 of the License, or (at your
 // option) any later version.
-// 
+//
 // TPIE is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or
 // FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 // License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
-#include <tpie/types.h>
+#ifndef _TPIE_STREAMING_VIRTUAL_REAL_H
+#define _TPIE_STREAMING_VIRTUAL_REAL_H
 #include <tpie/streaming/memory.h>
 #include <tpie/streaming/util.h>
+#include <tpie/types.h>
 
 namespace tpie {
 namespace streaming {
 
-template <typename item_t, 
+template <typename item_t,
  		  memory_size_type buff_size,
  		  typename begin_data_t=empty_type,
  		  typename end_data_t=empty_type>
@@ -32,13 +34,13 @@ public:
  	typedef begin_data_t begin_data_type;
  	typedef end_data_t end_data_type;
  	typedef item_t item_type;
-	
+
  	virtual void begin(stream_size_type items=max_items, begin_data_type * data=0) = 0;
  	virtual void push(const item_t * items, memory_size_type count) = 0;
  	virtual void end(end_data_type * data = 0) = 0;
 };
 
-template <typename item_t, 
+template <typename item_t,
  		  typename begin_data_t,
  		  typename end_data_t>
 class virtual_source_real_single: public memory_single {
@@ -53,7 +55,7 @@ public:
 };
 
 
-template <typename item_t, 
+template <typename item_t,
 		  memory_size_type buff_size,
 		  typename begin_data_t=empty_type,
 		  typename end_data_t=empty_type>
@@ -66,7 +68,7 @@ private:
 private:
  	item_t m_buffer[buff_size];
  	memory_size_type m_bufferUsed;
-	
+
  	inline void flush() {
  		dest().push(m_buffer, m_bufferUsed);
  		m_bufferUsed = 0;
@@ -78,12 +80,12 @@ public:
 
  	inline virtual_sink_real_impl(dest_t * dest) throw ()
 		:parent_t(*dest, 0.0), m_bufferUsed(0) {}
-	
+
  	inline void begin(stream_size_type items=max_items, begin_data_t * data=0) {
  		m_bufferUsed = 0;
 		dest().begin(items, data);
  	}
-	
+
  	void push(const item_t & item) {
  		m_buffer[m_bufferUsed++] = item;
  		if (m_bufferUsed == buff_size) flush();
@@ -95,7 +97,7 @@ public:
  	}
 };
 
-template <typename item_t, 
+template <typename item_t,
 		  typename begin_data_t=empty_type,
 		  typename end_data_t=empty_type>
 class virtual_sink_real_impl_single
@@ -139,16 +141,16 @@ public:
 	virtual void begin(stream_size_type items=max_items, begin_data_type * data=0) {
 		m_dest.begin(items, data);
 	}
-	
+
 	virtual void end(end_data_type * data=0) {
 		m_dest.end(data);
 	}
-	
+
  	virtual void push(const item_type * items, memory_size_type count) {
- 		for(memory_size_type i=0; i < count; ++i)
+ 		for (memory_size_type i=0; i < count; ++i)
  			m_dest.push(items[i]);
  	}
-	
+
 	virtual memory_size_type base_memory() {
 		return sizeof(*this);
 	}
@@ -173,10 +175,10 @@ public:
 		parent_t::set_memory_priority(0.0);
 	};
 
-	virtual void begin(memory_size_type items=max_items, begin_data_type * data=0) {
+	virtual void begin(stream_size_type items=max_items, begin_data_type * data=0) {
 		m_dest.begin(items, data);
 	}
-	
+
 	virtual void end(end_data_type * data=0) {
 		m_dest.end(data);
 	}
@@ -196,3 +198,4 @@ public:
 
 }
 }
+#endif //_TPIE_STREAMING_VIRTUAL_REAL_H

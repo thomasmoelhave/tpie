@@ -24,10 +24,6 @@
 namespace tpie {
 namespace file_accessor {
 
-#ifdef _WIN32
-#define _fseeki64 fseeko
-#endif
-
 class stdio: public file_accessor {
 private:
 	FILE * m_fd;
