@@ -63,6 +63,7 @@
 
 //for UINT_MAX
 #include <limits.h>
+#include <limits>
 
 
 
@@ -908,8 +909,13 @@ inline int TPIE_OS_TRUNCATE(FILE* file, const std::string& /* path */, TPIE_OS_O
 //    TPIE_OS_LONG highOrderOff = getHighOrderOff(offset);	
 //    DWORD x = SetFilePointer(fd.FileHandle,getLowOrderOff(offset),&highOrderOff, FILE_BEGIN);
 //	return SetEndOfFile(fd.FileHandle);
-	// Check for  64-bit file length! (jv)
-	return _chsize(file->_file, (LONG)offset);
+	long loffset = static_cast<long>(offset);
+	if (offset > TPIE_OS_OFFSET(std::numeric_limits<long>::max()) || loffset < 0) {
+		std::stringstream ss;
+		ss << "Truncat offset " << offset << " too big (or negative.)";
+		throw std::runtime_error(ss.str());
+	}
+	return _chsize(file->_file, loffset);
 }
 #else
 inline int TPIE_OS_TRUNCATE(FILE* /* file */, const std::string& path, TPIE_OS_OFFSET offset) {
