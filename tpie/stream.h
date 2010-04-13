@@ -552,7 +552,7 @@ private:
 
 	    if (m_bteStream->seek(offset) != bte::NO_ERROR) {
 
-		TP_LOG_WARNING_ID("bte error");		
+		TP_LOG_WARNING_ID("BTE error - seek failed");		
 
 		return BTE_ERROR;
 	    }
@@ -566,7 +566,7 @@ private:
 
 	    if (m_bteStream->truncate(offset) != bte::NO_ERROR) {
 
-		TP_LOG_WARNING_ID("bte error");
+		TP_LOG_WARNING_ID("BTE error - truncate failed");
 
 		return BTE_ERROR;
 	    }
@@ -581,7 +581,7 @@ private:
 
 	    if (m_bteStream->main_memory_usage(usage, usage_type) != bte::NO_ERROR) {
 
-		TP_LOG_WARNING_ID("bte error");		
+		TP_LOG_WARNING_ID("BTE error - main memory usage failed");		
 
 		return BTE_ERROR;
 	    }
@@ -634,7 +634,7 @@ private:
 
 	    if (m_bteStream->write_item(elt) != bte::NO_ERROR) {
 
-		TP_LOG_WARNING_ID("bte error");
+		TP_LOG_WARNING_ID("BTE error - write item failed");
 
 		return BTE_ERROR;
 
