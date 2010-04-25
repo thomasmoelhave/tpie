@@ -626,7 +626,7 @@ namespace tpie {
 
 
 	    if (m_indicator) {
-		m_indicator->set_description("Forming runs      ");
+		m_indicator->set_description("Forming runs  ");
 		m_indicator->set_range(0,mrgArity,1);
 		m_indicator->refresh();
 	    }
