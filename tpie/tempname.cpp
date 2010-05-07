@@ -64,7 +64,7 @@ std::string tempname::tpie_name(const std::string& post_base, const std::string&
 		if ( !TPIE_OS_EXISTS(path) )
 			return path;
 	}
-	throw std::runtime_error("Unable to find free name for temporery file");
+	throw std::runtime_error("Unable to find free name for temporary file");
 }
 
 std::string tempname::get_actual_path() {

@@ -19,7 +19,7 @@ else(WIN32)
   set(__TEMP_DIR "/var/tmp/")
 endif(WIN32)
 
-set(TEMP_DIR ${__TEMP_DIR} CACHE STRING "The default path for storing temporery files")
+set(TEMP_DIR ${__TEMP_DIR} CACHE STRING "The default path for storing temporary files")
 
 
 
