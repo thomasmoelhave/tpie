@@ -183,7 +183,7 @@ namespace tpie
 	void set_title(const std::string& title) 
 	{
 	    m_title = title;
-	    std::cout << std::endl << title << std::endl;
+	    std::cout << title << std::endl;
 	}
 
 	////////////////////////////////////////////////////////////////////

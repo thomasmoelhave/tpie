@@ -266,7 +266,7 @@ namespace tpie {
 	    nInputItems = inStream->stream_len();
 	    
 	    if (m_indicator) {
-		m_indicator->set_title("\nStarting TPIE Sort");
+		m_indicator->set_title("Starting TPIE Sort");
 		m_indicator->set_percentage_range(0, nInputItems, 1000);
 	    }
 	    
