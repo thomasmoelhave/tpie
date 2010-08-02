@@ -20,6 +20,8 @@
 #ifndef __TPIE_AMI_PQ_INTERNAL_HEAP_H__
 #define __TPIE_AMI_PQ_INTERNAL_HEAP_H__
 
+#include<algorithm>
+
 namespace tpie {
 
     namespace ami {
@@ -100,7 +102,7 @@ public:
     ///
     /////////////////////////////////////////////////////////
     T delmin() { 
-	swap(pq[0], pq[--sz]);
+	std::swap(pq[0], pq[--sz]);
 	bubbleDown(); 
 	return pq[sz];
     }
@@ -159,7 +161,7 @@ private:
 	while((j=left_child(k)) < sz) {
 	    if(j < sz-1 && comp_(pq[j+1], pq[j])) j++; // compare, pq[j] > pq[j+1]
 	    if(! comp_(pq[j], pq[k]) ) break; // compare, pq[k] > pq[j]
-	    swap(pq[k], pq[j]); 
+	    std::swap(pq[k], pq[j]); 
 	    k = j;
 	}
     }
@@ -168,7 +170,7 @@ private:
     void bubbleUp(TPIE_OS_SSIZE_T k) {
 	TPIE_OS_SSIZE_T j;
 	while(k > 0 && comp_(pq[k], pq[(j=parent(k))])) { // compare, pq[k/2] > pq[k]
-	    swap(pq[k], pq[j]);
+	    std::swap(pq[k], pq[j]);
 	    k = j; 
 	}
     }
