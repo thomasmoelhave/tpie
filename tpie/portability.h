@@ -52,6 +52,7 @@
 //////////////////////////////////////////////
 
 #include <iostream>
+#include <stdexcept>
 #include <iomanip>
 #include <cstdio>
 #include <sys/types.h>
@@ -64,8 +65,6 @@
 //for UINT_MAX
 #include <limits.h>
 #include <limits>
-
-
 
 // Get random functions //
 #include <cstdlib>
