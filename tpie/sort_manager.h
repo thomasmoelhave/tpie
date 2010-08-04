@@ -34,6 +34,7 @@
                            // using different comparison types
 #include <cmath> //for log, ceil, etc.
 #include <string>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 #include <tpie/progress_indicator_base.h>
 
@@ -654,6 +655,7 @@ namespace tpie {
 			TP_LOG_FATAL_ID ("main_mem_operate failed");
 			return ae;
 		    }
+			boost::posix_time::ptime b(boost::posix_time::microsec_clock::local_time());
 		} // For each run in this stream
 
 		// All runs created for this stream, clean up
@@ -688,7 +690,8 @@ namespace tpie {
 
 	template<class T, class I, class M>
 	err sort_manager<T,I,M>::merge_to_output(void){
-
+		boost::posix_time::ptime a(boost::posix_time::microsec_clock::local_time());
+		
 	    // ********************************************************************
 	    // * PHASE 4: Merge                                                   *
 	    // * Loop over all levels of the merge tree, reading mrgArity runs    *
@@ -911,6 +914,10 @@ namespace tpie {
 	    TP_LOG_DEBUG_ID ("Number of passes incl run formation is " <<
 			     mrgHeight+2 ); 
 	    TP_LOG_DEBUG("AMI_partition_and_merge END\n");
+
+		boost::posix_time::ptime b(boost::posix_time::microsec_clock::local_time());
+		std::cout << "Merge time: " << boost::posix_time::to_simple_string(b - a) << std::endl;
+		
 	    return NO_ERROR;
 	}
 

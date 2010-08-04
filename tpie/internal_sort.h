@@ -33,6 +33,8 @@
 
 #include <algorithm>
 #include <tpie/comparator.h> //to convert TPIE comparisons to STL
+#include <boost/date_time/posix_time/posix_time.hpp>
+
 
 namespace tpie {
 namespace ami {
@@ -215,7 +217,6 @@ namespace ami {
   ///////////////////////////////////////////////////////////////////////////
 	template<class T>
 	err Internal_Sorter_Op<T>::sort(stream<T>* InStr, stream<T>* OutStr, memory_size_type nItems){
-	    
 	    err ae  = NO_ERROR;
 	    T    *next_item;
 	    memory_size_type i = 0;
@@ -260,7 +261,6 @@ namespace ami {
 		    return ae;
 		}
 	    }
-	    
 	    return NO_ERROR;
 	}
 
@@ -306,7 +306,6 @@ namespace ami {
   ///////////////////////////////////////////////////////////////////////////
 	template<class T, class CMPR>
 	err Internal_Sorter_Obj<T, CMPR>::sort(stream<T>* InStr, stream<T>* OutStr, memory_size_type nItems) {
-	    
 	    err ae = NO_ERROR;
 	    T    *next_item;
 	    memory_size_type i = 0;
@@ -334,7 +333,7 @@ namespace ami {
 	    TP_LOG_DEBUG_ID("calling STL sort for " << nItems << " items");
 	    TP_LOG_DEBUG("converting TPIE comparison object to STL\n");
 	    std::sort(ItemArray, ItemArray+nItems, TPIE2STL_cmp<T,CMPR>(cmp_o));
-	    
+
 	    if (InStr==OutStr) { //Do the right thing if we are doing 2x sort
 		//Internal sort objects should probably be re-written so that
 		//the interface is cleaner and they don't have to worry about I/O
@@ -351,7 +350,7 @@ namespace ami {
 		    return ae;
 		}		
 	    }
-	    
+		
 	    return NO_ERROR;
 	}
 	
