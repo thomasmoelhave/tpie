@@ -115,7 +115,7 @@ file_base::~file_base() {
 
 void file_base::stream::update_block() {
 	update_vars();
-	if (m_nextBlock == std::numeric_limits<memory_size_type>::max()) {
+	if (m_nextBlock == std::numeric_limits<stream_size_type>::max()) {
 		m_nextBlock = m_block->number+1;
 		m_nextIndex = 0;
 	}
