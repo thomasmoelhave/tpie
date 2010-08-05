@@ -872,32 +872,6 @@ return BTE_ERROR_OS_ERROR
 // Where is unistd.h?						 //
 
 
-
-//  WIN32 does not support data type "long long", but does support "LONGLONG".//
-#ifdef _WIN32
-#define TPIE_OS_DECLARE_LOGSTREAM_LONGLONG _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const LONGLONG);
-#else
-#define TPIE_OS_DECLARE_LOGSTREAM_LONGLONG _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const long long);
-#endif
-
-#ifdef _WIN32
-#define TPIE_OS_DEFINE_LOGSTREAM_LONGLONG  \
-logstream& logstream::operator<<(const LONGLONG x)\
-{\
-	char buf[30];\
-	sprintf(buf,"%I64d",x);\
-	if (priority <= threshold) {\
-	std::ofstream::operator<<(buf);\
-	}\
-	return *this;\
-}
-
-#else
-#define TPIE_OS_DEFINE_LOGSTREAM_LONGLONG _DEFINE_LOGSTREAM_OUTPUT_OPERATOR(long long);
-#endif
-
-
-
 	//		//**
 	//		*void * operator new() - Get a block of memory from the debug heap
 	//		*

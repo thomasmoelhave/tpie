@@ -70,12 +70,11 @@ _DEFINE_LOGSTREAM_OUTPUT_OPERATOR(long int)
 _DEFINE_LOGSTREAM_OUTPUT_OPERATOR(unsigned long)
 _DEFINE_LOGSTREAM_OUTPUT_OPERATOR(float)
 _DEFINE_LOGSTREAM_OUTPUT_OPERATOR(double)
+_DEFINE_LOGSTREAM_OUTPUT_OPERATOR(long long int)
+_DEFINE_LOGSTREAM_OUTPUT_OPERATOR(unsigned long long int)
 #ifdef _WIN64
 _DEFINE_LOGSTREAM_OUTPUT_OPERATOR(size_t)
 #endif
-
-//"LONGLONG" and "long long" are different in Win32/Unix
-TPIE_OS_DEFINE_LOGSTREAM_LONGLONG
 
 // Setting priority and threshold on the fly with manipulators.
 
