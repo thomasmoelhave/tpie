@@ -967,10 +967,14 @@ void * operator new(\
 
 #include <tpie/util.h>
 
+#ifdef TPIE_DEPRECATED_WARNINGS
 #ifdef __GNUC__
 #define DEPRECATED(func) func __attribute__ ((deprecated))
 #elif defined(_MSC_VER)
 #define DEPRECATED(func) __declspec(deprecated) func
+#else
+#define DEPRECATED(func) func
+#endif
 #else
 #define DEPRECATED(func) func
 #endif

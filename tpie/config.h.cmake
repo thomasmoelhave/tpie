@@ -5,6 +5,7 @@
 #cmakedefine TPIE_HAVE_SYS_UNISTD_H
 
 #cmakedefine TPIE_USE_EXCEPTIONS
+#cmakedefine TPIE_DEPRECATED_WARNINGS
 
 #if defined (TPIE_HAVE_UNISTD_H)
 #include <unistd.h>
