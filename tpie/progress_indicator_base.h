@@ -21,6 +21,7 @@
 #define _TPIE_PROGRESS_INDICATOR_BASE_H
 
 #include <tpie/portability.h>
+#include <tpie/types.h>
 #include <algorithm>
 
 namespace tpie {
@@ -77,7 +78,8 @@ namespace tpie {
 	    m_current(0),
 	    m_percentageChecker(0), 
 	    m_percentageValue(0), 
-	    m_percentageUnit(0) {
+	    m_percentageUnit(0),
+		m_oldTime(0) {
 	    // Do nothing.
 	}
 
@@ -204,10 +206,14 @@ namespace tpie {
 	///  Record an increment to the indicator and advance the indicator.
 	///
 	////////////////////////////////////////////////////////////////////
-
-	void step() {
+	inline void step() {
+		uint64_t newtime;
+		__asm__ __volatile__ ("rdtsc" : "=A" (newtime));
 	    m_current += m_stepValue;
-	    refresh();
+		if (newtime > m_oldTime + 500000000) {
+			m_oldTime = newtime;
+			refresh();
+		}
 	}
 
 	////////////////////////////////////////////////////////////////////
@@ -342,6 +348,7 @@ namespace tpie {
 	     mode, i.e., it displays percent instead of steps. */
 	unsigned short m_percentageUnit;
 
+	uint64_t m_oldTime;
     private:
 	progress_indicator_base();
     };
