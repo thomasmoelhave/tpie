@@ -20,6 +20,7 @@
 #define _TPIE_STREAMING_STREAM_H
 #include <tpie/file.h>
 #include <tpie/stream.h>
+#include <tpie/file_stream.h>
 #include <tpie/streaming/memory.h>
 #include <tpie/streaming/util.h>
 
