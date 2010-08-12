@@ -29,7 +29,6 @@
 
 namespace tpie {
 
-
 template <typename T>
 class array {
 private:

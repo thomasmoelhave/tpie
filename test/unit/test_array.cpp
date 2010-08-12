@@ -17,13 +17,9 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-#ifndef MM_IMP_REGISTER
-#define MM_IMP_REGISTER
-#endif
-#include "../app_config.h"
-#include <tpie/mm.h>
+#include "common.h"
+
 #include <tpie/array.h>
-#include <iostream>
 using namespace tpie;
 
 bool basic_test() {
@@ -78,48 +74,13 @@ bool iterator_test() {
 	return true;
 }
 
-struct memory_monitor {
-	size_type base;
-	size_type used;
-	inline void begin() {
-		base = MM_manager.memory_used();
-		used = base;
-	}
-	inline void sample() {
-		used = std::max(used, MM_manager.memory_used());
-	}
-	inline void clear() {
-		used = MM_manager.memory_used();
-	}
-	inline void empty() {
-		used = base;
-	}
-	inline size_type usage(int allocations) {
-		return used-base - allocations*MM_manager.space_overhead();
-	}
-};
-
-bool memory_test() {
-	MM_manager.set_memory_limit(128*1024*1024);
-	size_type g = array<int>::memory_required(123456);
+class array_memory_test: public memory_test {
+public:
 	array<int> * a;
-	memory_monitor mm;
-	mm.begin();
-	a = new array<int>(123456, 42);
-	mm.sample();
-	if (mm.usage(1) > g) {
-		std::cerr << "Claimed to use " << g << " but used " << mm.usage(1) << std::endl;
-		return false;
-	}
-	delete a;
-	mm.empty();
-	mm.sample();
-	if (mm.usage(0) > 0) {
-		std::cerr << "Leaked memory " << mm.usage(0) << std::endl;
-		return false;
-	}
-	return true;
-}
+	virtual void alloc() {a = new array<int>(123456, 42);}
+	virtual void free() {delete a;}
+	virtual size_type claimed_size() {return array<int>::memory_required(123456);}
+};
 
 int main(int argc, char **argv) {
   
@@ -130,6 +91,6 @@ int main(int argc, char **argv) {
 	else if (test == "iterators") 
 		return iterator_test()?EXIT_SUCCESS:EXIT_FAILURE;
 	else if (test == "memory") 
-		return memory_test()?EXIT_SUCCESS:EXIT_FAILURE;
+		return array_memory_test()()?EXIT_SUCCESS:EXIT_FAILURE;
 	return EXIT_FAILURE;
 }
