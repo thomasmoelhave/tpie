@@ -621,7 +621,6 @@ private:
 			case bte::NO_ERROR:
 				return NO_ERROR;
 			case bte::END_OF_STREAM:
-				TP_LOG_DEBUG_ID("eos in read_item");
 				return END_OF_STREAM;
 			default:
 				TP_LOG_DEBUG_ID("bte error in read_item");
