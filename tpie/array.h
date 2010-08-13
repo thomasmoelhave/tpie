@@ -1,4 +1,4 @@
-// -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
+// -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
 // Copyright 2008, The TPIE development team
 // 
@@ -51,6 +51,9 @@ private:
 		inline void operator -=(size_type dist) {elm += forward?-dist:dist;}
 		inline const T & operator*() const {return *elm;}
 		inline const T & operator->() const {return *elm;}
+		inline ptrdiff_t operator-(const ibase & other) const {
+			return elm - other.elm;
+		}
 	};
 
 	template <bool forward>
@@ -116,6 +119,9 @@ public:
 		assert(i < m_size);
 		return m_elements[i];
 	}
+
+	inline iterator find(size_type i) {return iterator(m_elements+i);}
+	inline const_iterator find(size_type i) const {return const_iterator(m_elements+i);}
 	inline iterator begin() {return iterator(m_elements);}
 	inline const_iterator begin() const {return const_iterator(m_elements);}
 	inline iterator end() {return iterator(m_elements+m_size);}
@@ -125,7 +131,6 @@ public:
 	inline reverse_iterator rend() {return reverse_iterator(m_elements-1);}
 	inline const reverse_iterator rend() const {return const_reverse_iterator(m_elements-1);}
 };
-
 }
 #endif //__TPIE_ARRAY_H__ 	
 
