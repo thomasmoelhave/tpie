@@ -42,4 +42,4 @@ public:
 };
 
 }
-#endif __TERRASTREAM_SIMPLEQUEUE_H_
+#endif //__TERRASTREAM_SIMPLEQUEUE_H_

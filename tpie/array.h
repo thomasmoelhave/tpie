@@ -101,9 +101,13 @@ public:
 		for (size_type i=0; i < m_size; ++i) m_elements[i] = elm;
 	}
 
+	void operator =(const array & other) {
+		resize(other.size());
+		for (size_type i=0; i < m_size; ++i) m_elements[i] = other[i];
+	}
+
 	inline size_type size() const {return m_size;}
 	inline bool empty() const {return m_size == 0;}
-
 	inline const T & operator[](size_type i) const {
 		assert(i < m_size);
 		return m_elements[i];
