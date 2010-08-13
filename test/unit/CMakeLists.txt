@@ -4,8 +4,10 @@ target_link_libraries(test_bte tpie)
 add_executable(test_array test_array.cpp)
 target_link_libraries(test_array tpie)
 
-add_executable(test_hashmap test_hashmap.cpp)
-target_link_libraries(test_hashmap tpie)
+if(Boost_FOUND)
+  add_executable(test_hashmap test_hashmap.cpp)
+  target_link_libraries(test_hashmap tpie ${Boost_LIBRARIES})
+endif()
 
 add_executable(test_simplequeue test_simpleqeue.cpp)
 target_link_libraries(test_simplequeue tpie)

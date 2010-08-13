@@ -45,7 +45,6 @@ bool basic_test() {
 	return true;
 }
 
-#include <tpie/dprint.h>
 
 bool iterator_test() {
 	array<int> hat;
@@ -53,8 +52,6 @@ bool iterator_test() {
 
 	for (size_type i=0; i < 52; ++i)
 		hat[i] = (i * 104729) % 2251;
-
-	dprint() << hat;
 	{
 		array<int>::const_iterator i=hat.begin();
 		for (int j=0; j < 52; ++j) {
