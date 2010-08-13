@@ -22,9 +22,13 @@
 #include <map>
 #include <stdlib.h>
 #include <tpie/dprint.h>
+#include <tr1/unordered_map>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 using namespace tpie;
 using namespace std;
+using namespace std::tr1;
+using namespace boost::posix_time;
 
 bool basic_test() {
 	hash_map<int, char> q1(200);
@@ -53,6 +57,55 @@ bool basic_test() {
 	return true;
 }
 
+void test_speed() {
+	long c = 10000000;
+	ptime s1 = microsec_clock::universal_time();
+	hash_map<int, char> q1(c);
+	{
+		for(int i=0; i < c;++i)
+			q1[(i*26951)%2147483647] = (i*41983)%128;
+	}
+	ptime s2 = microsec_clock::universal_time();
+	unordered_map<int, char> q2(2*c);
+	{
+		for(int i=0; i < c;++i)
+			q2[(i*26951)%2147483647] = (i*41983)%128;
+	}
+	ptime s3 = microsec_clock::universal_time();
+
+
+	std::cout << "Insert speedup: " << (double)(s3 - s2).total_milliseconds() / (double)(s2 - s1).total_milliseconds() << std::endl;
+
+
+	s1 = microsec_clock::universal_time();
+	{
+		for(int i=0; i < c;++i)
+			q1.find((i*26951)%2147483647);
+	}
+	s2 = microsec_clock::universal_time();
+	{
+		for(int i=0; i < c;++i)
+			q2.find((i*26951)%2147483647);
+	}
+	s3 = microsec_clock::universal_time();
+
+	std::cout << "Find speedup: " << (double)(s3 - s2).total_milliseconds() / (double)(s2 - s1).total_milliseconds() << std::endl;
+
+	s1 = microsec_clock::universal_time();
+	{
+		for(int i=0; i < c;++i)
+			q1.erase((i*26951)%2147483647);
+	}
+	s2 = microsec_clock::universal_time();
+	{
+		for(int i=0; i < c;++i)
+			q2.erase((i*26951)%2147483647);
+	}
+	s3 = microsec_clock::universal_time();
+
+	std::cout << "Delete speedup: " << (double)(s3 - s2).total_milliseconds() / (double)(s2 - s1).total_milliseconds() << std::endl;
+}
+
 
 int main(int argc, char **argv) {
 
@@ -60,6 +113,8 @@ int main(int argc, char **argv) {
 	std::string test(argv[1]);
 	if (test == "basic")
 		 return basic_test()?EXIT_SUCCESS:EXIT_FAILURE;
+	else if (test == "speed")
+		test_speed();
 	//else if (test == "iterators") 
 	//	return iterator_test()?EXIT_SUCCESS:EXIT_FAILURE;
 	//else if (test == "memory") 

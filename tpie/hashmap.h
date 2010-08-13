@@ -52,6 +52,8 @@ struct default_unused<std::pair<T1, T2> > {
 template <typename key_t, typename data_t, typename hash_t=hash<key_t>  >
 class hash_map {
 private:
+	static const float sc=1.7;
+
 	typedef std::pair<key_t, data_t> value_t;
 	array<value_t> elements;
 	size_t m_size;
@@ -112,15 +114,15 @@ public:
 	};
 
 	static offset_type memory_required(offset_type elements) {
-		return array<value_t>::memory_required(elements*2) + sizeof(hash_map) - sizeof(array<value_t>);
+		return array<value_t>::memory_required(elements*sc) + sizeof(hash_map) - sizeof(array<value_t>);
 	}
 	
 	static size_t memory_fits(size_t memory) {
-		return array<value_t>::memory_fits(memory - sizeof(hash_map) + sizeof(array<value_t>))/2;
+		return array<value_t>::memory_fits(memory - sizeof(hash_map) + sizeof(array<value_t>))/sc;
 	}
 
-	hash_map(size_t e=0, value_t u=default_unused<value_t>::v()): elements(e, u), m_size(0), unused(u) {};
-	void resize(size_t countelemets) {elements.resize(countelemets*2, unused);}
+	hash_map(size_t e=0, value_t u=default_unused<value_t>::v()): elements(e*sc, u), m_size(0), unused(u) {};
+	void resize(size_t countelemets) {elements.resize(countelemets*sc, unused);}
 	
 	inline data_t & operator[](const key_t & key) {
 		size_t v = h(key) % elements.size();
@@ -128,7 +130,7 @@ public:
 			if (elements[v].first == key) return elements[v].second;
 			v = (v + 1) % elements.size();
 		}
-		assert(m_size < elements.size()/2);
+		assert(m_size <= elements.size()/sc);
 		++m_size;
 		elements[v].first = key;
 		return elements[v].second;
