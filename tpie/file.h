@@ -142,9 +142,7 @@ public:
 		m_canWrite = accessType == write || accessType == read_write,
 		m_fileAccessor->open(path, m_canRead, m_canWrite, m_itemSize, userDataSize);
 		m_size = m_fileAccessor->size();
-		#ifndef NDEBUG
 		m_open = true;
-		#endif
 	}
 
 	/////////////////////////////////////////////////////////////////////////

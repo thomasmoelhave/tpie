@@ -47,8 +47,8 @@ private:
 		inline bool operator == (const ibase & other) const {return elm == other.elm;}
 		inline void operator++() {elm += forward?1:-1;}
 		inline void operator--() {elm += forward?-1:1;}
-		inline void operator +=(size_type dist) {elm += forward?dist:-dist;}
-		inline void operator -=(size_type dist) {elm += forward?-dist:dist;}
+		inline void operator +=(size_t dist) {elm += forward?dist:-dist;}
+		inline void operator -=(size_t dist) {elm += forward?-dist:dist;}
 		inline const T & operator*() const {return *elm;}
 		inline const T & operator->() const {return *elm;}
 	};
@@ -74,41 +74,41 @@ public:
 	typedef ibase_d<true> iterator;
 	typedef ibase_d<false> reverse_iterator;
 
-	inline static size_type memory_required(size_type size) {
+	inline static stream_size_type memory_required(stream_size_type size) {
 		return sizeof(array) + sizeof(T) * size + MM_manager.space_overhead();
 		return 0;
 	}
 
 	array(): m_elements(0), m_size(0) {};
-	array(size_type s): m_elements(0), m_size(0) {resize(s);}
-	array(size_type s, const T & elm): m_elements(0), m_size(0) {resize(s, elm);}
+	array(size_t s): m_elements(0), m_size(0) {resize(s);}
+	array(size_t s, const T & elm): m_elements(0), m_size(0) {resize(s, elm);}
 
 	array(const array & other) {
 		resize(other.size);
-		for (size_type i=0; i < m_size; ++i) m_elements[i] = other[i];
+		for (size_t i=0; i < m_size; ++i) m_elements[i] = other[i];
 	}
 	~array() {resize(0);}
 
-	void resize(size_type s) {
+	void resize(size_t s) {
 		if (s == m_size) return;
 		delete[] m_elements;
 		m_size = s;
 		m_elements = s ? new T[m_size] : 0;
 	}
 	
-	void resize(size_type s, const T & elm) {
+	void resize(size_t s, const T & elm) {
 		resize(s);
-		for (size_type i=0; i < m_size; ++i) m_elements[i] = elm;
+		for (size_t i=0; i < m_size; ++i) m_elements[i] = elm;
 	}
 
-	inline size_type size() const {return m_size;}
+	inline size_t size() const {return m_size;}
 	inline bool empty() const {return m_size == 0;}
 
-	inline const T & operator[](size_type i) const {
+	inline const T & operator[](size_t i) const {
 		assert(i < m_size);
 		return m_elements[i];
 	}
-	inline T & operator[](size_type i) {
+	inline T & operator[](size_t i) {
 		assert(i < m_size);
 		return m_elements[i];
 	}
