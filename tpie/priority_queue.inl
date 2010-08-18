@@ -1061,7 +1061,8 @@ void priority_queue<T, Comparator, OPQType>::write_slot(TPIE_OS_SIZE_T slotid, T
 	//cout << "write slot " << slot_data(slotid) << "\n";
 	stream<T>* data = new stream<T>(slot_data(slotid));
 	//cout << "write slot new done" << "\n";
-	if((err = data->write_array(arr, len)) != NO_ERROR) {
+	TPIE_OS_SIZE_T l = static_cast<TPIE_OS_SIZE_T>(len);
+	if((err = data->write_array(arr, l)) != NO_ERROR) {
 		TP_LOG_FATAL_ID("AMI_ERROR " << err << " during write_slot()");
 		exit(1);
 	}

@@ -645,7 +645,7 @@ private:
 
 	template<class T, class bte_t>
 	err stream<T,bte_t>::read_array(T *mm_space, TPIE_OS_OFFSET *len) {
-		TPIE_OS_SIZE_T l=*len;
+		TPIE_OS_SIZE_T l=static_cast<TPIE_OS_SIZE_T>(*len);
 		err e = read_array(mm_space, l);
 		*len = l;
 		return e;
