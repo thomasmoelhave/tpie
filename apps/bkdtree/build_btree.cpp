@@ -112,7 +112,6 @@ int main(int argc, char **argv) {
   cpu_timer atimer;
   app_params_t::record_t *pp;
   double time_wall, time_io;
-  int i;
 
   if (params.do_sort && err == tpie::ami::NO_ERROR) {
     cerr << "Sorting..." << endl;
@@ -185,7 +184,7 @@ int main(int argc, char **argv) {
 
   if (params.do_insert && err == tpie::ami::NO_ERROR) {
     cerr << "Inserting..." << endl;
-    i = 0;
+    TPIE_OS_OFFSET i = 0;
     assert(params.in_stream != NULL);
     atimer.start();
     params.in_stream->seek(0);
@@ -272,7 +271,7 @@ int main(int argc, char **argv) {
     TPIE_OS_SRANDOM((unsigned int)TPIE_OS_TIME(NULL));
 
     atimer.start();  
-    for (i = 0; i < params.wquery_count; i++) {
+    for (TPIE_OS_OFFSET i = 0; i < params.wquery_count; i++) {
       lop[0] = TPIE_OS_RANDOM() % mbrdx  - wqdx / 2;
       lop[1] = TPIE_OS_RANDOM() % mbrdy  - wqdy / 2;
       hip[0] = lop[0] + wqdx;
@@ -306,7 +305,7 @@ int main(int argc, char **argv) {
     app_params_t::record_t pa[100];
     TPIE_OS_SIZE_T insert_count = 50000;
     cerr << "\tInserting " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(insert_count) << " random points..." << flush;
-    for (i = 0; i < insert_count; i++) {
+    for (TPIE_OS_SIZE_T i = 0; i < insert_count; i++) {
       p[0] = TPIE_OS_RANDOM() % MAX_VALUE;
       p[1] = TPIE_OS_RANDOM() % MAX_VALUE;
       if (i < 100)
@@ -319,7 +318,7 @@ int main(int argc, char **argv) {
     btree2->load(btree);
     cerr << "Done" << endl;
     cerr << "\tSearching 100 points..." << endl;
-    for (i = 0; i < 100; i++)
+    for (int i = 0; i < 100; i++)
       if (!btree->find(pa[i].key, p))
 	cerr << "\t\tPoint not found" << endl;
 
