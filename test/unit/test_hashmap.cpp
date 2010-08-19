@@ -20,22 +20,22 @@
 #include "common.h"
 #include <tpie/hashmap.h>
 #include <map>
-#include <stdlib.h>
-#include <tr1/unordered_map>
+#include <boost/random/linear_congruential.hpp>
+#include <boost/unordered_map.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 using namespace tpie;
 using namespace std;
-using namespace std::tr1;
+//using namespace std::tr1;
 using namespace boost::posix_time;
 
 bool basic_test() {
 	hash_map<int, char> q1(200);
 	map<int, char> q2;
-	srandom(42);
+	boost::rand48 prng(42);
 	for(int i=0; i < 100; ++i) {
-		int k = (random()*2) % 250;
-		char v = random() % 265;
+		int k = (prng()*2) % 250;
+		char v = prng() % 265;
 		q1[k] = v;
 		q2[k] = v;
 	}
@@ -65,7 +65,7 @@ void test_speed() {
 			q1[(i*26951)%2147483647] = (i*41983)%128;
 	}
 	ptime s2 = microsec_clock::universal_time();
-	unordered_map<int, char> q2(2*c);
+	boost::unordered_map<int, char> q2(2*c);
 	{
 		for(int i=0; i < c;++i)
 			q2[(i*26951)%2147483647] = (i*41983)%128;
