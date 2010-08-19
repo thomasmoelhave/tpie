@@ -23,13 +23,10 @@
 #ifndef MM_IMP_REGISTER
 #define MM_IMP_REGISTER
 #endif
+#include <tpie/portability.h>
 #include <tpie/mm.h>
 #include <tpie/util.h>
 #include <iostream>
-
-namespace tpie {
-	typedef size_t size_type;
-};
 
 struct memory_monitor {
 	tpie::size_type base;

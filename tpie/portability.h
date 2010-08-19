@@ -1005,6 +1005,10 @@ DEPRECATED(typedef tpie::memory_size_type TPIE_OS_SIZE_T);
 DEPRECATED(typedef tpie::stream_size_type TPIE_OS_OUTPUT_SIZE_T);
 DEPRECATED(typedef tpie::int64_t TPIE_OS_LONGLONG);
 DEPRECATED(typedef tpie::int32_t TPIE_OS_LONG);
+namespace tpie {
+	DEPRECATED(typedef tpie::memory_size_type size_type);
+	DEPRECATED(typedef tpie::stream_offset_type offset_type);
+}
 
 #undef DEPRECATED
 
