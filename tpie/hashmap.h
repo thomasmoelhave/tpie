@@ -52,7 +52,7 @@ struct default_unused<std::pair<T1, T2> > {
 template <typename key_t, typename data_t, typename hash_t=hash<key_t>  >
 class hash_map {
 private:
-	static const float sc=1.7;
+	static const float sc;
 
 	typedef std::pair<key_t, data_t> value_t;
 	array<value_t> elements;
@@ -176,6 +176,8 @@ public:
 	
 	inline size_t size() const {return m_size;}
 };
+template <typename key_t, typename data_t, typename hash_t>
+const float hash_map<key_t, data_t, hash_t>::sc = 1.7;
 
 }
 #endif //__TPIE_HASHMAP_H__
