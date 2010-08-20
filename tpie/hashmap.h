@@ -121,7 +121,7 @@ public:
 		return array<value_t>::memory_fits(memory - sizeof(hash_map) + sizeof(array<value_t>))/sc;
 	}
 
-	hash_map(size_t e=0, value_t u=default_unused<value_t>::v()): elements(e*sc, u), m_size(0), unused(u) {};
+	hash_map(size_t e=0, value_t u=default_unused<value_t>::v()): elements(static_cast<size_t>(e*sc), u), m_size(0), unused(u) {};
 	void resize(size_t countelemets) {elements.resize(countelemets*sc, unused);}
 	
 	inline data_t & operator[](const key_t & key) {
@@ -177,7 +177,7 @@ public:
 	inline size_t size() const {return m_size;}
 };
 template <typename key_t, typename data_t, typename hash_t>
-const float hash_map<key_t, data_t, hash_t>::sc = 1.7;
+const float hash_map<key_t, data_t, hash_t>::sc = 1.7f;
 
 }
 #endif //__TPIE_HASHMAP_H__

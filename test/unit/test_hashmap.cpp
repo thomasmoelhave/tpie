@@ -35,7 +35,7 @@ bool basic_test() {
 	boost::rand48 prng(42);
 	for(int i=0; i < 100; ++i) {
 		int k = (prng()*2) % 250;
-		char v = prng() % 265;
+		char v = static_cast<char>(prng() % 265);
 		q1[k] = v;
 		q2[k] = v;
 	}
