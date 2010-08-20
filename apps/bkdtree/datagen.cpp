@@ -201,7 +201,7 @@ int main(int argc, char **argv) {
   int distribution = UNIFORM;
   // How many points in a chunk on the diagonal distribution.
   int diagonal_chunk = 1;
-  int i = 1, j;
+  int i = 1;
   char* buf = NULL;
   size_t sz;
 
@@ -232,7 +232,7 @@ int main(int argc, char **argv) {
 
   // All random points are in the box defined by these two points.
   point_t lop, hip;
-  for (j = 0; j < DIM; j++) {
+  for (int j = 0; j < DIM; j++) {
     lop[j] = COORDT(0);
     hip[j] = COORDT(MBR_SIDE_LENGTH);
   }
@@ -253,9 +253,9 @@ int main(int argc, char **argv) {
       epsilon = COORDT(atof(argv[++i]));
       break;
     case 'r':
-      for (j = 0; j < DIM; j++)
+      for (int j = 0; j < DIM; j++)
 	lop[j] = COORDT(atof(argv[++i]));
-      for (j = 0; j < DIM; j++)
+      for (int j = 0; j < DIM; j++)
 	hip[j] = COORDT(atof(argv[++i]));
       break;
     case 'T':
@@ -340,7 +340,7 @@ int main(int argc, char **argv) {
     case 'f': // flush cache.
       sz = atoi(argv[++i])*1024*1024;
       buf = new char[sz];
-      for (j = 0; j < sz; j++) 
+      for (size_t j = 0; j < sz; j++) 
 	// buf[j] = (j <= 64000000 ? j % 128: buf[int((TPIE_OS_RANDOM()/MAX_RANDOM)*64000000)]);
         buf[j] = j % 128;
       delete [] buf;
@@ -383,19 +383,19 @@ int main(int argc, char **argv) {
   }
 
 
-  for (j = 0; j < DIM; j++)
+  for (int j = 0; j < DIM; j++)
     assert(hip[j] >= lop[j]);
 
   if (box_size != 0.0) {
     // Generate boxes.
     COORDT side_length[DIM];
-    for (j = 0; j < DIM; j++)
+    for (int j = 0; j < DIM; j++)
       side_length[j] = COORDT((hip[j] - lop[j]) * (box_size/100.00));
     //size_t side_length_0 = size_t((hip[0] - lop[0]) * sqrt(box_size/100.0));
     //size_t side_length_1 = size_t((hip[1] - lop[1]) * sqrt(box_size/100.0));
     cerr << "Generating " << point_count << " boxes.\n";
     cerr << "Edge lengths: ";
-    for (j = 0; j <DIM; j++)
+    for (int j = 0; j <DIM; j++)
       cerr << side_length[j] << " ";
     cerr << "\n";
 
@@ -406,12 +406,12 @@ int main(int argc, char **argv) {
     }
 
     for (i = 0; i < point_count; i++) {
-      for (j = 0; j < DIM; j++)
+      for (int j = 0; j < DIM; j++)
 	p[j] = COORDT((TPIE_OS_RANDOM()/MAX_RANDOM) * (hip[j] - lop[j] - side_length[j]))
 	  + lop[j];
-      for (j = 0; j < DIM; j++)
+      for (int j = 0; j < DIM; j++)
 	ofs << p[j] << " ";
-      for (j = 0; j < DIM; j++)
+      for (int j = 0; j < DIM; j++)
 	ofs << p[j] + side_length[j] << " ";
       ofs << "\n";
     }
@@ -454,10 +454,10 @@ int main(int argc, char **argv) {
       break;
     }
     cout << "MBR: [";
-    for (j = 0; j < DIM; j++)
+    for (int j = 0; j < DIM; j++)
       cout << lop[j] << ",";
     cout << "\b] [";
-    for (j = 0; j < DIM; j++)
+    for (int j = 0; j < DIM; j++)
       cout << hip[j] << ",";
     cout << "\b]\n";
 
@@ -466,11 +466,11 @@ int main(int argc, char **argv) {
     for (i = 0; i < point_count; i++) {
       switch (distribution) {
       case UNIFORM:
-	for (j = 0; j < DIM; j++)
+	for (int j = 0; j < DIM; j++)
 	  p[j] = COORDT((TPIE_OS_RANDOM()/MAX_RANDOM) * (hip[j] - lop[j])) + lop[j];
 	break;
       case DIAGONAL:
-	for (j = 0; j < DIM; j++) {
+	for (int j = 0; j < DIM; j++) {
 	  COORDT left_corner = int(i / diagonal_chunk) * diagonal_chunk;
 	  p[j] = COORDT(left_corner * 10 + 
 			diagonal_chunk * 10 * (TPIE_OS_RANDOM() / MAX_RANDOM));
@@ -499,7 +499,7 @@ int main(int argc, char **argv) {
     cout << "Writing " << point_count << " points..." << flush;
     atimer.start();
     for (i = 0; i < point_count; i++) {
-      for (j = 0; j < DIM; j++)
+      for (int j = 0; j < DIM; j++)
 	p[j] = i;
       out_stream->write_item(p);
     }
@@ -509,7 +509,7 @@ int main(int argc, char **argv) {
     break;    
   case INPUT_STREAM:
     {
-      int i;
+      size_t i;
       cout << "Reading TPIE input... " << flush;
       err err = tpie::ami::NO_ERROR;
       AMI_STREAM<point_t>* s;
@@ -557,7 +557,7 @@ int main(int argc, char **argv) {
     break;
   case INPUT_ASCII:
     {
-      int i;
+      size_t i;
       cout << "Reading ascii input... " << flush;
       err err = tpie::ami::NO_ERROR;
       for (i = 0; i < inputs.size() && err == tpie::ami::NO_ERROR; i++) {

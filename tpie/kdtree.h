@@ -329,10 +329,10 @@ protected:
 		return real_median(sz);
 #else
 		int i = 0;
-		while ((1 << i) < ((sz + params_.leaf_size_max - 1) / 
+		while ((static_cast<TPIE_OS_OFFSET>(1) << i) < ((sz + params_.leaf_size_max - 1) / 
 						   params_.leaf_size_max)) 
 			i++;
-		return  (1 << (i-1)) * params_.leaf_size_max - 1;
+		return  (static_cast<TPIE_OS_OFFSET>(1) << (i-1)) * params_.leaf_size_max - 1;
 #endif
 	}
 
@@ -344,10 +344,10 @@ protected:
 		return real_median(sz);
 #else
 		int i = 0;
-		while ((1 << i) < ((sz + params_.leaf_size_max - 1) / 
+		while ((static_cast<TPIE_OS_SIZE_T>(1) << i) < ((sz + params_.leaf_size_max - 1) / 
 						   params_.leaf_size_max)) 
 			i++;
-		return  (1 << (i-1)) * params_.leaf_size_max - 1;
+		return  (static_cast<TPIE_OS_SIZE_T>(1) << (i-1)) * params_.leaf_size_max - 1;
 #endif
 	}
 

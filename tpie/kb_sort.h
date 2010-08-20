@@ -547,7 +547,7 @@ namespace tpie {
     
 	    // Write the results.
 
-	    ae = outstream.write_array(indata, stream_len);
+	    ae = outstream.write_array(indata, static_cast<TPIE_OS_SIZE_T>(stream_len));
 	    if (ae != NO_ERROR) {
 		delete [] indata;
 		delete [] buckets;
