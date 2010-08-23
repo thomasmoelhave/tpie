@@ -42,6 +42,7 @@ typedef SSIZE_T memory_offset_type;
 typedef ::ssize_t memory_offset_type;
 #endif
 
+typedef stream_offset_type offset_type;
 }
 
 #endif //_TPIE_TYPES_H
