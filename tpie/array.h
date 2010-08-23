@@ -83,12 +83,15 @@ public:
 	array(size_t s): m_elements(0), m_size(0) {resize(s);}
 	array(size_t s, const T & elm): m_elements(0), m_size(0) {resize(s, elm);}
 
-	array(const array & other) {
-		resize(other.size);
+	array(const array & other): m_elements(0), m_size(0) {
+		resize(other.size());
+		for (size_t i=0; i < m_size; ++i) m_elements[i] = other[i];
+	}	
+	~array() {resize(0);}
+	void operator=(const array & other){
+		resize(other.size());
 		for (size_t i=0; i < m_size; ++i) m_elements[i] = other[i];
 	}
-	~array() {resize(0);}
-
 	void resize(size_t s) {
 		if (s == m_size) return;
 		delete[] m_elements;
@@ -112,6 +115,18 @@ public:
 		assert(i < m_size);
 		return m_elements[i];
 	}
+	inline bool operator!=(const array<T> & other) const {
+		if(m_size != other.size()) return true;
+		for(size_t i=0;i<m_size;++i) if(m_elements[i] != other[i]) return true;
+		return false;
+	}
+				   
+	inline bool operator==(const array<T>   & other) const {
+ 		if(m_size != other.size()) return false;
+		for(size_t i=0;i<m_size;++i) if(m_elements[i] != other[i]) return false;
+		return true;
+	}
+
 	inline iterator begin() {return iterator(m_elements);}
 	inline const_iterator begin() const {return const_iterator(m_elements);}
 	inline iterator end() {return iterator(m_elements+m_size);}
