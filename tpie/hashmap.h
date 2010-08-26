@@ -123,7 +123,20 @@ public:
 
 	hash_map(size_t e=0, value_t u=default_unused<value_t>::v()): elements(static_cast<size_t>(e*sc), u), m_size(0), unused(u) {};
 	void resize(size_t countelemets) {elements.resize(countelemets*sc, unused);}
-	
+
+	inline bool insert(const key_t & key, const data_t & value) {
+		size_t v = h(key) % elements.size();
+		while (elements[v] != unused) {
+			if (elements[v].first == key) return false;
+			v = (v + 1) % elements.size();
+		}
+		assert(m_size <= elements.size()/sc);
+		++m_size;
+		elements[v].first = key;
+		elements[v].second = value;
+		return true;
+	}
+
 	inline data_t & operator[](const key_t & key) {
 		size_t v = h(key) % elements.size();
 		while (elements[v] != unused) {
@@ -140,7 +153,8 @@ public:
 		return elements[search(key)];
 	}
 
-	void erase(const iterator & elm) {
+	
+	inline void erase(const iterator & elm) {
 		size_t slot = elm.cur - elements.begin();
 		size_t cur = (slot+1) % elements.size();
 		while (elements[cur] != unused) {	   
