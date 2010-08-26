@@ -79,7 +79,7 @@ public:
 	array<int> * a;
 	virtual void alloc() {a = new array<int>(123456, 42);}
 	virtual void free() {delete a;}
-	virtual size_type claimed_size() {return array<int>::memory_required(123456);}
+	virtual size_type claimed_size() {return array<int>::memory_usage(123456);}
 };
 
 int main(int argc, char **argv) {

@@ -25,11 +25,11 @@ using namespace tpie;
 
 bool basic_test() {
 	simplequeue<int> q(52);
-	for(int i=0; i < 52; ++i)
+	for(size_t i=0; i < 52; ++i)
 		q.push((i * 104729) % 2251);
-	for(int i=0; i < 52; ++i) {
+	for(size_t i=0; i < 52; ++i) {
 		if (q.size() != 52-i) return false;
-		if (q.front() != (i * 104729) % 2251) return false;
+		if (q.front() != ((int)i * 104729) % 2251) return false;
 		q.pop();
 	}
 	if (!q.empty()) return false;
@@ -41,7 +41,7 @@ public:
 	simplequeue<int> * a;
 	virtual void alloc() {a = new simplequeue<int>(123456);}
 	virtual void free() {delete a;}
-	virtual size_type claimed_size() {return simplequeue<int>::memory_required(123456);}
+	virtual size_type claimed_size() {return simplequeue<int>::memory_usage(123456);}
 };
 
 int main(int argc, char **argv) {

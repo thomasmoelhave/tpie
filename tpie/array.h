@@ -30,7 +30,7 @@
 namespace tpie {
 
 template <typename T>
-class array {
+class array: public linear_memory_base<array<T> > {
 private:
 	T * m_elements;
 	size_t m_size;
@@ -77,9 +77,13 @@ public:
 	typedef ibase_d<true> iterator;
 	typedef ibase_d<false> reverse_iterator;
 
-	inline static size_type memory_required(size_type size) {
-		return sizeof(array) + sizeof(T) * size + MM_manager.space_overhead();
-		return 0;
+
+	static double memory_coefficient() {
+		return sizeof(T);
+	}
+
+	static double memory_overhead() {
+		return sizeof(array) + MM_manager.space_overhead();
 	}
 
 	array(): m_elements(0), m_size(0) {};

@@ -50,7 +50,7 @@ struct default_unused<std::pair<T1, T2> > {
 };
 
 template <typename key_t, typename data_t, typename hash_t=hash<key_t>  >
-class hash_map {
+class hash_map: public linear_memory_base< hash_map<key_t, data_t, hash_t> > {
 private:
 	static const float sc;
 
@@ -113,12 +113,12 @@ public:
 		inline bool operator!=(const const_iterator & o) const {return o.cur != p_t::cur;}
 	};
 
-	static offset_type memory_required(offset_type elements) {
-		return array<value_t>::memory_required(elements*sc) + sizeof(hash_map) - sizeof(array<value_t>);
+	static double memory_coefficient() {
+		return array<value_t>::memory_coefficient*sc;
 	}
-	
-	static size_t memory_fits(size_t memory) {
-		return array<value_t>::memory_fits(memory - sizeof(hash_map) + sizeof(array<value_t>))/sc;
+
+	static double memory_base() {
+		return array<value_t>::memory_overhead() + sizeof(hash_map) - sizeof(array<value_t>);
 	}
 
 	hash_map(size_t e=0, value_t u=default_unused<value_t>::v()): elements(static_cast<size_t>(e*sc), u), m_size(0), unused(u) {};

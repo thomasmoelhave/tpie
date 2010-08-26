@@ -1,4 +1,4 @@
-// -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
+// -*- Mode: C++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
 // Copyright 2009, The TPIE development team
 // 
@@ -21,6 +21,7 @@
 #define __TPIE_UTIL_H__
 
 #include <tpie/portability.h>
+#include <cmath>
 namespace tpie {
 
 template <typename T>
@@ -29,6 +30,17 @@ inline void unused(const T & x) {(void)x;}
 typedef TPIE_OS_OFFSET offset_type;
 typedef TPIE_OS_SIZE_T size_type;
 typedef TPIE_OS_SSIZE_T ssize_type;
+
+template <typename child_t> 
+struct linear_memory_base {
+	inline static offset_type memory_usage(offset_type size) {
+		return ceil( size * child_t::memory_coefficient() + child_t::memory_overhead() );
+	}
+
+	inline static size_type memory_fits(size_type memory) {
+		return floor( (memory - child_t::memory_overhead() - 1) / child_t::memory_coefficient() );
+	}
+};
 
 }
 

@@ -19,17 +19,18 @@
 #ifndef __TPIE_SIMPLEQUEUE_H_
 #define __TPIE_SIMPLEQUEUE_H_
 #include <tpie/array.h>
+#include <tpie/util.h>
 
 namespace tpie {
 
 template <typename T>
-class simplequeue{
+class simplequeue: public linear_memory_base<simplequeue<T> > {
 	array<T> m_elements;
 	size_t m_first, m_last;
 public:
-	static size_t memory_required(size_t size) {
-		return sizeof(simplequeue) + array<T>::memory_required(size) - sizeof(array<T>);
-	}
+	static double memory_coefficient() {return array<T>::memory_coefficient();}
+	static double memory_overhead() {return array<T>::memory_overhead() - sizeof(array<T>) + sizeof(simplequeue);}
+
 	simplequeue(size_t size=0): m_first(0), m_last(0) {m_elements.resize(size);}
 	void resize(size_t size=0) {m_elements.resize(size); m_first = m_last = 0;}
 	inline T & front() {return m_elements[m_first];}
