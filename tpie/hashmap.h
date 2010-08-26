@@ -114,7 +114,7 @@ public:
 	};
 
 	static double memory_coefficient() {
-		return array<value_t>::memory_coefficient*sc;
+		return array<value_t>::memory_coefficient() *sc;
 	}
 
 	static double memory_overhead() {
@@ -191,7 +191,7 @@ public:
 	inline size_t size() const {return m_size;}
 };
 template <typename key_t, typename data_t, typename hash_t>
-const float hash_map<key_t, data_t, hash_t>::sc = 2f;
+const float hash_map<key_t, data_t, hash_t>::sc = 2.0f;
 
 }
 #endif //__TPIE_HASHMAP_H__

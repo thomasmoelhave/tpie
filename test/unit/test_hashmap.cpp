@@ -105,6 +105,13 @@ void test_speed() {
 	std::cout << "Delete speedup: " << (double)(s3 - s2).total_milliseconds() / (double)(s2 - s1).total_milliseconds() << std::endl;
 }
 
+class hashmap_memory_test: public memory_test {
+public:
+	hash_map<int, char> * a;
+	virtual void alloc() {a = new hash_map<int, char>(123456);}
+	virtual void free() {delete a;}
+	virtual size_type claimed_size() {return hash_map<int, char>::memory_usage(123456);}
+};
 
 int main(int argc, char **argv) {
 
@@ -116,7 +123,7 @@ int main(int argc, char **argv) {
 		test_speed();
 	//else if (test == "iterators") 
 	//	return iterator_test()?EXIT_SUCCESS:EXIT_FAILURE;
-	//else if (test == "memory") 
-//		return array_memory_test()()?EXIT_SUCCESS:EXIT_FAILURE;
+	else if (test == "memory") 
+		return hashmap_memory_test()()?EXIT_SUCCESS:EXIT_FAILURE;
 	return EXIT_FAILURE;
 }
