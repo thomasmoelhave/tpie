@@ -191,7 +191,7 @@ public:
 	inline size_t size() const {return m_size;}
 };
 template <typename key_t, typename data_t, typename hash_t>
-const float hash_map<key_t, data_t, hash_t>::sc = 1.7f;
+const float hash_map<key_t, data_t, hash_t>::sc = 2f;
 
 }
 #endif //__TPIE_HASHMAP_H__
