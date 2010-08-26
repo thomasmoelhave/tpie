@@ -117,7 +117,7 @@ public:
 		return array<value_t>::memory_coefficient*sc;
 	}
 
-	static double memory_base() {
+	static double memory_overhead() {
 		return array<value_t>::memory_overhead() + sizeof(hash_map) - sizeof(array<value_t>);
 	}
 
