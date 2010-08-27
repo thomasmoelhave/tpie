@@ -34,11 +34,11 @@ typedef TPIE_OS_SSIZE_T ssize_type;
 template <typename child_t> 
 struct linear_memory_base {
 	inline static offset_type memory_usage(offset_type size) {
-		return ceil( size * child_t::memory_coefficient() + child_t::memory_overhead() );
+		return floor( size * child_t::memory_coefficient() + child_t::memory_overhead() );
 	}
 
 	inline static size_type memory_fits(size_type memory) {
-		return floor( (memory - child_t::memory_overhead() - 1) / child_t::memory_coefficient() );
+		return floor( (memory - child_t::memory_overhead()) / child_t::memory_coefficient() );
 	}
 };
 

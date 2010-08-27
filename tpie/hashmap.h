@@ -20,6 +20,7 @@
 #define __TPIE_HASHMAP_H__
 
 #include <tpie/array.h>
+#include <tpie/unused.h>
 
 namespace tpie {
 
@@ -35,18 +36,6 @@ struct hash<std::pair<T1,T2> > {
 	inline size_t operator()(const std::pair<T1,T2> & e) const {
 		return h1(e.first) + h2(e.second) * 99181;
 	}	
-};
-
-template <typename T>
-struct default_unused {
-	inline static T v() {return std::numeric_limits<T>::max();}
-};
-
-template <typename T1, typename T2>
-struct default_unused<std::pair<T1, T2> > {
-	inline static std::pair<T1,T2> v() {
-		return std::pair<T1, T2>(default_unused<T1>::v(), default_unused<T2>::v());
-	}
 };
 
 template <typename key_t, typename data_t, typename hash_t=hash<key_t>  >
