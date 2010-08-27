@@ -60,49 +60,50 @@ void test_speed() {
 	long c = 10000000;
 	ptime s1 = microsec_clock::universal_time();
 	hash_map<int, char> q1(c);
+	const int q = 0x7FFFFFFF;
+	const int p = 21467;
 	{
-		for(int i=0; i < c;++i)
-			q1[(i*26951)%2147483647] = (i*41983)%128;
+		for(int i=0; i < c;++i) {
+			q1[(i*p)%q] = (i*41983)%128;
+		}
 	}
 	ptime s2 = microsec_clock::universal_time();
 	boost::unordered_map<int, char> q2(2*c);
 	{
 		for(int i=0; i < c;++i)
-			q2[(i*26951)%2147483647] = (i*41983)%128;
+			q2[(i*p)%q] = (i*41983)%128;
 	}
 	ptime s3 = microsec_clock::universal_time();
-
-
-	std::cout << "Insert speedup: " << (double)(s3 - s2).total_milliseconds() / (double)(s2 - s1).total_milliseconds() << std::endl;
+	std::cout << "Insert speedup: " << (double)(s2 - s1).total_milliseconds() / (double)(s3 - s2).total_milliseconds() << std::endl;
 
 
 	s1 = microsec_clock::universal_time();
 	{
 		for(int i=0; i < c;++i)
-			q1.find((i*26951)%2147483647);
+			q1.find((i*p)%q);
 	}
 	s2 = microsec_clock::universal_time();
 	{
 		for(int i=0; i < c;++i)
-			q2.find((i*26951)%2147483647);
+			q2.find((i*p)%q);
 	}
 	s3 = microsec_clock::universal_time();
 
-	std::cout << "Find speedup: " << (double)(s3 - s2).total_milliseconds() / (double)(s2 - s1).total_milliseconds() << std::endl;
+	std::cout << "Find speedup: " << (double)(s2 - s1).total_milliseconds() / (double)(s3 - s2).total_milliseconds() << std::endl;
 
 	s1 = microsec_clock::universal_time();
 	{
 		for(int i=0; i < c;++i)
-			q1.erase((i*26951)%2147483647);
+			q1.erase((i*p)%q);
 	}
 	s2 = microsec_clock::universal_time();
 	{
 		for(int i=0; i < c;++i)
-			q2.erase((i*26951)%2147483647);
+			q2.erase((i*p)%q);
 	}
 	s3 = microsec_clock::universal_time();
 
-	std::cout << "Delete speedup: " << (double)(s3 - s2).total_milliseconds() / (double)(s2 - s1).total_milliseconds() << std::endl;
+	std::cout << "Delete speedup: " << (double)(s2 - s1).total_milliseconds() / (double)(s3 - s2).total_milliseconds() << std::endl;
 }
 
 class hashmap_memory_test: public memory_test {

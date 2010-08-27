@@ -145,6 +145,7 @@ public:
 	
 	inline void erase(const iterator & elm) {
 		size_t slot = elm.cur - elements.begin();
+		assert(slot < elements.size() && "Tried to erase end()");
 		size_t cur = (slot+1) % elements.size();
 		while (elements[cur] != unused) {	   
 			size_t x = h(elements[cur].first) % elements.size();
