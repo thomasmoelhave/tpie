@@ -41,5 +41,16 @@ const char directory_delimiter = '\\';
 const char directory_delimiter = '/';
 #endif
 
+template <typename child_t> 
+struct linear_memory_base {
+	inline static offset_type memory_usage(offset_type size) {
+		return floor( size * child_t::memory_coefficient() + child_t::memory_overhead() );
+	}
+
+	inline static size_type memory_fits(size_type memory) {
+		return floor( (memory - child_t::memory_overhead()) / child_t::memory_coefficient() );
+	}
+};
+
 }
 #endif //__TPIE_UTIL_H__
