@@ -47,7 +47,7 @@ struct linear_memory_base {
 		return floor( size * child_t::memory_coefficient() + child_t::memory_overhead() );
 	}
 
-	inline static size_type memory_fits(size_type memory) {
+	inline static memory_size_type memory_fits(memory_size_type memory) {
 		return floor( (memory - child_t::memory_overhead()) / child_t::memory_coefficient() );
 	}
 };
