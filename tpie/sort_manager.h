@@ -472,7 +472,7 @@ namespace tpie {
 
 		mrgArity = static_cast<arity_t>(availableStreams - 1);
 		
-		TP_LOG_WARNING_ID ("Reduced merge arity due to AMI restrictions.");
+		TP_LOG_DEBUG_ID ("Reduced merge arity due to AMI restrictions.");
 	    }
 	    
 	    // The number of memory-sized runs that the original input stream
