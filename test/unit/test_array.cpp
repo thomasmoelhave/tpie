@@ -45,6 +45,30 @@ bool basic_test() {
 	return true;
 }
 
+bool basic_bool_test() {
+	array<bool> hat;
+  
+	//Resize
+	hat.resize(52, 1);
+	if (hat.size() != 52) return false;
+	for (size_type i=0; i < 52; ++i)
+		if (hat[i] != true) return false;
+  
+	//Get and set
+	return true;
+	for (size_type i=0; i < 52; ++i)
+		hat[i] = ((i * 104729)>>3) % 2;
+  
+	const tpie::array<bool> & hat2(hat);
+	for (size_type i=0; i < 52; ++i)
+		if (hat2[i] != ((i * 104729)>>3) % 2) return false;
+  
+	if (hat.empty()) return false;
+	hat.resize(0);
+	if (!hat.empty()) return false;
+	return true;
+}
+
 
 bool iterator_test() {
 	array<int> hat;
@@ -73,6 +97,34 @@ bool iterator_test() {
   
 	return true;
 }
+bool iterator_bool_test() {
+	array<bool> hat;
+	hat.resize(52);
+
+	for (size_type i=0; i < 52; ++i)
+		hat[i] = ((i * 104729)>>7) % 2;
+	{
+		array<bool>::const_iterator i=hat.begin();
+		for (int j=0; j < 52; ++j) {
+			if (i == hat.end()) return false;
+			if (*i != (((j * 104729)>>7) % 2)) return false;
+			++i;
+		}
+		if (i != hat.end()) return false;
+	}
+	{
+		array<bool>::reverse_iterator i=hat.rbegin();
+		for (int j=51; j >= 0; --j) {
+			if (i == hat.rend()) return false;
+			if (*i != (((j * 104729)>>7) % 2)) return false;
+			++i;
+		}
+		if (i != hat.rend()) return false;
+	}
+  
+	return true;
+}
+
 
 class array_memory_test: public memory_test {
 public:
@@ -81,6 +133,15 @@ public:
 	virtual void free() {delete a;}
 	virtual size_type claimed_size() {return array<int>::memory_usage(123456);}
 };
+
+class array_bool_memory_test: public memory_test {
+public:
+	array<bool> * a;
+	virtual void alloc() {a = new array<bool>(123456, 1);}
+	virtual void free() {delete a;}
+	virtual size_type claimed_size() {return array<bool>::memory_usage(123456);}
+};
+
 
 int main(int argc, char **argv) {
   
@@ -92,5 +153,13 @@ int main(int argc, char **argv) {
 		return iterator_test()?EXIT_SUCCESS:EXIT_FAILURE;
 	else if (test == "memory") 
 		return array_memory_test()()?EXIT_SUCCESS:EXIT_FAILURE;
+	else if (test == "basic_bool")
+		return basic_bool_test()?EXIT_SUCCESS:EXIT_FAILURE;
+	else if (test == "iterators_bool") 
+		return iterator_bool_test()?EXIT_SUCCESS:EXIT_FAILURE;
+	else if (test == "memory_bool") 
+		return array_bool_memory_test()()?EXIT_SUCCESS:EXIT_FAILURE;
+
+
 	return EXIT_FAILURE;
 }

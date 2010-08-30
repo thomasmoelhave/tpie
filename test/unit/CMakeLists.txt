@@ -12,7 +12,7 @@ if(Boost_FOUND)
   add_unittest(hashmap basic iterators memory)
 endif()
 add_unittest(simplequeue basic memory)
-add_unittest(array basic iterators memory)
+add_unittest(array basic iterators memory basic_bool iterators_bool memory_bool)
 add_unittest(streaming source sink sort)
 add_unittest(disjoint_set basic memory)
 
