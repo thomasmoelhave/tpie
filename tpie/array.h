@@ -152,8 +152,8 @@ public:
 	inline reverse_iterator rend() {return reverse_iterator(m_elements-1);}
 	inline const reverse_iterator rend() const {return const_reverse_iterator(m_elements-1);}
 };
-template <>
-class array<bool>: public linear_memory_base<array<bool> >{
+
+class bitarray: public linear_memory_base<bitarray>{
 public:
 	typedef size_t storage_type;
 	struct return_type{
@@ -169,7 +169,7 @@ private:
 	class ibase:public array_iterator_traits<size_t,forward> {
 		TT * m_elements;
 		ibase(TT * p, size_t index): array_iterator_traits<size_t,forward>(index), m_elements(p) {}
-		friend class array;
+		friend class bitarray;
 		using array_iterator_traits<size_t,forward>::elm;
 	public:		
 		inline bool operator*() const {return (m_elements[array_iterator_traits<size_t,forward>::elm/(8*sizeof(storage_type))] >> (array_iterator_traits<size_t,forward>::elm%(8*sizeof(storage_type)))) &1;}
@@ -180,7 +180,7 @@ private:
 	class ibase_d: public ibase<storage_type, forward> {
 	private:
 		inline ibase_d(storage_type * elm, size_t index): ibase<storage_type, forward>(elm,index) {};
-		friend class array;
+		friend class bitarray;
 		using ibase<storage_type,forward>::m_elements;
 	public:
 		inline ibase_d(): ibase<storage_type, forward>(0) {};
@@ -197,11 +197,11 @@ private:
 	};
 public:	
 	
-	array(size_t);
-	array(size_t,bool);
-	array(const array<bool> & a);
-	~array();
-	void operator=(const array<bool> & a);
+	bitarray(size_t);
+	bitarray(size_t,bool);
+	bitarray(const bitarray & a);
+	~bitarray();
+	void operator=(const bitarray & a);
 	void resize(size_t);
 	void resize(size_t,bool);
 	inline return_type operator[](size_t t);
@@ -230,7 +230,7 @@ public:
 		return 1.0/8.0;
 	}
 	static double memory_overhead() {
-		return sizeof(array) + MM_manager.space_overhead()+sizeof(storage_type);
+		return sizeof(bitarray) + MM_manager.space_overhead()+sizeof(storage_type);
 	}
 	inline static size_t words(size_t);
 	
