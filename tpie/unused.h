@@ -20,6 +20,8 @@
 #define __TPIE_UNUSED_H__
 #include <limits.h>
 
+namespace tpie{
+
 template <typename T>
 struct default_unused {
 	inline static T v() {return std::numeric_limits<T>::has_infinity ? std::numeric_limits<T>::infinity(): std::numeric_limits<T>::max();}	
@@ -31,5 +33,7 @@ struct default_unused<std::pair<T1, T2> > {
 		return std::pair<T1, T2>(default_unused<T1>::v(), default_unused<T2>::v());
 	}
 };
+
+}
 
 #endif //__TPIE_UNUSED_H__
