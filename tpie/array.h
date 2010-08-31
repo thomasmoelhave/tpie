@@ -137,6 +137,90 @@ public:
 	inline const reverse_iterator rend() const {return const_reverse_iterator(m_elements-1);}
 };
 
-}
+class bitarray: public linear_memory_base<bitarray>{
+public:
+	typedef size_t storage_type;
+	struct return_type{
+		storage_type* p;
+		int index;
+		inline operator bool() const;    
+		inline return_type & operator=(const bool  b);
+	};
+private:
+	storage_type* m_elements;
+	size_t m_size;
+	template <typename TT, bool forward> 
+	class ibase:public array_iterator_traits<size_t,forward> {
+		TT * m_elements;
+		ibase(TT * p, size_t index): array_iterator_traits<size_t,forward>(index), m_elements(p) {}
+		friend class bitarray;
+		using array_iterator_traits<size_t,forward>::elm;
+	public:		
+		inline bool operator*() const {return (m_elements[array_iterator_traits<size_t,forward>::elm/(8*sizeof(storage_type))] >> (array_iterator_traits<size_t,forward>::elm%(8*sizeof(storage_type)))) &1;}
+		//inline const bool * operator->() const {return elm;}
+	};
+	
+	template <bool forward>
+	class ibase_d: public ibase<storage_type, forward> {
+	private:
+		inline ibase_d(storage_type * elm, size_t index): ibase<storage_type, forward>(elm,index) {};
+		friend class bitarray;
+		using ibase<storage_type,forward>::m_elements;
+	public:
+		inline ibase_d(): ibase<storage_type, forward>(0) {};
+		inline return_type operator*() {
+			return_type res;
+			res.p = ibase<storage_type,forward>::m_elements +ibase<storage_type,forward>::elm/(8*sizeof(storage_type));
+			res.index = ibase<storage_type,forward>::elm %(8*sizeof(storage_type));
+			return res;
+		}
+		//inline T * operator->() {return ibase<T, forward>::elm;}
+		inline operator ibase<const storage_type, forward>() const {
+			return ibase<const storage_type, forward>(ibase<storage_type,forward>::m_elements,array_iterator_traits<size_t, forward>::elm);
+		}
+	};
+public:	
+	
+	bitarray(size_t);
+	bitarray(size_t,bool);
+	bitarray(const bitarray & a);
+	~bitarray();
+	void operator=(const bitarray & a);
+	void resize(size_t);
+	void resize(size_t,bool);
+	inline return_type operator[](size_t t);
+	inline bool operator[](size_t t)const;
+	inline size_t size()const ;
+	inline bool empty()const;
+
+	typedef bool value_type;
+	typedef ibase<const storage_type, true> const_iterator;
+	typedef ibase<const storage_type, false> const_reverse_iterator;
+	typedef ibase_d<true> iterator;
+	typedef ibase_d<false> reverse_iterator;
+
+	inline iterator find(size_type i) {return iterator(m_elements,i);}
+	inline const_iterator find(size_type i) const {return const_iterator(m_elements,i);}
+	inline iterator begin() {return iterator(m_elements,0);}
+	inline const_iterator begin() const {return const_iterator(m_elements,0);}
+	inline iterator end() {return iterator(m_elements,m_size);}
+	inline const_iterator end() const {return const_iterator(m_elements,m_size);}
+	inline reverse_iterator rbegin() {return reverse_iterator(m_elements,m_size-1);}
+	inline const_reverse_iterator rbegin() const {return const_reverse_iterator(m_elements,m_size-1);}
+	inline reverse_iterator rend() {return reverse_iterator(m_elements,-1);}
+	inline const_reverse_iterator rend() const {return const_reverse_iterator(m_elements,-1);}
+
+	inline static double memory_coefficient(){
+		return 1.0/8.0;
+	}
+	static double memory_overhead() {
+		return sizeof(bitarray) + MM_manager.space_overhead()+sizeof(storage_type);
+	}
+	inline static size_t words(size_t);
+	
+
+};
+#include <tpie/array.inl>
+
 #endif //__TPIE_ARRAY_H__ 	
 

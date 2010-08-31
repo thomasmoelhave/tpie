@@ -1,3 +1,21 @@
+macro(add_unittest NAME)
+  add_executable(ut-${NAME} test_${NAME}.cpp)
+  target_link_libraries(ut-${NAME} tpie ${Boost_LIBRARIES})
+  set(MTESTS ${ARGV})
+  list(REMOVE_AT MTESTS 0)
+  foreach(TEST ${MTESTS})
+    add_test(${NAME}_${TEST} ut-${NAME} ${TEST})
+  endforeach(TEST)
+endmacro(add_unittest)
+
+if(Boost_FOUND)
+  add_unittest(hashmap basic iterators memory)
+endif()
+add_unittest(simplequeue basic memory)
+add_unittest(array basic iterators memory bit_basic bit_iterators bit_memory)
+add_unittest(streaming source sink sort)
+add_unittest(disjoint_set basic memory)
+
 add_executable(test_bte test_bte.cpp)
 target_link_libraries(test_bte tpie)
 
