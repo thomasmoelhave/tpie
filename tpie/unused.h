@@ -23,7 +23,7 @@
 namespace tpie{
 template <typename T>
 struct default_unused {
-	inline static T v() {return std::numeric_limits<T>::max();}
+	inline static T v() {return std::numeric_limits<T>::has_infinity ? std::numeric_limits<T>::infinity(): std::numeric_limits<T>::max();}	
 };
 
 template <typename T1, typename T2>
