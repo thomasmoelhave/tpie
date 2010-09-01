@@ -18,9 +18,8 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #ifndef __TPIE_UNUSED_H__
 #define __TPIE_UNUSED_H__
-#include <limits.h>
-
-namespace tpie{
+#include <limits>
+namespace tpie {
 
 template <typename T>
 struct default_unused {
