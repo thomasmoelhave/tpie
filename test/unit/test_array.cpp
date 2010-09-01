@@ -42,11 +42,18 @@ bool basic_test() {
 	if (hat.empty()) return false;
 	hat.resize(0);
 	if (!hat.empty()) return false;
+	array<int> a(1,0),b(4,0),c(11,0);
+	a[0] = b[0] = c[0] = 1;
+	if(!a[0] || !b[0] || ! c[0]) return false;
+	a[0] = b[0] = c[0] = 0;
+	if(a[0] || b[0] || c[0]) return false;
+	
+
 	return true;
 }
 
 bool basic_bool_test() {
-	array<bool> hat;
+	tpie::bitarray hat;
   
 	//Resize
 	hat.resize(52, 1);
@@ -59,13 +66,19 @@ bool basic_bool_test() {
 	for (size_type i=0; i < 52; ++i)
 		hat[i] = ((i * 104729)>>3) % 2;
   
-	const tpie::array<bool> & hat2(hat);
+	const tpie::bitarray & hat2(hat);
 	for (size_type i=0; i < 52; ++i)
 		if (hat2[i] != ((i * 104729)>>3) % 2) return false;
   
 	if (hat.empty()) return false;
 	hat.resize(0);
 	if (!hat.empty()) return false;
+	bitarray a(1,0),b(4,0),c(11,0);
+	a[0] = b[0] = c[0] = true;
+	if(!a[0] || !b[0] || ! c[0]) return false;
+	a[0] = b[0] = c[0] = false;
+	if(a[0] || b[0] || c[0]) return false;
+
 	return true;
 }
 
