@@ -161,8 +161,10 @@ public:
 		int index;
 		inline operator bool() const;    
 		inline return_type & operator=(const bool  b);
-	private:
-		inline return_type & operator=(const return_type &);//ensures that we do not assign return types to other return types
+		inline return_type & operator=(const return_type & t){
+			*this = (bool) t;
+			return *this;
+		}
 	};
 private:
 	storage_type* m_elements;
