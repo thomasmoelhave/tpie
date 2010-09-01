@@ -5,6 +5,9 @@
 #include "array.h"
 #include <iostream>
 
+bitarray::~bitarray(){
+	resize(0);
+}
 
 inline size_t bitarray::words(size_t m){
 	return (sizeof(storage_type)*8-1+m)/(sizeof(storage_type)*8);
@@ -20,16 +23,14 @@ bitarray::bitarray(size_t s, bool b): m_elements(0), m_size(0){
 
 bitarray::bitarray(const bitarray & a):m_elements(0), m_size(0){
 	resize(a.m_size);
+	assert(m_size == a.m_size);
 	for(size_t i=0;i<words(m_size);++i)
 		m_elements[i] = a.m_elements[i];
 }
 
-bitarray::~bitarray(){
-	resize(0);
-}
-
 void bitarray::operator=(const bitarray & a){
 	resize(a.m_size);
+	assert(m_size == a.m_size);
 	for(size_t i=0;i<words(m_size);++i)
 		m_elements[i] = a.m_elements[i];
 }
@@ -79,4 +80,10 @@ inline bitarray::return_type & bitarray::return_type::operator=(const bool  b){
 
 inline bool bitarray::empty()const{
 	return m_size ==0;
+}
+ 
+inline bool bitarray::operator==(const bitarray   & other) const{
+	if(this->size() != other.size()) return false;
+	for(size_t i=0;i<words(m_size);++i) if(m_elements[i] != other.m_elements[i]) return false;
+	return true;
 }

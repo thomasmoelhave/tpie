@@ -164,6 +164,8 @@ namespace tpie {
 			int index;
 			inline operator bool() const;    
 			inline return_type & operator=(const bool  b);
+		private:
+			inline return_type operator=(const return_type &);//ensures that we do not assigne reeturn types to other return types
 		};
 	private:
 		storage_type* m_elements;
@@ -227,6 +229,8 @@ namespace tpie {
 		inline reverse_iterator rend() {return reverse_iterator(m_elements,-1);}
 		inline const_reverse_iterator rend() const {return const_reverse_iterator(m_elements,-1);}
 
+		inline bool operator==(const bitarray & other) const;
+		
 		inline static double memory_coefficient(){
 			return 1.0/8.0;
 		}
