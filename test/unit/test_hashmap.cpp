@@ -29,8 +29,10 @@ using namespace std;
 //using namespace std::tr1;
 using namespace boost::posix_time;
 
+
+template <template <typename value_t, typename hash_t, typename equal_t> class table_t>
 bool basic_test() {
-	hash_map<int, char> q1(200);
+	hash_map<int, char, hash<int>, std::equal_to<int>,  table_t> q1(200);
 	map<int, char> q2;
 	boost::rand48 prng(42);
 	for(int i=0; i < 100; ++i) {
@@ -45,9 +47,19 @@ bool basic_test() {
 			return false;
 		}
 		for (map<int, char>::iterator i=q2.begin(); i != q2.end(); ++i) {
-			if (q1.find((*i).first) == q1.end()) return false;
-			if (q1[(*i).first] != (*i).second) return false;
-			if (q1.find((*i).first+1) != q1.end()) return false;
+			if (q1.find((*i).first) == q1.end()) {
+				std::cerr << "Element too much" << std::endl;
+				return false;
+			}
+			if (q1[(*i).first] != (*i).second) {
+				std::cerr << "Value differs" << std::endl;
+				return false;
+			}
+			if (q1.find((*i).first+1) != q1.end()) {
+				std::cerr << "Element too much" << std::endl;
+				return false;
+			}
+
 		}
 		int x=(*q2.begin()).first;
 		q1.erase(x);
@@ -56,54 +68,73 @@ bool basic_test() {
 	return true;
 }
 
+struct charm_gen {
+	static inline int key(int i) {
+		return (i*21467) % 0x7FFFFFFF;
+	}
+	static inline int value(int i) {
+		return (i*41983)%128;
+	}
+	static inline int cnt() {return 1000000;}
+};
+
+struct identity_gen {
+	static inline int key(int i) {
+		return i;
+	}
+	static inline int value(int i) {
+		return i%128;
+	}
+	static inline int cnt() {return 1000000;}
+};
+
+
+template <typename gen_t, 
+		  template <typename value_t, typename hash_t, typename equal_t> class table_t>
 void test_speed() {
-	long c = 10000000;
 	ptime s1 = microsec_clock::universal_time();
-	hash_map<int, char> q1(c);
-	const int q = 0x7FFFFFFF;
-	const int p = 21467;
+	hash_map<int, char, hash<size_t>, std::equal_to<size_t>,  table_t> q1(gen_t::cnt());
 	{
-		for(int i=0; i < c;++i) {
-			q1[(i*p)%q] = (i*41983)%128;
+		for(int i=0; i < gen_t::cnt();++i) {
+			q1[gen_t::key(i)] = gen_t::value(i);
 		}
 	}
 	ptime s2 = microsec_clock::universal_time();
-	boost::unordered_map<int, char> q2(2*c);
+	boost::unordered_map<int, char> q2;
 	{
-		for(int i=0; i < c;++i)
-			q2[(i*p)%q] = (i*41983)%128;
+		for(int i=0; i < gen_t::cnt();++i)
+			q2[gen_t::key(i)] = gen_t::value(i);
 	}
 	ptime s3 = microsec_clock::universal_time();
-	std::cout << "Insert speedup: " << (double)(s2 - s1).total_milliseconds() / (double)(s3 - s2).total_milliseconds() << std::endl;
-
-
+	std::cout << "Insert speedup: " << (double)(s3 - s2).total_milliseconds() / (double)(s2 - s1).total_milliseconds() << std::endl;
+	int x=42;
 	s1 = microsec_clock::universal_time();
 	{
-		for(int i=0; i < c;++i)
-			q1.find((i*p)%q);
+		for(int i=0; i < gen_t::cnt();++i)
+			x ^= q1.find(gen_t::key(i))->second;
 	}
 	s2 = microsec_clock::universal_time();
 	{
-		for(int i=0; i < c;++i)
-			q2.find((i*p)%q);
+		for(int i=0; i < gen_t::cnt();++i)
+			x ^= q2.find(gen_t::key(i))->second;
 	}
 	s3 = microsec_clock::universal_time();
 
-	std::cout << "Find speedup: " << (double)(s2 - s1).total_milliseconds() / (double)(s3 - s2).total_milliseconds() << std::endl;
+	std::cout << "Find speedup: " << (double)(s3 - s2).total_milliseconds() / (double)(s2 - s1).total_milliseconds() << std::endl;
 
 	s1 = microsec_clock::universal_time();
 	{
-		for(int i=0; i < c;++i)
-			q1.erase((i*p)%q);
+		for(int i=0; i < gen_t::cnt();++i)
+			q1.erase(gen_t::key(i));
 	}
 	s2 = microsec_clock::universal_time();
 	{
-		for(int i=0; i < c;++i)
-			q2.erase((i*p)%q);
+		for(int i=0; i < gen_t::cnt();++i)
+			q2.erase(gen_t::key(i));
 	}
 	s3 = microsec_clock::universal_time();
-
-	std::cout << "Delete speedup: " << (double)(s2 - s1).total_milliseconds() / (double)(s3 - s2).total_milliseconds() << std::endl;
+	if (x + q1.size() + q2.size() != 42) std::cout << "Orly" << std::endl;
+	std::cout << "Delete speedup: " << (double)(s3 - s2).total_milliseconds() / (double)(s2 - s1).total_milliseconds() << std::endl;
 }
 
 class hashmap_memory_test: public memory_test {
@@ -118,13 +149,25 @@ int main(int argc, char **argv) {
 
 	if(argc != 2) return 1;
 	std::string test(argv[1]);
-	if (test == "basic")
-		 return basic_test()?EXIT_SUCCESS:EXIT_FAILURE;
-	else if (test == "speed")
-		test_speed();
+	if (test == "chaining")
+		return basic_test<chaining_hash_table>()?EXIT_SUCCESS:EXIT_FAILURE;
+	else if (test == "linear_probing")
+		return basic_test<linear_probing_hash_table>()?EXIT_SUCCESS:EXIT_FAILURE;
+	else if (test == "speed") {
+		std::cout << "=====================> Linear Probing, Charm Dataset <========================" << std::endl;
+		test_speed<charm_gen, linear_probing_hash_table>();
+		std::cout << "========================> Chaining, Charm Dataset <===========================" << std::endl;
+		test_speed<charm_gen, chaining_hash_table>();
+		std::cout << "===================> Linear Probing, Identity Dataset <=======================" << std::endl;
+		test_speed<identity_gen, linear_probing_hash_table>();
+		std::cout << "=======================> Chaining, Identity Dataset <=========================" << std::endl;
+		test_speed<identity_gen, chaining_hash_table>();
+		exit(EXIT_SUCCESS);
+	}
 	//else if (test == "iterators") 
 	//	return iterator_test()?EXIT_SUCCESS:EXIT_FAILURE;
 	else if (test == "memory") 
 		return hashmap_memory_test()()?EXIT_SUCCESS:EXIT_FAILURE;
+	std::cerr << "No such test" << std::endl;
 	return EXIT_FAILURE;
 }

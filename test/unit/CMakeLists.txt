@@ -9,7 +9,7 @@ macro(add_unittest NAME)
 endmacro(add_unittest)
 
 if(Boost_FOUND)
-  add_unittest(hashmap basic iterators memory)
+  add_unittest(hashmap chaining linear_probing iterators memory)
 endif()
 add_unittest(simplequeue basic memory)
 add_unittest(internal_priority_queue basic memory)
