@@ -66,8 +66,7 @@ set (OTHER_HEADERS
 		mm_manager.h
 		persist.h
 		portability.h
-		pq_internal_heap.h
-		pq_internal_heap.inl
+		internal_priority_queue.h
 		pq_overflow_heap.h
 		pq_overflow_heap.inl
 		pq_merge_heap.h

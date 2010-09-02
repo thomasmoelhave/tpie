@@ -107,7 +107,8 @@ bool iterator_test() {
 		}
 		if (i != hat.rend()) return false;
 	}
-  
+
+	std::sort(hat.begin(), hat.end());
 	return true;
 }
 bool iterator_bool_test() {
@@ -172,7 +173,6 @@ int main(int argc, char **argv) {
 		return iterator_bool_test()?EXIT_SUCCESS:EXIT_FAILURE;
 	else if (test == "bit_memory") 
 		return array_bool_memory_test()()?EXIT_SUCCESS:EXIT_FAILURE;
-
 
 	return EXIT_FAILURE;
 }

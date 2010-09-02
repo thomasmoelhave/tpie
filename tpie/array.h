@@ -26,17 +26,23 @@
 
 #include <tpie/util.h>
 #include <tpie/mm.h>
-
+#include <iterator>
 namespace tpie {
 
-template <typename TT, bool forward> 
-class array_iterator_traits {
+template <typename T, typename TT, bool forward> 
+class array_iterator_traits { //: public std::randomaccess_iterator<T> {
 public:
 //private:
 	TT elm;
 	inline array_iterator_traits(TT e): elm(e) {}
 	//friend class array;
 public:
+	typedef std::random_access_iterator_tag iterator_category;
+	typedef size_t difference_type;
+	//typedef T value_type;
+	typedef T * pointer;
+	typedef T & reference;
+
 	inline array_iterator_traits(): elm(0) {}
 	inline bool operator != (const array_iterator_traits & other) const{return elm != other.elm;}
 	inline bool operator == (const array_iterator_traits & other) const {return elm == other.elm;}
@@ -44,6 +50,9 @@ public:
 	inline void operator--() {elm += forward?-1:1;}
 	inline void operator +=(size_type dist) {elm += forward?dist:-dist;}
 	inline void operator -=(size_type dist) {elm += forward?-dist:dist;}
+	inline bool operator<(const array_iterator_traits & other) const {
+		return elm < other.elm;
+	}
 	inline ptrdiff_t operator-(const array_iterator_traits & other) const {
 		return elm - other.elm;
 	}
@@ -56,11 +65,13 @@ private:
 	T * m_elements;
 	size_t m_size;
 	template <typename TT, bool forward> 
-	class ibase:public array_iterator_traits<TT*,forward> {		
-	public:
-		ibase(TT *p): array_iterator_traits<TT*,forward>(p){}
-		inline const T & operator*() const {return *array_iterator_traits<TT*,forward>::elm;}
-		inline const T * operator->() const {return array_iterator_traits<TT*,forward>::elm;}
+	class ibase : public array_iterator_traits<TT, TT*,forward> {
+	public:		
+		using array_iterator_traits<TT, TT*,forward>::elm;
+
+		ibase(TT *p): array_iterator_traits<TT, TT*,forward>(p){}
+		inline const T & operator*() const {return *elm;}
+		inline const T * operator->() const {return elm;}
 	};
 
 	template <bool forward>
@@ -70,12 +81,16 @@ private:
 		friend class array;
 		using ibase<T, forward>::elm;
 	public:
+		typedef T value_type; 
 		inline ibase_d(): ibase<T, forward>(0) {};
-		inline T & operator*() {return *ibase<T, forward>::elm;}
-		inline T * operator->() {return ibase<T, forward>::elm;}
-		inline operator ibase<const T, forward>() const {
-			return ibase<const T, forward>(ibase<T, forward>::elm);
-		}
+		inline T & operator*() {return *elm;}
+		inline T * operator->() {return elm;}
+		inline operator ibase<const T, forward>() const {return ibase<const T, forward>(elm);}
+		ibase_d operator-(size_t d) const {return ibase_d(elm - d);}
+		ibase_d operator+(size_t d) const {return ibase_d(elm + d);}
+		ptrdiff_t operator-(const ibase_d & o) const {return elm - o.elm;}
+		inline ibase_d & operator++() {elm += forward?1:-1; return *this;}
+		inline ibase_d & operator--() {elm += forward?-1:1; return *this;}
 	};
 
 public:
@@ -129,8 +144,6 @@ public:
 		assert(i < m_size);
 		return m_elements[i];
 	}
-	inline iterator find(size_type i) {return iterator(m_elements+i);}
-	inline const_iterator find(size_type i) const {return const_iterator(m_elements+i);}
 	inline bool operator!=(const array<T> & other) const {
 		if(m_size != other.size()) return true;
 		for(size_t i=0;i<m_size;++i) if(m_elements[i] != other[i]) return true;
@@ -142,7 +155,8 @@ public:
 		for(size_t i=0;i<m_size;++i) if(m_elements[i] != other[i]) return false;
 		return true;
 	}
-
+	inline iterator find(size_type i) {return iterator(m_elements+i);}
+	inline const_iterator find(size_type i) const {return const_iterator(m_elements+i);}
 	inline iterator begin() {return iterator(m_elements);}
 	inline const_iterator begin() const {return const_iterator(m_elements);}
 	inline iterator end() {return iterator(m_elements+m_size);}
@@ -170,13 +184,13 @@ private:
 	storage_type* m_elements;
 	size_t m_size;
 	template <typename TT, bool forward> 
-	class ibase:public array_iterator_traits<size_t,forward> {
+	class ibase:public array_iterator_traits<bool, size_t, forward> {
 		TT * m_elements;
-		ibase(TT * p, size_t index): array_iterator_traits<size_t,forward>(index), m_elements(p) {}
+		ibase(TT * p, size_t index): array_iterator_traits<bool, size_t,forward>(index), m_elements(p) {}
 		friend class bitarray;
-		using array_iterator_traits<size_t,forward>::elm;
+		using array_iterator_traits<bool, size_t,forward>::elm;
 	public:		
-		inline bool operator*() const {return (m_elements[array_iterator_traits<size_t,forward>::elm/(8*sizeof(storage_type))] >> (array_iterator_traits<size_t,forward>::elm%(8*sizeof(storage_type)))) &1;}
+		inline bool operator*() const {return (m_elements[array_iterator_traits<bool, size_t, forward>::elm/(8*sizeof(storage_type))] >> (array_iterator_traits<bool, size_t, forward>::elm%(8*sizeof(storage_type)))) &1;}
 		//inline const bool * operator->() const {return elm;}
 	};
 	
@@ -196,7 +210,7 @@ private:
 		}
 		//inline T * operator->() {return ibase<T, forward>::elm;}
 		inline operator ibase<const storage_type, forward>() const {
-			return ibase<const storage_type, forward>(ibase<storage_type,forward>::m_elements,array_iterator_traits<size_t, forward>::elm);
+			return ibase<const storage_type, forward>(ibase<storage_type,forward>::m_elements,array_iterator_traits<bool, size_t, forward>::elm);
 		}
 	};
 public:	

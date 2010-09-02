@@ -1,4 +1,4 @@
-// -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
+// -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
 // Copyright 2008, The TPIE development team
 // 
@@ -19,168 +19,105 @@
 
 #ifndef __TPIE_AMI_PQ_INTERNAL_HEAP_H__
 #define __TPIE_AMI_PQ_INTERNAL_HEAP_H__
-
-#include<algorithm>
-
+#include <tpie/array.h>
+#include <algorithm>
+#include <tpie/util.h>
 namespace tpie {
 
-    namespace ami {
-
 /////////////////////////////////////////////////////////
-///
-/// \class Heap
-/// \author Lars Hvam Petersen
+/// \class internal_priority_queue
+/// \author Lars Hvam Petersen, Jakob Truelsen
 /// 
 /// Standard binary internal heap.
-///
 /////////////////////////////////////////////////////////
 
-template <typename T, typename Comparator = std::less<T> >
-class pq_internal_heap {
+template <typename T, typename comp_t = std::less<T> >
+class internal_priority_queue: public linear_memory_base< internal_priority_queue<T, comp_t> > {
 public:
     /////////////////////////////////////////////////////////
-    ///
     /// Constructor
     ///
     /// \param max_size Maximum size of queue
-    ///
     /////////////////////////////////////////////////////////
-    pq_internal_heap(TPIE_OS_SIZE_T max_size) { 
-	pq = new T[max_size]; 
-	sz = 0; 
-    }
-
-    pq_internal_heap(T* arr, TPIE_OS_SIZE_T length) {
-	pq = arr;
-	sz = length;
-    }
+    internal_priority_queue(size_type max_size): pq(max_size), sz(0) {}
+    //pq_internal_heap(T* arr, TPIE_OS_SIZE_T length) pq(arr, length), sz(length) {}
   
     /////////////////////////////////////////////////////////
-    ///
-    /// Destructor
-    ///
-    /////////////////////////////////////////////////////////
-    ~pq_internal_heap() { delete[] pq; } 
-  
-    /////////////////////////////////////////////////////////
-    ///
     /// Return true if queue is empty otherwise false
     ///
-    /// \return Boolean - empty or not
-    ///
+    /// \return True if the queue is empty
     /////////////////////////////////////////////////////////
-    bool empty() { return sz == 0; }
+    bool empty() const {return sz == 0;}
 
     /////////////////////////////////////////////////////////
-    ///
     /// Returns the size of the queue
     ///
     /// \return Queue size
-    ///
     /////////////////////////////////////////////////////////
-    TPIE_OS_SIZE_T size() {
-	return sz;
-    }
+    inline size_type size() const {return sz;}
 
     /////////////////////////////////////////////////////////
-    ///
-    /// Insert an element into the heap 
+    /// Insert an element into the priority queue
     ///
     /// \param v The element that should be inserted
-    ///
     /////////////////////////////////////////////////////////
-    void insert(T v) { 
-	pq[sz++] = v; 
-	bubbleUp(sz-1);
+    inline void insert(const T & v) { 
+		pq[sz++] = v; 
+		std::push_heap(pq.begin(), pq.find(sz), std::binary_negate<comp_t>(comp_t()));
     }
 
     /////////////////////////////////////////////////////////
-    ///
     /// Remove the minimal element from heap
     ///
-    /// \return Minimal element
-    ///
+    /// \return The minimal element
     /////////////////////////////////////////////////////////
-    T delmin() { 
-	std::swap(pq[0], pq[--sz]);
-	bubbleDown(); 
-	return pq[sz];
+    inline const T & delete_min() { 
+		if (sz > 1)
+			std::pop_heap(pq.begin(), pq.find(sz), std::binary_negate<comp_t>(comp_t()));
+		--sz;
+		return pq[sz];
     }
 
     /////////////////////////////////////////////////////////
+    /// Return the minimum element
     ///
-    /// Peek the minimal element
-    ///
-    /// \return Minimal element
-    ///
+    /// \return The minimal element
     /////////////////////////////////////////////////////////
-    T peekmin() {
-	return pq[0]; 
-    }
+    inline const T & min() const {return pq[0];}
 	
     /////////////////////////////////////////////////////////
-    ///
     /// Set the size 
     ///
     /// \param ne Size
-    ///
     /////////////////////////////////////////////////////////
-    void set_size(TPIE_OS_SIZE_T ne) {
-	sz = ne; 
-    }
+    // void set_size(TPIE_OS_SIZE_T ne) {
+	// 	sz = ne; 
+    // }
 	
-    /////////////////////////////////////////////////////////
+	inline static double memory_coefficient() {
+		return tpie::array<T>::memory_coefficient();
+	}
+
+	inline static double memory_overhead() {
+		return tpie::array<T>::memory_overhead() - sizeof(tpie::array<T>) + sizeof(internal_priority_queue);
+	}
+
+	/////////////////////////////////////////////////////////
     ///
     /// Returns a pointer to the underlaying array 
     ///
     /// \return Array
     ///
     /////////////////////////////////////////////////////////
-    T* get_arr() { 
-	return pq; 
-    }
-	
-private:
-    Comparator comp_;
-
-    inline TPIE_OS_SIZE_T left_child(TPIE_OS_SIZE_T k) {
-	return 2*k+1;
-    }
-
-    inline TPIE_OS_SIZE_T right_child(TPIE_OS_SIZE_T k){
-	return 2*k+2;
-    }
-
-    inline TPIE_OS_SIZE_T parent(TPIE_OS_SIZE_T k){
-	return (k-1)/2;
-    }
-
-    void bubbleDown() { 
-	TPIE_OS_SIZE_T k=0;
-	TPIE_OS_SIZE_T j;
-	while((j=left_child(k)) < sz) {
-	    if(j < sz-1 && comp_(pq[j+1], pq[j])) j++; // compare, pq[j] > pq[j+1]
-	    if(! comp_(pq[j], pq[k]) ) break; // compare, pq[k] > pq[j]
-	    std::swap(pq[k], pq[j]); 
-	    k = j;
+	tpie::array<T> & get_array() {
+		return pq;
 	}
-    }
-  
-	//  Parameter has to be signed!
-    void bubbleUp(TPIE_OS_SSIZE_T k) {
-	TPIE_OS_SSIZE_T j;
-	while(k > 0 && comp_(pq[k], pq[(j=parent(k))])) { // compare, pq[k/2] > pq[k]
-	    std::swap(pq[k], pq[j]);
-	    k = j; 
-	}
-    }
-		
-    T *pq; 
-    TPIE_OS_SIZE_T sz;
+
+	inline void clear() {sz=0;}
+private:	
+	tpie::array<T> pq; 
+    size_type sz;
 };
 
-    }  // ami namespace
-
 }  //  tpie namespace
-
 #endif

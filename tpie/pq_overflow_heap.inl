@@ -18,7 +18,7 @@
 
 template<typename T, typename Comparator>
 pq_overflow_heap<T, Comparator>::pq_overflow_heap(TPIE_OS_SIZE_T maxsize) {
-	h = new pq_internal_heap<T, Comparator>(maxsize);
+	h = new internal_priority_queue<T, Comparator>(maxsize);
 	//cout << "OPQ constructor" << endl;
 	this->maxsize = maxsize;
 }
@@ -43,13 +43,13 @@ inline void pq_overflow_heap<T, Comparator>::push(const T& x) {
 template<typename T, typename Comparator>
 inline void pq_overflow_heap<T, Comparator>::pop() {
 	assert(!empty());
-	h->delmin();
+	h->delete_min();
 }
 
 template<typename T, typename Comparator>
 inline const T& pq_overflow_heap<T, Comparator>::top() {
 	assert(!empty());
-	dummy = h->peekmin();
+	dummy = h->min();
 	return dummy;
 }
 
@@ -65,8 +65,9 @@ inline bool pq_overflow_heap<T, Comparator>::full() const {
 
 template<typename T, typename Comparator>
 inline T* pq_overflow_heap<T, Comparator>::sorted_array() {
-	std::sort(h->get_arr(), h->get_arr()+h->size(), comp_); // compare
-	return h->get_arr();
+	tpie::array<T> & a = h->get_array();
+	std::sort(a.begin(), a.begin() + h->size());
+	return &a[0];
 }
 
 template<typename T, typename Comparator>
@@ -76,7 +77,7 @@ inline TPIE_OS_SIZE_T pq_overflow_heap<T, Comparator>::sorted_size() const{
 
 template<typename T, typename Comparator>
 inline void pq_overflow_heap<T, Comparator>::sorted_pop() {
-	h->set_size(0);
+	h->clear();
 }
 
 template<typename T, typename Comparator>

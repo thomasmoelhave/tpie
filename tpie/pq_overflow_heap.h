@@ -20,7 +20,7 @@
 #ifndef _TPIE_PQ_OVERFLOW_HEAP_H_
 #define _TPIE_PQ_OVERFLOW_HEAP_H_
 
-#include "pq_internal_heap.h"
+#include <tpie/internal_priority_queue.h>
 
 namespace tpie {
 
@@ -140,7 +140,7 @@ public:
 
 private:
     Comparator comp_;
-    pq_internal_heap<T, Comparator>* h;
+	internal_priority_queue<T, Comparator>* h;
     TPIE_OS_SIZE_T maxsize;
     T dummy;
 };
