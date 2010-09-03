@@ -25,37 +25,9 @@
 #include <stdint.h>
 #include <algorithm>
 #include <iostream>
+#include <tpie/prime.h>
 
 namespace tpie {
-
-struct is_prime_t {
-public:
-	const size_t m;
-	const size_t mr;
-	array<size_t> m_pr;
-	is_prime_t(): m(4294967295), mr(sqrt(m)+1) {
-		array<bool> sieve(mr >> 1, true);
-		size_t pc=1;
-		for (size_t i=3; i < mr; i+= 2) {
-			if (!sieve[i>>1]) continue;
-			++pc;
-			for (size_t j=i+i; j < mr; j += i) sieve[j>>1] = false;
-		}
-		m_pr.resize(pc);
-		size_t p=1;
-		m_pr[0] = 2;
-		for (size_t i=3; i < mr; i += 2) 
-			if (sieve[i>>1]) m_pr[p++] = i;
-	}
-	bool operator()(size_t i) { 
-		for(size_t j =0; m_pr[j] * m_pr[j] <= i; ++j) {
-			if (i % m_pr[j] == 0) return false;
-		}
-		return true;
-	}
-};
-
-is_prime_t is_prime;
 
 template <typename T>
 struct hash {
