@@ -25,12 +25,17 @@
 namespace tpie {
 
 /////////////////////////////////////////////////////////
+/// \file internal_priority_queue.h
+///
+/// \brief Simple heap based priority queue implementation
+/////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////
 /// \class internal_priority_queue
 /// \author Lars Hvam Petersen, Jakob Truelsen
 /// 
 /// Standard binary internal heap.
 /////////////////////////////////////////////////////////
-
 template <typename T, typename comp_t = std::less<T> >
 class internal_priority_queue: public linear_memory_base< internal_priority_queue<T, comp_t> > {
 public:
@@ -67,9 +72,9 @@ public:
     }
 
     /////////////////////////////////////////////////////////
-    /// Remove the minimal element from heap
+    /// Remove the minimum element from heap
     ///
-    /// \return The minimal element
+    /// \return The minimum element
     /////////////////////////////////////////////////////////
     inline const T & delete_min() { 
 		if (sz > 1)
@@ -81,38 +86,41 @@ public:
     /////////////////////////////////////////////////////////
     /// Return the minimum element
     ///
-    /// \return The minimal element
+    /// \return The minimum element
     /////////////////////////////////////////////////////////
     inline const T & min() const {return pq[0];}
 	
-    /////////////////////////////////////////////////////////
-    /// Set the size 
-    ///
-    /// \param ne Size
-    /////////////////////////////////////////////////////////
-    // void set_size(TPIE_OS_SIZE_T ne) {
-	// 	sz = ne; 
-    // }
-	
+
+	/////////////////////////////////////////////////////////
+	/// \copybrief linear_memory_structure_doc::memory_coefficient()
+	/// \copydetails linear_memory_structure_doc::memory_coefficient()
+	/////////////////////////////////////////////////////////
 	inline static double memory_coefficient() {
 		return tpie::array<T>::memory_coefficient();
 	}
 
+	/////////////////////////////////////////////////////////
+	/// \copybrief linear_memory_structure_doc::memory_overhead()
+	/// \copydetails linear_memory_structure_doc::memory_overhead()
+	/////////////////////////////////////////////////////////
 	inline static double memory_overhead() {
 		return tpie::array<T>::memory_overhead() - sizeof(tpie::array<T>) + sizeof(internal_priority_queue);
 	}
 
 	/////////////////////////////////////////////////////////
+    /// \brief Return the underlaying array 
     ///
-    /// Returns a pointer to the underlaying array 
-    ///
-    /// \return Array
-    ///
+	/// Make sure you know what you are doing
+	///
+    /// \return The underlaying array
     /////////////////////////////////////////////////////////
 	tpie::array<T> & get_array() {
 		return pq;
 	}
 
+	/////////////////////////////////////////////////////////
+	/// \brief Clear the structure of all elements
+	/////////////////////////////////////////////////////////
 	inline void clear() {sz=0;}
 private:	
 	tpie::array<T> pq; 

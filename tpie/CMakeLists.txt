@@ -87,6 +87,13 @@ set (OTHER_HEADERS
 		stats_tree.h
 		tempname.h
 		vararray.h
+		array.h
+		bit_array.h
+		packed_array.h
+		hashmap.h
+		prime.h
+		concepts.h
+		concept_doc.h
 		)
 
 set (AMI_SOURCES
@@ -109,6 +116,7 @@ set (OTHER_SOURCES
 	portability.cpp
 	tpie_log.cpp
 	tempname.cpp
+	prime.cpp
 	)
 
 source_group("BTE" FILES ${BTE_HEADERS} ${BTE_SOURCES})

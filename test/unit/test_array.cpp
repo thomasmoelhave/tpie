@@ -20,6 +20,9 @@
 #include "common.h"
 
 #include <tpie/array.h>
+#include <tpie/bit_array.h>
+#include <tpie/array.h>
+#include <tpie/concepts.h>
 using namespace tpie;
 
 bool basic_test() {
@@ -53,7 +56,7 @@ bool basic_test() {
 }
 
 bool basic_bool_test() {
-	tpie::bitarray hat;
+	tpie::bit_array hat;
   
 	//Resize
 	hat.resize(52, 1);
@@ -66,14 +69,14 @@ bool basic_bool_test() {
 	for (size_type i=0; i < 52; ++i)
 		hat[i] = ((i * 104729)>>3) % 2;
   
-	const tpie::bitarray & hat2(hat);
+	const tpie::bit_array & hat2(hat);
 	for (size_type i=0; i < 52; ++i)
 		if (hat2[i] != ((i * 104729)>>3) % 2) return false;
   
 	if (hat.empty()) return false;
 	hat.resize(0);
 	if (!hat.empty()) return false;
-	bitarray a(1,0),b(4,0),c(11,0);
+	bit_array a(1,0),b(4,0),c(11,0);
 	a[0] = b[0] = c[0] = true;
 	if(!a[0] || !b[0] || ! c[0]) return false;
 	a[0] = b[0] = c[0] = false;
@@ -111,23 +114,31 @@ bool iterator_test() {
 	std::sort(hat.begin(), hat.end());
 	return true;
 }
+
 bool iterator_bool_test() {
-	array<bool> hat;
+	bit_array hat;
 	hat.resize(52);
 
 	for (size_type i=0; i < 52; ++i)
 		hat[i] = ((i * 104729)>>7) % 2;
 	{
-		array<bool>::const_iterator i=hat.begin();
+		bit_array::const_iterator i=hat.begin();
 		for (int j=0; j < 52; ++j) {
-			if (i == hat.end()) return false;
-			if (*i != (((j * 104729)>>7) % 2)) return false;
+			if (i == hat.end()) {
+				std::cerr << "end too soon" << std::endl;
+				return false;
+			}
+			if (*i != (((j * 104729)>>7) % 2)) {
+				std::cerr << j << std::endl;
+				std::cerr << "Wrong value " << *i << " " << (((j * 104729)>>7) % 2) << std::endl;
+				return false;
+			}
 			++i;
 		}
 		if (i != hat.end()) return false;
 	}
 	{
-		array<bool>::reverse_iterator i=hat.rbegin();
+		bit_array::reverse_iterator i=hat.rbegin();
 		for (int j=51; j >= 0; --j) {
 			if (i == hat.rend()) return false;
 			if (*i != (((j * 104729)>>7) % 2)) return false;
@@ -135,7 +146,7 @@ bool iterator_bool_test() {
 		}
 		if (i != hat.rend()) return false;
 	}
-  
+  	std::sort(hat.begin(), hat.end());
 	return true;
 }
 
@@ -150,14 +161,23 @@ public:
 
 class array_bool_memory_test: public memory_test {
 public:
-	array<bool> * a;
-	virtual void alloc() {a = new array<bool>(123456, 1);}
+	bit_array * a;
+	virtual void alloc() {a = new bit_array(123456, 1);}
 	virtual void free() {delete a;}
-	virtual size_type claimed_size() {return array<bool>::memory_usage(123456);}
+	virtual size_type claimed_size() {return bit_array::memory_usage(123456);}
 };
 
 
 int main(int argc, char **argv) {
+	BOOST_CONCEPT_ASSERT((linear_memory_structure_concept<array<int> >));
+	BOOST_CONCEPT_ASSERT((boost::RandomAccessIterator<array<int>::const_iterator>));
+	BOOST_CONCEPT_ASSERT((boost::RandomAccessIterator<array<int>::const_reverse_iterator>));
+	BOOST_CONCEPT_ASSERT((boost::Mutable_RandomAccessIterator<array<int>::iterator>));
+	BOOST_CONCEPT_ASSERT((boost::Mutable_RandomAccessIterator<array<int>::reverse_iterator>));
+	BOOST_CONCEPT_ASSERT((linear_memory_structure_concept<bit_array >));
+	BOOST_CONCEPT_ASSERT((boost::RandomAccessIterator<bit_array::const_iterator>));
+	BOOST_CONCEPT_ASSERT((boost::RandomAccessIterator<bit_array::const_reverse_iterator>));
+
   
 	if(argc != 2) return 1;
 	std::string test(argv[1]);

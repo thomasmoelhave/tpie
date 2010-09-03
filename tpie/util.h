@@ -24,6 +24,10 @@
 #include <cmath>
 namespace tpie {
 
+///////////////////////////////////////////////////////////////////////////
+/// Avoid a unused variable warning
+/// \param x the variable to ignore 
+///////////////////////////////////////////////////////////////////////////
 template <typename T>
 inline void unused(const T & x) {(void)x;}
 
@@ -31,12 +35,31 @@ typedef TPIE_OS_OFFSET offset_type;
 typedef TPIE_OS_SIZE_T size_type;
 typedef TPIE_OS_SSIZE_T ssize_type;
 
+///////////////////////////////////////////////////////////////////////////
+/// Any internal memory datastructur whos memory usage is linear
+/// in the numebr of elements.
+/// The structure must implement memory_cooeficient and
+/// memory_overhead
+///////////////////////////////////////////////////////////////////////////
 template <typename child_t> 
 struct linear_memory_base {
+
+	///////////////////////////////////////////////////////////////////////////
+	// Return the number of bytes required to create a datatstucture supporting 
+	// a given number of elements
+	// \param size The number of elements to support
+	// \return The abount of memory required in bytes
+	///////////////////////////////////////////////////////////////////////////
 	inline static offset_type memory_usage(offset_type size) {
 		return floor( size * child_t::memory_coefficient() + child_t::memory_overhead() );
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	// Return the maximum number of elements that can be contained in 
+	// in the stucture when it is allowed to fill a given number of bytes
+	// \param memory The number of bytes the structure is allowed to occupie
+	// \return The number of elements that will fit in the structure
+	///////////////////////////////////////////////////////////////////////////
 	inline static size_type memory_fits(size_type memory) {
 		return floor( (memory - child_t::memory_overhead()) / child_t::memory_coefficient() );
 	}
