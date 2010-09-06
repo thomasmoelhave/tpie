@@ -19,12 +19,12 @@
 
 #include "common.h"
 
-#include <tpie/simplequeue.h>
+#include <tpie/internal_queue.h>
 
 using namespace tpie;
 
 bool basic_test() {
-	simplequeue<int> q(52);
+	internal_queue<int> q(52);
 	for(size_t i=0; i < 52; ++i)
 		q.push((i * 104729) % 2251);
 	for(size_t i=0; i < 52; ++i) {
@@ -38,10 +38,10 @@ bool basic_test() {
 
 class queue_memory_test: public memory_test {
 public:
-	simplequeue<int> * a;
-	virtual void alloc() {a = new simplequeue<int>(123456);}
+	internal_queue<int> * a;
+	virtual void alloc() {a = new internal_queue<int>(123456);}
 	virtual void free() {delete a;}
-	virtual size_type claimed_size() {return simplequeue<int>::memory_usage(123456);}
+	virtual size_type claimed_size() {return internal_queue<int>::memory_usage(123456);}
 };
 
 int main(int argc, char **argv) {
