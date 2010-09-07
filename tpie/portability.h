@@ -227,18 +227,17 @@ typedef tpie::stream_size_type block_id_type;
 // macros								   //
 //////////////////////////////////////////////
 
+inline tpie::memory_size_type get_maximum_open_files() {
 #ifdef _WIN32
-#define TPIE_OS_SET_LIMITS_BODY	\
 	return 512;
 #else
-#define TPIE_OS_SET_LIMITS_BODY						\
-	struct rlimit limits;						\
-	if (getrlimit(RLIMIT_NOFILE,&limits) == -1) {	\
-		limits.rlim_cur = 255;						   \
-	}									   \
+	struct rlimit limits;
+	if (getrlimit(RLIMIT_NOFILE,&limits) == -1) {
+		limits.rlim_cur = 255;
+	}
 	return limits.rlim_cur;
 #endif
-
+}
 
 #ifdef _WIN32
 #define TPIE_OS_SET_CLOCK_TICK				\

@@ -23,7 +23,7 @@
 #include <tpie/exception.h>
 #include <tpie/mm_base.h>
 #include <tpie/mm_manager.h>
-
+#include <tpie/file_count.h>
 #include <tpie/file_accessor/stdio.h>
 namespace tpie {
 namespace file_accessor {
@@ -121,12 +121,16 @@ void stdio::open(const std::string & path,
 			write_header(false);
 		}
 	}
+	increment_open_file_count();
 	setvbuf(m_fd, NULL, _IONBF, 0);
 }
 
 void stdio::close() {
 	if (m_fd && m_write) write_header(true);
-	if (m_fd != 0) ::fclose(m_fd);
+	if (m_fd != 0) {
+		::fclose(m_fd);
+		decrement_open_file_count();
+	}
 	m_fd=0;
 }
 
