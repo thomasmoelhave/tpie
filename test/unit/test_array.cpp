@@ -92,13 +92,6 @@ int main(int argc, char **argv) {
 		return iterator_test()?EXIT_SUCCESS:EXIT_FAILURE;
 	else if (test == "memory") 
 		return array_memory_test()()?EXIT_SUCCESS:EXIT_FAILURE;
-	else if (test == "bit_basic")
-		return basic_bool_test()?EXIT_SUCCESS:EXIT_FAILURE;
-	else if (test == "bit_iterators") 
-		return iterator_bool_test()?EXIT_SUCCESS:EXIT_FAILURE;
-	else if (test == "bit_memory") 
-		return array_bool_memory_test()()?EXIT_SUCCESS:EXIT_FAILURE;
-
 
 	return EXIT_FAILURE;
 }
