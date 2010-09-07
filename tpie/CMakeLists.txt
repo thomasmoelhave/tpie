@@ -94,6 +94,7 @@ set (OTHER_HEADERS
 		prime.h
 		concepts.h
 		concept_doc.h
+		imported/cycle.h
 		)
 
 set (AMI_SOURCES
@@ -117,6 +118,7 @@ set (OTHER_SOURCES
 	tpie_log.cpp
 	tempname.cpp
 	prime.cpp
+	progress_indicator_spin.cpp
 	)
 
 source_group("BTE" FILES ${BTE_HEADERS} ${BTE_SOURCES})
