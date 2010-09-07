@@ -151,6 +151,11 @@ namespace tpie {
 	/**  Indicates whether or not m_threshold has been computed */
 	static bool m_thresholdComputed;
 
+	//////////////////////////////////////////////////////////////////////////
+	///
+	///  Makes sure m_threshold has been set.
+	///
+	//////////////////////////////////////////////////////////////////////////
 	static void compute_threshold(){
 		if(!m_thresholdComputed){
 			m_thresholdComputed = true;

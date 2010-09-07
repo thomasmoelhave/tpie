@@ -23,7 +23,7 @@ set(TEMP_DIR ${__TEMP_DIR} CACHE STRING "The default path for storing temporary 
 
 set(Boost_USE_STATIC_LIBS   ON)
 set(Boost_USE_MULTITHREADED ON)
-find_package(Boost 1.36.0 COMPONENTS date_time)
+find_package(Boost 1.36.0 COMPONENTS date_time thread)
 if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
 endif()
