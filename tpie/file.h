@@ -40,8 +40,8 @@ protected:
  		block_t * next;
 		char data[0];
 	};
-
 public:
+
 	/** Type describing how the offset supplied when seeking should be interpeted */
 	enum offset_type {
 		beginning,
@@ -336,6 +336,26 @@ public:
 		stream(file_type & file, stream_size_type offset=0):
 			file_base::stream(file, offset) {}
 
+
+		/////////////////////////////////////////////////////////////////////////
+		/// \brief Read an mutable item from the stream.
+		///
+		/// Read current item from the stream, and increment the offset
+		/// by one item.
+		/// This will throw an end_of_stream_exception if there are no more items
+		/// left in the stream.  This can also be checkout with can_read.
+		/// \returns The item read from the stream
+		/////////////////////////////////////////////////////////////////////////
+ 		inline item_type & read_mutable() {
+			assert(m_file.m_open);
+			if (m_index >= m_block->size) {
+				if (offset() >= m_file.size())
+					throw end_of_stream_exception();
+				update_block();
+			}
+			return reinterpret_cast<T*>(m_block->data)[m_index++];
+		}
+
 		/////////////////////////////////////////////////////////////////////////
 		/// \brief Read an item from the stream.
 		///
@@ -345,14 +365,8 @@ public:
 		/// left in the stream.  This can also be checkout with can_read.
 		/// \returns The item read from the stream
 		/////////////////////////////////////////////////////////////////////////
- 		inline item_type & read() {
-			assert(m_file.m_open);
-			if (m_index >= m_block->size) {
-				if (offset() >= m_file.size())
-					throw end_of_stream_exception();
-				update_block();
-			}
-			return reinterpret_cast<T*>(m_block->data)[m_index++];
+ 		inline const item_type & read() {
+			return read_mutable();
 		}
 
 		/////////////////////////////////////////////////////////////////////////
