@@ -28,6 +28,7 @@
 // TPIE config: choose BTE, block size, etc.
 #include "app_config.h"
 #include <tpie/portability.h>
+#include <string.h>
 
 // For floor.
 #include <cmath>

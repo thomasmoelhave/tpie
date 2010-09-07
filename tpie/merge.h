@@ -33,7 +33,7 @@
 #include <cmath>
 
 #include <tpie/stream.h>
-
+#include <tpie/tpie_assert.h>
 
 namespace tpie {
 
