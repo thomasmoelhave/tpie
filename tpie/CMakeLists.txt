@@ -81,46 +81,46 @@ else(WIN32)
 endif(WIN32)
 
 set (OTHER_HEADERS
+  b_vector.h
+  bit.h   
+  bit_matrix.h
+  comparator.h
   concepts.h
+  config.h.cmake
+  cpu_timer.h
   exception.h
-		util.h
-		bit.h   
-		bit_matrix.h
-		b_vector.h
-		comparator.h
-		config.h.cmake
-		cpu_timer.h
-		internal_sort.h
-		logstream.h
-		mergeheap.h
-		mm_base.h
-		mm.h
-		mm_manager.h
-		persist.h
-		portability.h
-		pq_internal_heap.h
-		pq_internal_heap.inl
-		pq_overflow_heap.h
-		pq_overflow_heap.inl
-		pq_merge_heap.h
-		pq_merge_heap.inl
-		progress_indicator_arrow.h
-		progress_indicator_base.h
-		progress_indicator_spin.h
-		progress_indicator_terminal.h
-		progress_indicator_tpie.h
-		sort_manager.h
-		stdio_stack.h
-		timer.h
-		tpie_assert.h
-		tpie_log.h
-		stats_coll.h
-		stats.h
-		stats_stream.h
-		stats_tree.h
-		tempname.h
-		vararray.h
-	)
+  file_count.h
+  internal_sort.h
+  logstream.h
+  mergeheap.h
+  mm.h
+  mm_base.h
+  mm_manager.h
+  persist.h
+  portability.h
+  pq_internal_heap.h
+  pq_internal_heap.inl
+  pq_merge_heap.h
+  pq_merge_heap.inl
+  pq_overflow_heap.h
+  pq_overflow_heap.inl
+  progress_indicator_arrow.h
+  progress_indicator_base.h
+  progress_indicator_spin.h
+  progress_indicator_terminal.h
+  progress_indicator_tpie.h
+  sort_manager.h
+  stats.h
+  stats_coll.h
+  stats_stream.h
+  stats_tree.h
+  stdio_stack.h
+  tempname.h
+  timer.h
+  tpie_assert.h
+  tpie_log.h
+  util.h
+  vararray.h)
 
 set (AMI_SOURCES
 	#	bit_permute.cpp
@@ -133,18 +133,19 @@ set (BTE_SOURCES
 	)
 
 set (OTHER_SOURCES
-        streaming/memory.cpp
-	#bit.cpp
-	#bit_matrix.cpp
-	cpu_timer.cpp
-	logstream.cpp
-	mm_base.cpp
-	mm_manager.cpp
-	portability.cpp
-	tpie_log.cpp
-	tempname.cpp
-	util.cpp
-	)
+  file_count.cpp
+  streaming/memory.cpp
+  #bit.cpp
+  #bit_matrix.cpp
+  cpu_timer.cpp
+  logstream.cpp
+  mm_base.cpp
+  mm_manager.cpp
+  portability.cpp
+  tpie_log.cpp
+  tempname.cpp
+  util.cpp
+  )
 
 source_group("BTE" FILES ${BTE_HEADERS} ${BTE_SOURCES})
 
