@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2008, The TPIE development team
+// Copyright 2010, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -21,31 +21,15 @@
 #include <vector>
 #include <vector>
 #include <stdint.h>
-#include <tpie/progress_indicator_arrow.h>
+#include "priority_queue.h"
 using namespace tpie;
 using namespace std;
 
 bool basic_test() {
-	uint64_t size=350003; //Must be a prime
 	//Lets hope the external pq has a small block factor!
-	MM_manager.set_memory_limit(1500000);
-	ami::priority_queue<uint64_t> pq(1.0);
-	for(uint64_t i=0; i < size; ++i)
-		pq.push( (i*40849+37159)%size );
-	for(uint64_t i=0; i < 2473; ++i) {
-		if (pq.empty()) return false;
-		if (pq.top() != i) return false;
-		pq.pop();
-	}
-	for(uint64_t i=0; i < 2473; ++i)
-		pq.push((i*40849+37159)%2473);
-	for(uint64_t i=0; i < size; ++i) {
-		if (pq.empty()) return false;
-		if (pq.top() != i) return false;
-		pq.pop();
-	}
-	if (!pq.empty()) return false; 
-	return true;
+	MM_manager.set_memory_limit(15000000);
+	ami::priority_queue<uint64_t, bit_pertume_compare< std::greater<uint64_t> > > pq(0.1);
+	return basic_pq_test(pq, 350003);
 }
 
 bool medium_instance() {
@@ -63,7 +47,7 @@ bool medium_instance() {
 			int src_int = TPIE_OS_RANDOM()%220;
 			pq.push(src_int);
 			pq2.push(src_int);
-      }
+		}
 		pq.pop();
 		pq2.pop();
 		pq.pop();
@@ -99,13 +83,22 @@ bool medium_instance() {
 	return true;
 }
 
+bool large_cycle(){
+	size_t x = 524*1024*1024;
+	MM_manager.set_memory_limit(x);
+	ami::priority_queue<uint64_t, bit_pertume_compare< std::greater<uint64_t> > > pq(0.01);
+	return cyclic_pq_test(pq, x / 10, 20000000);
+}
+
 template <bool crash_test>
 bool large_instance(){
 	const double PI = acos(-1.0);
-	MM_manager.set_memory_limit(50*1024*1024);
-	double mem_frac = crash_test ? 1.0 : 0.1;
+	MM_manager.set_memory_limit(500*1024*1024);
+	double mem_frac = crash_test ? 1.0 : 0.04;
+
 	ami::priority_queue<uint64_t, std::greater<uint64_t> > pq(mem_frac);
-	std::priority_queue<uint64_t, vector<uint64_t>,std::less<uint64_t> > pq2;
+	std::priority_queue<uint64_t, vector<uint64_t>, std::less<uint64_t> > pq2;
+
 	double cycle = crash_test ? 20000000000.0 : 50000000.0;
 	const TPIE_OS_OFFSET iterations=500000000;
 	progress_indicator_arrow progress("Running test","Running test:",0,iterations,1);
@@ -130,10 +123,10 @@ bool large_instance(){
 			pq.pop();
 			if (!crash_test) pq2.pop();
 		}
-		if(j%5000000==0) {
-			std::cout << "\rElements in pq: " << pq.size() << "                             " <<  std::endl;
-			std::cout << "Memory available: " << MM_manager.memory_available()/1024/1024 << " MB" << std::endl;
-		}
+		// if(j%5000000==0) {
+		// 	std::cout << "\rElements in pq: " << pq.size() << "                             " <<  std::endl;
+		// 	std::cout << "Memory available: " << MM_manager.memory_available()/1024/1024 << " MB" << std::endl;
+		// }
 	}
 	progress.done("Done");
 	return true;
@@ -149,5 +142,7 @@ int main(int argc, char **argv) {
 		return medium_instance()?EXIT_SUCCESS:EXIT_FAILURE;
 	else if (test == "large")
 		return large_instance<false>()?EXIT_SUCCESS:EXIT_FAILURE;
+	else if (test == "large_cycle")
+		return large_cycle()?EXIT_SUCCESS:EXIT_FAILURE;
 	return EXIT_FAILURE;
 }

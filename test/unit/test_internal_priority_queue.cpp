@@ -19,24 +19,20 @@
 #include "common.h"
 #include <tpie/internal_priority_queue.h>
 #include <vector>
+#include "priority_queue.h"
+
 using namespace tpie;
 
 bool basic_test() {
-	int size=100000;
-	internal_priority_queue<int, std::greater<int> > pq(size);
-	std::priority_queue<int, std::vector<int>,std::less<int> > pq2;
-	for (int i=0;i<size;i++){
-		int r = rand();
-		pq.insert(r);
-		pq2.push(r);
-	}
-	while (!pq.empty()){
-		if (pq.min()!=pq2.top()) return false;
-		pq.delete_min();
-		if (pq2.empty()) return false;
-		pq2.pop();
-	}
-	return pq2.empty();
+	size_t z = 104729;
+	internal_priority_queue<uint64_t, bit_pertume_compare<std::greater<uint64_t> > > pq(z);
+	return basic_pq_test(pq, z);
+}
+
+bool large_cycle(){
+	size_t x = 524*1024*102;
+	internal_priority_queue<uint64_t, bit_pertume_compare<std::greater<uint64_t> > > pq(x);
+	return cyclic_pq_test(pq, x, 20000000);
 }
 
 class my_memory_test: public memory_test {
@@ -52,6 +48,8 @@ int main(int argc, char **argv) {
 	std::string test(argv[1]);
 	if (test == "basic")
 		return basic_test()?EXIT_SUCCESS:EXIT_FAILURE;
+	else if (test == "large_cycle")
+		return large_cycle()?EXIT_SUCCESS:EXIT_FAILURE;
 	else if (test == "memory") 
 		return my_memory_test()()?EXIT_SUCCESS:EXIT_FAILURE;
 	return EXIT_FAILURE;
