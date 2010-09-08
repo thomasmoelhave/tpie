@@ -36,7 +36,21 @@ namespace tpie {
 	public:	
 		static std::string tpie_name(const std::string& post_base = "", const std::string& dir = "", const std::string& ext = ""); 
 
-		static void set_default_path(const std::string& path);
+		/////////////////////////////////////////////////////////
+		/// \returns the default path for temporary files on the system
+		/////////////////////////////////////////////////////////
+		static std::string get_system_path();
+		
+		/////////////////////////////////////////////////////////
+		///
+		/// sets the default temporary path.
+		///
+		/// \param path the default path to use, this path must exist in the system
+		/// \param subdir subdir of the temporary path, will be created if it does not exist
+		///
+		/////////////////////////////////////////////////////////
+		static void set_default_path(const std::string& path, const std::string& subdir="");
+
 		static void set_default_base_name(const std::string& name);
 		static void set_default_extension(const std::string& ext);
 

@@ -23,8 +23,10 @@
 #include <time.h>
 #include <cstring>
 #include <tpie/tempname.h>
+#include <tpie/tpie_log.h>
 #include <string>
 #include <tpie/portability.h>
+#include <boost/filesystem.hpp>
 #include <stdexcept>
 
 using namespace tpie;
@@ -33,6 +35,21 @@ std::string tempname::default_path;
 std::string tempname::default_base_name; 
 std::string tempname::default_extension;
 
+std::string tempname::get_system_path() {
+#ifdef WIN32
+	//set temporary path
+	CHAR temp_path[MAX_PATH];
+		
+	if (GetTempPath(MAX_PATH,temp_path) != 0) {
+		return std::string(temp_path);
+	} else {
+		TP_LOG_WARNING_ID("Could not get default system path, using current working dir.\n");
+		return ".";
+	}
+#else
+	return "/var/tmp";
+#endif
+}
 
 std::string tempname::tpie_name(const std::string& post_base, const std::string& dir, const std::string& ext) 
 {	std::string extension;
@@ -78,7 +95,7 @@ std::string tempname::get_actual_path() {
 	else if(getenv(TMPDIR_ENV) != NULL)  
 		dir = getenv(TMPDIR_ENV); //OS env variable (from portability.h)
 	else  
-		dir = tpie::tempDir; //OS hardcoded path (from portability.h)
+		dir = get_system_path(); //OS path
 
 	return dir;
 }
@@ -111,8 +128,25 @@ std::string tempname::tpie_mktemp()
 }
 
 
-void tempname::set_default_path(const std::string&  path) {
-	default_path = path;
+void tempname::set_default_path(const std::string&  path, const std::string& subdir) {
+	if (subdir=="") {
+		default_path = path;
+		return;
+	}
+	std::string p = path+"/"+subdir;
+	try {
+		if (!boost::filesystem::exists(p)) {
+			boost::filesystem::create_directory(p);
+		}
+		if (!boost::filesystem::is_directory(p)) {	
+			default_path = path;
+			TP_LOG_WARNING_ID("Could not use " << p << " as directory for temporary files, trying " << path);
+		}
+		default_path = p;
+	} catch (...) { 
+		TP_LOG_WARNING_ID("Could not use " << p << " as directory for temporary files, trying " << path);
+		default_path = path; 
+	}	
 }
 
 void tempname::set_default_base_name(const std::string& name) {
