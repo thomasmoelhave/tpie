@@ -8,11 +8,22 @@ macro(add_unittest NAME)
   endforeach(TEST)
 endmacro(add_unittest)
 
+macro(add_fulltest NAME)
+ set(MTESTS ${ARGV})
+  list(REMOVE_AT MTESTS 0)
+  foreach(TEST ${MTESTS})
+    add_test(NAME ${NAME}_${TEST} CONFIGURATIONS FullTest COMMAND ut-${NAME} ${TEST})
+  endforeach(TEST)
+endmacro(add_fulltest)
+
+
 if(Boost_FOUND)
   add_unittest(hashmap chaining linear_probing iterators memory)
 endif()
 add_unittest(internal_queue basic memory)
 add_unittest(external_priority_queue basic)
+add_fulltest(external_priority_queue medium large)
+
 add_unittest(internal_priority_queue basic memory)
 add_unittest(array basic iterators memory bit_basic bit_iterators bit_memory)
 add_unittest(streaming source sink sort)
