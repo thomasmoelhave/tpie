@@ -21,11 +21,14 @@ endif(WIN32)
 
 set(TEMP_DIR ${__TEMP_DIR} CACHE STRING "The default path for storing temporary files")
 
-set(Boost_USE_STATIC_LIBS   ON)
+set(Boost_ADDITIONAL_VERSIONS "1.40.0" "1.40" "1.41" "1.41.0" "1.42" "1.42.0" "1.43" "1.43.0" "1.44" "1.44.0" "1.45" "1.45.0")
+set(Boost_USE_STATIC_LIBS    ON)
 set(Boost_USE_MULTITHREADED ON)
-find_package(Boost 1.36.0 COMPONENTS date_time thread)
+find_package(Boost COMPONENTS date_time thread)
+
 if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
+    link_directories ( ${Boost_LIBRARY_DIRS} )
 endif()
 
 check_include_files("unistd.h" TPIE_HAVE_UNISTD_H)
