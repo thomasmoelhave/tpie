@@ -39,12 +39,13 @@ namespace tpie {
 template <typename T, typename comp_t = std::less<T> >
 class internal_priority_queue: public linear_memory_base< internal_priority_queue<T, comp_t> > {
 public:
+
     /////////////////////////////////////////////////////////
     /// Constructor
     ///
     /// \param max_size Maximum size of queue
     /////////////////////////////////////////////////////////
-    internal_priority_queue(size_type max_size): pq(max_size), sz(0) {}
+    internal_priority_queue(size_type max_size, comp_t c=comp_t()): pq(max_size), sz(0), comp(c) {}
     //pq_internal_heap(T* arr, TPIE_OS_SIZE_T length) pq(arr, length), sz(length) {}
   
     /////////////////////////////////////////////////////////
@@ -66,21 +67,17 @@ public:
     ///
     /// \param v The element that should be inserted
     /////////////////////////////////////////////////////////
-    inline void insert(const T & v) { 
+    inline void push(const T & v) { 
 		pq[sz++] = v; 
-		std::push_heap(pq.begin(), pq.find(sz), std::binary_negate<comp_t>(comp_t()));
+		std::push_heap(pq.begin(), pq.find(sz), comp);
     }
 
     /////////////////////////////////////////////////////////
     /// Remove the minimum element from heap
-    ///
-    /// \return The minimum element
     /////////////////////////////////////////////////////////
-    inline const T & delete_min() { 
-		if (sz > 1)
-			std::pop_heap(pq.begin(), pq.find(sz), std::binary_negate<comp_t>(comp_t()));
+    inline void pop() { 
+		std::pop_heap(pq.begin(), pq.find(sz), comp);
 		--sz;
-		return pq[sz];
     }
 
     /////////////////////////////////////////////////////////
@@ -88,7 +85,7 @@ public:
     ///
     /// \return The minimum element
     /////////////////////////////////////////////////////////
-    inline const T & min() const {return pq[0];}
+    inline const T & top() const {return pq[0];}
 	
 
 	/////////////////////////////////////////////////////////
@@ -123,8 +120,16 @@ public:
 	/////////////////////////////////////////////////////////
 	inline void clear() {sz=0;}
 private:	
+	template <typename TT>
+	struct binary_argument_swap {
+		TT i;
+		binary_argument_swap(TT & _): i(_) {}
+		bool operator()(const T& a, const T&b) const {return i(b,a);}
+	};
+
 	tpie::array<T> pq; 
     size_type sz;
+	binary_argument_swap<comp_t> comp;
 };
 
 }  //  tpie namespace

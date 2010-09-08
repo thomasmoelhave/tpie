@@ -44,14 +44,7 @@ public:
     /// \param maxsize Maximal size of queue
     ///
     /////////////////////////////////////////////////////////
-    pq_overflow_heap(TPIE_OS_SIZE_T maxsize);
-
-    /////////////////////////////////////////////////////////
-    ///
-    /// Destructor
-    ///
-    /////////////////////////////////////////////////////////
-    ~pq_overflow_heap();
+    pq_overflow_heap(TPIE_OS_SIZE_T maxsize, Comparator c=Comparator());
 
     /////////////////////////////////////////////////////////
     ///
@@ -139,10 +132,10 @@ public:
     void sorted_pop();
 
 private:
-    Comparator comp_;
-	internal_priority_queue<T, Comparator>* h;
+    Comparator comp;
+	internal_priority_queue<T, Comparator> h;
     TPIE_OS_SIZE_T maxsize;
-    T dummy;
+    //T dummy;
 };
 	
 	template<typename T, typename Comparator>
