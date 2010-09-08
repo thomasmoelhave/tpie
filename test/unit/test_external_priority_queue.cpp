@@ -19,8 +19,6 @@
 #include "common.h"
 #include <tpie/priority_queue.h>
 #include <vector>
-#include <vector>
-#include <stdint.h>
 #include "priority_queue.h"
 using namespace tpie;
 using namespace std;
@@ -28,7 +26,7 @@ using namespace std;
 bool basic_test() {
 	//Lets hope the external pq has a small block factor!
 	MM_manager.set_memory_limit(15000000);
-	ami::priority_queue<uint64_t, bit_pertume_compare< std::greater<uint64_t> > > pq(0.1);
+	ami::priority_queue<boost::uint64_t, bit_pertume_compare< std::greater<boost::uint64_t> > > pq(0.1);
 	return basic_pq_test(pq, 350003);
 }
 
@@ -86,7 +84,7 @@ bool medium_instance() {
 bool large_cycle(){
 	size_t x = 524*1024*1024;
 	MM_manager.set_memory_limit(x);
-	ami::priority_queue<uint64_t, bit_pertume_compare< std::greater<uint64_t> > > pq(0.01);
+	ami::priority_queue<boost::uint64_t, bit_pertume_compare< std::greater<boost::uint64_t> > > pq(0.01);
 	return cyclic_pq_test(pq, x / 10, 20000000);
 }
 
@@ -96,8 +94,8 @@ bool large_instance(){
 	MM_manager.set_memory_limit(500*1024*1024);
 	double mem_frac = crash_test ? 1.0 : 0.04;
 
-	ami::priority_queue<uint64_t, std::greater<uint64_t> > pq(mem_frac);
-	std::priority_queue<uint64_t, vector<uint64_t>, std::less<uint64_t> > pq2;
+	ami::priority_queue<boost::uint64_t, std::greater<boost::uint64_t> > pq(mem_frac);
+	std::priority_queue<boost::uint64_t, vector<boost::uint64_t>, std::less<boost::uint64_t> > pq2;
 
 	double cycle = crash_test ? 20000000000.0 : 50000000.0;
 	const TPIE_OS_OFFSET iterations=500000000;
@@ -115,7 +113,7 @@ bool large_instance(){
 			return false;
 		}
 		if (rand()<th) {
-			uint64_t r = rand();
+			boost::uint64_t r = rand();
 			pq.push(r);
 			if (!crash_test) pq2.push(r);
 		} else {

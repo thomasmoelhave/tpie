@@ -20,15 +20,15 @@
 #define __TPIE_TEST_UNIT_PRIORITY_QUEUE_H__
 
 #include <tpie/progress_indicator_arrow.h>
-#include <stdint.h>
+#include "common.h"
 #include <vector>
 #include <queue>
 
 template <typename T>
-bool cyclic_pq_test(T & pq, uint64_t size, uint64_t iterations) {
+bool cyclic_pq_test(T & pq, boost::uint64_t size, boost::uint64_t iterations) {
 	tpie::progress_indicator_arrow progress("Running test","Cyclic test:", 0, iterations,1);
-	std::priority_queue<uint64_t, std::vector<uint64_t>, bit_pertume_compare<std::less<uint64_t> > > pq2;
-	for (uint64_t i=0;i<iterations;i++){
+	std::priority_queue<boost::uint64_t, std::vector<boost::uint64_t>, bit_pertume_compare<std::less<boost::uint64_t> > > pq2;
+	for (boost::uint64_t i=0;i<iterations;i++){
 		progress.step();
 		if (pq.size() != pq.size()) {
 			std::cerr << "Size differs " << pq.size() << " " << pq.size() << std::endl;
@@ -40,7 +40,7 @@ bool cyclic_pq_test(T & pq, uint64_t size, uint64_t iterations) {
 		}
 		if (pq.size() == (size_t)0 ||
 			(pq.size() < size && drand48() <= (cos(i * 60.0 / size)+1)/2.0)) {
-			uint64_t r = lrand48();
+			boost::uint64_t r = lrand48();
 			pq.push(r);
 			pq2.push(r);
 		} else {
@@ -52,26 +52,26 @@ bool cyclic_pq_test(T & pq, uint64_t size, uint64_t iterations) {
 };
 
 template <typename T>
-bool basic_pq_test(T & pq, uint64_t size) {
-	// for(uint64_t i=0; i < size; ++i)
+bool basic_pq_test(T & pq, boost::uint64_t size) {
+	// for(boost::uint64_t i=0; i < size; ++i)
 	// 	pq.push( (i*40849+37159)%size );
-    // for(uint64_t i=0; i < 2473; ++i) {
+    // for(boost::uint64_t i=0; i < 2473; ++i) {
 	// 	if (pq.empty()) return false;
 	// 	if (pq.top() != i) return false;
 	// 	pq.pop();
     // }
-    // for(uint64_t i=0; i < 2473; ++i)
+    // for(boost::uint64_t i=0; i < 2473; ++i)
 	// 	pq.push((i*40849+37159)%2473);
-	// for(uint64_t i=0; i < size; ++i) {
+	// for(boost::uint64_t i=0; i < size; ++i) {
 	// 	if (pq.empty()) return false;
 	// 	if (pq.top() != i) return false;
 	// 	pq.pop();
 	// }
 	// if (!pq.empty()) return false; 
 
-	std::priority_queue<uint64_t, std::vector<uint64_t>, bit_pertume_compare<std::less<uint64_t> > > pq2;
-	for (uint64_t i=0;i<size;i++){
-		uint64_t r = lrand48();
+	std::priority_queue<boost::uint64_t, std::vector<boost::uint64_t>, bit_pertume_compare<std::less<boost::uint64_t> > > pq2;
+	for (boost::uint64_t i=0;i<size;i++){
+		boost::uint64_t r = lrand48();
 		pq.push(r);
 		pq2.push(r);
 	}
