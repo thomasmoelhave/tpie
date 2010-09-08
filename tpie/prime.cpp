@@ -17,7 +17,9 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #define MM_IMP_REGISTER
+#ifndef WIN32
 #warning "Using the the only memory manager available"
+#endif
 #include <tpie/prime.h>
 
 ///////////////////////////////////////////////////////////////////////////
@@ -28,7 +30,7 @@
 
 namespace tpie {
 
-is_prime_t::is_prime_t(): m(4294967295), mr(sqrt(m)+1) {
+is_prime_t::is_prime_t(): m(4294967295), mr(sqrt(double(m))+1) {
 	array<bool> sieve(mr >> 1, true);
 	size_t pc=1;
 	for (size_t i=3; i < mr; i+= 2) {
