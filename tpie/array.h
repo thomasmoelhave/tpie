@@ -64,7 +64,7 @@ private:
 		inline void increment() {elm += forward?1:-1;}
 		inline void decrement() {elm += forward?-1:1;}
 		inline void advance(size_t n) {elm += forward?n:-n;}
-		inline ptrdiff_t distance_to(iter_base const & o) const {return elm - o.elm;}
+		inline ptrdiff_t distance_to(iter_base const & o) const {return o.elm - elm;}
 		TT * elm;
 	public:
 		template <class U>
