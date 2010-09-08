@@ -22,7 +22,6 @@
 #include <tpie/array.h>
 #include <tpie/unused.h>
 #include <cmath>
-#include <stdint.h>
 #include <algorithm>
 #include <iostream>
 #include <tpie/prime.h>
@@ -249,7 +248,7 @@ private:
 
  	template <typename IT>
 	class iter_base {
-	private:
+	protected:
 		IT & tbl;
 		size_t cur;
  		iter_base(IT & t, size_t c): tbl(t), cur(c) {};
@@ -352,7 +351,7 @@ private:
 
  	template <typename IT>
 	class iter_base {
-	private:
+	protected:
 		IT & tbl;
 		size_t cur;
  		iter_base(IT & t, size_t c): tbl(t), cur(c) {};
