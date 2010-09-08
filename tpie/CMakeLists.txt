@@ -90,7 +90,7 @@ set (OTHER_HEADERS
 		array.h
 		bit_array.h
 		packed_array.h
-		hashmap.h
+		hash_map.h
 		prime.h
 		concepts.h
 		concept_doc.h

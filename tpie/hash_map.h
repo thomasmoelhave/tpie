@@ -297,7 +297,7 @@ public:
 		return tbl_t::memory_overhead() - sizeof(tbl_t) + sizeof(hash_map);
 	}
 
-	inline hash_map(size_t size): tbl(size) {}
+	inline hash_map(size_t size=0): tbl(size) {}
 	inline void resize(size_t size) {tbl.resize(size);}
 
 	inline void erase(const key_t & key) {
@@ -396,7 +396,7 @@ public:
 		return tbl_t::memory_overhead() - sizeof(tbl_t) + sizeof(hash_set);
 	}
 
-	inline hash_set(size_t size): tbl(size) {}
+	inline hash_set(size_t size=0): tbl(size) {}
 	inline void resize(size_t size) {tbl.resize(size);}
 	inline void erase(const key_t & key) {tbl.erase(key);}
 	inline void erase(const iterator & iter) {erase(iter.key());}

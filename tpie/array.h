@@ -67,6 +67,8 @@ private:
 		inline ptrdiff_t distance_to(iter_base const & o) const {return o.elm - elm;}
 		TT * elm;
 	public:
+		iter_base(): elm(0) {};
+
 		template <class U>
 		iter_base(iter_base<U, forward> const& o, typename boost::enable_if<
 				  boost::is_convertible<U*,TT*>, enabler>::type = enabler())
