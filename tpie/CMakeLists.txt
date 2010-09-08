@@ -128,6 +128,7 @@ set(BTE ${BTE_HEADERS} ${BTE_SOURCES})
 set(OTHER ${OTHER_HEADERS} ${OTHER_SOURCES})
 
 add_library(tpie ${BTE} ${AMI} ${OTHER})
+target_link_libraries(tpie ${Boost_LIBRARIES})
 
 install(TARGETS tpie DESTINATION ${LIB_INSTALL_DIR}) 
 install(FILES ${OTHER_HEADERS} ${AMI_HEADERS} DESTINATION ${HEADERS_INSTALL_DIR})
