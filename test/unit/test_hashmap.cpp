@@ -18,7 +18,7 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
 #include "common.h"
-#include <tpie/hashmap.h>
+#include <tpie/hash_map.h>
 #include <map>
 #include <boost/random/linear_congruential.hpp>
 #include <boost/unordered_map.hpp>
