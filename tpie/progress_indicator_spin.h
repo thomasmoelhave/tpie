@@ -21,6 +21,7 @@
 #define _TPIE_PROGRESS_INDICATOR_SPIN_H
 
 #include <tpie/portability.h>
+#include <string.h>
 #include <algorithm>
 
 #include <tpie/progress_indicator_terminal.h>
