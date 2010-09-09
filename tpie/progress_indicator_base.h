@@ -23,6 +23,9 @@
 #include <tpie/portability.h>
 #include <algorithm>
 
+#include <boost/thread.hpp>
+#include <tpie/imported/cycle.h>
+
 namespace tpie {
 
 ///////////////////////////////////////////////////////////////////
@@ -77,8 +80,9 @@ namespace tpie {
 	    m_current(0),
 	    m_percentageChecker(0), 
 	    m_percentageValue(0), 
-	    m_percentageUnit(0) {
-	    // Do nothing.
+	    m_percentageUnit(0),
+		m_lastUpdate(getticks()){
+		compute_threshold();
 	}
 
   ////////////////////////////////////////////////////////////////////
@@ -92,9 +96,10 @@ namespace tpie {
 	    m_current(other.m_current),
 	    m_percentageChecker(other.m_percentageChecker),
 	    m_percentageValue(other.m_percentageValue),
-	    m_percentageUnit(other.m_percentageUnit)
+	    m_percentageUnit(other.m_percentageUnit),
+		m_lastUpdate(other.m_lastUpdate)
 	    {
-		// Do nothing.
+		compute_threshold();
 	    }
 
   ////////////////////////////////////////////////////////////////////
@@ -110,6 +115,7 @@ namespace tpie {
 		m_minRange          = other.m_minRange;
 		m_stepValue         = other.m_stepValue;
 		m_current           = other.m_current;
+		m_lastUpdate        = other.m_lastUpdate;
 	    }
 	    return *this;
 	}
@@ -207,7 +213,11 @@ namespace tpie {
 
 	void step() {
 	    m_current += m_stepValue;
-	    refresh();
+		ticks currentTicks = getticks();
+		if(elapsed(currentTicks, m_lastUpdate) > m_threshold){
+			m_lastUpdate = currentTicks;
+		    refresh();
+		}
 	}
 
 	////////////////////////////////////////////////////////////////////
@@ -222,6 +232,7 @@ namespace tpie {
 	    if (!description.empty()) {
 			set_description(description);
 	    }
+		m_lastUpdate = getticks();
 	    refresh();
 	}
     
@@ -315,6 +326,31 @@ namespace tpie {
 
 	virtual void refresh() = 0;
 
+	////////////////////////////////////////////////////////////////////
+	///  Get the current value of the step counter.
+	////////////////////////////////////////////////////////////////////
+	
+	TPIE_OS_OFFSET get_current() { return m_current; }
+	
+	////////////////////////////////////////////////////////////////////
+	///  Get the minimum value of the current range.
+	////////////////////////////////////////////////////////////////////
+	
+	TPIE_OS_OFFSET get_min_range() { return m_minRange; }
+	
+	////////////////////////////////////////////////////////////////////
+	///  Get the maximum value of the current range.
+	////////////////////////////////////////////////////////////////////
+
+	TPIE_OS_OFFSET get_max_range() { return m_maxRange; }
+	
+	////////////////////////////////////////////////////////////////////
+	///  Get the current number of units the step counter is increased
+	///  by each call to step.
+	////////////////////////////////////////////////////////////////////
+
+	TPIE_OS_OFFSET get_step_value() { return m_stepValue; }
+
     protected:
 
 	/**  The lower bound of the counting range.  */
@@ -343,6 +379,25 @@ namespace tpie {
 	unsigned short m_percentageUnit;
 
     private:
+	/**  The number of ticks elapsed when refresh was called last */
+	ticks m_lastUpdate;
+
+	/**  The approximate frequency of calls to refresh in hz */
+	static const unsigned int m_frequency;
+
+	/**  The threshold for elapsed ticks before refresh is called again */
+	static double m_threshold;
+
+	/**  Indicates whether or not m_threshold has been computed */
+	static bool m_thresholdComputed;
+
+	//////////////////////////////////////////////////////////////////////////
+	///
+	///  Makes sure m_threshold has been set.
+	///
+	//////////////////////////////////////////////////////////////////////////
+	static void compute_threshold();
+
 	progress_indicator_base();
     };
 

@@ -118,7 +118,7 @@ set (OTHER_SOURCES
 	tpie_log.cpp
 	tempname.cpp
 	prime.cpp
-	progress_indicator_spin.cpp
+	progress_indicator_base.cpp
 	)
 
 source_group("BTE" FILES ${BTE_HEADERS} ${BTE_SOURCES})

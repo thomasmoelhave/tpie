@@ -26,9 +26,6 @@
 
 #include <tpie/progress_indicator_terminal.h>
 
-#include <boost/thread.hpp>
-#include <tpie/imported/cycle.h>
-
 namespace tpie {
 
 ///////////////////////////////////////////////////////////////////
@@ -59,7 +56,7 @@ namespace tpie {
 							TPIE_OS_OFFSET minRange, 
 							TPIE_OS_OFFSET maxRange, 
 							TPIE_OS_OFFSET stepValue) : 
-	    progress_indicator_terminal(title, description, minRange, maxRange, stepValue), m_symbols(NULL), m_numberOfStates(0), m_state(0), m_lastUpdate(getticks()) {
+	    progress_indicator_terminal(title, description, minRange, maxRange, stepValue), m_symbols(NULL), m_numberOfStates(0), m_state(0) {
 	    m_numberOfStates = 4;
 	    m_symbols = new char[m_numberOfStates+2];
 	    m_symbols[0] = '|';
@@ -68,7 +65,6 @@ namespace tpie {
 	    m_symbols[3] = '\\';
 	    m_symbols[4] = 'X';
 	    m_symbols[5] = '\0';
-		compute_threshold();
 	}
 
   ////////////////////////////////////////////////////////////////////
@@ -76,9 +72,8 @@ namespace tpie {
   ////////////////////////////////////////////////////////////////////
 	
 	progress_indicator_spin(const progress_indicator_spin& other) : 
-	    progress_indicator_terminal(other), m_symbols(NULL), m_numberOfStates(0), m_state(0), m_lastUpdate(getticks()) {
+	    progress_indicator_terminal(other), m_symbols(NULL), m_numberOfStates(0), m_state(0) {
 	    *this = other;
-		compute_threshold();
 	}
 
   ////////////////////////////////////////////////////////////////////
@@ -92,7 +87,6 @@ namespace tpie {
 
 		m_numberOfStates = other.m_numberOfStates;
 		m_state          = other.m_state;
-		m_lastUpdate     = other.m_lastUpdate;
 	    
 		delete[] m_symbols;
 
@@ -119,17 +113,13 @@ namespace tpie {
 	////////////////////////////////////////////////////////////////////
 
 	virtual void refresh() {
-		ticks currentTicks = getticks();
-		if(elapsed(currentTicks, m_lastUpdate) > m_threshold){
-			m_lastUpdate = currentTicks;
-			m_state = ++m_state % m_numberOfStates;
+		m_state = ++m_state % m_numberOfStates;
 
-			//  Use the last symbol for indicating "done".
-			if (m_current == m_maxRange) m_state = m_numberOfStates;
+		//  Use the last symbol for indicating "done".
+		if (m_current == m_maxRange) m_state = m_numberOfStates;
 
-			//  Go to the beginning of the line and print the description.
-			std::cout << "\r" << m_description << " " << m_symbols[m_state] << std::flush;
-		}
+		//  Go to the beginning of the line and print the description.
+		std::cout << "\r" << m_description << " " << m_symbols[m_state] << std::flush;
 	}
 
     protected:
@@ -142,30 +132,6 @@ namespace tpie {
 
 	/**  The current character used for the spinning indicator.  */
 	unsigned short m_state;
-
-	/**  The number of ticks elapsed when the terminal was last updated */
-	ticks m_lastUpdate;
-
-	/**  The threshold for elapsed ticks before new output is written to terminal */
-	static double m_threshold;
-
-	/**  Indicates whether or not m_threshold has been computed */
-	static bool m_thresholdComputed;
-
-	//////////////////////////////////////////////////////////////////////////
-	///
-	///  Makes sure m_threshold has been set.
-	///
-	//////////////////////////////////////////////////////////////////////////
-	static void compute_threshold(){
-		if(!m_thresholdComputed){
-			m_thresholdComputed = true;
-			ticks begin = getticks();
-			boost::this_thread::sleep(boost::posix_time::millisec(200));
-			ticks end = getticks();
-			m_threshold = elapsed(end, begin);
-		}
-	}
 
     private:
 	progress_indicator_spin();
