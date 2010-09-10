@@ -135,11 +135,11 @@ public:
 	void begin(stream_size_type items=max_items, begin_data_type * data=0) {
 		assert(memory_out() >= minimum_memory_out());
 		assert(memory_in() >= minimum_memory_in());
-		//memory_size_type mem = std::min(memory_in(), memory_out()) - minimum_memory_out() + file_base::block_size(m_blockFactor);
-		memory_size_type mem = memory_in() - minimum_memory_in() + file_base::block_size(m_blockFactor);
+		memory_size_type mem = std::min(memory_in(), memory_out()) - std::max(minimum_memory_in(), minimum_memory_out()) + file_base::block_size(m_blockFactor);
+		//memory_size_type mem = memory_in() - minimum_memory_in() + file_base::block_size(m_blockFactor);
 		//TODO ensure that mem is less then "consecutive_memory_available"
 		beginData=data;
-		bufferSize = std::min( stream_size_type(mem / sizeof(item_t)), items );
+		bufferSize = std::min( stream_size_type(mem / sizeof(item_type)), items );
 		buffer = new item_type[bufferSize];
 		bufferIndex=0;
 		size=0;
