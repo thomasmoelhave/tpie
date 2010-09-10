@@ -77,7 +77,10 @@ namespace tpie {
 	class temp_file {
 	private:
 		std::string m_path;
+		bool m_persist;
 	public:
+		inline bool is_persistent() const {return m_persist;}
+		inline void set_persistent(bool p) {m_persist=p;}
 		temp_file();
 		~temp_file();
 		const std::string & path();

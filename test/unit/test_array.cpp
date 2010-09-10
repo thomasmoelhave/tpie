@@ -92,5 +92,6 @@ int main(int argc, char **argv) {
 		return iterator_test()?EXIT_SUCCESS:EXIT_FAILURE;
 	else if (test == "memory") 
 		return array_memory_test()()?EXIT_SUCCESS:EXIT_FAILURE;
+
 	return EXIT_FAILURE;
 }

@@ -22,6 +22,7 @@
 
 #include <tpie/portability.h>
 #include <tpie/stream.h>
+#include <tpie/tpie_assert.h>
 
 namespace tpie {
 

@@ -21,6 +21,7 @@
 #define __TPIE_UTIL_H__
 
 #include <tpie/types.h>
+#include <cmath>
 namespace tpie {
 
 ///////////////////////////////////////////////////////////////////////////

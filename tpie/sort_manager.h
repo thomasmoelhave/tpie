@@ -28,6 +28,7 @@
 #include <tpie/portability.h>
 #include <tpie/stream.h> 
 #include <tpie/tempname.h>
+#include <tpie/tpie_assert.h>
 #include <tpie/merge_sorted_runs.h>
 #include <tpie/mergeheap.h>  //For templated heaps
 #include <tpie/internal_sort.h> // Contains classes for sorting internal runs

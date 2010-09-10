@@ -21,6 +21,7 @@
 #include <tpie/portability.h>
 #include <tpie/stream.h>
 #include "getopts.h"
+#include <string.h>
 
 using namespace tpie;
 

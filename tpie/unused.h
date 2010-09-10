@@ -18,11 +18,12 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #ifndef __TPIE_UNUSED_H__
 #define __TPIE_UNUSED_H__
-#include <limits.h>
+#include <limits>
+namespace tpie {
 
 template <typename T>
 struct default_unused {
-	inline static T v() {return std::numeric_limits<T>::max();}
+	inline static T v() {return std::numeric_limits<T>::has_infinity ? std::numeric_limits<T>::infinity(): std::numeric_limits<T>::max();}	
 };
 
 template <typename T1, typename T2>
@@ -32,4 +33,5 @@ struct default_unused<std::pair<T1, T2> > {
 	}
 };
 
+}
 #endif //__TPIE_UNUSED_H__

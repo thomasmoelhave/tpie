@@ -137,7 +137,7 @@ const std::string& tempname::get_default_extension() {
 	return default_extension;
 }
 
-temp_file::temp_file() {}
+temp_file::temp_file(): m_persist(false) {}
 
 const std::string & temp_file::path() {
 	if (m_path.empty())
@@ -146,6 +146,6 @@ const std::string & temp_file::path() {
 }
 
 temp_file::~temp_file() {
-	if (!m_path.empty() && file_exists(m_path)) 
+	if (!m_path.empty() && !m_persist && file_exists(m_path)) 
 		remove(m_path);
 }
