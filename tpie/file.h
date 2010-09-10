@@ -139,7 +139,7 @@ public:
 					 memory_size_type userDataSize=0) throw(stream_exception) {
 		close();
 		m_canRead = accessType == read || accessType == read_write;
-		m_canWrite = accessType == write || accessType == read_write,
+		m_canWrite = accessType == write || accessType == read_write;
 		m_fileAccessor->open(path, m_canRead, m_canWrite, m_itemSize, userDataSize);
 		m_size = m_fileAccessor->size();
 		m_open = true;
