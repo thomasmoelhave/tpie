@@ -27,7 +27,6 @@
 #include <tpie/util.h>
 #include <iostream>
 #include <boost/cstdint.hpp>
-#include <stdint.h>
 
 struct bit_permute {
 	boost::uint64_t operator()(boost::uint64_t i) const{
