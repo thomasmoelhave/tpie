@@ -1,6 +1,6 @@
 #include "progress_indicator_base.h"
 
-const unsigned int tpie::progress_indicator_base::m_frequency = 5;
+const unsigned int tpie::progress_indicator_base::m_frequency = 20;
 double tpie::progress_indicator_base::m_threshold;
 bool tpie::progress_indicator_base::m_thresholdComputed = false;
 
