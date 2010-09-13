@@ -20,6 +20,8 @@
 #define __TPIE_TEST_UNIT_PRIORITY_QUEUE_H__
 
 #include <tpie/progress_indicator_arrow.h>
+#include <boost/random/uniform_01.hpp>>
+#include <boost/random/linear_congruential.hpp>
 #include "common.h"
 #include <vector>
 #include <queue>
@@ -28,6 +30,9 @@ template <typename T>
 bool cyclic_pq_test(T & pq, boost::uint64_t size, boost::uint64_t iterations) {
 	tpie::progress_indicator_arrow progress("Running test","Cyclic test:", 0, iterations,1);
 	std::priority_queue<boost::uint64_t, std::vector<boost::uint64_t>, bit_pertume_compare<std::less<boost::uint64_t> > > pq2;
+	boost::rand48 rnd;
+	boost::uniform_01<double> urnd;
+
 	for (boost::uint64_t i=0;i<iterations;i++){
 		progress.step();
 		if (pq.size() != pq.size()) {
@@ -39,8 +44,8 @@ bool cyclic_pq_test(T & pq, boost::uint64_t size, boost::uint64_t iterations) {
 			return false;
 		}
 		if (pq.size() == (size_t)0 ||
-			(pq.size() < size && drand48() <= (cos(i * 60.0 / size)+1)/2.0)) {
-			boost::uint64_t r = lrand48();
+			(pq.size() < size && urnd(rnd) <= (cos(i * 60.0 / size)+1)/2.0)) {
+			boost::uint64_t r = rnd();
 			pq.push(r);
 			pq2.push(r);
 		} else {
