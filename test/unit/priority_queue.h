@@ -58,6 +58,7 @@ bool cyclic_pq_test(T & pq, boost::uint64_t size, boost::uint64_t iterations) {
 
 template <typename T>
 bool basic_pq_test(T & pq, boost::uint64_t size) {
+	boost::rand48 rnd;
 	// for(boost::uint64_t i=0; i < size; ++i)
 	// 	pq.push( (i*40849+37159)%size );
     // for(boost::uint64_t i=0; i < 2473; ++i) {
@@ -76,7 +77,7 @@ bool basic_pq_test(T & pq, boost::uint64_t size) {
 
 	std::priority_queue<boost::uint64_t, std::vector<boost::uint64_t>, bit_pertume_compare<std::less<boost::uint64_t> > > pq2;
 	for (boost::uint64_t i=0;i<size;i++){
-		boost::uint64_t r = lrand48();
+		boost::uint64_t r = rnd();
 		pq.push(r);
 		pq2.push(r);
 	}
