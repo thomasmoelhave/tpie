@@ -42,18 +42,20 @@ struct hash<std::pair<T1,T2> > {
 	}	
 };
 
-template <typename value_t, typename hash_t, typename equal_t>
+template <typename value_t, typename hash_t, typename equal_t, typename index_t>
 class chaining_hash_table {
 private:
  	static const float sc;
 	
+#pragma pack(push, 1)
  	struct bucket_t {
  		value_t value;
- 		size_t next;
+ 		index_t next;
  	};
+#pragma pack(pop)
 	
 	size_t first_free;
-	array<size_t> list;
+	array<index_t> list;
 	array<bucket_t> buckets;
 
   	hash_t h;
@@ -63,7 +65,7 @@ public:
   	value_t unused;
 
 	static double memory_coefficient() {
-		return array<size_t>::memory_coefficient() *sc + array<bucket_t>::memory_coefficient();
+		return array<index_t>::memory_coefficient() *sc + array<bucket_t>::memory_coefficient();
 	}
 
 	static double memory_overhead() {
@@ -141,7 +143,7 @@ public:
  	}
 };
 
-template <typename value_t, typename hash_t, typename equal_t>
+template <typename value_t, typename hash_t, typename equal_t, typename index_t>
 class linear_probing_hash_table {
 private:
 	static const float sc;
@@ -222,9 +224,10 @@ template <typename key_t,
 		  typename data_t, 
 		  typename hash_t=hash<key_t>,
 		  typename equal_t=std::equal_to<key_t>, 
-		  template <typename value_t, typename hash_t, typename equal_t> class table_t = chaining_hash_table
+		  typename index_t=size_t,
+		  template <typename value_t, typename hash_t, typename equal_t, typename index_t> class table_t = chaining_hash_table
 		  >
-class hash_map: public linear_memory_base< hash_map<key_t, data_t, hash_t, equal_t, table_t> > {
+class hash_map: public linear_memory_base< hash_map<key_t, data_t, hash_t, equal_t, index_t, table_t> > {
 public:
 	typedef std::pair<key_t, data_t> value_t;
 private:
@@ -242,7 +245,7 @@ private:
 		}
 	};
 
-	typedef table_t<value_t, key_hash_t, key_equal_t> tbl_t;
+	typedef table_t<value_t, key_hash_t, key_equal_t, index_t> tbl_t;
 
 	tbl_t tbl;
 
@@ -342,10 +345,11 @@ public:
 template <typename key_t,
 		  typename hash_t=hash<key_t>,
 		  typename equal_t=std::equal_to<key_t>,
-		  template <typename value_t, typename hash_t, typename equal_t> class table_t=linear_probing_hash_table>
+		  typename index_t=size_t,
+		  template <typename value_t, typename hash_t, typename equal_t, typename index_t> class table_t=linear_probing_hash_table>
 class hash_set {
 private:
-	typedef table_t<key_t, hash_t, equal_t> tbl_t;
+	typedef table_t<key_t, hash_t, equal_t, index_t> tbl_t;
 	tbl_t tbl;
 	typedef key_t value_t;
 
@@ -425,11 +429,11 @@ public:
 };
 
 
-template <typename value_t, typename hash_t, typename equal_t>
-const float linear_probing_hash_table<value_t, hash_t, equal_t>::sc = 2.0f;
+template <typename value_t, typename hash_t, typename equal_t, typename index_t>
+const float linear_probing_hash_table<value_t, hash_t, equal_t, index_t>::sc = 2.0f;
 
-template <typename value_t, typename hash_t, typename equal_t>
-const float chaining_hash_table<value_t, hash_t, equal_t>::sc = 2.f;
+template <typename value_t, typename hash_t, typename equal_t, typename index_t>
+const float chaining_hash_table<value_t, hash_t, equal_t, index_t>::sc = 2.f;
 
 }
 #endif //__TPIE_HASHMAP_H__

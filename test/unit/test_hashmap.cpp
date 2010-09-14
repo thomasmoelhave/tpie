@@ -30,9 +30,9 @@ using namespace std;
 using namespace boost::posix_time;
 
 
-template <template <typename value_t, typename hash_t, typename equal_t> class table_t>
+template <template <typename value_t, typename hash_t, typename equal_t, typename index_t> class table_t>
 bool basic_test() {
-	hash_map<int, char, hash<int>, std::equal_to<int>,  table_t> q1(200);
+	hash_map<int, char, hash<int>, std::equal_to<int>, size_t, table_t> q1(200);
 	map<int, char> q2;
 	boost::rand48 prng(42);
 	for(int i=0; i < 100; ++i) {
@@ -90,10 +90,10 @@ struct identity_gen {
 
 
 template <typename gen_t, 
-		  template <typename value_t, typename hash_t, typename equal_t> class table_t>
+		  template <typename value_t, typename hash_t, typename equal_t, typename index_t> class table_t>
 void test_speed() {
 	ptime s1 = microsec_clock::universal_time();
-	hash_map<int, char, hash<size_t>, std::equal_to<size_t>,  table_t> q1(gen_t::cnt());
+	hash_map<int, char, hash<size_t>, std::equal_to<size_t>, size_t, table_t> q1(gen_t::cnt());
 	{
 		for(int i=0; i < gen_t::cnt();++i) {
 			q1[gen_t::key(i)] = gen_t::value(i);
