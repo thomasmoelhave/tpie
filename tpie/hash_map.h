@@ -70,7 +70,9 @@ public:
 
 	static double memory_overhead() {
 		return array<size_t>::memory_coefficient() * 100.0 
-			+ array<size_t>::memory_overhead() + sizeof(chaining_hash_table) - sizeof(array<value_t>);
+			+ array<size_t>::memory_overhead() + sizeof(chaining_hash_table) 
+			- sizeof(array<index_t>)
+			- sizeof(array<bucket_t>);
 	}
 	
 	inline value_t & get(size_t idx) {return buckets[idx].value;}
@@ -85,7 +87,7 @@ public:
 		}
 		size_t x=size_t(99+z*sc)|1;
 		while (!is_prime(x)) x -= 2;
- 		list.resize(x, std::numeric_limits<size_t>::max());
+ 		list.resize(x, std::numeric_limits<index_t>::max());
  	}
 
 	chaining_hash_table(size_t e=0, value_t u=default_unused<value_t>::v()): size(0), unused(u) {resize(e);};
@@ -100,7 +102,7 @@ public:
 
  	inline size_t find(const value_t & value) const {
  		size_t v = list[h(value) % list.size()];
-		while (v != std::numeric_limits<size_t>::max()) {
+		while (v != std::numeric_limits<index_t>::max()) {
 			if (e(buckets[v].value, value)) return v;
 			v = buckets[v].next;
 		}
@@ -110,7 +112,7 @@ public:
 	inline std::pair<size_t, bool> insert(const value_t & val) {
 		size_t hv = h(val) % list.size();
  		size_t v = list[hv];
-		while (v != std::numeric_limits<size_t>::max()) {
+		while (v != std::numeric_limits<index_t>::max()) {
 			if (e(buckets[v].value, val)) return std::make_pair(v, false);
 			v = buckets[v].next;
 		}
