@@ -79,7 +79,10 @@ public:
  	void resize(size_t z) {
  		buckets.resize(z);
  		first_free = 0;
- 		for (size_t i=0; i < z; ++i) buckets[i].next = i+1;
+ 		for (size_t i=0; i < z; ++i) {
+			buckets[i].value = unused;
+			buckets[i].next = i+1;
+		}
 		size_t x=size_t(99+z*sc)|1;
 		while (!is_prime(x)) x -= 2;
  		list.resize(x, std::numeric_limits<size_t>::max());
@@ -262,12 +265,16 @@ private:
  		inline const data_t & value() const {return tbl.get(cur)->second;}
  		inline const value_t & operator*() const {return tbl.get(cur);}
  		inline const value_t * operator->() const {return &tbl.get(cur);}
- 		inline bool operator==(iter_base & o) const {return o.cur == cur;}
- 		inline bool operator!=(iter_base & o) const {return o.cur != cur;}
+
+		template <typename IIT>
+ 		inline bool operator==(iter_base<IIT> & o) const {return o.cur == cur;}
+		template <typename IIT>
+ 		inline bool operator!=(iter_base<IIT> & o) const {return o.cur != cur;}
  		inline void operator++() {
+			++cur;
  			while (cur != tbl.end()) {
- 				++cur;
 				if (tbl.get(cur) != tbl.unused) break;
+				++cur;
  			}
  		}
  	};
