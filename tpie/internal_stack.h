@@ -16,12 +16,12 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
-#ifndef __TPIE_INTERNAL_QUEUE_H__
-#define __TPIE_INTERNAL_QUEUE_H__
+#ifndef __TPIE_INTERNAL_STACK_H__
+#define __TPIE_INTERNAL_STACK_H__
 
 ///////////////////////////////////////////////////////////////////////////
-/// \file internal_queue.h
-/// Contains a generic internal queue with known memory requirements
+/// \file internal_stack.h
+/// Contains a generic internal stack with known memory requirements
 ///////////////////////////////////////////////////////////////////////////
 #include <tpie/array.h>
 #include <tpie/util.h>
@@ -29,19 +29,14 @@
 namespace tpie {
 
 /////////////////////////////////////////////////////////
-/// \brief A generic internal queue
+/// \brief A generic internal stack
 ///
-/// The queue supports a fixed number of pushes between
-/// calls to clear, the number of pushes is given as an argument
-/// to the constructructor or to resize. This means that the
-/// queue does NOT imprement a ring buffer.
-///
-/// \tparam T The type of items storred in the queue
+/// \tparam T The type of items storred on the stack
 /////////////////////////////////////////////////////////
 template <typename T>
-class internal_queue: public linear_memory_base<internal_queue<T> > {
+class internal_stack: public linear_memory_base<internal_stack<T> > {
 	array<T> m_elements;
-	size_t m_first, m_last;
+	size_t m_size;
 public:
 	/////////////////////////////////////////////////////////
 	/// \copybrief linear_memory_structure_doc::memory_coefficient()
@@ -53,65 +48,56 @@ public:
 	/// \copybrief linear_memory_structure_doc::memory_overhead()
 	/// \copydetails linear_memory_structure_doc::memory_overhead()
 	/////////////////////////////////////////////////////////
-	static double memory_overhead() {return array<T>::memory_overhead() - sizeof(array<T>) + sizeof(internal_queue);}
+	static double memory_overhead() {return array<T>::memory_overhead() - sizeof(array<T>) + sizeof(internal_stack);}
 
 	/////////////////////////////////////////////////////////
-	/// \brief Construct an queue
+	/// \brief Construct a stack
+	///
+	/// \param size The maximal number of items allowed on the stack at any one time
+	/////////////////////////////////////////////////////////
+	internal_stack(size_t size=0): m_size(0) {m_elements.resize(size);}
+
+	/////////////////////////////////////////////////////////
+	/// \brief Resize the stack, all data is lost
 	///
 	/// \param size The number of pushes supported between calles to
 	/////////////////////////////////////////////////////////
-	internal_queue(size_t size=0): m_first(0), m_last(0) {m_elements.resize(size);}
-
-	/////////////////////////////////////////////////////////
-	/// \brief Resize the queue, all data is lost
-	///
-	/// \param size The number of pushes supported between calles to
-	/////////////////////////////////////////////////////////
-	void resize(size_t size=0) {m_elements.resize(size); m_first = m_last = 0;}
+	void resize(size_t size=0) {m_elements.resize(size); m_size=0;}
 	
 	/////////////////////////////////////////////////////////
-	/// \brief Return the item that has been in the queue for the longest time
+	/// \brief Return the top most element on the stack
 	/////////////////////////////////////////////////////////
-	inline T & front() {return m_elements[m_first];}
+	inline T & top() {return m_elements[m_size-1];}
 
 	/////////////////////////////////////////////////////////
-	/// \brief Return the last item pushed to the queue
-	/////////////////////////////////////////////////////////
-	inline T & back() {return m_elements[m_last-1];}
-
-	/////////////////////////////////////////////////////////
-	/// \brief Add an element to the front of the queue
+	/// \brief Add an element to the top of the stack
 	///
 	/// \param val The element to add
 	/////////////////////////////////////////////////////////
-	inline void push(const T & val){m_elements[m_last++] = val;}
+	inline void push(const T & val){m_elements[m_size++] = val;}
 
 	/////////////////////////////////////////////////////////
-	/// \brief Remove an element from the back of the queue
+	/// \brief Remove the top most element from the stack
 	/////////////////////////////////////////////////////////
-	inline void pop(){++m_first;}
+	inline void pop(){--m_size;}
 
 	/////////////////////////////////////////////////////////
-	/// \brief Check if the queue is empty
-	/// \return true if the queue is empty otherwize false
+	/// \brief Check if the stacke is empty
+	/// \return true if the stack is empty otherwize false
 	/////////////////////////////////////////////////////////
-	inline bool empty(){return m_first == m_last;}
+	inline bool empty(){return m_size==0;}
 
 	/////////////////////////////////////////////////////////
-	/// \brief Return the number of elements in the queue.
-	/// \return The number of elements in the queue
+	/// \brief Return the number of elements on the stack.
+	/// \return The number of elements on the stack
 	/////////////////////////////////////////////////////////
-	inline size_t size(){ return m_last - m_first;}
+	inline size_t size(){ return m_size;}
 	
 	/////////////////////////////////////////////////////////
-	/// \brief Clear the queue of all elements
-	///
-	/// After this call the queue again supports the number of
-	/// pushes given in the constructor or resize.
+	/// \brief Clear the stack of all elements
 	/////////////////////////////////////////////////////////
-	inline void clear(){m_first = m_last =0;}
+	inline void clear(){m_size=0;}
 };
 
 }
-#endif //__TPIE_INTERNAL_QUEUE_H__
-
+#endif //__TPIE_INTERNAL_STACK_H__
