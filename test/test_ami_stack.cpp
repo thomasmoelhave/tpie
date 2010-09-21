@@ -71,7 +71,7 @@ int main(int argc, char **argv)
     }
     
     // Pop them all off.
-    TPIE_OS_OFFSET *jj;
+    const TPIE_OS_OFFSET *jj;
     TPIE_OS_OFFSET last;
     TPIE_OS_OFFSET read = 0;
     stack.pop(&jj);

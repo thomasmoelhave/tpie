@@ -71,7 +71,7 @@ int main(int argc, char **argv)
 	std::cout << "Queue size = " << queue.size() << std::endl;
     }
     
-    TPIE_OS_OFFSET *jj;
+    const TPIE_OS_OFFSET *jj;
     TPIE_OS_OFFSET last;
     TPIE_OS_OFFSET read = 0;
 

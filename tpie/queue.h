@@ -104,7 +104,7 @@ namespace tpie {
 	    ///
 	    ////////////////////////////////////////////////////////////////////
 
-	    err dequeue(T **t);
+	    err dequeue(const T **t);
 
 	    ////////////////////////////////////////////////////////////////////
 	    ///
@@ -218,7 +218,7 @@ err queue<T>::enqueue(const T &t) {
 /////////////////////////////////////////////////////////////////////////
 
 template<class T>
-err queue<T>::dequeue(T **t) {
+err queue<T>::dequeue(const T **t) {
     err ae;
     // Elements popped from Dequeue stack
     if(m_deQstack->size()>0){
@@ -278,7 +278,7 @@ err queue<T>::trim() {
 //move elements from Enqueue stack to Dequeue stack
 template<class T>
 err queue<T>::refill() {
-    T* tmp;
+    const T* tmp;
     err ae;
     
     while((ae=m_enQstack->pop(&tmp)) == NO_ERROR){
