@@ -20,7 +20,7 @@
 #define __TPIE_TEST_UNIT_PRIORITY_QUEUE_H__
 
 #include <tpie/progress_indicator_arrow.h>
-#include <boost/random/uniform_01.hpp>>
+#include <boost/random/uniform_01.hpp>
 #include <boost/random/linear_congruential.hpp>
 #include "common.h"
 #include <vector>

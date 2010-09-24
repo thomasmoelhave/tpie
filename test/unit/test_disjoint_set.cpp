@@ -38,7 +38,7 @@ bool basic_test() {
 	for (int i=1; i < 307; ++i) {
 		s1.union_set(i-1, i);
 		if (s1.find_set(i-1) != s1.find_set(i)) DIE("find_set failed");
-		if (s1.count_sets() != 307-i) DIE("count_sets failed");
+		if (s1.count_sets() != size_t(307-i)) DIE("count_sets failed");
  	}
 	return true;
 }

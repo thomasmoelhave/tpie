@@ -30,7 +30,7 @@
 
 namespace tpie {
 
-is_prime_t::is_prime_t(): m(4294967295), mr(sqrt(double(m))+1) {
+is_prime_t::is_prime_t(): m(4294967295ul), mr(sqrt(double(m))+1) {
 	array<bool> sieve(mr >> 1, true);
 	size_t pc=1;
 	for (size_t i=3; i < mr; i+= 2) {
