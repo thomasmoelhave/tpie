@@ -30,7 +30,7 @@ using namespace std;
 
 template <template <typename value_t, typename hash_t, typename equal_t, typename index_t> class table_t>
 bool basic_test() {
-	hash_map<int, char, hash<int>, std::equal_to<int>, size_t, table_t> q1(200);
+	tpie::hash_map<int, char, tpie::hash<int>, std::equal_to<int>, size_t, table_t> q1(200);
 	map<int, char> q2;
 	boost::rand48 prng(42);
 	for(int i=0; i < 100; ++i) {
@@ -100,7 +100,7 @@ void test_speed() {
 	
 	for(int t=0; t < 100; ++t) {
 		insert_hash_map.start();
-		hash_map<int, char, hash<size_t>, std::equal_to<size_t>, size_t, table_t> q1(gen_t::cnt());
+		tpie::hash_map<int, char, tpie::hash<size_t>, std::equal_to<size_t>, size_t, table_t> q1(gen_t::cnt());
 		for(int i=0; i < gen_t::cnt();++i) 
 			q1[gen_t::key(i)] = gen_t::value(i);
 		insert_hash_map.stop();
@@ -144,7 +144,7 @@ void test_speed() {
 }
 
 bool iterator_test() {
-	hash_map<int, char> m(20);
+	tpie::hash_map<int, char> m(20);
 	vector< std::pair<int,char> > d;
 	vector< std::pair<int,char> > r;
 	
@@ -154,7 +154,7 @@ bool iterator_test() {
 	d.push_back(make_pair(9,'e'));
 	d.push_back(make_pair(10,'x'));
 	for(size_t i=0; i < d.size(); ++i) m.insert(d[i].first, d[i].second);
-	for(hash_map<int, char>::iterator i=m.begin(); i != m.end(); ++i) 
+	for(tpie::hash_map<int, char>::iterator i=m.begin(); i != m.end(); ++i) 
 		r.push_back(*i);
 	sort(d.begin(), d.end());
 	sort(r.begin(), r.end());
@@ -164,10 +164,10 @@ bool iterator_test() {
 
 class hashmap_memory_test: public memory_test {
 public:
-	hash_map<int, char> * a;
-	virtual void alloc() {a = new hash_map<int, char>(123456);}
+	tpie::hash_map<int, char> * a;
+	virtual void alloc() {a = new tpie::hash_map<int, char>(123456);}
 	virtual void free() {delete a;}
-	virtual size_type claimed_size() {return hash_map<int, char>::memory_usage(123456);}
+	virtual size_type claimed_size() {return tpie::hash_map<int, char>::memory_usage(123456);}
 };
 
 int main(int argc, char **argv) {
