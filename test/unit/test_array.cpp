@@ -67,11 +67,11 @@ bool basic_bool_test() {
 	//Get and set
 	return true;
 	for (size_type i=0; i < 52; ++i)
-		hat[i] = ((i * 104729)>>3) % 2;
+		hat[i] = static_cast<bool>(((i * 104729)>>3) % 2);
   
 	const tpie::bit_array & hat2(hat);
 	for (size_type i=0; i < 52; ++i)
-		if (hat2[i] != ((i * 104729)>>3) % 2) return false;
+		if (hat2[i] != static_cast<bool>(((i * 104729)>>3) % 2)) return false;
   
 	if (hat.empty()) return false;
 	hat.resize(0);
@@ -120,7 +120,7 @@ bool iterator_bool_test() {
 	hat.resize(52);
 
 	for (size_type i=0; i < 52; ++i)
-		hat[i] = ((i * 104729)>>7) % 2;
+		hat[i] = static_cast<bool>(((i * 104729)>>7) % 2);
 	{
 		bit_array::const_iterator i=hat.begin();
 		for (int j=0; j < 52; ++j) {
@@ -128,7 +128,7 @@ bool iterator_bool_test() {
 				std::cerr << "end too soon" << std::endl;
 				return false;
 			}
-			if (*i != (((j * 104729)>>7) % 2)) {
+			if (*i != static_cast<bool>(((j * 104729)>>7) % 2)) {
 				std::cerr << j << std::endl;
 				std::cerr << "Wrong value " << *i << " " << (((j * 104729)>>7) % 2) << std::endl;
 				return false;
@@ -141,7 +141,7 @@ bool iterator_bool_test() {
 		bit_array::reverse_iterator i=hat.rbegin();
 		for (int j=51; j >= 0; --j) {
 			if (i == hat.rend()) return false;
-			if (*i != (((j * 104729)>>7) % 2)) return false;
+			if (*i != static_cast<bool>(((j * 104729)>>7) % 2)) return false;
 			++i;
 		}
 		if (i != hat.rend()) return false;
@@ -156,7 +156,7 @@ public:
 	array<int> * a;
 	virtual void alloc() {a = new array<int>(123456, 42);}
 	virtual void free() {delete a;}
-	virtual size_type claimed_size() {return array<int>::memory_usage(123456);}
+	virtual size_type claimed_size() {return static_cast<size_type>(array<int>::memory_usage(123456));}
 };
 
 class array_bool_memory_test: public memory_test {
@@ -164,7 +164,7 @@ public:
 	bit_array * a;
 	virtual void alloc() {a = new bit_array(123456, 1);}
 	virtual void free() {delete a;}
-	virtual size_type claimed_size() {return bit_array::memory_usage(123456);}
+	virtual size_type claimed_size() {return static_cast<size_type>(bit_array::memory_usage(123456));}
 };
 
 
