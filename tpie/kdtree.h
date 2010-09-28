@@ -2880,8 +2880,7 @@ protected:
 		for (i = 0; i < dim; i++) {
 			lop[i] = std::min(p1[i], p2[i]);
 			hip[i] = std::max(p1[i], p2[i]);
-			if (p1[i] == p2[i])
-				TP_LOG_WARNING_ID("  window_query: points have one identical coordinate.");
+			if (p1[i] == p2[i]) {TP_LOG_WARNING_ID("  window_query: points have one identical coordinate.");}
 		}
 
 		// A stack for the search (no recursive calls here :). 

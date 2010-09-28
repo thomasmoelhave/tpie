@@ -104,7 +104,7 @@ bool large_instance(){
 		progress.step();
 		double i = static_cast<double>(j);
 		double th = (cos(i*2.0*PI/cycle)+1.0)*(RAND_MAX/2);
-		if (!crash_test && pq.size() != pq2.size()) return false;
+		if (!crash_test && (boost::uint64_t)pq.size() != (boost::uint64_t)pq2.size()) return false;
 		if (!crash_test && pq.empty() != pq2.empty()) return false;
 
 		if (!crash_test && !pq.empty() && pq.top()!=pq2.top()) {

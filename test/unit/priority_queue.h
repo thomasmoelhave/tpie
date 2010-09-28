@@ -43,8 +43,8 @@ bool cyclic_pq_test(T & pq, boost::uint64_t size, boost::uint64_t iterations) {
 			std::cerr << "Top element differs " << pq.top() << " " << pq2.top() << std::endl;
 			return false;
 		}
-		if (pq.size() == (size_t)0 ||
-			(pq.size() < size && urnd(rnd) <= (cos(i * 60.0 / size)+1)/2.0)) {
+		if ((size_t)pq.size() == (size_t)0 ||
+			((size_t)pq.size() < (size_t)size && urnd(rnd) <= (cos(i * 60.0 / size)+1)/2.0)) {
 			boost::uint64_t r = rnd();
 			pq.push(r);
 			pq2.push(r);

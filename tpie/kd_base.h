@@ -400,7 +400,7 @@ protected:
   //  char hi_bd_[dim];
 public:
   region_t() { 
-    for (int i = 0; i < dim; i++)
+    for ( TPIE_OS_SIZE_T i = 0; i < dim; i++)
       bd_[i] = 0;
       //      lo_bd_[i] = hi_bd_[i] = 0; //false;
   }
@@ -416,8 +416,7 @@ public:
       hi_[i] = max(p1[i], p2[i]);
       //      hi_bd_[i] = 1;//true;
       bd_[i] |= HI_BD_MASK; // true on high bd.
-      if (p1[i] == p2[i])
-	TP_LOG_WARNING_ID("  region_t: points have one identical coordinate.");
+      if (p1[i] == p2[i]) {TP_LOG_WARNING_ID("  region_t: points have one identical coordinate.");}
     }
   }
 
@@ -532,8 +531,8 @@ public:
   /** For this purpose, every interval in region is considered open on
    * the left and closed on the right. */
   region_t<coord_t, dim> region;
-  link_type_t type;
   bid_t bid;
+  link_type_t type;
   kdb_item_t(const region_t<coord_t, dim>& r, bid_t b, link_type_t t): 
     region(r), bid(b), type(t) {}
   kdb_item_t() {}

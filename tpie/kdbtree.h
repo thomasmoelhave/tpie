@@ -166,8 +166,8 @@ public:
     point_t mbr_lo;
     point_t mbr_hi;
     bid_t root_bid;
-    TPIE_OS_OFFSET size;
     link_type_t root_type;
+    TPIE_OS_OFFSET size;
     
     header_t():
       magic_number(TPIE_AMI_KDBTREE_HEADER_MAGIC_NUMBER), mbr_lo(0), mbr_hi(0), 
@@ -1229,7 +1229,7 @@ void TPIE_AMI_KDBTREE::split_node(coord_t sp, TPIE_OS_SIZE_T d, const KDB_ITEM& 
   ki2.region.cutout_lo(sp, d);
   ki2.bid = bn_hi->bid();
 
-  TPIE_OS_SIZE_T next_free_lo = 0, next_free_hi = 0, i;
+  TPIE_OS_SIZE_T i;
   TPIE_OS_SIZE_T bn_size = bn->size();
   int pos;
   bn->size() = 0;
