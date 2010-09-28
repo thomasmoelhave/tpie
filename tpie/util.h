@@ -51,7 +51,8 @@ struct linear_memory_base {
 	// \return The abount of memory required in bytes
 	///////////////////////////////////////////////////////////////////////////
 	inline static offset_type memory_usage(offset_type size) {
-		return floor( size * child_t::memory_coefficient() + child_t::memory_overhead() );
+		return static_cast<offset_type>(
+			floor(size * child_t::memory_coefficient() + child_t::memory_overhead()));
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -61,7 +62,8 @@ struct linear_memory_base {
 	// \return The number of elements that will fit in the structure
 	///////////////////////////////////////////////////////////////////////////
 	inline static size_type memory_fits(size_type memory) {
-		return floor( (memory - child_t::memory_overhead()) / child_t::memory_coefficient() );
+		return static_cast<offset_type>(
+			floor((memory - child_t::memory_overhead()) / child_t::memory_coefficient()));
 	}
 };
 

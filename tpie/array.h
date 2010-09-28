@@ -63,7 +63,7 @@ private:
 		inline bool equal(iter_base<U, forward> const& o) const {return elm == o.elm;}
 		inline void increment() {elm += forward?1:-1;}
 		inline void decrement() {elm += forward?-1:1;}
-		inline void advance(size_t n) {elm += forward?n:-n;}
+		inline void advance(size_t n) {if (forward) elm += n; else elm -= n;}
 		inline ptrdiff_t distance_to(iter_base const & o) const {return o.elm - elm;}
 		TT * elm;
 	public:
