@@ -73,7 +73,6 @@ int main(int argc, char **argv) {
   // Log debugging info from the application, but not from the library.
   tpie_log_init(LOG_APP_DEBUG);
 
-  size_t os_block_size = TPIE_OS_BLOCKSIZE();
   parse_args(argc, argv);
 
   params.structure_name = "B+-tree";

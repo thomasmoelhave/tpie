@@ -66,7 +66,7 @@ public:
     v_->reserve(max_block_count_ * (os_block_size_/sizeof(Value) + 1));
     str_ = new stream_t(base_file_name);
     if (str_->stream_len() > 0) {
-	  while ((err = str_->read_item(&pp)) == AMI_ERROR_NO_ERROR) {
+		while ((err = str_->read_item(&pp)) == tpie::ami::NO_ERROR) {
 	v_->push_back(*pp);
       } 
     }

@@ -26,7 +26,7 @@
 
 class test_timer {
 public:
-	test_timer(const std::string & n): name(n) {sum=0; ssum=0; l=1000000000000; h=0; tests=0;}
+	test_timer(const std::string & n): name(n) {sum=0; ssum=0; l=1000000000000ll; h=0; tests=0;}
 	inline double avg() {return sum/tests;}
 	inline double var() {return ssum/tests-avg()*avg();}
 	inline double sd() {return sqrt(var());}
