@@ -16,8 +16,14 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
-#ifndef __TPIE_BITARRAY_H__
-#define __TPIE_BITARRAY_H__
+#ifndef __TPIE_PACKED_ARRAY_H__
+#define __TPIE_PACKED_ARRAY_H__
+
+#ifdef _MSC_VER
+#pragma warning(push)
+//Yes, I am perfectly aware that I cast ints to bool
+#pragma warning(disable : 4800)
+#endif
 
 #include <boost/static_assert.hpp>
 
@@ -407,5 +413,9 @@ public:
 	inline const_reverse_iterator rend() const {return const_reverse_iterator(m_elements-1, perword()-1);}
 };
 
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
 }
-#endif //__TPIE_BITARRY_H__
+#endif //__TPIE_PACKED_ARRAY_H__
