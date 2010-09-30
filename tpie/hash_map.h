@@ -78,16 +78,22 @@ public:
 	inline value_t & get(size_t idx) {return buckets[idx].value;}
 	inline const value_t & get(size_t idx) const {return buckets[idx].value;}
 
- 	void resize(size_t z) {
- 		buckets.resize(z);
+	void clear() {
  		first_free = 0;
- 		for (size_t i=0; i < z; ++i) {
+ 		for (size_t i=0; i < buckets.size(); ++i) {
 			buckets[i].value = unused;
 			buckets[i].next = i+1;
 		}
+		for (typename array<index_t>::iterator i=list.begin(); i != list.end(); ++i)
+			*i = std::numeric_limits<index_t>::max();
+	}
+
+ 	void resize(size_t z) {
+ 		buckets.resize(z);
 		size_t x=size_t(99+z*sc)|1;
 		while (!is_prime(x)) x -= 2;
- 		list.resize(x, std::numeric_limits<index_t>::max());
+ 		list.resize(x);
+		clear();
  	}
 
 	chaining_hash_table(size_t e=0, value_t u=default_unused<value_t>::v()): size(0), unused(u) {resize(e);};
@@ -166,6 +172,11 @@ public:
 	static double memory_overhead() {
 		return array<value_t>::memory_coefficient() * 100.0 
 			+ array<value_t>::memory_overhead() + sizeof(linear_probing_hash_table) - sizeof(array<value_t>);
+	}
+
+	void clear() {
+		for (typename array<value_t>::iterator i=elements.begin(); i != elements.end(); ++i)
+			*i = unused;
 	}
 
 	void resize(size_t element_count) {
@@ -349,6 +360,7 @@ public:
 	inline const_iterator end() const {return const_iterator(tbl, tbl.end());}
 	inline const_iterator cend() const {return const_iterator(tbl, tbl.end());}
 	inline size_t size() const {return tbl.size;}
+	inline void clear() const {tbl.clear();}
 };
 
 template <typename key_t,
@@ -434,7 +446,7 @@ public:
 	inline const_iterator end() const {return const_iterator(tbl, tbl.end());}
 	inline const_iterator cend() const {return const_iterator(tbl, tbl.end());}
 	inline size_t size() const {return tbl.size;}
-
+	inline void clear() const {tbl.clear();}
 };
 
 
