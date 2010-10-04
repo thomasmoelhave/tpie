@@ -526,7 +526,7 @@ namespace tpie {
 	    
 	    assert(tree0_ != NULL);
 	    
-	    if (tree0_->os_block_count() < params_.cached_blocks) {
+	    if ((size_t)tree0_->os_block_count() < params_.cached_blocks) {
 		
 		// tree0_ must have insert capabilities, ie, the T0 class
 		// must have insert capabilities. 
