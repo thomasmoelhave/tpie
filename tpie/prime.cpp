@@ -16,10 +16,6 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
-#define MM_IMP_REGISTER
-#ifndef WIN32
-#warning "Using the the only memory manager available"
-#endif
 #include <tpie/prime.h>
 
 ///////////////////////////////////////////////////////////////////////////

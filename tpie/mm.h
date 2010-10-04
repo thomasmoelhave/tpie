@@ -34,10 +34,6 @@
 
 // Get an implementation definition..
 
-#ifdef MM_IMP_REGISTER
 #include <tpie/mm_manager.h>
-#else
-#error No MM implementation selected.
-#endif
 
 #endif // _TPIE_MM_H 
