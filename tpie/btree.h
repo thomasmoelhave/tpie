@@ -1186,7 +1186,7 @@ size_t BTREE_LEAF::find(const Key& k) {
 #if BTREE_LEAF_ELEMENTS_SORTED
     // Sanity check.
     assert(size() < 2 || comp_(KeyOfValue()(el[0]), KeyOfValue()(el[size()-1])));
-    return lower_bound(&el[0], &el[size()-1] + 1, k, comp_value_key_) - &el[0];
+    return std::lower_bound(&el[0], &el[size()-1] + 1, k, comp_value_key_) - &el[0];
 #else
     size_t i;
     for (i = 0u; i < size(); i++)
@@ -1204,7 +1204,7 @@ size_t BTREE_LEAF::pred(const Key& k) {
 #if BTREE_LEAF_ELEMENTS_SORTED
     // Sanity check.
     assert(size() < 2 || comp_(KeyOfValue()(el[0]), KeyOfValue()(el[size()-1])));
-    pred_idx = lower_bound(&el[0], &el[size()-1] + 1, k,comp_value_key_) - &el[0];
+    pred_idx = std::lower_bound(&el[0], &el[size()-1] + 1, k,comp_value_key_) - &el[0];
     // lower_bound pos is off by one for pred
     // Final pred_idx cannot be matching key
     if (pred_idx != 0)
@@ -1393,7 +1393,7 @@ template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
 void BTREE_NODE::insert(const Key& k, bid_t l) {
 
     // Find the position using STL's binary search.
-    size_t pos = lower_bound(&el[0], &el[size()-1] + 1, k, comp_) - &el[0];
+    size_t pos = std::lower_bound(&el[0], &el[size()-1] + 1, k, comp_) - &el[0];
 
     // Insert.
     insert_pos(k, l, pos, pos + 1);
@@ -1443,7 +1443,7 @@ void BTREE_NODE::merge(const BTREE_NODE &right, const Key& k) {
 /// *btree_node::find* ///
 template<class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
 size_t BTREE_NODE::find(const Key& k) {
-    return (size() == 0) ? 0: (lower_bound(&el[0], &el[size()-1] + 1, k, comp_) - &el[0]);
+    return (size() == 0) ? 0: (std::lower_bound(&el[0], &el[size()-1] + 1, k, comp_) - &el[0]);
 }
 
 /// *btree_node::~btree_node* ///

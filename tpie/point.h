@@ -341,20 +341,13 @@ public:
 
 };
 
-template<class coord_t, class data_t, size_t dim>
-std::ostream& operator<<(std::ostream& s, const record<coord_t, data_t, dim>& p) {
-  for (TPIE_OS_SIZE_T i = 0; i < dim; i++)
-    s << p[i] << " ";
-  return s << (TPIE_OS_OFFSET)p.id();
-}
-
 #ifdef _WIN32
 
 #else
 // A record consists of a key (two-dimensional point) and a data
 // item. Used by the EPStree.
 template<class coord_t, class data_t>
-struct record<coord_t, data_t, 2>: public record_base<coord_t, data_t, 2> {
+class record<coord_t, data_t, 2>: public record_base<coord_t, data_t, 2> {
 public:
   record(const typename record_base<coord_t, data_t, 2>::point_t& p, data_t b = data_t(0)): 
     record_base<coord_t, data_t, 2>(p, b) {}
@@ -436,12 +429,19 @@ public:
   };
 };
 
-template<class coord_t, class data_t>
-std::ostream& operator<<(std::ostream& s, const record<coord_t, data_t, 2>& p) {
-  return s << p[0] << " " << p[1] << " " << p.id();
-}
 #endif // !_WIN32
+	
+template<class coord_t, class data_t, size_t dim>
+std::ostream& operator<<(std::ostream& s, const record<coord_t, data_t, dim>& p) {
+	for (size_t i=0; i < dim; ++i) s << p[i] << " ";
+	return s << p.id();
+}
 
+template<class coord_t, class data_t, size_t dim> 
+std::istream & operator>>(std::istream& s, record<coord_t, data_t, dim>& p) {
+	for (size_t i=0; i < dim; ++i) s >> p[i];
+	return s >> p.id();
+}
 
 // Function object to extract the key from a record.
 template<class coord_t, class data_t, size_t dim>

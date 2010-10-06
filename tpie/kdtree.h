@@ -330,8 +330,7 @@ protected:
 #else
 		int i = 0;
 		while ((static_cast<TPIE_OS_OFFSET>(1) << i) < 
-			   static_cast<TPIE_OS_OFFSET>((sz + params_.leaf_size_max - 1) / 
-										   params_.leaf_size_max))
+			   static_cast<TPIE_OS_OFFSET>((sz + params_.leaf_size_max - 1) / params_.leaf_size_max))
 			i++;
 		return  (static_cast<TPIE_OS_OFFSET>(1) << (i-1)) * params_.leaf_size_max - 1;
 #endif
@@ -566,7 +565,7 @@ protected:
 					m = 1;
 					ni = 0;
 					for (i = 0; i < dim; i++) {
-						i_i = upper_bound(g->l[i] + gl[i], g->l[i] + (gl[i] + gt[i]-1), (*p1)[i]) 
+						i_i = std::upper_bound(g->l[i] + gl[i], g->l[i] + (gl[i] + gt[i]-1), (*p1)[i]) 
 							- (g->l[i] + gl[i]);
 						// On dimension d, we should have s.
 						assert(i != d || i_i == s);
@@ -582,7 +581,7 @@ protected:
 					m = 1;
 					ni = 0;
 					for (i = 0; i < dim; i++) {
-						i_i = upper_bound(g->l[i] + gmx->gl[i], g->l[i] + (gmx->gl[i] + gmx->gt[i]-1), (*p1)[i]) 
+						i_i = std::upper_bound(g->l[i] + gmx->gl[i], g->l[i] + (gmx->gl[i] + gmx->gt[i]-1), (*p1)[i]) 
 							- (g->l[i] + gmx->gl[i]);
 						// On dimension d, we should have 0.
 						assert(i != d || i_i == 0);

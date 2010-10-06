@@ -143,7 +143,7 @@ void datagen_usage(char* argv0) {
     ;
 }
 
-istream& operator>>(istream& s, point_t& p) {
+std::istream& operator>>(std::istream& s, point_t& p) {
   for (int i = 0; i < DIM; i++)
     s >> p[i];
 #ifndef NOID
@@ -152,6 +152,7 @@ istream& operator>>(istream& s, point_t& p) {
   return s;
 #endif
 }
+
 
 template<class T>
 class scan_cat: scan_object {

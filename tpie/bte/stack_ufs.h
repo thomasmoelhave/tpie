@@ -38,7 +38,9 @@ namespace tpie {
 	    using stream_ufs<T>::stream_len;
 	    using stream_ufs<T>::seek;
 	    using stream_ufs<T>::truncate;
-	
+		using stream_ufs<T>::write_item;
+		using stream_ufs<T>::read_item;
+
 	    // Construct a new stack with the given name and access type.
 	    stack_ufs(std::string& path, stream_type type = WRITE_STREAM); 
 

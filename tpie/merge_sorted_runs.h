@@ -196,7 +196,7 @@ namespace tpie {
 	    mrgheap.allocate (arity);
 	    
 	    //Rewind all the input streams
-	    for(int i=0; i<arity; i++){ 
+	    for(arity_t i=0; i<arity; i++){ 
 		inStreams[i]->seek(0); 
 	    }
 	    
@@ -228,7 +228,7 @@ namespace tpie {
 	    mrgheap.allocate (arity);
 	    
 	    // Rewind all the input streams
-	    for(int i=0; i<arity; i++){ 
+	    for(arity_t i=0; i<arity; i++){ 
 		inStreams[i]->seek(0); 
 	    }
 	    
@@ -261,7 +261,7 @@ namespace tpie {
 	    mrgheap.allocate (arity);
 	    
 	    // Rewind all the input streams
-	    for(int i=0; i<arity; i++){ 
+	    for(arity_t i=0; i<arity; i++){ 
 		inStreams[i]->seek(0); 
 	    }
 	    

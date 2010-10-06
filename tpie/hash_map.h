@@ -241,7 +241,7 @@ template <typename key_t,
 		  typename hash_t=hash<key_t>,
 		  typename equal_t=std::equal_to<key_t>, 
 		  typename index_t=size_t,
-		  template <typename value_t, typename hash_t, typename equal_t, typename index_t> class table_t = chaining_hash_table
+		  template <typename, typename, typename, typename> class table_t = chaining_hash_table
 		  >
 class hash_map: public linear_memory_base< hash_map<key_t, data_t, hash_t, equal_t, index_t, table_t> > {
 public:
@@ -367,7 +367,7 @@ template <typename key_t,
 		  typename hash_t=hash<key_t>,
 		  typename equal_t=std::equal_to<key_t>,
 		  typename index_t=size_t,
-		  template <typename value_t, typename hash_t, typename equal_t, typename index_t> class table_t=linear_probing_hash_table>
+		  template <typename, typename, typename, typename> class table_t=linear_probing_hash_table>
 class hash_set {
 private:
 	typedef table_t<key_t, hash_t, equal_t, index_t> tbl_t;

@@ -586,11 +586,11 @@ namespace tpie {
 	err rstartree<coord_t, BTECOLL>::query(
 	    const rectangle<coord_t, bid_t>&    bb, 
 	    stream<rectangle<coord_t, bid_t> >* matches, 
-	    ami::stack<bid_t>*                  candidates, 
+	    ami::stack<bid_t>*            candidates, 
 	    bool                                bruteForce) {
 
 	    rstarnode<coord_t, BTECOLL>* n = NULL;
-	    bid_t*                       current = NULL;
+	    const bid_t*                 current = NULL;
 	    err                          result = NO_ERROR;
 	    TPIE_OS_OFFSET               candidatesCounter = 0;
 	    TPIE_OS_OFFSET               leafCounter = 0;
@@ -630,7 +630,7 @@ namespace tpie {
 	err rstartree<coord_t, BTECOLL>::find_node(bid_t              nodeID,  
 						  ami::stack<bid_t>* candidates) {
 	    rstarnode<coord_t, BTECOLL>* n = NULL;
-	    bid_t*                       current = NULL;
+	    const bid_t*                       current = NULL;
 	    err                          result = NO_ERROR;
 	    TPIE_OS_OFFSET               candidatesCounter = 0;
 

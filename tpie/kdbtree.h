@@ -838,8 +838,8 @@ bool TPIE_AMI_KDBTREE::insert(const record<coord_t, TPIE_OS_SIZE_T, dim>& p) {
 
   // Update the MBR.
   for (i = 0; i < dim; i++) {
-    header_.mbr_lo[i] = min(header_.mbr_lo[i], p[i]);
-    header_.mbr_hi[i] = max(header_.mbr_hi[i], p[i]);
+	  header_.mbr_lo[i] = std::min(header_.mbr_lo[i], p[i]);
+	  header_.mbr_hi[i] = std::max(header_.mbr_hi[i], p[i]);
   }
 
   bool ans;

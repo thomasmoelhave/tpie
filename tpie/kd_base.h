@@ -410,10 +410,10 @@ public:
   ///////////////////////////////////////////////////////////////////////////
   region_t(const point<coord_t, dim>& p1, const point<coord_t, dim>& p2) {
     for (TPIE_OS_SIZE_T i = 0; i < dim; i++) {
-      lo_[i] = min(p1[i], p2[i]);
+		lo_[i] = std::min(p1[i], p2[i]);
       //      lo_bd_[i] = 1;//true;
       bd_[i] |= LO_BD_MASK; // true on low bd.
-      hi_[i] = max(p1[i], p2[i]);
+      hi_[i] = std::max(p1[i], p2[i]);
       //      hi_bd_[i] = 1;//true;
       bd_[i] |= HI_BD_MASK; // true on high bd.
       if (p1[i] == p2[i]) {TP_LOG_WARNING_ID("  region_t: points have one identical coordinate.");}

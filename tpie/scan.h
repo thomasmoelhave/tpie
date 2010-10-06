@@ -445,7 +445,7 @@ namespace tpie {
                                       T *out, 
 				      SCAN_FLAG *sfout)
 	{
-	    if (*sfout = *sfin) {
+	    if ((*sfout = *sfin)) {
 		*out = in;
 		return SCAN_CONTINUE;
 	    } 
