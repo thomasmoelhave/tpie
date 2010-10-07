@@ -612,7 +612,7 @@ void priority_queue<T, Comparator, OPQType>::compact(TPIE_OS_SIZE_T slot1) {
 	//  std::cout << "compact slot " << slot1 << "\n";
 	assert(slot_size(slot1) > 0);
 
-	for(TPIE_OS_OFFSET i = (slot1/setting_k)*setting_k; i < (slot1/setting_k)*setting_k + setting_k; i++) {
+	for(TPIE_OS_SIZE_T i = (slot1/setting_k)*setting_k; i < (slot1/setting_k)*setting_k + setting_k; i++) {
 		if(i != slot1) {
 			if(slot_size(i) > 0 && slot_size(i) + slot_size(slot1) <= slot_max_size(slot1)) {
 				TPIE_OS_OFFSET slot2 = i;

@@ -259,7 +259,7 @@ namespace tpie {
     
 
 	template<class BIDT>
-	err collection_mmap<BIDT>::sync_block(BIDT bid, void* place, char dirty) {
+	err collection_mmap<BIDT>::sync_block(BIDT bid, void* place, char) {
 	
 	    if ((bid <= 0) || (bid >= header_.last_block)) {
 	    

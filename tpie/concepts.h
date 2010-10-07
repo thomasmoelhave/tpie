@@ -35,8 +35,8 @@ namespace tpie {
 template <typename T>
 struct linear_memory_structure_concept {
   BOOST_CONCEPT_USAGE(linear_memory_structure_concept) {
-	  (double)T::memory_coefficient();
-	  (double)T::memory_overhead();
+	  unused((double)T::memory_coefficient());
+	  unused((double)T::memory_overhead());
   }
 };
 

@@ -164,12 +164,12 @@ static void *do_new (TPIE_OS_SIZE_T sz, bool EXCEPTIONS_PARAM(allow_throw))
 	return (reinterpret_cast<char *>(p)) + SIZE_SPACE;
 }
 
-void *operator new (TPIE_OS_SIZE_T sz)
+void *operator new (TPIE_OS_SIZE_T sz) throw (std::bad_alloc)
 {
     return do_new(sz, true);
 }
 
-void *operator new (TPIE_OS_SIZE_T sz, const std::nothrow_t &)
+void *operator new (TPIE_OS_SIZE_T sz, const std::nothrow_t &) throw()
 {
     return do_new(sz, false);
 }
@@ -268,17 +268,17 @@ static void *do_new_array (TPIE_OS_SIZE_T sz, bool EXCEPTIONS_PARAM(allow_throw)
 	return (reinterpret_cast<char *>(p)) + SIZE_SPACE;
 }
 
-void *operator new[] (TPIE_OS_SIZE_T sz)
+void *operator new[] (TPIE_OS_SIZE_T sz) throw (std::bad_alloc)
 {
     return do_new_array(sz, true);
 }
 
-void *operator new[] (TPIE_OS_SIZE_T sz, const std::nothrow_t &)
+void *operator new[] (TPIE_OS_SIZE_T sz, const std::nothrow_t &) throw()
 {
     return do_new_array(sz, false);
 }
 
-void operator delete (void *ptr)
+void operator delete (void *ptr) throw()
 {
     if (!ptr) {
 	TP_LOG_WARNING_ID ("operator delete was given a NULL pointer");
@@ -305,7 +305,7 @@ void operator delete (void *ptr)
 #endif
 }
 
-void operator delete[] (void *ptr) {
+void operator delete[] (void *ptr) throw() {
     if (!ptr) {
 	TP_LOG_WARNING_ID ("operator delete [] was given a NULL pointer");
 	return;

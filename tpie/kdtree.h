@@ -42,6 +42,7 @@
 // STL string.
 #include <string>
 
+#include <tpie/util.h>
 // TPIE stuff.
 #include <tpie/stream.h>
 #include <tpie/scan.h>
@@ -2840,6 +2841,9 @@ protected:
 	template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 	TPIE_OS_OFFSET TPIE_AMI_KDTREE::k_nn_query(const POINT &p, 
 											   POINT_STREAM* stream, TPIE_OS_OFFSET k) {
+		unused(p);
+		unused(stream);
+		unused(k);
 		TPLOG("kdtree::k_nn_query Entering "<<"\n");
 		TPIE_OS_OFFSET result = 0;
 
@@ -3120,7 +3124,7 @@ protected:
 			bool ans;
 
 			TPIE_AMI_KDTREE_LEAF* bl = fetch_leaf(find_leaf(p));
-			if (ans = bl->erase(p))
+			if ((ans = bl->erase(p)))
 				header_.size--;
 			release_leaf(bl);
 
@@ -3285,9 +3289,9 @@ protected:
 
 				// The recursion stack.
 				std::stack<print_stack_elem> dfs_stack;
-    
+				
 				point_t rlo, rhi;
-				size_t i, j, idx, fo, level;
+				size_t i, j, idx;
 				link_type_t idx_type;
 
 				// Initialize the stack.

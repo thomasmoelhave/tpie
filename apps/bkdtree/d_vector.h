@@ -75,7 +75,7 @@ public:
 
   size_t size() { return v_->size(); }
 
-  bool erase(const Value& p) { return true; }
+  bool erase(const Value& p) {usused(p); return true; }
 
   bool find() { return true; }
 
