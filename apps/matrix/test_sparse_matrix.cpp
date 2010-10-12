@@ -208,7 +208,7 @@ int main(int argc, char **argv)
 
         cpu_timer cput0, cput1;
         
-	TPIE_OS_SIZE_T rows_per_band;
+		TPIE_OS_SIZE_T rows_per_band=0;
         TPIE_OS_OFFSET total_bands;
         
         if (read_banded_matrix) {

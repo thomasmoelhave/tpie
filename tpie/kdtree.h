@@ -1,4 +1,4 @@
-// -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
+// -*- Mode: C++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
 // Copyright 2008, The TPIE development team
 // 
@@ -2089,7 +2089,7 @@ protected:
 
 //// *kdtree::create_leaf_mm* ////
 	template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
-	void TPIE_AMI_KDTREE::create_leaf_mm(bid_t& bid, TPIE_OS_SIZE_T d, 
+	void TPIE_AMI_KDTREE::create_leaf_mm(bid_t& bid, TPIE_OS_SIZE_T, 
 										 POINT** in_streams, TPIE_OS_SIZE_T sz) {
 		TPLOG("kdtree::create_leaf_mm Entering "<<"\n");
 

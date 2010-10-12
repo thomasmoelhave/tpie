@@ -89,9 +89,9 @@ bool tiger_constrained(const app_params_t::record_t& p) {
 
 int main(int argc, char** argv) {
 
-  KDTREEintd* kdtree;
-  LOGMETHOD2intd *lm2;
-  LOGMETHODBintd* lmB;
+  KDTREEintd* kdtree=0;
+  LOGMETHOD2intd *lm2=0;
+  LOGMETHODBintd* lmB=0;
   kdtree_params kd_params;
   cpu_timer atimer;
   int i, ii;
@@ -408,7 +408,7 @@ int main(int argc, char** argv) {
     app_params_t::point_t lop, hip;
     TPIE_OS_OFFSET result = 0;
     cerr << "Doing " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(params.wquery_count) << " window queries." << endl;
-    int mbrlox, mbrloy, mbrdx, mbrdy;
+    int mbrlox=0, mbrloy=0, mbrdx=0, mbrdy=0;
 
     if (params.do_logmethod) {
 
