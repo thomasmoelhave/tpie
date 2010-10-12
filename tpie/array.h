@@ -106,7 +106,7 @@ public:
 	/// \copydetails linear_memory_structure_doc::memory_coefficient()
 	/////////////////////////////////////////////////////////
 	static double memory_coefficient() {
-		return sizeof(T);
+		return (double)sizeof(T);
 	}
 
 	/////////////////////////////////////////////////////////
@@ -114,7 +114,7 @@ public:
 	/// \copydetails linear_memory_structure_doc::memory_overhead()
 	/////////////////////////////////////////////////////////
 	static double memory_overhead() {
-		return sizeof(array) + MM_manager.space_overhead();
+		return (double)sizeof(array) + MM_manager.space_overhead();
 	}
 
 	/////////////////////////////////////////////////////////
