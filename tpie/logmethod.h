@@ -280,7 +280,7 @@ namespace tpie {
 		
 		// Initialize trees.
 		for (i = 0; i <= header_.last_tree; i++) {
-		    trees_.insert(trees_.end(), NULL);
+		    trees_.push_back(0);
 		    create_tree(i);
 		}
 
@@ -294,7 +294,7 @@ namespace tpie {
 		TP_LOG_APP_DEBUG_ID("Creating new logmethod structure.");
 
 		// Bogus entry in the trees_ vector.
-		trees_.insert(trees_.end(), NULL);
+		trees_.push_back(0);
 
 		// Create tree0_.
 		create_tree(0);
@@ -564,7 +564,7 @@ namespace tpie {
 		    
 		    // Add a new tree position if necessary (ie, no empty tree found).
 		    if (fi == trees_.size()) {
-			trees_.insert(trees_.end(), NULL);
+				trees_.push_back(0);
 			create_tree(fi);
 		    }
 		    
@@ -652,7 +652,7 @@ namespace tpie {
 		
 		// Add a new tree position if necessary.
 		if (fi == trees_.size()) {
-		    trees_.insert(trees_.end(), NULL);
+			trees_.push_back(0);
 		}
 		
 		create_tree(fi);
