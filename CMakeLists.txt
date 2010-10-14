@@ -12,6 +12,9 @@ if(NOT WIN32)
 	add_definitions("-Wall -Wextra")
 endif(NOT WIN32)
 
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake_modules/")
+#### Dependencies
+## Boost
 set(Boost_ADDITIONAL_VERSIONS "1.40.0" "1.40" "1.41" "1.41.0" "1.42" "1.42.0" "1.43" "1.43.0" "1.44" "1.44.0" "1.45" "1.45.0")
 set(Boost_USE_MULTITHREADED ON)
 if(WIN32)
@@ -22,7 +25,14 @@ find_package(Boost COMPONENTS date_time thread filesystem system)
 if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
     link_directories ( ${Boost_LIBRARY_DIRS} )
-endif()
+endif(Boost_FOUND)
+
+## Intel Threading Building Blocks
+find_package(TBB)
+if(TBB_FOUND)
+		include_directories(${TBB_INCLUDE_DIRS})
+		link_directories(${TBB_LIBRARY_DIRS})
+endif(TBB_FOUND)
 
 check_include_files("unistd.h" TPIE_HAVE_UNISTD_H)
 check_include_files("sys/unistd.h" TPIE_HAVE_SYS_UNISTD_H)

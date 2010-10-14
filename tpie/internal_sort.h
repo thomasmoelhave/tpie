@@ -31,8 +31,12 @@
 // Get definitions for working with Unix and Windows
 #include <tpie/portability.h>
 
-#include <algorithm>
 #include <tpie/comparator.h> //to convert TPIE comparisons to STL
+#ifdef TPIE_HAVE_TBB
+#include <tbb/parallel_sort.h>
+#else
+#include <algorithm>
+#endif
 
 namespace tpie {
 namespace ami {
@@ -241,7 +245,11 @@ namespace ami {
 
 	    //Sort the array.
 	    TP_LOG_DEBUG_ID("calling STL sort for " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(nItems) << " items");
+#ifdef TPIE_HAVE_TBB
+		tbb::parallel_sort(ItemArray, ItemArray+nItems);
+#else
 	    std::sort(ItemArray, ItemArray+nItems);
+#endif
 	    TP_LOG_DEBUG("calling quick_sort_op for " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(nItems) << " items\n");
 	    
 	    if(InStr==OutStr){ //Do the right thing if we are doing 2x sort
@@ -333,7 +341,11 @@ namespace ami {
 	    //Sort the array.
 	    TP_LOG_DEBUG_ID("calling STL sort for " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(nItems) << " items");
 	    TP_LOG_DEBUG("converting TPIE comparison object to STL\n");
+#ifdef TPIE_HAVE_TBB
+		tbb::parallel_sort(ItemArray, ItemArray+nItems, TPIE2STL_cmp<T,CMPR>(cmp_o));
+#else
 	    std::sort(ItemArray, ItemArray+nItems, TPIE2STL_cmp<T,CMPR>(cmp_o));
+#endif
 	    
 	    if (InStr==OutStr) { //Do the right thing if we are doing 2x sort
 		//Internal sort objects should probably be re-written so that
@@ -508,9 +520,15 @@ namespace ami {
 	    TP_LOG_DEBUG("converting TPIE Key comparison object to STL\n");
 		QsortKeyCmp<KEY, CMPR> kc(UsrObject);
 		TPIE2STL_cmp<qsort_item<KEY>,QsortKeyCmp<KEY,CMPR> > stlcomp(&kc);
+#ifdef TPIE_HAVE_TBB
+		tbb::parallel_sort(
+				sortItemArray, sortItemArray+nItems/*, stlcomp */
+			);
+#else
 	    std::sort(
 				sortItemArray, sortItemArray+nItems/*, stlcomp */
 			  );
+#endif
   
 	    if (InStr==OutStr) { //Do the right thing if we are doing 2x sort
 		//Internal sort objects should probably be re-written so that
