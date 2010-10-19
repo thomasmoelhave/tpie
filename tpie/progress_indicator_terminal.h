@@ -24,8 +24,7 @@
 
 #include <tpie/progress_indicator_base.h>
 
-namespace tpie 
-{
+namespace tpie {
 
 ///////////////////////////////////////////////////////////////////
 ///
@@ -113,62 +112,6 @@ namespace tpie
 	    std::cout << std::endl;
 	}
 
-	////////////////////////////////////////////////////////////////////
-	///
-	///  Reset the counter. The current position is reset to the
-	///  lower bound of the counting range.
-	///
-	////////////////////////////////////////////////////////////////////
-
-	virtual void reset() {
-	    m_current = m_minRange;
-	}
-
-	////////////////////////////////////////////////////////////////////
-	///
-	///  Set the lower bound of the counting range. This method
-	///  also implies a reset of the counter. In order to be able
-	///  to set the lower bound independent of setting the upper bound,
-	///  no range checking is done.
-	///
-	///  \param  minRange  The new lower bound.
-	///
-	////////////////////////////////////////////////////////////////////
-
-	void set_min_range(TPIE_OS_OFFSET minRange) {
-	    m_minRange = minRange;
-	    reset();
-	}
-
-	////////////////////////////////////////////////////////////////////
-	///
-	///  Set the upper bound of the counting range. This method
-	///  also implies a reset of the counter. In order to be able
-	///  to set the uper bound independent of setting the lower bound,
-	///  no range checking is done.
-	///
-	///  \param  maxRange  The new upper bound.
-	///
-	////////////////////////////////////////////////////////////////////
-
-	void set_max_range(TPIE_OS_OFFSET maxRange) {
-	    m_maxRange = maxRange;
-	    reset();
-	}
-
-	////////////////////////////////////////////////////////////////////
-	///
-	///  Set the increment by which the counter is advanced upon each
-	///  call to step(). In order to be able to reset the counter,
-	///  no range checking is done.
-	///
-	///  \param  stepValue  The incerement.
-	///
-	////////////////////////////////////////////////////////////////////
-
-	void set_step_value(TPIE_OS_OFFSET stepValue) {
-	    m_stepValue = stepValue;
-	}
   
 	////////////////////////////////////////////////////////////////////
 	///

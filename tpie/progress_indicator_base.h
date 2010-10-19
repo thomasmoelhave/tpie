@@ -244,8 +244,9 @@ namespace tpie {
 	///  lower bound of the counting range.
 	///
 	////////////////////////////////////////////////////////////////////
-
-	virtual void reset() = 0;
+	virtual void reset() {
+	    m_current = m_minRange;
+	}
 
 	////////////////////////////////////////////////////////////////////
 	///
@@ -269,10 +270,12 @@ namespace tpie {
 	///  \param  minRange  The new lower bound.
 	///
 	////////////////////////////////////////////////////////////////////
+	virtual void set_min_range(TPIE_OS_OFFSET minRange) {
+	    m_minRange = minRange;
+	    reset();
+	}
 
-	virtual void set_min_range(TPIE_OS_OFFSET minRange) = 0;
-
-	////////////////////////////////////////////////////////////////////
+		////////////////////////////////////////////////////////////////////
 	///
 	///  Set the upper bound of the counting range. This method
 	///  also implies a reset of the counter. In order to be able
@@ -282,8 +285,10 @@ namespace tpie {
 	///  \param  maxRange  The new upper bound.
 	///
 	////////////////////////////////////////////////////////////////////
-
-	virtual void set_max_range(TPIE_OS_OFFSET maxRange) = 0;
+	virtual void set_max_range(TPIE_OS_OFFSET maxRange) {
+	    m_maxRange = maxRange;
+	    reset();
+	}
 
 	////////////////////////////////////////////////////////////////////
 	///
@@ -294,8 +299,9 @@ namespace tpie {
 	///  \param  stepValue  The incerement.
 	///
 	////////////////////////////////////////////////////////////////////
-
-	virtual void set_step_value(TPIE_OS_OFFSET stepValue) = 0;
+	virtual void set_step_value(TPIE_OS_OFFSET stepValue) {
+	    m_stepValue = stepValue;
+	}
   
 	////////////////////////////////////////////////////////////////////
 	///
