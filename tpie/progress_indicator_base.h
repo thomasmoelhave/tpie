@@ -211,14 +211,16 @@ namespace tpie {
 	///
 	////////////////////////////////////////////////////////////////////
 
-	void step() {
-	    m_current += m_stepValue;
+	void step(TPIE_OS_OFFSET step) {
+	    m_current += step;
 		ticks currentTicks = getticks();
 		if(elapsed(currentTicks, m_lastUpdate) > m_threshold){
 			m_lastUpdate = currentTicks;
 		    refresh();
 		}
 	}
+
+	void step() {step(m_stepValue);}
 
 	////////////////////////////////////////////////////////////////////
 	///
