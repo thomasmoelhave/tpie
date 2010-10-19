@@ -31,8 +31,7 @@
 #include <tpie/progress_indicator_base.h>
 namespace tpie {
 	
-template <typename iterator_type, typename comp_type=
-		  std::less<typename boost::iterator_value<iterator_type>::type>,
+template <typename iterator_type, typename comp_type,
 		  size_t min_size=1024*1024*8/sizeof(typename boost::iterator_value<iterator_type>::type)>
 class parallel_sort_impl {
 private:
@@ -59,7 +58,7 @@ private:
 	}
 
 	// Pick a good element for partitioning
-	static inline value_type pick_pivot(iterator_type a, iterator_type b) {
+	static inline value_type pick_pivot(iterator_type a, iterator_type b, comp_type & comp) {
 		const size_t z=5;
 		iterator_type sample[z];
 		sample[0] = a + (b-a)/2;
@@ -67,7 +66,7 @@ private:
 		for(size_t i=0; i < z/2; ++i) {
 			size_t z=i;
 			for(size_t j=i+1; j < z; ++j) 
-				if (*sample[j] < *sample[z]) z=j;
+				if (comp(*sample[j],*sample[z])) z=j;
 			std::swap(sample[i], sample[z]);
 		}
 		return *sample[z/2];
@@ -75,7 +74,7 @@ private:
 
 	// Partition the array
 	inline std::pair<iterator_type, iterator_type> partition(iterator_type a, iterator_type b, comp_type & comp) {
-		value_type pivot = pick_pivot(a, b);
+		value_type pivot = pick_pivot(a, b, comp);
 		iterator_type l = unguarded_partition(a, b, pivot, comp);
 		return std::make_pair(l, l);
 	}
@@ -104,7 +103,7 @@ private:
 			if (kill) return;
 			++working;
 			std::pair<iterator_type, iterator_type> job = jobs[--job_count];
-			while ((job.second - job.first) >= min_size) {
+			while (size_t(job.second - job.first) >= min_size) {
 				lock.unlock();
 				std::pair<iterator_type, iterator_type> r = partition(job.first, job.second, comp);
 				lock.lock();
@@ -126,10 +125,9 @@ public:
 	parallel_sort_impl(progress_indicator_base * p): pi(p) {}
 
 	void operator()(iterator_type a, iterator_type b, comp_type comp=std::less<value_type>() ) {
-		const size_t tc=boost::thread::hardware_concurrency();
-		thread_holder threads[tc];
+		const size_t tc=std::min<size_t>(boost::thread::hardware_concurrency(),32);
+		thread_holder threads[32];
 		boost::mutex::scoped_lock lock(mutex);
-		boost::uint64_t n = b-a;
 		working = 0;
 		kill = false;
 		if (pi) {
