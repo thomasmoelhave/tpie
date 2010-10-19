@@ -2096,7 +2096,6 @@ protected:
 		// Brand new leaf.
 		TPIE_AMI_KDTREE_LEAF* l = fetch_leaf();
 		bid = l->bid();
-		assert(d < dim);
 		assert(sz <= params_.leaf_size_max);
 
 		l->size() = sz;

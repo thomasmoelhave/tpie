@@ -380,7 +380,7 @@ private:
 		IT & tbl;
 		size_t cur;
  		iter_base(IT & t, size_t c): tbl(t), cur(c) {};
- 		friend class hash_set::iterator;
+ 		//friend class hash_set::iterator;
  		friend class hash_set;
  	public:
  		inline const value_t & operator*() const {return tbl.get(cur);}
