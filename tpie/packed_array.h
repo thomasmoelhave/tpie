@@ -19,12 +19,7 @@
 #ifndef __TPIE_PACKED_ARRAY_H__
 #define __TPIE_PACKED_ARRAY_H__
 
-#ifdef _MSC_VER
-#pragma warning(push)
-//Yes, I am perfectly aware that I cast ints to bool
-#pragma warning(disable : 4800)
-#endif
-
+#include <tpie/config.h>
 #include <boost/static_assert.hpp>
 
 ///////////////////////////////////////////////////////////////////////////
@@ -250,7 +245,7 @@ public:
 	/// \copydetails linear_memory_structure_doc::memory_overhead()
 	/////////////////////////////////////////////////////////
 	static double memory_overhead() {
-		return sizeof(packed_array) + MM_manager.space_overhead()+sizeof(storage_type);
+		return (double)sizeof(packed_array) + MM_manager.space_overhead()+(double)sizeof(storage_type);
 	}	
 
 	/////////////////////////////////////////////////////////
@@ -412,10 +407,6 @@ public:
 	inline reverse_iterator rend() {return reverse_iterator(m_elements-1, perword()-1);}
 	inline const_reverse_iterator rend() const {return const_reverse_iterator(m_elements-1, perword()-1);}
 };
-
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
 }
 #endif //__TPIE_PACKED_ARRAY_H__
