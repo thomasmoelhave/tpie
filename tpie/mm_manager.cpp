@@ -42,7 +42,7 @@ extern int register_new;
 using namespace tpie::mem;
 
 manager::manager() : 
-    remaining (0), user_limit(0), used(0), pause_allocation_depth (0) {
+    remaining (0), user_limit(0), used(0), global_overhead (0), pause_allocation_depth (0) {
     instances++;
 
     tp_assert(instances == 1,
@@ -168,7 +168,7 @@ err manager::set_memory_limit (TPIE_OS_SIZE_T new_limit)
     // dh. unless the user indicates otherwise
     if (new_limit == 0){
 	register_new = IGNORE_MEMORY_EXCEEDED;
-	remaining = used = user_limit = 0;
+	global_overhead = remaining = used = user_limit = 0;
 	return NO_ERROR;
     } 
 
