@@ -199,7 +199,7 @@ void manager::subtract_from_global_overhead (TPIE_OS_SIZE_T sz) {
 		global_overhead -= sz;
 }
 
-TPIE_OS_SIZE_T manager::get_global_overhead (){
+TPIE_OS_SIZE_T manager::get_global_overhead () const{
 	return global_overhead;
 }
 
@@ -253,8 +253,8 @@ TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound,
 	//don't try to get more than the amount of bytes currently
 	//available
 	TPIE_OS_SIZE_T high = memory_available();
-	if(high > space_overhead())
-		high -= space_overhead();
+	if(high > static_cast<TPIE_OS_SIZE_T>(space_overhead()))
+		high -= static_cast<TPIE_OS_SIZE_T>(space_overhead());
 	else
 		high = 0;
 
