@@ -186,6 +186,23 @@ err manager::set_memory_limit (TPIE_OS_SIZE_T new_limit)
     }
 }
 
+// Add to the global overhead
+void manager::add_to_global_overhead (TPIE_OS_SIZE_T sz) {
+	global_overhead += sz;
+}
+
+// Subtract from the global overhead
+void manager::subtract_from_global_overhead (TPIE_OS_SIZE_T sz) {
+	if(global_overhead < sz)
+		global_overhead = 0;
+	else
+		global_overhead -= sz;
+}
+
+TPIE_OS_SIZE_T manager::get_global_overhead (){
+	return global_overhead;
+}
+
 // dh. only warn if memory limit exceeded
 void manager::warn_memory_limit() {
     register_new = WARN_ON_MEMORY_EXCEEDED;
@@ -210,7 +227,9 @@ mode manager::get_limit_mode() {
 // dh. return the amount of memory available before user-specified 
 // memory limit exceeded 
 TPIE_OS_SIZE_T manager::memory_available() {
-    return remaining;    
+	if(remaining < global_overhead)
+		return 0;
+	return remaining - global_overhead;
 }
 
 TPIE_OS_SIZE_T manager::memory_used() {
@@ -233,7 +252,11 @@ TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound,
 
 	//don't try to get more than the amount of bytes currently
 	//available
-	TPIE_OS_SIZE_T high = memory_available()-space_overhead();
+	TPIE_OS_SIZE_T high = memory_available();
+	if(high > space_overhead())
+		high -= space_overhead();
+	else
+		high = 0;
 
 	TP_LOG_DEBUG_ID("\n- - - - - - - MEMORY SEARCH - - - - - -\n");
 

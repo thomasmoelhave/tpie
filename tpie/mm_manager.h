@@ -87,6 +87,9 @@ namespace tpie {
 	    
 	    /** The amount that has been allocated. */
 	    TPIE_OS_SIZE_T   used;
+
+	    /** The current allocation overhead. */
+	    TPIE_OS_SIZE_T   global_overhead;
 	    
 	    /** The depth of possibly nested "pause"-calls. */
 	    unsigned long pause_allocation_depth;
@@ -135,7 +138,18 @@ namespace tpie {
 	    /// \param[in] sz The amount of memory in bytes tpie is allowed to use
 	    /// in the further.
 	    ///////////////////////////////////////////////////////////////////////////
-	    err set_memory_limit(TPIE_OS_SIZE_T sz); 
+	    err set_memory_limit(TPIE_OS_SIZE_T sz);
+
+	    ///////////////////////////////////////////////////////////////////////////
+	    /// Adds to the current global overhead.
+	    ///////////////////////////////////////////////////////////////////////////
+	    err   add_to_global_overhead(TPIE_OS_SIZE_T sz);
+
+	    ///////////////////////////////////////////////////////////////////////////
+	    /// Subtracts from the current global overhead. Sets the global overhead to
+	    /// 0 if current global overhead is less than sz.
+	    ///////////////////////////////////////////////////////////////////////////
+	    void  subtract_from_global_overhead(TPIE_OS_SIZE_T sz);
 	    
 	    ///////////////////////////////////////////////////////////////////////////
 	    /// Instruct TPIE to abort computation when the memory limit is exceeded.
@@ -189,7 +203,12 @@ namespace tpie {
 	    /// Return the memory limit as set by the last call to 
 	    /// method set_memory_limit().
 	    ///////////////////////////////////////////////////////////////////////////
-	    TPIE_OS_SIZE_T memory_limit ();         
+	    TPIE_OS_SIZE_T memory_limit ();
+
+	    ///////////////////////////////////////////////////////////////////////////
+	    /// Gets the current global overhead.
+	    ///////////////////////////////////////////////////////////////////////////
+	    TPIE_OS_SIZE_T get_global_overhead() const;
 	    
 	    ///////////////////////////////////////////////////////////////////////////
 	    /// Returns the space overhead, that TPIE imposes on each memory
