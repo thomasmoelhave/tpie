@@ -28,6 +28,7 @@
 #include <tpie/portability.h>
 #include <tpie/stream.h> 
 #include <tpie/tempname.h>
+#include <tpie/array.h>
 #include <tpie/merge_sorted_runs.h>
 #include <tpie/mergeheap.h>  //For templated heaps
 #include <tpie/internal_sort.h> // Contains classes for sorting internal runs
@@ -73,10 +74,10 @@ private:
 	    
 	err start_sort();              // high level wrapper to full sort 
 	err compute_sort_params();     // compute nInputItems, mrgArity, nRuns
-	err partition_and_sort_runs(); // make initial sorted runs
-	err merge_to_output();         // loop over merge tree, create output stream
+	err partition_and_sort_runs(progress_indicator_base* indicator); // make initial sorted runs
+	err merge_to_output(progress_indicator_base* indicator); // loop over merge tree, create output stream
 	// Merge a single group mrgArity streams to an output stream
-	err single_merge(stream<T>**, arity_t,  stream<T>*, TPIE_OS_OFFSET = -1);
+	err single_merge(stream<T>**, arity_t,  stream<T>*, TPIE_OS_OFFSET = -1, progress_indicator_base* indicator=0);
 	// helper function for creating filename
 	inline void make_name(
 		const std::string& prepre, 
@@ -117,7 +118,7 @@ private:
 	// The number of extra runs or the number of streams that
 	// get one additional run.
 	arity_t nXtraRuns;
-	    
+	
 	// The last run can have fewer than nItemsPerRun;
 	TPIE_OS_SIZE_T nItemsInLastRun;
 	// How many items we will sort in a given run
@@ -264,41 +265,34 @@ err sort_manager<T,I,M>::start_sort(){
 	// Check if all input items can be sorted internally using less than
 	// mmBytesAvail
 	nInputItems = inStream->stream_len();
-	    
-	if (m_indicator) {
-		m_indicator->set_title("Starting TPIE Sort");
-		m_indicator->set_percentage_range(0, nInputItems, 1000);
-	}
-	    
+	
 	inStream->seek (0);
-	    
+	
 	if (nInputItems < TPIE_OS_OFFSET(m_internalSorter->MaxItemCount(mmBytesAvail))){
-		if (m_indicator) {
-		    m_indicator->init("Sorting items internally");
-		}
-
-		// allocate the internal array items
-		m_internalSorter->allocate(static_cast<TPIE_OS_SIZE_T>(nInputItems));
+		if (m_indicator) m_indicator->set_range(0, 4000, 1);
 		
+		fractional_progress fp(m_indicator, "Sorting");
+		fp.id() << __FILE__ << __FUNCTION__ << "internal_sort" << typeid(T) << typeid(I) << typeid(M);
+		fractional_subindicator allocate_progress(fp, "allocate", 0.10, nInputItems);
+		fractional_subindicator sort_progress(fp, "sort", 0.90, nInputItems);
+
+		allocate_progress.init("Allocating");
+		m_internalSorter->allocate(static_cast<TPIE_OS_SIZE_T>(nInputItems));
+		allocate_progress.done();
+
 		// load the items into main memory, sort, and write to output.
 		// m_internalSorter also checks if inStream/outStream are the same and
 		// truncates/rewrites inStream if they are. This probably should not
 		// be the job of m_internalSorter-> TODO: build a cleaner interface
-		if ((ae = m_internalSorter->sort(inStream, outStream, static_cast<TPIE_OS_SIZE_T>(nInputItems)))
-		    != NO_ERROR) {
-		    
+		if ((ae = m_internalSorter->sort(inStream, 
+										 outStream, 
+										 static_cast<TPIE_OS_SIZE_T>(nInputItems), 
+										 &sort_progress)) != NO_ERROR) {
 		    TP_LOG_FATAL_ID ("main_mem_operate failed");
-		    
 		    return ae;
 		}
-
 		// de-allocate the internal array of items
 		m_internalSorter->deallocate();
-
-		if (m_indicator) {
-		    m_indicator->done();
-		}
-
 		return NO_ERROR;
 	}
 
@@ -327,23 +321,21 @@ err sort_manager<T,I,M>::start_sort(){
 	// * be very wary of memory allocation via "new" or constructors from *
 	// * this point on and make sure it was accounted for in PHASE 2      *
 	// ********************************************************************
+	fractional_progress fp(m_indicator, "Sorting");
+	fp.id() << __FILE__ << __FUNCTION__ << "external_sort" << typeid(T) << typeid(I) << typeid(M);
+	fractional_subindicator run_progress(fp, "run", 0.5, nInputItems);
+	fractional_subindicator merge_progress(fp, "merge", 0.5, nInputItems);
 	    
 	// PHASE 3: partition and form sorted runs
 	TP_LOG_DEBUG_ID ("Beginning general merge sort.");
-	ae=partition_and_sort_runs();
+	ae=partition_and_sort_runs(&run_progress);
 	if (ae != NO_ERROR){ 
 		return ae; 
 	}
-
 	// PHASE 4: merge sorted runs to a single output stream
-	ae=merge_to_output();
+	ae=merge_to_output(&merge_progress);
 	if (ae != NO_ERROR){ 
 		return ae; 
-	}
-	    
-	// That's it
-	if (m_indicator) {
-		m_indicator->done();
 	}
 	    
 	return NO_ERROR;
@@ -578,7 +570,7 @@ err sort_manager<T,I,M>::compute_sort_params(void){
 }
 
 template<class T, class I, class M>
-err sort_manager<T,I,M>::partition_and_sort_runs(void){
+err sort_manager<T,I,M>::partition_and_sort_runs(progress_indicator_base* indicator){
 	// ********************************************************************
 	// * PHASE 3: Partition                                               *
 	// * Partition the input stream into nRuns of at most nItemsPerRun    *
@@ -624,14 +616,13 @@ err sort_manager<T,I,M>::partition_and_sort_runs(void){
 	// ********************************************************************
 	TPIE_OS_OFFSET check_size = 0; //for debugging
 
-
-	if (m_indicator) {
+	if (indicator) {
 		//m_indicator->set_description();
-		m_indicator->set_range(0,nRuns*1000,1);
+		indicator->set_range(0,nRuns*1000,1);
 		//m_indicator->refresh();
-		m_indicator->init("Forming runs ");
+		indicator->init("Forming runs");
 	}
-
+	
 	for(arity_t ii=0; ii<mrgArity; ii++){   //For each output stream
 		// Make the output file name
 		make_name(working_disk, suffixName[0], ii, newName);
@@ -649,8 +640,7 @@ err sort_manager<T,I,M>::partition_and_sort_runs(void){
 				nItemsInThisRun=nItemsInLastRun;
 		    }
 
-			// Sort it
-			progress_indicator_subindicator sort_indicator(0, 42, 1, m_indicator, 1000);
+			progress_indicator_subindicator sort_indicator(indicator, 1000, 0, 42, 1);
 		    if ((ae = m_internalSorter->sort(inStream, curOutputRunStream, 
 											 nItemsInThisRun, &sort_indicator))!= NO_ERROR)
 		    {
@@ -668,25 +658,22 @@ err sort_manager<T,I,M>::partition_and_sort_runs(void){
 		delete curOutputRunStream;
 
 	}//For each output stream
-	if (m_indicator) m_indicator->done();
 	tp_assert(check_size == nInputItems, "item count mismatch");
 
 	// Done with partitioning and initial run formation
 	// free space associated with internal memory sorting
 	m_internalSorter->deallocate();
-	if (m_indicator) {
-		m_indicator->done();
-	}
 	if(use2xSpace){ 
 		//recall outStream/inStream point to same file in this case
 		inStream->truncate(0); //free up disk space
 		inStream->seek(0);
 	} 
+	if (indicator) indicator->done();
 	return NO_ERROR;
 }
 
 template<class T, class I, class M>
-err sort_manager<T,I,M>::merge_to_output(void){
+err sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
 
 	// ********************************************************************
 	// * PHASE 4: Merge                                                   *
@@ -729,10 +716,13 @@ err sort_manager<T,I,M>::merge_to_output(void){
 	// *                                                               *
 	// *****************************************************************
 
-	if (m_indicator) {
+	if (indicator) {
 		//compute merge depth, number of passes over data
 		treeHeight= static_cast<int>(ceil(log(static_cast<float>(nRuns)) /
 										  log(static_cast<float>(mrgArity))));
+
+		indicator->set_range(0, nInputItems * treeHeight, 1);
+		indicator->init("Merging");
 	}
   
 	//nRuns is initially the number of runs we formed in partition_and_sort
@@ -740,14 +730,14 @@ err sort_manager<T,I,M>::merge_to_output(void){
 	//contain one extra run. Runs and nXtraRuns are updated as we 
 	//complete a merge level. 
 	while (nRuns > TPIE_OS_OFFSET(mrgArity)) {
-		if (m_indicator) {
-			std::string description;
-			std::stringstream buf;
-			buf << "Merge pass " << mrgHeight+1 << " of " << treeHeight << " ";
-			buf >> description;
-		    m_indicator->set_percentage_range(0, nInputItems);
-		    m_indicator->init(description);
-		}
+		// if (m_indicator) {
+		// 	std::string description;
+		// 	std::stringstream buf;
+		// 	buf << "Merge pass " << mrgHeight+1 << " of " << treeHeight << " ";
+		// 	buf >> description;
+		//     m_indicator->set_percentage_range(0, nInputItems);
+		//     m_indicator->init(description);
+		// }
 
 		// We are not yet at the top of the merge tree
 		// Write merged runs to temporary output streams
@@ -823,7 +813,7 @@ err sort_manager<T,I,M>::merge_to_output(void){
 				// Merge runs to curOutputRunStream
 				ae = single_merge(mergeInputStreams+mrgArity-nRunsToMerge,
 								  nRunsToMerge, curOutputRunStream, 
-								  nItemsPerRun); 
+								  nItemsPerRun, indicator); 
 				if (ae != NO_ERROR) {
 					TP_LOG_FATAL_ID("AMI_single_merge error"<< ae <<" in deep merge");
 					return ae;
@@ -877,15 +867,12 @@ err sort_manager<T,I,M>::merge_to_output(void){
 		mergeInputStreams[ii-(mrgArity-static_cast<TPIE_OS_SIZE_T>(nRuns))]->seek(0);
 	}
 
-	if (m_indicator) {
-		m_indicator->set_percentage_range(0, nInputItems);
-		m_indicator->init("Final merge pass  ");
-	}
 	// Merge last remaining runs to the output stream.
 	// mergeInputStreams is address( address (the first input stream) )
 	// N.B. nRuns is small, so it is safe to downcast.
-	ae = single_merge (mergeInputStreams, static_cast<arity_t>(nRuns), outStream);
+	ae = single_merge(mergeInputStreams, static_cast<arity_t>(nRuns), outStream, -1, indicator);
 
+	if (indicator) indicator->done();
 	tp_assert(outStream->stream_len() == nInputItems, "item count mismatch");
 
 	if (ae != NO_ERROR) {
@@ -915,11 +902,11 @@ err sort_manager<T,I,M>::merge_to_output(void){
 
 template<class T, class I, class M>
 err sort_manager<T,I,M>::single_merge( stream < T > **inStreams,
-									   arity_t arity, stream < T >*outStream, TPIE_OS_OFFSET cutoff)
+									   arity_t arity, stream < T >*outStream, TPIE_OS_OFFSET cutoff, progress_indicator_base* indicator)
 {
 
 	return merge_sorted_runs(inStreams, arity, outStream, m_mergeHeap,
-							 cutoff, m_indicator);
+							 cutoff, indicator);
 }
 
 

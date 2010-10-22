@@ -32,7 +32,8 @@
 #include <tpie/portability.h>
 #include <tpie/parallel_sort.h>
 #include <tpie/comparator.h> //to convert TPIE comparisons to STL
-#include <tpie/progress_indicator_subindicator.h>
+#include <tpie/fractional_progress.h>
+#include <tpie/err.h>
 
 namespace tpie {
 namespace ami {
@@ -212,16 +213,21 @@ err Internal_Sorter_Op<T>::sort(stream<T>* InStr,
 	err ae  = NO_ERROR;
 	T    *next_item;
 	TPIE_OS_SIZE_T i = 0;
-	
 	// make sure we called allocate earlier
 	if (ItemArray==NULL){
 		return NULL_POINTER;
 	}
+	
 	pi->set_range(0, 4000, 1);
 	tp_assert ( nItems <= len, "nItems more than interal buffer size.");
 
-	progress_indicator_subindicator read_progress(0, nItems, 1, pi, 1000);
-	read_progress.init();
+	fractional_progress fp(pi, "Internal Sort");
+	fp.id() << __FILE__ << __FUNCTION__ << typeid(T);
+	fractional_subindicator read_progress(fp, "read", 0.25, nItems, 0, nItems);
+	fractional_subindicator sort_progress(fp, "sort", 0.50, nItems);
+	fractional_subindicator write_progress(fp, "write", 0.25, nItems, 0, nItems);
+
+	read_progress.init("Reading");
 	// Read a memory load out of the input stream one item at a time,
 	for (i = 0; i < nItems; i++) {
 		if ((ae=InStr->read_item (&next_item)) != NO_ERROR) {
@@ -231,13 +237,13 @@ err Internal_Sorter_Op<T>::sort(stream<T>* InStr,
 		ItemArray[i] = *next_item;
 		read_progress.step();
 	}
-	
+	read_progress.done();
+
 	//Sort the array.
 	TP_LOG_DEBUG_ID("calling STL sort for " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(nItems) << " items");
-	progress_indicator_subindicator sort_progress(0, 42, 1, pi, 2000);
 	parallel_sort(ItemArray, ItemArray+nItems, std::less<T>(), &sort_progress);
+
 	TP_LOG_DEBUG("calling quick_sort_op for " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(nItems) << " items\n");
-	
 	if(InStr==OutStr){ //Do the right thing if we are doing 2x sort
 		//Internal sort objects should probably be re-written so that
 		//the interface is cleaner and they don't have to worry about I/O
@@ -246,8 +252,7 @@ err Internal_Sorter_Op<T>::sort(stream<T>* InStr,
 	}
 	
 	//  Write sorted array to OutStr
-	progress_indicator_subindicator write_progress(0, nItems, 1, pi, 1000);
-	write_progress.init();
+	write_progress.init("Writing");
 	for (i = 0; i < nItems; i++) {
 		if ((ae = OutStr->write_item(ItemArray[i])) != NO_ERROR) {
 		    TP_LOG_FATAL_ID ("Internal Sorter: AMI write error " << ae );
@@ -256,7 +261,6 @@ err Internal_Sorter_Op<T>::sort(stream<T>* InStr,
 		write_progress.step();
 	}
 	write_progress.done();
-	
 	return NO_ERROR;
 }
 
@@ -317,8 +321,14 @@ err Internal_Sorter_Obj<T, CMPR>::sort(stream<T>* InStr,
 	if (ItemArray==NULL) return NULL_POINTER;
 	    
 	tp_assert ( nItems <= len, "nItems more than interal buffer size.");
-	progress_indicator_subindicator read_progress(0, nItems, 1, pi, 1000);
-	read_progress.init();
+
+	fractional_progress fp(pi, "Internal Sort");
+	fp.id() << __FILE__ << __FUNCTION__ << typeid(T) << typeid(CMPR);
+	fractional_subindicator read_progress(fp, "read", 0.25, nItems, 0, nItems);
+	fractional_subindicator sort_progress(fp, "sort", 0.50, nItems);
+	fractional_subindicator write_progress(fp, "write", 0.25, nItems, 0, nItems);
+
+	read_progress.init("Reading");
 	// Read a memory load out of the input stream one item at a time,
 	for (i = 0; i < nItems; i++) {
 		if ((ae=InStr->read_item (&next_item)) != NO_ERROR) {
@@ -334,8 +344,6 @@ err Internal_Sorter_Obj<T, CMPR>::sort(stream<T>* InStr,
 	TP_LOG_DEBUG_ID("calling STL sort for " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(nItems) << " items");
 	TP_LOG_DEBUG("converting TPIE comparison object to STL\n");
 
-	progress_indicator_subindicator sort_progress(0, nItems, 1, pi, 2000);
-	sort_progress.init();
 	tpie::parallel_sort(ItemArray, ItemArray+nItems, TPIE2STL_cmp<T,CMPR>(cmp_o), &sort_progress);
 	if (InStr==OutStr) { //Do the right thing if we are doing 2x sort
 		//Internal sort objects should probably be re-written so that
@@ -344,8 +352,7 @@ err Internal_Sorter_Obj<T, CMPR>::sort(stream<T>* InStr,
 		InStr->seek(0); //rewind
 	}
 
-	progress_indicator_subindicator write_progress(0, nItems, 1, pi, 1000);
-	write_progress.init();
+	write_progress.init("Writing");
 	//Write sorted array to OutStr
 	for (i = 0; i < nItems; i++) {
 		if ((ae = OutStr->write_item(ItemArray[i])) != NO_ERROR) {
@@ -490,15 +497,19 @@ inline err Internal_Sorter_KObj<T, KEY, CMPR>::sort(stream<T>* InStr,
 	}
 	
 	tp_assert ( nItems <= len, "nItems more than interal buffer size.");
-	progress_indicator_subindicator read_progress(0, nItems, 1, pi, 1000);
-	read_progress.init();
+
+	fractional_progress fp(pi, "Internal Sort");
+	fp.id() << __FILE__ << __FUNCTION__ << typeid(T) << typeid(KEY) <<  typeid(CMPR);
+	fractional_subindicator read_progress(fp, "read", 0.25, nItems, 0, nItems);
+	fractional_subindicator sort_progress(fp, "sort", 0.50, nItems);
+	fractional_subindicator write_progress(fp, "write", 0.25, nItems, 0, nItems);
+
+	read_progress.init("Reading");
 	// Read a memory load out of the input stream one item at a time,
 	for (i = 0; i < nItems; i++) {
 		if ((ae=InStr->read_item (&next_item)) != NO_ERROR) {
-			
-		    TP_LOG_FATAL_ID ("Internal sort: AMI read error " << ae);
-		    
-		    return ae;
+			TP_LOG_FATAL_ID ("Internal sort: AMI read error " << ae);
+			return ae;
 		}
 		
 		ItemArray[i] = *next_item;
@@ -514,9 +525,7 @@ inline err Internal_Sorter_KObj<T, KEY, CMPR>::sort(stream<T>* InStr,
 	QsortKeyCmp<KEY, CMPR> kc(UsrObject);
 	TPIE2STL_cmp<qsort_item<KEY>,QsortKeyCmp<KEY,CMPR> > stlcomp(&kc);
 
-	progress_indicator_subindicator sort_progress(0, nItems, 1, pi, 2000);
 	parallel_sort(sortItemArray, sortItemArray+nItems, std::less<qsort_item<KEY> >(), &sort_progress);
-	
 	if (InStr==OutStr) { //Do the right thing if we are doing 2x sort
 		//Internal sort objects should probably be re-written so that
 		//the interface is cleaner and they don't have to worry about I/O
@@ -524,8 +533,7 @@ inline err Internal_Sorter_KObj<T, KEY, CMPR>::sort(stream<T>* InStr,
 		InStr->seek(0); //rewind
 	}
 
-	progress_indicator_subindicator write_progress(0, nItems, 1, pi, 1000);
-	write_progress.init();
+	write_progress.init("Writing");
 	//Write sorted array to OutStr
 	for (i = 0; i < nItems; i++) {
 		if ((ae = OutStr->write_item(ItemArray[sortItemArray[i].source]))
@@ -536,7 +544,6 @@ inline err Internal_Sorter_KObj<T, KEY, CMPR>::sort(stream<T>* InStr,
 		write_progress.step();
 	}
 	write_progress.done();
-	
 	return NO_ERROR;
 }
 

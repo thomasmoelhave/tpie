@@ -51,12 +51,20 @@ public:
 		}
 		return true;
 	}
+
+	size_t prime_hash(const std::string & x) {
+		size_t r=42;
+		for(size_t i=0; i < x.size(); ++i)
+			r = r*m_pr[i % m_pr.size()] + x[i];
+		return r;
+	}
 };
 
 ///////////////////////////////////////////////////////////////////////////
 /// Functor object to check if a given number is a prime
 ///////////////////////////////////////////////////////////////////////////
 extern is_prime_t is_prime;
+
 }
 
 #endif //__TPIE_PRIME_H__
