@@ -141,9 +141,12 @@ namespace tpie {
 	void set_description(const std::string& description) 
 	{
 	    m_description = description;
-	    std::cout << "\r";
-	    for (int i = 0; i < 78; i++) std::cout << " ";
-	    std::cout << "\r" << description << std::flush;
+		refresh();
+	}
+
+
+	std::string get_description() {
+		return m_description;
 	}
 
 	////////////////////////////////////////////////////////////////////
@@ -169,15 +172,17 @@ namespace tpie {
 
 	void display_percentage() 
 	{
-		if (m_percentageUnit) {
-			std::cout << std::setw(6) << std::setiosflags(std::ios::fixed) << std::setprecision(2) 
-				 << ((static_cast<double>(m_current) * 100.0) / 
-					 static_cast<double>(m_percentageUnit))
-				 << "%";
-	    }
-	    else {
-			std::cout << m_current << "/" << m_maxRange-m_minRange;
-	    }
+		//if (m_percentageUnit) {
+		//	std::cout << std::setw(6) << std::setiosflags(std::ios::fixed) << std::setprecision(2) 
+		//			 << ((static_cast<double>(m_current) * 100.0) / 
+		//				 static_cast<double>(m_percentageUnit))
+		//			 << "%";
+	    //}
+	    //else {
+		//		std::cout << 
+	    //}
+		long r = (m_current - m_minRange) * 100 / (m_maxRange-m_minRange);
+		std::cout << r << "%";
 	}
 
 	/**  A string holding the description of the title */

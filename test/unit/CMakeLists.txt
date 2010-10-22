@@ -23,7 +23,7 @@ endif()
 add_unittest(internal_queue basic memory)
 add_unittest(internal_stack basic memory)
 add_unittest(internal_vector basic memory)
-add_unittest(parallel_sort basic)
+add_unittest(parallel_sort basic1 equal_elements)
 
 add_unittest(external_priority_queue basic)
 add_fulltest(external_priority_queue medium large large_cycle)

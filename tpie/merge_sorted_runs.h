@@ -105,7 +105,7 @@ namespace tpie {
 		}
 		nread[i]=1; 
 		if (indicator) {
-		    indicator->step_percentage();
+		    indicator->step();
 		}
 	    }
 
@@ -149,7 +149,7 @@ namespace tpie {
 		    }
 		    
 		    if (indicator) {
-			indicator->step_percentage();
+				indicator->step();
 		    }
 		    
 		} 

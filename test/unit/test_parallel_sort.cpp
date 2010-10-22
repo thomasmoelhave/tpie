@@ -20,25 +20,57 @@
 #include "common.h"
 #include <tpie/parallel_sort.h>
 #include <boost/random/linear_congruential.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+
+bool basic1() {
+	boost::rand48 prng(42);
+	std::vector<int> v1;
+	std::vector<int> v2;
+	for (size_t i=0; i < 1234567; ++i) {
+		int x = prng();
+		v1.push_back(x);
+		v2.push_back(x);
+	}
+	std::sort(v1.begin(), v1.end());
+	tpie::parallel_sort_impl<std::vector<int>::iterator, std::less<int>, 42> s(0);
+	s(v2.begin(), v2.end());
+	if(v1 != v2) {std::cerr << "Failed" << std::endl; return false;}
+	return true;
+}
+
+bool equal_elements() {
+	std::vector<int> v1;
+	std::vector<int> v2;
+	for (size_t i=0; i < 1234567; ++i) {
+		v1.push_back(42);
+		v2.push_back(42);
+	}
+	v1.push_back(1);
+	v2.push_back(1);
+	v1.push_back(64);
+	v2.push_back(64);
+
+	boost::posix_time::ptime t1=boost::posix_time::microsec_clock::local_time();
+	std::sort(v1.begin(), v1.end());
+	boost::posix_time::ptime t2=boost::posix_time::microsec_clock::local_time();
+	tpie::parallel_sort_impl<std::vector<int>::iterator, std::less<int>, 42> s(0);
+	s(v2.begin(), v2.end());
+	boost::posix_time::ptime t3=boost::posix_time::microsec_clock::local_time();
+	if(v1 != v2) {std::cerr << "Failed" << std::endl; return false;}
+	std::cout << "std: " << (t2-t1) << " ours: " << t3-t2 << std::endl;
+	if( (t2-t1)*3 < (t3-t2) ) {std::cerr << "Too slow" << std::endl; return false;}
+	return true;
+}
 
 int main(int argc, char **argv) {
 	if(argc != 2) return 1;
 	std::string test(argv[1]);
-	boost::rand48 prng(42);
-	if (test == "basic") {
-		std::vector<int> v1;
-		std::vector<int> v2;
-		for (size_t i=0; i < 12345; ++i) {
-			int x = prng();
-			v1.push_back(x);
-			v2.push_back(x);
-		}
-		std::sort(v1.begin(), v1.end());
-		tpie::parallel_sort_impl<std::vector<int>::iterator, std::less<int>, 42> s(0);
-		s(v2.begin(), v2.end());
-		if(v1 != v2) {std::cerr << "Failed" << std::endl; exit(EXIT_FAILURE);}
-		exit(EXIT_SUCCESS);
+	if (test == "basic1") {
+		exit(basic1()?EXIT_SUCCESS:EXIT_FAILURE);
+	} else if (test == "equal_elements") {
+		exit(equal_elements()?EXIT_SUCCESS:EXIT_FAILURE);
 	}
+
 	std::cerr << "No such test" << std::endl;
 	return EXIT_FAILURE;
 	

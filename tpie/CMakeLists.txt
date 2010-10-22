@@ -119,6 +119,7 @@ set (OTHER_SOURCES
 	tempname.cpp
 	prime.cpp
 	progress_indicator_base.cpp
+	execution_time_predictor.cpp
 	)
 
 source_group("BTE" FILES ${BTE_HEADERS} ${BTE_SOURCES})

@@ -60,7 +60,7 @@ namespace tpie {
 							 TPIE_OS_OFFSET maxRange, 
 							 TPIE_OS_OFFSET stepValue) : 
 	    progress_indicator_terminal(title, description, minRange, maxRange, stepValue), m_indicatorLength(0), m_progress(0) {
-	    m_indicatorLength = 40;
+	    m_indicatorLength = 110;
 	}
     
   ////////////////////////////////////////////////////////////////////
@@ -129,35 +129,41 @@ namespace tpie {
 
 	virtual void refresh() {
 	    //  Compute the relative length of the arrow.
-	    TPIE_OS_OFFSET progress = (m_maxRange != m_minRange ) ? 
-			m_indicatorLength * (m_current-m_minRange)/(m_maxRange-m_minRange) : 0; 
+		//std::cout << "refresh " << m_description << std::endl;
 
+		int l = m_indicatorLength - 12  - m_description.size();
+	    TPIE_OS_OFFSET progress = (m_maxRange != m_minRange ) ? 
+			l * (m_current-m_minRange)/(m_maxRange-m_minRange) : 0; 
+
+		
 	    //  Make sure that the first item gets printed.
-	    if (progress == 0) progress = 1;
+	    //if (progress == 0) progress = 1;
 	
 	    //  Only print stuff to std::cout if the indicator needs to be updated.
-	    if (progress > m_progress) {
+	    //if (progress > m_progress) {
 
-		//  Don't print the last item.
-		if (progress == m_indicatorLength) progress--;
-
-		//  Go to the beginning of the line and print the description.
-		std::cout << "\r" << m_description << " [";
-	    
-		//  Extend the arrow.
-		for(TPIE_OS_OFFSET i = 0; i < progress; i++) std::cout << "=";
-		std::cout << ">";
-
-		//  Print blank space.
-		for(TPIE_OS_OFFSET i = progress+1; i < m_indicatorLength; i++) std::cout << " ";
-		std::cout << "] ";
-
-		//  Print either a percentage sign or the maximum range.
-		display_percentage();
-
-		std::cout << std::flush;
-		m_progress = progress;
-	    }
+			//  Don't print the last item.
+			if (progress >= l) progress = l -1;
+			
+			//  Go to the beginning of the line and print the description.
+			std::cout << "\r" << m_description << " [";
+			
+			//  Extend the arrow.
+			
+			for(TPIE_OS_OFFSET i = 0; i < progress; i++) std::cout << "=";
+			std::cout << ">";
+			
+			//  Print blank space.
+			for(TPIE_OS_OFFSET i = progress+1; i < l; i++) std::cout << " ";
+			std::cout << "] ";
+			
+			//  Print either a percentage sign or the maximum range.
+			display_percentage();
+			
+			std::cout << " " << estimated_remaining_time();
+			std::cout << std::flush;
+			m_progress = progress;
+			//}
 	}
 
     protected:
