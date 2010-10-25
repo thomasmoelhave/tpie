@@ -31,8 +31,7 @@
 #include <tpie/progress_indicator_base.h>
 namespace tpie {
 	
-template <typename iterator_type, typename comp_type=
-		  std::less<typename boost::iterator_value<iterator_type>::type>,
+template <typename iterator_type, typename comp_type,
 		  size_t min_size=1024*1024*8/sizeof(typename boost::iterator_value<iterator_type>::type)>
 class parallel_sort_impl {
 private:
@@ -59,23 +58,23 @@ private:
 	}
 
 	// Pick a good element for partitioning
-	static inline value_type pick_pivot(iterator_type a, iterator_type b) {
-		const size_t z=5;
-		iterator_type sample[z];
+	static inline value_type pick_pivot(iterator_type a, iterator_type b, comp_type & comp) {
+		const size_t size=5;
+		iterator_type sample[size];
 		sample[0] = a + (b-a)/2;
-		for(size_t i=1; i < z; ++i) {sample[i] = a+random() % (b-a);}
-		for(size_t i=0; i < z/2; ++i) {
+		for(size_t i=1; i < size; ++i) {sample[i] = a+(random() % (b-a));}
+		for(size_t i=0; i < size/2; ++i) {
 			size_t z=i;
-			for(size_t j=i+1; j < z; ++j) 
-				if (*sample[j] < *sample[z]) z=j;
+			for(size_t j=i+1; j < size; ++j) 
+				if (comp(*sample[j],*sample[z])) z=j;
 			std::swap(sample[i], sample[z]);
 		}
-		return *sample[z/2];
+		return *sample[size/2];
 	}
 
 	// Partition the array
 	inline std::pair<iterator_type, iterator_type> partition(iterator_type a, iterator_type b, comp_type & comp) {
-		value_type pivot = pick_pivot(a, b);
+		value_type pivot = pick_pivot(a, b, comp);
 		iterator_type l = unguarded_partition(a, b, pivot, comp);
 		return std::make_pair(l, l);
 	}
@@ -94,6 +93,29 @@ private:
 		~notify_on_exit() {kill=true; cond.notify_all();}
 	};
 
+	void solve(comp_type & comp, boost::mutex::scoped_lock & lock, std::pair<iterator_type, iterator_type> job) {
+		while (size_t(job.second - job.first) >= min_size) {
+			lock.unlock();
+			std::pair<iterator_type, iterator_type> r = partition(job.first, job.second, comp);
+			lock.lock();
+			work_estimate += job.second - job.first;
+			
+			if (job_count < max_job_count) {
+				jobs[job_count++] = std::make_pair(r.second, job.second);
+				cond.notify_all();
+				job.second = r.first;
+			} else {
+				cond.notify_all();
+				solve(comp, lock, std::make_pair(job.first, r.first));
+				job.first = r.second;
+			}
+		}
+		lock.unlock();
+		std::sort(job.first, job.second, comp);
+		lock.lock();
+		work_estimate += sortWork(job.second-job.first);
+	}
+
 	void worker(comp_type comp) {
 		boost::mutex::scoped_lock lock(mutex);
 		while (true) {
@@ -104,19 +126,7 @@ private:
 			if (kill) return;
 			++working;
 			std::pair<iterator_type, iterator_type> job = jobs[--job_count];
-			while ((job.second - job.first) >= min_size) {
-				lock.unlock();
-				std::pair<iterator_type, iterator_type> r = partition(job.first, job.second, comp);
-				lock.lock();
-				work_estimate += job.second - job.first;
-				jobs[job_count++] = std::make_pair(r.second, job.second);
-				cond.notify_all();
-				job.second = r.first;
-			}
-			lock.unlock();
-			std::sort(job.first, job.second, comp);
-			lock.lock();
-			work_estimate += sortWork(job.second-job.first);
+			solve(comp, lock, job);
 			--working;
 			cond.notify_all();
 		}
@@ -126,16 +136,16 @@ public:
 	parallel_sort_impl(progress_indicator_base * p): pi(p) {}
 
 	void operator()(iterator_type a, iterator_type b, comp_type comp=std::less<value_type>() ) {
-		const size_t tc=boost::thread::hardware_concurrency();
-		thread_holder threads[tc];
+		const size_t tc=std::min<size_t>(boost::thread::hardware_concurrency(),32);
+		thread_holder threads[32];
 		boost::mutex::scoped_lock lock(mutex);
-		boost::uint64_t n = b-a;
 		working = 0;
 		kill = false;
 		if (pi) {
-			pi->set_min_range(0);
-			pi->set_max_range(sortWork(b-a));
+			pi->set_range(0, sortWork(b-a), 1);
+			pi->init("Parallel sort");
 		}
+		
 		job_count = 0;
 		jobs[job_count++] = std::make_pair(a,b);
 		for(size_t i=0; i < tc; ++i) {
@@ -153,6 +163,7 @@ public:
 		if (pi)	pi->done();
 	}
 private:
+	static const size_t max_job_count=256;
 	progress_indicator_base * pi;
 	boost::uint64_t work_estimate;
 	boost::uint64_t total_work_estimate;
@@ -161,8 +172,7 @@ private:
 	boost::mutex mutex;
 	size_t working;
 
-	//Magic constant 128 must be larger then log(n) - log(min_size) + #cores 
-	std::pair<iterator_type, iterator_type> jobs[128];
+	std::pair<iterator_type, iterator_type> jobs[max_job_count];
 	size_t job_count;
 };
 	
