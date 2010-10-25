@@ -65,6 +65,7 @@ option(COMPILE_TEST "Compile test programs" ON)
 option(TPIE_USE_EXCEPTIONS "Throw exceptions on certain errors." ON)
 option(DEBUG_ASSERTIONS "Enable tpie_assert." OFF)
 option(TPL_LOGGING "Enable tpie logging." ON)
+option(TPIE_THREADSAFE_MEMORY_MANAGEMNT "Thread safe memory managment" ON)
 
 if (COMPILE_TEST)
 	ENABLE_TESTING()

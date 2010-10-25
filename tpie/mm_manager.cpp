@@ -39,6 +39,11 @@ extern int register_new;
 
 #include <cstdlib>
 
+#ifdef TPIE_THREADSAFE_MEMORY_MANAGEMNT
+#include <boost/thread/mutex.hpp>
+boost::mutex mm_mutex;
+#endif
+
 using namespace tpie::mem;
 
 manager::manager() : 
@@ -63,13 +68,16 @@ manager::~manager(void)
 
 err manager::register_allocation(TPIE_OS_SIZE_T request)
 {
+#ifdef TPIE_THREADSAFE_MEMORY_MANAGEMNT
+	boost::mutex::scoped_lock lock(mm_mutex);
+#endif
   // quick hack to allow operation before limit is set
   // XXX 
     if(!user_limit || pause_allocation_depth) {
-	return NO_ERROR;
+		return NO_ERROR;
     }
     
-    used      += request;     
+    used += request;     
 
     if (request > remaining) {
        TP_LOG_WARNING("Memory allocation request: ");
@@ -105,6 +113,9 @@ err manager::register_allocation(TPIE_OS_SIZE_T request)
 
 err manager::register_deallocation(TPIE_OS_SIZE_T sz)
 {
+#ifdef TPIE_THREADSAFE_MEMORY_MANAGEMNT
+	boost::mutex::scoped_lock lock(mm_mutex);
+#endif
     remaining += sz;
 
     if (sz > used) {
@@ -161,6 +172,9 @@ err manager::resize_heap(TPIE_OS_SIZE_T sz) {
 
 err manager::set_memory_limit (TPIE_OS_SIZE_T new_limit)
 {
+#ifdef TPIE_THREADSAFE_MEMORY_MANAGEMNT
+	boost::mutex::scoped_lock lock(mm_mutex);
+#endif
     // by default, we keep track and abort if memory limit exceeded
     if (register_new == IGNORE_MEMORY_EXCEEDED){
 	register_new = ABORT_ON_MEMORY_EXCEEDED;
@@ -188,11 +202,17 @@ err manager::set_memory_limit (TPIE_OS_SIZE_T new_limit)
 
 // Add to the global overhead
 void manager::add_to_global_overhead (TPIE_OS_SIZE_T sz) {
+#ifdef TPIE_THREADSAFE_MEMORY_MANAGEMNT
+	boost::mutex::scoped_lock lock(mm_mutex);
+#endif
 	global_overhead += sz;
 }
 
 // Subtract from the global overhead
 void manager::subtract_from_global_overhead (TPIE_OS_SIZE_T sz) {
+#ifdef TPIE_THREADSAFE_MEMORY_MANAGEMNT
+	boost::mutex::scoped_lock lock(mm_mutex);
+#endif
 	if(global_overhead < sz)
 		global_overhead = 0;
 	else
@@ -205,16 +225,25 @@ TPIE_OS_SIZE_T manager::get_global_overhead () const{
 
 // dh. only warn if memory limit exceeded
 void manager::warn_memory_limit() {
+#ifdef TPIE_THREADSAFE_MEMORY_MANAGEMNT
+	boost::mutex::scoped_lock lock(mm_mutex);
+#endif
     register_new = WARN_ON_MEMORY_EXCEEDED;
 }
 
 // dh. abort if memory limit exceeded
 void manager::enforce_memory_limit() {
+#ifdef TPIE_THREADSAFE_MEMORY_MANAGEMNT
+	boost::mutex::scoped_lock lock(mm_mutex);
+#endif
     register_new = ABORT_ON_MEMORY_EXCEEDED;
 }
 
 // dh. ignore memory limit accounting
 void manager::ignore_memory_limit() {
+#ifdef TPIE_THREADSAFE_MEMORY_MANAGEMNT
+	boost::mutex::scoped_lock lock(mm_mutex);
+#endif
     register_new = IGNORE_MEMORY_EXCEEDED;
 }
 

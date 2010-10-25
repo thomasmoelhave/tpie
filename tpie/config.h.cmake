@@ -20,6 +20,7 @@
 
 #cmakedefine TPL_LOGGING 1
 #cmakedefine DEBUG_ASSERTIONS 1
+#cmakedefine TPIE_THREADSAFE_MEMORY_MANAGEMNT 1
 
 #ifdef WIN32
 	//disable windows crt security and deprecation warnings
