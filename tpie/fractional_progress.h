@@ -66,6 +66,6 @@ private:
 	friend class fractional_subindicator;
 };
 
-} //namespace tpie
+}
 #endif //__TPIE_FRACTIONAL_PROGRESS__
 
