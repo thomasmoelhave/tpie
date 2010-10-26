@@ -71,6 +71,8 @@ set (OTHER_HEADERS
 		pq_overflow_heap.inl
 		pq_merge_heap.h
 		pq_merge_heap.inl
+		fractional_progress.h
+		progress_indicator_subindicator.h
 		progress_indicator_arrow.h
 		progress_indicator_base.h
 		progress_indicator_spin.h
@@ -118,8 +120,10 @@ set (OTHER_SOURCES
 	tpie_log.cpp
 	tempname.cpp
 	prime.cpp
+	progress_indicator_subindicator.cpp
 	progress_indicator_base.cpp
 	execution_time_predictor.cpp
+	fractional_progress.cpp
 	)
 
 source_group("BTE" FILES ${BTE_HEADERS} ${BTE_SOURCES})

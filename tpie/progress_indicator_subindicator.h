@@ -16,7 +16,8 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
-
+#ifndef __TPIE_PROGRESS_INDICATOR_SUBINDICATOR_H__
+#define __TPIE_PROGRESS_INDICATOR_SUBINDICATOR_H__
 #include <tpie/portability.h>
 #include <tpie/util.h>
 #include <tpie/progress_indicator_base.h>
@@ -27,16 +28,8 @@ class progress_indicator_subindicator: public progress_indicator_base {
 public:
 	void refresh();
 	void set_title(const std::string&) {}
-	void set_description(const std::string& description) {
-		if (m_parent) 
-			m_parent->set_description(description);
-	}
-	std::string get_description() {
-		if (m_parent)
-			return m_parent->get_description();
-		else 
-			return "";
-	}
+	virtual void set_description(const std::string& description);
+	virtual std::string get_description();
 	void set_description_part(const std::string& text);
 	virtual void init(const std::string& description = std::string());
 	virtual void done(const std::string& text = std::string());
@@ -51,46 +44,6 @@ protected:
 	TPIE_OS_OFFSET m_oldValue;
 	int m_dpl;
 };
-
-progress_indicator_subindicator::progress_indicator_subindicator(
-	progress_indicator_base * parent, TPIE_OS_OFFSET range,	TPIE_OS_OFFSET minRange,
-	TPIE_OS_OFFSET maxRange, TPIE_OS_OFFSET stepValue):
-	progress_indicator_base("", "", minRange, maxRange, stepValue), 
-	m_parent(parent), m_range(range), m_oldValue(0), m_dpl(0) {
-}
-
-void progress_indicator_subindicator::refresh() {
-	TPIE_OS_OFFSET val = get_current();
-	if (val > get_max_range()) val = get_max_range();
-	TPIE_OS_OFFSET value= (val - get_min_range() )* m_range / (get_max_range() - get_min_range());
-	if (value > m_oldValue && m_parent) {
-		m_parent->step(value - m_oldValue);
-		m_oldValue = value;
-	}
-}
-
-void progress_indicator_subindicator::set_description_part(const std::string& text) {
-	if (!m_parent) return;
-	std::string desc = m_parent->get_description();
-	desc.resize(desc.size() - m_dpl);
-	if (text != "") {
-		desc += " > "  + text;
-		m_dpl = text.size() + 3;
-	} else 
-		m_dpl = 3;
-	m_parent->set_description(desc);
-}
-
-void progress_indicator_subindicator::init(const std::string& text) {
-	set_description_part(text);
-	progress_indicator_base::init("");
-}
-
-void progress_indicator_subindicator::done(const std::string&) {
-	set_description_part("");
-	m_current = m_maxRange; 
-	refresh();
-	progress_indicator_base::done();
-}
 	
-}; //namespace tpie
+} //namespace tpie
+#endif //__TPIE_PROGRESS_INDICATOR_SUBINDICATOR_H__

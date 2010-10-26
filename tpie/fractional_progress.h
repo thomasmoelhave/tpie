@@ -28,7 +28,7 @@ class fractional_progress;
 
 class fractional_subindicator: public progress_indicator_subindicator {
 public:
-	void set_title(const std::string&) {}
+	inline void set_title(const std::string&) {}
 	virtual void init(const std::string& text = std::string());
 	virtual void done(const std::string& text = std::string());
 	fractional_subindicator(fractional_progress & fp, 
@@ -66,65 +66,6 @@ private:
 	friend class fractional_subindicator;
 };
 
-fractional_subindicator::fractional_subindicator(
-	fractional_progress & fp, const char * id, double fraction, TPIE_OS_OFFSET n,
-	TPIE_OS_OFFSET minRange, TPIE_OS_OFFSET maxRange, TPIE_OS_OFFSET stepValue):
-	progress_indicator_subindicator(fp.m_pi, 42, minRange, maxRange, stepValue),
-	m_fraction(fraction), m_estimate(-1), m_n(n), m_fp(fp), m_predict(fp.m_id() + ";" + id) {
-	m_estimate = m_predict.estimate_execution_time(n);
-	fp.add_sub_indicator(*this);
-}
-
-
-void fractional_subindicator::init(const std::string& text) {
-	if (m_parent) {
-		double f = m_fp.get_fraction(*this);
-		double t = m_parent->get_max_range() - m_parent->get_min_range();
-		m_range = t * f;
-	}
-	m_predict.start_execution(m_n);
-	progress_indicator_subindicator::init(text);
-}
-
-void fractional_subindicator::done(const std::string&) {
-	m_predict.end_execution();
-	progress_indicator_subindicator::done();
-}
-
-fractional_progress::fractional_progress(progress_indicator_base * pi, const std::string & description):
-	m_pi(pi), m_add_state(true), m_done_called(false),
-	m_total_sum(0), m_time_sum(0), m_timed_sum(0) {	
-	if (m_pi) {
-		m_pi->set_range(0, 23000, 1);
-		m_pi->init(description);
-	}
-}
-	
-void fractional_progress::done() {
-	if (!m_done_called && m_pi) m_pi->done();
-	m_done_called=true;
-}
-
-fractional_progress::~fractional_progress() {done();}
-
-unique_id_type & fractional_progress::id() {return m_id;}
-
-void fractional_progress::add_sub_indicator(fractional_subindicator & sub) {
-	assert(m_add_state==true);
-	m_total_sum += sub.m_fraction;
-	if (sub.m_estimate != -1) {
-		m_timed_sum += sub.m_fraction;
-		m_time_sum += sub.m_estimate;
-	}
-}
-
-double fractional_progress::get_fraction(fractional_subindicator & sub) {
-	m_add_state=false;
-	if (sub.m_estimate == -1) return sub.m_fraction / m_total_sum;
-	else return (double)sub.m_estimate / (double)m_time_sum * m_timed_sum / m_total_sum;
-}
-
-};
-
+} //namespace tpie
 #endif //__TPIE_FRACTIONAL_PROGRESS__
 
