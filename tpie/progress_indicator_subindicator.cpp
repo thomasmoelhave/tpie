@@ -53,7 +53,7 @@ void progress_indicator_subindicator::refresh() {
 void progress_indicator_subindicator::set_description_part(const std::string& text) {
 	if (!m_parent) return;
 	std::string desc = m_parent->get_description();
-	desc.resize(desc.size() - m_dpl);
+	if (desc.size() >= m_dpl) desc.resize(desc.size() - m_dpl);
 	if (text != "") {
 		desc += " > "  + text;
 		m_dpl = text.size() + 3;
