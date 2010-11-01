@@ -26,6 +26,7 @@
 #include <boost/iterator/iterator_traits.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/thread.hpp>
+#include <boost/random/mersenne_twister.hpp>
 #include <cmath>
 #include <functional>
 #include <tpie/progress_indicator_base.h>
@@ -35,11 +36,15 @@ template <typename iterator_type, typename comp_type,
 		  size_t min_size=1024*1024*8/sizeof(typename boost::iterator_value<iterator_type>::type)>
 class parallel_sort_impl {
 private:
+	boost::mt19937 rng;	
+
 	// The type of the values we sort
 	typedef typename boost::iterator_value<iterator_type>::type value_type;
 	
 	// Guistimate how much work a sort uses
-	static inline boost::uint64_t sortWork(boost::uint64_t n) {return log(n)*n*1.9/log(2);}
+	static inline boost::uint64_t sortWork(boost::uint64_t n) {return 
+			static_cast<uint64_t>(
+				log(static_cast<double>(n))*n*1.9/log(static_cast<double>(2)));}
 	
 	// Partition acording to pivot
 	template <typename comp_t>
@@ -58,11 +63,11 @@ private:
 	}
 
 	// Pick a good element for partitioning
-	static inline value_type pick_pivot(iterator_type a, iterator_type b, comp_type & comp) {
+	inline value_type pick_pivot(iterator_type a, iterator_type b, comp_type & comp) {
 		const size_t size=5;
 		iterator_type sample[size];
 		sample[0] = a + (b-a)/2;
-		for(size_t i=1; i < size; ++i) {sample[i] = a+(random() % (b-a));}
+		for(size_t i=1; i < size; ++i) {sample[i] = a+(rng() % (b-a));}
 		for(size_t i=0; i < size/2; ++i) {
 			size_t z=i;
 			for(size_t j=i+1; j < size; ++j) 
