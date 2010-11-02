@@ -143,7 +143,7 @@ void tempname::set_default_path(const std::string&  path, const std::string& sub
 			TP_LOG_WARNING_ID("Could not use " << p << " as directory for temporary files, trying " << path);
 		}
 		default_path = p;
-	} catch (...) { 
+	} catch (boost::filesystem::basic_filesystem_error<boost::filesystem::path>) { 
 		TP_LOG_WARNING_ID("Could not use " << p << " as directory for temporary files, trying " << path);
 		default_path = path; 
 	}	
