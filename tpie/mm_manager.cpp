@@ -307,8 +307,12 @@ TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound,
 		return high;
 	} catch (std::bad_alloc) {
 		TP_LOG_DEBUG_ID("Failed to get " << high/(1024*1024) << " megabytes of memory. "
-			<< "Performing binary search to find largest amount "
-			<< "of memory available. This might take a few moments.\n");
+						<< "Performing binary search to find largest amount "
+						<< "of memory available. This might take a few moments.\n");
+	} catch (out_of_memory_error) {
+		TP_LOG_DEBUG_ID("Failed to get " << high/(1024*1024) << " megabytes of memory. "
+						<< "Performing binary search to find largest amount "
+						<< "of memory available. This might take a few moments.\n");
 	}
 
 	//we should be able to get at least lower_limit bytes
@@ -316,6 +320,9 @@ TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound,
 		char* mem = new char[low];
 		delete[] mem;
 	} catch (std::bad_alloc) {
+		TP_LOG_DEBUG_ID("Failed to get lower limit" << low/(1024*1024) << " megabytes of memory. Aborting\n. ");
+		return 0;
+	} catch (out_of_memory_error) {
 		TP_LOG_DEBUG_ID("Failed to get lower limit" << low/(1024*1024) << " megabytes of memory. Aborting\n. ");
 		return 0;
 	}
@@ -343,6 +350,9 @@ TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound,
 			low = mid;
 			delete[] mem;
 		} catch (std::bad_alloc) {
+			high = mid;
+			TP_LOG_DEBUG_ID("failed.\n");
+		} catch (out_of_memory_error) {
 			high = mid;
 			TP_LOG_DEBUG_ID("failed.\n");
 		}
