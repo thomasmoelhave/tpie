@@ -25,17 +25,20 @@
 /// Get definitions for working with Unix and Windows
 #include <tpie/portability.h>
 #include <tpie/tpie_log.h>
+#ifdef TPIE_THREADSAFE_MEMORY_MANAGEMNT
+#include <boost/thread/mutex.hpp>
+#endif
 
 #define MM_MANAGER_VERSION 2
+
 
 namespace tpie {
 
     namespace mem {
 
+
 // To be defined later in this file.
 	class manager_init;
-	
-
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \class manager 
@@ -74,8 +77,12 @@ namespace tpie {
 ///////////////////////////////////////////////////////////////////////////////
 
 	class manager {
-
 	private:
+
+#ifdef TPIE_THREADSAFE_MEMORY_MANAGEMNT
+		boost::mutex * mm_mutex;
+#endif
+
 	    /** The number of instances of this class and descendents that exist.*/
 	    static int instances;
 	    
