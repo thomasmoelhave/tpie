@@ -271,12 +271,12 @@ err sort_manager<T,I,M>::start_sort(){
 	if (nInputItems < TPIE_OS_OFFSET(m_internalSorter->MaxItemCount(mmBytesAvail))){
 		if (m_indicator) m_indicator->set_range(0, 4000, 1);
 		
-		fractional_progress fp(m_indicator, "Sorting");
+		fractional_progress fp(m_indicator);
 		fp.id() << __FILE__ << __FUNCTION__ << "internal_sort" << typeid(T) << typeid(I) << typeid(M);
-		fractional_subindicator allocate_progress(fp, "allocate", 0.10, nInputItems);
-		fractional_subindicator sort_progress(fp, "sort", 0.90, nInputItems);
-
-		allocate_progress.init("Allocating");
+		fractional_subindicator allocate_progress(fp, "allocate", 0.10, nInputItems, "Allocating");
+		fractional_subindicator sort_progress(fp, "sort", 0.90, nInputItems); 
+		fp.init();
+		allocate_progress.init(nInputItems);
 		m_internalSorter->allocate(static_cast<TPIE_OS_SIZE_T>(nInputItems));
 		allocate_progress.done();
 
@@ -293,6 +293,7 @@ err sort_manager<T,I,M>::start_sort(){
 		}
 		// de-allocate the internal array of items
 		m_internalSorter->deallocate();
+		fp.done();
 		return NO_ERROR;
 	}
 
@@ -321,11 +322,12 @@ err sort_manager<T,I,M>::start_sort(){
 	// * be very wary of memory allocation via "new" or constructors from *
 	// * this point on and make sure it was accounted for in PHASE 2      *
 	// ********************************************************************
-	fractional_progress fp(m_indicator, "Sorting");
+	fractional_progress fp(m_indicator);
 	fp.id() << __FILE__ << __FUNCTION__ << "external_sort" << typeid(T) << typeid(I) << typeid(M);
 	fractional_subindicator run_progress(fp, "run", 0.5, nInputItems);
 	fractional_subindicator merge_progress(fp, "merge", 0.5, nInputItems);
-	    
+	fp.init();
+
 	// PHASE 3: partition and form sorted runs
 	TP_LOG_DEBUG_ID ("Beginning general merge sort.");
 	ae=partition_and_sort_runs(&run_progress);
@@ -337,7 +339,8 @@ err sort_manager<T,I,M>::start_sort(){
 	if (ae != NO_ERROR){ 
 		return ae; 
 	}
-	    
+	
+	fp.done();
 	return NO_ERROR;
 }
 
@@ -640,7 +643,7 @@ err sort_manager<T,I,M>::partition_and_sort_runs(progress_indicator_base* indica
 				nItemsInThisRun=nItemsInLastRun;
 		    }
 
-			progress_indicator_subindicator sort_indicator(indicator, 1000, 0, 42, 1);
+			progress_indicator_subindicator sort_indicator(indicator, 1000);
 		    if ((ae = m_internalSorter->sort(inStream, curOutputRunStream, 
 											 nItemsInThisRun, &sort_indicator))!= NO_ERROR)
 		    {

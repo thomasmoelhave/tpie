@@ -27,22 +27,20 @@ namespace tpie {
 class progress_indicator_subindicator: public progress_indicator_base {
 public:
 	void refresh();
-	void set_title(const std::string&) {}
-	virtual void set_description(const std::string& description);
-	virtual std::string get_description();
-	void set_description_part(const std::string& text);
-	virtual void init(const std::string& description = std::string());
-	virtual void done(const std::string& text = std::string());
+	virtual void push_breadcrumb(const char * crumb);
+	virtual void pop_breadcrumb();
+	virtual void init(TPIE_OS_OFFSET range, TPIE_OS_OFFSET step=1);
+	virtual void done();
 	progress_indicator_subindicator(progress_indicator_base * parent,
-									TPIE_OS_OFFSET range,	
-									TPIE_OS_OFFSET minRange=0,
-									TPIE_OS_OFFSET maxRange=10000,
-									TPIE_OS_OFFSET stepValue=1);
+									TPIE_OS_OFFSET outerRange,
+									const char * crumb=0,
+									bool display_subcrumbs=true);
 protected:
 	progress_indicator_base * m_parent;
-	TPIE_OS_OFFSET m_range;
+	TPIE_OS_OFFSET m_outerRange;
 	TPIE_OS_OFFSET m_oldValue;
-	int m_dpl;
+	char m_crumb[40];
+	bool m_display_subcrumbs;
 };
 	
 } //namespace tpie

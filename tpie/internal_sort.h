@@ -322,13 +322,14 @@ err Internal_Sorter_Obj<T, CMPR>::sort(stream<T>* InStr,
 	    
 	tp_assert ( nItems <= len, "nItems more than interal buffer size.");
 
-	fractional_progress fp(pi, "Internal Sort");
+	fractional_progress fp(pi);
 	fp.id() << __FILE__ << __FUNCTION__ << typeid(T) << typeid(CMPR);
-	fractional_subindicator read_progress(fp, "read", 0.25, nItems, 0, nItems);
-	fractional_subindicator sort_progress(fp, "sort", 0.50, nItems);
-	fractional_subindicator write_progress(fp, "write", 0.25, nItems, 0, nItems);
+	fractional_subindicator read_progress(fp, "read", 0.25, nItems, "Reading");
+	fractional_subindicator sort_progress(fp, "sort", 0.50, nItems, "Sorting");
+	fractional_subindicator write_progress(fp, "write", 0.25, nItems, "Writing");
+	fp.init();
 
-	read_progress.init("Reading");
+	read_progress.init(nItems);
 	// Read a memory load out of the input stream one item at a time,
 	for (i = 0; i < nItems; i++) {
 		if ((ae=InStr->read_item (&next_item)) != NO_ERROR) {
@@ -352,7 +353,7 @@ err Internal_Sorter_Obj<T, CMPR>::sort(stream<T>* InStr,
 		InStr->seek(0); //rewind
 	}
 
-	write_progress.init("Writing");
+	write_progress.init(nItems);
 	//Write sorted array to OutStr
 	for (i = 0; i < nItems; i++) {
 		if ((ae = OutStr->write_item(ItemArray[i])) != NO_ERROR) {

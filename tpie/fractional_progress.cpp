@@ -20,39 +20,44 @@
 
 namespace tpie {
 
+
 fractional_subindicator::fractional_subindicator(
-	fractional_progress & fp, const char * id, double fraction, TPIE_OS_OFFSET n,
-	TPIE_OS_OFFSET minRange, TPIE_OS_OFFSET maxRange, TPIE_OS_OFFSET stepValue):
-	progress_indicator_subindicator(fp.m_pi, 42, minRange, maxRange, stepValue),
+	fractional_progress & fp,
+	const char * id,
+	double fraction,
+	TPIE_OS_OFFSET n,
+	const char * crumb,
+	bool display_subcrumbs):
+	progress_indicator_subindicator(fp.m_pi, 42, crumb, display_subcrumbs),
 	m_fraction(fraction), m_estimate(-1), m_n(n), m_fp(fp), m_predict(fp.m_id() + ";" + id) {
 	m_estimate = m_predict.estimate_execution_time(n);
 	fp.add_sub_indicator(*this);
-}
+};
 
-void fractional_subindicator::init(const std::string& text) {
+void fractional_subindicator::init(TPIE_OS_OFFSET range, TPIE_OS_OFFSET step) {
+	m_predict.start_execution(m_n);
 	if (m_parent) {
 		double f = m_fp.get_fraction(*this);
 		double t = m_parent->get_max_range() - m_parent->get_min_range();
-		m_range = t * f;
+		m_outerRange = t * f;
 	}
-	m_predict.start_execution(m_n);
-	progress_indicator_subindicator::init(text);
+	progress_indicator_subindicator::init(range, step);	
 }
 
-void fractional_subindicator::done(const std::string&) {
+void fractional_subindicator::done() {
 	m_predict.end_execution();
 	progress_indicator_subindicator::done();
 }
 
-fractional_progress::fractional_progress(progress_indicator_base * pi, const std::string & description):
+fractional_progress::fractional_progress(progress_indicator_base * pi):
 	m_pi(pi), m_add_state(true), m_done_called(false),
 	m_total_sum(0), m_time_sum(0), m_timed_sum(0) {	
-	if (m_pi) {
-		m_pi->set_range(0, 23000, 1);
-		m_pi->init(description);
-	}
 }
 	
+void fractional_progress::init() {
+	if (m_pi) m_pi->init(23000);
+}
+
 void fractional_progress::done() {
 	if (!m_done_called && m_pi) m_pi->done();
 	m_done_called=true;

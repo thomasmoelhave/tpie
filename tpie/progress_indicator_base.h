@@ -147,6 +147,10 @@ public:
 	    m_percentageUnit = 0;
 	    reset();
 	}
+
+	void set_range(TPIE_OS_OFFSET range, TPIE_OS_OFFSET step=1) {
+		set_range(0, range, step);
+	}
     
 	////////////////////////////////////////////////////////////////////
 	///  Simultaneously set the upper and lower bound of the counting
@@ -207,19 +211,22 @@ public:
 
 	void step() {step(m_stepValue);}
 
+	virtual void init(TPIE_OS_OFFSET range, TPIE_OS_OFFSET step=1) {
+		if (range != 0) set_range(0, range, step);
+	    m_current = m_minRange;
+		m_lastUpdate = getticks();
+	    refresh();
+	}
+
 	////////////////////////////////////////////////////////////////////
 	///  Display a zero count. This method may also be used to 
 	///  simultaneously set a new description.
 	////////////////////////////////////////////////////////////////////
-	virtual void init(const std::string& description = std::string()) {
-	    m_current = m_minRange;
-	    if (!description.empty()) {
-			set_description(description);
-	    }
-		m_lastUpdate = getticks();
-	    refresh();
+	void init(const std::string& description = std::string()) {
+		unused(description);
+		init(0);
 	}
-    
+
 	////////////////////////////////////////////////////////////////////
 	///  Reset the counter. The current position is reset to the
 	///  lower bound of the counting range.
@@ -238,9 +245,9 @@ public:
 	///
 	////////////////////////////////////////////////////////////////////
 
-	virtual void done(const std::string& text = std::string()) {unused(text);}
-
-
+	virtual void done() {}
+	void done(const std::string& text) {unused(text); done();}
+	
 	////////////////////////////////////////////////////////////////////
 	///
 	///  Set the lower bound of the counting range. This method
@@ -294,7 +301,7 @@ public:
 	///
 	////////////////////////////////////////////////////////////////////
 
-	virtual void set_title(const std::string& title) = 0;
+	void set_title(const std::string&) {}
 
 	////////////////////////////////////////////////////////////////////
 	///
@@ -305,8 +312,7 @@ public:
 	///
 	////////////////////////////////////////////////////////////////////
 
-	virtual void set_description(const std::string& description) = 0;
-	virtual std::string get_description() = 0;
+	void set_description(const std::string&) {}
 
 	////////////////////////////////////////////////////////////////////
 	///
@@ -346,11 +352,13 @@ public:
 	void set_time_predictor(execution_time_predictor * p) {m_predictor = p;}
 
 	std::string estimated_remaining_time() {
-		if (m_maxRange - m_minRange == 0 || m_predictor == 0) return "";
+		if (m_maxRange - m_minRange == 0 || m_predictor == 0 || m_current < 0) return "";
 		return m_predictor->estimate_remaining_time( double(m_current) / double(m_maxRange - m_minRange) );
 	}
 
- protected:
+	virtual void push_breadcrumb(const char *) {}
+	virtual void pop_breadcrumb() {}
+protected:
 
 	/**  The lower bound of the counting range.  */
 	TPIE_OS_OFFSET m_minRange;

@@ -131,15 +131,15 @@ static time_estimator_database d;
 
 namespace tpie {
 
-execution_time_predictor::execution_time_predictor(const std::string & id): m_id(is_prime.prime_hash(id)), m_start_time(boost::posix_time::not_a_date_time) {}
+execution_time_predictor::execution_time_predictor(const std::string & id): 
+	m_id(is_prime.prime_hash(id)), m_start_time(boost::posix_time::not_a_date_time), m_estimate(-1) {}
 
 execution_time_predictor::~execution_time_predictor() {
-	assert(m_start_time.is_not_a_date_time());
 }
 
 TPIE_OS_OFFSET execution_time_predictor::estimate_execution_time(TPIE_OS_OFFSET n) {
+	if (m_id == is_prime.prime_hash(std::string())) return -1;
 	TPIE_OS_OFFSET tmp = d.estimate(m_id, n);
-	//std::cout << std::endl <<  "Estimate " << m_id << " " << tmp << std::endl;
 	return tmp;
 }
 
@@ -151,6 +151,7 @@ void execution_time_predictor::start_execution(TPIE_OS_OFFSET n) {
 
 	
 void execution_time_predictor::end_execution() {
+	if (m_id == is_prime.prime_hash(std::string())) return;
 	entry & e = d.db[m_id];
 	e.add_point( p_t(m_n, (boost::posix_time::microsec_clock::local_time() - m_start_time).total_milliseconds()) );
 	m_start_time = boost::posix_time::not_a_date_time;
@@ -158,9 +159,9 @@ void execution_time_predictor::end_execution() {
 
 std::string execution_time_predictor::estimate_remaining_time(double progress) {
     double time = (boost::posix_time::microsec_clock::local_time()-m_start_time).total_milliseconds();
-    if (time < 10 && m_estimate == -1) return "estimating remaining time";
-    double estimate = time / progress;
-	//std::cout << m_estimate << " " << estimate << std::endl;
+    if ((time < 10 || progress < 0.0001) && m_estimate == -1) return "...";
+    
+	double estimate = (progress>0.000001)?time / progress:0;
 	if (m_estimate != -1)
 		estimate = m_estimate * (1.0-progress) + estimate * progress;
     double remaining = estimate * (1.0-progress);
@@ -168,21 +169,21 @@ std::string execution_time_predictor::estimate_remaining_time(double progress) {
     stringstream s;
 	remaining /= 1000;
     if (remaining < 60*10) {
-		s << (int)remaining << "sec";
+		s << (int)remaining << " sec";
 		return s.str();
     }
     remaining /= 60;
     if (remaining < 60*10) {
-		s << (int)remaining << "min";
+		s << (int)remaining << " min";
 		return s.str();
     }
     remaining /= 60;
     if (remaining < 24*10) {
-		s << (int)remaining << "hrs";
+		s << (int)remaining << " hrs";
 		return s.str();
     }
     remaining /= 24;
-    s << (int)remaining << "days";
+    s << (int)remaining << " days";
     return s.str();
 }
 

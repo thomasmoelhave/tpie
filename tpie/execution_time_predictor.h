@@ -45,7 +45,7 @@ private:
 
 class execution_time_predictor {
 public:
-	execution_time_predictor(const std::string & id);
+	execution_time_predictor(const std::string & id=std::string());
 	~execution_time_predictor();
 	TPIE_OS_OFFSET estimate_execution_time(TPIE_OS_OFFSET n);
 	void start_execution(TPIE_OS_OFFSET n);

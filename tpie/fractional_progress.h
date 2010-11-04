@@ -28,16 +28,14 @@ class fractional_progress;
 
 class fractional_subindicator: public progress_indicator_subindicator {
 public:
-	inline void set_title(const std::string&) {}
-	virtual void init(const std::string& text = std::string());
-	virtual void done(const std::string& text = std::string());
-	fractional_subindicator(fractional_progress & fp, 
-							const char * id, 
-							double fraction, 
+	fractional_subindicator(fractional_progress & fp,
+							const char * id,
+							double fraction,
 							TPIE_OS_OFFSET n,
-							TPIE_OS_OFFSET minRange=0,
-							TPIE_OS_OFFSET maxRange=10000,
-							TPIE_OS_OFFSET stepValue=1);
+							const char * crumb=0,
+							bool display_subcrumbs=true);
+	virtual void init(TPIE_OS_OFFSET range, TPIE_OS_OFFSET step=1);
+	virtual void done();
 private:
 	double m_fraction;
 	TPIE_OS_OFFSET m_estimate;
@@ -49,9 +47,10 @@ private:
 
 class fractional_progress {
 public:
-	fractional_progress(progress_indicator_base * pi, const std::string & description);
+	fractional_progress(progress_indicator_base * pi);
 	~fractional_progress();
 	void done();
+	void init();
 	unique_id_type & id();
 private:
 	double get_fraction(fractional_subindicator & sub);
