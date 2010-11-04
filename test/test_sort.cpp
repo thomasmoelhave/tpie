@@ -410,7 +410,7 @@ char* ll2size(TPIE_OS_LONGLONG n, char* buf){
 }
 
 // Open a stream, write num_items, close stream
-void write_random_stream(std::string fname, appInfo & info, progress_indicator_base* indicator=NULL){
+void write_random_stream(std::string fname, appInfo & info, progress_indicator_base & indicator){
 	TPIE_OS_OFFSET i,n; //,trunc;
   ami::err ae = ami::NO_ERROR;
   i=0;
@@ -436,17 +436,14 @@ void write_random_stream(std::string fname, appInfo & info, progress_indicator_b
   // }
   str->seek(0);
 
-  if (indicator) {
-      indicator->set_range(0,n,1);
-      indicator->init("Generating random input stream");
-  }
+  indicator.init(n);
   while((i<n) && (ae==ami::NO_ERROR)){
     ae=str->write_item(SortItem(TPIE_OS_RANDOM()));   
     i++;
-    if (indicator) indicator->step();
+	indicator.step();
   }
 
-  if (indicator) indicator->done();
+  indicator.done();
   
   if(ae != ami::NO_ERROR){
     std::cout<< "\nWrite stopped early with AMI_ERROR: " << ae << std::endl;
@@ -459,7 +456,7 @@ void write_random_stream(std::string fname, appInfo & info, progress_indicator_b
 }
 
 // Read sorted stream from fname and check that its elements are sorted
-void check_sorted(std::string fname, appInfo & info, progress_indicator_base* indicator=NULL){
+void check_sorted(std::string fname, appInfo & info, progress_indicator_base & indicator){
 
   TPIE_OS_LONGLONG i,n;
   SortItem *x, x_prev;
@@ -475,10 +472,7 @@ void check_sorted(std::string fname, appInfo & info, progress_indicator_base* in
   str->persist(PERSIST_PERSISTENT);
   str->seek(0);
   
-  if (indicator) {
-	  indicator->set_range(0,n,1);
-	  indicator->init("Checking");
-  }
+  indicator.init(n);
   i=0;
   while((i<n) && (ae==ami::NO_ERROR)){
     ae=str->read_item(&x);
@@ -493,10 +487,10 @@ void check_sorted(std::string fname, appInfo & info, progress_indicator_base* in
                        "List not sorted! Exiting");
     }
     x_prev=*x;
-    if (indicator) indicator->step();
+	indicator.step();
   }
 
-  if (indicator) indicator->done();
+  indicator.done();
   
   if(ae != ami::NO_ERROR){
     std::cout<< "\nRead stopped early with AMI_ERROR: " << ae << std::endl;
@@ -679,32 +673,32 @@ void load_list(ami::stream<SortItem>* str, SortItem* list, TPIE_OS_SIZE_T nitems
 //   return ae;
 // }
 
-ami::err test_2x_sort(appInfo& info, enum test_type ttype, progress_indicator_base* indicator=NULL){
+ami::err test_2x_sort(appInfo& info, enum test_type ttype, progress_indicator_base & indicator){
   //Make up some temp filenames
 	//std::cout << "****TEST START****" << std::endl;
 //  char fname[BUFSIZ];
 //  strncpy(fname, tpie_tempnam(APP_FILE_BASE, info.path), BUFSIZ);
 	std::string fname = tempname::tpie_name();
 	
-	fractional_progress fp(indicator, "Testing");
+	fractional_progress fp(&indicator);
 	fp.id() << __FILE__ << __FUNCTION__ << ttype;
-	fractional_subindicator write_progress(fp, "write", 0.15, info.num_items);
-	fractional_subindicator sort_progress(fp, "sort", 0.75, info.num_items);
-	fractional_subindicator check_progress(fp, "check", 0.15, info.num_items);
-
-	write_random_stream(fname, info, &write_progress);
+	fractional_subindicator write_progress(fp, "write", 0.15, info.num_items, "Writing random input");
+	fractional_subindicator sort_progress(fp, "sort", 0.75, info.num_items, "Sorting");
+	fractional_subindicator check_progress(fp, "check", 0.15, info.num_items, "Checking");
+	fp.init();
+	write_random_stream(fname, info, write_progress);
   
-  //Sort
-  ami::err ae;
-  ami::stream<SortItem>* inStr = new ami::stream<SortItem>(fname);
-  SortCompare cmp;
-  KeySortCompare kcmp;
-  long dummykey=0;
-  switch(ttype){
+	//Sort
+	ami::err ae;
+	ami::stream<SortItem>* inStr = new ami::stream<SortItem>(fname);
+	SortCompare cmp;
+	KeySortCompare kcmp;
+	long dummykey=0;
+	switch(ttype){
     case APP_TEST_OBJ_OP:
 //      std::cout << "Using operator sorting and object heaps" << std::endl;
-      ae=ami::sort(inStr, (progress_indicator_base*)&sort_progress);
-      break;
+		ae=ami::sort(inStr, (progress_indicator_base*)&sort_progress);
+		break;
     case APP_TEST_PTR_OP:
 		//     std::cout << "Using operator sorting and ptr heaps" << std::endl;
       ae=ami::ptr_sort(inStr, (progress_indicator_base*)&sort_progress);
@@ -726,7 +720,7 @@ ami::err test_2x_sort(appInfo& info, enum test_type ttype, progress_indicator_ba
       break;
   }
 
-  TP_LOG_APP_DEBUG_ID("Done with sort"); 
+	TP_LOG_APP_DEBUG_ID("Done with sort"); 
   if(ae != ami::NO_ERROR){
     std::cout << "Error during sorting: ";
     switch(ae){
@@ -742,9 +736,10 @@ ami::err test_2x_sort(appInfo& info, enum test_type ttype, progress_indicator_ba
   delete inStr;
 
   //Check the output
-  if(ae==ami::NO_ERROR){ check_sorted(fname, info, &check_progress); }
+  if(ae==ami::NO_ERROR){ check_sorted(fname, info, check_progress); }
   //delete stream from disk
   TPIE_OS_UNLINK(fname);
+  fp.done();
   return ae;
 }
 
@@ -774,11 +769,10 @@ int main(int argc, char** argv){
        << "\nItem Size: " << info.item_size
        << "\nFile Size: " << ll2size(filesize,buf) << "B\n" <<std::endl;
 
-  progress_indicator_arrow* myIndicator = 
-      new progress_indicator_arrow("", "", 0, 10000, 1);
-
+  progress_indicator_arrow myIndicator("Testing sorting", "", 0, 10000, 1);
+  
   execution_time_predictor global_predictor(((unique_id_type()) << __FILE__ << __FUNCTION__)());
-  myIndicator->set_time_predictor(&global_predictor);
+  myIndicator.set_time_predictor(&global_predictor);
   global_predictor.start_execution(info.num_items );
   ami::err ae=ami::NO_ERROR;
 //   std::cout << "++++start 3X space tests++++" << std::endl;
@@ -829,6 +823,5 @@ int main(int argc, char** argv){
   if(ae==ami::NO_ERROR){ std::cout << "Test ran successfully " << std::endl; }
   else { std::cout << "Test at least ran without crashing" << std::endl; }
 
-  delete myIndicator;
   return 0;
 }
