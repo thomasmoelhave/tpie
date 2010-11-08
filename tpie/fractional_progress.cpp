@@ -29,7 +29,11 @@ fractional_subindicator::fractional_subindicator(
 	const char * crumb,
 	bool display_subcrumbs):
 	progress_indicator_subindicator(fp.m_pi, 42, crumb, display_subcrumbs),
-	m_fraction(fraction), m_estimate(-1), m_n(n), m_fp(fp), m_predict(fp.m_id() + ";" + id) {
+	m_fraction(fraction), m_estimate(-1), m_n(n), m_fp(fp), m_predict(fp.m_id() + ";" + id)
+#ifdef TPIE_FRACTION_STATS
+	,m_id(id)
+#endif
+ {
 	m_estimate = m_predict.estimate_execution_time(n);
 	fp.add_sub_indicator(*this);
 };
@@ -79,7 +83,13 @@ void fractional_progress::add_sub_indicator(fractional_subindicator & sub) {
 double fractional_progress::get_fraction(fractional_subindicator & sub) {
 	m_add_state=false;
 	if (sub.m_estimate == -1) return sub.m_fraction / m_total_sum;
-	else return (double)sub.m_estimate / (double)m_time_sum * m_timed_sum / m_total_sum;
+	else {
+		double f=(double)sub.m_estimate / (double)m_time_sum * m_timed_sum / m_total_sum;
+#ifdef TPIE_FRACTION_STATS
+		std::cout << "Fraction: name: " << m_id() << ";" << sub.m_id << "; calculated: " << f
+				  << "; suplied: " << (sub.m_fraction / m_total_sum) << std::endl;
+#endif
+		return f;
+	}
 }
-
 } //namespace tpie

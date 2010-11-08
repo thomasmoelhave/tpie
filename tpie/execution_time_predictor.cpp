@@ -45,7 +45,7 @@ struct cmp_t {
 };
 
 struct entry {
-	static const int max_points=10;
+	static const size_t max_points=10;
 	size_t count;
 	p_t points[max_points];
 
@@ -132,7 +132,8 @@ static time_estimator_database d;
 namespace tpie {
 
 execution_time_predictor::execution_time_predictor(const std::string & id): 
-	m_id(is_prime.prime_hash(id)), m_start_time(boost::posix_time::not_a_date_time), m_estimate(-1) {}
+	m_id(is_prime.prime_hash(id)), m_start_time(boost::posix_time::not_a_date_time), 
+	m_estimate(-1), m_pause_time_at_start(0) {}
 
 execution_time_predictor::~execution_time_predictor() {
 }
@@ -147,18 +148,22 @@ void execution_time_predictor::start_execution(TPIE_OS_OFFSET n) {
     m_n = n;
     m_estimate = estimate_execution_time(n);
     m_start_time = boost::posix_time::microsec_clock::local_time();
+	m_pause_time_at_start = s_pause_time;
 }
 
 	
 void execution_time_predictor::end_execution() {
-	if (m_id == is_prime.prime_hash(std::string())) return;
+	if (m_id == is_prime.prime_hash(std::string()) || !s_store_times) return;
+	TPIE_OS_OFFSET t = (boost::posix_time::microsec_clock::local_time() - m_start_time).total_milliseconds();
+	t -= (s_pause_time - m_pause_time_at_start);
 	entry & e = d.db[m_id];
-	e.add_point( p_t(m_n, (boost::posix_time::microsec_clock::local_time() - m_start_time).total_milliseconds()) );
+	e.add_point( p_t(m_n, t) );
 	m_start_time = boost::posix_time::not_a_date_time;
 }
 
 std::string execution_time_predictor::estimate_remaining_time(double progress) {
     double time = (boost::posix_time::microsec_clock::local_time()-m_start_time).total_milliseconds();
+	time -= (s_pause_time - m_pause_time_at_start);
     if ((time < 10 || progress < 0.0001) && m_estimate == -1) return "...";
     
 	double estimate = (progress>0.000001)?time / progress:0;
@@ -186,6 +191,22 @@ std::string execution_time_predictor::estimate_remaining_time(double progress) {
     s << (int)remaining << " days";
     return s.str();
 }
+
+void execution_time_predictor::start_pause() {
+	s_start_pause_time = boost::posix_time::microsec_clock::local_time();
+}
+
+void execution_time_predictor::end_pause() {
+	s_pause_time += (boost::posix_time::microsec_clock::local_time() - s_start_pause_time).total_milliseconds();
+}
+
+void execution_time_predictor::disable_time_storing() {
+	s_store_times = false;
+}
+
+TPIE_OS_OFFSET execution_time_predictor::s_pause_time = 0;
+boost::posix_time::ptime execution_time_predictor::s_start_pause_time;
+bool execution_time_predictor::s_store_times = true;
 
 };
 

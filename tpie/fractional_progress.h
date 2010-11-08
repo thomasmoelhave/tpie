@@ -42,6 +42,9 @@ private:
 	TPIE_OS_OFFSET m_n;
 	fractional_progress & m_fp;
 	execution_time_predictor m_predict;
+#ifdef TPIE_FRACTION_STATS
+	std::string m_id;
+#endif
 	friend class fractional_progress;
 };
 

@@ -52,14 +52,23 @@ public:
 	void end_execution();
 	std::string estimate_remaining_time(double progress);
 
+	static void start_pause();
+	static void end_pause();
+	static void disable_time_storing();
+
 	//Used by fractional_time_perdictor
-	TPIE_OS_OFFSET m_aux1;
-	double m_aux2;
+	//TPIE_OS_OFFSET m_aux1;
+	//double m_aux2;
 private:
 	size_t m_id;
 	boost::posix_time::ptime m_start_time;
 	TPIE_OS_OFFSET m_estimate;
 	TPIE_OS_OFFSET m_n;
+	TPIE_OS_OFFSET m_pause_time_at_start;
+
+	static TPIE_OS_OFFSET s_pause_time;
+	static boost::posix_time::ptime s_start_pause_time;
+	static bool s_store_times;
 };
 
 } //namespace tpie
