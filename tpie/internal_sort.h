@@ -365,7 +365,7 @@ err Internal_Sorter_Obj<T, CMPR>::sort(stream<T>* InStr,
 		write_progress.step();
 	}
 	write_progress.done();
-	
+	fp.done();
 	return NO_ERROR;
 }
 

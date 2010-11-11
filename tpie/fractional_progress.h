@@ -55,12 +55,19 @@ public:
 	void done();
 	void init();
 	unique_id_type & id();
+
+#ifndef NDEBUG
+	bool m_init_called;
+#endif
+
 private:
 	double get_fraction(fractional_subindicator & sub);
 	void add_sub_indicator(fractional_subindicator & sub);
 	progress_indicator_base * m_pi;
 	bool m_add_state;
+#ifndef NDEBUG
 	bool m_done_called;
+#endif
 	unique_id_type m_id;
 	double m_total_sum;
 	TPIE_OS_OFFSET m_time_sum;

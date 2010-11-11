@@ -25,6 +25,7 @@
 #include <boost/thread.hpp>
 #include <tpie/imported/cycle.h>
 #include <tpie/execution_time_predictor.h>
+#include <tpie/tpie_log.h>
 
 namespace tpie {
 
@@ -203,6 +204,10 @@ public:
 	void step(TPIE_OS_OFFSET step) {
 	    m_current += step;
 		ticks currentTicks = getticks();
+#ifndef NDEBUG
+		if ( elapsed(currentTicks,m_lastUpdate) > m_frequency * m_threshold * 5)
+			TP_LOG_WARNING("Step was not called for 5 seconds\n");
+#endif	
 		if(elapsed(currentTicks, m_lastUpdate) > m_threshold){
 			m_lastUpdate = currentTicks;
 		    refresh();

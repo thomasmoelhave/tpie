@@ -39,6 +39,8 @@ fractional_subindicator::fractional_subindicator(
 };
 
 void fractional_subindicator::init(TPIE_OS_OFFSET range, TPIE_OS_OFFSET step) {
+	assert(m_fp. m_init_called);
+
 	m_predict.start_execution(m_n);
 	if (m_parent) {
 		double f = m_fp.get_fraction(*this);
@@ -54,20 +56,34 @@ void fractional_subindicator::done() {
 }
 
 fractional_progress::fractional_progress(progress_indicator_base * pi):
-	m_pi(pi), m_add_state(true), m_done_called(false),
+#ifndef NDEBUG
+	m_init_called(false),
+#endif
+	m_pi(pi), m_add_state(true), 
+#ifndef NDEBUG
+	m_done_called(false),
+#endif
 	m_total_sum(0), m_time_sum(0), m_timed_sum(0) {	
 }
 	
 void fractional_progress::init() {
+#ifndef NDEBUG
+	m_init_called=true;
+#endif
 	if (m_pi) m_pi->init(23000);
 }
 
 void fractional_progress::done() {
-	if (!m_done_called && m_pi) m_pi->done();
+#ifndef NDEBUG
+	assert(!m_done_called);
 	m_done_called=true;
+#endif
+	if (m_pi) m_pi->done();
 }
 
-fractional_progress::~fractional_progress() {done();}
+fractional_progress::~fractional_progress() {
+	assert(m_done_called);
+}
 
 unique_id_type & fractional_progress::id() {return m_id;}
 
