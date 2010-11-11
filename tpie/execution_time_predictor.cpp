@@ -49,6 +49,8 @@ struct entry {
 	size_t count;
 	p_t points[max_points];
 
+	entry() : count(0) {}
+
 	inline p_t * begin() {return points;}
 	inline p_t * end() {return points+count;}
 	
@@ -162,7 +164,7 @@ void execution_time_predictor::end_execution() {
 }
 
 std::string execution_time_predictor::estimate_remaining_time(double progress) {
-    double time = (boost::posix_time::microsec_clock::local_time()-m_start_time).total_milliseconds();
+    double time = static_cast<double>((boost::posix_time::microsec_clock::local_time()-m_start_time).total_milliseconds());
 	time -= (s_pause_time - m_pause_time_at_start);
     if ((time < 10 || progress < 0.0001) && m_estimate == -1) return "...";
     
