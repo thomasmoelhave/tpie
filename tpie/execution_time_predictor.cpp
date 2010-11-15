@@ -25,6 +25,15 @@
 #include <tpie/prime.h>
 #include <iostream>
 #include <iomanip>
+
+#ifdef WIN32
+#include <windows.h>
+#include <Shlobj.h>
+#else
+#include <sys/types.h>
+#include <pwd.h>
+#endif
+
 //using namespace boost::numeric::ublas;
 using namespace std;
 
@@ -85,9 +94,29 @@ class time_estimator_database {
 public:
 	typedef std::map<size_t, entry> db_type;
 	db_type db;
+	std::string path;
+	
 	time_estimator_database() {
+#ifdef WIN32
+		//path 
+		TCHAR p[MAX_PATH];
+		if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_LOCAL_APPDATA | CSIDL_FLAG_CREATE, NULL, 0, p))) {
+			path=p;
+			path += "\\";
+		}
+#else
+		const char * p = getenv("HOME");
+		if (p != 0) path=p;
+		if (path == "") path = getpwuid(getuid())->pw_dir;
+		path += "/.";
+#endif	
+
+		path += "tpie_time_estimation_db";
+#ifndef NDEBUG
+		path += "_debug";
+#endif
 		ifstream f;
-		f.open("/var/tmp/tpie_time_estimation_database");
+		f.open(path.c_str());
 		if (f.is_open()) {
 			size_t id;
 			size_t cnt;
@@ -104,7 +133,7 @@ public:
 
 	~time_estimator_database() {
 		ofstream f;
-		f.open("/var/tmp/tpie_time_estimation_database");
+		f.open(path.c_str());
 		if (f.is_open()) {
 			for(db_type::iterator i=db.begin(); i != db.end(); ++i) {
 				f << std::hex << i->first << " " << std::dec << i->second.count << std::endl;
