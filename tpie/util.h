@@ -22,6 +22,7 @@
 
 #include <tpie/portability.h>
 #include <cmath>
+#include <boost/cstdint.hpp>
 namespace tpie {
 
 ///////////////////////////////////////////////////////////////////////////
@@ -34,6 +35,21 @@ inline void unused(const T & x) {(void)x;}
 typedef TPIE_OS_OFFSET offset_type;
 typedef TPIE_OS_SIZE_T size_type;
 typedef TPIE_OS_SSIZE_T ssize_type;
+
+using boost::uint8_t;
+using boost::int8_t;
+using boost::uint16_t;
+using boost::int16_t;
+using boost::uint32_t;
+using boost::int32_t;
+using boost::uint64_t;
+using boost::int64_t;
+
+typedef size_type memory_size_type;
+typedef ssize_type memory_offset_type;
+typedef uint64_t stream_size_type;
+typedef int64_t stream_offset_type;
+
 
 ///////////////////////////////////////////////////////////////////////////
 /// Any internal memory datastructur whos memory usage is linear
