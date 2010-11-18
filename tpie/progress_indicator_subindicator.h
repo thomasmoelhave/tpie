@@ -35,12 +35,19 @@ public:
 									TPIE_OS_OFFSET outerRange,
 									const char * crumb=0,
 									bool display_subcrumbs=true);
+#ifndef NDEBUG
+	~progress_indicator_subindicator();
+#endif
 protected:
 	progress_indicator_base * m_parent;
 	TPIE_OS_OFFSET m_outerRange;
 	TPIE_OS_OFFSET m_oldValue;
 	char m_crumb[40];
 	bool m_display_subcrumbs;
+#ifndef NDEBUG
+	bool m_init_called;
+	bool m_done_called;
+#endif
 };
 	
 } //namespace tpie

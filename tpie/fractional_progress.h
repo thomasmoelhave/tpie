@@ -37,6 +37,10 @@ public:
 	virtual void init(TPIE_OS_OFFSET range, TPIE_OS_OFFSET step=1);
 	virtual void done();
 private:
+#ifndef NDEBUG
+	bool m_init_called;
+	bool m_done_called;
+#endif
 	double m_fraction;
 	TPIE_OS_OFFSET m_estimate;
 	TPIE_OS_OFFSET m_n;

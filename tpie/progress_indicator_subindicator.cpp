@@ -34,7 +34,11 @@ progress_indicator_subindicator::progress_indicator_subindicator(progress_indica
 																 const char * crumb,
 																 bool display_subcrumbs):
 	progress_indicator_base("","", 0, 1,1), m_parent(parent), m_outerRange(outerRange), 
-	m_oldValue(0), m_display_subcrumbs(display_subcrumbs) {
+	m_oldValue(0), m_display_subcrumbs(display_subcrumbs)
+#ifndef NDEBUG
+	,m_init_called(false), m_done_called(false)
+#endif
+{
 	if (crumb == 0) 
 		m_crumb[0] = 0;
 	else {
@@ -42,6 +46,12 @@ progress_indicator_subindicator::progress_indicator_subindicator(progress_indica
 		m_crumb[39] = 0;
 	}
 }
+
+#ifndef NDEBUG
+progress_indicator_subindicator::~progress_indicator_subindicator() {
+	assert(!m_init_called || m_done_called);
+}
+#endif
 
 void progress_indicator_subindicator::refresh() {
 	TPIE_OS_OFFSET val = get_current();
@@ -53,13 +63,21 @@ void progress_indicator_subindicator::refresh() {
 	}
 }
 
-
 void progress_indicator_subindicator::init(TPIE_OS_OFFSET range, TPIE_OS_OFFSET step) {
+#ifndef NDEBUG
+	assert(!m_init_called);
+	m_init_called=true;
+#endif
 	if (m_crumb[0] && m_parent) m_parent->push_breadcrumb(m_crumb);
 	progress_indicator_base::init(range, step);
 }
 
 void progress_indicator_subindicator::done() {
+#ifndef NDEBUG
+	assert(m_init_called);
+	assert(!m_done_called);
+	m_done_called=true;
+#endif
 	if (m_crumb[0] && m_parent) m_parent->pop_breadcrumb();
 	progress_indicator_base::done();
 	m_current = m_maxRange; 

@@ -40,7 +40,6 @@ fractional_subindicator::fractional_subindicator(
 
 void fractional_subindicator::init(TPIE_OS_OFFSET range, TPIE_OS_OFFSET step) {
 	assert(m_fp. m_init_called);
-
 	m_predict.start_execution(m_n);
 	if (m_parent) {
 		double f = m_fp.get_fraction(*this);
