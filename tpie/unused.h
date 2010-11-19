@@ -18,8 +18,8 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #ifndef __TPIE_UNUSED_H__
 #define __TPIE_UNUSED_H__
-#include <limits.h>
-
+#include <limits>
+#include <utility>
 namespace tpie{
 
 template <typename T>
