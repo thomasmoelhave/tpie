@@ -205,8 +205,9 @@ public:
 	    m_current += step;
 		ticks currentTicks = getticks();
 #ifndef NDEBUG
-		if ( elapsed(currentTicks,m_lastUpdate) > m_frequency * m_threshold * 5)
+		if ( elapsed(currentTicks,m_lastUpdate) > m_frequency * m_threshold * 5) {
 			TP_LOG_WARNING("Step was not called for 5 seconds\n");
+		}
 #endif	
 		if(elapsed(currentTicks, m_lastUpdate) > m_threshold){
 			m_lastUpdate = currentTicks;

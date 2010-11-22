@@ -69,8 +69,9 @@ public:
 	}
 
 	static double memory_overhead() {
-		return array<size_t>::memory_coefficient() * 100.0 
-			+ array<size_t>::memory_overhead() + sizeof(chaining_hash_table) 
+		return array<index_t>::memory_coefficient() * 100.0 
+			+ array<index_t>::memory_overhead() + sizeof(chaining_hash_table) 
+			+ array<bucket_t>::memory_overhead()
 			- sizeof(array<index_t>)
 			- sizeof(array<bucket_t>);
 	}
@@ -274,15 +275,15 @@ private:
  		friend class hash_map::iterator;
  		friend class hash_map;
  	public:
- 		inline const key_t & key() const {return tbl.get(cur)->first;}
- 		inline const data_t & value() const {return tbl.get(cur)->second;}
+ 		inline const key_t & key() const {return tbl.get(cur).first;}
+ 		inline const data_t & value() const {return tbl.get(cur).second;}
  		inline const value_t & operator*() const {return tbl.get(cur);}
  		inline const value_t * operator->() const {return &tbl.get(cur);}
 
 		template <typename IIT>
- 		inline bool operator==(iter_base<IIT> & o) const {return o.cur == cur;}
+ 		inline bool operator==(const iter_base<IIT> & o) const {return o.cur == cur;}
 		template <typename IIT>
- 		inline bool operator!=(iter_base<IIT> & o) const {return o.cur != cur;}
+ 		inline bool operator!=(const iter_base<IIT> & o) const {return o.cur != cur;}
  		inline void operator++() {
 			++cur;
  			while (cur != tbl.end()) {
@@ -346,7 +347,7 @@ public:
 	}
 
 	inline const_iterator find(const key_t & key) const {
-		return const_iterator(tbl, tbl.find(key));
+		return const_iterator(tbl, tbl.find(value_t(key, tbl.unused.second)));
 	}
 
 	inline bool contains(const key_t & key) const {
