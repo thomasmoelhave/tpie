@@ -18,6 +18,7 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
 #include "progress_indicator_subindicator.h"
+#include <tpie/backtrace.h>
 
 namespace tpie {
 
@@ -49,7 +50,10 @@ progress_indicator_subindicator::progress_indicator_subindicator(progress_indica
 
 #ifndef NDEBUG
 progress_indicator_subindicator::~progress_indicator_subindicator() {
-	assert(!m_init_called || m_done_called);
+	if (m_init_called && !m_done_called && !std::uncaught_exception()) {
+		std::cerr << "A progress_indicator_subindicator was destructed without done being called" << std::endl;
+		tpie::backtrace(std::cerr, 5);
+	}
 }
 #endif
 

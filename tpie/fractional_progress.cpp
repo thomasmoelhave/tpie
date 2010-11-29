@@ -17,6 +17,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #include "fractional_progress.h"
+#include <tpie/backtrace.h>
 
 namespace tpie {
 
@@ -81,7 +82,12 @@ void fractional_progress::done() {
 }
 
 fractional_progress::~fractional_progress() {
-	assert(m_done_called);
+#ifndef NDEBUG
+	if (m_init_called && !m_done_called && !std::uncaught_exception()) {
+		std::cerr << "A fractional_progress was destructed without done being called" << std::endl;
+		tpie::backtrace(std::cerr, 5);
+	}
+#endif
 }
 
 unique_id_type & fractional_progress::id() {return m_id;}

@@ -54,6 +54,7 @@ set (BTE_HEADERS
 set (OTHER_HEADERS
 		bit.h   
 		bit_matrix.h
+		backtrace.h
 		b_vector.h
 		comparator.h
 		config.h.cmake
@@ -112,6 +113,7 @@ set (BTE_SOURCES
 set (OTHER_SOURCES
 	#bit.cpp
 	#bit_matrix.cpp
+	backtrace.cpp
 	cpu_timer.cpp
 	logstream.cpp
 	mm_base.cpp
