@@ -144,6 +144,7 @@ public:
 		const size_t tc=std::min<size_t>(boost::thread::hardware_concurrency(),32);
 		thread_holder threads[32];
 		boost::mutex::scoped_lock lock(mutex);
+		work_estimate = 0;
 		working = 0;
 		kill = false;
 		if (pi) {

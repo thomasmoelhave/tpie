@@ -1207,7 +1207,7 @@ namespace tpie {
 	    // the header block, then, assuming the stream is writable, we have
 	    // to create the space on disk by doing an explicit write().  
 	    if (file_end  < static_cast<TPIE_OS_OFFSET>(m_osBlockSize)) {
-
+ 
 		if (m_readOnly) {
 		
 		    m_status = STREAM_STATUS_INVALID;
@@ -1228,7 +1228,7 @@ namespace tpie {
 		    // accesses to data are made.
 		
 		    char *tmp_buffer = new char[m_osBlockSize];
-		
+			memset(tmp_buffer, 0, m_osBlockSize);
 		    if (file_end != 0) {
 		    
 			if (TPIE_OS_LSEEK(m_fileDescriptor, 0, TPIE_OS_FLAG_SEEK_SET) != 0) {
@@ -1423,8 +1423,11 @@ namespace tpie {
 		    // a dirty block.  
 		
 		    if (m_currentBlock == NULL) {
-		    
-			m_currentBlock = new T[(sizeof(T)-1+m_header->m_blockSize)/sizeof(T)];
+				TPIE_OS_SIZE_T z = (sizeof(T)-1+m_header->m_blockSize)/sizeof(T);
+				m_currentBlock = new T[z];
+#ifndef NDEBUG
+				memset(m_currentBlock, 0, z);
+#endif
 		    
 			// If you really want to be anal about memory calculation
 			// consistency then if IMPLICIT_FS_READAHEAD flag is
@@ -1494,9 +1497,11 @@ namespace tpie {
 		}
 	    
 		if (m_currentBlock == NULL) {
-		
-		    m_currentBlock = new T[(sizeof(T)-1+m_header->m_blockSize)/sizeof(T)];
-		
+			TPIE_OS_SIZE_T z = (sizeof(T)-1+m_header->m_blockSize)/sizeof(T);
+		    m_currentBlock = new T[z];
+#ifndef NDEBUG
+			memset(m_currentBlock, 0, z);
+#endif
 		    // If you really want to be anal about memory calculation
 		    // consistency then if IMPLICIT_FS_READAHEAD flag is set
 		    // you shd register a memory allocation of m_header->m_blockSize
@@ -1574,9 +1579,9 @@ namespace tpie {
 		    m_fileLength += m_header->m_blockSize;
 		}
 
-		if (m_header->m_blockSize - TPIE_OS_WRITE (m_fileDescriptor, 
-				   reinterpret_cast<char*>(m_currentBlock), 
-				   m_header->m_blockSize) != 0) {
+		if (TPIE_OS_SIZE_T(TPIE_OS_WRITE (m_fileDescriptor, 
+						   reinterpret_cast<char*>(m_currentBlock), 
+						   m_header->m_blockSize)) != m_header->m_blockSize) {
 		
 		    m_status  = STREAM_STATUS_INVALID;
 		    m_osErrno = errno;
