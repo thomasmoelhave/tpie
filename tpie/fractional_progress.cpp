@@ -99,7 +99,8 @@ double fractional_progress::get_fraction(fractional_subindicator & sub) {
 	m_add_state=false;
 	if (sub.m_estimate == -1) return sub.m_fraction / m_total_sum;
 	else {
-		double f=(double)sub.m_estimate / (double)m_time_sum * m_timed_sum / m_total_sum;
+		double f=(m_time_sum!=0)?((double)sub.m_estimate / (double)m_time_sum):0.0;
+		if (m_total_sum != 0) f = f * m_timed_sum / m_total_sum;
 #ifdef TPIE_FRACTION_STATS
 		std::cout << "Fraction: name: " << m_id() << ";" << sub.m_id << "; calculated: " << f
 				  << "; suplied: " << (sub.m_fraction / m_total_sum) << std::endl;
