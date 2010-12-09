@@ -36,14 +36,18 @@ void backtrace(std::ostream & out, int depth) {
 	int nSize = ::backtrace(array, depth+1);
 	char ** symbols = backtrace_symbols(array, nSize);
 	for(int i=1; i < nSize; ++i) {
+		if (!symbols[i])) continue;
 		std::string sym = symbols[i];
+		
 		std::string method, index;
 		size_t r = sym.rfind(")");
 		size_t m = sym.rfind("+",r);
 		size_t l = sym.rfind("(",m);
 		size_t s = sym.rfind("/", l);
 		
-		if (l == std::string::npos) {
+		if (l == std::string::npos || 
+			r == std::string::npos ||
+			m == std::string::npos) {
 			l = sym.rfind("[");
 			method="Unknown";
 			index="";
