@@ -36,7 +36,7 @@ void backtrace(std::ostream & out, int depth) {
 	int nSize = ::backtrace(array, depth+1);
 	char ** symbols = backtrace_symbols(array, nSize);
 	for(int i=1; i < nSize; ++i) {
-		if (!symbols[i])) continue;
+		if (!symbols[i]) continue;
 		std::string sym = symbols[i];
 		
 		std::string method, index;
