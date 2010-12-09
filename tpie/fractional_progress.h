@@ -33,7 +33,9 @@ public:
 							double fraction,
 							TPIE_OS_OFFSET n,
 							const char * crumb=0,
-							bool display_subcrumbs=true);
+							bool display_subcrumbs=true,
+							bool enabled=true);
+
 	virtual void init(TPIE_OS_OFFSET range, TPIE_OS_OFFSET step=1);
 	virtual void done();
 private:

@@ -28,9 +28,10 @@ fractional_subindicator::fractional_subindicator(
 	double fraction,
 	TPIE_OS_OFFSET n,
 	const char * crumb,
-	bool display_subcrumbs):
+	bool display_subcrumbs,
+	bool enabled):
 	progress_indicator_subindicator(fp.m_pi, 42, crumb, display_subcrumbs),
-	m_fraction(fraction), m_estimate(-1), m_n(n), m_fp(fp), m_predict(fp.m_id() + ";" + id)
+	m_fraction(enabled?fraction:0.0), m_estimate(-1), m_n(n), m_fp(fp), m_predict(fp.m_id() + ";" + id)
 #ifdef TPIE_FRACTION_STATS
 	,m_id(id)
 #endif
