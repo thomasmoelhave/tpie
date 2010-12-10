@@ -58,11 +58,10 @@ void backtrace(std::ostream & out, int depth) {
 		if (s == std::string::npos) s=0;
 		std::string exe = sym.substr(s+1,l-s-1);
 		{
-			int x;
-			size_t z=2048;
-			char buff[z];
-			abi::__cxa_demangle(method.c_str(), buff, &z, &x);
+			int x; 
+			char * buff=abi::__cxa_demangle(method.c_str(), NULL, NULL, &x);
 			if (x == 0) method = buff;
+			std::free(buff);
 		}
 		out << exe << ": " << method << index << std::endl;
 	}
