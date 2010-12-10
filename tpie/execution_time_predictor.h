@@ -47,7 +47,7 @@ class execution_time_predictor {
 public:
 	execution_time_predictor(const std::string & id=std::string());
 	~execution_time_predictor();
-	TPIE_OS_OFFSET estimate_execution_time(TPIE_OS_OFFSET n);
+	TPIE_OS_OFFSET estimate_execution_time(TPIE_OS_OFFSET n, double & confidence);
 	void start_execution(TPIE_OS_OFFSET n);
 	void end_execution();
 	std::string estimate_remaining_time(double progress);
@@ -63,8 +63,13 @@ private:
 	size_t m_id;
 	boost::posix_time::ptime m_start_time;
 	TPIE_OS_OFFSET m_estimate;
+	double m_confidence;
 	TPIE_OS_OFFSET m_n;
 	TPIE_OS_OFFSET m_pause_time_at_start;
+
+#ifndef NDEBUG
+	std::string m_name;
+#endif
 
 	static TPIE_OS_OFFSET s_pause_time;
 	static boost::posix_time::ptime s_start_pause_time;

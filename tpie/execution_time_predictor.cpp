@@ -146,16 +146,41 @@ public:
 		}
 	}
 	
-	TPIE_OS_OFFSET estimate(size_t & id, TPIE_OS_OFFSET n) {
+	TPIE_OS_OFFSET estimate(size_t & id, TPIE_OS_OFFSET n, double & confidence) {
 		db_type::iterator i=db.find(id);
-		if (i == db.end()) return -1;
+		if (i == db.end()) {
+			std::cout << "empty db ";
+			confidence=0.0;
+			return -1;
+		}
 		entry & e=i->second;
+		
 		p_t * l = std::lower_bound(e.begin(), e.end(), p_t(n, 0), cmp_t());
-		if (l == e.end()) --l;
-		if (l->first == 0) return -1; 
-		return l->second * n / l->first;
-	}
 
+
+		if (l != e.end() && l->first == n) {
+			confidence=1.0;
+			return l->second;
+		}
+
+		if (l == e.end()) {
+			--l;
+			if (l->first == 0) {
+				std::cout << "First is 0 ";
+				confidence=0.0;
+				return -1; 
+			}
+			confidence = std::min(1.3 / (1.0 + log(n / l->first)/log(2)), 1.0);
+			return (l->second*n)/l->first;
+		}
+		
+		p_t p0(0,0);
+		if (l != e.begin()) p0 = *(l-1);
+		TPIE_OS_OFFSET w=(l->first-p0.first);
+		TPIE_OS_OFFSET x=(n - p0.first);
+		confidence=1.0;
+		return p0.second * (w - x) / w + l->second * (x/w);
+	}
 };
   
 static time_estimator_database d;
@@ -164,20 +189,26 @@ namespace tpie {
 
 execution_time_predictor::execution_time_predictor(const std::string & id): 
 	m_id(is_prime.prime_hash(id)), m_start_time(boost::posix_time::not_a_date_time), 
-	m_estimate(-1), m_pause_time_at_start(0) {}
+	m_estimate(-1), m_pause_time_at_start(0)
+#ifndef NDEBUG
+	,m_name(id)
+#endif //NDEBUG
+ {}
 
 execution_time_predictor::~execution_time_predictor() {
 }
 
-TPIE_OS_OFFSET execution_time_predictor::estimate_execution_time(TPIE_OS_OFFSET n) {
-	if (m_id == is_prime.prime_hash(std::string())) return -1;
-	TPIE_OS_OFFSET tmp = d.estimate(m_id, n);
-	return tmp;
+TPIE_OS_OFFSET execution_time_predictor::estimate_execution_time(TPIE_OS_OFFSET n, double & confidence) {
+	if (m_id == is_prime.prime_hash(std::string())) {
+		confidence=0.0;
+		return -1;
+	}
+	return d.estimate(m_id, n, confidence);
 }
 
 void execution_time_predictor::start_execution(TPIE_OS_OFFSET n) {
     m_n = n;
-    m_estimate = estimate_execution_time(n);
+    m_estimate = estimate_execution_time(n, m_confidence);
     m_start_time = boost::posix_time::microsec_clock::local_time();
 	m_pause_time_at_start = s_pause_time;
 }
@@ -195,12 +226,15 @@ void execution_time_predictor::end_execution() {
 std::string execution_time_predictor::estimate_remaining_time(double progress) {
     double time = static_cast<double>((boost::posix_time::microsec_clock::local_time()-m_start_time).total_milliseconds());
 	time -= (s_pause_time - m_pause_time_at_start);
-    if ((time < 10 || progress < 0.0001) && m_estimate == -1) return "...";
-    
-	double estimate = (progress>0.000001)?time / progress:0;
-	if (m_estimate != -1)
-		estimate = m_estimate * (1.0-progress) + estimate * progress;
-    double remaining = estimate * (1.0-progress);
+
+	double a = m_confidence * (1.0 - progress);
+	double b = (1.0-m_confidence) * (1.0 - progress) + progress;
+
+	double t2 = (progress < 0.00001)?0:time/progress;
+	if (m_confidence * a + progress * b < 0.2) return "Estimating";
+	double estimate = m_estimate * a  + t2 * b;
+	
+	double remaining = estimate * (1.0-progress);
 
     stringstream s;
 	remaining /= 1000;

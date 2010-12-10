@@ -36,6 +36,7 @@ public:
 							bool display_subcrumbs=true,
 							bool enabled=true);
 
+	~fractional_subindicator();
 	virtual void init(TPIE_OS_OFFSET range, TPIE_OS_OFFSET step=1);
 	virtual void done();
 private:
@@ -45,6 +46,7 @@ private:
 #endif
 	double m_fraction;
 	TPIE_OS_OFFSET m_estimate;
+	double m_confidence;
 	TPIE_OS_OFFSET m_n;
 	fractional_progress & m_fp;
 	execution_time_predictor m_predict;
@@ -74,6 +76,8 @@ private:
 #ifndef NDEBUG
 	bool m_done_called;
 #endif
+	double m_confidence;
+	
 	unique_id_type m_id;
 	double m_total_sum;
 	TPIE_OS_OFFSET m_time_sum;

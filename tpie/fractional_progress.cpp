@@ -35,25 +35,45 @@ fractional_subindicator::fractional_subindicator(
 #ifdef TPIE_FRACTION_STATS
 	,m_id(id)
 #endif
- {
-	m_estimate = m_predict.estimate_execution_time(n);
+{
+#ifndef NDEBUG
+	m_init_called=false;
+#endif
+	m_estimate = m_predict.estimate_execution_time(n, m_confidence);
 	fp.add_sub_indicator(*this);
 };
 
 void fractional_subindicator::init(TPIE_OS_OFFSET range, TPIE_OS_OFFSET step) {
-	assert(m_fp. m_init_called);
+	assert(m_fp.m_init_called);
 	m_predict.start_execution(m_n);
 	if (m_parent) {
 		double f = m_fp.get_fraction(*this);
 		double t = m_parent->get_max_range() - m_parent->get_min_range();
 		m_outerRange = t * f;
 	}
+#ifndef NDEBUG
+	m_init_called=true;
+#endif
+
 	progress_indicator_subindicator::init(range, step);	
 }
 
 void fractional_subindicator::done() {
 	m_predict.end_execution();
 	progress_indicator_subindicator::done();
+}
+
+fractional_subindicator::~fractional_subindicator() {
+#ifndef NDEBUG
+	if (!m_init_called && m_fraction > 0.00001) {
+		std::cerr << "A fracional_subindicator was assigned a none zero fraction but never inited " 
+#ifdef TPIE_FRACTION_STATS
+				  << m_id
+#endif
+				  << std::endl;
+		tpie::backtrace(std::cerr, 5);
+	}
+#endif
 }
 
 fractional_progress::fractional_progress(progress_indicator_base * pi):
@@ -64,11 +84,14 @@ fractional_progress::fractional_progress(progress_indicator_base * pi):
 #ifndef NDEBUG
 	m_done_called(false),
 #endif
-	m_total_sum(0), m_time_sum(0), m_timed_sum(0) {	
-}
+	m_total_sum(0), m_time_sum(0), m_timed_sum(0), m_confidence(1.0) {}
 	
 void fractional_progress::init() {
 #ifndef NDEBUG
+	if (m_init_called) {
+		std::cerr << "Init was called on a fraction progress where init had allready been called" << std::endl;
+		tpie::backtrace(std::cerr, 5);
+	}
 	m_init_called=true;
 #endif
 	if (m_pi) m_pi->init(23000);
@@ -76,7 +99,10 @@ void fractional_progress::init() {
 
 void fractional_progress::done() {
 #ifndef NDEBUG
-	assert(!m_done_called);
+	if (m_done_called || !m_init_called) {
+		std::cerr << "Done was called on a fraction progress where done had allready been called" << std::endl;
+		tpie::backtrace(std::cerr, 5);
+	}
 	m_done_called=true;
 #endif
 	if (m_pi) m_pi->done();
@@ -95,24 +121,29 @@ unique_id_type & fractional_progress::id() {return m_id;}
 
 void fractional_progress::add_sub_indicator(fractional_subindicator & sub) {
 	assert(m_add_state==true);
+	if (sub.m_fraction < 0.000000001 && sub.m_confidence < 0.5) return;
 	m_total_sum += sub.m_fraction;
-	if (sub.m_estimate != -1) {
-		m_timed_sum += sub.m_fraction;
-		m_time_sum += sub.m_estimate;
-	}
+	m_confidence = std::min(sub.m_confidence, m_confidence);
+	m_time_sum += sub.m_estimate;
 }
 
 double fractional_progress::get_fraction(fractional_subindicator & sub) {
 	m_add_state=false;
-	if (sub.m_estimate == -1) return sub.m_fraction / m_total_sum;
-	else {
-		double f=(m_time_sum!=0)?((double)sub.m_estimate / (double)m_time_sum):0.0;
-		if (m_total_sum != 0) f = f * m_timed_sum / m_total_sum;
+
+	if (sub.m_fraction < 0.000000001 && sub.m_confidence < 0.5) return 0.0;
+	
+	double f1 = (m_total_sum > 0.00001)?sub.m_fraction / m_total_sum: 0.0;
+	double f2 = (m_time_sum > 0.00001)?((double)sub.m_estimate / (double)m_time_sum):0.0;
+	
+	double f = f1 * (1.0 - m_confidence) + f2*m_confidence;
+	
 #ifdef TPIE_FRACTION_STATS
-		std::cout << "Fraction: name: " << m_id() << ";" << sub.m_id << "; calculated: " << f
-				  << "; suplied: " << (sub.m_fraction / m_total_sum) << std::endl;
+	std::cout << "Fraction: name: " << m_id() << ";" << sub.m_id << "; "
+			  << "Confidence: " << m_confidence << "; "
+			  << "Supplied: " << f1 << "; "
+			  << "Estimated: " << f2 << "; "
+			  << "Chosen: " << f << "; " << std::endl;
 #endif
-		return f;
-	}
+	return f;
 }
 } //namespace tpie
