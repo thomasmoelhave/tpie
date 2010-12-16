@@ -68,7 +68,7 @@ fractional_subindicator::~fractional_subindicator() {
 	if (!m_init_called && m_fraction > 0.00001) {
 		std::cerr << "A fracional_subindicator was assigned a none zero fraction but never inited " 
 #ifdef TPIE_FRACTION_STATS
-				  << m_id
+				  << " id: \"" << m_id << "\""
 #endif
 				  << std::endl;
 		tpie::backtrace(std::cerr, 5);
