@@ -66,7 +66,7 @@ void fractional_subindicator::done() {
 fractional_subindicator::~fractional_subindicator() {
 #ifndef NDEBUG
 	if (!m_init_called && m_fraction > 0.00001) {
-		std::cerr << "A fracional_subindicator was assigned a none zero fraction but never inited " 
+		std::cerr << "A fractional_subindicator was assigned a non-zero fraction but never initialized" 
 #ifdef TPIE_FRACTION_STATS
 				  << " id: \"" << m_id << "\""
 #endif
@@ -89,7 +89,7 @@ fractional_progress::fractional_progress(progress_indicator_base * pi):
 void fractional_progress::init() {
 #ifndef NDEBUG
 	if (m_init_called) {
-		std::cerr << "Init was called on a fraction progress where init had allready been called" << std::endl;
+		std::cerr << "Init was called on a fractional_progress where init had already been called" << std::endl;
 		tpie::backtrace(std::cerr, 5);
 	}
 	m_init_called=true;
@@ -100,7 +100,7 @@ void fractional_progress::init() {
 void fractional_progress::done() {
 #ifndef NDEBUG
 	if (m_done_called || !m_init_called) {
-		std::cerr << "Done was called on a fraction progress where done had allready been called" << std::endl;
+		std::cerr << "Done was called on a fractional_progress where done had allready been called" << std::endl;
 		tpie::backtrace(std::cerr, 5);
 	}
 	m_done_called=true;
