@@ -21,7 +21,7 @@
 #ifdef WIN32
 
 namespace tpie {
-void backtrace(std::ostream & out, int depth=1024){}
+void backtrace(std::ostream & out, int depth){}
 }
 
 #else // WIN32

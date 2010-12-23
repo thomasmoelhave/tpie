@@ -170,7 +170,7 @@ public:
 				confidence=0.0;
 				return -1; 
 			}
-			confidence = std::min(1.3 / (1.0 + log(n / l->first)/log(2)), 1.0);
+			confidence = std::min(1.3 / (1.0 + std::log(double(n / l->first))/std::log(2.0)), 1.0);
 			return (l->second*n)/l->first;
 		}
 		
