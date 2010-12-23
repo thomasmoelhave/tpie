@@ -84,7 +84,7 @@ fractional_progress::fractional_progress(progress_indicator_base * pi):
 #ifndef NDEBUG
 	m_done_called(false),
 #endif
-	m_total_sum(0), m_time_sum(0), m_timed_sum(0), m_confidence(1.0) {}
+	m_confidence(1.0), m_total_sum(0), m_time_sum(0), m_timed_sum(0) {}
 	
 void fractional_progress::init() {
 #ifndef NDEBUG
