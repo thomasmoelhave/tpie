@@ -294,6 +294,9 @@ public:
 	inline const_reverse_iterator rbegin() const {return const_reverse_iterator(m_elements+m_size-1);}
 	inline reverse_iterator rend() {return reverse_iterator(m_elements-1);}
 	inline const reverse_iterator rend() const {return const_reverse_iterator(m_elements-1);}
+
+	inline T * get() {return m_elements;}
+	inline const T * get() const {return m_elements;}
 };
 
 }
