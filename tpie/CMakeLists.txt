@@ -59,7 +59,13 @@ set (OTHER_HEADERS
 		comparator.h
 		config.h.cmake
 		cpu_timer.h
+		disjoint_sets.h
+		execution_time_predictor.h
 		internal_sort.h
+		internal_queue.h
+		internal_stack.h
+		internal_vector.h
+		internal_stack_vector_base.h
 		logstream.h
 		mergeheap.h
 		mm_base.h
@@ -72,11 +78,14 @@ set (OTHER_HEADERS
 		pq_overflow_heap.inl
 		pq_merge_heap.h
 		pq_merge_heap.inl
+		pq_internal_heap.inl
 		fractional_progress.h
+		parallel_sort.h
 		progress_indicator_subindicator.h
 		progress_indicator_arrow.h
 		progress_indicator_base.h
 		progress_indicator_spin.h
+		progress_indicator_null.h
 		progress_indicator_terminal.h
 		progress_indicator_tpie.h
 		sort_manager.h
@@ -89,6 +98,8 @@ set (OTHER_HEADERS
 		stats_stream.h
 		stats_tree.h
 		tempname.h
+		unused.h
+		util.h
 		vararray.h
 		array.h
 		bit_array.h
