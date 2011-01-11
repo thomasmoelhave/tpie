@@ -187,8 +187,11 @@ void parallel_sort(iterator_type a,
 				   iterator_type b, 
 				   comp_type comp=std::less<typename boost::iterator_value<iterator_type>::type>(),
 				   progress_indicator_base * pi=0) {
-	parallel_sort_impl<iterator_type, comp_type> s(pi);
-	s(a,b,comp);
+	//parallel_sort_impl<iterator_type, comp_type> s(pi);
+	//s(a,b,comp);
+	if (pi) pi->init(1);
+	std::sort(a,b,comp);
+	if (pi) pi->done();
 }
 
 }
