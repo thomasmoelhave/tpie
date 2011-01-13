@@ -50,6 +50,17 @@ typedef ssize_type memory_offset_type;
 typedef uint64_t stream_size_type;
 typedef int64_t stream_offset_type;
 
+template <typename T> struct sign {typedef T type;};
+template <> struct sign<uint8_t> {typedef int8_t type;};
+template <> struct sign<uint16_t> {typedef int16_t type;};
+template <> struct sign<uint32_t> {typedef int32_t type;};
+template <> struct sign<uint64_t> {typedef int64_t type;};
+
+template <typename T> struct unsign {typedef T type;};
+template <> struct unsign<int8_t> {typedef uint8_t type;};
+template <> struct unsign<int16_t> {typedef uint16_t type;};
+template <> struct unsign<int32_t> {typedef uint32_t type;};
+template <> struct unsign<int64_t> {typedef uint64_t type;};
 
 ///////////////////////////////////////////////////////////////////////////
 /// Any internal memory datastructur whos memory usage is linear
