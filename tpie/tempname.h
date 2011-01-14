@@ -22,7 +22,7 @@
 
 // Get definitions for working with Unix and Windows
 #include <tpie/portability.h>
-
+#include <stdexcept>
 // The name of the environment variable pointing to a tmp directory.
 #define TMPDIR_ENV "TMPDIR"
 
@@ -32,6 +32,10 @@
 
 namespace tpie {
 
+	struct tempfile_error: public std::runtime_error {
+		explicit tempfile_error(const std::string & what): std::runtime_error(what) {}
+	};
+   
 	class tempname {
 	public:	
 		static std::string tpie_name(const std::string& post_base = "", const std::string& dir = "", const std::string& ext = ""); 

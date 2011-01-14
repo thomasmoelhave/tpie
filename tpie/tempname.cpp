@@ -81,7 +81,7 @@ std::string tempname::tpie_name(const std::string& post_base, const std::string&
 		if ( !TPIE_OS_EXISTS(path) )
 			return path;
 	}
-	throw std::runtime_error("Unable to find free name for temporary file");
+	throw tempfile_error("Unable to find free name for temporary file");
 }
 
 std::string tempname::get_actual_path() {
@@ -143,7 +143,7 @@ void tempname::set_default_path(const std::string&  path, const std::string& sub
 			TP_LOG_WARNING_ID("Could not use " << p << " as directory for temporary files, trying " << path);
 		}
 		default_path = p;
-	} catch (boost::filesystem::basic_filesystem_error<boost::filesystem::path>) { 
+	} catch (boost::filesystem::filesystem_error) { 
 		TP_LOG_WARNING_ID("Could not use " << p << " as directory for temporary files, trying " << path);
 		default_path = path; 
 	}	
