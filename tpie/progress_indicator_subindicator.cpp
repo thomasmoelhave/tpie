@@ -60,6 +60,7 @@ progress_indicator_subindicator::~progress_indicator_subindicator() {
 void progress_indicator_subindicator::refresh() {
 	TPIE_OS_OFFSET val = get_current();
 	if (val > get_max_range()) val = get_max_range();
+	if (get_max_range() == get_min_range()) return;
 	TPIE_OS_OFFSET value= (val - get_min_range() )* m_outerRange / (get_max_range() - get_min_range());
 	if (value > m_oldValue && m_parent) {
 		m_parent->step(value - m_oldValue);

@@ -219,17 +219,19 @@ err sort_manager<T,I,M>::sort(stream<T>* in, progress_indicator_base* indicator)
 
 	// Basic checks that input is ok
 	if (inStream==NULL) { 
-		m_indicator->init(1); m_indicator->step(); m_indicator->done(); 
 		return NULL_POINTER;
 	}
 	    
 	if (!inStream) { 
-		m_indicator->init(1); m_indicator->step(); m_indicator->done(); 
 		return OBJECT_INVALID; 
 	}
 	    
 	if (inStream->stream_len() < 2) {
-		m_indicator->init(1); m_indicator->step(); m_indicator->done(); 
+		if (m_indicator) {
+			m_indicator->init(1); 
+			m_indicator->step(); 
+			m_indicator->done(); 
+		}
 		return SORT_ALREADY_SORTED; 
 	}
 	    
