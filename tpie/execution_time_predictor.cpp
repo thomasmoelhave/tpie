@@ -20,6 +20,7 @@
 // #include <boost/numeric/ublas/matrix.hpp>
 // #include <boost/numeric/ublas/lu.hpp>
 // #include <boost/numeric/ublas/io.hpp>
+#include "serialization.h"
 #include <map>
 #include <algorithm>
 #include <tpie/prime.h>
@@ -116,31 +117,42 @@ public:
 		path += "_debug";
 #endif
 		ifstream f;
-		f.open(path.c_str());
+		f.open(path.c_str(), ifstream::binary | ifstream::in);
 		if (f.is_open()) {
-			size_t id;
-			size_t cnt;
-			while (f >> std::hex >> id >> std::dec >> cnt) {
-				entry & e=db[id];
-				for (size_t i=0; i < cnt; ++i) {
-					TPIE_OS_OFFSET n, time;
-					f >> n >> time;
-					e.add_point(p_t(n, time));
+			try {
+				tpie::unserializer u(f);
+				u << "TPIE time execution database";
+				size_t c;
+				u >> c;
+				for(size_t i=0; i < c; ++i) {
+					size_t id;
+					size_t cnt;
+					u >> id >> cnt;
+					entry & e=db[id];
+					for (size_t j=0; j < cnt; ++j) {
+						TPIE_OS_OFFSET n, time;
+						u >> n >> time;
+						e.add_point(p_t(n, time));
+					}
 				}
+			} catch(tpie::serialization_error &) {
+				
 			}
 		}
 	}
 
 	~time_estimator_database() {
 		ofstream f;
-		f.open(path.c_str());
+		f.open(path.c_str(), ifstream::binary | ifstream::out);
 		if (f.is_open()) {
+			tpie::serializer s(f);
+			s << "TPIE time execution database";
+			s << (size_t)db.size();
 			for(db_type::iterator i=db.begin(); i != db.end(); ++i) {
-				f << std::hex << i->first << " " << std::dec << i->second.count << std::endl;
+				s << (size_t)i->first << (size_t)i->second.count;
 				for (p_t * j=i->second.begin(); j != i->second.end(); ++j)
-					f << "  " << j->first << " " << j->second << std::endl;
+					s << (TPIE_OS_OFFSET)j->first << (TPIE_OS_OFFSET)j->second;
 			}
-			f.close();
 		} else {
 			std::cerr << "Failed to store DB" << std::endl;
 		}
