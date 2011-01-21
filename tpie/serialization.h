@@ -18,6 +18,13 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #ifndef __TPIE_SERIALIZATION_H__
 #define __TPIE_SERIALIZATION_H__
+
+///////////////////////////////////////////////////////////////////////////
+/// \file tpie/serialization.h Dclares TPIE support for binary serialization
+/// and unserialization.
+///////////////////////////////////////////////////////////////////////////
+
+#include <tpie/config.h>
 #include <tpie/portability.h>
 #include <vector>
 #include <utility>
@@ -30,6 +37,9 @@
 
 namespace tpie {
 
+////////////////////////////////////////////////////////////////////////////////
+/// Class tho compute the disjunction between two boost true/false types
+////////////////////////////////////////////////////////////////////////////////
 template <bool b1, bool b2>
 struct _disjunction: public boost::true_type {};
 
@@ -43,12 +53,21 @@ struct serialization_error: public std::runtime_error {
 	explicit serialization_error(const std::string & what): std::runtime_error(what) {}
 };
 
+
+////////////////////////////////////////////////////////////////////////////////
+/// Class providing binary serialization to a std::ostream.
+/// Data is serialized by using the << operators.
+////////////////////////////////////////////////////////////////////////////////
 class serializer {
 public:
+
+	////////////////////////////////////////////////////////////////////////////
+	/// Construct a serializer writing to out
+	////////////////////////////////////////////////////////////////////////////
 	serializer(std::ostream & out): m_out(out) {
-		*this << "TPIE Serialization" 
-			  << (uint16_t)1
-			  << false;
+		*this << "TPIE Serialization" //File header
+			  << (uint16_t)1          //File version
+			  << false;               //Do we serialize typeids before each actual item?
 	}
 
 	template <typename T>
@@ -86,8 +105,16 @@ private:
 	std::ostream & m_out;
 };
 
+////////////////////////////////////////////////////////////////////////////
+/// Class for unserializing binary data serialized with the serializer
+/// Data can be unserialized using the >> operators. The << operators
+/// can be used to validate data in the serialation.
+////////////////////////////////////////////////////////////////////////////
 class unserializer {
 public:
+	////////////////////////////////////////////////////////////////////////////
+	/// Construct a unserializer reading from the std::istream in
+	////////////////////////////////////////////////////////////////////////////
 	unserializer(std::istream & in): m_in(in) {
 		//Validate header;
 		*this << "TPIE Serialization" 
