@@ -241,10 +241,8 @@ err Internal_Sorter_Op<T>::sort(stream<T>* InStr,
 	read_progress.done();
 
 	//Sort the array.
-	TP_LOG_DEBUG_ID("calling STL sort for " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(nItems) << " items");
 	parallel_sort(ItemArray, ItemArray+nItems, std::less<T>(), &sort_progress);
 
-	TP_LOG_DEBUG("calling quick_sort_op for " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(nItems) << " items\n");
 	if(InStr==OutStr){ //Do the right thing if we are doing 2x sort
 		//Internal sort objects should probably be re-written so that
 		//the interface is cleaner and they don't have to worry about I/O
@@ -344,9 +342,6 @@ err Internal_Sorter_Obj<T, CMPR>::sort(stream<T>* InStr,
 	read_progress.done();
 
 	//Sort the array.
-	TP_LOG_DEBUG_ID("calling STL sort for " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(nItems) << " items");
-	TP_LOG_DEBUG("converting TPIE comparison object to STL\n");
-
 	tpie::parallel_sort(ItemArray, ItemArray+nItems, TPIE2STL_cmp<T,CMPR>(cmp_o), &sort_progress);
 	if (InStr==OutStr) { //Do the right thing if we are doing 2x sort
 		//Internal sort objects should probably be re-written so that
@@ -524,8 +519,6 @@ inline err Internal_Sorter_KObj<T, KEY, CMPR>::sort(stream<T>* InStr,
 	read_progress.done();
 	
 	//Sort the array.
-	TP_LOG_DEBUG_ID("calling STL sort for " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(nItems) << " items");
-	TP_LOG_DEBUG("converting TPIE Key comparison object to STL\n");
 	QsortKeyCmp<KEY, CMPR> kc(UsrObject);
 	TPIE2STL_cmp<qsort_item<KEY>,QsortKeyCmp<KEY,CMPR> > stlcomp(&kc);
 

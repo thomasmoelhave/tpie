@@ -242,8 +242,6 @@ err sort_manager<T,I,M>::sort(stream<T>* in, progress_indicator_base* indicator)
 template<class T, class I, class M>
 err sort_manager<T,I,M>::start_sort(){
 	    
-	TP_LOG_DEBUG_ID ("sort_manager::sort START");
-	    
 	// ********************************************************************
 	// * PHASE 1: See if we can sort the entire stream in internal memory *
 	// * without the need to use general merge sort                       *
@@ -263,9 +261,6 @@ err sort_manager<T,I,M>::start_sort(){
 		return ae;
 	}
 
-	TP_LOG_DEBUG ("BTE says we use at most "<< static_cast<TPIE_OS_OFFSET>(mmBytesPerStream)
-				  << "bytes per stream\n");
-	    
 	// This is how much we can use for internal sort if
 	// we are not doing general merge sort
 	mmBytesAvail -= 2 * mmBytesPerStream;
