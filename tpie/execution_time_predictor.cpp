@@ -161,7 +161,6 @@ public:
 	TPIE_OS_OFFSET estimate(size_t & id, TPIE_OS_OFFSET n, double & confidence) {
 		db_type::iterator i=db.find(id);
 		if (i == db.end()) {
-			std::cout << "empty db ";
 			confidence=0.0;
 			return -1;
 		}
@@ -178,7 +177,9 @@ public:
 		if (l == e.end()) {
 			--l;
 			if (l->first == 0) {
-				std::cout << "First is 0 ";
+#ifdef NDEBUG
+				std::cerr << "First is 0 ";
+#endif
 				confidence=0.0;
 				return -1; 
 			}
@@ -215,6 +216,12 @@ TPIE_OS_OFFSET execution_time_predictor::estimate_execution_time(TPIE_OS_OFFSET 
 		confidence=0.0;
 		return -1;
 	}
+	if (d.estimate(m_id, n, confidence) == -1)
+#ifndef NDEBUG
+		std::cerr << "Do database entry for " << m_name << " (" << m_id << ")" << std::endl;
+#else
+	;
+#endif
 	return d.estimate(m_id, n, confidence);
 }
 
