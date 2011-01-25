@@ -31,7 +31,7 @@ fractional_subindicator::fractional_subindicator(
 	bool display_subcrumbs,
 	bool enabled):
 	progress_indicator_subindicator(fp.m_pi, 42, crumb, display_subcrumbs),
-	m_fraction(enabled?fraction:0.0), m_estimate(-1), m_n(n), m_fp(fp), m_predict(fp.m_id() + ";" + id)
+	m_fraction(enabled?fraction:0.0), m_estimate(-1), m_n(enabled?n:0), m_fp(fp), m_predict(fp.m_id() + ";" + id)
 #ifdef TPIE_FRACTION_STATS
 	,m_id(id)
 #endif
@@ -39,11 +39,12 @@ fractional_subindicator::fractional_subindicator(
 #ifndef NDEBUG
 	m_init_called=false;
 #endif
-	m_estimate = m_predict.estimate_execution_time(n, m_confidence);
+	m_estimate = enabled?m_predict.estimate_execution_time(n, m_confidence):0;
 	fp.add_sub_indicator(*this);
 };
 
 void fractional_subindicator::init(TPIE_OS_OFFSET range, TPIE_OS_OFFSET step) {
+	assert(m_n != 0);
 	assert(m_fp.m_init_called);
 	m_predict.start_execution(m_n);
 	if (m_parent) {
