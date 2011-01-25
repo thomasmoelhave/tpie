@@ -24,6 +24,14 @@
 
 namespace tpie {
 void backtrace(std::ostream & out, int depth=1024);
+void __softassert(const char * expr, const char * file, int line);
 }
+
+#ifndef NDEBUG
+#define softassert_str(x) #x
+#define softassert(x) {if (!(x)) tpie::__softassert(softassert_str(x), __FILE__, __LINE__);}
+#else
+#define softassert(x)
+#endif
 
 #endif //TPIE_BACKTRACE

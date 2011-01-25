@@ -44,8 +44,8 @@ fractional_subindicator::fractional_subindicator(
 };
 
 void fractional_subindicator::init(TPIE_OS_OFFSET range, TPIE_OS_OFFSET step) {
-	assert(m_n != 0);
-	assert(m_fp.m_init_called);
+	softassert(m_n != 0);
+	softassert(m_fp.m_init_called);
 	m_predict.start_execution(m_n);
 	if (m_parent) {
 		double f = m_fp.get_fraction(*this);
@@ -121,7 +121,7 @@ fractional_progress::~fractional_progress() {
 unique_id_type & fractional_progress::id() {return m_id;}
 
 void fractional_progress::add_sub_indicator(fractional_subindicator & sub) {
-	assert(m_add_state==true);
+	softassert(m_add_state==true);
 	if (sub.m_fraction < 0.000000001 && sub.m_confidence < 0.5) return;
 	m_total_sum += sub.m_fraction;
 	m_confidence = std::min(sub.m_confidence, m_confidence);

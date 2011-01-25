@@ -28,6 +28,7 @@ void backtrace(std::ostream & out, int depth){}
 #include <cxxabi.h>
 #include <execinfo.h>
 #include <cstdlib>
+#include <iostream>
 
 namespace tpie {
 void backtrace(std::ostream & out, int depth) {
@@ -69,5 +70,16 @@ void backtrace(std::ostream & out, int depth) {
 	std::free(symbols);
 }
 }
-
 #endif //WIN32
+
+namespace tpie {
+void __softassert(const char * expr, const char * file, int line) {
+	std::cerr << "Soft assertion error: " << expr << std::endl
+			  << file << ":" << line << std::endl;
+	backtrace(std::cerr);
+}
+
+
+}
+
+
