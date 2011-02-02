@@ -32,6 +32,7 @@
 #include <boost/type_traits/is_fundamental.hpp>
 #include <boost/type_traits/is_enum.hpp>
 #include <boost/utility/enable_if.hpp>
+#include <boost/cstdint.hpp>
 #include <istream>
 #include <ostream>
 
@@ -66,7 +67,7 @@ public:
 	////////////////////////////////////////////////////////////////////////////
 	serializer(std::ostream & out): m_out(out) {
 		*this << "TPIE Serialization" //File header
-			  << (uint16_t)1          //File version
+			  << (boost::uint16_t)1          //File version
 			  << false;               //Do we serialize typeids before each actual item?
 	}
 
@@ -118,7 +119,7 @@ public:
 	unserializer(std::istream & in): m_in(in) {
 		//Validate header;
 		*this << "TPIE Serialization" 
-			  << (uint16_t)1
+			  << (boost::uint16_t)1
 			  << false;
 	}
 
