@@ -71,6 +71,7 @@ public:
 private:
 	double get_fraction(fractional_subindicator & sub);
 	void add_sub_indicator(fractional_subindicator & sub);
+
 	progress_indicator_base * m_pi;
 	bool m_add_state;
 #ifndef NDEBUG

@@ -31,15 +31,20 @@ fractional_subindicator::fractional_subindicator(
 	bool display_subcrumbs,
 	bool enabled):
 	progress_indicator_subindicator(fp.m_pi, 42, crumb, display_subcrumbs),
+#ifndef NDEBUG
+	m_init_called(false), m_done_called(false), 
+#endif
 	m_fraction(enabled?fraction:0.0), m_estimate(-1), m_n(enabled?n:0), m_fp(fp), m_predict(fp.m_id() + ";" + id)
 #ifdef TPIE_FRACTION_STATS
 	,m_id(id)
 #endif
 {
-#ifndef NDEBUG
-	m_init_called=false;
-#endif
-	m_estimate = enabled?m_predict.estimate_execution_time(n, m_confidence):0;
+	if (enabled)
+		m_estimate = m_predict.estimate_execution_time(n, m_confidence);
+	else {
+		m_estimate = 0;
+		m_confidence = 1;
+	}
 	fp.add_sub_indicator(*this);
 };
 
@@ -122,7 +127,7 @@ unique_id_type & fractional_progress::id() {return m_id;}
 
 void fractional_progress::add_sub_indicator(fractional_subindicator & sub) {
 	softassert(m_add_state==true);
-	if (sub.m_fraction < 0.000000001 && sub.m_confidence < 0.5) return;
+	if (sub.m_fraction < 0.000000001 && sub.m_confidence > 0.5) return;
 	m_total_sum += sub.m_fraction;
 	m_confidence = std::min(sub.m_confidence, m_confidence);
 	m_time_sum += sub.m_estimate;
@@ -131,7 +136,7 @@ void fractional_progress::add_sub_indicator(fractional_subindicator & sub) {
 double fractional_progress::get_fraction(fractional_subindicator & sub) {
 	m_add_state=false;
 
-	if (sub.m_fraction < 0.000000001 && sub.m_confidence < 0.5) return 0.0;
+	if (sub.m_fraction < 0.000000001 && sub.m_confidence > 0.5) return 0.0;
 	
 	double f1 = (m_total_sum > 0.00001)?sub.m_fraction / m_total_sum: 0.0;
 	double f2 = (m_time_sum > 0.00001)?((double)sub.m_estimate / (double)m_time_sum):0.0;
