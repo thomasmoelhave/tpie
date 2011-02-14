@@ -22,6 +22,9 @@
 #include <tpie/portability.h>
 #include <tpie/util.h>
 #include <tpie/progress_indicator_subindicator.h>
+
+#define TPIE_FSI __FUNCTION__
+
 namespace tpie {
 
 class fractional_progress;
@@ -30,7 +33,7 @@ class fractional_subindicator: public progress_indicator_subindicator {
 public:
 	fractional_subindicator(fractional_progress & fp,
 							const char * id,
-							double fraction,
+							const char * fid,
 							TPIE_OS_OFFSET n,
 							const char * crumb=0,
 							bool display_subcrumbs=true,
@@ -50,8 +53,9 @@ private:
 	TPIE_OS_OFFSET m_n;
 	fractional_progress & m_fp;
 	execution_time_predictor m_predict;
+
 #ifdef TPIE_FRACTION_STATS
-	std::string m_id;
+	uint32_t m_stat_hash;
 #endif
 	friend class fractional_progress;
 };
@@ -70,8 +74,8 @@ public:
 
 private:
 	double get_fraction(fractional_subindicator & sub);
-	void add_sub_indicator(fractional_subindicator & sub);
 
+	void add_sub_indicator(fractional_subindicator & sub);
 	progress_indicator_base * m_pi;
 	bool m_add_state;
 #ifndef NDEBUG
@@ -83,6 +87,11 @@ private:
 	double m_total_sum;
 	TPIE_OS_OFFSET m_time_sum;
 	double m_timed_sum;
+
+#ifdef TPIE_FRACTION_STATS
+	void stat(uint32_t, TPIE_OS_OFFSET, TPIE_OS_OFFSET);
+	std::vector< std::pair<uint32_t, std::pair<TPIE_OS_OFFSET, TPIE_OS_OFFSET> > > m_stat;
+#endif
 	friend class fractional_subindicator;
 };
 

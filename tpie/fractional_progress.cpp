@@ -18,14 +18,77 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #include "fractional_progress.h"
 #include <tpie/backtrace.h>
-
+#include <tpie/prime.h>
+#include <map>
+#include <fstream>
+#include <locale>
 namespace tpie {
 
+class fraction_db {
+public:
+	std::map<uint32_t, float> db;
+#ifdef TPIE_FRACTION_STATS
+	std::map<uint32_t, TPIE_OS_OFFSET> n;
+#endif //TPIE_FRACTION_STATS
+	fraction_db() {
+#ifdef TPIE_FRACTIONDB_DIR_INL
+
+#ifdef TPIE_FRACTION_STATS
+		std::locale::global(std::locale::classic());
+	
+		std::fstream f;
+		f.open(TPIE_FRACTIONDB_DIR_INL "/tpie_fraction_db.inl", std::fstream::in);
+		if (f.is_open()) {
+			std::string skip;
+			uint32_t hash;
+			float frac;
+			TPIE_OS_OFFSET n_;
+			while (f >> skip >> hash >> skip >> frac >> skip >> n_) {
+				db[hash] = frac;
+				n[hash] = n_;
+			}
+			return;
+		}
+#endif
+
+#include <tpie_fraction_db.inl>
+#endif //TPIE_FRACTIONDB_DIR_INL
+	}
+
+#ifdef TPIE_FRACTION_STATS
+#ifdef TPIE_FRACTIONDB_DIR_INL
+	~fraction_db() {
+		std::locale::global(std::locale::classic());
+		std::fstream f;
+		f.open(TPIE_FRACTIONDB_DIR_INL "/tpie_fraction_db.inl", std::fstream::out | std::fstream::trunc);
+		if (!f.is_open()) return;
+
+		for (std::map<uint32_t, float>::iterator i=db.begin(); i != db.end(); ++i)
+			f << "db[ " << i->first << " ]= " << i->second << " ;// " << n[i->first] << std::endl;
+	}
+#endif //TPIE_FRACTIONDB_DIR_INL
+#endif //TPIE_FRACTION_STATS
+};
+
+fraction_db fdb;
+
+inline uint32_t fhash(const char * fid, const char * name) {
+	std::string x;
+	x += fid;
+	x += name;
+	return is_prime.prime_hash(x);
+}
+
+inline double getFraction(const char * fid, const char * name) {
+	std::map<uint32_t, float>::iterator i=fdb.db.find(fhash(fid, name));
+	if (i == fdb.db.end()) return 1.0;
+	return i->second;
+}
 
 fractional_subindicator::fractional_subindicator(
 	fractional_progress & fp,
 	const char * id,
-	double fraction,
+	const char * fid,
 	TPIE_OS_OFFSET n,
 	const char * crumb,
 	bool display_subcrumbs,
@@ -34,9 +97,9 @@ fractional_subindicator::fractional_subindicator(
 #ifndef NDEBUG
 	m_init_called(false), m_done_called(false), 
 #endif
-	m_fraction(enabled?fraction:0.0), m_estimate(-1), m_n(enabled?n:0), m_fp(fp), m_predict(fp.m_id() + ";" + id)
+	m_fraction(enabled?getFraction(fid, id):0.0), m_estimate(-1), m_n(enabled?n:0), m_fp(fp), m_predict(fp.m_id() + ";" + id)
 #ifdef TPIE_FRACTION_STATS
-	,m_id(id)
+	,m_stat_hash(fhash(fid, id))
 #endif
 {
 	if (enabled)
@@ -65,7 +128,13 @@ void fractional_subindicator::init(TPIE_OS_OFFSET range, TPIE_OS_OFFSET step) {
 }
 
 void fractional_subindicator::done() {
+#ifdef TPIE_FRACTION_STATS
+	TPIE_OS_OFFSET r = m_predict.end_execution();
+	if(m_n > 0) 
+		m_fp.stat(m_stat_hash, r, m_n);
+#else
 	m_predict.end_execution();
+#endif
 	progress_indicator_subindicator::done();
 }
 
@@ -73,9 +142,6 @@ fractional_subindicator::~fractional_subindicator() {
 #ifndef NDEBUG
 	if (!m_init_called && m_fraction > 0.00001) {
 		std::cerr << "A fractional_subindicator was assigned a non-zero fraction but never initialized" 
-#ifdef TPIE_FRACTION_STATS
-				  << " id: \"" << m_id << "\""
-#endif
 				  << std::endl;
 		tpie::backtrace(std::cerr, 5);
 	}
@@ -121,6 +187,21 @@ fractional_progress::~fractional_progress() {
 		tpie::backtrace(std::cerr, 5);
 	}
 #endif
+#ifdef TPIE_FRACTION_STATS
+	TPIE_OS_OFFSET time_sum=0;
+	for (size_t i=0; i < m_stat.size(); ++i)
+		time_sum += m_stat[i].second.first;
+
+	if (time_sum > 0) {
+		for (size_t i=0; i < m_stat.size(); ++i) {
+			const std::pair<uint32_t, std::pair<TPIE_OS_OFFSET, TPIE_OS_OFFSET> > & x=m_stat[i];
+			float f= (float)x.second.first / (float)time_sum;
+			if (fdb.n.count(x.first) && fdb.n[x.first] > x.second.second) continue;
+			fdb.n[x.first] = x.second.second;
+			fdb.db[x.first] = f;
+		}
+	}
+#endif
 }
 
 unique_id_type & fractional_progress::id() {return m_id;}
@@ -142,14 +223,14 @@ double fractional_progress::get_fraction(fractional_subindicator & sub) {
 	double f2 = (m_time_sum > 0.00001)?((double)sub.m_estimate / (double)m_time_sum):0.0;
 	
 	double f = f1 * (1.0 - m_confidence) + f2*m_confidence;
-	
-#ifdef TPIE_FRACTION_STATS
-	std::cout << "Fraction: name: " << m_id() << ";" << sub.m_id << "; "
-			  << "Confidence: " << m_confidence << "; "
-			  << "Supplied: " << f1 << "; "
-			  << "Estimated: " << f2 << "; "
-			  << "Chosen: " << f << "; " << std::endl;
-#endif
 	return f;
 }
+
+#ifdef TPIE_FRACTION_STATS
+void fractional_progress::stat(uint32_t hash, TPIE_OS_OFFSET time, TPIE_OS_OFFSET n) {
+	if (time < 0 || n <= 0) return;
+	m_stat.push_back(std::make_pair(hash, std::make_pair(time, n)));
+}
+#endif
+
 } //namespace tpie

@@ -682,9 +682,9 @@ ami::err test_2x_sort(appInfo& info, enum test_type ttype, progress_indicator_ba
 	
 	fractional_progress fp(&indicator);
 	fp.id() << __FILE__ << __FUNCTION__ << ttype;
-	fractional_subindicator write_progress(fp, "write", 0.15, info.num_items, "Writing random input");
-	fractional_subindicator sort_progress(fp, "sort", 0.75, info.num_items, "Sorting");
-	fractional_subindicator check_progress(fp, "check", 0.15, info.num_items, "Checking");
+	fractional_subindicator write_progress(fp, "write", TPIE_FSI, info.num_items, "Writing random input");
+	fractional_subindicator sort_progress(fp, "sort", TPIE_FSI, info.num_items, "Sorting");
+	fractional_subindicator check_progress(fp, "check", TPIE_FSI, info.num_items, "Checking");
 	fp.init();
 	write_random_stream(fname, info, write_progress);
   

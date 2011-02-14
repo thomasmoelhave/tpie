@@ -22,6 +22,10 @@ if(WIN32)
 endif(WIN32)
 find_package(Boost COMPONENTS date_time thread filesystem system)
 
+if(TPIE_FRACTIONDB_DIR_INL) 
+  include_directories(${TPIE_FRACTIONDB_DIR_INL})
+endif(TPIE_FRACTIONDB_DIR_INL)
+
 if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
     link_directories ( ${Boost_LIBRARY_DIRS} )

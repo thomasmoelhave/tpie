@@ -223,9 +223,9 @@ err Internal_Sorter_Op<T>::sort(stream<T>* InStr,
 
 	fractional_progress fp(pi);
 	fp.id() << __FILE__ << __FUNCTION__ << typeid(T);
-	fractional_subindicator read_progress(fp, "read", 0.25, nItems, "Reading");
-	fractional_subindicator sort_progress(fp, "sort", 0.50, nItems, "Sorting");
-	fractional_subindicator write_progress(fp, "write", 0.25, nItems, "Writing");
+	fractional_subindicator read_progress(fp, "read", TPIE_FSI, nItems, "Reading");
+	fractional_subindicator sort_progress(fp, "sort", TPIE_FSI, nItems, "Sorting");
+	fractional_subindicator write_progress(fp, "write", TPIE_FSI, nItems, "Writing");
 	fp.init();
 
 	read_progress.init(nItems);
@@ -324,9 +324,9 @@ err Internal_Sorter_Obj<T, CMPR>::sort(stream<T>* InStr,
 
 	fractional_progress fp(pi);
 	fp.id() << __FILE__ << __FUNCTION__ << typeid(T) << typeid(CMPR);
-	fractional_subindicator read_progress(fp, "read", 0.25, nItems, "Reading");
-	fractional_subindicator sort_progress(fp, "sort", 0.50, nItems, "Sorting");
-	fractional_subindicator write_progress(fp, "write", 0.25, nItems, "Writing");
+	fractional_subindicator read_progress(fp, "read", TPIE_FSI, nItems, "Reading");
+	fractional_subindicator sort_progress(fp, "sort", TPIE_FSI, nItems, "Sorting");
+	fractional_subindicator write_progress(fp, "write", TPIE_FSI, nItems, "Writing");
 	fp.init();
 
 	read_progress.init(nItems);
@@ -498,9 +498,9 @@ inline err Internal_Sorter_KObj<T, KEY, CMPR>::sort(stream<T>* InStr,
 
 	fractional_progress fp(pi);
 	fp.id() << __FILE__ << __FUNCTION__ << typeid(T) << typeid(KEY) <<  typeid(CMPR);
-	fractional_subindicator read_progress(fp, "read", 0.25, nItems, "Reading");
-	fractional_subindicator sort_progress(fp, "sort", 0.50, nItems, "Sorting");
-	fractional_subindicator write_progress(fp, "write", 0.25, nItems, "Writing");
+	fractional_subindicator read_progress(fp, "read", TPIE_FSI, nItems, "Reading");
+	fractional_subindicator sort_progress(fp, "sort", TPIE_FSI, nItems, "Sorting");
+	fractional_subindicator write_progress(fp, "write", TPIE_FSI, nItems, "Writing");
 	fp.init();
 
 	read_progress.init(nItems);

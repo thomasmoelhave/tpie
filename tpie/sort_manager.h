@@ -276,8 +276,8 @@ err sort_manager<T,I,M>::start_sort(){
 		
 		fractional_progress fp(m_indicator);
 		fp.id() << __FILE__ << __FUNCTION__ << "internal_sort" << typeid(T) << typeid(I) << typeid(M);
-		fractional_subindicator allocate_progress(fp, "allocate", 0.10, nInputItems, "Allocating");
-		fractional_subindicator sort_progress(fp, "sort", 0.90, nInputItems); 
+		fractional_subindicator allocate_progress(fp, "allocate", TPIE_FSI, nInputItems, "Allocating");
+		fractional_subindicator sort_progress(fp, "sort", TPIE_FSI, nInputItems); 
 		fp.init();
 		allocate_progress.init(nInputItems);
 		m_internalSorter->allocate(static_cast<TPIE_OS_SIZE_T>(nInputItems));
@@ -327,8 +327,8 @@ err sort_manager<T,I,M>::start_sort(){
 	// ********************************************************************
 	fractional_progress fp(m_indicator);
 	fp.id() << __FILE__ << __FUNCTION__ << "external_sort" << typeid(T) << typeid(I) << typeid(M);
-	fractional_subindicator run_progress(fp, "run", 0.5, nInputItems);
-	fractional_subindicator merge_progress(fp, "merge", 0.5, nInputItems);
+	fractional_subindicator run_progress(fp, "run", TPIE_FSI, nInputItems);
+	fractional_subindicator merge_progress(fp, "merge", TPIE_FSI, nInputItems);
 	fp.init();
 
 	// PHASE 3: partition and form sorted runs

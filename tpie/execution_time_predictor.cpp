@@ -232,14 +232,14 @@ void execution_time_predictor::start_execution(TPIE_OS_OFFSET n) {
 	m_pause_time_at_start = s_pause_time;
 }
 
-	
-void execution_time_predictor::end_execution() {
-	if (m_id == is_prime.prime_hash(std::string()) || !s_store_times) return;
+TPIE_OS_OFFSET execution_time_predictor::end_execution() {
+	if (m_id == is_prime.prime_hash(std::string()) || !s_store_times) return 0;
 	TPIE_OS_OFFSET t = (boost::posix_time::microsec_clock::local_time() - m_start_time).total_milliseconds();
 	t -= (s_pause_time - m_pause_time_at_start);
 	entry & e = d.db[m_id];
 	e.add_point( p_t(m_n, t) );
 	m_start_time = boost::posix_time::not_a_date_time;
+	return t;
 }
 
 std::string execution_time_predictor::estimate_remaining_time(double progress) {

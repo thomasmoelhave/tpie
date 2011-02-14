@@ -49,7 +49,7 @@ public:
 	~execution_time_predictor();
 	TPIE_OS_OFFSET estimate_execution_time(TPIE_OS_OFFSET n, double & confidence);
 	void start_execution(TPIE_OS_OFFSET n);
-	void end_execution();
+	TPIE_OS_OFFSET end_execution();
 	std::string estimate_remaining_time(double progress);
 
 	static void start_pause();
