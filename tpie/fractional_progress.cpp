@@ -37,7 +37,11 @@ public:
 		std::locale::global(std::locale::classic());
 	
 		std::fstream f;
+#ifndef NDEBUG
+		f.open(TPIE_FRACTIONDB_DIR_INL "/tpie_fraction_db_debug.inl", std::fstream::in);
+#else
 		f.open(TPIE_FRACTIONDB_DIR_INL "/tpie_fraction_db.inl", std::fstream::in);
+#endif
 		if (f.is_open()) {
 			std::string skip;
 			uint32_t hash;
@@ -50,8 +54,11 @@ public:
 			return;
 		}
 #endif
-
+#ifdef NDEBUG
+#include <tpie_fraction_db_debug.inl>
+#else
 #include <tpie_fraction_db.inl>
+#endif
 #endif //TPIE_FRACTIONDB_DIR_INL
 	}
 
@@ -60,7 +67,11 @@ public:
 	~fraction_db() {
 		std::locale::global(std::locale::classic());
 		std::fstream f;
+#ifndef NDEBUG
+		f.open(TPIE_FRACTIONDB_DIR_INL "/tpie_fraction_db_debug.inl", std::fstream::out | std::fstream::trunc);
+#else
 		f.open(TPIE_FRACTIONDB_DIR_INL "/tpie_fraction_db.inl", std::fstream::out | std::fstream::trunc);
+#endif
 		if (!f.is_open()) return;
 
 		for (std::map<uint32_t, float>::iterator i=db.begin(); i != db.end(); ++i)
