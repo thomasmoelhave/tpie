@@ -83,23 +83,34 @@ public:
 
 fraction_db fdb;
 
-inline uint32_t fhash(const char * fid, const char * name) {
+inline std::string fname(const char * file, const char * function, const char * name) {
 	std::string x;
-	x += fid;
+	x += file;
+	x += ":";
+	x += function;
+	x += ":";
 	x += name;
-	return is_prime.prime_hash(x);
+	return x;
 }
 
-inline double getFraction(const char * fid, const char * name) {
-	std::map<uint32_t, float>::iterator i=fdb.db.find(fhash(fid, name));
-	if (i == fdb.db.end()) return 1.0;
+inline uint32_t fhash(const std::string & name) {return is_prime.prime_hash(name);}
+
+inline double getFraction(const std::string & name) {
+	std::map<uint32_t, float>::iterator i=fdb.db.find(fhash(name));
+	if (i == fdb.db.end()) {
+		std::cerr << "A fraction was missing in the fraction database" << std::endl
+				  << "    " << name << std::endl
+				  << "    To fix this run this command on a large dataset with fraction statics enabled." << std::endl;
+		return 1.0;
+	}
 	return i->second;
 }
 
 fractional_subindicator::fractional_subindicator(
 	fractional_progress & fp,
 	const char * id,
-	const char * fid,
+	const char * file,
+	const char * function,
 	TPIE_OS_OFFSET n,
 	const char * crumb,
 	bool display_subcrumbs,
@@ -108,9 +119,9 @@ fractional_subindicator::fractional_subindicator(
 #ifndef NDEBUG
 	m_init_called(false), m_done_called(false), 
 #endif
-	m_fraction(enabled?getFraction(fid, id):0.0), m_estimate(-1), m_n(enabled?n:0), m_fp(fp), m_predict(fp.m_id() + ";" + id)
+	m_fraction(enabled?getFraction(fname(file, function, id)):0.0), m_estimate(-1), m_n(enabled?n:0), m_fp(fp), m_predict(fp.m_id() + ";" + id)
 #ifdef TPIE_FRACTION_STATS
-	,m_stat_hash(fhash(fid, id))
+	,m_stat_hash(fhash(fname(file, function, id)))
 #endif
 {
 	if (enabled)

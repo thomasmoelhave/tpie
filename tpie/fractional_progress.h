@@ -23,7 +23,7 @@
 #include <tpie/util.h>
 #include <tpie/progress_indicator_subindicator.h>
 
-#define TPIE_FSI __FUNCTION__
+#define TPIE_FSI __FILE__,__FUNCTION__
 
 namespace tpie {
 
@@ -33,7 +33,8 @@ class fractional_subindicator: public progress_indicator_subindicator {
 public:
 	fractional_subindicator(fractional_progress & fp,
 							const char * id,
-							const char * fid,
+							const char * file,
+							const char * function,
 							TPIE_OS_OFFSET n,
 							const char * crumb=0,
 							bool display_subcrumbs=true,
