@@ -200,7 +200,9 @@ static __inline ticks getticks(void)
 	  RDTSC
 	  mov retval.HighPart, edx
 	  mov retval.LowPart, eax
-     }
+      xor        eax,eax
+      xor        edx,edx
+	 }
      return retval;
 }
 
