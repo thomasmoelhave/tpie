@@ -29,13 +29,14 @@ public:
 	std::map<uint32_t, float> db;
 #ifdef TPIE_FRACTION_STATS
 	std::map<uint32_t, TPIE_OS_OFFSET> n;
+	bool dirty;
 #endif //TPIE_FRACTION_STATS
 	fraction_db() {
 #ifdef TPIE_FRACTIONDB_DIR_INL
 
 #ifdef TPIE_FRACTION_STATS
 		std::locale::global(std::locale::classic());
-	
+		dirty=false;
 		std::fstream f;
 #ifndef NDEBUG
 		f.open(TPIE_FRACTIONDB_DIR_INL "/tpie_fraction_db_debug.inl", std::fstream::in);
@@ -65,6 +66,7 @@ public:
 #ifdef TPIE_FRACTION_STATS
 #ifdef TPIE_FRACTIONDB_DIR_INL
 	~fraction_db() {
+		if (!dirty) return;
 		std::locale::global(std::locale::classic());
 		std::fstream f;
 #ifndef NDEBUG
@@ -221,6 +223,7 @@ fractional_progress::~fractional_progress() {
 			if (fdb.n.count(x.first) && fdb.n[x.first] > x.second.second) continue;
 			fdb.n[x.first] = x.second.second;
 			fdb.db[x.first] = f;
+			fdb.dirty = true;
 		}
 	}
 #endif
