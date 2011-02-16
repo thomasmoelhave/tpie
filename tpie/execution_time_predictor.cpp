@@ -154,7 +154,8 @@ public:
 					s << (TPIE_OS_OFFSET)j->first << (TPIE_OS_OFFSET)j->second;
 			}
 		} else {
-			std::cerr << "Failed to store DB" << std::endl;
+			TP_LOG_FATAL("Failed to store DB");
+			TP_LOG_FLUSH_LOG;
 		}
 	}
 	
@@ -178,7 +179,8 @@ public:
 			--l;
 			if (l->first == 0) {
 #ifdef NDEBUG
-				std::cerr << "First is 0 ";
+				TP_LOG_FATAL("First is 0");
+				TP_LOG_FLUSH_LOG;
 #endif
 				confidence=0.0;
 				return -1; 
@@ -216,13 +218,14 @@ TPIE_OS_OFFSET execution_time_predictor::estimate_execution_time(TPIE_OS_OFFSET 
 		confidence=0.0;
 		return -1;
 	}
-	if (d.estimate(m_id, n, confidence) == -1)
+	TPIE_OS_OFFSET v=d.estimate(m_id, n, confidence);
 #ifndef NDEBUG
-		std::cerr << "Do database entry for " << m_name << " (" << m_id << ")" << std::endl;
-#else
-	;
+	if (v == -1) {
+		TP_LOG_FATAL("Do database entry for " << m_name << " (" << m_id << ")");
+		TP_LOG_FLUSH_LOG;
+	}
 #endif
-	return d.estimate(m_id, n, confidence);
+	return v;
 }
 
 void execution_time_predictor::start_execution(TPIE_OS_OFFSET n) {
