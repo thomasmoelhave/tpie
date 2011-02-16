@@ -148,7 +148,7 @@ namespace tpie {
 		inline void set_target(log_target * t) {m_target=t;}
 
 		inline operator const bool() const {return true;}
-		inline bool flush();
+		bool flush();
 		
 		// Output operators
 		_DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const char *);
