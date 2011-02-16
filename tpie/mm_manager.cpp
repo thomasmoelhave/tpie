@@ -62,39 +62,41 @@ manager::~manager(void)
 
 // check that new allocation request is below user-defined limit.
 // This should be a private method, only called by operator new.
-
 err manager::register_allocation(TPIE_OS_SIZE_T request)
 {
 #ifdef TPIE_THREADSAFE_MEMORY_MANAGEMNT
 	if (!mm_mutex) return NO_ERROR;
 	boost::mutex::scoped_lock lock(*mm_mutex);
 #endif
-  // quick hack to allow operation before limit is set
-  // XXX 
-    if(!user_limit || pause_allocation_depth) {
+	// quick hack to allow operation before limit is set
+	// XXX 
+	if(!user_limit || pause_allocation_depth) {
 		return NO_ERROR;
-    }
-    
-    used += request;     
+	}
+		
+	used += request;     
+		
+	if (request > remaining) {
+#ifdef TPIE_THREADSAFE_MEMORY_MANAGEMNT
+		lock.unlock();
+#endif
+		TP_LOG_WARNING("Memory allocation request: ");
+		TP_LOG_WARNING(static_cast<TPIE_OS_OFFSET>(request));
+		TP_LOG_WARNING(": User-specified memory limit exceeded.");
+		TP_LOG_FLUSH_LOG;
+		remaining = 0;
+		return INSUFFICIENT_SPACE;
+	}
+		
+	remaining -= request; 
 
-    if (request > remaining) {
-       TP_LOG_WARNING("Memory allocation request: ");
-       TP_LOG_WARNING(static_cast<TPIE_OS_OFFSET>(request));
-       TP_LOG_WARNING(": User-specified memory limit exceeded.");
-       TP_LOG_FLUSH_LOG;
-       remaining = 0;
-       return INSUFFICIENT_SPACE;
-    }
-
-    remaining -= request; 
-
-    TP_LOG_MEM_DEBUG("manager Allocated ");
-    TP_LOG_MEM_DEBUG(static_cast<TPIE_OS_OFFSET>(request));
-    TP_LOG_MEM_DEBUG("; ");
-    TP_LOG_MEM_DEBUG(static_cast<TPIE_OS_OFFSET>(remaining));
-    TP_LOG_MEM_DEBUG(" remaining.\n");
-    TP_LOG_FLUSH_LOG;
-
+	// TP_LOG_MEM_DEBUG("manager Allocated ");
+	// TP_LOG_MEM_DEBUG(static_cast<TPIE_OS_OFFSET>(request));
+	// TP_LOG_MEM_DEBUG("; ");
+	// TP_LOG_MEM_DEBUG(static_cast<TPIE_OS_OFFSET>(remaining));
+	// TP_LOG_MEM_DEBUG(" remaining.\n");
+	// TP_LOG_FLUSH_LOG;
+		
 #ifdef REPORT_LARGE_MEMOPS
 	if(request > user_limit/10) {
 	  std::cerr << "MEM alloc " << request
@@ -115,29 +117,31 @@ err manager::register_deallocation(TPIE_OS_SIZE_T sz)
 	if (!mm_mutex) return NO_ERROR;
 	boost::mutex::scoped_lock lock(*mm_mutex);
 #endif
-    remaining += sz;
+	remaining += sz;
 
-    if (sz > used) {
-       TP_LOG_WARNING("Error in deallocation sz=");
-       TP_LOG_WARNING(static_cast<TPIE_OS_LONG>(sz));
-       TP_LOG_WARNING(", remaining=");
-       TP_LOG_WARNING(static_cast<TPIE_OS_LONG>(remaining));
-       TP_LOG_WARNING(", user_limit=");
-       TP_LOG_WARNING(static_cast<TPIE_OS_LONG>(user_limit));
-       TP_LOG_WARNING("\n");
-       TP_LOG_FLUSH_LOG;
-       used = 0;
-       return EXCESSIVE_DEALLOCATION;
-    }
-
-    used      -= sz;    
-
-    TP_LOG_MEM_DEBUG("mm_register De-allocated ");
-    TP_LOG_MEM_DEBUG(static_cast<TPIE_OS_LONG>(sz));
-    TP_LOG_MEM_DEBUG("; ");
-    TP_LOG_MEM_DEBUG(static_cast<TPIE_OS_LONG>(remaining));
-    TP_LOG_MEM_DEBUG(" now available.\n");
-    TP_LOG_FLUSH_LOG;
+	if (sz > used) {
+#ifdef TPIE_THREADSAFE_MEMORY_MANAGEMNT
+		lock.unlock();
+#endif
+		TP_LOG_WARNING("Error in deallocation sz=");
+		TP_LOG_WARNING(static_cast<TPIE_OS_LONG>(sz));
+		TP_LOG_WARNING(", remaining=");
+		TP_LOG_WARNING(static_cast<TPIE_OS_LONG>(remaining));
+		TP_LOG_WARNING(", user_limit=");
+		TP_LOG_WARNING(static_cast<TPIE_OS_LONG>(user_limit));
+		TP_LOG_WARNING("\n");
+		TP_LOG_FLUSH_LOG;
+		used = 0;
+		return EXCESSIVE_DEALLOCATION;
+	}
+	used      -= sz;    
+	
+    // TP_LOG_MEM_DEBUG("mm_register De-allocated ");
+    // TP_LOG_MEM_DEBUG(static_cast<TPIE_OS_LONG>(sz));
+    // TP_LOG_MEM_DEBUG("; ");
+    // TP_LOG_MEM_DEBUG(static_cast<TPIE_OS_LONG>(remaining));
+    // TP_LOG_MEM_DEBUG(" now available.\n");
+    // TP_LOG_FLUSH_LOG;
     
 #ifdef REPORT_LARGE_MEMOPS
 	if(sz > user_limit/10) {
@@ -276,11 +280,12 @@ TPIE_OS_SIZE_T manager::memory_limit() {
 
 TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound, TPIE_OS_SIZE_T granularity) {
 #ifndef TPIE_USE_EXCEPTIONS
-	TPIE_OS_SIZE_T _prevent_compiler_warning = lower_bound + granularity;
-	_prevent_compiler_warning++;
+	unused(lower_bound);
+	unused(granularity);
 	TP_LOG_DEBUG_ID("consecutive_memory_available only works with exceptions\n");
 	return memory_available();
 #else
+
 	//lower bound of search
 	TPIE_OS_SIZE_T low = lower_bound;
 
@@ -291,8 +296,6 @@ TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound,
 		high -= static_cast<TPIE_OS_SIZE_T>(space_overhead());
 	else
 		high = 0;
-
-	TP_LOG_DEBUG_ID("\n- - - - - - - MEMORY SEARCH - - - - - -\n");
 
 	if (high< low) {
 		low=high;

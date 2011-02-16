@@ -27,6 +27,28 @@
 
 using namespace tpie;
 
+struct default_log_target: public tpie::log_target {
+#ifndef UNIFIED_LOGGING
+	std::ofstream out;
+	default_log_target(): out(tpie_log_name().c_str()) {}
+#endif
+	virtual void operator()(log_level, const char * message) {
+#ifndef UNIFIED_LOGGING
+		fputs(message, stderr);
+		fputc('\n', stderr);
+#else
+		out << message << std::endl;
+#endif
+	}
+};
+
+static default_log_target def_target;
+
+void tpie::set_log_target(tpie::log_target * r) { tpie::tpie_log().set_target(r?r:&def_target); }
+
+tpie::log_target * tpie::get_log_target() {return tpie::tpie_log().get_target(); }
+
+
 ///////////////////////////////////////////////////////////////////////////
 /// Local initialization function. Create a permanent repository for the log
 /// file name. Should be called only once, by theLogName() below.
@@ -45,7 +67,7 @@ std::string& tpie::tpie_log_name() {
 
 
 logstream& tpie::tpie_log() {
-  static logstream log(tpie_log_name(), LOG_DEBUG, LOG_DEBUG);
+  static logstream log(&def_target, LOG_DEBUG, LOG_DEBUG);
   return log;
 }
 
