@@ -147,7 +147,7 @@ namespace tpie {
 		
 		inline void set_target(log_target * t) {m_target=t;}
 
-		inline operator const bool() const {return true;}
+		inline operator bool() const {return true;}
 		bool flush();
 		
 		// Output operators

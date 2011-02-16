@@ -79,7 +79,7 @@ namespace tpie {
 #endif
 /** Macro to simplify \ref logging. \sa log_lecel. */
 // #ifndef TP_LOG_MEM_DEBUG
-// #define TP_LOG_MEM_DEBUG(msg)						\
+// #define TP_LOG_MEM_DEBUG(msg)						
 //     (!tpie::logstream::log_initialized || tpie::tpie_log() << tpie::setpriority(tpie::LOG_MEM_DEBUG)  << msg)
 // #endif
     
