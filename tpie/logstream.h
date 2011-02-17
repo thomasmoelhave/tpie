@@ -64,10 +64,39 @@
 // Get definitions for working with Unix and Windows
 #include <tpie/portability.h>
 
-#include <fstream>
+#include <sstream>
 
 namespace tpie {
-    
+
+
+///////////////////////////////////////////////////////////////////////////
+/// TPIE \ref logging levels, from higest priority to lowest.
+///////////////////////////////////////////////////////////////////////////
+	enum log_level {
+		/** LOG_FATAL is the highest error level and is used for all kinds of errors
+		 *  that would normally impair subsequent computations; LOG_FATAL errors are
+		 *  always logged */
+		LOG_FATAL = 0,	
+		/** LOG_WARNING is the next lowest and is used for warnings. */
+		LOG_WARNING,	
+		/** LOG_APP_DEBUG can be used by applications built on top of TPIE, for 
+		 * logging debugging information. */ 
+		LOG_APP_DEBUG,     
+		/** LOG_DEBUG is the lowest level and is used by the TPIE library for 
+		 * logging debugging information. */ 
+		LOG_DEBUG,		
+		/** Logging level for warnings concerning memory allocation and deallocation. */
+		LOG_MEM_DEBUG
+    };
+}
+
+namespace tpie {
+
+
+	struct log_target {
+		virtual void operator()(log_level level, const char * message) = 0;
+	};
+
 /** A macro for declaring output operators for log streams. */
 #define _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(T) logstream& operator<<(T)
     
@@ -79,102 +108,115 @@ namespace tpie {
     /// the highest.
     /// \internal \todo document members
     ///////////////////////////////////////////////////////////////////////////
-    class logstream : public std::ofstream {
-	
+    class logstream { //: private std::ofstream {
     public:
+		///////////////////////////////////////////////////////////////////////////
+		/// Flag signaling whether the log is initialized. 
+		///////////////////////////////////////////////////////////////////////////
+		static bool log_initialized;
+		
+		///////////////////////////////////////////////////////////////////////////
+		/// Current priority, i.e. \ref log_level. 
+		///////////////////////////////////////////////////////////////////////////
+		log_level priority;
+		
+		///////////////////////////////////////////////////////////////////////////
+		/// The current threshold level for \ref logging.
+		///////////////////////////////////////////////////////////////////////////
+		log_level threshold;
+		
+		///////////////////////////////////////////////////////////////////////////
+		/// The target where log messages should go
+		///////////////////////////////////////////////////////////////////////////
+		log_target * m_target;
 
-  ///////////////////////////////////////////////////////////////////////////
-  /// Flag signaling whether the log is initialized. 
-  ///////////////////////////////////////////////////////////////////////////
-	static bool log_initialized;
+		std::stringstream m_sstream;
+		bool disable;
 
-  ///////////////////////////////////////////////////////////////////////////
-  /// Current priority, i.e. \ref log_level. 
-  ///////////////////////////////////////////////////////////////////////////
-	unsigned int priority;
+		///////////////////////////////////////////////////////////////////////////
+		/// Constructor.
+		///////////////////////////////////////////////////////////////////////////
+		logstream(log_target * target, log_level p = LOG_FATAL, log_level tp = LOG_FATAL);
 
-  ///////////////////////////////////////////////////////////////////////////
-  /// The current threshold level for \ref logging.
-  ///////////////////////////////////////////////////////////////////////////
-	unsigned int threshold;
+		///////////////////////////////////////////////////////////////////////////
+		/// Destructor.
+		///////////////////////////////////////////////////////////////////////////
+		~logstream();
 
-  ///////////////////////////////////////////////////////////////////////////
-  /// Constructor.
-  ///////////////////////////////////////////////////////////////////////////
-	logstream(const std::string& fname, unsigned int p = 0, unsigned int tp = 0);
+		inline log_target * get_target() {return m_target;}
+		
+		inline void set_target(log_target * t) {m_target=t;}
 
-  ///////////////////////////////////////////////////////////////////////////
-  /// Destructor.
-  ///////////////////////////////////////////////////////////////////////////
-	~logstream();
-	
-	// Output operators
-	
-	_DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const char *);
-	_DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const char);
-	_DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const int);
-	_DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const unsigned int);
-	_DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const long int);
-	_DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const long unsigned int);
-	_DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const float);
-	_DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const double);
-	#ifdef _WIN64
-	_DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const size_t);
-	#endif
-	
-	//  Unix "long long", Win32 "LONGLONG".
-	TPIE_OS_DECLARE_LOGSTREAM_LONGLONG
+		inline operator bool() const {return true;}
+		bool flush();
+		
+		// Output operators
+		_DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const char *);
+		_DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const std::string &);
+		_DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const char);
+		_DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const int);
+		_DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const unsigned int);
+		_DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const long int);
+		_DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const long unsigned int);
+		_DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const float);
+		_DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const double);
+#ifdef _WIN64
+		_DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const size_t);
+#endif
+		
+		//  Unix "long long", Win32 "LONGLONG".
+		TPIE_OS_DECLARE_LOGSTREAM_LONGLONG
     };
     
     
-  ///////////////////////////////////////////////////////////////////////////
-  /// The logmanip template is based on the omanip template from iomanip.h 
-  /// in the libg++ sources.
-  ///////////////////////////////////////////////////////////////////////////
-  template <class TP> class logmanip {
-  	logstream& (*_f)(logstream&, TP);
-  	TP _a;
+	///////////////////////////////////////////////////////////////////////////
+	/// The logmanip template is based on the omanip template from iomanip.h 
+	/// in the libg++ sources.
+	///////////////////////////////////////////////////////////////////////////
+	template <class TP> class logmanip {
+		logstream& (*_f)(logstream&, TP);
+		TP _a;
     public:
-  ///////////////////////////////////////////////////////////////////////////
-  /// Constructor.
-  ///////////////////////////////////////////////////////////////////////////
-	logmanip(logstream& (*f)(logstream&, TP), TP a) : _f(f), _a(a) {}
+		///////////////////////////////////////////////////////////////////////////
+		/// Constructor.
+		///////////////////////////////////////////////////////////////////////////
+		logmanip(logstream& (*f)(logstream&, TP), TP a) : _f(f), _a(a) {}
 	
-  ///////////////////////////////////////////////////////////////////////////
-  /// Extracts a message from the logmanip object and inserting it into 
-  /// the logstream \p o.
-  ///////////////////////////////////////////////////////////////////////////
-  friend logstream& operator<< (logstream& o, const logmanip<TP>& m) {
-	    (*m._f)(o, m._a); 
-	    return o;
-	}
+		///////////////////////////////////////////////////////////////////////////
+		/// Extracts a message from the logmanip object and inserting it into 
+		/// the logstream \p o.
+		///////////////////////////////////////////////////////////////////////////
+		friend logstream& operator<< (logstream& o, const logmanip<TP>& m) {
+			(*m._f)(o, m._a); 
+			return o;
+		}
 	
-  ///////////////////////////////////////////////////////////////////////////
-  /// Copy constructor.
-  ///////////////////////////////////////////////////////////////////////////
-	logmanip(const logmanip<TP>& other) : _f(), _a() {
-	    *this = other;
-	}
+		///////////////////////////////////////////////////////////////////////////
+		/// Copy constructor.
+		///////////////////////////////////////////////////////////////////////////
+		logmanip(const logmanip<TP>& other) : _f(), _a() {
+			*this = other;
+		}
 	
-  ///////////////////////////////////////////////////////////////////////////
-  /// Assigment operator.
-  ///////////////////////////////////////////////////////////////////////////
-	logmanip<TP>& operator=(const logmanip<TP>& other) {
-	    if (this != &other) {
-		_f = other._f;
-		_a = other._a;
-	    }
-	    return *this;
-	}
+		///////////////////////////////////////////////////////////////////////////
+		/// Assigment operator.
+		///////////////////////////////////////////////////////////////////////////
+		logmanip<TP>& operator=(const logmanip<TP>& other) {
+			if (this != &other) {
+				_f = other._f;
+				_a = other._a;
+			}
+			return *this;
+		}
     };
     
-    logstream& manip_priority(logstream& tpl, unsigned long p);
+    logstream& manip_priority(logstream& tpl, log_level p);
 
-    logmanip<unsigned long> setthreshold(unsigned long p);
+    logmanip<log_level> setthreshold(log_level p);
 
-    logstream& manip_threshold(logstream& tpl, unsigned long p);
+    logstream& manip_threshold(logstream& tpl, log_level p);
 
-    logmanip<unsigned long> setpriority(unsigned long p);
+    logmanip<log_level> setpriority(log_level p);
     
 }  //  tpie namespace
 

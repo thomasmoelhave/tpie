@@ -28,30 +28,6 @@
 #include <tpie/config.h>
 #include <tpie/logstream.h>
 
-namespace tpie {
-
-
-///////////////////////////////////////////////////////////////////////////
-/// TPIE \ref logging levels, from higest priority to lowest.
-///////////////////////////////////////////////////////////////////////////
-enum log_level {
-    /** LOG_FATAL is the highest error level and is used for all kinds of errors
-     *  that would normally impair subsequent computations; LOG_FATAL errors are
-     *  always logged */
-    LOG_FATAL = 0,	
-    /** LOG_WARNING is the next lowest and is used for warnings. */
-    LOG_WARNING,	
-  	/** LOG_APP_DEBUG can be used by applications built on top of TPIE, for 
-  	 * logging debugging information. */ 
-  	LOG_APP_DEBUG,     
-  	/** LOG_DEBUG is the lowest level and is used by the TPIE library for 
-  	 * logging debugging information. */ 
-  	LOG_DEBUG,		
-  	/** Logging level for warnings concerning memory allocation and deallocation. */
-  	LOG_MEM_DEBUG
-    };
-}
-
 
 namespace tpie {
 
@@ -65,11 +41,14 @@ namespace tpie {
     ///////////////////////////////////////////////////////////////////////////
     logstream& tpie_log();
     
+	void set_log_target(log_target * r);
+	log_target * get_log_target();
+
+
     ///////////////////////////////////////////////////////////////////////////
     /// Initializes the log.
     ///////////////////////////////////////////////////////////////////////////
-    void tpie_log_init(log_level level = LOG_WARNING);
-    
+    void tpie_log_init(log_level level = LOG_WARNING);    
 #if TPL_LOGGING		
     
 // Macros to simplify logging.  The argument to the macro can be any type
@@ -83,12 +62,12 @@ namespace tpie {
 /** Macro to simplify \ref logging. \sa log_lecel. */
 #ifndef TP_LOG_FATAL
 #define TP_LOG_FATAL(msg)						\
-    (!tpie::logstream::log_initialized || tpie::tpie_log() << tpie::setpriority(tpie::LOG_FATAL) << msg)
+    (!tpie::logstream::log_initialized || tpie::tpie_log() << /*tpie::setpriority(tpie::LOG_FATAL) <<*/ msg)
 #endif
 /** Macro to simplify \ref logging. \sa log_lecel. */
 #ifndef TP_LOG_WARNING
 #define TP_LOG_WARNING(msg)						\
-    (!tpie::logstream::log_initialized || tpie::tpie_log() << tpie::setpriority(tpie::LOG_WARNING) << msg)
+    (!tpie::logstream::log_initialized || tpie::tpie_log() << /*tpie::setpriority(tpie::LOG_WARNING) <<*/ msg)
 #endif
 /** Macro to simplify \ref logging. \sa log_lecel. */
 #define TP_LOG_APP_DEBUG(msg)						\
@@ -99,10 +78,10 @@ namespace tpie {
     (!tpie::logstream::log_initialized || tpie::tpie_log() << tpie::setpriority(tpie::LOG_DEBUG)  << msg)
 #endif
 /** Macro to simplify \ref logging. \sa log_lecel. */
-#ifndef TP_LOG_MEM_DEBUG
-#define TP_LOG_MEM_DEBUG(msg)						\
-    (!tpie::logstream::log_initialized || tpie::tpie_log() << tpie::setpriority(tpie::LOG_MEM_DEBUG)  << msg)
-#endif
+// #ifndef TP_LOG_MEM_DEBUG
+// #define TP_LOG_MEM_DEBUG(msg)						
+//     (!tpie::logstream::log_initialized || tpie::tpie_log() << tpie::setpriority(tpie::LOG_MEM_DEBUG)  << msg)
+// #endif
     
 /** Macro to simplify \ref logging. \sa log_lecel. */
 #define TP_LOG_FATAL_ID(msg)						\

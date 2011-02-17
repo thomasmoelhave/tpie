@@ -21,6 +21,7 @@
 #include <tpie/prime.h>
 #include <map>
 #include <fstream>
+#include <sstream>
 #include <locale>
 namespace tpie {
 
@@ -29,13 +30,14 @@ public:
 	std::map<uint32_t, float> db;
 #ifdef TPIE_FRACTION_STATS
 	std::map<uint32_t, TPIE_OS_OFFSET> n;
+	bool dirty;
 #endif //TPIE_FRACTION_STATS
 	fraction_db() {
 #ifdef TPIE_FRACTIONDB_DIR_INL
 
 #ifdef TPIE_FRACTION_STATS
 		std::locale::global(std::locale::classic());
-	
+		dirty=false;
 		std::fstream f;
 #ifndef NDEBUG
 		f.open(TPIE_FRACTIONDB_DIR_INL "/tpie_fraction_db_debug.inl", std::fstream::in);
@@ -65,6 +67,7 @@ public:
 #ifdef TPIE_FRACTION_STATS
 #ifdef TPIE_FRACTIONDB_DIR_INL
 	~fraction_db() {
+		if (!dirty) return;
 		std::locale::global(std::locale::classic());
 		std::fstream f;
 #ifndef NDEBUG
@@ -98,9 +101,11 @@ inline uint32_t fhash(const std::string & name) {return is_prime.prime_hash(name
 inline double getFraction(const std::string & name) {
 	std::map<uint32_t, float>::iterator i=fdb.db.find(fhash(name));
 	if (i == fdb.db.end()) {
-		std::cerr << "A fraction was missing in the fraction database" << std::endl
-				  << "    " << name << std::endl
-				  << "    To fix this run this command on a large dataset with fraction statics enabled." << std::endl;
+		TP_LOG_FATAL(
+			"A fraction was missing in the fraction database\n"
+			<< "    " << name << "\n"
+			<< "    To fix this run this command on a large dataset with fraction statics enabled." << "\n");
+		TP_LOG_FLUSH_LOG;
 		return 1.0;
 	}
 	return i->second;
@@ -163,9 +168,11 @@ void fractional_subindicator::done() {
 fractional_subindicator::~fractional_subindicator() {
 #ifndef NDEBUG
 	if (!m_init_called && m_fraction > 0.00001) {
-		std::cerr << "A fractional_subindicator was assigned a non-zero fraction but never initialized" 
-				  << std::endl;
-		tpie::backtrace(std::cerr, 5);
+		std::stringstream s;
+		s << "A fractional_subindicator was assigned a non-zero fraction but never initialized" << std::endl;
+		tpie::backtrace(s, 5);
+		TP_LOG_FATAL(s.str());
+		TP_LOG_FLUSH_LOG;
 	}
 #endif
 }
@@ -183,8 +190,11 @@ fractional_progress::fractional_progress(progress_indicator_base * pi):
 void fractional_progress::init() {
 #ifndef NDEBUG
 	if (m_init_called) {
-		std::cerr << "Init was called on a fractional_progress where init had already been called" << std::endl;
-		tpie::backtrace(std::cerr, 5);
+		std::stringstream s;
+		s << "Init was called on a fractional_progress where init had already been called" << std::endl;
+		tpie::backtrace(s, 5);
+		TP_LOG_FATAL(s.str());
+		TP_LOG_FLUSH_LOG;
 	}
 	m_init_called=true;
 #endif
@@ -194,8 +204,11 @@ void fractional_progress::init() {
 void fractional_progress::done() {
 #ifndef NDEBUG
 	if (m_done_called || !m_init_called) {
-		std::cerr << "Done was called on a fractional_progress where done had allready been called" << std::endl;
-		tpie::backtrace(std::cerr, 5);
+		std::stringstream s;
+		s << "Done was called on a fractional_progress where done had allready been called" << std::endl;
+		tpie::backtrace(s, 5);
+		TP_LOG_FATAL(s.str());
+		TP_LOG_FLUSH_LOG;
 	}
 	m_done_called=true;
 #endif
@@ -205,8 +218,11 @@ void fractional_progress::done() {
 fractional_progress::~fractional_progress() {
 #ifndef NDEBUG
 	if (m_init_called && !m_done_called && !std::uncaught_exception()) {
-		std::cerr << "A fractional_progress was destructed without done being called" << std::endl;
-		tpie::backtrace(std::cerr, 5);
+		std::stringstream s;
+		s << "A fractional_progress was destructed without done being called" << std::endl;
+		tpie::backtrace(s, 5);
+		TP_LOG_FATAL(s.str());
+		TP_LOG_FLUSH_LOG;
 	}
 #endif
 #ifdef TPIE_FRACTION_STATS
@@ -221,6 +237,7 @@ fractional_progress::~fractional_progress() {
 			if (fdb.n.count(x.first) && fdb.n[x.first] > x.second.second) continue;
 			fdb.n[x.first] = x.second.second;
 			fdb.db[x.first] = f;
+			fdb.dirty = true;
 		}
 	}
 #endif

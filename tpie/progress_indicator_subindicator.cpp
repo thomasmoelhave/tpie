@@ -19,6 +19,7 @@
 
 #include "progress_indicator_subindicator.h"
 #include <tpie/backtrace.h>
+#include <sstream>
 
 namespace tpie {
 
@@ -51,8 +52,11 @@ progress_indicator_subindicator::progress_indicator_subindicator(progress_indica
 #ifndef NDEBUG
 progress_indicator_subindicator::~progress_indicator_subindicator() {
 	if (m_init_called && !m_done_called && !std::uncaught_exception()) {
-		std::cerr << "A progress_indicator_subindicator was destructed without done being called" << std::endl;
-		tpie::backtrace(std::cerr, 5);
+		std::stringstream s;
+		s << "A progress_indicator_subindicator was destructed without done being called" << std::endl;
+		tpie::backtrace(s, 5);
+		TP_LOG_FATAL(s.str());
+		TP_LOG_FLUSH_LOG;
 	}
 }
 #endif
