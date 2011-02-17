@@ -123,14 +123,9 @@ err manager::register_deallocation(TPIE_OS_SIZE_T sz)
 #ifdef TPIE_THREADSAFE_MEMORY_MANAGEMNT
 		lock.unlock();
 #endif
-		TP_LOG_WARNING("Error in deallocation sz=");
-		TP_LOG_WARNING(static_cast<TPIE_OS_LONG>(sz));
-		TP_LOG_WARNING(", remaining=");
-		TP_LOG_WARNING(static_cast<TPIE_OS_LONG>(remaining));
-		TP_LOG_WARNING(", user_limit=");
-		TP_LOG_WARNING(static_cast<TPIE_OS_LONG>(user_limit));
-		TP_LOG_WARNING("\n");
-		TP_LOG_FLUSH_LOG;
+		log_error() << "Error in deallocation sz=" << static_cast<TPIE_OS_LONG>(sz)
+					<< ", remaining=" << static_cast<TPIE_OS_LONG>(remaining) 
+					<< ", user_limit=" << static_cast<TPIE_OS_LONG>(user_limit) << std::endl;
 		used = 0;
 		return EXCESSIVE_DEALLOCATION;
 	}
