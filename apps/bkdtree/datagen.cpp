@@ -39,6 +39,7 @@
 #include <tpie/scan.h>
 #include <tpie/scan_utils.h>
 #include <tpie/cpu_timer.h>
+#include <tpie/tpie.h>
 
 #include <tpie/point.h>
 
@@ -186,7 +187,7 @@ public:
 int main(int argc, char **argv) {
 
   // Log debugging info from the application, but not from the library. 
-  tpie_log_init(LOG_APP_DEBUG); 
+	tpie_init();
  
    MM_manager.ignore_memory_limit();
 

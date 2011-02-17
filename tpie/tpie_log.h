@@ -1,6 +1,6 @@
-// -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
+// -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2008, The TPIE development team
+// Copyright 2008, 2011, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -24,108 +24,71 @@
 /// Provides \ref logging functionalities and log_level codes for different priorities of log messages.
 ///////////////////////////////////////////////////////////////////////////
 
-
 #include <tpie/config.h>
 #include <tpie/logstream.h>
 
-
 namespace tpie {
 
-    ///////////////////////////////////////////////////////////////////////////
-    /// Returns the file name of the log stream.
-    ///////////////////////////////////////////////////////////////////////////
-    std::string& tpie_log_name();
-    
-    ///////////////////////////////////////////////////////////////////////////
-    /// Returns the only logstream object. 
-    ///////////////////////////////////////////////////////////////////////////
-    logstream& tpie_log();
-    
-	void set_log_target(log_target * r);
-	log_target * get_log_target();
+///////////////////////////////////////////////////////////////////////////
+/// Returns the file name of the log stream
+/// This assumes that init_default_log has been called
+///////////////////////////////////////////////////////////////////////////
+const std::string& log_name();
 
+void init_default_log();
+void finish_default_log();
 
-    ///////////////////////////////////////////////////////////////////////////
-    /// Initializes the log.
-    ///////////////////////////////////////////////////////////////////////////
-    void tpie_log_init(log_level level = LOG_WARNING);    
+///////////////////////////////////////////////////////////////////////////
+/// Returns the only logstream object. 
+///////////////////////////////////////////////////////////////////////////
+logstream& get_log();
+
+inline logstream & log_fatal() {return get_log() << setlevel(LOG_FATAL);}
+inline logstream & log_error() {return get_log() << setlevel(LOG_ERROR);}
+inline logstream & log_info() {return get_log() << setlevel(LOG_INFORMATIONAL);}
+inline logstream & log_warning() {return get_log() << setlevel(LOG_WARNING);}
+inline logstream & log_app_debug() {return get_log() << setlevel(LOG_APP_DEBUG);}
+inline logstream & log_debug() {return get_log() << setlevel(LOG_DEBUG);}
+inline logstream & log_mem_debug() {return get_log() << setlevel(LOG_MEM_DEBUG);}
+
 #if TPL_LOGGING		
-    
 // Macros to simplify logging.  The argument to the macro can be any type
 // that log streams have an output operator for.
+
+#define TP_LOG_FLUSH_LOG tpie::get_log().flush()
     
-#define TP_LOG_FLUSH_LOG (!tpie::logstream::log_initialized || tpie::tpie_log().flush())
-    
+#define TP_LOG_FATAL(msg) tpie::log_fatal() << msg
+#define TP_LOG_WARNING(msg)	tpie::log_warning() << msg
+#define TP_LOG_APP_DEBUG(msg) tpie::log_app_debug() << msg
+#define TP_LOG_DEBUG(msg) tpie::log_debug() << msg
+#define TP_LOG_MEM_DEBUG(msg) tpie::log_mem_debug() << msg
+
 // eg: LOG_FATAL(tpie::LOG_ID_MSG)
 #define TP_LOG_ID_MSG __FILE__ << " line " << __LINE__ << ": "
 
 /** Macro to simplify \ref logging. \sa log_lecel. */
-#ifndef TP_LOG_FATAL
-#define TP_LOG_FATAL(msg)						\
-    (!tpie::logstream::log_initialized || tpie::tpie_log() << /*tpie::setpriority(tpie::LOG_FATAL) <<*/ msg)
-#endif
+#define TP_LOG_FATAL_ID(msg) TP_LOG_FATAL(TP_LOG_ID_MSG << msg << std::endl)
+
 /** Macro to simplify \ref logging. \sa log_lecel. */
-#ifndef TP_LOG_WARNING
-#define TP_LOG_WARNING(msg)						\
-    (!tpie::logstream::log_initialized || tpie::tpie_log() << /*tpie::setpriority(tpie::LOG_WARNING) <<*/ msg)
-#endif
+#define TP_LOG_WARNING_ID(msg) TP_LOG_WARNING(TP_LOG_ID_MSG << msg << std::endl)
+
 /** Macro to simplify \ref logging. \sa log_lecel. */
-#define TP_LOG_APP_DEBUG(msg)						\
-    (!tpie::logstream::log_initialized || tpie::tpie_log() << tpie::setpriority(tpie::LOG_APP_DEBUG)  << msg)
+#define TP_LOG_APP_DEBUG_ID(msg) TP_LOG_APP_DEBUG(TP_LOG_ID_MSG << msg << std::endl)
+
 /** Macro to simplify \ref logging. \sa log_lecel. */
-#ifndef TP_LOG_DEBUG
-#define TP_LOG_DEBUG(msg)						\
-    (!tpie::logstream::log_initialized || tpie::tpie_log() << tpie::setpriority(tpie::LOG_DEBUG)  << msg)
-#endif
+#define TP_LOG_DEBUG_ID(msg) TP_LOG_DEBUG(TP_LOG_ID_MSG << msg << std::endl)
+
 /** Macro to simplify \ref logging. \sa log_lecel. */
-// #ifndef TP_LOG_MEM_DEBUG
-// #define TP_LOG_MEM_DEBUG(msg)						
-//     (!tpie::logstream::log_initialized || tpie::tpie_log() << tpie::setpriority(tpie::LOG_MEM_DEBUG)  << msg)
-// #endif
-    
-/** Macro to simplify \ref logging. \sa log_lecel. */
-#define TP_LOG_FATAL_ID(msg)						\
-    (TP_LOG_FATAL(TP_LOG_ID_MSG << msg << "\n"), TP_LOG_FLUSH_LOG)
-/** Macro to simplify \ref logging. \sa log_lecel. */
-#define TP_LOG_WARNING_ID(msg)						\
-    (TP_LOG_WARNING(TP_LOG_ID_MSG << msg << "\n"), TP_LOG_FLUSH_LOG)
-/** Macro to simplify \ref logging. \sa log_lecel. */
-#define TP_LOG_APP_DEBUG_ID(msg)					\
-    (TP_LOG_APP_DEBUG(TP_LOG_ID_MSG << msg << "\n"), TP_LOG_FLUSH_LOG)
-/** Macro to simplify \ref logging. \sa log_lecel. */
-#define TP_LOG_DEBUG_ID(msg)						\
-    (TP_LOG_DEBUG(TP_LOG_ID_MSG << msg << "\n"), TP_LOG_FLUSH_LOG)
-/** Macro to simplify \ref logging. \sa log_lecel. */
-#define TP_LOG_MEM_DEBUG_ID(msg)					\
-    (TP_LOG_MEM_DEBUG(TP_LOG_ID_MSG << msg << "\n"), TP_LOG_FLUSH_LOG)
-    
-/** Set the current \ref log_level threshold for \ref logging in TPIE. */
-#define TP_LOG_SET_THRESHOLD(level) (tpie_log() << setthreshold(level))
+#define TP_LOG_MEM_DEBUG_ID(msg) TP_LOG_MEM_DEBUG(TP_LOG_ID_MSG << msg << std::endl)
     
 #else // !TPL_LOGGING
     
 // We are not compiling logging.
-    
-#ifndef TP_LOG_FATAL
 #define TP_LOG_FATAL(msg) 
-#endif
-
-#ifndef TP_LOG_WARNING
 #define TP_LOG_WARNING(msg) 
-#endif
-
-#ifndef TP_LOG_APP_DEBUG
 #define TP_LOG_APP_DEBUG(msg)
-#endif
-
-#ifndef TP_LOG_DEBUG
 #define TP_LOG_DEBUG(msg) 
-#endif
-
-#ifndef TP_LOG_MEM_DEBUG
 #define TP_LOG_MEM_DEBUG(msg)
-#endif
-
     
 #define TP_LOG_FATAL_ID(msg)
 #define TP_LOG_WARNING_ID(msg)
@@ -133,7 +96,6 @@ namespace tpie {
 #define TP_LOG_DEBUG_ID(msg)
 #define TP_LOG_MEM_DEBUG_ID(msg)
     
-#define TP_LOG_SET_THRESHOLD(level)
 #define TP_LOG_FLUSH_LOG {}
     
 #endif // TPL_LOGGING

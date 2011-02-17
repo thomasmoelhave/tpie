@@ -25,6 +25,7 @@
 #include "app_config.h"
 
 #include <tpie/config.h>
+#include <tpie/tpie.h>
 
 #if (!defined(BTE_STREAM_IMP_UFS) && !defined(BTE_STREAM_IMP_MMAP) && !defined(BTE_STREAM_IMP_STDIO))
 #  define BTE_STREAM_IMP_UFS
@@ -124,7 +125,7 @@ int main(int argc, char **argv) {
     int fail = 0;
 
     // Log debugging info from the application, but not from the library. 
-    tpie_log_init(LOG_APP_DEBUG); 
+	tpie_init();
  
     MM_manager.set_memory_limit(40*1024*1024);
     MM_manager.enforce_memory_limit();

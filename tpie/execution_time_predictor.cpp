@@ -116,6 +116,9 @@ public:
 #ifndef NDEBUG
 		path += "_debug";
 #endif
+	}
+	
+	void load() {
 		ifstream f;
 		f.open(path.c_str(), ifstream::binary | ifstream::in);
 		if (f.is_open()) {
@@ -136,12 +139,13 @@ public:
 					}
 				}
 			} catch(tpie::serialization_error &) {
-				
 			}
 		}
 	}
 
-	~time_estimator_database() {
+	~time_estimator_database() {}
+
+	void save() {
 		ofstream f;
 		f.open(path.c_str(), ifstream::binary | ifstream::out);
 		if (f.is_open()) {
@@ -197,10 +201,23 @@ public:
 		return p0.second * (w - x) / w + l->second * (x/w);
 	}
 };
-  
-static time_estimator_database d;
+
+static time_estimator_database * db = 0;
 
 namespace tpie {
+
+void init_execution_time_db() {
+	if (db) return;
+	db = new time_estimator_database();
+	db->load();
+}
+
+void finish_execution_time_db() {
+	if (!db) return;
+	db->save();
+	delete db;
+	db = 0;
+}
 
 execution_time_predictor::execution_time_predictor(const std::string & id): 
 	m_id(is_prime.prime_hash(id)), m_start_time(boost::posix_time::not_a_date_time), 
@@ -218,7 +235,7 @@ TPIE_OS_OFFSET execution_time_predictor::estimate_execution_time(TPIE_OS_OFFSET 
 		confidence=0.0;
 		return -1;
 	}
-	TPIE_OS_OFFSET v=d.estimate(m_id, n, confidence);
+	TPIE_OS_OFFSET v=db->estimate(m_id, n, confidence);
 #ifndef NDEBUG
 	if (v == -1) {
 		TP_LOG_FATAL("Do database entry for " << m_name << " (" << m_id << ")");
@@ -239,7 +256,7 @@ TPIE_OS_OFFSET execution_time_predictor::end_execution() {
 	if (m_id == is_prime.prime_hash(std::string()) || !s_store_times) return 0;
 	TPIE_OS_OFFSET t = (boost::posix_time::microsec_clock::local_time() - m_start_time).total_milliseconds();
 	t -= (s_pause_time - m_pause_time_at_start);
-	entry & e = d.db[m_id];
+	entry & e = db->db[m_id];
 	e.add_point( p_t(m_n, t) );
 	m_start_time = boost::posix_time::not_a_date_time;
 	return t;

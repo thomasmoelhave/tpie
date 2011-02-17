@@ -109,6 +109,7 @@ set (OTHER_HEADERS
 		concepts.h
 		concept_doc.h
 		imported/cycle.h
+		tpie.h
 		)
 
 set (AMI_SOURCES
@@ -137,6 +138,7 @@ set (OTHER_SOURCES
 	progress_indicator_base.cpp
 	execution_time_predictor.cpp
 	fractional_progress.cpp
+	tpie.cpp
 	)
 
 source_group("BTE" FILES ${BTE_HEADERS} ${BTE_SOURCES})

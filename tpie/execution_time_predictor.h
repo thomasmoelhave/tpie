@@ -26,6 +26,9 @@
 
 namespace tpie {
 
+void init_execution_time_db();
+void finish_execution_time_db();
+
 class unique_id_type {
 public:
     inline unique_id_type & operator << (const std::type_info & type) {

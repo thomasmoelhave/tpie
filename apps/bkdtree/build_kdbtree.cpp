@@ -30,6 +30,7 @@
 //
 
 #include <tpie/config.h>
+#include <tpie/tpie.h>
 #include <tpie/portability.h>
 
 // STL stuff.
@@ -90,7 +91,7 @@ int main(int argc, char** argv) {
   // <><><><><><><><><><><><><><><><><><><><>
 
   // Log debugging info from the application, but not from the library. 
-  tpie_log_init(LOG_APP_DEBUG); 
+  tpie_init();
  
    // Parse command-line arguments (see app_params.cpp)
   parse_args(argc, argv);

@@ -1,6 +1,6 @@
-// -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
+// -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2008, The TPIE development team
+// Copyright 2008, 2011 The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -23,54 +23,67 @@
 #include <cstdlib>
 #include <time.h>
 #include <tpie/tempname.h>
-#include <tpie/tpie_log.h>
+#include <tpie/logstream.h>
+#include <iostream>
 
-using namespace tpie;
+namespace tpie {
 
-struct default_log_target: public tpie::log_target {
-#ifndef UNIFIED_LOGGING
-	std::ofstream out;
-	default_log_target(): out(tpie_log_name().c_str()) {}
-#endif
-	virtual void operator()(log_level, const char * message) {
-#ifndef UNIFIED_LOGGING
-		fputs(message, stderr);
-		fputc('\n', stderr);
-#else
-		out << message << std::endl;
-#endif
+class file_log_target: public log_target {
+public:
+	std::ofstream m_out;
+	std::string m_path;
+	log_level m_threshold;
+	
+	file_log_target(log_level threshold): m_threshold(threshold) {
+		m_path = tempname::tpie_name("log", "" , "txt");
+		m_out.open(m_path.c_str(), std::ios::trunc | std::ios::out);
+	}
+
+	void log(log_level level, const char * message, size_t) {
+		if (level > m_threshold) return;
+		m_out << message;
+		m_out.flush();
 	}
 };
 
-static default_log_target def_target;
+class stderr_log_target: public log_target {
+public:
+	log_level m_threshold;
 
-void tpie::set_log_target(tpie::log_target * r) { tpie::tpie_log().set_target(r?r:&def_target); }
+	stderr_log_target(log_level threshold): m_threshold(threshold) {}
+	void log(log_level level, const char * message, size_t size) {
+		if (level > m_threshold) return;
+		fwrite(message, 1, size, stderr);
+	}	
+};
 
-tpie::log_target * tpie::get_log_target() {return tpie::tpie_log().get_target(); }
 
+static file_log_target * file_target = 0;
+static stderr_log_target * stderr_target = 0;
+static logstream log;
 
-///////////////////////////////////////////////////////////////////////////
-/// Local initialization function. Create a permanent repository for the log
-/// file name. Should be called only once, by theLogName() below.
-///////////////////////////////////////////////////////////////////////////
-static std::string& __tpie_log_name() 
-{
-	static std::string tln;
-	tln = tempname::tpie_name("log", "" , "txt");
-	return tln;
+const std::string& log_name() {
+	return file_target->m_path;
 }
 
-std::string& tpie::tpie_log_name() {
-  static std::string& tln = __tpie_log_name();
-  return tln;
+void init_default_log() {
+	if (file_target) return;
+	file_target = new file_log_target(LOG_DEBUG);
+	stderr_target = new stderr_log_target(LOG_INFORMATIONAL);
+	log.add_target(file_target);
+	log.add_target(stderr_target);
 }
 
-
-logstream& tpie::tpie_log() {
-  static logstream log(&def_target, LOG_DEBUG, LOG_DEBUG);
-  return log;
+void finish_default_log() {
+	if (!file_target) return;
+	log.remove_target(file_target);
+	log.remove_target(stderr_target);
+	delete file_target;
+	delete stderr_target;
+	file_target = 0;
+	stderr_target = 0;
 }
 
-void tpie::tpie_log_init(log_level level) {
-  TP_LOG_SET_THRESHOLD(level);
-}
+logstream& get_log() {return log;}
+
+} //namespace tpie

@@ -32,6 +32,7 @@
 #include "app_config.h"
 
 #include <tpie/portability.h>
+#include <tpie/tpie.h>
 
 // STL files.
 #include <vector>
@@ -71,8 +72,7 @@ public:
 int main(int argc, char **argv) {
 
   // Log debugging info from the application, but not from the library.
-  tpie_log_init(LOG_APP_DEBUG);
-
+  tpie_init();
   parse_args(argc, argv);
 
   params.structure_name = "B+-tree";

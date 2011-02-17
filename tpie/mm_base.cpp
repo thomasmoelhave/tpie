@@ -280,10 +280,7 @@ void *operator new[] (TPIE_OS_SIZE_T sz, const std::nothrow_t &) throw()
 
 void operator delete (void *ptr) throw()
 {
-    if (!ptr) {
-	TP_LOG_WARNING_ID ("operator delete was given a NULL pointer");
-	return;
-    }
+    if (!ptr) return;
     
     const TPIE_OS_SIZE_T dealloc_size =  
 	static_cast<TPIE_OS_SIZE_T>(*(reinterpret_cast<size_t*>((reinterpret_cast<char*>(ptr)) - SIZE_SPACE)));
@@ -306,10 +303,7 @@ void operator delete (void *ptr) throw()
 }
 
 void operator delete[] (void *ptr) throw() {
-    if (!ptr) {
-	TP_LOG_WARNING_ID ("operator delete [] was given a NULL pointer");
-	return;
-    }
+    if (!ptr) return;
     
     const TPIE_OS_SIZE_T dealloc_size =  
 	static_cast<TPIE_OS_SIZE_T>(*(reinterpret_cast<size_t*>((reinterpret_cast<char*>(ptr)) - SIZE_SPACE)));

@@ -32,6 +32,7 @@
 #define DIRECTIO_STREAMS 0
 
 #include <tpie/portability.h>
+#include <tpie/tpie.h>
 
 // STL stuff.
 #include <functional>
@@ -105,7 +106,7 @@ int main(int argc, char** argv) {
   // <><><><><><><><><><><><><><><><><><><><>
 
   // Log debugging info from the application, but not from the library. 
-  tpie_log_init(LOG_APP_DEBUG);
+  tpie_init();
   // Write a warning in the log file when the memory limit is exceeded. 
   MM_manager.warn_memory_limit();
   parse_args(argc, argv);

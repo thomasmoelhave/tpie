@@ -27,6 +27,9 @@
 
 namespace tpie {
 
+void init_fraction_db();
+void finish_fraction_db();
+
 class fractional_progress;
 
 class fractional_subindicator: public progress_indicator_subindicator {

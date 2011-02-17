@@ -33,7 +33,7 @@
 #include <tpie/scan.h>
 #include <tpie/sort.h>
 #include <tpie/cpu_timer.h>
-
+#include <tpie/tpie.h>
 
 #include <tpie/kb_sort.h>
 
@@ -133,10 +133,10 @@ int main(int argc, char **argv)  {
     int_cmp_class int_cmp_obj;
     cpu_timer timer;
     ami::err ae = ami::NO_ERROR;
+
     bool random_input;
 
-    // Log debugging info from the application, but not from the library. 
-    tpie_log_init(LOG_APP_DEBUG); 
+	tpie_init();
 
     test_size = 0;
     istr_name[0] = ostr_name[0] = '\0';

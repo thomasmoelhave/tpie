@@ -23,9 +23,7 @@
 #include <tpie/portability.h>
 #include <tpie/tpie_log.h>
 #include <tpie/coll.h>
-
-
-
+#include <tpie/tpie.h>
 
 #include <tpie/cpu_timer.h>
 #include <tpie/btree.h>
@@ -89,7 +87,7 @@ int main(int argc, char **argv) {
   char *base_file = NULL;
 
   // Log debugging info from the application, but not from the library. 
-  tpie_log_init(LOG_APP_DEBUG); 
+  tpie_init();
  
   MM_manager.set_memory_limit(64*1024*1024);
   MM_manager.enforce_memory_limit();

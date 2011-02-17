@@ -136,12 +136,12 @@ err manager::register_deallocation(TPIE_OS_SIZE_T sz)
 	}
 	used      -= sz;    
 	
-    // TP_LOG_MEM_DEBUG("mm_register De-allocated ");
-    // TP_LOG_MEM_DEBUG(static_cast<TPIE_OS_LONG>(sz));
-    // TP_LOG_MEM_DEBUG("; ");
-    // TP_LOG_MEM_DEBUG(static_cast<TPIE_OS_LONG>(remaining));
-    // TP_LOG_MEM_DEBUG(" now available.\n");
-    // TP_LOG_FLUSH_LOG;
+	// TP_LOG_MEM_DEBUG("mm_register De-allocated ");
+	// TP_LOG_MEM_DEBUG(static_cast<TPIE_OS_LONG>(sz));
+	// TP_LOG_MEM_DEBUG("; ");
+	// TP_LOG_MEM_DEBUG(static_cast<TPIE_OS_LONG>(remaining));
+	// TP_LOG_MEM_DEBUG(" now available.\n");
+	// TP_LOG_FLUSH_LOG;
     
 #ifdef REPORT_LARGE_MEMOPS
 	if(sz > user_limit/10) {

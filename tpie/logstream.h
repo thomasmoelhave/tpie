@@ -1,6 +1,6 @@
-// -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
+// -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2008, The TPIE development team
+// Copyright 2011, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -58,166 +58,117 @@
 /// interface for building TPIE. 
 ///////////////////////////////////////////////////////////////////////////
 
+#ifndef __TPIE_LOGSTREAM_H__
+#define __TPIE_LOGSTREAM_H__
 
 #include <tpie/config.h>
-
-// Get definitions for working with Unix and Windows
-#include <tpie/portability.h>
-
-#include <sstream>
-
+#include <tpie/loglevel.h>
+#include <streambuf>
+#include <ostream>
 namespace tpie {
+
+struct log_target {
+	virtual void log(log_level level, const char * message, size_t message_size) = 0;
+};
+
+class log_stream_buf: public std::basic_streambuf<char, std::char_traits<char> > {
+private:
+	const static size_t buff_size = 2048;
+	const static size_t max_targets = 8;
+
+	char m_buff[buff_size];
+	log_target * m_log_targets[max_targets];
+	size_t m_log_target_count;
+	log_level m_level;
+public:
+	log_stream_buf(log_level level);
+	~log_stream_buf();
+	void flush();	
+	virtual int overflow(int c = traits_type::eof());
+	virtual int sync();
+	void set_level(log_level level);
+	void add_target(log_target * t);
+	void remove_target(log_target * t);
+};
 
 
 ///////////////////////////////////////////////////////////////////////////
-/// TPIE \ref logging levels, from higest priority to lowest.
+/// A log is like a regular output stream, but it also supports messages
+/// at different priorities, see \ref log_level. 
 ///////////////////////////////////////////////////////////////////////////
-	enum log_level {
-		/** LOG_FATAL is the highest error level and is used for all kinds of errors
-		 *  that would normally impair subsequent computations; LOG_FATAL errors are
-		 *  always logged */
-		LOG_FATAL = 0,	
-		/** LOG_WARNING is the next lowest and is used for warnings. */
-		LOG_WARNING,	
-		/** LOG_APP_DEBUG can be used by applications built on top of TPIE, for 
-		 * logging debugging information. */ 
-		LOG_APP_DEBUG,     
-		/** LOG_DEBUG is the lowest level and is used by the TPIE library for 
-		 * logging debugging information. */ 
-		LOG_DEBUG,		
-		/** Logging level for warnings concerning memory allocation and deallocation. */
-		LOG_MEM_DEBUG
-    };
-}
-
-namespace tpie {
-
-
-	struct log_target {
-		virtual void operator()(log_level level, const char * message) = 0;
-	};
-
-/** A macro for declaring output operators for log streams. */
-#define _DECLARE_LOGSTREAM_OUTPUT_OPERATOR(T) logstream& operator<<(T)
-    
-    ///////////////////////////////////////////////////////////////////////////
-    /// A log is like a regular output stream, but it also supports messages
-    /// at different priorities, see \ref log_level.  If a message's priority is at least as high
-    /// as the current priority threshold, then it appears in the log.  
-    /// Otherwise, it does not.  Lower numbers have higher priority; 0 is
-    /// the highest.
-    /// \internal \todo document members
-    ///////////////////////////////////////////////////////////////////////////
-    class logstream { //: private std::ofstream {
-    public:
-		///////////////////////////////////////////////////////////////////////////
-		/// Flag signaling whether the log is initialized. 
-		///////////////////////////////////////////////////////////////////////////
-		static bool log_initialized;
-		
-		///////////////////////////////////////////////////////////////////////////
-		/// Current priority, i.e. \ref log_level. 
-		///////////////////////////////////////////////////////////////////////////
-		log_level priority;
-		
-		///////////////////////////////////////////////////////////////////////////
-		/// The current threshold level for \ref logging.
-		///////////////////////////////////////////////////////////////////////////
-		log_level threshold;
-		
-		///////////////////////////////////////////////////////////////////////////
-		/// The target where log messages should go
-		///////////////////////////////////////////////////////////////////////////
-		log_target * m_target;
-
-		std::stringstream m_sstream;
-		bool disable;
-
-		///////////////////////////////////////////////////////////////////////////
-		/// Constructor.
-		///////////////////////////////////////////////////////////////////////////
-		logstream(log_target * target, log_level p = LOG_FATAL, log_level tp = LOG_FATAL);
-
-		///////////////////////////////////////////////////////////////////////////
-		/// Destructor.
-		///////////////////////////////////////////////////////////////////////////
-		~logstream();
-
-		inline log_target * get_target() {return m_target;}
-		
-		inline void set_target(log_target * t) {m_target=t;}
-
-		inline operator bool() const {return true;}
-		bool flush();
-		
-		// Output operators
-		_DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const char *);
-		_DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const std::string &);
-		_DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const char);
-		_DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const int);
-		_DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const unsigned int);
-		_DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const long int);
-		_DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const long unsigned int);
-		_DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const float);
-		_DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const double);
-#ifdef _WIN64
-		_DECLARE_LOGSTREAM_OUTPUT_OPERATOR(const size_t);
-#endif
-		
-		//  Unix "long long", Win32 "LONGLONG".
-		TPIE_OS_DECLARE_LOGSTREAM_LONGLONG
-    };
-    
-    
+class logstream: public std::ostream {
+private:
+	log_stream_buf m_buff;
+public:
 	///////////////////////////////////////////////////////////////////////////
-	/// The logmanip template is based on the omanip template from iomanip.h 
-	/// in the libg++ sources.
+	/// Constructor.
 	///////////////////////////////////////////////////////////////////////////
-	template <class TP> class logmanip {
-		logstream& (*_f)(logstream&, TP);
-		TP _a;
-    public:
-		///////////////////////////////////////////////////////////////////////////
-		/// Constructor.
-		///////////////////////////////////////////////////////////////////////////
-		logmanip(logstream& (*f)(logstream&, TP), TP a) : _f(f), _a(a) {}
+	inline logstream(log_level level=LOG_INFORMATIONAL): std::ostream(&m_buff), m_buff(level) {}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// Add a target for the log messages
+	///////////////////////////////////////////////////////////////////////////
+	inline void add_target(log_target * t) {m_buff.add_target(t);}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// Remove a target for the log messages
+	///////////////////////////////////////////////////////////////////////////
+	inline void remove_target(log_target * t) {m_buff.remove_target(t);}
 	
-		///////////////////////////////////////////////////////////////////////////
-		/// Extracts a message from the logmanip object and inserting it into 
-		/// the logstream \p o.
-		///////////////////////////////////////////////////////////////////////////
-		friend logstream& operator<< (logstream& o, const logmanip<TP>& m) {
-			(*m._f)(o, m._a); 
-			return o;
-		}
-	
-		///////////////////////////////////////////////////////////////////////////
-		/// Copy constructor.
-		///////////////////////////////////////////////////////////////////////////
-		logmanip(const logmanip<TP>& other) : _f(), _a() {
-			*this = other;
-		}
-	
-		///////////////////////////////////////////////////////////////////////////
-		/// Assigment operator.
-		///////////////////////////////////////////////////////////////////////////
-		logmanip<TP>& operator=(const logmanip<TP>& other) {
-			if (this != &other) {
-				_f = other._f;
-				_a = other._a;
-			}
-			return *this;
-		}
-    };
+	///////////////////////////////////////////////////////////////////////////
+	/// Set the current level of logging
+///////////////////////////////////////////////////////////////////////////	
+	inline void set_level(log_level level) {m_buff.set_level(level);}
+};
     
-    logstream& manip_priority(logstream& tpl, log_level p);
+    
+///////////////////////////////////////////////////////////////////////////
+/// The logmanip template is based on the omanip template from iomanip.h 
+/// in the libg++ sources.
+///////////////////////////////////////////////////////////////////////////
+template <class TP> class logmanip {
+	logstream& (*_f)(logstream&, TP);
+	TP _a;
+public:
+	///////////////////////////////////////////////////////////////////////////
+	/// Constructor.
+	///////////////////////////////////////////////////////////////////////////
+	logmanip(logstream& (*f)(logstream&, TP), TP a) : _f(f), _a(a) {}
+	
+	///////////////////////////////////////////////////////////////////////////
+	/// Extracts a message from the logmanip object and inserting it into 
+	/// the logstream \p o.
+	///////////////////////////////////////////////////////////////////////////
+	friend logstream& operator<< (logstream& o, const logmanip<TP>& m) {
+		(*m._f)(o, m._a); 
+		return o;
+	}
+	
+	///////////////////////////////////////////////////////////////////////////
+	/// Copy constructor.
+	///////////////////////////////////////////////////////////////////////////
+	// logmanip(const logmanip<TP>& other) : _f(), _a() {
+	// 	*this = other;
+	// }
+	
+	///////////////////////////////////////////////////////////////////////////
+	/// Assigment operator.
+	///////////////////////////////////////////////////////////////////////////
+	// logmanip<TP>& operator=(const logmanip<TP>& other) {
+	// 	if (this != &other) {
+	// 		_f = other._f;
+	// 		_a = other._a;
+	// 	}
+	// 	return *this;
+	// }
+};
 
-    logmanip<log_level> setthreshold(log_level p);
-
-    logstream& manip_threshold(logstream& tpl, log_level p);
-
-    logmanip<log_level> setpriority(log_level p);
+logstream& manip_level(logstream& tpl, log_level p);
+logmanip<log_level> setlevel(log_level p);
     
 }  //  tpie namespace
+
+
+#endif //__TPIE_LOGSTREAM_H__
 
 #endif // _LOGSTREAM_H 

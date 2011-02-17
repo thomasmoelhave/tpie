@@ -84,7 +84,19 @@ public:
 #endif //TPIE_FRACTION_STATS
 };
 
-fraction_db fdb;
+static fraction_db * fdb = 0;
+
+void init_fraction_db() {
+	if (fdb) return;
+	fdb = new fraction_db();
+}
+
+void finish_fraction_db() {
+	delete fdb;
+	fdb=NULL;
+}
+
+
 
 inline std::string fname(const char * file, const char * function, const char * name) {
 	std::string x;
@@ -99,8 +111,8 @@ inline std::string fname(const char * file, const char * function, const char * 
 inline uint32_t fhash(const std::string & name) {return is_prime.prime_hash(name);}
 
 inline double getFraction(const std::string & name) {
-	std::map<uint32_t, float>::iterator i=fdb.db.find(fhash(name));
-	if (i == fdb.db.end()) {
+	std::map<uint32_t, float>::iterator i=fdb->db.find(fhash(name));
+	if (i == fdb->db.end()) {
 		TP_LOG_FATAL(
 			"A fraction was missing in the fraction database\n"
 			<< "    " << name << "\n"
@@ -234,10 +246,10 @@ fractional_progress::~fractional_progress() {
 		for (size_t i=0; i < m_stat.size(); ++i) {
 			const std::pair<uint32_t, std::pair<TPIE_OS_OFFSET, TPIE_OS_OFFSET> > & x=m_stat[i];
 			float f= (float)x.second.first / (float)time_sum;
-			if (fdb.n.count(x.first) && fdb.n[x.first] > x.second.second) continue;
-			fdb.n[x.first] = x.second.second;
-			fdb.db[x.first] = f;
-			fdb.dirty = true;
+			if (fdb->n.count(x.first) && fdb->n[x.first] > x.second.second) continue;
+			fdb->n[x.first] = x.second.second;
+			fdb->db[x.first] = f;
+			fdb->dirty = true;
 		}
 	}
 #endif
