@@ -21,30 +21,26 @@
 namespace tpie {
 
 log_stream_buf::log_stream_buf(log_level level): m_level(level) {
-	_M_out_beg=m_buff;
-	_M_out_cur=m_buff;
-	_M_out_end=m_buff+buff_size-2;
+	setp(m_buff, m_buff+buff_size-2);
 }
 
 log_stream_buf::~log_stream_buf() {flush();}
 
 void log_stream_buf::flush() {
-	*_M_out_cur = 0;
-	
+	*pptr() = 0;
 	if (m_log_target_count == 0)
 		//As a special service if noone is listening and
-		fwrite(m_buff, 1, _M_out_cur - m_buff, stderr);
+		fwrite(m_buff, 1, pptr() - m_buff, stderr);
 	else
 		for(size_t i=0; i < m_log_target_count; ++i)
-			m_log_targets[i]->log(m_level, m_buff, _M_out_cur - m_buff);
-	
-	_M_out_cur=m_buff;
-	_M_out_end=m_buff+buff_size-2;
+			m_log_targets[i]->log(m_level, m_buff, pptr() - m_buff);
+	setp(m_buff, m_buff+buff_size-2);
 }
 
 int log_stream_buf::overflow(int c) {
-	*_M_out_cur = c; //We lied and left a little room in the buffer
-	++_M_out_cur;
+	flush();
+	*pptr() = c;
+	pbump(1);
 	flush();
 	return c;
 }
