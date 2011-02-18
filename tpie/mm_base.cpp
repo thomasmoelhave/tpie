@@ -243,15 +243,14 @@ static void *do_new_array (TPIE_OS_SIZE_T sz, bool EXCEPTIONS_PARAM(allow_throw)
 			TP_LOG_WARNING_ID("In operator delete [] - MM_manager.register_deallocation failed");
 		}
 	}
-	TP_LOG_FATAL_ID ("Out of memory. Cannot continue.");
-	TP_LOG_FLUSH_LOG;
+	log_mem_debug() << "Out of memory. Cannot continue." << std::endl;
 	std::stringstream ss;
 	const char* err = strerror(errno);
 	ss << "Could not allocate " 
 			<< sz/1024/1024 << " megabytes (" 
 			<< sz << " bytes) from the heap."
 			<<" malloc returned a null pointer, errno is "
-			<< errno << " (" << err << "). Available memory accoding to TPIE is "
+			<< errno << " (" << err << "). Available memory according to TPIE is "
 			<< MM_manager.memory_available()/1024/1024 << " megabytes ("
 			<< MM_manager.memory_available() << " bytes)\n";
 
