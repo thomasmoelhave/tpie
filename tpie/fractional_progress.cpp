@@ -113,11 +113,10 @@ inline uint32_t fhash(const std::string & name) {return is_prime.prime_hash(name
 inline double getFraction(const std::string & name) {
 	std::map<uint32_t, float>::iterator i=fdb->db.find(fhash(name));
 	if (i == fdb->db.end()) {
-		TP_LOG_FATAL(
+		log_info() <<
 			"A fraction was missing in the fraction database\n"
 			<< "    " << name << "\n"
-			<< "    To fix this run this command on a large dataset with fraction statics enabled." << "\n");
-		TP_LOG_FLUSH_LOG;
+			<< "    To fix this run this command on a large dataset with fraction statics enabled."<< std::endl;
 		return 1.0;
 	}
 	return i->second;
