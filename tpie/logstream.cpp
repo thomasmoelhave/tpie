@@ -53,6 +53,8 @@ int log_stream_buf::sync() {
 }
 
 void log_stream_buf::set_level(log_level level) {
+	if (m_level==level) return;
+	sync();
 	m_level=level;
 }
 
