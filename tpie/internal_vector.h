@@ -75,8 +75,6 @@ public:
 	inline const_iterator rbegin()const {return m_elements.begin();}
 	inline iterator end(){return m_elements.find(m_size);}
 	inline const_iterator end()const {return m_elements.find(m_size);}
-	
-	inline void clear() {m_size=0;}
 };
 
 }
