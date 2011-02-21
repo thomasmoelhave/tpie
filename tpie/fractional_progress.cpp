@@ -78,7 +78,7 @@ public:
 		if (!f.is_open()) return;
 
 		for (std::map<uint32_t, float>::iterator i=db.begin(); i != db.end(); ++i)
-			f << "db[ " << i->first << " ]= " << i->second << " ;// " << n[i->first] << std::endl;
+			f << "db[ " << i->first << " ]= " << i->second << " ;// " << n[i->first] << '\n';
 	}
 #endif //TPIE_FRACTIONDB_DIR_INL
 #endif //TPIE_FRACTION_STATS
