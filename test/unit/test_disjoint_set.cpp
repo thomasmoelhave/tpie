@@ -48,7 +48,7 @@ public:
 	disjoint_sets<int> * a;
 	virtual void alloc() {a = new disjoint_sets<int>(123456);}
 	virtual void free() {delete a;}
-	virtual size_type claimed_size() {return disjoint_sets<int>::memory_usage(123456);}
+	virtual size_type claimed_size() {return static_cast<size_type>(disjoint_sets<int>::memory_usage(123456));}
 };
 
 int main(int argc, char **argv) {

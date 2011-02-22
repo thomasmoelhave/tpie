@@ -30,7 +30,7 @@ namespace tpie {
 
 template <typename T>
 struct hash {
-	inline size_t operator()(const T & e) const {return e * 103841;}	
+	inline size_t operator()(const T & e) const {return static_cast<size_t>(e * 103841);}	
 };
 
 template <typename T1, typename T2>

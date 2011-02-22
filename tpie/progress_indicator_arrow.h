@@ -131,7 +131,7 @@ namespace tpie {
 	    //  Compute the relative length of the arrow.
 		//std::cout << "refresh " << m_description << std::endl;
 
-		int l = m_indicatorLength - 12  - m_description.size();
+		TPIE_OS_OFFSET l = m_indicatorLength - 12  - m_description.size();
 	    TPIE_OS_OFFSET progress = (m_maxRange != m_minRange ) ? 
 			l * (m_current-m_minRange)/(m_maxRange-m_minRange) : 0; 
 

@@ -167,7 +167,7 @@ public:
 	tpie::hash_map<int, char> * a;
 	virtual void alloc() {a = new tpie::hash_map<int, char>(123456);}
 	virtual void free() {delete a;}
-	virtual size_type claimed_size() {return tpie::hash_map<int, char>::memory_usage(123456);}
+	virtual size_type claimed_size() {return static_cast<size_type>(tpie::hash_map<int, char>::memory_usage(123456));}
 };
 
 int main(int argc, char **argv) {

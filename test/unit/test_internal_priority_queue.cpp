@@ -40,7 +40,7 @@ public:
 	internal_priority_queue<int> * a;
 	virtual void alloc() {a = new internal_priority_queue<int>(123456);}
 	virtual void free() {delete a;}
-	virtual size_type claimed_size() {return internal_priority_queue<int>::memory_usage(123456);}
+	virtual size_type claimed_size() {return static_cast<size_type>(internal_priority_queue<int>::memory_usage(123456));}
 };
 
 int main(int argc, char **argv) {

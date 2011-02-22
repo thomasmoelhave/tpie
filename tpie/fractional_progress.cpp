@@ -177,8 +177,8 @@ void fractional_subindicator::init(TPIE_OS_OFFSET range, TPIE_OS_OFFSET step) {
 	m_predict.start_execution(m_n);
 	if (m_parent) {
 		double f = m_fp.get_fraction(*this);
-		double t = m_parent->get_max_range() - m_parent->get_min_range();
-		m_outerRange = t * f;
+		double t = static_cast<double>(m_parent->get_max_range() - m_parent->get_min_range());
+		m_outerRange = static_cast<TPIE_OS_OFFSET>(t * f);
 	}
 #ifndef NDEBUG
 	m_init_called=true;

@@ -138,7 +138,7 @@ namespace tpie {
 				// Use malloc() directly rather than new becasue this is
 				// in "secondary memory" and will not necessarily go into
 				// the cache.
-				data = (T*)malloc(max_len*sizeof(T));
+				data = (T*)malloc(static_cast<size_t>(max_len)*sizeof(T));
 				if (data == NULL) {
 					valid = 0;
 

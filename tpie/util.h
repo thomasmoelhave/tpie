@@ -89,7 +89,7 @@ struct linear_memory_base {
 	// \return The number of elements that will fit in the structure
 	///////////////////////////////////////////////////////////////////////////
 	inline static size_type memory_fits(size_type memory) {
-		return static_cast<offset_type>(
+		return static_cast<size_type>(
 			floor((memory - child_t::memory_overhead()) / child_t::memory_coefficient()));
 	}
 };

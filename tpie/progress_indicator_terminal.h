@@ -181,7 +181,7 @@ namespace tpie {
 	    //else {
 		//		std::cout << 
 	    //}
-		long r = (m_current - m_minRange) * 100 / (m_maxRange-m_minRange);
+		TPIE_OS_OFFSET r = (m_current - m_minRange) * 100 / (m_maxRange-m_minRange);
 		std::cout << r << "%";
 	}
 

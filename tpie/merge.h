@@ -719,7 +719,7 @@ namespace tpie {
 		m_obj->main_mem_operate(mm_stream, static_cast<TPIE_OS_SIZE_T>(mm_len));
     
 		// Write the result out to the temporary stream.
-		ae = initial_tmp_stream->write_array(mm_stream, mm_len);
+		ae = initial_tmp_stream->write_array(mm_stream, static_cast<TPIE_OS_SIZE_T>(mm_len));
 		if (ae != NO_ERROR) {
 		    return ae;
 		}            
