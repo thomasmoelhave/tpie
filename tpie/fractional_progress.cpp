@@ -265,7 +265,7 @@ fractional_progress::~fractional_progress() {
 
 	if (time_sum > 0) {
 		for (size_t i=0; i < m_stat.size(); ++i) {
-			std::pair< std::string, std::pair<long, TPIE_OS_OFFSET> > & x = m_stat[i];
+			std::pair< std::string, std::pair<TPIE_OS_OFFSET, TPIE_OS_OFFSET> > & x = m_stat[i];
 			float f= (float)x.second.first / (float)time_sum;
 			fdb->update(x.first.c_str(), f, x.second.second);
 		}
