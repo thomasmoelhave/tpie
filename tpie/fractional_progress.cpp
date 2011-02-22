@@ -27,44 +27,42 @@ namespace tpie {
 
 class fraction_db {
 public:
-	std::map<uint32_t, float> db;
-#ifdef TPIE_FRACTION_STATS
-	std::map<uint32_t, TPIE_OS_OFFSET> n;
-	bool dirty;
-#endif //TPIE_FRACTION_STATS
-	fraction_db() {
-#ifdef TPIE_FRACTIONDB_DIR_INL
 
 #ifdef TPIE_FRACTION_STATS
+	std::map<std::string, std::pair<float, TPIE_OS_OFFSET> > db;
+	typedef std::map<std::string, std::pair<float, TPIE_OS_OFFSET> >::iterator i_t;
+	bool dirty;
+
+	void update(const char * name, float frac, TPIE_OS_OFFSET n) {
+		i_t i =db.find(name);
+		if (i != db.end() && i->second.second > n) return;
+		db[name] = std::make_pair(frac, n);
+		dirty=true;
+	}
+
+	fraction_db() {
+#ifdef TPIE_FRACTIONDB_DIR_INL
 		std::locale::global(std::locale::classic());
 		dirty=false;
 		std::fstream f;
 #ifndef NDEBUG
 		f.open(TPIE_FRACTIONDB_DIR_INL "/tpie_fraction_db_debug.inl", std::fstream::in);
-#else
+#else //NDEBUG
 		f.open(TPIE_FRACTIONDB_DIR_INL "/tpie_fraction_db.inl", std::fstream::in);
-#endif
+#endif //NDEBUG
 		if (f.is_open()) {
 			std::string skip;
-			uint32_t hash;
+			std::string name;
 			float frac;
 			TPIE_OS_OFFSET n_;
-			while (f >> skip >> hash >> skip >> frac >> skip >> n_) {
-				db[hash] = frac;
-				n[hash] = n_;
-			}
+			while (f >> skip >> name >> skip >> frac >> skip >> n_ >> skip)
+				update(name.substr(1,name.size()-2).c_str() , frac, n_);
 			return;
 		}
-#endif
-#ifdef NDEBUG
-#include <tpie_fraction_db_debug.inl>
-#else
-#include <tpie_fraction_db.inl>
-#endif
+		dirty=false;
 #endif //TPIE_FRACTIONDB_DIR_INL
 	}
 
-#ifdef TPIE_FRACTION_STATS
 #ifdef TPIE_FRACTIONDB_DIR_INL
 	~fraction_db() {
 		if (!dirty) return;
@@ -72,15 +70,51 @@ public:
 		std::fstream f;
 #ifndef NDEBUG
 		f.open(TPIE_FRACTIONDB_DIR_INL "/tpie_fraction_db_debug.inl", std::fstream::out | std::fstream::trunc);
-#else
+#else //NDEBUG
 		f.open(TPIE_FRACTIONDB_DIR_INL "/tpie_fraction_db.inl", std::fstream::out | std::fstream::trunc);
-#endif
+#endif //NDEBUG
 		if (!f.is_open()) return;
 
-		for (std::map<uint32_t, float>::iterator i=db.begin(); i != db.end(); ++i)
-			f << "db[ " << i->first << " ]= " << i->second << " ;// " << n[i->first] << '\n';
+		for (i_t i=db.begin(); i != db.end(); ++i)
+			f << "update( \"" << i->first << "\" , " << i->second.first << " , " << i->second.second << " );\n";
 	}
 #endif //TPIE_FRACTIONDB_DIR_INL
+
+	inline double getFraction(const std::string & name) {
+		i_t i = db.find(name);
+		if (i == db.end()) {
+			log_info() <<
+				"A fraction was missing in the fraction database\n"
+					   << "    " << name << "\n"
+					   << "    To fix this run this command on a large dataset with fraction statics enabled."<< std::endl;
+			return 1.0;
+		}
+		return i->second.first;
+	}
+#else //TPIE_FRACTION_STATS
+	std::map<std::string, float > db;
+
+	void update(const char * name, float frac, TPIE_OS_OFFSET) {
+		db[name] = frac;
+		unused(n);
+	}
+
+	fraction_db() {
+#ifdef TPIE_FRACTIONDB_DIR_INL
+#ifdef NDEBUG
+#include <tpie_fraction_db_debug.inl>
+#else //NDEBUG
+#include <tpie_fraction_db.inl>
+#endif //NDEBUG
+#endif //TPIE_FRACTIONDB_DIR_INL
+	}
+
+	inline double getFraction(const std::string & name) {
+		std::map<std::string, float>::iterator i=db.find(name);
+		if (i == db.end()) retur 1.0;
+		return i->second;
+	}
+
 #endif //TPIE_FRACTION_STATS
 };
 
@@ -96,11 +130,12 @@ void finish_fraction_db() {
 	fdb=NULL;
 }
 
-
-
 inline std::string fname(const char * file, const char * function, const char * name) {
+	const char * y=file;
+	for(const char * z=file; *z; ++z)
+		if (*z=='\\' || *z == '/') y=(z+1);
 	std::string x;
-	x += file;
+	x += y;
 	x += ":";
 	x += function;
 	x += ":";
@@ -108,19 +143,6 @@ inline std::string fname(const char * file, const char * function, const char * 
 	return x;
 }
 
-inline uint32_t fhash(const std::string & name) {return is_prime.prime_hash(name);}
-
-inline double getFraction(const std::string & name) {
-	std::map<uint32_t, float>::iterator i=fdb->db.find(fhash(name));
-	if (i == fdb->db.end()) {
-		log_info() <<
-			"A fraction was missing in the fraction database\n"
-			<< "    " << name << "\n"
-			<< "    To fix this run this command on a large dataset with fraction statics enabled."<< std::endl;
-		return 1.0;
-	}
-	return i->second;
-}
 
 fractional_subindicator::fractional_subindicator(
 	fractional_progress & fp,
@@ -135,9 +157,9 @@ fractional_subindicator::fractional_subindicator(
 #ifndef NDEBUG
 	m_init_called(false), m_done_called(false), 
 #endif
-	m_fraction(enabled?getFraction(fname(file, function, id)):0.0), m_estimate(-1), m_n(enabled?n:0), m_fp(fp), m_predict(fp.m_id() + ";" + id)
+	m_fraction(enabled?fdb->getFraction(fname(file, function, id)):0.0), m_estimate(-1), m_n(enabled?n:0), m_fp(fp), m_predict(fp.m_id() + ";" + id)
 #ifdef TPIE_FRACTION_STATS
-	,m_stat_hash(fhash(fname(file, function, id)))
+	,m_stat(fname(file, function, id))
 #endif
 {
 	if (enabled)
@@ -169,7 +191,7 @@ void fractional_subindicator::done() {
 #ifdef TPIE_FRACTION_STATS
 	TPIE_OS_OFFSET r = m_predict.end_execution();
 	if(m_n > 0) 
-		m_fp.stat(m_stat_hash, r, m_n);
+		m_fp.stat(m_stat, r, m_n);
 #else
 	m_predict.end_execution();
 #endif
@@ -243,12 +265,9 @@ fractional_progress::~fractional_progress() {
 
 	if (time_sum > 0) {
 		for (size_t i=0; i < m_stat.size(); ++i) {
-			const std::pair<uint32_t, std::pair<TPIE_OS_OFFSET, TPIE_OS_OFFSET> > & x=m_stat[i];
+			std::pair< std::string, std::pair<long, TPIE_OS_OFFSET> > & x = m_stat[i];
 			float f= (float)x.second.first / (float)time_sum;
-			if (fdb->n.count(x.first) && fdb->n[x.first] > x.second.second) continue;
-			fdb->n[x.first] = x.second.second;
-			fdb->db[x.first] = f;
-			fdb->dirty = true;
+			fdb->update(x.first.c_str(), f, x.second.second);
 		}
 	}
 #endif
@@ -277,9 +296,9 @@ double fractional_progress::get_fraction(fractional_subindicator & sub) {
 }
 
 #ifdef TPIE_FRACTION_STATS
-void fractional_progress::stat(uint32_t hash, TPIE_OS_OFFSET time, TPIE_OS_OFFSET n) {
+void fractional_progress::stat(std::string name, TPIE_OS_OFFSET time, TPIE_OS_OFFSET n) {
 	if (time < 0 || n <= 0) return;
-	m_stat.push_back(std::make_pair(hash, std::make_pair(time, n)));
+	m_stat.push_back(std::make_pair(name , std::make_pair(time, n)));
 }
 #endif
 

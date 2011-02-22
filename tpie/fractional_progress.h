@@ -59,7 +59,7 @@ private:
 	execution_time_predictor m_predict;
 
 #ifdef TPIE_FRACTION_STATS
-	uint32_t m_stat_hash;
+	std::string m_stat;
 #endif
 	friend class fractional_progress;
 };
@@ -93,8 +93,8 @@ private:
 	double m_timed_sum;
 
 #ifdef TPIE_FRACTION_STATS
-	void stat(uint32_t, TPIE_OS_OFFSET, TPIE_OS_OFFSET);
-	std::vector< std::pair<uint32_t, std::pair<TPIE_OS_OFFSET, TPIE_OS_OFFSET> > > m_stat;
+	void stat(std::string, TPIE_OS_OFFSET, TPIE_OS_OFFSET);
+	std::vector< std::pair<std::string, std::pair<TPIE_OS_OFFSET, TPIE_OS_OFFSET> > > m_stat;
 #endif
 	friend class fractional_subindicator;
 };
