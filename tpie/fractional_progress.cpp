@@ -46,9 +46,9 @@ public:
 		dirty=false;
 		std::fstream f;
 #ifndef NDEBUG
-		f.open(TPIE_FRACTIONDB_DIR_INL "/tpie_fraction_db_debug.inl", std::fstream::in);
+		f.open(TPIE_FRACTIONDB_DIR_INL "/tpie_fraction_db_debug.inl", std::fstream::in | std::fstream::binary);
 #else //NDEBUG
-		f.open(TPIE_FRACTIONDB_DIR_INL "/tpie_fraction_db.inl", std::fstream::in);
+		f.open(TPIE_FRACTIONDB_DIR_INL "/tpie_fraction_db.inl", std::fstream::in | std::fstream::binary);
 #endif //NDEBUG
 		if (f.is_open()) {
 			std::string skip;
@@ -69,9 +69,9 @@ public:
 		std::locale::global(std::locale::classic());
 		std::fstream f;
 #ifndef NDEBUG
-		f.open(TPIE_FRACTIONDB_DIR_INL "/tpie_fraction_db_debug.inl", std::fstream::out | std::fstream::trunc);
+		f.open(TPIE_FRACTIONDB_DIR_INL "/tpie_fraction_db_debug.inl", std::fstream::out | std::fstream::trunc | std::fstream::binary);
 #else //NDEBUG
-		f.open(TPIE_FRACTIONDB_DIR_INL "/tpie_fraction_db.inl", std::fstream::out | std::fstream::trunc);
+		f.open(TPIE_FRACTIONDB_DIR_INL "/tpie_fraction_db.inl", std::fstream::out | std::fstream::trunc | std::fstream::binary);
 #endif //NDEBUG
 		if (!f.is_open()) return;
 
@@ -133,10 +133,38 @@ inline std::string fname(const char * file, const char * function, const char * 
 	const char * y=file;
 	for(const char * z=file; *z; ++z)
 		if (*z=='\\' || *z == '/') y=(z+1);
+
+	char f[256];
+	{
+		const char * z=function+strlen(function)-1;
+		//Skip nested <> template function arguments emitted by vs
+		if (*z == '>') {	
+			--z;
+			int c=1;
+			while(c != 0) {
+				if (*z == '<') --c;
+				else if (*z == '>') ++c;
+				--z;
+			}
+		}
+		++z;
+		//Skip anything before the last : since vs likes to include such jazz
+		const char * x=z;
+		while (x != function && *x != ':') --x;
+		if (*x == ':') ++x;
+		//Copy result to f removing any whitespace (vs likes to write "operater ()")
+		char * k=f;
+		for(const char * i=x; i != z; ++i) {
+			if (*i == ' ') continue;
+			*k = *i;
+			++k;
+		}
+		*k = 0;
+	}	
 	std::string x;
 	x += y;
 	x += ":";
-	x += function;
+	x += f;
 	x += ":";
 	x += name;
 	return x;
