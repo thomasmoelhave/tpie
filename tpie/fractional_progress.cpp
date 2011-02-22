@@ -96,7 +96,6 @@ public:
 
 	void update(const char * name, float frac, TPIE_OS_OFFSET) {
 		db[name] = frac;
-		unused(n);
 	}
 
 	fraction_db() {
@@ -111,7 +110,7 @@ public:
 
 	inline double getFraction(const std::string & name) {
 		std::map<std::string, float>::iterator i=db.find(name);
-		if (i == db.end()) retur 1.0;
+		if (i == db.end()) return 1.0;
 		return i->second;
 	}
 
