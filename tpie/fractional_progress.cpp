@@ -57,7 +57,6 @@ public:
 			TPIE_OS_OFFSET n_;
 			while (f >> skip >> name >> skip >> frac >> skip >> n_ >> skip)
 				update(name.substr(1,name.size()-2).c_str() , frac, n_);
-			return;
 		}
 		dirty=false;
 #endif //TPIE_FRACTIONDB_DIR_INL
