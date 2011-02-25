@@ -69,12 +69,12 @@ err manager::register_allocation(TPIE_OS_SIZE_T request)
 	boost::mutex::scoped_lock lock(*mm_mutex);
 #endif
 	// quick hack to allow operation before limit is set
-	// XXX 
+	// XXX 	
 	if(!user_limit || pause_allocation_depth) {
 		return NO_ERROR;
 	}
-		
-	used += request;     
+	
+	used += request;		     
 		
 	if (request > remaining) {
 #ifdef TPIE_THREADSAFE_MEMORY_MANAGEMNT
@@ -117,6 +117,11 @@ err manager::register_deallocation(TPIE_OS_SIZE_T sz)
 	if (!mm_mutex) return NO_ERROR;
 	boost::mutex::scoped_lock lock(*mm_mutex);
 #endif
+
+	if(!user_limit || pause_allocation_depth) {
+		return NO_ERROR;
+	}
+
 	remaining += sz;
 
 	if (sz > used) {
