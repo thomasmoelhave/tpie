@@ -94,6 +94,14 @@ struct linear_memory_base {
 	}
 };
 
-}
+template <typename T>
+struct scoped_change {
+	T & var;
+	T old;
+	scoped_change(T & v, T n): var(v), old(v) {var = n;}
+	~scoped_change() {var=old;}
+};
+
+} //namespace tpie
 
 #endif //__TPIE_UTIL_H__
