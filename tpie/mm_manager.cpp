@@ -24,6 +24,7 @@
 
 #include <tpie/tpie_assert.h>
 #include <tpie/tpie_log.h>
+#include <tpie/util.h>
 
 #define MM_IMP_REGISTER
 #include <tpie/mm.h>
@@ -285,7 +286,7 @@ TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound,
 	TP_LOG_DEBUG_ID("consecutive_memory_available only works with exceptions\n");
 	return memory_available();
 #else
-	scoped_change<mode> c(register_new, ABORT_ON_MEMORY_EXCEEDED);
+	tpie::scoped_change<mode> c(register_new, ABORT_ON_MEMORY_EXCEEDED);
 
 	//lower bound of search
 	TPIE_OS_SIZE_T low = lower_bound;
