@@ -308,7 +308,7 @@ TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound,
 	try {
 		char* mem = new char[high];
 		delete[] mem;
-		TP_LOG_DEBUG_ID("Successfully allocated " << high << " bytes.\n");
+		//TP_LOG_DEBUG_ID("Successfully allocated " << high << " bytes.\n");
 		return high;
 	} catch (std::bad_alloc) {
 		TP_LOG_DEBUG_ID("Failed to get " << high/(1024*1024) << " megabytes of memory. "
