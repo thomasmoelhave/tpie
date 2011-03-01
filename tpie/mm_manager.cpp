@@ -177,6 +177,7 @@ err manager::resize_heap(TPIE_OS_SIZE_T sz) {
 err manager::set_memory_limit (TPIE_OS_SIZE_T new_limit)
 {
 #ifdef TPIE_THREADSAFE_MEMORY_MANAGEMNT
+	// memory manager should be initialized before calling set_memory_limit (as opposed to (de)allocate)
 	if (!mm_mutex) return MUTEX_FAILURE;
 	boost::mutex::scoped_lock lock(*mm_mutex);
 #endif
