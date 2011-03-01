@@ -54,7 +54,8 @@ namespace tpie {
 	    NO_ERROR = 0,
 	    INSUFFICIENT_SPACE,
 	    EXCESSIVE_DEALLOCATION,
-	    EXCESSIVE_ALLOCATION
+	    EXCESSIVE_ALLOCATION,
+		MUTEX_FAILURE
 	};
 	
 /** Types of memory usage queries we can make on streams (either BTE or MM) */
