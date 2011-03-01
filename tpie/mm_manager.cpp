@@ -177,7 +177,7 @@ err manager::resize_heap(TPIE_OS_SIZE_T sz) {
 err manager::set_memory_limit (TPIE_OS_SIZE_T new_limit)
 {
 #ifdef TPIE_THREADSAFE_MEMORY_MANAGEMNT
-	if (!mm_mutex) return NO_ERROR;
+	if (!mm_mutex) return MUTEX_FAILURE;
 	boost::mutex::scoped_lock lock(*mm_mutex);
 #endif
     // by default, we keep track and abort if memory limit exceeded
@@ -200,7 +200,8 @@ err manager::set_memory_limit (TPIE_OS_SIZE_T new_limit)
         } else {
             remaining += new_limit - user_limit;
         }
-        user_limit = new_limit;
+
+		user_limit = new_limit;
         return NO_ERROR;
     }
 }
