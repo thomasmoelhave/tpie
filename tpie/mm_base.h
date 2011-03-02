@@ -57,6 +57,27 @@ namespace tpie {
 	    EXCESSIVE_ALLOCATION,
 		MUTEX_FAILURE
 	};
+
+	inline std::ostream& operator<<(std::ostream& s, const err& e) {
+		switch(e) {
+			case tpie::mem::NO_ERROR:
+				s << "No error" << std::endl;
+				break;
+			case tpie::mem::MUTEX_FAILURE:
+				s << "Returned MUTEX_FAILURE" << std::endl;
+				break;
+			case tpie::mem::EXCESSIVE_ALLOCATION:
+				s << "Returned EXCESSIVE_ALLOCATION" << std::endl;
+				break;
+			case tpie::mem::EXCESSIVE_DEALLOCATION:
+				s << "Returned EXCESSIVE_DEALLOCATION" << std::endl;
+				break;
+			case tpie::mem::INSUFFICIENT_SPACE:
+				s << "Returned INSUFICIENT_SPACE" << std::endl;
+				break;
+		}
+		return s;
+	}
 	
 /** Types of memory usage queries we can make on streams (either BTE or MM) */
 	enum stream_usage {
