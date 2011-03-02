@@ -61,7 +61,7 @@ namespace tpie {
 	inline std::ostream& operator<<(std::ostream& s, const err& e) {
 		switch(e) {
 			case tpie::mem::NO_ERROR:
-				s << "No error" << std::endl;
+				s << " succeeded" << std::endl;
 				break;
 			case tpie::mem::MUTEX_FAILURE:
 				s << "memory limit set before memory manager was initialized (MUTEX_FAILURE)" << std::endl;
