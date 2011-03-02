@@ -224,6 +224,28 @@ public:
 	}
 
 	/////////////////////////////////////////////////////////
+	/// \brief Return a const referense to an array entry
+	///
+	/// \param i the index of the entry to return
+	/// \return const reference to the entry
+	/////////////////////////////////////////////////////////
+	inline const T & at(size_type i) const {
+		assert(i < m_size);
+		return m_elements[i];
+	}
+
+	/////////////////////////////////////////////////////////
+	/// \brief Return a referense to an array entry
+	///
+	/// \param i the index of the entry to return
+	/// \return reference to the entry
+	/////////////////////////////////////////////////////////
+	inline T & at(size_type i) {
+		assert(i < m_size);
+		return m_elements[i];
+	}
+
+	/////////////////////////////////////////////////////////
 	/// \brief Compare if the other array has the same elemens in the same order as this
 	///
 	/// \param other the array to compair against
