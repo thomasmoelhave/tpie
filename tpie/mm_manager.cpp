@@ -171,6 +171,9 @@ err manager::resize_heap(TPIE_OS_SIZE_T sz) {
 }
 #endif
 
+TPIE_OS_SIZE_T manager::get_memory_limit() {
+	return user_limit;
+}
 
 // User-callable method to set allowable memory size
 
