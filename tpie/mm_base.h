@@ -64,16 +64,16 @@ namespace tpie {
 				s << "No error" << std::endl;
 				break;
 			case tpie::mem::MUTEX_FAILURE:
-				s << "Returned MUTEX_FAILURE" << std::endl;
+				s << "memory limit set before memory manager was initialized (MUTEX_FAILURE)" << std::endl;
 				break;
 			case tpie::mem::EXCESSIVE_ALLOCATION:
-				s << "Returned EXCESSIVE_ALLOCATION" << std::endl;
+				s << "new memory limit is less than what is already allocated (EXCESSIVE_ALLOCATION)" << std::endl;
 				break;
 			case tpie::mem::EXCESSIVE_DEALLOCATION:
-				s << "Returned EXCESSIVE_DEALLOCATION" << std::endl;
+				s << "memory manager is deallocating more memory than it has allocated (EXCESSIVE_DEALLOCATION)" << std::endl;
 				break;
 			case tpie::mem::INSUFFICIENT_SPACE:
-				s << "Returned INSUFICIENT_SPACE" << std::endl;
+				s << "trying to allocate memory above the memory limit (INSUFFICIENT_SPACE)" << std::endl;
 				break;
 		}
 		return s;
