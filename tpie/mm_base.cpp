@@ -122,17 +122,16 @@ static void *do_new (TPIE_OS_SIZE_T sz, bool EXCEPTIONS_PARAM(allow_throw))
 			<< (sz+SIZE_SPACE)/1024/1024 << " megabytes (" 
 			<< sz+SIZE_SPACE << " bytes) from the heap."
 			<<" malloc returned a null pointer, errno is "
-			<< errno << " (" << err << "). Available memory accoding to TPIE is "
+			<< errno << " (" << err << "). Available memory according to TPIE is "
 			<< MM_manager.memory_available()/1024/1024 << " megabytes ("
-			<< MM_manager.memory_available() << " bytes)\n";
-
-		log_error() << ss.str() << std::endl;
-
+			<< MM_manager.memory_available() << " bytes)\n";		
+			
 #ifdef TPIE_USE_EXCEPTIONS
 		if (allow_throw) {
 			throw out_of_memory_error(ss.str());
 		}
 #endif
+		log_error() << ss.str() << std::endl;
 		std::cerr << ss.str() << std::endl;
 		assert(false && "memory allocation error (fragmentation?)");
 		exit (1);
