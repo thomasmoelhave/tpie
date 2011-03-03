@@ -299,7 +299,7 @@ TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound,
 
 	//don't try to get more than the amount of bytes currently
 	//available
-	TPIE_OS_SIZE_T high = memory_available();
+	TPIE_OS_SIZE_T high = remaining;
 	if(high > static_cast<TPIE_OS_SIZE_T>(space_overhead()))
 		high -= static_cast<TPIE_OS_SIZE_T>(space_overhead());
 	else
@@ -314,8 +314,7 @@ TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound,
 	try {
 		char* mem = new char[high];
 		delete[] mem;
-		//TP_LOG_DEBUG_ID("Successfully allocated " << high << " bytes.\n");
-		return high;
+		return (high > global_overhead)?high-global_overhead:0;
 	} catch (std::bad_alloc) {
 		TP_LOG_DEBUG_ID("Failed to get " << high/(1024*1024) << " megabytes of memory. "
 						<< "Performing binary search to find largest amount "
@@ -370,8 +369,7 @@ TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound,
 	} while (high - low > granularity);
 
 	TP_LOG_DEBUG_ID("\n- - - - - - - END MEMORY SEARCH - - - - - -\n\n");
-
-	return low;
+	return (high > global_overhead)?high-global_overhead:0;
 #endif
 
 }
