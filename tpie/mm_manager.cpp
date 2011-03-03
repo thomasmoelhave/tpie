@@ -59,6 +59,7 @@ manager::~manager(void)
               "Only 1 instance of manager_base should exist.");
 
     instances--;
+	mm_mutex = 0;
 }
 
 // check that new allocation request is below user-defined limit.
