@@ -33,10 +33,11 @@
 
 
 namespace tpie {
-
 	#ifdef TPIE_USE_EXCEPTIONS
-	struct out_of_memory_error : public std::runtime_error {
-		out_of_memory_error(const std::string& s) : std::runtime_error(s) { }
+	struct out_of_memory_error : public std::exception {
+		const char * msg;
+		out_of_memory_error(const char * s) : msg(s) { }
+		virtual const char* what() const throw() {return msg;}
 	};
 	#endif
 

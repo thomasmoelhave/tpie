@@ -22,6 +22,7 @@
 #include <tpie/tpie_log.h>
 #include <tpie/mm_manager.h>
 #include <tpie/util.h>
+#include <tpie/static_string_stream.h>
 
 #include <iostream>
 #include <cstdio>
@@ -57,7 +58,7 @@ static const TPIE_OS_SIZE_T SIZE_SPACE=(sizeof(TPIE_OS_SIZE_T) > 8 ? sizeof(TPIE
 #define EXCEPTIONS_PARAM(x)
 #endif
 
-bool no_recurse=true;
+tpie::static_string_stream sss;
 
 static void *do_new (TPIE_OS_SIZE_T sz, bool EXCEPTIONS_PARAM(allow_throw))
 {
@@ -69,39 +70,36 @@ static void *do_new (TPIE_OS_SIZE_T sz, bool EXCEPTIONS_PARAM(allow_throw))
 		switch(MM_manager.register_new) {
 			case mem::ABORT_ON_MEMORY_EXCEEDED: 
 			{
-				if (no_recurse) {
-					scoped_change<bool> _(no_recurse,false);
-					log_error() << "Memory allocation error, memory limit exceeded. "
-								<<"Allocation request \""
-								<< static_cast<TPIE_OS_LONG>(sz + SIZE_SPACE)
-								<< "\" plus previous allocation \""
-								<< static_cast<TPIE_OS_LONG>(MM_manager.memory_used () - (sz + SIZE_SPACE))
-								<< "\" exceeds user-defined limit \""
-								<< static_cast<TPIE_OS_LONG>(MM_manager.memory_limit ())
-								<< "\"" << std::endl;
-				}
-				assert (false && "memory limit exceeded.");	
+				sss.clear();
+				sss << "Memory allocation error, memory limit exceeded. "
+					<<"Allocation request \""
+					<< static_cast<TPIE_OS_LONG>(sz + SIZE_SPACE)
+					<< "\" plus previous allocation \""
+					<< static_cast<TPIE_OS_LONG>(MM_manager.memory_used () - (sz + SIZE_SPACE))
+					<< "\" exceeds user-defined limit \""
+					<< static_cast<TPIE_OS_LONG>(MM_manager.memory_limit ())
+					<< "\"";
 #ifdef TPIE_USE_EXCEPTIONS
 				if (allow_throw) {
 					//I didn't use stringstreams here, I didn't want to allocate more memory.
 					//to write an error message
 					//once we have more control of the allocations we can write something better here.
-					throw out_of_memory_error("Memory limit exceeded.");
-				}
-#else
-				exit (1);
+					throw out_of_memory_error(sss.c_str());
+				} 
 #endif
+				log_error() << sss.c_str() << std::endl;
+				exit (1);
 			} break;
 			case mem::WARN_ON_MEMORY_EXCEEDED:
 			{
 				log_warning() << "Memory allocation error, memory limit exceeded. "
-				<< "In operator new() - allocation request \""
-				<< static_cast<TPIE_OS_LONG>(sz + SIZE_SPACE)
-				<< "\" plus previous allocation \""
-				<< static_cast<TPIE_OS_LONG>(MM_manager.memory_used () - (sz + SIZE_SPACE))
-				<< "\" exceeds user-defined limit \""
-				<< static_cast<TPIE_OS_LONG>(MM_manager.memory_limit ())
-				<< "\"" << std::endl;
+							  << "In operator new() - allocation request \""
+							  << static_cast<TPIE_OS_LONG>(sz + SIZE_SPACE)
+							  << "\" plus previous allocation \""
+							  << static_cast<TPIE_OS_LONG>(MM_manager.memory_used () - (sz + SIZE_SPACE))
+							  << "\" exceeds user-defined limit \""
+							  << static_cast<TPIE_OS_LONG>(MM_manager.memory_limit ())
+							  << "\"" << std::endl;
 			} break;
 			case mem::IGNORE_MEMORY_EXCEEDED:
 			{ 
@@ -122,24 +120,22 @@ static void *do_new (TPIE_OS_SIZE_T sz, bool EXCEPTIONS_PARAM(allow_throw))
 		}
 	    
 		const char* err = strerror(errno);
-		std::stringstream ss;
-		ss << "Memory allocation error, likely due to heap fragmentation. "
+		sss.clear();
+		sss << "Memory allocation error, likely due to heap fragmentation. "
 			<< "Could not allocate " 
 			<< (sz+SIZE_SPACE)/1024/1024 << " megabytes (" 
 			<< sz+SIZE_SPACE << " bytes) from the heap."
 			<<" malloc returned a null pointer, errno is "
 			<< errno << " (" << err << "). Available memory according to TPIE is "
 			<< MM_manager.memory_available()/1024/1024 << " megabytes ("
-			<< MM_manager.memory_available() << " bytes)\n";		
+			<< MM_manager.memory_available() << " bytes)";		
 			
 #ifdef TPIE_USE_EXCEPTIONS
 		if (allow_throw) {
-			throw out_of_memory_error(ss.str());
+			throw out_of_memory_error(sss.c_str());
 		}
 #endif
-		log_error() << ss.str() << std::endl;
-		std::cerr << ss.str() << std::endl;
-		assert(false && "memory allocation error (fragmentation?)");
+		log_error() << sss.c_str() << std::endl;
 		exit (1);
 	}
 	*(reinterpret_cast<size_t *>(p)) = (MM_manager.allocation_count_factor() ? sz : 0);
