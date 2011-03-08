@@ -20,20 +20,23 @@
 #include <cstdio>
 namespace tpie {
 
-log_stream_buf::log_stream_buf(log_level level): m_level(level) {
+log_stream_buf::log_stream_buf(log_level level): m_level(level), m_enabled(true) {
 	setp(m_buff, m_buff+buff_size-2);
 }
 
 log_stream_buf::~log_stream_buf() {flush();}
 
 void log_stream_buf::flush() {
-	*pptr() = 0;
-	if (m_log_target_count == 0)
-		//As a special service if noone is listening and
-		fwrite(m_buff, 1, pptr() - m_buff, stderr);
-	else
-		for(size_t i=0; i < m_log_target_count; ++i)
-			m_log_targets[i]->log(m_level, m_buff, pptr() - m_buff);
+	if (pptr() == m_buff) return;
+	if (m_enabled) {
+		*pptr() = 0;
+		if (m_log_target_count == 0)
+			//As a special service if noone is listening and
+			fwrite(m_buff, 1, pptr() - m_buff, stderr);
+		else
+			for(size_t i=0; i < m_log_target_count; ++i)
+				m_log_targets[i]->log(m_level, m_buff, pptr() - m_buff);
+	}
 	setp(m_buff, m_buff+buff_size-2);
 }
 
@@ -41,7 +44,6 @@ int log_stream_buf::overflow(int c) {
 	flush();
 	*pptr() = c;
 	pbump(1);
-	flush();
 	return c;
 }
 

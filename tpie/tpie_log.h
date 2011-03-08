@@ -51,6 +51,20 @@ inline logstream & log_app_debug() {return get_log() << setlevel(LOG_APP_DEBUG);
 inline logstream & log_debug() {return get_log() << setlevel(LOG_DEBUG);}
 inline logstream & log_mem_debug() {return get_log() << setlevel(LOG_MEM_DEBUG);}
 
+class scoped_log_enabler {
+private:
+	bool m_orig;
+public:
+	inline bool get_orig() {return m_orig;}
+	inline scoped_log_enabler(bool e) {
+		m_orig = get_log().enabled(); 
+		get_log().enable(e);
+	}
+	inline ~scoped_log_enabler() {
+		get_log().enable(m_orig);
+	}
+};
+
 #if TPL_LOGGING		
 // Macros to simplify logging.  The argument to the macro can be any type
 // that log streams have an output operator for.

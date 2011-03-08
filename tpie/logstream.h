@@ -80,6 +80,7 @@ private:
 	log_target * m_log_targets[max_targets];
 	size_t m_log_target_count;
 	log_level m_level;
+	bool m_enabled;
 public:
 	log_stream_buf(log_level level);
 	~log_stream_buf();
@@ -89,6 +90,8 @@ public:
 	void set_level(log_level level);
 	void add_target(log_target * t);
 	void remove_target(log_target * t);
+	inline void enable(bool e) {flush(); m_enabled=e;}
+	inline bool enabled() {return m_enabled;}
 };
 
 
@@ -119,6 +122,10 @@ public:
 	/// Set the current level of logging
 ///////////////////////////////////////////////////////////////////////////	
 	inline void set_level(log_level level) {m_buff.set_level(level);}
+
+	inline void disable(bool d=false) {m_buff.enable(!d);}
+	inline void enable(bool e=true) {m_buff.enable(e);}
+	inline bool enabled() {return m_buff.enabled();}
 };
     
     

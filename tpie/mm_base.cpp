@@ -21,6 +21,7 @@
 #include <tpie/mm_base.h>
 #include <tpie/tpie_log.h>
 #include <tpie/mm_manager.h>
+#include <tpie/util.h>
 
 #include <iostream>
 #include <cstdio>
@@ -56,6 +57,8 @@ static const TPIE_OS_SIZE_T SIZE_SPACE=(sizeof(TPIE_OS_SIZE_T) > 8 ? sizeof(TPIE
 #define EXCEPTIONS_PARAM(x)
 #endif
 
+bool no_recurse=true;
+
 static void *do_new (TPIE_OS_SIZE_T sz, bool EXCEPTIONS_PARAM(allow_throw))
 {
    void *p;
@@ -66,14 +69,17 @@ static void *do_new (TPIE_OS_SIZE_T sz, bool EXCEPTIONS_PARAM(allow_throw))
 		switch(MM_manager.register_new) {
 			case mem::ABORT_ON_MEMORY_EXCEEDED: 
 			{
-				log_error() << "Memory allocation error, memory limit exceeded. "
-					<<"Allocation request \""
-					<< static_cast<TPIE_OS_LONG>(sz + SIZE_SPACE)
-					<< "\" plus previous allocation \""
-					<< static_cast<TPIE_OS_LONG>(MM_manager.memory_used () - (sz + SIZE_SPACE))
-					<< "\" exceeds user-defined limit \""
-					<< static_cast<TPIE_OS_LONG>(MM_manager.memory_limit ())
-					<< "\"" << std::endl;
+				if (no_recurse) {
+					scoped_change<bool> _(no_recurse,false);
+					log_error() << "Memory allocation error, memory limit exceeded. "
+								<<"Allocation request \""
+								<< static_cast<TPIE_OS_LONG>(sz + SIZE_SPACE)
+								<< "\" plus previous allocation \""
+								<< static_cast<TPIE_OS_LONG>(MM_manager.memory_used () - (sz + SIZE_SPACE))
+								<< "\" exceeds user-defined limit \""
+								<< static_cast<TPIE_OS_LONG>(MM_manager.memory_limit ())
+								<< "\"" << std::endl;
+				}
 				assert (false && "memory limit exceeded.");	
 #ifdef TPIE_USE_EXCEPTIONS
 				if (allow_throw) {
@@ -140,7 +146,7 @@ static void *do_new (TPIE_OS_SIZE_T sz, bool EXCEPTIONS_PARAM(allow_throw))
 	return (reinterpret_cast<char *>(p)) + SIZE_SPACE;
 }
 
-void *operator new (TPIE_OS_SIZE_T sz) throw (std::bad_alloc)
+void *operator new (TPIE_OS_SIZE_T sz)
 {
     return do_new(sz, true);
 }
@@ -150,7 +156,7 @@ void *operator new (TPIE_OS_SIZE_T sz, const std::nothrow_t &) throw()
     return do_new(sz, false);
 }
 
-void *operator new[] (TPIE_OS_SIZE_T sz) throw (std::bad_alloc)
+void *operator new[] (TPIE_OS_SIZE_T sz)
 {
     return do_new(sz, true);
 }

@@ -82,10 +82,8 @@ err manager::register_allocation(TPIE_OS_SIZE_T request)
 #ifdef TPIE_THREADSAFE_MEMORY_MANAGEMNT
 		lock.unlock();
 #endif
-		TP_LOG_WARNING("Memory allocation request: ");
-		TP_LOG_WARNING(static_cast<TPIE_OS_OFFSET>(request));
-		TP_LOG_WARNING(": User-specified memory limit exceeded.");
-		TP_LOG_FLUSH_LOG;
+//		scoped_change<mode> sl(MM_manager.register_new, mem::IGNORE_MEMORY_EXCEEDED);
+//		log_warning() << "Memory allocation request: " << request << "; User-specified memory limit exceeded. Currently used: " << (used - request) << "; remaining: " << remaining << ";" << std::endl;
 		remaining = 0;
 		return INSUFFICIENT_SPACE;
 	}
@@ -285,6 +283,7 @@ TPIE_OS_SIZE_T manager::memory_limit() {
     return user_limit;    
 }
 
+
 TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound, TPIE_OS_SIZE_T granularity) {
 #ifndef TPIE_USE_EXCEPTIONS
 	unused(lower_bound);
@@ -292,6 +291,7 @@ TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound,
 	TP_LOG_DEBUG_ID("consecutive_memory_available only works with exceptions\n");
 	return memory_available();
 #else
+	scoped_log_enabler le(false);
 	tpie::scoped_change<mode> c(register_new, ABORT_ON_MEMORY_EXCEEDED);
 
 	//lower bound of search
@@ -316,10 +316,12 @@ TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound,
 		delete[] mem;
 		return (high > global_overhead)?high-global_overhead:0;
 	} catch (std::bad_alloc) {
+		scoped_log_enabler _(le.get_orig());
 		TP_LOG_DEBUG_ID("Failed to get " << high/(1024*1024) << " megabytes of memory. "
 						<< "Performing binary search to find largest amount "
 						<< "of memory available. This might take a few moments.\n");
-	} catch (out_of_memory_error) {
+	} catch (tpie::out_of_memory_error) {
+		scoped_log_enabler _(le.get_orig());
 		TP_LOG_DEBUG_ID("Failed to get " << high/(1024*1024) << " megabytes of memory. "
 						<< "Performing binary search to find largest amount "
 						<< "of memory available. This might take a few moments.\n");
@@ -330,9 +332,11 @@ TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound,
 		char* mem = new char[low];
 		delete[] mem;
 	} catch (std::bad_alloc) {
+		scoped_log_enabler _(le.get_orig());
 		TP_LOG_DEBUG_ID("Failed to get lower limit" << low/(1024*1024) << " megabytes of memory. Aborting\n. ");
 		return 0;
 	} catch (out_of_memory_error) {
+		scoped_log_enabler _(le.get_orig());
 		TP_LOG_DEBUG_ID("Failed to get lower limit" << low/(1024*1024) << " megabytes of memory. Aborting\n. ");
 		return 0;
 	}
@@ -344,9 +348,11 @@ TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound,
 		//middle of search interval, beware of overflows
 		size_t mid = size_t((static_cast<TPIE_OS_OFFSET>(low)+high)/2);
 
-		TP_LOG_DEBUG_ID("Search area is  [" << low << "," << high << "]"
-			<< " query amount is: " << mid << ":\n");
-
+		{
+			scoped_log_enabler _(le.get_orig()); 
+			TP_LOG_DEBUG_ID("Search area is  [" << low << "," << high << "]"
+							<< " query amount is: " << mid << ":\n");
+		}
 		if (mid < low || mid > high) {
 			throw std::logic_error(
 				"Memory interval calculation failed. Try setting the "
@@ -361,14 +367,19 @@ TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound,
 			delete[] mem;
 		} catch (std::bad_alloc) {
 			high = mid;
+			scoped_log_enabler _(le.get_orig()); 
 			TP_LOG_DEBUG_ID("failed.\n");
 		} catch (out_of_memory_error) {
 			high = mid;
+			scoped_log_enabler _(le.get_orig()); 
 			TP_LOG_DEBUG_ID("failed.\n");
 		}
 	} while (high - low > granularity);
-
-	TP_LOG_DEBUG_ID("\n- - - - - - - END MEMORY SEARCH - - - - - -\n\n");
+	
+	{
+		scoped_log_enabler _(le.get_orig()); 
+		TP_LOG_DEBUG_ID("\n- - - - - - - END MEMORY SEARCH - - - - - -\n\n");
+	}
 	return (high > global_overhead)?high-global_overhead:0;
 #endif
 
