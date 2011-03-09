@@ -142,7 +142,7 @@ static void *do_new (TPIE_OS_SIZE_T sz, bool EXCEPTIONS_PARAM(allow_throw))
 	return (reinterpret_cast<char *>(p)) + SIZE_SPACE;
 }
 
-void *operator new (TPIE_OS_SIZE_T sz)
+void *operator new (TPIE_OS_SIZE_T sz) throw(std::bad_alloc)
 {
     return do_new(sz, true);
 }
@@ -152,7 +152,7 @@ void *operator new (TPIE_OS_SIZE_T sz, const std::nothrow_t &) throw()
     return do_new(sz, false);
 }
 
-void *operator new[] (TPIE_OS_SIZE_T sz)
+void *operator new[] (TPIE_OS_SIZE_T sz) throw(std::bad_alloc)
 {
     return do_new(sz, true);
 }

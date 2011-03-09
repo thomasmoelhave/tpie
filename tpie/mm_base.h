@@ -34,7 +34,7 @@
 
 namespace tpie {
 	#ifdef TPIE_USE_EXCEPTIONS
-	struct out_of_memory_error : public std::exception {
+	struct out_of_memory_error : public std::bad_alloc {
 		const char * msg;
 		out_of_memory_error(const char * s) : msg(s) { }
 		virtual const char* what() const throw() {return msg;}
