@@ -17,7 +17,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #include <tpie/backtrace.h>
-
+#include <tpie/tpie_log.h>
 #ifdef WIN32
 
 namespace tpie {
@@ -74,9 +74,9 @@ void backtrace(std::ostream & out, int depth) {
 
 namespace tpie {
 void __softassert(const char * expr, const char * file, int line) {
-	std::cerr << "Soft assertion error: " << expr << std::endl
-			  << file << ":" << line << std::endl;
-	backtrace(std::cerr);
+	log_error() << "Soft assertion error: " << expr << std::endl
+				<< file << ":" << line << std::endl;
+	backtrace(log_error());
 }
 
 
