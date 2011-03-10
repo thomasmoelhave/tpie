@@ -183,8 +183,7 @@ public:
 			--l;
 			if (l->first == 0) {
 #ifdef NDEBUG
-				TP_LOG_FATAL("First is 0");
-				TP_LOG_FLUSH_LOG;
+				log_warning() << "In timeestimation first was found to be 0, this should not happes!" << std::endl;
 #endif
 				confidence=0.0;
 				return -1; 
@@ -237,10 +236,8 @@ TPIE_OS_OFFSET execution_time_predictor::estimate_execution_time(TPIE_OS_OFFSET 
 	}
 	TPIE_OS_OFFSET v=db->estimate(m_id, n, confidence);
 #ifndef NDEBUG
-	if (v == -1) {
-		TP_LOG_FATAL("Do database entry for " << m_name << " (" << m_id << ")");
-		TP_LOG_FLUSH_LOG;
-	}
+	if (v == -1)
+		log_debug() << "No database entry for " << m_name << " (" << m_id << ")" << std::endl;
 #endif
 	return v;
 }

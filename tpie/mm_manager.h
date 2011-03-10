@@ -260,30 +260,30 @@ namespace tpie {
 	};
 	
 	inline size_t manager::allocation_count_factor() const {
-	    if (pause_allocation_depth)
-		return 0;
+	    if (pause_allocation_depth || register_new == mem::IGNORE_MEMORY_EXCEEDED) 
+			return 0;
 	    return 1;
 	}
-	
+		
 	inline void manager::pause_allocation_counting() { 
 	    if (++pause_allocation_depth == 1) {
-		// Tell STL to use realloc for allocation (wherever possible)
-		TPIE_OS_UNSET_GLIBCPP_FORCE_NEW;
+			// Tell STL to use realloc for allocation (wherever possible)
+			TPIE_OS_UNSET_GLIBCPP_FORCE_NEW;
 	    };
-}
+	}
 
 	inline void manager::resume_allocation_counting() { 
 	    if (pause_allocation_depth > 0) {
-		if (--pause_allocation_depth == 0){
-		    // Tell STL always to use new/debug for allocation
-		    TPIE_OS_SET_GLIBCPP_FORCE_NEW;
-		};
+			if (--pause_allocation_depth == 0){
+				// Tell STL always to use new/debug for allocation
+				TPIE_OS_SET_GLIBCPP_FORCE_NEW;
+			};
 	    }       
 	    else {  
-		TP_LOG_WARNING("Unmatched MM_manager::resume_allocation_counting()");
-		pause_allocation_depth = 0;
+			log_warning() << "Unmatched MM_manager::resume_allocation_counting()" << std::endl;
+			pause_allocation_depth = 0;
 	    }
-}
+	}
 
 /** The default amount of memory we will allow to be allocated; set to 40MB. */
 #define MM_DEFAULT_MM_SIZE (40<<20)

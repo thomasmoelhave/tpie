@@ -359,8 +359,8 @@ TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound,
 				" memory value to something smaller.");
 		}
 
-		//try to allocate "mid" bytes of memory
-		//TPIE throws an exception if memory allocation fails
+		 //try to allocate "mid" bytes of memory
+		 //TPIE throws an exception if memory allocatio fails
 		try {
 			char* mem = new char[mid];
 			low = mid;

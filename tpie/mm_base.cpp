@@ -63,7 +63,6 @@ tpie::static_string_stream sss;
 static void *do_new (TPIE_OS_SIZE_T sz, bool EXCEPTIONS_PARAM(allow_throw))
 {
    void *p;
-
 	if ((MM_manager.register_new != mem::IGNORE_MEMORY_EXCEEDED)
 			&& (MM_manager.register_allocation (sz + SIZE_SPACE) !=
 					mem::NO_ERROR)) {
@@ -169,12 +168,10 @@ void operator delete (void *ptr) throw()
     const TPIE_OS_SIZE_T dealloc_size =  
 	static_cast<TPIE_OS_SIZE_T>(*(reinterpret_cast<size_t*>((reinterpret_cast<char*>(ptr)) - SIZE_SPACE)));
     
-    if (MM_manager.register_new != mem::IGNORE_MEMORY_EXCEEDED) {
 	if (MM_manager.register_deallocation (
 		dealloc_size ? dealloc_size + SIZE_SPACE : 0) != mem::NO_ERROR) {
 	    TP_LOG_WARNING_ID("In operator delete - MM_manager.register_deallocation failed");
 	}
-    }
     void *p = (reinterpret_cast<char *>(ptr)) - SIZE_SPACE;
     
 #ifdef USE_DMALLOC
@@ -192,13 +189,11 @@ void operator delete[] (void *ptr) throw() {
     const TPIE_OS_SIZE_T dealloc_size =  
 	static_cast<TPIE_OS_SIZE_T>(*(reinterpret_cast<size_t*>((reinterpret_cast<char*>(ptr)) - SIZE_SPACE)));
     
-    if (MM_manager.register_new != mem::IGNORE_MEMORY_EXCEEDED) {
 	if (MM_manager.register_deallocation (
-		dealloc_size ? dealloc_size + SIZE_SPACE : 0) != mem::NO_ERROR) {
+			dealloc_size ? dealloc_size + SIZE_SPACE : 0) != mem::NO_ERROR) {
 	    TP_LOG_WARNING_ID("In operator delete [] - MM_manager.register_deallocation failed");
 	}
-    }
-    void *p = (reinterpret_cast<char *>(ptr)) - SIZE_SPACE;
+	void *p = (reinterpret_cast<char *>(ptr)) - SIZE_SPACE;
 #ifdef USE_DMALLOC
     char	*file;
     GET_RET_ADDR(file);
