@@ -26,7 +26,7 @@
 #include <tpie/prime.h>
 #include <iostream>
 #include <iomanip>
-
+#include <tpie/tpie_log.h>
 #ifdef WIN32
 #include <windows.h>
 #include <Shlobj.h>
@@ -37,7 +37,7 @@
 
 //using namespace boost::numeric::ublas;
 using namespace std;
-
+using namespace tpie;
 // template <typename T>
 // bool invert_matrix(const matrix<T> & input, matrix<T> & output) {
 //   matrix<T> A(input);
