@@ -62,35 +62,32 @@ tpie::static_string_stream sss;
 
 static void *do_new (TPIE_OS_SIZE_T sz, bool EXCEPTIONS_PARAM(allow_throw))
 {
-   void *p;
+	void *p;
 	if ((MM_manager.register_new != mem::IGNORE_MEMORY_EXCEEDED)
 			&& (MM_manager.register_allocation (sz + SIZE_SPACE) !=
 					mem::NO_ERROR)) {
 		switch(MM_manager.register_new) {
 			case mem::ABORT_ON_MEMORY_EXCEEDED: 
 			{
+				MM_manager.register_deallocation(sz + SIZE_SPACE); //Deallocate the space again
 				sss.clear();
 				sss << "Memory allocation error, memory limit exceeded. "
 					<<"Allocation request \""
-					<< static_cast<TPIE_OS_LONG>(sz + SIZE_SPACE)
+					<< (sz + SIZE_SPACE)
 					<< "\" plus previous allocation \""
-					<< static_cast<TPIE_OS_LONG>(MM_manager.memory_used () - (sz + SIZE_SPACE))
+					<< MM_manager.memory_used ()
 					<< "\" exceeds user-defined limit \""
-					<< static_cast<TPIE_OS_LONG>(MM_manager.memory_limit ())
+					<< MM_manager.memory_limit ()
 					<< "\"";
 #ifdef TPIE_USE_EXCEPTIONS
-				if (allow_throw) {
-					//I didn't use stringstreams here, I didn't want to allocate more memory.
-					//to write an error message
-					//once we have more control of the allocations we can write something better here.
-					throw out_of_memory_error(sss.c_str());
-				} 
+				if (allow_throw) throw out_of_memory_error(sss.c_str());
 #endif
 				log_error() << sss.c_str() << std::endl;
 				exit (1);
 			} break;
 			case mem::WARN_ON_MEMORY_EXCEEDED:
 			{
+				//// THIL **WILL** CAUSE A STACK OVERFLOW IF THE LOG ALLOCATES (WHICH IT DOES)
 				log_warning() << "Memory allocation error, memory limit exceeded. "
 							  << "In operator new() - allocation request \""
 							  << static_cast<TPIE_OS_LONG>(sz + SIZE_SPACE)
