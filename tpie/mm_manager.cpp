@@ -43,13 +43,13 @@ extern int register_new;
 using namespace tpie::mem;
 
 manager::manager() : 
-    remaining (0), user_limit(0), used(0), global_overhead (0), pause_allocation_depth (0) {
+    user_limit(0), used(0), global_overhead (0), pause_allocation_depth (0) {
     instances++;
     tp_assert(instances == 1,
               "Only 1 instance of manager_base should exist.");
 #ifdef TPIE_THREADSAFE_MEMORY_MANAGEMNT
 	mm_mutex = 0; //This is very important
-	mm_mutex = new boost::mutex(); //This will call register_allocation on a uninitialized this
+	mm_mutex = new boost::recursive_mutex(); //This will call register_allocation on a uninitialized this
 #endif
 }
 
@@ -68,42 +68,22 @@ err manager::register_allocation(TPIE_OS_SIZE_T request)
 {
 #ifdef TPIE_THREADSAFE_MEMORY_MANAGEMNT
 	if (!mm_mutex) return NO_ERROR;
-	boost::mutex::scoped_lock lock(*mm_mutex);
+	boost::recursive_mutex::scoped_lock lock(*mm_mutex);
 #endif
 	// quick hack to allow operation before limit is set
 	// XXX 	
 	if(!user_limit || pause_allocation_depth) {
 		return NO_ERROR;
 	}
-	
-	used += request;		     
-		
-	if (request > remaining) {
+
+	if (request > remaining()) {
+		used += request;
 #ifdef TPIE_THREADSAFE_MEMORY_MANAGEMNT
 		lock.unlock();
 #endif
-//		scoped_change<mode> sl(MM_manager.register_new, mem::IGNORE_MEMORY_EXCEEDED);
-//		log_warning() << "Memory allocation request: " << request << "; User-specified memory limit exceeded. Currently used: " << (used - request) << "; remaining: " << remaining << ";" << std::endl;
-		remaining = 0;
 		return INSUFFICIENT_SPACE;
 	}
-		
-	remaining -= request; 
-
-	// TP_LOG_MEM_DEBUG("manager Allocated ");
-	// TP_LOG_MEM_DEBUG(static_cast<TPIE_OS_OFFSET>(request));
-	// TP_LOG_MEM_DEBUG("; ");
-	// TP_LOG_MEM_DEBUG(static_cast<TPIE_OS_OFFSET>(remaining));
-	// TP_LOG_MEM_DEBUG(" remaining.\n");
-	// TP_LOG_FLUSH_LOG;
-		
-#ifdef REPORT_LARGE_MEMOPS
-	if(request > user_limit/10) {
-	  std::cerr << "MEM alloc " << request
-		   << " (" << remaining << " remaining)" << endl;
-	}
-#endif
-    
+	used += request;
     return NO_ERROR;
 }
 
@@ -115,26 +95,23 @@ err manager::register_deallocation(TPIE_OS_SIZE_T sz)
 {
 #ifdef TPIE_THREADSAFE_MEMORY_MANAGEMNT
 	if (!mm_mutex) return NO_ERROR;
-	boost::mutex::scoped_lock lock(*mm_mutex);
+	boost::recursive_mutex::scoped_lock lock(*mm_mutex);
 #endif
 
-	if(!user_limit || pause_allocation_depth) {
+	if(!user_limit || pause_allocation_depth)
 		return NO_ERROR;
-	}
-
-	remaining += sz;
 
 	if (sz > used) {
 #ifdef TPIE_THREADSAFE_MEMORY_MANAGEMNT
 		lock.unlock();
 #endif
 		log_error() << "Error in deallocation sz=" << static_cast<TPIE_OS_LONG>(sz)
-					<< ", remaining=" << static_cast<TPIE_OS_LONG>(remaining) 
+					<< ", remaining=" << static_cast<TPIE_OS_LONG>(remaining()) 
 					<< ", user_limit=" << static_cast<TPIE_OS_LONG>(user_limit) << std::endl;
 		used = 0;
 		return EXCESSIVE_DEALLOCATION;
 	}
-	used      -= sz;    
+	used -= sz;    
 	
 	// TP_LOG_MEM_DEBUG("mm_register De-allocated ");
 	// TP_LOG_MEM_DEBUG(static_cast<TPIE_OS_LONG>(sz));
@@ -146,7 +123,7 @@ err manager::register_deallocation(TPIE_OS_SIZE_T sz)
 #ifdef REPORT_LARGE_MEMOPS
 	if(sz > user_limit/10) {
 	  std::cerr << "MEM free " << sz 
-		   << " (" << remaining << " remaining)" << endl;
+				<< " (" << remaining() << " remaining)" << endl;
 	}
 #endif
 
@@ -157,7 +134,7 @@ err manager::register_deallocation(TPIE_OS_SIZE_T sz)
 // (Old) way to query how much memory is available
 
 err manager::available (TPIE_OS_SIZE_T *sz) {
-    *sz = remaining;
+    *sz = memory_available();
     return NO_ERROR;    
 }
 
@@ -181,39 +158,30 @@ err manager::set_memory_limit (TPIE_OS_SIZE_T new_limit)
 #ifdef TPIE_THREADSAFE_MEMORY_MANAGEMNT
 	// memory manager should be initialized before calling set_memory_limit (as opposed to (de)allocate)
 	if (!mm_mutex) return MUTEX_FAILURE;
-	boost::mutex::scoped_lock lock(*mm_mutex);
+	boost::recursive_mutex::scoped_lock lock(*mm_mutex);
 #endif
     // by default, we keep track and abort if memory limit exceeded
-    if (register_new == IGNORE_MEMORY_EXCEEDED){
-	register_new = ABORT_ON_MEMORY_EXCEEDED;
-    }
+    if (register_new == IGNORE_MEMORY_EXCEEDED)
+		register_new = ABORT_ON_MEMORY_EXCEEDED;
+
     // dh. unless the user indicates otherwise
     if (new_limit == 0){
-	register_new = IGNORE_MEMORY_EXCEEDED;
-	global_overhead = remaining = used = user_limit = 0;
-	return NO_ERROR;
+		register_new = IGNORE_MEMORY_EXCEEDED;
+		global_overhead = used = user_limit = 0;
+		return NO_ERROR;
     } 
 
-    if (used > new_limit) {
-        return EXCESSIVE_ALLOCATION;
-    } else {
-        // These are unsigned, so be careful.
-        if (new_limit < user_limit) {
-            remaining -= user_limit - new_limit;
-        } else {
-            remaining += new_limit - user_limit;
-        }
-
-		user_limit = new_limit;
-        return NO_ERROR;
-    }
+    if (used > new_limit) return EXCESSIVE_ALLOCATION;
+	user_limit = new_limit;
+	return NO_ERROR;
+    
 }
 
 // Add to the global overhead
 void manager::add_to_global_overhead (TPIE_OS_SIZE_T sz) {
 #ifdef TPIE_THREADSAFE_MEMORY_MANAGEMNT
 	if (!mm_mutex) return;
-	boost::mutex::scoped_lock lock(*mm_mutex);
+	boost::recursive_mutex::scoped_lock lock(*mm_mutex);
 #endif
 	global_overhead += sz;
 }
@@ -222,7 +190,7 @@ void manager::add_to_global_overhead (TPIE_OS_SIZE_T sz) {
 void manager::subtract_from_global_overhead (TPIE_OS_SIZE_T sz) {
 #ifdef TPIE_THREADSAFE_MEMORY_MANAGEMNT
 	if (!mm_mutex) return;
-	boost::mutex::scoped_lock lock(*mm_mutex);
+	boost::recursive_mutex::scoped_lock lock(*mm_mutex);
 #endif
 	if(global_overhead < sz)
 		global_overhead = 0;
@@ -238,7 +206,7 @@ TPIE_OS_SIZE_T manager::get_global_overhead () const{
 void manager::warn_memory_limit() {
 #ifdef TPIE_THREADSAFE_MEMORY_MANAGEMNT
 	if (!mm_mutex) return;
-	boost::mutex::scoped_lock lock(*mm_mutex);
+	boost::recursive_mutex::scoped_lock lock(*mm_mutex);
 #endif
     register_new = WARN_ON_MEMORY_EXCEEDED;
 }
@@ -247,7 +215,7 @@ void manager::warn_memory_limit() {
 void manager::enforce_memory_limit() {
 #ifdef TPIE_THREADSAFE_MEMORY_MANAGEMNT
 	if (!mm_mutex) return;
-	boost::mutex::scoped_lock lock(*mm_mutex);
+	boost::recursive_mutex::scoped_lock lock(*mm_mutex);
 #endif
     register_new = ABORT_ON_MEMORY_EXCEEDED;
 }
@@ -256,7 +224,7 @@ void manager::enforce_memory_limit() {
 void manager::ignore_memory_limit() {
 #ifdef TPIE_THREADSAFE_MEMORY_MANAGEMNT
 	if (!mm_mutex) return;
-	boost::mutex::scoped_lock lock(*mm_mutex);
+	boost::recursive_mutex::scoped_lock lock(*mm_mutex);
 #endif
     register_new = IGNORE_MEMORY_EXCEEDED;
 }
@@ -267,12 +235,17 @@ mode manager::get_limit_mode() {
 }
 
 
+TPIE_OS_SIZE_T manager::remaining() {
+	if(used > user_limit) return 0;
+	return user_limit - used;
+}
+
 // dh. return the amount of memory available before user-specified 
 // memory limit exceeded 
 TPIE_OS_SIZE_T manager::memory_available() {
-	if(remaining < global_overhead)
+	if(remaining() < global_overhead)
 		return 0;
-	return remaining - global_overhead;
+	return remaining() - global_overhead;
 }
 
 TPIE_OS_SIZE_T manager::memory_used() {
@@ -291,6 +264,7 @@ TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound,
 	TP_LOG_DEBUG_ID("consecutive_memory_available only works with exceptions\n");
 	return memory_available();
 #else
+	boost::recursive_mutex::scoped_lock lock(*mm_mutex);
 	scoped_log_enabler le(false);
 	tpie::scoped_change<mode> c(register_new, ABORT_ON_MEMORY_EXCEEDED);
 
@@ -299,7 +273,7 @@ TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound,
 
 	//don't try to get more than the amount of bytes currently
 	//available
-	TPIE_OS_SIZE_T high = remaining;
+	TPIE_OS_SIZE_T high = remaining();
 	if(high > static_cast<TPIE_OS_SIZE_T>(space_overhead()))
 		high -= static_cast<TPIE_OS_SIZE_T>(space_overhead());
 	else
@@ -320,11 +294,6 @@ TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound,
 		TP_LOG_DEBUG_ID("Failed to get " << high/(1024*1024) << " megabytes of memory. "
 						<< "Performing binary search to find largest amount "
 						<< "of memory available. This might take a few moments.\n");
-	} catch (tpie::out_of_memory_error) {
-		scoped_log_enabler _(le.get_orig());
-		TP_LOG_DEBUG_ID("Failed to get " << high/(1024*1024) << " megabytes of memory. "
-						<< "Performing binary search to find largest amount "
-						<< "of memory available. This might take a few moments.\n");
 	}
 
 	//we should be able to get at least lower_limit bytes
@@ -332,10 +301,6 @@ TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound,
 		char* mem = new char[low];
 		delete[] mem;
 	} catch (std::bad_alloc) {
-		scoped_log_enabler _(le.get_orig());
-		TP_LOG_DEBUG_ID("Failed to get lower limit" << low/(1024*1024) << " megabytes of memory. Aborting\n. ");
-		return 0;
-	} catch (out_of_memory_error) {
 		scoped_log_enabler _(le.get_orig());
 		TP_LOG_DEBUG_ID("Failed to get lower limit" << low/(1024*1024) << " megabytes of memory. Aborting\n. ");
 		return 0;
@@ -366,10 +331,6 @@ TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound,
 			low = mid;
 			delete[] mem;
 		} catch (std::bad_alloc) {
-			high = mid;
-			scoped_log_enabler _(le.get_orig()); 
-			TP_LOG_DEBUG_ID("failed.\n");
-		} catch (out_of_memory_error) {
 			high = mid;
 			scoped_log_enabler _(le.get_orig()); 
 			TP_LOG_DEBUG_ID("failed.\n");

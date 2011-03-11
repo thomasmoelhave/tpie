@@ -26,7 +26,7 @@
 #include <tpie/portability.h>
 #include <tpie/tpie_log.h>
 #ifdef TPIE_THREADSAFE_MEMORY_MANAGEMNT
-#include <boost/thread/mutex.hpp>
+#include <boost/thread/recursive_mutex.hpp>
 #endif
 
 #define MM_MANAGER_VERSION 2
@@ -80,27 +80,25 @@ namespace tpie {
 	private:
 
 #ifdef TPIE_THREADSAFE_MEMORY_MANAGEMNT
-		boost::mutex * mm_mutex;
+		boost::recursive_mutex * mm_mutex;
 #endif
 
 	    /** The number of instances of this class and descendents that exist.*/
 	    static int instances;
 	    
-	    /** The amount of space remaining to be allocated. */
-	    TPIE_OS_SIZE_T   remaining;
-	    
 	    /** The user-specified limit on memory. */ 
-	    TPIE_OS_SIZE_T   user_limit;
+	    TPIE_OS_SIZE_T user_limit;
 	    
 	    /** The amount that has been allocated. */
-	    TPIE_OS_SIZE_T   used;
+	    TPIE_OS_SIZE_T used;
 
 	    /** The current allocation overhead. */
-	    TPIE_OS_SIZE_T   global_overhead;
+	    TPIE_OS_SIZE_T global_overhead;
 	    
 	    /** The depth of possibly nested "pause"-calls. */
 	    unsigned long pause_allocation_depth;
-	    
+
+		TPIE_OS_SIZE_T remaining();
 	public:
 	    // made public since Linux c++ doesn't like the fact that our new
 	    // and delete operators don't throw exceptions. [tavi] 
@@ -188,7 +186,7 @@ namespace tpie {
 	    /// user-specified limit is reached.
 	    ///////////////////////////////////////////////////////////////////////////
 	    TPIE_OS_SIZE_T memory_available ();
-	    
+
 	    ///////////////////////////////////////////////////////////////////////////
 	    /// Return the number of bytes of memory that can safely be allocated as one
 	    /// consecutive array. This is never bigger than the value returned by
