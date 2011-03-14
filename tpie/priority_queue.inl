@@ -37,6 +37,12 @@ priority_queue<T, Comparator, OPQType>::priority_queue(TPIE_OS_SIZE_T mm_avail) 
 
 template<typename T, typename Comparator, typename OPQType>
 void priority_queue<T, Comparator, OPQType>::init(TPIE_OS_SIZE_T mm_avail) { // init 
+#ifdef _WIN32
+#ifndef _WIN64
+	mm_avail = std::min(mm_avail, static_cast<size_t>(1024*1024*512));
+#endif //_WIN64
+#endif //_WIN32
+
 	TP_LOG_DEBUG("m_for_queue: " 
 		<< static_cast<TPIE_OS_OUTPUT_SIZE_T>(mm_avail) << "\n");
 	TP_LOG_DEBUG("memory before alloc: " 
