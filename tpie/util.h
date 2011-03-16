@@ -102,6 +102,16 @@ struct scoped_change {
 	~scoped_change() {var=old;}
 };
 
+template <int t>
+struct template_log {
+	static const size_t v=1+template_log< t/2 >::v;
+};
+
+template <>
+struct template_log<1> {
+	static const size_t v=1;
+};
+
 } //namespace tpie
 
 #endif //__TPIE_UTIL_H__
