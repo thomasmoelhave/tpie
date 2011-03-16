@@ -26,7 +26,7 @@
 using namespace tpie;
 
 bool basic_test() {
-	array<int> hat;
+	array<int, false> hat;
   
 	//Resize
 	hat.resize(52, 42);
@@ -45,13 +45,33 @@ bool basic_test() {
 	if (hat.empty()) return false;
 	hat.resize(0);
 	if (!hat.empty()) return false;
-	array<int> a(1,0),b(4,0),c(11,0);
+	array<int, false> a(1,0),b(4,0),c(11,0);
 	a[0] = b[0] = c[0] = 1;
 	if(!a[0] || !b[0] || ! c[0]) return false;
 	a[0] = b[0] = c[0] = 0;
 	if(a[0] || b[0] || c[0]) return false;
-	
 
+	return true;
+}
+
+bool segmented_array_test() {
+	array<int, false> h1;
+	array<int, true> h2;
+	size_t z=8388619;
+	h1.resize(z);
+	h2.resize(z);
+	for (size_type i=0; i < 52; ++i)
+		h2[i] = h1[i] = (i * 833547)%z;
+
+	array<int, false>::iterator i1=h1.begin();
+	array<int, true>::iterator i2=h2.begin();
+	
+	while (i1 != h1.end() || i2 != h2.end()) {
+		if (i1 == h1.end() || i2 == h2.end()) return false;
+		if (*i1 != *i2) return false;
+		i1++;
+		i2++;
+	}
 	return true;
 }
 
@@ -150,13 +170,16 @@ bool iterator_bool_test() {
 	return true;
 }
 
-
+template <bool seg>
 class array_memory_test: public memory_test {
 public:
-	array<int> * a;
-	virtual void alloc() {a = new array<int>(123456, 42);}
-	virtual void free() {delete a;}
-	virtual size_type claimed_size() {return static_cast<size_type>(array<int>::memory_usage(123456));}
+	array<int, seg> a;
+	virtual void alloc() {a.resize(1024*1024*32);}
+	virtual void free() {a.resize(0);}
+	virtual size_type claimed_size() {
+		std::cout << array<int, seg>::memory_coefficient() << std::endl;
+		return static_cast<size_type>(array<int, seg>::memory_usage(1024*1024*32));
+	}
 };
 
 class array_bool_memory_test: public memory_test {
@@ -186,13 +209,16 @@ int main(int argc, char **argv) {
 	else if (test == "iterators") 
 		return iterator_test()?EXIT_SUCCESS:EXIT_FAILURE;
 	else if (test == "memory") 
-		return array_memory_test()()?EXIT_SUCCESS:EXIT_FAILURE;
+		return array_memory_test<false>()()?EXIT_SUCCESS:EXIT_FAILURE;
+	else if (test == "segmented")
+		return segmented_array_test()?EXIT_SUCCESS:EXIT_FAILURE;
+	else if (test == "memory_segmented") 
+		return array_memory_test<true>()()?EXIT_SUCCESS:EXIT_FAILURE;
 	else if (test == "bit_basic")
 		return basic_bool_test()?EXIT_SUCCESS:EXIT_FAILURE;
 	else if (test == "bit_iterators") 
 		return iterator_bool_test()?EXIT_SUCCESS:EXIT_FAILURE;
 	else if (test == "bit_memory") 
 		return array_bool_memory_test()()?EXIT_SUCCESS:EXIT_FAILURE;
-
 	return EXIT_FAILURE;
 }
