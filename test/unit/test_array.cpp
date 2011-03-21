@@ -177,7 +177,6 @@ public:
 	virtual void alloc() {a.resize(1024*1024*32);}
 	virtual void free() {a.resize(0);}
 	virtual size_type claimed_size() {
-		std::cout << array<int, seg>::memory_coefficient() << std::endl;
 		return static_cast<size_type>(array<int, seg>::memory_usage(1024*1024*32));
 	}
 };

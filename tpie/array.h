@@ -406,7 +406,7 @@ public:
 	/// \copydetails linear_memory_structure_doc::memory_coefficient()
 	/////////////////////////////////////////////////////////
 	static double memory_coefficient() {
-		return (double)sizeof(T) + (double)sizeof(T)/(double)(1 << bits);
+		return (double)sizeof(T) + (double)sizeof(T*)/(double)(1 << bits);
 	}
 
 	/////////////////////////////////////////////////////////
@@ -467,7 +467,7 @@ public:
 		}
 		m_size=size;
 		{
-			size_t o=outerSize(m_size);
+			size_t o=outerSize(size);
 			//Allocate the outer array
 			m_a = m_allocator2.allocate(o);
 			//Allocate the innner arrayes
