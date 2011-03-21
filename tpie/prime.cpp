@@ -26,21 +26,30 @@
 
 namespace tpie {
 
-is_prime_t::is_prime_t(): m(4294967295ul), mr(static_cast<size_t>(sqrt(double(m))+1)) {
+is_prime_t::is_prime_t(): m(4294967295ul), mr(static_cast<size_t>(sqrt(double(m))+1)) {}
+
+void is_prime_t::init() {
+	if (m_pr.size() != 0) return;
 	array<bool> sieve(mr >> 1, true);
 	size_t pc=1;
+	std::cout << sieve[13 >> 1] << std::endl;
 	for (size_t i=3; i < mr; i+= 2) {
 		if (!sieve[i>>1]) continue;
 		++pc;
-		for (size_t j=i+i; j < mr; j += i) sieve[j>>1] = false;
+		size_t i2=i+i;
+		for (size_t j=i2+i; j < mr; j += i2) {
+			sieve[j>>1] = false;
+		}
 	}
 	m_pr.resize(pc);
 	size_t p=1;
 	m_pr[0] = 2;
-	for (size_t i=3; i < mr; i += 2) 
+	for (size_t i=3; i < mr; i += 2) {
 		if (sieve[i>>1]) m_pr[p++] = i;
+	}
 }
 
-is_prime_t is_prime;
+void is_prime_t::finish() {m_pr.resize(0);}
 
+is_prime_t is_prime;
 }

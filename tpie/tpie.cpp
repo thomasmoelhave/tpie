@@ -21,6 +21,7 @@
 #include <tpie/fractional_progress.h>
 #include <tpie/execution_time_predictor.h>
 #include <tpie/tpie_log.h>
+#include <tpie/prime.h>
 
 namespace tpie {
 
@@ -31,6 +32,8 @@ void tpie_init(int subsystems) {
 		init_fraction_db();
 		init_execution_time_db();
 	}
+	if (subsystems & PRIME)
+		is_prime.init();
 }
 
 void tpie_finish(int subsystems) {
@@ -40,6 +43,8 @@ void tpie_finish(int subsystems) {
 	}
 	if (subsystems & DEFAULT_LOGGING)
 		finish_default_log();
+	if (subsystems & PRIME)
+		is_prime.finish();
 }
 
 }

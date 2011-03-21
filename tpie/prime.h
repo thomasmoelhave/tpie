@@ -38,6 +38,8 @@ private:
 	array<size_type> m_pr;
 public:
 	is_prime_t();
+	void init();
+	void finish();
 
 	///////////////////////////////////////////////////////////////////////
 	/// \brief Check if i is a prime.
@@ -45,14 +47,18 @@ public:
 	/// \param i number to check, must be less then 4294967295
 	/// \return true if and only if i is a prime number
 	///////////////////////////////////////////////////////////////////////
-	inline bool operator()(size_type i) { 
-		for(size_type j =0; m_pr[j] * m_pr[j] <= i; ++j) {
+	inline bool operator()(size_type i) const {
+		for(size_type j =0; m_pr[j] * m_pr[j] <= i; ++j)
 			if (i % m_pr[j] == 0) return false;
-		}
 		return true;
 	}
 
-	size_t prime_hash(const std::string & x) {
+	inline size_t next_prime(size_t i) const {
+		while(!operator()(i)) ++i;
+		return i;
+	}
+
+	size_t prime_hash(const std::string & x) const {
 		size_t r=42;
 		for(size_t i=0; i < x.size(); ++i)
 			r = r*m_pr[i % m_pr.size()] + x[i];
