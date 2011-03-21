@@ -34,6 +34,8 @@ add_fulltest(internal_priority_queue large_cycle)
 add_unittest(array basic iterators segmented memory memory_segmented bit_basic bit_iterators bit_memory)
 add_unittest(disjoint_set basic memory)
 
+add_unittest(external_sort small)
+
 add_executable(test_bte test_bte.cpp)
 target_link_libraries(test_bte tpie)
 
