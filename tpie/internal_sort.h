@@ -241,7 +241,7 @@ err Internal_Sorter_Op<T>::sort(stream<T>* InStr,
 	read_progress.done();
 
 	//Sort the array.
-	parallel_sort(ItemArray, ItemArray+nItems, std::less<T>(), &sort_progress);
+	parallel_sort<true>(ItemArray, ItemArray+nItems, sort_progress, std::less<T>());
 
 	if(InStr==OutStr){ //Do the right thing if we are doing 2x sort
 		//Internal sort objects should probably be re-written so that
@@ -342,7 +342,7 @@ err Internal_Sorter_Obj<T, CMPR>::sort(stream<T>* InStr,
 	read_progress.done();
 
 	//Sort the array.
-	tpie::parallel_sort(ItemArray, ItemArray+nItems, TPIE2STL_cmp<T,CMPR>(cmp_o), &sort_progress);
+	tpie::parallel_sort<true>(ItemArray, ItemArray+nItems, sort_progress, TPIE2STL_cmp<T,CMPR>(cmp_o));
 	if (InStr==OutStr) { //Do the right thing if we are doing 2x sort
 		//Internal sort objects should probably be re-written so that
 		//the interface is cleaner and they don't have to worry about I/O
@@ -522,7 +522,7 @@ inline err Internal_Sorter_KObj<T, KEY, CMPR>::sort(stream<T>* InStr,
 	QsortKeyCmp<KEY, CMPR> kc(UsrObject);
 	TPIE2STL_cmp<qsort_item<KEY>,QsortKeyCmp<KEY,CMPR> > stlcomp(&kc);
 
-	parallel_sort(sortItemArray, sortItemArray+nItems, std::less<qsort_item<KEY> >(), &sort_progress);
+	parallel_sort<true>(sortItemArray, sortItemArray+nItems, sort_progress, std::less<qsort_item<KEY> >());
 	if (InStr==OutStr) { //Do the right thing if we are doing 2x sort
 		//Internal sort objects should probably be re-written so that
 		//the interface is cleaner and they don't have to worry about I/O
