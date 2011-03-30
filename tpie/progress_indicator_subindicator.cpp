@@ -74,7 +74,7 @@ void progress_indicator_subindicator::refresh() {
 
 void progress_indicator_subindicator::init(TPIE_OS_OFFSET range, TPIE_OS_OFFSET step) {
 #ifndef NDEBUG
-	softassert(!m_init_called);
+	softassert(!m_init_called && "Init called twice");
 	m_init_called=true;
 #endif
 	if (m_crumb[0] && m_parent) m_parent->push_breadcrumb(m_crumb);
