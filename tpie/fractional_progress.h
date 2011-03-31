@@ -40,7 +40,7 @@ public:
 							const char * function,
 							TPIE_OS_OFFSET n,
 							const char * crumb=0,
-							bool display_subcrumbs=true,
+							description_importance importance=IMPORTANCE_MAJOR,
 							bool enabled=true);
 
 	~fractional_subindicator();

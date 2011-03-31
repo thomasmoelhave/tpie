@@ -23,8 +23,8 @@
 
 namespace tpie {
 
-void progress_indicator_subindicator::push_breadcrumb(const char * crumb, bool debug) {
-	if (m_parent) m_parent->push_breadcrumb(crumb, debug || !m_display_subcrumbs);
+void progress_indicator_subindicator::push_breadcrumb(const char * crumb, description_importance importance) {
+	if (m_parent) m_parent->push_breadcrumb(crumb, std::min(importance, m_importance));
 }
 
 
@@ -32,12 +32,18 @@ void progress_indicator_subindicator::pop_breadcrumb() {
 	if (m_parent) m_parent->pop_breadcrumb();
 }
 
+/**
+ * \param parent The parent indecator of this indicator
+ * \param outerRange The range this indicator ocupices of its outer indicator
+ * \param crumb The bread crumb of this indicator
+ * \param importance The maximal importance to assign to the crumbs of child indicators
+ */
 progress_indicator_subindicator::progress_indicator_subindicator(progress_indicator_base * parent,
 																 TPIE_OS_OFFSET outerRange,
 																 const char * crumb,
-																 bool display_subcrumbs):
+																 description_importance importance):
 	progress_indicator_base(0), m_parent(parent), m_outerRange(outerRange), 
-	m_oldValue(0), m_display_subcrumbs(display_subcrumbs)
+	m_oldValue(0), m_importance(importance)
 #ifndef NDEBUG
 	,m_init_called(false), m_done_called(false)
 #endif
@@ -78,7 +84,7 @@ void progress_indicator_subindicator::init(TPIE_OS_OFFSET range) {
 	softassert(!m_init_called && "Init called twice");
 	m_init_called=true;
 #endif
-	if (m_crumb[0] && m_parent) m_parent->push_breadcrumb(m_crumb, true);
+	if (m_crumb[0] && m_parent) m_parent->push_breadcrumb(m_crumb, IMPORTANCE_MAJOR);
 	progress_indicator_base::init(range);
 }
 

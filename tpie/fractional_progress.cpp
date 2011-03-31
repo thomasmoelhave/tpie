@@ -177,9 +177,9 @@ fractional_subindicator::fractional_subindicator(
 	const char * function,
 	TPIE_OS_OFFSET n,
 	const char * crumb,
-	bool display_subcrumbs,
+	description_importance importance,
 	bool enabled):
-	progress_indicator_subindicator(fp.m_pi, 42, crumb, display_subcrumbs),
+	progress_indicator_subindicator(fp.m_pi, 42, crumb, importance),
 #ifndef NDEBUG
 	m_init_called(false), m_done_called(false), 
 #endif

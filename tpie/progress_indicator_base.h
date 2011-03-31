@@ -50,6 +50,13 @@ namespace tpie {
 /// status will be advanced by stepValue units. 
 ///////////////////////////////////////////////////////////////////
 
+enum description_importance {
+	IMPORTANCE_NONE,
+	IMPORTANCE_LOG,
+	IMPORTANCE_MINOR,
+	IMPORTANCE_MAJOR
+};
+
 class progress_indicator_base {
 public:
 	////////////////////////////////////////////////////////////////////
@@ -161,9 +168,8 @@ public:
 		return m_predictor->estimate_remaining_time( double(m_current) / double(m_range) );
 	}
 
-	virtual void push_breadcrumb(const char *, bool) {}
+	virtual void push_breadcrumb(const char *, description_importance) {}
 	virtual void pop_breadcrumb() {}
-
 protected:
 	/**  The upper bound of the counting range.  */
 	TPIE_OS_OFFSET m_range;
