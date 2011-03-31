@@ -38,7 +38,8 @@ namespace tpie {
 ///////////////////////////////////////////////////////////////////
 
     class progress_indicator_arrow : public progress_indicator_terminal {
-
+	private:
+		progress_indicator_arrow(const progress_indicator_arrow& other);
     public:
 
 	////////////////////////////////////////////////////////////////////
@@ -54,38 +55,14 @@ namespace tpie {
 	///
 	////////////////////////////////////////////////////////////////////
 
-	progress_indicator_arrow(const std::string& title, 
-							 const std::string& description, 
-							 TPIE_OS_OFFSET minRange, 
-							 TPIE_OS_OFFSET maxRange, 
-							 TPIE_OS_OFFSET stepValue) : 
-	    progress_indicator_terminal(title, description, minRange, maxRange, stepValue), m_indicatorLength(0), m_progress(0) {
+	progress_indicator_arrow(const char * title, TPIE_OS_OFFSET range) :
+	    progress_indicator_terminal(title, range) , m_indicatorLength(0), m_progress(0) {
 	    m_indicatorLength = 110;
 	}
     
-  ////////////////////////////////////////////////////////////////////
-  ///  Copy-constructor.
-  ////////////////////////////////////////////////////////////////////
+		
 
-	progress_indicator_arrow(const progress_indicator_arrow& other) : 
-	    progress_indicator_terminal(other), m_indicatorLength(40), m_progress(0) {
-	    *this = other;
-	}
 
-  ////////////////////////////////////////////////////////////////////
-  ///  Assignment operator.
-  ////////////////////////////////////////////////////////////////////
-
-	progress_indicator_arrow& operator=(const progress_indicator_arrow& other) {
-	    if (this != &other) {
-
-		progress_indicator_terminal::operator=(other);
-
-		m_indicatorLength = other.m_indicatorLength;
-		m_progress        = other.m_progress;
-	    }
-	    return *this;
-	}
 
 	////////////////////////////////////////////////////////////////////
 	///
@@ -117,7 +94,7 @@ namespace tpie {
 	////////////////////////////////////////////////////////////////////
 
 	virtual void reset() {
-	    m_current  = m_minRange;
+	    m_current  = 0;
 	    m_progress = 0;
 	}
 
@@ -131,9 +108,9 @@ namespace tpie {
 	    //  Compute the relative length of the arrow.
 		//std::cout << "refresh " << m_description << std::endl;
 
-		TPIE_OS_OFFSET l = m_indicatorLength - 12  - m_description.size();
-	    TPIE_OS_OFFSET progress = (m_maxRange != m_minRange ) ? 
-			l * (m_current-m_minRange)/(m_maxRange-m_minRange) : 0; 
+		TPIE_OS_OFFSET l = m_indicatorLength - 12  - m_title.size();
+	    TPIE_OS_OFFSET progress = (m_range) ? 
+			l * (m_current)/(m_range) : 0; 
 
 		
 	    //  Make sure that the first item gets printed.
@@ -146,7 +123,7 @@ namespace tpie {
 			if (progress >= l) progress = l -1;
 			
 			//  Go to the beginning of the line and print the description.
-			std::cout << "\r" << m_description << " [";
+			std::cout << "\r" << m_title << " [";
 			
 			//  Extend the arrow.
 			

@@ -218,7 +218,6 @@ err Internal_Sorter_Op<T>::sort(stream<T>* InStr,
 		return NULL_POINTER;
 	}
 	
-	pi->set_range(0, 4000, 1);
 	tp_assert ( nItems <= len, "nItems more than interal buffer size.");
 
 	fractional_progress fp(pi);
@@ -309,7 +308,6 @@ err Internal_Sorter_Obj<T, CMPR>::sort(stream<T>* InStr,
 									   stream<T>* OutStr, 
 									   TPIE_OS_SIZE_T nItems,
 									   progress_indicator_base * pi) {
-	pi->set_range(0, 4000, 1);
 	tp_assert ( nItems <= len, "nItems more than interal buffer size.");
 
 	
@@ -488,7 +486,6 @@ inline err Internal_Sorter_KObj<T, KEY, CMPR>::sort(stream<T>* InStr,
 	T    *next_item;
 	TPIE_OS_SIZE_T i = 0;
 
-	pi->set_range(0, 4000, 1);	
 	// Make sure we called allocate earlier
 	if (ItemArray==NULL || sortItemArray==NULL) {
 		return NULL_POINTER;

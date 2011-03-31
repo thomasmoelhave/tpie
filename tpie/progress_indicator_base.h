@@ -52,71 +52,21 @@ namespace tpie {
 
 class progress_indicator_base {
 public:
-	
 	////////////////////////////////////////////////////////////////////
 	///
-	///  Initializes the indicator. There is a sanity check that 
-	///  ensures that minRange <= maxRange and that stepValue 
-	///  is in [1,maxRange-minRange].
+	///  Initializes the indicator.
 	///
 	///  \param  title        The title of the progress indicator.
-	///  \param  description  A text to be printed in front of the 
-	///                       indicator.
-	///  \param  minRange     The lower bound of the counting range.
 	///  \param  maxRange     The upper bound of the counting range.
-	///  \param  stepValue    The increment for each step.
 	///
 	////////////////////////////////////////////////////////////////////
 	
-	progress_indicator_base(const std::string& /* title */, 
-							const std::string& /* description */, 
-							TPIE_OS_OFFSET minRange, 
-							TPIE_OS_OFFSET maxRange, 
-							TPIE_OS_OFFSET stepValue) : 
-	    m_minRange(std::min(minRange, maxRange)),
-	    m_maxRange(std::max(minRange, maxRange)),
-	    m_stepValue(std::max(std::min(stepValue, (m_maxRange-m_minRange)), 
-			    static_cast<TPIE_OS_OFFSET>(1))),
+	progress_indicator_base(TPIE_OS_OFFSET range) : 
+	    m_range(range),
 	    m_current(0),
-	    m_percentageChecker(0), 
-	    m_percentageValue(0), 
-	    m_percentageUnit(0),
 		m_lastUpdate(getticks()),
 		m_predictor(0) {
 		compute_threshold();
-	}
-
-	////////////////////////////////////////////////////////////////////
-	///  Copy-constructor.
-	////////////////////////////////////////////////////////////////////
-	progress_indicator_base(const progress_indicator_base& other) :
-	    m_minRange(other.m_minRange),
-	    m_maxRange(other.m_maxRange),
-	    m_stepValue(other.m_stepValue),
-	    m_current(other.m_current),
-	    m_percentageChecker(other.m_percentageChecker),
-	    m_percentageValue(other.m_percentageValue),
-	    m_percentageUnit(other.m_percentageUnit),
-		m_lastUpdate(other.m_lastUpdate),
-		m_predictor(other.m_predictor) {
-				compute_threshold();
-	    }
-
-	////////////////////////////////////////////////////////////////////
-	///  Assignment operator.
-	////////////////////////////////////////////////////////////////////
-	progress_indicator_base& operator=(const progress_indicator_base& other) {
-	    if (this != &other) {
-		m_percentageChecker = other.m_percentageChecker;
-		m_percentageValue   = other.m_percentageValue;
-		m_percentageUnit    = other.m_percentageUnit;
-		m_maxRange          = other.m_maxRange;
-		m_minRange          = other.m_minRange;
-		m_stepValue         = other.m_stepValue;
-		m_current           = other.m_current;
-		m_lastUpdate        = other.m_lastUpdate;
-	    }
-	    return *this;
 	}
 
 	////////////////////////////////////////////////////////////////////
@@ -125,89 +75,18 @@ public:
 	virtual ~progress_indicator_base() {
 	    // Do nothing.
 	};
-    
-	////////////////////////////////////////////////////////////////////
-	///
-	///  Simultaneously set the upper and lower bound of the counting
-	///  range. Also, set the increment for each step. There is a sanity 
-	///  check that ensures that minRange <= maxRange and that stepValue 
-	///  is in [1,maxRange-minRange].
-	///
-	///  \param  minRange     The lower bound of the counting range.
-	///  \param  maxRange     The upper bound of the counting range.
-	///  \param  stepValue    The increment for each step.
-	///
-	////////////////////////////////////////////////////////////////////
-	void set_range(TPIE_OS_OFFSET minRange, TPIE_OS_OFFSET maxRange, TPIE_OS_OFFSET stepValue) {
-	    set_min_range(std::min(minRange, maxRange));
-	    set_max_range(std::max(minRange, maxRange));
-	    set_step_value( std::max(std::min(stepValue, (m_maxRange-m_minRange)),
-				static_cast<TPIE_OS_OFFSET>(1)));
-	    m_percentageValue = 0;
-	    m_percentageChecker = 0;
-	    m_percentageUnit = 0;
-	    reset();
-	}
-
-	void set_range(TPIE_OS_OFFSET range, TPIE_OS_OFFSET step=1) {
-		set_range(0, range, step);
-	}
-    
-	////////////////////////////////////////////////////////////////////
-	///  Simultaneously set the upper and lower bound of the counting
-	///  range and set the increment to be max(1,0.01(maxRange-minRange)).
-	///  There is a sanity check that ensures that minRange <= maxRange.
-	///
-	///  \param  minRange        The lower bound of the counting range.
-	///  \param  maxRange        The upper bound of the counting range.
-	///  \param  percentageUnit  1/percentageUnit is one "percent".
-	////////////////////////////////////////////////////////////////////
-	void set_percentage_range(TPIE_OS_OFFSET minRange, TPIE_OS_OFFSET maxRange, unsigned short percentageUnit = 100) {
-	    TPIE_OS_OFFSET localMin = std::min(minRange,maxRange);
-	    TPIE_OS_OFFSET localMax = std::max(minRange,maxRange);
-	    set_step_value(1);
-	    m_percentageUnit  = std::max(percentageUnit, 
-				    static_cast<unsigned short>(1));
-	    m_percentageValue = (localMax-localMin)/m_percentageUnit;
-	    if (m_percentageValue > 0) {
-		set_min_range(0);
-		set_max_range(m_percentageUnit);
-	    }
-	    else {
-		set_min_range(localMin);
-		set_max_range(localMax);
-		m_percentageValue = 1;
-		m_percentageUnit = static_cast<unsigned short>(localMax-localMin);
-	    }
-	    m_percentageChecker = 0;
-	    reset();
-	}
-
-	////////////////////////////////////////////////////////////////////
-	///  Record an increment but only advance the indicator if it will
-	///  be advance by at least one percent.
-	////////////////////////////////////////////////////////////////////
-	void step_percentage() {
-	    //  Increase the step counter.
-	    ++m_percentageChecker;
-	    m_percentageChecker = m_percentageChecker % m_percentageValue;
-
-	    //  If the number of steps since the last update is large
-	    //  enough to constiture one "percent", advance the indicator.
-	    if ((!m_percentageChecker) && (m_current < m_maxRange)) 
-		step();
-	}
 
 	////////////////////////////////////////////////////////////////////
 	///  Record an increment to the indicator and advance the indicator.
 	////////////////////////////////////////////////////////////////////
-	void step(TPIE_OS_OFFSET step) {
+	void step(TPIE_OS_OFFSET step=1) {
 	    m_current += step;
 		ticks currentTicks = getticks();
 #ifndef NDEBUG
-		if ( elapsed(currentTicks,m_lastUpdate) > m_frequency * m_threshold * 5) {
-			TP_LOG_WARNING("Step was not called for 5 seconds\n");
-		}
+		if (elapsed(currentTicks,m_lastUpdate) > m_frequency * m_threshold * 5)
+			tpie::log_debug() << "Step was not called for an estimated " 
+							  << (elapsed(currentTicks,m_lastUpdate) / (m_frequency * m_threshold))
+							  << "seconds" << std::endl;;
 #endif	
 		if(elapsed(currentTicks, m_lastUpdate) > m_threshold){
 			m_lastUpdate = currentTicks;
@@ -215,22 +94,11 @@ public:
 		}
 	}
 
-	void step() {step(m_stepValue);}
-
-	virtual void init(TPIE_OS_OFFSET range, TPIE_OS_OFFSET step=1) {
-		if (range != 0) set_range(0, range, step);
-	    m_current = m_minRange;
+	virtual void init(TPIE_OS_OFFSET range=0) {
+		if (range != 0) set_range(range);
+	    m_current = 0;
 		m_lastUpdate = getticks();
 	    refresh();
-	}
-
-	////////////////////////////////////////////////////////////////////
-	///  Display a zero count. This method may also be used to 
-	///  simultaneously set a new description.
-	////////////////////////////////////////////////////////////////////
-	void init(const std::string& description = std::string()) {
-		unused(description);
-		init(0);
 	}
 
 	////////////////////////////////////////////////////////////////////
@@ -238,7 +106,7 @@ public:
 	///  lower bound of the counting range.
 	////////////////////////////////////////////////////////////////////
 	virtual void reset() {
-	    m_current = m_minRange;
+	    m_current = 0;
 	}
 
 	////////////////////////////////////////////////////////////////////
@@ -252,24 +120,8 @@ public:
 	////////////////////////////////////////////////////////////////////
 
 	virtual void done() {}
-	void done(const std::string& text) {unused(text); done();}
 	
 	////////////////////////////////////////////////////////////////////
-	///
-	///  Set the lower bound of the counting range. This method
-	///  also implies a reset of the counter. In order to be able
-	///  to set the lower bound independent of setting the upper bound,
-	///  no range checking is done.
-	///
-	///  \param  minRange  The new lower bound.
-	///
-	////////////////////////////////////////////////////////////////////
-	virtual void set_min_range(TPIE_OS_OFFSET minRange) {
-	    m_minRange = minRange;
-	    reset();
-	}
-
-		////////////////////////////////////////////////////////////////////
 	///
 	///  Set the upper bound of the counting range. This method
 	///  also implies a reset of the counter. In order to be able
@@ -279,119 +131,47 @@ public:
 	///  \param  maxRange  The new upper bound.
 	///
 	////////////////////////////////////////////////////////////////////
-	virtual void set_max_range(TPIE_OS_OFFSET maxRange) {
-	    m_maxRange = maxRange;
+	virtual void set_range(TPIE_OS_OFFSET range) {
+	    m_range = range;
 	    reset();
 	}
-
-	////////////////////////////////////////////////////////////////////
-	///
-	///  Set the increment by which the counter is advanced upon each
-	///  call to step(). In order to be able to reset the counter,
-	///  no range checking is done.
-	///
-	///  \param  stepValue  The incerement.
-	///
-	////////////////////////////////////////////////////////////////////
-	virtual void set_step_value(TPIE_OS_OFFSET stepValue) {
-	    m_stepValue = stepValue;
-	}
   
-	////////////////////////////////////////////////////////////////////
-	///
-	///  Set the title of a new task to be monitored. The terminal
-	///  line will be newline'd, and the title will be followed by a
-	///  newline as well.
-	///
-	///  \param  title  The title of the new task to be monitored.
-	///
-	////////////////////////////////////////////////////////////////////
-
-	void set_title(const std::string&) {}
-
-	////////////////////////////////////////////////////////////////////
-	///
-	///  Set the description of the task currently being monitored.
-	///  Invoking this method will clear the terminal line.
-	///
-	///  \param  description  The decription of the task being monitored.
-	///
-	////////////////////////////////////////////////////////////////////
-
-	void set_description(const std::string&) {}
-
 	////////////////////////////////////////////////////////////////////
 	///
 	///  Display the indicator.
 	///
 	////////////////////////////////////////////////////////////////////
-
 	virtual void refresh() = 0;
 
 	////////////////////////////////////////////////////////////////////
 	///  Get the current value of the step counter.
 	////////////////////////////////////////////////////////////////////
-	
 	TPIE_OS_OFFSET get_current() { return m_current; }
-	
-	////////////////////////////////////////////////////////////////////
-	///  Get the minimum value of the current range.
-	////////////////////////////////////////////////////////////////////
-	
-	TPIE_OS_OFFSET get_min_range() { return m_minRange; }
 	
 	////////////////////////////////////////////////////////////////////
 	///  Get the maximum value of the current range.
 	////////////////////////////////////////////////////////////////////
-
-	TPIE_OS_OFFSET get_max_range() { return m_maxRange; }
-	
-	////////////////////////////////////////////////////////////////////
-	///  Get the current number of units the step counter is increased
-	///  by each call to step.
-	////////////////////////////////////////////////////////////////////
-
-	TPIE_OS_OFFSET get_step_value() { return m_stepValue; }
-
+	TPIE_OS_OFFSET get_range() { return m_range; }
 
 	execution_time_predictor * get_time_predictor() {return m_predictor;}
 	void set_time_predictor(execution_time_predictor * p) {m_predictor = p;}
 
 	std::string estimated_remaining_time() {
-		if (m_maxRange - m_minRange == 0 || m_predictor == 0 || m_current < 0) return "";
-		return m_predictor->estimate_remaining_time( double(m_current) / double(m_maxRange - m_minRange) );
+		if (m_range == 0 || m_predictor == 0 || m_current < 0) return "";
+		return m_predictor->estimate_remaining_time( double(m_current) / double(m_range) );
 	}
 
-	virtual void push_breadcrumb(const char *) {}
+	virtual void push_breadcrumb(const char *, bool) {}
 	virtual void pop_breadcrumb() {}
+
 protected:
-
-	/**  The lower bound of the counting range.  */
-	TPIE_OS_OFFSET m_minRange;
-
 	/**  The upper bound of the counting range.  */
-	TPIE_OS_OFFSET m_maxRange;
-
-	/**  The increment for each step.  */
-	TPIE_OS_OFFSET m_stepValue;
+	TPIE_OS_OFFSET m_range;
 
 	/**  The current progress count [m_minRange...m_maxRange].  */
 	TPIE_OS_OFFSET m_current;
-
-	/**  A temporary counter in [0...m_percentageValue-1].  */
-	TPIE_OS_OFFSET m_percentageChecker;
-
-	/**  The absolute value which constitutes one percent of 
-	     the counting range.  */
-	TPIE_OS_OFFSET m_percentageValue;
-
-	/**  The unit in which "percentage" is measure. Default is
-	     to measure in percent, i.e., the unit is 100. A value
-	     other than 0 indicates that the counter is in percentage
-	     mode, i.e., it displays percent instead of steps. */
-	unsigned short m_percentageUnit;
-
-    private:
+	
+private:
 	/**  The number of ticks elapsed when refresh was called last */
 	ticks m_lastUpdate;
 
@@ -413,7 +193,8 @@ protected:
 	static void compute_threshold();
 
 	progress_indicator_base();
-    };
+	progress_indicator_base(const progress_indicator_base& other);
+};
 
 }  //  tpie namespace
 

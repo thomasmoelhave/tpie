@@ -23,19 +23,20 @@
 
 namespace tpie {
 
-void progress_indicator_subindicator::push_breadcrumb(const char * crumb) {
-	if (m_display_subcrumbs && m_parent) m_parent->push_breadcrumb(crumb);
+void progress_indicator_subindicator::push_breadcrumb(const char * crumb, bool debug) {
+	if (m_parent) m_parent->push_breadcrumb(crumb, debug || !m_display_subcrumbs);
 }
 
+
 void progress_indicator_subindicator::pop_breadcrumb() {
-	if (m_display_subcrumbs && m_parent) m_parent->pop_breadcrumb();
+	if (m_parent) m_parent->pop_breadcrumb();
 }
 
 progress_indicator_subindicator::progress_indicator_subindicator(progress_indicator_base * parent,
 																 TPIE_OS_OFFSET outerRange,
 																 const char * crumb,
 																 bool display_subcrumbs):
-	progress_indicator_base("","", 0, 1,1), m_parent(parent), m_outerRange(outerRange), 
+	progress_indicator_base(0), m_parent(parent), m_outerRange(outerRange), 
 	m_oldValue(0), m_display_subcrumbs(display_subcrumbs)
 #ifndef NDEBUG
 	,m_init_called(false), m_done_called(false)
@@ -63,22 +64,22 @@ progress_indicator_subindicator::~progress_indicator_subindicator() {
 
 void progress_indicator_subindicator::refresh() {
 	TPIE_OS_OFFSET val = get_current();
-	if (val > get_max_range()) val = get_max_range();
-	if (get_max_range() == get_min_range()) return;
-	TPIE_OS_OFFSET value= (val - get_min_range() )* m_outerRange / (get_max_range() - get_min_range());
+	if (val > get_range()) val = get_range();
+	if (get_range() == 0) return;
+	TPIE_OS_OFFSET value= val* m_outerRange / get_range();
 	if (value > m_oldValue && m_parent) {
 		m_parent->step(value - m_oldValue);
 		m_oldValue = value;
 	}
 }
 
-void progress_indicator_subindicator::init(TPIE_OS_OFFSET range, TPIE_OS_OFFSET step) {
+void progress_indicator_subindicator::init(TPIE_OS_OFFSET range) {
 #ifndef NDEBUG
 	softassert(!m_init_called && "Init called twice");
 	m_init_called=true;
 #endif
-	if (m_crumb[0] && m_parent) m_parent->push_breadcrumb(m_crumb);
-	progress_indicator_base::init(range, step);
+	if (m_crumb[0] && m_parent) m_parent->push_breadcrumb(m_crumb, true);
+	progress_indicator_base::init(range);
 }
 
 void progress_indicator_subindicator::done() {
@@ -89,7 +90,7 @@ void progress_indicator_subindicator::done() {
 #endif
 	if (m_crumb[0] && m_parent) m_parent->pop_breadcrumb();
 	progress_indicator_base::done();
-	m_current = m_maxRange; 
+	m_current = m_range; 
 	refresh();
 }
 

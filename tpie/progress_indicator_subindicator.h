@@ -27,9 +27,9 @@ namespace tpie {
 class progress_indicator_subindicator: public progress_indicator_base {
 public:
 	void refresh();
-	virtual void push_breadcrumb(const char * crumb);
+	virtual void push_breadcrumb(const char * crumb, bool debug);
 	virtual void pop_breadcrumb();
-	virtual void init(TPIE_OS_OFFSET range, TPIE_OS_OFFSET step=1);
+	virtual void init(TPIE_OS_OFFSET range);
 	virtual void done();
 	progress_indicator_subindicator(progress_indicator_base * parent,
 									TPIE_OS_OFFSET outerRange,

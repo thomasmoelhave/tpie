@@ -33,56 +33,45 @@ namespace tpie {
 ///
 ///////////////////////////////////////////////////////////////////
 
-    class progress_indicator_terminal : public progress_indicator_base {
+class progress_indicator_terminal : public progress_indicator_base {
+private:
+	progress_indicator_terminal(const progress_indicator_terminal& other);
 
-    public:
-
+public:
 	////////////////////////////////////////////////////////////////////
 	///
 	///  Initializes the indicator.
 	///
 	///  \param  title        The title of the progress indicator.
-	///  \param  description  A text to be printed in front of the 
 	///                       indicator.
 	///  \param  minRange     The lower bound of the range.
-	///  \param  maxRange     The upper bound of the range.
-	///  \param  stepValue    The increment for each step.
-	///
 	////////////////////////////////////////////////////////////////////
 
-	progress_indicator_terminal(const std::string& title, 
-								const std::string& description, 
-								TPIE_OS_OFFSET minRange, 
-								TPIE_OS_OFFSET maxRange, 
-								TPIE_OS_OFFSET stepValue) : 
-	    progress_indicator_base(title, description, minRange, maxRange, stepValue), m_title(""), m_description("") {
-			m_title = title;
-			m_description = description;
-	}
+	progress_indicator_terminal(const char * title, TPIE_OS_OFFSET range) : 
+	    progress_indicator_base(range), m_title(title) {}
 
-  ////////////////////////////////////////////////////////////////////
-  ///  Copy-constructor.
-  ////////////////////////////////////////////////////////////////////
+  // ////////////////////////////////////////////////////////////////////
+  // ///  Copy-constructor.
+  // ////////////////////////////////////////////////////////////////////
+	  // 	progress_indicator_terminal(const progress_indicator_terminal& other) : 
+  // 	    progress_indicator_base(other), m_title("") {
+  // 	    *this = other;
+  // 	}
 
-	progress_indicator_terminal(const progress_indicator_terminal& other) : 
-	    progress_indicator_base(other), m_title(NULL), m_description(NULL) {
-	    *this = other;
-	}
+  // ////////////////////////////////////////////////////////////////////
+  // ///  Assignment operator.
+  // ////////////////////////////////////////////////////////////////////
 
-  ////////////////////////////////////////////////////////////////////
-  ///  Assignment operator.
-  ////////////////////////////////////////////////////////////////////
-
-	progress_indicator_terminal& operator=(const progress_indicator_terminal& other) 
-	{
-	    if (this != &other) 
-		{
-			progress_indicator_base::operator=(other);
-			m_title = other.m_title;
-			m_description = other.m_description;
-		}
-	    return *this;
-	}
+  // 	progress_indicator_terminal& operator=(const progress_indicator_terminal& other) 
+  // 	{
+  // 	    if (this != &other) 
+  // 		{
+  // 			progress_indicator_base::operator=(other);
+  // 			m_title = other.m_title;
+  // 			m_description = other.m_description;
+  // 		}
+  // 	    return *this;
+  // 	}
 
 	////////////////////////////////////////////////////////////////////
 	///
@@ -104,10 +93,10 @@ namespace tpie {
 	////////////////////////////////////////////////////////////////////
 
 	void done(const std::string& text = std::string()) {
-	    m_current = m_maxRange;
+	    m_current = m_range;
 	    refresh();
 	    if (!text.empty()) {
-		std::cout << " " << text;
+			std::cout << " " << text;
 	    }
 	    std::cout << std::endl;
 	}
@@ -131,45 +120,25 @@ namespace tpie {
 
 	////////////////////////////////////////////////////////////////////
 	///
-	///  Set the description of the task currently being monitored.
-	///  Invoking this method will clear the terminal line.
-	///
-	///  \param  description  The decription of the task being monitored.
-	///
-	////////////////////////////////////////////////////////////////////
-
-	void set_description(const std::string& description) 
-	{
-	    m_description = description;
-		refresh();
-	}
-
-
-	std::string get_description() {
-		return m_description;
-	}
-
-	////////////////////////////////////////////////////////////////////
-	///
 	///  Display the indicator.
 	///
 	////////////////////////////////////////////////////////////////////
 
 	virtual void refresh() {
-	    std::cout << "\r" << m_description << " ";
+	    std::cout << "\r" << m_title << " ";
 	    display_percentage();
 	    std::cout << std::flush;
 	}
+	
+protected:
 
-    protected:
-
-
+	
 	////////////////////////////////////////////////////////////////////
 	///
 	///  Compute and print the percentage or step count.
 	///
 	////////////////////////////////////////////////////////////////////
-
+	
 	void display_percentage() 
 	{
 		//if (m_percentageUnit) {
@@ -181,24 +150,19 @@ namespace tpie {
 	    //else {
 		//		std::cout << 
 	    //}
-		TPIE_OS_OFFSET r = (m_current - m_minRange) * 100 / (m_maxRange-m_minRange);
+		TPIE_OS_OFFSET r = (m_current) * 100 / (m_range);
 		std::cout << r << "%";
 	}
-
+	
 	/**  A string holding the description of the title */
 	std::string m_title;
-
-	/**  A string holding the description of the current task */
-	std::string m_description;
-
-    private:
-
-  ////////////////////////////////////////////////////////////////////
-  /// Empty constructor.
-  ////////////////////////////////////////////////////////////////////
-  progress_indicator_terminal();
-    };
-
+	
+private:	
+	////////////////////////////////////////////////////////////////////
+	/// Empty constructor.
+	////////////////////////////////////////////////////////////////////
+	progress_indicator_terminal();
+};
 }  //  tpie namespace
 
 #endif // _PROGRESS_INDICATOR_TERMINAL

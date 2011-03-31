@@ -272,7 +272,6 @@ err sort_manager<T,I,M>::start_sort(){
 	inStream->seek (0);
 	
 	if (nInputItems < TPIE_OS_OFFSET(m_internalSorter->MaxItemCount(mmBytesAvail))){
-		if (m_indicator) m_indicator->set_range(0, 4000, 1);
 		
 		fractional_progress fp(m_indicator);
 		fp.id() << __FILE__ << __FUNCTION__ << "internal_sort" << typeid(T) << typeid(I) << typeid(M);
@@ -622,12 +621,8 @@ err sort_manager<T,I,M>::partition_and_sort_runs(progress_indicator_base* indica
 	// ********************************************************************
 	TPIE_OS_OFFSET check_size = 0; //for debugging
 
-	if (indicator) {
-		//m_indicator->set_description();
-		indicator->set_range(0,nRuns*1000,1);
-		//m_indicator->refresh();
-		indicator->init("Forming runs");
-	}
+	if (indicator) 
+		indicator->init(nRuns*1000);
 	
 	for(arity_t ii=0; ii<mrgArity; ii++){   //For each output stream
 		// Make the output file name
@@ -727,8 +722,8 @@ err sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
 		treeHeight= static_cast<int>(ceil(log(static_cast<float>(nRuns)) /
 										  log(static_cast<float>(mrgArity))));
 
-		indicator->set_range(0, nInputItems * treeHeight, 1);
-		indicator->init("Merging");
+		indicator->set_range( nInputItems * treeHeight);
+		indicator->init();
 	}
   
 	//nRuns is initially the number of runs we formed in partition_and_sort
