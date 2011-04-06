@@ -40,6 +40,8 @@ namespace tpie {
 	public:	
 		static std::string tpie_name(const std::string& post_base = "", const std::string& dir = "", const std::string& ext = ""); 
 
+		static std::string tpie_dir_name(const std::string& post_base = "", const std::string& dir = ""); 
+
 		/////////////////////////////////////////////////////////
 		/// \returns the default path for temporary files on the system
 		/////////////////////////////////////////////////////////
