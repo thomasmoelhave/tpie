@@ -37,17 +37,16 @@ namespace tpie {
 	
 	protected:
 	    static stats_stream gstats_;
-	    static int remaining_streams;
-
+		static int current_streams;
 	public:
 	    // The number of globally available streams.
 	    static int available_streams() { 
-		return remaining_streams; 
+			return get_os_available_fds();
 	    }
 	
 	    // The global stats.
 	    static const stats_stream& gstats() { 
-		return gstats_; 
+			return gstats_; 
 	    }
 	};
 

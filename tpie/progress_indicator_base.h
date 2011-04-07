@@ -93,7 +93,7 @@ public:
 		if (elapsed(currentTicks,m_lastUpdate) > m_frequency * m_threshold * 5)
 			tpie::log_debug() << "Step was not called for an estimated " 
 							  << (elapsed(currentTicks,m_lastUpdate) / (m_frequency * m_threshold))
-							  << "seconds" << std::endl;;
+							  << " seconds" << std::endl;;
 #endif	
 		if(elapsed(currentTicks, m_lastUpdate) > m_threshold){
 			m_lastUpdate = currentTicks;

@@ -150,7 +150,7 @@ namespace tpie {
 		}
 	protected:
 	
-	    using stream_base_generic::remaining_streams;
+	    using stream_base_generic::current_streams;
 	    using stream_base_generic::gstats_;
 	
 	    // Check the given header for reasonable values.
