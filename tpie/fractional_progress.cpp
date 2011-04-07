@@ -198,7 +198,6 @@ fractional_subindicator::fractional_subindicator(
 };
 
 void fractional_subindicator::init(TPIE_OS_OFFSET range) {
-	softassert(m_n != 0);
 	softassert(m_fp.m_init_called);
 	m_predict.start_execution(m_n);
 	if (m_parent) {
