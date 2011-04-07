@@ -55,7 +55,7 @@ namespace tpie {
 	    // CHECK THIS: Is this needed anymore?
 // These are for gcc-3.4 compatibility
 	protected:
-	    using base_t::remaining_streams;
+	    using base_t::current_streams;
 	    using base_t::m_substreamLevel;
 	    using base_t::m_status;
 	    using base_t::m_persistenceStatus;
@@ -151,8 +151,7 @@ namespace tpie {
 								   TPIE_OS_SIZE_T /* lbf */) {
 	
 	    // Reduce the number of streams avaialble.
-	    if (remaining_streams <= 0) 
-		{
+		if(stream_base_generic::available_streams() == 0) {
 			m_status = STREAM_STATUS_INVALID;
 			return;
 	    }
@@ -172,8 +171,8 @@ namespace tpie {
 	    m_fileOffset = m_logicalBeginOfStream = m_osBlockSize;
 	    m_logicalEndOfStream = m_osBlockSize;
 	
-	    remaining_streams--;
-	
+	    current_streams++;
+		
 	    switch (st) {
 	    case READ_STREAM:
 		// Open the file for reading.
@@ -485,9 +484,8 @@ namespace tpie {
 	    // TODO: Double-check this.
 	    delete m_header;
 	
-	    if (remaining_streams >= 0) {
-		remaining_streams++;
-	    }
+		current_streams--;
+
 	
 	    record_statistics(STREAM_CLOSE);
 	}

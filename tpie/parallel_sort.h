@@ -148,10 +148,7 @@ public:
 		work_estimate = 0;
 		working = 0;
 		kill = false;
-		if (pi) {
-			pi->set_range(0, sortWork(b-a), 1);
-			pi->init("Parallel sort");
-		}
+		if (pi) pi->init(sortWork(b-a));
 		
 		job_count = 0;
 		jobs[job_count++] = std::make_pair(a,b);

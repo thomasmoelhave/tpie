@@ -356,7 +356,7 @@ protected:
 	array<T> ItemArray;
 
 	/** Holds keys to be sorted */
-	array<KEY> sortItemArray;
+	array<qsort_item<KEY> > sortItemArray;
 	/** Copy,compare keys */ 
 	CMPR *UsrObject;              
 	/** length of ItemArray */
@@ -414,22 +414,15 @@ private:
 template<class T, class KEY, class CMPR>
 Internal_Sorter_KObj<T, KEY, CMPR>::~Internal_Sorter_KObj(void){
 	//  In case someone forgot to call deallocate()	    
-	if (ItemArray) {
-		delete [] ItemArray;
-		ItemArray=NULL;
-	}
-	
-	if(sortItemArray) {
-		delete [] sortItemArray;
-		sortItemArray=NULL;
-	}
+	ItemArray.resize(0);
+	sortItemArray.resize(0);
 }
 
 template<class T, class KEY, class CMPR>
 inline void Internal_Sorter_KObj<T, KEY, CMPR>::allocate(TPIE_OS_SIZE_T nitems){
 	len=nitems;
-	ItemArray = new T[len];
-	sortItemArray = new qsort_item<KEY>[len];
+	ItemArray.resize(len);
+	sortItemArray.resize(len);
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -472,7 +465,7 @@ inline err Internal_Sorter_KObj<T, KEY, CMPR>::sort(stream<T>* InStr,
 	TPIE_OS_SIZE_T i = 0;
 
 	// Make sure we called allocate earlier
-	if (ItemArray==NULL || sortItemArray==NULL) {
+	if (ItemArray.size() == 0 || sortItemArray.size() == 0) {
 		return NULL_POINTER;
 	}
 	
@@ -504,7 +497,7 @@ inline err Internal_Sorter_KObj<T, KEY, CMPR>::sort(stream<T>* InStr,
 	QsortKeyCmp<KEY, CMPR> kc(UsrObject);
 	TPIE2STL_cmp<qsort_item<KEY>,QsortKeyCmp<KEY,CMPR> > stlcomp(&kc);
 
-	parallel_sort<true>(sortItemArray, sortItemArray+nItems, sort_progress, std::less<qsort_item<KEY> >());
+	parallel_sort<true>(sortItemArray.begin(), sortItemArray.begin()+nItems, sort_progress, std::less<qsort_item<KEY> >());
 	if (InStr==OutStr) { //Do the right thing if we are doing 2x sort
 		//Internal sort objects should probably be re-written so that
 		//the interface is cleaner and they don't have to worry about I/O
@@ -531,16 +524,8 @@ template<class T, class KEY, class CMPR>
 inline void Internal_Sorter_KObj<T, KEY, CMPR>::deallocate(void) {
 	
 	len=0;
-	
-	if(ItemArray){
-		delete [] ItemArray;
-		ItemArray=NULL;
-	}
-	
-	if(sortItemArray){
-		delete [] sortItemArray;
-		sortItemArray=NULL;
-	}
+	ItemArray.resize(0);
+	sortItemArray.resize(0);
 }
 
 template<class T, class KEY, class CMPR>

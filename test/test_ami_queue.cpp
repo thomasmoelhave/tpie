@@ -39,9 +39,9 @@ void parse_app_opts(int /* idx */, char* /* opt_arg */) {
 
 int main(int argc, char **argv)
 {
-    progress_indicator_arrow* pi = new progress_indicator_arrow("Title","Desc",0,100,1);
-
     parse_args(argc, argv, app_opts, parse_app_opts);
+    progress_indicator_arrow enqueue_p("Desc", test_size);
+    progress_indicator_arrow dequeue_p("Desc", test_size);
 
     if (verbose) {
 	std::cout << "test_size = " << test_size << "." << std::endl;
@@ -56,19 +56,17 @@ int main(int argc, char **argv)
 
     ami::queue<TPIE_OS_OFFSET> queue;
     
-    pi->set_percentage_range(0,test_size);
-    pi->set_description("Enqueue");
-    
+	enqueue_p.init(test_size);
     // Push values.
     TPIE_OS_OFFSET ii;
     for (ii = 0; ii < test_size; ii++) {
-	pi->step_percentage();
-	queue.enqueue(ii);
+		enqueue_p.step();
+		queue.enqueue(ii);
     }
-    pi->done("Done");
+    enqueue_p.done();
     
     if (verbose) {
-	std::cout << "Queue size = " << queue.size() << std::endl;
+		std::cout << "Queue size = " << queue.size() << std::endl;
     }
     
     const TPIE_OS_OFFSET *jj;
@@ -78,25 +76,24 @@ int main(int argc, char **argv)
     queue.dequeue(&jj);
     last = *jj;
     
-    pi->set_description("Dequeue");
-    pi->reset();
+	dequeue_p.init(test_size);
     read++;
-    pi->step_percentage();
+   
+	dequeue_p.step();
 
     while(!queue.is_empty()) {
 
-	ami::err ae = queue.dequeue(&jj);
-	if(ae != ami::NO_ERROR) {
-	    std::cout << "Error from queue received" << std::endl;
-	}
-	read++;
-	pi->step_percentage();
-	if(*jj != ++last) {
-	    std::cout << std::endl << "Error in output: " << *jj << "!=" << last  << std::endl;
-	}
+		ami::err ae = queue.dequeue(&jj);
+		if(ae != ami::NO_ERROR) {
+			std::cout << "Error from queue received" << std::endl;
+		}
+		read++;
+		dequeue_p.step();
+		if(*jj != ++last) {
+			std::cout << std::endl << "Error in output: " << *jj << "!=" << last  << std::endl;
+		}
     }
-
-    pi->done("Done");
+	dequeue_p.done();
 
     if(read != test_size) {
 	std::cout << "Error: Wrong amount of elements read, got: " << read << " expected: "<<test_size << std::endl;
