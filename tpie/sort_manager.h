@@ -326,8 +326,8 @@ err sort_manager<T,I,M>::start_sort(){
 	// ********************************************************************
 	fractional_progress fp(m_indicator);
 	fp.id() << __FILE__ << __FUNCTION__ << "external_sort" << typeid(T) << typeid(I) << typeid(M);
-	fractional_subindicator run_progress(fp, "run", TPIE_FSI, nInputItems);
-	fractional_subindicator merge_progress(fp, "merge", TPIE_FSI, nInputItems);
+	fractional_subindicator run_progress(fp, "run", TPIE_FSI, nInputItems,"",tpie::IMPORTANCE_LOG);
+	fractional_subindicator merge_progress(fp, "merge", TPIE_FSI, nInputItems,"",tpie::IMPORTANCE_LOG);
 	fp.init();
 
 	// PHASE 3: partition and form sorted runs
