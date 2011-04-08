@@ -39,6 +39,7 @@ extern int register_new;
 #endif
 
 #include <cstdlib>
+#include <cstring>
 
 using namespace tpie::mem;
 
