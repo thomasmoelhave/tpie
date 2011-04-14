@@ -23,24 +23,62 @@
 /// \brief Contains computations related to prime numbers
 ///////////////////////////////////////////////////////////////////////////
 
+namespace {
+using namespace tpie;
+
+struct is_prime_t {
+private:
+	const size_type m;
+	const size_type mr;
+	array<size_type> m_pr;
+public:
+	is_prime_t(): m(4294967295ul), mr(static_cast<size_t>(sqrt(double(m))+1)) {}
+	
+	inline void init() {
+		array<bool> sieve(mr >> 1, true);
+		size_t pc=1;
+		for (size_t i=3; i < mr; i+= 2) {
+			if (!sieve[i>>1]) continue;
+			++pc;
+			for (size_t j=i+i; j < mr; j += i) sieve[j>>1] = false;
+		}
+		m_pr.resize(pc);
+		size_t p=1;
+		m_pr[0] = 2;
+		for (size_t i=3; i < mr; i += 2) 
+			if (sieve[i>>1]) m_pr[p++] = i;
+	}
+
+	inline void free() {
+		m_pr.resize(0);
+	}
+
+	inline bool operator()(size_type i) { 
+		for(size_type j =0; m_pr[j] * m_pr[j] <= i; ++j) {
+			if (i % m_pr[j] == 0) return false;
+		}
+		return true;
+	}
+
+	inline size_t prime_hash(const std::string & x) {
+		size_t r=42;
+		for(size_t i=0; i < x.size(); ++i)
+			r = r*m_pr[i % m_pr.size()] + x[i];
+		return r;
+	}
+};
+
+is_prime_t is_prime_ins;
+} //Nameless namespace
 
 namespace tpie {
 
-is_prime_t::is_prime_t(): m(4294967295ul), mr(static_cast<size_t>(sqrt(double(m))+1)) {
-	array<bool> sieve(mr >> 1, true);
-	size_t pc=1;
-	for (size_t i=3; i < mr; i+= 2) {
-		if (!sieve[i>>1]) continue;
-		++pc;
-		for (size_t j=i+i; j < mr; j += i) sieve[j>>1] = false;
-	}
-	m_pr.resize(pc);
-	size_t p=1;
-	m_pr[0] = 2;
-	for (size_t i=3; i < mr; i += 2) 
-		if (sieve[i>>1]) m_pr[p++] = i;
-}
+void init_prime() {is_prime_ins.init();}
 
-is_prime_t is_prime;
+void finish_prime() {is_prime_ins.free();}
+
+bool is_prime(size_type i) {return is_prime_ins(i);}
+
+size_t prime_hash(const std::string & s) {return is_prime_ins.prime_hash(s);}
 
 }

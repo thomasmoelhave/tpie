@@ -219,7 +219,7 @@ void finish_execution_time_db() {
 }
 
 execution_time_predictor::execution_time_predictor(const std::string & id): 
-	m_id(is_prime.prime_hash(id)), m_start_time(boost::posix_time::not_a_date_time), 
+	m_id(prime_hash(id)), m_start_time(boost::posix_time::not_a_date_time), 
 	m_estimate(-1), m_pause_time_at_start(0)
 #ifndef NDEBUG
 	,m_name(id)
@@ -230,7 +230,7 @@ execution_time_predictor::~execution_time_predictor() {
 }
 
 TPIE_OS_OFFSET execution_time_predictor::estimate_execution_time(TPIE_OS_OFFSET n, double & confidence) {
-	if (m_id == is_prime.prime_hash(std::string())) {
+	if (m_id == prime_hash(std::string())) {
 		confidence=0.0;
 		return -1;
 	}
@@ -250,7 +250,7 @@ void execution_time_predictor::start_execution(TPIE_OS_OFFSET n) {
 }
 
 TPIE_OS_OFFSET execution_time_predictor::end_execution() {
-	if (m_id == is_prime.prime_hash(std::string()) || !s_store_times) return 0;
+	if (m_id == prime_hash(std::string()) || !s_store_times) return 0;
 	TPIE_OS_OFFSET t = (boost::posix_time::microsec_clock::local_time() - m_start_time).total_milliseconds();
 	t -= (s_pause_time - m_pause_time_at_start);
 	entry & e = db->db[m_id];
