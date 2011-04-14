@@ -60,7 +60,9 @@ manager::~manager(void)
               "Only 1 instance of manager_base should exist.");
 
     instances--;
+#ifdef TPIE_THREADSAFE_MEMORY_MANAGEMNT
 	mm_mutex = 0;
+#endif
 }
 
 // check that new allocation request is below user-defined limit.
