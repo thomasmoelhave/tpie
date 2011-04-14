@@ -22,10 +22,14 @@
 #include <tpie/execution_time_predictor.h>
 #include <tpie/tpie_log.h>
 #include <tpie/prime.h>
+#include <tpie/mm_manager.h>
 
 namespace tpie {
 
 void tpie_init(int subsystems) {
+	if (subsystems & MEMORY_MANAGER)	
+		init_memory_manager();
+
 	if (subsystems & DEFAULT_LOGGING)
 		init_default_log();
 
@@ -49,6 +53,9 @@ void tpie_finish(int subsystems) {
 
 	if (subsystems & DEFAULT_LOGGING)
 		finish_default_log();
+
+	if (subsystems & MEMORY_MANAGER)	
+		finish_memory_manager();
 }
 
 }
