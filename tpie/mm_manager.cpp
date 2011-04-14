@@ -355,26 +355,16 @@ int manager::instances = 0; // Number of instances. (init)
 // TPIE's "register memory requests" flag
 mode manager::register_new = ABORT_ON_MEMORY_EXCEEDED; 
 
-// The counter of mm_register_init instances. 
-unsigned int manager_init::count = 0;
-
 // Instantiate the actual memory manager, and allocate the 
 // its static data members
 manager tpie::MM_manager;
 
-
-// The constructor and destructor that ensure that the memory manager is
-// created exactly once, and destroyed when appropriate.
-manager_init::manager_init(void)
-{
-    if (count++ == 0) {
+void tpie::init_memory_manager() {
 	MM_manager.set_memory_limit(MM_DEFAULT_MM_SIZE);
     // Tell STL always to use new/debug for allocation
     TPIE_OS_SET_GLIBCPP_FORCE_NEW;
-    }
 }
 
-manager_init::~manager_init(void)
-{
-    --count;
+void tpie::finish_memory_manager() {
 }
+	
