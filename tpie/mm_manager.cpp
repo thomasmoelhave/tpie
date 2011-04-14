@@ -277,10 +277,10 @@ TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound,
 	return memory_available();
 #else
 	log_flusher lf;
+	scoped_log_enabler le(false);
 #ifdef TPIE_THREADSAFE_MEMORY_MANAGEMNT
 	boost::recursive_mutex::scoped_lock lock(*mm_mutex);
 #endif // TPIE_THREADSAFE_MEMORY_MANAGEMNT
-	scoped_log_enabler le(false);
 	tpie::scoped_change<mode> c(register_new, ABORT_ON_MEMORY_EXCEEDED);
 
 	//lower bound of search
