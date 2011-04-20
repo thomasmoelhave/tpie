@@ -17,9 +17,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #include "execution_time_predictor.h"
-// #include <boost/numeric/ublas/matrix.hpp>
-// #include <boost/numeric/ublas/lu.hpp>
-// #include <boost/numeric/ublas/io.hpp>
+#include <boost/filesystem.hpp>
 #include "serialization.h"
 #include <map>
 #include <algorithm>
@@ -35,18 +33,8 @@
 #include <pwd.h>
 #endif
 
-//using namespace boost::numeric::ublas;
 using namespace std;
 using namespace tpie;
-// template <typename T>
-// bool invert_matrix(const matrix<T> & input, matrix<T> & output) {
-//   matrix<T> A(input);
-//   permutation_matrix<size_t> p(A.size1());
-//   if (lu_factorize(A, p) != 0) return false;
-//   output.assign(identity_matrix<T>(A.size1()));
-//   lu_substitute(A, p, output);
-//   return true;
-// }
 
 typedef std::pair<TPIE_OS_OFFSET, TPIE_OS_OFFSET> p_t;
 
@@ -146,9 +134,15 @@ public:
 	~time_estimator_database() {}
 
 	void save() {
+		std::string tmp=path+"~";
 		ofstream f;
-		f.open(path.c_str(), ifstream::binary | ifstream::out);
-		if (f.is_open()) {
+		f.open(tmp.c_str(), ifstream::binary | ifstream::out);
+		if (!f.is_open()) {
+			log_error() << "Failed to store time estimation database: Could not create temporery file" << std::endl;
+			return;
+		}
+		
+		{
 			tpie::serializer s(f);
 			s << "TPIE time execution database";
 			s << (size_t)db.size();
@@ -157,9 +151,12 @@ public:
 				for (p_t * j=i->second.begin(); j != i->second.end(); ++j)
 					s << (TPIE_OS_OFFSET)j->first << (TPIE_OS_OFFSET)j->second;
 			}
-		} else {
-			TP_LOG_FATAL("Failed to store DB");
-			TP_LOG_FLUSH_LOG;
+		}
+		f.close();
+		try {
+			atomic_rename(tmp, path);
+		} catch(std::runtime_error e) {
+			log_error() << "Failed to store time estimation database: " << e.what() << std::endl;
 		}
 	}
 	

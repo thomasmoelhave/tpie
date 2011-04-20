@@ -65,17 +65,22 @@ public:
 #ifdef TPIE_FRACTIONDB_DIR_INL
 	~fraction_db() {
 		if (!dirty) return;
+#ifndef NDEBUG
+		std::string path=TPIE_FRACTIONDB_DIR_INL "/tpie_fraction_db_debug.inl";
+#else //NDEBUG
+		std::string path=TPIE_FRACTIONDB_DIR_INL "/tpie_fraction_db.inl";
+#endif //NDEBUG
+		std::string tmp=path+"~";
 		std::locale::global(std::locale::classic());
 		std::fstream f;
-#ifndef NDEBUG
-		f.open(TPIE_FRACTIONDB_DIR_INL "/tpie_fraction_db_debug.inl", std::fstream::out | std::fstream::trunc | std::fstream::binary);
-#else //NDEBUG
-		f.open(TPIE_FRACTIONDB_DIR_INL "/tpie_fraction_db.inl", std::fstream::out | std::fstream::trunc | std::fstream::binary);
-#endif //NDEBUG
+		f.open(tmp.c_str(), std::fstream::out | std::fstream::trunc | std::fstream::binary);
+
 		if (!f.is_open()) return;
 
 		for (i_t i=db.begin(); i != db.end(); ++i)
 			f << "update( \"" << i->first << "\" , " << i->second.first << " , " << i->second.second << " );\n";
+
+		atomic_rename(tmp, path);
 	}
 #endif //TPIE_FRACTIONDB_DIR_INL
 

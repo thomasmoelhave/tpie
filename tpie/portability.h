@@ -1071,6 +1071,7 @@ void * operator new(\
 #endif
 
 namespace tpie {
+	void atomic_rename(const std::string & src, const std::string & dst);
 	size_t get_os_available_fds();
 }
 
