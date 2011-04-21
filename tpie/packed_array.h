@@ -133,7 +133,7 @@ private:
 	private:
 		iter_return_type elm;		
 		
-		template <bool> friend class packed_array::const_iter_base;
+		friend class const_iter_base<forward>;
 		friend class packed_array;
 		template <typename, bool, typename> friend class packed_array_iter_facade;
 		iter_base(storage_type * elms, size_t index): elm(elms, index) {};
