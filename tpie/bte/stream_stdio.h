@@ -50,7 +50,7 @@ namespace tpie {
 // A class of BTE streams implemented using ordinary stdio semantics.
 	template <class T> 
 	class stream_stdio: public stream_base<T, stream_stdio<T> > {
-	private:
+	public:
 		typedef stream_base<T, stream_stdio<T> > base_t;
 	    // CHECK THIS: Is this needed anymore?
 // These are for gcc-3.4 compatibility
