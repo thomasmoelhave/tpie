@@ -769,7 +769,7 @@ int main(int argc, char** argv){
        << "\nItem Size: " << info.item_size
        << "\nFile Size: " << ll2size(filesize,buf) << "B\n" <<std::endl;
 
-  progress_indicator_arrow myIndicator("Testing sorting", "", 0, 10000, 1);
+  progress_indicator_arrow myIndicator("Testing sorting", 10000);
   
   execution_time_predictor global_predictor(((unique_id_type()) << __FILE__ << __FUNCTION__)());
   myIndicator.set_time_predictor(&global_predictor);

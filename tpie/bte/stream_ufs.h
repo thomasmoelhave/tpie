@@ -91,7 +91,7 @@ namespace tpie {
 // These are for gcc-3.4 compatibility
 	protected:
 	
-	    using base_t::remaining_streams;
+	    using base_t::current_streams;
 	    using base_t::m_substreamLevel;
 	    using base_t::m_status;
 	    using base_t::m_persistenceStatus;
@@ -252,7 +252,7 @@ namespace tpie {
 	
 	    // Check if we have available streams. Don't decrease the number
 	    // yet, since we may encounter an error.
-	    if (remaining_streams <= 0) 
+	    if (stream_base_generic::available_streams() == 0)
 		{
 			m_status = STREAM_STATUS_INVALID;
 	    
@@ -284,7 +284,7 @@ namespace tpie {
 	    m_filePointer = -1; 
 	
 	    // Decrease the number of available streams.
-	    remaining_streams--;
+	    current_streams++;
 	
 	    switch (st) {
 	    case READ_STREAM:
@@ -548,7 +548,7 @@ namespace tpie {
 	    m_itemsPerBlock(0) {
 	
 	    // Reduce the number of streams avaialble.
-	    if (remaining_streams <= 0) {
+	    if (stream_base_generic::available_streams() <= 0) {
 	    
 		m_status = STREAM_STATUS_INVALID;
 	
@@ -595,7 +595,7 @@ namespace tpie {
 		}
 	    }
 	
-	    remaining_streams--;
+		current_streams++;
 	
 	    // Copy the relevant fields from the super_stream.
 	
@@ -751,11 +751,8 @@ namespace tpie {
 	    
 		return;
 	    }
-	
-	    // Increase the number of streams avaialble.
-	    if (remaining_streams >= 0) {
-		remaining_streams++;
-	    }
+		
+		current_streams--;
 	
 	    record_statistics(STREAM_DELETE);
 	

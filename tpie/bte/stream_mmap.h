@@ -71,7 +71,7 @@ namespace tpie {
 			// CHECK THIS: Is this needed anymore?      
 // These are for gcc-3.4 compatibility
 		protected:
-			using base_t::remaining_streams;
+			using base_t::current_streams;
 			using base_t::m_substreamLevel;
 			using base_t::m_status;
 			using base_t::m_persistenceStatus;
@@ -277,8 +277,7 @@ namespace tpie {
 			stream_mmap<T>::stream_mmap (const std::string& dev_path, stream_type st, size_t lbf) {
 			m_status = STREAM_STATUS_NO_STATUS;
 	
-			if (remaining_streams <= 0) 
-			{
+			if (stream_base_generic::available_streams()) {
 				m_status = STREAM_STATUS_INVALID;
 				TP_LOG_FATAL_ID ("BTE internal error: cannot open more streams.");
 				return;
@@ -293,7 +292,7 @@ namespace tpie {
 			m_substreamLevel = 0;
 
 			// Reduce the number of streams available.
-			remaining_streams--;
+			current_streams++;
 	
 			switch (st) {
 			case READ_STREAM:
@@ -517,8 +516,8 @@ namespace tpie {
 	
 			m_status = STREAM_STATUS_NO_STATUS;
 
-			if (remaining_streams <= 0) {
-
+			if (stream_base_generic::available_streams() == 0) {
+				
 				m_status = STREAM_STATUS_INVALID;
 
 				TP_LOG_FATAL_ID ("BTE error: cannot open more streams.");
@@ -547,7 +546,7 @@ namespace tpie {
 			initialize ();
 	
 			// Reduce the number of streams avaialble.
-			remaining_streams--;
+			current_streams++;
 	
 			// Copy the relevant fields from the super_stream.
 			m_fileDescriptor = super_stream->m_fileDescriptor;
@@ -628,9 +627,7 @@ namespace tpie {
 			}
 	
 			// Increase the number of streams avaialble.
-			if (remaining_streams >= 0) {
-				remaining_streams++;
-			}
+			--current_streams;
 	
 			// If this is writable and not a substream, then put the logical
 			// eos back into the header before unmapping it.

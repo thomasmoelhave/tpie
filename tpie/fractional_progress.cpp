@@ -65,17 +65,22 @@ public:
 #ifdef TPIE_FRACTIONDB_DIR_INL
 	~fraction_db() {
 		if (!dirty) return;
+#ifndef NDEBUG
+		std::string path=TPIE_FRACTIONDB_DIR_INL "/tpie_fraction_db_debug.inl";
+#else //NDEBUG
+		std::string path=TPIE_FRACTIONDB_DIR_INL "/tpie_fraction_db.inl";
+#endif //NDEBUG
+		std::string tmp=path+"~";
 		std::locale::global(std::locale::classic());
 		std::fstream f;
-#ifndef NDEBUG
-		f.open(TPIE_FRACTIONDB_DIR_INL "/tpie_fraction_db_debug.inl", std::fstream::out | std::fstream::trunc | std::fstream::binary);
-#else //NDEBUG
-		f.open(TPIE_FRACTIONDB_DIR_INL "/tpie_fraction_db.inl", std::fstream::out | std::fstream::trunc | std::fstream::binary);
-#endif //NDEBUG
+		f.open(tmp.c_str(), std::fstream::out | std::fstream::trunc | std::fstream::binary);
+
 		if (!f.is_open()) return;
 
 		for (i_t i=db.begin(); i != db.end(); ++i)
 			f << "update( \"" << i->first << "\" , " << i->second.first << " , " << i->second.second << " );\n";
+
+		atomic_rename(tmp, path);
 	}
 #endif //TPIE_FRACTIONDB_DIR_INL
 
@@ -177,9 +182,9 @@ fractional_subindicator::fractional_subindicator(
 	const char * function,
 	TPIE_OS_OFFSET n,
 	const char * crumb,
-	bool display_subcrumbs,
+	description_importance importance,
 	bool enabled):
-	progress_indicator_subindicator(fp.m_pi, 42, crumb, display_subcrumbs),
+	progress_indicator_subindicator(fp.m_pi, 42, crumb, importance),
 #ifndef NDEBUG
 	m_init_called(false), m_done_called(false), 
 #endif
@@ -197,20 +202,18 @@ fractional_subindicator::fractional_subindicator(
 	fp.add_sub_indicator(*this);
 };
 
-void fractional_subindicator::init(TPIE_OS_OFFSET range, TPIE_OS_OFFSET step) {
-	softassert(m_n != 0);
+void fractional_subindicator::init(TPIE_OS_OFFSET range) {
 	softassert(m_fp.m_init_called);
 	m_predict.start_execution(m_n);
 	if (m_parent) {
 		double f = m_fp.get_fraction(*this);
-		double t = static_cast<double>(m_parent->get_max_range() - m_parent->get_min_range());
+		double t = static_cast<double>(m_parent->get_range());
 		m_outerRange = static_cast<TPIE_OS_OFFSET>(t * f);
 	}
 #ifndef NDEBUG
 	m_init_called=true;
 #endif
-
-	progress_indicator_subindicator::init(range, step);	
+	progress_indicator_subindicator::init(range);	
 }
 
 void fractional_subindicator::done() {

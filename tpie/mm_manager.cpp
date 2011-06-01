@@ -21,7 +21,7 @@
 
 //#include <cassert>
 #include <tpie/config.h>
-
+#include <tpie/static_string_stream.h>
 #include <tpie/tpie_assert.h>
 #include <tpie/tpie_log.h>
 #include <tpie/util.h>
@@ -39,6 +39,7 @@ extern int register_new;
 #endif
 
 #include <cstdlib>
+#include <cstring>
 
 using namespace tpie::mem;
 
@@ -59,7 +60,9 @@ manager::~manager(void)
               "Only 1 instance of manager_base should exist.");
 
     instances--;
+#ifdef TPIE_THREADSAFE_MEMORY_MANAGEMNT
 	mm_mutex = 0;
+#endif
 }
 
 // check that new allocation request is below user-defined limit.
@@ -256,6 +259,15 @@ TPIE_OS_SIZE_T manager::memory_limit() {
     return user_limit;    
 }
 
+struct log_flusher {
+	tpie::static_string_stream buf;
+	~log_flusher() {
+		if(strlen(buf.c_str())) {
+			tpie::log_debug() << buf.c_str();
+			tpie::log_debug().flush();
+		}
+	}
+};
 
 TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound, TPIE_OS_SIZE_T granularity) {
 #ifndef TPIE_USE_EXCEPTIONS
@@ -264,8 +276,11 @@ TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound,
 	TP_LOG_DEBUG_ID("consecutive_memory_available only works with exceptions\n");
 	return memory_available();
 #else
-	boost::recursive_mutex::scoped_lock lock(*mm_mutex);
+	log_flusher lf;
 	scoped_log_enabler le(false);
+#ifdef TPIE_THREADSAFE_MEMORY_MANAGEMNT
+	boost::recursive_mutex::scoped_lock lock(*mm_mutex);
+#endif // TPIE_THREADSAFE_MEMORY_MANAGEMNT
 	tpie::scoped_change<mode> c(register_new, ABORT_ON_MEMORY_EXCEEDED);
 
 	//lower bound of search
@@ -290,10 +305,9 @@ TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound,
 		delete[] mem;
 		return (high > global_overhead)?high-global_overhead:0;
 	} catch (std::bad_alloc) {
-		scoped_log_enabler _(le.get_orig());
-		TP_LOG_DEBUG_ID("Failed to get " << high/(1024*1024) << " megabytes of memory. "
-						<< "Performing binary search to find largest amount "
-						<< "of memory available. This might take a few moments.\n");
+		lf.buf << "Failed to get " << high/(1024*1024) << " megabytes of memory. "
+			   << "Performing binary search to find largest amount "
+			   << "of memory available. This might take a few moments.\n";
 	}
 
 	//we should be able to get at least lower_limit bytes
@@ -301,8 +315,7 @@ TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound,
 		char* mem = new char[low];
 		delete[] mem;
 	} catch (std::bad_alloc) {
-		scoped_log_enabler _(le.get_orig());
-		TP_LOG_DEBUG_ID("Failed to get lower limit" << low/(1024*1024) << " megabytes of memory. Aborting\n. ");
+		lf.buf << "Failed to get lower limit" << low/(1024*1024) << " megabytes of memory.\n";
 		return 0;
 	}
 
@@ -313,34 +326,27 @@ TPIE_OS_SIZE_T manager::consecutive_memory_available(TPIE_OS_SIZE_T lower_bound,
 		//middle of search interval, beware of overflows
 		size_t mid = size_t((static_cast<TPIE_OS_OFFSET>(low)+high)/2);
 
-		{
-			scoped_log_enabler _(le.get_orig()); 
-			TP_LOG_DEBUG_ID("Search area is  [" << low << "," << high << "]"
-							<< " query amount is: " << mid << ":\n");
-		}
+		lf.buf << "Search area is  [" << low << "," << high << "]"
+			   << " query amount is: " << mid << ":\n";
 		if (mid < low || mid > high) {
 			throw std::logic_error(
 				"Memory interval calculation failed. Try setting the "
 				" memory value to something smaller.");
 		}
-
-		 //try to allocate "mid" bytes of memory
-		 //TPIE throws an exception if memory allocatio fails
+		
+		//try to allocate "mid" bytes of memory
+		//TPIE throws an exception if memory allocatio fails
 		try {
 			char* mem = new char[mid];
 			low = mid;
 			delete[] mem;
 		} catch (std::bad_alloc) {
 			high = mid;
-			scoped_log_enabler _(le.get_orig()); 
-			TP_LOG_DEBUG_ID("failed.\n");
+			lf.buf << "failed.\n";
 		}
 	} while (high - low > granularity);
 	
-	{
-		scoped_log_enabler _(le.get_orig()); 
-		TP_LOG_DEBUG_ID("\n- - - - - - - END MEMORY SEARCH - - - - - -\n\n");
-	}
+	lf.buf << "- - - - - - - END MEMORY SEARCH - - - - - -\n";
 	return (high > global_overhead)?high-global_overhead:0;
 #endif
 
@@ -349,26 +355,16 @@ int manager::instances = 0; // Number of instances. (init)
 // TPIE's "register memory requests" flag
 mode manager::register_new = ABORT_ON_MEMORY_EXCEEDED; 
 
-// The counter of mm_register_init instances. 
-unsigned int manager_init::count = 0;
-
 // Instantiate the actual memory manager, and allocate the 
 // its static data members
 manager tpie::MM_manager;
 
-
-// The constructor and destructor that ensure that the memory manager is
-// created exactly once, and destroyed when appropriate.
-manager_init::manager_init(void)
-{
-    if (count++ == 0) {
+void tpie::init_memory_manager() {
 	MM_manager.set_memory_limit(MM_DEFAULT_MM_SIZE);
     // Tell STL always to use new/debug for allocation
     TPIE_OS_SET_GLIBCPP_FORCE_NEW;
-    }
 }
 
-manager_init::~manager_init(void)
-{
-    --count;
+void tpie::finish_memory_manager() {
 }
+	

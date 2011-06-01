@@ -133,7 +133,7 @@ private:
 	private:
 		iter_return_type elm;		
 		
-		template <bool> friend class packed_array::const_iter_base;
+		friend class const_iter_base<forward>;
 		friend class packed_array;
 		template <typename, bool, typename> friend class packed_array_iter_facade;
 		iter_base(storage_type * elms, size_t index): elm(elms, index) {};
@@ -151,13 +151,14 @@ private:
 		iter_base(iter_base const &o): elm(o.elm) {};
 	};
 	
+	typedef T vssucks;
 	/////////////////////////////////////////////////////////
 	/// \internal
 	/// \brief Base class for const ierator and const reverse iterator
 	/// \tparam forward Is this a forward iterator?
 	/////////////////////////////////////////////////////////
 	template <bool forward>
-	class const_iter_base: public packed_array_iter_facade<const_iter_base<forward>, forward, T> {
+	class const_iter_base: public packed_array_iter_facade<const_iter_base<forward>, forward, vssucks> {
 	private:
 		const storage_type * elms;
 		size_t idx;
@@ -170,12 +171,12 @@ private:
 		inline size_t & index() {return idx;}
 		inline const size_t & index() const {return idx;}
 	public:
-		typedef T value_type;
-		typedef T reference;
-		typedef T * pointer;
+		typedef vssucks value_type;
+		typedef vssucks reference;
+		typedef vssucks * pointer;
 
 		const_iter_base & operator=(const const_iter_base & o) {idx = o.idx; elms=o.elms; return *this;}
-		T operator*() const {return static_cast<T>(elms[high(idx)] >> low(idx) & mask());}
+		vssucks operator*() const {return static_cast<T>(elms[high(idx)] >> low(idx) & mask());}
 		const_iter_base(const_iter_base const& o): elms(o.elms), idx(o.idx) {}
 		const_iter_base(iter_base<forward> const& o): elms(o.elm.elms), idx(o.elm.index) {}
 	};		

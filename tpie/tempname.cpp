@@ -84,6 +84,31 @@ std::string tempname::tpie_name(const std::string& post_base, const std::string&
 	throw tempfile_error("Unable to find free name for temporary file");
 }
 
+std::string tempname::tpie_dir_name(const std::string& post_base, const std::string& dir) 
+{	std::string base_name;	
+	std::string base_dir;
+		
+	base_name = default_base_name;
+	if(base_name.empty())
+		base_name = "TPIE";
+	
+	if(!dir.empty())
+		base_dir = dir;
+	else 
+		base_dir = tempname::get_actual_path();
+
+	std::string path;	
+	for(int i=0; i < 42; ++i) {
+		if(post_base.empty())
+			path = base_dir + TPIE_OS_DIR_DELIMITER + base_name + "_" + tpie_mktemp();
+		else 
+			path = base_dir + TPIE_OS_DIR_DELIMITER + base_name + "_" + post_base + "_" + tpie_mktemp();
+		if ( !TPIE_OS_EXISTS(path) )
+			return path;
+	}
+	throw tempfile_error("Unable to find free name for temporary file");
+}
+
 std::string tempname::get_actual_path() {
 	//information about the search order is in the header
 	std::string dir;

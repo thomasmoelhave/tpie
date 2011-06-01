@@ -22,6 +22,7 @@
 
 #include <streambuf>
 #include <ostream>
+#include <tpie/util.h>
 
 namespace tpie {
 

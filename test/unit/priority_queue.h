@@ -28,7 +28,7 @@
 
 template <typename T>
 bool cyclic_pq_test(T & pq, boost::uint64_t size, boost::uint64_t iterations) {
-	tpie::progress_indicator_arrow progress("Running test","Cyclic test:", 0, iterations,1);
+	tpie::progress_indicator_arrow progress("Running test", iterations);
 	std::priority_queue<boost::uint64_t, std::vector<boost::uint64_t>, bit_pertume_compare<std::less<boost::uint64_t> > > pq2;
 	boost::rand48 rnd;
 	boost::uniform_01<double> urnd;

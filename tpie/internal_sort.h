@@ -77,7 +77,7 @@ template<class T>
 class Internal_Sorter_Base {
 protected:
 	/** Array that holds items to be sorted */
-	T* ItemArray;        
+	array<T> ItemArray;        
 	/** length of ItemArray */
 	TPIE_OS_SIZE_T len;  
 
@@ -85,15 +85,10 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	///  Empty constructor.
 	///////////////////////////////////////////////////////////////////////////
-	Internal_Sorter_Base(void): ItemArray(NULL), len(0) {
+	Internal_Sorter_Base(void): len(0) {
 		//  No code in this constructor.
 	};
-	    
-	///////////////////////////////////////////////////////////////////////////
-	///  Destructor.
-	///////////////////////////////////////////////////////////////////////////
-	virtual ~Internal_Sorter_Base(void); 
-    
+	
 	///////////////////////////////////////////////////////////////////////////
 	/// Allocate ItemArray as array that can hold \p nItems.
 	///////////////////////////////////////////////////////////////////////////
@@ -126,24 +121,14 @@ private:
 };
 	
 template<class T>
-Internal_Sorter_Base<T>::~Internal_Sorter_Base(void) {
-	//In case someone forgot to call deallocate()
-	if (!ItemArray) return;
-	delete [] ItemArray;
-	ItemArray=NULL;
-}
-
-template<class T>
 inline void Internal_Sorter_Base<T>::allocate(TPIE_OS_SIZE_T nitems) {
 	len=nitems;
-	ItemArray = new T[len];
+	ItemArray.resize(len);
 }
 
 template<class T>
 inline void Internal_Sorter_Base<T>::deallocate(void) {
-	if (!ItemArray) return;
-	delete [] ItemArray;
-	ItemArray=NULL;
+	ItemArray.resize(0);
 	len=0;
 }
 
@@ -214,11 +199,9 @@ err Internal_Sorter_Op<T>::sort(stream<T>* InStr,
 	T    *next_item;
 	TPIE_OS_SIZE_T i = 0;
 	// make sure we called allocate earlier
-	if (ItemArray==NULL){
-		return NULL_POINTER;
-	}
+	if (ItemArray.size() == 0) return NULL_POINTER;
+
 	
-	pi->set_range(0, 4000, 1);
 	tp_assert ( nItems <= len, "nItems more than interal buffer size.");
 
 	fractional_progress fp(pi);
@@ -241,7 +224,7 @@ err Internal_Sorter_Op<T>::sort(stream<T>* InStr,
 	read_progress.done();
 
 	//Sort the array.
-	parallel_sort(ItemArray, ItemArray+nItems, std::less<T>(), &sort_progress);
+	parallel_sort<true>(ItemArray.begin(), ItemArray.begin()+nItems, sort_progress, std::less<T>());
 
 	if(InStr==OutStr){ //Do the right thing if we are doing 2x sort
 		//Internal sort objects should probably be re-written so that
@@ -309,7 +292,6 @@ err Internal_Sorter_Obj<T, CMPR>::sort(stream<T>* InStr,
 									   stream<T>* OutStr, 
 									   TPIE_OS_SIZE_T nItems,
 									   progress_indicator_base * pi) {
-	pi->set_range(0, 4000, 1);
 	tp_assert ( nItems <= len, "nItems more than interal buffer size.");
 
 	
@@ -318,7 +300,7 @@ err Internal_Sorter_Obj<T, CMPR>::sort(stream<T>* InStr,
 	TPIE_OS_SIZE_T i = 0;
 	
 	//make sure we called allocate earlier
-	if (ItemArray==NULL) return NULL_POINTER;
+	if (ItemArray.size() == 0) return NULL_POINTER;
 	    
 	tp_assert ( nItems <= len, "nItems more than interal buffer size.");
 
@@ -342,7 +324,7 @@ err Internal_Sorter_Obj<T, CMPR>::sort(stream<T>* InStr,
 	read_progress.done();
 
 	//Sort the array.
-	tpie::parallel_sort(ItemArray, ItemArray+nItems, TPIE2STL_cmp<T,CMPR>(cmp_o), &sort_progress);
+	tpie::parallel_sort<true>(ItemArray.begin(), ItemArray.begin()+nItems, sort_progress, TPIE2STL_cmp<T,CMPR>(cmp_o));
 	if (InStr==OutStr) { //Do the right thing if we are doing 2x sort
 		//Internal sort objects should probably be re-written so that
 		//the interface is cleaner and they don't have to worry about I/O
@@ -371,9 +353,10 @@ template<class T, class KEY, class CMPR>
 class Internal_Sorter_KObj : public Internal_Sorter_Base<T> {
 protected:
 	/** Array that holds original items */
-	T* ItemArray;                    
+	array<T> ItemArray;
+
 	/** Holds keys to be sorted */
-	qsort_item<KEY>* sortItemArray;  
+	array<qsort_item<KEY> > sortItemArray;
 	/** Copy,compare keys */ 
 	CMPR *UsrObject;              
 	/** length of ItemArray */
@@ -431,22 +414,15 @@ private:
 template<class T, class KEY, class CMPR>
 Internal_Sorter_KObj<T, KEY, CMPR>::~Internal_Sorter_KObj(void){
 	//  In case someone forgot to call deallocate()	    
-	if (ItemArray) {
-		delete [] ItemArray;
-		ItemArray=NULL;
-	}
-	
-	if(sortItemArray) {
-		delete [] sortItemArray;
-		sortItemArray=NULL;
-	}
+	ItemArray.resize(0);
+	sortItemArray.resize(0);
 }
 
 template<class T, class KEY, class CMPR>
 inline void Internal_Sorter_KObj<T, KEY, CMPR>::allocate(TPIE_OS_SIZE_T nitems){
 	len=nitems;
-	ItemArray = new T[len];
-	sortItemArray = new qsort_item<KEY>[len];
+	ItemArray.resize(len);
+	sortItemArray.resize(len);
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -488,9 +464,8 @@ inline err Internal_Sorter_KObj<T, KEY, CMPR>::sort(stream<T>* InStr,
 	T    *next_item;
 	TPIE_OS_SIZE_T i = 0;
 
-	pi->set_range(0, 4000, 1);	
 	// Make sure we called allocate earlier
-	if (ItemArray==NULL || sortItemArray==NULL) {
+	if (ItemArray.size() == 0 || sortItemArray.size() == 0) {
 		return NULL_POINTER;
 	}
 	
@@ -522,7 +497,7 @@ inline err Internal_Sorter_KObj<T, KEY, CMPR>::sort(stream<T>* InStr,
 	QsortKeyCmp<KEY, CMPR> kc(UsrObject);
 	TPIE2STL_cmp<qsort_item<KEY>,QsortKeyCmp<KEY,CMPR> > stlcomp(&kc);
 
-	parallel_sort(sortItemArray, sortItemArray+nItems, std::less<qsort_item<KEY> >(), &sort_progress);
+	parallel_sort<true>(sortItemArray.begin(), sortItemArray.begin()+nItems, sort_progress, std::less<qsort_item<KEY> >());
 	if (InStr==OutStr) { //Do the right thing if we are doing 2x sort
 		//Internal sort objects should probably be re-written so that
 		//the interface is cleaner and they don't have to worry about I/O
@@ -549,16 +524,8 @@ template<class T, class KEY, class CMPR>
 inline void Internal_Sorter_KObj<T, KEY, CMPR>::deallocate(void) {
 	
 	len=0;
-	
-	if(ItemArray){
-		delete [] ItemArray;
-		ItemArray=NULL;
-	}
-	
-	if(sortItemArray){
-		delete [] sortItemArray;
-		sortItemArray=NULL;
-	}
+	ItemArray.resize(0);
+	sortItemArray.resize(0);
 }
 
 template<class T, class KEY, class CMPR>

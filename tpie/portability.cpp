@@ -18,15 +18,49 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
 #include <tpie/portability.h>
+#include <stdio.h>
+#include <errno.h>
 
 //Needed for windows only
 
 #ifdef _WIN32
-
 std::ostream& operator<<(std::ostream& s, const TPIE_OS_OFFSET x){
   char buf[30];
   sprintf(buf,"%I64d",x);
   return s << buf;
 }
-
 #endif
+
+namespace tpie {
+	
+#ifdef _WIN32
+//On windows there do not seem to be any limit on the number of handels we can create
+size_t get_os_available_fds() {return 1024*128;}  
+#else
+size_t get_os_available_fds() {
+	size_t f=0;
+	for(int fd=0; fd < getdtablesize(); ++fd) {
+		int flags = fcntl(fd, F_GETFD, 0);
+		if (flags == -1 && errno == EBADF) ++f;
+	}
+	return f-5; //-5 to prevent race conditions
+}
+#endif
+
+
+void atomic_rename(const std::string & src, const std::string & dst) {
+	//Note according to posix rename is atomic..
+	//On windows it is probably not
+#ifndef _WIN32
+	if (rename(src.c_str(), dst.c_str()) != 0)
+		throw std::runtime_error("Atomic rename failed");
+#else
+	//TODO use MoveFileTransacted on vista or newer
+	if (MoveFileEx(src.c_str(), dst.c_str(), MOVEFILE_COPY_ALLOWED | MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH))\
+		throw std::runtime_error("Atomic rename failed");
+#endif
+}
+
+
+
+}

@@ -39,7 +39,7 @@ struct dummy_fraction_progress {
 struct dummy_progress_indicator {
 	inline dummy_progress_indicator() {}
 	inline dummy_progress_indicator(dummy_fraction_progress &, 
-					const char *, const char *, const char *, TPIE_OS_OFFSET) {}
+									const char *, const char *, const char *, TPIE_OS_OFFSET, const char *c=0, bool a=true, bool b=true) { unused(a); unused(b); unused(c);}
 	inline void init(TPIE_OS_OFFSET) {}
 	inline void step(TPIE_OS_OFFSET) {}
 	inline void step() {}

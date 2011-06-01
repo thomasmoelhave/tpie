@@ -33,7 +33,7 @@ bool basic_test() {
 bool medium_instance() {
 	TPIE_OS_OFFSET iterations = 10000;
     MM_manager.set_memory_limit(16*1024*1024);
-	progress_indicator_arrow progress("Running test","Running test:",1100,iterations,1);
+	progress_indicator_arrow progress("Running test",iterations-1100);
     for(TPIE_OS_OFFSET it = 1100; it < iterations; it++)  {
 		progress.step();
 		ami::priority_queue<int, std::greater<int> > pq(0.75);
@@ -77,7 +77,7 @@ bool medium_instance() {
 			pq2.pop();
 		}
     }
-	progress.done("Done");
+	progress.done();
 	return true;
 }
 
@@ -99,7 +99,7 @@ bool large_instance(){
 
 	double cycle = crash_test ? 20000000000.0 : 50000000.0;
 	const TPIE_OS_OFFSET iterations=500000000;
-	progress_indicator_arrow progress("Running test","Running test:",0,iterations,1);
+	progress_indicator_arrow progress("Running test",iterations);
 	for (TPIE_OS_OFFSET j=0; j<iterations; j++) {
 		progress.step();
 		double i = static_cast<double>(j);

@@ -38,9 +38,10 @@ void parse_app_opts(int /* idx */, char* /* opt_arg */) {
 
 int main(int argc, char **argv)
 {
-    progress_indicator_arrow* pi = new progress_indicator_arrow("Title","Desc",0,100,1);
-
     parse_args(argc, argv, app_opts, parse_app_opts);
+
+    progress_indicator_arrow push_p("Push", test_size);
+	progress_indicator_arrow pop_p("Pop", test_size);
 
     if (verbose) {
 	std::cout << "test_size = " << test_size << "." << std::endl;
@@ -55,19 +56,18 @@ int main(int argc, char **argv)
 
     ami::stack<TPIE_OS_OFFSET> stack;
 
-    pi->set_percentage_range(0,test_size);
-    pi->set_description("Push");
+	push_p.init(test_size);
 
     // Push values.
     TPIE_OS_OFFSET ii;
     for (ii = test_size; ii--; ) {
-	pi->step_percentage();
-	stack.push(ii);
+		push_p.step();
+		stack.push(ii);
     }
-    pi->done("Done");
+	push_p.done();
 
     if (verbose) {
-	std::cout << "Stack size = " << stack.size() << std::endl;
+		std::cout << "Stack size = " << stack.size() << std::endl;
     }
     
     // Pop them all off.
@@ -77,22 +77,21 @@ int main(int argc, char **argv)
     stack.pop(&jj);
     last = *jj;
     
-    pi->set_description("Pop ");
-    pi->reset();
+	pop_p.init(test_size);
     read++;
-    pi->step_percentage();
+	pop_p.step();
     while(!stack.is_empty()) {
 	ami::err ae = stack.pop(&jj);
 	if(ae != ami::NO_ERROR) {
 	    std::cout << "Error from stack received" << std::endl;
 	}
 	read++;
-	pi->step_percentage();
+	pop_p.step();
 	if(*jj != ++last) {
 	    std::cout << std::endl << "Error in output: " << *jj << "!=" << last  << std::endl;
 	}
     }
-    pi->done("Done");
+	pop_p.done();
     if(read != test_size) {
 	std::cout << "Error: Wrong amount of elements read, got: " << read << " expected: "<<test_size << std::endl;
     }

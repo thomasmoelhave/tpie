@@ -40,11 +40,11 @@ public:
 							const char * function,
 							TPIE_OS_OFFSET n,
 							const char * crumb=0,
-							bool display_subcrumbs=true,
+							description_importance importance=IMPORTANCE_MAJOR,
 							bool enabled=true);
 
 	~fractional_subindicator();
-	virtual void init(TPIE_OS_OFFSET range, TPIE_OS_OFFSET step=1);
+	virtual void init(TPIE_OS_OFFSET range);
 	virtual void done();
 private:
 #ifndef NDEBUG

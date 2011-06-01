@@ -261,7 +261,7 @@ typedef TPIE_OS_OFFSET TPIE_BLOCK_ID_TYPE;
 
 #ifdef _WIN32	
 #define TPIE_OS_SET_LIMITS_BODY	\
-    return 512;
+    return _getmaxstdio();
 #else
 #define TPIE_OS_SET_LIMITS_BODY						\
     struct rlimit limits;						\
@@ -1070,7 +1070,11 @@ void * operator new(\
 #undef NO_ERROR //ensures that the NO_ERROR macro of windows is not defined
 #endif
 
+namespace tpie {
+	void atomic_rename(const std::string & src, const std::string & dst);
+	size_t get_os_available_fds();
+}
+
 
 #endif 
-
 // _portability_H  //

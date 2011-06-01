@@ -27,14 +27,14 @@ namespace tpie {
 class progress_indicator_subindicator: public progress_indicator_base {
 public:
 	void refresh();
-	virtual void push_breadcrumb(const char * crumb);
+	virtual void push_breadcrumb(const char * crumb, description_importance importance);
 	virtual void pop_breadcrumb();
-	virtual void init(TPIE_OS_OFFSET range, TPIE_OS_OFFSET step=1);
+	virtual void init(TPIE_OS_OFFSET range);
 	virtual void done();
 	progress_indicator_subindicator(progress_indicator_base * parent,
 									TPIE_OS_OFFSET outerRange,
 									const char * crumb=0,
-									bool display_subcrumbs=true);
+									description_importance importance=IMPORTANCE_MAJOR);
 #ifndef NDEBUG
 	~progress_indicator_subindicator();
 #endif
@@ -43,7 +43,7 @@ protected:
 	TPIE_OS_OFFSET m_outerRange;
 	TPIE_OS_OFFSET m_oldValue;
 	char m_crumb[40];
-	bool m_display_subcrumbs;
+	description_importance m_importance;
 #ifndef NDEBUG
 	bool m_init_called;
 	bool m_done_called;

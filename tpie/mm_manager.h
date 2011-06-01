@@ -291,41 +291,9 @@ namespace tpie {
     }  //  mem namespace 
 
     extern mem::manager MM_manager;
-
-}  //  tpie namespace
-
-
-namespace tpie {
-    
-    namespace mem {
 	
-        ///////////////////////////////////////////////////////////////////////////
-        /// A class to make sure that MM_manager gets set up properly.  It is
-        /// based on the code in tpie_log.h that does the same thing for logs,
-        /// which is in turn based on item 47 from Scott Meyer's book on effective C++.
-        ///////////////////////////////////////////////////////////////////////////
-	class manager_init {
-	private:
-	    /** The number of manager_init objects that exist. */
-	    static unsigned int count;
-	    
-	public:
-	    ///////////////////////////////////////////////////////////////////////////
-	    // The constructor that ensures that the memory manager is
-	    // created exactly once.
-	    ///////////////////////////////////////////////////////////////////////////
-	    manager_init(void);
-	    ///////////////////////////////////////////////////////////////////////////
-	    // The constructor that ensures that the memory manager is
-	    // destroyed when appropriate.
-	    ///////////////////////////////////////////////////////////////////////////
-	    ~manager_init(void);
-	};
-	
-	static manager_init source_file_manager_init;
-
-    }  //  mem namespace
-
+	void init_memory_manager();
+	void finish_memory_manager();
 }  //  tpie namespace
 
 #endif // _TPIE_MEM_MM_MANAGER_ 

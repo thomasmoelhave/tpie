@@ -30,6 +30,7 @@
 #include <cmath>
 #include <functional>
 #include <tpie/progress_indicator_base.h>
+#include <tpie/dummy_progress.h>
 namespace tpie {
 	
 template <typename iterator_type, typename comp_type,
@@ -147,10 +148,7 @@ public:
 		work_estimate = 0;
 		working = 0;
 		kill = false;
-		if (pi) {
-			pi->set_range(0, sortWork(b-a), 1);
-			pi->init("Parallel sort");
-		}
+		if (pi) pi->init(sortWork(b-a));
 		
 		job_count = 0;
 		jobs[job_count++] = std::make_pair(a,b);
@@ -182,17 +180,28 @@ private:
 	size_t job_count;
 };
 	
-template <typename iterator_type, typename comp_type>
+	template <bool Progress, typename iterator_type, typename comp_type>
 void parallel_sort(iterator_type a, 
 				   iterator_type b, 
-				   comp_type comp=std::less<typename boost::iterator_value<iterator_type>::type>(),
-				   progress_indicator_base * pi=0) {
+				   typename tpie::progress_types<Progress>::base & pi,
+				   comp_type comp=std::less<typename boost::iterator_value<iterator_type>::type>()) {
 	//parallel_sort_impl<iterator_type, comp_type> s(pi);
 	//s(a,b,comp);
-	if (pi) pi->init(1);
+	pi.init(1);
 	std::sort(a,b,comp);
-	if (pi) pi->done();
+	pi.done();
 }
+
+	template <typename iterator_type, typename comp_type>
+void parallel_sort(iterator_type a, 
+				   iterator_type b, 
+				   comp_type comp=std::less<typename boost::iterator_value<iterator_type>::type>()) {
+	//parallel_sort_impl<iterator_type, comp_type> s(pi);
+	//s(a,b,comp);
+		dummy_progress_indicator pi;
+		parallel_sort<false>(a,b,comp,pi);
+}
+
 
 }
 #endif //__TPIE_PARALLEL_SORT_H__
