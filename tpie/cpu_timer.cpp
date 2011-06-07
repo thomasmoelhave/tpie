@@ -77,7 +77,7 @@ double cpu_timer::user_time() {
 
 double cpu_timer::system_time() {
     if (running_) sync();
-    TPIE_OS_USER_TIME_BODY;
+    TPIE_OS_SYSTEM_TIME_BODY;
 }
 
 double cpu_timer::wall_time() {

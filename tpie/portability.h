@@ -307,6 +307,12 @@ typedef TPIE_OS_OFFSET TPIE_BLOCK_ID_TYPE;
 #define TPIE_OS_USER_TIME_BODY return double(elapsed().tms_utime) / double(clock_tick())
 #endif
 
+#ifdef _WIN32
+#define TPIE_OS_SYSTEM_TIME_BODY return double(elapsed_real()) / double(clock_tick())
+#else
+#define TPIE_OS_SYSTEM_TIME_BODY return double(elapsed().tms_stime) / double(clock_tick())
+#endif
+
 
 #ifdef _WIN32	
 #define TPIE_OS_OPERATOR_OVERLOAD \
