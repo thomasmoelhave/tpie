@@ -66,6 +66,7 @@ set (OTHER_HEADERS
 		internal_stack.h
 		internal_vector.h
 		internal_stack_vector_base.h
+		loglevel.h
 		logstream.h
 		mergeheap.h
 		mm_base.h
@@ -81,6 +82,7 @@ set (OTHER_HEADERS
 		pq_internal_heap.inl
 		fractional_progress.h
 		parallel_sort.h
+		dummy_progress.h
 		progress_indicator_subindicator.h
 		progress_indicator_arrow.h
 		progress_indicator_base.h
@@ -108,9 +110,12 @@ set (OTHER_HEADERS
 		prime.h
 		concepts.h
 		concept_doc.h
-		imported/cycle.h
 		tpie.h
 		)
+
+set (IMPORTED_HEADERS
+	imported/cycle.h
+)
 
 set (AMI_SOURCES
 	#	bit_permute.cpp
@@ -153,4 +158,5 @@ target_link_libraries(tpie ${Boost_LIBRARIES})
 install(TARGETS tpie DESTINATION ${LIB_INSTALL_DIR}) 
 install(FILES ${OTHER_HEADERS} ${AMI_HEADERS} DESTINATION ${HEADERS_INSTALL_DIR})
 install(FILES ${BTE_HEADERS} DESTINATION ${HEADERS_INSTALL_DIR}/bte)
+install(FILES ${IMPORTED_HEADERS} DESTINATION ${HEADERS_INSTALL_DIR}/imported)
 
