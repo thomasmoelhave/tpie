@@ -89,7 +89,7 @@ public:
 	void step(TPIE_OS_OFFSET step=1) {
 	    m_current += step;
 		ticks currentTicks = getticks();
-#ifndef NDEBUG
+#ifndef TPIE_NDEBUG
 		if (elapsed(currentTicks,m_lastUpdate) > m_frequency * m_threshold * 5)
 			tpie::log_debug() << "Step was not called for an estimated " 
 							  << (elapsed(currentTicks,m_lastUpdate) / (m_frequency * m_threshold))
@@ -109,14 +109,6 @@ public:
 	}
 
 	////////////////////////////////////////////////////////////////////
-	///  Reset the counter. The current position is reset to the
-	///  lower bound of the counting range.
-	////////////////////////////////////////////////////////////////////
-	virtual void reset() {
-	    m_current = 0;
-	}
-
-	////////////////////////////////////////////////////////////////////
 	///
 	///  Advance the indicator to the end and print an (optional)
 	///  message that is followed by a newline.
@@ -125,7 +117,6 @@ public:
 	///                indicator.
 	///
 	////////////////////////////////////////////////////////////////////
-
 	virtual void done() {}
 	
 	////////////////////////////////////////////////////////////////////
@@ -140,7 +131,6 @@ public:
 	////////////////////////////////////////////////////////////////////
 	virtual void set_range(TPIE_OS_OFFSET range) {
 	    m_range = range;
-	    reset();
 	}
   
 	////////////////////////////////////////////////////////////////////

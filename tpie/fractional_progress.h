@@ -47,7 +47,7 @@ public:
 	virtual void init(TPIE_OS_OFFSET range);
 	virtual void done();
 private:
-#ifndef NDEBUG
+#ifndef TPIE_NDEBUG
 	bool m_init_called;
 	bool m_done_called;
 #endif
@@ -72,7 +72,7 @@ public:
 	void init();
 	unique_id_type & id();
 
-#ifndef NDEBUG
+#ifndef TPIE_NDEBUG
 	bool m_init_called;
 #endif
 
@@ -82,7 +82,7 @@ private:
 	void add_sub_indicator(fractional_subindicator & sub);
 	progress_indicator_base * m_pi;
 	bool m_add_state;
-#ifndef NDEBUG
+#ifndef TPIE_NDEBUG
 	bool m_done_called;
 #endif
 	double m_confidence;

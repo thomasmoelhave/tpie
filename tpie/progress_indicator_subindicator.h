@@ -35,7 +35,7 @@ public:
 									TPIE_OS_OFFSET outerRange,
 									const char * crumb=0,
 									description_importance importance=IMPORTANCE_MAJOR);
-#ifndef NDEBUG
+#ifndef TPIE_NDEBUG
 	~progress_indicator_subindicator();
 #endif
 protected:
@@ -44,7 +44,7 @@ protected:
 	TPIE_OS_OFFSET m_oldValue;
 	char m_crumb[40];
 	description_importance m_importance;
-#ifndef NDEBUG
+#ifndef TPIE_NDEBUG
 	bool m_init_called;
 	bool m_done_called;
 #endif

@@ -307,6 +307,12 @@ typedef TPIE_OS_OFFSET TPIE_BLOCK_ID_TYPE;
 #define TPIE_OS_USER_TIME_BODY return double(elapsed().tms_utime) / double(clock_tick())
 #endif
 
+#ifdef _WIN32
+#define TPIE_OS_SYSTEM_TIME_BODY return double(elapsed_real()) / double(clock_tick())
+#else
+#define TPIE_OS_SYSTEM_TIME_BODY return double(elapsed().tms_stime) / double(clock_tick())
+#endif
+
 
 #ifdef _WIN32	
 #define TPIE_OS_OPERATOR_OVERLOAD \
@@ -1001,7 +1007,7 @@ logstream& logstream::operator<<(const LONGLONG x)\
     //		******************************************************************************* /
 
 #ifdef _WIN32	
-#ifndef NDEBUG
+#ifndef TPIE_NDEBUG
 #define TPIE_OS_SPACE_OVERHEAD_BODY \
 void * __cdecl _nh_malloc_dbg (TPIE_OS_SIZE_T, int, int, const char *,	int );\
 void * operator new(\

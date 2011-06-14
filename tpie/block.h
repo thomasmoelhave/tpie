@@ -69,8 +69,8 @@ namespace tpie {
     /// constructor, and the number of elements fitting into one block 
     /// is computed using the following formula:
     ///
-    /// number_of_elements = abs(block_size - (sizeof(I) + sizeof(AMI_bid) *
-    /// number_of_links) / sizeof(E))
+    /// number_of_elements = floor((block_size - (sizeof(I) + sizeof(AMI_bid) *
+    /// number_of_links)) / sizeof(E))
     ///
     /// Blocks are supposed to be organized within TPIE in block collections, see
     /// also \ref collection_single< BTECOLL >.

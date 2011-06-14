@@ -101,7 +101,7 @@ public:
 #endif	
 
 		path += "tpie_time_estimation_db";
-#ifndef NDEBUG
+#ifndef TPIE_NDEBUG
 		path += "_debug";
 #endif
 	}
@@ -179,7 +179,7 @@ public:
 		if (l == e.end()) {
 			--l;
 			if (l->first == 0) {
-#ifdef NDEBUG
+#ifdef TPIE_NDEBUG
 				log_warning() << "In timeestimation first was found to be 0, this should not happes!" << std::endl;
 #endif
 				confidence=0.0;
@@ -218,9 +218,9 @@ void finish_execution_time_db() {
 execution_time_predictor::execution_time_predictor(const std::string & id): 
 	m_id(prime_hash(id)), m_start_time(boost::posix_time::not_a_date_time), 
 	m_estimate(-1), m_pause_time_at_start(0)
-#ifndef NDEBUG
+#ifndef TPIE_NDEBUG
 	,m_name(id)
-#endif //NDEBUG
+#endif //TPIE_NDEBUG
  {}
 
 execution_time_predictor::~execution_time_predictor() {
@@ -232,7 +232,7 @@ TPIE_OS_OFFSET execution_time_predictor::estimate_execution_time(TPIE_OS_OFFSET 
 		return -1;
 	}
 	TPIE_OS_OFFSET v=db->estimate(m_id, n, confidence);
-#ifndef NDEBUG
+#ifndef TPIE_NDEBUG
 	if (v == -1)
 		log_debug() << "No database entry for " << m_name << " (" << m_id << ")" << std::endl;
 #endif
