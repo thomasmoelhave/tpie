@@ -59,6 +59,15 @@ set(INSTALL_TARGETS_DEFAULT_ARGS
 )
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
+if (CMAKE_BUILD_TYPE) 
+  string(TOUPPER ${CMAKE_BUILD_TYPE} bt)
+  string(REGEX MATCH " -DNDEBUG " TPIE_NDEBUG " ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${bt}} ")
+else()
+  option(TPIE_NDEBUG "Disable debugging information" ON)
+endif()
+
+
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tpie/config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/tpie/config.h)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/tpie/config.h DESTINATION ${HEADERS_INSTALL_DIR})
 add_subdirectory(tpie)

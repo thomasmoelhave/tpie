@@ -960,6 +960,7 @@ void priority_queue<T, Comparator, OPQType>::seek_offset(stream<T>* data, TPIE_O
 		exit(-1);
 	}
 }
+
 template <typename T, typename Comparator, typename OPQType>
 T* priority_queue<T, Comparator, OPQType>::read_item(stream<T>* data) { 
 	T* read_ptr;

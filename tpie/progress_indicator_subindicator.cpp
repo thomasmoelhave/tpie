@@ -44,7 +44,7 @@ progress_indicator_subindicator::progress_indicator_subindicator(progress_indica
 																 description_importance importance):
 	progress_indicator_base(0), m_parent(parent), m_outerRange(outerRange), 
 	m_oldValue(0), m_importance(importance)
-#ifndef NDEBUG
+#ifndef TPIE_NDEBUG
 	,m_init_called(false), m_done_called(false)
 #endif
 {
@@ -56,7 +56,7 @@ progress_indicator_subindicator::progress_indicator_subindicator(progress_indica
 	}
 }
 
-#ifndef NDEBUG
+#ifndef TPIE_NDEBUG
 progress_indicator_subindicator::~progress_indicator_subindicator() {
 	if (m_init_called && !m_done_called && !std::uncaught_exception()) {
 		std::stringstream s;
@@ -80,7 +80,7 @@ void progress_indicator_subindicator::refresh() {
 }
 
 void progress_indicator_subindicator::init(TPIE_OS_OFFSET range) {
-#ifndef NDEBUG
+#ifndef TPIE_NDEBUG
 	softassert(!m_init_called && "Init called twice");
 	m_init_called=true;
 #endif
@@ -89,7 +89,7 @@ void progress_indicator_subindicator::init(TPIE_OS_OFFSET range) {
 }
 
 void progress_indicator_subindicator::done() {
-#ifndef NDEBUG
+#ifndef TPIE_NDEBUG
 	softassert(m_init_called);
 	softassert(!m_done_called);
 	m_done_called=true;

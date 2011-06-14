@@ -19,7 +19,7 @@
 
 #include <tpie/cpu_timer.h>
 
-using namespace tpie;
+namespace tpie {
 
 cpu_timer::cpu_timer() :
     clock_tick_(0), last_sync_(), elapsed_(), last_sync_real_(0), elapsed_real_(0),
@@ -77,7 +77,7 @@ double cpu_timer::user_time() {
 
 double cpu_timer::system_time() {
     if (running_) sync();
-    TPIE_OS_USER_TIME_BODY;
+    TPIE_OS_SYSTEM_TIME_BODY;
 }
 
 double cpu_timer::wall_time() {
@@ -85,7 +85,7 @@ double cpu_timer::wall_time() {
     return double(elapsed_real_) / double(clock_tick_);
 }
 
-std::ostream& tpie::operator<<(std::ostream &s, cpu_timer &wt) {
+std::ostream& operator<<(std::ostream &s, cpu_timer &wt) {
     if (wt.running()) {
         wt.sync();
     }
@@ -93,4 +93,4 @@ std::ostream& tpie::operator<<(std::ostream &s, cpu_timer &wt) {
     TPIE_OS_OPERATOR_OVERLOAD;
 }
 
-
+}

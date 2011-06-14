@@ -18,6 +18,7 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
 #include "app_config.h"
+#include <tpie/tpie.h>
 #include <tpie/portability.h>
 #include <tpie/tpie_log.h>
 #include <tpie/stream.h>
@@ -744,6 +745,7 @@ ami::err test_2x_sort(appInfo& info, enum test_type ttype, progress_indicator_ba
 }
 
 int main(int argc, char** argv){
+  tpie_init();
   appInfo info;
   char buf[20];
   TPIE_OS_SRANDOM(time(NULL));

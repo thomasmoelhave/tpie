@@ -70,7 +70,7 @@ private:
 	TPIE_OS_OFFSET m_n;
 	TPIE_OS_OFFSET m_pause_time_at_start;
 
-#ifndef NDEBUG
+#ifndef TPIE_NDEBUG
 	std::string m_name;
 #endif
 
