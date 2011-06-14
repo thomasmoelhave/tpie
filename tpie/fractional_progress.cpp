@@ -45,11 +45,11 @@ public:
 		std::locale::global(std::locale::classic());
 		dirty=false;
 		std::fstream f;
-#ifndef NDEBUG
+#ifndef TPIE_NDEBUG
 		f.open(TPIE_FRACTIONDB_DIR_INL "/tpie_fraction_db_debug.inl", std::fstream::in | std::fstream::binary);
-#else //NDEBUG
+#else //TPIE_NDEBUG
 		f.open(TPIE_FRACTIONDB_DIR_INL "/tpie_fraction_db.inl", std::fstream::in | std::fstream::binary);
-#endif //NDEBUG
+#endif //TPIE_NDEBUG
 		if (f.is_open()) {
 			std::string skip;
 			std::string name;
@@ -65,11 +65,11 @@ public:
 #ifdef TPIE_FRACTIONDB_DIR_INL
 	~fraction_db() {
 		if (!dirty) return;
-#ifndef NDEBUG
+#ifndef TPIE_NDEBUG
 		std::string path=TPIE_FRACTIONDB_DIR_INL "/tpie_fraction_db_debug.inl";
-#else //NDEBUG
+#else //TPIE_NDEBUG
 		std::string path=TPIE_FRACTIONDB_DIR_INL "/tpie_fraction_db.inl";
-#endif //NDEBUG
+#endif //TPIE_NDEBUG
 		std::string tmp=path+"~";
 		std::locale::global(std::locale::classic());
 		std::fstream f;
@@ -104,11 +104,11 @@ public:
 
 	fraction_db() {
 #ifdef TPIE_FRACTIONDB_DIR_INL
-#ifdef NDEBUG
+#ifdef TPIE_NDEBUG
 #include <tpie_fraction_db_debug.inl>
-#else //NDEBUG
+#else //TPIE_NDEBUG
 #include <tpie_fraction_db.inl>
-#endif //NDEBUG
+#endif //TPIE_NDEBUG
 #endif //TPIE_FRACTIONDB_DIR_INL
 	}
 
@@ -185,7 +185,7 @@ fractional_subindicator::fractional_subindicator(
 	description_importance importance,
 	bool enabled):
 	progress_indicator_subindicator(fp.m_pi, 42, crumb, importance),
-#ifndef NDEBUG
+#ifndef TPIE_NDEBUG
 	m_init_called(false), m_done_called(false), 
 #endif
 	m_fraction(enabled?fdb->getFraction(fname(file, function, id)):0.0), m_estimate(-1), m_n(enabled?n:0), m_fp(fp), m_predict(fp.m_id() + ";" + id)
@@ -210,7 +210,7 @@ void fractional_subindicator::init(TPIE_OS_OFFSET range) {
 		double t = static_cast<double>(m_parent->get_range());
 		m_outerRange = static_cast<TPIE_OS_OFFSET>(t * f);
 	}
-#ifndef NDEBUG
+#ifndef TPIE_NDEBUG
 	m_init_called=true;
 #endif
 	progress_indicator_subindicator::init(range);	
@@ -228,7 +228,7 @@ void fractional_subindicator::done() {
 }
 
 fractional_subindicator::~fractional_subindicator() {
-#ifndef NDEBUG
+#ifndef TPIE_NDEBUG
 	if (!m_init_called && m_fraction > 0.00001) {
 		std::stringstream s;
 		s << "A fractional_subindicator was assigned a non-zero fraction but never initialized" << std::endl;
@@ -240,17 +240,17 @@ fractional_subindicator::~fractional_subindicator() {
 }
 
 fractional_progress::fractional_progress(progress_indicator_base * pi):
-#ifndef NDEBUG
+#ifndef TPIE_NDEBUG
 	m_init_called(false),
 #endif
 	m_pi(pi), m_add_state(true), 
-#ifndef NDEBUG
+#ifndef TPIE_NDEBUG
 	m_done_called(false),
 #endif
 	m_confidence(1.0), m_total_sum(0), m_time_sum(0), m_timed_sum(0) {}
 	
 void fractional_progress::init() {
-#ifndef NDEBUG
+#ifndef TPIE_NDEBUG
 	if (m_init_called) {
 		std::stringstream s;
 		s << "Init was called on a fractional_progress where init had already been called" << std::endl;
@@ -264,7 +264,7 @@ void fractional_progress::init() {
 }
 
 void fractional_progress::done() {
-#ifndef NDEBUG
+#ifndef TPIE_NDEBUG
 	if (m_done_called || !m_init_called) {
 		std::stringstream s;
 		s << "Done was called on a fractional_progress where done had allready been called" << std::endl;
@@ -278,7 +278,7 @@ void fractional_progress::done() {
 }
 
 fractional_progress::~fractional_progress() {
-#ifndef NDEBUG
+#ifndef TPIE_NDEBUG
 	if (m_init_called && !m_done_called && !std::uncaught_exception()) {
 		std::stringstream s;
 		s << "A fractional_progress was destructed without done being called" << std::endl;

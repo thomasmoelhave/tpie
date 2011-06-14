@@ -207,7 +207,7 @@ int mem::manager::space_overhead () {
 
 #undef EXCEPTIONS_PARAM
 
-#ifndef NDEBUG
+#ifndef TPIE_NDEBUG
 TPIE_OS_SPACE_OVERHEAD_BODY
 #endif
 

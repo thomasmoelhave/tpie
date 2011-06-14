@@ -23,7 +23,13 @@
 #cmakedefine TPIE_THREADSAFE_MEMORY_MANAGEMNT 1
 #cmakedefine TPIE_FRACTION_STATS 1
 
+#cmakedefine TPIE_NDEBUG
+
+#cmakedefine TPIE_FRACTIONDB_DIR_INL
+#ifdef TPIE_FRACTIONDB_DIR_INL
+#undef TPIE_FRACTIONDB_DIR_INL
 #define TPIE_FRACTIONDB_DIR_INL "${TPIE_FRACTIONDB_DIR_INL}"
+#endif
 
 #ifdef WIN32
 	//disable windows crt security and deprecation warnings

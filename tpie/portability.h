@@ -1007,7 +1007,7 @@ logstream& logstream::operator<<(const LONGLONG x)\
     //		******************************************************************************* /
 
 #ifdef _WIN32	
-#ifndef NDEBUG
+#ifndef TPIE_NDEBUG
 #define TPIE_OS_SPACE_OVERHEAD_BODY \
 void * __cdecl _nh_malloc_dbg (TPIE_OS_SIZE_T, int, int, const char *,	int );\
 void * operator new(\
