@@ -288,7 +288,7 @@ int test_stream() {
     //////// Part 1: temporary stream.       //////////
 
     print_msg("Creating temporary stream (calling op. new)", INDENT);
-    s = new ami::stream<foo_t<40> >;
+    s = tpie_new<ami::stream<foo_t<40> > >();;
     status = (s != NULL && s->is_valid() ? PASS: FAIL);
     print_status(status); if (status == FAIL) failed++;
 
@@ -354,7 +354,7 @@ int test_stream() {
     }
  
     print_msg("Destroying temp stream (file should be removed) (calling op. delete)", INDENT);
-    delete s;
+    tpie_delete(s);
     status = (stat(pfn.c_str(), &buf) == -1 && errno == ENOENT ? PASS: FAIL);
     pfn.clear();
     print_status(status); if (status == FAIL) failed++;
@@ -367,7 +367,7 @@ int test_stream() {
     print_msg("Creating named writable stream (calling op. new)", INDENT);
     // Make sure there's no old file lingering around.
     TPIE_OS_UNLINK(fn.c_str());
-    s = new ami::stream<foo_t<40> >(fn);
+    s = tpie_new<ami::stream<foo_t<40> > >(fn);
     status = (s != NULL && s->is_valid() ? PASS: FAIL);
     print_status(status); if (status == FAIL) failed++;
 
@@ -402,13 +402,13 @@ int test_stream() {
     }
 
     print_msg("Closing named stream (file should NOT be removed) (calling op. delete)", INDENT);
-    delete s;
+    tpie_delete(s);
     status = (stat(pfn.c_str(), &buf) == 0 ? PASS: FAIL);
     pfn.clear();
     print_status(status); if (status == FAIL) failed++;
 
     print_msg("Reopening named stream read-only (calling op. new)", INDENT);
-    s = new ami::stream<foo_t<40> >(fn, ami::READ_STREAM);
+    s = tpie_new<ami::stream<foo_t<40> > >(fn, ami::READ_STREAM);
     status = (s != NULL && s->is_valid() ? PASS: FAIL);
     print_status(status); if (status == FAIL) failed++;  
   
@@ -426,13 +426,13 @@ int test_stream() {
     }
 
     print_msg("Closing named stream (file should NOT be removed) (calling op. delete)", INDENT);
-    delete s;
+    tpie_delete(s);
     status = (stat(fn.c_str(), &buf) == 0 ? PASS: FAIL);
     print_status(status); if (status == FAIL) failed++;  
 
 
     print_msg("Reopening named stream for reading and writing (calling op. new)", INDENT);
-    s = new ami::stream<foo_t<40> >(fn, ami::READ_WRITE_STREAM);
+    s = tpie_new<ami::stream<foo_t<40> > >(fn, ami::READ_WRITE_STREAM);
     status = (s != NULL && s->is_valid() ? PASS: FAIL);
     print_status(status); if (status == FAIL) failed++;  
   
@@ -445,7 +445,7 @@ int test_stream() {
     }
 
     print_msg("Destroying named stream (file should be removed) (calling op. delete)", INDENT);
-    delete s;
+    tpie_delete(s);
     status = (stat(fn.c_str(), &buf) == -1 && errno == ENOENT ? PASS: FAIL);
     print_status(status); if (status == FAIL) failed++;
   
@@ -482,7 +482,7 @@ int test_sort() {
 
     print_msg("Preliminary: Initializing temporary streams.", INDENT);
     for (i = 0; i < 2; i++) {
-	ps[i] = new ami::stream< ifoo_t<40> >;
+		ps[i] = tpie_new<ami::stream< ifoo_t<40> > >();
 	if (!ps[i]->is_valid()) {
 	    status = FAIL;
 	    break;
@@ -545,7 +545,7 @@ int test_sort() {
     print_status(status); if (status == FAIL) failed++;
   
     for (i = 0; i < 2; i++)
-	delete ps[i];
+		tpie_delete(ps[i]);
 
     print_status(EMPTY); // New line.
     return (failed ? 1: 0);
@@ -607,7 +607,7 @@ int test_scan_cxx() {
 	    status = FAIL;
 	}
 	ami::cxx_istream_scan< std::pair<int,int> > so(&xis);
-	ts = new ami::stream< std::pair<int,int> >(fns);
+	ts = tpie_new<ami::stream< std::pair<int,int> > >(fns);
 	if (!ts->is_valid()) {
 	    TP_LOG_APP_DEBUG_ID("Could not open TPIE stream for writing in tpie00.stream");
 	    status = FAIL;
@@ -619,7 +619,7 @@ int test_scan_cxx() {
 	    status = (err == ami::NO_ERROR && ts->stream_len() == 5000000 ? PASS: FAIL);
 	}
 	xis.close();
-	delete ts;
+	tpie_delete(ts);
     }
     print_status(status); if (status == FAIL) { failed++; status = SKIP; }
 
@@ -633,7 +633,7 @@ int test_scan_cxx() {
 	    status = FAIL;
 	}
 	ami::cxx_ostream_scan< std::pair<int,int> > so(&xos);
-	ts = new ami::stream< std::pair<int,int> >(fns, ami::READ_STREAM);
+	ts = tpie_new<ami::stream< std::pair<int,int> > >(fns, ami::READ_STREAM);
 	if (!ts->is_valid() || ts->stream_len() != 5000000) {
 	    TP_LOG_APP_DEBUG_ID("Error while re-opening stream from tpie00.stream");
 	    status = FAIL;
@@ -643,7 +643,7 @@ int test_scan_cxx() {
 	    status = (err == ami::NO_ERROR ? PASS: FAIL);
 	}
 	xos.close();
-	delete ts;
+	tpie_delete(ts);
     }
     print_status(status); if (status == FAIL) failed++;
   
@@ -683,7 +683,7 @@ int test_scan() {
 
     print_msg("Initializing temporary streams.", INDENT);
     for (i = 0; i < 9; i++) {
-	ps[i] = new ami::stream<int>;
+		ps[i] = tpie_new<ami::stream<int> >();
 	if (!ps[i]->is_valid()) {
 	    status = FAIL;
 	    break;
@@ -785,47 +785,47 @@ int test_scan() {
 	
     print_msg("Running ami::scan illegally with non-valid in-stream", INDENT);
     if (status != SKIP) {
-	ami::stream<int> *psn = new ami::stream<int>("/glkdjldas");
+		ami::stream<int> *psn = tpie_new<ami::stream<int> >("/glkdjldas");
 	err = ami::scan(psn, &so);
 	status = (err == ami::NO_ERROR && !psn->is_valid() ? FAIL: PASS);
-	delete psn;
+	tpie_delete(psn);
     }
     print_status(status); if (status == FAIL) failed++;
 
 
     print_msg("Running ami::scan illegally with non-valid out-stream", INDENT);
     if (status != SKIP) {
-	ami::stream<int> *psn = new ami::stream<int>("/glkdjldas");
+		ami::stream<int> *psn = tpie_new<ami::stream<int> >("/glkdjldas");
 	err = ami::scan(ps[2], &so, psn);
 	status = (err == ami::NO_ERROR && !psn->is_valid() ? FAIL: PASS);
-	delete psn;
+	tpie_delete(psn);
     }
     print_status(status); if (status == FAIL) failed++;
 
 
     print_msg("Running ami::scan illegally with read-only out-stream", INDENT);
     if (status != SKIP) {
-	ami::stream<int> *psn = new ami::stream<int>;
+		ami::stream<int> *psn = tpie_new<ami::stream<int> >();;
 	psn->persist(PERSIST_PERSISTENT);
 	std::string fn = psn->name();
-	delete psn;
-	psn = new ami::stream<int>(fn, ami::READ_STREAM);
+	tpie_delete(psn);
+	psn = tpie_new<ami::stream<int> >(fn, ami::READ_STREAM);
 	if (!psn->is_valid())
 	    status = FAIL;
 	else {
 	    err = ami::scan(ps[3], &so, psn);
 	    status = (err == ami::NO_ERROR ? FAIL: PASS);
 	}
-	delete psn;
+	tpie_delete(psn);
 	// open it again, to delete the file.
-	psn = new ami::stream<int>(fn);
+	psn = tpie_new<ami::stream<int> >(fn);
 	psn->persist(PERSIST_DELETE);
-	delete psn;
+	tpie_delete(psn);
     }
     print_status(status); if (status == FAIL) failed++;
 
     for (i = 0; i < 9; i++)
-	delete ps[i];
+		tpie_delete(ps[i]);
 
     print_status(EMPTY); // New line.
 
@@ -869,7 +869,7 @@ int test_large_files() {
     //////// Part 1: temporary stream.       //////////
 
     print_msg("Creating temporary stream (calling op. new)", INDENT);
-    s = new ami::stream<TPIE_OS_OFFSET>("large.stream");
+    s = tpie_new<ami::stream<TPIE_OS_OFFSET> >("large.stream");
     status = (s != NULL && s->is_valid() ? PASS: FAIL);
     s->persist(PERSIST_PERSISTENT);
     print_status(status); if (status == FAIL) failed++;
@@ -913,7 +913,7 @@ int test_large_files() {
     }
 
     print_msg("Deleting temporary stream (calling op. delete)", INDENT);
-    delete s;   
+    tpie_delete(s);
     print_status(status); if (status == FAIL) failed++; 
 
     return (failed ? 1: 0);

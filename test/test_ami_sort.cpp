@@ -156,7 +156,7 @@ int main(int argc, char **argv)  {
     get_memory_manager().set_limit (test_mm_size);
 
 	tempname::set_default_base_name("TEST_AMI_SORT");
-    ami::stream<int>* istr = (istr_name[0] == '\0') ? new ami::stream<int>: new ami::stream<int>(istr_name);
+    ami::stream<int>* istr = (istr_name[0] == '\0') ? tpie_new<ami::stream<int> >(): tpie_new<ami::stream<int> >(istr_name);
     if (!istr->is_valid()) {
 	std::cerr << argv[0] << ": Error while initializing input stream. Aborting." << std::endl;
 	exit(2);
@@ -223,13 +223,13 @@ int main(int argc, char **argv)  {
     ami::cxx_ostream_scan<int> *rptr = NULL;
   
     if (report_results_random) {
-	osr  = new std::ofstream(rand_results_filename);
-	rptr = new ami::cxx_ostream_scan<int>(osr);
+		osr  = tpie_new<std::ofstream>(rand_results_filename);
+		rptr = tpie_new<ami::cxx_ostream_scan<int> >(osr);
     }
   
     if (report_results_sorted) {
-	oss  = new std::ofstream(sorted_results_filename);
-	rpts = new ami::cxx_ostream_scan<int>(oss);
+		oss  = tpie_new<std::ofstream>(sorted_results_filename);
+		rpts = tpie_new<ami::cxx_ostream_scan<int> >(oss);
     }
   
     if (report_results_random) {
@@ -248,7 +248,7 @@ int main(int argc, char **argv)  {
     }
     std::cout << "Sorting input..." << std::flush;
     timer.start();  
-    ostr = (ostr_name[0] == '\0') ? new ami::stream<int>: new ami::stream<int>(ostr_name); 
+    ostr = (ostr_name[0] == '\0') ? tpie_new<ami::stream<int> >(): tpie_new<ami::stream<int> >(ostr_name); 
     if (kb_sort) {
 	ami::key_range range(KEY_MIN, KEY_MAX);
 	ae = ami::kb_sort(*istr, *ostr, range);
@@ -332,8 +332,7 @@ int main(int argc, char **argv)  {
 	std::cout << "Length of diff stream: " << amisd.stream_len() << "." << std::endl;
     }
 
-    delete istr;
-    delete ostr;
-
+    tpie_delete(istr);
+    tpie_delete(ostr);
     return 0;
 }
