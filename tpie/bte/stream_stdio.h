@@ -71,10 +71,7 @@ namespace tpie {
 	
 	    using base_t::check_header;
 	    using base_t::init_header;
-	    using base_t::register_memory_allocation;
-	    using base_t::register_memory_deallocation;
 	    using base_t::record_statistics;
-	
 	public:
 	    using base_t::name;
 	    using base_t::os_block_size;
@@ -111,7 +108,7 @@ namespace tpie {
 	
 	    // Query memory usage
 	    err main_memory_usage (TPIE_OS_SIZE_T * usage, 
-				   mem::stream_usage usage_type);
+							   stream_usage usage_type);
 	
 	    TPIE_OS_OFFSET chunk_size () const;
 	
@@ -339,7 +336,7 @@ namespace tpie {
 	    // A quick and dirty guess.  One block in the buffer cache, one in
 	    // user space. This is not accounted for by a "new" call, so we have to 
 	    // register it ourselves. TODO: is 2*block_size accurate?
-	    register_memory_allocation (m_osBlockSize * 2);
+	    get_memory_manager().register_allocation (m_osBlockSize * 2);
 	
 	    record_statistics(STREAM_OPEN);
 	
@@ -476,7 +473,7 @@ namespace tpie {
 	    // Register memory deallocation before returning.
 	    // A quick and dirty guess.  One block in the buffer cache, one in
 	    // user space. TODO.
-	    register_memory_deallocation (m_osBlockSize * 2);
+	    get_memory_manager().register_deallocation (m_osBlockSize * 2);
 	
 	    // In contrast to other BTE's this BTE allocates a header
 	    // even for substreams (since the file effectively is
@@ -570,30 +567,28 @@ namespace tpie {
     
 	template <class T>
 	err stream_stdio<T>::main_memory_usage (TPIE_OS_SIZE_T * usage,
-						mem::stream_usage
+											stream_usage
 						usage_type) {
 
 	    switch (usage_type) {
-	    case mem::STREAM_USAGE_OVERHEAD:
+	    case STREAM_USAGE_OVERHEAD:
 		//Fixed overhead per object. *this includes base class.
 		//Need to include 2*overhead per "new" that sizeof doesn't 
 		//know about.
-		*usage = sizeof(*this)+2*MM_manager.space_overhead();
+			*usage = sizeof(*this);
 
 		break;
 	    
-	    case mem::STREAM_USAGE_BUFFER:
-		//Amount used by stdio buffers. No "new" calls => no overhead
-		*usage = 2 * m_osBlockSize;
+	    case STREAM_USAGE_BUFFER:
+			//Amount used by stdio buffers. No "new" calls => no overhead
+			*usage = 2 * m_osBlockSize;
+			
+			break;
 	    
-		break;
-	    
-	    case mem::STREAM_USAGE_CURRENT:
-	    case mem::STREAM_USAGE_MAXIMUM:
-	    case mem::STREAM_USAGE_SUBSTREAM:
-		*usage = sizeof(*this) + 2*m_osBlockSize +
-		    2*MM_manager.space_overhead();
-	    
+	    case STREAM_USAGE_CURRENT:
+	    case STREAM_USAGE_MAXIMUM:
+	    case STREAM_USAGE_SUBSTREAM:
+			*usage = sizeof(*this) + 2*m_osBlockSize;
 		break;
 	    }
 

@@ -20,10 +20,7 @@
 #define __COMMON_H__
 
 #include "../app_config.h"
-#ifndef MM_IMP_REGISTER
-#define MM_IMP_REGISTER
-#endif
-#include <tpie/mm.h>
+#include <tpie/memory.h>
 #include <tpie/util.h>
 #include <iostream>
 #include <boost/cstdint.hpp>
@@ -50,19 +47,19 @@ struct memory_monitor {
 	tpie::size_type base;
 	tpie::size_type used;
 	inline void begin() {
-		used = base = tpie::MM_manager.memory_used();
+		used = base = tpie::get_memory_manager().used();
 	}
 	inline void sample() {
-		used = std::max(used, tpie::MM_manager.memory_used());
+		used = std::max(used, tpie::get_memory_manager().used());
 	}
 	inline void clear() {
-		used = tpie::MM_manager.memory_used();
+		used = tpie::get_memory_manager().used();
 	}
 	inline void empty() {
 		used = base;
 	}
-	inline tpie::size_type usage(int allocations) {
-		return used-base - allocations*tpie::MM_manager.space_overhead();
+	inline tpie::size_type usage() {
+		return used-base;
 	}
 };
 
@@ -72,21 +69,21 @@ public:
 	virtual void alloc() = 0;
 	virtual tpie::size_type claimed_size() = 0;
 	bool operator()() {
-		tpie::MM_manager.set_memory_limit(128*1024*1024);
+		tpie::get_memory_manager().set_limit(128*1024*1024);
 		tpie::size_type g = claimed_size();
 		memory_monitor mm;
 		mm.begin();
 		alloc();
 		mm.sample();
-		if (mm.usage(1) > g) {
-			std::cerr << "Claimed to use " << g << " but used " << mm.usage(1) << std::endl;
+		if (mm.usage() > g) {
+			std::cerr << "Claimed to use " << g << " but used " << mm.usage() << std::endl;
 			return false;
 		}
 		free();
 		mm.empty();
 		mm.sample();
-		if (mm.usage(0) > 0) {
-			std::cerr << "Leaked memory " << mm.usage(0) << std::endl;
+		if (mm.usage() > 0) {
+			std::cerr << "Leaked memory " << mm.usage() << std::endl;
 			return false;
 		}
 		return true;

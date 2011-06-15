@@ -104,7 +104,7 @@ public:
 
 	fraction_db() {
 #ifdef TPIE_FRACTIONDB_DIR_INL
-#ifdef TPIE_NDEBUG
+#ifndef NDEBUG
 #include <tpie_fraction_db_debug.inl>
 #else //TPIE_NDEBUG
 #include <tpie_fraction_db.inl>

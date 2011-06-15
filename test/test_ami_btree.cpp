@@ -89,8 +89,8 @@ int main(int argc, char **argv) {
   // Log debugging info from the application, but not from the library. 
   tpie_init();
  
-  MM_manager.set_memory_limit(64*1024*1024);
-  MM_manager.enforce_memory_limit();
+  get_memory_manager().set_limit(64*1024*1024);
+  get_memory_manager().set_enforcement(memory_manager::ENFORCE_THROW);
 
   if (argc > 1) {
     bulk_load_count = atol(argv[1]);

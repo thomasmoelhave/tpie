@@ -69,9 +69,7 @@ set (OTHER_HEADERS
 		loglevel.h
 		logstream.h
 		mergeheap.h
-		mm_base.h
-		mm.h
-		mm_manager.h
+		memory.h
 		persist.h
 		portability.h
 		internal_priority_queue.h
@@ -133,8 +131,7 @@ set (OTHER_SOURCES
 	backtrace.cpp
 	cpu_timer.cpp
 	logstream.cpp
-	mm_base.cpp
-	mm_manager.cpp
+	memory.cpp
 	portability.cpp
 	tpie_log.cpp
 	tempname.cpp
@@ -144,6 +141,7 @@ set (OTHER_SOURCES
 	execution_time_predictor.cpp
 	fractional_progress.cpp
 	tpie.cpp
+	
 	)
 
 source_group("BTE" FILES ${BTE_HEADERS} ${BTE_SOURCES})

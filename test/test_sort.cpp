@@ -752,10 +752,7 @@ int main(int argc, char** argv){
   get_app_info(argc, argv, info);
 
   //Set up TPIE memory manager
-  MM_manager.set_memory_limit(info.mem_size);
-  
-  //Sort has memory problems and may crash with enforce
-  MM_manager.warn_memory_limit();
+  get_memory_manager().set_limit(info.mem_size);
 
   //Set up TPIE logging. 
   //Log files will be written to /tmp/tpielog_XXXXXX.txt

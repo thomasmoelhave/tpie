@@ -147,7 +147,7 @@ namespace tpie {
 	    ////////////////////////////////////////////////////////////////////
 
 	    err main_memory_usage(TPIE_OS_SIZE_T *usage,
-				  mem::stream_usage usage_type) const;
+							  stream_usage usage_type) const;
     
 	private:
 	    err refill();
@@ -297,7 +297,7 @@ err queue<T>::refill() {
 
 template<class T>
 err queue<T>::main_memory_usage(TPIE_OS_SIZE_T *usage,
-				mem::stream_usage usage_type) const {
+								stream_usage usage_type) const {
     
     TPIE_OS_SIZE_T usage2;
 
@@ -315,11 +315,11 @@ err queue<T>::main_memory_usage(TPIE_OS_SIZE_T *usage,
     *usage += usage2;
 
     switch (usage_type) {
-    case mem::STREAM_USAGE_OVERHEAD:
-    case mem::STREAM_USAGE_CURRENT:
-    case mem::STREAM_USAGE_MAXIMUM:
-    case mem::STREAM_USAGE_SUBSTREAM:
-    case mem::STREAM_USAGE_BUFFER:
+    case STREAM_USAGE_OVERHEAD:
+    case STREAM_USAGE_CURRENT:
+    case STREAM_USAGE_MAXIMUM:
+    case STREAM_USAGE_SUBSTREAM:
+    case STREAM_USAGE_BUFFER:
 	*usage += sizeof(*this);            //  Attributes.
 
 	break;

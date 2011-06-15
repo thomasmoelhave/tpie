@@ -153,9 +153,9 @@ namespace tpie {
     
 	    // Check whether the problem fits in main memory.
 
-	    sz_avail = MM_manager.memory_available ();
+	    sz_avail = get_memory_manager().available ();
 
-	    instream.main_memory_usage(&sz_stream, mem::STREAM_USAGE_MAXIMUM);
+	    instream.main_memory_usage(&sz_stream, STREAM_USAGE_MAXIMUM);
 
 	    if (sz_avail < 4 * sz_stream) {
 		return INSUFFICIENT_MAIN_MEMORY;
@@ -411,7 +411,7 @@ namespace tpie {
 	    TPIE_OS_SIZE_T ii,jj;
     
 	    // Check available main memory.
-	    sz_avail = MM_manager.memory_available ();
+	    sz_avail = get_memory_manager().available ();
     
 	    // How long is the input stream?
 	    stream_len = instream.stream_len();

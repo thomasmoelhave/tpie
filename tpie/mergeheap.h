@@ -71,6 +71,7 @@
 
 // Get definitions for working with Unix and Windows
 #include <tpie/portability.h>
+#include <tpie/memory.h>
 
 // Macros for left and right.
 #define Left(i)   2*(i)
@@ -257,8 +258,8 @@ namespace tpie {
 	    /// Returns the fixed main memory space overhead, regardless of item count.
 	    ///////////////////////////////////////////////////////////////////////////
 	    inline TPIE_OS_SIZE_T space_overhead(void) { 
-		// One extra array item is defined to make heap indexing easier
-		return sizeof(heap_ptr<REC>)+MM_manager.space_overhead();
+			// One extra array item is defined to make heap indexing easier
+			return sizeof(heap_ptr<REC>);
 	    }
 	    
 	};
@@ -629,7 +630,7 @@ namespace tpie {
 	    ///////////////////////////////////////////////////////////////////////////
 	    inline TPIE_OS_SIZE_T space_overhead(void) { 
 		// One extra array item is defined to make heap indexing easier
-		return sizeof(heap_element<REC>)+MM_manager.space_overhead();
+			return sizeof(heap_element<REC>);
 	    }
 	    
 	};
@@ -922,7 +923,7 @@ namespace tpie {
 	    // Return fixed main memory space overhead, regardless of item count
 	    inline TPIE_OS_SIZE_T space_overhead(void) { 
 		// One extra array item is defined to make heap indexing easier
-		return sizeof(heap_ptr<REC>)+MM_manager.space_overhead();
+			return sizeof(heap_ptr<REC>);
 	    }
 	    
 	    // heapify's an initial array of elements

@@ -97,11 +97,11 @@ namespace tpie {
 	    unsigned int ii;
 	    
 	    // How much main memory do we have?
-	    sz_avail = MM_manager.memory_available ();
+	    sz_avail = get_memory_manager().available();
 	    
 	    // How much memory does a single stream need in the worst case?
 	    if ((ae = instream.main_memory_usage(&single_stream_usage,
-						 mem::STREAM_USAGE_MAXIMUM)) !=
+											 STREAM_USAGE_MAXIMUM)) !=
 		NO_ERROR) {
 		return ae;
 	    }

@@ -153,7 +153,7 @@ int main(int argc, char **argv)  {
     random_input = (istr_name[0] == '\0');
 
     // Set the amount of main memory:
-    MM_manager.set_memory_limit (test_mm_size);
+    get_memory_manager().set_limit (test_mm_size);
 
 	tempname::set_default_base_name("TEST_AMI_SORT");
     ami::stream<int>* istr = (istr_name[0] == '\0') ? new ami::stream<int>: new ami::stream<int>(istr_name);
@@ -184,11 +184,11 @@ int main(int argc, char **argv)  {
 	std::cout << "Input size: " << test_size << " items." << std::endl
 		  << "Item size: " << sizeof(int) << " bytes." << std::endl
 		  << "TPIE memory size: " 
-		  << static_cast<TPIE_OS_LONGLONG>(MM_manager.memory_limit())
+			  << static_cast<TPIE_OS_LONGLONG>(get_memory_manager().limit())
 		  << " bytes." << std::endl;
 	std::cout << "TPIE free memory: " 
-		  << static_cast<TPIE_OS_LONGLONG>(MM_manager.memory_available())
-		  << " bytes." << std::endl;
+			  << static_cast<TPIE_OS_LONGLONG>(get_memory_manager().available())
+		  << " Bytes2." << std::endl;
     }
 
     if (random_input) {
@@ -243,7 +243,7 @@ int main(int argc, char **argv)  {
 
     if (verbose) {
 	std::cout << "TPIE free memory: " 
-		  << static_cast<TPIE_OS_LONGLONG>(MM_manager.memory_available())
+			  << static_cast<TPIE_OS_LONGLONG>(get_memory_manager().available())
 		  << " bytes.\n";
     }
     std::cout << "Sorting input..." << std::flush;
@@ -271,7 +271,7 @@ int main(int argc, char **argv)  {
 
     if (verbose) {
 	std::cout << "TPIE free memory: " 
-		  << static_cast<TPIE_OS_LONGLONG>(MM_manager.memory_available()) 
+			  << static_cast<TPIE_OS_LONGLONG>(get_memory_manager().available()) 
 		  << " bytes." << std::endl;
     }
     if (report_results_sorted) {
@@ -284,7 +284,7 @@ int main(int argc, char **argv)  {
 	}
 	if (verbose) {
 	    std::cout << "TPIE free memory: " << 
-		static_cast<TPIE_OS_LONGLONG>(MM_manager.memory_available())
+			static_cast<TPIE_OS_LONGLONG>(get_memory_manager().available())
 		      << " bytes." << std::endl;
 	}
     }
@@ -301,7 +301,7 @@ int main(int argc, char **argv)  {
 	std::cout << "Sorting again using old sorting routine." << std::endl;
 	if (verbose) {
 	    std::cout << "TPIE free memory: " 
-		      << static_cast<TPIE_OS_LONGLONG>(MM_manager.memory_available()) 
+				  << static_cast<TPIE_OS_LONGLONG>(get_memory_manager().available()) 
 		      << " bytes." << std::endl;
 	}
     
@@ -323,7 +323,7 @@ int main(int argc, char **argv)  {
 	if (verbose) {
 	    std::cout << "Time taken: " << timer << std::endl;
 	    std::cout << "TPIE free memory: " 
-		      << static_cast<TPIE_OS_LONGLONG>(MM_manager.memory_available()) 
+				  << static_cast<TPIE_OS_LONGLONG>(get_memory_manager().available()) 
 		      << " bytes.\n";
 	}
 

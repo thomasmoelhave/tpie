@@ -87,8 +87,6 @@ namespace tpie {
 	
 			using base_t::check_header;
 			using base_t::init_header;
-			using base_t::register_memory_allocation;
-			using base_t::register_memory_deallocation;
 			using base_t::record_statistics;
 	
 		public:
@@ -143,7 +141,7 @@ namespace tpie {
 	
 			// Query memory usage
 			err main_memory_usage(TPIE_OS_SIZE_T* usage, 
-								  mem::stream_usage usage_type);
+								  stream_usage usage_type);
 	
 			TPIE_OS_OFFSET chunk_size() const;
 	
@@ -497,7 +495,7 @@ namespace tpie {
 			// Since blocks and header are allocated by mmap and not "new",
 			// register memory manually. No mem overhead with mmap
 			// register_memory_allocation (sizeof (stream_header));
-			register_memory_allocation (STREAM_MMAP_MM_BUFFERS * m_header->m_blockSize);
+			get_memory_manager().register_allocation (STREAM_MMAP_MM_BUFFERS * m_header->m_blockSize);
 	
 			record_statistics(STREAM_OPEN);
 	
@@ -695,7 +693,7 @@ namespace tpie {
 				}
 	    
 				// Register memory deallocation before returning.
-				register_memory_deallocation (STREAM_MMAP_MM_BUFFERS *
+				get_memory_manager().register_deallocation (STREAM_MMAP_MM_BUFFERS *
 											  m_header->m_blockSize);
 	    
 				delete m_header;
@@ -825,36 +823,33 @@ namespace tpie {
 // Note that in a substream we do not charge for the memory used by
 // the header, since it is accounted for in the 0 level superstream.
 		template <class T>
-			err stream_mmap<T>::main_memory_usage (TPIE_OS_SIZE_T * usage, mem::stream_usage usage_type) {
+		err stream_mmap<T>::main_memory_usage (TPIE_OS_SIZE_T * usage, stream_usage usage_type) {
 
 			switch (usage_type) {
 
-			case mem::STREAM_USAGE_OVERHEAD:
+			case STREAM_USAGE_OVERHEAD:
 				//Fixed costs. Only 2*mem overhead, because only class and base
 				//are allocated dynamicall via "new". Header is read via mmap
-				*usage = sizeof(*this) + sizeof(stream_header) +
-					2*MM_manager.space_overhead();
+				*usage = sizeof(*this) + sizeof(stream_header);
 
 				break;
 	    
-			case mem::STREAM_USAGE_BUFFER:
+			case STREAM_USAGE_BUFFER:
 				//no mem manager overhead when allocated via mmap
 				*usage = STREAM_MMAP_MM_BUFFERS * m_header->m_blockSize;
 
 				break;
 	    
-			case mem::STREAM_USAGE_CURRENT:
+			case STREAM_USAGE_CURRENT:
 				*usage = (sizeof(*this) + sizeof(stream_header) +
-						  2*MM_manager.space_overhead() + 
 						  ((m_currentBlock == NULL) ? 0 :
 						   STREAM_MMAP_MM_BUFFERS * m_header->m_blockSize));
 	    
 				break;
 	    
-			case mem::STREAM_USAGE_MAXIMUM:
-			case mem::STREAM_USAGE_SUBSTREAM:
+			case STREAM_USAGE_MAXIMUM:
+			case STREAM_USAGE_SUBSTREAM:
 				*usage = (sizeof(*this) + sizeof(stream_header) +
-						  2*MM_manager.space_overhead() + 
 						  STREAM_MMAP_MM_BUFFERS * m_header->m_blockSize);
 	    
 				break;

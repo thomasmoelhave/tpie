@@ -251,7 +251,7 @@ namespace tpie {
 	    TPIE_OS_OFFSET sz_stream, sz_needed = 0;
   
 	    // How much main memory is available?
-	    sz_avail = MM_manager.consecutive_memory_available ();
+	    sz_avail = consecutive_memory_available ();
 
 	    // Iterate through the streams, finding out how much additional
 	    // memory each stream will need in the worst case (the streams are
@@ -261,10 +261,10 @@ namespace tpie {
 	    // which case their current memory usage is just the header block);
 	    // count also the output stream
 	    for (unsigned int ii = 0; ii < arity + 1; ii++) {
-		instreams[ii]->main_memory_usage(&sz_stream, mem::STREAM_USAGE_MAXIMUM);
-		sz_needed += sz_stream;
-		instreams[ii]->main_memory_usage(&sz_stream, mem::STREAM_USAGE_CURRENT);
-		sz_needed -= sz_stream;
+			instreams[ii]->main_memory_usage(&sz_stream, STREAM_USAGE_MAXIMUM);
+			sz_needed += sz_stream;
+			instreams[ii]->main_memory_usage(&sz_stream, STREAM_USAGE_CURRENT);
+			sz_needed -= sz_stream;
 	    }                              
   
 	    //count the space used by the merge_management object (include
@@ -441,7 +441,7 @@ namespace tpie {
 	    TPIE_OS_SIZE_T sz_avail;
   
 	    // How much memory is available?
-	    sz_avail = MM_manager.consecutive_memory_available ();
+	    sz_avail = consecutive_memory_available ();
 
 	    len = instream->stream_len();
 	    if ((len * static_cast<TPIE_OS_OFFSET>(sizeof(T))) <= static_cast<TPIE_OS_OFFSET>(sz_avail)) {
@@ -514,7 +514,7 @@ namespace tpie {
 	    int jj;
   
 	    //How much memory is available?
-	    sz_avail = MM_manager.consecutive_memory_available ();
+	    sz_avail = consecutive_memory_available ();
 
 	    // If the whole input can fit in main memory then just call
 	    // main_mem_merge() to deal with it by loading it once and
@@ -571,7 +571,7 @@ namespace tpie {
 	    // How many substreams will there be?  The main memory
 	    // available to us is the total amount available, minus what
 	    // is needed for the input stream and the temporary stream.
-	    if ((ae = instream->main_memory_usage(&sz_stream, mem::STREAM_USAGE_MAXIMUM)) 
+	    if ((ae = instream->main_memory_usage(&sz_stream, STREAM_USAGE_MAXIMUM)) 
 		!= NO_ERROR) {
 		return ae;
 	    }                                     

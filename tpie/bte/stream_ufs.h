@@ -161,9 +161,10 @@ namespace tpie {
 	    // Return the current position in the stream.
 	    inline TPIE_OS_OFFSET tell() const;
 	
+
 	    // Query memory usage
 	    err main_memory_usage(TPIE_OS_SIZE_T  *usage,
-				  mem::stream_usage usage_type);
+							  stream_usage usage_type);
 	
 	    TPIE_OS_SIZE_T chunk_size() const;
 	
@@ -1006,43 +1007,34 @@ namespace tpie {
 // the header, since it is accounted for in the 0 level superstream.
 	template <class T>
 	err stream_ufs<T>::main_memory_usage (TPIE_OS_SIZE_T  *usage,
-					      mem::stream_usage usage_type) {
+										  stream_usage usage_type) {
 
 	    switch (usage_type) {
-	    
-	    case mem::STREAM_USAGE_OVERHEAD:
+			
+	    case STREAM_USAGE_OVERHEAD:
 		//sizeof(*this) includes base class. 
 		//m_header is allocated dynamically, but always allocated, 
 		//even for substreams. Don't forget space overhead per
 		//"new" on (class, base class, m_header) 
-		*usage = sizeof(*this) + sizeof(stream_header) +
-		    3*MM_manager.space_overhead();
-
-		break;
+			*usage = sizeof(*this) + sizeof(stream_header);
+			break;
 	    
-	    case mem::STREAM_USAGE_BUFFER: 
-		//space used by buffers, when allocated
-		*usage = STREAM_UFS_MM_BUFFERS * m_header->m_blockSize +
-		    MM_manager.space_overhead();
-
-		break;
+	    case STREAM_USAGE_BUFFER: 
+			//space used by buffers, when allocated
+			*usage = STREAM_UFS_MM_BUFFERS * m_header->m_blockSize;
+			break;
 	    
-	    case mem::STREAM_USAGE_CURRENT:
-		//overhead + buffers (if in use)
-		*usage = sizeof(*this) +  sizeof(stream_header) +
-		    3*MM_manager.space_overhead() + 
-		    ((m_currentBlock == NULL) ? 0 : (STREAM_UFS_MM_BUFFERS *
-						     m_header->m_blockSize +
-						     MM_manager.space_overhead()));
-
-		break;
+	    case STREAM_USAGE_CURRENT:
+			//overhead + buffers (if in use)
+			*usage = sizeof(*this) +  sizeof(stream_header) +
+				((m_currentBlock == NULL) ? 0 : (STREAM_UFS_MM_BUFFERS *
+												 m_header->m_blockSize ));
+			break;
 	
-	    case mem::STREAM_USAGE_MAXIMUM:
-	    case mem::STREAM_USAGE_SUBSTREAM:
-		*usage = sizeof(*this) +  sizeof(stream_header) +
-		    STREAM_UFS_MM_BUFFERS * m_header->m_blockSize +
-		    4*MM_manager.space_overhead();
-
+	    case STREAM_USAGE_MAXIMUM:
+	    case STREAM_USAGE_SUBSTREAM:
+			*usage = sizeof(*this) +  sizeof(stream_header) +
+				STREAM_UFS_MM_BUFFERS * m_header->m_blockSize;
 		break;
 
 	    }

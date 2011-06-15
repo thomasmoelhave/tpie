@@ -24,10 +24,6 @@
 // Get definitions for working with Unix and Windows
 #include <tpie/portability.h>
 
-// Include the registration based memory manager.
-#define MM_IMP_REGISTER
-#include <tpie/mm.h>
-
 // For persist.
 #include <tpie/persist.h>
 
@@ -201,26 +197,6 @@ namespace tpie {
 
 	protected:
 	
-	    // Needs to be inlined!
-	    err register_memory_allocation(TPIE_OS_SIZE_T sz) {
-		if (MM_manager.register_allocation(sz) != mem::NO_ERROR) {
-		    status_ = COLLECTION_STATUS_INVALID;
-		    TP_LOG_FATAL_ID("Memory manager error in allocation.");
-		    return MEMORY_ERROR;
-		}
-		return NO_ERROR;
-	    }
-	
-	    // Needs to be inlined!
-	    err register_memory_deallocation(TPIE_OS_SIZE_T sz) {
-		if (MM_manager.register_deallocation(sz) != mem::NO_ERROR) {
-		    status_ = COLLECTION_STATUS_INVALID;
-		    TP_LOG_FATAL_ID("Memory manager error in deallocation.");
-		    return MEMORY_ERROR;
-		}
-		return NO_ERROR;
-	    }
-
 	    TPIE_OS_OFFSET bid_to_file_offset(BIDT bid) const { 
 		return header_.os_block_size + header_.block_size * (bid-1); 
 	    }

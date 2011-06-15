@@ -177,7 +177,7 @@ public:
     ////////////////////////////////////////////////////////////////////
 
     err main_memory_usage(TPIE_OS_SIZE_T *usage,
-			  mem::stream_usage usage_type) const;
+						  stream_usage usage_type) const;
 
 
     ////////////////////////////////////////////////////////////////////
@@ -466,7 +466,7 @@ err stack<T>::peek(const T **t) {
 
 template<class T>
 err stack<T>::main_memory_usage(TPIE_OS_SIZE_T *usage,
-				mem::stream_usage usage_type) const {
+								stream_usage usage_type) const {
     
     //  Get the usage for the underlying stream.
     if (m_amiStream->main_memory_usage(usage, usage_type) 
@@ -480,11 +480,11 @@ err stack<T>::main_memory_usage(TPIE_OS_SIZE_T *usage,
     switch (usage_type) {
 
 	//  All these types are o.k.
-    case mem::STREAM_USAGE_OVERHEAD:
-    case mem::STREAM_USAGE_CURRENT:
-    case mem::STREAM_USAGE_MAXIMUM:
-    case mem::STREAM_USAGE_SUBSTREAM:
-    case mem::STREAM_USAGE_BUFFER: 
+    case STREAM_USAGE_OVERHEAD:
+    case STREAM_USAGE_CURRENT:
+    case STREAM_USAGE_MAXIMUM:
+    case STREAM_USAGE_SUBSTREAM:
+    case STREAM_USAGE_BUFFER: 
 	*usage += sizeof(*this);            //  Attributes.
 	*usage += 2 * m_logicalBlockSize * sizeof(T);   //  Two blocks.
 	break;

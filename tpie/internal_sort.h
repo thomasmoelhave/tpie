@@ -34,6 +34,7 @@
 #include <tpie/comparator.h> //to convert TPIE comparisons to STL
 #include <tpie/fractional_progress.h>
 #include <tpie/err.h>
+#include <tpie/memory.h>
 
 namespace tpie {
 namespace ami {
@@ -146,7 +147,7 @@ template<class T>
 inline TPIE_OS_SIZE_T Internal_Sorter_Base<T>::space_overhead(void) {
 	// Space usage independent of space_per_item
 	// accounts MM_manager space overhead on "new" call
-	return MM_manager.space_overhead();
+	return 0;
 }
 
 template<class T>
@@ -543,7 +544,7 @@ template<class T, class KEY, class CMPR>
 inline TPIE_OS_SIZE_T Internal_Sorter_KObj<T, KEY, CMPR>::space_overhead(void) { 
 	// Space usage independent of space_per_item
 	// accounts MM_manager space overhead on "new" call
-	return 2*MM_manager.space_overhead();
+	return 0;
 }
 
 template<class T, class KEY, class CMPR>

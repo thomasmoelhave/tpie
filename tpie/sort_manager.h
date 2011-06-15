@@ -248,12 +248,12 @@ err sort_manager<T,I,M>::start_sort(){
 	// ********************************************************************
 	    	    
 	// Figure out how much memory we've got to work with.
-	mmBytesAvail = MM_manager.consecutive_memory_available();
+	mmBytesAvail = consecutive_memory_available();
 	    
 	// Space for internal buffers for the input and output stream may not
 	// have been allocated yet. Query the space usage and subtract.
 	if ((ae = inStream->main_memory_usage
-		 (&mmBytesPerStream,mem::STREAM_USAGE_MAXIMUM))
+		 (&mmBytesPerStream,STREAM_USAGE_MAXIMUM))
 		!= NO_ERROR) {
 		
 		TP_LOG_DEBUG_ID ("Error returned from main_memory_usage");
@@ -421,7 +421,7 @@ err sort_manager<T,I,M>::compute_sort_params(void){
 	// an array of stream<T> ptrs (pending)
 	// cost of Input stream already accounted for in mmBytesAvail..
 	TPIE_OS_SIZE_T mmBytesFixedForMerge = m_mergeHeap->space_overhead() +
-		mmBytesPerStream + 3*MM_manager.space_overhead();
+		mmBytesPerStream;
 	    
 	TPIE_OS_SIZE_T mmBytesAvailMerge = mmBytesAvail - mmBytesFixedForMerge;
 
@@ -691,9 +691,7 @@ err sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
 
 	TP_LOG_DEBUG_ID("Allocated " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(sizeof(stream<T>*)*mrgArity)
 					<< " bytes for " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(mrgArity) << " merge input stream pointers.\n"
-					<< "Allocated " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(MM_manager.space_overhead()) << " bytes" 
-					<< " of overhead on \"new\" call.\n" 
-					<< "Mem. avail. is " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(MM_manager.consecutive_memory_available ()) );
+					<< "Mem. avail. is " << consecutive_memory_available ());
 
 	// the number of iterations the main loop has gone through,
 	// at most the height of the merge tree log_{M/B}(N/B),

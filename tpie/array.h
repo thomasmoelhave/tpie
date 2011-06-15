@@ -490,8 +490,17 @@ public:
 	inline size_type size() const throw() {return m_size;}
 };
 
+}
+
+namespace std {
+
+template <typename T, template <typename> class alloc_t>
+void swap(tpie::array<T, false, alloc_t> & a, tpie::array<T, false, alloc_t> & b) {
+
+}
 
 
 }
+
 #endif //__TPIE_ARRAY_H__ 	
 

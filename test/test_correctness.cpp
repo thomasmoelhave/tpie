@@ -127,8 +127,8 @@ int main(int argc, char **argv) {
     // Log debugging info from the application, but not from the library. 
 	tpie_init();
  
-    MM_manager.set_memory_limit(40*1024*1024);
-    MM_manager.enforce_memory_limit();
+    get_memory_manager().set_limit(40*1024*1024);
+	get_memory_manager().set_enforcement(memory_manager::ENFORCE_THROW);
 
     if (argc == 1) {
 	getopts_usage(argv[0], opts);
@@ -146,7 +146,7 @@ int main(int argc, char **argv) {
 		fprintf(stdout, "Attempting to set memory limit too low (min is 2MB). Did not change.\n");
 	    else {
 		fprintf(stdout, "Setting memory limit to %d KB.\n", mem_limit/1024);
-		MM_manager.set_memory_limit(mem_limit);
+		get_memory_manager().set_limit(mem_limit);
 	    }
 	}
 	break;
@@ -246,7 +246,7 @@ void print_cfg() {
     fprintf(stdout, "UNSPECIFIED");
 #endif
     fprintf(stdout, "\n");
-    fprintf(stdout, "    TPIE Memory limit: %d KB\n", (int)(MM_manager.memory_limit()/1024));
+    fprintf(stdout, "    TPIE Memory limit: %d KB\n", (int)(get_memory_manager().limit()/1024));
 #if TP_LOG_APPS
     fprintf(stdout, "    Logging in file %s\n", tpie_log_name().c_str());
 #else

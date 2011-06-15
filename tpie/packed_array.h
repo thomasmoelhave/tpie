@@ -246,7 +246,7 @@ public:
 	/// \copydetails linear_memory_structure_doc::memory_overhead()
 	/////////////////////////////////////////////////////////
 	static double memory_overhead() {
-		return (double)sizeof(packed_array) + MM_manager.space_overhead()+(double)sizeof(storage_type);
+		return (double)sizeof(packed_array)+(double)sizeof(storage_type);
 	}	
 
 	/////////////////////////////////////////////////////////

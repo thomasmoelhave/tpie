@@ -109,7 +109,7 @@ int main(int argc, char **argv) {
     TPIE_OS_SRANDOM(random_seed);
     
     // Set the amount of main memory:
-    MM_manager.set_memory_limit (test_mm_size);
+    get_memory_manager().set_limit (test_mm_size);
     
     ami::stream<TPIE_OS_OFFSET> amis0;
     ami::stream<TPIE_OS_OFFSET> amis1;
