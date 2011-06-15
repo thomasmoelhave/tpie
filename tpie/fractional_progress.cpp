@@ -125,11 +125,11 @@ static fraction_db * fdb = 0;
 
 void init_fraction_db() {
 	if (fdb) return;
-	fdb = new fraction_db();
+	fdb = tpie_new<fraction_db>();
 }
 
 void finish_fraction_db() {
-	delete fdb;
+	tpie_delete(fdb);
 	fdb=NULL;
 }
 

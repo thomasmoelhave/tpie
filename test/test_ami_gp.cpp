@@ -124,12 +124,12 @@ int main(int argc, char **argv) {
 
     if (report_results_initial) {
         osi  = tpie_new<std::ofstream>(initial_results_filename);
-        rpti = tpie_new<ami::cxx_ostream_scan><TPIE_OS_OFFSET>(osi);
+        rpti = tpie_new<ami::cxx_ostream_scan<TPIE_OS_OFFSET> >(osi);
     }
 
     if (report_results_final) {
         osf  = tpie_new<std::ofstream>(final_results_filename);
-        rptf = tpie_new<ami::cxx_ostream_scan><TPIE_OS_OFFSET>(osf);
+        rptf = tpie_new<ami::cxx_ostream_scan<TPIE_OS_OFFSET> >(osf);
     }
     
     scan_count my_scan_count(test_size);
