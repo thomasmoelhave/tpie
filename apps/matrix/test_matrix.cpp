@@ -105,7 +105,7 @@ int main(int argc, char **argv)
     }
     
     // Set the amount of main memory:
-    MM_manager.set_memory_limit (test_mm_size);
+    get_memory_manager().set_limit (test_mm_size);
 
     TPIE_OS_OFFSET matrix_size = static_cast<TPIE_OS_OFFSET>(sqrt(static_cast<double>(test_size)));
 

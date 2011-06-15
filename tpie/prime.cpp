@@ -82,4 +82,11 @@ bool is_prime(size_type i) {return is_prime_ins(i);}
 
 size_t prime_hash(const std::string & s) {return is_prime_ins.prime_hash(s);}
 
+
+size_t next_prime(size_t i)  {
+	while(!is_prime(i)) ++i;
+	return i;
+}
+
+
 }

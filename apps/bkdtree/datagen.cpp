@@ -189,7 +189,7 @@ int main(int argc, char **argv) {
   // Log debugging info from the application, but not from the library. 
 	tpie_init();
  
-   MM_manager.ignore_memory_limit();
+	get_memory_manager().set_enforcement(memory_manager::ENFORCE_IGNORE);
 
   int input_type = INPUT_UNDEFINED;
   int output_type = OUTPUT_UNDEFINED;

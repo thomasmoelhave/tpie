@@ -107,8 +107,10 @@ int main(int argc, char** argv) {
 
   // Log debugging info from the application, but not from the library. 
   tpie_init();
+
   // Write a warning in the log file when the memory limit is exceeded. 
-  MM_manager.warn_memory_limit();
+  get_memory_manager().set_enforcement(memory_manager::ENFORCE_WARN);
+
   parse_args(argc, argv);
 
   params.structure_name = "KD-TREE";

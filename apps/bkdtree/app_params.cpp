@@ -426,8 +426,8 @@ void parse_args(int argc, char** argv) {
 
   // Set the TPIE memory limit (at least 4MB).
   params.memory_limit = max(params.memory_limit, size_t(4*1024*1024));
-  MM_manager.set_memory_limit(params.memory_limit);
-  MM_manager.enforce_memory_limit();
+  get_memory_manager().set_limit(params.memory_limit);
+  get_memory_manager().set_enforcement(memory_manager::ENFORCE_THROW);
 
   if (params.in_stream != NULL) {
     params.in_stream->persist(keep_input? PERSIST_PERSISTENT : PERSIST_DELETE);

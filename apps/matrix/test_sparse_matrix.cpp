@@ -136,7 +136,7 @@ int main(int argc, char **argv)
     }
     
     // Set the amount of main memory:
-    MM_manager.set_memory_limit (test_mm_size);
+    get_memory_manager().set_limit (test_mm_size);
 
     // A sparse matrix.
     apps::sparse_matrix<double> esm0(test_size, test_size);

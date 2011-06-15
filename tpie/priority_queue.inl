@@ -1,3 +1,5 @@
+// -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
+// vi:set ts=4 sts=4 sw=4 noet :
 // Copyright 2008, The TPIE development team
 // 
 // This file is part of TPIE.
@@ -18,7 +20,7 @@
 template<typename T, typename Comparator, typename OPQType>
 priority_queue<T, Comparator, OPQType>::priority_queue(double f) { // constructor mem fraction
 	assert(f<= 1.0 && f > 0);
-	TPIE_OS_SIZE_T mm_avail = MM_manager.consecutive_memory_available();
+	TPIE_OS_SIZE_T mm_avail = consecutive_memory_available();
 	TP_LOG_DEBUG("priority_queue: Memory limit: " 
 		<< static_cast<TPIE_OS_OUTPUT_SIZE_T>(mm_avail/1024/1024) << "mb("
 		<< static_cast<TPIE_OS_OUTPUT_SIZE_T>(mm_avail) << "bytes)" << "\n");
@@ -28,10 +30,10 @@ priority_queue<T, Comparator, OPQType>::priority_queue(double f) { // constructo
 
 template<typename T, typename Comparator, typename OPQType>
 priority_queue<T, Comparator, OPQType>::priority_queue(TPIE_OS_SIZE_T mm_avail) { // constructor absolute mem
-	assert(mm_avail <= MM_manager.memory_limit() && mm_avail > 0);
+	assert(mm_avail <= get_memory_manager().limit() && mm_avail > 0);
 	TP_LOG_DEBUG("priority_queue: Memory limit: " 
-		<< static_cast<TPIE_OS_OUTPUT_SIZE_T>(mm_avail/1024/1024) << "mb("
-		<< static_cast<TPIE_OS_OUTPUT_SIZE_T>(mm_avail) << "bytes)" << "\n");
+				 << static_cast<TPIE_OS_OUTPUT_SIZE_T>(mm_avail/1024/1024) << "mb("
+				 << static_cast<TPIE_OS_OUTPUT_SIZE_T>(mm_avail) << "bytes)" << "\n");
 	init(mm_avail);
 }
 
@@ -46,16 +48,16 @@ void priority_queue<T, Comparator, OPQType>::init(TPIE_OS_SIZE_T mm_avail) { // 
 	TP_LOG_DEBUG("m_for_queue: " 
 		<< static_cast<TPIE_OS_OUTPUT_SIZE_T>(mm_avail) << "\n");
 	TP_LOG_DEBUG("memory before alloc: " 
-		<< static_cast<TPIE_OS_OUTPUT_SIZE_T>(MM_manager.memory_available()) << "b" << "\n");
+				 << static_cast<TPIE_OS_OUTPUT_SIZE_T>(get_memory_manager().available()) << "b" << "\n");
 	{
 		//Calculate M
 		setting_m = mm_avail/sizeof(T);
 		//Get stream memory usage
 		stream<T> tmp;
 		TPIE_OS_SIZE_T usage;
-		tmp.main_memory_usage(&usage, mem::STREAM_USAGE_MAXIMUM);
+		tmp.main_memory_usage(&usage, STREAM_USAGE_MAXIMUM);
 
-		TPIE_OS_SIZE_T alloc_overhead = MM_manager.space_overhead();
+		TPIE_OS_SIZE_T alloc_overhead = 0;
 
 
 		//Compute overhead of the parameters
@@ -161,7 +163,7 @@ void priority_queue<T, Comparator, OPQType>::init(TPIE_OS_SIZE_T mm_avail) { // 
 	ss << tempname::tpie_name("pq_data");
 	datafiles = ss.str();
 	TP_LOG_DEBUG("memory after alloc: " 
-		<< static_cast<TPIE_OS_OUTPUT_SIZE_T>(MM_manager.memory_available()) << "b" << "\n");
+				 << static_cast<TPIE_OS_OUTPUT_SIZE_T>(get_memory_manager().available()) << "b" << "\n");
 }
 
 template <typename T, typename Comparator, typename OPQType>
@@ -879,7 +881,7 @@ void priority_queue<T, Comparator, OPQType>::remove_group_buffer(TPIE_OS_SIZE_T 
 	TPIE_OS_SIZE_T slot = free_slot(0);
 	if(group_size(group) == 0) return;
 
-	TP_LOG_DEBUG_ID("Remove group buffer " << group << " of size " << group_size(group) << " with available memory " << MM_manager.memory_available());
+	TP_LOG_DEBUG_ID("Remove group buffer " << group << " of size " << group_size(group) << " with available memory " << get_memory_manager().available());
 
 	assert(group < setting_k);
 	T* arr = new T[static_cast<size_t>(group_size(group))];

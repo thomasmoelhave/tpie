@@ -28,7 +28,7 @@ using namespace tpie;
 
 bool sort_test(size_t size) {
 	ami::stream<size_t> mystream;
-	size_t s=is_prime.next_prime(size);
+	size_t s=next_prime(size);
 	size_t y=size-16;
 	for(size_t i=0; i < s; ++i) {
 		size_t x= (uint64_t(i) * uint64_t(y)) % uint64_t(s);

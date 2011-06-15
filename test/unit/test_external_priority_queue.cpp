@@ -25,14 +25,14 @@ using namespace std;
 
 bool basic_test() {
 	//Lets hope the external pq has a small block factor!
-	MM_manager.set_memory_limit(15000000);
+	get_memory_manager().set_limit(15000000);
 	ami::priority_queue<boost::uint64_t, bit_pertume_compare< std::greater<boost::uint64_t> > > pq(0.1);
 	return basic_pq_test(pq, 350003);
 }
 
 bool medium_instance() {
 	TPIE_OS_OFFSET iterations = 10000;
-    MM_manager.set_memory_limit(16*1024*1024);
+    get_memory_manager().set_limit(16*1024*1024);
 	progress_indicator_arrow progress("Running test",iterations-1100);
     for(TPIE_OS_OFFSET it = 1100; it < iterations; it++)  {
 		progress.step();
@@ -83,7 +83,7 @@ bool medium_instance() {
 
 bool large_cycle(){
 	size_t x = 524*1024*1024;
-	MM_manager.set_memory_limit(x);
+	get_memory_manager().set_limit(x);
 	ami::priority_queue<boost::uint64_t, bit_pertume_compare< std::greater<boost::uint64_t> > > pq(0.01);
 	return cyclic_pq_test(pq, x / 10, 20000000);
 }
@@ -91,7 +91,7 @@ bool large_cycle(){
 template <bool crash_test>
 bool large_instance(){
 	const double PI = acos(-1.0);
-	MM_manager.set_memory_limit(500*1024*1024);
+	get_memory_manager().set_limit(500*1024*1024);
 	double mem_frac = crash_test ? 1.0 : 0.04;
 
 	ami::priority_queue<boost::uint64_t, std::greater<boost::uint64_t> > pq(mem_frac);

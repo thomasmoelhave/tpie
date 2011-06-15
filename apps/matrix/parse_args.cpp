@@ -112,7 +112,7 @@ void parse_args(int argc, char **argv, struct options *application_opts,
   }
 
   // Set memory limit.
-  tpie::MM_manager.set_memory_limit(mm_sz);
+  tpie::get_memory_manager().set_limit(mm_sz);
   //LOG_APP_DEBUG_ID2("Setting TPIE memory size to: ", mm_sz);
 
   TPIE_OS_SRANDOM(rnd_seed);

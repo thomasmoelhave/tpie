@@ -102,7 +102,7 @@ int main(int argc, char **argv) {
     }
     
     // Set the amount of main memory:
-    MM_manager.set_memory_limit (test_mm_size);
+    get_memory_manager().set_limit (test_mm_size);
 
     apps::matrix<TPIE_OS_OFFSET> em0((int)test_size, (int)test_size);
         

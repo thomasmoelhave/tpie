@@ -52,6 +52,8 @@ bool is_prime(size_type i);
 /// \return The hash value
 ///////////////////////////////////////////////////////////////////////
 size_t prime_hash(const std::string & s);
+
+size_t next_prime(size_t i);
 }
 
 #endif //__TPIE_PRIME_H__

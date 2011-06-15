@@ -108,12 +108,12 @@ namespace tpie {
 	    ami::err ae = ami::NO_ERROR;
 	    
 	    // Check available main memory.
-	    sz_avail = MM_manager.memory_available ();
+	    sz_avail = get_memory_manager().available ();
 	    
 	    // How much memory does a single stream need in the worst case?
     
 	    if ((ae = opm.main_memory_usage(&single_stream_usage,
-					    mem::STREAM_USAGE_MAXIMUM)) !=
+										STREAM_USAGE_MAXIMUM)) !=
 		ami::NO_ERROR) {
 		return ae;
 	    }
