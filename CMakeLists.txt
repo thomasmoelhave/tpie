@@ -67,6 +67,10 @@ else()
   option(TPIE_NDEBUG "Disable debugging information" ON)
 endif()
 
+set(S ${CMAKE_CURRENT_SOURCE_DIR}/cpp0xtest)
+set(D ${CMAKE_CURRENT_BINARY_DIR}/cpp0xtest)
+try_compile(TPIE_CPP_VARIADIC_TEMPLATES ${D}/variadic_templates ${S}/variadic_templates.cpp)
+try_compile(TPIE_CPP_RVALUE_REFERENCE ${D}/rvalueref ${S}/rvalueref.cpp)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tpie/config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/tpie/config.h)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/tpie/config.h DESTINATION ${HEADERS_INSTALL_DIR})
@@ -86,7 +90,6 @@ if (COMPILE_TEST)
 	add_subdirectory(test)
 	add_subdirectory(apps)
 endif (COMPILE_TEST)
-
 
 include(CPack)
 

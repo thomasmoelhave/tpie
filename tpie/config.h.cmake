@@ -31,13 +31,14 @@
 #define TPIE_FRACTIONDB_DIR_INL "${TPIE_FRACTIONDB_DIR_INL}"
 #endif
 
+#cmakedefine TPIE_CPP_VARIADIC_TEMPLATES
+#cmakedefine TPIE_CPP_RVALUE_REFERENCE
+
 #ifdef WIN32
 	//disable windows crt security and deprecation warnings
 	#define _CRT_SECURE_NO_DEPRECATE 
 	#define _CRT_NONSTDC_NO_DEPRECATE
 	#define _CRT_SECURE_NO_WARNINGS
-
-
 #endif
 
 #ifdef _MSC_VER
