@@ -145,12 +145,12 @@ private:
     T min;
     bool min_in_buffer;
 
-    OPQType* opq;
+	tpie::auto_ptr<OPQType> opq;
     T* buffer; // deletion buffer
     T* gbuffer0; // group buffer 0
     T* mergebuffer; // merge buffer
-    TPIE_OS_OFFSET* slot_state;
-    TPIE_OS_OFFSET* group_state;
+	tpie::array<TPIE_OS_OFFSET> slot_state;
+	tpie::array<TPIE_OS_OFFSET> group_state;
 
     TPIE_OS_SIZE_T setting_k;
     TPIE_OS_SIZE_T current_r;

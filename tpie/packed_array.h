@@ -299,9 +299,9 @@ public:
 	/////////////////////////////////////////////////////////
 	void resize(size_t s) {
 		if (s == m_size) return;
-		delete m_elements;
+		tpie_delete_array(m_elements, words(m_size));
 		m_size = s;
-		m_elements = m_size?new storage_type[words(m_size)]:0;
+		m_elements = m_size?tpie_new_array<storage_type>(words(m_size)):0;
 	}
 
 	/////////////////////////////////////////////////////////

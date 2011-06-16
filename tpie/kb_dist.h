@@ -146,17 +146,17 @@ namespace tpie {
 	    // Create the output streams and initialize the ranges they cover to
 	    // be empty.
 	    
-	    stream<T> **out_streams = new stream<T> *[output_streams];
-	    key_range *out_ranges = new key_range[output_streams];
+	    stream<T> **out_streams = tpie_new_array<stream<T> *>(output_streams);
+	    key_range *out_ranges = tpie_new_array<key_range>(output_streams);
 	    
 	    for (ii = 0; ii < output_streams; ii++) {
 		
 		// This needs to be fixed to eliminate the max size parameter.
 		// This should be done system-wide.
-		out_streams[ii] = new stream<T>;
+			out_streams[ii] = tpie_new< stream<T> >();;
 		
-		out_ranges[ii].put_min(KEY_MAX);  // Simulate +infty.
-		out_ranges[ii].put_max(KEY_MIN);  // Simulate -infty
+			out_ranges[ii].put_min(KEY_MAX);  // Simulate +infty.
+			out_ranges[ii].put_max(KEY_MIN);  // Simulate -infty
 	    }
 	    
 	    // Scan the input putting each item in the right output stream.
@@ -248,11 +248,12 @@ namespace tpie {
 		}
 
 		// Delete the stream.
-		delete out_streams[ii];
+		tpie_delete(out_streams[ii]);
 		
 	    }
 	    
-	    delete [] out_streams;
+		tpie_delete_array(out_streams, output_streams);
+		tpie_delete_array(out_ranges, output_streams);
     
 	    // We're done.	   
 	    return NO_ERROR;

@@ -19,18 +19,15 @@
 template <typename T, typename Comparator>
 pq_merge_heap<T, Comparator>::pq_merge_heap(TPIE_OS_SIZE_T elements) {
 	maxsize = elements;
-	heap = new T[elements];
-	if(heap == NULL) throw std::bad_alloc();
-	runs = new TPIE_OS_SIZE_T[elements];
-	if(runs == NULL) throw std::bad_alloc();
-
+	heap = tpie_new_array<T>(elements);
+	runs = tpie_new_array<T>(elements);
 	m_size = 0;
 }
 
 template <typename T, typename Comparator>
 pq_merge_heap<T, Comparator>::~pq_merge_heap() {
-	delete[] heap;
-	delete[] runs;
+  tpie_delete_array(heap, maxsize);
+  tpie_delete_array(runs, maxsize);
 }
 
 template <typename T, typename Comparator>
