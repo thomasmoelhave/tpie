@@ -18,16 +18,25 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
+///////////////////////////////////////////////////////////////////////////
+/// \file tpie/memory.h Declares tpie memory managment funcionality
+///////////////////////////////////////////////////////////////////////////
+
 #ifndef __TPIE_MEMORY_H__
 #define __TPIE_MEMORY_H__
 
 #include <tpie/config.h>
 #include <boost/thread/mutex.hpp>
-
 #include <utility>
 
 namespace tpie {
 
+////////////////////////////////////////////////////////////////////////////////
+/// \brief Thrown when trying to allocate to much memory
+///
+/// Throw by the tpie allocator when the memory limit is exceeded during an
+/// allocation assuming the memory limit enforcment policy is set to THROW
+////////////////////////////////////////////////////////////////////////////////
 struct out_of_memory_error : public std::bad_alloc {
 	const char * msg;
 	out_of_memory_error(const char * s) : msg(s) { }
@@ -35,31 +44,75 @@ struct out_of_memory_error : public std::bad_alloc {
 };
 
 
-/**
- * \brief Memory managment object used to track memory usage.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// \brief Memory managment object used to track memory usage.
+////////////////////////////////////////////////////////////////////////////////
 class memory_manager {
 public:
+	/// Memory limit enforcement policies.
 	enum enforce_t {
+		/// Ignore when running out of memory
 		ENFORCE_IGNORE,
+		/// \brief Log a warning when the memory limit is exceeded
+		///
+		/// Note that not all violations will be logged
 		ENFORCE_WARN,
+		/// Throw a out_of_memory_error when the memory limit is exceede
 		ENFORCE_THROW
 	};
 
-	memory_manager();
-
+	/// Return the current amount of memory used
 	inline size_t used() const throw() {return m_used;}
+   
+	/// Return the amout of memory still availabe to allocation
 	size_t available() const throw();
 
+	/// Return the memory limit
 	inline size_t limit() const throw() {return m_limit;}
+	
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Update the memory limit
+	/// If the memory limit becommes exceede by decreesing the limit,
+	/// no exception will be thrown
+	/// \param new_limit The new memory limit in bytes
+	///////////////////////////////////////////////////////////////////////////
 	void set_limit(size_t new_limit);
 
-	void register_deallocation(size_t bytes);
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Set how the memory limit should be enforced
+	/// \param e The new enforcement policy
+	///////////////////////////////////////////////////////////////////////////
+	void set_enforcement(enforce_t e);
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief return the current memory limit enforcement policy
+	///////////////////////////////////////////////////////////////////////////
+	inline enforce_t enforcement() {return m_enforce;}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \internal
+	/// Register that more memory has been used, 
+	/// possible throw a warning or an exception if the memory limit
+	/// becomes exceeded depending on the enforcement
+	///////////////////////////////////////////////////////////////////////////
 	void register_allocation(size_t bytes);
 
-	void set_enforcement(enforce_t e);
-	inline enforce_t enforcement() {return m_enforce;}
-	
+	///////////////////////////////////////////////////////////////////////////
+	/// \internal
+	/// Register that some memory has been freed
+	///////////////////////////////////////////////////////////////////////////
+	void register_deallocation(size_t bytes);
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \internal
+	/// Construct the memory manager object
+	///////////////////////////////////////////////////////////////////////////
+	memory_manager();	
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \internal
+	/// Allocate the largetst consecutive memory possible
+	///////////////////////////////////////////////////////////////////////////
 	std::pair<uint8_t *, size_t> __allocate_consecutive(size_t upper_bound, size_t granularity);
 private:
 	size_t m_used;
@@ -69,14 +122,30 @@ private:
 	boost::mutex m_mutex;
 };
 
+///////////////////////////////////////////////////////////////////////////
+/// \internal
+/// Initialize the memory manager, this should not be called directly
+/// instead functions from tpie.h should be called.
+///////////////////////////////////////////////////////////////////////////
 void init_memory_manager();
+
+///////////////////////////////////////////////////////////////////////////
+/// \internal
+/// Finish up the memory manager, this should not be called directly
+/// instead functions from tpie.h should be called
+///////////////////////////////////////////////////////////////////////////
 void finish_memory_manager();
+
+///////////////////////////////////////////////////////////////////////////
+/// \brief Return a reference to the memory manager
+/// Note may only be called when init_memory_manager has been called
+///////////////////////////////////////////////////////////////////////////
 memory_manager & get_memory_manager();
 
-/**
- * \internal
- * Used to preform allocations in a safe manner
- */
+///////////////////////////////////////////////////////////////////////////
+/// \internal
+/// Used to preform allocations in a safe manner
+///////////////////////////////////////////////////////////////////////////
 struct allocation_scope_magic {
 	size_t deregister;
 	inline allocation_scope_magic(size_t size) {
@@ -90,27 +159,54 @@ struct allocation_scope_magic {
 	inline ~allocation_scope_magic() {if(deregister) get_memory_manager().register_deallocation(deregister);}
 };
 
+///////////////////////////////////////////////////////////////////////////
+/// \brief Allocate a new array, and register its memory usage
+/// \param size The number of elements in the new array
+/// \return The new array
+///////////////////////////////////////////////////////////////////////////
 template <typename T>
 inline T * tpie_new_array(size_t size) {
 	return allocation_scope_magic(sizeof(T)*size)(new T[size]);
 }
 
 #ifdef TPIE_CPP_VARIADIC_TEMPLATES
+///////////////////////////////////////////////////////////////////////////
+/// \brief Like new but also register the memory usage
+///////////////////////////////////////////////////////////////////////////
 template <typename T,typename... TT>
 inline T * tpie_new(TT... vals) {
 	return allocation_scope_magic(sizeof(T))(new T(vals...));
 }
 #else //TPIE_CPP_VARIADIC_TEMPLATES
+
+///////////////////////////////////////////////////////////////////////////
+/// \brief Like new but also register the memory usage
+/// \tparam T the tpie of of the object to allocate
+/// \return The allocated object
+///////////////////////////////////////////////////////////////////////////
 template <typename T>
 inline T * tpie_new() {
 	return allocation_scope_magic(sizeof(T))(new T);
 }
 
+///////////////////////////////////////////////////////////////////////////
+/// \brief Like new but also register the memory usage
+/// \tparam T the tpie of of the object to allocate
+/// \param t1 The first argument to the constructor
+/// \return The allocated object
+///////////////////////////////////////////////////////////////////////////
 template <typename T, typename T1>
 inline T * tpie_new(T1 t1) {
 	return allocation_scope_magic(sizeof(T))(new T(t1));
 }
 
+///////////////////////////////////////////////////////////////////////////
+/// \brief Like new but also register the memory usage
+/// \tparam T the tpie of of the object to allocate
+/// \param t1 The first argument to the constructor
+/// \param t2 The second argument to the constructor
+/// \return The allocated object
+///////////////////////////////////////////////////////////////////////////
 template <typename T, typename T1, typename T2>
 inline T * tpie_new(T1 t1, T2 t2) {
 	return allocation_scope_magic(sizeof(T))(new T(t1, t2));
@@ -132,6 +228,10 @@ inline T * tpie_new(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5) {
 }
 #endif //TPIE_CPP_VARIADIC_TEMPLATES
 
+///////////////////////////////////////////////////////////////////////////
+/// \brief Delete an object allocated with tpie_new
+/// \param p the object to delet
+///////////////////////////////////////////////////////////////////////////
 template <typename T>
 inline void tpie_delete(T * p) throw() {
 	if (p == 0) return;
@@ -139,6 +239,11 @@ inline void tpie_delete(T * p) throw() {
 	delete p;
 }
 
+///////////////////////////////////////////////////////////////////////////
+/// \brief Delete an array allocated with tpie_new_array
+/// \param a The array to delete
+/// \param size The size of the array in elements as passed to tpie_new_array
+///////////////////////////////////////////////////////////////////////////
 template <typename T>
 inline void tpie_delete_array(T * a, size_t size) throw() {
 	if (a == 0) return;
@@ -146,6 +251,10 @@ inline void tpie_delete_array(T * a, size_t size) throw() {
 	delete[] a;
 }
 
+///////////////////////////////////////////////////////////////////////////
+/// \brief like std::auto_ptr, but delete the object with tpie_delete
+/// \tparam T the type of the object
+///////////////////////////////////////////////////////////////////////////
 template <typename T>
 class auto_ptr {
 private:
@@ -167,7 +276,11 @@ public:
 	inline ~auto_ptr() throw() {reset();}
 };
 
-
+///////////////////////////////////////////////////////////////////////////
+/// \brief A allocator object usable in stl containers, using the tpie
+/// memory manager
+/// \tparam T The type of the elements that can be allocated
+///////////////////////////////////////////////////////////////////////////
 template <class T>
 class allocator {
 private:
@@ -209,6 +322,10 @@ public:
 };
 
 
+///////////////////////////////////////////////////////////////////////////
+/// \brief Calculate the largest amount of memory that can be 
+/// allocated as a single chunk
+///////////////////////////////////////////////////////////////////////////
 size_t consecutive_memory_available(size_t granularity=5*1024*1024);
 
 } //namespace tpie
