@@ -189,8 +189,8 @@ public:
 	virtual size_type claimed_size() {return static_cast<size_type>(bit_array::memory_usage(123456));}
 };
 
-
 int main(int argc, char **argv) {
+	tpie_initer _;
 	BOOST_CONCEPT_ASSERT((linear_memory_structure_concept<array<int> >));
 	BOOST_CONCEPT_ASSERT((boost::RandomAccessIterator<array<int>::const_iterator>));
 	BOOST_CONCEPT_ASSERT((boost::RandomAccessIterator<array<int>::const_reverse_iterator>));
@@ -199,7 +199,6 @@ int main(int argc, char **argv) {
 	BOOST_CONCEPT_ASSERT((linear_memory_structure_concept<bit_array >));
 	BOOST_CONCEPT_ASSERT((boost::RandomAccessIterator<bit_array::const_iterator>));
 	BOOST_CONCEPT_ASSERT((boost::RandomAccessIterator<bit_array::const_reverse_iterator>));
-
   
 	if(argc != 2) return 1;
 	std::string test(argv[1]);

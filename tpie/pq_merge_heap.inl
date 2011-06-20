@@ -20,7 +20,7 @@ template <typename T, typename Comparator>
 pq_merge_heap<T, Comparator>::pq_merge_heap(TPIE_OS_SIZE_T elements) {
 	maxsize = elements;
 	heap = tpie_new_array<T>(elements);
-	runs = tpie_new_array<T>(elements);
+	runs = tpie_new_array<TPIE_OS_SIZE_T>(elements);
 	m_size = 0;
 }
 

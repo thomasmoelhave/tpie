@@ -26,6 +26,10 @@
 
 namespace tpie {
 
+inline void segfault() {
+	*((char *)0)=42;
+}
+
 memory_manager * mm = 0;
 
 memory_manager::memory_manager(): m_used(0), m_limit(0), m_maxExceeded(0), m_enforce(ENFORCE_WARN) {}
@@ -45,7 +49,7 @@ void memory_manager::register_allocation(size_t bytes) {
 		m_used += bytes;
 		break;
 	case ENFORCE_THROW:
-		if (m_used + bytes > m_limit) {
+		if (m_used + bytes > m_limit && m_limit > 0) {
 			lock.unlock();
 			std::stringstream ss;
 			ss << "Memory allocation error, memory limit exceeded. "
@@ -62,11 +66,12 @@ void memory_manager::register_allocation(size_t bytes) {
 		break;
 	case ENFORCE_WARN:
 		m_used += bytes;
-		if (m_used > m_limit && m_used - m_limit > m_maxExceeded) {
+		if (m_used > m_limit && m_used - m_limit > m_maxExceeded && m_limit > 0) {
 			m_maxExceeded = m_used - m_limit;
 			lock.unlock();
 			log_warning() << "Memory limit exceeded by " << m_maxExceeded 
-						  << " bytes, while trying to allocate " << bytes << " bytes" << std::endl;
+						  << " bytes, while trying to allocate " << bytes << " bytes."
+						  << " Limit is " << m_limit << ", but " << m_used << " would be used. " << std::endl;
 		}
 	};
 }
@@ -74,9 +79,11 @@ void memory_manager::register_allocation(size_t bytes) {
 void memory_manager::register_deallocation(size_t bytes) {
 	boost::mutex::scoped_lock lock(m_mutex);
 #ifndef TPIE_NDEBUG
-	if (bytes > m_used)
+	if (bytes > m_used) {
 		log_error() << "Error in deallocation, trying to deallocate " << bytes << " bytes, while only " <<
 			m_used << " where allocated" << std::endl;
+		segfault();
+	}
 #endif
 	m_used -= bytes;
 }
@@ -153,17 +160,62 @@ std::pair<uint8_t *, size_t> memory_manager::__allocate_consecutive(size_t upper
 	return std::make_pair(res, best);
 }
 
+
+#ifndef TPIE_NDEBUG
+void memory_manager::__register_pointer(void * p, size_t size) {
+	if (m_pointers.count(p) != 0) {
+		log_error() << "Trying to register pointer " << p << " of size " 
+					<< size << " which is allready registered" << std::endl;
+		segfault();
+	}
+	m_pointers[p] = size;
+}
+
+void memory_manager::__unregister_pointer(void * p, size_t size) {
+	boost::unordered_map<void *, size_t>::const_iterator i=m_pointers.find(p);
+	if (i == m_pointers.end()) {
+		log_error() << "Trying to deregister pointer " << p << " of size "
+					<< size << " which was never registered" << std::endl;
+		segfault();
+	} else {
+		if (i->second != size) {
+			log_error() << "Trying to deregister pointer " << p << " of size "
+						<< size << " which was registered with size " << i->second;
+			segfault();
+		}
+		m_pointers.erase(i);
+	}
+}
+
+void memory_manager::__complain_about_unfreed_memory() {
+	if(m_pointers.size() == 0) return;
+	log_error() << "The following pointers where either leaked or deleted by delete instead of tpie_delete" << std::endl << std::endl;
+	
+	for(boost::unordered_map<void *, size_t>::const_iterator i=m_pointers.begin();
+		i != m_pointers.end(); ++i)
+		log_error() << "  " <<  i->first << ": " << i->second << " bytes" << std::endl;
+	segfault();
+}
+#endif
+
 void init_memory_manager() {
 	mm = new memory_manager();
 }
 
 void finish_memory_manager() {
+#ifndef TPIE_NDEBUG
+	mm->__complain_about_unfreed_memory();
+#endif
 	delete mm;
 	mm = 0;
 }
 
-memory_manager & get_memory_manager() {return * mm;}
-
+memory_manager & get_memory_manager() {
+#ifndef TPIE_NDEBUG
+	if (mm == 0) throw std::runtime_error("Memory managment not inited");
+#endif
+	return * mm;
+}
 
 size_t consecutive_memory_available(size_t granularity) {
 	std::pair<uint8_t *, size_t> r = get_memory_manager().__allocate_consecutive(0, granularity);

@@ -273,7 +273,7 @@ public:
 	/// \copybrief linear_memory_structure_doc::memory_overhead()
 	/// \copydetails linear_memory_structure_doc::memory_overhead()
 	/////////////////////////////////////////////////////////
-	static double memory_overhead() {return 0.0;}
+	static double memory_overhead() {return sizeof(array);}
 
 	/////////////////////////////////////////////////////////
 	/// \brief Construct array of given size.

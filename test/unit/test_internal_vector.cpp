@@ -39,12 +39,20 @@ bool basic_test() {
 class vector_memory_test: public memory_test {
 public:
 	internal_vector<int> * a;
-	virtual void alloc() {a = tpie_new< internal_vector<int> >(123456);}
-	virtual void free() {tpie_delete(a);}
-	virtual size_type claimed_size() {return static_cast<size_type>(internal_vector<int>::memory_usage(123456));}
+	virtual void alloc() {
+		a = tpie_new< internal_vector<int> >(123456);
+	}
+	virtual void free() {
+		tpie_delete(a);
+	}
+	virtual size_type claimed_size() {
+		return static_cast<size_type>(internal_vector<int>::memory_usage(123456));
+	}
 };
 
 int main(int argc, char **argv) {
+	tpie_initer _;
+
 	if(argc != 2) return 1;
 	std::string test(argv[1]);
 	if (test == "basic")

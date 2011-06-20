@@ -231,7 +231,7 @@ namespace tpie {
 		    }
 		
 		    // Create and write the header
-		    m_header = new stream_header();
+		    m_header = tpie_new<stream_header>();
 		    init_header();
 		
 		    m_header->m_type = STREAM_IMPLEMENTATION_STDIO;
@@ -377,7 +377,7 @@ namespace tpie {
 	    // We actually have to completely reopen the file in order to get
 	    // another seek pointer into it.  We'll do this by constructing
 	    // the stream that will end up being the substream.
-	    stream_stdio *sub = new stream_stdio (m_path, st);
+	    stream_stdio *sub = tpie_new<stream_stdio>(m_path, st);
 	
 	    // Set up the beginning and end positions.
 	    if (m_substreamLevel) {
@@ -479,7 +479,7 @@ namespace tpie {
 	    // even for substreams (since the file effectively is
 	    // opened each time a substream is constructed).
 	    // TODO: Double-check this.
-	    delete m_header;
+	    tpie_delete(m_header);
 	
 		current_streams--;
 
@@ -697,7 +697,7 @@ namespace tpie {
 	template<class T> 
 	stream_header* stream_stdio<T>::map_header () { 
 	
-	    stream_header *ptr_to_header = new stream_header();
+	    stream_header *ptr_to_header = tpie_new<stream_header>();
 	
 	    // Read the header.
 	    if ((TPIE_OS_FREAD (reinterpret_cast<char*>(ptr_to_header), 
@@ -709,7 +709,7 @@ namespace tpie {
 		TP_LOG_FATAL_ID("Failed to read header from file:");
 		TP_LOG_FATAL_ID(m_path);
 	    
-		delete ptr_to_header;
+		tpie_delete(ptr_to_header);
 	    
 		return NULL;
 	    }

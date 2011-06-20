@@ -26,7 +26,9 @@
 #define __TPIE_MEMORY_H__
 
 #include <tpie/config.h>
+#include <tpie/util.h>
 #include <boost/thread/mutex.hpp>
+#include <boost/unordered_map.hpp>
 #include <utility>
 
 namespace tpie {
@@ -114,12 +116,22 @@ public:
 	/// Allocate the largetst consecutive memory possible
 	///////////////////////////////////////////////////////////////////////////
 	std::pair<uint8_t *, size_t> __allocate_consecutive(size_t upper_bound, size_t granularity);
+
+#ifndef TPIE_NDEBUG
+	void __register_pointer(void * p, size_t size);
+	void __unregister_pointer(void * p, size_t size);
+	void __complain_about_unfreed_memory();
+#endif
+
 private:
 	size_t m_used;
 	size_t m_limit;
 	size_t m_maxExceeded;
 	enforce_t m_enforce;
 	boost::mutex m_mutex;
+#ifndef TPIE_NDEBUG
+	boost::unordered_map<void *, size_t> m_pointers;
+#endif
 };
 
 ///////////////////////////////////////////////////////////////////////////
@@ -144,6 +156,32 @@ memory_manager & get_memory_manager();
 
 ///////////////////////////////////////////////////////////////////////////
 /// \internal
+/// Register a pointer for debugging memory leeks and such
+///////////////////////////////////////////////////////////////////////////
+inline void __register_pointer(void * p, size_t size) {
+#ifndef TPIE_NDEBUG
+	get_memory_manager().__register_pointer(p, size);
+#else
+	unused(p);
+	unused(size);
+#endif
+}
+
+///////////////////////////////////////////////////////////////////////////
+/// \internal
+/// Unregister a registered pointer
+///////////////////////////////////////////////////////////////////////////
+inline void __unregister_pointer(void * p, size_t size) {
+#ifndef TPIE_NDEBUG
+	get_memory_manager().__unregister_pointer(p, size);
+#else
+	unused(p);
+	unused(size);
+#endif
+}
+
+///////////////////////////////////////////////////////////////////////////
+/// \internal
 /// Used to preform allocations in a safe manner
 ///////////////////////////////////////////////////////////////////////////
 struct allocation_scope_magic {
@@ -154,7 +192,11 @@ struct allocation_scope_magic {
 	}
 
 	template <typename T>
-	inline T operator()(T x) {deregister = 0; return x;}
+	inline T operator()(T x) {
+		__register_pointer(x, deregister);
+		deregister = 0; 
+		return x;
+	}
 
 	inline ~allocation_scope_magic() {if(deregister) get_memory_manager().register_deallocation(deregister);}
 };
@@ -236,7 +278,9 @@ template <typename T>
 inline void tpie_delete(T * p) throw() {
 	if (p == 0) return;
 	get_memory_manager().register_deallocation(sizeof(T));
+	__unregister_pointer(p, sizeof(T));
 	delete p;
+	
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -248,6 +292,7 @@ template <typename T>
 inline void tpie_delete_array(T * a, size_t size) throw() {
 	if (a == 0) return;
 	get_memory_manager().register_deallocation(sizeof(T) * size);
+	__unregister_pointer(a, sizeof(T) * size);
 	delete[] a;
 }
 
@@ -299,10 +344,14 @@ public:
 
     inline T * allocate(size_t size, const void * hint=0) {
 		get_memory_manager().register_allocation(size * sizeof(T));
-		return a.allocate(size, hint);
+		T * res = a.allocate(size, hint);
+		__register_pointer(res, size);
+		return res;
     }
 
     inline void deallocate(T * p, size_t n) {
+		if (p == 0) return;
+		__unregister_pointer(p, n);
 		get_memory_manager().register_deallocation(n * sizeof(T));
 		return a.deallocate(p, n);
     }

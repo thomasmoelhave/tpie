@@ -367,7 +367,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	///  Empty constructor.
 	///////////////////////////////////////////////////////////////////////////
-	Internal_Sorter_KObj(CMPR* cmp): ItemArray(NULL), sortItemArray(NULL), UsrObject(cmp), len(0) {
+	Internal_Sorter_KObj(CMPR* cmp):  UsrObject(cmp), len(0) {
 		//  No code in this constructor.
 	}
 	

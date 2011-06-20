@@ -24,6 +24,7 @@
 #include <tpie/util.h>
 #include <iostream>
 #include <boost/cstdint.hpp>
+#include <tpie/tpie.h>
 
 struct bit_permute {
 	boost::uint64_t operator()(boost::uint64_t i) const{
@@ -69,6 +70,7 @@ public:
 	virtual void alloc() = 0;
 	virtual tpie::size_type claimed_size() = 0;
 	bool operator()() {
+		bool res=true;
 		tpie::get_memory_manager().set_limit(128*1024*1024);
 		tpie::size_type g = claimed_size();
 		memory_monitor mm;
@@ -77,16 +79,28 @@ public:
 		mm.sample();
 		if (mm.usage() > g) {
 			std::cerr << "Claimed to use " << g << " but used " << mm.usage() << std::endl;
-			return false;
+			res=false;
 		}
 		free();
 		mm.empty();
 		mm.sample();
 		if (mm.usage() > 0) {
 			std::cerr << "Leaked memory " << mm.usage() << std::endl;
-			return false;
+			res=false;
 		}
-		return true;
+		return res;
+	}
+};
+
+class tpie_initer {
+public:
+	tpie_initer(size_t memory_limit=50) {
+		tpie::tpie_init();
+		tpie::get_memory_manager().set_limit(memory_limit*1024*1024);
+	}
+	
+	~tpie_initer() {
+		tpie::tpie_finish();
 	}
 };
 

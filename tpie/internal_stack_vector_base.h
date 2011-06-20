@@ -51,7 +51,9 @@ public:
 	/// \copybrief linear_memory_structure_doc::memory_overhead()
 	/// \copydetails linear_memory_structure_doc::memory_overhead()
 	/////////////////////////////////////////////////////////
-	static double memory_overhead() {return array<T>::memory_overhead() - sizeof(array<T>) + sizeof(child_t);}
+	static double memory_overhead() {
+		return array<T>::memory_overhead() - sizeof(array<T>) + sizeof(child_t);
+	}
 
 	/////////////////////////////////////////////////////////
 	/// \brief Construct the data structure

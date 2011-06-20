@@ -20,6 +20,7 @@
 
 #include <tpie/portability.h>
 
+#include "common.h"
 #include <tpie/bte/stream_stdio.h>
 #include <tpie/bte/stream_ufs.h>
 #include <tpie/bte/stream_mmap.h>
@@ -95,6 +96,7 @@ int test_bte(T & bte, char * test, ERROR_ENUM errorval) {
 }
 
 int main(int argc, char **argv) {
+	tpie_initer _;
 	if(argc != 3) return 1;
 	const std::string temp_stream_name = tpie::tempname::tpie_name();
 	const std::string stream_type = argv[1];
