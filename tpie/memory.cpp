@@ -37,7 +37,7 @@ memory_manager::memory_manager(): m_used(0), m_limit(0), m_maxExceeded(0), m_enf
 size_t memory_manager::available() const throw() {
 	size_t used = m_used;
 	size_t limit = m_limit;
-	if (used < limit) return used-limit;
+	if (used < limit) return limit-used;
 	return 0;
 }
 
@@ -125,6 +125,9 @@ std::pair<uint8_t *, size_t> memory_manager::__allocate_consecutive(size_t upper
 	try {
 		res = new uint8_t[high*granularity];
 		m_used += high*granularity;
+#ifndef TPIE_NDEBUG
+		__register_pointer(res, high*granularity);
+#endif	      
 		return std::make_pair(res, high*granularity);
 	} catch (std::bad_alloc) {
 		lf.buf << "Failed to get " << (high*granularity)/(1024*1024) << " megabytes of memory. "
@@ -157,6 +160,9 @@ std::pair<uint8_t *, size_t> memory_manager::__allocate_consecutive(size_t upper
 
 	res = new uint8_t[best];
 	m_used += best;
+#ifndef TPIE_NDEBUG
+	__register_pointer(res, best);
+#endif	      
 	return std::make_pair(res, best);
 }
 

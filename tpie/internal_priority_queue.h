@@ -68,6 +68,7 @@ public:
     /// \param v The element that should be inserted
     /////////////////////////////////////////////////////////
     inline void push(const T & v) { 
+		assert(size() < pq.size());
 		pq[sz++] = v; 
 		std::push_heap(pq.begin(), pq.find(sz), comp);
     }
@@ -76,6 +77,7 @@ public:
     /// Remove the minimum element from heap
     /////////////////////////////////////////////////////////
     inline void pop() { 
+		assert(!empty());
 		std::pop_heap(pq.begin(), pq.find(sz), comp);
 		--sz;
     }

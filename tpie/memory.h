@@ -304,6 +304,8 @@ template <typename T>
 class auto_ptr {
 private:
 	T * elm;
+	auto_ptr(const auto_ptr & o) {unused(o); assert(false);}
+	auto_ptr & operator = (const auto_ptr & o) {unused(o); assert(false);}
 public:
 	inline T * release() throw () {T * t=elm; elm=0; return t;}
 	inline T * get() const throw() {return elm;}
@@ -319,6 +321,7 @@ public:
 	inline auto_ptr(auto_ptr && o): elm(0) {reset(o.release());}
 #endif //TPIE_CPP_RVALUE_REFERENCE
 	inline ~auto_ptr() throw() {reset();}
+	inline auto_ptr & operator =(T * o) {reset(o); return *this;}
 };
 
 ///////////////////////////////////////////////////////////////////////////

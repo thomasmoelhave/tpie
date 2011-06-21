@@ -731,7 +731,7 @@ namespace tpie {
 		       "Bad things got through the permisssion checks.");
 	
 	    stream_ufs<T> *sub =
-		new stream_ufs<T>(this, st, sub_begin, sub_end);
+			tpie_new<stream_ufs<T> >(this, st, sub_begin, sub_end);
 	
 	    *sub_stream = dynamic_cast<base_t *>(sub);
 	
@@ -1280,7 +1280,7 @@ namespace tpie {
 	    if (TPIE_OS_LSEEK(m_fileDescriptor, 0, TPIE_OS_FLAG_SEEK_SET) != 0) {
 	    
 		m_osErrno = errno;
-		delete [] tmp_buffer;
+		tpie_delete_array(tmp_buffer, m_osBlockSize);
 	    
 		TP_LOG_FATAL_ID ("Failed to lseek() in stream " << m_path);
 		TP_LOG_FATAL_ID (strerror (m_osErrno));
@@ -1306,7 +1306,7 @@ namespace tpie {
 	
 	    ptr_to_header = tpie_new<stream_header>();
 	    std::memcpy(ptr_to_header, tmp_buffer, sizeof(stream_header));
-	    delete [] tmp_buffer;	// should use vector delete -RW
+		tpie_delete_array(tmp_buffer, m_osBlockSize);
 	
 	    return ptr_to_header;
 	}

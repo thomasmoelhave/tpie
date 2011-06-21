@@ -23,6 +23,7 @@
 #include <tpie/sort.h>
 #include <tpie/stream.h>
 #include <tpie/prime.h>
+#include "common.h"
 
 using namespace tpie;
 
@@ -57,10 +58,9 @@ bool perform_test(const std::string & test) {
 
 
 int main(int argc, char **argv) {
+	tpie_initer _;
 	if (argc != 2) return 1;
-	tpie_init();
 	bool ok=perform_test(std::string(argv[1]));
-	tpie_finish();
 	return ok?EXIT_SUCCESS:EXIT_FAILURE;
 }
 

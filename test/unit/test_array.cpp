@@ -190,7 +190,7 @@ public:
 };
 
 int main(int argc, char **argv) {
-	tpie_initer _;
+	tpie_initer _(128);
 	BOOST_CONCEPT_ASSERT((linear_memory_structure_concept<array<int> >));
 	BOOST_CONCEPT_ASSERT((boost::RandomAccessIterator<array<int>::const_iterator>));
 	BOOST_CONCEPT_ASSERT((boost::RandomAccessIterator<array<int>::const_reverse_iterator>));

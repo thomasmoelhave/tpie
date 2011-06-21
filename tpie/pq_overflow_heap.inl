@@ -57,7 +57,7 @@ template<typename T, typename Comparator>
 inline T* pq_overflow_heap<T, Comparator>::sorted_array() {
 	tpie::array<T> & a = h.get_array();
 	std::sort(a.begin(), a.begin() + h.size(), comp);
-	return &a[0];
+	return a.get();
 }
 
 template<typename T, typename Comparator>

@@ -69,7 +69,7 @@ public:
 	/// \return an iterator to the i'th element
 	/////////////////////////////////////////////////////////
 	iterator find(size_t idx) throw () {
-		assert(idx < self().size());
+		assert(idx <= self().size());
 		return self().get_iter(idx);
 	}
 
@@ -80,7 +80,7 @@ public:
 	/// \return a const iterator to the i'th element
 	/////////////////////////////////////////////////////////
 	const_iterator find(size_t idx) const throw () {
-		assert(idx < self().size());
+		assert(idx <= self().size());
 		return self().get_iter(idx);
 	}
 	
@@ -89,14 +89,20 @@ public:
 	///
 	/// \param i the index of the element returnd
 	/////////////////////////////////////////////////////////
-	T & at(size_t i) throw() {return *find(i);}
+	T & at(size_t i) throw() {
+		assert(i < self().size());
+		return *find(i);
+	}
 
 	/////////////////////////////////////////////////////////
 	/// \brief Return the element located at the given index
 	///
 	/// \param i the index of the element returnd
 	/////////////////////////////////////////////////////////
-	const T & at(size_t i) const throw() {return *find(i);}
+	const T & at(size_t i) const throw() {
+		assert(i < self().size());
+		return *find(i);
+	}
 	
 	/////////////////////////////////////////////////////////
 	/// \brief Copy elements from another array into this.
@@ -124,7 +130,10 @@ public:
 	/// \param i the index of the entry to return
 	/// \return const reference to the entry
 	/////////////////////////////////////////////////////////
-	inline const T & operator[](size_t i) const {return at(i);}
+	inline const T & operator[](size_t i) const {
+		assert(i < self().size());
+		return at(i);
+	}
 
 	/////////////////////////////////////////////////////////
 	/// \brief Return a referense to an array entry
@@ -132,7 +141,10 @@ public:
 	/// \param i the index of the entry to return
 	/// \return reference to the entry
 	/////////////////////////////////////////////////////////
-	inline T & operator[](size_t i) {return at(i);}
+	inline T & operator[](size_t i) {
+		assert(i < self().size());
+		return at(i);
+	}
 
 
 	/////////////////////////////////////////////////////////
@@ -466,7 +478,7 @@ public:
 			m_a=0;
 		}
 		m_size=size;
-		{
+		if (m_size) {
 			size_t o=outerSize(size);
 			//Allocate the outer array
 			m_a = m_allocator2.allocate(o);
