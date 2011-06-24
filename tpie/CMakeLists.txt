@@ -27,6 +27,7 @@ set (AMI_HEADERS
 		queue.h
 		scan.h
 		#scan_utils.h
+		serialization.h
 		sort.h
 		stack.h
 		stream_arith.h
