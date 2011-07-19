@@ -26,8 +26,49 @@
 
 #include <tpie/config.h>
 #include <tpie/logstream.h>
+#include <fstream>
 
 namespace tpie {
+
+/** A simple logger that writes messages to a tpie temporary file */
+class file_log_target: public log_target {
+public:
+	std::ofstream m_out;
+	std::string m_path;
+	log_level m_threshold;
+	
+    /** Construct a new file logger
+	 * \param threshold record messages at or above this severity threshold
+	 * */
+	file_log_target(log_level threshold);
+
+	/** Implement \ref log_target virtual method to record message
+	 * \param level severity of message
+	 * \param message content of message
+	 * */
+	void log(log_level level, const char * message, size_t);
+};
+
+/** A simple logger that writes messages to stderr */
+class stderr_log_target: public log_target {
+public:
+	log_level m_threshold;
+
+    /** Construct a new stderr logger
+	 * \param threshold record messages at or above this severity threshold
+	 * */
+	stderr_log_target(log_level threshold);
+	
+	/** Implement \ref log_target virtual method to record message
+	 * \param level severity of message
+	 * \param message content of message
+	 * \param size lenght of message array
+	 * */
+	void log(log_level level, const char * message, size_t size);
+};
+
+
+
 
 ///////////////////////////////////////////////////////////////////////////
 /// Returns the file name of the log stream

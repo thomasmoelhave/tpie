@@ -24,39 +24,35 @@
 #include <time.h>
 #include <tpie/tempname.h>
 #include <tpie/logstream.h>
+#include <tpie/tpie_log.h>
 #include <iostream>
 
+tpie::file_log_target::file_log_target(log_level threshold): m_threshold(threshold) {
+	m_path = tempname::tpie_name("log", "" , "txt");
+	m_out.open(m_path.c_str(), std::ios::trunc | std::ios::out);
+}
+
+void tpie::file_log_target::log(log_level level, const char * message, size_t) {
+	if (level > m_threshold) return;
+	m_out << message;
+	m_out.flush();
+}
+
+tpie::stderr_log_target::stderr_log_target(log_level threshold): m_threshold(threshold) {}
+
+void tpie::stderr_log_target::log(log_level level, const char * message, size_t size) {
+	if (level > m_threshold) return;
+	fwrite(message, 1, size, stderr);
+}	
+
+
+
+
+
+
+
+
 namespace tpie {
-
-class file_log_target: public log_target {
-public:
-	std::ofstream m_out;
-	std::string m_path;
-	log_level m_threshold;
-	
-	file_log_target(log_level threshold): m_threshold(threshold) {
-		m_path = tempname::tpie_name("log", "" , "txt");
-		m_out.open(m_path.c_str(), std::ios::trunc | std::ios::out);
-	}
-
-	void log(log_level level, const char * message, size_t) {
-		if (level > m_threshold) return;
-		m_out << message;
-		m_out.flush();
-	}
-};
-
-class stderr_log_target: public log_target {
-public:
-	log_level m_threshold;
-
-	stderr_log_target(log_level threshold): m_threshold(threshold) {}
-	void log(log_level level, const char * message, size_t size) {
-		if (level > m_threshold) return;
-		fwrite(message, 1, size, stderr);
-	}	
-};
-
 
 static file_log_target * file_target = 0;
 static stderr_log_target * stderr_target = 0;
