@@ -18,7 +18,7 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #include <tpie/backtrace.h>
 #include <tpie/tpie_log.h>
-#ifdef WIN32
+#if defined(WIN32) || defined(__CYGWIN__)
 
 namespace tpie {
 void backtrace(std::ostream & out, int depth){}
