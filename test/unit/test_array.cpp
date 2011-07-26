@@ -54,6 +54,51 @@ bool basic_test() {
 	return true;
 }
 
+class auto_ptr_test_class {
+public:
+	size_t & dc;
+	size_t & cc;
+	auto_ptr_test_class(size_t & cc_, size_t & dc_): dc(dc_), cc(cc_) {
+		++cc;
+	}
+	~auto_ptr_test_class() {
+		++dc;
+	}
+	size_t hat() {return 42;}
+private:
+	auto_ptr_test_class(const auto_ptr_test_class & o): dc(o.dc), cc(o.cc) {}
+};
+
+
+bool auto_ptr_test() {
+	size_t s=1234;
+	size_t cc=0;
+	size_t dc=0;
+	array<tpie::auto_ptr<auto_ptr_test_class> > a;
+	a.resize(s);
+	for(size_t i=0; i < s; ++i) 
+		a[i].reset(tpie_new<auto_ptr_test_class, size_t &, size_t &>(cc, dc));
+	if (cc != s || dc != 0) return false;
+	
+	size_t x=0;
+	for(size_t i=0; i < s; ++i) 
+		x += a[i]->hat();
+	if (x != 42*s) return false;
+
+	if (cc != s || dc != 0) return false;
+
+	for(size_t i=0; i < s; ++i) 
+		a[i].reset(tpie_new<auto_ptr_test_class>(cc, dc));
+	
+	if (cc != 2*s || dc != s) return false;
+	
+	a.resize(0);
+	if (cc != 2*s || dc != 2*s) return false;
+	
+	return true;
+}
+
+
 bool segmented_array_test() {
 	array<int, false> h1;
 	array<int, true> h2;
@@ -206,6 +251,8 @@ int main(int argc, char **argv) {
 		return basic_test()?EXIT_SUCCESS:EXIT_FAILURE;
 	else if (test == "iterators") 
 		return iterator_test()?EXIT_SUCCESS:EXIT_FAILURE;
+	else if (test == "auto_ptr")
+		return auto_ptr_test()?EXIT_SUCCESS:EXIT_FAILURE;
 	else if (test == "memory") 
 		return array_memory_test<false>()()?EXIT_SUCCESS:EXIT_FAILURE;
 	else if (test == "segmented")

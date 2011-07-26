@@ -133,7 +133,7 @@ void priority_queue<T, Comparator, OPQType>::init(TPIE_OS_SIZE_T mm_avail) { // 
 		exit(-1);
 	}
 
-	opq = tpie_new<OPQType>(setting_m);
+	opq.reset(tpie_new<OPQType>(setting_m));
 	assert(OPQType::sorted_factor == 1);
 
 	// state arrays contain: start + size

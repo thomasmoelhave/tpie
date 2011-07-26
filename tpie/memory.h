@@ -296,6 +296,12 @@ inline void tpie_delete_array(T * a, size_t size) throw() {
 	delete[] a;
 }
 
+template <typename T>
+struct auto_ptr_ref {
+	T * m_ptr;
+	explicit inline auto_ptr_ref(T * ptr) throw(): m_ptr(ptr) {};
+};
+
 ///////////////////////////////////////////////////////////////////////////
 /// \brief like std::auto_ptr, but delete the object with tpie_delete
 /// \tparam T the type of the object
@@ -304,24 +310,43 @@ template <typename T>
 class auto_ptr {
 private:
 	T * elm;
-	auto_ptr(const auto_ptr & o) {unused(o); assert(false);}
-	auto_ptr & operator = (const auto_ptr & o) {unused(o); assert(false);}
+	// auto_ptr(const auto_ptr & o) {unused(o); assert(false);}
+	// auto_ptr & operator = (const auto_ptr & o) {unused(o); assert(false);}
 public:
-	inline T * release() throw () {T * t=elm; elm=0; return t;}
-	inline T * get() const throw() {return elm;}
+	typedef T element_type;
+
+	// D.10.1.1 construct/copy/destroy:
+	explicit inline auto_ptr(T * o=0) throw(): elm(0){reset(o);}	
+	inline auto_ptr(auto_ptr & o) throw(): elm(0) {reset(o.release());}
+	template <class Y> 
+	inline auto_ptr(auto_ptr<Y> & o) throw(): elm(0) {reset(o.release());}
+	
+	inline auto_ptr & operator =(auto_ptr & o) throw() {reset(o.release());}
+	template <class Y>
+	inline auto_ptr & operator =(auto_ptr<Y> & o) throw() {reset(o.release());}
+	inline auto_ptr & operator =(auto_ptr_ref<T> r) throw() {reset(r.m_ptr);}
+
+	inline ~auto_ptr() throw() {reset();}
+
+	// D.10.1.2 members:
 	inline T & operator*() const throw() {return *elm;}
 	inline T * operator->() const throw() {return elm;}
+	inline T * get() const throw() {return elm;}	
+	inline T * release() throw () {T * t=elm; elm=0; return t;}	
 	inline void reset(T * o=0) throw () {
-		if (elm) tpie_delete<T>(elm);
-		elm=o;
+		if (o == elm) return;
+		tpie_delete<T>(elm); 
+		elm=o; 
 	}
-	inline auto_ptr(T * o=0): elm(0) {reset(o);}
-	inline auto_ptr(auto_ptr & o): elm(0) {reset(o.release());}
-#ifdef TPIE_CPP_RVALUE_REFERENCE
-	inline auto_ptr(auto_ptr && o): elm(0) {reset(o.release());}
-#endif //TPIE_CPP_RVALUE_REFERENCE
-	inline ~auto_ptr() throw() {reset();}
-	inline auto_ptr & operator =(T * o) {reset(o); return *this;}
+
+	// D.10.1.3 conversions:
+	inline auto_ptr(auto_ptr_ref<T> r) throw() {reset(r.m_ptr);}
+	
+	template <class Y> 
+		inline operator auto_ptr_ref<Y>() throw() {return auto_ptr_ref<Y>(release());}
+
+	template<class Y> 
+		inline operator auto_ptr<Y>() throw() {return auto_ptr<Y>(release());}
 };
 
 ///////////////////////////////////////////////////////////////////////////

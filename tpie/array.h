@@ -293,7 +293,15 @@ public:
 	/// \param s The number of elements in the array
 	/// \param value Each entry of the array is initialized with this value
 	/////////////////////////////////////////////////////////
-	array(size_type s=0, const T & value=T()): m_elements(0), m_size(0) {resize(s, value);}
+	array(size_type s, const T & value): m_elements(0), m_size(0) {resize(s, value);}
+
+	/////////////////////////////////////////////////////////
+	/// \brief Construct array of given size.
+	///
+	/// \param s The number of elements in the array
+	/// \param value Each entry of the array is initialized with this value
+	/////////////////////////////////////////////////////////
+	array(size_type s=0): m_elements(0), m_size(0) {resize(s);}
 
 	/////////////////////////////////////////////////////////
 	/// \brief Construct a copy of another array
@@ -317,7 +325,7 @@ public:
 	/// \param s the new size of the array
 	/// \param elm the initialization element
 	/////////////////////////////////////////////////////////
-	void resize(size_t s, const T & elm=T()) {
+	void resize(size_t s, const T & elm) {
 		if (s == m_size) return;
 		for (size_t i=0; i < m_size; ++i)
 			m_allocator.destroy(&m_elements[i]);
@@ -327,6 +335,25 @@ public:
 		for (size_t i=0; i < m_size; ++i)
 			m_allocator.construct(&m_elements[i], elm);
 	}
+
+
+	/////////////////////////////////////////////////////////
+	/// \brief Change the size of the array
+	///
+	/// All elements are lost.
+	/// \param s the new size of the array
+	/////////////////////////////////////////////////////////
+	void resize(size_t s) {
+		if (s == m_size) return;
+		for (size_t i=0; i < m_size; ++i)
+			m_allocator.destroy(&m_elements[i]);
+		m_allocator.deallocate(m_elements, m_size);
+		m_size = s;
+		m_elements = s ? m_allocator.allocate(m_size) : 0;
+		for (size_t i=0; i < m_size; ++i)
+			m_allocator.construct(&m_elements[i], T());
+	}
+
 
 	/////////////////////////////////////////////////////////
 	/// \brief Return the size of the array

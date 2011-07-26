@@ -31,7 +31,7 @@ add_fulltest(external_priority_queue medium large large_cycle)
 add_unittest(internal_priority_queue basic memory)
 add_fulltest(internal_priority_queue large_cycle)
 
-add_unittest(array basic iterators segmented memory memory_segmented bit_basic bit_iterators bit_memory)
+add_unittest(array basic iterators segmented memory auto_ptr memory_segmented bit_basic bit_iterators bit_memory)
 add_unittest(disjoint_set basic memory)
 
 add_unittest(external_sort small)
