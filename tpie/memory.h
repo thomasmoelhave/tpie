@@ -29,6 +29,7 @@
 #include <tpie/util.h>
 #include <boost/thread/mutex.hpp>
 #include <boost/unordered_map.hpp>
+#include <boost/type_traits/is_polymorphic.hpp>
 #include <utility>
 
 namespace tpie {
@@ -118,8 +119,8 @@ public:
 	std::pair<uint8_t *, size_t> __allocate_consecutive(size_t upper_bound, size_t granularity);
 
 #ifndef TPIE_NDEBUG
-	void __register_pointer(void * p, size_t size);
-	void __unregister_pointer(void * p, size_t size);
+	void __register_pointer(void * p, size_t size, const std::type_info & t);
+	void __unregister_pointer(void * p, size_t size, const std::type_info & t);
 	void __complain_about_unfreed_memory();
 #endif
 
@@ -130,7 +131,7 @@ private:
 	enforce_t m_enforce;
 	boost::mutex m_mutex;
 #ifndef TPIE_NDEBUG
-	boost::unordered_map<void *, size_t> m_pointers;
+	boost::unordered_map<void *, std::pair<size_t, const std::type_info *> > m_pointers;
 #endif
 };
 
@@ -158,12 +159,13 @@ memory_manager & get_memory_manager();
 /// \internal
 /// Register a pointer for debugging memory leeks and such
 ///////////////////////////////////////////////////////////////////////////
-inline void __register_pointer(void * p, size_t size) {
+inline void __register_pointer(void * p, size_t size, const std::type_info & t) {
 #ifndef TPIE_NDEBUG
-	get_memory_manager().__register_pointer(p, size);
+	get_memory_manager().__register_pointer(p, size, t);
 #else
 	unused(p);
 	unused(size);
+	unused(t);
 #endif
 }
 
@@ -171,34 +173,128 @@ inline void __register_pointer(void * p, size_t size) {
 /// \internal
 /// Unregister a registered pointer
 ///////////////////////////////////////////////////////////////////////////
-inline void __unregister_pointer(void * p, size_t size) {
+inline void __unregister_pointer(void * p, size_t size, const std::type_info & t) {
 #ifndef TPIE_NDEBUG
-	get_memory_manager().__unregister_pointer(p, size);
+	get_memory_manager().__unregister_pointer(p, size, t);
 #else
 	unused(p);
 	unused(size);
+	unused(t);
 #endif
 }
 
 ///////////////////////////////////////////////////////////////////////////
 /// \internal
+///////////////////////////////////////////////////////////////////////////
+template <typename T, bool x=boost::is_polymorphic<T>::value >
+struct __object_addr {
+	inline void * operator()(T * o) {return static_cast<void *>(o);}
+};
+
+///////////////////////////////////////////////////////////////////////////
+/// \internal
+///////////////////////////////////////////////////////////////////////////
+template <typename T>
+struct __object_addr<T, true> {
+	inline void * operator()(T * o) {return dynamic_cast<void *>(o);}
+};
+
+///////////////////////////////////////////////////////////////////////////
+/// Cast between pointer types, if the input pointer is polymorpic its base address
+/// is found and that is then casted to the output type.
+///
+/// \tparam D must be a none polymorphic pointer type
+/// \tparam T any type
+///////////////////////////////////////////////////////////////////////////
+template <typename D, typename T>
+inline D ptr_cast(T * t) { return reinterpret_cast<D>(__object_addr<T>()(t)); }
+
+
+template <typename T>
+inline T * __allocate() {
+	if(!boost::is_polymorphic<T>::value) return reinterpret_cast<T *>(new uint8_t[sizeof(T)]);	
+	uint8_t * x = new uint8_t[sizeof(T)+sizeof(size_t)];
+	*reinterpret_cast<size_t*>(x) = sizeof(T);
+	return reinterpret_cast<T*>(x + sizeof(size_t));
+}
+
+template <typename T>
+inline void __deallocate(T * p) {
+	if(!boost::is_polymorphic<T>::value) 
+		return delete[] reinterpret_cast<uint8_t*>(p);
+	else
+		return delete[] (ptr_cast<uint8_t *>(p) - sizeof(size_t));
+}
+
+template <typename T>
+inline size_t tpie_size(T * p) {
+	if(!boost::is_polymorphic<T>::value) return sizeof(T);
+	uint8_t * x = ptr_cast<uint8_t *>(p);
+	return * reinterpret_cast<size_t *>(x - sizeof(size_t));
+}
+
+
+///////////////////////////////////////////////////////////////////////////
+/// \internal
 /// Used to preform allocations in a safe manner
 ///////////////////////////////////////////////////////////////////////////
+template <typename T>
+struct array_allocation_scope_magic {
+	size_t size;
+	T * data;
+	inline array_allocation_scope_magic(size_t s): size(0), data(0) {
+		get_memory_manager().register_allocation(s * sizeof(T) );
+		size=s;
+	}
+
+	inline T * allocate() {
+		data = new T[size];
+		__register_pointer(data, size*sizeof(T), typeid(T));
+		return data;
+	}
+
+	T * finalize() {
+		T * d = data;
+		size = 0;
+		data = 0;
+		return d;
+	}
+
+	inline ~array_allocation_scope_magic() {
+		if(size) get_memory_manager().register_deallocation(size*sizeof(T));
+	}
+};
+
+///////////////////////////////////////////////////////////////////////////
+/// \internal
+/// Used to preform allocations in a safe manner
+///////////////////////////////////////////////////////////////////////////
+template <typename T>
 struct allocation_scope_magic {
 	size_t deregister;
-	inline allocation_scope_magic(size_t size) {
-		get_memory_manager().register_allocation(size);
-		deregister = size;
+	T * data;
+	inline allocation_scope_magic(): deregister(0), data(0) {}
+	
+	inline T * allocate() {
+		get_memory_manager().register_allocation(sizeof(T));
+		deregister = sizeof(T);
+		data = __allocate<T>();
+		__register_pointer(data, sizeof(T), typeid(T));
+		return data;
 	}
 
-	template <typename T>
-	inline T operator()(T x) {
-		__register_pointer(x, deregister);
-		deregister = 0; 
-		return x;
+	T * finalize() {
+		T * d = data;
+		deregister = 0;
+		data = 0;
+		return d;
 	}
-
-	inline ~allocation_scope_magic() {if(deregister) get_memory_manager().register_deallocation(deregister);}
+	
+	inline ~allocation_scope_magic() {
+		if (data) __unregister_pointer(data, sizeof(T), typeid(T));
+		delete[] reinterpret_cast<uint8_t*>(data);
+		if (deregister) get_memory_manager().register_deallocation(deregister);
+	}
 };
 
 ///////////////////////////////////////////////////////////////////////////
@@ -208,7 +304,11 @@ struct allocation_scope_magic {
 ///////////////////////////////////////////////////////////////////////////
 template <typename T>
 inline T * tpie_new_array(size_t size) {
-	return allocation_scope_magic(sizeof(T)*size)(new T[size]);
+	array_allocation_scope_magic<T> m(size);
+	m.allocate();
+	for(size_t i=0; i < size; ++i)
+		new(m.data + i) T();
+	return m.finalize();
 }
 
 #ifdef TPIE_CPP_VARIADIC_TEMPLATES
@@ -217,7 +317,9 @@ inline T * tpie_new_array(size_t size) {
 ///////////////////////////////////////////////////////////////////////////
 template <typename T,typename... TT>
 inline T * tpie_new(TT... vals) {
-	return allocation_scope_magic(sizeof(T))(new T(vals...));
+	allocation_scope_magic<T> m;
+	new(m.allocate()) T(vals...);
+	return m.finalize();
 }
 #else //TPIE_CPP_VARIADIC_TEMPLATES
 
@@ -228,7 +330,9 @@ inline T * tpie_new(TT... vals) {
 ///////////////////////////////////////////////////////////////////////////
 template <typename T>
 inline T * tpie_new() {
-	return allocation_scope_magic(sizeof(T))(new T);
+	allocation_scope_magic<T> m;
+	new(m.allocate()) T();
+	return m.finalize();
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -239,7 +343,9 @@ inline T * tpie_new() {
 ///////////////////////////////////////////////////////////////////////////
 template <typename T, typename T1>
 inline T * tpie_new(T1 t1) {
-	return allocation_scope_magic(sizeof(T))(new T(t1));
+	allocation_scope_magic<T> m;
+	new(m.allocate()) T(t1);
+	return m.finalize();
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -251,22 +357,30 @@ inline T * tpie_new(T1 t1) {
 ///////////////////////////////////////////////////////////////////////////
 template <typename T, typename T1, typename T2>
 inline T * tpie_new(T1 t1, T2 t2) {
-	return allocation_scope_magic(sizeof(T))(new T(t1, t2));
+	allocation_scope_magic<T> m;
+	new(m.allocate()) T(t1, t2);
+	return m.finalize();
 }
 
 template <typename T, typename T1, typename T2, typename T3>
 inline T * tpie_new(T1 t1, T2 t2, T3 t3) {
-	return allocation_scope_magic(sizeof(T))(new T(t1, t2, t3));
+	allocation_scope_magic<T> m;
+	new(m.allocate()) T(t1, t2, t3);
+	return m.finalize();
 }
 
 template <typename T, typename T1, typename T2, typename T3, typename T4>
 inline T * tpie_new(T1 t1, T2 t2, T3 t3, T4 t4) {
-	return allocation_scope_magic(sizeof(T))(new T(t1, t2, t3, t4));
+	allocation_scope_magic<T> m;
+	new(m.allocate()) T(t1, t2, t3, t4);
+	return m.finalize();
 }
 
 template <typename T, typename T1, typename T2, typename T3, typename T4, typename T5>
 inline T * tpie_new(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5) {
-	return allocation_scope_magic(sizeof(T))(new T(t1, t2, t3, t4, t5));
+	allocation_scope_magic<T> m;
+	new(m.allocate()) T(t1, t2, t3, t4, t5);
+	return m.finalize();
 }
 #endif //TPIE_CPP_VARIADIC_TEMPLATES
 
@@ -277,10 +391,10 @@ inline T * tpie_new(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5) {
 template <typename T>
 inline void tpie_delete(T * p) throw() {
 	if (p == 0) return;
-	get_memory_manager().register_deallocation(sizeof(T));
-	__unregister_pointer(p, sizeof(T));
-	delete p;
-	
+	get_memory_manager().register_deallocation(tpie_size(p));
+	__unregister_pointer(ptr_cast<void *>(p), tpie_size(p), typeid(*p));
+	p->~T();
+	__deallocate(p);
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -292,7 +406,7 @@ template <typename T>
 inline void tpie_delete_array(T * a, size_t size) throw() {
 	if (a == 0) return;
 	get_memory_manager().register_deallocation(sizeof(T) * size);
-	__unregister_pointer(a, sizeof(T) * size);
+	__unregister_pointer(a, sizeof(T) * size, typeid(T) );
 	delete[] a;
 }
 
@@ -340,7 +454,7 @@ public:
 	}
 
 	// D.10.1.3 conversions:
-	inline auto_ptr(auto_ptr_ref<T> r) throw() {reset(r.m_ptr);}
+	inline auto_ptr(auto_ptr_ref<T> r) throw(): elm(0)  {reset(r.m_ptr);}
 	
 	template <class Y> 
 		inline operator auto_ptr_ref<Y>() throw() {return auto_ptr_ref<Y>(release());}
@@ -373,13 +487,13 @@ public:
     inline T * allocate(size_t size, const void * hint=0) {
 		get_memory_manager().register_allocation(size * sizeof(T));
 		T * res = a.allocate(size, hint);
-		__register_pointer(res, size);
+		__register_pointer(res, size, typeid(T));
 		return res;
     }
 
     inline void deallocate(T * p, size_t n) {
 		if (p == 0) return;
-		__unregister_pointer(p, n);
+		__unregister_pointer(p, n, typeid(T));
 		get_memory_manager().register_deallocation(n * sizeof(T));
 		return a.deallocate(p, n);
     }

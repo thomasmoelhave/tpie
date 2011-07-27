@@ -126,7 +126,7 @@ std::pair<uint8_t *, size_t> memory_manager::__allocate_consecutive(size_t upper
 		res = new uint8_t[high*granularity];
 		m_used += high*granularity;
 #ifndef TPIE_NDEBUG
-		__register_pointer(res, high*granularity);
+		__register_pointer(res, high*granularity, typeid(uint8_t) );
 #endif	      
 		return std::make_pair(res, high*granularity);
 	} catch (std::bad_alloc) {
@@ -161,32 +161,37 @@ std::pair<uint8_t *, size_t> memory_manager::__allocate_consecutive(size_t upper
 	res = new uint8_t[best];
 	m_used += best;
 #ifndef TPIE_NDEBUG
-	__register_pointer(res, best);
+	__register_pointer(res, best, typeid(uint8_t) );
 #endif	      
 	return std::make_pair(res, best);
 }
 
 
 #ifndef TPIE_NDEBUG
-void memory_manager::__register_pointer(void * p, size_t size) {
+void memory_manager::__register_pointer(void * p, size_t size, const std::type_info & t) {
 	if (m_pointers.count(p) != 0) {
 		log_error() << "Trying to register pointer " << p << " of size " 
 					<< size << " which is allready registered" << std::endl;
 		segfault();
 	}
-	m_pointers[p] = size;
+	m_pointers[p] = std::make_pair(size, &t);;
 }
 
-void memory_manager::__unregister_pointer(void * p, size_t size) {
-	boost::unordered_map<void *, size_t>::const_iterator i=m_pointers.find(p);
+void memory_manager::__unregister_pointer(void * p, size_t size, const std::type_info & t) {
+	boost::unordered_map<void *, std::pair<size_t, const std::type_info *> >::const_iterator i=m_pointers.find(p);
 	if (i == m_pointers.end()) {
 		log_error() << "Trying to deregister pointer " << p << " of size "
 					<< size << " which was never registered" << std::endl;
 		segfault();
 	} else {
-		if (i->second != size) {
+		if (i->second.first != size) {
 			log_error() << "Trying to deregister pointer " << p << " of size "
-						<< size << " which was registered with size " << i->second;
+						<< size << " which was registered with size " << i->second.first;
+			segfault();
+		}
+		if (*i->second.second != t) {
+			log_error() << "Trying to deregister pointer " << p << " of type "
+						<< t.name() << " which was registered with size " << i->second.second->name();
 			segfault();
 		}
 		m_pointers.erase(i);
@@ -197,10 +202,9 @@ void memory_manager::__complain_about_unfreed_memory() {
 	if(m_pointers.size() == 0) return;
 	log_error() << "The following pointers where either leaked or deleted by delete instead of tpie_delete" << std::endl << std::endl;
 	
-	for(boost::unordered_map<void *, size_t>::const_iterator i=m_pointers.begin();
+	for(boost::unordered_map<void *, std::pair<size_t, const std::type_info *> >::const_iterator i=m_pointers.begin();
 		i != m_pointers.end(); ++i)
-		log_error() << "  " <<  i->first << ": " << i->second << " bytes" << std::endl;
-	segfault();
+		log_error() << "  " <<  i->first << ": " << i->second.second->name() << " of " << i->second.first << " bytes" << std::endl;
 }
 #endif
 
