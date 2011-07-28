@@ -187,16 +187,22 @@ void memory_manager::__unregister_pointer(void * p, size_t size, const std::type
 	} else {
 		if (i->second.first != size) {
 			log_error() << "Trying to deregister pointer " << p << " of size "
-						<< size << " which was registered with size " << i->second.first;
+						<< size << " which was registered with size " << i->second.first << std::endl;
 			segfault();
 		}
 		if (*i->second.second != t) {
 			log_error() << "Trying to deregister pointer " << p << " of type "
-						<< t.name() << " which was registered with size " << i->second.second->name();
+						<< t.name() << " which was registered with size " << i->second.second->name() << std::endl;
 			segfault();
 		}
 		m_pointers.erase(i);
 	}
+}
+
+void memory_manager::__assert_tpie_ptr(void * p) {
+	if (!p || m_pointers.count(p)) return;
+	log_error() << p << " has not been allocated with tpie new" << std::endl;
+	segfault();
 }
 
 void memory_manager::__complain_about_unfreed_memory() {

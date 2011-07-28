@@ -121,8 +121,10 @@ public:
 #ifndef TPIE_NDEBUG
 	void __register_pointer(void * p, size_t size, const std::type_info & t);
 	void __unregister_pointer(void * p, size_t size, const std::type_info & t);
+	void __assert_tpie_ptr(void * p);
 	void __complain_about_unfreed_memory();
 #endif
+
 
 private:
 	size_t m_used;
@@ -180,6 +182,18 @@ inline void __unregister_pointer(void * p, size_t size, const std::type_info & t
 	unused(p);
 	unused(size);
 	unused(t);
+#endif
+}
+
+///////////////////////////////////////////////////////////////////////////
+/// In a debug build assert that a given pointer has been allocated with tpie new
+///////////////////////////////////////////////////////////////////////////
+inline void assert_tpie_ptr(void * p) {
+#ifndef TPIE_NDEBUG
+	if (p)
+		get_memory_manager().__assert_tpie_ptr(p);
+#else
+	unused(p);
 #endif
 }
 
@@ -449,7 +463,8 @@ public:
 	inline T * release() throw () {T * t=elm; elm=0; return t;}	
 	inline void reset(T * o=0) throw () {
 		if (o == elm) return;
-		tpie_delete<T>(elm); 
+		tpie_delete<T>(elm);
+		assert_tpie_ptr(o);
 		elm=o; 
 	}
 
