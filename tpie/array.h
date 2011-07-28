@@ -336,6 +336,13 @@ public:
 			m_allocator.construct(&m_elements[i], elm);
 	}
 
+	/////////////////////////////////////////////////////////
+	/// \brief Swap two arryes
+	/////////////////////////////////////////////////////////	
+	void swap(array & other) {
+		std::swap(m_elements, other.m_elements);
+		std::swap(m_size, other.m_size);
+	}
 
 	/////////////////////////////////////////////////////////
 	/// \brief Change the size of the array
@@ -479,7 +486,15 @@ public:
 	/////////////////////////////////////////////////////////
 	~array() {resize(0);}
 
-	
+
+	/////////////////////////////////////////////////////////
+	/// \brief Swap two arryes
+	/////////////////////////////////////////////////////////	
+	void swap(array & other) {
+		swap(m_a, other.m_a);
+		swap(m_size, other.m_size);
+	}
+
 	/////////////////////////////////////////////////////////
 	/// \brief Change the size of the array
 	///
@@ -535,7 +550,7 @@ namespace std {
 
 template <typename T, template <typename> class alloc_t>
 void swap(tpie::array<T, false, alloc_t> & a, tpie::array<T, false, alloc_t> & b) {
-
+	a.swap(b);
 }
 
 
