@@ -146,7 +146,6 @@ public:
 		return at(i);
 	}
 
-
 	/////////////////////////////////////////////////////////
 	/// \brief Compare if the other array has the same elemens in the same order as this
 	///
@@ -326,12 +325,13 @@ public:
 	/// \param elm the initialization element
 	/////////////////////////////////////////////////////////
 	void resize(size_t s, const T & elm) {
-		if (s == m_size) return;
-		for (size_t i=0; i < m_size; ++i)
-			m_allocator.destroy(&m_elements[i]);
-		m_allocator.deallocate(m_elements, m_size);
-		m_size = s;
-		m_elements = s ? m_allocator.allocate(m_size) : 0;
+		if (s != m_size) {
+			for (size_t i=0; i < m_size; ++i)
+				m_allocator.destroy(&m_elements[i]);
+			m_allocator.deallocate(m_elements, m_size);
+			m_size = s;
+			m_elements = s ? m_allocator.allocate(m_size) : 0;
+		}
 		for (size_t i=0; i < m_size; ++i)
 			m_allocator.construct(&m_elements[i], elm);
 	}
