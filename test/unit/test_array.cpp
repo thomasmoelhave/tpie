@@ -54,6 +54,10 @@ bool basic_test() {
 	return true;
 }
 
+
+/* 
+ * TODO Enable auto ptr test
+ *
 class auto_ptr_test_class {
 public:
 	size_t & dc;
@@ -97,7 +101,7 @@ bool auto_ptr_test() {
 	
 	return true;
 }
-
+*/
 
 bool segmented_array_test() {
 	array<int, false> h1;
@@ -251,8 +255,8 @@ int main(int argc, char **argv) {
 		return basic_test()?EXIT_SUCCESS:EXIT_FAILURE;
 	else if (test == "iterators") 
 		return iterator_test()?EXIT_SUCCESS:EXIT_FAILURE;
-	else if (test == "auto_ptr")
-		return auto_ptr_test()?EXIT_SUCCESS:EXIT_FAILURE;
+	//else if (test == "auto_ptr")
+	//	return auto_ptr_test()?EXIT_SUCCESS:EXIT_FAILURE;
 	else if (test == "memory") 
 		return array_memory_test<false>()()?EXIT_SUCCESS:EXIT_FAILURE;
 	else if (test == "segmented")
