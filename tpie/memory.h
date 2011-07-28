@@ -435,10 +435,10 @@ public:
 	template <class Y> 
 	inline auto_ptr(auto_ptr<Y> & o) throw(): elm(0) {reset(o.release());}
 	
-	inline auto_ptr & operator =(auto_ptr & o) throw() {reset(o.release());}
+	inline auto_ptr & operator =(auto_ptr & o) throw() {reset(o.release()); return *this;}
 	template <class Y>
-	inline auto_ptr & operator =(auto_ptr<Y> & o) throw() {reset(o.release());}
-	inline auto_ptr & operator =(auto_ptr_ref<T> r) throw() {reset(r.m_ptr);}
+	inline auto_ptr & operator =(auto_ptr<Y> & o) throw() {reset(o.release()); return *this;}
+	inline auto_ptr & operator =(auto_ptr_ref<T> r) throw() {reset(r.m_ptr); return *this;}
 
 	inline ~auto_ptr() throw() {reset();}
 
