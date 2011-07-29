@@ -497,6 +497,11 @@ public:
 	typedef typename a_t::const_reference const_reference;
     typedef typename a_t::value_type value_type;
 
+	allocator() throw() {}
+	allocator(const allocator & a) throw() {unused(a);}
+	template <typename T2>
+	allocator(const allocator<T2> & a) throw() {unused(a);}
+
     template <class U> struct rebind {typedef allocator<U> other;};
 
     inline T * allocate(size_t size, const void * hint=0) {
