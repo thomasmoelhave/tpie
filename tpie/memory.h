@@ -325,78 +325,9 @@ inline T * tpie_new_array(size_t size) {
 	return m.finalize();
 }
 
-#ifdef TPIE_CPP_VARIADIC_TEMPLATES
-///////////////////////////////////////////////////////////////////////////
-/// \brief Like new but also register the memory usage
-///////////////////////////////////////////////////////////////////////////
-template <typename T,typename... TT>
-inline T * tpie_new(TT... vals) {
-	allocation_scope_magic<T> m;
-	new(m.allocate()) T(vals...);
-	return m.finalize();
-}
-#else //TPIE_CPP_VARIADIC_TEMPLATES
 
-///////////////////////////////////////////////////////////////////////////
-/// \brief Like new but also register the memory usage
-/// \tparam T the tpie of of the object to allocate
-/// \return The allocated object
-///////////////////////////////////////////////////////////////////////////
-template <typename T>
-inline T * tpie_new() {
-	allocation_scope_magic<T> m;
-	new(m.allocate()) T();
-	return m.finalize();
-}
+#include <tpie/memory.inl>
 
-///////////////////////////////////////////////////////////////////////////
-/// \brief Like new but also register the memory usage
-/// \tparam T the tpie of of the object to allocate
-/// \param t1 The first argument to the constructor
-/// \return The allocated object
-///////////////////////////////////////////////////////////////////////////
-template <typename T, typename T1>
-inline T * tpie_new(T1 t1) {
-	allocation_scope_magic<T> m;
-	new(m.allocate()) T(t1);
-	return m.finalize();
-}
-
-///////////////////////////////////////////////////////////////////////////
-/// \brief Like new but also register the memory usage
-/// \tparam T the tpie of of the object to allocate
-/// \param t1 The first argument to the constructor
-/// \param t2 The second argument to the constructor
-/// \return The allocated object
-///////////////////////////////////////////////////////////////////////////
-template <typename T, typename T1, typename T2>
-inline T * tpie_new(T1 t1, T2 t2) {
-	allocation_scope_magic<T> m;
-	new(m.allocate()) T(t1, t2);
-	return m.finalize();
-}
-
-template <typename T, typename T1, typename T2, typename T3>
-inline T * tpie_new(T1 t1, T2 t2, T3 t3) {
-	allocation_scope_magic<T> m;
-	new(m.allocate()) T(t1, t2, t3);
-	return m.finalize();
-}
-
-template <typename T, typename T1, typename T2, typename T3, typename T4>
-inline T * tpie_new(T1 t1, T2 t2, T3 t3, T4 t4) {
-	allocation_scope_magic<T> m;
-	new(m.allocate()) T(t1, t2, t3, t4);
-	return m.finalize();
-}
-
-template <typename T, typename T1, typename T2, typename T3, typename T4, typename T5>
-inline T * tpie_new(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5) {
-	allocation_scope_magic<T> m;
-	new(m.allocate()) T(t1, t2, t3, t4, t5);
-	return m.finalize();
-}
-#endif //TPIE_CPP_VARIADIC_TEMPLATES
 
 ///////////////////////////////////////////////////////////////////////////
 /// \brief Delete an object allocated with tpie_new
