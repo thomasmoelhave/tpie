@@ -461,7 +461,19 @@ public:
 #endif
     inline void construct(T * p, const T& val) {a.construct(p, val);}
     inline void destroy(T * p) {a.destroy(p);}    
+	inline pointer address(reference x) const {return &x;}
+	inline const_pointer address(const_reference x) const {return &x;}
 };
+
+template<typename T>	inline bool
+operator==(const tpie::allocator<T>&, const tpie::allocator<T>&)
+{ return true; }
+  
+template<typename T>
+inline bool
+operator!=(const tpie::allocator<T>&, const tpie::allocator<T>&)
+{ return false; }
+
 
 
 ///////////////////////////////////////////////////////////////////////////
