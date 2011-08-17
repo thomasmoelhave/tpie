@@ -459,6 +459,7 @@ public:
 	inline void construct(T * p, TT && val) {a.construct(p, val);}
 #endif
 #endif
+	inline void construct(T * p) {new(p) T();}
     inline void construct(T * p, const T& val) {a.construct(p, val);}
     inline void destroy(T * p) {a.destroy(p);}    
 	inline pointer address(reference x) const {return &x;}

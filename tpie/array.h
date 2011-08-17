@@ -358,9 +358,8 @@ public:
 		m_size = s;
 		m_elements = s ? m_allocator.allocate(m_size) : 0;
 		for (size_t i=0; i < m_size; ++i)
-			m_allocator.construct(&m_elements[i], T());
+			m_allocator.construct(&m_elements[i]);
 	}
-
 
 	/////////////////////////////////////////////////////////
 	/// \brief Return the size of the array

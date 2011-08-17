@@ -1,3 +1,4 @@
 int && foobar();
 
+
 int main() {}
