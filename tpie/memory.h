@@ -320,8 +320,6 @@ template <typename T>
 inline T * tpie_new_array(size_t size) {
 	array_allocation_scope_magic<T> m(size);
 	m.allocate();
-	for(size_t i=0; i < size; ++i)
-		new(m.data + i) T();
 	return m.finalize();
 }
 
