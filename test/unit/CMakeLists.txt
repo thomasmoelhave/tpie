@@ -39,6 +39,7 @@ add_unittest(array basic iterators segmented memory auto_ptr memory_segmented bi
 add_unittest(disjoint_set basic memory)
 
 add_unittest(external_sort small)
+add_unittest(external_stack small)
 
 add_executable(test_bte test_bte.cpp)
 target_link_libraries(test_bte tpie)
