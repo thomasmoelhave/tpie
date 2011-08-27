@@ -180,7 +180,7 @@ namespace tpie {
 	    // Create streams of temporary file names.
 	    stream<char> *name_stream, *name_stream2 = NULL;
 
-	    name_stream = new stream<char>;
+	    name_stream = tpie_new<stream<char> >();
 
 	    // Do the first level distribution.
 
@@ -203,7 +203,7 @@ namespace tpie {
 
 		// Create a new stream of temporary stream names.
 		tp_assert(name_stream2 == NULL, "Non-null target name stream.");
-		name_stream2 = new stream<char>;       
+		name_stream2 = tpie_new<stream<char> >();
 
 		// Is this the last (special) iteration.
 		bool last_iteration = !some_stream_is_large;
@@ -380,13 +380,13 @@ namespace tpie {
 		// next.  Of course, this is only done if we are not in the last
 		// iteration.
         
-		delete name_stream;
+		tpie_delete(name_stream);
 
 		if (!last_iteration) {
 		    name_stream = name_stream2;
 		    name_stream2 = NULL;
 		} else {
-		    delete name_stream2;
+			tpie_delete(name_stream2);
 		    break;
 		}
 	    }
@@ -435,13 +435,13 @@ namespace tpie {
     
 	    // Allocate the space for the data and for the bucket list elements.
 	    // We know that stream_len items fit in main memory, so it is safe to cast.
-	    T *indata = new T[static_cast<TPIE_OS_SIZE_T>(stream_len)];
+	    T *indata = tpie_new_array<T>(static_cast<TPIE_OS_SIZE_T>(stream_len));
     
-	    bucket_list_elem<T> **buckets =
-		new bucket_list_elem<T>*[static_cast<TPIE_OS_SIZE_T>(stream_len)];
+	    bucket_list_elem<T> **buckets = tpie_new_array<bucket_list_elem<T> *>(
+			static_cast<TPIE_OS_SIZE_T>(stream_len));
 
-	    bucket_list_elem<T> *list_space =
-		new bucket_list_elem<T>[static_cast<TPIE_OS_SIZE_T>(stream_len)];
+	    bucket_list_elem<T> *list_space = tpie_new_array<bucket_list_elem<T> >(
+			static_cast<TPIE_OS_SIZE_T>(stream_len) );
 
 	    // Read the input stream.
 
@@ -450,9 +450,9 @@ namespace tpie {
 		TPIE_OS_OFFSET sl2 = stream_len;
 		ae = instream.read_array(indata, &sl2);
 		if (ae != NO_ERROR) {
-		    delete[] indata;
-		    delete[] buckets;
-		    delete[] list_space;
+		    tpie_delete_array(indata, stream_len);
+		    tpie_delete_array(buckets, stream_len);
+		    tpie_delete_array(list_space, stream_len);
 		    return ae;
 		}
 	    }
@@ -548,16 +548,12 @@ namespace tpie {
 	    // Write the results.
 
 	    ae = outstream.write_array(indata, static_cast<TPIE_OS_SIZE_T>(stream_len));
+		tpie_delete_array(indata, stream_len);
+		tpie_delete_array(buckets, stream_len);
+		tpie_delete_array(list_space, stream_len);
 	    if (ae != NO_ERROR) {
-		delete [] indata;
-		delete [] buckets;
-		delete [] list_space;
 		return ae;
 	    }    
-
-	    delete [] indata;
-	    delete [] buckets;
-	    delete [] list_space;
     
 	    return NO_ERROR;
 	}

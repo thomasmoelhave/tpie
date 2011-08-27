@@ -584,7 +584,7 @@ namespace tpie {
 	    //////////////////////////////////////////////////////////////////////////
 	    class remove_node {
 	    public:
-		void operator()(node_t* p) { delete p; }
+			void operator()(node_t* p) { tpie_delete(p); }
 	    };
 
 	    //////////////////////////////////////////////////////////////////////////
@@ -592,7 +592,7 @@ namespace tpie {
       //////////////////////////////////////////////////////////////////////////
 	    class remove_leaf { 
 	    public:
-		void operator()(leaf_t* p) { delete p; }
+			void operator()(leaf_t* p) { tpie_delete(p); }
 	    };
 
 	    typedef CACHE_MANAGER<node_t*, remove_node> node_cache_t;
@@ -1508,14 +1508,14 @@ void btree<Key, Value, Compare, KeyOfValue, BTECOLL>::shared_init(const std::str
     pcoll_leaves_ = NULL;
     pcoll_nodes_ = NULL;
 
-    pcoll_leaves_ = new collection_t(lcollname, type, params_.leaf_block_factor);
+    pcoll_leaves_ = tpie_new<collection_t>(lcollname, type, params_.leaf_block_factor);
     if (!pcoll_leaves_->is_valid()) {
 	status_ = BTREE_STATUS_INVALID;
 	TP_LOG_WARNING_ID("btree::btree: Could not open leaves collection.");
 	return;
     }
 
-    pcoll_nodes_ = new collection_t(ncollname, type, params_.node_block_factor);
+    pcoll_nodes_ = tpie_new<collection_t>(ncollname, type, params_.node_block_factor);
     if (!pcoll_nodes_->is_valid()) {
 	status_ = BTREE_STATUS_INVALID;
 	TP_LOG_WARNING_ID("btree::btree: Could not open nodes collection.");
@@ -1523,8 +1523,8 @@ void btree<Key, Value, Compare, KeyOfValue, BTECOLL>::shared_init(const std::str
     }    
 
     // Initialize the caches (associativity = 8).
-    node_cache_ = new node_cache_t(params_.node_cache_size, 8);
-    leaf_cache_ = new leaf_cache_t(params_.leaf_cache_size, 8);
+    node_cache_ = tpie_new<node_cache_t>(params_.node_cache_size, 8);
+    leaf_cache_ = tpie_new<leaf_cache_t>(params_.leaf_cache_size, 8);
 
     // Give meaningful values to parameters, if necessary.
     size_t leaf_capacity = BTREE_LEAF::el_capacity(pcoll_leaves_->block_size());
@@ -1575,7 +1575,7 @@ err btree<Key, Value, Compare, KeyOfValue, BTECOLL>::sort(stream<Value>* in_stre
 	out_stream = new stream<Value>;
 	if (!out_stream->is_valid()) {
 	    TP_LOG_FATAL_ID("sort: error initializing temporary stream.");
-	    delete out_stream;
+	    tpie_delete(out_stream);
 	    return OBJECT_INITIALIZATION;
 	}
 	out_stream->persist(PERSIST_DELETE);
@@ -1643,7 +1643,7 @@ template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL
 err btree<Key, Value, Compare, KeyOfValue, BTECOLL>::load(stream<Value>* s, float leaf_fill, float node_fill) {
 
     err retval;
-    stream<Value>* stream_s = new stream<Value>;
+    stream<Value>* stream_s = tpie_new<stream<Value> >();
 
     retval = sort(s, stream_s);
 
@@ -1652,7 +1652,7 @@ err btree<Key, Value, Compare, KeyOfValue, BTECOLL>::load(stream<Value>* s, floa
 
     retval = load_sorted(stream_s, leaf_fill, node_fill);
 
-    delete stream_s;
+    tpie_delete(stream_s);
     return retval;
 }
 
@@ -2578,12 +2578,12 @@ bool btree<Key, Value, Compare, KeyOfValue, BTECOLL>::erase(const Key& k) {
 		// Write initialization info into the pcoll_nodes_ header.
 		*((header_t *) pcoll_nodes_->user_data()) = header_;
 	    }
-	    delete node_cache_;
-	    delete leaf_cache_;
+	    tpie_delete(node_cache_);
+	    tpie_delete(leaf_cache_);
 
 	    // Delete the two collections.
-	    delete pcoll_leaves_;
-	    delete pcoll_nodes_;
+	    tpie_delete(pcoll_leaves_);
+	    tpie_delete(pcoll_nodes_);
 	}
 
 	template <class Key, class Value, class Compare, class KeyOfValue, class BTECOLL>
@@ -2592,7 +2592,7 @@ bool btree<Key, Value, Compare, KeyOfValue, BTECOLL>::erase(const Key& k) {
 	    stats_.record(NODE_FETCH);
 	    // Warning: using short-circuit evaluation. Order is important.
 	    if ((bid == 0) || !node_cache_->read(bid, q)) {
-		q = new BTREE_NODE(pcoll_nodes_, bid);
+			q = tpie_new<BTREE_NODE>(pcoll_nodes_, bid);
 	    }
 	    return q;
 	}
@@ -2603,7 +2603,7 @@ bool btree<Key, Value, Compare, KeyOfValue, BTECOLL>::erase(const Key& k) {
 	    stats_.record(LEAF_FETCH);
 	    // Warning: using short-circuit evaluation. Order is important.
 	    if ((bid == 0) || !leaf_cache_->read(bid, q)) {
-		q = new BTREE_LEAF(pcoll_leaves_, bid);
+		q = tpie_new<BTREE_LEAF>(pcoll_leaves_, bid);
 	    }
 	    return q;
 	}
@@ -2612,7 +2612,7 @@ bool btree<Key, Value, Compare, KeyOfValue, BTECOLL>::erase(const Key& k) {
 	void btree<Key, Value, Compare, KeyOfValue, BTECOLL>::release_node(BTREE_NODE *p) {
 	    stats_.record(NODE_RELEASE);
 	    if (p->persist() == PERSIST_DELETE)
-		delete p;
+			tpie_delete(p);
 	    else
 		node_cache_->write(p->bid(), p);
 	}

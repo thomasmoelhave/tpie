@@ -125,7 +125,7 @@ namespace tpie {
 		sets_ = capacity_ / assoc_;
 		
 		// Initialize the array (mark all positions empty).
-		pdata_ = new item_type_[capacity_];
+		pdata_ = tpie_new_array<item_type_>(capacity_);
 		
 		for (i = 0; i < capacity_; i++) {
 		    pdata_[i].first = 0; 
@@ -255,7 +255,7 @@ namespace tpie {
 	    flush();
 	    
 	    if (capacity_ > 0) {
-		delete [] pdata_;
+			tpie_delete_array(pdata_, capacity_);
 	    }
 	}
 	

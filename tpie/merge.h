@@ -296,11 +296,11 @@ namespace tpie {
 	    err ami_err;
   
 	    // Create an array of pointers for the input.
-	    T* *in_objects = new T*[arity];
+	    T* *in_objects = tpie_new_array<T*>(arity);
   
 	    // Create an array of flags the merge object can use to ask for more
 	    // input from specific streams.
-	    merge_flag* taken_flags  = new merge_flag[arity];
+	    merge_flag* taken_flags  = tpie_new_array<merge_flag>(arity);
   
 	    // An index to speed things up when the merge object takes only from
 	    // one index.
@@ -317,8 +317,8 @@ namespace tpie {
 	    // number of non-null items read
 	    for (ii = arity; ii--; ) {
 		if ((ami_err = instreams[ii]->seek(0)) != NO_ERROR) {
-		    delete[] in_objects;
-		    delete[] taken_flags;
+		    tpie_delete_array(in_objects, arity);
+			tpie_delete_array(taken_flags, arity);
 		    return ami_err;
 		}
 		if ((ami_err = instreams[ii]->read_item(&(in_objects[ii]))) !=
@@ -327,8 +327,8 @@ namespace tpie {
 		    if (ami_err == END_OF_STREAM) {
 			in_objects[ii] = NULL;
 		    } else {
-			delete[] in_objects;
-			delete[] taken_flags;
+				tpie_delete_array(in_objects, arity);
+				tpie_delete_array(taken_flags, arity);
 			return ami_err;
 		    }
 		    // Set the taken flags to 0 before we call intialize()
@@ -360,8 +360,8 @@ namespace tpie {
 				if (ami_err == END_OF_STREAM) {
 				    in_objects[ii] = NULL;
 				} else {
-				    delete[] in_objects;
-				    delete[] taken_flags;
+					tpie_delete_array(in_objects, arity);
+					tpie_delete_array(taken_flags, arity);
 				    return ami_err;
 				}
 			    } else {
@@ -382,8 +382,8 @@ namespace tpie {
 			    if (ami_err == END_OF_STREAM) {
 				in_objects[taken_index] = NULL;
 			    } else {
-				delete[] in_objects;
-				delete[] taken_flags;
+					tpie_delete_array(in_objects, arity);
+					tpie_delete_array(taken_flags, arity);
 				return ami_err;
 			    }
 			} else {
@@ -404,14 +404,14 @@ namespace tpie {
 #endif                    
 		    if ((ami_err = outstream->write_item(merge_out)) !=
 			NO_ERROR) {
-			delete[] in_objects;
-			delete[] taken_flags;
+				tpie_delete_array(in_objects, arity);
+				tpie_delete_array(taken_flags, arity);
 			return ami_err;
 		    }            
 		} else if ((ami_err != MERGE_CONTINUE) &&
 			   (ami_err != MERGE_READ_MULTIPLE)) {
-		    delete[] in_objects;
-		    delete[] taken_flags;
+			tpie_delete_array(in_objects, arity);
+			tpie_delete_array(taken_flags, arity);
 		    return ami_err;
 		}
 	    }
@@ -422,8 +422,8 @@ namespace tpie {
 		      ", output_count = " << output_count << '.');
 #endif
 
-	    delete[] in_objects;
-	    delete[] taken_flags;
+		tpie_delete_array(in_objects, arity);
+		tpie_delete_array(taken_flags, arity);
 
 	    return NO_ERROR;
 	};
@@ -458,9 +458,8 @@ namespace tpie {
 		T *mm_stream;
 		TPIE_OS_OFFSET len1;
 		//allocate and read input stream in memory we know it fits, so we may cast.
-		if ((mm_stream = new T[static_cast<TPIE_OS_SIZE_T>(len)]) == NULL) {
-		    return MM_ERROR;
-		};
+		mm_stream = tpie_new_array<T>(static_cast<TPIE_OS_SIZE_T>(len));
+
 		len1 = len;
 		if ((ae = instream->read_array(mm_stream, &len1)) !=
 		    NO_ERROR) {
@@ -486,7 +485,7 @@ namespace tpie {
 		    return ae;
 		}
 
-		delete [] mm_stream;
+		tpie_delete_array(mm_stream, static_cast<TPIE_OS_SIZE_T>(len));
 		return NO_ERROR;
     
 	    } else {
@@ -497,10 +496,6 @@ namespace tpie {
 		return INSUFFICIENT_MAIN_MEMORY;
 	    }
 	};
-
-
-
-
 
 
 	template<class T, class M>
@@ -673,12 +668,8 @@ namespace tpie {
 	    // Create a temporary stream, then iterate through the substreams,
 	    // processing each one and writing it to the corresponding substream
 	    // of the temporary stream.
-	    initial_tmp_stream = new stream<T>;
-	    mm_stream = new T[static_cast<TPIE_OS_SIZE_T>(sz_orig_substr)];
-	    tp_assert(mm_stream != NULL, "Misjudged available main memory.");
-	    if (mm_stream == NULL) {
-		return INSUFFICIENT_MAIN_MEMORY;
-	    }
+	    initial_tmp_stream = tpie_new<stream<T> >();
+	    mm_stream = tpie_new_array<T>(static_cast<TPIE_OS_SIZE_T>(sz_orig_substr));
   
 	    instream->seek(0);
 	    assert(ae == NO_ERROR);
@@ -724,8 +715,7 @@ namespace tpie {
 		    return ae;
 		}            
 	    } //for
-	    delete [] mm_stream;
-
+		tpie_delete_array(mm_stream, static_cast<TPIE_OS_SIZE_T>(sz_orig_substr));
   
 	    // Make sure the total length of the temporary stream is the same as
 	    // the total length of the original input stream.
@@ -741,7 +731,7 @@ namespace tpie {
 	    current_substream_len = sz_orig_substr;
   
 	    // Pointers to the substreams that will be merged.
-	    stream<T>* *the_substreams = new stream<T>*[merge_arity];
+	    stream<T>* *the_substreams = tpie_new_array<stream<T>* >(merge_arity);
   
 	    //Monitoring prints.
 	    TP_LOG_DEBUG_ID("Number of runs from run formation is "
@@ -811,12 +801,11 @@ namespace tpie {
 		    }
 		    // Delete the substreams.
 		    for (ii = 0; ii < substream_count; ii++) {
-			delete the_substreams[ii];
+				tpie_delete(the_substreams[ii]);
 		    }
 		    // And the current input, which is an intermediate stream of
 		    // some kind.
-		    delete current_input;
-      
+			tpie_delete(current_input);
 		} else {
       
 		    //substream_count  is >  merge_arity
@@ -897,9 +886,8 @@ namespace tpie {
 			    // Delete the substreams.  jj is currently the index of the
 			    // largest, so we want to bump it up before the idiomatic
 			    // loop.
-			    for (jj++; jj--; ) {
-				delete the_substreams[jj];
-			    }
+			    for (jj++; jj--; )
+					tpie_delete(the_substreams[jj]);
 	  
 			    // Now jj should be -1 so that it gets bumped back up to 0
 			    // before the next iteration of the outer loop.
@@ -909,7 +897,7 @@ namespace tpie {
 		    } //for
       
 		    // Get rid of the current input stream and use the next one.
-		    delete current_input;
+		    tpie_delete(current_input);
 		    current_input = intermediate_tmp_stream;
 		}
     
@@ -920,8 +908,8 @@ namespace tpie {
 	    //Monitoring prints.
 	    TP_LOG_DEBUG_ID("Number of passes incl run formation is " << k+1);
   
-	    delete [] the_substreams;
-	    return NO_ERROR;
+		tpie_delete_array(the_substreams, merge_arity);
+		return NO_ERROR;
 
 	}
 

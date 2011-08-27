@@ -170,7 +170,7 @@ namespace tpie {
 					return OFFSET_OUT_OF_RANGE;
 				}
 
-				ss = new stream_cache;
+				ss = tpie_new<stream_cache>();
 				ss->r_only = (st == READ_STREAM);
 				ss->substream_level = substream_level + 1;
 				ss->current = ss->data = data + sub_begin;
@@ -235,7 +235,7 @@ namespace tpie {
 		template<class T>
 		stream_cache<T>::~stream_cache(void) {
 			if (!substream_level) {
-				delete data;
+				std::free(data);
 			}
 		};
 
