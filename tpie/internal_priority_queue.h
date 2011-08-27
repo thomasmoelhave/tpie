@@ -23,7 +23,6 @@
 #include <algorithm>
 #include <tpie/util.h>
 namespace tpie {
-
 /////////////////////////////////////////////////////////
 /// \file internal_priority_queue.h
 ///
@@ -39,7 +38,6 @@ namespace tpie {
 template <typename T, typename comp_t = std::less<T> >
 class internal_priority_queue: public linear_memory_base< internal_priority_queue<T, comp_t> > {
 public:
-
     /////////////////////////////////////////////////////////
     /// Constructor
     ///
@@ -47,6 +45,42 @@ public:
     /////////////////////////////////////////////////////////
     internal_priority_queue(size_type max_size, comp_t c=comp_t()): pq(max_size), sz(0), comp(c) {}
     //pq_internal_heap(T* arr, TPIE_OS_SIZE_T length) pq(arr, length), sz(length) {}
+
+	/////////////////////////////////////////////////////////
+	/// Construct a priority queue with given elements
+	/////////////////////////////////////////////////////////
+	template <typename IT>
+	internal_priority_queue(size_type max_size, const IT & start, const IT & end,
+							comp_t c=comp_t()): pq(max_size), sz(0), comp(c) {
+		insert(start, end);
+	}
+
+	/////////////////////////////////////////////////////////
+	/// Insert some elements and run make_heap
+	/////////////////////////////////////////////////////////
+	template <typename IT>
+	void insert(const IT & start, const IT & end) {
+		std::copy(start, end, pq.find(sz));
+		sz += (end - start);
+		make_safe();
+	}
+
+    /////////////////////////////////////////////////////////
+    /// Insert an element into the priority queue,
+	/// possibly destroying ordering information
+    ///
+    /// \param v The element that should be inserted
+    /////////////////////////////////////////////////////////
+	void unsafe_push(const T & v) { 
+		pq[sz++] = v; 
+	}
+
+    /////////////////////////////////////////////////////////
+	/// Make the priority queue safe after a sequence of unsafe_push es
+	/////////////////////////////////////////////////////////
+	void make_safe() {
+		std::make_heap(pq.begin(), pq.find(sz), comp);
+	}
   
     /////////////////////////////////////////////////////////
     /// Return true if queue is empty otherwise false
@@ -83,12 +117,20 @@ public:
     }
 
     /////////////////////////////////////////////////////////
+	/// Remove the minimum element and insert a new element
+    /////////////////////////////////////////////////////////
+	inline void pop_and_push(const T & v) {
+		assert(!empty());
+		pq[0] = v;
+		pop_and_push_heap(pq.begin(), pq.find(sz), comp);
+	}
+
+    /////////////////////////////////////////////////////////
     /// Return the minimum element
     ///
     /// \return The minimum element
     /////////////////////////////////////////////////////////
     inline const T & top() const {return pq[0];}
-	
 
 	/////////////////////////////////////////////////////////
 	/// \copybrief linear_memory_structure_doc::memory_coefficient()
@@ -121,14 +163,10 @@ public:
 	/// \brief Clear the structure of all elements
 	/////////////////////////////////////////////////////////
 	inline void clear() {sz=0;}
-private:	
-	template <typename TT>
-	struct binary_argument_swap {
-		TT i;
-		binary_argument_swap(TT & _): i(_) {}
-		bool operator()(const T& a, const T&b) const {return i(b,a);}
-	};
 
+	
+	inline void resize(size_t s) {sz=0; pq.resize(s);}
+private:	
 	tpie::array<T> pq; 
     size_type sz;
 	binary_argument_swap<comp_t> comp;

@@ -112,6 +112,62 @@ struct template_log<1> {
 	static const size_t v=1;
 };
 
+
+/////////////////////////////////////////////////////////
+/// \brief Restore heap invariants after the first element 
+/// has been replaced by some other olement
+/////////////////////////////////////////////////////////
+template <typename T, typename C>
+void pop_and_push_heap(T a, T b, C lt) {
+	size_t i=0;
+	size_t n=(b-a);
+	while (true) {
+		size_t c=2*i+1;
+		if (c+1 >= n) {
+			if (c < n && lt(*(a+i), *(a+c)))
+				std::swap(*(a+c), *(a+i));
+			break;
+		}
+		if (lt(*(a+c+1), *(a+c))) {
+			if (lt(*(a+i), *(a+c))) {
+				std::swap(*(a+c), *(a+i));
+				i=c;
+			} else break;
+		} else {
+			if (lt(*(a+i), *(a+c+1))) {
+				std::swap(*(a+c+1), *(a+i));
+				i=c+1;
+			} else break;
+		}
+	}
+}
+
+/////////////////////////////////////////////////////////
+/// \brief Restore heap invariants after the first element 
+/// has been replaced by some other olement
+/////////////////////////////////////////////////////////
+template <typename T>
+void pop_and_push_heap(T a, T b) {
+	pop_and_push_heap(a,b, std::less<typename T::value_type>());
+}
+
+
+/////////////////////////////////////////////////////////
+/// A binary functor object with the arguments swapped
+/////////////////////////////////////////////////////////
+template <typename T>
+struct binary_argument_swap: public std::binary_function<typename T::second_argument_type, 
+														 typename T::first_argument_type, 
+														 typename T::result_type> {
+	T i;
+	binary_argument_swap(T & _): i(_) {}
+	inline bool operator()(const typename T::second_argument_type & x, 
+						   const typename T::first_argument_type & y) {
+		return i(y,x);
+	}
+};
+
+
 } //namespace tpie
 
 #endif //__TPIE_UTIL_H__
