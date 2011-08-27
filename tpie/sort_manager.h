@@ -77,7 +77,10 @@ private:
 	err partition_and_sort_runs(progress_indicator_base* indicator); // make initial sorted runs
 	err merge_to_output(progress_indicator_base* indicator); // loop over merge tree, create output stream
 	// Merge a single group mrgArity streams to an output stream
-	err single_merge(stream<T>**, arity_t,  stream<T>*, TPIE_OS_OFFSET = -1, progress_indicator_base* indicator=0);
+	err single_merge(
+		typename tpie::array<tpie::auto_ptr<stream<T> > >::iterator,
+		typename tpie::array<tpie::auto_ptr<stream<T> > >::iterator,
+		stream<T>*, TPIE_OS_OFFSET = -1, progress_indicator_base* indicator=0);
 	// helper function for creating filename
 	inline void make_name(
 		const std::string& prepre, 
@@ -629,7 +632,7 @@ err sort_manager<T,I,M>::partition_and_sort_runs(progress_indicator_base* indica
 		make_name(working_disk, suffixName[0], ii, newName);
 		// Dynamically allocate the stream
 		// We account for these mmBytesPerStream in phase 2 (output stream)
-		curOutputRunStream = new stream<T>(newName);
+		curOutputRunStream = tpie_new<stream<T> >(newName);
 		// How many runs should this stream get?
 		// extra runs go in the LAST nXtraRuns streams so that
 		// the one short run is always in the LAST output stream
@@ -656,7 +659,7 @@ err sort_manager<T,I,M>::partition_and_sort_runs(progress_indicator_base* indica
 						 << static_cast<TPIE_OS_OUTPUT_SIZE_T>(ii));
 		check_size+=curOutputRunStream->stream_len();
 		curOutputRunStream->persist(PERSIST_PERSISTENT);
-		delete curOutputRunStream;
+		tpie_delete(curOutputRunStream);
 
 	}//For each output stream
 	tp_assert(check_size == nInputItems, "item count mismatch");
@@ -687,7 +690,7 @@ err sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
 	// The input streams we from which will read sorted runs
 	// This Memory allocation accounted for in phase 2:
 	//   mrgArity*sizeof(stream<T>*) + space_overhead()[fixed cost]
-	stream<T> **mergeInputStreams = new stream<T>*[mrgArity];
+	tpie::array<tpie::auto_ptr<stream<T> > > mergeInputStreams(mrgArity);
 
 	TP_LOG_DEBUG_ID("Allocated " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(sizeof(stream<T>*)*mrgArity)
 					<< " bytes for " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(mrgArity) << " merge input stream pointers.\n"
@@ -775,7 +778,7 @@ err sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
 		    // Dynamically allocate the stream
 		    // We account for these mmBytesPerStream in phase 2
 		    // (input stream to read from)
-		    mergeInputStreams[ii] = new stream<T>(newName);
+		    mergeInputStreams[ii].reset(tpie_new<stream<T> >(newName));
 		    mergeInputStreams[ii]->seek(0);
 		}
 
@@ -795,7 +798,7 @@ err sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
 		    // Dynamically allocate the stream
 		    // We account for these mmBytesPerStream in phase 2
 		    // (temp merge output stream)
-		    curOutputRunStream = new stream<T>(newName);
+			stream<T> curOutputRunStream(newName);
 
 		    // How many runs should this stream get?
 		    // extra runs go in the LAST nXtraRuns streams so that
@@ -810,8 +813,9 @@ err sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
 					nRunsToMerge=mergeRunsInLastOutputRun;
 				}
 				// Merge runs to curOutputRunStream
-				ae = single_merge(mergeInputStreams+mrgArity-nRunsToMerge,
-								  nRunsToMerge, curOutputRunStream, 
+				ae = single_merge(mergeInputStreams.find(mrgArity-nRunsToMerge),
+								  mergeInputStreams.find(mrgArity),
+								  &curOutputRunStream, 
 								  nItemsPerRun, indicator); 
 				if (ae != NO_ERROR) {
 					TP_LOG_FATAL_ID("AMI_single_merge error"<< ae <<" in deep merge");
@@ -821,11 +825,10 @@ err sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
 
 		    // Commit new output stream to disk
 		    TP_LOG_DEBUG("Wrote " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(runsInStream) << " runs and "
-						 << curOutputRunStream->stream_len() << " items " 
+						 << curOutputRunStream.stream_len() << " items " 
 						 << "to file " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(ii) << "\n");
-		    check_size+=curOutputRunStream->stream_len();
-		    curOutputRunStream->persist(PERSIST_PERSISTENT);
-		    delete curOutputRunStream;
+		    check_size+=curOutputRunStream.stream_len();
+		    curOutputRunStream.persist(PERSIST_PERSISTENT);
 		} // For each new output stream
 
 		tp_assert(check_size==nInputItems, "item count mismatch in merge");
@@ -835,7 +838,7 @@ err sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
 		// Delete temp input merge streams
 		for(ii = 0; ii < mrgArity; ii++){
 		    mergeInputStreams[ii]->persist(PERSIST_DELETE);
-		    delete mergeInputStreams[ii];
+			mergeInputStreams[ii].reset();
 		}
 		// Update run lengths
 		nItemsPerRun=mrgArity*nItemsPerRun; //except for maybe last run
@@ -862,14 +865,17 @@ err sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
 		   single_merge is a little messy. I put the mess here. (abd) */
 		TP_LOG_DEBUG ("Putting merge stream "<< static_cast<TPIE_OS_OUTPUT_SIZE_T>(ii) << " in slot "
 					  << static_cast<TPIE_OS_OUTPUT_SIZE_T>(ii-(mrgArity-static_cast<TPIE_OS_SIZE_T>(nRuns))) << "\n");
-		mergeInputStreams[ii-(mrgArity-static_cast<TPIE_OS_SIZE_T>(nRuns))] = new stream<T>(newName);
+		mergeInputStreams[ii-(mrgArity-static_cast<TPIE_OS_SIZE_T>(nRuns))].reset(
+			tpie_new<stream<T> >(newName));
 		mergeInputStreams[ii-(mrgArity-static_cast<TPIE_OS_SIZE_T>(nRuns))]->seek(0);
 	}
 
 	// Merge last remaining runs to the output stream.
 	// mergeInputStreams is address( address (the first input stream) )
 	// N.B. nRuns is small, so it is safe to downcast.
-	ae = single_merge(mergeInputStreams, static_cast<arity_t>(nRuns), outStream, -1, indicator);
+	ae = single_merge(mergeInputStreams.begin(), 
+					  mergeInputStreams.find(nRuns),
+					  outStream, -1, indicator);
 
 	if (indicator) indicator->done();
 	tp_assert(outStream->stream_len() == nInputItems, "item count mismatch");
@@ -885,12 +891,12 @@ err sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
 	// We are done, except for cleanup. Is anyone still reading this?
 	// Delete temp input merge streams
 	// N.B. nRuns is small, so it is safe to downcast.
-	for(ii = 0; ii < arity_t(nRuns); ii++){
+	for(ii = 0; ii < arity_t(nRuns); ii++)
 		mergeInputStreams[ii]->persist(PERSIST_DELETE);
-		delete mergeInputStreams[ii];
-	}
+
 	// Delete stream ptr arrays
-	delete [] mergeInputStreams;
+	mergeInputStreams.resize(0);
+
 	// Deallocate the merge heap, free up memory
 	m_mergeHeap->deallocate();
 	TP_LOG_DEBUG_ID ("Number of passes incl run formation is " <<
@@ -900,11 +906,13 @@ err sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
 }
 
 template<class T, class I, class M>
-err sort_manager<T,I,M>::single_merge( stream < T > **inStreams,
-									   arity_t arity, stream < T >*outStream, TPIE_OS_OFFSET cutoff, progress_indicator_base* indicator)
+err sort_manager<T,I,M>::single_merge( 
+	typename tpie::array<tpie::auto_ptr<stream<T> > >::iterator start,
+	typename tpie::array<tpie::auto_ptr<stream<T> > >::iterator end,
+	stream < T >*outStream, TPIE_OS_OFFSET cutoff, progress_indicator_base* indicator)
 {
 
-	return merge_sorted_runs(inStreams, arity, outStream, m_mergeHeap,
+	return merge_sorted_runs(start, end, outStream, m_mergeHeap,
 							 cutoff, indicator);
 }
 
