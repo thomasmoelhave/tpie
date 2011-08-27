@@ -239,14 +239,11 @@ stack<T>::stack(const std::string& path, stream_type type) :
     m_itemsInMemory(0),
     toBeRead(0) {
 
-    //  No error checking done for the time being.
-    m_amiStream = new stream<T>(path, type);
-
     //  Set the size of the stack to be the number of items present 
     //  in the underlying stream file. 
-    m_size = m_amiStream->stream_len();
+    m_size = m_amiStream.stream_len();
 
-    m_logicalBlockSize = m_amiStream->chunk_size();
+    m_logicalBlockSize = m_amiStream.chunk_size();
 
     //  Create two dummy blocks.
     m_block[0].reset(m_logicalBlockSize);
@@ -259,11 +256,11 @@ stack<T>::stack(const std::string& path, stream_type type) :
     toBeRead = m_size - (numberOfFullBlocks * m_logicalBlockSize);
 
     //  No error checking done for the time being.
-    m_amiStream->seek(numberOfFullBlocks * m_logicalBlockSize);
-    m_amiStream->read_array(m_block[0], &toBeRead);
+    m_amiStream.seek(numberOfFullBlocks * m_logicalBlockSize);
+    m_amiStream.read_array(m_block[0], &toBeRead);
 
     // Put file pointer at end of last full block
-    m_amiStream->seek(m_size-toBeRead);
+    m_amiStream.seek(m_size-toBeRead);
 
     m_itemsInMemory = static_cast<TPIE_OS_SIZE_T>(toBeRead);
 }
