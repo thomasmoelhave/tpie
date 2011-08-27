@@ -17,8 +17,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-#ifndef __TPIE_AMI_PQ_INTERNAL_HEAP_H__
-#define __TPIE_AMI_PQ_INTERNAL_HEAP_H__
+#ifndef __TPIE_INTERNAR_PRIORITY_QUEUE_H__
+#define __TPIE_INTERNAR_PRIORITY_QUEUE_H__
 #include <tpie/array.h>
 #include <algorithm>
 #include <tpie/util.h>
@@ -44,7 +44,6 @@ public:
     /// \param max_size Maximum size of queue
     /////////////////////////////////////////////////////////
     internal_priority_queue(size_type max_size, comp_t c=comp_t()): pq(max_size), sz(0), comp(c) {}
-    //pq_internal_heap(T* arr, TPIE_OS_SIZE_T length) pq(arr, length), sz(length) {}
 
 	/////////////////////////////////////////////////////////
 	/// Construct a priority queue with given elements
@@ -173,4 +172,4 @@ private:
 };
 
 }  //  tpie namespace
-#endif
+#endif //__TPIE_INTERNAR_PRIORITY_QUEUE_H__

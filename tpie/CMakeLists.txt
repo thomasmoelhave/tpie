@@ -78,7 +78,6 @@ set (OTHER_HEADERS
 		pq_overflow_heap.inl
 		pq_merge_heap.h
 		pq_merge_heap.inl
-		pq_internal_heap.inl
 		fractional_progress.h
 		parallel_sort.h
 		dummy_progress.h
