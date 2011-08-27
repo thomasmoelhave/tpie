@@ -228,9 +228,9 @@ public:
 
 class array_bool_memory_test: public memory_test {
 public:
-	bit_array * a;
-	virtual void alloc() {a = new bit_array(123456, 1);}
-	virtual void free() {delete a;}
+	bit_array a;
+	virtual void alloc() {a.resize(123456);}
+	virtual void free() {a.resize(0);}
 	virtual size_type claimed_size() {return static_cast<size_type>(bit_array::memory_usage(123456));}
 };
 

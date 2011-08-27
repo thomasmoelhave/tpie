@@ -33,7 +33,7 @@ struct bit_permute {
 };
 
 template <typename T=std::less<uint64_t> >
-struct bit_pertume_compare {
+struct bit_pertume_compare: std::binary_function<boost::uint64_t, boost::uint64_t, bool> {
 	bit_permute bp;
 	T c;
 	typedef boost::uint64_t first_argument_type;
