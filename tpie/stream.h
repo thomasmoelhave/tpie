@@ -34,6 +34,8 @@
 // Get the error codes.
 #include <tpie/err.h>
 
+#include <tpie/array.h>
+
 // Get the device description class
 
 // Get an appropriate BTE.  Flags may have been set to determine
@@ -209,6 +211,23 @@ public:
     err read_array(T *mm_space, TPIE_OS_OFFSET *len);
 
     ////////////////////////////////////////////////////////////////////////////
+    /// Reads *len items from the current position of the stream into
+    /// the array arr. The "current position" pointer is increased
+    /// accordingly.
+	/// \deprecated
+    ////////////////////////////////////////////////////////////////////////////
+    err read_array(tpie::array<T>& arr, TPIE_OS_OFFSET *len);
+
+    ////////////////////////////////////////////////////////////////////////////
+    /// Reads *len items from the current position of the stream into
+    /// the array arr. The "current position" pointer is increased
+    /// accordingly.
+	/// \deprecated
+    ////////////////////////////////////////////////////////////////////////////
+    err read_array(tpie::array<T>& arr, TPIE_OS_SIZE_T *len);
+
+
+    ////////////////////////////////////////////////////////////////////////////
     /// Reads len items from the current position of the stream into
     /// the array mm_array. The "current position" pointer is increased
     /// accordingly.
@@ -276,7 +295,7 @@ public:
     /// \param[out] usage amount of memory in bytes used by the stream
     ////////////////////////////////////////////////////////////////////////////
     err main_memory_usage(TPIE_OS_SIZE_T *usage,
-			  stream_usage usage_type);
+			  stream_usage usage_type) const;
   
     ////////////////////////////////////////////////////////////////////////////
     /// Returns a \ref tpie_stats_stream object containing  statistics of 
@@ -577,7 +596,7 @@ private:
 // Query memory usage
 	template<class T, class bte_t>
 	err stream<T,bte_t>::main_memory_usage(TPIE_OS_SIZE_T *usage,
-					       stream_usage usage_type) {
+					       stream_usage usage_type) const {
 
 	    if (m_bteStream->main_memory_usage(usage, usage_type) != bte::NO_ERROR) {
 	      TP_LOG_WARNING_ID("BTE error - main memory usage failed");		
@@ -648,6 +667,18 @@ private:
 		err e = read_array(mm_space, l);
 		*len = l;
 		return e;
+	}
+
+	template<class T, class bte_t>
+	err stream<T,bte_t>::read_array(tpie::array<T>& arr, TPIE_OS_OFFSET *len) {
+		assert(arr.size() >= *len);
+		return read_array(arr.get(),len);
+	}
+
+	template<class T, class bte_t>
+	err stream<T,bte_t>::read_array(tpie::array<T>& arr, TPIE_OS_SIZE_T *len) {
+		assert(arr.size() >= *len);
+		return read_array(arr.get(),len);
 	}
 
 	template<class T, class bte_t>
