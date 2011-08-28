@@ -246,8 +246,8 @@ stack<T>::stack(const std::string& path, stream_type type) :
     m_logicalBlockSize = m_amiStream.chunk_size();
 
     //  Create two dummy blocks.
-    m_block[0].reset(m_logicalBlockSize);
-    m_block[1].reset(m_logicalBlockSize);
+    m_block[0].resize(m_logicalBlockSize);
+    m_block[1].resize(m_logicalBlockSize);
 
 
     TPIE_OS_OFFSET numberOfFullBlocks = m_size / m_logicalBlockSize;
@@ -362,7 +362,7 @@ err stack<T>::pop(const T **t) {
 		}
         
 		// Read one full block from end
-		retval = m_amiStream.read_array(m_block[0].get(),
+		retval = m_amiStream.read_array(m_block[0],
 						 &toBeRead);
 
 		if (retval != NO_ERROR) {
@@ -433,7 +433,7 @@ err stack<T>::main_memory_usage(TPIE_OS_SIZE_T *usage,
 								stream_usage usage_type) const {
     
     //  Get the usage for the underlying stream.
-    if (m_amiStream->main_memory_usage(usage, usage_type) 
+    if (m_amiStream.main_memory_usage(usage, usage_type) 
 	!= NO_ERROR) {
 
 	TP_LOG_WARNING_ID("bte error");		
