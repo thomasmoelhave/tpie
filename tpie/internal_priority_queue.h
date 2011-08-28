@@ -17,8 +17,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-#ifndef __TPIE_INTERNAR_PRIORITY_QUEUE_H__
-#define __TPIE_INTERNAR_PRIORITY_QUEUE_H__
+#ifndef __TPIE_INTERNAL_PRIORITY_QUEUE_H__
+#define __TPIE_INTERNAL_PRIORITY_QUEUE_H__
 #include <tpie/array.h>
 #include <algorithm>
 #include <tpie/util.h>
@@ -172,4 +172,4 @@ private:
 };
 
 }  //  tpie namespace
-#endif //__TPIE_INTERNAR_PRIORITY_QUEUE_H__
+#endif //__TPIE_INTERNAL_PRIORITY_QUEUE_H__
