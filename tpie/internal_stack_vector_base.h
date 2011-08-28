@@ -31,7 +31,7 @@ namespace tpie {
 /////////////////////////////////////////////////////////
 /// \brief A base class for generic internal fixed size stack and vector
 ///
-/// \tparam T The type of items storred in the container
+/// \tparam T The type of items stored in the container
 /// \tparam child_t The subtype of the class
 /////////////////////////////////////////////////////////
 template <typename T, typename child_t>
@@ -71,7 +71,7 @@ public:
 	
 	/////////////////////////////////////////////////////////
 	/// \brief Check if the data structure is empty
-	/// \return true if the data structure is empty otherwize false
+	/// \return true if the data structure is empty, otherwise false
 	/////////////////////////////////////////////////////////
 	inline bool empty(){return m_size==0;}
 
