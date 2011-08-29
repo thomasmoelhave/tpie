@@ -379,7 +379,7 @@ namespace tpie {
 			base_file_name_ + COLLECTION_STK_SUFFIX;
 
 	    // Construct the pre-existing freeblock_stack.
-	    freeblock_stack_ = new stack_ufs<BIDT>(stack_name, 
+	    freeblock_stack_ = tpie_new<stack_ufs<BIDT> >(stack_name, 
 						   read_only_? 
 						   READ_STREAM : WRITE_STREAM);
   
@@ -555,7 +555,7 @@ namespace tpie {
 		//which may be empty depending on the settings of the logging system
 		bcc_name=bcc_name;
 
-	    char *tmp_buffer = new char[os_block_size_];
+		tpie::array<char> tmp_buffer(os_block_size_);
 	
 	    if (TPIE_OS_LSEEK(bcc_fd_, 0, TPIE_OS_FLAG_SEEK_SET) != 0) {
 
@@ -565,7 +565,7 @@ namespace tpie {
 		return IO_ERROR;
 	    }
 	
-	    if (TPIE_OS_READ(bcc_fd_, (char *)tmp_buffer, os_block_size_) != (int)os_block_size_) {
+	    if (TPIE_OS_READ(bcc_fd_, tmp_buffer.get(), os_block_size_) != (int)os_block_size_) {
 
 		TP_LOG_FATAL_ID("Failed to read() in file:");
 		TP_LOG_FATAL_ID(bcc_name);
@@ -575,11 +575,12 @@ namespace tpie {
 	
 	    file_pointer = os_block_size_;
 	
-	    memcpy((void *) &header_,
-		   (const void *) tmp_buffer, 
+	    memcpy((void *) &header_, 
+		   (const void *) tmp_buffer.get(), 
 		   sizeof(collection_header));
 	
-	    delete [] tmp_buffer;
+	
+		tmp_buffer.resize(0);
 
 	    // Do some error checking on the header, such as to make sure that
 	    // it has the correct header version, block size etc.
@@ -630,26 +631,21 @@ namespace tpie {
 
 		return IO_ERROR;
 	    }
-
-	    char * tmp_buffer = new char[os_block_size_];
-	    memcpy((void *) tmp_buffer, 
+		tpie::array<char> tmp_buffer(os_block_size_, 0);
+	    memcpy((void *) tmp_buffer.get(), 
 		   (const void *) &header_, 
 		   sizeof(collection_header));
 
 	    // CHECK THIS: Is the (int) cast correct? 
-	    if (TPIE_OS_WRITE(bcc_fd_, tmp_buffer, os_block_size_) != (int)os_block_size_) {
+	    if (TPIE_OS_WRITE(bcc_fd_, tmp_buffer.get(), os_block_size_) != (int)os_block_size_) {
 
 		TP_LOG_FATAL_ID("Failed to write() in file:");
 		TP_LOG_FATAL_ID(bcc_name);
-
-		delete[] tmp_buffer;
 
 		return IO_ERROR;
 	    }
 	
 	    file_pointer = os_block_size_;
-	
-	    delete [] tmp_buffer;
 
 	    return NO_ERROR;
 	}
@@ -681,8 +677,8 @@ namespace tpie {
 
 	    // Delete the stack.
 	    if (freeblock_stack_ != NULL) {
-		freeblock_stack_->persist(per_);
-		delete freeblock_stack_;
+			freeblock_stack_->persist(per_);
+			tpie_delete(freeblock_stack_);
 	    }
 
 	    // Close the blocks file.

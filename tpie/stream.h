@@ -671,7 +671,7 @@ private:
 
 	template<class T, class bte_t>
 	err stream<T,bte_t>::read_array(tpie::array<T>& arr, TPIE_OS_OFFSET *len) {
-		assert(arr.size() >= *len);
+		assert(arr.size() >= (size_t)*len);
 		return read_array(arr.get(),len);
 	}
 

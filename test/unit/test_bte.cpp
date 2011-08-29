@@ -55,7 +55,7 @@ int test_bte(T & bte, char * test, ERROR_ENUM errorval) {
 		}
 		return 0;
 	} else if(!strcmp(test,"randomread")) {
-		int * buf = new int[size];
+		tpie::array<int> buf(size);
 		srand(42);
 		if(bte.seek(0) != errorval) ERR("Seek failed (0)");
 		for(TPIE_OS_OFFSET i =0; i < size; ++i) {
@@ -71,7 +71,6 @@ int test_bte(T & bte, char * test, ERROR_ENUM errorval) {
 				if(bte.seek(i+1) != errorval) ERR("Seek failed (2)");
 			}
 		}
-		delete[] buf;
 		return 0;
 	} else if(!strcmp(test,"array")) {
 		srand(42);

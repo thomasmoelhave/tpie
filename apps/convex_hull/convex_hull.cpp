@@ -345,18 +345,18 @@ int main(int argc, char **argv)
     cxx_ostream_scan< point<int> > *rptf = NULL;
 
     if (read_input) {
-        isi = new ifstream(read_input_filename);
-        readi = new cxx_istream_scan< point<int> >(isi);
+        isi = tpie_new<ifstream>(read_input_filename);
+        readi = tpie_new<cxx_istream_scan< point<int> > >(isi);
     }
     
     if (report_results_initial) {
-        osi = new ofstream(initial_results_filename);
-        rpti = new cxx_ostream_scan< point<int> >(osi);
+        osi = tpie_new<ofstream>(initial_results_filename);
+        rpti = tpie_new<cxx_ostream_scan< point<int> > >(osi);
     }
 
     if (report_results_final) {
-        osf = new ofstream(final_results_filename);
-        rptf = new cxx_ostream_scan< point<int> >(osf);
+        osf = tpie_new<ofstream>(final_results_filename);
+        rptf = tpie_new<cxx_ostream_scan< point<int> > >(osf);
     }
 
     if (read_input) {

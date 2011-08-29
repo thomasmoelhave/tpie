@@ -58,7 +58,7 @@ bool stack_test(size_t size) {
   for(size_t _=0; _ < size; ++_) {
     s.push(i) ;
     ++i;
-    if (s.size() != _ +1) {
+    if ((size_t)s.size() != _ +1) {
       std::cerr << "size failed" << std::endl;
       return false;
     }
@@ -74,7 +74,7 @@ bool stack_test(size_t size) {
     }
     ++i;
     
-    if (s.size() != size) {
+    if ((size_t)s.size() != size) {
       std::cerr << "size failed 2" << std::endl;
       return false;
     }

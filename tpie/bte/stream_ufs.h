@@ -221,7 +221,7 @@ namespace tpie {
 #if UFS_DOUBLE_BUFFER
 	    // for use in double buffering, when one is implemented using
 	    // the aio interface.
-	    T              *next_block;		// ptr to next block 
+		tpie::array<T, false> next_block;
 	    TPIE_OS_OFFSET f_next_block;		// position of next block
 	    int            have_next_block;		// is next block mapped?
 	
@@ -509,7 +509,6 @@ namespace tpie {
 	    }
 	
 #if UFS_DOUBLE_BUFFER
-	    next_block      = NULL;
 	    f_next_block    = 0;
 	    have_next_block = 0;
 #endif
@@ -700,7 +699,6 @@ namespace tpie {
 	    m_currentBlockFileOffset = 0;
 	
 #if UFS_DOUBLE_BUFFER
-	    next_block      = NULL;
 	    f_next_block    = 0;
 	    have_next_block = 0;
 #endif
@@ -885,9 +883,7 @@ namespace tpie {
 	    //ongoing at the time of the destruction, in which case trying to
 	    //delete next_block may cause a run-time error. Most probably
 	    // the aio read op may have to be suspended if ongoing. 
-	    if (next_block) {
-		delete [] next_block;	// use vector delete -RW
-	    }
+		next_block.resize(0);
 #endif
 	
 	    record_statistics(STREAM_CLOSE);
@@ -1211,9 +1207,8 @@ namespace tpie {
 		    // beginning of the file.  This will trigger off sequential
 		    // write optimizations that are useful unless non-sequential
 		    // accesses to data are made.
-		
-		    char *tmp_buffer = tpie_new_array<char>(m_osBlockSize);
-			memset(tmp_buffer, 0, m_osBlockSize);
+
+			tpie::array<char> tmp_buffer(m_osBlockSize, 0);
 		    if (file_end != 0) {
 		    
 			if (TPIE_OS_LSEEK(m_fileDescriptor, 0, TPIE_OS_FLAG_SEEK_SET) != 0) {
@@ -1227,7 +1222,7 @@ namespace tpie {
 			}
 		    }
 		
-		    if (TPIE_OS_WRITE (m_fileDescriptor, tmp_buffer, m_osBlockSize) !=
+		    if (TPIE_OS_WRITE (m_fileDescriptor, tmp_buffer.get(), m_osBlockSize) !=
 			static_cast<TPIE_OS_SSIZE_T>(m_osBlockSize)) {
 		    
 			m_osErrno = errno;
@@ -1246,8 +1241,6 @@ namespace tpie {
 			return NULL;
 		    }
 	    
-			tpie_delete_array(tmp_buffer, m_osBlockSize);
-		
 		    m_filePointer = m_osBlockSize;
 		
 		    ptr_to_header = tpie_new<stream_header>();
@@ -1274,13 +1267,11 @@ namespace tpie {
 	    // could have read only the first sizeof(ufs_stream_header) of the
 	    // file we choose not to do so in order to avoid confusing
 	    // sequential prefetcher.
-	
-	    char *tmp_buffer = tpie_new_array<char>(m_osBlockSize);
+		tpie::array<char> tmp_buffer(m_osBlockSize);
 	
 	    if (TPIE_OS_LSEEK(m_fileDescriptor, 0, TPIE_OS_FLAG_SEEK_SET) != 0) {
 	    
 		m_osErrno = errno;
-		tpie_delete_array(tmp_buffer, m_osBlockSize);
 	    
 		TP_LOG_FATAL_ID ("Failed to lseek() in stream " << m_path);
 		TP_LOG_FATAL_ID (strerror (m_osErrno));
@@ -1289,12 +1280,11 @@ namespace tpie {
 	    }
 	
 	    if (TPIE_OS_READ (m_fileDescriptor, 
-			      tmp_buffer, 
+						  tmp_buffer.get(), 
 			      m_osBlockSize) !=
 		static_cast<TPIE_OS_SSIZE_T>(m_osBlockSize)) {
 	    
 		m_osErrno = errno;
-		tpie_delete_array(tmp_buffer, m_osBlockSize);
 	    
 		TP_LOG_FATAL_ID ("Failed to read() in stream " << m_path);
 		TP_LOG_FATAL_ID (strerror (m_osErrno));
@@ -1305,8 +1295,7 @@ namespace tpie {
 	    m_filePointer = m_osBlockSize;
 	
 	    ptr_to_header = tpie_new<stream_header>();
-	    std::memcpy(ptr_to_header, tmp_buffer, sizeof(stream_header));
-		tpie_delete_array(tmp_buffer, m_osBlockSize);
+	    std::memcpy(ptr_to_header, tmp_buffer.get(), sizeof(stream_header));
 	
 	    return ptr_to_header;
 	}
@@ -1450,11 +1439,8 @@ namespace tpie {
 	
 #if UFS_DOUBLE_BUFFER
 	    if (have_next_block && (block_offset == f_next_block)) {
-		T *temp;
-	    
-		temp           = m_currentBlock;
-		m_currentBlock = next_block;
-		next_block     = temp;
+
+		m_currentBlock.swap(next_block);
 	    
 		have_next_block = 0;
 	    

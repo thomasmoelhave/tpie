@@ -176,7 +176,7 @@ namespace tpie {
 	template<class BIDT>
 	err collection_ufs<BIDT>::new_block_internals(BIDT /* bid */, void* &place) {
 	
-	    if ((place = new char[header_.block_size]) == NULL) {    
+	    if ((place = tpie_new_array<char>(header_.block_size)) == NULL) {    
 
 		TP_LOG_FATAL_ID("new() failed to alloc space for a block from file.");
 
@@ -243,7 +243,7 @@ namespace tpie {
 #else
 		    TPIE_OS_OFFSET curr_off;
 
-		    char* tbuf = new char[header_.os_block_size];
+			tpie::array<char> tbuf(header_.os_block_size);
 		    if ((curr_off = TPIE_OS_LSEEK(bcc_fd_, 0, TPIE_OS_FLAG_SEEK_END)) == (TPIE_OS_OFFSET)-1) {
 		    
 			TP_LOG_FATAL_ID("Failed to lseek() to the end of file.");
@@ -253,12 +253,11 @@ namespace tpie {
 		    }
 
 		    while (curr_off < bid_to_file_offset(header_.total_blocks)) {
-			TPIE_OS_WRITE(bcc_fd_, tbuf, header_.os_block_size);
+				TPIE_OS_WRITE(bcc_fd_, tbuf.get(), header_.os_block_size);
 			curr_off += header_.os_block_size;
 		    }
 		
 		    file_pointer = curr_off;
-		    delete [] tbuf;
 #endif
 		}
 		bid = header_.last_block++;
@@ -270,7 +269,7 @@ namespace tpie {
 	template<class BIDT>
 	err collection_ufs<BIDT>::get_block_internals(BIDT bid, void * &place) {
 	
-	    if ((place = new char[header_.block_size]) == NULL) {    
+	    if ((place = tpie_new_array<char>(header_.block_size)) == NULL) {    
 	    
 		TP_LOG_FATAL_ID("new() failed to alloc space for a block from file.");
 	    
@@ -343,8 +342,8 @@ namespace tpie {
 		file_pointer = bid_to_file_offset(bid) + header_.block_size;
 	    }
 	
-	    delete [] (char *) place;
-	
+		tpie_delete_array((char *)place, header_.block_size);
+		
 	    in_memory_blocks_--;
 	
 	    return NO_ERROR;
