@@ -249,7 +249,6 @@ stack<T>::stack(const std::string& path, stream_type type) :
     m_block[0].resize(m_logicalBlockSize);
     m_block[1].resize(m_logicalBlockSize);
 
-
     TPIE_OS_OFFSET numberOfFullBlocks = m_size / m_logicalBlockSize;
     
     //  Read the remainder.
