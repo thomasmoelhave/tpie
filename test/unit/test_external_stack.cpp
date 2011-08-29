@@ -23,9 +23,34 @@
 #include <tpie/stack.h>
 #include <tpie/stream.h>
 #include <tpie/prime.h>
+#include <tpie/tempname.h>
 #include "common.h"
+#include <boost/filesystem.hpp>
 
 using namespace tpie;
+
+bool named_stack_test() {
+	boost::filesystem::remove("temp_stack");
+
+	{
+		ami::stack<size_t> s("temp_stack");
+		const size_t size= 1234;
+		for(size_t i=1; i < size; ++i) 
+			s.push(i);
+	}
+
+	{
+		ami::stack<size_t> s("temp_stack");
+		const size_t size= 1234;
+		for(size_t i=size-1; i >= 1; --i) {
+			const size_t * x;
+			s.pop(&x);
+			if (*x != i) return false;
+		}
+	}
+	boost::filesystem::remove("temp_stack");
+	return true;
+}
 
 bool stack_test(size_t size) {
   ami::stack<size_t> s;
@@ -72,9 +97,11 @@ bool stack_test(size_t size) {
 
 bool perform_test(const std::string & test) {
   if (test == "small")
-    return stack_test(1024 * 1024 * 3);
+	  return stack_test(1024 * 1024 * 3);
+  else if (test == "named")
+	  return named_stack_test();
   else if (test == "large")
-    return stack_test(1024*1024*1024);
+	  return stack_test(1024*1024*1024);
   return false;
 }
 

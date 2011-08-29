@@ -256,7 +256,7 @@ stack<T>::stack(const std::string& path, stream_type type) :
 
     //  No error checking done for the time being.
     m_amiStream.seek(numberOfFullBlocks * m_logicalBlockSize);
-    m_amiStream.read_array(m_block[0], &toBeRead);
+    m_amiStream.read_array(m_block[0].get(), &toBeRead);
 
     // Put file pointer at end of last full block
     m_amiStream.seek(m_size-toBeRead);

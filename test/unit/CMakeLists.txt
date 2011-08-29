@@ -40,7 +40,8 @@ add_unittest(disjoint_set basic memory)
 
 add_unittest(external_sort small)
 add_fulltest(external_sort large)
-add_unittest(external_stack small)
+
+add_unittest(external_stack small named)
 
 add_executable(test_bte test_bte.cpp)
 target_link_libraries(test_bte tpie)
