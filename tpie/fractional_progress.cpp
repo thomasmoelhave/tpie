@@ -19,6 +19,7 @@
 #include "fractional_progress.h"
 #include <tpie/backtrace.h>
 #include <tpie/prime.h>
+#include <tpie/tempname.h>
 #include <map>
 #include <fstream>
 #include <sstream>
@@ -70,7 +71,7 @@ public:
 #else //TPIE_NDEBUG
 		std::string path=TPIE_FRACTIONDB_DIR_INL "/tpie_fraction_db.inl";
 #endif //TPIE_NDEBUG
-		std::string tmp=path+"~";
+		std::string tmp=tpie::tempname::tpie_name("",TPIE_FRACTIONDB_DIR_INL);
 		std::locale::global(std::locale::classic());
 		std::fstream f;
 		f.open(tmp.c_str(), std::fstream::out | std::fstream::trunc | std::fstream::binary);

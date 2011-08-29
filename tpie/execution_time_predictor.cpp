@@ -25,6 +25,7 @@
 #include <iostream>
 #include <iomanip>
 #include <tpie/tpie_log.h>
+#include <tpie/tempname.h>
 #ifdef WIN32
 #include <windows.h>
 #include <Shlobj.h>
@@ -83,32 +84,34 @@ class time_estimator_database {
 public:
 	typedef std::map<size_t, entry> db_type;
 	db_type db;
-	std::string path;
+	std::string dir_name;
+	std::string file_name;
 	
 	time_estimator_database() {
 #ifdef WIN32
-		//path 
+		//dir_name 
 		TCHAR p[MAX_PATH];
 		if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_LOCAL_APPDATA | CSIDL_FLAG_CREATE, NULL, 0, p))) {
-			path=p;
-			path += "\\";
+			dir_name=p;
+			file_name = "\\"; //path separator
 		}
 #else
 		const char * p = getenv("HOME");
-		if (p != 0) path=p;
-		if (path == "") path = getpwuid(getuid())->pw_dir;
-		path += "/.";
+		if (p != 0) dir_name=p;
+		if (dir_name == "") dir_name = getpwuid(getuid())->pw_dir;
+		file_name = "/."; //make hidden, include path separator
 #endif	
 
-		path += "tpie_time_estimation_db";
+		file_name += "tpie_time_estimation_db";
 #ifndef TPIE_NDEBUG
-		path += "_debug";
+		file_name += "_debug";
 #endif
 	}
 	
 	void load() {
 		ifstream f;
-		f.open(path.c_str(), ifstream::binary | ifstream::in);
+		std::string full_name = dir_name+file_name;
+		f.open(full_name.c_str(), ifstream::binary | ifstream::in);
 		if (f.is_open()) {
 			try {
 				tpie::unserializer u(f);
@@ -134,7 +137,7 @@ public:
 	~time_estimator_database() {}
 
 	void save() {
-		std::string tmp=path+"~";
+		std::string tmp=tpie::tempname::tpie_name("",dir_name);
 		ofstream f;
 		f.open(tmp.c_str(), ifstream::binary | ifstream::out);
 		if (!f.is_open()) {
@@ -154,7 +157,7 @@ public:
 		}
 		f.close();
 		try {
-			atomic_rename(tmp, path);
+			atomic_rename(tmp, dir_name+file_name);
 		} catch(std::runtime_error e) {
 			log_error() << "Failed to store time estimation database: " << e.what() << std::endl;
 		}
