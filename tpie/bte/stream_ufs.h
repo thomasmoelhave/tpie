@@ -201,7 +201,7 @@ namespace tpie {
 	    T *m_currentItem;
 	
 	    // A pointer to the beginning of the currently mapped block.
-		tpie::array<T, false> m_currentBlock;
+		tpie::array<T> m_currentBlock;
 	
 	    // True if current points to a valid, mapped in block.
 	    bool m_blockValid;

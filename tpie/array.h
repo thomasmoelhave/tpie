@@ -215,7 +215,7 @@ class array_iter_base: public boost::iterator_facade<
 	array_iter_base<TT, forward>,
 	TT , boost::random_access_traversal_tag> {
 private:
-	template <typename, bool, template <typename> class > friend class array;
+	template <typename, bool, template <typename> class > friend class array_base;
 	friend class boost::iterator_core_access;
 	template <class, bool> friend class array_iter_base;
 	
@@ -247,10 +247,10 @@ public:
 /// but the memory managment is better
 /////////////////////////////////////////////////////////
 template <typename T, bool segmented=false, template <typename> class alloc_t=tpie::allocator>
-class array: public array_facade<array<T, segmented, alloc_t>, T, array_iter_base> {
+class array_base: public array_facade<array_base<T, segmented, alloc_t>, T, array_iter_base> {
 private:
-	typedef array_facade<array<T, segmented, alloc_t>, T, array_iter_base> p_t;
-	friend class array_facade<array<T, segmented, alloc_t>, T, array_iter_base>;
+	typedef array_facade<array_base<T, segmented, alloc_t>, T, array_iter_base> p_t;
+	friend class array_facade<array_base<T, segmented, alloc_t>, T, array_iter_base>;
 
 	T * m_elements;
 	size_t m_size;
@@ -284,7 +284,7 @@ public:
 	/// \copybrief linear_memory_structure_doc::memory_overhead()
 	/// \copydetails linear_memory_structure_doc::memory_overhead()
 	/////////////////////////////////////////////////////////
-	static double memory_overhead() {return sizeof(array);}
+	static double memory_overhead() {return sizeof(array_base);}
 
 	/////////////////////////////////////////////////////////
 	/// \brief Construct array of given size.
@@ -292,7 +292,7 @@ public:
 	/// \param s The number of elements in the array
 	/// \param value Each entry of the array is initialized with this value
 	/////////////////////////////////////////////////////////
-	array(size_type s, const T & value): m_elements(0), m_size(0) {resize(s, value);}
+	array_base(size_type s, const T & value): m_elements(0), m_size(0) {resize(s, value);}
 
 	/////////////////////////////////////////////////////////
 	/// \brief Construct array of given size.
@@ -300,13 +300,13 @@ public:
 	/// \param s The number of elements in the array
 	/// \param value Each entry of the array is initialized with this value
 	/////////////////////////////////////////////////////////
-	array(size_type s=0): m_elements(0), m_size(0) {resize(s);}
+	array_base(size_type s=0): m_elements(0), m_size(0) {resize(s);}
 
 	/////////////////////////////////////////////////////////
 	/// \brief Construct a copy of another array
 	/// \param other The array to copy
 	/////////////////////////////////////////////////////////
-	array(const array & other): m_elements(0), m_size(0) {
+	array_base(const array_base & other): m_elements(0), m_size(0) {
 		resize(other.size());
 		for (size_t i=0; i < m_size; ++i) m_elements[i] = other[i];
 	}	
@@ -314,8 +314,7 @@ public:
 	/////////////////////////////////////////////////////////
 	/// \brief Free up all memory used by the array
 	/////////////////////////////////////////////////////////
-	~array() {resize(0);}
-
+	~array_base() {resize(0);}
 	
 	/////////////////////////////////////////////////////////
 	/// \brief Change the size of the array
@@ -339,7 +338,7 @@ public:
 	/////////////////////////////////////////////////////////
 	/// \brief Swap two arryes
 	/////////////////////////////////////////////////////////	
-	void swap(array & other) {
+	void swap(array_base & other) {
 		std::swap(m_elements, other.m_elements);
 		std::swap(m_size, other.m_size);
 	}
@@ -368,15 +367,16 @@ public:
 	/////////////////////////////////////////////////////////
 	inline size_type size() const {return m_size;}
 
+protected:
 	/////////////////////////////////////////////////////////
 	/// \brife Return a raw pointer to the array content
 	/////////////////////////////////////////////////////////
-	inline T * get() {return m_elements;}
+	inline T * __get() {return m_elements;}
 
 	/////////////////////////////////////////////////////////
 	/// \brife Return a raw pointer to the array content
 	/////////////////////////////////////////////////////////
-	inline const T * get() const {return m_elements;}
+	inline const T * __get() const {return m_elements;}
 };
 
 template <typename TT, bool forward>
@@ -387,7 +387,7 @@ private:
 	static const size_t bits=22-template_log<sizeof(TT)>::v;
 	static const size_t mask = (1 << bits) -1;
 
-	template <typename, bool, template <typename> class> friend class array;
+	template <typename, bool, template <typename> class> friend class array_base;
 	friend class boost::iterator_core_access;
 	template <class, bool> friend class segmented_array_iter_base;
 
@@ -415,10 +415,10 @@ public:
 
 
 template <typename T, template <typename> class alloc_t>
-class array<T, true, alloc_t>: public array_facade<array<T, true, alloc_t>, T, segmented_array_iter_base > {
+class array_base<T, true, alloc_t>: public array_facade<array_base<T, true, alloc_t>, T, segmented_array_iter_base > {
 private:
-	friend class array_facade<array<T, true, alloc_t>, T, segmented_array_iter_base >;
-	typedef array_facade<array<T, true, alloc_t>, T, segmented_array_iter_base > p_t;
+	friend class array_facade<array_base<T, true, alloc_t>, T, segmented_array_iter_base >;
+	typedef array_facade<array_base<T, true, alloc_t>, T, segmented_array_iter_base > p_t;
 	using p_t::at;
 	static const size_t bits=p_t::iterator::bits;
 	static const size_t mask=p_t::iterator::bits;
@@ -468,13 +468,13 @@ public:
 	/// \param s The number of elements in the array
 	/// \param value Each entry of the array is initialized with this value
 	/////////////////////////////////////////////////////////
-	array(size_type s=0, const T & value=T()): m_a(0), m_size(0) {resize(s, value);}
+	array_base(size_type s=0, const T & value=T()): m_a(0), m_size(0) {resize(s, value);}
 
 	/////////////////////////////////////////////////////////
 	/// \brief Construct a copy of another array
 	/// \param other The array to copy
 	/////////////////////////////////////////////////////////
-	array(const array & other): m_a(0), m_size(0) {
+	array_base(const array_base & other): m_a(0), m_size(0) {
 		resize(other.size());
 		for (size_t i=0; i < m_size; ++i) 
 			at(i) = other.at(i);
@@ -483,13 +483,12 @@ public:
 	/////////////////////////////////////////////////////////
 	/// \brief Free up all memory used by the array
 	/////////////////////////////////////////////////////////
-	~array() {resize(0);}
-
+	~array_base() {resize(0);}
 
 	/////////////////////////////////////////////////////////
 	/// \brief Swap two arryes
 	/////////////////////////////////////////////////////////	
-	void swap(array & other) {
+	void swap(array_base & other) {
 		swap(m_a, other.m_a);
 		swap(m_size, other.m_size);
 	}
@@ -543,12 +542,75 @@ public:
 	inline size_type size() const throw() {return m_size;}
 };
 
+static const bool __tpie_is_not_64bit = sizeof(size_t) < sizeof(uint64_t);
+
+template <typename T, template <typename> class alloc_t=tpie::allocator>
+class segmented_array: public array_base<T, __tpie_is_not_64bit, alloc_t> {
+	/////////////////////////////////////////////////////////
+	/// \brief Construct array of given size.
+	///
+	/// \param s The number of elements in the array
+	/// \param value Each entry of the array is initialized with this value
+	/////////////////////////////////////////////////////////
+	segmented_array(size_type s, const T & value): array_base<T, __tpie_is_not_64bit, alloc_t>(s, value) {}
+
+	/////////////////////////////////////////////////////////
+	/// \brief Construct array of given size.
+	///
+	/// \param s The number of elements in the array
+	/// \param value Each entry of the array is initialized with this value
+	/////////////////////////////////////////////////////////
+	segmented_array(size_type s=0) : array_base<T, __tpie_is_not_64bit, alloc_t>(s) {}
+
+	/////////////////////////////////////////////////////////
+	/// \brief Construct a copy of another array
+	/// \param other The array to copy
+	/////////////////////////////////////////////////////////
+	segmented_array(const segmented_array & other): array_base<T, __tpie_is_not_64bit, alloc_t>(other) {}
+};
+
+template <typename T, template <typename> class alloc_t=tpie::allocator>
+class array: public array_base<T, false, alloc_t> {
+public:
+	/////////////////////////////////////////////////////////
+	/// \brief Construct array of given size.
+	///
+	/// \param s The number of elements in the array
+	/// \param value Each entry of the array is initialized with this value
+	/////////////////////////////////////////////////////////
+	array(size_type s, const T & value): array_base<T, false, alloc_t>(s, value) {}
+
+	/////////////////////////////////////////////////////////
+	/// \brief Construct array of given size.
+	///
+	/// \param s The number of elements in the array
+	/// \param value Each entry of the array is initialized with this value
+	/////////////////////////////////////////////////////////
+	array(size_type s=0) : array_base<T, false, alloc_t>(s) {}
+
+	/////////////////////////////////////////////////////////
+	/// \brief Construct a copy of another array
+	/// \param other The array to copy
+	/////////////////////////////////////////////////////////
+	array(const array & other): array_base<T, false, alloc_t>(other) {}
+
+	/////////////////////////////////////////////////////////
+	/// \brife Return a raw pointer to the array content
+	/////////////////////////////////////////////////////////
+	inline T * get() {return array_base<T, false, alloc_t>::__get();}
+
+	/////////////////////////////////////////////////////////
+	/// \brife Return a raw pointer to the array content
+	/////////////////////////////////////////////////////////
+	inline const T * get() const {return array_base<T, false, alloc_t>::__get();}
+};
+
 }
 
 namespace std {
 
 template <typename T, template <typename> class alloc_t>
-void swap(tpie::array<T, false, alloc_t> & a, tpie::array<T, false, alloc_t> & b) {
+void swap(tpie::array<T, alloc_t> & a, tpie::array<T, alloc_t> & b) {
 	a.swap(b);
 }
 

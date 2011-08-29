@@ -26,7 +26,7 @@
 using namespace tpie;
 
 bool basic_test() {
-	array<int, false> hat;
+	array<int> hat;
   
 	//Resize
 	hat.resize(52, 42);
@@ -45,7 +45,7 @@ bool basic_test() {
 	if (hat.empty()) return false;
 	hat.resize(0);
 	if (!hat.empty()) return false;
-	array<int, false> a(1,0),b(4,0),c(11,0);
+	array<int> a(1,0),b(4,0),c(11,0);
 	a[0] = b[0] = c[0] = 1;
 	if(!a[0] || !b[0] || ! c[0]) return false;
 	a[0] = b[0] = c[0] = 0;
@@ -100,16 +100,16 @@ bool auto_ptr_test() {
 }
 
 bool segmented_array_test() {
-	array<int, false> h1;
-	array<int, true> h2;
+	array<int> h1;
+	array_base<int, true> h2;
 	size_t z=8388619;
 	h1.resize(z);
 	h2.resize(z);
 	for (size_type i=0; i < 52; ++i)
 		h2[i] = h1[i] = (i * 833547)%z;
 
-	array<int, false>::iterator i1=h1.begin();
-	array<int, true>::iterator i2=h2.begin();
+	array<int>::iterator i1=h1.begin();
+	array_base<int, true>::iterator i2=h2.begin();
 	
 	while (i1 != h1.end() || i2 != h2.end()) {
 		if (i1 == h1.end() || i2 == h2.end()) return false;
@@ -218,11 +218,11 @@ bool iterator_bool_test() {
 template <bool seg>
 class array_memory_test: public memory_test {
 public:
-	array<int, seg> a;
+	array_base<int, seg> a;
 	virtual void alloc() {a.resize(1024*1024*32);}
 	virtual void free() {a.resize(0);}
 	virtual size_type claimed_size() {
-		return static_cast<size_type>(array<int, seg>::memory_usage(1024*1024*32));
+		return static_cast<size_type>(array_base<int, seg>::memory_usage(1024*1024*32));
 	}
 };
 
