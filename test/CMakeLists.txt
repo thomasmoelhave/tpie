@@ -20,9 +20,12 @@ set (SCAN_DEPS
 	)
 add_library(test_common ${COMMON_DEPS})
 add_library(test_scan_common ${SCAN_DEPS})
+set_target_properties(test_common PROPERTIES FOLDER tpie/test)
+set_target_properties(test_scan_common PROPERTIES FOLDER tpie/test)
 
 macro(add_tpie_test NAME)
 	add_executable(${NAME} ${NAME}.cpp) 
+	set_target_properties(${NAME} PROPERTIES FOLDER tpie/test)
 	target_link_libraries(${NAME} tpie test_common test_scan_common )
 endmacro(add_tpie_test)
 

@@ -1,3 +1,5 @@
+set_property(GLOBAL PROPERTY USE_FOLDERS On)
+
 set (AMI_HEADERS
 		block_base.h
 		block.h
@@ -152,6 +154,7 @@ set(OTHER ${OTHER_HEADERS} ${OTHER_SOURCES})
 
 add_library(tpie ${BTE} ${AMI} ${OTHER})
 target_link_libraries(tpie ${Boost_LIBRARIES})
+set_target_properties(tpie PROPERTIES FOLDER tpie)
 
 install(TARGETS tpie DESTINATION ${LIB_INSTALL_DIR}) 
 install(FILES ${OTHER_HEADERS} ${AMI_HEADERS} DESTINATION ${HEADERS_INSTALL_DIR})

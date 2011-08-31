@@ -1,5 +1,6 @@
 macro(add_unittest NAME)
   add_executable(ut-${NAME} test_${NAME}.cpp)
+  set_target_properties(ut-${NAME} PROPERTIES FOLDER tpie/unittest)
   target_link_libraries(ut-${NAME} tpie ${Boost_LIBRARIES})
   set(MTESTS ${ARGV})
   list(REMOVE_AT MTESTS 0)
@@ -9,7 +10,7 @@ macro(add_unittest NAME)
 endmacro(add_unittest)
 
 macro(add_fulltest NAME)
- set(MTESTS ${ARGV})
+  set(MTESTS ${ARGV})
   list(REMOVE_AT MTESTS 0)
   foreach(TEST ${MTESTS})
     add_test(NAME ${NAME}_${TEST} CONFIGURATIONS FullTest COMMAND ut-${NAME} ${TEST})
@@ -44,6 +45,7 @@ add_fulltest(external_sort large)
 add_unittest(external_stack small named)
 
 add_executable(test_bte test_bte.cpp)
+set_target_properties(test_bte PROPERTIES FOLDER tpie/unittest)
 target_link_libraries(test_bte tpie)
 
 if(NOT WIN32) 

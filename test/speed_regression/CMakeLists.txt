@@ -1,2 +1,3 @@
-add_executable(stream stream.cpp testtime.h)
-target_link_libraries(stream tpie)
+add_executable(stream_speed_test stream.cpp testtime.h)
+target_link_libraries(stream_speed_test tpie)
+set_target_properties(stream_speed_test PROPERTIES FOLDER tpie/test)
