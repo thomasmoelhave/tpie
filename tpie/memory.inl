@@ -3,7 +3,10 @@
 template <typename T>
 T * tpie_unsafe_new() {
    allocation_scope_magic<T> m; 
+#pragma warning(push)
+#pragma warning(disable: 4345)
    new(m.allocate()) T(); 
+#pragma warning(pop)
    return m.finalize();
 }
 

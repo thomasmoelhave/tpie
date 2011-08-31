@@ -126,12 +126,12 @@ namespace tpie {
 			///////////////////////////////////////////////////////////////////////////
 			/// Returns the main memory space usage per item.
 			///////////////////////////////////////////////////////////////////////////
-			inline size_t space_per_item() { return pq.memory_coefficient(); }
+			inline size_t space_per_item() { return static_cast<size_t>(pq.memory_coefficient()); }
 			
 			///////////////////////////////////////////////////////////////////////////
 			/// Returns the fixed main memory space overhead, regardless of item count.
 			///////////////////////////////////////////////////////////////////////////
-			inline size_t space_overhead() { return pq.memory_overhead(); }
+			inline size_t space_overhead() { return static_cast<size_t>(pq.memory_overhead()); }
 		};
 		
 		template <class REC, class CMPR>
@@ -242,12 +242,12 @@ namespace tpie {
 			///////////////////////////////////////////////////////////////////////////
 			/// Returns the  main memory space usage per item
 			///////////////////////////////////////////////////////////////////////////
-			inline size_t space_per_item(void) {return pq.memory_coefficient();}
+			inline size_t space_per_item(void) {return static_cast<size_t>(pq.memory_coefficient());}
 			
 			///////////////////////////////////////////////////////////////////////////
 			/// Returns the  fixed main memory space overhead, regardless of item count.
 			///////////////////////////////////////////////////////////////////////////
-			inline size_t space_overhead(void) {return pq.memory_overhead();}
+			inline size_t space_overhead(void) {return static_cast<size_t>(pq.memory_overhead());}
 		};
 		
 	
@@ -315,10 +315,10 @@ namespace tpie {
 			}
 			
 			// Return main memory space usage per item
-			inline size_t space_per_item(void) {return pq.memory_coefficient();}
+			inline size_t space_per_item(void) {return static_cast<size_t>(pq.memory_coefficient());}
 			
 			// Return fixed main memory space overhead, regardless of item count
-			inline size_t space_overhead() {return pq.memory_overhead();}
+			inline size_t space_overhead() {return static_cast<size_t>(pq.memory_overhead());}
 			
 			// heapify's an initial array of elements
 			void initialize() {pq.make_safe();}

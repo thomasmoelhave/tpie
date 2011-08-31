@@ -233,7 +233,7 @@ inline T * __allocate() {
 }
 
 template <typename T>
-inline void __deallocate(T * p) {
+inline void __tpie_deallocate(T * p) {
 	if(!boost::is_polymorphic<T>::value) 
 		return delete[] reinterpret_cast<uint8_t*>(p);
 	else
@@ -337,7 +337,7 @@ inline void tpie_delete(T * p) throw() {
 	get_memory_manager().register_deallocation(tpie_size(p));
 	__unregister_pointer(ptr_cast<void *>(p), tpie_size(p), typeid(*p));
 	p->~T();
-	__deallocate(p);
+	__tpie_deallocate(p);
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -457,22 +457,23 @@ public:
 	inline void construct(T * p, TT && val) {a.construct(p, val);}
 #endif
 #endif
-	inline void construct(T * p) {new(p) T();}
+	inline void construct(T * p) {
+#pragma warning( push )
+#pragma warning(disable: 4345)
+		new(p) T();
+#pragma warning( pop )
+	}
     inline void construct(T * p, const T& val) {a.construct(p, val);}
     inline void destroy(T * p) {a.destroy(p);}    
 	inline pointer address(reference x) const {return &x;}
 	inline const_pointer address(const_reference x) const {return &x;}
 };
 
-template<typename T>	inline bool
-operator==(const tpie::allocator<T>&, const tpie::allocator<T>&)
-{ return true; }
+template <typename T>
+inline bool operator==(const tpie::allocator<T>&, const tpie::allocator<T>&) {return true;}
   
 template<typename T>
-inline bool
-operator!=(const tpie::allocator<T>&, const tpie::allocator<T>&)
-{ return false; }
-
+inline bool operator!=(const tpie::allocator<T>&, const tpie::allocator<T>&) {return false;}
 
 
 ///////////////////////////////////////////////////////////////////////////

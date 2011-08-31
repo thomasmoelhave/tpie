@@ -103,6 +103,8 @@ public:
 	}
 
 	fraction_db() {
+#pragma warning(push)
+#pragma warning(disable: 4305)
 #ifdef TPIE_FRACTIONDB_DIR_INL
 #ifndef NDEBUG
 #include <tpie_fraction_db_debug.inl>
@@ -110,6 +112,7 @@ public:
 #include <tpie_fraction_db.inl>
 #endif //TPIE_NDEBUG
 #endif //TPIE_FRACTIONDB_DIR_INL
+#pragma warning(pop)
 	}
 
 	inline double getFraction(const std::string & name) {

@@ -319,8 +319,8 @@ public:
     /// number of streams allowed (which is OS-dependent) minus the number
     /// of streams currently opened by TPIE.
     ////////////////////////////////////////////////////////////////////////////
-    int available_streams(void) {
-	return m_bteStream->available_streams();
+    size_t available_streams(void) {
+		return m_bteStream->available_streams();
     }
     
     ////////////////////////////////////////////////////////////////////////////

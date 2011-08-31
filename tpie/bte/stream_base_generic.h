@@ -40,7 +40,7 @@ namespace tpie {
 		static int current_streams;
 	public:
 	    // The number of globally available streams.
-	    static int available_streams() { 
+	    static size_t available_streams() { 
 			return get_os_available_fds();
 	    }
 	
