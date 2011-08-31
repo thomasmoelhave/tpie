@@ -25,7 +25,7 @@ using namespace std;
 
 bool basic_test() {
 	//Lets hope the external pq has a small block factor!
-	get_memory_manager().set_limit(16*1024*1024);
+	get_memory_manager().set_limit(33*1024*1024);
 	ami::priority_queue<boost::uint64_t, bit_pertume_compare< std::greater<boost::uint64_t> > > pq(0.1);
 	return basic_pq_test(pq, 350003);
 }
@@ -132,7 +132,7 @@ bool large_instance(){
 
 
 int main(int argc, char **argv) {
-	tpie_initer _(128);;
+	tpie_initer _(128);
 	if(argc != 2) return 1;
 	std::string test(argv[1]);
 	if (test == "basic")
