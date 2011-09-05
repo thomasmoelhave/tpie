@@ -3,7 +3,14 @@ def gen_unsafe(size):
     print """template <%s>
 T * tpie_unsafe_new(%s) {
    allocation_scope_magic<T> m; 
+#ifdef WIN32
+#pragma warning(push)
+#pragma warning(disable: 4345)
+#endif
    new(m.allocate()) T(%s); 
+#ifdef WIN32
+#pragma warning(pop)
+#endif
    return m.finalize();
 }
 """%(", ".join(["typename T"]+["typename T%d"%i for i in range(size)]), 

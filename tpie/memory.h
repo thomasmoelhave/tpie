@@ -458,10 +458,14 @@ public:
 #endif
 #endif
 	inline void construct(T * p) {
+#ifdef WIN32
 #pragma warning( push )
 #pragma warning(disable: 4345)
+#endif
 		new(p) T();
+#ifdef WIN32
 #pragma warning( pop )
+#endif
 	}
     inline void construct(T * p, const T& val) {a.construct(p, val);}
     inline void destroy(T * p) {a.destroy(p);}    
