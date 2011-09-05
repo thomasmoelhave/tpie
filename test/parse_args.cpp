@@ -28,6 +28,8 @@
 #include "getopts.h"
 #include <tpie/stream.h>
 
+#include <tpie/memory.h>
+
 using namespace tpie;
 
 void parse_args(int argc, char **argv, struct options *application_opts,

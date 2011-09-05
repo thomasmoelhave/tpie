@@ -35,6 +35,7 @@
 #include <tpie/fractional_progress.h>
 #include <tpie/err.h>
 #include <tpie/memory.h>
+#include <tpie/tpie_assert.h>
 
 namespace tpie {
 namespace ami {

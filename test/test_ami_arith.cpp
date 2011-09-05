@@ -35,6 +35,9 @@
 // Get stream arithmetic.
 #include <tpie/stream_arith.h>
 
+// Get some memory.
+#include <tpie/memory.h>
+
 using namespace tpie;
 
 static char def_crf[] = "osc.txt";

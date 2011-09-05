@@ -22,7 +22,6 @@
 
 #include <tpie/config.h>
 #include "portability.h"
-#include "ami.h"
 #include "tpie_log.h"
 #include <cassert>
 #include "pq_overflow_heap.h"
@@ -33,6 +32,8 @@
 #include <string>
 #include <sstream>
 #include "pq_merge_heap.h"
+#include <tpie/err.h>
+#include <tpie/stream.h>
 
 namespace tpie {
 

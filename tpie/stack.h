@@ -20,8 +20,10 @@
 #ifndef _TPIE_AMI_STACK_H
 #define _TPIE_AMI_STACK_H
 
+#include <tpie/array.h>
 #include <tpie/portability.h>
 #include <tpie/stream.h>
+#include <tpie/tpie_assert.h>
 
 namespace tpie {
 
@@ -361,7 +363,7 @@ err stack<T>::pop(const T **t) {
 		}
         
 		// Read one full block from end
-		retval = m_amiStream.read_array(m_block[0],
+		retval = m_amiStream.read_array(m_block[0].get(),
 						 &toBeRead);
 
 		if (retval != NO_ERROR) {

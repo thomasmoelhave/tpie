@@ -22,6 +22,9 @@
 #include <tpie/stream.h>
 #include "getopts.h"
 
+#include <cstring>
+#include <tpie/memory.h>
+
 using namespace tpie;
 
 //snprintf is different on WIN/Unix platforms

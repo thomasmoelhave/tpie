@@ -21,13 +21,14 @@
 #define __TPIE_UTIL_H__
 
 #include <tpie/portability.h>
+#include <tpie/types.h>
 #include <cmath>
-#include <boost/cstdint.hpp>
+#include <string>
 namespace tpie {
 
 ///////////////////////////////////////////////////////////////////////////
-/// Avoid a unused variable warning
-/// \param x the variable to ignore 
+/// \brief Ignore an unused variable warning
+/// \param x The variable that we are well aware is not beeing useod
 ///////////////////////////////////////////////////////////////////////////
 template <typename T>
 inline void unused(const T & x) {(void)x;}
@@ -62,6 +63,17 @@ template <> struct unsign<int16_t> {typedef uint16_t type;};
 template <> struct unsign<int32_t> {typedef uint32_t type;};
 template <> struct unsign<int64_t> {typedef uint64_t type;};
 
+void seed_random(uint32_t seed);
+uint32_t random();
+void remove(const std::string & path);
+bool file_exists(const std::string & path);
+
+#ifdef _WIN32
+const char directory_delimiter = '\\';
+#else
+const char directory_delimiter = '/';
+#endif
+
 ///////////////////////////////////////////////////////////////////////////
 /// Any internal memory datastructur whos memory usage is linear
 /// in the numebr of elements.
@@ -77,8 +89,8 @@ struct linear_memory_base {
 	// \param size The number of elements to support
 	// \return The abount of memory required in bytes
 	///////////////////////////////////////////////////////////////////////////
-	inline static offset_type memory_usage(offset_type size) {
-		return static_cast<offset_type>(
+	inline static stream_size_type memory_usage(stream_size_type size) {
+		return static_cast<stream_size_type>(
 			floor(size * child_t::memory_coefficient() + child_t::memory_overhead()));
 	}
 
@@ -88,18 +100,10 @@ struct linear_memory_base {
 	// \param memory The number of bytes the structure is allowed to occupie
 	// \return The number of elements that will fit in the structure
 	///////////////////////////////////////////////////////////////////////////
-	inline static size_type memory_fits(size_type memory) {
-		return static_cast<size_type>(
+	inline static memory_size_type memory_fits(memory_size_type memory) {
+		return static_cast<memory_size_type>(
 			floor((memory - child_t::memory_overhead()) / child_t::memory_coefficient()));
 	}
-};
-
-template <typename T>
-struct scoped_change {
-	T & var;
-	T old;
-	scoped_change(T & v, T n): var(v), old(v) {var = n;}
-	~scoped_change() {var=old;}
 };
 
 template <int t>

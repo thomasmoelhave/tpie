@@ -38,6 +38,8 @@
 
 #include <tpie/progress_indicator_base.h>
 
+#include <tpie/tpie_assert.h>
+
 namespace tpie {
 
 namespace ami {

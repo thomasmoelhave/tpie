@@ -44,15 +44,37 @@ set (BTE_HEADERS
 		bte/coll_ufs.h
 		bte/err.h
 		bte/stack_ufs.h
-		bte/stream_base_generic.h
-		bte/stream_base.h
-		bte/stream_cache.h
-		bte/stream.h
-		bte/stream_header.h
-		bte/stream_mmap.h
-		bte/stream_stdio.h
-		bte/stream_ufs.h
+#		bte/stream_base_generic.h
+#		bte/stream_base.h
+#		bte/stream_cache.h
+#		bte/stream.h
+#		bte/stream_header.h
+#		bte/stream_mmap.h
+#		bte/stream_stdio.h
+#		bte/stream_ufs.h
 	)
+
+set (STREAM_HEADERS
+#	stream/exception.h
+#	stream/concepts.h
+#	stream/stdio_bte.h
+	)
+
+set (STREAM_SOURCES
+#	stream/fd_file_base.cpp
+#	stream/stdio_bte.cpp
+	 file_accessor/file_accessor.cpp
+	 file_accessor/stdio.cpp
+	 file_base.cpp
+	)
+
+if (WIN32)
+set (STREAM_SOURCES ${STREAM_SOURCES} file_accessor/win32.cpp)
+set (STREAM_HEADERS ${STREAM_HEADERS} file_accessor/win32.h)
+else(WIN32)
+set (STREAM_SOURCES ${STREAM_SOURCES} file_accessor/posix.cpp)
+set (STREAM_HEADERS ${STREAM_HEADERS} file_accessor/posix.h)
+endif(WIN32)
 
 set (OTHER_HEADERS
 		bit.h   
@@ -63,6 +85,8 @@ set (OTHER_HEADERS
 		config.h.cmake
 		cpu_timer.h
 		disjoint_sets.h
+		exception.h
+		file_count.h
 		execution_time_predictor.h
 		internal_sort.h
 		internal_queue.h
@@ -124,26 +148,25 @@ set (AMI_SOURCES
 	)
 
 set (BTE_SOURCES
-	bte/stream_base.cpp
+	#bte/stream_base.cpp
 	)
 
 set (OTHER_SOURCES
-	#bit.cpp
-	#bit_matrix.cpp
 	backtrace.cpp
 	cpu_timer.cpp
+	file_count.cpp
+	execution_time_predictor.cpp
+	fractional_progress.cpp
 	logstream.cpp
 	memory.cpp
 	portability.cpp
-	tpie_log.cpp
-	tempname.cpp
 	prime.cpp
-	progress_indicator_subindicator.cpp
 	progress_indicator_base.cpp
-	execution_time_predictor.cpp
-	fractional_progress.cpp
+	progress_indicator_subindicator.cpp
+	tempname.cpp
 	tpie.cpp
-	
+	tpie_log.cpp
+	util.cpp
 	)
 
 source_group("BTE" FILES ${BTE_HEADERS} ${BTE_SOURCES})
@@ -151,8 +174,9 @@ source_group("BTE" FILES ${BTE_HEADERS} ${BTE_SOURCES})
 set(AMI ${AMI_HEADERS} ${AMI_SOURCES})
 set(BTE ${BTE_HEADERS} ${BTE_SOURCES})
 set(OTHER ${OTHER_HEADERS} ${OTHER_SOURCES})
+set(STREAM ${STREAM_HEADERS} ${STREAM_SOURCES})
 
-add_library(tpie ${BTE} ${AMI} ${OTHER})
+add_library(tpie ${BTE} ${AMI} ${OTHER} ${STREAM})
 target_link_libraries(tpie ${Boost_LIBRARIES})
 set_target_properties(tpie PROPERTIES FOLDER tpie)
 

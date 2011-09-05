@@ -20,7 +20,6 @@
 #ifndef _TPIE_PQ_MERGE_HEAP_H_
 #define _TPIE_PQ_MERGE_HEAP_H_
 
-#include "ami.h"
 #include "tpie_log.h"
 #include <cassert>
 #include <tpie/memory.h>

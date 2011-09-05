@@ -22,6 +22,7 @@
 #define _PORTABILITY_H
 
 #include <tpie/config.h>
+#include <tpie/types.h>
 
 //  The following wil cause TPIE_OS_SIZE_T to be a 32-bit integer!
 #define _TPIE_SMALL_MAIN_MEMORY
@@ -236,6 +237,17 @@ typedef TPIE_OS_OFFSET TPIE_BLOCK_ID_TYPE;
 // macros				    //
 //////////////////////////////////////////////
 
+inline tpie::memory_size_type get_maximum_open_files() {
+#ifdef _WIN32
+	return 512;
+#else
+	struct rlimit limits;
+	if (getrlimit(RLIMIT_NOFILE,&limits) == -1) {
+		limits.rlim_cur = 255;
+	}
+	return limits.rlim_cur;
+#endif
+}
 
 #ifdef _WIN32
 #define	 TMP_DIR ".\\"

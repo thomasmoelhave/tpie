@@ -92,6 +92,22 @@ namespace tpie {
 
 		static std::string tpie_mktemp();
 	};
+
+	class temp_file {
+	private:
+		std::string m_path;
+		bool m_persist;
+	public:
+		inline bool is_persistent() const {return m_persist;}
+		inline void set_persistent(bool p) {m_persist=p;}
+		temp_file(const std::string & path, bool persist=false);
+		void set_path(const std::string & path, bool persist=false);
+		temp_file();
+		~temp_file();
+		const std::string & path();
+		void free();
+	};
+	
 }
 
 #endif // _TPIE_TEMPNAM_H 

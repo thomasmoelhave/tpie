@@ -20,6 +20,7 @@
 #include <tpie/priority_queue.h>
 #include <vector>
 #include "priority_queue.h"
+
 using namespace tpie;
 using namespace std;
 
