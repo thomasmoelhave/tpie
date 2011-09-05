@@ -19,6 +19,7 @@
 #include "fractional_progress.h"
 #include <tpie/backtrace.h>
 #include <tpie/prime.h>
+#include <tpie/tempname.h>
 #include <map>
 #include <fstream>
 #include <sstream>
@@ -59,6 +60,7 @@ public:
 				update(name.substr(1,name.size()-2).c_str() , frac, n_);
 		}
 		dirty=false;
+		f.close();
 #endif //TPIE_FRACTIONDB_DIR_INL
 	}
 
@@ -70,16 +72,17 @@ public:
 #else //TPIE_NDEBUG
 		std::string path=TPIE_FRACTIONDB_DIR_INL "/tpie_fraction_db.inl";
 #endif //TPIE_NDEBUG
-		std::string tmp=path+"~";
-		std::locale::global(std::locale::classic());
-		std::fstream f;
-		f.open(tmp.c_str(), std::fstream::out | std::fstream::trunc | std::fstream::binary);
+		std::string tmp=tpie::tempname::tpie_name("",TPIE_FRACTIONDB_DIR_INL);
+		{
+			std::locale::global(std::locale::classic());
+			std::fstream f;
+			f.open(tmp.c_str(), std::fstream::out | std::fstream::trunc | std::fstream::binary);
 
-		if (!f.is_open()) return;
+			if (!f.is_open()) return;
 
-		for (i_t i=db.begin(); i != db.end(); ++i)
-			f << "update( \"" << i->first << "\" , " << i->second.first << " , " << i->second.second << " );\n";
-
+			for (i_t i=db.begin(); i != db.end(); ++i)
+				f << "update( \"" << i->first << "\" , " << i->second.first << " , " << i->second.second << " );\n";
+		}
 		atomic_rename(tmp, path);
 	}
 #endif //TPIE_FRACTIONDB_DIR_INL
