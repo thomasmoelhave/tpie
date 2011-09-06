@@ -30,6 +30,7 @@
 #include <stdexcept>
 #include <cmath>
 #include <string>
+#include <cstring> // for memcpy
 #include <sstream>
 #include "pq_merge_heap.h"
 #include <tpie/err.h>
