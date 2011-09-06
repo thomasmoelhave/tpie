@@ -18,3 +18,5 @@ CMakeLists.txt.user
 /doc/tpie.pdf
 /doc/tpie.toc
 .clang-completion-error
+/Release
+tags
