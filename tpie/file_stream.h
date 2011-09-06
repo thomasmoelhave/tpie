@@ -73,6 +73,7 @@ public:
 					 memory_size_type user_data_size=0) throw (stream_exception) {
 		m_file.open(path, accessType, user_data_size);
 		m_stream.initialize();
+		m_stream.seek(0);
 	}
 
 
