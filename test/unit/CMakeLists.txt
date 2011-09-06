@@ -44,6 +44,8 @@ add_fulltest(external_sort large)
 
 add_unittest(external_stack small named)
 
+add_unittest(stream basic)
+
 #add_executable(test_bte test_bte.cpp)
 #set_target_properties(test_bte PROPERTIES FOLDER tpie/unittest)
 #target_link_libraries(test_bte tpie)
