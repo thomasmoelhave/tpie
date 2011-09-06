@@ -18,6 +18,7 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #include "../app_config.h"
 
+#include <tpie/tpie.h>
 #include <tpie/stream.h>
 #include <iostream>
 #include "testtime.h"
@@ -30,8 +31,10 @@ const size_t size=1024*1024/sizeof(uint64_t);
 int main() {
 	test_realtime_t start;
 	test_realtime_t end;
+
+	tpie::tpie_init();
 	
-	//The porpous of this test is to test the speed of the io calls, not the file system
+	//The purpose of this test is to test the speed of the io calls, not the file system
 	getTestRealtime(start);
 	{
 		stream<uint64_t> s("tmp", WRITE_STREAM);
@@ -72,4 +75,5 @@ int main() {
 	}
 	getTestRealtime(end);
 	std::cout << " " << testRealtimeDiff(start,end) << std::endl;
+	tpie::tpie_finish();
 }
