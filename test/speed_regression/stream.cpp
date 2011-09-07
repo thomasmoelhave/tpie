@@ -26,30 +26,32 @@
 using namespace tpie::ami;
 using namespace tpie::test;
 
-const size_t size=1024*1024/sizeof(uint64_t);
+const size_t count_default=1024*1024/sizeof(uint64_t);
 
-int main() {
+void usage() {
+	std::cout << "Parameters: [times] [count]" << std::endl;
+}
+
+void test(size_t count) {
 	test_realtime_t start;
 	test_realtime_t end;
 
-	tpie::tpie_init();
-	
 	//The purpose of this test is to test the speed of the io calls, not the file system
 	getTestRealtime(start);
 	{
 		stream<uint64_t> s("tmp", WRITE_STREAM);
 		uint64_t x=42;
-		for(size_t i=0; i < size*1024; ++i) s.write_item(x);
+		for(size_t i=0; i < count*1024; ++i) s.write_item(x);
 	}
 	getTestRealtime(end);
-	std::cout << " " << testRealtimeDiff(start,end);
+	std::cout << testRealtimeDiff(start,end);
 	std::cout.flush();
 	
 	getTestRealtime(start);
 	{
 		stream<uint64_t> s("tmp", READ_STREAM);
 		uint64_t * x;
-		for(size_t i=0; i < size*1024; ++i) s.read_item(&x);
+		for(size_t i=0; i < count*1024; ++i) s.read_item(&x);
 	}
 	getTestRealtime(end);
 	std::cout << " " << testRealtimeDiff(start,end);
@@ -60,7 +62,7 @@ int main() {
 		uint64_t x[1024];
 		for(int i=0; i < 1024; ++i) x[i]=42;
 		stream<uint64_t> s("tmp", WRITE_STREAM);
-		for(size_t i=0; i < size; ++i) s.write_array(x,1024);
+		for(size_t i=0; i < count; ++i) s.write_array(x,1024);
 	}
 	getTestRealtime(end);
 	std::cout << " " << testRealtimeDiff(start,end);
@@ -71,9 +73,44 @@ int main() {
 		uint64_t x[1024];
 		for(uint64_t i=0; i < 1024; ++i) x[i]=42;
 		stream<uint64_t> s("tmp", READ_STREAM);
-		for(size_t i=0; i < size; ++i) {TPIE_OS_OFFSET y=1024; s.read_array(x,&y);}
+		for(size_t i=0; i < count; ++i) {TPIE_OS_OFFSET y=1024; s.read_array(x,&y);}
 	}
 	getTestRealtime(end);
 	std::cout << " " << testRealtimeDiff(start,end) << std::endl;
+}
+
+int main(int argc, char **argv) {
+	size_t times = 10;
+	size_t count = count_default;
+
+	if (argc > 1) {
+		if (std::string(argv[1]) == "0") {
+			times = 0;
+		} else {
+			std::stringstream(argv[1]) >> times;
+			if (!times) {
+				usage();
+				return EXIT_FAILURE;
+			}
+		}
+	}
+	if (argc > 2) {
+		std::stringstream(argv[2]) >> count;
+		if (!count) {
+			usage();
+			return EXIT_FAILURE;
+		}
+	}
+
+	std::cout << "Writing " << count << "*1024 items, reading them, writing " << count << " arrays, reading them" << std::endl;
+
+	tpie::tpie_init();
+
+	for (size_t i = 0; i < times || !times; ++i) {
+		test(count);
+	}
+	
 	tpie::tpie_finish();
+
+	return EXIT_SUCCESS;
 }
