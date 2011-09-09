@@ -28,6 +28,7 @@ add_unittest(internal_vector basic memory)
 add_unittest(parallel_sort basic1 equal_elements)
 
 add_unittest(external_priority_queue basic)
+add_unittest(serialization unsafe safe)
 add_fulltest(external_priority_queue medium large large_cycle)
 
 add_unittest(internal_priority_queue basic memory)

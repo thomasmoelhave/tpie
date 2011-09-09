@@ -61,14 +61,14 @@ struct serialization_error: public std::runtime_error {
 ////////////////////////////////////////////////////////////////////////////////
 class serializer {
 public:
-
 	////////////////////////////////////////////////////////////////////////////
 	/// Construct a serializer writing to out
 	////////////////////////////////////////////////////////////////////////////
-	serializer(std::ostream & out): m_out(out) {
+	serializer(std::ostream & out, bool typesafe=false): m_out(out), m_typesafe(false) {
 		*this << "TPIE Serialization" //File header
-			  << (boost::uint16_t)1          //File version
-			  << false;               //Do we serialize typeids before each actual item?
+			  << (boost::uint16_t)1   //File version
+			  << typesafe;            //Do we serialize typeids before each actual item?
+		m_typesafe = typesafe;
 	}
 
 	template <typename T>
@@ -78,32 +78,43 @@ public:
 			*this << data[i];
 		return *this;
 	}
-
 	template <typename T>
 	inline typename boost::enable_if<disjunction<boost::is_fundamental<T>, boost::is_enum<T> > ,
 									 serializer &>::type operator << (const T & x) {
+		write_type<T>();
 		m_out.write(reinterpret_cast<const char*>(&x), sizeof(T));
 		return * this;
 	}
 
 	template <typename T1, typename T2>
 	inline serializer & operator <<(const std::pair<T1, T2> & p) {
+		write_type<std::pair<T1,T2> >();
 		return *this << p.first << p.second;
 	}
 
 	template <typename T>
 	inline serializer & operator <<(const std::vector<T> & v) {
+		write_type<std::vector<T> >();
 		*this << (boost::uint16_t)v.size();
 		for (size_t i=0; i < v.size(); ++i)
 			*this << v[i];
 		return *this;
 	}
 
-	inline serializer & operator <<(const char * data) {return write(data, strlen(data));}
-	inline serializer & operator <<(const std::string & s) {return write(s.c_str(), s.size());}
-
+	inline serializer & operator <<(const char * data) {write_type<std::string>(); return write(data, strlen(data));}
+	inline serializer & operator <<(const std::string & s) {write_type<std::string>(); return write(s.c_str(), s.size());}
 private:
+	template <typename T>
+	void write_type() {
+		if (m_typesafe) {
+			uint16_t len=(uint16_t)strlen(typeid(T).name());
+			m_out.write((const char *)&len, sizeof(len));
+			m_out.write(typeid(T).name(), len);
+		}
+	}
+		
 	std::ostream & m_out;
+	bool m_typesafe;
 };
 
 ////////////////////////////////////////////////////////////////////////////
@@ -116,11 +127,13 @@ public:
 	////////////////////////////////////////////////////////////////////////////
 	/// Construct a unserializer reading from the std::istream in
 	////////////////////////////////////////////////////////////////////////////
-	unserializer(std::istream & in): m_in(in) {
+	unserializer(std::istream & in): m_in(in), m_typesafe(false) {
 		//Validate header;
 		*this << "TPIE Serialization" 
-			  << (boost::uint16_t)1
-			  << false;
+			  << (boost::uint16_t)1;
+		bool typesafe;
+		*this >> typesafe;
+		m_typesafe=typesafe;
 	}
 
 	template <typename T>
@@ -151,6 +164,7 @@ public:
 
 	template <typename T>
 	inline typename boost::enable_if<disjunction<boost::is_fundamental<T>, boost::is_enum<T> >, unserializer &>::type operator >> (T & x) {
+		check_type<T>();
 		char * y = reinterpret_cast<char*>(&x);
 		m_in.read(y, sizeof(T));
 		if (m_in.eof() || m_in.fail()) throw serialization_error("Out of bytes");
@@ -159,11 +173,13 @@ public:
 
 	template <typename T1, typename T2>
 	inline unserializer & operator >>(std::pair<T1, T2> & p) {
+		check_type<std::pair<T1, T2> >();
 		return *this >> p.first >> p.second;
 	}
 
 	template <typename T>
 	inline unserializer & operator >> (std::vector<T> & v) {
+		check_type<std::vector<T> >();
 		boost::uint16_t size;
 		*this >> size;
 		v.clear();
@@ -175,6 +191,7 @@ public:
 	}
 
 	inline unserializer & operator >>(std::string & s) {
+		check_type<std::string>();
 		s.clear();
 		boost::uint16_t size;
 		*this >> size;
@@ -187,7 +204,21 @@ public:
 	}
 
 private:
+	template <typename T>
+	void check_type() {
+		if (!m_typesafe) return;
+		boost::uint16_t size;
+		m_in.read((char*)&size, sizeof(size));
+		std::string type(size, ' ');
+		m_in.read(&type[0], size);
+		if (type == typeid(T).name()) return;
+		std::stringstream ss;
+		ss << "Serialization type error, got " << type << " expected " << typeid(T).name();
+		throw serialization_error(ss.str());
+	}
+
 	std::istream & m_in;
+	bool m_typesafe;
 };
 
 } //namespace tpie
