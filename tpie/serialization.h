@@ -35,6 +35,7 @@
 #include <boost/cstdint.hpp>
 #include <istream>
 #include <ostream>
+#include <cstring>
 
 namespace tpie {
 
