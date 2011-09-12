@@ -1005,6 +1005,26 @@ logstream& logstream::operator<<(const LONGLONG x)\
 #undef NO_ERROR //ensures that the NO_ERROR macro of windows is not defined
 #endif
 
+#ifdef TPIE_DEPRECATED_WARNINGS
+#ifdef __GNUC__
+#define TPIE_DEPRECATED(func) func __attribute__ ((deprecated))
+#define TPIE_DEPRECATED_CLASS_A(func) func __attribute__ ((deprecated))
+#define TPIE_DEPRECATED_CLASS_B
+#elif defined(_MSC_VER)
+#define TPIE_DEPRECATED(func) __declspec(deprecated) func
+#define TPIE_DEPRECATED_CLASS_A(func) func
+#define TPIE_DEPRECATED_CLASS_B  __declspec(deprecated)
+#else
+#define TPIE_DEPRECATED(func) func
+#define TPIE_DEPRECATED_CLASS_A(func) func
+#define TPIE_DEPRECATED_CLASS_B 
+#endif
+#else
+#define TPIE_DEPRECATED(func) func
+#define TPIE_DEPRECATED_CLASS_A(func) func
+#define TPIE_DEPRECATED_CLASS_B 
+#endif
+
 namespace tpie {
 	void atomic_rename(const std::string & src, const std::string & dst);
 	size_t get_os_available_fds();
