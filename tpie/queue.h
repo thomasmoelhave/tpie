@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2008, The TPIE development team
+// Copyright 2008, 2010, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -17,324 +17,175 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-#ifndef _TPIE_AMI_QUEUE_H
-#define _TPIE_AMI_QUEUE_H
+#ifndef __TPIE_QUEUE_H__
+#define __TPIE_QUEUE_H__
 
-// Get definitions for working with Unix and Windows
+////////////////////////////////////////////////////////////////////////////////
+/// \file queue.h
+/// \brief Implements an I/O efficient queue
+////////////////////////////////////////////////////////////////////////////////
 #include <tpie/portability.h>
-#include <tpie/stream.h>
-#include <tpie/stack.h> 
-
-
+#include <tpie/file.h>
+#include <tpie/err.h>
+#include <tpie/tempname.h>
+#include <tpie/file.h>
+#include <limits>
+#include <tpie/persist.h>
 namespace tpie {
 
-    namespace ami {
 ///////////////////////////////////////////////////////////////////
-/// 
-///  Basic Implementation of I/O Efficient FIFO queue;
-///  uses two stacks
-/// 
-///  \author The TPIE Project
-/// 
+/// \brief Basic Implementation of I/O Efficient FIFO queue
+/// \author The TPIE Project
 ///////////////////////////////////////////////////////////////////
-
-	template<class T>
-	class queue {
-
-	public:
-
-	    ////////////////////////////////////////////////////////////////////
-	    ///
-	    /// Constructor for Temporary Queue
-	    ///
-	    ////////////////////////////////////////////////////////////////////
-
-	    queue(); 
-
-	    ////////////////////////////////////////////////////////////////////
-	    ///
-	    /// Constructor for Queue with filename
-	    ///
-	    ////////////////////////////////////////////////////////////////////
-
-	    queue(const std::string& basename);
-
-	    ////////////////////////////////////////////////////////////////////
-	    ///  
-	    ///  Destructor, closes the underlying stream
-	    ///
-	    ////////////////////////////////////////////////////////////////////
-
-	    ~queue(void);
-
-	    ////////////////////////////////////////////////////////////////////
-	    ///  
-	    ///  Returns whether the stack is empty or not.
-	    ///
-	    ////////////////////////////////////////////////////////////////////
-
-	    bool is_empty();
-
-	    ////////////////////////////////////////////////////////////////////
-	    ///  
-	    ///  Returns the number of items currently on the queue.
-	    ///
-	    ////////////////////////////////////////////////////////////////////
-
-	    TPIE_OS_OFFSET size() { 
-		return m_Qsize; 
-	    }
-
-	    ////////////////////////////////////////////////////////////////////
-	    ///  
-	    ///  Enqueue an item
-	    ///
-	    ///  \param  t    The item to be enqueued
-	    ///
-	    ////////////////////////////////////////////////////////////////////
-
-	    err enqueue(const T &t);
-
-	    ////////////////////////////////////////////////////////////////////
-	    ///  
-	    ///  Dequeues an item
-	    ///
-	    ///  \param  t    A pointer to a pointer that will point to the 
-	    ///               front item.
-	    ///
-	    ////////////////////////////////////////////////////////////////////
-
-	    err dequeue(const T **t);
-
-	    ////////////////////////////////////////////////////////////////////
-	    ///
-	    ///  Peeks at the frontmost item in the queue
-	    ///
-	    ///  \param  t    A pointer to a pointer that will point to the 
-	    ///               front item.
-	    ///
-	    ////////////////////////////////////////////////////////////////////
-
-	    err peek(T **t);
-
-	    ////////////////////////////////////////////////////////////////////
-	    ///  
-	    ///  Set the persistence status of the (stacks underlying the) queue.
-	    ///
-	    ///  \param  p    A persistence status.
-	    ///
-	    ////////////////////////////////////////////////////////////////////
-
-	    void persist(persistence p);
-
-	    ////////////////////////////////////////////////////////////////////
-	    ///  
-	    ///  Truncates the underlying stream to the exact size (rounded up
-	    ///  to the next block) of items.
-	    ///
-	    ////////////////////////////////////////////////////////////////////
-
-	    err trim();
-
-	    ////////////////////////////////////////////////////////////////////
-	    ///  
-	    ///  Compute the memory used by the queue
-	    ///
-	    ///  \param  usage       Where the usage will be stored.
-	    ///  \param  usage_type  The type of usage_type inquired from 
-	    ///                      the stream.
-	    ///
-	    ////////////////////////////////////////////////////////////////////
-
-	    err main_memory_usage(TPIE_OS_SIZE_T *usage,
-							  stream_usage usage_type) const;
-    
-	private:
-	    err refill();
-	    stack<T>* m_enQstack;
-	    stack<T>* m_deQstack;
-	    TPIE_OS_OFFSET m_Qsize;
-	};
-
-/////////////////////////////////////////////////////////////////////////
-
 template<class T>
-queue<T>::queue() {
-    m_enQstack = tpie_new<stack<T> >();
-    m_deQstack = tpie_new<stack<T> >();
-    m_enQstack->persist(PERSIST_DELETE);
-    m_deQstack->persist(PERSIST_DELETE);
-    m_Qsize=0;
-}
+class queue {
+public:
+	////////////////////////////////////////////////////////////////////
+	/// \brief Constructor for Temporary Queue
+	////////////////////////////////////////////////////////////////////
+	queue(stream_size_type elements=std::numeric_limits<stream_size_type>::max(), 
+		  double block_factor=1.0): m_size(0), m_file(block_factor), m_back(m_file), m_front(m_file) {
+		m_file.open(m_temp.path(), file_base::read_write, sizeof(stream_size_type) );
+		unused(elements);
+	}
 
-/////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////
+	/// \brief Does nothing.
+	///
+	/// This method is included so the interface is compatible with internal_queue
+	////////////////////////////////////////////////////////////////////
+	void resize(stream_size_type) {}
+	
+	////////////////////////////////////////////////////////////////////
+	/// \brief Load or create a named queue
+	/// \param basename The base name of the queue to load/create
+	////////////////////////////////////////////////////////////////////
+	queue(const std::string& basename, double block_factor=1.0);
 
-template<class T>
-queue<T>::queue(const std::string& basename) {
-    std::string fname = basename + ".nq";
-    m_enQstack = tpie_new<stack<T> >(fname);
-    fname = basename + ".dq";
-    m_deQstack = tpie_new<stack<T> >(fname);
-    m_enQstack->persist(PERSIST_PERSISTENT);
-    m_deQstack->persist(PERSIST_PERSISTENT);
-    m_Qsize=m_enQstack->size()+m_deQstack->size();
-}
+	////////////////////////////////////////////////////////////////////
+	/// \brief Destructor, closes the underlying stream
+	////////////////////////////////////////////////////////////////////
+	~queue() {m_file.write_user_data(m_back.offset());}
 
-/////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////
+	/// \brief Check if the queue is empty
+	/// \return true if the queue is empty otherwize false
+	////////////////////////////////////////////////////////////////////
+	inline bool empty() {return m_size == 0;}
+	TPIE_DEPRECATED(bool is_empty());
 
-template<class T>
-queue<T>::~queue(void) {
-    tpie_delete(m_enQstack);
-	tpie_delete(m_deQstack);
-}
+	////////////////////////////////////////////////////////////////////
+	/// \brief Returns the number of items currently on the queue.
+	/// \return Number of itmes in the queue
+	////////////////////////////////////////////////////////////////////
+	inline stream_size_type size() {return m_size;}
+	
+	////////////////////////////////////////////////////////////////////
+	/// \brief Enqueue an item
+	/// \param t The item to be enqueued
+	////////////////////////////////////////////////////////////////////
+	inline void push(const T & t) {m_back.write(t);}
+	TPIE_DEPRECATED(ami::err enqueue(const T &t));
+	
+	////////////////////////////////////////////////////////////////////
+	/// \brief Dequeues an item
+	/// \return The dequeued item
+	////////////////////////////////////////////////////////////////////
+	const T & pop() {return m_front.read();}
+	TPIE_DEPRECATED(ami::err dequeue(const T **t));
 
-/////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////
+	/// \brief Returns at the frontmost item in the queue
+	/// \return The front most item in the queue
+	////////////////////////////////////////////////////////////////////
+	const T & front() {m_front.peek();}
+	TPIE_DEPRECATED(ami::err peek(const T **t));
 
-template<class T>
-bool queue<T>::is_empty() {
-    return m_Qsize == 0;
-}
+	////////////////////////////////////////////////////////////////////
+	/// \brief Deprecated, does nothing
+	////////////////////////////////////////////////////////////////////
+	TPIE_DEPRECATED(ami::err trim());
 
-/////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////
+	/// \brief Compute the memory used by the queue
+	////////////////////////////////////////////////////////////////////
+	static memory_size_type memory_usage(double blockFactor=1.0) {
+		return sizeof(queue<T>)
+			+ file<T>::memory_usage() - sizeof(file<T>)
+			+ 2*file<T>::stream::memory_usage(blockFactor) - 2*sizeof(file<T>::stream);
+	}
+
+	////////////////////////////////////////////////////////////////////
+	/// Set the persistence status of the (stacks underlying the) queue.
+	/// \param p A persistence status.
+	////////////////////////////////////////////////////////////////////
+	TPIE_DEPRECATED(void persist(persistence p));
+private:
+	temp_file m_temp;
+	stream_size_type m_size;
+	file<T> m_file;
+	typename file<T>::stream m_back;
+	typename file<T>::stream m_front;
+};
+
 
 template<class T>
 void queue<T>::persist(persistence p) {
-    m_enQstack->persist(p);
-    m_deQstack->persist(p);
+	m_temp.set_persistent(p != PERSIST_DELETE);
 }
 
-/////////////////////////////////////////////////////////////////////////
-
 template<class T>
-err queue<T>::enqueue(const T &t) {
-    // Elements are pushed onto an Enqueue stack
-    err ae = m_enQstack->push(t);
-    if(ae == NO_ERROR){
-	m_Qsize++;
-    }
-    return ae;
-}
-
-/////////////////////////////////////////////////////////////////////////
-
-template<class T>
-err queue<T>::dequeue(const T **t) {
-    err ae;
-    // Elements popped from Dequeue stack
-    if(m_deQstack->size()>0){
-	ae = m_deQstack->pop(t);
-	if(ae == NO_ERROR){
-	    m_Qsize--;
+queue<T>::queue(const std::string& basename, double blockFactor): 
+	m_temp(basename), m_size(0), m_file(blockFactor), m_front(m_file), m_back(m_file) {
+	m_temp.set_persistent(true);
+	m_file.open(basename, file_base::read_write, sizeof(stream_size_type) );
+	if (m_file.size() != 0) {
+		stream_size_type t;
+		m_file.read_user_data(t);
+		m_front.seek(t);
 	}
-	return ae;
-    } else if(m_Qsize == 0) {
-	return END_OF_STREAM;
-    } else {
-	ae = refill();
-	if(ae == NO_ERROR) {
-	    ae=m_deQstack->pop(t);
-	    if(ae == NO_ERROR) { 
-		m_Qsize--;
-	    }
-	}
-	return ae;
-    }
+	m_back.seek(0, file_base::end);
+	m_size = m_back.offset() - m_front.offset();
+}
+
+
+/////////////////////////////////////////////////////////////////////////
+
+template<class T>
+bool queue<T>::is_empty() {return empty();}
+
+/////////////////////////////////////////////////////////////////////////
+
+template<class T>
+ami::err queue<T>::enqueue(const T &t) {
+	push(t);
+	return ami::NO_ERROR;
 }
 
 /////////////////////////////////////////////////////////////////////////
 
 template<class T>
-err queue<T>::peek(T **t) {
-    err ae;
-    if(m_Qsize == 0) {
-	return END_OF_STREAM;
-    }
-
-    if(m_deQstack->size()>0) {
-	return m_deQstack->peek(t);
-    }
-
-    ae = refill();
-    if(ae == NO_ERROR) {
-	return m_deQstack->peek(t);
-    }
-    return ae;
+ami::err queue<T>::dequeue(const T **t) {
+	*t = &pop();
+	return ami::NO_ERROR;
 }
 
 /////////////////////////////////////////////////////////////////////////
 
 template<class T>
-err queue<T>::trim() {
-    err ae;
-    ae = m_enQstack->trim();
-    if(ae != NO_ERROR) {
-	return ae;
-    }
-    return m_deQstack->trim(); 
+ami::err queue<T>::peek(const T **t) {
+	return front();
 }
 
-/////////////////////////////////////////////////////////////////////////
-
-//move elements from Enqueue stack to Dequeue stack
-template<class T>
-err queue<T>::refill() {
-    const T* tmp;
-    err ae;
-    
-    while((ae=m_enQstack->pop(&tmp)) == NO_ERROR){
-	ae=m_deQstack->push(*tmp);
-	if(ae != NO_ERROR) { 
-	    return ae; 
-	}
-    }
-    if(ae != END_OF_STREAM) {
-	return ae;
-    }
-    return NO_ERROR;
+namespace ami {
+	TPIE_DEPRECATED_CLASS_A(
+		template <typename T> 
+		class TPIE_DEPRECATED_CLASS_B queue: public tpie::queue<T> {
+		public:
+			queue() {}
+			queue(const std::string& basename): tpie::queue<T>(basename) {}
+		};
+	);
 }
-
-/////////////////////////////////////////////////////////////////////////
-
-template<class T>
-err queue<T>::main_memory_usage(TPIE_OS_SIZE_T *usage,
-								stream_usage usage_type) const {
-    
-    TPIE_OS_SIZE_T usage2;
-
-    //  Get the usage for the underlying stacks
-    if(m_enQstack->main_memory_usage(usage, usage_type) != NO_ERROR) {
-	TP_LOG_WARNING_ID("bte error");
-	return BTE_ERROR;
-    }
-
-    if(m_deQstack->main_memory_usage(&usage2, usage_type) != NO_ERROR) {
-	TP_LOG_WARNING_ID("bte error");
-	return BTE_ERROR;
-    }
-
-    *usage += usage2;
-
-    switch (usage_type) {
-    case STREAM_USAGE_OVERHEAD:
-    case STREAM_USAGE_CURRENT:
-    case STREAM_USAGE_MAXIMUM:
-    case STREAM_USAGE_SUBSTREAM:
-    case STREAM_USAGE_BUFFER:
-	*usage += sizeof(*this);            //  Attributes.
-
-	break;
-
-    default:
-	tp_assert(0, "Unknown mem::stream_usage type added.");
-    }
-
-    return NO_ERROR;
-}
-
-/////////////////////////////////////////////////////////////////////////
-
-    }  //  ami namespace
-
 }  //  tpie namespace
-
-#endif // _TPIE_AMI_QUEUE_H 
+#endif // __TPIE_QUEUE_H__
