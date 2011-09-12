@@ -474,12 +474,40 @@ public:
 		/// storage
 		/// \param start Iterator pointing to the first place to store an item
 		/// \param end Iterator pointing past the last place to store an item
+		/// \throws end_of_stream_exception if there are not enough elements in
+		/// the stream
 		/////////////////////////////////////////////////////////////////////////
 		template <typename IT>
 		inline void read(const IT & start, const IT & end) {
 			assert(m_file.m_open);
-			for (IT i=start; i != end; ++i)
-				*i = read();
+			IT i = start;
+			while (i != end) {
+				if (m_index >= block_items()) {
+					// check to make sure we have enough items in the stream
+					stream_size_type offs = offset();
+					if (offs >= m_file.size()
+						|| offs + (end-i) >= m_file.size()) {
+
+						throw end_of_stream_exception();
+					}
+
+					// fetch next block from disk
+					update_block();
+				}
+
+				T * src = reinterpret_cast<T*>(m_block->data) + m_index;
+
+				// either read the rest of the block or until `end'
+				memory_size_type count = std::min(block_items()-m_index, static_cast<memory_size_type>(end-i));
+
+				std::copy(src, src + count, i);
+
+				// advance output iterator
+				i += count;
+
+				// advance input position
+				m_index += count;
+			}
 		}
  	};
 };
