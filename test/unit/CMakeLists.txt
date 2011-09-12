@@ -42,7 +42,7 @@ add_unittest(disjoint_set basic memory)
 add_unittest(external_sort small)
 add_fulltest(external_sort large)
 
-add_unittest(external_stack small named)
+add_unittest(external_stack small named small-ami named-ami)
 
 add_unittest(stream basic)
 

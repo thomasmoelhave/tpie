@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
-// vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2008, The TPIE development team
+// vi:set ts=4 sts=4 sw=4 noet cino+=(0 :
+// Copyright 2008, 2011, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -27,7 +27,227 @@
 
 namespace tpie {
 
-    namespace ami {
+///////////////////////////////////////////////////////////////////
+///
+///  An implementation of an external-memory stack.
+///
+///////////////////////////////////////////////////////////////////
+
+template<class T> 
+class stack {
+
+
+public:
+   
+    ////////////////////////////////////////////////////////////////////
+    ///
+    ///   Initialize temporary stack
+    ///
+    ////////////////////////////////////////////////////////////////////
+
+    stack(); 
+
+    ////////////////////////////////////////////////////////////////////
+    ///
+    ///  Initializes the stack by (re-)opening the file given.
+    ///
+    ///  \param  path    The path to a file used for storing the items.
+    ///  \param  block_factor  The block factor to use
+    ///
+    ////////////////////////////////////////////////////////////////////
+
+    stack(const std::string& path, double block_factor=1.0);
+
+    ////////////////////////////////////////////////////////////////////
+    ///  
+    ///  Closes the underlying stream and truncates it to the logical
+    ///  end of the stack. TODO verify this behavior
+    ///
+    ////////////////////////////////////////////////////////////////////
+
+    ~stack();
+
+    ////////////////////////////////////////////////////////////////////
+    ///
+    ///  Pushes one item onto the stack. Returns ERROR_* as 
+    ///  given by the underlying stream.
+    ///
+    ///  \param  t    The item to push onto the stack.
+    ///
+    ////////////////////////////////////////////////////////////////////
+
+    inline void push(const T & t) throw(stream_exception);
+
+    ////////////////////////////////////////////////////////////////////
+    ///
+    ///  Pops one item from the stack.
+    ///
+    ////////////////////////////////////////////////////////////////////
+
+    const T & pop() throw(stream_exception); 
+
+    ////////////////////////////////////////////////////////////////////
+    ///
+    ///  Peeks at the topmost item on the stack.
+    ///
+    ////////////////////////////////////////////////////////////////////
+
+    const T & top() throw(stream_exception);
+
+    ////////////////////////////////////////////////////////////////////
+    ///  
+    ///  Returns the number of items currently on the stack.
+    ///
+    ////////////////////////////////////////////////////////////////////
+
+    stream_size_type size() const {
+		return m_file_stream.offset();
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    ///  
+    ///  Returns whether the stack is empty or not.
+    ///
+    ////////////////////////////////////////////////////////////////////
+
+    bool empty() const {
+		return (m_size == 0);
+    }
+	TPIE_DEPRECATED(bool is_empty() const);
+
+    ////////////////////////////////////////////////////////////////////
+    ///  
+    ///  Set the persistence status of the (stream underlying the) stack.
+    ///
+    ///  \param  p    A persistence status.
+    ///
+    ////////////////////////////////////////////////////////////////////
+
+    TPIE_DEPRECATED(void persist(persistence p));
+
+    ////////////////////////////////////////////////////////////////////
+    ///  
+    ///  \deprecated Does nothing.
+    ///
+    ////////////////////////////////////////////////////////////////////
+
+    TPIE_DEPRECATED(void trim());
+
+    ////////////////////////////////////////////////////////////////////
+    ///  
+    ///  Compute the memory used by a stack.
+    ///
+    ////////////////////////////////////////////////////////////////////
+
+	static memory_size_type memory_usage(float blockFactor=1.0) {
+		return sizeof(stack<T>)
+			+ file_stream<T>::memory_usage(blockFactor);
+			//+ file<T>::memory_usage() - sizeof(file<T>)
+			//+ 2*file<T>::stream::memory_usage(blockFactor) - 2*sizeof(file<T>::stream);
+	}
+
+
+    ////////////////////////////////////////////////////////////////////
+    /// \deprecated This should go as soon as all old code has been migrated.
+    ////////////////////////////////////////////////////////////////////
+    //TPIE_OS_OFFSET stream_len() const {
+	//	std::cerr << "Using AMI_stack<T>::stream_len() is deprecated." << std::endl;
+	//	return m_size;
+    //}
+
+protected:
+
+	/** The file_stream used to store the items. */
+	file_stream<T> m_file_stream;
+
+    /**  The current size of the stack (in items).  */
+    TPIE_OS_OFFSET m_size;
+
+private:
+	temp_file m_temp;
+
+};
+
+/////////////////////////////////////////////////////////////////////////
+
+template<class T>
+stack<T>::stack() : 
+	m_file_stream(),
+    m_size(0) {
+
+	m_file_stream.open(m_temp.path());
+
+}
+
+/////////////////////////////////////////////////////////////////////////
+
+template<class T>
+stack<T>::stack(const std::string& path, double block_factor) :
+	m_file_stream(block_factor),
+	m_size(0) {
+
+	m_file_stream.open(path);
+	
+	m_file_stream.seek(0, file_base::end);
+
+}
+
+/////////////////////////////////////////////////////////////////////////
+
+template<class T>
+stack<T>::~stack() {
+	m_file_stream.truncate(this->size());
+}
+
+template<class T>
+bool stack<T>::is_empty() const {
+	return empty();
+}
+
+/////////////////////////////////////////////////////////////////////////
+
+template<class T>
+void stack<T>::push(const T & t) throw(stream_exception) {
+	m_file_stream.write(t);
+}
+
+/////////////////////////////////////////////////////////////////////////
+
+template<class T>
+const T & stack<T>::pop() throw(stream_exception) {
+
+	const T & item = m_file_stream.read_back();
+
+	return item;
+
+}
+
+/////////////////////////////////////////////////////////////////////////
+
+template<class T>
+const T & stack<T>::top() throw(stream_exception) {
+
+	T item = m_file_stream.read_back();
+
+	m_file_stream.read();
+
+	return item;
+
+}
+
+/////////////////////////////////////////////////////////////////////////
+
+template<class T>
+void stack<T>::persist(persistence p) {
+	m_temp.set_persistent(p != PERSIST_DELETE);
+}
+
+template<class T>
+void stack<T>::trim() {
+	// Do nothing.
+}
+
+namespace ami {
 
 ///////////////////////////////////////////////////////////////////
 ///
@@ -43,12 +263,14 @@ public:
    
     ////////////////////////////////////////////////////////////////////
     ///
-    ///  Initializes the stack and creates an AMI_STREAM<T> for
-    ///  storing the items.
+    ///  Initializes the stack.
     ///
     ////////////////////////////////////////////////////////////////////
 
-    stack(); 
+    stack() :
+		m_ulate() {
+		// Empty ctor.
+	}
 
     ////////////////////////////////////////////////////////////////////
     ///
@@ -61,16 +283,22 @@ public:
     ////////////////////////////////////////////////////////////////////
 
     stack(const std::string& path, 
-	  stream_type type = READ_WRITE_STREAM);
+		  stream_type type = READ_WRITE_STREAM) :
+		m_ulate(path) {
+		// Empty ctor.
+		unused(type);
+	}
 
     ////////////////////////////////////////////////////////////////////
     ///  
     ///  Closes the underlying stream and truncates it to the logical
-    ///  end of the stack.
+    ///  end of the stack. TODO verify this behavior
     ///
     ////////////////////////////////////////////////////////////////////
 
-    ~stack();
+    ~stack() {
+		// Empty dtor.
+	}
 
     ////////////////////////////////////////////////////////////////////
     ///
@@ -116,7 +344,7 @@ public:
     ////////////////////////////////////////////////////////////////////
 
     TPIE_OS_OFFSET size() const {
-	return m_size;
+		return m_ulate.size();
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -126,7 +354,7 @@ public:
     ////////////////////////////////////////////////////////////////////
 
     bool is_empty() const {
-	return (m_size == 0);
+		return m_ulate.empty();
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -137,8 +365,9 @@ public:
     ///
     ////////////////////////////////////////////////////////////////////
 
-    void persist(persistence p) {
-		m_amiStream.persist(p);
+	void persist(persistence p) {
+		m_persistence = p;
+		return m_ulate.persist(p);
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -148,25 +377,21 @@ public:
     ///
     ////////////////////////////////////////////////////////////////////
 
-    persistence persist() const { 
-		return m_amiStream.persist(); 
+	persistence persist() const { 
+		return m_persistence;
     }
 
     ////////////////////////////////////////////////////////////////////
     ///  
     ///  Truncates the underlying stream to the exact size (rounded up
-    ///  to the next block) of items.
+    ///  to the next block) of items. In the current implementation,
+	///  this does nothing.
     ///
     ////////////////////////////////////////////////////////////////////
 
     err trim() {
-	//Truncate to allow room for all elements (in mem + on disk)
-	err retval = m_amiStream.truncate(m_size);
-	if(retval != NO_ERROR){
-	    return retval;
-	}
-	//Move file pointer to end of last element on disk
-	return m_amiStream.seek(m_size-m_itemsInMemory);
+		m_ulate.trim();
+		return NO_ERROR;
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -179,7 +404,7 @@ public:
     ///
     ////////////////////////////////////////////////////////////////////
 
-    err main_memory_usage(TPIE_OS_SIZE_T *usage,
+	err main_memory_usage(TPIE_OS_SIZE_T *usage,
 						  stream_usage usage_type) const;
 
 
@@ -187,106 +412,17 @@ public:
     /// \deprecated This should go as soon as all old code has been migrated.
     ////////////////////////////////////////////////////////////////////
     TPIE_OS_OFFSET stream_len() const {
-	std::cerr << "Using AMI_stack<T>::stream_len() is deprecated." << std::endl;
-	return m_size;
+		std::cerr << "Using AMI_stack<T>::stream_len() is deprecated." << std::endl;
+		return size();
     }
-
-protected:
-
-    /**  The stream used for storing the items.  */
-	stream<T> m_amiStream;
-
-    /**  The current size of the stack (in items).  */
-    TPIE_OS_OFFSET m_size;
-
-    /**  The logical block size of the underlying stream (in items).  */
-    TPIE_OS_SIZE_T m_logicalBlockSize; 
-
-    /**  The number of items currently present in memory.  */
-    TPIE_OS_SIZE_T m_itemsInMemory;
-
-    /**  Pointers to the at most two blocks of items kept in memory.  */
-	tpie::array<T> m_block[2];
 
 private:
 
-    /**  How many items should be read. (To avoid local variables.)  */
-    TPIE_OS_OFFSET toBeRead;
+	tpie::stack<T> m_ulate;
+
+	persistence m_persistence;
 
 };
-
-/////////////////////////////////////////////////////////////////////////
-
-template<class T>
-stack<T>::stack() : 
-    m_size(0),
-    m_logicalBlockSize(0),
-    m_itemsInMemory(0),
-    toBeRead(0) {
-
-    m_logicalBlockSize = m_amiStream.chunk_size();
-
-    //  Create two dummy blocks.
-    m_block[0].resize(m_logicalBlockSize);
-    m_block[1].resize(m_logicalBlockSize);
-}
-
-/////////////////////////////////////////////////////////////////////////
-
-template<class T>
-stack<T>::stack(const std::string& path, stream_type type) :
-    m_amiStream(path, type), 
-    m_size(0),
-    m_logicalBlockSize(0),
-    m_itemsInMemory(0),
-    toBeRead(0) {
-
-    //  Set the size of the stack to be the number of items present 
-    //  in the underlying stream file. 
-    m_size = m_amiStream.stream_len();
-
-    m_logicalBlockSize = m_amiStream.chunk_size();
-
-    //  Create two dummy blocks.
-    m_block[0].resize(m_logicalBlockSize);
-    m_block[1].resize(m_logicalBlockSize);
-
-    TPIE_OS_OFFSET numberOfFullBlocks = m_size / m_logicalBlockSize;
-    
-    //  Read the remainder.
-    toBeRead = m_size - (numberOfFullBlocks * m_logicalBlockSize);
-
-    //  No error checking done for the time being.
-    m_amiStream.seek(numberOfFullBlocks * m_logicalBlockSize);
-    m_amiStream.read_array(m_block[0].get(), &toBeRead);
-
-    // Put file pointer at end of last full block
-    m_amiStream.seek(m_size-toBeRead);
-
-    m_itemsInMemory = static_cast<TPIE_OS_SIZE_T>(toBeRead);
-}
-
-/////////////////////////////////////////////////////////////////////////
-
-template<class T>
-stack<T>::~stack() {
-
-    //  Unload all in-memory data to disk.
-    if (m_itemsInMemory < m_logicalBlockSize) {
-		m_amiStream.write_array(m_block[0].get(), m_itemsInMemory);
-    }
-    else { 
-		m_amiStream.write_array(m_block[0].get(), m_logicalBlockSize);
-		m_amiStream.write_array(m_block[1].get(), 
-				 m_itemsInMemory -  m_logicalBlockSize);  
-    }
-
-    //explicitly needed for correct operation of trim
-    m_itemsInMemory=0;
-    
-    //  Make sure there are no left-overs.
-    trim();
-}
 
 /////////////////////////////////////////////////////////////////////////
 
@@ -295,43 +431,16 @@ err stack<T>::push(const T &t) {
 
     err retval = NO_ERROR;
 
-    //  Do we need to flush items to disk?
-    if (m_itemsInMemory == 2*m_logicalBlockSize) {
+	try {
+		m_ulate.push(t);
+	} catch (end_of_stream_exception & e) {
+		retval = END_OF_STREAM;
+	} catch (stream_exception & e) {
+		retval = IO_ERROR;
+	}
 
-		//  Write the first block to disk.
-		retval = m_amiStream.write_array(m_block[0].get(), m_logicalBlockSize);
-		
-		if (retval != NO_ERROR) {
-			return retval;
-		}
-		
-		//  "Move" the second block to the place where the
-		//  first block used to be.
-		m_block[0].swap(m_block[1]);
-			
-		//  Decrease the number of items in main memory.
-		m_itemsInMemory -= m_logicalBlockSize;
-    }
+	return retval;
 
-    //  Check to which block to write the new element to.
-    if (m_itemsInMemory < m_logicalBlockSize) {
-		
-		//  First block.
-		(m_block[0])[m_itemsInMemory] = t;
-    }
-    else {
-		
-		//  Second block.
-		(m_block[1])[m_itemsInMemory-m_logicalBlockSize] = t;
-    }
-	
-    //  There is one more item on the stack...
-    m_size++;
-	
-    //  ...which is also kept in main memory.
-    m_itemsInMemory++;
-
-    return retval;
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -341,75 +450,19 @@ err stack<T>::pop(const T **t) {
 
     err retval = NO_ERROR;
 
-    //  Do we have items to work on?
-    if (m_size) {
+	try {
 
-	if (!m_itemsInMemory) {
+		const T & res = m_ulate.pop();
+		*t = &res;
 
-	    //  No items in memory, so try to fetch some from disk.
-	    if (m_size < TPIE_OS_OFFSET(m_logicalBlockSize)) {
-		// Can't do anything. This should not happen!
-		return GENERIC_ERROR;
-	    }
-	    else {
-
-		toBeRead = m_logicalBlockSize;
-
-		//  Seek back one full block.
-		retval = m_amiStream.seek(m_size - m_logicalBlockSize);
-
-		if (retval != NO_ERROR) {
-		    return retval;
-		}
-        
-		// Read one full block from end
-		retval = m_amiStream.read_array(m_block[0].get(),
-						 &toBeRead);
-
-		if (retval != NO_ERROR) {
-		    return retval;
-		}
-        
-		//  Seek back one full block.
-		//  Rewind stream one block again, so new blocks go at 
-		//  end of stack
-		retval = m_amiStream.seek(m_size - m_logicalBlockSize);
-
-		if (retval != NO_ERROR) {
-		    return retval;
-		}
-
-		m_itemsInMemory += m_logicalBlockSize;
-
-	    }
+	} catch (end_of_stream_exception & e) {
+		retval = END_OF_STREAM;
+	} catch (stream_exception & e) {
+		retval = IO_ERROR;
 	}
 
-	//  It is important to decrease m_itemsInMemory
-	//  at _this_ point.
-	m_itemsInMemory--;
+	return retval;
 
-	//  Check from which block to read the topmost element.
-	if (m_itemsInMemory < m_logicalBlockSize) {
-
-	    //  First block.
-	    *t = &((m_block[0])[m_itemsInMemory]);
-	}
-	else {
-
-	    //  Second block.
-	    *t = &((m_block[1])[m_itemsInMemory-m_logicalBlockSize]);
-	}
-
-	//  One item less on the stack...
-	m_size--;
-    }
-    else {
-
-	//  Not in a physical but in a logical way.
-	return END_OF_STREAM;
-    }
-
-    return retval;
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -417,13 +470,20 @@ err stack<T>::pop(const T **t) {
 template<class T>
 err stack<T>::peek(const T **t) {
 
-    err retval = pop(t);
+    err retval = NO_ERROR;
+	
+	try {
 
-    if (retval != NO_ERROR) {
+		const T & res = m_ulate.top();
+		*t = &res;
+
+	} catch (end_of_stream_exception & e) {
+		retval = END_OF_STREAM;
+	} catch (stream_exception & e) {
+		retval = IO_ERROR;
+	}
+
 	return retval;
-    }
-
-    return push(**t);
 
 }
 
@@ -433,29 +493,20 @@ template<class T>
 err stack<T>::main_memory_usage(TPIE_OS_SIZE_T *usage,
 								stream_usage usage_type) const {
     
-    //  Get the usage for the underlying stream.
-    if (m_amiStream.main_memory_usage(usage, usage_type) 
-	!= NO_ERROR) {
-
-	TP_LOG_WARNING_ID("bte error");		
-	return BTE_ERROR;
-
-    }
-    
     switch (usage_type) {
 
-	//  All these types are o.k.
+		//  All these types are o.k.
     case STREAM_USAGE_OVERHEAD:
     case STREAM_USAGE_CURRENT:
     case STREAM_USAGE_MAXIMUM:
     case STREAM_USAGE_SUBSTREAM:
-    case STREAM_USAGE_BUFFER: 
-	*usage += sizeof(*this);            //  Attributes.
-	*usage += 2 * m_logicalBlockSize * sizeof(T);   //  Two blocks.
-	break;
+    case STREAM_USAGE_BUFFER:
+		*usage = tpie::stack<T>::memory_usage();
+		*usage += sizeof(*this);
+		break;
 
     default:
-	tp_assert(0, "Unknown mem::stream_usage type added.");	
+		tp_assert(0, "Unknown mem::stream_usage type added.");	
     }
     
     return NO_ERROR;
@@ -463,7 +514,7 @@ err stack<T>::main_memory_usage(TPIE_OS_SIZE_T *usage,
 
 /////////////////////////////////////////////////////////////////////////
 
-    }  //  ami namespace
+} // ami namespace
 
 }  //  tpie namespace
 
