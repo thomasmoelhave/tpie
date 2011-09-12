@@ -446,8 +446,22 @@ public:
 		template <typename IT>
 		inline void write(const IT & start, const IT & end) {
 			assert(m_file.m_open);
-			for (IT i=start; i != end; ++i)
-				write(*i);
+			IT i = start;
+			while (i != end) {
+				if (m_index >= block_items()) update_block();
+
+				IT blockmax = start + (block_items()-m_index);
+
+				T * dest = reinterpret_cast<T*>(m_block->data) + m_index;
+
+				IT till = std::min(end, blockmax);
+
+				std::copy(i, till, dest);
+
+				m_index += till - i;
+				write_update();
+				i = till;
+			}
 		}
 
 		/////////////////////////////////////////////////////////////////////////
