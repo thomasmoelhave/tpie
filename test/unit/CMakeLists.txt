@@ -45,7 +45,7 @@ add_fulltest(external_sort large)
 
 add_unittest(external_stack small named small-ami named-ami)
 
-add_unittest(stream basic)
+add_unittest(ami_stream basic)
 
 #add_executable(test_bte test_bte.cpp)
 #set_target_properties(test_bte PROPERTIES FOLDER tpie/unittest)
