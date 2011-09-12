@@ -218,8 +218,16 @@ public:
 			assert(m_file.m_open);
 			if (whence == end)
 				offset += size();
-			else if (whence == current)
+			else if (whence == current) {
+				stream_offset_type new_index = offset+static_cast<stream_offset_type>(m_index);
+
+				if (new_index >= 0 && new_index < m_file.m_blockItems) {
+					m_index = new_index;
+					return;
+				}
+
 				offset += this->offset();
+			}
 			if (0 > offset || (stream_size_type)offset > size())
 				throw io_exception("Tried to seek out of file");
 			update_vars();
@@ -278,7 +286,7 @@ public:
 		/////////////////////////////////////////////////////////////////////////
 		inline bool can_read_back() const throw() {
 			assert(m_file.m_open);
- 			if (m_index < m_block->size) return true;
+ 			if (m_index <= m_block->size) return true;
 			if (m_nextBlock == std::numeric_limits<stream_size_type>::max())
 				return m_block->number != 0;
 			else
@@ -403,20 +411,12 @@ public:
 		/// left in the stream.  This can also be checkout with can_read_back.
 		/// \returns The item read from the stream
 		/////////////////////////////////////////////////////////////////////////
-		inline item_type & read_back() {
+		inline const item_type & read_back() {
 			assert(m_file.m_open);
-			//The first index in a block is 0, when that is read
-			// m_index will underflow and become max int
-			if (m_index >= m_block->size) {
-				if (m_nextBlock == std::numeric_limits<stream_size_type>::max()) {
-					if (m_block == 0)
-						throw end_of_stream_exception();
- 					m_nextBlock = m_block->number-1;
-					m_nextIndex = m_file.blockItems()-1;
-				}
-				update_block();
-			}
-			return reinterpret_cast<T*>(m_block->data)[m_index--];
+			seek(-1, current);
+			const item_type & i = read();
+			seek(-1, current);
+			return i;
 		}
 
 		/////////////////////////////////////////////////////////////////////////

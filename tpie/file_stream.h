@@ -151,7 +151,7 @@ public:
 	/// \copydoc file<T>::stream::read_back()
 	/// \sa file<T>::stream::read_back()
 	/////////////////////////////////////////////////////////////////////////
-	inline item_type & read_back() throw(stream_exception) {
+	inline const item_type & read_back() throw(stream_exception) {
 		return m_stream.read_back();
 	}
 
