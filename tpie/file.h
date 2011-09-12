@@ -219,11 +219,14 @@ public:
 			if (whence == end)
 				offset += size();
 			else if (whence == current) {
-				stream_offset_type new_index = offset+static_cast<stream_offset_type>(m_index);
+				// are we seeking into the current block?
+				if (offset >= 0 || static_cast<stream_size_type>(-offset) <= m_index) {
+					stream_size_type new_index = static_cast<stream_offset_type>(offset+m_index);
 
-				if (new_index >= 0 && new_index < m_file.m_blockItems) {
-					m_index = new_index;
-					return;
+					if (new_index < m_file.m_blockItems) {
+						m_index = new_index;
+						return;
+					}
 				}
 
 				offset += this->offset();
