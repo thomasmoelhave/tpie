@@ -19,6 +19,7 @@
 
 #include <tpie/portability.h>
 
+#include <tpie/memory.h>
 
 #include <tpie/progress_indicator_arrow.h>
 
