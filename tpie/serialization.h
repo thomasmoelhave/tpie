@@ -26,6 +26,7 @@
 
 #include <tpie/config.h>
 #include <tpie/portability.h>
+#include <tpie/hash_map.h>
 #include <vector>
 #include <utility>
 
@@ -53,6 +54,7 @@ struct disjunction: public _disjunction<T1::value, T2::value> {};
 struct serialization_error: public std::runtime_error {
 	explicit serialization_error(const std::string & what): std::runtime_error(what) {}
 };
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -107,9 +109,8 @@ private:
 	template <typename T>
 	void write_type() {
 		if (m_typesafe) {
-			uint16_t len=(uint16_t)strlen(typeid(T).name());
-			m_out.write((const char *)&len, sizeof(len));
-			m_out.write(typeid(T).name(), len);
+			hash<const char *> h;
+			m_out << (uint8_t)(h(typeid(T).name()) % 256);
 		}
 	}
 		
@@ -207,13 +208,13 @@ private:
 	template <typename T>
 	void check_type() {
 		if (!m_typesafe) return;
-		boost::uint16_t size;
-		m_in.read((char*)&size, sizeof(size));
-		std::string type(size, ' ');
-		m_in.read(&type[0], size);
-		if (type == typeid(T).name()) return;
+		hash<const char *> h;
+		uint8_t hash = h(typeid(T).name()) % 256;
+		uint8_t s_hash;
+		m_in >> s_hash;
+		if (s_hash == hash) return;
 		std::stringstream ss;
-		ss << "Serialization type error, got " << type << " expected " << typeid(T).name();
+		ss << "Serialization type error, input type did not match expected type:" << typeid(T).name();
 		throw serialization_error(ss.str());
 	}
 
