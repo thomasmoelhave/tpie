@@ -35,6 +35,7 @@
 #include "pq_merge_heap.h"
 #include <tpie/err.h>
 #include <tpie/stream.h>
+#include <tpie/array.h>
 
 namespace tpie {
 
