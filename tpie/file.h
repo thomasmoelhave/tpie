@@ -453,7 +453,7 @@ public:
 			while (i != end) {
 				if (m_index >= block_items()) update_block();
 
-				IT blockmax = start + (block_items()-m_index);
+				IT blockmax = i + (block_items()-m_index);
 
 				T * dest = reinterpret_cast<T*>(m_block->data) + m_index;
 
