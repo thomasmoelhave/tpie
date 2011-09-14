@@ -47,20 +47,9 @@
 
 #include <tpie/tpie_log.h>
 
-namespace tpie {
+#include <tpie/stream_usage.h>
 
-	enum stream_usage {
-	    /** Overhead of the object without the buffer */
-	    STREAM_USAGE_OVERHEAD = 1,
-	    /** Max amount ever used by a buffer */
-	    STREAM_USAGE_BUFFER,
-	    /** Amount currently in use. */
-	    STREAM_USAGE_CURRENT,
-	    /** Max amount that will ever be used. */
-	    STREAM_USAGE_MAXIMUM,
-	    /** Maximum additional amount used by each substream created. */
-	    STREAM_USAGE_SUBSTREAM
-	};
+namespace tpie {
 
     namespace ami {
 
