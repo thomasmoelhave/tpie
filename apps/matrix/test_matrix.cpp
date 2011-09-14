@@ -1,5 +1,5 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
-// vi:set ts=4 sts=4 sw=4 noet :
+// vi:set ts=8 sts=4 sw=4 noet :
 // Copyright 2008, The TPIE development team
 // 
 // This file is part of TPIE.
@@ -23,6 +23,8 @@
 // Author: Darren Vengroff <darrenv@eecs.umich.edu>
 // Created: 12/11/94
 //
+
+#include <tpie/tpie.h>
 
 #include <tpie/portability.h>
 
@@ -94,6 +96,8 @@ int main(int argc, char **argv)
 
     test_size = 128 * 1024;
 
+    tpie_init();
+    
     parse_args(argc, argv, app_opts, parse_app_opts);
 
     if (verbose) {
@@ -103,7 +107,7 @@ int main(int argc, char **argv)
     } else {
         std::cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ';
     }
-    
+
     // Set the amount of main memory:
     get_memory_manager().set_limit (test_mm_size);
 
@@ -190,6 +194,8 @@ int main(int argc, char **argv)
     if (report_results_final) {
         ae = ami::scan(&em2, rptf);
     }
+
+    tpie_finish();
     
     return 0;
 }

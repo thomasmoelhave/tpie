@@ -23,6 +23,8 @@
 // Created: 12/11/94
 //
 
+#include <tpie/tpie.h>
+
 #include <tpie/portability.h>
 
 #include "app_config.h"        
@@ -91,6 +93,8 @@ int main(int argc, char **argv) {
 
     test_size = 128 * 1024;
 
+    tpie_init();
+    
     parse_args(argc, argv, app_opts, parse_app_opts);
 
     if (verbose) {
@@ -197,6 +201,8 @@ int main(int argc, char **argv) {
         }
 
     }
+    
+    tpie_finish();
     
     return 0;
 }
