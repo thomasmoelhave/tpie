@@ -445,6 +445,10 @@ private:
 	    // *sub_stream = ami_ss;
     
 	    // return retval;
+		unused(st);
+		unused(sub_begin);
+		unused(sub_end);
+		unused(sub_stream);
 		return BTE_ERROR;
 	}
 

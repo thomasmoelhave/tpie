@@ -68,7 +68,7 @@ bool testSer(bool safe) {
 	return true;
 }
 
-int main(int argc, char **argv) {
+int main() {
 
 	//if(argc != 2) return 1;
 	//std::string test(argv[1]);
