@@ -29,18 +29,18 @@ static const TPIE_OS_SIZE_T mm_avail = 32*1024*1024;
 
 //const size_t size=1024*1024/sizeof(uint64_t);
 
-void pqtest_elements(size_t elems, TPIE_OS_SIZE_T mm_avail) {
+void pqtest_elements(size_t elems, TPIE_OS_SIZE_T mm_avail, double blockFactor = 1.0) {
 	test_realtime_t start;
 	test_realtime_t begin; // after ctor
 	test_realtime_t push; // after pushing
 	test_realtime_t pop; // after popping
 	test_realtime_t end; // after dtor
 
-	std::cout << elems << " ";
+	std::cout << blockFactor << " " << elems << " ";
 	std::cout.flush();
 	getTestRealtime(start);
 	{
-		tpie::ami::priority_queue<uint64_t> pq(mm_avail);
+		tpie::ami::priority_queue<uint64_t> pq(mm_avail, blockFactor);
 		getTestRealtime(begin);
 		for (size_t el = 0; el < elems; ++el) {
 			pq.push(4373 + 7879*el);
@@ -75,7 +75,7 @@ int main(int argc, char **argv) {
 	if (argc < 2) {
 		TPIE_OS_SIZE_T memory = mm_avail;
 		std::cout << "Memory: " << memory << " available, " << memlimit << " limit" << std::endl;
-		std::cout << "Elems Push Pop Total" << std::endl;
+		std::cout << "Blockfact Elems Push Pop Total" << std::endl;
 
 		size_t base = 64*1024;
 		const size_t times = 4;
@@ -87,8 +87,18 @@ int main(int argc, char **argv) {
 			base *= 2;
 		}
 	} else { // argc > 2
+		bool blockFactorTest = false;
+		double blockFactor = 1.0;
 		size_t times, elements;
 		TPIE_OS_SIZE_T memory = mm_avail;
+		if (std::string(argv[1]) == "-b") {
+			++argv; --argc;
+			std::stringstream(argv[1]) >> blockFactor;
+			++argv; --argc;
+		} else if (std::string(argv[1]) == "-B") {
+			++argv; --argc;
+			blockFactorTest = true;
+		}
 		std::stringstream(argv[1]) >> times;
 		std::stringstream(argv[2]) >> elements;
 		if (argc > 3) {
@@ -103,10 +113,17 @@ int main(int argc, char **argv) {
 			return EXIT_FAILURE;
 		}
 		std::cout << "Memory: " << memory << " available, " << memlimit << " limit" << std::endl;
-		std::cout << "Elems Push Pop Total" << std::endl;
+		std::cout << times << " times, " << elements << " elements" << std::endl;
+		if (blockFactorTest)
+			std::cout << "Block factor test." << std::endl;
+		std::cout << "Blockfact Elems Push Pop Total" << std::endl;
+
+		if (times == 0) {
+			blockFactorTest = false;
+		}
 
 		for (size_t i = 0; i < times || times == 0; ++i) {
-			pqtest_elements(elements, memory);
+			pqtest_elements(elements, memory, blockFactorTest ? (1.0+i)/times : blockFactor);
 		}
 	}
 

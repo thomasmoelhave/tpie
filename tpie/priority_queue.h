@@ -63,9 +63,10 @@ public:
     ///
     /// \param f Factor of memory that the priority queue is 
     /// allowed to use.
+	/// \param b Block factor
     ///
     /////////////////////////////////////////////////////////
-    priority_queue(double f=1.0);
+    priority_queue(double f=1.0, double b=1.0);
 
 	/////////////////////////////////////////////////////////
     ///
@@ -73,9 +74,10 @@ public:
     ///
     /// \param mmavail Number of bytes the priority queue is
     /// allowed to use.
+	/// \param b Block factor
     ///
     /////////////////////////////////////////////////////////
-    priority_queue(TPIE_OS_SIZE_T mm_avail);
+    priority_queue(TPIE_OS_SIZE_T mm_avail, double b=1.0);
 
 
     /////////////////////////////////////////////////////////
@@ -165,6 +167,8 @@ private:
     TPIE_OS_OFFSET m_size;
     TPIE_OS_SIZE_T buffer_size;
     TPIE_OS_SIZE_T buffer_start;
+
+	double block_factor;
 
     //////////////////
     // TPIE wrappers

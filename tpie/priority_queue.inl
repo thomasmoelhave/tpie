@@ -18,8 +18,10 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
 template<typename T, typename Comparator, typename OPQType>
-priority_queue<T, Comparator, OPQType>::priority_queue(double f) { // constructor mem fraction
+priority_queue<T, Comparator, OPQType>::priority_queue(double f, double b) :
+block_factor(b) { // constructor mem fraction
 	assert(f<= 1.0 && f > 0);
+	assert(b > 0.0);
 	TPIE_OS_SIZE_T mm_avail = consecutive_memory_available();
 	TP_LOG_DEBUG("priority_queue: Memory limit: " 
 		<< static_cast<TPIE_OS_OUTPUT_SIZE_T>(mm_avail/1024/1024) << "mb("
@@ -29,8 +31,10 @@ priority_queue<T, Comparator, OPQType>::priority_queue(double f) { // constructo
 }
 
 template<typename T, typename Comparator, typename OPQType>
-priority_queue<T, Comparator, OPQType>::priority_queue(TPIE_OS_SIZE_T mm_avail) { // constructor absolute mem
+priority_queue<T, Comparator, OPQType>::priority_queue(TPIE_OS_SIZE_T mm_avail, double b) :
+block_factor(b) { // constructor absolute mem
 	assert(mm_avail <= get_memory_manager().limit() && mm_avail > 0);
+	assert(b > 0.0);
 	TP_LOG_DEBUG("priority_queue: Memory limit: " 
 				 << static_cast<TPIE_OS_OUTPUT_SIZE_T>(mm_avail/1024/1024) << "mb("
 				 << static_cast<TPIE_OS_OUTPUT_SIZE_T>(mm_avail) << "bytes)" << "\n");
@@ -343,7 +347,7 @@ void priority_queue<T, Comparator, OPQType>::dump() {
 			TP_LOG_DEBUG("\n");
 		} else {  
 			// output group buffer contents
-			file_stream<T> instream;
+			file_stream<T> instream(block_factor);
 			instream.open(group_data(i));
 			TPIE_OS_OFFSET k = 0;
 			if(group_size(i) > 0) {
@@ -363,7 +367,7 @@ void priority_queue<T, Comparator, OPQType>::dump() {
 					<< static_cast<TPIE_OS_OUTPUT_SIZE_T>(slot_size(j)) 
 					<< " start: " << slot_start(j) << "):");
 
-			file_stream<T> instream;
+			file_stream<T> instream(block_factor);
 			instream.open(slot_data(j));
 			TPIE_OS_OFFSET k;
 			for(k = 0; k < slot_start(j)+slot_size(j); k++) {
@@ -447,15 +451,16 @@ void priority_queue<T, Comparator, OPQType>::fill_buffer() {
 
 	pq_merge_heap<T, Comparator> heap(current_r);
 
-	tpie::array<file_stream<T> > data(current_r);
+	tpie::array<tpie::auto_ptr<file_stream<T> > > data(current_r);
 	for(TPIE_OS_SIZE_T i = 0; i<current_r; i++) {
+		data[i].reset(tpie_new<file_stream<T> >(block_factor));
 		if(i == 0 && group_size(i)>0) {
 			heap.push(gbuffer0[group_start(0)], 0);
 		} else if(group_size(i)>0) {
-			data[i].open(group_data(i));
+			data[i]->open(group_data(i));
 			//      assert(slot_size(group*setting_k+i>0));
-			data[i].seek(group_start(i));
-			heap.push(data[i].read(), i);
+			data[i]->seek(group_start(i));
+			heap.push(data[i]->read(), i);
 		} else if(i > 0) {
 			// dummy, well :o/
 			//cout << "create dummy " << i << "\n";
@@ -465,9 +470,9 @@ void priority_queue<T, Comparator, OPQType>::fill_buffer() {
 
 	while(!heap.empty() && buffer_size!=setting_mmark) {
 		TPIE_OS_SIZE_T current_group = heap.top_run();
-		if(current_group!= 0 && data[current_group].offset() == TPIE_OS_OFFSET(setting_m)) {
+		if(current_group!= 0 && data[current_group]->offset() == TPIE_OS_OFFSET(setting_m)) {
 			//cout << "fill group seeking to 0" << "\n";
-			data[current_group].seek(0);
+			data[current_group]->seek(0);
 		}
 		buffer[(buffer_size+buffer_start)%setting_m] = heap.top();
 		buffer_size++;
@@ -483,7 +488,7 @@ void priority_queue<T, Comparator, OPQType>::fill_buffer() {
 				//cout << gbuffer0[group_start(0)] << "\n";
 				heap.pop_and_push(gbuffer0[group_start(0)], 0);
 			} else {
-				heap.pop_and_push(data[current_group].read(), current_group);
+				heap.pop_and_push(data[current_group]->read(), current_group);
 			}
 		}
 	}
@@ -528,19 +533,21 @@ void priority_queue<T, Comparator, OPQType>::fill_group_buffer(TPIE_OS_SIZE_T gr
 
 		//Create streams for the non-empty slots and initialize
 		//internal heap with one element per slot
-		tpie::array<file_stream<T> > data(setting_k);
+		tpie::array<tpie::auto_ptr<file_stream<T> > > data(setting_k);
 		for(TPIE_OS_SIZE_T i = 0; i<setting_k; i++) {
+
+			data[i].reset(tpie_new<file_stream<T> >(block_factor));
 
 			if(slot_size(group*setting_k+i)>0) {
 				//slot is non-empry, opening stream
 				TPIE_OS_SIZE_T slotid = group*setting_k+i;
-				data[i].open(slot_data(slotid));
+				data[i]->open(slot_data(slotid));
 
 				//seek to start of slot
-				data[i].seek(slot_start(slotid));
+				data[i]->seek(slot_start(slotid));
 
 				//push first item of slot on the stream
-				heap.push(data[i].read(), slotid);
+				heap.push(data[i]->read(), slotid);
 			}
 		}
 
@@ -572,7 +579,7 @@ void priority_queue<T, Comparator, OPQType>::fill_group_buffer(TPIE_OS_SIZE_T gr
 			if(slot_size(current_slot) == 0) {
 				heap.pop();
 			} else {
-				heap.pop_and_push(data[current_slot-group*setting_k].read(), current_slot);
+				heap.pop_and_push(data[current_slot-group*setting_k]->read(), current_slot);
 			}
 		}
 
@@ -678,17 +685,18 @@ void priority_queue<T, Comparator, OPQType>::empty_group(TPIE_OS_SIZE_T group) {
 	newstream.open(slot_data(newslot));
 	pq_merge_heap<T, Comparator> heap(setting_k);
 
-	tpie::array<file_stream<T> > data(setting_k);
+	tpie::array<tpie::auto_ptr<file_stream<T> > > data(setting_k);
 	for(TPIE_OS_SIZE_T i = 0; i<setting_k; i++) {
-		data[i].open(slot_data(group*setting_k+i));
+		data[i].reset(tpie_new<file_stream<T> >(block_factor));
+		data[i]->open(slot_data(group*setting_k+i));
 		if(slot_size(group*setting_k+i) == 0) {
 			//      std::cout << "no need to emtpy group "<<group<<", slot: " << group*setting_k+i << " is empty" << "\n";
 			ret = true;
 			break;
 		}
 		assert(slot_size(group*setting_k+i)>0);
-		data[i].seek(slot_start(group*setting_k+i));
-		heap.push(data[i].read(), group*setting_k+i);
+		data[i]->seek(slot_start(group*setting_k+i));
+		heap.push(data[i]->read(), group*setting_k+i);
 	}
 	//cout << "init done" << "\n";
 
@@ -702,11 +710,9 @@ void priority_queue<T, Comparator, OPQType>::empty_group(TPIE_OS_SIZE_T group) {
 		if(slot_size(current_slot) == 0) {
 			heap.pop();
 		} else {
-			heap.pop_and_push(data[current_slot-group*setting_k].read(), current_slot);
+			heap.pop_and_push(data[current_slot-group*setting_k]->read(), current_slot);
 		}
 	}
-
-	data.resize(0);
 
 	assert(mergebuffer==NULL);
 	mergebuffer = tpie_new_array<T>(setting_m*2);;
