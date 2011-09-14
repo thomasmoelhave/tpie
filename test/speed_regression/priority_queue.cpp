@@ -25,7 +25,7 @@
 
 using namespace tpie::test;
 
-static const TPIE_OS_SIZE_T mm_avail = 16*1024*1024;
+static const TPIE_OS_SIZE_T mm_avail = 32*1024*1024;
 
 //const size_t size=1024*1024/sizeof(uint64_t);
 
@@ -77,8 +77,14 @@ int main(int argc, char **argv) {
 		std::cout << "Memory: " << memory << " available, " << memlimit << " limit" << std::endl;
 		std::cout << "Elems Push Pop Total" << std::endl;
 
-		for (size_t elements = 1024;; elements *= 2) {
-			pqtest_elements(elements, memory);
+		size_t base = 64*1024;
+		const size_t times = 4;
+		while (true) {
+			const size_t end = base*2;
+			for (size_t elements = base; elements < end; elements += base/times) {
+				pqtest_elements(elements, memory);
+			}
+			base *= 2;
 		}
 	} else { // argc > 2
 		size_t times, elements;
