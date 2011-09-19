@@ -45,6 +45,8 @@ add_fulltest(external_sort large)
 
 add_unittest(external_stack small named small-ami named-ami)
 
+add_unittest(external_queue basic medium)
+
 add_unittest(stream basic)
 
 add_unittest(ami_stream basic)
