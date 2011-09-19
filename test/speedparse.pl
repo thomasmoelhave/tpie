@@ -20,6 +20,15 @@
 use warnings;
 use strict;
 
+my $pq = 0;
+
+while (@ARGV) {
+    if ($ARGV[0] eq '--pq') {
+	shift @ARGV;
+	$pq = 1;
+    }
+}
+
 my %tests = (
     sort => qr/test_ami_sort\D*(\d+)/,
     pq => qr/speed_regression\/pq_speed_test \d+ (\d+)/,
@@ -38,25 +47,39 @@ INPUT: while (1) {
     }
     last INPUT unless defined $_;
 
-    # First line contains the test name
-    my $testline = <>;
     my $test = ['', undef];
-    for (keys %tests) {
-        if ($testline =~ $tests{$_}) {
-            $test = [$_, $1];
-            last;
-        }
-    }
-    $test = ['', undef] unless defined $test;
+    my $dir = '';
 
-    # Second line contains the build name
-    my $dirline = <>;
-    my $dir = ['', undef];
-    for (keys %dirs) {
-        if ($dirline =~ $dirs{$_}) {
-            $dir = $_;
-            last;
-        }
+    if ($pq) {
+	# First line contains block size
+	my $bs = <>;
+	if ($bs =~ /Block size: (\d+(?:\.\d+)?)/) {
+	    $dir = $1;
+	} else {
+	    $dir = 'unknown';
+	}
+	$test = ['pq', ''];
+
+    } else {
+
+	# First line contains the test name
+	my $testline = <>;
+	for (keys %tests) {
+	    if ($testline =~ $tests{$_}) {
+		$test = [$_, $1];
+		last;
+	    }
+	}
+	$test = ['', undef] unless defined $test;
+
+	# Second line contains the build name
+	my $dirline = <>;
+	for (keys %dirs) {
+	    if ($dirline =~ $dirs{$_}) {
+		$dir = $_;
+		last;
+	    }
+	}
     }
 
     # Do some test-specific input parsing
@@ -69,12 +92,15 @@ INPUT: while (1) {
 
 	# Seek to result header
         while (<>) {
+	    if ($pq && /\d+ times, (\d+) elements/) {
+		$test->[1] = $1;
+	    }
             last if /Elems Push Pop Total/;
         }
 
 	# Read times
         while (<>) {
-            last unless /(\d+) (\d+) (\d+) (\d+)/;
+            last unless /\S+ (\d+) (\d+) (\d+) (\d+)/;
             $pushx += $2;
             ++$pushn;
             $popx += $3;
