@@ -39,7 +39,7 @@ bool sort_test(size_t size) {
 
 	mystream.seek(0);
 
-	size_t * x;
+	size_t * x = 0;
 	for(size_t i=0; i < s; ++i) {
 		mystream.read_item( &x );
 		if (*x != i) return false;

@@ -43,7 +43,7 @@ bool ami_named_stack_test() {
 		ami::stack<size_t> s("temp_stack");
 		const size_t size= 1234;
 		for(size_t i=size-1; i >= 1; --i) {
-			const size_t * x;
+			const size_t * x = 0;
 			s.pop(&x);
 			if (*x != i) return false;
 		}
@@ -88,7 +88,7 @@ bool ami_stack_test(size_t size) {
   size_t o=i-1;
   for(size_t _=0; _ < size; ++_) {
     s.push(i) ;
-    const size_t * x;
+    const size_t * x = 0;
     s.pop(&x);
     if (*x != i) {
       std::cerr << "Wrong element" << std::endl;
@@ -103,7 +103,7 @@ bool ami_stack_test(size_t size) {
   }
 
   for(size_t _=0; _ < size; ++_) {
-    const size_t * x;
+    const size_t * x = 0;
     s.pop(&x);
     if (*x != o) {
       std::cerr << "Wrong element 2" << std::endl;
