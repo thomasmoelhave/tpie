@@ -84,21 +84,32 @@ public:
 	/// \brief Enqueue an item
 	/// \param t The item to be enqueued
 	////////////////////////////////////////////////////////////////////
-	inline void push(const T & t) {m_back.write(t);}
+	inline void push(const T & t) {
+		m_back.write(t);
+		++m_size;
+	}
 	TPIE_DEPRECATED(ami::err enqueue(const T &t));
 	
 	////////////////////////////////////////////////////////////////////
 	/// \brief Dequeues an item
 	/// \return The dequeued item
 	////////////////////////////////////////////////////////////////////
-	const T & pop() {return m_front.read();}
+	const T & pop() {
+		const T & el = m_front.read();
+		--m_size;
+		return el;
+	}
 	TPIE_DEPRECATED(ami::err dequeue(const T **t));
 
 	////////////////////////////////////////////////////////////////////
 	/// \brief Returns at the frontmost item in the queue
 	/// \return The front most item in the queue
 	////////////////////////////////////////////////////////////////////
-	const T & front() {m_front.peek();}
+	const T & front() {
+		const T & el = m_front.read();
+		m_front.seek(-1, file_base::current);
+		return el;
+	}
 	TPIE_DEPRECATED(ami::err peek(const T **t));
 
 	////////////////////////////////////////////////////////////////////
