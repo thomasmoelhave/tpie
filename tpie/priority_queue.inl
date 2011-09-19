@@ -511,7 +511,7 @@ void priority_queue<T, Comparator, OPQType>::fill_group_buffer(TPIE_OS_SIZE_T gr
 
 		//group output stream, not used if group==0 in this case 
 		//the in-memory gbuffer0 is used
-		file_stream<T> out;
+		file_stream<T> out(block_factor);
 		out.open(group_data(group));
 		if(group > 0) {
 			try {
@@ -681,7 +681,7 @@ void priority_queue<T, Comparator, OPQType>::empty_group(TPIE_OS_SIZE_T group) {
 	tpie_delete_array(mergebuffer, setting_m*2);
 	mergebuffer=NULL;
 
-	file_stream<T> newstream;
+	file_stream<T> newstream(block_factor);
 	newstream.open(slot_data(newslot));
 	pq_merge_heap<T, Comparator> heap(setting_k);
 
@@ -1008,7 +1008,7 @@ void priority_queue<T, Comparator, OPQType>::write_slot(TPIE_OS_SIZE_T slotid, T
 	assert(len > 0);
 	//cout << "write slot " << slotid << " " << len << "\n";
 	//cout << "write slot " << slot_data(slotid) << "\n";
-	file_stream<T> data;
+	file_stream<T> data(block_factor);
 	data.open(slot_data(slotid));
 	//cout << "write slot new done" << "\n";
 	TPIE_OS_SIZE_T l = static_cast<TPIE_OS_SIZE_T>(len);
