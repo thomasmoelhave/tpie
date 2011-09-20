@@ -147,7 +147,7 @@ void queue<T>::persist(persistence p) {
 
 template<class T>
 queue<T>::queue(const std::string& basename, double blockFactor): 
-	m_temp(basename), m_size(0), m_file(blockFactor), m_front(m_file), m_back(m_file) {
+	m_temp(basename), m_size(0), m_file(blockFactor), m_back(m_file), m_front(m_file) {
 	m_temp.set_persistent(true);
 	m_file.open(basename, file_base::read_write, sizeof(stream_size_type) );
 	if (m_file.size() != 0) {

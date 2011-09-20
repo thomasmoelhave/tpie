@@ -33,6 +33,7 @@
 #else ////WIN32
 #include <tpie/file_accessor/win32.h>
 #endif //WIN32
+#include <boost/intrusive/list.hpp>
 
 namespace tpie {
 
@@ -48,12 +49,11 @@ typedef tpie::file_accessor::win32 default_file_accessor;
 
 class file_base {
 protected:
-	struct block_t {
+	struct block_t : public boost::intrusive::list_base_hook<> {
 		memory_size_type size;
 		memory_size_type usage;
 		stream_size_type number;
 		bool dirty;
- 		block_t * next;
 		char data[0];
 	};
 public:
@@ -337,8 +337,8 @@ protected:
 	memory_size_type m_itemSize;
 private:
 	//TODO this should realy be a hash map
-	block_t * m_firstUsed;
-	block_t* m_firstFree;
+	boost::intrusive::list<block_t> m_used;
+	boost::intrusive::list<block_t> m_free;
 	file_accessor::file_accessor * m_fileAccessor;
 };
 
@@ -385,9 +385,17 @@ public:
  		inline item_type & read_mutable() {
 			assert(m_file.m_open);
 			if (m_index >= m_block->size) {
-				update_block();
+				// if several streams are reading/writing the same buffered
+				// block, m_file.m_size isn't updated
+
+				// refresh m_file.m_size
+				update_vars();
+
 				if (offset() >= m_file.size())
 					throw end_of_stream_exception();
+
+				// otherwise, we're at a block boundary.
+				update_block();
 			}
 			return reinterpret_cast<T*>(m_block->data)[m_index++];
 		}
