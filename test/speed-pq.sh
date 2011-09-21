@@ -17,27 +17,21 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-PQITEMS=67108864
+PQITEMS=46976204800 # 350 GB uint64_t's
 PQMEMORY=50331648
-TIMES=4
 
-while true; do
+rm -rf testspeed
 
-  prog='/home/rav/work/tpie/Release/test/speed_regression/pq_speed_test -b $bs $TIMES $PQITEMS $PQMEMORY'
-
-  for bs in 0.0625 0.125 0.25 0.5 0.75 1.0; do
-    echo '==============================================================================='
-    echo 'BEGIN TEST'
-    echo "Block size: $bs"
-    echo
-    mkdir testspeed
-    cd testspeed
-    eval "time $prog"
-    cd ..
-    rm -rf testspeed
-    echo
-    echo 'END TEST'
-  done
-
-  PQITEMS=`echo "2*$PQITEMS"|bc`
+for bs in 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1.0; do
+  echo '==============================================================================='
+  echo 'BEGIN TEST'
+  echo "Block size: $bs"
+  echo
+  mkdir testspeed
+  cd testspeed
+  /home/rav/work/tpie/Release/test/speed_regression/pq_speed_test -b $bs 1 $PQITEMS $PQMEMORY 2>&1
+  cd ..
+  rm -rf testspeed
+  echo
+  echo 'END TEST'
 done
