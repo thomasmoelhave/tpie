@@ -46,7 +46,7 @@ template <>
 struct hash<const char *> {
 	inline size_t operator()(const char * s) const {
 		uint32_t r = 1;
-		for(int i=0; i< strlen(s); i++){
+		for(int i=0; s[i]; i++){
 			r = r*13+s[i]*7;
 		}
 		return r;
