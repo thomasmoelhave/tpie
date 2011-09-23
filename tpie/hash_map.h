@@ -42,6 +42,25 @@ struct hash<std::pair<T1,T2> > {
 	}	
 };
 
+template <>
+struct hash<const char *> {
+	inline size_t operator()(const char * s) const {
+		uint32_t r = 1;
+		for(int i=0; s[i]; i++){
+			r = r*13+s[i]*7;
+		}
+		return r;
+	}
+};
+
+template <>
+struct hash<std::string> {
+	hash<const char * > h;
+	inline size_t operator()(const std::string & s) const {
+		return h(s.c_str());
+	}
+};
+
 template <typename value_t, typename hash_t, typename equal_t, typename index_t>
 class chaining_hash_table {
 private:
