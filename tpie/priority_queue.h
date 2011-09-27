@@ -51,9 +51,11 @@ namespace tpie {
 ///  \class priority_queue
 ///  \author Lars Hvam Petersen
 ///
-///  Inspiration: Sanders - Fast priority queues for cached memory
+///  Inspiration: Sanders - Fast priority queues for cached memory (1999)
+///  Refer to Section 2 and Figure 1 for an overview of the algorithm
 ///
 /////////////////////////////////////////////////////////
+
 template<typename T, typename Comparator = std::less<T>, typename OPQType = pq_overflow_heap<T, Comparator> >
 class priority_queue {
 public:
@@ -150,10 +152,10 @@ private:
     T min;
     bool min_in_buffer;
 
-	tpie::auto_ptr<OPQType> opq;
-    T* buffer; // deletion buffer
-    T* gbuffer0; // group buffer 0
-    T* mergebuffer; // merge buffer
+	tpie::auto_ptr<OPQType> opq; // insert heap
+	tpie::array<T> buffer; // deletion buffer
+	tpie::array<T> gbuffer0; // group buffer 0
+	tpie::array<T> mergebuffer; // merge buffer for merging deletion buffer and group buffer 0
 	tpie::array<TPIE_OS_OFFSET> slot_state;
 	tpie::array<TPIE_OS_OFFSET> group_state;
 
