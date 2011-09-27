@@ -22,14 +22,15 @@
 #include <tpie/priority_queue.h>
 #include <iostream>
 #include "testtime.h"
+#include <tpie/progress_indicator_arrow.h>
 
 using namespace tpie::test;
 
-static const TPIE_OS_SIZE_T mm_avail = 32*1024*1024;
-
 //const size_t size=1024*1024/sizeof(uint64_t);
 
-void pqtest_elements(size_t elems, TPIE_OS_SIZE_T mm_avail, double blockFactor = 1.0) {
+const TPIE_OS_SIZE_T defmemory = 750*1024*1024;
+
+void pqtest_elements(size_t elems, double blockFactor = 1.0, tpie::progress_indicator_arrow *progress = 0) {
 	test_realtime_t start;
 	test_realtime_t begin; // after ctor
 	test_realtime_t push; // after pushing
@@ -40,15 +41,21 @@ void pqtest_elements(size_t elems, TPIE_OS_SIZE_T mm_avail, double blockFactor =
 	std::cout.flush();
 	getTestRealtime(start);
 	{
-		tpie::ami::priority_queue<uint64_t> pq(mm_avail, blockFactor);
+		tpie::ami::priority_queue<uint64_t> pq(1.0, blockFactor);
 		getTestRealtime(begin);
 		for (size_t el = 0; el < elems; ++el) {
+			if (progress != 0)
+				progress->step();
+
 			pq.push(4373 + 7879*el);
 		}
 		getTestRealtime(push);
 		std::cout << testRealtimeDiff(begin, push) << " ";
 		std::cout.flush();
 		for (size_t el = 0; el < elems; ++el) {
+			if (progress != 0)
+				progress->step();
+
 			pq.pop();
 		}
 		getTestRealtime(pop);
@@ -64,8 +71,6 @@ void usage() {
 
 int main(int argc, char **argv) {
 	tpie::tpie_init();
-	TPIE_OS_SIZE_T memlimit = 50*1024*1024;
-	tpie::get_memory_manager().set_limit(memlimit);
 
 	if (argc == 2) {
 		usage();
@@ -73,8 +78,9 @@ int main(int argc, char **argv) {
 	}
 
 	if (argc < 2) {
-		TPIE_OS_SIZE_T memory = mm_avail;
-		std::cout << "Memory: " << memory << " available, " << memlimit << " limit" << std::endl;
+		TPIE_OS_SIZE_T memory = defmemory;
+		tpie::get_memory_manager().set_limit(memory);
+		std::cout << "Memory limit: " << memory << std::endl;
 		std::cout << "Blockfact Elems Push Pop Total" << std::endl;
 
 		size_t base = 64*1024;
@@ -82,7 +88,7 @@ int main(int argc, char **argv) {
 		while (true) {
 			const size_t end = base*2;
 			for (size_t elements = base; elements < end; elements += base/times) {
-				pqtest_elements(elements, memory);
+				pqtest_elements(elements);
 			}
 			base *= 2;
 		}
@@ -90,7 +96,7 @@ int main(int argc, char **argv) {
 		bool blockFactorTest = false;
 		double blockFactor = 1.0;
 		size_t times, elements;
-		TPIE_OS_SIZE_T memory = mm_avail;
+		TPIE_OS_SIZE_T memory = defmemory;
 		if (std::string(argv[1]) == "-b") {
 			++argv; --argc;
 			std::stringstream(argv[1]) >> blockFactor;
@@ -99,6 +105,12 @@ int main(int argc, char **argv) {
 			++argv; --argc;
 			blockFactorTest = true;
 		}
+		bool use_progress = false;
+		if (std::string(argv[1]) == "--progress") {
+			use_progress = true;
+			++argv; --argc;
+		}
+		tpie::auto_ptr<tpie::progress_indicator_arrow> progress;
 		std::stringstream(argv[1]) >> times;
 		std::stringstream(argv[2]) >> elements;
 		if (argc > 3) {
@@ -112,18 +124,26 @@ int main(int argc, char **argv) {
 			usage();
 			return EXIT_FAILURE;
 		}
-		std::cout << "Memory: " << memory << " available, " << memlimit << " limit" << std::endl;
+		tpie::get_memory_manager().set_limit(memory);
+		std::cout << "Memory limit: " << memory << std::endl;
 		std::cout << times << " times, " << elements << " elements" << std::endl;
 		if (blockFactorTest)
 			std::cout << "Block factor test." << std::endl;
-		std::cout << "Blockfact Elems Push Pop Total" << std::endl;
+		if (!use_progress)
+			std::cout << "Blockfact Elems Push Pop Total" << std::endl;
 
 		if (times == 0) {
 			blockFactorTest = false;
 		}
 
 		for (size_t i = 0; i < times || times == 0; ++i) {
-			pqtest_elements(elements, memory, blockFactorTest ? (1.0+i)/times : blockFactor);
+			if (use_progress)
+				progress.reset(tpie::tpie_new<tpie::progress_indicator_arrow>("Priority queue speed test", elements*2));
+			pqtest_elements(elements, blockFactorTest ? (1.0+i)/times : blockFactor, use_progress ? progress.get() : 0);
+			if (use_progress) {
+				progress.reset(0);
+				std::cout << std::endl;
+			}
 		}
 	}
 
