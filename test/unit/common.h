@@ -68,6 +68,7 @@ class memory_test {
 public:
 	virtual void free() = 0;
 	virtual void alloc() = 0;
+	virtual void use() {}
 	virtual tpie::size_type claimed_size() = 0;
 	bool operator()() {
 		bool res=true;
@@ -76,6 +77,8 @@ public:
 		memory_monitor mm;
 		mm.begin();
 		alloc();
+		mm.sample();
+		use();
 		mm.sample();
 		if (mm.usage() > g) {
 			std::cerr << "Claimed to use " << g << " but used " << mm.usage() << std::endl;
