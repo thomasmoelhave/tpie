@@ -73,6 +73,7 @@ set (OTHER_HEADERS
 		logstream.h
 		mergeheap.h
 		memory.h
+		memory.inl
 		persist.h
 		portability.h
 		internal_priority_queue.h
