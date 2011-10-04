@@ -384,11 +384,17 @@ public:
 		/////////////////////////////////////////////////////////////////////////
  		inline item_type & read_mutable() {
 			assert(m_file.m_open);
-			if (m_index >= m_block->size) {
-				// if several streams are reading/writing the same buffered
-				// block, m_file.m_size isn't updated
 
-				// refresh m_file.m_size
+			// if we have just seeked or we're reading for the first time,
+			// read the new block from disk
+			if (m_index == std::numeric_limits<memory_size_type>::max())
+				update_block();
+
+			if (m_index >= m_block->size) {
+				// if several streams are reading/writing the same buffer,
+				// m_file.m_size isn't updated.
+
+				// refresh m_file.m_size.
 				update_vars();
 
 				if (offset() >= m_file.size())
