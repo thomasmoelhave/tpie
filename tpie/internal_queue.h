@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
-// vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2010, The TPIE development team
+// vi:set ts=4 sts=4 sw=4 noet cino+=(0 :
+// Copyright 2010, 2011, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -25,18 +25,18 @@
 ///////////////////////////////////////////////////////////////////////////
 #include <tpie/array.h>
 #include <tpie/util.h>
+#include <tpie/tpie_assert.h>
 
 namespace tpie {
 
 /////////////////////////////////////////////////////////
-/// \brief A generic internal queue
+/// \brief A generic internal circular queue
 ///
-/// The queue supports a fixed number of pushes between
-/// calls to clear, the number of pushes is given as an argument
-/// to the constructructor or to resize. This means that the
-/// queue does NOT imprement a ring buffer.
+/// The queue supports a fixed number of unpopped elements between
+/// calls to clear. The number of elements is given as an argument
+/// to the constructor or to resize.
 ///
-/// \tparam T The type of items storred in the queue
+/// \tparam T The type of items stored in the queue
 /////////////////////////////////////////////////////////
 template <typename T>
 class internal_queue: public linear_memory_base<internal_queue<T> > {
@@ -65,26 +65,26 @@ public:
 	/////////////////////////////////////////////////////////
 	/// \brief Resize the queue, all data is lost
 	///
-	/// \param size The number of pushes supported between calles to
+	/// \param size The number of elements to contain
 	/////////////////////////////////////////////////////////
 	void resize(size_t size=0) {m_elements.resize(size); m_first = m_last = 0;}
 	
 	/////////////////////////////////////////////////////////
 	/// \brief Return the item that has been in the queue for the longest time
 	/////////////////////////////////////////////////////////
-	inline T & front() {return m_elements[m_first];}
+	inline T front() {tp_assert(!empty(), "front() on empty queue"); return m_elements[m_first % m_elements.size()];}
 
 	/////////////////////////////////////////////////////////
 	/// \brief Return the last item pushed to the queue
 	/////////////////////////////////////////////////////////
-	inline T & back() {return m_elements[m_last-1];}
+	inline T back() {return m_elements[(m_last-1) % m_elements.size()];}
 
 	/////////////////////////////////////////////////////////
 	/// \brief Add an element to the front of the queue
 	///
 	/// \param val The element to add
 	/////////////////////////////////////////////////////////
-	inline void push(const T & val){m_elements[m_last++] = val;}
+	inline void push(T val){m_elements[m_last++ % m_elements.size()] = val;}
 
 	/////////////////////////////////////////////////////////
 	/// \brief Remove an element from the back of the queue
@@ -93,15 +93,21 @@ public:
 
 	/////////////////////////////////////////////////////////
 	/// \brief Check if the queue is empty
-	/// \return true if the queue is empty otherwize false
+	/// \return true if the queue is empty otherwise false
 	/////////////////////////////////////////////////////////
-	inline bool empty(){return m_first == m_last;}
+	inline bool empty() const {return m_first == m_last;}
+
+	/////////////////////////////////////////////////////////
+	/// \brief Check if the queue is empty
+	/// \return true if the queue is empty otherwise false
+	/////////////////////////////////////////////////////////
+	inline bool full() const {return m_last - m_first == m_elements.size();}
 
 	/////////////////////////////////////////////////////////
 	/// \brief Return the number of elements in the queue.
 	/// \return The number of elements in the queue
 	/////////////////////////////////////////////////////////
-	inline size_t size(){ return m_last - m_first;}
+	inline size_t size() const { return m_last - m_first;}
 	
 	/////////////////////////////////////////////////////////
 	/// \brief Clear the queue of all elements
@@ -110,8 +116,8 @@ public:
 	/// pushes given in the constructor or resize.
 	/////////////////////////////////////////////////////////
 	inline void clear(){m_first = m_last =0;}
-};
+}; // class internal_queue
 
-}
+} // namespace tpie
 #endif //__TPIE_INTERNAL_QUEUE_H__
 
