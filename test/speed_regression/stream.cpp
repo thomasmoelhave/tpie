@@ -22,6 +22,7 @@
 #include <tpie/stream.h>
 #include <iostream>
 #include "testtime.h"
+#include <boost/filesystem/operations.hpp>
 
 using namespace tpie::ami;
 using namespace tpie::test;
@@ -56,11 +57,13 @@ void test(size_t count) {
 	getTestRealtime(end);
 	std::cout << " " << testRealtimeDiff(start,end);
 	std::cout.flush();
+
+	boost::filesystem::remove("tmp");
 	
 	getTestRealtime(start);
 	{
 		uint64_t x[1024];
-		for(int i=0; i < 1024; ++i) x[i]=42;
+		std::fill(x+0, x+1024, 42);
 		stream<uint64_t> s("tmp", WRITE_STREAM);
 		for(size_t i=0; i < count; ++i) s.write_array(x,1024);
 	}
@@ -71,7 +74,7 @@ void test(size_t count) {
 	getTestRealtime(start);
 	{
 		uint64_t x[1024];
-		for(uint64_t i=0; i < 1024; ++i) x[i]=42;
+		std::fill(x+0, x+1024, 42);
 		stream<uint64_t> s("tmp", READ_STREAM);
 		for(size_t i=0; i < count; ++i) {TPIE_OS_OFFSET y=1024; s.read_array(x,&y);}
 	}
