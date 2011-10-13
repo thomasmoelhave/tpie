@@ -127,7 +127,7 @@ bool large_instance(){
 		// 	std::cout << "Memory available: " << MM_manager.memory_available()/1024/1024 << " MB" << std::endl;
 		// }
 	}
-	progress.done("Done");
+	progress.done();
 	return true;
 }
 
