@@ -47,5 +47,9 @@ struct end_of_stream_exception: public stream_exception {
 	end_of_stream_exception(): stream_exception("") {};
 };
 
+struct job_manager_exception: public exception {
+	job_manager_exception(): exception("") {};
+};
+
 }
 #endif //__TPIE_EXCEPTION_H__

@@ -21,20 +21,43 @@
 #include <tpie/parallel_sort.h>
 #include <boost/random/linear_congruential.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <tpie/progress_indicator_arrow.h>
 
-bool basic1() {
+template<size_t min_size>
+bool basic1(size_t elements = 1024*1024) {
 	boost::rand48 prng(42);
-	std::vector<int> v1;
-	std::vector<int> v2;
-	for (size_t i=0; i < 1234567; ++i) {
-		int x = prng();
-		v1.push_back(x);
-		v2.push_back(x);
+	std::vector<int> v1(elements);
+	std::vector<int> v2(elements);
+
+	tpie::progress_indicator_arrow pi("Parallel sort", elements);
+	tpie::fractional_progress fp(&pi);
+
+	tpie::fractional_subindicator gen_p(fp, "Generate", TPIE_FSI, elements, "Generate");
+	//tpie::fractional_subindicator std_p(fp, "std::sort", TPIE_FSI, elements, "std::sort");
+	tpie::fractional_subindicator par_p(fp, "parallel_sort", TPIE_FSI, elements, "parallel_sort");
+
+	fp.init();
+
+	gen_p.init(elements);
+	for (size_t i = 0; i < elements; ++i) {
+		gen_p.step();
+		v1[i] = v2[i] = prng();
 	}
-	std::sort(v1.begin(), v1.end());
-	tpie::parallel_sort_impl<std::vector<int>::iterator, std::less<int>, 42> s(0);
+	gen_p.done();
+
+	tpie::parallel_sort_impl<std::vector<int>::iterator, std::less<int>, min_size > s(&par_p);
 	s(v2.begin(), v2.end());
-	if(v1 != v2) {std::cerr << "Failed" << std::endl; return false;}
+
+	//std_p.init(1);
+	std::sort(v1.begin(), v1.end());
+	//std_p.done();
+
+	fp.done();
+
+	if(v1 != v2) {
+		std::cerr << "std::sort and parallel_sort disagree" << std::endl;
+		return false;
+	}
 	return true;
 }
 
@@ -102,9 +125,16 @@ void stress_test() {
 
 int main(int argc, char **argv) {
 	if(argc != 2) return 1;
+	tpie_initer _;
 	std::string test(argv[1]);
 	if (test == "basic1") {
-		exit(basic1()?EXIT_SUCCESS:EXIT_FAILURE);
+		return basic1<2>(1024*1024) ? EXIT_SUCCESS : EXIT_FAILURE;
+	} else if (test == "basic2") {
+		return basic1<8>(8*8) ? EXIT_SUCCESS : EXIT_FAILURE;
+	} else if (test == "medium") {
+		return basic1<1024*1024>(1024*1024*24) ? EXIT_SUCCESS : EXIT_FAILURE;
+	} else if (test == "large") {
+		return basic1<1024*1024>(1024*1024*256) ? EXIT_SUCCESS : EXIT_FAILURE;
 	} else if (test == "equal_elements") {
 		exit(equal_elements()?EXIT_SUCCESS:EXIT_FAILURE);
 	} else if (test == "stress_test") {
