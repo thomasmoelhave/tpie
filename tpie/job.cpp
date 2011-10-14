@@ -24,11 +24,23 @@
 
 namespace tpie {
  
+/////////////////////////////////////////////////////////
+/// Job manager singleton.
+/////////////////////////////////////////////////////////
 class job_manager * the_job_manager = 0;
 
 class job_manager {
+
 public:
+
+	/////////////////////////////////////////////////////////
+	/// \brief Default constructor.
+	/////////////////////////////////////////////////////////
 	job_manager() : m_jobs(128), m_done(false) {}
+
+	/////////////////////////////////////////////////////////
+	/// \brief Notify all waiting workers, wait for them to quit.
+	/////////////////////////////////////////////////////////
 	~job_manager() {
 		boost::mutex::scoped_lock lock(jobs_mutex);
 		m_done = true;
@@ -38,20 +50,42 @@ public:
 			m_thread_pool[i].join();
 		}
 	}
+
+	/////////////////////////////////////////////////////////
+	/// \brief Initialize the thread pool.
+	/////////////////////////////////////////////////////////
 	void init_pool(size_t threads) {
 		m_thread_pool.resize(threads);
 		for (size_t i = 0; i < threads; ++i) {
 			boost::thread t(worker);
-			// thread is move-constructable
+			// thread is move-constructible
 			m_thread_pool[i].swap(t);
 		}
 	}
-	boost::mutex jobs_mutex;
+
 private:
+
 	tpie::internal_queue<tpie::job *> m_jobs;
-	boost::condition_variable m_has_data;
 	tpie::array<boost::thread> m_thread_pool;
+
+	/////////////////////////////////////////////////////////
+	/// \brief The only mutex we will ever need.
+	/////////////////////////////////////////////////////////
+	boost::mutex jobs_mutex;
+
+	/////////////////////////////////////////////////////////
+	/// \brief Notified when a job is added to the queue.
+	/////////////////////////////////////////////////////////
+	boost::condition_variable m_has_data;
+
+	/////////////////////////////////////////////////////////
+	/// \brief True when the workers should quit ASAP.
+	/////////////////////////////////////////////////////////
 	bool m_done;
+
+	/////////////////////////////////////////////////////////
+	/// \brief Worker thread entry point.
+	/////////////////////////////////////////////////////////
 	static void worker() {
 		for (;;) {
 			boost::mutex::scoped_lock lock(the_job_manager->jobs_mutex);
@@ -63,6 +97,7 @@ private:
 			j->run();
 		}
 	};
+
 	friend class tpie::job;
 };
 
