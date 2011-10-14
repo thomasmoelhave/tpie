@@ -128,8 +128,7 @@ void job::enqueue(job * parent) {
 	boost::mutex::scoped_lock lock(the_job_manager->jobs_mutex);
 	if (the_job_manager->m_kill_job_pool) throw job_manager_exception();
 	m_parent = parent;
-	tp_assert(m_dependencies == 0, "");
-	++m_dependencies;
+	tp_assert(m_dependencies == 1, "");
 	if (m_parent) ++m_parent->m_dependencies;
 	if (the_job_manager->m_jobs.full()) {
 		lock.unlock();

@@ -23,6 +23,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <tpie/progress_indicator_arrow.h>
 #include <tpie/memory.h>
+#include "../speed_regression/testtime.h"
 
 static bool progress;
 static bool stdsort;
@@ -30,7 +31,8 @@ static bool stdsort;
 using namespace tpie;
 
 template<size_t min_size>
-bool basic1(size_t elements = 1024*1024) {
+bool basic1(const size_t elements = 1024*1024) {
+	const size_t stepevery = elements / 16;
 	boost::rand48 prng(42);
 	std::vector<int> v1(elements);
 	std::vector<int> v2(elements);
@@ -50,9 +52,13 @@ bool basic1(size_t elements = 1024*1024) {
 		fp->init();
 	}
 
-	if (progress) gen_p->init(elements);
+	if (progress) gen_p->init(elements/stepevery);
+	size_t nextstep = stepevery;
 	for (size_t i = 0; i < elements; ++i) {
-		if (progress) gen_p->step();
+		if (progress && i == nextstep) {
+			gen_p->step();
+			nextstep += stepevery;
+		}
 		if (stdsort)
 			v1[i] = v2[i] = prng();
 		else
@@ -93,6 +99,28 @@ bool equal_elements() {
 	boost::posix_time::ptime t1=boost::posix_time::microsec_clock::local_time();
 	std::sort(v1.begin(), v1.end());
 	boost::posix_time::ptime t2=boost::posix_time::microsec_clock::local_time();
+	parallel_sort_impl<std::vector<int>::iterator, std::less<int> > s(0);
+	s(v2.begin(), v2.end());
+	boost::posix_time::ptime t3=boost::posix_time::microsec_clock::local_time();
+	if(v1 != v2) {std::cerr << "Failed" << std::endl; return false;}
+	std::cout << "std: " << (t2-t1) << " ours: " << t3-t2 << std::endl;
+	if( (t2-t1)*3 < (t3-t2) ) {std::cerr << "Too slow" << std::endl; return false;}
+	return true;
+}
+
+bool bad_case() {
+	const size_t n = 1024*1024;
+	std::vector<int> v1;
+	std::vector<int> v2;
+	for (size_t i=0; i < 8*n; ++i) {
+		const int el = (i % n && i != (8*n-1)) ? 42 : 36;
+		v1.push_back(el);
+		v2.push_back(el);
+	}
+
+	boost::posix_time::ptime t1=boost::posix_time::microsec_clock::local_time();
+	std::sort(v1.begin(), v1.end());
+	boost::posix_time::ptime t2=boost::posix_time::microsec_clock::local_time();
 	parallel_sort_impl<std::vector<int>::iterator, std::less<int>, 42> s(0);
 	s(v2.begin(), v2.end());
 	boost::posix_time::ptime t3=boost::posix_time::microsec_clock::local_time();
@@ -109,7 +137,7 @@ void stress_test() {
 		for(int i = 0; i < 4000000; ++i)
 			v.push_back(i);
 		boost::posix_time::ptime t1=boost::posix_time::microsec_clock::local_time();
-		parallel_sort_impl<std::vector<int>::iterator, std::less<int>, 42> s(0);
+		parallel_sort_impl<std::vector<int>::iterator, std::less<int> > s(0);
 		s(v.begin(), v.end());
 		boost::posix_time::ptime t2=boost::posix_time::microsec_clock::local_time();
 		d=t2-t1;
@@ -129,7 +157,7 @@ void stress_test() {
 		boost::posix_time::ptime t1=boost::posix_time::microsec_clock::local_time();
 		std::sort(v1.begin(), v1.end());
 		boost::posix_time::ptime t2=boost::posix_time::microsec_clock::local_time();
-		parallel_sort_impl<std::vector<int>::iterator, std::less<int>, 42> s(0);
+		parallel_sort_impl<std::vector<int>::iterator, std::less<int> > s(0);
 		s(v2.begin(), v2.end());
 		boost::posix_time::ptime t3=boost::posix_time::microsec_clock::local_time();
 		if(v1 != v2) {std::cerr << "Failed" << std::endl; return;}
@@ -137,7 +165,6 @@ void stress_test() {
 		if( std::max(d,(t2-t1)*3) < (t3-t2)  ) {std::cerr << "Too slow" << std::endl; return;}
 	}
 }
-
 
 
 int main(int argc, char **argv) {
@@ -157,7 +184,7 @@ int main(int argc, char **argv) {
 		}
 		--argc; ++argv;
 	}
-#define USAGE ("Usage: [--no-progress] [--no-stdsort] <basic1|basic2|medium|large|equal_elements|stress_test>")
+#define USAGE ("Usage: [--no-progress] [--no-stdsort] <basic1|basic2|medium|large|verylarge|equal_elements|bad_case|stress_test>")
 	if (!argc) {
 		std::cerr << USAGE << std::endl;
 		return EXIT_FAILURE;
@@ -170,8 +197,12 @@ int main(int argc, char **argv) {
 		return basic1<1024*1024>(1024*1024*24) ? EXIT_SUCCESS : EXIT_FAILURE;
 	} else if (test == "large") {
 		return basic1<1024*1024>(1024*1024*256) ? EXIT_SUCCESS : EXIT_FAILURE;
+	} else if (test == "verylarge") {
+		return basic1<1024*1024>(1024*1024*768) ? EXIT_SUCCESS : EXIT_FAILURE;
 	} else if (test == "equal_elements") {
 		exit(equal_elements()?EXIT_SUCCESS:EXIT_FAILURE);
+	} else if (test == "bad_case") {
+		return bad_case() ? EXIT_SUCCESS : EXIT_FAILURE;
 	} else if (test == "stress_test") {
 		stress_test();
 		return EXIT_FAILURE;

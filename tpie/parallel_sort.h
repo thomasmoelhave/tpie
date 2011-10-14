@@ -57,9 +57,11 @@ private:
 	typedef typename boost::iterator_value<iterator_type>::type value_type;
 
 	// Guistimate how much work a sort uses
-	static inline boost::uint64_t sortWork(boost::uint64_t n) {return 
-			static_cast<uint64_t>(
-				log(static_cast<double>(n))*n*1.9/log(static_cast<double>(2)));}
+	static inline boost::uint64_t sortWork(boost::uint64_t n) {
+		return static_cast<uint64_t>(
+			log(static_cast<double>(n)) * n * 1.8
+			/ log(static_cast<double>(2)));
+	}
 	
 	// Partition acording to pivot
 	template <typename comp_t>
@@ -166,23 +168,27 @@ public:
 	}
 
 	void operator()(iterator_type a, iterator_type b, comp_type comp=std::less<value_type>() ) {
-		if (progress.pi) {
-			progress.work_estimate = 0;
-			progress.total_work_estimate = sortWork(b-a);
-			progress.pi->init(progress.total_work_estimate);
+		progress.work_estimate = 0;
+		progress.total_work_estimate = sortWork(b-a);
+		if (progress.pi) progress.pi->init(progress.total_work_estimate);
+
+		if (static_cast<size_t>(b - a) < min_size) {
+			std::sort(a, b, comp);
+			if (progress.pi) progress.pi->done();
+			return;
 		}
+
 		qsort_job * master = new qsort_job(a, b, comp, 0, progress);
 		master->enqueue();
 
-		if (progress.pi) {
-			boost::uint64_t prev_work_estimate = 0;
-			boost::mutex::scoped_lock lock(progress.mutex);
-			while (progress.work_estimate < progress.total_work_estimate) {
-				progress.cond.wait(lock);
-				if (progress.work_estimate > prev_work_estimate) progress.pi->step(progress.work_estimate - prev_work_estimate);
-				prev_work_estimate = progress.work_estimate;
-			}
+		boost::uint64_t prev_work_estimate = 0;
+		boost::mutex::scoped_lock lock(progress.mutex);
+		while (progress.work_estimate < progress.total_work_estimate) {
+			if (progress.pi && progress.work_estimate > prev_work_estimate) progress.pi->step(progress.work_estimate - prev_work_estimate);
+			prev_work_estimate = progress.work_estimate;
+			progress.cond.wait(lock);
 		}
+		lock.unlock();
 
 		master->join();
 		delete master;
