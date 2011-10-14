@@ -36,20 +36,7 @@ public:
 	/////////////////////////////////////////////////////////
 	/// \brief Default constructor.
 	/////////////////////////////////////////////////////////
-	job_manager() : m_jobs(128), m_done(false) {}
-
-	/////////////////////////////////////////////////////////
-	/// \brief Notify all waiting workers, wait for them to quit.
-	/////////////////////////////////////////////////////////
-	~job_manager() {
-		boost::mutex::scoped_lock lock(jobs_mutex);
-		m_done = true;
-		m_has_data.notify_all();
-		lock.unlock();
-		for (size_t i = 0; i < m_thread_pool.size(); ++i) {
-			m_thread_pool[i].join();
-		}
-	}
+	job_manager() : m_jobs(128), m_kill_job_pool(false) {}
 
 	/////////////////////////////////////////////////////////
 	/// \brief Initialize the thread pool.
@@ -60,6 +47,19 @@ public:
 			boost::thread t(worker);
 			// thread is move-constructible
 			m_thread_pool[i].swap(t);
+		}
+	}
+
+	/////////////////////////////////////////////////////////
+	/// \brief Notify all waiting workers, wait for them to quit.
+	/////////////////////////////////////////////////////////
+	void shutdown_pool() {
+		boost::mutex::scoped_lock lock(jobs_mutex);
+		m_kill_job_pool = true;
+		m_has_data.notify_all();
+		lock.unlock();
+		for (size_t i = 0; i < m_thread_pool.size(); ++i) {
+			m_thread_pool[i].join();
 		}
 	}
 
@@ -81,7 +81,7 @@ private:
 	/////////////////////////////////////////////////////////
 	/// \brief True when the workers should quit ASAP.
 	/////////////////////////////////////////////////////////
-	bool m_done;
+	bool m_kill_job_pool;
 
 	/////////////////////////////////////////////////////////
 	/// \brief Worker thread entry point.
@@ -89,8 +89,8 @@ private:
 	static void worker() {
 		for (;;) {
 			boost::mutex::scoped_lock lock(the_job_manager->jobs_mutex);
-			while (the_job_manager->m_jobs.empty() && !the_job_manager->m_done) the_job_manager->m_has_data.wait(lock);
-			if (the_job_manager->m_done) break;
+			while (the_job_manager->m_jobs.empty() && !the_job_manager->m_kill_job_pool) the_job_manager->m_has_data.wait(lock);
+			if (the_job_manager->m_kill_job_pool) break;
 			tpie::job * j = the_job_manager->m_jobs.front();
 			the_job_manager->m_jobs.pop();
 			lock.unlock();
@@ -107,6 +107,7 @@ void init_job() {
 }
 
 void finish_job() {
+	the_job_manager->shutdown_pool();
 	tpie_delete(the_job_manager);
 	the_job_manager = 0;
 }
@@ -118,10 +119,16 @@ void job::join() {
 	}
 }
 
+bool job::is_done() {
+	boost::mutex::scoped_lock lock(the_job_manager->jobs_mutex);
+	return !m_dependencies;
+}
+
 void job::enqueue(job * parent) {
 	boost::mutex::scoped_lock lock(the_job_manager->jobs_mutex);
-	if (the_job_manager->m_done) throw job_manager_exception();
+	if (the_job_manager->m_kill_job_pool) throw job_manager_exception();
 	m_parent = parent;
+	tp_assert(m_dependencies == 0, "");
 	++m_dependencies;
 	if (m_parent) ++m_parent->m_dependencies;
 	if (the_job_manager->m_jobs.full()) {
@@ -135,14 +142,14 @@ void job::enqueue(job * parent) {
 
 void job::run() {
 	(*this)();
+	boost::mutex::scoped_lock lock(the_job_manager->jobs_mutex);
 	done();
 }
 
 void job::done() {
-	boost::mutex::scoped_lock lock(the_job_manager->jobs_mutex);
 	--m_dependencies;
-	if (m_parent) m_parent->done();
 	if (m_dependencies) return;
+	if (m_parent) m_parent->done();
 	m_done.notify_all();
 	on_done();
 }

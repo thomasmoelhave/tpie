@@ -22,6 +22,12 @@
 #include <boost/random/linear_congruential.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <tpie/progress_indicator_arrow.h>
+#include <tpie/memory.h>
+
+static bool progress;
+static bool stdsort;
+
+using namespace tpie;
 
 template<size_t min_size>
 bool basic1(size_t elements = 1024*1024) {
@@ -29,32 +35,43 @@ bool basic1(size_t elements = 1024*1024) {
 	std::vector<int> v1(elements);
 	std::vector<int> v2(elements);
 
-	tpie::progress_indicator_arrow pi("Parallel sort", elements);
-	tpie::fractional_progress fp(&pi);
+	auto_ptr<progress_indicator_arrow> pi;
+	auto_ptr<fractional_progress> fp;
+	auto_ptr<fractional_subindicator> gen_p;
+	auto_ptr<fractional_subindicator> std_p;
+	auto_ptr<fractional_subindicator> par_p;
+	if (progress) {
+		pi.reset(tpie_new<progress_indicator_arrow>("Parallel sort", elements));
+		fp.reset(tpie_new<fractional_progress>(pi.get()));
 
-	tpie::fractional_subindicator gen_p(fp, "Generate", TPIE_FSI, elements, "Generate");
-	//tpie::fractional_subindicator std_p(fp, "std::sort", TPIE_FSI, elements, "std::sort");
-	tpie::fractional_subindicator par_p(fp, "parallel_sort", TPIE_FSI, elements, "parallel_sort");
-
-	fp.init();
-
-	gen_p.init(elements);
-	for (size_t i = 0; i < elements; ++i) {
-		gen_p.step();
-		v1[i] = v2[i] = prng();
+		gen_p.reset(tpie_new<fractional_subindicator>(*fp.get(), "Generate", TPIE_FSI, elements, "Generate"));
+		if (stdsort) std_p.reset(tpie_new<fractional_subindicator>(*fp.get(), "std::sort", TPIE_FSI, elements, "std::sort"));
+		par_p.reset(tpie_new<fractional_subindicator>(*fp.get(), "parallel_sort", TPIE_FSI, elements, "parallel_sort"));
+		fp->init();
 	}
-	gen_p.done();
 
-	tpie::parallel_sort_impl<std::vector<int>::iterator, std::less<int>, min_size > s(&par_p);
+	if (progress) gen_p->init(elements);
+	for (size_t i = 0; i < elements; ++i) {
+		if (progress) gen_p->step();
+		if (stdsort)
+			v1[i] = v2[i] = prng();
+		else
+			v1[i] = prng();
+	}
+	if (progress) gen_p->done();
+
+	parallel_sort_impl<std::vector<int>::iterator, std::less<int>, min_size > s(progress ? par_p.get() : 0);
 	s(v2.begin(), v2.end());
 
-	//std_p.init(1);
-	std::sort(v1.begin(), v1.end());
-	//std_p.done();
+	if (stdsort) {
+		if (progress) std_p->init(1);
+		std::sort(v1.begin(), v1.end());
+		if (progress) std_p->done();
+	}
 
-	fp.done();
+	if (progress) fp->done();
 
-	if(v1 != v2) {
+	if (stdsort && v1 != v2) {
 		std::cerr << "std::sort and parallel_sort disagree" << std::endl;
 		return false;
 	}
@@ -76,7 +93,7 @@ bool equal_elements() {
 	boost::posix_time::ptime t1=boost::posix_time::microsec_clock::local_time();
 	std::sort(v1.begin(), v1.end());
 	boost::posix_time::ptime t2=boost::posix_time::microsec_clock::local_time();
-	tpie::parallel_sort_impl<std::vector<int>::iterator, std::less<int>, 42> s(0);
+	parallel_sort_impl<std::vector<int>::iterator, std::less<int>, 42> s(0);
 	s(v2.begin(), v2.end());
 	boost::posix_time::ptime t3=boost::posix_time::microsec_clock::local_time();
 	if(v1 != v2) {std::cerr << "Failed" << std::endl; return false;}
@@ -92,7 +109,7 @@ void stress_test() {
 		for(int i = 0; i < 4000000; ++i)
 			v.push_back(i);
 		boost::posix_time::ptime t1=boost::posix_time::microsec_clock::local_time();
-		tpie::parallel_sort_impl<std::vector<int>::iterator, std::less<int>, 42> s(0);
+		parallel_sort_impl<std::vector<int>::iterator, std::less<int>, 42> s(0);
 		s(v.begin(), v.end());
 		boost::posix_time::ptime t2=boost::posix_time::microsec_clock::local_time();
 		d=t2-t1;
@@ -112,7 +129,7 @@ void stress_test() {
 		boost::posix_time::ptime t1=boost::posix_time::microsec_clock::local_time();
 		std::sort(v1.begin(), v1.end());
 		boost::posix_time::ptime t2=boost::posix_time::microsec_clock::local_time();
-		tpie::parallel_sort_impl<std::vector<int>::iterator, std::less<int>, 42> s(0);
+		parallel_sort_impl<std::vector<int>::iterator, std::less<int>, 42> s(0);
 		s(v2.begin(), v2.end());
 		boost::posix_time::ptime t3=boost::posix_time::microsec_clock::local_time();
 		if(v1 != v2) {std::cerr << "Failed" << std::endl; return;}
@@ -124,9 +141,27 @@ void stress_test() {
 
 
 int main(int argc, char **argv) {
-	if(argc != 2) return 1;
 	tpie_initer _;
-	std::string test(argv[1]);
+	progress = stdsort = true;
+	--argc; ++argv;
+	std::string test;
+	while (argc) {
+		std::string arg = argv[0];
+		if (arg == "--no-progress") {
+			progress = false;
+		} else if (arg == "--no-stdsort") {
+			stdsort = false;
+		} else {
+			test = arg;
+			break;
+		}
+		--argc; ++argv;
+	}
+#define USAGE ("Usage: [--no-progress] [--no-stdsort] <basic1|basic2|medium|large|equal_elements|stress_test>")
+	if (!argc) {
+		std::cerr << USAGE << std::endl;
+		return EXIT_FAILURE;
+	}
 	if (test == "basic1") {
 		return basic1<2>(1024*1024) ? EXIT_SUCCESS : EXIT_FAILURE;
 	} else if (test == "basic2") {
@@ -142,8 +177,6 @@ int main(int argc, char **argv) {
 		return EXIT_FAILURE;
 	}
 
-	std::cerr << "No such test" << std::endl;
+	std::cerr << USAGE << std::endl;
 	return EXIT_FAILURE;
-	
 }
-		

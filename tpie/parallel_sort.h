@@ -33,6 +33,18 @@
 #include <tpie/dummy_progress.h>
 #include <tpie/internal_queue.h>
 #include <tpie/job.h>
+
+namespace {
+
+struct progress_t {
+	tpie::progress_indicator_base * pi;
+	boost::uint64_t work_estimate;
+	boost::uint64_t total_work_estimate;
+	boost::condition_variable cond;
+	boost::mutex mutex;
+};
+
+}
 namespace tpie {
 
 template <typename iterator_type, typename comp_type,
@@ -104,64 +116,82 @@ private:
 		return l;
 	}
 
-	static void progress(ptrdiff_t /*amount*/) {
-		//assert(amount >= 0);
-		// should this only be executed by the master thread?
-		//#pragma omp critical
-		//{
-		//	if (pi) pi->step(amount);
-		//}
-	}
-
-	static inline void qsort(iterator_type a, iterator_type b, comp_type comp) {
-		assert(a <= b);
-		assert(&*a != 0);
-		while (static_cast<size_t>(b - a) >= min_size) {
-			progress(70);
-			iterator_type pivot = partition(a, b, comp);
-			progress(b - a - 70);
-			qsort_job * j = tpie_new<qsort_job>(a, pivot, comp);
-			j->enqueue();
-			a = pivot+1;
-		}
-		std::sort(a, b, comp);
-		progress(sortWork(b - a));
-	}
-
 	class qsort_job : public job {
 	public:
-		qsort_job(iterator_type a, iterator_type b, comp_type comp) : a(a), b(b), comp(comp) {}
+		qsort_job(iterator_type a, iterator_type b, comp_type comp, qsort_job * parent, progress_t & p) : a(a), b(b), comp(comp), parent(parent), progress(p) {}
 		virtual void operator()() {
-			qsort(a, b, comp);
+			assert(a <= b);
+			assert(&*a != 0);
+			while (static_cast<size_t>(b - a) >= min_size) {
+				iterator_type pivot = partition(a, b, comp);
+				add_progress(b - a);
+				//qsort_job * j = tpie_new<qsort_job>(a, pivot, comp, this);
+				qsort_job * j = new qsort_job(a, pivot, comp, this, progress);
+				j->enqueue(this);
+				a = pivot+1;
+			}
+			std::sort(a, b, comp);
+			add_progress(sortWork(b - a));
 		}
 	protected:
 		virtual void on_done() {
-			tpie_delete(this);
+			if (parent) parent->child_done(this);
+			else {
+				boost::mutex::scoped_lock lock(progress.mutex);
+				progress.work_estimate = progress.total_work_estimate;
+				progress.cond.notify_one();
+			}
 		}
 	private:
 		iterator_type a;
 		iterator_type b;
 		comp_type comp;
+		qsort_job * parent;
+		progress_t & progress;
+
+		void child_done(qsort_job * job) {
+			//tpie_delete(job);
+			delete job;
+		}
+
+		void add_progress(ptrdiff_t amount) {
+			boost::mutex::scoped_lock lock(progress.mutex);
+			progress.work_estimate += amount;
+			progress.cond.notify_one();
+		}
 	};
 public:
-	parallel_sort_impl(progress_indicator_base * p): pi(p) {}
+	parallel_sort_impl(progress_indicator_base * p) {
+		progress.pi = p;
+	}
 
 	void operator()(iterator_type a, iterator_type b, comp_type comp=std::less<value_type>() ) {
-		work_estimate = 0;
-		if (pi) pi->init(sortWork(b-a));
-		qsort_job * master = tpie_new<qsort_job>(a, b, comp);
+		if (progress.pi) {
+			progress.work_estimate = 0;
+			progress.total_work_estimate = sortWork(b-a);
+			progress.pi->init(progress.total_work_estimate);
+		}
+		qsort_job * master = new qsort_job(a, b, comp, 0, progress);
 		master->enqueue();
+
+		if (progress.pi) {
+			boost::uint64_t prev_work_estimate = 0;
+			boost::mutex::scoped_lock lock(progress.mutex);
+			while (progress.work_estimate < progress.total_work_estimate) {
+				progress.cond.wait(lock);
+				if (progress.work_estimate > prev_work_estimate) progress.pi->step(progress.work_estimate - prev_work_estimate);
+				prev_work_estimate = progress.work_estimate;
+			}
+		}
+
 		master->join();
-		if (pi)	pi->done();
+		delete master;
+		if (progress.pi) progress.pi->done();
 	}
 private:
 	static const size_t max_job_count=256;
-	progress_indicator_base * pi;
-	boost::uint64_t work_estimate;
-	boost::uint64_t total_work_estimate;
+	progress_t progress;
 	bool kill;
-	boost::condition_variable cond;
-	boost::mutex mutex;
 	size_t working;
 
 	std::pair<iterator_type, iterator_type> jobs[max_job_count];
