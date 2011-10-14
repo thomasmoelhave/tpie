@@ -1,4 +1,4 @@
-#include <tpie/job_manager.h>
+#include <tpie/job.h>
 #include <tpie/array.h>
 #include <tpie/internal_queue.h>
 #include <tpie/exception.h>

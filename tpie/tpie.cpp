@@ -23,7 +23,7 @@
 #include <tpie/tpie_log.h>
 #include <tpie/prime.h>
 #include <tpie/memory.h>
-#include <tpie/job_manager.h>
+#include <tpie/job.h>
 
 namespace tpie {
 

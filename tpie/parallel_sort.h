@@ -32,7 +32,7 @@
 #include <tpie/progress_indicator_base.h>
 #include <tpie/dummy_progress.h>
 #include <tpie/internal_queue.h>
-#include <tpie/job_manager.h>
+#include <tpie/job.h>
 namespace tpie {
 
 template <typename iterator_type, typename comp_type,

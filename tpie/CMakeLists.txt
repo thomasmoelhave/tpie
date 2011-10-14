@@ -93,7 +93,7 @@ set (OTHER_HEADERS
 		internal_stack.h
 		internal_vector.h
 		internal_stack_vector_base.h
-		job_manager.h
+		job.h
 		loglevel.h
 		logstream.h
 		mergeheap.h
@@ -158,7 +158,7 @@ set (OTHER_SOURCES
 	file_count.cpp
 	execution_time_predictor.cpp
 	fractional_progress.cpp
-	job_manager.cpp
+	job.cpp
 	logstream.cpp
 	memory.cpp
 	portability.cpp
