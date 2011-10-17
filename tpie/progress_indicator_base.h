@@ -71,7 +71,8 @@ public:
 	progress_indicator_base(TPIE_OS_OFFSET range) : 
 	    m_range(range),
 	    m_current(0),
-		m_lastUpdate(getticks()),
+		//m_lastUpdate(getticks()),
+		m_next(0),
 		m_predictor(0) {
 		compute_threshold();
 	}
@@ -88,33 +89,41 @@ public:
 	////////////////////////////////////////////////////////////////////
 	void step(TPIE_OS_OFFSET step=1) {
 	    m_current += step;
-		ticks currentTicks = getticks();
+ 		
 #ifndef TPIE_NDEBUG
-		if (elapsed(currentTicks,m_lastUpdate) > m_frequency * m_threshold * 5)
-			tpie::log_debug() << "Step was not called for an estimated " 
-							  << (elapsed(currentTicks,m_lastUpdate) / (m_frequency * m_threshold))
-							  << " seconds" << std::endl;;
+		{
+			ticks currentTicks = getticks();
+			if (elapsed(currentTicks,m_lastCalled) > m_frequency * m_threshold * 5)
+				tpie::log_debug() << "Step was not called for an estimated " 
+								  << (elapsed(currentTicks,m_lastCalled) / (m_frequency * m_threshold))
+								  << " seconds" << std::endl;;
+			m_lastCalled = currentTicks;
+		}
 #endif	
-		if(elapsed(currentTicks, m_lastUpdate) > m_threshold){
-			m_lastUpdate = currentTicks;
-		    refresh();
+		if (m_current > m_next) {
+			ticks currentTicks = getticks();
+			m_next = m_current * (elapsed(currentTicks, m_start) + m_threshold)/
+				elapsed(currentTicks, m_start);
+			refresh();
 		}
 	}
 
 	virtual void init(TPIE_OS_OFFSET range=0) {
 		if (range != 0) set_range(range);
 	    m_current = 0;
-		m_lastUpdate = getticks();
-	    refresh();
+		refresh();
+		
+		m_start = getticks();
+		m_next = 1;
+
+#ifndef TPIE_NDEBUG
+		m_lastCalled = getticks();
+#endif
 	}
 
 	////////////////////////////////////////////////////////////////////
 	///
-	///  Advance the indicator to the end and print an (optional)
-	///  message that is followed by a newline.
-	///
-	///  \param  text  The message to be printed at the end of the
-	///                indicator.
+	///  Advance the indicator to the end
 	///
 	////////////////////////////////////////////////////////////////////
 	virtual void done() {}
@@ -169,7 +178,12 @@ protected:
 	
 private:
 	/**  The number of ticks elapsed when refresh was called last */
-	ticks m_lastUpdate;
+#ifndef TPIE_NDEBUG
+	ticks m_lastCalled;
+#endif
+
+	TPIE_OS_OFFSET m_next;
+	ticks m_start;
 
 	/**  The approximate frequency of calls to refresh in hz */
 	static const unsigned int m_frequency;
