@@ -42,6 +42,25 @@ struct hash<std::pair<T1,T2> > {
 	}	
 };
 
+template <>
+struct hash<const char *> {
+	inline size_t operator()(const char * s) const {
+		uint32_t r = 1;
+		for(int i=0; s[i]; i++){
+			r = r*13+s[i]*7;
+		}
+		return r;
+	}
+};
+
+template <>
+struct hash<std::string> {
+	hash<const char * > h;
+	inline size_t operator()(const std::string & s) const {
+		return h(s.c_str());
+	}
+};
+
 template <typename value_t, typename hash_t, typename equal_t, typename index_t>
 class chaining_hash_table {
 private:
@@ -97,7 +116,10 @@ public:
 		clear();
  	}
 
-	chaining_hash_table(size_t e=0, value_t u=default_unused<value_t>::v()): size(0), unused(u) {resize(e);};
+	chaining_hash_table(size_t ee,
+						value_t u,
+						const hash_t & hash,
+						const equal_t & equal):  h(hash), e(equal), size(0), unused(u) {resize(ee);};
 
 	inline size_t begin() {
 		if (size == 0) return buckets.size();
@@ -186,9 +208,10 @@ public:
 		elements.resize(x, unused);
 	}
 
-	linear_probing_hash_table(size_t e=0, value_t u=default_unused<value_t>::v()):
-		size(0), unused(u) {resize(e);}
-
+	linear_probing_hash_table(size_t ee, value_t u,
+							  const hash_t & hash, const equal_t & equal):
+		h(hash), e(equal), size(0), unused(u) {resize(ee);}
+	
  	inline size_t find(const value_t & value) const {
  		size_t v = h(value) % elements.size();
  		while (elements[v] != unused) {
@@ -250,6 +273,7 @@ public:
 private:
 	struct key_equal_t {
 		equal_t e;
+		key_equal_t(const equal_t & equal): e(equal) {}
 		inline bool operator()(const value_t & a, const value_t & b) const {
 			return e(a.first, b.first);
 		}
@@ -257,6 +281,7 @@ private:
 
 	struct key_hash_t {
 		hash_t h;
+		key_hash_t(const hash_t & hash): h(hash) {}
 		inline size_t operator()(const value_t & a) const {
 			return h(a.first);
 		}
@@ -321,7 +346,11 @@ public:
 		return tbl_t::memory_overhead() - sizeof(tbl_t) + sizeof(hash_map);
 	}
 
-	inline hash_map(size_t size=0): tbl(size) {}
+	inline hash_map(size_t size=0, const hash_t & hash=hash_t(),
+					const equal_t & equal=equal_t(),
+					value_t u=default_unused<value_t>::v() ):
+		tbl(size, u, key_hash_t(hash), key_equal_t(equal)) {}
+	
 	inline void resize(size_t size) {tbl.resize(size);}
 
 	inline void erase(const key_t & key) {
@@ -422,7 +451,10 @@ public:
 		return tbl_t::memory_overhead() - sizeof(tbl_t) + sizeof(hash_set);
 	}
 
-	inline hash_set(size_t size=0): tbl(size) {}
+	inline hash_set(size_t size=0, 
+					const hash_t & hash=hash_t(), const equal_t & equal=equal_t(),
+					value_t u=default_unused<value_t>::v()):
+		tbl(size, u, hash, equal) {}
 	inline void resize(size_t size) {tbl.resize(size);}
 	inline void erase(const key_t & key) {tbl.erase(key);}
 	inline void erase(const iterator & iter) {erase(iter.key());}

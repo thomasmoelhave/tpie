@@ -19,6 +19,7 @@
 
 #include "common.h"
 #include <tpie/hash_map.h>
+#include <tpie/tpie.h>
 #include <map>
 #include <boost/random/linear_congruential.hpp>
 #include <boost/unordered_map.hpp>
@@ -172,7 +173,6 @@ public:
 
 int main(int argc, char **argv) {
 	tpie_initer _;
-
 	if(argc != 2) return 1;
 	std::string test(argv[1]);
 	if (test == "chaining")
