@@ -172,19 +172,7 @@ private:
 
 	double block_factor;
 
-    //////////////////
-    // TPIE wrappers
-    ami::err err;
-
 	void init(TPIE_OS_SIZE_T mm_avail);
-
-    void seek_offset(stream<T>* data, TPIE_OS_OFFSET offset);
-
-    T* read_item(stream<T>* data); 
-
-    void write_item(stream<T>* data, T write); 
-    // end TPIE wrappers
-    /////////////////////
 
     void slot_start_set(TPIE_OS_SIZE_T slot, TPIE_OS_OFFSET n); 
     TPIE_OS_OFFSET slot_start(TPIE_OS_SIZE_T slot) const; 

@@ -118,8 +118,8 @@ void priority_queue<T, Comparator, OPQType>::init(TPIE_OS_SIZE_T mm_avail) { // 
 		const TPIE_OS_SIZE_T min_heap_m=4;
 		const TPIE_OS_SIZE_T min_buffer_m=2;
 		if(setting_k<min_fanout || setting_m<min_heap_m || setting_mmark<min_buffer_m){
-			TP_LOG_FATAL_ID("Priority Queue: Not enough memory. Increase allowed memory.");
-			exit(-1);
+			TP_LOG_FATAL_ID("Priority queue: Not enough memory. Increase allowed memory.");
+			throw exception("Priority queue: Not enough memory. Increase allowed memory.");
 		}
 
 		// this is assumed in empty_group.
@@ -145,7 +145,7 @@ void priority_queue<T, Comparator, OPQType>::init(TPIE_OS_SIZE_T mm_avail) { // 
 	assert(setting_m > setting_mmark);
 	if(setting_m < setting_mmark) {
 		TP_LOG_FATAL_ID("wrong settings");
-		exit(-1);
+		throw exception("Priority queue: m < m'");
 	}
 
 	opq.reset(tpie_new<OPQType>(setting_m));
@@ -445,9 +445,11 @@ TPIE_OS_SIZE_T priority_queue<T, Comparator, OPQType>::free_slot(TPIE_OS_SIZE_T 
 
 	TPIE_OS_SIZE_T i;
 	if(group>=setting_k) {
-		TP_LOG_FATAL_ID("Error, queue is full no free slots in invalid group " 
-			<< static_cast<TPIE_OS_OUTPUT_SIZE_T>(group) << ". Increase k.");
-		exit(-1);
+		std::stringstream msg;
+		msg << "Error, queue is full no free slots in invalid group " 
+			<< static_cast<TPIE_OS_OUTPUT_SIZE_T>(group) << ". Increase k.";
+		TP_LOG_FATAL_ID(msg.str());
+		throw exception(msg.str());
 	}
 
 	for(i = group*setting_k; i < group*setting_k+setting_k; i++) {
@@ -583,12 +585,7 @@ void priority_queue<T, Comparator, OPQType>::fill_group_buffer(TPIE_OS_SIZE_T gr
 		file_stream<T> out(block_factor);
 		out.open(group_data(group));
 		if(group > 0) {
-			try {
-				out.seek((group_start(group)+group_size(group))%setting_m);
-			} catch (stream_exception e) {
-				TP_LOG_FATAL_ID("AMI error " << err << " while seeking node");
-				exit(-1);
-			}
+			out.seek((group_start(group)+group_size(group))%setting_m);
 		}
 
 		//merge heap for the setting_k slots
@@ -654,75 +651,6 @@ void priority_queue<T, Comparator, OPQType>::fill_group_buffer(TPIE_OS_SIZE_T gr
 			  << static_cast<TPIE_OS_OUTPUT_SIZE_T>(get_memory_manager().available()) << "b" << std::endl;
 #endif
 	mergebuffer.resize(setting_m*2);;
-
-	// compact if needed
-	/*  for(TPIE_OS_OFFSET i=group*setting_k;i<group*setting_k+setting_k; i++) {
-		if(slot_size(i) <= slot_max_size(i)/2 && slot_size(i) >  0) {
-	//cout << "compact from fill group buffer slot: " << i << "\n";
-	compact(i);
-	}
-	}
-	*/
-}
-
-
-template <typename T, typename Comparator, typename OPQType>
-void priority_queue<T, Comparator, OPQType>::compact(TPIE_OS_SIZE_T slot1) {
-	//  std::cout << "compact slot " << slot1 << "\n";
-	assert(slot_size(slot1) > 0);
-
-	for(TPIE_OS_SIZE_T i = (slot1/setting_k)*setting_k; i < (slot1/setting_k)*setting_k + setting_k; i++) {
-		if(i != slot1) {
-			if(slot_size(i) > 0 && slot_size(i) + slot_size(slot1) <= slot_max_size(slot1)) {
-				TPIE_OS_OFFSET slot2 = i;
-				//cout << "compacting slot " << slot1 << " with " << slot2 << "\n";
-
-				file_stream<T> stream1;
-				stream1.open(slot_data(slot1));
-				stream1.seek(slot_start(slot1));
-				T e1 = stream1.read();
-				TPIE_OS_OFFSET used1 = 0;
-				file_stream<T> stream2;
-				stream2.open(slot_data(slot2));
-				stream2.seek(slot_start(slot2));
-				T e2 = stream2.read();
-				TPIE_OS_OFFSET used2 = 0;
-
-				TPIE_OS_OFFSET new_data_id = slot_data_id++;
-				file_stream<T> out;
-				out.open(datafile(new_data_id));
-
-				while(used1 + used2 < slot_size(slot1) + slot_size(slot2)) {
-					if(used1 == slot_size(slot1)) { // rest from slot2
-						write_item(out, e2);
-						used2++;
-						if(used2 < slot_size(slot2)) e2 = stream2.read();
-					} else if(used2 == slot_size(slot2)) { // rest from slot1
-						write_item(out, e1);
-						used1++;
-						if(used1 < slot_size(slot1)) e1 = stream1.read();
-					} else if(comp_(e1, e2)) { // compare - 10/1-07
-						write_item(out, e1);
-						used1++;
-						if(used1 < slot_size(slot1)) e1 = stream1.read();
-					} else {
-						write_item(out, e2);
-						used2++;
-						if(used2 < slot_size(slot2)) e2 = stream2.read();
-					}
-				}
-
-				slot_start_set(slot1, 0);
-				TPIE_OS_UNLINK(slot_data(slot1));
-				slot_data_set(slot1, new_data_id);
-				slot_size_set(slot1, slot_size(slot1) + slot_size(slot2));
-				slot_size_set(slot2, 0);
-				slot_start_set(slot2, 0);
-
-				return;
-			}
-		}
-	}
 }
 
 // Memory usage:
@@ -736,7 +664,7 @@ template <typename T, typename Comparator, typename OPQType>
 void priority_queue<T, Comparator, OPQType>::empty_group(TPIE_OS_SIZE_T group) {
 	if(group > setting_k) {
 		TP_LOG_FATAL_ID("Error: Priority queue is full");
-		exit(-1);
+		throw exception("Priority queue is full");
 	}
 
 	// All slots are occupied. Empty this group by merging slots into a
@@ -935,8 +863,8 @@ template <typename T, typename Comparator, typename OPQType>
 void priority_queue<T, Comparator, OPQType>::remove_group_buffer(TPIE_OS_SIZE_T group) {
 #ifndef NDEBUG
 	if(group == 0) {
-		TP_LOG_FATAL_ID("remove group buffer 0, fy!");
-		exit(-1);
+		TP_LOG_FATAL_ID("Attempt to remove group buffer 0");
+		throw exception("Attempt to remove group buffer 0");
 	}
 #endif
 
