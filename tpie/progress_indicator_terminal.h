@@ -92,12 +92,9 @@ public:
 	///
 	////////////////////////////////////////////////////////////////////
 
-	void done(const std::string& text = std::string()) {
+	void done() {
 	    m_current = m_range;
 	    refresh();
-	    if (!text.empty()) {
-			std::cout << " " << text;
-	    }
 	    std::cout << std::endl;
 	}
 
