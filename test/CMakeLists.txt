@@ -46,8 +46,6 @@ add_tpie_test(test_ami_queue)
 add_tpie_test(test_ami_sort)
 #add_tpie_test(test_correctness)
 
-if(NOT WIN32)
-  add_subdirectory(speed_regression)
-endif(NOT WIN32)
+add_subdirectory(speed_regression)
 
 add_subdirectory(unit)

@@ -20,8 +20,12 @@
 
 #ifndef __TPIE_TESTTIME_H
 #define __TPIE_TESTTIME_H
+#ifdef WIN32
+#include <Windows.h>
+#else
 #include <sys/time.h>
 #include <sys/resource.h>
+#endif
 #include <stdint.h>
 #include <time.h>
 
@@ -36,60 +40,96 @@ namespace tpie {
 		///////////////////////////////////////////////////////////////////
 		/// Type used for vaiable holding time information
 		///////////////////////////////////////////////////////////////////
+#ifdef WIN32
+		typedef LARGE_INTEGER test_time_t;
+#else
 		typedef struct rusage test_time_t;
+#endif
 
 		///////////////////////////////////////////////////////////////////
 		/// Type used for vaiable holding real time information
 		///////////////////////////////////////////////////////////////////
+#ifdef WIN32
+		typedef LARGE_INTEGER test_realtime_t;
+#else
 		typedef uint_fast64_t test_realtime_t;
+#endif
 		
 		///////////////////////////////////////////////////////////////////
 		/// Sample the time and store it
 		///////////////////////////////////////////////////////////////////
 		inline void getTestTime(test_time_t &a) {
+#ifdef WIN32
+			QueryPerformanceCounter(&a);
+#else
 			getrusage(RUSAGE_SELF, &a);
+#endif
 		}
 
 		///////////////////////////////////////////////////////////////////
 		/// Sample the real time and store it
 		///////////////////////////////////////////////////////////////////
 		inline void getTestRealtime(test_realtime_t& a) {
+#ifdef WIN32
+			QueryPerformanceCounter(&a);
+#else
 			struct timeval tv;
 			gettimeofday(&tv, NULL);
 			a = tv.tv_sec;
 			a *= 1000*1000;
 			a += tv.tv_usec;
+#endif
 		}
 
 		///////////////////////////////////////////////////////////////////
 		/// Calculate time difference in micro seconds
 		///////////////////////////////////////////////////////////////////
 		inline uint_fast64_t testTimeDiff(const test_time_t& a, const test_time_t& b) {
+#ifdef WIN32
+			LARGE_INTEGER freq;
+			QueryPerformanceFrequency(&freq);
+			return 1000000 * (b.QuadPart - a.QuadPart) / freq.QuadPart;
+#else
 			uint_fast64_t time = b.ru_utime.tv_sec - a.ru_utime.tv_sec;
 			time *= 1000*1000;
 			time += b.ru_utime.tv_usec - a.ru_utime.tv_usec;
 			return time;
+#endif
 		}
 
 		///////////////////////////////////////////////////////////////////
 		/// Calculate real time difference in micro seconds
 		///////////////////////////////////////////////////////////////////
 		inline uint_fast64_t testRealtimeDiff(const test_realtime_t a, const test_realtime_t b) {
+#ifdef WIN32
+			LARGE_INTEGER freq;
+			QueryPerformanceFrequency(&freq);
+			return 1000000 * (b.QuadPart - a.QuadPart) / freq.QuadPart;
+#else
 			return b - a;
+#endif
 		}
  
 		///////////////////////////////////////////////////////////////////
 		/// Calculate page fault difference
 		///////////////////////////////////////////////////////////////////
 		inline uint_fast64_t testPagefaultDiff(const test_time_t& a, const test_time_t& b) {
+#ifdef WIN32
+			return 0;
+#else
 			return b.ru_majflt - a.ru_majflt;
+#endif
 		}
 
 		///////////////////////////////////////////////////////////////////
 		/// Calculate io usage in blocks
 		///////////////////////////////////////////////////////////////////
 		inline uint_fast64_t testIODiff(const test_time_t& a, const test_time_t& b) {
+#ifdef WIN32
+			return 0;
+#else
 			return b.ru_inblock - a.ru_inblock + b.ru_oublock - a.ru_oublock;
+#endif
 		}
 	}
 }
