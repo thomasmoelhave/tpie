@@ -50,8 +50,7 @@ void pqtest_elements(size_t elems, double blockFactor = 1.0, tpie::progress_indi
 			pq.push(4373 + 7879*el);
 		}
 		getTestRealtime(push);
-		std::cout << testRealtimeDiff(begin, push) << " ";
-		std::cout.flush();
+		std::cout << testRealtimeDiff(begin, push) << " " << std::flush;
 		for (size_t el = 0; el < elems; ++el) {
 			if (progress != 0)
 				progress->step();
@@ -62,7 +61,6 @@ void pqtest_elements(size_t elems, double blockFactor = 1.0, tpie::progress_indi
 	}
 	getTestRealtime(end);
 	std::cout << testRealtimeDiff(push, pop) << " " << testRealtimeDiff(start, end) << std::endl;
-	std::cout.flush();
 }
 
 void usage() {
@@ -71,6 +69,7 @@ void usage() {
 
 int main(int argc, char **argv) {
 	tpie::tpie_init();
+	tpie::get_memory_manager().set_enforcement(tpie::memory_manager::ENFORCE_THROW);
 
 	if (argc == 2) {
 		usage();
