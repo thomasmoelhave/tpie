@@ -74,15 +74,15 @@ bool basic1(const size_t elements = 1024*1024) {
 	//boost::posix_time::time_duration t1;
 	//boost::posix_time::time_duration t2;
 	{
-		//boost::posix_time::ptime start=boost::posix_time::microsec_clock::local_time();
+		boost::posix_time::ptime start=boost::posix_time::microsec_clock::local_time();
 		parallel_sort_impl<std::vector<int>::iterator, std::less<int>, min_size > s(progress ? par_p.get() : 0);
 		s(v2.begin(), v2.end());
-		//boost::posix_time::ptime end=boost::posix_time::microsec_clock::local_time();
-		//std::cout << end-start << " " << std::endl;
+		boost::posix_time::ptime end=boost::posix_time::microsec_clock::local_time();
+		std::cout << end-start << " " << std::endl;
 	}
 
 	if (stdsort) {
-		//boost::posix_time::ptime start=boost::posix_time::microsec_clock::local_time();
+		boost::posix_time::ptime start=boost::posix_time::microsec_clock::local_time();
 		if (progress) std_p->init(1);
 		#ifdef TPIE_TEST_PARALLEL_SORT
 		__gnu_parallel::sort(v1.begin(), v1.end());
@@ -90,8 +90,8 @@ bool basic1(const size_t elements = 1024*1024) {
 		std::sort(v1.begin(), v1.end());
 		#endif
 		if (progress) std_p->done();
-		//boost::posix_time::ptime end=boost::posix_time::microsec_clock::local_time();
-		//std::cout << end-start << " " << std::endl;
+		boost::posix_time::ptime end=boost::posix_time::microsec_clock::local_time();
+		std::cout << end-start << " " << std::endl;
 	}
 
 	if (progress) fp->done();
