@@ -694,9 +694,7 @@ namespace tpie {
 		} else {
 		    mm_len = sz_orig_substr;
 		}
-#if DEBUG_ASSERTIONS
 		TPIE_OS_OFFSET mm_len_bak = mm_len;
-#endif
     
 		// Read a memory load out of the input stream.
 		ae = instream->read_array(mm_stream, &mm_len);
