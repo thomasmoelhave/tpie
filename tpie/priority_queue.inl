@@ -107,7 +107,7 @@ void priority_queue<T, Comparator, OPQType>::init(TPIE_OS_SIZE_T mm_avail) { // 
 			const TPIE_OS_OFFSET denominator = 2*sq_fanout_overhead;
 			setting_k = static_cast<TPIE_OS_SIZE_T>(nominator/denominator); //Set fanout
 
-			setting_k = std::min(available_files()-4, setting_k);
+			setting_k = std::min(available_files()-40, setting_k);
 		}
 
 		mm_avail-=setting_k*heap_m_overhead+setting_k*setting_k*sq_fanout_overhead;
@@ -501,6 +501,10 @@ void priority_queue<T, Comparator, OPQType>::fill_buffer() {
 	// merge to buffer
 	//cout << "current_r: " << current_r << "\n";
 	mergebuffer.resize(0);
+#ifndef TPIE_NDEBUG
+	std::cout << "memavail after mb free: "
+			  << static_cast<TPIE_OS_OUTPUT_SIZE_T>(get_memory_manager().available()) << "b" << std::endl;
+#endif
 
 	pq_merge_heap<T, Comparator> heap(current_r);
 
@@ -546,6 +550,10 @@ void priority_queue<T, Comparator, OPQType>::fill_buffer() {
 		}
 	}
 	//cout << "while done" << "\n";
+#ifndef TPIE_NDEBUG
+	std::cout << "memavail before mb alloc: "
+			  << static_cast<TPIE_OS_OUTPUT_SIZE_T>(get_memory_manager().available()) << "b" << std::endl;
+#endif
 	mergebuffer.resize(setting_m*2);
 
 	//cout << "end fill buffer" << "\n";
@@ -557,6 +565,15 @@ void priority_queue<T, Comparator, OPQType>::fill_group_buffer(TPIE_OS_SIZE_T gr
 	// max k + 1 open streams
 	// 1 merge heap
 	// opq still in action
+
+	//get rid of mergebuffer so that we enough memory
+	//for the heap and misc structures below
+	//this array is reallocated below
+	mergebuffer.resize(0);
+#ifndef TPIE_NDEBUG
+	std::cout << "memavail after mb free: "
+			  << static_cast<TPIE_OS_OUTPUT_SIZE_T>(get_memory_manager().available()) << "b" << std::endl;
+#endif
 
 	// merge
 	{
@@ -573,11 +590,6 @@ void priority_queue<T, Comparator, OPQType>::fill_group_buffer(TPIE_OS_SIZE_T gr
 				exit(-1);
 			}
 		}
-
-		//get rid of mergebuffer so that we enough memory
-		//for the heap and misc structures below
-		//this array is reallocated below
-		mergebuffer.resize(0);
 
 		//merge heap for the setting_k slots
 		pq_merge_heap<T, Comparator> heap(setting_k);
@@ -637,6 +649,10 @@ void priority_queue<T, Comparator, OPQType>::fill_group_buffer(TPIE_OS_SIZE_T gr
 	}
 
 	//restore mergebuffer
+#ifndef TPIE_NDEBUG
+	std::cout << "memavail before mb alloc: "
+			  << static_cast<TPIE_OS_OUTPUT_SIZE_T>(get_memory_manager().available()) << "b" << std::endl;
+#endif
 	mergebuffer.resize(setting_m*2);;
 
 	// compact if needed
@@ -738,8 +754,12 @@ void priority_queue<T, Comparator, OPQType>::empty_group(TPIE_OS_SIZE_T group) {
 
 	bool ret = false;
 
+	mergebuffer.resize(0);
+#ifndef TPIE_NDEBUG
+	std::cout << "memavail after mb free: "
+			  << static_cast<TPIE_OS_OUTPUT_SIZE_T>(get_memory_manager().available()) << "b" << std::endl;
+#endif
 	{
-		mergebuffer.resize(0);
 
 		file_stream<T> newstream(block_factor);
 		newstream.open(slot_data(newslot));
@@ -772,9 +792,13 @@ void priority_queue<T, Comparator, OPQType>::empty_group(TPIE_OS_SIZE_T group) {
 				heap.pop_and_push(data[current_slot-group*setting_k]->read(), current_slot);
 			}
 		}
-
-		mergebuffer.resize(setting_m*2);;
 	}
+
+#ifndef TPIE_NDEBUG
+	std::cout << "memavail before mb alloc: "
+			  << static_cast<TPIE_OS_OUTPUT_SIZE_T>(get_memory_manager().available()) << "b" << std::endl;
+#endif
+	mergebuffer.resize(setting_m*2);;
 
 	if(group_size(group+1) > 0 && !ret) {
 		remove_group_buffer(group+1); // todo, this might recurse?
