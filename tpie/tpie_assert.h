@@ -46,7 +46,7 @@ namespace tpie {
     }
 
 #else // TPIE_NDEBUG
-#define tp_assert(condition,message) {sizeof(condition); sizeof(message);}
+#define tp_assert(condition,message)
 #endif // TPIE_NDEBUG
 
 }  // tpie namespace
