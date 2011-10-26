@@ -489,8 +489,8 @@ public:
 	/// \brief Swap two arryes
 	/////////////////////////////////////////////////////////	
 	void swap(array_base & other) {
-		swap(m_a, other.m_a);
-		swap(m_size, other.m_size);
+		std::swap(m_a, other.m_a);
+		std::swap(m_size, other.m_size);
 	}
 
 	/////////////////////////////////////////////////////////
