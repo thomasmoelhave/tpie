@@ -106,7 +106,7 @@ bool segmented_array_test() {
 	h1.resize(z);
 	h2.resize(z);
 	for (size_type i=0; i < 52; ++i)
-		h2[i] = h1[i] = (i * 833547)%z;
+		h2[i] = h1[i] = static_cast<int>((i * 833547)%z);
 
 	array<int>::iterator i1=h1.begin();
 	array_base<int, true>::iterator i2=h2.begin();
