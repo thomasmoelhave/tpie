@@ -87,8 +87,6 @@ void parse_app_opts(int idx, char *opt_arg) {
 
 int main(int argc, char **argv) {
 
-    ami::err ae;
-
     test_size = 128 * 1024;
 
     parse_args(argc, argv, app_opts, parse_app_opts);
@@ -133,7 +131,7 @@ int main(int argc, char **argv) {
     // Write some ints.
     scan_count sc(test_size*test_size);
 
-    ae = ami::scan(&sc, &em0);
+    ami::scan(&sc, &em0);
 
     if (verbose) {
 	std::cout << "Wrote the initial sequence of values." << std::endl;
@@ -144,7 +142,7 @@ int main(int argc, char **argv) {
     }
 
     if (report_results_count) {
-        ae = ami::scan(&em0, rptc);
+        ami::scan(&em0, rptc);
     }
 
     {
@@ -155,7 +153,7 @@ int main(int argc, char **argv) {
 	apps::matrix<TPIE_OS_OFFSET> em1(7 * ((em0.rows() - 1)/7 + 1),
 			      7 * ((em0.cols() - 1)/7 + 1));
 
-        ae = ami::scan(&em0, &smp, &em1);
+	ami::scan(&em0, &smp, &em1);
 
         
         // Block permute the matrix.
@@ -167,10 +165,10 @@ int main(int argc, char **argv) {
 					    7 * ((em0.cols() - 1)/7 + 1),
 					    7);
 
-        ae = ami::general_permute(&em1, &em1p, &pmib1); 
+	ami::general_permute(&em1, &em1p, &pmib1); 
 
         if (report_results_intermediate) {
-            ae = ami::scan(&em1p, rpti);
+            ami::scan(&em1p, rpti);
         }
         
         // Un block permute it.
@@ -182,7 +180,7 @@ int main(int argc, char **argv) {
 					     7 * ((em0.cols() - 1)/7 + 1),
 					     7);
 
-        ae = ami::general_permute(&em1p, &em2, &pmob1); 
+	ami::general_permute(&em1p, &em2, &pmob1); 
         
         // Unpad the matrix.
 
@@ -190,13 +188,13 @@ int main(int argc, char **argv) {
 
 	apps::matrix<TPIE_OS_OFFSET> em3(em0.rows(), em0.cols());
 
-        ae = ami::scan(&em2, &smup, &em3);
+	ami::scan(&em2, &smup, &em3);
 
-        if (report_results_final) {
-            ae = ami::scan(&em3, rptf);
-        }
+	if (report_results_final) {
+		ami::scan(&em3, rptf);
+	}
 
-    }
+	}
     
     return 0;
 }

@@ -121,8 +121,6 @@ void parse_app_opts(int idx, char *opt_arg)
 
 int main(int argc, char **argv)
 {
-    ami::err ae = ami::NO_ERROR;
-
     parse_args(argc, argv, app_opts, parse_app_opts);
 
     if (verbose) {
@@ -185,10 +183,10 @@ int main(int argc, char **argv)
     if (!read_banded_matrix) {
 	apps::scan_uniform_sm susm(test_size, test_size, density, random_seed);
     
-        ae = ami::scan(&susm, &esm0);
+	ami::scan(&susm, &esm0);
 
         if (report_results_count) {
-            ae = ami::scan(&esm0, rptc);
+            ami::scan(&esm0, rptc);
         }
     }
     
@@ -198,12 +196,12 @@ int main(int argc, char **argv)
 
     fv.set_value(1.0);
 
-    ae = apps::matrix_fill(&ev0, &fv);
+    apps::matrix_fill(&ev0, &fv);
 
     // Multiply the two
 
     if (call_mult) {
-        ae = apps::sparse_mult(esm0, ev0, ev1);
+        apps::sparse_mult(esm0, ev0, ev1);
     } else {
 
         cpu_timer cput0, cput1;
@@ -231,7 +229,7 @@ int main(int argc, char **argv)
 
             rows_per_band = file_rows_per_band;
             
-            ae = ami::scan(readb, &esm0b);
+            ami::scan(readb, &esm0b);
 
             cput1.stop();
 
@@ -248,11 +246,11 @@ int main(int argc, char **argv)
 
             // Compute band information.
 
-            ae = apps::sparse_band_info(esm0, rows_per_band, total_bands);
+            apps::sparse_band_info(esm0, rows_per_band, total_bands);
 
             // Bandify the sparse matrix.
             
-            ae = apps::sparse_bandify(esm0, esm0b, rows_per_band);
+            apps::sparse_bandify(esm0, esm0b, rows_per_band);
 
             cput0.stop();
 
@@ -266,7 +264,7 @@ int main(int argc, char **argv)
 		 << test_size 
 		 << ' '
                  << static_cast<TPIE_OS_OUTPUT_SIZE_T>(rows_per_band) << std::endl;
-            ae = ami::scan(&esm0b, rpti);
+            ami::scan(&esm0b, rpti);
         }
 
         // Do the multiplication.
@@ -276,7 +274,7 @@ int main(int argc, char **argv)
             cput1.start();
         }
         
-        ae = apps::sparse_mult_scan_banded(esm0b, ev0, ev1, test_size,
+        apps::sparse_mult_scan_banded(esm0b, ev0, ev1, test_size,
 					   test_size, rows_per_band);
 
         if (read_banded_matrix) {
@@ -292,7 +290,7 @@ int main(int argc, char **argv)
     }
     
     if (report_results_final) {
-        ae = ami::scan(&ev1, rptf);
+        ami::scan(&ev1, rptf);
     }
     
     return 0;

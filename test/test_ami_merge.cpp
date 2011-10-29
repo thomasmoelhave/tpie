@@ -88,8 +88,6 @@ void parse_app_opts(int idx, char *opt_arg)
 
 int main(int argc, char **argv)
 {
-    ami::err ae;
-    
     parse_args(argc, argv, app_opts, parse_app_opts);
     
     if (verbose) {
@@ -135,7 +133,7 @@ int main(int argc, char **argv)
     // Write some ints.
     scan_count sc(test_size);
 
-    ae = ami::scan(&sc, &amis0);
+    ami::scan(&sc, &amis0);
     
     if (verbose) {
         std::cout << "Wrote the initial sequence of values.\n";
@@ -145,13 +143,13 @@ int main(int argc, char **argv)
     }
 
     if (report_results_count) {
-        ae = ami::scan(&amis0, rptc);
+        ami::scan(&amis0, rptc);
     }
     
     // Square them.
     scan_square<TPIE_OS_OFFSET> ss;
         
-    ae = ami::scan(&amis0, &ss, &amis1);
+    ami::scan(&amis0, &ss, &amis1);
 
     if (verbose) {
         std::cout << "Squared them; last squared was ii = "
@@ -169,7 +167,7 @@ int main(int argc, char **argv)
     amirs[0] = &amis0;
     amirs[1] = &amis1;
     
-    ae = ami::single_merge(amirs, arity, &amis2, &im);
+    ami::single_merge(amirs, arity, &amis2, &im);
 
     if (verbose) {
         std::cout << "Interleaved them; operate() called " << im.called 
@@ -178,7 +176,7 @@ int main(int argc, char **argv)
     }
     
     if (report_results_interleave) {
-        ae = ami::scan(&amis2, rpti);
+        ami::scan(&amis2, rpti);
     }
 
     // Divide the stream into two substreams, and interleave them.
@@ -186,8 +184,8 @@ int main(int argc, char **argv)
     ami::stream<TPIE_OS_OFFSET>* amirs0 = amirs[0]; 
     ami::stream<TPIE_OS_OFFSET>* amirs1 = amirs[1]; 
 
-    ae = amis2.new_substream(ami::READ_STREAM, 0, test_size-1, &amirs0);
-    ae = amis2.new_substream(ami::READ_STREAM, 0, 2*test_size-1, &amirs1);
+    amis2.new_substream(ami::READ_STREAM, 0, test_size-1, &amirs0);
+    amis2.new_substream(ami::READ_STREAM, 0, 2*test_size-1, &amirs1);
 
     if (verbose) {
         std::cout << "Created substreams; lengths = " 
@@ -200,9 +198,9 @@ int main(int argc, char **argv)
     // Get around the OS (HP_UX in particular) when using BTE_IMP_MMB
     // by seeking back to 0 in the substream, which will force the last
     // block written to be unmapped.
-    ae = amis2.seek(0);
+    amis2.seek(0);
     
-    ae = ami::single_merge(amirs, arity, &amis3, &im);
+    ami::single_merge(amirs, arity, &amis3, &im);
     
     if (verbose) {
         std::cout << "Interleaved them; operate() called " << im.called 
@@ -211,7 +209,7 @@ int main(int argc, char **argv)
     }
     
     if (report_results_final) {
-        ae = ami::scan(&amis3, rptf);
+        ami::scan(&amis3, rptf);
     }
     
     return 0;
