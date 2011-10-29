@@ -22,6 +22,7 @@
 
 #include <tpie/portability.h>
 #include <tpie/progress_indicator_base.h>
+#include <tpie/util.h>
 
 namespace tpie {
 
@@ -38,9 +39,9 @@ public:
 
     virtual ~progress_indicator_null() { /*Do nothing*/ }
 
-	virtual void init(TPIE_OS_OFFSET range) {}
+	virtual void init(TPIE_OS_OFFSET range) { unused(range); }
 	virtual void done() {}
-	virtual void set_range(TPIE_OS_OFFSET range) {}
+	virtual void set_range(TPIE_OS_OFFSET range) { unused(range); }
 	virtual void refresh() {}
 
 };
