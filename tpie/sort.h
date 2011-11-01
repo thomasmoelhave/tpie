@@ -94,6 +94,11 @@ namespace tpie {
 
     namespace ami {
 	
+		inline err exception_kind(const exception & e) {
+			if (0 != dynamic_cast<const end_of_stream_exception *>(&e)) return END_OF_STREAM;
+			if (0 != dynamic_cast<const already_sorted_exception *>(&e)) return SORT_ALREADY_SORTED;
+			return BTE_ERROR;
+		}
   //////////////////////////////////////////////////////////////////////////
   /// A version of sort that takes an input stream of elements of type
   /// T, and an output stream, and and uses the < operator to sort,
@@ -144,7 +149,13 @@ namespace tpie {
 	    sort_manager< T, Internal_Sorter_Op<T>, merge_heap_op<T> > 
 		mySortManager(&myInternalSorter, &myMergeHeap);
 
-	    return mySortManager.sort(instream_ami, outstream_ami, indicator);
+		try {
+			mySortManager.sort(instream_ami, outstream_ami, indicator);
+		} catch (const exception & e) {
+			TP_LOG_FATAL_ID(e.what());
+			return exception_kind(e);
+		}
+		return NO_ERROR;
 	}
 
   ///////////////////////////////////////////////////////////////////////////
@@ -163,7 +174,13 @@ namespace tpie {
 	    sort_manager< T, Internal_Sorter_Obj<T,CMPR>, merge_heap_obj<T,CMPR> > 
 		mySortManager(&myInternalSorter, &myMergeHeap);
 
-	    return mySortManager.sort(instream_ami, outstream_ami, indicator);
+		try {
+			mySortManager.sort(instream_ami, outstream_ami, indicator);
+		} catch (const exception & e) {
+			TP_LOG_FATAL_ID(e.what());
+			return exception_kind(e);
+		}
+		return NO_ERROR;
 	}
 
 // --------------------------------------------------------------------
@@ -188,7 +205,13 @@ namespace tpie {
 	    sort_manager< T, Internal_Sorter_Op<T>, merge_heap_op<T> > 
 		mySortManager(&myInternalSorter, &myMergeHeap);
 	    
-	    return mySortManager.sort(instream_ami, outstream_ami, indicator);
+		try {
+			mySortManager.sort(instream_ami, outstream_ami, indicator);
+		} catch (const exception & e) {
+			TP_LOG_FATAL_ID(e.what());
+			return exception_kind(e);
+		}
+		return NO_ERROR;
 	}
 	
   ///////////////////////////////////////////////////////////////////////////
@@ -213,7 +236,13 @@ namespace tpie {
 	    sort_manager< T, Internal_Sorter_Obj<T,CMPR>, merge_heap_ptr_obj<T,CMPR> > 
 		mySortManager(&myInternalSorter, &myMergeHeap);
 
-	    return mySortManager.sort(instream_ami, outstream_ami, indicator);
+		try {
+			mySortManager.sort(instream_ami, outstream_ami, indicator);
+		} catch (const exception & e) {
+			TP_LOG_FATAL_ID(e.what());
+			return exception_kind(e);
+		}
+		return NO_ERROR;
 	}
 
 // ********************************************************************
@@ -268,7 +297,13 @@ namespace tpie {
 	    sort_manager< T, Internal_Sorter_KObj<T,KEY,CMPR>, merge_heap_kobj<T,KEY,CMPR> > 
 		mySortManager(&myInternalSorter, &myMergeHeap);
 
-	    return mySortManager.sort(instream_ami, outstream_ami, indicator);
+		try {
+			mySortManager.sort(instream_ami, outstream_ami, indicator);
+		} catch (const exception & e) {
+			TP_LOG_FATAL_ID(e.what());
+			return exception_kind(e);
+		}
+		return NO_ERROR;
 	}
 
 // ********************************************************************
@@ -290,7 +325,13 @@ namespace tpie {
 	    sort_manager< T, Internal_Sorter_Op<T>, merge_heap_op<T> > 
 		mySortManager(&myInternalSorter, &myMergeHeap);
 	    
-	    return mySortManager.sort(instream_ami, indicator);
+		try {
+			mySortManager.sort(instream_ami, indicator);
+		} catch (const exception & e) {
+			TP_LOG_FATAL_ID(e.what());
+			return exception_kind(e);
+		}
+		return NO_ERROR;
 	}
 	
 	///////////////////////////////////////////////////////////////////////////
@@ -305,7 +346,13 @@ namespace tpie {
 	    sort_manager< T, Internal_Sorter_Obj<T,CMPR>, merge_heap_obj<T,CMPR> > 
 		mySortManager(&myInternalSorter, &myMergeHeap);
 
-	    return mySortManager.sort(instream_ami, indicator);
+		try {
+			mySortManager.sort(instream_ami, indicator);
+		} catch (const exception & e) {
+			TP_LOG_FATAL_ID(e.what());
+			return exception_kind(e);
+		}
+		return NO_ERROR;
 	}
 
   ///////////////////////////////////////////////////////////////////////////
@@ -320,7 +367,13 @@ namespace tpie {
 	    sort_manager< T, Internal_Sorter_Op<T>, merge_heap_op<T> > 
 		mySortManager(&myInternalSorter, &myMergeHeap);
 
-	    return mySortManager.sort(instream_ami, indicator);
+		try {
+			mySortManager.sort(instream_ami, indicator);
+		} catch (const exception & e) {
+			TP_LOG_FATAL_ID(e.what());
+			return exception_kind(e);
+		}
+		return NO_ERROR;
 	}
 
   ///////////////////////////////////////////////////////////////////////////
@@ -336,7 +389,13 @@ namespace tpie {
 	    sort_manager< T, Internal_Sorter_Obj<T,CMPR>, merge_heap_ptr_obj<T,CMPR> > 
 		mySortManager(&myInternalSorter, &myMergeHeap);
 
-	    return mySortManager.sort(instream_ami, indicator);
+		try {
+			mySortManager.sort(instream_ami, indicator);
+		} catch (const exception & e) {
+			TP_LOG_FATAL_ID(e.what());
+			return exception_kind(e);
+		}
+		return NO_ERROR;
 	}
 
   ///////////////////////////////////////////////////////////////////////////
@@ -352,7 +411,13 @@ namespace tpie {
 	    sort_manager< T, Internal_Sorter_KObj<T,KEY,CMPR>, merge_heap_kobj<T,KEY,CMPR> > 
 		mySortManager(&myInternalSorter, &myMergeHeap);
 
-	    return mySortManager.sort(instream_ami, indicator);
+		try {
+			mySortManager.sort(instream_ami, indicator);
+		} catch (const exception & e) {
+			TP_LOG_FATAL_ID(e.what());
+			return exception_kind(e);
+		}
+		return NO_ERROR;
 	}
 
     }  //  ami namespace

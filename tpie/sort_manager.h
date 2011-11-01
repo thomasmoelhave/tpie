@@ -63,11 +63,11 @@ public:
 	};
 
 	//  Sort in stream to out stream an save in stream (uses 3x space)
-	err sort(stream<T>* in, stream<T>* out, 
-		     progress_indicator_base* indicator = NULL);
+	void sort(stream<T>* in, stream<T>* out, 
+			  progress_indicator_base* indicator = NULL);
 	//Sort in stream and overwrite unsorted input with sorted output
 	//(uses 2x space)
-	err sort(stream<T>* in, progress_indicator_base* indicator = NULL); 
+	void sort(stream<T>* in, progress_indicator_base* indicator = NULL); 
 	    
 private:
 	// *************
@@ -96,7 +96,6 @@ private:
 	M*              m_mergeHeap;        // Merge heap implementation 
 	file_stream<T>* inStream;   
 	file_stream<T>* outStream;   
-	err             ae;                 // For catching error codes
 	TPIE_OS_OFFSET  nInputItems;        // Number of items in inStream;
 	TPIE_OS_SIZE_T  mmBytesAvail;       // Amount of spare memory we can use
 	TPIE_OS_SIZE_T  mmBytesPerStream;   // Memory consumed by each Stream obj
@@ -155,7 +154,6 @@ sort_manager<T, I, M>::sort_manager(I* isort, M* mheap):
 	m_mergeHeap(mheap),
 	inStream(0), 
 	outStream(0),
-	ae(NO_ERROR),
 	nInputItems(0),
 	mmBytesAvail(0),
 	mmBytesPerStream(0),
@@ -180,10 +178,8 @@ sort_manager<T, I, M>::sort_manager(I* isort, M* mheap):
 };
 
 template<class T, class I, class M>
-err sort_manager<T,I,M>::sort(stream<T>* in, stream<T>* out,
-							  progress_indicator_base* indicator){
-try {
-
+void sort_manager<T,I,M>::sort(stream<T>* in, stream<T>* out,
+							   progress_indicator_base* indicator){
 	//  This version saves the original input and uses 3x space
 	//  (input, current temp runs, output runs)
 	    
@@ -193,12 +189,12 @@ try {
 	// Basic checks that input is ok
 	if (in==NULL || out==NULL) {
 		m_indicator->init(1); m_indicator->step(); m_indicator->done();
-		return NULL_POINTER;
+		throw exception("NULL_POINTER");
 	}
 
 	if (!in || !out) {
 		m_indicator->init(1); m_indicator->step(); m_indicator->done();
-		return OBJECT_INVALID; 
+		throw exception("OBJECT_INVALID");
 	}
 
 	inStream = &in->underlying_stream();
@@ -206,25 +202,15 @@ try {
 
 	if (inStream->size() < 2) {
 		m_indicator->init(1); m_indicator->step(); m_indicator->done();
-		return SORT_ALREADY_SORTED; 
+		throw already_sorted_exception();
 	}
 	    
 	// Else, there is something to sort, do it
 	start_sort();
-} catch (const end_of_stream_exception & e) {
-	TP_LOG_FATAL_ID(e.what());
-	return END_OF_STREAM;
-} catch (const stream_exception & e) {
-	TP_LOG_FATAL_ID(e.what());
-	return BTE_ERROR;
-}
-	return NO_ERROR;
 }
 
 template<class T, class I, class M>
-err sort_manager<T,I,M>::sort(stream<T>* in, progress_indicator_base* indicator){
-try {
-	    
+void sort_manager<T,I,M>::sort(stream<T>* in, progress_indicator_base* indicator){
 	//This version overwrites the original input and uses 2x space
 	//The input stream is truncated to length 0 after forming initial runs
 	//and only two levels of the merge tree are on disk at any one time.
@@ -233,11 +219,11 @@ try {
 
 	// Basic checks that input is ok
 	if (in==NULL) { 
-		return NULL_POINTER;
+		throw exception("NULL_POINTER");
 	}
 	    
 	if (!in) { 
-		return OBJECT_INVALID; 
+		throw exception("OBJECT_INVALID");
 	}
 	    
 	inStream = &in->underlying_stream();
@@ -249,17 +235,11 @@ try {
 			m_indicator->step(); 
 			m_indicator->done(); 
 		}
-		return SORT_ALREADY_SORTED; 
+		throw already_sorted_exception();
 	}
 
 	// Else, there is something to sort, do it
 	start_sort();
-} catch (const end_of_stream_exception &) {
-	return END_OF_STREAM;
-} catch (const stream_exception & e) {
-	return BTE_ERROR;
-}
-	return NO_ERROR;
 }
 	
 template<class T, class I, class M>
