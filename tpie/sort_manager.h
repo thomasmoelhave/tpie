@@ -94,12 +94,10 @@ private:
 	    
 	I*              m_internalSorter;   // Method for sorting runs in memory
 	M*              m_mergeHeap;        // Merge heap implementation 
-	stream<T>*      inStream_ami;   
 	file_stream<T>* inStream;   
-	stream<T>*      outStream_ami;   
 	file_stream<T>* outStream;   
 	err             ae;                 // For catching error codes
-	TPIE_OS_OFFSET  nInputItems;        // Number of items in inStream_ami;
+	TPIE_OS_OFFSET  nInputItems;        // Number of items in inStream;
 	TPIE_OS_SIZE_T  mmBytesAvail;       // Amount of spare memory we can use
 	TPIE_OS_SIZE_T  mmBytesPerStream;   // Memory consumed by each Stream obj
 	    
@@ -155,9 +153,7 @@ template <class T, class I, class M>
 sort_manager<T, I, M>::sort_manager(I* isort, M* mheap):
 	m_internalSorter(isort), 
 	m_mergeHeap(mheap),
-	inStream_ami(0), 
 	inStream(0), 
-	outStream_ami(0),
 	outStream(0),
 	ae(NO_ERROR),
 	nInputItems(0),
@@ -192,17 +188,15 @@ try {
 	//  (input, current temp runs, output runs)
 	    
 	m_indicator = indicator;
-	inStream_ami=in;
-	outStream_ami=out;
 	use2xSpace=false;
 
 	// Basic checks that input is ok
-	if (inStream_ami==NULL || outStream_ami==NULL) {
+	if (in==NULL || out==NULL) {
 		m_indicator->init(1); m_indicator->step(); m_indicator->done();
 		return NULL_POINTER;
 	}
 
-	if (!inStream_ami || !outStream_ami) {
+	if (!in || !out) {
 		m_indicator->init(1); m_indicator->step(); m_indicator->done();
 		return OBJECT_INVALID; 
 	}
@@ -235,16 +229,14 @@ try {
 	//The input stream is truncated to length 0 after forming initial runs
 	//and only two levels of the merge tree are on disk at any one time.
 	m_indicator = indicator;
-	inStream_ami=in;
-	outStream_ami=in; //output destination is same as input
 	use2xSpace=true;
 
 	// Basic checks that input is ok
-	if (inStream_ami==NULL) { 
+	if (in==NULL) { 
 		return NULL_POINTER;
 	}
 	    
-	if (!inStream_ami) { 
+	if (!in) { 
 		return OBJECT_INVALID; 
 	}
 	    
@@ -887,10 +879,10 @@ template<class T, class I, class M>
 void sort_manager<T,I,M>::single_merge( 
 	typename tpie::array<tpie::auto_ptr<file_stream<T> > >::iterator start,
 	typename tpie::array<tpie::auto_ptr<file_stream<T> > >::iterator end,
-	file_stream < T >*outStream_ami, TPIE_OS_OFFSET cutoff, progress_indicator_base* indicator)
+	file_stream < T >*outStream, TPIE_OS_OFFSET cutoff, progress_indicator_base* indicator)
 {
 
-	merge_sorted_runs(start, end, outStream_ami, m_mergeHeap,
+	merge_sorted_runs(start, end, outStream, m_mergeHeap,
 					  cutoff, indicator);
 }
 
