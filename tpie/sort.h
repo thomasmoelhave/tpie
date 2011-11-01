@@ -137,14 +137,14 @@ namespace tpie {
   /// were it is impossible to use a comparison operator or comparison object.
   //////////////////////////////////////////////////////////////////////////
 	template<class T>
-	err sort(stream<T> *instream, stream<T> *outstream,
+	err sort(stream<T> *instream_ami, stream<T> *outstream_ami,
 		 tpie::progress_indicator_base* indicator=NULL)	{
 	    Internal_Sorter_Op<T> myInternalSorter;
 	    merge_heap_op<T>      myMergeHeap;
 	    sort_manager< T, Internal_Sorter_Op<T>, merge_heap_op<T> > 
 		mySortManager(&myInternalSorter, &myMergeHeap);
 
-	    return mySortManager.sort(instream, outstream, indicator);
+	    return mySortManager.sort(instream_ami, outstream_ami, indicator);
 	}
 
   ///////////////////////////////////////////////////////////////////////////
@@ -156,14 +156,14 @@ namespace tpie {
   /// \ref comp_sorting "Comparing within Sorting".
   ///////////////////////////////////////////////////////////////////////////
   template<class T, class CMPR>
-  err sort(stream<T> *instream, stream<T> *outstream,
+  err sort(stream<T> *instream_ami, stream<T> *outstream_ami,
 		 CMPR *cmp, progress_indicator_base* indicator=NULL) {
 	    Internal_Sorter_Obj<T,CMPR> myInternalSorter(cmp);
 	    merge_heap_obj<T,CMPR>      myMergeHeap(cmp);
 	    sort_manager< T, Internal_Sorter_Obj<T,CMPR>, merge_heap_obj<T,CMPR> > 
 		mySortManager(&myInternalSorter, &myMergeHeap);
 
-	    return mySortManager.sort(instream, outstream, indicator);
+	    return mySortManager.sort(instream_ami, outstream_ami, indicator);
 	}
 
 // --------------------------------------------------------------------
@@ -181,14 +181,14 @@ namespace tpie {
   /// Takes an input stream of elements of type T and an output stream.
   ///////////////////////////////////////////////////////////////////////////
   template<class T>
-  err ptr_sort(stream<T> *instream, stream<T> *outstream,
+  err ptr_sort(stream<T> *instream_ami, stream<T> *outstream_ami,
 	     progress_indicator_base* indicator=NULL) {
 	    Internal_Sorter_Op<T> myInternalSorter;
 	    merge_heap_op<T>      myMergeHeap;
 	    sort_manager< T, Internal_Sorter_Op<T>, merge_heap_op<T> > 
 		mySortManager(&myInternalSorter, &myMergeHeap);
 	    
-	    return mySortManager.sort(instream, outstream, indicator);
+	    return mySortManager.sort(instream_ami, outstream_ami, indicator);
 	}
 	
   ///////////////////////////////////////////////////////////////////////////
@@ -206,14 +206,14 @@ namespace tpie {
 	/// also \ref comp_sorting "Comparing within Sorting".
 	///////////////////////////////////////////////////////////////////////////
 	template<class T, class CMPR>
-	err ptr_sort(stream<T> *instream, stream<T> *outstream,
+	err ptr_sort(stream<T> *instream_ami, stream<T> *outstream_ami,
 		     CMPR *cmp, progress_indicator_base* indicator=NULL) {
 	    Internal_Sorter_Obj<T,CMPR> myInternalSorter(cmp);
 	    merge_heap_ptr_obj<T,CMPR> myMergeHeap(cmp);
 	    sort_manager< T, Internal_Sorter_Obj<T,CMPR>, merge_heap_ptr_obj<T,CMPR> > 
 		mySortManager(&myInternalSorter, &myMergeHeap);
 
-	    return mySortManager.sort(instream, outstream, indicator);
+	    return mySortManager.sort(instream_ami, outstream_ami, indicator);
 	}
 
 // ********************************************************************
@@ -261,14 +261,14 @@ namespace tpie {
   /// during the sort.
 	///////////////////////////////////////////////////////////////////////////
 	template<class T, class KEY, class CMPR>
-	err  key_sort(stream<T> *instream, stream<T> *outstream,
+	err  key_sort(stream<T> *instream_ami, stream<T> *outstream_ami,
 		      KEY /* dummykey */, CMPR *cmp, progress_indicator_base* indicator=NULL)	{
 	    Internal_Sorter_KObj<T,KEY,CMPR> myInternalSorter(cmp);
 	    merge_heap_kobj<T,KEY,CMPR>      myMergeHeap(cmp);
 	    sort_manager< T, Internal_Sorter_KObj<T,KEY,CMPR>, merge_heap_kobj<T,KEY,CMPR> > 
 		mySortManager(&myInternalSorter, &myMergeHeap);
 
-	    return mySortManager.sort(instream, outstream, indicator);
+	    return mySortManager.sort(instream_ami, outstream_ami, indicator);
 	}
 
 // ********************************************************************
@@ -279,56 +279,56 @@ namespace tpie {
 // ********************************************************************/
 
   ///////////////////////////////////////////////////////////////////////////
-  /// In-place sorting variant of \ref sort(stream<T> *instream, stream<T> *outstream, tpie::progress_indicator_base* indicator=NULL),
+  /// In-place sorting variant of \ref sort(stream<T> *instream_ami, stream<T> *outstream_ami, tpie::progress_indicator_base* indicator=NULL),
   /// see also \ref sortingspace_in_tpie "In-place Variants for Sorting in TPIE".
   ///////////////////////////////////////////////////////////////////////////
 	template<class T>
-	err sort(stream<T> *instream, 
+	err sort(stream<T> *instream_ami, 
 		 progress_indicator_base* indicator=NULL) {
 	    Internal_Sorter_Op<T> myInternalSorter;
 	    merge_heap_op<T>      myMergeHeap;
 	    sort_manager< T, Internal_Sorter_Op<T>, merge_heap_op<T> > 
 		mySortManager(&myInternalSorter, &myMergeHeap);
 	    
-	    return mySortManager.sort(instream, indicator);
+	    return mySortManager.sort(instream_ami, indicator);
 	}
 	
 	///////////////////////////////////////////////////////////////////////////
-	/// In-place sorting variant of \ref  sort(stream<T> *instream, stream<T> *outstream, CMPR *cmp, progress_indicator_base* indicator=NULL), 
+	/// In-place sorting variant of \ref  sort(stream<T> *instream_ami, stream<T> *outstream_ami, CMPR *cmp, progress_indicator_base* indicator=NULL), 
 	/// see also \ref sortingspace_in_tpie "In-place Variants for Sorting in TPIE".
 	///////////////////////////////////////////////////////////////////////////
 	template<class T, class CMPR>
-	err sort(stream<T> *instream, 
+	err sort(stream<T> *instream_ami, 
 		 CMPR *cmp, progress_indicator_base* indicator=NULL) {
 	    Internal_Sorter_Obj<T,CMPR> myInternalSorter(cmp);
 	    merge_heap_obj<T,CMPR>      myMergeHeap(cmp);
 	    sort_manager< T, Internal_Sorter_Obj<T,CMPR>, merge_heap_obj<T,CMPR> > 
 		mySortManager(&myInternalSorter, &myMergeHeap);
 
-	    return mySortManager.sort(instream, indicator);
+	    return mySortManager.sort(instream_ami, indicator);
 	}
 
   ///////////////////////////////////////////////////////////////////////////
-  /// In-place sorting variant of \ref ptr_sort(stream<T> *instream, stream<T> *outstream, progress_indicator_base* indicator=NULL),
+  /// In-place sorting variant of \ref ptr_sort(stream<T> *instream_ami, stream<T> *outstream_ami, progress_indicator_base* indicator=NULL),
   /// see also \ref sortingspace_in_tpie "In-place Variants for Sorting in TPIE".
   ///////////////////////////////////////////////////////////////////////////
 	template<class T>
-	err ptr_sort(stream<T> *instream, 
+	err ptr_sort(stream<T> *instream_ami, 
 		     progress_indicator_base* indicator=NULL) {
 	    Internal_Sorter_Op<T> myInternalSorter;
 	    merge_heap_op<T>      myMergeHeap;
 	    sort_manager< T, Internal_Sorter_Op<T>, merge_heap_op<T> > 
 		mySortManager(&myInternalSorter, &myMergeHeap);
 
-	    return mySortManager.sort(instream, indicator);
+	    return mySortManager.sort(instream_ami, indicator);
 	}
 
   ///////////////////////////////////////////////////////////////////////////
-  /// In-place sorting variant of \ref ptr_sort(stream<T> *instream, stream<T> *outstream, CMPR *cmp, progress_indicator_base* indicator=NULL),
+  /// In-place sorting variant of \ref ptr_sort(stream<T> *instream_ami, stream<T> *outstream_ami, CMPR *cmp, progress_indicator_base* indicator=NULL),
   /// see also \ref sortingspace_in_tpie "In-place Variants for Sorting in TPIE".
   ///////////////////////////////////////////////////////////////////////////
 	template<class T, class CMPR>
-	err ptr_sort(stream<T> *instream, 
+	err ptr_sort(stream<T> *instream_ami, 
 		     CMPR *cmp, progress_indicator_base* indicator=NULL) {
 	  // ptr heaps, comparison object comparisions
 	    Internal_Sorter_Obj<T,CMPR> myInternalSorter(cmp);
@@ -336,15 +336,15 @@ namespace tpie {
 	    sort_manager< T, Internal_Sorter_Obj<T,CMPR>, merge_heap_ptr_obj<T,CMPR> > 
 		mySortManager(&myInternalSorter, &myMergeHeap);
 
-	    return mySortManager.sort(instream, indicator);
+	    return mySortManager.sort(instream_ami, indicator);
 	}
 
   ///////////////////////////////////////////////////////////////////////////
-  /// In-place sorting variant of \ref key_sort(stream<T> *instream, stream<T> *outstream, KEY dummykey, CMPR *cmp, progress_indicator_base* indicator=NULL),
+  /// In-place sorting variant of \ref key_sort(stream<T> *instream_ami, stream<T> *outstream_ami, KEY dummykey, CMPR *cmp, progress_indicator_base* indicator=NULL),
   /// see also \ref sortingspace_in_tpie "In-place Variants for Sorting in TPIE".
   ///////////////////////////////////////////////////////////////////////////
 	template<class T, class KEY, class CMPR>
-	err  key_sort(stream<T> *instream, 
+	err  key_sort(stream<T> *instream_ami, 
 		      KEY /* dummykey */, CMPR *cmp, progress_indicator_base* indicator=NULL)	{
 	  // key/object heaps, key/object comparisons 
 	    Internal_Sorter_KObj<T,KEY,CMPR> myInternalSorter(cmp);
@@ -352,7 +352,7 @@ namespace tpie {
 	    sort_manager< T, Internal_Sorter_KObj<T,KEY,CMPR>, merge_heap_kobj<T,KEY,CMPR> > 
 		mySortManager(&myInternalSorter, &myMergeHeap);
 
-	    return mySortManager.sort(instream, indicator);
+	    return mySortManager.sort(instream_ami, indicator);
 	}
 
     }  //  ami namespace

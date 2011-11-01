@@ -94,10 +94,10 @@ private:
 	    
 	I*              m_internalSorter;   // Method for sorting runs in memory
 	M*              m_mergeHeap;        // Merge heap implementation 
-	stream<T>*      inStream;   
-	stream<T>*      outStream;   
+	stream<T>*      inStream_ami;   
+	stream<T>*      outStream_ami;   
 	err             ae;                 // For catching error codes
-	TPIE_OS_OFFSET  nInputItems;        // Number of items in inStream;
+	TPIE_OS_OFFSET  nInputItems;        // Number of items in inStream_ami;
 	TPIE_OS_SIZE_T  mmBytesAvail;       // Amount of spare memory we can use
 	TPIE_OS_SIZE_T  mmBytesPerStream;   // Memory consumed by each Stream obj
 	    
@@ -153,8 +153,8 @@ template <class T, class I, class M>
 sort_manager<T, I, M>::sort_manager(I* isort, M* mheap):
 	m_internalSorter(isort), 
 	m_mergeHeap(mheap),
-	inStream(NULL), 
-	outStream(NULL),
+	inStream_ami(NULL), 
+	outStream_ami(NULL),
 	ae(NO_ERROR),
 	nInputItems(0),
 	mmBytesAvail(0),
@@ -187,22 +187,22 @@ err sort_manager<T,I,M>::sort(stream<T>* in, stream<T>* out,
 	//  (input, current temp runs, output runs)
 	    
 	m_indicator = indicator;
-	inStream=in;
-	outStream=out;
+	inStream_ami=in;
+	outStream_ami=out;
 	use2xSpace=false;
 
 	// Basic checks that input is ok
-	if (inStream==NULL || outStream==NULL) {
+	if (inStream_ami==NULL || outStream_ami==NULL) {
 		m_indicator->init(1); m_indicator->step(); m_indicator->done();
 		return NULL_POINTER;
 	}
 
-	if (!inStream || !outStream) {
+	if (!inStream_ami || !outStream_ami) {
 		m_indicator->init(1); m_indicator->step(); m_indicator->done();
 		return OBJECT_INVALID; 
 	}
 
-	if (inStream->stream_len() < 2) {
+	if (inStream_ami->stream_len() < 2) {
 		m_indicator->init(1); m_indicator->step(); m_indicator->done();
 		return SORT_ALREADY_SORTED; 
 	}
@@ -218,20 +218,20 @@ err sort_manager<T,I,M>::sort(stream<T>* in, progress_indicator_base* indicator)
 	//The input stream is truncated to length 0 after forming initial runs
 	//and only two levels of the merge tree are on disk at any one time.
 	m_indicator = indicator;
-	inStream=in;
-	outStream=in; //output destination is same as input
+	inStream_ami=in;
+	outStream_ami=in; //output destination is same as input
 	use2xSpace=true;
 
 	// Basic checks that input is ok
-	if (inStream==NULL) { 
+	if (inStream_ami==NULL) { 
 		return NULL_POINTER;
 	}
 	    
-	if (!inStream) { 
+	if (!inStream_ami) { 
 		return OBJECT_INVALID; 
 	}
 	    
-	if (inStream->stream_len() < 2) {
+	if (inStream_ami->stream_len() < 2) {
 		if (m_indicator) {
 			m_indicator->init(1); 
 			m_indicator->step(); 
@@ -257,7 +257,7 @@ err sort_manager<T,I,M>::start_sort(){
 	    
 	// Space for internal buffers for the input and output stream may not
 	// have been allocated yet. Query the space usage and subtract.
-	if ((ae = inStream->main_memory_usage
+	if ((ae = inStream_ami->main_memory_usage
 		 (&mmBytesPerStream,STREAM_USAGE_MAXIMUM))
 		!= NO_ERROR) {
 		
@@ -272,9 +272,9 @@ err sort_manager<T,I,M>::start_sort(){
 	    
 	// Check if all input items can be sorted internally using less than
 	// mmBytesAvail
-	nInputItems = inStream->stream_len();
+	nInputItems = inStream_ami->stream_len();
 	
-	inStream->seek (0);
+	inStream_ami->seek (0);
 	
 	if (nInputItems < TPIE_OS_OFFSET(m_internalSorter->MaxItemCount(mmBytesAvail))){
 		
@@ -288,11 +288,11 @@ err sort_manager<T,I,M>::start_sort(){
 		allocate_progress.done();
 
 		// load the items into main memory, sort, and write to output.
-		// m_internalSorter also checks if inStream/outStream are the same and
-		// truncates/rewrites inStream if they are. This probably should not
+		// m_internalSorter also checks if inStream_ami/outStream_ami are the same and
+		// truncates/rewrites inStream_ami if they are. This probably should not
 		// be the job of m_internalSorter-> TODO: build a cleaner interface
-		if ((ae = m_internalSorter->sort(inStream, 
-										 outStream, 
+		if ((ae = m_internalSorter->sort(inStream_ami, 
+										 outStream_ami, 
 										 static_cast<TPIE_OS_SIZE_T>(nInputItems), 
 										 &sort_progress)) != NO_ERROR) {
 		    TP_LOG_FATAL_ID ("main_mem_operate failed");
@@ -453,7 +453,7 @@ err sort_manager<T,I,M>::compute_sort_params(void){
 	// number of substreams we want.  It may not be able to due to
 	// operating system restrictions, such as on the number of regions
 	// that can be mmap()ed in, max number of file descriptors, etc.
-	int availableStreams = static_cast<int>(inStream->available_streams ());
+	int availableStreams = static_cast<int>(inStream_ami->available_streams ());
 	    
 	// Merging requires an available stream/file decriptor for
 	// each of the mrgArity input strems. We need one additional file descriptor
@@ -619,7 +619,7 @@ err sort_manager<T,I,M>::partition_and_sort_runs(progress_indicator_base* indica
 	nItemsInThisRun=nItemsPerRun;
 	    
 	// Rewind the input stream, we are about to begin
-	inStream->seek(0);
+	inStream_ami->seek(0);
 
 	// ********************************************************************
 	// * Partition and make initial sorted runs                           *
@@ -647,7 +647,7 @@ err sort_manager<T,I,M>::partition_and_sort_runs(progress_indicator_base* indica
 		    }
 
 			progress_indicator_subindicator sort_indicator(indicator, 1000);
-		    if ((ae = m_internalSorter->sort(inStream, curOutputRunStream, 
+		    if ((ae = m_internalSorter->sort(inStream_ami, curOutputRunStream, 
 											 nItemsInThisRun, &sort_indicator))!= NO_ERROR)
 		    {
 				TP_LOG_FATAL_ID ("main_mem_operate failed");
@@ -670,9 +670,9 @@ err sort_manager<T,I,M>::partition_and_sort_runs(progress_indicator_base* indica
 	// free space associated with internal memory sorting
 	m_internalSorter->deallocate();
 	if(use2xSpace){ 
-		//recall outStream/inStream point to same file in this case
-		inStream->truncate(0); //free up disk space
-		inStream->seek(0);
+		//recall outStream_ami/inStream_ami point to same file in this case
+		inStream_ami->truncate(0); //free up disk space
+		inStream_ami->seek(0);
 	} 
 	if (indicator) indicator->done();
 	return NO_ERROR;
@@ -873,10 +873,10 @@ err sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
 	// N.B. nRuns is small, so it is safe to downcast.
 	ae = single_merge(mergeInputStreams.begin(), 
 					  mergeInputStreams.find(nRuns),
-					  outStream, -1, indicator);
+					  outStream_ami, -1, indicator);
 
 	if (indicator) indicator->done();
-	tp_assert(outStream->stream_len() == nInputItems, "item count mismatch");
+	tp_assert(outStream_ami->stream_len() == nInputItems, "item count mismatch");
 
 	if (ae != NO_ERROR) {
 		TP_LOG_FATAL_ID ("AMI_ERROR " << ae << " returned by single_merge "
@@ -907,10 +907,10 @@ template<class T, class I, class M>
 err sort_manager<T,I,M>::single_merge( 
 	typename tpie::array<tpie::auto_ptr<stream<T> > >::iterator start,
 	typename tpie::array<tpie::auto_ptr<stream<T> > >::iterator end,
-	stream < T >*outStream, TPIE_OS_OFFSET cutoff, progress_indicator_base* indicator)
+	stream < T >*outStream_ami, TPIE_OS_OFFSET cutoff, progress_indicator_base* indicator)
 {
 
-	return merge_sorted_runs(start, end, outStream, m_mergeHeap,
+	return merge_sorted_runs(start, end, outStream_ami, m_mergeHeap,
 							 cutoff, indicator);
 }
 
