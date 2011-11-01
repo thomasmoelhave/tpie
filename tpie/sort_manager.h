@@ -312,8 +312,7 @@ void sort_manager<T,I,M>::start_sort(){
 										 outStream_ami, 
 										 static_cast<TPIE_OS_SIZE_T>(nInputItems), 
 										 &sort_progress)) != NO_ERROR) {
-		    TP_LOG_FATAL_ID ("main_mem_operate failed");
-			throw stream_exception();
+			throw stream_exception("main_mem_operate failed");
 		}
 		// de-allocate the internal array of items
 		m_internalSorter->deallocate();
@@ -415,10 +414,7 @@ void sort_manager<T,I,M>::compute_sort_params(void){
 	nItemsPerRun=m_internalSorter->MaxItemCount(mmBytesAvailSort);
 	    
 	if(nItemsPerRun<1){
-
-		TP_LOG_FATAL_ID ("Insufficient Memory for forming sorted runs");
-		
-		throw stream_exception();
+		throw stream_exception("Insufficient Memory for forming sorted runs");
 	}
 
 	// Now we know the max number of Items we can sort in a single
@@ -439,10 +435,7 @@ void sort_manager<T,I,M>::compute_sort_params(void){
 
 	// Need to support at least binary merge
 	if(mmBytesAvailMerge<2*mmBytesPerMergeItem){
-
-		TP_LOG_FATAL_ID ("Merge arity < 2 -- Insufficient memory for a merge.");
-
-		throw stream_exception();
+		throw stream_exception("Merge arity < 2 -- Insufficient memory for a merge.");
 	}
 
 	// Cast down from TPIE_OS_OFFSET (type of mmBytesAvail).
@@ -467,11 +460,7 @@ void sort_manager<T,I,M>::compute_sort_params(void){
 	// for the output of the current merge, so binary merge requires
 	// three available streams.
 	if (availableStreams < 3) {
-		
-		TP_LOG_FATAL_ID ("Not enough stream descriptors available " <<
-						 "to perform merge.");
-		
-		throw stream_exception();
+		throw stream_exception("Not enough stream descriptors available to perform merge.");
 	}
 	    
 	// Can at least do binary merge. See if availableStreams limits
@@ -655,8 +644,7 @@ void sort_manager<T,I,M>::partition_and_sort_runs(progress_indicator_base* indic
 		    if ((ae = m_internalSorter->sort(inStream_ami, curOutputRunStream, 
 											 nItemsInThisRun, &sort_indicator))!= NO_ERROR)
 		    {
-				TP_LOG_FATAL_ID ("main_mem_operate failed");
-				throw stream_exception();
+				throw stream_exception("main_mem_operate failed");
 		    }
 		} // For each run in this stream
 		
