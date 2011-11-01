@@ -179,7 +179,7 @@ public:
 	using Internal_Sorter_Base<T>::space_overhead;
 	
 	//Sort nItems from input stream and write to output stream
-	err sort(stream<T>* InStr, stream<T>* OutStr, TPIE_OS_SIZE_T nItems, progress_indicator_base * pi=0);
+	err sort(file_stream<T>* InStr, file_stream<T>* OutStr, TPIE_OS_SIZE_T nItems, progress_indicator_base * pi=0);
 	    
 private:
 	// Prohibit these
@@ -193,12 +193,12 @@ private:
 /// file position.
 ///////////////////////////////////////////////////////////////////////////
 template<class T>
-err Internal_Sorter_Op<T>::sort(stream<T>* InStr, 
-								stream<T>* OutStr, 
+err Internal_Sorter_Op<T>::sort(file_stream<T>* InStr, 
+								file_stream<T>* OutStr, 
 								TPIE_OS_SIZE_T nItems, 
 								progress_indicator_base * pi){
-	err ae  = NO_ERROR;
-	T    *next_item;
+	//err ae  = NO_ERROR;
+	//T    *next_item;
 	TPIE_OS_SIZE_T i = 0;
 	// make sure we called allocate earlier
 	if (ItemArray.size() == 0) return NULL_POINTER;
@@ -216,11 +216,7 @@ err Internal_Sorter_Op<T>::sort(stream<T>* InStr,
 	read_progress.init(nItems);
 	// Read a memory load out of the input stream one item at a time,
 	for (i = 0; i < nItems; i++) {
-		if ((ae=InStr->read_item (&next_item)) != NO_ERROR) {
-		    TP_LOG_FATAL_ID ("Internal sort: AMI read error " << ae);
-		    return ae;
-		}
-		ItemArray[i] = *next_item;
+		ItemArray[i] = InStr->read();
 		read_progress.step();
 	}
 	read_progress.done();
@@ -238,10 +234,7 @@ err Internal_Sorter_Op<T>::sort(stream<T>* InStr,
 	//  Write sorted array to OutStr
 	write_progress.init(nItems);
 	for (i = 0; i < nItems; i++) {
-		if ((ae = OutStr->write_item(ItemArray[i])) != NO_ERROR) {
-		    TP_LOG_FATAL_ID ("Internal Sorter: AMI write error " << ae );
-		    return ae;
-		}
+		OutStr->write(ItemArray[i]);
 		write_progress.step();
 	}
 	write_progress.done();
@@ -275,7 +268,7 @@ public:
 	using Internal_Sorter_Base<T>::space_overhead;
 	
 	//Sort nItems from input stream and write to output stream
-	err sort(stream<T>* InStr, stream<T>* OutStr, TPIE_OS_SIZE_T nItems, 
+	err sort(file_stream<T>* InStr, file_stream<T>* OutStr, TPIE_OS_SIZE_T nItems, 
 			 progress_indicator_base * pi=0);
 	
 private:
@@ -290,8 +283,8 @@ private:
 /// file position.
 ///////////////////////////////////////////////////////////////////////////
 template<class T, class CMPR>
-err Internal_Sorter_Obj<T, CMPR>::sort(stream<T>* InStr, 
-									   stream<T>* OutStr, 
+err Internal_Sorter_Obj<T, CMPR>::sort(file_stream<T>* InStr, 
+									   file_stream<T>* OutStr, 
 									   TPIE_OS_SIZE_T nItems,
 									   progress_indicator_base * pi) {
 	tp_assert ( nItems <= len, "nItems more than interal buffer size.");
@@ -316,11 +309,7 @@ err Internal_Sorter_Obj<T, CMPR>::sort(stream<T>* InStr,
 	read_progress.init(nItems);
 	// Read a memory load out of the input stream one item at a time,
 	for (i = 0; i < nItems; i++) {
-		if ((ae=InStr->read_item (&next_item)) != NO_ERROR) {
-		    TP_LOG_FATAL_ID ("Internal sort: AMI read error " << ae);
-		    return ae;
-		}
-		ItemArray[i] = *next_item;
+		ItemArray[i] = InStr->read();
 		read_progress.step();
 	}
 	read_progress.done();
@@ -337,10 +326,7 @@ err Internal_Sorter_Obj<T, CMPR>::sort(stream<T>* InStr,
 	write_progress.init(nItems);
 	//Write sorted array to OutStr
 	for (i = 0; i < nItems; i++) {
-		if ((ae = OutStr->write_item(ItemArray[i])) != NO_ERROR) {
-		    TP_LOG_FATAL_ID ("Internal Sorter: AMI write error" << ae );
-		    return ae;
-		}		
+		OutStr->write(ItemArray[i]);
 		write_progress.step();
 	}
 	write_progress.done();
@@ -385,7 +371,7 @@ public:
 	//////////////////////////////////////////////////////////////////////////
 	/// Sort nItems from input stream and write to output stream.
 	//////////////////////////////////////////////////////////////////////////
-	err sort(stream<T>* InStr, stream<T>* OutStr, TPIE_OS_SIZE_T nItems, progress_indicator_base * pi=0);
+	err sort(file_stream<T>* InStr, file_stream<T>* OutStr, TPIE_OS_SIZE_T nItems, progress_indicator_base * pi=0);
 	
 	//////////////////////////////////////////////////////////////////////////
 	/// Clean up internal array.
@@ -458,8 +444,8 @@ public:
 };
 
 template<class T, class KEY, class CMPR>
-inline err Internal_Sorter_KObj<T, KEY, CMPR>::sort(stream<T>* InStr,
-													stream<T>* OutStr, TPIE_OS_SIZE_T nItems,
+inline err Internal_Sorter_KObj<T, KEY, CMPR>::sort(file_stream<T>* InStr,
+													file_stream<T>* OutStr, TPIE_OS_SIZE_T nItems,
 													progress_indicator_base * pi) {
 	
 	err  ae;
@@ -483,12 +469,7 @@ inline err Internal_Sorter_KObj<T, KEY, CMPR>::sort(stream<T>* InStr,
 	read_progress.init(nItems);
 	// Read a memory load out of the input stream one item at a time,
 	for (i = 0; i < nItems; i++) {
-		if ((ae=InStr->read_item (&next_item)) != NO_ERROR) {
-			TP_LOG_FATAL_ID ("Internal sort: AMI read error " << ae);
-			return ae;
-		}
-		
-		ItemArray[i] = *next_item;
+		ItemArray[i] = InStr->read();
 		UsrObject->copy(&sortItemArray[i].keyval, *next_item);
 		sortItemArray[i].source=i;
 		read_progress.step();
@@ -510,11 +491,7 @@ inline err Internal_Sorter_KObj<T, KEY, CMPR>::sort(stream<T>* InStr,
 	write_progress.init(nItems);
 	//Write sorted array to OutStr
 	for (i = 0; i < nItems; i++) {
-		if ((ae = OutStr->write_item(ItemArray[sortItemArray[i].source]))
-		    != NO_ERROR) {
-		    TP_LOG_FATAL_ID ("Internal Sorter: AMI write error" << ae );
-		    return ae;
-		}
+		OutStr->write(ItemArray[sortItemArray[i].source]);
 		write_progress.step();
 	}
 	write_progress.done();
