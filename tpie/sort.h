@@ -166,6 +166,8 @@ namespace tpie {
 		return NO_ERROR;
 	}
 
+	}
+
   ///////////////////////////////////////////////////////////////////////////
   /// A version of sort that takes an input stream of elements of
   /// type T, an output stream, and a user-specified comparison
@@ -175,15 +177,22 @@ namespace tpie {
   /// \ref comp_sorting "Comparing within Sorting".
   ///////////////////////////////////////////////////////////////////////////
   template<class T, class CMPR>
-  err sort(stream<T> *instream_ami, stream<T> *outstream_ami,
+  void sort(file_stream<T> &instream, file_stream<T> &outstream,
 		 CMPR *cmp, progress_indicator_base* indicator=NULL) {
-	    Internal_Sorter_Obj<T,CMPR> myInternalSorter(cmp);
-	    merge_heap_obj<T,CMPR>      myMergeHeap(cmp);
-	    sort_manager< T, Internal_Sorter_Obj<T,CMPR>, merge_heap_obj<T,CMPR> > 
+	    ami::Internal_Sorter_Obj<T,CMPR> myInternalSorter(cmp);
+	    ami::merge_heap_obj<T,CMPR>      myMergeHeap(cmp);
+	    sort_manager< T, ami::Internal_Sorter_Obj<T,CMPR>, ami::merge_heap_obj<T,CMPR> > 
 		mySortManager(&myInternalSorter, &myMergeHeap);
 
+		mySortManager.sort(&instream, &outstream, indicator);
+	}
+
+  namespace ami {
+  template<class T, class CMPR>
+  err sort(stream<T> *instream_ami, stream<T> *outstream_ami,
+		 CMPR *cmp, progress_indicator_base* indicator=NULL) {
 		try {
-			mySortManager.sort(&instream_ami->underlying_stream(), &outstream_ami->underlying_stream(), indicator);
+			tpie::sort(instream_ami->underlying_stream(), outstream_ami->underlying_stream(), cmp, indicator);
 		} catch (const exception & e) {
 			TP_LOG_FATAL_ID(e.what());
 			return exception_kind(e);
