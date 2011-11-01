@@ -275,6 +275,7 @@ namespace tpie {
 		}
 		return NO_ERROR;
 	}
+	}
 
 // ********************************************************************
 // *                                                                  *
@@ -321,15 +322,21 @@ namespace tpie {
   /// during the sort.
 	///////////////////////////////////////////////////////////////////////////
 	template<class T, class KEY, class CMPR>
-	err  key_sort(stream<T> *instream_ami, stream<T> *outstream_ami,
+	void key_sort(file_stream<T> *instream, file_stream<T> *outstream,
 		      KEY /* dummykey */, CMPR *cmp, progress_indicator_base* indicator=NULL)	{
-	    Internal_Sorter_KObj<T,KEY,CMPR> myInternalSorter(cmp);
-	    merge_heap_kobj<T,KEY,CMPR>      myMergeHeap(cmp);
-	    sort_manager< T, Internal_Sorter_KObj<T,KEY,CMPR>, merge_heap_kobj<T,KEY,CMPR> > 
+		ami::Internal_Sorter_KObj<T,KEY,CMPR> myInternalSorter(cmp);
+	    ami::merge_heap_kobj<T,KEY,CMPR>      myMergeHeap(cmp);
+	    sort_manager< T, ami::Internal_Sorter_KObj<T,KEY,CMPR>, ami::merge_heap_kobj<T,KEY,CMPR> > 
 		mySortManager(&myInternalSorter, &myMergeHeap);
 
+		mySortManager.sort(&instream, &outstream, indicator);
+	}
+	namespace ami {
+	template<class T, class KEY, class CMPR>
+	err  key_sort(stream<T> *instream_ami, stream<T> *outstream_ami,
+		      KEY dummykey, CMPR *cmp, progress_indicator_base* indicator=NULL)	{
 		try {
-			mySortManager.sort(&instream_ami->underlying_stream(), &outstream_ami->underlying_stream(), indicator);
+			tpie::key_sort(instream_ami->underlying_stream(), outstream_ami->underlying_stream, dummykey, cmp, indicator);
 		} catch (const exception & e) {
 			TP_LOG_FATAL_ID(e.what());
 			return exception_kind(e);
