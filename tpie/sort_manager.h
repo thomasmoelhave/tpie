@@ -217,9 +217,11 @@ try {
 	    
 	// Else, there is something to sort, do it
 	start_sort();
-} catch (const end_of_stream_exception &) {
+} catch (const end_of_stream_exception & e) {
+	TP_LOG_FATAL_ID(e.what());
 	return END_OF_STREAM;
 } catch (const stream_exception & e) {
+	TP_LOG_FATAL_ID(e.what());
 	return BTE_ERROR;
 }
 	return NO_ERROR;
