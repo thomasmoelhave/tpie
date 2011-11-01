@@ -150,7 +150,7 @@ namespace tpie {
 		mySortManager(&myInternalSorter, &myMergeHeap);
 
 		try {
-			mySortManager.sort(instream_ami, outstream_ami, indicator);
+			mySortManager.sort(&instream_ami->underlying_stream(), &outstream_ami->underlying_stream(), indicator);
 		} catch (const exception & e) {
 			TP_LOG_FATAL_ID(e.what());
 			return exception_kind(e);
@@ -175,7 +175,7 @@ namespace tpie {
 		mySortManager(&myInternalSorter, &myMergeHeap);
 
 		try {
-			mySortManager.sort(instream_ami, outstream_ami, indicator);
+			mySortManager.sort(&instream_ami->underlying_stream(), &outstream_ami->underlying_stream(), indicator);
 		} catch (const exception & e) {
 			TP_LOG_FATAL_ID(e.what());
 			return exception_kind(e);
@@ -206,7 +206,7 @@ namespace tpie {
 		mySortManager(&myInternalSorter, &myMergeHeap);
 	    
 		try {
-			mySortManager.sort(instream_ami, outstream_ami, indicator);
+			mySortManager.sort(&instream_ami->underlying_stream(), &outstream_ami->underlying_stream(), indicator);
 		} catch (const exception & e) {
 			TP_LOG_FATAL_ID(e.what());
 			return exception_kind(e);
@@ -237,7 +237,7 @@ namespace tpie {
 		mySortManager(&myInternalSorter, &myMergeHeap);
 
 		try {
-			mySortManager.sort(instream_ami, outstream_ami, indicator);
+			mySortManager.sort(&instream_ami->underlying_stream(), &outstream_ami->underlying_stream(), indicator);
 		} catch (const exception & e) {
 			TP_LOG_FATAL_ID(e.what());
 			return exception_kind(e);
@@ -298,7 +298,7 @@ namespace tpie {
 		mySortManager(&myInternalSorter, &myMergeHeap);
 
 		try {
-			mySortManager.sort(instream_ami, outstream_ami, indicator);
+			mySortManager.sort(&instream_ami->underlying_stream(), &outstream_ami->underlying_stream(), indicator);
 		} catch (const exception & e) {
 			TP_LOG_FATAL_ID(e.what());
 			return exception_kind(e);
@@ -326,7 +326,7 @@ namespace tpie {
 		mySortManager(&myInternalSorter, &myMergeHeap);
 	    
 		try {
-			mySortManager.sort(instream_ami, indicator);
+			mySortManager.sort(&instream_ami->underlying_stream(), indicator);
 		} catch (const exception & e) {
 			TP_LOG_FATAL_ID(e.what());
 			return exception_kind(e);
@@ -347,7 +347,7 @@ namespace tpie {
 		mySortManager(&myInternalSorter, &myMergeHeap);
 
 		try {
-			mySortManager.sort(instream_ami, indicator);
+			mySortManager.sort(&instream_ami->underlying_stream(), indicator);
 		} catch (const exception & e) {
 			TP_LOG_FATAL_ID(e.what());
 			return exception_kind(e);
@@ -368,7 +368,7 @@ namespace tpie {
 		mySortManager(&myInternalSorter, &myMergeHeap);
 
 		try {
-			mySortManager.sort(instream_ami, indicator);
+			mySortManager.sort(&instream_ami->underlying_stream(), indicator);
 		} catch (const exception & e) {
 			TP_LOG_FATAL_ID(e.what());
 			return exception_kind(e);
@@ -390,7 +390,7 @@ namespace tpie {
 		mySortManager(&myInternalSorter, &myMergeHeap);
 
 		try {
-			mySortManager.sort(instream_ami, indicator);
+			mySortManager.sort(&instream_ami->underlying_stream(), indicator);
 		} catch (const exception & e) {
 			TP_LOG_FATAL_ID(e.what());
 			return exception_kind(e);
@@ -412,7 +412,7 @@ namespace tpie {
 		mySortManager(&myInternalSorter, &myMergeHeap);
 
 		try {
-			mySortManager.sort(instream_ami, indicator);
+			mySortManager.sort(&instream_ami->underlying_stream(), indicator);
 		} catch (const exception & e) {
 			TP_LOG_FATAL_ID(e.what());
 			return exception_kind(e);

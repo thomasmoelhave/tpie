@@ -63,11 +63,11 @@ public:
 	};
 
 	//  Sort in stream to out stream an save in stream (uses 3x space)
-	void sort(stream<T>* in, stream<T>* out, 
+	void sort(file_stream<T>* in, file_stream<T>* out, 
 			  progress_indicator_base* indicator = NULL);
 	//Sort in stream and overwrite unsorted input with sorted output
 	//(uses 2x space)
-	void sort(stream<T>* in, progress_indicator_base* indicator = NULL); 
+	void sort(file_stream<T>* in, progress_indicator_base* indicator = NULL); 
 	    
 private:
 	// *************
@@ -178,13 +178,16 @@ sort_manager<T, I, M>::sort_manager(I* isort, M* mheap):
 };
 
 template<class T, class I, class M>
-void sort_manager<T,I,M>::sort(stream<T>* in, stream<T>* out,
+void sort_manager<T,I,M>::sort(file_stream<T>* in, file_stream<T>* out,
 							   progress_indicator_base* indicator){
 	//  This version saves the original input and uses 3x space
 	//  (input, current temp runs, output runs)
 	    
 	m_indicator = indicator;
 	use2xSpace=false;
+
+	inStream = in;
+	outStream = out;
 
 	// Basic checks that input is ok
 	if (in==NULL || out==NULL) {
@@ -197,9 +200,6 @@ void sort_manager<T,I,M>::sort(stream<T>* in, stream<T>* out,
 		throw exception("OBJECT_INVALID");
 	}
 
-	inStream = &in->underlying_stream();
-	outStream = &out->underlying_stream();
-
 	if (inStream->size() < 2) {
 		m_indicator->init(1); m_indicator->step(); m_indicator->done();
 		throw already_sorted_exception();
@@ -210,12 +210,15 @@ void sort_manager<T,I,M>::sort(stream<T>* in, stream<T>* out,
 }
 
 template<class T, class I, class M>
-void sort_manager<T,I,M>::sort(stream<T>* in, progress_indicator_base* indicator){
+void sort_manager<T,I,M>::sort(file_stream<T>* in, progress_indicator_base* indicator){
 	//This version overwrites the original input and uses 2x space
 	//The input stream is truncated to length 0 after forming initial runs
 	//and only two levels of the merge tree are on disk at any one time.
 	m_indicator = indicator;
 	use2xSpace=true;
+	
+	inStream = in;
+	outStream = in;
 
 	// Basic checks that input is ok
 	if (in==NULL) { 
@@ -226,9 +229,6 @@ void sort_manager<T,I,M>::sort(stream<T>* in, progress_indicator_base* indicator
 		throw exception("OBJECT_INVALID");
 	}
 	    
-	inStream = &in->underlying_stream();
-	outStream = &in->underlying_stream();
-
 	if (inStream->size() < 2) {
 		if (m_indicator) {
 			m_indicator->init(1); 
