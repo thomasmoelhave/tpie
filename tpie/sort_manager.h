@@ -192,9 +192,7 @@ err sort_manager<T,I,M>::sort(stream<T>* in, stream<T>* out,
 	    
 	m_indicator = indicator;
 	inStream_ami=in;
-	inStream = &in->underlying_stream();
 	outStream_ami=out;
-	outStream = &out->underlying_stream();
 	use2xSpace=false;
 
 	// Basic checks that input is ok
@@ -208,7 +206,10 @@ err sort_manager<T,I,M>::sort(stream<T>* in, stream<T>* out,
 		return OBJECT_INVALID; 
 	}
 
-	if (inStream_ami->stream_len() < 2) {
+	inStream = &in->underlying_stream();
+	outStream = &out->underlying_stream();
+
+	if (inStream->size() < 2) {
 		m_indicator->init(1); m_indicator->step(); m_indicator->done();
 		return SORT_ALREADY_SORTED; 
 	}
@@ -246,6 +247,9 @@ err sort_manager<T,I,M>::sort(stream<T>* in, progress_indicator_base* indicator)
 		return SORT_ALREADY_SORTED; 
 	}
 	    
+	inStream = &in->underlying_stream();
+	outStream = &in->underlying_stream();
+
 	// Else, there is something to sort, do it
 	return start_sort();
 }
@@ -263,14 +267,7 @@ err sort_manager<T,I,M>::start_sort(){
 	    
 	// Space for internal buffers for the input and output stream may not
 	// have been allocated yet. Query the space usage and subtract.
-	if ((ae = inStream_ami->main_memory_usage
-		 (&mmBytesPerStream,STREAM_USAGE_MAXIMUM))
-		!= NO_ERROR) {
-		
-		TP_LOG_DEBUG_ID ("Error returned from main_memory_usage");
-		
-		return ae;
-	}
+	mmBytesPerStream = file_stream<T>::memory_usage(1);
 
 	// This is how much we can use for internal sort if
 	// we are not doing general merge sort
@@ -278,9 +275,9 @@ err sort_manager<T,I,M>::start_sort(){
 	    
 	// Check if all input items can be sorted internally using less than
 	// mmBytesAvail
-	nInputItems = inStream_ami->stream_len();
+	nInputItems = inStream->size();
 	
-	inStream_ami->seek (0);
+	inStream->seek (0);
 	
 	if (nInputItems < TPIE_OS_OFFSET(m_internalSorter->MaxItemCount(mmBytesAvail))){
 		
@@ -294,8 +291,8 @@ err sort_manager<T,I,M>::start_sort(){
 		allocate_progress.done();
 
 		// load the items into main memory, sort, and write to output.
-		// m_internalSorter also checks if inStream_ami/outStream_ami are the same and
-		// truncates/rewrites inStream_ami if they are. This probably should not
+		// m_internalSorter also checks if inStream/outStream are the same and
+		// truncates/rewrites inStream if they are. This probably should not
 		// be the job of m_internalSorter-> TODO: build a cleaner interface
 		if ((ae = m_internalSorter->sort(inStream_ami, 
 										 outStream_ami, 
