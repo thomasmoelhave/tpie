@@ -33,7 +33,6 @@
 #include <tpie/parallel_sort.h>
 #include <tpie/comparator.h> //to convert TPIE comparisons to STL
 #include <tpie/fractional_progress.h>
-#include <tpie/err.h>
 #include <tpie/memory.h>
 #include <tpie/tpie_assert.h>
 
@@ -197,8 +196,6 @@ void Internal_Sorter_Op<T>::sort(file_stream<T>* InStr,
 								 file_stream<T>* OutStr, 
 								 TPIE_OS_SIZE_T nItems, 
 								 progress_indicator_base * pi){
-	//err ae  = NO_ERROR;
-	//T    *next_item;
 	TPIE_OS_SIZE_T i = 0;
 	// make sure we called allocate earlier
 	if (ItemArray.size() == 0) throw stream_exception("NULL_POINTER");
@@ -289,8 +286,6 @@ void Internal_Sorter_Obj<T, CMPR>::sort(file_stream<T>* InStr,
 	tp_assert ( nItems <= len, "nItems more than interal buffer size.");
 
 	
-	//err ae = NO_ERROR;
-	//T    *next_item;
 	TPIE_OS_SIZE_T i = 0;
 	
 	//make sure we called allocate earlier
@@ -446,8 +441,6 @@ inline void Internal_Sorter_KObj<T, KEY, CMPR>::sort(file_stream<T>* InStr,
 													 file_stream<T>* OutStr, TPIE_OS_SIZE_T nItems,
 													 progress_indicator_base * pi) {
 	
-	//err  ae;
-	//T    *next_item;
 	TPIE_OS_SIZE_T i = 0;
 
 	// Make sure we called allocate earlier
