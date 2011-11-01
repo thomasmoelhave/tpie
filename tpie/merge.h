@@ -52,13 +52,16 @@ namespace tpie {
 }  //  tpie namespace
 
 namespace tpie {
-
-    namespace ami {
 	
   /** Intended to signal in a merge which of the input streams are non-empty */ 
 	typedef int            merge_flag;
 	/** Intended to signal the number of input streams in a merge */ 
 	typedef TPIE_OS_SIZE_T arity_t;
+
+    namespace ami {
+
+		using tpie::merge_flag;
+		using tpie::arity_t;
 	
 #define CONST const
 

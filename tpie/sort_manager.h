@@ -29,6 +29,7 @@
 #include <tpie/stream.h> 
 #include <tpie/tempname.h>
 #include <tpie/array.h>
+#include <tpie/merge.h>
 #include <tpie/merge_sorted_runs.h>
 #include <tpie/mergeheap.h>  //For templated heaps
 #include <tpie/internal_sort.h> // Contains classes for sorting internal runs
@@ -41,8 +42,6 @@
 #include <tpie/tpie_assert.h>
 
 namespace tpie {
-
-namespace ami {
 
 #ifndef AMI_STREAM_IMP_SINGLE
 #warning Including __FILE__ when AMI_STREAM_IMP_SINGLE undefined.
@@ -395,7 +394,7 @@ void sort_manager<T,I,M>::compute_sort_params(void){
 	    
 	TPIE_OS_SIZE_T mmBytesPerMergeItem = mmBytesPerStream +
 		m_mergeHeap->space_per_item() + sizeof(T*) +
-		sizeof(TPIE_OS_OFFSET)+sizeof(stream<T>*);
+		sizeof(TPIE_OS_OFFSET)+sizeof(ami::stream<T>*);
 	    
 	// Fixed cost of mergheap impl. + MM_manager overhead of allocating
 	// an array of stream<T> ptrs (pending)
@@ -655,7 +654,7 @@ void sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
 	//   mrgArity*sizeof(stream<T>*) + space_overhead()[fixed cost]
 	tpie::array<tpie::auto_ptr<file_stream<T> > > mergeInputStreams(mrgArity);
 
-	TP_LOG_DEBUG_ID("Allocated " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(sizeof(stream<T>*)*mrgArity)
+	TP_LOG_DEBUG_ID("Allocated " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(sizeof(ami::stream<T>*)*mrgArity)
 					<< " bytes for " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(mrgArity) << " merge input stream pointers.\n"
 					<< "Mem. avail. is " << consecutive_memory_available ());
 
@@ -878,8 +877,6 @@ inline void sort_manager<T,I,M>::make_name(
 	buf << prepre << pre << id;
 	buf >> dest;
 }
-
-}  //  ami namespace
 
 }  //  tpie namespace
 

@@ -92,13 +92,13 @@
 
 namespace tpie {
 
-    namespace ami {
-	
+	namespace ami {
 		inline err exception_kind(const exception & e) {
 			if (0 != dynamic_cast<const end_of_stream_exception *>(&e)) return END_OF_STREAM;
 			if (0 != dynamic_cast<const already_sorted_exception *>(&e)) return SORT_ALREADY_SORTED;
 			return BTE_ERROR;
 		}
+	}
   //////////////////////////////////////////////////////////////////////////
   /// A version of sort that takes an input stream of elements of type
   /// T, and an output stream, and and uses the < operator to sort,
@@ -142,15 +142,23 @@ namespace tpie {
   /// were it is impossible to use a comparison operator or comparison object.
   //////////////////////////////////////////////////////////////////////////
 	template<class T>
-	err sort(stream<T> *instream_ami, stream<T> *outstream_ami,
+	void sort(file_stream<T> &instream, file_stream<T> &outstream,
 		 tpie::progress_indicator_base* indicator=NULL)	{
-	    Internal_Sorter_Op<T> myInternalSorter;
-	    merge_heap_op<T>      myMergeHeap;
-	    sort_manager< T, Internal_Sorter_Op<T>, merge_heap_op<T> > 
+	    ami::Internal_Sorter_Op<T> myInternalSorter;
+	    ami::merge_heap_op<T>      myMergeHeap;
+	    sort_manager< T, ami::Internal_Sorter_Op<T>, ami::merge_heap_op<T> > 
 		mySortManager(&myInternalSorter, &myMergeHeap);
 
+		mySortManager.sort(&instream, &outstream, indicator);
+	}
+
+    namespace ami {
+
+	template<class T>
+	err sort(stream<T> *instream_ami, stream<T> *outstream_ami,
+		 tpie::progress_indicator_base* indicator=NULL)	{
 		try {
-			mySortManager.sort(&instream_ami->underlying_stream(), &outstream_ami->underlying_stream(), indicator);
+			tpie::sort(instream_ami->underlying_stream(), outstream_ami->underlying_stream(), indicator);
 		} catch (const exception & e) {
 			TP_LOG_FATAL_ID(e.what());
 			return exception_kind(e);
@@ -200,9 +208,9 @@ namespace tpie {
   template<class T>
   err ptr_sort(stream<T> *instream_ami, stream<T> *outstream_ami,
 	     progress_indicator_base* indicator=NULL) {
-	    Internal_Sorter_Op<T> myInternalSorter;
-	    merge_heap_op<T>      myMergeHeap;
-	    sort_manager< T, Internal_Sorter_Op<T>, merge_heap_op<T> > 
+	    ami::Internal_Sorter_Op<T> myInternalSorter;
+	    ami::merge_heap_op<T>      myMergeHeap;
+	    sort_manager< T, ami::Internal_Sorter_Op<T>, ami::merge_heap_op<T> > 
 		mySortManager(&myInternalSorter, &myMergeHeap);
 	    
 		try {
@@ -320,9 +328,9 @@ namespace tpie {
 	template<class T>
 	err sort(stream<T> *instream_ami, 
 		 progress_indicator_base* indicator=NULL) {
-	    Internal_Sorter_Op<T> myInternalSorter;
-	    merge_heap_op<T>      myMergeHeap;
-	    sort_manager< T, Internal_Sorter_Op<T>, merge_heap_op<T> > 
+	    ami::Internal_Sorter_Op<T> myInternalSorter;
+	    ami::merge_heap_op<T>      myMergeHeap;
+	    sort_manager< T, ami::Internal_Sorter_Op<T>, ami::merge_heap_op<T> > 
 		mySortManager(&myInternalSorter, &myMergeHeap);
 	    
 		try {
@@ -362,9 +370,9 @@ namespace tpie {
 	template<class T>
 	err ptr_sort(stream<T> *instream_ami, 
 		     progress_indicator_base* indicator=NULL) {
-	    Internal_Sorter_Op<T> myInternalSorter;
-	    merge_heap_op<T>      myMergeHeap;
-	    sort_manager< T, Internal_Sorter_Op<T>, merge_heap_op<T> > 
+	    ami::Internal_Sorter_Op<T> myInternalSorter;
+	    ami::merge_heap_op<T>      myMergeHeap;
+	    sort_manager< T, ami::Internal_Sorter_Op<T>, ami::merge_heap_op<T> > 
 		mySortManager(&myInternalSorter, &myMergeHeap);
 
 		try {
@@ -419,7 +427,7 @@ namespace tpie {
 		}
 		return NO_ERROR;
 	}
-
+	
     }  //  ami namespace
 
 }  //  tpie namespace
