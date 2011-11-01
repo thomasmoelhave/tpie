@@ -456,7 +456,7 @@ err sort_manager<T,I,M>::compute_sort_params(void){
 	// number of substreams we want.  It may not be able to due to
 	// operating system restrictions, such as on the number of regions
 	// that can be mmap()ed in, max number of file descriptors, etc.
-	int availableStreams = static_cast<int>(inStream_ami->available_streams ());
+	int availableStreams = static_cast<int>(available_files());
 	    
 	// Merging requires an available stream/file decriptor for
 	// each of the mrgArity input strems. We need one additional file descriptor
@@ -622,7 +622,7 @@ err sort_manager<T,I,M>::partition_and_sort_runs(progress_indicator_base* indica
 	nItemsInThisRun=nItemsPerRun;
 	    
 	// Rewind the input stream, we are about to begin
-	inStream_ami->seek(0);
+	inStream->seek(0);
 
 	// ********************************************************************
 	// * Partition and make initial sorted runs                           *
