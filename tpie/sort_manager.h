@@ -74,12 +74,12 @@ private:
 	// * Functions *
 	// *************
 	    
-	err start_sort();              // high level wrapper to full sort 
-	err compute_sort_params();     // compute nInputItems, mrgArity, nRuns
-	err partition_and_sort_runs(progress_indicator_base* indicator); // make initial sorted runs
-	err merge_to_output(progress_indicator_base* indicator); // loop over merge tree, create output stream
+	void start_sort();              // high level wrapper to full sort 
+	void compute_sort_params();     // compute nInputItems, mrgArity, nRuns
+	void partition_and_sort_runs(progress_indicator_base* indicator); // make initial sorted runs
+	void merge_to_output(progress_indicator_base* indicator); // loop over merge tree, create output stream
 	// Merge a single group mrgArity streams to an output stream
-	err single_merge(
+	void single_merge(
 		typename tpie::array<tpie::auto_ptr<stream<T> > >::iterator,
 		typename tpie::array<tpie::auto_ptr<stream<T> > >::iterator,
 		stream<T>*, TPIE_OS_OFFSET = -1, progress_indicator_base* indicator=0);
@@ -186,6 +186,7 @@ sort_manager<T, I, M>::sort_manager(I* isort, M* mheap):
 template<class T, class I, class M>
 err sort_manager<T,I,M>::sort(stream<T>* in, stream<T>* out,
 							  progress_indicator_base* indicator){
+try {
 
 	//  This version saves the original input and uses 3x space
 	//  (input, current temp runs, output runs)
@@ -215,11 +216,18 @@ err sort_manager<T,I,M>::sort(stream<T>* in, stream<T>* out,
 	}
 	    
 	// Else, there is something to sort, do it
-	return start_sort();
+	start_sort();
+} catch (const end_of_stream_exception &) {
+	return END_OF_STREAM;
+} catch (const stream_exception & e) {
+	return BTE_ERROR;
+}
+	return NO_ERROR;
 }
 
 template<class T, class I, class M>
 err sort_manager<T,I,M>::sort(stream<T>* in, progress_indicator_base* indicator){
+try {
 	    
 	//This version overwrites the original input and uses 2x space
 	//The input stream is truncated to length 0 after forming initial runs
@@ -251,11 +259,17 @@ err sort_manager<T,I,M>::sort(stream<T>* in, progress_indicator_base* indicator)
 	outStream = &in->underlying_stream();
 
 	// Else, there is something to sort, do it
-	return start_sort();
+	start_sort();
+} catch (const end_of_stream_exception &) {
+	return END_OF_STREAM;
+} catch (const stream_exception & e) {
+	return BTE_ERROR;
+}
+	return NO_ERROR;
 }
 	
 template<class T, class I, class M>
-err sort_manager<T,I,M>::start_sort(){
+void sort_manager<T,I,M>::start_sort(){
 	    
 	// ********************************************************************
 	// * PHASE 1: See if we can sort the entire stream in internal memory *
@@ -299,12 +313,12 @@ err sort_manager<T,I,M>::start_sort(){
 										 static_cast<TPIE_OS_SIZE_T>(nInputItems), 
 										 &sort_progress)) != NO_ERROR) {
 		    TP_LOG_FATAL_ID ("main_mem_operate failed");
-		    return ae;
+			throw stream_exception();
 		}
 		// de-allocate the internal array of items
 		m_internalSorter->deallocate();
 		fp.done();
-		return NO_ERROR;
+		return;
 	}
 
 	// ******************************************************************
@@ -312,10 +326,7 @@ err sort_manager<T,I,M>::start_sort(){
 	// ******************************************************************
 	    
 	// PHASE 2: compute nItemsPerRun, nItemsPerRun, nRuns
-	ae=compute_sort_params();
-	if (ae != NO_ERROR){ 
-		return ae; 
-	}
+	compute_sort_params();
 
 	// ********************************************************************
 	// * By this point we have checked that we have valid input, checked  *
@@ -340,22 +351,15 @@ err sort_manager<T,I,M>::start_sort(){
 
 	// PHASE 3: partition and form sorted runs
 	TP_LOG_DEBUG_ID ("Beginning general merge sort.");
-	ae=partition_and_sort_runs(&run_progress);
-	if (ae != NO_ERROR){ 
-		return ae; 
-	}
+	partition_and_sort_runs(&run_progress);
 	// PHASE 4: merge sorted runs to a single output stream
-	ae=merge_to_output(&merge_progress);
-	if (ae != NO_ERROR){ 
-		return ae; 
-	}
+	merge_to_output(&merge_progress);
 	
 	fp.done();
-	return NO_ERROR;
 }
 
 template<class T, class I, class M>
-err sort_manager<T,I,M>::compute_sort_params(void){
+void sort_manager<T,I,M>::compute_sort_params(void){
 	// ********************************************************************
 	// * PHASE 2: Compute/check limits                                    *
 	// * Compute the maximum number of items we can sort in main memory   *
@@ -414,7 +418,7 @@ err sort_manager<T,I,M>::compute_sort_params(void){
 
 		TP_LOG_FATAL_ID ("Insufficient Memory for forming sorted runs");
 		
-		return INSUFFICIENT_MAIN_MEMORY;
+		throw stream_exception();
 	}
 
 	// Now we know the max number of Items we can sort in a single
@@ -438,7 +442,7 @@ err sort_manager<T,I,M>::compute_sort_params(void){
 
 		TP_LOG_FATAL_ID ("Merge arity < 2 -- Insufficient memory for a merge.");
 
-		return INSUFFICIENT_MAIN_MEMORY;
+		throw stream_exception();
 	}
 
 	// Cast down from TPIE_OS_OFFSET (type of mmBytesAvail).
@@ -467,7 +471,7 @@ err sort_manager<T,I,M>::compute_sort_params(void){
 		TP_LOG_FATAL_ID ("Not enough stream descriptors available " <<
 						 "to perform merge.");
 		
-		return INSUFFICIENT_AVAILABLE_STREAMS;
+		throw stream_exception();
 	}
 	    
 	// Can at least do binary merge. See if availableStreams limits
@@ -578,12 +582,10 @@ err sort_manager<T,I,M>::compute_sort_params(void){
 	TP_LOG_DEBUG ("Max number of items per runs " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(nItemsPerRun) );
 	TP_LOG_DEBUG ("\nInitial number of runs " << nRuns );
 	TP_LOG_DEBUG ("\nMerge arity is " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(mrgArity) << "\n" );
-
-	return NO_ERROR;
 }
 
 template<class T, class I, class M>
-err sort_manager<T,I,M>::partition_and_sort_runs(progress_indicator_base* indicator){
+void sort_manager<T,I,M>::partition_and_sort_runs(progress_indicator_base* indicator){
 	// ********************************************************************
 	// * PHASE 3: Partition                                               *
 	// * Partition the input stream into nRuns of at most nItemsPerRun    *
@@ -654,7 +656,7 @@ err sort_manager<T,I,M>::partition_and_sort_runs(progress_indicator_base* indica
 											 nItemsInThisRun, &sort_indicator))!= NO_ERROR)
 		    {
 				TP_LOG_FATAL_ID ("main_mem_operate failed");
-				return ae;
+				throw stream_exception();
 		    }
 		} // For each run in this stream
 		
@@ -678,11 +680,10 @@ err sort_manager<T,I,M>::partition_and_sort_runs(progress_indicator_base* indica
 		inStream_ami->seek(0);
 	} 
 	if (indicator) indicator->done();
-	return NO_ERROR;
 }
 
 template<class T, class I, class M>
-err sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
+void sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
 
 	// ********************************************************************
 	// * PHASE 4: Merge                                                   *
@@ -814,14 +815,10 @@ err sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
 					nRunsToMerge=mergeRunsInLastOutputRun;
 				}
 				// Merge runs to curOutputRunStream
-				ae = single_merge(mergeInputStreams.find(mrgArity-nRunsToMerge),
-								  mergeInputStreams.find(mrgArity),
-								  &curOutputRunStream, 
-								  nItemsPerRun, indicator); 
-				if (ae != NO_ERROR) {
-					TP_LOG_FATAL_ID("AMI_single_merge error"<< ae <<" in deep merge");
-					return ae;
-				}
+				single_merge(mergeInputStreams.find(mrgArity-nRunsToMerge),
+							 mergeInputStreams.find(mrgArity),
+							 &curOutputRunStream, 
+							 nItemsPerRun, indicator); 
 		    } // For each output run in this stream
 
 		    // Commit new output stream to disk
@@ -874,18 +871,18 @@ err sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
 	// Merge last remaining runs to the output stream.
 	// mergeInputStreams is address( address (the first input stream) )
 	// N.B. nRuns is small, so it is safe to downcast.
-	ae = single_merge(mergeInputStreams.begin(), 
-					  mergeInputStreams.find(nRuns),
-					  outStream_ami, -1, indicator);
+	try {
+		single_merge(mergeInputStreams.begin(), 
+					 mergeInputStreams.find(nRuns),
+					 outStream_ami, -1, indicator);
+	} catch (const stream_exception & e) {
+		if (indicator) indicator->done();
+		tp_assert(outStream_ami->stream_len() == nInputItems, "item count mismatch");
+		throw e;
+	}
 
 	if (indicator) indicator->done();
 	tp_assert(outStream_ami->stream_len() == nInputItems, "item count mismatch");
-
-	if (ae != NO_ERROR) {
-		TP_LOG_FATAL_ID ("AMI_ERROR " << ae << " returned by single_merge "
-						 << "in final merge phase");
-		return ae;
-	}
 
 	TP_LOG_DEBUG("merge cleanup\n");
 
@@ -903,18 +900,17 @@ err sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
 	TP_LOG_DEBUG_ID ("Number of passes incl run formation is " <<
 					 mrgHeight+2 ); 
 	TP_LOG_DEBUG("AMI_partition_and_merge END\n");
-	return NO_ERROR;
 }
 
 template<class T, class I, class M>
-err sort_manager<T,I,M>::single_merge( 
+void sort_manager<T,I,M>::single_merge( 
 	typename tpie::array<tpie::auto_ptr<stream<T> > >::iterator start,
 	typename tpie::array<tpie::auto_ptr<stream<T> > >::iterator end,
 	stream < T >*outStream_ami, TPIE_OS_OFFSET cutoff, progress_indicator_base* indicator)
 {
 
-	return merge_sorted_runs(start, end, outStream_ami, m_mergeHeap,
-							 cutoff, indicator);
+	merge_sorted_runs(start, end, outStream_ami, m_mergeHeap,
+					  cutoff, indicator);
 }
 
 

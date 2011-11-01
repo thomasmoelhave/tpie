@@ -32,6 +32,7 @@ struct invalid_argument_exception: public exception {
 };
 
 struct stream_exception : public exception {
+	stream_exception(): exception("") {};
 	stream_exception(const std::string & s): exception(s) {};
 };
 
