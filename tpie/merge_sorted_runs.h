@@ -75,7 +75,6 @@ namespace tpie {
 							   progress_indicator_base* indicator = NULL) {
 	    
 			size_t i;
-			err ami_err;
 			size_t arity = end-start;
 
 			//Pointers to current leading elements of streams
@@ -109,23 +108,24 @@ namespace tpie {
 			while (MergeHeap->sizeofheap() > 0) {
 				i = MergeHeap->get_min_run_id ();
 				outStream->write(*in_objects[i]);
+
+				bool eof = false;
 		
 				//Check if we read as many elements as we are allowed to
 				if ( (cutoff != -1) && (nread[i]>=cutoff))
-					ami_err = END_OF_STREAM;
+					eof = true;
 				else {
 					if ((*(start+i))->can_read()) {
 						in_objects[i] = &(*(start+i))->read_mutable();
-						ami_err = NO_ERROR;
 					} else {
-						ami_err = END_OF_STREAM;
+						eof = true;
 					}
 		    
 					if (indicator) 
 						indicator->step();
 				} 
 		
-				if (ami_err == END_OF_STREAM)
+				if (eof)
 					MergeHeap->delete_min_and_insert(NULL);
 				else { 
 					nread[i]++;
