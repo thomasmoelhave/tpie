@@ -248,7 +248,10 @@ try {
 		return OBJECT_INVALID; 
 	}
 	    
-	if (inStream_ami->stream_len() < 2) {
+	inStream = &in->underlying_stream();
+	outStream = &in->underlying_stream();
+
+	if (inStream->size() < 2) {
 		if (m_indicator) {
 			m_indicator->init(1); 
 			m_indicator->step(); 
@@ -256,9 +259,6 @@ try {
 		}
 		return SORT_ALREADY_SORTED; 
 	}
-	    
-	inStream = &in->underlying_stream();
-	outStream = &in->underlying_stream();
 
 	// Else, there is something to sort, do it
 	start_sort();
@@ -665,9 +665,9 @@ void sort_manager<T,I,M>::partition_and_sort_runs(progress_indicator_base* indic
 	// free space associated with internal memory sorting
 	m_internalSorter->deallocate();
 	if(use2xSpace){ 
-		//recall outStream_ami/inStream_ami point to same file in this case
-		inStream_ami->truncate(0); //free up disk space
-		inStream_ami->seek(0);
+		//recall outStream/inStream point to same file in this case
+		inStream->truncate(0); //free up disk space
+		inStream->seek(0);
 	} 
 	if (indicator) indicator->done();
 }
