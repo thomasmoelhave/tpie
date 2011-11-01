@@ -343,6 +343,7 @@ namespace tpie {
 		}
 		return NO_ERROR;
 	}
+	}
 
 // ********************************************************************
 // *                                                                  *
@@ -356,15 +357,21 @@ namespace tpie {
   /// see also \ref sortingspace_in_tpie "In-place Variants for Sorting in TPIE".
   ///////////////////////////////////////////////////////////////////////////
 	template<class T>
-	err sort(stream<T> *instream_ami, 
+	void sort(file_stream<T> &instream, 
 		 progress_indicator_base* indicator=NULL) {
 	    ami::Internal_Sorter_Op<T> myInternalSorter;
 	    ami::merge_heap_op<T>      myMergeHeap;
 	    sort_manager< T, ami::Internal_Sorter_Op<T>, ami::merge_heap_op<T> > 
 		mySortManager(&myInternalSorter, &myMergeHeap);
 	    
+		mySortManager.sort(&instream, indicator);
+	}
+	namespace ami {
+	template<class T>
+	err sort(stream<T> *instream_ami, 
+		 progress_indicator_base* indicator=NULL) {
 		try {
-			mySortManager.sort(&instream_ami->underlying_stream(), indicator);
+			tpie::sort(instream_ami->underlying_stream(), indicator);
 		} catch (const exception & e) {
 			TP_LOG_FATAL_ID(e.what());
 			return exception_kind(e);
