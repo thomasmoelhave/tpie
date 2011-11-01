@@ -1,6 +1,8 @@
 *.pyc
 *.orig
 *~
+.*.swp
+.swp
 CMakeCache.txt
 CMakeFiles
 CMakeLists.txt.user
