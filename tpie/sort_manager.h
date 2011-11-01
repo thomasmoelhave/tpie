@@ -310,12 +310,10 @@ void sort_manager<T,I,M>::start_sort(){
 		// m_internalSorter also checks if inStream/outStream are the same and
 		// truncates/rewrites inStream if they are. This probably should not
 		// be the job of m_internalSorter-> TODO: build a cleaner interface
-		if ((ae = m_internalSorter->sort(inStream, 
-										 outStream, 
-										 static_cast<TPIE_OS_SIZE_T>(nInputItems), 
-										 &sort_progress)) != NO_ERROR) {
-			throw stream_exception("main_mem_operate failed");
-		}
+		m_internalSorter->sort(inStream, 
+							   outStream, 
+							   static_cast<TPIE_OS_SIZE_T>(nInputItems), 
+							   &sort_progress);
 		// de-allocate the internal array of items
 		m_internalSorter->deallocate();
 		fp.done();
@@ -644,11 +642,8 @@ void sort_manager<T,I,M>::partition_and_sort_runs(progress_indicator_base* indic
 		    }
 
 			progress_indicator_subindicator sort_indicator(indicator, 1000);
-		    if ((ae = m_internalSorter->sort(inStream, curOutputRunStream, 
-											 nItemsInThisRun, &sort_indicator))!= NO_ERROR)
-		    {
-				throw stream_exception("main_mem_operate failed");
-		    }
+			m_internalSorter->sort(inStream, curOutputRunStream, 
+								   nItemsInThisRun, &sort_indicator);
 		} // For each run in this stream
 		
 		// All runs created for this stream, clean up

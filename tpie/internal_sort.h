@@ -179,7 +179,7 @@ public:
 	using Internal_Sorter_Base<T>::space_overhead;
 	
 	//Sort nItems from input stream and write to output stream
-	err sort(file_stream<T>* InStr, file_stream<T>* OutStr, TPIE_OS_SIZE_T nItems, progress_indicator_base * pi=0);
+	void sort(file_stream<T>* InStr, file_stream<T>* OutStr, TPIE_OS_SIZE_T nItems, progress_indicator_base * pi=0);
 	    
 private:
 	// Prohibit these
@@ -193,15 +193,15 @@ private:
 /// file position.
 ///////////////////////////////////////////////////////////////////////////
 template<class T>
-err Internal_Sorter_Op<T>::sort(file_stream<T>* InStr, 
-								file_stream<T>* OutStr, 
-								TPIE_OS_SIZE_T nItems, 
-								progress_indicator_base * pi){
+void Internal_Sorter_Op<T>::sort(file_stream<T>* InStr, 
+								 file_stream<T>* OutStr, 
+								 TPIE_OS_SIZE_T nItems, 
+								 progress_indicator_base * pi){
 	//err ae  = NO_ERROR;
 	//T    *next_item;
 	TPIE_OS_SIZE_T i = 0;
 	// make sure we called allocate earlier
-	if (ItemArray.size() == 0) return NULL_POINTER;
+	if (ItemArray.size() == 0) throw stream_exception("NULL_POINTER");
 
 	
 	tp_assert ( nItems <= len, "nItems more than interal buffer size.");
@@ -239,7 +239,6 @@ err Internal_Sorter_Op<T>::sort(file_stream<T>* InStr,
 	}
 	write_progress.done();
 	fp.done();
-	return NO_ERROR;
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -268,8 +267,8 @@ public:
 	using Internal_Sorter_Base<T>::space_overhead;
 	
 	//Sort nItems from input stream and write to output stream
-	err sort(file_stream<T>* InStr, file_stream<T>* OutStr, TPIE_OS_SIZE_T nItems, 
-			 progress_indicator_base * pi=0);
+	void sort(file_stream<T>* InStr, file_stream<T>* OutStr, TPIE_OS_SIZE_T nItems, 
+			  progress_indicator_base * pi=0);
 	
 private:
 	// Prohibit these
@@ -283,19 +282,19 @@ private:
 /// file position.
 ///////////////////////////////////////////////////////////////////////////
 template<class T, class CMPR>
-err Internal_Sorter_Obj<T, CMPR>::sort(file_stream<T>* InStr, 
-									   file_stream<T>* OutStr, 
-									   TPIE_OS_SIZE_T nItems,
-									   progress_indicator_base * pi) {
+void Internal_Sorter_Obj<T, CMPR>::sort(file_stream<T>* InStr, 
+										file_stream<T>* OutStr, 
+										TPIE_OS_SIZE_T nItems,
+										progress_indicator_base * pi) {
 	tp_assert ( nItems <= len, "nItems more than interal buffer size.");
 
 	
-	err ae = NO_ERROR;
-	T    *next_item;
+	//err ae = NO_ERROR;
+	//T    *next_item;
 	TPIE_OS_SIZE_T i = 0;
 	
 	//make sure we called allocate earlier
-	if (ItemArray.size() == 0) return NULL_POINTER;
+	if (ItemArray.size() == 0) throw stream_exception("NULL_POINTER");
 	    
 	tp_assert ( nItems <= len, "nItems more than interal buffer size.");
 
@@ -331,7 +330,6 @@ err Internal_Sorter_Obj<T, CMPR>::sort(file_stream<T>* InStr,
 	}
 	write_progress.done();
 	fp.done();
-	return NO_ERROR;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -371,7 +369,7 @@ public:
 	//////////////////////////////////////////////////////////////////////////
 	/// Sort nItems from input stream and write to output stream.
 	//////////////////////////////////////////////////////////////////////////
-	err sort(file_stream<T>* InStr, file_stream<T>* OutStr, TPIE_OS_SIZE_T nItems, progress_indicator_base * pi=0);
+	void sort(file_stream<T>* InStr, file_stream<T>* OutStr, TPIE_OS_SIZE_T nItems, progress_indicator_base * pi=0);
 	
 	//////////////////////////////////////////////////////////////////////////
 	/// Clean up internal array.
@@ -444,17 +442,17 @@ public:
 };
 
 template<class T, class KEY, class CMPR>
-inline err Internal_Sorter_KObj<T, KEY, CMPR>::sort(file_stream<T>* InStr,
-													file_stream<T>* OutStr, TPIE_OS_SIZE_T nItems,
-													progress_indicator_base * pi) {
+inline void Internal_Sorter_KObj<T, KEY, CMPR>::sort(file_stream<T>* InStr,
+													 file_stream<T>* OutStr, TPIE_OS_SIZE_T nItems,
+													 progress_indicator_base * pi) {
 	
-	err  ae;
-	T    *next_item;
+	//err  ae;
+	//T    *next_item;
 	TPIE_OS_SIZE_T i = 0;
 
 	// Make sure we called allocate earlier
 	if (ItemArray.size() == 0 || sortItemArray.size() == 0) {
-		return NULL_POINTER;
+		throw stream_exception("NULL_POINTER");
 	}
 	
 	tp_assert ( nItems <= len, "nItems more than interal buffer size.");
@@ -470,7 +468,6 @@ inline err Internal_Sorter_KObj<T, KEY, CMPR>::sort(file_stream<T>* InStr,
 	// Read a memory load out of the input stream one item at a time,
 	for (i = 0; i < nItems; i++) {
 		ItemArray[i] = InStr->read();
-		UsrObject->copy(&sortItemArray[i].keyval, *next_item);
 		sortItemArray[i].source=i;
 		read_progress.step();
 	}
@@ -496,7 +493,6 @@ inline err Internal_Sorter_KObj<T, KEY, CMPR>::sort(file_stream<T>* InStr,
 	}
 	write_progress.done();
 	fp.done();
-	return NO_ERROR;
 }
 
 template<class T, class KEY, class CMPR>

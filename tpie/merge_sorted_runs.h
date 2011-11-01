@@ -150,7 +150,7 @@ namespace tpie {
 		template <class T, class CMPR>
 		void merge_sorted(typename tpie::array<std::auto_ptr<file_stream<T> > >::iterator start,
 						 typename tpie::array<std::auto_ptr<file_stream<T> > >::iterator end,
-						 stream<T> *outStream, CMPR *cmp) {
+						 file_stream<T> *outStream, CMPR *cmp) {
 	    
 			// make a merge heap which uses the user's comparison object
 			// and initialize it
@@ -158,7 +158,7 @@ namespace tpie {
 			mrgheap.allocate(end-start);
 	    
 			//Rewind all the input streams
-			for (typename tpie::array<std::auto_ptr<stream<T> > >::iteratorarity_t i=start; 
+			for (typename tpie::array<std::auto_ptr<file_stream<T> > >::iterator i=start; 
 				 i != end; ++i)
 				i->seek(0); 
 	    
