@@ -92,8 +92,6 @@ void parse_app_opts(int idx, char *opt_arg)
 
 int main(int argc, char **argv)
 {
-    ami::err ae;
-
     test_size = 128 * 1024;
 
     tpie_init();
@@ -147,20 +145,20 @@ int main(int argc, char **argv)
     apps::fill_upper_tri<double> fut(3.1415927);
     
     {
-        ae = apps::matrix_fill(&em0, &fut);
+        apps::matrix_fill(&em0, &fut);
 
         if (verbose) {
 	    std::cout << "Wrote the initial sequence of values." << std::endl;
         }
         
         if (report_results_count) {
-            ae = ami::scan(&em0, rptc);
+            ami::scan(&em0, rptc);
             std::cout << "Stream length = " << em0.stream_len() << std::endl;
         }
     }
 
     {
-        ae = apps::matrix_fill(&em1, &fut);
+        apps::matrix_fill(&em1, &fut);
 
         if (verbose) {
 	    std::cout << "Wrote the second sequence of values." << std::endl;
@@ -168,7 +166,7 @@ int main(int argc, char **argv)
         }
         
         if (report_results_intermediate) {
-            ae = ami::scan(&em1, rpti);
+            ami::scan(&em1, rpti);
         }
     }
 #endif
@@ -180,7 +178,7 @@ int main(int argc, char **argv)
     
     // Multiply the two
 
-    ae = apps::matrix_mult(em0, em1, em2);
+    apps::matrix_mult(em0, em1, em2);
     
     cput.stop();
     
@@ -192,7 +190,7 @@ int main(int argc, char **argv)
     }
     
     if (report_results_final) {
-        ae = ami::scan(&em2, rptf);
+        ami::scan(&em2, rptf);
     }
 
     tpie_finish();

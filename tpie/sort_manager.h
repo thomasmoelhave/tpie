@@ -770,9 +770,6 @@ err sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
 
 		arity_t nRunsToMerge = mrgArity; // may change for last output run
 
-		// is current merge output the last run on this merge level?
-		bool lastOutputRun = false;
-
 		// open the mrgArity Input streams from which to read runs
 		for(ii = 0; ii < mrgArity; ii++){
 		    // Make the input file name
@@ -811,7 +808,6 @@ err sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
 		    for( jj=0; jj < runsInStream; jj++ ) { // For each run in this stream
 				// See if this is the last run.
 				if( (ii==mrgArity-1) && (jj==runsInStream-1)) {
-					lastOutputRun=true;
 					nRunsToMerge=mergeRunsInLastOutputRun;
 				}
 				// Merge runs to curOutputRunStream

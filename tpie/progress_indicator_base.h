@@ -102,8 +102,8 @@ public:
 #endif	
 		if (m_current > m_next) {
 			ticks currentTicks = getticks();
-			m_next = m_current * (elapsed(currentTicks, m_start) + m_threshold)/
-				elapsed(currentTicks, m_start);
+			m_next = static_cast<TPIE_OS_OFFSET>(m_current * (elapsed(currentTicks, m_start) + m_threshold)/
+				elapsed(currentTicks, m_start));
 			refresh();
 		}
 	}

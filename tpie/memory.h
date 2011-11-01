@@ -324,8 +324,16 @@ inline T * tpie_new_array(size_t size) {
 }
 
 
+#if defined(TPIE_CPP_VARIADIC_TEMPLATES) && defined(TPIE_CPP_RVALUE_REFERENCE)
+template <typename T, typename ... Args>
+inline T * tpie_new(Args &&... args) {
+	allocation_scope_magic<T> m; 
+	new(m.allocate()) T(std::forward<Args>(args)...);
+	return m.finalize();
+}
+#else
 #include <tpie/memory.inl>
-
+#endif
 
 ///////////////////////////////////////////////////////////////////////////
 /// \brief Delete an object allocated with tpie_new

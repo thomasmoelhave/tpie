@@ -93,8 +93,6 @@ public:
 
 int main(int argc, char **argv) {
 
-    ami::err ae;
-    
     parse_args(argc, argv, app_opts, parse_app_opts);
     
     if (verbose) {
@@ -134,21 +132,21 @@ int main(int argc, char **argv) {
     
     scan_count my_scan_count(test_size);
     
-    ae = ami::scan(&my_scan_count, &amis0);
+    ami::scan(&my_scan_count, &amis0);
     
     if (verbose) {
         std::cout << "Initial stream length = " << amis0.stream_len() << std::endl;
     }
     
     if (report_results_initial) {
-        ae = ami::scan(&amis0, rpti);
+        ami::scan(&amis0, rpti);
     }
     
     amis0.seek(0);
     
     reverse_order ro;
     
-    ae = ami::general_permute(&amis0, &amis1, &ro);
+    ami::general_permute(&amis0, &amis1, &ro);
     
     if (verbose) {
         std::cout << "After reversal, stream length = " 
@@ -156,7 +154,7 @@ int main(int argc, char **argv) {
     }
     
     if (report_results_final) {
-        ae = ami::scan(&amis1, rptf);
+        ami::scan(&amis1, rptf);
     }
     
     return 0;

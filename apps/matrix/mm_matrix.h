@@ -275,14 +275,14 @@ namespace tpie {
 	    }
 
 	    TPIE_OS_SIZE_T ii,jj,kk;
-	    TPIE_OS_SIZE_T r1,r2,c1,c2,cres;
+	    TPIE_OS_SIZE_T r1,r2,c1,c2/*,cres*/;
 	    T t;
 
 	    r1 = op1.rows();
 	    r2 = op2.rows();
 	    c1 = op1.cols();
 	    c2 = op2.cols();
-	    cres = res.cols();
+	    /*cres = */res.cols();
     
 	    // Iterate over rows of op1.
 	    for (ii = r1; ii--; ) {
@@ -317,14 +317,14 @@ namespace tpie {
 	    }
 
 	    TPIE_OS_SIZE_T ii,jj,kk;
-	    TPIE_OS_SIZE_T r1,r2,c1,c2,cres;
+	    TPIE_OS_SIZE_T r1,r2,c1,c2/*,cres*/;
 	    T t;
 
 	    r1 = op1.rows();
 	    r2 = op2.rows();
 	    c1 = op1.cols();
 	    c2 = op2.cols();
-	    cres = res.cols();
+	    /*cres = */res.cols();
     
 	    // Iterate over rows of op1.
 	    for (ii = r1; ii--; ) {
@@ -360,13 +360,13 @@ namespace tpie {
 	    }
 
 	    TPIE_OS_SIZE_T ii,jj,kk;
-	    TPIE_OS_SIZE_T r1,r2,c1,c2,cres;
+	    TPIE_OS_SIZE_T r1,r2/*,c1*/,c2/*,cres*/;
 
 	    r1 = op1.rows();
 	    r2 = op2.rows();
-	    c1 = op1.cols();
+	    /*c1 = */op1.cols();
 	    c2 = op2.cols();
-	    cres = res.cols();
+	    /*cres = */res.cols();
 
 	    // Temporary results.
 
@@ -416,13 +416,13 @@ namespace tpie {
 	    }
 
 	    TPIE_OS_SIZE_T ii,jj,kk;
-	    TPIE_OS_SIZE_T r1,r2,c1,c2,cres;
+	    TPIE_OS_SIZE_T r1,r2/*,c1*/,c2/*,cres*/;
 
 	    r1 = op1.rows();
 	    r2 = op2.rows();
-	    c1 = op1.cols();
+	    /*c1 = */op1.cols();
 	    c2 = op2.cols();
-	    cres = res.cols();
+	    /*cres = */res.cols();
 
 	    // Temporary results.
 

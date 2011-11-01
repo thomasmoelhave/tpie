@@ -220,9 +220,6 @@ void parse_app_opts(int idx, char *opt_arg)
 
 int main(int argc, char **argv)
 {
-
-    ami::err ae;
-
     parse_args(argc, argv, app_opts, parse_app_opts);
 
     if (verbose) {
@@ -242,7 +239,7 @@ int main(int argc, char **argv)
     // Write some ints.
     scan_random rnds(test_size,random_seed);
     
-    ae = ami::scan(&rnds, &amis0);
+    ami::scan(&rnds, &amis0);
 
     if (verbose) {
 	std::cout << "Wrote the random values." << std::endl;
@@ -268,12 +265,12 @@ int main(int argc, char **argv)
     }
     
     if (report_results_random) {
-        ae = ami::scan(&amis0, rptr);
+        ami::scan(&amis0, rptr);
     }
 
     s_merge_manager sm;
     
-    ae = ami::partition_and_merge(&amis0, &amis1, &sm);
+    ami::partition_and_merge(&amis0, &amis1, &sm);
     
     if (verbose) {
 	std::cout << "Sorted them."<< std::endl;
@@ -281,7 +278,7 @@ int main(int argc, char **argv)
     }
     
     if (report_results_sorted) {
-        ae = ami::scan(&amis1, rpts);
+        ami::scan(&amis1, rpts);
     }    
 
     std::cout << std::endl;
