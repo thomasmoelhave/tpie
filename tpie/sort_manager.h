@@ -95,7 +95,9 @@ private:
 	I*              m_internalSorter;   // Method for sorting runs in memory
 	M*              m_mergeHeap;        // Merge heap implementation 
 	stream<T>*      inStream_ami;   
+	file_stream<T>* inStream;   
 	stream<T>*      outStream_ami;   
+	file_stream<T>* outStream;   
 	err             ae;                 // For catching error codes
 	TPIE_OS_OFFSET  nInputItems;        // Number of items in inStream_ami;
 	TPIE_OS_SIZE_T  mmBytesAvail;       // Amount of spare memory we can use
@@ -153,8 +155,10 @@ template <class T, class I, class M>
 sort_manager<T, I, M>::sort_manager(I* isort, M* mheap):
 	m_internalSorter(isort), 
 	m_mergeHeap(mheap),
-	inStream_ami(NULL), 
-	outStream_ami(NULL),
+	inStream_ami(0), 
+	inStream(0), 
+	outStream_ami(0),
+	outStream(0),
 	ae(NO_ERROR),
 	nInputItems(0),
 	mmBytesAvail(0),
@@ -188,7 +192,9 @@ err sort_manager<T,I,M>::sort(stream<T>* in, stream<T>* out,
 	    
 	m_indicator = indicator;
 	inStream_ami=in;
+	inStream = &in->underlying_stream();
 	outStream_ami=out;
+	outStream = &out->underlying_stream();
 	use2xSpace=false;
 
 	// Basic checks that input is ok
