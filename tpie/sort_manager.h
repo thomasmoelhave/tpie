@@ -179,11 +179,11 @@ sort_manager<T, I, M>::sort_manager(I* isort, M* mheap):
 template<class T, class I, class M>
 void sort_manager<T,I,M>::sort(file_stream<T>* in, file_stream<T>* out,
 							   progress_indicator_base* indicator){
-	//  This version saves the original input and uses 3x space
-	//  (input, current temp runs, output runs)
-	    
 	m_indicator = indicator;
-	use2xSpace=false;
+
+	// if the input and output stream are the same, we only use 2x space.
+	// otherwise, we need 3x space. (input, current temp runs, output runs)
+	use2xSpace = (in == out);
 
 	inStream = in;
 	outStream = out;
@@ -210,37 +210,9 @@ void sort_manager<T,I,M>::sort(file_stream<T>* in, file_stream<T>* out,
 
 template<class T, class I, class M>
 void sort_manager<T,I,M>::sort(file_stream<T>* in, progress_indicator_base* indicator){
-	//This version overwrites the original input and uses 2x space
-	//The input stream is truncated to length 0 after forming initial runs
-	//and only two levels of the merge tree are on disk at any one time.
-	m_indicator = indicator;
-	use2xSpace=true;
-	
-	inStream = in;
-	outStream = in;
-
-	// Basic checks that input is ok
-	if (in==NULL) { 
-		throw exception("NULL_POINTER");
-	}
-	    
-	if (!in) { 
-		throw exception("OBJECT_INVALID");
-	}
-	    
-	if (inStream->size() < 2) {
-		if (m_indicator) {
-			m_indicator->init(1); 
-			m_indicator->step(); 
-			m_indicator->done(); 
-		}
-		throw already_sorted_exception();
-	}
-
-	// Else, there is something to sort, do it
-	start_sort();
+	sort(in, in, indicator);
 }
-	
+
 template<class T, class I, class M>
 void sort_manager<T,I,M>::start_sort(){
 	    

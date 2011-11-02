@@ -263,7 +263,7 @@ namespace tpie {
 	    sort_manager< T, ami::Internal_Sorter_Op<T>, ami::merge_heap_op<T> > 
 		mySortManager(&myInternalSorter, &myMergeHeap);
 	    
-		mySortManager.sort(&instream, indicator);
+		mySortManager.sort(&instream, &instream, indicator);
 	}
 	namespace ami {
 	template<class T>
@@ -291,7 +291,7 @@ namespace tpie {
 	    sort_manager< T, ami::Internal_Sorter_Obj<T,CMPR>, ami::merge_heap_obj<T,CMPR> > 
 		mySortManager(&myInternalSorter, &myMergeHeap);
 
-		mySortManager.sort(&instream, indicator);
+		mySortManager.sort(&instream, &instream, indicator);
 	}
 	namespace ami {
 	template<class T, class CMPR>
