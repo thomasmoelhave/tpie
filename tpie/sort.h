@@ -203,145 +203,44 @@ namespace tpie {
 
 // --------------------------------------------------------------------
 // -                                                                  -
-// -  These versions build  a heap on pointers to objects             -
+// -  These versions used to build a heap on pointers to objects      -
+// -  but have been deprecated, since they have been broken for       -
+// -  many years and caused unnecessary code duplication.             -
 // -                                                                  -
 // --------------------------------------------------------------------
 
-  ///////////////////////////////////////////////////////////////////////////
-  /// This variant of merge sort in TPIE that uses the < operator and keeps only
-  /// a pointer to each record in the heap used to perform merging of runs,
-  /// see also \ref sorting_in_tpie "Sorting in TPIE".
-  /// The syntax is identical to that illustrated in the sort() examples;
-  /// simply replace sort by ptr_sort.
-  /// Takes an input stream of elements of type T and an output stream.
-  ///////////////////////////////////////////////////////////////////////////
-  template<class T>
-  void ptr_sort(file_stream<T> *instream, file_stream<T> *outstream,
-	     progress_indicator_base* indicator=NULL) {
-	    ami::Internal_Sorter_Op<T> myInternalSorter;
-	    ami::merge_heap_op<T>      myMergeHeap;
-	    sort_manager< T, ami::Internal_Sorter_Op<T>, ami::merge_heap_op<T> > 
-		mySortManager(&myInternalSorter, &myMergeHeap);
-	    
-		mySortManager.sort(&instream, &outstream, indicator);
-	}
-  namespace ami {
-  template<class T>
-  err ptr_sort(stream<T> *instream_ami, stream<T> *outstream_ami,
-	     progress_indicator_base* indicator=NULL) {
-		try {
-			tpie::ptr_sort(instream_ami->underlying_stream(), outstream_ami->underlying_stream(), indicator);
-		} catch (const exception & e) {
-			TP_LOG_FATAL_ID(e.what());
-			return exception_kind(e);
-		}
-		return NO_ERROR;
-	}
-  }
-	
-  ///////////////////////////////////////////////////////////////////////////
-  /// This variant of merge sort in TPIE that uses the < operator and keeps only
-  /// a pointer to each record in the heap used to perform merging of runs,
-  /// see also \ref sorting_in_tpie "Sorting in TPIE".
-  /// The syntax is
-  /// identical to that illustrated in the sort() examples;
-  /// simply replace sort by ptr_sort.
-	/// Takes an input stream of elements of
-	/// type T, an output stream, and a user-specified comparison
-	/// object. The comparison object "cmp", of (user-defined) class
-	/// represented by CMPR, must have a member function called "compare"
-	/// which is used for sorting the input stream: see 
-	/// also \ref comp_sorting "Comparing within Sorting".
-	///////////////////////////////////////////////////////////////////////////
-	template<class T, class CMPR>
-	void ptr_sort(file_stream<T> *instream, file_stream<T> *outstream,
-		     CMPR *cmp, progress_indicator_base* indicator=NULL) {
-	    ami::Internal_Sorter_Obj<T,CMPR> myInternalSorter(cmp);
-		ami::merge_heap_ptr_obj<T,CMPR> myMergeHeap(cmp);
-	    sort_manager< T, ami::Internal_Sorter_Obj<T,CMPR>, ami::merge_heap_ptr_obj<T,CMPR> > 
-		mySortManager(&myInternalSorter, &myMergeHeap);
+	namespace ami {
+	template<class T>
+	err ptr_sort(stream<T> *instream_ami, stream<T> *outstream_ami,
+			   progress_indicator_base* indicator=NULL) {
 
-		mySortManager.sort(&instream, &outstream, indicator);
+		TP_LOG_WARNING_ID("tpie::ami::ptr_sort is deprecated");
+		return sort(instream_ami, outstream_ami, indicator);
 	}
+	}
+	
 	namespace ami {
 	template<class T, class CMPR>
 	err ptr_sort(stream<T> *instream_ami, stream<T> *outstream_ami,
 		     CMPR *cmp, progress_indicator_base* indicator=NULL) {
-		try {
-			tpie::ptr_sort(instream_ami->underlying_stream(), outstream_ami->underlying_stream(), cmp, indicator);
-		} catch (const exception & e) {
-			TP_LOG_FATAL_ID(e.what());
-			return exception_kind(e);
-		}
-		return NO_ERROR;
+		TP_LOG_WARNING_ID("tpie::ami::ptr_sort is deprecated");
+		return sort(instream_ami, outstream_ami, cmp, indicator);
 	}
 	}
 
 // ********************************************************************
 // *                                                                  *
-// *  This version keeps a heap of keys to records, separating small  *
-// *  keys from large records and reducing data movement in the heap  *
-// *  when objects are very large but the sort key is small           *
+// *  This version used to keep a heap of keys and pointers, but has  *
+// *  been deprecated since nobody uses it.                           *
 // *                                                                  *
 // ********************************************************************
 
-	///////////////////////////////////////////////////////////////////////////
-  /// \anchor keysort
-	/// The Akey_sort variant of TPIE merge sort keeps the key
-  /// field(s) plus a pointer to the corresponding record in an internal
-  /// heap during the merging phase of merge sort,   
-	/// see also \ref sorting_in_tpie "Sorting in TPIE".
-  /// Takes an input stream of elements of
-  /// type T, an output stream, a key specification, and a user-specified
-  /// comparison object.
-  /// It requires a sort
-  /// management object with member functions compare() and
-  /// copy(). The \p dummyKey argument has the same type
-  /// as the user key, and
-  /// \p smo is the sort management object, having user-defined
-  /// compare and copy member functions as described
-  /// below.
-  /// 
-  /// The compare member function has the following
-  /// prototype:
-  ///
-  /// <tt>inline int compare (const KEY & k1, const KEY & k2);</tt>
-  /// 
-  /// The user-written compare() function computes the order of
-  /// the two user-defined keys \p k1 and \p k2, and
-  /// returns -1, 0, or +1 to indicate that <tt>k1<k2</tt>, <tt>k1==k2</tt>, or
-  /// <tt>k1>k2</tt> respectively.
-  /// 
-  /// The copy() member function has the following prototype:
-  ///  <tt>inline void copy (KEY *key, const T &record);</tt>
-  /// 
-  /// The user-written copy function constructs the user-defined
-  /// key \p key from the contents of the user-defined record
-  /// \p record. It will be called by the internals of
-  /// key_sort() to make copies of record keys as necessary
-  /// during the sort.
-	///////////////////////////////////////////////////////////////////////////
-	template<class T, class KEY, class CMPR>
-	void key_sort(file_stream<T> *instream, file_stream<T> *outstream,
-		      KEY /* dummykey */, CMPR *cmp, progress_indicator_base* indicator=NULL)	{
-		ami::Internal_Sorter_KObj<T,KEY,CMPR> myInternalSorter(cmp);
-	    ami::merge_heap_kobj<T,KEY,CMPR>      myMergeHeap(cmp);
-	    sort_manager< T, ami::Internal_Sorter_KObj<T,KEY,CMPR>, ami::merge_heap_kobj<T,KEY,CMPR> > 
-		mySortManager(&myInternalSorter, &myMergeHeap);
-
-		mySortManager.sort(&instream, &outstream, indicator);
-	}
 	namespace ami {
 	template<class T, class KEY, class CMPR>
 	err  key_sort(stream<T> *instream_ami, stream<T> *outstream_ami,
 		      KEY dummykey, CMPR *cmp, progress_indicator_base* indicator=NULL)	{
-		try {
-			tpie::key_sort(instream_ami->underlying_stream(), outstream_ami->underlying_stream, dummykey, cmp, indicator);
-		} catch (const exception & e) {
-			TP_LOG_FATAL_ID(e.what());
-			return exception_kind(e);
-		}
-		return NO_ERROR;
+		TP_LOG_WARNING_ID("tpie::ami::key_sort is deprecated");
+		return sort(instream_ami, outstream_ami, cmp, indicator);
 	}
 	}
 
@@ -412,27 +311,12 @@ namespace tpie {
   /// In-place sorting variant of \ref ptr_sort(stream<T> *instream_ami, stream<T> *outstream_ami, progress_indicator_base* indicator=NULL),
   /// see also \ref sortingspace_in_tpie "In-place Variants for Sorting in TPIE".
   ///////////////////////////////////////////////////////////////////////////
-	template<class T>
-	void ptr_sort(file_stream<T> &instream, 
-		     progress_indicator_base* indicator=NULL) {
-	    ami::Internal_Sorter_Op<T> myInternalSorter;
-	    ami::merge_heap_op<T>      myMergeHeap;
-	    sort_manager< T, ami::Internal_Sorter_Op<T>, ami::merge_heap_op<T> > 
-		mySortManager(&myInternalSorter, &myMergeHeap);
-
-		mySortManager.sort(&instream, indicator);
-	}
 	namespace ami {
 	template<class T>
 	err ptr_sort(stream<T> *instream_ami, 
 		     progress_indicator_base* indicator=NULL) {
-		try {
-			tpie::ptr_sort(instream_ami->underlying_stream(), indicator);
-		} catch (const exception & e) {
-			TP_LOG_FATAL_ID(e.what());
-			return exception_kind(e);
-		}
-		return NO_ERROR;
+		TP_LOG_WARNING_ID("tpie::ami::ptr_sort is deprecated");
+		return sort(instream_ami, indicator);
 	}
 	}
 
@@ -440,28 +324,12 @@ namespace tpie {
   /// In-place sorting variant of \ref ptr_sort(stream<T> *instream_ami, stream<T> *outstream_ami, CMPR *cmp, progress_indicator_base* indicator=NULL),
   /// see also \ref sortingspace_in_tpie "In-place Variants for Sorting in TPIE".
   ///////////////////////////////////////////////////////////////////////////
-	template<class T, class CMPR>
-	void ptr_sort(file_stream<T> &instream, 
-		     CMPR *cmp, progress_indicator_base* indicator=NULL) {
-	  // ptr heaps, comparison object comparisions
-		ami::Internal_Sorter_Obj<T,CMPR> myInternalSorter(cmp);
-	    ami::merge_heap_ptr_obj<T,CMPR> myMergeHeap(cmp);
-	    sort_manager< T, ami::Internal_Sorter_Obj<T,CMPR>, ami::merge_heap_ptr_obj<T,CMPR> > 
-		mySortManager(&myInternalSorter, &myMergeHeap);
-
-		mySortManager.sort(&instream, indicator);
-	}
 	namespace ami {
 	template<class T, class CMPR>
 	err ptr_sort(stream<T> *instream_ami, 
 		     CMPR *cmp, progress_indicator_base* indicator=NULL) {
-		try {
-			tpie::ptr_sort(instream_ami->underlying_stream(), cmp, indicator);
-		} catch (const exception & e) {
-			TP_LOG_FATAL_ID(e.what());
-			return exception_kind(e);
-		}
-		return NO_ERROR;
+		TP_LOG_WARNING_ID("tpie::ami::ptr_sort is deprecated");
+		return sort(instream_ami, cmp, indicator);
 	}
 	}
 
