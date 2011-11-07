@@ -24,35 +24,126 @@
 #include <tpie/stream.h>
 #include <tpie/prime.h>
 #include "common.h"
+#include <iterator>
+#include <tpie/progress_indicator_null.h>
+#include <tpie/progress_indicator_arrow.h>
+
+class primeit {
+private:
+	primeit(int64_t s, int64_t y, int64_t i = 0) : s(s), i(i), y(y) {}
+public:
+	int64_t s;
+	int64_t i;
+	int64_t y;
+	static primeit begin(int64_t size) {
+		int64_t s = tpie::next_prime(size);
+		int64_t y = size-16;
+		int64_t i = 0;
+		return primeit(s,y,i);
+	}
+	static primeit end(int64_t size) {
+		int64_t s = tpie::next_prime(size);
+		int64_t y = size-16;
+		int64_t i = s;
+		return primeit(s,y,i);
+	}
+	size_t operator*() const {
+		return (i * y) % s;
+	}
+	// pre-increment
+	primeit& operator++() {
+		++i;
+		return *this;
+	}
+	int operator-(const primeit & other) const {
+		return i-other.i;
+	}
+	bool operator==(const primeit & other) const {
+		return s == other.s && i == other.i && y == other.y;
+	}
+	bool operator!=(const primeit & other) const {
+		return !(*this == other);
+	}
+	bool operator<(const primeit & other) const {
+		return i < other.i;
+	}
+	primeit operator+(int64_t j) const {
+		return primeit(s, y, i+j);
+	}
+	primeit operator+(uint64_t j) const {
+		return primeit(s, y, i+j);
+	}
+};
+
+namespace std {
+template <> struct iterator_traits<primeit> {
+	typedef random_access_iterator_tag iterator_category;
+	typedef int64_t value_type;
+	typedef int64_t difference_type;
+	typedef int64_t* pointer;
+	typedef int64_t reference;
+};
+}
 
 using namespace tpie;
 
-bool sort_test(size_t size) {
-	ami::stream<size_t> mystream;
-	size_t s=next_prime(size);
-	size_t y=size-16;
-	for(size_t i=0; i < s; ++i) {
-		size_t x= (uint64_t(i) * uint64_t(y)) % uint64_t(s);
+bool ami_sort_test(size_t size) {
+	ami::stream<int64_t> mystream;
+	primeit begin = primeit::begin(size);
+	primeit end = primeit::end(size);
+	int64_t s = end-begin;
+
+	while (begin != end) {
+		size_t x= *begin;
+		++begin;
 		mystream.write_item(x);
 	}
 	ami::sort(&mystream);
 
 	mystream.seek(0);
 
-	size_t * x = 0;
-	for(size_t i=0; i < s; ++i) {
+	int64_t * x = 0;
+	for(int64_t i=0; i < s; ++i) {
 		mystream.read_item( &x );
 		if (*x != i) return false;
 	}
 	return true;
 }
 
+template<typename Progress>
+bool sort_test(size_t size, Progress & pi) {
+	temp_file tmp;
+	file_stream<int64_t> mystream;
+	mystream.open(tmp.path());
+
+	primeit begin = primeit::begin(size);
+	primeit end = primeit::end(size);
+	int64_t s = end-begin;
+
+	mystream.write(begin, end);
+	sort(mystream, pi);
+
+	mystream.seek(0);
+	for(int64_t i=0; i < s; ++i) {
+		int64_t x = mystream.read();
+		if (x != i) return false;
+	}
+	return true;
+}
+
 
 bool perform_test(const std::string & test) {
-	if (test == "small")
-		return sort_test(1024 * 1024 * 8);
-	else if (test == "large")
-		return sort_test(1024*1024*1024);
+	if (test == "small") {
+		progress_indicator_null pi(1);
+		return sort_test(1024 * 1024 * 8, pi);
+	} else if (test == "large") {
+		progress_indicator_arrow pi("Sort", 1);
+		return sort_test(1024*1024*128, pi);
+	} else if (test == "amismall") {
+		return ami_sort_test(1024 * 1024 * 8);
+	} else if (test == "amilarge") {
+		return ami_sort_test(1024*1024*128);
+	}
 	return false;
 }
 
@@ -63,6 +154,3 @@ int main(int argc, char **argv) {
 	bool ok=perform_test(std::string(argv[1]));
 	return ok?EXIT_SUCCESS:EXIT_FAILURE;
 }
-
-		
-	

@@ -89,6 +89,7 @@
 #include <tpie/internal_sort.h>
 
 #include <tpie/progress_indicator_base.h>
+#include <tpie/progress_indicator_null.h>
 
 namespace tpie {
 
@@ -257,20 +258,25 @@ namespace tpie {
   ///////////////////////////////////////////////////////////////////////////
 	template<class T>
 	void sort(file_stream<T> &instream, 
-		 progress_indicator_base* indicator=NULL) {
+		 progress_indicator_base &indicator) {
 	    ami::Internal_Sorter_Op<T> myInternalSorter;
 	    ami::merge_heap_op<T>      myMergeHeap;
 	    sort_manager< T, ami::Internal_Sorter_Op<T>, ami::merge_heap_op<T> > 
 		mySortManager(&myInternalSorter, &myMergeHeap);
 	    
-		mySortManager.sort(&instream, &instream, indicator);
+		mySortManager.sort(&instream, &instream, &indicator);
 	}
 	namespace ami {
 	template<class T>
 	err sort(stream<T> *instream_ami, 
-		 progress_indicator_base* indicator=NULL) {
+		 progress_indicator_base* indicator=0) {
 		try {
-			tpie::sort(instream_ami->underlying_stream(), indicator);
+			if (indicator) {
+				tpie::sort(instream_ami->underlying_stream(), *indicator);
+			} else {
+				progress_indicator_null dummy(1);
+				tpie::sort(instream_ami->underlying_stream(), dummy);
+			}
 		} catch (const exception & e) {
 			TP_LOG_FATAL_ID(e.what());
 			return exception_kind(e);
@@ -285,20 +291,25 @@ namespace tpie {
 	///////////////////////////////////////////////////////////////////////////
 	template<class T, class CMPR>
 	void sort(file_stream<T> &instream, 
-		 CMPR *cmp, progress_indicator_base* indicator=NULL) {
-		ami::Internal_Sorter_Obj<T,CMPR> myInternalSorter(cmp);
-	    ami::merge_heap_obj<T,CMPR>      myMergeHeap(cmp);
+		 CMPR &cmp, progress_indicator_base &indicator) {
+		ami::Internal_Sorter_Obj<T,CMPR> myInternalSorter(&cmp);
+	    ami::merge_heap_obj<T,CMPR>      myMergeHeap(&cmp);
 	    sort_manager< T, ami::Internal_Sorter_Obj<T,CMPR>, ami::merge_heap_obj<T,CMPR> > 
 		mySortManager(&myInternalSorter, &myMergeHeap);
 
-		mySortManager.sort(&instream, &instream, indicator);
+		mySortManager.sort(&instream, &instream, &indicator);
 	}
 	namespace ami {
 	template<class T, class CMPR>
 	err sort(stream<T> *instream_ami, 
 		 CMPR *cmp, progress_indicator_base* indicator=NULL) {
 		try {
-			tpie::sort(instream_ami->underlying_stream(), cmp, indicator);
+			if (indicator) {
+				tpie::sort(instream_ami->underlying_stream(), *cmp, *indicator);
+			} else {
+				progress_indicator_null dummy(1);
+				tpie::sort(instream_ami->underlying_stream(), *cmp, dummy);
+			}
 		} catch (const exception & e) {
 			TP_LOG_FATAL_ID(e.what());
 			return exception_kind(e);
