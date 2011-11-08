@@ -7,7 +7,7 @@ choice of block size when the priority queue contains uint64s.
 
 Tests run on the machine `grits' at MADALGO, running Ubuntu Linux 11.04, kernel
 2.6.38-11-generic, from October 31 to November 3, 2011, using filestream
-branch, commit c48ac80...
+branch, commit c48ac80..., 350 GB data, 2 TB RAID array, ext4.
 
 Block size   Elements       Time to push   Time to pop    Total time
     16 KiB   46976204800    17080.455237    8715.618900   25796.074137
@@ -20,7 +20,8 @@ Block size   Elements       Time to push   Time to pop    Total time
      2 MiB   46976204800    27136.143070   13863.666662   40999.809732
 
 Tests run on the machine `gonzales', running Arch Linux, kernel 3.0-ARCH, on
-November 8, using filestream branch, commit e62e1ff...
+November 8, 2011, using filestream branch, commit e62e1ff..., 21.9 GB data,
+160 GB ext4 partition on an unused 2 TB disk.
 
 Block size   Elements    Time to push  Time to pop  Total time
     16 KiB   2936012800   1613.029407   359.966223  1972.995630
