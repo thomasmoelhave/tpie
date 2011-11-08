@@ -6,7 +6,7 @@ block sizes (actually block factors ranging from 2^-7 to 2^0, yielding block
 sizes between 2^4 KiB and 2^11 KiB), we see that 128 KiB is the overall best
 choice of block size when the priority queue contains uint64s.
 
-Tests run on the machine `grids' at MADALGO, running Ubuntu Linux 11.04, kernel
+Tests run on the machine `grits' at MADALGO, running Ubuntu Linux 11.04, kernel
 2.6.38-11-generic, from October 31 to November 3, 2011, using filestream
 branch, commit c48ac80...
 
