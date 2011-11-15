@@ -33,10 +33,10 @@
 
 static const std::string TEMPFILE = "tmp";
 inline uint64_t ITEM(size_t i) {return i*98927 % 104639;}
-static const size_t SIZE = 8*1024*1024;
-static const size_t ITEMS = SIZE/sizeof(uint64_t);
+static const size_t TESTSIZE = 8*1024*1024;
+static const size_t ITEMS = TESTSIZE/sizeof(uint64_t);
 static const size_t ARRAYSIZE = 512;
-static const size_t ARRAYS = SIZE/(ARRAYSIZE*sizeof(uint64_t));
+static const size_t ARRAYS = TESTSIZE/(ARRAYSIZE*sizeof(uint64_t));
 
 int main(int argc, char **argv) {
 	tpie_initer _;
