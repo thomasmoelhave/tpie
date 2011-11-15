@@ -37,6 +37,8 @@ void test(size_t count) {
 	test_realtime_t start;
 	test_realtime_t end;
 
+	boost::filesystem::remove("tmp");
+
 	//The purpose of this test is to test the speed of the io calls, not the file system
 	getTestRealtime(start);
 	{
