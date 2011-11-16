@@ -508,26 +508,16 @@ size_type stream<T>::memory_usage(size_type count) {
 
 	template<class T>
 	inline err stream<T>::read_item(T **elt) {
-		try {
-			*elt = &m_stream.read_mutable();
-		} catch(const end_of_stream_exception &) {
-			//TP_LOG_DEBUG_ID("eos in read_item");
-			return END_OF_STREAM;
-		} catch(const stream_exception &) {
-			TP_LOG_DEBUG_ID("bte error in read_item");
-			return BTE_ERROR;
-		}
-		return NO_ERROR;
+	    if (!m_stream.can_read())
+		return END_OF_STREAM;
+
+	    *elt = &m_stream.read_mutable();
+	    return NO_ERROR;
 	}
 
 	template<class T>
 	inline err stream<T>::write_item(const T &elt) {
-		try {
-			m_stream.write(elt); 
-		} catch(const stream_exception &) {
-			TP_LOG_WARNING_ID("BTE error - write item failed");
-			return BTE_ERROR;
-	    }
+	    m_stream.write(elt);
 	    return NO_ERROR;
 	}
 
@@ -544,21 +534,13 @@ size_type stream<T>::memory_usage(size_type count) {
 		size_type l = static_cast<size_type>(std::min(
 			static_cast<stream_size_type>(len), 
 			static_cast<stream_size_type>(m_stream.size() - m_stream.offset())));
-		try {
-			m_stream.read(mm_space, mm_space+l);
-		} catch(const stream_exception &) {
-			return BTE_ERROR;
-		}
+		m_stream.read(mm_space, mm_space+l);
 		return (l == len)?NO_ERROR:END_OF_STREAM;
 	}
 
 	template<class T>
 	err stream<T>::write_array(const T *mm_space, size_type len) {
-		try {
-			m_stream.write(mm_space, mm_space+len);
-		} catch(const stream_exception &) {
-			return BTE_ERROR;
-		}
+		m_stream.write(mm_space, mm_space+len);
 		return NO_ERROR;
 	}
 

@@ -186,22 +186,23 @@ public:
 		memory_size_type m_index;
 		stream_size_type m_nextBlock;
 		memory_size_type m_nextIndex;
+		stream_size_type m_blockStartIndex;
+		// invariant: m_blockStartIndex == m_block->number*m_file.m_blockItems
 		block_t * m_block;
-		inline void update_vars() throw() {
-			if (m_index != std::numeric_limits<memory_size_type>::max())
-				m_block->size = std::max(m_block->size, m_index);
-			if (m_index != std::numeric_limits<memory_size_type>::max() &&
-				m_block->number != std::numeric_limits<stream_size_type>::max())
-				m_file.m_size = std::max(m_file.m_size, m_block->number * static_cast<stream_size_type>(m_file.m_blockItems) + static_cast<stream_size_type>(m_index));
-		}
 
 		void update_block();
 		inline memory_size_type block_items() const {return m_file.m_blockItems;}
 		
+		// TODO: why is this slower than std::max on Linux?
+		static inline int64_t max(int64_t x, int64_t y) {
+		    return x-(((x-y)>>63)&(x-y));
+		}
+
 		inline void write_update() {
 			m_block->dirty = true;
-			m_block->size = std::max(m_block->size, m_index);
-			m_file.m_size = std::max(m_file.m_size, static_cast<stream_size_type>(m_index)+m_block->number*static_cast<stream_size_type>(m_file.m_blockItems));
+			m_block->size = max(m_block->size, m_index);
+			m_file.m_size = max(m_file.m_size, static_cast<stream_size_type>(m_index)+m_blockStartIndex);
+			// m_block->number*static_cast<stream_size_type>(m_file.m_blockItems)
 		}
 	public:
 		stream(file_base & file, stream_size_type offset=0);
@@ -233,7 +234,6 @@ public:
 			}
 			if (0 > offset || (stream_size_type)offset > size())
 				throw io_exception("Tried to seek out of file");
-			update_vars();
 			stream_size_type b = static_cast<stream_size_type>(offset) / m_file.m_blockItems;
 			m_index = static_cast<memory_size_type>(offset - b*m_file.m_blockItems);
 			if (b == m_block->number) {
@@ -261,7 +261,7 @@ public:
  		inline stream_size_type offset() const throw() {
 			assert(m_file.m_open);
  			if (m_nextBlock == std::numeric_limits<stream_size_type>::max())
- 				return m_index + m_block->number * m_file.m_blockItems;
+ 				return m_index + m_blockStartIndex;
  			return m_nextIndex + m_nextBlock * m_file.m_blockItems;
  		}
 
@@ -384,21 +384,10 @@ public:
 		/////////////////////////////////////////////////////////////////////////
  		inline item_type & read_mutable() {
 			assert(m_file.m_open);
-
-			// if we have just seeked or we're reading for the first time,
-			// read the new block from disk
-			if (m_index == std::numeric_limits<memory_size_type>::max())
-				update_block();
-
 			if (m_index >= m_block->size) {
-				// if several streams are reading/writing the same buffer,
-				// m_file.m_size isn't updated.
-
-				// refresh m_file.m_size.
-				update_vars();
-
-				if (offset() >= m_file.size())
+				if (offset() >= m_file.size()) {
 					throw end_of_stream_exception();
+				}
 
 				// otherwise, we're at a block boundary.
 				update_block();

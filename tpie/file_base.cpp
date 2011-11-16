@@ -151,20 +151,20 @@ file_base::~file_base() {
 }
 
 void file_base::stream::update_block() {
-	update_vars();
 	if (m_nextBlock == std::numeric_limits<stream_size_type>::max()) {
 		m_nextBlock = m_block->number+1;
 		m_nextIndex = 0;
 	}
 	if (m_block != &m_file.m_emptyBlock) m_file.free_block(m_block);
 	m_block = m_file.get_block(m_nextBlock);
+	m_blockStartIndex = m_nextBlock*static_cast<stream_size_type>(m_file.m_blockItems);
 	m_index = m_nextIndex;
 	m_nextBlock = std::numeric_limits<stream_size_type>::max();
 	m_nextIndex = std::numeric_limits<memory_size_type>::max();
 }
 
 file_base::stream::stream(file_base & f, stream_size_type offset):
-	m_file(f) {
+	m_file(f), m_blockStartIndex(0) {
 	m_nextBlock = std::numeric_limits<stream_size_type>::max();
 	m_nextIndex = std::numeric_limits<memory_size_type>::max();
 	m_index = std::numeric_limits<memory_size_type>::max();;
@@ -176,7 +176,6 @@ file_base::stream::stream(file_base & f, stream_size_type offset):
 
 void file_base::stream::free() {
 	if (m_block) {
-		update_vars();
 		if (m_block != &m_file.m_emptyBlock) m_file.free_block(m_block);
 		m_file.delete_block();
 	}
