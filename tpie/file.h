@@ -390,12 +390,10 @@ public:
  		inline item_type & read_mutable() {
 			assert(m_file.m_open);
 			if (m_index >= m_block->size) {
+				update_block();
 				if (offset() >= m_file.size()) {
 					throw end_of_stream_exception();
 				}
-
-				// otherwise, we're at a block boundary.
-				update_block();
 			}
 			return reinterpret_cast<T*>(m_block->data)[m_index++];
 		}
