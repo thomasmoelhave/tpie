@@ -193,15 +193,20 @@ public:
 		void update_block();
 		inline memory_size_type block_items() const {return m_file.m_blockItems;}
 		
-		// TODO: why is this slower than std::max on Linux?
-		static inline int64_t max(int64_t x, int64_t y) {
-		    return x-(((x-y)>>63)&(x-y));
-		}
+		// this turns out to be slower than cmp+cmov, so we use std::max in
+		// write_update instead.
+		//static inline int64_t max(int64_t x, int64_t y) {
+		//    return x-(((x-y)>>63)&(x-y));
+		//}
 
 		inline void write_update() {
 			m_block->dirty = true;
-			m_block->size = max(m_block->size, m_index);
-			m_file.m_size = max(m_file.m_size, static_cast<stream_size_type>(m_index)+m_blockStartIndex);
+			// with optimization, each of these std::max is compiled on an x86
+			// into cmp (compare), cmov (conditional move).
+			// TODO: with inline assembly we could do a single comparisons and two
+			// cmovs, as the two comparison results will always be the same.
+			m_block->size = std::max(m_block->size, m_index);
+			m_file.m_size = std::max(m_file.m_size, static_cast<stream_size_type>(m_index)+m_blockStartIndex);
 			// m_block->number*static_cast<stream_size_type>(m_file.m_blockItems)
 		}
 	public:
