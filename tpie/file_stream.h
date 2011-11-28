@@ -187,6 +187,7 @@ public:
 	/////////////////////////////////////////////////////////////////////////
 	inline const item_type & read() throw(stream_exception) {
 		assert(m_open);
+		update_vars();
 		if (m_index >= m_block->size) {
 			update_block();
 			if (offset() >= size()) {
@@ -282,6 +283,10 @@ public:
 	/// \sa file_base::size()
 	/////////////////////////////////////////////////////////////////////////
 	inline stream_size_type size() const throw() {
+		// XXX update_vars changes internal state in a way that is not visible
+		// through the class interface.
+		// therefore, a const_cast is warranted.
+		const_cast<file_stream<T>*>(this)->update_vars();
 		return m_size;
 	}
 
@@ -291,6 +296,7 @@ public:
 	/////////////////////////////////////////////////////////////////////////
 	inline bool can_read() const throw() {
 		assert(m_open);
+		const_cast<file_stream<T>*>(this)->update_vars();
 		if (m_index < m_block->size) return true;
 		return offset() < size();
 	}
@@ -301,6 +307,7 @@ public:
 	/////////////////////////////////////////////////////////////////////////
 	inline bool can_read_back() const throw() {
 		assert(m_open);
+		const_cast<file_stream<T>*>(this)->update_vars();
 		if (m_index <= m_block->size) return true;
 		if (m_nextBlock == std::numeric_limits<stream_size_type>::max())
 			return m_block->number != 0;
@@ -325,6 +332,7 @@ public:
 				stream_size_type new_index = static_cast<stream_offset_type>(offset+m_index);
 
 				if (new_index < m_blockItems) {
+					update_vars();
 					m_index = new_index;
 					return;
 				}
@@ -334,6 +342,7 @@ public:
 		}
 		if (0 > offset || (stream_size_type)offset > size())
 			throw io_exception("Tried to seek out of file");
+		update_vars();
 		stream_size_type b = static_cast<stream_size_type>(offset) / m_blockItems;
 		m_index = static_cast<memory_size_type>(offset - b*m_blockItems);
 		if (b == m_block->number) {
@@ -474,7 +483,16 @@ private:
 	inline void flush_block() {
 		if (m_block->dirty || !m_canRead) {
 			assert(m_canWrite);
+			update_vars();
 			m_fileAccessor->write(m_block->data, m_block->number * static_cast<stream_size_type>(m_blockItems), m_block->size);
+		}
+	}
+
+	inline void update_vars() {
+		if (m_block->dirty && m_index != std::numeric_limits<memory_size_type>::max()) {
+			assert(m_index <= m_blockItems);
+			m_block->size = std::max(m_block->size, m_index);
+			m_size = std::max(m_size, static_cast<stream_size_type>(m_index)+m_blockStartIndex);
 		}
 	}
 
@@ -482,18 +500,11 @@ private:
 		flush_block();
 		m_nextBlock = std::numeric_limits<stream_size_type>::max();
 		m_nextIndex = std::numeric_limits<memory_size_type>::max();
-		m_index = std::numeric_limits<memory_size_type>::max();;
+		m_index = std::numeric_limits<memory_size_type>::max();
 	}
 
 	inline void write_update() {
 		m_block->dirty = true;
-		// with optimization, each of these std::max is compiled on an x86
-		// into cmp (compare), cmov (conditional move).
-		// TODO: with inline assembly we could do a single comparisons and two
-		// cmovs, as the two comparison results will always be the same.
-		m_block->size = std::max(m_block->size, m_index);
-		m_size = std::max(m_size, static_cast<stream_size_type>(m_index)+m_blockStartIndex);
-		// m_block->number*static_cast<stream_size_type>(m_blockItems)
 	}
 
 	////////////////////////////////////////////////////////////////////////////////
