@@ -27,3 +27,45 @@ Writing 460800*1024 items, reading them, writing 460800 arrays, reading them
 1715 1280 1391 955
 1582 1286 1389 950
 </pre>
+
+test_ami_sort
+-------------
+* filestream is 1.60% faster
+
+Output:
+
+<pre>
+Sort/filestream
+BTE: BTE_STREAM_IMP_UFS 32
+Comparison device: Operator.
+Input size: 687194767 items.
+Item size: 4 bytes.
+TPIE memory size: 33554432 bytes.
+TPIE free memory: 31403048 Bytes2.
+Generating input (687194767 random integers)...Done.
+Input stream length: 687194767
+Time taken: 14.33u 0.76s 29.16
+TPIE free memory: 31403048 bytes.
+Sorting input...Done.
+Sorted stream length: 687194767
+Time taken: 97.99u 9.02s 232.45
+TPIE free memory: 29305680 bytes.
+</pre>
+
+<pre>
+Sort/filestreamsimple
+BTE: BTE_STREAM_IMP_UFS 32
+Comparison device: Operator.
+Input size: 687194767 items.
+Item size: 4 bytes.
+TPIE memory size: 33554432 bytes.
+TPIE free memory: 31403128 Bytes2.
+Generating input (687194767 random integers)...Done.
+Input stream length: 687194767
+Time taken: 14.7u 0.54s 30.01
+TPIE free memory: 31403128 bytes.
+Sorting input...Done.
+Sorted stream length: 687194767
+Time taken: 111.25u 9.45s 236.24
+TPIE free memory: 29305840 bytes.
+</pre>
