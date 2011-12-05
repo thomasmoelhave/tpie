@@ -19,11 +19,13 @@
 #include "../app_config.h"
 
 #include <tpie/tpie.h>
+#include <tpie/file_stream.h>
 #include <tpie/stream.h>
 #include <iostream>
 #include "testtime.h"
 #include <boost/filesystem/operations.hpp>
 
+using namespace tpie;
 using namespace tpie::ami;
 using namespace tpie::test;
 
@@ -36,6 +38,29 @@ void usage() {
 void test(size_t count) {
 	test_realtime_t start;
 	test_realtime_t end;
+
+	boost::filesystem::remove("tmp");
+
+	//The purpose of this test is to test the speed of the io calls, not the file system
+	getTestRealtime(start);
+	{
+		file_stream<uint64_t> s; s.open("tmp", file_base::read_write);
+		uint64_t x=42;
+		for(size_t i=0; i < count*1024; ++i) s.write(x);
+	}
+	getTestRealtime(end);
+	std::cout << testRealtimeDiff(start,end);
+	std::cout.flush();
+	
+	getTestRealtime(start);
+	{
+		file_stream<uint64_t> s; s.open("tmp", file_base::read);
+		uint64_t x;
+		for(size_t i=0; i < count*1024; ++i) x = s.read();
+	}
+	getTestRealtime(end);
+	std::cout << " " << testRealtimeDiff(start,end) << " ";
+	std::cout.flush();
 
 	boost::filesystem::remove("tmp");
 
@@ -107,12 +132,12 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	std::cout << "Writing " << count << "*1024 items, reading them, writing " << count << " arrays, reading them" << std::endl;
+	std::cout << "Writing/reading " << count << "*1024 items (file_stream), writing/reading (ami), writing " << count << " arrays, reading them (ami)" << std::endl;
 
 	tpie::tpie_init();
 
 	for (size_t i = 0; i < times || !times; ++i) {
-		test(count);
+		::test(count);
 	}
 	
 	tpie::tpie_finish();
