@@ -6,7 +6,9 @@
 
 *Test initiated* on Monday November 28 12:50 PM
 
-*Tests used*: `stream_speed_test` in `/dev/shm`, `test_ami_sort` and `pq_speed_test` on /mnt/data2 (ext4)
+*Tests used*: `stream_speed_test` (3.5 GB) in `/dev/shm`, `test_ami_sort` (5.12 GB) and `pq_speed_test` (35 GB) on /mnt/data2 (ext4)
+
+*Time taken* for filestreamsimple: 5 seconds two times for `stream_speed_test`, 4 minutes for `test_ami_sort`, 45 minutes for `pq_speed_test`
 
 stream_speed_test
 -----------------
@@ -68,4 +70,23 @@ Sorting input...Done.
 Sorted stream length: 687194767
 Time taken: 111.25u 9.45s 236.24
 TPIE free memory: 29305840 bytes.
+</pre>
+
+pq_speed_test
+-------------
+filestreamsimple is 33.0% faster at popping, as fast at pushing, 15.26% faster overall
+
+<pre>
+PQ/filestream
+Memory limit: 50331648
+1 times, 4697620480 elements
+Blockfact Elems Push Pop Total
+1 4697620480 2004280120 966071157 3006977912
+</pre>
+<pre>
+PQ/filestreamsimple
+Memory limit: 50331648
+1 times, 4697620480 elements
+Blockfact Elems Push Pop Total
+1 4697620480 2007710 648192 2711489
 </pre>
