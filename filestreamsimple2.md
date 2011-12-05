@@ -4,6 +4,6 @@
 
 *Test output*: grits:/home/rav/filestreamsimple2
 
-*Test initiated* on Mon Dec 5 12:35:58 CET 2011
+*Test initiated* on Mon Dec 5 13:46:42 CET 2011
 
 *Tests used*: stream_speed_test (10 GB), test_ami_sort (100 GB), pq_speed_test (100 GB)
