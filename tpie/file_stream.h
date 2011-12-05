@@ -183,7 +183,6 @@ public:
 	/////////////////////////////////////////////////////////////////////////
 	inline const item_type & read() throw(stream_exception) {
 		assert(m_open);
-		update_vars();
 		if (m_index >= m_block.size) {
 			update_block();
 			if (offset() >= size()) {
@@ -292,9 +291,8 @@ public:
 	/////////////////////////////////////////////////////////////////////////
 	inline bool can_read() const throw() {
 		assert(m_open);
-		const_cast<file_stream<T>*>(this)->update_vars();
 		if (m_index < m_block.size) return true;
-		return offset() < size();
+		return offset() < m_size;
 	}
 
 	/////////////////////////////////////////////////////////////////////////
