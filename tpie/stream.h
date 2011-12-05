@@ -352,8 +352,6 @@ private:
      * AMI stream is destroyed. */
     //bool m_destructBTEStream;
     stream_status m_status;
-
-	item_type m_mutable_element;
 };
 
 // Create a temporary AMI stream on one of the devices in the default
@@ -513,9 +511,7 @@ size_type stream<T>::memory_usage(size_type count) {
 	    if (!m_stream.can_read())
 		return END_OF_STREAM;
 
-		m_mutable_element = m_stream.read();
-
-	    *elt = &m_mutable_element;
+	    *elt = &(const_cast<T &>(m_stream.read()));
 	    return NO_ERROR;
 	}
 
