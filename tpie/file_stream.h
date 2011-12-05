@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2009, The TPIE development team
+// Copyright 2009, 2011, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -43,11 +43,7 @@ class file_stream {
 public:
 	/** The type of the items stored in the stream */
 	typedef T item_type;
-	/** The type of file object that is used */
-	typedef file<T> file_type;
-	/** The type of file::stream object that is used */
-	typedef typename file<T>::stream stream_type;
-	
+
 	/////////////////////////////////////////////////////////////////////////
 	/// \brief Construct a new file_stream
 	/// 
@@ -76,15 +72,15 @@ public:
 		m_nextIndex = std::numeric_limits<memory_size_type>::max();
 		m_index = std::numeric_limits<memory_size_type>::max();
 
-		m_block = reinterpret_cast<block_t *>(tpie_new_array<char>(block_memory_usage()));
-		m_block->size = 0;
-		m_block->number = std::numeric_limits<stream_size_type>::max();
-		m_block->dirty = false;
+		m_block.data = tpie_new_array<char>(block_memory_usage());
+		m_block.size = 0;
+		m_block.number = std::numeric_limits<stream_size_type>::max();
+		m_block.dirty = false;
 	};
 
 	inline ~file_stream() {
 		close();
-		tpie_delete_array(reinterpret_cast<char *>(m_block), block_memory_usage());
+		tpie_delete_array(m_block.data, block_memory_usage());
 	}
 
 	/////////////////////////////////////////////////////////////////////////
@@ -152,7 +148,7 @@ public:
 			throw io_exception("Cannot write to read only stream");
 #endif
 		if (m_index >= m_blockItems) update_block();
-		reinterpret_cast<T*>(m_block->data)[m_index++] = item;
+		reinterpret_cast<T*>(m_block.data)[m_index++] = item;
 		write_update();
 	}
 
@@ -169,7 +165,7 @@ public:
 
 			IT blockmax = i + (m_blockItems-m_index);
 
-			T * dest = reinterpret_cast<T*>(m_block->data) + m_index;
+			T * dest = reinterpret_cast<T*>(m_block.data) + m_index;
 
 			IT till = std::min(end, blockmax);
 
@@ -188,13 +184,13 @@ public:
 	inline const item_type & read() throw(stream_exception) {
 		assert(m_open);
 		update_vars();
-		if (m_index >= m_block->size) {
+		if (m_index >= m_block.size) {
 			update_block();
 			if (offset() >= size()) {
 				throw end_of_stream_exception();
 			}
 		}
-		return reinterpret_cast<T*>(m_block->data)[m_index++];
+		return reinterpret_cast<T*>(m_block.data)[m_index++];
 	}
 
 	/////////////////////////////////////////////////////////////////////////
@@ -219,7 +215,7 @@ public:
 				update_block();
 			}
 
-			T * src = reinterpret_cast<T*>(m_block->data) + m_index;
+			T * src = reinterpret_cast<T*>(m_block.data) + m_index;
 
 			// either read the rest of the block or until `end'
 			memory_size_type count = std::min(m_blockItems-m_index, static_cast<memory_size_type>(end-i));
@@ -297,7 +293,7 @@ public:
 	inline bool can_read() const throw() {
 		assert(m_open);
 		const_cast<file_stream<T>*>(this)->update_vars();
-		if (m_index < m_block->size) return true;
+		if (m_index < m_block.size) return true;
 		return offset() < size();
 	}
 
@@ -308,9 +304,9 @@ public:
 	inline bool can_read_back() const throw() {
 		assert(m_open);
 		const_cast<file_stream<T>*>(this)->update_vars();
-		if (m_index <= m_block->size) return true;
+		if (m_index <= m_block.size) return true;
 		if (m_nextBlock == std::numeric_limits<stream_size_type>::max())
-			return m_block->number != 0;
+			return m_block.number != 0;
 		else
 			return true;
 	}
@@ -345,7 +341,7 @@ public:
 		update_vars();
 		stream_size_type b = static_cast<stream_size_type>(offset) / m_blockItems;
 		m_index = static_cast<memory_size_type>(offset - b*m_blockItems);
-		if (b == m_block->number) {
+		if (b == m_block.number) {
 			m_nextBlock = std::numeric_limits<stream_size_type>::max();
 			m_nextIndex = std::numeric_limits<memory_size_type>::max();
 			assert(this->offset() == (stream_size_type)offset);
@@ -415,7 +411,7 @@ private:
 		memory_size_type size;
 		stream_size_type number;
 		bool dirty;
-		char data[0];
+		char *data;
 	};
 
 	memory_size_type m_index;
@@ -430,7 +426,7 @@ private:
 	bool m_open;
 	file_accessor::file_accessor * m_fileAccessor;
 
-	block_t * m_block;
+	block_t m_block;
 
 	/**
 	 * Use file_accessor to fetch indicated block no. into m_block
@@ -445,17 +441,17 @@ private:
 		// We capture this restraint with the assertion:
 		assert(block * static_cast<stream_size_type>(m_blockItems) <= size());
 
-		m_block->dirty = false;
-		m_block->number = block;
+		m_block.dirty = false;
+		m_block.number = block;
 
 		// calculate buffer size
-		m_block->size = m_blockItems;
-		if (static_cast<stream_size_type>(m_block->size) + m_block->number * static_cast<stream_size_type>(m_blockItems) > size())
-			m_block->size = size() - m_block->number * m_blockItems;
+		m_block.size = m_blockItems;
+		if (static_cast<stream_size_type>(m_block.size) + m_block.number * static_cast<stream_size_type>(m_blockItems) > size())
+			m_block.size = size() - m_block.number * m_blockItems;
 
 		// populate buffer data
-		if (m_block->size > 0 &&
-			m_fileAccessor->read(m_block->data, m_block->number * static_cast<stream_size_type>(m_blockItems), m_block->size) != m_block->size) {
+		if (m_block.size > 0 &&
+			m_fileAccessor->read(m_block.data, m_block.number * static_cast<stream_size_type>(m_blockItems), m_block.size) != m_block.size) {
 			throw io_exception("Incorrect number of items read");
 		}
 	}
@@ -466,7 +462,7 @@ private:
 	 */
 	inline void update_block() {
 		if (m_nextBlock == std::numeric_limits<stream_size_type>::max()) {
-			m_nextBlock = m_block->number+1;
+			m_nextBlock = m_block.number+1;
 			m_nextIndex = 0;
 		}
 		flush_block();
@@ -481,17 +477,17 @@ private:
 	 * Write block to disk.
 	 */
 	inline void flush_block() {
-		if (m_block->dirty || !m_canRead) {
+		if (m_block.dirty || !m_canRead) {
 			assert(m_canWrite);
 			update_vars();
-			m_fileAccessor->write(m_block->data, m_block->number * static_cast<stream_size_type>(m_blockItems), m_block->size);
+			m_fileAccessor->write(m_block.data, m_block.number * static_cast<stream_size_type>(m_blockItems), m_block.size);
 		}
 	}
 
 	inline void update_vars() {
-		if (m_block->dirty && m_index != std::numeric_limits<memory_size_type>::max()) {
+		if (m_block.dirty && m_index != std::numeric_limits<memory_size_type>::max()) {
 			assert(m_index <= m_blockItems);
-			m_block->size = std::max(m_block->size, m_index);
+			m_block.size = std::max(m_block.size, m_index);
 			m_size = std::max(m_size, static_cast<stream_size_type>(m_index)+m_blockStartIndex);
 		}
 	}
@@ -504,7 +500,7 @@ private:
 	}
 
 	inline void write_update() {
-		m_block->dirty = true;
+		m_block.dirty = true;
 	}
 
 	////////////////////////////////////////////////////////////////////////////////
@@ -522,11 +518,11 @@ private:
 	}
 
 	static inline memory_size_type block_memory_usage(double blockFactor) {
-		return sizeof(block_t) + block_size(blockFactor);
+		return block_size(blockFactor);
 	}
 
 	inline memory_size_type block_memory_usage() {
-		return sizeof(block_t) + m_blockItems * m_itemSize;
+		return m_blockItems * m_itemSize;
 	}
 };
 }
