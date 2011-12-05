@@ -44,29 +44,6 @@ void test(size_t count) {
 	//The purpose of this test is to test the speed of the io calls, not the file system
 	getTestRealtime(start);
 	{
-		file_stream<uint64_t> s; s.open("tmp", file_base::read_write);
-		uint64_t x=42;
-		for(size_t i=0; i < count*1024; ++i) s.write(x);
-	}
-	getTestRealtime(end);
-	std::cout << testRealtimeDiff(start,end);
-	std::cout.flush();
-	
-	getTestRealtime(start);
-	{
-		file_stream<uint64_t> s; s.open("tmp", file_base::read);
-		uint64_t x;
-		for(size_t i=0; i < count*1024; ++i) x = s.read();
-	}
-	getTestRealtime(end);
-	std::cout << " " << testRealtimeDiff(start,end) << " ";
-	std::cout.flush();
-
-	boost::filesystem::remove("tmp");
-
-	//The purpose of this test is to test the speed of the io calls, not the file system
-	getTestRealtime(start);
-	{
 		stream<uint64_t> s("tmp", WRITE_STREAM);
 		uint64_t x=42;
 		for(size_t i=0; i < count*1024; ++i) s.write_item(x);
@@ -132,7 +109,7 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	std::cout << "Writing/reading " << count << "*1024 items (file_stream), writing/reading (ami), writing " << count << " arrays, reading them (ami)" << std::endl;
+	std::cout << "Writing/reading " << count << "*1024 items (ami), writing " << count << " arrays, reading them (ami)" << std::endl;
 
 	tpie::tpie_init();
 
