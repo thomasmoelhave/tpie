@@ -26,25 +26,35 @@
 
 namespace tpie {
 
+template <typename T, typename D>
+struct type_or {
+	typedef const T & type;
+};
+
+template <typename D>
+struct type_or<void, D> {
+	typedef D type;
+};
+
 template <typename src_t, typename dest_t>
 struct pipe {
-};
-
-template <>
-struct pipe<void, void> {
 	virtual ~pipe() {}
-	virtual void operator()() {
-		dytbot();
+	virtual typename type_or<dest_t, bool>::type operator()(typename type_or<src_t, bool>::type src) = 0;
+};
+
+template <typename src_t, typename dest_t>
+struct virtualpipe : public pipe<src_t, dest_t> {
+	virtual ~virtualpipe() {}
+	template <typename from_t>
+	virtualpipe(const from_t & from) {
+		wrapee = new from_t(from);
 	}
-	virtual void dytbot() = 0;
-};
-
-template<typename T>
-struct is_not_void : public boost::true_type {
-};
-
-template<>
-struct is_not_void<void> : public boost::false_type {
+	typename type_or<dest_t, bool>::type operator()(typename type_or<src_t, bool>::type src) {
+		return (*wrapee)(true);
+	}
+private:
+	virtualpipe();
+	pipe<src_t, dest_t> *wrapee;
 };
 
 template <typename left_t, typename transfer_t, typename right_t>
@@ -59,9 +69,9 @@ struct pullbox : public pipe<typename left_t::src_t, typename right_t::dest_t> {
 		// do nothing
 	}
 
-	void dytbot() {
+	typename type_or<dest_t, bool>::type operator()(typename type_or<src_t, bool>::type src) {
 		std::cout << "dyt bot" << std::endl;
-		right.use(left);
+		return right.use(left, src);
 	}
 
 private:
@@ -88,7 +98,7 @@ struct file_stream_source_t {
 	}
 
 	template<typename TT>
-	pipe<void, typename TT::dest_t> operator<<(TT next) {
+	pullbox<file_stream_source_t<T>, T, TT> operator<<(TT next) {
 		return pullbox<file_stream_source_t<T>, T, TT>(*this, next);
 	}
 
@@ -136,10 +146,11 @@ struct cout_sink_t {
 	typedef void dest_t;
 
 	template<typename left_t>
-	void use(left_t & left) {
+	bool use(left_t & left, bool) {
 		while (left.can_read()) {
 			std::cout << left.read() << std::endl;
 		}
+		return true;
 	}
 };
 

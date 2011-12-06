@@ -39,8 +39,8 @@ bool pipelining_test() {
 	//output.open("output");
 	// file_stream_source_t<test_t> source(input);
 	// file_stream_sink_t<test_t> sink(output);
-	tpie::pipe<void,void> pipeline = source(input) << cout_sink_t<test_t>();
-	pipeline();
+	virtualpipe<void, void> pipeline = source(input) << cout_sink_t<test_t>();
+	pipeline(true);
 	return true;
 }
 
