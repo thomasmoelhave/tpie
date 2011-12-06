@@ -43,18 +43,21 @@ struct pipe {
 };
 
 template <typename src_t, typename dest_t>
-struct virtualpipe : public pipe<src_t, dest_t> {
+struct virtualpipe;
+
+template <>
+struct virtualpipe<void, void> {
 	virtual ~virtualpipe() {}
 	template <typename from_t>
 	virtualpipe(const from_t & from) {
 		wrapee = new from_t(from);
 	}
-	typename type_or<dest_t, bool>::type operator()(typename type_or<src_t, bool>::type src) {
-		return (*wrapee)(true);
+	void operator()() {
+		(*wrapee)(true);
 	}
 private:
 	virtualpipe();
-	pipe<src_t, dest_t> *wrapee;
+	pipe<void, void> *wrapee;
 };
 
 template <typename left_t, typename transfer_t, typename right_t>
@@ -70,7 +73,6 @@ struct pullbox : public pipe<typename left_t::src_t, typename right_t::dest_t> {
 	}
 
 	typename type_or<dest_t, bool>::type operator()(typename type_or<src_t, bool>::type src) {
-		std::cout << "dyt bot" << std::endl;
 		return right.use(left, src);
 	}
 
@@ -122,10 +124,11 @@ struct file_stream_sink_t {
 	}
 
 	template<typename left_t>
-	void use(left_t & left) {
+	bool use(left_t & left, bool) {
 		while (left.can_read()) {
 			write(left.read());
 		}
+		return true;
 	}
 
 	void write(const T & item) {

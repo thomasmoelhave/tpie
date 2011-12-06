@@ -33,18 +33,24 @@ bool pipelining_test() {
 		input.write(2);
 		input.write(3);
 	}
-	file_stream<test_t> input;
-	input.open("input");
-	//file_stream<test_t> output;
-	//output.open("output");
-	// file_stream_source_t<test_t> source(input);
-	// file_stream_sink_t<test_t> sink(output);
-	virtualpipe<void, void> pipeline = source(input) << cout_sink_t<test_t>();
-	pipeline(true);
+	{
+		file_stream<test_t> input;
+		input.open("input");
+		file_stream<test_t> output;
+		output.open("output");
+		virtualpipe<void, void> pipeline = source(input) << sink(output);
+		pipeline();
+	}
+	{
+		file_stream<test_t> input;
+		input.open("input");
+		virtualpipe<void, void> pipeline = source(input) << cout_sink_t<test_t>();
+		pipeline();
+	}
 	return true;
 }
 
-int main(int argc, char ** argv) {
+int main() {
 	tpie_initer _(32);
 	if (!pipelining_test()) return EXIT_FAILURE;
 	return EXIT_SUCCESS;
