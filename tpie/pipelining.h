@@ -26,20 +26,10 @@
 
 namespace tpie {
 
-template <typename T, typename D>
-struct type_or {
-	typedef const T & type;
-};
-
-template <typename D>
-struct type_or<void, D> {
-	typedef D type;
-};
-
 template <typename src_t, typename dest_t>
 struct pipe {
 	virtual ~pipe() {}
-	virtual typename type_or<dest_t, bool>::type operator()(typename type_or<src_t, bool>::type src) = 0;
+	virtual const dest_t & operator()(const src_t & src) = 0;
 };
 
 template <typename src_t, typename dest_t>
@@ -57,7 +47,7 @@ struct virtualpipe<void, void> {
 	}
 private:
 	virtualpipe();
-	pipe<void, void> *wrapee;
+	pipe<bool, bool> *wrapee;
 };
 
 template <typename left_t, typename transfer_t, typename right_t>
@@ -72,7 +62,7 @@ struct pullbox : public pipe<typename left_t::src_t, typename right_t::dest_t> {
 		// do nothing
 	}
 
-	typename type_or<dest_t, bool>::type operator()(typename type_or<src_t, bool>::type src) {
+	const dest_t & operator()(const src_t & src) {
 		return right.use(left, src);
 	}
 
@@ -83,7 +73,7 @@ private:
 
 template<typename T>
 struct file_stream_source_t {
-	typedef void src_t;
+	typedef bool src_t;
 
 	file_stream_source_t(file_stream<T> & fs)
 		: fs(fs) {
@@ -115,7 +105,7 @@ file_stream_source_t<T> source(file_stream<T> & fs) {
 
 template<typename T>
 struct file_stream_sink_t {
-	typedef void dest_t;
+	typedef bool dest_t;
 
 	file_stream_sink_t(file_stream<T> & fs)
 		: fs(fs) {
@@ -146,7 +136,7 @@ file_stream_sink_t<T> sink(file_stream<T> & fs) {
 
 template<typename T>
 struct cout_sink_t {
-	typedef void dest_t;
+	typedef bool dest_t;
 
 	template<typename left_t>
 	bool use(left_t & left, bool) {
