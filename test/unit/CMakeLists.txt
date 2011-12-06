@@ -53,6 +53,8 @@ add_unittest(stream basic)
 
 add_unittest(ami_stream basic)
 
+add_unittest(pipelining basic)
+
 #add_executable(test_bte test_bte.cpp)
 #set_target_properties(test_bte PROPERTIES FOLDER tpie/unittest)
 #target_link_libraries(test_bte tpie)
