@@ -33,6 +33,7 @@ bool pipelining_test() {
 		input.write(2);
 		input.write(3);
 	}
+	/*
 	{
 		file_stream<test_t> input;
 		input.open("input");
@@ -41,11 +42,14 @@ bool pipelining_test() {
 		virtualpipe<void, void> pipeline = source(input) << sink(output);
 		pipeline();
 	}
+	*/
 	{
-		file_stream<test_t> input;
-		input.open("input");
-		virtualpipe<void, void> pipeline = source(input) << cout_sink_t<test_t>();
-		pipeline();
+		file_stream<test_t> in;
+		in.open("input");
+		file_stream<test_t> out;
+		out.open("output");
+		pipeline p = (input(in) | output(out));
+		p();
 	}
 	return true;
 }
