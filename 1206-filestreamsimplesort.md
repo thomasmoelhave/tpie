@@ -7,3 +7,5 @@
 *Test initiated* on Tue Dec 6 11:59:51 CET 2011
 
 *Tests used*: test_ami_sort (100 GB, 1 GB mem)
+
+*Results*: 3465 seconds vs. 3946 seconds: filestreamsimple is 12.18% faster
