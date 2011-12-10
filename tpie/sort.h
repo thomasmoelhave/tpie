@@ -179,7 +179,7 @@ namespace tpie {
   ///////////////////////////////////////////////////////////////////////////
   template<class T, class CMPR>
   void sort(file_stream<T> &instream, file_stream<T> &outstream,
-		 CMPR *cmp, progress_indicator_base* indicator=NULL) {
+		 CMPR *cmp, progress_indicator_base* indicator) {
 	    ami::Internal_Sorter_Obj<T,CMPR> myInternalSorter(cmp);
 	    ami::merge_heap_obj<T,CMPR>      myMergeHeap(cmp);
 	    sort_manager< T, ami::Internal_Sorter_Obj<T,CMPR>, ami::merge_heap_obj<T,CMPR> > 
