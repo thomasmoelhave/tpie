@@ -19,11 +19,13 @@
 #include "../app_config.h"
 
 #include <tpie/tpie.h>
+#include <tpie/file_stream.h>
 #include <tpie/stream.h>
 #include <iostream>
 #include "testtime.h"
 #include <boost/filesystem/operations.hpp>
 
+using namespace tpie;
 using namespace tpie::ami;
 using namespace tpie::test;
 
@@ -107,12 +109,12 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	std::cout << "Writing " << count << "*1024 items, reading them, writing " << count << " arrays, reading them" << std::endl;
+	std::cout << "Writing/reading " << count << "*1024 items (ami), writing " << count << " arrays, reading them (ami)" << std::endl;
 
 	tpie::tpie_init();
 
 	for (size_t i = 0; i < times || !times; ++i) {
-		test(count);
+		::test(count);
 	}
 	
 	tpie::tpie_finish();

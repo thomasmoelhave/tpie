@@ -233,14 +233,6 @@ inline T * __allocate() {
 }
 
 template <typename T>
-inline void __tpie_deallocate(T * p) {
-	if(!boost::is_polymorphic<T>::value) 
-		return delete[] reinterpret_cast<uint8_t*>(p);
-	else
-		return delete[] (ptr_cast<uint8_t *>(p) - sizeof(size_t));
-}
-
-template <typename T>
 inline size_t tpie_size(T * p) {
 	if(!boost::is_polymorphic<T>::value) return sizeof(T);
 	uint8_t * x = ptr_cast<uint8_t *>(p);
@@ -343,9 +335,13 @@ template <typename T>
 inline void tpie_delete(T * p) throw() {
 	if (p == 0) return;
 	get_memory_manager().register_deallocation(tpie_size(p));
-	__unregister_pointer(ptr_cast<void *>(p), tpie_size(p), typeid(*p));
+	uint8_t * pp = ptr_cast<uint8_t *>(p);
+	__unregister_pointer(pp, tpie_size(p), typeid(*p));
 	p->~T();
-	__tpie_deallocate(p);
+	if(!boost::is_polymorphic<T>::value) 
+		delete[] pp;
+	else
+		delete[] (pp - sizeof(size_t));
 }
 
 ///////////////////////////////////////////////////////////////////////////

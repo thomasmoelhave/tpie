@@ -99,6 +99,16 @@ bool basic_test() {
 		if (a1 != a2) return false;
 	}
 
+	{
+		//Test auto ptr
+		size_t a1 = tpie::get_memory_manager().used();
+		{
+			tpie::tpie_delete(tpie::tpie_new<std::ifstream>("tmp",std::ios::binary | std::ios::out));
+		}
+		size_t a2 = tpie::get_memory_manager().used();
+		if (a1 != a2) return false;
+	}
+
 	{ 
 		//Allocator
 		size_t a1;
@@ -117,7 +127,7 @@ bool basic_test() {
 		}
 		if (tpie::get_memory_manager().used() != a1) return false;
 	}
-		
+
 	return true;
 }
 
@@ -129,5 +139,5 @@ int main(int argc, char ** argv) {
   
   if (test == "basic") 
     return basic_test()?EXIT_SUCCESS:EXIT_FAILURE;
-  
+
 }

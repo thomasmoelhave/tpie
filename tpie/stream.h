@@ -511,7 +511,7 @@ size_type stream<T>::memory_usage(size_type count) {
 	    if (!m_stream.can_read())
 		return END_OF_STREAM;
 
-	    *elt = &m_stream.read_mutable();
+	    *elt = &(const_cast<T &>(m_stream.read()));
 	    return NO_ERROR;
 	}
 

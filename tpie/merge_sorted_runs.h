@@ -80,16 +80,20 @@ namespace tpie {
 			//Pointers to current leading elements of streams
 			tpie::array<T *> in_objects(arity);
 			tpie::array<TPIE_OS_OFFSET> nread(arity);
+
+			tpie::array<T> in_objects_cache(arity);
 			
 			// **************************************************************
 			// * Read first element from stream. Do not rewind! We may read *
 			// * more elements from the same stream later.                  *
 			// **************************************************************
-	    
+
 			for (i = 0; i < arity; nread[i] = 1, i++, indicator ? indicator->step() : void(0)) {
-				try {
-					in_objects[i] = &(*(start+i))->read_mutable();
-				} catch (const end_of_stream_exception & e) {
+				file_stream<T> * stream = (start+i)->get();
+				if (stream->can_read()) {
+					in_objects_cache[i] = stream->read();
+					in_objects[i] = &in_objects_cache[i];
+				} else {
 					in_objects[i] = 0;
 					continue;
 				}
@@ -115,8 +119,10 @@ namespace tpie {
 				if ( (cutoff != -1) && (nread[i]>=cutoff))
 					eof = true;
 				else {
-					if ((*(start+i))->can_read()) {
-						in_objects[i] = &(*(start+i))->read_mutable();
+					file_stream<T> * stream = (start+i)->get();
+					if (stream->can_read()) {
+						in_objects_cache[i] = stream->read();
+						in_objects[i] = &in_objects_cache[i];
 					} else {
 						eof = true;
 					}

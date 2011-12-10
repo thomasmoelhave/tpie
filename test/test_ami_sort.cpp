@@ -1,5 +1,5 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
-// vi:set ts=4 sts=4 sw=4 noet :
+// vi:set ts=8 sts=4 sw=4 noet :
 // Copyright 2008, The TPIE development team
 // 
 // This file is part of TPIE.
@@ -50,6 +50,8 @@ enum comparison_mode_t {
     COMPARISON_OPERATOR,
     COMPARISON_CLASS
 };
+
+static const memory_size_type sort_test_mm_size = 1024*1024*1024; // 1 GB
 
 static char def_srf[] = "sorted.txt";
 static char def_rrf[] = "unsorted.txt";
@@ -153,7 +155,7 @@ int main(int argc, char **argv)  {
     random_input = (istr_name[0] == '\0');
 
     // Set the amount of main memory:
-    get_memory_manager().set_limit (test_mm_size);
+    get_memory_manager().set_limit (sort_test_mm_size);
 
 	tempname::set_default_base_name("TEST_AMI_SORT");
     ami::stream<int>* istr = (istr_name[0] == '\0') ? tpie_new<ami::stream<int> >(): tpie_new<ami::stream<int> >(istr_name);
