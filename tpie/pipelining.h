@@ -25,6 +25,10 @@
 
 namespace tpie {
 
+/* The parameter_container classes are factories that take the destination
+ * class as a template parameter and constructs the needed user-specified
+ * filter. */
+
 struct parameter_container_0 {
 	template <typename R, typename dest_t>
 	R construct(const dest_t & dest) const {
@@ -54,6 +58,7 @@ private:
 	T1 t1;
 };
 
+/* The only virtual method call in this sublibrary! */
 struct pipeline_v {
 	virtual void run() = 0;
 };
@@ -80,6 +85,9 @@ private:
 	pipeline_v * p;
 };
 
+/* A terminator class has input pushed into it.
+ * gen_t: The user-specified output handler.
+ * param_t: The gen_t factory. */
 template <typename gen_t, typename param_t>
 struct terminator {
 	typedef gen_t type;
@@ -88,6 +96,10 @@ struct terminator {
 	param_t params;
 };
 
+/* A generate class pushes input down the pipeline.
+ * gen_t: The user-specified class that either generates input or filters input.
+ * dest_t: Whatever follows gen_t.
+ * param_t: gen_t factory. */
 template <template < class dest_t> class gen_t, typename param_t = parameter_container_0>
 struct generate {
 	typedef param_t parameter_type;
@@ -98,6 +110,9 @@ struct generate {
 	generate(const param_t & params) : params(params) {
 	}
 
+	/* The following is used to serially combine gen_t and another filter R to
+	 * make a new generator/filter.
+	 * abe::box acts as a user-specified generator/filter. */
 	template <template <class dest_t> class R>
 	struct abe {
 		template <class dest_t>
@@ -116,6 +131,9 @@ struct generate {
 		};
 	};
 
+	/* The following serially combines this and a terminator to make a terminating pipeline segment.
+	 * R: The terminator.
+	 * P: Parameters. */
 	template <typename R, typename P>
 	struct tbox {
 		tbox(const P & params) : r(params.first.template construct<gen_t<R> >(params.second.template construct<R>())) {
@@ -127,17 +145,17 @@ struct generate {
 		gen_t<R> r;
 	};
 
+	/* The pipe operator combines this generator/filter with another filter. */
 	template <template <class dest_t> class R>
 	generate<abe<R>::template box, std::pair<param_t, typename generate<R>::parameter_type> > operator|(const generate<R> & r) {
 		return generate<abe<R>::template box, std::pair<param_t, typename generate<R>::parameter_type> >(std::make_pair(params, r.params));
 	}
 
+	/* This pipe operator combines this generator/filter with a terminator to
+	 * make a pipeline. */
 	template <typename R, typename S>
 	pipeline_<tbox<R, std::pair<param_t, S> >, std::pair<param_t, S> > operator|(const terminator<R, S> term) {
 		return pipeline_<tbox<R, std::pair<param_t, S> >, std::pair<param_t, S> >(std::make_pair(params, term.params));
-	}
-
-	void run() {
 	}
 
 	param_t params;
