@@ -72,8 +72,8 @@ private:
 };
 
 template <typename T>
-inline terminator<termfactory_1<output_t<T>, file_stream<T> &> > output(file_stream<T> & fs) {
-	return termfactory_1<output_t<T>, file_stream<T> &>(fs);
+inline termfactory_1<output_t<T>, file_stream<T> &> output(file_stream<T> & fs) {
+	return fs;
 }
 
 }

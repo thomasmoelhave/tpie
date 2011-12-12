@@ -84,7 +84,7 @@ void test(size_t count) {
 	{
 		file_stream<test_t> s;
 		s.open("tmp");
-		pipeline p = input(s) | terminator<termfactory_1<number_sink_t, test_t &> >(res);
+		pipeline p = input(s) | termfactory_1<number_sink_t, test_t &>(res);
 		p();
 	}
 	getTestRealtime(end);

@@ -53,16 +53,6 @@ private:
 	pipeline_v * p;
 };
 
-/* A terminator class has input pushed into it.
- * gen_t: The user-specified output handler.
- * param_t: The gen_t factory. */
-template <typename fact_t>
-struct terminator {
-	inline terminator(const fact_t & factory) : factory(factory) {
-	}
-	fact_t factory;
-};
-
 /* A generate class pushes input down the pipeline.
  * gen_t: The user-specified class that either generates input or filters input.
  * dest_t: Whatever follows gen_t.
@@ -126,8 +116,8 @@ struct generate {
 	 * make a pipeline. */
 	template <typename fact2_t>
 	inline pipeline_<termpair_factory<fact_t, fact2_t> >
-	operator|(const terminator<fact2_t> & term) {
-		return termpair_factory<fact_t, fact2_t>(factory, term.factory);
+	operator|(const fact2_t & fact2) {
+		return termpair_factory<fact_t, fact2_t>(factory, fact2);
 	}
 
 	fact_t factory;
