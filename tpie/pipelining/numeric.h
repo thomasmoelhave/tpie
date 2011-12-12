@@ -17,8 +17,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-#ifndef __TPIE_PIPELINING_HELPERS_H__
-#define __TPIE_PIPELINING_HELPERS_H__
+#ifndef __TPIE_PIPELINING_NUMERIC_H__
+#define __TPIE_PIPELINING_NUMERIC_H__
 
 #include <iostream>
 #include <tpie/pipelining/core.h>
