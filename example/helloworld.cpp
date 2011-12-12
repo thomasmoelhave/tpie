@@ -27,9 +27,14 @@
 #include <tpie/tpie.h>
 #include <tpie/file_stream.h>
 #include <tpie/sort.h>
-#include <boost/filesystem.hpp>
-#include <tpie/prime.h>
+
+#include <boost/filesystem.hpp> // boost::filesystem::remove
+#include <tpie/prime.h> // tpie::next_prime
+
+// Progress indicators
 #include <tpie/progress_indicator_arrow.h>
+#include <tpie/fractional_progress.h>
+
 #include <string>
 
 const char * filename = "helloworld.tpie";
@@ -88,7 +93,10 @@ void verify_number_stream() {
 }
 
 int main(int argc, char ** argv) {
+	// Store program name for usage message
 	std::string prog(argv[0]);
+
+	// Iterate through program arguments
 	--argc, ++argv;
 	while (argc) {
 		std::string arg(argv[0]);
@@ -98,11 +106,17 @@ int main(int argc, char ** argv) {
 			std::cout << "sorts them, and verifies them." << std::endl;
 			return EXIT_SUCCESS;
 		}
+
+		// the only parameter we accept is the number of items
 		size_t n;
 		std::stringstream(arg) >> n;
 		if (n) elements = n;
+
+		// advance argument pointer
 		--argc, ++argv;
 	}
+	// initialize tpie subsystems (memory manager, job manager for parallel sorting,
+	// prime database, progress database, default logger)
 	tpie::tpie_init();
 
 	// progress_indicator_arrow draws the progress arrow in the terminal.
@@ -118,18 +132,22 @@ int main(int argc, char ** argv) {
 	progress_verify = tpie::tpie_new<tpie::fractional_subindicator>(*fp, "Verify", TPIE_FSI, elements, "Verify");
 
 	std::cout << "Writing " << tpie::next_prime(elements) << " integers to " << filename << std::endl;
+
+	// initialize overall progress indicator
 	fp->init();
+
 	cleanup();
 	write_number_stream();
 	verify_number_stream();
 	cleanup();
+
+	fp->done();
 
 	tpie::tpie_delete<tpie::fractional_subindicator>(progress_writer);
 	tpie::tpie_delete<tpie::fractional_subindicator>(progress_sort);
 	tpie::tpie_delete<tpie::fractional_subindicator>(progress_verify);
 	tpie::tpie_delete<tpie::fractional_progress>(fp);
 	tpie::tpie_delete<tpie::progress_indicator_arrow>(pi);
-	std::cout << std::endl;
 
 	tpie::tpie_finish();
 
