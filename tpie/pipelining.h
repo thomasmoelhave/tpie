@@ -25,32 +25,44 @@
 
 namespace tpie {
 
-/* The parameter_container classes are factories that take the destination
+/* The factory classes are factories that take the destination
  * class as a template parameter and constructs the needed user-specified
  * filter. */
 
-struct parameter_container_0 {
-	template <typename R, typename dest_t>
-	R construct(const dest_t & dest) const {
-		return R(dest);
-	}
+template <template <typename dest_t> class R>
+struct factory_0 {
+	template<typename dest_t>
+	struct generated {
+		typedef R<dest_t> type;
+	};
 
-	template <typename R>
-	R construct() const {
-		return R();
+	template <typename dest_t>
+	R<dest_t> construct(const dest_t & dest) const {
+		return R<dest_t>(dest);
 	}
 };
 
-template <typename T1>
-struct parameter_container_1 {
-	parameter_container_1(T1 t1) : t1(t1) {}
+template <template <typename dest_t> class R, typename T1>
+struct factory_1 {
+	template<typename dest_t>
+	struct generated {
+		typedef R<dest_t> type;
+	};
 
-	template <typename R, typename dest_t>
-	R construct(const dest_t & dest) const {
-		return R(dest, t1);
+	factory_1(T1 t1) : t1(t1) {}
+
+	template <typename dest_t>
+	R<dest_t> construct(const dest_t & dest) const {
+		return R<dest_t>(dest, t1);
 	}
+private:
+	T1 t1;
+};
 
-	template <typename R>
+template <typename R, typename T1>
+struct termfactory_1 {
+	typedef R generated_type;
+	termfactory_1(T1 t1) : t1(t1) {}
 	R construct() const {
 		return R(t1);
 	}
@@ -63,14 +75,15 @@ struct pipeline_v {
 	virtual void run() = 0;
 };
 
-template <typename R, typename param_t>
+template <typename fact_t>
 struct pipeline_ : public pipeline_v {
-	pipeline_(const param_t & params) : r(params) {}
+	typedef typename fact_t::generated_type gen_t;
+	pipeline_(const fact_t & factory) : r(factory.construct()) {}
 	void run() {
 		r.run();
 	}
 private:
-	R r;
+	gen_t r;
 };
 
 struct pipeline {
@@ -88,31 +101,31 @@ private:
 /* A terminator class has input pushed into it.
  * gen_t: The user-specified output handler.
  * param_t: The gen_t factory. */
-template <typename gen_t, typename param_t>
+template <typename fact_t>
 struct terminator {
-	typedef gen_t type;
-	terminator(const param_t & params) : params(params) {
+	terminator(const fact_t & factory) : factory(factory) {
 	}
-	param_t params;
+	fact_t factory;
 };
 
 /* A generate class pushes input down the pipeline.
  * gen_t: The user-specified class that either generates input or filters input.
  * dest_t: Whatever follows gen_t.
  * param_t: gen_t factory. */
-template <template < class dest_t> class gen_t, typename param_t = parameter_container_0>
+template <typename fact_t>
 struct generate {
-	typedef param_t parameter_type;
+	typedef fact_t factory_type;
 
 	generate() {
 	}
 
-	generate(const param_t & params) : params(params) {
+	generate(const fact_t & factory) : factory(factory) {
 	}
 
 	/* The following is used to serially combine gen_t and another filter R to
 	 * make a new generator/filter.
 	 * abe::box acts as a user-specified generator/filter. */
+	/*
 	template <template <class dest_t> class R>
 	struct abe {
 		template <class dest_t>
@@ -124,59 +137,86 @@ struct generate {
 				inner.run();
 			}
 
-			box(const dest_t & dest, const std::pair<param_t, typename R<dest_t>::parameter_type> & params)
-				: inner(params.first.template construct<gen_t<R<dest_t> >, R<dest_t> >
-						(params.second.template construct<R<dest_t>, dest_t>(dest))) {
+			box(const dest_t & dest, const std::pair<fact_t, typename R<dest_t>::factory_type> & factory)
+				: inner(factory.first.template construct<R<dest_t> >
+						(factory.second.template construct<dest_t>(dest))) {
 			}
 		};
 	};
+	*/
 
 	/* The following serially combines this and a terminator to make a terminating pipeline segment.
 	 * R: The terminator.
 	 * P: Parameters. */
-	template <typename R, typename P>
+	template <typename R, typename fact2_t>
 	struct tbox {
-		tbox(const P & params) : r(params.first.template construct<gen_t<R> >(params.second.template construct<R>())) {
+		typedef typename fact2_t::generated_type gen_t;
+		tbox(const fact2_t & factory) : r(factory.construct()) {
 		}
 		void run() {
 			r.run();
 		}
 	private:
-		gen_t<R> r;
+		gen_t r;
+	};
+
+	template <class fact1_t, class fact2_t>
+	struct pair_factory {
+		template <typename dest_t>
+		struct generated {
+			typedef typename fact1_t::template generated<fact2_t::template generated<dest_t>::type>::type type;
+		};
+
+		pair_factory(const fact1_t & fact1, const fact2_t & fact2)
+			: fact1(fact1), fact2(fact2) {
+		}
+
+		template <typename dest_t>
+		typename generated<dest_t>::type
+		construct(const dest_t & dest) const {
+			return fact1.construct(fact2.construct(dest));
+		}
+
+		fact1_t fact1;
+		fact2_t fact2;
+	};
+
+	template <class fact1_t, class termfact2_t>
+	struct termpair_factory {
+		typedef typename fact1_t::template generated<typename termfact2_t::generated_type>::type generated_type;
+
+		termpair_factory(const fact1_t & fact1, const termfact2_t & fact2)
+			: fact1(fact1), fact2(fact2) {
+			}
+
+		fact1_t fact1;
+		termfact2_t fact2;
+
+		generated_type
+		construct() const {
+			return fact1.construct(fact2.construct());
+		}
 	};
 
 	/* The pipe operator combines this generator/filter with another filter. */
-	template <template <class dest_t> class R>
-	generate<abe<R>::template box, std::pair<param_t, typename generate<R>::parameter_type> > operator|(const generate<R> & r) {
-		return generate<abe<R>::template box, std::pair<param_t, typename generate<R>::parameter_type> >(std::make_pair(params, r.params));
+	/*
+	template <template <class dest_t> class R, typename fact2_t>
+	generate<abe<R>::template box, pair_factory<fact_t, fact2_t> >
+	operator|(const generate<R, fact2_t> & r) {
+		return generate<abe<R>::template box, pair_factory<fact_t, fact2_t> >(pair_factory<fact_t, fact2_t>(factory, r.factory));
 	}
+	*/
 
 	/* This pipe operator combines this generator/filter with a terminator to
 	 * make a pipeline. */
-	template <typename R, typename S>
-	pipeline_<tbox<R, std::pair<param_t, S> >, std::pair<param_t, S> > operator|(const terminator<R, S> term) {
-		return pipeline_<tbox<R, std::pair<param_t, S> >, std::pair<param_t, S> >(std::make_pair(params, term.params));
+	template <typename fact2_t>
+	pipeline_<termpair_factory<fact_t, fact2_t> >
+	operator|(const terminator<fact2_t> & term) {
+		return pipeline_<termpair_factory<fact_t, fact2_t> >(termpair_factory<fact_t, fact2_t>(factory, term.factory));
 	}
 
-	param_t params;
+	fact_t factory;
 };
-
-template <template <class dest_t> class gen_t>
-generate<gen_t, parameter_container_0>
-gengen() {
-	return generate<gen_t, parameter_container_0>();
-}
-
-template <template <class dest_t> class gen_t, typename T1>
-generate<gen_t, parameter_container_1<T1> >
-gengen(T1 t1) {
-	return generate<gen_t, parameter_container_1<T1> >(t1);
-}
-
-template <typename gen_t, typename T1>
-terminator<gen_t, parameter_container_1<T1> > genterminator(T1 t1) {
-	return terminator<gen_t, parameter_container_1<T1> >(t1);
-}
 
 template <typename dest_t>
 struct input_t {
@@ -196,10 +236,11 @@ private:
 };
 
 template<typename T>
-generate<input_t, parameter_container_1<file_stream<T> &> > input(file_stream<T> & fs) {
-	return gengen<input_t, file_stream<T> &>(fs);
+generate<factory_1<input_t, file_stream<T> &> > input(file_stream<T> & fs) {
+	return factory_1<input_t, file_stream<T> &>(fs);
 }
 
+/*
 template <typename dest_t>
 struct identity_t {
 	typedef typename dest_t::item_type item_type;
@@ -218,6 +259,7 @@ private:
 generate<identity_t> identity() {
 	return gengen<identity_t>();
 }
+*/
 
 template <typename T>
 struct output_t {
@@ -235,8 +277,8 @@ private:
 };
 
 template <typename T>
-terminator<output_t<T>, parameter_container_1<file_stream<T> &> > output(file_stream<T> & fs) {
-	return genterminator<output_t<T>, file_stream<T> &>(fs);
+terminator<termfactory_1<output_t<T>, file_stream<T> &> > output(file_stream<T> & fs) {
+	return termfactory_1<output_t<T>, file_stream<T> &>(fs);
 }
 
 }
