@@ -20,7 +20,6 @@
 #ifndef __TPIE_PIPELINING_FILE_STREAM_H__
 #define __TPIE_PIPELINING_FILE_STREAM_H__
 
-#include <iostream>
 #include <tpie/file_stream.h>
 
 #include <tpie/pipelining/core.h>
@@ -64,7 +63,6 @@ struct identity_t {
 	}
 
 	void push(const item_type & item) {
-		std::cout << item << std::endl;
 		dest.push(item);
 	}
 
@@ -90,7 +88,6 @@ struct output_t {
 	}
 
 	void push(const T & item) {
-		std::cout << item << std::endl;
 		fs.write(item);
 	}
 

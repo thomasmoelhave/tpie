@@ -19,8 +19,8 @@
 
 #include "common.h"
 #include <tpie/pipelining.h>
-#include <tpie/pipelining/std_glue.h>
 #include <tpie/file_stream.h>
+#include <boost/filesystem.hpp>
 
 using namespace tpie;
 
@@ -49,26 +49,30 @@ generate<factory_1<multiply_t, uint64_t> > multiply(uint64_t factor) {
 	return factory_1<multiply_t, uint64_t>(factor);
 }
 
-bool vector_multiply_test() {
-	std::vector<test_t> input(20);
-	std::vector<test_t> expect(20);
-	std::vector<test_t> output;
+std::vector<test_t> inputvector;
+std::vector<test_t> expectvector;
+std::vector<test_t> outputvector;
+
+void setup_test_vectors() {
+	inputvector.resize(0); expectvector.resize(0); outputvector.resize(0);
+	inputvector.resize(20); expectvector.resize(20);
 	for (size_t i = 0; i < 20; ++i) {
-		input[i] = i;
-		expect[i] = i*6;
+		inputvector[i] = i;
+		expectvector[i] = i*6;
 	}
-	pipeline p = input_vector(input) | multiply(3) | multiply(2) | output_vector(output);
-	p();
-	if (output != expect) {
+}
+
+bool check_test_vectors() {
+	if (outputvector != expectvector) {
 		std::cout << "Output vector does not match expect vector" << std::endl;
-		std::vector<test_t>::iterator expectit = expect.begin();
-		while (expectit != expect.end()) {
+		std::vector<test_t>::iterator expectit = expectvector.begin();
+		while (expectit != expectvector.end()) {
 			std::cout << *expectit << ' ';
 			++expectit;
 		}
 		std::cout << std::endl;
-		std::vector<test_t>::iterator outputit = output.begin();
-		while (outputit != output.end()) {
+		std::vector<test_t>::iterator outputit = outputvector.begin();
+		while (outputit != outputvector.end()) {
 			std::cout << *outputit << ' ';
 			++outputit;
 		}
@@ -78,13 +82,26 @@ bool vector_multiply_test() {
 	return true;
 }
 
+bool vector_multiply_test() {
+	setup_test_vectors();
+	pipeline p = input_vector(inputvector) | multiply(3) | multiply(2) | output_vector(outputvector);
+	p();
+	return check_test_vectors();
+}
+
+void file_system_cleanup() {
+	boost::filesystem::remove("input");
+	boost::filesystem::remove("output");
+}
+
 bool file_stream_test() {
+	file_system_cleanup();
 	{
-		file_stream<test_t> input;
-		input.open("input");
-		input.write(1);
-		input.write(2);
-		input.write(3);
+		file_stream<test_t> in;
+		in.open("input");
+		in.write(1);
+		in.write(2);
+		in.write(3);
 	}
 	{
 		file_stream<test_t> in;
@@ -96,11 +113,11 @@ bool file_stream_test() {
 		p();
 	}
 	{
-		file_stream<test_t> output;
-		output.open("output");
-		if (6 != output.read()) return false;
-		if (12 != output.read()) return false;
-		if (18 != output.read()) return false;
+		file_stream<test_t> out;
+		out.open("output");
+		if (6 != out.read()) return false;
+		if (12 != out.read()) return false;
+		if (18 != out.read()) return false;
 	}
 	return true;
 }
@@ -112,6 +129,7 @@ int main() {
 	bool result = true;
 	TEST(vector_multiply_test);
 	TEST(file_stream_test);
+	file_system_cleanup();
 	if (result) {
 		std::cout << "pipelining: All tests pass" << std::endl;
 		return EXIT_SUCCESS;

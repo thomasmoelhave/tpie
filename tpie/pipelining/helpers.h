@@ -17,13 +17,53 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-#ifndef __TPIE_PIPELINING_H__
-#define __TPIE_PIPELINING_H__
+#ifndef __TPIE_PIPELINING_HELPERS_H__
+#define __TPIE_PIPELINING_HELPERS_H__
 
+#include <iostream>
 #include <tpie/pipelining/core.h>
 #include <tpie/pipelining/factory_helpers.h>
-#include <tpie/pipelining/file_stream.h>
-#include <tpie/pipelining/std_glue.h>
-#include <tpie/pipelining/helpers.h>
+
+namespace tpie {
+
+template <typename dest_t>
+struct ostream_logger_t {
+	typedef typename dest_t::item_type item_type;
+
+	ostream_logger_t(const dest_t & dest, std::ostream & log) : dest(dest), log(log) {
+	}
+	void begin() {
+		begun = true;
+		dest.begin();
+	}
+	void end() {
+		ended = true;
+		dest.end();
+	}
+	void push(const item_type & item) {
+		if (!begun) {
+			log << "WARNING: push() called before begin(). Calling begin on rest of pipeline." << std::endl;
+			begin();
+		}
+		if (ended) {
+			log << "WARNING: push() called after end()." << std::endl;
+			ended = false;
+		}
+		log << "pushing " << item << std::endl;
+		dest.push(item);
+	}
+private:
+	dest_t dest;
+	std::ostream & log;
+	bool begun;
+	bool ended;
+};
+
+generate<factory_1<ostream_logger_t, std::ostream &> >
+cout_logger() {
+	return factory_1<ostream_logger_t, std::ostream &>(std::cout);
+}
+
+}
 
 #endif
