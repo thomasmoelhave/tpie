@@ -51,32 +51,6 @@ inline generate<factory_1<input_t, file_stream<T> &> > input(file_stream<T> & fs
 	return factory_1<input_t, file_stream<T> &>(fs);
 }
 
-template <typename dest_t>
-struct identity_t {
-	typedef typename dest_t::item_type item_type;
-
-	inline identity_t(const dest_t & dest) : dest(dest) {
-	}
-
-	inline void begin() {
-		dest.begin();
-	}
-
-	inline void push(const item_type & item) {
-		dest.push(item);
-	}
-
-	inline void end() {
-		dest.end();
-	}
-private:
-	dest_t dest;
-};
-
-inline generate<factory_0<identity_t> > identity() {
-	return factory_0<identity_t>();
-}
-
 template <typename T>
 struct output_t {
 	typedef T item_type;

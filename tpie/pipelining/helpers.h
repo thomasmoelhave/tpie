@@ -64,6 +64,32 @@ cout_logger() {
 	return factory_1<ostream_logger_t, std::ostream &>(std::cout);
 }
 
+template <typename dest_t>
+struct identity_t {
+	typedef typename dest_t::item_type item_type;
+
+	inline identity_t(const dest_t & dest) : dest(dest) {
+	}
+
+	inline void begin() {
+		dest.begin();
+	}
+
+	inline void push(const item_type & item) {
+		dest.push(item);
+	}
+
+	inline void end() {
+		dest.end();
+	}
+private:
+	dest_t dest;
+};
+
+inline generate<factory_0<identity_t> > identity() {
+	return factory_0<identity_t>();
+}
+
 }
 
 #endif
