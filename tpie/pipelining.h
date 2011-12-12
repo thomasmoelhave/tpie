@@ -23,5 +23,6 @@
 #include <tpie/pipelining/core.h>
 #include <tpie/pipelining/factory_helpers.h>
 #include <tpie/pipelining/file_stream.h>
+#include <tpie/pipelining/std_glue.h>
 
 #endif
