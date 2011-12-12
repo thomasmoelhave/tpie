@@ -31,10 +31,10 @@ template <typename dest_t>
 struct input_t {
 	typedef typename dest_t::item_type item_type;
 
-	input_t(const dest_t & dest, file_stream<item_type> & fs) : dest(dest), fs(fs) {
+	inline input_t(const dest_t & dest, file_stream<item_type> & fs) : dest(dest), fs(fs) {
 	}
 
-	void operator()() {
+	inline void operator()() {
 		dest.begin();
 		while (fs.can_read()) {
 			dest.push(fs.read());
@@ -47,7 +47,7 @@ private:
 };
 
 template<typename T>
-generate<factory_1<input_t, file_stream<T> &> > input(file_stream<T> & fs) {
+inline generate<factory_1<input_t, file_stream<T> &> > input(file_stream<T> & fs) {
 	return factory_1<input_t, file_stream<T> &>(fs);
 }
 
@@ -55,25 +55,25 @@ template <typename dest_t>
 struct identity_t {
 	typedef typename dest_t::item_type item_type;
 
-	identity_t(const dest_t & dest) : dest(dest) {
+	inline identity_t(const dest_t & dest) : dest(dest) {
 	}
 
-	void begin() {
+	inline void begin() {
 		dest.begin();
 	}
 
-	void push(const item_type & item) {
+	inline void push(const item_type & item) {
 		dest.push(item);
 	}
 
-	void end() {
+	inline void end() {
 		dest.end();
 	}
 private:
 	dest_t dest;
 };
 
-generate<factory_0<identity_t> > identity() {
+inline generate<factory_0<identity_t> > identity() {
 	return factory_0<identity_t>();
 }
 
@@ -81,24 +81,24 @@ template <typename T>
 struct output_t {
 	typedef T item_type;
 
-	output_t(file_stream<T> & fs) : fs(fs) {
+	inline output_t(file_stream<T> & fs) : fs(fs) {
 	}
 
-	void begin() {
+	inline void begin() {
 	}
 
-	void push(const T & item) {
+	inline void push(const T & item) {
 		fs.write(item);
 	}
 
-	void end() {
+	inline void end() {
 	}
 private:
 	file_stream<T> & fs;
 };
 
 template <typename T>
-terminator<termfactory_1<output_t<T>, file_stream<T> &> > output(file_stream<T> & fs) {
+inline terminator<termfactory_1<output_t<T>, file_stream<T> &> > output(file_stream<T> & fs) {
 	return termfactory_1<output_t<T>, file_stream<T> &>(fs);
 }
 

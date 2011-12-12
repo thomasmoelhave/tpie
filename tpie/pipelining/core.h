@@ -30,11 +30,11 @@ struct pipeline_v {
 template <typename fact_t>
 struct pipeline_ : public pipeline_v {
 	typedef typename fact_t::generated_type gen_t;
-	pipeline_(const fact_t & factory) : r(factory.construct()) {}
+	inline pipeline_(const fact_t & factory) : r(factory.construct()) {}
 	void operator()() {
 		r();
 	}
-	operator gen_t() {
+	inline operator gen_t() {
 		return r;
 	}
 private:
@@ -43,10 +43,10 @@ private:
 
 struct pipeline {
 	template <typename T>
-	pipeline(const T & from) {
+	inline pipeline(const T & from) {
 		p = new T(from);
 	}
-	void operator()() {
+	inline void operator()() {
 		(*p)();
 	}
 private:
@@ -58,7 +58,7 @@ private:
  * param_t: The gen_t factory. */
 template <typename fact_t>
 struct terminator {
-	terminator(const fact_t & factory) : factory(factory) {
+	inline terminator(const fact_t & factory) : factory(factory) {
 	}
 	fact_t factory;
 };
@@ -71,10 +71,10 @@ template <typename fact_t>
 struct generate {
 	typedef fact_t factory_type;
 
-	generate() {
+	inline generate() {
 	}
 
-	generate(const fact_t & factory) : factory(factory) {
+	inline generate(const fact_t & factory) : factory(factory) {
 	}
 
 	template <class fact1_t, class fact2_t>
@@ -84,12 +84,12 @@ struct generate {
 			typedef typename fact1_t::template generated<typename fact2_t::template generated<dest_t>::type>::type type;
 		};
 
-		pair_factory(const fact1_t & fact1, const fact2_t & fact2)
+		inline pair_factory(const fact1_t & fact1, const fact2_t & fact2)
 			: fact1(fact1), fact2(fact2) {
 		}
 
 		template <typename dest_t>
-		typename generated<dest_t>::type
+		inline typename generated<dest_t>::type
 		construct(const dest_t & dest) const {
 			return fact1.construct(fact2.construct(dest));
 		}
@@ -102,14 +102,14 @@ struct generate {
 	struct termpair_factory {
 		typedef typename fact1_t::template generated<typename termfact2_t::generated_type>::type generated_type;
 
-		termpair_factory(const fact1_t & fact1, const termfact2_t & fact2)
+		inline termpair_factory(const fact1_t & fact1, const termfact2_t & fact2)
 			: fact1(fact1), fact2(fact2) {
 			}
 
 		fact1_t fact1;
 		termfact2_t fact2;
 
-		generated_type
+		inline generated_type
 		construct() const {
 			return fact1.construct(fact2.construct());
 		}
@@ -117,7 +117,7 @@ struct generate {
 
 	/* The pipe operator combines this generator/filter with another filter. */
 	template <typename fact2_t>
-	generate<pair_factory<fact_t, fact2_t> >
+	inline generate<pair_factory<fact_t, fact2_t> >
 	operator|(const generate<fact2_t> & r) {
 		return pair_factory<fact_t, fact2_t>(factory, r.factory);
 	}
@@ -125,7 +125,7 @@ struct generate {
 	/* This pipe operator combines this generator/filter with a terminator to
 	 * make a pipeline. */
 	template <typename fact2_t>
-	pipeline_<termpair_factory<fact_t, fact2_t> >
+	inline pipeline_<termpair_factory<fact_t, fact2_t> >
 	operator|(const terminator<fact2_t> & term) {
 		return termpair_factory<fact_t, fact2_t>(factory, term.factory);
 	}

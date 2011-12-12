@@ -34,7 +34,7 @@ struct factory_0 {
 	};
 
 	template <typename dest_t>
-	R<dest_t> construct(const dest_t & dest) const {
+	inline R<dest_t> construct(const dest_t & dest) const {
 		return R<dest_t>(dest);
 	}
 };
@@ -46,10 +46,10 @@ struct factory_1 {
 		typedef R<dest_t> type;
 	};
 
-	factory_1(T1 t1) : t1(t1) {}
+	inline factory_1(T1 t1) : t1(t1) {}
 
 	template <typename dest_t>
-	R<dest_t> construct(const dest_t & dest) const {
+	inline R<dest_t> construct(const dest_t & dest) const {
 		return R<dest_t>(dest, t1);
 	}
 private:
@@ -59,8 +59,8 @@ private:
 template <typename R, typename T1>
 struct termfactory_1 {
 	typedef R generated_type;
-	termfactory_1(T1 t1) : t1(t1) {}
-	R construct() const {
+	inline termfactory_1(T1 t1) : t1(t1) {}
+	inline R construct() const {
 		return R(t1);
 	}
 private:

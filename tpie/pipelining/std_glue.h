@@ -31,10 +31,10 @@ template <typename dest_t>
 struct input_vector_t {
 	typedef typename dest_t::item_type item_type;
 
-	input_vector_t(const dest_t & dest, const std::vector<item_type> & input) : dest(dest), input(input) {
+	inline input_vector_t(const dest_t & dest, const std::vector<item_type> & input) : dest(dest), input(input) {
 	}
 
-	void operator()() {
+	inline void operator()() {
 		typedef typename std::vector<item_type>::const_iterator IT;
 		dest.begin();
 		for (IT i = input.begin(); i != input.end(); ++i) {
@@ -52,13 +52,13 @@ template <typename T>
 struct output_vector_t {
 	typedef T item_type;
 
-	output_vector_t(std::vector<T> & output) : output(output) {
+	inline output_vector_t(std::vector<T> & output) : output(output) {
 	}
 
-	void begin() {}
-	void end() {}
+	inline void begin() {}
+	inline void end() {}
 
-	void push(const T & item) {
+	inline void push(const T & item) {
 		output.push_back(item);
 	}
 
@@ -67,12 +67,12 @@ private:
 };
 
 template<typename T>
-generate<factory_1<input_vector_t, const std::vector<T> &> > input_vector(const std::vector<T> & input) {
+inline generate<factory_1<input_vector_t, const std::vector<T> &> > input_vector(const std::vector<T> & input) {
 	return factory_1<input_vector_t, const std::vector<T> &>(input);
 }
 
 template <typename T>
-terminator<termfactory_1<output_vector_t<T>, std::vector<T> &> > output_vector(std::vector<T> & output) {
+inline terminator<termfactory_1<output_vector_t<T>, std::vector<T> &> > output_vector(std::vector<T> & output) {
 	return termfactory_1<output_vector_t<T>, std::vector<T> &>(output);
 }
 

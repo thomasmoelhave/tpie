@@ -30,17 +30,17 @@ template <typename dest_t>
 struct ostream_logger_t {
 	typedef typename dest_t::item_type item_type;
 
-	ostream_logger_t(const dest_t & dest, std::ostream & log) : dest(dest), log(log) {
+	inline ostream_logger_t(const dest_t & dest, std::ostream & log) : dest(dest), log(log) {
 	}
-	void begin() {
+	inline void begin() {
 		begun = true;
 		dest.begin();
 	}
-	void end() {
+	inline void end() {
 		ended = true;
 		dest.end();
 	}
-	void push(const item_type & item) {
+	inline void push(const item_type & item) {
 		if (!begun) {
 			log << "WARNING: push() called before begin(). Calling begin on rest of pipeline." << std::endl;
 			begin();
@@ -59,7 +59,7 @@ private:
 	bool ended;
 };
 
-generate<factory_1<ostream_logger_t, std::ostream &> >
+inline generate<factory_1<ostream_logger_t, std::ostream &> >
 cout_logger() {
 	return factory_1<ostream_logger_t, std::ostream &>(std::cout);
 }
