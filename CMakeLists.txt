@@ -92,6 +92,7 @@ if (COMPILE_TEST)
 	ENABLE_TESTING()
 	add_subdirectory(test)
 	add_subdirectory(apps)
+	add_subdirectory(example)
 endif (COMPILE_TEST)
 
 include(CPack)
