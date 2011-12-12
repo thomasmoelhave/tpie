@@ -17,15 +17,59 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-#ifndef __TPIE_PIPELINING_H__
-#define __TPIE_PIPELINING_H__
+#ifndef __TPIE_PIPELINING_STDIO_H__
+#define __TPIE_PIPELINING_STDIO_H__
 
 #include <tpie/pipelining/core.h>
 #include <tpie/pipelining/factory_helpers.h>
-#include <tpie/pipelining/file_stream.h>
-#include <tpie/pipelining/std_glue.h>
-#include <tpie/pipelining/helpers.h>
-#include <tpie/pipelining/numeric.h>
-#include <tpie/pipelining/stdio.h>
+#include <cstdio>
+
+namespace tpie {
+
+template <typename dest_t>
+struct scanf_ints_t {
+	typedef int item_type;
+
+	inline scanf_ints_t(const dest_t & dest) : dest(dest) {
+	}
+
+	inline void operator()() {
+		dest.begin();
+		int in;
+		while (scanf("%d", &in) == 1) {
+			dest.push(in);
+		}
+		dest.end();
+	}
+
+private:
+	dest_t dest;
+};
+
+struct printf_ints_t {
+	typedef int item_type;
+
+	inline printf_ints_t() {
+	}
+
+	inline void begin() { }
+	inline void end() { }
+
+	inline void push(item_type i) {
+		printf("%d\n", i);
+	}
+};
+
+generate<factory_0<scanf_ints_t> >
+inline scanf_ints() {
+	return factory_0<scanf_ints_t>();
+}
+
+terminator<termfactory_0<printf_ints_t> >
+inline printf_ints() {
+	return termfactory_0<printf_ints_t>();
+}
+
+}
 
 #endif

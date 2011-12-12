@@ -17,15 +17,38 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-#ifndef __TPIE_PIPELINING_H__
-#define __TPIE_PIPELINING_H__
+#ifndef __TPIE_PIPELINING_HELPERS_H__
+#define __TPIE_PIPELINING_HELPERS_H__
 
+#include <iostream>
 #include <tpie/pipelining/core.h>
 #include <tpie/pipelining/factory_helpers.h>
-#include <tpie/pipelining/file_stream.h>
-#include <tpie/pipelining/std_glue.h>
-#include <tpie/pipelining/helpers.h>
-#include <tpie/pipelining/numeric.h>
-#include <tpie/pipelining/stdio.h>
+
+namespace tpie {
+
+template <typename dest_t>
+struct linear_t {
+	typedef typename dest_t::item_type item_type;
+
+	inline linear_t(const dest_t & dest, item_type factor, item_type term) : dest(dest), factor(factor), term(term) {
+	}
+	inline void begin() { }
+	inline void end() { }
+	inline void push(const item_type & item) {
+		dest.push(item*factor+term);
+	}
+private:
+	dest_t dest;
+	item_type factor;
+	item_type term;
+};
+
+template <typename T>
+inline generate<factory_2<linear_t, T, T> >
+linear(T factor, T term) {
+	return factory_2<linear_t, T, T>(factor, term);
+}
+
+}
 
 #endif

@@ -56,6 +56,32 @@ private:
 	T1 t1;
 };
 
+template <template <typename dest_t> class R, typename T1, typename T2>
+struct factory_2 {
+	template<typename dest_t>
+	struct generated {
+		typedef R<dest_t> type;
+	};
+
+	inline factory_2(T1 t1, T2 t2) : t1(t1), t2(t2) {}
+
+	template <typename dest_t>
+	inline R<dest_t> construct(const dest_t & dest) const {
+		return R<dest_t>(dest, t1, t2);
+	}
+private:
+	T1 t1;
+	T2 t2;
+};
+
+template <typename R>
+struct termfactory_0 {
+	typedef R generated_type;
+	inline R construct() const {
+		return R();
+	}
+};
+
 template <typename R, typename T1>
 struct termfactory_1 {
 	typedef R generated_type;
