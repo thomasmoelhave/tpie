@@ -21,5 +21,7 @@
 #define __TPIE_PIPELINING_H__
 
 #include <tpie/pipelining/core.h>
+#include <tpie/pipelining/factory_helpers.h>
+#include <tpie/pipelining/file_stream.h>
 
 #endif

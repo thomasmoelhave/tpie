@@ -20,55 +20,7 @@
 #ifndef __TPIE_PIPELINING_CORE_H__
 #define __TPIE_PIPELINING_CORE_H__
 
-#include <iostream>
-#include <tpie/file_stream.h>
-
 namespace tpie {
-
-/* The factory classes are factories that take the destination
- * class as a template parameter and constructs the needed user-specified
- * filter. */
-
-template <template <typename dest_t> class R>
-struct factory_0 {
-	template<typename dest_t>
-	struct generated {
-		typedef R<dest_t> type;
-	};
-
-	template <typename dest_t>
-	R<dest_t> construct(const dest_t & dest) const {
-		return R<dest_t>(dest);
-	}
-};
-
-template <template <typename dest_t> class R, typename T1>
-struct factory_1 {
-	template<typename dest_t>
-	struct generated {
-		typedef R<dest_t> type;
-	};
-
-	factory_1(T1 t1) : t1(t1) {}
-
-	template <typename dest_t>
-	R<dest_t> construct(const dest_t & dest) const {
-		return R<dest_t>(dest, t1);
-	}
-private:
-	T1 t1;
-};
-
-template <typename R, typename T1>
-struct termfactory_1 {
-	typedef R generated_type;
-	termfactory_1(T1 t1) : t1(t1) {}
-	R construct() const {
-		return R(t1);
-	}
-private:
-	T1 t1;
-};
 
 /* The only virtual method call in this sublibrary! */
 struct pipeline_v {
@@ -180,67 +132,6 @@ struct generate {
 
 	fact_t factory;
 };
-
-template <typename dest_t>
-struct input_t {
-	typedef typename dest_t::item_type item_type;
-
-	input_t(const dest_t & dest, file_stream<item_type> & fs) : dest(dest), fs(fs) {
-	}
-
-	void operator()() {
-		while (fs.can_read()) {
-			dest.push(fs.read());
-		}
-	}
-private:
-	dest_t dest;
-	file_stream<item_type> & fs;
-};
-
-template<typename T>
-generate<factory_1<input_t, file_stream<T> &> > input(file_stream<T> & fs) {
-	return factory_1<input_t, file_stream<T> &>(fs);
-}
-
-template <typename dest_t>
-struct identity_t {
-	typedef typename dest_t::item_type item_type;
-
-	identity_t(const dest_t & dest) : dest(dest) {
-	}
-
-	void push(const item_type & item) {
-		std::cout << item << std::endl;
-		dest.push(item);
-	}
-private:
-	dest_t dest;
-};
-
-generate<factory_0<identity_t> > identity() {
-	return factory_0<identity_t>();
-}
-
-template <typename T>
-struct output_t {
-	typedef T item_type;
-
-	output_t(file_stream<T> & fs) : fs(fs) {
-	}
-
-	void push(const T & item) {
-		std::cout << item << std::endl;
-		fs.write(item);
-	}
-private:
-	file_stream<T> & fs;
-};
-
-template <typename T>
-terminator<termfactory_1<output_t<T>, file_stream<T> &> > output(file_stream<T> & fs) {
-	return termfactory_1<output_t<T>, file_stream<T> &>(fs);
-}
 
 }
 
