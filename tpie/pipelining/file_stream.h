@@ -36,9 +36,11 @@ struct input_t {
 	}
 
 	void operator()() {
+		dest.begin();
 		while (fs.can_read()) {
 			dest.push(fs.read());
 		}
+		dest.end();
 	}
 private:
 	dest_t dest;
@@ -57,9 +59,17 @@ struct identity_t {
 	identity_t(const dest_t & dest) : dest(dest) {
 	}
 
+	void begin() {
+		dest.begin();
+	}
+
 	void push(const item_type & item) {
 		std::cout << item << std::endl;
 		dest.push(item);
+	}
+
+	void end() {
+		dest.end();
 	}
 private:
 	dest_t dest;
@@ -76,9 +86,15 @@ struct output_t {
 	output_t(file_stream<T> & fs) : fs(fs) {
 	}
 
+	void begin() {
+	}
+
 	void push(const T & item) {
 		std::cout << item << std::endl;
 		fs.write(item);
+	}
+
+	void end() {
 	}
 private:
 	file_stream<T> & fs;

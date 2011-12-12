@@ -36,9 +36,11 @@ struct input_vector_t {
 
 	void operator()() {
 		typedef typename std::vector<item_type>::const_iterator IT;
+		dest.begin();
 		for (IT i = input.begin(); i != input.end(); ++i) {
 			dest.push(*i);
 		}
+		dest.end();
 	}
 
 private:
@@ -52,6 +54,9 @@ struct output_vector_t {
 
 	output_vector_t(std::vector<T> & output) : output(output) {
 	}
+
+	void begin() {}
+	void end() {}
 
 	void push(const T & item) {
 		output.push_back(item);

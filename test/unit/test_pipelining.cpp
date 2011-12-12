@@ -34,6 +34,9 @@ struct multiply_t {
 		: dest(dest), factor(factor) {
 	}
 
+	void begin() { dest.begin(); }
+	void end() { dest.end(); }
+
 	void push(const test_t & item) {
 		dest.push(factor*item);
 	}
