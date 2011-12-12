@@ -25,6 +25,26 @@ using namespace tpie;
 
 typedef uint64_t test_t;
 
+template <typename dest_t>
+struct multiply_t {
+	typedef test_t item_type;
+
+	multiply_t(const dest_t & dest, uint64_t factor)
+		: dest(dest), factor(factor) {
+	}
+
+	void push(const test_t & item) {
+		dest.push(factor*item);
+	}
+
+	dest_t dest;
+	uint64_t factor;
+};
+
+generate<factory_1<multiply_t, uint64_t> > multiply(uint64_t factor) {
+	return factory_1<multiply_t, uint64_t>(factor);
+}
+
 bool pipelining_test() {
 	{
 		file_stream<test_t> input;
@@ -33,22 +53,12 @@ bool pipelining_test() {
 		input.write(2);
 		input.write(3);
 	}
-	/*
-	{
-		file_stream<test_t> input;
-		input.open("input");
-		file_stream<test_t> output;
-		output.open("output");
-		virtualpipe<void, void> pipeline = source(input) << sink(output);
-		pipeline();
-	}
-	*/
 	{
 		file_stream<test_t> in;
 		in.open("input");
 		file_stream<test_t> out;
 		out.open("output");
-		pipeline p = (input(in) | output(out));
+		input_t<multiply_t<multiply_t<output_t<test_t> > > > p = (input(in) | multiply(3) | multiply(2) | output(out));
 		p();
 	}
 	return true;

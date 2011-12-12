@@ -72,15 +72,18 @@ private:
 
 /* The only virtual method call in this sublibrary! */
 struct pipeline_v {
-	virtual void run() = 0;
+	virtual void operator()() = 0;
 };
 
 template <typename fact_t>
 struct pipeline_ : public pipeline_v {
 	typedef typename fact_t::generated_type gen_t;
 	pipeline_(const fact_t & factory) : r(factory.construct()) {}
-	void run() {
-		r.run();
+	void operator()() {
+		r();
+	}
+	operator gen_t() {
+		return r;
 	}
 private:
 	gen_t r;
@@ -92,7 +95,7 @@ struct pipeline {
 		p = new T(from);
 	}
 	void operator()() {
-		p->run();
+		(*p)();
 	}
 private:
 	pipeline_v * p;
@@ -122,49 +125,11 @@ struct generate {
 	generate(const fact_t & factory) : factory(factory) {
 	}
 
-	/* The following is used to serially combine gen_t and another filter R to
-	 * make a new generator/filter.
-	 * abe::box acts as a user-specified generator/filter. */
-	/*
-	template <template <class dest_t> class R>
-	struct abe {
-		template <class dest_t>
-		struct box {
-			typedef typename gen_t<R<dest_t> >::item_type item_type;
-			gen_t<R<dest_t> > inner;
-
-			void run() {
-				inner.run();
-			}
-
-			box(const dest_t & dest, const std::pair<fact_t, typename R<dest_t>::factory_type> & factory)
-				: inner(factory.first.template construct<R<dest_t> >
-						(factory.second.template construct<dest_t>(dest))) {
-			}
-		};
-	};
-	*/
-
-	/* The following serially combines this and a terminator to make a terminating pipeline segment.
-	 * R: The terminator.
-	 * P: Parameters. */
-	template <typename R, typename fact2_t>
-	struct tbox {
-		typedef typename fact2_t::generated_type gen_t;
-		tbox(const fact2_t & factory) : r(factory.construct()) {
-		}
-		void run() {
-			r.run();
-		}
-	private:
-		gen_t r;
-	};
-
 	template <class fact1_t, class fact2_t>
 	struct pair_factory {
 		template <typename dest_t>
 		struct generated {
-			typedef typename fact1_t::template generated<fact2_t::template generated<dest_t>::type>::type type;
+			typedef typename fact1_t::template generated<typename fact2_t::template generated<dest_t>::type>::type type;
 		};
 
 		pair_factory(const fact1_t & fact1, const fact2_t & fact2)
@@ -199,20 +164,18 @@ struct generate {
 	};
 
 	/* The pipe operator combines this generator/filter with another filter. */
-	/*
-	template <template <class dest_t> class R, typename fact2_t>
-	generate<abe<R>::template box, pair_factory<fact_t, fact2_t> >
-	operator|(const generate<R, fact2_t> & r) {
-		return generate<abe<R>::template box, pair_factory<fact_t, fact2_t> >(pair_factory<fact_t, fact2_t>(factory, r.factory));
+	template <typename fact2_t>
+	generate<pair_factory<fact_t, fact2_t> >
+	operator|(const generate<fact2_t> & r) {
+		return pair_factory<fact_t, fact2_t>(factory, r.factory);
 	}
-	*/
 
 	/* This pipe operator combines this generator/filter with a terminator to
 	 * make a pipeline. */
 	template <typename fact2_t>
 	pipeline_<termpair_factory<fact_t, fact2_t> >
 	operator|(const terminator<fact2_t> & term) {
-		return pipeline_<termpair_factory<fact_t, fact2_t> >(termpair_factory<fact_t, fact2_t>(factory, term.factory));
+		return termpair_factory<fact_t, fact2_t>(factory, term.factory);
 	}
 
 	fact_t factory;
@@ -225,7 +188,7 @@ struct input_t {
 	input_t(const dest_t & dest, file_stream<item_type> & fs) : dest(dest), fs(fs) {
 	}
 
-	void run() {
+	void operator()() {
 		while (fs.can_read()) {
 			dest.push(fs.read());
 		}
@@ -240,7 +203,6 @@ generate<factory_1<input_t, file_stream<T> &> > input(file_stream<T> & fs) {
 	return factory_1<input_t, file_stream<T> &>(fs);
 }
 
-/*
 template <typename dest_t>
 struct identity_t {
 	typedef typename dest_t::item_type item_type;
@@ -256,10 +218,9 @@ private:
 	dest_t dest;
 };
 
-generate<identity_t> identity() {
-	return gengen<identity_t>();
+generate<factory_0<identity_t> > identity() {
+	return factory_0<identity_t>();
 }
-*/
 
 template <typename T>
 struct output_t {
