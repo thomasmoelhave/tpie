@@ -86,9 +86,7 @@ private:
 	dest_t dest;
 };
 
-inline generate<factory_0<identity_t> > identity() {
-	return factory_0<identity_t>();
-}
+static generate<factory_0<identity_t> > identity;
 
 }
 

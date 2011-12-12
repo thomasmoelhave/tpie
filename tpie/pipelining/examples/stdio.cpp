@@ -37,7 +37,7 @@ std::string progname;
 
 // This is the basic usage:
 void do_pipeline(int factor, int term) {
-	pipeline p = scanf_ints() | linear(factor, term) | printf_ints();
+	pipeline p = scanf_ints | linear(factor, term) | printf_ints;
 	p();
 }
 
