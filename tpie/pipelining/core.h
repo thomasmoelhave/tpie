@@ -25,14 +25,14 @@ namespace tpie {
 namespace pipelining {
 
 /* The only virtual method call in this sublibrary! */
-struct pipeline_v {
+struct pipeline_virtual {
 	virtual void operator()() = 0;
 };
 
 template <typename fact_t>
-struct pipeline_ : public pipeline_v {
+struct pipeline_impl : public pipeline_virtual {
 	typedef typename fact_t::generated_type gen_t;
-	inline pipeline_(const fact_t & factory) : r(factory.construct()) {}
+	inline pipeline_impl(const fact_t & factory) : r(factory.construct()) {}
 	void operator()() {
 		r();
 	}
@@ -43,6 +43,7 @@ private:
 	gen_t r;
 };
 
+/* This class is used to avoid writing the template argument in the pipeline type. */
 struct pipeline {
 	template <typename T>
 	inline pipeline(const T & from) {
@@ -52,7 +53,7 @@ struct pipeline {
 		(*p)();
 	}
 private:
-	pipeline_v * p;
+	pipeline_virtual * p;
 };
 
 /* A generate class pushes input down the pipeline.
@@ -117,7 +118,7 @@ struct generate {
 	/* This pipe operator combines this generator/filter with a terminator to
 	 * make a pipeline. */
 	template <typename fact2_t>
-	inline pipeline_<termpair_factory<fact_t, fact2_t> >
+	inline pipeline_impl<termpair_factory<fact_t, fact2_t> >
 	operator|(const fact2_t & fact2) {
 		return termpair_factory<fact_t, fact2_t>(factory, fact2);
 	}
