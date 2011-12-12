@@ -31,7 +31,7 @@
 #include <tpie/pipelining/stdio.h>
 #include <tpie/pipelining/numeric.h>
 
-using namespace tpie;
+using namespace tpie::pipelining;
 
 std::string progname;
 

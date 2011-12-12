@@ -22,6 +22,8 @@
 
 namespace tpie {
 
+namespace pipelining {
+
 /* The only virtual method call in this sublibrary! */
 struct pipeline_v {
 	virtual void operator()() = 0;
@@ -122,6 +124,8 @@ struct generate {
 
 	fact_t factory;
 };
+
+}
 
 }
 

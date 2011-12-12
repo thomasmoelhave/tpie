@@ -25,6 +25,7 @@
 #include <boost/filesystem/operations.hpp>
 
 using namespace tpie;
+using namespace tpie::pipelining;
 using namespace tpie::test;
 
 const size_t count_default=1024*1024*1024/sizeof(uint64_t);

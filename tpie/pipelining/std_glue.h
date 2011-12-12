@@ -27,6 +27,8 @@
 
 namespace tpie {
 
+namespace pipelining {
+
 template <typename dest_t>
 struct input_vector_t {
 	typedef typename dest_t::item_type item_type;
@@ -74,6 +76,8 @@ inline generate<factory_1<input_vector_t, const std::vector<T> &> > input_vector
 template <typename T>
 inline termfactory_1<output_vector_t<T>, std::vector<T> &> output_vector(std::vector<T> & output) {
 	return output;
+}
+
 }
 
 }

@@ -26,6 +26,8 @@
 
 namespace tpie {
 
+namespace pipelining {
+
 template <typename dest_t>
 struct scanf_ints_t {
 	typedef int item_type;
@@ -62,6 +64,8 @@ struct printf_ints_t {
 
 static generate<factory_0<scanf_ints_t> > scanf_ints;
 static termfactory_0<printf_ints_t> printf_ints;
+
+}
 
 }
 

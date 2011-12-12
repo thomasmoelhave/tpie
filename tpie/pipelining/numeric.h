@@ -26,6 +26,8 @@
 
 namespace tpie {
 
+namespace pipelining {
+
 template <typename dest_t>
 struct linear_t {
 	typedef typename dest_t::item_type item_type;
@@ -47,6 +49,8 @@ template <typename T>
 inline generate<factory_2<linear_t, T, T> >
 linear(T factor, T term) {
 	return factory_2<linear_t, T, T>(factor, term);
+}
+
 }
 
 }

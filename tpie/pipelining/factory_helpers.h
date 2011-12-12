@@ -22,6 +22,8 @@
 
 namespace tpie {
 
+namespace pipelining {
+
 /* The factory classes are factories that take the destination
  * class as a template parameter and constructs the needed user-specified
  * filter. */
@@ -92,6 +94,8 @@ struct termfactory_1 {
 private:
 	T1 t1;
 };
+
+}
 
 }
 

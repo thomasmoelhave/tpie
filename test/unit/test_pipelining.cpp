@@ -23,6 +23,7 @@
 #include <boost/filesystem.hpp>
 
 using namespace tpie;
+using namespace tpie::pipelining;
 
 typedef uint64_t test_t;
 

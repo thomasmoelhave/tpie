@@ -27,6 +27,8 @@
 
 namespace tpie {
 
+namespace pipelining {
+
 template <typename dest_t>
 struct input_t {
 	typedef typename dest_t::item_type item_type;
@@ -74,6 +76,8 @@ private:
 template <typename T>
 inline termfactory_1<output_t<T>, file_stream<T> &> output(file_stream<T> & fs) {
 	return fs;
+}
+
 }
 
 }

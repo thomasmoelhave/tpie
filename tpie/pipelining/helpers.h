@@ -26,6 +26,8 @@
 
 namespace tpie {
 
+namespace pipelining {
+
 template <typename dest_t>
 struct ostream_logger_t {
 	typedef typename dest_t::item_type item_type;
@@ -87,6 +89,8 @@ private:
 };
 
 static generate<factory_0<identity_t> > identity;
+
+}
 
 }
 
