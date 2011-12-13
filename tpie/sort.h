@@ -239,7 +239,7 @@ namespace tpie {
 	namespace ami {
 	template<class T, class KEY, class CMPR>
 	err  key_sort(stream<T> *instream_ami, stream<T> *outstream_ami,
-		      KEY dummykey, CMPR *cmp, progress_indicator_base* indicator=NULL)	{
+		      KEY, CMPR *cmp, progress_indicator_base* indicator=NULL)	{
 		TP_LOG_WARNING_ID("tpie::ami::key_sort is deprecated");
 		return sort(instream_ami, outstream_ami, cmp, indicator);
 	}

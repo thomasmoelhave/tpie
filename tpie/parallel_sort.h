@@ -144,17 +144,18 @@ private:
 				progress.cond.notify_one();
 			}
 		}
+
+		void child_done(job * /*job*/) {
+			//tpie_delete(job);
+			//delete job;
+		}
+
 	private:
 		iterator_type a;
 		iterator_type b;
 		comp_type comp;
 		qsort_job * parent;
 		progress_t & progress;
-
-		void child_done(qsort_job * job) {
-			//tpie_delete(job);
-			delete job;
-		}
 
 		void add_progress(ptrdiff_t amount) {
 			boost::mutex::scoped_lock lock(progress.mutex);

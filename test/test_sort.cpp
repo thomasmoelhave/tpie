@@ -82,7 +82,7 @@ typedef struct app_info{
 // The array can also be used as a counter in base-26 arithmetic
 class SortItem{
   public:
-    SortItem(long key_);
+    SortItem(long key_=0);
     ~SortItem(){};
     long key;        //key to sort on
     bool operator<(const SortItem& rhs) const {
@@ -94,7 +94,7 @@ class SortItem{
 
 // Constructor
 // Initialize item 'aaaaaaa...'
-SortItem::SortItem(long key_=0): key(key_) {
+SortItem::SortItem(long key_): key(key_) {
   int i;
   for(i=0; i<APP_ITEM_SIZE-1; i++) item[i]='a';
   //null-terminate so we can print array as string
@@ -280,7 +280,7 @@ void get_app_info(int argc, char** argv, appInfo & Info){
   nopts=0;
   while ( (optidx=getopts(argc, argv, opts, &optarg)) != 0) {
     nopts++;
-    if( (optidx==-1) ){
+    if( optidx==-1 ){
       std::cerr << "Could not allocate space for arguments. Exiting...\n";
       exit(1);
     }
@@ -460,7 +460,7 @@ void write_random_stream(std::string fname, appInfo & info, progress_indicator_b
 void check_sorted(std::string fname, appInfo & info, progress_indicator_base & indicator){
 
   TPIE_OS_LONGLONG i,n;
-  SortItem *x, x_prev;
+  SortItem *x = 0, x_prev;
   ami::err ae=ami::NO_ERROR;
    
   n=info.num_items;
@@ -503,7 +503,7 @@ void check_sorted(std::string fname, appInfo & info, progress_indicator_base & i
 }
 
 void load_list(ami::stream<SortItem>* str, SortItem* list, TPIE_OS_SIZE_T nitems){
-  SortItem *s_item;
+  SortItem *s_item = 0;
   str->seek(0);
   for(TPIE_OS_SIZE_T i=0; i<nitems; i++){
     str->read_item(&s_item);

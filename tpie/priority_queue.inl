@@ -529,7 +529,7 @@ void priority_queue<T, Comparator, OPQType>::fill_buffer() {
 
 	while(!heap.empty() && buffer_size!=setting_mmark) {
 		TPIE_OS_SIZE_T current_group = heap.top_run();
-		if(current_group!= 0 && data[current_group]->offset() == TPIE_OS_OFFSET(setting_m)) {
+		if(current_group!= 0 && data[current_group]->offset() == setting_m) {
 			//cout << "fill group seeking to 0" << "\n";
 			data[current_group]->seek(0);
 		}
@@ -621,7 +621,7 @@ void priority_queue<T, Comparator, OPQType>::fill_group_buffer(TPIE_OS_SIZE_T gr
 				gbuffer0[(group_start(0)+group_size(0))%setting_m] = heap.top();
 			} else {
 				//write to disk for group >0
-				if(out.offset() == TPIE_OS_OFFSET(setting_m)) {
+				if(out.offset() == setting_m) {
 					out.seek(0);
 				}
 

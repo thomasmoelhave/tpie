@@ -185,7 +185,8 @@ ami::err queue<T>::dequeue(const T **t) {
 
 template<class T>
 ami::err queue<T>::peek(const T **t) {
-	return front();
+	*t = &front();
+	return ami::NO_ERROR;
 }
 
 namespace ami {
