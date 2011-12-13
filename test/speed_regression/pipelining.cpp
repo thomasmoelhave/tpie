@@ -18,6 +18,7 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #include "../app_config.h"
 
+#include <cstdlib> // exit
 #include <tpie/tpie.h>
 #include <tpie/pipelining.h>
 #include <iostream>
@@ -32,8 +33,15 @@ const size_t count_default=1024*1024*1024/sizeof(uint64_t);
 
 typedef uint64_t test_t;
 
-void usage() {
-	std::cout << "Parameters: [times] [count]" << std::endl;
+static std::string prog;
+
+static inline void usage() {
+	std::cout << "Usage: " << prog << " [-N] [times [count]]\n"
+		<< "-N: Don't use virtual calls\n"
+		<< "times: Number of trials\n"
+		<< "count: Number of elements in each trial"
+		<< std::endl;
+	exit(EXIT_FAILURE);
 }
 
 template <typename dest_t>
@@ -58,13 +66,14 @@ struct number_sink_t {
 	inline void begin() { }
 	inline void end() { }
 	inline void push(const test_t & item) {
-		output = output % item;
+		output = output + item;
 	}
 private:
 	test_t & output;
 };
 
-void test(size_t count) {
+template <bool virt>
+static void test(size_t count) {
 	test_realtime_t start;
 	test_realtime_t end;
 
@@ -74,8 +83,14 @@ void test(size_t count) {
 	{
 		file_stream<test_t> s;
 		s.open("tmp");
-		pipeline p = generate<factory_1<number_generator_t, size_t> >(count) | output(s);
-		p();
+		if (virt) {
+			pipeline p = generate<factory_1<number_generator_t, size_t> >(count) | output(s);
+			p();
+		} else {
+			number_generator_t<output_t<test_t> > p =
+				generate<factory_1<number_generator_t, size_t> >(count) | output(s);
+			p();
+		}
 	}
 	getTestRealtime(end);
 	std::cout << testRealtimeDiff(start,end) << std::flush;
@@ -85,8 +100,13 @@ void test(size_t count) {
 	{
 		file_stream<test_t> s;
 		s.open("tmp");
-		pipeline p = input(s) | termfactory_1<number_sink_t, test_t &>(res);
-		p();
+		if (virt) {
+			pipeline p = input(s) | termfactory_1<number_sink_t, test_t &>(res);
+			p();
+		} else {
+			input_t<number_sink_t> p = input(s) | termfactory_1<number_sink_t, test_t &>(res);
+			p();
+		}
 	}
 	getTestRealtime(end);
 	std::cout << " " << testRealtimeDiff(start,end) << ' ' << res << std::endl;
@@ -97,24 +117,34 @@ void test(size_t count) {
 int main(int argc, char **argv) {
 	size_t times = 10;
 	size_t count = count_default;
+	bool virt = true;
+	prog = argv[0];
+
+	while (argc > 1) {
+		std::string arg(argv[1]);
+
+		if (arg == "-N")
+			virt = false;
+
+		else if (arg == "--help" || arg == "-h")
+			usage();
+
+		else break;
+
+		--argc, ++argv;
+	}
 
 	if (argc > 1) {
 		if (std::string(argv[1]) == "0") {
 			times = 0;
 		} else {
 			std::stringstream(argv[1]) >> times;
-			if (!times) {
-				usage();
-				return EXIT_FAILURE;
-			}
+			if (!times) usage();
 		}
 	}
 	if (argc > 2) {
 		std::stringstream(argv[2]) >> count;
-		if (!count) {
-			usage();
-			return EXIT_FAILURE;
-		}
+		if (!count) usage();
 	}
 
 	std::cout << "Writing " << count << " items, reading them" << std::endl;
@@ -122,7 +152,10 @@ int main(int argc, char **argv) {
 	tpie::tpie_init();
 
 	for (size_t i = 0; i < times || !times; ++i) {
-		::test(count);
+		if (virt)
+			::test<true>(count);
+		else
+			::test<false>(count);
 	}
 	
 	tpie::tpie_finish();
