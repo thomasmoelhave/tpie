@@ -33,38 +33,35 @@
 
 using namespace tpie::pipelining;
 
-std::string progname;
-
 // This is the basic usage:
 void do_pipeline(int factor, int term) {
 	pipeline p = scanf_ints | linear(factor, term) | printf_ints;
 	p();
 }
 
+
+std::string progname;
+
 inline void usage() {
 	std::cout << "Usage: " << progname << " a b\n"
 		<< "Reads integers n on stdin and outputs integers a*n+b on stdout." << std::endl;
+	exit(1);
 }
 
-#define USAGE do { usage(); return 0; } while (0)
-
-#define GETINT(var) do { \
-	std::string a(argv[0]); \
-	if (a == "0") var = 0; \
-	else {\
-		std::stringstream(a) >> var; \
-		if (!var) USAGE;\
-	}\
-	--argc, ++argv;\
-} while (0)
+inline void getint(const std::string & arg, int & var) {
+	if (arg == "0") var = 0; 
+	else {
+		std::stringstream(arg) >> var; 
+		if (!var) usage();
+	}
+}
 
 int main(int argc, char ** argv) {
 	progname = argv[0];
-	if (argc < 3) USAGE;
-	--argc, ++argv;
+	if (argc < 3) usage();
 	int factor, term;
-	GETINT(factor);
-	GETINT(term);
+	getint(argv[1], factor);
+	getint(argv[2], term);
 
 	do_pipeline(factor, term);
 	return 0;
