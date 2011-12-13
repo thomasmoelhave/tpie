@@ -8,7 +8,7 @@
 
 *Tests used*: stream_speed_test (10 GB), test_ami_sort (100 GB), pq_speed_test (100 GB)
 
-*Results*: scan is 2% faster. sort is 6.67% slower. pq/push is 4.48% faster. pq/pop is 43.69% slower. Overall, pq is 9.27% slower.
+*Results*: scan is 2% slower. sort is 6.67% slower. pq/push is 4.48% faster. pq/pop is 43.69% slower. Overall, pq is 9.27% slower.
 
 Test output
 -----------
