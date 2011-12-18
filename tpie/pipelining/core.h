@@ -49,6 +49,9 @@ struct pipeline {
 	inline pipeline(const T & from) {
 		p = new T(from);
 	}
+	inline ~pipeline() {
+		delete p;
+	}
 	inline void operator()() {
 		(*p)();
 	}
