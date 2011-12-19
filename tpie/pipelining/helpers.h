@@ -23,6 +23,7 @@
 #include <iostream>
 #include <tpie/pipelining/core.h>
 #include <tpie/pipelining/factory_helpers.h>
+#include <tpie/memory.h>
 
 namespace tpie {
 
@@ -119,8 +120,79 @@ private:
 	source_t source;
 };
 
-inline pull_factory_0<pull_identity_t> pull_identity() {
-	return pull_factory_0<pull_identity_t>();
+template <typename T>
+struct dummydest_t {
+	typedef T item_type;
+	T & buffer;
+	inline dummydest_t(T & buffer) : buffer(buffer) {
+	}
+	inline dummydest_t(const dummydest_t & other) : buffer(other.buffer) {
+	}
+	inline void begin() {
+	}
+	inline void end() {
+	}
+	inline void push(const T & el) {
+		buffer = el;
+	}
+};
+
+template <typename pushfact_t>
+struct push_to_pull {
+
+	template <typename source_t>
+	struct puller_t {
+
+		typedef typename source_t::item_type item_type;
+		typedef typename pushfact_t::template generated<dummydest_t<item_type> >::type pusher_t;
+
+		item_type buffer;
+		source_t source;
+		pushfact_t pushfact;
+		dummydest_t<item_type> dummydest;
+		auto_ptr<pusher_t> pusher;
+
+		inline puller_t(const source_t & source, const pushfact_t & pushfact)
+			: source(source)
+			, pushfact(pushfact)
+			, dummydest(buffer) {
+		}
+
+		inline puller_t(const puller_t & other)
+			: buffer(other.buffer)
+			, source(other.source)
+			, dummydest(buffer) {
+		}
+
+		inline void begin() {
+			pusher.reset(tpie_new<pusher_t>(pushfact.construct(dummydest)));
+			pusher->begin();
+			source.begin();
+		}
+
+		inline void end() {
+			source.end();
+			pusher->end();
+			pusher.reset();
+		}
+
+		inline item_type pull() {
+			pusher->push(source.pull());
+			return buffer;
+		}
+
+		inline bool can_pull() {
+			return source.can_pull();
+		}
+
+	private:
+		puller_t & operator=(const puller_t & other);
+
+	};
+};
+
+inline pull_factory_1<push_to_pull<factory_0<identity_t> >::puller_t, factory_0<identity_t> > pull_identity() {
+	return factory_0<identity_t>();
 }
 
 }
