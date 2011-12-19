@@ -54,6 +54,35 @@ inline generate<factory_1<input_t, file_stream<T> &> > input(file_stream<T> & fs
 }
 
 template <typename T>
+struct pull_input_t {
+	typedef T item_type;
+
+	inline pull_input_t(file_stream<T> & fs) : fs(fs) {
+	}
+
+	inline void begin() {
+	}
+
+	inline T pull() {
+		return fs.read();
+	}
+
+	inline bool can_pull() {
+		return fs.can_read();
+	}
+
+	inline void end() {
+	}
+
+	file_stream<T> & fs;
+};
+
+template<typename T>
+inline datasource<pull_input_t<T> > pull_input(file_stream<T> & fs) {
+	return pull_input_t<T>(fs);
+}
+
+template <typename T>
 struct output_t {
 	typedef T item_type;
 
@@ -75,6 +104,29 @@ private:
 
 template <typename T>
 inline termfactory_1<output_t<T>, file_stream<T> &> output(file_stream<T> & fs) {
+	return fs;
+}
+
+template <typename source_t>
+struct pull_output_t {
+	typedef typename source_t::item_type item_type;
+
+	inline pull_output_t(const source_t & source, file_stream<item_type> & fs) : source(source), fs(fs) {
+	}
+
+	inline void operator()() {
+		source.begin();
+		while (source.can_pull()) {
+			fs.write(source.pull());
+		}
+	}
+
+	source_t source;
+	file_stream<item_type> & fs;
+};
+
+template<typename T>
+inline pull_factory_1<pull_output_t, file_stream<T> &> pull_output(file_stream<T> & fs) {
 	return fs;
 }
 

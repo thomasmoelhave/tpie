@@ -43,6 +43,20 @@ private:
 	gen_t r;
 };
 
+template <typename fact_t>
+struct pipeline_pull_impl : public pipeline_virtual {
+	typedef typename fact_t::generated_type gen_t;
+	inline pipeline_pull_impl(const fact_t & factory) : r(factory.construct()) {}
+	void operator()() {
+		r();
+	}
+	inline operator gen_t() {
+		return r;
+	}
+private:
+	gen_t r;
+};
+
 /* This class is used to avoid writing the template argument in the pipeline type. */
 struct pipeline {
 	template <typename T>
@@ -126,6 +140,42 @@ struct generate {
 	}
 
 	fact_t factory;
+};
+
+template <typename gen_t>
+struct datasource_wrapper : public pipeline_virtual {
+	gen_t generator;
+	inline datasource_wrapper(const gen_t & generator) : generator(generator) {
+	}
+	inline void operator()() {
+		generator();
+	}
+};
+
+template <typename gen_t>
+struct datasource {
+	inline datasource(const gen_t & gen) : generator(gen) {
+	}
+
+	template <typename fact_t>
+	inline datasource<typename fact_t::template generated<gen_t>::type>
+	operator|(const fact_t & fact) {
+		return fact.construct(generator);
+	}
+
+	inline operator gen_t() {
+		return generator;
+	}
+
+	inline operator datasource_wrapper<gen_t>() {
+		return generator;
+	}
+
+	inline operator pipeline() {
+		return datasource_wrapper<gen_t>(generator);
+	}
+
+	gen_t generator;
 };
 
 }

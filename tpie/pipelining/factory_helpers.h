@@ -58,6 +58,23 @@ private:
 	T1 t1;
 };
 
+template <template <typename source_t> class R, typename T1>
+struct pull_factory_1 {
+	template<typename source_t>
+	struct generated {
+		typedef R<source_t> type;
+	};
+
+	inline pull_factory_1(T1 t1) : t1(t1) {}
+
+	template <typename source_t>
+	inline R<source_t> construct(const source_t & source) const {
+		return R<source_t>(source, t1);
+	}
+private:
+	T1 t1;
+};
+
 template <template <typename dest_t> class R, typename T1, typename T2>
 struct factory_2 {
 	template<typename dest_t>
