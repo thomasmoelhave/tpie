@@ -57,7 +57,12 @@ private:
 	gen_t r;
 };
 
-/* This class is used to avoid writing the template argument in the pipeline type. */
+/**
+ * \class pipeline
+ *
+ * This class is used to avoid writing the template argument in the
+ * pipeline_impl or pipeline_pull_impl type.
+ */
 struct pipeline {
 	template <typename T>
 	inline pipeline(const T & from) {
@@ -73,9 +78,12 @@ private:
 	pipeline_virtual * p;
 };
 
-/* A generate class pushes input down the pipeline.
- * fact_t: A factory with a construct() method like the factory_0, factory_1,
- * etc. helpers. */
+/**
+ * A generate class pushes input down the pipeline.
+ *
+ * \tparam fact_t A factory with a construct() method like the factory_0,
+ *                factory_1, etc. helpers.
+ */
 template <typename fact_t>
 struct generate {
 	typedef fact_t factory_type;

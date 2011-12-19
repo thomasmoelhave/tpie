@@ -20,6 +20,11 @@
 #ifndef __TPIE_PIPELINING_H__
 #define __TPIE_PIPELINING_H__
 
+/**
+ * \namespace tpie::pipelining TPIE pipelining framework.
+ * \author Mathias Rav
+ */
+
 #include <tpie/pipelining/core.h>
 #include <tpie/pipelining/factory_helpers.h>
 #include <tpie/pipelining/file_stream.h>
