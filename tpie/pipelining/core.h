@@ -60,9 +60,8 @@ private:
 };
 
 /* A generate class pushes input down the pipeline.
- * gen_t: The user-specified class that either generates input or filters input.
- * dest_t: Whatever follows gen_t.
- * param_t: gen_t factory. */
+ * fact_t: A factory with a construct() method like the factory_0, factory_1,
+ * etc. helpers. */
 template <typename fact_t>
 struct generate {
 	typedef fact_t factory_type;
