@@ -119,6 +119,7 @@ struct pull_output_t {
 		while (source.can_pull()) {
 			fs.write(source.pull());
 		}
+		source.end();
 	}
 
 	source_t source;
