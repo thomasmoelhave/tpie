@@ -73,6 +73,35 @@ private:
 };
 
 template <bool virt>
+inline static void do_write(size_t count) {
+	file_stream<test_t> s;
+	s.open("tmp");
+	if (virt) {
+		pipeline p = generate<factory_1<number_generator_t, size_t> >(count) | output(s);
+		p();
+	} else {
+		number_generator_t<output_t<test_t> > p =
+			generate<factory_1<number_generator_t, size_t> >(count) | output(s);
+		p();
+	}
+}
+
+template <bool virt>
+inline static test_t do_read() {
+	test_t res = 0;
+	file_stream<test_t> s;
+	s.open("tmp");
+	if (virt) {
+		pipeline p = input(s) | termfactory_1<number_sink_t, test_t &>(res);
+		p();
+	} else {
+		input_t<number_sink_t> p = input(s) | termfactory_1<number_sink_t, test_t &>(res);
+		p();
+	}
+	return res;
+}
+
+template <bool virt>
 static void test(size_t count) {
 	test_realtime_t start;
 	test_realtime_t end;
@@ -80,34 +109,12 @@ static void test(size_t count) {
 	boost::filesystem::remove("tmp");
 
 	getTestRealtime(start);
-	{
-		file_stream<test_t> s;
-		s.open("tmp");
-		if (virt) {
-			pipeline p = generate<factory_1<number_generator_t, size_t> >(count) | output(s);
-			p();
-		} else {
-			number_generator_t<output_t<test_t> > p =
-				generate<factory_1<number_generator_t, size_t> >(count) | output(s);
-			p();
-		}
-	}
+	do_write<virt>(count);
 	getTestRealtime(end);
 	std::cout << testRealtimeDiff(start,end) << std::flush;
 	
-	test_t res = 0;
 	getTestRealtime(start);
-	{
-		file_stream<test_t> s;
-		s.open("tmp");
-		if (virt) {
-			pipeline p = input(s) | termfactory_1<number_sink_t, test_t &>(res);
-			p();
-		} else {
-			input_t<number_sink_t> p = input(s) | termfactory_1<number_sink_t, test_t &>(res);
-			p();
-		}
-	}
+	test_t res = do_read<virt>();
 	getTestRealtime(end);
 	std::cout << " " << testRealtimeDiff(start,end) << ' ' << res << std::endl;
 
