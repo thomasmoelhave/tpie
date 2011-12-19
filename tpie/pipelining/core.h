@@ -27,12 +27,15 @@ namespace pipelining {
 /* The only virtual method call in this sublibrary! */
 struct pipeline_virtual {
 	virtual void operator()() = 0;
+	virtual ~pipeline_virtual() {}
 };
 
 template <typename fact_t>
 struct pipeline_impl : public pipeline_virtual {
 	typedef typename fact_t::generated_type gen_t;
 	inline pipeline_impl(const fact_t & factory) : r(factory.construct()) {}
+	virtual ~pipeline_impl() {
+	}
 	void operator()() {
 		r();
 	}
@@ -47,6 +50,8 @@ template <typename fact_t>
 struct pipeline_pull_impl : public pipeline_virtual {
 	typedef typename fact_t::generated_type gen_t;
 	inline pipeline_pull_impl(const fact_t & factory) : r(factory.construct()) {}
+	virtual ~pipeline_pull_impl() {
+	}
 	void operator()() {
 		r();
 	}
