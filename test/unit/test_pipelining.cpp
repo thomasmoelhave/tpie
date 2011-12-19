@@ -137,7 +137,7 @@ bool file_stream_pull_test() {
 		in.open("input");
 		file_stream<test_t> out;
 		out.open("output");
-		pipeline p = (pull_input(in) | pull_output(out));
+		pipeline p = (pull_input(in) | pull_identity() | pull_output(out));
 		p();
 	}
 	{

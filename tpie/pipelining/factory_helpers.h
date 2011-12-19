@@ -41,6 +41,20 @@ struct factory_0 {
 	}
 };
 
+
+template <template <typename source_t> class R>
+struct pull_factory_0 {
+	template<typename source_t>
+	struct generated {
+		typedef R<source_t> type;
+	};
+
+	template <typename source_t>
+	inline R<source_t> construct(const source_t & source) const {
+		return R<source_t>(source);
+	}
+};
+
 template <template <typename dest_t> class R, typename T1>
 struct factory_1 {
 	template<typename dest_t>

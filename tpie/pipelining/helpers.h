@@ -88,7 +88,40 @@ private:
 	dest_t dest;
 };
 
-static generate<factory_0<identity_t> > identity;
+inline generate<factory_0<identity_t> > identity() {
+	return generate<factory_0<identity_t> >();
+}
+
+template <typename source_t>
+struct pull_identity_t {
+	typedef typename source_t::item_type item_type;
+
+	inline pull_identity_t(const source_t & source) : source(source) {
+	}
+
+	inline void begin() {
+		source.begin();
+	}
+
+	inline item_type pull() {
+		return source.pull();
+	}
+
+	inline bool can_pull() {
+		return source.can_pull();
+	}
+
+	inline void end() {
+		source.end();
+	}
+
+private:
+	source_t source;
+};
+
+inline pull_factory_0<pull_identity_t> pull_identity() {
+	return pull_factory_0<pull_identity_t>();
+}
 
 }
 
