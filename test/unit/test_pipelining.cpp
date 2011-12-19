@@ -150,6 +150,33 @@ bool file_stream_pull_test() {
 	return true;
 }
 
+bool file_stream_alt_push_test() {
+	file_system_cleanup();
+	{
+		file_stream<test_t> in;
+		in.open("input");
+		in.write(1);
+		in.write(2);
+		in.write(3);
+	}
+	{
+		file_stream<test_t> in;
+		in.open("input");
+		file_stream<test_t> out;
+		out.open("output");
+		pipeline p = (input(in) | alt_identity() | output(out));
+		p();
+	}
+	{
+		file_stream<test_t> out;
+		out.open("output");
+		if (1 != out.read()) return false;
+		if (2 != out.read()) return false;
+		if (3 != out.read()) return false;
+	}
+	return true;
+}
+
 #define TEST(fun) do {if (!fun()) result = false;} while (0)
 
 int main() {
@@ -158,6 +185,7 @@ int main() {
 	TEST(vector_multiply_test);
 	TEST(file_stream_test);
 	TEST(file_stream_pull_test);
+	TEST(file_stream_alt_push_test);
 	file_system_cleanup();
 	if (result) {
 		std::cout << "pipelining: All tests pass" << std::endl;

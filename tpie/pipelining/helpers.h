@@ -135,6 +135,9 @@ struct dummydest_t {
 	inline void push(const T & el) {
 		buffer = el;
 	}
+	inline T pull() {
+		return buffer;
+	}
 };
 
 template <typename pushfact_t>
@@ -185,14 +188,71 @@ struct push_to_pull {
 			return source.can_pull();
 		}
 
-	private:
-		puller_t & operator=(const puller_t & other);
+	};
+};
+
+template <typename pullfact_t>
+struct pull_to_push {
+
+	template <typename dest_t>
+	struct pusher_t {
+
+		typedef typename dest_t::item_type item_type;
+		typedef typename pullfact_t::template generated<dummydest_t<item_type> >::type puller_t;
+
+		item_type buffer;
+		dest_t dest;
+		pullfact_t pullfact;
+		dummydest_t<item_type> dummydest;
+		auto_ptr<puller_t> puller;
+
+		inline pusher_t(const dest_t & dest, const pullfact_t & pullfact)
+			: dest(dest)
+			, pullfact(pullfact)
+			, dummydest(buffer) {
+		}
+
+		inline pusher_t(const pusher_t & other)
+			: buffer(other.buffer)
+			, dest(other.dest)
+			, dummydest(buffer) {
+		}
+
+		inline void begin() {
+			puller.reset(tpie_new<puller_t>(pullfact.construct(dummydest)));
+			puller->begin();
+			dest.begin();
+		}
+
+		inline void end() {
+			dest.end();
+			puller->end();
+			puller.reset();
+		}
+
+		inline void push(const item_type & item) {
+			dummydest.push(item);
+			puller->pull();
+			dest.push(dummydest.pull());
+		}
 
 	};
 };
 
 inline pull_factory_1<push_to_pull<factory_0<identity_t> >::puller_t, factory_0<identity_t> > pull_identity() {
 	return factory_0<identity_t>();
+}
+
+inline
+generate<factory_1<
+	pull_to_push<pull_factory_0<pull_identity_t> >::pusher_t,
+	pull_factory_0<pull_identity_t>
+> >
+alt_identity() {
+	return factory_1<
+		pull_to_push<pull_factory_0<pull_identity_t> >::pusher_t,
+		pull_factory_0<pull_identity_t>
+	>(pull_factory_0<pull_identity_t>());
 }
 
 }
