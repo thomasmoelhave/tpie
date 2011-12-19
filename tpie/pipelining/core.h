@@ -24,12 +24,23 @@ namespace tpie {
 
 namespace pipelining {
 
-/* The only virtual method call in this sublibrary! */
+/**
+ * \class pipeline_virtual
+ * Virtual superclass for pipelines implementing the function call operator.
+ */
 struct pipeline_virtual {
+	/**
+	 * Invoke the pipeline. The only virtual function call in this library.
+	 */
 	virtual void operator()() = 0;
 	virtual ~pipeline_virtual() {}
 };
 
+/**
+ * \class pipeline_impl
+ * \tparam fact_t Factory type
+ * Templated subclass of pipeline_virtual for push pipelines.
+ */
 template <typename fact_t>
 struct pipeline_impl : public pipeline_virtual {
 	typedef typename fact_t::generated_type gen_t;
@@ -46,27 +57,26 @@ private:
 	gen_t r;
 };
 
-template <typename fact_t>
-struct pipeline_pull_impl : public pipeline_virtual {
-	typedef typename fact_t::generated_type gen_t;
-	inline pipeline_pull_impl(const fact_t & factory) : r(factory.construct()) {}
-	virtual ~pipeline_pull_impl() {
+/**
+ * \class datasource_wrapper
+ * \tparam gen_t Generator type
+ * Templated subclass of pipeline_virtual for pull pipelines.
+ */
+template <typename gen_t>
+struct datasource_wrapper : public pipeline_virtual {
+	gen_t generator;
+	inline datasource_wrapper(const gen_t & generator) : generator(generator) {
 	}
-	void operator()() {
-		r();
+	inline void operator()() {
+		generator();
 	}
-	inline operator gen_t() {
-		return r;
-	}
-private:
-	gen_t r;
 };
 
 /**
  * \class pipeline
  *
  * This class is used to avoid writing the template argument in the
- * pipeline_impl or pipeline_pull_impl type.
+ * pipeline_impl type.
  */
 struct pipeline {
 	template <typename T>
@@ -84,6 +94,8 @@ private:
 };
 
 /**
+ * \class generate
+ *
  * A generate class pushes input down the pipeline.
  *
  * \tparam fact_t A factory with a construct() method like the factory_0,
@@ -137,15 +149,19 @@ struct generate {
 		}
 	};
 
-	/* The pipe operator combines this generator/filter with another filter. */
+	/**
+	 * The pipe operator combines this generator/filter with another filter.
+	 */
 	template <typename fact2_t>
 	inline generate<pair_factory<fact_t, fact2_t> >
 	operator|(const generate<fact2_t> & r) {
 		return pair_factory<fact_t, fact2_t>(factory, r.factory);
 	}
 
-	/* This pipe operator combines this generator/filter with a terminator to
-	 * make a pipeline. */
+	/**
+	 * This pipe operator combines this generator/filter with a terminator to
+	 * make a pipeline.
+	 */
 	template <typename fact2_t>
 	inline pipeline_impl<termpair_factory<fact_t, fact2_t> >
 	operator|(const fact2_t & fact2) {
@@ -155,16 +171,13 @@ struct generate {
 	fact_t factory;
 };
 
-template <typename gen_t>
-struct datasource_wrapper : public pipeline_virtual {
-	gen_t generator;
-	inline datasource_wrapper(const gen_t & generator) : generator(generator) {
-	}
-	inline void operator()() {
-		generator();
-	}
-};
-
+/**
+ * \class datasource
+ *
+ * A data source pulls data up the pipeline.
+ *
+ * \tparam gen_t Generator type
+ */
 template <typename gen_t>
 struct datasource {
 	inline datasource(const gen_t & gen) : generator(gen) {

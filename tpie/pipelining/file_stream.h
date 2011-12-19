@@ -29,6 +29,11 @@ namespace tpie {
 
 namespace pipelining {
 
+/**
+ * \class input_t
+ *
+ * file_stream input generator.
+ */
 template <typename dest_t>
 struct input_t {
 	typedef typename dest_t::item_type item_type;
@@ -53,6 +58,11 @@ inline generate<factory_1<input_t, file_stream<T> &> > input(file_stream<T> & fs
 	return factory_1<input_t, file_stream<T> &>(fs);
 }
 
+/**
+ * \class pull_input_t
+ *
+ * file_stream pull input generator.
+ */
 template <typename T>
 struct pull_input_t {
 	typedef T item_type;
@@ -82,6 +92,11 @@ inline datasource<pull_input_t<T> > pull_input(file_stream<T> & fs) {
 	return pull_input_t<T>(fs);
 }
 
+/**
+ * \class output_t
+ *
+ * file_stream output terminator.
+ */
 template <typename T>
 struct output_t {
 	typedef T item_type;
@@ -107,6 +122,11 @@ inline termfactory_1<output_t<T>, file_stream<T> &> output(file_stream<T> & fs) 
 	return fs;
 }
 
+/**
+ * \class pull_output_t
+ *
+ * file_stream output pull data source.
+ */
 template <typename source_t>
 struct pull_output_t {
 	typedef typename source_t::item_type item_type;
