@@ -39,7 +39,7 @@
 using namespace tpie::pipelining;
 
 // This is the basic usage:
-void do_pipeline(int factor, int term) {
+static void do_pipeline(int factor, int term) {
 	pipeline p = scanf_ints | linear(factor, term) | printf_ints;
 	p();
 }
@@ -47,13 +47,13 @@ void do_pipeline(int factor, int term) {
 
 std::string progname;
 
-inline void usage() {
+static inline void usage() {
 	std::cout << "Usage: " << progname << " a b\n"
 		<< "Reads integers n on stdin and outputs integers a*n+b on stdout." << std::endl;
 	exit(1);
 }
 
-inline void getint(const std::string & arg, int & var) {
+static inline void getint(const std::string & arg, int & var) {
 	if (arg == "0") var = 0; 
 	else {
 		std::stringstream(arg) >> var; 
