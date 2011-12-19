@@ -18,9 +18,14 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
 
-/* TPIE pipelining example.
+/**
+ * \file tpie/pipelining/examples/stdio.cpp
+ *
+ * TPIE pipelining example.
+ *
  * Compile with:
- *   g++ -I. -O3 tpie/pipelining/examples/stdio.cpp -o stdio
+ *
+ * g++ -I. -O3 tpie/pipelining/examples/stdio.cpp -o stdio
  */
 
 
