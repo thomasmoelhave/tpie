@@ -68,26 +68,31 @@ void file_accessor_crtp<child_t, minimizeSeeks>::write_header(bool clean) {
 	stream_header_t header;
 	fill_header(header, clean);
 	seek_i(0);
-	write_i(&header, sizeof(header));
+	char header_area[header_size()];
+	memcpy(header_area, &header, sizeof(header));
+	memset(header_area+sizeof(header), 0, header_size()-sizeof(header));
+	write_i(header_area, header_size());
 }
-
+ 
 template <typename child_t, bool minimizeSeeks>
-memory_size_type file_accessor_crtp<child_t, minimizeSeeks>::read(void * data, stream_size_type offset, memory_size_type size) {
-	stream_size_type loc=sizeof(stream_header_t) + m_userDataSize + offset*m_itemSize;
+memory_size_type file_accessor_crtp<child_t, minimizeSeeks>::read_block(void * data, stream_size_type blockNumber, stream_size_type itemCount) {
+	stream_size_type loc = header_size() + blockNumber*m_blockSize;
 	seek_i(loc);
-	if (offset + size > m_size) size = m_size - offset;
-	memory_size_type z=size*m_itemSize;
+	stream_size_type offset = blockNumber*m_blockItems;
+	if (offset + itemCount > m_size) itemCount = m_size - offset;
+	memory_size_type z=itemCount*m_itemSize;
 	read_i(data, z);
-	return size;
+	return itemCount;
 }
 
 template <typename child_t, bool minimizeSeeks>
-void file_accessor_crtp<child_t, minimizeSeeks>::write(const void * data, stream_size_type offset, memory_size_type size) {
-	stream_size_type loc=sizeof(stream_header_t) + m_userDataSize + offset*m_itemSize;
+void file_accessor_crtp<child_t, minimizeSeeks>::write_block(const void * data, stream_size_type blockNumber, stream_size_type itemCount) {
+	stream_size_type loc = header_size() + blockNumber*m_blockSize;
 	seek_i(loc);
-	memory_size_type z=size*m_itemSize;
+	stream_size_type offset = blockNumber*m_blockItems;
+	memory_size_type z=itemCount*m_itemSize;
 	write_i(data, z);
-	if (offset+size > m_size) m_size=offset+size;
+	if (offset+itemCount > m_size) m_size=offset+itemCount;
 }
 
 template <typename child_t, bool minimizeSeeks>

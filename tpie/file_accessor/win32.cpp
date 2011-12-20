@@ -63,6 +63,7 @@ void win32::open(const std::string & path,
 				 bool read,
 				 bool write,
 				 memory_size_type itemSize,
+				 memory_size_type blockSize,
 				 memory_size_type userDataSize) {
 	DWORD creation_flag = FILE_FLAG_SEQUENTIAL_SCAN;
 	DWORD shared_flags = FILE_SHARE_READ | FILE_SHARE_WRITE;
@@ -71,6 +72,8 @@ void win32::open(const std::string & path,
 	m_write = write;
 	m_path = path;
 	m_itemSize=itemSize;
+	m_blockSize=blockSize;
+	m_blockItems=blockSize/itemSize;
 	m_userDataSize=userDataSize;
 	if (!write && !read)
 		throw invalid_argument_exception("Either read or write must be specified");

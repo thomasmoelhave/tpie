@@ -39,6 +39,7 @@ public:
 					  bool read,
 					  bool write,
 					  memory_size_type itemSize,
+					  memory_size_type blockSize,
 					  memory_size_type userDataSize);
 	virtual void close();
 	virtual void truncate(stream_size_type size);

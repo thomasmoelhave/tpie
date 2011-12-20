@@ -65,7 +65,14 @@ public:
 			fileAccessor = new default_file_accessor();
 		m_fileAccessor = fileAccessor;
 
-		m_blockItems = block_size(blockFactor)/m_itemSize;
+		m_blockSize = block_size(blockFactor);
+		m_blockItems = m_blockSize/m_itemSize;
+
+		m_blockStartIndex = 0;
+		m_nextBlock = std::numeric_limits<stream_size_type>::max();
+		m_nextIndex = std::numeric_limits<memory_size_type>::max();
+		m_index = std::numeric_limits<memory_size_type>::max();
+
 		m_block.data = tpie_new_array<char>(block_memory_usage());
 	};
 
@@ -84,7 +91,7 @@ public:
 		close();
 		m_canRead = accessType == file_base::read || accessType == file_base::read_write;
 		m_canWrite = accessType == file_base::write || accessType == file_base::read_write;
-		m_fileAccessor->open(path, m_canRead, m_canWrite, m_itemSize, user_data_size);
+		m_fileAccessor->open(path, m_canRead, m_canWrite, m_itemSize, m_blockSize, user_data_size);
 		m_size = m_fileAccessor->size();
 		m_open = true;
 		
@@ -417,6 +424,7 @@ private:
 	memory_size_type m_nextIndex;
 	stream_size_type m_blockStartIndex;
 	memory_size_type m_blockItems;
+	memory_size_type m_blockSize;
 	stream_size_type m_size;
 	bool m_canRead;
 	bool m_canWrite;
@@ -449,7 +457,7 @@ private:
 
 		// populate buffer data
 		if (m_block.size > 0 &&
-			m_fileAccessor->read(m_block.data, m_block.number * static_cast<stream_size_type>(m_blockItems), m_block.size) != m_block.size) {
+			m_fileAccessor->read_block(m_block.data, m_block.number, m_block.size) != m_block.size) {
 			throw io_exception("Incorrect number of items read");
 		}
 	}
@@ -478,7 +486,7 @@ private:
 		if (m_block.dirty) {
 			assert(m_canWrite);
 			update_vars();
-			m_fileAccessor->write(m_block.data, m_block.number * static_cast<stream_size_type>(m_blockItems), m_block.size);
+			m_fileAccessor->write_block(m_block.data, m_block.number, m_block.size);
 		}
 	}
 

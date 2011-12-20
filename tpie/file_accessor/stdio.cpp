@@ -58,12 +58,15 @@ void stdio::open(const std::string & path,
 				 bool read,
 				 bool write,
 				 memory_size_type itemSize,
+				 memory_size_type blockSize,
 				 memory_size_type userDataSize) {
 	close();
 	invalidateLocation();
-	m_path = path;
 	m_write = write;
+	m_path = path;
 	m_itemSize=itemSize;
+	m_blockSize=blockSize;
+	m_blockItems=blockSize/itemSize;
 	m_userDataSize=userDataSize;
 	if (!write && !read)
 		throw invalid_argument_exception("Either read or write must be specified");

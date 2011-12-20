@@ -29,16 +29,23 @@ protected:
 	stream_size_type m_size;
 	memory_size_type m_userDataSize;
 	memory_size_type m_itemSize;
+	memory_size_type m_blockSize;
+	memory_size_type m_blockItems;
 	std::string m_path;
+
+	inline memory_size_type boundary() { return 4096; }
+	inline memory_size_type align_to_boundary(memory_size_type z) { return (z+boundary()-1)/boundary()*boundary(); }
+	inline memory_size_type header_size() { return align_to_boundary(sizeof(stream_header_t)+m_userDataSize); }
 public:
 	virtual void open(const std::string & path, 
 					  bool read, 
 					  bool write, 
 					  memory_size_type itemSize,
+					  memory_size_type blockSize,
 					  memory_size_type userDataSize) = 0;
 	virtual void close() = 0;
-	virtual memory_size_type read(void * data, stream_size_type offset, memory_size_type size) = 0;
-	virtual void write(const void * data, stream_size_type offset, memory_size_type size) = 0; 
+	virtual memory_size_type read_block(void * data, stream_size_type blockNumber, stream_size_type itemCount) = 0;
+	virtual void write_block(const void * data, stream_size_type blockNumber, stream_size_type itemCount) = 0; 
 	virtual void read_user_data(void * data) = 0;
 	virtual void write_user_data(const void * data) = 0;
 	virtual void truncate(stream_size_type size) = 0;

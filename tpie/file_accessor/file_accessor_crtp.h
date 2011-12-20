@@ -37,8 +37,8 @@ protected:
 	void read_header();
 	void write_header(bool clean);
 public:
-	virtual memory_size_type read(void * data, stream_size_type offset, memory_size_type size);
-	virtual void write(const void * data, stream_size_type offset, memory_size_type size);
+	virtual memory_size_type read_block(void * data, stream_size_type blockNumber, stream_size_type itemCount);
+	virtual void write_block(const void * data, stream_size_type blockNumber, stream_size_type itemCount);
 	virtual void read_user_data(void * data);
 	virtual void write_user_data(const void * data);
 	static inline memory_size_type memory_usage() {return sizeof(child_t);}
