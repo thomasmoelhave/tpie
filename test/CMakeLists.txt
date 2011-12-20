@@ -49,3 +49,7 @@ add_tpie_test(test_ami_sort)
 add_subdirectory(speed_regression)
 
 add_subdirectory(unit)
+
+add_executable(tpiecat cat.cpp)
+set_target_properties(tpiecat PROPERTIES FOLDER tpie/test)
+target_link_libraries(tpiecat tpie)
