@@ -2,6 +2,11 @@
 
 *Branches*: filestream f604a0eed3 vs. filestreampagealign f604a0eed3
 
+filestreampagealign was patched to use a heap-allocated buffer in
+file_accessor_crtp::write_header rather than stack-allocated, and to disable
+file_accessor::stdio::truncate, since on Windows it relies on the old
+file_accessor::write that has been removed.
+
 *Test output*: grits:/c/Users/Rav/Desktop/pagealign-pq-segment.txt
 
 *Test initiated* on Tue Dec 20 19:28 CET 2011
