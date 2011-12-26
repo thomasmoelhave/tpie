@@ -40,7 +40,7 @@ using namespace tpie::pipelining;
 
 // This is the basic usage:
 static void do_pipeline(int factor, int term) {
-	pipeline p = scanf_ints | linear(factor, term) | printf_ints;
+	pipeline p = scanf_ints() | linear(factor, term) | printf_ints();
 	p();
 }
 
