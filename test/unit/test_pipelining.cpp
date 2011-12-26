@@ -177,15 +177,22 @@ bool file_stream_alt_push_test() {
 	return true;
 }
 
-#define TEST(fun) do {if (!fun()) result = false;} while (0)
+bool result;
+
+typedef bool (* fun_t)();
+
+template <fun_t f>
+inline void test() {
+	if (!(*f)()) result = false;
+}
 
 int main() {
 	tpie_initer _(32);
-	bool result = true;
-	TEST(vector_multiply_test);
-	TEST(file_stream_test);
-	TEST(file_stream_pull_test);
-	TEST(file_stream_alt_push_test);
+	result = true;
+	test<&vector_multiply_test>();
+	test<&file_stream_test>();
+	test<&file_stream_pull_test>();
+	test<&file_stream_alt_push_test>();
 	file_system_cleanup();
 	if (result) {
 		std::cout << "pipelining: All tests pass" << std::endl;
