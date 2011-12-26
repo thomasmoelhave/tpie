@@ -177,13 +177,22 @@ bool file_stream_alt_push_test() {
 	return true;
 }
 
+// True if all tests pass, false otherwise
 bool result;
+
+// Name of test to run
 std::string testname;
+
+// Whether we should run all tests
 bool testall;
+
+// How many tests were run (if 0, usage is printed)
 int tests;
 
+// Type of test function
 typedef bool fun_t();
 
+// Run test, increment `tests', set `result' if failed, output if `testall'
 template <fun_t f>
 inline void test(const char * name) {
 	if (!testall && testname != name) return;
