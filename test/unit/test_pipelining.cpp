@@ -178,27 +178,41 @@ bool file_stream_alt_push_test() {
 }
 
 bool result;
+std::string testname;
+bool testall;
+int tests;
 
 typedef bool (* fun_t)();
 
 template <fun_t f>
-inline void test() {
-	if (!(*f)()) result = false;
+inline void test(const char * name) {
+	if (!testall && testname != name) return;
+	++tests;
+	bool pass = (*f)();
+	if (testall)
+		std::cerr << "Test \"" << name << "\" " << (pass ? "passed" : "failed") << std::endl;
+
+	if (!pass) result = false;
 }
 
-int main() {
+int main(int argc, char ** argv) {
+	if (argc <= 1) {
+		testname = "";
+	} else {
+		testname = argv[1];
+	}
+	testall = testname == "all";
 	tpie_initer _(32);
 	result = true;
-	test<&vector_multiply_test>();
-	test<&file_stream_test>();
-	test<&file_stream_pull_test>();
-	test<&file_stream_alt_push_test>();
+	tests = 0;
+	test<&vector_multiply_test>("vector");
+	test<&file_stream_test>("filestream");
+	test<&file_stream_pull_test>("fspull");
+	test<&file_stream_alt_push_test>("fsaltpush");
 	file_system_cleanup();
-	if (result) {
-		std::cout << "pipelining: All tests pass" << std::endl;
-		return EXIT_SUCCESS;
-	} else {
-		std::cout << "pipelining: Some tests failed" << std::endl;
+	if (!tests) {
+		std::cerr << "Usage: " << argv[0] << " [all|vector|filestream|fspull|fsaltpush]" << std::endl;
 		return EXIT_FAILURE;
 	}
+	return result ? EXIT_SUCCESS : EXIT_FAILURE;
 }
