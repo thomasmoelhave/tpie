@@ -182,13 +182,13 @@ std::string testname;
 bool testall;
 int tests;
 
-typedef bool (* fun_t)();
+typedef bool fun_t();
 
 template <fun_t f>
 inline void test(const char * name) {
 	if (!testall && testname != name) return;
 	++tests;
-	bool pass = (*f)();
+	bool pass = f();
 	if (testall)
 		std::cerr << "Test \"" << name << "\" " << (pass ? "passed" : "failed") << std::endl;
 
@@ -205,10 +205,10 @@ int main(int argc, char ** argv) {
 	tpie_initer _(32);
 	result = true;
 	tests = 0;
-	test<&vector_multiply_test>("vector");
-	test<&file_stream_test>("filestream");
-	test<&file_stream_pull_test>("fspull");
-	test<&file_stream_alt_push_test>("fsaltpush");
+	test<vector_multiply_test>("vector");
+	test<file_stream_test>("filestream");
+	test<file_stream_pull_test>("fspull");
+	test<file_stream_alt_push_test>("fsaltpush");
 	file_system_cleanup();
 	if (!tests) {
 		std::cerr << "Usage: " << argv[0] << " [all|vector|filestream|fspull|fsaltpush]" << std::endl;
