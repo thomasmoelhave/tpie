@@ -21,6 +21,7 @@
 #include <tpie/pipelining.h>
 #include <tpie/file_stream.h>
 #include <boost/filesystem.hpp>
+#include <algorithm>
 
 using namespace tpie;
 using namespace tpie::pipelining;
@@ -65,13 +66,15 @@ void setup_test_vectors() {
 
 bool check_test_vectors() {
 	if (outputvector != expectvector) {
-		std::cout << "Output vector does not match expect vector" << std::endl;
+		std::cout << "Output vector does not match expect vector\n"
+			<< "Expected: " << std::flush;
 		std::vector<test_t>::iterator expectit = expectvector.begin();
 		while (expectit != expectvector.end()) {
 			std::cout << *expectit << ' ';
 			++expectit;
 		}
-		std::cout << std::endl;
+		std::cout << '\n'
+			<< "Output:   " << std::flush;
 		std::vector<test_t>::iterator outputit = outputvector.begin();
 		while (outputit != outputvector.end()) {
 			std::cout << *outputit << ' ';
@@ -208,6 +211,23 @@ bool merge_test() {
 	return check_test_vectors();
 }
 
+bool reverse_test() {
+	setup_test_vectors();
+
+	reverser<size_t> r(inputvector.size());
+
+	pipeline p1 = input_vector(inputvector) | r.sink();
+	pipeline p2 = r.source() | output_vector(outputvector);
+
+	expectvector = inputvector;
+	std::reverse(expectvector.begin(), expectvector.end());
+
+	p1();
+	p2();
+
+	return check_test_vectors();
+}
+
 // True if all tests pass, false otherwise
 bool result;
 
@@ -250,6 +270,7 @@ int main(int argc, char ** argv) {
 	test<file_stream_pull_test>("fspull");
 	test<file_stream_alt_push_test>("fsaltpush");
 	test<merge_test>("merge");
+	test<reverse_test>("reverse");
 	file_system_cleanup();
 	if (!tests) {
 		std::cerr << "Usage: " << argv[0] << " [all|vector|filestream|fspull|fsaltpush]" << std::endl;
