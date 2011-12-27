@@ -77,12 +77,10 @@ static int write_file(std::string filename, double blockFactor) {
 	return 0;
 }
 
-struct null_t;
-
-template <typename T = null_t>
-struct parameter_parser {
-	inline parameter_parser(int argc, char ** argv)
-		: argc(argc), argv(argv) {
+template <typename base_t>
+struct parameter_parser_base {
+	inline parameter_parser_base(int argc, char ** argv)
+		: m_blockSize(0), m_shouldWrite(false), argc(argc), argv(argv) {
 	}
 
 	int parse(int offset = 0) {
@@ -93,15 +91,14 @@ struct parameter_parser {
 			return parse(offset+2);
 		}
 		if (arg == "-o") {
-			m_outputFile = argv[1];
+			m_outputFile = argv[offset+1];
 			m_shouldWrite = true;
 			return parse(offset+2);
 		}
-		m_inputFiles.push_back(arg);
-		return parse(offset+1);
+		return handle_input_file(offset);
 	}
 
-private:
+protected:
 
 	size_t m_blockSize;
 	bool m_shouldWrite;
@@ -111,13 +108,52 @@ private:
 	int argc;
 	char ** argv;
 
+private:
+
 	int finish() {
-		double blockFactor = m_blockSize ? (double) (2 << 20) / m_blockSize : 1.0;
-		if (m_shouldWrite) {
-			return write_file<T>(m_outputFile, blockFactor);
+		return static_cast<base_t*>(this)->finish();
+	}
+
+	int handle_input_file(int offset) {
+		return static_cast<base_t*>(this)->handle_input_file(offset);
+	}
+};
+
+template <typename T>
+struct parameter_parser : public parameter_parser_base<parameter_parser<T> > {
+	int handle_input_file(int offset) {
+		std::string arg(this->argv[offset]);
+		this->m_inputFiles.push_back(arg);
+		return this->parse(offset+1);
+	}
+
+	int finish() {
+		double blockFactor = this->m_blockSize ? (double) (2 << 20) / this->m_blockSize : 1.0;
+		if (this->m_shouldWrite) {
+			return write_file<T>(this->m_outputFile, blockFactor);
 		} else {
-			return read_files<T>(m_inputFiles);
+			return read_files<T>(this->m_inputFiles);
 		}
+	}
+};
+
+struct parameter_parser_notype : public parameter_parser_base<parameter_parser_notype> {
+	inline parameter_parser_notype(int argc, char ** argv)
+		: parameter_parser_base(argc, argv) {
+	}
+
+	int finish() {
+		usage();
+		return 1;
+	}
+
+	int handle_input_file(int offset) {
+		std::string arg(argv[offset]);
+#define trytype(target) if (arg == #target) return parameter_parser<target>(reinterpret_cast<parameter_parser<target> &>(*this)).parse(offset+1)
+		trytype(size_t);
+		trytype(char);
+		this->m_inputFiles.push_back(arg);
+		return parse(offset+1);
 	}
 };
 
@@ -127,20 +163,8 @@ static int use_type(int argc, char ** argv) {
 	return p.parse();
 }
 
-#define trytype(target) do { types << #target << '\n'; if (type != #target) break; return use_type<target>(argc, argv); } while (0)
-
 int main(int argc, char ** argv) {
 	tpie_initer _;
-	std::string type = "";
-	--argc, ++argv;
-	if (argc >= 1) {
-		type = argv[1];
-		--argc, ++argv;
-	}
-	std::stringstream types;
-	trytype(size_t);
-	trytype(char);
-	std::cout << "Recognized types:\n" << types.str() << std::flush;
-	usage();
+	parameter_parser_notype(argc-1, argv+1).parse();
 	return EXIT_FAILURE;
 }
