@@ -177,6 +177,37 @@ bool file_stream_alt_push_test() {
 	return true;
 }
 
+bool merge_test() {
+	setup_test_vectors();
+	{
+		file_stream<test_t> in;
+		in.open("input");
+		pipeline p = input_vector(inputvector) | output(in);
+		p();
+	}
+	expectvector.resize(2*inputvector.size());
+	for (int i = 0, j = 0, l = inputvector.size(); i < l; ++i) {
+		expectvector[j++] = inputvector[i];
+		expectvector[j++] = inputvector[i];
+	}
+	{
+		file_stream<test_t> in;
+		in.open("input");
+		file_stream<test_t> out;
+		out.open("output");
+		std::vector<test_t> inputvector2 = inputvector;
+		pipeline p = input_vector(inputvector) | merge(pull_input(in)) | output(out);
+		p();
+	}
+	{
+		file_stream<test_t> in;
+		in.open("output");
+		pipeline p = input(in) | output_vector(outputvector);
+		p();
+	}
+	return check_test_vectors();
+}
+
 // True if all tests pass, false otherwise
 bool result;
 
@@ -218,6 +249,7 @@ int main(int argc, char ** argv) {
 	test<file_stream_test>("filestream");
 	test<file_stream_pull_test>("fspull");
 	test<file_stream_alt_push_test>("fsaltpush");
+	test<merge_test>("merge");
 	file_system_cleanup();
 	if (!tests) {
 		std::cerr << "Usage: " << argv[0] << " [all|vector|filestream|fspull|fsaltpush]" << std::endl;

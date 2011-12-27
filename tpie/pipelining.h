@@ -32,5 +32,6 @@
 #include <tpie/pipelining/helpers.h>
 #include <tpie/pipelining/numeric.h>
 #include <tpie/pipelining/stdio.h>
+#include <tpie/pipelining/merge.h>
 
 #endif
