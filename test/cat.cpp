@@ -27,7 +27,7 @@
 #include <errno.h>
 
 static void usage(int exitcode = -1) {
-	std::cout << "Parameters: -t <type> [stream1 [stream2 ...]]" << std::endl;
+	std::cerr << "Parameters: -t <type> [stream1 [stream2 ...]]" << std::endl;
 	if (exitcode >= 0) exit(exitcode);
 }
 
@@ -208,7 +208,7 @@ struct parameter_parser_notype : public parameter_parser_base<parameter_parser_n
 		trytype(size_t);
 		trytype(char);
 		usage();
-		std::cout << "Accepted types:\n" << types.str() << std::flush;
+		std::cerr << "Accepted types:\n" << types.str() << std::flush;
 		return 1;
 	}
 };
