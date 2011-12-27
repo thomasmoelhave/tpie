@@ -25,7 +25,7 @@
 #include <sstream>
 
 static void usage(int exitcode = -1) {
-	std::cout << "Parameters: [type] [stream1 [stream2 ...]]" << std::endl;
+	std::cout << "Parameters: -t <type> [stream1 [stream2 ...]]" << std::endl;
 	if (exitcode >= 0) exit(exitcode);
 }
 
@@ -95,6 +95,9 @@ struct parameter_parser_base {
 			m_shouldWrite = true;
 			return parse(offset+2);
 		}
+		if (arg == "-t") {
+			return handle_type_parameter(offset+1);
+		}
 		return handle_input_file(offset);
 	}
 
@@ -114,6 +117,10 @@ private:
 		return static_cast<base_t*>(this)->finish();
 	}
 
+	int handle_type_parameter(int offset) {
+		return static_cast<base_t*>(this)->handle_type_parameter(offset);
+	}
+
 	int handle_input_file(int offset) {
 		return static_cast<base_t*>(this)->handle_input_file(offset);
 	}
@@ -121,6 +128,11 @@ private:
 
 template <typename T>
 struct parameter_parser : public parameter_parser_base<parameter_parser<T> > {
+	int handle_type_parameter(int /*offset*/) {
+		usage();
+		return 1;
+	}
+
 	int handle_input_file(int offset) {
 		std::string arg(this->argv[offset]);
 		this->m_inputFiles.push_back(arg);
@@ -149,11 +161,17 @@ struct parameter_parser_notype : public parameter_parser_base<parameter_parser_n
 
 	int handle_input_file(int offset) {
 		std::string arg(argv[offset]);
+		this->m_inputFiles.push_back(arg);
+		return parse(offset+1);
+	}
+
+	int handle_type_parameter(int offset) {
+		std::string arg(argv[offset]);
 #define trytype(target) if (arg == #target) return parameter_parser<target>(reinterpret_cast<parameter_parser<target> &>(*this)).parse(offset+1)
 		trytype(size_t);
 		trytype(char);
-		this->m_inputFiles.push_back(arg);
-		return parse(offset+1);
+		usage();
+		return 1;
 	}
 };
 
