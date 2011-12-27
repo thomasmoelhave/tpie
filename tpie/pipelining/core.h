@@ -185,19 +185,19 @@ struct datasource {
 
 	template <typename fact_t>
 	inline datasource<typename fact_t::template generated<gen_t>::type>
-	operator|(const fact_t & fact) {
+	operator|(const fact_t & fact) const {
 		return fact.construct(generator);
 	}
 
-	inline operator gen_t() {
+	inline operator gen_t() const {
 		return generator;
 	}
 
-	inline operator datasource_wrapper<gen_t>() {
+	inline operator datasource_wrapper<gen_t>() const {
 		return generator;
 	}
 
-	inline operator pipeline() {
+	inline operator pipeline() const {
 		return datasource_wrapper<gen_t>(generator);
 	}
 
