@@ -167,10 +167,17 @@ struct parameter_parser_notype : public parameter_parser_base<parameter_parser_n
 
 	int handle_type_parameter(int offset) {
 		std::string arg(argv[offset]);
-#define trytype(target) if (arg == #target) return parameter_parser<target>(reinterpret_cast<parameter_parser<target> &>(*this)).parse(offset+1)
+		std::stringstream types;
+
+#define trytype(target) \
+			types << #target << '\n';\
+			if (arg == #target)\
+				return parameter_parser<target>(reinterpret_cast<parameter_parser<target> &>(*this)).parse(offset+1)
+
 		trytype(size_t);
 		trytype(char);
 		usage();
+		std::cout << "Accepted types:\n" << types.str() << std::flush;
 		return 1;
 	}
 };
