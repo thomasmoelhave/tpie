@@ -140,7 +140,7 @@ struct parameter_parser : public parameter_parser_base<parameter_parser<T> > {
 	}
 
 	int finish() {
-		double blockFactor = this->m_blockSize ? (double) (2 << 20) / this->m_blockSize : 1.0;
+		double blockFactor = this->m_blockSize ? (double) this->m_blockSize / (2 << 20) : 1.0;
 		if (this->m_shouldWrite) {
 			return write_file<T>(this->m_outputFile, blockFactor);
 		} else {
