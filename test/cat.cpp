@@ -23,6 +23,8 @@
 #include <cstdlib>
 #include <string>
 #include <sstream>
+#include <tpie/stream_header.h>
+#include <errno.h>
 
 static void usage(int exitcode = -1) {
 	std::cout << "Parameters: -t <type> [stream1 [stream2 ...]]" << std::endl;
@@ -39,16 +41,42 @@ inline void output_item<char>(const char & item) {
 	std::cout << item;
 }
 
+static void throw_errno() {
+	throw tpie::io_exception(strerror(errno));
+}
+
+static tpie::stream_header_t get_stream_header(const std::string & path) {
+	tpie::stream_header_t res;
+	int fd = ::open(path.c_str(), O_RDONLY);
+	if (fd == -1) throw_errno();
+	if (::read(fd, &res, sizeof(res)) != sizeof(res)) throw_errno();
+	::close(fd);
+	return res;
+}
+
 template <typename T>
-static int read_files(std::vector<std::string> files) {
+struct parameter_parser;
+
+template <typename T>
+static int read_files(const std::vector<std::string> & files, const parameter_parser<T> & params) {
 	int result = 0;
-	for (std::vector<std::string>::iterator i = files.begin(); i != files.end(); ++i) {
-		std::string filename = *i;
+	for (std::vector<std::string>::const_iterator i = files.begin(); i != files.end(); ++i) {
+		std::string path = *i;
+		tpie::stream_header_t header = get_stream_header(path);
+		if (params.m_verbose) {
+			std::clog
+				<< "Path:           " << path << '\n'
+				<< "Header version: " << header.version << '\n'
+				<< "Item size:      " << header.itemSize << '\n'
+				<< "User data size: " << header.userDataSize << '\n'
+				<< "Size:           " << header.size << '\n'
+				<< std::flush;
+		}
 		tpie::file_stream<T> fs;
 		try {
-			fs.open(filename, tpie::file_base::read);
+			fs.open(path, tpie::file_base::read, header.userDataSize);
 		} catch (const tpie::stream_exception & e) {
-			std::cerr << "Couldn't open " << filename << ": " << e.what() << std::endl;
+			std::cerr << "Couldn't open " << path << ": " << e.what() << std::endl;
 			result = 1;
 			continue;
 		}
@@ -80,7 +108,7 @@ static int write_file(std::string filename, double blockFactor) {
 template <typename base_t>
 struct parameter_parser_base {
 	inline parameter_parser_base(int argc, char ** argv)
-		: m_blockSize(0), m_shouldWrite(false), argc(argc), argv(argv) {
+		: m_blockSize(0), m_shouldWrite(false), m_verbose(false), argc(argc), argv(argv) {
 	}
 
 	int parse(int offset = 0) {
@@ -98,15 +126,18 @@ struct parameter_parser_base {
 		if (arg == "-t") {
 			return handle_type_parameter(offset+1);
 		}
+		if (arg == "-v") {
+			m_verbose = true;
+			return parse(offset+1);
+		}
 		return handle_input_file(offset);
 	}
-
-protected:
 
 	size_t m_blockSize;
 	bool m_shouldWrite;
 	std::string m_outputFile;
 	std::vector<std::string> m_inputFiles;
+	bool m_verbose;
 
 	int argc;
 	char ** argv;
@@ -144,7 +175,7 @@ struct parameter_parser : public parameter_parser_base<parameter_parser<T> > {
 		if (this->m_shouldWrite) {
 			return write_file<T>(this->m_outputFile, blockFactor);
 		} else {
-			return read_files<T>(this->m_inputFiles);
+			return read_files<T>(this->m_inputFiles, *this);
 		}
 	}
 };
