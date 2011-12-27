@@ -27,7 +27,15 @@
 #include <errno.h>
 
 static void usage(int exitcode = -1) {
-	std::cerr << "Parameters: -t <type> [stream1 [stream2 ...]]" << std::endl;
+	std::cerr
+		<< "Parameters: -t <type> [-v] [-b blocksize] <-o stream | stream1 [stream2 ...]>\n"
+		<< '\n'
+		<< "  -t        : Element type (-t list to get a list of accepted types)\n"
+		<< "  -v        : Verbose\n"
+		<< "  -b bs     : Set block size (in bytes)\n"
+		<< "  -o stream : Read from standard input, output to specified stream\n"
+		<< "  streamn   : Read from specified stream, output to standard output\n"
+		<< std::flush;
 	if (exitcode >= 0) exit(exitcode);
 }
 
@@ -59,6 +67,11 @@ struct parameter_parser;
 
 template <typename T>
 static int read_files(const std::vector<std::string> & files, const parameter_parser<T> & params) {
+	if (!files.size()) {
+		std::cerr << "No input files specified" << std::endl;
+		usage(1);
+		return 1;
+	}
 	int result = 0;
 	for (std::vector<std::string>::const_iterator i = files.begin(); i != files.end(); ++i) {
 		std::string path = *i;
@@ -201,14 +214,14 @@ struct parameter_parser_notype : public parameter_parser_base<parameter_parser_n
 		std::stringstream types;
 
 #define trytype(target) \
-			types << #target << '\n';\
+			types << "  " << #target << '\n';\
 			if (arg == #target)\
 				return parameter_parser<target>(reinterpret_cast<parameter_parser<target> &>(*this)).parse(offset+1)
 
 		trytype(size_t);
 		trytype(char);
 		usage();
-		std::cerr << "Accepted types:\n" << types.str() << std::flush;
+		std::cerr << "\nAccepted types:\n" << types.str() << std::flush;
 		return 1;
 	}
 };
