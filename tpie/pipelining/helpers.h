@@ -33,7 +33,7 @@ template <typename dest_t>
 struct ostream_logger_t {
 	typedef typename dest_t::item_type item_type;
 
-	inline ostream_logger_t(const dest_t & dest, std::ostream & log) : dest(dest), log(log) {
+	inline ostream_logger_t(const dest_t & dest, std::ostream & log) : dest(dest), log(log), begun(false), ended(false) {
 	}
 	inline void begin() {
 		begun = true;
