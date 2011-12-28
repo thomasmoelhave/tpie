@@ -35,7 +35,7 @@ namespace tpie {
 class progress_indicator_null : public progress_indicator_base {
 
 public:
-    progress_indicator_null (TPIE_OS_OFFSET range) :progress_indicator_base(range) {}
+    progress_indicator_null (TPIE_OS_OFFSET range=0) :progress_indicator_base(range) {}
 
     virtual ~progress_indicator_null() { /*Do nothing*/ }
 
