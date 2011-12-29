@@ -172,7 +172,7 @@ public:
 };
 
 int main(int argc, char **argv) {
-	tpie_init();
+	tpie_initer _;
 	if(argc != 2) return 1;
 	std::string test(argv[1]);
 	if (test == "chaining")

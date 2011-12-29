@@ -58,8 +58,6 @@ namespace tpie {
 	    using collection_base<BIDT>::file_pointer;
 	    using collection_base<BIDT>::stats_;
 	    using collection_base<BIDT>::gstats_;
-	    using collection_base<BIDT>::register_memory_allocation;
-	    using collection_base<BIDT>::register_memory_deallocation;
 	    using collection_base<BIDT>::bid_to_file_offset;
 	    using collection_base<BIDT>::create_stack;
 	    using collection_base<BIDT>::new_block_getid;
@@ -204,7 +202,7 @@ namespace tpie {
 	
 	    // Register the memory allocation since mmapped memory is
 	    // not accounted for otherwise.
-	    register_memory_allocation(header_.block_size);
+	    get_memory_manager().register_allocation(header_.block_size);
 	
 	    in_memory_blocks_++;
 	
@@ -250,7 +248,7 @@ namespace tpie {
 		return IO_ERROR;
 	    }
 
-	    register_memory_deallocation(header_.block_size);
+		get_memory_manager().register_allocation(header_.block_size);
 	
 	    in_memory_blocks_--;
 	

@@ -116,12 +116,7 @@ VarArray1D<T>::VarArray1D(TPIE_OS_SIZE_T dim) {
     this->dim = dim;
     
     //  Allocate memory for dim0 elements of type/class T.
-    data = new T[dim];
-    
-    //  Initialize memory.
-    memset(static_cast<void*>(data), 
-	   0, 
-	   dim * sizeof(T));
+    data = tpie::tpie_new_array<T>(dim);
 }
 
 template <class T>
@@ -132,28 +127,20 @@ VarArray1D<T>::VarArray1D(const VarArray1D& other) {
 template <class T>
 VarArray1D<T>::~VarArray1D() {
     // Free allocated memory.
-    delete[] data;
+	tpie::tpie_delete_array(data, dim);
 }
 
 template <class T>
 VarArray1D<T>& VarArray1D<T>::operator=(const VarArray1D<T>& other) {
-    if (this != &other) {
+    if (this == &other) return (*this);
+	tpie::tpie_delete_array(data, dim);
 	this->dim = other.dim;
 	
 	//  Allocate memory for dim elements of type/class T.
-	data = new T[dim];
+	data = tpie::tpie_new_array<T>(dim);
 	
 	//  Copy objects.
-	for(int i = 0; i < dim; i++) {
-	    data[i] = other.data[i];
-	}
-
-//	//  Initialize memory.
-//	memcpy((void*)(this.data), 
-//	       (void*)(other.data), 
-//	       dim * sizeof(T));
-	
-    }
+	std::copy(other.data, other.data+dim, data);
     return (*this);	
 }
 
@@ -184,12 +171,7 @@ VarArray2D<T>::VarArray2D(TPIE_OS_SIZE_T dim0, TPIE_OS_SIZE_T dim1) {
     this->dim[1] = dim1;
     
     //  Allocate memory for dim0 * dim1 elements of type/class T.
-    data = new T[dim0 * dim1];
-    
-    //  Initialize memory.
-    memset(static_cast<void*>(data), 
-	   0, 
-	   dim0 * dim1 * sizeof(T));
+    data = tpie::tpie_new_array<T>(dim0 * dim1);
 }
 
 template <class T>  
@@ -200,30 +182,22 @@ VarArray2D<T>::VarArray2D(const VarArray2D& other) {
 template <class T>  
 VarArray2D<T>::~VarArray2D() {
     // Free allocated memory.
-    delete[] data;
+	tpie::tpie_delete_array(data, dim[0] * dim[1]);
 }
 
 template <class T>  
 VarArray2D<T>& VarArray2D<T>::operator=(const VarArray2D& other) {
-    if (this != &other) {
+	if (this == &other) return *this;
+	tpie::tpie_delete_array(data, dim[0] * dim[1]);
+
 	this->dim[0] = other.dim[0];
 	this->dim[1] = other.dim[1];
 	
 	//  Allocate memory for dim0 * dim1 elements of type/class T.
-	data = new T[dim[0] * dim[1]];
+	data = tpie::tpie_new_array<T>(dim[0] * dim[1]);
 	
 	//  Copy objects.
-	int len = dim[0] * dim[1];
-	for(int i = 0; i < len; i++) {
-	    data[i] = other.data[i];
-	}
-
-//	//  Initialize memory.
-//	memcpy((void*)(this.data), 
-//	       (void*)(other.data), 
-//	       dim[0] * dim[1] * sizeof(T)); 
-	
-    }
+	std::copy(other.data, other.data + dim[0] * dim[1], data);
     return (*this);	
 }
 
@@ -245,7 +219,6 @@ const T& VarArray2D<T>::operator()(TPIE_OS_SIZE_T index0, TPIE_OS_SIZE_T index1)
 
 template <class T>  
 TPIE_OS_SIZE_T VarArray2D<T>::size() const {
-
     return dim[0] * dim[1];
 }
 
@@ -264,14 +237,8 @@ VarArray3D<T>::VarArray3D(TPIE_OS_SIZE_T dim0, TPIE_OS_SIZE_T dim1, TPIE_OS_SIZE
     this->dim[0] = dim0;
     this->dim[1] = dim1;
     this->dim[2] = dim2;
-    
     //  Allocate memory for dim0 * dim1 * dim2 elements of type/class T.
-    data = new T[dim0 * dim1 * dim2];
-    
-    //  Initialize memory.
-    memset(static_cast<void*>(data), 
-	   0, 
-	   dim0 * dim1 * dim2 * sizeof(T));
+    data = tpie::tpie_new_array<T>(dim0 * dim1 * dim2);
 }
 
 template <class T>  
@@ -282,32 +249,25 @@ VarArray3D<T>::VarArray3D(const VarArray3D& other) {
 template <class T>  
 VarArray3D<T>::~VarArray3D() {
     // Free allocated memory.
-    delete[] data;
+	tpie_delete_array(data, size());
 }
 
 template <class T>  
 VarArray3D<T>& VarArray3D<T>::operator=(const VarArray3D& other) {
-    if (this != &other) {
-	this->dim[0] = other.dim[0];
-	this->dim[1] = other.dim[1];
-	this->dim[2] = other.dim[2];
+    if (this == &other) return this;
 	
+	dim[0] = other.dim[0];
+	dim[1] = other.dim[1];
+	dim[2] = other.dim[2];
+
+	tpie::tpie_delete_array(data, size());
 	//  Allocate memory for dim0 * dim1 * dim2 elements of type/class T.
-	data = new T[dim[0] * dim[1] * dim[2]];
+	data = tpie::tpie_new_array<T>(size());
 	
 	//  Copy objects.
-	int len = dim[0] * dim[1] * dim[2];
-	for(int i = 0; i < len; i++) {
-	    data[i] = other.data[i];
-	}
-
-//	//  Initialize memory.
-//	memcpy((void*)(this.data), 
-//	       (void*)(other.data), 
-//	       dim[0] * dim[1] * dim[2] * sizeof(T)); 
-	
-    }
-    return (*this);	
+	std::copy(other.data, other.data + size(), data);
+  
+	return *this;	
 }
 
 template <class T>  

@@ -32,7 +32,7 @@
 
 // Get definitions for working with Unix and Windows
 #include <tpie/portability.h>
-
+#include <tpie/array.h>
 // Get error definitions
 #include <tpie/bte/err.h>
 
@@ -161,9 +161,10 @@ namespace tpie {
 	    // Return the current position in the stream.
 	    inline TPIE_OS_OFFSET tell() const;
 	
+
 	    // Query memory usage
 	    err main_memory_usage(TPIE_OS_SIZE_T  *usage,
-				  mem::stream_usage usage_type);
+							  stream_usage usage_type);
 	
 	    TPIE_OS_SIZE_T chunk_size() const;
 	
@@ -200,7 +201,7 @@ namespace tpie {
 	    T *m_currentItem;
 	
 	    // A pointer to the beginning of the currently mapped block.
-	    T *m_currentBlock;
+		tpie::array<T> m_currentBlock;
 	
 	    // True if current points to a valid, mapped in block.
 	    bool m_blockValid;
@@ -220,7 +221,7 @@ namespace tpie {
 #if UFS_DOUBLE_BUFFER
 	    // for use in double buffering, when one is implemented using
 	    // the aio interface.
-	    T              *next_block;		// ptr to next block 
+		tpie::array<T, false> next_block;
 	    TPIE_OS_OFFSET f_next_block;		// position of next block
 	    int            have_next_block;		// is next block mapped?
 	
@@ -244,7 +245,6 @@ namespace tpie {
 	    m_itemsAlignedWithBlock(false),
 	    m_filePointer(0),
 	    m_currentItem(NULL),
-	    m_currentBlock(NULL),
 	    m_blockValid(false),
 	    m_blockDirty(false),
 	    m_currentBlockFileOffset(0), 
@@ -276,7 +276,7 @@ namespace tpie {
 	
 	    // A field to remember the file offset of mapped in block.
 	    m_currentBlockFileOffset = 0;
-	    m_currentBlock = m_currentItem = NULL;
+	    m_currentItem = NULL;
 	    m_fileOffset = m_logicalBeginOfStream = m_osBlockSize;
 	
 	    // To be on the safe side, set this to -1. It will be set to the
@@ -509,7 +509,6 @@ namespace tpie {
 	    }
 	
 #if UFS_DOUBLE_BUFFER
-	    next_block      = NULL;
 	    f_next_block    = 0;
 	    have_next_block = 0;
 #endif
@@ -541,7 +540,6 @@ namespace tpie {
 	    m_itemsAlignedWithBlock(false),
 	    m_filePointer(0),
 	    m_currentItem(NULL),
-	    m_currentBlock(NULL),
 	    m_blockValid(false),
 	    m_blockDirty(false),
 	    m_currentBlockFileOffset(0), 
@@ -696,13 +694,11 @@ namespace tpie {
 	    m_fileOffset   = m_logicalBeginOfStream;
 	    m_filePointer  = -1; // I don't know where the file pointer is.
 	    m_currentItem  = NULL;
-	    m_currentBlock = NULL;
 	    m_blockValid   = false;
 	    m_blockDirty   = false;
 	    m_currentBlockFileOffset = 0;
 	
 #if UFS_DOUBLE_BUFFER
-	    next_block      = NULL;
 	    f_next_block    = 0;
 	    have_next_block = 0;
 #endif
@@ -733,7 +729,7 @@ namespace tpie {
 		       "Bad things got through the permisssion checks.");
 	
 	    stream_ufs<T> *sub =
-		new stream_ufs<T>(this, st, sub_begin, sub_end);
+			tpie_new<stream_ufs<T> >(this, st, sub_begin, sub_end);
 	
 	    *sub_stream = dynamic_cast<base_t *>(sub);
 	
@@ -819,7 +815,7 @@ namespace tpie {
 		}
 	    
 		if (m_header) {
-		    delete m_header;
+		    tpie_delete(m_header);
 		}
 	    
 		if (TPIE_OS_CLOSE (m_fileDescriptor)) {
@@ -870,9 +866,8 @@ namespace tpie {
 		record_statistics(SUBSTREAM_DELETE);
 	    }
 	
-	    if (m_currentBlock) {
-	    
-		delete [] m_currentBlock; // should be vector delete -RW
+	    if (!m_currentBlock.empty()) {
+			m_currentBlock.resize(0);
 	    
 		// If you really want to be anal about memory calculation
 		// consistency then if IMPLICIT_FS_READAHEAD flag is set you
@@ -888,9 +883,7 @@ namespace tpie {
 	    //ongoing at the time of the destruction, in which case trying to
 	    //delete next_block may cause a run-time error. Most probably
 	    // the aio read op may have to be suspended if ongoing. 
-	    if (next_block) {
-		delete [] next_block;	// use vector delete -RW
-	    }
+		next_block.resize(0);
 #endif
 	
 	    record_statistics(STREAM_CLOSE);
@@ -915,12 +908,12 @@ namespace tpie {
 	    // current block.
 	    tp_assert ((static_cast<unsigned int>(
 			    reinterpret_cast<char*>(m_currentItem) - 
-			    reinterpret_cast<char*>(m_currentBlock)) <=
+			    reinterpret_cast<char*>(m_currentBlock.get())) <=
 			static_cast<unsigned int>(m_header->m_blockSize - sizeof (T))),
 		       "m_currentItem is past the end of the current block");
 	
 	    tp_assert ((reinterpret_cast<char*>(m_currentItem) - 
-			reinterpret_cast<char*>(m_currentBlock) >= 0),
+					reinterpret_cast<char*>(m_currentBlock.get()) >= 0),
 		       "m_currentItem is before the begining of the current block");
 	
 	    record_statistics(ITEM_READ);
@@ -966,12 +959,12 @@ namespace tpie {
 	    // current block.
 	    tp_assert ((static_cast<unsigned int>(
 			    reinterpret_cast<char*>(m_currentItem) - 
-			    reinterpret_cast<char*>(m_currentBlock)) <=
+			    reinterpret_cast<char*>(m_currentBlock.get())) <=
 			static_cast<unsigned int>(m_header->m_blockSize - sizeof (T))),
 		       "m_currentItem is past the end of the current block");
 	
 	    tp_assert ((reinterpret_cast<char*>(m_currentItem) - 
-			reinterpret_cast<char*>(m_currentBlock) >= 0),
+					reinterpret_cast<char*>(m_currentBlock.get()) >= 0),
 		       "m_currentItem is before the begining of the current block");
 	
 	    record_statistics(ITEM_WRITE);
@@ -1006,43 +999,34 @@ namespace tpie {
 // the header, since it is accounted for in the 0 level superstream.
 	template <class T>
 	err stream_ufs<T>::main_memory_usage (TPIE_OS_SIZE_T  *usage,
-					      mem::stream_usage usage_type) {
+										  stream_usage usage_type) {
 
 	    switch (usage_type) {
-	    
-	    case mem::STREAM_USAGE_OVERHEAD:
+			
+	    case STREAM_USAGE_OVERHEAD:
 		//sizeof(*this) includes base class. 
 		//m_header is allocated dynamically, but always allocated, 
 		//even for substreams. Don't forget space overhead per
 		//"new" on (class, base class, m_header) 
-		*usage = sizeof(*this) + sizeof(stream_header) +
-		    3*MM_manager.space_overhead();
-
-		break;
+			*usage = sizeof(*this) + sizeof(stream_header);
+			break;
 	    
-	    case mem::STREAM_USAGE_BUFFER: 
-		//space used by buffers, when allocated
-		*usage = STREAM_UFS_MM_BUFFERS * m_header->m_blockSize +
-		    MM_manager.space_overhead();
-
-		break;
+	    case STREAM_USAGE_BUFFER: 
+			//space used by buffers, when allocated
+			*usage = STREAM_UFS_MM_BUFFERS * m_header->m_blockSize;
+			break;
 	    
-	    case mem::STREAM_USAGE_CURRENT:
-		//overhead + buffers (if in use)
-		*usage = sizeof(*this) +  sizeof(stream_header) +
-		    3*MM_manager.space_overhead() + 
-		    ((m_currentBlock == NULL) ? 0 : (STREAM_UFS_MM_BUFFERS *
-						     m_header->m_blockSize +
-						     MM_manager.space_overhead()));
-
-		break;
+	    case STREAM_USAGE_CURRENT:
+			//overhead + buffers (if in use)
+			*usage = sizeof(*this) +  sizeof(stream_header) +
+				(m_currentBlock.empty() ? 0 : (STREAM_UFS_MM_BUFFERS *
+											   m_header->m_blockSize ));
+			break;
 	
-	    case mem::STREAM_USAGE_MAXIMUM:
-	    case mem::STREAM_USAGE_SUBSTREAM:
-		*usage = sizeof(*this) +  sizeof(stream_header) +
-		    STREAM_UFS_MM_BUFFERS * m_header->m_blockSize +
-		    4*MM_manager.space_overhead();
-
+	    case STREAM_USAGE_MAXIMUM:
+	    case STREAM_USAGE_SUBSTREAM:
+			*usage = sizeof(*this) +  sizeof(stream_header) +
+				STREAM_UFS_MM_BUFFERS * m_header->m_blockSize;
 		break;
 
 	    }
@@ -1081,7 +1065,7 @@ namespace tpie {
 		file_off_to_item_off (m_logicalBeginOfStream) + offset);
 	
 	    if ((static_cast<TPIE_OS_SIZE_T>(reinterpret_cast<char*>(m_currentItem) - 
-					     reinterpret_cast<char*>(m_currentBlock)) 
+										 reinterpret_cast<char*>(m_currentBlock.get())) 
 		 >= m_header->m_blockSize)
 		|| (((new_offset - m_osBlockSize) / m_header->m_blockSize) !=
 		    ((m_fileOffset - m_osBlockSize) / m_header->m_blockSize))) {
@@ -1098,7 +1082,7 @@ namespace tpie {
 		    internal_block_offset = 
 			file_off_to_item_off (new_offset) % m_itemsPerBlock;
 		
-		    m_currentItem = m_currentBlock + internal_block_offset;
+		    m_currentItem = m_currentBlock.get() + internal_block_offset;
 		}
 	    }
 	
@@ -1141,7 +1125,7 @@ namespace tpie {
 	    // m_fileOffset does not always point into the current block!) 
 	    // - see comment in seek()
 	    if ((static_cast<TPIE_OS_SIZE_T>(reinterpret_cast<char*>(m_currentItem) - 
-					   reinterpret_cast<char*>(m_currentBlock)) 
+										 reinterpret_cast<char*>(m_currentBlock.get())) 
 		 >= m_header->m_blockSize)
 		|| (((new_offset - m_osBlockSize) / m_header->m_blockSize) !=
 		    ((m_fileOffset - m_osBlockSize) / m_header->m_blockSize))) {
@@ -1182,7 +1166,7 @@ namespace tpie {
 		// but the current item pointer may not be valid. 
 		// We have to adjust m_currentItem.
 		TPIE_OS_OFFSET internal_block_offset = file_off_to_item_off (new_offset) % m_itemsPerBlock;
-		m_currentItem = m_currentBlock + internal_block_offset;
+		m_currentItem = m_currentBlock.get() + internal_block_offset;
 	    }
 	
 	    // Reset the current position to the end.    
@@ -1223,9 +1207,8 @@ namespace tpie {
 		    // beginning of the file.  This will trigger off sequential
 		    // write optimizations that are useful unless non-sequential
 		    // accesses to data are made.
-		
-		    char *tmp_buffer = new char[m_osBlockSize];
-			memset(tmp_buffer, 0, m_osBlockSize);
+
+			tpie::array<char> tmp_buffer(m_osBlockSize, 0);
 		    if (file_end != 0) {
 		    
 			if (TPIE_OS_LSEEK(m_fileDescriptor, 0, TPIE_OS_FLAG_SEEK_SET) != 0) {
@@ -1239,7 +1222,7 @@ namespace tpie {
 			}
 		    }
 		
-		    if (TPIE_OS_WRITE (m_fileDescriptor, tmp_buffer, m_osBlockSize) !=
+		    if (TPIE_OS_WRITE (m_fileDescriptor, tmp_buffer.get(), m_osBlockSize) !=
 			static_cast<TPIE_OS_SSIZE_T>(m_osBlockSize)) {
 		    
 			m_osErrno = errno;
@@ -1258,11 +1241,9 @@ namespace tpie {
 			return NULL;
 		    }
 	    
-		    delete [] tmp_buffer;	// use vector delete -RW
-		
 		    m_filePointer = m_osBlockSize;
 		
-		    ptr_to_header = new stream_header;
+		    ptr_to_header = tpie_new<stream_header>();
 		    if (ptr_to_header != NULL) {
 			return ptr_to_header;
 		    } 
@@ -1286,13 +1267,11 @@ namespace tpie {
 	    // could have read only the first sizeof(ufs_stream_header) of the
 	    // file we choose not to do so in order to avoid confusing
 	    // sequential prefetcher.
-	
-	    char *tmp_buffer = new char[m_osBlockSize];
+		tpie::array<char> tmp_buffer(m_osBlockSize);
 	
 	    if (TPIE_OS_LSEEK(m_fileDescriptor, 0, TPIE_OS_FLAG_SEEK_SET) != 0) {
 	    
 		m_osErrno = errno;
-		delete [] tmp_buffer;
 	    
 		TP_LOG_FATAL_ID ("Failed to lseek() in stream " << m_path);
 		TP_LOG_FATAL_ID (strerror (m_osErrno));
@@ -1301,12 +1280,11 @@ namespace tpie {
 	    }
 	
 	    if (TPIE_OS_READ (m_fileDescriptor, 
-			      tmp_buffer, 
+						  tmp_buffer.get(), 
 			      m_osBlockSize) !=
 		static_cast<TPIE_OS_SSIZE_T>(m_osBlockSize)) {
 	    
 		m_osErrno = errno;
-		delete [] tmp_buffer;
 	    
 		TP_LOG_FATAL_ID ("Failed to read() in stream " << m_path);
 		TP_LOG_FATAL_ID (strerror (m_osErrno));
@@ -1316,9 +1294,8 @@ namespace tpie {
 	
 	    m_filePointer = m_osBlockSize;
 	
-	    ptr_to_header = new stream_header();
-	    std::memcpy(ptr_to_header, tmp_buffer, sizeof(stream_header));
-	    delete [] tmp_buffer;	// should use vector delete -RW
+	    ptr_to_header = tpie_new<stream_header>();
+	    std::memcpy(ptr_to_header, tmp_buffer.get(), sizeof(stream_header));
 	
 	    return ptr_to_header;
 	}
@@ -1338,7 +1315,7 @@ namespace tpie {
 	    if (m_blockValid) {
 		if ((block_space = m_header->m_blockSize -
 		     (reinterpret_cast<char*>(m_currentItem) - 
-		      reinterpret_cast<char*>(m_currentBlock))) >= 
+		      reinterpret_cast<char*>(m_currentBlock.get()))) >= 
 		    sizeof (T)) {
 		
 		    return NO_ERROR;
@@ -1419,11 +1396,11 @@ namespace tpie {
 		    // just before  map_current() so there's no danger of overwriting
 		    // a dirty block.  
 		
-		    if (m_currentBlock == NULL) {
+		    if (m_currentBlock.empty()) {
 				TPIE_OS_SIZE_T z = (sizeof(T)-1+m_header->m_blockSize)/sizeof(T);
-				m_currentBlock = new T[z];
+				m_currentBlock.resize(z);
 #ifndef NDEBUG
-				memset(m_currentBlock, 0, z);
+				memset(m_currentBlock.get(), 0, z);
 #endif
 		    
 			// If you really want to be anal about memory calculation
@@ -1441,7 +1418,7 @@ namespace tpie {
 		    internal_block_offset =
 			file_off_to_item_off (m_fileOffset) % m_itemsPerBlock;
 		
-		    m_currentItem = m_currentBlock + internal_block_offset;
+		    m_currentItem = m_currentBlock.get() + internal_block_offset;
 		
 		    return NO_ERROR;
 		
@@ -1462,11 +1439,8 @@ namespace tpie {
 	
 #if UFS_DOUBLE_BUFFER
 	    if (have_next_block && (block_offset == f_next_block)) {
-		T *temp;
-	    
-		temp           = m_currentBlock;
-		m_currentBlock = next_block;
-		next_block     = temp;
+
+		m_currentBlock.swap(next_block);
 	    
 		have_next_block = 0;
 	    
@@ -1492,12 +1466,12 @@ namespace tpie {
 			return OS_ERROR;
 		    }
 		}
-	    
-		if (m_currentBlock == NULL) {
+
+		if (m_currentBlock.empty()) {
 			TPIE_OS_SIZE_T z = (sizeof(T)-1+m_header->m_blockSize)/sizeof(T);
-		    m_currentBlock = new T[z];
+			m_currentBlock.resize(z);
 #ifndef NDEBUG
-			memset(m_currentBlock, 0, z);
+			memset(m_currentBlock.get(), 0, z);
 #endif
 		    // If you really want to be anal about memory calculation
 		    // consistency then if IMPLICIT_FS_READAHEAD flag is set
@@ -1506,7 +1480,7 @@ namespace tpie {
 		}
 	    
 		if (TPIE_OS_READ (m_fileDescriptor, 
-				  reinterpret_cast<char*>(m_currentBlock), 
+						  reinterpret_cast<char*>(m_currentBlock.get()), 
 				  m_header->m_blockSize) !=
 		    static_cast<TPIE_OS_SSIZE_T>(m_header->m_blockSize)) {
 		
@@ -1541,7 +1515,7 @@ namespace tpie {
 	    internal_block_offset =
 		file_off_to_item_off (m_fileOffset) % m_itemsPerBlock;
 	
-	    m_currentItem = m_currentBlock + internal_block_offset;
+	    m_currentItem = m_currentBlock.get() + internal_block_offset;
 	
 	    record_statistics(BLOCK_READ);
 	
@@ -1577,7 +1551,7 @@ namespace tpie {
 		}
 
 		if (TPIE_OS_SIZE_T(TPIE_OS_WRITE (m_fileDescriptor, 
-						   reinterpret_cast<char*>(m_currentBlock), 
+										  reinterpret_cast<char*>(m_currentBlock.get()), 
 						   m_header->m_blockSize)) != m_header->m_blockSize) {
 		
 		    m_status  = STREAM_STATUS_INVALID;

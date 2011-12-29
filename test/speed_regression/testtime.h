@@ -20,8 +20,11 @@
 
 #ifndef __TPIE_TESTTIME_H
 #define __TPIE_TESTTIME_H
+#include <boost/date_time/posix_time/posix_time.hpp>
+#ifndef WIN32
 #include <sys/time.h>
 #include <sys/resource.h>
+#endif
 #include <stdint.h>
 #include <time.h>
 
@@ -32,17 +35,12 @@
 
 namespace tpie {
 	namespace test {
-
+#ifndef WIN32
 		///////////////////////////////////////////////////////////////////
 		/// Type used for vaiable holding time information
 		///////////////////////////////////////////////////////////////////
 		typedef struct rusage test_time_t;
 
-		///////////////////////////////////////////////////////////////////
-		/// Type used for vaiable holding real time information
-		///////////////////////////////////////////////////////////////////
-		typedef uint_fast64_t test_realtime_t;
-		
 		///////////////////////////////////////////////////////////////////
 		/// Sample the time and store it
 		///////////////////////////////////////////////////////////////////
@@ -50,34 +48,8 @@ namespace tpie {
 			getrusage(RUSAGE_SELF, &a);
 		}
 
-		///////////////////////////////////////////////////////////////////
-		/// Sample the real time and store it
-		///////////////////////////////////////////////////////////////////
-		inline void getTestRealtime(test_realtime_t& a) {
-			struct timeval tv;
-			gettimeofday(&tv, NULL);
-			a = tv.tv_sec;
-			a *= 1000*1000;
-			a += tv.tv_usec;
-		}
 
-		///////////////////////////////////////////////////////////////////
-		/// Calculate time difference in micro seconds
-		///////////////////////////////////////////////////////////////////
-		inline uint_fast64_t testTimeDiff(const test_time_t& a, const test_time_t& b) {
-			uint_fast64_t time = b.ru_utime.tv_sec - a.ru_utime.tv_sec;
-			time *= 1000*1000;
-			time += b.ru_utime.tv_usec - a.ru_utime.tv_usec;
-			return time;
-		}
-
-		///////////////////////////////////////////////////////////////////
-		/// Calculate real time difference in micro seconds
-		///////////////////////////////////////////////////////////////////
-		inline uint_fast64_t testRealtimeDiff(const test_realtime_t a, const test_realtime_t b) {
-			return b - a;
-		}
- 
+		
 		///////////////////////////////////////////////////////////////////
 		/// Calculate page fault difference
 		///////////////////////////////////////////////////////////////////
@@ -90,6 +62,36 @@ namespace tpie {
 		///////////////////////////////////////////////////////////////////
 		inline uint_fast64_t testIODiff(const test_time_t& a, const test_time_t& b) {
 			return b.ru_inblock - a.ru_inblock + b.ru_oublock - a.ru_oublock;
+		}
+		
+		///////////////////////////////////////////////////////////////////
+		/// Calculate time difference in micro seconds
+		///////////////////////////////////////////////////////////////////
+		inline uint_fast64_t testTimeDiff(const test_time_t& a, const test_time_t& b) {
+			uint_fast64_t time = b.ru_utime.tv_sec - a.ru_utime.tv_sec;
+			time *= 1000*1000;
+			time += b.ru_utime.tv_usec - a.ru_utime.tv_usec;
+			return time;
+		}
+#endif
+
+		///////////////////////////////////////////////////////////////////
+		/// Type used for vaiable holding real time information
+		///////////////////////////////////////////////////////////////////
+		typedef boost::posix_time::ptime test_realtime_t;
+
+		///////////////////////////////////////////////////////////////////
+		/// Sample the real time and store it
+		///////////////////////////////////////////////////////////////////
+		inline void getTestRealtime(test_realtime_t& a) {
+			a = boost::posix_time::microsec_clock::local_time();
+		}	
+
+		///////////////////////////////////////////////////////////////////
+		/// Calculate real time difference in micro seconds
+		///////////////////////////////////////////////////////////////////
+		inline uint_fast64_t testRealtimeDiff(const test_realtime_t a, const test_realtime_t b) {
+			return (b - a).total_milliseconds();
 		}
 	}
 }

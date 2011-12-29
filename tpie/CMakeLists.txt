@@ -1,3 +1,5 @@
+set_property(GLOBAL PROPERTY USE_FOLDERS On)
+
 set (AMI_HEADERS
 		block_base.h
 		block.h
@@ -70,9 +72,8 @@ set (OTHER_HEADERS
 		loglevel.h
 		logstream.h
 		mergeheap.h
-		mm_base.h
-		mm.h
-		mm_manager.h
+		memory.h
+		memory.inl
 		persist.h
 		portability.h
 		internal_priority_queue.h
@@ -80,7 +81,6 @@ set (OTHER_HEADERS
 		pq_overflow_heap.inl
 		pq_merge_heap.h
 		pq_merge_heap.inl
-		pq_internal_heap.inl
 		fractional_progress.h
 		parallel_sort.h
 		dummy_progress.h
@@ -134,8 +134,7 @@ set (OTHER_SOURCES
 	backtrace.cpp
 	cpu_timer.cpp
 	logstream.cpp
-	mm_base.cpp
-	mm_manager.cpp
+	memory.cpp
 	portability.cpp
 	tpie_log.cpp
 	tempname.cpp
@@ -145,6 +144,7 @@ set (OTHER_SOURCES
 	execution_time_predictor.cpp
 	fractional_progress.cpp
 	tpie.cpp
+	
 	)
 
 source_group("BTE" FILES ${BTE_HEADERS} ${BTE_SOURCES})
@@ -155,6 +155,7 @@ set(OTHER ${OTHER_HEADERS} ${OTHER_SOURCES})
 
 add_library(tpie ${BTE} ${AMI} ${OTHER})
 target_link_libraries(tpie ${Boost_LIBRARIES})
+set_target_properties(tpie PROPERTIES FOLDER tpie)
 
 install(TARGETS tpie DESTINATION ${LIB_INSTALL_DIR}) 
 install(FILES ${OTHER_HEADERS} ${AMI_HEADERS} DESTINATION ${HEADERS_INSTALL_DIR})

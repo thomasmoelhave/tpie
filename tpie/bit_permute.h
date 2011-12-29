@@ -82,12 +82,12 @@ namespace tpie {
 		    tp_assert(A.rows() == A.cols(), "A is not square.");
 		    tp_assert(c.cols() == 1, "c is not a column vector.");
 		    tp_assert(c.rows() == A.cols(), "A and c dimensions do not match.");
-		    src_bits = new bit_matrix(c.rows(),1);
+		    src_bits = tpie_new<bit_matrix>(c.rows(),1);
 		};
 	    
 	    //  This destructor was not present before 2005116---why?
 	    virtual ~bmmc_as_gen_po() {
-		delete src_bits;
+			tpie_delete(src_bits);
 	    }
 	    
 	    AMI_err initialize(TPIE_OS_OFFSET /*stream_len*/) {

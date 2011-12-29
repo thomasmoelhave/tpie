@@ -182,14 +182,14 @@ protected:
   ///////////////////////////////////////////////////////////////////////////
   class remove_node {
   public:
-    void operator()(node_t* p) { delete p; }
+	  void operator()(node_t* p) { tpie_delete(p); }
   };
   ///////////////////////////////////////////////////////////////////////////
   /// Function object for the leaf cache write out.
   ///////////////////////////////////////////////////////////////////////////
   class remove_leaf { 
   public:
-    void operator()(leaf_t* p) { delete p; }
+	  void operator()(leaf_t* p) { tpie_delete(p); }
   };
 
   /** The node cache. */
@@ -383,7 +383,7 @@ public:
 
   ///////////////////////////////////////////////////////////////////////////
   /// Find median point on the given dimension. Return the index of the
-  //ß/ median in the el vector.
+  /// median in the el vector.
   ///////////////////////////////////////////////////////////////////////////
   TPIE_OS_SIZE_T find_median(TPIE_OS_SIZE_T d) {
     sort(d);
@@ -539,16 +539,16 @@ void TPIE_AMI_KDBTREE::shared_init(const std::string& base_file_name, collection
 	assert(base_file_name.empty());
 
 	std::string collname = base_file_name + ".l";
-	pcoll_leaves_ = new collection_t(collname, type, params_.leaf_block_factor);
+	pcoll_leaves_ = tpie_new<collection_t>(collname, type, params_.leaf_block_factor);
 
 	collname = base_file_name + ".n";
-	pcoll_nodes_ = new collection_t(collname, type, params_.node_block_factor);
+	pcoll_nodes_ = tpie_new<collection_t>(collname, type, params_.node_block_factor);
 
 	if (pcoll_nodes_->status() != tpie::ami::COLLECTION_STATUS_VALID ||
 		pcoll_leaves_->status() != tpie::ami::COLLECTION_STATUS_VALID) {
 		status_ = tpie::ami::KDBTREE_STATUS_INVALID;
-		delete pcoll_leaves_;
-		delete pcoll_nodes_;
+		tpie_delete(pcoll_leaves_);
+		tpie_delete(pcoll_nodes_);
 		return;
 	}
 
@@ -565,15 +565,15 @@ void TPIE_AMI_KDBTREE::shared_init(const std::string& base_file_name, collection
 		} else {
 			status_ = tpie::ami::KDBTREE_STATUS_INVALID;
 			TP_LOG_WARNING_ID("Invalid kdbtree magic number:"<<magic);
-			delete pcoll_leaves_;
-			delete pcoll_nodes_;
+			tpie_delete(pcoll_leaves_);
+			tpie_delete(pcoll_nodes_);
 			return;
 		}
 	}
 
 	// Initialize the caches.
-	leaf_cache_ = new tpie::ami::CACHE_MANAGER<TPIE_AMI_KDBTREE_LEAF*, remove_leaf>(params_.leaf_cache_size, 4);
-	node_cache_ = new tpie::ami::CACHE_MANAGER<TPIE_AMI_KDBTREE_NODE*, remove_node>(params_.node_cache_size, 1);
+	leaf_cache_ = tpie_new<tpie::ami::CACHE_MANAGER<TPIE_AMI_KDBTREE_LEAF*, remove_leaf> >(params_.leaf_cache_size, 4);
+	node_cache_ = tpie_new<tpie::ami::CACHE_MANAGER<TPIE_AMI_KDBTREE_NODE*, remove_node> >(params_.node_cache_size, 1);
   
 	// Give meaningful values to parameters, if necessary.
 	TPIE_OS_SIZE_T leaf_capacity = TPIE_AMI_KDBTREE_LEAF::el_capacity(pcoll_leaves_->block_size());
@@ -616,12 +616,12 @@ bool TPIE_AMI_KDBTREE::kd2kdb() {
   if (ki.type == BLOCK_NODE) {
 
     // Create temporary buffer.
-    TPIE_AMI_KDBTREE_NODE* buffer = new TPIE_AMI_KDBTREE_NODE(pcoll_nodes_);
+	  TPIE_AMI_KDBTREE_NODE* buffer = tpie_new<TPIE_AMI_KDBTREE_NODE>(pcoll_nodes_);
     // Do the job.
     kd2kdb(ki, buffer->el);
     // Dispose of the temporary buffer.
     buffer->persist(PERSIST_DELETE);
-    delete buffer;
+    tpie_delete(buffer);
     
   } else {
     // Just a leaf. Nothing to do.
@@ -691,23 +691,23 @@ void TPIE_AMI_KDBTREE::kd2kdb(const KDB_ITEM& ki, b_vector<KDB_ITEM >& bv) {
   kdtree_node<coord_t, dim, Bin_node, BTECOLL> *bno;
   TPIE_AMI_KDBTREE_NODE *bn;
   //  link_type_t ni_type;
-  bno = new kdtree_node<coord_t, dim, Bin_node, BTECOLL>(pcoll_nodes_, ki.bid);
+  bno = tpie_new<kdtree_node<coord_t, dim, Bin_node, BTECOLL> >(pcoll_nodes_, ki.bid);
   if (bno->size() + 1 > params_.node_size_max) {
    TP_LOG_FATAL_ID("  kd2kdb: wrong kdtree node size;");
    TP_LOG_FATAL_ID("  kd2kdb: kdbtree node capacity: " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(params_.node_size_max));
    TP_LOG_FATAL_ID("  kd2kdb: max kdtree node size allowed: " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(params_.node_size_max-1));
    TP_LOG_FATAL_ID("  kd2kdb: found kdtree node with size: " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(bno->size()));
    TP_LOG_FATAL_ID("  kd2kdb: operation aborted.");
-    delete bno;
+   tpie_delete(bno);
     status_ = tpie::ami::KDBTREE_STATUS_INVALID;
   } else {
     TPIE_OS_SIZE_T free_pos = 0;
     kd2kdb_node(bno, 0, ki.region, bv, free_pos);
-    delete bno;
+    tpie_delete(bno);
     TPLOG("  kdbtree_node size="<<free_pos<<"\n");
 
     // Open the same block, but as a TPIE_AMI_KDBTREE_NODE.
-    bn = new TPIE_AMI_KDBTREE_NODE(pcoll_nodes_, ki.bid);
+    bn = tpie_new<TPIE_AMI_KDBTREE_NODE>(pcoll_nodes_, ki.bid);
     bn->el.copy(0, free_pos, bv, 0);
     bn->size() = free_pos;
     bn->split_dim() = 0;
@@ -716,7 +716,7 @@ void TPIE_AMI_KDBTREE::kd2kdb(const KDB_ITEM& ki, b_vector<KDB_ITEM >& bv) {
       if (bn->el[i].type == BLOCK_NODE && status_ != tpie::ami::KDBTREE_STATUS_INVALID)
 	kd2kdb(bn->el[i], bv);
     }
-    delete bn;
+    tpie_delete(bn);
   }
 
   TPLOG("kdbtree::kd2kdb Exiting bid=" << ki.bid << "\n");
@@ -1289,7 +1289,7 @@ TPIE_AMI_KDBTREE_NODE* TPIE_AMI_KDBTREE::fetch_node(bid_t bid) {
   stats_.record(NODE_FETCH);
   // Warning: using short-circuit evaluation. Order is important.
   if ((bid == 0) || !node_cache_->read(bid, q)) {
-    q = new TPIE_AMI_KDBTREE_NODE(pcoll_nodes_, bid);
+	  q = tpie_new<TPIE_AMI_KDBTREE_NODE>(pcoll_nodes_, bid);
   }
   return q;
 }
@@ -1301,7 +1301,7 @@ TPIE_AMI_KDBTREE_LEAF* TPIE_AMI_KDBTREE::fetch_leaf(bid_t bid) {
   stats_.record(LEAF_FETCH);
   // Warning: using short-circuit evaluation. Order is important.
   if ((bid == 0) || !leaf_cache_->read(bid, q)) {
-    q = new TPIE_AMI_KDBTREE_LEAF(pcoll_leaves_, bid);
+	  q = tpie_new<TPIE_AMI_KDBTREE_LEAF>(pcoll_leaves_, bid);
   }
   return q;
 }
@@ -1311,7 +1311,7 @@ template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 void TPIE_AMI_KDBTREE::release_node(TPIE_AMI_KDBTREE_NODE* q) {
   stats_.record(NODE_RELEASE);
   if (q->persist() == PERSIST_DELETE)
-    delete q;
+	  tpie_delete(q);
   else
     node_cache_->write(q->bid(), q);
 }
@@ -1321,7 +1321,7 @@ template<class coord_t, TPIE_OS_SIZE_T dim, class Bin_node, class BTECOLL>
 void TPIE_AMI_KDBTREE::release_leaf(TPIE_AMI_KDBTREE_LEAF* q) {
   stats_.record(LEAF_RELEASE);
   if (q->persist() == PERSIST_DELETE)
-    delete q;
+	  tpie_delete(q);
   else
     leaf_cache_->write(q->bid(), q);
 }
@@ -1355,12 +1355,12 @@ TPIE_AMI_KDBTREE::~kdbtree() {
     memcpy(pcoll_nodes_->user_data(), (void *)(&header_), sizeof(header_));
   }
 
-  delete node_cache_;
-  delete leaf_cache_;
+  tpie_delete(node_cache_);
+  tpie_delete(leaf_cache_);
 
   // Delete the two collections.
-  delete pcoll_leaves_;
-  delete pcoll_nodes_;
+  tpie_delete(pcoll_leaves_);
+  tpie_delete(pcoll_nodes_);
  
 }
 

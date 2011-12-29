@@ -153,10 +153,10 @@ int main(int argc, char **argv)  {
     random_input = (istr_name[0] == '\0');
 
     // Set the amount of main memory:
-    MM_manager.set_memory_limit (test_mm_size);
+    get_memory_manager().set_limit (test_mm_size);
 
 	tempname::set_default_base_name("TEST_AMI_SORT");
-    ami::stream<int>* istr = (istr_name[0] == '\0') ? new ami::stream<int>: new ami::stream<int>(istr_name);
+    ami::stream<int>* istr = (istr_name[0] == '\0') ? tpie_new<ami::stream<int> >(): tpie_new<ami::stream<int> >(istr_name);
     if (!istr->is_valid()) {
 	std::cerr << argv[0] << ": Error while initializing input stream. Aborting." << std::endl;
 	exit(2);
@@ -184,11 +184,11 @@ int main(int argc, char **argv)  {
 	std::cout << "Input size: " << test_size << " items." << std::endl
 		  << "Item size: " << sizeof(int) << " bytes." << std::endl
 		  << "TPIE memory size: " 
-		  << static_cast<TPIE_OS_LONGLONG>(MM_manager.memory_limit())
+			  << static_cast<TPIE_OS_LONGLONG>(get_memory_manager().limit())
 		  << " bytes." << std::endl;
 	std::cout << "TPIE free memory: " 
-		  << static_cast<TPIE_OS_LONGLONG>(MM_manager.memory_available())
-		  << " bytes." << std::endl;
+			  << static_cast<TPIE_OS_LONGLONG>(get_memory_manager().available())
+		  << " Bytes2." << std::endl;
     }
 
     if (random_input) {
@@ -223,13 +223,13 @@ int main(int argc, char **argv)  {
     ami::cxx_ostream_scan<int> *rptr = NULL;
   
     if (report_results_random) {
-	osr  = new std::ofstream(rand_results_filename);
-	rptr = new ami::cxx_ostream_scan<int>(osr);
+		osr  = tpie_new<std::ofstream>(rand_results_filename);
+		rptr = tpie_new<ami::cxx_ostream_scan<int> >(osr);
     }
   
     if (report_results_sorted) {
-	oss  = new std::ofstream(sorted_results_filename);
-	rpts = new ami::cxx_ostream_scan<int>(oss);
+		oss  = tpie_new<std::ofstream>(sorted_results_filename);
+		rpts = tpie_new<ami::cxx_ostream_scan<int> >(oss);
     }
   
     if (report_results_random) {
@@ -243,12 +243,12 @@ int main(int argc, char **argv)  {
 
     if (verbose) {
 	std::cout << "TPIE free memory: " 
-		  << static_cast<TPIE_OS_LONGLONG>(MM_manager.memory_available())
+			  << static_cast<TPIE_OS_LONGLONG>(get_memory_manager().available())
 		  << " bytes.\n";
     }
     std::cout << "Sorting input..." << std::flush;
     timer.start();  
-    ostr = (ostr_name[0] == '\0') ? new ami::stream<int>: new ami::stream<int>(ostr_name); 
+    ostr = (ostr_name[0] == '\0') ? tpie_new<ami::stream<int> >(): tpie_new<ami::stream<int> >(ostr_name); 
     if (kb_sort) {
 	ami::key_range range(KEY_MIN, KEY_MAX);
 	ae = ami::kb_sort(*istr, *ostr, range);
@@ -271,7 +271,7 @@ int main(int argc, char **argv)  {
 
     if (verbose) {
 	std::cout << "TPIE free memory: " 
-		  << static_cast<TPIE_OS_LONGLONG>(MM_manager.memory_available()) 
+			  << static_cast<TPIE_OS_LONGLONG>(get_memory_manager().available()) 
 		  << " bytes." << std::endl;
     }
     if (report_results_sorted) {
@@ -284,7 +284,7 @@ int main(int argc, char **argv)  {
 	}
 	if (verbose) {
 	    std::cout << "TPIE free memory: " << 
-		static_cast<TPIE_OS_LONGLONG>(MM_manager.memory_available())
+			static_cast<TPIE_OS_LONGLONG>(get_memory_manager().available())
 		      << " bytes." << std::endl;
 	}
     }
@@ -301,7 +301,7 @@ int main(int argc, char **argv)  {
 	std::cout << "Sorting again using old sorting routine." << std::endl;
 	if (verbose) {
 	    std::cout << "TPIE free memory: " 
-		      << static_cast<TPIE_OS_LONGLONG>(MM_manager.memory_available()) 
+				  << static_cast<TPIE_OS_LONGLONG>(get_memory_manager().available()) 
 		      << " bytes." << std::endl;
 	}
     
@@ -323,7 +323,7 @@ int main(int argc, char **argv)  {
 	if (verbose) {
 	    std::cout << "Time taken: " << timer << std::endl;
 	    std::cout << "TPIE free memory: " 
-		      << static_cast<TPIE_OS_LONGLONG>(MM_manager.memory_available()) 
+				  << static_cast<TPIE_OS_LONGLONG>(get_memory_manager().available()) 
 		      << " bytes.\n";
 	}
 
@@ -332,8 +332,7 @@ int main(int argc, char **argv)  {
 	std::cout << "Length of diff stream: " << amisd.stream_len() << "." << std::endl;
     }
 
-    delete istr;
-    delete ostr;
-
+    tpie_delete(istr);
+    tpie_delete(ostr);
     return 0;
 }

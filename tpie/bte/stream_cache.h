@@ -24,10 +24,6 @@
 // Get definitions for working with Unix and Windows
 #include <tpie/portability.h>
 
-// Include the registration based memory manager.
-#define MM_IMP_REGISTER
-#include <tpie/mm.h>
-
 #include <tpie/bte/stream_base.h>
 
 // This code makes assertions and logs errors.
@@ -78,7 +74,7 @@ namespace tpie {
 
 			// Query memory usage
 			err main_memory_usage(TPIE_OS_SIZE_T *usage,
-								  mem::stream_usage usage_type);
+								  stream_usage usage_type);
 
 			// Return the number of items in the stream.
 			TPIE_OS_OFFSET stream_len(void);
@@ -174,7 +170,7 @@ namespace tpie {
 					return OFFSET_OUT_OF_RANGE;
 				}
 
-				ss = new stream_cache;
+				ss = tpie_new<stream_cache>();
 				ss->r_only = (st == READ_STREAM);
 				ss->substream_level = substream_level + 1;
 				ss->current = ss->data = data + sub_begin;
@@ -190,22 +186,22 @@ namespace tpie {
 
 		template<class T>
 		err stream_cache<T>::main_memory_usage(TPIE_OS_SIZE_T *usage,
-											   mem::stream_usage usage_type) {
+											   stream_usage usage_type) {
 			switch (usage_type) {
 
-			case mem::STREAM_USAGE_CURRENT:
-			case mem::STREAM_USAGE_MAXIMUM:
-			case mem::STREAM_USAGE_SUBSTREAM:
+			case STREAM_USAGE_CURRENT:
+			case STREAM_USAGE_MAXIMUM:
+			case STREAM_USAGE_SUBSTREAM:
 				*usage = sizeof(*this) + STREAM_CACHE_LINE_SIZE;
 
 				break;
 
-			case mem::STREAM_USAGE_BUFFER:
+			case STREAM_USAGE_BUFFER:
 				*usage = STREAM_CACHE_LINE_SIZE;
 
 				break;
 
-			case mem::STREAM_USAGE_OVERHEAD:
+			case STREAM_USAGE_OVERHEAD:
 				*usage = sizeof(this);
 
 				break;
@@ -239,7 +235,7 @@ namespace tpie {
 		template<class T>
 		stream_cache<T>::~stream_cache(void) {
 			if (!substream_level) {
-				delete data;
+				std::free(data);
 			}
 		};
 

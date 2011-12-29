@@ -29,9 +29,7 @@
 // Get statistics definitions.
 #include <tpie/stats_stream.h>
 
-// Include the registration based memory manager.
-#define MM_IMP_REGISTER
-#include <tpie/mm.h>
+#include <tpie/memory.h>
 
 
 // The magic number of the file storing the stream.
@@ -39,6 +37,19 @@
 #define STREAM_HEADER_MAGIC_NUMBER	0x54505354 
 
 namespace tpie {
+
+	enum stream_usage {
+	    /** Overhead of the object without the buffer */
+	    STREAM_USAGE_OVERHEAD = 1,
+	    /** Max amount ever used by a buffer */
+	    STREAM_USAGE_BUFFER,
+	    /** Amount currently in use. */
+	    STREAM_USAGE_CURRENT,
+	    /** Max amount that will ever be used. */
+	    STREAM_USAGE_MAXIMUM,
+	    /** Maximum additional amount used by each substream created. */
+	    STREAM_USAGE_SUBSTREAM
+	};
 
     namespace bte {
     
@@ -60,7 +71,6 @@ namespace tpie {
 	};
 
     }  //  bte namespace
-
 }  //  tpie namespace
 
 #include <tpie/bte/stream_header.h>
@@ -315,38 +325,6 @@ namespace tpie {
 	    m_header->m_blockSize      = 0; // Not known here.
 	    m_header->m_itemLogicalEOF = 0;
 
-	}
-    
-	template<class T,class C>
-	err stream_base<T,C>::register_memory_allocation (TPIE_OS_SIZE_T sz) {
-	
-	    if (MM_manager.register_allocation(sz) != mem::NO_ERROR) {
-	    
-		m_status = STREAM_STATUS_INVALID;
-	    
-		TP_LOG_FATAL_ID("Memory manager error in allocation.");
-	    
-		return MEMORY_ERROR;
-
-	    }
-
-	    return NO_ERROR;
-	
-	}
-
-	template<class T,class C>
-	err stream_base<T,C>::register_memory_deallocation (TPIE_OS_SIZE_T sz) {
-	
-	    if (MM_manager.register_deallocation (sz) != mem::NO_ERROR) {
-	    
-		m_status = STREAM_STATUS_INVALID;
-	    
-		TP_LOG_FATAL_ID("Memory manager error in deallocation.");
-	    
-		return MEMORY_ERROR;
-	    }
-	
-	    return NO_ERROR;
 	}
     
 // Return the path name in newly allocated space.

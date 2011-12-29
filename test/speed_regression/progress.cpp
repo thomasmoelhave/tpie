@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2008, The TPIE development team
+// Copyright 2009, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -16,24 +16,29 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
+#include "../app_config.h"
 
-#ifndef _TPIE_MM_H
-#define _TPIE_MM_H
+#include <tpie/stream.h>
+#include <iostream>
+#include "testtime.h"
+#include <tpie/progress_indicator_arrow.h>
+using namespace tpie::ami;
+using namespace tpie::test;
 
-#include <tpie/config.h>
 
-// Get the base class, enums, etc...
-#include <tpie/mm_base.h>
+size_t size= 1024ll*1024ll*1024ll*16ll;
+int main() {
+  test_realtime_t start;
+  test_realtime_t end;
+	
+  getTestRealtime(start);
+  tpie::progress_indicator_arrow pi("Test", size);
+  pi.init(size);
+  for(size_t i=0; i < size; ++i) {
+    pi.step();
+  }
+  pi.done();
 
-///////////////////////////////////////////////////////////////////////////
-/// \file mm.h Provides means to choose and set a specific memory
-/// management to use within TPIE.
-/// For now only single address space memory management is supported
-/// (through the class MM_Register).
-///////////////////////////////////////////////////////////////////////////
-
-// Get an implementation definition..
-
-#include <tpie/mm_manager.h>
-
-#endif // _TPIE_MM_H 
+  getTestRealtime(end);
+  std::cout << "Time " << testRealtimeDiff(start,end) << std::endl;
+}

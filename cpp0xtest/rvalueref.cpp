@@ -1,0 +1,4 @@
+int && foobar();
+
+
+int main() {}

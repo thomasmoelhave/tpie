@@ -20,13 +20,11 @@
 #define __COMMON_H__
 
 #include "../app_config.h"
-#ifndef MM_IMP_REGISTER
-#define MM_IMP_REGISTER
-#endif
-#include <tpie/mm.h>
+#include <tpie/memory.h>
 #include <tpie/util.h>
 #include <iostream>
 #include <boost/cstdint.hpp>
+#include <tpie/tpie.h>
 
 struct bit_permute {
 	boost::uint64_t operator()(boost::uint64_t i) const{
@@ -35,7 +33,7 @@ struct bit_permute {
 };
 
 template <typename T=std::less<uint64_t> >
-struct bit_pertume_compare {
+struct bit_pertume_compare: std::binary_function<boost::uint64_t, boost::uint64_t, bool> {
 	bit_permute bp;
 	T c;
 	typedef boost::uint64_t first_argument_type;
@@ -50,19 +48,19 @@ struct memory_monitor {
 	tpie::size_type base;
 	tpie::size_type used;
 	inline void begin() {
-		used = base = tpie::MM_manager.memory_used();
+		used = base = tpie::get_memory_manager().used();
 	}
 	inline void sample() {
-		used = std::max(used, tpie::MM_manager.memory_used());
+		used = std::max(used, tpie::get_memory_manager().used());
 	}
 	inline void clear() {
-		used = tpie::MM_manager.memory_used();
+		used = tpie::get_memory_manager().used();
 	}
 	inline void empty() {
 		used = base;
 	}
-	inline tpie::size_type usage(int allocations) {
-		return used-base - allocations*tpie::MM_manager.space_overhead();
+	inline tpie::size_type usage() {
+		return used-base;
 	}
 };
 
@@ -72,24 +70,37 @@ public:
 	virtual void alloc() = 0;
 	virtual tpie::size_type claimed_size() = 0;
 	bool operator()() {
-		tpie::MM_manager.set_memory_limit(128*1024*1024);
+		bool res=true;
+		tpie::get_memory_manager().set_limit(128*1024*1024);
 		tpie::size_type g = claimed_size();
 		memory_monitor mm;
 		mm.begin();
 		alloc();
 		mm.sample();
-		if (mm.usage(1) > g) {
-			std::cerr << "Claimed to use " << g << " but used " << mm.usage(1) << std::endl;
-			return false;
+		if (mm.usage() > g) {
+			std::cerr << "Claimed to use " << g << " but used " << mm.usage() << std::endl;
+			res=false;
 		}
 		free();
 		mm.empty();
 		mm.sample();
-		if (mm.usage(0) > 0) {
-			std::cerr << "Leaked memory " << mm.usage(0) << std::endl;
-			return false;
+		if (mm.usage() > 0) {
+			std::cerr << "Leaked memory " << mm.usage() << std::endl;
+			res=false;
 		}
-		return true;
+		return res;
+	}
+};
+
+class tpie_initer {
+public:
+	tpie_initer(size_t memory_limit=50) {
+		tpie::tpie_init();
+		tpie::get_memory_manager().set_limit(memory_limit*1024*1024);
+	}
+	
+	~tpie_initer() {
+		tpie::tpie_finish();
 	}
 };
 

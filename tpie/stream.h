@@ -34,6 +34,8 @@
 // Get the error codes.
 #include <tpie/err.h>
 
+#include <tpie/array.h>
+
 // Get the device description class
 
 // Get an appropriate BTE.  Flags may have been set to determine
@@ -209,6 +211,23 @@ public:
     err read_array(T *mm_space, TPIE_OS_OFFSET *len);
 
     ////////////////////////////////////////////////////////////////////////////
+    /// Reads *len items from the current position of the stream into
+    /// the array arr. The "current position" pointer is increased
+    /// accordingly.
+	/// \deprecated
+    ////////////////////////////////////////////////////////////////////////////
+    err read_array(tpie::array<T>& arr, TPIE_OS_OFFSET *len);
+
+    ////////////////////////////////////////////////////////////////////////////
+    /// Reads *len items from the current position of the stream into
+    /// the array arr. The "current position" pointer is increased
+    /// accordingly.
+	/// \deprecated
+    ////////////////////////////////////////////////////////////////////////////
+    err read_array(tpie::array<T>& arr, TPIE_OS_SIZE_T *len);
+
+
+    ////////////////////////////////////////////////////////////////////////////
     /// Reads len items from the current position of the stream into
     /// the array mm_array. The "current position" pointer is increased
     /// accordingly.
@@ -276,7 +295,7 @@ public:
     /// \param[out] usage amount of memory in bytes used by the stream
     ////////////////////////////////////////////////////////////////////////////
     err main_memory_usage(TPIE_OS_SIZE_T *usage,
-			  mem::stream_usage usage_type);
+			  stream_usage usage_type) const;
   
     ////////////////////////////////////////////////////////////////////////////
     /// Returns a \ref tpie_stats_stream object containing  statistics of 
@@ -300,8 +319,8 @@ public:
     /// number of streams allowed (which is OS-dependent) minus the number
     /// of streams currently opened by TPIE.
     ////////////////////////////////////////////////////////////////////////////
-    int available_streams(void) {
-	return m_bteStream->available_streams();
+    size_t available_streams(void) {
+		return m_bteStream->available_streams();
     }
     
     ////////////////////////////////////////////////////////////////////////////
@@ -372,7 +391,7 @@ private:
 	    TP_LOG_DEBUG_ID(path);
     
 	    // Create the BTE stream.
-	    m_bteStream = new bte_t(path, bte::WRITE_STREAM);
+	    m_bteStream = tpie_new<bte_t>(path, bte::WRITE_STREAM);
     
 	    // (Short circuit evaluation...)
 	    if (m_bteStream == NULL || 
@@ -442,7 +461,7 @@ private:
 	    m_destructBTEStream = true;
     
 	    // Create the BTE stream.
-	    m_bteStream = new bte_t(path_name, bst);
+	    m_bteStream = tpie_new<bte_t>(path_name, bst);
 	    // (Short circuit evaluation...)
 	    if (m_bteStream == NULL || m_bteStream->status() == bte::STREAM_STATUS_INVALID) {
 
@@ -528,7 +547,7 @@ private:
 	    // inlined.  If multiple implementations of BTE streams are
 	    // present it could be very dangerous.
     
-	    ami_ss = new stream<T,bte_t>(static_cast<bte_t*>(bte_ss));
+	    ami_ss = tpie_new<stream<T,bte_t> >(static_cast<bte_t*>(bte_ss));
     
 	    ami_ss->m_destructBTEStream = true;
 
@@ -577,25 +596,24 @@ private:
 // Query memory usage
 	template<class T, class bte_t>
 	err stream<T,bte_t>::main_memory_usage(TPIE_OS_SIZE_T *usage,
-					 mem::stream_usage usage_type) {
+					       stream_usage usage_type) const {
 
 	    if (m_bteStream->main_memory_usage(usage, usage_type) != bte::NO_ERROR) {
-
-		TP_LOG_WARNING_ID("BTE error - main memory usage failed");		
+	      TP_LOG_WARNING_ID("BTE error - main memory usage failed");		
 
 		return BTE_ERROR;
 	    }
     
 	    switch (usage_type) {
-	    case mem::STREAM_USAGE_OVERHEAD:
-	    case mem::STREAM_USAGE_CURRENT:
-	    case mem::STREAM_USAGE_MAXIMUM:
-	    case mem::STREAM_USAGE_SUBSTREAM:
+	    case STREAM_USAGE_OVERHEAD:
+	    case STREAM_USAGE_CURRENT:
+	    case STREAM_USAGE_MAXIMUM:
+	    case STREAM_USAGE_SUBSTREAM:
 		*usage += sizeof(*this);
 
 		break;
 
-	    case mem::STREAM_USAGE_BUFFER:
+	    case STREAM_USAGE_BUFFER:
 
 		break;
 
@@ -611,7 +629,7 @@ private:
 	template<class T, class bte_t>
 	stream<T,bte_t>::~stream() {
 	    if (m_destructBTEStream) {
-		delete m_bteStream;
+			tpie_delete(m_bteStream);
 	    }
 	}
 
@@ -649,6 +667,18 @@ private:
 		err e = read_array(mm_space, l);
 		*len = l;
 		return e;
+	}
+
+	template<class T, class bte_t>
+	err stream<T,bte_t>::read_array(tpie::array<T>& arr, TPIE_OS_OFFSET *len) {
+		assert(arr.size() >= (size_t)*len);
+		return read_array(arr.get(),len);
+	}
+
+	template<class T, class bte_t>
+	err stream<T,bte_t>::read_array(tpie::array<T>& arr, TPIE_OS_SIZE_T *len) {
+		assert(arr.size() >= *len);
+		return read_array(arr.get(),len);
 	}
 
 	template<class T, class bte_t>

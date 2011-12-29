@@ -73,7 +73,7 @@ merge_random<T>::~merge_random(void)
 {
     if (mheap != NULL) {
       mheap->deallocate();
-      delete mheap;
+      tpie_delete(mheap);
     }
 }
 
@@ -92,9 +92,9 @@ ami::err merge_random<T>::initialize(TPIE_OS_SIZE_T arity,
     
     if (mheap != NULL) {
         mheap->deallocate();
-        delete mheap;
+        tpie_delete(mheap);
     }
-    mheap = new ami::merge_heap_op<int>();
+    mheap = tpie_new<ami::merge_heap_op<int> >();
     mheap->allocate(arity);
 
     // Insert an element with random priority for each non-empty stream.

@@ -50,8 +50,73 @@ bool basic_test() {
 	if(!a[0] || !b[0] || ! c[0]) return false;
 	a[0] = b[0] = c[0] = 0;
 	if(a[0] || b[0] || c[0]) return false;
-	
 
+	return true;
+}
+
+
+class auto_ptr_test_class {
+public:
+	size_t & dc;
+	size_t & cc;
+	auto_ptr_test_class(size_t & cc_, size_t & dc_): dc(dc_), cc(cc_) {
+		++cc;
+	}
+	~auto_ptr_test_class() {
+		++dc;
+	}
+	size_t hat() {return 42;}
+private:
+	auto_ptr_test_class(const auto_ptr_test_class & o): dc(o.dc), cc(o.cc) {}
+};
+
+
+bool auto_ptr_test() {
+	size_t s=1234;
+	size_t cc=0;
+	size_t dc=0;
+	array<tpie::auto_ptr<auto_ptr_test_class> > a;
+	a.resize(s);
+	for(size_t i=0; i < s; ++i) 
+		a[i].reset(tpie_new<auto_ptr_test_class, size_t &, size_t &>(cc, dc));
+	if (cc != s || dc != 0) return false;
+	
+	size_t x=0;
+	for(size_t i=0; i < s; ++i) 
+		x += a[i]->hat();
+	if (x != 42*s) return false;
+
+	if (cc != s || dc != 0) return false;
+
+	for(size_t i=0; i < s; ++i) 
+		a[i].reset(tpie_new<auto_ptr_test_class>(cc, dc));
+	
+	if (cc != 2*s || dc != s) return false;
+	
+	a.resize(0);
+	if (cc != 2*s || dc != 2*s) return false;
+	
+	return true;
+}
+
+bool segmented_array_test() {
+	array<int> h1;
+	array_base<int, true> h2;
+	size_t z=8388619;
+	h1.resize(z);
+	h2.resize(z);
+	for (size_type i=0; i < 52; ++i)
+		h2[i] = h1[i] = static_cast<int>((i * 833547)%z);
+
+	array<int>::iterator i1=h1.begin();
+	array_base<int, true>::iterator i2=h2.begin();
+	
+	while (i1 != h1.end() || i2 != h2.end()) {
+		if (i1 == h1.end() || i2 == h2.end()) return false;
+		if (*i1 != *i2) return false;
+		i1++;
+		i2++;
+	}
 	return true;
 }
 
@@ -150,25 +215,27 @@ bool iterator_bool_test() {
 	return true;
 }
 
-
+template <bool seg>
 class array_memory_test: public memory_test {
 public:
-	array<int> * a;
-	virtual void alloc() {a = new array<int>(123456, 42);}
-	virtual void free() {delete a;}
-	virtual size_type claimed_size() {return static_cast<size_type>(array<int>::memory_usage(123456));}
+	array_base<int, seg> a;
+	virtual void alloc() {a.resize(1024*1024*32);}
+	virtual void free() {a.resize(0);}
+	virtual size_type claimed_size() {
+		return static_cast<size_type>(array_base<int, seg>::memory_usage(1024*1024*32));
+	}
 };
 
 class array_bool_memory_test: public memory_test {
 public:
-	bit_array * a;
-	virtual void alloc() {a = new bit_array(123456, 1);}
-	virtual void free() {delete a;}
+	bit_array a;
+	virtual void alloc() {a.resize(123456);}
+	virtual void free() {a.resize(0);}
 	virtual size_type claimed_size() {return static_cast<size_type>(bit_array::memory_usage(123456));}
 };
 
-
 int main(int argc, char **argv) {
+	tpie_initer _(128);
 	BOOST_CONCEPT_ASSERT((linear_memory_structure_concept<array<int> >));
 	BOOST_CONCEPT_ASSERT((boost::RandomAccessIterator<array<int>::const_iterator>));
 	BOOST_CONCEPT_ASSERT((boost::RandomAccessIterator<array<int>::const_reverse_iterator>));
@@ -177,7 +244,6 @@ int main(int argc, char **argv) {
 	BOOST_CONCEPT_ASSERT((linear_memory_structure_concept<bit_array >));
 	BOOST_CONCEPT_ASSERT((boost::RandomAccessIterator<bit_array::const_iterator>));
 	BOOST_CONCEPT_ASSERT((boost::RandomAccessIterator<bit_array::const_reverse_iterator>));
-
   
 	if(argc != 2) return 1;
 	std::string test(argv[1]);
@@ -185,14 +251,19 @@ int main(int argc, char **argv) {
 		return basic_test()?EXIT_SUCCESS:EXIT_FAILURE;
 	else if (test == "iterators") 
 		return iterator_test()?EXIT_SUCCESS:EXIT_FAILURE;
+	else if (test == "auto_ptr")
+		return auto_ptr_test()?EXIT_SUCCESS:EXIT_FAILURE;
 	else if (test == "memory") 
-		return array_memory_test()()?EXIT_SUCCESS:EXIT_FAILURE;
+		return array_memory_test<false>()()?EXIT_SUCCESS:EXIT_FAILURE;
+	else if (test == "segmented")
+		return segmented_array_test()?EXIT_SUCCESS:EXIT_FAILURE;
+	else if (test == "memory_segmented") 
+		return array_memory_test<true>()()?EXIT_SUCCESS:EXIT_FAILURE;
 	else if (test == "bit_basic")
 		return basic_bool_test()?EXIT_SUCCESS:EXIT_FAILURE;
 	else if (test == "bit_iterators") 
 		return iterator_bool_test()?EXIT_SUCCESS:EXIT_FAILURE;
 	else if (test == "bit_memory") 
 		return array_bool_memory_test()()?EXIT_SUCCESS:EXIT_FAILURE;
-
 	return EXIT_FAILURE;
 }

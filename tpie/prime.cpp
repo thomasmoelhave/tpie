@@ -40,7 +40,8 @@ public:
 		for (size_t i=3; i < mr; i+= 2) {
 			if (!sieve[i>>1]) continue;
 			++pc;
-			for (size_t j=i+i; j < mr; j += i) sieve[j>>1] = false;
+			size_t i2=i+i;
+			for (size_t j=i2+i; j < mr; j += i2) sieve[j>>1] = false;
 		}
 		m_pr.resize(pc);
 		size_t p=1;
@@ -80,5 +81,12 @@ void finish_prime() {is_prime_ins.free();}
 bool is_prime(size_type i) {return is_prime_ins(i);}
 
 size_t prime_hash(const std::string & s) {return is_prime_ins.prime_hash(s);}
+
+
+size_t next_prime(size_t i)  {
+	while(!is_prime(i)) ++i;
+	return i;
+}
+
 
 }

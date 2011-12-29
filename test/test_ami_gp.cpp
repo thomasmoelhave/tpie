@@ -93,8 +93,6 @@ public:
 
 int main(int argc, char **argv) {
 
-    ami::err ae;
-    
     parse_args(argc, argv, app_opts, parse_app_opts);
     
     if (verbose) {
@@ -109,7 +107,7 @@ int main(int argc, char **argv) {
     TPIE_OS_SRANDOM(random_seed);
     
     // Set the amount of main memory:
-    MM_manager.set_memory_limit (test_mm_size);
+    get_memory_manager().set_limit (test_mm_size);
     
     ami::stream<TPIE_OS_OFFSET> amis0;
     ami::stream<TPIE_OS_OFFSET> amis1;
@@ -123,32 +121,32 @@ int main(int argc, char **argv) {
     ami::cxx_ostream_scan<TPIE_OS_OFFSET> *rptf = NULL;
 
     if (report_results_initial) {
-        osi  = new std::ofstream(initial_results_filename);
-        rpti = new ami::cxx_ostream_scan<TPIE_OS_OFFSET>(osi);
+        osi  = tpie_new<std::ofstream>(initial_results_filename);
+        rpti = tpie_new<ami::cxx_ostream_scan<TPIE_OS_OFFSET> >(osi);
     }
 
     if (report_results_final) {
-        osf  = new std::ofstream(final_results_filename);
-        rptf = new ami::cxx_ostream_scan<TPIE_OS_OFFSET>(osf);
+        osf  = tpie_new<std::ofstream>(final_results_filename);
+        rptf = tpie_new<ami::cxx_ostream_scan<TPIE_OS_OFFSET> >(osf);
     }
     
     scan_count my_scan_count(test_size);
     
-    ae = ami::scan(&my_scan_count, &amis0);
+    ami::scan(&my_scan_count, &amis0);
     
     if (verbose) {
         std::cout << "Initial stream length = " << amis0.stream_len() << std::endl;
     }
     
     if (report_results_initial) {
-        ae = ami::scan(&amis0, rpti);
+        ami::scan(&amis0, rpti);
     }
     
     amis0.seek(0);
     
     reverse_order ro;
     
-    ae = ami::general_permute(&amis0, &amis1, &ro);
+    ami::general_permute(&amis0, &amis1, &ro);
     
     if (verbose) {
         std::cout << "After reversal, stream length = " 
@@ -156,7 +154,7 @@ int main(int argc, char **argv) {
     }
     
     if (report_results_final) {
-        ae = ami::scan(&amis1, rptf);
+        ami::scan(&amis1, rptf);
     }
     
     return 0;

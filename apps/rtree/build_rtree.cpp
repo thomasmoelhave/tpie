@@ -46,13 +46,13 @@
 using namespace tpie;
 
 int main(int argc, char** argv) {
-    
-    MM_manager.ignore_memory_limit();	
+
+	get_memory_manager().set_enforcement(memory_manager::ENFORCE_IGNORE);
     //  i.e., TPIE is not in control of memory allocation and does not
     //  complain if more than  test_mm_size is allocated.
     
     // Set the main memory size. 
-    MM_manager.set_memory_limit(25*1024*1024);    
+	get_memory_manager().set_limit(25*1024*1024);    
 
     if (argc < 4) {
         std::cerr << "Missing command parameter." << std::endl;

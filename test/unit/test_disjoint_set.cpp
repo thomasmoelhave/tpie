@@ -46,12 +46,13 @@ bool basic_test() {
 class disjointsets_memory_test: public memory_test {
 public:
 	disjoint_sets<int> * a;
-	virtual void alloc() {a = new disjoint_sets<int>(123456);}
-	virtual void free() {delete a;}
+	virtual void alloc() {a = tpie_new<disjoint_sets<int> >(123456);}
+	virtual void free() {tpie_delete(a);}
 	virtual size_type claimed_size() {return static_cast<size_type>(disjoint_sets<int>::memory_usage(123456));}
 };
 
 int main(int argc, char **argv) {
+	tpie_initer _;
 	if(argc != 2) return 1;
 	std::string test(argv[1]);
 	if (test == "basic")

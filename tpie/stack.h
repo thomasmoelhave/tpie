@@ -36,6 +36,7 @@ namespace tpie {
 template<class T> 
 class stack {
 
+
 public:
    
     ////////////////////////////////////////////////////////////////////
@@ -135,7 +136,7 @@ public:
     ////////////////////////////////////////////////////////////////////
 
     void persist(persistence p) {
-	m_amiStream->persist(p);
+		m_amiStream.persist(p);
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -146,7 +147,7 @@ public:
     ////////////////////////////////////////////////////////////////////
 
     persistence persist() const { 
-	return m_amiStream->persist(); 
+		return m_amiStream.persist(); 
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -158,12 +159,12 @@ public:
 
     err trim() {
 	//Truncate to allow room for all elements (in mem + on disk)
-	err retval = m_amiStream->truncate(m_size);
+	err retval = m_amiStream.truncate(m_size);
 	if(retval != NO_ERROR){
 	    return retval;
 	}
 	//Move file pointer to end of last element on disk
-	return m_amiStream->seek(m_size-m_itemsInMemory);
+	return m_amiStream.seek(m_size-m_itemsInMemory);
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -177,7 +178,7 @@ public:
     ////////////////////////////////////////////////////////////////////
 
     err main_memory_usage(TPIE_OS_SIZE_T *usage,
-			  mem::stream_usage usage_type) const;
+						  stream_usage usage_type) const;
 
 
     ////////////////////////////////////////////////////////////////////
@@ -191,7 +192,7 @@ public:
 protected:
 
     /**  The stream used for storing the items.  */
-    stream<T>* m_amiStream;
+	stream<T> m_amiStream;
 
     /**  The current size of the stack (in items).  */
     TPIE_OS_OFFSET m_size;
@@ -203,7 +204,7 @@ protected:
     TPIE_OS_SIZE_T m_itemsInMemory;
 
     /**  Pointers to the at most two blocks of items kept in memory.  */
-    T* m_block[2];
+	tpie::array<T> m_block[2];
 
 private:
 
@@ -216,56 +217,37 @@ private:
 
 template<class T>
 stack<T>::stack() : 
-    m_amiStream(NULL), 
     m_size(0),
     m_logicalBlockSize(0),
     m_itemsInMemory(0),
     toBeRead(0) {
 
-    //  No error checking done for the time being.
-    m_amiStream = new stream<T>();
-
-    m_logicalBlockSize = m_amiStream->chunk_size();
+    m_logicalBlockSize = m_amiStream.chunk_size();
 
     //  Create two dummy blocks.
-    m_block[0] = new T[m_logicalBlockSize];
-    m_block[1] = new T[m_logicalBlockSize];
-
-    //  Zero the contents of the both blocks.
-    //  This may be commented out to increase performance
-    //  but for the time being, we'll keep it to aid 
-    //  debugging.
-    memset(m_block[0], 0, m_logicalBlockSize * sizeof(T));
-    memset(m_block[1], 0, m_logicalBlockSize * sizeof(T));
-
+    m_block[0].resize(m_logicalBlockSize);
+    m_block[1].resize(m_logicalBlockSize);
 }
 
 /////////////////////////////////////////////////////////////////////////
 
 template<class T>
 stack<T>::stack(const std::string& path, stream_type type) :
-    m_amiStream(NULL), 
+    m_amiStream(path, type), 
     m_size(0),
     m_logicalBlockSize(0),
     m_itemsInMemory(0),
     toBeRead(0) {
 
-    //  No error checking done for the time being.
-    m_amiStream = new stream<T>(path, type);
-
     //  Set the size of the stack to be the number of items present 
     //  in the underlying stream file. 
-    m_size = m_amiStream->stream_len();
+    m_size = m_amiStream.stream_len();
 
-    m_logicalBlockSize = m_amiStream->chunk_size();
+    m_logicalBlockSize = m_amiStream.chunk_size();
 
     //  Create two dummy blocks.
-    m_block[0] = new T[m_logicalBlockSize];
-    m_block[1] = new T[m_logicalBlockSize];
-
-    //  Zero the contents of the both blocks.
-    memset(m_block[0], 0, m_logicalBlockSize * sizeof(T));
-    memset(m_block[1], 0, m_logicalBlockSize * sizeof(T));
+    m_block[0].resize(m_logicalBlockSize);
+    m_block[1].resize(m_logicalBlockSize);
 
     TPIE_OS_OFFSET numberOfFullBlocks = m_size / m_logicalBlockSize;
     
@@ -273,11 +255,11 @@ stack<T>::stack(const std::string& path, stream_type type) :
     toBeRead = m_size - (numberOfFullBlocks * m_logicalBlockSize);
 
     //  No error checking done for the time being.
-    m_amiStream->seek(numberOfFullBlocks * m_logicalBlockSize);
-    m_amiStream->read_array(m_block[0], &toBeRead);
+    m_amiStream.seek(numberOfFullBlocks * m_logicalBlockSize);
+    m_amiStream.read_array(m_block[0].get(), &toBeRead);
 
     // Put file pointer at end of last full block
-    m_amiStream->seek(m_size-toBeRead);
+    m_amiStream.seek(m_size-toBeRead);
 
     m_itemsInMemory = static_cast<TPIE_OS_SIZE_T>(toBeRead);
 }
@@ -289,24 +271,19 @@ stack<T>::~stack() {
 
     //  Unload all in-memory data to disk.
     if (m_itemsInMemory < m_logicalBlockSize) {
-	m_amiStream->write_array(m_block[0], m_itemsInMemory);
+		m_amiStream.write_array(m_block[0].get(), m_itemsInMemory);
     }
     else { 
-	m_amiStream->write_array(m_block[0], m_logicalBlockSize);
-	m_amiStream->write_array(m_block[1], 
+		m_amiStream.write_array(m_block[0].get(), m_logicalBlockSize);
+		m_amiStream.write_array(m_block[1].get(), 
 				 m_itemsInMemory -  m_logicalBlockSize);  
     }
-
-    delete[] m_block[0];
-    delete[] m_block[1];
 
     //explicitly needed for correct operation of trim
     m_itemsInMemory=0;
     
     //  Make sure there are no left-overs.
     trim();
-
-    delete m_amiStream;
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -319,44 +296,36 @@ err stack<T>::push(const T &t) {
     //  Do we need to flush items to disk?
     if (m_itemsInMemory == 2*m_logicalBlockSize) {
 
-	//  Write the first block to disk.
-	retval = m_amiStream->write_array(m_block[0], m_logicalBlockSize);
-
-	if (retval != NO_ERROR) {
-	    return retval;
-	}
-
-	//  "Move" the second block to the place where the
-	//  first block used to be.
-	T* dummy      = m_block[0];
-	m_block[0] = m_block[1];
-	m_block[1] = dummy;
-
-	//  Zero the contents of the second block.
-	//  This may be commented out to increase performance
-	//  but for the time being, we'll keep it to aid 
-	//  debugging.
-	memset(m_block[1], 0, m_logicalBlockSize * sizeof(T));
-
-	//  Decrease the number of items in main memory.
-	m_itemsInMemory -= m_logicalBlockSize;
+		//  Write the first block to disk.
+		retval = m_amiStream.write_array(m_block[0].get(), m_logicalBlockSize);
+		
+		if (retval != NO_ERROR) {
+			return retval;
+		}
+		
+		//  "Move" the second block to the place where the
+		//  first block used to be.
+		m_block[0].swap(m_block[1]);
+			
+		//  Decrease the number of items in main memory.
+		m_itemsInMemory -= m_logicalBlockSize;
     }
 
     //  Check to which block to write the new element to.
     if (m_itemsInMemory < m_logicalBlockSize) {
-
-	//  First block.
-	(m_block[0])[m_itemsInMemory] = t;
+		
+		//  First block.
+		(m_block[0])[m_itemsInMemory] = t;
     }
     else {
-
-	//  Second block.
-	(m_block[1])[m_itemsInMemory-m_logicalBlockSize] = t;
+		
+		//  Second block.
+		(m_block[1])[m_itemsInMemory-m_logicalBlockSize] = t;
     }
-
+	
     //  There is one more item on the stack...
     m_size++;
-
+	
     //  ...which is also kept in main memory.
     m_itemsInMemory++;
 
@@ -385,14 +354,14 @@ err stack<T>::pop(const T **t) {
 		toBeRead = m_logicalBlockSize;
 
 		//  Seek back one full block.
-		retval = m_amiStream->seek(m_size - m_logicalBlockSize);
+		retval = m_amiStream.seek(m_size - m_logicalBlockSize);
 
 		if (retval != NO_ERROR) {
 		    return retval;
 		}
         
 		// Read one full block from end
-		retval = m_amiStream->read_array(m_block[0],
+		retval = m_amiStream.read_array(m_block[0],
 						 &toBeRead);
 
 		if (retval != NO_ERROR) {
@@ -402,19 +371,13 @@ err stack<T>::pop(const T **t) {
 		//  Seek back one full block.
 		//  Rewind stream one block again, so new blocks go at 
 		//  end of stack
-		retval = m_amiStream->seek(m_size - m_logicalBlockSize);
+		retval = m_amiStream.seek(m_size - m_logicalBlockSize);
 
 		if (retval != NO_ERROR) {
 		    return retval;
 		}
 
 		m_itemsInMemory += m_logicalBlockSize;
-
-		//  Zero the contents of the second block.
-		//  This may be commented out to increase performance
-		//  but for the time being, we'll keep it to aid 
-		//  debugging.
-		memset(m_block[1], 0, m_logicalBlockSize * sizeof(T));
 
 	    }
 	}
@@ -466,10 +429,10 @@ err stack<T>::peek(const T **t) {
 
 template<class T>
 err stack<T>::main_memory_usage(TPIE_OS_SIZE_T *usage,
-				mem::stream_usage usage_type) const {
+								stream_usage usage_type) const {
     
     //  Get the usage for the underlying stream.
-    if (m_amiStream->main_memory_usage(usage, usage_type) 
+    if (m_amiStream.main_memory_usage(usage, usage_type) 
 	!= NO_ERROR) {
 
 	TP_LOG_WARNING_ID("bte error");		
@@ -480,11 +443,11 @@ err stack<T>::main_memory_usage(TPIE_OS_SIZE_T *usage,
     switch (usage_type) {
 
 	//  All these types are o.k.
-    case mem::STREAM_USAGE_OVERHEAD:
-    case mem::STREAM_USAGE_CURRENT:
-    case mem::STREAM_USAGE_MAXIMUM:
-    case mem::STREAM_USAGE_SUBSTREAM:
-    case mem::STREAM_USAGE_BUFFER: 
+    case STREAM_USAGE_OVERHEAD:
+    case STREAM_USAGE_CURRENT:
+    case STREAM_USAGE_MAXIMUM:
+    case STREAM_USAGE_SUBSTREAM:
+    case STREAM_USAGE_BUFFER: 
 	*usage += sizeof(*this);            //  Attributes.
 	*usage += 2 * m_logicalBlockSize * sizeof(T);   //  Two blocks.
 	break;

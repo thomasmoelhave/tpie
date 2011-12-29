@@ -65,13 +65,15 @@
 #include <tpie/loglevel.h>
 #include <streambuf>
 #include <ostream>
+
 namespace tpie {
 
 struct log_target {
 	virtual void log(log_level level, const char * message, size_t message_size) = 0;
+	virtual ~log_target() { }
 };
 
-class log_stream_buf: public std::basic_streambuf<char, std::char_traits<char> > {
+class log_stream_buf: public std::basic_streambuf<char, std::char_traits<char> >  {
 private:
 	const static size_t buff_size = 2048;
 	const static size_t max_targets = 8;
@@ -81,9 +83,10 @@ private:
 	size_t m_log_target_count;
 	log_level m_level;
 	bool m_enabled;
+
 public:
 	log_stream_buf(log_level level);
-	~log_stream_buf();
+	virtual ~log_stream_buf();
 	void flush();	
 	virtual int overflow(int c = traits_type::eof());
 	virtual int sync();

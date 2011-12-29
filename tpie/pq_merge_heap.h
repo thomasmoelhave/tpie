@@ -23,6 +23,7 @@
 #include "ami.h"
 #include "tpie_log.h"
 #include <cassert>
+#include <tpie/memory.h>
 
 namespace tpie{
 

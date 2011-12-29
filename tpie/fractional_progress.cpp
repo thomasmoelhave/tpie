@@ -106,13 +106,22 @@ public:
 	}
 
 	fraction_db() {
+#ifdef WIN32
+#pragma warning(push)
+#pragma warning(disable: 4305)
+#endif
+
 #ifdef TPIE_FRACTIONDB_DIR_INL
-#ifdef TPIE_NDEBUG
+#ifndef NDEBUG
 #include <tpie_fraction_db_debug.inl>
 #else //TPIE_NDEBUG
 #include <tpie_fraction_db.inl>
 #endif //TPIE_NDEBUG
 #endif //TPIE_FRACTIONDB_DIR_INL
+
+#ifdef WIN32
+#pragma warning(pop)
+#endif
 	}
 
 	inline double getFraction(const std::string & name) {
@@ -128,11 +137,11 @@ static fraction_db * fdb = 0;
 
 void init_fraction_db() {
 	if (fdb) return;
-	fdb = new fraction_db();
+	fdb = tpie_new<fraction_db>();
 }
 
 void finish_fraction_db() {
-	delete fdb;
+	tpie_delete(fdb);
 	fdb=NULL;
 }
 

@@ -141,7 +141,7 @@ namespace tpie {
 	    T0 *tree0_;
 	    
 	    // The vector of trees, in increasing size.
-	    std::vector< T* > trees_;
+	    std::vector<T*, tpie::allocator<T*> > trees_;
 	    
 	    // The base name of all trees.
 	    std::string base_file_name_;
@@ -414,13 +414,13 @@ namespace tpie {
 	    }
 
 	    tree0_->persist(per_);
-	    delete tree0_;
+	    tpie_delete(tree0_);
 	    tree0_ = NULL;
 	    
 	    for (TPIE_OS_SIZE_T i = 1; i < trees_.size(); i++) {
-		trees_[i]->persist(per_);
-		delete trees_[i];
-		trees_[i] = NULL;
+			trees_[i]->persist(per_);
+			tpie_delete(trees_[i]);
+			trees_[i] = NULL;
 	    }
 	}
 
@@ -473,20 +473,20 @@ namespace tpie {
 	    
 	    if (idx == 0) {
 			if (sizeof(T0p) == 0) {
-				tree0_ = new T0(temp_name_, WRITE_COLLECTION);
+				tree0_ = tpie_new<T0>(temp_name_, WRITE_COLLECTION);
 			}
 			else {
-				tree0_ = new T0(temp_name_, WRITE_COLLECTION, 
-								params_.tree0_params);
+				tree0_ = tpie_new<T0>(temp_name_, WRITE_COLLECTION, 
+									  params_.tree0_params);
 			}
 	    } 
 	    else {
 			if (sizeof(Tp) == 0) {
-				trees_[idx] = new T(temp_name_, WRITE_COLLECTION);
+				trees_[idx] = tpie_new<T>(temp_name_, WRITE_COLLECTION);
 			}
 			else {
-				trees_[idx] = new T(temp_name_, WRITE_COLLECTION, 
-									params_.tree_params);
+				trees_[idx] = tpie_new<T>(temp_name_, WRITE_COLLECTION, 
+										  params_.tree_params);
 			}
 	    }
 	}
@@ -543,7 +543,7 @@ namespace tpie {
 		
 		// First unload all relevant trees to a stream.
 		
-		typename LOGMETHOD_BASE::stream_t *stream = new typename LOGMETHOD_BASE::stream_t;
+		typename LOGMETHOD_BASE::stream_t *stream = tpie_new<typename LOGMETHOD_BASE::stream_t>();
 		stream->persist(PERSIST_DELETE);
 		
 		tree0_->unload(stream);
@@ -557,7 +557,7 @@ namespace tpie {
 			trees_[fi]->unload(stream);
 			trees_[fi]->persist(PERSIST_DELETE);
 			stats_.record(trees_[fi]->stats());
-			delete trees_[fi];
+			tpie_delete(trees_[fi]);
 			///      create_tree(fi);
 			    fi++;
 		    }
@@ -575,7 +575,7 @@ namespace tpie {
 		    
 		    // Create a new tree from stream.
 		    trees_[fi]->load(stream);
-		    delete stream;
+		    tpie_delete(stream);
 		    
 		    // Create empty trees in positions 0 to fi-1.
 		    for (TPIE_OS_SIZE_T ii = 0; ii < fi; ii++)

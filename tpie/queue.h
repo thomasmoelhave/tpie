@@ -147,7 +147,7 @@ namespace tpie {
 	    ////////////////////////////////////////////////////////////////////
 
 	    err main_memory_usage(TPIE_OS_SIZE_T *usage,
-				  mem::stream_usage usage_type) const;
+							  stream_usage usage_type) const;
     
 	private:
 	    err refill();
@@ -160,8 +160,8 @@ namespace tpie {
 
 template<class T>
 queue<T>::queue() {
-    m_enQstack = new stack<T>();
-    m_deQstack = new stack<T>();
+    m_enQstack = tpie_new<stack<T> >();
+    m_deQstack = tpie_new<stack<T> >();
     m_enQstack->persist(PERSIST_DELETE);
     m_deQstack->persist(PERSIST_DELETE);
     m_Qsize=0;
@@ -172,9 +172,9 @@ queue<T>::queue() {
 template<class T>
 queue<T>::queue(const std::string& basename) {
     std::string fname = basename + ".nq";
-    m_enQstack = new stack<T>(fname);
+    m_enQstack = tpie_new<stack<T> >(fname);
     fname = basename + ".dq";
-    m_deQstack = new stack<T>(fname);
+    m_deQstack = tpie_new<stack<T> >(fname);
     m_enQstack->persist(PERSIST_PERSISTENT);
     m_deQstack->persist(PERSIST_PERSISTENT);
     m_Qsize=m_enQstack->size()+m_deQstack->size();
@@ -184,8 +184,8 @@ queue<T>::queue(const std::string& basename) {
 
 template<class T>
 queue<T>::~queue(void) {
-    delete m_enQstack;
-    delete m_deQstack;
+    tpie_delete(m_enQstack);
+	tpie_delete(m_deQstack);
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -297,7 +297,7 @@ err queue<T>::refill() {
 
 template<class T>
 err queue<T>::main_memory_usage(TPIE_OS_SIZE_T *usage,
-				mem::stream_usage usage_type) const {
+								stream_usage usage_type) const {
     
     TPIE_OS_SIZE_T usage2;
 
@@ -315,11 +315,11 @@ err queue<T>::main_memory_usage(TPIE_OS_SIZE_T *usage,
     *usage += usage2;
 
     switch (usage_type) {
-    case mem::STREAM_USAGE_OVERHEAD:
-    case mem::STREAM_USAGE_CURRENT:
-    case mem::STREAM_USAGE_MAXIMUM:
-    case mem::STREAM_USAGE_SUBSTREAM:
-    case mem::STREAM_USAGE_BUFFER:
+    case STREAM_USAGE_OVERHEAD:
+    case STREAM_USAGE_CURRENT:
+    case STREAM_USAGE_MAXIMUM:
+    case STREAM_USAGE_SUBSTREAM:
+    case STREAM_USAGE_BUFFER:
 	*usage += sizeof(*this);            //  Attributes.
 
 	break;

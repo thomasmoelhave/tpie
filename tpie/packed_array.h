@@ -246,7 +246,7 @@ public:
 	/// \copydetails linear_memory_structure_doc::memory_overhead()
 	/////////////////////////////////////////////////////////
 	static double memory_overhead() {
-		return (double)sizeof(packed_array) + MM_manager.space_overhead()+(double)sizeof(storage_type);
+		return (double)sizeof(packed_array)+(double)sizeof(storage_type);
 	}	
 
 	/////////////////////////////////////////////////////////
@@ -299,9 +299,9 @@ public:
 	/////////////////////////////////////////////////////////
 	void resize(size_t s) {
 		if (s == m_size) return;
-		delete m_elements;
+		tpie_delete_array(m_elements, words(m_size));
 		m_size = s;
-		m_elements = m_size?new storage_type[words(m_size)]:0;
+		m_elements = m_size?tpie_new_array<storage_type>(words(m_size)):0;
 	}
 
 	/////////////////////////////////////////////////////////

@@ -562,8 +562,8 @@ int main(int argc, char **argv){
     Item x;
 
     //Set up TPIE memory manager
-    MM_manager.set_memory_limit(64*APP_MEG);
-    MM_manager.enforce_memory_limit();
+    get_memory_manager().set_limit(64*APP_MEG);
+    get_memory_manager().set_enforcement(memory_manager::ENFORCE_THROW);
 
     get_app_info(argc, argv, info);
  

@@ -25,10 +25,14 @@ SET (COMMON_DEPS
 )
 
 add_library(matrix_common ${COMMON_DEPS})
+set_target_properties(matrix_common PROPERTIES FOLDER tpie/apps)
 
 add_executable(test_matrix test_matrix.cpp)
+set_target_properties(test_matrix PROPERTIES FOLDER tpie/apps)
 add_executable(test_sparse_matrix test_sparse_matrix.cpp)
+set_target_properties(test_sparse_matrix PROPERTIES FOLDER tpie/apps)
 add_executable(test_matrix_pad test_matrix_pad.cpp)
+set_target_properties(test_matrix_pad PROPERTIES FOLDER tpie/apps)
 
 target_link_libraries(test_matrix tpie matrix_common)
 target_link_libraries(test_sparse_matrix tpie matrix_common)

@@ -21,13 +21,16 @@
 #include <tpie/stream.h>
 #include <iostream>
 #include "testtime.h"
+#include <tpie/tpie.h>
 
 using namespace tpie::ami;
 using namespace tpie::test;
 
-const size_t size=1024*1024/sizeof(uint64_t);
+const size_t size=16*1024*1024/sizeof(uint64_t);
 
 int main() {
+	tpie::tpie_init();
+
 	test_realtime_t start;
 	test_realtime_t end;
 	

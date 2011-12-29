@@ -2159,13 +2159,13 @@ protected:
 		bool ans = ((TPIE_OS_OFFSET) (sz * sizeof(POINT) * TPIE_OS_OFFSET(dim + 1) + 
 					pcoll_nodes_->block_size() * params_.node_cache_size +
 					pcoll_leaves_->block_size() * params_.leaf_cache_size +
-					TPIE_OS_OFFSET(8192 * 4)) < (TPIE_OS_OFFSET) MM_manager.memory_available());
+									  TPIE_OS_OFFSET(8192 * 4)) < (TPIE_OS_OFFSET) get_memory_manager().available());
 		TPLOG("kdtree::can_do_mm needed = " << 
 			  (TPIE_OS_OFFSET) ((TPIE_OS_OFFSET) sz * sizeof(POINT) * TPIE_OS_OFFSET(dim + 1) + 
 								pcoll_nodes_->block_size() * params_.node_cache_size +
 								pcoll_leaves_->block_size() * params_.leaf_cache_size +
 								TPIE_OS_OFFSET(8192 * 4)) << ", avail = " << 
-			  MM_manager.memory_available() << " ans = " << ans << "\n");
+			  get_memory_manager().available() << " ans = " << ans << "\n");
 		return ans;
 	}
 

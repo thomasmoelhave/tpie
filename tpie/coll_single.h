@@ -167,7 +167,7 @@ namespace tpie {
 	    /// lost to the TPIE program instance.  	    
 	    //////////////////////////////////////////////////////////////////////////
 	    ~collection_single() { 
-		delete btec_; 
+			tpie_delete(btec_);
 	    }
 	    
       //////////////////////////////////////////////////////////////////////////
@@ -211,7 +211,7 @@ namespace tpie {
 	    
 		std::string temp_path = tempname::tpie_name("");
 	    
-	    btec_ = new BTECOLL(temp_path, bte::WRITE_COLLECTION, lbf);
+	    btec_ = tpie_new< BTECOLL>(temp_path, bte::WRITE_COLLECTION, lbf);
 	    tp_assert(btec_ != NULL, "new failed to create a new BTE_COLLECTION."); 
 	    btec_->persist(PERSIST_DELETE);
 	    
@@ -237,7 +237,7 @@ namespace tpie {
 		btect = bte::WRITE_COLLECTION;
 	    }
    
-	    btec_ = new BTECOLL(path_name, btect, lbf);
+	    btec_ = tpie_new<BTECOLL>(path_name, btect, lbf);
 	    
 	    tp_assert(btec_ != NULL, "new failed to create a new BTE_COLLECTION.");
 	    btec_->persist(PERSIST_PERSISTENT);
