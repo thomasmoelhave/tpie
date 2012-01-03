@@ -34,5 +34,6 @@
 #include <tpie/pipelining/stdio.h>
 #include <tpie/pipelining/merge.h>
 #include <tpie/pipelining/reverse.h>
+#include <tpie/pipelining/sort.h>
 
 #endif

@@ -228,6 +228,17 @@ bool reverse_test() {
 	return check_test_vectors();
 }
 
+bool sort_test() {
+	setup_test_vectors();
+	expectvector = inputvector;
+	std::reverse(inputvector.begin(), inputvector.end());
+
+	pipeline p = input_vector(inputvector) | pipesort() | output_vector(outputvector);
+	p();
+
+	return check_test_vectors();
+}
+
 // True if all tests pass, false otherwise
 bool result;
 
@@ -271,6 +282,7 @@ int main(int argc, char ** argv) {
 	test<file_stream_alt_push_test>("fsaltpush");
 	test<merge_test>("merge");
 	test<reverse_test>("reverse");
+	test<sort_test>("sort");
 	file_system_cleanup();
 	if (!tests) {
 		std::cerr << "Usage: " << argv[0] << " [all|vector|filestream|fspull|fsaltpush]" << std::endl;
