@@ -18,61 +18,108 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #include "../app_config.h"
 
+#include <tpie/tpie.h>
 #include <tpie/stream.h>
 #include <iostream>
 #include "testtime.h"
-#include <tpie/tpie.h>
+#include <boost/filesystem/operations.hpp>
 
+using namespace tpie;
 using namespace tpie::ami;
 using namespace tpie::test;
 
-const size_t size=16*1024*1024/sizeof(uint64_t);
+const size_t count_default=1024*1024/sizeof(uint64_t);
 
-int main() {
-	tpie::tpie_init();
+void usage() {
+	std::cout << "Parameters: [times] [count]" << std::endl;
+}
 
+void test(size_t count) {
 	test_realtime_t start;
 	test_realtime_t end;
-	
-	//The porpous of this test is to test the speed of the io calls, not the file system
+
+	boost::filesystem::remove("tmp");
+
+	uint64_t res=0;
+	//The purpose of this test is to test the speed of the io calls, not the file system
 	getTestRealtime(start);
 	{
 		stream<uint64_t> s("tmp", WRITE_STREAM);
 		uint64_t x=42;
-		for(size_t i=0; i < size*1024; ++i) s.write_item(x);
+		for(size_t i=0; i < count*1024; ++i) s.write_item(x);
 	}
 	getTestRealtime(end);
-	std::cout << " " << testRealtimeDiff(start,end);
+	std::cout << testRealtimeDiff(start,end);
 	std::cout.flush();
 	
 	getTestRealtime(start);
 	{
 		stream<uint64_t> s("tmp", READ_STREAM);
 		uint64_t * x;
-		for(size_t i=0; i < size*1024; ++i) s.read_item(&x);
+		for(size_t i=0; i < count*1024; ++i) {
+			s.read_item(&x);
+			res += *x;
+		}
 	}
 	getTestRealtime(end);
-	std::cout << " " << testRealtimeDiff(start,end);
+	std::cout << " " << testRealtimeDiff(start,end) << " " << res << std::endl;
 	std::cout.flush();
+	boost::filesystem::remove("tmp");
 	
-	getTestRealtime(start);
-	{
-		uint64_t x[1024];
-		for(int i=0; i < 1024; ++i) x[i]=42;
-		stream<uint64_t> s("tmp", WRITE_STREAM);
-		for(size_t i=0; i < size; ++i) s.write_array(x,1024);
-	}
-	getTestRealtime(end);
-	std::cout << " " << testRealtimeDiff(start,end);
-	std::cout.flush();
+	// getTestRealtime(start);
+	// {
+	// 	uint64_t x[1024];
+	// 	std::fill(x+0, x+1024, 42);
+	// 	stream<uint64_t> s("tmp", WRITE_STREAM);
+	// 	for(size_t i=0; i < count; ++i) s.write_array(x,1024);
+	// }
+	// getTestRealtime(end);
+	// std::cout << " " << testRealtimeDiff(start,end);
+	// std::cout.flush();
 	
-	getTestRealtime(start);
-	{
-		uint64_t x[1024];
-		for(uint64_t i=0; i < 1024; ++i) x[i]=42;
-		stream<uint64_t> s("tmp", READ_STREAM);
-		for(size_t i=0; i < size; ++i) {TPIE_OS_OFFSET y=1024; s.read_array(x,&y);}
+	// getTestRealtime(start);
+	// {
+	// 	uint64_t x[1024];
+	// 	std::fill(x+0, x+1024, 42);
+	// 	stream<uint64_t> s("tmp", READ_STREAM);
+	// 	for(size_t i=0; i < count; ++i) {TPIE_OS_OFFSET y=1024; s.read_array(x,&y);}
+	// }
+	// getTestRealtime(end);
+	// std::cout << " " << testRealtimeDiff(start,end) << std::endl;
+}
+
+int main(int argc, char **argv) {
+	size_t times = 10;
+	size_t count = count_default;
+
+	if (argc > 1) {
+		if (std::string(argv[1]) == "0") {
+			times = 0;
+		} else {
+			std::stringstream(argv[1]) >> times;
+			if (!times) {
+				usage();
+				return EXIT_FAILURE;
+			}
+		}
 	}
-	getTestRealtime(end);
-	std::cout << " " << testRealtimeDiff(start,end) << std::endl;
+	if (argc > 2) {
+		std::stringstream(argv[2]) >> count;
+		if (!count) {
+			usage();
+			return EXIT_FAILURE;
+		}
+	}
+
+	std::cout << "Writing/reading " << count << "*1024 items (ami), writing " << count << " arrays, reading them (ami)" << std::endl;
+
+	tpie::tpie_init();
+
+	for (size_t i = 0; i < times || !times; ++i) {
+		::test(count);
+	}
+	
+	tpie::tpie_finish();
+
+	return EXIT_SUCCESS;
 }
