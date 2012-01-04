@@ -83,7 +83,7 @@ struct reverser {
 		return buffer;
 	}
 
-	inline generate<factory_1<source_t, const buf_t &> >
+	inline pipe_middle<factory_1<source_t, const buf_t &> >
 	source() {
 		return factory_1<source_t, const buf_t &>(buffer);
 	}

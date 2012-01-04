@@ -47,7 +47,7 @@ struct multiply_t {
 	uint64_t factor;
 };
 
-generate<factory_1<multiply_t, uint64_t> > multiply(uint64_t factor) {
+pipe_middle<factory_1<multiply_t, uint64_t> > multiply(uint64_t factor) {
 	return factory_1<multiply_t, uint64_t>(factor);
 }
 

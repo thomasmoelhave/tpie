@@ -69,7 +69,7 @@ private:
 };
 
 template<typename T>
-inline generate<factory_1<input_vector_t, const std::vector<T> &> > input_vector(const std::vector<T> & input) {
+inline pipe_middle<factory_1<input_vector_t, const std::vector<T> &> > input_vector(const std::vector<T> & input) {
 	return factory_1<input_vector_t, const std::vector<T> &>(input);
 }
 

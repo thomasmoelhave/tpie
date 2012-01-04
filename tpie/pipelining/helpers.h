@@ -62,7 +62,7 @@ private:
 	bool ended;
 };
 
-inline generate<factory_1<ostream_logger_t, std::ostream &> >
+inline pipe_middle<factory_1<ostream_logger_t, std::ostream &> >
 cout_logger() {
 	return factory_1<ostream_logger_t, std::ostream &>(std::cout);
 }
@@ -89,8 +89,8 @@ private:
 	dest_t dest;
 };
 
-inline generate<factory_0<identity_t> > identity() {
-	return generate<factory_0<identity_t> >();
+inline pipe_middle<factory_0<identity_t> > identity() {
+	return pipe_middle<factory_0<identity_t> >();
 }
 
 template <typename source_t>
@@ -244,7 +244,7 @@ inline pull_factory_1<push_to_pull<factory_0<identity_t> >::puller_t, factory_0<
 }
 
 inline
-generate<factory_1<
+pipe_middle<factory_1<
 	pull_to_push<pull_factory_0<pull_identity_t> >::pusher_t,
 	pull_factory_0<pull_identity_t>
 > >

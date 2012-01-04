@@ -46,7 +46,7 @@ private:
 };
 
 template <typename T>
-inline generate<factory_2<linear_t, T, T> >
+inline pipe_middle<factory_2<linear_t, T, T> >
 linear(T factor, T term) {
 	return factory_2<linear_t, T, T>(factor, term);
 }

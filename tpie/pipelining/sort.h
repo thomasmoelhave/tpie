@@ -71,7 +71,7 @@ private:
 	tpie::file_stream<item_type> tmpstream;
 };
 
-inline generate<factory_0<sort_t> >
+inline pipe_middle<factory_0<sort_t> >
 pipesort() {
 	return factory_0<sort_t>();
 }

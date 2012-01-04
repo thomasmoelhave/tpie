@@ -136,29 +136,29 @@ struct termpair_factory {
 } // namespace bits
 
 /**
- * \class generate
+ * \class pipe_middle
  *
- * A generate class pushes input down the pipeline.
+ * A pipe_middle class pushes input down the pipeline.
  *
  * \tparam fact_t A factory with a construct() method like the factory_0,
  *                factory_1, etc. helpers.
  */
 template <typename fact_t>
-struct generate {
+struct pipe_middle {
 	typedef fact_t factory_type;
 
-	inline generate() {
+	inline pipe_middle() {
 	}
 
-	inline generate(const fact_t & factory) : factory(factory) {
+	inline pipe_middle(const fact_t & factory) : factory(factory) {
 	}
 
 	/**
 	 * The pipe operator combines this generator/filter with another filter.
 	 */
 	template <typename fact2_t>
-	inline generate<bits::pair_factory<fact_t, fact2_t> >
-	operator|(const generate<fact2_t> & r) {
+	inline pipe_middle<bits::pair_factory<fact_t, fact2_t> >
+	operator|(const pipe_middle<fact2_t> & r) {
 		return bits::pair_factory<fact_t, fact2_t>(factory, r.factory);
 	}
 

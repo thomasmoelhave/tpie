@@ -63,7 +63,7 @@ struct merge_t {
 };
 
 template <typename pull_t>
-inline generate<factory_1<merge_t<pull_t>::template type, pull_t> >
+inline pipe_middle<factory_1<merge_t<pull_t>::template type, pull_t> >
 merge(const datasource<pull_t> & with) {
 	return factory_1<merge_t<pull_t>::template type, pull_t>(with);
 }

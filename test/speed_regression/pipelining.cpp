@@ -77,11 +77,11 @@ inline static void do_write(size_t count) {
 	file_stream<test_t> s;
 	s.open("tmp");
 	if (virt) {
-		pipeline p = generate<factory_1<number_generator_t, size_t> >(count) | output(s);
+		pipeline p = pipe_middle<factory_1<number_generator_t, size_t> >(count) | output(s);
 		p();
 	} else {
 		number_generator_t<output_t<test_t> > p =
-			generate<factory_1<number_generator_t, size_t> >(count) | output(s);
+			pipe_middle<factory_1<number_generator_t, size_t> >(count) | output(s);
 		p();
 	}
 }

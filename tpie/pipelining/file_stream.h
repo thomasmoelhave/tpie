@@ -54,7 +54,7 @@ private:
 };
 
 template<typename T>
-inline generate<factory_1<input_t, file_stream<T> &> > input(file_stream<T> & fs) {
+inline pipe_middle<factory_1<input_t, file_stream<T> &> > input(file_stream<T> & fs) {
 	return factory_1<input_t, file_stream<T> &>(fs);
 }
 
