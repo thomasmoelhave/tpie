@@ -19,7 +19,6 @@
 #include "../app_config.h"
 
 #include <tpie/tpie.h>
-#include <tpie/file_stream.h>
 #include <tpie/stream.h>
 #include <iostream>
 #include "testtime.h"
@@ -41,6 +40,7 @@ void test(size_t count) {
 
 	boost::filesystem::remove("tmp");
 
+	uint64_t res=0;
 	//The purpose of this test is to test the speed of the io calls, not the file system
 	getTestRealtime(start);
 	{
@@ -56,34 +56,36 @@ void test(size_t count) {
 	{
 		stream<uint64_t> s("tmp", READ_STREAM);
 		uint64_t * x;
-		for(size_t i=0; i < count*1024; ++i) s.read_item(&x);
+		for(size_t i=0; i < count*1024; ++i) {
+			s.read_item(&x);
+			res += *x;
+		}
 	}
 	getTestRealtime(end);
-	std::cout << " " << testRealtimeDiff(start,end);
+	std::cout << " " << testRealtimeDiff(start,end) << " " << res << std::endl;
 	std::cout.flush();
-
 	boost::filesystem::remove("tmp");
 	
-	getTestRealtime(start);
-	{
-		uint64_t x[1024];
-		std::fill(x+0, x+1024, 42);
-		stream<uint64_t> s("tmp", WRITE_STREAM);
-		for(size_t i=0; i < count; ++i) s.write_array(x,1024);
-	}
-	getTestRealtime(end);
-	std::cout << " " << testRealtimeDiff(start,end);
-	std::cout.flush();
+	// getTestRealtime(start);
+	// {
+	// 	uint64_t x[1024];
+	// 	std::fill(x+0, x+1024, 42);
+	// 	stream<uint64_t> s("tmp", WRITE_STREAM);
+	// 	for(size_t i=0; i < count; ++i) s.write_array(x,1024);
+	// }
+	// getTestRealtime(end);
+	// std::cout << " " << testRealtimeDiff(start,end);
+	// std::cout.flush();
 	
-	getTestRealtime(start);
-	{
-		uint64_t x[1024];
-		std::fill(x+0, x+1024, 42);
-		stream<uint64_t> s("tmp", READ_STREAM);
-		for(size_t i=0; i < count; ++i) {TPIE_OS_OFFSET y=1024; s.read_array(x,&y);}
-	}
-	getTestRealtime(end);
-	std::cout << " " << testRealtimeDiff(start,end) << std::endl;
+	// getTestRealtime(start);
+	// {
+	// 	uint64_t x[1024];
+	// 	std::fill(x+0, x+1024, 42);
+	// 	stream<uint64_t> s("tmp", READ_STREAM);
+	// 	for(size_t i=0; i < count; ++i) {TPIE_OS_OFFSET y=1024; s.read_array(x,&y);}
+	// }
+	// getTestRealtime(end);
+	// std::cout << " " << testRealtimeDiff(start,end) << std::endl;
 }
 
 int main(int argc, char **argv) {
