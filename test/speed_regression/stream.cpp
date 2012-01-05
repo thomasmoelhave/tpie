@@ -18,55 +18,73 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #include "../app_config.h"
 
+#undef STREAM_UFS_BLOCK_FACTOR
+#ifdef WIN32
+#define STREAM_UFS_BLOCK_FACTOR 32
+#else
+#define STREAM_UFS_BLOCK_FACTOR 512
+#endif
+
 #include <tpie/tpie.h>
 #include <tpie/stream.h>
 #include <iostream>
 #include "testtime.h"
+#include "stat.h"
 #include <boost/filesystem/operations.hpp>
 
 using namespace tpie;
 using namespace tpie::ami;
 using namespace tpie::test;
 
-const size_t count_default=1024*1024/sizeof(uint64_t);
+const size_t default_mb=1;
 
 void usage() {
-	std::cout << "Parameters: [times] [count]" << std::endl;
+	std::cout << "Parameters: [times] [mb]" << std::endl;
 }
 
-void test(size_t count) {
-	test_realtime_t start;
-	test_realtime_t end;
-
-	boost::filesystem::remove("tmp");
-
-	uint64_t res=0;
-	//The purpose of this test is to test the speed of the io calls, not the file system
-	getTestRealtime(start);
-	{
-		stream<uint64_t> s("tmp", WRITE_STREAM);
-		uint64_t x=42;
-		for(size_t i=0; i < count*1024; ++i) s.write_item(x);
-	}
-	getTestRealtime(end);
-	std::cout << testRealtimeDiff(start,end);
-	std::cout.flush();
+void test(size_t mb, size_t times) {
+	std::vector<const char *> names;
+	std::vector<double> ti;
+	names.resize(2);
+	ti.resize(2);
+	names[0] = "Write";
+	names[1] = "Read";
+	tpie::test::stat s(names);
+	size_t count=mb*1024*1024/sizeof(uint64_t);
 	
-	getTestRealtime(start);
-	{
-		stream<uint64_t> s("tmp", READ_STREAM);
-		uint64_t * x;
-		for(size_t i=0; i < count*1024; ++i) {
-			s.read_item(&x);
-			res += *x;
+	for(size_t i = 0; i < times; ++i) {
+		test_realtime_t start;
+		test_realtime_t end;
+		
+		boost::filesystem::remove("tmp");
+		
+		uint64_t res=0;
+		//The purpose of this test is to test the speed of the io calls, not the file system
+		getTestRealtime(start);
+		{
+			stream<uint64_t> s("tmp", WRITE_STREAM);
+			uint64_t x=42;
+			for(size_t i=0; i < count; ++i) s.write_item(x);
 		}
+		getTestRealtime(end);
+		ti[0] = testRealtimeDiff(start,end);
+		
+		getTestRealtime(start);
+		{
+			stream<uint64_t> s("tmp", READ_STREAM);
+			uint64_t * x;
+			for(size_t i=0; i < count; ++i) {
+				s.read_item(&x);
+				res += *x;
+			}
+		}
+		getTestRealtime(end);
+		ti[1] = testRealtimeDiff(start,end);
+		boost::filesystem::remove("tmp");
+		s(ti);
+
 	}
-	getTestRealtime(end);
-	std::cout << " " << testRealtimeDiff(start,end) << " " << res << std::endl;
-	std::cout.flush();
-	boost::filesystem::remove("tmp");
-	
-	// getTestRealtime(start);
+   	// getTestRealtime(start);
 	// {
 	// 	uint64_t x[1024];
 	// 	std::fill(x+0, x+1024, 42);
@@ -90,7 +108,7 @@ void test(size_t count) {
 
 int main(int argc, char **argv) {
 	size_t times = 10;
-	size_t count = count_default;
+	size_t mb = default_mb;
 
 	if (argc > 1) {
 		if (std::string(argv[1]) == "0") {
@@ -104,22 +122,16 @@ int main(int argc, char **argv) {
 		}
 	}
 	if (argc > 2) {
-		std::stringstream(argv[2]) >> count;
-		if (!count) {
+		std::stringstream(argv[2]) >> mb;
+		if (!mb) {
 			usage();
 			return EXIT_FAILURE;
 		}
 	}
 
-	std::cout << "Writing/reading " << count << "*1024 items (ami), writing " << count << " arrays, reading them (ami)" << std::endl;
-
+	std::cout << "Wrating and Reading " << mb << " MB" << std::endl;
 	tpie::tpie_init();
-
-	for (size_t i = 0; i < times || !times; ++i) {
-		::test(count);
-	}
-	
+	::test(mb, times);
 	tpie::tpie_finish();
-
 	return EXIT_SUCCESS;
 }

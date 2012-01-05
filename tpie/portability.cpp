@@ -56,7 +56,7 @@ void atomic_rename(const std::string & src, const std::string & dst) {
 		throw std::runtime_error("Atomic rename failed");
 #else
 	//TODO use MoveFileTransacted on vista or newer
-	if (MoveFileEx(src.c_str(), dst.c_str(), MOVEFILE_COPY_ALLOWED | MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH))\
+	if (!MoveFileEx(src.c_str(), dst.c_str(), MOVEFILE_COPY_ALLOWED | MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH))
 		throw std::runtime_error("Atomic rename failed");
 #endif
 }

@@ -625,7 +625,19 @@ public:
 	inline const T * get() const {return array_base<T, false, alloc_t>::__get();}
 };
 
+template <typename T, template <typename> class A>
+std::ostream & operator<<(std::ostream & o, const array<T, A> & a) {
+	o << "[";
+	bool first=true;
+	for(size_t i=0; i < a.size(); ++i) {
+		if (first) first = false;
+		else o << ", ";
+		o << a[i];
+	}
+	return o << "]";
 }
+
+} //namespace tpie
 
 namespace std {
 
