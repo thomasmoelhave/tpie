@@ -1,7 +1,7 @@
 *Platform*: Windows 64-bit
 
 *Branches*: memory vs. filestream
-
+<pre>
 "=====================> filestream <======================================="
 The type of the file system is NTFS.
 Enter current volume label for drive E:
@@ -78,3 +78,4 @@ Wrating and Reading 40000 MB
          5    276198    244810
       mean    278266    250532
     stddev   3318.88   3907.62
+</pre>
