@@ -1,8 +1,9 @@
 *Platform*: Windows 64-bit
 
 *Branches*: memory vs. filestream
+
 <pre>
-"=====================> filestream <======================================="
+=====================> filestream <=======================================
 The type of the file system is NTFS.
 Enter current volume label for drive E:
 WARNING, ALL DATA ON NON-REMOVABLE DISK
@@ -21,7 +22,7 @@ Wrating and Reading 40000 MB
          5    277726    253422
       mean    280761    249222
     stddev   3543.71   3801.54
-"=====================> master <======================================="
+=====================> master <=======================================
 The type of the file system is NTFS.
 Enter current volume label for drive E:
 WARNING, ALL DATA ON NON-REMOVABLE DISK
@@ -40,7 +41,7 @@ Wrating and Reading 40000 MB
          5    276416    258289
       mean    277901    257060
     stddev   3045.28   3073.09
-"=====================> filestream <======================================="
+=====================> filestream <=======================================
 The type of the file system is NTFS.
 Enter current volume label for drive E:
 WARNING, ALL DATA ON NON-REMOVABLE DISK
@@ -59,7 +60,7 @@ Wrating and Reading 40000 MB
          5    278148    246651
       mean    280338    251437
     stddev    3191.5   3037.98
-"=====================> master <======================================="
+=====================> master <=======================================
 The type of the file system is NTFS.
 Enter current volume label for drive E:
 WARNING, ALL DATA ON NON-REMOVABLE DISK
