@@ -46,8 +46,8 @@ namespace tpie {
 		class heap_ptr {
 		public:
 			heap_ptr() : recptr(NULL), run_id(0) {};
-			heap_ptr(REC * a, size_t b) : recptr(a), run_id(b) {};
-			REC            *recptr;
+			heap_ptr(const REC * a, size_t b) : recptr(a), run_id(b) {};
+			const REC            *recptr;
 			size_t run_id;
 		};
 
@@ -61,7 +61,7 @@ namespace tpie {
 			struct comp: public std::binary_function<heap_ptr<REC>, heap_ptr<REC>, bool> {
 				comp_t c;
 				comp(comp_t & _): c(_) {}
-				inline bool operator()(const heap_ptr<REC> & a, const heap_ptr<REC> & b) {
+				inline bool operator()(const heap_ptr<REC> & a, const heap_ptr<REC> & b) const {
 					return c(*a.recptr, *b.recptr);
 				}
 			};
@@ -89,7 +89,7 @@ namespace tpie {
 			///////////////////////////////////////////////////////////////////////////
 			/// Copies an (initial) element into the heap array.
 			///////////////////////////////////////////////////////////////////////////
-			void insert(REC *ptr, size_t run_id) {pq.unsafe_push(heap_ptr<REC>(ptr, run_id) );}
+			void insert(const REC *ptr, size_t run_id) {pq.unsafe_push(heap_ptr<REC>(ptr, run_id) );}
 			
 			///////////////////////////////////////////////////////////////////////////
 			/// Extracts minimum element from heap array.
@@ -116,7 +116,7 @@ namespace tpie {
 			// Deletes the current minimum and inserts the new item from the same
 			// source / run.
 			///////////////////////////////////////////////////////////////////////////
-			inline void delete_min_and_insert(REC *nextelement_same_run) {
+			inline void delete_min_and_insert(const REC *nextelement_same_run) {
 				if (nextelement_same_run)
 					pq.pop_and_push(heap_ptr<REC>(nextelement_same_run, pq.top().run_id));
 				else
@@ -205,7 +205,7 @@ namespace tpie {
 			///////////////////////////////////////////////////////////////////////////
 			/// Copies an (initial) element into the heap array/
 			///////////////////////////////////////////////////////////////////////////
-			void insert(REC *ptr, size_t run_id) {pq.unsafe_push(heap_element<REC>(*ptr, run_id));}
+			void insert(const REC *ptr, size_t run_id) {pq.unsafe_push(heap_element<REC>(*ptr, run_id));}
 			
 			///////////////////////////////////////////////////////////////////////////
 			/// Extracts minimum element from heap array.
@@ -232,7 +232,7 @@ namespace tpie {
 			// Deletes the current minimum and inserts the new item from the same
 			// source / run.
 			///////////////////////////////////////////////////////////////////////////
-			inline void delete_min_and_insert(REC *nextelement_same_run) {
+			inline void delete_min_and_insert(const REC *nextelement_same_run) {
 				if (nextelement_same_run)
 					pq.pop_and_push(heap_element<REC>(*nextelement_same_run, pq.top().run_id));
 				else
@@ -296,7 +296,7 @@ namespace tpie {
 			inline size_t get_min_run_id(void) {return pq.top().run_id;};
 			
 			void allocate(size_t size) {pq.resize(size);}
-			void insert(REC *ptr, size_t run_id) {
+			void insert(const REC *ptr, size_t run_id) {
 					KEY k;
 					obj->copy(&k, *ptr);
 					pq.pop_and_push(heap_element<KEY>(k, run_id));

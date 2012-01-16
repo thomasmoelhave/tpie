@@ -78,26 +78,23 @@ namespace tpie {
 			size_t arity = end-start;
 
 			//Pointers to current leading elements of streams
-			tpie::array<T *> in_objects(arity);
+			tpie::array<const T *> in_objects(arity);
 			tpie::array<TPIE_OS_OFFSET> nread(arity);
-
-			tpie::array<T> in_objects_cache(arity);
 			
 			// **************************************************************
 			// * Read first element from stream. Do not rewind! We may read *
 			// * more elements from the same stream later.                  *
 			// **************************************************************
 
-			for (i = 0; i < arity; nread[i] = 1, i++, indicator ? indicator->step() : void(0)) {
+			for (i = 0; i < arity; i++) {
 				file_stream<T> * stream = (start+i)->get();
 				if (stream->can_read()) {
-					in_objects_cache[i] = stream->read();
-					in_objects[i] = &in_objects_cache[i];
-				} else {
-					in_objects[i] = 0;
-					continue;
-				}
-				MergeHeap->insert( in_objects[i], i );
+					in_objects[i] = &stream->read();
+					MergeHeap->insert( in_objects[i], i );
+				} else 
+					in_objects[i] = NULL;
+				nread[i] = 1;
+				if (indicator) indicator->step();
 			}
 
 			// *********************************************************
@@ -120,15 +117,10 @@ namespace tpie {
 					eof = true;
 				else {
 					file_stream<T> * stream = (start+i)->get();
-					if (stream->can_read()) {
-						in_objects_cache[i] = stream->read();
-						in_objects[i] = &in_objects_cache[i];
-					} else {
-						eof = true;
-					}
+					if (stream->can_read()) in_objects[i] = &stream->read();
+					else eof = true;
 		    
-					if (indicator) 
-						indicator->step();
+					if (indicator) indicator->step();
 				} 
 		
 				if (eof)
