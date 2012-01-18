@@ -215,7 +215,7 @@ void sort_manager<T,I,M>::sort(file_stream<T>* in, progress_indicator_base* indi
 
 template<class T, class I, class M>
 void sort_manager<T,I,M>::start_sort(){
-	    
+	
 	// ********************************************************************
 	// * PHASE 1: See if we can sort the entire stream in internal memory *
 	// * without the need to use general merge sort                       *
@@ -572,12 +572,13 @@ void sort_manager<T,I,M>::partition_and_sort_runs(progress_indicator_base* indic
 		// Dynamically allocate the stream
 		// We account for these mmBytesPerStream in phase 2 (output stream)
 		curOutputRunStream = tpie_new<file_stream<T> >();
-		curOutputRunStream->open(newName);
+		curOutputRunStream->open(newName, file_base::write);
+
 		// How many runs should this stream get?
 		// extra runs go in the LAST nXtraRuns streams so that
 		// the one short run is always in the LAST output stream
 		runsInStream = minRunsPerStream + ((ii >= mrgArity-nXtraRuns)?1:0);
-		
+
 		for(TPIE_OS_OFFSET  jj=0; jj < runsInStream; jj++ ) { // For each run in this stream
 		    // See if this is the last run
 		    if( (ii==mrgArity-1) && (jj==runsInStream-1)) {
@@ -612,7 +613,6 @@ void sort_manager<T,I,M>::partition_and_sort_runs(progress_indicator_base* indic
 
 template<class T, class I, class M>
 void sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
-
 	// ********************************************************************
 	// * PHASE 4: Merge                                                   *
 	// * Loop over all levels of the merge tree, reading mrgArity runs    *
@@ -710,7 +710,7 @@ void sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
 		    // We account for these mmBytesPerStream in phase 2
 		    // (input stream to read from)
 		    mergeInputStreams[ii].reset(tpie_new<file_stream<T> >());
-			mergeInputStreams[ii]->open(newName);
+			mergeInputStreams[ii]->open(newName, file_base::read);
 		    mergeInputStreams[ii]->seek(0);
 		}
 
@@ -731,7 +731,7 @@ void sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
 		    // We account for these mmBytesPerStream in phase 2
 		    // (temp merge output stream)
 			file_stream<T> curOutputRunStream;
-			curOutputRunStream.open(newName);
+			curOutputRunStream.open(newName, file_base::write);
 
 		    // How many runs should this stream get?
 		    // extra runs go in the LAST nXtraRuns streams so that
@@ -763,9 +763,10 @@ void sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
 		// Clean up, go up to next level
 
 		// Delete temp input merge streams
-		for(ii = 0; ii < mrgArity; ii++){
-		    //mergeInputStreams[ii]->persist(PERSIST_DELETE);
+		for(ii = 0; ii < mrgArity; ii++) {
+			std::string path=mergeInputStreams[ii]->path();
 			mergeInputStreams[ii].reset();
+			remove(path);
 		}
 		// Update run lengths
 		nItemsPerRun=mrgArity*nItemsPerRun; //except for maybe last run
@@ -794,7 +795,7 @@ void sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
 					  << static_cast<TPIE_OS_OUTPUT_SIZE_T>(ii-(mrgArity-static_cast<TPIE_OS_SIZE_T>(nRuns))) << "\n");
 		mergeInputStreams[ii-(mrgArity-static_cast<TPIE_OS_SIZE_T>(nRuns))].reset(
 			tpie_new<file_stream<T> >());
-		mergeInputStreams[ii-(mrgArity-static_cast<TPIE_OS_SIZE_T>(nRuns))]->open(newName);
+		mergeInputStreams[ii-(mrgArity-static_cast<TPIE_OS_SIZE_T>(nRuns))]->open(newName, file_base::read);
 		mergeInputStreams[ii-(mrgArity-static_cast<TPIE_OS_SIZE_T>(nRuns))]->seek(0);
 	}
 
@@ -813,8 +814,11 @@ void sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
 	// We are done, except for cleanup. Is anyone still reading this?
 	// Delete temp input merge streams
 	// N.B. nRuns is small, so it is safe to downcast.
-	//for(ii = 0; ii < arity_t(nRuns); ii++)
-	//	mergeInputStreams[ii]->persist(PERSIST_DELETE);
+	for(ii = 0; ii < arity_t(nRuns); ii++) {
+		std::string path=mergeInputStreams[ii]->path();
+		mergeInputStreams[ii].reset();
+		remove(path);
+	}
 
 	// Delete stream ptr arrays
 	mergeInputStreams.resize(0);
@@ -847,7 +851,7 @@ inline void sort_manager<T,I,M>::make_name(
 	//largest ID is at most mrgArity
 	std::stringstream buf;
 	buf << prepre << pre << id;
-	buf >> dest;
+	dest = buf.str();
 }
 
 }  //  tpie namespace
