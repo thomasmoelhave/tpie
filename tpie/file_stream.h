@@ -66,16 +66,7 @@ public:
 		m_fileAccessor = fileAccessor;
 
 		m_blockItems = block_size(blockFactor)/m_itemSize;
-
-		m_blockStartIndex = 0;
-		m_nextBlock = std::numeric_limits<stream_size_type>::max();
-		m_nextIndex = std::numeric_limits<memory_size_type>::max();
-		m_index = std::numeric_limits<memory_size_type>::max();
-
 		m_block.data = tpie_new_array<char>(block_memory_usage());
-		m_block.size = 0;
-		m_block.number = std::numeric_limits<stream_size_type>::max();
-		m_block.dirty = false;
 	};
 
 	inline ~file_stream() {
@@ -96,7 +87,16 @@ public:
 		m_fileAccessor->open(path, m_canRead, m_canWrite, m_itemSize, user_data_size);
 		m_size = m_fileAccessor->size();
 		m_open = true;
+		
+		m_blockStartIndex = 0;
+		m_nextBlock = std::numeric_limits<stream_size_type>::max();
+		m_nextIndex = std::numeric_limits<memory_size_type>::max();
+		m_index = std::numeric_limits<memory_size_type>::max();
 
+		m_block.size = 0;
+		m_block.number = std::numeric_limits<stream_size_type>::max();
+		m_block.dirty = false;
+		
 		initialize();
 		seek(0);
 	}
@@ -475,7 +475,7 @@ private:
 	 * Write block to disk.
 	 */
 	inline void flush_block() {
-		if (m_block.dirty || !m_canRead) {
+		if (m_block.dirty) {
 			assert(m_canWrite);
 			update_vars();
 			m_fileAccessor->write(m_block.data, m_block.number * static_cast<stream_size_type>(m_blockItems), m_block.size);
