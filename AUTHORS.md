@@ -1,11 +1,10 @@
--------------------------
--- The TPIE developers --
--------------------------
+The TPIE developers
+===================
 
 The TPIE development team consists of the following people:
 
---- Active developers
--------------------------
+Active developers
+-----------------
 The following people have made at least one commit since 2009:
 
  * Jan Vahrenhold <jan.vahrenhold AT cs.tu-dortmund.de>
@@ -16,8 +15,8 @@ The following people have made at least one commit since 2009:
  * Adam Ehlers Nyholm Thomsen <adam AT scalgo.com>
  * Mathias Rav <rav AT cs.au.dk>
 
---- Past contributors
--------------------------
+Past contributors
+-----------------
 
  * Lars Arge <large AT madalgo.au.dk>
  * Pankaj Agarwal <pankaj AT cs.duke.edu>
@@ -38,4 +37,3 @@ The following people have made at least one commit since 2009:
  * Darren Erik Vengroff
  * Min Wang
  * Rajiv Wickremesinghe
-
