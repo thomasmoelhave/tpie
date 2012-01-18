@@ -59,16 +59,19 @@ void posix::open(const std::string & path,
 	m_path = path;
 	m_itemSize=itemSize;
 	m_userDataSize=userDataSize;
+	m_size=0;
 	if (!write && !read)
 		throw invalid_argument_exception("Either read or write must be specified");
 	if (write && !read) {
-		m_fd = ::open(path.c_str(), O_WRONLY | O_TRUNC | O_CREAT,  S_IRUSR | S_IWUSR);
+		m_fd = ::open(path.c_str(), O_RDWR | O_TRUNC | O_CREAT,  S_IRUSR | S_IWUSR);
 		if (m_fd == -1) throw_errno();
 		m_size = 0;
 		write_header(false);
-		char * buf = new char[userDataSize];
-		write_user_data(buf);
-		delete[] buf;
+		if (userDataSize) {
+			char * buf = new char[userDataSize];
+			write_user_data(buf);
+			delete[] buf;
+		}
 	} else if (!write && read) {
 		m_fd = ::open(path.c_str(), O_RDONLY);
 		if (m_fd == -1) throw_errno();
@@ -81,9 +84,11 @@ void posix::open(const std::string & path,
 			if (m_fd == -1) throw_errno();
 			m_size=0;
 			write_header(false);
-			char * buf = new char[userDataSize];
-			write_user_data(buf);
-			delete[] buf;
+			if (userDataSize) {
+				char * buf = new char[userDataSize];
+				write_user_data(buf);
+				delete[] buf;
+			}
 		} else {
 			read_header();
 			write_header(false);
