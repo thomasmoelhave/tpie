@@ -135,6 +135,19 @@ struct termpair_factory {
 
 } // namespace bits
 
+template <typename fact_t>
+struct pipe_end {
+	typedef fact_t factory_type;
+
+	inline pipe_end() {
+	}
+
+	inline pipe_end(const fact_t & factory) : factory(factory) {
+	}
+
+	fact_t factory;
+};
+
 /**
  * \class pipe_middle
  *
@@ -167,9 +180,34 @@ struct pipe_middle {
 	 * make a pipeline.
 	 */
 	template <typename fact2_t>
+	inline pipe_end<bits::termpair_factory<fact_t, fact2_t> >
+	operator|(const pipe_end<fact2_t> & r) {
+		return bits::termpair_factory<fact_t, fact2_t>(factory, r.factory);
+	}
+
+	fact_t factory;
+};
+
+template <typename fact_t>
+struct pipe_begin {
+	typedef fact_t factory_type;
+
+	inline pipe_begin() {
+	}
+
+	inline pipe_begin(const fact_t & factory) : factory(factory) {
+	}
+
+	template <typename fact2_t>
+	inline pipe_begin<bits::pair_factory<fact_t, fact2_t> >
+	operator|(const pipe_middle<fact2_t> & r) {
+		return bits::pair_factory<fact_t, fact2_t>(factory, r.factory);
+	}
+
+	template <typename fact2_t>
 	inline pipeline_impl<bits::termpair_factory<fact_t, fact2_t> >
-	operator|(const fact2_t & fact2) {
-		return bits::termpair_factory<fact_t, fact2_t>(factory, fact2);
+	operator|(const pipe_end<fact2_t> & r) {
+		return bits::termpair_factory<fact_t, fact2_t>(factory, r.factory);
 	}
 
 	fact_t factory;

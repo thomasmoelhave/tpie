@@ -54,7 +54,7 @@ private:
 };
 
 template<typename T>
-inline pipe_middle<factory_1<input_t, file_stream<T> &> > input(file_stream<T> & fs) {
+inline pipe_begin<factory_1<input_t, file_stream<T> &> > input(file_stream<T> & fs) {
 	return factory_1<input_t, file_stream<T> &>(fs);
 }
 
@@ -118,8 +118,8 @@ private:
 };
 
 template <typename T>
-inline termfactory_1<output_t<T>, file_stream<T> &> output(file_stream<T> & fs) {
-	return fs;
+inline pipe_end<termfactory_1<output_t<T>, file_stream<T> &> > output(file_stream<T> & fs) {
+	return termfactory_1<output_t<T>, file_stream<T> &>(fs);
 }
 
 /**

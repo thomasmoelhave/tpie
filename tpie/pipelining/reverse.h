@@ -78,12 +78,12 @@ struct reverser {
 	inline reverser(size_t buffer_size) : buffer(buffer_size) {
 	}
 
-	inline termfactory_1<sink_t, buf_t &>
+	inline pipe_end<termfactory_1<sink_t, buf_t &> >
 	sink() {
-		return buffer;
+		return termfactory_1<sink_t, buf_t &>(buffer);
 	}
 
-	inline pipe_middle<factory_1<source_t, const buf_t &> >
+	inline pipe_begin<factory_1<source_t, const buf_t &> >
 	source() {
 		return factory_1<source_t, const buf_t &>(buffer);
 	}

@@ -69,13 +69,13 @@ private:
 };
 
 template<typename T>
-inline pipe_middle<factory_1<input_vector_t, const std::vector<T> &> > input_vector(const std::vector<T> & input) {
+inline pipe_begin<factory_1<input_vector_t, const std::vector<T> &> > input_vector(const std::vector<T> & input) {
 	return factory_1<input_vector_t, const std::vector<T> &>(input);
 }
 
 template <typename T>
-inline termfactory_1<output_vector_t<T>, std::vector<T> &> output_vector(std::vector<T> & output) {
-	return output;
+inline pipe_end<termfactory_1<output_vector_t<T>, std::vector<T> &> > output_vector(std::vector<T> & output) {
+	return termfactory_1<output_vector_t<T>, std::vector<T> &>(output);
 }
 
 }

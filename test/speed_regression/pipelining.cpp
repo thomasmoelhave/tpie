@@ -77,11 +77,11 @@ inline static void do_write(size_t count) {
 	file_stream<test_t> s;
 	s.open("tmp");
 	if (virt) {
-		pipeline p = pipe_middle<factory_1<number_generator_t, size_t> >(count) | output(s);
+		pipeline p = pipe_begin<factory_1<number_generator_t, size_t> >(count) | output(s);
 		p();
 	} else {
 		number_generator_t<output_t<test_t> > p =
-			pipe_middle<factory_1<number_generator_t, size_t> >(count) | output(s);
+			pipe_begin<factory_1<number_generator_t, size_t> >(count) | output(s);
 		p();
 	}
 }
@@ -92,10 +92,10 @@ inline static test_t do_read() {
 	file_stream<test_t> s;
 	s.open("tmp");
 	if (virt) {
-		pipeline p = input(s) | termfactory_1<number_sink_t, test_t &>(res);
+		pipeline p = input(s) | pipe_end<termfactory_1<number_sink_t, test_t &> >(termfactory_1<number_sink_t, test_t &>(res));
 		p();
 	} else {
-		input_t<number_sink_t> p = input(s) | termfactory_1<number_sink_t, test_t &>(res);
+		input_t<number_sink_t> p = input(s) | pipe_end<termfactory_1<number_sink_t, test_t &> >(termfactory_1<number_sink_t, test_t &>(res));
 		p();
 	}
 	return res;

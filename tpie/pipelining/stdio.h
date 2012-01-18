@@ -62,7 +62,7 @@ struct printf_ints_t {
 	}
 };
 
-pipe_middle<factory_0<scanf_ints_t> >
+pipe_begin<factory_0<scanf_ints_t> >
 inline scanf_ints() {
 	return factory_0<scanf_ints_t>();
 }
