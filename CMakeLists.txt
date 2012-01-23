@@ -35,13 +35,6 @@ if(Boost_FOUND)
     link_directories ( ${Boost_LIBRARY_DIRS} )
 endif(Boost_FOUND)
 
-## Intel Threading Building Blocks
-find_package(TBB)
-if(TBB_FOUND)
-		include_directories(${TBB_INCLUDE_DIRS})
-		link_directories(${TBB_LIBRARY_DIRS})
-endif(TBB_FOUND)
-
 check_include_files("unistd.h" TPIE_HAVE_UNISTD_H)
 check_include_files("sys/unistd.h" TPIE_HAVE_SYS_UNISTD_H)
 
