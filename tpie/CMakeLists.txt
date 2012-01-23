@@ -54,7 +54,6 @@ endif(WIN32)
 
 set (OTHER_HEADERS
 		backtrace.h
-		b_vector.h
 		comparator.h
 		config.h.cmake
 		cpu_timer.h
