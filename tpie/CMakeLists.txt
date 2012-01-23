@@ -3,9 +3,6 @@ set_property(GLOBAL PROPERTY USE_FOLDERS On)
 set (AMI_HEADERS
 		block_base.h
 		block.h
-		cache.h
-		cache_base.h
-		cache_lru.h
 		coll_base.h
 		coll.h
 		coll_single.h
