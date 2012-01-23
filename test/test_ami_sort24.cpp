@@ -31,6 +31,8 @@
 
 #include <tpie/cpu_timer.h>
 
+#include <tpie/tpie.h>
+
 using namespace tpie;
 
 // This is the type of object we will sort.
@@ -138,6 +140,8 @@ void parse_app_opts(int idx, char *opt_arg)
 }
 
 int main(int argc, char **argv) {
+
+	tpie::tpie_init();
     
     ami::err ae;
 
@@ -221,6 +225,8 @@ int main(int argc, char **argv) {
         ae = ami::scan(&amis1, rpts);
     }
     std::cout << std::endl;
+
+	tpie::tpie_finish();
     
     return 0;
 }
