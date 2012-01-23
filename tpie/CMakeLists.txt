@@ -3,9 +3,6 @@ set_property(GLOBAL PROPERTY USE_FOLDERS On)
 set (AMI_HEADERS
 		block_base.h
 		block.h
-		coll_base.h
-		coll.h
-		coll_single.h
 		err.h
 		gen_perm.h
 		gen_perm_object.h
@@ -98,7 +95,6 @@ set (OTHER_HEADERS
 		timer.h
 		tpie_assert.h
 		tpie_log.h
-		stats_coll.h
 		stats.h
 		stats_stream.h
 		stats_tree.h
