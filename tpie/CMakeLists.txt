@@ -36,23 +36,6 @@ set (AMI_HEADERS
 		stream.h
 		)
 
-set (BTE_HEADERS
-		bte/coll_base.h
-		bte/coll.h
-		bte/coll_mmap.h
-		bte/coll_ufs.h
-		bte/err.h
-		bte/stack_ufs.h
-#		bte/stream_base_generic.h
-#		bte/stream_base.h
-#		bte/stream_cache.h
-#		bte/stream.h
-#		bte/stream_header.h
-#		bte/stream_mmap.h
-#		bte/stream_stdio.h
-#		bte/stream_ufs.h
-	)
-
 set (STREAM_HEADERS
 #	stream/exception.h
 #	stream/concepts.h
@@ -148,10 +131,6 @@ set (AMI_SOURCES
 #		matrix_blocks.cpp
 	)
 
-set (BTE_SOURCES
-	#bte/stream_base.cpp
-	)
-
 set (OTHER_SOURCES
 	backtrace.cpp
 	cpu_timer.cpp
@@ -171,19 +150,15 @@ set (OTHER_SOURCES
 	util.cpp
 	)
 
-source_group("BTE" FILES ${BTE_HEADERS} ${BTE_SOURCES})
-
 set(AMI ${AMI_HEADERS} ${AMI_SOURCES})
-set(BTE ${BTE_HEADERS} ${BTE_SOURCES})
 set(OTHER ${OTHER_HEADERS} ${OTHER_SOURCES})
 set(STREAM ${STREAM_HEADERS} ${STREAM_SOURCES})
 
-add_library(tpie ${BTE} ${AMI} ${OTHER} ${STREAM})
+add_library(tpie ${AMI} ${OTHER} ${STREAM})
 target_link_libraries(tpie ${Boost_LIBRARIES})
 set_target_properties(tpie PROPERTIES FOLDER tpie)
 
 install(TARGETS tpie DESTINATION ${LIB_INSTALL_DIR}) 
 install(FILES ${OTHER_HEADERS} ${AMI_HEADERS} DESTINATION ${HEADERS_INSTALL_DIR})
-install(FILES ${BTE_HEADERS} DESTINATION ${HEADERS_INSTALL_DIR}/bte)
 install(FILES ${IMPORTED_HEADERS} DESTINATION ${HEADERS_INSTALL_DIR}/imported)
 
