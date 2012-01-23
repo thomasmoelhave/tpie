@@ -7,24 +7,24 @@ Active developers
 -----------------
 The following people have made at least one commit since 2009:
 
- * Jan Vahrenhold <jan.vahrenhold AT cs.tu-dortmund.de>
- * Thomas Moelhave <thomasm AT madalgo.au.dk>
- * Andrew Danner <adanner AT cs.swarthmore.edu>
- * Morten Revsbaek <mrevs AT madalgo.au.dk>
- * Thor Prentow <prentow AT madalgo.au.dk>
- * Adam Ehlers Nyholm Thomsen <adam AT scalgo.com>
- * Mathias Rav <rav AT cs.au.dk>
+ * Jan Vahrenhold &lt;jan.vahrenhold AT cs.tu-dortmund.de&gt;
+ * Thomas Moelhave &lt;thomasm AT madalgo.au.dk&gt;
+ * Andrew Danner &lt;adanner AT cs.swarthmore.edu&gt;
+ * Morten Revsbaek &lt;mrevs AT madalgo.au.dk&gt;
+ * Thor Prentow &lt;prentow AT madalgo.au.dk&gt;
+ * Adam Ehlers Nyholm Thomsen &lt;adam AT scalgo.com&gt;
+ * Mathias Rav &lt;rav AT cs.au.dk&gt;
 
 Past contributors
 -----------------
 
- * Lars Arge <large AT madalgo.au.dk>
- * Pankaj Agarwal <pankaj AT cs.duke.edu>
- * Henrik Blunck <blunck AT madalgo.au.dk>
- * Mark Greve <mgreve AT madalgo.au.dk>
- * Kasper Dalgaard Larsen <larsen AT madalgo.au.dk>
- * Peter Hachenberger <phachenb AT madalgo.au.dk>
- * Andreas Beckmann <beckmann AT cs.uni-frankfurt.de>
+ * Lars Arge &lt;large AT madalgo.au.dk&gt;
+ * Pankaj Agarwal &lt;pankaj AT cs.duke.edu&gt;
+ * Henrik Blunck &lt;blunck AT madalgo.au.dk&gt;
+ * Mark Greve &lt;mgreve AT madalgo.au.dk&gt;
+ * Kasper Dalgaard Larsen &lt;larsen AT madalgo.au.dk&gt;
+ * Peter Hachenberger &lt;phachenb AT madalgo.au.dk&gt;
+ * Andreas Beckmann &lt;beckmann AT cs.uni-frankfurt.de&gt;
  * Lars Hvam Petersen
  * Jeffrey Vitter
  * Rakesh Barve
