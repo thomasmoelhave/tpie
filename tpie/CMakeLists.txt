@@ -59,8 +59,6 @@ set (STREAM_HEADERS ${STREAM_HEADERS} file_accessor/posix.h)
 endif(WIN32)
 
 set (OTHER_HEADERS
-		bit.h   
-		bit_matrix.h
 		backtrace.h
 		b_vector.h
 		comparator.h
