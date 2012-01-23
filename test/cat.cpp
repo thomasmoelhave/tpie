@@ -21,6 +21,7 @@
 #include <tpie/file_stream.h>
 #include "unit/common.h"
 #include <cstdlib>
+#include <cstring>
 #include <string>
 #include <sstream>
 #include <tpie/stream_header.h>
