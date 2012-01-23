@@ -1,8 +1,6 @@
 set_property(GLOBAL PROPERTY USE_FOLDERS On)
 
 set (AMI_HEADERS
-		block_base.h
-		block.h
 		err.h
 		gen_perm.h
 		gen_perm_object.h
