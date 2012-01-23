@@ -35,8 +35,6 @@
 #include <tpie/cpu_timer.h>
 #include <tpie/tpie.h>
 
-#include <tpie/kb_sort.h>
-
 // Utilities for ascii output.
 #include <tpie/scan_utils.h>
 
@@ -66,7 +64,6 @@ static bool report_results_random = false;
 static bool report_results_sorted = false;
 
 static bool sort_again = false;
-static bool kb_sort = false;
 static comparison_mode_t comparison_mode = COMPARISON_OPERATOR;
 
 
@@ -115,9 +112,6 @@ void parse_app_opts(int idx, char *opt_arg) {
 	    exit(1);
 	}
 	break;
-	//  case 'k':
-	//    kb_sort = !kb_sort;
-	//    break;
 
     }
 }
@@ -251,10 +245,7 @@ int main(int argc, char **argv)  {
     std::cout << "Sorting input..." << std::flush;
     timer.start();  
     ostr = (ostr_name[0] == '\0') ? tpie_new<ami::stream<int> >(): tpie_new<ami::stream<int> >(ostr_name); 
-    if (kb_sort) {
-	ami::key_range range(KEY_MIN, KEY_MAX);
-	ae = ami::kb_sort(*istr, *ostr, range);
-    } else if (comparison_mode == COMPARISON_OPERATOR) {
+    if (comparison_mode == COMPARISON_OPERATOR) {
 	ae = ami::sort(istr, ostr);
     } else if (comparison_mode == COMPARISON_CLASS) {
 	ae = ami::sort(istr, ostr, &int_cmp_obj);

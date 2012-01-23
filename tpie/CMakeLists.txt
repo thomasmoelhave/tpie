@@ -5,12 +5,6 @@ set (AMI_HEADERS
 		gen_perm.h
 		gen_perm_object.h
 		ami.h
-		kb_dist.h
-		kb_sort.h
-		kd_base.h
-		kdbtree.h
-		kdtree.h
-		key.h
 		logmethod.h
 		merge.h
 		merge_sorted_runs.h
@@ -115,7 +109,6 @@ set (IMPORTED_HEADERS
 
 set (AMI_SOURCES
 	#	bit_permute.cpp
-		key.cpp
 #		matrix_blocks.cpp
 	)
 
