@@ -822,7 +822,7 @@ One basic thing a scan can do is write a series of objects to a
 stream.  In the following example, we create a stream of integers
 consisting of the first 10000 natural numbers.
 
-\lstinputlisting[basicstyle=\ttfamily\small,firstline=1,lastline=28]{src/scan_count.cpp}
+\lstinputlisting[basicstyle=\ttfamily\small,firstline=20,lastline=47]{src/scan_count.cpp}
 
 The object \lstinline|sc| is called a scan management
 object\index{operation management object!scan}.  It has two member
@@ -842,7 +842,7 @@ value \lstinline|AMI_SCAN_DONE|.
 
 \lstinline|AMI_scan| behaves as the following pseudo-code:
 
-\lstinputlisting[basicstyle=\ttfamily\small,firstline=30,lastline=48]{src/scan_count.cpp}
+\lstinputlisting[basicstyle=\ttfamily\small,firstline=49,lastline=67]{src/scan_count.cpp}
 
 Thus, after the function \lstinline|f()| in the original example code
 returns, the stream \lstinline|amis0| will contain the integers from 1
@@ -853,7 +853,7 @@ it in order to transform it in some way.  As an example, suppose we
 wanted to square every integer in the stream \lstinline|amis0|.  We
 could do so using the following code:
 
-\lstinputlisting[basicstyle=\ttfamily\small,firstline=1,lastline=26]{src/scan_square.cpp}
+\lstinputlisting[basicstyle=\ttfamily\small,firstline=20,lastline=45]{src/scan_square.cpp}
 
 Notice that the call to \lstinline|AMI_scan()| in \lstinline|g()|
 differs from the one we used in \lstinline|f()| in that it takes two
@@ -880,7 +880,7 @@ be generated.
 \lstinline|AMI_scan| with one input stream and one output stream
 behaves as the following pseudo-code:
 
-\lstinputlisting[basicstyle=\ttfamily\small,firstline=28,lastline=55]{src/scan_square.cpp}
+\lstinputlisting[basicstyle=\ttfamily\small,firstline=47,lastline=74]{src/scan_square.cpp}
 
 \lstinline|AMI_scan()| can operate on up to four input streams and
 four output streams.  Here is an example that takes two input streams
@@ -891,7 +891,7 @@ one consisting of the running sum of the squares of the \lstinline|x|
 values, and one consisting of the running sum of the squares of the
 \lstinline|y| values.
 
-\lstinputlisting[numberstyle=\tiny,stepnumber=5,basicstyle=\ttfamily\small]{src/scan_sum.cpp}
+\lstinputlisting[numberstyle=\tiny,stepnumber=5,basicstyle=\ttfamily\small,firstline=20]{src/scan_sum.cpp}
 
 
 \subsection{ASCII Input/Output} \plabel{sec:tut-ascii-io}
@@ -925,7 +925,7 @@ The following code copies this file into a TPIE stream of integers,
 squares each one, and writes the results to the file
 \path"output_nums.txt".
 
-\lstinputlisting[basicstyle=\ttfamily\small,firstline=57,lastline=75]{src/scan_square.cpp}
+\lstinputlisting[basicstyle=\ttfamily\small,firstline=76,lastline=94]{src/scan_square.cpp}
 
 In order to read from an ASCII input file using the scan management
 object \lstinline|in_scan|, \lstinline|AMI_scan()| repeatedly calls
@@ -950,7 +950,7 @@ following example, we have a scan management class that takes two
 streams of \lstinline|double|s and returns a stream of complex
 numbers.
 
-\lstinputlisting[basicstyle=\ttfamily\small]{src/complex.cpp}
+\lstinputlisting[basicstyle=\ttfamily\small,firstline=20]{src/complex.cpp}
 \index{scanning!multi-type|)}
 
 \subsection{Out of Step Scanning}
@@ -980,7 +980,7 @@ Consider the following example of a scan management object class which
 performs this sort of binary merge\index{merge!binary}\index{merge
   sort!binary}:
 
-\lstinputlisting[basicstyle=\ttfamily\small]{src/scan_binary_merge.cpp}
+\lstinputlisting[basicstyle=\ttfamily\small,firstline=20]{src/scan_binary_merge.cpp}
 
 In the operate method, we first check that both inputs are valid by
 looking at the flags pointed to by \lstinline|sfin|.  If both are
@@ -1056,7 +1056,7 @@ with member functions \lstinline|initialize()| and
  following example illustrates the use of
  \lstinline|AMI_partition_and_merge()|:
 
-\lstinputlisting[basicstyle=\ttfamily\small,firstline=1,lastline=19]{src/my_merger.cpp}
+\lstinputlisting[basicstyle=\ttfamily\small,firstline=20,lastline=38]{src/my_merger.cpp}
 
 The member functions of the merge management object
 \lstinline|mm| are as follows:
@@ -1090,7 +1090,7 @@ The following pseudo-code describes the operation of
 \lstinline|AMI_partition_and_merge()|.  Note that for simplicity of
 presentation, boundary conditions are not covered.
 
-\lstinputlisting[basicstyle=\ttfamily\small,firstline=20,lastline=48]{src/my_merger.cpp}
+\lstinputlisting[basicstyle=\ttfamily\small,firstline=39,lastline=67]{src/my_merger.cpp}
 
 \subsection{Implementing Mergesort: An Extended Example}
 \plabel{sec:tut-mergesort}
@@ -1106,7 +1106,7 @@ efficient way to sort with TPIE.
 First, we declare the class:\comment{LA: We should probably change
   AMI\_merge\_base to AMI\_merge\_object at some point}
 
-\lstinputlisting[basicstyle=\ttfamily\small,firstline=1,lastline=16]{src/mergemgr.cpp}
+\lstinputlisting[basicstyle=\ttfamily\small,firstline=20,lastline=35]{src/mergemgr.cpp}
 
 In addition to the standard class members for a merge management
 object, we have the following:
@@ -1127,7 +1127,7 @@ up when \lstinline|initialize| is called.  The destructor checks
 whether \lstinline|pq| is valid, and deletes it if it is.  The
 constructor and destructor are implemented as follows:
 
-\lstinputlisting[basicstyle=\ttfamily\small,firstline=18,lastline=28]{src/mergemgr.cpp}
+\lstinputlisting[basicstyle=\ttfamily\small,firstline=37,lastline=47]{src/mergemgr.cpp}
 
 When \lstinline|AMI_partition_and_merge()| is called it calls the
 member functions \lstinline|space_usage_overhead()| and
@@ -1143,7 +1143,7 @@ for a priority queue, and the return value from
 will be needed for an object of type \lstinline|int| and one of
 type \lstinline|arity| associated with each stream.
 
-\lstinputlisting[basicstyle=\ttfamily\small,firstline=30,lastline=39]{src/mergemgr.cpp}
+\lstinputlisting[basicstyle=\ttfamily\small,firstline=49,lastline=58]{src/mergemgr.cpp}
 
 As an early step in its processing,
 \lstinline|AMI_partition_and_merge()| will divide the input stream
@@ -1154,7 +1154,7 @@ memoryloads.  Since we are sorting in this example, we simply sort
 each memoryload via quicksort. The sorted memoryloads are then stored
 on the disks as substreams.
 
-\lstinputlisting[basicstyle=\ttfamily\small,firstline=41,lastline=45]{src/mergemgr.cpp}
+\lstinputlisting[basicstyle=\ttfamily\small,firstline=60,lastline=64]{src/mergemgr.cpp}
 
 Having sorted all of the initial substreams,
 \lstinline|AMI_partition_and_merge()| begins to merge them.  Before
@@ -1165,7 +1165,7 @@ handle at the merge step.  The object is also provided with the first
 object from each of the streams to be merged.  In our example the
 \lstinline|initialize()| member function is as follows:
 
-\lstinputlisting[basicstyle=\ttfamily\small,firstline=47,lastline=71]{src/mergemgr.cpp}
+\lstinputlisting[basicstyle=\ttfamily\small,firstline=66,lastline=90]{src/mergemgr.cpp}
 
 Note the use of the return value \lstinline|AMI_MERGE_READ_MULTIPLE|.
 This indicates that the flags in the array \lstinline|*taken_flags|
@@ -1182,7 +1182,7 @@ one item is taken, its index can be returned in
 scanning the flags.  This technique is illustrated in our
 \lstinline|operate()| member function, below.
 
-\lstinputlisting[basicstyle=\ttfamily\small,firstline=73,lastline=96]{src/mergemgr.cpp}
+\lstinputlisting[basicstyle=\ttfamily\small,firstline=92,lastline=115]{src/mergemgr.cpp}
 
 \index{merging|)}
 
@@ -1334,7 +1334,7 @@ For example, the following code sorts a stream of complex numbers in
 two ways, by their real parts and by their imaginary
 parts.\comment{LA: Check that this is correct. AD: yes, correct.}
 
-\lstinputlisting[basicstyle=\ttfamily\small]{src/compare_re_class.cpp}
+\lstinputlisting[basicstyle=\ttfamily\small,firstline=20]{src/compare_re_class.cpp}
 
 
 \subsubsection{AMI\_ptr\_sort()}
@@ -1358,7 +1358,7 @@ illustrated by the following example:
 Consider the class \lstinline|rectangle| below, meant to describe
 axis-parallel rectangles,
 
-\lstinputlisting[basicstyle=\ttfamily\small]{src/rectangle.cpp}
+\lstinputlisting[basicstyle=\ttfamily\small,firstline=20]{src/rectangle.cpp}
 
 \noindent
 and suppose that we want to sort a stream of rectangles in descending
@@ -1368,12 +1368,12 @@ member function \lstinline|copy| for copying the desired key field
 from a record (whose address will be provided by TPIE) to a location
 in the heap (determined by TPIE).
 
-\lstinputlisting[basicstyle=\ttfamily\small,firstline=1,lastline=15]{src/sortmanager.cpp}
+\lstinputlisting[basicstyle=\ttfamily\small,firstline=20,lastline=34]{src/sortmanager.cpp}
  
 Assuming that the size of each \lstinline|double| is 8 bytes, we can
 sort the stream as follows:
  
-\lstinputlisting[basicstyle=\ttfamily\small,firstline=17,lastline=24]{src/sortmanager.cpp}
+\lstinputlisting[basicstyle=\ttfamily\small,firstline=36,lastline=43]{src/sortmanager.cpp}
  
 The third argument of \lstinline|AMI_key_sort()| is a a dummy argument
 having the same type as the key field, and the fourth argument is the
@@ -1429,7 +1429,7 @@ position.
 Here is an example of using general permutation to reverse the order
 of the items in a stream.
 
-\lstinputlisting[basicstyle=\ttfamily\small]{src/reverse_order.cpp}
+\lstinputlisting[basicstyle=\ttfamily\small,firstline=20]{src/reverse_order.cpp}
 
 
 \subsection{Bit Permutation}
@@ -1465,12 +1465,12 @@ source address bits to produce the destination address.
 First, we construct the matrices the permutation will use.
 \index{bit_matrix@{\tt bit\_matrix}}
 
-\lstinputlisting[basicstyle=\ttfamily\small,firstline=1,lastline=13]{src/bit_matrix.cpp}
+\lstinputlisting[basicstyle=\ttfamily\small,firstline=20,lastline=32]{src/bit_matrix.cpp}
  
 Now we simply construct a permutation management object from the
 matrices and perform the permutation.
 
-\lstinputlisting[basicstyle=\ttfamily\small,firstline=15,lastline=17]{src/bit_matrix.cpp}
+\lstinputlisting[basicstyle=\ttfamily\small,firstline=34,lastline=36]{src/bit_matrix.cpp}
 
 
 
@@ -1523,14 +1523,14 @@ each element of the matrix and must return the value to be inserted at
 that position of the matrix. In the following example, we create a
 1000 by 1000 upper triangular matrix of ones and zeroes:
 
-\lstinputlisting[basicstyle=\ttfamily\small]{src/fill_upper_tri.cpp}
+\lstinputlisting[basicstyle=\ttfamily\small,firstline=20]{src/fill_upper_tri.cpp}
 
 Arithmetic on dense matrices is performed in a straightforward way
 using the (global) functions \lstinline|AMI_matrix_add()|,
 \lstinline|AMI_matrix_subtract()|, and
 \lstinline|AMI_matrix_multiply()|, as is the following example:
 
-\lstinputlisting[basicstyle=\ttfamily\small]{src/matrix_arithmetic.cpp}
+\lstinputlisting[basicstyle=\ttfamily\small,firstline=20]{src/matrix_arithmetic.cpp}
 
 \index{matrices!dense|)}
 
@@ -1565,7 +1565,7 @@ Elementwise arithmetic can be done with scan management objects
 example that performs elementwise division on the elements of two
 streams.
 
-\lstinputlisting[basicstyle=\ttfamily\small]{src/stream_arithmetic.cpp}
+\lstinputlisting[basicstyle=\ttfamily\small,firstline=20]{src/stream_arithmetic.cpp}
 \index{elementwise arithmetic|)}
 
 \index{matrices|)}
