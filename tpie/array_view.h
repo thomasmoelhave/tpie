@@ -17,6 +17,9 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
+#ifndef __ARRAY_VIEW_H__
+#define  __ARRAY_VIEW_H__
+
 #include <boost/iterator/iterator_facade.hpp>
 #include <vector>
 #include <tpie/array.h>
@@ -81,7 +84,7 @@ public:
 	/////////////////////////////////////////////////////////
 	inline bool empty() const {return m_end == m_start;}
 
-	inline bool size() const {return m_end - m_start;}
+	inline size_t size() const {return m_end - m_start;}
 
 	/////////////////////////////////////////////////////////
 	/// \brief Return a referense to an array entry
@@ -148,12 +151,12 @@ class array_view: public array_view_base<T> {
 public:
 	inline array_view(const array_view & o): 
 		array_view_base<T>(o) {}
-
+	
 	inline array_view(std::vector<T> & v): 
-		array_view_base<T>(&*v.begin(), &*v.end()) {}
+		array_view_base<T>(&*(v.begin()), &(*v.end())) {}
 	
 	inline array_view(tpie::array<T> & v): 
-		array_view_base<T>(&*v.begin(), &*v.end()) {}
+		array_view_base<T>(&*(v.begin()), &(*v.end())) {}
 	
 	inline array_view(std::vector<T> & v, size_t start, size_t end): 
 		array_view_base<T>(&v[start], &v[end]) {}
@@ -163,11 +166,11 @@ public:
 	
 	inline array_view(typename std::vector<T>::iterator start, typename std::vector<T>::iterator end): 
 		array_view_base<T>(&*start, &*end) {}
-
+	
 	inline array_view(typename array<T>::iterator start, typename array<T>::iterator end): 
 		array_view_base<T>(&*start, &*end) {}
-
-	inline array_view(T * start, T * end): 
+	
+	inline array_view(T * start, T * end):
 		array_view_base<T>(start, end) {}
 	
 	inline array_view(T * start, size_t size): 
@@ -178,13 +181,13 @@ template <typename T>
 class array_view<const T>: public array_view_base<const T> {
 public:
 	inline array_view(array_view<T> o): 
-		array_view_base<const T>(&*o.begin(), &*o.end()) {}
+		array_view_base<const T>(&*(o.begin()), &*(o.end())) {}
 
 	inline array_view(const std::vector<T> & v): 
-		array_view_base<const T>(&*v.const_begin(), &*v.const_end()) {}
+		array_view_base<const T>(&*(v.begin()), &*(v.end())) {}
 	
 	inline array_view(const tpie::array<T> & v): 
-		array_view_base<const T>(&*v.begin(), &*v.end()) {}
+		array_view_base<const T>(&*(v.begin()), &*(v.end())) {}
 	
 	inline array_view(const std::vector<T> & v, size_t start, size_t end): 
 		array_view_base<const T>(&v[start], &v[end]) {}
@@ -206,3 +209,5 @@ public:
 };
 
 } //namespace tpie
+
+#endif // __ARRAY_VIEW_H__

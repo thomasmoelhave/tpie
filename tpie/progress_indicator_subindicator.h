@@ -31,6 +31,14 @@ public:
 	virtual void pop_breadcrumb();
 	virtual void init(TPIE_OS_OFFSET range);
 	virtual void done();
+	
+	void setup(progress_indicator_base * parent,
+			   TPIE_OS_OFFSET outerRange,
+			   const char * crumb=0,
+			   description_importance importance=IMPORTANCE_MAJOR);
+	
+	progress_indicator_subindicator();
+	
 	progress_indicator_subindicator(progress_indicator_base * parent,
 									TPIE_OS_OFFSET outerRange,
 									const char * crumb=0,
