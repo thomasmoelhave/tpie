@@ -7,7 +7,6 @@ set (AMI_HEADERS
 		ami.h
 		merge.h
 		merge_sorted_runs.h
-		point.h
 		priority_queue.h
 		priority_queue.inl
 		queue.h
