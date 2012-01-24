@@ -2,8 +2,6 @@ set_property(GLOBAL PROPERTY USE_FOLDERS On)
 
 set (AMI_HEADERS
 		err.h
-		gen_perm.h
-		gen_perm_object.h
 		ami.h
 		merge.h
 		merge_sorted_runs.h

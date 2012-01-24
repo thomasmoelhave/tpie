@@ -49,9 +49,6 @@
 // Get templates for ami_sort().
 #include <tpie/sort.h>
 
-// Get templates for general permutation.
-#include <tpie/gen_perm.h>
-
 // Get templates for bit permuting.
 //#include <bit_permute.h>
 
