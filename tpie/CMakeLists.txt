@@ -75,7 +75,6 @@ set (OTHER_HEADERS
 		progress_indicator_terminal.h
 		progress_indicator_tpie.h
 		sort_manager.h
-		stdio_stack.h
 		timer.h
 		tpie_assert.h
 		tpie_log.h
