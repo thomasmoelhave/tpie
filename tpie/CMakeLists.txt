@@ -11,8 +11,6 @@ set (AMI_HEADERS
 		priority_queue.h
 		priority_queue.inl
 		queue.h
-		scan.h
-		#scan_utils.h
 		serialization.h
 		sort.h
 		stack.h

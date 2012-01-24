@@ -38,6 +38,8 @@
 // Get some memory.
 #include <tpie/memory.h>
 
+#include <tpie/tpie.h>
+
 using namespace tpie;
 
 static char def_crf[] = "osc.txt";
@@ -81,6 +83,8 @@ void parse_app_opts(int idx, char *opt_arg)
 
 int main(int argc, char **argv)
 {
+	tpie_init();
+	
     parse_args(argc, argv, app_opts, parse_app_opts);
     
     if (verbose) {
@@ -91,7 +95,7 @@ int main(int argc, char **argv)
     else {
         std::cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << random_seed;
     }
-    
+
     // Set the amount of main memory:
     get_memory_manager().set_limit (test_mm_size);
     
@@ -157,6 +161,6 @@ int main(int argc, char **argv)
     if (report_results_final) {
         ami::scan(&amis2, rptf);
     }
-    
+
     return 0;
 }

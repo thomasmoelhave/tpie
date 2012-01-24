@@ -36,6 +36,8 @@
 // Get AMI_general_permute().
 #include <tpie/gen_perm.h>
 
+#include <tpie/tpie.h>
+
 #include "parse_args.h"
 #include "scan_count.h"
 
@@ -92,6 +94,7 @@ public:
 
 
 int main(int argc, char **argv) {
+	tpie_init();
 
     parse_args(argc, argv, app_opts, parse_app_opts);
     
