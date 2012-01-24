@@ -88,7 +88,6 @@ set (OTHER_HEADERS
 		tempname.h
 		unused.h
 		util.h
-		vararray.h
 		array.h
 		bit_array.h
 		packed_array.h
