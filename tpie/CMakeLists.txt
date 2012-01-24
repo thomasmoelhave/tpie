@@ -5,7 +5,6 @@ set (AMI_HEADERS
 		gen_perm.h
 		gen_perm_object.h
 		ami.h
-		logmethod.h
 		merge.h
 		merge_sorted_runs.h
 		point.h
