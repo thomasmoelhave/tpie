@@ -23,6 +23,7 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <vector>
 #include <tpie/array.h>
+#include <tpie/internal_vector.h>
 
 namespace tpie {
 
@@ -157,6 +158,9 @@ public:
 	
 	inline array_view(tpie::array<T> & v): 
 		array_view_base<T>(&*(v.begin()), &(*v.end())) {}
+
+	inline array_view(tpie::internal_vector<T> & v): 
+		array_view_base<T>(&*(v.begin()), &(*v.end())) {}
 	
 	inline array_view(std::vector<T> & v, size_t start, size_t end): 
 		array_view_base<T>(&v[start], &v[end]) {}
@@ -189,6 +193,9 @@ public:
 	inline array_view(const tpie::array<T> & v): 
 		array_view_base<const T>(&*(v.begin()), &*(v.end())) {}
 	
+	inline array_view(const tpie::internal_vector<T> & v): 
+		array_view_base<const T>(&*(v.begin()), &(*v.end())) {}
+
 	inline array_view(const std::vector<T> & v, size_t start, size_t end): 
 		array_view_base<const T>(&v[start], &v[end]) {}
 	
