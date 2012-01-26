@@ -197,6 +197,7 @@ inline void assert_tpie_ptr(void * p) {
 #endif
 }
 
+#ifndef DOXYGEN
 ///////////////////////////////////////////////////////////////////////////
 /// \internal
 ///////////////////////////////////////////////////////////////////////////
@@ -212,6 +213,7 @@ template <typename T>
 struct __object_addr<T, true> {
 	inline void * operator()(T * o) {return dynamic_cast<void *>(o);}
 };
+#endif
 
 ///////////////////////////////////////////////////////////////////////////
 /// Cast between pointer types, if the input pointer is polymorpic its base address
@@ -273,7 +275,7 @@ struct array_allocation_scope_magic {
 
 ///////////////////////////////////////////////////////////////////////////
 /// \internal
-/// Used to preform allocations in a safe manner
+/// Used in tpie_new to perform allocations in a safe manner
 ///////////////////////////////////////////////////////////////////////////
 template <typename T>
 struct allocation_scope_magic {
@@ -316,20 +318,39 @@ inline T * tpie_new_array(size_t size) {
 }
 
 
-#if defined(TPIE_CPP_VARIADIC_TEMPLATES) && defined(TPIE_CPP_RVALUE_REFERENCE)
+#ifdef DOXYGEN
+///////////////////////////////////////////////////////////////////////////
+/// \brief Allocate an element of the type given as template parameter, and
+/// register its memory usage with TPIE.
+///
+/// The implementation of tpie_new either uses variadic templates (if supported
+/// by the compiler) or a bunch of tpie_new overloads to support a variable
+/// number of constructor parameters.
+///
+/// \tparam T The type of element to allocate
+/// \tparam Args The variadic number of types of constructor parameters.
+/// \param args The variadic number of arguments to pass to the constructor of
+/// T.
+///////////////////////////////////////////////////////////////////////////
+template <typename T, typename Args>
+inline T * tpie_new(Args args);
+
+#elif defined(TPIE_CPP_VARIADIC_TEMPLATES) && defined(TPIE_CPP_RVALUE_REFERENCE)
+
 template <typename T, typename ... Args>
 inline T * tpie_new(Args &&... args) {
 	allocation_scope_magic<T> m; 
 	new(m.allocate()) T(std::forward<Args>(args)...);
 	return m.finalize();
 }
+
 #else
 #include <tpie/memory.inl>
 #endif
 
 ///////////////////////////////////////////////////////////////////////////
 /// \brief Delete an object allocated with tpie_new
-/// \param p the object to delet
+/// \param p the object to delete
 ///////////////////////////////////////////////////////////////////////////
 template <typename T>
 inline void tpie_delete(T * p) throw() {
