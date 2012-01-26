@@ -29,13 +29,15 @@
 #include <tpie/sort.h>
 
 #include <boost/filesystem.hpp> // boost::filesystem::remove
-#include <tpie/prime.h> // tpie::next_prime
+#include <tpie/prime.h> // next_prime
 
 // Progress indicators
 #include <tpie/progress_indicator_arrow.h>
 #include <tpie/fractional_progress.h>
 
 #include <string>
+
+using namespace tpie;
 
 const char * filename = "helloworld.tpie";
 
@@ -46,11 +48,11 @@ void cleanup() {
 }
 
 /* Write a permutation of the integers from 0 to s */
-void write_number_stream(tpie::fractional_subindicator & progress_writer) {
-	tpie::file_stream<size_t> writer;
+void write_number_stream(fractional_subindicator & progress_writer) {
+	file_stream<size_t> writer;
 	writer.open(filename);
 
-	size_t s = tpie::next_prime(elements);
+	size_t s = next_prime(elements);
 	size_t y = elements-16;
 
 	// The parameter to init tells the PI how many times we will call step().
@@ -64,10 +66,10 @@ void write_number_stream(tpie::fractional_subindicator & progress_writer) {
 }
 
 /* Sorting the stream yields an increasing sequence of integers from 0 to s-1 */
-void verify_number_stream(tpie::fractional_subindicator & progress_sort, tpie::fractional_subindicator & progress_verify) {
-	tpie::file_stream<size_t> numbers;
+void verify_number_stream(fractional_subindicator & progress_sort, fractional_subindicator & progress_verify) {
+	file_stream<size_t> numbers;
 	numbers.open(filename);
-	tpie::sort(numbers, numbers, &progress_sort);
+	sort(numbers, numbers, &progress_sort);
 
 	numbers.seek(0);
 	size_t expect = 0;
@@ -111,21 +113,21 @@ int main(int argc, char ** argv) {
 	}
 	// initialize tpie subsystems (memory manager, job manager for parallel sorting,
 	// prime database, progress database, default logger)
-	tpie::tpie_init();
+	tpie_init();
 
 	// progress_indicator_arrow draws the progress arrow in the terminal.
-	tpie::progress_indicator_arrow pi("Hello world", elements);
+	progress_indicator_arrow pi("Hello world", elements);
 
 	// fractional_progress is a progress indicator abstraction that tracks the
 	// progress of multiple subroutines as a single progress bar.
-	tpie::fractional_progress fp(&pi);
+	fractional_progress fp(&pi);
 
 	// we have subindicators for each of the subroutines.
-	tpie::fractional_subindicator progress_writer(fp, "Writer", TPIE_FSI, elements, "Writer");
-	tpie::fractional_subindicator progress_sort(fp, "Sort", TPIE_FSI, elements, "Sort");
-	tpie::fractional_subindicator progress_verify(fp, "Verify", TPIE_FSI, elements, "Verify");
+	fractional_subindicator progress_writer(fp, "Writer", TPIE_FSI, elements, "Writer");
+	fractional_subindicator progress_sort(fp, "Sort", TPIE_FSI, elements, "Sort");
+	fractional_subindicator progress_verify(fp, "Verify", TPIE_FSI, elements, "Verify");
 
-	std::cout << "Writing " << tpie::next_prime(elements) << " integers to " << filename << std::endl;
+	std::cout << "Writing " << next_prime(elements) << " integers to " << filename << std::endl;
 
 	// initialize overall progress indicator
 	fp.init();
@@ -137,7 +139,7 @@ int main(int argc, char ** argv) {
 
 	fp.done();
 
-	tpie::tpie_finish();
+	tpie_finish();
 
 	return EXIT_SUCCESS;
 }
