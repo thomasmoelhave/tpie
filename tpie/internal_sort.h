@@ -201,7 +201,7 @@ void Internal_Sorter_Op<T>::sort(file_stream<T>* InStr,
 	if (ItemArray.size() == 0) throw stream_exception("NULL_POINTER");
 
 	
-	tp_assert ( nItems <= len, "nItems more than interal buffer size.");
+	tp_assert ( nItems <= len, "Internal buffer overfull (nItems > len)");
 
 	fractional_progress fp(pi);
 	fp.id() << __FILE__ << __FUNCTION__ << typeid(T);
@@ -283,7 +283,7 @@ void Internal_Sorter_Obj<T, CMPR>::sort(file_stream<T>* InStr,
 										file_stream<T>* OutStr, 
 										TPIE_OS_SIZE_T nItems,
 										progress_indicator_base * pi) {
-	tp_assert ( nItems <= len, "nItems more than interal buffer size.");
+	tp_assert ( nItems <= len, "Internal buffer overfull (nItems > len)");
 
 	
 	TPIE_OS_SIZE_T i = 0;
@@ -291,7 +291,7 @@ void Internal_Sorter_Obj<T, CMPR>::sort(file_stream<T>* InStr,
 	//make sure we called allocate earlier
 	if (ItemArray.size() == 0) throw stream_exception("NULL_POINTER");
 	    
-	tp_assert ( nItems <= len, "nItems more than interal buffer size.");
+	tp_assert ( nItems <= len, "Internal buffer overfull (nItems > len)");
 
 	fractional_progress fp(pi);
 	fp.id() << __FILE__ << __FUNCTION__ << typeid(T) << typeid(CMPR);
@@ -448,7 +448,7 @@ inline void Internal_Sorter_KObj<T, KEY, CMPR>::sort(file_stream<T>* InStr,
 		throw stream_exception("NULL_POINTER");
 	}
 	
-	tp_assert ( nItems <= len, "nItems more than interal buffer size.");
+	tp_assert ( nItems <= len, "Internal buffer overfull (nItems > len)");
 
 	fractional_progress fp(pi);
 	fp.id() << __FILE__ << __FUNCTION__ << typeid(T) << typeid(KEY) <<  typeid(CMPR);

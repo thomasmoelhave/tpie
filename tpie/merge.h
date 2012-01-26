@@ -279,7 +279,7 @@ namespace tpie {
                
 	    //streams and m_obj must fit in memory!
 	    if (sz_needed >= static_cast<TPIE_OS_OFFSET>(sz_avail)) {
-		TP_LOG_WARNING("Insuficent main memory to perform a merge.\n");
+		TP_LOG_WARNING("Insufficient main memory to perform a merge.\n");
 		return INSUFFICIENT_MAIN_MEMORY;
 	    }
 	    assert(sz_needed < sz_avail);

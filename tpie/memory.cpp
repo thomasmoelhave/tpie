@@ -82,7 +82,7 @@ void memory_manager::register_deallocation(size_t bytes) {
 #ifndef TPIE_NDEBUG
 	if (bytes > m_used) {
 		log_error() << "Error in deallocation, trying to deallocate " << bytes << " bytes, while only " <<
-			m_used << " where allocated" << std::endl;
+			m_used << " were allocated" << std::endl;
 		segfault();
 	}
 #endif
@@ -172,7 +172,7 @@ std::pair<uint8_t *, size_t> memory_manager::__allocate_consecutive(size_t upper
 void memory_manager::__register_pointer(void * p, size_t size, const std::type_info & t) {
 	if (m_pointers.count(p) != 0) {
 		log_error() << "Trying to register pointer " << p << " of size " 
-					<< size << " which is allready registered" << std::endl;
+					<< size << " which is already registered" << std::endl;
 		segfault();
 	}
 	m_pointers[p] = std::make_pair(size, &t);;
@@ -201,13 +201,13 @@ void memory_manager::__unregister_pointer(void * p, size_t size, const std::type
 
 void memory_manager::__assert_tpie_ptr(void * p) {
 	if (!p || m_pointers.count(p)) return;
-	log_error() << p << " has not been allocated with tpie new" << std::endl;
+	log_error() << p << " has not been allocated with tpie_new" << std::endl;
 	segfault();
 }
 
 void memory_manager::__complain_about_unfreed_memory() {
 	if(m_pointers.size() == 0) return;
-	log_error() << "The following pointers where either leaked or deleted by delete instead of tpie_delete" << std::endl << std::endl;
+	log_error() << "The following pointers were either leaked or deleted with delete instead of tpie_delete" << std::endl << std::endl;
 	
 	for(boost::unordered_map<void *, std::pair<size_t, const std::type_info *> >::const_iterator i=m_pointers.begin();
 		i != m_pointers.end(); ++i)
@@ -229,7 +229,7 @@ void finish_memory_manager() {
 
 memory_manager & get_memory_manager() {
 #ifndef TPIE_NDEBUG
-	if (mm == 0) throw std::runtime_error("Memory managment not inited");
+	if (mm == 0) throw std::runtime_error("Memory management not initialized");
 #endif
 	return * mm;
 }

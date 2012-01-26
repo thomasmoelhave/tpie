@@ -929,7 +929,7 @@ inline int TPIE_OS_TRUNCATE(FILE* file, const std::string& /* path */, TPIE_OS_O
 	long loffset = static_cast<long>(offset);
 	if (offset > TPIE_OS_OFFSET(std::numeric_limits<long>::max()) || loffset < 0) {
 		std::stringstream ss;
-		ss << "Truncat offset " << offset << " too big (or negative.)";
+		ss << "Truncate offset " << offset << " out of bounds";
 		throw std::runtime_error(ss.str());
 	}
 	return _chsize(file->_file, loffset);

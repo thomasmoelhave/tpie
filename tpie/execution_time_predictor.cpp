@@ -141,7 +141,7 @@ public:
 		ofstream f;
 		f.open(tmp.c_str(), ifstream::binary | ifstream::out);
 		if (!f.is_open()) {
-			log_error() << "Failed to store time estimation database: Could not create temporery file" << std::endl;
+			log_error() << "Failed to store time estimation database: Could not create temporary file" << std::endl;
 			return;
 		}
 		
@@ -183,7 +183,7 @@ public:
 			--l;
 			if (l->first == 0) {
 #ifdef TPIE_NDEBUG
-				log_warning() << "In timeestimation first was found to be 0, this should not happes!" << std::endl;
+				log_warning() << "In time estimation first was 0, this should not happen!" << std::endl;
 #endif
 				confidence=0.0;
 				return -1; 
