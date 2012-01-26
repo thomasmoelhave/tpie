@@ -39,12 +39,6 @@
 
 const char * filename = "helloworld.tpie";
 
-tpie::progress_indicator_arrow * pi;
-tpie::fractional_progress * fp;
-tpie::fractional_subindicator * progress_writer;
-tpie::fractional_subindicator * progress_sort;
-tpie::fractional_subindicator * progress_verify;
-
 size_t elements = 16*1024*1024;
 
 void cleanup() {
@@ -52,7 +46,7 @@ void cleanup() {
 }
 
 /* Write a permutation of the integers from 0 to s */
-void write_number_stream() {
+void write_number_stream(tpie::fractional_subindicator & progress_writer) {
 	tpie::file_stream<size_t> writer;
 	writer.open(filename);
 
@@ -60,36 +54,36 @@ void write_number_stream() {
 	size_t y = elements-16;
 
 	// The parameter to init tells the PI how many times we will call step().
-	progress_writer->init(s);
+	progress_writer.init(s);
 	for (size_t i = 0; i < s; ++i) {
 		// Write a single item
 		writer.write((i * y) % s);
-		progress_writer->step();
+		progress_writer.step();
 	}
-	progress_writer->done();
+	progress_writer.done();
 }
 
 /* Sorting the stream yields an increasing sequence of integers from 0 to s-1 */
-void verify_number_stream() {
+void verify_number_stream(tpie::fractional_subindicator & progress_sort, tpie::fractional_subindicator & progress_verify) {
 	tpie::file_stream<size_t> numbers;
 	numbers.open(filename);
-	tpie::sort(numbers, numbers, progress_sort);
+	tpie::sort(numbers, numbers, &progress_sort);
 
 	numbers.seek(0);
 	size_t expect = 0;
-	progress_verify->init(elements);
+	progress_verify.init(elements);
 	while (numbers.can_read()) {
 		// Read a single item
 		size_t input = numbers.read();
 		if (input != expect) {
-			progress_verify->done();
+			progress_verify.done();
 			std::cout << "Got a wrong number!" << std::endl;
 			return;
 		}
 		++expect;
-		progress_verify->step();
+		progress_verify.step();
 	}
-	progress_verify->done();
+	progress_verify.done();
 }
 
 int main(int argc, char ** argv) {
@@ -119,6 +113,12 @@ int main(int argc, char ** argv) {
 	// prime database, progress database, default logger)
 	tpie::tpie_init();
 
+	tpie::progress_indicator_arrow * pi;
+	tpie::fractional_progress * fp;
+	tpie::fractional_subindicator * progress_writer;
+	tpie::fractional_subindicator * progress_sort;
+	tpie::fractional_subindicator * progress_verify;
+
 	// progress_indicator_arrow draws the progress arrow in the terminal.
 	pi = tpie::tpie_new<tpie::progress_indicator_arrow>("Hello world", elements);
 
@@ -137,8 +137,8 @@ int main(int argc, char ** argv) {
 	fp->init();
 
 	cleanup();
-	write_number_stream();
-	verify_number_stream();
+	write_number_stream(*progress_writer);
+	verify_number_stream(*progress_sort, *progress_verify);
 	cleanup();
 
 	fp->done();
