@@ -47,6 +47,22 @@ up the build environment using Cmake, perhaps using the Cmake GUI. TPIE is
 known to work with the Microsoft Visual Studio 2008 and 2010 compilers. Be sure
 to select a 64-bit build when your platform supports it.
 
+Repository overview
+-------------------
+
+The library source code mainly resides in the `tpie/` directory.
+
+The `test/` directory contains test code. `test/unit/` contains source code for
+unit tests used by CTest, and `test/speed_regression/` contains programs for
+measuring TPIE performance.
+
+The `cpp0xtest/` directory contains code that might not compile on all modern
+compilers. CMake uses this to determine if the system compiler supports
+variadic templates and rvalues.
+
+The `example/` directory contains a simple example of how to use TPIE in your
+application.
+
 Help
 ----
 
