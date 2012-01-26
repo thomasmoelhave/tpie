@@ -113,41 +113,29 @@ int main(int argc, char ** argv) {
 	// prime database, progress database, default logger)
 	tpie::tpie_init();
 
-	tpie::progress_indicator_arrow * pi;
-	tpie::fractional_progress * fp;
-	tpie::fractional_subindicator * progress_writer;
-	tpie::fractional_subindicator * progress_sort;
-	tpie::fractional_subindicator * progress_verify;
-
 	// progress_indicator_arrow draws the progress arrow in the terminal.
-	pi = tpie::tpie_new<tpie::progress_indicator_arrow>("Hello world", elements);
+	tpie::progress_indicator_arrow pi("Hello world", elements);
 
 	// fractional_progress is a progress indicator abstraction that tracks the
 	// progress of multiple subroutines as a single progress bar.
-	fp = tpie::tpie_new<tpie::fractional_progress>(pi);
+	tpie::fractional_progress fp(&pi);
 
 	// we have subindicators for each of the subroutines.
-	progress_writer = tpie::tpie_new<tpie::fractional_subindicator>(*fp, "Writer", TPIE_FSI, elements, "Writer");
-	progress_sort = tpie::tpie_new<tpie::fractional_subindicator>(*fp, "Sort", TPIE_FSI, elements, "Sort");
-	progress_verify = tpie::tpie_new<tpie::fractional_subindicator>(*fp, "Verify", TPIE_FSI, elements, "Verify");
+	tpie::fractional_subindicator progress_writer(fp, "Writer", TPIE_FSI, elements, "Writer");
+	tpie::fractional_subindicator progress_sort(fp, "Sort", TPIE_FSI, elements, "Sort");
+	tpie::fractional_subindicator progress_verify(fp, "Verify", TPIE_FSI, elements, "Verify");
 
 	std::cout << "Writing " << tpie::next_prime(elements) << " integers to " << filename << std::endl;
 
 	// initialize overall progress indicator
-	fp->init();
+	fp.init();
 
 	cleanup();
-	write_number_stream(*progress_writer);
-	verify_number_stream(*progress_sort, *progress_verify);
+	write_number_stream(progress_writer);
+	verify_number_stream(progress_sort, progress_verify);
 	cleanup();
 
-	fp->done();
-
-	tpie::tpie_delete<tpie::fractional_subindicator>(progress_writer);
-	tpie::tpie_delete<tpie::fractional_subindicator>(progress_sort);
-	tpie::tpie_delete<tpie::fractional_subindicator>(progress_verify);
-	tpie::tpie_delete<tpie::fractional_progress>(fp);
-	tpie::tpie_delete<tpie::progress_indicator_arrow>(pi);
+	fp.done();
 
 	tpie::tpie_finish();
 
