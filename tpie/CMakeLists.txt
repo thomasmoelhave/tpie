@@ -107,6 +107,8 @@ set (OTHER_HEADERS
 		array.h
 		bit_array.h
 		packed_array.h
+		array_view_base.h
+		array_view.h
 		hash_map.h
 		prime.h
 		concepts.h

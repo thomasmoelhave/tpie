@@ -27,6 +27,7 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/utility/enable_if.hpp>
 #include <tpie/memory.h>
+#include <tpie/array_view_base.h>
 
 namespace tpie {
 
@@ -613,6 +614,10 @@ public:
 	/// \param other The array to copy
 	/////////////////////////////////////////////////////////
 	array(const array & other): array_base<T, false, alloc_t>(other) {}
+
+	array(array_view_base<const T> & view): array_base<T, false, alloc_t>(view.size()) {
+		std::copy(view.begin(), view.end(), this->begin());
+	}
 
 	/////////////////////////////////////////////////////////
 	/// \brife Return a raw pointer to the array content

@@ -20,132 +20,13 @@
 #ifndef __ARRAY_VIEW_H__
 #define  __ARRAY_VIEW_H__
 
-#include <boost/iterator/iterator_facade.hpp>
 #include <vector>
 #include <tpie/array.h>
+#include <tpie/array_view_base.h>
 #include <tpie/internal_vector.h>
 
 namespace tpie {
 
-template <typename T>
-class array_view_base {
-private:
-	T * m_start;
-	T * m_end;
-public:
-	class iterator: public boost::iterator_facade<iterator, T, boost::random_access_traversal_tag> {
-	private:
-		friend class array_view_base;
-		friend class boost::iterator_core_access;
-		explicit iterator(T * e): elm(e) {}
-		inline T & dereference() const {return * elm;}
-		inline bool equal(iterator const& o) const {return elm == o.elm;}
-		inline void increment() {++elm;}
-		inline void decrement() {--elm;}
-		inline void advance(size_t n) {elm += n;}
-		inline ptrdiff_t distance_to(iterator const & o) const {return o.elm - elm;}
-		T * elm;
-	public:
-		iterator(): elm(0) {};
-	};		
-	
-
-	array_view_base(T * s, T * e): m_start(s), m_end(e) {}
-	
-	/////////////////////////////////////////////////////////
-	/// \brief Type of values containd in the array
-	/////////////////////////////////////////////////////////
-	typedef T value_type;
-	
-	/////////////////////////////////////////////////////////
-	/// \brief Return an iterator to the i'th element of the array
-	///
-	/// \param i the index of the element we want an iterator to
-	/// \return an iterator to the i'th element
-	/////////////////////////////////////////////////////////
-	iterator find(size_t idx) const throw () {
-		assert(idx <= size());
-		return iterator(m_start + idx);
-	}
-
-	/////////////////////////////////////////////////////////
-	/// \brief Return the element located at the given index
-	///
-	/// \param i the index of the element returnd
-	/////////////////////////////////////////////////////////
-	T & at(size_t i) const throw() {
-		assert(i < size());
-		return *find(i);
-	}
-
-	/////////////////////////////////////////////////////////
-	/// \brief Check if the array is empty
-	///
-	/// \return true if and only if size is 0
-	/////////////////////////////////////////////////////////
-	inline bool empty() const {return m_end == m_start;}
-
-	inline size_t size() const {return m_end - m_start;}
-
-	/////////////////////////////////////////////////////////
-	/// \brief Return a referense to an array entry
-	///
-	/// \param i the index of the entry to return
-	/// \return reference to the entry
-	/////////////////////////////////////////////////////////
-	inline T & operator[](size_t i) const {
-		assert(i < size());
-		return at(i);
-	}
-
-	/////////////////////////////////////////////////////////
-	/// \brief Compare if the other array has the same elemens in the same order as this
-	///
-	/// \param other the array to compair against
-	/// \return true if they are equal otherwize false
-	/////////////////////////////////////////////////////////
-	inline bool operator==(const array_view_base & other) const {
- 		if (size() != other.size()) return false;
-		for (size_t i=0; i < size(); ++i) if (at(i) != other.at(i)) return false;
-		return true;
-	}
-
-	/////////////////////////////////////////////////////////
-	/// \brief Check if the two arrayes differ
-	///
-	/// \param other the array to compair against
-	/// \return false if they are equal otherwize true
-	/////////////////////////////////////////////////////////
-	inline bool operator!=(const array_view_base & other) const {
-		if (size() != other.size()) return true;
-		for (size_t i=0; i< size(); ++i) if (at(i) != other.at(i)) return true;
-		return false;
-	}
-
-	/////////////////////////////////////////////////////////
-	/// \brief Return an iterator to the beginning of the array
-	///
-	/// \return an iterator tho the beginning of the array
-	/////////////////////////////////////////////////////////
-	inline iterator begin() const {return iterator(m_start);}
-
-	/////////////////////////////////////////////////////////
-	/// \brief Return an iterator to the end of the array
-	///
-	/// \return an iterator tho the end of the array
-	/////////////////////////////////////////////////////////
-	inline iterator end() const {return iterator(m_end);}
-
-	/////////////////////////////////////////////////////////
-	/// \brief return the first element in the array
-	/////////////////////////////////////////////////////////
-	inline T & front() const {return *m_start;}
-
-	/////////////////////////////////////////////////////////
-	/// \brief return the last element in the array
-	/////////////////////////////////////////////////////////
-	inline T & back() const {return *(m_end-1);}
-};
 
 template <typename T>
 class array_view: public array_view_base<T> {
