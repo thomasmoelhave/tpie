@@ -47,8 +47,8 @@ Documentation
     /////////////////////////////////////////////////////////
     </pre>
 
-5.  Javadoc-style comments may be used for commenting attributes and
-    enumerations. (jv)
+5.  Javadoc-style comments may be used for commenting attributes,
+    enumerations and typedefs. (jv)
 
     Example:
 

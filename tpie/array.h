@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2010, The TPIE development team
+// Copyright 2010, 2012, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -30,36 +30,26 @@
 
 namespace tpie {
 
+///////////////////////////////////////////////////////////////////////////////
+/// \internal
+///////////////////////////////////////////////////////////////////////////////
+
 template <typename child_t, typename T, template <typename, bool> class iter_base>
 class array_facade: public linear_memory_base<child_t> {
-private:
-	inline child_t & self() {return *static_cast<child_t*>(this);}
-	inline const child_t & self() const {return *static_cast<const child_t*>(this);}
 public:
-	/////////////////////////////////////////////////////////
-	/// \brief Iterator over a const array
-	/////////////////////////////////////////////////////////
+	/** \brief Iterator over a const array */
 	typedef iter_base<T const, true> const_iterator;
 
-	/////////////////////////////////////////////////////////
-	/// \brief Reverse iterator over a const array
-	/////////////////////////////////////////////////////////
+	/** \brief Reverse iterator over a const array */
 	typedef iter_base<T const, false> const_reverse_iterator;
 
-	/////////////////////////////////////////////////////////
-	/// \brief Iterator over an array
-	/////////////////////////////////////////////////////////
+	/** \brief Iterator over an array */
 	typedef iter_base<T, true> iterator;
 
-	/////////////////////////////////////////////////////////
-	/// \brief Reverse iterator over an array
-	/////////////////////////////////////////////////////////
+	/** \brief Reverse iterator over an array */
 	typedef iter_base<T, false> reverse_iterator;
 
-
-	/////////////////////////////////////////////////////////
-	/// \brief Type of values containd in the array
-	/////////////////////////////////////////////////////////
+	/** \brief Type of values containd in the array */
 	typedef T value_type;
 
 	/////////////////////////////////////////////////////////
@@ -149,8 +139,8 @@ public:
 	/////////////////////////////////////////////////////////
 	/// \brief Compare if the other array has the same elemens in the same order as this
 	///
-	/// \param other the array to compair against
-	/// \return true if they are equal otherwize false
+	/// \param other the array to compare against
+	/// \return true if they are equal otherwise false
 	/////////////////////////////////////////////////////////
 	inline bool operator==(const child_t & other) const {
  		if (self().size() != other.size()) return false;
@@ -159,10 +149,10 @@ public:
 	}
 
 	/////////////////////////////////////////////////////////
-	/// \brief Check if the two arrayes differ
+	/// \brief Check if the two arrays differ
 	///
-	/// \param other the array to compair against
-	/// \return false if they are equal otherwize true
+	/// \param other the array to compare against
+	/// \return false if they are equal otherwise true
 	/////////////////////////////////////////////////////////
 	inline bool operator!=(const child_t & other) const {
  		if (self().size() != other.size()) return true;
@@ -173,43 +163,23 @@ public:
 	/////////////////////////////////////////////////////////
 	/// \brief Return an iterator to the beginning of the array
 	///
-	/// \return an iterator tho the beginning of the array
+	/// \return an iterator to the beginning of the array
 	/////////////////////////////////////////////////////////
 	inline iterator begin() {return self().get_iter(0);}
 
 	/////////////////////////////////////////////////////////
 	/// \brief Return a const iterator to the beginning of the array
 	///
-	/// \return a const iterator tho the beginning of the array
+	/// \return a const iterator to the beginning of the array
 	/////////////////////////////////////////////////////////
 	inline const_iterator begin() const {return self().get_iter(0);}
 
 	/////////////////////////////////////////////////////////
 	/// \brief Return an iterator to the end of the array
 	///
-	/// \return an iterator tho the end of the array
+	/// \return an iterator to the end of the array
 	/////////////////////////////////////////////////////////
 	inline iterator end() {return self().get_iter(self().size());}
-
-	/////////////////////////////////////////////////////////
-	/// \brief return the first element in the array
-	/////////////////////////////////////////////////////////
-	inline const T & front() const {return at(0);}
-
-	/////////////////////////////////////////////////////////
-	/// \brief return the first element in the array
-	/////////////////////////////////////////////////////////
-	inline T & front() {return at(0);}
-
-	/////////////////////////////////////////////////////////
-	/// \brief return the last element in the array
-	/////////////////////////////////////////////////////////
-	inline const T & back() const {return at(self().size()-1);}
-
-	/////////////////////////////////////////////////////////
-	/// \brief return the last element in the array
-	/////////////////////////////////////////////////////////
-	inline T & back() {return at(0);}
 
 	/////////////////////////////////////////////////////////
 	/// \brief Return a const iterator to the end of the array
@@ -217,14 +187,36 @@ public:
 	/// \return a const iterator tho the end of the array
 	/////////////////////////////////////////////////////////
 	inline const_iterator end() const {return self().get_iter(self().size());}
-	
+
+	/////////////////////////////////////////////////////////
+	/// \brief Return the first element in the array
+	/////////////////////////////////////////////////////////
+	inline const T & front() const {return at(0);}
+
+	/////////////////////////////////////////////////////////
+	/// \brief Return the first element in the array
+	/////////////////////////////////////////////////////////
+	inline T & front() {return at(0);}
+
+	/////////////////////////////////////////////////////////
+	/// \brief Return the last element in the array
+	/////////////////////////////////////////////////////////
+	inline const T & back() const {return at(self().size()-1);}
+
+	/////////////////////////////////////////////////////////
+	/// \brief Return the last element in the array
+	/////////////////////////////////////////////////////////
+	inline T & back() {return at(0);}
+
 	inline reverse_iterator rbegin() {return self().get_rev_iter(0);}
 	inline const_reverse_iterator rbegin() const {return self().get_rev_iter(0);}
 	inline reverse_iterator rend() {return self().get_rev_iter(self().size());}
 	inline const_reverse_iterator rend() const {return self().get_rev_iter(self().size());}
+
+private:
+	inline child_t & self() {return *static_cast<child_t*>(this);}
+	inline const child_t & self() const {return *static_cast<const child_t*>(this);}
 };
-
-
 
 /////////////////////////////////////////////////////////
 /// \internal
@@ -259,38 +251,22 @@ public:
 			: elm(o.elm) {}
 };		
 
-
 /////////////////////////////////////////////////////////
-/// \brief A generic array with a fixed size
+/// \brief A generic array with a fixed size.
 ///
-/// This is almost the same as a real new T[] array
-/// but the memory managment is better
+/// This is almost the same as a real C-style T array but the memory management
+/// is better.
+///
+/// Do not instantiate this class directly. Instead, use tpie::array or
+/// tpie::segmented_array.
+///
+/// \tparam T The type of element to contain.
+/// \tparam segmented Whether to use segmented arrays.
+/// \tparam alloc_t Allocator.
 /////////////////////////////////////////////////////////
+
 template <typename T, bool segmented=false, template <typename> class alloc_t=tpie::allocator>
 class array_base: public array_facade<array_base<T, segmented, alloc_t>, T, array_iter_base> {
-private:
-	typedef array_facade<array_base<T, segmented, alloc_t>, T, array_iter_base> p_t;
-	friend class array_facade<array_base<T, segmented, alloc_t>, T, array_iter_base>;
-
-	T * m_elements;
-	size_t m_size;
-	alloc_t<T> m_allocator;
-
-	inline typename p_t::iterator get_iter(size_t idx) {
-		return typename p_t::iterator(m_elements+idx);
-	}
-	
-	inline typename p_t::const_iterator get_iter(size_t idx) const {
-		return typename p_t::const_iterator(m_elements+idx);
-	}
-	
-	inline typename p_t::reverse_iterator get_rev_iter(size_t idx) {
-		return typename p_t::reverse_iterator(m_elements+m_size-idx-1);
-	}
-	
-	inline typename p_t::const_reverse_iterator get_rev_iter(size_t idx) const {
-		return typename p_t::const_reverse_iterator(m_elements+m_size-idx-1);
-	}
 public:
 	/////////////////////////////////////////////////////////
 	/// \copybrief linear_memory_structure_doc::memory_coefficient()
@@ -397,7 +373,34 @@ protected:
 	/// \brife Return a raw pointer to the array content
 	/////////////////////////////////////////////////////////
 	inline const T * __get() const {return m_elements;}
+private:
+	typedef array_facade<array_base<T, segmented, alloc_t>, T, array_iter_base> p_t;
+	friend class array_facade<array_base<T, segmented, alloc_t>, T, array_iter_base>;
+
+	T * m_elements;
+	size_t m_size;
+	alloc_t<T> m_allocator;
+
+	inline typename p_t::iterator get_iter(size_t idx) {
+		return typename p_t::iterator(m_elements+idx);
+	}
+	
+	inline typename p_t::const_iterator get_iter(size_t idx) const {
+		return typename p_t::const_iterator(m_elements+idx);
+	}
+	
+	inline typename p_t::reverse_iterator get_rev_iter(size_t idx) {
+		return typename p_t::reverse_iterator(m_elements+m_size-idx-1);
+	}
+	
+	inline typename p_t::const_reverse_iterator get_rev_iter(size_t idx) const {
+		return typename p_t::const_reverse_iterator(m_elements+m_size-idx-1);
+	}
 };
+
+///////////////////////////////////////////////////////////////////////////////
+/// \internal
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename TT, bool forward>
 class segmented_array_iter_base: public boost::iterator_facade<
@@ -433,6 +436,13 @@ public:
 		: m_a(o.m_a), m_i(o.m_i) {}
 };
 
+///////////////////////////////////////////////////////////////////////////
+/// \internal
+///
+/// \brief Segmented array implementation.
+///
+/// Specializes array_base for segmented == true.
+///////////////////////////////////////////////////////////////////////////
 
 template <typename T, template <typename> class alloc_t>
 class array_base<T, true, alloc_t>: public array_facade<array_base<T, true, alloc_t>, T, segmented_array_iter_base > {
@@ -564,6 +574,20 @@ public:
 
 static const bool __tpie_is_not_64bit = sizeof(size_t) < sizeof(uint64_t);
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief TPIE's segmented array.
+///
+/// On 32-bit machines, we have problems with address space fragmentation, so
+/// we allow segmented arrays that use several pieces of contiguous memory
+/// masked as one.
+///
+/// For this reason, we do not guarantee that pointer arithmetic yields
+/// anything meaningful for segmented_array elements.
+///
+/// Implementation note: In 64-bit address spaces, we only have a single
+/// segment.
+///////////////////////////////////////////////////////////////////////////////
+
 template <typename T, template <typename> class alloc_t=tpie::allocator>
 class segmented_array: public array_base<T, __tpie_is_not_64bit, alloc_t> {
 	/////////////////////////////////////////////////////////
@@ -625,6 +649,10 @@ public:
 	inline const T * get() const {return array_base<T, false, alloc_t>::__get();}
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Enable outputting a tpie::array to a std::ostream.
+///////////////////////////////////////////////////////////////////////////////
+
 template <typename T, template <typename> class A>
 std::ostream & operator<<(std::ostream & o, const array<T, A> & a) {
 	o << "[";
@@ -641,13 +669,15 @@ std::ostream & operator<<(std::ostream & o, const array<T, A> & a) {
 
 namespace std {
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Enable outputting a tpie::array to a std::ostream.
+///////////////////////////////////////////////////////////////////////////////
+
 template <typename T, template <typename> class alloc_t>
 void swap(tpie::array<T, alloc_t> & a, tpie::array<T, alloc_t> & b) {
 	a.swap(b);
 }
 
-
 }
 
 #endif //__TPIE_ARRAY_H__ 	
-
