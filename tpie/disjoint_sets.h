@@ -18,10 +18,11 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #ifndef __TPIE_DISJOINT_SETS__
 #define __TPIE_DISJOINT_SETS__
-///////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
 /// \file disjoint_sets.h
-/// Contains a generic internal disjoint_sets (union find) implementation
-///////////////////////////////////////////////////////////////////////////
+/// Contains a generic internal disjoint_sets (union find)
+/// implementation
+/////////////////////////////////////////////////////////////
 
 #include <tpie/array.h>
 #include <tpie/unused.h>
@@ -29,14 +30,15 @@
 
 namespace tpie {
 
-/////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
 /// \brief Internal memory union find implementation
 ///
-/// The key space is assumed to be integers from 0 to (but not including)
-/// some n given in the constructor.
+/// The key space is the first n integers (from 0 to n-1).
+/// n is given in the constructor.
 ///
-/// \tparam value_t The type of values stored (must be a integer type)
-/////////////////////////////////////////////////////////
+/// \tparam value_t The type of values stored (must be an
+/// integer type).
+/////////////////////////////////////////////////////////////
 template <typename value_t=size_type> 
 class disjoint_sets: public linear_memory_base< disjoint_sets<value_t> > {
 private:
@@ -67,6 +69,7 @@ public:
 	/// \param u A value you guarentee not to use.
 	/////////////////////////////////////////////////////////
 	disjoint_sets(size_type n, value_t u = default_unused<value_t>::v()): m_elements(n, u), m_unused(u), m_size(0) {}	
+
 	/////////////////////////////////////////////////////////
 	/// \brief Make a singleton set
 	///
@@ -77,13 +80,14 @@ public:
 	/////////////////////////////////////////////////////////
 	/// \brief Check if a given element is a member of any set
 	///
-	/// This is the same as saying if make_set have ever been called with the given key
+	/// This is the same as saying if make_set has ever been
+	/// called with the given key
 	/// \param element The key to check
 	/////////////////////////////////////////////////////////
 	inline bool is_set(value_t element) {return m_elements[element] != m_unused;}
 
 	/////////////////////////////////////////////////////////
-	/// \brief Unon two sets given by their representative
+	/// \brief Union two sets given by their representatives
 	///
 	/// \param a The representative of one set
 	/// \param b The representative of the other set
@@ -103,7 +107,9 @@ public:
 	/// \param t The element of which to find the set representative
 	/// \return The representative.
 	/////////////////////////////////////////////////////////
-	inline value_t find_set(value_t t) {
+
+	// TODO: Should we be more fancy about this?
+	inline value_t find_set(value_t target) {
 		while (true) {
 			value_t x = m_elements[m_elements[t]];
 			if (x == t) return t;
@@ -113,18 +119,23 @@ public:
 	}
 
 	/////////////////////////////////////////////////////////
-	/// \brief Union the set contaning a with the set containing b
+	/// \brief Union the set containing a with the set
+	/// containing b
 	/// 
 	/// \param a An element in one set
 	/// \param b An element in another set (possible)
 	/// \return The representative of the unioned set
 	/////////////////////////////////////////////////////////
-	inline value_t union_set(value_t a, value_t b) {return link(find_set(a), find_set(b));}
+	inline value_t union_set(value_t a, value_t b) {
+		return link(find_set(a), find_set(b));
+	}
 
 	/////////////////////////////////////////////////////////
 	/// \brief Return the number of sets
 	/////////////////////////////////////////////////////////
-	inline size_type count_sets() {return m_size;}
+	inline size_type count_sets() {
+		return m_size;
+	}
 };
 
 }
