@@ -18,6 +18,12 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #include <tpie/backtrace.h>
 #include <tpie/tpie_log.h>
+
+///////////////////////////////////////////////////////////////////////////////
+/// \file backtrace.cpp Implementation of backtrace.h.
+/// \sa backtrace.h
+///////////////////////////////////////////////////////////////////////////////
+
 #if defined(WIN32) || defined(__CYGWIN__)
 
 namespace tpie {
@@ -25,8 +31,13 @@ void backtrace(std::ostream & out, int depth){}
 }
 
 #else // WIN32
+
+// for __cxa_demangle
 #include <cxxabi.h>
+
+// for ::backtrace; see also GNU C lib docs 33.1
 #include <execinfo.h>
+
 #include <cstdlib>
 #include <iostream>
 
