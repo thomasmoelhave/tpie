@@ -21,15 +21,11 @@
 #define _AMI_H
 ///////////////////////////////////////////////////////////////////////////
 /// \file ami.h
-/// This include file inputs the various include files required to compile
-/// an application program with TPIE.
-/// This file should be included in every TPIE application program that uses the 
-/// AMI-level interface. It in turn inputs the definitions for the 
-/// AMI-level services of TPIE.  
+/// This file includes the various header files required to compile
+/// an application program with the legacy AMI interface of TPIE.
 ///////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////
-/// \namespace tpie TPIE's namespace.
 /// \namespace tpie::ami The namespace within TPIE for the Access
 /// Method Interface elements.
 ///////////////////////////////////////////////////////////////////////////
