@@ -22,7 +22,7 @@
 
 ///////////////////////////////////////////////////////////////////////////
 /// \file tpie/err.h 
-/// Declares error types.
+/// Declares legacy AMI error types.
 ///////////////////////////////////////////////////////////////////////////
 
 namespace tpie {
@@ -30,12 +30,10 @@ namespace tpie {
     namespace ami {
 	
     ///////////////////////////////////////////////////////////////////////////
-    /// TPIE error codes.
-    /// TPIE entry points typically return error codes of the enumerated type
-    /// err.  Member functions of operation management objects 
-    /// also typically return this type.  Possible values for error codes 
-    /// include those listed below.  It is expected that in future releases 
-    /// of TPIE, many of these error codes will be replaced by exceptions.
+    /// Legacy TPIE error codes.
+	///
+	/// Functions in the AMI interface of TPIE typically return error codes of
+	/// the enumerated type err.
     ///////////////////////////////////////////////////////////////////////////
     enum err {
       /** No error occurred.  The call the the entry point returned normally. */
