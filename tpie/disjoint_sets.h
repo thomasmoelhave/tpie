@@ -109,7 +109,7 @@ public:
 	/////////////////////////////////////////////////////////
 
 	// TODO: Should we be more fancy about this?
-	inline value_t find_set(value_t target) {
+	inline value_t find_set(value_t t) {
 		while (true) {
 			value_t x = m_elements[m_elements[t]];
 			if (x == t) return t;
