@@ -24,6 +24,11 @@
 #ifndef __TPIE_EXECUTION_TIME_PREDICTOR_H__
 #define __TPIE_EXECUTION_TIME_PREDICTOR_H__
 
+///////////////////////////////////////////////////////////////////////////////
+/// \file execution_time_predictor.h Execution time predictor used by
+/// fractional progress.
+///////////////////////////////////////////////////////////////////////////////
+
 namespace tpie {
 
 void init_execution_time_db();
