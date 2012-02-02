@@ -16,6 +16,12 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
+
+///////////////////////////////////////////////////////////////////////////////
+/// \file fractional_progress.h
+/// \brief Define classes for fractional progress reporting. TODO document file
+///////////////////////////////////////////////////////////////////////////////
+
 #ifndef __TPIE_FRACTIONAL_PROGRESS__
 #define __TPIE_FRACTIONAL_PROGRESS__
 

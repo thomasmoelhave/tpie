@@ -132,18 +132,19 @@ namespace tpie {
 				stream<T> *outstream, M *m_obj);
 
 	///////////////////////////////////////////////////////////////////////////
-  /// Merges <arity> streams in memory using a merge management object and
-  /// write result into outstream.
-  ///////////////////////////////////////////////////////////////////////////
+	/// Merges <var>arity</var> streams in memory using a merge management
+	/// object and write result into <var>outstream</var>.
+	///////////////////////////////////////////////////////////////////////////
   template<class T, class M>
   err  single_merge(stream<T> **instreams, arity_t arity,
 			  stream<T> *outstream, M *m_obj);
 
 
   ///////////////////////////////////////////////////////////////////////////
-	///Reads <instream> in memory and merges it using
-	///m_obj->main_mem_operate(); if <instream> does not fit in main memory
-	///returns INSUFFICIENT_MAIN_MEMORY;
+  /// Reads <var>instream</var> in memory and merges it using
+  /// m_obj->main_mem_operate(); if <var>instream</var> does not fit in main
+  /// memory returns INSUFFICIENT_MAIN_MEMORY;
+  /////////////////////////////////////////////////////////////////////////////
 	template<class T, class M>
 	err main_mem_merge(stream<T> *instream,
 			   stream<T> *outstream, M *m_obj);

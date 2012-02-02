@@ -18,7 +18,7 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
 ////////////////////////////////////////////////////////////////////////////////
-/// \file tpie_stats_stream.h Declares status information tags for TPIE Streams
+/// \file stats_stream.h Declares status information tags for TPIE Streams
 /// \sa tpie_stats, stream#stats()
 ////////////////////////////////////////////////////////////////////////////////
 

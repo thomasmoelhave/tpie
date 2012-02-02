@@ -346,7 +346,7 @@ public:
 		/////////////////////////////////////////////////////////////////////////
 		/// \brief Check if we can read an item with read_back().
 		///
-		/// \returns Whether or not we can an item with read_back().
+		/// \returns Whether or not we can read an item with read_back().
 		/////////////////////////////////////////////////////////////////////////
 		inline bool can_read_back() const throw() {
 			assert(m_file.m_open);
@@ -434,6 +434,10 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Construct a file object with the given block factor and file
 	/// accessor.
+	/// \param blockFactor The relative size of a block compared to the 
+	/// default.
+	/// \param fileAccessor The file accessor to use, if none is supplied a
+	/// default will be used.
 	/// \sa file_base::calculate_block_factor(memory_size_type)
 	///////////////////////////////////////////////////////////////////////////
 	file(double blockFactor=1.0,
