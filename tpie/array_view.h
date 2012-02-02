@@ -24,6 +24,7 @@
 #include <tpie/array.h>
 #include <tpie/array_view_base.h>
 #include <tpie/internal_vector.h>
+#include <boost/type_traits/remove_pointer.hpp>
 
 namespace tpie {
 
@@ -34,7 +35,8 @@ public:
 	inline array_view(const array_view & o): 
 		array_view_base<T>(o) {}
 	
-	inline array_view(std::vector<T> & v): 
+	template <typename A>
+	inline array_view(std::vector<T, A> & v): 
 		array_view_base<T>(&*(v.begin()), &(*v.end())) {}
 	
 	inline array_view(tpie::array<T> & v): 
@@ -43,17 +45,12 @@ public:
 	inline array_view(tpie::internal_vector<T> & v): 
 		array_view_base<T>(&*(v.begin()), &(*v.end())) {}
 	
-	inline array_view(std::vector<T> & v, size_t start, size_t end): 
+	template <typename A>
+	inline array_view(std::vector<T, A> & v, size_t start, size_t end): 
 		array_view_base<T>(&v[start], &v[end]) {}
 	
 	inline array_view(tpie::array<T> & v, size_t start, size_t end): 
 		array_view_base<T>(&v[start], &v[end]) {}
-	
-	inline array_view(typename std::vector<T>::iterator start, typename std::vector<T>::iterator end): 
-		array_view_base<T>(&*start, &*end) {}
-	
-	inline array_view(typename array<T>::iterator start, typename array<T>::iterator end): 
-		array_view_base<T>(&*start, &*end) {}
 	
 	inline array_view(T * start, T * end):
 		array_view_base<T>(start, end) {}
@@ -68,7 +65,8 @@ public:
 	inline array_view(array_view<T> o): 
 		array_view_base<const T>(&*(o.begin()), &*(o.end())) {}
 
-	inline array_view(const std::vector<T> & v): 
+	template <typename A>
+	inline array_view(const std::vector<T, A> & v): 
 		array_view_base<const T>(&*(v.begin()), &*(v.end())) {}
 	
 	inline array_view(const tpie::array<T> & v): 
@@ -77,17 +75,12 @@ public:
 	inline array_view(const tpie::internal_vector<T> & v): 
 		array_view_base<const T>(&*(v.begin()), &(*v.end())) {}
 
-	inline array_view(const std::vector<T> & v, size_t start, size_t end): 
+	template <typename A>
+	inline array_view(const std::vector<T, A> & v, size_t start, size_t end): 
 		array_view_base<const T>(&v[start], &v[end]) {}
 	
 	inline array_view(const tpie::array<T> & v, size_t start, size_t end): 
 		array_view_base<const T>(&v[start], &v[end]) {}
-	
-	inline array_view(typename std::vector<T>::const_iterator start, typename std::vector<T>::const_iterator end): 
-		array_view_base<const T>(&*start, &*end) {}
-	
-	inline array_view(typename array<T>::const_iterator start, typename array<T>::const_iterator end): 
-		array_view_base<const T>(&*start, &*end) {}
 	
 	inline array_view(const T * start, const T * end): 
 		array_view_base<const T>(start, end) {}
@@ -95,6 +88,40 @@ public:
 	inline array_view(const T * start, size_t size): 
 		array_view_base<const T>(start, start+size) {}
 };
+
+
+template <typename T>
+array_view<typename boost::remove_pointer<typename std::iterator_traits<T>::pointer>::type > make_array_view(T start, T end) {
+	return array_view<typename boost::remove_pointer<typename std::iterator_traits<T>::pointer>::type>(&*start, &*end);
+}
+
+template <typename T>
+array_view<T> make_array_view(T * start, T * end) {
+	return array_view<T>(start, end);
+}
+
+template <typename T>
+array_view<typename T::value_type> make_array_view(T & s) {
+	return make_array_view(s.begin(), s.end());
+}
+
+template <typename T>
+array_view<typename T::value_type> make_array_view(T & s, size_t start, size_t end) {
+	return make_array_view(s.begin() + start, s.begin() + end);
+}
+
+template <typename T>
+array_view<const typename T::value_type> make_array_view(const T & s) {
+	return make_array_view(s.begin(), s.end());
+}
+
+template <typename T>
+array_view<const typename T::value_type> make_array_view(const T & s, size_t start, size_t end) {
+	return make_array_view(s.begin() + start, s.begin() + end);
+}
+
+
+
 
 } //namespace tpie
 

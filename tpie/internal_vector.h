@@ -60,13 +60,13 @@ public:
 	///
 	/// \param val The element to add
 	/////////////////////////////////////////////////////////
-	inline void push_back(const T & val){m_elements[m_size++] = val;}
+	inline T & push_back(const T & val){m_elements[m_size++] = val; return back();}
 
 	/////////////////////////////////////////////////////////
 	/// \brief Add an element to the end of the vector
 	///
 	/////////////////////////////////////////////////////////
-	inline void push_back(){++m_size;}
+	inline T & push_back(){++m_size; return back();}
 
 	/////////////////////////////////////////////////////////
 	/// \brief Remove the last element from the vector
