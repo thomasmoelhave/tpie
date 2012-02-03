@@ -51,7 +51,7 @@ void test(size_t mb, size_t times) {
 	names[0] = "Write";
 	names[1] = "Sort";
 	tpie::test::stat s(names);
-	size_t count=mb*1024*1024/sizeof(uint64_t);
+	TPIE_OS_OFFSET count=TPIE_OS_OFFSET(mb)*1024*1024/sizeof(uint64_t);
 	for (size_t i=0; i < times; ++i) {
 		
 		test_realtime_t start;
@@ -63,7 +63,7 @@ void test(size_t mb, size_t times) {
 		getTestRealtime(start);
 		{
 			stream<uint64_t> s("tmp", WRITE_STREAM);
-			for(size_t i=0; i < count; ++i) {
+			for(TPIE_OS_OFFSET i=0; i < count; ++i) {
 				uint64_t x= (i+ 91493)*104729;
 				s.write_item(x);
 		}
