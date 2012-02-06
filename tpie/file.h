@@ -19,6 +19,10 @@
 #ifndef _TPIE_FILE_H
 #define _TPIE_FILE_H
 
+///////////////////////////////////////////////////////////////////////////////
+/// \file file.h Implementation of streams that support substreams.
+///////////////////////////////////////////////////////////////////////////////
+
 #ifdef _MSC_VER
 //Yes we know you do not support throw(stream_exception)
 #pragma warning( disable: 4290 ) 
@@ -47,6 +51,9 @@ typedef tpie::file_accessor::win32 default_file_accessor;
 #pragma warning( disable: 4200 )
 #endif //_MSC_VER
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Base class of \ref file.
+///////////////////////////////////////////////////////////////////////////////
 class file_base {
 protected:
 	///////////////////////////////////////////////////////////////////////////
@@ -221,13 +228,17 @@ public:
 		 * current block. */
 		block_t * m_block;
 
-		/** Update m_block, m_index, m_nextBlock and m_nextIndex. If
-		 * m_nextBlock is maxint, use next block is the one numbered
-		 * m_block->number+1. m_index is updated with the value of
-		 * m_nextIndex. */
+		///////////////////////////////////////////////////////////////////////
+		/// Update m_block, m_index, m_nextBlock and m_nextIndex. If
+		/// m_nextBlock is maxint, use next block is the one numbered
+		/// m_block->number+1. m_index is updated with the value of
+		/// m_nextIndex.
+		///////////////////////////////////////////////////////////////////////
 		void update_block();
 
-		/** Fetch number of items per block. */
+		///////////////////////////////////////////////////////////////////////
+		/// Fetch number of items per block.
+		///////////////////////////////////////////////////////////////////////
 		inline memory_size_type block_items() const {return m_file.m_blockItems;}
 		
 		// this turns out to be slower than cmp+cmov, so we use std::max in
@@ -236,11 +247,13 @@ public:
 		//    return x-(((x-y)>>63)&(x-y));
 		//}
 
-		/** Call whenever the current block buffer is modified. Since we
-		 * support multiple streams per block, we must always keep
-		 * m_block->size updated when m_block is the trailing block (or the
-		 * only block) in the file. For the same reasons we keep m_file.m_size
-		 * updated. */
+		///////////////////////////////////////////////////////////////////////
+		/// Call whenever the current block buffer is modified. Since we
+		/// support multiple streams per block, we must always keep
+		/// m_block->size updated when m_block is the trailing block (or the
+		/// only block) in the file. For the same reasons we keep m_file.m_size
+		/// updated.
+		///////////////////////////////////////////////////////////////////////
 		inline void write_update() {
 			m_block->dirty = true;
 			// with optimization, each of these std::max is compiled on an x86
@@ -415,6 +428,9 @@ private:
 	file_accessor::file_accessor * m_fileAccessor;
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Central file abstraction.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 class file: public file_base {
 public:
@@ -444,6 +460,10 @@ public:
 		 file_accessor::file_accessor * fileAccessor=NULL):
 		file_base(sizeof(T), blockFactor, fileAccessor) {};
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Central stream abstraction. Conceptually compatible with
+	/// \ref file_stream.
+	///////////////////////////////////////////////////////////////////////////
  	class stream: public file_base::stream {
 	public:
 		/** Type of items stored in the stream. */
@@ -513,7 +533,7 @@ public:
 		/// returns true.
 		///
 		/// \returns The item read from the stream.
-		/// ///////////////////////////////////////////////////////////////////
+		///////////////////////////////////////////////////////////////////////
 		inline const item_type & read_back() {
 			assert(m_file.m_open);
 			seek(-1, current);
