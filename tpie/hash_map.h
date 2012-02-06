@@ -132,16 +132,16 @@ public:
   	value_t unused;
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \copybrief linear_memory_doc::memory_coefficient()
-	/// \copydetails linear_memory_doc::memory_coefficient()
+	/// \copybrief linear_memory_structure_doc::memory_coefficient()
+	/// \copydetails linear_memory_structure_doc::memory_coefficient()
 	///////////////////////////////////////////////////////////////////////////
 	static double memory_coefficient() {
 		return array<index_t>::memory_coefficient() *sc + array<bucket_t>::memory_coefficient();
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \copybrief linear_memory_doc::memory_overhead()
-	/// \copydetails linear_memory_doc::memory_overhead()
+	/// \copybrief linear_memory_structure_doc::memory_overhead()
+	/// \copydetails linear_memory_structure_doc::memory_overhead()
 	///////////////////////////////////////////////////////////////////////////
 	static double memory_overhead() {
 		return array<index_t>::memory_coefficient() * 100.0 
@@ -299,16 +299,16 @@ public:
   	value_t unused;
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \copybrief linear_memory_doc::memory_coefficient()
-	/// \copydetails linear_memory_doc::memory_coefficient()
+	/// \copybrief linear_memory_structure_doc::memory_coefficient()
+	/// \copydetails linear_memory_structure_doc::memory_coefficient()
 	///////////////////////////////////////////////////////////////////////////
 	static double memory_coefficient() {
 		return array<value_t>::memory_coefficient() *sc;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \copybrief linear_memory_doc::memory_overhead()
-	/// \copydetails linear_memory_doc::memory_overhead()
+	/// \copybrief linear_memory_structure_doc::memory_overhead()
+	/// \copydetails linear_memory_structure_doc::memory_overhead()
 	///////////////////////////////////////////////////////////////////////////
 	static double memory_overhead() {
 		return array<value_t>::memory_coefficient() * 100.0 
@@ -522,16 +522,16 @@ public:
 
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \copybrief linear_memory_doc::memory_coefficient()
-	/// \copydetails linear_memory_doc::memory_coefficient()
+	/// \copybrief linear_memory_structure_doc::memory_coefficient()
+	/// \copydetails linear_memory_structure_doc::memory_coefficient()
 	///////////////////////////////////////////////////////////////////////////
 	static double memory_coefficient() {
 		return tbl_t::memory_coefficient();
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \copybrief linear_memory_doc::memory_overhead()
-	/// \copydetails linear_memory_doc::memory_overhead()
+	/// \copybrief linear_memory_structure_doc::memory_overhead()
+	/// \copydetails linear_memory_structure_doc::memory_overhead()
 	///////////////////////////////////////////////////////////////////////////
 	static double memory_overhead() {
 		return tbl_t::memory_overhead() - sizeof(tbl_t) + sizeof(hash_map);
@@ -728,16 +728,16 @@ public:
 
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \copybrief linear_memory_doc::memory_coefficient()
-	/// \copydetails linear_memory_doc::memory_coefficient()
+	/// \copybrief linear_memory_structure_doc::memory_coefficient()
+	/// \copydetails linear_memory_structure_doc::memory_coefficient()
 	///////////////////////////////////////////////////////////////////////////
 	static double memory_coefficient() {
 		return tbl_t::memory_coefficient();
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \copybrief linear_memory_doc::memory_overhead()
-	/// \copydetails linear_memory_doc::memory_overhead()
+	/// \copybrief linear_memory_structure_doc::memory_overhead()
+	/// \copydetails linear_memory_structure_doc::memory_overhead()
 	///////////////////////////////////////////////////////////////////////////
 	static double memory_overhead() {
 		return tbl_t::memory_overhead() - sizeof(tbl_t) + sizeof(hash_set);
