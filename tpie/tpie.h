@@ -27,20 +27,41 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \namespace tpie TPIE's namespace.
-///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 namespace tpie {
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Subsystems of TPIE.
+///////////////////////////////////////////////////////////////////////////////
 enum subsystem {
+	/** \brief Needed for tpie_new and tpie_delete and implicitly needed by all
+	 * TPIE algorithm and data structure implementations. */
     MEMORY_MANAGER=1,
+	/** \brief TPIE logging framework. See \ref tpie_log.h. */
     DEFAULT_LOGGING=2,
+	/** \brief Progress tracking. Needed for the fraction database. */
     PROGRESS=4,
+	/** \brief Prime number database, for \ref prime.h. */
 	PRIMEDB=8,
+	/** \brief Job manager, for \ref job.h and the parallel quick sort. */
 	JOB_MANAGER=16,
+	/** \brief Alias for all subsystems. Default. */
     ALL=MEMORY_MANAGER | DEFAULT_LOGGING | PROGRESS | PRIMEDB | JOB_MANAGER
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Initialize the given subsystems of TPIE.
+/// \param subsystems Logical OR of \ref subsystem entries.
+///////////////////////////////////////////////////////////////////////////////
 void tpie_init(int subsystems=ALL);
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Deinitialize the given subsystems of TPIE.
+/// You MUST pass the same bitmask of subsystems to tpie_finish as you did to
+/// tpie_init.
+/// \param subsystems Logical OR of \ref subsystem entries.
+///////////////////////////////////////////////////////////////////////////////
 void tpie_finish(int subsystems=ALL);
 
 } //namespace tpie
