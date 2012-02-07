@@ -26,7 +26,7 @@
 ///
 /// Progress indicator concept in an efficient
 /// non-inheritance way.  For a null object child class of
-/// \ref progress_indicator_base, see \ref progress_indicator_null.
+/// \ref tpie::progress_indicator_base, see \ref tpie::progress_indicator_null.
 ///////////////////////////////////////////////////////////////////////////////
 
 namespace tpie {
