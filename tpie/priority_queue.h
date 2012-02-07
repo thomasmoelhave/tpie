@@ -17,6 +17,11 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
+///////////////////////////////////////////////////////////////////////////////
+/// \file priority_queue.h
+/// \brief External memory priority queue implementation.
+///////////////////////////////////////////////////////////////////////////////
+
 #ifndef _TPIE_PRIORITY_QUEUE_H_
 #define _TPIE_PRIORITY_QUEUE_H_
 
