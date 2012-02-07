@@ -23,7 +23,7 @@
 ///////////////////////////////////////////////////////////////////////////
 /// \file comparator.h
 /// \internal
-/// \brief Provides conversion between STL and TPIE comparators.
+/// \brief Conversion between STL and TPIE comparators.
 ///
 /// Used in \ref internal_sort.h.
 ///

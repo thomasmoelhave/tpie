@@ -21,7 +21,7 @@
 
 ///////////////////////////////////////////////////////////////////////////
 /// \file array.h
-/// Contains a generic internal array with known memory requirements
+/// Generic internal array with known memory requirements.
 ///////////////////////////////////////////////////////////////////////////
 #include <tpie/util.h>
 #include <boost/iterator/iterator_facade.hpp>

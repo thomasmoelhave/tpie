@@ -21,7 +21,7 @@
 
 ///////////////////////////////////////////////////////////////////////////
 /// \file internal_stack_vector_base.h
-/// Contains a generic base for internal stack and vector with known memory requirements
+/// Generic base for internal stack and vector with known memory requirements.
 ///////////////////////////////////////////////////////////////////////////
 #include <tpie/array.h>
 #include <tpie/util.h>

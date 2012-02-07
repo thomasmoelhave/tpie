@@ -19,7 +19,7 @@
 
 ///////////////////////////////////////////////////////////////////////////
 /// \file mergeheap.h
-/// This file contains several merge heap templates. 
+/// Merge heap templates. 
 /// Originally written by Rakesh Barve.  
 ///
 /// Modified by David Hutchinson 2000 03 02

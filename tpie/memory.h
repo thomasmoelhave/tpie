@@ -19,7 +19,7 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
 ///////////////////////////////////////////////////////////////////////////
-/// \file tpie/memory.h Declares tpie memory managment funcionality
+/// \file tpie/memory.h Memory management subsystem.
 ///////////////////////////////////////////////////////////////////////////
 
 #ifndef __TPIE_MEMORY_H__

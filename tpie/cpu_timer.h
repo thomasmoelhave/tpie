@@ -22,7 +22,7 @@
 
 ///////////////////////////////////////////////////////////////////////////
 /// \file cpu_timer.h
-/// Provides a timer measuring user time, system time and wall clock time.
+/// Timer measuring user time, system time and wall clock time.
 ///////////////////////////////////////////////////////////////////////////
 
 // Get definitions for working with Unix and Windows

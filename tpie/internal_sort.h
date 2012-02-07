@@ -21,7 +21,7 @@
 #define _INTERNAL_SORT_H
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \file internal_sort.h
+/// \file internal_sort.h  Internal sorter objects.
 /// Provides base class Internal_Sorter_Base for internal sorter objects and
 /// two subclass implementations Internal_Sorter_Op and Internal_Sorter_Obj.
 /// Both implementations rely on quicksort variants quick_sort_op() and 

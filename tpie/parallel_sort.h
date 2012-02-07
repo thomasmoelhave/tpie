@@ -17,6 +17,11 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
+///////////////////////////////////////////////////////////////////////////////
+/// \file parallel_sort.h
+/// Simple parallel quick sort implementation with progress tracking.
+///////////////////////////////////////////////////////////////////////////////
+
 #ifndef __TPIE_PARALLEL_SORT_H__
 #define __TPIE_PARALLEL_SORT_H__
 

@@ -20,8 +20,7 @@
 #define __TPIE_SERIALIZATION_H__
 
 ///////////////////////////////////////////////////////////////////////////
-/// \file tpie/serialization.h Dclares TPIE support for binary serialization
-/// and unserialization.
+/// \file tpie/serialization.h Binary serialization and unserialization.
 ///////////////////////////////////////////////////////////////////////////
 
 #include <tpie/config.h>

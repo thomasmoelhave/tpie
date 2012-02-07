@@ -22,7 +22,7 @@
 
 ///////////////////////////////////////////////////////////////////////////
 /// \file tpie/merge_sorted_runs.h
-///  Contains the routine merge_sorted_runs used in several of TPIE's merge variants
+/// merge_sorted_runs as used in several of TPIE's merge variants
 /// \sa sorted_stream_merging
 /// \internal \todo Document better
 ///////////////////////////////////////////////////////////////////////////

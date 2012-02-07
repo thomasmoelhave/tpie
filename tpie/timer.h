@@ -22,8 +22,7 @@
 
 ///////////////////////////////////////////////////////////////////////////
 /// \file timer.h
-/// General definition of a virtual \ref timer class; is realized by
-/// \ref cpu_timer.
+/// Virtual \ref timer class. Realized by \ref cpu_timer.
 ///////////////////////////////////////////////////////////////////////////
 
 // Get definitions for working with Unix and Windows

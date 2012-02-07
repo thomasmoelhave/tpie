@@ -24,7 +24,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 /// \file dummy_progress.h
 ///
-/// Implementation of the progress indicator concept in an efficient
+/// Progress indicator concept in an efficient
 /// non-inheritance way.  For a null object child class of
 /// \ref progress_indicator_base, see \ref progress_indicator_null.
 ///////////////////////////////////////////////////////////////////////////////

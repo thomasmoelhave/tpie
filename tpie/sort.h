@@ -22,7 +22,7 @@
 
 ///////////////////////////////////////////////////////////////////////////
 /// \file sort.h
-///  Contains sorting algorithms.
+/// Sorting algorithms.
 /// \anchor sorting_in_tpie \par Sorting in TPIE:
 /// TPIE offers three
 /// merge sorting variants. The user must decide which variant is most

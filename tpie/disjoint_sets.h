@@ -20,7 +20,7 @@
 #define __TPIE_DISJOINT_SETS__
 /////////////////////////////////////////////////////////////
 /// \file disjoint_sets.h
-/// Contains a generic internal disjoint_sets (union find)
+/// Generic internal disjoint_sets (union find)
 /// implementation
 /////////////////////////////////////////////////////////////
 

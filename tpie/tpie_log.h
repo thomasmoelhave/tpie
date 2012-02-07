@@ -21,7 +21,7 @@
 #define _TPIE_LOG_H
 ///////////////////////////////////////////////////////////////////////////
 /// \file tpie_log.h
-/// Provides \ref logging functionalities and log_level codes for different priorities of log messages.
+/// Logging functionality and log_level codes for different priorities of log messages.
 ///////////////////////////////////////////////////////////////////////////
 
 #include <tpie/config.h>
