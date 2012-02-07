@@ -17,6 +17,11 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
+///////////////////////////////////////////////////////////////////////////////
+/// \file portability.h
+/// This file is a deprecated mess of macros.
+///////////////////////////////////////////////////////////////////////////////
+
 // This header-file offers macros for independent use on Win and Unix systems.
 #ifndef _PORTABILITY_H
 #define _PORTABILITY_H
