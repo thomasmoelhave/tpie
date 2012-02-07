@@ -29,8 +29,11 @@
 #include <tpie/portability.h>
 
 namespace tpie {
-	
-/** Declares for a stream under which circumstances it should be deleted. */
+
+	///////////////////////////////////////////////////////////////////////////
+	/// Declares for an AMI stream under which circumstances it should be
+	/// deleted.
+	///////////////////////////////////////////////////////////////////////////
     enum persistence {
 	/** Delete the stream from the disk when it is destructed. */
 	PERSIST_DELETE = 0,
