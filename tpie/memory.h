@@ -138,16 +138,12 @@ private:
 };
 
 ///////////////////////////////////////////////////////////////////////////
-/// \internal
-/// Initialize the memory manager, this should not be called directly
-/// instead functions from tpie.h should be called.
+/// \internal \brief Used by tpie_init to initialize the memory manager.
 ///////////////////////////////////////////////////////////////////////////
 void init_memory_manager();
 
 ///////////////////////////////////////////////////////////////////////////
-/// \internal
-/// Finish up the memory manager, this should not be called directly
-/// instead functions from tpie.h should be called
+/// \internal \brief Used by tpie_finish to deinitialize the memory manager.
 ///////////////////////////////////////////////////////////////////////////
 void finish_memory_manager();
 
