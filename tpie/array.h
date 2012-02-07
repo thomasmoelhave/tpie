@@ -596,17 +596,17 @@ template <typename T, template <typename> class alloc_t=tpie::allocator>
 class array: public array_base<T, false, alloc_t> {
 public:
 	///////////////////////////////////////////////////////////////////////////
-	/// \copydoc array_base::array(size_type, const T &)
+	/// \copydoc array_base::array_base(size_type, const T &)
 	///////////////////////////////////////////////////////////////////////////
 	array(size_type s, const T & value): array_base<T, false, alloc_t>(s, value) {}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \copydoc array_base::array(size_type)
+	/// \copydoc array_base::array_base(size_type)
 	///////////////////////////////////////////////////////////////////////////
 	array(size_type s=0) : array_base<T, false, alloc_t>(s) {}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \copydoc array_base::array(const array_base &)
+	/// \copydoc array_base::array_base(const array_base &)
 	///////////////////////////////////////////////////////////////////////////
 	array(const array & other): array_base<T, false, alloc_t>(other) {}
 
