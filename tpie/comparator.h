@@ -28,7 +28,7 @@
 /// Used in \ref internal_sort.h.
 ///
 /// We do not implement conversion of less-than-operator to STL-style
-/// comparator, as this is already implemented as std::less in <functional>.
+/// comparator, as this is already implemented as std::less in &lt;functional&gt;.
 ///////////////////////////////////////////////////////////////////////////
 
 // Get definitions for working with Unix and Windows
