@@ -71,25 +71,59 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////////////
-/// Returns the file name of the log stream
-/// This assumes that init_default_log has been called
+/// \brief Returns the file name of the log stream.
+/// This assumes that init_default_log has been called.
 ///////////////////////////////////////////////////////////////////////////
 const std::string& log_name();
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Log subsystem initializer used by \ref tpie_init().
+///////////////////////////////////////////////////////////////////////////////
 void init_default_log();
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Log subsystem deinitializer used by \ref tpie_finish().
+///////////////////////////////////////////////////////////////////////////////
 void finish_default_log();
 
 ///////////////////////////////////////////////////////////////////////////
-/// Returns the only logstream object. 
+/// \brief Returns the only logstream object. 
 ///////////////////////////////////////////////////////////////////////////
 logstream& get_log();
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Return logstream for writing fatal log messages.
+///////////////////////////////////////////////////////////////////////////////
 inline logstream & log_fatal() {return get_log() << setlevel(LOG_FATAL);}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Return logstream for writing error log messages.
+///////////////////////////////////////////////////////////////////////////////
 inline logstream & log_error() {return get_log() << setlevel(LOG_ERROR);}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Return logstream for writing info log messages.
+///////////////////////////////////////////////////////////////////////////////
 inline logstream & log_info() {return get_log() << setlevel(LOG_INFORMATIONAL);}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Return logstream for writing warning log messages.
+///////////////////////////////////////////////////////////////////////////////
 inline logstream & log_warning() {return get_log() << setlevel(LOG_WARNING);}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Return logstream for writing app_debug log messages.
+///////////////////////////////////////////////////////////////////////////////
 inline logstream & log_app_debug() {return get_log() << setlevel(LOG_APP_DEBUG);}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Return logstream for writing debug log messages.
+///////////////////////////////////////////////////////////////////////////////
 inline logstream & log_debug() {return get_log() << setlevel(LOG_DEBUG);}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Return logstream for writing mem_debug log messages.
+///////////////////////////////////////////////////////////////////////////////
 inline logstream & log_mem_debug() {return get_log() << setlevel(LOG_MEM_DEBUG);}
 
 class scoped_log_enabler {
@@ -107,33 +141,35 @@ public:
 };
 
 #if TPL_LOGGING		
-// Macros to simplify logging.  The argument to the macro can be any type
-// that log streams have an output operator for.
-
+/// \def TP_LOG_FLUSH_LOG  \deprecated Use \ref get_log().flush() instead.
 #define TP_LOG_FLUSH_LOG tpie::get_log().flush()
     
+/// \def TP_LOG_FATAL \deprecated Use \ref log_fatal() instead.
 #define TP_LOG_FATAL(msg) tpie::log_fatal() << msg
+/// \def TP_LOG_WARNING \deprecated Use \ref log_warning() instead.
 #define TP_LOG_WARNING(msg)	tpie::log_warning() << msg
+/// \def TP_LOG_APP_DEBUG \deprecated Use \ref log_app_debug() instead.
 #define TP_LOG_APP_DEBUG(msg) tpie::log_app_debug() << msg
+/// \def TP_LOG_DEBUG \deprecated Use \ref log_debug() instead.
 #define TP_LOG_DEBUG(msg) tpie::log_debug() << msg
+/// \def TP_LOG_MEM_DEBUG \deprecated Use \ref log_mem_debug() instead.
 #define TP_LOG_MEM_DEBUG(msg) tpie::log_mem_debug() << msg
 
-// eg: LOG_FATAL(tpie::LOG_ID_MSG)
 #define TP_LOG_ID_MSG __FILE__ << " line " << __LINE__ << ": "
 
-/** Macro to simplify \ref logging. \sa log_lecel. */
+/** \def TP_LOG_FATAL_ID Macro to simplify \ref logging. \sa log_level. */
 #define TP_LOG_FATAL_ID(msg) TP_LOG_FATAL(TP_LOG_ID_MSG << msg << std::endl)
 
-/** Macro to simplify \ref logging. \sa log_lecel. */
+/** \def TP_LOG_WARNING_ID Macro to simplify \ref logging. \sa log_level. */
 #define TP_LOG_WARNING_ID(msg) TP_LOG_WARNING(TP_LOG_ID_MSG << msg << std::endl)
 
-/** Macro to simplify \ref logging. \sa log_lecel. */
+/** \def TP_LOG_APP_DEBUG_ID Macro to simplify \ref logging. \sa log_level. */
 #define TP_LOG_APP_DEBUG_ID(msg) TP_LOG_APP_DEBUG(TP_LOG_ID_MSG << msg << std::endl)
 
-/** Macro to simplify \ref logging. \sa log_lecel. */
+/** \def TP_LOG_DEBUG_ID Macro to simplify \ref logging. \sa log_level. */
 #define TP_LOG_DEBUG_ID(msg) TP_LOG_DEBUG(TP_LOG_ID_MSG << msg << std::endl)
 
-/** Macro to simplify \ref logging. \sa log_lecel. */
+/** \def TP_LOG_MEM_DEBUG_ID Macro to simplify \ref logging. \sa log_level. */
 #define TP_LOG_MEM_DEBUG_ID(msg) TP_LOG_MEM_DEBUG(TP_LOG_ID_MSG << msg << std::endl)
     
 #else // !TPL_LOGGING

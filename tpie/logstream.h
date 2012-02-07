@@ -53,7 +53,7 @@ private:
 public:
 	log_stream_buf(log_level level);
 	virtual ~log_stream_buf();
-	void flush();	
+	void flush();
 	virtual int overflow(int c = traits_type::eof());
 	virtual int sync();
 	void set_level(log_level level);
@@ -64,10 +64,15 @@ public:
 };
 
 
-///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 /// A log is like a regular output stream, but it also supports messages
-/// at different priorities, see \ref log_level. 
-///////////////////////////////////////////////////////////////////////////
+/// at different priorities, see \ref log_level.
+///
+/// Do not instantiate this class directly. Instead, use \ref get_log() as well
+/// as helper methods \ref log_fatal(), \ref log_error(), \ref log_info(),
+/// \ref log_warning(), \ref log_app_debug(), \ref log_debug() and
+/// \ref log_mem_debug().
+///////////////////////////////////////////////////////////////////////////////
 class logstream: public std::ostream {
 private:
 	log_stream_buf m_buff;
@@ -86,22 +91,22 @@ public:
 	/// Remove a target for the log messages
 	///////////////////////////////////////////////////////////////////////////
 	inline void remove_target(log_target * t) {m_buff.remove_target(t);}
-	
+
 	///////////////////////////////////////////////////////////////////////////
 	/// Set the current level of logging
-///////////////////////////////////////////////////////////////////////////	
+	///////////////////////////////////////////////////////////////////////////
 	inline void set_level(log_level level) {m_buff.set_level(level);}
 
 	inline void disable(bool d=false) {m_buff.enable(!d);}
 	inline void enable(bool e=true) {m_buff.enable(e);}
 	inline bool enabled() {return m_buff.enabled();}
 };
-    
-    
-///////////////////////////////////////////////////////////////////////////
-/// The logmanip template is based on the omanip template from iomanip.h 
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// The logmanip template is based on the omanip template from iomanip.h
 /// in the libg++ sources.
-///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 template <class TP> class logmanip {
 	logstream& (*_f)(logstream&, TP);
 	TP _a;
@@ -110,41 +115,23 @@ public:
 	/// Constructor.
 	///////////////////////////////////////////////////////////////////////////
 	logmanip(logstream& (*f)(logstream&, TP), TP a) : _f(f), _a(a) {}
-	
+
 	///////////////////////////////////////////////////////////////////////////
-	/// Extracts a message from the logmanip object and inserting it into 
+	/// Extracts a message from the logmanip object and inserting it into
 	/// the logstream \p o.
 	///////////////////////////////////////////////////////////////////////////
 	friend logstream& operator<< (logstream& o, const logmanip<TP>& m) {
-		(*m._f)(o, m._a); 
+		(*m._f)(o, m._a);
 		return o;
 	}
-	
-	///////////////////////////////////////////////////////////////////////////
-	/// Copy constructor.
-	///////////////////////////////////////////////////////////////////////////
-	// logmanip(const logmanip<TP>& other) : _f(), _a() {
-	// 	*this = other;
-	// }
-	
-	///////////////////////////////////////////////////////////////////////////
-	/// Assigment operator.
-	///////////////////////////////////////////////////////////////////////////
-	// logmanip<TP>& operator=(const logmanip<TP>& other) {
-	// 	if (this != &other) {
-	// 		_f = other._f;
-	// 		_a = other._a;
-	// 	}
-	// 	return *this;
-	// }
 };
 
 logstream& manip_level(logstream& tpl, log_level p);
 logmanip<log_level> setlevel(log_level p);
-    
+
 }  //  tpie namespace
 
 
 #endif //__TPIE_LOGSTREAM_H__
 
-#endif // _LOGSTREAM_H 
+#endif // _LOGSTREAM_H
