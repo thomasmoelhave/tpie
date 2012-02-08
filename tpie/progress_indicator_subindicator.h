@@ -16,6 +16,12 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
+
+///////////////////////////////////////////////////////////////////////////////
+/// \file progress_indicator_subindicator.h
+/// Indicate progress of a part of a computation.
+///////////////////////////////////////////////////////////////////////////////
+
 #ifndef __TPIE_PROGRESS_INDICATOR_SUBINDICATOR_H__
 #define __TPIE_PROGRESS_INDICATOR_SUBINDICATOR_H__
 #include <tpie/portability.h>
