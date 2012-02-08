@@ -42,7 +42,7 @@ namespace tpie {
 	/** Delete each block of data from the disk as it is read.
 	 * If not supported by the OS (see portability.h), delete
 	 * the stream when it is destructed (see PERSIST_DELETE). */
-	PERSIST_READ_ONCE = TPIE_OS_PERSIST_READ_ONCE
+	PERSIST_READ_ONCE = 0
     };
 
 }  //  tpie namespace 

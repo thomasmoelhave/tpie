@@ -30,6 +30,40 @@
 #include <stdexcept>
 #include <tpie/util.h>
 
+#ifdef _WIN32
+#define	 TMP_DIR ".\\"
+#define TPIE_OS_DIR_DELIMITER "\\"
+#else
+#define	TMP_DIR	"/var/tmp/"
+#define TPIE_OS_DIR_DELIMITER "/"
+#endif
+
+#ifdef _WIN32
+inline bool TPIE_OS_EXISTS(const std::string & fileName) {
+	return (GetFileAttributes(fileName.c_str()) != 0xFFFFFFFF);
+}
+#else
+inline bool TPIE_OS_EXISTS(const std::string & path) {							
+	return access(path.c_str(),R_OK) == 0 || errno == EACCES;
+}
+#endif
+
+#ifdef _WIN32
+// Generate 31 random bits using rand(), which normally generates only
+// 15 random bits.
+inline int TPIE_OS_RANDOM() {
+  return rand() % 0x8000 + (rand() % 0x8000 << 15) + (rand() % 0x2 << 30);
+}
+#else
+inline int TPIE_OS_RANDOM() {
+    //adanner: rand and srand are ANSI standards
+    //random and srandom are from old BSD systems
+    //use the standard unless we run into problems
+    //http://www.gnu.org/software/libc/manual/html_node/Pseudo_002dRandom-Numbers.html
+    return rand();
+}
+#endif
+
 using namespace tpie;
 
 std::string tempname::default_path;

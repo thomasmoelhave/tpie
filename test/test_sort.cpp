@@ -20,6 +20,7 @@
 #include "app_config.h"
 #include <tpie/tpie.h>
 #include <tpie/portability.h>
+#include "test_portability.h"
 #include <tpie/tpie_log.h>
 #include <tpie/stream.h>
 #include <tpie/sort.h>
@@ -30,13 +31,6 @@
 #include <tpie/cpu_timer.h>
 
 #include <tpie/progress_indicator_arrow.h>
-
-//snprintf is different on WIN/Unix platforms
-#ifdef _WIN32
-#define APP_SNPRINTF _snprintf
-#else
-#define APP_SNPRINTF snprintf
-#endif
 
 using namespace tpie;
 
@@ -57,10 +51,10 @@ enum test_type {
 };
 
 const unsigned int APP_OPTION_NUM_OPTIONS=5; 
-const TPIE_OS_LONGLONG APP_MEG = 1024*1024;
-const TPIE_OS_LONGLONG APP_GIG = 1024*1024*1024;
-const TPIE_OS_LONGLONG APP_DEFAULT_N_ITEMS = 10000;
-const TPIE_OS_LONGLONG APP_DEFAULT_MEM_SIZE = 128*1024*1024;
+const stream_offset_type APP_MEG = 1024*1024;
+const stream_offset_type APP_GIG = 1024*1024*1024;
+const stream_offset_type APP_DEFAULT_N_ITEMS = 10000;
+const stream_offset_type APP_DEFAULT_MEM_SIZE = 128*1024*1024;
 const int  APP_ITEM_SIZE = 1;
 
 const char* APP_FILE_BASE =  "TPIE_Test";
@@ -386,7 +380,7 @@ void get_app_info(int argc, char** argv, appInfo & Info){
 
 //converts numbers into strings
 //with appropriate G, M, K suffixes
-char* ll2size(TPIE_OS_LONGLONG n, char* buf){
+char* ll2size(stream_offset_type n, char* buf){
   
   const int bufsize = 20;
   double size;
@@ -459,7 +453,7 @@ void write_random_stream(std::string fname, appInfo & info, progress_indicator_b
 // Read sorted stream from fname and check that its elements are sorted
 void check_sorted(std::string fname, appInfo & info, progress_indicator_base & indicator){
 
-  TPIE_OS_LONGLONG i,n;
+  stream_offset_type i,n;
   SortItem *x = 0, x_prev;
   ami::err ae=ami::NO_ERROR;
    
@@ -762,7 +756,7 @@ int main(int argc, char** argv){
   //TP_LOG_SET_THRESHOLD(TPIE_LOG_MEM_DEBUG);
   //printf("Log file is %s\n", tpie_log_name());
 
-  TPIE_OS_LONGLONG filesize = info.num_items*info.item_size;
+  stream_offset_type filesize = info.num_items*info.item_size;
   std::cout << "Path:  " << info.path 
        << "\nNum Items: " << info.num_items 
        << "\nItem Size: " << info.item_size

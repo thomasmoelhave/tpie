@@ -25,6 +25,7 @@
 /// \brief I/O efficient queue
 ////////////////////////////////////////////////////////////////////////////////
 #include <tpie/portability.h>
+#include <tpie/deprecated.h>
 #include <tpie/file.h>
 #include <tpie/err.h>
 #include <tpie/tempname.h>

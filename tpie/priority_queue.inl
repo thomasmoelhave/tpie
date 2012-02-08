@@ -17,6 +17,16 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
+#if defined(_WIN32) && !defined(__MINGW32__)
+inline int TPIE_OS_UNLINK(const std::string& filename) {
+    return _unlink(filename.c_str());
+}
+#else
+inline int TPIE_OS_UNLINK(const std::string& filename) {
+    return ::unlink(filename.c_str());
+}
+#endif
+
 template<typename T, typename Comparator, typename OPQType>
 priority_queue<T, Comparator, OPQType>::priority_queue(double f, double b) :
 block_factor(b) { // constructor mem fraction

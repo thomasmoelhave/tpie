@@ -26,6 +26,7 @@
 
 #include <tpie/array.h>
 #include <tpie/portability.h>
+#include <tpie/deprecated.h>
 #include <tpie/stream.h>
 #include <tpie/tpie_assert.h>
 

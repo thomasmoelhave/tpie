@@ -19,6 +19,51 @@
 
 #include <tpie/cpu_timer.h>
 
+#ifdef _WIN32
+#define TPIE_OS_SET_CLOCK_TICK				\
+		clock_tick_ = CLOCKS_PER_SEC			
+#else
+#define TPIE_OS_SET_CLOCK_TICK clock_tick_ = sysconf(_SC_CLK_TCK); elapsed_.tms_utime = 0; elapsed_.tms_stime = 0; elapsed_.tms_cutime = 0; elapsed_.tms_cstime = 0;
+#endif
+
+#ifdef _WIN32
+#define TPIE_OS_SET_CURRENT_TIME(current) time(& current ); current_real_ = clock();
+#else
+#define TPIE_OS_SET_CURRENT_TIME(current) current_real_ = times(& current);
+#endif
+
+#ifdef _WIN32
+#define TPIE_OS_UNIX_ONLY_SET_ELAPSED_TIME(current)
+#else
+#define TPIE_OS_UNIX_ONLY_SET_ELAPSED_TIME(current) elapsed_.tms_utime += (current).tms_utime - last_sync_.tms_utime; elapsed_.tms_stime += (current).tms_stime - last_sync_.tms_stime; elapsed_.tms_cutime += (current).tms_cutime - last_sync_.tms_cutime; elapsed_.tms_cstime += (current).tms_cstime - last_sync_.tms_cstime;
+#endif
+
+#ifdef _WIN32
+#define TPIE_OS_LAST_SYNC_REAL_DECLARATION last_sync_real_ = clock();
+#else
+#define TPIE_OS_LAST_SYNC_REAL_DECLARATION last_sync_real_ = times(&last_sync_);	
+#endif
+
+#ifdef _WIN32
+#define TPIE_OS_USER_TIME_BODY return double(elapsed_real()) / double(clock_tick())
+#else
+#define TPIE_OS_USER_TIME_BODY return double(elapsed().tms_utime) / double(clock_tick())
+#endif
+
+#ifdef _WIN32
+#define TPIE_OS_SYSTEM_TIME_BODY return double(elapsed_real()) / double(clock_tick())
+#else
+#define TPIE_OS_SYSTEM_TIME_BODY return double(elapsed().tms_stime) / double(clock_tick())
+#endif
+
+
+#ifdef _WIN32	
+#define TPIE_OS_OPERATOR_OVERLOAD \
+    return s << double(wt.elapsed_real()) / double(wt.clock_tick()); 
+#else
+#define TPIE_OS_OPERATOR_OVERLOAD return s << double(wt.elapsed().tms_utime) / double(wt.clock_tick()) << "u " << double(wt.elapsed().tms_stime) / double(wt.clock_tick()) << "s " << double(wt.elapsed_real()) / double(wt.clock_tick());	
+#endif
+
 namespace tpie {
 
 cpu_timer::cpu_timer() :

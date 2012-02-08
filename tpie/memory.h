@@ -31,6 +31,7 @@
 #include <boost/unordered_map.hpp>
 #include <boost/type_traits/is_polymorphic.hpp>
 #include <utility>
+#include <fstream>
 
 namespace tpie {
 
