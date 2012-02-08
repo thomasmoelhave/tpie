@@ -22,7 +22,6 @@
 #include <iostream>
 #include <sstream>
 #include "tpie_log.h"
-#include "static_string_stream.h"
 #include <cstring>
 
 namespace tpie {
@@ -101,10 +100,11 @@ void memory_manager::set_enforcement(enforce_t e) {
 }
 
 struct log_flusher {
-	tpie::static_string_stream buf;
+	std::stringstream buf;
 	~log_flusher() {
-		if(std::strlen(buf.c_str())) {
-			tpie::log_debug() << buf.c_str();
+		std::string msg = buf.str();
+		if(!msg.empty()) {
+			tpie::log_debug() << msg;
 			tpie::log_debug().flush();
 		}
 	}
