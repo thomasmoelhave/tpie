@@ -283,6 +283,7 @@ private:
 /// \param b Iterator to right boundary.
 /// \param pi Progress tracker. No thread-safety required.
 /// \param comp Comparator.
+/// \sa parallel_sort_impl
 ///////////////////////////////////////////////////////////////////////////////
 template <bool Progress, typename iterator_type, typename comp_type>
 void parallel_sort(iterator_type a, 
@@ -301,6 +302,7 @@ void parallel_sort(iterator_type a,
 /// \param a Iterator to left boundary.
 /// \param b Iterator to right boundary.
 /// \param comp Comparator.
+/// \sa parallel_sort_impl
 ///////////////////////////////////////////////////////////////////////////////
 template <typename iterator_type, typename comp_type>
 void parallel_sort(iterator_type a, 
