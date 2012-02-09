@@ -27,6 +27,7 @@
 #include <string>
 #include <tpie/portability.h>
 #include <boost/filesystem.hpp>
+#include <boost/random.hpp>
 #include <stdexcept>
 #include <tpie/util.h>
 #include <tpie/err.h>
@@ -48,21 +49,15 @@ inline bool TPIE_OS_EXISTS(const std::string & fileName) {
     return boost::filesystem::exists(fileName);
 }
 
-#ifdef _WIN32
-// Generate 31 random bits using rand(), which normally generates only
-// 15 random bits.
-inline int TPIE_OS_RANDOM() {
-  return rand() % 0x8000 + (rand() % 0x8000 << 15) + (rand() % 0x2 << 30);
+namespace tpie {
+	namespace portability {
+		boost::rand48 prng;
+	}
 }
-#else
+
 inline int TPIE_OS_RANDOM() {
-    //adanner: rand and srand are ANSI standards
-    //random and srandom are from old BSD systems
-    //use the standard unless we run into problems
-    //http://www.gnu.org/software/libc/manual/html_node/Pseudo_002dRandom-Numbers.html
-    return rand();
+	return tpie::portability::prng();
 }
-#endif
 
 using namespace tpie;
 
