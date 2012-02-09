@@ -28,12 +28,6 @@
 
 #include <tpie/types.h>
 
-#ifdef _WIN32
-#ifndef NOMINMAX
-#define NOMINMAX  //ensures that the windows min/max macros are not defined 
-#endif
-#endif
-
 typedef tpie::offset_type TPIE_OS_OFFSET;
 typedef tpie::size_type TPIE_OS_SIZE_T;
 typedef tpie::ssize_type TPIE_OS_SSIZE_T;

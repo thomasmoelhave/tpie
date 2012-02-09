@@ -57,4 +57,10 @@
 //eases transition from filesystem2 to filesystem3
 #define BOOST_FILESYSTEM_VERSION ${BOOST_FILESYSTEM_VERSION}
 
+#ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX  //ensures that the windows min/max macros are not defined 
+#endif
+#endif
+
 #endif // _CONFIG_H 
