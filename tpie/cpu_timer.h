@@ -30,6 +30,8 @@
 
 #include <iostream>
 #include <tpie/timer.h>
+#include <time.h>
+#include <boost/date_time.hpp>
 
 namespace tpie {
 
@@ -39,13 +41,18 @@ namespace tpie {
 /// done without stopping the timer, to report intermediate values.
 /// \internal
 ///////////////////////////////////////////////////////////////////////////
+#ifdef _WIN32
+typedef boost::posix_time::ptime tms;
+#else
+using ::tms;
+#endif
 class cpu_timer : public timer {
 
 private:
 	long        clock_tick_;
 
-	TPIE_OS_TMS last_sync_;
-	TPIE_OS_TMS elapsed_;
+	tms last_sync_;
+	tms elapsed_;
 
 	clock_t     last_sync_real_;
 	clock_t     elapsed_real_;
@@ -118,14 +125,14 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// Return the timestamp of last sync.
 	///////////////////////////////////////////////////////////////////////////
-	inline TPIE_OS_TMS last_sync() const {
+	inline tms last_sync() const {
 		return last_sync_;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// Return the timestamp indicating the elapsed time. Only useful on Linux.
 	///////////////////////////////////////////////////////////////////////////
-	inline TPIE_OS_TMS elapsed() const {
+	inline tms elapsed() const {
 		return elapsed_;
 	}
 

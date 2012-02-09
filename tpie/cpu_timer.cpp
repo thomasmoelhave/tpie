@@ -18,18 +18,13 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
 #include <tpie/cpu_timer.h>
+#include <boost/date_time.hpp>
 
 #ifdef _WIN32
 #define TPIE_OS_SET_CLOCK_TICK				\
 		clock_tick_ = CLOCKS_PER_SEC			
 #else
 #define TPIE_OS_SET_CLOCK_TICK clock_tick_ = sysconf(_SC_CLK_TCK); elapsed_.tms_utime = 0; elapsed_.tms_stime = 0; elapsed_.tms_cutime = 0; elapsed_.tms_cstime = 0;
-#endif
-
-#ifdef _WIN32
-#define TPIE_OS_SET_CURRENT_TIME(current) time(& current ); current_real_ = clock();
-#else
-#define TPIE_OS_SET_CURRENT_TIME(current) current_real_ = times(& current);
 #endif
 
 #ifdef _WIN32
@@ -77,11 +72,13 @@ cpu_timer::~cpu_timer() {
 }
 
 void cpu_timer::sync() {
-
-    clock_t current_real_;
-    
-    TPIE_OS_TMS current_;
-    TPIE_OS_SET_CURRENT_TIME(current_);
+    tms current_;
+#ifdef _WIN32
+    current_ = boost::posix_time::second_clock::local_time();
+    clock_t current_real_ = clock();
+#else
+    clock_t current_real_ = times(&current_);
+#endif
     TPIE_OS_UNIX_ONLY_SET_ELAPSED_TIME(current_);
     
     elapsed_real_ += current_real_ - last_sync_real_;
