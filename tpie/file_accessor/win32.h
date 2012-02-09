@@ -21,6 +21,7 @@
 
 #include <io.h>
 #include <windows.h>
+#undef NO_ERROR
 
 #include <tpie/file_accessor/file_accessor_crtp.h>
 namespace tpie {

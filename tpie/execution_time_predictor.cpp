@@ -29,6 +29,7 @@
 #include <tpie/tempname.h>
 #ifdef WIN32
 #include <windows.h>
+#undef NO_ERROR
 #include <Shlobj.h>
 #else
 #include <sys/types.h>

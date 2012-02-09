@@ -32,6 +32,11 @@
 #include <tpie/err.h>
 
 #ifdef _WIN32
+#include <Windows.h>
+#undef NO_ERROR
+#endif
+
+#ifdef _WIN32
 #define	 TMP_DIR ".\\"
 #define TPIE_OS_DIR_DELIMITER "\\"
 #else
@@ -58,8 +63,6 @@ inline int TPIE_OS_RANDOM() {
     return rand();
 }
 #endif
-
-#include <Windows.h>
 
 using namespace tpie;
 

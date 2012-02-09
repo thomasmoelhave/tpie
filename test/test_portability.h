@@ -25,6 +25,7 @@
 
 #ifdef _WIN32
 #include <Windows.h>
+#undef NO_ERROR
 #endif
 
 //snprintf is different on WIN/Unix platforms
