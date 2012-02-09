@@ -28,6 +28,7 @@
 #include <tpie/portability.h>
 #include <boost/filesystem.hpp>
 #include <boost/random.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <stdexcept>
 #include <tpie/util.h>
 #include <tpie/err.h>

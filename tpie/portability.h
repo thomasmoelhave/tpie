@@ -35,24 +35,13 @@
 #endif
 #endif
 
-#include <time.h>				
 #ifndef _WIN32
 #include <sys/times.h>				
 #include <sys/resource.h>	
 #endif 
 
-#include <boost/date_time/posix_time/posix_time.hpp>
-
-typedef boost::posix_time::ptime TPIE_OS_TIME_T;
-inline TPIE_OS_TIME_T TPIE_OS_TIME(TPIE_OS_TIME_T* timep) {
-	if (timep)
-		return *timep = boost::posix_time::second_clock::local_time();
-	else
-		return boost::posix_time::second_clock::local_time();
-}
-
 #ifdef _WIN32
-typedef TPIE_OS_TIME_T TPIE_OS_TMS;
+typedef int TPIE_OS_TMS;
 #else
 typedef tms TPIE_OS_TMS;
 #endif
