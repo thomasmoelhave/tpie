@@ -24,6 +24,7 @@
 //Needed for windows only
 
 #ifdef _WIN32
+#include <ostream>
 std::ostream& operator<<(std::ostream& s, const TPIE_OS_OFFSET x){
   char buf[30];
   sprintf(buf,"%I64d",x);

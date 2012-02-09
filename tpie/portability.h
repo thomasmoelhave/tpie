@@ -27,6 +27,13 @@
 #define _PORTABILITY_H
 
 #include <tpie/types.h>
+#include <tpie/err.h>
+
+#ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX  //ensures that the windows min/max macros are not defined 
+#endif
+#endif
 
 #include <time.h>				
 #ifndef _WIN32

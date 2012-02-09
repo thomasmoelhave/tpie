@@ -29,6 +29,7 @@
 #include <boost/filesystem.hpp>
 #include <stdexcept>
 #include <tpie/util.h>
+#include <tpie/err.h>
 
 #ifdef _WIN32
 #define	 TMP_DIR ".\\"
@@ -38,15 +39,9 @@
 #define TPIE_OS_DIR_DELIMITER "/"
 #endif
 
-#ifdef _WIN32
 inline bool TPIE_OS_EXISTS(const std::string & fileName) {
-	return (GetFileAttributes(fileName.c_str()) != 0xFFFFFFFF);
+    return boost::filesystem::exists(fileName);
 }
-#else
-inline bool TPIE_OS_EXISTS(const std::string & path) {							
-	return access(path.c_str(),R_OK) == 0 || errno == EACCES;
-}
-#endif
 
 #ifdef _WIN32
 // Generate 31 random bits using rand(), which normally generates only
@@ -63,6 +58,8 @@ inline int TPIE_OS_RANDOM() {
     return rand();
 }
 #endif
+
+#include <Windows.h>
 
 using namespace tpie;
 

@@ -23,6 +23,10 @@
 #include <fcntl.h>
 #include <string>
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 //snprintf is different on WIN/Unix platforms
 #ifdef _WIN32
 #define APP_SNPRINTF _snprintf
@@ -39,6 +43,10 @@
 #endif
 
 #ifdef _WIN32
+enum TPIE_OS_MAPPING_FLAG {
+	TPIE_OS_FLAG_USE_MAPPING_FALSE,
+	TPIE_OS_FLAG_USE_MAPPING_TRUE	
+};
 typedef struct {
     HANDLE FileHandle,
 	mapFileHandle;	
@@ -49,12 +57,82 @@ typedef struct {
 typedef int TPIE_OS_FILE_DESCRIPTOR;
 #endif
 
-enum TPIE_OS_MAPPING_FLAG {
-	TPIE_OS_FLAG_USE_MAPPING_FALSE,
-	TPIE_OS_FLAG_USE_MAPPING_TRUE	
-};
-
 #ifdef _WIN32
+#include <FCNTL.h>
+inline TPIE_OS_SIZE_T  TPIE_OS_BLOCKSIZE() {
+    SYSTEM_INFO systemInfos;
+    GetSystemInfo(&systemInfos);
+    return systemInfos.dwAllocationGranularity;
+}
+inline TPIE_OS_FILE_DESCRIPTOR portabilityInternalOpen(LPCTSTR name, int flag, TPIE_OS_MAPPING_FLAG mappingFlag) {
+    DWORD creation_flag = FILE_FLAG_SEQUENTIAL_SCAN;
+	TPIE_OS_FILE_DESCRIPTOR internalHandle;	
+	switch(flag) {
+    case _O_RDONLY: 
+	internalHandle.RDWR = false;
+	internalHandle.FileHandle =	CreateFile(	
+	    name,
+	    GENERIC_READ, 
+		FILE_SHARE_READ | FILE_SHARE_WRITE,
+		0,
+	    OPEN_EXISTING, 
+	    creation_flag,
+		0);
+	break;
+    case _O_EXCL:	
+	internalHandle.RDWR = true;
+	internalHandle.FileHandle =	CreateFile(	
+	    name,
+	    GENERIC_READ | GENERIC_WRITE, 
+		FILE_SHARE_READ | FILE_SHARE_WRITE,
+		0,
+	    CREATE_NEW, 
+	    creation_flag,
+		0);
+	break;
+    case _O_RDWR:	
+	internalHandle.RDWR = true;
+	internalHandle.FileHandle =	CreateFile(	
+	    name,
+	    GENERIC_READ | GENERIC_WRITE, 
+        FILE_SHARE_READ | FILE_SHARE_WRITE,
+		0,
+	    OPEN_EXISTING, 
+	    creation_flag,
+		0);
+	break;
+    default :		
+	internalHandle.RDWR = false;
+	internalHandle.FileHandle =	CreateFile(	
+	    name,
+	    GENERIC_READ, 
+		FILE_SHARE_READ | FILE_SHARE_WRITE,
+		0,
+	    OPEN_EXISTING, 
+	    creation_flag,
+		0);
+    };
+    internalHandle.useFileMapping = mappingFlag;
+    DWORD dwFileSize = GetFileSize(internalHandle.FileHandle,NULL);
+    if (dwFileSize == 0) {
+	SetFilePointer(internalHandle.FileHandle,
+		       static_cast<LONG>(TPIE_OS_BLOCKSIZE()),0,FILE_BEGIN);
+	SetEndOfFile(internalHandle.FileHandle);
+    };
+    if (internalHandle.useFileMapping == TPIE_OS_FLAG_USE_MAPPING_TRUE) {
+	internalHandle.mapFileHandle = 
+	    CreateFileMapping( 
+		internalHandle.FileHandle,
+		0,  
+		(internalHandle.RDWR ? PAGE_READWRITE : PAGE_READONLY),	
+		0, 0,
+		NULL);
+    }
+    else {
+	internalHandle.mapFileHandle = (void*)1;
+    }
+    return internalHandle;
+}
 inline TPIE_OS_FILE_DESCRIPTOR TPIE_OS_OPEN_OEXCL(const std::string& name, TPIE_OS_MAPPING_FLAG mappingFlag = TPIE_OS_FLAG_USE_MAPPING_FALSE) {
     return portabilityInternalOpen(name.c_str(), _O_EXCL, mappingFlag);
 }
