@@ -28,16 +28,11 @@
 
 #include <tpie/types.h>
 
-#ifdef _WIN32
 #include <time.h>				
-#else
+#ifndef _WIN32
 #include <sys/times.h>				
 #include <sys/resource.h>	
 #endif 
-#include <queue>
-#include <iomanip>
-#include <list>
-#include <stack>
 
 #ifdef _WIN32
 #ifdef _WIN64

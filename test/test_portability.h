@@ -21,6 +21,7 @@
 #define __TPIE_TEST_PORTABILITY__
 
 #include <fcntl.h>
+#include <string>
 
 //snprintf is different on WIN/Unix platforms
 #ifdef _WIN32
