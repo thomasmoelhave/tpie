@@ -19,6 +19,8 @@
 #ifndef _TPIE_FILE_ACCESSOR_WIN32_H
 #define _TPIE_FILE_ACCESSOR_WIN32_H
 
+#include <tpie/config.h>
+
 #include <io.h>
 #include <windows.h>
 #undef NO_ERROR
