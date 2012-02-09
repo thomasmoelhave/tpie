@@ -24,6 +24,6 @@ fi
 	echo >&2
 	echo '}'
 ) \
-| egrep -v 'deadcode|portability' > depends.dot
+| egrep -v 'deadcode' > depends.dot
 time $driver -Tpdf -o$out depends.dot && xdg-open $out
 # vim:set ts=4 sw=4 sts=4 noet:
