@@ -33,10 +33,6 @@ namespace tpie {
 template <typename T>
 inline void unused(const T & x) {(void)x;}
 
-typedef TPIE_OS_OFFSET offset_type;
-typedef TPIE_OS_SIZE_T size_type;
-typedef TPIE_OS_SSIZE_T ssize_type;
-
 using boost::uint8_t;
 using boost::int8_t;
 using boost::uint16_t;

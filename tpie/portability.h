@@ -27,7 +27,6 @@
 #define _PORTABILITY_H
 
 #include <tpie/types.h>
-#include <tpie/err.h>
 
 #ifdef _WIN32
 #ifndef NOMINMAX
@@ -35,29 +34,11 @@
 #endif
 #endif
 
-#ifdef _WIN32
-typedef __int64 TPIE_OS_OFFSET;
-#else
-typedef off_t TPIE_OS_OFFSET;
-#endif	
+typedef tpie::offset_type TPIE_OS_OFFSET;
+typedef tpie::size_type TPIE_OS_SIZE_T;
+typedef tpie::ssize_type TPIE_OS_SSIZE_T;
 
-#if defined (_WIN32) && !defined(__MINGW32__)
-typedef SSIZE_T TPIE_OS_SSIZE_T;
-#ifdef _TPIE_SMALL_MAIN_MEMORY
-#if (_MSC_VER < 1400)
-typedef unsigned __int32 TPIE_OS_SIZE_T;
-#else
-typedef size_t TPIE_OS_SIZE_T;
-#endif
-#else
-typedef size_t TPIE_OS_SIZE_T;
-#endif
-#else
-typedef ssize_t TPIE_OS_SSIZE_T;
-typedef size_t TPIE_OS_SIZE_T;
-#endif
-
-typedef TPIE_OS_SSIZE_T TPIE_OS_OUTPUT_SIZE_T;
+typedef tpie::ssize_type TPIE_OS_OUTPUT_SIZE_T;
 
 #if defined (_WIN32) && !defined(__MINGW32__)
 typedef long TPIE_OS_LONG;
