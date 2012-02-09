@@ -43,11 +43,12 @@
 #define TPIE_OS_DIR_DELIMITER "/"
 #endif
 
-#ifdef _WIN32
 enum TPIE_OS_MAPPING_FLAG {
 	TPIE_OS_FLAG_USE_MAPPING_FALSE,
 	TPIE_OS_FLAG_USE_MAPPING_TRUE	
 };
+
+#ifdef _WIN32
 typedef struct {
     HANDLE FileHandle,
 	mapFileHandle;	
