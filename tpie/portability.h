@@ -41,25 +41,20 @@
 #include <sys/resource.h>	
 #endif 
 
+#include <boost/date_time/posix_time/posix_time.hpp>
+
+typedef boost::posix_time::ptime TPIE_OS_TIME_T;
+inline TPIE_OS_TIME_T TPIE_OS_TIME(TPIE_OS_TIME_T* timep) {
+	if (timep)
+		return *timep = boost::posix_time::second_clock::local_time();
+	else
+		return boost::posix_time::second_clock::local_time();
+}
+
 #ifdef _WIN32
-#ifdef _WIN64
-typedef __time64_t TPIE_OS_TIME_T;
-inline TPIE_OS_TIME_T TPIE_OS_TIME(TPIE_OS_TIME_T* timep) {
-	return _time64(timep);
-}
+typedef TPIE_OS_TIME_T TPIE_OS_TMS;
 #else
-typedef time_t TPIE_OS_TIME_T;
-inline TPIE_OS_TIME_T TPIE_OS_TIME(TPIE_OS_TIME_T* timep) {
-	return time(timep);
-}
-#endif
-typedef time_t TPIE_OS_TMS;
-#else
-typedef time_t TPIE_OS_TIME_T;
 typedef tms TPIE_OS_TMS;
-inline TPIE_OS_TIME_T TPIE_OS_TIME(TPIE_OS_TIME_T* timep) {
-	return time(timep);
-}
 #endif
 
 #ifdef _WIN32

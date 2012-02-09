@@ -152,7 +152,7 @@ std::string tempname::tpie_mktemp()
 	"n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", 
 	"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
 	const int chars_count = 62;
-	static TPIE_OS_TIME_T counter = time(NULL) % (chars_count * chars_count); 
+	static int counter = boost::posix_time::second_clock::local_time().time_of_day().total_seconds() % (chars_count * chars_count); 
 
 	std::string result = "";
 	result +=
