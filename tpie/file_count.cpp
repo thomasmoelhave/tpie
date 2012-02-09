@@ -1,6 +1,8 @@
 #include <tpie/file_count.h>
 #include <tpie/portability.h>
+#ifndef _WIN32
 #include <sys/resource.h>
+#endif
 
 namespace tpie {
 
