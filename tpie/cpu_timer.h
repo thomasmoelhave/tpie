@@ -32,6 +32,10 @@
 #include <tpie/timer.h>
 #include <time.h>
 #include <boost/date_time.hpp>
+#ifndef _WIN32
+#include <sys/times.h>				
+#include <sys/resource.h>
+#endif
 
 namespace tpie {
 

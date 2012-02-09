@@ -35,17 +35,6 @@
 #endif
 #endif
 
-#ifndef _WIN32
-#include <sys/times.h>				
-#include <sys/resource.h>	
-#endif 
-
-#ifdef _WIN32
-typedef int TPIE_OS_TMS;
-#else
-typedef tms TPIE_OS_TMS;
-#endif
-
 #ifdef _WIN32
 typedef __int64 TPIE_OS_OFFSET;
 #else

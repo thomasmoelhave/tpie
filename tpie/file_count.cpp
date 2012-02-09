@@ -1,5 +1,7 @@
 #include <tpie/file_count.h>
 #include <tpie/portability.h>
+#include <sys/resource.h>
+
 namespace tpie {
 
 inline tpie::memory_size_type get_maximum_open_files() {
