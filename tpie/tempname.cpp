@@ -45,21 +45,9 @@
 #define TPIE_OS_DIR_DELIMITER "/"
 #endif
 
-inline bool TPIE_OS_EXISTS(const std::string & fileName) {
-    return boost::filesystem::exists(fileName);
-}
-
-namespace tpie {
-	namespace portability {
-		boost::rand48 prng;
-	}
-}
-
-inline int TPIE_OS_RANDOM() {
-	return tpie::portability::prng();
-}
-
 using namespace tpie;
+
+boost::rand48 prng(42);
 
 std::string tempname::default_path;
 std::string tempname::default_base_name; 
@@ -108,7 +96,7 @@ std::string tempname::tpie_name(const std::string& post_base, const std::string&
 			path = base_dir + TPIE_OS_DIR_DELIMITER + base_name + "_" + tpie_mktemp() + "." + extension;
 		else 
 			path = base_dir + TPIE_OS_DIR_DELIMITER + base_name + "_" + post_base + "_" + tpie_mktemp() + "." + extension;
-		if ( !TPIE_OS_EXISTS(path) )
+		if ( !boost::filesystem::exists(path) )
 			return path;
 	}
 	throw tempfile_error("Unable to find free name for temporary file");
@@ -133,7 +121,7 @@ std::string tempname::tpie_dir_name(const std::string& post_base, const std::str
 			path = base_dir + TPIE_OS_DIR_DELIMITER + base_name + "_" + tpie_mktemp();
 		else 
 			path = base_dir + TPIE_OS_DIR_DELIMITER + base_name + "_" + post_base + "_" + tpie_mktemp();
-		if ( !TPIE_OS_EXISTS(path) )
+		if ( !boost::filesystem::exists(path) )
 			return path;
 	}
 	throw tempfile_error("Unable to find free name for temporary file");
@@ -170,12 +158,12 @@ std::string tempname::tpie_mktemp()
 	result +=
 		chars[counter/chars_count] +
 		chars[counter%chars_count] +
-		chars[TPIE_OS_RANDOM() % chars_count] +
-		chars[TPIE_OS_RANDOM() % chars_count] +
-		chars[TPIE_OS_RANDOM() % chars_count] +
-		chars[TPIE_OS_RANDOM() % chars_count] +
-		chars[TPIE_OS_RANDOM() % chars_count] +
-		chars[TPIE_OS_RANDOM() % chars_count];
+		chars[prng() % chars_count] +
+		chars[prng() % chars_count] +
+		chars[prng() % chars_count] +
+		chars[prng() % chars_count] +
+		chars[prng() % chars_count] +
+		chars[prng() % chars_count];
 
 	counter = (counter + 1) % (chars_count * chars_count);
 
