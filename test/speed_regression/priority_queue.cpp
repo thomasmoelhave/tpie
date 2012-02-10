@@ -16,6 +16,7 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
+/*
 #include "../app_config.h"
 
 #include <tpie/tpie.h>
@@ -212,4 +213,101 @@ int main(int argc, char **argv) {
 			return process_args<uint64_t>(argc, argv);
 		}
 	}
+}
+*/
+#include "../app_config.h"
+
+#undef STREAM_UFS_BLOCK_FACTOR
+#ifdef WIN32
+#define STREAM_UFS_BLOCK_FACTOR 32
+#else
+#define STREAM_UFS_BLOCK_FACTOR 512
+#endif
+
+#include <tpie/tpie.h>
+#include <iostream>
+#include "testtime.h"
+#include "stat.h"
+#include <boost/filesystem/operations.hpp>
+#include <tpie/priority_queue.h>
+
+using namespace tpie;
+using namespace tpie::ami;
+using namespace tpie::test;
+
+const size_t mb_default=1;
+
+void usage() {
+	std::cout << "Parameters: [times] [mb]" << std::endl;
+}
+
+void test(size_t mb, size_t times) {
+	std::vector<const char *> names;
+	std::vector<double> ti;
+	names.resize(2);
+	ti.resize(2);
+	uint64_t a=0;
+	names[0] = "Push";
+	names[1] = "Pop";
+	tpie::test::stat s(names);
+	TPIE_OS_OFFSET count=TPIE_OS_OFFSET(mb)*1024*1024/sizeof(uint64_t);
+	for (size_t i=0; i < times; ++i) {
+		
+		test_realtime_t start;
+		test_realtime_t end;
+		getTestRealtime(start);
+		{
+			tpie::ami::priority_queue<uint64_t> pq(0.95);
+		
+			for(TPIE_OS_OFFSET i=0; i < count; ++i) {
+				uint64_t x= (i+ 91493)*104729;
+				pq.push(x);
+			}
+			getTestRealtime(end);
+			ti[0] = testRealtimeDiff(start,end);
+		
+		
+			getTestRealtime(start);
+			for(TPIE_OS_OFFSET i=0; i < count; ++i) {
+				uint64_t x=pq.top();
+				pq.pop();
+				a ^= x;
+			}
+			getTestRealtime(end);
+			ti[1] = testRealtimeDiff(start,end);
+		}
+		s(ti);
+	}
+	if (a == 42) std::cout << "oh rly" << std::endl;
+}
+
+int main(int argc, char **argv) {
+	size_t times = 10;
+	size_t mb = mb_default;
+			
+	if (argc > 1) {
+		if (std::string(argv[1]) == "0") {
+			times = 0;
+		} else {
+			std::stringstream(argv[1]) >> times;
+			if (!times) {
+				usage();
+				return EXIT_FAILURE;
+			}
+		}
+	}
+	if (argc > 2) {
+		std::stringstream(argv[2]) >> mb;
+		if (!mb) {
+			usage();
+			return EXIT_FAILURE;
+		}
+	}
+
+	std::cout << "Push and pop " << mb << "mb" << std::endl;
+	tpie::tpie_init();
+	tpie::get_memory_manager().set_limit(1024*1024*1024);
+	::test(mb, times);
+	tpie::tpie_finish();
+	return EXIT_SUCCESS;
 }
