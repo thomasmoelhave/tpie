@@ -187,6 +187,10 @@ inline std::string fname(const char * file, const char * function, const char * 
 }
 
 
+
+fractional_subindicator::fractional_subindicator(
+	fractional_progress & fp): m_fp(fp) {}
+
 fractional_subindicator::fractional_subindicator(
 	fractional_progress & fp,
 	const char * id,
@@ -195,23 +199,37 @@ fractional_subindicator::fractional_subindicator(
 	TPIE_OS_OFFSET n,
 	const char * crumb,
 	description_importance importance,
-	bool enabled):
-	progress_indicator_subindicator(fp.m_pi, 42, crumb, importance),
+	bool enabled): m_fp(fp) {
+	setup(id, file, function, n, crumb, importance, enabled);
+}
+
+void fractional_subindicator::setup(
+	const char * id,
+	const char * file,
+	const char * function,
+	TPIE_OS_OFFSET n,
+	const char * crumb,
+	description_importance importance,
+	bool enabled) {
+	progress_indicator_subindicator::setup(m_fp.m_pi, 42, crumb, importance);
 #ifndef TPIE_NDEBUG
-	m_init_called(false), m_done_called(false), 
+	m_init_called = false;
+	m_done_called = false;
 #endif
-	m_fraction(enabled?fdb->getFraction(fname(file, function, id)):0.0), m_estimate(-1), m_n(enabled?n:0), m_fp(fp), m_predict(fp.m_id() + ";" + id)
+	m_fraction = enabled?fdb->getFraction(fname(file, function, id)):0.0;
+	m_estimate = -1;
+	m_n = enabled?n:0;
+	m_predict = m_fp.m_id() + ";" + id;
 #ifdef TPIE_FRACTION_STATS
-	,m_stat(fname(file, function, id))
+	m_stat = fname(file, function, id);
 #endif
-{
 	if (enabled)
 		m_estimate = m_predict.estimate_execution_time(n, m_confidence);
 	else {
 		m_estimate = 0;
 		m_confidence = 1;
 	}
-	fp.add_sub_indicator(*this);
+	m_fp.add_sub_indicator(*this);
 };
 
 void fractional_subindicator::init(TPIE_OS_OFFSET range) {

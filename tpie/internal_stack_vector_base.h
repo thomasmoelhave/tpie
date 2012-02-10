@@ -73,13 +73,13 @@ public:
 	/// \brief Check if the data structure is empty
 	/// \return true if the data structure is empty, otherwise false
 	/////////////////////////////////////////////////////////
-	inline bool empty(){return m_size==0;}
+	inline bool empty() const {return m_size==0;}
 
 	/////////////////////////////////////////////////////////
 	/// \brief Return the number of elements in the data structure.
 	/// \return The number of elements in the container
 	/////////////////////////////////////////////////////////
-	inline size_t size(){ return m_size;}
+	inline size_t size() const {return m_size;}
 	
 	/////////////////////////////////////////////////////////
 	/// \brief Clear the data structure of all elements

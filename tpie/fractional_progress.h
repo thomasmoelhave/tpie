@@ -34,6 +34,8 @@ class fractional_progress;
 
 class fractional_subindicator: public progress_indicator_subindicator {
 public:
+	fractional_subindicator(fractional_progress & fp);
+	
 	fractional_subindicator(fractional_progress & fp,
 							const char * id,
 							const char * file,
@@ -42,6 +44,14 @@ public:
 							const char * crumb=0,
 							description_importance importance=IMPORTANCE_MAJOR,
 							bool enabled=true);
+
+	void setup(const char * id,
+			   const char * file,
+			   const char * function,
+			   TPIE_OS_OFFSET n,
+			   const char * crumb=0,
+			   description_importance importance=IMPORTANCE_MAJOR,
+			   bool enabled=true);
 
 	~fractional_subindicator();
 	virtual void init(TPIE_OS_OFFSET range);
