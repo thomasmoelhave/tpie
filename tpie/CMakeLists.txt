@@ -11,7 +11,6 @@ set (AMI_HEADERS
 		serialization.h
 		sort.h
 		stack.h
-		stream_compatibility.h
 		stream.h
 		)
 
