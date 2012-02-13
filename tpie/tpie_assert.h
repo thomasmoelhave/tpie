@@ -44,15 +44,16 @@ namespace tpie {
 /// \param condition The condition to assert
 /// \param message Message describing the erroneous condition
 ///////////////////////////////////////////////////////////////////////////////
-#define tp_assert(condition,message) {		\
-	if (!((condition) && 1)) {			\
-	    TP_LOG_FATAL_ID("Assertion failed:");	\
-	    TP_LOG_FATAL_ID(message);			  \
-	    std::cerr << "Assertion (" #condition ") failed " __FILE__ ":" << __LINE__ << ": " << message << "\n";	\
-		std::terminate(); \
-	    assert(condition);						\
-	}								\
-    }
+#define tp_assert(condition,message) do {									  \
+	if (!((condition) && 1)) {												  \
+	    TP_LOG_FATAL_ID("Assertion failed:");								  \
+		TP_LOG_FATAL_ID(message)											  \
+		std::cerr << "Assertion (" #condition ") failed " __FILE__ ":"		  \
+				  << __LINE__ << ": " << message << "\n";					  \
+		std::terminate();													  \
+		assert(condition)													  \
+	}																		  \
+}
 
 #else // TPIE_NDEBUG
 #define tp_assert(condition,message)
