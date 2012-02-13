@@ -396,51 +396,6 @@ private:
 				     stream_offset_type  sub_end,
 								 stream<T>       **sub_stream)
 	{
-	    // err retval = NO_ERROR;
-
-	    // // Check permissions. Only READ and WRITE are allowed, and only READ is
-	    // // allowed if m_readOnly is set.
-	    // if ((st != READ_STREAM) && ((st != WRITE_STREAM) || m_readOnly)) {
-
-		// *sub_stream = NULL;
-
-		// TP_LOG_DEBUG_ID("permission denied");		
-
-		// return PERMISSION_DENIED;
-
-	    // }
-    
-		// typename bte_t::base_t *bte_ss;
-    
-	    // if (m_bteStream->new_substream(((st == READ_STREAM) ? bte::READ_STREAM :
-		// 			    bte::WRITE_STREAM),
-		// 			   sub_begin, sub_end,
-		// 			   &bte_ss) != bte::NO_ERROR) {
-
-		// *sub_stream = NULL;
-
-		// TP_LOG_DEBUG_ID("new_substream failed");		
-
-		// return BTE_ERROR;
-	    // }
-    
-	    // stream<T,bte_t> *ami_ss;
-    
-	    // // This is a potentially dangerous downcast.  It is being done for
-	    // // the sake of efficiency, so that calls to the BTE can be
-	    // // inlined.  If multiple implementations of BTE streams are
-	    // // present it could be very dangerous.
-    
-	    // ami_ss = new stream<T,bte_t>(static_cast<bte_t*>(bte_ss));
-    
-	    // ami_ss->m_destructBTEStream = true;
-
-	    // retval = ami_ss->seek(0);
-	    // assert(retval == NO_ERROR); // sanity check
-    
-	    // *sub_stream = ami_ss;
-    
-	    // return retval;
 		unused(st);
 		unused(sub_begin);
 		unused(sub_end);
