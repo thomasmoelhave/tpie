@@ -18,7 +18,7 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \file deprecated.h  Macros for deprecating methods.
+/// \file deprecated.h  Macros for deprecating classes, methods and typedefs.
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef __TPIE_DEPRECATED_H__
