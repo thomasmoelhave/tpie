@@ -17,6 +17,10 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
+///////////////////////////////////////////////////////////////////////////////
+/// \file tpie_assert.h  Defines the tp_assert macro.
+///////////////////////////////////////////////////////////////////////////////
+
 #ifndef _TPIE_ASSERT_H
 #define _TPIE_ASSERT_H
 
@@ -29,12 +33,17 @@
 
 namespace tpie {
     
-#ifndef TPIE_NDEBUG
+#if !defined(TPIE_NDEBUG) || defined(DOXYGEN)
 
 #ifdef _WIN32
 #pragma warning ( disable : 4127 )
 #endif 
 
+///////////////////////////////////////////////////////////////////////////////
+/// \macro tp_assert
+/// \param condition The condition to assert
+/// \param message Message describing the erroneous condition
+///////////////////////////////////////////////////////////////////////////////
 #define tp_assert(condition,message) {		\
 	if (!((condition) && 1)) {			\
 	    TP_LOG_FATAL_ID("Assertion failed:");	\
