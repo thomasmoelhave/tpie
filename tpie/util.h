@@ -1,6 +1,6 @@
 // -*- Mode: C++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2009, The TPIE development team
+// Copyright 2009, 2012, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -36,20 +36,6 @@ namespace tpie {
 ///////////////////////////////////////////////////////////////////////////
 template <typename T>
 inline void unused(const T & x) {(void)x;}
-
-using boost::uint8_t;
-using boost::int8_t;
-using boost::uint16_t;
-using boost::int16_t;
-using boost::uint32_t;
-using boost::int32_t;
-using boost::uint64_t;
-using boost::int64_t;
-
-typedef size_type memory_size_type;
-typedef ssize_type memory_offset_type;
-typedef uint64_t stream_size_type;
-typedef int64_t stream_offset_type;
 
 template <typename T> struct sign {typedef T type;};
 template <> struct sign<uint8_t> {typedef int8_t type;};

@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2009, 2010, The TPIE development team
+// Copyright 2009, 2010, 2012, The TPIE development team
 //
 // This file is part of TPIE.
 //
@@ -31,11 +31,14 @@
 
 namespace tpie {
 
-using boost::uint64_t;
-using boost::int64_t;
-
+using boost::uint8_t;
+using boost::int8_t;
+using boost::uint16_t;
+using boost::int16_t;
 using boost::uint32_t;
 using boost::int32_t;
+using boost::uint64_t;
+using boost::int64_t;
 
 typedef boost::uint64_t stream_size_type;
 typedef boost::int64_t stream_offset_type;
