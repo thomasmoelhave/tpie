@@ -67,10 +67,6 @@ cpu_timer::cpu_timer() :
     TPIE_OS_SET_CLOCK_TICK;
 }
 
-cpu_timer::~cpu_timer() {
-    // No code in this destructor.
-}
-
 void cpu_timer::sync() {
     tms current_;
 #ifdef _WIN32
