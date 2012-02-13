@@ -56,7 +56,8 @@ namespace tpie {
 
 static file_log_target * file_target = 0;
 static stderr_log_target * stderr_target = 0;
-static logstream log;
+logstream log_singleton;
+static logstream & log = log_singleton;
 
 const std::string& log_name() {
 	return file_target->m_path;
@@ -79,7 +80,5 @@ void finish_default_log() {
 	file_target = 0;
 	stderr_target = 0;
 }
-
-logstream& get_log() {return log;}
 
 } //namespace tpie
