@@ -27,21 +27,22 @@
 #define _PORTABILITY_H
 
 #include <tpie/types.h>
+#include <tpie/config.h>
+#include <tpie/deprecated.h>
 
-typedef tpie::offset_type TPIE_OS_OFFSET;
-typedef tpie::size_type TPIE_OS_SIZE_T;
-typedef tpie::ssize_type TPIE_OS_SSIZE_T;
-
-typedef tpie::ssize_type TPIE_OS_OUTPUT_SIZE_T;
+typedef tpie::offset_type TPIE_DEPRECATED(TPIE_OS_OFFSET);
+typedef tpie::size_type TPIE_DEPRECATED(TPIE_OS_SIZE_T);
+typedef tpie::ssize_type TPIE_DEPRECATED(TPIE_OS_SSIZE_T);
+typedef tpie::ssize_type TPIE_DEPRECATED(TPIE_OS_OUTPUT_SIZE_T);
 
 #if defined (_WIN32) && !defined(__MINGW32__)
-typedef long TPIE_OS_LONG;
-typedef __int64 TPIE_OS_LONGLONG;
-typedef unsigned __int64 TPIE_OS_ULONGLONG;
+typedef long TPIE_DEPRECATED(TPIE_OS_LONG);
+typedef __int64 TPIE_DEPRECATED(TPIE_OS_LONGLONG);
+typedef unsigned __int64 TPIE_DEPRECATED(TPIE_OS_ULONGLONG);
 #else
-typedef long TPIE_OS_LONG;
-typedef long long int TPIE_OS_LONGLONG;
-typedef unsigned long long int TPIE_OS_ULONGLONG;
+typedef long TPIE_DEPRECATED(TPIE_OS_LONG);
+typedef long long int TPIE_DEPRECATED(TPIE_OS_LONGLONG);
+typedef unsigned long long int TPIE_DEPRECATED(TPIE_OS_ULONGLONG);
 #endif 
 
 #endif 
