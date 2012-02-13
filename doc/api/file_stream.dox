@@ -1,0 +1,37 @@
+/**
+\page fsu file_stream usage
+
+The central class in TPIE for reading from files and writing to files is the
+file_stream class. It reads and writes primitives and primitive structures to
+files.
+
+\code
+#include <tpie/file_stream.h>
+#include <string>
+
+using namespace tpie;
+using namespace std;
+
+struct segment_t {
+	double x1, y1, x2, y2;
+	float z1, z2;
+};
+
+void copystream(const string & infile, const string & outfile) {
+	file_stream<segment_t> in;
+	file_stream<segment_t> out;
+	in.open(infile);
+	out.open(outfile);
+	while (in.can_read()) {
+		segment_t item = in.read();
+		out.write(item);
+	}
+}
+\endcode
+
+The main methods of interest are \ref file_stream::open(), \ref file_stream::close(),
+\ref file_stream::read(), \ref file_stream::write(), \ref file_stream::seek().
+
+By default, \ref file_stream reads and writes blocks of size 2 MB at a time. You can
+change this by passing a block factor to the constructor of file_stream.
+*/
