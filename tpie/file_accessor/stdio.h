@@ -16,6 +16,11 @@
 //
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
+
+///////////////////////////////////////////////////////////////////////////////
+/// \file stdio.h  stdio.h-style file accessor
+///////////////////////////////////////////////////////////////////////////////
+
 #ifndef _TPIE_FILE_ACCESSOR_STDIO_H
 #define _TPIE_FILE_ACCESSOR_STDIO_H
 
