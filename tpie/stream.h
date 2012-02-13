@@ -512,6 +512,4 @@ size_type stream<T>::memory_usage(size_type count) {
 
 }  //  tpie namespace
 
-#include <tpie/stream_compatibility.h>
-
 #endif // _TPIE_AMI_STREAM_H

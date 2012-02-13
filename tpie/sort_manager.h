@@ -47,10 +47,6 @@
 
 namespace tpie {
 
-#ifndef AMI_STREAM_IMP_SINGLE
-#warning Including __FILE__ when AMI_STREAM_IMP_SINGLE undefined.
-#endif
-
 ///////////////////////////////////////////////////////////////////////////////
 /// A class of manager objects for merge sorting objects of type T.  We will
 /// actually use one of two subclasses of this class which use either a
