@@ -77,7 +77,6 @@ set (OTHER_HEADERS
 		tpie_log.h
 		stats.h
 		stats_stream.h
-		stats_tree.h
 		tempname.h
 		unused.h
 		util.h
