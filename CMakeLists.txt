@@ -80,6 +80,7 @@ option(TPIE_USE_EXCEPTIONS "Throw exceptions on certain errors." ON)
 option(TPL_LOGGING "Enable tpie logging." ON)
 option(TPIE_THREADSAFE_MEMORY_MANAGEMNT "Thread safe memory managment" ON)
 option(TPIE_FRACTION_STATS "Output fraction statistics" OFF)
+option(TPIE_DEPRECATED_WARNINGS "Enable warnings for deprecated classes, methods and typedefs" OFF)
 
 if (COMPILE_TEST)
 	ENABLE_TESTING()

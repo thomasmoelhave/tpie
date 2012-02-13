@@ -24,6 +24,9 @@
 #ifndef __TPIE_DEPRECATED_H__
 #define __TPIE_DEPRECATED_H__
 
+// The config knows whether or not to use deprecation warnings
+#include <tpie/config.h>
+
 #ifdef TPIE_DEPRECATED_WARNINGS
 #ifdef __GNUC__
 #define TPIE_DEPRECATED(func) func __attribute__ ((deprecated))
