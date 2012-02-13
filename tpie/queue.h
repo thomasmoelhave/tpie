@@ -197,7 +197,7 @@ namespace ami {
 		public:
 			queue() {}
 			queue(const std::string& basename): tpie::queue<T>(basename) {}
-		};
+		}
 	);
 }
 }  //  tpie namespace
