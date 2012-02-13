@@ -235,7 +235,7 @@ temp_file::~temp_file() {
 }
 
 void temp_file::free() {
-	if (!m_path.empty() && !m_persist && file_exists(m_path)) 
-		remove(m_path);
+	if (!m_path.empty() && !m_persist && boost::filesystem::exists(m_path)) 
+		boost::filesystem::remove(m_path);
 	m_path="";
 }
