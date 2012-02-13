@@ -73,7 +73,6 @@ set (OTHER_HEADERS
 		progress_indicator_null.h
 		progress_indicator_terminal.h
 		sort_manager.h
-		timer.h
 		tpie_assert.h
 		tpie_log.h
 		stats.h
