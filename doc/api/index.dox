@@ -1,0 +1,83 @@
+/**
+\mainpage Main page
+\section sec_first TPIE - The Templated Portable I/O Environment
+
+The TPIE (Templated Portable I/O Environment) library is a tool box providing
+efficient and convenient tools to ease the implementation of algorithm and data
+structures on very large sets of data.
+
+\subsection sec_install Installation on Linux
+
+You will need Git, Cmake and a C++ compiler in order to use TPIE. On a modern
+Linux system, the following steps will suffice.
+
+First, clone the <a href="https://github.com/thomasmoelhave/tpie">git repository</a> and
+checkout the branch or tag you wish to compile:
+
+\verbatim
+git clone git://github.com/thomasmoelhave/tpie.git
+cd tpie
+git checkout master
+\endverbatim
+
+Now, create a build directory and run Cmake followed by make.
+
+\verbatim
+mkdir build
+cd build
+cmake -D CMAKE_BUILD_TYPE:STRING=Release ..
+make tpie
+\endverbatim
+
+This will generate the static library <tt>libtpie.a</tt> in the \c build/tpie folder. To
+link your application with TPIE, you will now want to add the TPIE root and the
+build folder to your project's header file include path, and add the build/tpie
+folder to your project's library path.
+
+To run the unit tests, use CTest.
+
+\verbatim
+make all
+ctest
+\endverbatim
+
+The unit test executables are placed in the \c test/unit folder and are prefixed
+with the token \c ut-.
+
+\subsection sec_installwin Installation on Windows
+
+As above, clone the <a href="https://github.com/thomasmoelhave/tpie">git repository</a> at
+<tt>git://github.com/thomasmoelhave/tpie.git</tt>, perhaps using TortoiseGit, and set
+up the build environment using Cmake, perhaps using the Cmake GUI. TPIE is
+known to work with the Microsoft Visual Studio 2008 and 2010 compilers. Be sure
+to select a 64-bit build when your platform supports it.
+
+\subsection sec_overview Repository overview
+
+The library source code mainly resides in the \c tpie/ directory.
+
+The \c test/ directory contains test code. \c test/unit/ contains source code for
+unit tests used by CTest, and \c test/speed_regression/ contains programs for
+measuring TPIE performance.
+
+The \c cpp0xtest/ directory contains code that might not compile on all modern
+compilers. CMake uses this to determine if the system compiler supports
+variadic templates and rvalues.
+
+The \c example/ directory contains a simple example of how to use TPIE in your
+application.
+
+\subsection sec_help Help
+
+If you have problems compiling or using TPIE, consult the API documentation, or
+file a <a href="https://github.com/thomasmoelhave/tpie/issues">bug report on GitHub</a>.
+
+\subsection sec_history History
+
+Originally, TPIE was known as the Transparent Portable I/O Environment and was
+hosted by <a href="http://www.cs.duke.edu/TPIE/">Duke University</a>. Later, the work has
+been picked up by researchers at <a href="http://www.madalgo.au.dk/Trac-tpie">MADALGO, Aarhus
+University</a>. As of 2012, the current
+maintainer is <a href="http://cs.au.dk/~rav/">Mathias Rav</a>.
+
+*/
