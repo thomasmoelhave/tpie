@@ -49,11 +49,6 @@ template <> struct unsign<int16_t> {typedef uint16_t type;};
 template <> struct unsign<int32_t> {typedef uint32_t type;};
 template <> struct unsign<int64_t> {typedef uint64_t type;};
 
-void seed_random(uint32_t seed);
-uint32_t random();
-void remove(const std::string & path);
-bool file_exists(const std::string & path);
-
 #ifdef _WIN32
 const char directory_delimiter = '\\';
 #else

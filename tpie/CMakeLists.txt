@@ -116,7 +116,6 @@ set (OTHER_SOURCES
 	tempname.cpp
 	tpie.cpp
 	tpie_log.cpp
-	util.cpp
 	)
 
 set(AMI ${AMI_HEADERS} ${AMI_SOURCES})
