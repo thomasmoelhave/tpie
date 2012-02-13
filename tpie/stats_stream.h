@@ -1,5 +1,5 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
-// vi:set ts=4 sts=4 sw=4 noet :
+// vi:set ts=8 sts=4 sw=4 noet :
 // Copyright 2008, The TPIE development team
 // 
 // This file is part of TPIE.
@@ -25,14 +25,13 @@
 #ifndef _TPIE_STATS_STREAM_H
 #define _TPIE_STATS_STREAM_H
 
-// Get definitions for working with Unix and Windows
-#include <tpie/portability.h>
-
 #include <tpie/stats.h>
 
 namespace tpie {
     
-/**Status information about  a TPIE stream */
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Status information about a TPIE stream.
+    ///////////////////////////////////////////////////////////////////////////
     enum stats_stream_id {
 	/** Number of block reads */
 	BLOCK_READ = 0,
