@@ -69,9 +69,9 @@ public:
 	/// \param n Input size
 	/// \param confidence (output) Confidence (between 0.0 and 1.0)
 	///////////////////////////////////////////////////////////////////////////
-	TPIE_OS_OFFSET estimate_execution_time(TPIE_OS_OFFSET n, double & confidence);
-	void start_execution(TPIE_OS_OFFSET n);
-	TPIE_OS_OFFSET end_execution();
+	memory_size_type estimate_execution_time(memory_size_type n, double & confidence);
+	void start_execution(memory_size_type n);
+	memory_size_type end_execution();
 	std::string estimate_remaining_time(double progress);
 
 	static void start_pause();
@@ -84,19 +84,19 @@ public:
 private:
 	size_t m_id;
 	boost::posix_time::ptime m_start_time;
-	TPIE_OS_OFFSET m_estimate;
+	memory_size_type m_estimate;
 	double m_confidence;
 
 	/** Input size */
-	TPIE_OS_OFFSET m_n;
+	memory_size_type m_n;
 
-	TPIE_OS_OFFSET m_pause_time_at_start;
+	memory_size_type m_pause_time_at_start;
 
 #ifndef TPIE_NDEBUG
 	std::string m_name;
 #endif
 
-	static TPIE_OS_OFFSET s_pause_time;
+	static memory_size_type s_pause_time;
 	static boost::posix_time::ptime s_start_pause_time;
 	static bool s_store_times;
 };
