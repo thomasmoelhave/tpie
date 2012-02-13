@@ -64,6 +64,11 @@ class execution_time_predictor {
 public:
 	execution_time_predictor(const std::string & id=std::string());
 	~execution_time_predictor();
+	///////////////////////////////////////////////////////////////////////////
+	/// Estimate execution time.
+	/// \param n Input size
+	/// \param confidence (output) Confidence (between 0.0 and 1.0)
+	///////////////////////////////////////////////////////////////////////////
 	TPIE_OS_OFFSET estimate_execution_time(TPIE_OS_OFFSET n, double & confidence);
 	void start_execution(TPIE_OS_OFFSET n);
 	TPIE_OS_OFFSET end_execution();
@@ -81,7 +86,10 @@ private:
 	boost::posix_time::ptime m_start_time;
 	TPIE_OS_OFFSET m_estimate;
 	double m_confidence;
+
+	/** Input size */
 	TPIE_OS_OFFSET m_n;
+
 	TPIE_OS_OFFSET m_pause_time_at_start;
 
 #ifndef TPIE_NDEBUG

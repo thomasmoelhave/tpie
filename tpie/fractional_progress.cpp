@@ -187,6 +187,15 @@ inline std::string fname(const char * file, const char * function, const char * 
 }
 
 
+///////////////////////////////////////////////////////////////////////////////
+/// Construct a fractional_subindicator.
+/// \param fp The owning fractional_progress
+/// \param id ID of this subindicator
+/// \param file The file that constructed this (see \ref TPIE_FSI)
+/// \param function The function that constructed this (see \ref TPIE_FSI)
+/// \param n Input size
+/// \param crumb Short text describing this job
+///////////////////////////////////////////////////////////////////////////////
 fractional_subindicator::fractional_subindicator(
 	fractional_progress & fp,
 	const char * id,
