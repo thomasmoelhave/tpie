@@ -29,7 +29,6 @@
 #include <tpie/portability.h>
 
 #include <iostream>
-#include <tpie/timer.h>
 #include <time.h>
 #include <boost/date_time.hpp>
 #ifndef _WIN32
@@ -50,7 +49,7 @@ typedef boost::posix_time::ptime tms;
 #else
 using ::tms;
 #endif
-class cpu_timer : public timer {
+class cpu_timer {
 
 private:
 	long        clock_tick_;
