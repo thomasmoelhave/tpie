@@ -38,6 +38,7 @@
 #include <tpie/dummy_progress.h>
 #include <tpie/internal_queue.h>
 #include <tpie/job.h>
+#include <tpie/config.h>
 
 namespace {
 
@@ -290,11 +291,14 @@ void parallel_sort(iterator_type a,
 				   iterator_type b, 
 				   typename tpie::progress_types<Progress>::base & pi,
 				   comp_type comp=std::less<typename boost::iterator_value<iterator_type>::type>()) {
-	// parallel_sort_impl<iterator_type, comp_type> s(&pi);
-	// s(a,b,comp);
+#ifdef TPIE_PARALLEL_SORT
+	parallel_sort_impl<iterator_type, comp_type> s(&pi);
+	s(a,b,comp);
+#else
 	pi.init(1);
 	std::sort(a,b,comp);
 	pi.done();
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -308,9 +312,12 @@ template <typename iterator_type, typename comp_type>
 void parallel_sort(iterator_type a, 
 				   iterator_type b, 
 				   comp_type comp=std::less<typename boost::iterator_value<iterator_type>::type>()) {
-	// parallel_sort_impl<iterator_type, comp_type> s(0);
-	// s(a,b,comp);
+#ifdef TPIE_PARALLEL_SORT
+	parallel_sort_impl<iterator_type, comp_type> s(0);
+	s(a,b,comp);
+#else
 	std::sort(a, b, comp);
+#endif
 }
 
 
