@@ -39,19 +39,23 @@ using namespace tpie::test;
 
 const size_t mb_default=1;
 
+typedef uint64_t count_t; // number of items
+typedef uint64_t elm_t; // type of element we sort
+
 void usage() {
 	std::cout << "Parameters: [times] [mb]" << std::endl;
 }
 
 void test(size_t mb, size_t times) {
 	std::vector<const char *> names;
-	std::vector<double> ti;
-	names.resize(2);
-	ti.resize(2);
+	std::vector<uint64_t> ti;
+	names.resize(3);
+	ti.resize(3);
 	names[0] = "Write";
 	names[1] = "Sort";
+	names[2] = "Hash";
 	tpie::test::stat s(names);
-	TPIE_OS_OFFSET count=TPIE_OS_OFFSET(mb)*1024*1024/sizeof(uint64_t);
+	count_t count=static_cast<count_t>(mb)*1024*1024/sizeof(elm_t);
 	for (size_t i=0; i < times; ++i) {
 		
 		test_realtime_t start;
@@ -62,24 +66,42 @@ void test(size_t mb, size_t times) {
 		//The purpose of this test is to test the speed of the io calls, not the file system
 		getTestRealtime(start);
 		{
-			stream<uint64_t> s("tmp", WRITE_STREAM);
-			for(TPIE_OS_OFFSET i=0; i < count; ++i) {
-				uint64_t x= (i+ 91493)*104729;
+			stream<elm_t> s("tmp", WRITE_STREAM);
+			for(count_t i=0; i < count; ++i) {
+				elm_t x= (i+ 91493)*104729;
 				s.write_item(x);
-		}
+			}
 		}
 		getTestRealtime(end);
 		ti[0] = testRealtimeDiff(start,end);
 		
 		getTestRealtime(start);
 		{
-			stream<uint64_t> s("tmp");
+			stream<elm_t> s("tmp");
 			tpie::ami::sort(&s);
 		}
 		getTestRealtime(end);
 		ti[1] = testRealtimeDiff(start,end);
+
+		elm_t hash = 0;
+		elm_t prev = 0;
+		bool sorted = true;
+		{
+			stream<elm_t> s("tmp", READ_STREAM);
+			for(count_t i=0; i < count; ++i) {
+				elm_t *x;
+				s.read_item(&x);
+				if (i > 0 && prev > *x) {
+					sorted = false;
+				}
+				prev = *x;
+				hash = hash * 13 + *x;
+			}
+		}
 		boost::filesystem::remove("tmp");
-		
+		hash %= 100000000000000;
+		ti[2] = hash;
+		if (!sorted) std::cout << "\nNot sorted!" << std::endl;
 		s(ti);
 	}
 }
