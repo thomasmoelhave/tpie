@@ -62,6 +62,9 @@ private:
 
 	bool        running_;
 
+	inline void set_clock_tick();
+	inline void last_sync_real_declaration();
+
 public:
 	cpu_timer();
 
