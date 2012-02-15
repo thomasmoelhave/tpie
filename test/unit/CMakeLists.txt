@@ -18,9 +18,7 @@ macro(add_fulltest NAME)
 endmacro(add_fulltest)
 
 
-if(Boost_FOUND)
-  add_unittest(hashmap chaining linear_probing iterators memory)
-endif()
+add_unittest(hashmap chaining linear_probing iterators memory)
 add_unittest(memory basic)
 add_unittest(internal_queue basic memory)
 add_unittest(internal_stack basic memory)
@@ -36,8 +34,6 @@ add_fulltest(external_priority_queue medium large large_cycle memory)
 add_unittest(internal_priority_queue basic memory)
 add_fulltest(internal_priority_queue large_cycle)
 
-#disable auto_ptr array test for now
-#add_unittest(array basic iterators segmented memory auto_ptr memory_segmented bit_basic bit_iterators bit_memory)
 add_unittest(array basic iterators segmented memory auto_ptr memory_segmented bit_basic bit_iterators bit_memory)
 
 add_unittest(disjoint_set basic memory)
@@ -52,19 +48,3 @@ add_unittest(external_queue basic medium)
 add_unittest(stream basic)
 
 add_unittest(ami_stream basic)
-
-#add_executable(test_bte test_bte.cpp)
-#set_target_properties(test_bte PROPERTIES FOLDER tpie/unittest)
-#target_link_libraries(test_bte tpie)
-
-#if(NOT WIN32) 
-#set(BTES ${BTES} ufs mmap)
-#endif(NOT WIN32)
-#set(BTES ${BTES} ami_stream cache stdio)
-
-#foreach(bte ${BTES})
-#  foreach(test basic randomread array)
-#    add_test(bte_${bte}_${test} test_bte ${bte} ${test})
-#  endforeach(test)
-#endforeach(bte)
-
