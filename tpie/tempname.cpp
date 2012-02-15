@@ -38,14 +38,6 @@
 #undef NO_ERROR
 #endif
 
-#ifdef _WIN32
-#define	 TMP_DIR ".\\"
-#define TPIE_OS_DIR_DELIMITER "\\"
-#else
-#define	TMP_DIR	"/var/tmp/"
-#define TPIE_OS_DIR_DELIMITER "/"
-#endif
-
 using namespace tpie;
 
 boost::rand48 prng(42);
@@ -91,14 +83,14 @@ std::string tempname::tpie_name(const std::string& post_base, const std::string&
 	else 
 		base_dir = tempname::get_actual_path();
 
-	std::string path;	
+	boost::filesystem::path p = base_dir;
 	for(int i=0; i < 42; ++i) {
 		if(post_base.empty())
-			path = base_dir + TPIE_OS_DIR_DELIMITER + base_name + "_" + tpie_mktemp() + "." + extension;
+			p = p / (base_name + "_" + tpie_mktemp() + "." + extension);
 		else 
-			path = base_dir + TPIE_OS_DIR_DELIMITER + base_name + "_" + post_base + "_" + tpie_mktemp() + "." + extension;
-		if ( !boost::filesystem::exists(path) )
-			return path;
+			p = p / (base_name + "_" + post_base + "_" + tpie_mktemp() + "." + extension);
+		if ( !boost::filesystem::exists(p) )
+			return p.file_string();
 	}
 	throw tempfile_error("Unable to find free name for temporary file");
 }
@@ -116,14 +108,14 @@ std::string tempname::tpie_dir_name(const std::string& post_base, const std::str
 	else 
 		base_dir = tempname::get_actual_path();
 
-	std::string path;	
+	boost::filesystem::path p = base_dir;
 	for(int i=0; i < 42; ++i) {
 		if(post_base.empty())
-			path = base_dir + TPIE_OS_DIR_DELIMITER + base_name + "_" + tpie_mktemp();
+			p = p / (base_name + "_" + tpie_mktemp());
 		else 
-			path = base_dir + TPIE_OS_DIR_DELIMITER + base_name + "_" + post_base + "_" + tpie_mktemp();
-		if ( !boost::filesystem::exists(path) )
-			return path;
+			p = p / (base_name + "_" + post_base + "_" + tpie_mktemp());
+		if ( !boost::filesystem::exists(p) )
+			return p.file_string();
 	}
 	throw tempfile_error("Unable to find free name for temporary file");
 }
@@ -177,7 +169,8 @@ void tempname::set_default_path(const std::string&  path, const std::string& sub
 		default_path = path;
 		return;
 	}
-	std::string p = path+TPIE_OS_DIR_DELIMITER+subdir;
+	boost::filesystem::path p = path;
+	p = p / subdir;
 	try {
 		if (!boost::filesystem::exists(p)) {
 			boost::filesystem::create_directory(p);
@@ -186,7 +179,7 @@ void tempname::set_default_path(const std::string&  path, const std::string& sub
 			default_path = path;
 			TP_LOG_WARNING_ID("Could not use " << p << " as directory for temporary files, trying " << path);
 		}
-		default_path = p;
+		default_path = p.directory_string();
 	} catch (boost::filesystem::filesystem_error) { 
 		TP_LOG_WARNING_ID("Could not use " << p << " as directory for temporary files, trying " << path);
 		default_path = path; 
