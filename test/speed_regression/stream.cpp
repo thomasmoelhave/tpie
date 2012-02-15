@@ -44,11 +44,12 @@ void usage() {
 
 void test(size_t mb, size_t times) {
 	std::vector<const char *> names;
-	std::vector<double> ti;
-	names.resize(2);
-	ti.resize(2);
+	std::vector<uint64_t> ti;
+	names.resize(3);
+	ti.resize(3);
 	names[0] = "Write";
 	names[1] = "Read";
+	names[2] = "Hash";
 	tpie::test::stat s(names);
 	size_t count=mb*1024*1024/sizeof(uint64_t);
 	
@@ -58,7 +59,6 @@ void test(size_t mb, size_t times) {
 		
 		boost::filesystem::remove("tmp");
 		
-		uint64_t res=0;
 		//The purpose of this test is to test the speed of the io calls, not the file system
 		getTestRealtime(start);
 		{
@@ -69,17 +69,20 @@ void test(size_t mb, size_t times) {
 		getTestRealtime(end);
 		ti[0] = testRealtimeDiff(start,end);
 		
+		uint64_t hash = 0;
 		getTestRealtime(start);
 		{
 			stream<uint64_t> s("tmp", READ_STREAM);
 			uint64_t * x;
 			for(size_t i=0; i < count; ++i) {
 				s.read_item(&x);
-				res += *x;
+				hash = hash * 13 + *x;
 			}
 		}
 		getTestRealtime(end);
+		hash %= 100000000000000;
 		ti[1] = testRealtimeDiff(start,end);
+		ti[2] = hash;
 		boost::filesystem::remove("tmp");
 		s(ti);
 
