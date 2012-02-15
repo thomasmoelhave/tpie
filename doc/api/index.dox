@@ -8,7 +8,7 @@ structures on very large sets of data.
 
 \subsection sec_install Installation on Linux
 
-You will need Git, Cmake and a C++ compiler in order to use TPIE. On a modern
+You will need Git, CMake and a C++ compiler in order to use TPIE. On a modern
 Linux system, the following steps will suffice.
 
 First, clone the <a href="https://github.com/thomasmoelhave/tpie">git repository</a> and
@@ -20,7 +20,7 @@ cd tpie
 git checkout master
 \endverbatim
 
-Now, create a build directory and run Cmake followed by make.
+Now, create a build directory and run CMake followed by make.
 
 \verbatim
 mkdir build
@@ -29,10 +29,10 @@ cmake -D CMAKE_BUILD_TYPE:STRING=Release ..
 make tpie
 \endverbatim
 
-This will generate the static library <tt>libtpie.a</tt> in the \c build/tpie folder. To
-link your application with TPIE, you will now want to add the TPIE root and the
-build folder to your project's header file include path, and add the build/tpie
-folder to your project's library path.
+This will generate the static library \c libtpie.a in the \c build/tpie folder.
+To link your application with TPIE, you will now want to add the TPIE root and
+the build folder to your project's header file include path, and add the
+\c build/tpie folder to your project's library path.
 
 To run the unit tests, use CTest.
 
@@ -48,7 +48,7 @@ with the token \c ut-.
 
 As above, clone the <a href="https://github.com/thomasmoelhave/tpie">git repository</a> at
 <tt>git://github.com/thomasmoelhave/tpie.git</tt>, perhaps using TortoiseGit, and set
-up the build environment using Cmake, perhaps using the Cmake GUI. TPIE is
+up the build environment using CMake, perhaps using the CMake GUI. TPIE is
 known to work with the Microsoft Visual Studio 2008 and 2010 compilers. Be sure
 to select a 64-bit build when your platform supports it.
 
@@ -77,7 +77,9 @@ file a <a href="https://github.com/thomasmoelhave/tpie/issues">bug report on Git
 Originally, TPIE was known as the Transparent Portable I/O Environment and was
 hosted by <a href="http://www.cs.duke.edu/TPIE/">Duke University</a>. Later, the work has
 been picked up by researchers at <a href="http://www.madalgo.au.dk/Trac-tpie">MADALGO, Aarhus
-University</a>. As of 2012, the current
-maintainer is <a href="http://cs.au.dk/~rav/">Mathias Rav</a>.
+University</a>.
+
+As of 2012, the current maintainer is
+<a href="http://cs.au.dk/~rav/">Mathias Rav</a>.
 
 */
