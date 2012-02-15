@@ -38,6 +38,8 @@ using namespace tpie::test;
 
 const size_t default_mb=1;
 
+typedef uint64_t count_t;
+
 void usage() {
 	std::cout << "Parameters: [times] [mb]" << std::endl;
 }
@@ -51,7 +53,7 @@ void test(size_t mb, size_t times) {
 	names[1] = "Read";
 	names[2] = "Hash";
 	tpie::test::stat s(names);
-	size_t count=mb*1024*1024/sizeof(uint64_t);
+	count_t count=mb*1024*1024/sizeof(uint64_t);
 	
 	for(size_t i = 0; i < times; ++i) {
 		test_realtime_t start;
@@ -64,7 +66,7 @@ void test(size_t mb, size_t times) {
 		{
 			stream<uint64_t> s("tmp", WRITE_STREAM);
 			uint64_t x=42;
-			for(size_t i=0; i < count; ++i) s.write_item(x);
+			for(count_t i=0; i < count; ++i) s.write_item(x);
 		}
 		getTestRealtime(end);
 		ti[0] = testRealtimeDiff(start,end);
@@ -74,7 +76,7 @@ void test(size_t mb, size_t times) {
 		{
 			stream<uint64_t> s("tmp", READ_STREAM);
 			uint64_t * x;
-			for(size_t i=0; i < count; ++i) {
+			for(count_t i=0; i < count; ++i) {
 				s.read_item(&x);
 				hash = hash * 13 + *x;
 			}
