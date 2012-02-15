@@ -270,23 +270,19 @@ public:
     ////////////////////////////////////////////////////////////////////////////
 	static memory_size_type memory_usage(memory_size_type count);
   
-    ////////////////////////////////////////////////////////////////////////////
-    /// Returns a \ref tpie_stats_stream object containing  statistics of 
-    /// the stream. 
-    ////////////////////////////////////////////////////////////////////////////
-    struct stats_stream & stats() const { 
-		tp_assert(0, "stream::stats() is no longer supported");
-		return *((stats_stream *)0);
-    }
+	// This method used to return a statistics object, but this is no longer
+	// supported.
+    //struct stats_stream & stats() const { 
+	//	tp_assert(0, "stream::stats() is no longer supported");
+	//	return *((stats_stream *)0);
+    //}
 
-    ////////////////////////////////////////////////////////////////////////////
-    /// Returns a \ref tpie_stats_stream object containing  statistics of 
-    /// the entire tpie system. 
-    ////////////////////////////////////////////////////////////////////////////
-	static stats_stream & gstats() {
-		tp_assert(0, "stream::stats() is no longer supported");
-		return *((stats_stream *)0);
-	}
+	// This method used to return a statistics object, but this is no longer
+	// supported.
+	//static stats_stream & gstats() {
+	//	tp_assert(0, "stream::stats() is no longer supported");
+	//	return *((stats_stream *)0);
+	//}
 
     ////////////////////////////////////////////////////////////////////////////
     /// Returns the number of globally available streams.
