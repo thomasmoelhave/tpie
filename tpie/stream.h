@@ -33,14 +33,7 @@
 // Get the error codes.
 #include <tpie/err.h>
 #include <tpie/persist.h>
-#include <tpie/stats_stream.h>
-// Get the device description class
 
-// Get an appropriate BTE.  Flags may have been set to determine
-// exactly what BTE implementaion will be used, but that should be of
-// little concern to us.  bte/stream.h and recursively included files
-// will worry about parsing the appropriate flags and getting us an
-// implementation.
 #include <tpie/tempname.h>
 #include <tpie/file_stream.h>
 #include <tpie/file_count.h>
@@ -48,6 +41,8 @@
 #include <tpie/tpie_log.h>
 
 #include <tpie/stream_usage.h>
+
+#include <tpie/tpie_assert.h>
 
 namespace tpie {
 
@@ -279,16 +274,18 @@ public:
     /// Returns a \ref tpie_stats_stream object containing  statistics of 
     /// the stream. 
     ////////////////////////////////////////////////////////////////////////////
-    stats_stream stats() const { 
-		return stats_stream();
+    struct stats_stream & stats() const { 
+		tp_assert(0, "stream::stats() is no longer supported");
+		return *((stats_stream *)0);
     }
 
     ////////////////////////////////////////////////////////////////////////////
     /// Returns a \ref tpie_stats_stream object containing  statistics of 
     /// the entire tpie system. 
     ////////////////////////////////////////////////////////////////////////////
-	static stats_stream gstats() {
-		return stats_stream();
+	static stats_stream & gstats() {
+		tp_assert(0, "stream::stats() is no longer supported");
+		return *((stats_stream *)0);
 	}
 
     ////////////////////////////////////////////////////////////////////////////
