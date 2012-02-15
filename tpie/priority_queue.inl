@@ -17,16 +17,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-#if defined(_WIN32) && !defined(__MINGW32__)
-inline int TPIE_OS_UNLINK(const std::string& filename) {
-    return _unlink(filename.c_str());
-}
-#else
-inline int TPIE_OS_UNLINK(const std::string& filename) {
-    return ::unlink(filename.c_str());
-}
-#endif
-
 template<typename T, typename Comparator, typename OPQType>
 priority_queue<T, Comparator, OPQType>::priority_queue(double f, double b) :
 block_factor(b) { // constructor mem fraction
@@ -191,10 +181,10 @@ void priority_queue<T, Comparator, OPQType>::init(TPIE_OS_SIZE_T mm_avail) { // 
 template <typename T, typename Comparator, typename OPQType>
 priority_queue<T, Comparator, OPQType>::~priority_queue() { // destructor
 	for(TPIE_OS_SIZE_T i = 0; i < setting_k*setting_k; i++) { // unlink slots
-		TPIE_OS_UNLINK(slot_data(i));
+		boost::filesystem::remove(slot_data(i));
 	}
 	for(TPIE_OS_SIZE_T i = 0; i < setting_k; i++) { // unlink groups 
-		TPIE_OS_UNLINK(group_data(i));
+		boost::filesystem::remove(group_data(i));
 	}
 
 	buffer.resize(0);
