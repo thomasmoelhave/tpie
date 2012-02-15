@@ -76,7 +76,6 @@ add_subdirectory(tpie)
 add_subdirectory(doc)
 
 option(COMPILE_TEST "Compile test programs" ON)
-option(TPIE_USE_EXCEPTIONS "Throw exceptions on certain errors." ON)
 option(TPL_LOGGING "Enable tpie logging." ON)
 option(TPIE_THREADSAFE_MEMORY_MANAGEMNT "Thread safe memory managment" ON)
 option(TPIE_FRACTION_STATS "Output fraction statistics" OFF)
