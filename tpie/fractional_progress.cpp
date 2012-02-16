@@ -135,8 +135,7 @@ public:
 
 static fraction_db * fdb = 0;
 
-void init_fraction_db(TPIE_OS_OFFSET range=0) {
-	unused(range);
+void init_fraction_db() {
 	if (fdb) return;
 	fdb = tpie_new<fraction_db>();
 }
@@ -271,7 +270,8 @@ fractional_progress::fractional_progress(progress_indicator_base * pi):
 #endif
 	m_confidence(1.0), m_total_sum(0), m_time_sum(0), m_timed_sum(0) {}
 	
-void fractional_progress::init() {
+void fractional_progress::init(TPIE_OS_OFFSET range) {
+	unused(range);
 #ifndef TPIE_NDEBUG
 	if (m_init_called) {
 		std::stringstream s;
