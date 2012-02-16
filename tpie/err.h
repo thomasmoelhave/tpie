@@ -54,8 +54,7 @@ namespace tpie {
 	    BASE_METHOD,
 	    /** An error occurred at the BTE level. */
 	    BTE_ERROR,
-	    /** An error occurred within the memory manager 
-	     * (of type \ref tpie::mem::manager). */
+	    /** An error occurred within the memory manager */
 	    MM_ERROR,
 	    /** An TPIE entry point was not able to properly initialize the operation
 	     *  management object that was passed to it.  This generally indicates 
@@ -65,7 +64,7 @@ namespace tpie {
 	    OBJECT_INVALID,
 	    /** A passed object is inaccessible due to insufficient permissions. */
 	    PERMISSION_DENIED,
-      /** The memory manger (of type \ref tpie::mem::manager) could not make 
+      /** The memory manager could not make 
        * adequate main memory available to complete the 
        * requested operation.  Many operations adapt themselves to use whatever 
        * main memory is available, but in some cases, when memory is extremely

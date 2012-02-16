@@ -319,6 +319,7 @@ namespace tpie {
 	}
 
   ///////////////////////////////////////////////////////////////////////////
+  /// \deprecated
   /// In-place sorting variant of \ref ptr_sort(stream<T> *instream_ami, stream<T> *outstream_ami, progress_indicator_base* indicator=NULL),
   /// see also \ref sortingspace_in_tpie "In-place Variants for Sorting in TPIE".
   ///////////////////////////////////////////////////////////////////////////
@@ -332,7 +333,8 @@ namespace tpie {
 	}
 
   ///////////////////////////////////////////////////////////////////////////
-  /// In-place sorting variant of \ref ptr_sort(stream<T> *instream_ami, stream<T> *outstream_ami, CMPR *cmp, progress_indicator_base* indicator=NULL),
+  /// \deprecated
+  /// In-place sorting variant of ptr_sort
   /// see also \ref sortingspace_in_tpie "In-place Variants for Sorting in TPIE".
   ///////////////////////////////////////////////////////////////////////////
 	namespace ami {
@@ -345,6 +347,7 @@ namespace tpie {
 	}
 
   ///////////////////////////////////////////////////////////////////////////
+  /// \deprecated
   /// In-place sorting variant of \ref key_sort(stream<T> *instream_ami, stream<T> *outstream_ami, KEY dummykey, CMPR *cmp, progress_indicator_base* indicator=NULL),
   /// see also \ref sortingspace_in_tpie "In-place Variants for Sorting in TPIE".
   ///////////////////////////////////////////////////////////////////////////

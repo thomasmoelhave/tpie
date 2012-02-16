@@ -135,7 +135,8 @@ public:
 
 static fraction_db * fdb = 0;
 
-void init_fraction_db() {
+void init_fraction_db(TPIE_OS_OFFSET range=0) {
+	unused(range);
 	if (fdb) return;
 	fdb = tpie_new<fraction_db>();
 }

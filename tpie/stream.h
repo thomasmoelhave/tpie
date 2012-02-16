@@ -426,9 +426,8 @@ private:
 	    return NO_ERROR;
 	}
 
-
 template<class T>
-size_type stream<T>::memory_usage(size_type count) {
+memory_size_type stream<T>::memory_usage(memory_size_type count) {
 	return file_stream<T>::memory_usage(count) + sizeof(stream<T>)*count;
 }
 	
@@ -478,7 +477,7 @@ size_type stream<T>::memory_usage(size_type count) {
 	}
 
 	template<class T>
-	err stream<T>::read_array(T *mm_space, size_type & len) {
+	err stream<T>::read_array(T *mm_space, memory_size_type & len) {
 		size_type l = static_cast<size_type>(std::min(
 			static_cast<stream_size_type>(len), 
 			static_cast<stream_size_type>(m_stream.size() - m_stream.offset())));

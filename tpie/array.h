@@ -85,7 +85,7 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \copydoc array_facade::at(size_t)
+	/// \copydoc tpie::array_facade::at(size_t i)
 	///////////////////////////////////////////////////////////////////////////
 	const T & at(size_t i) const throw() {
 		assert(i < self().size());
@@ -269,14 +269,14 @@ template <typename T, bool segmented=false, template <typename> class alloc_t=tp
 class array_base: public array_facade<array_base<T, segmented, alloc_t>, T, array_iter_base> {
 public:
 	///////////////////////////////////////////////////////////////////////////
-	/// \copydoc linear_memory_structure_doc::memory_coefficient()
+	/// \copydoc tpie::linear_memory_structure_doc::memory_coefficient()
 	///////////////////////////////////////////////////////////////////////////
 	static double memory_coefficient() {
 		return (double)sizeof(T);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \copydoc linear_memory_structure_doc::memory_overhead()
+	/// \copydoc tpie::linear_memory_structure_doc::memory_overhead()
 	///////////////////////////////////////////////////////////////////////////
 	static double memory_overhead() {return sizeof(array_base);}
 

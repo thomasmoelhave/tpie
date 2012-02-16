@@ -76,16 +76,12 @@ public:
     /////////////////////////////////////////////////////////
     priority_queue(double f=1.0, double b=1.0);
 
-	/////////////////////////////////////////////////////////
-    ///
-    /// Constructor
-    ///
-    /// \param mmavail Number of bytes the priority queue is
-    /// allowed to use.
-	/// \param b Block factor
-    ///
-    /////////////////////////////////////////////////////////
+#ifndef DOXYGEN
+    // \param mmavail Number of bytes the priority queue is
+    // allowed to use.
+	// \param b Block factor
     priority_queue(TPIE_OS_SIZE_T mm_avail, double b=1.0);
+#endif
 
 
     /////////////////////////////////////////////////////////

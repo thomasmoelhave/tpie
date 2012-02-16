@@ -29,8 +29,9 @@ void copystream(const string & infile, const string & outfile) {
 }
 \endcode
 
-The main methods of interest are \ref file_stream::open(), \ref file_stream::close(),
-\ref file_stream::read(), \ref file_stream::write(), \ref file_stream::seek().
+The main methods of interest are \ref tpie::file_stream::open(),
+\ref tpie::file_stream::close(), \ref tpie::file_stream::read(),
+\ref tpie::file_stream::write(), \ref tpie::file_stream::seek().
 
 By default, \ref file_stream reads and writes blocks of size 2 MB at a time. You can
 change this by passing a block factor to the constructor of file_stream.

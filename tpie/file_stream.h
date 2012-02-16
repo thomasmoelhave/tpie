@@ -47,7 +47,7 @@ public:
 	/////////////////////////////////////////////////////////////////////////
 	/// \brief Construct a new file_stream.
 	/// 
-	/// \copydetails file<T>::file(double, file_accessor::file_accessor *)
+	/// \copydetails tpie::file::file(double blockFactor, file_accessor::file_accessor * fileAccessor)
 	/////////////////////////////////////////////////////////////////////////
 	inline file_stream(double blockFactor=1.0, 
 					   file_accessor::file_accessor * fileAccessor=NULL)
@@ -89,11 +89,11 @@ public:
 	/////////////////////////////////////////////////////////////////////////
 	inline void open(const std::string & path,
 					 file_base::access_type accessType=file_base::read_write,
-					 memory_size_type user_data_size=0) throw (stream_exception) {
+					 memory_size_type userDataSize=0) throw (stream_exception) {
 		close();
 		m_canRead = accessType == file_base::read || accessType == file_base::read_write;
 		m_canWrite = accessType == file_base::write || accessType == file_base::read_write;
-		m_fileAccessor->open(path, m_canRead, m_canWrite, m_itemSize, user_data_size);
+		m_fileAccessor->open(path, m_canRead, m_canWrite, m_itemSize, userDataSize);
 		m_size = m_fileAccessor->size();
 		m_open = true;
 

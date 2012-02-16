@@ -39,20 +39,21 @@ struct dummy_progress_indicator;
 ///////////////////////////////////////////////////////////////////////////////
 
 struct dummy_fraction_progress {
-	/// \copybrief tpie::fractional_progress::fractional_progress(progress_indicator_base *)
-	/// \copydetails tpie::fractional_progress::fractional_progress(progress_indicator_base *)
+	///////////////////////////////////////////////////////////////////////////
+	/// Dummy constructor that does nothing.
+	///////////////////////////////////////////////////////////////////////////
 	inline dummy_fraction_progress(tpie::progress_indicator_base *) {
 		// Do nothing.
 	}
 
-	/// \copybrief tpie::fractional_progress::fractional_progress()
-	/// \copydetails tpie::fractional_progress::fractional_progress()
+	///////////////////////////////////////////////////////////////////////////
+	/// Dummy constructor that does nothing.
+	///////////////////////////////////////////////////////////////////////////
 	inline dummy_fraction_progress(dummy_progress_indicator *) {
 		// Do nothing.
 	}
 
-	/// \copybrief tpie::fractional_progress::id()
-	/// \copydetails tpie::fractional_progress::id()
+	/// \copydoc tpie::fractional_progress::id()
 	inline dummy_fraction_progress & id() {
 		return *this;
 	}
@@ -64,7 +65,8 @@ struct dummy_fraction_progress {
 
 	/// \copybrief tpie::fractional_progress::init()
 	/// \copydetails tpie::fractional_progress::init()
-	inline void init() {
+	inline void init(TPIE_OS_OFFSET range = 0) {
+		unused(range);
 	}
 
 	/// \copybrief tpie::fractional_progress::done()
@@ -93,26 +95,24 @@ struct dummy_progress_indicator {
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \copybrief progress_indicator_base::init(TPIE_OS_OFFSET)
-	/// \copydetails progress_indicator_base::init(TPIE_OS_OFFSET)
+	/// \copydoc progress_indicator_base::init(TPIE_OS_OFFSET)
 	///////////////////////////////////////////////////////////////////////////
-	inline void init(TPIE_OS_OFFSET) { }
+	inline void init(TPIE_OS_OFFSET range = 0) {
+		unused(range);
+	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \copybrief progress_indicator_base::step(TPIE_OS_OFFSET)
-	/// \copydetails progress_indicator_base::step(TPIE_OS_OFFSET)
+	/// \copydoc progress_indicator_base::step(TPIE_OS_OFFSET)
 	///////////////////////////////////////////////////////////////////////////
 	inline void step(TPIE_OS_OFFSET) { }
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \copybrief progress_indicator_base::step(TPIE_OS_OFFSET)
-	/// \copydetails progress_indicator_base::step(TPIE_OS_OFFSET)
+	/// \copydoc progress_indicator_base::step(TPIE_OS_OFFSET)
 	///////////////////////////////////////////////////////////////////////////
 	inline void step() { }
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \copybrief progress_indicator_base::done()
-	/// \copydetails progress_indicator_base::done()
+	/// \copydoc progress_indicator_base::done()
 	///////////////////////////////////////////////////////////////////////////
 	inline void done() { }
 };

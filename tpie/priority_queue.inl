@@ -30,6 +30,7 @@ block_factor(b) { // constructor mem fraction
 	init(mm_avail);
 }
 
+#ifndef DOXYGEN
 template<typename T, typename Comparator, typename OPQType>
 priority_queue<T, Comparator, OPQType>::priority_queue(TPIE_OS_SIZE_T mm_avail, double b) :
 block_factor(b) { // constructor absolute mem
@@ -40,6 +41,7 @@ block_factor(b) { // constructor absolute mem
 				 << static_cast<TPIE_OS_OUTPUT_SIZE_T>(mm_avail) << "bytes)" << "\n");
 	init(mm_avail);
 }
+#endif
 
 template<typename T, typename Comparator, typename OPQType>
 void priority_queue<T, Comparator, OPQType>::init(TPIE_OS_SIZE_T mm_avail) { // init 

@@ -107,6 +107,10 @@ public:
 		}
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Initialize progress indicator.
+	/// \param range The number of times step() is going to be called.
+	///////////////////////////////////////////////////////////////////////////
 	virtual void init(TPIE_OS_OFFSET range=0) {
 		if (range != 0) set_range(range);
 	    m_current = 0;
