@@ -23,48 +23,8 @@
 ///////////////////////////////////////////////////////////////////////////
 /// \file sort.h
 /// Sorting algorithms.
-/// \anchor sorting_in_tpie \par Sorting in TPIE:
-/// TPIE offers three
-/// merge sorting variants. The user must decide which variant is most
-/// appropriate for their circumstances. All accomplish the same goal,
-/// but the performance can vary depending on the situation. They differ
-/// mainly in the way they perform the merge phase of merge sort,
-/// specifically how they maintain their heap data structure used in the
-/// merge phase. The three variants are the following: 
-/// sort(), ptr_sort(), key_sort().
-///
-///
-/// \par sort()
-/// keeps the (entire) first record of each
-/// sorted run (each is a stream) in a heap. This approach is most
-/// suitable when the record consists entirely of the record key.
-/// 
-/// \par ptr_sort() 
-/// keeps a pointer to the first record of
-/// each stream in the heap. This approach works best when records are
-/// very long and the key field(s) take up a large percentage of the
-/// record.
-///
-/// \par key_sort()
-/// keeps the key field(s) and a pointer
-/// to the first record of each stream in the heap. This approach works
-/// best when the key field(s) are small in comparison to the record
-/// size.
-/// 
-/// Any of these variants will accomplish the task of sorting an input
-/// stream in an I/O efficient way, but there can be noticeable
-/// differences in processing time between the variants. As an example,
-/// key_sort() appears to be more cache-efficient than the
-/// others in many cases, and therefore often uses less processor time,
-/// despite extra data movement relative to ptr_sort().
-/// 
-/// In addition to the three variants discussed above, there are multiple
-/// choices within each variant regarding how the actual comparison
-/// operations are to be performed. These choices are described in some detail
-/// for sort().
-///  
 /// \anchor sortingspace_in_tpie \par In-place Variants for Sorting in TPIE:
-/// Any sort variant above can sort given an input stream and output stream,
+/// TPIE can sort given an input stream and output stream,
 /// or just an input stream. When just an input stream is specified, the
 /// original input elements are deleted the input stream is rewritten with the
 /// sorted output elements. If both the input stream and output stream are
@@ -77,7 +37,6 @@
 /// recommended that users use the sort() polymorph with with just
 /// an input stream, to save space and avoid having to maintain both an input
 /// and output stream. 
-/// \internal \todo make sure doc is ame as in overview manual
 ///////////////////////////////////////////////////////////////////////////
 
 // Get definitions for working with Unix and Windows
