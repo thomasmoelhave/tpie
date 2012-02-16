@@ -19,7 +19,7 @@ file a <a href="https://github.com/thomasmoelhave/tpie/issues">bug report on Git
 \subsection sec_usage Usage
 
 <ul>
-<li> \ref fsu</li>
+<li> \ref file_stream</li>
 <li> \ref sorting</li>
 <li> \ref memory</li>
 <li> \ref progress</li>

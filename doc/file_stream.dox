@@ -1,5 +1,5 @@
 /**
-\page fsu file_stream usage
+\page file_stream file_stream usage
 
 The central class in TPIE for reading from files and writing to files is the
 file_stream class. It reads and writes primitives and primitive structures to
