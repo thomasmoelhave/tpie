@@ -11,19 +11,15 @@ structures on very large sets of data.
 If you have problems compiling or using TPIE, consult the API documentation, or
 file a <a href="https://github.com/thomasmoelhave/tpie/issues">bug report on GitHub</a>.
 
-<ul>
-<li>\ref files</li>
-<li>\ref install</li>
-</ul>
+  - \ref files
+  - \ref install
 
 \subsection sec_usage Usage
 
-<ul>
-<li> \ref file_stream</li>
-<li> \ref sorting</li>
-<li> \ref memory</li>
-<li> \ref progress</li>
-</ul>
+  - \ref file_stream
+  - \ref sorting
+  - \ref memory
+  - \ref progress
 
 \subsection sec_history History
 
