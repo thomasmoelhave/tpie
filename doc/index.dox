@@ -18,6 +18,7 @@ file a <a href="https://github.com/thomasmoelhave/tpie/issues">bug report on Git
 
   - \ref file_stream
   - \ref sorting
+  - \ref priority_queue
   - \ref memory
   - \ref progress
 
