@@ -239,6 +239,19 @@ bool sort_test() {
 	return check_test_vectors();
 }
 
+// This tests that pipe_middle | pipe_middle -> pipe_middle,
+// and that pipe_middle | pipe_end -> pipe_end.
+// The other tests already test that pipe_begin | pipe_middle -> pipe_middle,
+// and that pipe_begin | pipe_end -> pipeline.
+bool operator_test() {
+	setup_test_vectors();
+	expectvector = inputvector;
+	std::reverse(inputvector.begin(), inputvector.end());
+	pipeline p = input_vector(inputvector) | ((pipesort() | pipesort()) | output_vector(outputvector));
+	p();
+	return check_test_vectors();
+}
+
 // Type of test function
 typedef bool fun_t();
 
@@ -315,6 +328,8 @@ int main(int argc, char ** argv) {
 	.test<file_stream_alt_push_test>("fsaltpush")
 	.test<merge_test>("merge")
 	.test<reverse_test>("reverse")
-	.test<sort_test>("sort");
+	.test<sort_test>("sort")
+	.test<operator_test>("operators")
+	;
 	return EXIT_FAILURE;
 }

@@ -53,7 +53,7 @@ add_unittest(stream basic)
 
 add_unittest(ami_stream basic)
 
-add_unittest(pipelining vector filestream fspull fsaltpush merge reverse sort)
+add_unittest(pipelining vector filestream fspull fsaltpush merge reverse sort operators)
 
 #add_executable(test_bte test_bte.cpp)
 #set_target_properties(test_bte PROPERTIES FOLDER tpie/unittest)
