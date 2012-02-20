@@ -42,17 +42,6 @@
 
 namespace {
 
-///////////////////////////////////////////////////////////////////////////////
-/// \brief Internal class for parallel progress reporting.
-///////////////////////////////////////////////////////////////////////////////
-struct progress_t {
-	tpie::progress_indicator_base * pi;
-	boost::uint64_t work_estimate;
-	boost::uint64_t total_work_estimate;
-	boost::condition_variable cond;
-	boost::mutex mutex;
-};
-
 }
 namespace tpie {
 
@@ -64,11 +53,23 @@ namespace tpie {
 /// machine cores.
 /// Uses the pseudo median of nine as pivot.
 ///////////////////////////////////////////////////////////////////////////////
-template <typename iterator_type, typename comp_type,
+template <typename iterator_type, typename comp_type, bool Progress,
 		  size_t min_size=1024*1024*8/sizeof(typename boost::iterator_value<iterator_type>::type)>
 class parallel_sort_impl {
 private:
+	typedef progress_types<Progress> P;
 	boost::mt19937 rng;	
+
+	///////////////////////////////////////////////////////////////////////////////
+	/// \brief Internal class for parallel progress reporting.
+	///////////////////////////////////////////////////////////////////////////////
+	struct progress_t {
+		typename P::base * pi;
+		boost::uint64_t work_estimate;
+		boost::uint64_t total_work_estimate;
+		boost::condition_variable cond;
+		boost::mutex mutex;
+	};
 
 	/** \brief The type of the values we sort. */
 	typedef typename boost::iterator_value<iterator_type>::type value_type;
@@ -232,7 +233,7 @@ public:
 		}
 	};
 public:
-	parallel_sort_impl(progress_indicator_base * p) {
+	parallel_sort_impl(typename P::base * p) {
 		progress.pi = p;
 	}
 
@@ -292,7 +293,7 @@ void parallel_sort(iterator_type a,
 				   typename tpie::progress_types<Progress>::base & pi,
 				   comp_type comp=std::less<typename boost::iterator_value<iterator_type>::type>()) {
 #ifdef TPIE_PARALLEL_SORT
-	parallel_sort_impl<iterator_type, comp_type> s(&pi);
+	parallel_sort_impl<iterator_type, comp_type, Progress> s(&pi);
 	s(a,b,comp);
 #else
 	pi.init(1);
@@ -313,7 +314,7 @@ void parallel_sort(iterator_type a,
 				   iterator_type b, 
 				   comp_type comp=std::less<typename boost::iterator_value<iterator_type>::type>()) {
 #ifdef TPIE_PARALLEL_SORT
-	parallel_sort_impl<iterator_type, comp_type> s(0);
+	parallel_sort_impl<iterator_type, comp_type, false> s(0);
 	s(a,b,comp);
 #else
 	std::sort(a, b, comp);
