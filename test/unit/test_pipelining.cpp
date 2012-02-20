@@ -239,54 +239,82 @@ bool sort_test() {
 	return check_test_vectors();
 }
 
-// True if all tests pass, false otherwise
-bool result;
-
-// Name of test to run
-std::string testname;
-
-// Whether we should run all tests
-bool testall;
-
-// How many tests were run (if 0, usage is printed)
-int tests;
-
 // Type of test function
 typedef bool fun_t();
 
-// Run test, increment `tests', set `result' if failed, output if `testall'
-template <fun_t f>
-inline void test(const char * name) {
-	if (!testall && testname != name) return;
-	++tests;
-	bool pass = f();
-	if (testall)
-		std::cerr << "Test \"" << name << "\" " << (pass ? "passed" : "failed") << std::endl;
+struct tests_t {
 
-	if (!pass) result = false;
-}
+	const char * progname;
+
+	// How many tests were run (if 0, usage is printed)
+	int tests;
+
+	// True if all tests pass, false otherwise
+	bool result;
+
+	// Name of test to run
+	std::string testname;
+
+	// Whether we should run all tests
+	bool testall;
+
+	std::stringstream usagestring;
+
+	tpie_initer initer;
+
+	tests_t(int argc, char ** argv)
+		: progname(argv[0])
+		, tests(0)
+		, result(true)
+		, testname("")
+		, testall(false)
+		, initer(32)
+	{
+		if (argc > 1) {
+			testname = argv[1];
+		}
+		if (testname == "all") {
+			testall = true;
+		}
+	}
+
+	~tests_t() {
+		file_system_cleanup();
+		if (!tests) usage();
+		exit(result ? EXIT_SUCCESS : EXIT_FAILURE);
+	}
+
+	// Run test, increment `tests', set `result' if failed, output if `testall'
+	template <fun_t f>
+	inline tests_t & test(const char * name) {
+		usagestring << '|' << name;
+
+		if (!testall && testname != name) return *this;
+		++tests;
+		bool pass = f();
+		if (testall)
+			std::cerr << "Test \"" << name << "\" " << (pass ? "passed" : "failed") << std::endl;
+
+		if (!pass) result = false;
+
+		return *this;
+	}
+
+	void usage() {
+		std::cerr << "Usage: " << progname << " [all" << usagestring.str() << ']' << std::endl;
+		exit(EXIT_FAILURE);
+	}
+
+};
 
 int main(int argc, char ** argv) {
-	if (argc <= 1) {
-		testname = "";
-	} else {
-		testname = argv[1];
-	}
-	testall = testname == "all";
-	tpie_initer _(32);
-	result = true;
-	tests = 0;
-	test<vector_multiply_test>("vector");
-	test<file_stream_test>("filestream");
-	test<file_stream_pull_test>("fspull");
-	test<file_stream_alt_push_test>("fsaltpush");
-	test<merge_test>("merge");
-	test<reverse_test>("reverse");
-	test<sort_test>("sort");
-	file_system_cleanup();
-	if (!tests) {
-		std::cerr << "Usage: " << argv[0] << " [all|vector|filestream|fspull|fsaltpush]" << std::endl;
-		return EXIT_FAILURE;
-	}
-	return result ? EXIT_SUCCESS : EXIT_FAILURE;
+	tests_t(argc, argv)
+	.test<vector_multiply_test>("vector")
+	.test<file_stream_test>("filestream")
+	.test<file_stream_pull_test>("fspull")
+	.test<file_stream_alt_push_test>("fsaltpush")
+	.test<merge_test>("merge")
+	.test<reverse_test>("reverse")
+	.test<sort_test>("sort");
+	return EXIT_FAILURE;
 }
