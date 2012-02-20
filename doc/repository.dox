@@ -3,7 +3,7 @@
 
 \section sec_overview Repository overview
 
-The library source code mainly resides in the \c tpie/ directory.
+The library source code mainly resides in the \c tpie/ directory. See \ref files.
 
 The \c test/ directory contains test code. \c test/unit/ contains source code for
 unit tests used by CTest, and \c test/speed_regression/ contains programs for
