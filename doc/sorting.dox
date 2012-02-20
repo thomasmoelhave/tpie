@@ -1,9 +1,0 @@
-/**
-\page sorting Sorting algorithms
-
-TPIE provides two kinds of sorting algorithms.
-
-For sorting in external memory, use tpie::sort. See \ref sorting_external.
-
-For sorting in internal memory, use tpie::parallel_sort. See \ref sorting_internal.
-*/

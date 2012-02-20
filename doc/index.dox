@@ -12,13 +12,15 @@ If you have problems compiling or using TPIE, consult the API documentation, or
 file a <a href="https://github.com/thomasmoelhave/tpie/issues">bug report on GitHub</a>.
 
   - \ref repository
+  - \ref files
   - \ref install
 
 \subsection sec_usage Usage
 
   - \ref file_stream
-  - \ref sorting
-  - \ref priority_queue
+  - \ref sorting_internal (contains complete example)
+  - \ref sorting_external
+  - \ref priority_queue (contains complete example)
   - \ref memory
   - \ref progress
 
