@@ -29,6 +29,9 @@ namespace pipelining {
 
 struct pipe_segment {
 	virtual const pipe_segment * get_next() const = 0;
+	virtual bool buffering() const {
+		return false;
+	}
 };
 
 ///////////////////////////////////////////////////////////////////////////////
