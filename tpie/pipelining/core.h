@@ -28,8 +28,27 @@ namespace tpie {
 
 namespace pipelining {
 
+///////////////////////////////////////////////////////////////////////////////
+/// Base class of all segments. A segment should inherit from pipe_segment,
+/// have a single template parameter dest_t if it is not a terminus segment,
+/// and implement methods begin(), push() and end(), if it is not a source
+/// segment.
+///////////////////////////////////////////////////////////////////////////////
 struct pipe_segment {
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Return the pipe_segment that receives items from this segment
+	/// (directly or indirectly), or NULL if we are a terminus segment.
+	///////////////////////////////////////////////////////////////////////////
 	virtual const pipe_segment * get_next() const = 0;
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief True if our successor segment does not begin processing before
+	/// we are finished receiving elements.
+	/// As an example, consider reversing the items of a stream. You cannot
+	/// push items further down the pipeline before all items are received and
+	/// end() is called. Thus we have to store items in a buffer which may grow
+	/// arbitrarily large and thus may be stored on disk.
+	///////////////////////////////////////////////////////////////////////////
 	virtual bool buffering() const {
 		return false;
 	}
