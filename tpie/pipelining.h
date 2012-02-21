@@ -35,5 +35,6 @@
 #include <tpie/pipelining/merge.h>
 #include <tpie/pipelining/reverse.h>
 #include <tpie/pipelining/sort.h>
+#include <tpie/pipelining/uniq.h>
 
 #endif
