@@ -55,6 +55,10 @@ struct reverser {
 			return *sourcep;
 		}
 
+		bool buffering() const {
+			return true;
+		}
+
 	private:
 		buf_t & buffer;
 		typename buf_t::iterator it;

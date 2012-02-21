@@ -94,7 +94,11 @@ struct pipeline_impl : public pipeline_virtual {
 				const pipe_segment * next = c->get_next();
 				if (next) {
 					size_t next_number = numbers.find(next)->second;
-					out << '"' << number << "\" -> \"" << next_number << "\";\n";
+					out << '"' << number << "\" -> \"" << next_number;
+					if (c->buffering())
+						out << "\" [style=dashed];\n";
+					else
+						out << "\";\n";
 				}
 				c = next;
 			}
