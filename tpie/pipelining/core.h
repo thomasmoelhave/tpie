@@ -22,6 +22,7 @@
 
 #include <boost/unordered_map.hpp>
 #include <iostream>
+#include <tpie/disjoint_sets.h>
 
 namespace tpie {
 
@@ -50,6 +51,11 @@ struct pipeline_virtual {
 	virtual void plot(std::ostream & out) = 0;
 
 	///////////////////////////////////////////////////////////////////////////
+	/// \brief Generate a GraphViz graph documenting the pipeline flow.
+	///////////////////////////////////////////////////////////////////////////
+	virtual void plot_phases(std::ostream & out) = 0;
+
+	///////////////////////////////////////////////////////////////////////////
 	/// \brief Virtual dtor.
 	///////////////////////////////////////////////////////////////////////////
 	virtual ~pipeline_virtual() {}
@@ -63,6 +69,8 @@ struct pipeline_virtual {
 template <typename fact_t>
 struct pipeline_impl : public pipeline_virtual {
 	typedef typename fact_t::generated_type gen_t;
+	typedef boost::unordered_map<const pipe_segment *, size_t> nodes_t;
+
 	inline pipeline_impl(const fact_t & factory) : r(factory.construct()) {}
 	virtual ~pipeline_impl() {
 	}
@@ -74,26 +82,17 @@ struct pipeline_impl : public pipeline_virtual {
 	}
 	void plot(std::ostream & out) {
 		out << "digraph {\nrankdir=LR;\n";
-		boost::unordered_map<const pipe_segment *, size_t> numbers;
-		{
-			size_t next_number = 0;
-			const pipe_segment * c = &r;
-			while (c != 0) {
-				if (!numbers.count(c)) {
-					out << '"' << next_number << "\";\n";
-					numbers.insert(std::make_pair(c, next_number));
-					++next_number;
-				}
-				c = c->get_next();
-			}
+		nodes_t n = nodes();
+		for (nodes_t::iterator i = n.begin(); i != n.end(); ++i) {
+			out << '"' << i->second << "\";\n";
 		}
 		{
 			const pipe_segment * c = &r;
 			while (c != 0) {
-				size_t number = numbers.find(c)->second;
+				size_t number = n.find(c)->second;
 				const pipe_segment * next = c->get_next();
 				if (next) {
-					size_t next_number = numbers.find(next)->second;
+					size_t next_number = n.find(next)->second;
 					out << '"' << number << "\" -> \"" << next_number;
 					if (c->buffering())
 						out << "\" [style=dashed];\n";
@@ -105,8 +104,54 @@ struct pipeline_impl : public pipeline_virtual {
 		}
 		out << '}' << std::endl;
 	}
+
+	void plot_phases(std::ostream & out) {
+		nodes_t n = nodes();
+		tpie::disjoint_sets<size_t> p = phases(n);
+		out << "digraph {\n";
+		for (nodes_t::iterator i = n.begin(); i != n.end(); ++i) {
+			out << '"' << i->second << "\";\n";
+		}
+		for (nodes_t::iterator i = n.begin(); i != n.end(); ++i) {
+			size_t cur = i->second;
+			size_t rep = p.find_set(cur);
+			if (rep != cur) {
+				out << '"' << cur << "\" -> \"" << rep << "\";\n";
+			}
+		}
+		out << '}' << std::endl;
+	}
+
 private:
 	gen_t r;
+
+	nodes_t nodes() {
+		boost::unordered_map<const pipe_segment *, size_t> numbers;
+		size_t next_number = 0;
+		const pipe_segment * c = &r;
+		while (c != 0) {
+			if (!numbers.count(c)) {
+				//out << '"' << next_number << "\";\n";
+				numbers.insert(std::make_pair(c, next_number));
+				++next_number;
+			}
+			c = c->get_next();
+		}
+		return numbers;
+	}
+
+	tpie::disjoint_sets<size_t> phases(const nodes_t & n) {
+		tpie::disjoint_sets<size_t> res(n.size());
+		for (nodes_t::const_iterator i = n.begin(); i != n.end(); ++i) {
+			res.make_set(i->second);
+		}
+		for (nodes_t::const_iterator i = n.begin(); i != n.end(); ++i) {
+			const pipe_segment * next = i->first->get_next();
+			if (next && !i->first->buffering())
+				res.union_set(i->second, n.find(next)->second);
+		}
+		return res;
+	}
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -123,6 +168,9 @@ struct datasource_wrapper : public pipeline_virtual {
 		generator();
 	}
 	void plot(std::ostream & out) {
+		out << "datasource" << std::endl;
+	}
+	void plot_phases(std::ostream & out) {
 		out << "datasource" << std::endl;
 	}
 };
@@ -146,6 +194,9 @@ struct pipeline {
 	}
 	inline void plot() {
 		p->plot(std::cout);
+	}
+	inline void plot_phases() {
+		p->plot_phases(std::cout);
 	}
 private:
 	pipeline_virtual * p;

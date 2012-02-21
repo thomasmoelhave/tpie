@@ -229,6 +229,7 @@ bool reverse_test() {
 	pipeline p1 = input_vector(inputvector) | r.sink();
 	pipeline p2 = r.source() | output_vector(outputvector);
 	p1.plot();
+	p1.plot_phases();
 
 	expectvector = inputvector;
 	std::reverse(expectvector.begin(), expectvector.end());
