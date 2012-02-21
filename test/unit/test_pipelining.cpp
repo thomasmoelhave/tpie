@@ -227,9 +227,8 @@ bool reverse_test() {
 	reverser<size_t> r(inputvector.size());
 
 	pipeline p1 = input_vector(inputvector) | r.sink();
-	p1.plot();
 	pipeline p2 = r.source() | output_vector(outputvector);
-	p2.plot();
+	p1.plot();
 
 	expectvector = inputvector;
 	std::reverse(expectvector.begin(), expectvector.end());
