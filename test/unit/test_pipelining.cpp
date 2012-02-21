@@ -266,6 +266,23 @@ bool operator_test() {
 	return check_test_vectors();
 }
 
+bool uniq_test() {
+	const size_t n = 5;
+	inputvector.resize(n*(n+1)/2);
+	expectvector.resize(n);
+	size_t k = 0;
+	for (size_t i = 0; i < n; ++i) {
+		for (size_t j = 0; j <= i; ++j) {
+			inputvector[k++] = i;
+		}
+		expectvector[i] = i;
+	}
+	pipeline p = input_vector(inputvector) | pipeuniq() | output_vector(outputvector);
+	p.plot();
+	p();
+	return check_test_vectors();
+}
+
 // Type of test function
 typedef bool fun_t();
 
@@ -344,6 +361,7 @@ int main(int argc, char ** argv) {
 	.test<reverse_test>("reverse")
 	.test<sort_test>("sort")
 	.test<operator_test>("operators")
+	.test<uniq_test>("uniq")
 	;
 	return EXIT_FAILURE;
 }
