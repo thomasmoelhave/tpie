@@ -45,7 +45,7 @@ static inline void usage() {
 }
 
 template <typename dest_t>
-struct number_generator_t {
+struct number_generator_t : public pipe_segment {
 	typedef typename dest_t::item_type item_type;
 	inline number_generator_t(const dest_t & dest, size_t count) : dest(dest), count(count) {}
 	inline void operator()() {
@@ -55,18 +55,25 @@ struct number_generator_t {
 		}
 		dest.end();
 	}
+
+	const pipe_segment * get_next() const {
+		return &dest;
+	}
 private:
 	dest_t dest;
 	size_t count;
 };
 
-struct number_sink_t {
+struct number_sink_t : public pipe_segment {
 	typedef test_t item_type;
 	inline number_sink_t(test_t & output) : output(output) {}
 	inline void begin() { }
 	inline void end() { }
 	inline void push(const test_t & item) {
 		output = output + item;
+	}
+	const pipe_segment * get_next() const {
+		return 0;
 	}
 private:
 	test_t & output;

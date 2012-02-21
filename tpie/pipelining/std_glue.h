@@ -30,7 +30,7 @@ namespace tpie {
 namespace pipelining {
 
 template <typename dest_t>
-struct input_vector_t {
+struct input_vector_t : public pipe_segment {
 	typedef typename dest_t::item_type item_type;
 
 	inline input_vector_t(const dest_t & dest, const std::vector<item_type> & input) : dest(dest), input(input) {
@@ -45,13 +45,16 @@ struct input_vector_t {
 		dest.end();
 	}
 
+	const pipe_segment * get_next() const {
+		return &dest;
+	}
 private:
 	dest_t dest;
 	const std::vector<item_type> & input;
 };
 
 template <typename T>
-struct output_vector_t {
+struct output_vector_t : public pipe_segment {
 	typedef T item_type;
 
 	inline output_vector_t(std::vector<T> & output) : output(output) {
@@ -64,6 +67,7 @@ struct output_vector_t {
 		output.push_back(item);
 	}
 
+	const pipe_segment * get_next() const { return 0; }
 private:
 	std::vector<item_type> & output;
 };

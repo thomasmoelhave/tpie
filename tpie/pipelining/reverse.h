@@ -31,7 +31,7 @@ template <typename T>
 struct reverser {
 	typedef std::vector<T> buf_t;
 
-	struct sink_t {
+	struct sink_t : public pipe_segment {
 		typedef T item_type;
 
 		inline sink_t(buf_t & buffer) : buffer(buffer) {
@@ -48,13 +48,17 @@ struct reverser {
 			*it++ = item;
 		}
 
+		const pipe_segment * get_next() const {
+			return 0;
+		}
+
 	private:
 		buf_t & buffer;
 		typename buf_t::iterator it;
 	};
 
 	template <typename dest_t>
-	struct source_t {
+	struct source_t : public pipe_segment {
 		typedef T item_type;
 
 		inline source_t(const dest_t & dest, const buf_t & buffer) : dest(dest), buffer(buffer) {
@@ -69,6 +73,9 @@ struct reverser {
 			dest.end();
 		}
 
+		const pipe_segment * get_next() const {
+			return &dest;
+		}
 	private:
 		dest_t dest;
 		const buf_t & buffer;

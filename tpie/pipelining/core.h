@@ -246,6 +246,10 @@ struct datasource {
 	gen_t generator;
 };
 
+struct pipe_segment {
+	virtual const pipe_segment * get_next() const = 0;
+};
+
 }
 
 }

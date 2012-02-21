@@ -35,7 +35,7 @@ namespace pipelining {
  * file_stream input generator.
  */
 template <typename dest_t>
-struct input_t {
+struct input_t : public pipe_segment {
 	typedef typename dest_t::item_type item_type;
 
 	inline input_t(const dest_t & dest, file_stream<item_type> & fs) : dest(dest), fs(fs) {
@@ -47,6 +47,10 @@ struct input_t {
 			dest.push(fs.read());
 		}
 		dest.end();
+	}
+
+	const pipe_segment * get_next() const {
+		return &dest;
 	}
 private:
 	dest_t dest;
@@ -98,7 +102,7 @@ inline datasource<pull_input_t<T> > pull_input(file_stream<T> & fs) {
  * file_stream output terminator.
  */
 template <typename T>
-struct output_t {
+struct output_t : public pipe_segment {
 	typedef T item_type;
 
 	inline output_t(file_stream<T> & fs) : fs(fs) {
@@ -112,6 +116,10 @@ struct output_t {
 	}
 
 	inline void end() {
+	}
+
+	const pipe_segment * get_next() const {
+		return 0;
 	}
 private:
 	file_stream<T> & fs;

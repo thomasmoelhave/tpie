@@ -32,7 +32,7 @@ namespace tpie {
 namespace pipelining {
 
 template <typename dest_t>
-struct sort_t {
+struct sort_t : public pipe_segment {
 	typedef typename dest_t::item_type item_type;
 
 	inline sort_t(const dest_t & dest) : dest(dest) {
@@ -65,6 +65,9 @@ struct sort_t {
 		dest.end();
 	}
 
+	const pipe_segment * get_next() const {
+		return &dest;
+	}
 private:
 	dest_t dest;
 	tpie::auto_ptr<tpie::temp_file> tmpfile;

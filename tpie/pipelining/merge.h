@@ -36,7 +36,7 @@ namespace pipelining {
 template <typename pull_t>
 struct merge_t {
 	template <typename dest_t>
-	struct type {
+	struct type : public pipe_segment {
 		typedef typename dest_t::item_type item_type;
 
 		inline type(const dest_t & dest, const pull_t & with) : dest(dest), with(with) {
@@ -59,6 +59,10 @@ struct merge_t {
 
 		dest_t dest;
 		pull_t with;
+
+		const pipe_segment * get_next() const {
+			return &dest;
+		}
 	};
 };
 

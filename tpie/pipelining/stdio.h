@@ -29,7 +29,7 @@ namespace tpie {
 namespace pipelining {
 
 template <typename dest_t>
-struct scanf_ints_t {
+struct scanf_ints_t : public pipe_segment {
 	typedef int item_type;
 
 	inline scanf_ints_t(const dest_t & dest) : dest(dest) {
@@ -44,11 +44,15 @@ struct scanf_ints_t {
 		dest.end();
 	}
 
+
+	const pipe_segment * get_next() const {
+		return &dest;
+	}
 private:
 	dest_t dest;
 };
 
-struct printf_ints_t {
+struct printf_ints_t : public pipe_segment {
 	typedef int item_type;
 
 	inline printf_ints_t() {
@@ -60,6 +64,8 @@ struct printf_ints_t {
 	inline void push(item_type i) {
 		printf("%d\n", i);
 	}
+
+	const pipe_segment * get_next() const { return 0; }
 };
 
 pipe_begin<factory_0<scanf_ints_t> >

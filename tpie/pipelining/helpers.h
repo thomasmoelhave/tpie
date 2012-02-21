@@ -30,7 +30,7 @@ namespace tpie {
 namespace pipelining {
 
 template <typename dest_t>
-struct ostream_logger_t {
+struct ostream_logger_t : public pipe_segment {
 	typedef typename dest_t::item_type item_type;
 
 	inline ostream_logger_t(const dest_t & dest, std::ostream & log) : dest(dest), log(log), begun(false), ended(false) {
@@ -55,6 +55,10 @@ struct ostream_logger_t {
 		log << "pushing " << item << std::endl;
 		dest.push(item);
 	}
+
+	const pipe_segment * get_next() const {
+		return &dest;
+	}
 private:
 	dest_t dest;
 	std::ostream & log;
@@ -68,7 +72,7 @@ cout_logger() {
 }
 
 template <typename dest_t>
-struct identity_t {
+struct identity_t : public pipe_segment {
 	typedef typename dest_t::item_type item_type;
 
 	inline identity_t(const dest_t & dest) : dest(dest) {
@@ -84,6 +88,10 @@ struct identity_t {
 
 	inline void end() {
 		dest.end();
+	}
+
+	const pipe_segment * get_next() const {
+		return &dest;
 	}
 private:
 	dest_t dest;
@@ -121,7 +129,7 @@ private:
 };
 
 template <typename T>
-struct dummydest_t {
+struct dummydest_t : public pipe_segment {
 	typedef T item_type;
 	T & buffer;
 	inline dummydest_t(T & buffer) : buffer(buffer) {
@@ -138,6 +146,7 @@ struct dummydest_t {
 	inline T pull() {
 		return buffer;
 	}
+	const pipe_segment * get_next() const { return 0; }
 };
 
 template <typename pushfact_t>
@@ -195,7 +204,7 @@ template <typename pullfact_t>
 struct pull_to_push {
 
 	template <typename dest_t>
-	struct pusher_t {
+	struct pusher_t : public pipe_segment {
 
 		typedef typename dest_t::item_type item_type;
 		typedef typename pullfact_t::template generated<dummydest_t<item_type> >::type puller_t;
@@ -234,6 +243,10 @@ struct pull_to_push {
 			dummydest.push(item);
 			puller->pull();
 			dest.push(dummydest.pull());
+		}
+
+		const pipe_segment * get_next() const {
+			return &dest;
 		}
 
 	};

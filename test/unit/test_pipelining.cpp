@@ -29,7 +29,7 @@ using namespace tpie::pipelining;
 typedef uint64_t test_t;
 
 template <typename dest_t>
-struct multiply_t {
+struct multiply_t : public pipe_segment {
 	typedef test_t item_type;
 
 	multiply_t(const dest_t & dest, uint64_t factor)
@@ -45,6 +45,10 @@ struct multiply_t {
 
 	dest_t dest;
 	uint64_t factor;
+
+	const pipe_segment * get_next() const {
+		return &dest;
+	}
 };
 
 pipe_middle<factory_1<multiply_t, uint64_t> > multiply(uint64_t factor) {

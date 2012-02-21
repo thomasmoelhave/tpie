@@ -29,7 +29,7 @@ namespace tpie {
 namespace pipelining {
 
 template <typename dest_t>
-struct linear_t {
+struct linear_t : public pipe_segment {
 	typedef typename dest_t::item_type item_type;
 
 	inline linear_t(const dest_t & dest, item_type factor, item_type term) : dest(dest), factor(factor), term(term) {
@@ -38,6 +38,10 @@ struct linear_t {
 	inline void end() { }
 	inline void push(const item_type & item) {
 		dest.push(item*factor+term);
+	}
+
+	const pipe_segment * get_next() const {
+		return &dest;
 	}
 private:
 	dest_t dest;
