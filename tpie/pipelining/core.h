@@ -40,7 +40,7 @@ struct pipeline_virtual {
 	/// Invoke the pipeline. The only virtual function call in this library.
 	///////////////////////////////////////////////////////////////////////////
 	virtual void operator()() = 0;
-	virtual void plot() = 0;
+	virtual void plot(std::ostream & out) = 0;
 	virtual ~pipeline_virtual() {}
 };
 
@@ -61,8 +61,7 @@ struct pipeline_impl : public pipeline_virtual {
 	inline operator gen_t() {
 		return r;
 	}
-	void plot() {
-		std::ostream & out = std::cout;
+	void plot(std::ostream & out) {
 		out << "digraph {\nrankdir=LR;\n";
 		boost::unordered_map<const pipe_segment *, size_t> numbers;
 		{
@@ -108,8 +107,8 @@ struct datasource_wrapper : public pipeline_virtual {
 	inline void operator()() {
 		generator();
 	}
-	void plot() {
-		*((char*)0)=42;
+	void plot(std::ostream & out) {
+		out << "datasource" << std::endl;
 	}
 };
 
@@ -131,7 +130,7 @@ struct pipeline {
 		(*p)();
 	}
 	inline void plot() {
-		p->plot();
+		p->plot(std::cout);
 	}
 private:
 	pipeline_virtual * p;
