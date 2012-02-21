@@ -93,6 +93,7 @@ bool check_test_vectors() {
 bool vector_multiply_test() {
 	setup_test_vectors();
 	pipeline p = input_vector(inputvector) | multiply(3) | multiply(2) | output_vector(outputvector);
+	p.plot();
 	p();
 	return check_test_vectors();
 }
@@ -118,6 +119,7 @@ bool file_stream_test() {
 		out.open("output");
 		// p is actually an input_t<multiply_t<multiply_t<output_t<test_t> > > >
 		pipeline p = (input(in) | multiply(3) | multiply(2) | output(out));
+		p.plot();
 		p();
 	}
 	{
@@ -172,6 +174,7 @@ bool file_stream_alt_push_test() {
 		file_stream<test_t> out;
 		out.open("output");
 		pipeline p = (input(in) | alt_identity() | output(out));
+		p.plot();
 		p();
 	}
 	{
@@ -190,6 +193,7 @@ bool merge_test() {
 		file_stream<test_t> in;
 		in.open("input");
 		pipeline p = input_vector(inputvector) | output(in);
+		p.plot();
 		p();
 	}
 	expectvector.resize(2*inputvector.size());
@@ -204,12 +208,14 @@ bool merge_test() {
 		out.open("output");
 		std::vector<test_t> inputvector2 = inputvector;
 		pipeline p = input_vector(inputvector) | merge(pull_input(in)) | output(out);
+		p.plot();
 		p();
 	}
 	{
 		file_stream<test_t> in;
 		in.open("output");
 		pipeline p = input(in) | output_vector(outputvector);
+		p.plot();
 		p();
 	}
 	return check_test_vectors();
@@ -221,7 +227,9 @@ bool reverse_test() {
 	reverser<size_t> r(inputvector.size());
 
 	pipeline p1 = input_vector(inputvector) | r.sink();
+	p1.plot();
 	pipeline p2 = r.source() | output_vector(outputvector);
+	p2.plot();
 
 	expectvector = inputvector;
 	std::reverse(expectvector.begin(), expectvector.end());
@@ -238,6 +246,7 @@ bool sort_test() {
 	std::reverse(inputvector.begin(), inputvector.end());
 
 	pipeline p = input_vector(inputvector) | pipesort() | output_vector(outputvector);
+	p.plot();
 	p();
 
 	return check_test_vectors();
@@ -252,6 +261,7 @@ bool operator_test() {
 	expectvector = inputvector;
 	std::reverse(inputvector.begin(), inputvector.end());
 	pipeline p = input_vector(inputvector) | ((pipesort() | pipesort()) | output_vector(outputvector));
+	p.plot();
 	p();
 	return check_test_vectors();
 }

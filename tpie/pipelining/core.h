@@ -20,9 +20,16 @@
 #ifndef __TPIE_PIPELINING_CORE_H__
 #define __TPIE_PIPELINING_CORE_H__
 
+#include <boost/unordered_map.hpp>
+#include <iostream>
+
 namespace tpie {
 
 namespace pipelining {
+
+struct pipe_segment {
+	virtual const pipe_segment * get_next() const = 0;
+};
 
 /**
  * \class pipeline_virtual
@@ -33,6 +40,7 @@ struct pipeline_virtual {
 	 * Invoke the pipeline. The only virtual function call in this library.
 	 */
 	virtual void operator()() = 0;
+	virtual void plot() = 0;
 	virtual ~pipeline_virtual() {}
 };
 
@@ -53,6 +61,36 @@ struct pipeline_impl : public pipeline_virtual {
 	inline operator gen_t() {
 		return r;
 	}
+	void plot() {
+		std::ostream & out = std::cout;
+		out << "digraph {\nrankdir=LR;\n";
+		boost::unordered_map<const pipe_segment *, size_t> numbers;
+		{
+			size_t next_number = 0;
+			const pipe_segment * c = &r;
+			while (c != 0) {
+				if (!numbers.count(c)) {
+					out << '"' << next_number << "\";\n";
+					numbers.insert(std::make_pair(c, next_number));
+					++next_number;
+				}
+				c = c->get_next();
+			}
+		}
+		{
+			const pipe_segment * c = &r;
+			while (c != 0) {
+				size_t number = numbers.find(c)->second;
+				const pipe_segment * next = c->get_next();
+				if (next) {
+					size_t next_number = numbers.find(next)->second;
+					out << '"' << number << "\" -> \"" << next_number << "\";\n";
+				}
+				c = next;
+			}
+		}
+		out << '}' << std::endl;
+	}
 private:
 	gen_t r;
 };
@@ -69,6 +107,9 @@ struct datasource_wrapper : public pipeline_virtual {
 	}
 	inline void operator()() {
 		generator();
+	}
+	void plot() {
+		*((char*)0)=42;
 	}
 };
 
@@ -88,6 +129,9 @@ struct pipeline {
 	}
 	inline void operator()() {
 		(*p)();
+	}
+	inline void plot() {
+		p->plot();
 	}
 private:
 	pipeline_virtual * p;
@@ -244,10 +288,6 @@ struct datasource {
 	}
 
 	gen_t generator;
-};
-
-struct pipe_segment {
-	virtual const pipe_segment * get_next() const = 0;
 };
 
 }
