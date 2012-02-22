@@ -257,7 +257,7 @@ void test(size_t mb, size_t times) {
 		test_realtime_t end;
 		getTestRealtime(start);
 		{
-			tpie::ami::priority_queue<uint64_t> pq(0.95);
+			tpie::ami::priority_queue<uint64_t> pq(0.95, 0.125);
 		
 			for(TPIE_OS_OFFSET i=0; i < count; ++i) {
 				uint64_t x= (i+ 91493)*104729;
