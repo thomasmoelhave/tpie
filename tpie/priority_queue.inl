@@ -76,12 +76,12 @@ void priority_queue<T, Comparator, OPQType>::init(TPIE_OS_SIZE_T mm_avail) { // 
 		const TPIE_OS_SIZE_T extra_overhead = 2*(usage+sizeof(file_stream<T>*)+alloc_overhead) //temporary streams
 			+ 2*(sizeof(T)+sizeof(TPIE_OS_OFFSET)); //mergeheap
 		const TPIE_OS_SIZE_T additional_overhead = 16*1024; //Just leave a bit unused
-		TP_LOG_DEBUG(fanout_overhead << ", " <<
-		             sq_fanout_overhead << ", " <<
-		             heap_m_overhead << ", " <<
-		             buffer_m_overhead << ", " <<
-		             extra_overhead << ", " <<
-		             additional_overhead << "\n");
+		TP_LOG_DEBUG("fanout_overhead     " << fanout_overhead     << ",\n" <<
+		             "sq_fanout_overhead  " << sq_fanout_overhead  << ",\n" <<
+		             "heap_m_overhead     " << heap_m_overhead     << ",\n" <<
+		             "buffer_m_overhead   " << buffer_m_overhead   << ",\n" <<
+		             "extra_overhead      " << extra_overhead      << ",\n" <<
+		             "additional_overhead " << additional_overhead << ".\n\n");
 
 		//Check that there is enough space for the simple overhead
 		if(mm_avail < extra_overhead+additional_overhead){
@@ -91,8 +91,13 @@ void priority_queue<T, Comparator, OPQType>::init(TPIE_OS_SIZE_T mm_avail) { // 
 		//Setup the fanout, heap_m and buffer_m
 		mm_avail-=additional_overhead+extra_overhead; //Subtract the extra space used
 		setting_mmark = (mm_avail/16)/buffer_m_overhead; //Set the buffer size
+		TP_LOG_DEBUG("mm_avail      " << mm_avail << ",\n" <<
+		             "setting_mmark " << setting_mmark  << ".\n\n");
+
 		mm_avail-=setting_mmark*buffer_m_overhead;
 		setting_k = (mm_avail/2); 
+		TP_LOG_DEBUG("mm_avail      " << mm_avail << ",\n" <<
+		             "setting_k     " << setting_k  << ".\n\n");
 
 		{
 			//compute setting_k
@@ -112,6 +117,9 @@ void priority_queue<T, Comparator, OPQType>::init(TPIE_OS_SIZE_T mm_avail) { // 
 
 		mm_avail-=setting_k*heap_m_overhead+setting_k*setting_k*sq_fanout_overhead;
 		setting_m = (mm_avail)/heap_m_overhead;
+		TP_LOG_DEBUG("mm_avail      " << mm_avail << ",\n" <<
+		             "setting_m     " << setting_m << ",\n" <<
+		             "setting_k     " << setting_k << ".\n\n");
 
 		//Check that minimum requirements on fanout and buffersizes are met
 		const TPIE_OS_SIZE_T min_fanout=3;
