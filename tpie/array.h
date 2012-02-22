@@ -133,7 +133,7 @@ public:
 	/////////////////////////////////////////////////////////
 	inline const T & operator[](size_t i) const {
 		assert(i < self().size());
-		return at(i);
+		return self().at(i);
 	}
 
 	/////////////////////////////////////////////////////////
@@ -144,7 +144,7 @@ public:
 	/////////////////////////////////////////////////////////
 	inline T & operator[](size_t i) {
 		assert(i < self().size());
-		return at(i);
+		return self().at(i);
 	}
 
 	/////////////////////////////////////////////////////////
@@ -387,6 +387,9 @@ public:
 	/// \return the size of the array
 	/////////////////////////////////////////////////////////
 	inline size_type size() const {return m_size;}
+
+	inline T & at(size_t i) { return m_elements[i]; }
+	inline const T & at(size_t i) const { return m_elements[i]; }
 
 protected:
 	/////////////////////////////////////////////////////////
