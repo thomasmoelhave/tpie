@@ -17,7 +17,11 @@ else (INTERNAL_DOCS)
 	set(USE_INTERNAL_DOCS "NO")
 endif(INTERNAL_DOCS)
 
-ADD_CUSTOM_TARGET(apidocs ${DOXYGEN} ${DOXYFILE})
+ADD_CUSTOM_TARGET(apidocs
+	sh -c "sed -e \"s/@VERSION@/`git describe --always`/g\" ${PROJECT_SOURCE_DIR}/doc/header.html > ${PROJECT_BINARY_DIR}/doc/header.html"
+	COMMAND sh -c "sed -e \"s/@VERSION@/`git describe --always`/g\" ${PROJECT_SOURCE_DIR}/doc/footer.html > ${PROJECT_BINARY_DIR}/doc/footer.html"
+	COMMAND ${DOXYGEN} ${DOXYFILE}
+	VERBATIM)
 
 #CMake should process the Doxyfile.in file replacing
 #variables placing the result in the build directory
