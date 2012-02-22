@@ -305,7 +305,7 @@ namespace tpie {
 			
 			// Delete the current minimum and insert the new item from the same
 			// source / run.
-			inline void delete_min_and_insert(REC *nextelement_same_run) {
+			inline void delete_min_and_insert(const REC *nextelement_same_run) {
 				if (nextelement_same_run) {
 					KEY k;
 					obj->copy(&k, *nextelement_same_run);
