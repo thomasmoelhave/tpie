@@ -112,7 +112,11 @@ void priority_queue<T, Comparator, OPQType>::init(TPIE_OS_SIZE_T mm_avail) { // 
 			const TPIE_OS_OFFSET denominator = 2*sq_fanout_overhead;
 			setting_k = static_cast<TPIE_OS_SIZE_T>(nominator/denominator); //Set fanout
 
+			// Don't open too many files
 			setting_k = std::min(available_files()-40, setting_k);
+
+			// Performance degrades with more than around 250 open files
+			setting_k = std::min(static_cast<TPIE_OS_SIZE_T>(250), setting_k);
 		}
 
 		mm_avail-=setting_k*heap_m_overhead+setting_k*setting_k*sq_fanout_overhead;
