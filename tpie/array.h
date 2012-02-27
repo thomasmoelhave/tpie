@@ -328,9 +328,9 @@ public:
 	/// \brief Construct a copy of another array
 	/// \param other The array to copy
 	/////////////////////////////////////////////////////////
-	array_base(const array_base & other): m_elements(0), m_size(0) {
-		resize(other.size());
-		for (size_t i=0; i < m_size; ++i) m_elements[i] = other[i];
+	array_base(const array_base & other): m_elements(0), m_size(other.m_size) {
+		m_elements = reinterpret_cast<T*>(tpie_new_array<trivial_same_size<T> >(m_size));
+		std::uninitialized_copy(other.m_elements+0, other.m_elements+m_size, m_elements+0);
 	}	
 
 	/////////////////////////////////////////////////////////
