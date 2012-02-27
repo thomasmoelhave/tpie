@@ -237,7 +237,7 @@ class array_iter_base: public boost::iterator_facade<
 	array_iter_base<TT, forward>,
 	TT , boost::random_access_traversal_tag> {
 private:
-	template <typename, bool, template <typename> class > friend class array_base;
+	template <typename, bool> friend class array_base;
 	friend class boost::iterator_core_access;
 	template <class, bool> friend class array_iter_base;
 	
@@ -268,11 +268,11 @@ public:
 /// This is almost the same as a real new T[] array
 /// but the memory managment is better
 /////////////////////////////////////////////////////////
-template <typename T, bool segmented=false, template <typename> class alloc_t=tpie::allocator>
-class array_base: public array_facade<array_base<T, segmented, alloc_t>, T, array_iter_base> {
+template <typename T, bool segmented=false>
+class array_base: public array_facade<array_base<T, segmented>, T, array_iter_base> {
 private:
-	typedef array_facade<array_base<T, segmented, alloc_t>, T, array_iter_base> p_t;
-	friend class array_facade<array_base<T, segmented, alloc_t>, T, array_iter_base>;
+	typedef array_facade<array_base<T, segmented>, T, array_iter_base> p_t;
+	friend class array_facade<array_base<T, segmented>, T, array_iter_base>;
 
 	template <typename C>
 	struct trivial_same_size {
@@ -281,7 +281,6 @@ private:
 
 	T * m_elements;
 	size_t m_size;
-	alloc_t<T> m_allocator;
 
 	inline typename p_t::iterator get_iter(size_t idx) {
 		return typename p_t::iterator(m_elements+idx);
@@ -411,7 +410,7 @@ private:
 	static const size_t bits=22-template_log<sizeof(TT)>::v;
 	static const size_t mask = (1 << bits) -1;
 
-	template <typename, bool, template <typename> class> friend class array_base;
+	template <typename, bool> friend class array_base;
 	friend class boost::iterator_core_access;
 	template <class, bool> friend class segmented_array_iter_base;
 
@@ -438,19 +437,19 @@ public:
 };
 
 
-template <typename T, template <typename> class alloc_t>
-class array_base<T, true, alloc_t>: public array_facade<array_base<T, true, alloc_t>, T, segmented_array_iter_base > {
+template <typename T>
+class array_base<T, true>: public array_facade<array_base<T, true>, T, segmented_array_iter_base > {
 private:
-	friend class array_facade<array_base<T, true, alloc_t>, T, segmented_array_iter_base >;
-	typedef array_facade<array_base<T, true, alloc_t>, T, segmented_array_iter_base > p_t;
+	friend class array_facade<array_base<T, true>, T, segmented_array_iter_base >;
+	typedef array_facade<array_base<T, true>, T, segmented_array_iter_base > p_t;
 	using p_t::at;
 	static const size_t bits=p_t::iterator::bits;
 	static const size_t mask=p_t::iterator::bits;
 
  	T ** m_a;
  	size_t m_size;
- 	alloc_t<T> m_allocator;
- 	alloc_t<T*> m_allocator2;
+ 	allocator<T> m_allocator;
+ 	allocator<T*> m_allocator2;
  	static size_t outerSize(size_t s) {return (s + mask)>>bits;}
 	
 	inline typename p_t::iterator get_iter(size_t idx) {
@@ -568,15 +567,15 @@ public:
 
 static const bool __tpie_is_not_64bit = sizeof(size_t) < sizeof(uint64_t);
 
-template <typename T, template <typename> class alloc_t=tpie::allocator>
-class segmented_array: public array_base<T, __tpie_is_not_64bit, alloc_t> {
+template <typename T>
+class segmented_array: public array_base<T, __tpie_is_not_64bit> {
 	/////////////////////////////////////////////////////////
 	/// \brief Construct array of given size.
 	///
 	/// \param s The number of elements in the array
 	/// \param value Each entry of the array is initialized with this value
 	/////////////////////////////////////////////////////////
-	segmented_array(size_type s, const T & value): array_base<T, __tpie_is_not_64bit, alloc_t>(s, value) {}
+	segmented_array(size_type s, const T & value): array_base<T, __tpie_is_not_64bit>(s, value) {}
 
 	/////////////////////////////////////////////////////////
 	/// \brief Construct array of given size.
@@ -584,17 +583,17 @@ class segmented_array: public array_base<T, __tpie_is_not_64bit, alloc_t> {
 	/// \param s The number of elements in the array
 	/// \param value Each entry of the array is initialized with this value
 	/////////////////////////////////////////////////////////
-	segmented_array(size_type s=0) : array_base<T, __tpie_is_not_64bit, alloc_t>(s) {}
+	segmented_array(size_type s=0) : array_base<T, __tpie_is_not_64bit>(s) {}
 
 	/////////////////////////////////////////////////////////
 	/// \brief Construct a copy of another array
 	/// \param other The array to copy
 	/////////////////////////////////////////////////////////
-	segmented_array(const segmented_array & other): array_base<T, __tpie_is_not_64bit, alloc_t>(other) {}
+	segmented_array(const segmented_array & other): array_base<T, __tpie_is_not_64bit>(other) {}
 };
 
-template <typename T, template <typename> class alloc_t=tpie::allocator>
-class array: public array_base<T, false, alloc_t> {
+template <typename T>
+class array: public array_base<T, false> {
 public:
 	/////////////////////////////////////////////////////////
 	/// \brief Construct array of given size.
@@ -602,7 +601,7 @@ public:
 	/// \param s The number of elements in the array
 	/// \param value Each entry of the array is initialized with this value
 	/////////////////////////////////////////////////////////
-	array(size_type s, const T & value): array_base<T, false, alloc_t>(s, value) {}
+	array(size_type s, const T & value): array_base<T, false>(s, value) {}
 
 	/////////////////////////////////////////////////////////
 	/// \brief Construct array of given size.
@@ -610,31 +609,31 @@ public:
 	/// \param s The number of elements in the array
 	/// \param value Each entry of the array is initialized with this value
 	/////////////////////////////////////////////////////////
-	array(size_type s=0) : array_base<T, false, alloc_t>(s) {}
+	array(size_type s=0) : array_base<T, false>(s) {}
 
 	/////////////////////////////////////////////////////////
 	/// \brief Construct a copy of another array
 	/// \param other The array to copy
 	/////////////////////////////////////////////////////////
-	array(const array & other): array_base<T, false, alloc_t>(other) {}
+	array(const array & other): array_base<T, false>(other) {}
 
-	array(array_view_base<const T> & view): array_base<T, false, alloc_t>(view.size()) {
+	array(array_view_base<const T> & view): array_base<T, false>(view.size()) {
 		std::copy(view.begin(), view.end(), this->begin());
 	}
 
 	/////////////////////////////////////////////////////////
 	/// \brife Return a raw pointer to the array content
 	/////////////////////////////////////////////////////////
-	inline T * get() {return array_base<T, false, alloc_t>::__get();}
+	inline T * get() {return array_base<T, false>::__get();}
 
 	/////////////////////////////////////////////////////////
 	/// \brife Return a raw pointer to the array content
 	/////////////////////////////////////////////////////////
-	inline const T * get() const {return array_base<T, false, alloc_t>::__get();}
+	inline const T * get() const {return array_base<T, false>::__get();}
 };
 
-template <typename T, template <typename> class A>
-std::ostream & operator<<(std::ostream & o, const array<T, A> & a) {
+template <typename T>
+std::ostream & operator<<(std::ostream & o, const array<T> & a) {
 	o << "[";
 	bool first=true;
 	for(size_t i=0; i < a.size(); ++i) {
@@ -649,8 +648,8 @@ std::ostream & operator<<(std::ostream & o, const array<T, A> & a) {
 
 namespace std {
 
-template <typename T, template <typename> class alloc_t>
-void swap(tpie::array<T, alloc_t> & a, tpie::array<T, alloc_t> & b) {
+template <typename T>
+void swap(tpie::array<T> & a, tpie::array<T> & b) {
 	a.swap(b);
 }
 
