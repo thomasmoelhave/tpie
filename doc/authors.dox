@@ -1,0 +1,39 @@
+/**
+\page authors Authors
+
+The TPIE development team consists of the following people:
+
+\section sec_active Active developers
+
+The following people have made at least one commit since 2009:
+
+  - Jan Vahrenhold &lt;jan.vahrenhold AT cs.tu-dortmund.de&gt;
+  - Thomas Moelhave &lt;thomasm AT madalgo.au.dk&gt;
+  - Andrew Danner &lt;adanner AT cs.swarthmore.edu&gt;
+  - Morten Revsbaek &lt;mrevs AT madalgo.au.dk&gt;
+  - Thor Prentow &lt;prentow AT madalgo.au.dk&gt;
+  - Adam Ehlers Nyholm Thomsen &lt;adam AT scalgo.com&gt;
+  - Mathias Rav &lt;rav AT cs.au.dk&gt;
+
+\section sec_past Past contributors
+
+  - Lars Arge &lt;large AT madalgo.au.dk&gt;
+  - Pankaj Agarwal &lt;pankaj AT cs.duke.edu&gt;
+  - Henrik Blunck &lt;blunck AT madalgo.au.dk&gt;
+  - Mark Greve &lt;mgreve AT madalgo.au.dk&gt;
+  - Kasper Dalgaard Larsen &lt;larsen AT madalgo.au.dk&gt;
+  - Peter Hachenberger &lt;phachenb AT madalgo.au.dk&gt;
+  - Andreas Beckmann &lt;beckmann AT cs.uni-frankfurt.de&gt;
+  - Lars Hvam Petersen
+  - Jeffrey Vitter
+  - Rakesh Barve
+  - David Hutchinson
+  - Lipyeow Lim
+  - Paul Natsev
+  - Octavian Procopiuc
+  - Vasilis Samoladas
+  - Laura Toma
+  - Darren Erik Vengroff
+  - Min Wang
+  - Rajiv Wickremesinghe
+*/
