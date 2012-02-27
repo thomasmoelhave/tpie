@@ -34,6 +34,7 @@ int main(int argc, char ** argv) {
 	if (argc > 2) std::stringstream(argv[2]) >> repeats;
 	const size_t sz = mb/sizeof(test_t)*(1<<20);
 	std::cout << mb << " MB, " << repeats << " repeats" << std::endl;
+	std::cout << "Test tpie::array\n";
 	{
 		boost::progress_timer _;
 		test_t res = 0;
@@ -46,6 +47,7 @@ int main(int argc, char ** argv) {
 		}
 		std::cout << res << std::endl;
 	}
+	std::cout << "Test tpie_new_array\n";
 	{
 		boost::progress_timer _;
 		test_t res = 0;
