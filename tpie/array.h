@@ -24,6 +24,7 @@
 /// Contains a generic internal array with known memory requirements
 ///////////////////////////////////////////////////////////////////////////
 #include <tpie/util.h>
+#include <boost/type_traits/is_pod.hpp>
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/utility/enable_if.hpp>
 #include <tpie/memory.h>
@@ -371,14 +372,17 @@ public:
 	/// \param s the new size of the array
 	/////////////////////////////////////////////////////////
 	void resize(size_t s) {
+		const bool is_pod = boost::is_pod<T>::value;
 		if (s == m_size) return;
-		for (size_t i=0; i < m_size; ++i)
-			m_allocator.destroy(&m_elements[i]);
+		if (!is_pod)
+			for (size_t i=0; i < m_size; ++i)
+				m_allocator.destroy(&m_elements[i]);
 		m_allocator.deallocate(m_elements, m_size);
 		m_size = s;
 		m_elements = s ? m_allocator.allocate(m_size) : 0;
-		for (size_t i=0; i < m_size; ++i)
-			m_allocator.construct(&m_elements[i]);
+		if (!is_pod)
+			for (size_t i=0; i < m_size; ++i)
+				m_allocator.construct(&m_elements[i]);
 	}
 
 	/////////////////////////////////////////////////////////
