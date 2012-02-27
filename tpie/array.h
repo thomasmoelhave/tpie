@@ -274,6 +274,11 @@ private:
 	typedef array_facade<array_base<T, segmented, alloc_t>, T, array_iter_base> p_t;
 	friend class array_facade<array_base<T, segmented, alloc_t>, T, array_iter_base>;
 
+	template <typename C>
+	struct trivial_same_size {
+		char c[sizeof(C)];
+	};
+
 	T * m_elements;
 	size_t m_size;
 	alloc_t<T> m_allocator;
@@ -347,14 +352,13 @@ public:
 	/////////////////////////////////////////////////////////
 	void resize(size_t s, const T & elm) {
 		if (s != m_size) {
-			for (size_t i=0; i < m_size; ++i)
-				m_allocator.destroy(&m_elements[i]);
-			m_allocator.deallocate(m_elements, m_size);
+			tpie_delete_array(m_elements, m_size);
 			m_size = s;
-			m_elements = s ? m_allocator.allocate(m_size) : 0;
+			m_elements = reinterpret_cast<T*>(tpie_new_array<trivial_same_size<T> >(m_size));
+			std::uninitialized_fill(m_elements+0, m_elements+m_size, elm);
+		} else {
+			std::fill(m_elements+0, m_elements+m_size, elm);
 		}
-		for (size_t i=0; i < m_size; ++i)
-			m_allocator.construct(&m_elements[i], elm);
 	}
 
 	/////////////////////////////////////////////////////////
@@ -372,17 +376,9 @@ public:
 	/// \param s the new size of the array
 	/////////////////////////////////////////////////////////
 	void resize(size_t s) {
-		const bool is_pod = boost::is_pod<T>::value;
-		if (s == m_size) return;
-		if (!is_pod)
-			for (size_t i=0; i < m_size; ++i)
-				m_allocator.destroy(&m_elements[i]);
-		m_allocator.deallocate(m_elements, m_size);
+		tpie_delete_array(m_elements, m_size);
 		m_size = s;
-		m_elements = s ? m_allocator.allocate(m_size) : 0;
-		if (!is_pod)
-			for (size_t i=0; i < m_size; ++i)
-				m_allocator.construct(&m_elements[i]);
+		m_elements = s ? tpie_new_array<T>(m_size) : 0;
 	}
 
 	/////////////////////////////////////////////////////////
