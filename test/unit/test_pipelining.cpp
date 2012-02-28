@@ -91,7 +91,6 @@ bool check_test_vectors() {
 }
 
 bool vector_multiply_test() {
-	setup_test_vectors();
 	pipeline p = input_vector(inputvector) | multiply(3) | multiply(2) | output_vector(outputvector);
 	p.plot();
 	p();
@@ -188,7 +187,6 @@ bool file_stream_alt_push_test() {
 }
 
 bool merge_test() {
-	setup_test_vectors();
 	{
 		file_stream<test_t> in;
 		in.open("input");
@@ -222,7 +220,6 @@ bool merge_test() {
 }
 
 bool reverse_test() {
-	setup_test_vectors();
 
 	reverser<size_t> r(inputvector.size());
 
@@ -241,7 +238,6 @@ bool reverse_test() {
 }
 
 bool sort_test() {
-	setup_test_vectors();
 	expectvector = inputvector;
 	std::reverse(inputvector.begin(), inputvector.end());
 
@@ -257,7 +253,6 @@ bool sort_test() {
 // The other tests already test that pipe_begin | pipe_middle -> pipe_middle,
 // and that pipe_begin | pipe_end -> pipeline.
 bool operator_test() {
-	setup_test_vectors();
 	expectvector = inputvector;
 	std::reverse(inputvector.begin(), inputvector.end());
 	pipeline p = input_vector(inputvector) | ((pipesort() | pipesort()) | output_vector(outputvector));
@@ -335,6 +330,8 @@ struct tests_t {
 
 		if (!testall && testname != name) return *this;
 		++tests;
+		setup_test_vectors();
+		file_system_cleanup();
 		bool pass = f();
 		if (testall)
 			std::cerr << "Test \"" << name << "\" " << (pass ? "passed" : "failed") << std::endl;
