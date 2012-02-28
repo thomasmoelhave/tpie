@@ -52,6 +52,23 @@ struct pipe_segment {
 	virtual bool buffering() const {
 		return false;
 	}
+
+	virtual memory_size_type get_minimum_memory() {
+		return 0;
+	}
+
+	inline memory_size_type get_available_memory() {
+		return memory;
+	}
+
+private:
+	inline void set_available_memory(memory_size_type mem) {
+		memory = mem;
+	}
+
+	memory_size_type memory;
+
+	// TODO who's our friend?
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -236,8 +253,19 @@ private:
 
 namespace bits {
 
+template <typename child_t>
+struct pair_factory_base {
+	inline double memory() const {
+		return self().fact1.memory() + self().fact2.memory();
+	}
+
+private:
+	inline child_t & self() {return *static_cast<child_t*>(this);}
+	inline const child_t & self() const {return *static_cast<const child_t*>(this);}
+};
+
 template <class fact1_t, class fact2_t>
-struct pair_factory {
+struct pair_factory : public pair_factory_base<pair_factory<fact1_t, fact2_t> > {
 	template <typename dest_t>
 	struct generated {
 		typedef typename fact1_t::template generated<typename fact2_t::template generated<dest_t>::type>::type type;
@@ -253,16 +281,12 @@ struct pair_factory {
 		return fact1.construct(fact2.construct(dest));
 	}
 
-	inline double memory() const {
-		return fact1.memory() + fact2.memory();
-	}
-
 	fact1_t fact1;
 	fact2_t fact2;
 };
 
 template <class fact1_t, class termfact2_t>
-struct termpair_factory {
+struct termpair_factory : public pair_factory_base<termpair_factory<fact1_t, termfact2_t> > {
 	typedef typename fact1_t::template generated<typename termfact2_t::generated_type>::type generated_type;
 
 	inline termpair_factory(const fact1_t & fact1, const termfact2_t & fact2)
@@ -275,10 +299,6 @@ struct termpair_factory {
 	inline generated_type
 	construct() const {
 		return fact1.construct(fact2.construct());
-	}
-
-	inline double memory() const {
-		return fact1.memory() + fact2.memory();
 	}
 };
 
