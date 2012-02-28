@@ -103,16 +103,16 @@ struct pipeline_impl : public pipeline_virtual {
 		out << "digraph {\nrankdir=LR;\n";
 		nodes_t n = nodes();
 		for (nodes_t::iterator i = n.begin(); i != n.end(); ++i) {
-			out << '"' << i->second << "\";\n";
+			out << '"' << i->first << "\";\n";
 		}
 		{
 			const pipe_segment * c = &r;
 			while (c != 0) {
-				size_t number = n.find(c)->second;
+				//size_t number = n.find(c)->second;
 				const pipe_segment * next = c->get_next();
 				if (next) {
-					size_t next_number = n.find(next)->second;
-					out << '"' << number << "\" -> \"" << next_number;
+					//size_t next_number = n.find(next)->second;
+					out << '"' << c << "\" -> \"" << next;
 					if (c->buffering())
 						out << "\" [style=dashed];\n";
 					else
