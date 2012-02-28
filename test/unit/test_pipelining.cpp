@@ -278,6 +278,14 @@ bool uniq_test() {
 	return check_test_vectors();
 }
 
+bool memory_test() {
+	pipeline p = input_vector(inputvector).memory(1.1) | multiply(3).memory(3.2) | multiply(2).memory(3.3) | output_vector(outputvector).memory(2.3);
+	double mem = p.memory();
+	std::cout << mem << std::endl;
+	double d = mem-(1.1+3.2+3.3+2.3);
+	return d*d < 0.0001;
+}
+
 // Type of test function
 typedef bool fun_t();
 
@@ -359,6 +367,7 @@ int main(int argc, char ** argv) {
 	.test<sort_test>("sort")
 	.test<operator_test>("operators")
 	.test<uniq_test>("uniq")
+	.test<memory_test>("memory")
 	;
 	return EXIT_FAILURE;
 }

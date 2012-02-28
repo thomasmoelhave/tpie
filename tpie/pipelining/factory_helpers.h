@@ -24,6 +24,23 @@ namespace tpie {
 
 namespace pipelining {
 
+template <typename child_t>
+struct factory_base {
+	factory_base() : amount(0) {
+	}
+
+	inline void memory(double amount) {
+		this->amount = amount;
+	}
+	
+	inline double memory() const {
+		return amount;
+	}
+
+private:
+	double amount;
+};
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \class factory_0
 /// Push segment factory for 0-argument generator.
@@ -33,7 +50,7 @@ namespace pipelining {
 /// filter.
 ///////////////////////////////////////////////////////////////////////////////
 template <template <typename dest_t> class R>
-struct factory_0 {
+struct factory_0 : public factory_base<factory_0<R> > {
 	template<typename dest_t>
 	struct generated {
 		typedef R<dest_t> type;
@@ -50,7 +67,7 @@ struct factory_0 {
 /// Push segment factory for 1-argument generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <template <typename dest_t> class R, typename T1>
-struct factory_1 {
+struct factory_1 : public factory_base<factory_1<R, T1> > {
 	template<typename dest_t>
 	struct generated {
 		typedef R<dest_t> type;
@@ -71,7 +88,7 @@ private:
 /// Push segment factory for 2-argument generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <template <typename dest_t> class R, typename T1, typename T2>
-struct factory_2 {
+struct factory_2 : public factory_base<factory_2<R, T1, T2> > {
 	template<typename dest_t>
 	struct generated {
 		typedef R<dest_t> type;
@@ -93,7 +110,7 @@ private:
 /// Final push segment factory for 0-argument terminator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename R>
-struct termfactory_0 {
+struct termfactory_0 : public factory_base<termfactory_0<R> > {
 	typedef R generated_type;
 	inline R construct() const {
 		return R();
@@ -105,7 +122,7 @@ struct termfactory_0 {
 /// Final push segment factory for 1-argument terminator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename R, typename T1>
-struct termfactory_1 {
+struct termfactory_1 : public factory_base<termfactory_1<R, T1> > {
 	typedef R generated_type;
 	inline termfactory_1(T1 t1) : t1(t1) {}
 	inline R construct() const {
@@ -120,7 +137,7 @@ private:
 /// Final push segment factory for 2-argument terminator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename R, typename T1, typename T2>
-struct termfactory_2 {
+struct termfactory_2 : public factory_base<termfactory_2<R, T1, T2> > {
 	typedef R generated_type;
 	inline termfactory_2(T1 t1, T2 t2) : t1(t1), t2(t2) {}
 	inline R construct() const {
@@ -136,7 +153,7 @@ private:
 /// Pull segment factory for 0-argument generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <template <typename source_t> class R>
-struct pull_factory_0 {
+struct pull_factory_0 : public factory_base<pull_factory_0<R> > {
 	template<typename source_t>
 	struct generated {
 		typedef R<source_t> type;
@@ -153,7 +170,7 @@ struct pull_factory_0 {
 /// Pull segment factory for 1-argument generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <template <typename source_t> class R, typename T1>
-struct pull_factory_1 {
+struct pull_factory_1 : public factory_base<pull_factory_1<R, T1> > {
 	template<typename source_t>
 	struct generated {
 		typedef R<source_t> type;

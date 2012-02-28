@@ -74,6 +74,8 @@ struct pipeline_virtual {
 	///////////////////////////////////////////////////////////////////////////
 	virtual void plot_phases(std::ostream & out) = 0;
 
+	virtual double memory() const = 0;
+
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Virtual dtor.
 	///////////////////////////////////////////////////////////////////////////
@@ -90,7 +92,7 @@ struct pipeline_impl : public pipeline_virtual {
 	typedef typename fact_t::generated_type gen_t;
 	typedef boost::unordered_map<const pipe_segment *, size_t> nodes_t;
 
-	inline pipeline_impl(const fact_t & factory) : r(factory.construct()) {}
+	inline pipeline_impl(const fact_t & factory) : r(factory.construct()), _memory(factory.memory()) {}
 	virtual ~pipeline_impl() {
 	}
 	void operator()() {
@@ -141,8 +143,13 @@ struct pipeline_impl : public pipeline_virtual {
 		out << '}' << std::endl;
 	}
 
+	double memory() const {
+		return _memory;
+	}
+
 private:
 	gen_t r;
+	double _memory;
 
 	nodes_t nodes() {
 		boost::unordered_map<const pipe_segment *, size_t> numbers;
@@ -192,6 +199,9 @@ struct datasource_wrapper : public pipeline_virtual {
 	void plot_phases(std::ostream & out) {
 		out << "datasource" << std::endl;
 	}
+	double memory() const {
+		return -1;
+	}
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -217,6 +227,9 @@ struct pipeline {
 	inline void plot_phases() {
 		p->plot_phases(std::cout);
 	}
+	inline double memory() const {
+		return p->memory();
+	}
 private:
 	pipeline_virtual * p;
 };
@@ -240,6 +253,10 @@ struct pair_factory {
 		return fact1.construct(fact2.construct(dest));
 	}
 
+	inline double memory() const {
+		return fact1.memory() + fact2.memory();
+	}
+
 	fact1_t fact1;
 	fact2_t fact2;
 };
@@ -259,12 +276,32 @@ struct termpair_factory {
 	construct() const {
 		return fact1.construct(fact2.construct());
 	}
+
+	inline double memory() const {
+		return fact1.memory() + fact2.memory();
+	}
 };
 
 } // namespace bits
 
+template <typename child_t>
+struct pipe_base {
+	inline child_t & memory(double amount) {
+		self().factory.memory(amount);
+		return self();
+	}
+
+	inline double memory() const {
+		return self().factory.memory();
+	}
+
+private:
+	inline child_t & self() {return *static_cast<child_t*>(this);}
+	inline const child_t & self() const {return *static_cast<const child_t*>(this);}
+};
+
 template <typename fact_t>
-struct pipe_end {
+struct pipe_end : pipe_base<pipe_end<fact_t> > {
 	typedef fact_t factory_type;
 
 	inline pipe_end() {
@@ -285,7 +322,7 @@ struct pipe_end {
 ///                factory_1, etc. helpers.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename fact_t>
-struct pipe_middle {
+struct pipe_middle : pipe_base<pipe_middle<fact_t> > {
 	typedef fact_t factory_type;
 
 	inline pipe_middle() {
@@ -317,7 +354,7 @@ struct pipe_middle {
 };
 
 template <typename fact_t>
-struct pipe_begin {
+struct pipe_begin : pipe_base<pipe_begin<fact_t> > {
 	typedef fact_t factory_type;
 
 	inline pipe_begin() {
