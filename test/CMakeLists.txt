@@ -46,6 +46,10 @@ add_tpie_test(test_ami_queue)
 add_tpie_test(test_ami_sort)
 #add_tpie_test(test_correctness)
 
+add_executable(test_pipelining pipelining.cpp)
+set_target_properties(test_pipelining PROPERTIES FOLDER tpie/test)
+target_link_libraries(test_pipelining tpie )
+
 add_subdirectory(speed_regression)
 
 add_subdirectory(unit)
