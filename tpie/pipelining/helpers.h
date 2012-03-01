@@ -268,6 +268,49 @@ alt_identity() {
 	>(pull_factory_0<pull_identity_t>());
 }
 
+// XXX this might be broken
+template <typename fact2_t>
+struct fork_t {
+	typedef typename fact2_t::generated_type dest2_t;
+
+	template <typename dest_t>
+	struct type : public pipe_segment {
+		typedef typename dest_t::item_type item_type;
+
+		inline type(const dest_t & dest, const dest2_t & dest2) : dest(dest), dest2(dest2) {
+		}
+
+		inline void begin() {
+			dest.begin();
+			dest2.begin();
+		}
+
+		inline void push(const item_type & item) {
+			dest.push(item);
+			dest2.push(item);
+		}
+
+		inline void end() {
+			dest.end();
+			dest2.end();
+		}
+
+		const pipe_segment * get_next() const {
+			return &dest;
+		}
+
+	private:
+		dest_t dest;
+		dest2_t dest2;
+	};
+};
+
+template <typename fact_t>
+inline pipe_middle<factory_1<fork_t<fact_t>::template type, const typename fact_t::generated_type &> >
+fork(const pipe_end<fact_t> & to) {
+	return factory_1<fork_t<fact_t>::template type, const typename fact_t::generated_type &>(to.factory.construct());
+}
+
 }
 
 }
