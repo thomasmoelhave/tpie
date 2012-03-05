@@ -51,9 +51,9 @@ public:
 	inline void operator()(const T & time) {
 		if (next_col == 0) {
 			++n;
-			std::cout << std::setw(width) << n;
+			output(n);
 		}
-		std::cout << std::setw(width) << time << std::flush;
+		output(time);
 
 		double delta = time - mean[next_col];
 		mean[next_col] += static_cast<double>(delta) / n;
@@ -72,15 +72,42 @@ public:
 		print_mean_line();
 		std::cout << std::endl << std::setw(width) << "stddev";
 		for(size_t i=0; i < mean.size(); ++i) 
-			std::cout << std::setw(width) << sqrt(m2[i]/(n-1));
+			output(sqrt(m2[i]/(n-1)));
 		std::cout << std::endl;
 	}
 
 private:
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Output means
+	///////////////////////////////////////////////////////////////////////////
 	void print_mean_line() {
 		std::cout << std::setw(width) << "mean";
 		for(size_t i=0; i < mean.size(); ++i) 
-			std::cout << std::setw(width) << mean[i];
+			output(mean[i]);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief The number of digits to display after the decimal point to show
+	/// the given amount of significant digits
+	/// \tparam T Numeric type
+	/// \tparam digits Number of significant digits to show
+	/// \param time Target number
+	/// \param base Internal
+	///////////////////////////////////////////////////////////////////////////
+	template <typename T, int digits>
+	inline int precisionof(const T & time, int base = 1) {
+		if (!digits) return 0;
+		if (time < base) return digits;
+		return precisionof<T, (digits > 0) ? digits-1 : 0>(time, base*10);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Output a number in a tabular cell, displaying 6 significant
+	/// digits
+	///////////////////////////////////////////////////////////////////////////
+	template <typename T>
+	inline void output(const T & time) {
+		std::cout << std::setw(width) << std::setprecision(precisionof<T, 6>(time)) << std::fixed << time << std::flush;
 	}
 
 	std::vector<double> mean;
