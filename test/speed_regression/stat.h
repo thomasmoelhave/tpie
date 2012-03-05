@@ -95,7 +95,7 @@ private:
 	/// \param base Internal
 	///////////////////////////////////////////////////////////////////////////
 	template <typename T, int digits>
-	inline int precisionof(const T & time, int base = 1) {
+	inline int precisionof(const T & time, T base = 1) {
 		if (!digits) return 0;
 		if (time < base) return digits;
 		return precisionof<T, (digits > 0) ? digits-1 : 0>(time, base*10);
