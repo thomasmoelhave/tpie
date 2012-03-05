@@ -243,9 +243,7 @@ void usage() {
 
 void test(size_t mb, size_t times) {
 	std::vector<const char *> names;
-	std::vector<double> ti;
 	names.resize(2);
-	ti.resize(2);
 	uint64_t a=0;
 	names[0] = "Push";
 	names[1] = "Pop";
@@ -264,9 +262,8 @@ void test(size_t mb, size_t times) {
 				pq.push(x);
 			}
 			getTestRealtime(end);
-			ti[0] = testRealtimeDiff(start,end);
-		
-		
+			s(testRealtimeDiff(start,end));
+
 			getTestRealtime(start);
 			for(TPIE_OS_OFFSET i=0; i < count; ++i) {
 				uint64_t x=pq.top();
@@ -274,9 +271,8 @@ void test(size_t mb, size_t times) {
 				a ^= x;
 			}
 			getTestRealtime(end);
-			ti[1] = testRealtimeDiff(start,end);
+			s(testRealtimeDiff(start,end));
 		}
-		s(ti);
 	}
 	if (a == 42) std::cout << "oh rly" << std::endl;
 }

@@ -73,7 +73,7 @@ void test(size_t mb, size_t times) {
 			}
 		}
 		getTestRealtime(end);
-		ti[0] = testRealtimeDiff(start,end);
+		s(testRealtimeDiff(start,end));
 		
 		getTestRealtime(start);
 		{
@@ -81,7 +81,7 @@ void test(size_t mb, size_t times) {
 			tpie::ami::sort(&s);
 		}
 		getTestRealtime(end);
-		ti[1] = testRealtimeDiff(start,end);
+		s(testRealtimeDiff(start,end));
 
 		elm_t hash = 0;
 		elm_t prev = 0;
@@ -100,9 +100,8 @@ void test(size_t mb, size_t times) {
 		}
 		boost::filesystem::remove("tmp");
 		hash %= 100000000000000;
-		ti[2] = hash;
+		s(hash);
 		if (!sorted) std::cout << "\nNot sorted!" << std::endl;
-		s(ti);
 	}
 }
 

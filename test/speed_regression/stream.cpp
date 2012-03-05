@@ -69,7 +69,7 @@ void test(size_t mb, size_t times) {
 			for(count_t i=0; i < count; ++i) s.write_item(x);
 		}
 		getTestRealtime(end);
-		ti[0] = testRealtimeDiff(start,end);
+		s(testRealtimeDiff(start,end));
 		
 		uint64_t hash = 0;
 		getTestRealtime(start);
@@ -83,8 +83,8 @@ void test(size_t mb, size_t times) {
 		}
 		getTestRealtime(end);
 		hash %= 100000000000000;
-		ti[1] = testRealtimeDiff(start,end);
-		ti[2] = hash;
+		s(testRealtimeDiff(start,end));
+		s(hash);
 		boost::filesystem::remove("tmp");
 		s(ti);
 
