@@ -7,3 +7,5 @@
 *Test initiated* on March 1, 2012, 15:40
 
 *Tests used*: sort_speed_test 1 10240, sort_speed_test 1 40960
+
+*Results*: Not enough space on disk, test crashed
