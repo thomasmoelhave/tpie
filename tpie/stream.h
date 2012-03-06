@@ -352,13 +352,21 @@ private:
      * AMI stream is destroyed. */
     //bool m_destructBTEStream;
     stream_status m_status;
+
+	static inline double block_factor() {
+#ifdef WIN32
+		return static_cast<double>(STREAM_UFS_BLOCK_FACTOR)/32;
+#else
+		return static_cast<double>(STREAM_UFS_BLOCK_FACTOR)/512;
+#endif
+	}
 };
 
 // Create a temporary AMI stream on one of the devices in the default
 // device description. Persistence is PERSIST_DELETE by default. We
 // are given the index of the string describing the desired device.
 	template<class T>
-	stream<T>::stream(): m_status(STREAM_STATUS_INVALID)
+	stream<T>::stream(): m_stream(block_factor()), m_status(STREAM_STATUS_INVALID)
 	{
 		TP_LOG_DEBUG_ID("Temporary stream in file: ");
 	    TP_LOG_DEBUG_ID( m_temp.path() );
@@ -377,7 +385,7 @@ private:
 // location specified by the path name.
 	template<class T>
 	stream<T>::stream(const std::string& path_name, stream_type st) :
-		m_temp(path_name, true), m_status(STREAM_STATUS_INVALID) {
+		m_temp(path_name, true), m_stream(block_factor()), m_status(STREAM_STATUS_INVALID) {
 		try {
 			m_stream.open( path_name, st==READ_STREAM ? file_base::read: file_base::read_write);
 			if (st == APPEND_STREAM) m_stream.seek(0, file_base::end);
@@ -481,7 +489,7 @@ private:
 
 template<class T>
 size_type stream<T>::memory_usage(size_type count) {
-	return file_stream<T>::memory_usage(count) + sizeof(stream<T>)*count;
+	return count*(file_stream<T>::memory_usage(block_factor()) + sizeof(stream<T>));
 }
 	
 
@@ -500,7 +508,7 @@ size_type stream<T>::memory_usage(size_type count) {
 			*usage =  memory_usage(1);
 			return NO_ERROR;
 	    case STREAM_USAGE_BUFFER:
-			*usage = file_stream<T>::memory_usage(1.0) - file_stream<T>::memory_usage(0.0); 
+			*usage = file_stream<T>::memory_usage(block_factor()) - file_stream<T>::memory_usage(0.0); 
 			return NO_ERROR;
 		}
 		return BTE_ERROR;
