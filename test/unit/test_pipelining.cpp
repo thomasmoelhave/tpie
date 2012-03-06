@@ -286,6 +286,13 @@ bool memory_test() {
 	return d*d < 0.0001;
 }
 
+bool fork_test() {
+	expectvector = inputvector;
+	pipeline p = input_vector(inputvector) | fork(output_vector(outputvector)) | bitbucket<test_t>(0);
+	p();
+	return check_test_vectors();
+}
+
 // Type of test function
 typedef bool fun_t();
 
@@ -368,6 +375,7 @@ int main(int argc, char ** argv) {
 	.test<operator_test>("operators")
 	.test<uniq_test>("uniq")
 	.test<memory_test>("memory")
+	.test<fork_test>("fork")
 	;
 	return EXIT_FAILURE;
 }
