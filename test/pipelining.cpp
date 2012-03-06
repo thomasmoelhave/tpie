@@ -166,15 +166,28 @@ count(const byid_t & byid, const byparent_t & byparent) {
 }
 
 struct output_count_t : public pipe_segment {
+	size_t children;
+	size_t nodes;
+
+	inline output_count_t()
+		: children(0)
+		, nodes(0)
+	{
+	}
+
 	inline void begin() {
 		std::cout << "Begin output" << std::endl;
 	}
+
 	inline void end() {
 		std::cout << "End output" << std::endl;
+		std::cout << "We saw " << nodes << " nodes and " << children << " children" << std::endl;
 	}
 
 	inline void push(const node_output & node) {
 		std::cout << node << std::endl;
+		children += node.children;
+		++nodes;
 	}
 
 	const pipe_segment * get_next() const {
