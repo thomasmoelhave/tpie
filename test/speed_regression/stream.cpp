@@ -18,12 +18,7 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #include "../app_config.h"
 
-#undef STREAM_UFS_BLOCK_FACTOR
-#ifdef WIN32
-#define STREAM_UFS_BLOCK_FACTOR 32
-#else
-#define STREAM_UFS_BLOCK_FACTOR 512
-#endif
+#include "blocksize_2MB.h"
 
 #include <tpie/tpie.h>
 #include <tpie/stream.h>
