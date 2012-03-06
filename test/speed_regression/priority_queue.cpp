@@ -217,7 +217,7 @@ int main(int argc, char **argv) {
 */
 #include "../app_config.h"
 
-#include "blocksize_2MB.h"
+#include "blocksize_128KB.h"
 
 #include <tpie/tpie.h>
 #include <iostream>
