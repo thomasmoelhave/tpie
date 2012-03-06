@@ -33,6 +33,11 @@ namespace pipelining {
 
 template <typename dest_t>
 struct sort_t : public pipe_segment {
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Virtual dtor.
+	///////////////////////////////////////////////////////////////////////////
+	~sort_t() {}
+
 	typedef typename dest_t::item_type item_type;
 
 	inline sort_t(const dest_t & dest) : dest(dest) {

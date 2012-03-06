@@ -30,6 +30,11 @@ namespace pipelining {
 
 template <typename dest_t>
 struct linear_t : public pipe_segment {
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Virtual dtor.
+	///////////////////////////////////////////////////////////////////////////
+	~linear_t() {}
+
 	typedef typename dest_t::item_type item_type;
 
 	inline linear_t(const dest_t & dest, item_type factor, item_type term) : dest(dest), factor(factor), term(term) {

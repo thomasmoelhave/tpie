@@ -31,6 +31,11 @@ namespace pipelining {
 
 template <typename dest_t>
 struct input_vector_t : public pipe_segment {
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Virtual dtor.
+	///////////////////////////////////////////////////////////////////////////
+	~input_vector_t() {}
+
 	typedef typename dest_t::item_type item_type;
 
 	inline input_vector_t(const dest_t & dest, const std::vector<item_type> & input) : dest(dest), input(input) {
@@ -55,6 +60,11 @@ private:
 
 template <typename T>
 struct output_vector_t : public pipe_segment {
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Virtual dtor.
+	///////////////////////////////////////////////////////////////////////////
+	~output_vector_t() {}
+
 	typedef T item_type;
 
 	inline output_vector_t(std::vector<T> & output) : output(output) {

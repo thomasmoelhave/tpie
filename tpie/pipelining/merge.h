@@ -37,6 +37,11 @@ template <typename pull_t>
 struct merge_t {
 	template <typename dest_t>
 	struct type : public pipe_segment {
+		///////////////////////////////////////////////////////////////////////
+		/// \brief Virtual dtor.
+		///////////////////////////////////////////////////////////////////////
+		~type() {}
+
 		typedef typename dest_t::item_type item_type;
 
 		inline type(const dest_t & dest, const pull_t & with) : dest(dest), with(with) {

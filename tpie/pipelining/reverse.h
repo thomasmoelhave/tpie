@@ -32,6 +32,11 @@ struct reverser {
 	typedef std::vector<T> buf_t;
 
 	struct sink_t : public pipe_segment {
+		///////////////////////////////////////////////////////////////////////
+		/// \brief Virtual dtor.
+		///////////////////////////////////////////////////////////////////////
+		~sink_t() {}
+
 		typedef T item_type;
 
 		inline sink_t(buf_t & buffer, boost::shared_ptr<pipe_segment *> sourcep)
@@ -67,6 +72,11 @@ struct reverser {
 
 	template <typename dest_t>
 	struct source_t : public pipe_segment {
+		///////////////////////////////////////////////////////////////////////
+		/// \brief Virtual dtor.
+		///////////////////////////////////////////////////////////////////////
+		~source_t() {}
+
 		typedef T item_type;
 
 		inline source_t(const dest_t & dest, const buf_t & buffer, boost::shared_ptr<pipe_segment *> thisp)

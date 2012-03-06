@@ -30,6 +30,11 @@ namespace pipelining {
 
 template <typename dest_t>
 struct count_consecutive_t : public pipe_segment {
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Virtual dtor.
+	///////////////////////////////////////////////////////////////////////////
+	~count_consecutive_t() {}
+
 	typedef uint64_t count_t;
 	typedef typename dest_t::item_type::first_type item_type;
 
@@ -85,6 +90,11 @@ struct any_type {
 
 template <typename dest_t>
 struct extract_first_t : public pipe_segment {
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Virtual dtor.
+	///////////////////////////////////////////////////////////////////////////
+	~extract_first_t() {}
+
 	typedef std::pair<typename dest_t::item_type, bits::any_type> item_type;
 
 	inline extract_first_t(const dest_t & dest) : dest(dest) {
