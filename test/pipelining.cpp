@@ -22,6 +22,7 @@
 #include <boost/random.hpp>
 #include <tpie/file_stream.h>
 #include <iostream>
+#include <sstream>
 
 using namespace tpie;
 using namespace tpie::pipelining;
@@ -34,7 +35,9 @@ using namespace tpie::pipelining;
  */
 
 struct node {
-	node(size_t id, size_t parent) : id(id), parent(parent) {
+	inline node(size_t id, size_t parent) : id(id), parent(parent) {
+	}
+	inline node() {
 	}
 	size_t id;
 	size_t parent;
@@ -59,6 +62,14 @@ struct node_output {
 	size_t parent;
 	size_t children;
 };
+
+inline std::ostream & operator<<(std::ostream & stream, const node & n) {
+	return stream << '(' << n.id << ", " << n.parent << ')';
+}
+
+inline std::ostream & operator<<(std::ostream & stream, const node_output & n) {
+	return stream << '(' << n.id << ", " << n.parent << ", " << n.children << ')';
+}
 
 template <typename dest_t>
 struct input_nodes_t : public pipe_segment {
@@ -133,6 +144,9 @@ struct count_t {
 seen_children:
 				dest.push(cur);
 			}
+			byparent.end();
+			byid.end();
+			dest.end();
 		}
 
 		const pipe_segment * get_next() const {
@@ -160,7 +174,7 @@ struct output_count_t : public pipe_segment {
 	}
 
 	inline void push(const node_output & node) {
-		std::cout << node.id << ", " << node.parent << ", " << node.children << std::endl;
+		std::cout << node << std::endl;
 	}
 
 	const pipe_segment * get_next() const {
@@ -196,7 +210,12 @@ struct passive_sorter {
 		}
 
 		inline void end() {
+			pbuffer->seek(0);
+			pred_t pred;
+			STL2TPIE_cmp<node, pred_t> tpiecmp(&pred);
+			sort(*pbuffer, *pbuffer, &tpiecmp);
 			pbuffer->close();
+
 			tpie_delete(pbuffer);
 		}
 
@@ -260,9 +279,10 @@ private:
 	passive_sorter & operator=(const passive_sorter &);
 };
 
-int main() {
+int main(int argc, char ** argv) {
 	tpie_init(ALL & ~JOB_MANAGER);
 	size_t nodes = 1 << 20;
+	if (argc > 1) std::stringstream(argv[1]) >> nodes;
 	std::cout << "Instantiate passive 1" << std::endl;
 	passive_sorter<sort_by_id> byid;
 	std::cout << "Instantiate passive 2" << std::endl;
