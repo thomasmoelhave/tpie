@@ -45,6 +45,12 @@ void usage() {
 }
 
 void test(size_t mb, size_t times) {
+    {
+	stream<uint64_t> s("tmp", WRITE_STREAM);
+	TPIE_OS_SIZE_T sz = 0;
+	s.main_memory_usage(&sz, STREAM_USAGE_MAXIMUM);
+	std::cout << "Stream memory usage: " << sz << std::endl;
+    }
 	std::vector<const char *> names;
 	std::vector<uint64_t> ti;
 	names.resize(3);
