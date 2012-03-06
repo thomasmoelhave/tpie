@@ -90,26 +90,6 @@ void test(size_t mb, size_t times) {
 		s(ti);
 
 	}
-   	// getTestRealtime(start);
-	// {
-	// 	uint64_t x[1024];
-	// 	std::fill(x+0, x+1024, 42);
-	// 	stream<uint64_t> s("tmp", WRITE_STREAM);
-	// 	for(size_t i=0; i < count; ++i) s.write_array(x,1024);
-	// }
-	// getTestRealtime(end);
-	// std::cout << " " << testRealtimeDiff(start,end);
-	// std::cout.flush();
-	
-	// getTestRealtime(start);
-	// {
-	// 	uint64_t x[1024];
-	// 	std::fill(x+0, x+1024, 42);
-	// 	stream<uint64_t> s("tmp", READ_STREAM);
-	// 	for(size_t i=0; i < count; ++i) {TPIE_OS_OFFSET y=1024; s.read_array(x,&y);}
-	// }
-	// getTestRealtime(end);
-	// std::cout << " " << testRealtimeDiff(start,end) << std::endl;
 }
 
 int main(int argc, char **argv) {
