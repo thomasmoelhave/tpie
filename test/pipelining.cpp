@@ -175,8 +175,7 @@ output_count() {
 
 template <typename pred_t>
 struct passive_sorter {
-	passive_sorter() {
-		std::cout << "temp_file in passive_sorter at " << &file << std::endl;
+	inline passive_sorter() {
 	}
 
 	struct input_t : public pipe_segment {
@@ -185,14 +184,6 @@ struct passive_sorter {
 		inline input_t(temp_file * file)
 			: file(file)
 		{
-			std::cout << "temp_file in input_t at " << file << std::endl;
-		}
-
-		inline input_t(const input_t & other)
-			: file(other.file)
-			, pbuffer(other.pbuffer)
-		{
-			std::cout << "temp_file in copied input_t at " << file << std::endl;
 		}
 
 		inline void begin() {
@@ -226,13 +217,6 @@ struct passive_sorter {
 		inline output_t(temp_file * file)
 			: file(file)
 		{
-			std::cout << "temp_file in output_t at " << file << std::endl;
-		}
-
-		inline output_t(const output_t & other)
-			: file(other.file)
-		{
-			std::cout << "temp_file in copied output_t at " << file << std::endl;
 		}
 
 		inline void begin() {
