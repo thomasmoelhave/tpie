@@ -68,7 +68,7 @@ public:
 	/// \param b Block factor
     ///
     /////////////////////////////////////////////////////////
-    priority_queue(double f=1.0, double b=1.0);
+    priority_queue(double f=1.0, double b=0.0625);
 
 	/////////////////////////////////////////////////////////
     ///
@@ -79,7 +79,7 @@ public:
 	/// \param b Block factor
     ///
     /////////////////////////////////////////////////////////
-    priority_queue(TPIE_OS_SIZE_T mm_avail, double b=1.0);
+    priority_queue(TPIE_OS_SIZE_T mm_avail, double b=0.0625);
 
 
     /////////////////////////////////////////////////////////
