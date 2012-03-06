@@ -296,17 +296,11 @@ int main(int argc, char ** argv) {
 	tpie_init();
 	size_t nodes = 1 << 20;
 	if (argc > 1) std::stringstream(argv[1]) >> nodes;
-	std::cout << "Instantiate passive 1" << std::endl;
 	passive_sorter<sort_by_id> byid;
-	std::cout << "Instantiate passive 2" << std::endl;
 	passive_sorter<sort_by_parent> byparent;
-	std::cout << "Instantiate pipe 1" << std::endl;
 	pipeline p1 = input_nodes(nodes) | fork(byid.input()) | byparent.input();
-	std::cout << "Instantiate pipe 2" << std::endl;
 	pipeline p2 = count(byid.output(), byparent.output()) | output_count();
-	std::cout << "Run pipe 1" << std::endl;
 	p1();
-	std::cout << "Run pipe 2" << std::endl;
 	p2();
 	tpie_finish();
 	return 0;
