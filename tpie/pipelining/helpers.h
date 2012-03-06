@@ -31,6 +31,11 @@ namespace pipelining {
 
 template <typename dest_t>
 struct ostream_logger_t : public pipe_segment {
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Virtual dtor.
+	///////////////////////////////////////////////////////////////////////////
+	~ostream_logger_t() {}
+
 	typedef typename dest_t::item_type item_type;
 
 	inline ostream_logger_t(const dest_t & dest, std::ostream & log) : dest(dest), log(log), begun(false), ended(false) {
@@ -73,6 +78,11 @@ cout_logger() {
 
 template <typename dest_t>
 struct identity_t : public pipe_segment {
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Virtual dtor.
+	///////////////////////////////////////////////////////////////////////////
+	~identity_t() {}
+
 	typedef typename dest_t::item_type item_type;
 
 	inline identity_t(const dest_t & dest) : dest(dest) {
@@ -130,6 +140,11 @@ private:
 
 template <typename T>
 struct dummydest_t : public pipe_segment {
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Virtual dtor.
+	///////////////////////////////////////////////////////////////////////////
+	~dummydest_t() {}
+
 	typedef T item_type;
 	T & buffer;
 	inline dummydest_t(T & buffer) : buffer(buffer) {
@@ -205,6 +220,10 @@ struct pull_to_push {
 
 	template <typename dest_t>
 	struct pusher_t : public pipe_segment {
+		///////////////////////////////////////////////////////////////////////
+		/// \brief Virtual dtor.
+		///////////////////////////////////////////////////////////////////////
+		~pusher_t() {}
 
 		typedef typename dest_t::item_type item_type;
 		typedef typename pullfact_t::template generated<dummydest_t<item_type> >::type puller_t;
@@ -268,16 +287,50 @@ alt_identity() {
 	>(pull_factory_0<pull_identity_t>());
 }
 
-// XXX this might be broken
+template <typename T>
+struct bitbucket_t : public pipe_segment {
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Virtual dtor.
+	///////////////////////////////////////////////////////////////////////////
+	~bitbucket_t() {}
+
+	typedef T item_type;
+
+	inline void begin() {
+	}
+
+	inline void end() {
+	}
+
+	inline void push(const T &) {
+	}
+
+	const pipe_segment * get_next() const {
+		return 0;
+	}
+};
+
+template <typename T>
+inline pipe_end<termfactory_0<bitbucket_t<T> > >
+bitbucket(T) {
+	return termfactory_0<bitbucket_t<T> >();
+}
+
 template <typename fact2_t>
 struct fork_t {
 	typedef typename fact2_t::generated_type dest2_t;
 
 	template <typename dest_t>
 	struct type : public pipe_segment {
+		///////////////////////////////////////////////////////////////////////
+		/// \brief Virtual dtor.
+		///////////////////////////////////////////////////////////////////////
+		~type() {}
+
 		typedef typename dest_t::item_type item_type;
 
-		inline type(const dest_t & dest, const dest2_t & dest2) : dest(dest), dest2(dest2) {
+		inline type(const dest_t & dest, const fact2_t & fact2) : dest(dest), dest2(fact2.construct()) {
+			std::cout << typeid(dest2_t).name() << std::endl;
 		}
 
 		inline void begin() {
@@ -306,9 +359,9 @@ struct fork_t {
 };
 
 template <typename fact_t>
-inline pipe_middle<factory_1<fork_t<fact_t>::template type, const typename fact_t::generated_type &> >
+inline pipe_middle<factory_1<fork_t<fact_t>::template type, const fact_t &> >
 fork(const pipe_end<fact_t> & to) {
-	return factory_1<fork_t<fact_t>::template type, const typename fact_t::generated_type &>(to.factory.construct());
+	return factory_1<fork_t<fact_t>::template type, const fact_t &>(to.factory);
 }
 
 }
