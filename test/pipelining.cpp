@@ -280,7 +280,7 @@ private:
 };
 
 int main(int argc, char ** argv) {
-	tpie_init(ALL & ~JOB_MANAGER);
+	tpie_init();
 	size_t nodes = 1 << 20;
 	if (argc > 1) std::stringstream(argv[1]) >> nodes;
 	std::cout << "Instantiate passive 1" << std::endl;
@@ -295,6 +295,6 @@ int main(int argc, char ** argv) {
 	p1();
 	std::cout << "Run pipe 2" << std::endl;
 	p2();
-	tpie_finish(ALL & ~JOB_MANAGER);
+	tpie_finish();
 	return 0;
 }
