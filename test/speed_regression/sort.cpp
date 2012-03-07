@@ -27,6 +27,7 @@
 #include "testtime.h"
 #include "stat.h"
 #include <boost/filesystem/operations.hpp>
+#include "testinfo.h"
 
 using namespace tpie;
 using namespace tpie::ami;
@@ -123,10 +124,7 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	std::cout << "Writin and sorting " << mb << "mb" << std::endl;
-	tpie::tpie_init();
-	tpie::get_memory_manager().set_limit(1024*1024*1024);
+	testinfo t("Sort speed test", 1024, mb, times);
 	::test(mb, times);
-	tpie::tpie_finish();
 	return EXIT_SUCCESS;
 }

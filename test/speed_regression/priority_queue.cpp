@@ -27,6 +27,7 @@
 #include "stat.h"
 #include <boost/filesystem/operations.hpp>
 #include <tpie/priority_queue.h>
+#include "testinfo.h"
 
 using namespace tpie;
 using namespace tpie::ami;
@@ -97,10 +98,7 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	std::cout << "Push and pop " << mb << "mb" << std::endl;
-	tpie::tpie_init();
-	tpie::get_memory_manager().set_limit(1024*1024*1024);
+	testinfo t("Priority queue speed test", 1024, mb, times);
 	::test(mb, times);
-	tpie::tpie_finish();
 	return EXIT_SUCCESS;
 }

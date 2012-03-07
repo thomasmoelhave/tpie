@@ -21,7 +21,6 @@
 #include <iomanip>
 #include <vector>
 #include <cmath>
-#include "sysinfo.h"
 
 namespace tpie {
 namespace test {
@@ -35,7 +34,6 @@ public:
 		m2.resize(name.size(), 0);
 		n = 0;
 		next_col = 0;
-		std::cout << sysinfo() << std::flush;
 		std::cout << std::setw(width) << "Test";
 		for(size_t i=0; i < name.size(); ++i) 
 			std::cout << std::setw(width) << name[i];
