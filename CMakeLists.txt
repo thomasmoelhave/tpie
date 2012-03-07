@@ -45,6 +45,11 @@ endif(TBB_FOUND)
 check_include_files("unistd.h" TPIE_HAVE_UNISTD_H)
 check_include_files("sys/unistd.h" TPIE_HAVE_SYS_UNISTD_H)
 
+# Ryan Pavlik's Git revision description helper
+# http://stackoverflow.com/a/4318642
+include(GetGitRevisionDescription)
+get_git_head_revision(GIT_REFSPEC GIT_COMMIT)
+
 #### Installation paths
 #Default paths
 set(BIN_INSTALL_DIR bin)
