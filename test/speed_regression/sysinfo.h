@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2008, The TPIE development team
+// Copyright 2012, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -21,6 +21,7 @@
 #define __TPIE_SYSINFO__
 
 #include <iostream>
+#include <iomanip>
 #include <boost/asio/ip/host_name.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
@@ -46,6 +47,13 @@ struct sysinfo {
 	inline std::string localtime() const {
 		boost::posix_time::ptime now = boost::posix_time::second_clock::local_time();
 		return to_simple_string(now);
+	}
+
+	template <typename V>
+	inline void printinfo(std::string key, const V & value) {
+		if (key != "") key += ':';
+		std::cout.flags(std::ios::left);
+		std::cout << std::setw(16) << key << value << std::endl;
 	}
 
 private:
@@ -80,12 +88,12 @@ private:
 
 inline std::ostream & operator<<(std::ostream & s, const sysinfo & info) {
 	return s
-		<< "Hostname:   " << info.hostname() << '\n'
-		<< "Platform:   " << info.platform() << '\n'
-		<< "Git branch: " << info.refspec() << '\n'
-		<< "Git commit: " << info.commit() << '\n'
-		<< "Local time: " << info.localtime() << '\n'
-		<< "Block size: " << info.blocksize() << '\n';
+		<< "Hostname:       " << info.hostname() << '\n'
+		<< "Platform:       " << info.platform() << '\n'
+		<< "Git branch:     " << info.refspec() << '\n'
+		<< "Git commit:     " << info.commit() << '\n'
+		<< "Local time:     " << info.localtime() << '\n'
+		<< "Block size:     " << info.blocksize() << '\n';
 }
 
 }
