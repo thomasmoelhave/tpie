@@ -47,9 +47,7 @@ void test(size_t mb, size_t times) {
 	std::cout << "Stream memory usage: " << sz << std::endl;
     }
 	std::vector<const char *> names;
-	std::vector<uint64_t> ti;
 	names.resize(3);
-	ti.resize(3);
 	names[0] = "Write";
 	names[1] = "Read";
 	names[2] = "Hash";
@@ -87,8 +85,6 @@ void test(size_t mb, size_t times) {
 		s(testRealtimeDiff(start,end));
 		s(hash);
 		boost::filesystem::remove("tmp");
-		s(ti);
-
 	}
 }
 
