@@ -41,13 +41,6 @@ public:
 	}
 
 	template <typename T>
-	inline void operator()(const std::vector<T> & times) {
-		for (size_t i = 0; i < times.size(); ++i) {
-			(*this)(times[i]);
-		}
-	}
-
-	template <typename T>
 	inline void operator()(const T & time) {
 		if (next_col == 0) {
 			++n;
