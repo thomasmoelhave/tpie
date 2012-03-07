@@ -26,6 +26,7 @@
 #include "testtime.h"
 #include "stat.h"
 #include <boost/filesystem/operations.hpp>
+#include "testinfo.h"
 
 using namespace tpie;
 using namespace tpie::ami;
@@ -112,8 +113,7 @@ int main(int argc, char **argv) {
 	}
 
 	std::cout << "Wrating and Reading " << mb << " MB" << std::endl;
-	tpie::tpie_init();
+	testinfo t("Stream speed test", 0, mb, times);
 	::test(mb, times);
-	tpie::tpie_finish();
 	return EXIT_SUCCESS;
 }
