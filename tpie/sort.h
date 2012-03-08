@@ -51,79 +51,48 @@
 #include <tpie/progress_indicator_base.h>
 #include <tpie/progress_indicator_null.h>
 
+#include <tpie/comparator.h>
+
 namespace tpie {
 
-  //////////////////////////////////////////////////////////////////////////
-  /// A version of sort that takes an input stream of elements of type
-  /// T, and an output stream, and and uses the < operator to sort,
-  /// see also \ref sorting_in_tpie "Sorting in TPIE".
-  /// 
-  /// \anchor comp_sorting \par Comparing within Sorting:
-  /// TPIE's sort() has two polymorphs, namely the comparison
-  /// operator and comparison class polymorphs. The comparison operator
-  /// version tends to be the fastest and most straightforward to use. The
-  /// comparison class version is comparable in speed (maybe slightly
-  /// slower), but somewhat more flexible, as it can support multiple,
-  /// different sorts on the same keys.
-  /// 
-  /// \par Comparison operator version:
-  /// This version works on streams of
-  /// objects for which the operator "<" is defined.
-  /// 
-  /// \par Comparison class version:
-  /// This version of sort() uses a method of a user-defined
-  /// comparison object to determine the order of two input objects. The
-  /// object must have a public member function named compare(),
-  /// having the following prototype:
-  ///
-  /// <tt>inline int compare (const KEY & k1, const KEY & k2);</tt>
-  /// 
-  /// The user-written compare() function computes the order of
-  /// the two user-defined keys \p k1  and \p k2, and
-  /// returns -1, 0, or +1 to indicate that <tt>k1<k2</tt>, <tt>k1==k2</tt>, or
-  /// <tt>k1>k2</tt> respectively.
-  ///
-  /// \internal \deprecated \par  Deprecated Comparison Function Sorting:
-  /// Earlier TPIE versions allowed a sort that used a C-style
-  /// comparison function to sort. However, comparison functions cannot be
-  /// inlined, so each comparison requires one function call. Given that the
-  /// comparison operator < and comparison object classes can be inlined and
-  /// have better performance while providing the exact same functionality,
-  /// comparison functions have been removed from TPIE. If you can provide us
-  /// with a compelling argument on why they should be in here, we may consider
-  /// adding them again, but you must demonstrate that comparision functions
-  /// can outperform other methods in at least some cases or give an example
-  /// were it is impossible to use a comparison operator or comparison object.
-  //////////////////////////////////////////////////////////////////////////
-template<class T>
-void sort(file_stream<T> &instream, file_stream<T> &outstream,
-		  tpie::progress_indicator_base* indicator=NULL) {
-	ami::Internal_Sorter_Op<T> myInternalSorter;
-	ami::merge_heap_op<T>      myMergeHeap;
-	sort_manager< T, ami::Internal_Sorter_Op<T>, ami::merge_heap_op<T> > 
-	mySortManager(&myInternalSorter, &myMergeHeap);
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Sort elements of a stream using the given STL-style comparator
+/// object.
+///////////////////////////////////////////////////////////////////////////////
+template<class T, class Compare>
+void stlsort(file_stream<T> &instream, file_stream<T> &outstream,
+			 Compare & comp, progress_indicator_base & indicator) {
 
-	mySortManager.sort(&instream, &outstream, indicator);
-}
+	typedef STL2TPIE_cmp<T, Compare> CMPR;
+	CMPR tpiecomp(&comp);
 
-
-  ///////////////////////////////////////////////////////////////////////////
-  /// A version of sort that takes an input stream of elements of
-  /// type T, an output stream, and a user-specified comparison
-  /// object. The comparison object "cmp", of (user-defined) class
-  /// represented by CMPR, must have a member function called "compare"
-  /// which is used for sorting the input stream; see also 
-  /// \ref comp_sorting "Comparing within Sorting".
-  ///////////////////////////////////////////////////////////////////////////
-template<class T, class CMPR>
-void sort(file_stream<T> &instream, file_stream<T> &outstream,
-		  CMPR *cmp, progress_indicator_base* indicator) {
-	ami::Internal_Sorter_Obj<T,CMPR> myInternalSorter(cmp);
-	ami::merge_heap_obj<T,CMPR>      myMergeHeap(cmp);
+	ami::Internal_Sorter_Obj<T,CMPR> myInternalSorter(&tpiecomp);
+	ami::merge_heap_obj<T,CMPR>      myMergeHeap(&tpiecomp);
 	sort_manager< T, ami::Internal_Sorter_Obj<T,CMPR>, ami::merge_heap_obj<T,CMPR> > 
 	mySortManager(&myInternalSorter, &myMergeHeap);
 
-	mySortManager.sort(&instream, &outstream, indicator);
+	mySortManager.sort(&instream, &outstream, &indicator);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Sort elements of a stream using the less-than operator.
+///////////////////////////////////////////////////////////////////////////////
+template<class T>
+void sort(file_stream<T> &instream, file_stream<T> &outstream,
+		  tpie::progress_indicator_base* indicator=NULL) {
+	std::less<T> comp;
+	stlsort(instream, outstream, comp, *indicator);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \deprecated \brief Sort elements of a stream using the given AMI-style
+/// comparator.
+///////////////////////////////////////////////////////////////////////////////
+template<class T, class TCompare>
+void sort(file_stream<T> &instream, file_stream<T> &outstream,
+		  TCompare *tpiecomp, progress_indicator_base* indicator) {
+	TPIE2STL_cmp<T, TCompare> comp(tpiecomp);
+	stlsort(instream, outstream, comp, *indicator);
 }
 
 
@@ -134,34 +103,33 @@ void sort(file_stream<T> &instream, file_stream<T> &outstream,
 // *                                                                  *
 // ********************************************************************/
 
-  ///////////////////////////////////////////////////////////////////////////
-  /// In-place sorting variant of \ref sort(stream<T> *instream_ami, stream<T> *outstream_ami, tpie::progress_indicator_base* indicator=NULL),
-  /// see also \ref sortingspace_in_tpie "In-place Variants for Sorting in TPIE".
-  ///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Sort elements of a stream in-place using the given STL-style
+/// comparator object.
+///////////////////////////////////////////////////////////////////////////////
+template<class T, class Compare>
+void stlsort(file_stream<T> &instream, Compare & comp,
+			 progress_indicator_base & indicator) {
+	stlsort(instream, instream, comp, indicator);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Sort elements of a stream in-place using the less-than operator.
+///////////////////////////////////////////////////////////////////////////////
 template<class T>
 void sort(file_stream<T> &instream, 
 		  progress_indicator_base &indicator) {
-	ami::Internal_Sorter_Op<T> myInternalSorter;
-	ami::merge_heap_op<T>      myMergeHeap;
-	sort_manager< T, ami::Internal_Sorter_Op<T>, ami::merge_heap_op<T> > 
-	mySortManager(&myInternalSorter, &myMergeHeap);
-
-	mySortManager.sort(&instream, &instream, &indicator);
+	sort(instream, instream, &indicator);
 }
-	
-	///////////////////////////////////////////////////////////////////////////
-	/// In-place sorting variant of \ref  sort(stream<T> *instream_ami, stream<T> *outstream_ami, CMPR *cmp, progress_indicator_base* indicator=NULL), 
-	/// see also \ref sortingspace_in_tpie "In-place Variants for Sorting in TPIE".
-	///////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+/// \deprecated \brief Sort elements of a stream in-place using the given
+/// AMI-style comparator.
+///////////////////////////////////////////////////////////////////////////////
 template<class T, class CMPR>
 void sort(file_stream<T> &instream, 
 		  CMPR &cmp, progress_indicator_base &indicator) {
-	ami::Internal_Sorter_Obj<T,CMPR> myInternalSorter(&cmp);
-	ami::merge_heap_obj<T,CMPR>      myMergeHeap(&cmp);
-	sort_manager< T, ami::Internal_Sorter_Obj<T,CMPR>, ami::merge_heap_obj<T,CMPR> > 
-	mySortManager(&myInternalSorter, &myMergeHeap);
-
-	mySortManager.sort(&instream, &instream, &indicator);
+	sort(instream, instream, &cmp, &indicator);
 }
 
 }  //  tpie namespace
