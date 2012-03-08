@@ -63,12 +63,9 @@ template<class T, class Compare>
 void stlsort(file_stream<T> &instream, file_stream<T> &outstream,
 			 Compare & comp, progress_indicator_base & indicator) {
 
-	typedef STL2TPIE_cmp<T, Compare> CMPR;
-	CMPR tpiecomp(&comp);
-
-	ami::Internal_Sorter_Obj<T,CMPR> myInternalSorter(&tpiecomp);
-	ami::merge_heap_obj<T,CMPR>      myMergeHeap(&tpiecomp);
-	sort_manager< T, ami::Internal_Sorter_Obj<T,CMPR>, ami::merge_heap_obj<T,CMPR> > 
+	ami::Internal_Sorter_Obj<T,Compare> myInternalSorter(&comp);
+	ami::merge_heap_obj<T,Compare>      myMergeHeap(&comp);
+	sort_manager< T, ami::Internal_Sorter_Obj<T,Compare>, ami::merge_heap_obj<T,Compare> > 
 	mySortManager(&myInternalSorter, &myMergeHeap);
 
 	mySortManager.sort(&instream, &outstream, &indicator);

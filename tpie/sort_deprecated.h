@@ -297,13 +297,7 @@ namespace tpie {
 	template<class T, class KEY, class CMPR>
 	void  key_sort(file_stream<T> &instream, 
 		      KEY /* dummykey */, CMPR *cmp, progress_indicator_base* indicator=NULL)	{
-	  // key/object heaps, key/object comparisons 
-		ami::Internal_Sorter_KObj<T,KEY,CMPR> myInternalSorter(cmp);
-	    ami::merge_heap_kobj<T,KEY,CMPR>      myMergeHeap(cmp);
-	    sort_manager< T, ami::Internal_Sorter_KObj<T,KEY,CMPR>, ami::merge_heap_kobj<T,KEY,CMPR> > 
-		mySortManager(&myInternalSorter, &myMergeHeap);
-
-		mySortManager.sort(&instream, indicator);
+		sort(instream, *cmp, *indicator);
 	}
 	namespace ami {
 	template<class T, class KEY, class CMPR>

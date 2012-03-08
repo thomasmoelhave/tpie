@@ -134,23 +134,14 @@ namespace tpie {
 			inline size_t space_overhead() { return static_cast<size_t>(pq.memory_overhead()); }
 		};
 		
-		template <class REC, class CMPR>
-		struct COMP_WRAPPER {
-			CMPR * cmpr;
-			COMP_WRAPPER(CMPR * c): cmpr(c) {}
-			bool operator()(const REC & a, const REC & b) {
-				return cmpr->compare(a,b) < 0;
-			}
-		};
-		
 		///////////////////////////////////////////////////////////////////////////
 		/// A record pointer heap that uses a comparison object
 		///////////////////////////////////////////////////////////////////////////
 		template<class REC, class CMPR>
-		class merge_heap_ptr_obj: public merge_heap_ptr_op<REC, COMP_WRAPPER<REC, CMPR> >{
+		class merge_heap_ptr_obj: public merge_heap_ptr_op<REC, CMPR>{
 		public:
 			merge_heap_ptr_obj(CMPR *cmptr): 
-				merge_heap_ptr_op<REC, COMP_WRAPPER<REC, CMPR> >(COMP_WRAPPER<REC, CMPR>(cmptr)) {};
+				merge_heap_ptr_op<REC, CMPR>(cmptr) {};
 		};
 		
 		///////////////////////////////////////////////////////////////////////////
@@ -255,93 +246,12 @@ namespace tpie {
 		// * A merge heap that uses a comparison object                       *
 		// ********************************************************************
 		template<class REC, class CMPR>
-		class merge_heap_obj: public merge_heap_op<REC, COMP_WRAPPER<REC, CMPR> > {
+		class merge_heap_obj: public merge_heap_op<REC, CMPR> {
 		public:
 			merge_heap_obj(CMPR * cmp): 
-				merge_heap_op<REC, COMP_WRAPPER<REC, CMPR> >(COMP_WRAPPER<REC, CMPR>(cmp)) {}
+				merge_heap_op<REC, CMPR>(*cmp) {}
 		};
-		
 
-		// ********************************************************************
-		// * A merge heap key-object base class                               *
-		// * Also serves as a full impelementation of a                       *
-		// * key-merge heap that uses a comparison operator <                 *
-		// ********************************************************************
-	
-		// The merge_heap_kop object maintains only the keys in its heap,
-		// and uses the member function "copy" of the user-provided class CMPR
-		// to copy these keys from each record.
-	
-		template <class REC, class KEY, class CMPR, class comp_t=std::less<KEY> >
-		class merge_heap_kop{
-		protected:
-			struct comp: public std::binary_function<heap_element<KEY>, heap_element<KEY>, bool> {
-				comp_t c;
-				comp(comp_t & _): c(_) {}
-				inline bool operator()(const heap_element<KEY> & x, const heap_element<KEY> & y) {
-					return c(x.key, y.key);
-				}
-			};
-			
-			internal_priority_queue<heap_element<KEY>, comp> pq;
-			CMPR * obj;
-		public:
-			// Constructor/Destructor 
-			merge_heap_kop(CMPR* o, comp_t c=comp_t()): pq(0, comp(c)), obj(o) {}
-			
-			// Report size of Heap (number of elements)
-			size_t sizeofheap(void) {return pq.size();}
-			
-			// Return the run with the minimum key.
-			inline size_t get_min_run_id(void) {return pq.top().run_id;};
-			
-			void allocate(size_t size) {pq.resize(size);}
-			void insert(const REC *ptr, size_t run_id) {
-					KEY k;
-					obj->copy(&k, *ptr);
-					pq.pop_and_push(heap_element<KEY>(k, run_id));
-			}
-			void deallocate() {pq.resize(0);}
-			
-			// Delete the current minimum and insert the new item from the same
-			// source / run.
-			inline void delete_min_and_insert(const REC *nextelement_same_run) {
-				if (nextelement_same_run) {
-					KEY k;
-					obj->copy(&k, *nextelement_same_run);
-					pq.pop_and_push(heap_element<KEY>(k, pq.top().run_id));
-				} else 
-					pq.pop();
-			}
-			
-			// Return main memory space usage per item
-			inline size_t space_per_item(void) {return static_cast<size_t>(pq.memory_coefficient());}
-			
-			// Return fixed main memory space overhead, regardless of item count
-			inline size_t space_overhead() {return static_cast<size_t>(pq.memory_overhead());}
-			
-			// heapify's an initial array of elements
-			void initialize() {pq.make_safe();}
-		};
-		
-	
-		// ********************************************************************
-		// * A key-merge heap that uses a comparison object                   *
-		// ********************************************************************
-	
-		// The merge_heap_kobj object maintains only the keys in its heap,
-		// and uses the member function "copy" of the user-provided class CMPR
-		// to copy these keys from each record. It uses the member function
-		// "compare" of the user-provided class CMPR to determine the relative
-		// order of two such keys in the sort order.
-		
-		template<class REC, class KEY, class CMPR>
-		class merge_heap_kobj: public merge_heap_kop<REC,KEY,CMPR, COMP_WRAPPER<KEY, CMPR> >{
-		public:
-			merge_heap_kobj(CMPR * obj): merge_heap_kop<REC,KEY,CMPR, COMP_WRAPPER<KEY, CMPR> >(
-				obj, COMP_WRAPPER<KEY, CMPR>(obj) ) {};
-		};
-			
 	}   //  ami namespace
 }  //  tpie namespace 
 
