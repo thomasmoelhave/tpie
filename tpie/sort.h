@@ -95,16 +95,16 @@ namespace tpie {
   /// can outperform other methods in at least some cases or give an example
   /// were it is impossible to use a comparison operator or comparison object.
   //////////////////////////////////////////////////////////////////////////
-	template<class T>
-	void sort(file_stream<T> &instream, file_stream<T> &outstream,
-		 tpie::progress_indicator_base* indicator=NULL)	{
-	    ami::Internal_Sorter_Op<T> myInternalSorter;
-	    ami::merge_heap_op<T>      myMergeHeap;
-	    sort_manager< T, ami::Internal_Sorter_Op<T>, ami::merge_heap_op<T> > 
-		mySortManager(&myInternalSorter, &myMergeHeap);
+template<class T>
+void sort(file_stream<T> &instream, file_stream<T> &outstream,
+		  tpie::progress_indicator_base* indicator=NULL) {
+	ami::Internal_Sorter_Op<T> myInternalSorter;
+	ami::merge_heap_op<T>      myMergeHeap;
+	sort_manager< T, ami::Internal_Sorter_Op<T>, ami::merge_heap_op<T> > 
+	mySortManager(&myInternalSorter, &myMergeHeap);
 
-		mySortManager.sort(&instream, &outstream, indicator);
-	}
+	mySortManager.sort(&instream, &outstream, indicator);
+}
 
 
   ///////////////////////////////////////////////////////////////////////////
@@ -115,16 +115,16 @@ namespace tpie {
   /// which is used for sorting the input stream; see also 
   /// \ref comp_sorting "Comparing within Sorting".
   ///////////////////////////////////////////////////////////////////////////
-  template<class T, class CMPR>
-  void sort(file_stream<T> &instream, file_stream<T> &outstream,
-		 CMPR *cmp, progress_indicator_base* indicator) {
-	    ami::Internal_Sorter_Obj<T,CMPR> myInternalSorter(cmp);
-	    ami::merge_heap_obj<T,CMPR>      myMergeHeap(cmp);
-	    sort_manager< T, ami::Internal_Sorter_Obj<T,CMPR>, ami::merge_heap_obj<T,CMPR> > 
-		mySortManager(&myInternalSorter, &myMergeHeap);
+template<class T, class CMPR>
+void sort(file_stream<T> &instream, file_stream<T> &outstream,
+		  CMPR *cmp, progress_indicator_base* indicator) {
+	ami::Internal_Sorter_Obj<T,CMPR> myInternalSorter(cmp);
+	ami::merge_heap_obj<T,CMPR>      myMergeHeap(cmp);
+	sort_manager< T, ami::Internal_Sorter_Obj<T,CMPR>, ami::merge_heap_obj<T,CMPR> > 
+	mySortManager(&myInternalSorter, &myMergeHeap);
 
-		mySortManager.sort(&instream, &outstream, indicator);
-	}
+	mySortManager.sort(&instream, &outstream, indicator);
+}
 
 
 // ********************************************************************
@@ -138,31 +138,31 @@ namespace tpie {
   /// In-place sorting variant of \ref sort(stream<T> *instream_ami, stream<T> *outstream_ami, tpie::progress_indicator_base* indicator=NULL),
   /// see also \ref sortingspace_in_tpie "In-place Variants for Sorting in TPIE".
   ///////////////////////////////////////////////////////////////////////////
-	template<class T>
-	void sort(file_stream<T> &instream, 
-		 progress_indicator_base &indicator) {
-	    ami::Internal_Sorter_Op<T> myInternalSorter;
-	    ami::merge_heap_op<T>      myMergeHeap;
-	    sort_manager< T, ami::Internal_Sorter_Op<T>, ami::merge_heap_op<T> > 
-		mySortManager(&myInternalSorter, &myMergeHeap);
-	    
-		mySortManager.sort(&instream, &instream, &indicator);
-	}
+template<class T>
+void sort(file_stream<T> &instream, 
+		  progress_indicator_base &indicator) {
+	ami::Internal_Sorter_Op<T> myInternalSorter;
+	ami::merge_heap_op<T>      myMergeHeap;
+	sort_manager< T, ami::Internal_Sorter_Op<T>, ami::merge_heap_op<T> > 
+	mySortManager(&myInternalSorter, &myMergeHeap);
+
+	mySortManager.sort(&instream, &instream, &indicator);
+}
 	
 	///////////////////////////////////////////////////////////////////////////
 	/// In-place sorting variant of \ref  sort(stream<T> *instream_ami, stream<T> *outstream_ami, CMPR *cmp, progress_indicator_base* indicator=NULL), 
 	/// see also \ref sortingspace_in_tpie "In-place Variants for Sorting in TPIE".
 	///////////////////////////////////////////////////////////////////////////
-	template<class T, class CMPR>
-	void sort(file_stream<T> &instream, 
-		 CMPR &cmp, progress_indicator_base &indicator) {
-		ami::Internal_Sorter_Obj<T,CMPR> myInternalSorter(&cmp);
-	    ami::merge_heap_obj<T,CMPR>      myMergeHeap(&cmp);
-	    sort_manager< T, ami::Internal_Sorter_Obj<T,CMPR>, ami::merge_heap_obj<T,CMPR> > 
-		mySortManager(&myInternalSorter, &myMergeHeap);
+template<class T, class CMPR>
+void sort(file_stream<T> &instream, 
+		  CMPR &cmp, progress_indicator_base &indicator) {
+	ami::Internal_Sorter_Obj<T,CMPR> myInternalSorter(&cmp);
+	ami::merge_heap_obj<T,CMPR>      myMergeHeap(&cmp);
+	sort_manager< T, ami::Internal_Sorter_Obj<T,CMPR>, ami::merge_heap_obj<T,CMPR> > 
+	mySortManager(&myInternalSorter, &myMergeHeap);
 
-		mySortManager.sort(&instream, &instream, &indicator);
-	}
+	mySortManager.sort(&instream, &instream, &indicator);
+}
 
 }  //  tpie namespace
 
