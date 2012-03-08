@@ -354,10 +354,14 @@ private:
     stream_status m_status;
 
 	static inline double block_factor() {
-#ifdef WIN32
-		return static_cast<double>(STREAM_UFS_BLOCK_FACTOR)/32;
+#ifndef STREAM_UFS_BLOCK_FACTOR
+		return 1.0;
 #else
+#   ifdef WIN32
+		return static_cast<double>(STREAM_UFS_BLOCK_FACTOR)/32;
+#   else
 		return static_cast<double>(STREAM_UFS_BLOCK_FACTOR)/512;
+#   endif
 #endif
 	}
 };
