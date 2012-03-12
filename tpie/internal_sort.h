@@ -157,19 +157,19 @@ inline TPIE_OS_SIZE_T Internal_Sorter_Base<T>::space_per_item(void) {
 /// Comparision object based Internal_Sorter_base subclass implementation; uses 
 /// quick_sort_obj().
 ///////////////////////////////////////////////////////////////////////////
-template<class T, class CMPR>
+template<class T, class Compare>
 class Internal_Sorter_Obj: public Internal_Sorter_Base<T>{
 protected:
 	using Internal_Sorter_Base<T>::ItemArray;
 	using Internal_Sorter_Base<T>::len;
 	/** Comparison object used for sorting */
-	CMPR *cmp_o;
+	Compare cmp_o;
 	
 public:
 	///////////////////////////////////////////////////////////////////////////
 	/// Empty constructor.
 	///////////////////////////////////////////////////////////////////////////
-	Internal_Sorter_Obj(CMPR* cmp) :cmp_o(cmp) {};
+	Internal_Sorter_Obj(Compare cmp) :cmp_o(cmp) {};
 	
 	///////////////////////////////////////////////////////////////////////////
 	/// Empty destructor.
@@ -184,8 +184,8 @@ public:
 	
 private:
 	// Prohibit these
-	Internal_Sorter_Obj(const Internal_Sorter_Obj<T,CMPR>& other);
-	Internal_Sorter_Obj<T,CMPR> operator=(const Internal_Sorter_Obj<T,CMPR>& other);
+	Internal_Sorter_Obj(const Internal_Sorter_Obj<T,Compare>& other);
+	Internal_Sorter_Obj<T,Compare> operator=(const Internal_Sorter_Obj<T,Compare>& other);
 };
 
 ///////////////////////////////////////////////////////////////////////////
@@ -193,11 +193,11 @@ private:
 /// position; writes the sorted output to OutStr, starting from the current
 /// file position.
 ///////////////////////////////////////////////////////////////////////////
-template<class T, class CMPR>
-void Internal_Sorter_Obj<T, CMPR>::sort(file_stream<T>* InStr, 
-										file_stream<T>* OutStr, 
-										TPIE_OS_SIZE_T nItems,
-										progress_indicator_base * pi) {
+template<class T, class Compare>
+void Internal_Sorter_Obj<T, Compare>::sort(file_stream<T>* InStr, 
+										   file_stream<T>* OutStr, 
+										   TPIE_OS_SIZE_T nItems,
+										   progress_indicator_base * pi) {
 	tp_assert ( nItems <= len, "nItems more than interal buffer size.");
 
 	
@@ -209,7 +209,7 @@ void Internal_Sorter_Obj<T, CMPR>::sort(file_stream<T>* InStr,
 	tp_assert ( nItems <= len, "nItems more than interal buffer size.");
 
 	fractional_progress fp(pi);
-	fp.id() << __FILE__ << __FUNCTION__ << typeid(T) << typeid(CMPR);
+	fp.id() << __FILE__ << __FUNCTION__ << typeid(T) << typeid(Compare);
 	fractional_subindicator read_progress(fp, "read", TPIE_FSI, nItems, "Reading");
 	fractional_subindicator sort_progress(fp, "sort", TPIE_FSI, nItems, "Sorting");
 	fractional_subindicator write_progress(fp, "write", TPIE_FSI, nItems, "Writing");
@@ -224,7 +224,7 @@ void Internal_Sorter_Obj<T, CMPR>::sort(file_stream<T>* InStr,
 	read_progress.done();
 
 	//Sort the array.
-	tpie::parallel_sort<true>(ItemArray.begin(), ItemArray.begin()+nItems, sort_progress, *cmp_o);
+	tpie::parallel_sort<true>(ItemArray.begin(), ItemArray.begin()+nItems, sort_progress, cmp_o);
 	if (InStr==OutStr) { //Do the right thing if we are doing 2x sort
 		//Internal sort objects should probably be re-written so that
 		//the interface is cleaner and they don't have to worry about I/O

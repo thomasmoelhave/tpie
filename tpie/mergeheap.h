@@ -245,11 +245,11 @@ namespace tpie {
 		// ********************************************************************
 		// * A merge heap that uses a comparison object                       *
 		// ********************************************************************
-		template<class REC, class CMPR>
-		class merge_heap_obj: public merge_heap_op<REC, CMPR> {
+		template<class REC, class Compare>
+		class merge_heap_obj: public merge_heap_op<REC, Compare> {
 		public:
-			merge_heap_obj(CMPR * cmp): 
-				merge_heap_op<REC, CMPR>(*cmp) {}
+			merge_heap_obj(Compare cmp): 
+				merge_heap_op<REC, Compare>(cmp) {}
 		};
 
 	}   //  ami namespace
