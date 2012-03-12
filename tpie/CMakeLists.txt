@@ -6,9 +6,15 @@ set (HEADERS
 		comparator.h
 		config.h.cmake
 		cpu_timer.h
+		deprecated.h
 		disjoint_sets.h
 		exception.h
 		err.h
+		file.h
+		file_stream.h
+		file_accessor/file_accessor_crtp.h
+		file_accessor/file_accessor_crtp.inl
+		file_accessor/file_accessor.h
 		file_count.h
 		execution_time_predictor.h
 		imported/cycle.h
@@ -49,8 +55,11 @@ set (HEADERS
 		sort_manager.h
 		stack.h
 		stream.h
+		stream_header.h
+		stream_usage.h
 		tpie_assert.h
 		tpie_log.h
+		types.h
 		tempname.h
 		unused.h
 		util.h
