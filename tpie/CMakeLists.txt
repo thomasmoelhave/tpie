@@ -105,6 +105,3 @@ endif(WIN32)
 add_library(tpie ${HEADERS} ${SOURCES})
 target_link_libraries(tpie ${Boost_LIBRARIES})
 set_target_properties(tpie PROPERTIES FOLDER tpie)
-
-install(TARGETS tpie DESTINATION ${LIB_INSTALL_DIR}) 
-install(FILES ${HEADERS} DESTINATION ${HEADERS_INSTALL_DIR})
