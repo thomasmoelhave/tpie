@@ -83,7 +83,7 @@ inline scanf_ints() {
 	return factory_0<scanf_ints_t>();
 }
 
-termfactory_0<printf_ints_t>
+pipe_end<termfactory_0<printf_ints_t> >
 inline printf_ints() {
 	return termfactory_0<printf_ints_t>();
 }
