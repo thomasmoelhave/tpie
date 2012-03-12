@@ -129,6 +129,17 @@ namespace tpie {
   /// were it is impossible to use a comparison operator or comparison object.
   //////////////////////////////////////////////////////////////////////////
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \deprecated \brief Sort elements of a stream using the given AMI-style
+	/// comparator.
+	///////////////////////////////////////////////////////////////////////////
+	template<typename T, typename TCompare>
+	void sort(file_stream<T> &instream, file_stream<T> &outstream,
+			  TCompare *tpiecomp, progress_indicator_base* indicator) {
+		TPIE2STL_cmp<T, TCompare> comp(tpiecomp);
+		stlsort(instream, outstream, comp, *indicator);
+	}
+
     namespace ami {
 
 	template<class T>
@@ -241,6 +252,17 @@ namespace tpie {
 	}
 	}
 	
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \deprecated \brief Sort elements of a stream in-place using the given
+	/// AMI-style comparator.
+	///////////////////////////////////////////////////////////////////////////
+	template<typename T, typename CMPR>
+	void sort(file_stream<T> &instream, 
+			  CMPR &cmp, progress_indicator_base &indicator) {
+		sort(instream, instream, &cmp, &indicator);
+	}
+
 	///////////////////////////////////////////////////////////////////////////
 	/// In-place sorting variant of \ref  sort(stream<T> *instream_ami, stream<T> *outstream_ami, CMPR *cmp, progress_indicator_base* indicator=NULL), 
 	/// see also \ref sortingspace_in_tpie "In-place Variants for Sorting in TPIE".

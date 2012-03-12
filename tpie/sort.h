@@ -81,17 +81,6 @@ void sort(file_stream<T> &instream, file_stream<T> &outstream,
 	stlsort(instream, outstream, comp, *indicator);
 }
 
-///////////////////////////////////////////////////////////////////////////////
-/// \deprecated \brief Sort elements of a stream using the given AMI-style
-/// comparator.
-///////////////////////////////////////////////////////////////////////////////
-template<typename T, typename TCompare>
-void sort(file_stream<T> &instream, file_stream<T> &outstream,
-		  TCompare *tpiecomp, progress_indicator_base* indicator) {
-	TPIE2STL_cmp<T, TCompare> comp(tpiecomp);
-	stlsort(instream, outstream, comp, *indicator);
-}
-
 
 // ********************************************************************
 // *                                                                  *
@@ -117,16 +106,6 @@ template<typename T>
 void sort(file_stream<T> &instream, 
 		  progress_indicator_base &indicator) {
 	sort(instream, instream, &indicator);
-}
-
-///////////////////////////////////////////////////////////////////////////////
-/// \deprecated \brief Sort elements of a stream in-place using the given
-/// AMI-style comparator.
-///////////////////////////////////////////////////////////////////////////////
-template<typename T, typename CMPR>
-void sort(file_stream<T> &instream, 
-		  CMPR &cmp, progress_indicator_base &indicator) {
-	sort(instream, instream, &cmp, &indicator);
 }
 
 }  //  tpie namespace
