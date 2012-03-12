@@ -36,6 +36,7 @@
 // using different comparison types
 #include <cmath> //for log, ceil, etc.
 #include <string>
+#include <boost/filesystem.hpp>
 
 #include <tpie/progress_indicator_base.h>
 
@@ -766,7 +767,7 @@ void sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
 		for(ii = 0; ii < mrgArity; ii++) {
 			std::string path=mergeInputStreams[ii]->path();
 			mergeInputStreams[ii].reset();
-			remove(path);
+			boost::filesystem::remove(path);
 		}
 		// Update run lengths
 		nItemsPerRun=mrgArity*nItemsPerRun; //except for maybe last run
@@ -817,7 +818,7 @@ void sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
 	for(ii = 0; ii < arity_t(nRuns); ii++) {
 		std::string path=mergeInputStreams[ii]->path();
 		mergeInputStreams[ii].reset();
-		remove(path);
+		boost::filesystem::remove(path);
 	}
 
 	// Delete stream ptr arrays
