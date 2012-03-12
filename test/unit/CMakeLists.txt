@@ -42,8 +42,8 @@ add_unittest(array basic iterators segmented memory auto_ptr memory_segmented bi
 
 add_unittest(disjoint_set basic memory)
 
-add_unittest(external_sort small)
-add_fulltest(external_sort large)
+add_unittest(external_sort amismall small)
+add_fulltest(external_sort amilarge large)
 
 add_unittest(external_stack small named small-ami named-ami)
 
