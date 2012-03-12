@@ -22,9 +22,8 @@ if(WIN32)
 endif(WIN32)
 find_package(Boost COMPONENTS date_time thread filesystem system)
 
-#we are using the filesystem2 interface, so force this for version 1.46 and 1.47 that use
-#version 3 by default. We should move to version 3 soon
-set(BOOST_FILESYSTEM_VERSION 2)
+# Boost 1.44 defaults to filesystem interface version 2, but we use version 3.
+set(BOOST_FILESYSTEM_VERSION 3)
 
 if(TPIE_FRACTIONDB_DIR_INL) 
   include_directories(${TPIE_FRACTIONDB_DIR_INL})
@@ -37,23 +36,6 @@ endif(Boost_FOUND)
 
 check_include_files("unistd.h" TPIE_HAVE_UNISTD_H)
 check_include_files("sys/unistd.h" TPIE_HAVE_SYS_UNISTD_H)
-
-#### Installation paths
-#Default paths
-set(BIN_INSTALL_DIR bin)
-set(LIB_INSTALL_DIR lib)
-set(HEADERS_INSTALL_DIR include/tpie)
-if (WIN32)
-	set(DOC_INSTALL_DIR doc)
-else(WIN32)
-	set(DOC_INSTALL_DIR "share/doc/tpie")
-endif(WIN32)
-
-set(INSTALL_TARGETS_DEFAULT_ARGS
-	RUNTIME DESTINATION ${BIN_INSTALL_DIR}
-	LIBRARY DESTINATION ${LIB_INSTALL_DIR}
-	ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
-)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
@@ -70,7 +52,6 @@ try_compile(TPIE_CPP_VARIADIC_TEMPLATES ${D}/variadic_templates ${S}/variadic_te
 try_compile(TPIE_CPP_RVALUE_REFERENCE ${D}/rvalueref ${S}/rvalueref.cpp)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tpie/config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/tpie/config.h)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/tpie/config.h DESTINATION ${HEADERS_INSTALL_DIR})
 add_subdirectory(tpie)
 
 add_subdirectory(doc)
@@ -88,7 +69,3 @@ if (COMPILE_TEST)
 	add_subdirectory(apps)
 	add_subdirectory(example)
 endif (COMPILE_TEST)
-
-include(CPack)
-
-
