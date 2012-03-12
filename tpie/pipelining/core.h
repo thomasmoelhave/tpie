@@ -20,9 +20,8 @@
 #ifndef __TPIE_PIPELINING_CORE_H__
 #define __TPIE_PIPELINING_CORE_H__
 
-#include <boost/unordered_map.hpp>
+#include <tpie/types.h>
 #include <iostream>
-#include <tpie/disjoint_sets.h>
 
 namespace tpie {
 
@@ -112,7 +111,6 @@ struct pipeline_virtual {
 template <typename fact_t>
 struct pipeline_impl : public pipeline_virtual {
 	typedef typename fact_t::generated_type gen_t;
-	typedef boost::unordered_map<const pipe_segment *, size_t> nodes_t;
 
 	inline pipeline_impl(const fact_t & factory) : r(factory.construct()), _memory(factory.memory()) {}
 
@@ -128,45 +126,19 @@ struct pipeline_impl : public pipeline_virtual {
 		return r;
 	}
 	void plot(std::ostream & out) {
-		out << "digraph {\nrankdir=LR;\n";
-		nodes_t n = nodes();
-		for (nodes_t::iterator i = n.begin(); i != n.end(); ++i) {
-			out << '"' << i->first << "\";\n";
+		if (&pipeline_impl<fact_t>::actual_plot) {
+			return actual_plot(out);
+		} else {
+			out << "pipeline_impl::plot not linked" << std::endl;
 		}
-		{
-			const pipe_segment * c = &r;
-			while (c != 0) {
-				//size_t number = n.find(c)->second;
-				const pipe_segment * next = c->get_next();
-				if (next) {
-					//size_t next_number = n.find(next)->second;
-					out << '"' << c << "\" -> \"" << next;
-					if (c->buffering())
-						out << "\" [style=dashed];\n";
-					else
-						out << "\";\n";
-				}
-				c = next;
-			}
-		}
-		out << '}' << std::endl;
 	}
 
 	void plot_phases(std::ostream & out) {
-		nodes_t n = nodes();
-		tpie::disjoint_sets<size_t> p = phases(n);
-		out << "digraph {\n";
-		for (nodes_t::iterator i = n.begin(); i != n.end(); ++i) {
-			out << '"' << i->second << "\";\n";
+		if (&pipeline_impl<fact_t>::actual_plot_phases) {
+			return actual_plot_phases(out);
+		} else {
+			out << "pipeline_impl::plot not linked" << std::endl;
 		}
-		for (nodes_t::iterator i = n.begin(); i != n.end(); ++i) {
-			size_t cur = i->second;
-			size_t rep = p.find_set(cur);
-			if (rep != cur) {
-				out << '"' << cur << "\" -> \"" << rep << "\";\n";
-			}
-		}
-		out << '}' << std::endl;
 	}
 
 	double memory() const {
@@ -174,36 +146,30 @@ struct pipeline_impl : public pipeline_virtual {
 	}
 
 private:
+
+// Weak linkage with GCC. This way, if actual_plot (declared below) is never
+// defined (i.e. pipelining/plotter.h is not included), actual_plot will get
+// the link-time address 0x0, which we handle in the plot() definition above.
+//
+// This way, we don't require boost/unordered_map.hpp or tpie/disjoint_sets.h
+// in the pipelining framework unless the user wants Graphviz output.
+// Consequently, the user won't have to link with Boost or libtpie.
+//
+// This way, tpie/pipelining/examples/ can contain standalone examples of the
+// pipelining framework.
+
+#ifdef __GNUC__
+#	define ATTRWEAK __attribute__ ((weak))
+#else
+#	define ATTRWEAK
+#endif
+
+	void actual_plot(std::ostream & out) ATTRWEAK;
+
+	void actual_plot_phases(std::ostream & out) ATTRWEAK;
+
 	gen_t r;
 	double _memory;
-
-	nodes_t nodes() {
-		boost::unordered_map<const pipe_segment *, size_t> numbers;
-		size_t next_number = 0;
-		const pipe_segment * c = &r;
-		while (c != 0) {
-			if (!numbers.count(c)) {
-				//out << '"' << next_number << "\";\n";
-				numbers.insert(std::make_pair(c, next_number));
-				++next_number;
-			}
-			c = c->get_next();
-		}
-		return numbers;
-	}
-
-	tpie::disjoint_sets<size_t> phases(const nodes_t & n) {
-		tpie::disjoint_sets<size_t> res(n.size());
-		for (nodes_t::const_iterator i = n.begin(); i != n.end(); ++i) {
-			res.make_set(i->second);
-		}
-		for (nodes_t::const_iterator i = n.begin(); i != n.end(); ++i) {
-			const pipe_segment * next = i->first->get_next();
-			if (next && !i->first->buffering())
-				res.union_set(i->second, n.find(next)->second);
-		}
-		return res;
-	}
 };
 
 ///////////////////////////////////////////////////////////////////////////////
