@@ -43,7 +43,7 @@
 // Get definitions for working with Unix and Windows
 #include <tpie/portability.h>
 
-// The class that actually does the sorting
+// The typename that actually does the sorting
 #include <tpie/sort_manager.h>
 #include <tpie/mergeheap.h>
 #include <tpie/internal_sort.h>
@@ -59,7 +59,7 @@ namespace tpie {
 /// \brief Sort elements of a stream using the given STL-style comparator
 /// object.
 ///////////////////////////////////////////////////////////////////////////////
-template<class T, class Compare>
+template<typename T, typename Compare>
 void stlsort(file_stream<T> &instream, file_stream<T> &outstream,
 			 Compare comp, progress_indicator_base & indicator) {
 
@@ -74,7 +74,7 @@ void stlsort(file_stream<T> &instream, file_stream<T> &outstream,
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Sort elements of a stream using the less-than operator.
 ///////////////////////////////////////////////////////////////////////////////
-template<class T>
+template<typename T>
 void sort(file_stream<T> &instream, file_stream<T> &outstream,
 		  tpie::progress_indicator_base* indicator=NULL) {
 	std::less<T> comp;
@@ -85,7 +85,7 @@ void sort(file_stream<T> &instream, file_stream<T> &outstream,
 /// \deprecated \brief Sort elements of a stream using the given AMI-style
 /// comparator.
 ///////////////////////////////////////////////////////////////////////////////
-template<class T, class TCompare>
+template<typename T, typename TCompare>
 void sort(file_stream<T> &instream, file_stream<T> &outstream,
 		  TCompare *tpiecomp, progress_indicator_base* indicator) {
 	TPIE2STL_cmp<T, TCompare> comp(tpiecomp);
@@ -104,7 +104,7 @@ void sort(file_stream<T> &instream, file_stream<T> &outstream,
 /// \brief Sort elements of a stream in-place using the given STL-style
 /// comparator object.
 ///////////////////////////////////////////////////////////////////////////////
-template<class T, class Compare>
+template<typename T, typename Compare>
 void stlsort(file_stream<T> &instream, Compare comp,
 			 progress_indicator_base & indicator) {
 	stlsort(instream, instream, comp, indicator);
@@ -113,7 +113,7 @@ void stlsort(file_stream<T> &instream, Compare comp,
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Sort elements of a stream in-place using the less-than operator.
 ///////////////////////////////////////////////////////////////////////////////
-template<class T>
+template<typename T>
 void sort(file_stream<T> &instream, 
 		  progress_indicator_base &indicator) {
 	sort(instream, instream, &indicator);
@@ -123,7 +123,7 @@ void sort(file_stream<T> &instream,
 /// \deprecated \brief Sort elements of a stream in-place using the given
 /// AMI-style comparator.
 ///////////////////////////////////////////////////////////////////////////////
-template<class T, class CMPR>
+template<typename T, typename CMPR>
 void sort(file_stream<T> &instream, 
 		  CMPR &cmp, progress_indicator_base &indicator) {
 	sort(instream, instream, &cmp, &indicator);
