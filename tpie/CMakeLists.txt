@@ -1,5 +1,7 @@
 set_property(GLOBAL PROPERTY USE_FOLDERS On)
 
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/sysinfo.cpp.in" "${CMAKE_CURRENT_BINARY_DIR}/sysinfo.cpp" @ONLY)
+
 set (AMI_HEADERS
 		block_base.h
 		block.h
@@ -118,6 +120,7 @@ set (OTHER_HEADERS
 		progress_indicator_tpie.h
 		sort_manager.h
 		stdio_stack.h
+		sysinfo.h
 		timer.h
 		tpie_assert.h
 		tpie_log.h
@@ -172,6 +175,7 @@ set (OTHER_SOURCES
 	tpie.cpp
 	tpie_log.cpp
 	util.cpp
+	"${CMAKE_CURRENT_BINARY_DIR}/sysinfo.cpp"
 	)
 
 source_group("BTE" FILES ${BTE_HEADERS} ${BTE_SOURCES})

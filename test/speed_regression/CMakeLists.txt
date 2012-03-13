@@ -1,7 +1,6 @@
 set (SPEED_DEPS testtime.h stat.h)
 
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/sysinfo.cpp.in" "${CMAKE_CURRENT_BINARY_DIR}/sysinfo.cpp" @ONLY)
-list(APPEND SPEED_DEPS "${CMAKE_CURRENT_BINARY_DIR}/sysinfo.cpp" sysinfo.h)
+list(APPEND SPEED_DEPS "${PROJECT_SOURCE_DIR}/tpie/sysinfo.h")
 
 add_executable(stream_speed_test stream.cpp ${SPEED_DEPS})
 target_link_libraries(stream_speed_test tpie)

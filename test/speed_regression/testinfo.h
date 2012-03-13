@@ -21,7 +21,7 @@
 #define __TPIE_TESTINFO__
 
 #include <iostream>
-#include "sysinfo.h"
+#include <tpie/sysinfo.h>
 
 namespace tpie {
 namespace test {
