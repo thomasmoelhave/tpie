@@ -51,8 +51,6 @@
 #include <tpie/progress_indicator_base.h>
 #include <tpie/progress_indicator_null.h>
 
-#include <tpie/comparator.h>
-
 namespace tpie {
 
 ///////////////////////////////////////////////////////////////////////////////

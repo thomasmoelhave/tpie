@@ -77,6 +77,8 @@
 
 #include <tpie/sort.h>
 
+#include <tpie/comparator.h>
+
 namespace tpie {
 
 	namespace ami {
