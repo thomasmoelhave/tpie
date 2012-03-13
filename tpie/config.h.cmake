@@ -54,9 +54,6 @@
 	// We know that we are casting ints to bool
 	#pragma warning(disable : 4800)
 #endif
-	
-//eases transition from filesystem2 to filesystem3
-#define BOOST_FILESYSTEM_VERSION ${BOOST_FILESYSTEM_VERSION}
 
 #ifdef _WIN32
 #ifndef NOMINMAX
