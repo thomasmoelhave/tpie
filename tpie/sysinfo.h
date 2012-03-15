@@ -122,6 +122,14 @@ struct sysinfo {
 		std::cout << std::setw(16) << key << value << std::endl;
 	}
 
+	static inline memory_size_type blocksize_bytes() {
+#ifdef WIN32
+		return STREAM_UFS_BLOCK_FACTOR*64*1024;
+#else
+		return STREAM_UFS_BLOCK_FACTOR*4*1024;
+#endif
+	}
+
 private:
 	static const char * m_commit;
 	static const char * m_refspec;
