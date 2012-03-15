@@ -82,10 +82,6 @@ public:
 	void init();
 	unique_id_type & id();
 
-#ifndef TPIE_NDEBUG
-	bool m_init_called;
-#endif
-
 private:
 	double get_fraction(fractional_subindicator & sub);
 
@@ -93,6 +89,7 @@ private:
 	progress_indicator_base * m_pi;
 	bool m_add_state;
 #ifndef TPIE_NDEBUG
+	bool m_init_called;
 	bool m_done_called;
 #endif
 	double m_confidence;
