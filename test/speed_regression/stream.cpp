@@ -32,15 +32,17 @@ using namespace tpie;
 using namespace tpie::ami;
 using namespace tpie::test;
 
-const size_t default_mb=1;
+const size_t default_mb=10240;
 
 typedef uint64_t count_t;
+typedef uint64_t test_t;
 
 void usage() {
-	std::cout << "Parameters: [times] [mb]" << std::endl;
+	std::cout << "Parameters: [times] [mb] [\"file_accessor\"]" << std::endl;
 }
 
 void test(size_t mb, size_t times) {
+	testinfo t("Stream speed test", 0, mb, times);
     {
 	stream<uint64_t> s("tmp", WRITE_STREAM);
 	TPIE_OS_SIZE_T sz = 0;
@@ -89,8 +91,96 @@ void test(size_t mb, size_t times) {
 	}
 }
 
+struct test_file_accessor {
+	const size_t times;
+	const memory_size_type itemSize;
+	const stream_size_type item_count;
+	const stream_size_type block_count;
+	const stream_size_type itemsPerBlock;
+	testinfo t;
+	std::vector<const char *> names;
+	tpie::test::stat s;
+	test_t * block;
+	test_t hash;
+
+	static std::vector<const char *> make_names_vector() {
+		std::vector<const char *> names(3);
+		names[0] = "Write";
+		names[1] = "Read";
+		names[2] = "Hash";
+		return names;
+	}
+
+	test_file_accessor(size_t mb, size_t times)
+		: times(times)
+		, itemSize(sizeof(test_t))
+		, item_count((1<<20)*mb/itemSize)
+		, block_count((1<<20)*mb/sysinfo::blocksize_bytes())
+		, itemsPerBlock(sysinfo::blocksize_bytes()/itemSize)
+		, t("File accessor speed test", 0, mb, times)
+		, names(make_names_vector())
+		, s(names)
+	{
+	}
+
+	void go() {
+		for (size_t i = 0; i < times; ++i) go_once();
+	}
+
+	const static bool fn_write = true;
+	const static bool fn_read = false;
+
+	inline void go_once() {
+		hash = 0;
+		s(time_to<fn_write>());
+		s(time_to<fn_read>());
+		s(hash % 100000000000000);
+	}
+
+	template <bool fn>
+	inline uint_fast64_t time_to() {
+		test_realtime_t start;
+		test_realtime_t end;
+		getTestRealtime(start);
+		block = tpie_new_array<test_t>(itemsPerBlock);
+		if (fn == fn_write)
+			write();
+		else
+			read();
+		tpie_delete_array(block, itemsPerBlock);
+		getTestRealtime(end);
+		return testRealtimeDiff(start, end);
+	}
+
+	inline void write() {
+		tpie::default_file_accessor fa;
+		fa.open("tmp", false, true, sizeof(test_t), 0);
+		stream_size_type blockOffset = 0;
+		for (count_t j = 0; j < block_count; ++j) {
+			for (count_t k = 0; k < itemsPerBlock; ++k) {
+				block[k] = 42;
+			}
+			fa.write(block, blockOffset, itemsPerBlock);
+			blockOffset += itemsPerBlock;
+		}
+	}
+
+	inline void read() {
+		tpie::default_file_accessor fa;
+		fa.open("tmp", true, false, sizeof(test_t), 0);
+		stream_size_type blockOffset = 0;
+		for (count_t j = 0; j < block_count; ++j) {
+			fa.read(block, blockOffset, itemsPerBlock);
+			for (count_t k = 0; k < itemsPerBlock; ++k) {
+				hash = hash * 13 + block[k];
+			}
+			blockOffset += itemsPerBlock;
+		}
+	}
+};
+
 int main(int argc, char **argv) {
-	size_t times = 10;
+	size_t times = 4;
 	size_t mb = default_mb;
 
 	if (argc > 1) {
@@ -111,9 +201,13 @@ int main(int argc, char **argv) {
 			return EXIT_FAILURE;
 		}
 	}
-
-	std::cout << "Wrating and Reading " << mb << " MB" << std::endl;
-	testinfo t("Stream speed test", 0, mb, times);
-	::test(mb, times);
+	boost::filesystem::remove("tmp");
+	if (1 || (argc > 3 && std::string(argv[3]) == "file_accessor")) {
+		test_file_accessor tester(mb, times);
+		tester.go();
+	} else {
+		::test(mb, times);
+	}
+	boost::filesystem::remove("tmp");
 	return EXIT_SUCCESS;
 }
