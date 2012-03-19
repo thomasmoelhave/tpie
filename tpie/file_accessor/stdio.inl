@@ -17,38 +17,44 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #include <tpie/config.h>
+//#include <tpie/stream/stdio_bte.h>
+//#include <tpie/stream/header.h>
 #include <string.h>
 #include <tpie/exception.h>
 #include <tpie/file_count.h>
-#include <tpie/file_accessor/posix.h>
-#include <tpie/file_accessor/file_accessor_crtp.inl>
+#include <tpie/file_accessor/stdio.h>
+#include <cstdio>
+
+#ifndef WIN32
 #include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <iostream>
+#include <unistd.h>
+#endif
 
 namespace tpie {
 namespace file_accessor {
 
-posix::posix():
+#ifdef _WIN32
+#define fseeko _fseeki64
+#endif
+
+stdio::stdio():
 	m_fd(0) {
 	invalidateLocation();
 }
 
-inline void posix::read_i(void * data, memory_size_type size) {
-	if (::read(m_fd, data, size) != (memory_offset_type)size) throw_errno();
+inline void stdio::read_i(void * data, memory_size_type size) {
+	if (::fread(data, 1, size, m_fd) != size) throw_errno();
 }
 
-inline void posix::write_i(const void * data, memory_size_type size) {
-	if (::write(m_fd, data, size) != (memory_offset_type)size) throw_errno();
+inline void stdio::write_i(const void * data, memory_size_type size) {
+	if (::fwrite(data, 1, size, m_fd) != size) throw_errno();
 }
 
-inline void posix::seek_i(stream_size_type size) {
-	if (::lseek(m_fd, size, SEEK_SET) == -1) throw_errno();
+inline void stdio::seek_i(stream_size_type offset) {
+	if (::fseeko(m_fd, offset, SEEK_SET) != 0) throw_errno();
 }
-
-void posix::open(const std::string & path,
+	
+void stdio::open(const std::string & path,
 				 bool read,
 				 bool write,
 				 memory_size_type itemSize,
@@ -62,60 +68,66 @@ void posix::open(const std::string & path,
 	m_blockSize=blockSize;
 	m_blockItems=blockSize/itemSize;
 	m_userDataSize=userDataSize;
-	m_size=0;
 	if (!write && !read)
 		throw invalid_argument_exception("Either read or write must be specified");
 	if (write && !read) {
-		m_fd = ::open(path.c_str(), O_RDWR | O_TRUNC | O_CREAT,  S_IRUSR | S_IWUSR);
-		if (m_fd == -1) throw_errno();
+		m_fd = ::fopen(path.c_str(), "wb");
+		if (m_fd == 0) throw_errno();
 		m_size = 0;
 		write_header(false);
-		if (userDataSize) {
+		char * buf = new char[userDataSize];
+		write_user_data(buf);
+		delete[] buf;
+	} else if (!write && read) {
+		m_fd = ::fopen(path.c_str(), "rb");
+		if (m_fd == 0) throw_errno();
+		read_header();
+	} else {
+		m_fd = ::fopen(path.c_str(), "r+b");
+		if (m_fd == 0) {
+			if (errno != ENOENT) throw_errno();
+			m_fd = ::fopen(path.c_str(), "w+b");
+			if (m_fd == 0) throw_errno();
+			m_size=0;
+			write_header(false);
 			char * buf = new char[userDataSize];
 			write_user_data(buf);
 			delete[] buf;
-		}
-	} else if (!write && read) {
-		m_fd = ::open(path.c_str(), O_RDONLY);
-		if (m_fd == -1) throw_errno();
-		read_header();
-	} else {
-		m_fd = ::open(path.c_str(), O_RDWR);
-		if (m_fd == -1) {
-			if (errno != ENOENT) throw_errno();
-			m_fd = ::open(path.c_str(), O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
-			if (m_fd == -1) throw_errno();
-			m_size=0;
-			write_header(false);
-			if (userDataSize) {
-				char * buf = new char[userDataSize];
-				write_user_data(buf);
-				delete[] buf;
-			}
 		} else {
 			read_header();
 			write_header(false);
 		}
 	}
 	increment_open_file_count();
+	setvbuf(m_fd, NULL, _IONBF, 0);
 }
 
-void posix::close() {
+void stdio::close() {
 	if (m_fd && m_write) write_header(true);
 	if (m_fd != 0) {
-		::close(m_fd);
+		::fclose(m_fd);
 		decrement_open_file_count();
 	}
 	m_fd=0;
 }
 
-
-void posix::truncate(stream_size_type size) {
-	if (ftruncate(m_fd, sizeof(stream_header_t) + m_userDataSize + size*m_itemSize) == -1) throw_errno();
+void stdio::truncate(stream_size_type size) {
+#ifndef WIN32
+	if (::truncate(m_path.c_str(), sizeof(stream_header_t) + m_userDataSize + size*m_itemSize) == -1) throw_errno();
+#else
+	//Since there is no reliable way of trunacing a file, we will just fake it
+	if (size > m_size) {
+		char * buff = new char[m_itemSize*1024*256];
+		while (size > m_size) {
+			write(buff, m_size, 1024*256);
+			m_size += 1024*256;
+		}
+		delete [] buff;
+	}
+#endif
 	invalidateLocation();
+	m_size = size;
 }
-
-
 
 }
 }

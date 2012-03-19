@@ -45,18 +45,21 @@ private:
 	inline void write_i(const void * data, memory_size_type size);
 	inline void seek_i(stream_size_type offset);
 public:
-	win32();
-	virtual void open(const std::string & path,
-					  bool read,
-					  bool write,
-					  memory_size_type itemSize,
-					  memory_size_type blockSize,
-					  memory_size_type userDataSize);
-	virtual void close();
-	virtual void truncate(stream_size_type size);
+	inline win32();
+	inline void open(const std::string & path,
+					 bool read,
+					 bool write,
+					 memory_size_type itemSize,
+					 memory_size_type blockSize,
+					 memory_size_type userDataSize);
+	inline void close();
+	inline void truncate(stream_size_type size);
 	inline ~win32() {close();}
 };
 
 }
 }
+
+#include <tpie/file_accessor/win32.inl>
+
 #endif //_TPIE_FILE_ACCESSOR_WIN32_H

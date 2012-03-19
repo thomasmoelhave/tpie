@@ -25,22 +25,34 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <tpie/file_accessor/file_accessor.h>
+#include <tpie/stream_header.h>
 
 namespace tpie {
 namespace file_accessor {
 
 template <typename child_t, bool minimizeSeeks=true>
-class file_accessor_crtp: public file_accessor {
+class file_accessor_crtp {
 private:
 	inline void read_i(void *, memory_size_type size);
 	inline void write_i(const void *, memory_size_type size);
 	inline void seek_i(stream_size_type size);
 	stream_size_type location;
+	inline void validate_header(const stream_header_t & header);
+	inline void fill_header(stream_header_t & header, bool clean);
 protected:
+	stream_size_type m_size;
+	memory_size_type m_userDataSize;
+	memory_size_type m_itemSize;
+	memory_size_type m_blockSize;
+	memory_size_type m_blockItems;
+	std::string m_path;
 	inline void invalidateLocation();
-	void throw_errno();
-	void read_header();
-	void write_header(bool clean);
+	inline void throw_errno();
+	inline void read_header();
+	inline void write_header(bool clean);
+	inline memory_size_type boundary() { return 4096; }
+	inline memory_size_type align_to_boundary(memory_size_type z) { return (z+boundary()-1)/boundary()*boundary(); }
+	inline memory_size_type header_size() { return align_to_boundary(sizeof(stream_header_t)+m_userDataSize); }
 public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \copydoc tpie::file_accessor::file_accessor::read_block
@@ -65,9 +77,15 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Return memory usage of this file accessor.
 	///////////////////////////////////////////////////////////////////////////
+
 	static inline memory_size_type memory_usage() {return sizeof(child_t);}
+	inline stream_size_type size() const {return m_size;}
+	inline const std::string & path() const {return m_path;}
+	inline memory_size_type user_data_size() const {return m_userDataSize;}
 };
 	
 }
 }
+
+#include <tpie/file_accessor/file_accessor_crtp.inl>
 #endif //_TPIE_FILE_ACCESSOR_FILE_ACCESSOR_CRTP_H

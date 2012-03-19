@@ -94,18 +94,14 @@ set (SOURCES
 	tempname.cpp
 	tpie.cpp
 	tpie_log.cpp
-	file_accessor/file_accessor.cpp
-	file_accessor/stdio.cpp
 	file_base.cpp
 	"${CMAKE_CURRENT_BINARY_DIR}/sysinfo.cpp"
 	)
 
 if (WIN32)
-set (SOURCES ${SOURCES} file_accessor/win32.cpp)
-set (HEADERS ${HEADERS} file_accessor/win32.h)
+set (HEADERS ${HEADERS} file_accessor/win32.h file_accessor/win32.inl)
 else(WIN32)
-set (SOURCES ${SOURCES} file_accessor/posix.cpp)
-set (HEADERS ${HEADERS} file_accessor/posix.h)
+set (HEADERS ${HEADERS} file_accessor/posix.h file_accessor/posix.inl)
 endif(WIN32)
 
 add_library(tpie ${HEADERS} ${SOURCES})

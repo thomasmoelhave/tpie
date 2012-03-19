@@ -22,7 +22,6 @@
 #include <tpie/exception.h>
 #include <tpie/file_count.h>
 #include <tpie/file_accessor/win32.h>
-#include <tpie/file_accessor/file_accessor_crtp.inl>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>

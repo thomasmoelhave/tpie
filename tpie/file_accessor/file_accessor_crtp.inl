@@ -112,6 +112,38 @@ inline void file_accessor_crtp<child_t, minimizeSeeks>::invalidateLocation() {
 	if (minimizeSeeks) location = std::numeric_limits<stream_size_type>::max();
 }
 
+template <typename child_t, bool minimizeSeeks>
+void file_accessor_crtp<child_t, minimizeSeeks>::validate_header(const stream_header_t & header) {
+	if (header.magic != stream_header_t::magicConst)
+		throw invalid_file_exception("Invalid file, header magic wrong");
+
+	if (header.version != stream_header_t::versionConst)
+		throw invalid_file_exception("Invalid file, header version wrong");
+
+	if (header.itemSize != m_itemSize)
+		throw invalid_file_exception("Invalid file, item size is wrong");
+
+	if (header.blockSize != m_blockSize)
+		throw invalid_file_exception("Invalid file, item size is wrong");
+
+	if (header.userDataSize != m_userDataSize )
+		throw invalid_file_exception("Invalid file, wrong userdata size");
+
+	if (header.cleanClose != 1 )
+		throw invalid_file_exception("Invalid file, the file was not closed properly");
+}
+
+template <typename child_t, bool minimizeSeeks>
+void file_accessor_crtp<child_t, minimizeSeeks>::fill_header(stream_header_t & header, bool clean) {
+	header.magic = stream_header_t::magicConst;
+	header.version = stream_header_t::versionConst;
+	header.itemSize = m_itemSize;
+	header.blockSize = m_blockSize;
+	header.cleanClose = clean?1:0;
+	header.userDataSize = m_userDataSize;
+	header.size = m_size;
+}
+
 
 }
 }
