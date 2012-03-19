@@ -17,6 +17,12 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
+///////////////////////////////////////////////////////////////////////////////
+/// \file exception.h
+///
+/// Exception classes.
+///////////////////////////////////////////////////////////////////////////////
+
 #ifndef __TPIE_EXCEPTION_H__
 #define __TPIE_EXCEPTION_H__
 #include <stdexcept>

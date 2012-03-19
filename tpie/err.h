@@ -22,7 +22,7 @@
 
 ///////////////////////////////////////////////////////////////////////////
 /// \file tpie/err.h 
-/// Declares error types.
+/// Legacy AMI error types.
 ///////////////////////////////////////////////////////////////////////////
 
 namespace tpie {
@@ -30,12 +30,10 @@ namespace tpie {
     namespace ami {
 	
     ///////////////////////////////////////////////////////////////////////////
-    /// TPIE error codes.
-    /// TPIE entry points typically return error codes of the enumerated type
-    /// err.  Member functions of operation management objects 
-    /// also typically return this type.  Possible values for error codes 
-    /// include those listed below.  It is expected that in future releases 
-    /// of TPIE, many of these error codes will be replaced by exceptions.
+    /// Legacy TPIE error codes.
+	///
+	/// Functions in the AMI interface of TPIE typically return error codes of
+	/// the enumerated type err.
     ///////////////////////////////////////////////////////////////////////////
     enum err {
       /** No error occurred.  The call the the entry point returned normally. */
@@ -56,8 +54,7 @@ namespace tpie {
 	    BASE_METHOD,
 	    /** An error occurred at the BTE level. */
 	    BTE_ERROR,
-	    /** An error occurred within the memory manager 
-	     * (of type \ref tpie::mem::manager). */
+	    /** An error occurred within the memory manager */
 	    MM_ERROR,
 	    /** An TPIE entry point was not able to properly initialize the operation
 	     *  management object that was passed to it.  This generally indicates 
@@ -67,7 +64,7 @@ namespace tpie {
 	    OBJECT_INVALID,
 	    /** A passed object is inaccessible due to insufficient permissions. */
 	    PERMISSION_DENIED,
-      /** The memory manger (of type \ref tpie::mem::manager) could not make 
+      /** The memory manager could not make 
        * adequate main memory available to complete the 
        * requested operation.  Many operations adapt themselves to use whatever 
        * main memory is available, but in some cases, when memory is extremely

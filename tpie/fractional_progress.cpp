@@ -91,9 +91,9 @@ public:
 		i_t i = db.find(name);
 		if (i == db.end()) {
 			log_info() <<
-				"A fraction was missing in the fraction database\n"
+				"A fraction was missing in the fraction database:\n"
 					   << "    " << name << "\n"
-					   << "    To fix this run this command on a large dataset with fraction statics enabled."<< std::endl;
+					   << "    To fix this, run this command on a large dataset with fractional statistics enabled."<< std::endl;
 			return 1.0;
 		}
 		return i->second.first;
@@ -187,10 +187,18 @@ inline std::string fname(const char * file, const char * function, const char * 
 }
 
 
-
 fractional_subindicator::fractional_subindicator(
 	fractional_progress & fp): m_fp(fp) {}
 
+///////////////////////////////////////////////////////////////////////////////
+/// Construct a fractional_subindicator.
+/// \param fp The owning fractional_progress
+/// \param id ID of this subindicator
+/// \param file The file that constructed this (see \ref TPIE_FSI)
+/// \param function The function that constructed this (see \ref TPIE_FSI)
+/// \param n Input size
+/// \param crumb Short text describing this job
+///////////////////////////////////////////////////////////////////////////////
 fractional_subindicator::fractional_subindicator(
 	fractional_progress & fp,
 	const char * id,
@@ -279,11 +287,12 @@ fractional_progress::fractional_progress(progress_indicator_base * pi):
 #endif
 	m_confidence(1.0), m_total_sum(0), m_time_sum(0), m_timed_sum(0) {}
 	
-void fractional_progress::init() {
+void fractional_progress::init(TPIE_OS_OFFSET range) {
+	unused(range);
 #ifndef TPIE_NDEBUG
 	if (m_init_called) {
 		std::stringstream s;
-		s << "Init was called on a fractional_progress where init had already been called" << std::endl;
+		s << "init() was called on a fractional_progress for which init had already been called" << std::endl;
 		tpie::backtrace(s, 5);
 		TP_LOG_FATAL(s.str());
 		TP_LOG_FLUSH_LOG;
@@ -297,7 +306,7 @@ void fractional_progress::done() {
 #ifndef TPIE_NDEBUG
 	if (m_done_called || !m_init_called) {
 		std::stringstream s;
-		s << "Done was called on a fractional_progress where done had allready been called" << std::endl;
+		s << "done() was called on a fractional_progress for which done had already been called" << std::endl;
 		tpie::backtrace(s, 5);
 		TP_LOG_FATAL(s.str());
 		TP_LOG_FLUSH_LOG;

@@ -7,44 +7,19 @@ set (COMMON_DEPS
 		parse_args.h
 	)
 
-set (SCAN_DEPS 
-		scan_count.cpp
-		scan_count.h
-		scan_diff.h
-		scan_random.cpp
-		scan_random.h
-		scan_square.h
-	#	scan_uniform_sm.cpp
-#		scan_uniform_sm.h
-		scan_universal.h
-	)
 add_library(test_common ${COMMON_DEPS})
-add_library(test_scan_common ${SCAN_DEPS})
 set_target_properties(test_common PROPERTIES FOLDER tpie/test)
-set_target_properties(test_scan_common PROPERTIES FOLDER tpie/test)
 
 macro(add_tpie_test NAME)
 	add_executable(${NAME} ${NAME}.cpp) 
 	set_target_properties(${NAME} PROPERTIES FOLDER tpie/test)
-	target_link_libraries(${NAME} tpie test_common test_scan_common )
+	target_link_libraries(${NAME} tpie test_common )
 endmacro(add_tpie_test)
 
-add_tpie_test(test_ami_arith)
-add_tpie_test(test_ami_gp)
-add_tpie_test(test_ami_merge)
-#add_tpie_test(test_ami_sm)
 add_tpie_test(test_ami_stack)
 add_tpie_test(test_sort)
-#add_tpie_test(test_ami_bp)
-#add_tpie_test(test_ami_matrix)
-add_tpie_test(test_ami_pmerge)
-add_tpie_test(test_ami_sort24)
 add_tpie_test(test_big_scan)
-#add_tpie_test(test_ami_btree)
-#add_tpie_test(test_ami_matrix_pad)
 add_tpie_test(test_ami_queue)
-add_tpie_test(test_ami_sort)
-#add_tpie_test(test_correctness)
 
 add_subdirectory(speed_regression)
 

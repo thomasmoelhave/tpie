@@ -17,6 +17,10 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
+///////////////////////////////////////////////////////////////////////////////
+/// \file stream_header.h  Header of streams.
+///////////////////////////////////////////////////////////////////////////////
+
 #ifndef __TPIE_STREAM_HEADER_H__
 #define __TPIE_STREAM_HEADER_H__
 #include <tpie/util.h>

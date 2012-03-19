@@ -1,0 +1,44 @@
+/**
+\page memory Memory manager
+
+TPIE provides various external memory algorithms and data structures, most
+prominently an external memory priority queue (\ref tpie::ami::priority_queue) and
+external memory sorting (\ref tpie::sort). Although these algorithms work
+correctly with as little as a few megabytes of internal memory available, they
+will generally perform better the more internal memory they are assigned.
+
+To use the external memory algorithms, you must initialize the memory subsystem
+using \ref tpie::tpie_init. In order to specify the amount of internal memory
+to use, set the memory manager's limit as follows:
+
+\code
+tpie::get_memory_manager().set_limit(megabytes*1024*1024);
+\endcode
+
+See also \ref tpie::memory_manager.
+
+When you use TPIE to implement your own external memory algorithms, you should
+use \ref tpie::tpie_new, \ref tpie::tpie_new_array, \ref tpie::tpie_delete and
+\ref tpie::tpie_delete_array instead of new and delete whenever you allocate
+and deallocate large amounts of memory. This way, you can design your
+algorithms to work with the memory manager in TPIE, and built-in TPIE
+algorithms will respect the amount of memory your implementation has already
+allocated.
+
+TPIE provides an implementation of the auto pointer paradigm. See
+\ref tpie::auto_ptr.
+
+\code
+int* my_ints = tpie::tpie_new_array<int>(1024);
+std::fill(my_ints+0, my_ints+1024, 0);
+tpie::tpie_delete_array(my_ints, 1024);
+
+tpie::auto_ptr mystack(tpie::tpie_new<tpie::stack<int> >("stack.tpie"));
+mystack->push(42);
+// when mystack goes out of scope, the stack object is deleted with tpie_delete.
+\endcode
+
+You can use the memory_manager methods \ref tpie::memory_manager::used(),
+\ref tpie::memory_manager::available() and \ref tpie::memory_manager::limit()
+to inspect the internal memory environment.
+*/

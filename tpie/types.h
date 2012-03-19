@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2009, 2010, The TPIE development team
+// Copyright 2009, 2010, 2012, The TPIE development team
 //
 // This file is part of TPIE.
 //
@@ -16,6 +16,11 @@
 //
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
+
+///////////////////////////////////////////////////////////////////////////////
+/// \file types.h  Standard types.
+///////////////////////////////////////////////////////////////////////////////
+
 #ifndef _TPIE_TYPES_H
 #define _TPIE_TYPES_H
 
@@ -26,15 +31,17 @@
 
 namespace tpie {
 
+using boost::uint8_t;
+using boost::int8_t;
+using boost::uint16_t;
+using boost::int16_t;
+using boost::uint32_t;
+using boost::int32_t;
 using boost::uint64_t;
 using boost::int64_t;
 
-using boost::uint32_t;
-using boost::int32_t;
-
 typedef boost::uint64_t stream_size_type;
 typedef boost::int64_t stream_offset_type;
-
 typedef ::size_t memory_size_type;
 #ifdef _WIN32
 typedef SSIZE_T memory_offset_type;
@@ -43,6 +50,28 @@ typedef ::ssize_t memory_offset_type;
 #endif
 
 typedef stream_offset_type offset_type;
+
+#ifdef _WIN32
+typedef __int64 offset_type;
+#else
+typedef off_t offset_type;
+#endif	
+
+#if defined (_WIN32) && !defined(__MINGW32__)
+typedef SSIZE_T ssize_type;
+#ifdef _TPIE_SMALL_MAIN_MEMORY
+#if (_MSC_VER < 1400)
+typedef unsigned __int32 size_type;
+#else
+typedef size_t size_type;
+#endif
+#else
+typedef size_t size_type;
+#endif
+#else
+typedef ssize_t ssize_type;
+typedef size_t size_type;
+#endif
 }
 
 #endif //_TPIE_TYPES_H

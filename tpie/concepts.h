@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2008, The TPIE development team
+// Copyright 2008, 2012, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -21,27 +21,24 @@
 
 #include <boost/concept_check.hpp>
 
-/////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 /// \file concepts.h
-/// \brief Implementaton boost concept checkers
-/////////////////////////////////////////////////////////
+/// \brief Boost concept checkers.
+///////////////////////////////////////////////////////////////////////////////
 namespace tpie {
 
-/////////////////////////////////////////////////////////
-/// \brief Check if a structure adhears to the linear_memory_structure concept
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Check if a structure adheres to the linear_memory_structure concept.
 /// 
 /// \sa linear_memory_structure_doc
-/////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 struct linear_memory_structure_concept {
-  BOOST_CONCEPT_USAGE(linear_memory_structure_concept) {
-	  unused((double)T::memory_coefficient());
-	  unused((double)T::memory_overhead());
-  }
+	BOOST_CONCEPT_USAGE(linear_memory_structure_concept) {
+		unused((double)T::memory_coefficient());
+		unused((double)T::memory_overhead());
+	}
 };
-
 
 }
 #endif //__TPIE_CONCEPTS_H__
-
-

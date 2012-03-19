@@ -24,6 +24,7 @@
 #include <tpie/file_count.h>
 #include <tpie/file_accessor/stdio.h>
 #include <tpie/file_accessor/file_accessor_crtp.inl>
+#include <cstdio>
 
 #ifndef WIN32
 #include <sys/types.h>

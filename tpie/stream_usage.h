@@ -18,7 +18,7 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
 ///////////////////////////////////////////////////////////////////////////
-/// \file tpie/stream_usage.h Declare stream_usage enum
+/// \file tpie/stream_usage.h stream_usage enum
 ///////////////////////////////////////////////////////////////////////////
 #ifndef __TPIE_STREAM_USAGE_H__
 #define __TPIE_STREAM_USAGE_H__

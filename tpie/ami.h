@@ -21,15 +21,11 @@
 #define _AMI_H
 ///////////////////////////////////////////////////////////////////////////
 /// \file ami.h
-/// This include file inputs the various include files required to compile
-/// an application program with TPIE.
-/// This file should be included in every TPIE application program that uses the 
-/// AMI-level interface. It in turn inputs the definitions for the 
-/// AMI-level services of TPIE.  
+/// Various header files required to compile an application with the legacy AMI
+/// interface.
 ///////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////
-/// \namespace tpie TPIE's namespace.
 /// \namespace tpie::ami The namespace within TPIE for the Access
 /// Method Interface elements.
 ///////////////////////////////////////////////////////////////////////////
@@ -48,9 +44,6 @@
 
 // Get templates for ami_sort().
 #include <tpie/sort.h>
-
-// Get templates for general permutation.
-#include <tpie/gen_perm.h>
 
 // Get templates for bit permuting.
 //#include <bit_permute.h>

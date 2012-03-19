@@ -26,6 +26,8 @@
 #include <sstream>
 #include <tpie/stream_header.h>
 #include <errno.h>
+#include <vector>
+#include <fcntl.h>
 
 static void usage(int exitcode = -1) {
 	std::cerr

@@ -17,6 +17,11 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
+///////////////////////////////////////////////////////////////////////////////
+/// \file priority_queue.h
+/// \brief External memory priority queue implementation.
+///////////////////////////////////////////////////////////////////////////////
+
 #ifndef _TPIE_PRIORITY_QUEUE_H_
 #define _TPIE_PRIORITY_QUEUE_H_
 
@@ -36,6 +41,7 @@
 #include <tpie/err.h>
 #include <tpie/stream.h>
 #include <tpie/array.h>
+#include <boost/filesystem.hpp>
 
 namespace tpie {
 
@@ -70,16 +76,12 @@ public:
     /////////////////////////////////////////////////////////
     priority_queue(double f=1.0, double b=0.0625);
 
-	/////////////////////////////////////////////////////////
-    ///
-    /// Constructor
-    ///
-    /// \param mmavail Number of bytes the priority queue is
-    /// allowed to use.
-	/// \param b Block factor
-    ///
-    /////////////////////////////////////////////////////////
+#ifndef DOXYGEN
+    // \param mmavail Number of bytes the priority queue is
+    // allowed to use.
+	// \param b Block factor
     priority_queue(TPIE_OS_SIZE_T mm_avail, double b=0.0625);
+#endif
 
 
     /////////////////////////////////////////////////////////

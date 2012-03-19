@@ -24,6 +24,7 @@
 #include <tpie/portability.h>
 #include "getopts.h"
 #include <cstring>
+#include <iostream>
 
 template <typename T>
 T parse_number(char *s) { 

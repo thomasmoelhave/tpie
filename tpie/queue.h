@@ -22,9 +22,10 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 /// \file queue.h
-/// \brief Implements an I/O efficient queue
+/// \brief I/O efficient queue
 ////////////////////////////////////////////////////////////////////////////////
 #include <tpie/portability.h>
+#include <tpie/deprecated.h>
 #include <tpie/file.h>
 #include <tpie/err.h>
 #include <tpie/tempname.h>
@@ -196,7 +197,7 @@ namespace ami {
 		public:
 			queue() {}
 			queue(const std::string& basename): tpie::queue<T>(basename) {}
-		};
+		}
 	);
 }
 }  //  tpie namespace

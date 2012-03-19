@@ -27,10 +27,20 @@
 #include <string>
 #include <tpie/portability.h>
 #include <boost/filesystem.hpp>
+#include <boost/random.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <stdexcept>
 #include <tpie/util.h>
+#include <tpie/err.h>
+
+#ifdef _WIN32
+#include <Windows.h>
+#undef NO_ERROR
+#endif
 
 using namespace tpie;
+
+boost::rand48 prng(42);
 
 std::string tempname::default_path;
 std::string tempname::default_base_name; 
@@ -73,14 +83,14 @@ std::string tempname::tpie_name(const std::string& post_base, const std::string&
 	else 
 		base_dir = tempname::get_actual_path();
 
-	std::string path;	
+	boost::filesystem::path p = base_dir;
 	for(int i=0; i < 42; ++i) {
 		if(post_base.empty())
-			path = base_dir + TPIE_OS_DIR_DELIMITER + base_name + "_" + tpie_mktemp() + "." + extension;
+			p = p / (base_name + "_" + tpie_mktemp() + "." + extension);
 		else 
-			path = base_dir + TPIE_OS_DIR_DELIMITER + base_name + "_" + post_base + "_" + tpie_mktemp() + "." + extension;
-		if ( !TPIE_OS_EXISTS(path) )
-			return path;
+			p = p / (base_name + "_" + post_base + "_" + tpie_mktemp() + "." + extension);
+		if ( !boost::filesystem::exists(p) )
+			return p.native();
 	}
 	throw tempfile_error("Unable to find free name for temporary file");
 }
@@ -98,14 +108,14 @@ std::string tempname::tpie_dir_name(const std::string& post_base, const std::str
 	else 
 		base_dir = tempname::get_actual_path();
 
-	std::string path;	
+	boost::filesystem::path p = base_dir;
 	for(int i=0; i < 42; ++i) {
 		if(post_base.empty())
-			path = base_dir + TPIE_OS_DIR_DELIMITER + base_name + "_" + tpie_mktemp();
+			p = p / (base_name + "_" + tpie_mktemp());
 		else 
-			path = base_dir + TPIE_OS_DIR_DELIMITER + base_name + "_" + post_base + "_" + tpie_mktemp();
-		if ( !TPIE_OS_EXISTS(path) )
-			return path;
+			p = p / (base_name + "_" + post_base + "_" + tpie_mktemp());
+		if ( !boost::filesystem::exists(p) )
+			return p.native();
 	}
 	throw tempfile_error("Unable to find free name for temporary file");
 }
@@ -135,18 +145,18 @@ std::string tempname::tpie_mktemp()
 	"n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", 
 	"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
 	const int chars_count = 62;
-	static TPIE_OS_TIME_T counter = time(NULL) % (chars_count * chars_count); 
+	static int counter = boost::posix_time::second_clock::local_time().time_of_day().total_seconds() % (chars_count * chars_count); 
 
 	std::string result = "";
 	result +=
 		chars[counter/chars_count] +
 		chars[counter%chars_count] +
-		chars[TPIE_OS_RANDOM() % chars_count] +
-		chars[TPIE_OS_RANDOM() % chars_count] +
-		chars[TPIE_OS_RANDOM() % chars_count] +
-		chars[TPIE_OS_RANDOM() % chars_count] +
-		chars[TPIE_OS_RANDOM() % chars_count] +
-		chars[TPIE_OS_RANDOM() % chars_count];
+		chars[prng() % chars_count] +
+		chars[prng() % chars_count] +
+		chars[prng() % chars_count] +
+		chars[prng() % chars_count] +
+		chars[prng() % chars_count] +
+		chars[prng() % chars_count];
 
 	counter = (counter + 1) % (chars_count * chars_count);
 
@@ -159,7 +169,8 @@ void tempname::set_default_path(const std::string&  path, const std::string& sub
 		default_path = path;
 		return;
 	}
-	std::string p = path+TPIE_OS_DIR_DELIMITER+subdir;
+	boost::filesystem::path p = path;
+	p = p / subdir;
 	try {
 		if (!boost::filesystem::exists(p)) {
 			boost::filesystem::create_directory(p);
@@ -168,7 +179,7 @@ void tempname::set_default_path(const std::string&  path, const std::string& sub
 			default_path = path;
 			TP_LOG_WARNING_ID("Could not use " << p << " as directory for temporary files, trying " << path);
 		}
-		default_path = p;
+		default_path = p.native();
 	} catch (boost::filesystem::filesystem_error) { 
 		TP_LOG_WARNING_ID("Could not use " << p << " as directory for temporary files, trying " << path);
 		default_path = path; 
@@ -217,7 +228,7 @@ temp_file::~temp_file() {
 }
 
 void temp_file::free() {
-	if (!m_path.empty() && !m_persist && file_exists(m_path)) 
-		remove(m_path);
+	if (!m_path.empty() && !m_persist && boost::filesystem::exists(m_path)) 
+		boost::filesystem::remove(m_path);
 	m_path="";
 }

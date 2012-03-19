@@ -21,23 +21,23 @@
 #include <tpie/tempname.h>
 #include <tpie/file.h>
 #include <tpie/memory.h>
-////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 /// \file file_stream.h
-/// \brief Implement simple class aggregating both a file and a file::stream
-////////////////////////////////////////////////////////////////////////////
+/// \brief Simple class acting both as a tpie::file and a
+/// tpie::file::stream.
+///////////////////////////////////////////////////////////////////////////////
 
 namespace tpie {
 
-////////////////////////////////////////////////////////////////////////////
-/// \brief Simple class aggregating both as file and a file::stream
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Simple class acting both as \ref file and a file::stream.
 ///
-/// A file stream basicly supports every operation a file or
-/// a file::stream stream supports. This is used to access a file
-/// io-efficiently, and is the direct replacement of the old
-/// ami::stream
+/// A file_stream basically supports every operation a \ref file or a
+/// file::stream supports. This is used to access a file I/O-efficiently, and
+/// is the direct replacement of the old ami::stream.
 ///
-/// \tparam T The type of items stored in the stream
-////////////////////////////////////////////////////////////////////////////
+/// \tparam T The type of items stored in the stream.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 class file_stream {
 public:
@@ -45,12 +45,9 @@ public:
 	typedef T item_type;
 
 	/////////////////////////////////////////////////////////////////////////
-	/// \brief Construct a new file_stream
+	/// \brief Construct a new file_stream.
 	/// 
-	/// \param blockFactor The relative size of a block compared to the 
-	/// default
-	/// \param fileAccessor The file accessor to use, if none is supplied a
-	/// default will be used
+	/// \copydetails tpie::file::file(double blockFactor, file_accessor::file_accessor * fileAccessor)
 	/////////////////////////////////////////////////////////////////////////
 	inline file_stream(double blockFactor=1.0, 
 					   file_accessor::file_accessor * fileAccessor=NULL)
@@ -76,6 +73,9 @@ public:
 		m_block.data = tpie_new_array<char>(block_memory_usage());
 	};
 
+	///////////////////////////////////////////////////////////////////////////
+	/// Destroy a file_stream.
+	///////////////////////////////////////////////////////////////////////////
 	inline ~file_stream() {
 		close();
 		tpie_delete_array(m_block.data, block_memory_usage());
@@ -87,11 +87,11 @@ public:
 	/////////////////////////////////////////////////////////////////////////
 	inline void open(const std::string & path,
 					 file_base::access_type accessType=file_base::read_write,
-					 memory_size_type user_data_size=0) throw (stream_exception) {
+					 memory_size_type userDataSize=0) throw (stream_exception) {
 		close();
 		m_canRead = accessType == file_base::read || accessType == file_base::read_write;
 		m_canWrite = accessType == file_base::write || accessType == file_base::read_write;
-		m_fileAccessor->open(path, m_canRead, m_canWrite, m_itemSize, m_blockSize, user_data_size);
+		m_fileAccessor->open(path, m_canRead, m_canWrite, m_itemSize, m_blockSize, userDataSize);
 		m_size = m_fileAccessor->size();
 		m_open = true;
 		
@@ -132,9 +132,9 @@ public:
 	}
 
 	/////////////////////////////////////////////////////////////////////////
-	/// \brief Close the fileand release resources
+	/// \brief Close the file and release resources.
 	///
-	/// This will close the file and resources used by buffers and such
+	/// This will close the file and resources used by buffers and such.
 	/////////////////////////////////////////////////////////////////////////
 	inline void close() throw(stream_exception) {
 		if (m_open) {
@@ -248,18 +248,6 @@ public:
 		return i;
 	}
 
-
-	/////////////////////////////////////////////////////////////////////////
-	/// \copydoc file<T>::stream::read(const IT & start, const IT & end)
-	/// \sa file<T>::stream::read(const IT & start, const IT & end)
-	/////////////////////////////////////////////////////////////////////////
-	/* TODO
-	template <typename IT>
-	inline void read_back(const IT & start, const IT & end) throw(stream_exception) {
-		m_stream.read(start, end);
-	}
-	*/
-
 	/////////////////////////////////////////////////////////////////////////
 	/// \copydoc file_base::stream::offset()
 	/// \sa file_base::stream::offset()
@@ -358,13 +346,13 @@ public:
 		assert(this->offset() == (stream_size_type)offset);
 	}
 
-	/////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////
 	/// \copydoc file_base::truncate()
-	/// \sa file_base::truecate()
+	/// \sa file_base::truncate()
 	///
-	/// Note that when using a file_stream the stream will automaticly be
-	/// seeked back if it is beond the new end of the file. 
-	/////////////////////////////////////////////////////////////////////////
+	/// Note that when using a file_stream the stream will automatically be
+	/// rewound if it is beyond the new end of the file. 
+	///////////////////////////////////////////////////////////////////////////
 	inline void truncate(stream_size_type size) {
 		stream_size_type o=offset();
 		//TODO flush current block here
@@ -373,33 +361,32 @@ public:
 		seek(std::min(o, size));
 	}
 
-	////////////////////////////////////////////////////////////////////////////////
-	/// Check if we can read from the file
+	///////////////////////////////////////////////////////////////////////////
+	/// Check if we can read from the file.
 	///
-	/// \returns True if we can read from the file
-	////////////////////////////////////////////////////////////////////////////////
+	/// \returns True if we can read from the file.
+	///////////////////////////////////////////////////////////////////////////
 	bool is_readable() const throw() {
 		return m_canRead;
 	}
 
-	////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////
 	/// Check if we can write to the file
 	///
-	/// \returns True if we can write to the file
-	////////////////////////////////////////////////////////////////////////////////
+	/// \returns True if we can write to the file.
+	///////////////////////////////////////////////////////////////////////////
 	bool is_writable() const throw() {
 		return m_canWrite;
 	}
 
-	/////////////////////////////////////////////////////////////////////////
-	/// \brief Calculate the amount of memory used by count file_streams
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Calculate the amount of memory used by a single file_stream.
 	///
-	/// \param count The number of file_streams, to concider.
-	/// \param blockFactor The block factor you promice to pass to open
-	/// \param includeDefaultFileAccessor Unless you are supplieng your own
-	/// file accessor to open leave this to be true
-	/// \returns The amount of memory maximaly used by the count file_streams
-	/////////////////////////////////////////////////////////////////////////
+	/// \param blockFactor The block factor you pass to open.
+	/// \param includeDefaultFileAccessor Unless you are supplying your own
+	/// file accessor to open, leave this to be true.
+	/// \returns The amount of memory maximally used by the count file_streams.
+	///////////////////////////////////////////////////////////////////////////
 	inline static memory_size_type memory_usage(
 		float blockFactor=1.0,
 		bool includeDefaultFileAccessor=true) throw() {
@@ -434,9 +421,9 @@ private:
 
 	block_t m_block;
 
-	/**
-	 * Use file_accessor to fetch indicated block no. into m_block
-	 */
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Use file_accessor to fetch indicated block number into m_block.
+	///////////////////////////////////////////////////////////////////////////
 	inline void get_block(stream_size_type block) {
 		// If the file contains n full blocks (numbered 0 through n-1), we may
 		// request any block in {0, 1, ... n}
@@ -462,10 +449,10 @@ private:
 		}
 	}
 
-	/**
-	 * Fetch block from disk as indicated by m_nextBlock, writing old block to
-	 * disk if needed.
-	 */
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Fetch block from disk as indicated by m_nextBlock, writing old
+	/// block to disk if needed.
+	///////////////////////////////////////////////////////////////////////////
 	inline void update_block() {
 		if (m_nextBlock == std::numeric_limits<stream_size_type>::max()) {
 			m_nextBlock = m_block.number+1;
@@ -479,9 +466,9 @@ private:
 		m_nextIndex = std::numeric_limits<memory_size_type>::max();
 	}
 
-	/**
-	 * Write block to disk.
-	 */
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Write block to disk.
+	///////////////////////////////////////////////////////////////////////////
 	inline void flush_block() {
 		if (m_block.dirty) {
 			assert(m_canWrite);
@@ -510,15 +497,15 @@ private:
 	}
 
 	////////////////////////////////////////////////////////////////////////////////
-	/// Calculate the block size in bytes used by a stream.
-	///
-	/// \param blockFactor Factor of the global block size to use
-	/// \returns Size in Bytes
+	/// \copydoc file_base<T>::block_size(double)
 	////////////////////////////////////////////////////////////////////////////////
 	static inline memory_size_type block_size(double blockFactor) throw () {
 		return static_cast<memory_size_type>(2 * 1024*1024 * blockFactor);
 	}
 
+	////////////////////////////////////////////////////////////////////////////////
+	/// \copydoc file_base<T>::calculate_block_factor(memory_size_type)
+	////////////////////////////////////////////////////////////////////////////////
 	static inline double calculate_block_factor(memory_size_type blockSize) throw () {
 		return (double)blockSize / (double)block_size(1.0);
 	}

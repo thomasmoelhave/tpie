@@ -16,11 +16,19 @@
 //
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
+
+///////////////////////////////////////////////////////////////////////////////
+/// \file win32.h  Win32 file accessor.
+///////////////////////////////////////////////////////////////////////////////
+
 #ifndef _TPIE_FILE_ACCESSOR_WIN32_H
 #define _TPIE_FILE_ACCESSOR_WIN32_H
 
+#include <tpie/config.h>
+
 #include <io.h>
 #include <windows.h>
+#undef NO_ERROR
 
 #include <tpie/file_accessor/file_accessor_crtp.h>
 namespace tpie {

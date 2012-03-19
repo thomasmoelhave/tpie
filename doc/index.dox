@@ -1,0 +1,38 @@
+/**
+\mainpage Main page
+\section sec_first TPIE - The Templated Portable I/O Environment
+
+The TPIE (Templated Portable I/O Environment) library is a tool box providing
+efficient and convenient tools to ease the implementation of algorithm and data
+structures on very large sets of data.
+
+\subsection sec_help Getting started
+
+If you have problems compiling or using TPIE, consult the API documentation, or
+file a <a href="https://github.com/thomasmoelhave/tpie/issues">bug report on GitHub</a>.
+
+  - \ref repository
+  - \ref files
+  - \ref install
+  - \ref compiling
+
+\subsection sec_usage Usage
+
+  - \ref file_stream
+  - \ref sorting_internal (contains complete example)
+  - \ref sorting_external
+  - \ref priority_queue (contains complete example)
+  - \ref memory
+  - \ref progress
+
+\subsection sec_history History
+
+Originally, TPIE was known as the Transparent Portable I/O Environment and was
+hosted by <a href="http://www.cs.duke.edu/TPIE/">Duke University</a>. Later, the work has
+been picked up by researchers at <a href="http://www.madalgo.au.dk/Trac-tpie">MADALGO, Aarhus
+University</a>.
+
+As of 2012, the current maintainer is
+<a href="http://cs.au.dk/~rav/">Mathias Rav</a>.
+
+*/

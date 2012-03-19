@@ -16,11 +16,18 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
+
+///////////////////////////////////////////////////////////////////////////////
+/// \file unused.h  Default special unused values for standard types.
+///////////////////////////////////////////////////////////////////////////////
+
 #ifndef __TPIE_UNUSED_H__
 #define __TPIE_UNUSED_H__
+
 #include <limits>
 #include <utility>
-namespace tpie{
+
+namespace tpie {
 
 template <typename T>
 struct default_unused {
@@ -34,6 +41,6 @@ struct default_unused<std::pair<T1, T2> > {
 	}
 };
 
-}
+} // namespace tpie
 
 #endif //__TPIE_UNUSED_H__

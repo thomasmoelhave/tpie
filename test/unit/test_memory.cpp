@@ -19,6 +19,7 @@
 
 #include "common.h"
 #include <tpie/memory.h>
+#include <vector>
 
 
 struct mtest {

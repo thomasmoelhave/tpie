@@ -17,10 +17,14 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-// This file contains the class sort_manager that actually performs sorting
-// given an internal sort implementation and merge heap implementation
-// The merge heap classes can be found in the file mergeheap.h, 
-// and the internal sort classes can be found in the file  internal_sort.h
+///////////////////////////////////////////////////////////////////////////////
+/// \file sort_manager.h External merge sorting.
+/// This file contains the class sort_manager that actually performs sorting
+/// given an internal sort implementation and merge heap implementation.
+/// The merge heap classes can be found in the file \ref mergeheap.h, and the
+/// internal sort classes can be found in the file \ref internal_sort.h.
+///////////////////////////////////////////////////////////////////////////////
+
 #ifndef _TPIE_AMI_SORT_MANAGER_H
 #define _TPIE_AMI_SORT_MANAGER_H
 
@@ -44,13 +48,11 @@
 
 namespace tpie {
 
-#ifndef AMI_STREAM_IMP_SINGLE
-#warning Including __FILE__ when AMI_STREAM_IMP_SINGLE undefined.
-#endif
-
-// A class of manager objects for merge sorting objects of type T.  We
-// will actually use one of two subclasses of this class which use
-// either a comparison object,  or the binary comparison operator <.
+///////////////////////////////////////////////////////////////////////////////
+/// A class of manager objects for merge sorting objects of type T.  We will
+/// actually use one of two subclasses of this class which use either a
+/// comparison object, or the binary comparison operator &lt;.
+///////////////////////////////////////////////////////////////////////////////
 
 template <class T, class I, class M>
 class sort_manager {
@@ -62,11 +64,16 @@ public:
 		//  No code in this destructor.
 	};
 
-	//  Sort in stream to out stream an save in stream (uses 3x space)
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Sort in stream to out stream an save in stream (uses 3x space)
+	///////////////////////////////////////////////////////////////////////////
 	void sort(file_stream<T>* in, file_stream<T>* out, 
 			  progress_indicator_base* indicator = NULL);
-	//Sort in stream and overwrite unsorted input with sorted output
-	//(uses 2x space)
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Sort in stream and overwrite unsorted input with sorted output
+	/// (uses 2x space)
+	///////////////////////////////////////////////////////////////////////////
 	void sort(file_stream<T>* in, progress_indicator_base* indicator = NULL); 
 	    
 private:

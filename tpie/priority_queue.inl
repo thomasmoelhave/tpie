@@ -30,6 +30,7 @@ block_factor(b) { // constructor mem fraction
 	init(mm_avail);
 }
 
+#ifndef DOXYGEN
 template<typename T, typename Comparator, typename OPQType>
 priority_queue<T, Comparator, OPQType>::priority_queue(TPIE_OS_SIZE_T mm_avail, double b) :
 block_factor(b) { // constructor absolute mem
@@ -40,6 +41,7 @@ block_factor(b) { // constructor absolute mem
 				 << static_cast<TPIE_OS_OUTPUT_SIZE_T>(mm_avail) << "bytes)" << "\n");
 	init(mm_avail);
 }
+#endif
 
 template<typename T, typename Comparator, typename OPQType>
 void priority_queue<T, Comparator, OPQType>::init(TPIE_OS_SIZE_T mm_avail) { // init 
@@ -193,10 +195,10 @@ void priority_queue<T, Comparator, OPQType>::init(TPIE_OS_SIZE_T mm_avail) { // 
 template <typename T, typename Comparator, typename OPQType>
 priority_queue<T, Comparator, OPQType>::~priority_queue() { // destructor
 	for(TPIE_OS_SIZE_T i = 0; i < setting_k*setting_k; i++) { // unlink slots
-		TPIE_OS_UNLINK(slot_data(i));
+		boost::filesystem::remove(slot_data(i));
 	}
 	for(TPIE_OS_SIZE_T i = 0; i < setting_k; i++) { // unlink groups 
-		TPIE_OS_UNLINK(group_data(i));
+		boost::filesystem::remove(group_data(i));
 	}
 
 	buffer.resize(0);
