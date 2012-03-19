@@ -154,27 +154,23 @@ struct test_file_accessor {
 
 	inline void write() {
 		tpie::default_file_accessor fa;
-		fa.open("tmp", false, true, sizeof(test_t), 0);
-		stream_size_type blockOffset = 0;
+		fa.open("tmp", false, true, sizeof(test_t), sysinfo::blocksize_bytes(), 0);
 		for (count_t j = 0; j < block_count; ++j) {
 			for (count_t k = 0; k < itemsPerBlock; ++k) {
 				block[k] = 42;
 			}
-			fa.write(block, blockOffset, itemsPerBlock);
-			blockOffset += itemsPerBlock;
+			fa.write_block(block, j, itemsPerBlock);
 		}
 	}
 
 	inline void read() {
 		tpie::default_file_accessor fa;
-		fa.open("tmp", true, false, sizeof(test_t), 0);
-		stream_size_type blockOffset = 0;
+		fa.open("tmp", true, false, sizeof(test_t), sysinfo::blocksize_bytes(), 0);
 		for (count_t j = 0; j < block_count; ++j) {
-			fa.read(block, blockOffset, itemsPerBlock);
+			fa.read_block(block, j, itemsPerBlock);
 			for (count_t k = 0; k < itemsPerBlock; ++k) {
 				hash = hash * 13 + block[k];
 			}
-			blockOffset += itemsPerBlock;
 		}
 	}
 };
