@@ -82,6 +82,10 @@ public:
 	inline stream_size_type size() const {return m_size;}
 	inline const std::string & path() const {return m_path;}
 	inline memory_size_type user_data_size() const {return m_userDataSize;}
+
+	inline stream_size_type byte_size() const {
+		return ((m_size + m_blockItems - 1)/m_blockItems) * m_blockSize + header_size();
+	}
 };
 	
 }

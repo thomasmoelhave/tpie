@@ -62,6 +62,7 @@ set (HEADERS
 		sysinfo.h
 		tpie_assert.h
 		tpie_log.h
+		stats.h
 		types.h
 		tempname.h
 		unused.h
@@ -95,6 +96,7 @@ set (SOURCES
 	tpie.cpp
 	tpie_log.cpp
 	file_base.cpp
+	stats.cpp
 	"${CMAKE_CURRENT_BINARY_DIR}/sysinfo.cpp"
 	)
 

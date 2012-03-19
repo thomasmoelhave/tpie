@@ -71,6 +71,7 @@ public:
 		m_index = std::numeric_limits<memory_size_type>::max();
 
 		m_block.data = tpie_new_array<char>(block_memory_usage());
+		m_tempFile = 0;
 	};
 
 	///////////////////////////////////////////////////////////////////////////
@@ -81,6 +82,7 @@ public:
 		tpie_delete_array(m_block.data, block_memory_usage());
 	}
 
+
 	/////////////////////////////////////////////////////////////////////////
 	/// \copydoc file_base::open
 	/// \sa file_base::open
@@ -89,23 +91,25 @@ public:
 					 file_base::access_type accessType=file_base::read_write,
 					 memory_size_type userDataSize=0) throw (stream_exception) {
 		close();
-		m_canRead = accessType == file_base::read || accessType == file_base::read_write;
-		m_canWrite = accessType == file_base::write || accessType == file_base::read_write;
-		m_fileAccessor->open(path, m_canRead, m_canWrite, m_itemSize, m_blockSize, userDataSize);
-		m_size = m_fileAccessor->size();
-		m_open = true;
-		
-		m_blockStartIndex = 0;
-		m_nextBlock = std::numeric_limits<stream_size_type>::max();
-		m_nextIndex = std::numeric_limits<memory_size_type>::max();
-		m_index = std::numeric_limits<memory_size_type>::max();
+		open_inner(path, accessType, userDataSize);
+	}
 
-		m_block.size = 0;
-		m_block.number = std::numeric_limits<stream_size_type>::max();
-		m_block.dirty = false;
-		
-		initialize();
-		seek(0);
+	/////////////////////////////////////////////////////////////////////////
+	///
+	/////////////////////////////////////////////////////////////////////////
+	inline void open(memory_size_type userDataSize=0) throw (stream_exception) {
+		close();
+		m_ownedTempFile.reset(new temp_file());
+		m_tempFile=m_ownedTempFile.get();
+		open_inner(m_tempFile->path(), file_base::read_write, userDataSize);
+	}
+
+	inline void open(temp_file & file, 
+					 file_base::access_type accessType=file_base::read_write,
+					 memory_size_type userDataSize=0) throw (stream_exception) {
+		close();
+		m_tempFile=&file;
+		open_inner(m_tempFile->path(), accessType, userDataSize);
 	}
 
 
@@ -142,6 +146,8 @@ public:
 			m_fileAccessor->close();
 		}
 		m_open = false;
+		m_ownedTempFile.reset();
+		m_tempFile=NULL;
 	}
 	
 	/////////////////////////////////////////////////////////////////////////
@@ -418,8 +424,32 @@ private:
 	memory_size_type m_itemSize;
 	bool m_open;
 	file_accessor::file_accessor * m_fileAccessor;
-
 	block_t m_block;
+	std::auto_ptr<temp_file> m_ownedTempFile;
+	temp_file * m_tempFile;
+
+	inline void open_inner(const std::string & path,
+						   file_base::access_type accessType,
+						   memory_size_type user_data_size) throw (stream_exception) {
+		m_canRead = accessType == file_base::read || accessType == file_base::read_write;
+		m_canWrite = accessType == file_base::write || accessType == file_base::read_write;
+		m_fileAccessor->open(path, m_canRead, m_canWrite, m_itemSize, m_blockSize, user_data_size);
+		m_size = m_fileAccessor->size();
+		m_open = true;
+		
+		m_blockStartIndex = 0;
+		m_nextBlock = std::numeric_limits<stream_size_type>::max();
+		m_nextIndex = std::numeric_limits<memory_size_type>::max();
+		m_index = std::numeric_limits<memory_size_type>::max();
+
+		m_block.size = 0;
+		m_block.number = std::numeric_limits<stream_size_type>::max();
+		m_block.dirty = false;
+		
+		initialize();
+		seek(0);
+	}
+
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Use file_accessor to fetch indicated block number into m_block.
@@ -482,6 +512,8 @@ private:
 			assert(m_index <= m_blockItems);
 			m_block.size = std::max(m_block.size, m_index);
 			m_size = std::max(m_size, static_cast<stream_size_type>(m_index)+m_blockStartIndex);
+			if (m_tempFile) 
+				m_tempFile->update_recorded_size(m_fileAccessor->byte_size());
 		}
 	}
 

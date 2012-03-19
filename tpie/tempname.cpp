@@ -123,7 +123,6 @@ std::string tempname::tpie_dir_name(const std::string& post_base, const std::str
 std::string tempname::get_actual_path() {
 	//information about the search order is in the header
 	std::string dir;
-
 	if(!default_path.empty()) 
 		dir = default_path; //user specified path
 	else if(getenv(AMI_SINGLE_DEVICE_ENV) != NULL)  //TPIE env variable
@@ -207,9 +206,9 @@ const std::string& tempname::get_default_extension() {
 	return default_extension;
 }
 
-temp_file::temp_file(): m_persist(false) {}
+temp_file::temp_file(): m_persist(false), m_recordedSize(0) {}
 
-temp_file::temp_file(const std::string & path, bool persist): m_path(path), m_persist(persist) {}
+temp_file::temp_file(const std::string & path, bool persist): m_path(path), m_persist(persist), m_recordedSize(0) {}
 
 const std::string & temp_file::path() {
 	if (m_path.empty())
@@ -228,7 +227,9 @@ temp_file::~temp_file() {
 }
 
 void temp_file::free() {
-	if (!m_path.empty() && !m_persist && boost::filesystem::exists(m_path)) 
+	if (!m_path.empty() && !m_persist && boost::filesystem::exists(m_path)) {
 		boost::filesystem::remove(m_path);
+		update_recorded_size(0);
+	}
 	m_path="";
 }
