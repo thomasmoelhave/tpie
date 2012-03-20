@@ -47,7 +47,7 @@ namespace tpie {
 #define tp_assert(condition,message) {									      \
 	if (!((condition) && 1)) {												  \
 	    TP_LOG_FATAL_ID("Assertion failed:");								  \
-		TP_LOG_FATAL_ID(message)											  \
+		TP_LOG_FATAL_ID(message);										      \
 		std::cerr << "Assertion (" #condition ") failed " __FILE__ ":"		  \
 				  << __LINE__ << ": " << message << "\n";					  \
 		std::terminate();													  \

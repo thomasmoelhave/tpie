@@ -29,6 +29,8 @@
 #include <cmath>
 #include <string>
 #include <cstdio>
+#include <stdexcept>
+
 namespace tpie {
 
 ///////////////////////////////////////////////////////////////////////////
@@ -152,7 +154,6 @@ struct binary_argument_swap: public std::binary_function<typename T::second_argu
 		return i(y,x);
 	}
 };
-
 
 inline void atomic_rename(const std::string & src, const std::string & dst) {
 	//Note according to posix rename is atomic..
