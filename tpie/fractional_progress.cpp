@@ -20,6 +20,7 @@
 #include <tpie/backtrace.h>
 #include <tpie/prime.h>
 #include <tpie/tempname.h>
+#include <tpie/util.h>
 #include <map>
 #include <fstream>
 #include <sstream>

@@ -27,6 +27,7 @@
 #include <fcntl.h>
 #include <tpie/tpie_log.h>
 #include <tpie/tempname.h>
+#include <tpie/util.h>
 #ifdef WIN32
 #include <windows.h>
 #undef NO_ERROR
@@ -53,19 +54,6 @@ size_t get_os_available_fds() {
 }
 #endif
 
-
-void atomic_rename(const std::string & src, const std::string & dst) {
-	//Note according to posix rename is atomic..
-	//On windows it is probably not
-#ifndef _WIN32
-	if (rename(src.c_str(), dst.c_str()) != 0)
-		throw std::runtime_error("Atomic rename failed");
-#else
-	//TODO use MoveFileTransacted on vista or newer
-	if (!MoveFileEx(src.c_str(), dst.c_str(), MOVEFILE_COPY_ALLOWED | MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH))
-		throw std::runtime_error("Atomic rename failed");
-#endif
-}
 
 typedef std::pair<memory_size_type, memory_size_type> p_t;
 
