@@ -21,9 +21,10 @@
 /// \file util.cpp  Miscellaneous utility functions - implementation
 ///////////////////////////////////////////////////////////////////////////////
 
+#include <tpie/exception.h>
+#include <tpie/util.h>
 #include <stdexcept>
 #include <cstdio>
-#include "util.h"
 #ifdef WIN32
 #include <windows.h>
 #endif
@@ -41,6 +42,21 @@ void atomic_rename(const std::string & src, const std::string & dst) {
 	if (!MoveFileEx(src.c_str(), dst.c_str(), MOVEFILE_COPY_ALLOWED | MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH))
 		throw std::runtime_error("Atomic rename failed");
 #endif
+}
+
+void throw_getlasterror() {
+	char buffer[1024];
+	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, GetLastError(), 0, buffer, 1023, 0);
+	switch (GetLastError()) {
+		case ERROR_HANDLE_DISK_FULL:
+		case ERROR_DISK_FULL:
+		case ERROR_DISK_TOO_FRAGMENTED:
+		case ERROR_DISK_QUOTA_EXCEEDED:
+		case ERROR_VOLMGR_DISK_NOT_ENOUGH_SPACE:
+			throw out_of_space_exception(buffer);
+		default:
+			throw io_exception(buffer);
+	}
 }
 
 } // namespace tpie

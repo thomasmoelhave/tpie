@@ -155,6 +155,9 @@ struct binary_argument_swap: public std::binary_function<typename T::second_argu
 
 void atomic_rename(const std::string & src, const std::string & dst);
 
+#ifdef _WIN32
+void throw_getlasterror();
+#endif
 
 } //namespace tpie
 
