@@ -58,8 +58,8 @@ namespace tpie {
 /// object.
 ///////////////////////////////////////////////////////////////////////////////
 template<typename T, typename Compare>
-void stlsort(file_stream<T> &instream, file_stream<T> &outstream,
-			 Compare comp, progress_indicator_base & indicator) {
+void sort(file_stream<T> &instream, file_stream<T> &outstream,
+		  Compare comp, progress_indicator_base & indicator) {
 
 	ami::Internal_Sorter_Obj<T,Compare> myInternalSorter(comp);
 	ami::merge_heap_obj<T,Compare>      myMergeHeap(comp);
@@ -76,7 +76,7 @@ template<typename T>
 void sort(file_stream<T> &instream, file_stream<T> &outstream,
 		  tpie::progress_indicator_base* indicator=NULL) {
 	std::less<T> comp;
-	stlsort(instream, outstream, comp, *indicator);
+	sort(instream, outstream, comp, *indicator);
 }
 
 
@@ -92,9 +92,9 @@ void sort(file_stream<T> &instream, file_stream<T> &outstream,
 /// comparator object.
 ///////////////////////////////////////////////////////////////////////////////
 template<typename T, typename Compare>
-void stlsort(file_stream<T> &instream, Compare comp,
-			 progress_indicator_base & indicator) {
-	stlsort(instream, instream, comp, indicator);
+void sort(file_stream<T> &instream, Compare comp,
+		  progress_indicator_base & indicator) {
+	sort(instream, instream, comp, indicator);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

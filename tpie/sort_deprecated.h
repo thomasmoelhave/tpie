@@ -131,17 +131,6 @@ namespace tpie {
   /// were it is impossible to use a comparison operator or comparison object.
   //////////////////////////////////////////////////////////////////////////
 
-	///////////////////////////////////////////////////////////////////////////
-	/// \deprecated \brief Sort elements of a stream using the given AMI-style
-	/// comparator.
-	///////////////////////////////////////////////////////////////////////////
-	template<typename T, typename TCompare>
-	void sort(file_stream<T> &instream, file_stream<T> &outstream,
-			  TCompare *tpiecomp, progress_indicator_base* indicator) {
-		TPIE2STL_cmp<T, TCompare> comp(tpiecomp);
-		stlsort(instream, outstream, comp, *indicator);
-	}
-
     namespace ami {
 
 	template<class T>
@@ -172,7 +161,13 @@ namespace tpie {
   err sort(stream<T> *instream_ami, stream<T> *outstream_ami,
 		 CMPR *cmp, progress_indicator_base* indicator=NULL) {
 		try {
-			tpie::sort(instream_ami->underlying_stream(), outstream_ami->underlying_stream(), cmp, indicator);
+			TPIE2STL_cmp<T, CMPR> comp(cmp);
+			if (indicator) {
+				tpie::sort(instream_ami->underlying_stream(), outstream_ami->underlying_stream(), comp, *indicator);
+			} else {
+				progress_indicator_null dummy(1);
+				tpie::sort(instream_ami->underlying_stream(), outstream_ami->underlying_stream(), comp, dummy);
+			}
 		} catch (const exception & e) {
 			TP_LOG_FATAL_ID(e.what());
 			return exception_kind(e);
@@ -256,16 +251,6 @@ namespace tpie {
 	
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \deprecated \brief Sort elements of a stream in-place using the given
-	/// AMI-style comparator.
-	///////////////////////////////////////////////////////////////////////////
-	template<typename T, typename CMPR>
-	void sort(file_stream<T> &instream, 
-			  CMPR &cmp, progress_indicator_base &indicator) {
-		sort(instream, instream, &cmp, &indicator);
-	}
-
-	///////////////////////////////////////////////////////////////////////////
 	/// In-place sorting variant of \ref  sort(stream<T> *instream_ami, stream<T> *outstream_ami, CMPR *cmp, progress_indicator_base* indicator=NULL), 
 	/// see also \ref sortingspace_in_tpie "In-place Variants for Sorting in TPIE".
 	///////////////////////////////////////////////////////////////////////////
@@ -274,11 +259,12 @@ namespace tpie {
 	err sort(stream<T> *instream_ami, 
 		 CMPR *cmp, progress_indicator_base* indicator=NULL) {
 		try {
+			TPIE2STL_cmp<T, CMPR> comp(cmp);
 			if (indicator) {
-				tpie::sort(instream_ami->underlying_stream(), *cmp, *indicator);
+				tpie::sort(instream_ami->underlying_stream(), comp, *indicator);
 			} else {
 				progress_indicator_null dummy(1);
-				tpie::sort(instream_ami->underlying_stream(), *cmp, dummy);
+				tpie::sort(instream_ami->underlying_stream(), comp, dummy);
 			}
 		} catch (const exception & e) {
 			TP_LOG_FATAL_ID(e.what());
@@ -318,22 +304,12 @@ namespace tpie {
   /// In-place sorting variant of \ref key_sort(stream<T> *instream_ami, stream<T> *outstream_ami, KEY dummykey, CMPR *cmp, progress_indicator_base* indicator=NULL),
   /// see also \ref sortingspace_in_tpie "In-place Variants for Sorting in TPIE".
   ///////////////////////////////////////////////////////////////////////////
-	template<class T, class KEY, class CMPR>
-	void  key_sort(file_stream<T> &instream, 
-		      KEY /* dummykey */, CMPR *cmp, progress_indicator_base* indicator=NULL)	{
-		sort(instream, *cmp, *indicator);
-	}
 	namespace ami {
 	template<class T, class KEY, class CMPR>
 	err  key_sort(stream<T> *instream_ami, 
 		      KEY dummykey, CMPR *cmp, progress_indicator_base* indicator=NULL)	{
-		try {
-			tpie::key_sort(instream_ami->underlying_stream(), dummykey, cmp, indicator);
-		} catch (const exception & e) {
-			TP_LOG_FATAL_ID(e.what());
-			return exception_kind(e);
-		}
-		return NO_ERROR;
+		TP_LOG_WARNING_ID("tpie::ami::key_sort is deprecated");
+		return sort(instream_ami, cmp, indicator);
 	}
     }
 
