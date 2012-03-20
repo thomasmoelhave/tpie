@@ -688,7 +688,6 @@ ami::err test_2x_sort(appInfo& info, enum test_type ttype, progress_indicator_ba
 	ami::stream<SortItem>* inStr = new ami::stream<SortItem>(fname);
 	SortCompare cmp;
 	KeySortCompare kcmp;
-	long dummykey=0;
 	switch(ttype){
     case APP_TEST_OBJ_OP:
 //      std::cout << "Using operator sorting and object heaps" << std::endl;
@@ -705,10 +704,6 @@ ami::err test_2x_sort(appInfo& info, enum test_type ttype, progress_indicator_ba
     case APP_TEST_PTR_CMPOBJ: 
 //      std::cout << "Using comp obj sorting and ptr heaps" << std::endl;
       ae=ami::ptr_sort(inStr, &cmp, (progress_indicator_base*)&sort_progress);
-      break;
-    case APP_TEST_KOBJ: 
-//      std::cout << "Using key+obj sorting and object heaps" << std::endl;
-      ae=ami::key_sort(inStr, dummykey, &kcmp, (progress_indicator_base*)&sort_progress);
       break;
     default:
       ae=ami::GENERIC_ERROR;

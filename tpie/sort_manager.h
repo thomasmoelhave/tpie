@@ -722,7 +722,7 @@ void sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
 		    mergeInputStreams[ii]->seek(0);
 		}
 
-		TPIE_OS_OFFSET check_size=0;
+		TPIE_OS_SIZE_T check_size=0;
 		// For each new output stream, fill with merged runs.
 		// strange indexing is for the case that there are fewer than mrgArity
 		// output streams needed, and we use the LAST nOutputStreams. This
