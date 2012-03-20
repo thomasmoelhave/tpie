@@ -71,10 +71,11 @@ void file_accessor_crtp<child_t, minimizeSeeks>::write_header(bool clean) {
 	stream_header_t header;
 	fill_header(header, clean);
 	seek_i(0);
-	char header_area[header_size()];
+	char * header_area = new char[header_size()];
 	memcpy(header_area, &header, sizeof(header));
 	memset(header_area+sizeof(header), 0, header_size()-sizeof(header));
 	write_i(header_area, header_size());
+	delete[] header_area;
 }
  
 template <typename child_t, bool minimizeSeeks>
