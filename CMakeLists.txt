@@ -27,7 +27,7 @@ endif(WIN32)
 find_package(Boost COMPONENTS date_time thread filesystem system)
 
 # Boost 1.44 defaults to filesystem interface version 2, but we use version 3.
-set(BOOST_FILESYSTEM_VERSION 3)
+set(BOOST_FILESYSTEM_VERSION 2)
 
 if(TPIE_FRACTIONDB_DIR_INL) 
   include_directories(${TPIE_FRACTIONDB_DIR_INL})
