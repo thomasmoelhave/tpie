@@ -54,6 +54,10 @@ struct end_of_stream_exception: public stream_exception {
 	end_of_stream_exception(): stream_exception("") {};
 };
 
+struct out_of_space_exception: public stream_exception {
+	out_of_space_exception(): stream_exception("") {};
+};
+
 struct job_manager_exception: public exception {
 	job_manager_exception(): exception("") {};
 };
