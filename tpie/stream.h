@@ -368,7 +368,7 @@ private:
 		TP_LOG_DEBUG_ID("Temporary stream in file: ");
 	    TP_LOG_DEBUG_ID( m_temp.path() );
 		try {
-			m_stream.open( m_temp.path() );
+			m_stream.open( m_temp );
 		} catch(const stream_exception &) {
 			TP_LOG_FATAL_ID("Open failed");
 			return;
@@ -384,7 +384,7 @@ private:
 	stream<T>::stream(const std::string& path_name, stream_type st) :
 		m_temp(path_name, true), m_stream(block_factor()), m_status(STREAM_STATUS_INVALID) {
 		try {
-			m_stream.open( path_name, st==READ_STREAM ? file_base::read: file_base::read_write);
+			m_stream.open(m_temp, st==READ_STREAM ? file_base::read: file_base::read_write);
 			if (st == APPEND_STREAM) m_stream.seek(0, file_base::end);
 		} catch(const stream_exception &) {
 			TP_LOG_FATAL_ID("Open failed");

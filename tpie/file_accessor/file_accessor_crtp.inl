@@ -21,7 +21,7 @@
 #include <tpie/exception.h>
 #include <tpie/file_count.h>
 #include <tpie/file_accessor/file_accessor_crtp.h>
-
+#include <tpie/stats.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -34,12 +34,14 @@ namespace file_accessor {
 template <typename child_t, bool minimizeSeeks>
 inline void file_accessor_crtp<child_t, minimizeSeeks>::read_i(void * d, memory_size_type size) {
 	reinterpret_cast<child_t*>(this)->read_i(d, size);
+	increment_bytes_read(size);
 	if (minimizeSeeks) location += size;
 }
 
 template <typename child_t, bool minimizeSeeks>
 inline void file_accessor_crtp<child_t, minimizeSeeks>::write_i(const void * d, memory_size_type size) {
 	reinterpret_cast<child_t*>(this)->write_i(d, size);
+	increment_bytes_written(size);
 	if (minimizeSeeks) location += size;
 }
 

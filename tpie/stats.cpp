@@ -20,6 +20,8 @@
 // The tpie_stats class for recording statistics. The parameter C is
 // the number of statistics to be recorded.
 
+#include <tpie/stats.h>
+
 namespace tpie {
 	
 	static stream_size_type temp_file_usage=0;

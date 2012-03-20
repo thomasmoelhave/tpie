@@ -50,9 +50,9 @@ protected:
 	inline void throw_errno();
 	inline void read_header();
 	inline void write_header(bool clean);
-	inline memory_size_type boundary() { return 4096; }
-	inline memory_size_type align_to_boundary(memory_size_type z) { return (z+boundary()-1)/boundary()*boundary(); }
-	inline memory_size_type header_size() { return align_to_boundary(sizeof(stream_header_t)+m_userDataSize); }
+	inline memory_size_type boundary() const { return 4096; }
+	inline memory_size_type align_to_boundary(memory_size_type z) const { return (z+boundary()-1)/boundary()*boundary(); }
+	inline memory_size_type header_size() const { return align_to_boundary(sizeof(stream_header_t)+m_userDataSize); }
 public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \copydoc tpie::file_accessor::file_accessor::read_block
