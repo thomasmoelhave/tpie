@@ -28,8 +28,6 @@
 #include <tpie/types.h>
 #include <cmath>
 #include <string>
-#include <cstdio>
-#include <stdexcept>
 
 namespace tpie {
 
@@ -155,18 +153,7 @@ struct binary_argument_swap: public std::binary_function<typename T::second_argu
 	}
 };
 
-inline void atomic_rename(const std::string & src, const std::string & dst) {
-	//Note according to posix rename is atomic..
-	//On windows it is probably not
-#ifndef _WIN32
-	if (rename(src.c_str(), dst.c_str()) != 0)
-		throw std::runtime_error("Atomic rename failed");
-#else
-	//TODO use MoveFileTransacted on vista or newer
-	if (!MoveFileEx(src.c_str(), dst.c_str(), MOVEFILE_COPY_ALLOWED | MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH))
-		throw std::runtime_error("Atomic rename failed");
-#endif
-}
+void atomic_rename(const std::string & src, const std::string & dst);
 
 
 } //namespace tpie

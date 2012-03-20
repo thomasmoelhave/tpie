@@ -97,6 +97,7 @@ set (SOURCES
 	tpie_log.cpp
 	file_base.cpp
 	stats.cpp
+	util.cpp
 	"${CMAKE_CURRENT_BINARY_DIR}/sysinfo.cpp"
 	)
 
