@@ -117,10 +117,9 @@ void stdio::truncate(stream_size_type size) {
 #else
 	//Since there is no reliable way of trunacing a file, we will just fake it
 	if (size > m_size) {
-		char * buff = new char[m_itemSize*1024*256];
+		char * buff = new char[m_blockSize];
 		while (size > m_size) {
-			write(buff, m_size, 1024*256);
-			m_size += 1024*256;
+			write_block(buff, m_size/m_blockItems, std::min(static_cast<stream_size_type>(m_blockItems), size-m_size));
 		}
 		delete [] buff;
 	}
