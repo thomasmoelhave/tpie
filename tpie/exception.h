@@ -46,16 +46,16 @@ struct io_exception: public stream_exception {
 	io_exception(const std::string & s): stream_exception(s) {};
 };
 
+struct out_of_space_exception: public io_exception {
+	out_of_space_exception(const std::string & s): io_exception(s) {};
+};
+
 struct invalid_file_exception: public stream_exception {
 	invalid_file_exception(const std::string & s): stream_exception(s) {};
 };
 
 struct end_of_stream_exception: public stream_exception {
 	end_of_stream_exception(): stream_exception("") {};
-};
-
-struct out_of_space_exception: public stream_exception {
-	out_of_space_exception(): stream_exception("") {};
 };
 
 struct job_manager_exception: public exception {
