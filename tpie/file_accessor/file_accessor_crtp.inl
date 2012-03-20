@@ -62,7 +62,8 @@ void file_accessor_crtp<child_t, minimizeSeeks>::read_header() {
 
 template <typename child_t, bool minimizeSeeks>
 inline void file_accessor_crtp<child_t, minimizeSeeks>::throw_errno() {
-	throw io_exception(strerror(errno));
+	if (errno == ENOSPC) throw out_of_space_exception(strerror(errno));
+	else throw io_exception(strerror(errno));
 }
 
 template <typename child_t, bool minimizeSeeks>
