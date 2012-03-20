@@ -28,6 +28,7 @@
 #include <tpie/types.h>
 #include <cmath>
 #include <string>
+#include <cstdio>
 namespace tpie {
 
 ///////////////////////////////////////////////////////////////////////////
