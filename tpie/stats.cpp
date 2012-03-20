@@ -28,7 +28,7 @@ namespace tpie {
 	static stream_size_type bytes_read=0;
 	static stream_size_type bytes_written=0;
 
-	stream_size_type get_tempfile_usage() {
+	stream_size_type get_temp_file_usage() {
 		return temp_file_usage;
 	}
 
