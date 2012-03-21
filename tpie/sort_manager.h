@@ -83,16 +83,13 @@ private:
 	    
 	void start_sort();              // high level wrapper to full sort 
 	void compute_sort_params();     // compute nInputItems, mrgArity, nRuns
-	void partition_and_sort_runs(progress_indicator_base* indicator); // make initial sorted runs
-	void merge_to_output(progress_indicator_base* indicator); // loop over merge tree, create output stream
+	void partition_and_sort_runs(progress_indicator_base* indicator, std::vector<temp_file> & temporaries); // make initial sorted runs
+	void merge_to_output(progress_indicator_base* indicator, std::vector<temp_file> & temporaries); // loop over merge tree, create output stream
 	// Merge a single group mrgArity streams to an output stream
 	void single_merge(
 		typename tpie::array<tpie::auto_ptr<file_stream<T> > >::iterator,
 		typename tpie::array<tpie::auto_ptr<file_stream<T> > >::iterator,
 		file_stream<T>*, TPIE_OS_OFFSET = -1, progress_indicator_base* indicator=0);
-	// helper function for opening temporary file
-	inline void open_temp(
-		int parity, TPIE_OS_SIZE_T id, file_stream<T> * stream, file_base::access_type acc);
 	    
 	// **************
 	// * Attributes *
@@ -288,11 +285,13 @@ void sort_manager<T,I,M>::start_sort(){
 	fractional_subindicator merge_progress(fp, "merge", TPIE_FSI, nInputItems,"",tpie::IMPORTANCE_LOG);
 	fp.init();
 
+	std::vector<temp_file> temporaries(mrgArity*2);
+
 	// PHASE 3: partition and form sorted runs
 	TP_LOG_DEBUG_ID ("Beginning general merge sort.");
-	partition_and_sort_runs(&run_progress);
+	partition_and_sort_runs(&run_progress, temporaries);
 	// PHASE 4: merge sorted runs to a single output stream
-	merge_to_output(&merge_progress);
+	merge_to_output(&merge_progress, temporaries);
 	
 	fp.done();
 }
@@ -514,7 +513,7 @@ void sort_manager<T,I,M>::compute_sort_params(void){
 }
 
 template<class T, class I, class M>
-void sort_manager<T,I,M>::partition_and_sort_runs(progress_indicator_base* indicator){
+void sort_manager<T,I,M>::partition_and_sort_runs(progress_indicator_base* indicator, std::vector<temp_file> & temporaries){
 	// ********************************************************************
 	// * PHASE 3: Partition                                               *
 	// * Partition the input stream into nRuns of at most nItemsPerRun    *
@@ -567,7 +566,7 @@ void sort_manager<T,I,M>::partition_and_sort_runs(progress_indicator_base* indic
 		// Dynamically allocate the stream
 		// We account for these mmBytesPerStream in phase 2 (output stream)
 		curOutputRunStream = tpie_new<file_stream<T> >();
-		open_temp(0, ii, curOutputRunStream, file_base::write);
+		curOutputRunStream->open(temporaries[ii], file_base::write);
 
 		// How many runs should this stream get?
 		// extra runs go in the LAST nXtraRuns streams so that
@@ -607,7 +606,7 @@ void sort_manager<T,I,M>::partition_and_sort_runs(progress_indicator_base* indic
 }
 
 template<class T, class I, class M>
-void sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
+void sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator, std::vector<temp_file> & temporaries){
 	// ********************************************************************
 	// * PHASE 4: Merge                                                   *
 	// * Loop over all levels of the merge tree, reading mrgArity runs    *
@@ -655,7 +654,7 @@ void sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
 		indicator->set_range( nInputItems * treeHeight);
 		indicator->init();
 	}
-  
+
 	//nRuns is initially the number of runs we formed in partition_and_sort
 	//phase. nXtraRuns is initially the number of outputs streams that
 	//contain one extra run. Runs and nXtraRuns are updated as we 
@@ -704,7 +703,7 @@ void sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
 		    // (input stream to read from)
 			file_stream<T> * stream = tpie_new<file_stream<T> >();
 		    mergeInputStreams[ii].reset(stream);
-		    open_temp(mrgHeight%2, ii, stream, file_base::read);
+			stream->open(temporaries[mrgArity*(mrgHeight%2)+ii], file_base::read);
 			stream->seek(0);
 		}
 
@@ -723,7 +722,7 @@ void sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
 		    // We account for these mmBytesPerStream in phase 2
 		    // (temp merge output stream)
 			file_stream<T> curOutputRunStream;
-		    open_temp((mrgHeight+1)%2, ii, &curOutputRunStream, file_base::write);
+			curOutputRunStream.open(temporaries[mrgArity*((mrgHeight+1)%2)+ii], file_base::write);
 
 		    // How many runs should this stream get?
 		    // extra runs go in the LAST nXtraRuns streams so that
@@ -756,9 +755,8 @@ void sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
 
 		// Delete temp input merge streams
 		for(ii = 0; ii < mrgArity; ii++) {
-			std::string path=mergeInputStreams[ii]->path();
 			mergeInputStreams[ii].reset();
-			boost::filesystem::remove(path);
+			temporaries[mrgArity*(mrgHeight%2)+ii].free();
 		}
 		// Update run lengths
 		nItemsPerRun=mrgArity*nItemsPerRun; //except for maybe last run
@@ -785,7 +783,7 @@ void sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
 					  << static_cast<TPIE_OS_OUTPUT_SIZE_T>(ii-(mrgArity-static_cast<TPIE_OS_SIZE_T>(nRuns))) << "\n");
 		file_stream<T> * stream = tpie_new<file_stream<T> >();
 		mergeInputStreams[ii-(mrgArity-static_cast<TPIE_OS_SIZE_T>(nRuns))].reset(stream);
-		open_temp(mrgHeight%2, ii, stream, file_base::read);
+		stream->open(temporaries[mrgArity*(mrgHeight%2)+ii], file_base::read);
 		stream->seek(0);
 	}
 
@@ -800,15 +798,6 @@ void sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
 	tp_assert(outStream->size() == nInputItems, "item count mismatch");
 
 	TP_LOG_DEBUG("merge cleanup\n");
-
-	// We are done, except for cleanup. Is anyone still reading this?
-	// Delete temp input merge streams
-	// N.B. nRuns is small, so it is safe to downcast.
-	for(ii = 0; ii < arity_t(nRuns); ii++) {
-		std::string path=mergeInputStreams[ii]->path();
-		mergeInputStreams[ii].reset();
-		boost::filesystem::remove(path);
-	}
 
 	// Delete stream ptr arrays
 	mergeInputStreams.resize(0);
@@ -831,18 +820,6 @@ void sort_manager<T,I,M>::single_merge(
 					  cutoff, indicator);
 }
 
-
-template<class T, class I, class M>
-inline void sort_manager<T,I,M>::open_temp(
-	int parity, TPIE_OS_SIZE_T id, file_stream<T> * stream, file_base::access_type acc)
-{
-	tp_assert(parity >= 0, "Parity out of bounds");
-	tp_assert(parity <= 1, "Parity out of bounds");
-	std::stringstream buf;
-	buf << working_disk << '_' << (parity ? '1' : '0') << '_' << id;
-	temp_file f(buf.str(), true);
-	stream->open(f, acc);
-}
 
 }  //  tpie namespace
 
