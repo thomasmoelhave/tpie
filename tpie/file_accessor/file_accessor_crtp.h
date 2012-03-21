@@ -112,7 +112,7 @@ public:
 	/// \param itemCount Number of items to read from beginning of given block.
 	/// Must be less than m_blockItems.
 	///////////////////////////////////////////////////////////////////////////
-	virtual memory_size_type read_block(void * data, stream_size_type blockNumber, stream_size_type itemCount);
+	inline memory_size_type read_block(void * data, stream_size_type blockNumber, stream_size_type itemCount);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Write the given number of items from the given buffer into the
@@ -123,21 +123,21 @@ public:
 	/// \param itemCount Number of items to write to beginning of given block.
 	/// Must be less than m_blockItems.
 	///////////////////////////////////////////////////////////////////////////
-	virtual void write_block(const void * data, stream_size_type blockNumber, stream_size_type itemCount);
+	inline void write_block(const void * data, stream_size_type blockNumber, stream_size_type itemCount);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Read user data into the given buffer.
 	/// \param data Buffer in which to store user data. Must be able to hold at
 	/// least m_userDataSize bytes.
 	///////////////////////////////////////////////////////////////////////////
-	virtual void read_user_data(void * data);
+	inline void read_user_data(void * data);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Write user data to the stream.
 	/// \param data Buffer from which to write user data. Must hold at least
 	/// user_data_size() bytes.
 	///////////////////////////////////////////////////////////////////////////
-	virtual void write_user_data(const void * data);
+	inline void write_user_data(const void * data);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Return memory usage of this file accessor.
