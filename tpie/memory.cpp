@@ -99,6 +99,13 @@ void memory_manager::set_enforcement(enforce_t e) {
 	m_enforce = e;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \internal \brief Buffers messages to the debug log.
+/// TPIE logging might use the memory manager. We don't allow memory
+/// allocation/deallocation while doing an allocation/deallocation, so messages
+/// stored in the log_flusher aren't sent to the TPIE log until we are done
+/// allocating/deallocating.
+///////////////////////////////////////////////////////////////////////////////
 struct log_flusher {
 	std::stringstream buf;
 	~log_flusher() {

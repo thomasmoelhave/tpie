@@ -3,7 +3,7 @@
 
 \section sec_compiling Compiling and linking against TPIE on GNU/Linux
 
-Let us assume a file \c /var/project/file.cpp has the line <tt>#include
+Let us assume a file \c /var/project/file.cpp has the line <tt>\#include
 <tpie/tpie.h></tt> among others. Let us assume the TPIE root directory is \c /var/tpie
 and that TPIE has been built in the directory \c /var/tpie/build producing the
 static library \c /var/tpie/build/tpie/libtpie.a. To compile and link the source

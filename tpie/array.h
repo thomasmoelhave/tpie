@@ -210,9 +210,24 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	inline T & back() {return at(0);}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Reverse iterator to beginning of reverse sequence.
+	///////////////////////////////////////////////////////////////////////////
 	inline reverse_iterator rbegin() {return self().get_rev_iter(0);}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Const reverse iterator to beginning of reverse sequence.
+	///////////////////////////////////////////////////////////////////////////
 	inline const_reverse_iterator rbegin() const {return self().get_rev_iter(0);}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Reverse iterator to end of reverse sequence.
+	///////////////////////////////////////////////////////////////////////////
 	inline reverse_iterator rend() {return self().get_rev_iter(self().size());}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Const reverse iterator to end of reverse sequence.
+	///////////////////////////////////////////////////////////////////////////
 	inline const_reverse_iterator rend() const {return self().get_rev_iter(self().size());}
 
 private:
@@ -245,8 +260,16 @@ private:
 	inline ptrdiff_t distance_to(array_iter_base const & o) const {return o.elm - elm;}
 	TT * elm;
 public:
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Default constructor.
+	///////////////////////////////////////////////////////////////////////////
 	array_iter_base(): elm(0) {};
 	
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Copy constructor.
+	/// We use boost::enable_if to allow copying an iterator with a more
+	/// specific item_type to an iterator with a more general item_type.
+	///////////////////////////////////////////////////////////////////////////
 	template <class U>
 	array_iter_base(array_iter_base<U, forward> const& o, typename boost::enable_if<
 			  boost::is_convertible<U*,TT*>, enabler>::type = enabler())
@@ -432,6 +455,10 @@ private:
 public:
 	segmented_array_iter_base(): m_a(0), m_i(0) {};
 
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \copydoc array_iter_base::array_iter_base(array_iter_base<U, forward> const &o, typename boost::enable_if<boost::is_convertible<U *, TT *>, enabler>::type)
+	///////////////////////////////////////////////////////////////////////////
 	template <class U>
 	segmented_array_iter_base(segmented_array_iter_base<U, forward> const& o, typename boost::enable_if<
 							  boost::is_convertible<U*,TT*>, enabler>::type = enabler())
@@ -561,6 +588,9 @@ public:
 	inline size_type size() const throw() {return m_size;}
 };
 
+/** Determine if we should use the segmented_array implementation. On 64-bit
+ * systems the address space is large enough so that we don't need the
+ * segmented array benefits. */
 static const bool __tpie_is_not_64bit = sizeof(size_t) < sizeof(uint64_t);
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -594,6 +624,10 @@ class segmented_array: public array_base<T, __tpie_is_not_64bit> {
 	///////////////////////////////////////////////////////////////////////////
 	segmented_array(const segmented_array & other): array_base<T, __tpie_is_not_64bit>(other) {}
 };
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Non-segmented TPIE array implementation.
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
 class array: public array_base<T, false> {
