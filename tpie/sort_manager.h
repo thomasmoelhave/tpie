@@ -90,10 +90,9 @@ private:
 		typename tpie::array<tpie::auto_ptr<file_stream<T> > >::iterator,
 		typename tpie::array<tpie::auto_ptr<file_stream<T> > >::iterator,
 		file_stream<T>*, TPIE_OS_OFFSET = -1, progress_indicator_base* indicator=0);
-	// helper function for creating filename
-	inline void make_name(
-		const std::string& prepre, 
-		const std::string& pre, TPIE_OS_SIZE_T id, std::string& dest);
+	// helper function for opening temporary file
+	inline void open_temp(
+		int parity, TPIE_OS_SIZE_T id, file_stream<T> * stream, file_base::access_type acc);
 	    
 	// **************
 	// * Attributes *
@@ -137,13 +136,6 @@ private:
 	// For each output stream, how many runs it should get
 	TPIE_OS_OFFSET runsInStream;
 	    
-	// A suffix to use in forming output file names. During the merge phase
-	// we keep two sets of files, the input files and the output files to
-	// which we are merging. The input file suffix is the opposite of the
-	// output file suffix. After merging one level, the output streams
-	// become the input for the next level.
-	std::string suffixName[2];
-
 	// A buffer for building the output file names
 	std::string   newName;
 
@@ -177,9 +169,6 @@ sort_manager<T, I, M>::sort_manager(I* isort, M* mheap):
 	nItemsInThisRun(0),
 	runsInStream(0) {
 	    
-	suffixName[0]="_0_";
-	suffixName[1]="_1_";
-
 	// Prefix of temp files created during sort
 	working_disk = std::string(tempname::tpie_name("sort"));
 };
@@ -575,12 +564,10 @@ void sort_manager<T,I,M>::partition_and_sort_runs(progress_indicator_base* indic
 		indicator->init(nRuns*1000);
 	
 	for(arity_t ii=0; ii<mrgArity; ii++){   //For each output stream
-		// Make the output file name
-		make_name(working_disk, suffixName[0], ii, newName);
 		// Dynamically allocate the stream
 		// We account for these mmBytesPerStream in phase 2 (output stream)
 		curOutputRunStream = tpie_new<file_stream<T> >();
-		curOutputRunStream->open(newName, file_base::write);
+		open_temp(0, ii, curOutputRunStream, file_base::write);
 
 		// How many runs should this stream get?
 		// extra runs go in the LAST nXtraRuns streams so that
@@ -712,14 +699,13 @@ void sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
 
 		// open the mrgArity Input streams from which to read runs
 		for(ii = 0; ii < mrgArity; ii++){
-		    // Make the input file name
-		    make_name(working_disk, suffixName[mrgHeight%2], ii, newName);
 		    // Dynamically allocate the stream
 		    // We account for these mmBytesPerStream in phase 2
 		    // (input stream to read from)
-		    mergeInputStreams[ii].reset(tpie_new<file_stream<T> >());
-			mergeInputStreams[ii]->open(newName, file_base::read);
-		    mergeInputStreams[ii]->seek(0);
+			file_stream<T> * stream = tpie_new<file_stream<T> >();
+		    mergeInputStreams[ii].reset(stream);
+		    open_temp(mrgHeight%2, ii, stream, file_base::read);
+			stream->seek(0);
 		}
 
 		TPIE_OS_SIZE_T check_size=0;
@@ -733,13 +719,11 @@ void sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
 					 << minRunsPerStream << " runs.\n");
 
 		for(ii = mrgArity-nOutputStreams; ii < mrgArity; ii++){
-		    // Make the output file name
-		    make_name(working_disk, suffixName[(mrgHeight+1)%2], ii, newName);
 		    // Dynamically allocate the stream
 		    // We account for these mmBytesPerStream in phase 2
 		    // (temp merge output stream)
 			file_stream<T> curOutputRunStream;
-			curOutputRunStream.open(newName, file_base::write);
+		    open_temp((mrgHeight+1)%2, ii, &curOutputRunStream, file_base::write);
 
 		    // How many runs should this stream get?
 		    // extra runs go in the LAST nXtraRuns streams so that
@@ -791,8 +775,6 @@ void sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
 	TP_LOG_DEBUG_ID ("Final merge. level="<<mrgHeight);
 	TP_LOG_DEBUG("Merge runs left="<<nRuns<<"\n");
 	for(ii = mrgArity-static_cast<TPIE_OS_SIZE_T>(nRuns); ii < mrgArity; ii++){
-		// Make the input file name
-		make_name(working_disk, suffixName[mrgHeight%2], ii, newName);
 		/* Dynamically allocate the stream
 		   We account for these mmBytesPerStream in phase 2 
 		   (input stream to read from)
@@ -801,10 +783,10 @@ void sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator){
 		   single_merge is a little messy. I put the mess here. (abd) */
 		TP_LOG_DEBUG ("Putting merge stream "<< static_cast<TPIE_OS_OUTPUT_SIZE_T>(ii) << " in slot "
 					  << static_cast<TPIE_OS_OUTPUT_SIZE_T>(ii-(mrgArity-static_cast<TPIE_OS_SIZE_T>(nRuns))) << "\n");
-		mergeInputStreams[ii-(mrgArity-static_cast<TPIE_OS_SIZE_T>(nRuns))].reset(
-			tpie_new<file_stream<T> >());
-		mergeInputStreams[ii-(mrgArity-static_cast<TPIE_OS_SIZE_T>(nRuns))]->open(newName, file_base::read);
-		mergeInputStreams[ii-(mrgArity-static_cast<TPIE_OS_SIZE_T>(nRuns))]->seek(0);
+		file_stream<T> * stream = tpie_new<file_stream<T> >();
+		mergeInputStreams[ii-(mrgArity-static_cast<TPIE_OS_SIZE_T>(nRuns))].reset(stream);
+		open_temp(mrgHeight%2, ii, stream, file_base::read);
+		stream->seek(0);
 	}
 
 	// Merge last remaining runs to the output stream.
@@ -851,15 +833,15 @@ void sort_manager<T,I,M>::single_merge(
 
 
 template<class T, class I, class M>
-inline void sort_manager<T,I,M>::make_name(
-	const std::string& prepre, const std::string& pre, TPIE_OS_SIZE_T id, std::string& dest)
+inline void sort_manager<T,I,M>::open_temp(
+	int parity, TPIE_OS_SIZE_T id, file_stream<T> * stream, file_base::access_type acc)
 {
-	//This buffer must be long enough to hold the
-	//largest possible stream id (in decimal)
-	//largest ID is at most mrgArity
+	tp_assert(parity >= 0, "Parity out of bounds");
+	tp_assert(parity <= 1, "Parity out of bounds");
 	std::stringstream buf;
-	buf << prepre << pre << id;
-	dest = buf.str();
+	buf << working_disk << '_' << (parity ? '1' : '0') << '_' << id;
+	temp_file f(buf.str(), true);
+	stream->open(f, acc);
 }
 
 }  //  tpie namespace
