@@ -107,6 +107,14 @@ public:
 		}
 	}
 
+	void raw_step(TPIE_OS_OFFSET step) {
+		m_current += step;
+#ifndef TPIE_NDEBUG
+		m_lastCalled = getticks();
+#endif	
+		refresh();
+	}
+
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Initialize progress indicator.
 	/// \param range The number of times step() is going to be called.
