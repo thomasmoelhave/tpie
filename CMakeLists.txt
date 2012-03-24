@@ -70,7 +70,7 @@ option(TPL_LOGGING "Enable tpie logging." ON)
 option(TPIE_THREADSAFE_MEMORY_MANAGEMNT "Thread safe memory managment" ON)
 option(TPIE_FRACTION_STATS "Output fraction statistics" OFF)
 option(TPIE_DEPRECATED_WARNINGS "Enable warnings for deprecated classes, methods and typedefs" OFF)
-option(TPIE_PARALLEL_SORT "Enable parallel quick sort implementation" OFF)
+option(TPIE_PARALLEL_SORT "Enable parallel quick sort implementation" ON)
 
 if (COMPILE_TEST)
 	ENABLE_TESTING()
