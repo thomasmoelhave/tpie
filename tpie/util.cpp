@@ -44,6 +44,7 @@ void atomic_rename(const std::string & src, const std::string & dst) {
 #endif
 }
 
+#ifdef _WIN32
 void throw_getlasterror() {
 	char buffer[1024];
 	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, GetLastError(), 0, buffer, 1023, 0);
@@ -58,5 +59,6 @@ void throw_getlasterror() {
 			throw io_exception(buffer);
 	}
 }
+#endif
 
 } // namespace tpie
