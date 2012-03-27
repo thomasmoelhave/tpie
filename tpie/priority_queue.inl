@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet cino+=(0 :
-// Copyright 2008, 2011, The TPIE development team
+// Copyright 2008, 2011, 2012, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -973,7 +973,7 @@ TPIE_OS_OFFSET priority_queue<T, Comparator, OPQType>::group_size(TPIE_OS_SIZE_T
 }
 
 	template <typename T, typename Comparator, typename OPQType>
-const std::string& priority_queue<T, Comparator, OPQType>::datafile(TPIE_OS_OFFSET id) 
+std::string priority_queue<T, Comparator, OPQType>::datafile(TPIE_OS_OFFSET id) 
 {
 	std::stringstream ss;
 	ss << datafiles << id;
@@ -982,7 +982,7 @@ const std::string& priority_queue<T, Comparator, OPQType>::datafile(TPIE_OS_OFFS
 }
 
 	template <typename T, typename Comparator, typename OPQType>
-const std::string& priority_queue<T, Comparator, OPQType>::datafile_group(TPIE_OS_OFFSET id) 
+std::string priority_queue<T, Comparator, OPQType>::datafile_group(TPIE_OS_OFFSET id) 
 {
 	std::stringstream ss;
 	ss << datafiles << "g" <<id;
@@ -991,7 +991,7 @@ const std::string& priority_queue<T, Comparator, OPQType>::datafile_group(TPIE_O
 }
 
 template <typename T, typename Comparator, typename OPQType>
-const std::string& priority_queue<T, Comparator, OPQType>::slot_data(TPIE_OS_SIZE_T slotid) {
+std::string priority_queue<T, Comparator, OPQType>::slot_data(TPIE_OS_SIZE_T slotid) {
 	return datafile(slot_state[slotid*3+2]);
 }
 
@@ -1001,7 +1001,7 @@ void priority_queue<T, Comparator, OPQType>::slot_data_set(TPIE_OS_SIZE_T slotid
 }
 
 template <typename T, typename Comparator, typename OPQType>
-const std::string& priority_queue<T, Comparator, OPQType>::group_data(TPIE_OS_SIZE_T groupid) {
+std::string priority_queue<T, Comparator, OPQType>::group_data(TPIE_OS_SIZE_T groupid) {
 	return datafile_group(groupid);
 }
 
