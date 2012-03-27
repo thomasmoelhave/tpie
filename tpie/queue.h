@@ -46,7 +46,7 @@ public:
 	////////////////////////////////////////////////////////////////////
 	queue(stream_size_type elements=std::numeric_limits<stream_size_type>::max(), 
 		  double block_factor=1.0): m_size(0), m_file(block_factor), m_back(m_file), m_front(m_file) {
-		m_file.open(m_temp.path(), file_base::read_write, sizeof(stream_size_type) );
+		m_file.open(m_temp, file_base::read_write, sizeof(stream_size_type) );
 		unused(elements);
 	}
 
