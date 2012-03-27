@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2009, 2010, The TPIE development team
+// Copyright 2009, 2010, 2012, The TPIE development team
 //
 // This file is part of TPIE.
 //
@@ -177,11 +177,7 @@ public:
 					 access_type accessType=read_write,
 					 memory_size_type userDataSize=0) throw(stream_exception) {
 		close();
-		m_canRead = accessType == read || accessType == read_write;
-		m_canWrite = accessType == write || accessType == read_write;
-		m_fileAccessor->open(path, m_canRead, m_canWrite, m_itemSize, m_blockSize, userDataSize);
-		m_size = m_fileAccessor->size();
-		m_open = true;
+		open_inner(path, accessType, userDataSize);
 	}
 
 	/////////////////////////////////////////////////////////////////////////
@@ -431,6 +427,16 @@ private:
 	boost::intrusive::list<block_t> m_used;
 	boost::intrusive::list<block_t> m_free;
 	file_accessor::file_accessor * m_fileAccessor;
+
+	inline void open_inner(const std::string & path,
+						   access_type accessType=read_write,
+						   memory_size_type userDataSize=0) throw(stream_exception) {
+		m_canRead = accessType == read || accessType == read_write;
+		m_canWrite = accessType == write || accessType == read_write;
+		m_fileAccessor->open(path, m_canRead, m_canWrite, m_itemSize, m_blockSize, userDataSize);
+		m_size = m_fileAccessor->size();
+		m_open = true;
+	}
 };
 
 ///////////////////////////////////////////////////////////////////////////////
