@@ -187,19 +187,16 @@ void priority_queue<T, Comparator, OPQType>::init(TPIE_OS_SIZE_T mm_avail) { // 
 
 	std::stringstream ss;
 	ss << tempname::tpie_name("pq_data");
-	datafiles = ss.str();
+	datafiles.resize(setting_k*setting_k);
+	groupdatafiles.resize(setting_k);
 	TP_LOG_DEBUG("memory after alloc: " 
 				 << static_cast<TPIE_OS_OUTPUT_SIZE_T>(get_memory_manager().available()) << "b" << "\n");
 }
 
 template <typename T, typename Comparator, typename OPQType>
 priority_queue<T, Comparator, OPQType>::~priority_queue() { // destructor
-	for(TPIE_OS_SIZE_T i = 0; i < setting_k*setting_k; i++) { // unlink slots
-		boost::filesystem::remove(slot_data(i));
-	}
-	for(TPIE_OS_SIZE_T i = 0; i < setting_k; i++) { // unlink groups 
-		boost::filesystem::remove(group_data(i));
-	}
+	datafiles.resize(0); // unlink slots
+	groupdatafiles.resize(0); // unlink groups 
 
 	buffer.resize(0);
 	gbuffer0.resize(0);
@@ -975,19 +972,13 @@ TPIE_OS_OFFSET priority_queue<T, Comparator, OPQType>::group_size(TPIE_OS_SIZE_T
 	template <typename T, typename Comparator, typename OPQType>
 std::string priority_queue<T, Comparator, OPQType>::datafile(TPIE_OS_OFFSET id) 
 {
-	std::stringstream ss;
-	ss << datafiles << id;
-	filename = ss.str();
-	return filename;
+	return datafiles[id].path();
 }
 
 	template <typename T, typename Comparator, typename OPQType>
 std::string priority_queue<T, Comparator, OPQType>::datafile_group(TPIE_OS_OFFSET id) 
 {
-	std::stringstream ss;
-	ss << datafiles << "g" <<id;
-	filename = ss.str();
-	return filename;
+	return groupdatafiles[id].path();
 }
 
 template <typename T, typename Comparator, typename OPQType>
