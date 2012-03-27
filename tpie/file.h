@@ -38,6 +38,7 @@
 #include <tpie/file_accessor/win32.h>
 #endif //WIN32
 #include <boost/intrusive/list.hpp>
+#include <tpie/tempname.h>
 
 namespace tpie {
 
@@ -163,6 +164,7 @@ public:
 	inline void close() throw(stream_exception) {
 		if (m_open) m_fileAccessor->close();
 		m_open = false;
+		m_tempFile = NULL;
 	}
 
 	/////////////////////////////////////////////////////////////////////////
@@ -178,6 +180,14 @@ public:
 					 memory_size_type userDataSize=0) throw(stream_exception) {
 		close();
 		open_inner(path, accessType, userDataSize);
+	}
+
+	inline void open(temp_file & file,
+					 access_type accessType=read_write,
+					 memory_size_type userDataSize=0) throw(stream_exception) {
+		close();
+		m_tempFile = &file;
+		open_inner(file.path(), accessType, userDataSize);
 	}
 
 	/////////////////////////////////////////////////////////////////////////
@@ -197,6 +207,12 @@ public:
 	inline const std::string & path() const throw() {
 		assert(m_open);
 		return m_fileAccessor->path();
+	}
+
+	inline void update_size(stream_size_type size) {
+		m_size = std::max(m_size, size);
+		if (m_tempFile) 
+			m_tempFile->update_recorded_size(m_fileAccessor->byte_size());
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -257,8 +273,7 @@ public:
 			// TODO: with inline assembly we could do a single comparisons and two
 			// cmovs, as the two comparison results will always be the same.
 			m_block->size = std::max(m_block->size, m_index);
-			m_file.m_size = std::max(m_file.m_size, static_cast<stream_size_type>(m_index)+m_blockStartIndex);
-			// m_block->number*static_cast<stream_size_type>(m_file.m_blockItems)
+			m_file.update_size(static_cast<stream_size_type>(m_index)+m_blockStartIndex);
 		}
 	public:
 		
@@ -427,6 +442,8 @@ private:
 	boost::intrusive::list<block_t> m_used;
 	boost::intrusive::list<block_t> m_free;
 	file_accessor::file_accessor * m_fileAccessor;
+
+	temp_file * m_tempFile;
 
 	inline void open_inner(const std::string & path,
 						   access_type accessType=read_write,
