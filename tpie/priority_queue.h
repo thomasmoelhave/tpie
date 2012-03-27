@@ -186,8 +186,6 @@ private:
     TPIE_OS_OFFSET group_size(TPIE_OS_SIZE_T group) const; 
     array<temp_file> datafiles;
     array<temp_file> groupdatafiles;
-    temp_file & datafile(TPIE_OS_OFFSET id); 
-    temp_file & datafile_group(TPIE_OS_OFFSET id); 
     temp_file & slot_data(TPIE_OS_SIZE_T slotid); 
     void slot_data_set(TPIE_OS_SIZE_T slotid, TPIE_OS_OFFSET n); 
     temp_file & group_data(TPIE_OS_SIZE_T groupid); 
