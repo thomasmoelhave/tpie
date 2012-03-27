@@ -186,11 +186,11 @@ private:
     TPIE_OS_OFFSET group_size(TPIE_OS_SIZE_T group) const; 
     array<temp_file> datafiles;
     array<temp_file> groupdatafiles;
-    std::string datafile(TPIE_OS_OFFSET id); 
-    std::string datafile_group(TPIE_OS_OFFSET id); 
-    std::string slot_data(TPIE_OS_SIZE_T slotid); 
+    temp_file & datafile(TPIE_OS_OFFSET id); 
+    temp_file & datafile_group(TPIE_OS_OFFSET id); 
+    temp_file & slot_data(TPIE_OS_SIZE_T slotid); 
     void slot_data_set(TPIE_OS_SIZE_T slotid, TPIE_OS_OFFSET n); 
-    std::string group_data(TPIE_OS_SIZE_T groupid); 
+    temp_file & group_data(TPIE_OS_SIZE_T groupid); 
     TPIE_OS_OFFSET slot_max_size(TPIE_OS_SIZE_T slotid); 
     void write_slot(TPIE_OS_SIZE_T slotid, T* arr, TPIE_OS_OFFSET len); 
     TPIE_OS_SIZE_T free_slot(TPIE_OS_SIZE_T group);
