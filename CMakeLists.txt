@@ -98,6 +98,36 @@ if (COMPILE_TEST)
 	add_subdirectory(example)
 endif (COMPILE_TEST)
 
+include(InstallRequiredSystemLibraries)
+
+set(CPACK_PACKAGE_CONTACT "rav@cs.au.dk")
+set(CPACK_GENERATOR TGZ)
+
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "TPIE")
+set(CPACK_PACKAGE_VENDOR "The TPIE maintainers")
+set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/COPYING.md")
+set(CPACK_PACKAGE_VERSION_MAJOR "1")
+set(CPACK_PACKAGE_VERSION_MINOR "0")
+set(CPACK_PACKAGE_VERSION_PATCH "0")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "TPIE ${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}")
+if(WIN32 AND NOT UNIX)
+  # There is a bug in NSI that does not handle full unix paths properly. Make
+  # sure there is at least one set of four (4) backlasshes.
+  #set(CPACK_PACKAGE_ICON "${CMake_SOURCE_DIR}/Utilities/Release\\\\InstallIcon.bmp")
+  set(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_INSTALL_DIRECTORY} ${CPACK_PACKAGE_DESCRIPTION_SUMMARY}")
+  set(CPACK_NSIS_HELP_LINK "http:\\\\\\\\thomasmoelhave.github.com/tpie/")
+  set(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\thomasmoelhave.github.com/tpie/")
+  set(CPACK_NSIS_CONTACT ${CPACK_PACKAGE_CONTACT})
+  set(CPACK_NSIS_MODIFY_PATH ON)
+  list(APPEND CPACK_GENERATOR NSIS)
+else(WIN32 AND NOT UNIX)
+  list(APPEND CPACK_GENERATOR DEB)
+endif(WIN32 AND NOT UNIX)
+
+install(DIRECTORY tpie
+	DESTINATION include
+	FILES_MATCHING REGEX "\\.h$|\\.inl$"
+	PATTERN "deadcode" EXCLUDE)
+
 include(CPack)
-
-
