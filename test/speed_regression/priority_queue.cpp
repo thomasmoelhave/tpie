@@ -39,7 +39,7 @@ void usage() {
 	std::cout << "Parameters: [times] [mb]" << std::endl;
 }
 
-void test(size_t mb, size_t times) {
+void test(size_t mb, size_t times, double blockFactor = 0.125) {
 	std::vector<const char *> names;
 	names.resize(2);
 	uint64_t a=0;
@@ -53,7 +53,7 @@ void test(size_t mb, size_t times) {
 		test_realtime_t end;
 		getTestRealtime(start);
 		{
-			tpie::ami::priority_queue<uint64_t> pq(0.95, 0.125);
+			tpie::ami::priority_queue<uint64_t> pq(0.95, blockFactor);
 		
 			for(TPIE_OS_OFFSET i=0; i < count; ++i) {
 				uint64_t x= (i+ 91493)*104729;
@@ -78,7 +78,8 @@ void test(size_t mb, size_t times) {
 int main(int argc, char **argv) {
 	size_t times = 10;
 	size_t mb = mb_default;
-			
+	double blockFactor = 0.125;
+
 	if (argc > 1) {
 		if (std::string(argv[1]) == "0") {
 			times = 0;
@@ -97,8 +98,15 @@ int main(int argc, char **argv) {
 			return EXIT_FAILURE;
 		}
 	}
+	if (argc > 3) {
+		if (!(std::stringstream(argv[3]) >> blockFactor) || blockFactor*2*1024*1024 < 8) {
+			usage();
+			return EXIT_FAILURE;
+		}
+	}
 
 	testinfo t("Priority queue speed test", 1024, mb, times);
-	::test(mb, times);
+	sysinfo().printinfo("Block factor", blockFactor);
+	::test(mb, times, blockFactor);
 	return EXIT_SUCCESS;
 }
