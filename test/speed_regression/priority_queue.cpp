@@ -61,7 +61,7 @@ struct segmentgenerator {
 
 template <typename Generator>
 void test(Generator g, size_t mb, size_t times, double blockFactor = 0.125) {
-	typedef Generator::item_type test_t;
+	typedef typename Generator::item_type test_t;
 	test_t a = test_t();
 
 	std::vector<const char *> names;
