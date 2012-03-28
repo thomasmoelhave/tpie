@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2011, The TPIE development team
+// Copyright 2011, 2012, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -88,6 +88,8 @@ void verify_number_stream(fractional_subindicator & progress_sort, fractional_su
 	progress_verify.done();
 }
 
+void go();
+
 int main(int argc, char ** argv) {
 	// Store program name for usage message
 	std::string prog(argv[0]);
@@ -115,6 +117,14 @@ int main(int argc, char ** argv) {
 	// prime database, progress database, default logger)
 	tpie_init();
 
+	go();
+
+	tpie_finish();
+
+	return EXIT_SUCCESS;
+}
+
+void go() {
 	// progress_indicator_arrow draws the progress arrow in the terminal.
 	progress_indicator_arrow pi("Hello world", elements);
 
@@ -138,8 +148,4 @@ int main(int argc, char ** argv) {
 	cleanup();
 
 	fp.done();
-
-	tpie_finish();
-
-	return EXIT_SUCCESS;
 }
