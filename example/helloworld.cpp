@@ -113,13 +113,26 @@ int main(int argc, char ** argv) {
 		// advance argument pointer
 		--argc, ++argv;
 	}
+#ifdef NO_FRACTION_STATS
 	// initialize tpie subsystems (memory manager, job manager for parallel sorting,
 	// prime database, progress database, default logger)
 	tpie_init();
+#include "fractiondb.gen.cpp"
+
+#else
+	// initialize tpie subsystems and begin tracking progress
+	tpie_init(ALL | CAPTURE_FRACTIONS);
+	load_fractions("fractiondb.gen.cpp");
+#endif
 
 	go();
 
+#ifndef NO_FRACTION_STATS
+	save_fractions("fractiondb.gen.cpp");
+	tpie_finish(ALL | CAPTURE_FRACTIONS);
+#else
 	tpie_finish();
+#endif
 
 	return EXIT_SUCCESS;
 }
