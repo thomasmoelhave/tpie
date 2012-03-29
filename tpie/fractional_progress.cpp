@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2008, The TPIE development team
+// Copyright 2008, 2012, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -25,15 +25,19 @@
 #include <fstream>
 #include <sstream>
 #include <locale>
+#include <boost/filesystem.hpp>
 namespace tpie {
 
-class fraction_db {
+class fraction_db_impl {
 public:
 
-#ifdef TPIE_FRACTION_STATS
 	std::map<std::string, std::pair<float, TPIE_OS_OFFSET> > db;
 	typedef std::map<std::string, std::pair<float, TPIE_OS_OFFSET> >::iterator i_t;
 	bool dirty;
+	const bool capture;
+
+	inline fraction_db_impl(bool capture) : capture(capture) {
+	}
 
 	void update(const char * name, float frac, TPIE_OS_OFFSET n) {
 		i_t i =db.find(name);
@@ -42,16 +46,11 @@ public:
 		dirty=true;
 	}
 
-	fraction_db() {
-#ifdef TPIE_FRACTIONDB_DIR_INL
+	void load(const std::string & path) {
 		std::locale::global(std::locale::classic());
 		dirty=false;
 		std::fstream f;
-#ifndef TPIE_NDEBUG
-		f.open(TPIE_FRACTIONDB_DIR_INL "/tpie_fraction_db_debug.inl", std::fstream::in | std::fstream::binary);
-#else //TPIE_NDEBUG
-		f.open(TPIE_FRACTIONDB_DIR_INL "/tpie_fraction_db.inl", std::fstream::in | std::fstream::binary);
-#endif //TPIE_NDEBUG
+		f.open(path.c_str(), std::fstream::in | std::fstream::binary);
 		if (f.is_open()) {
 			std::string skip;
 			std::string name;
@@ -62,18 +61,11 @@ public:
 		}
 		dirty=false;
 		f.close();
-#endif //TPIE_FRACTIONDB_DIR_INL
 	}
 
-#ifdef TPIE_FRACTIONDB_DIR_INL
-	~fraction_db() {
-		if (!dirty) return;
-#ifndef TPIE_NDEBUG
-		std::string path=TPIE_FRACTIONDB_DIR_INL "/tpie_fraction_db_debug.inl";
-#else //TPIE_NDEBUG
-		std::string path=TPIE_FRACTIONDB_DIR_INL "/tpie_fraction_db.inl";
-#endif //TPIE_NDEBUG
-		std::string tmp=tpie::tempname::tpie_name("",TPIE_FRACTIONDB_DIR_INL);
+	void save(const std::string & path, bool force = false) {
+		if (!dirty && !force) return;
+		std::string tmp = path+'~';
 		{
 			std::locale::global(std::locale::classic());
 			std::fstream f;
@@ -82,63 +74,35 @@ public:
 			if (!f.is_open()) return;
 
 			for (i_t i=db.begin(); i != db.end(); ++i)
-				f << "update( \"" << i->first << "\" , " << i->second.first << " , " << i->second.second << " );\n";
+				f << "tpie::update_fractions( \"" << i->first << "\" , " << i->second.first << " , " << i->second.second << " );\n";
 		}
 		atomic_rename(tmp, path);
 	}
-#endif //TPIE_FRACTIONDB_DIR_INL
 
 	inline double getFraction(const std::string & name) {
 		i_t i = db.find(name);
 		if (i == db.end()) {
-			log_info() <<
-				"A fraction was missing in the fraction database:\n"
-					   << "    " << name << "\n"
-					   << "    To fix this, run this command on a large dataset with fractional statistics enabled."<< std::endl;
 			return 1.0;
 		}
 		return i->second.first;
 	}
-#else //TPIE_FRACTION_STATS
-	std::map<std::string, float > db;
-
-	void update(const char * name, float frac, TPIE_OS_OFFSET) {
-		db[name] = frac;
-	}
-
-	fraction_db() {
-#ifdef WIN32
-#pragma warning(push)
-#pragma warning(disable: 4305)
-#endif
-
-#ifdef TPIE_FRACTIONDB_DIR_INL
-#ifndef NDEBUG
-#include <tpie_fraction_db_debug.inl>
-#else //TPIE_NDEBUG
-#include <tpie_fraction_db.inl>
-#endif //TPIE_NDEBUG
-#endif //TPIE_FRACTIONDB_DIR_INL
-
-#ifdef WIN32
-#pragma warning(pop)
-#endif
-	}
-
-	inline double getFraction(const std::string & name) {
-		std::map<std::string, float>::iterator i=db.find(name);
-		if (i == db.end()) return 1.0;
-		return i->second;
-	}
-
-#endif //TPIE_FRACTION_STATS
 };
 
-static fraction_db * fdb = 0;
+static fraction_db_impl * fdb = 0;
 
-void init_fraction_db() {
+void update_fractions(const char * name, float frac, TPIE_OS_OFFSET n) {
+	fdb->update(name, frac, n);
+}
+void load_fractions(const std::string & path) {
+	fdb->load(path);
+}
+void save_fractions(const std::string & path, bool force) {
+	fdb->save(path, force);
+}
+
+void init_fraction_db(bool capture_progress) {
 	if (fdb) return;
-	fdb = tpie_new<fraction_db>();
+	fdb = tpie_new<fraction_db_impl>(capture_progress);
 }
 
 void finish_fraction_db() {
@@ -229,9 +193,9 @@ void fractional_subindicator::setup(
 	m_estimate = -1;
 	m_n = enabled?n:0;
 	m_predict = m_fp.m_id() + ";" + id;
-#ifdef TPIE_FRACTION_STATS
-	m_stat = fname(file, function, id);
-#endif
+	if (fdb->capture)
+		m_stat = fname(file, function, id);
+
 	if (enabled)
 		m_estimate = m_predict.estimate_execution_time(n, m_confidence);
 	else {
@@ -256,13 +220,13 @@ void fractional_subindicator::init(TPIE_OS_OFFSET range) {
 }
 
 void fractional_subindicator::done() {
-#ifdef TPIE_FRACTION_STATS
-	TPIE_OS_OFFSET r = m_predict.end_execution();
-	if(m_n > 0) 
-		m_fp.stat(m_stat, r, m_n);
-#else
-	m_predict.end_execution();
-#endif
+	if (fdb->capture) {
+		TPIE_OS_OFFSET r = m_predict.end_execution();
+		if(m_n > 0) 
+			m_fp.stat(m_stat, r, m_n);
+	} else {
+		m_predict.end_execution();
+	}
 	progress_indicator_subindicator::done();
 }
 
@@ -327,19 +291,19 @@ fractional_progress::~fractional_progress() {
 		TP_LOG_FLUSH_LOG;
 	}
 #endif
-#ifdef TPIE_FRACTION_STATS
-	TPIE_OS_OFFSET time_sum=0;
-	for (size_t i=0; i < m_stat.size(); ++i)
-		time_sum += m_stat[i].second.first;
+	if (fdb->capture) {
+		TPIE_OS_OFFSET time_sum=0;
+		for (size_t i=0; i < m_stat.size(); ++i)
+			time_sum += m_stat[i].second.first;
 
-	if (time_sum > 0) {
-		for (size_t i=0; i < m_stat.size(); ++i) {
-			std::pair< std::string, std::pair<TPIE_OS_OFFSET, TPIE_OS_OFFSET> > & x = m_stat[i];
-			float f= (float)x.second.first / (float)time_sum;
-			fdb->update(x.first.c_str(), f, x.second.second);
+		if (time_sum > 0) {
+			for (size_t i=0; i < m_stat.size(); ++i) {
+				std::pair< std::string, std::pair<TPIE_OS_OFFSET, TPIE_OS_OFFSET> > & x = m_stat[i];
+				float f= (float)x.second.first / (float)time_sum;
+				fdb->update(x.first.c_str(), f, x.second.second);
+			}
 		}
 	}
-#endif
 }
 
 unique_id_type & fractional_progress::id() {return m_id;}
@@ -364,11 +328,9 @@ double fractional_progress::get_fraction(fractional_subindicator & sub) {
 	return f;
 }
 
-#ifdef TPIE_FRACTION_STATS
 void fractional_progress::stat(std::string name, TPIE_OS_OFFSET time, TPIE_OS_OFFSET n) {
 	if (time < 0 || n <= 0) return;
 	m_stat.push_back(std::make_pair(name , std::make_pair(time, n)));
 }
-#endif
 
 } //namespace tpie

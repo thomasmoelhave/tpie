@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2008, The TPIE development team
+// Copyright 2008, 2012, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -41,7 +41,7 @@ namespace tpie {
 ///////////////////////////////////////////////////////////////////////////////
 /// \internal \brief Used by tpie_init to initialize the fraction database.
 ///////////////////////////////////////////////////////////////////////////////
-void init_fraction_db();
+void init_fraction_db(bool capture_progress = false);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \internal \brief Used by tpie_finish to deinitialize the fraction database.
@@ -97,9 +97,7 @@ private:
 	fractional_progress & m_fp;
 	execution_time_predictor m_predict;
 
-#ifdef TPIE_FRACTION_STATS
 	std::string m_stat;
-#endif
 	friend class fractional_progress;
 };
 
@@ -146,12 +144,15 @@ private:
 	TPIE_OS_OFFSET m_time_sum;
 	double m_timed_sum;
 
-#ifdef TPIE_FRACTION_STATS
 	void stat(std::string, TPIE_OS_OFFSET, TPIE_OS_OFFSET);
 	std::vector< std::pair<std::string, std::pair<TPIE_OS_OFFSET, TPIE_OS_OFFSET> > > m_stat;
-#endif
+
 	friend class fractional_subindicator;
 };
+
+void update_fractions(const char * name, float frac, TPIE_OS_OFFSET n);
+void load_fractions(const std::string & path);
+void save_fractions(const std::string & path, bool force = false);
 
 }
 #endif //__TPIE_FRACTIONAL_PROGRESS__

@@ -46,7 +46,9 @@ enum subsystem {
 	PRIMEDB=8,
 	/** \brief Job manager, for \ref job.h and the parallel quick sort. */
 	JOB_MANAGER=16,
-	/** \brief Alias for all subsystems. Default. */
+	/** \brief Capture fractions. */
+	CAPTURE_FRACTIONS=32,
+	/** \brief Alias for all default subsystems. */
     ALL=MEMORY_MANAGER | DEFAULT_LOGGING | PROGRESS | PRIMEDB | JOB_MANAGER
 };
 
