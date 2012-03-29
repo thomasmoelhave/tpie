@@ -4,7 +4,8 @@
 #cmakedefine TPIE_HAVE_UNISTD_H
 #cmakedefine TPIE_HAVE_SYS_UNISTD_H
 
-#cmakedefine TPIE_USE_EXCEPTIONS
+#cmakedefine TPIE_DEPRECATED_WARNINGS
+#cmakedefine TPIE_PARALLEL_SORT
 
 #if defined (TPIE_HAVE_UNISTD_H)
 #include <unistd.h>
@@ -20,7 +21,6 @@
 
 #cmakedefine TPL_LOGGING 1
 #cmakedefine TPIE_THREADSAFE_MEMORY_MANAGEMNT 1
-#cmakedefine TPIE_FRACTION_STATS 1
 
 #cmakedefine TPIE_NDEBUG
 
@@ -52,6 +52,15 @@
 
 	// We know that we are casting ints to bool
 	#pragma warning(disable : 4800)
+#endif
+	
+//eases transition from filesystem2 to filesystem3
+#define BOOST_FILESYSTEM_VERSION ${BOOST_FILESYSTEM_VERSION}
+
+#ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX  //ensures that the windows min/max macros are not defined 
+#endif
 #endif
 
 #endif // _CONFIG_H 

@@ -22,7 +22,7 @@
 
 ///////////////////////////////////////////////////////////////////////////
 /// \file merge.h 
-/// Declares merge management objects.
+/// Merge management objects.
 ///////////////////////////////////////////////////////////////////////////
 
 
@@ -132,18 +132,19 @@ namespace tpie {
 				stream<T> *outstream, M *m_obj);
 
 	///////////////////////////////////////////////////////////////////////////
-  /// Merges <arity> streams in memory using a merge management object and
-  /// write result into outstream.
-  ///////////////////////////////////////////////////////////////////////////
+	/// Merges <var>arity</var> streams in memory using a merge management
+	/// object and write result into <var>outstream</var>.
+	///////////////////////////////////////////////////////////////////////////
   template<class T, class M>
   err  single_merge(stream<T> **instreams, arity_t arity,
 			  stream<T> *outstream, M *m_obj);
 
 
   ///////////////////////////////////////////////////////////////////////////
-	///Reads <instream> in memory and merges it using
-	///m_obj->main_mem_operate(); if <instream> does not fit in main memory
-	///returns INSUFFICIENT_MAIN_MEMORY;
+  /// Reads <var>instream</var> in memory and merges it using
+  /// m_obj->main_mem_operate(); if <var>instream</var> does not fit in main
+  /// memory returns INSUFFICIENT_MAIN_MEMORY;
+  /////////////////////////////////////////////////////////////////////////////
 	template<class T, class M>
 	err main_mem_merge(stream<T> *instream,
 			   stream<T> *outstream, M *m_obj);
@@ -279,7 +280,7 @@ namespace tpie {
                
 	    //streams and m_obj must fit in memory!
 	    if (sz_needed >= static_cast<TPIE_OS_OFFSET>(sz_avail)) {
-		TP_LOG_WARNING("Insuficent main memory to perform a merge.\n");
+		TP_LOG_WARNING("Insufficient main memory to perform a merge.\n");
 		return INSUFFICIENT_MAIN_MEMORY;
 	    }
 	    assert(sz_needed < sz_avail);
@@ -697,7 +698,9 @@ namespace tpie {
 		} else {
 		    mm_len = sz_orig_substr;
 		}
+#ifndef TPIE_NDEBUG
 		TPIE_OS_OFFSET mm_len_bak = mm_len;
+#endif
     
 		// Read a memory load out of the input stream.
 		ae = instream->read_array(mm_stream, &mm_len);

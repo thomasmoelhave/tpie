@@ -12,6 +12,10 @@ if(NOT WIN32)
 	add_definitions("-Wall -Wextra")
 endif(NOT WIN32)
 
+if(WIN32)
+	add_definitions("-DWIN32_LEAN_AND_MEAN")
+endif(WIN32)
+
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules/")
 #### Dependencies
 ## Boost
@@ -35,15 +39,13 @@ if(Boost_FOUND)
     link_directories ( ${Boost_LIBRARY_DIRS} )
 endif(Boost_FOUND)
 
-## Intel Threading Building Blocks
-find_package(TBB)
-if(TBB_FOUND)
-		include_directories(${TBB_INCLUDE_DIRS})
-		link_directories(${TBB_LIBRARY_DIRS})
-endif(TBB_FOUND)
-
 check_include_files("unistd.h" TPIE_HAVE_UNISTD_H)
 check_include_files("sys/unistd.h" TPIE_HAVE_SYS_UNISTD_H)
+
+# Ryan Pavlik's Git revision description helper
+# http://stackoverflow.com/a/4318642
+include(GetGitRevisionDescription)
+get_git_head_revision(GIT_REFSPEC GIT_COMMIT)
 
 #### Installation paths
 #Default paths
@@ -83,17 +85,48 @@ add_subdirectory(tpie)
 add_subdirectory(doc)
 
 option(COMPILE_TEST "Compile test programs" ON)
-option(TPIE_USE_EXCEPTIONS "Throw exceptions on certain errors." ON)
 option(TPL_LOGGING "Enable tpie logging." ON)
 option(TPIE_THREADSAFE_MEMORY_MANAGEMNT "Thread safe memory managment" ON)
-option(TPIE_FRACTION_STATS "Output fraction statistics" OFF)
+option(TPIE_DEPRECATED_WARNINGS "Enable warnings for deprecated classes, methods and typedefs" OFF)
+option(TPIE_PARALLEL_SORT "Enable parallel quick sort implementation" ON)
 
 if (COMPILE_TEST)
 	ENABLE_TESTING()
 	add_subdirectory(test)
 	add_subdirectory(apps)
+	add_subdirectory(example)
 endif (COMPILE_TEST)
 
+include(InstallRequiredSystemLibraries)
+
+set(CPACK_PACKAGE_CONTACT "rav@cs.au.dk")
+set(CPACK_GENERATOR TGZ)
+
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "TPIE")
+set(CPACK_PACKAGE_VENDOR "The TPIE maintainers")
+set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/COPYING.md")
+set(CPACK_PACKAGE_VERSION_MAJOR "1")
+set(CPACK_PACKAGE_VERSION_MINOR "0")
+set(CPACK_PACKAGE_VERSION_PATCH "0")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "TPIE ${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}")
+if(WIN32 AND NOT UNIX)
+  # There is a bug in NSI that does not handle full unix paths properly. Make
+  # sure there is at least one set of four (4) backlasshes.
+  #set(CPACK_PACKAGE_ICON "${CMake_SOURCE_DIR}/Utilities/Release\\\\InstallIcon.bmp")
+  set(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_INSTALL_DIRECTORY} ${CPACK_PACKAGE_DESCRIPTION_SUMMARY}")
+  set(CPACK_NSIS_HELP_LINK "http:\\\\\\\\thomasmoelhave.github.com/tpie/")
+  set(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\thomasmoelhave.github.com/tpie/")
+  set(CPACK_NSIS_CONTACT ${CPACK_PACKAGE_CONTACT})
+  set(CPACK_NSIS_MODIFY_PATH ON)
+  list(APPEND CPACK_GENERATOR NSIS)
+else(WIN32 AND NOT UNIX)
+  list(APPEND CPACK_GENERATOR DEB)
+endif(WIN32 AND NOT UNIX)
+
+install(DIRECTORY tpie
+	DESTINATION include
+	FILES_MATCHING REGEX "\\.h$|\\.inl$"
+	PATTERN "deadcode" EXCLUDE)
+
 include(CPack)
-
-

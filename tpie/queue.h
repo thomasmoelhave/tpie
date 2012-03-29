@@ -22,9 +22,10 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 /// \file queue.h
-/// \brief Implements an I/O efficient queue
+/// \brief I/O efficient queue
 ////////////////////////////////////////////////////////////////////////////////
 #include <tpie/portability.h>
+#include <tpie/deprecated.h>
 #include <tpie/file.h>
 #include <tpie/err.h>
 #include <tpie/tempname.h>
@@ -45,7 +46,7 @@ public:
 	////////////////////////////////////////////////////////////////////
 	queue(stream_size_type elements=std::numeric_limits<stream_size_type>::max(), 
 		  double block_factor=1.0): m_size(0), m_file(block_factor), m_back(m_file), m_front(m_file) {
-		m_file.open(m_temp.path(), file_base::read_write, sizeof(stream_size_type) );
+		m_file.open(m_temp, file_base::read_write, sizeof(stream_size_type) );
 		unused(elements);
 	}
 
@@ -185,7 +186,8 @@ ami::err queue<T>::dequeue(const T **t) {
 
 template<class T>
 ami::err queue<T>::peek(const T **t) {
-	return front();
+	*t = &front();
+	return ami::NO_ERROR;
 }
 
 namespace ami {
@@ -195,7 +197,7 @@ namespace ami {
 		public:
 			queue() {}
 			queue(const std::string& basename): tpie::queue<T>(basename) {}
-		};
+		}
 	);
 }
 }  //  tpie namespace

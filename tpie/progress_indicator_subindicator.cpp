@@ -42,12 +42,26 @@ progress_indicator_subindicator::progress_indicator_subindicator(progress_indica
 																 TPIE_OS_OFFSET outerRange,
 																 const char * crumb,
 																 description_importance importance):
-	progress_indicator_base(0), m_parent(parent), m_outerRange(outerRange), 
-	m_oldValue(0), m_importance(importance)
+	progress_indicator_base(0) {
+	setup(parent, outerRange, crumb, importance);
+}
+
+
+progress_indicator_subindicator::progress_indicator_subindicator():
+	progress_indicator_base(0) {}
+
+void progress_indicator_subindicator::setup(progress_indicator_base * parent,
+											TPIE_OS_OFFSET outerRange,
+											const char * crumb,
+											description_importance importance) {
+	m_parent = parent;
+	m_outerRange = outerRange;
+	m_importance = importance;
+	m_oldValue = 0;
 #ifndef TPIE_NDEBUG
-	,m_init_called(false), m_done_called(false)
+	m_init_called = false;
+	m_done_called = false;
 #endif
-{
 	if (crumb == 0) 
 		m_crumb[0] = 0;
 	else {
@@ -55,6 +69,7 @@ progress_indicator_subindicator::progress_indicator_subindicator(progress_indica
 		m_crumb[39] = 0;
 	}
 }
+
 
 #ifndef TPIE_NDEBUG
 progress_indicator_subindicator::~progress_indicator_subindicator() {
@@ -73,8 +88,8 @@ void progress_indicator_subindicator::refresh() {
 	if (val > get_range()) val = get_range();
 	if (get_range() == 0) return;
 	TPIE_OS_OFFSET value= val* m_outerRange / get_range();
-	if (value > m_oldValue && m_parent) {
-		m_parent->step(value - m_oldValue);
+	if (m_parent) {
+		m_parent->raw_step(value - m_oldValue);
 		m_oldValue = value;
 	}
 }

@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2008, The TPIE development team
+// Copyright 2010, 2011, 2012 The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -19,6 +19,10 @@
 #ifndef __TPIE_HASHMAP_H__
 #define __TPIE_HASHMAP_H__
 
+///////////////////////////////////////////////////////////////////////////////
+/// \file hash_map.h Internal hash map with guaranteed memory requirements.
+///////////////////////////////////////////////////////////////////////////////
+
 #include <tpie/array.h>
 #include <tpie/unused.h>
 #include <cmath>
@@ -28,22 +32,46 @@
 
 namespace tpie {
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Default hashing function for integral (size_t-castable) types.
+/// \tparam T Type of value to hash.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 struct hash {
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Calculate integer hash.
+	///////////////////////////////////////////////////////////////////////////
 	inline size_t operator()(const T & e) const {return static_cast<size_t>(e * 103841);}	
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Default hashing function for std::pair.
+/// \tparam T1 First part of std::pair.
+/// \tparam T2 Second part of std::pair.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T1, typename T2>
 struct hash<std::pair<T1,T2> > {
 	hash<T1> h1;
 	hash<T2> h2;
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Calculate std::pair hash.
+	/// \param s Pair to hash.
+	///////////////////////////////////////////////////////////////////////////
 	inline size_t operator()(const std::pair<T1,T2> & e) const {
 		return h1(e.first) + h2(e.second) * 99181;
 	}	
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Default hashing function for C-style strings.
+///////////////////////////////////////////////////////////////////////////////
 template <>
 struct hash<const char *> {
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Calculate string hash.
+	/// \param s String to hash.
+	///////////////////////////////////////////////////////////////////////////
 	inline size_t operator()(const char * s) const {
 		uint32_t r = 1;
 		for(int i=0; s[i]; i++){
@@ -53,20 +81,37 @@ struct hash<const char *> {
 	}
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Default hashing function for std::string.
+///////////////////////////////////////////////////////////////////////////////
 template <>
 struct hash<std::string> {
 	hash<const char * > h;
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Calculate string hash by using std::string::c_str().
+	/// \param s String to hash.
+	///////////////////////////////////////////////////////////////////////////
 	inline size_t operator()(const std::string & s) const {
 		return h(s.c_str());
 	}
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Hash table handling hash collisions by chaining.
+/// \tparam value_t Value to store.
+/// \tparam hash_t Hash function to use.
+/// \tparam equal_t Equality predicate.
+/// \tparam index_t Index type into bucket array. Always size_t.
+///////////////////////////////////////////////////////////////////////////////
 template <typename value_t, typename hash_t, typename equal_t, typename index_t>
 class chaining_hash_table {
 private:
  	static const float sc;
 	
 #pragma pack(push, 1)
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Type of hash table buckets.
+	///////////////////////////////////////////////////////////////////////////
  	struct bucket_t {
  		value_t value;
  		index_t next;
@@ -80,13 +125,24 @@ private:
   	hash_t h;
  	equal_t e;
 public:
+	/** \brief Number of buckets in hash table. */
  	size_t size;
+
+	/** \brief Special constant indicating an unused table entry. */
   	value_t unused;
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \copybrief linear_memory_structure_doc::memory_coefficient()
+	/// \copydetails linear_memory_structure_doc::memory_coefficient()
+	///////////////////////////////////////////////////////////////////////////
 	static double memory_coefficient() {
 		return array<index_t>::memory_coefficient() *sc + array<bucket_t>::memory_coefficient();
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \copybrief linear_memory_structure_doc::memory_overhead()
+	/// \copydetails linear_memory_structure_doc::memory_overhead()
+	///////////////////////////////////////////////////////////////////////////
 	static double memory_overhead() {
 		return array<index_t>::memory_coefficient() * 100.0 
 			+ array<index_t>::memory_overhead() + sizeof(chaining_hash_table) 
@@ -94,10 +150,22 @@ public:
 			- sizeof(array<index_t>)
 			- sizeof(array<bucket_t>);
 	}
-	
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Get contents of a bucket by its index.
+	/// \param idx The index of the bucket to fetch.
+	///////////////////////////////////////////////////////////////////////////
 	inline value_t & get(size_t idx) {return buckets[idx].value;}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Get contents of a bucket by its index.
+	/// \param idx The index of the bucket to fetch.
+	///////////////////////////////////////////////////////////////////////////
 	inline const value_t & get(size_t idx) const {return buckets[idx].value;}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Clear contents of hash table.
+	///////////////////////////////////////////////////////////////////////////
 	void clear() {
  		first_free = 0;
  		for (size_t i=0; i < buckets.size(); ++i) {
@@ -108,6 +176,10 @@ public:
 			*i = std::numeric_limits<index_t>::max();
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Resize table to given number of buckets and clear contents.
+	/// \param z New size of hash table.
+	///////////////////////////////////////////////////////////////////////////
  	void resize(size_t z) {
  		buckets.resize(z);
 		size_t x=size_t(99+z*sc)|1;
@@ -116,19 +188,36 @@ public:
 		clear();
  	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Construct a hash table.
+	/// \param ee Number of buckets in initial hash table.
+	/// \param u Special value to be used to indicate unused entries in table.
+	/// \param hash Hashing function.
+	/// \param equal Equality predicate.
+	///////////////////////////////////////////////////////////////////////////
 	chaining_hash_table(size_t ee,
 						value_t u,
 						const hash_t & hash,
 						const equal_t & equal):  h(hash), e(equal), size(0), unused(u) {resize(ee);};
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Return first bucket entry in use.
+	///////////////////////////////////////////////////////////////////////////
 	inline size_t begin() {
 		if (size == 0) return buckets.size();
 		for(size_t i=0; true; ++i)
 			if (buckets[i].value != unused) return i;
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Return index greater than any buckets in use.
+	///////////////////////////////////////////////////////////////////////////
 	inline size_t end() const {return buckets.size();}	
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Find bucket entry containing given value, or end() if not found.
+	/// \param value Sought value.
+	///////////////////////////////////////////////////////////////////////////
  	inline size_t find(const value_t & value) const {
  		size_t v = list[h(value) % list.size()];
 		while (v != std::numeric_limits<index_t>::max()) {
@@ -138,13 +227,21 @@ public:
  		return buckets.size();
  	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Insert value into hash table.
+	/// \param val Value to insert.
+	/// \returns (index, new)-pair, where index contains the index of the
+	/// entry, and new is true if the entry wasn't already in the table.
+	///////////////////////////////////////////////////////////////////////////
 	inline std::pair<size_t, bool> insert(const value_t & val) {
+		// First, look for the value in table.
 		size_t hv = h(val) % list.size();
  		size_t v = list[hv];
 		while (v != std::numeric_limits<index_t>::max()) {
 			if (e(buckets[v].value, val)) return std::make_pair(v, false);
 			v = buckets[v].next;
 		}
+		// It wasn't found. Insert into free bucket.
 		v = first_free;
 		first_free = buckets[v].next;
 		buckets[v].value = val;
@@ -154,7 +251,10 @@ public:
 		return std::make_pair(v, true);
 	}
 
-
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Erase value from table.
+	/// \param val Value to erase.
+	///////////////////////////////////////////////////////////////////////////
  	inline void erase(const value_t & val) {
 		size_t hv = h(val) % list.size();
 		size_t cur = list[hv];
@@ -177,6 +277,13 @@ public:
  	}
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Hash table handling hash collisions by linear probing.
+/// \tparam value_t Value to store.
+/// \tparam hash_t Hash function to use.
+/// \tparam equal_t Equality predicate.
+/// \tparam index_t Index type into bucket array. Always size_t.
+///////////////////////////////////////////////////////////////////////////////
 template <typename value_t, typename hash_t, typename equal_t, typename index_t>
 class linear_probing_hash_table {
 private:
@@ -185,33 +292,60 @@ private:
   	hash_t h;
  	equal_t e;
 public:
+	/** \brief Number of buckets in hash table. */
  	size_t size;
+
+	/** \brief Special constant indicating an unused table entry. */
   	value_t unused;
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \copybrief linear_memory_structure_doc::memory_coefficient()
+	/// \copydetails linear_memory_structure_doc::memory_coefficient()
+	///////////////////////////////////////////////////////////////////////////
 	static double memory_coefficient() {
 		return array<value_t>::memory_coefficient() *sc;
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \copybrief linear_memory_structure_doc::memory_overhead()
+	/// \copydetails linear_memory_structure_doc::memory_overhead()
+	///////////////////////////////////////////////////////////////////////////
 	static double memory_overhead() {
 		return array<value_t>::memory_coefficient() * 100.0 
 			+ array<value_t>::memory_overhead() + sizeof(linear_probing_hash_table) - sizeof(array<value_t>);
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \copybrief chaining_hash_table::clear()
+	/// \copydetails chaining_hash_table::clear()
+	///////////////////////////////////////////////////////////////////////////
 	void clear() {
 		for (typename array<value_t>::iterator i=elements.begin(); i != elements.end(); ++i)
 			*i = unused;
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \copybrief chaining_hash_table::resize(size_t)
+	/// \copydetails chaining_hash_table::resize(size_t)
+	///////////////////////////////////////////////////////////////////////////
 	void resize(size_t element_count) {
 		size_t x=size_t(99+element_count*sc)|1;
 		while (!is_prime(x)) x -= 2;
 		elements.resize(x, unused);
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \copybrief chaining_hash_table::chaining_hash_table
+	/// \copydetails chaining_hash_table::chaining_hash_table
+	///////////////////////////////////////////////////////////////////////////
 	linear_probing_hash_table(size_t ee, value_t u,
 							  const hash_t & hash, const equal_t & equal):
 		h(hash), e(equal), size(0), unused(u) {resize(ee);}
 	
+	///////////////////////////////////////////////////////////////////////////
+	/// \copybrief chaining_hash_table::find
+	/// \copydetails chaining_hash_table::find
+	///////////////////////////////////////////////////////////////////////////
  	inline size_t find(const value_t & value) const {
  		size_t v = h(value) % elements.size();
  		while (elements[v] != unused) {
@@ -222,16 +356,38 @@ public:
  	}
 
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \copybrief chaining_hash_table::end()
+	/// \copydetails chaining_hash_table::end()
+	///////////////////////////////////////////////////////////////////////////
 	inline size_t end() const {return elements.size();}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \copybrief chaining_hash_table::begin()
+	/// \copydetails chaining_hash_table::begin()
+	///////////////////////////////////////////////////////////////////////////
 	inline size_t begin() const {
 		if (size == 0) return elements.size();
 		for(size_t i=0; true; ++i)
 			if (elements[i] != unused) return i;
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \copybrief chaining_hash_table::get(size_t)
+	/// \copydetails chaining_hash_table::get(size_t)
+	///////////////////////////////////////////////////////////////////////////
 	value_t & get(size_t idx) {return elements[idx];}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \copybrief chaining_hash_table::get(size_t)
+	/// \copydetails chaining_hash_table::get(size_t)
+	///////////////////////////////////////////////////////////////////////////
 	const value_t & get(size_t idx) const {return elements[idx];}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \copybrief chaining_hash_table::insert
+	/// \copydetails chaining_hash_table::insert
+	///////////////////////////////////////////////////////////////////////////
 	inline std::pair<size_t, bool> insert(const value_t & val) {
  		size_t v = h(val) % elements.size();
  		while (elements[v] != unused) {
@@ -243,6 +399,10 @@ public:
 		return std::make_pair(v, true);
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \copybrief chaining_hash_table::erase
+	/// \copydetails chaining_hash_table::erase
+	///////////////////////////////////////////////////////////////////////////
  	inline void erase(const value_t & val) {
 		size_t slot = find(val);
  		size_t cur = (slot+1) % elements.size();
@@ -260,6 +420,16 @@ public:
  	}
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Hash map implementation backed by a template parameterized hash
+/// table.
+/// \tparam key_t Type of keys to store.
+/// \tparam data_t Type of data associated with each key.
+/// \tparam hash_t (Optional) Hash function to use.
+/// \tparam equal_t (Optional) Equality predicate.
+/// \tparam index_t (Optional) Index type into bucket array. Always size_t.
+/// \tparam table_t (Optional) Hash table implementation.
+///////////////////////////////////////////////////////////////////////////////
 template <typename key_t, 
 		  typename data_t, 
 		  typename hash_t=hash<key_t>,
@@ -271,6 +441,9 @@ class hash_map: public linear_memory_base< hash_map<key_t, data_t, hash_t, equal
 public:
 	typedef std::pair<key_t, data_t> value_t;
 private:
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Equality predicate used by hash table.
+	///////////////////////////////////////////////////////////////////////////
 	struct key_equal_t {
 		equal_t e;
 		key_equal_t(const equal_t & equal): e(equal) {}
@@ -279,6 +452,9 @@ private:
 		}
 	};
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Hash function used by hash table.
+	///////////////////////////////////////////////////////////////////////////
 	struct key_hash_t {
 		hash_t h;
 		key_hash_t(const hash_t & hash): h(hash) {}
@@ -291,6 +467,9 @@ private:
 
 	tbl_t tbl;
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Iterator base.
+	///////////////////////////////////////////////////////////////////////////
  	template <typename IT>
 	class iter_base {
 	protected:
@@ -318,8 +497,12 @@ private:
  		}
  	};
 public:
+	/** \brief Const iterator type. */
 	typedef iter_base<const tbl_t> const_iterator;
 	
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Non-const iterator type.
+	///////////////////////////////////////////////////////////////////////////
 	class iterator: public iter_base<tbl_t> {
  	private:
 		typedef iter_base<tbl_t> p_t;
@@ -338,61 +521,155 @@ public:
  	};
 
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \copybrief linear_memory_structure_doc::memory_coefficient()
+	/// \copydetails linear_memory_structure_doc::memory_coefficient()
+	///////////////////////////////////////////////////////////////////////////
 	static double memory_coefficient() {
 		return tbl_t::memory_coefficient();
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \copybrief linear_memory_structure_doc::memory_overhead()
+	/// \copydetails linear_memory_structure_doc::memory_overhead()
+	///////////////////////////////////////////////////////////////////////////
 	static double memory_overhead() {
 		return tbl_t::memory_overhead() - sizeof(tbl_t) + sizeof(hash_map);
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Construct hash map.
+	/// \param size Number of buckets in initial hash map.
+	/// \param hash Hash function to use.
+	/// \param equal Equality predicate to use.
+	/// \param u Value to use for unused bucket entries.
+	///////////////////////////////////////////////////////////////////////////
 	inline hash_map(size_t size=0, const hash_t & hash=hash_t(),
 					const equal_t & equal=equal_t(),
 					value_t u=default_unused<value_t>::v() ):
 		tbl(size, u, key_hash_t(hash), key_equal_t(equal)) {}
 	
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Resize hash map to given size and remove all entries.
+	/// \param size New size of hash map.
+	///////////////////////////////////////////////////////////////////////////
 	inline void resize(size_t size) {tbl.resize(size);}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Erase entry from hash map by key.
+	/// \param key Key of entry to remove.
+	///////////////////////////////////////////////////////////////////////////
 	inline void erase(const key_t & key) {
 		tbl.erase(value_t(key, tbl.unused.second));
 	}
 	
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Erase entry from hash map by iterator.
+	/// \param iter Entry to remove.
+	///////////////////////////////////////////////////////////////////////////
 	inline void erase(const iterator & iter) {erase(iter.key());}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Insert data into the hash map.
+	/// \param key Key of data to insert.
+	/// \param data Data to associate with given key.
+	///////////////////////////////////////////////////////////////////////////
 	inline bool insert(const key_t & key, const data_t & data) {
 		return tbl.insert(value_t(key, data)).second;
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Look up data by key, creating an unused entry if it does not
+	/// exist.
+	/// \param key Key to look up.
+	///////////////////////////////////////////////////////////////////////////
 	inline data_t & operator[](const key_t & key) {
 		return tbl.get(tbl.insert(value_t(key, tbl.unused.second)).first).second;
 	}
 	
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Look up data by key.
+	/// \param key Key to look up.
+	///////////////////////////////////////////////////////////////////////////
 	inline const data_t & operator[](const key_t & key) const {
 		return tbl.get(tbl.find(key))->second;
 	}
 	
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Get iterator to element.
+	/// \param key Key of element to find.
+	///////////////////////////////////////////////////////////////////////////
 	inline iterator find(const key_t & key) {
 		return iterator(tbl, tbl.find(value_t(key, tbl.unused.second)));
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Get iterator to element.
+	/// \param key Key of element to find.
+	///////////////////////////////////////////////////////////////////////////
 	inline const_iterator find(const key_t & key) const {
 		return const_iterator(tbl, tbl.find(value_t(key, tbl.unused.second)));
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Search for element with key.
+	/// Returns true if an element with the given key exists in the hash map.
+	/// \param key Key of element to search for.
+	///////////////////////////////////////////////////////////////////////////
 	inline bool contains(const key_t & key) const {
 		return tbl.find(value_t(key, tbl.unused.second)) != tbl.end();
 	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Return iterator to beginning of map.
+	///////////////////////////////////////////////////////////////////////////
 	inline iterator begin() {return iterator(tbl, tbl.begin());}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Return const iterator to beginning of map.
+	///////////////////////////////////////////////////////////////////////////
 	inline const_iterator begin() const {return const_iterator(tbl, tbl.begin());}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Return const iterator to beginning of map.
+	///////////////////////////////////////////////////////////////////////////
 	inline const_iterator cbegin() const {return const_iterator(tbl, tbl.begin());}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Return iterator to end of map.
+	///////////////////////////////////////////////////////////////////////////
 	inline iterator end() {return iterator(tbl, tbl.end());}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Return const iterator to end of map.
+	///////////////////////////////////////////////////////////////////////////
 	inline const_iterator end() const {return const_iterator(tbl, tbl.end());}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Return const iterator to end of map.
+	///////////////////////////////////////////////////////////////////////////
 	inline const_iterator cend() const {return const_iterator(tbl, tbl.end());}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Return number of elements in map.
+	///////////////////////////////////////////////////////////////////////////
 	inline size_t size() const {return tbl.size;}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Clear hash map.
+	///////////////////////////////////////////////////////////////////////////
 	inline void clear() const {tbl.clear();}
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Hash set implementation backed by a template parameterized hash
+/// table.
+/// \tparam key_t Type of keys to store.
+/// \tparam hash_t (Optional) Hash function to use.
+/// \tparam equal_t (Optional) Equality predicate.
+/// \tparam index_t (Optional) Index type into bucket array. Always size_t.
+/// \tparam table_t (Optional) Hash table implementation.
+///////////////////////////////////////////////////////////////////////////////
 template <typename key_t,
 		  typename hash_t=hash<key_t>,
 		  typename equal_t=std::equal_to<key_t>,
@@ -404,6 +681,9 @@ private:
 	tbl_t tbl;
 	typedef key_t value_t;
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Iterator base.
+	///////////////////////////////////////////////////////////////////////////
  	template <typename IT>
 	class iter_base {
 	protected:
@@ -425,8 +705,12 @@ private:
  		}
  	};
 public:
+	/** \brief Const iterator type. */
 	typedef iter_base<const tbl_t> const_iterator;
 	
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Non-const iterator type.
+	///////////////////////////////////////////////////////////////////////////
 	class iterator: public iter_base<tbl_t> {
  	private:
 		typedef iter_base<tbl_t> p_t;
@@ -443,42 +727,121 @@ public:
  	};
 
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \copybrief linear_memory_structure_doc::memory_coefficient()
+	/// \copydetails linear_memory_structure_doc::memory_coefficient()
+	///////////////////////////////////////////////////////////////////////////
 	static double memory_coefficient() {
 		return tbl_t::memory_coefficient();
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \copybrief linear_memory_structure_doc::memory_overhead()
+	/// \copydetails linear_memory_structure_doc::memory_overhead()
+	///////////////////////////////////////////////////////////////////////////
 	static double memory_overhead() {
 		return tbl_t::memory_overhead() - sizeof(tbl_t) + sizeof(hash_set);
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Construct hash set.
+	/// \param size Number of buckets in initial hash map.
+	/// \param hash Hash function to use.
+	/// \param equal Equality predicate to use.
+	/// \param u Value to use for unused bucket entries.
+	///////////////////////////////////////////////////////////////////////////
 	inline hash_set(size_t size=0, 
 					const hash_t & hash=hash_t(), const equal_t & equal=equal_t(),
 					value_t u=default_unused<value_t>::v()):
 		tbl(size, u, hash, equal) {}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Resize hash set to given size and remove all entries.
+	/// \param size New size of hash set.
+	///////////////////////////////////////////////////////////////////////////
 	inline void resize(size_t size) {tbl.resize(size);}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Erase entry from hash set by key.
+	/// \param key Key of entry to remove.
+	///////////////////////////////////////////////////////////////////////////
 	inline void erase(const key_t & key) {tbl.erase(key);}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Erase entry from hash set by iterator.
+	/// \param key Key of entry to remove.
+	///////////////////////////////////////////////////////////////////////////
 	inline void erase(const iterator & iter) {erase(iter.key());}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Insert key into set.
+	/// \param key Key to insert.
+	///////////////////////////////////////////////////////////////////////////
 	inline bool insert(const key_t & key) {
 		return tbl.insert(key).second;
 	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Get iterator to element.
+	/// \param key Key to find.
+	///////////////////////////////////////////////////////////////////////////
 	inline iterator find(const key_t & key) {
 		return iterator(tbl, tbl.find(key));
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Get const iterator to element.
+	/// \param key Key to find.
+	///////////////////////////////////////////////////////////////////////////
 	inline const_iterator find(const key_t & key) const {
 		return const_iterator(tbl, tbl.find(key));
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Search for key.
+	/// Returns true if the given key exists in the hash set.
+	/// \param key Key to search for.
+	///////////////////////////////////////////////////////////////////////////
 	inline bool contains(const key_t & key) const {return tbl.find(key) != tbl.end();}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Return iterator to beginning of set.
+	///////////////////////////////////////////////////////////////////////////
 	inline iterator begin() {return iterator(tbl, tbl.begin());}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Return const iterator to beginning of set.
+	///////////////////////////////////////////////////////////////////////////
 	inline const_iterator begin() const {return const_iterator(tbl, tbl.begin());}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Return const iterator to beginning of set.
+	///////////////////////////////////////////////////////////////////////////
 	inline const_iterator cbegin() const {return const_iterator(tbl, tbl.begin());}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Return iterator to end of set.
+	///////////////////////////////////////////////////////////////////////////
 	inline iterator end() {return iterator(tbl, tbl.end());}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Return const iterator to end of set.
+	///////////////////////////////////////////////////////////////////////////
 	inline const_iterator end() const {return const_iterator(tbl, tbl.end());}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Return const iterator to end of set.
+	///////////////////////////////////////////////////////////////////////////
 	inline const_iterator cend() const {return const_iterator(tbl, tbl.end());}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Return number of keys in set.
+	///////////////////////////////////////////////////////////////////////////
 	inline size_t size() const {return tbl.size;}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Clear hash set.
+	///////////////////////////////////////////////////////////////////////////
 	inline void clear() const {tbl.clear();}
 };
 

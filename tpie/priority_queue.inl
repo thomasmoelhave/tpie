@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet cino+=(0 :
-// Copyright 2008, 2011, The TPIE development team
+// Copyright 2008, 2011, 2012, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -30,6 +30,7 @@ block_factor(b) { // constructor mem fraction
 	init(mm_avail);
 }
 
+#ifndef DOXYGEN
 template<typename T, typename Comparator, typename OPQType>
 priority_queue<T, Comparator, OPQType>::priority_queue(TPIE_OS_SIZE_T mm_avail, double b) :
 block_factor(b) { // constructor absolute mem
@@ -40,6 +41,7 @@ block_factor(b) { // constructor absolute mem
 				 << static_cast<TPIE_OS_OUTPUT_SIZE_T>(mm_avail) << "bytes)" << "\n");
 	init(mm_avail);
 }
+#endif
 
 template<typename T, typename Comparator, typename OPQType>
 void priority_queue<T, Comparator, OPQType>::init(TPIE_OS_SIZE_T mm_avail) { // init 
@@ -76,12 +78,12 @@ void priority_queue<T, Comparator, OPQType>::init(TPIE_OS_SIZE_T mm_avail) { // 
 		const TPIE_OS_SIZE_T extra_overhead = 2*(usage+sizeof(file_stream<T>*)+alloc_overhead) //temporary streams
 			+ 2*(sizeof(T)+sizeof(TPIE_OS_OFFSET)); //mergeheap
 		const TPIE_OS_SIZE_T additional_overhead = 16*1024; //Just leave a bit unused
-		TP_LOG_DEBUG(fanout_overhead << ", " <<
-		             sq_fanout_overhead << ", " <<
-		             heap_m_overhead << ", " <<
-		             buffer_m_overhead << ", " <<
-		             extra_overhead << ", " <<
-		             additional_overhead << "\n");
+		TP_LOG_DEBUG("fanout_overhead     " << fanout_overhead     << ",\n" <<
+		             "sq_fanout_overhead  " << sq_fanout_overhead  << ",\n" <<
+		             "heap_m_overhead     " << heap_m_overhead     << ",\n" <<
+		             "buffer_m_overhead   " << buffer_m_overhead   << ",\n" <<
+		             "extra_overhead      " << extra_overhead      << ",\n" <<
+		             "additional_overhead " << additional_overhead << ".\n\n");
 
 		//Check that there is enough space for the simple overhead
 		if(mm_avail < extra_overhead+additional_overhead){
@@ -91,8 +93,13 @@ void priority_queue<T, Comparator, OPQType>::init(TPIE_OS_SIZE_T mm_avail) { // 
 		//Setup the fanout, heap_m and buffer_m
 		mm_avail-=additional_overhead+extra_overhead; //Subtract the extra space used
 		setting_mmark = (mm_avail/16)/buffer_m_overhead; //Set the buffer size
+		TP_LOG_DEBUG("mm_avail      " << mm_avail << ",\n" <<
+		             "setting_mmark " << setting_mmark  << ".\n\n");
+
 		mm_avail-=setting_mmark*buffer_m_overhead;
 		setting_k = (mm_avail/2); 
+		TP_LOG_DEBUG("mm_avail      " << mm_avail << ",\n" <<
+		             "setting_k     " << setting_k  << ".\n\n");
 
 		{
 			//compute setting_k
@@ -107,11 +114,18 @@ void priority_queue<T, Comparator, OPQType>::init(TPIE_OS_SIZE_T mm_avail) { // 
 			const TPIE_OS_OFFSET denominator = 2*sq_fanout_overhead;
 			setting_k = static_cast<TPIE_OS_SIZE_T>(nominator/denominator); //Set fanout
 
+			// Don't open too many files
 			setting_k = std::min(available_files()-40, setting_k);
+
+			// Performance degrades with more than around 250 open files
+			setting_k = std::min(static_cast<TPIE_OS_SIZE_T>(250), setting_k);
 		}
 
 		mm_avail-=setting_k*heap_m_overhead+setting_k*setting_k*sq_fanout_overhead;
 		setting_m = (mm_avail)/heap_m_overhead;
+		TP_LOG_DEBUG("mm_avail      " << mm_avail << ",\n" <<
+		             "setting_m     " << setting_m << ",\n" <<
+		             "setting_k     " << setting_k << ".\n\n");
 
 		//Check that minimum requirements on fanout and buffersizes are met
 		const TPIE_OS_SIZE_T min_fanout=3;
@@ -173,19 +187,16 @@ void priority_queue<T, Comparator, OPQType>::init(TPIE_OS_SIZE_T mm_avail) { // 
 
 	std::stringstream ss;
 	ss << tempname::tpie_name("pq_data");
-	datafiles = ss.str();
+	datafiles.resize(setting_k*setting_k);
+	groupdatafiles.resize(setting_k);
 	TP_LOG_DEBUG("memory after alloc: " 
 				 << static_cast<TPIE_OS_OUTPUT_SIZE_T>(get_memory_manager().available()) << "b" << "\n");
 }
 
 template <typename T, typename Comparator, typename OPQType>
 priority_queue<T, Comparator, OPQType>::~priority_queue() { // destructor
-	for(TPIE_OS_SIZE_T i = 0; i < setting_k*setting_k; i++) { // unlink slots
-		TPIE_OS_UNLINK(slot_data(i));
-	}
-	for(TPIE_OS_SIZE_T i = 0; i < setting_k; i++) { // unlink groups 
-		TPIE_OS_UNLINK(group_data(i));
-	}
+	datafiles.resize(0); // unlink slots
+	groupdatafiles.resize(0); // unlink groups 
 
 	buffer.resize(0);
 	gbuffer0.resize(0);
@@ -529,7 +540,7 @@ void priority_queue<T, Comparator, OPQType>::fill_buffer() {
 
 	while(!heap.empty() && buffer_size!=setting_mmark) {
 		TPIE_OS_SIZE_T current_group = heap.top_run();
-		if(current_group!= 0 && data[current_group]->offset() == TPIE_OS_OFFSET(setting_m)) {
+		if(current_group!= 0 && data[current_group]->offset() == setting_m) {
 			//cout << "fill group seeking to 0" << "\n";
 			data[current_group]->seek(0);
 		}
@@ -621,7 +632,7 @@ void priority_queue<T, Comparator, OPQType>::fill_group_buffer(TPIE_OS_SIZE_T gr
 				gbuffer0[(group_start(0)+group_size(0))%setting_m] = heap.top();
 			} else {
 				//write to disk for group >0
-				if(out.offset() == TPIE_OS_OFFSET(setting_m)) {
+				if(out.offset() == setting_m) {
 					out.seek(0);
 				}
 
@@ -958,27 +969,9 @@ TPIE_OS_OFFSET priority_queue<T, Comparator, OPQType>::group_size(TPIE_OS_SIZE_T
 	return group_state[group*2+1];
 }
 
-	template <typename T, typename Comparator, typename OPQType>
-const std::string& priority_queue<T, Comparator, OPQType>::datafile(TPIE_OS_OFFSET id) 
-{
-	std::stringstream ss;
-	ss << datafiles << id;
-	filename = ss.str();
-	return filename;
-}
-
-	template <typename T, typename Comparator, typename OPQType>
-const std::string& priority_queue<T, Comparator, OPQType>::datafile_group(TPIE_OS_OFFSET id) 
-{
-	std::stringstream ss;
-	ss << datafiles << "g" <<id;
-	filename = ss.str();
-	return filename;
-}
-
 template <typename T, typename Comparator, typename OPQType>
-const std::string& priority_queue<T, Comparator, OPQType>::slot_data(TPIE_OS_SIZE_T slotid) {
-	return datafile(slot_state[slotid*3+2]);
+temp_file & priority_queue<T, Comparator, OPQType>::slot_data(TPIE_OS_SIZE_T slotid) {
+	return datafiles[slot_state[slotid*3+2]];
 }
 
 template <typename T, typename Comparator, typename OPQType>
@@ -987,8 +980,8 @@ void priority_queue<T, Comparator, OPQType>::slot_data_set(TPIE_OS_SIZE_T slotid
 }
 
 template <typename T, typename Comparator, typename OPQType>
-const std::string& priority_queue<T, Comparator, OPQType>::group_data(TPIE_OS_SIZE_T groupid) {
-	return datafile_group(groupid);
+temp_file & priority_queue<T, Comparator, OPQType>::group_data(TPIE_OS_SIZE_T groupid) {
+	return groupdatafiles[groupid];
 }
 
 template <typename T, typename Comparator, typename OPQType>

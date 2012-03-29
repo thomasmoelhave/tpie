@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2009, The TPIE development team
+// Copyright 2009, 2011, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -17,6 +17,10 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
+///////////////////////////////////////////////////////////////////////////////
+/// \file stream_header.h  Header of streams.
+///////////////////////////////////////////////////////////////////////////////
+
 #ifndef __TPIE_STREAM_HEADER_H__
 #define __TPIE_STREAM_HEADER_H__
 #include <tpie/util.h>
@@ -26,16 +30,15 @@ namespace tpie {
 
 struct stream_header_t {
 	static const uint64_t magicConst = 0x521cbe927dd6056all;
-	static const memory_size_type reservedCount = 6;
-	static const uint64_t versionConst = 1;
+	static const uint64_t versionConst = 2;
 
 	uint64_t magic;
 	uint64_t version;
 	uint64_t itemSize;
+	uint64_t blockSize;
 	uint64_t userDataSize;
 	uint64_t size;
 	uint64_t cleanClose;;
-	uint64_t reserved[reservedCount];
 };
 
 }

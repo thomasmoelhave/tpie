@@ -45,10 +45,10 @@ int main(int argc, char **argv)
 
     if (verbose) {
 	std::cout << "test_size = " << test_size << "." << std::endl;
-	std::cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << std::endl;
+	std::cout << "test_mm_size = " << static_cast<stream_size_type>(test_mm_size) << "." << std::endl;
 	std::cout << "random_seed = " << random_seed << "." << std::endl;
     } else {
-	std::cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << random_seed;
+	std::cout << test_size << ' ' << static_cast<stream_size_type>(test_mm_size) << ' ' << random_seed;
     }
     
     // Set the amount of main memory:
@@ -71,7 +71,7 @@ int main(int argc, char **argv)
     }
     
     // Pop them all off.
-    const TPIE_OS_OFFSET *jj;
+    const TPIE_OS_OFFSET *jj = 0;
     TPIE_OS_OFFSET last;
     TPIE_OS_OFFSET read = 0;
     stack.pop(&jj);

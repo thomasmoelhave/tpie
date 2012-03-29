@@ -45,7 +45,8 @@ file_base::file_base(memory_size_type itemSize,
 	m_emptyBlock.size = 0;
 	m_emptyBlock.number = std::numeric_limits<stream_size_type>::max();
 
-	m_blockItems = block_size(blockFactor)/m_itemSize;
+	m_blockSize = block_size(blockFactor);
+	m_blockItems = m_blockSize/m_itemSize;
 }
 
 // TODO should this use tpie_new?
@@ -111,7 +112,7 @@ file_base::block_t * file_base::get_block(stream_size_type block) {
 
 		// populate buffer data
 		if (b->size > 0 &&
-			m_fileAccessor->read(b->data, b->number * static_cast<stream_size_type>(m_blockItems), b->size) != b->size) {
+			m_fileAccessor->read_block(b->data, b->number, b->size) != b->size) {
 			throw io_exception("Incorrect number of items read");
 		}
 
@@ -134,7 +135,7 @@ void file_base::free_block(block_t * block) {
 
 	if (block->dirty || !m_canRead) {
 		assert(m_canWrite);
-		m_fileAccessor->write(block->data, block->number * static_cast<stream_size_type>(m_blockItems), block->size);
+		m_fileAccessor->write_block(block->data, block->number, block->size);
 	}
 
 	boost::intrusive::list<block_t>::iterator i = m_used.iterator_to(*block);

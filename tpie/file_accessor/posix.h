@@ -16,12 +16,21 @@
 //
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
+
+///////////////////////////////////////////////////////////////////////////////
+/// \file posix.h  POSIX-style file accessor
+///////////////////////////////////////////////////////////////////////////////
+
 #ifndef _TPIE_FILE_ACCESSOR_POSIX_H
 #define _TPIE_FILE_ACCESSOR_POSIX_H
 
 #include <tpie/file_accessor/file_accessor_crtp.h>
 namespace tpie {
 namespace file_accessor {
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief POSIX-style file accessor.
+///////////////////////////////////////////////////////////////////////////////
 
 class posix: public file_accessor_crtp<posix> {
 private:
@@ -34,17 +43,21 @@ private:
 	inline void write_i(const void * data, memory_size_type size);
 	inline void seek_i(stream_size_type offset);
 public:
-	posix();
-	virtual void open(const std::string & path,
-					  bool read,
-					  bool write,
-					  memory_size_type itemSize,
-					  memory_size_type userDataSize);
-	virtual void close();
-	virtual void truncate(stream_size_type size);
+	inline posix();
+	inline void open(const std::string & path,
+					 bool read,
+					 bool write,
+					 memory_size_type itemSize,
+					 memory_size_type blockSize,
+					 memory_size_type userDataSize);
+	inline void close();
+	inline void truncate(stream_size_type size);
 	inline ~posix() {close();}
 };
 
 }
 }
+
+#include <tpie/file_accessor/posix.inl>
+
 #endif //_TPIE_FILE_ACCESSOR_POSIX_H

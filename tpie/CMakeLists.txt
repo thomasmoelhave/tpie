@@ -1,93 +1,25 @@
 set_property(GLOBAL PROPERTY USE_FOLDERS On)
 
-set (AMI_HEADERS
-		block_base.h
-		block.h
-		btree.h
-		cache.h
-		cache_base.h
-		cache_lru.h
-		coll_base.h
-		coll.h
-		coll_single.h
-		err.h
-		gen_perm.h
-		gen_perm_object.h
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/sysinfo.cpp.in" "${CMAKE_CURRENT_BINARY_DIR}/sysinfo.cpp" @ONLY)
+
+set (HEADERS
 		ami.h
-		kb_dist.h
-		kb_sort.h
-		kd_base.h
-		kdbtree.h
-		kdtree.h
-		key.h
-		logmethod.h
-		merge.h
-		merge_sorted_runs.h
-		point.h
-		priority_queue.h
-		priority_queue.inl
-		queue.h
-		scan.h
-		#scan_utils.h
-		serialization.h
-		sort.h
-		stack.h
-		stream_arith.h
-		stream_compatibility.h
-		stream.h
-		)
-
-set (BTE_HEADERS
-		bte/coll_base.h
-		bte/coll.h
-		bte/coll_mmap.h
-		bte/coll_ufs.h
-		bte/err.h
-		bte/stack_ufs.h
-#		bte/stream_base_generic.h
-#		bte/stream_base.h
-#		bte/stream_cache.h
-#		bte/stream.h
-#		bte/stream_header.h
-#		bte/stream_mmap.h
-#		bte/stream_stdio.h
-#		bte/stream_ufs.h
-	)
-
-set (STREAM_HEADERS
-#	stream/exception.h
-#	stream/concepts.h
-#	stream/stdio_bte.h
-	)
-
-set (STREAM_SOURCES
-#	stream/fd_file_base.cpp
-#	stream/stdio_bte.cpp
-	 file_accessor/file_accessor.cpp
-	 file_accessor/stdio.cpp
-	 file_base.cpp
-	)
-
-if (WIN32)
-set (STREAM_SOURCES ${STREAM_SOURCES} file_accessor/win32.cpp)
-set (STREAM_HEADERS ${STREAM_HEADERS} file_accessor/win32.h)
-else(WIN32)
-set (STREAM_SOURCES ${STREAM_SOURCES} file_accessor/posix.cpp)
-set (STREAM_HEADERS ${STREAM_HEADERS} file_accessor/posix.h)
-endif(WIN32)
-
-set (OTHER_HEADERS
-		bit.h   
-		bit_matrix.h
 		backtrace.h
-		b_vector.h
 		comparator.h
 		config.h.cmake
 		cpu_timer.h
+		deprecated.h
 		disjoint_sets.h
 		exception.h
+		err.h
+		file.h
+		file_stream.h
+		file_accessor/file_accessor_crtp.h
+		file_accessor/file_accessor_crtp.inl
+		file_accessor/file_accessor.h
 		file_count.h
 		execution_time_predictor.h
+		imported/cycle.h
 		internal_sort.h
 		internal_queue.h
 		internal_stack.h
@@ -96,12 +28,16 @@ set (OTHER_HEADERS
 		job.h
 		loglevel.h
 		logstream.h
+		merge.h
 		mergeheap.h
+		merge_sorted_runs.h
 		memory.h
 		memory.inl
 		persist.h
 		portability.h
 		internal_priority_queue.h
+		priority_queue.inl
+		priority_queue.h
 		pq_overflow_heap.h
 		pq_overflow_heap.inl
 		pq_merge_heap.h
@@ -115,23 +51,27 @@ set (OTHER_HEADERS
 		progress_indicator_spin.h
 		progress_indicator_null.h
 		progress_indicator_terminal.h
-		progress_indicator_tpie.h
+		queue.h
+		serialization.h
+		sort.h
 		sort_manager.h
-		stdio_stack.h
-		timer.h
+		stack.h
+		stream.h
+		stream_header.h
+		stream_usage.h
+		sysinfo.h
 		tpie_assert.h
 		tpie_log.h
-		stats_coll.h
 		stats.h
-		stats_stream.h
-		stats_tree.h
+		types.h
 		tempname.h
 		unused.h
 		util.h
-		vararray.h
 		array.h
 		bit_array.h
 		packed_array.h
+		array_view_base.h
+		array_view.h
 		hash_map.h
 		prime.h
 		concepts.h
@@ -139,21 +79,7 @@ set (OTHER_HEADERS
 		tpie.h
 		)
 
-set (IMPORTED_HEADERS
-	imported/cycle.h
-)
-
-set (AMI_SOURCES
-	#	bit_permute.cpp
-		key.cpp
-#		matrix_blocks.cpp
-	)
-
-set (BTE_SOURCES
-	#bte/stream_base.cpp
-	)
-
-set (OTHER_SOURCES
+set (SOURCES
 	backtrace.cpp
 	cpu_timer.cpp
 	file_count.cpp
@@ -169,22 +95,22 @@ set (OTHER_SOURCES
 	tempname.cpp
 	tpie.cpp
 	tpie_log.cpp
+	file_base.cpp
+	stats.cpp
 	util.cpp
+	"${CMAKE_CURRENT_BINARY_DIR}/sysinfo.cpp"
 	)
 
-source_group("BTE" FILES ${BTE_HEADERS} ${BTE_SOURCES})
+if (WIN32)
+set (HEADERS ${HEADERS} file_accessor/win32.h file_accessor/win32.inl)
+else(WIN32)
+set (HEADERS ${HEADERS} file_accessor/posix.h file_accessor/posix.inl)
+endif(WIN32)
 
-set(AMI ${AMI_HEADERS} ${AMI_SOURCES})
-set(BTE ${BTE_HEADERS} ${BTE_SOURCES})
-set(OTHER ${OTHER_HEADERS} ${OTHER_SOURCES})
-set(STREAM ${STREAM_HEADERS} ${STREAM_SOURCES})
-
-add_library(tpie ${BTE} ${AMI} ${OTHER} ${STREAM})
+add_library(tpie ${HEADERS} ${SOURCES})
 target_link_libraries(tpie ${Boost_LIBRARIES})
 set_target_properties(tpie PROPERTIES FOLDER tpie)
 
-install(TARGETS tpie DESTINATION ${LIB_INSTALL_DIR}) 
-install(FILES ${OTHER_HEADERS} ${AMI_HEADERS} DESTINATION ${HEADERS_INSTALL_DIR})
-install(FILES ${BTE_HEADERS} DESTINATION ${HEADERS_INSTALL_DIR}/bte)
-install(FILES ${IMPORTED_HEADERS} DESTINATION ${HEADERS_INSTALL_DIR}/imported)
-
+install(TARGETS tpie
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib)

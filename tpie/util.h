@@ -1,6 +1,6 @@
 // -*- Mode: C++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2009, The TPIE development team
+// Copyright 2009, 2012, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -17,6 +17,10 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
+///////////////////////////////////////////////////////////////////////////////
+/// \file util.h  Miscellaneous utility functions
+///////////////////////////////////////////////////////////////////////////////
+
 #ifndef __TPIE_UTIL_H__
 #define __TPIE_UTIL_H__
 
@@ -24,6 +28,7 @@
 #include <tpie/types.h>
 #include <cmath>
 #include <string>
+
 namespace tpie {
 
 ///////////////////////////////////////////////////////////////////////////
@@ -32,24 +37,6 @@ namespace tpie {
 ///////////////////////////////////////////////////////////////////////////
 template <typename T>
 inline void unused(const T & x) {(void)x;}
-
-typedef TPIE_OS_OFFSET offset_type;
-typedef TPIE_OS_SIZE_T size_type;
-typedef TPIE_OS_SSIZE_T ssize_type;
-
-using boost::uint8_t;
-using boost::int8_t;
-using boost::uint16_t;
-using boost::int16_t;
-using boost::uint32_t;
-using boost::int32_t;
-using boost::uint64_t;
-using boost::int64_t;
-
-typedef size_type memory_size_type;
-typedef ssize_type memory_offset_type;
-typedef uint64_t stream_size_type;
-typedef int64_t stream_offset_type;
 
 template <typename T> struct sign {typedef T type;};
 template <> struct sign<uint8_t> {typedef int8_t type;};
@@ -62,11 +49,6 @@ template <> struct unsign<int8_t> {typedef uint8_t type;};
 template <> struct unsign<int16_t> {typedef uint16_t type;};
 template <> struct unsign<int32_t> {typedef uint32_t type;};
 template <> struct unsign<int64_t> {typedef uint64_t type;};
-
-void seed_random(uint32_t seed);
-uint32_t random();
-void remove(const std::string & path);
-bool file_exists(const std::string & path);
 
 #ifdef _WIN32
 const char directory_delimiter = '\\';
@@ -171,6 +153,11 @@ struct binary_argument_swap: public std::binary_function<typename T::second_argu
 	}
 };
 
+void atomic_rename(const std::string & src, const std::string & dst);
+
+#ifdef _WIN32
+void throw_getlasterror();
+#endif
 
 } //namespace tpie
 

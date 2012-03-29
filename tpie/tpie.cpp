@@ -37,8 +37,11 @@ void tpie_init(int subsystems) {
 	if (subsystems & PRIMEDB)
 		init_prime();
 
-	if (subsystems & PROGRESS) {
-		init_fraction_db();
+	if (subsystems & CAPTURE_FRACTIONS) {
+		init_fraction_db(true);
+		init_execution_time_db();
+	} else if (subsystems & PROGRESS) {
+		init_fraction_db(false);
 		init_execution_time_db();
 	}
 

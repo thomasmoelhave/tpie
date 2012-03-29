@@ -20,6 +20,7 @@
 #include "app_config.h"
 #include <tpie/tpie.h>
 #include <tpie/portability.h>
+#include "test_portability.h"
 #include <tpie/tpie_log.h>
 #include <tpie/stream.h>
 #include <tpie/sort.h>
@@ -30,13 +31,6 @@
 #include <tpie/cpu_timer.h>
 
 #include <tpie/progress_indicator_arrow.h>
-
-//snprintf is different on WIN/Unix platforms
-#ifdef _WIN32
-#define APP_SNPRINTF _snprintf
-#else
-#define APP_SNPRINTF snprintf
-#endif
 
 using namespace tpie;
 
@@ -57,10 +51,10 @@ enum test_type {
 };
 
 const unsigned int APP_OPTION_NUM_OPTIONS=5; 
-const TPIE_OS_LONGLONG APP_MEG = 1024*1024;
-const TPIE_OS_LONGLONG APP_GIG = 1024*1024*1024;
-const TPIE_OS_LONGLONG APP_DEFAULT_N_ITEMS = 10000;
-const TPIE_OS_LONGLONG APP_DEFAULT_MEM_SIZE = 128*1024*1024;
+const stream_offset_type APP_MEG = 1024*1024;
+const stream_offset_type APP_GIG = 1024*1024*1024;
+const stream_offset_type APP_DEFAULT_N_ITEMS = 10000;
+const stream_offset_type APP_DEFAULT_MEM_SIZE = 128*1024*1024;
 const int  APP_ITEM_SIZE = 1;
 
 const char* APP_FILE_BASE =  "TPIE_Test";
@@ -82,7 +76,7 @@ typedef struct app_info{
 // The array can also be used as a counter in base-26 arithmetic
 class SortItem{
   public:
-    SortItem(long key_);
+    SortItem(long key_=0);
     ~SortItem(){};
     long key;        //key to sort on
     bool operator<(const SortItem& rhs) const {
@@ -94,7 +88,7 @@ class SortItem{
 
 // Constructor
 // Initialize item 'aaaaaaa...'
-SortItem::SortItem(long key_=0): key(key_) {
+SortItem::SortItem(long key_): key(key_) {
   int i;
   for(i=0; i<APP_ITEM_SIZE-1; i++) item[i]='a';
   //null-terminate so we can print array as string
@@ -280,7 +274,7 @@ void get_app_info(int argc, char** argv, appInfo & Info){
   nopts=0;
   while ( (optidx=getopts(argc, argv, opts, &optarg)) != 0) {
     nopts++;
-    if( (optidx==-1) ){
+    if( optidx==-1 ){
       std::cerr << "Could not allocate space for arguments. Exiting...\n";
       exit(1);
     }
@@ -386,7 +380,7 @@ void get_app_info(int argc, char** argv, appInfo & Info){
 
 //converts numbers into strings
 //with appropriate G, M, K suffixes
-char* ll2size(TPIE_OS_LONGLONG n, char* buf){
+char* ll2size(stream_offset_type n, char* buf){
   
   const int bufsize = 20;
   double size;
@@ -459,8 +453,8 @@ void write_random_stream(std::string fname, appInfo & info, progress_indicator_b
 // Read sorted stream from fname and check that its elements are sorted
 void check_sorted(std::string fname, appInfo & info, progress_indicator_base & indicator){
 
-  TPIE_OS_LONGLONG i,n;
-  SortItem *x, x_prev;
+  stream_offset_type i,n;
+  SortItem *x = 0, x_prev;
   ami::err ae=ami::NO_ERROR;
    
   n=info.num_items;
@@ -503,7 +497,7 @@ void check_sorted(std::string fname, appInfo & info, progress_indicator_base & i
 }
 
 void load_list(ami::stream<SortItem>* str, SortItem* list, TPIE_OS_SIZE_T nitems){
-  SortItem *s_item;
+  SortItem *s_item = 0;
   str->seek(0);
   for(TPIE_OS_SIZE_T i=0; i<nitems; i++){
     str->read_item(&s_item);
@@ -694,7 +688,6 @@ ami::err test_2x_sort(appInfo& info, enum test_type ttype, progress_indicator_ba
 	ami::stream<SortItem>* inStr = new ami::stream<SortItem>(fname);
 	SortCompare cmp;
 	KeySortCompare kcmp;
-	long dummykey=0;
 	switch(ttype){
     case APP_TEST_OBJ_OP:
 //      std::cout << "Using operator sorting and object heaps" << std::endl;
@@ -711,10 +704,6 @@ ami::err test_2x_sort(appInfo& info, enum test_type ttype, progress_indicator_ba
     case APP_TEST_PTR_CMPOBJ: 
 //      std::cout << "Using comp obj sorting and ptr heaps" << std::endl;
       ae=ami::ptr_sort(inStr, &cmp, (progress_indicator_base*)&sort_progress);
-      break;
-    case APP_TEST_KOBJ: 
-//      std::cout << "Using key+obj sorting and object heaps" << std::endl;
-      ae=ami::key_sort(inStr, dummykey, &kcmp, (progress_indicator_base*)&sort_progress);
       break;
     default:
       ae=ami::GENERIC_ERROR;
@@ -762,7 +751,7 @@ int main(int argc, char** argv){
   //TP_LOG_SET_THRESHOLD(TPIE_LOG_MEM_DEBUG);
   //printf("Log file is %s\n", tpie_log_name());
 
-  TPIE_OS_LONGLONG filesize = info.num_items*info.item_size;
+  stream_offset_type filesize = info.num_items*info.item_size;
   std::cout << "Path:  " << info.path 
        << "\nNum Items: " << info.num_items 
        << "\nItem Size: " << info.item_size

@@ -1,0 +1,24 @@
+/**
+\page sorting_external External sorting
+
+External memory sorting is implemented in \ref sort.h. The current interface is
+defined in the \c tpie namespace, but legacy definitions exist in the
+\c tpie::ami namespace.
+
+Currently, the sorting algorithm relies on data existing in a TPIE stream on
+disk. Once this is the case, and you have opened a file_stream for reading and
+writing to this file, sorting using the less-than operator with no progress
+reporting is a simple as calling \ref tpie::sort (mystream, mystream). This
+kind of in-stream sorting requires enough external memory space for a temporary
+stream of the same size as the input.
+
+If you wish to store the result in a new stream, the function call is
+\ref tpie::sort (instream, outstream); this requires three times the space
+occupied by instream in total.
+
+\code
+tpie::file_stream<int> mystream;
+mystream.open("data.tpie");
+tpie::sort(mystream, mystream);
+\endcode
+*/

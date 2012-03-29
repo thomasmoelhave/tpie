@@ -22,6 +22,7 @@
 #include <boost/random/linear_congruential.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <tpie/progress_indicator_arrow.h>
+#include <tpie/dummy_progress.h>
 #include <tpie/memory.h>
 #include "../speed_regression/testtime.h"
 
@@ -35,33 +36,39 @@ static bool stdsort;
 
 using namespace tpie;
 
-template<size_t min_size>
-bool basic1(const size_t elements = 1024*1024) {
+template <bool Progress>
+struct test_pi {
+	struct type : public progress_indicator_arrow {
+		type() : progress_indicator_arrow("Sorting", 1) {
+		}
+	};
+};
+
+template <>
+struct test_pi<false> {
+	typedef dummy_progress_indicator type;
+};
+
+template<bool Progress, size_t min_size>
+bool basic1(const size_t elements, typename progress_types<Progress>::base * pi) {
+	typedef progress_types<Progress> P;
+
 	const size_t stepevery = elements / 16;
 	boost::rand48 prng(42);
 	std::vector<int> v1(elements);
 	std::vector<int> v2(elements);
 
-	auto_ptr<progress_indicator_arrow> pi;
-	auto_ptr<fractional_progress> fp;
-	auto_ptr<fractional_subindicator> gen_p;
-	auto_ptr<fractional_subindicator> std_p;
-	auto_ptr<fractional_subindicator> par_p;
-	if (progress) {
-		pi.reset(tpie_new<progress_indicator_arrow>("Parallel sort", elements));
-		fp.reset(tpie_new<fractional_progress>(pi.get()));
+	typename P::fp fp(pi);
+	typename P::sub gen_p(fp, "Generate", TPIE_FSI, elements, "Generate");
+	typename P::sub std_p(fp, "std::sort", TPIE_FSI, elements, "std::sort");
+	typename P::sub par_p(fp, "parallel_sort", TPIE_FSI, elements, "parallel_sort");
+	fp.init();
 
-		gen_p.reset(tpie_new<fractional_subindicator>(*fp.get(), "Generate", TPIE_FSI, elements, "Generate"));
-		if (stdsort) std_p.reset(tpie_new<fractional_subindicator>(*fp.get(), "std::sort", TPIE_FSI, elements, "std::sort"));
-		par_p.reset(tpie_new<fractional_subindicator>(*fp.get(), "parallel_sort", TPIE_FSI, elements, "parallel_sort"));
-		fp->init();
-	}
-
-	if (progress) gen_p->init(elements/stepevery);
+	gen_p.init(elements/stepevery);
 	size_t nextstep = stepevery;
 	for (size_t i = 0; i < elements; ++i) {
-		if (progress && i == nextstep) {
-			gen_p->step();
+		if (i == nextstep) {
+			gen_p.step();
 			nextstep += stepevery;
 		}
 		if (stdsort)
@@ -69,32 +76,30 @@ bool basic1(const size_t elements = 1024*1024) {
 		else
 			v1[i] = prng();
 	}
-	if (progress) gen_p->done();
+	gen_p.done();
 
-	//boost::posix_time::time_duration t1;
-	//boost::posix_time::time_duration t2;
 	{
 		boost::posix_time::ptime start=boost::posix_time::microsec_clock::local_time();
-		parallel_sort_impl<std::vector<int>::iterator, std::less<int>, min_size > s(progress ? par_p.get() : 0);
+		parallel_sort_impl<std::vector<int>::iterator, std::less<int>, Progress, min_size > s(&par_p);
 		s(v2.begin(), v2.end());
 		boost::posix_time::ptime end=boost::posix_time::microsec_clock::local_time();
 		std::cout << end-start << " " << std::endl;
 	}
 
+	std_p.init(1);
 	if (stdsort) {
 		boost::posix_time::ptime start=boost::posix_time::microsec_clock::local_time();
-		if (progress) std_p->init(1);
 		#ifdef TPIE_TEST_PARALLEL_SORT
 		__gnu_parallel::sort(v1.begin(), v1.end());
 		#else
 		std::sort(v1.begin(), v1.end());
 		#endif
-		if (progress) std_p->done();
 		boost::posix_time::ptime end=boost::posix_time::microsec_clock::local_time();
 		std::cout << end-start << " " << std::endl;
 	}
+	std_p.done();
 
-	if (progress) fp->done();
+	fp.done();
 
 	if (stdsort && v1 != v2) {
 		std::cerr << "std::sort and parallel_sort disagree" << std::endl;
@@ -118,7 +123,7 @@ bool equal_elements() {
 	boost::posix_time::ptime t1=boost::posix_time::microsec_clock::local_time();
 	std::sort(v1.begin(), v1.end());
 	boost::posix_time::ptime t2=boost::posix_time::microsec_clock::local_time();
-	parallel_sort_impl<std::vector<int>::iterator, std::less<int> > s(0);
+	parallel_sort_impl<std::vector<int>::iterator, std::less<int>, false> s(0);
 	s(v2.begin(), v2.end());
 	boost::posix_time::ptime t3=boost::posix_time::microsec_clock::local_time();
 	if(v1 != v2) {std::cerr << "Failed" << std::endl; return false;}
@@ -140,7 +145,7 @@ bool bad_case() {
 	boost::posix_time::ptime t1=boost::posix_time::microsec_clock::local_time();
 	std::sort(v1.begin(), v1.end());
 	boost::posix_time::ptime t2=boost::posix_time::microsec_clock::local_time();
-	parallel_sort_impl<std::vector<int>::iterator, std::less<int>, 42> s(0);
+	parallel_sort_impl<std::vector<int>::iterator, std::less<int>, false, 42> s(0);
 	s(v2.begin(), v2.end());
 	boost::posix_time::ptime t3=boost::posix_time::microsec_clock::local_time();
 	if(v1 != v2) {std::cerr << "Failed" << std::endl; return false;}
@@ -170,7 +175,7 @@ void stress_test() {
 			}
 			{
 				boost::posix_time::ptime start=boost::posix_time::microsec_clock::local_time();
-				parallel_sort_impl<std::vector<size_t>::iterator, std::less<size_t>, 524288/8 > s(0);
+				parallel_sort_impl<std::vector<size_t>::iterator, std::less<size_t>, false, 524288/8 > s(0);
 				s(v2.begin(), v2.end());
 				boost::posix_time::ptime end=boost::posix_time::microsec_clock::local_time();
 				std::cout << " ours: " << (t2 = end-start) << std::endl;
@@ -180,6 +185,33 @@ void stress_test() {
 	}
 }
 
+
+#define USAGE ("Usage: [--no-progress] [--no-stdsort] <basic1|basic2|medium|large|verylarge|equal_elements|bad_case|stress_test>")
+template <bool progress>
+int run(const std::string & test) {
+	typename test_pi<progress>::type pi;
+	if (test == "basic1") {
+		return basic1<progress, 2>(1024*1024, &pi) ? EXIT_SUCCESS : EXIT_FAILURE;
+	} else if (test == "basic2") {
+		return basic1<progress, 8>(8*8, &pi) ? EXIT_SUCCESS : EXIT_FAILURE;
+	} else if (test == "medium") {
+		return basic1<progress, 1024*1024>(1024*1024*24, &pi) ? EXIT_SUCCESS : EXIT_FAILURE;
+	} else if (test == "large") {
+		return basic1<progress, 1024*1024>(1024*1024*256, &pi) ? EXIT_SUCCESS : EXIT_FAILURE;
+	} else if (test == "verylarge") {
+		return basic1<progress, 1024*1024>(1024*1024*768, &pi) ? EXIT_SUCCESS : EXIT_FAILURE;
+	} else if (test == "equal_elements") {
+		exit(equal_elements()?EXIT_SUCCESS:EXIT_FAILURE);
+	} else if (test == "bad_case") {
+		return bad_case() ? EXIT_SUCCESS : EXIT_FAILURE;
+	} else if (test == "stress_test") {
+		stress_test();
+		return EXIT_FAILURE;
+	}
+
+	std::cerr << USAGE << std::endl;
+	return EXIT_FAILURE;
+}
 
 int main(int argc, char **argv) {
 	tpie_initer _;
@@ -198,30 +230,9 @@ int main(int argc, char **argv) {
 		}
 		--argc; ++argv;
 	}
-#define USAGE ("Usage: [--no-progress] [--no-stdsort] <basic1|basic2|medium|large|verylarge|equal_elements|bad_case|stress_test>")
 	if (!argc) {
 		std::cerr << USAGE << std::endl;
 		return EXIT_FAILURE;
 	}
-	if (test == "basic1") {
-		return basic1<2>(1024*1024) ? EXIT_SUCCESS : EXIT_FAILURE;
-	} else if (test == "basic2") {
-		return basic1<8>(8*8) ? EXIT_SUCCESS : EXIT_FAILURE;
-	} else if (test == "medium") {
-		return basic1<1024*1024>(1024*1024*24) ? EXIT_SUCCESS : EXIT_FAILURE;
-	} else if (test == "large") {
-		return basic1<1024*1024>(1024*1024*256) ? EXIT_SUCCESS : EXIT_FAILURE;
-	} else if (test == "verylarge") {
-		return basic1<1024*1024>(1024*1024*768) ? EXIT_SUCCESS : EXIT_FAILURE;
-	} else if (test == "equal_elements") {
-		exit(equal_elements()?EXIT_SUCCESS:EXIT_FAILURE);
-	} else if (test == "bad_case") {
-		return bad_case() ? EXIT_SUCCESS : EXIT_FAILURE;
-	} else if (test == "stress_test") {
-		stress_test();
-		return EXIT_FAILURE;
-	}
-
-	std::cerr << USAGE << std::endl;
-	return EXIT_FAILURE;
+	return progress ? run<true>(test) : run<false>(test);
 }

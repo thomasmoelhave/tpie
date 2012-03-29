@@ -21,7 +21,7 @@
 
 ///////////////////////////////////////////////////////////////////////////
 /// \file internal_stack_vector_base.h
-/// Contains a generic base for internal stack and vector with known memory requirements
+/// Generic base for internal stack and vector with known memory requirements.
 ///////////////////////////////////////////////////////////////////////////
 #include <tpie/array.h>
 #include <tpie/util.h>
@@ -42,14 +42,12 @@ protected:
 public:
 
 	/////////////////////////////////////////////////////////
-	/// \copybrief linear_memory_structure_doc::memory_coefficient()
-	/// \copydetails linear_memory_structure_doc::memory_coefficient()
+	/// \copydoc tpie::linear_memory_structure_doc::memory_coefficient()
 	/////////////////////////////////////////////////////////
 	static double memory_coefficient() {return array<T>::memory_coefficient();}
 
 	/////////////////////////////////////////////////////////
-	/// \copybrief linear_memory_structure_doc::memory_overhead()
-	/// \copydetails linear_memory_structure_doc::memory_overhead()
+	/// \copydoc tpie::linear_memory_structure_doc::memory_overhead()
 	/////////////////////////////////////////////////////////
 	static double memory_overhead() {
 		return array<T>::memory_overhead() - sizeof(array<T>) + sizeof(child_t);
@@ -73,13 +71,13 @@ public:
 	/// \brief Check if the data structure is empty
 	/// \return true if the data structure is empty, otherwise false
 	/////////////////////////////////////////////////////////
-	inline bool empty(){return m_size==0;}
+	inline bool empty() const {return m_size==0;}
 
 	/////////////////////////////////////////////////////////
 	/// \brief Return the number of elements in the data structure.
 	/// \return The number of elements in the container
 	/////////////////////////////////////////////////////////
-	inline size_t size(){ return m_size;}
+	inline size_t size() const {return m_size;}
 	
 	/////////////////////////////////////////////////////////
 	/// \brief Clear the data structure of all elements

@@ -17,6 +17,10 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
+///////////////////////////////////////////////////////////////////////////////
+/// \file progress_indicator_spin.h  Indicate progress by a spinning cross
+///////////////////////////////////////////////////////////////////////////////
+
 #ifndef _TPIE_PROGRESS_INDICATOR_SPIN_H
 #define _TPIE_PROGRESS_INDICATOR_SPIN_H
 

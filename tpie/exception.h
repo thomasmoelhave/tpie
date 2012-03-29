@@ -17,6 +17,12 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
+///////////////////////////////////////////////////////////////////////////////
+/// \file exception.h
+///
+/// Exception classes.
+///////////////////////////////////////////////////////////////////////////////
+
 #ifndef __TPIE_EXCEPTION_H__
 #define __TPIE_EXCEPTION_H__
 #include <stdexcept>
@@ -38,6 +44,10 @@ struct stream_exception : public exception {
 
 struct io_exception: public stream_exception {
 	io_exception(const std::string & s): stream_exception(s) {};
+};
+
+struct out_of_space_exception: public io_exception {
+	out_of_space_exception(const std::string & s): io_exception(s) {};
 };
 
 struct invalid_file_exception: public stream_exception {

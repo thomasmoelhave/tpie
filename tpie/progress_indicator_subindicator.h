@@ -16,6 +16,12 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
+
+///////////////////////////////////////////////////////////////////////////////
+/// \file progress_indicator_subindicator.h
+/// Indicate progress of a part of a computation.
+///////////////////////////////////////////////////////////////////////////////
+
 #ifndef __TPIE_PROGRESS_INDICATOR_SUBINDICATOR_H__
 #define __TPIE_PROGRESS_INDICATOR_SUBINDICATOR_H__
 #include <tpie/portability.h>
@@ -31,6 +37,14 @@ public:
 	virtual void pop_breadcrumb();
 	virtual void init(TPIE_OS_OFFSET range);
 	virtual void done();
+	
+	void setup(progress_indicator_base * parent,
+			   TPIE_OS_OFFSET outerRange,
+			   const char * crumb=0,
+			   description_importance importance=IMPORTANCE_MAJOR);
+	
+	progress_indicator_subindicator();
+	
 	progress_indicator_subindicator(progress_indicator_base * parent,
 									TPIE_OS_OFFSET outerRange,
 									const char * crumb=0,

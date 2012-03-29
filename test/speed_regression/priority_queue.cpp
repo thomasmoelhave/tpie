@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2009, The TPIE development team
+// Copyright 2012, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -16,137 +16,140 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
+
 #include "../app_config.h"
 
+#include "blocksize_128KB.h"
+
 #include <tpie/tpie.h>
-#include <tpie/priority_queue.h>
 #include <iostream>
 #include "testtime.h"
-#include <tpie/progress_indicator_arrow.h>
+#include "stat.h"
+#include <boost/filesystem/operations.hpp>
+#include <tpie/priority_queue.h>
+#include "testinfo.h"
+#include <boost/random/uniform_01.hpp>
+#include <boost/random/mersenne_twister.hpp>
 
+using namespace tpie;
+using namespace tpie::ami;
 using namespace tpie::test;
 
-//const size_t size=1024*1024/sizeof(uint64_t);
-
-const TPIE_OS_SIZE_T defmemory = 750*1024*1024;
-
-void pqtest_elements(size_t elems, double blockFactor = 1.0, tpie::progress_indicator_arrow *progress = 0) {
-	test_realtime_t start;
-	test_realtime_t begin; // after ctor
-	test_realtime_t push; // after pushing
-	test_realtime_t pop; // after popping
-	test_realtime_t end; // after dtor
-
-	std::cout << blockFactor << " " << elems << " ";
-	std::cout.flush();
-	getTestRealtime(start);
-	{
-		tpie::ami::priority_queue<uint64_t> pq(1.0, blockFactor);
-		getTestRealtime(begin);
-		for (size_t el = 0; el < elems; ++el) {
-			if (progress != 0)
-				progress->step();
-
-			pq.push(4373 + 7879*el);
-		}
-		getTestRealtime(push);
-		std::cout << testRealtimeDiff(begin, push) << " " << std::flush;
-		for (size_t el = 0; el < elems; ++el) {
-			if (progress != 0)
-				progress->step();
-
-			pq.pop();
-		}
-		getTestRealtime(pop);
-	}
-	getTestRealtime(end);
-	std::cout << testRealtimeDiff(push, pop) << " " << testRealtimeDiff(start, end) << std::endl;
-}
+const size_t mb_default=1;
 
 void usage() {
-	std::cout << "Parameters: <times> <elements> [<memory>]" << std::endl;
+	std::cout << "Parameters: [times] [mb]" << std::endl;
+}
+
+struct intgenerator {
+	typedef uint64_t item_type;
+	uint64_t i;
+	inline intgenerator() : i(91493) {}
+	inline uint64_t operator()() { return 104729*(i++); }
+	inline void use(item_type & a, item_type & x) { a ^= x; }
+};
+
+boost::mt19937 rng;
+boost::uniform_01<boost::mt19937, double> doublegenerator(rng);
+boost::uniform_01<boost::mt19937, float> floatgenerator(rng);
+
+struct segmentgenerator {
+	typedef std::pair<double, std::pair<double, float> > item_type;
+	inline item_type operator()() { return std::make_pair(doublegenerator(), std::make_pair(doublegenerator(), floatgenerator())); }
+	inline void use(item_type & a, item_type & x) { a.first += x.second.first; }
+};
+
+template <typename Generator>
+void test(Generator g, size_t mb, size_t times, double blockFactor = 0.125) {
+	typedef typename Generator::item_type test_t;
+	test_t a = test_t();
+
+	std::vector<const char *> names;
+	names.resize(2);
+	names[0] = "Push";
+	names[1] = "Pop";
+
+	tpie::test::stat s(names);
+	TPIE_OS_OFFSET count=TPIE_OS_OFFSET(mb)*1024*1024/sizeof(test_t);
+	for (size_t i=0; i < times; ++i) {
+		
+		test_realtime_t start;
+		test_realtime_t end;
+		getTestRealtime(start);
+		{
+			tpie::ami::priority_queue<test_t> pq(0.95, blockFactor);
+		
+			for(TPIE_OS_OFFSET i=0; i < count; ++i) {
+				test_t x = g();
+				pq.push(x);
+			}
+			getTestRealtime(end);
+			s(testRealtimeDiff(start,end));
+
+			getTestRealtime(start);
+			for(TPIE_OS_OFFSET i=0; i < count; ++i) {
+				test_t x=pq.top();
+				pq.pop();
+				g.use(a, x);
+			}
+			getTestRealtime(end);
+			s(testRealtimeDiff(start,end));
+		}
+	}
+	if (a == g()) std::cout << "oh rly" << std::endl;
 }
 
 int main(int argc, char **argv) {
-	tpie::tpie_init();
-	tpie::get_memory_manager().set_enforcement(tpie::memory_manager::ENFORCE_THROW);
+	size_t times = 10;
+	size_t mb = mb_default;
+	double blockFactor = 0.125;
+	bool segments = false;
 
-	if (argc == 2) {
-		usage();
-		return EXIT_FAILURE;
+	int i;
+	for (i = 1; i < argc; ++i) {
+		std::string arg(argv[i]);
+		if (arg == "-s") {
+			segments = true;
+		} else {
+			break;
+		}
 	}
-
-	if (argc < 2) {
-		TPIE_OS_SIZE_T memory = defmemory;
-		tpie::get_memory_manager().set_limit(memory);
-		std::cout << "Memory limit: " << memory << std::endl;
-		std::cout << "Blockfact Elems Push Pop Total" << std::endl;
-
-		size_t base = 64*1024;
-		const size_t times = 4;
-		while (true) {
-			const size_t end = base*2;
-			for (size_t elements = base; elements < end; elements += base/times) {
-				pqtest_elements(elements);
-			}
-			base *= 2;
-		}
-	} else { // argc > 2
-		bool blockFactorTest = false;
-		double blockFactor = 1.0;
-		size_t times, elements;
-		TPIE_OS_SIZE_T memory = defmemory;
-		if (std::string(argv[1]) == "-b") {
-			++argv; --argc;
-			std::stringstream(argv[1]) >> blockFactor;
-			++argv; --argc;
-		} else if (std::string(argv[1]) == "-B") {
-			++argv; --argc;
-			blockFactorTest = true;
-		}
-		bool use_progress = false;
-		if (std::string(argv[1]) == "--progress") {
-			use_progress = true;
-			++argv; --argc;
-		}
-		tpie::auto_ptr<tpie::progress_indicator_arrow> progress;
-		std::stringstream(argv[1]) >> times;
-		std::stringstream(argv[2]) >> elements;
-		if (argc > 3) {
-			std::stringstream(argv[3]) >> memory;
-			if (!memory) {
+	if (i < argc) {
+		if (std::string(argv[i]) == "0") {
+			times = 0;
+		} else {
+			std::stringstream(argv[i]) >> times;
+			if (!times) {
 				usage();
 				return EXIT_FAILURE;
 			}
 		}
-		if (!elements) {
+		++i;
+	}
+	if (i < argc) {
+		std::stringstream(argv[i]) >> mb;
+		if (!mb) {
 			usage();
 			return EXIT_FAILURE;
 		}
-		tpie::get_memory_manager().set_limit(memory);
-		std::cout << "Memory limit: " << memory << std::endl;
-		std::cout << times << " times, " << elements << " elements" << std::endl;
-		if (blockFactorTest)
-			std::cout << "Block factor test." << std::endl;
-		if (!use_progress)
-			std::cout << "Blockfact Elems Push Pop Total" << std::endl;
-
-		if (times == 0) {
-			blockFactorTest = false;
+		++i;
+	}
+	if (i < argc) {
+		if (!(std::stringstream(argv[i]) >> blockFactor) || blockFactor*2*1024*1024 < 8) {
+			usage();
+			return EXIT_FAILURE;
 		}
-
-		for (size_t i = 0; i < times || times == 0; ++i) {
-			if (use_progress)
-				progress.reset(tpie::tpie_new<tpie::progress_indicator_arrow>("Priority queue speed test", elements*2));
-			pqtest_elements(elements, blockFactorTest ? (1.0+i)/times : blockFactor, use_progress ? progress.get() : 0);
-			if (use_progress) {
-				progress.reset(0);
-				std::cout << std::endl;
-			}
-		}
+		++i;
 	}
 
-	tpie::tpie_finish();
-
+	testinfo t("Priority queue speed test", 1024, mb, times);
+	sysinfo().printinfo("Block factor", blockFactor);
+	if (segments) {
+		sysinfo().printinfo("Item type", "segments");
+		::test(intgenerator(), mb, times, blockFactor);
+	} else {
+		sysinfo().printinfo("Item type", "64-bit integers");
+		::test(segmentgenerator(), mb, times, blockFactor);
+	}
 	return EXIT_SUCCESS;
 }

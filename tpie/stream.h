@@ -18,7 +18,7 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
 ///////////////////////////////////////////////////////////////////////////
-/// \file tpie/stream.h Declares TPIE streams.
+/// \file tpie/stream.h AMI streams.
 ///////////////////////////////////////////////////////////////////////////
 #ifndef _TPIE_AMI_STREAM_H
 #define _TPIE_AMI_STREAM_H
@@ -33,14 +33,7 @@
 // Get the error codes.
 #include <tpie/err.h>
 #include <tpie/persist.h>
-#include <tpie/stats_stream.h>
-// Get the device description class
 
-// Get an appropriate BTE.  Flags may have been set to determine
-// exactly what BTE implementaion will be used, but that should be of
-// little concern to us.  bte/stream.h and recursively included files
-// will worry about parsing the appropriate flags and getting us an
-// implementation.
 #include <tpie/tempname.h>
 #include <tpie/file_stream.h>
 #include <tpie/file_count.h>
@@ -48,6 +41,8 @@
 #include <tpie/tpie_log.h>
 
 #include <tpie/stream_usage.h>
+
+#include <tpie/tpie_assert.h>
 
 namespace tpie {
 
@@ -275,21 +270,19 @@ public:
     ////////////////////////////////////////////////////////////////////////////
 	static memory_size_type memory_usage(memory_size_type count);
   
-    ////////////////////////////////////////////////////////////////////////////
-    /// Returns a \ref tpie_stats_stream object containing  statistics of 
-    /// the stream. 
-    ////////////////////////////////////////////////////////////////////////////
-    stats_stream stats() const { 
-		return stats_stream();
-    }
+	// This method used to return a statistics object, but this is no longer
+	// supported.
+    //struct stats_stream & stats() const { 
+	//	tp_assert(0, "stream::stats() is no longer supported");
+	//	return *((stats_stream *)0);
+    //}
 
-    ////////////////////////////////////////////////////////////////////////////
-    /// Returns a \ref tpie_stats_stream object containing  statistics of 
-    /// the entire tpie system. 
-    ////////////////////////////////////////////////////////////////////////////
-	static stats_stream gstats() {
-		return stats_stream();
-	}
+	// This method used to return a statistics object, but this is no longer
+	// supported.
+	//static stats_stream & gstats() {
+	//	tp_assert(0, "stream::stats() is no longer supported");
+	//	return *((stats_stream *)0);
+	//}
 
     ////////////////////////////////////////////////////////////////////////////
     /// Returns the number of globally available streams.
@@ -352,18 +345,30 @@ private:
      * AMI stream is destroyed. */
     //bool m_destructBTEStream;
     stream_status m_status;
+
+	static inline double block_factor() {
+#ifndef STREAM_UFS_BLOCK_FACTOR
+		return 1.0;
+#else
+#   ifdef WIN32
+		return static_cast<double>(STREAM_UFS_BLOCK_FACTOR)/32;
+#   else
+		return static_cast<double>(STREAM_UFS_BLOCK_FACTOR)/512;
+#   endif
+#endif
+	}
 };
 
 // Create a temporary AMI stream on one of the devices in the default
 // device description. Persistence is PERSIST_DELETE by default. We
 // are given the index of the string describing the desired device.
 	template<class T>
-	stream<T>::stream(): m_status(STREAM_STATUS_INVALID)
+	stream<T>::stream(): m_stream(block_factor()), m_status(STREAM_STATUS_INVALID)
 	{
 		TP_LOG_DEBUG_ID("Temporary stream in file: ");
 	    TP_LOG_DEBUG_ID( m_temp.path() );
 		try {
-			m_stream.open( m_temp.path() );
+			m_stream.open( m_temp );
 		} catch(const stream_exception &) {
 			TP_LOG_FATAL_ID("Open failed");
 			return;
@@ -377,9 +382,9 @@ private:
 // location specified by the path name.
 	template<class T>
 	stream<T>::stream(const std::string& path_name, stream_type st) :
-		m_temp(path_name, true), m_status(STREAM_STATUS_INVALID) {
+		m_temp(path_name, true), m_stream(block_factor()), m_status(STREAM_STATUS_INVALID) {
 		try {
-			m_stream.open( path_name, st==READ_STREAM ? file_base::read: file_base::read_write);
+			m_stream.open(m_temp, st==READ_STREAM ? file_base::read: file_base::read_write);
 			if (st == APPEND_STREAM) m_stream.seek(0, file_base::end);
 		} catch(const stream_exception &) {
 			TP_LOG_FATAL_ID("Open failed");
@@ -396,51 +401,6 @@ private:
 				     stream_offset_type  sub_end,
 								 stream<T>       **sub_stream)
 	{
-	    // err retval = NO_ERROR;
-
-	    // // Check permissions. Only READ and WRITE are allowed, and only READ is
-	    // // allowed if m_readOnly is set.
-	    // if ((st != READ_STREAM) && ((st != WRITE_STREAM) || m_readOnly)) {
-
-		// *sub_stream = NULL;
-
-		// TP_LOG_DEBUG_ID("permission denied");		
-
-		// return PERMISSION_DENIED;
-
-	    // }
-    
-		// typename bte_t::base_t *bte_ss;
-    
-	    // if (m_bteStream->new_substream(((st == READ_STREAM) ? bte::READ_STREAM :
-		// 			    bte::WRITE_STREAM),
-		// 			   sub_begin, sub_end,
-		// 			   &bte_ss) != bte::NO_ERROR) {
-
-		// *sub_stream = NULL;
-
-		// TP_LOG_DEBUG_ID("new_substream failed");		
-
-		// return BTE_ERROR;
-	    // }
-    
-	    // stream<T,bte_t> *ami_ss;
-    
-	    // // This is a potentially dangerous downcast.  It is being done for
-	    // // the sake of efficiency, so that calls to the BTE can be
-	    // // inlined.  If multiple implementations of BTE streams are
-	    // // present it could be very dangerous.
-    
-	    // ami_ss = new stream<T,bte_t>(static_cast<bte_t*>(bte_ss));
-    
-	    // ami_ss->m_destructBTEStream = true;
-
-	    // retval = ami_ss->seek(0);
-	    // assert(retval == NO_ERROR); // sanity check
-    
-	    // *sub_stream = ami_ss;
-    
-	    // return retval;
 		unused(st);
 		unused(sub_begin);
 		unused(sub_end);
@@ -478,10 +438,9 @@ private:
 	    return NO_ERROR;
 	}
 
-
 template<class T>
-size_type stream<T>::memory_usage(size_type count) {
-	return file_stream<T>::memory_usage(count) + sizeof(stream<T>)*count;
+memory_size_type stream<T>::memory_usage(memory_size_type count) {
+	return count*(file_stream<T>::memory_usage(block_factor()) + sizeof(stream<T>));
 }
 	
 
@@ -500,7 +459,7 @@ size_type stream<T>::memory_usage(size_type count) {
 			*usage =  memory_usage(1);
 			return NO_ERROR;
 	    case STREAM_USAGE_BUFFER:
-			*usage = file_stream<T>::memory_usage(1.0) - file_stream<T>::memory_usage(0.0); 
+			*usage = file_stream<T>::memory_usage(block_factor()) - file_stream<T>::memory_usage(0.0); 
 			return NO_ERROR;
 		}
 		return BTE_ERROR;
@@ -511,7 +470,7 @@ size_type stream<T>::memory_usage(size_type count) {
 	    if (!m_stream.can_read())
 		return END_OF_STREAM;
 
-	    *elt = &m_stream.read_mutable();
+	    *elt = &(const_cast<T &>(m_stream.read()));
 	    return NO_ERROR;
 	}
 
@@ -530,7 +489,7 @@ size_type stream<T>::memory_usage(size_type count) {
 	}
 
 	template<class T>
-	err stream<T>::read_array(T *mm_space, size_type & len) {
+	err stream<T>::read_array(T *mm_space, memory_size_type & len) {
 		size_type l = static_cast<size_type>(std::min(
 			static_cast<stream_size_type>(len), 
 			static_cast<stream_size_type>(m_stream.size() - m_stream.offset())));
@@ -556,7 +515,5 @@ size_type stream<T>::memory_usage(size_type count) {
     }  //  ami namespace
 
 }  //  tpie namespace
-
-#include <tpie/stream_compatibility.h>
 
 #endif // _TPIE_AMI_STREAM_H

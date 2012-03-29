@@ -17,6 +17,11 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
+///////////////////////////////////////////////////////////////////////////////
+/// \file parallel_sort.h
+/// Simple parallel quick sort implementation with progress tracking.
+///////////////////////////////////////////////////////////////////////////////
+
 #ifndef __TPIE_PARALLEL_SORT_H__
 #define __TPIE_PARALLEL_SORT_H__
 
@@ -33,41 +38,62 @@
 #include <tpie/dummy_progress.h>
 #include <tpie/internal_queue.h>
 #include <tpie/job.h>
+#include <tpie/config.h>
 
 namespace {
-
-struct progress_t {
-	tpie::progress_indicator_base * pi;
-	boost::uint64_t work_estimate;
-	boost::uint64_t total_work_estimate;
-	boost::condition_variable cond;
-	boost::mutex mutex;
-};
 
 }
 namespace tpie {
 
-template <typename iterator_type, typename comp_type,
+///////////////////////////////////////////////////////////////////////////////
+/// \brief A simple parallel sort implementation with progress tracking.
+/// The partition step is sequential, as a parallel partition only speeds up
+/// the top layer, which does not warrant the hassle of implementation.
+/// Uses the TPIE job manager to transparently distribute work across the
+/// machine cores.
+/// Uses the pseudo median of nine as pivot.
+///////////////////////////////////////////////////////////////////////////////
+template <typename iterator_type, typename comp_type, bool Progress,
 		  size_t min_size=1024*1024*8/sizeof(typename boost::iterator_value<iterator_type>::type)>
 class parallel_sort_impl {
 private:
+	typedef progress_types<Progress> P;
 	boost::mt19937 rng;	
 
-	// The type of the values we sort
+	///////////////////////////////////////////////////////////////////////////////
+	/// \brief Internal class for parallel progress reporting.
+	///////////////////////////////////////////////////////////////////////////////
+	struct progress_t {
+		typename P::base * pi;
+		boost::uint64_t work_estimate;
+		boost::uint64_t total_work_estimate;
+		boost::condition_variable cond;
+		boost::mutex mutex;
+	};
+
+	/** \brief The type of the values we sort. */
 	typedef typename boost::iterator_value<iterator_type>::type value_type;
 
-	// Guistimate how much work a sort uses
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Guesstimate how much work a sort uses.
+	///////////////////////////////////////////////////////////////////////////
 	static inline boost::uint64_t sortWork(boost::uint64_t n) {
 		return static_cast<uint64_t>(
 			log(static_cast<double>(n)) * n * 1.8
 			/ log(static_cast<double>(2)));
 	}
-	
-	// Partition acording to pivot
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Partition using *first as pivot.
+	/// \param first Iterator to left boundary.
+	/// \param last Iterator to right boundary.
+	/// \param comp Comparator.
+	///////////////////////////////////////////////////////////////////////////
 	template <typename comp_t>
 	static inline iterator_type unguarded_partition(iterator_type first, 
 													iterator_type last, 
 													comp_t & comp) {
+		// Textbook partitioning.
 		iterator_type pivot = first;
 		while (true) {
 			do --last;
@@ -86,6 +112,13 @@ private:
 		return last;
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Median of three.
+	/// \param a Iterator to an element.
+	/// \param b Iterator to an element.
+	/// \param c Iterator to an element.
+	/// \param comp Comparator.
+	///////////////////////////////////////////////////////////////////////////
 	static inline iterator_type median(iterator_type a, iterator_type b, iterator_type c, comp_type & comp) {
 		if (comp(*a, *b)) {
 			if (comp(*b, *c)) return b;
@@ -98,17 +131,34 @@ private:
 		}
 	}
 
-	// Pick a good element for partitioning
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Pseudo-median of nine.
+	/// It uses the boundary elements as well as the seven 0.125-fractiles
+	/// to find a good element for partitioning.
+	/// \param a Iterator to left boundary.
+	/// \param b Iterator to right boundary.
+	/// \param comp Comparator.
+	///////////////////////////////////////////////////////////////////////////
 	static inline iterator_type pick_pivot(iterator_type a, iterator_type b, comp_type & comp) {
 		if (a == b) return a;
 		assert(a < b);
+
+		// Since (b-a) is at least min_size, which is at least 100000 in
+		// realistic contexts, ((b-a)/8)*c is a good approximation of
+		// (c*(b-a))/8.
 		size_t step = (b-a)/8;
+
 		return median(median(a+0, a+step, a+step*2, comp),
 					  median(a+step*3, a+step*4, a+step*5, comp),
 					  median(a+step*6, a+step*7, b-1, comp), comp);
 	}
 
-	// Partition the array and return the pivot
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Partition using pivot returned by pick_pivot.
+	/// \param a Iterator to left boundary.
+	/// \param b Iterator to right boundary.
+	/// \param comp Comparator.
+	///////////////////////////////////////////////////////////////////////////
 	static inline iterator_type partition(iterator_type a, iterator_type b, comp_type & comp) {
 		iterator_type pivot = pick_pivot(a, b, comp);
 
@@ -118,9 +168,28 @@ private:
 		return l;
 	}
 
+#ifdef DOXYGEN
+public:
+#endif
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Represents quick sort work at a given level.
+	///////////////////////////////////////////////////////////////////////////
 	class qsort_job : public job {
 	public:
-		qsort_job(iterator_type a, iterator_type b, comp_type comp, qsort_job * parent, progress_t & p) : a(a), b(b), comp(comp), parent(parent), progress(p) {}
+		///////////////////////////////////////////////////////////////////////
+		/// \brief Construct a qsort_job.
+		///////////////////////////////////////////////////////////////////////
+		qsort_job(iterator_type a, iterator_type b, comp_type comp, qsort_job * parent, progress_t & p)
+			: a(a), b(b), comp(comp), parent(parent), progress(p) {
+
+			// Does nothing.
+		}
+
+		///////////////////////////////////////////////////////////////////////
+		/// Running a job with iterators a and b will repeatedly partition
+		/// [a,b), spawn a job on the left part and recurse on the right part,
+		/// until the min_size limit is reached.
+		///////////////////////////////////////////////////////////////////////
 		virtual void operator()() {
 			assert(a <= b);
 			assert(&*a != 0);
@@ -144,17 +213,18 @@ private:
 				progress.cond.notify_one();
 			}
 		}
+
+		void child_done(job * /*job*/) {
+			//tpie_delete(job);
+			//delete job;
+		}
+
 	private:
 		iterator_type a;
 		iterator_type b;
 		comp_type comp;
 		qsort_job * parent;
 		progress_t & progress;
-
-		void child_done(qsort_job * job) {
-			//tpie_delete(job);
-			delete job;
-		}
 
 		void add_progress(ptrdiff_t amount) {
 			boost::mutex::scoped_lock lock(progress.mutex);
@@ -163,10 +233,15 @@ private:
 		}
 	};
 public:
-	parallel_sort_impl(progress_indicator_base * p) {
+	parallel_sort_impl(typename P::base * p) {
 		progress.pi = p;
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Perform a parallel sort of the items in the interval [a,b).
+	/// Waits until all workers are done. The calling thread handles progress
+	/// tracking, so a thread-safe progress tracker is not required.
+	///////////////////////////////////////////////////////////////////////////
 	void operator()(iterator_type a, iterator_type b, comp_type comp=std::less<value_type>() ) {
 		progress.work_estimate = 0;
 		progress.total_work_estimate = sortWork(b-a);
@@ -204,21 +279,46 @@ private:
 	size_t job_count;
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Sort items in the range [a,b) using a parallel quick sort.
+/// \param a Iterator to left boundary.
+/// \param b Iterator to right boundary.
+/// \param pi Progress tracker. No thread-safety required.
+/// \param comp Comparator.
+/// \sa parallel_sort_impl
+///////////////////////////////////////////////////////////////////////////////
 template <bool Progress, typename iterator_type, typename comp_type>
 void parallel_sort(iterator_type a, 
 				   iterator_type b, 
 				   typename tpie::progress_types<Progress>::base & pi,
 				   comp_type comp=std::less<typename boost::iterator_value<iterator_type>::type>()) {
-	parallel_sort_impl<iterator_type, comp_type> s(&pi);
+#ifdef TPIE_PARALLEL_SORT
+	parallel_sort_impl<iterator_type, comp_type, Progress> s(&pi);
 	s(a,b,comp);
+#else
+	pi.init(1);
+	std::sort(a,b,comp);
+	pi.done();
+#endif
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Sort items in the range [a,b) using a parallel quick sort.
+/// \param a Iterator to left boundary.
+/// \param b Iterator to right boundary.
+/// \param comp Comparator.
+/// \sa parallel_sort_impl
+///////////////////////////////////////////////////////////////////////////////
 template <typename iterator_type, typename comp_type>
 void parallel_sort(iterator_type a, 
 				   iterator_type b, 
 				   comp_type comp=std::less<typename boost::iterator_value<iterator_type>::type>()) {
-	parallel_sort_impl<iterator_type, comp_type> s(0);
+#ifdef TPIE_PARALLEL_SORT
+	parallel_sort_impl<iterator_type, comp_type, false> s(0);
 	s(a,b,comp);
+#else
+	std::sort(a, b, comp);
+#endif
 }
 
 

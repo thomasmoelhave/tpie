@@ -122,8 +122,6 @@ void parse_app_opts(int idx, char *opt_arg)
 
 int main(int argc, char **argv)
 {
-    ami::err ae = ami::NO_ERROR;
-
 	tpie_init();
 
     parse_args(argc, argv, app_opts, parse_app_opts);

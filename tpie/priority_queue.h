@@ -17,6 +17,11 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
+///////////////////////////////////////////////////////////////////////////////
+/// \file priority_queue.h
+/// \brief External memory priority queue implementation.
+///////////////////////////////////////////////////////////////////////////////
+
 #ifndef _TPIE_PRIORITY_QUEUE_H_
 #define _TPIE_PRIORITY_QUEUE_H_
 
@@ -36,6 +41,7 @@
 #include <tpie/err.h>
 #include <tpie/stream.h>
 #include <tpie/array.h>
+#include <boost/filesystem.hpp>
 
 namespace tpie {
 
@@ -68,18 +74,14 @@ public:
 	/// \param b Block factor
     ///
     /////////////////////////////////////////////////////////
-    priority_queue(double f=1.0, double b=1.0);
+    priority_queue(double f=1.0, double b=0.0625);
 
-	/////////////////////////////////////////////////////////
-    ///
-    /// Constructor
-    ///
-    /// \param mmavail Number of bytes the priority queue is
-    /// allowed to use.
-	/// \param b Block factor
-    ///
-    /////////////////////////////////////////////////////////
-    priority_queue(TPIE_OS_SIZE_T mm_avail, double b=1.0);
+#ifndef DOXYGEN
+    // \param mmavail Number of bytes the priority queue is
+    // allowed to use.
+	// \param b Block factor
+    priority_queue(TPIE_OS_SIZE_T mm_avail, double b=0.0625);
+#endif
 
 
     /////////////////////////////////////////////////////////
@@ -182,13 +184,11 @@ private:
     TPIE_OS_OFFSET group_start(TPIE_OS_SIZE_T group) const; 
     void group_size_set(TPIE_OS_SIZE_T group, TPIE_OS_OFFSET n); 
     TPIE_OS_OFFSET group_size(TPIE_OS_SIZE_T group) const; 
-    std::string filename;
-    std::string datafiles;
-    const std::string& datafile(TPIE_OS_OFFSET id); 
-    const std::string& datafile_group(TPIE_OS_OFFSET id); 
-    const std::string& slot_data(TPIE_OS_SIZE_T slotid); 
+    array<temp_file> datafiles;
+    array<temp_file> groupdatafiles;
+    temp_file & slot_data(TPIE_OS_SIZE_T slotid); 
     void slot_data_set(TPIE_OS_SIZE_T slotid, TPIE_OS_OFFSET n); 
-    const std::string& group_data(TPIE_OS_SIZE_T groupid); 
+    temp_file & group_data(TPIE_OS_SIZE_T groupid); 
     TPIE_OS_OFFSET slot_max_size(TPIE_OS_SIZE_T slotid); 
     void write_slot(TPIE_OS_SIZE_T slotid, T* arr, TPIE_OS_OFFSET len); 
     TPIE_OS_SIZE_T free_slot(TPIE_OS_SIZE_T group);

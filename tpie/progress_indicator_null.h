@@ -17,6 +17,10 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
+///////////////////////////////////////////////////////////////////////////////
+/// \file progress_indicator_null.h  Null-object progress indicator
+///////////////////////////////////////////////////////////////////////////////
+
 #ifndef _TPIE_PROGRESS_INDICATOR_NULL_H
 #define _TPIE_PROGRESS_INDICATOR_NULL_H
 
@@ -35,7 +39,7 @@ namespace tpie {
 class progress_indicator_null : public progress_indicator_base {
 
 public:
-    progress_indicator_null (TPIE_OS_OFFSET range) :progress_indicator_base(range) {}
+    progress_indicator_null (TPIE_OS_OFFSET range=0) :progress_indicator_base(range) {}
 
     virtual ~progress_indicator_null() { /*Do nothing*/ }
 

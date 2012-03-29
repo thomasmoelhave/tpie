@@ -18,38 +18,29 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #ifndef __tpie_file_accessor_file_accossor_h__
 #define __tpie_file_accessor_file_accossor_h__
-#include <tpie/types.h>
-#include <tpie/stream_header.h>
 
+///////////////////////////////////////////////////////////////////////////////
+/// \file file_accessor.h Declare default file accessor.
+///////////////////////////////////////////////////////////////////////////////
+
+#ifdef WIN32
+
+#include <tpie/file_accessor/win32.h>
 namespace tpie {
 namespace file_accessor {
-
-class file_accessor {
-protected:
-	stream_size_type m_size;
-	memory_size_type m_userDataSize;
-	memory_size_type m_itemSize;
-	std::string m_path;
-public:
-	virtual void open(const std::string & path, 
-					  bool read, 
-					  bool write, 
-					  memory_size_type itemSize,
-					  memory_size_type userDataSize) = 0;
-	virtual void close() = 0;
-	virtual memory_size_type read(void * data, stream_size_type offset, memory_size_type size) = 0;
-	virtual void write(const void * data, stream_size_type offset, memory_size_type size) = 0; 
-	virtual void read_user_data(void * data) = 0;
-	virtual void write_user_data(const void * data) = 0;
-	virtual void truncate(stream_size_type size) = 0;
-	virtual ~file_accessor() {}
-	inline stream_size_type size() const {return m_size;}
-	inline const std::string & path() const {return m_path;}
-	inline memory_size_type user_data_size() const {return m_userDataSize;}
-	void validate_header(const stream_header_t & header);
-	void fill_header(stream_header_t & header, bool clean);
-};
-
+typedef win32 file_accessor;
 }
 }
+
+#else // WIN32
+
+#include <tpie/file_accessor/posix.h>
+namespace tpie {
+namespace file_accessor {
+typedef posix file_accessor;
+}
+}
+
+#endif // WIN32
+
 #endif //__tpie_file_accessor_file_accossor_h__

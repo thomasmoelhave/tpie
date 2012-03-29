@@ -24,6 +24,7 @@
 #include "common.h"
 
 #include <iostream>
+#include <boost/filesystem/operations.hpp>
 
 #include <tpie/tpie.h>
 
@@ -53,6 +54,8 @@ int main(int argc, char **argv) {
 		std::cout << "Unknown test" << std::endl;
 		return EXIT_FAILURE;
 	}
+
+	boost::filesystem::remove(TEMPFILE);
 
 	// Write ITEMS items sequentially to TEMPFILE
 	{

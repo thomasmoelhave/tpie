@@ -21,7 +21,7 @@
 #include <tpie/exception.h>
 #include <tpie/file_count.h>
 #include <tpie/file_accessor/file_accessor_crtp.h>
-
+#include <tpie/stats.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -34,12 +34,14 @@ namespace file_accessor {
 template <typename child_t, bool minimizeSeeks>
 inline void file_accessor_crtp<child_t, minimizeSeeks>::read_i(void * d, memory_size_type size) {
 	reinterpret_cast<child_t*>(this)->read_i(d, size);
+	increment_bytes_read(size);
 	if (minimizeSeeks) location += size;
 }
 
 template <typename child_t, bool minimizeSeeks>
 inline void file_accessor_crtp<child_t, minimizeSeeks>::write_i(const void * d, memory_size_type size) {
 	reinterpret_cast<child_t*>(this)->write_i(d, size);
+	increment_bytes_written(size);
 	if (minimizeSeeks) location += size;
 }
 
@@ -60,7 +62,8 @@ void file_accessor_crtp<child_t, minimizeSeeks>::read_header() {
 
 template <typename child_t, bool minimizeSeeks>
 inline void file_accessor_crtp<child_t, minimizeSeeks>::throw_errno() {
-	throw io_exception(strerror(errno));
+	if (errno == ENOSPC) throw out_of_space_exception(strerror(errno));
+	else throw io_exception(strerror(errno));
 }
 
 template <typename child_t, bool minimizeSeeks>
@@ -68,26 +71,32 @@ void file_accessor_crtp<child_t, minimizeSeeks>::write_header(bool clean) {
 	stream_header_t header;
 	fill_header(header, clean);
 	seek_i(0);
-	write_i(&header, sizeof(header));
+	char * header_area = new char[header_size()];
+	memcpy(header_area, &header, sizeof(header));
+	memset(header_area+sizeof(header), 0, header_size()-sizeof(header));
+	write_i(header_area, header_size());
+	delete[] header_area;
 }
-
+ 
 template <typename child_t, bool minimizeSeeks>
-memory_size_type file_accessor_crtp<child_t, minimizeSeeks>::read(void * data, stream_size_type offset, memory_size_type size) {
-	stream_size_type loc=sizeof(stream_header_t) + m_userDataSize + offset*m_itemSize;
+memory_size_type file_accessor_crtp<child_t, minimizeSeeks>::read_block(void * data, stream_size_type blockNumber, stream_size_type itemCount) {
+	stream_size_type loc = header_size() + blockNumber*m_blockSize;
 	seek_i(loc);
-	if (offset + size > m_size) size = m_size - offset;
-	memory_size_type z=size*m_itemSize;
+	stream_size_type offset = blockNumber*m_blockItems;
+	if (offset + itemCount > m_size) itemCount = m_size - offset;
+	memory_size_type z=itemCount*m_itemSize;
 	read_i(data, z);
-	return size;
+	return itemCount;
 }
 
 template <typename child_t, bool minimizeSeeks>
-void file_accessor_crtp<child_t, minimizeSeeks>::write(const void * data, stream_size_type offset, memory_size_type size) {
-	stream_size_type loc=sizeof(stream_header_t) + m_userDataSize + offset*m_itemSize;
+void file_accessor_crtp<child_t, minimizeSeeks>::write_block(const void * data, stream_size_type blockNumber, stream_size_type itemCount) {
+	stream_size_type loc = header_size() + blockNumber*m_blockSize;
 	seek_i(loc);
-	memory_size_type z=size*m_itemSize;
+	stream_size_type offset = blockNumber*m_blockItems;
+	memory_size_type z=itemCount*m_itemSize;
 	write_i(data, z);
-	if (offset+size > m_size) m_size=offset+size;
+	if (offset+itemCount > m_size) m_size=offset+itemCount;
 }
 
 template <typename child_t, bool minimizeSeeks>
@@ -105,6 +114,38 @@ void file_accessor_crtp<child_t, minimizeSeeks>::write_user_data(const void * da
 template <typename child_t, bool minimizeSeeks>
 inline void file_accessor_crtp<child_t, minimizeSeeks>::invalidateLocation() {
 	if (minimizeSeeks) location = std::numeric_limits<stream_size_type>::max();
+}
+
+template <typename child_t, bool minimizeSeeks>
+void file_accessor_crtp<child_t, minimizeSeeks>::validate_header(const stream_header_t & header) {
+	if (header.magic != stream_header_t::magicConst)
+		throw invalid_file_exception("Invalid file, header magic wrong");
+
+	if (header.version != stream_header_t::versionConst)
+		throw invalid_file_exception("Invalid file, header version wrong");
+
+	if (header.itemSize != m_itemSize)
+		throw invalid_file_exception("Invalid file, item size is wrong");
+
+	if (header.blockSize != m_blockSize)
+		throw invalid_file_exception("Invalid file, item size is wrong");
+
+	if (header.userDataSize != m_userDataSize )
+		throw invalid_file_exception("Invalid file, wrong userdata size");
+
+	if (header.cleanClose != 1 )
+		throw invalid_file_exception("Invalid file, the file was not closed properly");
+}
+
+template <typename child_t, bool minimizeSeeks>
+void file_accessor_crtp<child_t, minimizeSeeks>::fill_header(stream_header_t & header, bool clean) {
+	header.magic = stream_header_t::magicConst;
+	header.version = stream_header_t::versionConst;
+	header.itemSize = m_itemSize;
+	header.blockSize = m_blockSize;
+	header.cleanClose = clean?1:0;
+	header.userDataSize = m_userDataSize;
+	header.size = m_size;
 }
 
 

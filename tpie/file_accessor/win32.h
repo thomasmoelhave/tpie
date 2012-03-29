@@ -16,15 +16,27 @@
 //
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
+
+///////////////////////////////////////////////////////////////////////////////
+/// \file win32.h  Win32 file accessor.
+///////////////////////////////////////////////////////////////////////////////
+
 #ifndef _TPIE_FILE_ACCESSOR_WIN32_H
 #define _TPIE_FILE_ACCESSOR_WIN32_H
 
+#include <tpie/config.h>
+
 #include <io.h>
 #include <windows.h>
+#undef NO_ERROR
 
 #include <tpie/file_accessor/file_accessor_crtp.h>
 namespace tpie {
 namespace file_accessor {
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Win32 file accessor.
+///////////////////////////////////////////////////////////////////////////////
 
 class win32: public file_accessor_crtp<win32> {
 private:
@@ -37,17 +49,21 @@ private:
 	inline void write_i(const void * data, memory_size_type size);
 	inline void seek_i(stream_size_type offset);
 public:
-	win32();
-	virtual void open(const std::string & path,
-					  bool read,
-					  bool write,
-					  memory_size_type itemSize,
-					  memory_size_type userDataSize);
-	virtual void close();
-	virtual void truncate(stream_size_type size);
+	inline win32();
+	inline void open(const std::string & path,
+					 bool read,
+					 bool write,
+					 memory_size_type itemSize,
+					 memory_size_type blockSize,
+					 memory_size_type userDataSize);
+	inline void close();
+	inline void truncate(stream_size_type size);
 	inline ~win32() {close();}
 };
 
 }
 }
+
+#include <tpie/file_accessor/win32.inl>
+
 #endif //_TPIE_FILE_ACCESSOR_WIN32_H

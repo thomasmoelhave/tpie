@@ -17,11 +17,16 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
+///////////////////////////////////////////////////////////////////////////////
+/// \file stack.h  External memory stack
+///////////////////////////////////////////////////////////////////////////////
+
 #ifndef _TPIE_AMI_STACK_H
 #define _TPIE_AMI_STACK_H
 
 #include <tpie/array.h>
 #include <tpie/portability.h>
+#include <tpie/deprecated.h>
 #include <tpie/stream.h>
 #include <tpie/tpie_assert.h>
 
@@ -147,14 +152,6 @@ public:
 	}
 
 
-    ////////////////////////////////////////////////////////////////////
-    /// \deprecated This should go as soon as all old code has been migrated.
-    ////////////////////////////////////////////////////////////////////
-    //TPIE_OS_OFFSET stream_len() const {
-	//	std::cerr << "Using AMI_stack<T>::stream_len() is deprecated." << std::endl;
-	//	return m_size;
-    //}
-
 protected:
 
 	/** The file_stream used to store the items. */
@@ -251,7 +248,7 @@ namespace ami {
 
 ///////////////////////////////////////////////////////////////////
 ///
-///  An implementation of an external-memory stack.
+///  An implementation of an external-memory stack compatible with the old AMI interface.
 ///
 ///////////////////////////////////////////////////////////////////
 

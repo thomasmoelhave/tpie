@@ -20,6 +20,7 @@
 #include "common.h"
 
 #include <tpie/array.h>
+#include <tpie/array_view.h>
 #include <tpie/bit_array.h>
 #include <tpie/array.h>
 #include <tpie/concepts.h>

@@ -20,6 +20,7 @@
 // file_stream memory usage test
 
 #include "common.h"
+#include <boost/filesystem/operations.hpp>
 #include <tpie/file_stream.h>
 
 using namespace tpie;
@@ -43,6 +44,7 @@ public:
 	}
 
 	virtual void use() {
+		boost::filesystem::remove(TEMPFILE);
 		m_stream->open(TEMPFILE);
 		for (size_t i = 0; i < ITEMS; ++i) {
 			m_stream->write(i);

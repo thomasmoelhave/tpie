@@ -1,0 +1,58 @@
+/**
+\page install Installation
+
+\section sec_install Installation on Linux
+
+You will need Git, CMake, Boost and a C++ compiler in order to use TPIE. On a
+modern Linux system, the following steps will suffice.
+
+First, clone the <a href="https://github.com/thomasmoelhave/tpie">git repository</a> and
+checkout the branch or tag you wish to compile:
+
+\verbatim
+git clone git://github.com/thomasmoelhave/tpie.git
+cd tpie
+git checkout master
+\endverbatim
+
+Now, create a build directory and run CMake followed by make.
+
+\verbatim
+mkdir build
+cd build
+cmake -D CMAKE_BUILD_TYPE:STRING=Release ..
+make tpie
+\endverbatim
+
+This will generate the static library \c libtpie.a in the \c build/tpie folder.
+To link your application with TPIE, you will now want to add the TPIE root and
+the build folder to your project's header file include path, and add the
+\c build/tpie folder to your project's library path.
+
+To run the unit tests, use CTest.
+
+\verbatim
+make all
+ctest
+\endverbatim
+
+The unit test executables are placed in the \c test/unit folder and are prefixed
+with the token \c ut-.
+
+\section sec_installwin Installation on Windows
+
+As above, clone the <a href="https://github.com/thomasmoelhave/tpie">git repository</a> at
+<tt>git://github.com/thomasmoelhave/tpie.git</tt>, perhaps using TortoiseGit, and set
+up the build environment using CMake, perhaps using the CMake GUI. TPIE is
+known to work with the Microsoft Visual Studio 2008 and 2010 compilers. Be sure
+to select a 64-bit build when your platform supports it.
+
+\section sec_boost Boost root
+
+Unfortunately, on Linux, we do not support linking against Boost libraries not
+in the default ld search path. On Linux, if you compile your own Boost
+libraries, you will need to install these in \c /usr/local or similar.
+
+If you know how to get Boost link paths working with CMake, we would like to
+know how.
+*/

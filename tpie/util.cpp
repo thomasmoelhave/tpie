@@ -1,6 +1,6 @@
-// -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
+// -*- Mode: C++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2009, The TPIE development team
+// Copyright 2012, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -17,60 +17,48 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
-///////////////////////////////////////////////////////////////////////////
-/// \file tpie/util.h Declares misc utility functions usable with tpie
-///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+/// \file util.cpp  Miscellaneous utility functions - implementation
+///////////////////////////////////////////////////////////////////////////////
 
-///////////////////////////////////////////////////////////////////////////
-/// \file tpie/util.cpp Implement utility functions
-///////////////////////////////////////////////////////////////////////////
-
-
-#include <boost/random.hpp>
+#include <tpie/exception.h>
 #include <tpie/util.h>
-#include <boost/filesystem.hpp>
 #include <stdexcept>
+#include <cstdio>
+#ifdef WIN32
+#include <windows.h>
+#endif
 
 namespace tpie {
-  
-static boost::mt19937 rng;
 
-///////////////////////////////////////////////////////////////////////////
-/// \brief Seed the tpie pseudo random number generator
-/// \param seed The seed used to generate pseudo random numbers
-///////////////////////////////////////////////////////////////////////////
-void seed_random(uint32_t seed) {
-    rng.seed(seed);
+void atomic_rename(const std::string & src, const std::string & dst) {
+	//Note according to posix rename is atomic..
+	//On windows it is probably not
+#ifndef _WIN32
+	if (rename(src.c_str(), dst.c_str()) != 0)
+		throw std::runtime_error("Atomic rename failed");
+#else
+	//TODO use MoveFileTransacted on vista or newer
+	if (!MoveFileEx(src.c_str(), dst.c_str(), MOVEFILE_COPY_ALLOWED | MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH))
+		throw std::runtime_error("Atomic rename failed");
+#endif
 }
 
-///////////////////////////////////////////////////////////////////////////
-/// \brief Generate a new 32-bit pseudo random number
-/// \returns The random number
-///////////////////////////////////////////////////////////////////////////
-uint32_t random() {
-    return rng();
+#ifdef _WIN32
+void throw_getlasterror() {
+	char buffer[1024];
+	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, GetLastError(), 0, buffer, 1023, 0);
+	switch (GetLastError()) {
+		case ERROR_HANDLE_DISK_FULL:
+		case ERROR_DISK_FULL:
+		case ERROR_DISK_TOO_FRAGMENTED:
+		case ERROR_DISK_QUOTA_EXCEEDED:
+		case ERROR_VOLMGR_DISK_NOT_ENOUGH_SPACE:
+			throw out_of_space_exception(buffer);
+		default:
+			throw io_exception(buffer);
+	}
 }
+#endif
 
-///////////////////////////////////////////////////////////////////////////
-/// \brief Remove a file from the filesystem, if the file does not exist
-/// the function returns witout doing anything.
-/// \param path The path of the file to remove
-///////////////////////////////////////////////////////////////////////////
-void remove(const std::string & path) {
-	if (!boost::filesystem::exists(path))
-		return;
-
-	if (!boost::filesystem::remove(path))
-		throw std::runtime_error(std::string("Unable to delete ")+path);
-}
-
-///////////////////////////////////////////////////////////////////////////
-/// \brief Checks if a file exists on the filesystem
-/// \param path The file whoes existense is questionable
-/// \returns true iff the file exists
-///////////////////////////////////////////////////////////////////////////
-bool file_exists(const std::string & path) {
-	return boost::filesystem::exists(path);
-}
-
-}
+} // namespace tpie
