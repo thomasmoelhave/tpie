@@ -50,8 +50,8 @@ struct input_vector_t : public pipe_segment {
 		dest.end();
 	}
 
-	const pipe_segment * get_next() const {
-		return &dest;
+	void push_successors(std::deque<const pipe_segment *> & q) const {
+		q.push_back(&dest);
 	}
 private:
 	dest_t dest;
@@ -77,7 +77,7 @@ struct output_vector_t : public pipe_segment {
 		output.push_back(item);
 	}
 
-	const pipe_segment * get_next() const { return 0; }
+	void push_successors(std::deque<const pipe_segment *> &) const { }
 private:
 	std::vector<item_type> & output;
 };

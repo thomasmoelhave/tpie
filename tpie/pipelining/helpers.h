@@ -60,9 +60,8 @@ struct ostream_logger_t : public pipe_segment {
 		log << "pushing " << item << std::endl;
 		dest.push(item);
 	}
-
-	const pipe_segment * get_next() const {
-		return &dest;
+	void push_successors(std::deque<const pipe_segment *> & q) const {
+		q.push_back(&dest);
 	}
 private:
 	dest_t dest;
@@ -100,8 +99,8 @@ struct identity_t : public pipe_segment {
 		dest.end();
 	}
 
-	const pipe_segment * get_next() const {
-		return &dest;
+	void push_successors(std::deque<const pipe_segment *> & q) const {
+		q.push_back(&dest);
 	}
 private:
 	dest_t dest;
@@ -161,7 +160,7 @@ struct dummydest_t : public pipe_segment {
 	inline T pull() {
 		return buffer;
 	}
-	const pipe_segment * get_next() const { return 0; }
+	void push_successors(std::deque<const pipe_segment *> &) const { }
 };
 
 template <typename pushfact_t>
@@ -264,8 +263,8 @@ struct pull_to_push {
 			dest.push(dummydest.pull());
 		}
 
-		const pipe_segment * get_next() const {
-			return &dest;
+		void push_successors(std::deque<const pipe_segment *> & q) const {
+			q.push_back(&dest);
 		}
 
 	};
@@ -305,8 +304,7 @@ struct bitbucket_t : public pipe_segment {
 	inline void push(const T &) {
 	}
 
-	const pipe_segment * get_next() const {
-		return 0;
+	void push_successors(std::deque<const pipe_segment *> &) const {
 	}
 };
 
@@ -348,8 +346,9 @@ struct fork_t {
 			dest2.end();
 		}
 
-		const pipe_segment * get_next() const {
-			return &dest;
+		void push_successors(std::deque<const pipe_segment *> & q) const {
+			q.push_back(&dest);
+			q.push_back(&dest2);
 		}
 
 	private:

@@ -63,8 +63,8 @@ struct count_consecutive_t : public pipe_segment {
 		}
 	}
 
-	const pipe_segment * get_next() const {
-		return &dest;
+	void push_successors(std::deque<const pipe_segment *> & q) const {
+		q.push_back(&dest);
 	}
 private:
 	inline void flush() {
@@ -112,8 +112,8 @@ struct extract_first_t : public pipe_segment {
 		dest.push(item.first);
 	}
 
-	const pipe_segment * get_next() const {
-		return &dest;
+	void push_successors(std::deque<const pipe_segment *> & q) const {
+		q.push_back(&dest);
 	}
 private:
 	dest_t dest;

@@ -62,12 +62,12 @@ struct merge_t {
 			dest.end();
 		}
 
+		void push_successors(std::deque<const pipe_segment *> & q) const {
+			q.push_back(&dest);
+		}
+
 		dest_t dest;
 		pull_t with;
-
-		const pipe_segment * get_next() const {
-			return &dest;
-		}
 	};
 };
 

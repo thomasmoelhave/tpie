@@ -54,8 +54,8 @@ struct input_t : public pipe_segment {
 		dest.end();
 	}
 
-	const pipe_segment * get_next() const {
-		return &dest;
+	void push_successors(std::deque<const pipe_segment *> & q) const {
+		q.push_back(&dest);
 	}
 private:
 	dest_t dest;
@@ -128,9 +128,7 @@ struct output_t : public pipe_segment {
 	inline void end() {
 	}
 
-	const pipe_segment * get_next() const {
-		return 0;
-	}
+	void push_successors(std::deque<const pipe_segment *> &) const { }
 private:
 	file_stream<T> & fs;
 };

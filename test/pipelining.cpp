@@ -91,8 +91,8 @@ struct input_nodes_t : public pipe_segment {
 		dest.end();
 	}
 
-	const pipe_segment * get_next() const {
-		return &dest;
+	void push_successors(std::deque<const pipe_segment *> & q) const {
+		q.push_back(&dest);
 	}
 
 private:
@@ -149,8 +149,10 @@ seen_children:
 			dest.end();
 		}
 
-		const pipe_segment * get_next() const {
-			return &dest;
+		void push_successors(std::deque<const pipe_segment *> & q) const {
+			q.push_back(&dest);
+			q.push_back(&byid);
+			q.push_back(&byparent);
 		}
 
 		dest_t dest;
@@ -185,14 +187,13 @@ struct output_count_t : public pipe_segment {
 	}
 
 	inline void push(const node_output & node) {
-		std::cout << node << std::endl;
+		if (nodes < 32) std::cout << node << std::endl;
+		else if (nodes == 32) std::cout << "..." << std::endl;
 		children += node.children;
 		++nodes;
 	}
 
-	const pipe_segment * get_next() const {
-		return 0;
-	}
+	void push_successors(std::deque<const pipe_segment *> &) const { }
 };
 
 inline pipe_end<termfactory_0<output_count_t> >
@@ -232,9 +233,8 @@ struct passive_sorter {
 			tpie_delete(pbuffer);
 		}
 
-		const pipe_segment * get_next() const {
-			return 0;
-		}
+		void push_successors(std::deque<const pipe_segment *> &) const { }
+
 	private:
 		temp_file * file;
 		file_stream<node> * pbuffer;
@@ -243,7 +243,7 @@ struct passive_sorter {
 		input_t & operator=(const input_t &);
 	};
 
-	struct output_t {
+	struct output_t : public pipe_segment {
 		typedef node item_type;
 
 		inline output_t(temp_file * file)
@@ -267,6 +267,8 @@ struct passive_sorter {
 		inline void end() {
 			buffer->close();
 		}
+
+		void push_successors(std::deque<const pipe_segment *> &) const { }
 
 	private:
 		temp_file * file;
@@ -300,6 +302,10 @@ int main(int argc, char ** argv) {
 	passive_sorter<sort_by_parent> byparent;
 	pipeline p1 = input_nodes(nodes) | fork(byid.input()) | byparent.input();
 	pipeline p2 = count(byid.output(), byparent.output()) | output_count();
+	p1.plot();
+	p1.plot_phases();
+	p2.plot();
+	p2.plot_phases();
 	p1();
 	p2();
 	tpie_finish();

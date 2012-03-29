@@ -22,6 +22,7 @@
 
 #include <tpie/types.h>
 #include <iostream>
+#include <deque>
 
 namespace tpie {
 
@@ -40,10 +41,11 @@ struct pipe_segment {
 	virtual ~pipe_segment() {}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Return the pipe_segment that receives items from this segment
-	/// (directly or indirectly), or NULL if we are a terminus segment.
+	/// \brief Push to the given deque the pipe_segments that receive items
+	/// from this segment (directly or indirectly). If we are a terminus
+	/// segment, no segments are pushed.
 	///////////////////////////////////////////////////////////////////////////
-	virtual const pipe_segment * get_next() const = 0;
+	virtual void push_successors(std::deque<const pipe_segment *> &) const = 0;
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief True if our successor segment does not begin processing before

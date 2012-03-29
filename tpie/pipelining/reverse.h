@@ -56,8 +56,8 @@ struct reverser {
 			*it++ = item;
 		}
 
-		const pipe_segment * get_next() const {
-			return *sourcep;
+		void push_successors(std::deque<const pipe_segment *> & q) const {
+			q.push_back(*sourcep);
 		}
 
 		bool buffering() const {
@@ -105,8 +105,8 @@ struct reverser {
 			dest.end();
 		}
 
-		const pipe_segment * get_next() const {
-			return &dest;
+		void push_successors(std::deque<const pipe_segment *> & q) const {
+			q.push_back(&dest);
 		}
 	private:
 		dest_t dest;

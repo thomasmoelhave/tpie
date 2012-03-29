@@ -45,8 +45,8 @@ struct linear_t : public pipe_segment {
 		dest.push(item*factor+term);
 	}
 
-	const pipe_segment * get_next() const {
-		return &dest;
+	void push_successors(std::deque<const pipe_segment *> & q) const {
+		q.push_back(&dest);
 	}
 private:
 	dest_t dest;

@@ -43,12 +43,12 @@ struct multiply_t : public pipe_segment {
 		dest.push(factor*item);
 	}
 
+	void push_successors(std::deque<const pipe_segment *> & q) const {
+		q.push_back(&dest);
+	}
+
 	dest_t dest;
 	uint64_t factor;
-
-	const pipe_segment * get_next() const {
-		return &dest;
-	}
 };
 
 pipe_middle<factory_1<multiply_t, uint64_t> > multiply(uint64_t factor) {

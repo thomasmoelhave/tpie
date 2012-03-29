@@ -74,8 +74,6 @@ struct printf_ints_t : public pipe_segment {
 	inline void push(item_type i) {
 		printf("%d\n", i);
 	}
-
-	const pipe_segment * get_next() const { return 0; }
 };
 
 pipe_begin<factory_0<scanf_ints_t> >

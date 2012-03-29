@@ -24,24 +24,36 @@
 #include <boost/unordered_map.hpp>
 #include <iostream>
 #include <tpie/disjoint_sets.h>
+#include <boost/unordered_set.hpp>
 
 namespace tpie {
 
 namespace pipelining {
+
+std::ostream & operator<<(std::ostream & s, const pipe_segment * p) {
+	return s << '(' << typeid(*p).name() << " *) " << static_cast<const void *>(p);
+}
 
 typedef boost::unordered_map<const pipe_segment *, size_t> nodes_t;
 
 nodes_t nodes(const pipe_segment & r) {
 	nodes_t numbers;
 	size_t next_number = 0;
-	const pipe_segment * c = &r;
-	while (c != 0) {
+	std::deque<const pipe_segment *> q;
+	boost::unordered_set<const pipe_segment *> seen;
+	q.push_back(&r);
+	while (!q.empty()) {
+		const pipe_segment * c = q.front();
+		q.pop_front();
+
+		if (seen.count(c)) continue;
+		seen.insert(c);
+
 		if (!numbers.count(c)) {
-			//out << '"' << next_number << "\";\n";
 			numbers.insert(std::make_pair(c, next_number));
 			++next_number;
 		}
-		c = c->get_next();
+		c->push_successors(q);
 	}
 	return numbers;
 }
@@ -52,9 +64,12 @@ tpie::disjoint_sets<size_t> phases(const nodes_t & n) {
 		res.make_set(i->second);
 	}
 	for (nodes_t::const_iterator i = n.begin(); i != n.end(); ++i) {
-		const pipe_segment * next = i->first->get_next();
-		if (next && !i->first->buffering())
-			res.union_set(i->second, n.find(next)->second);
+		if (i->first->buffering()) continue;
+		std::deque<const pipe_segment *> q;
+		i->first->push_successors(q);
+		for (std::deque<const pipe_segment *>::iterator j = q.begin(); j != q.end(); ++j) {
+			res.union_set(i->second, n.find(*j)->second);
+		}
 	}
 	return res;
 }
@@ -66,20 +81,16 @@ void pipeline_impl<fact_t>::actual_plot(std::ostream & out) {
 	for (nodes_t::iterator i = n.begin(); i != n.end(); ++i) {
 		out << '"' << i->first << "\";\n";
 	}
-	{
-		const pipe_segment * c = &r;
-		while (c != 0) {
-			//size_t number = n.find(c)->second;
-			const pipe_segment * next = c->get_next();
-			if (next) {
-				//size_t next_number = n.find(next)->second;
-				out << '"' << c << "\" -> \"" << next;
-				if (c->buffering())
-					out << "\" [style=dashed];\n";
-				else
-					out << "\";\n";
-			}
-			c = next;
+	for (nodes_t::iterator i = n.begin(); i != n.end(); ++i) {
+		const pipe_segment * c = i->first;
+		std::deque<const pipe_segment *> q;
+		c->push_successors(q);
+		for (std::deque<const pipe_segment *>::iterator j = q.begin(); j != q.end(); ++j) {
+			out << '"' << c << "\" -> \"" << *j;
+			if (c->buffering())
+				out << "\" [style=dashed];\n";
+			else
+				out << "\";\n";
 		}
 	}
 	out << '}' << std::endl;

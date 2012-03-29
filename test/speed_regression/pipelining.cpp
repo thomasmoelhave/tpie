@@ -56,8 +56,8 @@ struct number_generator_t : public pipe_segment {
 		dest.end();
 	}
 
-	const pipe_segment * get_next() const {
-		return &dest;
+	void push_successors(std::deque<const pipe_segment *> & q) const {
+		q.push_back(&dest);
 	}
 private:
 	dest_t dest;
@@ -72,9 +72,7 @@ struct number_sink_t : public pipe_segment {
 	inline void push(const test_t & item) {
 		output = output + item;
 	}
-	const pipe_segment * get_next() const {
-		return 0;
-	}
+	void push_successors(std::deque<const pipe_segment *> &) const { }
 private:
 	test_t & output;
 };
