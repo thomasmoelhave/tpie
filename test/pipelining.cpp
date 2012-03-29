@@ -225,8 +225,8 @@ struct passive_sorter {
 		inline void end() {
 			pbuffer->seek(0);
 			pred_t pred;
-			STL2TPIE_cmp<node, pred_t> tpiecmp(&pred);
-			sort(*pbuffer, *pbuffer, &tpiecmp);
+			progress_indicator_null pi;
+			sort(*pbuffer, *pbuffer, pred, pi);
 			pbuffer->close();
 
 			tpie_delete(pbuffer);
