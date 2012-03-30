@@ -270,11 +270,9 @@ fractional_subindicator::~fractional_subindicator() {
 }
 
 fractional_progress::fractional_progress(progress_indicator_base * pi):
+	m_pi(pi), m_add_state(true),
 #ifndef TPIE_NDEBUG
 	m_init_called(false),
-#endif
-	m_pi(pi), m_add_state(true), 
-#ifndef TPIE_NDEBUG
 	m_done_called(false),
 #endif
 	m_confidence(1.0), m_total_sum(0), m_time_sum(0), m_timed_sum(0) {}

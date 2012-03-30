@@ -261,14 +261,14 @@ TPIE_OS_OFFSET execution_time_predictor::end_execution() {
 
 std::string execution_time_predictor::estimate_remaining_time(double progress) {
     double time = static_cast<double>((boost::posix_time::microsec_clock::local_time()-m_start_time).total_milliseconds());
-	time -= (s_pause_time - m_pause_time_at_start);
+	time -= static_cast<double>(s_pause_time - m_pause_time_at_start);
 
 	double a = m_confidence * (1.0 - progress);
 	double b = (1.0-m_confidence) * (1.0 - progress) + progress;
 
 	double t2 = (progress < 0.00001)?0:time/progress;
 	if (m_confidence * a + progress * b < 0.2) return "Estimating";
-	double estimate = m_estimate * a  + t2 * b;
+	double estimate = static_cast<double>(m_estimate) * a  + t2 * b;
 	
 	double remaining = estimate * (1.0-progress);
 
