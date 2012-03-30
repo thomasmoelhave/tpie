@@ -172,7 +172,7 @@ stack<T>::stack() :
 	m_file_stream(),
     m_size(0) {
 
-	m_file_stream.open(m_temp.path());
+	m_file_stream.open(m_temp);
 
 }
 
