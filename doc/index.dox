@@ -24,6 +24,7 @@ file a <a href="https://github.com/thomasmoelhave/tpie/issues">bug report on Git
   - \ref priority_queue (contains complete example)
   - \ref memory
   - \ref progress
+  - \ref fractiondb
 
 \subsection sec_history History
 
