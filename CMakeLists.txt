@@ -94,7 +94,6 @@ if (COMPILE_TEST)
 	ENABLE_TESTING()
 	add_subdirectory(test)
 	add_subdirectory(apps)
-	add_subdirectory(example)
 endif (COMPILE_TEST)
 
 include(InstallRequiredSystemLibraries)
@@ -128,5 +127,8 @@ install(DIRECTORY tpie
 	DESTINATION include
 	FILES_MATCHING REGEX "\\.h$|\\.inl$"
 	PATTERN "deadcode" EXCLUDE)
+
+install(DIRECTORY share/tpie
+	DESTINATION share)
 
 include(CPack)
