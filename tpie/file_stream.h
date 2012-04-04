@@ -461,8 +461,10 @@ private:
 		// If the file contains n-1 full blocks and a single non-full block, we may
 		// request any block in {0, 1, ... n-1}
 
-		// We capture this restraint with the assertion:
-		assert(block * static_cast<stream_size_type>(m_blockItems) <= size());
+		// We capture this restraint with the check:
+		if (block * static_cast<stream_size_type>(m_blockItems) > size()) {
+			throw end_of_stream_exception();
+		}
 
 		m_block.dirty = false;
 		m_block.number = block;
