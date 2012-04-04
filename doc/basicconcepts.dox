@@ -1,5 +1,103 @@
 /**
-\page basicconcepts Basic concepts
+\page basicconcepts Overview and basic concepts
+
+The data sets
+involved in some modern applications are too large to fit in the main
+memory of even the most powerful computers and must therefore reside
+on disk.  Thus communication between internal and external memory, and
+not actual computation time, often becomes the bottleneck in the
+computation. This is due to the huge difference in access time of fast
+internal memory and slower external memory such as disks. While
+typical access time of main memory is measured in nanoseconds, a
+typical access time of a disk is on the order of
+milliseconds [cockcroft:sun]. So roughly speaking there is a
+factor of a million difference in the access time of internal and
+external memory. A good example of an applications involving massive
+amounts of geometric data is NASA's Earth Observation System
+(EOS) [cromp, kobler:nasa], which is expected to manipulate
+petabytes (thousands of terabytes, or millions of gigabytes) of data.
+
+The goal of theoretical work in the area of <em>external memory (EM)
+  algorithms</em> (also called <em>I/O algorithms</em> or <em>out-of-core
+  algorithms</em>) is to eliminate or minimize the I/O bottleneck through
+better algorithm design. In order to cope with the high cost of
+accessing data, efficient EM algorithms exploit locality in their
+design.  They access a large \em block of \em B contiguous data
+elements at a time and perform the necessary algorithmic steps on the
+elements in the block while in the high-speed memory. The speedup can
+be considerable.  A second effective strategy for EM algorithms is the
+use of multiple parallel disks; whenever an input/output operation is
+performed, \em D blocks are transferred in parallel between memory and
+each of the \em D disks (one block per disk).
+
+The study of EM algorithm design was effectively started in the late
+eighties by Aggarwal and Vitter [aggarwal:input] and an important
+model for designing I/O algorithms called the Parallel Disk Model
+(PDM) was later proposed by Vitter and Shriver [vitter:parmem1].
+The PDM proposed that a good EM algorithm should transfer data between
+main memory and disk in a blocked manner, and should use all of the
+available disks concurrently. An optimal EM algorithm under this model
+minimizes the number of such blocked, parallel I/O operations it
+performs.
+ 
+Subsequently, I/O algorithms for the PDM (mostly with a single disk
+and single processor) have been developed for many problem domains,
+including computational
+geometry [aapv-fibld-01, goodrich:external, arge:buffer, arge:theory, arge:gis,
+aamvv-empgbtag97, arge:interval, kanellakis:indexing, ramaswamy:path,
+subramanian:p-range, vengroff:efficient, agarwal:efficient, zhu:further,
+agarwal:point, arge:scalable, arge:theory, callahan:topology, franciosa:orders,
+grossi:cross-tree, arge:tpie], 
+graph algorithms [chiang:external, arge:buffer, kumar:improved,
+abello:functional, crauser:randomized, arge:obdd, feuerstein:memory,
+nodine:blocking, ullman:input], 
+and string processing [ferragina:fully, ferragina:fast, arge:strings,
+crauser:construction].
+
+The use of parallel disks
+ has also received some
+theoretical
+attention [vitter:parmem1, nodine:deterministic, nodine:greed, dehne:efficient, dehne:reducing].
+There are more complicated models than the PDM, designed to address
+the I/O bottleneck in different ways. These include models that
+address the communication bottleneck between multiple layers in memory
+hierarchies, and models incorporating
+parallel processors as well as parallel
+disks [cormen:challenge, dehne:efficient, dehne:reducing].
+
+Implementations of these theoretical results are scarce. TPIE, <em>a
+  Transparent Parallel I/O Environment</em>, is intended to bridge the gap
+between the theory and practice of parallel I/O systems. On one hand,
+TPIE attempts to provide usable implementations of (sometimes complex)
+theoretical algorithms, feeding back that experience to algorithm
+designers. On the other hand, TPIE also accommodates the use of
+heuristics from the practice of I/O algorithms in order to achieve
+maximum performance. Other EM implementation work includes
+benchmarking of certain geometric I/O algorithms by
+Chiang [chiang:experiments], experiments with FFT and related
+algorithms by Cormen et al. [cormen:ffts], implementation of the
+buffer tree [arge:buffer] by Hutchinson
+et al. [hutchinson:early], and the LEDA-SM system for
+implementing data types by Crauser et al.[mehlhorn:ledasm].
+Surveys of previous work in EM algorithm design and implementation can
+be found in [arge:gisbook, arge:thesis, vitter:dimacssurvey]
+
+The objectives of the TPIE project include the following:
+
+- <em>Abstract away the details of how I/O is performed</em> so that
+  programmers need only deal with a simple high level interface.
+- <em>Provide a collection of I/O-optimal paradigms</em> for large
+  scale computation that are efficient not only in theory, but also in
+  practice.
+- <em>Be flexible</em>, allowing programmers to specify the
+  functional details of computation taking place within the supported
+  paradigms.  This will allow a wide variety of algorithms to be
+  implemented within the system.
+- <em>Be portable</em> across a variety hardware platforms.
+- <em>Be extensible</em>, so that new features can be easily added
+  later.
+
+\section basicconcepts Basic concepts
 
 TPIE is written in the C++ language, and this manual assumes that
 the reader is familiar with C++.
@@ -83,4 +181,102 @@ output stream for the results.
 Creating a stream of objects in TPIE is very much like creating any
 other object in C++. The only difference is that the data placed in
 the stream is stored in external memory (on disk).
+
+\section introreferences References
+
+aamvv-empgbtag97: P. K. Agarwal and L. Arge and T. M. Murali and K. Varadarajan and J. S. Vitter, I/O-Efficient Algorithms for Contour Line Extraction and Planar Graph Blocking
+
+aapv-fibld-01: Pankaj K. Agarwal and Lars Arge and Octavian Procopiuc and Jeffrey S. Vitter, A Framework for Index Bulk Loading and Dynamization
+
+abello:functional: J. Abello and A. L. Buchsbaum and J. R. Westbrook., A functional approach to external graph algorithms
+
+agarwal:efficient: P. K. Agarwal and L. Arge and J. Erickson and P. Franciosa and J. Vitter, Efficient Searching with Linear Constraints
+
+agarwal:point: P. K.  Agarwal and L. Arge and G. S. Brodal and J. S. Vitter, I/O-Efficient Dynamic Point Location in Monotone Planar Subdivisions
+
+aggarwal:input: A. Aggarwal and J.~S. Vitter, The Input/Output Complexity of Sorting and Related Problems
+
+arge:buffer: L. Arge, The Buffer Tree: A New Technique for Optimal I/O-Algorithms
+
+arge:gis: L. Arge and D. E. Vengroff and J. S. Vitter, External-Memory Algorithms for Processing Line Segments in Geographic Information Systems
+
+arge:gisbook: L. Arge, External-Memory Algorithms with Applications in Geographic Information Systems
+
+arge:interval: L. Arge and J. S. Vitter, Optimal Dynamic Interval Management in External Memory
+
+arge:obdd: L. Arge, The I/O-Complexity of Ordered Binary-Decision Diagram Manipulation
+
+arge:scalable: L. Arge and O. Procopiuc and S. Ramaswamy and T. Suel and J. S. Vitter, Scalable Sweeping-Based Spatial Join
+
+arge:strings: L. Arge and P. Ferragina and R. Grossi and J. Vitter, On Sorting Strings in External Memory
+
+arge:theory: L. Arge and O. Procopiuc and S. Ramaswamy and T. Suel and J. S. Vitter, Theory and Practice of I/O-Efficient Algorithms for Multidimensional Batched Searching Problems
+
+arge:thesis: L. Arge, Efficient External-Memory Data Structures and Applications
+
+arge:tpie: L. Arge and O. Procopiuc and J. S. Vitter, Implementing I/O-Efficient Data Structures Using TPIE
+
+callahan:topology: P. Callahan and M. T. Goodrich and K. Ramaiyer, Topology B-trees and Their Applications
+
+chiang:experiments: Y.-J. Chiang, Experiments on the Practical I/O Efficiency of Geometric Algorithms: Distribution Sweep vs. Plane Sweep
+
+chiang:external: Y.-J. Chiang and M. T. Goodrich and E. F. Grove and R. Tamassia and D. E. Vengroff and J. S. Vitter, External-Memory Graph Algorithms
+
+cockcroft:sun: A. Cockcroft, Sun Performance and Tuning. SPARC \& Solaris
+
+cormen:challenge: T. H. Cormen and M. T. Goodrich, Position Statement, ACM Workshop on Strategic Directions in Computing Research: Working Group on Storage I/O for Large-Scale Computing
+
+cormen:ffts: Thomas H. Cormen and David M. Nicol, Performing Out-of-Core FFTs on Parallel Disk Systems
+
+crauser:construction: A. Crauser and P. Ferragina, On the construction of suffix arrays in external memory
+
+crauser:randomized: A. Crauser and P. Ferragina and K. Mehlhorn and U. Meyer and E. Ramos, Randomized external-memory algorithms for geometric problems
+
+cromp: R. F. Cromp, An Intellegent Information Fusion System for Handling the Archiving and Querying of Terabyte-sized Spatial Databases
+
+dehne:efficient: F. Dehne and W. Dittrich and D. Hutchinson, Efficient External Memory Algorithms by SImulating Coarse-Grained Parallel Algorithms
+
+dehne:reducing: F. Dehne and D. Hutchinson and A. Maheshwari, Reducing I/O complexity by simulating coarse grained parallel algorithms
+
+ferragina:fast: P. Ferragina and R. Grossi, Fast String Searching in Secondary Storage: Theoretical Developments and Experimental Results
+
+ferragina:fully: P. Ferragina and R. Grossi, A fully-Dynamic Data Structure for External Substring Search
+
+feuerstein:memory: E. Feuerstein and A. Marchetti-Spaccamela, Memory paging for connectivity and path problems in graphs
+
+franciosa:orders: P. G. Franciosa and M. Talamo, Orders, $k$-sets and fast halfplane search on paged memory
+
+goodrich:external: M. T. Goodrich and J.-J. Tsay and D. E. Vengroff and J. S. Vitter, External-Memory Computational Geometry
+
+grossi:cross-tree: R. Grossi and G. F. Italiano, Efficient cross-tree for external memory
+
+hutchinson:early: D. Hutchinson and A. Maheshwari and J-R. Sack and R. Velicescu, Early Experiences in Implementing the Buffer Tree
+
+kanellakis:indexing: P. C. Kanellakis and S. Ramaswamy and D. E. Vengroff and J. S. Vitter, Indexing for Data Models with Constraints and Classes
+
+kobler:nasa: B. Kobler and J. Berbert, NASA Earth Observing Systems Data Information System (EOSDIS)
+
+kumar:improved: V. Kumar and E. Schwabe, Improved Algorithms and Data Structures for Solving Graph Problems in External Memory
+
+mehlhorn:ledasm: A. Crauser and K. Mehlhorn, LEDA-SM: Extending LEDA to Secondary Memory
+
+nodine:blocking: M. H. Nodine and M. T. Goodrich and J. S. Vitter, Blocking for External Graph Searching
+
+nodine:deterministic: M. H. Nodine and J. S. Vitter, Deterministic Distribution Sort in Shared and Distributed Memory Multiprocessors
+
+nodine:greed: M. H. Nodine and J. S. Vitter, Greed Sort: An Optimal Sorting Algorithm for Multiple Disks
+
+ramaswamy:path: S. Ramaswamy and S. Subramanian, Path Caching: A Technique for Optimal External Searching
+
+subramanian:p-range: S. Subramanian and S. Ramaswamy, The P-range Tree: A New Data Structure for Range Searching in Secondary Memory
+
+ullman:input: J. D. Ullman and M. Yannakakis, The input/output complexity of transitive closure
+
+vengroff:efficient: D. E. Vengroff and J. S. Vitter, Efficient 3-D Range Searching in External Memory
+
+vitter:dimacssurvey: J. S. Vitter, External Memory Algorithms and Data Structures
+
+vitter:parmem1: J. S. Vitter and E. A. M. Shriver, Algorithms for Parallel Memory, I: Two-level Memories
+
+zhu:further: B. Zhu, Further Computational Geometry in Secondary Memory
 */
