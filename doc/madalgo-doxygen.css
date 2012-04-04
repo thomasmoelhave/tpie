@@ -1014,6 +1014,7 @@ body {
 	padding: 0 4px 4px 4px;
 	font-size: 13px;
 	width: auto;
+	display: none;
 }
 
 .tabs {
