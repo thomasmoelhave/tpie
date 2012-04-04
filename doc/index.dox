@@ -11,10 +11,10 @@ structures on very large sets of data.
 If you have problems compiling or using TPIE, consult the API documentation, or
 file a <a href="https://github.com/thomasmoelhave/tpie/issues">bug report on GitHub</a>.
 
+  - \ref basicconcepts of I/O algorithms
+  - \ref install
   - \ref repository
   - \ref files
-  - \ref install
-  - \ref basicconcepts of I/O algorithms
 
 \subsection sec_usage Usage
 
