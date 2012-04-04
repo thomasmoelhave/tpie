@@ -442,7 +442,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces.
 
-INPUT                  = @tpie_SOURCE_DIR@/tpie @tpie_SOURCE_DIR@/doc
+INPUT                  = @tpie_SOURCE_DIR@/tpie @tpie_SOURCE_DIR@/doc @tpie_BINARY_DIR@/doc
 
 # If the value of the INPUT tag contains directories, you can use the 
 # FILE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp 
@@ -477,7 +477,7 @@ EXCLUDE_SYMLINKS       = NO
 # against the file with absolute path, so to exclude all test directories 
 # for example use the pattern */test/*
 
-EXCLUDE_PATTERNS       = */deadcode/* */olddoc/*
+EXCLUDE_PATTERNS       = */deadcode/* */olddoc/* */doc/code/*
 
 # The EXAMPLE_PATH tag can be used to specify one or more files or 
 # directories that contain example code fragments that are included (see 

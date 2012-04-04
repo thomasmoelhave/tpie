@@ -17,8 +17,6 @@ If you wish to store the result in a new stream, the function call is
 occupied by instream in total.
 
 \code
-tpie::file_stream<int> mystream;
-mystream.open("data.tpie");
-tpie::sort(mystream, mystream);
+@DOCCODE_SORTING_EXTERNAL@
 \endcode
 */
