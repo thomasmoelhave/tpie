@@ -33,6 +33,7 @@ The main methods of interest are \ref tpie::file_stream::open(),
 \ref tpie::file_stream::close(), \ref tpie::file_stream::read(),
 \ref tpie::file_stream::write(), \ref tpie::file_stream::seek().
 
-By default, \ref file_stream reads and writes blocks of size 2 MB at a time. You can
-change this by passing a block factor to the constructor of file_stream.
+By default, \ref tpie::file_stream reads and writes blocks of size 2 MB at a
+time. You can change this by passing a block factor to the constructor of
+file_stream.
 */
