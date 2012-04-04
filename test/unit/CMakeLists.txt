@@ -35,6 +35,7 @@ add_unittest(parallel_sort basic1 equal_elements)
 add_unittest(serialization unsafe safe)
 add_unittest(stream basic)
 add_unittest(stats basic)
+add_unittest(stream_exception basic)
 
 add_fulltest(external_priority_queue medium large large_cycle memory)
 add_fulltest(external_sort amilarge large)
