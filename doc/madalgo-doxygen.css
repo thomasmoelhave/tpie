@@ -1071,3 +1071,7 @@ body {
 	display: inline-block;
 	font-size: 300%;
 }
+
+.textblock {
+	max-width: 50em;
+}
