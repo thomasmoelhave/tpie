@@ -1074,6 +1074,7 @@ body {
 
 .textblock {
 	max-width: 50em;
+	text-align: justify;
 	hyphens: auto;
 	-moz-hyphens: auto;
 	-o-hyphens: auto;
