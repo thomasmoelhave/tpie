@@ -10,6 +10,19 @@
 <script type="text/javascript" src="resize.js"></script>
 <script type="text/javascript">
 $(document).ready(initResizable);
+function setback(e) {
+  if (window.backlink) window.backlink.name = '';
+  window.backlink = this;
+  this.name = 'back';
+}
+$(function () {
+  var as = $('a');
+  for (var i = 0, l = as.length; i < l; ++i) {
+    if (as[i].href.indexOf('#') != -1 && as[i].href.indexOf('#back') == -1) {
+      as[i].onclick = setback;
+    }
+  }
+});
 </script>
 <link href="madalgo-doxygen.css" rel="stylesheet" type="text/css"/>
 </head>

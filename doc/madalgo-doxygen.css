@@ -1081,3 +1081,7 @@ body {
 	-ms-hyphens: auto;
 	-webkit-hyphens: auto;
 }
+
+:target {
+	background-color: #DDEEFF;
+}
