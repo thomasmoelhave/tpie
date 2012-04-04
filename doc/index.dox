@@ -28,7 +28,7 @@ file a <a href="https://github.com/thomasmoelhave/tpie/issues">bug report on Git
 
 \subsection sec_history History
 
-Originally, TPIE was known as the Transparent Portable I/O Environment and was
+Originally, TPIE was known as the Transparent Parallel I/O Environment and was
 hosted by <a href="http://www.cs.duke.edu/TPIE/">Duke University</a>. Later, the work has
 been picked up by researchers at <a href="http://www.madalgo.au.dk/Trac-tpie">MADALGO, Aarhus
 University</a>.
