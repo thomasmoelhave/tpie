@@ -52,13 +52,16 @@ my @referencestrings = $bibfile =~ m/^@(?:article|book|incollection|inproceeding
 
 print "bibfile is ".length($bibfile)." bytes and has ".scalar(@referencestrings)." references\ninput is ".length($input)." bytes\n";
 
+my %referenceorder = ();
 my %references;
 my $refstring;
 for $refstring (@referencestrings) {
     my ($handle) = ($refstring =~ m/ *([^ ,]*)/);
-    if (-1 == index $input, $handle) {
+	my $pos = index $input, $handle;
+    if (-1 == $pos) {
 		next;
     }
+	$referenceorder{$pos} = $handle;
 
     my %attrs = map {
 		if ($refstring =~ /$_\s+=\s+\{(.*?)\}, *$/msi) {
@@ -81,17 +84,24 @@ for $refstring (@referencestrings) {
     print "$handle is $attrs{title}\n";
 }
 
+my $n = 1;
+for my $pos (sort {$a <=> $b} keys %referenceorder) {
+	my $handle = $referenceorder{$pos};
+	$references{$handle}->{'num'} = $n;
+	++$n;
+}
+
 for $refstring (keys %references) {
     my $ref = $references{$refstring};
-    $input =~ s/\b$refstring\b/<a href="#$ref->{link}">$refstring<\/a>/g;
+    $input =~ s/\b$refstring\b/<a href="#$ref->{link}">$ref->{num}<\/a>/g;
 }
 
 print $ofp $input;
 
-for my $refstring (sort keys %references) {
+for my $refstring (sort {$references{$a}->{num} <=> $references{$b}->{num}} keys %references) {
     my $ref = $references{$refstring};
     print $ofp '<a href="#back">^</a> ';
-    print $ofp "<span id=\"$ref->{link}\">$refstring: $ref->{author}, $ref->{title}<\/span>\n\n";
+    print $ofp "<span id=\"$ref->{link}\">$ref->{num}: $ref->{author}, $ref->{title}<\/span>\n\n";
 }
 
 print $ofp "*/\n";
