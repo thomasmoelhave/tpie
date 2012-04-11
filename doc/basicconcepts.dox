@@ -192,7 +192,7 @@ the stream is stored in external memory (on disk).
 
 <a href="#back">^</a> <span id="agarwalefficient">agarwal:efficient: P. K. Agarwal and L. Arge and J. Erickson and P. Franciosa and J. Vitter, Efficient Searching with Linear Constraints</span>
 
-<a href="#back">^</a> <span id="agarwalpoint">agarwal:point: P. K.  Agarwal and L. Arge and G. S. Brodal and J. S. Vitter, I/O-Efficient Dynamic Point Location in Monotone Planar Subdivisions</span>
+<a href="#back">^</a> <span id="agarwalpoint">agarwal:point: P. K. Agarwal and L. Arge and G. S. Brodal and J. S. Vitter, I/O-Efficient Dynamic Point Location in Monotone Planar Subdivisions</span>
 
 <a href="#back">^</a> <span id="aggarwalinput">aggarwal:input: A. Aggarwal and J.~S. Vitter, The Input/Output Complexity of Sorting and Related Problems</span>
 
@@ -222,7 +222,7 @@ the stream is stored in external memory (on disk).
 
 <a href="#back">^</a> <span id="chiangexternal">chiang:external: Y.-J. Chiang and M. T. Goodrich and E. F. Grove and R. Tamassia and D. E. Vengroff and J. S. Vitter, External-Memory Graph Algorithms</span>
 
-<a href="#back">^</a> <span id="cockcroftsun">cockcroft:sun: A. Cockcroft, Sun Performance and Tuning. SPARC \& Solaris</span>
+<a href="#back">^</a> <span id="cockcroftsun">cockcroft:sun: A. Cockcroft, Sun Performance and Tuning. SPARC & Solaris</span>
 
 <a href="#back">^</a> <span id="cormenchallenge">cormen:challenge: T. H. Cormen and M. T. Goodrich, Position Statement, ACM Workshop on Strategic Directions in Computing Research: Working Group on Storage I/O for Large-Scale Computing</span>
 
@@ -279,4 +279,5 @@ the stream is stored in external memory (on disk).
 <a href="#back">^</a> <span id="vitterparmem1">vitter:parmem1: J. S. Vitter and E. A. M. Shriver, Algorithms for Parallel Memory, I: Two-level Memories</span>
 
 <a href="#back">^</a> <span id="zhufurther">zhu:further: B. Zhu, Further Computational Geometry in Secondary Memory</span>
+
 */
