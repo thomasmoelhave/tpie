@@ -11,7 +11,7 @@ auxiliary file.
 
 If \c helloworld is compiled without the \c NO_FRACTION_STATS define, upon
 exiting, the program will write the fraction database to a file named
-\c fractiondb.gen.cpp. When compiled with the \c NO_FRACTION_STATS define, this
+\c fractiondb.gen.inl. When compiled with the \c NO_FRACTION_STATS define, this
 file is included in the source code.
 
 The following example is from the \c main function in \c helloworld.cpp.
