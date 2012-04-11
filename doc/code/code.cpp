@@ -1,5 +1,6 @@
 #include <tpie/dummy_progress.h>
 #include <tpie/file_stream.h>
+#include <tpie/fractional_progress.h>
 #include <tpie/parallel_sort.h>
 #include <tpie/priority_queue.h>
 #include <tpie/progress_indicator_arrow.h>
@@ -49,7 +50,13 @@ const size_t y = 1;
 }
 
 namespace _g {
+using namespace tpie;
+const int elements = 1;
+inline void write_number_stream(fractional_subindicator &) {}
+inline void sort_number_stream(fractional_subindicator &) {}
+void progress() {
 #include "progress2.inl"
+}
 }
 
 namespace _h {
