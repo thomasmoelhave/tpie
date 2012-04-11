@@ -24,22 +24,22 @@ use warnings;
 use strict;
 
 if (!@ARGV) {
-    print "Parameters: <inputfile> <outputfile>\n";
-    exit;
+	print "Parameters: <inputfile> <outputfile>\n";
+	exit;
 }
 
 # read an entire file
 sub slurp {
-    my ($filename) = @_;
-    my $contents;
-    {
+	my ($filename) = @_;
+	my $contents;
+	{
 		my $fp;
 		open $fp, '<', $filename;
 		local $/ = undef;
 		$contents = <$fp>;
 		close $fp;
-    }
-    return $contents;
+	}
+	return $contents;
 }
 
 my $bibfile = slurp 'tpie.bib';
@@ -56,14 +56,14 @@ my %referenceorder = ();
 my %references;
 my $refstring;
 for $refstring (@referencestrings) {
-    my ($handle) = ($refstring =~ m/ *([^ ,]*)/);
+	my ($handle) = ($refstring =~ m/ *([^ ,]*)/);
 	my $pos = index $input, $handle;
-    if (-1 == $pos) {
+	if (-1 == $pos) {
 		next;
-    }
+	}
 	$referenceorder{$pos} = $handle;
 
-    my %attrs = map {
+	my %attrs = map {
 		if ($refstring =~ /$_\s+=\s+\{(.*?)\}, *$/msi) {
 			my $s = $1;
 			$s =~ s/[{}\\]//g;
@@ -73,15 +73,15 @@ for $refstring (@referencestrings) {
 			warn "No $_ in $handle";
 			($_, "No $_");
 		}
-    } qw(author title);
+	} qw(author title);
 
-    my $link = $handle;
-    $link =~ s/://g;
-    $attrs{'link'} = $link;
+	my $link = $handle;
+	$link =~ s/://g;
+	$attrs{'link'} = $link;
 
-    $references{$handle} = \%attrs;
+	$references{$handle} = \%attrs;
 
-    print "$handle is $attrs{title}\n";
+	print "$handle is $attrs{title}\n";
 }
 
 my $n = 1;
@@ -92,16 +92,16 @@ for my $pos (sort {$a <=> $b} keys %referenceorder) {
 }
 
 for $refstring (keys %references) {
-    my $ref = $references{$refstring};
-    $input =~ s/\b$refstring\b/<a href="#$ref->{link}">$ref->{num}<\/a>/g;
+	my $ref = $references{$refstring};
+	$input =~ s/\b$refstring\b/<a href="#$ref->{link}">$ref->{num}<\/a>/g;
 }
 
 print $ofp $input;
 
 for my $refstring (sort {$references{$a}->{num} <=> $references{$b}->{num}} keys %references) {
-    my $ref = $references{$refstring};
-    print $ofp '<a href="#back">^</a> ';
-    print $ofp "<span id=\"$ref->{link}\">$ref->{num}: $ref->{author}, $ref->{title}<\/span>\n\n";
+	my $ref = $references{$refstring};
+	print $ofp '<a href="#back">^</a> ';
+	print $ofp "<span id=\"$ref->{link}\">$ref->{num}: $ref->{author}, $ref->{title}<\/span>\n\n";
 }
 
 print $ofp "*/\n";
