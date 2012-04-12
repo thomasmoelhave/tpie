@@ -3,7 +3,7 @@
 
 Internal memory sorting is implemented in \ref parallel_sort.h as a parallel
 quick sort with a sequential partition step. The implementation uses the TPIE
-job manager, implemented in \ref job.h and \ref job.cpp.
+job manager, implemented in \ref job.h and job.cpp.
 
 Like std::sort, the input to parallel sorting is given as two forward
 iterators, \c begin and \c end. It is then up to the implementation to spawn as
