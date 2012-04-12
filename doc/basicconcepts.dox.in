@@ -25,62 +25,9 @@ accessing data, efficient EM algorithms exploit locality in their
 design.  They access a large \em block of \em B contiguous data
 elements at a time and perform the necessary algorithmic steps on the
 elements in the block while in the high-speed memory. The speedup can
-be considerable.  A second effective strategy for EM algorithms is the
-use of multiple parallel disks; whenever an input/output operation is
-performed, \em D blocks are transferred in parallel between memory and
-each of the \em D disks (one block per disk).
-
-The study of EM algorithm design was effectively started in the late
-eighties by Aggarwal and Vitter [aggarwal:input] and an important
-model for designing I/O algorithms called the Parallel Disk Model
-(PDM) was later proposed by Vitter and Shriver [vitter:parmem1].
-The PDM proposed that a good EM algorithm should transfer data between
-main memory and disk in a blocked manner, and should use all of the
-available disks concurrently. An optimal EM algorithm under this model
-minimizes the number of such blocked, parallel I/O operations it
-performs.
- 
-Subsequently, I/O algorithms for the PDM (mostly with a single disk
-and single processor) have been developed for many problem domains,
-including computational
-geometry [aapv-fibld-01, goodrich:external, arge:buffer, arge:theory, arge:gis,
-aamvv-empgbtag97, arge:interval, kanellakis:indexing, ramaswamy:path,
-subramanian:p-range, vengroff:efficient, agarwal:efficient, zhu:further,
-agarwal:point, arge:scalable, arge:theory, callahan:topology, franciosa:orders,
-grossi:cross-tree, arge:tpie], 
-graph algorithms [chiang:external, arge:buffer, kumar:improved,
-abello:functional, crauser:randomized, arge:obdd, feuerstein:memory,
-nodine:blocking, ullman:input], 
-and string processing [ferragina:fully, ferragina:fast, arge:strings,
-crauser:construction].
-
-The use of parallel disks
- has also received some
-theoretical
-attention [vitter:parmem1, nodine:deterministic, nodine:greed, dehne:efficient, dehne:reducing].
-There are more complicated models than the PDM, designed to address
-the I/O bottleneck in different ways. These include models that
-address the communication bottleneck between multiple layers in memory
-hierarchies, and models incorporating
-parallel processors as well as parallel
-disks [cormen:challenge, dehne:efficient, dehne:reducing].
-
-Implementations of these theoretical results are scarce. TPIE, <em>a
-  Transparent Parallel I/O Environment</em>, is intended to bridge the gap
-between the theory and practice of parallel I/O systems. On one hand,
-TPIE attempts to provide usable implementations of (sometimes complex)
-theoretical algorithms, feeding back that experience to algorithm
-designers. On the other hand, TPIE also accommodates the use of
-heuristics from the practice of I/O algorithms in order to achieve
-maximum performance. Other EM implementation work includes
-benchmarking of certain geometric I/O algorithms by
-Chiang [chiang:experiments], experiments with FFT and related
-algorithms by Cormen et al. [cormen:ffts], implementation of the
-buffer tree [arge:buffer] by Hutchinson
-et al. [hutchinson:early], and the LEDA-SM system for
-implementing data types by Crauser et al.[mehlhorn:ledasm].
-Surveys of previous work in EM algorithm design and implementation can
-be found in [arge:gisbook, arge:thesis, vitter:dimacssurvey]
+be considerable. See the surveys by Vitter [vitter:iosurvey] and Arge
+[arge:handbook] for other results, including I/O-efficient algorithms for
+various geometric and graph problems.
 
 The objectives of the TPIE project include the following:
 

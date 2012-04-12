@@ -25,62 +25,9 @@ accessing data, efficient EM algorithms exploit locality in their
 design.  They access a large \em block of \em B contiguous data
 elements at a time and perform the necessary algorithmic steps on the
 elements in the block while in the high-speed memory. The speedup can
-be considerable.  A second effective strategy for EM algorithms is the
-use of multiple parallel disks; whenever an input/output operation is
-performed, \em D blocks are transferred in parallel between memory and
-each of the \em D disks (one block per disk).
-
-The study of EM algorithm design was effectively started in the late
-eighties by Aggarwal and Vitter [<a href="#aggarwalinput">4</a>] and an important
-model for designing I/O algorithms called the Parallel Disk Model
-(PDM) was later proposed by Vitter and Shriver [<a href="#vitterparmem1">5</a>].
-The PDM proposed that a good EM algorithm should transfer data between
-main memory and disk in a blocked manner, and should use all of the
-available disks concurrently. An optimal EM algorithm under this model
-minimizes the number of such blocked, parallel I/O operations it
-performs.
- 
-Subsequently, I/O algorithms for the PDM (mostly with a single disk
-and single processor) have been developed for many problem domains,
-including computational
-geometry [<a href="#aapv-fibld-01">6</a>, <a href="#goodrichexternal">7</a>, <a href="#argebuffer">8</a>, <a href="#argetheory">9</a>, <a href="#argegis">10</a>,
-<a href="#aamvv-empgbtag97">11</a>, <a href="#argeinterval">12</a>, <a href="#kanellakisindexing">13</a>, <a href="#ramaswamypath">14</a>,
-<a href="#subramanianp-range">15</a>, <a href="#vengroffefficient">16</a>, <a href="#agarwalefficient">17</a>, <a href="#zhufurther">18</a>,
-<a href="#agarwalpoint">19</a>, <a href="#argescalable">20</a>, <a href="#argetheory">9</a>, <a href="#callahantopology">21</a>, <a href="#franciosaorders">22</a>,
-<a href="#grossicross-tree">23</a>, <a href="#argetpie">24</a>], 
-graph algorithms [<a href="#chiangexternal">25</a>, <a href="#argebuffer">8</a>, <a href="#kumarimproved">26</a>,
-<a href="#abellofunctional">27</a>, <a href="#crauserrandomized">28</a>, <a href="#argeobdd">29</a>, <a href="#feuersteinmemory">30</a>,
-<a href="#nodineblocking">31</a>, <a href="#ullmaninput">32</a>], 
-and string processing [<a href="#ferraginafully">33</a>, <a href="#ferraginafast">34</a>, <a href="#argestrings">35</a>,
-<a href="#crauserconstruction">36</a>].
-
-The use of parallel disks
- has also received some
-theoretical
-attention [<a href="#vitterparmem1">5</a>, <a href="#nodinedeterministic">37</a>, <a href="#nodinegreed">38</a>, <a href="#dehneefficient">39</a>, <a href="#dehnereducing">40</a>].
-There are more complicated models than the PDM, designed to address
-the I/O bottleneck in different ways. These include models that
-address the communication bottleneck between multiple layers in memory
-hierarchies, and models incorporating
-parallel processors as well as parallel
-disks [<a href="#cormenchallenge">41</a>, <a href="#dehneefficient">39</a>, <a href="#dehnereducing">40</a>].
-
-Implementations of these theoretical results are scarce. TPIE, <em>a
-  Transparent Parallel I/O Environment</em>, is intended to bridge the gap
-between the theory and practice of parallel I/O systems. On one hand,
-TPIE attempts to provide usable implementations of (sometimes complex)
-theoretical algorithms, feeding back that experience to algorithm
-designers. On the other hand, TPIE also accommodates the use of
-heuristics from the practice of I/O algorithms in order to achieve
-maximum performance. Other EM implementation work includes
-benchmarking of certain geometric I/O algorithms by
-Chiang [<a href="#chiangexperiments">42</a>], experiments with FFT and related
-algorithms by Cormen et al. [<a href="#cormenffts">43</a>], implementation of the
-buffer tree [<a href="#argebuffer">8</a>] by Hutchinson
-et al. [<a href="#hutchinsonearly">44</a>], and the LEDA-SM system for
-implementing data types by Crauser et al.[<a href="#mehlhornledasm">45</a>].
-Surveys of previous work in EM algorithm design and implementation can
-be found in [<a href="#argegisbook">46</a>, <a href="#argethesis">47</a>, <a href="#vitterdimacssurvey">48</a>]
+be considerable. See the surveys by Vitter [<a href="#vitteriosurvey">4</a>] and Arge
+[<a href="#argehandbook">5</a>] for other results, including I/O-efficient algorithms for
+various geometric and graph problems.
 
 The objectives of the TPIE project include the following:
 
@@ -190,94 +137,8 @@ the stream is stored in external memory (on disk).
 
 <a href="#back">^</a> <span id="koblernasa">3: B. Kobler and J. Berbert, NASA Earth Observing Systems Data Information System (EOSDIS)</span>
 
-<a href="#back">^</a> <span id="aggarwalinput">4: A. Aggarwal and J.~S. Vitter, The Input/Output Complexity of Sorting and Related Problems</span>
+<a href="#back">^</a> <span id="vitteriosurvey">4: J. S. Vitter, External Memory Algorithms and Data Structures: Dealing with MASSIVE Data</span>
 
-<a href="#back">^</a> <span id="vitterparmem1">5: J. S. Vitter and E. A. M. Shriver, Algorithms for Parallel Memory, I: Two-level Memories</span>
-
-<a href="#back">^</a> <span id="aapv-fibld-01">6: Pankaj K. Agarwal and Lars Arge and Octavian Procopiuc and Jeffrey S. Vitter, A Framework for Index Bulk Loading and Dynamization</span>
-
-<a href="#back">^</a> <span id="goodrichexternal">7: M. T. Goodrich and J.-J. Tsay and D. E. Vengroff and J. S. Vitter, External-Memory Computational Geometry</span>
-
-<a href="#back">^</a> <span id="argebuffer">8: L. Arge, The Buffer Tree: A New Technique for Optimal I/O-Algorithms</span>
-
-<a href="#back">^</a> <span id="argetheory">9: L. Arge and O. Procopiuc and S. Ramaswamy and T. Suel and J. S. Vitter, Theory and Practice of I/O-Efficient Algorithms for Multidimensional Batched Searching Problems</span>
-
-<a href="#back">^</a> <span id="argegis">10: L. Arge and D. E. Vengroff and J. S. Vitter, External-Memory Algorithms for Processing Line Segments in Geographic Information Systems</span>
-
-<a href="#back">^</a> <span id="aamvv-empgbtag97">11: P. K. Agarwal and L. Arge and T. M. Murali and K. Varadarajan and J. S. Vitter, I/O-Efficient Algorithms for Contour Line Extraction and Planar Graph Blocking</span>
-
-<a href="#back">^</a> <span id="argeinterval">12: L. Arge and J. S. Vitter, Optimal Dynamic Interval Management in External Memory</span>
-
-<a href="#back">^</a> <span id="kanellakisindexing">13: P. C. Kanellakis and S. Ramaswamy and D. E. Vengroff and J. S. Vitter, Indexing for Data Models with Constraints and Classes</span>
-
-<a href="#back">^</a> <span id="ramaswamypath">14: S. Ramaswamy and S. Subramanian, Path Caching: A Technique for Optimal External Searching</span>
-
-<a href="#back">^</a> <span id="subramanianp-range">15: S. Subramanian and S. Ramaswamy, The P-range Tree: A New Data Structure for Range Searching in Secondary Memory</span>
-
-<a href="#back">^</a> <span id="vengroffefficient">16: D. E. Vengroff and J. S. Vitter, Efficient 3-D Range Searching in External Memory</span>
-
-<a href="#back">^</a> <span id="agarwalefficient">17: P. K. Agarwal and L. Arge and J. Erickson and P. Franciosa and J. Vitter, Efficient Searching with Linear Constraints</span>
-
-<a href="#back">^</a> <span id="zhufurther">18: B. Zhu, Further Computational Geometry in Secondary Memory</span>
-
-<a href="#back">^</a> <span id="agarwalpoint">19: P. K. Agarwal and L. Arge and G. S. Brodal and J. S. Vitter, I/O-Efficient Dynamic Point Location in Monotone Planar Subdivisions</span>
-
-<a href="#back">^</a> <span id="argescalable">20: L. Arge and O. Procopiuc and S. Ramaswamy and T. Suel and J. S. Vitter, Scalable Sweeping-Based Spatial Join</span>
-
-<a href="#back">^</a> <span id="callahantopology">21: P. Callahan and M. T. Goodrich and K. Ramaiyer, Topology B-trees and Their Applications</span>
-
-<a href="#back">^</a> <span id="franciosaorders">22: P. G. Franciosa and M. Talamo, Orders, $k$-sets and fast halfplane search on paged memory</span>
-
-<a href="#back">^</a> <span id="grossicross-tree">23: R. Grossi and G. F. Italiano, Efficient cross-tree for external memory</span>
-
-<a href="#back">^</a> <span id="argetpie">24: L. Arge and O. Procopiuc and J. S. Vitter, Implementing I/O-Efficient Data Structures Using TPIE</span>
-
-<a href="#back">^</a> <span id="chiangexternal">25: Y.-J. Chiang and M. T. Goodrich and E. F. Grove and R. Tamassia and D. E. Vengroff and J. S. Vitter, External-Memory Graph Algorithms</span>
-
-<a href="#back">^</a> <span id="kumarimproved">26: V. Kumar and E. Schwabe, Improved Algorithms and Data Structures for Solving Graph Problems in External Memory</span>
-
-<a href="#back">^</a> <span id="abellofunctional">27: J. Abello and A. L. Buchsbaum and J. R. Westbrook., A functional approach to external graph algorithms</span>
-
-<a href="#back">^</a> <span id="crauserrandomized">28: A. Crauser and P. Ferragina and K. Mehlhorn and U. Meyer and E. Ramos, Randomized external-memory algorithms for geometric problems</span>
-
-<a href="#back">^</a> <span id="argeobdd">29: L. Arge, The I/O-Complexity of Ordered Binary-Decision Diagram Manipulation</span>
-
-<a href="#back">^</a> <span id="feuersteinmemory">30: E. Feuerstein and A. Marchetti-Spaccamela, Memory paging for connectivity and path problems in graphs</span>
-
-<a href="#back">^</a> <span id="nodineblocking">31: M. H. Nodine and M. T. Goodrich and J. S. Vitter, Blocking for External Graph Searching</span>
-
-<a href="#back">^</a> <span id="ullmaninput">32: J. D. Ullman and M. Yannakakis, The input/output complexity of transitive closure</span>
-
-<a href="#back">^</a> <span id="ferraginafully">33: P. Ferragina and R. Grossi, A fully-Dynamic Data Structure for External Substring Search</span>
-
-<a href="#back">^</a> <span id="ferraginafast">34: P. Ferragina and R. Grossi, Fast String Searching in Secondary Storage: Theoretical Developments and Experimental Results</span>
-
-<a href="#back">^</a> <span id="argestrings">35: L. Arge and P. Ferragina and R. Grossi and J. Vitter, On Sorting Strings in External Memory</span>
-
-<a href="#back">^</a> <span id="crauserconstruction">36: A. Crauser and P. Ferragina, On the construction of suffix arrays in external memory</span>
-
-<a href="#back">^</a> <span id="nodinedeterministic">37: M. H. Nodine and J. S. Vitter, Deterministic Distribution Sort in Shared and Distributed Memory Multiprocessors</span>
-
-<a href="#back">^</a> <span id="nodinegreed">38: M. H. Nodine and J. S. Vitter, Greed Sort: An Optimal Sorting Algorithm for Multiple Disks</span>
-
-<a href="#back">^</a> <span id="dehneefficient">39: F. Dehne and W. Dittrich and D. Hutchinson, Efficient External Memory Algorithms by SImulating Coarse-Grained Parallel Algorithms</span>
-
-<a href="#back">^</a> <span id="dehnereducing">40: F. Dehne and D. Hutchinson and A. Maheshwari, Reducing I/O complexity by simulating coarse grained parallel algorithms</span>
-
-<a href="#back">^</a> <span id="cormenchallenge">41: T. H. Cormen and M. T. Goodrich, Position Statement, ACM Workshop on Strategic Directions in Computing Research: Working Group on Storage I/O for Large-Scale Computing</span>
-
-<a href="#back">^</a> <span id="chiangexperiments">42: Y.-J. Chiang, Experiments on the Practical I/O Efficiency of Geometric Algorithms: Distribution Sweep vs. Plane Sweep</span>
-
-<a href="#back">^</a> <span id="cormenffts">43: Thomas H. Cormen and David M. Nicol, Performing Out-of-Core FFTs on Parallel Disk Systems</span>
-
-<a href="#back">^</a> <span id="hutchinsonearly">44: D. Hutchinson and A. Maheshwari and J-R. Sack and R. Velicescu, Early Experiences in Implementing the Buffer Tree</span>
-
-<a href="#back">^</a> <span id="mehlhornledasm">45: A. Crauser and K. Mehlhorn, LEDA-SM: Extending LEDA to Secondary Memory</span>
-
-<a href="#back">^</a> <span id="argegisbook">46: L. Arge, External-Memory Algorithms with Applications in Geographic Information Systems</span>
-
-<a href="#back">^</a> <span id="argethesis">47: L. Arge, Efficient External-Memory Data Structures and Applications</span>
-
-<a href="#back">^</a> <span id="vitterdimacssurvey">48: J. S. Vitter, External Memory Algorithms and Data Structures</span>
+<a href="#back">^</a> <span id="argehandbook">5: L. Arge, External Memory Data Structures</span>
 
 */
