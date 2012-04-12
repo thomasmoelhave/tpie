@@ -106,10 +106,11 @@ objects of a particular type, stored in external memory, and accessed
 in sequential order. Streams can be thought of as fundamental TPIE
 objects which map volatile, typed application data elements in
 internal memory to persistent, untyped data elements in external
-memory, and vice-versa.  Streams are read and written like files in
+memory, and vice-versa. See \ref tpie::file_stream.
+Streams are read and written like files in
 Unix and support a number of primitive file-like operations such as
 \c read(), \c write(), \c truncate(), etc.
-TPIE also supports the concept of a \em substream, which
+TPIE also supports the concept of a \em substream, see \ref tpie::file, which
 permits a contiguous subset of the elements in a stream to
 accessed sequentially.
 
@@ -123,7 +124,7 @@ amount to event handlers, specifying the application-specific
 details of the computation. For instance in sorting, the programmer
 defines a stream of input data, a comparison operator (the event handler
 for the task of comparing two application data elements), and an
-output stream for the results.
+output stream for the results. See also \ref tpie::sort.
 
 Creating a stream of objects in TPIE is very much like creating any
 other object in C++. The only difference is that the data placed in
