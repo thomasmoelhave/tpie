@@ -84,7 +84,6 @@ namespace tpie {
 	namespace ami {
 		inline err exception_kind(const exception & e) {
 			if (0 != dynamic_cast<const end_of_stream_exception *>(&e)) return END_OF_STREAM;
-			if (0 != dynamic_cast<const already_sorted_exception *>(&e)) return SORT_ALREADY_SORTED;
 			return BTE_ERROR;
 		}
 	}
