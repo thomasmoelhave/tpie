@@ -1,0 +1,12 @@
+#top, #side-nav, #nav-path { display: none }
+#doc-content {
+	margin: 0 auto !important;
+	height: auto !important;
+	width: 80%;
+}
+.textblock {
+	max-width: none;
+}
+body, table, div, p, dl {
+	font-family: serif !important;
+}
