@@ -1085,3 +1085,12 @@ body {
 :target {
 	background-color: #DDEEFF;
 }
+
+/* Ew, tables! Let's fix that with a bit of CSS. */
+.memname * { display: inline !important; }
+.memname { white-space: normal; }
+table.memname { display: block; margin-left: 9px; }
+td.memname { margin-left: 0; }
+
+/* avoid page breaking method descriptions */
+.memitem { display: inline-block; width: 100%; }
