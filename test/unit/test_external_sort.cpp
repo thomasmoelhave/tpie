@@ -136,6 +136,9 @@ bool perform_test(const std::string & test) {
 	if (test == "small") {
 		progress_indicator_null pi(1);
 		return sort_test(1024 * 1024 * 8, pi);
+	} else if (test == "single") {
+		progress_indicator_arrow pi("Sort", 1);
+		return sort_test(1, pi);
 	} else if (test == "large") {
 		progress_indicator_arrow pi("Sort", 1);
 		return sort_test(1024*1024*128, pi);
