@@ -22,8 +22,8 @@ accessing data, efficient EM algorithms exploit locality in their
 design.  They access a large \em block of \em B contiguous data
 elements at a time and perform the necessary algorithmic steps on the
 elements in the block while in the high-speed memory. The speedup can
-be considerable. See the surveys by Vitter [<a href="#vitteriosurvey">1</a>] and Arge
-[<a href="#argehandbook">2</a>] for other results, including I/O-efficient algorithms for
+be considerable. See the surveys by Vitter [<a href="#vitteriosurvey" id="backlink1">1</a>] and Arge
+[<a href="#argehandbook" id="backlink2">2</a>] for other results, including I/O-efficient algorithms for
 various geometric and graph problems.
 
 The objectives of the TPIE project include the following:
@@ -129,8 +129,8 @@ the stream is stored in external memory (on disk).
 
 \section introreferences References
 
-<a href="#back">^</a> <span id="vitteriosurvey">1: J. S. Vitter, External Memory Algorithms and Data Structures: Dealing with MASSIVE Data</span>
+<a href="#backlink1">^</a> <span id="vitteriosurvey">1: J. S. Vitter, External Memory Algorithms and Data Structures: Dealing with MASSIVE Data</span>
 
-<a href="#back">^</a> <span id="argehandbook">2: L. Arge, External Memory Data Structures</span>
+<a href="#backlink2">^</a> <span id="argehandbook">2: L. Arge, External Memory Data Structures</span>
 
 */
