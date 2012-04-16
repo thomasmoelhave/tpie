@@ -34,7 +34,7 @@ namespace tpie {
 	/// Declares for an AMI stream under which circumstances it should be
 	/// deleted.
 	///////////////////////////////////////////////////////////////////////////
-    enum persistence {
+    enum TPIE_DEPRECATED_CLASS_B persistence {
 	/** Delete the stream from the disk when it is destructed. */
 	PERSIST_DELETE = 0,
 	/** Do not delete the stream from the disk when it is destructed. */
@@ -43,7 +43,7 @@ namespace tpie {
 	 * If not supported by the OS (see portability.h), delete
 	 * the stream when it is destructed (see PERSIST_DELETE). */
 	PERSIST_READ_ONCE = 0
-    };
+    } TPIE_DEPRECATED_CLASS_C;
 
 }  //  tpie namespace 
 
