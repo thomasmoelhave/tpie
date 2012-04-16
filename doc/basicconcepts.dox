@@ -129,8 +129,31 @@ the stream is stored in external memory (on disk).
 
 \section introreferences References
 
-<a href="#backlink1">^</a> <span id="vitteriosurvey">1: J. S. Vitter, External Memory Algorithms and Data Structures: Dealing with MASSIVE Data</span>
+<a href="#backlink1">^</a> <span id="vitteriosurvey">1: J. S. Vitter: External Memory Algorithms and Data Structures: Dealing with MASSIVE Data, ACM Computing Surveys (2001)</span>
 
-<a href="#backlink2">^</a> <span id="argehandbook">2: L. Arge, External Memory Data Structures</span>
+<a href="#backlink2">^</a> <span id="argehandbook">2: L. Arge: External Memory Data Structures, from Handbook of Massive Data Sets (2002)</span>
+
+<!--
+@article{vitter:iosurvey,
+author = {J. S. Vitter},
+title  = {External Memory Algorithms and Data Structures: 
+Dealing with {MASSIVE} Data},  
+journal  = survey,
+volume = 33,
+number = 2,
+year = {2001},
+pages = {209--271}
+}
+
+@incollection{arge:handbook,
+ author =      {L. Arge},
+ title =       {External Memory Data Structures},
+ booktitle =   {Handbook of Massive Data Sets},
+ editor =      {J. Abello and P. M. Pardalos and M. G. C. Resende},
+ publisher =   {Kluwer Academic Publishers},
+ pages =       {313-358},
+ year =        2002
+}
+-->
 
 */
