@@ -10,12 +10,9 @@ computation. This is due to the huge difference in access time of fast
 internal memory and slower external memory such as disks. While
 typical access time of main memory is measured in nanoseconds, a
 typical access time of a disk is on the order of
-milliseconds [<a href="#cockcroftsun">1</a>]. So roughly speaking there is a
+milliseconds. So roughly speaking there is a
 factor of a million difference in the access time of internal and
-external memory. A good example of an applications involving massive
-amounts of geometric data is NASA's Earth Observation System
-(EOS) [<a href="#cromp">2</a>, <a href="#koblernasa">3</a>], which is expected to manipulate
-petabytes (thousands of terabytes, or millions of gigabytes) of data.
+external memory.
 
 The goal of theoretical work in the area of <em>external memory (EM)
   algorithms</em> (also called <em>I/O algorithms</em> or <em>out-of-core
@@ -25,8 +22,8 @@ accessing data, efficient EM algorithms exploit locality in their
 design.  They access a large \em block of \em B contiguous data
 elements at a time and perform the necessary algorithmic steps on the
 elements in the block while in the high-speed memory. The speedup can
-be considerable. See the surveys by Vitter [<a href="#vitteriosurvey">4</a>] and Arge
-[<a href="#argehandbook">5</a>] for other results, including I/O-efficient algorithms for
+be considerable. See the surveys by Vitter [<a href="#vitteriosurvey">1</a>] and Arge
+[<a href="#argehandbook">2</a>] for other results, including I/O-efficient algorithms for
 various geometric and graph problems.
 
 The objectives of the TPIE project include the following:
@@ -132,14 +129,8 @@ the stream is stored in external memory (on disk).
 
 \section introreferences References
 
-<a href="#back">^</a> <span id="cockcroftsun">1: A. Cockcroft, Sun Performance and Tuning. SPARC & Solaris</span>
+<a href="#back">^</a> <span id="vitteriosurvey">1: J. S. Vitter, External Memory Algorithms and Data Structures: Dealing with MASSIVE Data</span>
 
-<a href="#back">^</a> <span id="cromp">2: R. F. Cromp, An Intellegent Information Fusion System for Handling the Archiving and Querying of Terabyte-sized Spatial Databases</span>
-
-<a href="#back">^</a> <span id="koblernasa">3: B. Kobler and J. Berbert, NASA Earth Observing Systems Data Information System (EOSDIS)</span>
-
-<a href="#back">^</a> <span id="vitteriosurvey">4: J. S. Vitter, External Memory Algorithms and Data Structures: Dealing with MASSIVE Data</span>
-
-<a href="#back">^</a> <span id="argehandbook">5: L. Arge, External Memory Data Structures</span>
+<a href="#back">^</a> <span id="argehandbook">2: L. Arge, External Memory Data Structures</span>
 
 */

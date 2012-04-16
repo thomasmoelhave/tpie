@@ -10,12 +10,9 @@ computation. This is due to the huge difference in access time of fast
 internal memory and slower external memory such as disks. While
 typical access time of main memory is measured in nanoseconds, a
 typical access time of a disk is on the order of
-milliseconds [cockcroft:sun]. So roughly speaking there is a
+milliseconds. So roughly speaking there is a
 factor of a million difference in the access time of internal and
-external memory. A good example of an applications involving massive
-amounts of geometric data is NASA's Earth Observation System
-(EOS) [cromp, kobler:nasa], which is expected to manipulate
-petabytes (thousands of terabytes, or millions of gigabytes) of data.
+external memory.
 
 The goal of theoretical work in the area of <em>external memory (EM)
   algorithms</em> (also called <em>I/O algorithms</em> or <em>out-of-core
