@@ -54,4 +54,23 @@ pre {
    text-decoration: none;
 }
 
+#recentactivity {
+   border: 1px inset;
+   width: 60%;
+   margin: 1em 0;
+   background-color: #eee;
+   font-size: 90%;
+   padding: .5em;
+}
+
+#recentactivity ul {
+   margin-top: 0;
+   margin-bottom: 0;
+}
+
+#recentactivity em {
+   font-weight: bold;
+   font-style: normal;
+}
+
 /* vim:set sw=3 ts=3 sts=3 et: */

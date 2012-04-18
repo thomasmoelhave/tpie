@@ -6,6 +6,7 @@
   <link rel="stylesheet" type="text/css" href="style.css" />
   <script type="text/javascript" src="jquery.min.js"></script>
   <script type="text/javascript" src="colors.js"></script>
+  <script type="text/javascript" src="github.js"></script>
  </head>
  <body>
 
@@ -16,6 +17,11 @@
  <li class="itemB"><a href="https://github.com/thomasmoelhave/tpie/issues">Bug tracker</a></li>
  <li class="itemC"><a href="#mailinglists">Mailing lists</a></li>
 </ul>
+
+<div id="recentactivity">
+<em>Recent GitHub activity:</em>
+<ul id="githubactivity"></ul>
+</div>
 
 <p>TPIE is a library for manipulating large datasets on a desktop computer.
 TPIE provides implementations of several external memory algorithms and data
@@ -64,5 +70,6 @@ using the command:</p>
 <style type="text/css">.dummyrule {}</style>
 <input class="colour" style="opacity: 0.1; width: 90%" />
 
+<script type="text/javascript" src="events.js"></script>
  </body>
 </html>
