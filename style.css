@@ -1,0 +1,53 @@
+body {
+   background-color: #f9f9f9;
+   color: #222;
+   font-family: Helvetica, sans-serif;
+   margin: 20px;
+   max-width: 1000px;
+}
+
+h1, h2 {
+   border-bottom: 2px solid currentColor;
+}
+
+h1 { color: hsl(208, 53%, 23%) }
+h2 { color: hsl(15, 86%, 36%) }
+
+a:link    { color: #14f; }
+a:visited { color: #32f; }
+a:hover   { color: #36c; }
+a:active  { color: #3c3; }
+
+pre {
+   border: 1px solid #888;
+   padding: 5px;
+}
+
+.menu, .menu li {
+   margin: 0;
+   padding: 0;
+   list-style-type: none;
+}
+
+.menu li {
+   display: inline-block;
+   padding: 3px;
+   width: 140px;
+   background-color: #666;
+   text-align: center;
+}
+
+.menu :hover li {
+   background-color: #333;
+}
+
+.menu :active li {
+   background-color: #060;
+}
+
+.menu li, .menu a {
+   color: white;
+   text-decoration: none;
+}
+
+/* vim:set sw=3 ts=3 sts=3 et: */

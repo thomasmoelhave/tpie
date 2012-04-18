@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="utf-8" />
+  <title>TPIE &ndash; The Templated Portable I/O Environment</title>
+  <link rel="stylesheet" type="text/css" href="style.css" />
+  <script type="text/javascript" src="jquery.min.js"></script>
+  <script type="text/javascript" src="script.js"></script>
+ </head>
+ <body>
+
+<h1>TPIE &ndash; The Templated Portable I/O Environment</h1>
+
+<ul class="menu">
+ <a href="http://thomasmoelhave.github.com/tpie/"><li class="itemA">Documentation</li></a>
+ <a href="https://github.com/thomasmoelhave/tpie/issues"><li class="itemB">Bug tracker</li></a>
+</ul>
+
+<p>TPIE is a library for manipulating large datasets on a desktop computer.
+TPIE provides implementations of several external memory algorithms and data
+structures as well as a framework for efficient and portable data processing.
+Currently, TPIE provides implementations of the following algorithms and data
+structures:</p>
+
+<ul>
+ <li>External memory merge sorting</li>
+ <li>Internal parallel quick sort</li>
+ <li>Implementation of Sanders' fast priority queue for cached memory</li>
+ <li>Simple buffered stacks and queues</li>
+</ul>
+
+<p>These implementations are backed by the memory manager of TPIE which allows
+the user to specify how much internal memory to use at most. The progress
+reporting framework enables reporting accurate progress metrics.</p>
+
+<p>TPIE is written in C++ and depends on the Boost C++ libraries. TPIE may be
+compiled with GCC, Clang and MSVC, and due to its portable nature, it should be
+easy to port TPIE to other systems if this is required.</p>
+
+<h2>Downloads</h2>
+
+<p>If you want to hack on TPIE, check out the <a href="https://github.com/thomasmoelhave/tpie/tree/filestream">filestream branch of TPIE</a> using the command:</p>
+
+<pre>git clone -b filestream git://github.com/thomasmoelhave/tpie.git</pre>
+
+
+<div style="margin-top: 10em">
+<a href="#" onclick="colors.randomize(); return false">Colors</a>
+</div>
+<style type="text/css">.dummyrule {}</style>
+<input class="colour" style="opacity: 0.1; width: 90%" />
+
+ </body>
+</html>
