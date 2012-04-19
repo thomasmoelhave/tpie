@@ -27,9 +27,9 @@ ADD_CUSTOM_TARGET(apidocs
 #variables placing the result in the build directory
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${DOXYFILE} @ONLY)
 
-set(S ${CMAKE_CURRENT_SOURCE_DIR})
+set(S ${PROJECT_SOURCE_DIR}/doc)
 set(C ${S}/code)
-set(B ${CMAKE_CURRENT_BINARY_DIR})
+set(B ${PROJECT_BINARY_DIR}/doc)
 
 file(READ ${C}/file_stream.inl DOCCODE_FILE_STREAM)
 configure_file(${S}/file_stream.dox.in ${B}/file_stream.dox @ONLY)
