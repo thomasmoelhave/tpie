@@ -1,5 +1,5 @@
 #Path to output doxygen configuration file
-SET(DOXYFILE ${CURRENT_BINARY_DIR}/Doxyfile)
+SET(DOXYFILE ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
 
 #Search for doxygen
 find_package(Doxygen)
