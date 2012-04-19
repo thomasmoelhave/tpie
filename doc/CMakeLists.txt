@@ -27,8 +27,8 @@ ADD_CUSTOM_TARGET(apidocs
 #variables placing the result in the build directory
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${DOXYFILE} @ONLY)
 
-set(TPIE_DOCS ${PROJECT_SOURCE_DIR}/doc)
-set(TPIE_DOCB ${PROJECT_BINARY_DIR}/doc)
+set(TPIE_DOCS ${CMAKE_CURRENT_SOURCE_DIR})
+set(TPIE_DOCB ${CMAKE_CURRENT_BINARY_DIR})
 set(TPIE_DOCC ${TPIE_DOCS}/code)
 
 file(READ ${TPIE_DOCC}/file_stream.inl DOCCODE_FILE_STREAM)
