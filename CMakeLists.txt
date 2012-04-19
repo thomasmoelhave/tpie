@@ -1,4 +1,5 @@
-cmake_minimum_required(VERSION 2.6)
+# doc/CMakeLists.txt uses configure_file behavior from CMake 2.8
+cmake_minimum_required(VERSION 2.8)
 
 project(tpie)
 
