@@ -160,9 +160,9 @@ bool perform_test(const std::string & test) {
 		progress_indicator_null pi(1);
 		return sort_test(1024 * 1024 * 8, pi);
 	} else if (test == "tall") {
-		const int megabytes = 7;
-		const size_t size = 1024;
-		tpie::get_memory_manager().set_limit(megabytes*1024*1024);
+		//const int mem = (17*1024+52)*1024+760;
+		const size_t size = 22*1024*1024;
+		tpie::get_memory_manager().set_limit(size);
 		progress_indicator_arrow pi("Sort", size);
 		return sort_test(size, pi);
 	} else if (test == "large") {
