@@ -447,7 +447,7 @@ INPUT += @tpie_SOURCE_DIR@/doc/index.dox
 
 # Getting started
 INPUT += @tpie_SOURCE_DIR@/doc/basicconcepts.dox
-INPUT += @tpie_SOURCE_DIR@/doc/install.dox
+INPUT += @tpie_SOURCE_DIR@/doc/setup.dox
 INPUT += @tpie_SOURCE_DIR@/doc/repository.dox
 INPUT += @tpie_SOURCE_DIR@/doc/files.dox
 

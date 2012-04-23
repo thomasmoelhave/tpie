@@ -60,9 +60,7 @@ void progress() {
 }
 
 namespace _h {
-void sort() {
 #include "sorting_external.inl"
-}
 }
 
 namespace _i {
