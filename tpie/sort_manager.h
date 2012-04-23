@@ -195,12 +195,13 @@ void sort_manager<T,I,M>::sort(file_stream<T>* in, file_stream<T>* out,
 
 	if (inStream->size() < 2) {
 		m_indicator->init(1); m_indicator->step(); m_indicator->done();
+		in->seek(0);
 		if (in != out) {
-			in->seek(0);
 			out->seek(0);
-			out->write(in->read());
-			return;
+			if (in->size() == 1)
+				out->write(in->read());
 		}
+		return;
 	}
 	    
 	// Else, there is something to sort, do it
