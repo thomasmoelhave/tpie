@@ -375,13 +375,12 @@ void sort_manager<T,I,M>::compute_sort_params(void){
 	// cost of Input stream already accounted for in mmBytesAvail..
 	TPIE_OS_SIZE_T mmBytesFixedForMerge = m_mergeHeap->space_overhead() +
 		mmBytesPerStream;
+
+	if (mmBytesFixedForMerge > mmBytesAvail) {
+		throw stream_exception("Insufficient memory for merge heap and output stream");
+	}
 	    
 	TPIE_OS_SIZE_T mmBytesAvailMerge = mmBytesAvail - mmBytesFixedForMerge;
-
-	// Need to support at least binary merge
-	if(mmBytesAvailMerge<2*mmBytesPerMergeItem){
-		throw stream_exception("Merge arity < 2 -- Insufficient memory for a merge.");
-	}
 
 	// Cast down from TPIE_OS_OFFSET (type of mmBytesAvail).
 	// mmBytesPerMergeItem is at least 1KB, so we are OK unless we
@@ -394,6 +393,11 @@ void sort_manager<T,I,M>::compute_sort_params(void){
 				 << " bytes per merge item=" <<  static_cast<TPIE_OS_OUTPUT_SIZE_T>(mmBytesPerMergeItem)
 				 << " initial mrgArity=" << static_cast<TPIE_OS_OUTPUT_SIZE_T>(mrgArity) << "\n");
 	    
+	// Need to support at least binary merge
+	if(mrgArity < 2) {
+		throw stream_exception("Merge arity < 2 -- Insufficient memory for a merge.");
+	}
+
 	// Make sure that the AMI is willing to provide us with the
 	// number of substreams we want.  It may not be able to due to
 	// operating system restrictions, such as on the number of regions
