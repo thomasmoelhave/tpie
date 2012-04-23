@@ -2,19 +2,27 @@
 \mainpage Main page
 \section sec_first TPIE - The Templated Portable I/O Environment
 
-The TPIE (Templated Portable I/O Environment) library is a tool box providing
-efficient and convenient tools to ease the implementation of algorithm and data
-structures on very large sets of data.
+The Templated Portable I/O Environment (TPIE) library is a tool-box
+providing efficient and convenient tools to ease the implementation of
+algorithm and data structures on very large sets of data. The
+algorithms and data structures that form the core of TPIE all provide
+efficient worst-case space, time and disk usage guarantees.
 
 \subsection sec_help Getting started
 
-If you have problems compiling or using TPIE, consult the API documentation, or
-file a <a href="https://github.com/thomasmoelhave/tpie/issues">bug report on GitHub</a>.
+This documentation contain a few sections that help you start out with tpie:
 
-  - \ref basicconcepts of I/O algorithms
   - \ref install
+  - \ref basicconcepts of I/O algorithms
   - \ref repository
   - \ref files
+
+Please feel free to file a <a
+href="https://github.com/thomasmoelhave/tpie/issues">bug report on
+GitHub</a> or submit a patch if you are experiencing an issue not
+addressed in the documentation. You can also try asking on the
+<em>tpie-devel</em> mailing-list which can be accessed from the <a
+href="http://madalgo.au.dk/tpie">tpie homepage</a>.
 
 \subsection sec_usage Usage
 
@@ -28,14 +36,18 @@ file a <a href="https://github.com/thomasmoelhave/tpie/issues">bug report on Git
 
 \subsection sec_history History
 
-Originally, TPIE was known as the Transparent Parallel I/O Environment and was
-hosted by <a href="http://www.cs.duke.edu/TPIE/">Duke University</a>. Later, the work has
-been picked up by researchers at <a href="http://www.madalgo.au.dk/Trac-tpie">MADALGO, Aarhus
-University</a>.
+Originally, TPIE was known as the Transparent Parallel I/O
+Environment, it was started by researchers from the <a
+href="http://www.cs.duke.edu">Computer Science Department</a> at <a
+href="http://www.duke.edu/">Duke University</a> in 1994. TPIE is
+currently developed by researchers at The Center for Massive Data
+Algorithmics (<a href="http://www.madalgo.au.dk">MADALGO</a>) at <a
+href="http://au.dk">Aarhus University</a> in Aarhus, Denmark as well
+as a group of contributors in Europe and the US.
 
-List of \ref authors.
+A full list of current and past contributors can be found in the \ref authors section.
 
-As of 2012, the current maintainer is
+The current maintainer is
 <a href="http://cs.au.dk/~rav/">Mathias Rav</a>.
 
 */
