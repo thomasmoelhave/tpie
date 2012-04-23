@@ -27,6 +27,7 @@
 #include <iterator>
 #include <tpie/progress_indicator_null.h>
 #include <tpie/progress_indicator_arrow.h>
+#include <vector>
 
 class primeit {
 private:
@@ -110,6 +111,28 @@ bool ami_sort_test(size_t size) {
 	return true;
 }
 
+template <typename Progress>
+bool small_sort_test(int64_t size, Progress & pi) {
+	temp_file tmp;
+	file_stream<int64_t> mystream;
+	mystream.open(tmp.path());
+
+	std::vector<int64_t> write(size);
+	for (int64_t i = 0; i < size; ++i) {
+		write[i] = size-i;
+	}
+
+	mystream.write(write.begin(), write.end());
+	sort(mystream, pi);
+
+	mystream.seek(0);
+	for(int64_t i=0; i < size; ++i) {
+		int64_t x = mystream.read();
+		if (x != i+1) return false;
+	}
+	return !mystream.can_read();
+}
+
 template<typename Progress>
 bool sort_test(size_t size, Progress & pi) {
 	temp_file tmp;
@@ -128,7 +151,7 @@ bool sort_test(size_t size, Progress & pi) {
 		int64_t x = mystream.read();
 		if (x != i) return false;
 	}
-	return true;
+	return !mystream.can_read();
 }
 
 
@@ -136,9 +159,12 @@ bool perform_test(const std::string & test) {
 	if (test == "small") {
 		progress_indicator_null pi(1);
 		return sort_test(1024 * 1024 * 8, pi);
-	} else if (test == "single") {
-		progress_indicator_arrow pi("Sort", 1);
-		return sort_test(1, pi);
+	} else if (test == "tall") {
+		const int megabytes = 7;
+		const size_t size = 1024;
+		tpie::get_memory_manager().set_limit(megabytes*1024*1024);
+		progress_indicator_arrow pi("Sort", size);
+		return sort_test(size, pi);
 	} else if (test == "large") {
 		progress_indicator_arrow pi("Sort", 1);
 		return sort_test(1024*1024*128, pi);
@@ -146,6 +172,17 @@ bool perform_test(const std::string & test) {
 		return ami_sort_test(1024 * 1024 * 8);
 	} else if (test == "amilarge") {
 		return ami_sort_test(1024*1024*128);
+	}
+	std::stringstream ss(test);
+	size_t size;
+	ss >> size;
+	if (test == "0" || size > 0) {
+		progress_indicator_arrow pi("Sort", size);
+		if (size < 16) {
+			return small_sort_test(size, pi);
+		} else {
+			return sort_test(size, pi);
+		}
 	}
 	return false;
 }
