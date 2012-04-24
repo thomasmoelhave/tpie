@@ -184,17 +184,12 @@ void sort_manager<T,I,M>::sort(file_stream<T>* in, file_stream<T>* out,
 
 	// Basic checks that input is ok
 	if (in==NULL || out==NULL) {
-		m_indicator->init(1); m_indicator->step(); m_indicator->done();
+		if (m_indicator) {m_indicator->init(1); m_indicator->step(); m_indicator->done();}
 		throw exception("NULL_POINTER");
 	}
 
-	if (!in || !out) {
-		m_indicator->init(1); m_indicator->step(); m_indicator->done();
-		throw exception("OBJECT_INVALID");
-	}
-
 	if (inStream->size() < 2) {
-		m_indicator->init(1); m_indicator->step(); m_indicator->done();
+		if (m_indicator) {m_indicator->init(1); m_indicator->step(); m_indicator->done();}
 		in->seek(0);
 		if (in != out) {
 			out->seek(0);
