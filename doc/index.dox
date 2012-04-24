@@ -13,7 +13,7 @@ used successfully in several commercial products.
 
 \subsection sec_help Getting started
 
-This documentation contain a few sections that help you start out with tpie:
+This documentation contain a few sections that help you start out with TPIE:
 
   - \ref setup
   - \ref basicconcepts of I/O algorithms
@@ -25,14 +25,14 @@ href="https://github.com/thomasmoelhave/tpie/issues">bug report on
 GitHub</a> or submit a patch if you are experiencing an issue not
 addressed in the documentation. You can also try asking on the
 <em>tpie-devel</em> mailing-list which can be accessed from the <a
-href="http://madalgo.au.dk/tpie">tpie homepage</a>.
+href="http://madalgo.au.dk/tpie">TPIE homepage</a>.
 
 \subsection sec_usage Usage
 
 Before diving into the reference part of this documentation, you may
-find the following introductionary examples helpful. If you need help
+find the following introductory examples helpful. If you need help
 setting up a makefile for compiling these test programs, checkout the
-file \c example/CMakeLists.txt in the reposityr.
+file \c example/CMakeLists.txt in the repository.
 
   - \ref file_stream
   - \ref sorting_internal 
@@ -44,8 +44,8 @@ file \c example/CMakeLists.txt in the reposityr.
 
 \subsection sec_history History
 
-TPIE was orginally known as the Transparent Parallel I/O
-Environment, it was started by researchers from the <a
+TPIE was originally known as the Transparent Parallel I/O
+Environment. It was started by researchers from the <a
 href="http://www.cs.duke.edu">Computer Science Department</a> at <a
 href="http://www.duke.edu/">Duke University</a> in 1994. TPIE is
 currently developed by researchers at The Center for Massive Data
