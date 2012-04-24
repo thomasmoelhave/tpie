@@ -9,7 +9,7 @@ TPIE on any system. Once these dependencies have been installed, you
 should be able to use the steps in this section to compile and install
 TPIE.
 
-\section sec_setup_linux Linux/MacOS
+<h2>Linux/MacOS</h2>
 
 First, clone the <a href="https://github.com/thomasmoelhave/tpie">git repository</a> and
 checkout the branch or tag you wish to compile:
@@ -38,11 +38,11 @@ To run the unit tests, use <a href="http://www.cmake.org/cmake/help/ctest-2-8-do
 ctest
 \endverbatim
 
-\subsection sec_setup_install Installation
+<h3>Installation</h3>
 
 TPIE can be used right from the build directory, or installed into a separate directory. The two most popular ways of doing this are:
 
-\subsubsection sec_setup_install_direct Direct Installation
+<h4>Direct Installation</h4>
 
 You can install tpie in \c /usr/local/ by simply invoking:
 
@@ -53,7 +53,7 @@ make install
 Change the \c CMAKE_INSTALL_PREFIX CMake variable to change the prefix
 directory.
 
-\subsubsection sec_setup_install_cpack CPack Installation
+<h4>CPack Installation</h4>
 
 You can use <a href="http://www.cmake.org/cmake/help/cpack-2-8-docs.html">CPack</a> to build various binary packages that can be used to
 install TPIE on your computer, or on other computers:
@@ -72,7 +72,7 @@ To link your application with TPIE, may manually specify the linker flags
 -lboost_thread</tt>, or you may use the example \c CMakeLists.txt from the
 \c tpie/example/ directory to find the TPIE installation using CMake.
 
-\section sec_setupwin Windows
+<h2>Windows</h2>
 
 Clone the <a href="https://github.com/thomasmoelhave/tpie">git
 repository</a> at <tt>git://github.com/thomasmoelhave/tpie.git</tt>,
