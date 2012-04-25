@@ -375,8 +375,6 @@ void sort_manager<T,I,M>::compute_sort_params(void){
 		throw stream_exception("Insufficient memory for merge heap and output stream");
 	}
 	    
-	TPIE_OS_SIZE_T mmBytesAvailMerge = mmBytesAvail - mmBytesFixedForMerge;
-
 	// Cast down from TPIE_OS_OFFSET (type of mmBytesAvail).
 	// mmBytesPerMergeItem is at least 1KB, so we are OK unless we
 	// have more than 2 TerraBytes of memory, assuming 64 bit
