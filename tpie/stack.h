@@ -116,7 +116,7 @@ public:
     ////////////////////////////////////////////////////////////////////
 
     bool empty() const {
-		return (m_size == 0);
+		return size()  == 0;//!m_file_stream.can_read_back();
     }
 	TPIE_DEPRECATED(bool is_empty() const);
 
@@ -157,9 +157,6 @@ protected:
 	/** The file_stream used to store the items. */
 	file_stream<T> m_file_stream;
 
-    /**  The current size of the stack (in items).  */
-    TPIE_OS_OFFSET m_size;
-
 private:
 	temp_file m_temp;
 
@@ -168,10 +165,7 @@ private:
 /////////////////////////////////////////////////////////////////////////
 
 template<class T>
-stack<T>::stack() : 
-	m_file_stream(),
-    m_size(0) {
-
+stack<T>::stack() {
 	m_file_stream.open(m_temp);
 
 }
@@ -180,8 +174,7 @@ stack<T>::stack() :
 
 template<class T>
 stack<T>::stack(const std::string& path, double block_factor) :
-	m_file_stream(block_factor),
-	m_size(0) {
+	m_file_stream(block_factor) {
 
 	m_file_stream.open(path);
 	
