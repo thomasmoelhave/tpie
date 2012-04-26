@@ -153,169 +153,118 @@ private:
 namespace ami {
 
 ///////////////////////////////////////////////////////////////////
-///
 ///  An implementation of an external-memory stack compatible with the old AMI interface.
-///
 ///////////////////////////////////////////////////////////////////
-
 template<class T> 
 class stack {
-
-
 public:
    
     ////////////////////////////////////////////////////////////////////
-    ///
     ///  Initializes the stack.
-    ///
     ////////////////////////////////////////////////////////////////////
-
     stack() :
 		m_ulate() {
 		// Empty ctor.
 	}
 
     ////////////////////////////////////////////////////////////////////
-    ///
     ///  Initializes the stack by (re-)opening the file given.
     ///
     ///  \param  path    The path to a file used for storing the items.
     ///  \param  type    An stream_type that indicates the 
     ///                  read/write mode of the file.
-    ///
     ////////////////////////////////////////////////////////////////////
-
     stack(const std::string& path, 
 		  stream_type type = READ_WRITE_STREAM) :
 		m_ulate(path) {
-		// Empty ctor.
+
 		unused(type);
 	}
 
     ////////////////////////////////////////////////////////////////////
-    ///  
-    ///  Closes the underlying stream and truncates it to the logical
-    ///  end of the stack. TODO verify this behavior
-    ///
-    ////////////////////////////////////////////////////////////////////
-
-    ~stack() {
-		// Empty dtor.
-	}
-
-    ////////////////////////////////////////////////////////////////////
-    ///
     ///  Pushes one item onto the stack. Returns ERROR_* as 
     ///  given by the underlying stream.
     ///
     ///  \param  t    The item to be pushed onto the stack.
-    ///
     ////////////////////////////////////////////////////////////////////
-
     err push(const T &t);
 
     ////////////////////////////////////////////////////////////////////
-    ///
     ///  Pops one item from the stack. Returns ERROR_* as 
     ///  given by the underlying stream or END_OF_STREAM
     ///  if the stack is empty.
     ///
     ///  \param  t    A pointer to a pointer that will point to the 
     ///               topmost item.
-    ///
     ////////////////////////////////////////////////////////////////////
-
     err pop(const T **t); 
 
     ////////////////////////////////////////////////////////////////////
-    ///
     ///  Peeks at the topmost item on the stack. Returns ERROR_* as 
     ///  given by the underlying stream or END_OF_STREAM
     ///  if the stack is empty.
     ///
     ///  \param  t    A pointer to a pointer that will point to the 
     ///               topmost item.
-    ///
     ////////////////////////////////////////////////////////////////////
-
     err peek(const T **t); 
 
     ////////////////////////////////////////////////////////////////////
-    ///  
     ///  Returns the number of items currently on the stack.
-    ///
     ////////////////////////////////////////////////////////////////////
-
     TPIE_OS_OFFSET size() const {
 		return m_ulate.size();
     }
 
     ////////////////////////////////////////////////////////////////////
-    ///  
     ///  Returns whether the stack is empty or not.
-    ///
     ////////////////////////////////////////////////////////////////////
-
     bool is_empty() const {
 		return m_ulate.empty();
     }
 
     ////////////////////////////////////////////////////////////////////
-    ///  
     ///  Set the persistence status of the (stream underlying the) stack.
     ///
     ///  \param  p    A persistence status.
-    ///
     ////////////////////////////////////////////////////////////////////
-
 	void persist(persistence p) {
 		m_persistence = p;
 		return m_ulate.persist(p);
     }
 
     ////////////////////////////////////////////////////////////////////
-    ///  
     ///  Returns the persistence status of the (stream underlying the) 
     ///  stack.
-    ///
     ////////////////////////////////////////////////////////////////////
-
 	persistence persist() const { 
 		return m_persistence;
     }
 
     ////////////////////////////////////////////////////////////////////
-    ///  
     ///  Truncates the underlying stream to the exact size (rounded up
     ///  to the next block) of items. In the current implementation,
 	///  this does nothing.
-    ///
     ////////////////////////////////////////////////////////////////////
-
     err trim() {
-		m_ulate.trim();
 		return NO_ERROR;
     }
 
     ////////////////////////////////////////////////////////////////////
-    ///  
     ///  Compute the memory used by the stack and the aggregated stream.
     ///
     ///  \param  usage       Where the usage will be stored.
     ///  \param  usage_type  The type of usage_type inquired from 
     ///                      the stream.
-    ///
     ////////////////////////////////////////////////////////////////////
-
 	err main_memory_usage(TPIE_OS_SIZE_T *usage,
 						  stream_usage usage_type) const;
-
 
     ////////////////////////////////////////////////////////////////////
     /// \deprecated This should go as soon as all old code has been migrated.
     ////////////////////////////////////////////////////////////////////
     TPIE_OS_OFFSET stream_len() const {
-		std::cerr << "Using AMI_stack<T>::stream_len() is deprecated." << std::endl;
+		TP_LOG_WARNING_ID("Using AMI_stack<T>::stream_len() is deprecated.");
 		return size();
     }
 
