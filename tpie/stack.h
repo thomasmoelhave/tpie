@@ -178,7 +178,7 @@ public:
     ///  Initializes the stack.
     ////////////////////////////////////////////////////////////////////
     stack() :
-		m_ulate() {
+		m_ulate(m_tempFile) {
 		// Empty ctor.
 	}
 
@@ -190,9 +190,10 @@ public:
     ///                  read/write mode of the file.
     ////////////////////////////////////////////////////////////////////
     stack(const std::string& path, 
-		  stream_type type = READ_WRITE_STREAM) :
-		m_ulate(path) {
-
+		  stream_type type = READ_WRITE_STREAM)
+		: m_tempFile(path, true)
+		, m_ulate(m_tempFile)
+	{
 		unused(type);
 	}
 
@@ -244,8 +245,7 @@ public:
     ///  \param  p    A persistence status.
     ////////////////////////////////////////////////////////////////////
 	void persist(persistence p) {
-		m_persistence = p;
-		return m_ulate.persist(p);
+		m_tempFile.set_persistent(p == PERSIST_PERSISTENT);
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -253,7 +253,7 @@ public:
     ///  stack.
     ////////////////////////////////////////////////////////////////////
 	persistence persist() const { 
-		return m_persistence;
+		return m_tempFile.is_persistent() ? PERSIST_PERSISTENT : PERSIST_DELETE;
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -285,11 +285,10 @@ public:
 
 private:
 
+	temp_file m_tempFile;
+
 	// em-ulate. get it?
 	tpie::stack<T> m_ulate;
-
-	persistence m_persistence;
-
 };
 
 /////////////////////////////////////////////////////////////////////////
