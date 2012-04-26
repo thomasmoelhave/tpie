@@ -83,8 +83,8 @@ private:
 	    
 	void start_sort();              // high level wrapper to full sort 
 	void compute_sort_params();     // compute nInputItems, mrgArity, nRuns
-	void partition_and_sort_runs(progress_indicator_base* indicator, std::vector<temp_file> & temporaries); // make initial sorted runs
-	void merge_to_output(progress_indicator_base* indicator, std::vector<temp_file> & temporaries); // loop over merge tree, create output stream
+	void partition_and_sort_runs(progress_indicator_base* indicator, tpie::array<temp_file> & temporaries); // make initial sorted runs
+	void merge_to_output(progress_indicator_base* indicator, tpie::array<temp_file> & temporaries); // loop over merge tree, create output stream
 	// Merge a single group mrgArity streams to an output stream
 	void single_merge(
 		typename tpie::array<tpie::auto_ptr<file_stream<T> > >::iterator,
@@ -286,7 +286,7 @@ void sort_manager<T,I,M>::start_sort(){
 	fractional_subindicator merge_progress(fp, "merge", TPIE_FSI, nInputItems,"",tpie::IMPORTANCE_LOG);
 	fp.init();
 
-	std::vector<temp_file> temporaries(mrgArity*2);
+	tpie::array<temp_file> temporaries(mrgArity*2);
 
 	// PHASE 3: partition and form sorted runs
 	TP_LOG_DEBUG_ID ("Beginning general merge sort.");
@@ -516,7 +516,7 @@ void sort_manager<T,I,M>::compute_sort_params(void){
 }
 
 template<class T, class I, class M>
-void sort_manager<T,I,M>::partition_and_sort_runs(progress_indicator_base* indicator, std::vector<temp_file> & temporaries){
+void sort_manager<T,I,M>::partition_and_sort_runs(progress_indicator_base* indicator, tpie::array<temp_file> & temporaries){
 	// ********************************************************************
 	// * PHASE 3: Partition                                               *
 	// * Partition the input stream into nRuns of at most nItemsPerRun    *
@@ -609,7 +609,7 @@ void sort_manager<T,I,M>::partition_and_sort_runs(progress_indicator_base* indic
 }
 
 template<class T, class I, class M>
-void sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator, std::vector<temp_file> & temporaries){
+void sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator, tpie::array<temp_file> & temporaries){
 	// ********************************************************************
 	// * PHASE 4: Merge                                                   *
 	// * Loop over all levels of the merge tree, reading mrgArity runs    *
