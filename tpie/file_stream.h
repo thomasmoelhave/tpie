@@ -303,11 +303,8 @@ public:
 	inline bool can_read_back() const throw() {
 		assert(m_open);
 		const_cast<file_stream<T>*>(this)->update_vars();
-		if (m_index <= m_block.size) return true;
-		if (m_nextBlock == std::numeric_limits<stream_size_type>::max())
-			return m_block.number != 0;
-		else
-			return true;
+		if (m_index > 0) return true;
+		return m_block.number != 0;
 	}
 
 	/////////////////////////////////////////////////////////////////////////
