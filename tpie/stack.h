@@ -106,7 +106,7 @@ public:
     ////////////////////////////////////////////////////////////////////
 
     stream_size_type size() const {
-		return m_file_stream.offset();
+		return m_file_stream.offset()+m_bufferItems;
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -160,22 +160,31 @@ protected:
 private:
 	temp_file m_temp;
 
+	array<T> m_buffer;
+	size_t m_bufferItems;
+
+	void empty_buffer();
+
 };
 
 /////////////////////////////////////////////////////////////////////////
 
 template<class T>
-stack<T>::stack() {
+stack<T>::stack()
+	: m_buffer(file<T>::block_size(1.0)/sizeof(T))
+	, m_bufferItems(0)
+{
 	m_file_stream.open(m_temp);
-
 }
 
 /////////////////////////////////////////////////////////////////////////
 
 template<class T>
-stack<T>::stack(const std::string& path, double block_factor) :
-	m_file_stream(block_factor) {
-
+stack<T>::stack(const std::string& path, double block_factor)
+	: m_file_stream(block_factor)
+	, m_buffer(file<T>::block_size(block_factor)/sizeof(T))
+	, m_bufferItems(0)
+{
 	m_file_stream.open(path);
 	
 	m_file_stream.seek(0, file_base::end);
@@ -186,6 +195,7 @@ stack<T>::stack(const std::string& path, double block_factor) :
 
 template<class T>
 stack<T>::~stack() {
+	empty_buffer();
 	m_file_stream.truncate(this->size());
 }
 
@@ -197,14 +207,25 @@ bool stack<T>::is_empty() const {
 /////////////////////////////////////////////////////////////////////////
 
 template<class T>
+void stack<T>::empty_buffer() {
+	if (m_bufferItems == 0) return;
+	m_file_stream.write(m_buffer.begin(), m_buffer.begin()+m_bufferItems);
+	m_bufferItems = 0;
+}
+
+/////////////////////////////////////////////////////////////////////////
+
+template<class T>
 void stack<T>::push(const T & t) throw(stream_exception) {
-	m_file_stream.write(t);
+	if (m_buffer.size() == m_bufferItems) empty_buffer();
+	m_buffer[m_bufferItems++] = t;
 }
 
 /////////////////////////////////////////////////////////////////////////
 
 template<class T>
 const T & stack<T>::pop() throw(stream_exception) {
+	if (m_bufferItems) return m_buffer[--m_bufferItems];
 
 	const T & item = m_file_stream.read_back();
 
@@ -408,6 +429,7 @@ public:
 
 private:
 
+	// em-ulate. get it?
 	tpie::stack<T> m_ulate;
 
 	persistence m_persistence;
