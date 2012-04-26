@@ -40,23 +40,23 @@ class stack {
 public:
 
     ////////////////////////////////////////////////////////////////////
-    /// \brief  Initialize temporary stack.
+    /// \brief Initialize anonymous stack.
     ////////////////////////////////////////////////////////////////////
 	inline stack(double blockFactor = 1.0)
 		: m_file_stream(blockFactor)
 		, m_buffer(buffer_size(blockFactor))
 		, m_bufferItems(0)
 	{
-		m_file_stream.open(m_temp);
+		m_file_stream.open();
 	}
 
     ////////////////////////////////////////////////////////////////////
-    /// \brief Initializes the stack by (re-)opening the file given.
+    /// \brief Initialize named, nontemporary stack.
     ///
     /// \param  path    The path to a file used for storing the items.
     /// \param  block_factor  The block factor to use
     ////////////////////////////////////////////////////////////////////
-	stack(const std::string& path, double block_factor = 1.0)
+	inline stack(const std::string& path, double block_factor = 1.0)
 		: m_file_stream(block_factor)
 		, m_buffer(buffer_size(block_factor))
 		, m_bufferItems(0)
@@ -65,6 +65,23 @@ public:
 		
 		m_file_stream.seek(0, file_base::end);
 	}
+
+    ////////////////////////////////////////////////////////////////////
+    /// \brief Initialize temporary stack.
+    ///
+    /// \param  tempFile  The temporary file containing the stack
+    /// \param  block_factor  The block factor to use
+    ////////////////////////////////////////////////////////////////////
+	inline stack(temp_file & tempFile, double block_factor = 1.0)
+		: m_file_stream(block_factor)
+		, m_buffer(buffer_size(block_factor))
+		, m_bufferItems(0)
+	{
+		m_file_stream.open(tempFile);
+		
+		m_file_stream.seek(0, file_base::end);
+	}
+
 
     ////////////////////////////////////////////////////////////////////
     /// \brief Closes the underlying stream and truncates it to the logical
@@ -133,8 +150,6 @@ protected:
 	file_stream<T> m_file_stream;
 
 private:
-	temp_file m_temp;
-
 	array<T> m_buffer;
 	size_t m_bufferItems;
 
