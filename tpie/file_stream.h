@@ -401,6 +401,28 @@ public:
 		return x;
 	}
 
+	void swap(file_stream<T> & other) {
+		using std::swap;
+		swap(m_index,           other.m_index);
+		swap(m_nextBlock,       other.m_nextBlock);
+		swap(m_nextIndex,       other.m_nextIndex);
+		swap(m_blockStartIndex, other.m_blockStartIndex);
+		swap(m_blockItems,      other.m_blockItems);
+		swap(m_blockSize,       other.m_blockSize);
+		swap(m_size,            other.m_size);
+		swap(m_canRead,         other.m_canRead);
+		swap(m_canWrite,        other.m_canWrite);
+		swap(m_itemSize,        other.m_itemSize);
+		swap(m_open,            other.m_open);
+		swap(m_fileAccessor,    other.m_fileAccessor);
+		swap(m_block.size,      other.m_block.size);
+		swap(m_block.number,    other.m_block.number);
+		swap(m_block.dirty,     other.m_block.dirty);
+		swap(m_block.data,      other.m_block.data);
+		swap(m_ownedTempFile,   other.m_ownedTempFile);
+		swap(m_tempFile,        other.m_tempFile);
+	}
+
 private:
 	struct block_t {
 		memory_size_type size;
