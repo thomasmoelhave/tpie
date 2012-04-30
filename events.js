@@ -1,1415 +1,1767 @@
 tpieevents({
-  "data": [
-    {
-      "org": {
-        "url": "https://api.github.com/orgs/"
-      },
-      "type": "PushEvent",
-      "actor": {
-        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
-        "id": 373639,
-        "url": "https://api.github.com/users/Mortal",
-        "login": "Mortal"
-      },
-      "created_at": "2012-04-18T11:27:52Z",
-      "public": true,
-      "payload": {
-        "head": "25763bff2d3a8616fbfeb95a5a27de0c943ff9ef",
-        "size": 2,
-        "push_id": 73459500,
-        "commits": [
-          {
-            "sha": "cc1309d587a6a88c4059e39017ac3aa1e0bbdf1d",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/cc1309d587a6a88c4059e39017ac3aa1e0bbdf1d",
-            "distinct": true,
-            "message": "Add section with mailing lists"
-          },
-          {
-            "sha": "25763bff2d3a8616fbfeb95a5a27de0c943ff9ef",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/25763bff2d3a8616fbfeb95a5a27de0c943ff9ef",
-            "distinct": true,
-            "message": "Conform more closely to the HTML standard"
-          }
-        ],
-        "ref": "refs/heads/web"
-      },
-      "repo": {
-        "id": 466542,
-        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
-        "name": "thomasmoelhave/tpie"
-      },
-      "id": "1542683890"
-    },
-    {
-      "org": {
-        "url": "https://api.github.com/orgs/"
-      },
-      "type": "CreateEvent",
-      "actor": {
-        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
-        "id": 373639,
-        "url": "https://api.github.com/users/Mortal",
-        "login": "Mortal"
-      },
-      "created_at": "2012-04-18T10:56:27Z",
-      "public": true,
-      "payload": {
-        "master_branch": "master",
-        "ref_type": "branch",
-        "description": "Templated Portable I/O Environment",
-        "ref": "web"
-      },
-      "repo": {
-        "id": 466542,
-        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
-        "name": "thomasmoelhave/tpie"
-      },
-      "id": "1542675310"
-    },
-    {
-      "org": {
-        "url": "https://api.github.com/orgs/"
-      },
-      "type": "PushEvent",
-      "actor": {
-        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
-        "id": 373639,
-        "url": "https://api.github.com/users/Mortal",
-        "login": "Mortal"
-      },
-      "created_at": "2012-04-16T13:02:56Z",
-      "public": true,
-      "payload": {
-        "head": "05eada8bc05f6b60cc31d627184c41d8e64731ed",
-        "size": 7,
-        "push_id": 73013537,
-        "ref": "refs/heads/filestream",
-        "commits": [
-          {
-            "sha": "07549eb701ec704840a90f24e58b0d5794ad50d2",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/07549eb701ec704840a90f24e58b0d5794ad50d2",
-            "distinct": true,
-            "message": "Change how deprecation is marked so that enumerations can be marked as deprecated"
-          },
-          {
-            "sha": "68cd3e816a5f8448664bae43b0567f916a9b198c",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/68cd3e816a5f8448664bae43b0567f916a9b198c",
-            "distinct": true,
-            "message": "Mark persistence enum as deprecated"
-          },
-          {
-            "sha": "2dc32a4ed0d192c9be2ade2addb670545ba2f0c0",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/2dc32a4ed0d192c9be2ade2addb670545ba2f0c0",
-            "distinct": true,
-            "message": "Remove references according to discussion with Lars"
-          },
-          {
-            "sha": "d86576d5bc5115a0eaeda56bc27764b2af767da4",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/d86576d5bc5115a0eaeda56bc27764b2af767da4",
-            "distinct": true,
-            "message": "Remove references script"
-          },
-          {
-            "sha": "4f27c5317e0af15ec3e3a0f1d0e6d423d47623ef",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/4f27c5317e0af15ec3e3a0f1d0e6d423d47623ef",
-            "distinct": true,
-            "message": "Remove doc javascript"
-          },
-          {
-            "sha": "56f2fbea336fbb0a3836405e9ee7354d40c52d37",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/56f2fbea336fbb0a3836405e9ee7354d40c52d37",
-            "distinct": true,
-            "message": "Update references in basicconcepts.dox"
-          },
-          {
-            "sha": "05eada8bc05f6b60cc31d627184c41d8e64731ed",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/05eada8bc05f6b60cc31d627184c41d8e64731ed",
-            "distinct": true,
-            "message": "Remove tpie.bib"
-          }
-        ]
-      },
-      "repo": {
-        "id": 466542,
-        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
-        "name": "thomasmoelhave/tpie"
-      },
-      "id": "1541786293"
-    },
-    {
-      "org": {
-        "url": "https://api.github.com/orgs/"
-      },
-      "type": "PushEvent",
-      "actor": {
-        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
-        "id": 373639,
-        "url": "https://api.github.com/users/Mortal",
-        "login": "Mortal"
-      },
-      "created_at": "2012-04-12T12:55:16Z",
-      "public": true,
-      "payload": {
-        "head": "877f09fa1cdf36951b1c236bde91f99bb1694394",
-        "size": 1,
-        "push_id": 72409674,
-        "commits": [
-          {
-            "sha": "877f09fa1cdf36951b1c236bde91f99bb1694394",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/877f09fa1cdf36951b1c236bde91f99bb1694394",
-            "distinct": true,
-            "message": "Update with docs from 0385729"
-          }
-        ],
-        "ref": "refs/heads/gh-pages"
-      },
-      "repo": {
-        "id": 466542,
-        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
-        "name": "thomasmoelhave/tpie"
-      },
-      "id": "1540555563"
-    },
-    {
-      "org": {
-        "url": "https://api.github.com/orgs/"
-      },
-      "type": "PushEvent",
-      "actor": {
-        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
-        "id": 373639,
-        "url": "https://api.github.com/users/Mortal",
-        "login": "Mortal"
-      },
-      "created_at": "2012-04-12T12:55:06Z",
-      "public": true,
-      "payload": {
-        "head": "038572977ee8814e77e987572150422c1addde0c",
-        "size": 1,
-        "push_id": 72409647,
-        "ref": "refs/heads/filestream",
-        "commits": [
-          {
-            "sha": "038572977ee8814e77e987572150422c1addde0c",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/038572977ee8814e77e987572150422c1addde0c",
-            "distinct": true,
-            "message": "Fix doc stats.h"
-          }
-        ]
-      },
-      "repo": {
-        "id": 466542,
-        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
-        "name": "thomasmoelhave/tpie"
-      },
-      "id": "1540555520"
-    },
-    {
-      "org": {
-        "url": "https://api.github.com/orgs/"
-      },
-      "type": "PushEvent",
-      "actor": {
-        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
-        "id": 373639,
-        "url": "https://api.github.com/users/Mortal",
-        "login": "Mortal"
-      },
-      "created_at": "2012-04-12T12:44:15Z",
-      "public": true,
-      "payload": {
-        "head": "332db29ef82df4c1c4089e77035b0197137dd342",
-        "size": 3,
-        "push_id": 72407938,
-        "ref": "refs/heads/filestream",
-        "commits": [
-          {
-            "sha": "01dbb59c7c68fbeb3786af239e7e663cc4f2c6d4",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/01dbb59c7c68fbeb3786af239e7e663cc4f2c6d4",
-            "distinct": true,
-            "message": "Fix detailed method description CSS"
-          },
-          {
-            "sha": "289e6e56358c431593edae151005f21f13b3d848",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/289e6e56358c431593edae151005f21f13b3d848",
-            "distinct": true,
-            "message": "Add footer to documentation printouts"
-          },
-          {
-            "sha": "332db29ef82df4c1c4089e77035b0197137dd342",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/332db29ef82df4c1c4089e77035b0197137dd342",
-            "distinct": true,
-            "message": "Fix doc array_view(_base)"
-          }
-        ]
-      },
-      "repo": {
-        "id": 466542,
-        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
-        "name": "thomasmoelhave/tpie"
-      },
-      "id": "1540552389"
-    },
-    {
-      "org": {
-        "url": "https://api.github.com/orgs/"
-      },
-      "type": "PushEvent",
-      "actor": {
-        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
-        "id": 373639,
-        "url": "https://api.github.com/users/Mortal",
-        "login": "Mortal"
-      },
-      "created_at": "2012-04-12T12:44:15Z",
-      "public": true,
-      "payload": {
-        "head": "b5d34ae2c4f9ad054754c53bd6981451c2800a3e",
-        "size": 1,
-        "push_id": 72407937,
-        "commits": [
-          {
-            "sha": "b5d34ae2c4f9ad054754c53bd6981451c2800a3e",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/b5d34ae2c4f9ad054754c53bd6981451c2800a3e",
-            "distinct": true,
-            "message": "Update with docs from 332db29"
-          }
-        ],
-        "ref": "refs/heads/gh-pages"
-      },
-      "repo": {
-        "id": 466542,
-        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
-        "name": "thomasmoelhave/tpie"
-      },
-      "id": "1540552388"
-    },
-    {
-      "org": {
-        "url": "https://api.github.com/orgs/"
-      },
-      "type": "PushEvent",
-      "actor": {
-        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
-        "id": 373639,
-        "url": "https://api.github.com/users/Mortal",
-        "login": "Mortal"
-      },
-      "created_at": "2012-04-12T08:21:54Z",
-      "public": true,
-      "payload": {
-        "head": "6186e030d06ce7249443f6c4db4e5d5685c051eb",
-        "size": 1,
-        "push_id": 72370398,
-        "commits": [
-          {
-            "sha": "6186e030d06ce7249443f6c4db4e5d5685c051eb",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/6186e030d06ce7249443f6c4db4e5d5685c051eb",
-            "distinct": true,
-            "message": "Add unit test to make sure we can externally sort a stream containing a single element without throwing an exception"
-          }
-        ],
-        "ref": "refs/heads/filestream"
-      },
-      "repo": {
-        "id": 466542,
-        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
-        "name": "thomasmoelhave/tpie"
-      },
-      "id": "1540474028"
-    },
-    {
-      "org": {
-        "url": "https://api.github.com/orgs/"
-      },
-      "type": "PushEvent",
-      "actor": {
-        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
-        "id": 373639,
-        "url": "https://api.github.com/users/Mortal",
-        "login": "Mortal"
-      },
-      "created_at": "2012-04-12T08:20:26Z",
-      "public": true,
-      "payload": {
-        "head": "d4027c3f98ebd1981c0ae5ffb94f3856c0971436",
-        "size": 1,
-        "push_id": 72370221,
-        "ref": "refs/heads/filestream",
-        "commits": [
-          {
-            "sha": "d4027c3f98ebd1981c0ae5ffb94f3856c0971436",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/d4027c3f98ebd1981c0ae5ffb94f3856c0971436",
-            "distinct": true,
-            "message": "Get rid of already_sorted_exception"
-          }
-        ]
-      },
-      "repo": {
-        "id": 466542,
-        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
-        "name": "thomasmoelhave/tpie"
-      },
-      "id": "1540473703"
-    },
-    {
-      "org": {
-        "url": "https://api.github.com/orgs/"
-      },
-      "type": "PushEvent",
-      "actor": {
-        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
-        "id": 373639,
-        "url": "https://api.github.com/users/Mortal",
-        "login": "Mortal"
-      },
-      "created_at": "2012-04-12T08:06:34Z",
-      "public": true,
-      "payload": {
-        "head": "1307de79645e0b58294faca65c7b02870ea41d24",
-        "size": 2,
-        "push_id": 72368396,
-        "ref": "refs/heads/gh-pages",
-        "commits": [
-          {
-            "sha": "0599b907142a5b2c3c08044fc9d810082cac71b1",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/0599b907142a5b2c3c08044fc9d810082cac71b1",
-            "distinct": true,
-            "message": "Update with docs from 74d419c"
-          },
-          {
-            "sha": "1307de79645e0b58294faca65c7b02870ea41d24",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/1307de79645e0b58294faca65c7b02870ea41d24",
-            "distinct": true,
-            "message": "Update with docs from 1c483d7"
-          }
-        ]
-      },
-      "repo": {
-        "id": 466542,
-        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
-        "name": "thomasmoelhave/tpie"
-      },
-      "id": "1540470226"
-    },
-    {
-      "org": {
-        "url": "https://api.github.com/orgs/"
-      },
-      "type": "PushEvent",
-      "actor": {
-        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
-        "id": 373639,
-        "url": "https://api.github.com/users/Mortal",
-        "login": "Mortal"
-      },
-      "created_at": "2012-04-12T08:06:10Z",
-      "public": true,
-      "payload": {
-        "head": "1c483d77ddbcfc7e75f762d3aeabc9606d7d0f20",
-        "size": 3,
-        "push_id": 72368370,
-        "ref": "refs/heads/filestream",
-        "commits": [
-          {
-            "sha": "74d419c6b349e324ce76f874066e3f5cea5ca010",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/74d419c6b349e324ce76f874066e3f5cea5ca010",
-            "distinct": true,
-            "message": "Add references to TPIE classes in the basic concepts documentation"
-          },
-          {
-            "sha": "f9176376e599b78e57e825233601abe830803665",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/f9176376e599b78e57e825233601abe830803665",
-            "distinct": true,
-            "message": "Change file constructor doc a bit"
-          },
-          {
-            "sha": "1c483d77ddbcfc7e75f762d3aeabc9606d7d0f20",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/1c483d77ddbcfc7e75f762d3aeabc9606d7d0f20",
-            "distinct": true,
-            "message": "job.cpp no longer has file documentation"
-          }
-        ]
-      },
-      "repo": {
-        "id": 466542,
-        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
-        "name": "thomasmoelhave/tpie"
-      },
-      "id": "1540470167"
-    },
-    {
-      "org": {
-        "url": "https://api.github.com/orgs/"
-      },
-      "type": "PushEvent",
-      "actor": {
-        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
-        "id": 373639,
-        "url": "https://api.github.com/users/Mortal",
-        "login": "Mortal"
-      },
-      "created_at": "2012-04-12T07:37:09Z",
-      "public": true,
-      "payload": {
-        "head": "cb1f5a168bf0ed772686e3f4dbd78f42710a2c36",
-        "size": 1,
-        "push_id": 72364822,
-        "commits": [
-          {
-            "sha": "cb1f5a168bf0ed772686e3f4dbd78f42710a2c36",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/cb1f5a168bf0ed772686e3f4dbd78f42710a2c36",
-            "distinct": true,
-            "message": "Update with docs from d353d99"
-          }
-        ],
-        "ref": "refs/heads/gh-pages"
-      },
-      "repo": {
-        "id": 466542,
-        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
-        "name": "thomasmoelhave/tpie"
-      },
-      "id": "1540463685"
-    },
-    {
-      "org": {
-        "url": "https://api.github.com/orgs/"
-      },
-      "type": "PushEvent",
-      "actor": {
-        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
-        "id": 373639,
-        "url": "https://api.github.com/users/Mortal",
-        "login": "Mortal"
-      },
-      "created_at": "2012-04-12T07:37:05Z",
-      "public": true,
-      "payload": {
-        "head": "d353d997192e680292ec6aa1e06cfcffb968b55e",
-        "size": 2,
-        "push_id": 72364812,
-        "commits": [
-          {
-            "sha": "d4ca18f076b8b63d40d520bb21b1e932238878e5",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/d4ca18f076b8b63d40d520bb21b1e932238878e5",
-            "distinct": true,
-            "message": "Remove outdated I/O documentation stuff according to discussion with Lars"
-          },
-          {
-            "sha": "d353d997192e680292ec6aa1e06cfcffb968b55e",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/d353d997192e680292ec6aa1e06cfcffb968b55e",
-            "distinct": true,
-            "message": "Add Doxygen CSS for printing: Serif font, 80% page width, no side bars or top bars"
-          }
-        ],
-        "ref": "refs/heads/filestream"
-      },
-      "repo": {
-        "id": 466542,
-        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
-        "name": "thomasmoelhave/tpie"
-      },
-      "id": "1540463668"
-    },
-    {
-      "org": {
-        "url": "https://api.github.com/orgs/"
-      },
-      "type": "PushEvent",
-      "actor": {
-        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
-        "id": 373639,
-        "url": "https://api.github.com/users/Mortal",
-        "login": "Mortal"
-      },
-      "created_at": "2012-04-11T11:27:31Z",
-      "public": true,
-      "payload": {
-        "head": "5796c48ca72ecd61c69efbb71f18cc1c928ce5cd",
-        "size": 1,
-        "push_id": 72166419,
-        "commits": [
-          {
-            "sha": "5796c48ca72ecd61c69efbb71f18cc1c928ce5cd",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/5796c48ca72ecd61c69efbb71f18cc1c928ce5cd",
-            "distinct": true,
-            "message": "Update with docs from 9f3f2c7"
-          }
-        ],
-        "ref": "refs/heads/gh-pages"
-      },
-      "repo": {
-        "id": 466542,
-        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
-        "name": "thomasmoelhave/tpie"
-      },
-      "id": "1540070048"
-    },
-    {
-      "org": {
-        "url": "https://api.github.com/orgs/"
-      },
-      "type": "PushEvent",
-      "actor": {
-        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
-        "id": 373639,
-        "url": "https://api.github.com/users/Mortal",
-        "login": "Mortal"
-      },
-      "created_at": "2012-04-11T11:25:09Z",
-      "public": true,
-      "payload": {
-        "head": "9f3f2c79d798043cc7b824dcfa3e02a57e62c670",
-        "size": 1,
-        "push_id": 72166095,
-        "ref": "refs/heads/filestream",
-        "commits": [
-          {
-            "sha": "9f3f2c79d798043cc7b824dcfa3e02a57e62c670",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/9f3f2c79d798043cc7b824dcfa3e02a57e62c670",
-            "distinct": true,
-            "message": "Convert spaces to tabs in references.pl"
-          }
-        ]
-      },
-      "repo": {
-        "id": 466542,
-        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
-        "name": "thomasmoelhave/tpie"
-      },
-      "id": "1540069282"
-    },
-    {
-      "org": {
-        "url": "https://api.github.com/orgs/"
-      },
-      "type": "PushEvent",
-      "actor": {
-        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
-        "id": 373639,
-        "url": "https://api.github.com/users/Mortal",
-        "login": "Mortal"
-      },
-      "created_at": "2012-04-11T11:21:08Z",
-      "public": true,
-      "payload": {
-        "head": "faf3039618bcf9af288a717cf5798563a13f69c3",
-        "size": 6,
-        "push_id": 72165540,
-        "commits": [
-          {
-            "sha": "e7af3dfbb97f3d3a91ca7f5d6665fd31eeec7344",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/e7af3dfbb97f3d3a91ca7f5d6665fd31eeec7344",
-            "distinct": true,
-            "message": "Change authors list"
-          },
-          {
-            "sha": "f2091f43091c32c6318e4e46bfdaa444e6672943",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/f2091f43091c32c6318e4e46bfdaa444e6672943",
-            "distinct": true,
-            "message": "Fix code.cpp not compiling"
-          },
-          {
-            "sha": "147a2d2ca9a0b66eb74bb389d8054dbaed28d196",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/147a2d2ca9a0b66eb74bb389d8054dbaed28d196",
-            "distinct": true,
-            "message": "Rename fractiondb.gen.cpp -> fractiondb.gen.inl"
-          },
-          {
-            "sha": "c53c6d139a402f38e4d5d0a0d06669ee299b0469",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/c53c6d139a402f38e4d5d0a0d06669ee299b0469",
-            "distinct": true,
-            "message": "Change Doxygen logo in footer to plain text"
-          },
-          {
-            "sha": "3589b17530cd1dd2b1e9cfbb9c59fc54cb510b74",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/3589b17530cd1dd2b1e9cfbb9c59fc54cb510b74",
-            "distinct": true,
-            "message": "Add references.pl to make links to references in basicconcepts.dox.in"
-          },
-          {
-            "sha": "faf3039618bcf9af288a717cf5798563a13f69c3",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/faf3039618bcf9af288a717cf5798563a13f69c3",
-            "distinct": true,
-            "message": "Use numbers for references rather than BiBTeX handles"
-          }
-        ],
-        "ref": "refs/heads/filestream"
-      },
-      "repo": {
-        "id": 466542,
-        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
-        "name": "thomasmoelhave/tpie"
-      },
-      "id": "1540068136"
-    },
-    {
-      "org": {
-        "url": "https://api.github.com/orgs/"
-      },
-      "type": "PushEvent",
-      "actor": {
-        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
-        "id": 373639,
-        "url": "https://api.github.com/users/Mortal",
-        "login": "Mortal"
-      },
-      "created_at": "2012-04-04T12:38:54Z",
-      "public": true,
-      "payload": {
-        "head": "1eb1d8446880e6016fc87e72978da6b78206e575",
-        "size": 1,
-        "push_id": 71020941,
-        "commits": [
-          {
-            "sha": "1eb1d8446880e6016fc87e72978da6b78206e575",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/1eb1d8446880e6016fc87e72978da6b78206e575",
-            "distinct": true,
-            "message": "Add links between references and reference list"
-          }
-        ],
-        "ref": "refs/heads/filestream"
-      },
-      "repo": {
-        "id": 466542,
-        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
-        "name": "thomasmoelhave/tpie"
-      },
-      "id": "1537725851"
-    },
-    {
-      "org": {
-        "url": "https://api.github.com/orgs/"
-      },
-      "type": "PushEvent",
-      "actor": {
-        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
-        "id": 373639,
-        "url": "https://api.github.com/users/Mortal",
-        "login": "Mortal"
-      },
-      "created_at": "2012-04-04T12:38:52Z",
-      "public": true,
-      "payload": {
-        "head": "85741f5854ee121b6fafe4e497e1cc3a08d8e7cc",
-        "size": 1,
-        "push_id": 71020934,
-        "commits": [
-          {
-            "sha": "85741f5854ee121b6fafe4e497e1cc3a08d8e7cc",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/85741f5854ee121b6fafe4e497e1cc3a08d8e7cc",
-            "distinct": true,
-            "message": "Update with docs from 1eb1d84"
-          }
-        ],
-        "ref": "refs/heads/gh-pages"
-      },
-      "repo": {
-        "id": 466542,
-        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
-        "name": "thomasmoelhave/tpie"
-      },
-      "id": "1537725839"
-    },
-    {
-      "org": {
-        "url": "https://api.github.com/orgs/"
-      },
-      "type": "PushEvent",
-      "actor": {
-        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
-        "id": 373639,
-        "url": "https://api.github.com/users/Mortal",
-        "login": "Mortal"
-      },
-      "created_at": "2012-04-04T12:05:28Z",
-      "public": true,
-      "payload": {
-        "head": "157121e4e930b3f037f8203f87afe7ee4273b42a",
-        "size": 1,
-        "push_id": 71015925,
-        "commits": [
-          {
-            "sha": "157121e4e930b3f037f8203f87afe7ee4273b42a",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/157121e4e930b3f037f8203f87afe7ee4273b42a",
-            "distinct": true,
-            "message": "Update with docs from bb68d4e"
-          }
-        ],
-        "ref": "refs/heads/gh-pages"
-      },
-      "repo": {
-        "id": 466542,
-        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
-        "name": "thomasmoelhave/tpie"
-      },
-      "id": "1537710908"
-    },
-    {
-      "org": {
-        "url": "https://api.github.com/orgs/"
-      },
-      "type": "PushEvent",
-      "actor": {
-        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
-        "id": 373639,
-        "url": "https://api.github.com/users/Mortal",
-        "login": "Mortal"
-      },
-      "created_at": "2012-04-04T12:05:25Z",
-      "public": true,
-      "payload": {
-        "head": "bb68d4ed52e434ed9b6c647fc0682200d717864a",
-        "size": 1,
-        "push_id": 71015917,
-        "commits": [
-          {
-            "sha": "bb68d4ed52e434ed9b6c647fc0682200d717864a",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/bb68d4ed52e434ed9b6c647fc0682200d717864a",
-            "distinct": true,
-            "message": "Don't scan *.cpp and *.inl for documentation"
-          }
-        ],
-        "ref": "refs/heads/filestream"
-      },
-      "repo": {
-        "id": 466542,
-        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
-        "name": "thomasmoelhave/tpie"
-      },
-      "id": "1537710891"
-    },
-    {
-      "org": {
-        "url": "https://api.github.com/orgs/"
-      },
-      "type": "PushEvent",
-      "actor": {
-        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
-        "id": 373639,
-        "url": "https://api.github.com/users/Mortal",
-        "login": "Mortal"
-      },
-      "created_at": "2012-04-04T11:38:32Z",
-      "public": true,
-      "payload": {
-        "head": "a37d4d2da2f07f76841d2b8a0224798e334c823c",
-        "size": 2,
-        "push_id": 71012265,
-        "commits": [
-          {
-            "sha": "f55c5f726ac3d398638a7a99fc9682dc7e59faa1",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/f55c5f726ac3d398638a7a99fc9682dc7e59faa1",
-            "distinct": true,
-            "message": "Fix historic name"
-          },
-          {
-            "sha": "a37d4d2da2f07f76841d2b8a0224798e334c823c",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/a37d4d2da2f07f76841d2b8a0224798e334c823c",
-            "distinct": true,
-            "message": "Add text from chapter 1 of original manual (Overview of EM algorithms)"
-          }
-        ],
-        "ref": "refs/heads/filestream"
-      },
-      "repo": {
-        "id": 466542,
-        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
-        "name": "thomasmoelhave/tpie"
-      },
-      "id": "1537704160"
-    },
-    {
-      "org": {
-        "url": "https://api.github.com/orgs/"
-      },
-      "type": "PushEvent",
-      "actor": {
-        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
-        "id": 373639,
-        "url": "https://api.github.com/users/Mortal",
-        "login": "Mortal"
-      },
-      "created_at": "2012-04-04T11:38:29Z",
-      "public": true,
-      "payload": {
-        "head": "67d92ef93d7ddf3553bf6595513ec859a570d17f",
-        "size": 1,
-        "push_id": 71012252,
-        "ref": "refs/heads/gh-pages",
-        "commits": [
-          {
-            "sha": "67d92ef93d7ddf3553bf6595513ec859a570d17f",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/67d92ef93d7ddf3553bf6595513ec859a570d17f",
-            "distinct": true,
-            "message": "Update with docs from a37d4d2"
-          }
-        ]
-      },
-      "repo": {
-        "id": 466542,
-        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
-        "name": "thomasmoelhave/tpie"
-      },
-      "id": "1537704144"
-    },
-    {
-      "org": {
-        "url": "https://api.github.com/orgs/"
-      },
-      "type": "PushEvent",
-      "actor": {
-        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
-        "id": 373639,
-        "url": "https://api.github.com/users/Mortal",
-        "login": "Mortal"
-      },
-      "created_at": "2012-04-04T10:20:52Z",
-      "public": true,
-      "payload": {
-        "head": "02a24bc12f6d230954af358b4f1280114b860a1a",
-        "size": 1,
-        "push_id": 71001507,
-        "commits": [
-          {
-            "sha": "02a24bc12f6d230954af358b4f1280114b860a1a",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/02a24bc12f6d230954af358b4f1280114b860a1a",
-            "distinct": true,
-            "message": "Update with docs from ba8ae9f"
-          }
-        ],
-        "ref": "refs/heads/gh-pages"
-      },
-      "repo": {
-        "id": 466542,
-        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
-        "name": "thomasmoelhave/tpie"
-      },
-      "id": "1537684379"
-    },
-    {
-      "org": {
-        "url": "https://api.github.com/orgs/"
-      },
-      "type": "PushEvent",
-      "actor": {
-        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
-        "id": 373639,
-        "url": "https://api.github.com/users/Mortal",
-        "login": "Mortal"
-      },
-      "created_at": "2012-04-04T10:20:47Z",
-      "public": true,
-      "payload": {
-        "head": "ba8ae9f987db6b04c526e699acbc3f7394b7ad4d",
-        "size": 3,
-        "push_id": 71001496,
-        "commits": [
-          {
-            "sha": "3c7219671f6f1326d47d7b60cd30e261f0950d2f",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/3c7219671f6f1326d47d7b60cd30e261f0950d2f",
-            "distinct": true,
-            "message": "Reorder \"getting started\" pages"
-          },
-          {
-            "sha": "1b1110da52ace2fcaa4055fe0bf436cc41b8a70a",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/1b1110da52ace2fcaa4055fe0bf436cc41b8a70a",
-            "distinct": true,
-            "message": "Add Authors link"
-          },
-          {
-            "sha": "ba8ae9f987db6b04c526e699acbc3f7394b7ad4d",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/ba8ae9f987db6b04c526e699acbc3f7394b7ad4d",
-            "distinct": true,
-            "message": "Specify order of documentation pages explicitly in Doxyfile"
-          }
-        ],
-        "ref": "refs/heads/filestream"
-      },
-      "repo": {
-        "id": 466542,
-        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
-        "name": "thomasmoelhave/tpie"
-      },
-      "id": "1537684363"
-    },
-    {
-      "org": {
-        "url": "https://api.github.com/orgs/"
-      },
-      "type": "PushEvent",
-      "actor": {
-        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
-        "id": 373639,
-        "url": "https://api.github.com/users/Mortal",
-        "login": "Mortal"
-      },
-      "created_at": "2012-04-04T09:44:50Z",
-      "public": true,
-      "payload": {
-        "head": "d1ca51e697143037d6b0997f0d53c9716519bbca",
-        "size": 1,
-        "push_id": 70996357,
-        "commits": [
-          {
-            "sha": "d1ca51e697143037d6b0997f0d53c9716519bbca",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/d1ca51e697143037d6b0997f0d53c9716519bbca",
-            "distinct": true,
-            "message": "Update with docs from 75b84f9"
-          }
-        ],
-        "ref": "refs/heads/gh-pages"
-      },
-      "repo": {
-        "id": 466542,
-        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
-        "name": "thomasmoelhave/tpie"
-      },
-      "id": "1537675304"
-    },
-    {
-      "org": {
-        "url": "https://api.github.com/orgs/"
-      },
-      "type": "PushEvent",
-      "actor": {
-        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
-        "id": 373639,
-        "url": "https://api.github.com/users/Mortal",
-        "login": "Mortal"
-      },
-      "created_at": "2012-04-04T09:44:45Z",
-      "public": true,
-      "payload": {
-        "head": "75b84f9b6e41c4f1a089d371d1f73bfb465bf208",
-        "size": 2,
-        "push_id": 70996347,
-        "commits": [
-          {
-            "sha": "5e2be268028aac972a7d179a9b2ffc2b6f92ac3d",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/5e2be268028aac972a7d179a9b2ffc2b6f92ac3d",
-            "distinct": true,
-            "message": "Fix reference in file_stream.dox"
-          },
-          {
-            "sha": "75b84f9b6e41c4f1a089d371d1f73bfb465bf208",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/75b84f9b6e41c4f1a089d371d1f73bfb465bf208",
-            "distinct": true,
-            "message": "Move all code snippets from documentation into /doc/code/code.cpp and add CMake config to generate documentation pages with code examples"
-          }
-        ],
-        "ref": "refs/heads/filestream"
-      },
-      "repo": {
-        "id": 466542,
-        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
-        "name": "thomasmoelhave/tpie"
-      },
-      "id": "1537675278"
-    },
-    {
-      "org": {
-        "url": "https://api.github.com/orgs/"
-      },
-      "type": "PushEvent",
-      "actor": {
-        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
-        "id": 373639,
-        "url": "https://api.github.com/users/Mortal",
-        "login": "Mortal"
-      },
-      "created_at": "2012-04-04T08:35:20Z",
-      "public": true,
-      "payload": {
-        "head": "4ea04860b39ada884aa9b6b949aa3abafc47e533",
-        "size": 1,
-        "push_id": 70986859,
-        "commits": [
-          {
-            "sha": "4ea04860b39ada884aa9b6b949aa3abafc47e533",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/4ea04860b39ada884aa9b6b949aa3abafc47e533",
-            "distinct": true,
-            "message": "Update with docs from 85ef4ca"
-          }
-        ],
-        "ref": "refs/heads/gh-pages"
-      },
-      "repo": {
-        "id": 466542,
-        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
-        "name": "thomasmoelhave/tpie"
-      },
-      "id": "1537657158"
-    },
-    {
-      "org": {
-        "url": "https://api.github.com/orgs/"
-      },
-      "type": "PushEvent",
-      "actor": {
-        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
-        "id": 373639,
-        "url": "https://api.github.com/users/Mortal",
-        "login": "Mortal"
-      },
-      "created_at": "2012-04-04T08:32:15Z",
-      "public": true,
-      "payload": {
-        "head": "85ef4cad2133135276a580f1b991f73fbd22c9be",
-        "size": 5,
-        "push_id": 70986473,
-        "ref": "refs/heads/filestream",
-        "commits": [
-          {
-            "sha": "a4f83f522beaaeca3c2f45996d85b8eee13c78f3",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/a4f83f522beaaeca3c2f45996d85b8eee13c78f3",
-            "distinct": true,
-            "message": "Add basic concepts doxygen page from old LaTeX documentation"
-          },
-          {
-            "sha": "6a4219589afec2aff0d953b32b633d4cf9eb3574",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/6a4219589afec2aff0d953b32b633d4cf9eb3574",
-            "distinct": true,
-            "message": "Hide top bar"
-          },
-          {
-            "sha": "add8da1adf2ee72a5b18e6aee5fd53b51ff5da7c",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/add8da1adf2ee72a5b18e6aee5fd53b51ff5da7c",
-            "distinct": true,
-            "message": "Set max-width: 50em on Doxygen pages"
-          },
-          {
-            "sha": "0e9a9eb4f3b16d0c7c4d35bb6eac36a0b9d2b5bf",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/0e9a9eb4f3b16d0c7c4d35bb6eac36a0b9d2b5bf",
-            "distinct": true,
-            "message": "Add automatic hyphenation to Doxygen pages"
-          },
-          {
-            "sha": "85ef4cad2133135276a580f1b991f73fbd22c9be",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/85ef4cad2133135276a580f1b991f73fbd22c9be",
-            "distinct": true,
-            "message": "Justify Doxygen pages"
-          }
-        ]
-      },
-      "repo": {
-        "id": 466542,
-        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
-        "name": "thomasmoelhave/tpie"
-      },
-      "id": "1537656417"
-    },
-    {
-      "org": {
-        "url": "https://api.github.com/orgs/"
-      },
-      "type": "PushEvent",
-      "actor": {
-        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
-        "id": 373639,
-        "url": "https://api.github.com/users/Mortal",
-        "login": "Mortal"
-      },
-      "created_at": "2012-04-04T08:21:50Z",
-      "public": true,
-      "payload": {
-        "head": "2150b62d6939d414f8c18036c32400628e62dbc8",
-        "size": 2,
-        "push_id": 70985022,
-        "ref": "refs/heads/filestream",
-        "commits": [
-          {
-            "sha": "775128357c461c705bdddd252f21f23c09eba250",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/775128357c461c705bdddd252f21f23c09eba250",
-            "distinct": true,
-            "message": "Add ut-stream_exception (checks if end_of_stream_exception is being called)"
-          },
-          {
-            "sha": "2150b62d6939d414f8c18036c32400628e62dbc8",
-            "author": {
-              "name": "Mathias Rav",
-              "email": "rav@cs.au.dk"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/2150b62d6939d414f8c18036c32400628e62dbc8",
-            "distinct": true,
-            "message": "Fix file_stream not throwing end_of_stream_exceptions"
-          }
-        ]
-      },
-      "repo": {
-        "id": 466542,
-        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
-        "name": "thomasmoelhave/tpie"
-      },
-      "id": "1537653937"
-    },
-    {
-      "org": {
-        "url": "https://api.github.com/orgs/"
-      },
-      "type": "PushEvent",
-      "actor": {
-        "gravatar_id": "e464b642c2ec7256d35a55151f44f536",
-        "id": 84282,
-        "url": "https://api.github.com/users/antialize",
-        "login": "antialize"
-      },
-      "created_at": "2012-04-03T14:29:15Z",
-      "public": true,
-      "payload": {
-        "head": "b4df10d8a22b91d4b34b842c4b2d1f63efeba86c",
-        "size": 1,
-        "push_id": 70817329,
-        "ref": "refs/heads/filestream",
-        "commits": [
-          {
-            "sha": "b4df10d8a22b91d4b34b842c4b2d1f63efeba86c",
-            "author": {
-              "name": "Jakob Truelsen",
-              "email": "jakob@scalgo.com"
-            },
-            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/b4df10d8a22b91d4b34b842c4b2d1f63efeba86c",
-            "distinct": true,
-            "message": "Fix typo in internal_vector"
-          }
-        ]
-      },
-      "repo": {
-        "id": 466542,
-        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
-        "name": "thomasmoelhave/tpie"
-      },
-      "id": "1537271165"
-    }
-  ],
   "meta": {
     "status": 200,
     "X-RateLimit-Limit": "5000",
     "Link": [
       [
-        "https://api.github.com/repos/thomasmoelhave/tpie/events?callback=foobar&page=2",
+        "https://api.github.com/repos/thomasmoelhave/tpie/events?callback=tpieevents&page=2",
         {
           "rel": "next"
         }
       ]
     ],
-    "X-RateLimit-Remaining": "4997"
-  }
+    "X-RateLimit-Remaining": "4999"
+  },
+  "data": [
+    {
+      "type": "PushEvent",
+      "public": true,
+      "payload": {
+        "head": "8fc07c81e9a46799c5afd6fd107a2c3cc62062bd",
+        "size": 1,
+        "push_id": 75649831,
+        "commits": [
+          {
+            "sha": "8fc07c81e9a46799c5afd6fd107a2c3cc62062bd",
+            "author": {
+              "name": "Mathias Rav",
+              "email": "rav@cs.au.dk"
+            },
+            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/8fc07c81e9a46799c5afd6fd107a2c3cc62062bd",
+            "distinct": true,
+            "message": "Fix doc example using legacy tpie::ami::priority_queue"
+          }
+        ],
+        "ref": "refs/heads/filestream"
+      },
+      "created_at": "2012-04-30T12:09:55Z",
+      "repo": {
+        "id": 466542,
+        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
+        "name": "thomasmoelhave/tpie"
+      },
+      "actor": {
+        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
+        "id": 373639,
+        "avatar_url": "https://secure.gravatar.com/avatar/edf6018e5ee0edac73fb4196cd45273f?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+        "url": "https://api.github.com/users/Mortal",
+        "login": "Mortal"
+      },
+      "id": "1547097793"
+    },
+    {
+      "type": "PushEvent",
+      "public": true,
+      "payload": {
+        "head": "ad9b011787efdd7e5e650680758c018ca8b1f9c3",
+        "size": 1,
+        "push_id": 75647854,
+        "commits": [
+          {
+            "sha": "ad9b011787efdd7e5e650680758c018ca8b1f9c3",
+            "author": {
+              "name": "Mathias Rav",
+              "email": "rav@cs.au.dk"
+            },
+            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/ad9b011787efdd7e5e650680758c018ca8b1f9c3",
+            "distinct": true,
+            "message": "Don't generate Todo list and Deprecated list in the Doxygen documentation"
+          }
+        ],
+        "ref": "refs/heads/filestream"
+      },
+      "created_at": "2012-04-30T11:53:11Z",
+      "repo": {
+        "id": 466542,
+        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
+        "name": "thomasmoelhave/tpie"
+      },
+      "actor": {
+        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
+        "id": 373639,
+        "avatar_url": "https://secure.gravatar.com/avatar/edf6018e5ee0edac73fb4196cd45273f?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+        "url": "https://api.github.com/users/Mortal",
+        "login": "Mortal"
+      },
+      "id": "1547094123"
+    },
+    {
+      "type": "IssueCommentEvent",
+      "public": true,
+      "payload": {
+        "comment": {
+          "created_at": "2012-04-30T11:44:25Z",
+          "body": "It seems this is not an issue anymore. Maybe stream_header.h was missing from a CMakeLists.txt file, maybe some tests didn't properly clean up after themselves at the time. Closing.",
+          "updated_at": "2012-04-30T11:44:25Z",
+          "url": "https://api.github.com/repos/thomasmoelhave/tpie/issues/comments/5415774",
+          "id": 5415774,
+          "user": {
+            "avatar_url": "https://secure.gravatar.com/avatar/edf6018e5ee0edac73fb4196cd45273f?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+            "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
+            "url": "https://api.github.com/users/Mortal",
+            "id": 373639,
+            "login": "Mortal"
+          }
+        },
+        "action": "created",
+        "issue": {
+          "number": 11,
+          "pull_request": {
+            "diff_url": null,
+            "patch_url": null,
+            "html_url": null
+          },
+          "created_at": "2011-12-20T13:13:53Z",
+          "comments": 9,
+          "body": "This is something that has annoyed me for a while, and at some point I'm going to investigate further. Steps to reproduce:\r\n<pre>\r\nmkdir tpietest; cd tpietest; git init\r\ngit fetch git://github.com/thomasmoelhave/tpie.git filestream\r\ngit reset --hard FETCH_HEAD\r\nmkdir build; cd build; cmake -D CMAKE_BUILD_TYPE:STRING=Release ..\r\nmake -j9; ctest\r\n</pre>\r\nSee tests pass\r\n\r\nModify magicConst in ``tpie/stream_header.h``\r\n<pre>\r\nmake -j9; ctest\r\n</pre>\r\nSee tests fail\r\n<pre>\r\nmake clean; make -j9; ctest\r\n</pre>\r\nTests still fail",
+          "title": "make clean does not clean enough",
+          "updated_at": "2012-04-30T11:44:25Z",
+          "url": "https://api.github.com/repos/thomasmoelhave/tpie/issues/11",
+          "id": 2612613,
+          "assignee": null,
+          "milestone": null,
+          "closed_at": "2012-04-30T11:44:25Z",
+          "user": {
+            "avatar_url": "https://secure.gravatar.com/avatar/edf6018e5ee0edac73fb4196cd45273f?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+            "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
+            "url": "https://api.github.com/users/Mortal",
+            "id": 373639,
+            "login": "Mortal"
+          },
+          "html_url": "https://github.com/thomasmoelhave/tpie/issues/11",
+          "labels": [
+
+          ],
+          "state": "closed"
+        }
+      },
+      "created_at": "2012-04-30T11:44:25Z",
+      "repo": {
+        "id": 466542,
+        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
+        "name": "thomasmoelhave/tpie"
+      },
+      "actor": {
+        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
+        "id": 373639,
+        "avatar_url": "https://secure.gravatar.com/avatar/edf6018e5ee0edac73fb4196cd45273f?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+        "url": "https://api.github.com/users/Mortal",
+        "login": "Mortal"
+      },
+      "id": "1547092263"
+    },
+    {
+      "type": "IssuesEvent",
+      "public": true,
+      "payload": {
+        "action": "closed",
+        "issue": {
+          "number": 11,
+          "pull_request": {
+            "diff_url": null,
+            "patch_url": null,
+            "html_url": null
+          },
+          "created_at": "2011-12-20T13:13:53Z",
+          "comments": 9,
+          "body": "This is something that has annoyed me for a while, and at some point I'm going to investigate further. Steps to reproduce:\r\n<pre>\r\nmkdir tpietest; cd tpietest; git init\r\ngit fetch git://github.com/thomasmoelhave/tpie.git filestream\r\ngit reset --hard FETCH_HEAD\r\nmkdir build; cd build; cmake -D CMAKE_BUILD_TYPE:STRING=Release ..\r\nmake -j9; ctest\r\n</pre>\r\nSee tests pass\r\n\r\nModify magicConst in ``tpie/stream_header.h``\r\n<pre>\r\nmake -j9; ctest\r\n</pre>\r\nSee tests fail\r\n<pre>\r\nmake clean; make -j9; ctest\r\n</pre>\r\nTests still fail",
+          "title": "make clean does not clean enough",
+          "updated_at": "2012-04-30T11:44:25Z",
+          "url": "https://api.github.com/repos/thomasmoelhave/tpie/issues/11",
+          "id": 2612613,
+          "assignee": null,
+          "milestone": null,
+          "closed_at": "2012-04-30T11:44:25Z",
+          "user": {
+            "avatar_url": "https://secure.gravatar.com/avatar/edf6018e5ee0edac73fb4196cd45273f?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+            "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
+            "url": "https://api.github.com/users/Mortal",
+            "id": 373639,
+            "login": "Mortal"
+          },
+          "labels": [
+
+          ],
+          "html_url": "https://github.com/thomasmoelhave/tpie/issues/11",
+          "state": "closed"
+        }
+      },
+      "created_at": "2012-04-30T11:44:25Z",
+      "repo": {
+        "id": 466542,
+        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
+        "name": "thomasmoelhave/tpie"
+      },
+      "actor": {
+        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
+        "id": 373639,
+        "avatar_url": "https://secure.gravatar.com/avatar/edf6018e5ee0edac73fb4196cd45273f?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+        "url": "https://api.github.com/users/Mortal",
+        "login": "Mortal"
+      },
+      "id": "1547092261"
+    },
+    {
+      "type": "PushEvent",
+      "public": true,
+      "payload": {
+        "head": "01e89ca50fdfe20f29f40466abfb36dd78988cab",
+        "size": 1,
+        "push_id": 75640753,
+        "ref": "refs/heads/filestream",
+        "commits": [
+          {
+            "sha": "01e89ca50fdfe20f29f40466abfb36dd78988cab",
+            "author": {
+              "name": "Mathias Rav",
+              "email": "rav@cs.au.dk"
+            },
+            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/01e89ca50fdfe20f29f40466abfb36dd78988cab",
+            "distinct": true,
+            "message": "Enable tpie::sort(file_stream<T> &). Fixes #12"
+          }
+        ]
+      },
+      "created_at": "2012-04-30T10:52:28Z",
+      "repo": {
+        "id": 466542,
+        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
+        "name": "thomasmoelhave/tpie"
+      },
+      "actor": {
+        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
+        "id": 373639,
+        "avatar_url": "https://secure.gravatar.com/avatar/edf6018e5ee0edac73fb4196cd45273f?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+        "url": "https://api.github.com/users/Mortal",
+        "login": "Mortal"
+      },
+      "id": "1547081188"
+    },
+    {
+      "type": "IssuesEvent",
+      "public": true,
+      "payload": {
+        "action": "closed",
+        "issue": {
+          "number": 12,
+          "pull_request": {
+            "diff_url": null,
+            "patch_url": null,
+            "html_url": null
+          },
+          "created_at": "2012-04-23T21:51:28Z",
+          "comments": 4,
+          "body": "Currently, to sort a tpie::filestream X we need to issue:\r\n\r\n    tpie::sort(X,X);\r\n\r\nWe should add an extra variant of tpie::sort so we can do:\r\n\r\n    tpie::sort(X);\r\n\r\nInstead.\r\n",
+          "title": "tpie::sort versions for same input and output",
+          "updated_at": "2012-04-30T10:52:26Z",
+          "url": "https://api.github.com/repos/thomasmoelhave/tpie/issues/12",
+          "id": 4249921,
+          "assignee": {
+            "avatar_url": "https://secure.gravatar.com/avatar/edf6018e5ee0edac73fb4196cd45273f?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+            "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
+            "url": "https://api.github.com/users/Mortal",
+            "id": 373639,
+            "login": "Mortal"
+          },
+          "milestone": {
+            "number": 1,
+            "created_at": "2012-04-26T11:25:39Z",
+            "due_on": null,
+            "title": "1.0",
+            "creator": {
+              "avatar_url": "https://secure.gravatar.com/avatar/461945a9e40f09509ea7cc080ba38da7?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+              "gravatar_id": "461945a9e40f09509ea7cc080ba38da7",
+              "url": "https://api.github.com/users/thomasmoelhave",
+              "id": 179143,
+              "login": "thomasmoelhave"
+            },
+            "url": "https://api.github.com/repos/thomasmoelhave/tpie/milestones/1",
+            "closed_issues": 4,
+            "open_issues": 0,
+            "description": null,
+            "state": "closed"
+          },
+          "closed_at": "2012-04-30T10:52:26Z",
+          "user": {
+            "avatar_url": "https://secure.gravatar.com/avatar/461945a9e40f09509ea7cc080ba38da7?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+            "gravatar_id": "461945a9e40f09509ea7cc080ba38da7",
+            "url": "https://api.github.com/users/thomasmoelhave",
+            "id": 179143,
+            "login": "thomasmoelhave"
+          },
+          "html_url": "https://github.com/thomasmoelhave/tpie/issues/12",
+          "labels": [
+
+          ],
+          "state": "closed"
+        }
+      },
+      "created_at": "2012-04-30T10:52:27Z",
+      "repo": {
+        "id": 466542,
+        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
+        "name": "thomasmoelhave/tpie"
+      },
+      "actor": {
+        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
+        "id": 373639,
+        "avatar_url": "https://secure.gravatar.com/avatar/edf6018e5ee0edac73fb4196cd45273f?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+        "url": "https://api.github.com/users/Mortal",
+        "login": "Mortal"
+      },
+      "id": "1547081183"
+    },
+    {
+      "type": "PushEvent",
+      "public": true,
+      "payload": {
+        "head": "e93fc819414d65377da5f218d7592f332aa761ee",
+        "size": 4,
+        "push_id": 75640322,
+        "ref": "refs/heads/filestream",
+        "commits": [
+          {
+            "sha": "1a80c4b0289e3cf710a7e944626aeb79b9771e28",
+            "author": {
+              "name": "Mathias Rav",
+              "email": "rav@cs.au.dk"
+            },
+            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/1a80c4b0289e3cf710a7e944626aeb79b9771e28",
+            "distinct": true,
+            "message": "Add array test demonstrating bug"
+          },
+          {
+            "sha": "a7a5bc25f8bf6794aa551043b08850c27786dd23",
+            "author": {
+              "name": "Mathias Rav",
+              "email": "rav@cs.au.dk"
+            },
+            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/a7a5bc25f8bf6794aa551043b08850c27786dd23",
+            "distinct": true,
+            "message": "Fix array bug"
+          },
+          {
+            "sha": "c098ba326d0baba1a47f2ccc7366d9162a6036d4",
+            "author": {
+              "name": "Mathias Rav",
+              "email": "rav@cs.au.dk"
+            },
+            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/c098ba326d0baba1a47f2ccc7366d9162a6036d4",
+            "distinct": true,
+            "message": "Support swapping file_streams"
+          },
+          {
+            "sha": "e93fc819414d65377da5f218d7592f332aa761ee",
+            "author": {
+              "name": "Mathias Rav",
+              "email": "rav@cs.au.dk"
+            },
+            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/e93fc819414d65377da5f218d7592f332aa761ee",
+            "distinct": true,
+            "message": "Enable std::swapping two tpie::file_streams. This fixes #13."
+          }
+        ]
+      },
+      "created_at": "2012-04-30T10:48:30Z",
+      "repo": {
+        "id": 466542,
+        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
+        "name": "thomasmoelhave/tpie"
+      },
+      "actor": {
+        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
+        "id": 373639,
+        "avatar_url": "https://secure.gravatar.com/avatar/edf6018e5ee0edac73fb4196cd45273f?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+        "url": "https://api.github.com/users/Mortal",
+        "login": "Mortal"
+      },
+      "id": "1547080343"
+    },
+    {
+      "type": "IssuesEvent",
+      "public": true,
+      "payload": {
+        "action": "closed",
+        "issue": {
+          "number": 13,
+          "pull_request": {
+            "diff_url": null,
+            "patch_url": null,
+            "html_url": null
+          },
+          "created_at": "2012-04-24T10:32:40Z",
+          "comments": 4,
+          "body": "I propose two changes to the file_stream class.\r\n\r\n1. Make file_stream allocate its memory on open, and free it on close. \r\n2. Make file_stream copy constructable unless, it is open.",
+          "title": "file_stream changes.",
+          "updated_at": "2012-04-30T10:48:28Z",
+          "url": "https://api.github.com/repos/thomasmoelhave/tpie/issues/13",
+          "id": 4257166,
+          "assignee": {
+            "avatar_url": "https://secure.gravatar.com/avatar/edf6018e5ee0edac73fb4196cd45273f?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+            "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
+            "url": "https://api.github.com/users/Mortal",
+            "id": 373639,
+            "login": "Mortal"
+          },
+          "milestone": {
+            "number": 1,
+            "created_at": "2012-04-26T11:25:39Z",
+            "due_on": null,
+            "title": "1.0",
+            "creator": {
+              "avatar_url": "https://secure.gravatar.com/avatar/461945a9e40f09509ea7cc080ba38da7?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+              "gravatar_id": "461945a9e40f09509ea7cc080ba38da7",
+              "url": "https://api.github.com/users/thomasmoelhave",
+              "id": 179143,
+              "login": "thomasmoelhave"
+            },
+            "url": "https://api.github.com/repos/thomasmoelhave/tpie/milestones/1",
+            "closed_issues": 3,
+            "open_issues": 1,
+            "description": null,
+            "state": "open"
+          },
+          "closed_at": "2012-04-30T10:48:28Z",
+          "user": {
+            "avatar_url": "https://secure.gravatar.com/avatar/e464b642c2ec7256d35a55151f44f536?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+            "gravatar_id": "e464b642c2ec7256d35a55151f44f536",
+            "url": "https://api.github.com/users/antialize",
+            "id": 84282,
+            "login": "antialize"
+          },
+          "labels": [
+
+          ],
+          "html_url": "https://github.com/thomasmoelhave/tpie/issues/13",
+          "state": "closed"
+        }
+      },
+      "created_at": "2012-04-30T10:48:29Z",
+      "repo": {
+        "id": 466542,
+        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
+        "name": "thomasmoelhave/tpie"
+      },
+      "actor": {
+        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
+        "id": 373639,
+        "avatar_url": "https://secure.gravatar.com/avatar/edf6018e5ee0edac73fb4196cd45273f?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+        "url": "https://api.github.com/users/Mortal",
+        "login": "Mortal"
+      },
+      "id": "1547080332"
+    },
+    {
+      "type": "PushEvent",
+      "public": true,
+      "payload": {
+        "head": "e3f805d6c0e42d3d094a542dc78d72a329dd9e4a",
+        "size": 1,
+        "push_id": 75626839,
+        "ref": "refs/heads/filestream",
+        "commits": [
+          {
+            "sha": "e3f805d6c0e42d3d094a542dc78d72a329dd9e4a",
+            "author": {
+              "name": "Mathias Rav",
+              "email": "rav@cs.au.dk"
+            },
+            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/e3f805d6c0e42d3d094a542dc78d72a329dd9e4a",
+            "distinct": true,
+            "message": "Switch from a char array to a tpie array of Ts for the file_stream buffer. Fixes first part of #13."
+          }
+        ]
+      },
+      "created_at": "2012-04-30T08:50:16Z",
+      "repo": {
+        "id": 466542,
+        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
+        "name": "thomasmoelhave/tpie"
+      },
+      "actor": {
+        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
+        "id": 373639,
+        "avatar_url": "https://secure.gravatar.com/avatar/edf6018e5ee0edac73fb4196cd45273f?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+        "url": "https://api.github.com/users/Mortal",
+        "login": "Mortal"
+      },
+      "id": "1547049627"
+    },
+    {
+      "type": "ForkEvent",
+      "public": true,
+      "payload": {
+        "forkee": {
+          "name": "tpie",
+          "has_wiki": true,
+          "size": 9192,
+          "created_at": "2012-04-29T10:16:44Z",
+          "public": true,
+          "clone_url": "https://github.com/Mortal/tpie.git",
+          "private": false,
+          "watchers": 1,
+          "updated_at": "2012-04-29T10:16:44Z",
+          "ssh_url": "git@github.com:Mortal/tpie.git",
+          "git_url": "git://github.com/Mortal/tpie.git",
+          "url": "https://api.github.com/repos/Mortal/tpie",
+          "fork": true,
+          "language": "C++",
+          "pushed_at": "2012-04-26T12:41:06Z",
+          "svn_url": "https://github.com/Mortal/tpie",
+          "id": 4173625,
+          "mirror_url": null,
+          "has_downloads": true,
+          "open_issues": 0,
+          "homepage": "http://madalgo.au.dk/Trac-tpie",
+          "has_issues": false,
+          "description": "Templated Portable I/O Environment",
+          "forks": 0,
+          "html_url": "https://github.com/Mortal/tpie",
+          "owner": {
+            "avatar_url": "https://secure.gravatar.com/avatar/edf6018e5ee0edac73fb4196cd45273f?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+            "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
+            "url": "https://api.github.com/users/Mortal",
+            "id": 373639,
+            "login": "Mortal"
+          }
+        }
+      },
+      "created_at": "2012-04-29T10:16:45Z",
+      "repo": {
+        "id": 466542,
+        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
+        "name": "thomasmoelhave/tpie"
+      },
+      "actor": {
+        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
+        "id": 373639,
+        "avatar_url": "https://secure.gravatar.com/avatar/edf6018e5ee0edac73fb4196cd45273f?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+        "url": "https://api.github.com/users/Mortal",
+        "login": "Mortal"
+      },
+      "id": "1546850835"
+    },
+    {
+      "type": "PushEvent",
+      "public": true,
+      "payload": {
+        "head": "32ff412dcf4f694d2d071a725812b755987dba2d",
+        "size": 1,
+        "push_id": 75049434,
+        "commits": [
+          {
+            "sha": "32ff412dcf4f694d2d071a725812b755987dba2d",
+            "author": {
+              "name": "Mathias Rav",
+              "email": "rav@cs.au.dk"
+            },
+            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/32ff412dcf4f694d2d071a725812b755987dba2d",
+            "distinct": true,
+            "message": "can_read_back now computes the right thing. Fixes #14"
+          }
+        ],
+        "ref": "refs/heads/filestream"
+      },
+      "created_at": "2012-04-26T12:41:09Z",
+      "repo": {
+        "id": 466542,
+        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
+        "name": "thomasmoelhave/tpie"
+      },
+      "actor": {
+        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
+        "id": 373639,
+        "avatar_url": "https://secure.gravatar.com/avatar/edf6018e5ee0edac73fb4196cd45273f?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+        "url": "https://api.github.com/users/Mortal",
+        "login": "Mortal"
+      },
+      "id": "1545856469"
+    },
+    {
+      "type": "IssuesEvent",
+      "public": true,
+      "payload": {
+        "action": "closed",
+        "issue": {
+          "number": 14,
+          "pull_request": {
+            "diff_url": null,
+            "patch_url": null,
+            "html_url": null
+          },
+          "created_at": "2012-04-25T10:01:56Z",
+          "comments": 1,
+          "body": "file_stream::can_read_back() seems to never return false. I have changed the stacks empty method to query the offset instead, but this should probably be changed back once can_read_back actualy works.",
+          "title": "file_stream::can_read_back seems to alwayes return true",
+          "updated_at": "2012-04-26T12:41:06Z",
+          "url": "https://api.github.com/repos/thomasmoelhave/tpie/issues/14",
+          "id": 4277512,
+          "assignee": {
+            "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
+            "avatar_url": "https://secure.gravatar.com/avatar/edf6018e5ee0edac73fb4196cd45273f?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+            "url": "https://api.github.com/users/Mortal",
+            "id": 373639,
+            "login": "Mortal"
+          },
+          "milestone": {
+            "number": 1,
+            "due_on": null,
+            "created_at": "2012-04-26T11:25:39Z",
+            "title": "1.0",
+            "creator": {
+              "gravatar_id": "461945a9e40f09509ea7cc080ba38da7",
+              "avatar_url": "https://secure.gravatar.com/avatar/461945a9e40f09509ea7cc080ba38da7?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+              "url": "https://api.github.com/users/thomasmoelhave",
+              "id": 179143,
+              "login": "thomasmoelhave"
+            },
+            "url": "https://api.github.com/repos/thomasmoelhave/tpie/milestones/1",
+            "closed_issues": 2,
+            "open_issues": 2,
+            "description": null,
+            "state": "open"
+          },
+          "closed_at": "2012-04-26T12:41:06Z",
+          "user": {
+            "gravatar_id": "e464b642c2ec7256d35a55151f44f536",
+            "avatar_url": "https://secure.gravatar.com/avatar/e464b642c2ec7256d35a55151f44f536?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+            "url": "https://api.github.com/users/antialize",
+            "id": 84282,
+            "login": "antialize"
+          },
+          "html_url": "https://github.com/thomasmoelhave/tpie/issues/14",
+          "labels": [
+
+          ],
+          "state": "closed"
+        }
+      },
+      "created_at": "2012-04-26T12:41:09Z",
+      "repo": {
+        "id": 466542,
+        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
+        "name": "thomasmoelhave/tpie"
+      },
+      "actor": {
+        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
+        "id": 373639,
+        "avatar_url": "https://secure.gravatar.com/avatar/edf6018e5ee0edac73fb4196cd45273f?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+        "url": "https://api.github.com/users/Mortal",
+        "login": "Mortal"
+      },
+      "id": "1545856466"
+    },
+    {
+      "type": "IssueCommentEvent",
+      "public": true,
+      "payload": {
+        "comment": {
+          "created_at": "2012-04-26T12:37:55Z",
+          "body": "Fixed by 8e537320864022f51187aab89c51f777a1cf5be6",
+          "updated_at": "2012-04-26T12:37:55Z",
+          "url": "https://api.github.com/repos/thomasmoelhave/tpie/issues/comments/5355322",
+          "id": 5355322,
+          "user": {
+            "avatar_url": "https://secure.gravatar.com/avatar/edf6018e5ee0edac73fb4196cd45273f?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+            "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
+            "url": "https://api.github.com/users/Mortal",
+            "id": 373639,
+            "login": "Mortal"
+          }
+        },
+        "action": "created",
+        "issue": {
+          "number": 15,
+          "created_at": "2012-04-26T07:21:44Z",
+          "pull_request": {
+            "diff_url": null,
+            "patch_url": null,
+            "html_url": null
+          },
+          "body": "Pushing B+1 items to the stack, and then n times popping 2 items and pushing 2 items, performs n I/Os. I would expect constant or atmost n/B I/Os",
+          "title": "tpie::stack is not io efficient.",
+          "comments": 1,
+          "updated_at": "2012-04-26T12:37:55Z",
+          "url": "https://api.github.com/repos/thomasmoelhave/tpie/issues/15",
+          "id": 4296826,
+          "assignee": null,
+          "milestone": {
+            "number": 1,
+            "created_at": "2012-04-26T11:25:39Z",
+            "due_on": null,
+            "title": "1.0",
+            "creator": {
+              "avatar_url": "https://secure.gravatar.com/avatar/461945a9e40f09509ea7cc080ba38da7?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+              "gravatar_id": "461945a9e40f09509ea7cc080ba38da7",
+              "url": "https://api.github.com/users/thomasmoelhave",
+              "id": 179143,
+              "login": "thomasmoelhave"
+            },
+            "url": "https://api.github.com/repos/thomasmoelhave/tpie/milestones/1",
+            "open_issues": 3,
+            "closed_issues": 1,
+            "description": null,
+            "state": "open"
+          },
+          "closed_at": "2012-04-26T12:37:55Z",
+          "html_url": "https://github.com/thomasmoelhave/tpie/issues/15",
+          "labels": [
+
+          ],
+          "user": {
+            "avatar_url": "https://secure.gravatar.com/avatar/e464b642c2ec7256d35a55151f44f536?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+            "gravatar_id": "e464b642c2ec7256d35a55151f44f536",
+            "url": "https://api.github.com/users/antialize",
+            "id": 84282,
+            "login": "antialize"
+          },
+          "state": "closed"
+        }
+      },
+      "created_at": "2012-04-26T12:37:56Z",
+      "repo": {
+        "id": 466542,
+        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
+        "name": "thomasmoelhave/tpie"
+      },
+      "actor": {
+        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
+        "id": 373639,
+        "avatar_url": "https://secure.gravatar.com/avatar/edf6018e5ee0edac73fb4196cd45273f?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+        "url": "https://api.github.com/users/Mortal",
+        "login": "Mortal"
+      },
+      "id": "1545855487"
+    },
+    {
+      "type": "IssuesEvent",
+      "public": true,
+      "payload": {
+        "action": "closed",
+        "issue": {
+          "number": 15,
+          "created_at": "2012-04-26T07:21:44Z",
+          "pull_request": {
+            "diff_url": null,
+            "patch_url": null,
+            "html_url": null
+          },
+          "body": "Pushing B+1 items to the stack, and then n times popping 2 items and pushing 2 items, performs n I/Os. I would expect constant or atmost n/B I/Os",
+          "title": "tpie::stack is not io efficient.",
+          "comments": 1,
+          "updated_at": "2012-04-26T12:37:55Z",
+          "url": "https://api.github.com/repos/thomasmoelhave/tpie/issues/15",
+          "id": 4296826,
+          "assignee": null,
+          "milestone": {
+            "number": 1,
+            "created_at": "2012-04-26T11:25:39Z",
+            "due_on": null,
+            "title": "1.0",
+            "creator": {
+              "avatar_url": "https://secure.gravatar.com/avatar/461945a9e40f09509ea7cc080ba38da7?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+              "gravatar_id": "461945a9e40f09509ea7cc080ba38da7",
+              "url": "https://api.github.com/users/thomasmoelhave",
+              "id": 179143,
+              "login": "thomasmoelhave"
+            },
+            "url": "https://api.github.com/repos/thomasmoelhave/tpie/milestones/1",
+            "open_issues": 3,
+            "closed_issues": 1,
+            "description": null,
+            "state": "open"
+          },
+          "closed_at": "2012-04-26T12:37:55Z",
+          "html_url": "https://github.com/thomasmoelhave/tpie/issues/15",
+          "labels": [
+
+          ],
+          "user": {
+            "avatar_url": "https://secure.gravatar.com/avatar/e464b642c2ec7256d35a55151f44f536?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+            "gravatar_id": "e464b642c2ec7256d35a55151f44f536",
+            "url": "https://api.github.com/users/antialize",
+            "id": 84282,
+            "login": "antialize"
+          },
+          "state": "closed"
+        }
+      },
+      "created_at": "2012-04-26T12:37:56Z",
+      "repo": {
+        "id": 466542,
+        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
+        "name": "thomasmoelhave/tpie"
+      },
+      "actor": {
+        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
+        "id": 373639,
+        "avatar_url": "https://secure.gravatar.com/avatar/edf6018e5ee0edac73fb4196cd45273f?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+        "url": "https://api.github.com/users/Mortal",
+        "login": "Mortal"
+      },
+      "id": "1545855488"
+    },
+    {
+      "type": "PushEvent",
+      "public": true,
+      "payload": {
+        "head": "9308c4f4337e0a5da13e8f0db771cc6305f603a6",
+        "size": 7,
+        "push_id": 75044903,
+        "ref": "refs/heads/filestream",
+        "commits": [
+          {
+            "sha": "c7406b0aad2b77015eb3f659180e3a355253f09f",
+            "author": {
+              "name": "Mathias Rav",
+              "email": "rav@cs.au.dk"
+            },
+            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/c7406b0aad2b77015eb3f659180e3a355253f09f",
+            "distinct": true,
+            "message": "Add external stack I/O efficiency unit test"
+          },
+          {
+            "sha": "8e537320864022f51187aab89c51f777a1cf5be6",
+            "author": {
+              "name": "Mathias Rav",
+              "email": "rav@cs.au.dk"
+            },
+            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/8e537320864022f51187aab89c51f777a1cf5be6",
+            "distinct": true,
+            "message": "Make stack I/O efficient"
+          },
+          {
+            "sha": "ecd2d0ec80871ff556f2d9a3c56e7e51661ad839",
+            "author": {
+              "name": "Mathias Rav",
+              "email": "rav@cs.au.dk"
+            },
+            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/ecd2d0ec80871ff556f2d9a3c56e7e51661ad839",
+            "distinct": true,
+            "message": "Change new stack to conform to modern coding style"
+          },
+          {
+            "sha": "9b9917aa738f7571482fd17d3fe74d441b895da3",
+            "author": {
+              "name": "Mathias Rav",
+              "email": "rav@cs.au.dk"
+            },
+            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/9b9917aa738f7571482fd17d3fe74d441b895da3",
+            "distinct": true,
+            "message": "Change old stack to conform to modern coding style"
+          },
+          {
+            "sha": "55137b4ab0607f3797993c0ff7ca21afd4c00aba",
+            "author": {
+              "name": "Mathias Rav",
+              "email": "rav@cs.au.dk"
+            },
+            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/55137b4ab0607f3797993c0ff7ca21afd4c00aba",
+            "distinct": true,
+            "message": "Make temp_file noncopyable"
+          },
+          {
+            "sha": "81c000e0186d700b2a9dc61805f6f9291fc44a70",
+            "author": {
+              "name": "Mathias Rav",
+              "email": "rav@cs.au.dk"
+            },
+            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/81c000e0186d700b2a9dc61805f6f9291fc44a70",
+            "distinct": true,
+            "message": "Make stack use the new temp file paradigm"
+          },
+          {
+            "sha": "9308c4f4337e0a5da13e8f0db771cc6305f603a6",
+            "author": {
+              "name": "Mathias Rav",
+              "email": "rav@cs.au.dk"
+            },
+            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/9308c4f4337e0a5da13e8f0db771cc6305f603a6",
+            "distinct": true,
+            "message": "In ami::stack, use the temp_file facility of the stack"
+          }
+        ]
+      },
+      "created_at": "2012-04-26T12:12:40Z",
+      "repo": {
+        "id": 466542,
+        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
+        "name": "thomasmoelhave/tpie"
+      },
+      "actor": {
+        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
+        "id": 373639,
+        "avatar_url": "https://secure.gravatar.com/avatar/edf6018e5ee0edac73fb4196cd45273f?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+        "url": "https://api.github.com/users/Mortal",
+        "login": "Mortal"
+      },
+      "id": "1545847938"
+    },
+    {
+      "type": "IssueCommentEvent",
+      "public": true,
+      "payload": {
+        "comment": {
+          "created_at": "2012-04-26T11:30:18Z",
+          "body": "Ahh, guess not. You added support in sort_manager, but not a new sort function it seems?",
+          "updated_at": "2012-04-26T11:30:18Z",
+          "url": "https://api.github.com/repos/thomasmoelhave/tpie/issues/comments/5354319",
+          "id": 5354319,
+          "user": {
+            "avatar_url": "https://secure.gravatar.com/avatar/461945a9e40f09509ea7cc080ba38da7?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+            "gravatar_id": "461945a9e40f09509ea7cc080ba38da7",
+            "url": "https://api.github.com/users/thomasmoelhave",
+            "id": 179143,
+            "login": "thomasmoelhave"
+          }
+        },
+        "action": "created",
+        "issue": {
+          "number": 12,
+          "created_at": "2012-04-23T21:51:28Z",
+          "pull_request": {
+            "diff_url": null,
+            "patch_url": null,
+            "html_url": null
+          },
+          "body": "Currently, to sort a tpie::filestream X we need to issue:\r\n\r\n    tpie::sort(X,X);\r\n\r\nWe should add an extra variant of tpie::sort so we can do:\r\n\r\n    tpie::sort(X);\r\n\r\nInstead.\r\n",
+          "title": "tpie::sort versions for same input and output",
+          "comments": 4,
+          "updated_at": "2012-04-26T11:30:18Z",
+          "url": "https://api.github.com/repos/thomasmoelhave/tpie/issues/12",
+          "id": 4249921,
+          "assignee": {
+            "avatar_url": "https://secure.gravatar.com/avatar/edf6018e5ee0edac73fb4196cd45273f?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+            "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
+            "url": "https://api.github.com/users/Mortal",
+            "id": 373639,
+            "login": "Mortal"
+          },
+          "milestone": {
+            "number": 1,
+            "created_at": "2012-04-26T11:25:39Z",
+            "due_on": null,
+            "title": "1.0",
+            "creator": {
+              "avatar_url": "https://secure.gravatar.com/avatar/461945a9e40f09509ea7cc080ba38da7?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+              "gravatar_id": "461945a9e40f09509ea7cc080ba38da7",
+              "url": "https://api.github.com/users/thomasmoelhave",
+              "id": 179143,
+              "login": "thomasmoelhave"
+            },
+            "url": "https://api.github.com/repos/thomasmoelhave/tpie/milestones/1",
+            "open_issues": 4,
+            "closed_issues": 0,
+            "description": null,
+            "state": "open"
+          },
+          "closed_at": null,
+          "html_url": "https://github.com/thomasmoelhave/tpie/issues/12",
+          "user": {
+            "avatar_url": "https://secure.gravatar.com/avatar/461945a9e40f09509ea7cc080ba38da7?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+            "gravatar_id": "461945a9e40f09509ea7cc080ba38da7",
+            "url": "https://api.github.com/users/thomasmoelhave",
+            "id": 179143,
+            "login": "thomasmoelhave"
+          },
+          "labels": [
+
+          ],
+          "state": "open"
+        }
+      },
+      "created_at": "2012-04-26T11:30:19Z",
+      "repo": {
+        "id": 466542,
+        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
+        "name": "thomasmoelhave/tpie"
+      },
+      "actor": {
+        "gravatar_id": "461945a9e40f09509ea7cc080ba38da7",
+        "id": 179143,
+        "avatar_url": "https://secure.gravatar.com/avatar/461945a9e40f09509ea7cc080ba38da7?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+        "url": "https://api.github.com/users/thomasmoelhave",
+        "login": "thomasmoelhave"
+      },
+      "id": "1545836032"
+    },
+    {
+      "type": "IssueCommentEvent",
+      "public": true,
+      "payload": {
+        "comment": {
+          "created_at": "2012-04-26T11:26:24Z",
+          "body": "@antialize didn't you do this? Can we close this ticket?",
+          "updated_at": "2012-04-26T11:26:24Z",
+          "url": "https://api.github.com/repos/thomasmoelhave/tpie/issues/comments/5354261",
+          "id": 5354261,
+          "user": {
+            "gravatar_id": "461945a9e40f09509ea7cc080ba38da7",
+            "avatar_url": "https://secure.gravatar.com/avatar/461945a9e40f09509ea7cc080ba38da7?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+            "url": "https://api.github.com/users/thomasmoelhave",
+            "id": 179143,
+            "login": "thomasmoelhave"
+          }
+        },
+        "action": "created",
+        "issue": {
+          "number": 12,
+          "created_at": "2012-04-23T21:51:28Z",
+          "pull_request": {
+            "diff_url": null,
+            "patch_url": null,
+            "html_url": null
+          },
+          "body": "Currently, to sort a tpie::filestream X we need to issue:\r\n\r\n    tpie::sort(X,X);\r\n\r\nWe should add an extra variant of tpie::sort so we can do:\r\n\r\n    tpie::sort(X);\r\n\r\nInstead.\r\n",
+          "title": "tpie::sort versions for same input and output",
+          "comments": 3,
+          "updated_at": "2012-04-26T11:26:24Z",
+          "url": "https://api.github.com/repos/thomasmoelhave/tpie/issues/12",
+          "id": 4249921,
+          "assignee": {
+            "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
+            "avatar_url": "https://secure.gravatar.com/avatar/edf6018e5ee0edac73fb4196cd45273f?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+            "url": "https://api.github.com/users/Mortal",
+            "id": 373639,
+            "login": "Mortal"
+          },
+          "milestone": null,
+          "closed_at": null,
+          "labels": [
+
+          ],
+          "user": {
+            "gravatar_id": "461945a9e40f09509ea7cc080ba38da7",
+            "avatar_url": "https://secure.gravatar.com/avatar/461945a9e40f09509ea7cc080ba38da7?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+            "url": "https://api.github.com/users/thomasmoelhave",
+            "id": 179143,
+            "login": "thomasmoelhave"
+          },
+          "html_url": "https://github.com/thomasmoelhave/tpie/issues/12",
+          "state": "open"
+        }
+      },
+      "created_at": "2012-04-26T11:26:25Z",
+      "repo": {
+        "id": 466542,
+        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
+        "name": "thomasmoelhave/tpie"
+      },
+      "actor": {
+        "gravatar_id": "461945a9e40f09509ea7cc080ba38da7",
+        "id": 179143,
+        "avatar_url": "https://secure.gravatar.com/avatar/461945a9e40f09509ea7cc080ba38da7?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+        "url": "https://api.github.com/users/thomasmoelhave",
+        "login": "thomasmoelhave"
+      },
+      "id": "1545835060"
+    },
+    {
+      "type": "IssuesEvent",
+      "public": true,
+      "payload": {
+        "action": "opened",
+        "issue": {
+          "number": 15,
+          "created_at": "2012-04-26T07:21:44Z",
+          "pull_request": {
+            "diff_url": null,
+            "patch_url": null,
+            "html_url": null
+          },
+          "body": "Pushing B+1 items to the stack, and then n times popping 2 items and pushing 2 items, performs n I/Os. I would expect constant or atmost n/B I/Os",
+          "title": "tpie::stack is not io efficient.",
+          "comments": 0,
+          "updated_at": "2012-04-26T07:21:44Z",
+          "url": "https://api.github.com/repos/thomasmoelhave/tpie/issues/15",
+          "id": 4296826,
+          "assignee": null,
+          "milestone": null,
+          "closed_at": null,
+          "html_url": "https://github.com/thomasmoelhave/tpie/issues/15",
+          "user": {
+            "avatar_url": "https://secure.gravatar.com/avatar/e464b642c2ec7256d35a55151f44f536?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+            "gravatar_id": "e464b642c2ec7256d35a55151f44f536",
+            "url": "https://api.github.com/users/antialize",
+            "id": 84282,
+            "login": "antialize"
+          },
+          "labels": [
+
+          ],
+          "state": "open"
+        }
+      },
+      "created_at": "2012-04-26T07:21:45Z",
+      "repo": {
+        "id": 466542,
+        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
+        "name": "thomasmoelhave/tpie"
+      },
+      "actor": {
+        "gravatar_id": "e464b642c2ec7256d35a55151f44f536",
+        "id": 84282,
+        "avatar_url": "https://secure.gravatar.com/avatar/e464b642c2ec7256d35a55151f44f536?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+        "url": "https://api.github.com/users/antialize",
+        "login": "antialize"
+      },
+      "id": "1545763692"
+    },
+    {
+      "type": "PushEvent",
+      "public": true,
+      "payload": {
+        "head": "f2e2d31e8934f02fbde33fbee515163f10987243",
+        "size": 1,
+        "push_id": 74971747,
+        "commits": [
+          {
+            "sha": "f2e2d31e8934f02fbde33fbee515163f10987243",
+            "author": {
+              "name": "Thomas Moelhave",
+              "email": "thomas@scalgo.com"
+            },
+            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/f2e2d31e8934f02fbde33fbee515163f10987243",
+            "distinct": true,
+            "message": "add google analytics tracker"
+          }
+        ],
+        "ref": "refs/heads/web"
+      },
+      "created_at": "2012-04-26T02:14:25Z",
+      "repo": {
+        "id": 466542,
+        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
+        "name": "thomasmoelhave/tpie"
+      },
+      "actor": {
+        "gravatar_id": "461945a9e40f09509ea7cc080ba38da7",
+        "id": 179143,
+        "avatar_url": "https://secure.gravatar.com/avatar/461945a9e40f09509ea7cc080ba38da7?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+        "url": "https://api.github.com/users/thomasmoelhave",
+        "login": "thomasmoelhave"
+      },
+      "id": "1545705165"
+    },
+    {
+      "type": "PushEvent",
+      "public": true,
+      "payload": {
+        "head": "a6ff47676612ac872f4a936712f33a4825dad668",
+        "size": 1,
+        "push_id": 74845586,
+        "commits": [
+          {
+            "sha": "a6ff47676612ac872f4a936712f33a4825dad668",
+            "author": {
+              "name": "Jakob Truelsen",
+              "email": "jakob@scalgo.com"
+            },
+            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/a6ff47676612ac872f4a936712f33a4825dad668",
+            "distinct": true,
+            "message": "Remove unused variable, and fix empty on stack"
+          }
+        ],
+        "ref": "refs/heads/filestream"
+      },
+      "created_at": "2012-04-25T15:24:16Z",
+      "repo": {
+        "id": 466542,
+        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
+        "name": "thomasmoelhave/tpie"
+      },
+      "actor": {
+        "gravatar_id": "e464b642c2ec7256d35a55151f44f536",
+        "id": 84282,
+        "avatar_url": "https://secure.gravatar.com/avatar/e464b642c2ec7256d35a55151f44f536?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+        "url": "https://api.github.com/users/antialize",
+        "login": "antialize"
+      },
+      "id": "1545446881"
+    },
+    {
+      "type": "IssueCommentEvent",
+      "public": true,
+      "payload": {
+        "comment": {
+          "created_at": "2012-04-25T11:35:21Z",
+          "body": "Haha yeah, that sorta ruins the point of can_read_back :).  @Mortal is this something you can look into when you get a chance?",
+          "updated_at": "2012-04-25T11:35:21Z",
+          "url": "https://api.github.com/repos/thomasmoelhave/tpie/issues/comments/5329121",
+          "id": 5329121,
+          "user": {
+            "gravatar_id": "461945a9e40f09509ea7cc080ba38da7",
+            "avatar_url": "https://secure.gravatar.com/avatar/461945a9e40f09509ea7cc080ba38da7?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+            "url": "https://api.github.com/users/thomasmoelhave",
+            "id": 179143,
+            "login": "thomasmoelhave"
+          }
+        },
+        "action": "created",
+        "issue": {
+          "number": 14,
+          "pull_request": {
+            "diff_url": null,
+            "patch_url": null,
+            "html_url": null
+          },
+          "created_at": "2012-04-25T10:01:56Z",
+          "body": "file_stream::can_read_back() seems to never return false. I have changed the stacks empty method to query the offset instead, but this should probably be changed back once can_read_back actualy works.",
+          "title": "file_stream::can_read_back seems to alwayes return true",
+          "comments": 1,
+          "updated_at": "2012-04-25T11:35:22Z",
+          "url": "https://api.github.com/repos/thomasmoelhave/tpie/issues/14",
+          "id": 4277512,
+          "assignee": null,
+          "milestone": null,
+          "closed_at": null,
+          "labels": [
+
+          ],
+          "html_url": "https://github.com/thomasmoelhave/tpie/issues/14",
+          "user": {
+            "gravatar_id": "e464b642c2ec7256d35a55151f44f536",
+            "avatar_url": "https://secure.gravatar.com/avatar/e464b642c2ec7256d35a55151f44f536?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+            "url": "https://api.github.com/users/antialize",
+            "id": 84282,
+            "login": "antialize"
+          },
+          "state": "open"
+        }
+      },
+      "created_at": "2012-04-25T11:35:22Z",
+      "repo": {
+        "id": 466542,
+        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
+        "name": "thomasmoelhave/tpie"
+      },
+      "actor": {
+        "gravatar_id": "461945a9e40f09509ea7cc080ba38da7",
+        "id": 179143,
+        "avatar_url": "https://secure.gravatar.com/avatar/461945a9e40f09509ea7cc080ba38da7?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+        "url": "https://api.github.com/users/thomasmoelhave",
+        "login": "thomasmoelhave"
+      },
+      "id": "1545356623"
+    },
+    {
+      "type": "IssuesEvent",
+      "public": true,
+      "payload": {
+        "action": "opened",
+        "issue": {
+          "number": 14,
+          "pull_request": {
+            "diff_url": null,
+            "patch_url": null,
+            "html_url": null
+          },
+          "created_at": "2012-04-25T10:01:56Z",
+          "body": "file_stream::can_read_back() seems to never return false. I have changed the stacks empty method to query the offset instead, but this should probably be changed back once can_read_back actualy works.",
+          "title": "file_stream::can_read_back seems to alwayes return true",
+          "comments": 0,
+          "updated_at": "2012-04-25T10:01:56Z",
+          "url": "https://api.github.com/repos/thomasmoelhave/tpie/issues/14",
+          "id": 4277512,
+          "assignee": null,
+          "milestone": null,
+          "closed_at": null,
+          "html_url": "https://github.com/thomasmoelhave/tpie/issues/14",
+          "user": {
+            "gravatar_id": "e464b642c2ec7256d35a55151f44f536",
+            "avatar_url": "https://secure.gravatar.com/avatar/e464b642c2ec7256d35a55151f44f536?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+            "url": "https://api.github.com/users/antialize",
+            "id": 84282,
+            "login": "antialize"
+          },
+          "labels": [
+
+          ],
+          "state": "open"
+        }
+      },
+      "created_at": "2012-04-25T10:01:56Z",
+      "repo": {
+        "id": 466542,
+        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
+        "name": "thomasmoelhave/tpie"
+      },
+      "actor": {
+        "gravatar_id": "e464b642c2ec7256d35a55151f44f536",
+        "id": 84282,
+        "avatar_url": "https://secure.gravatar.com/avatar/e464b642c2ec7256d35a55151f44f536?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+        "url": "https://api.github.com/users/antialize",
+        "login": "antialize"
+      },
+      "id": "1545330550"
+    },
+    {
+      "type": "PushEvent",
+      "public": true,
+      "payload": {
+        "head": "7a403e790430428efd25b5fb197bcd72999b3770",
+        "size": 2,
+        "push_id": 74771630,
+        "ref": "refs/heads/filestream",
+        "commits": [
+          {
+            "sha": "246c1b359b77f36e656af8bb456081f672b0d30a",
+            "author": {
+              "name": "Mathias Rav",
+              "email": "rav@cs.au.dk"
+            },
+            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/246c1b359b77f36e656af8bb456081f672b0d30a",
+            "distinct": true,
+            "message": "Move priority queue out of ami namespace. Fixes #9."
+          },
+          {
+            "sha": "7a403e790430428efd25b5fb197bcd72999b3770",
+            "author": {
+              "name": "Mathias Rav",
+              "email": "rav@cs.au.dk"
+            },
+            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/7a403e790430428efd25b5fb197bcd72999b3770",
+            "distinct": true,
+            "message": "Remove unused variable"
+          }
+        ]
+      },
+      "created_at": "2012-04-25T08:34:01Z",
+      "repo": {
+        "id": 466542,
+        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
+        "name": "thomasmoelhave/tpie"
+      },
+      "actor": {
+        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
+        "id": 373639,
+        "avatar_url": "https://secure.gravatar.com/avatar/edf6018e5ee0edac73fb4196cd45273f?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+        "url": "https://api.github.com/users/Mortal",
+        "login": "Mortal"
+      },
+      "id": "1545301012"
+    },
+    {
+      "type": "IssuesEvent",
+      "public": true,
+      "payload": {
+        "action": "closed",
+        "issue": {
+          "number": 9,
+          "pull_request": {
+            "diff_url": null,
+            "patch_url": null,
+            "html_url": null
+          },
+          "created_at": "2011-09-27T13:01:55Z",
+          "body": "",
+          "title": "Fix priority queue in file_stream branch",
+          "comments": 4,
+          "updated_at": "2012-04-25T08:33:59Z",
+          "url": "https://api.github.com/repos/thomasmoelhave/tpie/issues/9",
+          "id": 1751777,
+          "assignee": null,
+          "milestone": null,
+          "closed_at": "2012-04-25T08:33:59Z",
+          "labels": [
+
+          ],
+          "html_url": "https://github.com/thomasmoelhave/tpie/issues/9",
+          "user": {
+            "gravatar_id": "e464b642c2ec7256d35a55151f44f536",
+            "avatar_url": "https://secure.gravatar.com/avatar/e464b642c2ec7256d35a55151f44f536?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+            "url": "https://api.github.com/users/antialize",
+            "id": 84282,
+            "login": "antialize"
+          },
+          "state": "closed"
+        }
+      },
+      "created_at": "2012-04-25T08:34:00Z",
+      "repo": {
+        "id": 466542,
+        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
+        "name": "thomasmoelhave/tpie"
+      },
+      "actor": {
+        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
+        "id": 373639,
+        "avatar_url": "https://secure.gravatar.com/avatar/edf6018e5ee0edac73fb4196cd45273f?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+        "url": "https://api.github.com/users/Mortal",
+        "login": "Mortal"
+      },
+      "id": "1545301000"
+    },
+    {
+      "type": "IssueCommentEvent",
+      "public": true,
+      "payload": {
+        "comment": {
+          "created_at": "2012-04-24T20:25:39Z",
+          "body": "It was disabled by default when we did the master vs. filestream benchmarks, to give the two branches equal footing. Now it's on by default since it's stable as far as I know.",
+          "updated_at": "2012-04-24T20:25:39Z",
+          "url": "https://api.github.com/repos/thomasmoelhave/tpie/issues/comments/5316642",
+          "id": 5316642,
+          "user": {
+            "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
+            "avatar_url": "https://secure.gravatar.com/avatar/edf6018e5ee0edac73fb4196cd45273f?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+            "url": "https://api.github.com/users/Mortal",
+            "id": 373639,
+            "login": "Mortal"
+          }
+        },
+        "action": "created",
+        "issue": {
+          "number": 10,
+          "pull_request": {
+            "diff_url": null,
+            "patch_url": null,
+            "html_url": null
+          },
+          "created_at": "2011-09-27T13:02:23Z",
+          "body": "",
+          "title": "Implement parallel internal sort, with progress tracking",
+          "comments": 5,
+          "updated_at": "2012-04-24T20:25:39Z",
+          "url": "https://api.github.com/repos/thomasmoelhave/tpie/issues/10",
+          "id": 1751780,
+          "assignee": {
+            "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
+            "avatar_url": "https://secure.gravatar.com/avatar/edf6018e5ee0edac73fb4196cd45273f?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+            "url": "https://api.github.com/users/Mortal",
+            "id": 373639,
+            "login": "Mortal"
+          },
+          "milestone": null,
+          "closed_at": "2012-04-24T13:57:23Z",
+          "html_url": "https://github.com/thomasmoelhave/tpie/issues/10",
+          "user": {
+            "gravatar_id": "e464b642c2ec7256d35a55151f44f536",
+            "avatar_url": "https://secure.gravatar.com/avatar/e464b642c2ec7256d35a55151f44f536?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+            "url": "https://api.github.com/users/antialize",
+            "id": 84282,
+            "login": "antialize"
+          },
+          "labels": [
+
+          ],
+          "state": "closed"
+        }
+      },
+      "created_at": "2012-04-24T20:25:39Z",
+      "repo": {
+        "id": 466542,
+        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
+        "name": "thomasmoelhave/tpie"
+      },
+      "actor": {
+        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
+        "id": 373639,
+        "avatar_url": "https://secure.gravatar.com/avatar/edf6018e5ee0edac73fb4196cd45273f?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+        "url": "https://api.github.com/users/Mortal",
+        "login": "Mortal"
+      },
+      "id": "1545109744"
+    },
+    {
+      "type": "IssueCommentEvent",
+      "public": true,
+      "payload": {
+        "comment": {
+          "created_at": "2012-04-24T20:15:17Z",
+          "body": "Great, thanks for closing this issue. What is maturity state of parallel sort, I understand it's not enabled by default? Does it have any drawbacks over std::sort?",
+          "updated_at": "2012-04-24T20:15:17Z",
+          "url": "https://api.github.com/repos/thomasmoelhave/tpie/issues/comments/5316400",
+          "id": 5316400,
+          "user": {
+            "gravatar_id": "461945a9e40f09509ea7cc080ba38da7",
+            "avatar_url": "https://secure.gravatar.com/avatar/461945a9e40f09509ea7cc080ba38da7?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+            "url": "https://api.github.com/users/thomasmoelhave",
+            "id": 179143,
+            "login": "thomasmoelhave"
+          }
+        },
+        "action": "created",
+        "issue": {
+          "number": 10,
+          "pull_request": {
+            "diff_url": null,
+            "patch_url": null,
+            "html_url": null
+          },
+          "created_at": "2011-09-27T13:02:23Z",
+          "comments": 4,
+          "body": "",
+          "title": "Implement parallel internal sort, with progress tracking",
+          "updated_at": "2012-04-24T20:15:17Z",
+          "url": "https://api.github.com/repos/thomasmoelhave/tpie/issues/10",
+          "id": 1751780,
+          "assignee": {
+            "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
+            "avatar_url": "https://secure.gravatar.com/avatar/edf6018e5ee0edac73fb4196cd45273f?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+            "url": "https://api.github.com/users/Mortal",
+            "id": 373639,
+            "login": "Mortal"
+          },
+          "milestone": null,
+          "closed_at": "2012-04-24T13:57:23Z",
+          "user": {
+            "gravatar_id": "e464b642c2ec7256d35a55151f44f536",
+            "avatar_url": "https://secure.gravatar.com/avatar/e464b642c2ec7256d35a55151f44f536?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+            "url": "https://api.github.com/users/antialize",
+            "id": 84282,
+            "login": "antialize"
+          },
+          "html_url": "https://github.com/thomasmoelhave/tpie/issues/10",
+          "labels": [
+
+          ],
+          "state": "closed"
+        }
+      },
+      "created_at": "2012-04-24T20:15:19Z",
+      "repo": {
+        "id": 466542,
+        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
+        "name": "thomasmoelhave/tpie"
+      },
+      "actor": {
+        "gravatar_id": "461945a9e40f09509ea7cc080ba38da7",
+        "id": 179143,
+        "avatar_url": "https://secure.gravatar.com/avatar/461945a9e40f09509ea7cc080ba38da7?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+        "url": "https://api.github.com/users/thomasmoelhave",
+        "login": "thomasmoelhave"
+      },
+      "id": "1545104845"
+    },
+    {
+      "type": "PushEvent",
+      "public": true,
+      "payload": {
+        "head": "1053222855bf8cc74a3be9a0c8b27ce25eeb4cb5",
+        "size": 1,
+        "push_id": 74612895,
+        "commits": [
+          {
+            "sha": "1053222855bf8cc74a3be9a0c8b27ce25eeb4cb5",
+            "author": {
+              "name": "Jakob Truelsen",
+              "email": "jakob@scalgo.com"
+            },
+            "url": "https://api.github.com/repos/thomasmoelhave/tpie/commits/1053222855bf8cc74a3be9a0c8b27ce25eeb4cb5",
+            "distinct": true,
+            "message": "Make sort work if there are no indicators"
+          }
+        ],
+        "ref": "refs/heads/filestream"
+      },
+      "created_at": "2012-04-24T15:38:03Z",
+      "repo": {
+        "id": 466542,
+        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
+        "name": "thomasmoelhave/tpie"
+      },
+      "actor": {
+        "gravatar_id": "e464b642c2ec7256d35a55151f44f536",
+        "id": 84282,
+        "avatar_url": "https://secure.gravatar.com/avatar/e464b642c2ec7256d35a55151f44f536?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+        "url": "https://api.github.com/users/antialize",
+        "login": "antialize"
+      },
+      "id": "1544976671"
+    },
+    {
+      "type": "IssueCommentEvent",
+      "public": true,
+      "payload": {
+        "comment": {
+          "created_at": "2012-04-24T13:57:23Z",
+          "body": "Parallel quick sort has been implemented and is used in internal_sort.h when USE_PARALLEL_SORT is enabled in the CMake cache.",
+          "updated_at": "2012-04-24T13:57:23Z",
+          "url": "https://api.github.com/repos/thomasmoelhave/tpie/issues/comments/5304887",
+          "id": 5304887,
+          "user": {
+            "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
+            "avatar_url": "https://secure.gravatar.com/avatar/edf6018e5ee0edac73fb4196cd45273f?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+            "url": "https://api.github.com/users/Mortal",
+            "id": 373639,
+            "login": "Mortal"
+          }
+        },
+        "action": "created",
+        "issue": {
+          "number": 10,
+          "pull_request": {
+            "diff_url": null,
+            "patch_url": null,
+            "html_url": null
+          },
+          "created_at": "2011-09-27T13:02:23Z",
+          "body": "",
+          "title": "Implement parallel internal sort, with progress tracking",
+          "comments": 3,
+          "updated_at": "2012-04-24T13:57:23Z",
+          "url": "https://api.github.com/repos/thomasmoelhave/tpie/issues/10",
+          "id": 1751780,
+          "assignee": {
+            "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
+            "avatar_url": "https://secure.gravatar.com/avatar/edf6018e5ee0edac73fb4196cd45273f?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+            "url": "https://api.github.com/users/Mortal",
+            "id": 373639,
+            "login": "Mortal"
+          },
+          "milestone": null,
+          "closed_at": "2012-04-24T13:57:23Z",
+          "labels": [
+
+          ],
+          "html_url": "https://github.com/thomasmoelhave/tpie/issues/10",
+          "user": {
+            "gravatar_id": "e464b642c2ec7256d35a55151f44f536",
+            "avatar_url": "https://secure.gravatar.com/avatar/e464b642c2ec7256d35a55151f44f536?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+            "url": "https://api.github.com/users/antialize",
+            "id": 84282,
+            "login": "antialize"
+          },
+          "state": "closed"
+        }
+      },
+      "created_at": "2012-04-24T13:57:24Z",
+      "repo": {
+        "id": 466542,
+        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
+        "name": "thomasmoelhave/tpie"
+      },
+      "actor": {
+        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
+        "id": 373639,
+        "avatar_url": "https://secure.gravatar.com/avatar/edf6018e5ee0edac73fb4196cd45273f?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+        "url": "https://api.github.com/users/Mortal",
+        "login": "Mortal"
+      },
+      "id": "1544928083"
+    },
+    {
+      "type": "IssuesEvent",
+      "public": true,
+      "payload": {
+        "action": "closed",
+        "issue": {
+          "number": 10,
+          "pull_request": {
+            "diff_url": null,
+            "patch_url": null,
+            "html_url": null
+          },
+          "created_at": "2011-09-27T13:02:23Z",
+          "body": "",
+          "title": "Implement parallel internal sort, with progress tracking",
+          "comments": 3,
+          "updated_at": "2012-04-24T13:57:23Z",
+          "url": "https://api.github.com/repos/thomasmoelhave/tpie/issues/10",
+          "id": 1751780,
+          "assignee": {
+            "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
+            "avatar_url": "https://secure.gravatar.com/avatar/edf6018e5ee0edac73fb4196cd45273f?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+            "url": "https://api.github.com/users/Mortal",
+            "id": 373639,
+            "login": "Mortal"
+          },
+          "milestone": null,
+          "closed_at": "2012-04-24T13:57:23Z",
+          "labels": [
+
+          ],
+          "html_url": "https://github.com/thomasmoelhave/tpie/issues/10",
+          "user": {
+            "gravatar_id": "e464b642c2ec7256d35a55151f44f536",
+            "avatar_url": "https://secure.gravatar.com/avatar/e464b642c2ec7256d35a55151f44f536?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+            "url": "https://api.github.com/users/antialize",
+            "id": 84282,
+            "login": "antialize"
+          },
+          "state": "closed"
+        }
+      },
+      "created_at": "2012-04-24T13:57:24Z",
+      "repo": {
+        "id": 466542,
+        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
+        "name": "thomasmoelhave/tpie"
+      },
+      "actor": {
+        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
+        "id": 373639,
+        "avatar_url": "https://secure.gravatar.com/avatar/edf6018e5ee0edac73fb4196cd45273f?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+        "url": "https://api.github.com/users/Mortal",
+        "login": "Mortal"
+      },
+      "id": "1544928082"
+    },
+    {
+      "type": "IssueCommentEvent",
+      "public": true,
+      "payload": {
+        "comment": {
+          "created_at": "2012-04-24T13:56:25Z",
+          "body": "I will move the priority queue out of the ami namespace tonight or tomorrow.",
+          "updated_at": "2012-04-24T13:56:25Z",
+          "url": "https://api.github.com/repos/thomasmoelhave/tpie/issues/comments/5304867",
+          "id": 5304867,
+          "user": {
+            "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
+            "avatar_url": "https://secure.gravatar.com/avatar/edf6018e5ee0edac73fb4196cd45273f?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+            "url": "https://api.github.com/users/Mortal",
+            "id": 373639,
+            "login": "Mortal"
+          }
+        },
+        "action": "created",
+        "issue": {
+          "number": 9,
+          "pull_request": {
+            "diff_url": null,
+            "patch_url": null,
+            "html_url": null
+          },
+          "created_at": "2011-09-27T13:01:55Z",
+          "body": "",
+          "title": "Fix priority queue in file_stream branch",
+          "comments": 4,
+          "updated_at": "2012-04-24T13:56:25Z",
+          "url": "https://api.github.com/repos/thomasmoelhave/tpie/issues/9",
+          "id": 1751777,
+          "assignee": null,
+          "milestone": null,
+          "closed_at": null,
+          "html_url": "https://github.com/thomasmoelhave/tpie/issues/9",
+          "user": {
+            "gravatar_id": "e464b642c2ec7256d35a55151f44f536",
+            "avatar_url": "https://secure.gravatar.com/avatar/e464b642c2ec7256d35a55151f44f536?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+            "url": "https://api.github.com/users/antialize",
+            "id": 84282,
+            "login": "antialize"
+          },
+          "labels": [
+
+          ],
+          "state": "open"
+        }
+      },
+      "created_at": "2012-04-24T13:56:26Z",
+      "repo": {
+        "id": 466542,
+        "url": "https://api.github.com/repos/thomasmoelhave/tpie",
+        "name": "thomasmoelhave/tpie"
+      },
+      "actor": {
+        "gravatar_id": "edf6018e5ee0edac73fb4196cd45273f",
+        "id": 373639,
+        "avatar_url": "https://secure.gravatar.com/avatar/edf6018e5ee0edac73fb4196cd45273f?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png",
+        "url": "https://api.github.com/users/Mortal",
+        "login": "Mortal"
+      },
+      "id": "1544927658"
+    }
+  ]
 })
