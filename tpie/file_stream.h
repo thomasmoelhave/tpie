@@ -21,6 +21,7 @@
 #include <tpie/tempname.h>
 #include <tpie/file.h>
 #include <tpie/memory.h>
+#include <tpie/array.h>
 ///////////////////////////////////////////////////////////////////////////////
 /// \file file_stream.h
 /// \brief Simple class acting both as a tpie::file and a
@@ -70,7 +71,6 @@ public:
 		m_nextIndex = std::numeric_limits<memory_size_type>::max();
 		m_index = std::numeric_limits<memory_size_type>::max();
 
-		m_block.data = tpie_new_array<char>(block_memory_usage());
 		m_tempFile = 0;
 	};
 
@@ -79,7 +79,6 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	inline ~file_stream() {
 		close();
-		tpie_delete_array(m_block.data, block_memory_usage());
 	}
 
 
@@ -148,6 +147,7 @@ public:
 		m_open = false;
 		m_ownedTempFile.reset();
 		m_tempFile=NULL;
+		m_block.data.resize(0);
 	}
 	
 	/////////////////////////////////////////////////////////////////////////
@@ -161,7 +161,7 @@ public:
 			throw io_exception("Cannot write to read only stream");
 #endif
 		if (m_index >= m_blockItems) update_block();
-		reinterpret_cast<T*>(m_block.data)[m_index++] = item;
+		m_block.data[m_index++] = item;
 		write_update();
 	}
 
@@ -178,7 +178,7 @@ public:
 
 			IT blockmax = i + (m_blockItems-m_index);
 
-			T * dest = reinterpret_cast<T*>(m_block.data) + m_index;
+			T * dest = m_block.data.get() + m_index;
 
 			IT till = std::min(end, blockmax);
 
@@ -202,7 +202,7 @@ public:
 				throw end_of_stream_exception();
 			}
 		}
-		return reinterpret_cast<T*>(m_block.data)[m_index++];
+		return m_block.data[m_index++];
 	}
 
 	/////////////////////////////////////////////////////////////////////////
@@ -227,7 +227,7 @@ public:
 				update_block();
 			}
 
-			T * src = reinterpret_cast<T*>(m_block.data) + m_index;
+			T * src = m_block.data.get() + m_index;
 
 			// either read the rest of the block or until `end'
 			memory_size_type count = std::min(m_blockItems-m_index, static_cast<memory_size_type>(end-i));
@@ -406,7 +406,7 @@ private:
 		memory_size_type size;
 		stream_size_type number;
 		bool dirty;
-		char *data;
+		array<T> data;
 	};
 
 	memory_size_type m_index;
@@ -442,6 +442,7 @@ private:
 		m_block.size = 0;
 		m_block.number = std::numeric_limits<stream_size_type>::max();
 		m_block.dirty = false;
+		m_block.data.resize(m_blockItems);
 		
 		initialize();
 		seek(0);
@@ -473,7 +474,7 @@ private:
 
 		// populate buffer data
 		if (m_block.size > 0 &&
-			m_fileAccessor->read_block(m_block.data, m_block.number, m_block.size) != m_block.size) {
+			m_fileAccessor->read_block(m_block.data.get(), m_block.number, m_block.size) != m_block.size) {
 			throw io_exception("Incorrect number of items read");
 		}
 	}
@@ -502,7 +503,7 @@ private:
 		if (m_block.dirty) {
 			assert(m_canWrite);
 			update_vars();
-			m_fileAccessor->write_block(m_block.data, m_block.number, m_block.size);
+			m_fileAccessor->write_block(m_block.data.get(), m_block.number, m_block.size);
 		}
 	}
 
