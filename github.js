@@ -1,6 +1,14 @@
+if (!window.console || !console.log)
+    console = {log: function () {}}; // all your logs are belong to /dev/null
+
 // JSON-P callback
 // https://api.github.com/repos/thomasmoelhave/tpie/events?callback=tpieevents
 function tpieevents(input) {
+    parse_events(input);
+    store_remote_events(input);
+}
+
+function parse_events(input) {
     var data = input.data;
     var htmlitems = [];
     for (var i = 0, l = data.length; i < l; ++i) {
@@ -65,5 +73,41 @@ function handleanyevent(ev, desc) {
         ' <span class="date">',printdate(ev.created_at),'</span></li>',
     ''].join('');
 }
+
+function remote_load() {
+    var sc = document.createElement('script');
+    sc.type = 'text/javascript';
+    sc.src = 'https://api.github.com/repos/thomasmoelhave/tpie/events?callback=tpieevents';
+    document.getElementsByTagName('head')[0].appendChild(sc);
+}
+
+function store_remote_events(input) {
+    if (!localStorage) return false;
+    var data = {input: input, cachetime: new Date().getTime()};
+    localStorage.setItem('tpieevents', JSON.stringify(data));
+}
+
+function fetch_cached_remote_events() {
+    if (!localStorage) return false;
+    var str = localStorage.getItem('tpieevents');
+    if (!str) return false;
+    var data = JSON.parse(str);
+    if (!data) return false;
+    if (!data.input || !data.cachetime) return false;
+    parse_events(data.input);
+    var age = new Date().getTime() - data.cachetime;
+    console.log("Age "+age);
+    if (age < 0 || age > 30000) return false;
+    return true;
+}
+
+$(function () {
+    if (!fetch_cached_remote_events()) {
+        console.log("cache miss");
+        remote_load();
+    } else {
+        console.log("cache hit");
+    }
+});
 
 // vim:set sw=4 sts=4 et:
