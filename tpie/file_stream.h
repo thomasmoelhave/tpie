@@ -572,6 +572,19 @@ private:
 		return m_blockItems * m_itemSize;
 	}
 };
+
+} // namespace tpie
+
+namespace std {
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Enable std::swapping two tpie::file_streams.
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+void swap(tpie::file_stream<T> & a, tpie::file_stream<T> & b) {
+	a.swap(b);
 }
+
+} // namespace std
 
 #endif //__TPIE_FILE_STREAM_H__
