@@ -55,7 +55,7 @@ pre {
 }
 
 #recentactivity {
-   border: 1px inset;
+   border: 1px solid #ddd;
    width: 60%;
    margin: 1em 0;
    background-color: #eee;
@@ -64,13 +64,35 @@ pre {
 }
 
 #recentactivity ul {
-   margin-top: 0;
-   margin-bottom: 0;
+   margin: 0;
+   padding: 0;
 }
 
 #recentactivity em {
-   font-weight: bold;
+   font-weight: normal;
    font-style: normal;
+   text-decoration: underline;
+}
+
+#recentactivity li {
+   font-weight: bold;
+   list-style-type: none;
+   margin-top: .5em;
+}
+
+#recentactivity li.commit {
+   font-weight: normal;
+   margin-top: 0;
+   list-style-type: circle;
+   margin-left: 2em;
+}
+
+#recentactivity a {
+   text-decoration: none;
+}
+
+#recentactivity a:hover {
+   text-decoration: underline;
 }
 
 /* vim:set sw=3 ts=3 sts=3 et: */

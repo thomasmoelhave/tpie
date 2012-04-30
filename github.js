@@ -7,7 +7,7 @@ function tpieevents(input) {
         handleevent(data[i], htmlitems);
         if (htmlitems.length >= 5) break;
     }
-    var eventhtml = htmlitems.length ? '<li>'+htmlitems.join('</li><li>')+'</li>' : '';
+    var eventhtml = htmlitems.length ? htmlitems.join('\n') : '';
     var activity = document.getElementById('githubactivity');
     activity.innerHTML = eventhtml;
 }
@@ -15,7 +15,18 @@ function tpieevents(input) {
 function handleevent(ev, html) {
     switch (ev.type) {
         case "PushEvent":
-            html.push(handleanyevent(ev, 'pushed some commits to '+printref(ev.payload.ref)));
+            html.push(handleanyevent(ev, 'pushed to '+printref(ev.payload.ref)));
+            for (var i = 0, l = ev.payload.commits.length; i < l; ++i) {
+                if (i > 2) {
+                    html.push("and "+(l-i)+" more commits");
+                    break;
+                }
+                var commit = ev.payload.commits[i];
+                html.push(['<li class="commit"><a href="https://github.com/thomasmoelhave/tpie/commit/',commit.sha,'">',
+                          commit.sha.substring(0,7),'<\/a> ',
+                          commit.message.substring(0,70).replace(/&/g,'&amp;').replace(/</g,'&lt;'),
+                          '</li>'].join(''));
+            }
             break;
         case "CreateEvent":
             var name = ev.payload.ref;
@@ -49,9 +60,9 @@ function printref(refname) {
 
 function handleanyevent(ev, desc) {
     return [
-        '<a href="https://github.com/',ev.actor.login,'">',ev.actor.login,'</a> ',
+        '<li><a href="https://github.com/',ev.actor.login,'">',ev.actor.login,'</a> ',
         desc,
-        ' <span class="date">',printdate(ev.created_at),'</span>',
+        ' <span class="date">',printdate(ev.created_at),'</span></li>',
     ''].join('');
 }
 
