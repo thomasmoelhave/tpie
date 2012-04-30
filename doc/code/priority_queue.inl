@@ -1,8 +1,8 @@
-#include <tpie/priority_queue.h> // for tpie::ami::priority_queue
+#include <tpie/priority_queue.h> // for tpie::priority_queue
 #include <tpie/tpie_assert.h> // for tp_assert macro
 #include <tpie/tpie.h> // for tpie_init
 void pq_test() {
-	tpie::ami::priority_queue<int> pq;
+	tpie::priority_queue<int> pq;
 	for (int i = 10; i > 0; --i) {
 		pq.push(i);
 	}
