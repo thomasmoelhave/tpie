@@ -86,14 +86,19 @@ pipesort() {
 
 template <typename T, typename pred_t>
 struct passive_sorter {
-	inline passive_sorter() {
+	inline passive_sorter()
+		: current_output(0)
+	{
 	}
+
+	struct output_t;
 
 	struct input_t : public pipe_segment {
 		typedef T item_type;
 
-		inline input_t(temp_file * file)
+		inline input_t(temp_file * file, output_t ** current_output)
 			: file(file)
+			, current_output(current_output)
 		{
 		}
 
@@ -116,11 +121,18 @@ struct passive_sorter {
 			tpie_delete(pbuffer);
 		}
 
-		void push_successors(std::deque<const pipe_segment *> &) const { }
+		void push_successors(std::deque<const pipe_segment *> & q) const {
+			q.push_back(*current_output);
+		}
+
+		bool buffering() const {
+			return true;
+		}
 
 	private:
 		temp_file * file;
 		file_stream<T> * pbuffer;
+		output_t ** current_output;
 
 		input_t();
 		input_t & operator=(const input_t &);
@@ -129,9 +141,18 @@ struct passive_sorter {
 	struct output_t : public pipe_segment {
 		typedef T item_type;
 
-		inline output_t(temp_file * file)
+		inline output_t(temp_file * file, output_t ** current_output)
 			: file(file)
+			, current_output(current_output)
 		{
+			*current_output = this;
+		}
+
+		inline output_t(const output_t & other)
+			: file(other.file)
+			, current_output(other.current_output)
+		{
+			*current_output = this;
 		}
 
 		inline void begin() {
@@ -156,23 +177,25 @@ struct passive_sorter {
 	private:
 		temp_file * file;
 		file_stream<T> * buffer;
+		output_t ** current_output;
 
 		output_t();
 		output_t & operator=(const output_t &);
 	};
 
-	inline pipe_end<termfactory_1<input_t, temp_file *> > input() {
+	inline pipe_end<termfactory_2<input_t, temp_file *, output_t **> > input() {
 		std::cout << "Construct input factory " << typeid(pred_t).name() << " with " << &file << std::endl;
-		return termfactory_1<input_t, temp_file *>(&file);
+		return termfactory_2<input_t, temp_file *, output_t **>(&file, &current_output);
 	}
 
 	inline output_t output() {
-		return output_t(&file);
+		return output_t(&file, &current_output);
 	}
 
 private:
 	pred_t pred;
 	temp_file file;
+	output_t * current_output;
 	passive_sorter(const passive_sorter &);
 	passive_sorter & operator=(const passive_sorter &);
 };
