@@ -99,7 +99,7 @@ struct passive_sorter {
 
 		inline void begin() {
 			pbuffer = tpie_new<file_stream<T> >();
-			pbuffer->open(file->path());
+			pbuffer->open(*file);
 		}
 
 		inline void push(const T & item) {
@@ -136,7 +136,7 @@ struct passive_sorter {
 
 		inline void begin() {
 			buffer = tpie_new<file_stream<T> >();
-			buffer->open(file->path());
+			buffer->open(*file);
 		}
 
 		inline bool can_pull() {
