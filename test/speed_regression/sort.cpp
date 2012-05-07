@@ -39,7 +39,7 @@ typedef uint64_t count_t; // number of items
 typedef uint64_t elm_t; // type of element we sort
 
 void usage() {
-	std::cout << "Parameters: [times] [mb]" << std::endl;
+	std::cout << "Parameters: [times] [mb] [memory]" << std::endl;
 }
 
 void test(size_t mb, size_t times) {
@@ -104,6 +104,7 @@ void test(size_t mb, size_t times) {
 int main(int argc, char **argv) {
 	size_t times = 10;
 	size_t mb = mb_default;
+	size_t memory = 1024;
 			
 	if (argc > 1) {
 		if (std::string(argv[1]) == "0") {
@@ -123,8 +124,15 @@ int main(int argc, char **argv) {
 			return EXIT_FAILURE;
 		}
 	}
+	if (argc > 3) {
+		std::stringstream(argv[2]) >> memory;
+		if (!memory) {
+			usage();
+			return EXIT_FAILURE;
+		}
+	}
 
-	testinfo t("Sort speed test", 1024, mb, times);
+	testinfo t("Sort speed test", memory, mb, times);
 	::test(mb, times);
 	return EXIT_SUCCESS;
 }
