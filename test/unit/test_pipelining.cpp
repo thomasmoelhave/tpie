@@ -237,15 +237,80 @@ bool reverse_test() {
 	return check_test_vectors();
 }
 
-bool sort_test() {
-	expectvector = inputvector;
-	std::reverse(inputvector.begin(), inputvector.end());
+template <typename dest_t>
+struct sequence_generator : public pipe_segment {
+	typedef size_t item_type;
 
-	pipeline p = input_vector(inputvector) | pipesort() | output_vector(outputvector);
+	inline sequence_generator(const dest_t & dest, size_t elements)
+		: dest(dest)
+		, elements(elements)
+	{
+	}
+
+	inline void operator()() {
+		dest.begin();
+		for (size_t i = elements; i > 0; --i) {
+			dest.push(i);
+		}
+		dest.end();
+	}
+
+	void push_successors(std::deque<const pipe_segment *> & q) const {
+		q.push_back(&dest);
+	}
+private:
+	dest_t dest;
+	size_t elements;
+};
+
+struct sequence_verifier : public pipe_segment {
+	typedef size_t item_type;
+
+	inline sequence_verifier(size_t elements, bool & result)
+		: elements(elements)
+		, expect(1)
+		, result(result)
+		, bad(false)
+	{
+		result = false;
+	}
+
+	inline void begin() {
+		result = false;
+	}
+
+	inline void push(size_t element) {
+		if (element != expect++) bad = true;
+		result = false;
+	}
+
+	inline void end() {
+		result = !bad;
+	}
+
+	void push_successors(std::deque<const pipe_segment *> &) const { }
+
+private:
+	size_t elements;
+	size_t expect;
+	bool & result;
+	bool bad;
+};
+
+bool sort_test(size_t elements) {
+	bool result = false;
+	pipeline p = pipe_begin<factory_1<sequence_generator, size_t> >(elements) | pipesort() | pipe_end<termfactory_2<sequence_verifier, size_t, bool &> >(termfactory_2<sequence_verifier, size_t, bool &>(elements, result));
 	p.plot();
 	p();
+	return result;
+}
 
-	return check_test_vectors();
+bool sort_test_small() {
+	return sort_test(20);
+}
+
+bool sort_test_large() {
+	return sort_test(300*1024);
 }
 
 // This tests that pipe_middle | pipe_middle -> pipe_middle,
@@ -324,6 +389,7 @@ struct tests_t {
 		, testall(false)
 		, initer(32)
 	{
+		tpie::get_memory_manager().set_enforcement(memory_manager::ENFORCE_THROW);
 		if (argc > 1) {
 			testname = argv[1];
 		}
@@ -371,7 +437,8 @@ int main(int argc, char ** argv) {
 	.test<file_stream_alt_push_test>("fsaltpush")
 	.test<merge_test>("merge")
 	.test<reverse_test>("reverse")
-	.test<sort_test>("sort")
+	.test<sort_test_small>("sort")
+	.test<sort_test_large>("sortbig")
 	.test<operator_test>("operators")
 	.test<uniq_test>("uniq")
 	.test<memory_test>("memory")
