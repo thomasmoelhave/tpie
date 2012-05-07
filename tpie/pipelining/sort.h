@@ -84,6 +84,8 @@ struct merge_sorter {
 	inline void begin() {
 		m_currentRunItems.resize(p.runLength);
 		m_runFiles.resize(p.fanout*2);
+		m_currentRunItemCount = 0;
+		m_finishedRuns = 0;
 	}
 
 	inline void push(const T & item) {
