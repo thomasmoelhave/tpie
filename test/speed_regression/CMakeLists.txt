@@ -29,3 +29,7 @@ set_target_properties(file_stream_speed_test PROPERTIES FOLDER tpie/test)
 add_executable(pipeline_speed_test pipelining.cpp)
 target_link_libraries(pipeline_speed_test tpie)
 set_target_properties(pipeline_speed_test PROPERTIES FOLDER tpie/test)
+
+add_executable(pipelining_sort_test pipelining_sort_test.cpp)
+target_link_libraries(pipelining_sort_test tpie)
+set_target_properties(pipelining_sort_test PROPERTIES FOLDER tpie/test)
