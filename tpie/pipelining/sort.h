@@ -56,6 +56,7 @@ struct merger {
 	}
 
 	inline void reset(array<file_stream<T> > & inputs, size_t runLength) {
+		//TP_LOG_DEBUG_ID("Run length is " << runLength);
 		this->runLength = runLength;
 		tp_assert(pq.empty(), "Reset before we are done");
 		n = inputs.size();
@@ -68,7 +69,7 @@ struct merger {
 	}
 
 private:
-	std::priority_queue<std::pair<T, size_t> > pq;
+	std::priority_queue<std::pair<T, size_t>, std::vector<std::pair<T, size_t> >, std::greater<std::pair<T, size_t> > > pq;
 	array<file_stream<T> > in;
 	std::vector<size_t> itemsRead;
 	size_t runLength;
@@ -79,6 +80,11 @@ template <typename T>
 struct merge_sorter {
 	inline merge_sorter() {
 		calculate_parameters();
+	}
+
+	inline void set_parameters(size_t runLength, size_t fanout) {
+		p.runLength = runLength;
+		p.fanout = fanout;
 	}
 
 	inline void begin() {
@@ -133,14 +139,17 @@ struct merge_sorter {
 			//TP_LOG_DEBUG_ID(runNumber+i);
 			open_run_file(in[i], mergeLevel, runNumber+i, false);
 		}
-		m_merger.reset(in, p.runLength);
+		size_t runLength = p.runLength;
+		for (size_t i = 0; i < mergeLevel; ++i) {
+			runLength *= p.fanout;
+		}
+		m_merger.reset(in, runLength);
 	}
 
 	inline void merge_runs(size_t mergeLevel, size_t runNumber, size_t runCount) {
 		initialize_merger(mergeLevel, runNumber, runCount);
 		file_stream<T> out;
-		//TP_LOG_DEBUG_ID("Merging into level " << mergeLevel+1 << ", run number " << runNumber/runCount);
-		open_run_file(out, mergeLevel+1, runNumber/runCount, true);
+		open_run_file(out, mergeLevel+1, runNumber/p.fanout, true);
 		while (m_merger.can_pull()) {
 			out.write(m_merger.pull());
 		}
@@ -151,10 +160,10 @@ struct merge_sorter {
 		size_t mergeLevel = 0;
 		size_t runCount = m_finishedRuns;
 		while (runCount > p.fanout) {
-			TP_LOG_WARNING_ID("Level " << mergeLevel << " has " << runCount << " runs");
+			//TP_LOG_DEBUG_ID("Level " << mergeLevel << " has " << runCount << " runs");
 			size_t newRunCount = 0;
 			for (size_t i = 0; i < runCount; i += p.fanout) {
-				merge_runs(mergeLevel, i, p.fanout);
+				merge_runs(mergeLevel, i, std::min(runCount-i, p.fanout));
 				++newRunCount;
 			}
 			++mergeLevel;
