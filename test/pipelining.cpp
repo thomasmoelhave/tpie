@@ -201,105 +201,12 @@ output_count() {
 	return termfactory_0<output_count_t>();
 }
 
-template <typename pred_t>
-struct passive_sorter {
-	inline passive_sorter() {
-	}
-
-	struct input_t : public pipe_segment {
-		typedef node item_type;
-
-		inline input_t(temp_file * file)
-			: file(file)
-		{
-		}
-
-		inline void begin() {
-			pbuffer = tpie_new<file_stream<node> >();
-			pbuffer->open(file->path());
-		}
-
-		inline void push(const node & item) {
-			pbuffer->write(item);
-		}
-
-		inline void end() {
-			pbuffer->seek(0);
-			pred_t pred;
-			progress_indicator_null pi;
-			sort(*pbuffer, *pbuffer, pred, pi);
-			pbuffer->close();
-
-			tpie_delete(pbuffer);
-		}
-
-		void push_successors(std::deque<const pipe_segment *> &) const { }
-
-	private:
-		temp_file * file;
-		file_stream<node> * pbuffer;
-
-		input_t();
-		input_t & operator=(const input_t &);
-	};
-
-	struct output_t : public pipe_segment {
-		typedef node item_type;
-
-		inline output_t(temp_file * file)
-			: file(file)
-		{
-		}
-
-		inline void begin() {
-			buffer = tpie_new<file_stream<node> >();
-			buffer->open(file->path());
-		}
-
-		inline bool can_pull() {
-			return buffer->can_read();
-		}
-
-		inline node pull() {
-			return buffer->read();
-		}
-
-		inline void end() {
-			buffer->close();
-		}
-
-		void push_successors(std::deque<const pipe_segment *> &) const { }
-
-	private:
-		temp_file * file;
-		file_stream<node> * buffer;
-
-		output_t();
-		output_t & operator=(const output_t &);
-	};
-
-	inline pipe_end<termfactory_1<input_t, temp_file *> > input() {
-		std::cout << "Construct input factory " << typeid(pred_t).name() << " with " << &file << std::endl;
-		return termfactory_1<input_t, temp_file *>(&file);
-	}
-
-	inline output_t output() {
-		return output_t(&file);
-	}
-
-private:
-	pred_t pred;
-	temp_file file;
-	passive_sorter(const passive_sorter &);
-	passive_sorter & operator=(const passive_sorter &);
-};
-
 int main(int argc, char ** argv) {
 	tpie_init();
 	size_t nodes = 1 << 20;
 	if (argc > 1) std::stringstream(argv[1]) >> nodes;
-	passive_sorter<sort_by_id> byid;
-	passive_sorter<sort_by_parent> byparent;
+	passive_sorter<node, sort_by_id> byid;
+	passive_sorter<node, sort_by_parent> byparent;
 	pipeline p1 = input_nodes(nodes) | fork(byid.input()) | byparent.input();
 	pipeline p2 = count(byid.output(), byparent.output()) | output_count();
 	p1.plot();
