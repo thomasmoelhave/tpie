@@ -12,7 +12,7 @@ using \ref tpie::tpie_init. In order to specify the amount of internal memory
 to use, set the memory manager's limit as follows:
 
 \code
-tpie::get_memory_manager().set_limit(megabytes*1024*1024);
+@DOCCODE_MEMORY2@
 \endcode
 
 See also \ref tpie::memory_manager.
@@ -29,13 +29,7 @@ TPIE provides an implementation of the auto pointer paradigm. See
 \ref tpie::auto_ptr.
 
 \code
-int* my_ints = tpie::tpie_new_array<int>(1024);
-std::fill(my_ints+0, my_ints+1024, 0);
-tpie::tpie_delete_array(my_ints, 1024);
-
-tpie::auto_ptr mystack(tpie::tpie_new<tpie::stack<int> >("stack.tpie"));
-mystack->push(42);
-// when mystack goes out of scope, the stack object is deleted with tpie_delete.
+@DOCCODE_MEMORY@
 \endcode
 
 You can use the memory_manager methods \ref tpie::memory_manager::used(),

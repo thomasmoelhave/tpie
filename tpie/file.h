@@ -479,10 +479,10 @@ public:
 	/// \brief Construct a file object with the given block factor and file
 	/// accessor.
 	/// \param blockFactor The relative size of a block compared to the 
-	/// default.
+	/// default. To find the block factor corresponding to an absolute
+	/// block size, use file_base::calculate_block_factor.
 	/// \param fileAccessor The file accessor to use, if none is supplied a
 	/// default will be used.
-	/// \sa file_base::calculate_block_factor(memory_size_type)
 	///////////////////////////////////////////////////////////////////////////
 	file(double blockFactor=1.0,
 		 file_accessor::file_accessor * fileAccessor=NULL):

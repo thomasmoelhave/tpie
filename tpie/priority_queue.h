@@ -45,8 +45,6 @@
 
 namespace tpie {
 
-    namespace ami {
-
 	struct priority_queue_error : public std::logic_error {
 		priority_queue_error(const std::string& what) : std::logic_error(what)
 		{ }
@@ -203,6 +201,8 @@ private:
 
 #include "priority_queue.inl"
 
+    namespace ami {
+		using tpie::priority_queue;
     }  //  ami namespace
 
 }  //  tpie namespace

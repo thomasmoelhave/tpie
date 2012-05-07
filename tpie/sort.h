@@ -104,6 +104,15 @@ void sort(file_stream<T> &instream,
 	sort(instream, instream, &indicator);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Sort elements of a stream in-place using the less-than operator and
+/// no progress indicator.
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+void sort(file_stream<T> & instream) {
+	sort(instream, instream);
+}
+
 }  //  tpie namespace
 
 #include <tpie/sort_deprecated.h>

@@ -21,6 +21,7 @@
 #include <tpie/tempname.h>
 #include <tpie/file.h>
 #include <tpie/memory.h>
+#include <tpie/array.h>
 ///////////////////////////////////////////////////////////////////////////////
 /// \file file_stream.h
 /// \brief Simple class acting both as a tpie::file and a
@@ -70,7 +71,6 @@ public:
 		m_nextIndex = std::numeric_limits<memory_size_type>::max();
 		m_index = std::numeric_limits<memory_size_type>::max();
 
-		m_block.data = tpie_new_array<char>(block_memory_usage());
 		m_tempFile = 0;
 	};
 
@@ -79,7 +79,6 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	inline ~file_stream() {
 		close();
-		tpie_delete_array(m_block.data, block_memory_usage());
 	}
 
 
@@ -148,6 +147,7 @@ public:
 		m_open = false;
 		m_ownedTempFile.reset();
 		m_tempFile=NULL;
+		m_block.data.resize(0);
 	}
 	
 	/////////////////////////////////////////////////////////////////////////
@@ -161,7 +161,7 @@ public:
 			throw io_exception("Cannot write to read only stream");
 #endif
 		if (m_index >= m_blockItems) update_block();
-		reinterpret_cast<T*>(m_block.data)[m_index++] = item;
+		m_block.data[m_index++] = item;
 		write_update();
 	}
 
@@ -178,7 +178,7 @@ public:
 
 			IT blockmax = i + (m_blockItems-m_index);
 
-			T * dest = reinterpret_cast<T*>(m_block.data) + m_index;
+			T * dest = m_block.data.get() + m_index;
 
 			IT till = std::min(end, blockmax);
 
@@ -202,7 +202,7 @@ public:
 				throw end_of_stream_exception();
 			}
 		}
-		return reinterpret_cast<T*>(m_block.data)[m_index++];
+		return m_block.data[m_index++];
 	}
 
 	/////////////////////////////////////////////////////////////////////////
@@ -227,7 +227,7 @@ public:
 				update_block();
 			}
 
-			T * src = reinterpret_cast<T*>(m_block.data) + m_index;
+			T * src = m_block.data.get() + m_index;
 
 			// either read the rest of the block or until `end'
 			memory_size_type count = std::min(m_blockItems-m_index, static_cast<memory_size_type>(end-i));
@@ -303,11 +303,8 @@ public:
 	inline bool can_read_back() const throw() {
 		assert(m_open);
 		const_cast<file_stream<T>*>(this)->update_vars();
-		if (m_index <= m_block.size) return true;
-		if (m_nextBlock == std::numeric_limits<stream_size_type>::max())
-			return m_block.number != 0;
-		else
-			return true;
+		if (m_index > 0) return true;
+		return m_block.number != 0;
 	}
 
 	/////////////////////////////////////////////////////////////////////////
@@ -404,12 +401,34 @@ public:
 		return x;
 	}
 
+	void swap(file_stream<T> & other) {
+		using std::swap;
+		swap(m_index,           other.m_index);
+		swap(m_nextBlock,       other.m_nextBlock);
+		swap(m_nextIndex,       other.m_nextIndex);
+		swap(m_blockStartIndex, other.m_blockStartIndex);
+		swap(m_blockItems,      other.m_blockItems);
+		swap(m_blockSize,       other.m_blockSize);
+		swap(m_size,            other.m_size);
+		swap(m_canRead,         other.m_canRead);
+		swap(m_canWrite,        other.m_canWrite);
+		swap(m_itemSize,        other.m_itemSize);
+		swap(m_open,            other.m_open);
+		swap(m_fileAccessor,    other.m_fileAccessor);
+		swap(m_block.size,      other.m_block.size);
+		swap(m_block.number,    other.m_block.number);
+		swap(m_block.dirty,     other.m_block.dirty);
+		swap(m_block.data,      other.m_block.data);
+		swap(m_ownedTempFile,   other.m_ownedTempFile);
+		swap(m_tempFile,        other.m_tempFile);
+	}
+
 private:
 	struct block_t {
 		memory_size_type size;
 		stream_size_type number;
 		bool dirty;
-		char *data;
+		array<T> data;
 	};
 
 	memory_size_type m_index;
@@ -445,6 +464,7 @@ private:
 		m_block.size = 0;
 		m_block.number = std::numeric_limits<stream_size_type>::max();
 		m_block.dirty = false;
+		m_block.data.resize(m_blockItems);
 		
 		initialize();
 		seek(0);
@@ -461,8 +481,10 @@ private:
 		// If the file contains n-1 full blocks and a single non-full block, we may
 		// request any block in {0, 1, ... n-1}
 
-		// We capture this restraint with the assertion:
-		assert(block * static_cast<stream_size_type>(m_blockItems) <= size());
+		// We capture this restraint with the check:
+		if (block * static_cast<stream_size_type>(m_blockItems) > size()) {
+			throw end_of_stream_exception();
+		}
 
 		m_block.dirty = false;
 		m_block.number = block;
@@ -474,7 +496,7 @@ private:
 
 		// populate buffer data
 		if (m_block.size > 0 &&
-			m_fileAccessor->read_block(m_block.data, m_block.number, m_block.size) != m_block.size) {
+			m_fileAccessor->read_block(m_block.data.get(), m_block.number, m_block.size) != m_block.size) {
 			throw io_exception("Incorrect number of items read");
 		}
 	}
@@ -503,7 +525,7 @@ private:
 		if (m_block.dirty) {
 			assert(m_canWrite);
 			update_vars();
-			m_fileAccessor->write_block(m_block.data, m_block.number, m_block.size);
+			m_fileAccessor->write_block(m_block.data.get(), m_block.number, m_block.size);
 		}
 	}
 
@@ -550,6 +572,19 @@ private:
 		return m_blockItems * m_itemSize;
 	}
 };
+
+} // namespace tpie
+
+namespace std {
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Enable std::swapping two tpie::file_streams.
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+void swap(tpie::file_stream<T> & a, tpie::file_stream<T> & b) {
+	a.swap(b);
 }
+
+} // namespace std
 
 #endif //__TPIE_FILE_STREAM_H__

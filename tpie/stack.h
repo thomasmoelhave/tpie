@@ -33,392 +33,262 @@
 namespace tpie {
 
 ///////////////////////////////////////////////////////////////////
-///
-///  An implementation of an external-memory stack.
-///
+/// \brief  An implementation of an external-memory stack.
 ///////////////////////////////////////////////////////////////////
-
-template<class T> 
+template <typename T> 
 class stack {
-
-
 public:
-   
-    ////////////////////////////////////////////////////////////////////
-    ///
-    ///   Initialize temporary stack
-    ///
-    ////////////////////////////////////////////////////////////////////
-
-    stack(); 
 
     ////////////////////////////////////////////////////////////////////
-    ///
-    ///  Initializes the stack by (re-)opening the file given.
-    ///
-    ///  \param  path    The path to a file used for storing the items.
-    ///  \param  block_factor  The block factor to use
-    ///
+    /// \brief Initialize anonymous stack.
     ////////////////////////////////////////////////////////////////////
-
-    stack(const std::string& path, double block_factor=1.0);
-
-    ////////////////////////////////////////////////////////////////////
-    ///  
-    ///  Closes the underlying stream and truncates it to the logical
-    ///  end of the stack. TODO verify this behavior
-    ///
-    ////////////////////////////////////////////////////////////////////
-
-    ~stack();
-
-    ////////////////////////////////////////////////////////////////////
-    ///
-    ///  Pushes one item onto the stack. Returns ERROR_* as 
-    ///  given by the underlying stream.
-    ///
-    ///  \param  t    The item to push onto the stack.
-    ///
-    ////////////////////////////////////////////////////////////////////
-
-    inline void push(const T & t) throw(stream_exception);
-
-    ////////////////////////////////////////////////////////////////////
-    ///
-    ///  Pops one item from the stack.
-    ///
-    ////////////////////////////////////////////////////////////////////
-
-    const T & pop() throw(stream_exception); 
-
-    ////////////////////////////////////////////////////////////////////
-    ///
-    ///  Peeks at the topmost item on the stack.
-    ///
-    ////////////////////////////////////////////////////////////////////
-
-    const T & top() throw(stream_exception);
-
-    ////////////////////////////////////////////////////////////////////
-    ///  
-    ///  Returns the number of items currently on the stack.
-    ///
-    ////////////////////////////////////////////////////////////////////
-
-    stream_size_type size() const {
-		return m_file_stream.offset();
-    }
-
-    ////////////////////////////////////////////////////////////////////
-    ///  
-    ///  Returns whether the stack is empty or not.
-    ///
-    ////////////////////////////////////////////////////////////////////
-
-    bool empty() const {
-		return (m_size == 0);
-    }
-	TPIE_DEPRECATED(bool is_empty() const);
-
-    ////////////////////////////////////////////////////////////////////
-    ///  
-    ///  Set the persistence status of the (stream underlying the) stack.
-    ///
-    ///  \param  p    A persistence status.
-    ///
-    ////////////////////////////////////////////////////////////////////
-
-    TPIE_DEPRECATED(void persist(persistence p));
-
-    ////////////////////////////////////////////////////////////////////
-    ///  
-    ///  \deprecated Does nothing.
-    ///
-    ////////////////////////////////////////////////////////////////////
-
-    TPIE_DEPRECATED(void trim());
-
-    ////////////////////////////////////////////////////////////////////
-    ///  
-    ///  Compute the memory used by a stack.
-    ///
-    ////////////////////////////////////////////////////////////////////
-
-	static memory_size_type memory_usage(float blockFactor=1.0) {
-		return sizeof(stack<T>)
-			+ file_stream<T>::memory_usage(blockFactor);
-			//+ file<T>::memory_usage() - sizeof(file<T>)
-			//+ 2*file<T>::stream::memory_usage(blockFactor) - 2*sizeof(file<T>::stream);
+	inline stack(double blockFactor = 1.0)
+		: m_file_stream(blockFactor)
+		, m_buffer(buffer_size(blockFactor))
+		, m_bufferItems(0)
+	{
+		m_file_stream.open();
 	}
 
+    ////////////////////////////////////////////////////////////////////
+    /// \brief Initialize named, nontemporary stack.
+    ///
+    /// \param  path    The path to a file used for storing the items.
+    /// \param  block_factor  The block factor to use
+    ////////////////////////////////////////////////////////////////////
+	inline stack(const std::string& path, double block_factor = 1.0)
+		: m_file_stream(block_factor)
+		, m_buffer(buffer_size(block_factor))
+		, m_bufferItems(0)
+	{
+		m_file_stream.open(path);
+		
+		m_file_stream.seek(0, file_base::end);
+	}
+
+    ////////////////////////////////////////////////////////////////////
+    /// \brief Initialize temporary stack.
+    ///
+    /// \param  tempFile  The temporary file containing the stack
+    /// \param  block_factor  The block factor to use
+    ////////////////////////////////////////////////////////////////////
+	inline stack(temp_file & tempFile, double block_factor = 1.0)
+		: m_file_stream(block_factor)
+		, m_buffer(buffer_size(block_factor))
+		, m_bufferItems(0)
+	{
+		m_file_stream.open(tempFile);
+		
+		m_file_stream.seek(0, file_base::end);
+	}
+
+
+    ////////////////////////////////////////////////////////////////////
+    /// \brief Closes the underlying stream and truncates it to the logical
+    /// end of the stack. TODO verify this behavior
+    ////////////////////////////////////////////////////////////////////
+	~stack() {
+		empty_buffer();
+		m_file_stream.truncate(this->size());
+	}
+
+    ////////////////////////////////////////////////////////////////////
+    /// \brief Pushes one item onto the stack. Returns ERROR_* as 
+    /// given by the underlying stream.
+    ///
+    /// \param  t    The item to push onto the stack.
+    ////////////////////////////////////////////////////////////////////
+	inline void push(const T & t) throw(stream_exception) {
+		if (m_buffer.size() == m_bufferItems) empty_buffer();
+		m_buffer[m_bufferItems++] = t;
+	}
+
+    ////////////////////////////////////////////////////////////////////
+    /// \brief Pops one item from the stack.
+    ////////////////////////////////////////////////////////////////////
+	inline const T & pop() throw(stream_exception) {
+		if (m_bufferItems) return m_buffer[--m_bufferItems];
+		const T & item = m_file_stream.read_back();
+		return item;
+	}
+
+    ////////////////////////////////////////////////////////////////////
+    /// \brief Peeks at the topmost item on the stack.
+    ////////////////////////////////////////////////////////////////////
+	inline const T & top() throw(stream_exception) {
+		T item = m_file_stream.read_back();
+		m_file_stream.read();
+		return item;
+	}
+
+    ////////////////////////////////////////////////////////////////////
+    /// \brief Returns the number of items currently on the stack.
+    ////////////////////////////////////////////////////////////////////
+    inline stream_size_type size() const {
+		return m_file_stream.offset()+m_bufferItems;
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// \brief Returns whether the stack is empty or not.
+    ////////////////////////////////////////////////////////////////////
+    inline bool empty() const {
+		return size()  == 0;//!m_file_stream.can_read_back();
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// \brief Compute the memory used by a stack.
+    ////////////////////////////////////////////////////////////////////
+	inline static memory_size_type memory_usage(float blockFactor=1.0) {
+		return sizeof(stack<T>)
+			+ file_stream<T>::memory_usage(blockFactor)
+			+ array<T>::memory_usage(buffer_size(blockFactor));
+	}
 
 protected:
 
 	/** The file_stream used to store the items. */
 	file_stream<T> m_file_stream;
 
-    /**  The current size of the stack (in items).  */
-    TPIE_OS_OFFSET m_size;
-
 private:
-	temp_file m_temp;
+	array<T> m_buffer;
+	size_t m_bufferItems;
+
+	inline void empty_buffer() {
+		if (m_bufferItems == 0) return;
+		m_file_stream.write(m_buffer.begin(), m_buffer.begin()+m_bufferItems);
+		m_bufferItems = 0;
+	}
+
+	inline static memory_size_type buffer_size(double blockFactor) {
+		return file<T>::block_size(blockFactor)/sizeof(T);
+	}
 
 };
-
-/////////////////////////////////////////////////////////////////////////
-
-template<class T>
-stack<T>::stack() : 
-	m_file_stream(),
-    m_size(0) {
-
-	m_file_stream.open(m_temp.path());
-
-}
-
-/////////////////////////////////////////////////////////////////////////
-
-template<class T>
-stack<T>::stack(const std::string& path, double block_factor) :
-	m_file_stream(block_factor),
-	m_size(0) {
-
-	m_file_stream.open(path);
-	
-	m_file_stream.seek(0, file_base::end);
-
-}
-
-/////////////////////////////////////////////////////////////////////////
-
-template<class T>
-stack<T>::~stack() {
-	m_file_stream.truncate(this->size());
-}
-
-template<class T>
-bool stack<T>::is_empty() const {
-	return empty();
-}
-
-/////////////////////////////////////////////////////////////////////////
-
-template<class T>
-void stack<T>::push(const T & t) throw(stream_exception) {
-	m_file_stream.write(t);
-}
-
-/////////////////////////////////////////////////////////////////////////
-
-template<class T>
-const T & stack<T>::pop() throw(stream_exception) {
-
-	const T & item = m_file_stream.read_back();
-
-	return item;
-
-}
-
-/////////////////////////////////////////////////////////////////////////
-
-template<class T>
-const T & stack<T>::top() throw(stream_exception) {
-
-	T item = m_file_stream.read_back();
-
-	m_file_stream.read();
-
-	return item;
-
-}
-
-/////////////////////////////////////////////////////////////////////////
-
-template<class T>
-void stack<T>::persist(persistence p) {
-	m_temp.set_persistent(p != PERSIST_DELETE);
-}
-
-template<class T>
-void stack<T>::trim() {
-	// Do nothing.
-}
 
 namespace ami {
 
 ///////////////////////////////////////////////////////////////////
-///
 ///  An implementation of an external-memory stack compatible with the old AMI interface.
-///
 ///////////////////////////////////////////////////////////////////
-
 template<class T> 
 class stack {
-
-
 public:
    
     ////////////////////////////////////////////////////////////////////
-    ///
     ///  Initializes the stack.
-    ///
     ////////////////////////////////////////////////////////////////////
-
     stack() :
-		m_ulate() {
+		m_ulate(m_tempFile) {
 		// Empty ctor.
 	}
 
     ////////////////////////////////////////////////////////////////////
-    ///
     ///  Initializes the stack by (re-)opening the file given.
     ///
     ///  \param  path    The path to a file used for storing the items.
     ///  \param  type    An stream_type that indicates the 
     ///                  read/write mode of the file.
-    ///
     ////////////////////////////////////////////////////////////////////
-
     stack(const std::string& path, 
-		  stream_type type = READ_WRITE_STREAM) :
-		m_ulate(path) {
-		// Empty ctor.
+		  stream_type type = READ_WRITE_STREAM)
+		: m_tempFile(path, true)
+		, m_ulate(m_tempFile)
+	{
 		unused(type);
 	}
 
     ////////////////////////////////////////////////////////////////////
-    ///  
-    ///  Closes the underlying stream and truncates it to the logical
-    ///  end of the stack. TODO verify this behavior
-    ///
-    ////////////////////////////////////////////////////////////////////
-
-    ~stack() {
-		// Empty dtor.
-	}
-
-    ////////////////////////////////////////////////////////////////////
-    ///
     ///  Pushes one item onto the stack. Returns ERROR_* as 
     ///  given by the underlying stream.
     ///
     ///  \param  t    The item to be pushed onto the stack.
-    ///
     ////////////////////////////////////////////////////////////////////
-
     err push(const T &t);
 
     ////////////////////////////////////////////////////////////////////
-    ///
     ///  Pops one item from the stack. Returns ERROR_* as 
     ///  given by the underlying stream or END_OF_STREAM
     ///  if the stack is empty.
     ///
     ///  \param  t    A pointer to a pointer that will point to the 
     ///               topmost item.
-    ///
     ////////////////////////////////////////////////////////////////////
-
     err pop(const T **t); 
 
     ////////////////////////////////////////////////////////////////////
-    ///
     ///  Peeks at the topmost item on the stack. Returns ERROR_* as 
     ///  given by the underlying stream or END_OF_STREAM
     ///  if the stack is empty.
     ///
     ///  \param  t    A pointer to a pointer that will point to the 
     ///               topmost item.
-    ///
     ////////////////////////////////////////////////////////////////////
-
     err peek(const T **t); 
 
     ////////////////////////////////////////////////////////////////////
-    ///  
     ///  Returns the number of items currently on the stack.
-    ///
     ////////////////////////////////////////////////////////////////////
-
     TPIE_OS_OFFSET size() const {
 		return m_ulate.size();
     }
 
     ////////////////////////////////////////////////////////////////////
-    ///  
     ///  Returns whether the stack is empty or not.
-    ///
     ////////////////////////////////////////////////////////////////////
-
     bool is_empty() const {
 		return m_ulate.empty();
     }
 
     ////////////////////////////////////////////////////////////////////
-    ///  
     ///  Set the persistence status of the (stream underlying the) stack.
     ///
     ///  \param  p    A persistence status.
-    ///
     ////////////////////////////////////////////////////////////////////
-
 	void persist(persistence p) {
-		m_persistence = p;
-		return m_ulate.persist(p);
+		m_tempFile.set_persistent(p == PERSIST_PERSISTENT);
     }
 
     ////////////////////////////////////////////////////////////////////
-    ///  
     ///  Returns the persistence status of the (stream underlying the) 
     ///  stack.
-    ///
     ////////////////////////////////////////////////////////////////////
-
 	persistence persist() const { 
-		return m_persistence;
+		return m_tempFile.is_persistent() ? PERSIST_PERSISTENT : PERSIST_DELETE;
     }
 
     ////////////////////////////////////////////////////////////////////
-    ///  
     ///  Truncates the underlying stream to the exact size (rounded up
     ///  to the next block) of items. In the current implementation,
 	///  this does nothing.
-    ///
     ////////////////////////////////////////////////////////////////////
-
     err trim() {
-		m_ulate.trim();
 		return NO_ERROR;
     }
 
     ////////////////////////////////////////////////////////////////////
-    ///  
     ///  Compute the memory used by the stack and the aggregated stream.
     ///
     ///  \param  usage       Where the usage will be stored.
     ///  \param  usage_type  The type of usage_type inquired from 
     ///                      the stream.
-    ///
     ////////////////////////////////////////////////////////////////////
-
 	err main_memory_usage(TPIE_OS_SIZE_T *usage,
 						  stream_usage usage_type) const;
-
 
     ////////////////////////////////////////////////////////////////////
     /// \deprecated This should go as soon as all old code has been migrated.
     ////////////////////////////////////////////////////////////////////
     TPIE_OS_OFFSET stream_len() const {
-		std::cerr << "Using AMI_stack<T>::stream_len() is deprecated." << std::endl;
+		TP_LOG_WARNING_ID("Using AMI_stack<T>::stream_len() is deprecated.");
 		return size();
     }
 
 private:
 
+	temp_file m_tempFile;
+
+	// em-ulate. get it?
 	tpie::stack<T> m_ulate;
-
-	persistence m_persistence;
-
 };
 
 /////////////////////////////////////////////////////////////////////////

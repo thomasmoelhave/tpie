@@ -1,5 +1,5 @@
 #Path to output doxygen configuration file
-SET(DOXYFILE ${PROJECT_BINARY_DIR}/doc/Doxyfile)
+SET(DOXYFILE ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
 
 #Search for doxygen
 find_package(Doxygen)
@@ -25,8 +25,39 @@ ADD_CUSTOM_TARGET(apidocs
 
 #CMake should process the Doxyfile.in file replacing
 #variables placing the result in the build directory
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${DOXYFILE} @ONLY)
+configure_file(Doxyfile.in ${DOXYFILE} @ONLY)
+
+
+file(READ code/file_stream.inl DOCCODE_FILE_STREAM)
+configure_file(file_stream.dox.in file_stream.dox @ONLY)
+
+file(READ code/fractiondb.inl DOCCODE_FRACTIONDB)
+configure_file(fractiondb.dox.in fractiondb.dox @ONLY)
+
+file(READ code/memory.inl DOCCODE_MEMORY)
+file(READ code/memory2.inl DOCCODE_MEMORY2)
+configure_file(memory.dox.in memory.dox @ONLY)
+
+file(READ code/priority_queue.inl DOCCODE_PRIORITY_QUEUE)
+configure_file(priority_queue.dox.in priority_queue.dox @ONLY)
+
+file(READ code/progress1.inl DOCCODE_PROGRESS1)
+file(READ code/progress2.inl DOCCODE_PROGRESS2)
+file(READ code/progress3.inl DOCCODE_PROGRESS3)
+configure_file(progress.dox.in progress.dox @ONLY)
+
+file(READ code/sorting_external.inl DOCCODE_SORTING_EXTERNAL)
+configure_file(sorting_external.dox.in sorting_external.dox @ONLY)
+
+file(READ code/sorting_internal.inl DOCCODE_SORTING_INTERNAL)
+configure_file(sorting_internal.dox.in sorting_internal.dox @ONLY)
 
 else (DOXYGEN)
     message(STATUS "Doxygen not found, API documentation cannot be generated.") 
 endif(DOXYGEN)
+
+add_executable(doccode code/code.cpp)
+target_link_libraries(doccode tpie ${Boost_LIBRARIES})
+
+configure_file(madalgo-doxygen.css html/madalgo-doxygen.css COPYONLY)
+configure_file(printstyle.css html/printstyle.css COPYONLY)

@@ -62,9 +62,5 @@ struct job_manager_exception: public exception {
 	job_manager_exception(): exception("") {};
 };
 
-struct already_sorted_exception: public exception {
-	already_sorted_exception(): exception("") {};
-};
-
 }
 #endif //__TPIE_EXCEPTION_H__

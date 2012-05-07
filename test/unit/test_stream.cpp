@@ -39,6 +39,29 @@ static const size_t ITEMS = TESTSIZE/sizeof(uint64_t);
 static const size_t ARRAYSIZE = 512;
 static const size_t ARRAYS = TESTSIZE/(ARRAYSIZE*sizeof(uint64_t));
 
+struct movable_file_stream {
+	tpie::auto_ptr<tpie::file_stream<uint64_t> > fs;
+	movable_file_stream() {fs.reset(tpie::tpie_new<tpie::file_stream<uint64_t> >());}
+	movable_file_stream(tpie::file_stream<uint64_t> & with) {
+		fs.reset(tpie::tpie_new<tpie::file_stream<uint64_t> >());
+		fs->swap(with);
+	}
+	movable_file_stream(const movable_file_stream & other) {
+		fs.reset(tpie::tpie_new<tpie::file_stream<uint64_t> >());
+		fs->swap(*other.fs);
+	}
+	movable_file_stream & operator=(const movable_file_stream & other) {
+		fs->swap(*other.fs);
+		return *this;
+	}
+};
+
+movable_file_stream openstream() {
+	tpie::file_stream<uint64_t> fs;
+	fs.open(TEMPFILE);
+	return fs;
+}
+
 int main(int argc, char **argv) {
 	tpie_initer _;
 
@@ -59,22 +82,30 @@ int main(int argc, char **argv) {
 
 	// Write ITEMS items sequentially to TEMPFILE
 	{
+		movable_file_stream fs;
+		fs = openstream();
 		tpie::file_stream<uint64_t> s;
-		s.open(TEMPFILE);
+		s.swap(*fs.fs);
 		for(size_t i=0; i < ITEMS; ++i) s.write(ITEM(i));
 	}
 
 	// Sequential verify
 	{
+		movable_file_stream fs;
+		fs = openstream();
 		tpie::file_stream<uint64_t> s;
-		s.open(TEMPFILE);
+		s.swap(*fs.fs);
+		tpie::file_stream<uint64_t> t;
 		for(size_t i=0; i < ITEMS; ++i) {
-			uint64_t x = s.read();
+			uint64_t x = (i % 2) ? t.read() : s.read();
 			if (x != ITEM(i)) {
 				std::cout << "Expected element " << i << " = " << ITEM(i) << ", got " << x << std::endl;
 				return EXIT_FAILURE;
 			}
+			if (i % 3) s.swap(t);
+			else t.swap(s);
 		}
+		s.swap(t);
 	}
 
 	// Write an ARRAYSIZE array ARRAYS times sequentially to TEMPFILE

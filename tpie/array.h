@@ -352,7 +352,8 @@ public:
 	/// \param other The array to copy.
 	/////////////////////////////////////////////////////////
 	array_base(const array_base & other): m_elements(0), m_size(other.m_size) {
-		m_elements = reinterpret_cast<T*>(tpie_new_array<trivial_same_size<T> >(m_size));
+		if (other.size() == 0) return;
+		m_elements = m_size ? reinterpret_cast<T*>(tpie_new_array<trivial_same_size<T> >(m_size)) : 0;
 		std::uninitialized_copy(other.m_elements+0, other.m_elements+m_size, m_elements+0);
 	}	
 
@@ -373,7 +374,7 @@ public:
 		if (size != m_size) {
 			tpie_delete_array(m_elements, m_size);
 			m_size = size;
-			m_elements = reinterpret_cast<T*>(tpie_new_array<trivial_same_size<T> >(m_size));
+			m_elements = size ? reinterpret_cast<T*>(tpie_new_array<trivial_same_size<T> >(m_size)) : 0;
 			std::uninitialized_fill(m_elements+0, m_elements+m_size, elm);
 		} else {
 			std::fill(m_elements+0, m_elements+m_size, elm);

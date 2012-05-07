@@ -83,8 +83,8 @@ private:
 	    
 	void start_sort();              // high level wrapper to full sort 
 	void compute_sort_params();     // compute nInputItems, mrgArity, nRuns
-	void partition_and_sort_runs(progress_indicator_base* indicator, std::vector<temp_file> & temporaries); // make initial sorted runs
-	void merge_to_output(progress_indicator_base* indicator, std::vector<temp_file> & temporaries); // loop over merge tree, create output stream
+	void partition_and_sort_runs(progress_indicator_base* indicator, tpie::array<temp_file> & temporaries); // make initial sorted runs
+	void merge_to_output(progress_indicator_base* indicator, tpie::array<temp_file> & temporaries); // loop over merge tree, create output stream
 	// Merge a single group mrgArity streams to an output stream
 	void single_merge(
 		typename tpie::array<tpie::auto_ptr<file_stream<T> > >::iterator,
@@ -184,18 +184,19 @@ void sort_manager<T,I,M>::sort(file_stream<T>* in, file_stream<T>* out,
 
 	// Basic checks that input is ok
 	if (in==NULL || out==NULL) {
-		m_indicator->init(1); m_indicator->step(); m_indicator->done();
+		if (m_indicator) {m_indicator->init(1); m_indicator->step(); m_indicator->done();}
 		throw exception("NULL_POINTER");
 	}
 
-	if (!in || !out) {
-		m_indicator->init(1); m_indicator->step(); m_indicator->done();
-		throw exception("OBJECT_INVALID");
-	}
-
 	if (inStream->size() < 2) {
-		m_indicator->init(1); m_indicator->step(); m_indicator->done();
-		throw already_sorted_exception();
+		if (m_indicator) {m_indicator->init(1); m_indicator->step(); m_indicator->done();}
+		in->seek(0);
+		if (in != out) {
+			out->seek(0);
+			if (in->size() == 1)
+				out->write(in->read());
+		}
+		return;
 	}
 	    
 	// Else, there is something to sort, do it
@@ -285,7 +286,7 @@ void sort_manager<T,I,M>::start_sort(){
 	fractional_subindicator merge_progress(fp, "merge", TPIE_FSI, nInputItems,"",tpie::IMPORTANCE_LOG);
 	fp.init();
 
-	std::vector<temp_file> temporaries(mrgArity*2);
+	tpie::array<temp_file> temporaries(mrgArity*2);
 
 	// PHASE 3: partition and form sorted runs
 	TP_LOG_DEBUG_ID ("Beginning general merge sort.");
@@ -369,14 +370,11 @@ void sort_manager<T,I,M>::compute_sort_params(void){
 	// cost of Input stream already accounted for in mmBytesAvail..
 	TPIE_OS_SIZE_T mmBytesFixedForMerge = m_mergeHeap->space_overhead() +
 		mmBytesPerStream;
-	    
-	TPIE_OS_SIZE_T mmBytesAvailMerge = mmBytesAvail - mmBytesFixedForMerge;
 
-	// Need to support at least binary merge
-	if(mmBytesAvailMerge<2*mmBytesPerMergeItem){
-		throw stream_exception("Merge arity < 2 -- Insufficient memory for a merge.");
+	if (mmBytesFixedForMerge > mmBytesAvail) {
+		throw stream_exception("Insufficient memory for merge heap and output stream");
 	}
-
+	    
 	// Cast down from TPIE_OS_OFFSET (type of mmBytesAvail).
 	// mmBytesPerMergeItem is at least 1KB, so we are OK unless we
 	// have more than 2 TerraBytes of memory, assuming 64 bit
@@ -388,6 +386,11 @@ void sort_manager<T,I,M>::compute_sort_params(void){
 				 << " bytes per merge item=" <<  static_cast<TPIE_OS_OUTPUT_SIZE_T>(mmBytesPerMergeItem)
 				 << " initial mrgArity=" << static_cast<TPIE_OS_OUTPUT_SIZE_T>(mrgArity) << "\n");
 	    
+	// Need to support at least binary merge
+	if(mrgArity < 2) {
+		throw stream_exception("Merge arity < 2 -- Insufficient memory for a merge.");
+	}
+
 	// Make sure that the AMI is willing to provide us with the
 	// number of substreams we want.  It may not be able to due to
 	// operating system restrictions, such as on the number of regions
@@ -513,7 +516,7 @@ void sort_manager<T,I,M>::compute_sort_params(void){
 }
 
 template<class T, class I, class M>
-void sort_manager<T,I,M>::partition_and_sort_runs(progress_indicator_base* indicator, std::vector<temp_file> & temporaries){
+void sort_manager<T,I,M>::partition_and_sort_runs(progress_indicator_base* indicator, tpie::array<temp_file> & temporaries){
 	// ********************************************************************
 	// * PHASE 3: Partition                                               *
 	// * Partition the input stream into nRuns of at most nItemsPerRun    *
@@ -606,7 +609,7 @@ void sort_manager<T,I,M>::partition_and_sort_runs(progress_indicator_base* indic
 }
 
 template<class T, class I, class M>
-void sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator, std::vector<temp_file> & temporaries){
+void sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator, tpie::array<temp_file> & temporaries){
 	// ********************************************************************
 	// * PHASE 4: Merge                                                   *
 	// * Loop over all levels of the merge tree, reading mrgArity runs    *

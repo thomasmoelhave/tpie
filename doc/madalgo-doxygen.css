@@ -1014,6 +1014,7 @@ body {
 	padding: 0 4px 4px 4px;
 	font-size: 13px;
 	width: auto;
+	display: none;
 }
 
 .tabs {
@@ -1070,3 +1071,26 @@ body {
 	display: inline-block;
 	font-size: 300%;
 }
+
+.textblock {
+	max-width: 50em;
+	text-align: justify;
+	hyphens: auto;
+	-moz-hyphens: auto;
+	-o-hyphens: auto;
+	-ms-hyphens: auto;
+	-webkit-hyphens: auto;
+}
+
+:target {
+	background-color: #DDEEFF;
+}
+
+/* Ew, tables! Let's fix that with a bit of CSS. */
+.memname * { display: inline !important; }
+.memname { white-space: normal; }
+table.memname { display: block; margin-left: 9px; }
+td.memname { margin-left: 0; }
+
+/* avoid page breaking method descriptions */
+.memitem { display: inline-block; width: 100%; }

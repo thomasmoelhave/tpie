@@ -28,6 +28,7 @@
 #include <tpie/portability.h>
 #include <tpie/stats.h>
 #include <stdexcept>
+#include <boost/utility.hpp>
 // The name of the environment variable pointing to a tmp directory.
 #define TMPDIR_ENV "TMPDIR"
 
@@ -107,7 +108,7 @@ namespace tpie {
 	/// When a temp_file object goes out of scope and is not set to persistent,
 	/// the associated temporary file will be deleted.
 	///////////////////////////////////////////////////////////////////////////
-	class temp_file {
+	class temp_file : boost::noncopyable {
 	private:
 		std::string m_path;
 		bool m_persist;

@@ -117,18 +117,18 @@ int main(int argc, char ** argv) {
 	// initialize tpie subsystems (memory manager, job manager for parallel sorting,
 	// prime database, progress database, default logger)
 	tpie_init();
-#include "fractiondb.gen.cpp"
+#include "fractiondb.gen.inl"
 
 #else
 	// initialize tpie subsystems and begin tracking progress
 	tpie_init(ALL | CAPTURE_FRACTIONS);
-	load_fractions("fractiondb.gen.cpp");
+	load_fractions("fractiondb.gen.inl");
 #endif
 
 	go();
 
 #ifndef NO_FRACTION_STATS
-	save_fractions("fractiondb.gen.cpp");
+	save_fractions("fractiondb.gen.inl");
 	tpie_finish(ALL | CAPTURE_FRACTIONS);
 #else
 	tpie_finish();

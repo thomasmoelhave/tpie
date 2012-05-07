@@ -137,6 +137,46 @@ bool stack_test(size_t size) {
 }
 
 
+bool io_test() {
+	typedef uint64_t test_t;
+	stack<test_t> s;
+
+	// some block boundary, in bytes
+	const size_t block_boundary = 4*1024*1024;
+
+	for (size_t i = 0; i < block_boundary/sizeof(test_t); ++i) {
+		s.push(test_t());
+	}
+	// stack now contains block_boundary bytes
+
+	const stream_size_type before = get_bytes_written();
+	// enter a new block, forcing a write of the full buffer
+	s.push(test_t());
+	const stream_size_type after = get_bytes_written();
+	const stream_size_type write = after-before;
+	std::cerr << "Before: " << before << ", after: " << after << " (difference " << write << ")" << std::endl;
+
+	stream_size_type prev = after;
+	// cross the block boundary a number of times
+	const size_t repeats = 100;
+	for (size_t i = 0; i < repeats; ++i) {
+		s.pop();
+		s.pop();
+		s.push(test_t());
+		s.push(test_t());
+		stream_size_type now = get_bytes_written();
+		//std::cerr << now << " (" << (now-prev) << ")" << std::endl;
+		prev = now;
+	}
+	std::cerr << "Crossing the block boundary " << repeats << " times, in total writing " << (prev-after) << " bytes" << std::endl;
+	if ((prev-after) > 2*write) {
+		std::cerr << "Too inefficient!" << std::endl;
+		return false;
+	}
+	return true;
+}
+
+
 bool perform_test(const std::string & test) {
   if (test == "small-ami")
 	  return ami_stack_test(1024 * 1024 * 3);
@@ -150,6 +190,8 @@ bool perform_test(const std::string & test) {
 	  return named_stack_test();
   else if (test == "large")
 	  return stack_test(1024*1024*1024);
+  else if (test == "io")
+	  return io_test();
   return false;
 }
 

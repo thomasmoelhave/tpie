@@ -30,21 +30,23 @@
 #ifdef TPIE_DEPRECATED_WARNINGS
 #ifdef __GNUC__
 #define TPIE_DEPRECATED(func) func __attribute__ ((deprecated))
-#define TPIE_DEPRECATED_CLASS_A(func) func __attribute__ ((deprecated))
 #define TPIE_DEPRECATED_CLASS_B
+#define TPIE_DEPRECATED_CLASS_C __attribute__ ((deprecated))
 #elif defined(_MSC_VER)
 #define TPIE_DEPRECATED(func) __declspec(deprecated) func
-#define TPIE_DEPRECATED_CLASS_A(func) func
 #define TPIE_DEPRECATED_CLASS_B  __declspec(deprecated)
+#define TPIE_DEPRECATED_CLASS_C
 #else
 #define TPIE_DEPRECATED(func) func
-#define TPIE_DEPRECATED_CLASS_A(func) func
 #define TPIE_DEPRECATED_CLASS_B 
+#define TPIE_DEPRECATED_CLASS_C
 #endif
 #else
 #define TPIE_DEPRECATED(func) func
-#define TPIE_DEPRECATED_CLASS_A(func) func
 #define TPIE_DEPRECATED_CLASS_B 
+#define TPIE_DEPRECATED_CLASS_C
 #endif
+
+#define TPIE_DEPRECATED_CLASS_A(func) func TPIE_DEPRECATED_CLASS_C
 
 #endif // __TPIE_DEPRECATED_H__
