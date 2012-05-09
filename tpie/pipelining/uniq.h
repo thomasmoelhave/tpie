@@ -42,6 +42,7 @@ struct count_consecutive_t : public pipe_segment {
 		: dest(dest)
 		, current_count(0)
 	{
+		add_push_destination(dest);
 	}
 
 	inline void begin() {
@@ -61,10 +62,6 @@ struct count_consecutive_t : public pipe_segment {
 			item_buffer = item;
 			current_count = 1;
 		}
-	}
-
-	void push_successors(std::deque<const pipe_segment *> & q) const {
-		q.push_back(&dest);
 	}
 private:
 	inline void flush() {
@@ -98,6 +95,7 @@ struct extract_first_t : public pipe_segment {
 	typedef std::pair<typename dest_t::item_type, bits::any_type> item_type;
 
 	inline extract_first_t(const dest_t & dest) : dest(dest) {
+		add_push_destination(dest);
 	}
 
 	inline void begin() {
@@ -110,10 +108,6 @@ struct extract_first_t : public pipe_segment {
 
 	inline void push(const item_type & item) {
 		dest.push(item.first);
-	}
-
-	void push_successors(std::deque<const pipe_segment *> & q) const {
-		q.push_back(&dest);
 	}
 private:
 	dest_t dest;

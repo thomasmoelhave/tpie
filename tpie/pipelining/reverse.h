@@ -39,9 +39,9 @@ struct reverser {
 
 		typedef T item_type;
 
-		inline sink_t(buf_t & buffer, boost::shared_ptr<pipe_segment *> sourcep)
-			: buffer(buffer)
-			, sourcep(sourcep)
+		inline sink_t(buf_t & buffer, const segment_token & token)
+			: pipe_segment(token)
+			, buffer(buffer)
 		{
 			it = buffer.begin();
 		}
@@ -56,18 +56,9 @@ struct reverser {
 			*it++ = item;
 		}
 
-		void push_successors(std::deque<const pipe_segment *> & q) const {
-			q.push_back(*sourcep);
-		}
-
-		bool buffering() const {
-			return true;
-		}
-
 	private:
 		buf_t & buffer;
 		typename buf_t::iterator it;
-		boost::shared_ptr<pipe_segment *> sourcep;
 	};
 
 	template <typename dest_t>
@@ -79,22 +70,13 @@ struct reverser {
 
 		typedef T item_type;
 
-		inline source_t(const dest_t & dest, const buf_t & buffer, boost::shared_ptr<pipe_segment *> thisp)
+		inline source_t(const dest_t & dest, const buf_t & buffer, const segment_token & sink)
 			: dest(dest)
 		   	, buffer(buffer)
 			, it(buffer.rbegin())
-			, thisp(thisp)
 		{
-			*thisp = this;
-		}
-
-		inline source_t(const source_t & other)
-			: dest(other.dest)
-			, buffer(other.buffer)
-			, it(other.it)
-			, thisp(other.thisp)
-		{
-			*thisp = this;
+			add_push_destination(dest);
+			add_dependency(sink);
 		}
 
 		inline void operator()() {
@@ -105,37 +87,32 @@ struct reverser {
 			dest.end();
 		}
 
-		void push_successors(std::deque<const pipe_segment *> & q) const {
-			q.push_back(&dest);
-		}
 	private:
 		dest_t dest;
 		const buf_t & buffer;
 		typename buf_t::const_reverse_iterator it;
-		boost::shared_ptr<pipe_segment *> thisp;
 
 		source_t & operator=(const source_t & other);
 	};
 
 	inline reverser(size_t buffer_size)
 		: buffer(buffer_size)
-		, sourcep(new pipe_segment*(0))
 	{
 	}
 
-	inline pipe_end<termfactory_2<sink_t, buf_t &, boost::shared_ptr<pipe_segment *> > >
+	inline pipe_end<termfactory_2<sink_t, buf_t &, const segment_token &> >
 	sink() {
-		return termfactory_2<sink_t, buf_t &, boost::shared_ptr<pipe_segment *> >(buffer, sourcep);
+		return termfactory_2<sink_t, buf_t &, const segment_token &>(buffer, sink_token);
 	}
 
-	inline pipe_begin<factory_2<source_t, const buf_t &, boost::shared_ptr<pipe_segment *> > >
+	inline pipe_begin<factory_2<source_t, const buf_t &, const segment_token &> >
 	source() {
-		return factory_2<source_t, const buf_t &, boost::shared_ptr<pipe_segment *> >(buffer, sourcep);
+		return factory_2<source_t, const buf_t &, const segment_token &>(buffer, sink_token);
 	}
 
 private:
 	buf_t buffer;
-	boost::shared_ptr<pipe_segment *> sourcep;
+	segment_token sink_token;
 };
 
 }

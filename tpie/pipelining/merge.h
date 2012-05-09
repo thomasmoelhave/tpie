@@ -45,6 +45,8 @@ struct merge_t {
 		typedef typename dest_t::item_type item_type;
 
 		inline type(const dest_t & dest, const pull_t & with) : dest(dest), with(with) {
+			add_push_destination(dest);
+			add_pull_destination(with);
 		}
 
 		inline void begin() {
@@ -60,10 +62,6 @@ struct merge_t {
 		inline void end() {
 			with.end();
 			dest.end();
-		}
-
-		void push_successors(std::deque<const pipe_segment *> & q) const {
-			q.push_back(&dest);
 		}
 
 		dest_t dest;

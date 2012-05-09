@@ -38,15 +38,12 @@ struct linear_t : public pipe_segment {
 	typedef typename dest_t::item_type item_type;
 
 	inline linear_t(const dest_t & dest, item_type factor, item_type term) : dest(dest), factor(factor), term(term) {
+		add_push_destination(dest);
 	}
 	inline void begin() { }
 	inline void end() { }
 	inline void push(const item_type & item) {
 		dest.push(item*factor+term);
-	}
-
-	void push_successors(std::deque<const pipe_segment *> & q) const {
-		q.push_back(&dest);
 	}
 private:
 	dest_t dest;

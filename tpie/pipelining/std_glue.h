@@ -39,6 +39,7 @@ struct input_vector_t : public pipe_segment {
 	typedef typename dest_t::item_type item_type;
 
 	inline input_vector_t(const dest_t & dest, const std::vector<item_type> & input) : dest(dest), input(input) {
+		add_push_destination(dest);
 	}
 
 	inline void operator()() {
@@ -48,10 +49,6 @@ struct input_vector_t : public pipe_segment {
 			dest.push(*i);
 		}
 		dest.end();
-	}
-
-	void push_successors(std::deque<const pipe_segment *> & q) const {
-		q.push_back(&dest);
 	}
 private:
 	dest_t dest;
@@ -76,8 +73,6 @@ struct output_vector_t : public pipe_segment {
 	inline void push(const T & item) {
 		output.push_back(item);
 	}
-
-	void push_successors(std::deque<const pipe_segment *> &) const { }
 private:
 	std::vector<item_type> & output;
 };

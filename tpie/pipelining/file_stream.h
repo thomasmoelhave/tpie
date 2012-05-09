@@ -44,6 +44,7 @@ struct input_t : public pipe_segment {
 	typedef typename dest_t::item_type item_type;
 
 	inline input_t(const dest_t & dest, file_stream<item_type> & fs) : dest(dest), fs(fs) {
+		add_push_destination(dest);
 	}
 
 	inline void operator()() {
@@ -54,9 +55,6 @@ struct input_t : public pipe_segment {
 		dest.end();
 	}
 
-	void push_successors(std::deque<const pipe_segment *> & q) const {
-		q.push_back(&dest);
-	}
 private:
 	dest_t dest;
 	file_stream<item_type> & fs;
@@ -73,7 +71,7 @@ inline pipe_begin<factory_1<input_t, file_stream<T> &> > input(file_stream<T> & 
 /// file_stream pull input generator.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-struct pull_input_t {
+struct pull_input_t : public pipe_segment {
 	typedef T item_type;
 
 	inline pull_input_t(file_stream<T> & fs) : fs(fs) {
@@ -127,8 +125,6 @@ struct output_t : public pipe_segment {
 
 	inline void end() {
 	}
-
-	void push_successors(std::deque<const pipe_segment *> &) const { }
 private:
 	file_stream<T> & fs;
 };

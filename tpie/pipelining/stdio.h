@@ -38,6 +38,7 @@ struct scanf_ints_t : public pipe_segment {
 	typedef int item_type;
 
 	inline scanf_ints_t(const dest_t & dest) : dest(dest) {
+		add_push_destination(dest);
 	}
 
 	inline void operator()() {
@@ -49,10 +50,6 @@ struct scanf_ints_t : public pipe_segment {
 		dest.end();
 	}
 
-
-	const pipe_segment * get_next() const {
-		return &dest;
-	}
 private:
 	dest_t dest;
 };

@@ -32,8 +32,18 @@ template <typename dest_t>
 struct multiply_t : public pipe_segment {
 	typedef test_t item_type;
 
-	multiply_t(const dest_t & dest, uint64_t factor)
-		: dest(dest), factor(factor) {
+	inline multiply_t(const dest_t & dest, uint64_t factor)
+		: dest(dest)
+		, factor(factor)
+	{
+		add_push_destination(dest);
+	}
+
+	inline multiply_t(const multiply_t & other)
+		: pipe_segment(other)
+		, dest(other.dest)
+		, factor(other.factor)
+	{
 	}
 
 	void begin() { dest.begin(); }
@@ -41,10 +51,6 @@ struct multiply_t : public pipe_segment {
 
 	void push(const test_t & item) {
 		dest.push(factor*item);
-	}
-
-	void push_successors(std::deque<const pipe_segment *> & q) const {
-		q.push_back(&dest);
 	}
 
 	dest_t dest;

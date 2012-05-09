@@ -39,6 +39,7 @@ struct ostream_logger_t : public pipe_segment {
 	typedef typename dest_t::item_type item_type;
 
 	inline ostream_logger_t(const dest_t & dest, std::ostream & log) : dest(dest), log(log), begun(false), ended(false) {
+		add_push_destination(dest);
 	}
 	inline void begin() {
 		begun = true;
@@ -59,9 +60,6 @@ struct ostream_logger_t : public pipe_segment {
 		}
 		log << "pushing " << item << std::endl;
 		dest.push(item);
-	}
-	void push_successors(std::deque<const pipe_segment *> & q) const {
-		q.push_back(&dest);
 	}
 private:
 	dest_t dest;
@@ -85,6 +83,7 @@ struct identity_t : public pipe_segment {
 	typedef typename dest_t::item_type item_type;
 
 	inline identity_t(const dest_t & dest) : dest(dest) {
+		add_push_destination(dest);
 	}
 
 	inline void begin() {
@@ -97,10 +96,6 @@ struct identity_t : public pipe_segment {
 
 	inline void end() {
 		dest.end();
-	}
-
-	void push_successors(std::deque<const pipe_segment *> & q) const {
-		q.push_back(&dest);
 	}
 private:
 	dest_t dest;
@@ -148,8 +143,6 @@ struct dummydest_t : public pipe_segment {
 	T & buffer;
 	inline dummydest_t(T & buffer) : buffer(buffer) {
 	}
-	inline dummydest_t(const dummydest_t & other) : buffer(other.buffer) {
-	}
 	inline void begin() {
 	}
 	inline void end() {
@@ -160,7 +153,6 @@ struct dummydest_t : public pipe_segment {
 	inline T pull() {
 		return buffer;
 	}
-	void push_successors(std::deque<const pipe_segment *> &) const { }
 };
 
 template <typename pushfact_t>
@@ -236,13 +228,17 @@ struct pull_to_push {
 		inline pusher_t(const dest_t & dest, const pullfact_t & pullfact)
 			: dest(dest)
 			, pullfact(pullfact)
-			, dummydest(buffer) {
+			, dummydest(buffer)
+		{
+			add_push_destination(dest);
 		}
 
 		inline pusher_t(const pusher_t & other)
-			: buffer(other.buffer)
+			: pipe_segment(other)
+			, buffer(other.buffer)
 			, dest(other.dest)
-			, dummydest(buffer) {
+			, dummydest(buffer)
+		{
 		}
 
 		inline void begin() {
@@ -261,10 +257,6 @@ struct pull_to_push {
 			dummydest.push(item);
 			puller->pull();
 			dest.push(dummydest.pull());
-		}
-
-		void push_successors(std::deque<const pipe_segment *> & q) const {
-			q.push_back(&dest);
 		}
 
 	};
@@ -303,9 +295,6 @@ struct bitbucket_t : public pipe_segment {
 
 	inline void push(const T &) {
 	}
-
-	void push_successors(std::deque<const pipe_segment *> &) const {
-	}
 };
 
 template <typename T>
@@ -328,6 +317,8 @@ struct fork_t {
 		typedef typename dest_t::item_type item_type;
 
 		inline type(const dest_t & dest, const fact2_t & fact2) : dest(dest), dest2(fact2.construct()) {
+			add_push_destination(dest);
+			add_push_destination(dest2);
 			std::cout << typeid(dest2_t).name() << std::endl;
 		}
 
@@ -344,11 +335,6 @@ struct fork_t {
 		inline void end() {
 			dest.end();
 			dest2.end();
-		}
-
-		void push_successors(std::deque<const pipe_segment *> & q) const {
-			q.push_back(&dest);
-			q.push_back(&dest2);
 		}
 
 	private:

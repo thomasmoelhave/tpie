@@ -236,9 +236,13 @@ struct sort_t : public pipe_segment {
 	typedef typename dest_t::item_type item_type;
 
 	inline sort_t(const dest_t & dest) : dest(dest) {
+		add_push_destination(dest);
 	}
 
-	inline sort_t(const sort_t<dest_t> & other) : dest(other.dest) {
+	inline sort_t(const sort_t<dest_t> & other)
+		: pipe_segment(other)
+		, dest(other.dest)
+	{
 		// don't copy tmpfile or tmpstream
 	}
 
@@ -259,10 +263,6 @@ struct sort_t : public pipe_segment {
 		dest.end();
 	}
 
-	void push_successors(std::deque<const pipe_segment *> & q) const {
-		q.push_back(&dest);
-	}
-
 private:
 	dest_t dest;
 	merge_sorter<item_type> m_sorter;
@@ -276,7 +276,6 @@ pipesort() {
 template <typename T, typename pred_t>
 struct passive_sorter {
 	inline passive_sorter()
-		: current_output(0)
 	{
 	}
 
@@ -285,9 +284,9 @@ struct passive_sorter {
 	struct input_t : public pipe_segment {
 		typedef T item_type;
 
-		inline input_t(temp_file * file, output_t ** current_output)
-			: file(file)
-			, current_output(current_output)
+		inline input_t(temp_file * file, const segment_token & token)
+			: pipe_segment(token)
+			, file(file)
 		{
 		}
 
@@ -310,18 +309,9 @@ struct passive_sorter {
 			tpie_delete(pbuffer);
 		}
 
-		void push_successors(std::deque<const pipe_segment *> & q) const {
-			q.push_back(*current_output);
-		}
-
-		bool buffering() const {
-			return true;
-		}
-
 	private:
 		temp_file * file;
 		file_stream<T> * pbuffer;
-		output_t ** current_output;
 
 		input_t();
 		input_t & operator=(const input_t &);
@@ -330,18 +320,10 @@ struct passive_sorter {
 	struct output_t : public pipe_segment {
 		typedef T item_type;
 
-		inline output_t(temp_file * file, output_t ** current_output)
+		inline output_t(temp_file * file, const segment_token & input)
 			: file(file)
-			, current_output(current_output)
 		{
-			*current_output = this;
-		}
-
-		inline output_t(const output_t & other)
-			: file(other.file)
-			, current_output(other.current_output)
-		{
-			*current_output = this;
+			add_dependency(input);
 		}
 
 		inline void begin() {
@@ -361,30 +343,27 @@ struct passive_sorter {
 			buffer->close();
 		}
 
-		void push_successors(std::deque<const pipe_segment *> &) const { }
-
 	private:
 		temp_file * file;
 		file_stream<T> * buffer;
-		output_t ** current_output;
 
 		output_t();
 		output_t & operator=(const output_t &);
 	};
 
-	inline pipe_end<termfactory_2<input_t, temp_file *, output_t **> > input() {
+	inline pipe_end<termfactory_2<input_t, temp_file *, const segment_token &> > input() {
 		std::cout << "Construct input factory " << typeid(pred_t).name() << " with " << &file << std::endl;
-		return termfactory_2<input_t, temp_file *, output_t **>(&file, &current_output);
+		return termfactory_2<input_t, temp_file *, const segment_token &>(&file, input_token);
 	}
 
 	inline output_t output() {
-		return output_t(&file, &current_output);
+		return output_t(&file, input_token);
 	}
 
 private:
 	pred_t pred;
 	temp_file file;
-	output_t * current_output;
+	segment_token input_token;
 	passive_sorter(const passive_sorter &);
 	passive_sorter & operator=(const passive_sorter &);
 };

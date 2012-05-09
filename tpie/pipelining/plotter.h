@@ -53,7 +53,7 @@ nodes_t nodes(const pipe_segment & r) {
 			numbers.insert(std::make_pair(c, next_number));
 			++next_number;
 		}
-		c->push_successors(q);
+		//c->push_successors(q);
 	}
 	return numbers;
 }
@@ -64,9 +64,9 @@ tpie::disjoint_sets<size_t> phases(const nodes_t & n) {
 		res.make_set(i->second);
 	}
 	for (nodes_t::const_iterator i = n.begin(); i != n.end(); ++i) {
-		if (i->first->buffering()) continue;
+		//if (i->first->buffering()) continue;
 		std::deque<const pipe_segment *> q;
-		i->first->push_successors(q);
+		//i->first->push_successors(q);
 		for (std::deque<const pipe_segment *>::iterator j = q.begin(); j != q.end(); ++j) {
 			res.union_set(i->second, n.find(*j)->second);
 		}
@@ -84,12 +84,12 @@ void pipeline_impl<fact_t>::actual_plot(std::ostream & out) {
 	for (nodes_t::iterator i = n.begin(); i != n.end(); ++i) {
 		const pipe_segment * c = i->first;
 		std::deque<const pipe_segment *> q;
-		c->push_successors(q);
+		//c->push_successors(q);
 		for (std::deque<const pipe_segment *>::iterator j = q.begin(); j != q.end(); ++j) {
 			out << '"' << c << "\" -> \"" << *j;
-			if (c->buffering())
-				out << "\" [style=dashed];\n";
-			else
+			//if (c->buffering())
+				//out << "\" [style=dashed];\n";
+			//else
 				out << "\";\n";
 		}
 	}

@@ -20,6 +20,7 @@
 #ifndef __TPIE_PIPELINING_CORE_H__
 #define __TPIE_PIPELINING_CORE_H__
 
+#include <tpie/tpie_assert.h>
 #include <tpie/types.h>
 #include <iostream>
 #include <deque>
@@ -27,6 +28,52 @@
 namespace tpie {
 
 namespace pipelining {
+
+struct pipe_segment;
+
+struct segment_token {
+	// Use for the simple case in which a pipe_segment owns its own token
+	inline segment_token(const pipe_segment * owner)
+		: m_id(tokens.size())
+		, m_free(false)
+	{
+		tokens.push_back(owner);
+	}
+
+	// This copy constructor has two uses:
+	// 1. Simple case when a pipe_segment is copied (freshToken = false)
+	// 2. Advanced case when a pipe_segment is being constructed with a specific token (freshToken = true)
+	inline segment_token(const segment_token & other, const pipe_segment * newOwner, bool freshToken = false)
+		: m_id(other.id())
+		, m_free(false)
+	{
+		if (freshToken) {
+			tp_assert(other.m_free, "Trying to take ownership of a non-free token");
+			tp_assert(tokens.at(m_id) == 0, "A token already has an owner, but m_free is true - contradiction");
+		} else {
+			tp_assert(!other.m_free, "Trying to copy a free token");
+		}
+		tokens.at(m_id) = newOwner;
+	}
+
+	// Use for the advanced case when a segment_token is allocated before the pipe_segment
+	inline segment_token()
+		: m_id(tokens.size())
+		, m_free(true)
+	{
+		tokens.push_back(0);
+	}
+
+	inline size_t id() const { return m_id; }
+
+private:
+	// This should not be a global structure. Suggest mergable maps for each pipeline.
+	static std::deque<const pipe_segment *> tokens;
+	size_t m_id;
+	bool m_free;
+};
+
+std::deque<const pipe_segment *> segment_token::tokens;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Base class of all segments. A segment should inherit from pipe_segment,
@@ -40,25 +87,6 @@ struct pipe_segment {
 	///////////////////////////////////////////////////////////////////////////
 	virtual ~pipe_segment() {}
 
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Push to the given deque the pipe_segments that receive items
-	/// from this segment (directly or indirectly). If we are a terminus
-	/// segment, no segments are pushed.
-	///////////////////////////////////////////////////////////////////////////
-	virtual void push_successors(std::deque<const pipe_segment *> &) const = 0;
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief True if our successor segment does not begin processing before
-	/// we are finished receiving elements.
-	/// As an example, consider reversing the items of a stream. You cannot
-	/// push items further down the pipeline before all items are received and
-	/// end() is called. Thus we have to store items in a buffer which may grow
-	/// arbitrarily large and thus may be stored on disk.
-	///////////////////////////////////////////////////////////////////////////
-	virtual bool buffering() const {
-		return false;
-	}
-
 	virtual memory_size_type get_minimum_memory() {
 		return 0;
 	}
@@ -67,12 +95,47 @@ struct pipe_segment {
 		return memory;
 	}
 
+protected:
+	inline pipe_segment()
+		: token(this)
+	{
+	}
+
+	inline pipe_segment(const pipe_segment & other)
+		: token(other.token, this)
+	{
+	}
+
+	inline pipe_segment(const segment_token & token)
+		: token(token, this, true)
+	{
+	}
+
+	inline void add_push_destination(const pipe_segment & /*dest*/) {
+	}
+
+	inline void add_push_destination(const segment_token & /*dest*/) {
+	}
+
+	inline void add_pull_destination(const pipe_segment & /*dest*/) {
+	}
+
+	inline void add_pull_destination(const segment_token & /*dest*/) {
+	}
+
+	inline void add_dependency(const pipe_segment & /*dest*/) {
+	}
+
+	inline void add_dependency(const segment_token & /*dest*/) {
+	}
+
 private:
 	inline void set_available_memory(memory_size_type mem) {
 		memory = mem;
 	}
 
 	memory_size_type memory;
+	segment_token token;
 
 	// TODO who's our friend?
 };
