@@ -24,6 +24,8 @@
 #include <tpie/types.h>
 #include <iostream>
 #include <deque>
+#include <map>
+#include <boost/shared_ptr.hpp>
 
 namespace tpie {
 
@@ -31,49 +33,111 @@ namespace pipelining {
 
 struct pipe_segment;
 
+struct segment_token;
+
+struct segment_map {
+	typedef uint64_t id_t;
+	typedef const pipe_segment * val_t;
+	typedef std::map<id_t, val_t> map_t;
+	typedef map_t::const_iterator mapit;
+
+	inline segment_map()
+		: m_authority(this)
+	{
+	}
+
+	inline id_t add_token(val_t token) {
+		id_t id = nextId++;
+		set_token(id, token);
+		return id;
+	}
+
+	inline void set_token(id_t id, val_t token) {
+		m_tokens.insert(std::make_pair(id, token));
+	}
+
+	void take_over(segment_map & target) {
+		for (mapit i = target.begin(); i != target.end(); ++i) {
+			set_token(i->first, i->second);
+		}
+		target.m_tokens.clear();
+		target.m_authority = this;
+	}
+
+	inline val_t get(id_t id) {
+		mapit i = m_tokens.find(id);
+		if (i == m_tokens.end()) return 0;
+		return i->second;
+	}
+
+	inline mapit begin() const {
+		return m_tokens.begin();
+	}
+
+	inline mapit end() const {
+		return m_tokens.end();
+	}
+
+	inline segment_map * find_authority() {
+		segment_map * i = this;
+		while (i != i->m_authority) {
+			i = i->m_authority;
+		}
+		m_authority = i; // path compression
+		return i;
+	}
+
+private:
+	map_t m_tokens;
+	segment_map * m_authority;
+	static id_t nextId;
+};
+
 struct segment_token {
+	typedef segment_map::id_t id_t;
+
 	// Use for the simple case in which a pipe_segment owns its own token
 	inline segment_token(const pipe_segment * owner)
-		: m_id(tokens.size())
+		: m_tokens(new segment_map)
+		, m_id(m_tokens->add_token(owner))
 		, m_free(false)
 	{
-		tokens.push_back(owner);
 	}
 
 	// This copy constructor has two uses:
 	// 1. Simple case when a pipe_segment is copied (freshToken = false)
 	// 2. Advanced case when a pipe_segment is being constructed with a specific token (freshToken = true)
 	inline segment_token(const segment_token & other, const pipe_segment * newOwner, bool freshToken = false)
-		: m_id(other.id())
+		: m_tokens(other.m_tokens)
+		, m_id(other.id())
 		, m_free(false)
 	{
 		if (freshToken) {
 			tp_assert(other.m_free, "Trying to take ownership of a non-free token");
-			tp_assert(tokens.at(m_id) == 0, "A token already has an owner, but m_free is true - contradiction");
+			tp_assert(m_tokens->get(m_id) == 0, "A token already has an owner, but m_free is true - contradiction");
 		} else {
 			tp_assert(!other.m_free, "Trying to copy a free token");
 		}
-		tokens.at(m_id) = newOwner;
+		m_tokens->set_token(m_id, newOwner);
 	}
 
 	// Use for the advanced case when a segment_token is allocated before the pipe_segment
 	inline segment_token()
-		: m_id(tokens.size())
+		: m_tokens(new segment_map)
+		, m_id(m_tokens->add_token(0))
 		, m_free(true)
 	{
-		tokens.push_back(0);
 	}
 
 	inline size_t id() const { return m_id; }
 
 private:
-	// This should not be a global structure. Suggest mergable maps for each pipeline.
-	static std::deque<const pipe_segment *> tokens;
+	boost::shared_ptr<segment_map> m_tokens;
 	size_t m_id;
 	bool m_free;
 };
 
-std::deque<const pipe_segment *> segment_token::tokens;
+segment_map::id_t segment_map::nextId = 0;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Base class of all segments. A segment should inherit from pipe_segment,
