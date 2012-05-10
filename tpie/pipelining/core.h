@@ -26,6 +26,7 @@
 #include <deque>
 #include <map>
 #include <boost/shared_ptr.hpp>
+#include <boost/weak_ptr.hpp>
 
 namespace tpie {
 
@@ -35,15 +36,29 @@ struct pipe_segment;
 
 struct segment_token;
 
+enum segment_relation {
+	pushes,
+	pulls,
+	depends
+};
+
 struct segment_map {
 	typedef uint64_t id_t;
 	typedef const pipe_segment * val_t;
+
 	typedef std::map<id_t, val_t> map_t;
 	typedef map_t::const_iterator mapit;
 
-	inline segment_map()
-		: m_authority(this)
-	{
+	typedef std::multimap<id_t, std::pair<id_t, segment_relation> > relmap_t;
+	typedef relmap_t::const_iterator relmapit;
+
+	typedef boost::shared_ptr<segment_map> ptr;
+	typedef boost::weak_ptr<segment_map> wptr;
+
+	static inline ptr create() {
+		ptr result(new segment_map);
+		result->self = wptr(result);
+		return result;
 	}
 
 	inline id_t add_token(val_t token) {
@@ -56,12 +71,25 @@ struct segment_map {
 		m_tokens.insert(std::make_pair(id, token));
 	}
 
-	void take_over(segment_map & target) {
-		for (mapit i = target.begin(); i != target.end(); ++i) {
+	// union-find link
+	void link(ptr target) {
+		// union by rank
+		if (target->m_rank > m_rank)
+			return target->link(ptr(self));
+
+		for (mapit i = target->begin(); i != target->end(); ++i) {
 			set_token(i->first, i->second);
 		}
-		target.m_tokens.clear();
-		target.m_authority = this;
+		target->m_tokens.clear();
+		target->m_authority = ptr(self);
+
+		// union by rank
+		if (target->m_rank == m_rank)
+			++m_rank;
+	}
+
+	inline void union_set(ptr target) {
+		find_authority()->link(target->find_authority());
 	}
 
 	inline val_t get(id_t id) {
@@ -78,18 +106,51 @@ struct segment_map {
 		return m_tokens.end();
 	}
 
-	inline segment_map * find_authority() {
-		segment_map * i = this;
-		while (i != i->m_authority) {
-			i = i->m_authority;
+	// union-find
+	inline ptr find_authority() {
+		if (!m_authority)
+			return ptr(self);
+
+		segment_map * i = m_authority.get();
+		while (i->m_authority) {
+			i = i->m_authority.get();
 		}
-		m_authority = i; // path compression
-		return i;
+		ptr result(i->self);
+
+		// path compression
+		segment_map * j = m_authority.get();
+		while (j->m_authority) {
+			segment_map * k = i->m_authority.get();
+			j->m_authority = result;
+			j = k;
+		}
+
+		return result;
+	}
+
+	inline void add_relation(id_t from, id_t to, segment_relation rel) {
+		m_relations.insert(std::make_pair(from, std::make_pair(to, rel)));
+	}
+
+	inline const relmap_t & get_relations() const {
+		return m_relations;
 	}
 
 private:
 	map_t m_tokens;
-	segment_map * m_authority;
+	relmap_t m_relations;
+
+	wptr self;
+
+	// union rank structure
+	ptr m_authority;
+	size_t m_rank;
+
+	inline segment_map()
+		: m_rank(0)
+	{
+	}
+
 	static id_t nextId;
 };
 
@@ -98,7 +159,7 @@ struct segment_token {
 
 	// Use for the simple case in which a pipe_segment owns its own token
 	inline segment_token(const pipe_segment * owner)
-		: m_tokens(new segment_map)
+		: m_tokens(segment_map::create())
 		, m_id(m_tokens->add_token(owner))
 		, m_free(false)
 	{
@@ -123,7 +184,7 @@ struct segment_token {
 
 	// Use for the advanced case when a segment_token is allocated before the pipe_segment
 	inline segment_token()
-		: m_tokens(new segment_map)
+		: m_tokens(segment_map::create())
 		, m_id(m_tokens->add_token(0))
 		, m_free(true)
 	{
@@ -131,8 +192,18 @@ struct segment_token {
 
 	inline size_t id() const { return m_id; }
 
+	inline segment_map::ptr map_union(const segment_token & with) {
+		if (m_tokens == with.m_tokens) return m_tokens;
+		m_tokens->union_set(with.m_tokens);
+		return m_tokens = m_tokens->find_authority();
+	}
+
+	inline segment_map::ptr get_map() const {
+		return m_tokens;
+	}
+
 private:
-	boost::shared_ptr<segment_map> m_tokens;
+	segment_map::ptr m_tokens;
 	size_t m_id;
 	bool m_free;
 };
@@ -159,6 +230,10 @@ struct pipe_segment {
 		return memory;
 	}
 
+	inline segment_map::ptr get_segment_map() const {
+		return token.get_map();
+	}
+
 protected:
 	inline pipe_segment()
 		: token(this)
@@ -175,22 +250,31 @@ protected:
 	{
 	}
 
-	inline void add_push_destination(const pipe_segment & /*dest*/) {
+	inline void add_push_destination(const segment_token & dest) {
+		segment_map::ptr m = token.map_union(dest);
+		m->add_relation(token.id(), dest.id(), pushes);
 	}
 
-	inline void add_push_destination(const segment_token & /*dest*/) {
+	inline void add_push_destination(const pipe_segment & dest) {
+		add_push_destination(dest.token);
 	}
 
-	inline void add_pull_destination(const pipe_segment & /*dest*/) {
+	inline void add_pull_destination(const segment_token & dest) {
+		segment_map::ptr m = token.map_union(dest);
+		m->add_relation(token.id(), dest.id(), pulls);
 	}
 
-	inline void add_pull_destination(const segment_token & /*dest*/) {
+	inline void add_pull_destination(const pipe_segment & dest) {
+		add_pull_destination(dest.token);
 	}
 
-	inline void add_dependency(const pipe_segment & /*dest*/) {
+	inline void add_dependency(const segment_token & dest) {
+		segment_map::ptr m = token.map_union(dest);
+		m->add_relation(token.id(), dest.id(), depends);
 	}
 
-	inline void add_dependency(const segment_token & /*dest*/) {
+	inline void add_dependency(const pipe_segment & dest) {
+		add_dependency(dest.token);
 	}
 
 private:
