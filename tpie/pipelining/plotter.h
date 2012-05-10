@@ -49,10 +49,10 @@ void pipeline_impl<fact_t>::actual_plot(std::ostream & out) {
 				out << '"' << i->first << "\" -> \"" << i->second.first << "\";\n";
 				break;
 			case pulls:
-				out << '"' << i->second.first << "\" -> \"" << i->first << "\" [rel=back];\n";
+				out << '"' << i->second.first << "\" -> \"" << i->first << "\" [arrowhead=none,arrowtail=normal,dir=both];\n";
 				break;
 			case depends:
-				out << '"' << i->second.first << "\" -> \"" << i->first << "\" [rel=back,style=dashed];\n";
+				out << '"' << i->second.first << "\" -> \"" << i->first << "\" [arrowhead=none,arrowtail=normal,dir=both,style=dashed];\n";
 				break;
 		}
 	}
