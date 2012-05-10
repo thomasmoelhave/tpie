@@ -23,7 +23,6 @@
 #include <tpie/pipelining/core.h>
 #include <boost/unordered_map.hpp>
 #include <iostream>
-#include <tpie/disjoint_sets.h>
 #include <boost/unordered_set.hpp>
 
 namespace tpie {
@@ -36,68 +35,33 @@ std::ostream & operator<<(std::ostream & s, const pipe_segment * p) {
 
 typedef boost::unordered_map<const pipe_segment *, size_t> nodes_t;
 
-nodes_t nodes(const pipe_segment & r) {
-	nodes_t numbers;
-	size_t next_number = 0;
-	std::deque<const pipe_segment *> q;
-	boost::unordered_set<const pipe_segment *> seen;
-	q.push_back(&r);
-	while (!q.empty()) {
-		const pipe_segment * c = q.front();
-		q.pop_front();
-
-		if (seen.count(c)) continue;
-		seen.insert(c);
-
-		if (!numbers.count(c)) {
-			numbers.insert(std::make_pair(c, next_number));
-			++next_number;
-		}
-		//c->push_successors(q);
-	}
-	return numbers;
-}
-
-tpie::disjoint_sets<size_t> phases(const nodes_t & n) {
-	tpie::disjoint_sets<size_t> res(n.size());
-	for (nodes_t::const_iterator i = n.begin(); i != n.end(); ++i) {
-		res.make_set(i->second);
-	}
-	for (nodes_t::const_iterator i = n.begin(); i != n.end(); ++i) {
-		//if (i->first->buffering()) continue;
-		std::deque<const pipe_segment *> q;
-		//i->first->push_successors(q);
-		for (std::deque<const pipe_segment *>::iterator j = q.begin(); j != q.end(); ++j) {
-			res.union_set(i->second, n.find(*j)->second);
-		}
-	}
-	return res;
-}
-
 template <typename fact_t>
 void pipeline_impl<fact_t>::actual_plot(std::ostream & out) {
 	out << "digraph {\nrankdir=LR;\n";
-	nodes_t n = nodes(r);
-	for (nodes_t::iterator i = n.begin(); i != n.end(); ++i) {
+	segment_map::ptr segmap = r.get_segment_map();
+	for (segment_map::mapit i = segmap->begin(); i != segmap->end(); ++i) {
 		out << '"' << i->first << "\";\n";
 	}
-	for (nodes_t::iterator i = n.begin(); i != n.end(); ++i) {
-		const pipe_segment * c = i->first;
-		std::deque<const pipe_segment *> q;
-		//c->push_successors(q);
-		for (std::deque<const pipe_segment *>::iterator j = q.begin(); j != q.end(); ++j) {
-			out << '"' << c << "\" -> \"" << *j;
-			//if (c->buffering())
-				//out << "\" [style=dashed];\n";
-			//else
-				out << "\";\n";
+	const segment_map::relmap_t & relations = segmap->get_relations();
+	for (segment_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
+		switch (i->second.second) {
+			case pushes:
+				out << '"' << i->first << "\" -> \"" << i->second.first << "\";\n";
+				break;
+			case pulls:
+				out << '"' << i->second.first << "\" -> \"" << i->first << "\" [rel=back];\n";
+				break;
+			case depends:
+				out << '"' << i->second.first << "\" -> \"" << i->first << "\" [rel=back,style=dashed];\n";
+				break;
 		}
 	}
 	out << '}' << std::endl;
 }
 
 template <typename fact_t>
-void pipeline_impl<fact_t>::actual_plot_phases(std::ostream & out) {
+void pipeline_impl<fact_t>::actual_plot_phases(std::ostream & /*out*/) {
+	/*
 	nodes_t n = nodes(r);
 	tpie::disjoint_sets<size_t> p = phases(n);
 	out << "digraph {\n";
@@ -112,6 +76,7 @@ void pipeline_impl<fact_t>::actual_plot_phases(std::ostream & out) {
 		}
 	}
 	out << '}' << std::endl;
+	*/
 }
 
 
