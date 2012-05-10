@@ -73,12 +73,21 @@ struct segment_map {
 
 	// union-find link
 	void link(ptr target) {
+		if (target.get() == this) {
+			// self link attempted
+			// we must never have some_map->m_authority point to some_map,
+			// since it would create a reference cycle
+			return;
+		}
 		// union by rank
 		if (target->m_rank > m_rank)
 			return target->link(ptr(self));
 
 		for (mapit i = target->begin(); i != target->end(); ++i) {
 			set_token(i->first, i->second);
+		}
+		for (relmapit i = target->m_relations.begin(); i != target->m_relations.end(); ++i) {
+			m_relations.insert(*i);
 		}
 		target->m_tokens.clear();
 		target->m_authority = ptr(self);
@@ -120,7 +129,7 @@ struct segment_map {
 		// path compression
 		segment_map * j = m_authority.get();
 		while (j->m_authority) {
-			segment_map * k = i->m_authority.get();
+			segment_map * k = j->m_authority.get();
 			j->m_authority = result;
 			j = k;
 		}
