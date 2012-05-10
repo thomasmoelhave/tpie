@@ -79,6 +79,7 @@ struct input_nodes_t : public pipe_segment {
 		: dest(dest)
 		, nodes(nodes)
 	{
+		add_push_destination(dest);
 	}
 
 	inline void operator()() {
@@ -89,10 +90,6 @@ struct input_nodes_t : public pipe_segment {
 			dest.push(node(i, dist(mt)));
 		}
 		dest.end();
-	}
-
-	void push_successors(std::deque<const pipe_segment *> & q) const {
-		q.push_back(&dest);
 	}
 
 private:
@@ -112,6 +109,9 @@ struct count_t {
 		type(const dest_t & dest, const byid_t & byid, const byparent_t & byparent)
 			: dest(dest), byid(byid), byparent(byparent)
 		{
+			add_push_destination(dest);
+			add_pull_destination(byid);
+			add_pull_destination(byparent);
 		}
 
 		inline void operator()() {
