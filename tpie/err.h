@@ -20,6 +20,13 @@
 #ifndef _TPIE_AMI_ERR_H
 #define _TPIE_AMI_ERR_H
 
+// Windows headers defined this constant too,
+// so undef it if the user insists on using the old
+// error codes.
+#ifdef NO_ERROR
+#undef NO_ERROR
+#endif
+
 ///////////////////////////////////////////////////////////////////////////
 /// \file tpie/err.h 
 /// Legacy AMI error types.
