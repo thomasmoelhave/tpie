@@ -77,6 +77,19 @@ set (HEADERS
 		concepts.h
 		concept_doc.h
 		tpie.h
+		pipelining/core.h
+		pipelining/factory_helpers.h
+		pipelining/file_stream.h
+		pipelining/helpers.h
+		pipelining/merge.h
+		pipelining/numeric.h
+		pipelining/plotter.h
+		pipelining/reverse.h
+		pipelining/sort.h
+		pipelining/std_glue.h
+		pipelining/stdio.h
+		pipelining/tokens.h
+		pipelining/uniq.h
 		)
 
 set (SOURCES
