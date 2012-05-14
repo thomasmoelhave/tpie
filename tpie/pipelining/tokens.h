@@ -17,6 +17,53 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
+///////////////////////////////////////////////////////////////////////////////
+/// \file tokens.h  Pipeline segment tokens.
+///
+/// \section sec_pipegraphs  The two pipeline graphs
+///
+/// A pipeline consists of several segments. Each segment either produces,
+/// transforms or consumes items. Segments signal their relationships to other
+/// segments through protected methods in the pipe_segment class.
+///
+/// To a pipeline we associate two graphs where each segment is a node and each
+/// relationship is a directed edge.
+///
+/// The item flow graph is acyclic, and edges go from producer towards
+/// consumer, regardless of push/pull kind.
+///
+/// The actor graph is a digraph where edges go from actors, so a node has an
+/// edge to another node if the corresponding segment either pushes to or pulls
+/// from the corresponding other segment.
+///
+/// The item flow graph is useful for transitive dependency resolution and
+/// execution order decision. The actor graph is useful for presenting the
+/// pipeline flow to the user graphically.
+///
+/// \subsection sub_pipegraphimpl  Implementation
+///
+/// Since pipe_segments are copyable, we cannot store pipe_segment pointers
+/// limitlessly, as pointers will change while the pipeline is being
+/// constructed. Instead, we associate to each pipe_segment a segment token
+/// (numeric id) that is copied with the pipe_segment. The segment_token class
+/// signals the mapping from numeric ids to pipe_segment pointers to a
+/// segment_map.
+///
+/// However, we do not want a global map from ids to pipe_segment pointers, as
+/// an application may construct many pipelines throughout its lifetime. To
+/// mitigate this problem, each segment_map is local to a pipeline, and each
+/// segment_token knows (directly or indirectly) which segment_map currently
+/// holds the mapping of its id to its pipe_segment.
+///
+/// When we need to connect one pipe segment to another in the pipeline graphs,
+/// we need the two corresponding segment_tokens to share the same segment_map.
+/// When we merge two segment_maps, the mappings in one are copied to the
+/// other, and one segment_map remembers that it has been usurped by another
+/// segment_map. This corresponds to the set representative in a union-find
+/// data structure, and we implement union-find merge by rank. We use Boost
+/// smart pointers to deallocate segment_maps when they are no longer needed.
+///////////////////////////////////////////////////////////////////////////////
+
 #ifndef __TPIE_PIPELINING_TOKENS_H__
 #define __TPIE_PIPELINING_TOKENS_H__
 
