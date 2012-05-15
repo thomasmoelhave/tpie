@@ -62,24 +62,54 @@ movable_file_stream openstream() {
 	return fs;
 }
 
+bool basic_test();
+
+bool array_test() {
+	try {
+		tpie::file_stream<uint64_t> fs;
+		fs.open(TEMPFILE);
+		tpie::stream_size_type items = tpie::file<uint64_t>::block_size(1.0)/sizeof(uint64_t) + 10;
+		std::vector<uint64_t> data(items, 1);
+		fs.write(data.begin(), data.end());
+		fs.seek(0);
+		fs.read(data.begin(), data.end());
+	} catch (std::exception & e) {
+		std::cout << "Caught exception " << typeid(e).name() << "\ne.what(): " << e.what() << std::endl;
+		return false;
+	} catch (...) {
+		std::cout << "Caught something other than an exception" << std::endl;
+		return false;
+	}
+	return true;
+}
+
 int main(int argc, char **argv) {
 	tpie_initer _;
 
 	if (argc != 2) {
-		std::cout << "Usage: " << argv[0] << " basic" << std::endl;
-		return EXIT_FAILURE;
-	}
-
-	std::string testtype(argv[1]);
-
-	// We only have one test
-	if (testtype != "basic") {
-		std::cout << "Unknown test" << std::endl;
+		std::cout << "Usage: " << argv[0] << " basic|array" << std::endl;
 		return EXIT_FAILURE;
 	}
 
 	boost::filesystem::remove(TEMPFILE);
 
+	std::string testtype(argv[1]);
+
+	bool result;
+
+	if (testtype == "array")
+		result = array_test();
+	else if (testtype == "basic")
+		result = basic_test();
+	else {
+		std::cout << "Unknown test" << std::endl;
+		result = false;
+	}
+
+	return result ? EXIT_SUCCESS : EXIT_FAILURE;
+}
+
+bool basic_test() {
 	// Write ITEMS items sequentially to TEMPFILE
 	{
 		movable_file_stream fs;
@@ -100,7 +130,7 @@ int main(int argc, char **argv) {
 			uint64_t x = (i % 2) ? t.read() : s.read();
 			if (x != ITEM(i)) {
 				std::cout << "Expected element " << i << " = " << ITEM(i) << ", got " << x << std::endl;
-				return EXIT_FAILURE;
+				return false;
 			}
 			if (i % 3) s.swap(t);
 			else t.swap(s);
@@ -130,12 +160,12 @@ int main(int argc, char **argv) {
 				s.read(x + 0, x + len);
 			} catch (tpie::end_of_stream_exception &) {
 				std::cout << "read array threw unexpected end_of_stream_exception" << std::endl;
-				return EXIT_FAILURE;
+				return false;
 			}
 			for (size_t i=0; i < ARRAYSIZE; ++i) {
 				if (x[i] != ITEM(i)) {
 					std::cout << "Expected element " << i << " = " << ITEM(i) << ", got " << x[i] << std::endl;
-					return EXIT_FAILURE;
+					return false;
 				}
 			}
 		}
@@ -159,7 +189,7 @@ int main(int argc, char **argv) {
 				uint64_t read = s.read();
 				if (read != data[idx]) {
 					std::cout << "Expected element " << idx << " to be " << data[idx] << ", got " << read << std::endl;
-					return EXIT_FAILURE;
+					return false;
 				}
 			} else {
 				uint64_t write = ITEM(ITEMS+i);
@@ -170,10 +200,10 @@ int main(int argc, char **argv) {
 			tpie::stream_offset_type newoff = s.offset();
 			if (newoff != idx+1) {
 				std::cout << "Offset advanced to " << newoff << ", expected " << (idx+1) << std::endl;
-				return EXIT_FAILURE;
+				return false;
 			}
 		}
 	}
 
-	return EXIT_SUCCESS;
+	return true;
 }
