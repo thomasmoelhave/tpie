@@ -218,7 +218,7 @@ public:
 				// check to make sure we have enough items in the stream
 				stream_size_type offs = offset();
 				if (offs >= size()
-					|| offs + (end-i) >= size()) {
+					|| offs + (end-i) > size()) {
 
 					throw end_of_stream_exception();
 				}
