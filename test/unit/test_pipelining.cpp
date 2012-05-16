@@ -419,7 +419,16 @@ struct tests_t {
 		++tests;
 		setup_test_vectors();
 		file_system_cleanup();
-		bool pass = f();
+		bool pass = false;
+		try {
+			pass = f();
+		} catch (tpie::exception & e) {
+			std::cerr << "Caught a tpie::exception (actually " << typeid(e).name() << ") in test \"" << name << "\"\ne.what() = " << e.what() << std::endl;
+		} catch (std::exception & e) {
+			std::cerr << "Caught a std::exception (actually " << typeid(e).name() << ") in test \"" << name << "\"\ne.what() = " << e.what() << std::endl;
+		} catch (...) {
+			std::cerr << "Caught something that is not an exception in test \"" << name << "\"" << std::endl;
+		}
 		if (testall)
 			std::cerr << "Test \"" << name << "\" " << (pass ? "passed" : "failed") << std::endl;
 
