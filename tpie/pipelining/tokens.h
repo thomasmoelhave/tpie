@@ -67,6 +67,8 @@
 #ifndef __TPIE_PIPELINING_TOKENS_H__
 #define __TPIE_PIPELINING_TOKENS_H__
 
+#include <tpie/exception.h>
+
 namespace tpie {
 
 namespace pipelining {
@@ -81,9 +83,13 @@ enum segment_relation {
 	depends
 };
 
+struct non_authoritative_segment_map : public tpie::exception {
+	non_authoritative_segment_map() : tpie::exception("Non-authoritative segment map") {}
+};
+
 struct segment_map {
 	typedef uint64_t id_t;
-	typedef const pipe_segment * val_t;
+	typedef pipe_segment * val_t;
 
 	typedef std::map<id_t, val_t> map_t;
 	typedef map_t::const_iterator mapit;
@@ -107,7 +113,8 @@ struct segment_map {
 	}
 
 	inline void set_token(id_t id, val_t token) {
-		m_tokens.insert(std::make_pair(id, token));
+		assert_authoritative();
+		m_tokens[id] = token;
 	}
 
 	// union-find link
@@ -178,15 +185,53 @@ struct segment_map {
 
 	inline void add_relation(id_t from, id_t to, segment_relation rel) {
 		m_relations.insert(std::make_pair(from, std::make_pair(to, rel)));
+		m_relationsInv.insert(std::make_pair(to, std::make_pair(from, rel)));
 	}
 
 	inline const relmap_t & get_relations() const {
 		return m_relations;
 	}
 
+	inline size_t in_degree(id_t from, segment_relation rel) const {
+		return out_degree(m_relationsInv, from, rel);
+	}
+
+	inline size_t out_degree(id_t from, segment_relation rel) const {
+		return out_degree(m_relations, from, rel);
+	}
+
+	void assert_authoritative() const {
+		if (m_authority) throw non_authoritative_segment_map();
+	}
+
+	void dump() const {
+		std::cout << this << " segment_map\n";
+		if (m_authority)
+			std::cout << "Non-authoritative" << std::endl;
+		else
+			std::cout << "Authoritative" << std::endl;
+		for (mapit i = m_tokens.begin(); i != m_tokens.end(); ++i) {
+			std::cout << i->first << " -> " << i->second << std::endl;
+		}
+		for (relmapit i = m_relations.begin(); i != m_relations.end(); ++i) {
+			std::cout << i->first << " -> " << i->second.first << " edge type " << i->second.second << std::endl;
+		}
+	}
+
 private:
 	map_t m_tokens;
 	relmap_t m_relations;
+	relmap_t m_relationsInv;
+
+	inline size_t out_degree(const relmap_t & map, id_t from, segment_relation rel) const {
+		size_t res = 0;
+		relmapit i = map.find(from);
+		while (i != map.end() && i->first == from) {
+			if (i->second.second == rel) ++res;
+			++i;
+		}
+		return res;
+	}
 
 	wptr self;
 
@@ -199,14 +244,18 @@ private:
 	{
 	}
 
+	inline segment_map(const segment_map &);
+	inline segment_map & operator=(const segment_map &);
+
 	static id_t nextId;
 };
 
 struct segment_token {
 	typedef segment_map::id_t id_t;
+	typedef segment_map::val_t val_t;
 
 	// Use for the simple case in which a pipe_segment owns its own token
-	inline segment_token(const pipe_segment * owner)
+	inline segment_token(val_t owner)
 		: m_tokens(segment_map::create())
 		, m_id(m_tokens->add_token(owner))
 		, m_free(false)
@@ -216,8 +265,8 @@ struct segment_token {
 	// This copy constructor has two uses:
 	// 1. Simple case when a pipe_segment is copied (freshToken = false)
 	// 2. Advanced case when a pipe_segment is being constructed with a specific token (freshToken = true)
-	inline segment_token(const segment_token & other, const pipe_segment * newOwner, bool freshToken = false)
-		: m_tokens(other.m_tokens)
+	inline segment_token(const segment_token & other, val_t newOwner, bool freshToken = false)
+		: m_tokens(other.m_tokens->find_authority())
 		, m_id(other.id())
 		, m_free(false)
 	{

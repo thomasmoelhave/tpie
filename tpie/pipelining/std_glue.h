@@ -42,7 +42,7 @@ struct input_vector_t : public pipe_segment {
 		add_push_destination(dest);
 	}
 
-	inline void operator()() {
+	void go() {
 		typedef typename std::vector<item_type>::const_iterator IT;
 		dest.begin();
 		for (IT i = input.begin(); i != input.end(); ++i) {

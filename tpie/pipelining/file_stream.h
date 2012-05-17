@@ -47,7 +47,7 @@ struct input_t : public pipe_segment {
 		add_push_destination(dest);
 	}
 
-	inline void operator()() {
+	inline void go() {
 		dest.begin();
 		while (fs.can_read()) {
 			dest.push(fs.read());
@@ -146,7 +146,7 @@ struct pull_output_t {
 	inline pull_output_t(const source_t & source, file_stream<item_type> & fs) : source(source), fs(fs) {
 	}
 
-	inline void operator()() {
+	inline void go() {
 		source.begin();
 		while (source.can_pull()) {
 			fs.write(source.pull());

@@ -79,7 +79,7 @@ struct reverser {
 			add_dependency(sink);
 		}
 
-		inline void operator()() {
+		inline void go() {
 			dest.begin();
 			while (it != buffer.rend()) {
 				dest.push(*it++);

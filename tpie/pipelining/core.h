@@ -28,10 +28,16 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/weak_ptr.hpp>
 #include <tpie/pipelining/tokens.h>
+#include <tpie/pipelining/graph.h>
+#include <tpie/exception.h>
 
 namespace tpie {
 
 namespace pipelining {
+
+struct not_initiator_segment : tpie::exception {
+	inline not_initiator_segment() : tpie::exception("Not an initiator segment") {}
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Base class of all segments. A segment should inherit from pipe_segment,
@@ -55,6 +61,11 @@ struct pipe_segment {
 
 	inline segment_map::ptr get_segment_map() const {
 		return token.get_map();
+	}
+
+	virtual void go() {
+		TP_LOG_WARNING("pipe_segment subclass " << typeid(*this).name() << " is not an initiator segment" << std::endl);
+		throw not_initiator_segment();
 	}
 
 protected:
@@ -137,6 +148,8 @@ struct pipeline_virtual {
 	/// \brief Virtual dtor.
 	///////////////////////////////////////////////////////////////////////////
 	virtual ~pipeline_virtual() {}
+
+	virtual segment_map::ptr get_segment_map() const { throw false; }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -156,7 +169,12 @@ struct pipeline_impl : public pipeline_virtual {
 	~pipeline_impl() {}
 
 	void operator()() {
-		r();
+		segment_map::ptr map = r.get_segment_map()->find_authority();
+		graph_traits g(*map);
+		std::vector<size_t> order = g.execution_order();
+		for (size_t i = 0; i < order.size(); ++i) {
+			map->get(order[i])->go();
+		}
 	}
 	inline operator gen_t() {
 		return r;
@@ -179,6 +197,10 @@ struct pipeline_impl : public pipeline_virtual {
 
 	double memory() const {
 		return _memory;
+	}
+
+	segment_map::ptr get_segment_map() const {
+		return r.get_segment_map();
 	}
 
 private:
@@ -223,7 +245,7 @@ struct datasource_wrapper : public pipeline_virtual {
 	///////////////////////////////////////////////////////////////////////////
 	~datasource_wrapper() {}
 	inline void operator()() {
-		generator();
+		generator.go();
 	}
 	void plot(std::ostream & out) {
 		out << "datasource" << std::endl;
@@ -262,6 +284,7 @@ struct pipeline {
 	inline double memory() const {
 		return p->memory();
 	}
+	inline segment_map::ptr get_segment_map() const { return p->get_segment_map(); }
 private:
 	pipeline_virtual * p;
 };

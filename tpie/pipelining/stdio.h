@@ -41,7 +41,7 @@ struct scanf_ints_t : public pipe_segment {
 		add_push_destination(dest);
 	}
 
-	inline void operator()() {
+	inline void go() {
 		dest.begin();
 		int in;
 		while (scanf("%d", &in) == 1) {

@@ -28,6 +28,7 @@
 #include <tpie/tempname.h>
 #include <tpie/memory.h>
 #include <queue>
+#include <boost/shared_ptr.hpp>
 
 namespace tpie {
 
@@ -40,6 +41,14 @@ struct sort_parameters {
 
 template <typename T>
 struct merger {
+	inline merger() {
+	}
+
+	inline merger(const merger & other) {
+		tp_assert(!other.in.size(), "Cannot copy ongoing merger");
+		unused(other);
+	}
+
 	inline bool can_pull() {
 		return !pq.empty();
 	}
@@ -78,7 +87,10 @@ private:
 
 template <typename T>
 struct merge_sorter {
-	inline merge_sorter() {
+	inline merge_sorter()
+		: m_runFiles(new array<temp_file>())
+		, pull_prepared(false)
+	{
 		calculate_parameters();
 	}
 
@@ -89,7 +101,7 @@ struct merge_sorter {
 
 	inline void begin() {
 		m_currentRunItems.resize(p.runLength);
-		m_runFiles.resize(p.fanout*2);
+		m_runFiles->resize(p.fanout*2);
 		m_currentRunItemCount = 0;
 		m_finishedRuns = 0;
 	}
@@ -111,7 +123,16 @@ struct merge_sorter {
 		} else {
 			m_reportInternal = false;
 			empty_current_run();
+		}
+	}
+
+	inline void calc() {
+		if (!m_reportInternal) {
+			std::cout << "Preparing external calc!" << std::endl;
 			prepare_pull();
+		} else {
+			std::cout << "Preparing internal calc!" << std::endl;
+			pull_prepared = true;
 		}
 	}
 
@@ -171,14 +192,18 @@ struct merge_sorter {
 		}
 		//TP_LOG_DEBUG_ID("Final level " << mergeLevel << " has " << runCount << " runs");
 		initialize_merger(mergeLevel, 0, runCount);
+
+		pull_prepared = true;
 	}
 
 	inline bool can_pull() {
+		tp_assert(pull_prepared, "Pull not prepared");
 		if (m_reportInternal) return m_itemsPulled < m_currentRunItemCount;
 		else return m_merger.can_pull();
 	}
 
 	inline T pull() {
+		tp_assert(pull_prepared, "Pull not prepared");
 		if (m_reportInternal && m_itemsPulled < m_currentRunItemCount) return m_currentRunItems[m_itemsPulled++];
 		else return m_merger.pull();
 	}
@@ -195,11 +220,11 @@ private:
 		size_t idx = (mergeLevel % 2)*p.fanout + (runNumber % p.fanout);
 		//TP_LOG_DEBUG_ID("mrglvl " << mergeLevel << " run no. " << runNumber << " has index " << idx);
 		if (forWriting) {
-			if (runNumber < p.fanout) m_runFiles[idx].free();
-			fs.open(m_runFiles[idx], file_base::read_write);
+			if (runNumber < p.fanout) m_runFiles->at(idx).free();
+			fs.open(m_runFiles->at(idx), file_base::read_write);
 			fs.seek(0, file_base::end);
 		} else {
-			fs.open(m_runFiles[idx], file_base::read);
+			fs.open(m_runFiles->at(idx), file_base::read);
 			//TP_LOG_DEBUG_ID("seek to " << p.runLength * (runNumber / p.fanout) << " stream size " << fs.size());
 			fs.seek(p.runLength * (runNumber / p.fanout), file_base::beginning);
 		}
@@ -209,7 +234,7 @@ private:
 
 	merger<T> m_merger;
 
-	array<temp_file> m_runFiles;
+	boost::shared_ptr<array<temp_file> > m_runFiles;
 
 	// number of runs already written to disk.
 	size_t m_finishedRuns;
@@ -224,48 +249,81 @@ private:
 	
 	// when doing internal reporting: the number of items already reported
 	size_t m_itemsPulled;
+
+	bool pull_prepared;
 };
 
 template <typename dest_t>
 struct sort_t : public pipe_segment {
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Virtual dtor.
-	///////////////////////////////////////////////////////////////////////////
-	~sort_t() {}
 
 	typedef typename dest_t::item_type item_type;
 
-	inline sort_t(const dest_t & dest) : dest(dest) {
-		add_push_destination(dest);
-	}
+	inline sort_t(const sort_t<dest_t> & other) : pipe_segment(other), calc(other.calc), output(other.output) {}
 
-	inline sort_t(const sort_t<dest_t> & other)
-		: pipe_segment(other)
-		, dest(other.dest)
+	struct calc_t : public pipe_segment {
+		inline calc_t(const calc_t & other)
+			: pipe_segment(other)
+			, sorter(other.sorter)
+		{
+		}
+
+		inline calc_t(const pipe_segment & input) {
+			add_dependency(input);
+		}
+
+		inline void go() {
+			std::cout << "Gonna sort the sort sort!" << std::endl;
+			sorter.calc();
+		}
+
+		merge_sorter<item_type> sorter;
+	};
+
+	struct output_t : public pipe_segment {
+		inline output_t(const dest_t & dest, const pipe_segment & calc, merge_sorter<item_type> & sorter)
+			: sorter(sorter)
+			, dest(dest)
+		{
+			add_dependency(calc);
+			add_push_destination(dest);
+		}
+
+		void go() {
+			std::cout << "Gonna push the sorted numbers!" << std::endl;
+			dest.begin();
+			while (sorter.can_pull()) {
+				dest.push(sorter.pull());
+			}
+			dest.end();
+		}
+	private:
+		merge_sorter<item_type> & sorter;
+		dest_t dest;
+	};
+
+	inline sort_t(const dest_t & dest)
+		: calc(*this)
+		, output(dest, calc, calc.sorter)
 	{
-		// don't copy tmpfile or tmpstream
 	}
 
 	inline void begin() {
-		m_sorter.begin();
+		std::cout << "Gonna accept some sort input!" << std::endl;
+		calc.sorter.begin();
 	}
 
 	inline void push(const item_type & item) {
-		m_sorter.push(item);
+		calc.sorter.push(item);
 	}
 
 	inline void end() {
-		m_sorter.end();
-		dest.begin();
-		while (m_sorter.can_pull()) {
-			dest.push(m_sorter.pull());
-		}
-		dest.end();
+		calc.sorter.end();
+		std::cout << "Accepted the sort input!" << std::endl;
 	}
 
 private:
-	dest_t dest;
-	merge_sorter<item_type> m_sorter;
+	calc_t calc;
+	output_t output;
 };
 
 inline pipe_middle<factory_0<sort_t> >

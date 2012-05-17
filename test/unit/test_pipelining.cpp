@@ -22,6 +22,7 @@
 #include <tpie/file_stream.h>
 #include <boost/filesystem.hpp>
 #include <algorithm>
+#include <tpie/pipelining/graph.h>
 
 using namespace tpie;
 using namespace tpie::pipelining;
@@ -364,6 +365,43 @@ bool fork_test() {
 	return check_test_vectors();
 }
 
+template <typename dest_t>
+struct buffer_node_t : public pipe_segment {
+	typedef typename dest_t::item_type item_type;
+
+	inline buffer_node_t(const dest_t & dest)
+		: dest(dest)
+	{
+		add_dependency(dest);
+	}
+
+	inline void begin() {
+		dest.begin();
+	}
+
+	inline void push(const item_type & item) {
+		dest.push(item);
+	}
+
+	inline void end() {
+		dest.end();
+	}
+
+	dest_t dest;
+};
+
+inline pipe_middle<factory_0<buffer_node_t> >
+buffer_node() {
+	return pipe_middle<factory_0<buffer_node_t> >();
+}
+
+bool execution_order() {
+	pipeline p = input_vector(inputvector) | pipesort() | output_vector(outputvector);
+	p.plot();
+	graph_traits g(*p.get_segment_map());
+	return false;
+}
+
 // Type of test function
 typedef bool fun_t();
 
@@ -458,6 +496,7 @@ int main(int argc, char ** argv) {
 	.test<uniq_test>("uniq")
 	.test<memory_test>("memory")
 	.test<fork_test>("fork")
+	.test<execution_order>("execorder")
 	;
 	return EXIT_FAILURE;
 }
