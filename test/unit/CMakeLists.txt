@@ -36,7 +36,7 @@ add_unittest(serialization unsafe safe)
 add_unittest(stream basic)
 add_unittest(stats basic)
 add_unittest(stream_exception basic)
-add_unittest(pipelining vector filestream fspull fsaltpush merge reverse sort operators)
+add_unittest(pipelining vector filestream fspull fsaltpush merge reverse sort operators uniq memory fork execorder)
 
 add_fulltest(external_priority_queue medium large large_cycle memory)
 add_fulltest(external_sort amilarge large tall)
