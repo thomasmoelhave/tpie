@@ -252,18 +252,15 @@ struct sequence_generator : public pipe_segment {
 		: dest(dest)
 		, elements(elements)
 	{
+		add_push_destination(dest);
 	}
 
-	inline void operator()() {
+	inline void go() {
 		dest.begin();
 		for (size_t i = elements; i > 0; --i) {
 			dest.push(i);
 		}
 		dest.end();
-	}
-
-	void push_successors(std::deque<const pipe_segment *> & q) const {
-		q.push_back(&dest);
 	}
 private:
 	dest_t dest;
@@ -294,8 +291,6 @@ struct sequence_verifier : public pipe_segment {
 	inline void end() {
 		result = !bad;
 	}
-
-	void push_successors(std::deque<const pipe_segment *> &) const { }
 
 private:
 	size_t elements;
