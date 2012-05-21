@@ -451,7 +451,8 @@ void progress_bar(float pct, stream_size_type nbytes){
 // Open a stream, write num_items, close stream
 void write_test(const std::string& fname, appInfo & info){
     
-    TPIE_OS_OFFSET i,n,trunc_bytes;
+    TPIE_OS_OFFSET i,n;
+    stream_size_type trunc_bytes;
     Item x;
     ami::err ae = ami::NO_ERROR;
     
@@ -470,8 +471,8 @@ void write_test(const std::string& fname, appInfo & info){
 	      << n 
 	      << " items..." << std::endl;
   
-    trunc_bytes=(static_cast<TPIE_OS_OFFSET>(sizeof (x)))*n;
-    if(trunc_bytes<0 || trunc_bytes>(4*APP_GIG)){
+    trunc_bytes=sizeof (x)*n;
+    if(trunc_bytes>(4*APP_GIG)){
 	std::cout << "Initial file length computed as "<< trunc_bytes
 		  << "\nSetting to 4GB "<< std::endl;
 	trunc_bytes=4*APP_GIG;
