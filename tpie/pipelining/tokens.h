@@ -23,18 +23,23 @@
 /// \section sec_pipegraphs  The two pipeline graphs
 ///
 /// A pipeline consists of several segments. Each segment either produces,
-/// transforms or consumes items. Segments signal their relationships to other
-/// segments through protected methods in the pipe_segment class.
+/// transforms or consumes items. One segment may push items to another
+/// segment, and it may pull items from another segment, and it may depend
+/// implicitly on the execution of another segment. For instance, to reverse an
+/// item stream using two segments, one segment will write items to a
+/// file_stream, and the other will read them in backwards. Thus, the second
+/// segment depends on the first, but it does not directly push to or pull from
+/// it.
 ///
-/// To a pipeline we associate two graphs where each segment is a node and each
-/// relationship is a directed edge.
+/// To a pipeline we associate two different graphs. In both graphs, each
+/// segment is a node and each relationship is a directed edge.
 ///
-/// The item flow graph is acyclic, and edges go from producer towards
-/// consumer, regardless of push/pull kind.
+/// The <i>item flow graph</i> is a directed acyclic graph, and edges go from
+/// producer towards consumer, regardless of push/pull kind.
 ///
-/// The actor graph is a digraph where edges go from actors, so a node has an
-/// edge to another node if the corresponding segment either pushes to or pulls
-/// from the corresponding other segment.
+/// The <i>actor graph</i> is a directed graph where edges go from actors, so a
+/// node has an edge to another node if the corresponding segment either pushes
+/// to or pulls from the other corresponding segment.
 ///
 /// The item flow graph is useful for transitive dependency resolution and
 /// execution order decision. The actor graph is useful for presenting the
