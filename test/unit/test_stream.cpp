@@ -24,6 +24,7 @@
 #include "common.h"
 
 #include <iostream>
+#include <vector>
 #include <boost/filesystem/operations.hpp>
 
 #include <tpie/tpie.h>
