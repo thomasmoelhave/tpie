@@ -65,8 +65,9 @@ struct phasegraph {
 	nodemap_t finish_times;
 	edgemap_t edges;
 
-	phasegraph(tpie::disjoint_sets<size_t> & phases) {
-		for (size_t i = 0; i < phases.count_sets(); ++i) {
+	phasegraph(tpie::disjoint_sets<size_t> & phases, size_t ids) {
+		for (size_t i = 0; i < ids; ++i) {
+			if (!phases.is_set(i)) continue;
 			size_t rep = phases.find_set(i);
 			if (edges.count(rep)) continue;
 			edges.insert(make_pair(rep, std::vector<size_t>()));
@@ -135,7 +136,7 @@ private:
 		}
 		// `phases` holds a map from segment to phase number
 
-		phasegraph g(phases);
+		phasegraph g(phases, nextid);
 
 		// establish phase relationships
 		for (segment_map::relmapit i = relations.begin(); i != relations.end(); ++i) {
