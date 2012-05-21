@@ -85,7 +85,7 @@ void test(size_t mb, size_t times) {
 		{
 			stream<elm_t> s("tmp", READ_STREAM);
 			for(count_t i=0; i < count; ++i) {
-				elm_t *x;
+				elm_t *x = 0;
 				s.read_item(&x);
 				if (i > 0 && prev > *x) {
 					sorted = false;
