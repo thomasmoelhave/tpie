@@ -40,7 +40,7 @@ bool test_about(stream_size_type val, stream_size_type expect, const char * name
 	return true;
 }
 
-int main(int argc, char **argv) {
+int main() {
 	tpie_initer _;
 	
 	if (!test_about(get_bytes_read(), 0, "bytes read")) return EXIT_FAILURE;
