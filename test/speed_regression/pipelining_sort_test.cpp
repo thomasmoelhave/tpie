@@ -64,10 +64,11 @@ void parse_args(int argc, char ** argv, stream_size_type & elements, size_t & ti
 }
 
 void test(test_t elements, size_t times, size_t runLength = 0, size_t fanout = 0) {
-	std::vector<const char *> names(3);
-	names[0] = "Sort";
-	names[1] = "Verify";
-	names[2] = "Correct";
+	std::vector<const char *> names(4);
+	names[0] = "Form runs";
+	names[1] = "Merge";
+	names[2] = "Verify";
+	names[3] = "Correct";
 	tpie::test::stat stats(names);
 	for (size_t i = 0; i < times; ++i) {
 		test_t s = tpie::next_prime(elements);
@@ -78,7 +79,7 @@ void test(test_t elements, size_t times, size_t runLength = 0, size_t fanout = 0
 
 		getTestRealtime(start);
 
-		merge_sorter<test_t> m;
+		merge_sorter<test_t> m(0);
 		if (runLength) {
 			m.set_parameters(runLength, fanout);
 		}
@@ -94,6 +95,11 @@ void test(test_t elements, size_t times, size_t runLength = 0, size_t fanout = 0
 		m.end();
 		if (pushed != elements) errx(101, "Wut");
 
+		getTestRealtime(end);
+		stats(testRealtimeDiff(start, end));
+
+		getTestRealtime(start);
+		m.calc();
 		getTestRealtime(end);
 		stats(testRealtimeDiff(start, end));
 
