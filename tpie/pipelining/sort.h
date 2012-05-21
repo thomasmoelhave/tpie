@@ -257,8 +257,16 @@ template <typename dest_t>
 struct sort_t : public pipe_segment {
 
 	typedef typename dest_t::item_type item_type;
+	typedef merge_sorter<item_type> sorter_t;
+	typedef boost::shared_ptr<sorter_t> sorterptr;
 
-	inline sort_t(const sort_t<dest_t> & other) : pipe_segment(other), calc(other.calc), output(other.output) {}
+	inline sort_t(const sort_t<dest_t> & other)
+		: pipe_segment(other)
+		, sorter(other.sorter)
+		, calc(other.calc)
+		, output(other.output)
+	{
+	}
 
 	struct calc_t : public pipe_segment {
 		inline calc_t(const calc_t & other)
@@ -267,22 +275,24 @@ struct sort_t : public pipe_segment {
 		{
 		}
 
-		inline calc_t(const pipe_segment & input) {
+		inline calc_t(const pipe_segment & input, const sorterptr & sorter)
+			: sorter(sorter)
+		{
 			add_dependency(input);
 		}
 
 		inline void go() {
 			std::cout << "Gonna sort the sort sort!" << std::endl;
-			sorter.calc();
+			sorter->calc();
 		}
-
-		merge_sorter<item_type> sorter;
+	private:
+		sorterptr sorter;
 	};
 
 	struct output_t : public pipe_segment {
-		inline output_t(const dest_t & dest, const pipe_segment & calc, merge_sorter<item_type> & sorter)
-			: sorter(sorter)
-			, dest(dest)
+		inline output_t(const dest_t & dest, const pipe_segment & calc, const sorterptr & sorter)
+			: dest(dest)
+			, sorter(sorter)
 		{
 			add_dependency(calc);
 			add_push_destination(dest);
@@ -291,37 +301,39 @@ struct sort_t : public pipe_segment {
 		void go() {
 			std::cout << "Gonna push the sorted numbers!" << std::endl;
 			dest.begin();
-			while (sorter.can_pull()) {
-				dest.push(sorter.pull());
+			while (sorter->can_pull()) {
+				dest.push(sorter->pull());
 			}
 			dest.end();
 		}
 	private:
-		merge_sorter<item_type> & sorter;
 		dest_t dest;
+		sorterptr sorter;
 	};
 
 	inline sort_t(const dest_t & dest)
-		: calc(*this)
-		, output(dest, calc, calc.sorter)
+		: sorter(new sorter_t())
+		, calc(*this, sorter)
+		, output(dest, calc, sorter)
 	{
 	}
 
 	inline void begin() {
 		std::cout << "Gonna accept some sort input!" << std::endl;
-		calc.sorter.begin();
+		sorter->begin();
 	}
 
 	inline void push(const item_type & item) {
-		calc.sorter.push(item);
+		sorter->push(item);
 	}
 
 	inline void end() {
-		calc.sorter.end();
+		sorter->end();
 		std::cout << "Accepted the sort input!" << std::endl;
 	}
 
 private:
+	sorterptr sorter;
 	calc_t calc;
 	output_t output;
 };
