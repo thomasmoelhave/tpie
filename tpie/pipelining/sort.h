@@ -77,6 +77,13 @@ struct merger {
 		itemsRead.resize(n, 1);
 	}
 
+	inline static stream_size_type memory_usage(stream_size_type fanout) {
+		return sizeof(T)*fanout + 20 // pq
+			+ array<file_stream<T> >::memory_usage(0) + fanout*file_stream<T>::memory_usage() // in
+			+ sizeof(size_t)*fanout + 20 // itemsRead
+			+ sizeof(merger);
+	}
+
 private:
 	std::priority_queue<std::pair<T, size_t>, std::vector<std::pair<T, size_t> >, std::greater<std::pair<T, size_t> > > pq;
 	array<file_stream<T> > in;
@@ -87,10 +94,15 @@ private:
 
 template <typename T>
 struct merge_sorter {
-	inline merge_sorter()
+	inline merge_sorter(memory_size_type mem)
 		: m_runFiles(new array<temp_file>())
 		, pull_prepared(false)
 	{
+		if (mem == 0)
+			availableMemory = tpie::get_memory_manager().available();
+		else
+			availableMemory = mem;
+
 		calculate_parameters();
 	}
 
@@ -128,10 +140,8 @@ struct merge_sorter {
 
 	inline void calc() {
 		if (!m_reportInternal) {
-			std::cout << "Preparing external calc!" << std::endl;
 			prepare_pull();
 		} else {
-			std::cout << "Preparing internal calc!" << std::endl;
 			pull_prepared = true;
 		}
 	}
@@ -210,8 +220,39 @@ struct merge_sorter {
 
 private:
 	inline void calculate_parameters() {
-		p.runLength = 64;
-		p.fanout = 4;
+		// In the run formation phase, our run length is determined by the number of items we can hold in memory.
+		// In the merge phase, our fanout is determined by the size of our merge heap and the stream memory usage.
+		// In the final merge, our fanout is determined by the stream memory usage.
+		memory_size_type streamMemory = file_stream<T>::memory_usage();
+		if (availableMemory < 3*streamMemory) {
+			TP_LOG_WARNING_ID("Not enough memory for three open streams! (" << availableMemory << " < " << 3*streamMemory << ")");
+			availableMemory = 3*streamMemory;
+		}
+		p.runLength = (availableMemory - streamMemory)/sizeof(T);
+		TP_LOG_WARNING_ID("Run length = " << p.runLength << " (uses memory " << (p.runLength*sizeof(T) + streamMemory) << ")");
+
+		memory_size_type fanout_lo = 2;
+		memory_size_type fanout_hi = 4;
+		// exponential search
+		while (fanout_memory_usage(fanout_hi) < availableMemory) {
+			fanout_lo = fanout_hi;
+			fanout_hi = fanout_hi*2;
+		}
+		// binary search
+		while (fanout_lo < fanout_hi - 1) {
+			memory_size_type mid = fanout_lo + (fanout_hi-fanout_lo)/2;
+			if (fanout_memory_usage(mid) < availableMemory) {
+				fanout_lo = mid;
+			} else {
+				fanout_hi = mid;
+			}
+		}
+		p.fanout = fanout_lo;
+		TP_LOG_WARNING_ID("Fanout = " << p.fanout << " (uses memory " << fanout_memory_usage(p.fanout) << ")");
+	}
+
+	inline stream_size_type fanout_memory_usage(memory_size_type fanout) {
+		return merger<T>::memory_usage(fanout) + file_stream<T>::memory_usage();
 	}
 
 	// forWriting = false: open an existing run and seek to correct offset
@@ -251,6 +292,8 @@ private:
 	size_t m_itemsPulled;
 
 	bool pull_prepared;
+
+	memory_size_type availableMemory;
 };
 
 template <typename dest_t>
@@ -282,7 +325,6 @@ struct sort_t : public pipe_segment {
 		}
 
 		inline void go() {
-			std::cout << "Gonna sort the sort sort!" << std::endl;
 			sorter->calc();
 		}
 	private:
@@ -299,7 +341,6 @@ struct sort_t : public pipe_segment {
 		}
 
 		void go() {
-			std::cout << "Gonna push the sorted numbers!" << std::endl;
 			dest.begin();
 			while (sorter->can_pull()) {
 				dest.push(sorter->pull());
@@ -312,14 +353,13 @@ struct sort_t : public pipe_segment {
 	};
 
 	inline sort_t(const dest_t & dest)
-		: sorter(new sorter_t())
+		: sorter(new sorter_t(0)) // TODO
 		, calc(*this, sorter)
 		, output(dest, calc, sorter)
 	{
 	}
 
 	inline void begin() {
-		std::cout << "Gonna accept some sort input!" << std::endl;
 		sorter->begin();
 	}
 
@@ -329,7 +369,6 @@ struct sort_t : public pipe_segment {
 
 	inline void end() {
 		sorter->end();
-		std::cout << "Accepted the sort input!" << std::endl;
 	}
 
 private:
