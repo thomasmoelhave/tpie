@@ -254,7 +254,7 @@ memory_size_type execution_time_predictor::estimate_execution_time(memory_size_t
 	}
 	memory_size_type v=db->estimate(m_id, n, confidence);
 #ifndef TPIE_NDEBUG
-	if (v == -1)
+	if (v == static_cast<memory_size_type>(-1))
 		log_debug() << "No database entry for " << m_name << " (" << m_id << ")" << std::endl;
 #endif
 	return v;
