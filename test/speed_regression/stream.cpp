@@ -77,7 +77,7 @@ void test(size_t mb, size_t times) {
 		getTestRealtime(start);
 		{
 			stream<uint64_t> s("tmp", READ_STREAM);
-			uint64_t * x;
+			uint64_t * x = 0;
 			for(count_t i=0; i < count; ++i) {
 				s.read_item(&x);
 				hash = hash * 13 + *x;
