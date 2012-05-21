@@ -23,11 +23,12 @@
 #include <sstream>
 #include "tpie_log.h"
 #include <cstring>
+#include <cstdlib>
 
 namespace tpie {
 
 inline void segfault() {
-	*((char *)0)=42;
+	std::abort();
 }
 
 memory_manager * mm = 0;
