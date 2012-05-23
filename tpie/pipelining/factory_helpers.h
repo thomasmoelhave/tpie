@@ -58,7 +58,9 @@ struct factory_0 : public factory_base<factory_0<R> > {
 
 	template <typename dest_t>
 	inline R<dest_t> construct(const dest_t & dest) const {
-		return R<dest_t>(dest);
+		R<dest_t> r(dest);
+		r.set_memory_fraction(this->memory());
+		return r;
 	}
 };
 
@@ -77,7 +79,9 @@ struct factory_1 : public factory_base<factory_1<R, T1> > {
 
 	template <typename dest_t>
 	inline R<dest_t> construct(const dest_t & dest) const {
-		return R<dest_t>(dest, t1);
+		R<dest_t> r(dest, t1);
+		r.set_memory_fraction(this->memory());
+		return r;
 	}
 private:
 	T1 t1;
@@ -98,7 +102,9 @@ struct factory_2 : public factory_base<factory_2<R, T1, T2> > {
 
 	template <typename dest_t>
 	inline R<dest_t> construct(const dest_t & dest) const {
-		return R<dest_t>(dest, t1, t2);
+		R<dest_t> r(dest, t1, t2);
+		r.set_memory_fraction(this->memory());
+		return r;
 	}
 private:
 	T1 t1;
@@ -113,7 +119,9 @@ template <typename R>
 struct termfactory_0 : public factory_base<termfactory_0<R> > {
 	typedef R generated_type;
 	inline R construct() const {
-		return R();
+		R r;
+		r.set_memory_fraction(this->memory());
+		return r;
 	}
 };
 
@@ -126,7 +134,9 @@ struct termfactory_1 : public factory_base<termfactory_1<R, T1> > {
 	typedef R generated_type;
 	inline termfactory_1(T1 t1) : t1(t1) {}
 	inline R construct() const {
-		return R(t1);
+		R r(t1);
+		r.set_memory_fraction(this->memory());
+		return r;
 	}
 private:
 	T1 t1;
@@ -141,7 +151,9 @@ struct termfactory_2 : public factory_base<termfactory_2<R, T1, T2> > {
 	typedef R generated_type;
 	inline termfactory_2(T1 t1, T2 t2) : t1(t1), t2(t2) {}
 	inline R construct() const {
-		return R(t1, t2);
+		R r(t1, t2);
+		r.set_memory_fraction(this->memory());
+		return r;
 	}
 private:
 	T1 t1;
@@ -161,7 +173,9 @@ struct pull_factory_0 : public factory_base<pull_factory_0<R> > {
 
 	template <typename source_t>
 	inline R<source_t> construct(const source_t & source) const {
-		return R<source_t>(source);
+		R<source_t> r(source);
+		r.set_memory_fraction(this->memory());
+		return r;
 	}
 };
 
@@ -180,7 +194,9 @@ struct pull_factory_1 : public factory_base<pull_factory_1<R, T1> > {
 
 	template <typename source_t>
 	inline R<source_t> construct(const source_t & source) const {
-		return R<source_t>(source, t1);
+		R<source_t> r(source, t1);
+		r.set_memory_fraction(this->memory());
+		return r;
 	}
 private:
 	T1 t1;

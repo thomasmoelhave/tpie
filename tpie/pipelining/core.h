@@ -27,100 +27,12 @@
 #include <map>
 #include <boost/shared_ptr.hpp>
 #include <boost/weak_ptr.hpp>
-#include <tpie/pipelining/tokens.h>
+#include <tpie/pipelining/pipe_segment.h>
 #include <tpie/pipelining/graph.h>
-#include <tpie/exception.h>
 
 namespace tpie {
 
 namespace pipelining {
-
-struct not_initiator_segment : tpie::exception {
-	inline not_initiator_segment() : tpie::exception("Not an initiator segment") {}
-};
-
-///////////////////////////////////////////////////////////////////////////////
-/// Base class of all segments. A segment should inherit from pipe_segment,
-/// have a single template parameter dest_t if it is not a terminus segment,
-/// and implement methods begin(), push() and end(), if it is not a source
-/// segment.
-///////////////////////////////////////////////////////////////////////////////
-struct pipe_segment {
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Virtual dtor.
-	///////////////////////////////////////////////////////////////////////////
-	virtual ~pipe_segment() {}
-
-	virtual memory_size_type get_minimum_memory() {
-		return 0;
-	}
-
-	inline memory_size_type get_available_memory() {
-		return memory;
-	}
-
-	inline segment_map::ptr get_segment_map() const {
-		return token.get_map();
-	}
-
-	virtual void go() {
-		TP_LOG_WARNING("pipe_segment subclass " << typeid(*this).name() << " is not an initiator segment" << std::endl);
-		throw not_initiator_segment();
-	}
-
-protected:
-	inline pipe_segment()
-		: token(this)
-	{
-	}
-
-	inline pipe_segment(const pipe_segment & other)
-		: token(other.token, this)
-	{
-	}
-
-	inline pipe_segment(const segment_token & token)
-		: token(token, this, true)
-	{
-	}
-
-	inline void add_push_destination(const segment_token & dest) {
-		segment_map::ptr m = token.map_union(dest);
-		m->add_relation(token.id(), dest.id(), pushes);
-	}
-
-	inline void add_push_destination(const pipe_segment & dest) {
-		add_push_destination(dest.token);
-	}
-
-	inline void add_pull_destination(const segment_token & dest) {
-		segment_map::ptr m = token.map_union(dest);
-		m->add_relation(token.id(), dest.id(), pulls);
-	}
-
-	inline void add_pull_destination(const pipe_segment & dest) {
-		add_pull_destination(dest.token);
-	}
-
-	inline void add_dependency(const segment_token & dest) {
-		segment_map::ptr m = token.map_union(dest);
-		m->add_relation(token.id(), dest.id(), depends);
-	}
-
-	inline void add_dependency(const pipe_segment & dest) {
-		add_dependency(dest.token);
-	}
-
-private:
-	inline void set_available_memory(memory_size_type mem) {
-		memory = mem;
-	}
-
-	memory_size_type memory;
-	segment_token token;
-
-	// TODO who's our friend?
-};
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \class pipeline_virtual

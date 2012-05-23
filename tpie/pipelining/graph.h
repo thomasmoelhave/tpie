@@ -24,6 +24,7 @@
 #ifndef __TPIE_PIPELINING_GRAPH_H__
 #define __TPIE_PIPELINING_GRAPH_H__
 
+#include <tpie/pipelining/core.h>
 #include <tpie/pipelining/tokens.h>
 #include <tpie/disjoint_sets.h>
 #include <vector>
@@ -108,6 +109,22 @@ struct graph_traits {
 
 	const std::vector<id_t> & execution_order() {
 		return exec;
+	}
+
+	double sum_memory() {
+		double sum = 0.0;
+		for (segment_map::mapit i = map.begin(); i != map.end(); ++i) {
+			sum += i->second->get_memory_fraction();
+		}
+		return sum;
+	}
+
+	memory_size_type sum_minimum_memory() {
+		memory_size_type sum = 0;
+		for (segment_map::mapit i = map.begin(); i != map.end(); ++i) {
+			sum += i->second->get_minimum_memory();
+		}
+		return sum;
 	}
 
 private:

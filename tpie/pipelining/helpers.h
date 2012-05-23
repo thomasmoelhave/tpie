@@ -106,7 +106,7 @@ inline pipe_middle<factory_0<identity_t> > identity() {
 }
 
 template <typename source_t>
-struct pull_identity_t {
+struct pull_identity_t : public pipe_segment {
 	typedef typename source_t::item_type item_type;
 
 	inline pull_identity_t(const source_t & source) : source(source) {
@@ -159,7 +159,7 @@ template <typename pushfact_t>
 struct push_to_pull {
 
 	template <typename source_t>
-	struct puller_t {
+	struct puller_t : public pipe_segment {
 
 		typedef typename source_t::item_type item_type;
 		typedef typename pushfact_t::template generated<dummydest_t<item_type> >::type pusher_t;

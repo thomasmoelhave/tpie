@@ -140,7 +140,7 @@ inline pipe_end<termfactory_1<output_t<T>, file_stream<T> &> > output(file_strea
 /// file_stream output pull data source.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename source_t>
-struct pull_output_t {
+struct pull_output_t : public pipe_segment {
 	typedef typename source_t::item_type item_type;
 
 	inline pull_output_t(const source_t & source, file_stream<item_type> & fs) : source(source), fs(fs) {

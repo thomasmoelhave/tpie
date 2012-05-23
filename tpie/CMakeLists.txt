@@ -78,11 +78,14 @@ set (HEADERS
 		concept_doc.h
 		tpie.h
 		pipelining/core.h
+		pipelining/exception.h
 		pipelining/factory_helpers.h
 		pipelining/file_stream.h
+		pipelining/graph.h
 		pipelining/helpers.h
 		pipelining/merge.h
 		pipelining/numeric.h
+		pipelining/pipe_segment.h
 		pipelining/plotter.h
 		pipelining/reverse.h
 		pipelining/sort.h

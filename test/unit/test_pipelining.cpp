@@ -345,9 +345,11 @@ bool uniq_test() {
 
 bool memory_test() {
 	pipeline p = input_vector(inputvector).memory(1.1) | multiply(3).memory(3.2) | multiply(2).memory(3.3) | output_vector(outputvector).memory(2.3);
-	double mem = p.memory();
-	std::cout << mem << std::endl;
-	double d = mem-(1.1+3.2+3.3+2.3);
+	graph_traits g(*p.get_segment_map());
+	double fractions = g.sum_memory();
+	memory_size_type memory = g.sum_minimum_memory();
+	std::cout << fractions << std::endl << memory << std::endl;
+	double d = fractions-(1.1+3.2+3.3+2.3);
 	return d*d < 0.0001;
 }
 
