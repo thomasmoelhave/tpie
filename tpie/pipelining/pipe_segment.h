@@ -39,11 +39,11 @@ struct pipe_segment {
 	///////////////////////////////////////////////////////////////////////////
 	virtual ~pipe_segment() {}
 
-	inline memory_size_type get_minimum_memory() {
+	inline memory_size_type get_minimum_memory() const {
 		return m_minimumMemory;
 	}
 
-	inline memory_size_type get_available_memory() {
+	inline memory_size_type get_available_memory() const {
 		return m_availableMemory;
 	}
 
@@ -51,7 +51,7 @@ struct pipe_segment {
 		m_memoryFraction = f;
 	}
 
-	inline double get_memory_fraction() {
+	inline double get_memory_fraction() const {
 		return m_memoryFraction;
 	}
 

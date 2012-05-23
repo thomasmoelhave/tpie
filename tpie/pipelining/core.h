@@ -81,11 +81,14 @@ struct pipeline_impl : public pipeline_virtual {
 	~pipeline_impl() {}
 
 	void operator()() {
+		typedef std::vector<phase> phases_t;
+		typedef phases_t::const_iterator it;
+
 		segment_map::ptr map = r.get_segment_map()->find_authority();
 		graph_traits g(*map);
-		std::vector<size_t> order = g.execution_order();
-		for (size_t i = 0; i < order.size(); ++i) {
-			map->get(order[i])->go();
+		const phases_t & phases = g.phases();
+		for (it i = phases.begin(); i != phases.end(); ++i) {
+			i->go();
 		}
 	}
 	inline operator gen_t() {

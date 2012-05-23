@@ -152,7 +152,7 @@ struct segment_map {
 		find_authority()->link(target->find_authority());
 	}
 
-	inline val_t get(id_t id) {
+	inline val_t get(id_t id) const {
 		mapit i = m_tokens.find(id);
 		if (i == m_tokens.end()) return 0;
 		return i->second;

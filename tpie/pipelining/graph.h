@@ -60,6 +60,51 @@ void dfs(Graph & g) {
 	}
 }
 
+struct phase {
+	inline phase()
+		: m_memoryFraction(0.0)
+		, m_minimumMemory(0)
+		, m_initiator(0)
+	{
+	}
+
+	inline void set_initiator(pipe_segment * s) {
+		m_initiator = s;
+	}
+
+	inline void add(pipe_segment * s) {
+		if (count(s)) return;
+		m_segments.push_back(s);
+		m_memoryFraction += s->get_memory_fraction();
+		m_minimumMemory += s->get_minimum_memory();
+	}
+
+	inline size_t count(pipe_segment * s) {
+		for (size_t i = 0; i < m_segments.size(); ++i) {
+			if (m_segments[i] == s) return 1;
+		}
+		return 0;
+	}
+
+	inline void go() const {
+		m_initiator->go();
+	}
+
+	inline double memory_fraction() {
+		return m_memoryFraction;
+	}
+
+	inline memory_size_type minimum_memory() {
+		return m_minimumMemory;
+	}
+
+private:
+	std::vector<pipe_segment *> m_segments;
+	double m_memoryFraction;
+	memory_size_type m_minimumMemory;
+	pipe_segment * m_initiator;
+};
+
 struct phasegraph {
 	typedef std::map<size_t, int> nodemap_t;
 	typedef std::map<size_t, std::vector<size_t> > edgemap_t;
@@ -98,7 +143,8 @@ struct phasegraph {
 
 struct graph_traits {
 	typedef segment_map::id_t id_t;
-	typedef size_t phase_t;
+	typedef std::vector<phase> phases_t;
+	typedef phases_t::iterator phaseit;
 
 	graph_traits(const segment_map & map)
 		: map(map)
@@ -107,30 +153,29 @@ struct graph_traits {
 		calc_phases();
 	}
 
-	const std::vector<id_t> & execution_order() {
-		return exec;
-	}
-
 	double sum_memory() {
 		double sum = 0.0;
-		for (segment_map::mapit i = map.begin(); i != map.end(); ++i) {
-			sum += i->second->get_memory_fraction();
+		for (size_t i = 0; i < m_phases.size(); ++i) {
+			sum += m_phases[i].memory_fraction();
 		}
 		return sum;
 	}
 
 	memory_size_type sum_minimum_memory() {
 		memory_size_type sum = 0;
-		for (segment_map::mapit i = map.begin(); i != map.end(); ++i) {
-			sum += i->second->get_minimum_memory();
+		for (size_t i = 0; i < m_phases.size(); ++i) {
+			sum += m_phases[i].minimum_memory();
 		}
 		return sum;
 	}
 
+	const phases_t & phases() {
+		return m_phases;
+	}
+
 private:
 	const segment_map & map;
-	std::vector<id_t> exec;
-	std::map<id_t, phase_t> m_phases;
+	phases_t m_phases;
 
 	void calc_phases() {
 		map.assert_authoritative();
@@ -162,23 +207,26 @@ private:
 
 		// toposort the phase graph and find the phase numbers in the execution order
 		std::vector<size_t> internalexec = g.execution_order();
+		m_phases.resize(internalexec.size());
 
 		for (size_t i = 0; i < internalexec.size(); ++i) {
 			// all segments with phase number internalexec[i] should be executed in phase i
 
 			// first, insert phase representatives
-			m_phases.insert(std::make_pair(ids_inv[internalexec[i]], i));
+			m_phases[i].add(map.get(ids_inv[internalexec[i]]));
 		}
-		exec.resize(internalexec.size());
 		for (ids_inv_t::iterator i = ids_inv.begin(); i != ids_inv.end(); ++i) {
-			phase_t thisphase = m_phases[ids_inv[phases.find_set(i->first)]];
-			// map this node to the same execution phase as the phase representative
-			m_phases.insert(std::make_pair(i->second, thisphase));
-
-			// is this the phase initiator?
-			if (map.in_degree(i->second, pushes) + map.in_degree(i->second, pulls) == 0) {
-				// nobody pushes to or pulls from this
-				exec[thisphase] = i->second;
+			pipe_segment * representative = map.get(ids_inv[phases.find_set(i->first)]);
+			pipe_segment * current = map.get(i->second);
+			if (current == representative) return;
+			bool is_initiator = (map.in_degree(i->second, pushes) == 0 || map.in_degree(i->second, pulls) == 0);
+			for (size_t i = 0; i < m_phases.size(); ++i) {
+				if (m_phases[i].count(representative)) {
+					m_phases[i].add(current);
+					if (is_initiator)
+						m_phases[i].set_initiator(current);
+					break;
+				}
 			}
 		}
 	}
