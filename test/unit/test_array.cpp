@@ -244,6 +244,14 @@ bool copyempty() {
 	return true;
 }
 
+bool arrayarray() {
+	array<array<int> > a;
+	array<int> prototype(1);
+	a.resize(1, prototype);
+	a.resize(0);
+	return true;
+}
+
 int main(int argc, char **argv) {
 	tpie_initer _(128);
 	BOOST_CONCEPT_ASSERT((linear_memory_structure_concept<array<int> >));
@@ -277,5 +285,7 @@ int main(int argc, char **argv) {
 		return array_bool_memory_test()()?EXIT_SUCCESS:EXIT_FAILURE;
 	else if (test == "copyempty") 
 		return copyempty()?EXIT_SUCCESS:EXIT_FAILURE;
+	else if (test == "arrayarray")
+		return arrayarray()?EXIT_SUCCESS:EXIT_FAILURE;
 	return EXIT_FAILURE;
 }
