@@ -290,16 +290,18 @@ public:
 /// \tparam alloc_t Allocator.
 ///////////////////////////////////////////////////////////////////////////////
 
+#pragma pack(push 1)
+template <typename C>
+struct trivial_same_size {
+	char c[sizeof(C)];
+};
+#pragma pack(pop)
+
 template <typename T, bool segmented=false>
 class array_base: public array_facade<array_base<T, segmented>, T, array_iter_base> {
 private:
 	typedef array_facade<array_base<T, segmented>, T, array_iter_base> p_t;
 	friend class array_facade<array_base<T, segmented>, T, array_iter_base>;
-
-	template <typename C>
-	struct trivial_same_size {
-		char c[sizeof(C)];
-	};
 
 	T * m_elements;
 	size_t m_size;
@@ -354,6 +356,7 @@ public:
 	array_base(const array_base & other): m_elements(0), m_size(other.m_size) {
 		if (other.size() == 0) return;
 		m_elements = m_size ? reinterpret_cast<T*>(tpie_new_array<trivial_same_size<T> >(m_size)) : 0;
+		m_tss_used = true;
 		std::uninitialized_copy(other.m_elements+0, other.m_elements+m_size, m_elements+0);
 	}	
 
@@ -367,14 +370,20 @@ public:
 	///
 	/// All elements are lost.
 	///
+	/// Memory manager MUST be initialized at this point unless s == 0.
+	///
 	/// \param size The new size of the array.
 	/// \param elm The initialization element.
 	///////////////////////////////////////////////////////////////////////////
 	void resize(size_t size, const T & elm) {
 		if (size != m_size) {
-			tpie_delete_array(m_elements, m_size);
+			destruct_and_dealloc();
 			m_size = size;
+
 			m_elements = size ? reinterpret_cast<T*>(tpie_new_array<trivial_same_size<T> >(m_size)) : 0;
+			m_tss_used = true;
+
+			// call copy constructors manually
 			std::uninitialized_fill(m_elements+0, m_elements+m_size, elm);
 		} else {
 			std::fill(m_elements+0, m_elements+m_size, elm);
@@ -394,12 +403,15 @@ public:
 	///
 	/// All elements are lost.
 	///
+	/// Memory manager MUST be initialized at this point unless s == 0.
+	///
 	/// \param s The new size of the array.
 	///////////////////////////////////////////////////////////////////////////
 	void resize(size_t s) {
-		tpie_delete_array(m_elements, m_size);
+		destruct_and_dealloc();
 		m_size = s;
-		m_elements = s ? tpie_new_array<T>(m_size) : 0;
+		m_elements = m_size ? tpie_new_array<T>(m_size) : 0;
+		m_tss_used = false;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -422,6 +434,24 @@ protected:
 	/// \brief Return a raw pointer to the array content.
 	///////////////////////////////////////////////////////////////////////////
 	inline const T * __get() const {return m_elements;}
+
+private:
+	inline void destruct_and_dealloc() {
+		if (!m_tss_used) {
+			// calls destructors
+			tpie_delete_array(m_elements, m_size);
+			return;
+		}
+
+		// call destructors manually
+		for (size_t i = 0; i < m_size; ++i) {
+			m_elements[i].~T();
+		}
+		tpie_delete_array(reinterpret_cast<trivial_same_size<T>*>(m_elements), m_size);
+	}
+
+	// did we allocate m_elements as a trivial_same_size<T> *?
+	bool m_tss_used;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
