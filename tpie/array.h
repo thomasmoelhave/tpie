@@ -290,7 +290,7 @@ public:
 /// \tparam alloc_t Allocator.
 ///////////////////////////////////////////////////////////////////////////////
 
-#pragma pack(push 1)
+#pragma pack(push, 1)
 template <typename C>
 struct trivial_same_size {
 	char c[sizeof(C)];
