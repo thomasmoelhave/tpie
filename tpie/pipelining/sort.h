@@ -94,6 +94,8 @@ private:
 
 template <typename T>
 struct merge_sorter {
+	typedef boost::shared_ptr<merge_sorter> ptr;
+
 	inline merge_sorter(memory_size_type mem)
 		: m_runFiles(new array<temp_file>())
 		, pull_prepared(false)
@@ -296,12 +298,38 @@ private:
 	memory_size_type availableMemory;
 };
 
+template <typename T>
+struct sort_calc_t : public pipe_segment {
+	typedef T item_type;
+	typedef merge_sorter<item_type> sorter_t;
+	typedef typename sorter_t::ptr sorterptr;
+
+	inline sort_calc_t(const sort_calc_t & other)
+		: pipe_segment(other)
+		, sorter(other.sorter)
+	{
+	}
+
+	inline sort_calc_t(const pipe_segment & input, const sorterptr & sorter)
+		: sorter(sorter)
+	{
+		add_dependency(input);
+	}
+
+	inline void go() {
+		sorter->calc();
+	}
+private:
+	sorterptr sorter;
+};
+
 template <typename dest_t>
 struct sort_t : public pipe_segment {
 
 	typedef typename dest_t::item_type item_type;
 	typedef merge_sorter<item_type> sorter_t;
-	typedef boost::shared_ptr<sorter_t> sorterptr;
+	typedef typename sorter_t::ptr sorterptr;
+	typedef sort_calc_t<item_type> calc_t;
 
 	inline sort_t(const sort_t<dest_t> & other)
 		: pipe_segment(other)
@@ -310,26 +338,6 @@ struct sort_t : public pipe_segment {
 		, output(other.output)
 	{
 	}
-
-	struct calc_t : public pipe_segment {
-		inline calc_t(const calc_t & other)
-			: pipe_segment(other)
-			, sorter(other.sorter)
-		{
-		}
-
-		inline calc_t(const pipe_segment & input, const sorterptr & sorter)
-			: sorter(sorter)
-		{
-			add_dependency(input);
-		}
-
-		inline void go() {
-			sorter->calc();
-		}
-	private:
-		sorterptr sorter;
-	};
 
 	struct output_t : public pipe_segment {
 		inline output_t(const dest_t & dest, const pipe_segment & calc, const sorterptr & sorter)
