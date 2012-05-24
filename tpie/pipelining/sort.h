@@ -39,9 +39,11 @@ struct sort_parameters {
 	memory_size_type fanout;
 };
 
-template <typename T>
+template <typename T, typename pred_t>
 struct merger {
-	inline merger() {
+	inline merger(pred_t pred)
+		: pq(predwrap(pred))
+	{
 	}
 
 	inline merger(const merger & other) {
@@ -84,21 +86,40 @@ struct merger {
 			+ sizeof(merger);
 	}
 
+	struct predwrap {
+		typedef std::pair<T, size_t> item_type;
+
+		predwrap(pred_t pred)
+			: pred(pred)
+		{
+		}
+
+		inline bool operator()(const item_type & lhs, const item_type & rhs) {
+			return pred(rhs.first, lhs.first);
+		}
+
+	private:
+		pred_t pred;
+	};
+
 private:
-	std::priority_queue<std::pair<T, size_t>, std::vector<std::pair<T, size_t> >, std::greater<std::pair<T, size_t> > > pq;
+	std::priority_queue<std::pair<T, size_t>, std::vector<std::pair<T, size_t> >, predwrap> pq;
 	array<file_stream<T> > in;
 	std::vector<size_t> itemsRead;
 	size_t runLength;
 	size_t n;
+	pred_t pred;
 };
 
-template <typename T>
+template <typename T, typename pred_t = std::less<T> >
 struct merge_sorter {
 	typedef boost::shared_ptr<merge_sorter> ptr;
 
-	inline merge_sorter(memory_size_type mem)
-		: m_runFiles(new array<temp_file>())
+	inline merge_sorter(memory_size_type mem, pred_t pred = pred_t())
+		: m_merger(pred)
+		, m_runFiles(new array<temp_file>())
 		, pull_prepared(false)
+		, pred(pred)
 	{
 		if (mem == 0)
 			availableMemory = tpie::get_memory_manager().available();
@@ -149,7 +170,7 @@ struct merge_sorter {
 	}
 
 	inline void sort_current_run() {
-		parallel_sort(m_currentRunItems.begin(), m_currentRunItems.begin()+m_currentRunItemCount, std::less<T>());
+		parallel_sort(m_currentRunItems.begin(), m_currentRunItems.begin()+m_currentRunItemCount, pred);
 	}
 
 	// postcondition: m_currentRunItemCount = 0
@@ -254,7 +275,7 @@ private:
 	}
 
 	inline stream_size_type fanout_memory_usage(memory_size_type fanout) {
-		return merger<T>::memory_usage(fanout) + file_stream<T>::memory_usage();
+		return merger<T, pred_t>::memory_usage(fanout) + file_stream<T>::memory_usage();
 	}
 
 	// forWriting = false: open an existing run and seek to correct offset
@@ -275,7 +296,7 @@ private:
 
 	sort_parameters p;
 
-	merger<T> m_merger;
+	merger<T, pred_t> m_merger;
 
 	boost::shared_ptr<array<temp_file> > m_runFiles;
 
@@ -296,18 +317,48 @@ private:
 	bool pull_prepared;
 
 	memory_size_type availableMemory;
+
+	pred_t pred;
 };
 
-template <typename T>
-struct sort_calc_t : public pipe_segment {
+template <typename T, typename pred_t>
+struct sort_input_t : public pipe_segment {
 	typedef T item_type;
-	typedef merge_sorter<item_type> sorter_t;
+	typedef merge_sorter<item_type, pred_t> sorter_t;
 	typedef typename sorter_t::ptr sorterptr;
 
-	inline sort_calc_t(const sort_calc_t & other)
-		: pipe_segment(other)
-		, sorter(other.sorter)
+	inline sort_input_t(sorterptr sorter, const segment_token & token)
+		: pipe_segment(token)
+		, sorter(sorter)
 	{
+	}
+
+	inline void begin() {
+		sorter->begin();
+	}
+
+	inline void push(const T & item) {
+		sorter->push(item);
+	}
+
+	inline void end() {
+		sorter->end();
+	}
+
+private:
+	sorterptr sorter;
+};
+
+template <typename T, typename pred_t>
+struct sort_calc_t : public pipe_segment {
+	typedef T item_type;
+	typedef merge_sorter<item_type, pred_t> sorter_t;
+	typedef typename sorter_t::ptr sorterptr;
+
+	inline sort_calc_t(const segment_token & input, const sorterptr & sorter)
+		: sorter(sorter)
+	{
+		add_dependency(input);
 	}
 
 	inline sort_calc_t(const pipe_segment & input, const sorterptr & sorter)
@@ -324,12 +375,69 @@ private:
 };
 
 template <typename dest_t>
+struct sort_output_t : public pipe_segment {
+	typedef typename dest_t::item_type item_type;
+	typedef merge_sorter<item_type> sorter_t;
+	typedef typename sorter_t::ptr sorterptr;
+
+	inline sort_output_t(const dest_t & dest, const pipe_segment & calc, const sorterptr & sorter)
+		: dest(dest)
+		, sorter(sorter)
+	{
+		add_dependency(calc);
+		add_push_destination(dest);
+	}
+
+	void go() {
+		dest.begin();
+		while (sorter->can_pull()) {
+			dest.push(sorter->pull());
+		}
+		dest.end();
+	}
+private:
+	dest_t dest;
+	sorterptr sorter;
+};
+
+template <typename T, typename pred_t>
+struct sort_pull_output_t : public pipe_segment {
+	typedef T item_type;
+	typedef merge_sorter<item_type, pred_t> sorter_t;
+	typedef typename sorter_t::ptr sorterptr;
+
+	inline sort_pull_output_t(const pipe_segment & calc, const sorterptr & sorter)
+		: sorter(sorter)
+	{
+		add_dependency(calc);
+	}
+
+	inline void begin() {
+	}
+
+	inline bool can_pull() const {
+		return sorter->can_pull();
+	}
+
+	inline T pull() {
+		return sorter->pull();
+	}
+
+	inline void end() {
+	}
+
+private:
+	sorterptr sorter;
+};
+
+template <typename dest_t>
 struct sort_t : public pipe_segment {
 
 	typedef typename dest_t::item_type item_type;
 	typedef merge_sorter<item_type> sorter_t;
 	typedef typename sorter_t::ptr sorterptr;
-	typedef sort_calc_t<item_type> calc_t;
+	typedef sort_calc_t<item_type, std::less<item_type> > calc_t;
+	typedef sort_output_t<dest_t> output_t;
 
 	inline sort_t(const sort_t<dest_t> & other)
 		: pipe_segment(other)
@@ -338,27 +446,6 @@ struct sort_t : public pipe_segment {
 		, output(other.output)
 	{
 	}
-
-	struct output_t : public pipe_segment {
-		inline output_t(const dest_t & dest, const pipe_segment & calc, const sorterptr & sorter)
-			: dest(dest)
-			, sorter(sorter)
-		{
-			add_dependency(calc);
-			add_push_destination(dest);
-		}
-
-		void go() {
-			dest.begin();
-			while (sorter->can_pull()) {
-				dest.push(sorter->pull());
-			}
-			dest.end();
-		}
-	private:
-		dest_t dest;
-		sorterptr sorter;
-	};
 
 	inline sort_t(const dest_t & dest)
 		: sorter(new sorter_t(0)) // TODO
@@ -392,94 +479,34 @@ pipesort() {
 
 template <typename T, typename pred_t>
 struct passive_sorter {
+	typedef T item_type;
+	typedef merge_sorter<item_type, pred_t> sorter_t;
+	typedef typename sorter_t::ptr sorterptr;
+	typedef sort_input_t<item_type, pred_t> input_t;
+	typedef sort_calc_t<item_type, pred_t> calc_t;
+	typedef sort_pull_output_t<item_type, pred_t> output_t;
+
 	inline passive_sorter()
+		: sorter(new sorter_t(0)) // TODO
+		, calc(input_token, sorter)
+		, m_output(calc, sorter)
 	{
 	}
 
-	struct output_t;
-
-	struct input_t : public pipe_segment {
-		typedef T item_type;
-
-		inline input_t(temp_file * file, const segment_token & token)
-			: pipe_segment(token)
-			, file(file)
-		{
-		}
-
-		inline void begin() {
-			pbuffer = tpie_new<file_stream<T> >();
-			pbuffer->open(*file);
-		}
-
-		inline void push(const T & item) {
-			pbuffer->write(item);
-		}
-
-		inline void end() {
-			pbuffer->seek(0);
-			pred_t pred;
-			progress_indicator_null pi;
-			sort(*pbuffer, *pbuffer, pred, pi);
-			pbuffer->close();
-
-			tpie_delete(pbuffer);
-		}
-
-	private:
-		temp_file * file;
-		file_stream<T> * pbuffer;
-
-		input_t();
-		input_t & operator=(const input_t &);
-	};
-
-	struct output_t : public pipe_segment {
-		typedef T item_type;
-
-		inline output_t(temp_file * file, const segment_token & input)
-			: file(file)
-		{
-			add_dependency(input);
-		}
-
-		inline void begin() {
-			buffer = tpie_new<file_stream<T> >();
-			buffer->open(*file);
-		}
-
-		inline bool can_pull() {
-			return buffer->can_read();
-		}
-
-		inline T pull() {
-			return buffer->read();
-		}
-
-		inline void end() {
-			buffer->close();
-		}
-
-	private:
-		temp_file * file;
-		file_stream<T> * buffer;
-
-		output_t();
-		output_t & operator=(const output_t &);
-	};
-
-	inline pipe_end<termfactory_2<input_t, temp_file *, const segment_token &> > input() {
-		return termfactory_2<input_t, temp_file *, const segment_token &>(&file, input_token);
+	inline pipe_end<termfactory_2<input_t, sorterptr, const segment_token &> > input() {
+		return termfactory_2<input_t, sorterptr, const segment_token &>(sorter, input_token);
 	}
 
 	inline output_t output() {
-		return output_t(&file, input_token);
+		return m_output;
 	}
 
 private:
-	pred_t pred;
-	temp_file file;
 	segment_token input_token;
+	pred_t pred;
+	sorterptr sorter;
+	calc_t calc;
+	output_t m_output;
 	passive_sorter(const passive_sorter &);
 	passive_sorter & operator=(const passive_sorter &);
 };
