@@ -222,7 +222,6 @@ private:
 			// first, insert phase representatives
 			m_phases[i].add(map.get(ids_inv[internalexec[i]]));
 		}
-		map.dump();
 		for (ids_inv_t::iterator i = ids_inv.begin(); i != ids_inv.end(); ++i) {
 			pipe_segment * representative = map.get(ids_inv[phases.find_set(i->first)]);
 			pipe_segment * current = map.get(i->second);
