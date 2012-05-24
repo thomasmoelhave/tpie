@@ -72,8 +72,15 @@ struct phase {
 		m_initiator = s;
 	}
 
+	inline bool is_initiator(pipe_segment * s) {
+		segment_map::ptr m = s->get_segment_map();
+		segment_map::id_t id = s->get_id();
+		return m->in_degree(id, pushes) == 0 && m->in_degree(id, pulls) == 0;
+	}
+
 	inline void add(pipe_segment * s) {
 		if (count(s)) return;
+		if (is_initiator(s)) set_initiator(s);
 		m_segments.push_back(s);
 		m_memoryFraction += s->get_memory_fraction();
 		m_minimumMemory += s->get_minimum_memory();
@@ -215,16 +222,14 @@ private:
 			// first, insert phase representatives
 			m_phases[i].add(map.get(ids_inv[internalexec[i]]));
 		}
+		map.dump();
 		for (ids_inv_t::iterator i = ids_inv.begin(); i != ids_inv.end(); ++i) {
 			pipe_segment * representative = map.get(ids_inv[phases.find_set(i->first)]);
 			pipe_segment * current = map.get(i->second);
 			if (current == representative) return;
-			bool is_initiator = (map.in_degree(i->second, pushes) == 0 || map.in_degree(i->second, pulls) == 0);
 			for (size_t i = 0; i < m_phases.size(); ++i) {
 				if (m_phases[i].count(representative)) {
 					m_phases[i].add(current);
-					if (is_initiator)
-						m_phases[i].set_initiator(current);
 					break;
 				}
 			}

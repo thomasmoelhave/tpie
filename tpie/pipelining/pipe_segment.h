@@ -59,6 +59,10 @@ struct pipe_segment {
 		return token.get_map();
 	}
 
+	inline segment_token::id_t get_id() const {
+		return token.id();
+	}
+
 	virtual void go() {
 		TP_LOG_WARNING("pipe_segment subclass " << typeid(*this).name() << " is not an initiator segment" << std::endl);
 		throw not_initiator_segment();
