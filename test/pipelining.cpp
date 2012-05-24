@@ -82,7 +82,7 @@ struct input_nodes_t : public pipe_segment {
 		add_push_destination(dest);
 	}
 
-	inline void operator()() {
+	inline void go() {
 		static boost::mt19937 mt;
 		static boost::uniform_int<> dist(0, nodes-1);
 		dest.begin();
@@ -114,7 +114,7 @@ struct count_t {
 			add_pull_destination(byparent);
 		}
 
-		inline void operator()() {
+		inline void go() {
 			dest.begin();
 			byid.begin();
 			byparent.begin();
@@ -214,7 +214,6 @@ int main(int argc, char ** argv) {
 	p2.plot();
 	p2.plot_phases();
 	p1();
-	p2();
 	tpie_finish();
 	return 0;
 }
