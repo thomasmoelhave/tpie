@@ -300,9 +300,9 @@ err stack<T>::push(const T &t) {
 
 	try {
 		m_ulate.push(t);
-	} catch (end_of_stream_exception & e) {
+	} catch (end_of_stream_exception &) {
 		retval = END_OF_STREAM;
-	} catch (stream_exception & e) {
+	} catch (stream_exception &) {
 		retval = IO_ERROR;
 	}
 
@@ -322,9 +322,9 @@ err stack<T>::pop(const T **t) {
 		const T & res = m_ulate.pop();
 		*t = &res;
 
-	} catch (end_of_stream_exception & e) {
+	} catch (end_of_stream_exception &) {
 		retval = END_OF_STREAM;
-	} catch (stream_exception & e) {
+	} catch (stream_exception &) {
 		retval = IO_ERROR;
 	}
 
@@ -344,9 +344,9 @@ err stack<T>::peek(const T **t) {
 		const T & res = m_ulate.top();
 		*t = &res;
 
-	} catch (end_of_stream_exception & e) {
+	} catch (end_of_stream_exception &) {
 		retval = END_OF_STREAM;
-	} catch (stream_exception & e) {
+	} catch (stream_exception &) {
 		retval = IO_ERROR;
 	}
 
