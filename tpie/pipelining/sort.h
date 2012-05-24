@@ -461,7 +461,6 @@ struct passive_sorter {
 	};
 
 	inline pipe_end<termfactory_2<input_t, temp_file *, const segment_token &> > input() {
-		std::cout << "Construct input factory " << typeid(pred_t).name() << " with " << &file << std::endl;
 		return termfactory_2<input_t, temp_file *, const segment_token &>(&file, input_token);
 	}
 
