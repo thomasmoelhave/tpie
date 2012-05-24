@@ -205,12 +205,14 @@ int main(int argc, char ** argv) {
 	tpie_init();
 	size_t nodes = 1 << 20;
 	if (argc > 1) std::stringstream(argv[1]) >> nodes;
-	passive_sorter<node, sort_by_id> byid;
-	passive_sorter<node, sort_by_parent> byparent;
-	pipeline p1 = input_nodes(nodes) | fork(byid.input()) | byparent.input();
-	pipeline p2 = count(byid.output(), byparent.output()) | output_count();
-	p1.plot();
-	p1();
+	{
+		passive_sorter<node, sort_by_id> byid;
+		passive_sorter<node, sort_by_parent> byparent;
+		pipeline p1 = input_nodes(nodes) | fork(byid.input()) | byparent.input();
+		pipeline p2 = count(byid.output(), byparent.output()) | output_count();
+		p1.plot();
+		p1();
+	}
 	tpie_finish();
 	return 0;
 }
