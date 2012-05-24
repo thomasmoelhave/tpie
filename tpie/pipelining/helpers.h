@@ -320,7 +320,6 @@ struct fork_t {
 		inline type(const dest_t & dest, const fact2_t & fact2) : dest(dest), dest2(fact2.construct()) {
 			add_push_destination(dest);
 			add_push_destination(dest2);
-			std::cout << typeid(dest2_t).name() << std::endl;
 		}
 
 		inline void begin() {
