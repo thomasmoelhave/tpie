@@ -23,6 +23,7 @@
 #include <boost/filesystem.hpp>
 #include <algorithm>
 #include <tpie/pipelining/graph.h>
+#include <tpie/sysinfo.h>
 
 using namespace tpie;
 using namespace tpie::pipelining;
@@ -416,6 +417,10 @@ struct tests_t {
 	// Whether we should run all tests
 	bool testall;
 
+	// If testall, capture a list of failing tests
+	std::stringstream faillog;
+
+	// List of tests concatenated by '|' (for the usage string)
 	std::stringstream usagestring;
 
 	tpie_initer initer;
@@ -434,22 +439,31 @@ struct tests_t {
 		}
 		if (testname == "all") {
 			testall = true;
+			sysinfo s;
+			std::cerr << s;
 		}
 	}
 
 	~tests_t() {
 		file_system_cleanup();
 		if (!tests) usage();
+		if (testall) {
+			std::cerr << std::string(79, '=');
+			if (result) std::cerr << "\nAll tests passed" << std::endl;
+			else std::cerr << "\nThe following tests FAILED:\n" << faillog.str() << std::flush;
+		}
 		exit(result ? EXIT_SUCCESS : EXIT_FAILURE);
 	}
 
 	// Run test, increment `tests', set `result' if failed, output if `testall'
 	template <fun_t f>
-	inline tests_t & test(const char * name) {
+	inline tests_t & test(std::string name) {
 		usagestring << '|' << name;
 
 		if (!testall && testname != name) return *this;
 		++tests;
+		if (testall)
+			std::cerr << std::string(79,'=') << "\nStart " << std::setw(2) << tests << ": " << name << std::endl;
 		setup_test_vectors();
 		file_system_cleanup();
 		bool pass = false;
@@ -462,8 +476,11 @@ struct tests_t {
 		} catch (...) {
 			std::cerr << "Caught something that is not an exception in test \"" << name << "\"" << std::endl;
 		}
-		if (testall)
-			std::cerr << "Test \"" << name << "\" " << (pass ? "passed" : "failed") << std::endl;
+		if (testall) {
+			std::cerr << "\nTest  " << std::setw(2) << tests << ": " << name << ' ' << std::string(59-name.size(), '.')
+			<< (pass ? "   Passed" : "***Failed") << std::endl;
+			if (!pass) faillog << "  * " << name << '\n';
+		}
 
 		if (!pass) result = false;
 
