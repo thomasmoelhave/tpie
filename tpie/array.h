@@ -510,7 +510,7 @@ private:
 	typedef array_facade<array_base<T, true>, T, segmented_array_iter_base > p_t;
 	using p_t::at;
 	static const size_t bits=p_t::iterator::bits;
-	static const size_t mask=p_t::iterator::bits;
+	static const size_t mask=p_t::iterator::mask;
 
  	T ** m_a;
  	size_t m_size;
