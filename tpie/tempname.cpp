@@ -27,9 +27,20 @@
 #include <string>
 #include <tpie/portability.h>
 #include <boost/filesystem.hpp>
+#include <boost/random.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <stdexcept>
+#include <tpie/util.h>
+#include <tpie/err.h>
+
+#ifdef _WIN32
+#include <Windows.h>
+#undef NO_ERROR
+#endif
 
 using namespace tpie;
+
+boost::rand48 prng(42);
 
 std::string tempname::default_path;
 std::string tempname::default_base_name; 
@@ -72,14 +83,14 @@ std::string tempname::tpie_name(const std::string& post_base, const std::string&
 	else 
 		base_dir = tempname::get_actual_path();
 
-	std::string path;	
+	boost::filesystem::path p = base_dir;
 	for(int i=0; i < 42; ++i) {
 		if(post_base.empty())
-			path = base_dir + TPIE_OS_DIR_DELIMITER + base_name + "_" + tpie_mktemp() + "." + extension;
+			p = p / (base_name + "_" + tpie_mktemp() + "." + extension);
 		else 
-			path = base_dir + TPIE_OS_DIR_DELIMITER + base_name + "_" + post_base + "_" + tpie_mktemp() + "." + extension;
-		if ( !TPIE_OS_EXISTS(path) )
-			return path;
+			p = p / (base_name + "_" + post_base + "_" + tpie_mktemp() + "." + extension);
+		if ( !boost::filesystem::exists(p) )
+			return p.file_string();
 	}
 	throw tempfile_error("Unable to find free name for temporary file");
 }
@@ -97,14 +108,14 @@ std::string tempname::tpie_dir_name(const std::string& post_base, const std::str
 	else 
 		base_dir = tempname::get_actual_path();
 
-	std::string path;	
+	boost::filesystem::path p = base_dir;
 	for(int i=0; i < 42; ++i) {
 		if(post_base.empty())
-			path = base_dir + TPIE_OS_DIR_DELIMITER + base_name + "_" + tpie_mktemp();
+			p = p / (base_name + "_" + tpie_mktemp());
 		else 
-			path = base_dir + TPIE_OS_DIR_DELIMITER + base_name + "_" + post_base + "_" + tpie_mktemp();
-		if ( !TPIE_OS_EXISTS(path) )
-			return path;
+			p = p / (base_name + "_" + post_base + "_" + tpie_mktemp());
+		if ( !boost::filesystem::exists(p) )
+			return p.file_string();
 	}
 	throw tempfile_error("Unable to find free name for temporary file");
 }
@@ -112,7 +123,6 @@ std::string tempname::tpie_dir_name(const std::string& post_base, const std::str
 std::string tempname::get_actual_path() {
 	//information about the search order is in the header
 	std::string dir;
-
 	if(!default_path.empty()) 
 		dir = default_path; //user specified path
 	else if(getenv(AMI_SINGLE_DEVICE_ENV) != NULL)  //TPIE env variable
@@ -134,18 +144,18 @@ std::string tempname::tpie_mktemp()
 	"n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", 
 	"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
 	const int chars_count = 62;
-	static TPIE_OS_TIME_T counter = time(NULL) % (chars_count * chars_count); 
+	static int counter = boost::posix_time::second_clock::local_time().time_of_day().total_seconds() % (chars_count * chars_count); 
 
 	std::string result = "";
 	result +=
 		chars[counter/chars_count] +
 		chars[counter%chars_count] +
-		chars[TPIE_OS_RANDOM() % chars_count] +
-		chars[TPIE_OS_RANDOM() % chars_count] +
-		chars[TPIE_OS_RANDOM() % chars_count] +
-		chars[TPIE_OS_RANDOM() % chars_count] +
-		chars[TPIE_OS_RANDOM() % chars_count] +
-		chars[TPIE_OS_RANDOM() % chars_count];
+		chars[prng() % chars_count] +
+		chars[prng() % chars_count] +
+		chars[prng() % chars_count] +
+		chars[prng() % chars_count] +
+		chars[prng() % chars_count] +
+		chars[prng() % chars_count];
 
 	counter = (counter + 1) % (chars_count * chars_count);
 
@@ -158,7 +168,8 @@ void tempname::set_default_path(const std::string&  path, const std::string& sub
 		default_path = path;
 		return;
 	}
-	std::string p = path+TPIE_OS_DIR_DELIMITER+subdir;
+	boost::filesystem::path p = path;
+	p = p / subdir;
 	try {
 		if (!boost::filesystem::exists(p)) {
 			boost::filesystem::create_directory(p);
@@ -167,7 +178,7 @@ void tempname::set_default_path(const std::string&  path, const std::string& sub
 			default_path = path;
 			TP_LOG_WARNING_ID("Could not use " << p << " as directory for temporary files, trying " << path);
 		}
-		default_path = p;
+		default_path = p.directory_string();
 	} catch (boost::filesystem::filesystem_error) { 
 		TP_LOG_WARNING_ID("Could not use " << p << " as directory for temporary files, trying " << path);
 		default_path = path; 
@@ -193,4 +204,32 @@ const std::string& tempname::get_default_base_name() {
 
 const std::string& tempname::get_default_extension() {
 	return default_extension;
+}
+
+temp_file::temp_file(): m_persist(false), m_recordedSize(0) {}
+
+temp_file::temp_file(const std::string & path, bool persist): m_path(path), m_persist(persist), m_recordedSize(0) {}
+
+const std::string & temp_file::path() {
+	if (m_path.empty())
+		m_path = tempname::tpie_name();
+	return m_path;
+}
+
+void temp_file::set_path(const std::string & path, bool persist) {
+	free();
+	m_path=path;
+	m_persist=persist;
+}
+
+temp_file::~temp_file() {
+	free();
+}
+
+void temp_file::free() {
+	if (!m_path.empty() && !m_persist && boost::filesystem::exists(m_path)) {
+		boost::filesystem::remove(m_path);
+		update_recorded_size(0);
+	}
+	m_path="";
 }

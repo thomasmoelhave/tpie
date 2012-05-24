@@ -22,7 +22,7 @@
 
 ///////////////////////////////////////////////////////////////////////////
 /// \file tpie/merge_sorted_runs.h
-///  Contains the routine merge_sorted_runs used in several of TPIE's merge variants
+/// merge_sorted_runs as used in several of TPIE's merge variants
 /// \sa sorted_stream_merging
 /// \internal \todo Document better
 ///////////////////////////////////////////////////////////////////////////
@@ -68,38 +68,33 @@ namespace tpie {
 		/// \internal \todo Doc: LA: Syntax of comparator for polymorphs? key-based?
 		////////////////////////////////////////////////////////////////////////////
 		template <class T, class M>
-		err  merge_sorted_runs(typename tpie::array<tpie::auto_ptr<stream<T> > >::iterator start,
-							   typename tpie::array<tpie::auto_ptr<stream<T> > >::iterator end,
-							   stream<T> *outStream,  M* MergeHeap,
+		void merge_sorted_runs(typename tpie::array<tpie::auto_ptr<file_stream<T> > >::iterator start,
+							   typename tpie::array<tpie::auto_ptr<file_stream<T> > >::iterator end,
+							   file_stream<T> *outStream,  M* MergeHeap,
 							   TPIE_OS_OFFSET cutoff=-1, 
 							   progress_indicator_base* indicator = NULL) {
 	    
 			size_t i;
-			err ami_err;
 			size_t arity = end-start;
 
 			//Pointers to current leading elements of streams
-			tpie::array<T *> in_objects(arity);
+			tpie::array<const T *> in_objects(arity);
 			tpie::array<TPIE_OS_OFFSET> nread(arity);
 			
 			// **************************************************************
 			// * Read first element from stream. Do not rewind! We may read *
 			// * more elements from the same stream later.                  *
 			// **************************************************************
-	    
+
 			for (i = 0; i < arity; i++) {
-				if ((ami_err = (*(start+i))->read_item (&(in_objects[i]))) !=
-					NO_ERROR) {
-					
-					if (ami_err == END_OF_STREAM) 
-						in_objects[i] = NULL;
-					else
-						return ami_err;
-				} else
+				file_stream<T> * stream = (start+i)->get();
+				if (stream->can_read()) {
+					in_objects[i] = &stream->read();
 					MergeHeap->insert( in_objects[i], i );
-				nread[i]=1; 
-				if (indicator)
-					indicator->step();
+				} else 
+					in_objects[i] = NULL;
+				nread[i] = 1;
+				if (indicator) indicator->step();
 			}
 
 			// *********************************************************
@@ -113,33 +108,28 @@ namespace tpie {
 			// *********************************************************
 			while (MergeHeap->sizeofheap() > 0) {
 				i = MergeHeap->get_min_run_id ();
-				if ((ami_err = outStream->write_item (*in_objects[i]))
-					!= NO_ERROR)
-					return ami_err;
+				outStream->write(*in_objects[i]);
+
+				bool eof = false;
 		
 				//Check if we read as many elements as we are allowed to
 				if ( (cutoff != -1) && (nread[i]>=cutoff))
-					ami_err = END_OF_STREAM;
+					eof = true;
 				else {
-					if ((ami_err = (*(start+i))->read_item (&(in_objects[i])))
-						!= NO_ERROR) {
-						
-						if (ami_err != END_OF_STREAM) return ami_err;
-					}
+					file_stream<T> * stream = (start+i)->get();
+					if (stream->can_read()) in_objects[i] = &stream->read();
+					else eof = true;
 		    
-					if (indicator) 
-						indicator->step();
+					if (indicator) indicator->step();
 				} 
 		
-				if (ami_err == END_OF_STREAM)
+				if (eof)
 					MergeHeap->delete_min_and_insert(NULL);
 				else { 
 					nread[i]++;
 					MergeHeap->delete_min_and_insert (in_objects[i]);
 				}
 			}  //  while
-	    
-			return NO_ERROR;
 		}
 	
 	
@@ -156,9 +146,9 @@ namespace tpie {
 		/// \internal \todo add comparison operator version
 		///////////////////////////////////////////////////////////////////////////
 		template <class T, class CMPR>
-		err merge_sorted(typename tpie::array<std::auto_ptr<stream<T> > >::iterator start,
-						 typename tpie::array<std::auto_ptr<stream<T> > >::iterator end,
-						 stream<T> *outStream, CMPR *cmp) {
+		void merge_sorted(typename tpie::array<std::auto_ptr<file_stream<T> > >::iterator start,
+						 typename tpie::array<std::auto_ptr<file_stream<T> > >::iterator end,
+						 file_stream<T> *outStream, CMPR *cmp) {
 	    
 			// make a merge heap which uses the user's comparison object
 			// and initialize it
@@ -166,11 +156,11 @@ namespace tpie {
 			mrgheap.allocate(end-start);
 	    
 			//Rewind all the input streams
-			for (typename tpie::array<std::auto_ptr<stream<T> > >::iteratorarity_t i=start; 
+			for (typename tpie::array<std::auto_ptr<file_stream<T> > >::iterator i=start; 
 				 i != end; ++i)
 				i->seek(0); 
 	    
-			return merge_sorted_runs(start, end, outStream, mrgheap);
+			merge_sorted_runs(start, end, outStream, mrgheap);
 		}
 
 	
@@ -188,9 +178,9 @@ namespace tpie {
 		/// \internal \todo Check that memory management is done right
 		///////////////////////////////////////////////////////////////////////////
 		template <class T, class CMPR>
-		err ptr_merge_sorted(typename tpie::array<tpie::auto_ptr<stream<T> > >::iterator start,
-							 typename tpie::array<tpie::auto_ptr<stream<T> > >::iterator end,
-							 stream<T> *outStream, 
+		void ptr_merge_sorted(typename tpie::array<tpie::auto_ptr<file_stream<T> > >::iterator start,
+							 typename tpie::array<tpie::auto_ptr<file_stream<T> > >::iterator end,
+							 file_stream<T> *outStream, 
 							 CMPR *cmp) {
 
 			// make a merge heap of pointers which uses the user's comparison
@@ -199,47 +189,12 @@ namespace tpie {
 			mrgheap.allocate(end-start);
 	    
 			// Rewind all the input streams
-			for (typename tpie::array<std::auto_ptr<stream<T> > >::iteratorarity_t i=start; 
+			for (typename tpie::array<std::auto_ptr<file_stream<T> > >::iteratorarity_t i=start; 
 				 i != end; ++i)
 				i->seek(0); 
 	    
-			return merge_sorted_runs(start, end, outStream, mrgheap);
+			merge_sorted_runs(start, end, outStream, mrgheap);
 		}
-	
-		///////////////////////////////////////////////////////////////////////////
-		/// Merging with a heap that contains copies of the keys from the
-		/// records being merged, rather than the records themselves.
-		/// The comparison object "cmp", of (user-defined) class represented by
-		/// CMPR, must have a member function called "compare" which is used
-		/// for merging the input streams, and a member function called "copy"
-		/// which is used for copying the key (of type KEY) from a record of
-		/// type T (the type to be sorted).
-		///
-		/// This is one of the merge entry points for merging without the   
-		/// \ref merge_management_object used by TPIE's merge.
-		/// These routines perform the special case of merging when the
-		/// the required output is the original records interleaved
-		/// according to a comparison operator or function.
-		/// \internal \todo Check that memory management is done right
-		///////////////////////////////////////////////////////////////////////////
-		template<class T, class KEY, class CMPR>
-		err key_merge_sorted(typename tpie::array<tpie::auto_ptr<stream<T> > >::iterator start,
-							 typename tpie::array<tpie::auto_ptr<stream<T> > >::iterator end,
-							 stream<T> *outStream, CMPR *cmp) {
-	    
-			// make a key merge heap which uses the user's comparison object
-			// and initialize it
-			merge_heap_kobj<T,KEY,CMPR> mrgheap (cmp);
-			mrgheap.allocate(end-start);
-	    
-			// Rewind all the input streams
-			for (typename tpie::array<std::auto_ptr<stream<T> > >::iteratorarity_t i=start; 
-				 i != end; ++i)
-				i->seek(0); 
-	    
-			return merge_sorted_runs(start, end, outStream, mrgheap);
-		}
-	
     }  //  ami namespace
     
 }  //  tpie namespace

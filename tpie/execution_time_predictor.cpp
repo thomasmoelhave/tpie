@@ -24,10 +24,13 @@
 #include <tpie/prime.h>
 #include <iostream>
 #include <iomanip>
+#include <fcntl.h>
 #include <tpie/tpie_log.h>
 #include <tpie/tempname.h>
+#include <tpie/util.h>
 #ifdef WIN32
 #include <windows.h>
+#undef NO_ERROR
 #include <Shlobj.h>
 #else
 #include <sys/types.h>
@@ -37,7 +40,22 @@
 using namespace std;
 using namespace tpie;
 
-typedef std::pair<TPIE_OS_OFFSET, TPIE_OS_OFFSET> p_t;
+#ifdef _WIN32
+//On windows there do not seem to be any limit on the number of handels we can create
+size_t get_os_available_fds() {return 1024*128;}  
+#else
+size_t get_os_available_fds() {
+	size_t f=0;
+	for(int fd=0; fd < getdtablesize(); ++fd) {
+		int flags = fcntl(fd, F_GETFD, 0);
+		if (flags == -1 && errno == EBADF) ++f;
+	}
+	return f-5; //-5 to prevent race conditions
+}
+#endif
+
+
+typedef std::pair<memory_size_type, memory_size_type> p_t;
 
 struct cmp_t {
 	bool operator()(const p_t & a, const p_t & b) const {return a.first < b.first;}
@@ -61,10 +79,10 @@ struct entry {
 		}
 		p_t * replace=end();
 		if (count == max_points) {
-			TPIE_OS_OFFSET best_dist=points[2].first - points[0].first;
+			memory_size_type best_dist=points[2].first - points[0].first;
 			replace=begin()+1;
 			for(p_t * i=begin()+1; i < end()-1; ++i) {
-				TPIE_OS_OFFSET dist=(i+1)->first - (i-1)->first;
+				memory_size_type dist=(i+1)->first - (i-1)->first;
 				if (dist < best_dist) {replace=i; best_dist=dist;}
 			}
 		} else 
@@ -124,7 +142,7 @@ public:
 					u >> id >> cnt;
 					entry & e=db[id];
 					for (size_t j=0; j < cnt; ++j) {
-						TPIE_OS_OFFSET n, time;
+						memory_size_type n, time;
 						u >> n >> time;
 						e.add_point(p_t(n, time));
 					}
@@ -141,7 +159,7 @@ public:
 		ofstream f;
 		f.open(tmp.c_str(), ifstream::binary | ifstream::out);
 		if (!f.is_open()) {
-			log_error() << "Failed to store time estimation database: Could not create temporery file" << std::endl;
+			log_error() << "Failed to store time estimation database: Could not create temporary file" << std::endl;
 			return;
 		}
 		
@@ -152,7 +170,7 @@ public:
 			for(db_type::iterator i=db.begin(); i != db.end(); ++i) {
 				s << (size_t)i->first << (size_t)i->second.count;
 				for (p_t * j=i->second.begin(); j != i->second.end(); ++j)
-					s << (TPIE_OS_OFFSET)j->first << (TPIE_OS_OFFSET)j->second;
+					s << (memory_size_type)j->first << (memory_size_type)j->second;
 			}
 		}
 		f.close();
@@ -163,7 +181,7 @@ public:
 		}
 	}
 	
-	TPIE_OS_OFFSET estimate(size_t & id, TPIE_OS_OFFSET n, double & confidence) {
+	memory_size_type estimate(size_t & id, memory_size_type n, double & confidence) {
 		db_type::iterator i=db.find(id);
 		if (i == db.end()) {
 			confidence=0.0;
@@ -183,7 +201,7 @@ public:
 			--l;
 			if (l->first == 0) {
 #ifdef TPIE_NDEBUG
-				log_warning() << "In timeestimation first was found to be 0, this should not happes!" << std::endl;
+				log_warning() << "In time estimation first was 0, this should not happen!" << std::endl;
 #endif
 				confidence=0.0;
 				return -1; 
@@ -194,8 +212,8 @@ public:
 		
 		p_t p0(0,0);
 		if (l != e.begin()) p0 = *(l-1);
-		TPIE_OS_OFFSET w=(l->first-p0.first);
-		TPIE_OS_OFFSET x=(n - p0.first);
+		memory_size_type w=(l->first-p0.first);
+		memory_size_type x=(n - p0.first);
 		confidence=1.0;
 		return p0.second * (w - x) / w + l->second * (x/w);
 	}
@@ -229,29 +247,29 @@ execution_time_predictor::execution_time_predictor(const std::string & id):
 execution_time_predictor::~execution_time_predictor() {
 }
 
-TPIE_OS_OFFSET execution_time_predictor::estimate_execution_time(TPIE_OS_OFFSET n, double & confidence) {
+memory_size_type execution_time_predictor::estimate_execution_time(memory_size_type n, double & confidence) {
 	if (m_id == prime_hash(std::string())) {
 		confidence=0.0;
 		return -1;
 	}
-	TPIE_OS_OFFSET v=db->estimate(m_id, n, confidence);
+	memory_size_type v=db->estimate(m_id, n, confidence);
 #ifndef TPIE_NDEBUG
-	if (v == -1)
+	if (v == static_cast<memory_size_type>(-1))
 		log_debug() << "No database entry for " << m_name << " (" << m_id << ")" << std::endl;
 #endif
 	return v;
 }
 
-void execution_time_predictor::start_execution(TPIE_OS_OFFSET n) {
+void execution_time_predictor::start_execution(memory_size_type n) {
     m_n = n;
     m_estimate = estimate_execution_time(n, m_confidence);
     m_start_time = boost::posix_time::microsec_clock::local_time();
 	m_pause_time_at_start = s_pause_time;
 }
 
-TPIE_OS_OFFSET execution_time_predictor::end_execution() {
+memory_size_type execution_time_predictor::end_execution() {
 	if (m_id == prime_hash(std::string()) || !s_store_times) return 0;
-	TPIE_OS_OFFSET t = (boost::posix_time::microsec_clock::local_time() - m_start_time).total_milliseconds();
+	memory_size_type t = (boost::posix_time::microsec_clock::local_time() - m_start_time).total_milliseconds();
 	t -= (s_pause_time - m_pause_time_at_start);
 	entry & e = db->db[m_id];
 	e.add_point( p_t(m_n, t) );
@@ -305,7 +323,7 @@ void execution_time_predictor::disable_time_storing() {
 	s_store_times = false;
 }
 
-TPIE_OS_OFFSET execution_time_predictor::s_pause_time = 0;
+memory_size_type execution_time_predictor::s_pause_time = 0;
 boost::posix_time::ptime execution_time_predictor::s_start_pause_time;
 bool execution_time_predictor::s_store_times = true;
 

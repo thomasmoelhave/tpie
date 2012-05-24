@@ -29,7 +29,7 @@
 
 using namespace tpie;
 
-bool named_stack_test() {
+bool ami_named_stack_test() {
 	boost::filesystem::remove("temp_stack");
 
 	{
@@ -43,7 +43,7 @@ bool named_stack_test() {
 		ami::stack<size_t> s("temp_stack");
 		const size_t size= 1234;
 		for(size_t i=size-1; i >= 1; --i) {
-			const size_t * x;
+			const size_t * x = 0;
 			s.pop(&x);
 			if (*x != i) return false;
 		}
@@ -52,7 +52,29 @@ bool named_stack_test() {
 	return true;
 }
 
-bool stack_test(size_t size) {
+bool named_stack_test() {
+	boost::filesystem::remove("temp_stack");
+
+	{
+		stack<size_t> s("temp_stack");
+		const size_t size= 1234;
+		for(size_t i=1; i < size; ++i) 
+			s.push(i);
+	}
+
+	{
+		stack<size_t> s("temp_stack");
+		const size_t size= 1234;
+		for(size_t i=size-1; i >= 1; --i) {
+			const size_t x = s.pop();
+			if (x != i) return false;
+		}
+	}
+	boost::filesystem::remove("temp_stack");
+	return true;
+}
+
+bool ami_stack_test(size_t size) {
   ami::stack<size_t> s;
   size_t i=1234;
   for(size_t _=0; _ < size; ++_) {
@@ -66,7 +88,7 @@ bool stack_test(size_t size) {
   size_t o=i-1;
   for(size_t _=0; _ < size; ++_) {
     s.push(i) ;
-    const size_t * x;
+    const size_t * x = 0;
     s.pop(&x);
     if (*x != i) {
       std::cerr << "Wrong element" << std::endl;
@@ -81,7 +103,7 @@ bool stack_test(size_t size) {
   }
 
   for(size_t _=0; _ < size; ++_) {
-    const size_t * x;
+    const size_t * x = 0;
     s.pop(&x);
     if (*x != o) {
       std::cerr << "Wrong element 2" << std::endl;
@@ -94,14 +116,82 @@ bool stack_test(size_t size) {
   return true;
 }
 
+#define ASSERT(cond, msg) if (!(cond)) { std::cerr << msg << std::endl; return false; }
+bool stack_test(size_t size) {
+	stack<size_t> s;
+	ASSERT(s.size() == 0, "Wrong initial size");
+	for (size_t i=0; i < size; ++i) {
+		size_t x = i+1234;
+		s.push(x);
+		ASSERT(s.size() == i+1, "Wrong size after push");
+	}
+
+	for (size_t i=0; i < size; ++i) {
+		size_t x = 1233+size-i;
+		size_t read = s.pop();
+		ASSERT(s.size() == size-i-1, "Wrong size after pop");
+		ASSERT(x == read, "Wrong item popped: Expected " << x << ", got " << read);
+	}
+
+	return true;
+}
+
+
+bool io_test() {
+	typedef uint64_t test_t;
+	stack<test_t> s;
+
+	// some block boundary, in bytes
+	const size_t block_boundary = 4*1024*1024;
+
+	for (size_t i = 0; i < block_boundary/sizeof(test_t); ++i) {
+		s.push(test_t());
+	}
+	// stack now contains block_boundary bytes
+
+	const stream_size_type before = get_bytes_written();
+	// enter a new block, forcing a write of the full buffer
+	s.push(test_t());
+	const stream_size_type after = get_bytes_written();
+	const stream_size_type write = after-before;
+	std::cerr << "Before: " << before << ", after: " << after << " (difference " << write << ")" << std::endl;
+
+	stream_size_type prev = after;
+	// cross the block boundary a number of times
+	const size_t repeats = 100;
+	for (size_t i = 0; i < repeats; ++i) {
+		s.pop();
+		s.pop();
+		s.push(test_t());
+		s.push(test_t());
+		stream_size_type now = get_bytes_written();
+		//std::cerr << now << " (" << (now-prev) << ")" << std::endl;
+		prev = now;
+	}
+	std::cerr << "Crossing the block boundary " << repeats << " times, in total writing " << (prev-after) << " bytes" << std::endl;
+	if ((prev-after) > 2*write) {
+		std::cerr << "Too inefficient!" << std::endl;
+		return false;
+	}
+	return true;
+}
+
 
 bool perform_test(const std::string & test) {
-  if (test == "small")
-	  return stack_test(1024 * 1024 * 3);
+  if (test == "small-ami")
+	  return ami_stack_test(1024 * 1024 * 3);
+  else if (test == "named-ami")
+	  return ami_named_stack_test();
+  else if (test == "large-ami")
+	  return ami_stack_test(1024*1024*1024);
+  else if (test == "small")
+	  return stack_test(1024*1024*3);
   else if (test == "named")
 	  return named_stack_test();
   else if (test == "large")
 	  return stack_test(1024*1024*1024);
+  else if (test == "io")
+	  return io_test();
   return false;
 }
 

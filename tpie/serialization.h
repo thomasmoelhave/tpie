@@ -20,8 +20,7 @@
 #define __TPIE_SERIALIZATION_H__
 
 ///////////////////////////////////////////////////////////////////////////
-/// \file tpie/serialization.h Dclares TPIE support for binary serialization
-/// and unserialization.
+/// \file tpie/serialization.h Binary serialization and unserialization.
 ///////////////////////////////////////////////////////////////////////////
 
 #include <tpie/config.h>
@@ -41,15 +40,17 @@
 
 namespace tpie {
 
-////////////////////////////////////////////////////////////////////////////////
-/// Class tho compute the disjunction between two boost true/false types
-////////////////////////////////////////////////////////////////////////////////
+#ifndef DOXYGEN
 template <bool b1, bool b2>
 struct _disjunction: public boost::true_type {};
 
 template <>
 struct _disjunction<false, false>: public boost::false_type {};
+#endif
 
+////////////////////////////////////////////////////////////////////////////////
+/// Class to compute the disjunction between two boost true/false types
+////////////////////////////////////////////////////////////////////////////////
 template <typename T1, typename T2>
 struct disjunction: public _disjunction<T1::value, T2::value> {};
 
@@ -158,7 +159,7 @@ public:
 	inline unserializer & read(T * array, size_t & size) {
 		boost::uint16_t x;
 		*this >> x;
-		if (x > size) throw serialization_error("array to short");
+		if (x > size) throw serialization_error("array too short");
 		size=x;
 		for (size_t i=0; i < size; ++i)
 			*this >> array[i];
@@ -170,7 +171,7 @@ public:
 		check_type<T>();
 		char * y = reinterpret_cast<char*>(&x);
 		m_in.read(y, sizeof(T));
-		if (m_in.eof() || m_in.fail()) throw serialization_error("Out of bytes");
+		if (m_in.eof() || m_in.fail()) throw serialization_error("Unexpected end-of-file");
 		return *this;
 	}
 
@@ -216,7 +217,7 @@ private:
 		m_in >> s_hash;
 		if (s_hash == hash) return;
 		std::stringstream ss;
-		ss << "Serialization type error, input type did not match expected type:" << typeid(T).name();
+		ss << "Serialization type error, input type did not match expected type: " << typeid(T).name();
 		throw serialization_error(ss.str());
 	}
 

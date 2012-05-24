@@ -19,6 +19,7 @@
 
 #include <tpie/portability.h>
 
+#include <tpie/memory.h>
 
 #include <tpie/progress_indicator_arrow.h>
 
@@ -45,10 +46,10 @@ int main(int argc, char **argv)
 
     if (verbose) {
 	std::cout << "test_size = " << test_size << "." << std::endl;
-	std::cout << "test_mm_size = " << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << "." << std::endl;
+	std::cout << "test_mm_size = " << static_cast<stream_size_type>(test_mm_size) << "." << std::endl;
 	std::cout << "random_seed = " << random_seed << "." << std::endl;
     } else {
-	std::cout << test_size << ' ' << static_cast<TPIE_OS_OUTPUT_SIZE_T>(test_mm_size) << ' ' << random_seed;
+	std::cout << test_size << ' ' << static_cast<stream_size_type>(test_mm_size) << ' ' << random_seed;
     }
     
     // Set the amount of main memory:

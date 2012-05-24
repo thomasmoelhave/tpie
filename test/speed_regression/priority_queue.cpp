@@ -28,6 +28,8 @@
 #include <boost/filesystem/operations.hpp>
 #include <tpie/priority_queue.h>
 #include "testinfo.h"
+#include <boost/random/uniform_01.hpp>
+#include <boost/random/mersenne_twister.hpp>
 
 using namespace tpie;
 using namespace tpie::ami;
@@ -39,24 +41,46 @@ void usage() {
 	std::cout << "Parameters: [times] [mb]" << std::endl;
 }
 
-void test(size_t mb, size_t times) {
+struct intgenerator {
+	typedef uint64_t item_type;
+	uint64_t i;
+	inline intgenerator() : i(91493) {}
+	inline uint64_t operator()() { return 104729*(i++); }
+	inline void use(item_type & a, item_type & x) { a ^= x; }
+};
+
+boost::mt19937 rng;
+boost::uniform_01<boost::mt19937, double> doublegenerator(rng);
+boost::uniform_01<boost::mt19937, float> floatgenerator(rng);
+
+struct segmentgenerator {
+	typedef std::pair<double, std::pair<double, float> > item_type;
+	inline item_type operator()() { return std::make_pair(doublegenerator(), std::make_pair(doublegenerator(), floatgenerator())); }
+	inline void use(item_type & a, item_type & x) { a.first += x.second.first; }
+};
+
+template <typename Generator>
+void test(Generator g, size_t mb, size_t times, double blockFactor = 0.125) {
+	typedef typename Generator::item_type test_t;
+	test_t a = test_t();
+
 	std::vector<const char *> names;
 	names.resize(2);
-	uint64_t a=0;
 	names[0] = "Push";
 	names[1] = "Pop";
+
 	tpie::test::stat s(names);
-	TPIE_OS_OFFSET count=TPIE_OS_OFFSET(mb)*1024*1024/sizeof(uint64_t);
+	TPIE_OS_OFFSET count=TPIE_OS_OFFSET(mb)*1024*1024/sizeof(test_t);
 	for (size_t i=0; i < times; ++i) {
 		
 		test_realtime_t start;
 		test_realtime_t end;
 		getTestRealtime(start);
 		{
-			tpie::ami::priority_queue<uint64_t> pq(0.95);
+			tpie::ami::priority_queue<test_t> pq(0.95, blockFactor);
 		
 			for(TPIE_OS_OFFSET i=0; i < count; ++i) {
-				uint64_t x= (i+ 91493)*104729;
+				test_t x = g();
 				pq.push(x);
 			}
 			getTestRealtime(end);
@@ -64,41 +88,68 @@ void test(size_t mb, size_t times) {
 
 			getTestRealtime(start);
 			for(TPIE_OS_OFFSET i=0; i < count; ++i) {
-				uint64_t x=pq.top();
+				test_t x=pq.top();
 				pq.pop();
-				a ^= x;
+				g.use(a, x);
 			}
 			getTestRealtime(end);
 			s(testRealtimeDiff(start,end));
 		}
 	}
-	if (a == 42) std::cout << "oh rly" << std::endl;
+	if (a == g()) std::cout << "oh rly" << std::endl;
 }
 
 int main(int argc, char **argv) {
 	size_t times = 10;
 	size_t mb = mb_default;
-			
-	if (argc > 1) {
-		if (std::string(argv[1]) == "0") {
+	double blockFactor = 0.125;
+	bool segments = false;
+
+	int i;
+	for (i = 1; i < argc; ++i) {
+		std::string arg(argv[i]);
+		if (arg == "-s") {
+			segments = true;
+		} else {
+			break;
+		}
+	}
+	if (i < argc) {
+		if (std::string(argv[i]) == "0") {
 			times = 0;
 		} else {
-			std::stringstream(argv[1]) >> times;
+			std::stringstream(argv[i]) >> times;
 			if (!times) {
 				usage();
 				return EXIT_FAILURE;
 			}
 		}
+		++i;
 	}
-	if (argc > 2) {
-		std::stringstream(argv[2]) >> mb;
+	if (i < argc) {
+		std::stringstream(argv[i]) >> mb;
 		if (!mb) {
 			usage();
 			return EXIT_FAILURE;
 		}
+		++i;
+	}
+	if (i < argc) {
+		if (!(std::stringstream(argv[i]) >> blockFactor) || blockFactor*2*1024*1024 < 8) {
+			usage();
+			return EXIT_FAILURE;
+		}
+		++i;
 	}
 
 	testinfo t("Priority queue speed test", 1024, mb, times);
-	::test(mb, times);
+	sysinfo().printinfo("Block factor", blockFactor);
+	if (segments) {
+		sysinfo().printinfo("Item type", "segments");
+		::test(intgenerator(), mb, times, blockFactor);
+	} else {
+		sysinfo().printinfo("Item type", "64-bit integers");
+		::test(segmentgenerator(), mb, times, blockFactor);
+	}
 	return EXIT_SUCCESS;
 }

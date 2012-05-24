@@ -27,6 +27,8 @@
 // The new getopts() argument-parsing function.
 #include "getopts.h"
 #include <tpie/stream.h>
+#include <tpie/memory.h>
+#include "test_portability.h"
 
 using namespace tpie;
 

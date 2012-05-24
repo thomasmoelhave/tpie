@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2010, The TPIE development team
+// Copyright 2010, 2011, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -20,19 +20,21 @@
 #include <tpie/priority_queue.h>
 #include <vector>
 #include "priority_queue.h"
+#include "../test_portability.h"
+
 using namespace tpie;
 using namespace std;
 
 bool basic_test() {
 	//Lets hope the external pq has a small block factor!
-	get_memory_manager().set_limit(33*1024*1024);
-	ami::priority_queue<boost::uint64_t, bit_pertume_compare< std::greater<boost::uint64_t> > > pq(0.1);
+	get_memory_manager().set_limit(32*1024*1024);
+	ami::priority_queue<boost::uint64_t, bit_pertume_compare< std::greater<boost::uint64_t> > > pq(1.0);
 	return basic_pq_test(pq, 350003);
 }
 
 bool medium_instance() {
 	TPIE_OS_OFFSET iterations = 10000;
-    get_memory_manager().set_limit(16*1024*1024);
+    get_memory_manager().set_limit(32*1024*1024);
 	progress_indicator_arrow progress("Running test",iterations-1100);
     for(TPIE_OS_OFFSET it = 1100; it < iterations; it++)  {
 		progress.step();
@@ -126,8 +128,61 @@ bool large_instance(){
 		// 	std::cout << "Memory available: " << MM_manager.memory_available()/1024/1024 << " MB" << std::endl;
 		// }
 	}
-	progress.done("Done");
+	progress.done();
 	return true;
+}
+
+class priority_queue_memory_test : public memory_test {
+public:
+	priority_queue_memory_test() {
+		m_memory = std::min(ITEMS * sizeof(size_t) / 2, consecutive_memory_available());
+	}
+
+	priority_queue_memory_test(size_type memory_usage) :
+		m_memory(memory_usage) {
+		// Empty ctor
+	}
+
+	virtual ~priority_queue_memory_test() {
+		// Empty dtor
+	}
+
+	virtual void alloc() {
+		m_pq = tpie_new<ami::priority_queue<size_t> >(m_memory);
+	}
+
+	static inline size_t ITEM(size_t i) {return i*98927 % 104639;}
+	static const size_t ITEMS = 16*1024*1024;
+
+	virtual void use() {
+		progress_indicator_arrow progress("Priority queue test",ITEMS*2);
+		for (size_t i = 0; i < ITEMS; ++i) {
+			progress.step();
+			m_pq->push(ITEM(i));
+		}
+		for (size_t i = 0; i < ITEMS; ++i) {
+			progress.step();
+			m_pq->pop();
+		}
+	}
+
+	virtual void free() {
+		tpie_delete<ami::priority_queue<size_t> >(m_pq);
+		m_pq = 0;
+	}
+
+	virtual size_type claimed_size() {
+		return m_memory;
+	}
+
+private:
+	ami::priority_queue<size_t> * m_pq;
+	size_type m_memory;
+};
+
+bool memory_test() {
+	priority_queue_memory_test tester;
+	return tester();
 }
 
 
@@ -143,5 +198,7 @@ int main(int argc, char **argv) {
 		return large_instance<false>()?EXIT_SUCCESS:EXIT_FAILURE;
 	else if (test == "large_cycle")
 		return large_cycle()?EXIT_SUCCESS:EXIT_FAILURE;
+	else if (test == "memory")
+		return memory_test()?EXIT_SUCCESS:EXIT_FAILURE;
 	return EXIT_FAILURE;
 }

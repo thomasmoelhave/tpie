@@ -24,9 +24,23 @@
 #ifndef __TPIE_EXECUTION_TIME_PREDICTOR_H__
 #define __TPIE_EXECUTION_TIME_PREDICTOR_H__
 
+///////////////////////////////////////////////////////////////////////////////
+/// \file execution_time_predictor.h Execution time predictor used by
+/// fractional progress.
+///////////////////////////////////////////////////////////////////////////////
+
 namespace tpie {
 
+///////////////////////////////////////////////////////////////////////////////
+/// \internal \brief Used by tpie_init to initialize the execution time
+/// database.
+///////////////////////////////////////////////////////////////////////////////
 void init_execution_time_db();
+
+///////////////////////////////////////////////////////////////////////////////
+/// \internal \brief Used by tpie_finish to deinitialize the execution time
+/// database.
+///////////////////////////////////////////////////////////////////////////////
 void finish_execution_time_db();
 
 class unique_id_type {
@@ -50,9 +64,14 @@ class execution_time_predictor {
 public:
 	execution_time_predictor(const std::string & id=std::string());
 	~execution_time_predictor();
-	TPIE_OS_OFFSET estimate_execution_time(TPIE_OS_OFFSET n, double & confidence);
-	void start_execution(TPIE_OS_OFFSET n);
-	TPIE_OS_OFFSET end_execution();
+	///////////////////////////////////////////////////////////////////////////
+	/// Estimate execution time.
+	/// \param n Input size
+	/// \param confidence (output) Confidence (between 0.0 and 1.0)
+	///////////////////////////////////////////////////////////////////////////
+	memory_size_type estimate_execution_time(memory_size_type n, double & confidence);
+	void start_execution(memory_size_type n);
+	memory_size_type end_execution();
 	std::string estimate_remaining_time(double progress);
 
 	static void start_pause();
@@ -65,16 +84,19 @@ public:
 private:
 	size_t m_id;
 	boost::posix_time::ptime m_start_time;
-	TPIE_OS_OFFSET m_estimate;
+	memory_size_type m_estimate;
 	double m_confidence;
-	TPIE_OS_OFFSET m_n;
-	TPIE_OS_OFFSET m_pause_time_at_start;
+
+	/** Input size */
+	memory_size_type m_n;
+
+	memory_size_type m_pause_time_at_start;
 
 #ifndef TPIE_NDEBUG
 	std::string m_name;
 #endif
 
-	static TPIE_OS_OFFSET s_pause_time;
+	static memory_size_type s_pause_time;
 	static boost::posix_time::ptime s_start_pause_time;
 	static bool s_store_times;
 };

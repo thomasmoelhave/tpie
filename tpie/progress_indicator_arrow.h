@@ -17,6 +17,10 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
+///////////////////////////////////////////////////////////////////////////////
+/// \file progress_indicator_arrow.h  Indicate progress by expanding an arrow
+///////////////////////////////////////////////////////////////////////////////
+
 #ifndef _TPIE_PROGRESS_INDICATOR_ARROW_H
 #define _TPIE_PROGRESS_INDICATOR_ARROW_H
 

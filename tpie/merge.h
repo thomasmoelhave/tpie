@@ -22,7 +22,7 @@
 
 ///////////////////////////////////////////////////////////////////////////
 /// \file merge.h 
-/// Declares merge management objects.
+/// Merge management objects.
 ///////////////////////////////////////////////////////////////////////////
 
 
@@ -34,6 +34,8 @@
 
 #include <tpie/stream.h>
 
+#include <tpie/memory.h>
+#include <tpie/tpie_assert.h>
 
 namespace tpie {
 
@@ -50,13 +52,16 @@ namespace tpie {
 }  //  tpie namespace
 
 namespace tpie {
-
-    namespace ami {
 	
   /** Intended to signal in a merge which of the input streams are non-empty */ 
 	typedef int            merge_flag;
 	/** Intended to signal the number of input streams in a merge */ 
 	typedef TPIE_OS_SIZE_T arity_t;
+
+    namespace ami {
+
+		using tpie::merge_flag;
+		using tpie::arity_t;
 	
 #define CONST const
 
@@ -127,18 +132,19 @@ namespace tpie {
 				stream<T> *outstream, M *m_obj);
 
 	///////////////////////////////////////////////////////////////////////////
-  /// Merges <arity> streams in memory using a merge management object and
-  /// write result into outstream.
-  ///////////////////////////////////////////////////////////////////////////
+	/// Merges <var>arity</var> streams in memory using a merge management
+	/// object and write result into <var>outstream</var>.
+	///////////////////////////////////////////////////////////////////////////
   template<class T, class M>
   err  single_merge(stream<T> **instreams, arity_t arity,
 			  stream<T> *outstream, M *m_obj);
 
 
   ///////////////////////////////////////////////////////////////////////////
-	///Reads <instream> in memory and merges it using
-	///m_obj->main_mem_operate(); if <instream> does not fit in main memory
-	///returns INSUFFICIENT_MAIN_MEMORY;
+  /// Reads <var>instream</var> in memory and merges it using
+  /// m_obj->main_mem_operate(); if <var>instream</var> does not fit in main
+  /// memory returns INSUFFICIENT_MAIN_MEMORY;
+  /////////////////////////////////////////////////////////////////////////////
 	template<class T, class M>
 	err main_mem_merge(stream<T> *instream,
 			   stream<T> *outstream, M *m_obj);
@@ -274,7 +280,7 @@ namespace tpie {
                
 	    //streams and m_obj must fit in memory!
 	    if (sz_needed >= static_cast<TPIE_OS_OFFSET>(sz_avail)) {
-		TP_LOG_WARNING("Insuficent main memory to perform a merge.\n");
+		TP_LOG_WARNING("Insufficient main memory to perform a merge.\n");
 		return INSUFFICIENT_MAIN_MEMORY;
 	    }
 	    assert(sz_needed < sz_avail);
@@ -692,7 +698,7 @@ namespace tpie {
 		} else {
 		    mm_len = sz_orig_substr;
 		}
-#if DEBUG_ASSERTIONS
+#ifndef TPIE_NDEBUG
 		TPIE_OS_OFFSET mm_len_bak = mm_len;
 #endif
     

@@ -235,6 +235,23 @@ public:
 	virtual size_type claimed_size() {return static_cast<size_type>(bit_array::memory_usage(123456));}
 };
 
+bool copyempty() {
+	array<char> a(0);
+	array<char> b(0);
+	array<char> temp = a;
+	a = b;
+	b = temp;
+	return true;
+}
+
+bool arrayarray() {
+	array<array<int> > a;
+	array<int> prototype(1);
+	a.resize(1, prototype);
+	a.resize(0);
+	return true;
+}
+
 int main(int argc, char **argv) {
 	tpie_initer _(128);
 	BOOST_CONCEPT_ASSERT((linear_memory_structure_concept<array<int> >));
@@ -266,5 +283,9 @@ int main(int argc, char **argv) {
 		return iterator_bool_test()?EXIT_SUCCESS:EXIT_FAILURE;
 	else if (test == "bit_memory") 
 		return array_bool_memory_test()()?EXIT_SUCCESS:EXIT_FAILURE;
+	else if (test == "copyempty") 
+		return copyempty()?EXIT_SUCCESS:EXIT_FAILURE;
+	else if (test == "arrayarray")
+		return arrayarray()?EXIT_SUCCESS:EXIT_FAILURE;
 	return EXIT_FAILURE;
 }

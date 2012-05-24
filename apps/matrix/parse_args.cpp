@@ -31,6 +31,7 @@
 
 // The new getopts() argument-parsing function.
 #include "getopts.h"
+#include <tpie/memory.h>
 #include <tpie/stream.h>
 
 using namespace tpie;

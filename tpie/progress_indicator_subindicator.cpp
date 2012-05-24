@@ -88,8 +88,8 @@ void progress_indicator_subindicator::refresh() {
 	if (val > get_range()) val = get_range();
 	if (get_range() == 0) return;
 	TPIE_OS_OFFSET value= val* m_outerRange / get_range();
-	if (value > m_oldValue && m_parent) {
-		m_parent->step(value - m_oldValue);
+	if (m_parent) {
+		m_parent->raw_step(value - m_oldValue);
 		m_oldValue = value;
 	}
 }

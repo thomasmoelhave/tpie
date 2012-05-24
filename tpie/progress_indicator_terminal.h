@@ -17,6 +17,10 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
+///////////////////////////////////////////////////////////////////////////////
+/// \file progress_indicator_terminal.h  Indicate progress by a simple counter
+///////////////////////////////////////////////////////////////////////////////
+
 #ifndef _TPIE_PROGRESS_INDICATOR_TERMINAL_H
 #define _TPIE_PROGRESS_INDICATOR_TERMINAL_H
 
@@ -92,12 +96,9 @@ public:
 	///
 	////////////////////////////////////////////////////////////////////
 
-	void done(const std::string& text = std::string()) {
+	void done() {
 	    m_current = m_range;
 	    refresh();
-	    if (!text.empty()) {
-			std::cout << " " << text;
-	    }
 	    std::cout << std::endl;
 	}
 

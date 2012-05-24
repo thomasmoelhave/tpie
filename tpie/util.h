@@ -1,6 +1,6 @@
 // -*- Mode: C++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2009, The TPIE development team
+// Copyright 2009, 2012, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -17,38 +17,26 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
+///////////////////////////////////////////////////////////////////////////////
+/// \file util.h  Miscellaneous utility functions
+///////////////////////////////////////////////////////////////////////////////
+
 #ifndef __TPIE_UTIL_H__
 #define __TPIE_UTIL_H__
 
 #include <tpie/portability.h>
+#include <tpie/types.h>
 #include <cmath>
-#include <boost/cstdint.hpp>
+#include <string>
+
 namespace tpie {
 
 ///////////////////////////////////////////////////////////////////////////
-/// Avoid a unused variable warning
-/// \param x the variable to ignore 
+/// \brief Ignore an unused variable warning
+/// \param x The variable that we are well aware is not beeing useod
 ///////////////////////////////////////////////////////////////////////////
 template <typename T>
 inline void unused(const T & x) {(void)x;}
-
-typedef TPIE_OS_OFFSET offset_type;
-typedef TPIE_OS_SIZE_T size_type;
-typedef TPIE_OS_SSIZE_T ssize_type;
-
-using boost::uint8_t;
-using boost::int8_t;
-using boost::uint16_t;
-using boost::int16_t;
-using boost::uint32_t;
-using boost::int32_t;
-using boost::uint64_t;
-using boost::int64_t;
-
-typedef size_type memory_size_type;
-typedef ssize_type memory_offset_type;
-typedef uint64_t stream_size_type;
-typedef int64_t stream_offset_type;
 
 template <typename T> struct sign {typedef T type;};
 template <> struct sign<uint8_t> {typedef int8_t type;};
@@ -61,6 +49,12 @@ template <> struct unsign<int8_t> {typedef uint8_t type;};
 template <> struct unsign<int16_t> {typedef uint16_t type;};
 template <> struct unsign<int32_t> {typedef uint32_t type;};
 template <> struct unsign<int64_t> {typedef uint64_t type;};
+
+#ifdef _WIN32
+const char directory_delimiter = '\\';
+#else
+const char directory_delimiter = '/';
+#endif
 
 ///////////////////////////////////////////////////////////////////////////
 /// Any internal memory datastructur whos memory usage is linear
@@ -77,8 +71,8 @@ struct linear_memory_base {
 	// \param size The number of elements to support
 	// \return The abount of memory required in bytes
 	///////////////////////////////////////////////////////////////////////////
-	inline static offset_type memory_usage(offset_type size) {
-		return static_cast<offset_type>(
+	inline static stream_size_type memory_usage(stream_size_type size) {
+		return static_cast<stream_size_type>(
 			floor(size * child_t::memory_coefficient() + child_t::memory_overhead()));
 	}
 
@@ -88,18 +82,10 @@ struct linear_memory_base {
 	// \param memory The number of bytes the structure is allowed to occupie
 	// \return The number of elements that will fit in the structure
 	///////////////////////////////////////////////////////////////////////////
-	inline static size_type memory_fits(size_type memory) {
-		return static_cast<size_type>(
+	inline static memory_size_type memory_fits(memory_size_type memory) {
+		return static_cast<memory_size_type>(
 			floor((memory - child_t::memory_overhead()) / child_t::memory_coefficient()));
 	}
-};
-
-template <typename T>
-struct scoped_change {
-	T & var;
-	T old;
-	scoped_change(T & v, T n): var(v), old(v) {var = n;}
-	~scoped_change() {var=old;}
 };
 
 template <int t>
@@ -167,6 +153,11 @@ struct binary_argument_swap: public std::binary_function<typename T::second_argu
 	}
 };
 
+void atomic_rename(const std::string & src, const std::string & dst);
+
+#ifdef _WIN32
+void throw_getlasterror();
+#endif
 
 } //namespace tpie
 

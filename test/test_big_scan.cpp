@@ -19,17 +19,16 @@
 
 #include "app_config.h"
 #include <tpie/portability.h>
+#include "test_portability.h"
 #include <tpie/stream.h>
 #include "getopts.h"
 
-using namespace tpie;
+#include <cstring>
+#include <tpie/memory.h>
+#include <tpie/types.h>
+#include <iostream>
 
-//snprintf is different on WIN/Unix platforms
-#ifdef _WIN32
-#define APP_SNPRINTF _snprintf
-#else
-#define APP_SNPRINTF snprintf
-#endif
+using namespace tpie;
 
 enum app_options { 
     APP_OPTION_PATH = 1,
@@ -41,9 +40,9 @@ enum app_options {
 };
 
 const unsigned int APP_OPTION_NUM_OPTIONS=6; 
-const TPIE_OS_LONGLONG APP_MEG = 1024*1024;
-const TPIE_OS_LONGLONG APP_GIG = 1024*1024*1024;
-const TPIE_OS_LONGLONG APP_DEFAULT_N_ITEMS = 10000;
+const stream_size_type APP_MEG = 1024*1024;
+const stream_size_type APP_GIG = 1024*1024*1024;
+const stream_size_type APP_DEFAULT_N_ITEMS = 10000;
 const int  APP_ITEM_SIZE = 64;
 
 const char* APP_FILE_BASE =  "TPIE_Test";
@@ -53,7 +52,7 @@ const char* APP_FILE_BASE =  "TPIE_Test";
 typedef struct app_info{
     const char * path;
     int item_size;
-    TPIE_OS_LONGLONG num_items;
+    stream_size_type num_items;
 } appInfo;
 
 // ********************************************************** 
@@ -66,7 +65,7 @@ class Item{
 public:
     Item();
     ~Item(){};
-    TPIE_OS_LONGLONG convert();
+    stream_size_type convert();
     Item operator ++(int j);
     friend std::ostream& operator << (std::ostream & out, const Item & it);
     friend bool operator == (const Item & i1, const Item & i2);
@@ -85,12 +84,12 @@ Item::Item(){
 
 //Converts ascii counter into actual numeric value
 //assuming base 26 arithmetic
-//assumes TPIE_OS_LONGLONG is 64 bits
-TPIE_OS_LONGLONG Item::convert(){
+//assumes stream_size_type is 64 bits
+stream_size_type Item::convert(){
     int i, stop;
-    TPIE_OS_LONGLONG ans=0;
+    stream_size_type ans=0;
     //13 'digits' in base 26 ('zzzzzzzzzzzzz') is 
-    //most digits that won't overflow a TPIE_OS_LONGLONG
+    //most digits that won't overflow a stream_size_type
     stop = (APP_ITEM_SIZE < 14) ? APP_ITEM_SIZE : 14;
     i=APP_ITEM_SIZE-stop;
     while(i < APP_ITEM_SIZE-1){
@@ -145,11 +144,11 @@ std::ostream & operator << (std::ostream & out, const Item & it){
 // Just like atoi or atol, but should also work for 64bit numbers
 // Also supports KMG suffixes (e.g. 2K = 2*1024)
 
-TPIE_OS_LONGLONG ascii2longlong(char *s){
+stream_offset_type ascii2longlong(char *s){
 
     TPIE_OS_SIZE_T i, len, multfactor;
     TPIE_OS_SSIZE_T digit;
-    TPIE_OS_LONGLONG val;
+    stream_offset_type val;
     bool ok, neg;
   
     len = strlen(s);
@@ -301,7 +300,7 @@ void get_app_info(int argc, char** argv, appInfo & Info){
 		break;
 	    }
 	    //do actual setup
-	    TPIE_OS_LONGLONG tmp;
+	    stream_offset_type tmp;
 	    switch(optidx){
 	    case APP_OPTION_2GIG_TEST:
 		Info.num_items=2*((APP_GIG/Info.item_size)+1);
@@ -392,7 +391,7 @@ void get_app_info(int argc, char** argv, appInfo & Info){
 
 //converts numbers into strings
 //with appropriate G, M, K suffixes
-char* ll2size(TPIE_OS_LONGLONG n){
+char* ll2size(stream_size_type n){
   
     const int bufsize = 20;
     float size;
@@ -419,7 +418,7 @@ char* ll2size(TPIE_OS_LONGLONG n){
 
 // A simple progress bar that shows percentage complete
 // and current file offset
-void progress_bar(float pct, TPIE_OS_LONGLONG nbytes){
+void progress_bar(float pct, stream_size_type nbytes){
 
     //how long is progress bar?
     const int nticks=20;
@@ -452,7 +451,8 @@ void progress_bar(float pct, TPIE_OS_LONGLONG nbytes){
 // Open a stream, write num_items, close stream
 void write_test(const std::string& fname, appInfo & info){
     
-    TPIE_OS_OFFSET i,n,trunc_bytes;
+    TPIE_OS_OFFSET i,n;
+    stream_size_type trunc_bytes;
     Item x;
     ami::err ae = ami::NO_ERROR;
     
@@ -471,8 +471,8 @@ void write_test(const std::string& fname, appInfo & info){
 	      << n 
 	      << " items..." << std::endl;
   
-    trunc_bytes=(static_cast<TPIE_OS_OFFSET>(sizeof (x)))*n;
-    if(trunc_bytes<0 || trunc_bytes>(4*APP_GIG)){
+    trunc_bytes=sizeof (x)*n;
+    if(trunc_bytes>(4*APP_GIG)){
 	std::cout << "Initial file length computed as "<< trunc_bytes
 		  << "\nSetting to 4GB "<< std::endl;
 	trunc_bytes=4*APP_GIG;
@@ -512,7 +512,7 @@ void write_test(const std::string& fname, appInfo & info){
 
 void read_test(const std::string& fname, appInfo & info){
 
-    TPIE_OS_LONGLONG i,n;
+    stream_size_type i,n;
     Item *x1, x2;
     ami::err ae=ami::NO_ERROR;
    
@@ -567,7 +567,7 @@ int main(int argc, char **argv){
 
     get_app_info(argc, argv, info);
  
-    TPIE_OS_LONGLONG filesize = info.num_items*info.item_size;
+    stream_size_type filesize = info.num_items*info.item_size;
     std::cout << "Path:  " << info.path 
 	      << "\nNum Items: " << info.num_items 
 	      << "\nItem Size: " << info.item_size

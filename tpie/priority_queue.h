@@ -17,12 +17,16 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
+///////////////////////////////////////////////////////////////////////////////
+/// \file priority_queue.h
+/// \brief External memory priority queue implementation.
+///////////////////////////////////////////////////////////////////////////////
+
 #ifndef _TPIE_PRIORITY_QUEUE_H_
 #define _TPIE_PRIORITY_QUEUE_H_
 
 #include <tpie/config.h>
 #include "portability.h"
-#include "ami.h"
 #include "tpie_log.h"
 #include <cassert>
 #include "pq_overflow_heap.h"
@@ -31,12 +35,15 @@
 #include <stdexcept>
 #include <cmath>
 #include <string>
+#include <cstring> // for memcpy
 #include <sstream>
 #include "pq_merge_heap.h"
+#include <tpie/err.h>
+#include <tpie/stream.h>
+#include <tpie/array.h>
+#include <boost/filesystem.hpp>
 
 namespace tpie {
-
-    namespace ami {
 
 	struct priority_queue_error : public std::logic_error {
 		priority_queue_error(const std::string& what) : std::logic_error(what)
@@ -48,9 +55,11 @@ namespace tpie {
 ///  \class priority_queue
 ///  \author Lars Hvam Petersen
 ///
-///  Inspiration: Sanders - Fast priority queues for cached memory
+///  Inspiration: Sanders - Fast priority queues for cached memory (1999)
+///  Refer to Section 2 and Figure 1 for an overview of the algorithm
 ///
 /////////////////////////////////////////////////////////
+
 template<typename T, typename Comparator = std::less<T>, typename OPQType = pq_overflow_heap<T, Comparator> >
 class priority_queue {
 public:
@@ -60,19 +69,17 @@ public:
     ///
     /// \param f Factor of memory that the priority queue is 
     /// allowed to use.
+	/// \param b Block factor
     ///
     /////////////////////////////////////////////////////////
-    priority_queue(double f=1.0);
+    priority_queue(double f=1.0, double b=0.0625);
 
-	/////////////////////////////////////////////////////////
-    ///
-    /// Constructor
-    ///
-    /// \param mmavail Number of bytes the priority queue is
-    /// allowed to use.
-    ///
-    /////////////////////////////////////////////////////////
-    priority_queue(TPIE_OS_SIZE_T mm_avail);
+#ifndef DOXYGEN
+    // \param mmavail Number of bytes the priority queue is
+    // allowed to use.
+	// \param b Block factor
+    priority_queue(TPIE_OS_SIZE_T mm_avail, double b=0.0625);
+#endif
 
 
     /////////////////////////////////////////////////////////
@@ -145,10 +152,10 @@ private:
     T min;
     bool min_in_buffer;
 
-	tpie::auto_ptr<OPQType> opq;
-    T* buffer; // deletion buffer
-    T* gbuffer0; // group buffer 0
-    T* mergebuffer; // merge buffer
+	tpie::auto_ptr<OPQType> opq; // insert heap
+	tpie::array<T> buffer; // deletion buffer
+	tpie::array<T> gbuffer0; // group buffer 0
+	tpie::array<T> mergebuffer; // merge buffer for merging deletion buffer and group buffer 0
 	tpie::array<TPIE_OS_OFFSET> slot_state;
 	tpie::array<TPIE_OS_OFFSET> group_state;
 
@@ -163,19 +170,9 @@ private:
     TPIE_OS_SIZE_T buffer_size;
     TPIE_OS_SIZE_T buffer_start;
 
-    //////////////////
-    // TPIE wrappers
-    ami::err err;
+	double block_factor;
 
 	void init(TPIE_OS_SIZE_T mm_avail);
-
-    void seek_offset(stream<T>* data, TPIE_OS_OFFSET offset);
-
-    T* read_item(stream<T>* data); 
-
-    void write_item(stream<T>* data, T write); 
-    // end TPIE wrappers
-    /////////////////////
 
     void slot_start_set(TPIE_OS_SIZE_T slot, TPIE_OS_OFFSET n); 
     TPIE_OS_OFFSET slot_start(TPIE_OS_SIZE_T slot) const; 
@@ -185,13 +182,11 @@ private:
     TPIE_OS_OFFSET group_start(TPIE_OS_SIZE_T group) const; 
     void group_size_set(TPIE_OS_SIZE_T group, TPIE_OS_OFFSET n); 
     TPIE_OS_OFFSET group_size(TPIE_OS_SIZE_T group) const; 
-    std::string filename;
-    std::string datafiles;
-    const std::string& datafile(TPIE_OS_OFFSET id); 
-    const std::string& datafile_group(TPIE_OS_OFFSET id); 
-    const std::string& slot_data(TPIE_OS_SIZE_T slotid); 
+    array<temp_file> datafiles;
+    array<temp_file> groupdatafiles;
+    temp_file & slot_data(TPIE_OS_SIZE_T slotid); 
     void slot_data_set(TPIE_OS_SIZE_T slotid, TPIE_OS_OFFSET n); 
-    const std::string& group_data(TPIE_OS_SIZE_T groupid); 
+    temp_file & group_data(TPIE_OS_SIZE_T groupid); 
     TPIE_OS_OFFSET slot_max_size(TPIE_OS_SIZE_T slotid); 
     void write_slot(TPIE_OS_SIZE_T slotid, T* arr, TPIE_OS_OFFSET len); 
     TPIE_OS_SIZE_T free_slot(TPIE_OS_SIZE_T group);
@@ -206,6 +201,8 @@ private:
 
 #include "priority_queue.inl"
 
+    namespace ami {
+		using tpie::priority_queue;
     }  //  ami namespace
 
 }  //  tpie namespace

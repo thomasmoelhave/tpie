@@ -17,3 +17,11 @@ set_target_properties(sort_speed_test PROPERTIES FOLDER tpie/test)
 add_executable(pq_speed_test priority_queue.cpp ${SPEED_DEPS})
 target_link_libraries(pq_speed_test tpie)
 set_target_properties(pq_speed_test PROPERTIES FOLDER tpie/test)
+
+add_executable(array_speed_test array.cpp)
+target_link_libraries(array_speed_test tpie)
+set_target_properties(array_speed_test PROPERTIES FOLDER tpie/test)
+
+add_executable(file_stream_speed_test file_stream.cpp ${SPEED_DEPS})
+target_link_libraries(file_stream_speed_test tpie)
+set_target_properties(file_stream_speed_test PROPERTIES FOLDER tpie/test)

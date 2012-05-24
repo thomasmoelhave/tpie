@@ -17,12 +17,18 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
+///////////////////////////////////////////////////////////////////////////////
+/// \file tempname.h  Temporary file names
+///////////////////////////////////////////////////////////////////////////////
+
 #ifndef _TPIE_TEMPNAM_H
 #define _TPIE_TEMPNAM_H
 
 // Get definitions for working with Unix and Windows
 #include <tpie/portability.h>
+#include <tpie/stats.h>
 #include <stdexcept>
+#include <boost/utility.hpp>
 // The name of the environment variable pointing to a tmp directory.
 #define TMPDIR_ENV "TMPDIR"
 
@@ -36,6 +42,10 @@ namespace tpie {
 		explicit tempfile_error(const std::string & what): std::runtime_error(what) {}
 	};
    
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Static methods for generating temporary file names and finding
+	/// temporary file directories.
+	///////////////////////////////////////////////////////////////////////////
 	class tempname {
 	public:	
 		static std::string tpie_name(const std::string& post_base = "", const std::string& dir = "", const std::string& ext = ""); 
@@ -92,6 +102,70 @@ namespace tpie {
 
 		static std::string tpie_mktemp();
 	};
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Class representing the existence of a temporary file.
+	/// When a temp_file object goes out of scope and is not set to persistent,
+	/// the associated temporary file will be deleted.
+	///////////////////////////////////////////////////////////////////////////
+	class temp_file : boost::noncopyable {
+	private:
+		std::string m_path;
+		bool m_persist;
+		stream_size_type m_recordedSize;
+	public:
+		///////////////////////////////////////////////////////////////////////
+		/// \returns Whether this file should not be deleted when this object
+		/// goes out of scope.
+		///////////////////////////////////////////////////////////////////////
+		inline bool is_persistent() const {return m_persist;}
+
+		///////////////////////////////////////////////////////////////////////
+		/// \brief Set persistence. When true, the file will not be deleted
+		/// when this goes out of scope.
+		///////////////////////////////////////////////////////////////////////
+		inline void set_persistent(bool p) {m_persist=p;}
+
+		///////////////////////////////////////////////////////////////////////
+		/// \brief Create a temp_file associated with a specific file.
+		///////////////////////////////////////////////////////////////////////
+		temp_file(const std::string & path, bool persist=false);
+
+		///////////////////////////////////////////////////////////////////////
+		/// \brief Associate with a specific file.
+		///////////////////////////////////////////////////////////////////////
+		void set_path(const std::string & path, bool persist=false);
+
+		void update_recorded_size(stream_size_type size) {
+			increment_temp_file_usage(static_cast<stream_offset_type>(size)-
+									  static_cast<stream_offset_type>(m_recordedSize));
+			m_recordedSize=size;
+			
+		}
+
+		///////////////////////////////////////////////////////////////////////
+		/// \brief Create a temp_file and generate a random temporary file
+		/// name.
+		///////////////////////////////////////////////////////////////////////
+		temp_file();
+
+		///////////////////////////////////////////////////////////////////////
+		/// \brief temp_file destructor. If not persistent, unlink the
+		/// associated file.
+		///////////////////////////////////////////////////////////////////////
+		~temp_file();
+
+		///////////////////////////////////////////////////////////////////////
+		/// \brief Get the path of the associated file.
+		///////////////////////////////////////////////////////////////////////
+		const std::string & path();
+
+		///////////////////////////////////////////////////////////////////////
+		/// \brief If not persistent, unlink the associated file.
+		///////////////////////////////////////////////////////////////////////
+		void free();
+	};
+	
 }
 
 #endif // _TPIE_TEMPNAM_H 

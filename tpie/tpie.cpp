@@ -23,6 +23,7 @@
 #include <tpie/tpie_log.h>
 #include <tpie/prime.h>
 #include <tpie/memory.h>
+#include <tpie/job.h>
 
 namespace tpie {
 
@@ -36,13 +37,22 @@ void tpie_init(int subsystems) {
 	if (subsystems & PRIMEDB)
 		init_prime();
 
-	if (subsystems & PROGRESS) {
-		init_fraction_db();
+	if (subsystems & CAPTURE_FRACTIONS) {
+		init_fraction_db(true);
+		init_execution_time_db();
+	} else if (subsystems & PROGRESS) {
+		init_fraction_db(false);
 		init_execution_time_db();
 	}
+
+	if (subsystems & JOB_MANAGER)
+		init_job();
 }
 
 void tpie_finish(int subsystems) {
+	if (subsystems & JOB_MANAGER)
+		finish_job();
+
     if (subsystems & PROGRESS)  {
 		finish_execution_time_db();
 		finish_fraction_db();

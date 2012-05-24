@@ -24,12 +24,13 @@
 using namespace tpie;
 
 bool basic_test() {
-	internal_queue<int> q(52);
+	internal_queue<size_t> q(52);
 	for(size_t i=0; i < 52; ++i)
 		q.push((i * 104729) % 2251);
+	if (q.empty()) return false;
 	for(size_t i=0; i < 52; ++i) {
 		if (q.size() != 52-i) return false;
-		if (q.front() != ((int)i * 104729) % 2251) return false;
+		if (q.front() != ((size_t)i * 104729) % 2251) return false;
 		q.pop();
 	}
 	if (!q.empty()) return false;
@@ -38,10 +39,10 @@ bool basic_test() {
 
 class queue_memory_test: public memory_test {
 public:
-	internal_queue<int> * a;
-	virtual void alloc() {a = tpie_new<internal_queue<int> >(123456);}
+	internal_queue<size_t> * a;
+	virtual void alloc() {a = tpie_new<internal_queue<size_t> >(123456);}
 	virtual void free() {tpie_delete(a);}
-	virtual size_type claimed_size() {return static_cast<size_type>(internal_queue<int>::memory_usage(123456));}
+	virtual size_type claimed_size() {return static_cast<size_type>(internal_queue<size_t>::memory_usage(123456));}
 };
 
 int main(int argc, char **argv) {

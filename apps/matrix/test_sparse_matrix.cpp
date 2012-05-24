@@ -24,6 +24,7 @@
 // Created: 3/2/95
 //
 
+#include <tpie/tpie.h>
 
 #include <tpie/portability.h>
 
@@ -121,6 +122,8 @@ void parse_app_opts(int idx, char *opt_arg)
 
 int main(int argc, char **argv)
 {
+	tpie_init();
+
     parse_args(argc, argv, app_opts, parse_app_opts);
 
     if (verbose) {
@@ -292,6 +295,8 @@ int main(int argc, char **argv)
     if (report_results_final) {
         ami::scan(&ev1, rptf);
     }
+    
+    tpie_finish();
     
     return 0;
 }
