@@ -177,7 +177,8 @@ struct push_to_pull {
 		}
 
 		inline puller_t(const puller_t & other)
-			: buffer(other.buffer)
+			: pipe_segment(other)
+			, buffer(other.buffer)
 			, source(other.source)
 			, dummydest(buffer) {
 		}
