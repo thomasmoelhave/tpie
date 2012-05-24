@@ -210,9 +210,6 @@ int main(int argc, char ** argv) {
 	pipeline p1 = input_nodes(nodes) | fork(byid.input()) | byparent.input();
 	pipeline p2 = count(byid.output(), byparent.output()) | output_count();
 	p1.plot();
-	p1.plot_phases();
-	p2.plot();
-	p2.plot_phases();
 	p1();
 	tpie_finish();
 	return 0;
