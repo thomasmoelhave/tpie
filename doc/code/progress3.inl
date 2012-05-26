@@ -1,13 +1,14 @@
 #include <tpie/dummy_progress.h>
+#include <tpie/types.h>
 #include <tpie/progress_indicator_arrow.h>
 
 tpie::file_stream<int> fs;
-uint64_t item_count;
+tpie::uint64_t item_count;
 
 template <bool use_progress>
 void scanner(typename tpie::progress_types<use_progress>::base * pi) {
 	pi->init(item_count);
-	for (uint64_t i = 0; i < item_count; ++i) {
+	for (tpie::uint64_t i = 0; i < item_count; ++i) {
 		fs.read();
 		pi->step();
 	}
