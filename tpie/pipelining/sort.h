@@ -63,7 +63,14 @@ struct merger {
 			pq.push(std::make_pair(in[i].read(), i));
 			++itemsRead[i];
 		}
+		if (!can_pull()) {
+			reset();
+		}
 		return el;
+	}
+
+	inline void reset() {
+		in.resize(0);
 	}
 
 	inline void reset(array<file_stream<T> > & inputs, size_t runLength) {
@@ -238,8 +245,13 @@ struct merge_sorter {
 
 	inline T pull() {
 		tp_assert(pull_prepared, "Pull not prepared");
-		if (m_reportInternal && m_itemsPulled < m_currentRunItemCount) return m_currentRunItems[m_itemsPulled++];
-		else return m_merger.pull();
+		if (m_reportInternal && m_itemsPulled < m_currentRunItemCount) {
+			T el = m_currentRunItems[m_itemsPulled++];
+			if (!can_pull()) m_currentRunItems.resize(0);
+			return el;
+		} else {
+			return m_merger.pull();
+		}
 	}
 
 private:
