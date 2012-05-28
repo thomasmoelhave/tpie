@@ -88,6 +88,7 @@ set (HEADERS
 		pipelining/pipe_segment.h
 		pipelining/plotter.h
 		pipelining/reverse.h
+		pipelining/segment_map_dump.h
 		pipelining/sort.h
 		pipelining/std_glue.h
 		pipelining/stdio.h

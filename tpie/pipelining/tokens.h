@@ -73,6 +73,7 @@
 #define __TPIE_PIPELINING_TOKENS_H__
 
 #include <tpie/exception.h>
+#include <tpie/pipelining/pipe_segment.h>
 
 namespace tpie {
 
@@ -212,19 +213,7 @@ struct segment_map {
 		if (m_authority) throw non_authoritative_segment_map();
 	}
 
-	void dump() const {
-		std::cout << this << " segment_map\n";
-		if (m_authority)
-			std::cout << "Non-authoritative" << std::endl;
-		else
-			std::cout << "Authoritative" << std::endl;
-		for (mapit i = m_tokens.begin(); i != m_tokens.end(); ++i) {
-			std::cout << i->first << " -> " << i->second << std::endl;
-		}
-		for (relmapit i = m_relations.begin(); i != m_relations.end(); ++i) {
-			std::cout << i->first << " -> " << i->second.first << " edge type " << i->second.second << std::endl;
-		}
-	}
+	void dump() const;
 
 private:
 	map_t m_tokens;
