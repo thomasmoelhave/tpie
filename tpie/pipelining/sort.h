@@ -154,6 +154,8 @@ struct merge_sorter {
 	inline void set_parameters(size_t runLength, size_t fanout) {
 		p.runLength = runLength;
 		p.fanout = fanout;
+		TP_LOG_WARNING_ID("Run length = " << p.runLength << " (uses memory " << (p.runLength*sizeof(T) + file_stream<T>::memory_usage()) << ")");
+		TP_LOG_WARNING_ID("Fanout = " << p.fanout << " (uses memory " << fanout_memory_usage(p.fanout) << ")");
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -314,8 +316,7 @@ private:
 			TP_LOG_WARNING_ID("Not enough memory for three open streams! (" << availableMemory << " < " << 3*streamMemory << ")");
 			availableMemory = 3*streamMemory;
 		}
-		p.runLength = (availableMemory - streamMemory)/sizeof(T);
-		TP_LOG_WARNING_ID("Run length = " << p.runLength << " (uses memory " << (p.runLength*sizeof(T) + streamMemory) << ")");
+		const size_t runLength = (availableMemory - streamMemory)/sizeof(T);
 
 		memory_size_type fanout_lo = 2;
 		memory_size_type fanout_hi = 4;
@@ -333,8 +334,7 @@ private:
 				fanout_hi = mid;
 			}
 		}
-		p.fanout = fanout_lo;
-		TP_LOG_WARNING_ID("Fanout = " << p.fanout << " (uses memory " << fanout_memory_usage(p.fanout) << ")");
+		set_parameters(runLength, fanout_lo);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
