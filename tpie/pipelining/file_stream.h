@@ -144,6 +144,7 @@ struct pull_output_t : public pipe_segment {
 	typedef typename source_t::item_type item_type;
 
 	inline pull_output_t(const source_t & source, file_stream<item_type> & fs) : source(source), fs(fs) {
+		add_pull_destination(source);
 	}
 
 	inline void go() {

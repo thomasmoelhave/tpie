@@ -110,6 +110,7 @@ struct pull_identity_t : public pipe_segment {
 	typedef typename source_t::item_type item_type;
 
 	inline pull_identity_t(const source_t & source) : source(source) {
+		add_pull_destination(source);
 	}
 
 	inline void begin() {
