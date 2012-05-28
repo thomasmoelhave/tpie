@@ -220,7 +220,7 @@ private:
 	inline void empty_current_run() {
 		file_stream<T> fs;
 		//TP_LOG_DEBUG_ID("Empty run no. " << m_finishedRuns);
-		open_run_file(fs, 0, m_finishedRuns, true);
+		open_run_file_write(fs, 0, m_finishedRuns);
 		for (size_t i = 0; i < m_currentRunItemCount; ++i) {
 			fs.write(m_currentRunItems[i]);
 		}
@@ -237,7 +237,7 @@ private:
 		array<file_stream<T> > in(runCount);
 		for (size_t i = 0; i < runCount; ++i) {
 			//TP_LOG_DEBUG_ID(runNumber+i);
-			open_run_file(in[i], mergeLevel, runNumber+i, false);
+			open_run_file_read(in[i], mergeLevel, runNumber+i);
 		}
 		size_t runLength = p.runLength;
 		for (size_t i = 0; i < mergeLevel; ++i) {
@@ -253,7 +253,7 @@ private:
 	inline void merge_runs(size_t mergeLevel, size_t runNumber, size_t runCount) {
 		initialize_merger(mergeLevel, runNumber, runCount);
 		file_stream<T> out;
-		open_run_file(out, mergeLevel+1, runNumber/p.fanout, true);
+		open_run_file_write(out, mergeLevel+1, runNumber/p.fanout);
 		while (m_merger.can_pull()) {
 			out.write(m_merger.pull());
 		}
@@ -346,20 +346,31 @@ private:
 		return merger<T, pred_t>::memory_usage(fanout) + file_stream<T>::memory_usage();
 	}
 
-	// forWriting = false: open an existing run and seek to correct offset
-	// forWriting = true: open run file and seek to end
-	inline void open_run_file(file_stream<T> & fs, size_t mergeLevel, size_t runNumber, bool forWriting) {
-		size_t idx = (mergeLevel % 2)*p.fanout + (runNumber % p.fanout);
-		//TP_LOG_DEBUG_ID("mrglvl " << mergeLevel << " run no. " << runNumber << " has index " << idx);
-		if (forWriting) {
-			if (runNumber < p.fanout) m_runFiles->at(idx).free();
-			fs.open(m_runFiles->at(idx), file_base::read_write);
-			fs.seek(0, file_base::end);
-		} else {
-			fs.open(m_runFiles->at(idx), file_base::read);
-			//TP_LOG_DEBUG_ID("seek to " << p.runLength * (runNumber / p.fanout) << " stream size " << fs.size());
-			fs.seek(p.runLength * (runNumber / p.fanout), file_base::beginning);
-		}
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Figure out the index in m_runFiles of the given run.
+	///////////////////////////////////////////////////////////////////////////
+	inline size_t run_file_index(size_t mergeLevel, size_t runNumber) {
+		return (mergeLevel % 2)*p.fanout + (runNumber % p.fanout);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Open a new run file and seek to the end.
+	///////////////////////////////////////////////////////////////////////////
+	inline void open_run_file_write(file_stream<T> & fs, size_t mergeLevel, size_t runNumber) {
+		size_t idx = run_file_index(mergeLevel, runNumber);
+		if (runNumber < p.fanout) m_runFiles->at(idx).free();
+		fs.open(m_runFiles->at(idx), file_base::read_write);
+		fs.seek(0, file_base::end);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Open an existing run file and seek to the correct offset.
+	///////////////////////////////////////////////////////////////////////////
+	inline void open_run_file_read(file_stream<T> & fs, size_t mergeLevel, size_t runNumber) {
+		size_t idx = run_file_index(mergeLevel, runNumber);
+		fs.open(m_runFiles->at(idx), file_base::read);
+		//TP_LOG_DEBUG_ID("seek to " << p.runLength * (runNumber / p.fanout) << " stream size " << fs.size());
+		fs.seek(p.runLength * (runNumber / p.fanout), file_base::beginning);
 	}
 
 	sort_parameters p;
