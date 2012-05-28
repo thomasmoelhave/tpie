@@ -74,7 +74,6 @@ struct merger {
 	}
 
 	inline void reset(array<file_stream<T> > & inputs, size_t runLength) {
-		//TP_LOG_DEBUG_ID("Run length is " << runLength);
 		this->runLength = runLength;
 		tp_assert(pq.empty(), "Reset before we are done");
 		n = inputs.size();
@@ -154,14 +153,17 @@ struct merge_sorter {
 	inline void set_parameters(size_t runLength, size_t fanout) {
 		p.runLength = runLength;
 		p.fanout = fanout;
-		TP_LOG_WARNING_ID("Run length = " << p.runLength << " (uses memory " << (p.runLength*sizeof(T) + file_stream<T>::memory_usage()) << ")");
-		TP_LOG_WARNING_ID("Fanout = " << p.fanout << " (uses memory " << fanout_memory_usage(p.fanout) << ")");
+		TP_LOG_DEBUG_ID("Set merge sort parameters");
+		TP_LOG_DEBUG("Memory available = " << availableMemory << '\n');
+		TP_LOG_DEBUG("Run length =       " << p.runLength << " (uses memory " << (p.runLength*sizeof(T) + file_stream<T>::memory_usage()) << ")\n");
+		TP_LOG_DEBUG("Fanout =           " << p.fanout << " (uses memory " << fanout_memory_usage(p.fanout) << ")" << std::endl);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Initiate phase 2: Formation of input runs.
 	///////////////////////////////////////////////////////////////////////////
 	inline void begin() {
+		TP_LOG_DEBUG_ID("Start forming input runs");
 		m_currentRunItems.resize(p.runLength);
 		m_runFiles->resize(p.fanout*2);
 		m_currentRunItemCount = 0;
@@ -188,10 +190,12 @@ struct merge_sorter {
 		if (m_finishedRuns == 0) {
 			m_reportInternal = true;
 			m_itemsPulled = 0;
+			TP_LOG_DEBUG_ID("Got " << m_currentRunItemCount << " items. Internal reporting mode.");
 		} else {
 			m_reportInternal = false;
 			empty_current_run();
 			m_currentRunItems.resize(0);
+			TP_LOG_DEBUG_ID("Got " << m_finishedRuns << " runs. External reporting mode.");
 		}
 	}
 
@@ -218,8 +222,8 @@ private:
 
 	// postcondition: m_currentRunItemCount = 0
 	inline void empty_current_run() {
+		TP_LOG_DEBUG_ID("Write " << m_currentRunItemCount << " items to run file " << m_finishedRuns);
 		file_stream<T> fs;
-		//TP_LOG_DEBUG_ID("Empty run no. " << m_finishedRuns);
 		open_run_file_write(fs, 0, m_finishedRuns);
 		for (size_t i = 0; i < m_currentRunItemCount; ++i) {
 			fs.write(m_currentRunItems[i]);
@@ -233,10 +237,8 @@ private:
 	/// (runNumber+runCount)'th run in mergeLevel.
 	///////////////////////////////////////////////////////////////////////////
 	inline void initialize_merger(size_t mergeLevel, size_t runNumber, size_t runCount) {
-		//TP_LOG_DEBUG_ID("Initialize merger at level " << mergeLevel << " from run " << runNumber << " with " << runCount << " runs");
 		array<file_stream<T> > in(runCount);
 		for (size_t i = 0; i < runCount; ++i) {
-			//TP_LOG_DEBUG_ID(runNumber+i);
 			open_run_file_read(in[i], mergeLevel, runNumber+i);
 		}
 		size_t runLength = p.runLength;
@@ -266,16 +268,18 @@ private:
 		size_t mergeLevel = 0;
 		size_t runCount = m_finishedRuns;
 		while (runCount > p.fanout) {
-			//TP_LOG_DEBUG_ID("Level " << mergeLevel << " has " << runCount << " runs");
+			TP_LOG_DEBUG_ID("Merge " << runCount << " runs in merge level " << mergeLevel);
 			size_t newRunCount = 0;
 			for (size_t i = 0; i < runCount; i += p.fanout) {
+				size_t n = std::min(runCount-i, p.fanout);
+				TP_LOG_DEBUG("Merge " << n << " runs starting from #" << i << std::endl);
 				merge_runs(mergeLevel, i, std::min(runCount-i, p.fanout));
 				++newRunCount;
 			}
 			++mergeLevel;
 			runCount = newRunCount;
 		}
-		//TP_LOG_DEBUG_ID("Final level " << mergeLevel << " has " << runCount << " runs");
+		TP_LOG_DEBUG_ID("Final merge level " << mergeLevel << " has " << runCount << " runs");
 		initialize_merger(mergeLevel, 0, runCount);
 
 		pull_prepared = true;
@@ -367,7 +371,6 @@ private:
 	inline void open_run_file_read(file_stream<T> & fs, size_t mergeLevel, size_t runNumber) {
 		size_t idx = run_file_index(mergeLevel, runNumber);
 		fs.open(m_runFiles->at(idx), file_base::read);
-		//TP_LOG_DEBUG_ID("seek to " << p.runLength * (runNumber / p.fanout) << " stream size " << fs.size());
 		fs.seek(p.runLength * (runNumber / p.fanout), file_base::beginning);
 	}
 
