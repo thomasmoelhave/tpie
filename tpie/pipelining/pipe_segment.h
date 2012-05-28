@@ -73,7 +73,7 @@ protected:
 		: token(this)
 		, m_minimumMemory(0)
 		, m_availableMemory(0)
-		, m_memoryFraction(0.0)
+		, m_memoryFraction(1.0)
 	{
 	}
 
@@ -89,7 +89,7 @@ protected:
 		: token(token, this, true)
 		, m_minimumMemory(0)
 		, m_availableMemory(0)
-		, m_memoryFraction(0.0)
+		, m_memoryFraction(1.0)
 	{
 	}
 
@@ -128,8 +128,9 @@ protected:
 		m_availableMemory = availableMemory;
 	}
 
+	friend class phase;
+
 private:
-	memory_size_type memory;
 	segment_token token;
 
 	memory_size_type m_minimumMemory;

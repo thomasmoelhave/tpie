@@ -97,12 +97,47 @@ struct phase {
 		m_initiator->go();
 	}
 
-	inline double memory_fraction() {
+	inline double memory_fraction() const {
 		return m_memoryFraction;
 	}
 
-	inline memory_size_type minimum_memory() {
+	inline memory_size_type minimum_memory() const {
 		return m_minimumMemory;
+	}
+
+	inline void assign_memory(memory_size_type m) const {
+		if (m < minimum_memory()) {
+			TP_LOG_WARNING_ID("Not enough memory for this phase. We have " << m << " but we require " << minimum_memory() << '.');
+			assign_minimum_memory();
+			return;
+		}
+		memory_size_type remaining = m;
+		double fraction = memory_fraction();
+		//std::cout << "Remaining " << m << " fraction " << fraction << " segments " << m_segments.size() << std::endl;
+		std::vector<char> assigned(m_segments.size());
+		while (true) {
+			bool done = true;
+			for (size_t i = 0; i < m_segments.size(); ++i) {
+				pipe_segment * s = m_segments[i];
+				memory_size_type min = s->get_minimum_memory();
+				double frac = s->get_memory_fraction();
+				double to_assign = frac/fraction * remaining;
+				if (to_assign < min) {
+					done = false;
+					s->set_available_memory(min);
+					remaining -= min;
+					fraction -= frac;
+				}
+			}
+			if (!done) continue;
+			for (size_t i = 0; i < m_segments.size(); ++i) {
+				pipe_segment * s = m_segments[i];
+				double frac = s->get_memory_fraction();
+				double to_assign = frac/fraction * remaining;
+				s->set_available_memory(static_cast<memory_size_type>(to_assign));
+			}
+			break;
+		}
 	}
 
 private:
@@ -110,6 +145,12 @@ private:
 	double m_memoryFraction;
 	memory_size_type m_minimumMemory;
 	pipe_segment * m_initiator;
+
+	inline void assign_minimum_memory() const {
+		for (size_t i = 0; i < m_segments.size(); ++i) {
+			m_segments[i]->set_available_memory(m_segments[i]->get_minimum_memory());
+		}
+	}
 };
 
 struct phasegraph {
@@ -225,7 +266,7 @@ private:
 		for (ids_inv_t::iterator i = ids_inv.begin(); i != ids_inv.end(); ++i) {
 			pipe_segment * representative = map.get(ids_inv[phases.find_set(i->first)]);
 			pipe_segment * current = map.get(i->second);
-			if (current == representative) return;
+			if (current == representative) continue;
 			for (size_t i = 0; i < m_phases.size(); ++i) {
 				if (m_phases[i].count(representative)) {
 					m_phases[i].add(current);

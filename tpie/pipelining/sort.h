@@ -159,6 +159,11 @@ struct merge_sorter {
 		TP_LOG_DEBUG("Fanout =           " << p.fanout << " (uses memory " << fanout_memory_usage(p.fanout) << ")" << std::endl);
 	}
 
+	inline void set_available_memory(memory_size_type m) {
+		availableMemory = m;
+		calculate_parameters();
+	}
+
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Initiate phase 2: Formation of input runs.
 	///////////////////////////////////////////////////////////////////////////
@@ -422,6 +427,7 @@ struct sort_input_t : public pipe_segment {
 	}
 
 	inline void begin() {
+		sorter->set_available_memory(this->get_available_memory());
 		sorter->begin();
 	}
 
@@ -536,13 +542,14 @@ struct sort_t : public pipe_segment {
 	}
 
 	inline sort_t(const dest_t & dest)
-		: sorter(new sorter_t(0)) // TODO
+		: sorter(new sorter_t(0))
 		, calc(*this, sorter)
 		, output(dest, calc, sorter)
 	{
 	}
 
 	inline void begin() {
+		sorter->set_available_memory(this->get_available_memory());
 		sorter->begin();
 	}
 
@@ -575,7 +582,7 @@ struct passive_sorter {
 	typedef sort_pull_output_t<item_type, pred_t> output_t;
 
 	inline passive_sorter()
-		: sorter(new sorter_t(0)) // TODO
+		: sorter(new sorter_t(0))
 		, calc(input_token, sorter)
 		, m_output(calc, sorter)
 	{

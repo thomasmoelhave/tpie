@@ -26,19 +26,26 @@ namespace pipelining {
 
 template <typename child_t>
 struct factory_base {
-	factory_base() : amount(0) {
+	factory_base() : amount(0), set(false) {
 	}
 
 	inline void memory(double amount) {
-		this->amount = amount;
+		amount = amount;
+		set = true;
 	}
 	
 	inline double memory() const {
 		return amount;
 	}
 
+	template <typename R>
+	inline void set_memory_fraction(R & r) const {
+		if (set) r.set_memory_fraction(memory());
+	}
+
 private:
 	double amount;
+	bool set;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -59,7 +66,7 @@ struct factory_0 : public factory_base<factory_0<R> > {
 	template <typename dest_t>
 	inline R<dest_t> construct(const dest_t & dest) const {
 		R<dest_t> r(dest);
-		r.set_memory_fraction(this->memory());
+		this->set_memory_fraction(r);
 		return r;
 	}
 };
@@ -80,7 +87,7 @@ struct factory_1 : public factory_base<factory_1<R, T1> > {
 	template <typename dest_t>
 	inline R<dest_t> construct(const dest_t & dest) const {
 		R<dest_t> r(dest, t1);
-		r.set_memory_fraction(this->memory());
+		this->set_memory_fraction(r);
 		return r;
 	}
 private:
@@ -103,7 +110,7 @@ struct factory_2 : public factory_base<factory_2<R, T1, T2> > {
 	template <typename dest_t>
 	inline R<dest_t> construct(const dest_t & dest) const {
 		R<dest_t> r(dest, t1, t2);
-		r.set_memory_fraction(this->memory());
+		this->set_memory_fraction(r);
 		return r;
 	}
 private:
@@ -120,7 +127,7 @@ struct termfactory_0 : public factory_base<termfactory_0<R> > {
 	typedef R generated_type;
 	inline R construct() const {
 		R r;
-		r.set_memory_fraction(this->memory());
+		this->set_memory_fraction(r);
 		return r;
 	}
 };
@@ -135,7 +142,7 @@ struct termfactory_1 : public factory_base<termfactory_1<R, T1> > {
 	inline termfactory_1(T1 t1) : t1(t1) {}
 	inline R construct() const {
 		R r(t1);
-		r.set_memory_fraction(this->memory());
+		this->set_memory_fraction(r);
 		return r;
 	}
 private:
@@ -152,7 +159,7 @@ struct termfactory_2 : public factory_base<termfactory_2<R, T1, T2> > {
 	inline termfactory_2(T1 t1, T2 t2) : t1(t1), t2(t2) {}
 	inline R construct() const {
 		R r(t1, t2);
-		r.set_memory_fraction(this->memory());
+		this->set_memory_fraction(r);
 		return r;
 	}
 private:

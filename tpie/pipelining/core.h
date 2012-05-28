@@ -88,6 +88,9 @@ struct pipeline_impl : public pipeline_virtual {
 		graph_traits g(*map);
 		const phases_t & phases = g.phases();
 		for (it i = phases.begin(); i != phases.end(); ++i) {
+			i->assign_memory(1024*1024*50);
+		}
+		for (it i = phases.begin(); i != phases.end(); ++i) {
 			i->go();
 		}
 	}
