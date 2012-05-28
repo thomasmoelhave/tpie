@@ -141,9 +141,7 @@ struct dummydest_t : public pipe_segment {
 	~dummydest_t() {}
 
 	typedef T item_type;
-	T & buffer;
-	inline dummydest_t(T & buffer) : buffer(buffer) {
-	}
+	T buffer;
 	inline void begin() {
 	}
 	inline void end() {
@@ -165,40 +163,31 @@ struct push_to_pull {
 		typedef typename source_t::item_type item_type;
 		typedef typename pushfact_t::template generated<dummydest_t<item_type> >::type pusher_t;
 
-		item_type buffer;
 		source_t source;
-		pushfact_t pushfact;
 		dummydest_t<item_type> dummydest;
-		auto_ptr<pusher_t> pusher;
+		pusher_t pusher;
 
 		inline puller_t(const source_t & source, const pushfact_t & pushfact)
 			: source(source)
-			, pushfact(pushfact)
-			, dummydest(buffer) {
-		}
-
-		inline puller_t(const puller_t & other)
-			: pipe_segment(other)
-			, buffer(other.buffer)
-			, source(other.source)
-			, dummydest(buffer) {
+			, pusher(pushfact.construct(dummydest))
+		{
+			add_pull_destination(source);
+			add_push_destination(pusher);
 		}
 
 		inline void begin() {
-			pusher.reset(tpie_new<pusher_t>(pushfact.construct(dummydest)));
-			pusher->begin();
+			pusher.begin();
 			source.begin();
 		}
 
 		inline void end() {
 			source.end();
-			pusher->end();
-			pusher.reset();
+			pusher.end();
 		}
 
 		inline item_type pull() {
-			pusher->push(source.pull());
-			return buffer;
+			pusher.push(source.pull());
+			return dummydest.pull();
 		}
 
 		inline bool can_pull() {
@@ -221,44 +210,31 @@ struct pull_to_push {
 		typedef typename dest_t::item_type item_type;
 		typedef typename pullfact_t::template generated<dummydest_t<item_type> >::type puller_t;
 
-		item_type buffer;
 		dest_t dest;
-		pullfact_t pullfact;
 		dummydest_t<item_type> dummydest;
-		auto_ptr<puller_t> puller;
+		puller_t puller;
 
 		inline pusher_t(const dest_t & dest, const pullfact_t & pullfact)
 			: dest(dest)
-			, pullfact(pullfact)
-			, dummydest(buffer)
+			, puller(pullfact.construct(dummydest))
 		{
 			add_push_destination(dest);
-		}
-
-		inline pusher_t(const pusher_t & other)
-			: pipe_segment(other)
-			, buffer(other.buffer)
-			, dest(other.dest)
-			, dummydest(buffer)
-		{
+			add_pull_destination(puller);
 		}
 
 		inline void begin() {
-			puller.reset(tpie_new<puller_t>(pullfact.construct(dummydest)));
-			puller->begin();
+			puller.begin();
 			dest.begin();
 		}
 
 		inline void end() {
 			dest.end();
-			puller->end();
-			puller.reset();
+			puller.end();
 		}
 
 		inline void push(const item_type & item) {
 			dummydest.push(item);
-			puller->pull();
-			dest.push(dummydest.pull());
+			dest.push(puller.pull());
 		}
 
 	};
