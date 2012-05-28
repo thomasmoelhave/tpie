@@ -87,10 +87,8 @@ struct merger {
 	}
 
 	inline static stream_size_type memory_usage(stream_size_type fanout) {
-		return sizeof(T)*fanout + 20 // pq
-			+ array<file_stream<T> >::memory_usage(0) + fanout*file_stream<T>::memory_usage() // in
-			+ sizeof(size_t)*fanout + 20 // itemsRead
-			+ sizeof(merger);
+		return array<file_stream<T> >::memory_usage(0)
+			+ fanout*file_stream<T>::memory_usage(); // in
 	}
 
 	struct predwrap {
