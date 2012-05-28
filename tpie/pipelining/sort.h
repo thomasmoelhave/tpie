@@ -158,6 +158,7 @@ struct merge_sorter {
 		} else {
 			m_reportInternal = false;
 			empty_current_run();
+			m_currentRunItems.resize(0);
 		}
 	}
 
