@@ -140,6 +140,9 @@ struct segment_map {
 		for (relmapit i = target->m_relations.begin(); i != target->m_relations.end(); ++i) {
 			m_relations.insert(*i);
 		}
+		for (relmapit i = target->m_relationsInv.begin(); i != target->m_relationsInv.end(); ++i) {
+			m_relationsInv.insert(*i);
+		}
 		target->m_tokens.clear();
 		target->m_authority = ptr(self);
 
