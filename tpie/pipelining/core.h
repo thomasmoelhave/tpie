@@ -146,34 +146,6 @@ private:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \class datasource_wrapper
-/// \tparam gen_t Generator type
-/// Templated subclass of pipeline_virtual for pull pipelines.
-///////////////////////////////////////////////////////////////////////////////
-template <typename gen_t>
-struct datasource_wrapper : public pipeline_virtual {
-	gen_t generator;
-	inline datasource_wrapper(const gen_t & generator) : generator(generator) {
-	}
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Virtual dtor.
-	///////////////////////////////////////////////////////////////////////////
-	~datasource_wrapper() {}
-	inline void operator()() {
-		generator.go();
-	}
-	void plot(std::ostream & out) {
-		out << "datasource" << std::endl;
-	}
-	void plot_phases(std::ostream & out) {
-		out << "datasource" << std::endl;
-	}
-	double memory() const {
-		return -1;
-	}
-};
-
-///////////////////////////////////////////////////////////////////////////////
 /// \class pipeline
 ///
 /// This class is used to avoid writing the template argument in the
@@ -351,37 +323,67 @@ struct pipe_begin : pipe_base<pipe_begin<fact_t> > {
 	fact_t factory;
 };
 
-///////////////////////////////////////////////////////////////////////////////
-/// \class datasource
-///
-/// A data source pulls data up the pipeline.
-///
-/// \tparam gen_t Generator type
-///////////////////////////////////////////////////////////////////////////////
-template <typename gen_t>
-struct datasource {
-	inline datasource(const gen_t & gen) : generator(gen) {
+template <typename fact_t>
+struct pullpipe_end : pipe_base<pullpipe_end<fact_t> > {
+	typedef fact_t factory_type;
+
+	inline pullpipe_end() {
 	}
 
-	template <typename fact_t>
-	inline datasource<typename fact_t::template generated<gen_t>::type>
-	operator|(const fact_t & fact) const {
-		return fact.construct(generator);
+	inline pullpipe_end(const fact_t & factory) : factory(factory) {
 	}
 
-	inline operator gen_t() const {
-		return generator;
+	fact_t factory;
+};
+
+template <typename fact_t>
+struct pullpipe_middle : pipe_base<pullpipe_middle<fact_t> > {
+	typedef fact_t factory_type;
+
+	inline pullpipe_middle() {
 	}
 
-	inline operator datasource_wrapper<gen_t>() const {
-		return generator;
+	inline pullpipe_middle(const fact_t & factory) : factory(factory) {
 	}
 
-	inline operator pipeline() const {
-		return datasource_wrapper<gen_t>(generator);
+	template <typename fact2_t>
+	inline pullpipe_middle<bits::pair_factory<fact2_t, fact_t> >
+	operator|(const pipe_middle<fact2_t> & r) {
+		return bits::pair_factory<fact2_t, fact_t>(r.factory, factory);
 	}
 
-	gen_t generator;
+	template <typename fact2_t>
+	inline pullpipe_end<bits::termpair_factory<fact2_t, fact_t> >
+	operator|(const pipe_end<fact2_t> & r) {
+		return bits::termpair_factory<fact2_t, fact_t>(r.factory, factory);
+	}
+
+	fact_t factory;
+};
+
+template <typename fact_t>
+struct pullpipe_begin : pipe_base<pullpipe_begin<fact_t> > {
+	typedef fact_t factory_type;
+
+	inline pullpipe_begin() {
+	}
+
+	inline pullpipe_begin(const fact_t & factory) : factory(factory) {
+	}
+
+	template <typename fact2_t>
+	inline pullpipe_begin<bits::termpair_factory<fact2_t, fact_t> >
+	operator|(const pullpipe_middle<fact2_t> & r) {
+		return bits::termpair_factory<fact2_t, fact_t>(r.factory, factory);
+	}
+
+	template <typename fact2_t>
+	inline pipeline_impl<bits::termpair_factory<fact2_t, fact_t> >
+	operator|(const pullpipe_end<fact2_t> & r) {
+		return bits::termpair_factory<fact2_t, fact_t>(r.factory, factory);
+	}
+
+	fact_t factory;
 };
 
 }

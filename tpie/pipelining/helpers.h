@@ -263,8 +263,8 @@ struct pull_to_push {
 	};
 };
 
-inline pull_factory_1<push_to_pull<factory_0<identity_t> >::puller_t, factory_0<identity_t> > pull_identity() {
-	return factory_0<identity_t>();
+inline pullpipe_middle<pull_factory_1<push_to_pull<factory_0<identity_t> >::puller_t, factory_0<identity_t> > > pull_identity() {
+	return pull_factory_1<push_to_pull<factory_0<identity_t> >::puller_t, factory_0<identity_t> >(factory_0<identity_t>());
 }
 
 inline

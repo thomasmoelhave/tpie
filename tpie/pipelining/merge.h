@@ -33,8 +33,10 @@ namespace pipelining {
 /// Currently, it is not very well defined what constitutes a merge.
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename pull_t>
+template <typename fact_t>
 struct merge_t {
+	typedef typename fact_t::generated_type pull_t;
+
 	template <typename dest_t>
 	struct type : public pipe_segment {
 		///////////////////////////////////////////////////////////////////////
@@ -44,7 +46,7 @@ struct merge_t {
 
 		typedef typename dest_t::item_type item_type;
 
-		inline type(const dest_t & dest, const pull_t & with) : dest(dest), with(with) {
+		inline type(const dest_t & dest, const fact_t & fact) : dest(dest), with(fact.construct()) {
 			add_push_destination(dest);
 			add_pull_destination(with);
 		}
@@ -71,8 +73,8 @@ struct merge_t {
 
 template <typename pull_t>
 inline pipe_middle<factory_1<merge_t<pull_t>::template type, pull_t> >
-merge(const datasource<pull_t> & with) {
-	return factory_1<merge_t<pull_t>::template type, pull_t>(with);
+merge(const pullpipe_begin<pull_t> & with) {
+	return factory_1<merge_t<pull_t>::template type, pull_t>(with.factory);
 }
 
 }

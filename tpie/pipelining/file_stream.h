@@ -95,8 +95,8 @@ struct pull_input_t : public pipe_segment {
 };
 
 template<typename T>
-inline datasource<pull_input_t<T> > pull_input(file_stream<T> & fs) {
-	return pull_input_t<T>(fs);
+inline pullpipe_begin<termfactory_1<pull_input_t<T>, file_stream<T> &> > pull_input(file_stream<T> & fs) {
+	return termfactory_1<pull_input_t<T>, file_stream<T> &>(fs);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -159,8 +159,8 @@ struct pull_output_t : public pipe_segment {
 };
 
 template<typename T>
-inline pull_factory_1<pull_output_t, file_stream<T> &> pull_output(file_stream<T> & fs) {
-	return fs;
+inline pullpipe_end<pull_factory_1<pull_output_t, file_stream<T> &> > pull_output(file_stream<T> & fs) {
+	return pull_factory_1<pull_output_t, file_stream<T> &>(fs);
 }
 
 }
