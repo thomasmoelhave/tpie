@@ -118,6 +118,19 @@ private:
 	pred_t pred;
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// Merge sorting consists of four phases.
+///
+/// 1. Calculating parameters
+/// 2. Sorting and forming runs
+/// 3. Merging runs
+/// 4. Final merge and report
+///
+/// If the number of elements received during phase 2 is less than the length
+/// of a single run, we are in "report internal" mode, meaning we do not write
+/// anything to disk. This causes phase 3 to be a no-op and phase 4 to be a
+/// simple array traversal.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename pred_t = std::less<T> >
 struct merge_sorter {
 	typedef boost::shared_ptr<merge_sorter> ptr;
@@ -136,11 +149,18 @@ struct merge_sorter {
 		calculate_parameters();
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief  Enable setting run length and fanout manually (for testing
+	/// purposes).
+	///////////////////////////////////////////////////////////////////////////
 	inline void set_parameters(size_t runLength, size_t fanout) {
 		p.runLength = runLength;
 		p.fanout = fanout;
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Initiate phase 2: Formation of input runs.
+	///////////////////////////////////////////////////////////////////////////
 	inline void begin() {
 		m_currentRunItems.resize(p.runLength);
 		m_runFiles->resize(p.fanout*2);
@@ -148,6 +168,9 @@ struct merge_sorter {
 		m_finishedRuns = 0;
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Push item to merge sorter during phase 2.
+	///////////////////////////////////////////////////////////////////////////
 	inline void push(const T & item) {
 		if (m_currentRunItemCount >= p.runLength) {
 			sort_current_run();
@@ -157,6 +180,9 @@ struct merge_sorter {
 		++m_currentRunItemCount;
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief End phase 2.
+	///////////////////////////////////////////////////////////////////////////
 	inline void end() {
 		sort_current_run();
 		if (m_finishedRuns == 0) {
@@ -169,6 +195,10 @@ struct merge_sorter {
 		}
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Perform phase 3: Performing all merges in the merge tree except
+	/// the last one.
+	///////////////////////////////////////////////////////////////////////////
 	inline void calc() {
 		if (!m_reportInternal) {
 			prepare_pull();
@@ -176,6 +206,11 @@ struct merge_sorter {
 			pull_prepared = true;
 		}
 	}
+
+private:
+	///////////////////////////////////////////////////////////////////////////
+	// Phase 2 helpers.
+	///////////////////////////////////////////////////////////////////////////
 
 	inline void sort_current_run() {
 		parallel_sort(m_currentRunItems.begin(), m_currentRunItems.begin()+m_currentRunItemCount, pred);
@@ -193,7 +228,10 @@ struct merge_sorter {
 		++m_finishedRuns;
 	}
 
-	// merge the runNumber'th to the (runNumber+runCount)'th run in mergeLevel
+	///////////////////////////////////////////////////////////////////////////
+	/// Prepare m_merger for merging the runNumber'th to the
+	/// (runNumber+runCount)'th run in mergeLevel.
+	///////////////////////////////////////////////////////////////////////////
 	inline void initialize_merger(size_t mergeLevel, size_t runNumber, size_t runCount) {
 		//TP_LOG_DEBUG_ID("Initialize merger at level " << mergeLevel << " from run " << runNumber << " with " << runCount << " runs");
 		array<file_stream<T> > in(runCount);
@@ -208,6 +246,10 @@ struct merge_sorter {
 		m_merger.reset(in, runLength);
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// Merge the runNumber'th to the (runNumber+runCount)'th in mergeLevel
+	/// into mergeLevel+1.
+	///////////////////////////////////////////////////////////////////////////
 	inline void merge_runs(size_t mergeLevel, size_t runNumber, size_t runCount) {
 		initialize_merger(mergeLevel, runNumber, runCount);
 		file_stream<T> out;
@@ -217,7 +259,9 @@ struct merge_sorter {
 		}
 	}
 
-	// merge all runs and initialize merger for public pulling
+	///////////////////////////////////////////////////////////////////////////
+	/// Merge all runs and initialize merger for public pulling.
+	///////////////////////////////////////////////////////////////////////////
 	inline void prepare_pull() {
 		size_t mergeLevel = 0;
 		size_t runCount = m_finishedRuns;
@@ -237,12 +281,20 @@ struct merge_sorter {
 		pull_prepared = true;
 	}
 
+public:
+	///////////////////////////////////////////////////////////////////////////
+	/// In phase 4, return true if there are more items in the final merge
+	/// phase.
+	///////////////////////////////////////////////////////////////////////////
 	inline bool can_pull() {
 		tp_assert(pull_prepared, "Pull not prepared");
 		if (m_reportInternal) return m_itemsPulled < m_currentRunItemCount;
 		else return m_merger.can_pull();
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// In phase 4, fetch next item in the final merge phase.
+	///////////////////////////////////////////////////////////////////////////
 	inline T pull() {
 		tp_assert(pull_prepared, "Pull not prepared");
 		if (m_reportInternal && m_itemsPulled < m_currentRunItemCount) {
@@ -287,6 +339,9 @@ private:
 		TP_LOG_WARNING_ID("Fanout = " << p.fanout << " (uses memory " << fanout_memory_usage(p.fanout) << ")");
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// calculate_parameters helper
+	///////////////////////////////////////////////////////////////////////////
 	inline stream_size_type fanout_memory_usage(memory_size_type fanout) {
 		return merger<T, pred_t>::memory_usage(fanout) + file_stream<T>::memory_usage();
 	}
