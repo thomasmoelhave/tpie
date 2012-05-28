@@ -222,7 +222,10 @@ private:
 
 	// postcondition: m_currentRunItemCount = 0
 	inline void empty_current_run() {
-		TP_LOG_DEBUG_ID("Write " << m_currentRunItemCount << " items to run file " << m_finishedRuns);
+		if (m_finishedRuns < 10)
+			TP_LOG_DEBUG("Write " << m_currentRunItemCount << " items to run file " << m_finishedRuns << std::endl);
+		else if (m_finishedRuns == 10)
+			TP_LOG_DEBUG("..." << std::endl);
 		file_stream<T> fs;
 		open_run_file_write(fs, 0, m_finishedRuns);
 		for (size_t i = 0; i < m_currentRunItemCount; ++i) {
@@ -272,7 +275,12 @@ private:
 			size_t newRunCount = 0;
 			for (size_t i = 0; i < runCount; i += p.fanout) {
 				size_t n = std::min(runCount-i, p.fanout);
-				TP_LOG_DEBUG("Merge " << n << " runs starting from #" << i << std::endl);
+
+				if (newRunCount < 10)
+					TP_LOG_DEBUG("Merge " << n << " runs starting from #" << i << std::endl);
+				else if (newRunCount == 10)
+					TP_LOG_DEBUG("..." << std::endl);
+
 				merge_runs(mergeLevel, i, std::min(runCount-i, p.fanout));
 				++newRunCount;
 			}
