@@ -160,48 +160,6 @@ private:
 	T2 t2;
 };
 
-///////////////////////////////////////////////////////////////////////////////
-/// \class pull_factory_0
-/// Pull segment factory for 0-argument generator.
-///////////////////////////////////////////////////////////////////////////////
-template <template <typename source_t> class R>
-struct pull_factory_0 : public factory_base<pull_factory_0<R> > {
-	template<typename source_t>
-	struct generated {
-		typedef R<source_t> type;
-	};
-
-	template <typename source_t>
-	inline R<source_t> construct(const source_t & source) const {
-		R<source_t> r(source);
-		r.set_memory_fraction(this->memory());
-		return r;
-	}
-};
-
-///////////////////////////////////////////////////////////////////////////////
-/// \class pull_factory_1
-/// Pull segment factory for 1-argument generator.
-///////////////////////////////////////////////////////////////////////////////
-template <template <typename source_t> class R, typename T1>
-struct pull_factory_1 : public factory_base<pull_factory_1<R, T1> > {
-	template<typename source_t>
-	struct generated {
-		typedef R<source_t> type;
-	};
-
-	inline pull_factory_1(T1 t1) : t1(t1) {}
-
-	template <typename source_t>
-	inline R<source_t> construct(const source_t & source) const {
-		R<source_t> r(source, t1);
-		r.set_memory_fraction(this->memory());
-		return r;
-	}
-private:
-	T1 t1;
-};
-
 }
 
 }

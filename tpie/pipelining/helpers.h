@@ -263,20 +263,20 @@ struct pull_to_push {
 	};
 };
 
-inline pullpipe_middle<pull_factory_1<push_to_pull<factory_0<identity_t> >::puller_t, factory_0<identity_t> > > pull_identity() {
-	return pull_factory_1<push_to_pull<factory_0<identity_t> >::puller_t, factory_0<identity_t> >(factory_0<identity_t>());
+inline pullpipe_middle<factory_1<push_to_pull<factory_0<identity_t> >::puller_t, factory_0<identity_t> > > pull_identity() {
+	return factory_1<push_to_pull<factory_0<identity_t> >::puller_t, factory_0<identity_t> >(factory_0<identity_t>());
 }
 
 inline
 pipe_middle<factory_1<
-	pull_to_push<pull_factory_0<pull_identity_t> >::pusher_t,
-	pull_factory_0<pull_identity_t>
+	pull_to_push<factory_0<pull_identity_t> >::pusher_t,
+	factory_0<pull_identity_t>
 > >
 alt_identity() {
 	return factory_1<
-		pull_to_push<pull_factory_0<pull_identity_t> >::pusher_t,
-		pull_factory_0<pull_identity_t>
-	>(pull_factory_0<pull_identity_t>());
+		pull_to_push<factory_0<pull_identity_t> >::pusher_t,
+		factory_0<pull_identity_t>
+	>(factory_0<pull_identity_t>());
 }
 
 template <typename T>

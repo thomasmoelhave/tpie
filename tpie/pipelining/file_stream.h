@@ -159,8 +159,8 @@ struct pull_output_t : public pipe_segment {
 };
 
 template<typename T>
-inline pullpipe_end<pull_factory_1<pull_output_t, file_stream<T> &> > pull_output(file_stream<T> & fs) {
-	return pull_factory_1<pull_output_t, file_stream<T> &>(fs);
+inline pullpipe_end<factory_1<pull_output_t, file_stream<T> &> > pull_output(file_stream<T> & fs) {
+	return factory_1<pull_output_t, file_stream<T> &>(fs);
 }
 
 }
