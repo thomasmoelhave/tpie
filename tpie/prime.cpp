@@ -61,8 +61,8 @@ public:
 		return true;
 	}
 
-	inline size_t prime_hash(const std::string & x) {
-		size_t r=42;
+	inline hash_type prime_hash(const std::string & x) {
+		hash_type r=42;
 		for(size_t i=0; i < x.size(); ++i)
 			r = r*m_pr[i % m_pr.size()] + x[i];
 		return r;
@@ -80,8 +80,7 @@ void finish_prime() {is_prime_ins.free();}
 
 bool is_prime(size_type i) {return is_prime_ins(i);}
 
-size_t prime_hash(const std::string & s) {return is_prime_ins.prime_hash(s);}
-
+hash_type prime_hash(const std::string & s) {return is_prime_ins.prime_hash(s);}
 
 size_t next_prime(size_t i)  {
 	while(!is_prime(i)) ++i;
