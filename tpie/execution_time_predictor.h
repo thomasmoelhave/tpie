@@ -21,6 +21,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <sstream>
 #include <tpie/util.h>
+#include <tpie/prime.h>
 #ifndef __TPIE_EXECUTION_TIME_PREDICTOR_H__
 #define __TPIE_EXECUTION_TIME_PREDICTOR_H__
 
@@ -30,6 +31,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 namespace tpie {
+
+typedef boost::uint64_t time_type;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \internal \brief Used by tpie_init to initialize the execution time
@@ -69,9 +72,9 @@ public:
 	/// \param n Input size
 	/// \param confidence (output) Confidence (between 0.0 and 1.0)
 	///////////////////////////////////////////////////////////////////////////
-	memory_size_type estimate_execution_time(memory_size_type n, double & confidence);
-	void start_execution(memory_size_type n);
-	memory_size_type end_execution();
+	time_type estimate_execution_time(stream_size_type n, double & confidence);
+	void start_execution(stream_size_type n);
+	time_type end_execution();
 	std::string estimate_remaining_time(double progress);
 
 	static void start_pause();
@@ -82,21 +85,21 @@ public:
 	//TPIE_OS_OFFSET m_aux1;
 	//double m_aux2;
 private:
-	size_t m_id;
+	hash_type m_id;
 	boost::posix_time::ptime m_start_time;
-	memory_size_type m_estimate;
+	time_type m_estimate;
 	double m_confidence;
 
 	/** Input size */
-	memory_size_type m_n;
+	stream_size_type m_n;
 
-	memory_size_type m_pause_time_at_start;
+	time_type m_pause_time_at_start;
 
 #ifndef TPIE_NDEBUG
 	std::string m_name;
 #endif
 
-	static memory_size_type s_pause_time;
+	static time_type s_pause_time;
 	static boost::posix_time::ptime s_start_pause_time;
 	static bool s_store_times;
 };
