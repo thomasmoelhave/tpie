@@ -61,7 +61,7 @@ public:
 							const char * id,
 							const char * file,
 							const char * function,
-							TPIE_OS_OFFSET n,
+							stream_size_type n,
 							const char * crumb=0,
 							description_importance importance=IMPORTANCE_MAJOR,
 							bool enabled=true);
@@ -69,7 +69,7 @@ public:
 	void setup(const char * id,
 			   const char * file,
 			   const char * function,
-			   TPIE_OS_OFFSET n,
+			   stream_size_type n,
 			   const char * crumb=0,
 			   description_importance importance=IMPORTANCE_MAJOR,
 			   bool enabled=true);
@@ -91,9 +91,9 @@ private:
 	bool m_done_called;
 #endif
 	double m_fraction;
-	TPIE_OS_OFFSET m_estimate;
+	stream_size_type m_estimate;
 	double m_confidence;
-	TPIE_OS_OFFSET m_n;
+	stream_size_type m_n;
 	fractional_progress & m_fp;
 	execution_time_predictor m_predict;
 
@@ -141,13 +141,13 @@ private:
 	TPIE_OS_OFFSET m_time_sum;
 	double m_timed_sum;
 
-	void stat(std::string, TPIE_OS_OFFSET, TPIE_OS_OFFSET);
-	std::vector< std::pair<std::string, std::pair<TPIE_OS_OFFSET, TPIE_OS_OFFSET> > > m_stat;
+	void stat(std::string, time_type, stream_size_type);
+	std::vector< std::pair<std::string, std::pair<time_type, stream_size_type> > > m_stat;
 
 	friend class fractional_subindicator;
 };
 
-void update_fractions(const char * name, float frac, TPIE_OS_OFFSET n);
+void update_fractions(const char * name, float frac, stream_size_type n);
 void load_fractions(const std::string & path);
 void save_fractions(const std::string & path, bool force = false);
 
