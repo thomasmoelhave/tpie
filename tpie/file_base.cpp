@@ -108,7 +108,7 @@ file_base::block_t * file_base::get_block(stream_size_type block) {
 		// calculate buffer size
 		b->size = m_blockItems;
 		if (static_cast<stream_size_type>(b->size) + b->number * static_cast<stream_size_type>(m_blockItems) > size())
-			b->size = size() - b->number * m_blockItems;
+			b->size = static_cast<memory_size_type>(size() - b->number * m_blockItems);
 
 		// populate buffer data
 		if (b->size > 0 &&

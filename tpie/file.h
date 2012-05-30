@@ -307,7 +307,7 @@ public:
 					stream_size_type new_index = static_cast<stream_offset_type>(offset+m_index);
 
 					if (new_index < m_file.m_blockItems) {
-						m_index = new_index;
+						m_index = static_cast<memory_size_type>(new_index);
 						return;
 					}
 				}

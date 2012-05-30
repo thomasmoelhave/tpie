@@ -79,18 +79,18 @@ void file_accessor_crtp<child_t, minimizeSeeks>::write_header(bool clean) {
 }
  
 template <typename child_t, bool minimizeSeeks>
-memory_size_type file_accessor_crtp<child_t, minimizeSeeks>::read_block(void * data, stream_size_type blockNumber, stream_size_type itemCount) {
+memory_size_type file_accessor_crtp<child_t, minimizeSeeks>::read_block(void * data, stream_size_type blockNumber, memory_size_type itemCount) {
 	stream_size_type loc = header_size() + blockNumber*m_blockSize;
 	seek_i(loc);
 	stream_size_type offset = blockNumber*m_blockItems;
-	if (offset + itemCount > m_size) itemCount = m_size - offset;
+	if (offset + itemCount > m_size) itemCount = static_cast<memory_size_type>(m_size - offset);
 	memory_size_type z=itemCount*m_itemSize;
 	read_i(data, z);
 	return itemCount;
 }
 
 template <typename child_t, bool minimizeSeeks>
-void file_accessor_crtp<child_t, minimizeSeeks>::write_block(const void * data, stream_size_type blockNumber, stream_size_type itemCount) {
+void file_accessor_crtp<child_t, minimizeSeeks>::write_block(const void * data, stream_size_type blockNumber, memory_size_type itemCount) {
 	stream_size_type loc = header_size() + blockNumber*m_blockSize;
 	seek_i(loc);
 	stream_size_type offset = blockNumber*m_blockItems;

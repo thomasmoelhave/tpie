@@ -112,7 +112,7 @@ public:
 	/// \param itemCount Number of items to read from beginning of given block.
 	/// Must be less than m_blockItems.
 	///////////////////////////////////////////////////////////////////////////
-	inline memory_size_type read_block(void * data, stream_size_type blockNumber, stream_size_type itemCount);
+	inline memory_size_type read_block(void * data, stream_size_type blockNumber, memory_size_type itemCount);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Write the given number of items from the given buffer into the
@@ -123,7 +123,7 @@ public:
 	/// \param itemCount Number of items to write to beginning of given block.
 	/// Must be less than m_blockItems.
 	///////////////////////////////////////////////////////////////////////////
-	inline void write_block(const void * data, stream_size_type blockNumber, stream_size_type itemCount);
+	inline void write_block(const void * data, stream_size_type blockNumber, memory_size_type itemCount);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Read user data into the given buffer.

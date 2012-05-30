@@ -11,10 +11,9 @@ inline tpie::memory_size_type get_maximum_open_files() {
 	return 512;
 #else
 	struct rlimit limits;
-	if (getrlimit(RLIMIT_NOFILE,&limits) == -1) {
-		limits.rlim_cur = 255;
-	}
-	return limits.rlim_cur;
+	if (getrlimit(RLIMIT_NOFILE,&limits) == -1)
+	  	return 255;
+	return static_cast<tpie::memory_size_type>(limits.rlim_cur);
 #endif
 }
 
