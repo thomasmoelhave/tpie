@@ -40,20 +40,6 @@
 using namespace std;
 using namespace tpie;
 
-#ifdef _WIN32
-//On windows there do not seem to be any limit on the number of handels we can create
-size_t get_os_available_fds() {return 1024*128;}  
-#else
-size_t get_os_available_fds() {
-	size_t f=0;
-	for(int fd=0; fd < getdtablesize(); ++fd) {
-		int flags = fcntl(fd, F_GETFD, 0);
-		if (flags == -1 && errno == EBADF) ++f;
-	}
-	return f-5; //-5 to prevent race conditions
-}
-#endif
-
 namespace {
 
 typedef std::pair<stream_size_type, time_type> p_t;
