@@ -20,10 +20,34 @@ function parse_events(input) {
     activity.innerHTML = eventhtml;
 }
 
+// Check if two authors are equal.
+function author_equal(a, b) {
+    return a.name == b.name && a.email == b.email;
+}
+
+// If all authors in the array of commits are equal, return the author.
+// Otherwise, return null.
+function same_author(commits) {
+    for (var i = 1, l = commits.length; i < l; ++i) {
+        if (!author_equal(commits[i-1].author, commits[i].author)) return null;
+    }
+    return commits[0].author;
+}
+
+// If all authors in a push are the same, use the author's Git realname.
+// Otherwise, use the GitHub user name.
+function abbreviate_push(ev) {
+    var author = same_author(ev.payload.commits);
+    if (author == null)
+        return handleanyevent(ev, 'pushed to '+printref(ev.payload.ref));
+    ev.actor.login = author.name;
+    return handleanyevent(ev, 'committed to '+printref(ev.payload.ref));
+}
+
 function handleevent(ev, html) {
     switch (ev.type) {
         case "PushEvent":
-            html.push(handleanyevent(ev, 'pushed to '+printref(ev.payload.ref)));
+            html.push(abbreviate_push(ev));
             for (var i = 0, l = ev.payload.commits.length; i < l; ++i) {
                 if (i > 2) {
                     html.push("and "+(l-i)+" more commits");
