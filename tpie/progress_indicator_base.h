@@ -86,7 +86,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	///  Record an increment to the indicator and advance the indicator.
 	///////////////////////////////////////////////////////////////////////////
-	void step(TPIE_OS_OFFSET step=1) {
+	void step(stream_size_type step=1) {
 	    m_current += step;
  		
 #ifndef TPIE_NDEBUG
@@ -108,7 +108,7 @@ public:
 		}
 	}
 
-	void raw_step(TPIE_OS_OFFSET step) {
+	void raw_step(stream_size_type step) {
 		m_current += step;
 #ifndef TPIE_NDEBUG
 		m_lastCalled = getticks();
@@ -120,7 +120,7 @@ public:
 	/// \brief Initialize progress indicator.
 	/// \param range The number of times step() is going to be called.
 	///////////////////////////////////////////////////////////////////////////
-	virtual void init(TPIE_OS_OFFSET range=0) {
+	virtual void init(stream_size_type range=0) {
 		if (range != 0) set_range(range);
 	    m_current = 0;
 		refresh();

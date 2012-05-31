@@ -65,7 +65,7 @@ struct dummy_fraction_progress {
 
 	/// \copybrief tpie::fractional_progress::init()
 	/// \copydetails tpie::fractional_progress::init()
-	inline void init(TPIE_OS_OFFSET range = 0) {
+	inline void init(stream_size_type range = 0) {
 		unused(range);
 	}
 
@@ -95,19 +95,19 @@ struct dummy_progress_indicator {
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \copydoc progress_indicator_base::init(TPIE_OS_OFFSET)
+	/// \copydoc progress_indicator_base::init(stream_size_type)
 	///////////////////////////////////////////////////////////////////////////
-	inline void init(TPIE_OS_OFFSET range = 0) {
+	inline void init(stream_size_type range = 0) {
 		unused(range);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \copydoc progress_indicator_base::step(TPIE_OS_OFFSET)
+	/// \copydoc progress_indicator_base::step(stream_size_type)
 	///////////////////////////////////////////////////////////////////////////
-	inline void step(TPIE_OS_OFFSET) { }
+	inline void step(stream_size_type) { }
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \copydoc progress_indicator_base::step(TPIE_OS_OFFSET)
+	/// \copydoc progress_indicator_base::step(stream_size_type)
 	///////////////////////////////////////////////////////////////////////////
 	inline void step() { }
 

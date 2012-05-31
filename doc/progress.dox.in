@@ -4,7 +4,7 @@
 TPIE has a couple classes for reporting progress to the user. The central
 concept is the progress_indicator, fleshed out in
 \ref tpie::progress_indicator_base. A progress indicator must have the methods
-init(stream_offset_type steps), step() and done(). It should inherit from the
+init(stream_size_type steps), step() and done(). It should inherit from the
 virtual base class \ref tpie::progress_indicator_base.
 
 The simplest way of reporting progress is settling on a concrete progress

@@ -94,7 +94,7 @@ void progress_indicator_subindicator::refresh() {
 	}
 }
 
-void progress_indicator_subindicator::init(TPIE_OS_OFFSET range) {
+void progress_indicator_subindicator::init(stream_size_type range) {
 #ifndef TPIE_NDEBUG
 	softassert(!m_init_called && "Init called twice");
 	m_init_called=true;

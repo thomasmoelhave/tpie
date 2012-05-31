@@ -211,7 +211,7 @@ void fractional_subindicator::setup(
 	m_fp.add_sub_indicator(*this);
 };
 
-void fractional_subindicator::init(stream_offset_type range) {
+void fractional_subindicator::init(stream_size_type range) {
 	softassert(m_fp.m_init_called);
 	m_predict.start_execution(m_n);
 	if (m_parent) {
@@ -256,7 +256,7 @@ fractional_progress::fractional_progress(progress_indicator_base * pi):
 #endif
 	m_confidence(1.0), m_total_sum(0), m_time_sum(0), m_timed_sum(0) {}
 	
-void fractional_progress::init(TPIE_OS_OFFSET range) {
+void fractional_progress::init(stream_size_type range) {
 	unused(range);
 #ifndef TPIE_NDEBUG
 	if (m_init_called) {

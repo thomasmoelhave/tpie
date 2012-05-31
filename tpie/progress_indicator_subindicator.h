@@ -35,7 +35,7 @@ public:
 	void refresh();
 	virtual void push_breadcrumb(const char * crumb, description_importance importance);
 	virtual void pop_breadcrumb();
-	virtual void init(TPIE_OS_OFFSET range);
+	virtual void init(stream_size_type range);
 	virtual void done();
 	
 	void setup(progress_indicator_base * parent,

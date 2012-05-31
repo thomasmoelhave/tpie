@@ -43,7 +43,7 @@ public:
 
     virtual ~progress_indicator_null() { /*Do nothing*/ }
 
-	virtual void init(TPIE_OS_OFFSET range) { unused(range); }
+	virtual void init(stream_size_type range) { unused(range); }
 	virtual void done() {}
 	virtual void set_range(TPIE_OS_OFFSET range) { unused(range); }
 	virtual void refresh() {}
