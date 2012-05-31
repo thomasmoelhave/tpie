@@ -169,7 +169,7 @@ public:
 	void set_time_predictor(execution_time_predictor * p) {m_predictor = p;}
 
 	std::string estimated_remaining_time() {
-		if (m_range == 0 || m_predictor == 0 || m_current < 0) return "";
+		if (m_range == 0 || m_predictor == 0) return "";
 		return m_predictor->estimate_remaining_time( double(m_current) / double(m_range) );
 	}
 
