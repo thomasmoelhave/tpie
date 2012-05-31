@@ -44,14 +44,30 @@ function handleevent(ev, html) {
     }
 }
 
+// Calculate the user's local time zone
+function calc_tz() {
+    // In Firefox, Date.toString() returns something like:
+    // Thu May 31 2012 11:37:42 GMT+0200 (CEST)
+    var s = ""+(new Date);
+    var re = new RegExp("\\(([A-Z]{3,4})\\)", "g");
+    var o = re.exec(s);
+    if (o)
+        return o[1];
+    else
+        return '';
+}
+
+var tz = calc_tz();
+
 // ISO 8601 specifies YYYY-MM-DDTHH:MM:SSZ
 function printdate(iso8601) {
     var d = new Date(iso8601);
     var now = new Date;
+    var a = '<span title="'+d+'">', b = '</span>';
     if (d.getFullYear() != now.getFullYear() || d.getMonth() != now.getMonth() || d.getDate() != now.getDate()) {
-        return 'on '+d.toLocaleDateString();
+        return a+'on '+d.toLocaleDateString()+b;
     }
-    return 'on '+d.toLocaleTimeString();
+    return a+'on '+d.toLocaleTimeString()+' '+tz+b;
 }
 
 function branchlink(branch) {
