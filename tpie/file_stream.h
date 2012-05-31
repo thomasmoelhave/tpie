@@ -325,7 +325,7 @@ public:
 
 				if (new_index < m_blockItems) {
 					update_vars();
-					m_index = new_index;
+					m_index = static_cast<memory_size_type>(new_index);
 					return;
 				}
 			}
