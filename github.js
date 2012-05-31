@@ -4,8 +4,8 @@ if (!window.console || !console.log)
 // JSON-P callback
 // https://api.github.com/repos/thomasmoelhave/tpie/events?callback=tpieevents
 function tpieevents(input) {
-    parse_events(input);
     store_remote_events(input);
+    parse_events(input);
 }
 
 function parse_events(input) {
