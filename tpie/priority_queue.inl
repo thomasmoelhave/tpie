@@ -928,45 +928,45 @@ void priority_queue<T, Comparator, OPQType>::remove_group_buffer(group_type grou
 //////////////////
 // TPIE wrappers
 template <typename T, typename Comparator, typename OPQType>
-void priority_queue<T, Comparator, OPQType>::slot_start_set(slot_type slot, stream_size_type n) {
+void priority_queue<T, Comparator, OPQType>::slot_start_set(slot_type slot, memory_size_type n) {
 	slot_state[slot*3] = n;
 }
 
 template <typename T, typename Comparator, typename OPQType>
-stream_size_type priority_queue<T, Comparator, OPQType>::slot_start(slot_type slot) const {
+memory_size_type priority_queue<T, Comparator, OPQType>::slot_start(slot_type slot) const {
 	return slot_state[slot*3];
 }
 
 template <typename T, typename Comparator, typename OPQType>
-void priority_queue<T, Comparator, OPQType>::slot_size_set(slot_type slot, stream_size_type n) {
+void priority_queue<T, Comparator, OPQType>::slot_size_set(slot_type slot, memory_size_type n) {
 	//cout << "change slot " << slot << " size" << "\n";
 	assert(slot<setting_k*setting_k);
 	slot_state[slot*3+1] = n;
 }
 
 template <typename T, typename Comparator, typename OPQType>
-stream_size_type priority_queue<T, Comparator, OPQType>::slot_size(slot_type slot) const {
+memory_size_type priority_queue<T, Comparator, OPQType>::slot_size(slot_type slot) const {
 	return slot_state[slot*3+1];
 }
 
 template <typename T, typename Comparator, typename OPQType>
-void priority_queue<T, Comparator, OPQType>::group_start_set(group_type group, stream_size_type n) {
+void priority_queue<T, Comparator, OPQType>::group_start_set(group_type group, memory_size_type n) {
 	group_state[group*2] = n;
 }
 
 template <typename T, typename Comparator, typename OPQType>
-stream_size_type priority_queue<T, Comparator, OPQType>::group_start(group_type group) const {
+memory_size_type priority_queue<T, Comparator, OPQType>::group_start(group_type group) const {
 	return group_state[group*2];
 }
 
 template <typename T, typename Comparator, typename OPQType>
-void priority_queue<T, Comparator, OPQType>::group_size_set(group_type group, stream_size_type n) {
+void priority_queue<T, Comparator, OPQType>::group_size_set(group_type group, memory_size_type n) {
 	assert(group<setting_k);
 	group_state[group*2+1] = n;
 }
 
 template <typename T, typename Comparator, typename OPQType>
-stream_size_type priority_queue<T, Comparator, OPQType>::group_size(group_type group) const {
+memory_size_type priority_queue<T, Comparator, OPQType>::group_size(group_type group) const {
 	return group_state[group*2+1];
 }
 
@@ -976,7 +976,7 @@ temp_file & priority_queue<T, Comparator, OPQType>::slot_data(slot_type slotid) 
 }
 
 template <typename T, typename Comparator, typename OPQType>
-void priority_queue<T, Comparator, OPQType>::slot_data_set(slot_type slotid, stream_size_type n) {
+void priority_queue<T, Comparator, OPQType>::slot_data_set(slot_type slotid, memory_size_type n) {
 	slot_state[slotid*3+2] = n;
 }
 
@@ -986,8 +986,8 @@ temp_file & priority_queue<T, Comparator, OPQType>::group_data(group_type groupi
 }
 
 template <typename T, typename Comparator, typename OPQType>
-stream_size_type priority_queue<T, Comparator, OPQType>::slot_max_size(slot_type slotid) {
-	return setting_m*static_cast<stream_size_type>(pow((long double)setting_k,(long double)(slotid/setting_k))); // todo, too many casts
+memory_size_type priority_queue<T, Comparator, OPQType>::slot_max_size(slot_type slotid) {
+	return setting_m*static_cast<memory_size_type>(pow((long double)setting_k,(long double)(slotid/setting_k))); // todo, too many casts
 }
 
 template <typename T, typename Comparator, typename OPQType>
