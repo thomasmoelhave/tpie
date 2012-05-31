@@ -60,13 +60,10 @@ namespace tpie {
 ///
 /////////////////////////////////////////////////////////
 
-typedef memory_size_type pq_group_type;
-typedef memory_size_type pq_slot_type;
-
 template<typename T, typename Comparator = std::less<T>, typename OPQType = pq_overflow_heap<T, Comparator> >
 class priority_queue {
-	typedef pq_group_type group_type;
-	typedef pq_slot_type slot_type;
+	typedef memory_size_type group_type;
+	typedef memory_size_type slot_type;
 public:
     /////////////////////////////////////////////////////////
     ///
