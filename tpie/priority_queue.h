@@ -158,8 +158,8 @@ private:
 	tpie::array<T> buffer; // deletion buffer
 	tpie::array<T> gbuffer0; // group buffer 0
 	tpie::array<T> mergebuffer; // merge buffer for merging deletion buffer and group buffer 0
-	tpie::array<stream_size_type> slot_state;
-	tpie::array<stream_size_type> group_state;
+	tpie::array<memory_size_type> slot_state;
+	tpie::array<memory_size_type> group_state;
 
     memory_size_type setting_k;
     memory_size_type current_r;
@@ -176,16 +176,18 @@ private:
 
 	void init(memory_size_type mm_avail);
 
-    void slot_start_set(slot_type slot, stream_size_type n);
-    stream_size_type slot_start(slot_type slot) const;
-    void slot_size_set(slot_type slot, stream_size_type n);
-    stream_size_type slot_size(slot_type slot) const;
-    void group_start_set(group_type group, stream_size_type n);
+    void             slot_start_set(slot_type slot, memory_size_type n);
+    memory_size_type slot_start(slot_type slot) const;
+    void             slot_size_set(slot_type slot, memory_size_type n);
+    memory_size_type slot_size(slot_type slot) const;
+    void             group_start_set(group_type group, memory_size_type n);
     memory_size_type group_start(group_type group) const;
-    void group_size_set(group_type group, memory_size_type n);
-    stream_size_type group_size(group_type group) const;
+    void             group_size_set(group_type group, memory_size_type n);
+    memory_size_type group_size(group_type group) const;
+
     array<temp_file> datafiles;
     array<temp_file> groupdatafiles;
+
     temp_file & slot_data(slot_type slotid);
     void slot_data_set(slot_type slotid, stream_size_type n);
     temp_file & group_data(group_type groupid);
