@@ -74,13 +74,13 @@ public:
 	/// \param b Block factor
     ///
     /////////////////////////////////////////////////////////
-    priority_queue(double f=1.0, double b=0.0625);
+    priority_queue(double f=1.0, float b=0.0625);
 
 #ifndef DOXYGEN
     // \param mmavail Number of bytes the priority queue is
     // allowed to use.
 	// \param b Block factor
-    priority_queue(stream_size_type mm_avail, double b=0.0625);
+    priority_queue(memory_size_type mm_avail, float b=0.0625);
 #endif
 
 
@@ -172,7 +172,7 @@ private:
     memory_size_type buffer_size;
     memory_size_type buffer_start;
 
-	double block_factor;
+	float block_factor;
 
 	void init(memory_size_type mm_avail);
 
@@ -181,14 +181,14 @@ private:
     void slot_size_set(slot_type slot, stream_size_type n);
     stream_size_type slot_size(slot_type slot) const;
     void group_start_set(group_type group, stream_size_type n);
-    stream_size_type group_start(group_type group) const;
-    void group_size_set(group_type group, stream_size_type n);
+    memory_size_type group_start(group_type group) const;
+    void group_size_set(group_type group, memory_size_type n);
     stream_size_type group_size(group_type group) const;
     array<temp_file> datafiles;
     array<temp_file> groupdatafiles;
-    temp_file & slot_data(stream_size_type slotid);
-    void slot_data_set(memory_size_type slotid, stream_size_type n);
-    temp_file & group_data(memory_size_type groupid);
+    temp_file & slot_data(slot_type slotid);
+    void slot_data_set(slot_type slotid, stream_size_type n);
+    temp_file & group_data(group_type groupid);
     memory_size_type slot_max_size(slot_type slotid);
     void write_slot(slot_type slotid, T* arr, stream_size_type len);
     slot_type free_slot(group_type group);
