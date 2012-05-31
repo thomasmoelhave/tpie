@@ -19,10 +19,10 @@
 
 
 template <typename T, typename Comparator>
-pq_merge_heap<T, Comparator>::pq_merge_heap(stream_size_type elements) {
+pq_merge_heap<T, Comparator>::pq_merge_heap(memory_size_type elements) {
 	maxsize = elements;
 	heap = tpie_new_array<T>(elements);
-	runs = tpie_new_array<stream_size_type>(elements);
+	runs = tpie_new_array<run_type>(elements);
 	m_size = 0;
 }
 
@@ -33,7 +33,7 @@ pq_merge_heap<T, Comparator>::~pq_merge_heap() {
 }
 
 template <typename T, typename Comparator>
-void pq_merge_heap<T, Comparator>::push(const T& x, stream_size_type run) {
+void pq_merge_heap<T, Comparator>::push(const T& x, run_type run) {
 	assert(m_size < maxsize);
 	heap[m_size] = x;
 	runs[m_size] = run;
@@ -70,7 +70,7 @@ void pq_merge_heap<T, Comparator>::pop() {
 }
 
 template <typename T, typename Comparator>
-void pq_merge_heap<T, Comparator>::pop_and_push(const T& x, stream_size_type run) {
+void pq_merge_heap<T, Comparator>::pop_and_push(const T& x, run_type run) {
 	assert(m_size > 0);
 	heap[0] = x;
 	runs[0] = run;
@@ -87,13 +87,14 @@ const T& pq_merge_heap<T, Comparator>::top() const {
 }
 
 template <typename T, typename Comparator>
-stream_size_type pq_merge_heap<T, Comparator>::top_run() const {
+typename pq_merge_heap<T, Comparator>::run_type
+pq_merge_heap<T, Comparator>::top_run() const {
 	assert(m_size > 0);
 	return runs[0];
 }
 
 template <typename T, typename Comparator>
-stream_size_type pq_merge_heap<T, Comparator>::size() const {
+memory_size_type pq_merge_heap<T, Comparator>::size() const {
 	return m_size;
 }
 
@@ -170,8 +171,8 @@ template <typename T, typename Comparator>
 void pq_merge_heap<T, Comparator>::validate() {
 #ifndef NDEBUG
 #ifdef PQ_VALIDATE
-	stream_size_type child1, child2;
-	for(stream_size_type i = 0; i<m_size; i++) {
+	memory_size_type child1, child2;
+	for(memory_size_type i = 0; i<m_size; i++) {
 		child1 = i * 2 + 1;
 		child2 = i * 2 + 2;
 		if(child1<m_size) {
@@ -190,7 +191,7 @@ void pq_merge_heap<T, Comparator>::validate() {
 template <typename T, typename Comparator>
 void pq_merge_heap<T, Comparator>::dump() {
 	TP_LOG_DEBUG("pq_merge_heap: "); 
-	for(stream_size_type i = 0; i<m_size; i++) {
+	for(memory_size_type i = 0; i<m_size; i++) {
 		TP_LOG_DEBUG(heap[i] << ", ");
 	}
 	TP_LOG_DEBUG("\n");

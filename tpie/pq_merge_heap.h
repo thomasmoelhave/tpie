@@ -47,7 +47,7 @@ class pq_merge_heap {
 		///
 		/// \param elements Maximum allowed size of the heap.
 		///////////////////////////////////////////////////////////////////////
-		pq_merge_heap(stream_size_type elements);
+		pq_merge_heap(memory_size_type elements);
 
 		///////////////////////////////////////////////////////////////////////
 		/// \brief Destructor.
@@ -95,7 +95,7 @@ class pq_merge_heap {
 		///
 		/// \return Queue size.
 		///////////////////////////////////////////////////////////////////////
-		stream_size_type size() const;
+		memory_size_type size() const;
 
 		///////////////////////////////////////////////////////////////////////
 		/// \brief Return true if queue is empty, otherwise false.
@@ -109,12 +109,12 @@ class pq_merge_heap {
 		void validate();
 		void dump();
 
-		stream_size_type m_size;
+		memory_size_type m_size;
 		Comparator comp_;
 
 		T* heap;
 		run_type* runs;
-		stream_size_type maxsize;
+		memory_size_type maxsize;
 };
 
 #include "pq_merge_heap.inl"
