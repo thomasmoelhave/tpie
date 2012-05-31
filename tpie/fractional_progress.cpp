@@ -326,7 +326,7 @@ double fractional_progress::get_fraction(fractional_subindicator & sub) {
 	if (sub.m_fraction < 0.000000001 && sub.m_confidence > 0.5) return 0.0;
 	
 	double f1 = (m_total_sum > 0.00001)?sub.m_fraction / m_total_sum: 0.0;
-	double f2 = (m_time_sum > 0.00001)?((double)sub.m_estimate / (double)m_time_sum):0.0;
+	double f2 = (m_time_sum >= 1)?((double)sub.m_estimate / (double)m_time_sum):0.0;
 	
 	double f = f1 * (1.0 - m_confidence) + f2*m_confidence;
 	return f;
