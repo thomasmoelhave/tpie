@@ -39,7 +39,7 @@ void progress_indicator_subindicator::pop_breadcrumb() {
  * \param importance The maximal importance to assign to the crumbs of child indicators
  */
 progress_indicator_subindicator::progress_indicator_subindicator(progress_indicator_base * parent,
-																 TPIE_OS_OFFSET outerRange,
+																 stream_size_type outerRange,
 																 const char * crumb,
 																 description_importance importance):
 	progress_indicator_base(0) {
@@ -51,7 +51,7 @@ progress_indicator_subindicator::progress_indicator_subindicator():
 	progress_indicator_base(0) {}
 
 void progress_indicator_subindicator::setup(progress_indicator_base * parent,
-											TPIE_OS_OFFSET outerRange,
+											stream_size_type outerRange,
 											const char * crumb,
 											description_importance importance) {
 	m_parent = parent;
@@ -84,10 +84,10 @@ progress_indicator_subindicator::~progress_indicator_subindicator() {
 #endif
 
 void progress_indicator_subindicator::refresh() {
-	TPIE_OS_OFFSET val = get_current();
+	stream_size_type val = get_current();
 	if (val > get_range()) val = get_range();
 	if (get_range() == 0) return;
-	TPIE_OS_OFFSET value= val* m_outerRange / get_range();
+	stream_size_type value= val* m_outerRange / get_range();
 	if (m_parent) {
 		m_parent->raw_step(value - m_oldValue);
 		m_oldValue = value;

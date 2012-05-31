@@ -51,7 +51,7 @@ public:
 	///  \param  minRange     The lower bound of the range.
 	////////////////////////////////////////////////////////////////////
 
-	progress_indicator_terminal(const char * title, TPIE_OS_OFFSET range) : 
+	progress_indicator_terminal(const char * title, stream_size_type range) : 
 	    progress_indicator_base(range), m_title(title) {}
 
   // ////////////////////////////////////////////////////////////////////
@@ -151,7 +151,7 @@ protected:
 	    //else {
 		//		std::cout << 
 	    //}
-		TPIE_OS_OFFSET r = (m_current) * 100 / (m_range);
+		stream_size_type r = (m_current) * 100 / (m_range);
 		std::cout << r << "%";
 	}
 	

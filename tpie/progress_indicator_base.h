@@ -67,7 +67,7 @@ public:
 	/// \param  range     The upper bound of the counting range.
 	///////////////////////////////////////////////////////////////////////////
 	
-	progress_indicator_base(TPIE_OS_OFFSET range) : 
+	progress_indicator_base(stream_size_type range) : 
 	    m_range(range),
 	    m_current(0),
 		//m_lastUpdate(getticks()),
@@ -101,7 +101,7 @@ public:
 #endif	
 		if (m_current > m_next) {
 			ticks currentTicks = getticks();
-			m_next = static_cast<TPIE_OS_OFFSET>(
+			m_next = static_cast<stream_size_type>(
 				static_cast<double>(m_current) * (elapsed(currentTicks, m_start) + m_threshold)/
 				elapsed(currentTicks, m_start));
 			refresh();
@@ -146,7 +146,7 @@ public:
 	///
 	/// \param  range  The new upper bound.
 	///////////////////////////////////////////////////////////////////////////
-	virtual void set_range(TPIE_OS_OFFSET range) {
+	virtual void set_range(stream_size_type range) {
 	    m_range = range;
 	}
   
@@ -158,12 +158,12 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// Get the current value of the step counter.
 	///////////////////////////////////////////////////////////////////////////
-	TPIE_OS_OFFSET get_current() { return m_current; }
+	stream_size_type get_current() { return m_current; }
 	
 	///////////////////////////////////////////////////////////////////////////
 	/// Get the maximum value of the current range.
 	///////////////////////////////////////////////////////////////////////////
-	TPIE_OS_OFFSET get_range() { return m_range; }
+	stream_size_type get_range() { return m_range; }
 
 	execution_time_predictor * get_time_predictor() {return m_predictor;}
 	void set_time_predictor(execution_time_predictor * p) {m_predictor = p;}
@@ -177,10 +177,10 @@ public:
 	virtual void pop_breadcrumb() {}
 protected:
 	/**  The upper bound of the counting range.  */
-	TPIE_OS_OFFSET m_range;
+	stream_size_type m_range;
 
 	/**  The current progress count [m_minRange...m_maxRange].  */
-	TPIE_OS_OFFSET m_current;
+	stream_size_type m_current;
 	
 private:
 	/**  The number of ticks elapsed when refresh was called last */
@@ -188,7 +188,7 @@ private:
 	ticks m_lastCalled;
 #endif
 
-	TPIE_OS_OFFSET m_next;
+	stream_size_type m_next;
 	ticks m_start;
 
 	/**  The approximate frequency of calls to refresh in hz */
