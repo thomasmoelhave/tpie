@@ -189,10 +189,10 @@ private:
     array<temp_file> groupdatafiles;
 
     temp_file & slot_data(slot_type slotid);
-    void slot_data_set(slot_type slotid, stream_size_type n);
+    void slot_data_set(slot_type slotid, memory_size_type n);
     temp_file & group_data(group_type groupid);
     memory_size_type slot_max_size(slot_type slotid);
-    void write_slot(slot_type slotid, T* arr, stream_size_type len);
+    void write_slot(slot_type slotid, T* arr, memory_size_type len);
     slot_type free_slot(group_type group);
     void empty_group(group_type group);
     void fill_buffer();
