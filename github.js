@@ -40,7 +40,7 @@ function abbreviate_push(ev) {
     var author = same_author(ev.payload.commits);
     if (author == null)
         return handleanyevent(ev, 'pushed to '+printref(ev.payload.ref));
-    ev.actor.login = author.name;
+    ev.actor.realname = author.name;
     return handleanyevent(ev, 'committed to '+printref(ev.payload.ref));
 }
 
@@ -108,7 +108,7 @@ function printref(refname) {
 
 function handleanyevent(ev, desc) {
     return [
-        '<li><a href="https://github.com/',ev.actor.login,'">',ev.actor.login,'</a> ',
+        '<li><a href="https://github.com/',ev.actor.login,'">',(ev.actor.realname || ev.actor.login),'</a> ',
         desc,
         ' <span class="date">',printdate(ev.created_at),'</span></li>',
     ''].join('');
