@@ -45,7 +45,7 @@ class pq_merge_heap {
 		///
 		/// \param elements Maximum allowed size of the heap.
 		///////////////////////////////////////////////////////////////////////
-		pq_merge_heap(TPIE_OS_SIZE_T elements);
+		pq_merge_heap(stream_size_type elements);
 
 		///////////////////////////////////////////////////////////////////////
 		/// \brief Destructor.
@@ -58,7 +58,7 @@ class pq_merge_heap {
 		/// \param x The item.
 		/// \param run Where it comes from.
 		///////////////////////////////////////////////////////////////////////
-		void push(const T& x, TPIE_OS_SIZE_T run);
+		void push(const T& x, stream_size_type run);
 
 		///////////////////////////////////////////////////////////////////////
 		/// \brief Remove the top element from the priority queue.
@@ -72,7 +72,7 @@ class pq_merge_heap {
 		/// \param x The item.
 		/// \param run Where it comes from.
 		///////////////////////////////////////////////////////////////////////
-		void pop_and_push(const T& x, TPIE_OS_SIZE_T run);
+		void pop_and_push(const T& x, stream_size_type run);
 
 		///////////////////////////////////////////////////////////////////////
 		/// \brief See what's on the top of the priority queue.
@@ -86,14 +86,14 @@ class pq_merge_heap {
 		///
 		/// \return Top element run number.
 		///////////////////////////////////////////////////////////////////////
-		TPIE_OS_SIZE_T top_run() const;
+		stream_size_type top_run() const;
 
 		///////////////////////////////////////////////////////////////////////
 		/// \brief Returns the size of the queue.
 		///
 		/// \return Queue size.
 		///////////////////////////////////////////////////////////////////////
-		TPIE_OS_SIZE_T size() const;
+		stream_size_type size() const;
 
 		///////////////////////////////////////////////////////////////////////
 		/// \brief Return true if queue is empty, otherwise false.
@@ -107,12 +107,12 @@ class pq_merge_heap {
 		void validate();
 		void dump();
 
-		TPIE_OS_SIZE_T m_size;
+		stream_size_type m_size;
 		Comparator comp_;
 
 		T* heap;
-		TPIE_OS_SIZE_T* runs;
-		TPIE_OS_SIZE_T maxsize;
+		stream_size_type* runs;
+		stream_size_type maxsize;
 };
 
 #include "pq_merge_heap.inl"
