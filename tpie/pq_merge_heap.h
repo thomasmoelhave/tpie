@@ -40,6 +40,8 @@ namespace tpie{
 template<typename T, typename Comparator = std::less<T> >
 class pq_merge_heap {
 	public:
+		typedef memory_size_type run_type;
+
 		///////////////////////////////////////////////////////////////////////
 		/// \brief Constructor.
 		///
@@ -58,7 +60,7 @@ class pq_merge_heap {
 		/// \param x The item.
 		/// \param run Where it comes from.
 		///////////////////////////////////////////////////////////////////////
-		void push(const T& x, stream_size_type run);
+		void push(const T& x, run_type run);
 
 		///////////////////////////////////////////////////////////////////////
 		/// \brief Remove the top element from the priority queue.
@@ -72,7 +74,7 @@ class pq_merge_heap {
 		/// \param x The item.
 		/// \param run Where it comes from.
 		///////////////////////////////////////////////////////////////////////
-		void pop_and_push(const T& x, stream_size_type run);
+		void pop_and_push(const T& x, run_type run);
 
 		///////////////////////////////////////////////////////////////////////
 		/// \brief See what's on the top of the priority queue.
@@ -86,7 +88,7 @@ class pq_merge_heap {
 		///
 		/// \return Top element run number.
 		///////////////////////////////////////////////////////////////////////
-		stream_size_type top_run() const;
+		run_type top_run() const;
 
 		///////////////////////////////////////////////////////////////////////
 		/// \brief Returns the size of the queue.
@@ -111,7 +113,7 @@ class pq_merge_heap {
 		Comparator comp_;
 
 		T* heap;
-		stream_size_type* runs;
+		run_type* runs;
 		stream_size_type maxsize;
 };
 

@@ -43,7 +43,7 @@ public:
     ///
     /// \param maxsize Maximal size of queue.
     ///////////////////////////////////////////////////////////////////////////
-    pq_overflow_heap(stream_size_type maxsize, Comparator c=Comparator());
+    pq_overflow_heap(memory_size_type maxsize, Comparator c=Comparator());
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Insert an element into the priority queue.
@@ -103,7 +103,7 @@ public:
     ///
     /// \return Size.
     ///////////////////////////////////////////////////////////////////////////
-    stream_size_type sorted_size() const;
+    memory_size_type sorted_size() const;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Remove all elements from queue.
@@ -113,7 +113,7 @@ public:
 private:
     Comparator comp;
 	internal_priority_queue<T, Comparator> h;
-    stream_size_type maxsize;
+    memory_size_type maxsize;
     //T dummy;
 };
 	

@@ -60,8 +60,13 @@ namespace tpie {
 ///
 /////////////////////////////////////////////////////////
 
+typedef memory_size_type pq_group_type;
+typedef memory_size_type pq_slot_type;
+
 template<typename T, typename Comparator = std::less<T>, typename OPQType = pq_overflow_heap<T, Comparator> >
 class priority_queue {
+	typedef pq_group_type group_type;
+	typedef pq_slot_type slot_type;
 public:
     /////////////////////////////////////////////////////////
     ///
@@ -159,43 +164,43 @@ private:
 	tpie::array<stream_size_type> slot_state;
 	tpie::array<stream_size_type> group_state;
 
-    stream_size_type setting_k;
-    stream_size_type current_r;
-    stream_size_type setting_m;
-    stream_size_type setting_mmark;
+    memory_size_type setting_k;
+    memory_size_type current_r;
+    memory_size_type setting_m;
+    memory_size_type setting_mmark;
 
-    stream_size_type slot_data_id;
+    memory_size_type slot_data_id;
 
     stream_size_type m_size;
-    stream_size_type buffer_size;
-    stream_size_type buffer_start;
+    memory_size_type buffer_size;
+    memory_size_type buffer_start;
 
 	double block_factor;
 
-	void init(stream_size_type mm_avail);
+	void init(memory_size_type mm_avail);
 
-    void slot_start_set(stream_size_type slot, stream_size_type n);
-    stream_size_type slot_start(stream_size_type slot) const;
-    void slot_size_set(stream_size_type slot, stream_size_type n);
-    stream_size_type slot_size(stream_size_type slot) const;
-    void group_start_set(stream_size_type group, stream_size_type n);
-    stream_size_type group_start(stream_size_type group) const;
-    void group_size_set(stream_size_type group, stream_size_type n);
-    stream_size_type group_size(stream_size_type group) const;
+    void slot_start_set(slot_type slot, stream_size_type n);
+    stream_size_type slot_start(slot_type slot) const;
+    void slot_size_set(slot_type slot, stream_size_type n);
+    stream_size_type slot_size(slot_type slot) const;
+    void group_start_set(group_type group, stream_size_type n);
+    stream_size_type group_start(group_type group) const;
+    void group_size_set(group_type group, stream_size_type n);
+    stream_size_type group_size(group_type group) const;
     array<temp_file> datafiles;
     array<temp_file> groupdatafiles;
     temp_file & slot_data(stream_size_type slotid);
-    void slot_data_set(stream_size_type slotid, stream_size_type n);
-    temp_file & group_data(stream_size_type groupid);
-    stream_size_type slot_max_size(stream_size_type slotid);
-    void write_slot(stream_size_type slotid, T* arr, stream_size_type len);
-    stream_size_type free_slot(stream_size_type group);
-    void empty_group(stream_size_type group);
+    void slot_data_set(memory_size_type slotid, stream_size_type n);
+    temp_file & group_data(memory_size_type groupid);
+    memory_size_type slot_max_size(slot_type slotid);
+    void write_slot(slot_type slotid, T* arr, stream_size_type len);
+    slot_type free_slot(group_type group);
+    void empty_group(group_type group);
     void fill_buffer();
-    void fill_group_buffer(stream_size_type group);
-    void compact(stream_size_type slot);
+    void fill_group_buffer(group_type group);
+    void compact(slot_type slot);
     void validate();
-    void remove_group_buffer(stream_size_type group);
+    void remove_group_buffer(group_type group);
     void dump();
 };
 
