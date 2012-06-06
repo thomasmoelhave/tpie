@@ -136,13 +136,13 @@ struct unittests {
 
 	tpie_initer initer;
 
-	unittests(int argc, char ** argv)
+	unittests(int argc, char ** argv, size_t memory_limit = 32)
 		: progname(argv[0])
 		, tests(0)
 		, result(true)
 		, testname("")
 		, testall(false)
-		, initer(32)
+		, initer(memory_limit)
 	{
 		tpie::get_memory_manager().set_enforcement(tpie::memory_manager::ENFORCE_THROW);
 		if (argc > 1) {
