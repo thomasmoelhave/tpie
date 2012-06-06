@@ -49,7 +49,7 @@ function handleevent(ev, html) {
         case "PushEvent":
             html.push(abbreviate_push(ev));
             for (var i = 0, l = ev.payload.commits.length; i < l; ++i) {
-                if (i > 2) {
+                if (i > 2 && l > 4) {
                     html.push("and "+(l-i)+" more commits");
                     break;
                 }
