@@ -185,20 +185,48 @@ bool memory_test() {
 	return tester();
 }
 
+bool overflow_test() {
+	tpie::priority_queue<char> pq;
+	char c = 0;
+	const uint64_t limit = 100ull + (1ull << 32);
+	const uint64_t every = 1<<16;
+	const uint64_t steps = limit/every;
+
+	progress_indicator_arrow pi("PQ test", 2*steps);
+	pi.init(2*steps);
+	uint64_t progress_tracker = every;
+
+	for (uint64_t i = 0; i < limit; ++i) {
+		pq.push(c++);
+
+		if (!--progress_tracker) {
+			progress_tracker = every;
+			pi.step();
+		}
+	}
+
+	for (uint64_t i = 0; i < limit; ++i) {
+		pq.pop();
+
+		if (!--progress_tracker) {
+			progress_tracker = every;
+			pi.step();
+		}
+	}
+
+	pi.done();
+
+	return true;
+}
 
 int main(int argc, char **argv) {
-	tpie_initer _(128);
-	if(argc != 2) return 1;
-	std::string test(argv[1]);
-	if (test == "basic")
-		return basic_test()?EXIT_SUCCESS:EXIT_FAILURE;
-	else if (test == "medium")
-		return medium_instance()?EXIT_SUCCESS:EXIT_FAILURE;
-	else if (test == "large")
-		return large_instance<false>()?EXIT_SUCCESS:EXIT_FAILURE;
-	else if (test == "large_cycle")
-		return large_cycle()?EXIT_SUCCESS:EXIT_FAILURE;
-	else if (test == "memory")
-		return memory_test()?EXIT_SUCCESS:EXIT_FAILURE;
+	unittests(argc, argv, 128)
+	.test<basic_test>("basic")
+	.test<medium_instance>("medium")
+	.test<large_instance<false> >("large")
+	.test<large_cycle>("large_cycle")
+	.test<memory_test>("memory")
+	.test<overflow_test>("overflow")
+	;
 	return EXIT_FAILURE;
 }
