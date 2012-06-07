@@ -47,7 +47,7 @@ template<typename T, typename Comparator, typename OPQType>
 void priority_queue<T, Comparator, OPQType>::init(memory_size_type mm_avail) { // init
 #ifdef _WIN32
 #ifndef _WIN64
-	mm_avail = std::min(mm_avail, 1024*1024*512);
+	mm_avail = std::min(mm_avail, static_cast<memory_size_type>(1024*1024*512));
 #endif //_WIN64
 #endif //_WIN32
 
@@ -891,13 +891,13 @@ void priority_queue<T, Comparator, OPQType>::remove_group_buffer(group_type grou
 	file_stream<T> data;
 	data.open(group_data(group));
 	data.seek(group_start(group));
-	stream_size_type size = group_size(group);
+	memory_size_type size = group_size(group);
 	if(group_start(group) + group_size(group) <= static_cast<stream_size_type>(setting_m)) {
 		data.read(arr.begin(), arr.find(size));
 	} else {
 		// two reads
-		stream_size_type first_read = setting_m - data.offset();
-		stream_size_type second_read = size - first_read;
+		memory_size_type first_read = setting_m - group_start(group);
+		memory_size_type second_read = size - first_read;
 
 		data.read(arr.begin(), arr.find(first_read));
 		data.seek(0);
@@ -908,7 +908,7 @@ void priority_queue<T, Comparator, OPQType>::remove_group_buffer(group_type grou
 	// make sure that the new slot in group 0 is heap ordered with gbuffer0
 	if(group > 0 && group_size(0) != 0) {
 		// this code is also used in PQFishspear
-		stream_size_type j = 0;
+		memory_size_type j = 0;
 		for(stream_size_type i = group_start(0); i < group_start(0)+group_size(0); i++) {
 			mergebuffer[j] = gbuffer0[i%setting_m];
 			++j;
