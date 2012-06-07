@@ -160,14 +160,14 @@ struct unittests {
 		}
 	}
 
-	~unittests() {
+	operator int() {
 		if (!tests) usage();
 		if (testall) {
 			std::cerr << std::string(79, '=');
 			if (result) std::cerr << "\nAll tests passed" << std::endl;
 			else std::cerr << "\nThe following tests FAILED:\n" << faillog.str() << std::flush;
 		}
-		exit(result ? EXIT_SUCCESS : EXIT_FAILURE);
+		return result ? EXIT_SUCCESS : EXIT_FAILURE;
 	}
 
 	// Run test, increment `tests', set `result' if failed, output if `testall'
