@@ -30,25 +30,30 @@
 #include <vector>
 
 class primeit {
-private:
-	primeit(int64_t s, int64_t y, int64_t i = 0) : s(s), i(i), y(y) {}
 public:
-	int64_t s;
-	int64_t i;
-	int64_t y;
-	static primeit begin(int64_t size) {
-		int64_t s = tpie::next_prime(size);
-		int64_t y = size-16;
-		int64_t i = 0;
+	typedef size_t prime_t;
+	typedef off_t sprime_t;
+
+private:
+	primeit(prime_t s, prime_t y, prime_t i = 0) : s(s), i(i), y(y) {}
+
+public:
+	prime_t s;
+	prime_t i;
+	prime_t y;
+	static primeit begin(prime_t size) {
+		prime_t s = tpie::next_prime(size);
+		prime_t y = size-16;
+		prime_t i = 0;
 		return primeit(s,y,i);
 	}
-	static primeit end(int64_t size) {
-		int64_t s = tpie::next_prime(size);
-		int64_t y = size-16;
-		int64_t i = s;
+	static primeit end(prime_t size) {
+		prime_t s = tpie::next_prime(size);
+		prime_t y = size-16;
+		prime_t i = s;
 		return primeit(s,y,i);
 	}
-	size_t operator*() const {
+	prime_t operator*() const {
 		return (i * y) % s;
 	}
 	// pre-increment
@@ -56,7 +61,7 @@ public:
 		++i;
 		return *this;
 	}
-	int operator-(const primeit & other) const {
+	sprime_t operator-(const primeit & other) const {
 		return i-other.i;
 	}
 	bool operator==(const primeit & other) const {
@@ -68,10 +73,10 @@ public:
 	bool operator<(const primeit & other) const {
 		return i < other.i;
 	}
-	primeit operator+(int64_t j) const {
+	primeit operator+(prime_t j) const {
 		return primeit(s, y, i+j);
 	}
-	primeit operator+(uint64_t j) const {
+	primeit operator+(sprime_t j) const {
 		return primeit(s, y, i+j);
 	}
 };
@@ -79,20 +84,20 @@ public:
 namespace std {
 template <> struct iterator_traits<primeit> {
 	typedef random_access_iterator_tag iterator_category;
-	typedef int64_t value_type;
-	typedef int64_t difference_type;
-	typedef int64_t* pointer;
-	typedef int64_t reference;
+	typedef primeit::prime_t value_type;
+	typedef primeit::sprime_t difference_type;
+	typedef primeit::prime_t* pointer;
+	typedef primeit::prime_t reference;
 };
 }
 
 using namespace tpie;
 
 bool ami_sort_test(size_t size) {
-	ami::stream<int64_t> mystream;
+	ami::stream<size_t> mystream;
 	primeit begin = primeit::begin(size);
 	primeit end = primeit::end(size);
-	int64_t s = end-begin;
+	size_t s = end-begin;
 
 	while (begin != end) {
 		size_t x= *begin;
@@ -103,8 +108,8 @@ bool ami_sort_test(size_t size) {
 
 	mystream.seek(0);
 
-	int64_t * x = 0;
-	for(int64_t i=0; i < s; ++i) {
+	size_t * x = 0;
+	for(size_t i=0; i < s; ++i) {
 		mystream.read_item( &x );
 		if (*x != i) return false;
 	}
@@ -112,13 +117,13 @@ bool ami_sort_test(size_t size) {
 }
 
 template <typename Progress>
-bool small_sort_test(int64_t size, Progress & pi) {
+bool small_sort_test(size_t size, Progress & pi) {
 	temp_file tmp;
-	file_stream<int64_t> mystream;
+	file_stream<size_t> mystream;
 	mystream.open(tmp.path());
 
-	std::vector<int64_t> write(size);
-	for (int64_t i = 0; i < size; ++i) {
+	std::vector<size_t> write(size);
+	for (size_t i = 0; i < size; ++i) {
 		write[i] = size-i;
 	}
 
@@ -126,8 +131,8 @@ bool small_sort_test(int64_t size, Progress & pi) {
 	sort(mystream, pi);
 
 	mystream.seek(0);
-	for(int64_t i=0; i < size; ++i) {
-		int64_t x = mystream.read();
+	for(size_t i=0; i < size; ++i) {
+		size_t x = mystream.read();
 		if (x != i+1) return false;
 	}
 	return !mystream.can_read();
@@ -136,19 +141,19 @@ bool small_sort_test(int64_t size, Progress & pi) {
 template<typename Progress>
 bool sort_test(size_t size, Progress & pi) {
 	temp_file tmp;
-	file_stream<int64_t> mystream;
+	file_stream<size_t> mystream;
 	mystream.open(tmp.path());
 
 	primeit begin = primeit::begin(size);
 	primeit end = primeit::end(size);
-	int64_t s = end-begin;
+	size_t s = end-begin;
 
 	mystream.write(begin, end);
 	sort(mystream, pi);
 
 	mystream.seek(0);
-	for(int64_t i=0; i < s; ++i) {
-		int64_t x = mystream.read();
+	for(size_t i=0; i < s; ++i) {
+		size_t x = mystream.read();
 		if (x != i) return false;
 	}
 	return !mystream.can_read();
