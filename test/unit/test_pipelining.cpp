@@ -401,7 +401,9 @@ bool execution_order() {
 }
 
 int main(int argc, char ** argv) {
-	tests_t(argc, argv)
+	unittests(argc, argv)
+	.fixture(setup_test_vectors)
+	.fixture(file_system_cleanup)
 	.test<vector_multiply_test>("vector")
 	.test<file_stream_test>("filestream")
 	.test<file_stream_pull_test>("fspull")
