@@ -492,7 +492,7 @@ private:
 		// calculate buffer size
 		m_block.size = m_blockItems;
 		if (static_cast<stream_size_type>(m_block.size) + m_block.number * static_cast<stream_size_type>(m_blockItems) > size())
-			m_block.size = size() - m_block.number * m_blockItems;
+			m_block.size = static_cast<memory_size_type>(size() - m_block.number * m_blockItems);
 
 		// populate buffer data
 		if (m_block.size > 0 &&
