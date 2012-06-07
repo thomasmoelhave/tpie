@@ -88,6 +88,10 @@ struct linear_memory_base {
 	}
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Computes the least integer strictly greater than log(t). Maybe this
+/// ought to compute something different. Used in array.h.
+///////////////////////////////////////////////////////////////////////////////
 template <int t>
 struct template_log {
 	static const size_t v=1+template_log< t/2 >::v;
