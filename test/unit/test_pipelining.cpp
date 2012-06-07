@@ -401,7 +401,7 @@ bool execution_order() {
 }
 
 int main(int argc, char ** argv) {
-	unittests(argc, argv)
+	return unittests(argc, argv)
 	.fixture(setup_test_vectors)
 	.fixture(file_system_cleanup)
 	.test<vector_multiply_test>("vector")
@@ -418,5 +418,4 @@ int main(int argc, char ** argv) {
 	.test<fork_test>("fork")
 	.test<execution_order>("execorder")
 	;
-	return EXIT_FAILURE;
 }
