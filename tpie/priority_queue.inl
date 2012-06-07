@@ -909,7 +909,7 @@ void priority_queue<T, Comparator, OPQType>::remove_group_buffer(group_type grou
 	if(group > 0 && group_size(0) != 0) {
 		// this code is also used in PQFishspear
 		memory_size_type j = 0;
-		for(stream_size_type i = group_start(0); i < group_start(0)+group_size(0); i++) {
+		for(memory_size_type i = group_start(0); i < group_start(0)+group_size(0); i++) {
 			mergebuffer[j] = gbuffer0[i%setting_m];
 			++j;
 		}
