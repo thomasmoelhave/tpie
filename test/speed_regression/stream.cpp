@@ -86,7 +86,7 @@ void test(size_t mb, size_t times) {
 			}
 		}
 		getTestRealtime(end);
-		hash %= 100000000000000;
+		hash %= 100000000000000ull;
 		s(testRealtimeDiff(start,end));
 		s(hash);
 		boost::filesystem::remove("tmp");
@@ -98,7 +98,7 @@ struct test_file_accessor {
 	const memory_size_type itemSize;
 	const stream_size_type item_count;
 	const stream_size_type block_count;
-	const stream_size_type itemsPerBlock;
+	const memory_size_type itemsPerBlock;
 	testinfo t;
 	std::vector<const char *> names;
 	tpie::test::stat s;
@@ -136,7 +136,7 @@ struct test_file_accessor {
 		hash = 0;
 		s(time_to<fn_write>());
 		s(time_to<fn_read>());
-		s(hash % 100000000000000);
+		s(hash % 100000000000000ull);
 	}
 
 	template <bool fn>

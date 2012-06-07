@@ -54,7 +54,7 @@ public:
 		return primeit(s,y,i);
 	}
 	prime_t operator*() const {
-		return (i * y) % s;
+		return (static_cast<uint64_t>(i) * static_cast<uint64_t>(y)) % s;
 	}
 	// pre-increment
 	primeit& operator++() {
@@ -77,7 +77,7 @@ public:
 		return primeit(s, y, i+j);
 	}
 	primeit operator+(sprime_t j) const {
-		return primeit(s, y, i+j);
+		return primeit(s, y, static_cast<prime_t>(i+j));
 	}
 };
 
@@ -97,7 +97,7 @@ bool ami_sort_test(size_t size) {
 	ami::stream<size_t> mystream;
 	primeit begin = primeit::begin(size);
 	primeit end = primeit::end(size);
-	size_t s = end-begin;
+	size_t s = static_cast<size_t>(end-begin);
 
 	while (begin != end) {
 		size_t x= *begin;
@@ -146,17 +146,33 @@ bool sort_test(size_t size, Progress & pi) {
 
 	primeit begin = primeit::begin(size);
 	primeit end = primeit::end(size);
-	size_t s = end-begin;
+	size_t s = static_cast<size_t>(end-begin);
+	std::cout << "Writing " << s << " elements" << std::endl;
+	std::vector<char> seen(s);
+	for (primeit i = begin; i != end; ++i) {
+		seen[*i]++;
+	}
+	for (size_t i = 0; i < s; ++i) {
+		if (seen[i] != 1) std::cout << i << " = " << (int) seen[i] << std::endl;
+	}
 
 	mystream.write(begin, end);
 	sort(mystream, pi);
 
 	mystream.seek(0);
+	std::cout << "Verifying " << s << " elements" << std::endl;
 	for(size_t i=0; i < s; ++i) {
 		size_t x = mystream.read();
-		if (x != i) return false;
+		if (x != i) {
+			std::cout << "Element " << i << " is wrong; expected " << i << " but got " << x << std::endl;
+			return false;
+		}
 	}
-	return !mystream.can_read();
+	if (mystream.can_read()) {
+		std::cout << "Too many elements in stream" << std::endl;
+		return false;
+	}
+	return true;
 }
 
 

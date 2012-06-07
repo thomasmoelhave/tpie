@@ -116,7 +116,7 @@ int main(int argc, char **argv) {
 		}
 		for (size_t i=0; i < 10; ++i) {
 			// Seek to random index
-			tpie::stream_offset_type idx = ITEM(i) % ITEMS;
+			size_t idx = ITEM(i) % ITEMS;
 			s.seek(idx);
 
 			if (i%2 == 0) {

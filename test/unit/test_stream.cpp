@@ -69,7 +69,7 @@ bool array_test() {
 	try {
 		tpie::file_stream<uint64_t> fs;
 		fs.open(TEMPFILE);
-		tpie::stream_size_type items = tpie::file<uint64_t>::block_size(1.0)/sizeof(uint64_t) + 10;
+		tpie::memory_size_type items = tpie::file<uint64_t>::block_size(1.0)/sizeof(uint64_t) + 10;
 		std::vector<uint64_t> data(items, 1);
 		fs.write(data.begin(), data.end());
 		fs.seek(0);
@@ -183,7 +183,7 @@ bool basic_test() {
 		}
 		for (size_t i=0; i < 10; ++i) {
 			// Seek to random index
-			tpie::stream_offset_type idx = ITEM(i) % ITEMS;
+			size_t idx = ITEM(i) % ITEMS;
 			s.seek(idx);
 
 			if (i%2 == 0) {

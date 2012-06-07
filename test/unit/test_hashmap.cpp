@@ -103,13 +103,13 @@ void test_speed() {
 		insert_hash_map.start();
 		tpie::hash_map<int, char, tpie::hash<size_t>, std::equal_to<size_t>, size_t, table_t> q1(gen_t::cnt());
 		for(int i=0; i < gen_t::cnt();++i) 
-			q1[gen_t::key(i)] = gen_t::value(i);
+			q1[gen_t::key(i)] = static_cast<char>(gen_t::value(i));
 		insert_hash_map.stop();
 	
 		insert_unordered_map.start();
 		boost::unordered_map<int, char> q2;
 		for(int i=0; i < gen_t::cnt();++i)
-			q2[gen_t::key(i)] = gen_t::value(i);
+			q2[gen_t::key(i)] = static_cast<char>(gen_t::value(i));
 		insert_unordered_map.stop();
 		
 		int x=42;

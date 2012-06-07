@@ -44,7 +44,7 @@ bool cyclic_pq_test(T & pq, boost::uint64_t size, boost::uint64_t iterations) {
 			return false;
 		}
 		if ((size_t)pq.size() == (size_t)0 ||
-			((size_t)pq.size() < (size_t)size && urnd(rnd) <= (cos(i * 60.0 / size)+1)/2.0)) {
+			((size_t)pq.size() < (size_t)size && urnd(rnd) <= (cos(static_cast<double>(i) * 60.0 / static_cast<double>(size))+1.0)/2.0)) {
 			boost::uint64_t r = rnd();
 			pq.push(r);
 			pq2.push(r);

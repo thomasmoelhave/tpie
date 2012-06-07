@@ -74,7 +74,7 @@ void test(size_t mb, size_t times) {
 			}
 		}
 		getTestRealtime(end);
-		hash %= 100000000000000;
+		hash %= 100000000000000ull;
 		s(testRealtimeDiff(start,end));
 		s(hash);
 		boost::filesystem::remove("tmp");

@@ -48,9 +48,10 @@ public:
 		}
 		output(time);
 
-		double delta = time - mean[next_col];
+		double ftime = static_cast<double>(time);
+		double delta = ftime - mean[next_col];
 		mean[next_col] += static_cast<double>(delta) / n;
-		m2[next_col] = m2[next_col] + delta*(time - mean[next_col]);
+		m2[next_col] = m2[next_col] + delta*(ftime - mean[next_col]);
 
 		++next_col;
 		if (next_col == mean.size()) {

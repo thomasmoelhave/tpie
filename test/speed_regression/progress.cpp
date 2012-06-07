@@ -26,7 +26,7 @@ using namespace tpie::ami;
 using namespace tpie::test;
 
 
-size_t size= 1024ll*1024ll*1024ll*16ll;
+uint64_t size= 1024ull*1024ull*1024ull*16ull;
 int main() {
   test_realtime_t start;
   test_realtime_t end;
@@ -34,7 +34,7 @@ int main() {
   getTestRealtime(start);
   tpie::progress_indicator_arrow pi("Test", size);
   pi.init(size);
-  for(size_t i=0; i < size; ++i) {
+  for(uint64_t i=0; i < size; ++i) {
     pi.step();
   }
   pi.done();

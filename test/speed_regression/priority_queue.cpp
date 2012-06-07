@@ -60,7 +60,7 @@ struct segmentgenerator {
 };
 
 template <typename Generator>
-void test(Generator g, size_t mb, size_t times, double blockFactor = 0.125) {
+void test(Generator g, size_t mb, size_t times, float blockFactor = 0.125f) {
 	typedef typename Generator::item_type test_t;
 	test_t a = test_t();
 
@@ -77,7 +77,7 @@ void test(Generator g, size_t mb, size_t times, double blockFactor = 0.125) {
 		test_realtime_t end;
 		getTestRealtime(start);
 		{
-			tpie::ami::priority_queue<test_t> pq(0.95, blockFactor);
+			tpie::ami::priority_queue<test_t> pq(0.95f, blockFactor);
 		
 			for(TPIE_OS_OFFSET i=0; i < count; ++i) {
 				test_t x = g();
@@ -102,7 +102,7 @@ void test(Generator g, size_t mb, size_t times, double blockFactor = 0.125) {
 int main(int argc, char **argv) {
 	size_t times = 10;
 	size_t mb = mb_default;
-	double blockFactor = 0.125;
+	float blockFactor = 0.125;
 	bool segments = false;
 
 	int i;

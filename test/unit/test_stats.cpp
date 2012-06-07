@@ -32,8 +32,8 @@
 using namespace tpie;
 
 bool test_about(stream_size_type val, stream_size_type expect, const char * name) {
-	if (val + 10240 < expect*0.9 ||
-		val > expect*1.1 + 10240) {
+	if (val + 10240 < 9*expect/10 ||
+		val > 11*expect/10 + 10240) {
 		std::cout << "Wrong " << name << " got " << val << " expected " << expect << std::endl;
 		return false;
 	}

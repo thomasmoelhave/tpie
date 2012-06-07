@@ -33,7 +33,7 @@ public:
 	
 	inline void start() {t=boost::posix_time::microsec_clock::local_time();}
 	void stop() {
-		double time = (boost::posix_time::microsec_clock::local_time() - t).total_milliseconds()/1000.0;
+		double time = static_cast<double>((boost::posix_time::microsec_clock::local_time() - t).total_milliseconds())/1000.0;
 		sum += time;
 		ssum += time*time;
 		tests += 1;

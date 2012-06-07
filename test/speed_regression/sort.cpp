@@ -95,7 +95,7 @@ void test(size_t mb, size_t times) {
 			}
 		}
 		boost::filesystem::remove("tmp");
-		hash %= 100000000000000;
+		hash %= 100000000000000ull;
 		s(hash);
 		if (!sorted) std::cout << "\nNot sorted!" << std::endl;
 	}

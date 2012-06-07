@@ -39,12 +39,12 @@ bool queue_test(const size_t elements = 2*1024*1024/sizeof(uint64_t), const size
 	size_t i = 0;
 
 	// number of elements currently in the queue
-	size_t l = 0;
+	uint64_t l = 0;
 
 	while (i < elements) {
 		// First, push a random number of elements to our queue and std::queue.
-		size_t push = 1 + (element(i) % (maxpush - 1));
-		for (size_t j = 0; i < elements && j < push; ++i, ++j) {
+		uint64_t push = 1 + (element(i) % (maxpush - 1));
+		for (uint64_t j = 0; i < elements && j < push; ++i, ++j) {
 			debug << "Push " << i << " " << element(i) << " " << std::endl;
 			q1.push(element(i));
 			q2.push(element(i));
@@ -53,8 +53,8 @@ bool queue_test(const size_t elements = 2*1024*1024/sizeof(uint64_t), const size
 		l += push;
 
 		// Next, pop a random number of elements.
-		size_t pop = 1 + (element(i) % (l - 1));
-		for (size_t j = 0; i < elements && j < pop; ++i, ++j) {
+		uint64_t pop = 1 + (element(i) % (l - 1));
+		for (uint64_t j = 0; i < elements && j < pop; ++i, ++j) {
 			debug << "Pop " << i << std::endl;
 
 			uint64_t el = q2.front();
