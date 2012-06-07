@@ -73,7 +73,7 @@ struct linear_memory_base {
 	///////////////////////////////////////////////////////////////////////////
 	inline static stream_size_type memory_usage(stream_size_type size) {
 		return static_cast<stream_size_type>(
-			floor(size * child_t::memory_coefficient() + child_t::memory_overhead()));
+			floor(static_cast<double>(size) * child_t::memory_coefficient() + child_t::memory_overhead()));
 	}
 
 	///////////////////////////////////////////////////////////////////////////

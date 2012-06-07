@@ -346,14 +346,14 @@ private:
     //bool m_destructBTEStream;
     stream_status m_status;
 
-	static inline double block_factor() {
+	static inline float block_factor() {
 #ifndef STREAM_UFS_BLOCK_FACTOR
 		return 1.0;
 #else
 #   ifdef WIN32
-		return static_cast<double>(STREAM_UFS_BLOCK_FACTOR)/32;
+		return static_cast<float>(STREAM_UFS_BLOCK_FACTOR)/32;
 #   else
-		return static_cast<double>(STREAM_UFS_BLOCK_FACTOR)/512;
+		return static_cast<float>(STREAM_UFS_BLOCK_FACTOR)/512;
 #   endif
 #endif
 	}

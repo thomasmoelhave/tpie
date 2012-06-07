@@ -184,7 +184,7 @@ public:
 
 			std::copy(i, till, dest);
 
-			m_index += till - i;
+			m_index += static_cast<memory_size_type>(till - i);
 			write_update();
 			i = till;
 		}

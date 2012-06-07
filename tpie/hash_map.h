@@ -329,7 +329,7 @@ public:
 	/// \copydetails chaining_hash_table::resize(size_t)
 	///////////////////////////////////////////////////////////////////////////
 	void resize(size_t element_count) {
-		size_t x=size_t(99+element_count*sc)|1;
+		size_t x=(99+static_cast<size_t>(static_cast<float>(element_count)*sc))|1;
 		while (!is_prime(x)) x -= 2;
 		elements.resize(x, unused);
 	}
