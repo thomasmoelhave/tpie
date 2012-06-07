@@ -220,13 +220,11 @@ bool overflow_test() {
 }
 
 int main(int argc, char **argv) {
-	unittests(argc, argv, 128)
+	return unittests(argc, argv, 128)
 	.test<basic_test>("basic")
 	.test<medium_instance>("medium")
 	.test<large_instance<false> >("large")
 	.test<large_cycle>("large_cycle")
 	.test<memory_test>("memory")
-	.test<overflow_test>("overflow")
-	;
-	return EXIT_FAILURE;
+	.test<overflow_test>("overflow");
 }
