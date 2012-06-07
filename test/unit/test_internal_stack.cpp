@@ -24,12 +24,12 @@
 using namespace tpie;
 
 bool basic_test() {
-	internal_stack<int> s(52);
+	internal_stack<size_t> s(52);
 	for(size_t i=0; i < 52; ++i)
 		s.push((i * 104729) % 2251);
 	for(int i=51; i >= 0; --i) {
 		if (s.size() != (size_t)i+1) return false;
-		if (s.top() != ((int)i * 104729) % 2251) return false;
+		if (s.top() != static_cast<size_t>((i * 104729) % 2251)) return false;
 		s.pop();
 	}
 	if (!s.empty()) return false;

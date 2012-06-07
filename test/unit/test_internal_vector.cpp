@@ -25,7 +25,7 @@ using namespace tpie;
 
 bool basic_test() {
 	internal_vector<int> s(52);
-	for(size_t i=0; i < 52; ++i)
+	for(int i=0; i < 52; ++i)
 		s.push_back((i * 104729) % 2251);
 	for(int i=51; i >= 0; --i) {
 		if (s.size() != (size_t)i+1) return false;

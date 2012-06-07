@@ -199,7 +199,7 @@ bool basic_test() {
 			}
 
 			tpie::stream_offset_type newoff = s.offset();
-			if (newoff != idx+1) {
+			if (static_cast<size_t>(newoff) != idx+1) {
 				std::cout << "Offset advanced to " << newoff << ", expected " << (idx+1) << std::endl;
 				return false;
 			}

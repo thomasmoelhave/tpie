@@ -27,21 +27,21 @@
 using namespace tpie;
 
 bool basic_test() {
-	array<int> hat;
+	array<size_t> hat;
   
 	//Resize
 	hat.resize(52, 42);
 	if (hat.size() != 52) return false;
-	for (size_type i=0; i < 52; ++i)
+	for (memory_size_type i=0; i < 52; ++i)
 		if (hat[i] != 42) return false;
   
 	//Get and set
-	for (size_type i=0; i < 52; ++i)
+	for (memory_size_type i=0; i < 52; ++i)
 		hat[i] = (i * 104729) % 2251;
   
-	const tpie::array<int> & hat2(hat);
-	for (size_type i=0; i < 52; ++i)
-		if (hat2[i] != (int)((i * 104729) % 2251)) return false;
+	const tpie::array<size_t> & hat2(hat);
+	for (memory_size_type i=0; i < 52; ++i)
+		if (hat2[i] != ((i * 104729) % 2251)) return false;
   
 	if (hat.empty()) return false;
 	hat.resize(0);
@@ -153,14 +153,14 @@ bool basic_bool_test() {
 
 
 bool iterator_test() {
-	array<int> hat;
+	array<size_t> hat;
 	hat.resize(52);
 
 	for (size_type i=0; i < 52; ++i)
 		hat[i] = (i * 104729) % 2251;
 	{
-		array<int>::const_iterator i=hat.begin();
-		for (int j=0; j < 52; ++j) {
+		array<size_t>::const_iterator i=hat.begin();
+		for (size_t j=0; j < 52; ++j) {
 			if (i == hat.end()) return false;
 			if (*i != ((j * 104729) % 2251)) return false;
 			++i;
@@ -168,10 +168,10 @@ bool iterator_test() {
 		if (i != hat.end()) return false;
 	}
 	{
-		array<int>::reverse_iterator i=hat.rbegin();
-		for (int j=51; j >= 0; --j) {
+		array<size_t>::reverse_iterator i=hat.rbegin();
+		for (size_t j=0; j < 52; ++j) {
 			if (i == hat.rend()) return false;
-			if (*i != ((j * 104729) % 2251)) return false;
+			if (*i != (((51-j) * 104729) % 2251)) return false;
 			++i;
 		}
 		if (i != hat.rend()) return false;
