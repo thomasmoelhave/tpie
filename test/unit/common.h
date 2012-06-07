@@ -112,6 +112,9 @@ public:
 // Type of test function
 typedef bool fun_t();
 
+// Type of fixture function
+typedef void fixture_t();
+
 struct unittests {
 
 	const char * progname;
@@ -133,6 +136,8 @@ struct unittests {
 
 	// List of tests concatenated by '|' (for the usage string)
 	std::stringstream usagestring;
+
+	std::vector<fixture_t *> fixtures;
 
 	tpie_initer initer;
 
@@ -174,6 +179,9 @@ struct unittests {
 		++tests;
 		if (testall)
 			std::cerr << std::string(79,'=') << "\nStart " << std::setw(2) << tests << ": " << name << std::endl;
+		for (size_t i = 0; i < fixtures.size(); ++i) {
+			fixtures[i]();
+		}
 		bool pass = false;
 		try {
 			pass = f();
@@ -184,6 +192,9 @@ struct unittests {
 		} catch (...) {
 			std::cerr << "Caught something that is not an exception in test \"" << name << "\"" << std::endl;
 		}
+		for (size_t i = 0; i < fixtures.size(); ++i) {
+			fixtures[i]();
+		}
 		if (testall) {
 			std::cerr << "\nTest  " << std::setw(2) << tests << ": " << name << ' ' << std::string(59-name.size(), '.')
 			<< (pass ? "   Passed" : "***Failed") << std::endl;
@@ -192,6 +203,11 @@ struct unittests {
 
 		if (!pass) result = false;
 
+		return *this;
+	}
+
+	inline unittests & fixture(fixture_t f) {
+		fixtures.push_back(f);
 		return *this;
 	}
 
