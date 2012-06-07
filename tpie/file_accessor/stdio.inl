@@ -119,7 +119,7 @@ void stdio::truncate(stream_size_type size) {
 	if (size > m_size) {
 		char * buff = new char[m_blockSize];
 		while (size > m_size) {
-			write_block(buff, m_size/m_blockItems, std::min(static_cast<stream_size_type>(m_blockItems), size-m_size));
+			write_block(buff, m_size/m_blockItems, std::min(m_blockItems, static_cast<memory_size_type>(size-m_size)));
 		}
 		delete [] buff;
 	}
