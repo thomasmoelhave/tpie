@@ -198,7 +198,7 @@ struct parameter_parser : public parameter_parser_base<parameter_parser<T> > {
 
 struct parameter_parser_notype : public parameter_parser_base<parameter_parser_notype> {
 	inline parameter_parser_notype(int argc, char ** argv)
-		: parameter_parser_base(argc, argv) {
+		: parameter_parser_base<parameter_parser_notype>(argc, argv) {
 	}
 
 	int finish() {
