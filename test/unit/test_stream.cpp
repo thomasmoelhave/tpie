@@ -26,6 +26,7 @@
 #include <iostream>
 #include <vector>
 #include <boost/filesystem/operations.hpp>
+#include <boost/array.hpp>
 
 #include <tpie/tpie.h>
 
@@ -84,11 +85,45 @@ bool array_test() {
 	return true;
 }
 
+bool odd_block_test() {
+	typedef boost::array<char, 17> test_t;
+	const size_t items = 500000;
+	test_t initial_item;
+
+	{
+		tpie::file_stream<test_t> fs;
+		fs.open(TEMPFILE);
+
+		test_t item = initial_item;
+		for (size_t i = 0; i < items; ++i) {
+			fs.write(item);
+			item[0]++;
+		}
+	}
+
+	{
+		tpie::file_stream<test_t> fs;
+		fs.open(TEMPFILE);
+
+		test_t item = initial_item;
+		for (size_t i = 0; i < items; ++i) {
+			test_t got = fs.read();
+			if (got != item) {
+				std::cout << "Item " << i << " is wrong" << std::endl;
+				return false;
+			}
+			item[0]++;
+		}
+	}
+
+	return true;
+}
+
 int main(int argc, char **argv) {
 	tpie_initer _;
 
 	if (argc != 2) {
-		std::cout << "Usage: " << argv[0] << " basic|array" << std::endl;
+		std::cout << "Usage: " << argv[0] << " [basic|array|odd]" << std::endl;
 		return EXIT_FAILURE;
 	}
 
@@ -102,6 +137,8 @@ int main(int argc, char **argv) {
 		result = array_test();
 	else if (testtype == "basic")
 		result = basic_test();
+	else if (testtype == "odd")
+		result = odd_block_test();
 	else {
 		std::cout << "Unknown test" << std::endl;
 		result = false;
