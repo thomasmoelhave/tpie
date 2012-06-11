@@ -228,7 +228,7 @@ void finish_execution_time_db() {
 
 execution_time_predictor::execution_time_predictor(const std::string & id): 
 	m_id(prime_hash(id)), m_start_time(boost::posix_time::not_a_date_time), 
-	m_estimate(-1), m_pause_time_at_start(0)
+	m_estimate(-1), m_confidence(1), m_pause_time_at_start(0)
 #ifndef TPIE_NDEBUG
 	,m_name(id)
 #endif //TPIE_NDEBUG
