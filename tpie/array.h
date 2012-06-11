@@ -340,14 +340,14 @@ public:
 	/// \param s The number of elements in the array.
 	/// \param value Each entry of the array is initialized with this value.
 	///////////////////////////////////////////////////////////////////////////
-	array_base(size_type s, const T & value): m_elements(0), m_size(0) {resize(s, value);}
+	array_base(size_type s, const T & value): m_elements(0), m_size(0), m_tss_used(false) {resize(s, value);}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Construct array of given size.
 	///
 	/// \param s The number of elements in the array.
 	///////////////////////////////////////////////////////////////////////////
-	array_base(size_type s=0): m_elements(0), m_size(0) {resize(s);}
+	array_base(size_type s=0): m_elements(0), m_size(0), m_tss_used(false) {resize(s);}
 
 	/////////////////////////////////////////////////////////
 	/// \brief Construct a copy of another array.
