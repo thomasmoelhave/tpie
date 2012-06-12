@@ -55,60 +55,36 @@ inline void win32::seek_i(stream_size_type size) {
 	if (!SetFilePointerEx(m_fd, i, NULL, 0)) throw_getlasterror();
 }
 
-void win32::open(const std::string & path,
-				 bool read,
-				 bool write,
-				 memory_size_type itemSize,
-				 memory_size_type blockSize,
-				 memory_size_type userDataSize) {
-	DWORD creation_flag = FILE_FLAG_SEQUENTIAL_SCAN;
-	DWORD shared_flags = FILE_SHARE_READ | FILE_SHARE_WRITE;
-	close();
-	invalidateLocation();
-	m_write = write;
-	m_path = path;
-	m_itemSize=itemSize;
-	m_blockSize=blockSize;
-	m_blockItems=blockSize/itemSize;
-	m_userDataSize=userDataSize;
-	if (!write && !read)
-		throw invalid_argument_exception("Either read or write must be specified");
-	if (write && !read) {
-		m_fd = CreateFile(path.c_str(), GENERIC_WRITE, shared_flags, 0, CREATE_ALWAYS, creation_flag, 0);
-		if (m_fd == INVALID_HANDLE_VALUE) throw_getlasterror();
-		m_size = 0;
-		write_header(false);
-		char * buf = new char[userDataSize];
-		write_user_data(buf);
-		delete[] buf;
-	} else if (!write && read) {
-		m_fd = CreateFile(path.c_str(), GENERIC_READ, shared_flags, 0, OPEN_EXISTING, creation_flag, 0);
-		if (m_fd == INVALID_HANDLE_VALUE) throw_getlasterror();
-		read_header();
-	} else {
-		m_fd = CreateFile(path.c_str(), GENERIC_READ | GENERIC_WRITE , shared_flags, 0, OPEN_EXISTING, creation_flag, 0);
-		if (m_fd == INVALID_HANDLE_VALUE) {
-			if (GetLastError() != ERROR_FILE_NOT_FOUND) throw_getlasterror();
-			m_fd = CreateFile(path.c_str(), GENERIC_READ | GENERIC_WRITE , shared_flags, 0, CREATE_NEW, creation_flag, 0);
-			if (m_fd == INVALID_HANDLE_VALUE) throw_getlasterror();
-			m_size=0;
-			write_header(false);
-			char * buf = new char[userDataSize];
-			write_user_data(buf);
-			delete[] buf;
-		} else {
-			read_header();
-			write_header(false);
-		}
-	}
-	increment_open_file_count();
+static const DWORD creation_flag = FILE_FLAG_SEQUENTIAL_SCAN;
+static const DWORD shared_flags = FILE_SHARE_READ | FILE_SHARE_WRITE;
+
+void win32::open_ro(const std::string & path) {
+	m_fd = CreateFile(path.c_str(), GENERIC_WRITE, shared_flags, 0, CREATE_ALWAYS, creation_flag, 0);
+	if (m_fd == INVALID_HANDLE_VALUE) throw_getlasterror();
 }
 
-void win32::close() {
-	if (m_fd != INVALID_HANDLE_VALUE && m_write) write_header(true);
+void win32::open_wo(const std::string & path) {
+	m_fd = CreateFile(path.c_str(), GENERIC_READ, shared_flags, 0, OPEN_EXISTING, creation_flag, 0);
+	if (m_fd == INVALID_HANDLE_VALUE) throw_getlasterror();
+}
+
+bool win32::try_open_rw(const std::string & path) {
+	m_fd = CreateFile(path.c_str(), GENERIC_READ | GENERIC_WRITE , shared_flags, 0, OPEN_EXISTING, creation_flag, 0);
+	if (m_fd == INVALID_HANDLE_VALUE) {
+		if (GetLastError() != ERROR_FILE_NOT_FOUND) throw_getlasterror();
+		return false;
+	}
+	return true;
+}
+
+void win32::open_rw_new(const std::string & path) {
+	m_fd = CreateFile(path.c_str(), GENERIC_READ | GENERIC_WRITE , shared_flags, 0, CREATE_NEW, creation_flag, 0);
+	if (m_fd == INVALID_HANDLE_VALUE) throw_getlasterror();
+}
+
+void win32::close_i() {
 	if (m_fd != INVALID_HANDLE_VALUE) {
 		CloseHandle(m_fd);
-		decrement_open_file_count();
 	}
 	m_fd=INVALID_HANDLE_VALUE;
 }

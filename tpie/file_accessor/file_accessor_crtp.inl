@@ -27,6 +27,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <limits>
+#include <tpie/tpie_log.h>
 
 namespace tpie {
 namespace file_accessor {
@@ -49,6 +50,26 @@ template <typename child_t, bool minimizeSeeks>
 inline void file_accessor_crtp<child_t, minimizeSeeks>::seek_i(stream_size_type loc) {
 	if (!minimizeSeeks || location != loc) reinterpret_cast<child_t*>(this)->seek_i(loc);
 	if (minimizeSeeks) location = loc;
+}
+
+template <typename child_t, bool minimizeSeeks>
+inline void file_accessor_crtp<child_t, minimizeSeeks>::open_wo(const std::string & path) {
+	self().open_wo(path);
+}
+
+template <typename child_t, bool minimizeSeeks>
+inline void file_accessor_crtp<child_t, minimizeSeeks>::open_ro(const std::string & path) {
+	self().open_ro(path);
+}
+
+template <typename child_t, bool minimizeSeeks>
+inline bool file_accessor_crtp<child_t, minimizeSeeks>::try_open_rw(const std::string & path) {
+	return self().try_open_rw(path);
+}
+
+template <typename child_t, bool minimizeSeeks>
+inline void file_accessor_crtp<child_t, minimizeSeeks>::open_rw_new(const std::string & path) {
+	self().open_rw_new(path);
 }
 
 template <typename child_t, bool minimizeSeeks>
@@ -151,6 +172,72 @@ void file_accessor_crtp<child_t, minimizeSeeks>::fill_header(stream_header_t & h
 	header.size = m_size;
 }
 
+template <typename child_t, bool minimizeSeeks>
+void file_accessor_crtp<child_t, minimizeSeeks>::open(const std::string & path,
+													  bool read,
+													  bool write,
+													  memory_size_type itemSize,
+													  memory_size_type blockSize,
+													  memory_size_type userDataSize) {
+	if (write)
+		TP_LOG_WARNING_ID("Open called for writing");
+	else
+		TP_LOG_WARNING_ID("Open called for reading");
+	close();
+	invalidateLocation();
+	m_write = write;
+	m_path = path;
+	m_itemSize=itemSize;
+	m_blockSize=blockSize;
+	m_blockItems=blockSize/itemSize;
+	m_userDataSize=userDataSize;
+	m_size=0;
+	if (!write && !read)
+		throw invalid_argument_exception("Either read or write must be specified");
+	if (write && !read) {
+		open_wo(path);
+		write_header(false);
+		if (userDataSize) {
+			char * buf = new char[userDataSize];
+			write_user_data(buf);
+			delete[] buf;
+		}
+	} else if (!write && read) {
+		open_ro(path);
+		read_header();
+	} else {
+		if (!try_open_rw(path)) {
+			open_rw_new(path);
+			write_header(false);
+			if (userDataSize) {
+				char * buf = new char[userDataSize];
+				write_user_data(buf);
+				delete[] buf;
+			}
+		} else {
+			read_header();
+			write_header(false);
+		}
+	}
+	increment_open_file_count();
+	m_open = true;
+}
+
+template <typename child_t, bool minimizeSeeks>
+void file_accessor_crtp<child_t, minimizeSeeks>::close() {
+	if (!m_open) {
+		TP_LOG_WARNING_ID("Close called when not open");
+		return;
+	}
+	TP_LOG_WARNING_ID("Close called");
+	if (m_write) {
+		TP_LOG_WARNING_ID("Closing properly");
+		write_header(true);
+	}
+	self().close_i();
+	decrement_open_file_count();
+	m_open = false;
+}
 
 }
 }
