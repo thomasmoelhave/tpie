@@ -58,12 +58,12 @@ inline void win32::seek_i(stream_size_type size) {
 static const DWORD creation_flag = FILE_FLAG_SEQUENTIAL_SCAN;
 static const DWORD shared_flags = FILE_SHARE_READ | FILE_SHARE_WRITE;
 
-void win32::open_ro(const std::string & path) {
+void win32::open_wo(const std::string & path) {
 	m_fd = CreateFile(path.c_str(), GENERIC_WRITE, shared_flags, 0, CREATE_ALWAYS, creation_flag, 0);
 	if (m_fd == INVALID_HANDLE_VALUE) throw_getlasterror();
 }
 
-void win32::open_wo(const std::string & path) {
+void win32::open_ro(const std::string & path) {
 	m_fd = CreateFile(path.c_str(), GENERIC_READ, shared_flags, 0, OPEN_EXISTING, creation_flag, 0);
 	if (m_fd == INVALID_HANDLE_VALUE) throw_getlasterror();
 }
