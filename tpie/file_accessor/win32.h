@@ -41,22 +41,19 @@ namespace file_accessor {
 class win32: public file_accessor_crtp<win32> {
 private:
 	HANDLE m_fd;
-	bool m_write;
 
 	friend class file_accessor_crtp<win32>;
 
 	inline void read_i(void * data, memory_size_type size);
 	inline void write_i(const void * data, memory_size_type size);
 	inline void seek_i(stream_size_type offset);
+	inline void close_i();
 public:
 	inline win32();
-	inline void open(const std::string & path,
-					 bool read,
-					 bool write,
-					 memory_size_type itemSize,
-					 memory_size_type blockSize,
-					 memory_size_type userDataSize);
-	inline void close();
+	inline void open_ro(const std::string & path);
+	inline void open_wo(const std::string & path);
+	inline bool try_open_rw(const std::string & path);
+	inline void open_rw_new(const std::string & path);
 	inline void truncate(stream_size_type size);
 	inline ~win32() {close();}
 };

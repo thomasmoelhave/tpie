@@ -37,12 +37,22 @@ namespace file_accessor {
 template <typename child_t, bool minimizeSeeks=true>
 class file_accessor_crtp {
 private:
+	inline child_t & self() { return *reinterpret_cast<child_t *>(this); }
 	inline void read_i(void *, memory_size_type size);
 	inline void write_i(const void *, memory_size_type size);
 	inline void seek_i(stream_size_type size);
 	stream_size_type location;
 	inline void validate_header(const stream_header_t & header);
 	inline void fill_header(stream_header_t & header, bool clean);
+
+	inline void open_wo(const std::string & path);
+	inline void open_ro(const std::string & path);
+	inline bool try_open_rw(const std::string & path);
+	inline void open_rw_new(const std::string & path);
+
+	bool m_open;
+	bool m_write;
+
 protected:
 	/** Number of logical items in stream. */
 	stream_size_type m_size;
@@ -103,6 +113,24 @@ protected:
 	///////////////////////////////////////////////////////////////////////////
 	inline memory_size_type header_size() const { return align_to_boundary(sizeof(stream_header_t)+m_userDataSize); }
 public:
+	inline file_accessor_crtp()
+		: m_open(false)
+		, m_write(false)
+	{
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Open file for reading and/or writing.
+	///////////////////////////////////////////////////////////////////////////
+	inline void open(const std::string & path,
+					 bool read,
+					 bool write,
+					 memory_size_type itemSize,
+					 memory_size_type blockSize,
+					 memory_size_type userDataSize);
+
+	inline void close();
+
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Read the given number of items from the given block into the
 	/// given buffer.
