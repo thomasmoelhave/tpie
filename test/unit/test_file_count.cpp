@@ -40,8 +40,7 @@ bool file_count_test() {
 }
 
 int main(int argc, char ** argv) {
-	unittests(argc, argv)
+	return unittests(argc, argv)
 	.test<file_count_test>("basic")
 	;
-	return EXIT_FAILURE;
 }
