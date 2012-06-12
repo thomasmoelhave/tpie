@@ -176,11 +176,12 @@ public:
 		while (i != end) {
 			if (m_index >= m_blockItems) update_block();
 
-			IT blockmax = i + (m_blockItems-m_index);
+			size_t streamRemaining = end - i;
+			size_t blockRemaining = m_blockItems-m_index;
+
+			IT till = (blockRemaining < streamRemaining) ? (i + blockRemaining) : end;
 
 			T * dest = m_block.data.get() + m_index;
-
-			IT till = std::min(end, blockmax);
 
 			std::copy(i, till, dest);
 
