@@ -40,7 +40,7 @@ namespace tpie {
 
 memory_size_type available_files() {
 #ifdef _WIN32
-	return 0;
+	return get_maximum_open_files();
 #else
 	// skip to the first unused file descriptor
 	int nextfd = dup(0);
