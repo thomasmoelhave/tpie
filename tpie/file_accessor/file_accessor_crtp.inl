@@ -27,7 +27,6 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <limits>
-#include <tpie/tpie_log.h>
 
 namespace tpie {
 namespace file_accessor {
@@ -179,10 +178,6 @@ void file_accessor_crtp<child_t, minimizeSeeks>::open(const std::string & path,
 													  memory_size_type itemSize,
 													  memory_size_type blockSize,
 													  memory_size_type userDataSize) {
-	if (write)
-		TP_LOG_WARNING_ID("Open called for writing");
-	else
-		TP_LOG_WARNING_ID("Open called for reading");
 	close();
 	invalidateLocation();
 	m_write = write;
@@ -225,15 +220,10 @@ void file_accessor_crtp<child_t, minimizeSeeks>::open(const std::string & path,
 
 template <typename child_t, bool minimizeSeeks>
 void file_accessor_crtp<child_t, minimizeSeeks>::close() {
-	if (!m_open) {
-		TP_LOG_WARNING_ID("Close called when not open");
+	if (!m_open)
 		return;
-	}
-	TP_LOG_WARNING_ID("Close called");
-	if (m_write) {
-		TP_LOG_WARNING_ID("Closing properly");
+	if (m_write)
 		write_header(true);
-	}
 	self().close_i();
 	decrement_open_file_count();
 	m_open = false;
