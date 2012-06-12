@@ -92,6 +92,9 @@ memory_size_type file_accessor_crtp<child_t, minimizeSeeks>::read_block(void * d
 template <typename child_t, bool minimizeSeeks>
 void file_accessor_crtp<child_t, minimizeSeeks>::write_block(const void * data, stream_size_type blockNumber, memory_size_type itemCount) {
 	stream_size_type loc = header_size() + blockNumber*m_blockSize;
+	// Here, we may seek beyond the file size.
+	// However, lseek(2) specifies that the file will be padded with zeroes in this case,
+	// and on Windows, the file is padded with arbitrary garbage (which is ok).
 	seek_i(loc);
 	stream_size_type offset = blockNumber*m_blockItems;
 	memory_size_type z=itemCount*m_itemSize;
