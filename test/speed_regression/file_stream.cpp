@@ -26,27 +26,29 @@
 #include "stat.h"
 #include <boost/filesystem/operations.hpp>
 #include "testinfo.h"
+#include <tpie/types.h>
 
 using namespace tpie;
 using namespace tpie::test;
 
 const size_t default_mb=1;
 
-typedef uint64_t count_t;
+typedef tpie::uint64_t test_t;
+typedef tpie::uint64_t count_t;
 
 void usage() {
 	std::cout << "Parameters: [times] [mb]" << std::endl;
 }
 
 void test(size_t mb, size_t times) {
-	std::cout << "file_stream memory usage: " << file_stream<uint64_t>::memory_usage() << std::endl;
+	std::cout << "file_stream memory usage: " << file_stream<test_t>::memory_usage() << std::endl;
 	std::vector<const char *> names;
 	names.resize(3);
 	names[0] = "Write";
 	names[1] = "Read";
 	names[2] = "Hash";
 	tpie::test::stat s(names);
-	count_t count=mb*1024*1024/sizeof(uint64_t);
+	count_t count=mb*1024*1024/sizeof(test_t);
 
 	for(size_t i = 0; i < times; ++i) {
 		test_realtime_t start;
@@ -57,17 +59,17 @@ void test(size_t mb, size_t times) {
 		//The purpose of this test is to test the speed of the io calls, not the file system
 		getTestRealtime(start);
 		{
-			file_stream<uint64_t> s;
+			file_stream<test_t> s;
 			s.open("tmp");
 			for(count_t i=0; i < count; ++i) s.write(42);
 		}
 		getTestRealtime(end);
 		s(testRealtimeDiff(start,end));
 
-		uint64_t hash = 0;
+		test_t hash = 0;
 		getTestRealtime(start);
 		{
-			file_stream<uint64_t> s;
+			file_stream<test_t> s;
 			s.open("tmp");
 			for(count_t i=0; i < count; ++i) {
 				hash = hash * 13 + s.read();

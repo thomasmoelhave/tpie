@@ -34,6 +34,8 @@
 #include <tpie/file_stream.h>
 #include <tpie/util.h>
 
+using tpie::uint64_t;
+
 static const std::string TEMPFILE = "tmp";
 inline uint64_t ITEM(size_t i) {return i*98927 % 104639;}
 static const size_t TESTSIZE = 8*1024*1024;

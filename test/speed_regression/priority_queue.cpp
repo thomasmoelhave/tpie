@@ -30,6 +30,7 @@
 #include "testinfo.h"
 #include <boost/random/uniform_01.hpp>
 #include <boost/random/mersenne_twister.hpp>
+#include <tpie/types.h>
 
 using namespace tpie;
 using namespace tpie::ami;
@@ -42,10 +43,10 @@ void usage() {
 }
 
 struct intgenerator {
-	typedef uint64_t item_type;
-	uint64_t i;
+	typedef tpie::uint64_t item_type;
+	item_type i;
 	inline intgenerator() : i(91493) {}
-	inline uint64_t operator()() { return 104729*(i++); }
+	inline item_type operator()() { return 104729*(i++); }
 	inline void use(item_type & a, item_type & x) { a ^= x; }
 };
 

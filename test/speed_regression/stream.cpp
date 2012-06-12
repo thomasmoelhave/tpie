@@ -34,10 +34,8 @@ using namespace tpie::test;
 
 const size_t default_mb=10240;
 
-typedef uint64_t count_t;
-typedef uint64_t test_t;
-
-typedef uint64_t count_t;
+typedef tpie::uint64_t count_t;
+typedef tpie::uint64_t test_t;
 
 void usage() {
 	std::cout << "Parameters: [times] [mb] [\"file_accessor\"]" << std::endl;
@@ -46,7 +44,7 @@ void usage() {
 void test(size_t mb, size_t times) {
 	testinfo t("Stream speed test", 0, mb, times);
     {
-	stream<uint64_t> s("tmp", WRITE_STREAM);
+	stream<test_t> s("tmp", WRITE_STREAM);
 	TPIE_OS_SIZE_T sz = 0;
 	s.main_memory_usage(&sz, STREAM_USAGE_MAXIMUM);
 	std::cout << "Stream memory usage: " << sz << std::endl;
@@ -57,7 +55,7 @@ void test(size_t mb, size_t times) {
 	names[1] = "Read";
 	names[2] = "Hash";
 	tpie::test::stat s(names);
-	count_t count=mb*1024*1024/sizeof(uint64_t);
+	count_t count=mb*1024*1024/sizeof(test_t);
 	
 	for(size_t i = 0; i < times; ++i) {
 		test_realtime_t start;
@@ -68,18 +66,18 @@ void test(size_t mb, size_t times) {
 		//The purpose of this test is to test the speed of the io calls, not the file system
 		getTestRealtime(start);
 		{
-			stream<uint64_t> s("tmp", WRITE_STREAM);
-			uint64_t x=42;
+			stream<test_t> s("tmp", WRITE_STREAM);
+			test_t x=42;
 			for(count_t i=0; i < count; ++i) s.write_item(x);
 		}
 		getTestRealtime(end);
 		s(testRealtimeDiff(start,end));
 		
-		uint64_t hash = 0;
+		test_t hash = 0;
 		getTestRealtime(start);
 		{
-			stream<uint64_t> s("tmp", READ_STREAM);
-			uint64_t * x = 0;
+			stream<test_t> s("tmp", READ_STREAM);
+			test_t * x = 0;
 			for(count_t i=0; i < count; ++i) {
 				s.read_item(&x);
 				hash = hash * 13 + *x;

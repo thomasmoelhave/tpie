@@ -31,6 +31,9 @@
 #include <tpie/array.h>
 #include <tpie/stream.h>
 #include <tpie/util.h>
+#include <tpie/types.h>
+
+using tpie::uint64_t;
 
 static const std::string TEMPFILE = "tmp";
 inline uint64_t ITEM(size_t i) {return i*98927 % 104639;}

@@ -35,8 +35,8 @@ using namespace tpie::test;
 
 const size_t mb_default=1;
 
-typedef uint64_t count_t; // number of items
-typedef uint64_t elm_t; // type of element we sort
+typedef tpie::uint64_t count_t; // number of items
+typedef tpie::uint64_t elm_t; // type of element we sort
 
 void usage() {
 	std::cout << "Parameters: [times] [mb] [memory]" << std::endl;
@@ -44,9 +44,7 @@ void usage() {
 
 void test(size_t mb, size_t times) {
 	std::vector<const char *> names;
-	std::vector<uint64_t> ti;
 	names.resize(3);
-	ti.resize(3);
 	names[0] = "Write";
 	names[1] = "Sort";
 	names[2] = "Hash";

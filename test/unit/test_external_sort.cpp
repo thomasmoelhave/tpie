@@ -54,7 +54,7 @@ public:
 		return primeit(s,y,i);
 	}
 	prime_t operator*() const {
-		return static_cast<prime_t>((static_cast<uint64_t>(i) * static_cast<uint64_t>(y)) % s);
+		return static_cast<prime_t>((static_cast<tpie::uint64_t>(i) * static_cast<tpie::uint64_t>(y)) % s);
 	}
 	// pre-increment
 	primeit& operator++() {

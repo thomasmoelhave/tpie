@@ -29,7 +29,12 @@ bool basic_test() {
 	//Lets hope the external pq has a small block factor!
 	get_memory_manager().set_limit(32*1024*1024);
 	ami::priority_queue<boost::uint64_t, bit_pertume_compare< std::greater<boost::uint64_t> > > pq(1.0);
-	return basic_pq_test(pq, 350003);
+#ifdef NDEBUG
+	const boost::uint64_t size = 350003;
+#else // DEBUG
+	const boost::uint64_t size = 350;
+#endif
+	return basic_pq_test(pq, size);
 }
 
 bool medium_instance() {
