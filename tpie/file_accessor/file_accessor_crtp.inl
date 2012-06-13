@@ -226,5 +226,13 @@ void file_accessor_crtp<child_t, minimizeSeeks>::close() {
 	m_open = false;
 }
 
+template <typename child_t, bool minimizeSeeks>
+void file_accessor_crtp<child_t, minimizeSeeks>::truncate(stream_size_type items) {
+	stream_size_type blocks = items/m_blockItems;
+	stream_size_type blockIndex = items%m_blockItems;
+	stream_size_type bytes = header_size() + blocks*m_blockSize + blockIndex;
+	self().seek_i(bytes);
+}
+
 }
 }
