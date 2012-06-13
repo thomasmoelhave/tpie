@@ -89,12 +89,11 @@ void win32::close_i() {
 	m_fd=INVALID_HANDLE_VALUE;
 }
 
-void win32::truncate(stream_size_type size) {
+void win32::truncate_i(stream_size_type size) {
 	LARGE_INTEGER i;
 	i.QuadPart = size;
 	SetFilePointerEx(m_fd, i, NULL, 0);
 	if (!SetEndOfFile(m_fd)) throw_getlasterror();
-	invalidateLocation();
 }
 
 }

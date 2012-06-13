@@ -42,13 +42,13 @@ private:
 	inline void write_i(const void * data, memory_size_type size);
 	inline void seek_i(stream_size_type offset);
 	inline void close_i();
+	inline void truncate_i(stream_size_type bytes);
 public:
 	inline posix();
 	inline void open_ro(const std::string & path);
 	inline void open_wo(const std::string & path);
 	inline bool try_open_rw(const std::string & path);
 	inline void open_rw_new(const std::string & path);
-	inline void truncate(stream_size_type size);
 	inline ~posix() {close();}
 };
 

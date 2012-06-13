@@ -78,9 +78,8 @@ void posix::close_i() {
 	m_fd=0;
 }
 
-void posix::truncate(stream_size_type size) {
-	if (ftruncate(m_fd, sizeof(stream_header_t) + m_userDataSize + size*m_itemSize) == -1) throw_errno();
-	invalidateLocation();
+void posix::truncate_i(stream_size_type bytes) {
+	if (ftruncate(m_fd, bytes) == -1) throw_errno();
 }
 
 }

@@ -195,6 +195,8 @@ public:
 	inline stream_size_type byte_size() const {
 		return ((m_size + m_blockItems - 1)/m_blockItems) * m_blockSize + header_size();
 	}
+
+	inline void truncate(stream_size_type items);
 };
 	
 }
