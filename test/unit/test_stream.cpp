@@ -84,6 +84,44 @@ bool array_test() {
 	return true;
 }
 
+bool truncate_test() {
+	typedef int test_t;
+	tpie::file_stream<test_t> fs;
+	fs.open("tmp");
+	for (size_t i = 0; i < 1000000; ++i)
+		fs.write(42);
+	bool res = true;
+	try {
+		fs.seek(0);
+	} catch (tpie::io_exception) {
+		std::cout << "We should be able to seek!" << std::endl;
+		res = false;
+	}
+
+	fs.truncate(42);
+	for (size_t i = 0; i < 42; ++i) {
+		if (!fs.can_read()) {
+			std::cout << "Cannot read item " << i << std::endl;
+			return false;
+		}
+		if (42 != fs.read()) {
+			std::cout << "Item " << i << " is wrong" << std::endl;
+			return false;
+		}
+	}
+	if (fs.can_read()) {
+		std::cout << "We should not be able to read after truncate!" << std::endl;
+		res = false;
+	}
+	try {
+		test_t item = fs.read();
+		std::cout << "We should not be able to read after truncate!" << std::endl;
+		return false;
+	} catch (tpie::stream_exception) {
+	}
+	return res;
+}
+
 int main(int argc, char **argv) {
 	tpie_initer _;
 
@@ -102,6 +140,8 @@ int main(int argc, char **argv) {
 		result = array_test();
 	else if (testtype == "basic")
 		result = basic_test();
+	else if (testtype == "truncate")
+		result = truncate_test();
 	else {
 		std::cout << "Unknown test" << std::endl;
 		result = false;
