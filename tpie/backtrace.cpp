@@ -291,7 +291,7 @@ void backtrace(std::ostream & out, int depth) {
 		}
 		out << exe << ": " << method << index << std::endl;
 	}
-	backtrace_end();
+	backtrace_end(out);
 	std::free(symbols);
 }
 }
