@@ -19,7 +19,7 @@
 
 
 template<typename T, typename Comparator>
-pq_overflow_heap<T, Comparator>::pq_overflow_heap(stream_size_type m, Comparator c):
+pq_overflow_heap<T, Comparator>::pq_overflow_heap(TPIE_OS_SIZE_T m, Comparator c):
   comp(c), h(m, comp), maxsize(m) {}
 
 template<typename T, typename Comparator>
@@ -46,7 +46,7 @@ inline const T& pq_overflow_heap<T, Comparator>::top() {
 }
 
 template<typename T, typename Comparator>
-inline stream_size_type pq_overflow_heap<T, Comparator>::size() const {
+inline TPIE_OS_SIZE_T pq_overflow_heap<T, Comparator>::size() const {
 	return h.size();
 }
 
@@ -63,7 +63,7 @@ inline T* pq_overflow_heap<T, Comparator>::sorted_array() {
 }
 
 template<typename T, typename Comparator>
-inline stream_size_type pq_overflow_heap<T, Comparator>::sorted_size() const{
+inline TPIE_OS_SIZE_T pq_overflow_heap<T, Comparator>::sorted_size() const{
 	return maxsize;
 }
 
