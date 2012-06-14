@@ -33,10 +33,6 @@ namespace file_accessor {
 template <typename file_accessor_t>
 class stream_accessor {
 private:
-	inline void read_i(void * d, memory_size_type size);
-	inline void write_i(const void * d, memory_size_type size);
-	inline void seek_i(stream_size_type size);
-
 	inline void validate_header(const stream_header_t & header);
 	inline void fill_header(stream_header_t & header, bool clean);
 

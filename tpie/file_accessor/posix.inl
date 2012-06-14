@@ -41,10 +41,12 @@ posix::posix():
 
 inline void posix::read_i(void * data, memory_size_type size) {
 	if (::read(m_fd, data, size) != (memory_offset_type)size) throw_errno();
+	increment_bytes_read(size);
 }
 
 inline void posix::write_i(const void * data, memory_size_type size) {
 	if (::write(m_fd, data, size) != (memory_offset_type)size) throw_errno();
+	increment_bytes_written(size);
 }
 
 inline void posix::seek_i(stream_size_type size) {

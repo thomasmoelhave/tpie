@@ -41,11 +41,13 @@ win32::win32(): m_fd(INVALID_HANDLE_VALUE) {
 inline void win32::read_i(void * data, memory_size_type size) {
 	DWORD bytesRead = 0;
 	if (!ReadFile(m_fd, data, (DWORD)size, &bytesRead, 0) || bytesRead != size) throw_getlasterror();
+	increment_bytes_read(size);
 }
 
 inline void win32::write_i(const void * data, memory_size_type size) {
 	DWORD bytesWritten = 0;
 	if (!WriteFile(m_fd, data, (DWORD)size, &bytesWritten, 0) || bytesWritten != size ) throw_getlasterror();
+	increment_bytes_written(size);
 }
 
 inline void win32::seek_i(stream_size_type size) {

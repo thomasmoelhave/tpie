@@ -32,27 +32,10 @@ namespace tpie {
 namespace file_accessor {
 
 template <typename file_accessor_t>
-void stream_accessor<file_accessor_t>::read_i(void * d, memory_size_type size) {
-	m_fileAccessor.read_i(d, size);
-	increment_bytes_read(size);
-}
-
-template <typename file_accessor_t>
-void stream_accessor<file_accessor_t>::write_i(const void * d, memory_size_type size) {
-	m_fileAccessor.write_i(d, size);
-	increment_bytes_written(size);
-}
-
-template <typename file_accessor_t>
-void stream_accessor<file_accessor_t>::seek_i(stream_size_type size) {
-	m_fileAccessor.seek_i(size);
-}
-
-template <typename file_accessor_t>
 void stream_accessor<file_accessor_t>::read_header() {
 	stream_header_t header;
-	seek_i(0);
-	read_i(&header, sizeof(header));
+	m_fileAccessor.seek_i(0);
+	m_fileAccessor.read_i(&header, sizeof(header));
 	validate_header(header);
 	m_size = header.size;
 }
@@ -61,22 +44,22 @@ template <typename file_accessor_t>
 void stream_accessor<file_accessor_t>::write_header(bool clean) {
 	stream_header_t header;
 	fill_header(header, clean);
-	seek_i(0);
+	m_fileAccessor.seek_i(0);
 	char * header_area = new char[header_size()];
 	memcpy(header_area, &header, sizeof(header));
 	memset(header_area+sizeof(header), 0, header_size()-sizeof(header));
-	write_i(header_area, header_size());
+	m_fileAccessor.write_i(header_area, header_size());
 	delete[] header_area;
 }
  
 template <typename file_accessor_t>
 memory_size_type stream_accessor<file_accessor_t>::read_block(void * data, stream_size_type blockNumber, memory_size_type itemCount) {
 	stream_size_type loc = header_size() + blockNumber*m_blockSize;
-	seek_i(loc);
+	m_fileAccessor.seek_i(loc);
 	stream_size_type offset = blockNumber*m_blockItems;
 	if (offset + itemCount > m_size) itemCount = static_cast<memory_size_type>(m_size - offset);
 	memory_size_type z=itemCount*m_itemSize;
-	read_i(data, z);
+	m_fileAccessor.read_i(data, z);
 	return itemCount;
 }
 
@@ -86,23 +69,23 @@ void stream_accessor<file_accessor_t>::write_block(const void * data, stream_siz
 	// Here, we may seek beyond the file size.
 	// However, lseek(2) specifies that the file will be padded with zeroes in this case,
 	// and on Windows, the file is padded with arbitrary garbage (which is ok).
-	seek_i(loc);
+	m_fileAccessor.seek_i(loc);
 	stream_size_type offset = blockNumber*m_blockItems;
 	memory_size_type z=itemCount*m_itemSize;
-	write_i(data, z);
+	m_fileAccessor.write_i(data, z);
 	if (offset+itemCount > m_size) m_size=offset+itemCount;
 }
 
 template <typename file_accessor_t>
 void stream_accessor<file_accessor_t>::read_user_data(void * data) {
-	seek_i(sizeof(stream_header_t));
-	read_i(data, m_userDataSize);
+	m_fileAccessor.seek_i(sizeof(stream_header_t));
+	m_fileAccessor.read_i(data, m_userDataSize);
 }
 
 template <typename file_accessor_t>
 void stream_accessor<file_accessor_t>::write_user_data(const void * data) {
-	seek_i(sizeof(stream_header_t));
-	write_i(data,  m_userDataSize);
+	m_fileAccessor.seek_i(sizeof(stream_header_t));
+	m_fileAccessor.write_i(data,  m_userDataSize);
 }
 
 template <typename file_accessor_t>
@@ -199,7 +182,7 @@ void stream_accessor<file_accessor_t>::truncate(stream_size_type items) {
 	stream_size_type blocks = items/m_blockItems;
 	stream_size_type blockIndex = items%m_blockItems;
 	stream_size_type bytes = header_size() + blocks*m_blockSize + blockIndex;
-	seek_i(bytes);
+	m_fileAccessor.seek_i(bytes);
 }
 
 }
