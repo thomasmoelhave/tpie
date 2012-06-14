@@ -642,7 +642,7 @@ public:
 					// check to make sure we have enough items in the stream
 					stream_size_type offs = offset();
 					if (offs >= m_file.size()
-						|| offs + (end-i) >= m_file.size()) {
+						|| offs + (end-i) > m_file.size()) {
 
 						throw end_of_stream_exception();
 					}
