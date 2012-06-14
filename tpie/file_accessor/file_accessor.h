@@ -23,7 +23,7 @@
 /// \file file_accessor.h Declare default file accessor.
 ///////////////////////////////////////////////////////////////////////////////
 
-#include <tpie/file_accessor/file_accessor_crtp.h>
+#include <tpie/file_accessor/stream_accessor.h>
 
 #ifdef WIN32
 

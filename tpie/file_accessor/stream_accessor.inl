@@ -20,7 +20,7 @@
 #include <string.h>
 #include <tpie/exception.h>
 #include <tpie/file_count.h>
-#include <tpie/file_accessor/file_accessor_crtp.h>
+#include <tpie/file_accessor/stream_accessor.h>
 #include <tpie/stats.h>
 #include <sys/types.h>
 #include <sys/stat.h>

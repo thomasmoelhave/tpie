@@ -14,9 +14,9 @@ set (HEADERS
 		err.h
 		file.h
 		file_stream.h
-		file_accessor/file_accessor_crtp.h
-		file_accessor/file_accessor_crtp.inl
 		file_accessor/file_accessor.h
+		file_accessor/stream_accessor.h
+		file_accessor/stream_accessor.inl
 		file_count.h
 		execution_time_predictor.h
 		imported/cycle.h

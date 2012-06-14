@@ -20,8 +20,8 @@
 #define _TPIE_FILE_ACCESSOR_FILE_ACCESSOR_CRTP_H
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \file file_accessor_crtp.h
-/// \brief CRTP base class of file accessors.
+/// \file stream_accessor.h  Reads and writes stream headers, user data and
+/// blocks from TPIE streams.
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <tpie/file_accessor/file_accessor.h>
@@ -180,5 +180,5 @@ public:
 }
 }
 
-#include <tpie/file_accessor/file_accessor_crtp.inl>
+#include <tpie/file_accessor/stream_accessor.inl>
 #endif //_TPIE_FILE_ACCESSOR_FILE_ACCESSOR_CRTP_H
