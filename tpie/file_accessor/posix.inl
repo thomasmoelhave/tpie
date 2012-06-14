@@ -32,7 +32,6 @@ namespace file_accessor {
 
 posix::posix():
 	m_fd(0) {
-	invalidateLocation();
 }
 
 inline void posix::read_i(void * data, memory_size_type size) {

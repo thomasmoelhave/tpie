@@ -36,7 +36,6 @@ namespace file_accessor {
 using tpie::throw_getlasterror;
 
 win32::win32(): m_fd(INVALID_HANDLE_VALUE) {
-	invalidateLocation();
 }
 
 inline void win32::read_i(void * data, memory_size_type size) {

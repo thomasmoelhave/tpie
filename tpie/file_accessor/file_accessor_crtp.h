@@ -34,7 +34,7 @@ namespace file_accessor {
 /// \brief Base class of file accessors.
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename child_t, bool minimizeSeeks=true>
+template <typename child_t>
 class file_accessor_crtp {
 private:
 	inline child_t & self() { return *reinterpret_cast<child_t *>(this); }
@@ -71,13 +71,6 @@ protected:
 
 	/** Path of the file currently opened. */
 	std::string m_path;
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Indicate that we are no longer sure of the current byte offset
-	/// in the open file, for instance after construction, opening and
-	/// truncating.
-	///////////////////////////////////////////////////////////////////////////
-	inline void invalidateLocation();
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Check the global errno variable and throw an exception that
