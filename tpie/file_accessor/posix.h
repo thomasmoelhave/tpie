@@ -32,24 +32,30 @@ namespace file_accessor {
 /// \brief POSIX-style file accessor.
 ///////////////////////////////////////////////////////////////////////////////
 
-class posix: public file_accessor_crtp<posix> {
+class posix {
 private:
 	int m_fd;
 
-	friend class file_accessor_crtp<posix>;
+public:
+	inline posix();
+	inline ~posix() {close_i();}
+
+	inline void open_ro(const std::string & path);
+	inline void open_wo(const std::string & path);
+	inline bool try_open_rw(const std::string & path);
+	inline void open_rw_new(const std::string & path);
 
 	inline void read_i(void * data, memory_size_type size);
 	inline void write_i(const void * data, memory_size_type size);
 	inline void seek_i(stream_size_type offset);
 	inline void close_i();
 	inline void truncate_i(stream_size_type bytes);
-public:
-	inline posix();
-	inline void open_ro(const std::string & path);
-	inline void open_wo(const std::string & path);
-	inline bool try_open_rw(const std::string & path);
-	inline void open_rw_new(const std::string & path);
-	inline ~posix() {close();}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Check the global errno variable and throw an exception that
+	/// matches its value.
+	///////////////////////////////////////////////////////////////////////////
+	static inline void throw_errno();
 };
 
 }

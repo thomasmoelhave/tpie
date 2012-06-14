@@ -23,12 +23,14 @@
 /// \file file_accessor.h Declare default file accessor.
 ///////////////////////////////////////////////////////////////////////////////
 
+#include <tpie/file_accessor/file_accessor_crtp.h>
+
 #ifdef WIN32
 
 #include <tpie/file_accessor/win32.h>
 namespace tpie {
 namespace file_accessor {
-typedef win32 file_accessor;
+typedef stream_accessor<win32> file_accessor;
 }
 }
 
@@ -37,7 +39,7 @@ typedef win32 file_accessor;
 #include <tpie/file_accessor/posix.h>
 namespace tpie {
 namespace file_accessor {
-typedef posix file_accessor;
+typedef stream_accessor<posix> file_accessor;
 }
 }
 

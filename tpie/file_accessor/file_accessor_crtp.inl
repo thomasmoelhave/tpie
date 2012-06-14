@@ -31,45 +31,25 @@
 namespace tpie {
 namespace file_accessor {
 
-template <typename child_t>
-inline void file_accessor_crtp<child_t>::read_i(void * d, memory_size_type size) {
-	reinterpret_cast<child_t*>(this)->read_i(d, size);
+template <typename file_accessor_t>
+void stream_accessor<file_accessor_t>::read_i(void * d, memory_size_type size) {
+	m_fileAccessor.read_i(d, size);
 	increment_bytes_read(size);
 }
 
-template <typename child_t>
-inline void file_accessor_crtp<child_t>::write_i(const void * d, memory_size_type size) {
-	reinterpret_cast<child_t*>(this)->write_i(d, size);
+template <typename file_accessor_t>
+void stream_accessor<file_accessor_t>::write_i(const void * d, memory_size_type size) {
+	m_fileAccessor.write_i(d, size);
 	increment_bytes_written(size);
 }
 
-template <typename child_t>
-inline void file_accessor_crtp<child_t>::seek_i(stream_size_type loc) {
-	reinterpret_cast<child_t*>(this)->seek_i(loc);
+template <typename file_accessor_t>
+void stream_accessor<file_accessor_t>::seek_i(stream_size_type size) {
+	m_fileAccessor.seek_i(size);
 }
 
-template <typename child_t>
-inline void file_accessor_crtp<child_t>::open_wo(const std::string & path) {
-	self().open_wo(path);
-}
-
-template <typename child_t>
-inline void file_accessor_crtp<child_t>::open_ro(const std::string & path) {
-	self().open_ro(path);
-}
-
-template <typename child_t>
-inline bool file_accessor_crtp<child_t>::try_open_rw(const std::string & path) {
-	return self().try_open_rw(path);
-}
-
-template <typename child_t>
-inline void file_accessor_crtp<child_t>::open_rw_new(const std::string & path) {
-	self().open_rw_new(path);
-}
-
-template <typename child_t>
-void file_accessor_crtp<child_t>::read_header() {
+template <typename file_accessor_t>
+void stream_accessor<file_accessor_t>::read_header() {
 	stream_header_t header;
 	seek_i(0);
 	read_i(&header, sizeof(header));
@@ -77,14 +57,8 @@ void file_accessor_crtp<child_t>::read_header() {
 	m_size = header.size;
 }
 
-template <typename child_t>
-inline void file_accessor_crtp<child_t>::throw_errno() {
-	if (errno == ENOSPC) throw out_of_space_exception(strerror(errno));
-	else throw io_exception(strerror(errno));
-}
-
-template <typename child_t>
-void file_accessor_crtp<child_t>::write_header(bool clean) {
+template <typename file_accessor_t>
+void stream_accessor<file_accessor_t>::write_header(bool clean) {
 	stream_header_t header;
 	fill_header(header, clean);
 	seek_i(0);
@@ -95,8 +69,8 @@ void file_accessor_crtp<child_t>::write_header(bool clean) {
 	delete[] header_area;
 }
  
-template <typename child_t>
-memory_size_type file_accessor_crtp<child_t>::read_block(void * data, stream_size_type blockNumber, memory_size_type itemCount) {
+template <typename file_accessor_t>
+memory_size_type stream_accessor<file_accessor_t>::read_block(void * data, stream_size_type blockNumber, memory_size_type itemCount) {
 	stream_size_type loc = header_size() + blockNumber*m_blockSize;
 	seek_i(loc);
 	stream_size_type offset = blockNumber*m_blockItems;
@@ -106,8 +80,8 @@ memory_size_type file_accessor_crtp<child_t>::read_block(void * data, stream_siz
 	return itemCount;
 }
 
-template <typename child_t>
-void file_accessor_crtp<child_t>::write_block(const void * data, stream_size_type blockNumber, memory_size_type itemCount) {
+template <typename file_accessor_t>
+void stream_accessor<file_accessor_t>::write_block(const void * data, stream_size_type blockNumber, memory_size_type itemCount) {
 	stream_size_type loc = header_size() + blockNumber*m_blockSize;
 	// Here, we may seek beyond the file size.
 	// However, lseek(2) specifies that the file will be padded with zeroes in this case,
@@ -119,20 +93,20 @@ void file_accessor_crtp<child_t>::write_block(const void * data, stream_size_typ
 	if (offset+itemCount > m_size) m_size=offset+itemCount;
 }
 
-template <typename child_t>
-void file_accessor_crtp<child_t>::read_user_data(void * data) {
+template <typename file_accessor_t>
+void stream_accessor<file_accessor_t>::read_user_data(void * data) {
 	seek_i(sizeof(stream_header_t));
 	read_i(data, m_userDataSize);
 }
 
-template <typename child_t>
-void file_accessor_crtp<child_t>::write_user_data(const void * data) {
+template <typename file_accessor_t>
+void stream_accessor<file_accessor_t>::write_user_data(const void * data) {
 	seek_i(sizeof(stream_header_t));
 	write_i(data,  m_userDataSize);
 }
 
-template <typename child_t>
-void file_accessor_crtp<child_t>::validate_header(const stream_header_t & header) {
+template <typename file_accessor_t>
+void stream_accessor<file_accessor_t>::validate_header(const stream_header_t & header) {
 	if (header.magic != stream_header_t::magicConst)
 		throw invalid_file_exception("Invalid file, header magic wrong");
 
@@ -152,8 +126,8 @@ void file_accessor_crtp<child_t>::validate_header(const stream_header_t & header
 		throw invalid_file_exception("Invalid file, the file was not closed properly");
 }
 
-template <typename child_t>
-void file_accessor_crtp<child_t>::fill_header(stream_header_t & header, bool clean) {
+template <typename file_accessor_t>
+void stream_accessor<file_accessor_t>::fill_header(stream_header_t & header, bool clean) {
 	header.magic = stream_header_t::magicConst;
 	header.version = stream_header_t::versionConst;
 	header.itemSize = m_itemSize;
@@ -163,8 +137,8 @@ void file_accessor_crtp<child_t>::fill_header(stream_header_t & header, bool cle
 	header.size = m_size;
 }
 
-template <typename child_t>
-void file_accessor_crtp<child_t>::open(const std::string & path,
+template <typename file_accessor_t>
+void stream_accessor<file_accessor_t>::open(const std::string & path,
 													  bool read,
 													  bool write,
 													  memory_size_type itemSize,
@@ -181,7 +155,7 @@ void file_accessor_crtp<child_t>::open(const std::string & path,
 	if (!write && !read)
 		throw invalid_argument_exception("Either read or write must be specified");
 	if (write && !read) {
-		open_wo(path);
+		m_fileAccessor.open_wo(path);
 		write_header(false);
 		if (userDataSize) {
 			char * buf = new char[userDataSize];
@@ -189,11 +163,11 @@ void file_accessor_crtp<child_t>::open(const std::string & path,
 			delete[] buf;
 		}
 	} else if (!write && read) {
-		open_ro(path);
+		m_fileAccessor.open_ro(path);
 		read_header();
 	} else {
-		if (!try_open_rw(path)) {
-			open_rw_new(path);
+		if (!m_fileAccessor.try_open_rw(path)) {
+			m_fileAccessor.open_rw_new(path);
 			write_header(false);
 			if (userDataSize) {
 				char * buf = new char[userDataSize];
@@ -209,23 +183,23 @@ void file_accessor_crtp<child_t>::open(const std::string & path,
 	m_open = true;
 }
 
-template <typename child_t>
-void file_accessor_crtp<child_t>::close() {
+template <typename file_accessor_t>
+void stream_accessor<file_accessor_t>::close() {
 	if (!m_open)
 		return;
 	if (m_write)
 		write_header(true);
-	self().close_i();
+	m_fileAccessor.close_i();
 	decrement_open_file_count();
 	m_open = false;
 }
 
-template <typename child_t>
-void file_accessor_crtp<child_t>::truncate(stream_size_type items) {
+template <typename file_accessor_t>
+void stream_accessor<file_accessor_t>::truncate(stream_size_type items) {
 	stream_size_type blocks = items/m_blockItems;
 	stream_size_type blockIndex = items%m_blockItems;
 	stream_size_type bytes = header_size() + blocks*m_blockSize + blockIndex;
-	self().seek_i(bytes);
+	seek_i(bytes);
 }
 
 }

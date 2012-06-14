@@ -30,6 +30,11 @@
 namespace tpie {
 namespace file_accessor {
 
+void posix::throw_errno() {
+	if (errno == ENOSPC) throw out_of_space_exception(strerror(errno));
+	else throw io_exception(strerror(errno));
+}
+
 posix::posix():
 	m_fd(0) {
 }

@@ -30,30 +30,21 @@
 namespace tpie {
 namespace file_accessor {
 
-///////////////////////////////////////////////////////////////////////////////
-/// \brief Base class of file accessors.
-///////////////////////////////////////////////////////////////////////////////
-
-template <typename child_t>
-class file_accessor_crtp {
+template <typename file_accessor_t>
+class stream_accessor {
 private:
-	inline child_t & self() { return *reinterpret_cast<child_t *>(this); }
-	inline void read_i(void *, memory_size_type size);
-	inline void write_i(const void *, memory_size_type size);
+	inline void read_i(void * d, memory_size_type size);
+	inline void write_i(const void * d, memory_size_type size);
 	inline void seek_i(stream_size_type size);
-	stream_size_type location;
+
 	inline void validate_header(const stream_header_t & header);
 	inline void fill_header(stream_header_t & header, bool clean);
-
-	inline void open_wo(const std::string & path);
-	inline void open_ro(const std::string & path);
-	inline bool try_open_rw(const std::string & path);
-	inline void open_rw_new(const std::string & path);
 
 	bool m_open;
 	bool m_write;
 
-protected:
+	file_accessor_t m_fileAccessor;
+
 	/** Number of logical items in stream. */
 	stream_size_type m_size;
 
@@ -71,12 +62,6 @@ protected:
 
 	/** Path of the file currently opened. */
 	std::string m_path;
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Check the global errno variable and throw an exception that
-	/// matches its value.
-	///////////////////////////////////////////////////////////////////////////
-	inline void throw_errno();
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Read stream header into the file accessor properties and
@@ -106,7 +91,7 @@ protected:
 	///////////////////////////////////////////////////////////////////////////
 	inline memory_size_type header_size() const { return align_to_boundary(sizeof(stream_header_t)+m_userDataSize); }
 public:
-	inline file_accessor_crtp()
+	inline stream_accessor()
 		: m_open(false)
 		, m_write(false)
 	{
@@ -163,7 +148,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Return memory usage of this file accessor.
 	///////////////////////////////////////////////////////////////////////////
-	static inline memory_size_type memory_usage() {return sizeof(child_t);}
+	static inline memory_size_type memory_usage() {return sizeof(stream_accessor<file_accessor_t>);}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Number of items in stream.

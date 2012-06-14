@@ -38,24 +38,24 @@ namespace file_accessor {
 /// \brief Win32 file accessor.
 ///////////////////////////////////////////////////////////////////////////////
 
-class win32: public file_accessor_crtp<win32> {
+class win32 {
 private:
 	HANDLE m_fd;
 
-	friend class file_accessor_crtp<win32>;
+public:
+	inline win32();
+	inline ~win32() {close();}
+
+	inline void open_wo(const std::string & path);
+	inline void open_ro(const std::string & path);
+	inline bool try_open_rw(const std::string & path);
+	inline void open_rw_new(const std::string & path);
 
 	inline void read_i(void * data, memory_size_type size);
 	inline void write_i(const void * data, memory_size_type size);
 	inline void seek_i(stream_size_type offset);
 	inline void close_i();
 	inline void truncate_i(stream_size_type bytes);
-public:
-	inline win32();
-	inline void open_wo(const std::string & path);
-	inline void open_ro(const std::string & path);
-	inline bool try_open_rw(const std::string & path);
-	inline void open_rw_new(const std::string & path);
-	inline ~win32() {close();}
 };
 
 }
