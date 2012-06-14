@@ -31,7 +31,6 @@
 #include <limits>
 #include <tpie/exception.h>
 #include <tpie/file_accessor/file_accessor.h>
-#include <tpie/file_accessor/stdio.h>
 #ifndef WIN32
 #include <tpie/file_accessor/posix.h>
 #else ////WIN32
