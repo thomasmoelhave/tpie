@@ -86,7 +86,9 @@ file_base::block_t * file_base::get_block(stream_size_type block) {
 	// request any block in {0, 1, ... n-1}
 
 	// We capture this restraint with the assertion:
-	assert(block * static_cast<stream_size_type>(m_blockItems) <= size());
+	if (block * static_cast<stream_size_type>(m_blockItems) > size()) {
+		throw end_of_stream_exception();
+	}
 
 	// First, see if the block is already buffered
 	boost::intrusive::list<block_t>::iterator i = m_used.begin();
@@ -156,7 +158,10 @@ void file_base::stream::update_block() {
 		m_nextBlock = m_block->number+1;
 		m_nextIndex = 0;
 	}
-	if (m_block != &m_file.m_emptyBlock) m_file.free_block(m_block);
+	if (m_block != &m_file.m_emptyBlock) {
+		m_file.free_block(m_block);
+		m_block = &m_file.m_emptyBlock; // necessary if get_block below throws
+	}
 	m_block = m_file.get_block(m_nextBlock);
 	m_blockStartIndex = m_nextBlock*static_cast<stream_size_type>(m_file.m_blockItems);
 	m_index = m_nextIndex;

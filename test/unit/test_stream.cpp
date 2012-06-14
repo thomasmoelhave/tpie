@@ -73,6 +73,10 @@ struct file_colon_colon_stream {
 	tpie::file<T> m_file;
 	tpie::auto_ptr<typename tpie::file<T>::stream> m_stream;
 
+	inline ~file_colon_colon_stream() {
+		m_stream.reset();
+	}
+
 	tpie::file<T> & file() {
 		return m_file;
 	}
