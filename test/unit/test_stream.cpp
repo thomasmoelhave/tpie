@@ -78,7 +78,7 @@ struct file_colon_colon_stream {
 	}
 
 	typename tpie::file<T>::stream & stream() {
-		if (!m_stream) m_stream.reset(tpie::tpie_new<tpie::file<T>::stream>(m_file));
+		if (m_stream.get() == 0) m_stream.reset(tpie::tpie_new<typename tpie::file<T>::stream>(m_file));
 		return *m_stream;
 	}
 };
@@ -197,7 +197,7 @@ int main(int argc, char **argv) {
 	tpie_initer _;
 
 	if (argc != 2) {
-		std::cout << "Usage: " << argv[0] << " [basic|array|odd]" << std::endl;
+		std::cout << "Usage: " << argv[0] << " [basic|array[_file]|odd[_file]|truncate[_file]]" << std::endl;
 		return EXIT_FAILURE;
 	}
 
@@ -209,12 +209,18 @@ int main(int argc, char **argv) {
 
 	if (testtype == "array")
 		result = stream_tester<file_stream>().array_test();
+	else if (testtype == "array_file")
+		result = stream_tester<file_colon_colon_stream>().array_test();
 	else if (testtype == "basic")
 		result = swap_test();
 	else if (testtype == "odd")
 		result = stream_tester<file_stream>().odd_block_test();
+	else if (testtype == "odd_file")
+		result = stream_tester<file_colon_colon_stream>().odd_block_test();
 	else if (testtype == "truncate")
 		result = stream_tester<file_stream>().truncate_test();
+	else if (testtype == "truncate_file")
+		result = stream_tester<file_colon_colon_stream>().truncate_test();
 	else {
 		std::cout << "Unknown test" << std::endl;
 		result = false;
