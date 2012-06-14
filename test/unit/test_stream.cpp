@@ -66,17 +66,48 @@ movable_file_stream openstream() {
 	return fs;
 }
 
-bool basic_test();
+bool swap_test();
+
+template <typename T>
+struct file_colon_colon_stream {
+	tpie::file<T> m_file;
+	tpie::auto_ptr<typename tpie::file<T>::stream> m_stream;
+
+	tpie::file<T> & file() {
+		return m_file;
+	}
+
+	typename tpie::file<T>::stream & stream() {
+		if (!m_stream) m_stream.reset(tpie::tpie_new<tpie::file<T>::stream>(m_file));
+		return *m_stream;
+	}
+};
+
+template <typename T>
+struct file_stream {
+	tpie::file_stream<T> m_fs;
+
+	tpie::file_stream<T> & file() {
+		return m_fs;
+	}
+
+	tpie::file_stream<T> & stream() {
+		return m_fs;
+	}
+};
+
+template <template <typename T> class Stream>
+struct stream_tester {
 
 bool array_test() {
 	try {
-		tpie::file_stream<uint64_t> fs;
-		fs.open(TEMPFILE);
+		Stream<uint64_t> fs;
+		fs.file().open(TEMPFILE);
 		tpie::memory_size_type items = tpie::file<uint64_t>::block_size(1.0)/sizeof(uint64_t) + 10;
 		std::vector<uint64_t> data(items, 1);
-		fs.write(data.begin(), data.end());
-		fs.seek(0);
-		fs.read(data.begin(), data.end());
+		fs.stream().write(data.begin(), data.end());
+		fs.stream().seek(0);
+		fs.stream().read(data.begin(), data.end());
 	} catch (std::exception & e) {
 		std::cout << "Caught exception " << typeid(e).name() << "\ne.what(): " << e.what() << std::endl;
 		return false;
@@ -91,25 +122,26 @@ bool odd_block_test() {
 	typedef boost::array<char, 17> test_t;
 	const size_t items = 500000;
 	test_t initial_item;
+	for (size_t i = 0; i < initial_item.size(); ++i) initial_item[i] = static_cast<char>(i+42);
 
 	{
-		tpie::file_stream<test_t> fs;
-		fs.open(TEMPFILE);
+		Stream<test_t> fs;
+		fs.file().open(TEMPFILE);
 
 		test_t item = initial_item;
 		for (size_t i = 0; i < items; ++i) {
-			fs.write(item);
+			fs.stream().write(item);
 			item[0]++;
 		}
 	}
 
 	{
-		tpie::file_stream<test_t> fs;
-		fs.open(TEMPFILE);
+		Stream<test_t> fs;
+		fs.file().open(TEMPFILE);
 
 		test_t item = initial_item;
 		for (size_t i = 0; i < items; ++i) {
-			test_t got = fs.read();
+			test_t got = fs.stream().read();
 			if (got != item) {
 				std::cout << "Item " << i << " is wrong" << std::endl;
 				return false;
@@ -123,41 +155,43 @@ bool odd_block_test() {
 
 bool truncate_test() {
 	typedef int test_t;
-	tpie::file_stream<test_t> fs;
-	fs.open("tmp");
+	Stream<test_t> fs;
+	fs.file().open("tmp");
 	for (size_t i = 0; i < 1000000; ++i)
-		fs.write(42);
+		fs.stream().write(42);
 	bool res = true;
 	try {
-		fs.seek(0);
+		fs.stream().seek(0);
 	} catch (tpie::io_exception) {
 		std::cout << "We should be able to seek!" << std::endl;
 		res = false;
 	}
 
-	fs.truncate(42);
+	fs.file().truncate(42);
 	for (size_t i = 0; i < 42; ++i) {
-		if (!fs.can_read()) {
+		if (!fs.stream().can_read()) {
 			std::cout << "Cannot read item " << i << std::endl;
 			return false;
 		}
-		if (42 != fs.read()) {
+		if (42 != fs.stream().read()) {
 			std::cout << "Item " << i << " is wrong" << std::endl;
 			return false;
 		}
 	}
-	if (fs.can_read()) {
+	if (fs.stream().can_read()) {
 		std::cout << "We should not be able to read after truncate!" << std::endl;
 		res = false;
 	}
 	try {
-		test_t item = fs.read();
+		fs.stream().read();
 		std::cout << "We should not be able to read after truncate!" << std::endl;
 		return false;
 	} catch (tpie::stream_exception) {
 	}
 	return res;
 }
+
+}; // template stream_tester
 
 int main(int argc, char **argv) {
 	tpie_initer _;
@@ -174,13 +208,13 @@ int main(int argc, char **argv) {
 	bool result;
 
 	if (testtype == "array")
-		result = array_test();
+		result = stream_tester<file_stream>().array_test();
 	else if (testtype == "basic")
-		result = basic_test();
+		result = swap_test();
 	else if (testtype == "odd")
-		result = odd_block_test();
+		result = stream_tester<file_stream>().odd_block_test();
 	else if (testtype == "truncate")
-		result = truncate_test();
+		result = stream_tester<file_stream>().truncate_test();
 	else {
 		std::cout << "Unknown test" << std::endl;
 		result = false;
@@ -189,7 +223,7 @@ int main(int argc, char **argv) {
 	return result ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
-bool basic_test() {
+bool swap_test() {
 	// Write ITEMS items sequentially to TEMPFILE
 	{
 		movable_file_stream fs;
