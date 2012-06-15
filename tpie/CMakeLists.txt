@@ -77,6 +77,7 @@ set (HEADERS
 		concepts.h
 		concept_doc.h
 		tpie.h
+		unittest.h
 		)
 
 set (SOURCES
@@ -98,6 +99,7 @@ set (SOURCES
 	file_base.cpp
 	stats.cpp
 	util.cpp
+	unittest.cpp
 	"${CMAKE_CURRENT_BINARY_DIR}/sysinfo.cpp"
 	)
 
