@@ -63,7 +63,7 @@ bool medium_instance() {
 		for(TPIE_OS_OFFSET i=0;i<pop;i++) {
 			if(!pq.empty()) {
 				if(pq.top() != pq2.top()) {
-					std::cerr << "Pop " << i << " got: " << pq.top() << " expected " << pq2.top() << std::endl;
+					tpie::log_error() << "Pop " << i << " got: " << pq.top() << " expected " << pq2.top() << std::endl;
 					return false;
 				}
 				pq.pop();
@@ -77,7 +77,7 @@ bool medium_instance() {
 		}
 		while(!pq.empty()) {
 			if(pq.top() != pq2.top()) {
-				std::cerr << "Pop2, got: " << pq.top() << " expected " << pq2.top() << std::endl;
+				tpie::log_error() <<  "Pop2, got: " << pq.top() << " expected " << pq2.top() << std::endl;
 				return false;
 			}
 			pq.pop();
@@ -115,8 +115,8 @@ bool large_instance(){
 		if (!crash_test && pq.empty() != pq2.empty()) return false;
 
 		if (!crash_test && !pq.empty() && pq.top()!=pq2.top()) {
-			std::cerr << j << " Priority queues differ, got " << pq.top() << " but expected " 
-					  << pq2.top() << std::endl;
+			tpie::log_error() << j << " Priority queues differ, got " << pq.top() << " but expected " 
+							  << pq2.top() << std::endl;
 			return false;
 		}
 		if (rand()<th) {
@@ -225,11 +225,11 @@ bool overflow_test() {
 }
 
 int main(int argc, char **argv) {
-	return unittests(argc, argv, 128)
-	.test<basic_test>("basic")
-	.test<medium_instance>("medium")
-	.test<large_instance<false> >("large")
-	.test<large_cycle>("large_cycle")
-	.test<memory_test>("memory")
-	.test<overflow_test>("overflow");
+	return tpie::tests(argc, argv, 128)
+		.test(basic_test, "basic")
+		.test(medium_instance, "medium")
+		.test(large_instance<false>, "large")
+		.test(large_cycle, "large_cycle")
+		.test(memory_test, "memory")
+		.test(overflow_test, "overflow");
 }

@@ -42,22 +42,7 @@ static const size_t ITEMS = TESTSIZE/sizeof(uint64_t);
 static const size_t ARRAYSIZE = 512;
 static const size_t ARRAYS = TESTSIZE/(ARRAYSIZE*sizeof(uint64_t));
 
-int main(int argc, char **argv) {
-	tpie_initer _;
-
-	if (argc != 2) {
-		std::cout << "Usage: " << argv[0] << " basic" << std::endl;
-		return EXIT_FAILURE;
-	}
-
-	std::string testtype(argv[1]);
-
-	// We only have one test
-	if (testtype != "basic") {
-		std::cout << "Unknown test" << std::endl;
-		return EXIT_FAILURE;
-	}
-
+bool basic() {
 	boost::filesystem::remove(TEMPFILE);
 
 	// Write ITEMS items sequentially to TEMPFILE
@@ -73,8 +58,8 @@ int main(int argc, char **argv) {
 		for(size_t i=0; i < ITEMS; ++i) {
 			s.read_item(&x);
 			if (*x != ITEM(i)) {
-				std::cout << "Expected element " << i << " = " << ITEM(i) << ", got " << *x << std::endl;
-				return EXIT_FAILURE;
+				tpie::log_error() << "Expected element " << i << " = " << ITEM(i) << ", got " << *x << std::endl;
+				return false;
 			}
 		}
 	}
@@ -97,13 +82,13 @@ int main(int argc, char **argv) {
 			TPIE_OS_SIZE_T len = ARRAYSIZE;
 			s.read_array(x, len);
 			if (len != ARRAYSIZE) {
-				std::cout << "read_array only read " << len << " elements, expected " << ARRAYSIZE << std::endl;
-				return EXIT_FAILURE;
+				tpie::log_error() <<  "read_array only read " << len << " elements, expected " << ARRAYSIZE << std::endl;
+				return false;
 			}
 			for (size_t i=0; i < ARRAYSIZE; ++i) {
 				if (x[i] != ITEM(i)) {
-					std::cout << "Expected element " << i << " = " << ITEM(i) << ", got " << x[i] << std::endl;
-					return EXIT_FAILURE;
+					tpie::log_error() << "Expected element " << i << " = " << ITEM(i) << ", got " << x[i] << std::endl;
+					return false;
 				}
 			}
 		}
@@ -126,8 +111,8 @@ int main(int argc, char **argv) {
 				uint64_t *read;
 				s.read_item(&read);
 				if (*read != data[idx]) {
-					std::cout << "Expected element " << idx << " to be " << data[idx] << ", got " << *read << std::endl;
-					return EXIT_FAILURE;
+					tpie::log_error() << "Expected element " << idx << " to be " << data[idx] << ", got " << *read << std::endl;
+					return false;
 				}
 			} else {
 				uint64_t write = ITEM(ITEMS+i);
@@ -137,11 +122,15 @@ int main(int argc, char **argv) {
 
 			tpie::stream_offset_type newoff = s.tell();
 			if (static_cast<size_t>(newoff) != idx+1) {
-				std::cout << "Offset advanced to " << newoff << ", expected " << (idx+1) << std::endl;
-				return EXIT_FAILURE;
+				tpie::log_error() << "Offset advanced to " << newoff << ", expected " << (idx+1) << std::endl;
+				return false;
 			}
 		}
 	}
+	return true;
+}
 
-	return EXIT_SUCCESS;
+int main(int argc, char **argv) {
+	return tpie::tests(argc, argv)
+		.test(basic, "basic");
 }

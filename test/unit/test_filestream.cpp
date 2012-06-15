@@ -65,17 +65,12 @@ private:
 	const float m_block_factor;
 };
 
+bool memory(bool block_factor) {
+	return file_stream_memory_test(block_factor)();
+}
+
 int main(int argc, char **argv) {
-	if (argc < 2 || std::string(argv[1]) != "memory") {
-		std::cout << "Usage: " << argv[0] << " memory" << std::endl;
-		return EXIT_FAILURE;
-	}
-	float block_factor = 1.0;
-	if (argc > 2) {
-		std::stringstream(std::string(argv[2])) >> block_factor;
-	}
-	tpie_init();
-	file_stream_memory_test tester(block_factor);
-	tester();
-	tpie_finish();
+	return tpie::tests(argc, argv)
+		.test(memory, "memory", "block-factor", 1.0);
+
 }

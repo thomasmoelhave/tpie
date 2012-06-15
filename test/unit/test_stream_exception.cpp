@@ -51,7 +51,7 @@ static bool test() {
 	boost::filesystem::remove(TEMPFILE);
 	return got_exception && !got_other;
 }
-int main() {
-	tpie_initer _;
-	return test() ? EXIT_SUCCESS : EXIT_FAILURE;
+int main(int argc, char **argv) {
+	return tpie::tests(argc, argv)
+		.test(test, "basic");
 }

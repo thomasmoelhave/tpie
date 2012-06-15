@@ -34,34 +34,38 @@ using namespace tpie;
 bool test_about(stream_size_type val, stream_size_type expect, const char * name) {
 	if (val + 10240 < 9*expect/10 ||
 		val > 11*expect/10 + 10240) {
-		std::cout << "Wrong " << name << " got " << val << " expected " << expect << std::endl;
+		tpie::log_error() << "Wrong " << name << " got " << val << " expected " << expect << std::endl; 
 		return false;
 	}
 	return true;
 }
 
-int main() {
-	tpie_initer _;
-	
-	if (!test_about(get_bytes_read(), 0, "bytes read")) return EXIT_FAILURE;
-	if (!test_about(get_bytes_written(), 0, "bytes written")) return EXIT_FAILURE;
-	if (!test_about(get_temp_file_usage(), 0, "temp file usage")) return EXIT_FAILURE;
+bool simple_test(size_type size) {
+	if (!test_about(get_bytes_read(), 0, "bytes read")) return false;
+	if (!test_about(get_bytes_written(), 0, "bytes written")) return false;
+	if (!test_about(get_temp_file_usage(), 0, "temp file usage")) return false;
 	{
 		file_stream<uint64_t> s;
 		s.open();
-		for(size_t i=0; i < 1024*1024*10; ++i) s.write(i);
+		for(size_t i=0; i < size; ++i) s.write(i);
 		
-		if (!test_about(get_bytes_read(), 0, "bytes read")) return EXIT_FAILURE;
-		if (!test_about(get_bytes_written(), 1024*1024*10*8, "bytes written")) return EXIT_FAILURE;
-		if (!test_about(get_temp_file_usage(), 1024*1024*10*8, "temp file usage")) return EXIT_FAILURE;
+		if (!test_about(get_bytes_read(), 0, "bytes read")) return false;
+		if (!test_about(get_bytes_written(), size, "bytes written")) return false;
+		if (!test_about(get_temp_file_usage(), size, "temp file usage")) return false;
 		s.seek(0);
 		for(size_t i=0; i < 1024*1024*10; ++i) s.read();
 		
-		if (!test_about(get_bytes_read(), 1024*1024*10*8, "bytes read")) return EXIT_FAILURE;
-		if (!test_about(get_bytes_written(), 1024*1024*10*8, "bytes written")) return EXIT_FAILURE;
-		if (!test_about(get_temp_file_usage(), 1024*1024*10*8, "temp file usage")) return EXIT_FAILURE;
+		if (!test_about(get_bytes_read(), size, "bytes read")) return false;
+		if (!test_about(get_bytes_written(), size, "bytes written")) return false;
+		if (!test_about(get_temp_file_usage(), size, "temp file usage")) return false;
 	}
-	if (!test_about(get_bytes_read(), 1024*1024*10*8, "bytes read")) return EXIT_FAILURE;
-	if (!test_about(get_bytes_written(), 1024*1024*10*8, "bytes written")) return EXIT_FAILURE;
-	if (!test_about(get_temp_file_usage(), 0, "temp file usage")) return EXIT_FAILURE;
+	if (!test_about(get_bytes_read(), size, "bytes read")) return false;
+	if (!test_about(get_bytes_written(), size, "bytes written")) return false;
+	if (!test_about(get_temp_file_usage(), 0, "temp file usage")) return false;
+	return true;
+}
+
+int main(int argc, char ** argv) {
+	return tpie::tests(argc, argv)
+		.test(simple_test, "simple", "size", 1024*1024*10);
 }

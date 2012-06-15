@@ -27,6 +27,8 @@
 #include <tpie/tpie.h>
 #include <tpie/sysinfo.h>
 #include <tpie/exception.h>
+#include <tpie/unittest.h>
+#include <tpie/tpie_log.h>
 
 struct bit_permute {
 	boost::uint64_t operator()(boost::uint64_t i) const{
@@ -107,99 +109,6 @@ public:
 	~tpie_initer() {
 		tpie::tpie_finish();
 	}
-};
-
-// Type of test function
-typedef bool fun_t();
-
-struct unittests {
-
-	const char * progname;
-
-	// How many tests were run (if 0, usage is printed)
-	int tests;
-
-	// True if all tests pass, false otherwise
-	bool result;
-
-	// Name of test to run
-	std::string testname;
-
-	// Whether we should run all tests
-	bool testall;
-
-	// If testall, capture a list of failing tests
-	std::stringstream faillog;
-
-	// List of tests concatenated by '|' (for the usage string)
-	std::stringstream usagestring;
-
-	tpie_initer initer;
-
-	unittests(int argc, char ** argv, size_t memory_limit = 32)
-		: progname(argv[0])
-		, tests(0)
-		, result(true)
-		, testname("")
-		, testall(false)
-		, initer(memory_limit)
-	{
-		tpie::get_memory_manager().set_enforcement(tpie::memory_manager::ENFORCE_THROW);
-		if (argc > 1) {
-			testname = argv[1];
-		}
-		if (testname == "all") {
-			testall = true;
-			tpie::sysinfo s;
-			std::cerr << s;
-		}
-	}
-
-	operator int() {
-		if (!tests) usage();
-		if (testall) {
-			std::cerr << std::string(79, '=');
-			if (result) std::cerr << "\nAll tests passed" << std::endl;
-			else std::cerr << "\nThe following tests FAILED:\n" << faillog.str() << std::flush;
-		}
-		return result ? EXIT_SUCCESS : EXIT_FAILURE;
-	}
-
-	// Run test, increment `tests', set `result' if failed, output if `testall'
-	template <fun_t f>
-	inline unittests & test(std::string name) {
-		usagestring << '|' << name;
-
-		if (!testall && testname != name) return *this;
-		++tests;
-		if (testall)
-			std::cerr << std::string(79,'=') << "\nStart " << std::setw(2) << tests << ": " << name << std::endl;
-		bool pass = false;
-		try {
-			pass = f();
-		} catch (tpie::exception & e) {
-			std::cerr << "Caught a tpie::exception (actually " << typeid(e).name() << ") in test \"" << name << "\"\ne.what() = " << e.what() << std::endl;
-		} catch (std::exception & e) {
-			std::cerr << "Caught a std::exception (actually " << typeid(e).name() << ") in test \"" << name << "\"\ne.what() = " << e.what() << std::endl;
-		} catch (...) {
-			std::cerr << "Caught something that is not an exception in test \"" << name << "\"" << std::endl;
-		}
-		if (testall) {
-			std::cerr << "\nTest  " << std::setw(2) << tests << ": " << name << ' ' << std::string(59-name.size(), '.')
-			<< (pass ? "   Passed" : "***Failed") << std::endl;
-			if (!pass) faillog << "  * " << name << '\n';
-		}
-
-		if (!pass) result = false;
-
-		return *this;
-	}
-
-	void usage() {
-		std::cerr << "Usage: " << progname << " [all" << usagestring.str() << ']' << std::endl;
-		exit(EXIT_FAILURE);
-	}
-
 };
 
 #endif //__COMMON_H__

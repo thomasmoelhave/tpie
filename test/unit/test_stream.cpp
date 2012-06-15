@@ -103,7 +103,7 @@ struct file_stream {
 template <template <typename T> class Stream>
 struct stream_tester {
 
-bool array_test() {
+static bool array_test() {
 	try {
 		Stream<uint64_t> fs;
 		fs.file().open(TEMPFILE);
@@ -122,7 +122,7 @@ bool array_test() {
 	return true;
 }
 
-bool odd_block_test() {
+static bool odd_block_test() {
 	typedef boost::array<char, 17> test_t;
 	const size_t items = 500000;
 	test_t initial_item;
@@ -157,7 +157,7 @@ bool odd_block_test() {
 	return true;
 }
 
-bool truncate_test() {
+static bool truncate_test() {
 	typedef int test_t;
 	Stream<test_t> fs;
 	fs.file().open("tmp");
@@ -196,42 +196,6 @@ bool truncate_test() {
 }
 
 }; // template stream_tester
-
-int main(int argc, char **argv) {
-	tpie_initer _;
-
-	if (argc != 2) {
-		std::cout << "Usage: " << argv[0] << " [basic|array[_file]|odd[_file]|truncate[_file]]" << std::endl;
-		return EXIT_FAILURE;
-	}
-
-	boost::filesystem::remove(TEMPFILE);
-
-	std::string testtype(argv[1]);
-
-	bool result;
-
-	if (testtype == "array")
-		result = stream_tester<file_stream>().array_test();
-	else if (testtype == "array_file")
-		result = stream_tester<file_colon_colon_stream>().array_test();
-	else if (testtype == "basic")
-		result = swap_test();
-	else if (testtype == "odd")
-		result = stream_tester<file_stream>().odd_block_test();
-	else if (testtype == "odd_file")
-		result = stream_tester<file_colon_colon_stream>().odd_block_test();
-	else if (testtype == "truncate")
-		result = stream_tester<file_stream>().truncate_test();
-	else if (testtype == "truncate_file")
-		result = stream_tester<file_colon_colon_stream>().truncate_test();
-	else {
-		std::cout << "Unknown test" << std::endl;
-		result = false;
-	}
-
-	return result ? EXIT_SUCCESS : EXIT_FAILURE;
-}
 
 bool swap_test() {
 	// Write ITEMS items sequentially to TEMPFILE
@@ -330,4 +294,21 @@ bool swap_test() {
 	}
 
 	return true;
+}
+
+void remove_temp() {
+	boost::filesystem::remove(TEMPFILE);
+}
+
+int main(int argc, char **argv) {
+	return tpie::tests(argc, argv)
+		.setup(remove_temp)
+		.finish(remove_temp)
+		.test(stream_tester<file_stream>::array_test, "array")
+		.test(stream_tester<file_colon_colon_stream>::array_test, "array_file")
+		.test(swap_test, "basic")
+		.test(stream_tester<file_stream>::odd_block_test, "odd")
+		.test(stream_tester<file_colon_colon_stream>::odd_block_test, "odd_file")
+		.test(stream_tester<file_stream>::truncate_test, "truncate")
+		.test(stream_tester<file_colon_colon_stream>::truncate_test, "truncate_file");
 }

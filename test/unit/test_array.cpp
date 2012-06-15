@@ -253,7 +253,6 @@ bool arrayarray() {
 }
 
 int main(int argc, char **argv) {
-	tpie_initer _(128);
 	BOOST_CONCEPT_ASSERT((linear_memory_structure_concept<array<int> >));
 	BOOST_CONCEPT_ASSERT((boost::RandomAccessIterator<array<int>::const_iterator>));
 	BOOST_CONCEPT_ASSERT((boost::RandomAccessIterator<array<int>::const_reverse_iterator>));
@@ -262,30 +261,15 @@ int main(int argc, char **argv) {
 	BOOST_CONCEPT_ASSERT((linear_memory_structure_concept<bit_array >));
 	BOOST_CONCEPT_ASSERT((boost::RandomAccessIterator<bit_array::const_iterator>));
 	BOOST_CONCEPT_ASSERT((boost::RandomAccessIterator<bit_array::const_reverse_iterator>));
-  
-	if(argc != 2) return 1;
-	std::string test(argv[1]);
-	if (test == "basic")
-		return basic_test()?EXIT_SUCCESS:EXIT_FAILURE;
-	else if (test == "iterators") 
-		return iterator_test()?EXIT_SUCCESS:EXIT_FAILURE;
-	else if (test == "auto_ptr")
-		return auto_ptr_test()?EXIT_SUCCESS:EXIT_FAILURE;
-	else if (test == "memory") 
-		return array_memory_test<false>()()?EXIT_SUCCESS:EXIT_FAILURE;
-	else if (test == "segmented")
-		return segmented_array_test()?EXIT_SUCCESS:EXIT_FAILURE;
-	else if (test == "memory_segmented") 
-		return array_memory_test<true>()()?EXIT_SUCCESS:EXIT_FAILURE;
-	else if (test == "bit_basic")
-		return basic_bool_test()?EXIT_SUCCESS:EXIT_FAILURE;
-	else if (test == "bit_iterators") 
-		return iterator_bool_test()?EXIT_SUCCESS:EXIT_FAILURE;
-	else if (test == "bit_memory") 
-		return array_bool_memory_test()()?EXIT_SUCCESS:EXIT_FAILURE;
-	else if (test == "copyempty") 
-		return copyempty()?EXIT_SUCCESS:EXIT_FAILURE;
-	else if (test == "arrayarray")
-		return arrayarray()?EXIT_SUCCESS:EXIT_FAILURE;
-	return EXIT_FAILURE;
+	return tpie::tests(argc, argv, 128)
+		.test(basic_test, "basic")
+		.test(iterator_test, "iterators")
+		.test(auto_ptr_test, "auto_ptr")
+		.test(array_memory_test<false>(), "memory")
+		.test(segmented_array_test, "segmented")
+		//.test(array_memory_test<true>(), "memory_segmented")
+		.test(basic_bool_test, "bit_basic")
+		.test(array_bool_memory_test(), "bit_memory")
+		.test(copyempty, "copyempty")
+		.test(arrayarray, "arrayarray");
 }

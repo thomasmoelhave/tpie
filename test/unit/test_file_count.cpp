@@ -1,3 +1,21 @@
+// -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
+// vi:set ts=4 sts=4 sw=4 noet :
+// Copyright 2012, The TPIE development team
+// 
+// This file is part of TPIE.
+// 
+// TPIE is free software: you can redistribute it and/or modify it under
+// the terms of the GNU Lesser General Public License as published by the
+// Free Software Foundation, either version 3 of the License, or (at your
+// option) any later version.
+// 
+// TPIE is distributed in the hope that it will be useful, but WITHOUT ANY
+// WARRANTY; without even the implied warranty of MERCHANTABILITY or
+// FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
+// License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public License
+// along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #include "common.h"
 #include <tpie/array.h>
 #include <tpie/file_accessor/file_accessor.h>
@@ -24,23 +42,22 @@ bool file_count_test() {
 		try {
 			fs[i].open(tmp.path(), true, false, itemSize, blockSize, userDataSize);
 		} catch (tpie::exception & e) {
-			std::cout << "After opening " << i << " files, got an unexcepted exception of type " << typeid(e).name() << std::endl;
+			tpie::log_error() << "After opening " << i << " files, got an unexcepted exception of type " << typeid(e).name() << std::endl;
 			return false;
 		}
 	}
-	std::cout << "Opened available_files() == " << avail << " files" << std::endl;
+	tpie::log_error() << "Opened available_files() == " << avail << " files" << std::endl;
 	try {
 		fs[avail].open(tmp.path(), true, false, itemSize, blockSize, userDataSize);
 	} catch (tpie::io_exception & e) {
-		std::cout << "Opening another file yields an exception of type\n" << typeid(e).name() << " (" << e.what() << ")\nwhich is allowed per available_files()" << std::endl;
+		tpie::log_error() << "Opening another file yields an exception of type\n" << typeid(e).name() << " (" << e.what() << ")\nwhich is allowed per available_files()" << std::endl;
 		return true;
 	}
-	std::cout << "available_files() is not a strict bound" << std::endl;
+	tpie::log_error() << "available_files() is not a strict bound" << std::endl;
 	return true;
 }
 
 int main(int argc, char ** argv) {
-	return unittests(argc, argv)
-	.test<file_count_test>("basic")
-	;
+	return tpie::tests(argc, argv)
+		.test(file_count_test,"basic");
 }

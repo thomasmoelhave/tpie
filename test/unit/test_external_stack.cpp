@@ -81,8 +81,8 @@ bool ami_stack_test(size_t size) {
     s.push(i) ;
     ++i;
     if ((size_t)s.size() != _ +1) {
-      std::cerr << "size failed" << std::endl;
-      return false;
+		tpie::log_error() << "size failed" << std::endl;
+		return false;
     }
   }
   size_t o=i-1;
@@ -91,14 +91,14 @@ bool ami_stack_test(size_t size) {
     const size_t * x = 0;
     s.pop(&x);
     if (*x != i) {
-      std::cerr << "Wrong element" << std::endl;
-      return false;
+		tpie::log_error() << "Wrong element" << std::endl;
+		return false;
     }
     ++i;
     
     if ((size_t)s.size() != size) {
-      std::cerr << "size failed 2" << std::endl;
-      return false;
+		tpie::log_error() << "size failed 2" << std::endl;
+		return false;
     }
   }
 
@@ -106,8 +106,8 @@ bool ami_stack_test(size_t size) {
     const size_t * x = 0;
     s.pop(&x);
     if (*x != o) {
-      std::cerr << "Wrong element 2" << std::endl;
-      return false;
+		tpie::log_error() << "Wrong element 2" << std::endl;
+		return false;
     }
     --o;
   }
@@ -116,7 +116,7 @@ bool ami_stack_test(size_t size) {
   return true;
 }
 
-#define ASSERT(cond, msg) if (!(cond)) { std::cerr << msg << std::endl; return false; }
+#define ASSERT(cond, msg) if (!(cond)) { tpie::log_error() << msg << std::endl; return false; }
 bool stack_test(size_t size) {
 	stack<size_t> s;
 	ASSERT(s.size() == 0, "Wrong initial size");
@@ -154,7 +154,7 @@ bool io_test() {
 	s.push(test_t());
 	const stream_size_type after = get_bytes_written();
 	const stream_size_type write = after-before;
-	std::cerr << "Before: " << before << ", after: " << after << " (difference " << write << ")" << std::endl;
+	tpie::log_info() << "Before: " << before << ", after: " << after << " (difference " << write << ")" << std::endl;
 
 	stream_size_type prev = after;
 	// cross the block boundary a number of times
@@ -168,36 +168,19 @@ bool io_test() {
 		//std::cerr << now << " (" << (now-prev) << ")" << std::endl;
 		prev = now;
 	}
-	std::cerr << "Crossing the block boundary " << repeats << " times, in total writing " << (prev-after) << " bytes" << std::endl;
+	tpie::log_info() << "Crossing the block boundary " << repeats << " times, in total writing " << (prev-after) << " bytes" << std::endl;
 	if ((prev-after) > 2*write) {
-		std::cerr << "Too inefficient!" << std::endl;
+		tpie::log_error() << "Too inefficient!" << std::endl;
 		return false;
 	}
 	return true;
 }
 
-
-bool perform_test(const std::string & test) {
-  if (test == "small-ami")
-	  return ami_stack_test(1024 * 1024 * 3);
-  else if (test == "named-ami")
-	  return ami_named_stack_test();
-  else if (test == "large-ami")
-	  return ami_stack_test(1024*1024*1024);
-  else if (test == "small")
-	  return stack_test(1024*1024*3);
-  else if (test == "named")
-	  return named_stack_test();
-  else if (test == "large")
-	  return stack_test(1024*1024*1024);
-  else if (test == "io")
-	  return io_test();
-  return false;
-}
-
 int main(int argc, char **argv) {
-  tpie_initer _;
-  if (argc != 2) return 1;
-  bool ok=perform_test(std::string(argv[1]));
-  return ok?EXIT_SUCCESS:EXIT_FAILURE;
+	return tpie::tests(argc, argv)
+		.test(ami_stack_test, "ami", "size", 1024*1024*3)
+		.test(ami_named_stack_test, "named-ami")
+		.test(stack_test, "new", "size", 1024*1024*3)
+		.test(named_stack_test, "named-new")
+		.test(io_test, "io");
 }

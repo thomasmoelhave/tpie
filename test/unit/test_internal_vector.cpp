@@ -51,15 +51,9 @@ public:
 };
 
 int main(int argc, char **argv) {
-	tpie_initer _;
-
-	if(argc != 2) return 1;
-	std::string test(argv[1]);
-	if (test == "basic")
-		return basic_test()?EXIT_SUCCESS:EXIT_FAILURE;
-	else if (test == "memory") 
-		return vector_memory_test()()?EXIT_SUCCESS:EXIT_FAILURE;
-	return EXIT_FAILURE;
+	return tpie::tests(argc, argv)
+		.test(basic_test, "basic")
+		.test(vector_memory_test(), "memory");
 }
 
 
