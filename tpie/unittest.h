@@ -25,6 +25,45 @@
 
 namespace tpie {
 
+class teststream_buf: public std::basic_streambuf<char, std::char_traits<char> > {
+private:
+	const static size_t line_size = 2048;
+	char m_line[line_size];
+public:
+	teststream_buf();
+	virtual int overflow(int c = traits_type::eof());
+	void stateAlign();
+	virtual int sync();
+};
+
+class teststream: public std::ostream  {
+private:
+	teststream_buf m_buff;
+	size_t failed;
+	size_t total;
+public:
+	teststream();
+	bool success();
+	friend void result_manip(teststream & s, bool success);
+};
+
+template <class TP>
+class testmanip {
+	void (*_f)(teststream&, TP);
+	TP _a;
+public:
+	inline testmanip(void (*f)(teststream&, TP), TP a) : _f(f), _a(a) {}
+	inline friend std::ostream& operator<<(std::ostream& o, const testmanip<TP>& m) {
+		(*m._f)(static_cast<teststream&>(o), m._a);
+		return o;
+	}
+};
+
+
+testmanip<bool> result(bool success);
+testmanip<bool> success();
+testmanip<bool> failure();
+
 class tests {
 public:
 	tests(int argc, char ** argv, memory_size_type memory_limit=50);
@@ -41,6 +80,9 @@ public:
 	
 	template <typename T, typename T1>
 	tests & test(T fct, const std::string & name, const std::string & p1_name, T1 p1_default);
+
+	template <typename T>
+	tests & multi_test(T fct, const std::string & name);
 
 	operator int();
 protected:
@@ -131,6 +173,17 @@ tests & tests::test(T fct, const std::string & name, const std::string & p1_name
 	if (name == test_name || test_name == "all") {
 		start_test(name);
 		end_test(fct(get_arg(p1_name, p1_default)));
+	}
+	return *this;
+}
+
+template <typename T>
+tests & tests::multi_test(T fct, const std::string & name) {
+	if (name == test_name || test_name == "all") {
+		start_test(name);
+		teststream ts;
+		fct(ts);
+		end_test(ts.success()); 
 	}
 	return *this;
 }
