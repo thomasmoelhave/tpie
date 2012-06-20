@@ -26,6 +26,43 @@
 
 namespace tpie {
 
+teststream_buf::teststream_buf() {
+	setp(m_line, m_line+line_size-1);
+}
+
+int teststream_buf::overflow(int) {return 0;}
+
+void teststream_buf::stateAlign() {
+	if (pptr() - m_line < 80) sputc(' ');
+	while (pptr() - m_line < 79) sputc('.');
+	if (pptr() - m_line < 80) sputc(' ');
+}
+
+int teststream_buf::sync() {
+	*pptr() = 0;
+	log_info() << m_line;
+	log_info() << std::flush;
+	setp(m_line, m_line+line_size-1);
+	return 0;
+}
+
+teststream::teststream(): std::ostream(&m_buff), failed(0), total(0) {};
+bool teststream::success() {return failed ==0;}
+
+void result_manip(teststream & s, bool success) {
+	s.m_buff.stateAlign();
+	if (success) s << "[ ok ]" << std::endl;
+	else {
+		s << "[fail]" << std::endl;
+		s.failed++;
+	}
+	s.total++;
+}
+
+testmanip<bool> result(bool success) {return testmanip<bool>(result_manip, success);}
+testmanip<bool> success() {return testmanip<bool>(result_manip, true);}
+testmanip<bool> failure() {return testmanip<bool>(result_manip, false);}
+
 tests::tests(int argc, char ** argv, memory_size_type memory_limit): memory_limit(memory_limit) {
 	exe_name = argv[0];
 	bool has_seen_test=false;
