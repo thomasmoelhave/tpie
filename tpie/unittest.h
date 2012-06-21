@@ -29,6 +29,7 @@ class teststream_buf: public std::basic_streambuf<char, std::char_traits<char> >
 private:
 	const static size_t line_size = 2048;
 	char m_line[line_size];
+	bool m_new_line;
 public:
 	teststream_buf();
 	virtual int overflow(int c = traits_type::eof());
