@@ -124,7 +124,7 @@ public:
 	static memory_size_type memory_usage(double blockFactor=1.0) {
 		return sizeof(queue<T>)
 			+ file<T>::memory_usage() - sizeof(file<T>)
-			+ 2*file<T>::stream::memory_usage(blockFactor) - 2*sizeof(file<T>::stream);
+			+ 2*file<T>::stream::memory_usage(blockFactor) - 2*sizeof(typename file<T>::stream);
 	}
 
 	////////////////////////////////////////////////////////////////////
