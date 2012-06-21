@@ -28,19 +28,35 @@ namespace tpie {
 
 teststream_buf::teststream_buf() {
 	setp(m_line, m_line+line_size-1);
+	m_new_line=true;
 }
 
 int teststream_buf::overflow(int) {return 0;}
 
 void teststream_buf::stateAlign() {
-	if (pptr() - m_line < 80) sputc(' ');
-	while (pptr() - m_line < 79) sputc('.');
-	if (pptr() - m_line < 80) sputc(' ');
+	if (pptr() - m_line < 72) sputc(' ');
+	while (pptr() - m_line < 71) sputc('.');
+	if (pptr() - m_line < 72) sputc(' ');
 }
 
 int teststream_buf::sync() {
 	*pptr() = 0;
-	log_info() << m_line;
+	size_t end=0;
+	while (m_line[end]) {
+		if (m_new_line) log_info() << "  ";
+		m_new_line=false;
+		size_t start=end;
+		while (m_line[end] && m_line[end] != '\n') ++end;
+		bool done=(m_line[end] != '\n');
+		m_line[end] = '\0';
+		log_info() << m_line+start;
+		if (!done) {
+			log_info() << "\n";
+			m_line[end] = '\n';
+			m_new_line=true;
+			++end;
+		}
+	}
 	log_info() << std::flush;
 	setp(m_line, m_line+line_size-1);
 	return 0;
