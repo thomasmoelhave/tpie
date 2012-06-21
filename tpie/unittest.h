@@ -85,6 +85,10 @@ public:
 	template <typename T>
 	tests & multi_test(T fct, const std::string & name);
 
+	template <typename T, typename T1>
+	tests & multi_test(T fct, const std::string & name, const std::string & p1_name, T1 p1_default);
+
+
 	operator int();
 protected:
 	virtual void build_information(std::ostream & o);
@@ -189,6 +193,16 @@ tests & tests::multi_test(T fct, const std::string & name) {
 	return *this;
 }
 
+template <typename T, typename T1>
+tests & tests::multi_test(T fct, const std::string & name, const std::string & p1_name, T1  p1_default) {
+	if (name == test_name || test_name == "all") {
+		start_test(name);
+		teststream ts;
+		fct(ts, get_arg(p1_name, p1_default));
+		end_test(ts.success()); 
+	}
+	return *this;
+}
 
 template <typename T>
 tests & tests::setup(T t) {
