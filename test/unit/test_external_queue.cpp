@@ -32,7 +32,8 @@ std::ostream & debug = std::cout;
 std::ostream debug(0); // bit bucket
 #endif
 
-bool queue_test(const size_t elements = 2*1024*1024/sizeof(uint64_t), const size_t maxpush = 64) {
+bool queue_test(const size_t elements = 2*1024*1024/sizeof(uint64_t)) {
+	const size_t maxpush = 64;
 	queue<uint64_t> q1;
 	std::queue<uint64_t> q2;
 
@@ -82,29 +83,12 @@ bool queue_test(const size_t elements = 2*1024*1024/sizeof(uint64_t), const size
 	return true;
 }
 
-void usage(char *prog) {
-	std::cout << "Usage: " << prog << " <basic|medium>" << std::endl;
+bool basic_test() {
+	return queue_test();
 }
 
 int main(int argc, char ** argv) {
-	tpie_initer _(32);
-
-	if (argc < 2) {
-		usage(argv[0]);
-		return 1;
-	}
-
-	std::string test(argv[1]);
-	bool res;
-
-	if (test == "basic") {
-		res = queue_test();
-	} else if (test == "medium") {
-		res = queue_test(32*1024*1024/sizeof(uint64_t));
-	} else {
-		usage(argv[0]);
-		return 1;
-	}
-
-	return res ? EXIT_SUCCESS : EXIT_FAILURE;
+	return tpie::tests(argc, argv, 32)
+		.test(basic_test, "basic")
+		.test(queue_test, "sized", "n", 32*1024*1024/sizeof(uint64_t));
 }
