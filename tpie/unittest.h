@@ -109,15 +109,73 @@ private:
 
 
 	struct test_log_target: public log_target {
-		std::stringstream output;
-		std::stringstream error;
-		
-		void log(log_level level, const char * message, size_t) {
-			output << message;
-			if (level == LOG_FATAL || level == LOG_ERROR || level == LOG_WARNING) {
-				error << message;
-			}
+		test_log_target(std::ostream & os = std::cout)
+			: os(os)
+			, threshold(LOG_FATAL)
+			, bufferThreshold(LOG_FATAL)
+			, m_onNameLine(false)
+			, m_onBOL(true)
+		{
 		}
+
+		~test_log_target() {
+			if (!m_onBOL) os << std::endl;
+		}
+
+		void set_test(const std::string & name) {
+			buffer.str("");
+			m_onNameLine = false;
+			m_name = name;
+			set_status("    ");
+		}
+
+		void set_status(const std::string & status) {
+			if (m_onNameLine) {
+				os << '\r';
+			} else if (!m_onBOL) {
+				os << '\n';
+			}
+
+			os << m_name << ' ';
+			const size_t lineLength = 79;
+			const size_t maxNameSize = lineLength
+				- 2 // spaces before and after dots
+				- 6; // status message: "[STAT]"
+			if (maxNameSize > m_name.size()) os << std::string(maxNameSize-m_name.size(), '.');
+			os << ' ';
+
+			os << '[' << status << ']' << std::flush;
+			m_onNameLine = true;
+			m_onBOL = false;
+		}
+
+		void log(log_level level, const char * buf, size_t n) {
+			if (!n) return;
+			if (level <= bufferThreshold) buffer << std::string(buf, n);
+			if (level > threshold) return;
+			if (m_onNameLine) os << '\n';
+			std::string msg(buf, n);
+			os << msg;
+			m_onNameLine = false;
+			m_onBOL = msg[msg.size()-1] == '\n' || msg[msg.size()-1] == '\r';
+		}
+
+		void set_threshold(log_level level) {
+			threshold = level;
+		}
+
+		void set_buffer_threshold(log_level level) {
+			bufferThreshold = level;
+		}
+
+		std::stringstream buffer;
+	private:
+		std::ostream & os;
+		log_level threshold;
+		log_level bufferThreshold;
+		bool m_onNameLine;
+		std::string m_name;
+		bool m_onBOL;
 	};
 	
 

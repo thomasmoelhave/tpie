@@ -80,12 +80,28 @@ testmanip<bool> result(bool success) {return testmanip<bool>(result_manip, succe
 testmanip<bool> success() {return testmanip<bool>(result_manip, true);}
 testmanip<bool> failure() {return testmanip<bool>(result_manip, false);}
 
+log_level parse_log_level(const std::string & arg) {
+	if (arg == "fatal") return LOG_FATAL;
+	if (arg == "error") return LOG_ERROR;
+	if (arg == "warning") return LOG_WARNING;
+	if (arg == "warn") return LOG_WARNING;
+	if (arg == "informational") return LOG_INFORMATIONAL;
+	if (arg == "info") return LOG_INFORMATIONAL;
+	if (arg == "app_debug") return LOG_APP_DEBUG;
+	if (arg == "debug") return LOG_DEBUG;
+	if (arg == "mem_debug") return LOG_MEM_DEBUG;
+	std::cerr << "Unknown log level \"" << arg << "\"";
+	return LOG_FATAL;
+}
+
 tests::tests(int argc, char ** argv, memory_size_type memory_limit): memory_limit(memory_limit) {
 	exe_name = argv[0];
 	bool has_seen_test=false;
 	bad=false;
 	usage=false;
 	version=false;
+	log_level log_threshold = LOG_FATAL;
+	log_level error_log_threshold = LOG_FATAL;
 	for (int i=1; i < argc; ++i) {
 		if (argv[i][0] != '-') {
 			if (has_seen_test) {
@@ -99,30 +115,46 @@ tests::tests(int argc, char ** argv, memory_size_type memory_limit): memory_limi
 			continue;
 		}
 
-		if (argv[i][1] == 'v') {
+		std::string arg = argv[i];
+
+		if (arg == "-v" || arg == "--verbose") {
+			log_threshold = LOG_INFORMATIONAL;
+			continue;
+		}
+
+		if (arg == "-d" || arg == "--debug") {
+			log_threshold = LOG_DEBUG;
+			continue;
+		}
+
+		if (arg == "-l" || arg == "--log-level") {
+			std::string nextarg = (i+1 < argc) ? argv[i+1] : "";
+			log_threshold = parse_log_level(nextarg);
+			++i;
+			continue;
+		}
+
+		if (arg == "-e" || arg == "--log-level-on-error") {
+			std::string nextarg = (i+1 < argc) ? argv[i+1] : "";
+			error_log_threshold = parse_log_level(nextarg);
+			++i;
+			continue;
+		}
+
+		if (arg == "-V" || arg == "--version") {
 			version=true;
 			break;
 		}
-		
-		if (argv[i][1] == 'h') {
+
+		if (arg == "-h" || arg == "--help") {
 			usage=true;
 			break;
 		}
 		
-		if (argv[i][1] != '-') {
+		if (arg[1] != '-') {
 			usage=true;
 			bad=true;
-			std::cerr << "Unknown switch " << argv[i] << std::endl;
-			break;
-		}
-
-		if (std::string("--help") == argv[i]) {
-			usage=true;
-			break;
-		}
-
-		if (std::string("--version") == argv[i]) {
-			version=true;
+			std::cerr << "Unknown switch " << arg << std::endl;
 			break;
 		}
 
@@ -138,6 +170,8 @@ tests::tests(int argc, char ** argv, memory_size_type memory_limit): memory_limi
 		usage=true;
 		bad=true;
 	}
+	log.set_threshold(log_threshold);
+	log.set_buffer_threshold(error_log_threshold);
 	tpie::tpie_init(tpie::ALL & ~tpie::DEFAULT_LOGGING);
 	get_log().add_target(&log);
 	tpie::get_memory_manager().set_limit(get_arg("memory", memory_limit)*1024*1024);
@@ -149,36 +183,22 @@ tests::~tests() {
 }
 
 void tests::start_test(const std::string & name) {
-	log.output.str("");
-	log.error.str("");
+	log.set_test(name);
 	for (size_t i=0; i < setups.size(); ++i)
 		(*setups[i])();
-
-	current_name=name;
-	std::cout << name << ' ';
-	for (size_t i=name.size()+1; i < 79-6; ++i)
-		std::cout << '.';
-	std::cout << " [    ]\r";
-	std::cout << std::flush;
 }
 
 void tests::end_test(bool result) {
-	//Erase last line
-	std::cout << '\r';
-	for (size_t i=0; i < 79; ++i)
-		std::cout << ' ';
-	std::cout << '\r';
-	
-	std::cout << log.output.str();	
-	
-	//Print status line
-	std::cout << current_name << ' ';
-	for (size_t i= current_name.size()+1; i < 79-6; ++i)
-		std::cout << '.';
+	result = false;
 	if (result)
-		std::cout << " [ ok ]" << std::endl;
+		log.set_status(" ok ");
 	else
-		std::cout << " [fail]" << std::endl;
+		log.set_status("fail");
+
+	if (!result) {
+		std::string bufferedlog = log.buffer.str();
+		std::cerr << bufferedlog << std::flush;
+	}
 
 	for (size_t i=0; i < finishs.size(); ++i)
 		(*finishs[i])();
@@ -198,9 +218,13 @@ void tests::show_usage(std::ostream & o) {
 		o << "  " << m_tests[i] << std::endl;
 	}
 	o << "Run unit test" << std::endl;
-	o << "  -h, --help              Show this help message" << std::endl;
-	o << "  -v, --version           Show version information" << std::endl;
-	o << "      --memory SIZE       Set memory limit (default: "
+	o << "  -h, --help                         Show this help message" << std::endl;
+	o << "  -l, --log-level LEVEL              Output log to standard output" << std::endl;
+	o << "  -e, --log-level-on-error LEVEL     Output log when a test fails" << std::endl;
+	o << "  -v, --verbose                      Alias of --log-level info" << std::endl;
+	o << "  -d, --debug                        Alias of --log-level debug" << std::endl;
+	o << "  -V, --version                      Show version information" << std::endl;
+	o << "      --memory SIZE                  Set memory limit (default: "
 	  << memory_limit << ")" << std::endl;
 }
 
