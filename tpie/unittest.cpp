@@ -88,7 +88,7 @@ tests::tests(int argc, char ** argv, memory_size_type memory_limit): memory_limi
 	for (int i=1; i < argc; ++i) {
 		if (argv[i][0] != '-') {
 			if (has_seen_test) {
-				std::cerr << "More then one test was supplied" << std::endl;
+				std::cerr << "More than one test was supplied" << std::endl;
 				usage=true;
 				bad=true;
 				break;
@@ -111,7 +111,7 @@ tests::tests(int argc, char ** argv, memory_size_type memory_limit): memory_limi
 		if (argv[i][1] != '-') {
 			usage=true;
 			bad=true;
-			std::cerr << "Unknow switch " << argv[i] << std::endl;
+			std::cerr << "Unknown switch " << argv[i] << std::endl;
 			break;
 		}
 
@@ -162,7 +162,7 @@ void tests::start_test(const std::string & name) {
 }
 
 void tests::end_test(bool result) {
-	//Erace last line
+	//Erase last line
 	std::cout << '\r';
 	for (size_t i=0; i < 79; ++i)
 		std::cout << ' ';
@@ -198,7 +198,7 @@ void tests::show_usage(std::ostream & o) {
 	o << "Run unit test" << std::endl;
 	o << "  -h, --help              Show this help message" << std::endl;
 	o << "  -v, --version           Show version information" << std::endl;
-	o << "      --memory SIZE       Change the maximal amout of memory allowed to be used (default: " 
+	o << "      --memory SIZE       Set memory limit (default: "
 	  << memory_limit << ")" << std::endl;
 }
 
