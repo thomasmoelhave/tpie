@@ -31,7 +31,6 @@
 	#include <parallel/algorithm>
 #endif
 
-static bool progress;
 static bool stdsort;
 
 using namespace tpie;
@@ -154,7 +153,7 @@ bool bad_case() {
 	return true;
 }
 
-void stress_test() {
+bool stress_test() {
 	boost::rand48 prng(42);
 	for (size_t size_base = 1024;; size_base *= 2) {
 		for (size_t size = size_base; size < size_base * 2; size += size_base / 4) {
@@ -180,59 +179,27 @@ void stress_test() {
 				boost::posix_time::ptime end=boost::posix_time::microsec_clock::local_time();
 				tpie::log_info() << " ours: " << (t2 = end-start) << std::endl;
 			}
-			if( t1*3 < t2  ) {tpie::log_error() << "Too slow" << std::endl; return;}
+			if( t1*3 < t2  ) {tpie::log_error() << "Too slow" << std::endl; return false;}
 		}
 	}
+	return false;
 }
 
-
-#define USAGE ("Usage: [--no-progress] [--no-stdsort] <basic1|basic2|medium|large|verylarge|equal_elements|bad_case|stress_test>")
-template <bool progress>
-int run(const std::string & test) {
-	typename test_pi<progress>::type pi;
-	if (test == "basic1") {
-		return basic1<progress, 2>(1024*1024, &pi) ? EXIT_SUCCESS : EXIT_FAILURE;
-	} else if (test == "basic2") {
-		return basic1<progress, 8>(8*8, &pi) ? EXIT_SUCCESS : EXIT_FAILURE;
-	} else if (test == "medium") {
-		return basic1<progress, 1024*1024>(1024*1024*24, &pi) ? EXIT_SUCCESS : EXIT_FAILURE;
-	} else if (test == "large") {
-		return basic1<progress, 1024*1024>(1024*1024*256, &pi) ? EXIT_SUCCESS : EXIT_FAILURE;
-	} else if (test == "verylarge") {
-		return basic1<progress, 1024*1024>(1024*1024*768, &pi) ? EXIT_SUCCESS : EXIT_FAILURE;
-	} else if (test == "equal_elements") {
-		exit(equal_elements()?EXIT_SUCCESS:EXIT_FAILURE);
-	} else if (test == "bad_case") {
-		return bad_case() ? EXIT_SUCCESS : EXIT_FAILURE;
-	} else if (test == "stress_test") {
-		stress_test();
-		return EXIT_FAILURE;
+template <size_t stdsort_limit>
+struct sort_tester {
+	bool operator()(size_t n) {
+		progress_indicator_arrow pi("Sort", n, tpie::log_info());
+		return basic1<true, stdsort_limit>(n, &pi);
 	}
-
-	tpie::log_error() << USAGE << std::endl;
-	return EXIT_FAILURE;
-}
+};
 
 int main(int argc, char **argv) {
-	tpie_initer _;
-	progress = stdsort = true;
-	--argc; ++argv;
-	std::string test;
-	while (argc) {
-		std::string arg = argv[0];
-		if (arg == "--no-progress") {
-			progress = false;
-		} else if (arg == "--no-stdsort") {
-			stdsort = false;
-		} else {
-			test = arg;
-			break;
-		}
-		--argc; ++argv;
-	}
-	if (!argc) {
-		tpie::log_error() << USAGE << std::endl;
-		return EXIT_FAILURE;
-	}
-	return progress ? run<true>(test) : run<false>(test);
+	stdsort = true;
+	return tpie::tests(argc, argv)
+		.test(sort_tester<2>(), "basic1", "n", 1024*1024)
+		.test(sort_tester<8>(), "basic2", "n", 8*8)
+		.test(sort_tester<1024*1024>(), "general", "n", 24*1024*1024)
+		.test(equal_elements, "equal_elements")
+		.test(bad_case, "bad_case")
+		.test(stress_test, "stress_test");
 }
