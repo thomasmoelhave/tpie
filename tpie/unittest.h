@@ -177,7 +177,7 @@ tests & tests::test(T fct, const std::string & name) {
 
 template <typename T, typename T1>
 tests & tests::test(T fct, const std::string & name, const std::string & p1_name, T1 p1_default) {
-	m_tests.push_back(name);
+	m_tests.push_back(name+" ["+p1_name+" = "+boost::lexical_cast<std::string>(p1_default)+"]");
 	if (name == test_name || test_name == "all") {
 		start_test(name);
 		end_test(fct(get_arg(p1_name, p1_default)));
@@ -199,7 +199,7 @@ tests & tests::multi_test(T fct, const std::string & name) {
 
 template <typename T, typename T1>
 tests & tests::multi_test(T fct, const std::string & name, const std::string & p1_name, T1  p1_default) {
-	m_tests.push_back(name);
+	m_tests.push_back(name+" ["+p1_name+" = "+boost::lexical_cast<std::string>(p1_default)+"]");
 	if (name == test_name || test_name == "all") {
 		start_test(name);
 		teststream ts;
