@@ -138,14 +138,14 @@ tests::tests(int argc, char ** argv, memory_size_type memory_limit): memory_limi
 		usage=true;
 		bad=true;
 	}
-	tpie::tpie_init(tpie::ALL -tpie::DEFAULT_LOGGING);
+	tpie::tpie_init(tpie::ALL & ~tpie::DEFAULT_LOGGING);
 	get_log().add_target(&log);
 	tpie::get_memory_manager().set_limit(get_arg("memory", memory_limit)*1024*1024);
 }
 
 tests::~tests() {
 	get_log().remove_target(&log);
-	tpie::tpie_finish();
+	tpie::tpie_finish(tpie::ALL & ~tpie::DEFAULT_LOGGING);
 }
 
 void tests::start_test(const std::string & name) {
