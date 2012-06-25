@@ -46,7 +46,7 @@ namespace tpie {
 	/// \param  range  The number of times we call step
 	///////////////////////////////////////////////////////////////////////////
 	progress_indicator_arrow(const char * title, stream_size_type range, std::ostream & os = std::cout) :
-	    progress_indicator_terminal(title, range) , m_indicatorLength(0), m_progress(0), m_os(os) {
+	    progress_indicator_terminal(title, range, os) , m_indicatorLength(0), m_progress(0), m_os(os) {
 	    m_indicatorLength = 110;
 	}
 
