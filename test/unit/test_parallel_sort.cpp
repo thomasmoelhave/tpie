@@ -39,7 +39,7 @@ using namespace tpie;
 template <bool Progress>
 struct test_pi {
 	struct type : public progress_indicator_arrow {
-		type() : progress_indicator_arrow("Sorting", 1) {
+		type() : progress_indicator_arrow("Sorting", 1, tpie::log_info()) {
 		}
 	};
 };
@@ -83,7 +83,7 @@ bool basic1(const size_t elements, typename progress_types<Progress>::base * pi)
 		parallel_sort_impl<std::vector<int>::iterator, std::less<int>, Progress, min_size > s(&par_p);
 		s(v2.begin(), v2.end());
 		boost::posix_time::ptime end=boost::posix_time::microsec_clock::local_time();
-		std::cout << end-start << " " << std::endl;
+		tpie::log_info() << end-start << " " << std::endl;
 	}
 
 	std_p.init(1);
@@ -95,14 +95,14 @@ bool basic1(const size_t elements, typename progress_types<Progress>::base * pi)
 		std::sort(v1.begin(), v1.end());
 		#endif
 		boost::posix_time::ptime end=boost::posix_time::microsec_clock::local_time();
-		std::cout << end-start << " " << std::endl;
+		tpie::log_info() << end-start << " " << std::endl;
 	}
 	std_p.done();
 
 	fp.done();
 
 	if (stdsort && v1 != v2) {
-		std::cerr << "std::sort and parallel_sort disagree" << std::endl;
+		tpie::log_error() << "std::sort and parallel_sort disagree" << std::endl;
 		return false;
 	}
 	return true;
@@ -126,9 +126,9 @@ bool equal_elements() {
 	parallel_sort_impl<std::vector<int>::iterator, std::less<int>, false> s(0);
 	s(v2.begin(), v2.end());
 	boost::posix_time::ptime t3=boost::posix_time::microsec_clock::local_time();
-	if(v1 != v2) {std::cerr << "Failed" << std::endl; return false;}
-	std::cout << "std: " << (t2-t1) << " ours: " << t3-t2 << std::endl;
-	if( (t2-t1)*3 < (t3-t2) ) {std::cerr << "Too slow" << std::endl; return false;}
+	if(v1 != v2) {tpie::log_error() << "Failed" << std::endl; return false;}
+	tpie::log_info() << "std: " << (t2-t1) << " ours: " << t3-t2 << std::endl;
+	if( (t2-t1)*3 < (t3-t2) ) {tpie::log_error() << "Too slow" << std::endl; return false;}
 	return true;
 }
 
@@ -148,9 +148,9 @@ bool bad_case() {
 	parallel_sort_impl<std::vector<int>::iterator, std::less<int>, false, 42> s(0);
 	s(v2.begin(), v2.end());
 	boost::posix_time::ptime t3=boost::posix_time::microsec_clock::local_time();
-	if(v1 != v2) {std::cerr << "Failed" << std::endl; return false;}
-	std::cout << "std: " << (t2-t1) << " ours: " << t3-t2 << std::endl;
-	if( (t2-t1)*3 < (t3-t2) ) {std::cerr << "Too slow" << std::endl; return false;}
+	if(v1 != v2) {tpie::log_error() << "Failed" << std::endl; return false;}
+	tpie::log_info() << "std: " << (t2-t1) << " ours: " << t3-t2 << std::endl;
+	if( (t2-t1)*3 < (t3-t2) ) {tpie::log_error() << "Too slow" << std::endl; return false;}
 	return true;
 }
 
@@ -163,7 +163,7 @@ void stress_test() {
 			for (size_t i=0; i < size; ++i) {
 				v1[i] = v2[i] = prng();
 			}
-			std::cout << size << " " << std::flush;
+			tpie::log_info() << size << " " << std::flush;
 
 			boost::posix_time::time_duration t1;
 			boost::posix_time::time_duration t2;
@@ -171,16 +171,16 @@ void stress_test() {
 				boost::posix_time::ptime start=boost::posix_time::microsec_clock::local_time();
 				std::sort(v1.begin(), v1.end());
 				boost::posix_time::ptime end=boost::posix_time::microsec_clock::local_time();
-				std::cout << "std: " << (t1 = end-start) << std::flush;
+				tpie::log_info() << "std: " << (t1 = end-start) << std::flush;
 			}
 			{
 				boost::posix_time::ptime start=boost::posix_time::microsec_clock::local_time();
 				parallel_sort_impl<std::vector<size_t>::iterator, std::less<size_t>, false, 524288/8 > s(0);
 				s(v2.begin(), v2.end());
 				boost::posix_time::ptime end=boost::posix_time::microsec_clock::local_time();
-				std::cout << " ours: " << (t2 = end-start) << std::endl;
+				tpie::log_info() << " ours: " << (t2 = end-start) << std::endl;
 			}
-			if( t1*3 < t2  ) {std::cerr << "Too slow" << std::endl; return;}
+			if( t1*3 < t2  ) {tpie::log_error() << "Too slow" << std::endl; return;}
 		}
 	}
 }
@@ -209,7 +209,7 @@ int run(const std::string & test) {
 		return EXIT_FAILURE;
 	}
 
-	std::cerr << USAGE << std::endl;
+	tpie::log_error() << USAGE << std::endl;
 	return EXIT_FAILURE;
 }
 
@@ -231,7 +231,7 @@ int main(int argc, char **argv) {
 		--argc; ++argv;
 	}
 	if (!argc) {
-		std::cerr << USAGE << std::endl;
+		tpie::log_error() << USAGE << std::endl;
 		return EXIT_FAILURE;
 	}
 	return progress ? run<true>(test) : run<false>(test);

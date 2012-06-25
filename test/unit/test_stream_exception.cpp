@@ -43,10 +43,10 @@ static bool test() {
 		got_exception = true;
 	} catch (const std::runtime_error & e) {
 		got_other = true;
-		std::cout << "Got an unexpected " << typeid(e).name() << ": " << e.what() << std::endl;
+		log_error() << "Got an unexpected " << typeid(e).name() << ": " << e.what() << std::endl;
 	}
 	if (!got_exception)
-		std::cout << "Did not get a tpie::end_of_stream_exception" << std::endl;
+		log_error() << "Did not get a tpie::end_of_stream_exception" << std::endl;
 	fs.close();
 	boost::filesystem::remove(TEMPFILE);
 	return got_exception && !got_other;

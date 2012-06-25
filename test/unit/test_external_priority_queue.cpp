@@ -40,7 +40,7 @@ bool basic_test() {
 bool medium_instance() {
 	TPIE_OS_OFFSET iterations = 10000;
     get_memory_manager().set_limit(32*1024*1024);
-	progress_indicator_arrow progress("Running test",iterations-1100);
+	progress_indicator_arrow progress("Running test",iterations-1100, tpie::log_info());
     for(TPIE_OS_OFFSET it = 1100; it < iterations; it++)  {
 		progress.step();
 		ami::priority_queue<int, std::greater<int> > pq(0.75);
@@ -106,7 +106,7 @@ bool large_instance(){
 
 	double cycle = crash_test ? 20000000000.0 : 50000000.0;
 	const TPIE_OS_OFFSET iterations=500000000;
-	progress_indicator_arrow progress("Running test",iterations);
+	progress_indicator_arrow progress("Running test",iterations, tpie::log_info());
 	for (TPIE_OS_OFFSET j=0; j<iterations; j++) {
 		progress.step();
 		double i = static_cast<double>(j);
@@ -160,7 +160,7 @@ public:
 	static const size_t ITEMS = 16*1024*1024;
 
 	virtual void use() {
-		progress_indicator_arrow progress("Priority queue test",ITEMS*2);
+		progress_indicator_arrow progress("Priority queue test",ITEMS*2, tpie::log_info());
 		for (size_t i = 0; i < ITEMS; ++i) {
 			progress.step();
 			m_pq->push(ITEM(i));
@@ -197,7 +197,7 @@ bool overflow_test() {
 	const uint64_t every = 1<<16;
 	const uint64_t steps = limit/every;
 
-	progress_indicator_arrow pi("PQ test", 2*steps);
+	progress_indicator_arrow pi("PQ test", 2*steps, tpie::log_info());
 	pi.init(2*steps);
 	uint64_t progress_tracker = every;
 

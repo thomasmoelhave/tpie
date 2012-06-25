@@ -147,29 +147,29 @@ bool sort_test(size_t size, Progress & pi) {
 	primeit begin = primeit::begin(size);
 	primeit end = primeit::end(size);
 	size_t s = static_cast<size_t>(end-begin);
-	std::cout << "Writing " << s << " elements" << std::endl;
+	tpie::log_info() << "Writing " << s << " elements" << std::endl;
 	std::vector<char> seen(s);
 	for (primeit i = begin; i != end; ++i) {
 		seen[*i]++;
 	}
 	for (size_t i = 0; i < s; ++i) {
-		if (seen[i] != 1) std::cout << i << " = " << (int) seen[i] << std::endl;
+		if (seen[i] != 1) tpie::log_info() << i << " = " << (int) seen[i] << std::endl;
 	}
 
 	mystream.write(begin, end);
 	sort(mystream, pi);
 
 	mystream.seek(0);
-	std::cout << "Verifying " << s << " elements" << std::endl;
+	tpie::log_info() << "Verifying " << s << " elements" << std::endl;
 	for(size_t i=0; i < s; ++i) {
 		size_t x = mystream.read();
 		if (x != i) {
-			std::cout << "Element " << i << " is wrong; expected " << i << " but got " << x << std::endl;
+			tpie::log_info() << "Element " << i << " is wrong; expected " << i << " but got " << x << std::endl;
 			return false;
 		}
 	}
 	if (mystream.can_read()) {
-		std::cout << "Too many elements in stream" << std::endl;
+		tpie::log_info() << "Too many elements in stream" << std::endl;
 		return false;
 	}
 	return true;
@@ -184,10 +184,10 @@ bool perform_test(const std::string & test) {
 		//const int mem = (17*1024+52)*1024+760;
 		const size_t size = 22*1024*1024;
 		tpie::get_memory_manager().set_limit(size);
-		progress_indicator_arrow pi("Sort", size);
+		progress_indicator_arrow pi("Sort", size, tpie::log_info());
 		return sort_test(size, pi);
 	} else if (test == "large") {
-		progress_indicator_arrow pi("Sort", 1);
+		progress_indicator_arrow pi("Sort", 1, tpie::log_info());
 		return sort_test(1024*1024*128, pi);
 	} else if (test == "amismall") {
 		return ami_sort_test(1024 * 1024 * 8);
@@ -198,7 +198,7 @@ bool perform_test(const std::string & test) {
 	size_t size;
 	ss >> size;
 	if (test == "0" || size > 0) {
-		progress_indicator_arrow pi("Sort", size);
+		progress_indicator_arrow pi("Sort", size, tpie::log_info());
 		if (size < 16) {
 			return small_sort_test(size, pi);
 		} else {

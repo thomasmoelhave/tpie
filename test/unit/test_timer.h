@@ -41,7 +41,7 @@ public:
 		h = std::max(h, time);
 	}
 	void output() {
-		std::cout << name <<": "  
+		tpie::log_info() << name <<": "  
 			"Tests: " << tests << "; " << 
 			"avg: " << avg() << "s; " << 
 			"sd: " << sd() << "s^2; " << 

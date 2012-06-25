@@ -191,12 +191,12 @@ bool iterator_bool_test() {
 		bit_array::const_iterator i=hat.begin();
 		for (int j=0; j < 52; ++j) {
 			if (i == hat.end()) {
-				std::cerr << "end too soon" << std::endl;
+				tpie::log_error() << "end too soon" << std::endl;
 				return false;
 			}
 			if (*i != static_cast<bool>(((j * 104729)>>7) % 2)) {
-				std::cerr << j << std::endl;
-				std::cerr << "Wrong value " << *i << " " << (((j * 104729)>>7) % 2) << std::endl;
+				tpie::log_error() << j << std::endl;
+				tpie::log_error() << "Wrong value " << *i << " " << (((j * 104729)>>7) % 2) << std::endl;
 				return false;
 			}
 			++i;

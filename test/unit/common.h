@@ -85,14 +85,14 @@ public:
 		use();
 		mm.sample();
 		if (mm.usage() > g) {
-			std::cerr << "Claimed to use " << g << " but used " << mm.usage() << std::endl;
+			tpie::log_error() << "Claimed to use " << g << " but used " << mm.usage() << std::endl;
 			res=false;
 		}
 		free();
 		mm.empty();
 		mm.sample();
 		if (mm.usage() > 0) {
-			std::cerr << "Leaked memory " << mm.usage() << std::endl;
+			tpie::log_error() << "Leaked memory " << mm.usage() << std::endl;
 			res=false;
 		}
 		return res;

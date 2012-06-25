@@ -65,12 +65,12 @@ bool queue_test(const size_t elements = 2*1024*1024/sizeof(uint64_t)) {
 
 			// our queue implementation also returns an element in pop()
 			if (got != q1.pop()) {
-				std::cout << "pop() doesn't agree with front() on element " << i << std::endl;
+				tpie::log_info() << "pop() doesn't agree with front() on element " << i << std::endl;
 				return false;
 			}
 
 			if (el != got) {
-				std::cout << "front() returned incorrect element " << i << std::endl;
+				tpie::log_info() << "front() returned incorrect element " << i << std::endl;
 				return false;
 			}
 
