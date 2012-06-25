@@ -68,6 +68,11 @@ bool testSer(bool safe) {
 	return true;
 }
 
-int main() {
-	return testSer(true)?EXIT_SUCCESS:EXIT_FAILURE;
+bool safe_test() { return testSer(true); }
+bool unsafe_test() { return testSer(false); }
+
+int main(int argc, char ** argv) {
+	return tpie::tests(argc, argv)
+		.test(safe_test, "safe")
+		.test(unsafe_test, "unsafe");
 }
