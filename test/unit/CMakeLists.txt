@@ -22,7 +22,7 @@ add_unittest(array basic iterators segmented memory auto_ptr memory_segmented bi
 add_unittest(disjoint_set basic memory)
 add_unittest(external_priority_queue basic)
 add_unittest(external_queue basic sized)
-add_unittest(external_sort amismall small 0 1 2 3 4 5)
+add_unittest(external_sort amismall small tiny)
 add_unittest(external_stack new named-new ami named-ami io)
 add_unittest(file_count basic)
 add_unittest(filestream memory)

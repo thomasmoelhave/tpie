@@ -116,26 +116,35 @@ bool ami_sort_test(size_t size) {
 	return true;
 }
 
-template <typename Progress>
-bool small_sort_test(size_t size, Progress & pi) {
-	temp_file tmp;
-	file_stream<size_t> mystream;
-	mystream.open(tmp.path());
+void tiny_test(teststream & ts, size_t max) {
+	for (size_t size = 0; size <= max; ++size) {
+		ts << size;
+		progress_indicator_null pi(1);
+		temp_file tmp;
+		file_stream<size_t> mystream;
+		mystream.open(tmp.path());
 
-	std::vector<size_t> write(size);
-	for (size_t i = 0; i < size; ++i) {
-		write[i] = size-i;
+		std::vector<size_t> write(size);
+		for (size_t i = 0; i < size; ++i) {
+			write[i] = size-i;
+		}
+
+		mystream.write(write.begin(), write.end());
+		sort(mystream, pi);
+
+		mystream.seek(0);
+		bool bad = false;
+		for(size_t i=0; i < size; ++i) {
+			size_t x = mystream.read();
+			if (x != i+1) {
+				ts << "Read failed" << failure();
+				bad = true;
+				break;
+			}
+		}
+		if (bad) continue;
+		ts << result(!mystream.can_read());
 	}
-
-	mystream.write(write.begin(), write.end());
-	sort(mystream, pi);
-
-	mystream.seek(0);
-	for(size_t i=0; i < size; ++i) {
-		size_t x = mystream.read();
-		if (x != i+1) return false;
-	}
-	return !mystream.can_read();
 }
 
 template<typename Progress>
@@ -175,43 +184,29 @@ bool sort_test(size_t size, Progress & pi) {
 	return true;
 }
 
-
-bool perform_test(const std::string & test) {
-	if (test == "small") {
-		progress_indicator_null pi(1);
-		return sort_test(1024 * 1024 * 8, pi);
-	} else if (test == "tall") {
-		//const int mem = (17*1024+52)*1024+760;
-		const size_t size = 22*1024*1024;
-		tpie::get_memory_manager().set_limit(size);
-		progress_indicator_arrow pi("Sort", size, tpie::log_info());
-		return sort_test(size, pi);
-	} else if (test == "large") {
-		progress_indicator_arrow pi("Sort", 1, tpie::log_info());
-		return sort_test(1024*1024*128, pi);
-	} else if (test == "amismall") {
-		return ami_sort_test(1024 * 1024 * 8);
-	} else if (test == "amilarge") {
-		return ami_sort_test(1024*1024*128);
-	}
-	std::stringstream ss(test);
-	size_t size;
-	ss >> size;
-	if (test == "0" || size > 0) {
-		progress_indicator_arrow pi("Sort", size, tpie::log_info());
-		if (size < 16) {
-			return small_sort_test(size, pi);
-		} else {
-			return sort_test(size, pi);
-		}
-	}
-	return false;
+bool small_test(size_t n) {
+	progress_indicator_null pi(1);
+	return sort_test(n, pi);
 }
 
+bool large_test(size_t n) {
+	progress_indicator_arrow pi("Sort", n, tpie::log_info());
+	return sort_test(n, pi);
+}
+
+bool tall_test(size_t n) {
+	const size_t mem = 22*1024*1024;
+	tpie::get_memory_manager().set_limit(mem);
+	progress_indicator_arrow pi("Sort", n, tpie::log_info());
+	return sort_test(n, pi);
+}
 
 int main(int argc, char **argv) {
-	tpie_initer _;
-	if (argc != 2) return 1;
-	bool ok=perform_test(std::string(argv[1]));
-	return ok?EXIT_SUCCESS:EXIT_FAILURE;
+	return tpie::tests(argc, argv)
+		.multi_test(tiny_test, "tiny", "n", 5)
+		.test(small_test, "small", "n", 8*1024*1024)
+		.test(tall_test, "tall", "n", 22*1024*1024)
+		.test(large_test, "large", "n", 128*1024*1024)
+		.test(ami_sort_test, "amismall", "n", 8*1024*1024)
+		.test(ami_sort_test, "amilarge", "n", 128*1024*1024);
 }
