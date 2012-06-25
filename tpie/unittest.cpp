@@ -23,6 +23,7 @@
 #include <tpie/memory.h>
 #include <tpie/tpie_log.h>
 #include <sstream>
+#include <tpie/sysinfo.h>
 
 namespace tpie {
 
@@ -186,7 +187,8 @@ void tests::end_test(bool result) {
 }
 
 void tests::build_information(std::ostream & o) {
-	o << "TODO sysinfo" << std::endl;
+	sysinfo si;
+	o << si << std::flush;
 }	
 
 void tests::show_usage(std::ostream & o) {
