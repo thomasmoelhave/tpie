@@ -28,6 +28,7 @@
 #include <iomanip>
 #include <boost/asio/ip/host_name.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <tpie/file.h> // for block size
 
 namespace tpie {
 
@@ -123,11 +124,7 @@ struct sysinfo {
 	}
 
 	static inline memory_size_type blocksize_bytes() {
-#ifdef WIN32
-		return STREAM_UFS_BLOCK_FACTOR*64*1024;
-#else
-		return STREAM_UFS_BLOCK_FACTOR*4*1024;
-#endif
+		return file<int>::block_size(1.0);
 	}
 
 private:
@@ -150,12 +147,8 @@ private:
 
 	static inline std::string calc_blocksize() {
 		std::stringstream ss;
-#ifdef WIN32
-		ss << STREAM_UFS_BLOCK_FACTOR*64;
-#else
-		ss << STREAM_UFS_BLOCK_FACTOR*4;
-#endif
-		ss << " KiB";
+		ss << blocksize_bytes() / 1024
+		   << " KiB";
 		return ss.str();
 	}
 };
