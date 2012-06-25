@@ -191,6 +191,10 @@ void tests::build_information(std::ostream & o) {
 
 void tests::show_usage(std::ostream & o) {
 	o << "Usage: " << exe_name << " [TEST_NAME] [OPTION]..." << std::endl;
+	o << "Available tests:" << std::endl;
+	for (size_t i = 0; i < m_tests.size(); ++i) {
+		o << "  " << m_tests[i] << std::endl;
+	}
 	o << "Run unit test" << std::endl;
 	o << "  -h, --help              Show this help message" << std::endl;
 	o << "  -v, --version           Show version information" << std::endl;

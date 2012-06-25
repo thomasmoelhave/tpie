@@ -136,6 +136,7 @@ private:
 	std::vector<func *> setups;
 	std::vector<func *> finishs;
 	test_log_target log;
+	std::vector<std::string> m_tests;
 };
 
 template <typename T>
@@ -166,6 +167,7 @@ T tests::get_arg(const std::string & name, T def) const {
 
 template <typename T>
 tests & tests::test(T fct, const std::string & name) {
+	m_tests.push_back(name);
 	if (name == test_name || test_name == "all") {
 		start_test(name);
 		end_test( fct());
@@ -175,6 +177,7 @@ tests & tests::test(T fct, const std::string & name) {
 
 template <typename T, typename T1>
 tests & tests::test(T fct, const std::string & name, const std::string & p1_name, T1 p1_default) {
+	m_tests.push_back(name);
 	if (name == test_name || test_name == "all") {
 		start_test(name);
 		end_test(fct(get_arg(p1_name, p1_default)));
@@ -184,6 +187,7 @@ tests & tests::test(T fct, const std::string & name, const std::string & p1_name
 
 template <typename T>
 tests & tests::multi_test(T fct, const std::string & name) {
+	m_tests.push_back(name);
 	if (name == test_name || test_name == "all") {
 		start_test(name);
 		teststream ts;
@@ -195,6 +199,7 @@ tests & tests::multi_test(T fct, const std::string & name) {
 
 template <typename T, typename T1>
 tests & tests::multi_test(T fct, const std::string & name, const std::string & p1_name, T1  p1_default) {
+	m_tests.push_back(name);
 	if (name == test_name || test_name == "all") {
 		start_test(name);
 		teststream ts;
