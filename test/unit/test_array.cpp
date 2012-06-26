@@ -259,14 +259,14 @@ bool frontback() {
 	for (size_t i = 0; i < sz; ++i) {
 		a[i] = base+i;
 	}
-	if (a.front() != base)
+	if (a.front() != static_cast<int>(base))
 		return false;
-	if (a.back() != base+sz-1)
+	if (a.back() != static_cast<int>(base+sz-1))
 		return false;
 	const array<int> & b = a;
-	if (b.front() != base)
+	if (b.front() != static_cast<int>(base))
 		return false;
-	if (b.back() != base+sz-1)
+	if (b.back() != static_cast<int>(base+sz-1))
 		return false;
 	return true;
 }
