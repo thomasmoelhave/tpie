@@ -168,6 +168,13 @@ bool iterator_test() {
 		if (i != hat.end()) return false;
 	}
 	{
+		for (int j=0; j < 52; ++j) {
+			array<int>::iterator i=hat.find(j/2)+(j-j/2);
+			if (i == hat.end()) return false;
+			if (*i != ((j * 104729) % 2251)) return false;
+		}
+	}
+	{
 		array<int>::reverse_iterator i=hat.rbegin();
 		for (int j=51; j >= 0; --j) {
 			if (i == hat.rend()) return false;
