@@ -185,6 +185,12 @@ bool iterator_test() {
 	}
 
 	std::sort(hat.begin(), hat.end());
+
+	// verify order
+	// find two elements in the reverse order where one is less than the other
+	array<int>::reverse_iterator i=std::adjacent_find(hat.rbegin(), hat.rend(), std::less<int>());
+	if (i != hat.rend()) // if found
+		return false;
 	return true;
 }
 
