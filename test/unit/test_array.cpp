@@ -252,6 +252,25 @@ bool arrayarray() {
 	return true;
 }
 
+bool frontback() {
+	size_t sz = 9001;
+	size_t base = 42;
+	array<int> a(sz);
+	for (size_t i = 0; i < sz; ++i) {
+		a[i] = base+i;
+	}
+	if (a.front() != base)
+		return false;
+	if (a.back() != base+sz-1)
+		return false;
+	const array<int> & b = a;
+	if (b.front() != base)
+		return false;
+	if (b.back() != base+sz-1)
+		return false;
+	return true;
+}
+
 int main(int argc, char **argv) {
 	tpie_initer _(128);
 	BOOST_CONCEPT_ASSERT((linear_memory_structure_concept<array<int> >));
@@ -287,5 +306,7 @@ int main(int argc, char **argv) {
 		return copyempty()?EXIT_SUCCESS:EXIT_FAILURE;
 	else if (test == "arrayarray")
 		return arrayarray()?EXIT_SUCCESS:EXIT_FAILURE;
+	else if (test == "frontback")
+		return frontback() ? EXIT_SUCCESS : EXIT_FAILURE;
 	return EXIT_FAILURE;
 }

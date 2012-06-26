@@ -18,7 +18,7 @@ macro(add_fulltest NAME)
 endmacro(add_fulltest)
 
 add_unittest(ami_stream basic)
-add_unittest(array basic iterators segmented memory auto_ptr memory_segmented bit_basic bit_iterators bit_memory copyempty arrayarray)
+add_unittest(array basic iterators segmented memory auto_ptr memory_segmented bit_basic bit_iterators bit_memory copyempty arrayarray frontback)
 add_unittest(disjoint_set basic memory)
 add_unittest(external_priority_queue basic)
 add_unittest(external_queue basic medium)
