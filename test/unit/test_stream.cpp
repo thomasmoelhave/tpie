@@ -26,6 +26,7 @@
 #include <iostream>
 #include <vector>
 #include <boost/filesystem/operations.hpp>
+#include <tpie/tpie_log.h>
 
 #include <tpie/tpie.h>
 
@@ -122,6 +123,36 @@ bool truncate_test() {
 	return res;
 }
 
+// test using truncate to extend the stream
+bool extend_test() {
+	typedef int test_t;
+	tpie::file_stream<test_t> fs;
+	fs.open("tmp");
+	tpie::stream_size_type ante = 0;
+	tpie::stream_size_type pred = 1;
+	tpie::stream_size_type n = 1;
+	tpie::stream_size_type readItems = 0;
+	while (n < 1000000) {
+		fs.truncate(n);
+		if (fs.size() != n) {
+			tpie::log_error() << "Wrong stream length" << std::endl;
+			return false; // XXX
+		}
+		while (fs.can_read()) {
+			fs.read();
+			++readItems;
+		}
+		if (readItems != n) {
+			tpie::log_error() << "Read wrong no. of items" << std::endl;
+			return false; // XXX
+		}
+		ante = pred;
+		pred = n;
+		n = ante+pred;
+	}
+	return true;
+}
+
 int main(int argc, char **argv) {
 	tpie_initer _;
 
@@ -142,6 +173,8 @@ int main(int argc, char **argv) {
 		result = basic_test();
 	else if (testtype == "truncate")
 		result = truncate_test();
+	else if (testtype == "extend")
+		result = extend_test();
 	else {
 		std::cout << "Unknown test" << std::endl;
 		result = false;

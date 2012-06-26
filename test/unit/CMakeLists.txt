@@ -34,7 +34,7 @@ add_unittest(memory basic)
 add_unittest(packed_array basic)
 add_unittest(parallel_sort basic1 equal_elements)
 add_unittest(serialization unsafe safe)
-add_unittest(stream basic array)
+add_unittest(stream basic array extend)
 add_unittest(stats basic)
 add_unittest(stream_exception basic)
 
