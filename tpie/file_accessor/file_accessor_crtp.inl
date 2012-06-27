@@ -233,6 +233,7 @@ void file_accessor_crtp<child_t, minimizeSeeks>::truncate(stream_size_type items
 	stream_size_type bytes = header_size() + blocks*m_blockSize + blockIndex*m_itemSize;
 	m_size = items;
 	self().truncate_i(bytes);
+	invalidateLocation();
 }
 
 }
