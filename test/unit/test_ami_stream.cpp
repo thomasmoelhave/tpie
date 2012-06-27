@@ -129,140 +129,169 @@ bool basic() {
 	return true;
 }
 
+int hat() {
+	try {
+		tpie::ami::stream<int> stream;
+		stream.truncate(134138027);
+		stream.seek(0);
+		stream.write_item(42);
+		stream.truncate(134199667);
+		stream.seek(325595);
+		int * it;
+		stream.read_item(&it);
+	} catch(std::runtime_error e) {
+		std::cout << "EXCEPTION " << e.what() << " " << typeid(e).name()<< std::endl;
+		return false;
+	}
+	return true;
+}
 
-int stress(size_t actions=1024*1024*128, size_t max_size=1024*1024*128) {
-	tpie::progress_indicator_arrow pi("Test", actions);
-	const size_t chunk_size=1024*128;
-	std::vector<int> elements(max_size, 0);
-	std::vector<bool> defined(max_size, true);
-	std::vector<int> arr(chunk_size);
-	size_t location=0;
-	size_t size=0;
+int stress(size_t actions=1024*1024*10, size_t max_size=1024*1024*128) {
+	try {
+		tpie::progress_indicator_arrow pi("Test", actions);
+		const size_t chunk_size=1024*128;
+		std::vector<int> elements(max_size, 0);
+		std::vector<bool> defined(max_size, true);
+		std::vector<int> arr(chunk_size);
+		size_t location=0;
+		size_t size=0;
 	
-	boost::mt19937 rng;
-	boost::uniform_int<> todo(0, 6);
-	boost::uniform_int<> ddist(0, 123456789);
-	tpie::ami::stream<int> stream;
-	pi.init(actions);
-	for(size_t action=0; action < actions; ++action) {
-		switch(todo(rng)) {
-		case 0: //READ
-		{
-			size_t cnt=size-location;
-			if (cnt > 0) {
-				boost::uniform_int<> d(1,std::min<size_t>(cnt, chunk_size));
-				cnt=d(rng);
-				for (size_t i=0; i < cnt; ++i) {
+		boost::mt19937 rng;
+		boost::uniform_int<> todo(0, 6);
+		boost::uniform_int<> ddist(0, 123456789);
+		tpie::ami::stream<int> stream;
+		pi.init(actions);
+		for(size_t action=0; action < actions; ++action) {
+			switch(todo(rng)) {
+			case 0: //READ
+			{
+				size_t cnt=size-location;
+				if (cnt > 0) {
+					boost::uniform_int<> d(1,std::min<size_t>(cnt, chunk_size));
+					cnt=d(rng);
+					std::cerr << location << " " << size << " read: " << cnt << std::endl;
+					for (size_t i=0; i < cnt; ++i) {
+						int * item;
+						if (stream.read_item(&item) != tpie::ami::NO_ERROR) {
+							std::cout << "Should be able to read" << std::endl;
+							return false;
+						}
+						if (defined[location]) {
+							if (elements[location] != *item) {
+								std::cerr << "Found " << *item << " expected " << elements[location] << std::endl;
+								return false;
+							}
+						} else {
+							defined[location] = true;
+							elements[location] = *item;
+						}
+						++location;
+					}
+				} else {
 					int * item;
-					if (stream.read_item(&item) != tpie::ami::NO_ERROR) {
-						std::cout << "Should be able to read" << std::endl;
+					if (stream.read_item(&item) == tpie::ami::NO_ERROR) {
+						std::cerr << "Should not be able to read" << std::endl;
 						return false;
 					}
-					if (defined[location]) {
-						if (elements[location] != *item) {
-							std::cout << "Found " << *item << " expected " << elements[location] << std::endl;
-							return false;
-						}
-					} else {
-						defined[location] = true;
-						elements[location] = *item;
-					}
-					++location;
 				}
-			} else {
-				int * item;
-				if (stream.read_item(&item) == tpie::ami::NO_ERROR) {
-					std::cout << "Should not be able to read" << std::endl;
-					return false;
-				}
+				break;
 			}
-			break;
-		}
-		case 1: //WRITE
-		{
-			boost::uniform_int<> d(1,chunk_size);
-			size_t cnt=std::min<size_t>(d(rng), max_size-location);
-			for (size_t i=0; i < cnt; ++i) {
-				elements[location] = ddist(rng);
-				defined[location] = true;
-				stream.write_item(elements[location]);
-				location++;
-			}
-			size = std::max(size, location);
-			break;
-		}
-		case 2: //SEEK END
-		{
-			location = size;
-			stream.seek(location);
-			break;
-		}
-		case 3: //SEEK SOMEWHERE
-		{
-			boost::uniform_int<> d(0, size);
-			location = d(rng);
-			stream.seek(location);
-			break;
-		}
-		case 4: //READ ARRAY
-		{
-			size_t cnt=size-location;
-			if (cnt > 0) {
-				boost::uniform_int<> d(1,std::min<size_t>(cnt, chunk_size));
-				cnt=d(rng);
-				stream.read_array(&arr[0], cnt);
+			case 1: //WRITE
+			{
+				boost::uniform_int<> d(1,chunk_size);
+				size_t cnt=std::min<size_t>(d(rng), max_size-location);
+				std::cerr << location << " " << size << " write: " << cnt << std::endl;
 				for (size_t i=0; i < cnt; ++i) {
-					if (defined[location]) {
-						if (elements[location] != arr[i]) {
-							std::cout << "Found " << arr[i] << " expected " << elements[location] << std::endl;
-							return false;
+					elements[location] = ddist(rng);
+					defined[location] = true;
+					stream.write_item(elements[location]);
+					location++;
+				}
+				size = std::max(size, location);
+				break;
+			}
+			case 2: //SEEK END
+			{
+				std::cerr << location << " " << size << " seek: " << size << std::endl;
+				location = size;
+				stream.seek(location);
+				break;
+			}
+			case 3: //SEEK SOMEWHERE
+			{
+				boost::uniform_int<> d(0, size);
+				size_t l = d(rng);
+				std::cerr << location << " " << size << " seek: " << l << std::endl;
+				location = l;
+				stream.seek(location);
+				break;
+			}
+			case 4: //READ ARRAY
+			{
+				size_t cnt=size-location;
+				if (cnt > 0) {
+					boost::uniform_int<> d(1,std::min<size_t>(cnt, chunk_size));
+					cnt=d(rng);
+					std::cerr << location << " " << size << " read array: " << cnt << std::endl;
+					stream.read_array(&arr[0], cnt);
+					for (size_t i=0; i < cnt; ++i) {
+						if (defined[location]) {
+							if (elements[location] != arr[i]) {
+								std::cerr << "Found " << arr[i] << " expected " << elements[location] << std::endl;
+								return false;
+							}
+						} else {
+							defined[location] = true;
+							elements[location] = arr[i];
 						}
-					} else {
-						defined[location] = true;
-						elements[location] = arr[i];
+						++location;
 					}
-					++location;
 				}
 			}
+			case 5: //WRITE ARRAY
+			{
+				 boost::uniform_int<> d(1,chunk_size);
+				 size_t cnt=std::min<size_t>(d(rng), max_size-location);
+				 std::cerr << location << " " << size << " write array: " << cnt << std::endl;
+				 for (size_t i=0; i < cnt; ++i) {
+					 arr[i] = elements[location] = ddist(rng);
+					 defined[location] = true;
+					 ++location;
+				 }
+				 stream.write_array(&arr[0], cnt);
+				 size = std::max(size, location);
+				 break;
+			}
+			case 6: //TRUNCATE 
+			{
+				boost::uniform_int<> d(std::max(0, (int)size-(int)chunk_size), std::min(size+chunk_size, max_size));
+				size_t ns=d(rng);
+				std::cerr << location << " " << size << " truncate: " << ns << std::endl;	
+				stream.truncate(ns);
+				stream.seek(0);
+				location=0;
+				for (size_t i=size; i < ns; ++i)
+					defined[i] = false;
+				size=ns;
+				break;
+			}
+			}
+			//std::cout << location << " " << size << std::endl;
+			if (stream.stream_len() != size) {
+				std::cerr << "Bad size" << std::endl;
+				return false;
+			}
+			if (stream.tell() != location) {
+				std::cerr << "Bad offset" << std::endl;
+				return false;
+			}
+			pi.step();
 		}
-		case 5: //WRITE ARRAY
-		{
-			 boost::uniform_int<> d(1,chunk_size);
-			 size_t cnt=std::min<size_t>(d(rng), max_size-location);
-			 for (size_t i=0; i < cnt; ++i) {
-				 arr[i] = elements[location] = ddist(rng);
-				 defined[location] = true;
-				 ++location;
-			 }
-			 stream.write_array(&arr[0], cnt);
-			 size = std::max(size, location);
-			 break;
-		}
-		case 6: //TRUNCATE 
-		{
-			boost::uniform_int<> d(std::max(0, (int)size-(int)chunk_size), std::min(size+chunk_size, max_size));
-			size_t ns=d(rng);
-			stream.truncate(ns);
-			stream.seek(0);
-			location=0;
-			for (size_t i=size; i < ns; ++i)
-				defined[i] = false;
-			size=ns;
-			break;
-		}
-		}
-		//std::cout << location << " " << size << std::endl;
-		if (stream.stream_len() != size) {
-			std::cout << "Bad size" << std::endl;
-			return false;
-		}
-		if (stream.tell() != location) {
-			std::cout << "Bad offset" << std::endl;
-			return false;
-		}
-		pi.step();
+		pi.done();
+	} catch(std::runtime_error e) {
+		std::cerr << "EXCEPTION " << e.what() << " " << typeid(e).name()<< std::endl;
+		return false;
 	}
-	pi.done();
 	return true;
 }
 
@@ -282,6 +311,8 @@ int main(int argc, char **argv) {
 		return basic()?EXIT_SUCCESS:EXIT_FAILURE;
 	if (testtype == "stress") 
 		return stress()?EXIT_SUCCESS:EXIT_FAILURE;
+	if (testtype =="hat")
+		return hat()?EXIT_SUCCESS:EXIT_FAILURE;
 	std::cout << "Unknown test" << std::endl;
 	return EXIT_FAILURE;
 }
