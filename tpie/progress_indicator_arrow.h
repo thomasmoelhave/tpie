@@ -60,7 +60,7 @@ namespace tpie {
 	////////////////////////////////////////////////////////////////////
 
 	progress_indicator_arrow(const char * title, stream_size_type range) :
-	    progress_indicator_terminal(title, range) , m_indicatorLength(0), m_progress(0) {
+	    progress_indicator_terminal(title, range) , m_indicatorLength(0), m_progress(-1) {
 	    m_indicatorLength = 110;
 	}
     
@@ -99,7 +99,7 @@ namespace tpie {
 
 	virtual void reset() {
 	    m_current  = 0;
-	    m_progress = 0;
+	    m_progress = -1;
 	}
 
 	////////////////////////////////////////////////////////////////////
@@ -121,7 +121,7 @@ namespace tpie {
 	    //if (progress == 0) progress = 1;
 	
 	    //  Only print stuff to std::cout if the indicator needs to be updated.
-	    //if (progress > m_progress) {
+	    if (progress != m_progress) {
 
 			//  Don't print the last item.
 			if (progress >= l) progress = l -1;
@@ -144,7 +144,7 @@ namespace tpie {
 			std::cout << " " << estimated_remaining_time();
 			std::cout << std::flush;
 			m_progress = progress;
-			//}
+			}
 	}
 
     protected:
