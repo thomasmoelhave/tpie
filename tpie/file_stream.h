@@ -176,7 +176,7 @@ public:
 		while (i != end) {
 			if (m_index >= m_blockItems) update_block();
 
-			IT blockmax = i + (m_blockItems-m_index);
+			IT blockmax = i + uint64_t(m_blockItems-m_index);
 
 			T * dest = m_block.data.get() + m_index;
 

@@ -778,7 +778,7 @@ void priority_queue<T, Comparator, OPQType>::validate() {
 	// todo: validate gbuffer0
 	for(TPIE_OS_OFFSET i = 1; i < setting_k; i++) { // groups, nb: cyclic
 		if(group_size(i) > 0) {
-			file_stream<T> stream;
+			file_stream<T> stream(block_factor);
 			stream.open(group_data(i));
 			stream.seek(group_start(i));
 			if(stream.offset() == setting_m) {
@@ -801,7 +801,7 @@ void priority_queue<T, Comparator, OPQType>::validate() {
 	}
 	for(TPIE_OS_OFFSET i = 0; i < setting_k*setting_k; i++) { // slots
 		if(slot_size(i) > 0){
-			file_stream<T> stream;
+			file_stream<T> stream(block_factor);
 			stream.open(slot_data(i));
 			stream.seek(slot_start(i));
 			T last = stream.read();
@@ -820,7 +820,7 @@ void priority_queue<T, Comparator, OPQType>::validate() {
 		T buf_max = buffer[buffer_start+buffer_size-1];
 		for(TPIE_OS_OFFSET i = 1; i < setting_k; i++) { // todo: gbuffer0
 			if(group_size(i) > 0) {
-				file_stream<T> stream;
+				file_stream<T> stream(block_factor);
 				stream.open(group_data(i));
 				stream.seek(group_start(i));
 				if(stream->offset() == setting_m) {
@@ -839,7 +839,7 @@ void priority_queue<T, Comparator, OPQType>::validate() {
 	// todo: gbuffer0
 	for(TPIE_OS_OFFSET i = 1; i < setting_k; i++) { // group buffers --> slots
 		if(group_size(i) > 0) {
-			file_stream<T> stream;
+			file_stream<T> stream(block_factor);
 			stream.open(group_data(i));
 			stream.seek((group_start(i)+group_size(i)-1)%setting_m);
 			T item_group = stream.read();
@@ -847,7 +847,7 @@ void priority_queue<T, Comparator, OPQType>::validate() {
 
 			for(TPIE_OS_OFFSET j = i*setting_k; j<i*setting_k+setting_k;j++) {
 				if(slot_size(j) > 0) {
-					file_stream<T> stream;
+					file_stream<T> stream(block_factor);
 					stream.open(slot_data(j));
 					stream.seek(slot_start(j));
 					T item_slot = stream.read();
@@ -887,7 +887,7 @@ void priority_queue<T, Comparator, OPQType>::remove_group_buffer(TPIE_OS_SIZE_T 
 
 	assert(group < setting_k);
 	array<T> arr(static_cast<size_t>(group_size(group)));
-	file_stream<T> data;
+	file_stream<T> data(block_factor);
 	data.open(group_data(group));
 	data.seek(group_start(group));
 	TPIE_OS_OFFSET size = group_size(group);
