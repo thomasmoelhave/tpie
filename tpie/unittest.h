@@ -65,6 +65,22 @@ testmanip<bool> result(bool success);
 testmanip<bool> success();
 testmanip<bool> failure();
 
+#define TEST_ENSURE(cond, message) {									\
+		if (! (cond) ) {												\
+			tpie::log_error() << message								\
+							  << " (line " << __LINE__ << ")" << std::endl;	\
+			return false;												\
+		}																\
+	}																	
+	
+#define TEST_ENSURE_EQUALITY(v1, v2, message) {							\
+		if ( !((v1) == (v2)) ) {										\
+			tpie::log_error() << message								\
+							  << " (" << v1 << " != " << v2				\
+							  << " line " << __LINE__ << ")" << std::endl; \
+		}																\
+	}																	
+	
 class tests {
 public:
 	tests(int argc, char ** argv, memory_size_type memory_limit=50);
