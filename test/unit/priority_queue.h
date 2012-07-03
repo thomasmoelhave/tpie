@@ -35,8 +35,8 @@ bool cyclic_pq_test(T & pq, boost::uint64_t size, boost::uint64_t iterations) {
 
 	for (boost::uint64_t i=0;i<iterations;i++){
 		progress.step();
-		if (pq.size() != pq.size()) {
-			tpie::log_error() << "Size differs " << pq.size() << " " << pq.size() << std::endl;
+		if (pq.size() != pq2.size()) {
+			tpie::log_error() << "Size differs " << pq.size() << " " << pq2.size() << std::endl;
 			return false;
 		}
 		if (pq.size() != 0 && pq.top() != pq2.top()){

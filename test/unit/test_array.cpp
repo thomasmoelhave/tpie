@@ -168,8 +168,15 @@ bool iterator_test() {
 		if (i != hat.end()) return false;
 	}
 	{
-		array<size_t>::reverse_iterator i=hat.rbegin();
 		for (size_t j=0; j < 52; ++j) {
+			array<size_t>::iterator i=hat.find(j/2)+(j-j/2);
+			if (i == hat.end()) return false;
+			if (*i != ((j * 104729) % 2251)) return false;
+		}
+	}
+	{
+		array<size_t>::reverse_iterator i=hat.rbegin();
+		for (int j=51; j >= 0; --j) {
 			if (i == hat.rend()) return false;
 			if (*i != (((51-j) * 104729) % 2251)) return false;
 			++i;
@@ -178,6 +185,12 @@ bool iterator_test() {
 	}
 
 	std::sort(hat.begin(), hat.end());
+
+	// verify order
+	// find two elements in the reverse order where one is less than the other
+	array<size_t>::reverse_iterator i=std::adjacent_find(hat.rbegin(), hat.rend(), std::less<size_t>());
+	if (i != hat.rend()) // if found
+		return false;
 	return true;
 }
 
@@ -252,6 +265,25 @@ bool arrayarray() {
 	return true;
 }
 
+bool frontback() {
+	size_t sz = 9001;
+	size_t base = 42;
+	array<int> a(sz);
+	for (size_t i = 0; i < sz; ++i) {
+		a[i] = base+i;
+	}
+	if (a.front() != static_cast<int>(base))
+		return false;
+	if (a.back() != static_cast<int>(base+sz-1))
+		return false;
+	const array<int> & b = a;
+	if (b.front() != static_cast<int>(base))
+		return false;
+	if (b.back() != static_cast<int>(base+sz-1))
+		return false;
+	return true;
+}
+
 int main(int argc, char **argv) {
 	BOOST_CONCEPT_ASSERT((linear_memory_structure_concept<array<int> >));
 	BOOST_CONCEPT_ASSERT((boost::RandomAccessIterator<array<int>::const_iterator>));
@@ -261,15 +293,18 @@ int main(int argc, char **argv) {
 	BOOST_CONCEPT_ASSERT((linear_memory_structure_concept<bit_array >));
 	BOOST_CONCEPT_ASSERT((boost::RandomAccessIterator<bit_array::const_iterator>));
 	BOOST_CONCEPT_ASSERT((boost::RandomAccessIterator<bit_array::const_reverse_iterator>));
+
 	return tpie::tests(argc, argv, 128)
 		.test(basic_test, "basic")
 		.test(iterator_test, "iterators")
 		.test(auto_ptr_test, "auto_ptr")
 		.test(array_memory_test<false>(), "memory")
 		.test(segmented_array_test, "segmented")
-		//.test(array_memory_test<true>(), "memory_segmented")
+		.test(array_memory_test<true>(), "memory_segmented")
 		.test(basic_bool_test, "bit_basic")
+		.test(iterator_bool_test, "bit_iterators")
 		.test(array_bool_memory_test(), "bit_memory")
 		.test(copyempty, "copyempty")
-		.test(arrayarray, "arrayarray");
+		.test(arrayarray, "arrayarray")
+		.test(frontback, "frontback");
 }

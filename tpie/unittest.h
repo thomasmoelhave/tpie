@@ -82,6 +82,9 @@ public:
 	template <typename T, typename T1>
 	tests & test(T fct, const std::string & name, const std::string & p1_name, T1 p1_default);
 
+	template <typename T, typename T1, typename T2>
+	tests & test(T fct, const std::string & name, const std::string & p1_name, T1 p1_default, const std::string & p2_name, T2 p2_default);
+
 	template <typename T>
 	tests & multi_test(T fct, const std::string & name);
 
@@ -186,6 +189,7 @@ private:
 	T get_arg(const std::string & name, T def) const;
 
 	bool bad, usage, version;
+	size_t tests_runned;
 	std::string exe_name;
 	std::string test_name;
 	std::map<std::string, std::string> args;
@@ -239,6 +243,18 @@ tests & tests::test(T fct, const std::string & name, const std::string & p1_name
 	if (name == test_name || test_name == "all") {
 		start_test(name);
 		end_test(fct(get_arg(p1_name, p1_default)));
+	}
+	return *this;
+}
+
+
+template <typename T, typename T1, typename T2>
+tests & tests::test(T fct, const std::string & name, const std::string & p1_name, T1 p1_default, const std::string & p2_name, T2 p2_default) {
+	m_tests.push_back(name+" ["+p1_name+" = "+boost::lexical_cast<std::string>(p1_default)+"]"
+					  +" ["+p2_name+" = "+boost::lexical_cast<std::string>(p2_default)+"]");
+	if (name == test_name || test_name == "all") {
+		start_test(name);
+		end_test(fct(get_arg(p1_name, p1_default), get_arg(p2_name, p2_default)));
 	}
 	return *this;
 }

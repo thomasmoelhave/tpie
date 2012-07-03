@@ -94,7 +94,7 @@ log_level parse_log_level(const std::string & arg) {
 	return LOG_FATAL;
 }
 
-tests::tests(int argc, char ** argv, memory_size_type memory_limit): memory_limit(memory_limit) {
+tests::tests(int argc, char ** argv, memory_size_type memory_limit):  tests_runned(0), memory_limit(memory_limit) {
 	exe_name = argv[0];
 	bool has_seen_test=false;
 	bad=false;
@@ -183,13 +183,13 @@ tests::~tests() {
 }
 
 void tests::start_test(const std::string & name) {
+	++tests_runned;
 	log.set_test(name);
 	for (size_t i=0; i < setups.size(); ++i)
 		(*setups[i])();
 }
 
 void tests::end_test(bool result) {
-	result = false;
 	if (result)
 		log.set_status(" ok ");
 	else
@@ -229,6 +229,10 @@ void tests::show_usage(std::ostream & o) {
 }
 
 tests::operator int() {
+	if (!usage && !version && tests_runned == 0) {
+		std::cerr << "The test " << test_name << " does not exist" << std::endl;
+		usage=bad=true;
+	}
 	if (usage) {
 		if (bad) {
 			std::cerr << std::endl;
@@ -240,7 +244,7 @@ tests::operator int() {
 	if (version) {
 		build_information(std::cout);
 	}
-
+	
 	if (bad) return EXIT_FAILURE;
 	return EXIT_SUCCESS;
 }

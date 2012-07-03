@@ -104,6 +104,7 @@ public:
 			m_next = static_cast<stream_size_type>(
 				static_cast<double>(m_current) * (elapsed(currentTicks, m_start) + m_threshold)/
 				elapsed(currentTicks, m_start));
+			if (m_next > m_current *2) m_next=m_current*2; //For bad guestimation in the beginning
 			refresh();
 		}
 	}

@@ -190,6 +190,7 @@ bool memory_test() {
 	return tester();
 }
 
+
 bool overflow_test() {
 	tpie::priority_queue<char> pq;
 	char c = 0;
@@ -220,8 +221,50 @@ bool overflow_test() {
 	}
 
 	pi.done();
-
 	return true;
+}
+
+
+template <uint64_t prime, typename T>
+bool very_large_test() {
+	try {
+		const uint64_t generator=104729;
+		const uint64_t base=((prime + 7)/8);
+		const uint64_t size=base+base+prime;
+		uint64_t nn=0;
+		uint64_t ext=0;
+		ami::priority_queue<boost::uint64_t> pq;
+		tpie::progress_indicator_arrow pi("Test", size+size);
+		pi.init(size+size);
+		for (uint64_t i=0; i < prime; ++i) {
+			if (i % 8 == 0) {
+				pq.push(nn++);
+				pq.push(nn++);
+				if (pq.empty()) {std::cerr << "Was empty" << std::endl; return false;}
+				T elm=pq.top();
+				if (elm != T(ext) ) {std::cerr << "Expected " << T(ext) << " got " << elm << std::endl; return false;}
+				++ext;
+				pq.pop();
+				pi.step(3);
+			}
+			pq.push( base+base + (i * generator) % prime);
+			pi.step();
+		}
+		for (uint64_t i=0; i < base+prime; ++i) {
+			if (pq.empty()) {std::cerr << "Was empty" << std::endl; return false;}
+			T elm=pq.top();
+			if (elm != T(ext) ) {std::cerr << "Expected " << ext << " got " << elm << std::endl; return false;}
+			++ext;
+			pq.pop();
+			pi.step();
+		}
+		pi.done();
+		if (!pq.empty()) {std::cerr << "Was not empty" << std::endl; return false;}
+		return true;
+	} catch(std::exception e) {
+		std::cerr << "Exception: " << e.what() << std::endl;
+		return false;
+	}
 }
 
 int main(int argc, char **argv) {
@@ -231,5 +274,6 @@ int main(int argc, char **argv) {
 		.test(large_instance<false>, "large")
 		.test(large_cycle, "large_cycle")
 		.test(memory_test, "memory")
+		.test(very_large_test<4294967311, uint64_t>, "very_large")
 		.test(overflow_test, "overflow");
 }

@@ -208,7 +208,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Return the last element in the array.
 	///////////////////////////////////////////////////////////////////////////
-	inline T & back() {return at(0);}
+	inline T & back() {return at(self().size()-1);}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Reverse iterator to beginning of reverse sequence.
@@ -523,7 +523,7 @@ private:
 	}
 	
 	inline typename p_t::const_iterator get_iter(size_t idx) const {
-		return typename p_t::const_iterator(m_a, idx);
+		return typename p_t::const_iterator((const T **)m_a, idx);
 	}
 	
 	// inline typename p_t::reverse_iterator get_rev_iter(size_t idx) {

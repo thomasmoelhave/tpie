@@ -40,8 +40,11 @@ posix::posix():
 }
 
 inline void posix::read_i(void * data, memory_size_type size) {
-	if (::read(m_fd, data, size) != (memory_offset_type)size) throw_errno();
-	increment_bytes_read(size);
+	memory_offset_type bytesRead = ::read(m_fd, data, size);
+	if (bytesRead == -1)
+		throw_errno();
+	if (bytesRead != static_cast<memory_offset_type>(size))
+		throw io_exception("Wrong number of bytes read");
 }
 
 inline void posix::write_i(const void * data, memory_size_type size) {

@@ -99,7 +99,7 @@ private:
 	M*              m_mergeHeap;        // Merge heap implementation 
 	file_stream<T>* inStream;   
 	file_stream<T>* outStream;   
-	TPIE_OS_SIZE_T  nInputItems;        // Number of items in inStream;
+	TPIE_OS_OFFSET  nInputItems;        // Number of items in inStream;
 	TPIE_OS_SIZE_T  mmBytesAvail;       // Amount of spare memory we can use
 	TPIE_OS_SIZE_T  mmBytesPerStream;   // Memory consumed by each Stream obj
 	    
@@ -233,7 +233,7 @@ void sort_manager<T,I,M>::start_sort(){
 	
 	inStream->seek (0);
 	
-	if (nInputItems < m_internalSorter->MaxItemCount(mmBytesAvail)){
+	if (nInputItems < TPIE_OS_OFFSET(m_internalSorter->MaxItemCount(mmBytesAvail))) {
 		
 		fractional_progress fp(m_indicator);
 		fp.id() << __FILE__ << __FUNCTION__ << "internal_sort" << typeid(T) << typeid(I) << typeid(M);
@@ -560,7 +560,7 @@ void sort_manager<T,I,M>::partition_and_sort_runs(progress_indicator_base* indic
 	// ********************************************************************
 	// * Partition and make initial sorted runs                           *
 	// ********************************************************************
-	TPIE_OS_SIZE_T check_size = 0; //for debugging
+	TPIE_OS_OFFSET check_size = 0; //for debugging
 
 	if (indicator) 
 		indicator->init(nRuns*1000);

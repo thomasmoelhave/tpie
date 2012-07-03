@@ -23,13 +23,19 @@
 
 using namespace tpie;
 
-bool basic_test() {
-	internal_vector<int> s(52);
-	for(int i=0; i < 52; ++i)
-		s.push_back((i * 104729) % 2251);
-	for(int i=51; i >= 0; --i) {
-		if (s.size() != (size_t)i+1) return false;
-		if (s.back() != ((int)i * 104729) % 2251) return false;
+int item(size_t i) {
+	return (static_cast<int>(i) * 104729) % 2251;
+}
+
+bool basic_test(size_t n = 52) {
+	internal_vector<int> s(n);
+	for(size_t i=0; i < n; ++i)
+		s.push_back(item(i));
+	for(size_t i=n; i--;) {
+		if (s.size() != (size_t)i+1)
+			return false;
+		if (s.back() != item(i))
+			return false;
 		s.pop_back();
 	}
 	if (!s.empty()) return false;
@@ -52,7 +58,9 @@ public:
 
 int main(int argc, char **argv) {
 	return tpie::tests(argc, argv)
-		.test(basic_test, "basic")
+		.test(basic_test, "basic", "size", 52)
+		.test(basic_test, "medium", "size", 1000000)
+		.test(basic_test, "large", "size", 100000000)
 		.test(vector_memory_test(), "memory");
 }
 

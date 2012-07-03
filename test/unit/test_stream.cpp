@@ -27,6 +27,7 @@
 #include <vector>
 #include <boost/filesystem/operations.hpp>
 #include <boost/array.hpp>
+#include <tpie/tpie_log.h>
 
 #include <tpie/tpie.h>
 
@@ -122,41 +123,6 @@ static bool array_test() {
 	return true;
 }
 
-static bool odd_block_test() {
-	typedef boost::array<char, 17> test_t;
-	const size_t items = 500000;
-	test_t initial_item;
-	for (size_t i = 0; i < initial_item.size(); ++i) initial_item[i] = static_cast<char>(i+42);
-
-	{
-		Stream<test_t> fs;
-		fs.file().open(TEMPFILE);
-
-		test_t item = initial_item;
-		for (size_t i = 0; i < items; ++i) {
-			fs.stream().write(item);
-			item[0]++;
-		}
-	}
-
-	{
-		Stream<test_t> fs;
-		fs.file().open(TEMPFILE);
-
-		test_t item = initial_item;
-		for (size_t i = 0; i < items; ++i) {
-			test_t got = fs.stream().read();
-			if (got != item) {
-				tpie::log_error() << "Item " << i << " is wrong" << std::endl;
-				return false;
-			}
-			item[0]++;
-		}
-	}
-
-	return true;
-}
-
 static bool truncate_test() {
 	typedef int test_t;
 	Stream<test_t> fs;
@@ -193,6 +159,70 @@ static bool truncate_test() {
 	} catch (tpie::stream_exception) {
 	}
 	return res;
+}
+
+// test using truncate to extend the stream
+static bool extend_test() {
+	typedef int test_t;
+	Stream<test_t> fs;
+	fs.file().open(TEMPFILE);
+	tpie::stream_size_type ante = 0;
+	tpie::stream_size_type pred = 1;
+	tpie::stream_size_type n = 1;
+	tpie::stream_size_type readItems = 0;
+	while (n < 1000000) {
+		fs.file().truncate(n);
+		if (fs.file().size() != n) {
+			tpie::log_error() << "Wrong stream length" << std::endl;
+			return false;
+		}
+		while (fs.stream().can_read()) {
+			fs.stream().read();
+			++readItems;
+		}
+		if (readItems != n) {
+			tpie::log_error() << "Read wrong no. of items" << std::endl;
+			return false;
+		}
+		ante = pred;
+		pred = n;
+		n = ante+pred;
+	}
+	return true;
+}
+
+static bool odd_block_test() {
+	typedef boost::array<char, 17> test_t;
+	const size_t items = 500000;
+	test_t initial_item;
+	for (size_t i = 0; i < initial_item.size(); ++i) initial_item[i] = static_cast<char>(i+42);
+
+	{
+		Stream<test_t> fs;
+		fs.file().open(TEMPFILE);
+		test_t item = initial_item;
+		for (size_t i = 0; i < items; ++i) {
+			fs.stream().write(item);
+			item[0]++;
+		}
+	}
+
+	{
+		Stream<test_t> fs;
+		fs.file().open(TEMPFILE);
+
+		test_t item = initial_item;
+		for (size_t i = 0; i < items; ++i) {
+			test_t got = fs.stream().read();
+			if (got != item) {
+				tpie::log_error() << "Item " << i << " is wrong" << std::endl;
+				return false;
+			}
+			item[0]++;
+		}
+	}
+
+	return true;
 }
 
 }; // template stream_tester
@@ -310,5 +340,7 @@ int main(int argc, char **argv) {
 		.test(stream_tester<file_stream>::odd_block_test, "odd")
 		.test(stream_tester<file_colon_colon_stream>::odd_block_test, "odd_file")
 		.test(stream_tester<file_stream>::truncate_test, "truncate")
-		.test(stream_tester<file_colon_colon_stream>::truncate_test, "truncate_file");
+		.test(stream_tester<file_colon_colon_stream>::truncate_test, "truncate_file")
+		.test(stream_tester<file_stream>::extend_test, "extend")
+		.test(stream_tester<file_colon_colon_stream>::extend_test, "extend__file");
 }

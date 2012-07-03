@@ -47,18 +47,18 @@ public:
 	typedef ptrdiff_t difference_type;
 	typedef std::random_access_iterator_tag iterator_category;
 	template <typename TT>
-	inline bool operator==(const TT & o) const {return self().index() == o.self().index();}
+	inline bool operator==(const TT & o) const {return (self()-o) == 0;}
 	template <typename TT>
-	inline bool operator!=(const TT & o) const {return self().index() != o.self().index();}
+	inline bool operator!=(const TT & o) const {return (self()-o) != 0;}
 	inline CT & operator++() {self().index() += forward?1:-1; return self();}
 	inline CT operator++(int) {CT x=self(); ++self(); return x;}
 	inline CT & operator--() {self().index() += forward?-1:1; return self();}
 	inline CT operator--(int) {CT x=self(); --self(); return x;}
-	inline bool operator<(const CT & o) const {return self().index() < o.self().index();}
-	inline bool operator>(const CT & o) const {return self().index() > o.self().index();}
-	inline bool operator<=(const CT & o) const {return self().index() <= o.self().index();}
-	inline bool operator>=(const CT & o) const {return self().index() >= o.self().index();}
-	inline ptrdiff_t operator-(const CT & o) const {return self().index() < o.self().index();}
+	inline bool operator<(const CT & o)  const {return (self()-o) < 0;}
+	inline bool operator>(const CT & o)  const {return (self()-o) > 0;}
+	inline bool operator<=(const CT & o) const {return (self()-o) <= 0;}
+	inline bool operator>=(const CT & o) const {return (self()-o) >= 0;}
+	inline ptrdiff_t operator-(const CT & o) const {return forward ? (self().index() - o.index()) : (o.index() - self().index());}
 	inline CT operator+(difference_type n) const {CT x=self(); return x += n;}
 	inline CT operator-(difference_type n) const {CT x=self(); return x -= n;}
 	inline CT & operator+=(difference_type n) {self().index() += (forward?n:-n); return self();}
@@ -77,7 +77,7 @@ CT operator+(ptrdiff_t n, const packed_array_iter_facade<CT, f, RT> & i) {
 /// \brief An array storring elements of type T using B
 /// bits to  to store a element.
 ///
-/// T must be either bool or int. B must devide the word size,
+/// T must be either bool or int. B must devide the word size, (XXX why?)
 /// in reality only 1, 2 or 4 seems usamle
 ///
 /// \tparam T The type of elements to store in the array
@@ -88,12 +88,43 @@ class packed_array: public linear_memory_base<packed_array<T, B> >{
 public:
 	typedef size_t storage_type;
 private:
+	// TODO is this necessary?
 	BOOST_STATIC_ASSERT(sizeof(storage_type) * 8 % B == 0);
-	static inline size_t perword() {return sizeof(storage_type) * 8 / B;}
-	static inline size_t high(size_t index) {return index/perword();}
-	static inline size_t low(size_t index) {return index%perword();}
-	static inline size_t words(size_t m){return (perword()-1+m)/perword();}
-	static inline storage_type mask() {return (1 << B)-1;}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Logical elements per physical element.
+	///////////////////////////////////////////////////////////////////////////
+	static inline size_t perword() {
+		return sizeof(storage_type) * 8 / B;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Physical element index that contains a given logical element.
+	///////////////////////////////////////////////////////////////////////////
+	static inline size_t high(size_t index) {
+		return index/perword();
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Bit position where a given logical element resides.
+	///////////////////////////////////////////////////////////////////////////
+	static inline size_t low(size_t index) {
+		return B*(index%perword());
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Number of physical elements needed to store m logical elements.
+	///////////////////////////////////////////////////////////////////////////
+	static inline size_t words(size_t m) {
+		return (perword()-1+m)/perword();
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Mask that will extract the lowest order logical element.
+	///////////////////////////////////////////////////////////////////////////
+	static inline storage_type mask() {
+		return (1 << B)-1;
+	}
 
 	template <bool forward>
 	class const_iter_base;
