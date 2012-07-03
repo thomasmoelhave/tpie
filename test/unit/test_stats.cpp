@@ -41,6 +41,7 @@ bool test_about(stream_size_type val, stream_size_type expect, const char * name
 }
 
 bool simple_test(size_type size) {
+	stream_size_type asize=size*sizeof(uint64_t);
 	if (!test_about(get_bytes_read(), 0, "bytes read")) return false;
 	if (!test_about(get_bytes_written(), 0, "bytes written")) return false;
 	if (!test_about(get_temp_file_usage(), 0, "temp file usage")) return false;
@@ -50,17 +51,17 @@ bool simple_test(size_type size) {
 		for(size_t i=0; i < size; ++i) s.write(i);
 		
 		if (!test_about(get_bytes_read(), 0, "bytes read")) return false;
-		if (!test_about(get_bytes_written(), size, "bytes written")) return false;
-		if (!test_about(get_temp_file_usage(), size, "temp file usage")) return false;
+		if (!test_about(get_bytes_written(), asize, "bytes written")) return false;
+		if (!test_about(get_temp_file_usage(), asize, "temp file usage")) return false;
 		s.seek(0);
 		for(size_t i=0; i < 1024*1024*10; ++i) s.read();
 		
-		if (!test_about(get_bytes_read(), size, "bytes read")) return false;
-		if (!test_about(get_bytes_written(), size, "bytes written")) return false;
-		if (!test_about(get_temp_file_usage(), size, "temp file usage")) return false;
+		if (!test_about(get_bytes_read(), asize, "bytes read")) return false;
+		if (!test_about(get_bytes_written(), asize, "bytes written")) return false;
+		if (!test_about(get_temp_file_usage(), asize, "temp file usage")) return false;
 	}
-	if (!test_about(get_bytes_read(), size, "bytes read")) return false;
-	if (!test_about(get_bytes_written(), size, "bytes written")) return false;
+	if (!test_about(get_bytes_read(), asize, "bytes read")) return false;
+	if (!test_about(get_bytes_written(), asize, "bytes written")) return false;
 	if (!test_about(get_temp_file_usage(), 0, "temp file usage")) return false;
 	return true;
 }
