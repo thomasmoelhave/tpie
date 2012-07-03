@@ -22,6 +22,7 @@
 #include <map>
 #include <vector>
 #include <boost/lexical_cast.hpp>
+#include <algorithm>
 
 namespace tpie {
 
@@ -96,11 +97,35 @@ public:
 	tests & test(T fct, const std::string & name);
 	
 	template <typename T, typename T1>
-	tests & test(T fct, const std::string & name, const std::string & p1_name, T1 p1_default);
+	tests & test(T fct, const std::string & name, 
+				 const std::string & p1_name, T1 p1_default);
 
 	template <typename T, typename T1, typename T2>
-	tests & test(T fct, const std::string & name, const std::string & p1_name, T1 p1_default, const std::string & p2_name, T2 p2_default);
+	tests & test(T fct, const std::string & name, 
+				 const std::string & p1_name, T1 p1_default, 
+				 const std::string & p2_name, T2 p2_default);
 
+	template <typename T, typename T1, typename T2, typename T3>
+	tests & test(T fct, const std::string & name, 
+				 const std::string & p1_name, T1 p1_default, 
+				 const std::string & p2_name, T2 p2_default,
+				 const std::string & p3_name, T3 p3_default);
+
+	template <typename T, typename T1, typename T2, typename T3, typename T4>
+	tests & test(T fct, const std::string & name, 
+				 const std::string & p1_name, T1 p1_default, 
+				 const std::string & p2_name, T2 p2_default,
+				 const std::string & p3_name, T3 p3_default,
+				 const std::string & p4_name, T4 p4_default);
+
+	template <typename T, typename T1, typename T2, typename T3, typename T4, typename T5>
+	tests & test(T fct, const std::string & name, 
+				 const std::string & p1_name, T1 p1_default, 
+				 const std::string & p2_name, T2 p2_default,
+				 const std::string & p3_name, T3 p3_default,
+				 const std::string & p4_name, T4 p4_default,
+				 const std::string & p5_name, T5 p5_default);
+	
 	template <typename T>
 	tests & multi_test(T fct, const std::string & name);
 
@@ -204,6 +229,9 @@ private:
 	template <typename T>
 	T get_arg(const std::string & name, T def) const;
 
+	template <typename T>
+	std::string arg_str(const std::string & name, T def) const;
+
 	bool bad, usage, version;
 	size_t tests_runned;
 	std::string exe_name;
@@ -217,13 +245,40 @@ private:
 	std::vector<std::string> m_tests;
 };
 
+template <typename src, typename dst>
+struct magic_cast_help {
+	dst operator()(const src & s) {
+		return boost::lexical_cast<dst>(s);
+	}
+};
+
+template <>
+struct magic_cast_help<bool, std::string> {
+	std::string operator()(bool b) {
+		return b?"true":"false";
+	}
+};
+
+template <>
+struct magic_cast_help<std::string, bool> {
+	bool operator()(std::string v) {
+		std::transform(v.begin(), v.end(), v.begin(), tolower);
+		return v == "true" || v == "1" || v == "on" || v == "yes";
+	}
+};
+
+template <typename dst, typename src>
+dst magic_cast(const src & s) {
+	return magic_cast_help<src, dst>()(s);
+}
+	
 template <typename T>
 struct get_arg_help {
 	T operator()(const std::map<std::string, std::string> & args, const std::string & name, T def) {
 		T arg=def;
 		try {
 			std::map<std::string, std::string>::const_iterator i=args.find(name);
-			if (i != args.end()) arg=boost::lexical_cast<T>(i->second);
+			if (i != args.end()) arg=magic_cast<T>(i->second);
 		} catch (std::bad_cast) {
 			std::cerr << "The argument " << name << " has the wrong type" << std::endl;
 		}
@@ -242,6 +297,11 @@ template <typename T>
 T tests::get_arg(const std::string & name, T def) const {
 	return get_arg_help<T>()(args, name, def);
 }
+	
+template <typename T>
+std::string tests::arg_str(const std::string & name, T def) const {
+	return std::string(" [")+name+" = "+magic_cast<std::string>(def)+"]";
+}
 
 template <typename T>
 tests & tests::test(T fct, const std::string & name) {
@@ -255,7 +315,8 @@ tests & tests::test(T fct, const std::string & name) {
 
 template <typename T, typename T1>
 tests & tests::test(T fct, const std::string & name, const std::string & p1_name, T1 p1_default) {
-	m_tests.push_back(name+" ["+p1_name+" = "+boost::lexical_cast<std::string>(p1_default)+"]");
+	m_tests.push_back(name 
+					  + arg_str(p1_name, p1_default));
 	if (name == test_name || test_name == "all") {
 		start_test(name);
 		end_test(fct(get_arg(p1_name, p1_default)));
@@ -266,14 +327,81 @@ tests & tests::test(T fct, const std::string & name, const std::string & p1_name
 
 template <typename T, typename T1, typename T2>
 tests & tests::test(T fct, const std::string & name, const std::string & p1_name, T1 p1_default, const std::string & p2_name, T2 p2_default) {
-	m_tests.push_back(name+" ["+p1_name+" = "+boost::lexical_cast<std::string>(p1_default)+"]"
-					  +" ["+p2_name+" = "+boost::lexical_cast<std::string>(p2_default)+"]");
+	m_tests.push_back(name 
+					  + arg_str(p1_name, p1_default) 
+					  + arg_str(p2_name, p2_default));
 	if (name == test_name || test_name == "all") {
 		start_test(name);
-		end_test(fct(get_arg(p1_name, p1_default), get_arg(p2_name, p2_default)));
+		end_test(fct(get_arg(p1_name, p1_default), 
+					 get_arg(p2_name, p2_default)));
 	}
 	return *this;
 }
+	
+template <typename T, typename T1, typename T2, typename T3>
+tests & tests::test(T fct, const std::string & name, 
+					const std::string & p1_name, T1 p1_default, 
+					const std::string & p2_name, T2 p2_default,
+					const std::string & p3_name, T3 p3_default) {
+	m_tests.push_back(name 
+					  + arg_str(p1_name, p1_default) 
+					  + arg_str(p2_name, p2_default)
+					  + arg_str(p3_name, p3_default));
+	if (name == test_name || test_name == "all") {
+		start_test(name);
+		end_test(fct(get_arg(p1_name, p1_default), 
+					 get_arg(p2_name, p2_default),
+					 get_arg(p3_name, p3_default)));
+	}
+	return *this;
+
+}
+
+template <typename T, typename T1, typename T2, typename T3, typename T4>
+tests & tests::test(T fct, const std::string & name, 
+					const std::string & p1_name, T1 p1_default, 
+					const std::string & p2_name, T2 p2_default,
+					const std::string & p3_name, T3 p3_default,
+					const std::string & p4_name, T4 p4_default) {
+	m_tests.push_back(name 
+					  + arg_str(p1_name, p1_default) 
+					  + arg_str(p2_name, p2_default)
+					  + arg_str(p3_name, p3_default)
+					  + arg_str(p4_name, p4_default));
+	if (name == test_name || test_name == "all") {
+		start_test(name);
+		end_test(fct(get_arg(p1_name, p1_default), 
+					 get_arg(p2_name, p2_default),
+					 get_arg(p3_name, p3_default),
+					 get_arg(p4_name, p4_default)));
+	}
+	return *this;
+}
+
+template <typename T, typename T1, typename T2, typename T3, typename T4, typename T5>
+tests & tests::test(T fct, const std::string & name, 
+					const std::string & p1_name, T1 p1_default, 
+					const std::string & p2_name, T2 p2_default,
+					const std::string & p3_name, T3 p3_default,
+					const std::string & p4_name, T4 p4_default,
+					const std::string & p5_name, T5 p5_default) {
+	m_tests.push_back(name 
+					  + arg_str(p1_name, p1_default) 
+					  + arg_str(p2_name, p2_default)
+					  + arg_str(p3_name, p3_default)
+					  + arg_str(p4_name, p4_default)
+					  + arg_str(p5_name, p5_default));
+	if (name == test_name || test_name == "all") {
+		start_test(name);
+		end_test(fct(get_arg(p1_name, p1_default), 
+					 get_arg(p2_name, p2_default),
+					 get_arg(p3_name, p3_default),
+					 get_arg(p4_name, p4_default),
+					 get_arg(p5_name, p5_default)));
+	}
+	return *this;
+}
+
 
 template <typename T>
 tests & tests::multi_test(T fct, const std::string & name) {
@@ -289,7 +417,7 @@ tests & tests::multi_test(T fct, const std::string & name) {
 
 template <typename T, typename T1>
 tests & tests::multi_test(T fct, const std::string & name, const std::string & p1_name, T1  p1_default) {
-	m_tests.push_back(name+" ["+p1_name+" = "+boost::lexical_cast<std::string>(p1_default)+"]");
+	m_tests.push_back(name+ arg_str(p1_name, p1_default));
 	if (name == test_name || test_name == "all") {
 		start_test(name);
 		teststream ts;
