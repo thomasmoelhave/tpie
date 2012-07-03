@@ -28,33 +28,30 @@ using namespace tpie;
 
 bool basic_test() {
 	array<size_t> hat;
-  
 	//Resize
 	hat.resize(52, 42);
-	if (hat.size() != 52) return false;
+	TEST_ENSURE(hat.size() == 52, "Wrong size"); 
 	for (memory_size_type i=0; i < 52; ++i)
-		if (hat[i] != 42) return false;
-  
+		TEST_ENSURE_EQUALITY(hat[i], 42, "Wrong value");
+	
 	//Get and set
 	for (memory_size_type i=0; i < 52; ++i)
 		hat[i] = (i * 104729) % 2251;
   
 	const tpie::array<size_t> & hat2(hat);
 	for (memory_size_type i=0; i < 52; ++i)
-		if (hat2[i] != ((i * 104729) % 2251)) return false;
-  
-	if (hat.empty()) return false;
+		TEST_ENSURE_EQUALITY(hat2[i], ((i * 104729) % 2251), "Wrong value");
+
+	TEST_ENSURE(!hat.empty(), "Empty");
 	hat.resize(0);
-	if (!hat.empty()) return false;
+	TEST_ENSURE(hat.empty(), "Not empty");
 	array<int> a(1,0),b(4,0),c(11,0);
 	a[0] = b[0] = c[0] = 1;
-	if(!a[0] || !b[0] || ! c[0]) return false;
+	TEST_ENSURE(a[0] && b[0] && c[0], "Wrong value");
 	a[0] = b[0] = c[0] = 0;
-	if(a[0] || b[0] || c[0]) return false;
-
+	TEST_ENSURE(!a[0] && !b[0] && !c[0], "Wrong value")
 	return true;
 }
-
 
 class auto_ptr_test_class {
 public:
@@ -80,23 +77,22 @@ bool auto_ptr_test() {
 	a.resize(s);
 	for(size_t i=0; i < s; ++i) 
 		a[i].reset(tpie_new<auto_ptr_test_class, size_t &, size_t &>(cc, dc));
-	if (cc != s || dc != 0) return false;
-	
+	TEST_ENSURE_EQUALITY(cc, s, "Wrong value");
+	TEST_ENSURE_EQUALITY(dc, 0, "Wrong value");
 	size_t x=0;
 	for(size_t i=0; i < s; ++i) 
 		x += a[i]->hat();
-	if (x != 42*s) return false;
-
-	if (cc != s || dc != 0) return false;
-
+	TEST_ENSURE_EQUALITY(x, 42*s, "Wrong value");
+	TEST_ENSURE_EQUALITY(cc, s, "Wrong value");
+	TEST_ENSURE_EQUALITY(dc, 0, "Wrong value");
 	for(size_t i=0; i < s; ++i) 
 		a[i].reset(tpie_new<auto_ptr_test_class>(cc, dc));
-	
-	if (cc != 2*s || dc != s) return false;
-	
+
+	TEST_ENSURE_EQUALITY(cc, 2*s, "Wrong value");
+	TEST_ENSURE_EQUALITY(dc, s, "Wrong value");
 	a.resize(0);
-	if (cc != 2*s || dc != 2*s) return false;
-	
+	TEST_ENSURE_EQUALITY(cc, 2*s, "Wrong value");
+	TEST_ENSURE_EQUALITY(dc, 2*s, "Wrong value");
 	return true;
 }
 
@@ -113,8 +109,9 @@ bool segmented_array_test() {
 	array_base<int, true>::iterator i2=h2.begin();
 	
 	while (i1 != h1.end() || i2 != h2.end()) {
-		if (i1 == h1.end() || i2 == h2.end()) return false;
-		if (*i1 != *i2) return false;
+		TEST_ENSURE(i1 != h1.end(), "Should not be end");
+		TEST_ENSURE(i2 != h2.end(), "Should not be end");
+		TEST_ENSURE_EQUALITY(*i1, *i2, "Wrong value");
 		i1++;
 		i2++;
 	}
@@ -126,9 +123,9 @@ bool basic_bool_test() {
   
 	//Resize
 	hat.resize(52, 1);
-	if (hat.size() != 52) return false;
+	TEST_ENSURE(hat.size() == 52, "Wrong size");
 	for (size_type i=0; i < 52; ++i)
-		if (hat[i] != true) return false;
+		TEST_ENSURE(hat[i] == true, "Wrong value");
   
 	//Get and set
 	return true;
@@ -137,16 +134,16 @@ bool basic_bool_test() {
   
 	const tpie::bit_array & hat2(hat);
 	for (size_type i=0; i < 52; ++i)
-		if (hat2[i] != static_cast<bool>(((i * 104729)>>3) % 2)) return false;
-  
-	if (hat.empty()) return false;
+		TEST_ENSURE_EQUALITY(hat2[i], static_cast<bool>(((i * 104729)>>3) % 2), "Wrong value");
+
+	TEST_ENSURE(!hat.empty(), "Empty");
 	hat.resize(0);
-	if (!hat.empty()) return false;
+	TEST_ENSURE(hat.empty(), "Not empty");
 	bit_array a(1,0),b(4,0),c(11,0);
 	a[0] = b[0] = c[0] = true;
-	if(!a[0] || !b[0] || ! c[0]) return false;
+	TEST_ENSURE(a[0] && b[0] && c[0], "Wrong value");
 	a[0] = b[0] = c[0] = false;
-	if(a[0] || b[0] || c[0]) return false;
+	TEST_ENSURE(!a[0] && !b[0] && !c[0], "Wrong value");
 
 	return true;
 }
@@ -161,36 +158,37 @@ bool iterator_test() {
 	{
 		array<size_t>::const_iterator i=hat.begin();
 		for (size_t j=0; j < 52; ++j) {
-			if (i == hat.end()) return false;
-			if (*i != ((j * 104729) % 2251)) return false;
+			TEST_ENSURE(i != hat.end(), "Should not be end");
+			TEST_ENSURE_EQUALITY(*i,((j * 104729) % 2251), "Wrong value");
 			++i;
 		}
-		if (i != hat.end()) return false;
+		TEST_ENSURE(i == hat.end(), "Should be end");
 	}
 	{
 		for (size_t j=0; j < 52; ++j) {
 			array<size_t>::iterator i=hat.find(j/2)+(j-j/2);
-			if (i == hat.end()) return false;
-			if (*i != ((j * 104729) % 2251)) return false;
+			TEST_ENSURE(i != hat.end(), "Should not be end");
+			TEST_ENSURE_EQUALITY(*i, ((j * 104729) % 2251), "Wrong value");
 		}
 	}
 	{
 		array<size_t>::reverse_iterator i=hat.rbegin();
-		for (int j=51; j >= 0; --j) {
-			if (i == hat.rend()) return false;
-			if (*i != (((51-j) * 104729) % 2251)) return false;
+		for (size_t j=0; j < 52; ++j) {
+			TEST_ENSURE(i != hat.rend(), "Should not be rend");
+			TEST_ENSURE_EQUALITY(*i, (((51-j) * 104729) % 2251), "Wrong value"); 
 			++i;
 		}
-		if (i != hat.rend()) return false;
+		TEST_ENSURE(i == hat.rend(), "Should be rend");
 	}
 
 	std::sort(hat.begin(), hat.end());
 
-	// verify order
-	// find two elements in the reverse order where one is less than the other
-	array<size_t>::reverse_iterator i=std::adjacent_find(hat.rbegin(), hat.rend(), std::less<size_t>());
-	if (i != hat.rend()) // if found
-		return false;
+	{
+		// verify order
+		// find two elements in the reverse order where one is less than the other
+		array<size_t>::reverse_iterator i=std::adjacent_find(hat.rbegin(), hat.rend(), std::less<size_t>());
+		TEST_ENSURE(i == hat.rend(), "Should not exist");
+	}
 	return true;
 }
 
@@ -203,27 +201,20 @@ bool iterator_bool_test() {
 	{
 		bit_array::const_iterator i=hat.begin();
 		for (int j=0; j < 52; ++j) {
-			if (i == hat.end()) {
-				tpie::log_error() << "end too soon" << std::endl;
-				return false;
-			}
-			if (*i != static_cast<bool>(((j * 104729)>>7) % 2)) {
-				tpie::log_error() << j << std::endl;
-				tpie::log_error() << "Wrong value " << *i << " " << (((j * 104729)>>7) % 2) << std::endl;
-				return false;
-			}
+			TEST_ENSURE(i != hat.end(), "End too soon");
+			TEST_ENSURE_EQUALITY(*i, static_cast<bool>(((j * 104729)>>7) % 2), "Wrong value");
 			++i;
 		}
-		if (i != hat.end()) return false;
+		TEST_ENSURE(i == hat.end(), "End expected");
 	}
 	{
 		bit_array::reverse_iterator i=hat.rbegin();
 		for (int j=51; j >= 0; --j) {
-			if (i == hat.rend()) return false;
-			if (*i != static_cast<bool>(((j * 104729)>>7) % 2)) return false;
+			TEST_ENSURE(i != hat.rend(), "End too soon");
+			TEST_ENSURE_EQUALITY(*i, static_cast<bool>(((j * 104729)>>7) % 2), "Wrong value");
 			++i;
 		}
-		if (i != hat.rend()) return false;
+		TEST_ENSURE(i == hat.rend(), "Rend expected");
 	}
   	std::sort(hat.begin(), hat.end());
 	return true;
@@ -272,15 +263,11 @@ bool frontback() {
 	for (size_t i = 0; i < sz; ++i) {
 		a[i] = base+i;
 	}
-	if (a.front() != static_cast<int>(base))
-		return false;
-	if (a.back() != static_cast<int>(base+sz-1))
-		return false;
+	TEST_ENSURE_EQUALITY(a.front(), static_cast<int>(base), "Wrong front");
+	TEST_ENSURE_EQUALITY(a.back(), static_cast<int>(base+sz-1), "Wrong back");
 	const array<int> & b = a;
-	if (b.front() != static_cast<int>(base))
-		return false;
-	if (b.back() != static_cast<int>(base+sz-1))
-		return false;
+	TEST_ENSURE_EQUALITY(b.front(), static_cast<int>(base), "Wrong front");
+	TEST_ENSURE_EQUALITY(b.back(), static_cast<int>(base+sz-1), "Wrong back");
 	return true;
 }
 
