@@ -30,57 +30,12 @@
 
 namespace tpie {
 
-///////////////////////////////////////////////////////////////////////////////
-/// \brief Simple class acting both as \ref file and a file::stream.
-///
-/// A file_stream basically supports every operation a \ref file or a
-/// file::stream supports. This is used to access a file I/O-efficiently, and
-/// is the direct replacement of the old ami::stream.
-///
-/// \tparam T The type of items stored in the stream.
-///////////////////////////////////////////////////////////////////////////////
-template <typename T>
-class file_stream {
+class file_stream_base {
 public:
-	/** The type of the items stored in the stream */
-	typedef T item_type;
 
-	/////////////////////////////////////////////////////////////////////////
-	/// \brief Construct a new file_stream.
-	/// 
-	/// \copydetails tpie::file::file(double blockFactor, file_accessor::file_accessor * fileAccessor)
-	/////////////////////////////////////////////////////////////////////////
-	inline file_stream(double blockFactor=1.0, 
-					   file_accessor::file_accessor * fileAccessor=NULL)
-		throw()
-		// : m_file(blockFactor, fileAccessor), m_stream(m_file, 0)
-		{
-
-		m_size = 0;
-		m_itemSize = sizeof(item_type);
-		m_open = false;
-		if (fileAccessor == 0)
-			fileAccessor = new default_file_accessor();
-		m_fileAccessor = fileAccessor;
-
-		m_blockSize = block_size(blockFactor);
-		m_blockItems = m_blockSize/m_itemSize;
-
-		m_blockStartIndex = 0;
-		m_nextBlock = std::numeric_limits<stream_size_type>::max();
-		m_nextIndex = std::numeric_limits<memory_size_type>::max();
-		m_index = std::numeric_limits<memory_size_type>::max();
-
-		m_tempFile = 0;
-	};
-
-	///////////////////////////////////////////////////////////////////////////
-	/// Destroy a file_stream.
-	///////////////////////////////////////////////////////////////////////////
-	inline ~file_stream() {
+	inline ~file_stream_base() {
 		close();
 	}
-
 
 	/////////////////////////////////////////////////////////////////////////
 	/// \copydoc file_base::open
@@ -113,6 +68,23 @@ public:
 
 
 	/////////////////////////////////////////////////////////////////////////
+	/// \brief Close the file and release resources.
+	///
+	/// This will close the file and resources used by buffers and such.
+	/////////////////////////////////////////////////////////////////////////
+	inline void close() throw(stream_exception) {
+		if (m_open) {
+			flush_block();
+			m_fileAccessor->close();
+		}
+		m_open = false;
+		m_ownedTempFile.reset();
+		m_tempFile=NULL;
+		tpie_delete_array(m_block.data, m_itemSize * m_blockItems);
+		m_block.data = 0;
+	}
+
+	/////////////////////////////////////////////////////////////////////////
 	/// \copydoc file_base::read_user_data
 	/// \sa file_base::read_user_data
 	/////////////////////////////////////////////////////////////////////////
@@ -133,129 +105,8 @@ public:
 		if (sizeof(TT) != m_fileAccessor->user_data_size()) throw io_exception("Wrong user data size");
 		m_fileAccessor->write_user_data(reinterpret_cast<const void*>(&data));
 	}
-
-	/////////////////////////////////////////////////////////////////////////
-	/// \brief Close the file and release resources.
-	///
-	/// This will close the file and resources used by buffers and such.
-	/////////////////////////////////////////////////////////////////////////
-	inline void close() throw(stream_exception) {
-		if (m_open) {
-			flush_block();
-			m_fileAccessor->close();
-		}
-		m_open = false;
-		m_ownedTempFile.reset();
-		m_tempFile=NULL;
-		m_block.data.resize(0);
-	}
 	
-	/////////////////////////////////////////////////////////////////////////
-	/// \copydoc file<T>::stream::write(const item_type & item)
-	/// \sa file<T>::stream::write(const item_type & item)
-	/////////////////////////////////////////////////////////////////////////
-	inline void write(const item_type & item) throw(stream_exception) {
-		assert(m_open);
-#ifndef NDEBUG
-		if (!is_writable())
-			throw io_exception("Cannot write to read only stream");
-#endif
-		if (m_index >= m_blockItems) update_block();
-		m_block.data[m_index++] = item;
-		write_update();
-	}
-
-	/////////////////////////////////////////////////////////////////////////
-	/// \copydoc file<T>::stream::write(const IT & start, const IT & end)
-	/// \sa file<T>::stream::write(const IT & start, const IT & end)
-	/////////////////////////////////////////////////////////////////////////
-	template <typename IT>
-	inline void write(const IT & start, const IT & end) throw(stream_exception) {
-		assert(m_open);
-		IT i = start;
-		while (i != end) {
-			if (m_index >= m_blockItems) update_block();
-
-			size_t streamRemaining = end - i;
-			size_t blockRemaining = m_blockItems-m_index;
-
-			IT till = (blockRemaining < streamRemaining) ? (i + blockRemaining) : end;
-
-			T * dest = m_block.data.get() + m_index;
-
-			std::copy(i, till, dest);
-
-			m_index += static_cast<memory_size_type>(till - i);
-			write_update();
-			i = till;
-		}
-	}
-
-	/////////////////////////////////////////////////////////////////////////
-	/// \copydoc file<T>::stream::read()
-	/// \sa file<T>::stream::read()
-	/////////////////////////////////////////////////////////////////////////
-	inline const item_type & read() throw(stream_exception) {
-		assert(m_open);
-		if (m_index >= m_block.size) {
-			update_block();
-			if (offset() >= size()) {
-				throw end_of_stream_exception();
-			}
-		}
-		return m_block.data[m_index++];
-	}
-
-	/////////////////////////////////////////////////////////////////////////
-	/// \copydoc file<T>::stream::read(const IT & start, const IT & end)
-	/// \sa file<T>::stream::read(const IT & start, const IT & end)
-	/////////////////////////////////////////////////////////////////////////
-	template <typename IT>
-	inline void read(const IT & start, const IT & end) throw(stream_exception) {
-		assert(m_open);
-		IT i = start;
-		while (i != end) {
-			if (m_index >= m_blockItems) {
-				// check to make sure we have enough items in the stream
-				stream_size_type offs = offset();
-				if (offs >= size()
-					|| offs + (end-i) > size()) {
-
-					throw end_of_stream_exception();
-				}
-
-				// fetch next block from disk
-				update_block();
-			}
-
-			T * src = m_block.data.get() + m_index;
-
-			// either read the rest of the block or until `end'
-			memory_size_type count = std::min(m_blockItems-m_index, static_cast<memory_size_type>(end-i));
-
-			std::copy(src, src + count, i);
-
-			// advance output iterator
-			i += count;
-
-			// advance input position
-			m_index += count;
-		}
-	}
-
-	/////////////////////////////////////////////////////////////////////////
-	/// \copydoc file<T>::stream::read_back()
-	/// \sa file<T>::stream::read_back()
-	/////////////////////////////////////////////////////////////////////////
-	inline const item_type & read_back() throw(stream_exception) {
-		assert(m_open);
-		seek(-1, file_base::current);
-		const item_type & i = read();
-		seek(-1, file_base::current);
-		return i;
-	}
-
-	/////////////////////////////////////////////////////////////////////////
+		/////////////////////////////////////////////////////////////////////////
 	/// \copydoc file_base::stream::offset()
 	/// \sa file_base::stream::offset()
 	/////////////////////////////////////////////////////////////////////////
@@ -283,7 +134,7 @@ public:
 		// XXX update_vars changes internal state in a way that is not visible
 		// through the class interface.
 		// therefore, a const_cast is warranted.
-		const_cast<file_stream<T>*>(this)->update_vars();
+		const_cast<file_stream_base*>(this)->update_vars();
 		return m_size;
 	}
 
@@ -303,7 +154,7 @@ public:
 	/////////////////////////////////////////////////////////////////////////
 	inline bool can_read_back() const throw() {
 		assert(m_open);
-		const_cast<file_stream<T>*>(this)->update_vars();
+		const_cast<file_stream_base*>(this)->update_vars();
 		if (m_index > 0) return true;
 		return m_block.number != 0;
 	}
@@ -387,26 +238,31 @@ public:
 		return m_canWrite;
 	}
 
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Calculate the amount of memory used by a single file_stream.
-	///
-	/// \param blockFactor The block factor you pass to open.
-	/// \param includeDefaultFileAccessor Unless you are supplying your own
-	/// file accessor to open, leave this to be true.
-	/// \returns The amount of memory maximally used by the count file_streams.
-	///////////////////////////////////////////////////////////////////////////
-	inline static memory_size_type memory_usage(
-		float blockFactor=1.0,
-		bool includeDefaultFileAccessor=true) throw() {
-		// TODO
-		memory_size_type x = sizeof(file_stream);
-		x += block_memory_usage(blockFactor); // allocated in constructor
-		if (includeDefaultFileAccessor)
-			x += default_file_accessor::memory_usage();
-		return x;
+
+	////////////////////////////////////////////////////////////////////////////////
+	/// \copydoc file_base<T>::block_size(double)
+	////////////////////////////////////////////////////////////////////////////////
+	static inline memory_size_type block_size(double blockFactor) throw () {
+		return static_cast<memory_size_type>(2 * 1024*1024 * blockFactor);
 	}
 
-	void swap(file_stream<T> & other) {
+	////////////////////////////////////////////////////////////////////////////////
+	/// \copydoc file_base<T>::calculate_block_factor(memory_size_type)
+	////////////////////////////////////////////////////////////////////////////////
+	static inline double calculate_block_factor(memory_size_type blockSize) throw () {
+		return (double)blockSize / (double)block_size(1.0);
+	}
+
+	static inline memory_size_type block_memory_usage(double blockFactor) {
+		return block_size(blockFactor);
+	}
+
+	inline memory_size_type block_memory_usage() {
+		return m_blockItems * m_itemSize;
+	}
+
+protected:
+	void swap(file_stream_base & other) {
 		using std::swap;
 		swap(m_index,           other.m_index);
 		swap(m_nextBlock,       other.m_nextBlock);
@@ -428,29 +284,26 @@ public:
 		swap(m_tempFile,        other.m_tempFile);
 	}
 
-private:
-	struct block_t {
-		memory_size_type size;
-		stream_size_type number;
-		bool dirty;
-		array<T> data;
-	};
+	inline file_stream_base(double blockFactor, 
+							file_accessor::file_accessor * fileAccessor,
+							memory_size_type itemSize) {
+		m_size = 0;
+		m_itemSize = itemSize;
+		m_open = false;
+		if (fileAccessor == 0)
+			fileAccessor = new default_file_accessor();
+		m_fileAccessor = fileAccessor;
 
-	memory_size_type m_index;
-	stream_size_type m_nextBlock;
-	memory_size_type m_nextIndex;
-	stream_size_type m_blockStartIndex;
-	memory_size_type m_blockItems;
-	memory_size_type m_blockSize;
-	stream_size_type m_size;
-	bool m_canRead;
-	bool m_canWrite;
-	memory_size_type m_itemSize;
-	bool m_open;
-	file_accessor::file_accessor * m_fileAccessor;
-	block_t m_block;
-	std::auto_ptr<temp_file> m_ownedTempFile;
-	temp_file * m_tempFile;
+		m_blockSize = block_size(blockFactor);
+		m_blockItems = m_blockSize/m_itemSize;
+
+		m_blockStartIndex = 0;
+		m_nextBlock = std::numeric_limits<stream_size_type>::max();
+		m_nextIndex = std::numeric_limits<memory_size_type>::max();
+		m_index = std::numeric_limits<memory_size_type>::max();
+		m_block.data = 0;
+		m_tempFile = 0;
+	}
 
 	inline void open_inner(const std::string & path,
 						   file_base::access_type accessType,
@@ -469,12 +322,11 @@ private:
 		m_block.size = 0;
 		m_block.number = std::numeric_limits<stream_size_type>::max();
 		m_block.dirty = false;
-		m_block.data.resize(m_blockItems);
+		m_block.data = tpie_new_array<char>(m_blockItems * m_itemSize);
 		
 		initialize();
 		seek(0);
 	}
-
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Use file_accessor to fetch indicated block number into m_block.
@@ -501,7 +353,7 @@ private:
 
 		// populate buffer data
 		if (m_block.size > 0 &&
-			m_fileAccessor->read_block(m_block.data.get(), m_block.number, m_block.size) != m_block.size) {
+			m_fileAccessor->read_block(m_block.data, m_block.number, m_block.size) != m_block.size) {
 			throw io_exception("Incorrect number of items read");
 		}
 	}
@@ -530,7 +382,7 @@ private:
 		if (m_block.dirty) {
 			assert(m_canWrite);
 			update_vars();
-			m_fileAccessor->write_block(m_block.data.get(), m_block.number, m_block.size);
+			m_fileAccessor->write_block(m_block.data, m_block.number, m_block.size);
 		}
 		m_block.dirty = false;
 	}
@@ -556,26 +408,183 @@ private:
 		m_block.dirty = true;
 	}
 
-	////////////////////////////////////////////////////////////////////////////////
-	/// \copydoc file_base<T>::block_size(double)
-	////////////////////////////////////////////////////////////////////////////////
-	static inline memory_size_type block_size(double blockFactor) throw () {
-		return static_cast<memory_size_type>(2 * 1024*1024 * blockFactor);
+   	memory_size_type m_index;
+	stream_size_type m_nextBlock;
+	memory_size_type m_nextIndex;
+	stream_size_type m_blockStartIndex;
+	memory_size_type m_blockItems;
+	memory_size_type m_blockSize;
+	stream_size_type m_size;
+	bool m_canRead;
+	bool m_canWrite;
+	memory_size_type m_itemSize;
+	bool m_open;
+	file_accessor::file_accessor * m_fileAccessor;
+	std::auto_ptr<temp_file> m_ownedTempFile;
+	temp_file * m_tempFile;
+
+	struct block_t {
+		memory_size_type size;
+		stream_size_type number;
+		bool dirty;
+		char * data;
+	};
+
+	block_t m_block;
+
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Simple class acting both as \ref file and a file::stream.
+///
+/// A file_stream basically supports every operation a \ref file or a
+/// file::stream supports. This is used to access a file I/O-efficiently, and
+/// is the direct replacement of the old ami::stream.
+///
+/// \tparam T The type of items stored in the stream.
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+class file_stream: public file_stream_base {
+public:
+	/** The type of the items stored in the stream */
+	typedef T item_type;
+
+	/////////////////////////////////////////////////////////////////////////
+	/// \brief Construct a new file_stream.
+	/// 
+	/// \copydetails tpie::file::file(double blockFactor, file_accessor::file_accessor * fileAccessor)
+	/////////////////////////////////////////////////////////////////////////
+	inline file_stream(double blockFactor=1.0, 
+					   file_accessor::file_accessor * fileAccessor=NULL):
+		file_stream_base(blockFactor, fileAccessor, sizeof(item_type) ) {};
+
+	
+	/////////////////////////////////////////////////////////////////////////
+	/// \copydoc file<T>::stream::write(const item_type & item)
+	/// \sa file<T>::stream::write(const item_type & item)
+	/////////////////////////////////////////////////////////////////////////
+	inline void write(const item_type & item) throw(stream_exception) {
+		assert(m_open);
+#ifndef NDEBUG
+		if (!is_writable())
+			throw io_exception("Cannot write to read only stream");
+#endif
+		if (m_index >= m_blockItems) update_block();
+		reinterpret_cast<item_type*>(m_block.data)[m_index++] = item;
+		write_update();
 	}
 
-	////////////////////////////////////////////////////////////////////////////////
-	/// \copydoc file_base<T>::calculate_block_factor(memory_size_type)
-	////////////////////////////////////////////////////////////////////////////////
-	static inline double calculate_block_factor(memory_size_type blockSize) throw () {
-		return (double)blockSize / (double)block_size(1.0);
+	/////////////////////////////////////////////////////////////////////////
+	/// \copydoc file<T>::stream::write(const IT & start, const IT & end)
+	/// \sa file<T>::stream::write(const IT & start, const IT & end)
+	/////////////////////////////////////////////////////////////////////////
+	template <typename IT>
+	inline void write(const IT & start, const IT & end) throw(stream_exception) {
+		assert(m_open);
+		IT i = start;
+		while (i != end) {
+			if (m_index >= m_blockItems) update_block();
+
+			size_t streamRemaining = end - i;
+			size_t blockRemaining = m_blockItems-m_index;
+
+			IT till = (blockRemaining < streamRemaining) ? (i + blockRemaining) : end;
+
+			T * dest = reinterpret_cast<item_type*>(m_block.data) + m_index;
+
+			std::copy(i, till, dest);
+
+			m_index += static_cast<memory_size_type>(till - i);
+			write_update();
+			i = till;
+		}
 	}
 
-	static inline memory_size_type block_memory_usage(double blockFactor) {
-		return block_size(blockFactor);
+	/////////////////////////////////////////////////////////////////////////
+	/// \copydoc file<T>::stream::read()
+	/// \sa file<T>::stream::read()
+	/////////////////////////////////////////////////////////////////////////
+	inline const item_type & read() throw(stream_exception) {
+		assert(m_open);
+		if (m_index >= m_block.size) {
+			update_block();
+			if (offset() >= size()) {
+				throw end_of_stream_exception();
+			}
+		}
+		return reinterpret_cast<item_type*>(m_block.data)[m_index++];
 	}
 
-	inline memory_size_type block_memory_usage() {
-		return m_blockItems * m_itemSize;
+	/////////////////////////////////////////////////////////////////////////
+	/// \copydoc file<T>::stream::read(const IT & start, const IT & end)
+	/// \sa file<T>::stream::read(const IT & start, const IT & end)
+	/////////////////////////////////////////////////////////////////////////
+	template <typename IT>
+	inline void read(const IT & start, const IT & end) throw(stream_exception) {
+		assert(m_open);
+		IT i = start;
+		while (i != end) {
+			if (m_index >= m_blockItems) {
+				// check to make sure we have enough items in the stream
+				stream_size_type offs = offset();
+				if (offs >= size()
+					|| offs + (end-i) > size()) {
+
+					throw end_of_stream_exception();
+				}
+
+				// fetch next block from disk
+				update_block();
+			}
+
+			T * src = reinterpret_cast<item_type*>(m_block.data) + m_index;
+
+			// either read the rest of the block or until `end'
+			memory_size_type count = std::min(m_blockItems-m_index, static_cast<memory_size_type>(end-i));
+
+			std::copy(src, src + count, i);
+
+			// advance output iterator
+			i += count;
+
+			// advance input position
+			m_index += count;
+		}
+	}
+
+	/////////////////////////////////////////////////////////////////////////
+	/// \copydoc file<T>::stream::read_back()
+	/// \sa file<T>::stream::read_back()
+	/////////////////////////////////////////////////////////////////////////
+	inline const item_type & read_back() throw(stream_exception) {
+		assert(m_open);
+		seek(-1, file_base::current);
+		const item_type & i = read();
+		seek(-1, file_base::current);
+		return i;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Calculate the amount of memory used by a single file_stream.
+	///
+	/// \param blockFactor The block factor you pass to open.
+	/// \param includeDefaultFileAccessor Unless you are supplying your own
+	/// file accessor to open, leave this to be true.
+	/// \returns The amount of memory maximally used by the count file_streams.
+	///////////////////////////////////////////////////////////////////////////
+	inline static memory_size_type memory_usage(
+		float blockFactor=1.0,
+		bool includeDefaultFileAccessor=true) throw() {
+		// TODO
+		memory_size_type x = sizeof(file_stream);
+		x += block_memory_usage(blockFactor); // allocated in constructor
+		if (includeDefaultFileAccessor)
+			x += default_file_accessor::memory_usage();
+		return x;
+	}
+
+	void swap(file_stream<T> & other) {
+		file_stream_base::swap(other);
 	}
 };
 
