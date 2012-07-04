@@ -13,6 +13,7 @@ set (HEADERS
 		exception.h
 		err.h
 		file.h
+		file_base.h
 		file_stream.h
 		file_accessor/file_accessor.h
 		file_accessor/stream_accessor.h

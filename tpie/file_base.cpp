@@ -19,7 +19,7 @@
 #include <tpie/portability.h>
 
 #include <tpie/exception.h>
-#include <tpie/file.h>
+#include <tpie/file_base.h>
 #include <tpie/memory.h>
 
 namespace tpie {
@@ -37,7 +37,8 @@ namespace tpie {
 file_base::file_base(memory_size_type itemSize,
 					 double blockFactor,
 					 file_accessor::file_accessor * fileAccessor) :
-	m_size(0), 	m_itemSize(itemSize) {
+	m_size(0) {
+	m_itemSize = itemSize;
 	m_open = false;
 	if (fileAccessor == 0)
 		fileAccessor = new default_file_accessor();
