@@ -38,7 +38,6 @@ typedef tpie::file_accessor::stream_accessor<tpie::file_accessor::win32> default
 
 namespace tpie {
 
-template <typename child_t>
 class file_base_base {
 public:
   	/** Type describing how we should interpret the offset supplied to seek. */
@@ -120,31 +119,6 @@ public:
 		return m_blockSize;
 	}
 
-public:
-	memory_size_type m_blockItems;
-	memory_size_type m_blockSize;
-	bool m_canRead;
-	bool m_canWrite;
-	bool m_open;
-	memory_size_type m_itemSize;
-};
-
-
-class file_base: public file_base_base<file_base> {
-protected:
-	///////////////////////////////////////////////////////////////////////////
-	/// This is the type of our block buffers. We have one per file::stream
-	/// distributed over two linked lists.
-	///////////////////////////////////////////////////////////////////////////
-	struct block_t : public boost::intrusive::list_base_hook<> {
-		memory_size_type size;
-		memory_size_type usage;
-		stream_size_type number;
-		bool dirty;
-		char data[0];
-	};
-public:
-	using file_base_base<file_base>::m_itemSize;
 
 	/////////////////////////////////////////////////////////////////////////
 	/// \brief Read the user data associated with the file.
@@ -174,16 +148,45 @@ public:
 		m_fileAccessor->write_user_data(reinterpret_cast<const void*>(&data));
 	}
 
+
 	/////////////////////////////////////////////////////////////////////////
-	/// \brief Close the file.
+	/// \brief The path of the file opened or the empty string.
 	///
-	/// Note all streams into the file must be freed before you call close.
+	/// \returns The path of the currently opened file.
 	/////////////////////////////////////////////////////////////////////////
-	inline void close() throw(stream_exception) {
-		if (m_open) m_fileAccessor->close();
-		m_open = false;
-		m_tempFile = NULL;
+	inline const std::string & path() const throw() {
+		assert(m_open);
+		return m_fileAccessor->path();
 	}
+
+	inline void open_inner(const std::string & path,
+						   access_type accessType=read_write,
+						   memory_size_type userDataSize=0) throw(stream_exception) {
+		m_canRead = accessType == read || accessType == read_write;
+		m_canWrite = accessType == write || accessType == read_write;
+		m_fileAccessor->open(path, m_canRead, m_canWrite, m_itemSize, m_blockSize, userDataSize);
+		m_size = m_fileAccessor->size();
+		m_open = true;
+	}
+public:
+	memory_size_type m_blockItems;
+	memory_size_type m_blockSize;
+	bool m_canRead;
+	bool m_canWrite;
+	bool m_open;
+	memory_size_type m_itemSize;
+	file_accessor::file_accessor * m_fileAccessor;
+	tpie::auto_ptr<temp_file> m_ownedTempFile;
+	temp_file * m_tempFile;
+	stream_size_type m_size;
+};
+
+template <typename child_t>
+class file_base_base_crtp: public file_base_base  {
+public:
+	child_t & self() {return *static_cast<child_t *>(this);}
+	const child_t & self() const {return *static_cast<child_t *>(this);}
+
 
 	/////////////////////////////////////////////////////////////////////////
 	/// \brief Open a file.
@@ -195,18 +198,58 @@ public:
 	/////////////////////////////////////////////////////////////////////////
 	inline void open(const std::string & path,
 					 access_type accessType=read_write,
-					 memory_size_type userDataSize=0) throw(stream_exception) {
-		close();
-		open_inner(path, accessType, userDataSize);
+					 memory_size_type userDataSize=0) throw (stream_exception) {
+		self().close();
+		self().open_inner(path, accessType, userDataSize);
 	}
 
-	inline void open(temp_file & file,
-					 access_type accessType=read_write,
-					 memory_size_type userDataSize=0) throw(stream_exception) {
-		close();
-		m_tempFile = &file;
-		open_inner(file.path(), accessType, userDataSize);
+	/////////////////////////////////////////////////////////////////////////
+	///
+	/////////////////////////////////////////////////////////////////////////
+	inline void open(memory_size_type userDataSize=0) throw (stream_exception) {
+		self().close();
+		m_ownedTempFile.reset(new temp_file());
+		m_tempFile=m_ownedTempFile.get();
+		self().open_inner(m_tempFile->path(), read_write, userDataSize);
 	}
+
+	inline void open(temp_file & file, 
+					 access_type accessType=read_write,
+					 memory_size_type userDataSize=0) throw (stream_exception) {
+		self().close();
+		m_tempFile=&file;
+		self().open_inner(m_tempFile->path(), accessType, userDataSize);
+	}
+
+	/////////////////////////////////////////////////////////////////////////
+	/// \brief Close the file.
+	///
+	/// Note all streams into the file must be freed before you call close.
+	/////////////////////////////////////////////////////////////////////////
+	inline void close() throw(stream_exception) {
+		if (m_open) m_fileAccessor->close();
+		m_open = false;
+		m_tempFile = NULL;
+		m_ownedTempFile.reset();
+	}
+};
+
+
+class file_base: public file_base_base_crtp<file_base> {
+protected:
+	///////////////////////////////////////////////////////////////////////////
+	/// This is the type of our block buffers. We have one per file::stream
+	/// distributed over two linked lists.
+	///////////////////////////////////////////////////////////////////////////
+	struct block_t : public boost::intrusive::list_base_hook<> {
+		memory_size_type size;
+		memory_size_type usage;
+		stream_size_type number;
+		bool dirty;
+		char data[0];
+	};
+public:
+
 
 	/////////////////////////////////////////////////////////////////////////
 	/// \brief Calculate the size of the file measured in items.
@@ -217,15 +260,6 @@ public:
 		return m_size;
 	}
 
-	/////////////////////////////////////////////////////////////////////////
-	/// \brief The path of the file opened or the empty string.
-	///
-	/// \returns The path of the currently opened file.
-	/////////////////////////////////////////////////////////////////////////
-	inline const std::string & path() const throw() {
-		assert(m_open);
-		return m_fileAccessor->path();
-	}
 
 	inline void update_size(stream_size_type size) {
 		m_size = std::max(m_size, size);
@@ -425,8 +459,6 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	~file_base();
 
-
-protected:
 	stream_size_type m_size;
 	static block_t m_emptyBlock;
 
@@ -439,60 +471,19 @@ protected:
 	block_t * get_block(stream_size_type block);
 	void free_block(block_t * block);
 
-private:
+
 	// TODO This should really be a hash map
 	boost::intrusive::list<block_t> m_used;
 	boost::intrusive::list<block_t> m_free;
-	file_accessor::file_accessor * m_fileAccessor;
-
-	temp_file * m_tempFile;
-
-	inline void open_inner(const std::string & path,
-						   access_type accessType=read_write,
-						   memory_size_type userDataSize=0) throw(stream_exception) {
-		m_canRead = accessType == read || accessType == read_write;
-		m_canWrite = accessType == write || accessType == read_write;
-		m_fileAccessor->open(path, m_canRead, m_canWrite, m_itemSize, m_blockSize, userDataSize);
-		m_size = m_fileAccessor->size();
-		m_open = true;
-	}
 };
 
 
-class file_stream_base: public file_base_base<file_stream_base> {
+class file_stream_base: public file_base_base_crtp<file_stream_base> {
 public:
+	typedef file_base_base_crtp<file_stream_base> p_t;
 
 	inline ~file_stream_base() {
 		close();
-	}
-
-	/////////////////////////////////////////////////////////////////////////
-	/// \copydoc file_base::open
-	/// \sa file_base::open
-	/////////////////////////////////////////////////////////////////////////
-	inline void open(const std::string & path,
-					 file_base::access_type accessType=file_base::read_write,
-					 memory_size_type userDataSize=0) throw (stream_exception) {
-		close();
-		open_inner(path, accessType, userDataSize);
-	}
-
-	/////////////////////////////////////////////////////////////////////////
-	///
-	/////////////////////////////////////////////////////////////////////////
-	inline void open(memory_size_type userDataSize=0) throw (stream_exception) {
-		close();
-		m_ownedTempFile.reset(new temp_file());
-		m_tempFile=m_ownedTempFile.get();
-		open_inner(m_tempFile->path(), file_base::read_write, userDataSize);
-	}
-
-	inline void open(temp_file & file, 
-					 file_base::access_type accessType=file_base::read_write,
-					 memory_size_type userDataSize=0) throw (stream_exception) {
-		close();
-		m_tempFile=&file;
-		open_inner(m_tempFile->path(), accessType, userDataSize);
 	}
 
 
@@ -502,40 +493,14 @@ public:
 	/// This will close the file and resources used by buffers and such.
 	/////////////////////////////////////////////////////////////////////////
 	inline void close() throw(stream_exception) {
-		if (m_open) {
-			flush_block();
-			m_fileAccessor->close();
-		}
-		m_open = false;
-		m_ownedTempFile.reset();
-		m_tempFile=NULL;
+		if (m_open) flush_block();
 		tpie_delete_array(m_block.data, m_itemSize * m_blockItems);
 		m_block.data = 0;
+		p_t::close();
 	}
 
-	/////////////////////////////////////////////////////////////////////////
-	/// \copydoc file_base::read_user_data
-	/// \sa file_base::read_user_data
-	/////////////////////////////////////////////////////////////////////////
-	template <typename TT>
-	void read_user_data(TT & data) throw (stream_exception) {
-		assert(m_open);
-		if (sizeof(TT) != m_fileAccessor->user_data_size()) throw io_exception("Wrong user data size");
-		m_fileAccessor->read_user_data(reinterpret_cast<void*>(&data));
-	}
-
-	/////////////////////////////////////////////////////////////////////////
-	/// \copydoc file_base::write_user_data
-	/// \sa file_base::write_user_data
-	/////////////////////////////////////////////////////////////////////////
-	template <typename TT>
-	void write_user_data(const TT & data) {
-		assert(m_open);
-		if (sizeof(TT) != m_fileAccessor->user_data_size()) throw io_exception("Wrong user data size");
-		m_fileAccessor->write_user_data(reinterpret_cast<const void*>(&data));
-	}
 	
-		/////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////
 	/// \copydoc file_base::stream::offset()
 	/// \sa file_base::stream::offset()
 	/////////////////////////////////////////////////////////////////////////
@@ -546,15 +511,7 @@ public:
 		return m_nextIndex + m_nextBlock * m_blockItems;
 	}
 
-	/////////////////////////////////////////////////////////////////////////
-	/// \copydoc file_base::path()
-	/// \sa file_base::path()
-	/////////////////////////////////////////////////////////////////////////
-	inline const std::string & path() const throw() {
-		assert(m_open);
-		return m_fileAccessor->path();
-	}
-
+	
 	/////////////////////////////////////////////////////////////////////////
 	/// \copydoc file_base::size()
 	/// \sa file_base::size()
@@ -650,7 +607,6 @@ public:
 	}
 
 
-protected:
 	void swap(file_stream_base & other) {
 		using std::swap;
 		swap(m_index,           other.m_index);
@@ -695,13 +651,9 @@ protected:
 	}
 
 	inline void open_inner(const std::string & path,
-						   file_base::access_type accessType,
-						   memory_size_type user_data_size) throw (stream_exception) {
-		m_canRead = accessType == file_base::read || accessType == file_base::read_write;
-		m_canWrite = accessType == file_base::write || accessType == file_base::read_write;
-		m_fileAccessor->open(path, m_canRead, m_canWrite, m_itemSize, m_blockSize, user_data_size);
-		m_size = m_fileAccessor->size();
-		m_open = true;
+						   access_type accessType,
+						   memory_size_type userDataSize) throw (stream_exception) {
+		p_t::open_inner(path, accessType, userDataSize);
 		
 		m_blockStartIndex = 0;
 		m_nextBlock = std::numeric_limits<stream_size_type>::max();
@@ -801,12 +753,7 @@ protected:
 	stream_size_type m_nextBlock;
 	memory_size_type m_nextIndex;
 	stream_size_type m_blockStartIndex;
-	stream_size_type m_size;
 
-
-	file_accessor::file_accessor * m_fileAccessor;
-	std::auto_ptr<temp_file> m_ownedTempFile;
-	temp_file * m_tempFile;
 
 	struct block_t {
 		memory_size_type size;
