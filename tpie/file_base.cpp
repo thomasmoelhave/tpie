@@ -194,7 +194,8 @@ void file_base::stream::update_block() {
 }
 
 file_base::stream::stream(file_base & f, stream_size_type offset):
-	m_file(f), m_blockStartIndex(0) {
+	m_file(f) {
+	m_blockStartIndex = 0;
 	m_nextBlock = std::numeric_limits<stream_size_type>::max();
 	m_nextIndex = std::numeric_limits<memory_size_type>::max();
 	m_index = std::numeric_limits<memory_size_type>::max();;

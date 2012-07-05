@@ -44,13 +44,6 @@ public:
 	child_t & self() {return *static_cast<child_t *>(this);}
 	const child_t & self() const {return *static_cast<child_t *>(this);}
 
-  	/** Type describing how we should interpret the offset supplied to seek. */
-	enum offset_type {
-		beginning,
-		end,
-		current
-	};
-
 	/** Type describing how we wish to access a file. */
 	enum access_type {
 		read,
@@ -237,6 +230,76 @@ public:
 };
 
 
+template <typename child_t>
+class stream_crtp {
+public:
+  	/** Type describing how we should interpret the offset supplied to seek. */
+	enum offset_type {
+		beginning,
+		end,
+		current
+	};
+
+	inline child_t & self() {return *static_cast<child_t*>(this);}
+
+	/////////////////////////////////////////////////////////////////////////
+	/// \brief Moves the logical offset in the stream.
+	///
+	/// \param offset Where to move the logical offset to.
+	/// \param whence Move the offset relative to what.
+	/////////////////////////////////////////////////////////////////////////
+	inline void seek(stream_offset_type offset, offset_type whence=beginning) throw(stream_exception) {
+		assert(self().__file().m_open);
+		if (whence == end)
+			offset += self().size();
+		else if (whence == current) {
+			// are we seeking into the current block?
+			if (offset >= 0 || static_cast<stream_size_type>(-offset) <= m_index) {
+				stream_size_type new_index = static_cast<stream_offset_type>(offset+m_index);
+				
+				if (new_index < self().__file().m_blockItems) {
+					self().update_vars();
+					m_index = static_cast<memory_size_type>(new_index);
+					return;
+				}
+			}
+			
+			offset += self().offset();
+		}
+		if (0 > offset || (stream_size_type)offset > self().size())
+			throw io_exception("Tried to seek out of file");
+		self().update_vars();
+		stream_size_type b = static_cast<stream_size_type>(offset) / self().__file().m_blockItems;
+		m_index = static_cast<memory_size_type>(offset - b* self().__file().m_blockItems);
+		if (b == self().block_number()) {
+			m_nextBlock = std::numeric_limits<stream_size_type>::max();
+			m_nextIndex = std::numeric_limits<memory_size_type>::max();
+			assert(self().offset() == (stream_size_type)offset);
+			return;
+		}
+		m_nextBlock = b;
+		m_nextIndex = m_index;
+		m_index = std::numeric_limits<memory_size_type>::max();
+		assert(self().offset() == (stream_size_type)offset);
+	}
+
+	/** Item index into the current block, or maxint if we don't have a
+	 * block. */
+	memory_size_type m_index;
+	/** After a cross-block seek: Block index of next block, or maxint if
+	 * the current block is good enough OR if we haven't read/written
+	 * anything yet. */
+	stream_size_type m_nextBlock;
+	/** After a cross-block seek: Item index into next block. Otherwise,
+	 * maxint as with m_nextBlock. */
+	memory_size_type m_nextIndex;
+	/** The file-level item index of the first item in the current block.
+	 * When m_block is not the null block, this should be equal to
+	 * m_block->number * block_items(). */
+	stream_size_type m_blockStartIndex;
+};
+
+
 class file_base: public file_base_crtp<file_base> {
 protected:
 	///////////////////////////////////////////////////////////////////////////
@@ -251,8 +314,6 @@ protected:
 		char data[0];
 	};
 public:
-
-
 	/////////////////////////////////////////////////////////////////////////
 	/// \brief Calculate the size of the file measured in items.
 	///
@@ -272,24 +333,15 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Stream in file. We support multiple streams per file.
 	///////////////////////////////////////////////////////////////////////////
-	class stream {
+	class stream: public stream_crtp<stream> {
+	public:
+		stream_size_type block_number() {return m_block->number;}
+		inline file_base & __file() {return m_file;}
+		inline void update_vars() {}
 	protected:
 		/** Associated file object. */
 		file_base & m_file;
-		/** Item index into the current block, or maxint if we don't have a
-		 * block. */
-		memory_size_type m_index;
-		/** After a cross-block seek: Block index of next block, or maxint if
-		 * the current block is good enough OR if we haven't read/written
-		 * anything yet. */
-		stream_size_type m_nextBlock;
-		/** After a cross-block seek: Item index into next block. Otherwise,
-		 * maxint as with m_nextBlock. */
-		memory_size_type m_nextIndex;
-		/** The file-level item index of the first item in the current block.
-		 * When m_block is not the null block, this should be equal to
-		 * m_block->number * block_items(). */
-		stream_size_type m_blockStartIndex;
+
 		/** Current block. May be equal to &m_file.m_emptyBlock to indicate no
 		 * current block. */
 		block_t * m_block;
@@ -345,44 +397,6 @@ public:
 
 		inline ~stream() {free();}
 
-		/////////////////////////////////////////////////////////////////////////
-		/// \brief Moves the logical offset in the stream.
-		///
-		/// \param offset Where to move the logical offset to.
-		/// \param whence Move the offset relative to what.
-		/////////////////////////////////////////////////////////////////////////
-		inline void seek(stream_offset_type offset, offset_type whence=beginning) throw(stream_exception) {
-			assert(m_file.m_open);
-			if (whence == end)
-				offset += size();
-			else if (whence == current) {
-				// are we seeking into the current block?
-				if (offset >= 0 || static_cast<stream_size_type>(-offset) <= m_index) {
-					stream_size_type new_index = static_cast<stream_offset_type>(offset+m_index);
-
-					if (new_index < m_file.m_blockItems) {
-						m_index = static_cast<memory_size_type>(new_index);
-						return;
-					}
-				}
-
-				offset += this->offset();
-			}
-			if (0 > offset || (stream_size_type)offset > size())
-				throw io_exception("Tried to seek out of file");
-			stream_size_type b = static_cast<stream_size_type>(offset) / m_file.m_blockItems;
-			m_index = static_cast<memory_size_type>(offset - b*m_file.m_blockItems);
-			if (b == m_block->number) {
-				m_nextBlock = std::numeric_limits<stream_size_type>::max();
-				m_nextIndex = std::numeric_limits<memory_size_type>::max();
-				assert(this->offset() == (stream_size_type)offset);
-				return;
-			}
-			m_nextBlock = b;
-			m_nextIndex = m_index;
-			m_index = std::numeric_limits<memory_size_type>::max();
-			assert(this->offset() == (stream_size_type)offset);
-		}
 
 		///////////////////////////////////////////////////////////////////////
 		/// \brief Get the size of the file underlying this stream.
@@ -479,9 +493,16 @@ public:
 };
 
 
-class file_stream_base: public file_base_crtp<file_stream_base> {
+
+
+class file_stream_base: public file_base_crtp<file_stream_base>, public stream_crtp<file_stream_base> {
 public:
 	typedef file_base_crtp<file_stream_base> p_t;
+
+	file_stream_base & __file() {return *this;}
+
+
+	stream_size_type block_number() {return m_block.number;}
 
 	file_stream_base(memory_size_type itemSize,
 					 double blockFactor,
@@ -554,43 +575,43 @@ public:
 	/// \copydoc file_base::stream::seek()
 	/// \sa file_base::stream::seek()
 	/////////////////////////////////////////////////////////////////////////
-	inline void seek(stream_offset_type offset, 
-					 file_base::offset_type whence=file_base::beginning) 
-		throw (stream_exception) {
+	// inline void seek(stream_offset_type offset, 
+	// 				 offset_type whence=file_base::beginning) 
+	// 	throw (stream_exception) {
 
-		assert(m_open);
-		if (whence == file_base::end)
-			offset += size();
-		else if (whence == file_base::current) {
-			// are we seeking into the current block?
-			if (offset >= 0 || static_cast<stream_size_type>(-offset) <= m_index) {
-				stream_size_type new_index = static_cast<stream_offset_type>(offset+m_index);
+	// 	assert(m_open);
+	// 	if (whence == file_base::end)
+	// 		offset += size();
+	// 	else if (whence == file_base::current) {
+	// 		are we seeking into the current block?
+	// 		if (offset >= 0 || static_cast<stream_size_type>(-offset) <= m_index) {
+	// 			stream_size_type new_index = static_cast<stream_offset_type>(offset+m_index);
 
-				if (new_index < m_blockItems) {
-					update_vars();
-					m_index = static_cast<memory_size_type>(new_index);
-					return;
-				}
-			}
+	// 			if (new_index < m_blockItems) {
+	// 				update_vars();
+	// 				m_index = static_cast<memory_size_type>(new_index);
+	// 				return;
+	// 			}
+	// 		}
 
-			offset += this->offset();
-		}
-		if (0 > offset || (stream_size_type)offset > size())
-			throw io_exception("Tried to seek out of file");
-		update_vars();
-		stream_size_type b = static_cast<stream_size_type>(offset) / m_blockItems;
-		m_index = static_cast<memory_size_type>(offset - b*m_blockItems);
-		if (b == m_block.number) {
-			m_nextBlock = std::numeric_limits<stream_size_type>::max();
-			m_nextIndex = std::numeric_limits<memory_size_type>::max();
-			assert(this->offset() == (stream_size_type)offset);
-			return;
-		}
-		m_nextBlock = b;
-		m_nextIndex = m_index;
-		m_index = std::numeric_limits<memory_size_type>::max();
-		assert(this->offset() == (stream_size_type)offset);
-	}
+	// 		offset += this->offset();
+	// 	}
+	// 	if (0 > offset || (stream_size_type)offset > size())
+	// 		throw io_exception("Tried to seek out of file");
+	// 	update_vars();
+	// 	stream_size_type b = static_cast<stream_size_type>(offset) / m_blockItems;
+	// 	m_index = static_cast<memory_size_type>(offset - b*m_blockItems);
+	// 	if (b == m_block.number) {
+	// 		m_nextBlock = std::numeric_limits<stream_size_type>::max();
+	// 		m_nextIndex = std::numeric_limits<memory_size_type>::max();
+	// 		assert(this->offset() == (stream_size_type)offset);
+	// 		return;
+	// 	}
+	// 	m_nextBlock = b;
+	// 	m_nextIndex = m_index;
+	// 	m_index = std::numeric_limits<memory_size_type>::max();
+	// 	assert(this->offset() == (stream_size_type)offset);
+	// }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \copydoc file_base::truncate()
@@ -732,12 +753,6 @@ public:
 	inline void write_update() {
 		m_block.dirty = true;
 	}
-
-   	memory_size_type m_index;
-	stream_size_type m_nextBlock;
-	memory_size_type m_nextIndex;
-	stream_size_type m_blockStartIndex;
-
 
 	struct block_t {
 		memory_size_type size;

@@ -155,9 +155,9 @@ public:
 	/////////////////////////////////////////////////////////////////////////
 	inline const item_type & read_back() throw(stream_exception) {
 		assert(m_open);
-		seek(-1, file_base::current);
+		seek(-1, current);
 		const item_type & i = read();
-		seek(-1, file_base::current);
+		seek(-1, current);
 		return i;
 	}
 
