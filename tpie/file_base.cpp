@@ -36,8 +36,9 @@ namespace tpie {
 
 file_base::file_base(memory_size_type itemSize,
 					 double blockFactor,
-					 file_accessor::file_accessor * fileAccessor) :
-	m_size(0) {
+					 file_accessor::file_accessor * fileAccessor) 
+{
+	m_size = 0;
 	m_itemSize = itemSize;
 	m_open = false;
 	if (fileAccessor == 0)

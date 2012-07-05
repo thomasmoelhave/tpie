@@ -168,6 +168,7 @@ public:
 		m_size = m_fileAccessor->size();
 		m_open = true;
 	}
+
 public:
 	memory_size_type m_blockItems;
 	memory_size_type m_blockSize;
@@ -459,8 +460,6 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	~file_base();
 
-	stream_size_type m_size;
-	static block_t m_emptyBlock;
 
 	file_base(memory_size_type item_size,
 			  double blockFactor=1.0,
@@ -472,6 +471,7 @@ public:
 	void free_block(block_t * block);
 
 
+	static block_t m_emptyBlock;
 	// TODO This should really be a hash map
 	boost::intrusive::list<block_t> m_used;
 	boost::intrusive::list<block_t> m_free;
