@@ -63,7 +63,7 @@ public:
 	{
 		m_file_stream.open(path);
 		
-		m_file_stream.seek(0, file_base::end);
+		m_file_stream.seek(0, file_stream_base::end);
 	}
 
     ////////////////////////////////////////////////////////////////////
@@ -79,7 +79,7 @@ public:
 	{
 		m_file_stream.open(tempFile);
 		
-		m_file_stream.seek(0, file_base::end);
+		m_file_stream.seek(0, file_stream_base::end);
 	}
 
 

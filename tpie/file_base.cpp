@@ -38,6 +38,7 @@ file_base_crtp<child_t>::file_base_crtp(
 
 	m_blockSize = block_size(blockFactor);
 	m_blockItems = m_blockSize/m_itemSize;
+	m_tempFile = 0;
 }
 
 template <typename child_t>
@@ -98,7 +99,6 @@ file_stream_base::file_stream_base(memory_size_type itemSize,
 	m_nextIndex = std::numeric_limits<memory_size_type>::max();
 	m_index = std::numeric_limits<memory_size_type>::max();
 	m_block.data = 0;
-	m_tempFile = 0;
 }
 
 void file_stream_base::get_block(stream_size_type block) {

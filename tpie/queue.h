@@ -108,7 +108,7 @@ public:
 	////////////////////////////////////////////////////////////////////
 	const T & front() {
 		const T & el = m_front.read();
-		m_front.seek(-1, file_base::current);
+		m_front.seek(-1, file_base::stream::current);
 		return el;
 	}
 	TPIE_DEPRECATED(ami::err peek(const T **t));
@@ -156,7 +156,7 @@ queue<T>::queue(const std::string& basename, double blockFactor):
 		m_file.read_user_data(t);
 		m_front.seek(t);
 	}
-	m_back.seek(0, file_base::end);
+	m_back.seek(0, file_base::stream::end);
 	m_size = m_back.offset() - m_front.offset();
 }
 

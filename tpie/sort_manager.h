@@ -569,7 +569,7 @@ void sort_manager<T,I,M>::partition_and_sort_runs(progress_indicator_base* indic
 		// Dynamically allocate the stream
 		// We account for these mmBytesPerStream in phase 2 (output stream)
 		curOutputRunStream = tpie_new<file_stream<T> >();
-		curOutputRunStream->open(temporaries[ii], file_base::write);
+		curOutputRunStream->open(temporaries[ii], file_stream_base::write);
 
 		// How many runs should this stream get?
 		// extra runs go in the LAST nXtraRuns streams so that
@@ -706,7 +706,7 @@ void sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator, tp
 		    // (input stream to read from)
 			file_stream<T> * stream = tpie_new<file_stream<T> >();
 		    mergeInputStreams[ii].reset(stream);
-			stream->open(temporaries[mrgArity*(mrgHeight%2)+ii], file_base::read);
+			stream->open(temporaries[mrgArity*(mrgHeight%2)+ii], file_stream_base::read);
 			stream->seek(0);
 		}
 
@@ -725,7 +725,7 @@ void sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator, tp
 		    // We account for these mmBytesPerStream in phase 2
 		    // (temp merge output stream)
 			file_stream<T> curOutputRunStream;
-			curOutputRunStream.open(temporaries[mrgArity*((mrgHeight+1)%2)+ii], file_base::write);
+			curOutputRunStream.open(temporaries[mrgArity*((mrgHeight+1)%2)+ii], file_stream_base::write);
 
 		    // How many runs should this stream get?
 		    // extra runs go in the LAST nXtraRuns streams so that
@@ -786,7 +786,7 @@ void sort_manager<T,I,M>::merge_to_output(progress_indicator_base* indicator, tp
 					  << static_cast<TPIE_OS_OUTPUT_SIZE_T>(ii-(mrgArity-static_cast<TPIE_OS_SIZE_T>(nRuns))) << "\n");
 		file_stream<T> * stream = tpie_new<file_stream<T> >();
 		mergeInputStreams[ii-(mrgArity-static_cast<TPIE_OS_SIZE_T>(nRuns))].reset(stream);
-		stream->open(temporaries[mrgArity*(mrgHeight%2)+ii], file_base::read);
+		stream->open(temporaries[mrgArity*(mrgHeight%2)+ii], file_stream_base::read);
 		stream->seek(0);
 	}
 
