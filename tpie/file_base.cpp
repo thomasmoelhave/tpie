@@ -24,17 +24,7 @@
 
 namespace tpie {
 
-// template <typename BTE>
-// fd_file_base<BTE>::fd_file_base(size_type bs, size_type is, bool cr, bool cw, boost::uint64_t typeMagic):
-// 	blockItems(bs/is), m_size(0), canRead(cr), canWrite(cw), itemSize(is),
-// 	firstUsed(0), firstFree(0), bte(canRead, canWrite, itemSize, typeMagic) {
-
-// 	emptyBlock.size = 0;
-// 	emptyBlock.number = std::numeric_limits<offset_type>::max();
-// 	emptyBlock.next = 0;
-// }
- 
-
+/*************************> file_base_crtp <*******************************/ 
 template <typename child_t>
 file_base_crtp<child_t>::file_base_crtp(
 	memory_size_type itemSize, double blockFactor,
@@ -82,15 +72,22 @@ void file_base_crtp<child_t>::get_block_check(stream_size_type block) {
 	}
 }
 
-	
-file_base::file_base(memory_size_type itemSize,
-					 double blockFactor,
-					 file_accessor::file_accessor * fileAccessor):
-	file_base_crtp<file_base>(itemSize, blockFactor, fileAccessor) {
-	m_emptyBlock.size = 0;
-	m_emptyBlock.number = std::numeric_limits<stream_size_type>::max();
+/*********************************> stream_crtp <*******************************/
+template <typename child_t>
+void stream_crtp<child_t>::update_block() {
+	if (m_nextBlock == std::numeric_limits<stream_size_type>::max()) {
+		m_nextBlock = self().__block().number+1;
+		m_nextIndex = 0;
+	}
+	self().update_block_core();
+	m_blockStartIndex = m_nextBlock*static_cast<stream_size_type>(self().__file().m_blockItems);
+	m_index = m_nextIndex;
+	m_nextBlock = std::numeric_limits<stream_size_type>::max();
+	m_nextIndex = std::numeric_limits<memory_size_type>::max();
 }
 
+
+/*******************************> file_stream_base <******************************/
 file_stream_base::file_stream_base(memory_size_type itemSize,
 								   double blockFactor,
 								   file_accessor::file_accessor * fileAccessor):
@@ -104,8 +101,26 @@ file_stream_base::file_stream_base(memory_size_type itemSize,
 	m_tempFile = 0;
 }
 
+void file_stream_base::get_block(stream_size_type block) {
+	get_block_check(block);
+	read_block(m_block, block);
+}
 
-// TODO should this use tpie_new?
+void file_stream_base::update_block_core() {
+	flush_block();
+	get_block(m_nextBlock);
+}
+
+/***********************************> file_base <*********************************/
+file_base::file_base(memory_size_type itemSize,
+					 double blockFactor,
+					 file_accessor::file_accessor * fileAccessor):
+	file_base_crtp<file_base>(itemSize, blockFactor, fileAccessor) {
+	m_emptyBlock.size = 0;
+	m_emptyBlock.number = std::numeric_limits<stream_size_type>::max();
+}
+
+
 void file_base::create_block() {
 	// alloc heap block
 	block_t * block = reinterpret_cast<block_t*>( tpie_new_array<char>(sizeof(block_t) + m_itemSize*m_blockItems) );
@@ -132,11 +147,6 @@ void file_base::delete_block() {
 	tpie_delete_array<char>(reinterpret_cast<char*>(block), sizeof(block_t) + m_itemSize*m_blockItems);
 }
 
-
-void file_stream_base::get_block(stream_size_type block) {
-	get_block_check(block);
-	read_block(m_block, block);
-}
 
 file_base::block_t * file_base::get_block(stream_size_type block) {
 	block_t * b;
@@ -194,21 +204,15 @@ file_base::~file_base() {
 	delete m_fileAccessor;
 }
 
-void file_base::stream::update_block() {
-	if (m_nextBlock == std::numeric_limits<stream_size_type>::max()) {
-		m_nextBlock = m_block->number+1;
-		m_nextIndex = 0;
-	}
+/*************************> file_base::stream <*******************************/
+void file_base::stream::update_block_core() {
 	if (m_block != &m_file.m_emptyBlock) {
 		m_file.free_block(m_block);
 		m_block = &m_file.m_emptyBlock; // necessary if get_block below throws
 	}
 	m_block = m_file.get_block(m_nextBlock);
-	m_blockStartIndex = m_nextBlock*static_cast<stream_size_type>(m_file.m_blockItems);
-	m_index = m_nextIndex;
-	m_nextBlock = std::numeric_limits<stream_size_type>::max();
-	m_nextIndex = std::numeric_limits<memory_size_type>::max();
 }
+
 
 file_base::stream::stream(file_base & f, stream_size_type offset):
 	m_file(f) {
@@ -231,5 +235,12 @@ void file_base::stream::free() {
 }
 
 file_base::block_t file_base::m_emptyBlock;
-}
+
+
+template class stream_crtp<file_stream_base>;
+template class stream_crtp<file_base::stream>;
+template class file_base_crtp<file_stream_base>;
+template class file_base_crtp<file_base>;
+
+} //namespace tpie
 

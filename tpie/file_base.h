@@ -42,7 +42,7 @@ template <typename child_t>
 class file_base_crtp  {
 public:
 	child_t & self() {return *static_cast<child_t *>(this);}
-	const child_t & self() const {return *static_cast<child_t *>(this);}
+	const child_t & self() const {return *static_cast<const child_t *>(this);}
 
 	/** Type describing how we wish to access a file. */
 	enum access_type {
@@ -324,6 +324,16 @@ public:
 		if (m_index < self().__block().size ) return true;
 		return offset() < self().size();
 	}
+
+	///////////////////////////////////////////////////////////////////////
+	/// \brief Fetch block from disk as indicated by m_nextBlock, writing old
+	/// block to disk if needed.
+	/// Update m_block, m_index, m_nextBlock and m_nextIndex. If
+	/// m_nextBlock is maxint, use next block is the one numbered
+	/// m_block->number+1. m_index is updated with the value of
+	/// m_nextIndex.
+	///////////////////////////////////////////////////////////////////////
+	void update_block();
 	
 	/** Item index into the current block, or maxint if we don't have a
 	 * block. */
@@ -382,6 +392,7 @@ public:
 		const block_t & __block() const {return *m_block;}
 		inline file_base & __file() {return m_file;}
 		inline const file_base & __file() const {return m_file;}
+		void update_block_core();
 		
 		inline void update_vars() {}
 	protected:
@@ -391,14 +402,6 @@ public:
 		/** Current block. May be equal to &m_file.m_emptyBlock to indicate no
 		 * current block. */
 		block_t * m_block;
-
-		///////////////////////////////////////////////////////////////////////
-		/// Update m_block, m_index, m_nextBlock and m_nextIndex. If
-		/// m_nextBlock is maxint, use next block is the one numbered
-		/// m_block->number+1. m_index is updated with the value of
-		/// m_nextIndex.
-		///////////////////////////////////////////////////////////////////////
-		void update_block();
 
 		///////////////////////////////////////////////////////////////////////
 		/// Fetch number of items per block.
@@ -525,6 +528,7 @@ public:
 	file_stream_base & __file() {return *this;}
 	const file_stream_base & __file() const {return *this;}
 	const block_t & __block() const {return m_block;}
+	void update_block_core();
 
 	file_stream_base(memory_size_type itemSize,
 					 double blockFactor,
@@ -638,23 +642,6 @@ public:
 	/// \brief Use file_accessor to fetch indicated block number into m_block.
 	///////////////////////////////////////////////////////////////////////////
 	void get_block(stream_size_type block);
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Fetch block from disk as indicated by m_nextBlock, writing old
-	/// block to disk if needed.
-	///////////////////////////////////////////////////////////////////////////
-	inline void update_block() {
-		if (m_nextBlock == std::numeric_limits<stream_size_type>::max()) {
-			m_nextBlock = m_block.number+1;
-			m_nextIndex = 0;
-		}
-		flush_block();
-		get_block(m_nextBlock);
-		m_blockStartIndex = m_nextBlock*static_cast<stream_size_type>(m_blockItems);
-		m_index = m_nextIndex;
-		m_nextBlock = std::numeric_limits<stream_size_type>::max();
-		m_nextIndex = std::numeric_limits<memory_size_type>::max();
-	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Write block to disk.
