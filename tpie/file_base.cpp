@@ -1,4 +1,4 @@
-// -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
+// -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
 // Copyright 2009, 2010, The TPIE development team
 //
@@ -33,23 +33,45 @@ namespace tpie {
 // 	emptyBlock.number = std::numeric_limits<offset_type>::max();
 // 	emptyBlock.next = 0;
 // }
+ 
 
-file_base::file_base(memory_size_type itemSize,
-					 double blockFactor,
-					 file_accessor::file_accessor * fileAccessor) 
-{
+template <typename child_t>
+file_base_crtp<child_t>::file_base_crtp(
+	memory_size_type itemSize, double blockFactor,
+	file_accessor::file_accessor * fileAccessor) {
 	m_size = 0;
 	m_itemSize = itemSize;
 	m_open = false;
 	if (fileAccessor == 0)
 		fileAccessor = new default_file_accessor();
 	m_fileAccessor = fileAccessor;
-	m_emptyBlock.size = 0;
-	m_emptyBlock.number = std::numeric_limits<stream_size_type>::max();
 
 	m_blockSize = block_size(blockFactor);
 	m_blockItems = m_blockSize/m_itemSize;
 }
+
+	
+file_base::file_base(memory_size_type itemSize,
+					 double blockFactor,
+					 file_accessor::file_accessor * fileAccessor):
+	file_base_crtp<file_base>(itemSize, blockFactor, fileAccessor) {
+	m_emptyBlock.size = 0;
+	m_emptyBlock.number = std::numeric_limits<stream_size_type>::max();
+}
+
+file_stream_base::file_stream_base(memory_size_type itemSize,
+								   double blockFactor,
+								   file_accessor::file_accessor * fileAccessor):
+	file_base_crtp<file_stream_base>(itemSize, blockFactor, fileAccessor) 
+{
+	m_blockStartIndex = 0;
+	m_nextBlock = std::numeric_limits<stream_size_type>::max();
+	m_nextIndex = std::numeric_limits<memory_size_type>::max();
+	m_index = std::numeric_limits<memory_size_type>::max();
+	m_block.data = 0;
+	m_tempFile = 0;
+}
+
 
 // TODO should this use tpie_new?
 void file_base::create_block() {

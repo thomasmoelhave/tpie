@@ -38,8 +38,12 @@ typedef tpie::file_accessor::stream_accessor<tpie::file_accessor::win32> default
 
 namespace tpie {
 
-class file_base_base {
+template <typename child_t>
+class file_base_crtp  {
 public:
+	child_t & self() {return *static_cast<child_t *>(this);}
+	const child_t & self() const {return *static_cast<child_t *>(this);}
+
   	/** Type describing how we should interpret the offset supplied to seek. */
 	enum offset_type {
 		beginning,
@@ -53,7 +57,7 @@ public:
 		write,
 		read_write
 	};
-
+	
 
 	////////////////////////////////////////////////////////////////////////////////
 	/// Check if we can read from the file.
@@ -169,24 +173,9 @@ public:
 		m_open = true;
 	}
 
-public:
-	memory_size_type m_blockItems;
-	memory_size_type m_blockSize;
-	bool m_canRead;
-	bool m_canWrite;
-	bool m_open;
-	memory_size_type m_itemSize;
-	file_accessor::file_accessor * m_fileAccessor;
-	tpie::auto_ptr<temp_file> m_ownedTempFile;
-	temp_file * m_tempFile;
-	stream_size_type m_size;
-};
 
-template <typename child_t>
-class file_base_base_crtp: public file_base_base  {
-public:
-	child_t & self() {return *static_cast<child_t *>(this);}
-	const child_t & self() const {return *static_cast<child_t *>(this);}
+	file_base_crtp(memory_size_type itemSize, double blockFactor,
+				   file_accessor::file_accessor * fileAccessor);
 
 
 	/////////////////////////////////////////////////////////////////////////
@@ -233,10 +222,22 @@ public:
 		m_tempFile = NULL;
 		m_ownedTempFile.reset();
 	}
+public:
+	memory_size_type m_blockItems;
+	memory_size_type m_blockSize;
+	bool m_canRead;
+	bool m_canWrite;
+	bool m_open;
+	memory_size_type m_itemSize;
+	file_accessor::file_accessor * m_fileAccessor;
+	tpie::auto_ptr<temp_file> m_ownedTempFile;
+	temp_file * m_tempFile;
+	stream_size_type m_size;
+	
 };
 
 
-class file_base: public file_base_base_crtp<file_base> {
+class file_base: public file_base_crtp<file_base> {
 protected:
 	///////////////////////////////////////////////////////////////////////////
 	/// This is the type of our block buffers. We have one per file::stream
@@ -478,9 +479,13 @@ public:
 };
 
 
-class file_stream_base: public file_base_base_crtp<file_stream_base> {
+class file_stream_base: public file_base_crtp<file_stream_base> {
 public:
-	typedef file_base_base_crtp<file_stream_base> p_t;
+	typedef file_base_crtp<file_stream_base> p_t;
+
+	file_stream_base(memory_size_type itemSize,
+					 double blockFactor,
+					 file_accessor::file_accessor * fileAccessor);
 
 	inline ~file_stream_base() {
 		close();
@@ -627,27 +632,6 @@ public:
 		swap(m_block.data,      other.m_block.data);
 		swap(m_ownedTempFile,   other.m_ownedTempFile);
 		swap(m_tempFile,        other.m_tempFile);
-	}
-
-	inline file_stream_base(double blockFactor, 
-							file_accessor::file_accessor * fileAccessor,
-							memory_size_type itemSize) {
-		m_size = 0;
-		m_itemSize = itemSize;
-		m_open = false;
-		if (fileAccessor == 0)
-			fileAccessor = new default_file_accessor();
-		m_fileAccessor = fileAccessor;
-
-		m_blockSize = block_size(blockFactor);
-		m_blockItems = m_blockSize/m_itemSize;
-
-		m_blockStartIndex = 0;
-		m_nextBlock = std::numeric_limits<stream_size_type>::max();
-		m_nextIndex = std::numeric_limits<memory_size_type>::max();
-		m_index = std::numeric_limits<memory_size_type>::max();
-		m_block.data = 0;
-		m_tempFile = 0;
 	}
 
 	inline void open_inner(const std::string & path,

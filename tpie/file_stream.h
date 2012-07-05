@@ -53,7 +53,7 @@ public:
 	/////////////////////////////////////////////////////////////////////////
 	inline file_stream(double blockFactor=1.0, 
 					   file_accessor::file_accessor * fileAccessor=NULL):
-		file_stream_base(blockFactor, fileAccessor, sizeof(item_type) ) {};
+		file_stream_base(sizeof(item_type), blockFactor, fileAccessor) {};
 
 	
 	/////////////////////////////////////////////////////////////////////////
