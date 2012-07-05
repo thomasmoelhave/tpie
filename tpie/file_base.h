@@ -241,6 +241,7 @@ public:
 	};
 
 	inline child_t & self() {return *static_cast<child_t*>(this);}
+	inline const child_t & self() const {return *static_cast<const child_t*>(this);}
 
 	/////////////////////////////////////////////////////////////////////////
 	/// \brief Moves the logical offset in the stream.
@@ -271,7 +272,7 @@ public:
 		self().update_vars();
 		stream_size_type b = static_cast<stream_size_type>(offset) / self().__file().m_blockItems;
 		m_index = static_cast<memory_size_type>(offset - b* self().__file().m_blockItems);
-		if (b == self().block_number()) {
+		if (b == self().__block().number) {
 			m_nextBlock = std::numeric_limits<stream_size_type>::max();
 			m_nextIndex = std::numeric_limits<memory_size_type>::max();
 			assert(self().offset() == (stream_size_type)offset);
@@ -283,6 +284,42 @@ public:
 		assert(self().offset() == (stream_size_type)offset);
 	}
 
+	inline void initialize() {
+		m_nextBlock = std::numeric_limits<stream_size_type>::max();
+		m_nextIndex = std::numeric_limits<memory_size_type>::max();
+		m_index = std::numeric_limits<memory_size_type>::max();
+	}
+
+	
+	/////////////////////////////////////////////////////////////////////////
+	/// \brief Calculate the current offset in the stream.
+	///
+	/// \returns The current offset in the stream
+	/////////////////////////////////////////////////////////////////////////
+	inline stream_size_type offset() const throw() {
+		assert(self().__file().m_open);
+		if (m_nextBlock == std::numeric_limits<stream_size_type>::max())
+			return m_index + m_blockStartIndex;
+		return m_nextIndex + m_nextBlock * self().__file().m_blockItems;
+	}
+	
+	/////////////////////////////////////////////////////////////////////////
+	/// \brief Check if we can read an item with read().
+	///
+	/// This is logically equivalent to:
+	/// \code
+	/// return offset() < size();
+	/// \endcode
+	/// but it might be faster.
+	///
+	/// \returns Whether or not we can read more items from the stream.
+	/////////////////////////////////////////////////////////////////////////
+	inline bool can_read() const throw() {
+		assert(self().__file().m_open);
+		if (m_index < self().__block().size ) return true;
+		return offset() < self().size();
+	}
+	
 	/** Item index into the current block, or maxint if we don't have a
 	 * block. */
 	memory_size_type m_index;
@@ -335,8 +372,12 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	class stream: public stream_crtp<stream> {
 	public:
-		stream_size_type block_number() {return m_block->number;}
+		typedef stream_crtp<stream> p_t;
+
+		const block_t & __block() const {return *m_block;}
 		inline file_base & __file() {return m_file;}
+		inline const file_base & __file() const {return m_file;}
+		
 		inline void update_vars() {}
 	protected:
 		/** Associated file object. */
@@ -407,35 +448,6 @@ public:
 		}
 
 		/////////////////////////////////////////////////////////////////////////
-		/// \brief Calculate the current offset in the stream.
-		///
-		/// \returns The current offset in the stream
-		/////////////////////////////////////////////////////////////////////////
- 		inline stream_size_type offset() const throw() {
-			assert(m_file.m_open);
- 			if (m_nextBlock == std::numeric_limits<stream_size_type>::max())
- 				return m_index + m_blockStartIndex;
- 			return m_nextIndex + m_nextBlock * m_file.m_blockItems;
- 		}
-
-		/////////////////////////////////////////////////////////////////////////
-		/// \brief Check if we can read an item with read().
-		///
-		/// This is logically equivalent to:
-		/// \code
-		/// return offset() < size();
-		/// \endcode
-		/// but it might be faster.
-		///
-		/// \returns Whether or not we can read more items from the stream.
-		/////////////////////////////////////////////////////////////////////////
- 		inline bool can_read() const throw() {
-			assert(m_file.m_open);
- 			if (m_index < m_block->size) return true;
- 			return offset() < size();
- 		}
-
-		/////////////////////////////////////////////////////////////////////////
 		/// \brief Check if we can read an item with read_back().
 		///
 		/// \returns Whether or not we can read an item with read_back().
@@ -454,9 +466,7 @@ public:
 		///////////////////////////////////////////////////////////////////////
 		inline void initialize() {
 			if (m_block != &m_file.m_emptyBlock) m_file.free_block(m_block);
-			m_nextBlock = std::numeric_limits<stream_size_type>::max();
-			m_nextIndex = std::numeric_limits<memory_size_type>::max();
-			m_index = std::numeric_limits<memory_size_type>::max();
+			p_t::initialize();
 			m_block = &m_file.m_emptyBlock;
 		}
 	};
@@ -498,11 +508,18 @@ public:
 class file_stream_base: public file_base_crtp<file_stream_base>, public stream_crtp<file_stream_base> {
 public:
 	typedef file_base_crtp<file_stream_base> p_t;
+	typedef stream_crtp<file_stream_base> s_t;
+
+	struct block_t {
+		memory_size_type size;
+		stream_size_type number;
+		bool dirty;
+		char * data;
+	};
 
 	file_stream_base & __file() {return *this;}
-
-
-	stream_size_type block_number() {return m_block.number;}
+	const file_stream_base & __file() const {return *this;}
+	const block_t & __block() const {return m_block;}
 
 	file_stream_base(memory_size_type itemSize,
 					 double blockFactor,
@@ -526,17 +543,6 @@ public:
 	}
 
 	
-	/////////////////////////////////////////////////////////////////////////
-	/// \copydoc file_base::stream::offset()
-	/// \sa file_base::stream::offset()
-	/////////////////////////////////////////////////////////////////////////
-	inline stream_size_type offset() const throw() {
-		assert(m_open);
-		if (m_nextBlock == std::numeric_limits<stream_size_type>::max())
-			return m_index + m_blockStartIndex;
-		return m_nextIndex + m_nextBlock * m_blockItems;
-	}
-
 	
 	/////////////////////////////////////////////////////////////////////////
 	/// \copydoc file_base::size()
@@ -550,15 +556,6 @@ public:
 		return m_size;
 	}
 
-	/////////////////////////////////////////////////////////////////////////
-	/// \copydoc file_base::stream::can_read()
-	/// \sa file_base::stream::can_read()
-	/////////////////////////////////////////////////////////////////////////
-	inline bool can_read() const throw() {
-		assert(m_open);
-		if (m_index < m_block.size) return true;
-		return offset() < m_size;
-	}
 
 	/////////////////////////////////////////////////////////////////////////
 	/// \copydoc file_base::stream::can_read_back()
@@ -570,48 +567,6 @@ public:
 		if (m_index > 0) return true;
 		return m_block.number != 0;
 	}
-
-	/////////////////////////////////////////////////////////////////////////
-	/// \copydoc file_base::stream::seek()
-	/// \sa file_base::stream::seek()
-	/////////////////////////////////////////////////////////////////////////
-	// inline void seek(stream_offset_type offset, 
-	// 				 offset_type whence=file_base::beginning) 
-	// 	throw (stream_exception) {
-
-	// 	assert(m_open);
-	// 	if (whence == file_base::end)
-	// 		offset += size();
-	// 	else if (whence == file_base::current) {
-	// 		are we seeking into the current block?
-	// 		if (offset >= 0 || static_cast<stream_size_type>(-offset) <= m_index) {
-	// 			stream_size_type new_index = static_cast<stream_offset_type>(offset+m_index);
-
-	// 			if (new_index < m_blockItems) {
-	// 				update_vars();
-	// 				m_index = static_cast<memory_size_type>(new_index);
-	// 				return;
-	// 			}
-	// 		}
-
-	// 		offset += this->offset();
-	// 	}
-	// 	if (0 > offset || (stream_size_type)offset > size())
-	// 		throw io_exception("Tried to seek out of file");
-	// 	update_vars();
-	// 	stream_size_type b = static_cast<stream_size_type>(offset) / m_blockItems;
-	// 	m_index = static_cast<memory_size_type>(offset - b*m_blockItems);
-	// 	if (b == m_block.number) {
-	// 		m_nextBlock = std::numeric_limits<stream_size_type>::max();
-	// 		m_nextIndex = std::numeric_limits<memory_size_type>::max();
-	// 		assert(this->offset() == (stream_size_type)offset);
-	// 		return;
-	// 	}
-	// 	m_nextBlock = b;
-	// 	m_nextIndex = m_index;
-	// 	m_index = std::numeric_limits<memory_size_type>::max();
-	// 	assert(this->offset() == (stream_size_type)offset);
-	// }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \copydoc file_base::truncate()
@@ -745,21 +700,13 @@ public:
 
 	inline void initialize() {
 		flush_block();
-		m_nextBlock = std::numeric_limits<stream_size_type>::max();
-		m_nextIndex = std::numeric_limits<memory_size_type>::max();
-		m_index = std::numeric_limits<memory_size_type>::max();
+		s_t::initialize();
 	}
 
 	inline void write_update() {
 		m_block.dirty = true;
 	}
 
-	struct block_t {
-		memory_size_type size;
-		stream_size_type number;
-		bool dirty;
-		char * data;
-	};
 
 	block_t m_block;
 };
