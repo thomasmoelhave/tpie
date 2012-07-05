@@ -215,6 +215,11 @@ public:
 		m_tempFile = NULL;
 		m_ownedTempFile.reset();
 	}
+
+	template <typename BT>
+	void read_block(BT & b, stream_size_type block);
+	void get_block_check(stream_size_type block);
+
 public:
 	memory_size_type m_blockItems;
 	memory_size_type m_blockSize;
@@ -632,32 +637,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Use file_accessor to fetch indicated block number into m_block.
 	///////////////////////////////////////////////////////////////////////////
-	inline void get_block(stream_size_type block) {
-		// If the file contains n full blocks (numbered 0 through n-1), we may
-		// request any block in {0, 1, ... n}
-
-		// If the file contains n-1 full blocks and a single non-full block, we may
-		// request any block in {0, 1, ... n-1}
-
-		// We capture this restraint with the check:
-		if (block * static_cast<stream_size_type>(m_blockItems) > size()) {
-			throw end_of_stream_exception();
-		}
-
-		m_block.dirty = false;
-		m_block.number = block;
-
-		// calculate buffer size
-		m_block.size = m_blockItems;
-		if (static_cast<stream_size_type>(m_block.size) + m_block.number * static_cast<stream_size_type>(m_blockItems) > size())
-			m_block.size = static_cast<memory_size_type>(size() - m_block.number * m_blockItems);
-
-		// populate buffer data
-		if (m_block.size > 0 &&
-			m_fileAccessor->read_block(m_block.data, m_block.number, m_block.size) != m_block.size) {
-			throw io_exception("Incorrect number of items read");
-		}
-	}
+	void get_block(stream_size_type block);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Fetch block from disk as indicated by m_nextBlock, writing old

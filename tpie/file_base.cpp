@@ -50,6 +50,38 @@ file_base_crtp<child_t>::file_base_crtp(
 	m_blockItems = m_blockSize/m_itemSize;
 }
 
+template <typename child_t>
+template <typename BT>
+void file_base_crtp<child_t>::read_block(BT & b, stream_size_type block) {
+	b.dirty = false;
+	b.number = block;
+	
+	// calculate buffer size
+	b.size = m_blockItems;
+	if (static_cast<stream_size_type>(b.size) + b.number * static_cast<stream_size_type>(m_blockItems) > self().size())
+		b.size = static_cast<memory_size_type>(self().size() - block * m_blockItems);
+	
+	// populate buffer data
+	if (b.size > 0 &&
+		m_fileAccessor->read_block(b.data, b.number, b.size) != b.size) {
+		throw io_exception("Incorrect number of items read");
+	}
+}
+
+template <typename child_t>
+void file_base_crtp<child_t>::get_block_check(stream_size_type block) {
+	// If the file contains n full blocks (numbered 0 through n-1), we may
+	// request any block in {0, 1, ... n}
+
+	// If the file contains n-1 full blocks and a single non-full block, we may
+	// request any block in {0, 1, ... n-1}
+
+	// We capture this restraint with the assertion:
+	if (block * static_cast<stream_size_type>(m_blockItems) > self().size()) {
+		throw end_of_stream_exception();
+	}
+}
+
 	
 file_base::file_base(memory_size_type itemSize,
 					 double blockFactor,
@@ -100,19 +132,15 @@ void file_base::delete_block() {
 	tpie_delete_array<char>(reinterpret_cast<char*>(block), sizeof(block_t) + m_itemSize*m_blockItems);
 }
 
+
+void file_stream_base::get_block(stream_size_type block) {
+	get_block_check(block);
+	read_block(m_block, block);
+}
+
 file_base::block_t * file_base::get_block(stream_size_type block) {
 	block_t * b;
-
-	// If the file contains n full blocks (numbered 0 through n-1), we may
-	// request any block in {0, 1, ... n}
-
-	// If the file contains n-1 full blocks and a single non-full block, we may
-	// request any block in {0, 1, ... n-1}
-
-	// We capture this restraint with the assertion:
-	if (block * static_cast<stream_size_type>(m_blockItems) > size()) {
-		throw end_of_stream_exception();
-	}
+	get_block_check(block);
 
 	// First, see if the block is already buffered
 	boost::intrusive::list<block_t>::iterator i = m_used.begin();
@@ -121,26 +149,15 @@ file_base::block_t * file_base::get_block(stream_size_type block) {
 
 	if (i == m_used.end()) {
 		// block not buffered. populate a free buffer.
-
 		assert(!m_free.empty());
 
 		// fetch a free buffer
 		b = &m_free.front();
+		b->usage = 0;
+		read_block(*b, block);
 
 		b->dirty = false;
 		b->number = block;
-		b->usage = 0;
-
-		// calculate buffer size
-		b->size = m_blockItems;
-		if (static_cast<stream_size_type>(b->size) + b->number * static_cast<stream_size_type>(m_blockItems) > size())
-			b->size = static_cast<memory_size_type>(size() - b->number * m_blockItems);
-
-		// populate buffer data
-		if (b->size > 0 &&
-			m_fileAccessor->read_block(b->data, b->number, b->size) != b->size) {
-			throw io_exception("Incorrect number of items read");
-		}
 
 		// read went well. move buffer to m_used
 		m_free.pop_front();
