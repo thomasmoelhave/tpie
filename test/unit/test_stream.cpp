@@ -225,6 +225,30 @@ static bool odd_block_test() {
 	return true;
 }
 
+static bool backwards_test() {
+	Stream<int> fs;
+
+	fs.file().open(TEMPFILE);
+	TEST_ENSURE(!fs.stream().can_read_back(), "can_read_back() after open()")
+
+	fs.stream().write(1);
+	TEST_ENSURE(fs.stream().can_read_back(), "can_read_back() after write()")
+
+	fs.stream().seek(0);
+	TEST_ENSURE(!fs.stream().can_read_back(), "can_read_back() after seek()")
+
+	for (int i = 0; i < (1 << 25); ++i) fs.stream().write(i);
+	TEST_ENSURE(fs.stream().can_read_back(), "can_read_back() after writing a block aligned chunk")
+
+	fs.stream().read_back();
+	TEST_ENSURE(fs.stream().can_read_back(), "can_read_back() after read_back()")
+
+	fs.stream().seek(5);
+	TEST_ENSURE(fs.stream().can_read_back(), "can_read_back() after seek(5)")
+
+	return true;
+}
+
 }; // template stream_tester
 
 bool swap_test() {
@@ -342,5 +366,7 @@ int main(int argc, char **argv) {
 		.test(stream_tester<file_stream>::truncate_test, "truncate")
 		.test(stream_tester<file_colon_colon_stream>::truncate_test, "truncate_file")
 		.test(stream_tester<file_stream>::extend_test, "extend")
-		.test(stream_tester<file_colon_colon_stream>::extend_test, "extend__file");
+		.test(stream_tester<file_colon_colon_stream>::extend_test, "extend_file")
+		.test(stream_tester<file_stream>::backwards_test, "backwards")
+		.test(stream_tester<file_colon_colon_stream>::backwards_test, "backwards_file");
 }

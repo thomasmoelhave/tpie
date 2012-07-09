@@ -36,7 +36,7 @@ add_unittest(packed_array basic1 basic2 basic4)
 add_unittest(parallel_sort basic1 basic2 general equal_elements bad_case)
 add_unittest(serialization unsafe safe)
 add_unittest(stats simple)
-add_unittest(stream basic array odd truncate array_file odd_file truncate_file extend)
+add_unittest(stream basic array odd truncate extend backwards array_file odd_file truncate_file extend_file backwards_file)
 add_unittest(stream_exception basic)
 
 add_fulltest(ami_stream stress)
