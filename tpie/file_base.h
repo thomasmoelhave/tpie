@@ -30,13 +30,13 @@
 #include <memory>
 #include <tpie/memory.h>
 
+namespace tpie {
+
 #ifndef WIN32
 typedef tpie::file_accessor::stream_accessor<tpie::file_accessor::posix> default_file_accessor;
 #else //WIN32
 typedef tpie::file_accessor::stream_accessor<tpie::file_accessor::win32> default_file_accessor;
 #endif //WIN32
-
-namespace tpie {
 
 template <typename child_t>
 class file_base_crtp  {
