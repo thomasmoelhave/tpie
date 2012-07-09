@@ -325,6 +325,19 @@ public:
 		return offset() < self().size();
 	}
 
+	/////////////////////////////////////////////////////////////////////////
+	/// \brief Check if we can read an item with read_back().
+	///
+	/// \returns Whether or not we can read an item with read_back().
+	/////////////////////////////////////////////////////////////////////////
+	inline bool can_read_back() const throw() {
+		assert(self().__file().m_open);
+		if (m_nextBlock == std::numeric_limits<stream_size_type>::max())
+			return m_index > 0 || m_blockStartIndex > 0;
+		else
+			return m_nextIndex > 0 || m_nextBlock > 0;
+	}
+
 	///////////////////////////////////////////////////////////////////////
 	/// \brief Fetch block from disk as indicated by m_nextBlock, writing old
 	/// block to disk if needed.
@@ -455,20 +468,6 @@ public:
 			return m_file.size();
 		}
 
-		/////////////////////////////////////////////////////////////////////////
-		/// \brief Check if we can read an item with read_back().
-		///
-		/// \returns Whether or not we can read an item with read_back().
-		/////////////////////////////////////////////////////////////////////////
-		inline bool can_read_back() const throw() {
-			assert(m_file.m_open);
- 			if (m_index <= m_block->size) return true;
-			if (m_nextBlock == std::numeric_limits<stream_size_type>::max())
-				return m_block->number != 0;
-			else
-				return true;
-		}
-
 		///////////////////////////////////////////////////////////////////////
 		/// \brief Set up block buffers and offsets.
 		///////////////////////////////////////////////////////////////////////
@@ -565,17 +564,6 @@ public:
 		return m_size;
 	}
 
-
-	/////////////////////////////////////////////////////////////////////////
-	/// \copydoc file_base::stream::can_read_back()
-	/// \sa file_base::stream::can_read_back()
-	/////////////////////////////////////////////////////////////////////////
-	inline bool can_read_back() const throw() {
-		assert(m_open);
-		const_cast<file_stream_base*>(this)->update_vars();
-		if (m_index > 0) return true;
-		return m_block.number != 0;
-	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \copydoc file_base::truncate()
