@@ -220,6 +220,18 @@ public:
 	void read_block(BT & b, stream_size_type block);
 	void get_block_check(stream_size_type block);
 
+	/////////////////////////////////////////////////////////////////////////
+	/// \brief Get the size of the file measured in items.
+	/// If there are streams of this file that have extended the stream length
+	/// but have not yet flushed these writes, we might report an incorrect
+	/// size.
+	///
+	/// \returns The number of items in the file.
+	/////////////////////////////////////////////////////////////////////////
+	inline stream_size_type file_size() const throw() {
+		return m_size;
+	}
+
 public:
 	memory_size_type m_blockItems;
 	memory_size_type m_blockSize;
@@ -231,7 +243,6 @@ public:
 	tpie::auto_ptr<temp_file> m_ownedTempFile;
 	temp_file * m_tempFile;
 	stream_size_type m_size;
-	
 };
 
 
@@ -338,6 +349,19 @@ public:
 			return m_nextIndex > 0 || m_nextBlock > 0;
 	}
 
+	/////////////////////////////////////////////////////////////////////////
+	/// \brief Get the size of the file measured in items.
+	///
+	/// \returns The number of items in the file.
+	/////////////////////////////////////////////////////////////////////////
+	inline stream_size_type size() const throw() {
+		// XXX update_vars changes internal state in a way that is not visible
+		// through the class interface.
+		// therefore, a const_cast is warranted.
+		const_cast<child_t&>(self()).update_vars();
+		return self().__file().file_size();
+	}
+
 	///////////////////////////////////////////////////////////////////////
 	/// \brief Fetch block from disk as indicated by m_nextBlock, writing old
 	/// block to disk if needed.
@@ -379,20 +403,15 @@ protected:
 		char data[0];
 	};
 public:
-	/////////////////////////////////////////////////////////////////////////
-	/// \brief Calculate the size of the file measured in items.
-	///
-	/// \returns The number of items is the file.
-	/////////////////////////////////////////////////////////////////////////
-	inline stream_size_type size() const throw() {
-		return m_size;
-	}
-
 
 	inline void update_size(stream_size_type size) {
 		m_size = std::max(m_size, size);
 		if (m_tempFile) 
 			m_tempFile->update_recorded_size(m_fileAccessor->byte_size());
+	}
+
+	inline stream_size_type size() const throw() {
+		return file_size();
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -459,14 +478,6 @@ public:
 
 		inline ~stream() {free();}
 
-
-		///////////////////////////////////////////////////////////////////////
-		/// \brief Get the size of the file underlying this stream.
-		///////////////////////////////////////////////////////////////////////
- 		inline stream_size_type size() const throw() {
-			assert(m_file.m_open);
-			return m_file.size();
-		}
 
 		///////////////////////////////////////////////////////////////////////
 		/// \brief Set up block buffers and offsets.
@@ -548,20 +559,6 @@ public:
 		tpie_delete_array(m_block.data, m_itemSize * m_blockItems);
 		m_block.data = 0;
 		p_t::close();
-	}
-
-	
-	
-	/////////////////////////////////////////////////////////////////////////
-	/// \copydoc file_base::size()
-	/// \sa file_base::size()
-	/////////////////////////////////////////////////////////////////////////
-	inline stream_size_type size() const throw() {
-		// XXX update_vars changes internal state in a way that is not visible
-		// through the class interface.
-		// therefore, a const_cast is warranted.
-		const_cast<file_stream_base*>(this)->update_vars();
-		return m_size;
 	}
 
 
