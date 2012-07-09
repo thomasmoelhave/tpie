@@ -181,8 +181,9 @@ template <typename file_accessor_t>
 void stream_accessor<file_accessor_t>::truncate(stream_size_type items) {
 	stream_size_type blocks = items/m_blockItems;
 	stream_size_type blockIndex = items%m_blockItems;
-	stream_size_type bytes = header_size() + blocks*m_blockSize + blockIndex;
-	m_fileAccessor.seek_i(bytes);
+	stream_size_type bytes = header_size() + blocks*m_blockSize + blockIndex*m_itemSize;
+	m_fileAccessor.truncate_i(bytes);
+	m_size = items;
 }
 
 }
