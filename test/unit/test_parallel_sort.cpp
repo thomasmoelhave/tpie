@@ -131,8 +131,7 @@ bool equal_elements() {
 	return true;
 }
 
-bool bad_case() {
-	const size_t n = 1024*1024;
+bool bad_case(const size_t n) {
 	std::vector<int> v1;
 	std::vector<int> v2;
 	for (size_t i=0; i < 8*n; ++i) {
@@ -200,6 +199,6 @@ int main(int argc, char **argv) {
 		.test(sort_tester<8>(), "basic2", "n", 8*8)
 		.test(sort_tester<1024*1024>(), "general", "n", 24*1024*1024)
 		.test(equal_elements, "equal_elements")
-		.test(bad_case, "bad_case")
+		.test(bad_case, "bad_case", "n", 1024*1024)
 		.test(stress_test, "stress_test");
 }
