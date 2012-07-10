@@ -44,7 +44,7 @@ private:
 
 public:
 	inline win32();
-	inline ~win32() {close();}
+	inline ~win32() {close_i();}
 
 	inline void open_wo(const std::string & path);
 	inline void open_ro(const std::string & path);
