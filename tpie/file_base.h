@@ -490,10 +490,14 @@ public:
 	};
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Truncate file to given size.
+	/// \brief Truncate file to given size. May only be used when no streams
+	/// are opened to this file.
 	///////////////////////////////////////////////////////////////////////////
 	void truncate(stream_size_type s) throw(stream_exception) {
 		assert(m_open);
+		if (!m_used.empty()) {
+			throw io_exception("Tried to truncate a file with one or more open streams");
+		}
 		m_size = s;
 		m_fileAccessor->truncate(s);
 	}
