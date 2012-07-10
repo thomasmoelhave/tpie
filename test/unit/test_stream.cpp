@@ -89,6 +89,10 @@ struct file_colon_colon_stream {
 		if (m_stream.get() == 0) m_stream.reset(tpie::tpie_new<typename tpie::file<T>::stream>(m_file));
 		return *m_stream;
 	}
+
+	inline void close_stream() {
+		m_stream.reset();
+	}
 };
 
 template <typename T>
@@ -102,6 +106,10 @@ struct file_stream {
 
 	tpie::file_stream<T> & stream() {
 		return m_fs;
+	}
+
+	inline void close_stream() {
+		m_fs.seek(0);
 	}
 };
 
@@ -140,7 +148,7 @@ static bool truncate_test() {
 		tpie::log_error() << "We should be able to seek!" << std::endl;
 		res = false;
 	}
-
+	fs.close_stream();
 	fs.file().truncate(42);
 	for (size_t i = 0; i < 42; ++i) {
 		if (!fs.stream().can_read()) {
@@ -173,13 +181,14 @@ static bool extend_test() {
 	tpie::stream_size_type ante = 0;
 	tpie::stream_size_type pred = 1;
 	tpie::stream_size_type n = 1;
-	tpie::stream_size_type readItems = 0;
 	while (n < 1000000) {
+		fs.close_stream();
 		fs.file().truncate(n);
 		if (fs.file().size() != n) {
 			tpie::log_error() << "Wrong stream length" << std::endl;
 			return false;
 		}
+		tpie::stream_size_type readItems = 0;
 		while (fs.stream().can_read()) {
 			fs.stream().read();
 			++readItems;
@@ -451,10 +460,12 @@ struct stress_tester {
 		tpie::log_debug() << "fs.file().truncate(" << ns << "); // was " << size << '\n';
 		stream.seek(0);
 		location = 0;
+		fs.close_stream();
 		fs.file().truncate(ns);
 		for (size_t i = size; i < ns; ++i) {
 			defined[i] = false;
 		}
+		location = 0;
 		size = ns;
 	}
 };
