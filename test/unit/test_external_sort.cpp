@@ -257,5 +257,5 @@ int main(int argc, char **argv) {
 		.test(large_test, "large", "n", 128*1024*1024)
 		.test(ami_sort_test, "amismall", "n", 8*1024*1024)
 		.test(ami_sort_test, "amilarge", "n", 128*1024*1024)
-		.test(test2, "very_large", "n", 1024llu*1024*1024*3);
+		.test(test2, "very_large", "n", 1024ull*1024*1024*3);
 }
