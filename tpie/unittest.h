@@ -84,6 +84,8 @@ testmanip<bool> failure();
 	
 class tests {
 public:
+	static const size_t lineLength = 79;
+
 	tests(int argc, char ** argv, memory_size_type memory_limit=50);
 	virtual ~tests();
 
@@ -181,7 +183,6 @@ private:
 			}
 
 			os << m_name << ' ';
-			const size_t lineLength = 79;
 			const size_t maxNameSize = lineLength
 				- 2 // spaces before and after dots
 				- 6; // status message: "[STAT]"

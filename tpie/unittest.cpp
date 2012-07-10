@@ -25,6 +25,7 @@
 #include <sstream>
 #include <tpie/sysinfo.h>
 
+
 namespace tpie {
 
 teststream_buf::teststream_buf() {
@@ -35,9 +36,9 @@ teststream_buf::teststream_buf() {
 int teststream_buf::overflow(int) {return 0;}
 
 void teststream_buf::stateAlign() {
-	if (pptr() - m_line < 72) sputc(' ');
-	while (pptr() - m_line < 71) sputc('.');
-	if (pptr() - m_line < 72) sputc(' ');
+	if (pptr() - m_line < tests::lineLength-8) sputc(' ');
+	while (pptr() - m_line < tests::lineLength-9) sputc('.');
+	if (pptr() - m_line < tests::lineLength-8) sputc(' ');
 }
 
 int teststream_buf::sync() {
