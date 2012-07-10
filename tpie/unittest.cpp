@@ -95,13 +95,18 @@ log_level parse_log_level(const std::string & arg) {
 	return LOG_FATAL;
 }
 
-tests::tests(int argc, char ** argv, memory_size_type memory_limit):  tests_runned(0), memory_limit(memory_limit) {
+tests::tests(int argc, char ** argv, memory_size_type memory_limit)
+	: tests_runned(0)
+	, memory_limit(memory_limit)
+{
 	exe_name = argv[0];
+	testAll = exe_name == "all";
 	bool has_seen_test=false;
+	bool log_threshold_set = false;
 	bad=false;
 	usage=false;
 	version=false;
-	log_level log_threshold = LOG_FATAL;
+	log_level log_threshold = LOG_INFORMATIONAL; // default for non-'all' tests
 	log_level error_log_threshold = LOG_FATAL;
 	for (int i=1; i < argc; ++i) {
 		if (argv[i][0] != '-') {
@@ -112,6 +117,10 @@ tests::tests(int argc, char ** argv, memory_size_type memory_limit):  tests_runn
 				break;
 			}
 			test_name = argv[i];
+			testAll = test_name == "all";
+			if (testAll && !log_threshold_set) {
+				log_threshold = LOG_ERROR; // default for 'all' tests
+			}
 			has_seen_test=true;
 			continue;
 		}
@@ -120,17 +129,20 @@ tests::tests(int argc, char ** argv, memory_size_type memory_limit):  tests_runn
 
 		if (arg == "-v" || arg == "--verbose") {
 			log_threshold = LOG_INFORMATIONAL;
+			log_threshold_set = true;
 			continue;
 		}
 
 		if (arg == "-d" || arg == "--debug") {
 			log_threshold = LOG_DEBUG;
+			log_threshold_set = true;
 			continue;
 		}
 
 		if (arg == "-l" || arg == "--log-level") {
 			std::string nextarg = (i+1 < argc) ? argv[i+1] : "";
 			log_threshold = parse_log_level(nextarg);
+			log_threshold_set = true;
 			++i;
 			continue;
 		}

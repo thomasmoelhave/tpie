@@ -237,6 +237,7 @@ private:
 	size_t tests_runned;
 	std::string exe_name;
 	std::string test_name;
+	bool testAll;
 	std::map<std::string, std::string> args;
 	memory_size_type memory_limit;
 	std::string current_name;
@@ -307,7 +308,7 @@ std::string tests::arg_str(const std::string & name, T def) const {
 template <typename T>
 tests & tests::test(T fct, const std::string & name) {
 	m_tests.push_back(name);
-	if (name == test_name || test_name == "all") {
+	if (testAll || name == test_name) {
 		start_test(name);
 		end_test( fct());
 	}
@@ -318,7 +319,7 @@ template <typename T, typename T1>
 tests & tests::test(T fct, const std::string & name, const std::string & p1_name, T1 p1_default) {
 	m_tests.push_back(name 
 					  + arg_str(p1_name, p1_default));
-	if (name == test_name || test_name == "all") {
+	if (testAll || name == test_name) {
 		start_test(name);
 		end_test(fct(get_arg(p1_name, p1_default)));
 	}
@@ -331,7 +332,7 @@ tests & tests::test(T fct, const std::string & name, const std::string & p1_name
 	m_tests.push_back(name 
 					  + arg_str(p1_name, p1_default) 
 					  + arg_str(p2_name, p2_default));
-	if (name == test_name || test_name == "all") {
+	if (testAll || name == test_name) {
 		start_test(name);
 		end_test(fct(get_arg(p1_name, p1_default), 
 					 get_arg(p2_name, p2_default)));
@@ -348,7 +349,7 @@ tests & tests::test(T fct, const std::string & name,
 					  + arg_str(p1_name, p1_default) 
 					  + arg_str(p2_name, p2_default)
 					  + arg_str(p3_name, p3_default));
-	if (name == test_name || test_name == "all") {
+	if (testAll || name == test_name) {
 		start_test(name);
 		end_test(fct(get_arg(p1_name, p1_default), 
 					 get_arg(p2_name, p2_default),
@@ -369,7 +370,7 @@ tests & tests::test(T fct, const std::string & name,
 					  + arg_str(p2_name, p2_default)
 					  + arg_str(p3_name, p3_default)
 					  + arg_str(p4_name, p4_default));
-	if (name == test_name || test_name == "all") {
+	if (testAll || name == test_name) {
 		start_test(name);
 		end_test(fct(get_arg(p1_name, p1_default), 
 					 get_arg(p2_name, p2_default),
@@ -392,7 +393,7 @@ tests & tests::test(T fct, const std::string & name,
 					  + arg_str(p3_name, p3_default)
 					  + arg_str(p4_name, p4_default)
 					  + arg_str(p5_name, p5_default));
-	if (name == test_name || test_name == "all") {
+	if (testAll || name == test_name) {
 		start_test(name);
 		end_test(fct(get_arg(p1_name, p1_default), 
 					 get_arg(p2_name, p2_default),
@@ -407,7 +408,7 @@ tests & tests::test(T fct, const std::string & name,
 template <typename T>
 tests & tests::multi_test(T fct, const std::string & name) {
 	m_tests.push_back(name);
-	if (name == test_name || test_name == "all") {
+	if (testAll || name == test_name) {
 		start_test(name);
 		teststream ts;
 		fct(ts);
@@ -419,7 +420,7 @@ tests & tests::multi_test(T fct, const std::string & name) {
 template <typename T, typename T1>
 tests & tests::multi_test(T fct, const std::string & name, const std::string & p1_name, T1  p1_default) {
 	m_tests.push_back(name+ arg_str(p1_name, p1_default));
-	if (name == test_name || test_name == "all") {
+	if (testAll || name == test_name) {
 		start_test(name);
 		teststream ts;
 		fct(ts, get_arg(p1_name, p1_default));
