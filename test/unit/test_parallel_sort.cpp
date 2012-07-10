@@ -143,7 +143,7 @@ bool bad_case(const size_t n) {
 	boost::posix_time::ptime t1=boost::posix_time::microsec_clock::local_time();
 	std::sort(v1.begin(), v1.end());
 	boost::posix_time::ptime t2=boost::posix_time::microsec_clock::local_time();
-	parallel_sort_impl<std::vector<int>::iterator, std::less<int>, false, 42> s(0);
+	parallel_sort_impl<std::vector<int>::iterator, std::less<int>, false, 600> s(0);
 	s(v2.begin(), v2.end());
 	boost::posix_time::ptime t3=boost::posix_time::microsec_clock::local_time();
 	if(v1 != v2) {tpie::log_error() << "Failed" << std::endl; return false;}
