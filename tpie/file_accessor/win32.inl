@@ -37,7 +37,7 @@ using tpie::throw_getlasterror;
 
 win32::win32()
 	: m_fd(INVALID_HANDLE_VALUE)
-	, m_cacheHint(access_normal)
+	, m_creationFlag(0)
 {
 }
 
