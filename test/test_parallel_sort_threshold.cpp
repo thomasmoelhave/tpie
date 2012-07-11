@@ -72,11 +72,15 @@ sort_timer * get_sort_timer(size_t stdSortThreshold) {
 	return get_sort_timer_calc<thresholdInc>::calc(stdSortThreshold);
 };
 
+// fill a vector with random numbers (the same random numbers each time).
 void fill_data(std::vector<test_t> & data) {
-	boost::mt19937 rng;
+	boost::mt19937 rng; // default seed
 	std::generate(data.begin(), data.end(), rng);
 }
 
+// search the interval [center-radius, center+radius] for the std::sort
+// threshold that yields the best run-time when sorting as much data as `data'
+// contains.
 size_t find_threshold(size_t center, size_t radius, std::vector<test_t> & data) {
 	size_t inc = radius/4;
 	size_t lo = (center > radius) ? (center-radius) : 0;
@@ -100,6 +104,7 @@ size_t find_threshold(size_t center, size_t radius, std::vector<test_t> & data) 
 }
 
 int main(int argc, char ** argv) {
+	// argument parsing
 	if (argc < 2) {
 		std::cout << "Usage: " << argv[0] << " mb" << std::endl;
 		return 1;
@@ -112,8 +117,8 @@ int main(int argc, char ** argv) {
 	std::cout << si.custominfo("Data (MB)", mb) << std::endl;
 	std::vector<test_t> data(mb*1024*1024/sizeof(test_t));
 
+	// program
 	tpie::tpie_init();
-	time_duration time;
 	size_t center = thresholdMax/2;
 	size_t radius = thresholdMax/2;
 
