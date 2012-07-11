@@ -35,6 +35,7 @@ namespace file_accessor {
 class posix {
 private:
 	int m_fd;
+	int m_advice;
 
 public:
 	inline posix();
@@ -56,6 +57,8 @@ public:
 	/// matches its value.
 	///////////////////////////////////////////////////////////////////////////
 	static inline void throw_errno();
+
+	inline void set_cache_hint(cache_hint cacheHint);
 };
 
 }

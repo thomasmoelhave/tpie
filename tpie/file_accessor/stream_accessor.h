@@ -26,6 +26,7 @@
 
 #include <tpie/file_accessor/file_accessor.h>
 #include <tpie/stream_header.h>
+#include <tpie/cache_hint.h>
 
 namespace tpie {
 namespace file_accessor {
@@ -103,7 +104,8 @@ public:
 					 bool write,
 					 memory_size_type itemSize,
 					 memory_size_type blockSize,
-					 memory_size_type userDataSize);
+					 memory_size_type userDataSize,
+					 cache_hint cacheHint);
 
 	inline void close();
 

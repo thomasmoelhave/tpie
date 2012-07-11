@@ -35,7 +35,10 @@ namespace file_accessor {
 
 using tpie::throw_getlasterror;
 
-win32::win32(): m_fd(INVALID_HANDLE_VALUE) {
+win32::win32()
+	: m_fd(INVALID_HANDLE_VALUE)
+	, m_cacheHint(access_normal)
+{
 }
 
 inline void win32::read_i(void * data, memory_size_type size) {
@@ -56,21 +59,34 @@ inline void win32::seek_i(stream_size_type size) {
 	if (!SetFilePointerEx(m_fd, i, NULL, 0)) throw_getlasterror();
 }
 
-static const DWORD creation_flag = FILE_FLAG_SEQUENTIAL_SCAN;
 static const DWORD shared_flags = FILE_SHARE_READ | FILE_SHARE_WRITE;
 
+void win32::set_cache_hint(cache_hint cacheHint) {
+	switch (cacheHint) {
+		case access_normal:
+			m_creationFlag = 0;
+			break;
+		case access_sequential:
+			m_creationFlag = FILE_FLAG_SEQUENTIAL_SCAN;
+			break;
+		case access_random:
+			m_creationFlag = FILE_FLAG_RANDOM_ACCESS;
+			break;
+	}
+}
+
 void win32::open_wo(const std::string & path) {
-	m_fd = CreateFile(path.c_str(), GENERIC_WRITE, shared_flags, 0, CREATE_ALWAYS, creation_flag, 0);
+	m_fd = CreateFile(path.c_str(), GENERIC_WRITE, shared_flags, 0, CREATE_ALWAYS, m_creationFlag, 0);
 	if (m_fd == INVALID_HANDLE_VALUE) throw_getlasterror();
 }
 
 void win32::open_ro(const std::string & path) {
-	m_fd = CreateFile(path.c_str(), GENERIC_READ, shared_flags, 0, OPEN_EXISTING, creation_flag, 0);
+	m_fd = CreateFile(path.c_str(), GENERIC_READ, shared_flags, 0, OPEN_EXISTING, m_creationFlag, 0);
 	if (m_fd == INVALID_HANDLE_VALUE) throw_getlasterror();
 }
 
 bool win32::try_open_rw(const std::string & path) {
-	m_fd = CreateFile(path.c_str(), GENERIC_READ | GENERIC_WRITE , shared_flags, 0, OPEN_EXISTING, creation_flag, 0);
+	m_fd = CreateFile(path.c_str(), GENERIC_READ | GENERIC_WRITE , shared_flags, 0, OPEN_EXISTING, m_creationFlag, 0);
 	if (m_fd == INVALID_HANDLE_VALUE) {
 		if (GetLastError() != ERROR_FILE_NOT_FOUND) throw_getlasterror();
 		return false;
@@ -79,7 +95,7 @@ bool win32::try_open_rw(const std::string & path) {
 }
 
 void win32::open_rw_new(const std::string & path) {
-	m_fd = CreateFile(path.c_str(), GENERIC_READ | GENERIC_WRITE , shared_flags, 0, CREATE_NEW, creation_flag, 0);
+	m_fd = CreateFile(path.c_str(), GENERIC_READ | GENERIC_WRITE , shared_flags, 0, CREATE_NEW, m_creationFlag, 0);
 	if (m_fd == INVALID_HANDLE_VALUE) throw_getlasterror();
 }
 

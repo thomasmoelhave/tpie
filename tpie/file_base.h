@@ -29,6 +29,7 @@
 #include <tpie/tempname.h>
 #include <memory>
 #include <tpie/memory.h>
+#include <tpie/cache_hint.h>
 
 namespace tpie {
 
@@ -50,7 +51,6 @@ public:
 		write,
 		read_write
 	};
-	
 
 	////////////////////////////////////////////////////////////////////////////////
 	/// Check if we can read from the file.
@@ -157,11 +157,12 @@ public:
 	}
 
 	inline void open_inner(const std::string & path,
-						   access_type accessType=read_write,
-						   memory_size_type userDataSize=0) throw(stream_exception) {
+						   access_type accessType,
+						   memory_size_type userDataSize,
+						   cache_hint cacheHint) throw(stream_exception) {
 		m_canRead = accessType == read || accessType == read_write;
 		m_canWrite = accessType == write || accessType == read_write;
-		m_fileAccessor->open(path, m_canRead, m_canWrite, m_itemSize, m_blockSize, userDataSize);
+		m_fileAccessor->open(path, m_canRead, m_canWrite, m_itemSize, m_blockSize, userDataSize, cacheHint);
 		m_size = m_fileAccessor->size();
 		m_open = true;
 	}
@@ -181,27 +182,30 @@ public:
 	/////////////////////////////////////////////////////////////////////////
 	inline void open(const std::string & path,
 					 access_type accessType=read_write,
-					 memory_size_type userDataSize=0) throw (stream_exception) {
+					 memory_size_type userDataSize=0,
+					 cache_hint cacheHint=access_sequential) throw (stream_exception) {
 		self().close();
-		self().open_inner(path, accessType, userDataSize);
+		self().open_inner(path, accessType, userDataSize, cacheHint);
 	}
 
 	/////////////////////////////////////////////////////////////////////////
 	///
 	/////////////////////////////////////////////////////////////////////////
-	inline void open(memory_size_type userDataSize=0) throw (stream_exception) {
+	inline void open(memory_size_type userDataSize=0,
+					 cache_hint cacheHint=access_sequential) throw (stream_exception) {
 		self().close();
 		m_ownedTempFile.reset(new temp_file());
 		m_tempFile=m_ownedTempFile.get();
-		self().open_inner(m_tempFile->path(), read_write, userDataSize);
+		self().open_inner(m_tempFile->path(), read_write, userDataSize, cacheHint);
 	}
 
 	inline void open(temp_file & file, 
 					 access_type accessType=read_write,
-					 memory_size_type userDataSize=0) throw (stream_exception) {
+					 memory_size_type userDataSize=0,
+					 cache_hint cacheHint=access_sequential) throw (stream_exception) {
 		self().close();
 		m_tempFile=&file;
-		self().open_inner(m_tempFile->path(), accessType, userDataSize);
+		self().open_inner(m_tempFile->path(), accessType, userDataSize, cacheHint);
 	}
 
 	/////////////////////////////////////////////////////////////////////////
@@ -610,8 +614,9 @@ public:
 
 	inline void open_inner(const std::string & path,
 						   access_type accessType,
-						   memory_size_type userDataSize) throw (stream_exception) {
-		p_t::open_inner(path, accessType, userDataSize);
+						   memory_size_type userDataSize,
+						   cache_hint cacheHint) throw (stream_exception) {
+		p_t::open_inner(path, accessType, userDataSize, cacheHint);
 		
 		m_blockStartIndex = 0;
 		m_nextBlock = std::numeric_limits<stream_size_type>::max();

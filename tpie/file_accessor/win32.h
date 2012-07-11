@@ -41,6 +41,7 @@ namespace file_accessor {
 class win32 {
 private:
 	HANDLE m_fd;
+	DWORD m_creationFlag;
 
 public:
 	inline win32();
@@ -56,6 +57,8 @@ public:
 	inline void seek_i(stream_size_type offset);
 	inline void close_i();
 	inline void truncate_i(stream_size_type bytes);
+
+	inline void set_cache_hint(cache_hint cacheHint);
 };
 
 }

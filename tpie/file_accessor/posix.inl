@@ -35,8 +35,24 @@ void posix::throw_errno() {
 	else throw io_exception(strerror(errno));
 }
 
-posix::posix():
-	m_fd(0) {
+posix::posix()
+	: m_fd(0)
+	, m_advice(POSIX_FADV_NORMAL)
+{
+}
+
+inline void posix::set_cache_hint(cache_hint cacheHint) {
+	switch (cacheHint) {
+		case access_normal:
+			m_advice = POSIX_FADV_NORMAL;
+			break;
+		case access_sequential:
+			m_advice = POSIX_FADV_SEQUENTIAL;
+			break;
+		case access_random:
+			m_advice = POSIX_FADV_RANDOM;
+			break;
+	}
 }
 
 inline void posix::read_i(void * data, memory_size_type size) {
@@ -60,11 +76,13 @@ inline void posix::seek_i(stream_size_type size) {
 void posix::open_wo(const std::string & path) {
 	m_fd = ::open(path.c_str(), O_RDWR | O_TRUNC | O_CREAT,  S_IRUSR | S_IWUSR);
 	if (m_fd == -1) throw_errno();
+	::posix_fadvise(m_fd, 0, 0, m_advice);
 }
 
 void posix::open_ro(const std::string & path) {
 	m_fd = ::open(path.c_str(), O_RDONLY);
 	if (m_fd == -1) throw_errno();
+	::posix_fadvise(m_fd, 0, 0, m_advice);
 }
 
 bool posix::try_open_rw(const std::string & path) {
@@ -73,12 +91,14 @@ bool posix::try_open_rw(const std::string & path) {
 		if (errno != ENOENT) throw_errno();
 		return false;
 	}
+	::posix_fadvise(m_fd, 0, 0, m_advice);
 	return true;
 }
 
 void posix::open_rw_new(const std::string & path) {
 	m_fd = ::open(path.c_str(), O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
 	if (m_fd == -1) throw_errno();
+	::posix_fadvise(m_fd, 0, 0, m_advice);
 }
 
 void posix::close_i() {

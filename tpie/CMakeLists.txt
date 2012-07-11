@@ -5,6 +5,7 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/sysinfo.cpp.in" "${CMAKE_CURRENT_BIN
 set (HEADERS
 		ami.h
 		backtrace.h
+		cache_hint.h
 		comparator.h
 		config.h.cmake
 		cpu_timer.h

@@ -122,11 +122,12 @@ void stream_accessor<file_accessor_t>::fill_header(stream_header_t & header, boo
 
 template <typename file_accessor_t>
 void stream_accessor<file_accessor_t>::open(const std::string & path,
-													  bool read,
-													  bool write,
-													  memory_size_type itemSize,
-													  memory_size_type blockSize,
-													  memory_size_type userDataSize) {
+											bool read,
+											bool write,
+											memory_size_type itemSize,
+											memory_size_type blockSize,
+											memory_size_type userDataSize,
+											cache_hint cacheHint) {
 	close();
 	m_write = write;
 	m_path = path;
@@ -135,6 +136,7 @@ void stream_accessor<file_accessor_t>::open(const std::string & path,
 	m_blockItems=blockSize/itemSize;
 	m_userDataSize=userDataSize;
 	m_size=0;
+	m_fileAccessor.set_cache_hint(cacheHint);
 	if (!write && !read)
 		throw invalid_argument_exception("Either read or write must be specified");
 	if (write && !read) {
