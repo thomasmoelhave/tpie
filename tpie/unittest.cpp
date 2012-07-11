@@ -163,8 +163,8 @@ tests::tests(int argc, char ** argv, memory_size_type memory_limit)
 			usage=true;
 			break;
 		}
-		
-		if (arg[1] != '-') {
+
+		if (!has_seen_test) {
 			usage=true;
 			bad=true;
 			std::cerr << "Unknown switch " << arg << std::endl;
@@ -172,7 +172,9 @@ tests::tests(int argc, char ** argv, memory_size_type memory_limit)
 		}
 
 		if (i + 1 < argc && argv[i+1][0] != '-') {
-			args[argv[i]+2] = argv[i+1];
+			const char * key = argv[i]+2;
+			if (arg[1] != '-' && arg.size() == 2) key = argv[i]+1;
+			args[key] = argv[i+1];
 			++i;
 		} else
 			args[argv[i]+2] = "";
