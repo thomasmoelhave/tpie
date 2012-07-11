@@ -93,12 +93,13 @@ struct sysinfo {
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Helper function to output custom key-value data to \c cout.
+	/// \brief Helper function to make a custom key-value line.
 	/// \code
 	/// sysinfo i;
 	/// std::cout << i;
-	/// i.printinfo("Verbosity", m_verbose ? "On" : "Off");
-	/// i.printinfo("", "Starting test");
+	/// std::cout << i.custominfo("Verbosity", m_verbose ? "On" : "Off")
+	///           << std::endl
+	///           << i.custominfo("", "Starting test") << std::endl;
 	/// \endcode
 	/// could print out
 	/// \code
@@ -117,10 +118,20 @@ struct sysinfo {
 	/// characters.
 	///////////////////////////////////////////////////////////////////////////
 	template <typename V>
-	inline void printinfo(std::string key, const V & value) {
+	inline std::string custominfo(std::string key, const V & value) {
+		std::stringstream builder;
 		if (key != "") key += ':';
-		std::cout.flags(std::ios::left);
-		std::cout << std::setw(16) << key << value << std::endl;
+		builder.flags(std::ios::left);
+		builder << std::setw(16) << key << value;
+		return builder.str();
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Print custom info to std::cout.
+	///////////////////////////////////////////////////////////////////////////
+	template <typename V>
+	inline void printinfo(std::string key, const V & value) {
+		std::cout << custominfo(key, value) << std::endl;
 	}
 
 	static inline memory_size_type blocksize_bytes() {
