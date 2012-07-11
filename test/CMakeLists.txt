@@ -28,3 +28,7 @@ add_subdirectory(unit)
 add_executable(tpiecat cat.cpp)
 set_target_properties(tpiecat PROPERTIES FOLDER tpie/test)
 target_link_libraries(tpiecat tpie)
+
+add_executable(test_parallel_sort_threshold test_parallel_sort_threshold.cpp)
+set_target_properties(test_parallel_sort_threshold PROPERTIES FOLDER tpie/test)
+target_link_libraries(test_parallel_sort_threshold tpie)
