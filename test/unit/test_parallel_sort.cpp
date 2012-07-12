@@ -82,7 +82,7 @@ bool basic1(const size_t elements, typename progress_types<Progress>::base * pi)
 		parallel_sort_impl<std::vector<int>::iterator, std::less<int>, Progress, min_size > s(&par_p);
 		s(v2.begin(), v2.end());
 		boost::posix_time::ptime end=boost::posix_time::microsec_clock::local_time();
-		tpie::log_info() << end-start << " " << std::endl;
+		tpie::log_info() << "Parallel sort took " << end-start << std::endl;
 	}
 
 	std_p.init(1);
@@ -94,7 +94,7 @@ bool basic1(const size_t elements, typename progress_types<Progress>::base * pi)
 		std::sort(v1.begin(), v1.end());
 		#endif
 		boost::posix_time::ptime end=boost::posix_time::microsec_clock::local_time();
-		tpie::log_info() << end-start << " " << std::endl;
+		tpie::log_info() << "std::sort took " << end-start << std::endl;
 	}
 	std_p.done();
 
@@ -107,49 +107,67 @@ bool basic1(const size_t elements, typename progress_types<Progress>::base * pi)
 	return true;
 }
 
-bool equal_elements() {
-	std::vector<int> v1;
-	std::vector<int> v2;
-	for (size_t i=0; i < 1234567; ++i) {
-		v1.push_back(42);
-		v2.push_back(42);
+void make_equal_elements_data(std::vector<int> & v) {
+	for (size_t i = 0; i < v.size(); ++i) {
+		if (i == v.size()-2) v[i] = 1;
+		else if (i == v.size()-1) v[i] = 64;
+		else v[i] = 42;
 	}
-	v1.push_back(1);
-	v2.push_back(1);
-	v1.push_back(64);
-	v2.push_back(64);
-
-	boost::posix_time::ptime t1=boost::posix_time::microsec_clock::local_time();
-	std::sort(v1.begin(), v1.end());
-	boost::posix_time::ptime t2=boost::posix_time::microsec_clock::local_time();
-	parallel_sort_impl<std::vector<int>::iterator, std::less<int>, false> s(0);
-	s(v2.begin(), v2.end());
-	boost::posix_time::ptime t3=boost::posix_time::microsec_clock::local_time();
-	if(v1 != v2) {tpie::log_error() << "Failed" << std::endl; return false;}
-	tpie::log_info() << "std: " << (t2-t1) << " ours: " << t3-t2 << std::endl;
-	if( (t2-t1)*3 < (t3-t2) ) {tpie::log_error() << "Too slow" << std::endl; return false;}
-	return true;
 }
 
-bool bad_case(const size_t n) {
-	std::vector<int> v1;
-	std::vector<int> v2;
-	for (size_t i=0; i < 8*n; ++i) {
+void make_bad_case_data(std::vector<int> & v) {
+	const size_t n = v.size()/8;
+	for (size_t i = 0; i < v.size(); ++i) {
 		const int el = (i % n && i != (8*n-1)) ? 42 : 36;
-		v1.push_back(el);
-		v2.push_back(el);
+		v[i] = el;
 	}
+}
 
-	boost::posix_time::ptime t1=boost::posix_time::microsec_clock::local_time();
-	std::sort(v1.begin(), v1.end());
-	boost::posix_time::ptime t2=boost::posix_time::microsec_clock::local_time();
-	parallel_sort_impl<std::vector<int>::iterator, std::less<int>, false, 600> s(0);
-	s(v2.begin(), v2.end());
-	boost::posix_time::ptime t3=boost::posix_time::microsec_clock::local_time();
-	if(v1 != v2) {tpie::log_error() << "Failed" << std::endl; return false;}
-	tpie::log_info() << "std: " << (t2-t1) << " ours: " << t3-t2 << std::endl;
-	if( (t2-t1)*3 < (t3-t2) ) {tpie::log_error() << "Too slow" << std::endl; return false;}
+void make_random_data(std::vector<int> & v) {
+	boost::rand48 rng;
+	std::generate(v.begin(), v.end(), rng);
+}
+
+typedef void (* adversarial_generator) (std::vector<int> &);
+
+template <adversarial_generator Generator>
+struct adversarial {
+bool operator()(const size_t n, const double seconds) {
+	tpie::log_debug() << n << " elements" << std::endl;
+	std::vector<int> v(n);
+	size_t iterations;
+	boost::posix_time::time_duration dur;
+	for (iterations = 1;; iterations += iterations) {
+		tpie::log_debug() << iterations << "..." << std::endl;
+		boost::posix_time::ptime t_begin = boost::posix_time::microsec_clock::local_time();
+		for (size_t i = 0; i < iterations; ++i) {
+			Generator(v);
+			std::sort(v.begin(), v.end());
+		}
+		boost::posix_time::ptime t_end = boost::posix_time::microsec_clock::local_time();
+		dur = t_end-t_begin;
+		if (dur > boost::posix_time::milliseconds(static_cast<size_t>(1000*seconds))) break;
+	}
+	tpie::log_info() << "Doing " << iterations << " iteration(s) of std::sort takes " << dur << std::endl;
+
+	parallel_sort_impl<std::vector<int>::iterator, std::less<int>, false> s(0);
+	boost::posix_time::ptime t_begin = boost::posix_time::microsec_clock::local_time();
+	for (size_t i = 0; i < iterations; ++i) {
+		tpie::log_debug() << '.' << std::flush;
+		Generator(v);
+		s(v.begin(), v.end());
+	}
+	boost::posix_time::ptime t_end = boost::posix_time::microsec_clock::local_time();
+	tpie::log_debug() << std::endl;
+	tpie::log_info() << "std: " << dur << " ours: " << t_end-t_begin << std::endl;
+	if( dur*3 < (t_end-t_begin) ) {tpie::log_error() << "Too slow" << std::endl; return false;}
 	return true;
+}
+};
+
+bool bad_case(const size_t elements, double seconds) {
+	const size_t n = elements/8;
+	return adversarial<make_bad_case_data>()(8*n, seconds);
 }
 
 bool stress_test() {
@@ -198,7 +216,8 @@ int main(int argc, char **argv) {
 		.test(sort_tester<2>(), "basic1", "n", 1024*1024)
 		.test(sort_tester<8>(), "basic2", "n", 8*8)
 		.test(sort_tester<1024*1024>(), "general", "n", 24*1024*1024)
-		.test(equal_elements, "equal_elements")
-		.test(bad_case, "bad_case", "n", 1024*1024)
+		.test(adversarial<make_equal_elements_data>(), "equal_elements", "n", 1234567, "seconds", 1.0)
+		.test(bad_case, "bad_case", "n", 1024*1024, "seconds", 1.0)
+		.test(adversarial<make_random_data>(), "general2", "n", 1024*1024, "seconds", 1.0)
 		.test(stress_test, "stress_test");
 }
