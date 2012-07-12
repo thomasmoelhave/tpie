@@ -16,6 +16,10 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
+
+#ifndef __TPIE_UNITTEST_H__
+#define __TPIE_UNITTEST_H__
+
 #include <iostream>
 #include <tpie/types.h>
 #include <tpie/logstream.h>
@@ -442,3 +446,5 @@ tests & tests::finish(T t) {
 }
 
 } //namespace tpie
+
+#endif // __TPIE_UNITTEST_H__
