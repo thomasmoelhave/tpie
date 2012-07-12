@@ -300,6 +300,15 @@ struct stress_tester {
 		actionCount
 	};
 
+	template <typename T>
+	bool __stress_assert_eq_silent(T got, T value, const char * exp) {
+		if (value != got) {
+			tpie::log_error() << "Expected " << exp << " == " << value << ", got " << got << '\n';
+			return false;
+		}
+		return true;
+	}
+
 #define STRESS_ASSERT(cond) /*tpie::log_debug() << "assert(" << #cond << ");\n";*/\
 	if (!(cond)) {\
 		result = false;\
@@ -307,10 +316,8 @@ struct stress_tester {
 	}
 #define STRESS_ASSERT_EQ_SILENT(exp, value) \
 	{\
-		int got = (exp);\
-		if (value != got) {\
+		if (!__stress_assert_eq_silent((exp), value, #exp)) {\
 			result = false;\
-			tpie::log_error() << "Expected " << #exp << " == " << value << ", got " << got << '\n';\
 		}\
 	}
 #define STRESS_ASSERT_EQ(exp, value) \
