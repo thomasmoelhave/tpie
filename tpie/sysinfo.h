@@ -49,7 +49,7 @@ struct sysinfo {
 	///////////////////////////////////////////////////////////////////////////
 	inline sysinfo()
 		: m_platform(calc_platform())
-		, m_hostname(boost::asio::ip::host_name())
+		, m_hostname(calc_hostname())
 		, m_blocksize(calc_blocksize())
 	{
 		// Does nothing.
@@ -154,6 +154,15 @@ private:
 #endif
 		p << (8*sizeof(size_t)) << "-bit";
 		return p.str();
+	}
+
+	static inline std::string calc_hostname() {
+		try {
+			return boost::asio::ip::host_name();
+		} catch (boost::system::system_error & e) {
+			log_debug() << "boost::system::system_error thrown while getting hostname. e.what() == " << e.what() << std::endl;
+			return "Exception";
+		}
 	}
 
 	static inline std::string calc_blocksize() {
