@@ -45,7 +45,7 @@ bool basic_test(const size_t elements) {
 	incrementBy = 0;
 	size_t n = 0;
 	for (typename Array::iterator i = a.begin(); i != a.end(); ++i) {
-		if (i-a.begin() != n) {
+		if (static_cast<size_t>(i-a.begin()) != n) {
 			std::cerr << "Ptrdiff is wrong, got " << (i-a.begin()) << " expected " << n << std::endl;
 			return false; // XXX
 		}
@@ -64,7 +64,7 @@ bool basic_test(const size_t elements) {
 
 	n = 0;
 	for (typename Array::reverse_iterator i = a.rbegin(); i != a.rend(); ++i) {
-		if (i-a.rbegin() != n) {
+		if (static_cast<size_t>(i-a.rbegin()) != n) {
 			std::cerr << "Ptrdiff is wrong, got " << (i-a.rbegin()) << " expected " << n << std::endl;
 			return false; // XXX
 		}
