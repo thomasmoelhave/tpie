@@ -42,7 +42,7 @@ void log_stream_buf::flush() {
 
 int log_stream_buf::overflow(int c) {
 	flush();
-	*pptr() = c;
+	*pptr() = static_cast<char>(c);
 	pbump(1);
 	return c;
 }

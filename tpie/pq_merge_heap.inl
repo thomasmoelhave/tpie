@@ -1,4 +1,6 @@
-// Copyright 2008, The TPIE development team
+// -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
+// vi:set ts=4 sts=4 sw=4 noet cino+=(0 :
+// Copyright 2008, 2012, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -17,10 +19,10 @@
 
 
 template <typename T, typename Comparator>
-pq_merge_heap<T, Comparator>::pq_merge_heap(TPIE_OS_SIZE_T elements) {
+pq_merge_heap<T, Comparator>::pq_merge_heap(memory_size_type elements) {
 	maxsize = elements;
 	heap = tpie_new_array<T>(elements);
-	runs = tpie_new_array<TPIE_OS_SIZE_T>(elements);
+	runs = tpie_new_array<run_type>(elements);
 	m_size = 0;
 }
 
@@ -31,12 +33,12 @@ pq_merge_heap<T, Comparator>::~pq_merge_heap() {
 }
 
 template <typename T, typename Comparator>
-void pq_merge_heap<T, Comparator>::push(const T& x, TPIE_OS_SIZE_T run) {
+void pq_merge_heap<T, Comparator>::push(const T& x, run_type run) {
 	assert(m_size < maxsize);
 	heap[m_size] = x;
 	runs[m_size] = run;
-	TPIE_OS_SSIZE_T parent;
-	TPIE_OS_SSIZE_T child;
+	stream_offset_type parent;
+	stream_offset_type child;
 	child = m_size;
 	parent = ( child - 1 ) / 2;
 	m_size++;
@@ -68,7 +70,7 @@ void pq_merge_heap<T, Comparator>::pop() {
 }
 
 template <typename T, typename Comparator>
-void pq_merge_heap<T, Comparator>::pop_and_push(const T& x, TPIE_OS_SIZE_T run) {
+void pq_merge_heap<T, Comparator>::pop_and_push(const T& x, run_type run) {
 	assert(m_size > 0);
 	heap[0] = x;
 	runs[0] = run;
@@ -85,13 +87,14 @@ const T& pq_merge_heap<T, Comparator>::top() const {
 }
 
 template <typename T, typename Comparator>
-TPIE_OS_SIZE_T pq_merge_heap<T, Comparator>::top_run() const {
+typename pq_merge_heap<T, Comparator>::run_type
+pq_merge_heap<T, Comparator>::top_run() const {
 	assert(m_size > 0);
 	return runs[0];
 }
 
 template <typename T, typename Comparator>
-TPIE_OS_SIZE_T pq_merge_heap<T, Comparator>::size() const {
+memory_size_type pq_merge_heap<T, Comparator>::size() const {
 	return m_size;
 }
 
@@ -106,7 +109,7 @@ bool pq_merge_heap<T, Comparator>::empty() const {
 
 template <typename T, typename Comparator>
 void pq_merge_heap<T, Comparator>::fixDown() {
-	TPIE_OS_OFFSET parent, child1, child2;
+	stream_offset_type parent, child1, child2;
 	assert(m_size > 0);
 	bool done = false;
 	if(m_size == 1) done = true;
@@ -118,24 +121,24 @@ void pq_merge_heap<T, Comparator>::fixDown() {
 	while(!done) {
 		//cout << "pq_merge_heap: loop top" << child1 << " " << child2 << " " << m_size << endl;
 		assert(m_size>0);
-		if(child1 == TPIE_OS_OFFSET(m_size-1)) {
+		if(child1 == static_cast<stream_offset_type>(m_size-1)) {
 			//cout << "pq_merge_heap: fixdown 0" << endl;
 			if(comp_(heap[child1],heap[parent])) {
 				//cout << "pq_merge_heap: swap, fixdown 0 " << heap[child1] << " " << heap[parent] << endl;
-				assert(child1 < TPIE_OS_OFFSET(maxsize));
-				assert(parent < TPIE_OS_OFFSET(maxsize));
+				assert(child1 < static_cast<stream_offset_type>(maxsize));
+				assert(parent < static_cast<stream_offset_type>(maxsize));
 				std::swap(heap[child1],heap[parent]);
 				std::swap(runs[child1],runs[parent]);
 			}
 			done = true;
 			continue;
 		} 
-		if(child1 > TPIE_OS_OFFSET(m_size-1)) {
+		if(child1 > static_cast<stream_offset_type>(m_size-1)) {
 			//cout << "pq_merge_heap done 1" << endl;
 			done = true;
 			continue;
 		}
-		if(child2 > TPIE_OS_OFFSET(m_size-1)) {
+		if(child2 > static_cast<stream_offset_type>(m_size-1)) {
 			//cout << "pq_merge_heap done 2" << endl;
 			done = true;
 			continue;
@@ -143,15 +146,15 @@ void pq_merge_heap<T, Comparator>::fixDown() {
 		//cout << "pq_merge_heap: loop step " << child1 << " " << child2 << " " << parent << " " << m_size << endl; 
 		if(comp_(heap[child1],heap[child2]) && comp_(heap[child1],heap[parent])) {
 			//cout << "pq_merge_heap: fixdown 1: " << heap[child1] << "(" << child1 << ") " << heap[parent] << "("<<parent << ")" << endl;
-			assert(child1 < TPIE_OS_OFFSET(maxsize));
-			assert(parent < TPIE_OS_OFFSET(maxsize));
+			assert(child1 < static_cast<stream_offset_type>(maxsize));
+			assert(parent < static_cast<stream_offset_type>(maxsize));
 			std::swap(heap[child1],heap[parent]);
 			std::swap(runs[child1],runs[parent]);
 			parent = child1;
 		} else if(comp_(heap[child2],heap[parent])) {
 			//cout << "pq_merge_heap: fixdown 2: " << heap[child2] << "(" << child2 << ") " << heap[parent] << "("<<parent << ")" << endl;
-			assert(child2 < TPIE_OS_OFFSET(maxsize));
-			assert(parent < TPIE_OS_OFFSET(maxsize));
+			assert(child2 < static_cast<stream_offset_type>(maxsize));
+			assert(parent < static_cast<stream_offset_type>(maxsize));
 			std::swap(heap[child2],heap[parent]);
 			std::swap(runs[child2],runs[parent]);
 			parent = child2;
@@ -168,8 +171,8 @@ template <typename T, typename Comparator>
 void pq_merge_heap<T, Comparator>::validate() {
 #ifndef NDEBUG
 #ifdef PQ_VALIDATE
-	TPIE_OS_SIZE_T child1, child2;
-	for(TPIE_OS_SIZE_T i = 0; i<m_size; i++) {
+	memory_size_type child1, child2;
+	for(memory_size_type i = 0; i<m_size; i++) {
 		child1 = i * 2 + 1;
 		child2 = i * 2 + 2;
 		if(child1<m_size) {
@@ -188,7 +191,7 @@ void pq_merge_heap<T, Comparator>::validate() {
 template <typename T, typename Comparator>
 void pq_merge_heap<T, Comparator>::dump() {
 	TP_LOG_DEBUG("pq_merge_heap: "); 
-	for(TPIE_OS_SIZE_T i = 0; i<m_size; i++) {
+	for(memory_size_type i = 0; i<m_size; i++) {
 		TP_LOG_DEBUG(heap[i] << ", ");
 	}
 	TP_LOG_DEBUG("\n");

@@ -23,11 +23,12 @@
 #include <sstream>
 #include "tpie_log.h"
 #include <cstring>
+#include <cstdlib>
 
 namespace tpie {
 
 inline void segfault() {
-	*((char *)0)=42;
+	std::abort();
 }
 
 memory_manager * mm = 0;
@@ -185,7 +186,7 @@ void memory_manager::__register_pointer(void * p, size_t size, const std::type_i
 	m_pointers[p] = std::make_pair(size, &t);;
 }
 
-void memory_manager::__unregister_pointer(void * p, size_t size, const std::type_info & /*t*/) {
+void memory_manager::__unregister_pointer(void * p, size_t size, const std::type_info & t) {
 	boost::unordered_map<void *, std::pair<size_t, const std::type_info *> >::const_iterator i=m_pointers.find(p);
 	if (i == m_pointers.end()) {
 		log_error() << "Trying to deregister pointer " << p << " of size "
@@ -195,6 +196,11 @@ void memory_manager::__unregister_pointer(void * p, size_t size, const std::type
 		if (i->second.first != size) {
 			log_error() << "Trying to deregister pointer " << p << " of size "
 						<< size << " which was registered with size " << i->second.first << std::endl;
+			segfault();
+		}
+		if (*i->second.second != t) {
+			log_error() << "Trying to deregister pointer " << p << " of type "
+						<< t.name() << " which was registered with size " << i->second.second->name() << std::endl;
 			segfault();
 		}
 		m_pointers.erase(i);

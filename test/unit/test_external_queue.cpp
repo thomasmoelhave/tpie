@@ -32,19 +32,20 @@ std::ostream & debug = std::cout;
 std::ostream debug(0); // bit bucket
 #endif
 
-bool queue_test(const size_t elements = 2*1024*1024/sizeof(uint64_t), const size_t maxpush = 64) {
+bool queue_test(const size_t elements = 2*1024*1024/sizeof(uint64_t)) {
+	const size_t maxpush = 64;
 	queue<uint64_t> q1;
 	std::queue<uint64_t> q2;
 
 	size_t i = 0;
 
 	// number of elements currently in the queue
-	size_t l = 0;
+	uint64_t l = 0;
 
 	while (i < elements) {
 		// First, push a random number of elements to our queue and std::queue.
-		size_t push = 1 + (element(i) % (maxpush - 1));
-		for (size_t j = 0; i < elements && j < push; ++i, ++j) {
+		uint64_t push = 1 + (element(i) % (maxpush - 1));
+		for (uint64_t j = 0; i < elements && j < push; ++i, ++j) {
 			debug << "Push " << i << " " << element(i) << " " << std::endl;
 			q1.push(element(i));
 			q2.push(element(i));
@@ -53,8 +54,8 @@ bool queue_test(const size_t elements = 2*1024*1024/sizeof(uint64_t), const size
 		l += push;
 
 		// Next, pop a random number of elements.
-		size_t pop = 1 + (element(i) % (l - 1));
-		for (size_t j = 0; i < elements && j < pop; ++i, ++j) {
+		uint64_t pop = 1 + (element(i) % (l - 1));
+		for (uint64_t j = 0; i < elements && j < pop; ++i, ++j) {
 			debug << "Pop " << i << std::endl;
 
 			uint64_t el = q2.front();
@@ -64,12 +65,12 @@ bool queue_test(const size_t elements = 2*1024*1024/sizeof(uint64_t), const size
 
 			// our queue implementation also returns an element in pop()
 			if (got != q1.pop()) {
-				std::cout << "pop() doesn't agree with front() on element " << i << std::endl;
+				tpie::log_info() << "pop() doesn't agree with front() on element " << i << std::endl;
 				return false;
 			}
 
 			if (el != got) {
-				std::cout << "front() returned incorrect element " << i << std::endl;
+				tpie::log_info() << "front() returned incorrect element " << i << std::endl;
 				return false;
 			}
 
@@ -82,29 +83,12 @@ bool queue_test(const size_t elements = 2*1024*1024/sizeof(uint64_t), const size
 	return true;
 }
 
-void usage(char *prog) {
-	std::cout << "Usage: " << prog << " <basic|medium>" << std::endl;
+bool basic_test() {
+	return queue_test();
 }
 
 int main(int argc, char ** argv) {
-	tpie_initer _(32);
-
-	if (argc < 2) {
-		usage(argv[0]);
-		return 1;
-	}
-
-	std::string test(argv[1]);
-	bool res;
-
-	if (test == "basic") {
-		res = queue_test();
-	} else if (test == "medium") {
-		res = queue_test(32*1024*1024/sizeof(uint64_t));
-	} else {
-		usage(argv[0]);
-		return 1;
-	}
-
-	return res ? EXIT_SUCCESS : EXIT_FAILURE;
+	return tpie::tests(argc, argv, 32)
+		.test(basic_test, "basic")
+		.test(queue_test, "sized", "n", 32*1024*1024/sizeof(uint64_t));
 }

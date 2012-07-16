@@ -170,7 +170,7 @@ public:
  		first_free = 0;
  		for (size_t i=0; i < buckets.size(); ++i) {
 			buckets[i].value = unused;
-			buckets[i].next = i+1;
+			buckets[i].next = static_cast<index_t>(i+1);
 		}
 		for (typename array<index_t>::iterator i=list.begin(); i != list.end(); ++i)
 			*i = std::numeric_limits<index_t>::max();
@@ -182,7 +182,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
  	void resize(size_t z) {
  		buckets.resize(z);
-		size_t x=size_t(99+z*sc)|1;
+		size_t x=static_cast<size_t>(99+static_cast<double>(z)*sc)|1;
 		while (!is_prime(x)) x -= 2;
  		list.resize(x);
 		clear();
@@ -329,7 +329,7 @@ public:
 	/// \copydetails chaining_hash_table::resize(size_t)
 	///////////////////////////////////////////////////////////////////////////
 	void resize(size_t element_count) {
-		size_t x=size_t(99+element_count*sc)|1;
+		size_t x=(99+static_cast<size_t>(static_cast<float>(element_count)*sc))|1;
 		while (!is_prime(x)) x -= 2;
 		elements.resize(x, unused);
 	}

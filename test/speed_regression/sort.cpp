@@ -35,8 +35,8 @@ using namespace tpie::test;
 
 const size_t mb_default=1;
 
-typedef uint64_t count_t; // number of items
-typedef uint64_t elm_t; // type of element we sort
+typedef tpie::uint64_t count_t; // number of items
+typedef tpie::uint64_t elm_t; // type of element we sort
 
 void usage() {
 	std::cout << "Parameters: [times] [mb] [memory]" << std::endl;
@@ -44,9 +44,7 @@ void usage() {
 
 void test(size_t mb, size_t times) {
 	std::vector<const char *> names;
-	std::vector<uint64_t> ti;
 	names.resize(3);
-	ti.resize(3);
 	names[0] = "Write";
 	names[1] = "Sort";
 	names[2] = "Hash";
@@ -85,7 +83,7 @@ void test(size_t mb, size_t times) {
 		{
 			stream<elm_t> s("tmp", READ_STREAM);
 			for(count_t i=0; i < count; ++i) {
-				elm_t *x;
+				elm_t *x = 0;
 				s.read_item(&x);
 				if (i > 0 && prev > *x) {
 					sorted = false;
@@ -95,7 +93,7 @@ void test(size_t mb, size_t times) {
 			}
 		}
 		boost::filesystem::remove("tmp");
-		hash %= 100000000000000;
+		hash %= 100000000000000ull;
 		s(hash);
 		if (!sorted) std::cout << "\nNot sorted!" << std::endl;
 	}

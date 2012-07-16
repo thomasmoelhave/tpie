@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2008, The TPIE development team
+// Copyright 2008, 2012, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -40,12 +40,14 @@ namespace tpie{
 template<typename T, typename Comparator = std::less<T> >
 class pq_merge_heap {
 	public:
+		typedef memory_size_type run_type;
+
 		///////////////////////////////////////////////////////////////////////
 		/// \brief Constructor.
 		///
 		/// \param elements Maximum allowed size of the heap.
 		///////////////////////////////////////////////////////////////////////
-		pq_merge_heap(TPIE_OS_SIZE_T elements);
+		pq_merge_heap(memory_size_type elements);
 
 		///////////////////////////////////////////////////////////////////////
 		/// \brief Destructor.
@@ -58,7 +60,7 @@ class pq_merge_heap {
 		/// \param x The item.
 		/// \param run Where it comes from.
 		///////////////////////////////////////////////////////////////////////
-		void push(const T& x, TPIE_OS_SIZE_T run);
+		void push(const T& x, run_type run);
 
 		///////////////////////////////////////////////////////////////////////
 		/// \brief Remove the top element from the priority queue.
@@ -72,7 +74,7 @@ class pq_merge_heap {
 		/// \param x The item.
 		/// \param run Where it comes from.
 		///////////////////////////////////////////////////////////////////////
-		void pop_and_push(const T& x, TPIE_OS_SIZE_T run);
+		void pop_and_push(const T& x, run_type run);
 
 		///////////////////////////////////////////////////////////////////////
 		/// \brief See what's on the top of the priority queue.
@@ -86,14 +88,14 @@ class pq_merge_heap {
 		///
 		/// \return Top element run number.
 		///////////////////////////////////////////////////////////////////////
-		TPIE_OS_SIZE_T top_run() const;
+		run_type top_run() const;
 
 		///////////////////////////////////////////////////////////////////////
 		/// \brief Returns the size of the queue.
 		///
 		/// \return Queue size.
 		///////////////////////////////////////////////////////////////////////
-		TPIE_OS_SIZE_T size() const;
+		memory_size_type size() const;
 
 		///////////////////////////////////////////////////////////////////////
 		/// \brief Return true if queue is empty, otherwise false.
@@ -107,12 +109,12 @@ class pq_merge_heap {
 		void validate();
 		void dump();
 
-		TPIE_OS_SIZE_T m_size;
+		memory_size_type m_size;
 		Comparator comp_;
 
 		T* heap;
-		TPIE_OS_SIZE_T* runs;
-		TPIE_OS_SIZE_T maxsize;
+		run_type* runs;
+		memory_size_type maxsize;
 };
 
 #include "pq_merge_heap.inl"

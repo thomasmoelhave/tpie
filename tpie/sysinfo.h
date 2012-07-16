@@ -28,6 +28,8 @@
 #include <iomanip>
 #include <boost/asio/ip/host_name.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <tpie/file.h> // for block size
+#include <tpie/tpie_log.h>
 
 namespace tpie {
 
@@ -48,7 +50,7 @@ struct sysinfo {
 	///////////////////////////////////////////////////////////////////////////
 	inline sysinfo()
 		: m_platform(calc_platform())
-		, m_hostname(boost::asio::ip::host_name())
+		, m_hostname(calc_hostname())
 		, m_blocksize(calc_blocksize())
 	{
 		// Does nothing.
@@ -92,12 +94,13 @@ struct sysinfo {
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \brief Helper function to output custom key-value data to \c cout.
+	/// \brief Helper function to make a custom key-value line.
 	/// \code
 	/// sysinfo i;
 	/// std::cout << i;
-	/// i.printinfo("Verbosity", m_verbose ? "On" : "Off");
-	/// i.printinfo("", "Starting test");
+	/// std::cout << i.custominfo("Verbosity", m_verbose ? "On" : "Off")
+	///           << std::endl
+	///           << i.custominfo("", "Starting test") << std::endl;
 	/// \endcode
 	/// could print out
 	/// \code
@@ -116,18 +119,24 @@ struct sysinfo {
 	/// characters.
 	///////////////////////////////////////////////////////////////////////////
 	template <typename V>
-	inline void printinfo(std::string key, const V & value) {
+	inline std::string custominfo(std::string key, const V & value) {
+		std::stringstream builder;
 		if (key != "") key += ':';
-		std::cout.flags(std::ios::left);
-		std::cout << std::setw(16) << key << value << std::endl;
+		builder.flags(std::ios::left);
+		builder << std::setw(16) << key << value;
+		return builder.str();
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Print custom info to std::cout.
+	///////////////////////////////////////////////////////////////////////////
+	template <typename V>
+	inline void printinfo(std::string key, const V & value) {
+		std::cout << custominfo(key, value) << std::endl;
 	}
 
 	static inline memory_size_type blocksize_bytes() {
-#ifdef WIN32
-		return STREAM_UFS_BLOCK_FACTOR*64*1024;
-#else
-		return STREAM_UFS_BLOCK_FACTOR*4*1024;
-#endif
+		return file<int>::block_size(1.0);
 	}
 
 private:
@@ -148,14 +157,19 @@ private:
 		return p.str();
 	}
 
+	static inline std::string calc_hostname() {
+		try {
+			return boost::asio::ip::host_name();
+		} catch (boost::system::system_error & e) {
+			log_debug() << "boost::system::system_error thrown while getting hostname. e.what() == " << e.what() << std::endl;
+			return "Exception";
+		}
+	}
+
 	static inline std::string calc_blocksize() {
 		std::stringstream ss;
-#ifdef WIN32
-		ss << STREAM_UFS_BLOCK_FACTOR*64;
-#else
-		ss << STREAM_UFS_BLOCK_FACTOR*4;
-#endif
-		ss << " KiB";
+		ss << blocksize_bytes() / 1024
+		   << " KiB";
 		return ss.str();
 	}
 };

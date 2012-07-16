@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2008, The TPIE development team
+// Copyright 2008, 2012, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -62,6 +62,8 @@ namespace tpie {
 
 template<typename T, typename Comparator = std::less<T>, typename OPQType = pq_overflow_heap<T, Comparator> >
 class priority_queue {
+	typedef memory_size_type group_type;
+	typedef memory_size_type slot_type;
 public:
     /////////////////////////////////////////////////////////
     ///
@@ -72,13 +74,13 @@ public:
 	/// \param b Block factor
     ///
     /////////////////////////////////////////////////////////
-    priority_queue(double f=1.0, double b=0.0625);
+    priority_queue(double f=1.0, float b=0.0625);
 
 #ifndef DOXYGEN
     // \param mmavail Number of bytes the priority queue is
     // allowed to use.
 	// \param b Block factor
-    priority_queue(TPIE_OS_SIZE_T mm_avail, double b=0.0625);
+    priority_queue(memory_size_type mm_avail, float b=0.0625);
 #endif
 
 
@@ -121,7 +123,7 @@ public:
     /// \return Queue size
     ///
     /////////////////////////////////////////////////////////
-    TPIE_OS_OFFSET size() const;
+    stream_size_type size() const;
 
     /////////////////////////////////////////////////////////
     ///
@@ -156,46 +158,48 @@ private:
 	tpie::array<T> buffer; // deletion buffer
 	tpie::array<T> gbuffer0; // group buffer 0
 	tpie::array<T> mergebuffer; // merge buffer for merging deletion buffer and group buffer 0
-	tpie::array<TPIE_OS_OFFSET> slot_state;
-	tpie::array<TPIE_OS_OFFSET> group_state;
+	tpie::array<memory_size_type> slot_state;
+	tpie::array<memory_size_type> group_state;
 
-    TPIE_OS_SIZE_T setting_k;
-    TPIE_OS_SIZE_T current_r;
-    TPIE_OS_SIZE_T setting_m;
-    TPIE_OS_SIZE_T setting_mmark;
+    memory_size_type setting_k;
+    memory_size_type current_r;
+    memory_size_type setting_m;
+    memory_size_type setting_mmark;
 
-    TPIE_OS_OFFSET slot_data_id;
+    memory_size_type slot_data_id;
 
-    TPIE_OS_OFFSET m_size;
-    TPIE_OS_SIZE_T buffer_size;
-    TPIE_OS_SIZE_T buffer_start;
+    stream_size_type m_size;
+    memory_size_type buffer_size;
+    memory_size_type buffer_start;
 
-	double block_factor;
+	float block_factor;
 
-	void init(TPIE_OS_SIZE_T mm_avail);
+	void init(memory_size_type mm_avail);
 
-    void slot_start_set(TPIE_OS_SIZE_T slot, TPIE_OS_OFFSET n); 
-    TPIE_OS_OFFSET slot_start(TPIE_OS_SIZE_T slot) const; 
-    void slot_size_set(TPIE_OS_SIZE_T slot, TPIE_OS_OFFSET n); 
-    TPIE_OS_OFFSET slot_size(TPIE_OS_SIZE_T slot) const; 
-    void group_start_set(TPIE_OS_SIZE_T group, TPIE_OS_OFFSET n); 
-    TPIE_OS_OFFSET group_start(TPIE_OS_SIZE_T group) const; 
-    void group_size_set(TPIE_OS_SIZE_T group, TPIE_OS_OFFSET n); 
-    TPIE_OS_OFFSET group_size(TPIE_OS_SIZE_T group) const; 
+    void             slot_start_set(slot_type slot, memory_size_type n);
+    memory_size_type slot_start(slot_type slot) const;
+    void             slot_size_set(slot_type slot, memory_size_type n);
+    memory_size_type slot_size(slot_type slot) const;
+    void             group_start_set(group_type group, memory_size_type n);
+    memory_size_type group_start(group_type group) const;
+    void             group_size_set(group_type group, memory_size_type n);
+    memory_size_type group_size(group_type group) const;
+
     array<temp_file> datafiles;
     array<temp_file> groupdatafiles;
-    temp_file & slot_data(TPIE_OS_SIZE_T slotid); 
-    void slot_data_set(TPIE_OS_SIZE_T slotid, TPIE_OS_OFFSET n); 
-    temp_file & group_data(TPIE_OS_SIZE_T groupid); 
-    TPIE_OS_OFFSET slot_max_size(TPIE_OS_SIZE_T slotid); 
-    void write_slot(TPIE_OS_SIZE_T slotid, T* arr, TPIE_OS_OFFSET len); 
-    TPIE_OS_SIZE_T free_slot(TPIE_OS_SIZE_T group);
-    void empty_group(TPIE_OS_SIZE_T group);
+
+    temp_file & slot_data(slot_type slotid);
+    void slot_data_set(slot_type slotid, memory_size_type n);
+    temp_file & group_data(group_type groupid);
+    memory_size_type slot_max_size(slot_type slotid);
+    void write_slot(slot_type slotid, T* arr, memory_size_type len);
+    slot_type free_slot(group_type group);
+    void empty_group(group_type group);
     void fill_buffer();
-    void fill_group_buffer(TPIE_OS_SIZE_T group);
-    void compact(TPIE_OS_SIZE_T slot);
+    void fill_group_buffer(group_type group);
+    void compact(slot_type slot);
     void validate();
-    void remove_group_buffer(TPIE_OS_SIZE_T group);
+    void remove_group_buffer(group_type group);
     void dump();
 };
 

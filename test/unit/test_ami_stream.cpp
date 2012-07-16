@@ -25,12 +25,17 @@
 
 #include <iostream>
 #include <boost/filesystem/operations.hpp>
-
+#include <boost/random.hpp>
 #include <tpie/tpie.h>
 
 #include <tpie/array.h>
 #include <tpie/stream.h>
 #include <tpie/util.h>
+#include <vector>
+#include <tpie/progress_indicator_arrow.h>
+#include <tpie/types.h>
+
+using tpie::uint64_t;
 
 static const std::string TEMPFILE = "tmp";
 inline uint64_t ITEM(size_t i) {return i*98927 % 104639;}
@@ -39,22 +44,7 @@ static const size_t ITEMS = TESTSIZE/sizeof(uint64_t);
 static const size_t ARRAYSIZE = 512;
 static const size_t ARRAYS = TESTSIZE/(ARRAYSIZE*sizeof(uint64_t));
 
-int main(int argc, char **argv) {
-	tpie_initer _;
-
-	if (argc != 2) {
-		std::cout << "Usage: " << argv[0] << " basic" << std::endl;
-		return EXIT_FAILURE;
-	}
-
-	std::string testtype(argv[1]);
-
-	// We only have one test
-	if (testtype != "basic") {
-		std::cout << "Unknown test" << std::endl;
-		return EXIT_FAILURE;
-	}
-
+bool basic() {
 	boost::filesystem::remove(TEMPFILE);
 
 	// Write ITEMS items sequentially to TEMPFILE
@@ -70,8 +60,8 @@ int main(int argc, char **argv) {
 		for(size_t i=0; i < ITEMS; ++i) {
 			s.read_item(&x);
 			if (*x != ITEM(i)) {
-				std::cout << "Expected element " << i << " = " << ITEM(i) << ", got " << *x << std::endl;
-				return EXIT_FAILURE;
+				tpie::log_error() << "Expected element " << i << " = " << ITEM(i) << ", got " << *x << std::endl;
+				return false;
 			}
 		}
 	}
@@ -94,13 +84,13 @@ int main(int argc, char **argv) {
 			TPIE_OS_SIZE_T len = ARRAYSIZE;
 			s.read_array(x, len);
 			if (len != ARRAYSIZE) {
-				std::cout << "read_array only read " << len << " elements, expected " << ARRAYSIZE << std::endl;
-				return EXIT_FAILURE;
+				tpie::log_error() <<  "read_array only read " << len << " elements, expected " << ARRAYSIZE << std::endl;
+				return false;
 			}
 			for (size_t i=0; i < ARRAYSIZE; ++i) {
 				if (x[i] != ITEM(i)) {
-					std::cout << "Expected element " << i << " = " << ITEM(i) << ", got " << x[i] << std::endl;
-					return EXIT_FAILURE;
+					tpie::log_error() << "Expected element " << i << " = " << ITEM(i) << ", got " << x[i] << std::endl;
+					return false;
 				}
 			}
 		}
@@ -116,15 +106,15 @@ int main(int argc, char **argv) {
 		}
 		for (size_t i=0; i < 10; ++i) {
 			// Seek to random index
-			tpie::stream_offset_type idx = ITEM(i) % ITEMS;
+			size_t idx = ITEM(i) % ITEMS;
 			s.seek(idx);
 
 			if (i%2 == 0) {
 				uint64_t *read;
 				s.read_item(&read);
 				if (*read != data[idx]) {
-					std::cout << "Expected element " << idx << " to be " << data[idx] << ", got " << *read << std::endl;
-					return EXIT_FAILURE;
+					tpie::log_error() << "Expected element " << idx << " to be " << data[idx] << ", got " << *read << std::endl;
+					return false;
 				}
 			} else {
 				uint64_t write = ITEM(ITEMS+i);
@@ -133,12 +123,184 @@ int main(int argc, char **argv) {
 			}
 
 			tpie::stream_offset_type newoff = s.tell();
-			if (newoff != idx+1) {
-				std::cout << "Offset advanced to " << newoff << ", expected " << (idx+1) << std::endl;
-				return EXIT_FAILURE;
+			if (newoff != tpie::stream_offset_type(idx+1) ) {
+				tpie::log_error() << "Offset advanced to " << newoff << ", expected " << (idx+1) << std::endl;
+				return false;
 			}
 		}
 	}
+	return true;
+}
 
-	return EXIT_SUCCESS;
+bool truncate_test() {
+	try {
+		tpie::ami::stream<int> stream;
+		stream.truncate(134138027);
+		stream.seek(0);
+		stream.write_item(42);
+		stream.truncate(134199667);
+		stream.seek(325595);
+		int * it;
+		stream.read_item(&it);
+	} catch(std::runtime_error e) {
+		std::cout << "EXCEPTION " << e.what() << " " << typeid(e).name()<< std::endl;
+		return false;
+	}
+	return true;
+}
+
+int stress(size_t actions=1024*1024*10, size_t max_size=1024*1024*128) {
+	try {
+		tpie::progress_indicator_arrow pi("Test", actions);
+		const size_t chunk_size=1024*128;
+		std::vector<int> elements(max_size, 0);
+		std::vector<bool> defined(max_size, true);
+		std::vector<int> arr(chunk_size);
+		size_t location=0;
+		size_t size=0;
+	
+		boost::mt19937 rng;
+		boost::uniform_int<> todo(0, 6);
+		boost::uniform_int<> ddist(0, 123456789);
+		tpie::ami::stream<int> stream;
+		pi.init(actions);
+		for(size_t action=0; action < actions; ++action) {
+			switch(todo(rng)) {
+			case 0: //READ
+			{
+				size_t cnt=size-location;
+				if (cnt > 0) {
+					boost::uniform_int<> d(1,std::min<size_t>(cnt, chunk_size));
+					cnt=d(rng);
+					std::cerr << location << " " << size << " read: " << cnt << std::endl;
+					for (size_t i=0; i < cnt; ++i) {
+						int * item;
+						if (stream.read_item(&item) != tpie::ami::NO_ERROR) {
+							std::cout << "Should be able to read" << std::endl;
+							return false;
+						}
+						if (defined[location]) {
+							if (elements[location] != *item) {
+								std::cerr << "Found " << *item << " expected " << elements[location] << std::endl;
+								return false;
+							}
+						} else {
+							defined[location] = true;
+							elements[location] = *item;
+						}
+						++location;
+					}
+				} else {
+					int * item;
+					if (stream.read_item(&item) == tpie::ami::NO_ERROR) {
+						std::cerr << "Should not be able to read" << std::endl;
+						return false;
+					}
+				}
+				break;
+			}
+			case 1: //WRITE
+			{
+				boost::uniform_int<> d(1,chunk_size);
+				size_t cnt=std::min<size_t>(d(rng), max_size-location);
+				std::cerr << location << " " << size << " write: " << cnt << std::endl;
+				for (size_t i=0; i < cnt; ++i) {
+					elements[location] = ddist(rng);
+					defined[location] = true;
+					stream.write_item(elements[location]);
+					location++;
+				}
+				size = std::max(size, location);
+				break;
+			}
+			case 2: //SEEK END
+			{
+				std::cerr << location << " " << size << " seek: " << size << std::endl;
+				location = size;
+				stream.seek(location);
+				break;
+			}
+			case 3: //SEEK SOMEWHERE
+			{
+				boost::uniform_int<> d(0, size);
+				size_t l = d(rng);
+				std::cerr << location << " " << size << " seek: " << l << std::endl;
+				location = l;
+				stream.seek(location);
+				break;
+			}
+			case 4: //READ ARRAY
+			{
+				size_t cnt=size-location;
+				if (cnt > 0) {
+					boost::uniform_int<> d(1,std::min<size_t>(cnt, chunk_size));
+					cnt=d(rng);
+					std::cerr << location << " " << size << " read array: " << cnt << std::endl;
+					stream.read_array(&arr[0], cnt);
+					for (size_t i=0; i < cnt; ++i) {
+						if (defined[location]) {
+							if (elements[location] != arr[i]) {
+								std::cerr << "Found " << arr[i] << " expected " << elements[location] << std::endl;
+								return false;
+							}
+						} else {
+							defined[location] = true;
+							elements[location] = arr[i];
+						}
+						++location;
+					}
+				}
+			}
+			case 5: //WRITE ARRAY
+			{
+				 boost::uniform_int<> d(1,chunk_size);
+				 size_t cnt=std::min<size_t>(d(rng), max_size-location);
+				 std::cerr << location << " " << size << " write array: " << cnt << std::endl;
+				 for (size_t i=0; i < cnt; ++i) {
+					 arr[i] = elements[location] = ddist(rng);
+					 defined[location] = true;
+					 ++location;
+				 }
+				 stream.write_array(&arr[0], cnt);
+				 size = std::max(size, location);
+				 break;
+			}
+			case 6: //TRUNCATE 
+			{
+				boost::uniform_int<> d(std::max(0, (int)size-(int)chunk_size), std::min(size+chunk_size, max_size));
+				size_t ns=d(rng);
+				std::cerr << location << " " << size << " truncate: " << ns << std::endl;	
+				stream.truncate(ns);
+				stream.seek(0);
+				location=0;
+				for (size_t i=size; i < ns; ++i)
+					defined[i] = false;
+				size=ns;
+				break;
+			}
+			}
+			//std::cout << location << " " << size << std::endl;
+			if (stream.stream_len() != (tpie::stream_offset_type)size) {
+				std::cerr << "Bad size" << std::endl;
+				return false;
+			}
+			if (stream.tell() != (tpie::stream_offset_type)location) {
+				std::cerr << "Bad offset" << std::endl;
+				return false;
+			}
+			pi.step();
+		}
+		pi.done();
+	} catch(std::runtime_error e) {
+		std::cerr << "EXCEPTION " << e.what() << " " << typeid(e).name()<< std::endl;
+		return false;
+	}
+	return true;
+}
+
+int main(int argc, char **argv) {
+	return tpie::tests(argc, argv)
+		.test(basic, "basic")
+		.test(stress, "stress", "actions", 1024*1024*10, "maxsize", 1024*1024*128)
+		.test(truncate_test, "truncate");
 }

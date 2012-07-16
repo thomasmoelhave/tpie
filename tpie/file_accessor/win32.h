@@ -30,7 +30,7 @@
 #include <windows.h>
 #undef NO_ERROR
 
-#include <tpie/file_accessor/file_accessor_crtp.h>
+#include <tpie/file_accessor/stream_accessor.h>
 namespace tpie {
 namespace file_accessor {
 
@@ -38,27 +38,27 @@ namespace file_accessor {
 /// \brief Win32 file accessor.
 ///////////////////////////////////////////////////////////////////////////////
 
-class win32: public file_accessor_crtp<win32> {
+class win32 {
 private:
 	HANDLE m_fd;
-	bool m_write;
+	DWORD m_creationFlag;
 
-	friend class file_accessor_crtp<win32>;
+public:
+	inline win32();
+	inline ~win32() {close_i();}
+
+	inline void open_wo(const std::string & path);
+	inline void open_ro(const std::string & path);
+	inline bool try_open_rw(const std::string & path);
+	inline void open_rw_new(const std::string & path);
 
 	inline void read_i(void * data, memory_size_type size);
 	inline void write_i(const void * data, memory_size_type size);
 	inline void seek_i(stream_size_type offset);
-public:
-	inline win32();
-	inline void open(const std::string & path,
-					 bool read,
-					 bool write,
-					 memory_size_type itemSize,
-					 memory_size_type blockSize,
-					 memory_size_type userDataSize);
-	inline void close();
-	inline void truncate(stream_size_type size);
-	inline ~win32() {close();}
+	inline void close_i();
+	inline void truncate_i(stream_size_type bytes);
+
+	inline void set_cache_hint(cache_hint cacheHint);
 };
 
 }

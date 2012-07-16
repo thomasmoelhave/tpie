@@ -39,13 +39,13 @@ namespace tpie {
 class progress_indicator_null : public progress_indicator_base {
 
 public:
-    progress_indicator_null (TPIE_OS_OFFSET range=0) :progress_indicator_base(range) {}
+    progress_indicator_null (stream_size_type range=0) :progress_indicator_base(range) {}
 
     virtual ~progress_indicator_null() { /*Do nothing*/ }
 
-	virtual void init(TPIE_OS_OFFSET range) { unused(range); }
+	virtual void init(stream_size_type range) { unused(range); }
 	virtual void done() {}
-	virtual void set_range(TPIE_OS_OFFSET range) { unused(range); }
+	virtual void set_range(stream_size_type range) { unused(range); }
 	virtual void refresh() {}
 
 };

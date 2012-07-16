@@ -29,13 +29,18 @@ bool basic_test() {
 	//Lets hope the external pq has a small block factor!
 	get_memory_manager().set_limit(32*1024*1024);
 	ami::priority_queue<boost::uint64_t, bit_pertume_compare< std::greater<boost::uint64_t> > > pq(1.0);
-	return basic_pq_test(pq, 350003);
+#ifdef NDEBUG
+	const boost::uint64_t size = 350003;
+#else // DEBUG
+	const boost::uint64_t size = 350;
+#endif
+	return basic_pq_test(pq, size);
 }
 
 bool medium_instance() {
 	TPIE_OS_OFFSET iterations = 10000;
     get_memory_manager().set_limit(32*1024*1024);
-	progress_indicator_arrow progress("Running test",iterations-1100);
+	progress_indicator_arrow progress("Running test",iterations-1100, tpie::log_info());
     for(TPIE_OS_OFFSET it = 1100; it < iterations; it++)  {
 		progress.step();
 		ami::priority_queue<int, std::greater<int> > pq(0.75);
@@ -58,7 +63,7 @@ bool medium_instance() {
 		for(TPIE_OS_OFFSET i=0;i<pop;i++) {
 			if(!pq.empty()) {
 				if(pq.top() != pq2.top()) {
-					std::cerr << "Pop " << i << " got: " << pq.top() << " expected " << pq2.top() << std::endl;
+					tpie::log_error() << "Pop " << i << " got: " << pq.top() << " expected " << pq2.top() << std::endl;
 					return false;
 				}
 				pq.pop();
@@ -72,7 +77,7 @@ bool medium_instance() {
 		}
 		while(!pq.empty()) {
 			if(pq.top() != pq2.top()) {
-				std::cerr << "Pop2, got: " << pq.top() << " expected " << pq2.top() << std::endl;
+				tpie::log_error() <<  "Pop2, got: " << pq.top() << " expected " << pq2.top() << std::endl;
 				return false;
 			}
 			pq.pop();
@@ -101,7 +106,7 @@ bool large_instance(){
 
 	double cycle = crash_test ? 20000000000.0 : 50000000.0;
 	const TPIE_OS_OFFSET iterations=500000000;
-	progress_indicator_arrow progress("Running test",iterations);
+	progress_indicator_arrow progress("Running test",iterations, tpie::log_info());
 	for (TPIE_OS_OFFSET j=0; j<iterations; j++) {
 		progress.step();
 		double i = static_cast<double>(j);
@@ -110,8 +115,8 @@ bool large_instance(){
 		if (!crash_test && pq.empty() != pq2.empty()) return false;
 
 		if (!crash_test && !pq.empty() && pq.top()!=pq2.top()) {
-			std::cerr << j << " Priority queues differ, got " << pq.top() << " but expected " 
-					  << pq2.top() << std::endl;
+			tpie::log_error() << j << " Priority queues differ, got " << pq.top() << " but expected " 
+							  << pq2.top() << std::endl;
 			return false;
 		}
 		if (rand()<th) {
@@ -155,7 +160,7 @@ public:
 	static const size_t ITEMS = 16*1024*1024;
 
 	virtual void use() {
-		progress_indicator_arrow progress("Priority queue test",ITEMS*2);
+		progress_indicator_arrow progress("Priority queue test",ITEMS*2, tpie::log_info());
 		for (size_t i = 0; i < ITEMS; ++i) {
 			progress.step();
 			m_pq->push(ITEM(i));
@@ -186,19 +191,89 @@ bool memory_test() {
 }
 
 
+bool overflow_test() {
+	tpie::priority_queue<char> pq;
+	char c = 0;
+	const uint64_t limit = 100ull + (1ull << 32);
+	const uint64_t every = 1<<16;
+	const uint64_t steps = limit/every;
+
+	progress_indicator_arrow pi("PQ test", 2*steps, tpie::log_info());
+	pi.init(2*steps);
+	uint64_t progress_tracker = every;
+
+	for (uint64_t i = 0; i < limit; ++i) {
+		pq.push(c++);
+
+		if (!--progress_tracker) {
+			progress_tracker = every;
+			pi.step();
+		}
+	}
+
+	for (uint64_t i = 0; i < limit; ++i) {
+		pq.pop();
+
+		if (!--progress_tracker) {
+			progress_tracker = every;
+			pi.step();
+		}
+	}
+
+	pi.done();
+	return true;
+}
+
+
+template <uint64_t prime, typename T>
+bool very_large_test() {
+	try {
+		const uint64_t generator=104729;
+		const uint64_t base=((prime + 7)/8);
+		const uint64_t size=base+base+prime;
+		uint64_t nn=0;
+		uint64_t ext=0;
+		ami::priority_queue<boost::uint64_t> pq;
+		tpie::progress_indicator_arrow pi("Test", size+size);
+		pi.init(size+size);
+		for (uint64_t i=0; i < prime; ++i) {
+			if (i % 8 == 0) {
+				pq.push(nn++);
+				pq.push(nn++);
+				if (pq.empty()) {std::cerr << "Was empty" << std::endl; return false;}
+				T elm=pq.top();
+				if (elm != T(ext) ) {std::cerr << "Expected " << T(ext) << " got " << elm << std::endl; return false;}
+				++ext;
+				pq.pop();
+				pi.step(3);
+			}
+			pq.push( base+base + (i * generator) % prime);
+			pi.step();
+		}
+		for (uint64_t i=0; i < base+prime; ++i) {
+			if (pq.empty()) {std::cerr << "Was empty" << std::endl; return false;}
+			T elm=pq.top();
+			if (elm != T(ext) ) {std::cerr << "Expected " << ext << " got " << elm << std::endl; return false;}
+			++ext;
+			pq.pop();
+			pi.step();
+		}
+		pi.done();
+		if (!pq.empty()) {std::cerr << "Was not empty" << std::endl; return false;}
+		return true;
+	} catch(std::exception e) {
+		std::cerr << "Exception: " << e.what() << std::endl;
+		return false;
+	}
+}
+
 int main(int argc, char **argv) {
-	tpie_initer _(128);
-	if(argc != 2) return 1;
-	std::string test(argv[1]);
-	if (test == "basic")
-		return basic_test()?EXIT_SUCCESS:EXIT_FAILURE;
-	else if (test == "medium")
-		return medium_instance()?EXIT_SUCCESS:EXIT_FAILURE;
-	else if (test == "large")
-		return large_instance<false>()?EXIT_SUCCESS:EXIT_FAILURE;
-	else if (test == "large_cycle")
-		return large_cycle()?EXIT_SUCCESS:EXIT_FAILURE;
-	else if (test == "memory")
-		return memory_test()?EXIT_SUCCESS:EXIT_FAILURE;
-	return EXIT_FAILURE;
+	return tpie::tests(argc, argv, 128)
+		.test(basic_test, "basic")
+		.test(medium_instance, "medium")
+		.test(large_instance<false>, "large")
+		.test(large_cycle, "large_cycle")
+		.test(memory_test, "memory")
+		.test(very_large_test<4294967311, uint64_t>, "very_large")
+		.test(overflow_test, "overflow");
 }

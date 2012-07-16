@@ -48,9 +48,10 @@ public:
 		}
 		output(time);
 
-		double delta = time - mean[next_col];
-		mean[next_col] += static_cast<double>(delta) / n;
-		m2[next_col] = m2[next_col] + delta*(time - mean[next_col]);
+		double ftime = static_cast<double>(time);
+		double delta = ftime - mean[next_col];
+		mean[next_col] += static_cast<double>(delta) / static_cast<double>(n);
+		m2[next_col] = m2[next_col] + delta*(ftime - mean[next_col]);
 
 		++next_col;
 		if (next_col == mean.size()) {
@@ -65,7 +66,7 @@ public:
 		print_mean_line();
 		std::cout << std::endl << std::setw(width) << "stddev";
 		for(size_t i=0; i < mean.size(); ++i) 
-			output(sqrt(m2[i]/(n-1)));
+			output(sqrt(m2[i]/static_cast<double>(n-1)));
 		std::cout << std::endl;
 	}
 

@@ -40,22 +40,9 @@
 using namespace std;
 using namespace tpie;
 
-#ifdef _WIN32
-//On windows there do not seem to be any limit on the number of handels we can create
-size_t get_os_available_fds() {return 1024*128;}  
-#else
-size_t get_os_available_fds() {
-	size_t f=0;
-	for(int fd=0; fd < getdtablesize(); ++fd) {
-		int flags = fcntl(fd, F_GETFD, 0);
-		if (flags == -1 && errno == EBADF) ++f;
-	}
-	return f-5; //-5 to prevent race conditions
-}
-#endif
+namespace {
 
-
-typedef std::pair<memory_size_type, memory_size_type> p_t;
+typedef std::pair<stream_size_type, time_type> p_t;
 
 struct cmp_t {
 	bool operator()(const p_t & a, const p_t & b) const {return a.first < b.first;}
@@ -79,10 +66,10 @@ struct entry {
 		}
 		p_t * replace=end();
 		if (count == max_points) {
-			memory_size_type best_dist=points[2].first - points[0].first;
+			stream_size_type best_dist=points[2].first - points[0].first;
 			replace=begin()+1;
 			for(p_t * i=begin()+1; i < end()-1; ++i) {
-				memory_size_type dist=(i+1)->first - (i-1)->first;
+				stream_size_type dist=(i+1)->first - (i-1)->first;
 				if (dist < best_dist) {replace=i; best_dist=dist;}
 			}
 		} else 
@@ -100,7 +87,7 @@ struct entry {
 
 class time_estimator_database {
 public:
-	typedef std::map<size_t, entry> db_type;
+	typedef std::map<hash_type, entry> db_type;
 	db_type db;
 	std::string dir_name;
 	std::string file_name;
@@ -137,12 +124,13 @@ public:
 				size_t c;
 				u >> c;
 				for(size_t i=0; i < c; ++i) {
-					size_t id;
+					hash_type id;
 					size_t cnt;
 					u >> id >> cnt;
 					entry & e=db[id];
 					for (size_t j=0; j < cnt; ++j) {
-						memory_size_type n, time;
+						stream_size_type n;
+						time_type time;
 						u >> n >> time;
 						e.add_point(p_t(n, time));
 					}
@@ -168,9 +156,9 @@ public:
 			s << "TPIE time execution database";
 			s << (size_t)db.size();
 			for(db_type::iterator i=db.begin(); i != db.end(); ++i) {
-				s << (size_t)i->first << (size_t)i->second.count;
+				s << (hash_type)i->first << (size_t)i->second.count;
 				for (p_t * j=i->second.begin(); j != i->second.end(); ++j)
-					s << (memory_size_type)j->first << (memory_size_type)j->second;
+					s << (stream_size_type)j->first << (time_type)j->second;
 			}
 		}
 		f.close();
@@ -181,7 +169,7 @@ public:
 		}
 	}
 	
-	memory_size_type estimate(size_t & id, memory_size_type n, double & confidence) {
+	time_type estimate(hash_type id, stream_size_type n, double & confidence) {
 		db_type::iterator i=db.find(id);
 		if (i == db.end()) {
 			confidence=0.0;
@@ -212,14 +200,16 @@ public:
 		
 		p_t p0(0,0);
 		if (l != e.begin()) p0 = *(l-1);
-		memory_size_type w=(l->first-p0.first);
-		memory_size_type x=(n - p0.first);
+		stream_size_type w=(l->first-p0.first);
+		stream_size_type x=(n - p0.first);
 		confidence=1.0;
 		return p0.second * (w - x) / w + l->second * (x/w);
 	}
 };
 
 static time_estimator_database * db = 0;
+
+} //annonymous namespace
 
 namespace tpie {
 
@@ -238,7 +228,7 @@ void finish_execution_time_db() {
 
 execution_time_predictor::execution_time_predictor(const std::string & id): 
 	m_id(prime_hash(id)), m_start_time(boost::posix_time::not_a_date_time), 
-	m_estimate(-1), m_pause_time_at_start(0)
+	m_estimate(-1), m_confidence(1), m_pause_time_at_start(0)
 #ifndef TPIE_NDEBUG
 	,m_name(id)
 #endif //TPIE_NDEBUG
@@ -247,29 +237,29 @@ execution_time_predictor::execution_time_predictor(const std::string & id):
 execution_time_predictor::~execution_time_predictor() {
 }
 
-memory_size_type execution_time_predictor::estimate_execution_time(memory_size_type n, double & confidence) {
+time_type execution_time_predictor::estimate_execution_time(stream_size_type n, double & confidence) {
 	if (m_id == prime_hash(std::string())) {
 		confidence=0.0;
 		return -1;
 	}
-	memory_size_type v=db->estimate(m_id, n, confidence);
+	time_type v=db->estimate(m_id, n, confidence);
 #ifndef TPIE_NDEBUG
-	if (v == -1)
+	if (v == static_cast<memory_size_type>(-1))
 		log_debug() << "No database entry for " << m_name << " (" << m_id << ")" << std::endl;
 #endif
 	return v;
 }
 
-void execution_time_predictor::start_execution(memory_size_type n) {
+void execution_time_predictor::start_execution(stream_size_type n) {
     m_n = n;
     m_estimate = estimate_execution_time(n, m_confidence);
     m_start_time = boost::posix_time::microsec_clock::local_time();
 	m_pause_time_at_start = s_pause_time;
 }
 
-memory_size_type execution_time_predictor::end_execution() {
+time_type execution_time_predictor::end_execution() {
 	if (m_id == prime_hash(std::string()) || !s_store_times) return 0;
-	memory_size_type t = (boost::posix_time::microsec_clock::local_time() - m_start_time).total_milliseconds();
+	time_type t = (boost::posix_time::microsec_clock::local_time() - m_start_time).total_milliseconds();
 	t -= (s_pause_time - m_pause_time_at_start);
 	entry & e = db->db[m_id];
 	e.add_point( p_t(m_n, t) );
@@ -279,14 +269,14 @@ memory_size_type execution_time_predictor::end_execution() {
 
 std::string execution_time_predictor::estimate_remaining_time(double progress) {
     double time = static_cast<double>((boost::posix_time::microsec_clock::local_time()-m_start_time).total_milliseconds());
-	time -= (s_pause_time - m_pause_time_at_start);
+	time -= static_cast<double>(s_pause_time - m_pause_time_at_start);
 
 	double a = m_confidence * (1.0 - progress);
 	double b = (1.0-m_confidence) * (1.0 - progress) + progress;
 
 	double t2 = (progress < 0.00001)?0:time/progress;
 	if (m_confidence * a + progress * b < 0.2) return "Estimating";
-	double estimate = m_estimate * a  + t2 * b;
+	double estimate = static_cast<double>(m_estimate) * a  + t2 * b;
 	
 	double remaining = estimate * (1.0-progress);
 
@@ -316,14 +306,15 @@ void execution_time_predictor::start_pause() {
 }
 
 void execution_time_predictor::end_pause() {
-	s_pause_time += (boost::posix_time::microsec_clock::local_time() - s_start_pause_time).total_milliseconds();
+	s_pause_time += static_cast<memory_size_type>(
+		(boost::posix_time::microsec_clock::local_time() - s_start_pause_time).total_milliseconds());
 }
 
 void execution_time_predictor::disable_time_storing() {
 	s_store_times = false;
 }
 
-memory_size_type execution_time_predictor::s_pause_time = 0;
+time_type execution_time_predictor::s_pause_time = 0;
 boost::posix_time::ptime execution_time_predictor::s_start_pause_time;
 bool execution_time_predictor::s_store_times = true;
 

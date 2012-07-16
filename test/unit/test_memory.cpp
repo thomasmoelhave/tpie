@@ -133,12 +133,6 @@ bool basic_test() {
 }
 
 int main(int argc, char ** argv) {
-  tpie_initer _(128);
-  
-  if(argc != 2) return 1;
-  std::string test(argv[1]);
-  
-  if (test == "basic") 
-    return basic_test()?EXIT_SUCCESS:EXIT_FAILURE;
-
+	return tpie::tests(argc, argv, 128)
+		.test(basic_test, "basic");
 }

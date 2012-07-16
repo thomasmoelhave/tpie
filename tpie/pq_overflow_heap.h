@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2008, The TPIE development team
+// Copyright 2008, 2012, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -43,7 +43,7 @@ public:
     ///
     /// \param maxsize Maximal size of queue.
     ///////////////////////////////////////////////////////////////////////////
-    pq_overflow_heap(TPIE_OS_SIZE_T maxsize, Comparator c=Comparator());
+    pq_overflow_heap(memory_size_type maxsize, Comparator c=Comparator());
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Insert an element into the priority queue.
@@ -69,7 +69,7 @@ public:
     ///
     /// \return Queue size.
     ///////////////////////////////////////////////////////////////////////////
-    TPIE_OS_SIZE_T size() const;
+    stream_size_type size() const;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Return true if queue is empty otherwise false.
@@ -103,7 +103,7 @@ public:
     ///
     /// \return Size.
     ///////////////////////////////////////////////////////////////////////////
-    TPIE_OS_SIZE_T sorted_size() const;
+    memory_size_type sorted_size() const;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Remove all elements from queue.
@@ -113,7 +113,7 @@ public:
 private:
     Comparator comp;
 	internal_priority_queue<T, Comparator> h;
-    TPIE_OS_SIZE_T maxsize;
+    memory_size_type maxsize;
     //T dummy;
 };
 	

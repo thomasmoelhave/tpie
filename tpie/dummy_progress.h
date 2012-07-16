@@ -65,7 +65,7 @@ struct dummy_fraction_progress {
 
 	/// \copybrief tpie::fractional_progress::init()
 	/// \copydetails tpie::fractional_progress::init()
-	inline void init(TPIE_OS_OFFSET range = 0) {
+	inline void init(stream_size_type range = 0) {
 		unused(range);
 	}
 
@@ -77,7 +77,7 @@ struct dummy_fraction_progress {
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief  A progress indicator that is conceptually compatible with
-/// tpie::progress_indicator_base.
+/// tpie::progress_indicator_base and tpie::fractional_subindicator.
 ///////////////////////////////////////////////////////////////////////////////
 
 struct dummy_progress_indicator {
@@ -85,29 +85,30 @@ struct dummy_progress_indicator {
 		// Do nothing.
 	}
 
-	inline dummy_progress_indicator(dummy_fraction_progress &, 
-									const char *, const char *, const char *,
-									TPIE_OS_OFFSET, const char *c=0,
-									bool a=true, bool b=true) {
-		unused(a);
-		unused(b);
-		unused(c);
+	// fractional_subindicator style constructor
+	inline dummy_progress_indicator(dummy_fraction_progress & /*fp*/,
+									const char * /*id*/, const char * /*file*/, const char * /*function*/,
+									stream_size_type /*n*/, const char *crumb=0,
+									bool importance=true, bool enabled=true) {
+		unused(crumb);
+		unused(importance);
+		unused(enabled);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \copydoc progress_indicator_base::init(TPIE_OS_OFFSET)
+	/// \copydoc progress_indicator_base::init(stream_size_type)
 	///////////////////////////////////////////////////////////////////////////
-	inline void init(TPIE_OS_OFFSET range = 0) {
+	inline void init(stream_size_type range = 0) {
 		unused(range);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \copydoc progress_indicator_base::step(TPIE_OS_OFFSET)
+	/// \copydoc progress_indicator_base::step(stream_size_type)
 	///////////////////////////////////////////////////////////////////////////
-	inline void step(TPIE_OS_OFFSET) { }
+	inline void step(stream_size_type) { }
 
 	///////////////////////////////////////////////////////////////////////////
-	/// \copydoc progress_indicator_base::step(TPIE_OS_OFFSET)
+	/// \copydoc progress_indicator_base::step(stream_size_type)
 	///////////////////////////////////////////////////////////////////////////
 	inline void step() { }
 

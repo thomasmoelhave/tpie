@@ -30,91 +30,87 @@
 namespace tpie {
 namespace file_accessor {
 
-posix::posix():
-	m_fd(0) {
-	invalidateLocation();
+void posix::throw_errno() {
+	if (errno == ENOSPC) throw out_of_space_exception(strerror(errno));
+	else throw io_exception(strerror(errno));
+}
+
+posix::posix()
+	: m_fd(0)
+	, m_advice(POSIX_FADV_NORMAL)
+{
+}
+
+inline void posix::set_cache_hint(cache_hint cacheHint) {
+	switch (cacheHint) {
+		case access_normal:
+			m_advice = POSIX_FADV_NORMAL;
+			break;
+		case access_sequential:
+			m_advice = POSIX_FADV_SEQUENTIAL;
+			break;
+		case access_random:
+			m_advice = POSIX_FADV_RANDOM;
+			break;
+	}
 }
 
 inline void posix::read_i(void * data, memory_size_type size) {
-	if (::read(m_fd, data, size) != (memory_offset_type)size) throw_errno();
+	memory_offset_type bytesRead = ::read(m_fd, data, size);
+	if (bytesRead == -1)
+		throw_errno();
+	if (bytesRead != static_cast<memory_offset_type>(size))
+		throw io_exception("Wrong number of bytes read");
+	increment_bytes_read(size);
 }
 
 inline void posix::write_i(const void * data, memory_size_type size) {
 	if (::write(m_fd, data, size) != (memory_offset_type)size) throw_errno();
+	increment_bytes_written(size);
 }
 
 inline void posix::seek_i(stream_size_type size) {
 	if (::lseek(m_fd, size, SEEK_SET) == -1) throw_errno();
 }
 
-void posix::open(const std::string & path,
-				 bool read,
-				 bool write,
-				 memory_size_type itemSize,
-				 memory_size_type blockSize,
-				 memory_size_type userDataSize) {
-	close();
-	invalidateLocation();
-	m_write = write;
-	m_path = path;
-	m_itemSize=itemSize;
-	m_blockSize=blockSize;
-	m_blockItems=blockSize/itemSize;
-	m_userDataSize=userDataSize;
-	m_size=0;
-	if (!write && !read)
-		throw invalid_argument_exception("Either read or write must be specified");
-	if (write && !read) {
-		m_fd = ::open(path.c_str(), O_RDWR | O_TRUNC | O_CREAT,  S_IRUSR | S_IWUSR);
-		if (m_fd == -1) throw_errno();
-		m_size = 0;
-		write_header(false);
-		if (userDataSize) {
-			char * buf = new char[userDataSize];
-			write_user_data(buf);
-			delete[] buf;
-		}
-	} else if (!write && read) {
-		m_fd = ::open(path.c_str(), O_RDONLY);
-		if (m_fd == -1) throw_errno();
-		read_header();
-	} else {
-		m_fd = ::open(path.c_str(), O_RDWR);
-		if (m_fd == -1) {
-			if (errno != ENOENT) throw_errno();
-			m_fd = ::open(path.c_str(), O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
-			if (m_fd == -1) throw_errno();
-			m_size=0;
-			write_header(false);
-			if (userDataSize) {
-				char * buf = new char[userDataSize];
-				write_user_data(buf);
-				delete[] buf;
-			}
-		} else {
-			read_header();
-			write_header(false);
-		}
-	}
-	increment_open_file_count();
+void posix::open_wo(const std::string & path) {
+	m_fd = ::open(path.c_str(), O_RDWR | O_TRUNC | O_CREAT,  S_IRUSR | S_IWUSR);
+	if (m_fd == -1) throw_errno();
+	::posix_fadvise(m_fd, 0, 0, m_advice);
 }
 
-void posix::close() {
-	if (m_fd && m_write) write_header(true);
+void posix::open_ro(const std::string & path) {
+	m_fd = ::open(path.c_str(), O_RDONLY);
+	if (m_fd == -1) throw_errno();
+	::posix_fadvise(m_fd, 0, 0, m_advice);
+}
+
+bool posix::try_open_rw(const std::string & path) {
+	m_fd = ::open(path.c_str(), O_RDWR);
+	if (m_fd == -1) {
+		if (errno != ENOENT) throw_errno();
+		return false;
+	}
+	::posix_fadvise(m_fd, 0, 0, m_advice);
+	return true;
+}
+
+void posix::open_rw_new(const std::string & path) {
+	m_fd = ::open(path.c_str(), O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+	if (m_fd == -1) throw_errno();
+	::posix_fadvise(m_fd, 0, 0, m_advice);
+}
+
+void posix::close_i() {
 	if (m_fd != 0) {
 		::close(m_fd);
-		decrement_open_file_count();
 	}
 	m_fd=0;
 }
 
-
-void posix::truncate(stream_size_type size) {
-	if (ftruncate(m_fd, sizeof(stream_header_t) + m_userDataSize + size*m_itemSize) == -1) throw_errno();
-	invalidateLocation();
+void posix::truncate_i(stream_size_type bytes) {
+	if (ftruncate(m_fd, bytes) == -1) throw_errno();
 }
-
-
 
 }
 }

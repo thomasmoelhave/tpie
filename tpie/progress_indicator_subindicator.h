@@ -35,18 +35,18 @@ public:
 	void refresh();
 	virtual void push_breadcrumb(const char * crumb, description_importance importance);
 	virtual void pop_breadcrumb();
-	virtual void init(TPIE_OS_OFFSET range);
+	virtual void init(stream_size_type range);
 	virtual void done();
 	
 	void setup(progress_indicator_base * parent,
-			   TPIE_OS_OFFSET outerRange,
+			   stream_size_type outerRange,
 			   const char * crumb=0,
 			   description_importance importance=IMPORTANCE_MAJOR);
 	
 	progress_indicator_subindicator();
 	
 	progress_indicator_subindicator(progress_indicator_base * parent,
-									TPIE_OS_OFFSET outerRange,
+									stream_size_type outerRange,
 									const char * crumb=0,
 									description_importance importance=IMPORTANCE_MAJOR);
 #ifndef TPIE_NDEBUG
@@ -54,8 +54,8 @@ public:
 #endif
 protected:
 	progress_indicator_base * m_parent;
-	TPIE_OS_OFFSET m_outerRange;
-	TPIE_OS_OFFSET m_oldValue;
+	stream_size_type m_outerRange;
+	stream_size_type m_oldValue;
 	char m_crumb[40];
 	description_importance m_importance;
 #ifndef TPIE_NDEBUG

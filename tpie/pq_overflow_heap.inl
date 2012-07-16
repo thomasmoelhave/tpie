@@ -1,4 +1,6 @@
-// Copyright 2008, The TPIE development team
+// -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
+// vi:set ts=4 sts=4 sw=4 noet cino+=(0 :
+// Copyright 2008, 2012, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -17,7 +19,7 @@
 
 
 template<typename T, typename Comparator>
-pq_overflow_heap<T, Comparator>::pq_overflow_heap(TPIE_OS_SIZE_T m, Comparator c):
+pq_overflow_heap<T, Comparator>::pq_overflow_heap(memory_size_type m, Comparator c):
   comp(c), h(m, comp), maxsize(m) {}
 
 template<typename T, typename Comparator>
@@ -44,7 +46,7 @@ inline const T& pq_overflow_heap<T, Comparator>::top() {
 }
 
 template<typename T, typename Comparator>
-inline TPIE_OS_SIZE_T pq_overflow_heap<T, Comparator>::size() const {
+inline stream_size_type pq_overflow_heap<T, Comparator>::size() const {
 	return h.size();
 }
 
@@ -61,7 +63,7 @@ inline T* pq_overflow_heap<T, Comparator>::sorted_array() {
 }
 
 template<typename T, typename Comparator>
-inline TPIE_OS_SIZE_T pq_overflow_heap<T, Comparator>::sorted_size() const{
+inline memory_size_type pq_overflow_heap<T, Comparator>::sorted_size() const{
 	return maxsize;
 }
 

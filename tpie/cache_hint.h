@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2009, The TPIE development team
+// Copyright 2012 The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -16,33 +16,30 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
-#ifndef __tpie_file_accessor_file_accossor_h__
-#define __tpie_file_accessor_file_accossor_h__
+#ifndef __TPIE_CACHE_HINT_H__
+#define __TPIE_CACHE_HINT_H__
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \file file_accessor.h Declare default file accessor.
+/// \file cache_hint.h  Different hints for OS file caching.
 ///////////////////////////////////////////////////////////////////////////////
 
-#include <tpie/file_accessor/stream_accessor.h>
-
-#ifdef WIN32
-
-#include <tpie/file_accessor/win32.h>
 namespace tpie {
-namespace file_accessor {
-typedef stream_accessor<win32> file_accessor;
-}
-}
 
-#else // WIN32
+enum cache_hint {
+	/** Neither sequential access nor random access is intended.
+	 * Corresponds to POSIX_FADV_NORMAL. */
+	access_normal,
 
-#include <tpie/file_accessor/posix.h>
-namespace tpie {
-namespace file_accessor {
-typedef stream_accessor<posix> file_accessor;
-}
-}
+	/** Sequential access is intended. Default for file_stream.
+	 * Corresponds to POSIX_FADV_SEQUENTIAL and FILE_FLAG_SEQUENTIAL_SCAN
+	 * (Win32). */
+	access_sequential,
 
-#endif // WIN32
+	/** Random access is intended.
+	 * Corresponds to POSIX_FADV_RANDOM and FILE_FLAG_RANDOM_ACCESS (Win32). */
+	access_random
+};
 
-#endif //__tpie_file_accessor_file_accossor_h__
+} // namespace tpie
+
+#endif // __TPIE_CACHE_HINT_H__

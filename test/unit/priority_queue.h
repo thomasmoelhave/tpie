@@ -28,23 +28,23 @@
 
 template <typename T>
 bool cyclic_pq_test(T & pq, boost::uint64_t size, boost::uint64_t iterations) {
-	tpie::progress_indicator_arrow progress("Running test", iterations);
+	tpie::progress_indicator_arrow progress("Running test", iterations, tpie::log_info());
 	std::priority_queue<boost::uint64_t, std::vector<boost::uint64_t>, bit_pertume_compare<std::less<boost::uint64_t> > > pq2;
 	boost::rand48 rnd;
 	boost::uniform_01<double> urnd;
 
 	for (boost::uint64_t i=0;i<iterations;i++){
 		progress.step();
-		if (pq.size() != pq.size()) {
-			std::cerr << "Size differs " << pq.size() << " " << pq.size() << std::endl;
+		if (pq.size() != pq2.size()) {
+			tpie::log_error() << "Size differs " << pq.size() << " " << pq2.size() << std::endl;
 			return false;
 		}
 		if (pq.size() != 0 && pq.top() != pq2.top()){
-			std::cerr << "Top element differs " << pq.top() << " " << pq2.top() << std::endl;
+			tpie::log_error() << "Top element differs " << pq.top() << " " << pq2.top() << std::endl;
 			return false;
 		}
 		if ((size_t)pq.size() == (size_t)0 ||
-			((size_t)pq.size() < (size_t)size && urnd(rnd) <= (cos(i * 60.0 / size)+1)/2.0)) {
+			((size_t)pq.size() < (size_t)size && urnd(rnd) <= (cos(static_cast<double>(i) * 60.0 / static_cast<double>(size))+1.0)/2.0)) {
 			boost::uint64_t r = rnd();
 			pq.push(r);
 			pq2.push(r);
@@ -54,7 +54,7 @@ bool cyclic_pq_test(T & pq, boost::uint64_t size, boost::uint64_t iterations) {
 		}
 	}
 	return true;
-};
+}
 
 template <typename T>
 bool basic_pq_test(T & pq, boost::uint64_t size) {

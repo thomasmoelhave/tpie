@@ -42,20 +42,20 @@ bool basic_test() {
 	}
 	while (!q2.empty()) {
 		if (q1.size() != q2.size()) {
-			std::cerr << "Size differs " << q1.size() << " " << q2.size() << std::endl;
+			tpie::log_error() << "Size differs " << q1.size() << " " << q2.size() << std::endl;
 			return false;
 		}
 		for (map<int, char>::iterator i=q2.begin(); i != q2.end(); ++i) {
 			if (q1.find((*i).first) == q1.end()) {
-				std::cerr << "Element too much" << std::endl;
+				tpie::log_error() << "Element too much" << std::endl;
 				return false;
 			}
 			if (q1[(*i).first] != (*i).second) {
-				std::cerr << "Value differs" << std::endl;
+				tpie::log_error() << "Value differs" << std::endl;
 				return false;
 			}
 			if (q1.find((*i).first+1) != q1.end()) {
-				std::cerr << "Element too much" << std::endl;
+				tpie::log_error() << "Element too much" << std::endl;
 				return false;
 			}
 
@@ -103,13 +103,13 @@ void test_speed() {
 		insert_hash_map.start();
 		tpie::hash_map<int, char, tpie::hash<size_t>, std::equal_to<size_t>, size_t, table_t> q1(gen_t::cnt());
 		for(int i=0; i < gen_t::cnt();++i) 
-			q1[gen_t::key(i)] = gen_t::value(i);
+			q1[gen_t::key(i)] = static_cast<char>(gen_t::value(i));
 		insert_hash_map.stop();
 	
 		insert_unordered_map.start();
 		boost::unordered_map<int, char> q2;
 		for(int i=0; i < gen_t::cnt();++i)
-			q2[gen_t::key(i)] = gen_t::value(i);
+			q2[gen_t::key(i)] = static_cast<char>(gen_t::value(i));
 		insert_unordered_map.stop();
 		
 		int x=42;
@@ -133,8 +133,8 @@ void test_speed() {
 			q2.erase(gen_t::key(i));
 		erase_unordered_map.stop();
 		
-		if (x + q1.size() + q2.size() != 42) std::cout << "Orly" << std::endl;
-		std::cout << std::setw(3) << t  << "%\r" << std::flush;
+		if (x + q1.size() + q2.size() != 42) tpie::log_info() << "Orly" << std::endl;
+		tpie::log_info() << std::setw(3) << t  << "%\r" << std::flush;
 	}
 	insert_hash_map.output();
 	insert_unordered_map.output();
@@ -171,29 +171,23 @@ public:
 	virtual size_type claimed_size() {return static_cast<size_type>(tpie::hash_map<int, char>::memory_usage(123456));}
 };
 
+bool speed() {
+	tpie::log_info() << "=====================> Linear Probing, Charm Dataset <========================" << std::endl;
+	test_speed<charm_gen, linear_probing_hash_table>();
+	tpie::log_info() << "========================> Chaining, Charm Dataset <===========================" << std::endl;
+	test_speed<charm_gen, chaining_hash_table>();
+	tpie::log_info() << "===================> Linear Probing, Identity Dataset <=======================" << std::endl;
+	test_speed<identity_gen, linear_probing_hash_table>();
+	tpie::log_info() << "=======================> Chaining, Identity Dataset <=========================" << std::endl;
+	test_speed<identity_gen, chaining_hash_table>();
+	return true;
+}
+
 int main(int argc, char **argv) {
-	tpie_initer _;
-	if(argc != 2) return 1;
-	std::string test(argv[1]);
-	if (test == "chaining")
-		return basic_test<chaining_hash_table>()?EXIT_SUCCESS:EXIT_FAILURE;
-	else if (test == "linear_probing")
-		return basic_test<linear_probing_hash_table>()?EXIT_SUCCESS:EXIT_FAILURE;
-	else if (test == "speed") {
-		std::cout << "=====================> Linear Probing, Charm Dataset <========================" << std::endl;
-		test_speed<charm_gen, linear_probing_hash_table>();
-		std::cout << "========================> Chaining, Charm Dataset <===========================" << std::endl;
-		test_speed<charm_gen, chaining_hash_table>();
-		std::cout << "===================> Linear Probing, Identity Dataset <=======================" << std::endl;
-		test_speed<identity_gen, linear_probing_hash_table>();
-		std::cout << "=======================> Chaining, Identity Dataset <=========================" << std::endl;
-		test_speed<identity_gen, chaining_hash_table>();
-		exit(EXIT_SUCCESS);
-	}
-	else if (test == "iterators") 
-		return iterator_test()?EXIT_SUCCESS:EXIT_FAILURE;
-	else if (test == "memory") 
-		return hashmap_memory_test()()?EXIT_SUCCESS:EXIT_FAILURE;
-	std::cerr << "No such test" << std::endl;
-	return EXIT_FAILURE;
+	return tpie::tests(argc, argv)
+		.test(basic_test<chaining_hash_table>, "chaining")
+		.test(basic_test<linear_probing_hash_table>, "linear_probing")
+		.test(speed, "speed")
+		.test(iterator_test, "iterators")
+		.test(hashmap_memory_test(), "memory");
 }

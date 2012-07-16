@@ -24,13 +24,20 @@
 #include "common.h"
 
 #include <iostream>
+#include <vector>
 #include <boost/filesystem/operations.hpp>
+#include <boost/array.hpp>
+#include <boost/random.hpp>
+#include <tpie/tpie_log.h>
+#include <tpie/progress_indicator_arrow.h>
 
 #include <tpie/tpie.h>
 
 #include <tpie/array.h>
 #include <tpie/file_stream.h>
 #include <tpie/util.h>
+
+using tpie::uint64_t;
 
 static const std::string TEMPFILE = "tmp";
 inline uint64_t ITEM(size_t i) {return i*98927 % 104639;}
@@ -62,24 +69,421 @@ movable_file_stream openstream() {
 	return fs;
 }
 
-int main(int argc, char **argv) {
-	tpie_initer _;
+bool swap_test();
 
-	if (argc != 2) {
-		std::cout << "Usage: " << argv[0] << " basic" << std::endl;
-		return EXIT_FAILURE;
+template <typename T>
+struct file_colon_colon_stream {
+	tpie::file<T> m_file;
+	tpie::auto_ptr<typename tpie::file<T>::stream> m_stream;
+	typedef typename tpie::file<T>::stream stream_type;
+
+	inline ~file_colon_colon_stream() {
+		m_stream.reset();
 	}
 
-	std::string testtype(argv[1]);
-
-	// We only have one test
-	if (testtype != "basic") {
-		std::cout << "Unknown test" << std::endl;
-		return EXIT_FAILURE;
+	tpie::file<T> & file() {
+		return m_file;
 	}
 
-	boost::filesystem::remove(TEMPFILE);
+	typename tpie::file<T>::stream & stream() {
+		if (m_stream.get() == 0) m_stream.reset(tpie::tpie_new<typename tpie::file<T>::stream>(m_file));
+		return *m_stream;
+	}
 
+	inline void close_stream() {
+		m_stream.reset();
+	}
+};
+
+template <typename T>
+struct file_stream {
+	tpie::file_stream<T> m_fs;
+	typedef tpie::file_stream<T> stream_type;
+
+	tpie::file_stream<T> & file() {
+		return m_fs;
+	}
+
+	tpie::file_stream<T> & stream() {
+		return m_fs;
+	}
+
+	inline void close_stream() {
+		m_fs.seek(0);
+	}
+};
+
+template <template <typename T> class Stream>
+struct stream_tester {
+
+static bool array_test() {
+	try {
+		Stream<uint64_t> fs;
+		fs.file().open(TEMPFILE);
+		tpie::memory_size_type items = tpie::file<uint64_t>::block_size(1.0)/sizeof(uint64_t) + 10;
+		std::vector<uint64_t> data(items, 1);
+		fs.stream().write(data.begin(), data.end());
+		fs.stream().seek(0);
+		fs.stream().read(data.begin(), data.end());
+	} catch (std::exception & e) {
+		tpie::log_error() << "Caught exception " << typeid(e).name() << "\ne.what(): " << e.what() << std::endl;
+		return false;
+	} catch (...) {
+		tpie::log_error() << "Caught something other than an exception" << std::endl;
+		return false;
+	}
+	return true;
+}
+
+static bool truncate_test() {
+	typedef int test_t;
+	Stream<test_t> fs;
+	fs.file().open("tmp");
+	for (size_t i = 0; i < 1000000; ++i)
+		fs.stream().write(42);
+	bool res = true;
+	try {
+		fs.stream().seek(0);
+	} catch (tpie::io_exception) {
+		tpie::log_error() << "We should be able to seek!" << std::endl;
+		res = false;
+	}
+	fs.close_stream();
+	fs.file().truncate(42);
+	for (size_t i = 0; i < 42; ++i) {
+		if (!fs.stream().can_read()) {
+			tpie::log_error() << "Cannot read item " << i << std::endl;
+			return false;
+		}
+		if (42 != fs.stream().read()) {
+			tpie::log_error() << "Item " << i << " is wrong" << std::endl;
+			return false;
+		}
+	}
+	if (fs.stream().can_read()) {
+		tpie::log_error() << "We should not be able to read after truncate!" << std::endl;
+		res = false;
+	}
+	try {
+		fs.stream().read();
+		tpie::log_error() << "We should not be able to read after truncate!" << std::endl;
+		return false;
+	} catch (tpie::stream_exception) {
+	}
+	return res;
+}
+
+// test using truncate to extend the stream
+static bool extend_test() {
+	typedef int test_t;
+	Stream<test_t> fs;
+	fs.file().open(TEMPFILE);
+	tpie::stream_size_type ante = 0;
+	tpie::stream_size_type pred = 1;
+	tpie::stream_size_type n = 1;
+	while (n < 1000000) {
+		fs.close_stream();
+		fs.file().truncate(n);
+		if (fs.file().size() != n) {
+			tpie::log_error() << "Wrong stream length" << std::endl;
+			return false;
+		}
+		tpie::stream_size_type readItems = 0;
+		while (fs.stream().can_read()) {
+			fs.stream().read();
+			++readItems;
+		}
+		if (readItems != n) {
+			tpie::log_error() << "Read wrong no. of items" << std::endl;
+			return false;
+		}
+		ante = pred;
+		pred = n;
+		n = ante+pred;
+	}
+	return true;
+}
+
+static bool odd_block_test() {
+	typedef boost::array<char, 17> test_t;
+	const size_t items = 500000;
+	test_t initial_item;
+	for (size_t i = 0; i < initial_item.size(); ++i) initial_item[i] = static_cast<char>(i+42);
+
+	{
+		Stream<test_t> fs;
+		fs.file().open(TEMPFILE);
+		test_t item = initial_item;
+		for (size_t i = 0; i < items; ++i) {
+			fs.stream().write(item);
+			item[0]++;
+		}
+	}
+
+	{
+		Stream<test_t> fs;
+		fs.file().open(TEMPFILE);
+
+		test_t item = initial_item;
+		for (size_t i = 0; i < items; ++i) {
+			test_t got = fs.stream().read();
+			if (got != item) {
+				tpie::log_error() << "Item " << i << " is wrong" << std::endl;
+				return false;
+			}
+			item[0]++;
+		}
+	}
+
+	return true;
+}
+
+static bool backwards_test() {
+	Stream<int> fs;
+
+	fs.file().open(TEMPFILE);
+	TEST_ENSURE(!fs.stream().can_read_back(), "can_read_back() after open()")
+
+	fs.stream().write(1);
+	TEST_ENSURE(fs.stream().can_read_back(), "can_read_back() after write()")
+
+	fs.stream().seek(0);
+	TEST_ENSURE(!fs.stream().can_read_back(), "can_read_back() after seek()")
+
+	for (int i = 0; i < (1 << 25); ++i) fs.stream().write(i);
+	TEST_ENSURE(fs.stream().can_read_back(), "can_read_back() after writing a block aligned chunk")
+
+	fs.stream().read_back();
+	TEST_ENSURE(fs.stream().can_read_back(), "can_read_back() after read_back()")
+
+	fs.stream().seek(5);
+	TEST_ENSURE(fs.stream().can_read_back(), "can_read_back() after seek(5)")
+
+	return true;
+}
+
+struct stress_tester {
+	const size_t chunkSize;
+	tpie::stream_size_type actions;
+	size_t maxSize;
+	std::vector<int> elements;
+	std::vector<bool> defined;
+	std::vector<int> itemBuffer;
+	Stream<int> fs;
+	typename Stream<int>::stream_type & stream;
+	boost::mt19937 rng;
+	boost::uniform_int<> ddist;
+	bool result;
+	size_t size;
+	size_t location;
+
+	inline stress_tester(tpie::stream_size_type actions, size_t maxSize)
+		: chunkSize(128*1024)
+		, actions(actions)
+		, maxSize(maxSize)
+		, elements(maxSize, 0)
+		, defined(maxSize, true)
+		, itemBuffer(chunkSize)
+		, stream(fs.stream())
+		, ddist(0, 123456789)
+		, result(true)
+		, size(0)
+		, location(0)
+	{
+	}
+
+	enum actions {
+		Read, Write,
+		SeekEnd, Seek,
+		ReadArray, WriteArray,
+		Truncate,
+		actionCount
+	};
+
+	template <typename T>
+	bool __stress_assert_eq_silent(T got, T value, const char * exp) {
+		if (value != got) {
+			tpie::log_error() << "Expected " << exp << " == " << value << ", got " << got << '\n';
+			return false;
+		}
+		return true;
+	}
+
+#define STRESS_ASSERT(cond) /*tpie::log_debug() << "assert(" << #cond << ");\n";*/\
+	if (!(cond)) {\
+		result = false;\
+		tpie::log_error() << "Assertion " << #cond << " failed\n";\
+	}
+#define STRESS_ASSERT_EQ_SILENT(exp, value) \
+	{\
+		if (!__stress_assert_eq_silent((exp), value, #exp)) {\
+			result = false;\
+		}\
+	}
+#define STRESS_ASSERT_EQ(exp, value) \
+	{\
+		/*tpie::log_debug() << "assert(" << value << " == " << #exp << ");\n";*/\
+		STRESS_ASSERT_EQ_SILENT(exp, value);\
+	}
+
+	bool go() {
+		fs.file().open(TEMPFILE);
+		boost::uniform_int<> todo(0, actionCount - 1);
+		const size_t stepEvery = 256;
+		tpie::progress_indicator_arrow pi("Test", actions/stepEvery);
+		pi.init(actions/stepEvery);
+		for (tpie::stream_size_type action = 0; action < actions; ++action) {
+			try {
+				switch (todo(rng)) {
+					case Read: read(); break;
+					case Write: write(); break;
+					case SeekEnd: seek_end(); break;
+					case Seek: seek(); break;
+					case ReadArray: read_array(); break;
+					case WriteArray: write_array(); break;
+					case Truncate: truncate(); break;
+				}
+			} catch (std::exception & e) {
+				tpie::log_debug() << std::flush;
+				tpie::log_error() << "Caught unexpected exception " << typeid(e).name() << " (" << e.what() << ')' << std::endl;
+				result = false;
+				break;
+			} catch (...) {
+				tpie::log_debug() << std::flush;
+				tpie::log_error() << "Caught unexpected non-exception" << std::endl;
+				result = false;
+				break;
+			}
+			STRESS_ASSERT_EQ(stream.size(), size);
+			STRESS_ASSERT_EQ(stream.offset(), location);
+			if (0 == action % stepEvery) pi.step();
+		}
+		pi.done();
+		return result;
+	}
+
+	void read() {
+		if (size == location) {
+			STRESS_ASSERT(!stream.can_read());
+			return;
+		}
+		size_t maxItems = size - location;
+		boost::uniform_int<> d(1,std::min<size_t>(maxItems, chunkSize));
+		size_t items = d(rng);
+		tpie::log_debug() << "stream.read() * " << items << '\n';
+		for (size_t i = 0; i < items; ++i) {
+			if (defined[location]) {
+				STRESS_ASSERT_EQ_SILENT(stream.read(), elements[location]);
+			} else {
+				int readItem = stream.read();
+				elements[location] = readItem;
+				defined[location] = true;
+				//tpie::log_debug() << "elements[" << location << "] = " << readItem <<
+				//	"; defined[" << location << "] = true;\n";
+			}
+			++location;
+		}
+	}
+
+	void read_array() {
+		if (size == location) {
+			STRESS_ASSERT(!stream.can_read());
+			return;
+		}
+		size_t maxItems = size - location;
+		boost::uniform_int<> d(1,std::min<size_t>(maxItems, chunkSize));
+		size_t items = d(rng);
+		stream.read(itemBuffer.begin(), itemBuffer.begin() + items);
+		tpie::log_debug() << "stream.read(itemBuffer.begin(), itemBuffer.begin() + " << items << ");\n";
+		for (size_t i = 0; i < items; ++i) {
+			if (defined[location]) {
+				STRESS_ASSERT_EQ_SILENT(itemBuffer[i], elements[location]);
+			} else {
+				int readItem = itemBuffer[i];
+				elements[location] = readItem;
+				defined[location] = true;
+				//tpie::log_debug() << "elements[" << location << "] = " << readItem <<
+				//	"; defined[" << location << "] = true;\n";
+			}
+			++location;
+		}
+	}
+
+	void write() {
+		if (location == maxSize) return;
+		size_t maxItems = maxSize - location;
+		boost::uniform_int<> d(1,std::min<size_t>(maxItems, chunkSize));
+		size_t items = d(rng);
+		tpie::log_debug() << "stream.write() * " << items << '\n';
+		for (size_t i = 0; i < items; ++i) {
+			int writeItem = ddist(rng);
+			elements[location] = writeItem;
+			defined[location] = true;
+			stream.write(writeItem);
+			//tpie::log_debug() << "elements[" << location << "] = " << writeItem <<
+			//	"; defined[" << location << "] = true;\n";
+			++location;
+		}
+		size = std::max(size, location);
+	}
+
+	void write_array() {
+		if (location == maxSize) return;
+		size_t maxItems = maxSize - location;
+		boost::uniform_int<> d(1,std::min<size_t>(maxItems, chunkSize));
+		size_t items = d(rng);
+		tpie::log_debug() << "stream.write(itemBuffer.begin(), itemBuffer.begin() + " << items << ");\n";
+		for (size_t i = 0; i < items; ++i) {
+			int writeItem = ddist(rng);
+			itemBuffer[i] = writeItem;
+			elements[location] = writeItem;
+			defined[location] = true;
+			//tpie::log_debug() << "elements[" << location << "] = " <<
+			//	"itemBuffer[" << i << "] = " << writeItem <<
+			//	"; defined[" << location << "] = true;\n";
+			++location;
+		}
+		stream.write(itemBuffer.begin(), itemBuffer.begin() + items);
+		size = std::max(size, location);
+	}
+
+	void seek_end() {
+		tpie::log_debug() << "stream.seek(" << size << "); // end\n";
+		stream.seek(size);
+		location = size;
+	}
+
+	void seek() {
+		boost::uniform_int<> d(0, size);
+		size_t loc = d(rng);
+		tpie::log_debug() << "stream.seek(" << loc << "); // end\n";
+		stream.seek(loc);
+		location = loc;
+	}
+
+	void truncate() {
+		boost::uniform_int<> d(std::max(0, (int)size-(int)chunkSize), std::min(size+chunkSize, maxSize));
+		size_t ns=d(rng);
+		tpie::log_debug() << "fs.file().truncate(" << ns << "); // was " << size << '\n';
+		stream.seek(0);
+		location = 0;
+		fs.close_stream();
+		fs.file().truncate(ns);
+		for (size_t i = size; i < ns; ++i) {
+			defined[i] = false;
+		}
+		location = 0;
+		size = ns;
+	}
+};
+
+static bool stress_test(tpie::stream_size_type actions, size_t maxSize) {
+	return stress_tester(actions, maxSize).go();
+}
+
+}; // template stream_tester
+
+bool swap_test() {
 	// Write ITEMS items sequentially to TEMPFILE
 	{
 		movable_file_stream fs;
@@ -99,8 +503,8 @@ int main(int argc, char **argv) {
 		for(size_t i=0; i < ITEMS; ++i) {
 			uint64_t x = (i % 2) ? t.read() : s.read();
 			if (x != ITEM(i)) {
-				std::cout << "Expected element " << i << " = " << ITEM(i) << ", got " << x << std::endl;
-				return EXIT_FAILURE;
+				tpie::log_error() << "Expected element " << i << " = " << ITEM(i) << ", got " << x << std::endl;
+				return false;
 			}
 			if (i % 3) s.swap(t);
 			else t.swap(s);
@@ -129,13 +533,13 @@ int main(int argc, char **argv) {
 			try {
 				s.read(x + 0, x + len);
 			} catch (tpie::end_of_stream_exception &) {
-				std::cout << "read array threw unexpected end_of_stream_exception" << std::endl;
-				return EXIT_FAILURE;
+				tpie::log_error() << "read array threw unexpected end_of_stream_exception" << std::endl;
+				return false;
 			}
 			for (size_t i=0; i < ARRAYSIZE; ++i) {
 				if (x[i] != ITEM(i)) {
-					std::cout << "Expected element " << i << " = " << ITEM(i) << ", got " << x[i] << std::endl;
-					return EXIT_FAILURE;
+					tpie::log_error() << "Expected element " << i << " = " << ITEM(i) << ", got " << x[i] << std::endl;
+					return false;
 				}
 			}
 		}
@@ -152,14 +556,14 @@ int main(int argc, char **argv) {
 		}
 		for (size_t i=0; i < 10; ++i) {
 			// Seek to random index
-			tpie::stream_offset_type idx = ITEM(i) % ITEMS;
+			size_t idx = ITEM(i) % ITEMS;
 			s.seek(idx);
 
 			if (i%2 == 0) {
 				uint64_t read = s.read();
 				if (read != data[idx]) {
-					std::cout << "Expected element " << idx << " to be " << data[idx] << ", got " << read << std::endl;
-					return EXIT_FAILURE;
+					tpie::log_error() << "Expected element " << idx << " to be " << data[idx] << ", got " << read << std::endl;
+					return false;
 				}
 			} else {
 				uint64_t write = ITEM(ITEMS+i);
@@ -168,12 +572,35 @@ int main(int argc, char **argv) {
 			}
 
 			tpie::stream_offset_type newoff = s.offset();
-			if (newoff != idx+1) {
-				std::cout << "Offset advanced to " << newoff << ", expected " << (idx+1) << std::endl;
-				return EXIT_FAILURE;
+			if (static_cast<size_t>(newoff) != idx+1) {
+				tpie::log_error() << "Offset advanced to " << newoff << ", expected " << (idx+1) << std::endl;
+				return false;
 			}
 		}
 	}
 
-	return EXIT_SUCCESS;
+	return true;
+}
+
+void remove_temp() {
+	boost::filesystem::remove(TEMPFILE);
+}
+
+int main(int argc, char **argv) {
+	return tpie::tests(argc, argv)
+		.setup(remove_temp)
+		.finish(remove_temp)
+		.test(stream_tester<file_stream>::array_test, "array")
+		.test(stream_tester<file_colon_colon_stream>::array_test, "array_file")
+		.test(swap_test, "basic")
+		.test(stream_tester<file_stream>::odd_block_test, "odd")
+		.test(stream_tester<file_colon_colon_stream>::odd_block_test, "odd_file")
+		.test(stream_tester<file_stream>::truncate_test, "truncate")
+		.test(stream_tester<file_colon_colon_stream>::truncate_test, "truncate_file")
+		.test(stream_tester<file_stream>::extend_test, "extend")
+		.test(stream_tester<file_colon_colon_stream>::extend_test, "extend_file")
+		.test(stream_tester<file_stream>::backwards_test, "backwards")
+		.test(stream_tester<file_colon_colon_stream>::backwards_test, "backwards_file")
+		.test(stream_tester<file_stream>::stress_test, "stress", "actions", static_cast<tpie::stream_size_type>(1024*1024*10), "maxsize", static_cast<size_t>(1024*1024*128))
+		.test(stream_tester<file_colon_colon_stream>::stress_test, "stress_file", "actions", static_cast<tpie::stream_size_type>(1024*1024*10), "maxsize", static_cast<size_t>(1024*1024*128));
 }

@@ -24,7 +24,7 @@
 using namespace tpie;
 using namespace std;
 
-#define DIE(msg) {std::cerr << msg << std::endl; return false;}
+#define DIE(msg) {tpie::log_error() << msg << std::endl; return false;}
 
 bool basic_test() {
 	disjoint_sets<int> s1(307);
@@ -52,12 +52,7 @@ public:
 };
 
 int main(int argc, char **argv) {
-	tpie_initer _;
-	if(argc != 2) return 1;
-	std::string test(argv[1]);
-	if (test == "basic")
-		 return basic_test()?EXIT_SUCCESS:EXIT_FAILURE;
-	else if (test == "memory") 
-		return disjointsets_memory_test()()?EXIT_SUCCESS:EXIT_FAILURE;
-	return EXIT_FAILURE;
+	return tpie::tests(argc, argv)
+		.test(basic_test, "basic")
+		.test(disjointsets_memory_test(), "memory");
 }

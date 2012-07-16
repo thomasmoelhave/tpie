@@ -20,30 +20,28 @@
 #define _TPIE_FILE_ACCESSOR_FILE_ACCESSOR_CRTP_H
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \file file_accessor_crtp.h
-/// \brief CRTP base class of file accessors.
+/// \file stream_accessor.h  Reads and writes stream headers, user data and
+/// blocks from TPIE streams.
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <tpie/file_accessor/file_accessor.h>
 #include <tpie/stream_header.h>
+#include <tpie/cache_hint.h>
 
 namespace tpie {
 namespace file_accessor {
 
-///////////////////////////////////////////////////////////////////////////////
-/// \brief Base class of file accessors.
-///////////////////////////////////////////////////////////////////////////////
-
-template <typename child_t, bool minimizeSeeks=true>
-class file_accessor_crtp {
+template <typename file_accessor_t>
+class stream_accessor {
 private:
-	inline void read_i(void *, memory_size_type size);
-	inline void write_i(const void *, memory_size_type size);
-	inline void seek_i(stream_size_type size);
-	stream_size_type location;
 	inline void validate_header(const stream_header_t & header);
 	inline void fill_header(stream_header_t & header, bool clean);
-protected:
+
+	bool m_open;
+	bool m_write;
+
+	file_accessor_t m_fileAccessor;
+
 	/** Number of logical items in stream. */
 	stream_size_type m_size;
 
@@ -61,19 +59,6 @@ protected:
 
 	/** Path of the file currently opened. */
 	std::string m_path;
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Indicate that we are no longer sure of the current byte offset
-	/// in the open file, for instance after construction, opening and
-	/// truncating.
-	///////////////////////////////////////////////////////////////////////////
-	inline void invalidateLocation();
-
-	///////////////////////////////////////////////////////////////////////////
-	/// \brief Check the global errno variable and throw an exception that
-	/// matches its value.
-	///////////////////////////////////////////////////////////////////////////
-	inline void throw_errno();
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Read stream header into the file accessor properties and
@@ -103,6 +88,27 @@ protected:
 	///////////////////////////////////////////////////////////////////////////
 	inline memory_size_type header_size() const { return align_to_boundary(sizeof(stream_header_t)+m_userDataSize); }
 public:
+	inline stream_accessor()
+		: m_open(false)
+		, m_write(false)
+	{
+	}
+
+	inline ~stream_accessor() {close();}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Open file for reading and/or writing.
+	///////////////////////////////////////////////////////////////////////////
+	inline void open(const std::string & path,
+					 bool read,
+					 bool write,
+					 memory_size_type itemSize,
+					 memory_size_type blockSize,
+					 memory_size_type userDataSize,
+					 cache_hint cacheHint);
+
+	inline void close();
+
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Read the given number of items from the given block into the
 	/// given buffer.
@@ -112,7 +118,7 @@ public:
 	/// \param itemCount Number of items to read from beginning of given block.
 	/// Must be less than m_blockItems.
 	///////////////////////////////////////////////////////////////////////////
-	inline memory_size_type read_block(void * data, stream_size_type blockNumber, stream_size_type itemCount);
+	inline memory_size_type read_block(void * data, stream_size_type blockNumber, memory_size_type itemCount);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Write the given number of items from the given buffer into the
@@ -123,7 +129,7 @@ public:
 	/// \param itemCount Number of items to write to beginning of given block.
 	/// Must be less than m_blockItems.
 	///////////////////////////////////////////////////////////////////////////
-	inline void write_block(const void * data, stream_size_type blockNumber, stream_size_type itemCount);
+	inline void write_block(const void * data, stream_size_type blockNumber, memory_size_type itemCount);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Read user data into the given buffer.
@@ -142,7 +148,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Return memory usage of this file accessor.
 	///////////////////////////////////////////////////////////////////////////
-	static inline memory_size_type memory_usage() {return sizeof(child_t);}
+	static inline memory_size_type memory_usage() {return sizeof(stream_accessor<file_accessor_t>);}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Number of items in stream.
@@ -167,10 +173,12 @@ public:
 	inline stream_size_type byte_size() const {
 		return ((m_size + m_blockItems - 1)/m_blockItems) * m_blockSize + header_size();
 	}
+
+	inline void truncate(stream_size_type items);
 };
 	
 }
 }
 
-#include <tpie/file_accessor/file_accessor_crtp.inl>
+#include <tpie/file_accessor/stream_accessor.inl>
 #endif //_TPIE_FILE_ACCESSOR_FILE_ACCESSOR_CRTP_H

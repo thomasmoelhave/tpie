@@ -67,7 +67,7 @@ public:
 	/// \param  range     The upper bound of the counting range.
 	///////////////////////////////////////////////////////////////////////////
 	
-	progress_indicator_base(TPIE_OS_OFFSET range) : 
+	progress_indicator_base(stream_size_type range) : 
 	    m_range(range),
 	    m_current(0),
 		//m_lastUpdate(getticks()),
@@ -86,7 +86,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	///  Record an increment to the indicator and advance the indicator.
 	///////////////////////////////////////////////////////////////////////////
-	void step(TPIE_OS_OFFSET step=1) {
+	void step(stream_size_type step=1) {
 	    m_current += step;
  		
 #ifndef TPIE_NDEBUG
@@ -101,13 +101,15 @@ public:
 #endif	
 		if (m_current > m_next) {
 			ticks currentTicks = getticks();
-			m_next = static_cast<TPIE_OS_OFFSET>(m_current * (elapsed(currentTicks, m_start) + m_threshold)/
+			m_next = static_cast<stream_size_type>(
+				static_cast<double>(m_current) * (elapsed(currentTicks, m_start) + m_threshold)/
 				elapsed(currentTicks, m_start));
+			if (m_next > m_current *2) m_next=m_current*2; //For bad guestimation in the beginning
 			refresh();
 		}
 	}
 
-	void raw_step(TPIE_OS_OFFSET step) {
+	void raw_step(stream_size_type step) {
 		m_current += step;
 #ifndef TPIE_NDEBUG
 		m_lastCalled = getticks();
@@ -119,7 +121,7 @@ public:
 	/// \brief Initialize progress indicator.
 	/// \param range The number of times step() is going to be called.
 	///////////////////////////////////////////////////////////////////////////
-	virtual void init(TPIE_OS_OFFSET range=0) {
+	virtual void init(stream_size_type range=0) {
 		if (range != 0) set_range(range);
 	    m_current = 0;
 		refresh();
@@ -145,7 +147,7 @@ public:
 	///
 	/// \param  range  The new upper bound.
 	///////////////////////////////////////////////////////////////////////////
-	virtual void set_range(TPIE_OS_OFFSET range) {
+	virtual void set_range(stream_size_type range) {
 	    m_range = range;
 	}
   
@@ -157,18 +159,18 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// Get the current value of the step counter.
 	///////////////////////////////////////////////////////////////////////////
-	TPIE_OS_OFFSET get_current() { return m_current; }
+	stream_size_type get_current() { return m_current; }
 	
 	///////////////////////////////////////////////////////////////////////////
 	/// Get the maximum value of the current range.
 	///////////////////////////////////////////////////////////////////////////
-	TPIE_OS_OFFSET get_range() { return m_range; }
+	stream_size_type get_range() { return m_range; }
 
 	execution_time_predictor * get_time_predictor() {return m_predictor;}
 	void set_time_predictor(execution_time_predictor * p) {m_predictor = p;}
 
 	std::string estimated_remaining_time() {
-		if (m_range == 0 || m_predictor == 0 || m_current < 0) return "";
+		if (m_range == 0 || m_predictor == 0) return "";
 		return m_predictor->estimate_remaining_time( double(m_current) / double(m_range) );
 	}
 
@@ -176,10 +178,10 @@ public:
 	virtual void pop_breadcrumb() {}
 protected:
 	/**  The upper bound of the counting range.  */
-	TPIE_OS_OFFSET m_range;
+	stream_size_type m_range;
 
 	/**  The current progress count [m_minRange...m_maxRange].  */
-	TPIE_OS_OFFSET m_current;
+	stream_size_type m_current;
 	
 private:
 	/**  The number of ticks elapsed when refresh was called last */
@@ -187,7 +189,7 @@ private:
 	ticks m_lastCalled;
 #endif
 
-	TPIE_OS_OFFSET m_next;
+	stream_size_type m_next;
 	ticks m_start;
 
 	/**  The approximate frequency of calls to refresh in hz */

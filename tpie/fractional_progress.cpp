@@ -26,20 +26,22 @@
 #include <sstream>
 #include <locale>
 #include <boost/filesystem.hpp>
-namespace tpie {
+
+namespace {
+using namespace tpie;
 
 class fraction_db_impl {
 public:
-
-	std::map<std::string, std::pair<float, TPIE_OS_OFFSET> > db;
-	typedef std::map<std::string, std::pair<float, TPIE_OS_OFFSET> >::iterator i_t;
+	typedef std::map<std::string, std::pair<float, stream_size_type> > db_t;
+	typedef db_t::iterator i_t;
+	db_t db;
 	bool dirty;
 	const bool capture;
 
 	inline fraction_db_impl(bool capture) : capture(capture) {
 	}
 
-	void update(const char * name, float frac, TPIE_OS_OFFSET n) {
+	void update(const char * name, float frac, stream_size_type n) {
 		i_t i =db.find(name);
 		if (i != db.end() && i->second.second > n) return;
 		db[name] = std::make_pair(frac, n);
@@ -55,7 +57,7 @@ public:
 			std::string skip;
 			std::string name;
 			float frac;
-			TPIE_OS_OFFSET n_;
+			stream_size_type n_;
 			while (f >> skip >> name >> skip >> frac >> skip >> n_ >> skip)
 				update(name.substr(1,name.size()-2).c_str() , frac, n_);
 		}
@@ -90,7 +92,11 @@ public:
 
 static fraction_db_impl * fdb = 0;
 
-void update_fractions(const char * name, float frac, TPIE_OS_OFFSET n) {
+} //annonymous namespace
+
+namespace tpie {
+
+void update_fractions(const char * name, float frac, stream_size_type n) {
 	fdb->update(name, frac, n);
 }
 void load_fractions(const std::string & path) {
@@ -169,7 +175,7 @@ fractional_subindicator::fractional_subindicator(
 	const char * id,
 	const char * file,
 	const char * function,
-	TPIE_OS_OFFSET n,
+	stream_size_type n,
 	const char * crumb,
 	description_importance importance,
 	bool enabled): m_fp(fp) {
@@ -180,7 +186,7 @@ void fractional_subindicator::setup(
 	const char * id,
 	const char * file,
 	const char * function,
-	TPIE_OS_OFFSET n,
+	stream_size_type n,
 	const char * crumb,
 	description_importance importance,
 	bool enabled) {
@@ -205,13 +211,13 @@ void fractional_subindicator::setup(
 	m_fp.add_sub_indicator(*this);
 };
 
-void fractional_subindicator::init(TPIE_OS_OFFSET range) {
+void fractional_subindicator::init(stream_size_type range) {
 	softassert(m_fp.m_init_called);
 	m_predict.start_execution(m_n);
 	if (m_parent) {
 		double f = m_fp.get_fraction(*this);
 		double t = static_cast<double>(m_parent->get_range());
-		m_outerRange = static_cast<TPIE_OS_OFFSET>(t * f);
+		m_outerRange = static_cast<stream_size_type>(t * f);
 	}
 #ifndef TPIE_NDEBUG
 	m_init_called=true;
@@ -221,7 +227,7 @@ void fractional_subindicator::init(TPIE_OS_OFFSET range) {
 
 void fractional_subindicator::done() {
 	if (fdb->capture) {
-		TPIE_OS_OFFSET r = m_predict.end_execution();
+		time_type r = m_predict.end_execution();
 		if(m_n > 0) 
 			m_fp.stat(m_stat, r, m_n);
 	} else {
@@ -243,16 +249,14 @@ fractional_subindicator::~fractional_subindicator() {
 }
 
 fractional_progress::fractional_progress(progress_indicator_base * pi):
+	m_pi(pi), m_add_state(true),
 #ifndef TPIE_NDEBUG
 	m_init_called(false),
-#endif
-	m_pi(pi), m_add_state(true), 
-#ifndef TPIE_NDEBUG
 	m_done_called(false),
 #endif
 	m_confidence(1.0), m_total_sum(0), m_time_sum(0), m_timed_sum(0) {}
 	
-void fractional_progress::init(TPIE_OS_OFFSET range) {
+void fractional_progress::init(stream_size_type range) {
 	unused(range);
 #ifndef TPIE_NDEBUG
 	if (m_init_called) {
@@ -292,13 +296,13 @@ fractional_progress::~fractional_progress() {
 	}
 #endif
 	if (fdb->capture) {
-		TPIE_OS_OFFSET time_sum=0;
+		time_type time_sum=0;
 		for (size_t i=0; i < m_stat.size(); ++i)
 			time_sum += m_stat[i].second.first;
 
 		if (time_sum > 0) {
 			for (size_t i=0; i < m_stat.size(); ++i) {
-				std::pair< std::string, std::pair<TPIE_OS_OFFSET, TPIE_OS_OFFSET> > & x = m_stat[i];
+				std::pair< std::string, std::pair<time_type, stream_size_type> > & x = m_stat[i];
 				float f= (float)x.second.first / (float)time_sum;
 				fdb->update(x.first.c_str(), f, x.second.second);
 			}
@@ -322,14 +326,13 @@ double fractional_progress::get_fraction(fractional_subindicator & sub) {
 	if (sub.m_fraction < 0.000000001 && sub.m_confidence > 0.5) return 0.0;
 	
 	double f1 = (m_total_sum > 0.00001)?sub.m_fraction / m_total_sum: 0.0;
-	double f2 = (m_time_sum > 0.00001)?((double)sub.m_estimate / (double)m_time_sum):0.0;
+	double f2 = (m_time_sum >= 1)?((double)sub.m_estimate / (double)m_time_sum):0.0;
 	
 	double f = f1 * (1.0 - m_confidence) + f2*m_confidence;
 	return f;
 }
 
-void fractional_progress::stat(std::string name, TPIE_OS_OFFSET time, TPIE_OS_OFFSET n) {
-	if (time < 0 || n <= 0) return;
+void fractional_progress::stat(std::string name, time_type time, stream_size_type n) {
 	m_stat.push_back(std::make_pair(name , std::make_pair(time, n)));
 }
 

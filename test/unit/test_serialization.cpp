@@ -51,7 +51,7 @@ bool testSer(bool safe) {
 		try {
 			ser >> a >> b >> c >> d >> e >> f;
 		} catch(serialization_error e) {
-			std::cout << e.what() << std::endl;
+			tpie::log_info() << e.what() << std::endl;
 			return false;
 		}
 		if (a != 454 ||
@@ -61,21 +61,18 @@ bool testSer(bool safe) {
 			e.first != "hello" ||
 			(e.second - 3.3) > 1e-9 ||
 			f != v) {
-				std::cout << "Unserzation failed" << std::endl;
+			tpie::log_info() << "Unserzation failed" << std::endl;
 				return false;		
 		}
 	}
 	return true;
 }
 
-int main() {
+bool safe_test() { return testSer(true); }
+bool unsafe_test() { return testSer(false); }
 
-	//if(argc != 2) return 1;
-	//std::string test(argv[1]);
-	//if (test == "safe")
-		return testSer(true)?EXIT_SUCCESS:EXIT_FAILURE;
-	//else if (test == "unsafe")
-	//	return testSer(false)?EXIT_SUCCESS:EXIT_FAILURE;
-	std::cerr << "No such test" << std::endl;
-	return EXIT_FAILURE;
+int main(int argc, char ** argv) {
+	return tpie::tests(argc, argv)
+		.test(safe_test, "safe")
+		.test(unsafe_test, "unsafe");
 }

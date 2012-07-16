@@ -51,8 +51,8 @@ public:
 	///  \param  minRange     The lower bound of the range.
 	////////////////////////////////////////////////////////////////////
 
-	progress_indicator_terminal(const char * title, TPIE_OS_OFFSET range) : 
-	    progress_indicator_base(range), m_title(title) {}
+	progress_indicator_terminal(const char * title, stream_size_type range, std::ostream & os = std::cout) : 
+	    progress_indicator_base(range), m_title(title), m_os(os) {}
 
   // ////////////////////////////////////////////////////////////////////
   // ///  Copy-constructor.
@@ -99,7 +99,7 @@ public:
 	void done() {
 	    m_current = m_range;
 	    refresh();
-	    std::cout << std::endl;
+	    m_os << std::endl;
 	}
 
   
@@ -116,7 +116,7 @@ public:
 	void set_title(const std::string& title) 
 	{
 	    m_title = title;
-	    std::cout << title << std::endl;
+	    m_os << title << std::endl;
 	}
 
 	////////////////////////////////////////////////////////////////////
@@ -126,9 +126,9 @@ public:
 	////////////////////////////////////////////////////////////////////
 
 	virtual void refresh() {
-	    std::cout << "\r" << m_title << " ";
+	    m_os << '\r' << m_title << ' ';
 	    display_percentage();
-	    std::cout << std::flush;
+	    m_os << std::flush;
 	}
 	
 protected:
@@ -151,8 +151,8 @@ protected:
 	    //else {
 		//		std::cout << 
 	    //}
-		TPIE_OS_OFFSET r = (m_current) * 100 / (m_range);
-		std::cout << r << "%";
+		stream_size_type r = (m_current) * 100 / (m_range);
+		m_os << r << '%';
 	}
 	
 	/**  A string holding the description of the title */
@@ -163,6 +163,8 @@ private:
 	/// Empty constructor.
 	////////////////////////////////////////////////////////////////////
 	progress_indicator_terminal();
+
+	std::ostream & m_os;
 };
 }  //  tpie namespace
 

@@ -24,12 +24,12 @@
 using namespace tpie;
 
 bool basic_test() {
-	internal_stack<int> s(52);
+	internal_stack<size_t> s(52);
 	for(size_t i=0; i < 52; ++i)
 		s.push((i * 104729) % 2251);
 	for(int i=51; i >= 0; --i) {
 		if (s.size() != (size_t)i+1) return false;
-		if (s.top() != ((int)i * 104729) % 2251) return false;
+		if (s.top() != static_cast<size_t>((i * 104729) % 2251)) return false;
 		s.pop();
 	}
 	if (!s.empty()) return false;
@@ -45,15 +45,7 @@ public:
 };
 
 int main(int argc, char **argv) {
-	tpie_initer _;
-	
-	if(argc != 2) return 1;
-	std::string test(argv[1]);
-	if (test == "basic")
-		return basic_test()?EXIT_SUCCESS:EXIT_FAILURE;
-	else if (test == "memory") 
-		return stack_memory_test()()?EXIT_SUCCESS:EXIT_FAILURE;
-	return EXIT_FAILURE;
+	return tpie::tests(argc, argv)
+		.test(basic_test, "basic")
+		.test(stack_memory_test(), "memory");
 }
-
-

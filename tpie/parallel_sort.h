@@ -79,7 +79,7 @@ private:
 	///////////////////////////////////////////////////////////////////////////
 	static inline boost::uint64_t sortWork(boost::uint64_t n) {
 		return static_cast<uint64_t>(
-			log(static_cast<double>(n)) * n * 1.8
+			log(static_cast<double>(n)) * static_cast<double>(n) * 1.8
 			/ log(static_cast<double>(2)));
 	}
 
@@ -226,7 +226,7 @@ public:
 		qsort_job * parent;
 		progress_t & progress;
 
-		void add_progress(ptrdiff_t amount) {
+		void add_progress(boost::uint64_t amount) {
 			boost::mutex::scoped_lock lock(progress.mutex);
 			progress.work_estimate += amount;
 			progress.cond.notify_one();

@@ -346,14 +346,14 @@ private:
     //bool m_destructBTEStream;
     stream_status m_status;
 
-	static inline double block_factor() {
+	static inline float block_factor() {
 #ifndef STREAM_UFS_BLOCK_FACTOR
 		return 1.0;
 #else
 #   ifdef WIN32
-		return static_cast<double>(STREAM_UFS_BLOCK_FACTOR)/32;
+		return static_cast<float>(STREAM_UFS_BLOCK_FACTOR)/32;
 #   else
-		return static_cast<double>(STREAM_UFS_BLOCK_FACTOR)/512;
+		return static_cast<float>(STREAM_UFS_BLOCK_FACTOR)/512;
 #   endif
 #endif
 	}
@@ -369,8 +369,8 @@ private:
 	    TP_LOG_DEBUG_ID( m_temp.path() );
 		try {
 			m_stream.open( m_temp );
-		} catch(const stream_exception &) {
-			TP_LOG_FATAL_ID("Open failed");
+		} catch(const stream_exception &e) {
+			TP_LOG_FATAL_ID("Open failed: " << e.what());
 			return;
 		}
 	    //  Set status to VALID.
@@ -384,10 +384,10 @@ private:
 	stream<T>::stream(const std::string& path_name, stream_type st) :
 		m_temp(path_name, true), m_stream(block_factor()), m_status(STREAM_STATUS_INVALID) {
 		try {
-			m_stream.open(m_temp, st==READ_STREAM ? file_base::read: file_base::read_write);
-			if (st == APPEND_STREAM) m_stream.seek(0, file_base::end);
-		} catch(const stream_exception &) {
-			TP_LOG_FATAL_ID("Open failed");
+			m_stream.open(m_temp, st==READ_STREAM ? file_stream_base::read: file_stream_base::read_write);
+			if (st == APPEND_STREAM) m_stream.seek(0, file_stream_base::end);
+		} catch(const stream_exception &e) {
+			TP_LOG_FATAL_ID("Open failed: " <<  e.what());
 			return;
 		}
 	    m_status = STREAM_STATUS_VALID;
@@ -419,8 +419,8 @@ private:
 	inline err stream<T>::seek(stream_offset_type offset) {
 		try {
 			m_stream.seek(offset);
-		} catch(const stream_exception &) {
-			TP_LOG_WARNING_ID("BTE error - seek failed");		
+		} catch(const stream_exception &e) {
+			TP_LOG_WARNING_ID("BTE error - seek failed: " << e.what());
 			return BTE_ERROR;
 		}
 	    return NO_ERROR;
@@ -432,7 +432,7 @@ private:
 		try {
 			m_stream.truncate(offset);
 		} catch(const stream_exception & e) {
-			TP_LOG_WARNING_ID("BTE error - truncate failed" << e.what());
+			TP_LOG_WARNING_ID("BTE error - truncate failed: " << e.what());
 			return BTE_ERROR;
 		}
 	    return NO_ERROR;

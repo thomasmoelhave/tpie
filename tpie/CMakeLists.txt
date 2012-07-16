@@ -5,6 +5,7 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/sysinfo.cpp.in" "${CMAKE_CURRENT_BIN
 set (HEADERS
 		ami.h
 		backtrace.h
+		cache_hint.h
 		comparator.h
 		config.h.cmake
 		cpu_timer.h
@@ -13,10 +14,11 @@ set (HEADERS
 		exception.h
 		err.h
 		file.h
+		file_base.h
 		file_stream.h
-		file_accessor/file_accessor_crtp.h
-		file_accessor/file_accessor_crtp.inl
 		file_accessor/file_accessor.h
+		file_accessor/stream_accessor.h
+		file_accessor/stream_accessor.inl
 		file_count.h
 		execution_time_predictor.h
 		imported/cycle.h
@@ -94,6 +96,7 @@ set (HEADERS
 		pipelining/stdio.h
 		pipelining/tokens.h
 		pipelining/uniq.h
+		unittest.h
 		)
 
 set (SOURCES
@@ -115,6 +118,7 @@ set (SOURCES
 	file_base.cpp
 	stats.cpp
 	util.cpp
+	unittest.cpp
 	"${CMAKE_CURRENT_BINARY_DIR}/sysinfo.cpp"
 	)
 

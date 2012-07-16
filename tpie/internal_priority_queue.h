@@ -36,6 +36,8 @@ namespace tpie {
 template <typename T, typename comp_t = std::less<T> >
 class internal_priority_queue: public linear_memory_base< internal_priority_queue<T, comp_t> > {
 public:
+	typedef memory_size_type size_type;
+
 	///////////////////////////////////////////////////////////////////////////
     /// \brief Construct a priority queue.
     /// \param max_size Maximum size of queue.

@@ -44,15 +44,8 @@ public:
 };
 
 int main(int argc, char **argv) {
-	tpie_initer _;
-
-	if(argc != 2) return 1;
-	std::string test(argv[1]);
-	if (test == "basic")
-		return basic_test()?EXIT_SUCCESS:EXIT_FAILURE;
-	else if (test == "large_cycle")
-		return large_cycle()?EXIT_SUCCESS:EXIT_FAILURE;
-	else if (test == "memory") 
-		return my_memory_test()()?EXIT_SUCCESS:EXIT_FAILURE;
-	return EXIT_FAILURE;
+	return tpie::tests(argc, argv)
+		.test(basic_test, "basic")
+		.test(large_cycle, "large_cycle")
+		.test(my_memory_test(), "memory");
 }

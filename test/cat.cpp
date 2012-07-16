@@ -90,7 +90,7 @@ static int read_files(const std::vector<std::string> & files, const parameter_pa
 		}
 		tpie::file_stream<T> fs;
 		try {
-			fs.open(path, tpie::file_base::read, header.userDataSize);
+			fs.open(path, tpie::file_stream_base::read, static_cast<tpie::memory_size_type>(header.userDataSize));
 		} catch (const tpie::stream_exception & e) {
 			std::cerr << "Couldn't open " << path << ": " << e.what() << std::endl;
 			result = 1;
@@ -198,7 +198,7 @@ struct parameter_parser : public parameter_parser_base<parameter_parser<T> > {
 
 struct parameter_parser_notype : public parameter_parser_base<parameter_parser_notype> {
 	inline parameter_parser_notype(int argc, char ** argv)
-		: parameter_parser_base(argc, argv) {
+		: parameter_parser_base<parameter_parser_notype>(argc, argv) {
 	}
 
 	int finish() {
