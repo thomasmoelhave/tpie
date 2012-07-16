@@ -27,17 +27,17 @@ namespace tpie {
 
 namespace pipelining {
 
-void segment_map::dump() const {
-	std::cout << this << " segment_map\n";
+void segment_map::dump(std::ostream & os) const {
+	os << this << " segment_map\n";
 	if (m_authority)
-		std::cout << "Non-authoritative" << std::endl;
+		os << "Non-authoritative" << std::endl;
 	else
-		std::cout << "Authoritative" << std::endl;
+		os << "Authoritative" << std::endl;
 	for (mapit i = m_tokens.begin(); i != m_tokens.end(); ++i) {
-		std::cout << i->first << " -> " << i->second << std::endl;
+		os << i->first << " -> " << i->second << std::endl;
 	}
 	for (relmapit i = m_relations.begin(); i != m_relations.end(); ++i) {
-		std::cout << i->first << " -> " << i->second.first << " edge type " << i->second.second << std::endl;
+		os << i->first << " -> " << i->second.first << " edge type " << i->second.second << std::endl;
 	}
 }
 

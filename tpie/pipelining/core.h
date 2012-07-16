@@ -165,8 +165,8 @@ struct pipeline {
 	inline void operator()() {
 		(*p)();
 	}
-	inline void plot() {
-		p->plot(std::cout);
+	inline void plot(std::ostream & os = std::cout) {
+		p->plot(os);
 	}
 	inline void plot_phases() {
 		p->plot_phases(std::cout);

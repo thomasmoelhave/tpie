@@ -213,7 +213,7 @@ struct segment_map {
 		if (m_authority) throw non_authoritative_segment_map();
 	}
 
-	void dump() const;
+	void dump(std::ostream & os = std::cout) const;
 
 private:
 	map_t m_tokens;
