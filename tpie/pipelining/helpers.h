@@ -135,22 +135,24 @@ private:
 
 template <typename T>
 struct dummydest_t : public pipe_segment {
+	dummydest_t() : buffer(new T()) {}
+
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Virtual dtor.
 	///////////////////////////////////////////////////////////////////////////
 	~dummydest_t() {}
 
 	typedef T item_type;
-	T buffer;
+	boost::shared_ptr<T> buffer;
 	inline void begin() {
 	}
 	inline void end() {
 	}
 	inline void push(const T & el) {
-		buffer = el;
+		*buffer = el;
 	}
 	inline T pull() {
-		return buffer;
+		return *buffer;
 	}
 };
 
