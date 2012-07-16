@@ -78,21 +78,21 @@ void setup_test_vectors() {
 
 bool check_test_vectors() {
 	if (outputvector != expectvector) {
-		std::cout << "Output vector does not match expect vector\n"
+		log_error() << "Output vector does not match expect vector\n"
 			<< "Expected: " << std::flush;
 		std::vector<test_t>::iterator expectit = expectvector.begin();
 		while (expectit != expectvector.end()) {
-			std::cout << *expectit << ' ';
+			log_error()<< *expectit << ' ';
 			++expectit;
 		}
-		std::cout << '\n'
+		log_error()<< '\n'
 			<< "Output:   " << std::flush;
 		std::vector<test_t>::iterator outputit = outputvector.begin();
 		while (outputit != outputvector.end()) {
-			std::cout << *outputit << ' ';
+			log_error()<< *outputit << ' ';
 			++outputit;
 		}
-		std::cout << std::endl;
+		log_error()<< std::endl;
 		return false;
 	}
 	return true;
@@ -100,7 +100,7 @@ bool check_test_vectors() {
 
 bool vector_multiply_test() {
 	pipeline p = input_vector(inputvector) | multiply(3) | multiply(2) | output_vector(outputvector);
-	p.plot();
+	p.plot(log_info());
 	p();
 	return check_test_vectors();
 }
@@ -126,7 +126,7 @@ bool file_stream_test() {
 		out.open("output");
 		// p is actually an input_t<multiply_t<multiply_t<output_t<test_t> > > >
 		pipeline p = (input(in) | multiply(3) | multiply(2) | output(out));
-		p.plot();
+		p.plot(log_info());
 		p();
 	}
 	{
@@ -154,8 +154,8 @@ bool file_stream_pull_test() {
 		file_stream<test_t> out;
 		out.open("output");
 		pipeline p = (pull_input(in) | pull_identity() | pull_output(out));
-		p.get_segment_map()->dump();
-		p.plot();
+		p.get_segment_map()->dump(log_info());
+		p.plot(log_info());
 		p();
 	}
 	{
@@ -183,7 +183,7 @@ bool file_stream_alt_push_test() {
 		file_stream<test_t> out;
 		out.open("output");
 		pipeline p = (input(in) | alt_identity() | output(out));
-		p.plot();
+		p.plot(log_info());
 		p();
 	}
 	{
@@ -201,7 +201,7 @@ bool merge_test() {
 		file_stream<test_t> in;
 		in.open("input");
 		pipeline p = input_vector(inputvector) | output(in);
-		p.plot();
+		p.plot(log_info());
 		p();
 	}
 	expectvector.resize(2*inputvector.size());
@@ -216,14 +216,14 @@ bool merge_test() {
 		out.open("output");
 		std::vector<test_t> inputvector2 = inputvector;
 		pipeline p = input_vector(inputvector) | merge(pull_input(in)) | output(out);
-		p.plot();
+		p.plot(log_info());
 		p();
 	}
 	{
 		file_stream<test_t> in;
 		in.open("output");
 		pipeline p = input(in) | output_vector(outputvector);
-		p.plot();
+		p.plot(log_info());
 		p();
 	}
 	return check_test_vectors();
@@ -235,7 +235,7 @@ bool reverse_test() {
 
 	pipeline p1 = input_vector(inputvector) | r.sink();
 	pipeline p2 = r.source() | output_vector(outputvector);
-	p1.plot();
+	p1.plot(log_info());
 
 	expectvector = inputvector;
 	std::reverse(expectvector.begin(), expectvector.end());
@@ -303,7 +303,7 @@ private:
 bool sort_test(size_t elements) {
 	bool result = false;
 	pipeline p = pipe_begin<factory_1<sequence_generator, size_t> >(elements) | pipesort() | pipe_end<termfactory_2<sequence_verifier, size_t, bool &> >(termfactory_2<sequence_verifier, size_t, bool &>(elements, result));
-	p.plot();
+	p.plot(log_info());
 	p();
 	return result;
 }
@@ -324,7 +324,7 @@ bool operator_test() {
 	expectvector = inputvector;
 	std::reverse(inputvector.begin(), inputvector.end());
 	pipeline p = input_vector(inputvector) | ((pipesort() | pipesort()) | output_vector(outputvector));
-	p.plot();
+	p.plot(log_info());
 	p();
 	return check_test_vectors();
 }
@@ -341,7 +341,7 @@ bool uniq_test() {
 		expectvector[i] = i;
 	}
 	pipeline p = input_vector(inputvector) | pipeuniq() | output_vector(outputvector);
-	p.plot();
+	p.plot(log_info());
 	p();
 	return check_test_vectors();
 }
@@ -351,7 +351,7 @@ bool memory_test() {
 	graph_traits g(*p.get_segment_map());
 	double fractions = g.sum_memory();
 	memory_size_type memory = g.sum_minimum_memory();
-	std::cout << fractions << std::endl << memory << std::endl;
+	log_info() << fractions << std::endl << memory << std::endl;
 	double d = fractions-(1.1+3.2+3.3+2.3);
 	return d*d < 0.0001;
 }
@@ -395,27 +395,27 @@ buffer_node() {
 
 bool execution_order() {
 	pipeline p = input_vector(inputvector) | pipesort() | output_vector(outputvector);
-	p.plot();
+	p.plot(log_info());
 	graph_traits g(*p.get_segment_map());
 	return false;
 }
 
 int main(int argc, char ** argv) {
-	return unittests(argc, argv)
-	.fixture(setup_test_vectors)
-	.fixture(file_system_cleanup)
-	.test<vector_multiply_test>("vector")
-	.test<file_stream_test>("filestream")
-	.test<file_stream_pull_test>("fspull")
-	.test<file_stream_alt_push_test>("fsaltpush")
-	.test<merge_test>("merge")
-	.test<reverse_test>("reverse")
-	.test<sort_test_small>("sort")
-	.test<sort_test_large>("sortbig")
-	.test<operator_test>("operators")
-	.test<uniq_test>("uniq")
-	.test<memory_test>("memory")
-	.test<fork_test>("fork")
-	.test<execution_order>("execorder")
+	return tpie::tests(argc, argv)
+	.setup(setup_test_vectors)
+	.setup(file_system_cleanup)
+	.test(vector_multiply_test, "vector")
+	.test(file_stream_test, "filestream")
+	.test(file_stream_pull_test, "fspull")
+	.test(file_stream_alt_push_test, "fsaltpush")
+	.test(merge_test, "merge")
+	.test(reverse_test, "reverse")
+	.test(sort_test_small, "sort")
+	.test(sort_test_large, "sortbig")
+	.test(operator_test, "operators")
+	.test(uniq_test, "uniq")
+	.test(memory_test, "memory")
+	.test(fork_test, "fork")
+	.test(execution_order, "execorder")
 	;
 }
