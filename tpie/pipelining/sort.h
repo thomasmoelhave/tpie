@@ -374,8 +374,8 @@ private:
 	inline void open_run_file_write(file_stream<T> & fs, size_t mergeLevel, size_t runNumber) {
 		size_t idx = run_file_index(mergeLevel, runNumber);
 		if (runNumber < p.fanout) m_runFiles->at(idx).free();
-		fs.open(m_runFiles->at(idx), file_base::read_write);
-		fs.seek(0, file_base::end);
+		fs.open(m_runFiles->at(idx), file_stream_base::read_write);
+		fs.seek(0, file_stream<T>::end);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -383,8 +383,8 @@ private:
 	///////////////////////////////////////////////////////////////////////////
 	inline void open_run_file_read(file_stream<T> & fs, size_t mergeLevel, size_t runNumber) {
 		size_t idx = run_file_index(mergeLevel, runNumber);
-		fs.open(m_runFiles->at(idx), file_base::read);
-		fs.seek(p.runLength * (runNumber / p.fanout), file_base::beginning);
+		fs.open(m_runFiles->at(idx), file_stream_base::read);
+		fs.seek(p.runLength * (runNumber / p.fanout), file_stream<T>::beginning);
 	}
 
 	sort_parameters p;
