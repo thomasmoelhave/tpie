@@ -118,6 +118,7 @@ struct phase {
 		while (true) {
 			bool done = true;
 			for (size_t i = 0; i < m_segments.size(); ++i) {
+				if (assigned[i]) continue;
 				pipe_segment * s = m_segments[i];
 				memory_size_type min = s->get_minimum_memory();
 				double frac = s->get_memory_fraction();
@@ -125,12 +126,14 @@ struct phase {
 				if (to_assign < min) {
 					done = false;
 					s->set_available_memory(min);
+					assigned[i] = true;
 					remaining -= min;
 					fraction -= frac;
 				}
 			}
 			if (!done) continue;
 			for (size_t i = 0; i < m_segments.size(); ++i) {
+				if (assigned[i]) continue;
 				pipe_segment * s = m_segments[i];
 				double frac = s->get_memory_fraction();
 				double to_assign = frac/fraction * remaining;
