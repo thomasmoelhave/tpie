@@ -301,29 +301,12 @@ struct stress_tester {
 	};
 
 	template <typename T>
-	bool __stress_assert_eq_silent(T got, T value, const char * exp) {
+	bool stress_assert_eq(T got, T value, const char * exp) {
 		if (value != got) {
 			tpie::log_error() << "Expected " << exp << " == " << value << ", got " << got << '\n';
 			return false;
 		}
 		return true;
-	}
-
-#define STRESS_ASSERT(cond) /*tpie::log_debug() << "assert(" << #cond << ");\n";*/\
-	if (!(cond)) {\
-		result = false;\
-		tpie::log_error() << "Assertion " << #cond << " failed\n";\
-	}
-#define STRESS_ASSERT_EQ_SILENT(exp, value) \
-	{\
-		if (!__stress_assert_eq_silent((exp), value, #exp)) {\
-			result = false;\
-		}\
-	}
-#define STRESS_ASSERT_EQ(exp, value) \
-	{\
-		/*tpie::log_debug() << "assert(" << value << " == " << #exp << ");\n";*/\
-		STRESS_ASSERT_EQ_SILENT(exp, value);\
 	}
 
 	bool go() {
@@ -354,8 +337,12 @@ struct stress_tester {
 				result = false;
 				break;
 			}
-			STRESS_ASSERT_EQ(stream.size(), size);
-			STRESS_ASSERT_EQ(stream.offset(), location);
+			if (!stress_assert_eq(static_cast<size_t>(stream.size()), size, "stream.size()")) {
+				result = false;
+			}
+			if (!stress_assert_eq(static_cast<size_t>(stream.offset()), location, "stream.offset()")) {
+				result = false;
+			}
 			if (0 == action % stepEvery) pi.step();
 		}
 		pi.done();
@@ -364,7 +351,10 @@ struct stress_tester {
 
 	void read() {
 		if (size == location) {
-			STRESS_ASSERT(!stream.can_read());
+			if (stream.can_read()) {
+				tpie::log_error() << "Assertion !stream.can_read() failed" << std::endl;
+				result = false;
+			}
 			return;
 		}
 		size_t maxItems = size - location;
@@ -373,7 +363,9 @@ struct stress_tester {
 		tpie::log_debug() << "stream.read() * " << items << '\n';
 		for (size_t i = 0; i < items; ++i) {
 			if (defined[location]) {
-				STRESS_ASSERT_EQ_SILENT(stream.read(), elements[location]);
+				if (!stress_assert_eq(stream.read(), elements[location], "stream.read()")) {
+					result = false;
+				}
 			} else {
 				int readItem = stream.read();
 				elements[location] = readItem;
@@ -387,7 +379,10 @@ struct stress_tester {
 
 	void read_array() {
 		if (size == location) {
-			STRESS_ASSERT(!stream.can_read());
+			if (stream.can_read()) {
+				tpie::log_error() << "Assertion !stream.can_read() failed" << std::endl;
+				result = false;
+			}
 			return;
 		}
 		size_t maxItems = size - location;
@@ -397,7 +392,9 @@ struct stress_tester {
 		tpie::log_debug() << "stream.read(itemBuffer.begin(), itemBuffer.begin() + " << items << ");\n";
 		for (size_t i = 0; i < items; ++i) {
 			if (defined[location]) {
-				STRESS_ASSERT_EQ_SILENT(itemBuffer[i], elements[location]);
+				if (!stress_assert_eq(itemBuffer[i], elements[location], "itemBuffer[i]")) {
+					result = false;
+				}
 			} else {
 				int readItem = itemBuffer[i];
 				elements[location] = readItem;
