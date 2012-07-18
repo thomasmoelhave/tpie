@@ -113,7 +113,7 @@ struct file_stream {
 	}
 };
 
-template <template <typename T> class Stream>
+template <template <typename U> class Stream>
 struct stream_tester {
 
 static bool array_test() {
