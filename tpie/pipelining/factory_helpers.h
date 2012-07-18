@@ -26,26 +26,26 @@ namespace pipelining {
 
 template <typename child_t>
 struct factory_base {
-	factory_base() : amount(0), set(false) {
+	factory_base() : m_amount(0), m_set(false) {
 	}
 
 	inline void memory(double amount) {
-		amount = amount;
-		set = true;
+		m_amount = amount;
+		m_set = true;
 	}
 	
 	inline double memory() const {
-		return amount;
+		return m_amount;
 	}
 
 	template <typename R>
 	inline void set_memory_fraction(R & r) const {
-		if (set) r.set_memory_fraction(memory());
+		if (m_set) r.set_memory_fraction(memory());
 	}
 
 private:
-	double amount;
-	bool set;
+	double m_amount;
+	bool m_set;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
