@@ -47,7 +47,7 @@ public:
 		, m_buffer(buffer_size(blockFactor))
 		, m_bufferItems(0)
 	{
-		m_file_stream.open();
+		m_file_stream.open(0, access_normal);
 	}
 
     ////////////////////////////////////////////////////////////////////
@@ -61,7 +61,7 @@ public:
 		, m_buffer(buffer_size(block_factor))
 		, m_bufferItems(0)
 	{
-		m_file_stream.open(path);
+		m_file_stream.open(path, read_write, 0, access_normal);
 		
 		m_file_stream.seek(0, file_stream_base::end);
 	}
@@ -77,7 +77,7 @@ public:
 		, m_buffer(buffer_size(block_factor))
 		, m_bufferItems(0)
 	{
-		m_file_stream.open(tempFile);
+		m_file_stream.open(tempFile, read_write, 0, access_normal);
 		
 		m_file_stream.seek(0, file_stream_base::end);
 	}
