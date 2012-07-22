@@ -136,7 +136,7 @@ struct sysinfo {
 	}
 
 	static inline memory_size_type blocksize_bytes() {
-		return file<int>::block_size(1.0);
+		return get_block_size();
 	}
 
 private:

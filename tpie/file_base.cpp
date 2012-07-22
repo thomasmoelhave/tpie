@@ -17,12 +17,29 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #include <tpie/portability.h>
-
 #include <tpie/exception.h>
 #include <tpie/file_base.h>
 #include <tpie/memory.h>
+#include <stdlib.h>
+
+namespace {
+static tpie::stream_size_type the_block_size=0;
+}
 
 namespace tpie {
+
+stream_size_type get_block_size() {
+	if (the_block_size == 0) {
+		const char * v = getenv("TPIE_BLOCK_SIZE");
+		if (v != NULL) the_block_size = atol(v);
+		if (the_block_size == 0) the_block_size=1024*1024*2; //Default block size is 2MB
+	}
+	return the_block_size;
+}
+
+void set_block_size(stream_size_type block_size) {
+	the_block_size=block_size;
+}
 
 /*************************> file_base_crtp <*******************************/ 
 template <typename child_t>

@@ -30,6 +30,7 @@
 #include <memory>
 #include <tpie/memory.h>
 #include <tpie/cache_hint.h>
+#include <tpie/types.h>
 
 namespace tpie {
 
@@ -38,6 +39,21 @@ typedef tpie::file_accessor::stream_accessor<tpie::file_accessor::posix> default
 #else //WIN32
 typedef tpie::file_accessor::stream_accessor<tpie::file_accessor::win32> default_file_accessor;
 #endif //WIN32
+
+/**
+ * \brief Get the tpie block size.
+ * This can be changed by setting the TPIE_BLOCK_SIZE environment variable
+ * or by calling the set_block_size method
+ *
+ * The default is 2MB (2**21)
+ */
+stream_size_type get_block_size();
+
+/**
+ * \brief Set the tpie block size
+ * Note it is not safe to change this once tpie has been inited
+ */
+void set_block_size(stream_size_type block_size);
 
 template <typename child_t>
 class file_base_crtp  {
@@ -80,7 +96,7 @@ public:
 	/// \returns Size in bytes.
 	////////////////////////////////////////////////////////////////////////////////
 	static inline memory_size_type block_size(double blockFactor) throw () {
-		return static_cast<memory_size_type>(2 * 1024*1024 * blockFactor);
+		return static_cast<memory_size_type>(get_block_size() * blockFactor);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
