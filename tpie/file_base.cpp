@@ -28,7 +28,7 @@ static tpie::stream_size_type the_block_size=0;
 
 namespace tpie {
 
-stream_size_type get_block_size() {
+memory_size_type get_block_size() {
 	if (the_block_size == 0) {
 		const char * v = getenv("TPIE_BLOCK_SIZE");
 		if (v != NULL) the_block_size = atol(v);
@@ -37,7 +37,7 @@ stream_size_type get_block_size() {
 	return the_block_size;
 }
 
-void set_block_size(stream_size_type block_size) {
+void set_block_size(memory_size_type block_size) {
 	the_block_size=block_size;
 }
 

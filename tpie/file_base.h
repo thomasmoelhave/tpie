@@ -30,6 +30,7 @@
 #include <memory>
 #include <tpie/memory.h>
 #include <tpie/cache_hint.h>
+#include <tpie/access_type.h>
 #include <tpie/types.h>
 
 namespace tpie {
@@ -47,13 +48,13 @@ typedef tpie::file_accessor::stream_accessor<tpie::file_accessor::win32> default
  *
  * The default is 2MB (2**21)
  */
-stream_size_type get_block_size();
+memory_size_type get_block_size();
 
 /**
  * \brief Set the tpie block size
  * Note it is not safe to change this once tpie has been inited
  */
-void set_block_size(stream_size_type block_size);
+void set_block_size(memory_size_type block_size);
 
 template <typename child_t>
 class file_base_crtp  {
@@ -61,12 +62,6 @@ public:
 	child_t & self() {return *static_cast<child_t *>(this);}
 	const child_t & self() const {return *static_cast<const child_t *>(this);}
 
-	/** Type describing how we wish to access a file. */
-	enum access_type {
-		read,
-		write,
-		read_write
-	};
 
 	////////////////////////////////////////////////////////////////////////////////
 	/// Check if we can read from the file.
@@ -176,8 +171,8 @@ public:
 						   access_type accessType,
 						   memory_size_type userDataSize,
 						   cache_hint cacheHint) throw(stream_exception) {
-		m_canRead = accessType == read || accessType == read_write;
-		m_canWrite = accessType == write || accessType == read_write;
+		m_canRead = accessType == access_read || accessType == access_read_write;
+		m_canWrite = accessType == access_write || accessType == access_read_write;
 		m_fileAccessor->open(path, m_canRead, m_canWrite, m_itemSize, m_blockSize, userDataSize, cacheHint);
 		m_size = m_fileAccessor->size();
 		m_open = true;
@@ -197,7 +192,7 @@ public:
 	/// file.
 	/////////////////////////////////////////////////////////////////////////
 	inline void open(const std::string & path,
-					 access_type accessType=read_write,
+					 access_type accessType=access_read_write,
 					 memory_size_type userDataSize=0,
 					 cache_hint cacheHint=access_sequential) throw (stream_exception) {
 		self().close();
@@ -212,11 +207,11 @@ public:
 		self().close();
 		m_ownedTempFile.reset(new temp_file());
 		m_tempFile=m_ownedTempFile.get();
-		self().open_inner(m_tempFile->path(), read_write, userDataSize, cacheHint);
+		self().open_inner(m_tempFile->path(), access_read_write, userDataSize, cacheHint);
 	}
 
 	inline void open(temp_file & file, 
-					 access_type accessType=read_write,
+					 access_type accessType=access_read_write,
 					 memory_size_type userDataSize=0,
 					 cache_hint cacheHint=access_sequential) throw (stream_exception) {
 		self().close();

@@ -90,7 +90,7 @@ static int read_files(const std::vector<std::string> & files, const parameter_pa
 		}
 		tpie::file_stream<T> fs;
 		try {
-			fs.open(path, tpie::file_stream_base::read, static_cast<tpie::memory_size_type>(header.userDataSize));
+			fs.open(path, tpie::access_read, static_cast<tpie::memory_size_type>(header.userDataSize));
 		} catch (const tpie::stream_exception & e) {
 			std::cerr << "Couldn't open " << path << ": " << e.what() << std::endl;
 			result = 1;
