@@ -15,6 +15,7 @@ exiting, the program will write the fraction database to a file named
 file is included in the source code.
 
 The following example is from the \c main function in \c helloworld.cpp.
+For \c load_fractions and \c save_fractions, include \c fractional_progress.h.
 
 \code
 @DOCCODE_FRACTIONDB@
