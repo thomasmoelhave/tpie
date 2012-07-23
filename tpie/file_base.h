@@ -16,6 +16,11 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
+
+///////////////////////////////////////////////////////////////////////////////
+/// \file file_base.h  Basic file and stream operations.
+///////////////////////////////////////////////////////////////////////////////
+
 #ifndef __TPIE_FILE_BASE_H__
 #define __TPIE_FILE_BASE_H__
 #include <tpie/exception.h>
@@ -41,23 +46,33 @@ typedef tpie::file_accessor::stream_accessor<tpie::file_accessor::posix> default
 typedef tpie::file_accessor::stream_accessor<tpie::file_accessor::win32> default_file_accessor;
 #endif //WIN32
 
-/**
- * \brief Get the tpie block size.
- * This can be changed by setting the TPIE_BLOCK_SIZE environment variable
- * or by calling the set_block_size method
- *
- * The default is 2MB (2**21)
- */
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Get the TPIE block size.
+/// This can be changed by setting the TPIE_BLOCK_SIZE environment variable
+/// or by calling the set_block_size method.
+///
+/// The default is 2 MiB (2**21 bytes).
+///////////////////////////////////////////////////////////////////////////////
 memory_size_type get_block_size();
 
-/**
- * \brief Set the tpie block size
- * Note it is not safe to change this once tpie has been inited
- */
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Set the TPIE block size.
+///
+/// It is not safe to change the block size once TPIE has been initialized.
+///////////////////////////////////////////////////////////////////////////////
 void set_block_size(memory_size_type block_size);
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Base class of classes that access files.
+///
+/// Inheriting classes may wish to override open_inner() and close(), e.g. to
+/// initialize and deinitialize block buffers. open_inner() in the inheriting
+/// class will not be called twice in a row without an intervening call to
+/// close(). The default implementation of open_inner() passes the open on to
+/// the file accessor and sets some attributes.
+///////////////////////////////////////////////////////////////////////////////
 template <typename child_t>
-class file_base_crtp  {
+class file_base_crtp {
 	child_t & self() {return *static_cast<child_t *>(this);}
 	const child_t & self() const {return *static_cast<const child_t *>(this);}
 
@@ -209,7 +224,8 @@ public:
 	}
 
 	/////////////////////////////////////////////////////////////////////////
-	///
+	/// \brief Open an anonymous temporary file. The temporary file is deleted
+	/// when this file is closed.
 	/////////////////////////////////////////////////////////////////////////
 	inline void open(memory_size_type userDataSize=0,
 					 cache_hint cacheHint=access_sequential) throw (stream_exception) {
@@ -219,7 +235,12 @@ public:
 		self().open_inner(m_tempFile->path(), access_read_write, userDataSize, cacheHint);
 	}
 
-	inline void open(temp_file & file, 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Open a temporary file. The temporary file is not deleted when
+	/// this file is closed, so several tpie::file objects may use the same
+	/// temporary file consecutively.
+	///////////////////////////////////////////////////////////////////////////
+	inline void open(temp_file & file,
 					 access_type accessType=access_read_write,
 					 memory_size_type userDataSize=0,
 					 cache_hint cacheHint=access_sequential) throw (stream_exception) {
@@ -480,12 +501,6 @@ public:
 		inline memory_size_type block_items() const {return m_file.m_blockItems;}
 
 	protected:
-		// this turns out to be slower than cmp+cmov, so we use std::max in
-		// write_update instead.
-		//static inline int64_t max(int64_t x, int64_t y) {
-		//    return x-(((x-y)>>63)&(x-y));
-		//}
-
 		///////////////////////////////////////////////////////////////////////
 		/// Call whenever the current block buffer is modified. Since we
 		/// support multiple streams per block, we must always keep
@@ -495,10 +510,6 @@ public:
 		///////////////////////////////////////////////////////////////////////
 		inline void write_update() {
 			m_block->dirty = true;
-			// with optimization, each of these std::max is compiled on an x86
-			// into cmp (compare), cmov (conditional move).
-			// TODO: with inline assembly we could do a single comparisons and two
-			// cmovs, as the two comparison results will always be the same.
 			m_block->size = std::max(m_block->size, m_index);
 			m_file.update_size(static_cast<stream_size_type>(m_index)+m_blockStartIndex);
 		}
