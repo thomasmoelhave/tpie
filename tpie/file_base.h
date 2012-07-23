@@ -646,7 +646,7 @@ public:
 		seek(std::min(o, size));
 	}
 
-
+protected:
 	void swap(file_stream_base & other) {
 		using std::swap;
 		swap(m_index,           other.m_index);
@@ -669,7 +669,6 @@ public:
 		swap(m_tempFile,        other.m_tempFile);
 	}
 
-protected:
 	inline void open_inner(const std::string & path,
 						   access_type accessType,
 						   memory_size_type userDataSize,
