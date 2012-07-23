@@ -72,29 +72,12 @@ public:
 	}
 
 	/////////////////////////////////////////////////////////////////////////
-	/// \copydoc file<T>::stream::write(const IT & start, const IT & end)
+	/// \copydoc stream_item_array_operations::write
 	/// \sa file<T>::stream::write(const IT & start, const IT & end)
 	/////////////////////////////////////////////////////////////////////////
 	template <typename IT>
 	inline void write(const IT & start, const IT & end) throw(stream_exception) {
-		assert(m_open);
-		IT i = start;
-		while (i != end) {
-			if (m_index >= m_blockItems) update_block();
-
-			size_t streamRemaining = end - i;
-			size_t blockRemaining = m_blockItems-m_index;
-
-			IT till = (blockRemaining < streamRemaining) ? (i + blockRemaining) : end;
-
-			T * dest = reinterpret_cast<item_type*>(m_block.data) + m_index;
-
-			std::copy(i, till, dest);
-
-			m_index += static_cast<memory_size_type>(till - i);
-			write_update();
-			i = till;
-		}
+		stream_item_array_operations::write<T>(*this, m_block, start, end);
 	}
 
 	/////////////////////////////////////////////////////////////////////////
@@ -113,40 +96,12 @@ public:
 	}
 
 	/////////////////////////////////////////////////////////////////////////
-	/// \copydoc file<T>::stream::read(const IT & start, const IT & end)
+	/// \copydoc stream_item_array_operations::read
 	/// \sa file<T>::stream::read(const IT & start, const IT & end)
 	/////////////////////////////////////////////////////////////////////////
 	template <typename IT>
 	inline void read(const IT & start, const IT & end) throw(stream_exception) {
-		assert(m_open);
-		IT i = start;
-		while (i != end) {
-			if (m_index >= m_blockItems) {
-				// check to make sure we have enough items in the stream
-				stream_size_type offs = offset();
-				if (offs >= size()
-					|| offs + (end-i) > size()) {
-
-					throw end_of_stream_exception();
-				}
-
-				// fetch next block from disk
-				update_block();
-			}
-
-			T * src = reinterpret_cast<item_type*>(m_block.data) + m_index;
-
-			// either read the rest of the block or until `end'
-			memory_size_type count = std::min(m_blockItems-m_index, static_cast<memory_size_type>(end-i));
-
-			std::copy(src, src + count, i);
-
-			// advance output iterator
-			i += count;
-
-			// advance input position
-			m_index += count;
-		}
+		stream_item_array_operations::read<T>(*this, m_block, start, end);
 	}
 
 	/////////////////////////////////////////////////////////////////////////
@@ -183,6 +138,8 @@ public:
 	void swap(file_stream<T> & other) {
 		file_stream_base::swap(other);
 	}
+
+	friend class stream_item_array_operations;
 };
 
 } // namespace tpie
