@@ -58,11 +58,10 @@ void set_block_size(memory_size_type block_size);
 
 template <typename child_t>
 class file_base_crtp  {
-public:
 	child_t & self() {return *static_cast<child_t *>(this);}
 	const child_t & self() const {return *static_cast<const child_t *>(this);}
 
-
+public:
 	////////////////////////////////////////////////////////////////////////////////
 	/// Check if we can read from the file.
 	///
@@ -167,6 +166,7 @@ public:
 		return m_fileAccessor->path();
 	}
 
+protected:
 	inline void open_inner(const std::string & path,
 						   access_type accessType,
 						   memory_size_type userDataSize,
@@ -183,6 +183,7 @@ public:
 				   file_accessor::file_accessor * fileAccessor);
 
 
+public:
 	/////////////////////////////////////////////////////////////////////////
 	/// \brief Open a file.
 	///
@@ -231,10 +232,12 @@ public:
 		m_ownedTempFile.reset();
 	}
 
+protected:
 	template <typename BT>
 	void read_block(BT & b, stream_size_type block);
 	void get_block_check(stream_size_type block);
 
+public:
 	/////////////////////////////////////////////////////////////////////////
 	/// \brief Get the size of the file measured in items.
 	/// If there are streams of this file that have extended the stream length
@@ -260,7 +263,6 @@ public:
 	stream_size_type m_size;
 };
 
-
 template <typename child_t>
 class stream_crtp {
 public:
@@ -271,9 +273,11 @@ public:
 		current
 	};
 
+private:
 	inline child_t & self() {return *static_cast<child_t*>(this);}
 	inline const child_t & self() const {return *static_cast<const child_t*>(this);}
 
+public:
 	/////////////////////////////////////////////////////////////////////////
 	/// \brief Moves the logical offset in the stream.
 	///
@@ -315,13 +319,14 @@ public:
 		assert(self().offset() == (stream_size_type)offset);
 	}
 
+protected:
 	inline void initialize() {
 		m_nextBlock = std::numeric_limits<stream_size_type>::max();
 		m_nextIndex = std::numeric_limits<memory_size_type>::max();
 		m_index = std::numeric_limits<memory_size_type>::max();
 	}
 
-	
+public:
 	/////////////////////////////////////////////////////////////////////////
 	/// \brief Calculate the current offset in the stream.
 	///
@@ -377,6 +382,7 @@ public:
 		return self().__file().file_size();
 	}
 
+protected:
 	///////////////////////////////////////////////////////////////////////
 	/// \brief Fetch block from disk as indicated by m_nextBlock, writing old
 	/// block to disk if needed.
@@ -386,7 +392,8 @@ public:
 	/// m_nextIndex.
 	///////////////////////////////////////////////////////////////////////
 	void update_block();
-	
+
+protected:
 	/** Item index into the current block, or maxint if we don't have a
 	 * block. */
 	memory_size_type m_index;
@@ -417,7 +424,6 @@ protected:
 		bool dirty;
 		char data[0];
 	};
-public:
 
 	inline void update_size(stream_size_type size) {
 		m_size = std::max(m_size, size);
@@ -425,6 +431,7 @@ public:
 			m_tempFile->update_recorded_size(m_fileAccessor->byte_size());
 	}
 
+public:
 	inline stream_size_type size() const throw() {
 		return file_size();
 	}
@@ -433,16 +440,18 @@ public:
 	/// \brief Stream in file. We support multiple streams per file.
 	///////////////////////////////////////////////////////////////////////////
 	class stream: public stream_crtp<stream> {
-	public:
 		typedef stream_crtp<stream> p_t;
+
+		friend class stream_crtp<stream>;
 
 		const block_t & __block() const {return *m_block;}
 		inline file_base & __file() {return m_file;}
 		inline const file_base & __file() const {return m_file;}
-		void update_block_core();
-		
-		inline void update_vars() {}
+
 	protected:
+		void update_block_core();
+
+		inline void update_vars() {}
 		/** Associated file object. */
 		file_base & m_file;
 
@@ -450,11 +459,13 @@ public:
 		 * current block. */
 		block_t * m_block;
 
+	public:
 		///////////////////////////////////////////////////////////////////////
 		/// Fetch number of items per block.
 		///////////////////////////////////////////////////////////////////////
 		inline memory_size_type block_items() const {return m_file.m_blockItems;}
-		
+
+	protected:
 		// this turns out to be slower than cmp+cmov, so we use std::max in
 		// write_update instead.
 		//static inline int64_t max(int64_t x, int64_t y) {
@@ -477,8 +488,8 @@ public:
 			m_block->size = std::max(m_block->size, m_index);
 			m_file.update_size(static_cast<stream_size_type>(m_index)+m_blockStartIndex);
 		}
+
 	public:
-		
 		///////////////////////////////////////////////////////////////////////
 		/// \brief Create a stream associated with the given file.
 		/// \param file The file to associate with this stream.
@@ -494,6 +505,7 @@ public:
 		inline ~stream() {free();}
 
 
+	protected:
 		///////////////////////////////////////////////////////////////////////
 		/// \brief Set up block buffers and offsets.
 		///////////////////////////////////////////////////////////////////////
@@ -523,6 +535,7 @@ public:
 	~file_base();
 
 
+protected:
 	file_base(memory_size_type item_size,
 			  double blockFactor=1.0,
 			  file_accessor::file_accessor * fileAccessor=NULL);
@@ -547,6 +560,8 @@ public:
 	typedef file_base_crtp<file_stream_base> p_t;
 	typedef stream_crtp<file_stream_base> s_t;
 
+	friend class file_base_crtp<file_stream_base>;
+
 	struct block_t {
 		memory_size_type size;
 		stream_size_type number;
@@ -554,11 +569,14 @@ public:
 		char * data;
 	};
 
+private:
+	friend class stream_crtp<file_stream_base>;
 	file_stream_base & __file() {return *this;}
 	const file_stream_base & __file() const {return *this;}
 	const block_t & __block() const {return m_block;}
 	void update_block_core();
 
+protected:
 	file_stream_base(memory_size_type itemSize,
 					 double blockFactor,
 					 file_accessor::file_accessor * fileAccessor);
@@ -568,6 +586,7 @@ public:
 	}
 
 
+public:
 	/////////////////////////////////////////////////////////////////////////
 	/// \brief Close the file and release resources.
 	///
@@ -623,6 +642,7 @@ public:
 		swap(m_tempFile,        other.m_tempFile);
 	}
 
+protected:
 	inline void open_inner(const std::string & path,
 						   access_type accessType,
 						   memory_size_type userDataSize,
