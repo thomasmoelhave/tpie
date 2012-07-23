@@ -5,6 +5,7 @@ set (COMMON_DEPS
 		getopts.h
 		parse_args.cpp
 		parse_args.h
+		test_portability.h
 	)
 
 add_library(test_common ${COMMON_DEPS})

@@ -1,5 +1,5 @@
 macro(add_unittest NAME)
-  add_executable(ut-${NAME} test_${NAME}.cpp)
+  add_executable(ut-${NAME} test_${NAME}.cpp common.h priority_queue.h test_timer.h)
   set_target_properties(ut-${NAME} PROPERTIES FOLDER tpie/unittest)
   target_link_libraries(ut-${NAME} tpie ${Boost_LIBRARIES})
   set(MTESTS ${ARGV})
