@@ -3,6 +3,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS On)
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/sysinfo.cpp.in" "${CMAKE_CURRENT_BINARY_DIR}/sysinfo.cpp" @ONLY)
 
 set (HEADERS
+		access_type.h
 		ami.h
 		backtrace.h
 		cache_hint.h
@@ -56,6 +57,7 @@ set (HEADERS
 		queue.h
 		serialization.h
 		sort.h
+		sort_deprecated.h
 		sort_manager.h
 		stack.h
 		stream.h
