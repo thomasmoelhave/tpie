@@ -36,9 +36,9 @@ teststream_buf::teststream_buf() {
 int teststream_buf::overflow(int) {return 0;}
 
 void teststream_buf::stateAlign() {
-	if (pptr() - m_line < tests::lineLength-8) sputc(' ');
-	while (pptr() - m_line < tests::lineLength-9) sputc('.');
-	if (pptr() - m_line < tests::lineLength-8) sputc(' ');
+	if (pptr() - m_line < static_cast<ptrdiff_t>(tests::lineLength)-8) sputc(' ');
+	while (pptr() - m_line < static_cast<ptrdiff_t>(tests::lineLength)-9) sputc('.');
+	if (pptr() - m_line < static_cast<ptrdiff_t>(tests::lineLength)-8) sputc(' ');
 }
 
 int teststream_buf::sync() {
