@@ -77,7 +77,8 @@ public:
 	/////////////////////////////////////////////////////////////////////////
 	template <typename IT>
 	inline void write(const IT & start, const IT & end) throw(stream_exception) {
-		stream_item_array_operations::write<T>(*this, m_block, start, end);
+		assert(m_open);
+		stream_item_array_operations::write<T>(*this, start, end);
 	}
 
 	/////////////////////////////////////////////////////////////////////////
@@ -101,7 +102,8 @@ public:
 	/////////////////////////////////////////////////////////////////////////
 	template <typename IT>
 	inline void read(const IT & start, const IT & end) throw(stream_exception) {
-		stream_item_array_operations::read<T>(*this, m_block, start, end);
+		assert(m_open);
+		stream_item_array_operations::read<T>(*this, start, end);
 	}
 
 	/////////////////////////////////////////////////////////////////////////

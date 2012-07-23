@@ -240,6 +240,10 @@ public:
 		m_ownedTempFile.reset();
 	}
 
+	inline bool is_open() const {
+		return m_open;
+	}
+
 protected:
 	template <typename BT>
 	void read_block(BT & b, stream_size_type block);
@@ -293,7 +297,7 @@ public:
 	/// \param whence Move the offset relative to what.
 	/////////////////////////////////////////////////////////////////////////
 	inline void seek(stream_offset_type offset, offset_type whence=beginning) throw(stream_exception) {
-		assert(self().__file().m_open);
+		assert(self().__file().is_open());
 		if (whence == end)
 			offset += self().size();
 		else if (whence == current) {
@@ -341,7 +345,7 @@ public:
 	/// \returns The current offset in the stream
 	/////////////////////////////////////////////////////////////////////////
 	inline stream_size_type offset() const throw() {
-		assert(self().__file().m_open);
+		assert(self().__file().is_open());
 		if (m_nextBlock == std::numeric_limits<stream_size_type>::max())
 			return m_index + m_blockStartIndex;
 		return m_nextIndex + m_nextBlock * self().__file().block_items();
@@ -359,7 +363,7 @@ public:
 	/// \returns Whether or not we can read more items from the stream.
 	/////////////////////////////////////////////////////////////////////////
 	inline bool can_read() const throw() {
-		assert(self().__file().m_open);
+		assert(self().__file().is_open());
 		if (m_index < self().__block().size ) return true;
 		return offset() < self().size();
 	}
@@ -370,7 +374,7 @@ public:
 	/// \returns Whether or not we can read an item with read_back().
 	/////////////////////////////////////////////////////////////////////////
 	inline bool can_read_back() const throw() {
-		assert(self().__file().m_open);
+		assert(self().__file().is_open());
 		if (m_nextBlock == std::numeric_limits<stream_size_type>::max())
 			return m_index > 0 || m_blockStartIndex > 0;
 		else
@@ -451,7 +455,9 @@ public:
 		typedef stream_crtp<stream> p_t;
 
 		friend class stream_crtp<stream>;
+		friend class stream_item_array_operations;
 
+		block_t & __block() {return *m_block;}
 		const block_t & __block() const {return *m_block;}
 		inline file_base & __file() {return m_file;}
 		inline const file_base & __file() const {return m_file;}
@@ -579,8 +585,10 @@ public:
 
 private:
 	friend class stream_crtp<file_stream_base>;
+	friend class stream_item_array_operations;
 	file_stream_base & __file() {return *this;}
 	const file_stream_base & __file() const {return *this;}
+	block_t & __block() {return m_block;}
 	const block_t & __block() const {return m_block;}
 	void update_block_core();
 
@@ -727,9 +735,8 @@ struct stream_item_array_operations {
 	/// \throws end_of_stream_exception If there are not enough elements in
 	/// the stream to fill all the spots between start and end.
 	///////////////////////////////////////////////////////////////////////////
-	template <typename T, typename IT, typename Stream, typename Block>
-	static inline void read(Stream & stream, Block & block, const IT & start, const IT & end) throw(stream_exception) {
-		assert(file.m_open);
+	template <typename T, typename IT, typename Stream>
+	static inline void read(Stream & stream, const IT & start, const IT & end) throw(stream_exception) {
 		IT i = start;
 		while (i != end) {
 			if (stream.m_index >= stream.block_items()) {
@@ -745,7 +752,7 @@ struct stream_item_array_operations {
 				stream.update_block();
 			}
 
-			T * src = reinterpret_cast<T*>(block.data) + stream.m_index;
+			T * src = reinterpret_cast<T*>(stream.__block().data) + stream.m_index;
 
 			// either read the rest of the block or until `end'
 			memory_size_type count = std::min(stream.block_items()-stream.m_index, static_cast<memory_size_type>(end-i));
@@ -772,9 +779,8 @@ struct stream_item_array_operations {
 	/// \param start Iterator to the first item to write.
 	/// \param end Iterator past the last item to write.
 	/////////////////////////////////////////////////////////////////////////////
-	template <typename T, typename IT, typename Stream, typename Block>
-	static inline void write(Stream & stream, Block & block, const IT & start, const IT & end) throw(stream_exception) {
-		assert(file.m_open);
+	template <typename T, typename IT, typename Stream>
+	static inline void write(Stream & stream, const IT & start, const IT & end) throw(stream_exception) {
 		IT i = start;
 		while (i != end) {
 			if (stream.m_index >= stream.block_items()) stream.update_block();
@@ -784,7 +790,7 @@ struct stream_item_array_operations {
 
 			IT till = (blockRemaining < streamRemaining) ? (i + blockRemaining) : end;
 
-			T * dest = reinterpret_cast<T*>(block.data) + stream.m_index;
+			T * dest = reinterpret_cast<T*>(stream.__block().data) + stream.m_index;
 
 			std::copy(i, till, dest);
 

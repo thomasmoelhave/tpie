@@ -173,7 +173,8 @@ public:
 		///////////////////////////////////////////////////////////////////////
 		template <typename IT>
 		inline void write(const IT & start, const IT & end) {
-			stream_item_array_operations::write<T>(*this, *m_block, start, end);
+			assert(m_file.m_open);
+			stream_item_array_operations::write<T>(*this, start, end);
 		}
 
 		///////////////////////////////////////////////////////////////////////
@@ -182,7 +183,8 @@ public:
 		///////////////////////////////////////////////////////////////////////
 		template <typename IT>
 		inline void read(const IT & start, const IT & end) {
-			stream_item_array_operations::read<T>(*this, *m_block, start, end);
+			assert(m_file.m_open);
+			stream_item_array_operations::read<T>(*this, start, end);
 		}
 
 		friend class stream_item_array_operations;
