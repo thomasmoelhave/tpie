@@ -118,11 +118,19 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the number of items per block.
 	///////////////////////////////////////////////////////////////////////////
-	memory_size_type blockItems() {
+	memory_size_type block_items() const {
 		return m_blockItems;
 	}
 
-	memory_size_type blockSize() {
+	TPIE_DEPRECATED(memory_size_type blockItems() const) {
+		return m_blockItems;
+	}
+
+	memory_size_type block_size() const {
+		return m_blockSize;
+	}
+
+	TPIE_DEPRECATED(memory_size_type blockSize() const) {
 		return m_blockSize;
 	}
 
@@ -250,7 +258,7 @@ public:
 		return m_size;
 	}
 
-public:
+protected:
 	memory_size_type m_blockItems;
 	memory_size_type m_blockSize;
 	bool m_canRead;
@@ -293,7 +301,7 @@ public:
 			if (offset >= 0 || static_cast<stream_size_type>(-offset) <= m_index) {
 				stream_size_type new_index = static_cast<stream_offset_type>(offset+m_index);
 				
-				if (new_index < self().__file().m_blockItems) {
+				if (new_index < self().__file().block_items()) {
 					self().update_vars();
 					m_index = static_cast<memory_size_type>(new_index);
 					return;
@@ -305,8 +313,8 @@ public:
 		if (0 > offset || (stream_size_type)offset > self().size())
 			throw io_exception("Tried to seek out of file");
 		self().update_vars();
-		stream_size_type b = static_cast<stream_size_type>(offset) / self().__file().m_blockItems;
-		m_index = static_cast<memory_size_type>(offset - b* self().__file().m_blockItems);
+		stream_size_type b = static_cast<stream_size_type>(offset) / self().__file().block_items();
+		m_index = static_cast<memory_size_type>(offset - b* self().__file().block_items());
 		if (b == self().__block().number) {
 			m_nextBlock = std::numeric_limits<stream_size_type>::max();
 			m_nextIndex = std::numeric_limits<memory_size_type>::max();
@@ -336,7 +344,7 @@ public:
 		assert(self().__file().m_open);
 		if (m_nextBlock == std::numeric_limits<stream_size_type>::max())
 			return m_index + m_blockStartIndex;
-		return m_nextIndex + m_nextBlock * self().__file().m_blockItems;
+		return m_nextIndex + m_nextBlock * self().__file().block_items();
 	}
 	
 	/////////////////////////////////////////////////////////////////////////
