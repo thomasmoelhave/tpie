@@ -230,7 +230,7 @@ public:
 	inline void open(memory_size_type userDataSize=0,
 					 cache_hint cacheHint=access_sequential) throw (stream_exception) {
 		self().close();
-		m_ownedTempFile.reset(new temp_file());
+		m_ownedTempFile.reset(tpie_new<temp_file>());
 		m_tempFile=m_ownedTempFile.get();
 		self().open_inner(m_tempFile->path(), access_read_write, userDataSize, cacheHint);
 	}
