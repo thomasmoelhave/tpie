@@ -215,6 +215,12 @@ void file_base::free_block(block_t * block) {
 	m_free.push_front(*block);
 }
 
+void file_base::close() {
+	assert(m_free.empty());
+	assert(m_used.empty());
+	p_t::close();
+}
+
 file_base::~file_base() {
 	assert(m_free.empty());
 	assert(m_used.empty());

@@ -484,6 +484,7 @@ protected:
 
 
 class file_base: public file_base_crtp<file_base> {
+	typedef file_base_crtp<file_base> p_t;
 protected:
 	///////////////////////////////////////////////////////////////////////////
 	/// This is the type of our block buffers. We have one per file::stream
@@ -507,6 +508,8 @@ public:
 	inline stream_size_type size() const throw() {
 		return file_size();
 	}
+
+	void close();
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Stream in file. We support multiple streams per file.
