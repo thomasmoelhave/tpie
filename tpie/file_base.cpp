@@ -229,33 +229,44 @@ file_base::~file_base() {
 
 /*************************> file_base::stream <*******************************/
 void file_base::stream::update_block_core() {
-	if (m_block != &m_file.m_emptyBlock) {
-		m_file.free_block(m_block);
-		m_block = &m_file.m_emptyBlock; // necessary if get_block below throws
+	if (m_block != &m_file->m_emptyBlock) {
+		m_file->free_block(m_block);
+		m_block = &m_file->m_emptyBlock; // necessary if get_block below throws
 	}
-	m_block = m_file.get_block(m_nextBlock);
+	m_block = m_file->get_block(m_nextBlock);
 }
 
 
 file_base::stream::stream(file_base & f, stream_size_type offset):
-	m_file(f) {
-	m_blockStartIndex = 0;
-	m_nextBlock = std::numeric_limits<stream_size_type>::max();
-	m_nextIndex = std::numeric_limits<memory_size_type>::max();
-	m_index = std::numeric_limits<memory_size_type>::max();;
-	m_block = &m_file.m_emptyBlock;
-	m_file.create_block();
-	if (m_file.m_open)
+	m_file(0) {
+	attach(f);
+	if (m_file->m_open)
 		seek(offset);
 }
 
 void file_base::stream::free() {
 	if (m_block) {
-		if (m_block != &m_file.m_emptyBlock) m_file.free_block(m_block);
-		m_file.delete_block();
+		if (m_block != &m_file->m_emptyBlock) m_file->free_block(m_block);
+		m_file->delete_block();
 	}
 	m_block = 0;
 }
+
+void file_base::stream::attach(file_base & f) {
+	detach();
+	m_file = &f;
+	m_blockStartIndex = 0;
+	m_block = &m_file->m_emptyBlock;
+	m_file->create_block();
+	initialize();
+}
+
+void file_base::stream::detach() {
+	if (!attached()) return;
+	free();
+	m_file = 0;
+}
+
 
 file_base::block_t file_base::m_emptyBlock;
 

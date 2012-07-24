@@ -90,6 +90,8 @@ public:
 			return sizeof(stream) + block_size(blockFactor) +  sizeof(block_t);
 		}
 
+		stream() {}
+
 		stream(file_type & file, stream_size_type offset=0):
 			file_base::stream(file, offset) {}
 
@@ -102,10 +104,10 @@ public:
 		/// \copydetails file<T>::stream::read()
 		///////////////////////////////////////////////////////////////////////
  		inline item_type & read_mutable() {
-			assert(m_file.is_open());
+			assert(__file().is_open());
 			if (m_index >= m_block->size) {
 				update_block();
-				if (offset() >= m_file.size()) {
+				if (offset() >= __file().size()) {
 					throw end_of_stream_exception();
 				}
 			}
@@ -144,7 +146,7 @@ public:
 		/// \returns The item read from the stream.
 		///////////////////////////////////////////////////////////////////////
 		inline const item_type & read_back() {
-			assert(m_file.is_open());
+			assert(__file().is_open());
 			seek(-1, current);
 			const item_type & i = read();
 			seek(-1, current);
@@ -157,9 +159,9 @@ public:
 		/// \param item The item to write to the stream.
 		/////////////////////////////////////////////////////////////////////////
  		inline void write(const item_type& item) throw(stream_exception) {
-			assert(m_file.is_open());
+			assert(__file().is_open());
 #ifndef NDEBUG
-			if (!m_file.is_writable())
+			if (!__file().is_writable())
 				throw io_exception("Cannot write to read only stream");
 #endif
 			if (m_index >= block_items()) update_block();
@@ -173,7 +175,7 @@ public:
 		///////////////////////////////////////////////////////////////////////
 		template <typename IT>
 		inline void write(const IT & start, const IT & end) {
-			assert(m_file.is_open());
+			assert(__file().is_open());
 			stream_item_array_operations::write<T>(*this, start, end);
 		}
 
@@ -183,7 +185,7 @@ public:
 		///////////////////////////////////////////////////////////////////////
 		template <typename IT>
 		inline void read(const IT & start, const IT & end) {
-			assert(m_file.is_open());
+			assert(__file().is_open());
 			stream_item_array_operations::read<T>(*this, start, end);
 		}
 

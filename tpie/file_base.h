@@ -515,45 +515,62 @@ public:
 	/// \brief Stream in file. We support multiple streams per file.
 	///////////////////////////////////////////////////////////////////////////
 	class stream: public stream_crtp<stream> {
+	private:
 		typedef stream_crtp<stream> p_t;
 
 		friend class stream_crtp<stream>;
 		friend struct stream_item_array_operations;
 
-		block_t & __block() {return *m_block;}
-		const block_t & __block() const {return *m_block;}
-		inline file_base & __file() {return m_file;}
-		inline const file_base & __file() const {return m_file;}
+		/** Associated file object. */
+		file_base * m_file;
 
 	protected:
+		block_t & __block() {return *m_block;}
+		const block_t & __block() const {return *m_block;}
+		inline file_base & __file() {return *m_file;}
+		inline const file_base & __file() const {return *m_file;}
+
 		void update_block_core();
 
 		inline void update_vars() {}
-		/** Associated file object. */
-		file_base & m_file;
 
-		/** Current block. May be equal to &m_file.m_emptyBlock to indicate no
+		/** Current block. May be equal to &m_file->m_emptyBlock to indicate no
 		 * current block. */
 		block_t * m_block;
 
 	public:
 		///////////////////////////////////////////////////////////////////////
-		/// Fetch number of items per block.
+		/// \brief True if we are attached to a tpie::file.
 		///////////////////////////////////////////////////////////////////////
-		inline memory_size_type block_items() const {return m_file.m_blockItems;}
+		inline bool attached() const { return 0 != m_file; }
+
+		///////////////////////////////////////////////////////////////////////
+		/// \brief Attach to the given tpie::file. If necessary, detach first.
+		///////////////////////////////////////////////////////////////////////
+		void attach(file_base & f);
+
+		///////////////////////////////////////////////////////////////////////
+		/// \brief Detach from a tpie::file.
+		///////////////////////////////////////////////////////////////////////
+		void detach();
+
+		///////////////////////////////////////////////////////////////////////
+		/// \brief Fetch number of items per block.
+		///////////////////////////////////////////////////////////////////////
+		inline memory_size_type block_items() const {return __file().m_blockItems;}
 
 	protected:
 		///////////////////////////////////////////////////////////////////////
 		/// Call whenever the current block buffer is modified. Since we
 		/// support multiple streams per block, we must always keep
 		/// m_block->size updated when m_block is the trailing block (or the
-		/// only block) in the file. For the same reasons we keep m_file.m_size
+		/// only block) in the file. For the same reasons we keep m_file->m_size
 		/// updated.
 		///////////////////////////////////////////////////////////////////////
 		inline void write_update() {
 			m_block->dirty = true;
 			m_block->size = std::max(m_block->size, m_index);
-			m_file.update_size(static_cast<stream_size_type>(m_index)+m_blockStartIndex);
+			__file().update_size(static_cast<stream_size_type>(m_index)+m_blockStartIndex);
 		}
 
 	public:
@@ -564,11 +581,15 @@ public:
 		///////////////////////////////////////////////////////////////////////
 		stream(file_base & file, stream_size_type offset=0);
 
+		stream() : m_file(0) {}
+
+	private:
 		///////////////////////////////////////////////////////////////////////
 		/// \brief Free the current block buffer, flushing it to the disk.
 		///////////////////////////////////////////////////////////////////////
 		void free();
 
+	public:
 		inline ~stream() {free();}
 
 
@@ -577,9 +598,9 @@ public:
 		/// \brief Set up block buffers and offsets.
 		///////////////////////////////////////////////////////////////////////
 		inline void initialize() {
-			if (m_block != &m_file.m_emptyBlock) m_file.free_block(m_block);
+			if (m_block != &__file().m_emptyBlock) __file().free_block(m_block);
 			p_t::initialize();
-			m_block = &m_file.m_emptyBlock;
+			m_block = &__file().m_emptyBlock;
 		}
 	};
 
