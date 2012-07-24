@@ -167,6 +167,7 @@ void stream_accessor<file_accessor_t>::open(const std::string & path,
 	increment_open_file_count();
 	m_open = true;
 	if (write && m_maxUserDataSize < maxUserDataSize) {
+		close();
 		throw invalid_file_exception("Invalid file, max user data size not large enough");
 	}
 }
