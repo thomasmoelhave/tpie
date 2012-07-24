@@ -57,7 +57,8 @@ public:
 
 	
 	/////////////////////////////////////////////////////////////////////////
-	/// \copydoc file<T>::stream::write(const item_type & item)
+	/// \copybrief file<T>::stream::write(const item_type & item)
+	/// \copydetails file<T>::stream::write(const item_type & item)
 	/// \sa file<T>::stream::write(const item_type & item)
 	/////////////////////////////////////////////////////////////////////////
 	inline void write(const item_type & item) throw(stream_exception) {
@@ -72,7 +73,8 @@ public:
 	}
 
 	/////////////////////////////////////////////////////////////////////////
-	/// \copydoc stream_item_array_operations::write
+	/// \copybrief stream_item_array_operations::write
+	/// \copydetails stream_item_array_operations::write
 	/// \sa file<T>::stream::write(const IT & start, const IT & end)
 	/////////////////////////////////////////////////////////////////////////
 	template <typename IT>
@@ -82,7 +84,8 @@ public:
 	}
 
 	/////////////////////////////////////////////////////////////////////////
-	/// \copydoc file<T>::stream::read()
+	/// \copybrief file<T>::stream::read()
+	/// \copydetails file<T>::stream::read()
 	/// \sa file<T>::stream::read()
 	/////////////////////////////////////////////////////////////////////////
 	inline const item_type & read() throw(stream_exception) {
@@ -97,7 +100,8 @@ public:
 	}
 
 	/////////////////////////////////////////////////////////////////////////
-	/// \copydoc stream_item_array_operations::read
+	/// \copybrief stream_item_array_operations::read
+	/// \copydetails stream_item_array_operations::read
 	/// \sa file<T>::stream::read(const IT & start, const IT & end)
 	/////////////////////////////////////////////////////////////////////////
 	template <typename IT>
@@ -107,7 +111,8 @@ public:
 	}
 
 	/////////////////////////////////////////////////////////////////////////
-	/// \copydoc file<T>::stream::read_back()
+	/// \copybrief file<T>::stream::read_back()
+	/// \copydetails file<T>::stream::read_back()
 	/// \sa file<T>::stream::read_back()
 	/////////////////////////////////////////////////////////////////////////
 	inline const item_type & read_back() throw(stream_exception) {
