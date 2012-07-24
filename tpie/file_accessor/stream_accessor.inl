@@ -38,6 +38,8 @@ void stream_accessor<file_accessor_t>::read_header() {
 	m_fileAccessor.read_i(&header, sizeof(header));
 	validate_header(header);
 	m_size = header.size;
+	m_userDataSize = header.userDataSize;
+	m_maxUserDataSize = header.maxUserDataSize;
 }
 
 template <typename file_accessor_t>
@@ -45,11 +47,7 @@ void stream_accessor<file_accessor_t>::write_header(bool clean) {
 	stream_header_t header;
 	fill_header(header, clean);
 	m_fileAccessor.seek_i(0);
-	char * header_area = new char[header_size()];
-	memcpy(header_area, &header, sizeof(header));
-	memset(header_area+sizeof(header), 0, header_size()-sizeof(header));
-	m_fileAccessor.write_i(header_area, header_size());
-	delete[] header_area;
+	m_fileAccessor.write_i(&header, sizeof(header));
 }
  
 template <typename file_accessor_t>
@@ -77,15 +75,24 @@ void stream_accessor<file_accessor_t>::write_block(const void * data, stream_siz
 }
 
 template <typename file_accessor_t>
-void stream_accessor<file_accessor_t>::read_user_data(void * data) {
-	m_fileAccessor.seek_i(sizeof(stream_header_t));
-	m_fileAccessor.read_i(data, m_userDataSize);
+memory_size_type stream_accessor<file_accessor_t>::read_user_data(void * data, memory_size_type count) {
+	if (count > m_userDataSize) count = m_userDataSize;
+	if (count) {
+		m_fileAccessor.seek_i(sizeof(stream_header_t));
+		m_fileAccessor.read_i(data, count);
+	}
+	return count;
 }
 
 template <typename file_accessor_t>
-void stream_accessor<file_accessor_t>::write_user_data(const void * data) {
-	m_fileAccessor.seek_i(sizeof(stream_header_t));
-	m_fileAccessor.write_i(data,  m_userDataSize);
+void stream_accessor<file_accessor_t>::write_user_data(const void * data, memory_size_type count) {
+	if (count > m_maxUserDataSize)
+		throw stream_exception("Tried to write more user data than stream allows");
+	if (count) {
+		m_fileAccessor.seek_i(sizeof(stream_header_t));
+		m_fileAccessor.write_i(data, count);
+	}
+	m_userDataSize = count;
 }
 
 template <typename file_accessor_t>
@@ -102,8 +109,8 @@ void stream_accessor<file_accessor_t>::validate_header(const stream_header_t & h
 	if (header.blockSize != m_blockSize)
 		throw invalid_file_exception("Invalid file, item size is wrong");
 
-	if (header.userDataSize != m_userDataSize )
-		throw invalid_file_exception("Invalid file, wrong userdata size");
+	if (header.userDataSize > header.maxUserDataSize)
+		throw invalid_file_exception("Invalid file, user data size is greater than max user data size");
 
 	if (header.cleanClose != 1 )
 		throw invalid_file_exception("Invalid file, the file was not closed properly");
@@ -117,6 +124,7 @@ void stream_accessor<file_accessor_t>::fill_header(stream_header_t & header, boo
 	header.blockSize = m_blockSize;
 	header.cleanClose = clean?1:0;
 	header.userDataSize = m_userDataSize;
+	header.maxUserDataSize = m_maxUserDataSize;
 	header.size = m_size;
 }
 
@@ -126,7 +134,7 @@ void stream_accessor<file_accessor_t>::open(const std::string & path,
 											bool write,
 											memory_size_type itemSize,
 											memory_size_type blockSize,
-											memory_size_type userDataSize,
+											memory_size_type maxUserDataSize,
 											cache_hint cacheHint) {
 	close();
 	m_write = write;
@@ -134,7 +142,7 @@ void stream_accessor<file_accessor_t>::open(const std::string & path,
 	m_itemSize=itemSize;
 	m_blockSize=blockSize;
 	m_blockItems=blockSize/itemSize;
-	m_userDataSize=userDataSize;
+	m_maxUserDataSize=maxUserDataSize;
 	m_size=0;
 	m_fileAccessor.set_cache_hint(cacheHint);
 	if (!write && !read)
@@ -142,11 +150,7 @@ void stream_accessor<file_accessor_t>::open(const std::string & path,
 	if (write && !read) {
 		m_fileAccessor.open_wo(path);
 		write_header(false);
-		if (userDataSize) {
-			char * buf = new char[userDataSize];
-			write_user_data(buf);
-			delete[] buf;
-		}
+		write_user_data(0, 0);
 	} else if (!write && read) {
 		m_fileAccessor.open_ro(path);
 		read_header();
@@ -154,11 +158,7 @@ void stream_accessor<file_accessor_t>::open(const std::string & path,
 		if (!m_fileAccessor.try_open_rw(path)) {
 			m_fileAccessor.open_rw_new(path);
 			write_header(false);
-			if (userDataSize) {
-				char * buf = new char[userDataSize];
-				write_user_data(buf);
-				delete[] buf;
-			}
+			write_user_data(0, 0);
 		} else {
 			read_header();
 			write_header(false);
@@ -166,6 +166,9 @@ void stream_accessor<file_accessor_t>::open(const std::string & path,
 	}
 	increment_open_file_count();
 	m_open = true;
+	if (write && m_maxUserDataSize < maxUserDataSize) {
+		throw invalid_file_exception("Invalid file, max user data size not large enough");
+	}
 }
 
 template <typename file_accessor_t>

@@ -48,6 +48,9 @@ private:
 	/** Size (in bytes) of user data. */
 	memory_size_type m_userDataSize;
 
+	/** Maximum size (in bytes) of the user data. */
+	memory_size_type m_maxUserDataSize;
+
 	/** Size (in bytes) of a single logical item. */
 	memory_size_type m_itemSize;
 
@@ -86,7 +89,7 @@ private:
 	/// \brief The size of header and user data with padding included. This is
 	/// the offset at which the first logical block begins.
 	///////////////////////////////////////////////////////////////////////////
-	inline memory_size_type header_size() const { return align_to_boundary(sizeof(stream_header_t)+m_userDataSize); }
+	inline memory_size_type header_size() const { return align_to_boundary(sizeof(stream_header_t)+m_maxUserDataSize); }
 public:
 	inline stream_accessor()
 		: m_open(false)
@@ -104,7 +107,7 @@ public:
 					 bool write,
 					 memory_size_type itemSize,
 					 memory_size_type blockSize,
-					 memory_size_type userDataSize,
+					 memory_size_type maxUserDataSize,
 					 cache_hint cacheHint);
 
 	inline void close();
@@ -133,17 +136,21 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Read user data into the given buffer.
-	/// \param data Buffer in which to store user data. Must be able to hold at
-	/// least m_userDataSize bytes.
+	/// \param data Buffer in which to store user data.
+	/// \param count Size of buffer, in bytes. The method will read at most
+	/// this number of bytes.
+	/// \returns Number of bytes of user data actually read, in case this is
+	/// less than count.
 	///////////////////////////////////////////////////////////////////////////
-	inline void read_user_data(void * data);
+	inline memory_size_type read_user_data(void * data, memory_size_type count);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Write user data to the stream.
-	/// \param data Buffer from which to write user data. Must hold at least
-	/// user_data_size() bytes.
+	/// \param data Buffer from which to write user data.
+	/// \param count Number of bytes to write. Cannot exceed
+	/// max_user_data_size().
 	///////////////////////////////////////////////////////////////////////////
-	inline void write_user_data(const void * data);
+	inline void write_user_data(const void * data, memory_size_type count);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Return memory usage of this file accessor.
@@ -166,6 +173,11 @@ public:
 	inline memory_size_type user_data_size() const {return m_userDataSize;}
 
 	///////////////////////////////////////////////////////////////////////////
+	/// \brief Maximum size (in bytes) of the user data.
+	///////////////////////////////////////////////////////////////////////////
+	inline memory_size_type max_user_data_size() const {return m_maxUserDataSize;}
+
+	///////////////////////////////////////////////////////////////////////////
 	/// \brief Size (in bytes) of entire stream as laid out on disk after
 	/// padding the final block to alignment boundary, including the header and
 	/// user data.
@@ -176,7 +188,7 @@ public:
 
 	inline void truncate(stream_size_type items);
 };
-	
+
 }
 }
 

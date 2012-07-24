@@ -478,6 +478,94 @@ static bool stress_test(tpie::stream_size_type actions, size_t maxSize) {
 	return stress_tester(actions, maxSize).go();
 }
 
+static bool user_data_test() {
+	tpie::temp_file tmp;
+	typedef tpie::file_stream<int> Fs;
+	const int init[] = {2,4,6};
+	{
+		Fs fs;
+		fs.open(tmp, tpie::access_write, 8*sizeof(int));
+		if (fs.user_data_size() != 0) {
+			tpie::log_error() << "Wrong user data size after opening for creation" << std::endl;
+			return false;
+		}
+		if (fs.max_user_data_size() != 8*sizeof(int)) {
+			tpie::log_error() << "Wrong max user data size after opening for creation" << std::endl;
+			return false;
+		}
+		bool except = false;
+		try {
+			const int data[] = {2,4,6,8,10,12,14,16,18,20};
+			fs.write_user_data(data, 10*sizeof(int));
+		} catch (tpie::stream_exception &) {
+			except = true;
+		}
+		if (!except) {
+			tpie::log_error() << "Expected stream_exception" << std::endl;
+			return false;
+		}
+	}
+	{
+		Fs fs;
+		fs.open(tmp, tpie::access_write, 8*sizeof(int));
+		if (fs.user_data_size() != 0) {
+			tpie::log_error() << "Wrong user data size after opening for writing" << std::endl;
+			return false;
+		}
+		if (fs.max_user_data_size() != 8*sizeof(int)) {
+			tpie::log_error() << "Wrong max user data size after opening for writing" << std::endl;
+			return false;
+		}
+		fs.write_user_data(init, 3*sizeof(int));
+		if (fs.user_data_size() != 3*sizeof(int)) {
+			tpie::log_error() << "Wrong user data size after write" << std::endl;
+			return false;
+		}
+	}
+	{
+		Fs fs;
+		fs.open(tmp, tpie::access_read);
+		if (fs.user_data_size() != 3*sizeof(int)) {
+			tpie::log_error() << "Wrong user data size after opening for reading" << std::endl;
+			return false;
+		}
+		if (fs.max_user_data_size() != 8*sizeof(int)) {
+			tpie::log_error() << "Wrong max user data size after opening for reading" << std::endl;
+			return false;
+		}
+		int data[9];
+		data[0] = data[1] = data[2] = 42; // marker
+		tpie::memory_size_type cnt = fs.read_user_data(data, 2*sizeof(int));
+		if (cnt != 2*sizeof(int)) {
+			tpie::log_error() << "read_user_data read wrong amount" << std::endl;
+			return false;
+		}
+		if (data[0] != init[0] || data[1] != init[1] || data[2] != 42) {
+			tpie::log_error() << "read_user_data read something wrong" << std::endl;
+			return false;
+		}
+		cnt = fs.read_user_data(data, 9*sizeof(int));
+		if (cnt != 3*sizeof(int)) {
+			tpie::log_error() << "read_user_data read wrong amount" << std::endl;
+			return false;
+		}
+	}
+	{
+		Fs fs;
+		bool except = false;
+		try {
+			fs.open(tmp, tpie::access_read_write, 10*sizeof(int));
+		} catch (tpie::invalid_file_exception &) {
+			except = true;
+		}
+		if (!except) {
+			tpie::log_error() << "Expected invalid_file_exception, got nothing" << std::endl;
+			return false;
+		}
+	}
+	return true;
+}
+
 }; // template stream_tester
 
 bool swap_test() {
@@ -599,5 +687,7 @@ int main(int argc, char **argv) {
 		.test(stream_tester<file_stream>::backwards_test, "backwards")
 		.test(stream_tester<file_colon_colon_stream>::backwards_test, "backwards_file")
 		.test(stream_tester<file_stream>::stress_test, "stress", "actions", static_cast<tpie::stream_size_type>(1024*1024*10), "maxsize", static_cast<size_t>(1024*1024*128))
-		.test(stream_tester<file_colon_colon_stream>::stress_test, "stress_file", "actions", static_cast<tpie::stream_size_type>(1024*1024*10), "maxsize", static_cast<size_t>(1024*1024*128));
+		.test(stream_tester<file_colon_colon_stream>::stress_test, "stress_file", "actions", static_cast<tpie::stream_size_type>(1024*1024*10), "maxsize", static_cast<size_t>(1024*1024*128))
+		.test(stream_tester<file_stream>::user_data_test, "user_data")
+		.test(stream_tester<file_colon_colon_stream>::user_data_test, "user_data_file");
 }

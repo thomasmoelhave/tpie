@@ -142,32 +142,76 @@ public:
 		return m_blockSize;
 	}
 
-	/////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////
 	/// \brief Read the user data associated with the file.
 	///
 	/// \param data Where to store the user data.
-	/// \tparam TT The type of user data. sizeof(TT) must be equal to the
-	/// user_data_size supplied to the open call.
-	/////////////////////////////////////////////////////////////////////////
+	/// \tparam TT The type of user data. sizeof(TT) must be less than or equal
+	/// to the maximum user data size of the stream. TT must be trivially
+	/// copyable.
+	///////////////////////////////////////////////////////////////////////////
 	template <typename TT>
 	void read_user_data(TT & data) throw(stream_exception) {
 		assert(m_open);
-		if (sizeof(TT) != m_fileAccessor->user_data_size()) throw io_exception("Wrong user data size");
-		m_fileAccessor->read_user_data(reinterpret_cast<void*>(&data));
+		if (sizeof(TT) != user_data_size()) throw io_exception("Wrong user data size");
+		m_fileAccessor->read_user_data(reinterpret_cast<void*>(&data), sizeof(TT));
 	}
 
-	/////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Read variable length user data associated with the file.
+	///
+	/// \param data The buffer in which to write data.
+	/// \param count The size of the buffer.
+	/// \returns Number of bytes of user data actually read.
+	///////////////////////////////////////////////////////////////////////////
+	memory_size_type read_user_data(void * data, memory_size_type count) {
+		assert(m_open);
+		return m_fileAccessor->read_user_data(data, count);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
 	/// \brief Write user data to the stream.
 	///
 	/// \param data The user data to store in the stream.
-	/// \tparam TT The type of user data. sizeof(TT) must be equal to the
-	/// user_data_size supplied to the open call.
-	/////////////////////////////////////////////////////////////////////////
+	/// \tparam TT The type of user data. sizeof(TT) must be less than or equal
+	/// to the maximum user data size of the stream. TT must be trivially
+	/// copyable.
+	///////////////////////////////////////////////////////////////////////////
 	template <typename TT>
 	void write_user_data(const TT & data) throw(stream_exception) {
 		assert(m_open);
-		if (sizeof(TT) != m_fileAccessor->user_data_size()) throw io_exception("Wrong user data size");
-		m_fileAccessor->write_user_data(reinterpret_cast<const void*>(&data));
+		if (sizeof(TT) > max_user_data_size()) throw io_exception("Wrong user data size");
+		m_fileAccessor->write_user_data(reinterpret_cast<const void*>(&data), sizeof(TT));
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Write variable length user data associated with the file.
+	///
+	/// Throws a stream_exception if the size of the user data exceeds the
+	/// maximum user data size of the stream.
+	///
+	/// \param data The buffer from which to read data.
+	/// \param count The size of the user data.
+	///////////////////////////////////////////////////////////////////////////
+	void write_user_data(const void * data, memory_size_type count) {
+		assert(m_open);
+		m_fileAccessor->write_user_data(data, count);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Get current user data size.
+	///////////////////////////////////////////////////////////////////////////
+	memory_size_type user_data_size() const {
+		assert(m_open);
+		return m_fileAccessor->user_data_size();
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Get maximum user data size.
+	///////////////////////////////////////////////////////////////////////////
+	memory_size_type max_user_data_size() const {
+		assert(m_open);
+		return m_fileAccessor->max_user_data_size();
 	}
 
 
