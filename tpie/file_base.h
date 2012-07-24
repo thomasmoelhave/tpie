@@ -121,14 +121,12 @@ public:
 		return (double)blockSize / (double)block_size(1.0);
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Amount of memory used by a single block given the block factor.
+	///////////////////////////////////////////////////////////////////////////
 	static inline memory_size_type block_memory_usage(double blockFactor) {
 		return block_size(blockFactor);
 	}
-
-	inline memory_size_type block_memory_usage() {
-		return m_blockItems * m_itemSize;
-	}
-
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Get the number of items per block.
@@ -137,18 +135,12 @@ public:
 		return m_blockItems;
 	}
 
-	TPIE_DEPRECATED(memory_size_type blockItems() const) {
-		return m_blockItems;
-	}
-
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Get the size of a block in bytes.
+	///////////////////////////////////////////////////////////////////////////
 	memory_size_type block_size() const {
 		return m_blockSize;
 	}
-
-	TPIE_DEPRECATED(memory_size_type blockSize() const) {
-		return m_blockSize;
-	}
-
 
 	/////////////////////////////////////////////////////////////////////////
 	/// \brief Read the user data associated with the file.
@@ -261,6 +253,9 @@ public:
 		m_ownedTempFile.reset();
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Check if file is open.
+	///////////////////////////////////////////////////////////////////////////
 	inline bool is_open() const {
 		return m_open;
 	}
