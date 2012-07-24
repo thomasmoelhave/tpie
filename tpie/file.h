@@ -189,7 +189,7 @@ public:
 			stream_item_array_operations::read<T>(*this, start, end);
 		}
 
-		friend class stream_item_array_operations;
+		friend struct stream_item_array_operations;
  	};
 };
 }

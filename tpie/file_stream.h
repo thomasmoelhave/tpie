@@ -146,7 +146,7 @@ public:
 		file_stream_base::swap(other);
 	}
 
-	friend class stream_item_array_operations;
+	friend struct stream_item_array_operations;
 };
 
 } // namespace tpie
