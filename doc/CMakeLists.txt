@@ -52,6 +52,8 @@ configure_file(sorting_external.dox.in sorting_external.dox @ONLY)
 file(READ code/sorting_internal.inl DOCCODE_SORTING_INTERNAL)
 configure_file(sorting_internal.dox.in sorting_internal.dox @ONLY)
 
+configure_file(queue.dox.in queue.dox @ONLY)
+
 else (DOXYGEN)
     message(STATUS "Doxygen not found, API documentation cannot be generated.") 
 endif(DOXYGEN)
