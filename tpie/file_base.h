@@ -515,7 +515,7 @@ public:
 		typedef stream_crtp<stream> p_t;
 
 		friend class stream_crtp<stream>;
-		friend class stream_item_array_operations;
+		friend struct stream_item_array_operations;
 
 		block_t & __block() {return *m_block;}
 		const block_t & __block() const {return *m_block;}
@@ -635,7 +635,7 @@ public:
 
 private:
 	friend class stream_crtp<file_stream_base>;
-	friend class stream_item_array_operations;
+	friend struct stream_item_array_operations;
 	file_stream_base & __file() {return *this;}
 	const file_stream_base & __file() const {return *this;}
 	block_t & __block() {return m_block;}
