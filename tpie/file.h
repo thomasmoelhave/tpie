@@ -102,7 +102,7 @@ public:
 		/// \copydetails file<T>::stream::read()
 		///////////////////////////////////////////////////////////////////////
  		inline item_type & read_mutable() {
-			assert(m_file.m_open);
+			assert(m_file.is_open());
 			if (m_index >= m_block->size) {
 				update_block();
 				if (offset() >= m_file.size()) {
@@ -144,7 +144,7 @@ public:
 		/// \returns The item read from the stream.
 		///////////////////////////////////////////////////////////////////////
 		inline const item_type & read_back() {
-			assert(m_file.m_open);
+			assert(m_file.is_open());
 			seek(-1, current);
 			const item_type & i = read();
 			seek(-1, current);
@@ -157,7 +157,7 @@ public:
 		/// \param item The item to write to the stream.
 		/////////////////////////////////////////////////////////////////////////
  		inline void write(const item_type& item) throw(stream_exception) {
-			assert(m_file.m_open);
+			assert(m_file.is_open());
 #ifndef NDEBUG
 			if (!m_file.is_writable())
 				throw io_exception("Cannot write to read only stream");
@@ -173,7 +173,7 @@ public:
 		///////////////////////////////////////////////////////////////////////
 		template <typename IT>
 		inline void write(const IT & start, const IT & end) {
-			assert(m_file.m_open);
+			assert(m_file.is_open());
 			stream_item_array_operations::write<T>(*this, start, end);
 		}
 
@@ -183,7 +183,7 @@ public:
 		///////////////////////////////////////////////////////////////////////
 		template <typename IT>
 		inline void read(const IT & start, const IT & end) {
-			assert(m_file.m_open);
+			assert(m_file.is_open());
 			stream_item_array_operations::read<T>(*this, start, end);
 		}
 
