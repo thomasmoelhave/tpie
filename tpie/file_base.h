@@ -527,8 +527,8 @@ public:
 	protected:
 		block_t & __block() {return *m_block;}
 		const block_t & __block() const {return *m_block;}
-		inline file_base & __file() {return *m_file;}
-		inline const file_base & __file() const {return *m_file;}
+		inline file_base & __file() {assert(m_file != 0); return *m_file;}
+		inline const file_base & __file() const {assert(m_file != 0); return *m_file;}
 
 		void update_block_core();
 
