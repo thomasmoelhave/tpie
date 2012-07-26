@@ -41,11 +41,6 @@ public:
 		current
 	};
 
-private:
-	inline child_t & self() {return *static_cast<child_t*>(this);}
-	inline const child_t & self() const {return *static_cast<const child_t*>(this);}
-
-public:
 	/////////////////////////////////////////////////////////////////////////
 	/// \brief Moves the logical offset in the stream.
 	///
@@ -60,14 +55,14 @@ public:
 			// are we seeking into the current block?
 			if (offset >= 0 || static_cast<stream_size_type>(-offset) <= m_index) {
 				stream_size_type new_index = static_cast<stream_offset_type>(offset+m_index);
-				
+
 				if (new_index < self().__file().block_items()) {
 					self().update_vars();
 					m_index = static_cast<memory_size_type>(new_index);
 					return;
 				}
 			}
-			
+
 			offset += self().offset();
 		}
 		if (0 > offset || (stream_size_type)offset > self().size())
@@ -87,14 +82,6 @@ public:
 		assert(self().offset() == (stream_size_type)offset);
 	}
 
-protected:
-	inline void initialize() {
-		m_nextBlock = std::numeric_limits<stream_size_type>::max();
-		m_nextIndex = std::numeric_limits<memory_size_type>::max();
-		m_index = std::numeric_limits<memory_size_type>::max();
-	}
-
-public:
 	/////////////////////////////////////////////////////////////////////////
 	/// \brief Calculate the current offset in the stream.
 	///
@@ -106,7 +93,7 @@ public:
 			return m_index + m_blockStartIndex;
 		return m_nextIndex + m_nextBlock * self().__file().block_items();
 	}
-	
+
 	/////////////////////////////////////////////////////////////////////////
 	/// \brief Check if we can read an item with read().
 	///
@@ -151,6 +138,12 @@ public:
 	}
 
 protected:
+	inline void initialize() {
+		m_nextBlock = std::numeric_limits<stream_size_type>::max();
+		m_nextIndex = std::numeric_limits<memory_size_type>::max();
+		m_index = std::numeric_limits<memory_size_type>::max();
+	}
+
 	///////////////////////////////////////////////////////////////////////
 	/// \brief Fetch block from disk as indicated by m_nextBlock, writing old
 	/// block to disk if needed.
@@ -161,7 +154,6 @@ protected:
 	///////////////////////////////////////////////////////////////////////
 	void update_block();
 
-protected:
 	/** Item index into the current block, or maxint if we don't have a
 	 * block. */
 	memory_size_type m_index;
@@ -176,6 +168,10 @@ protected:
 	 * When m_block is not the null block, this should be equal to
 	 * m_block->number * block_items(). */
 	stream_size_type m_blockStartIndex;
+
+private:
+	inline child_t & self() {return *static_cast<child_t*>(this);}
+	inline const child_t & self() const {return *static_cast<const child_t*>(this);}
 };
 
 } // namespace tpie
