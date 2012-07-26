@@ -25,6 +25,10 @@
 #include <tpie/memory.h>
 #include <tpie/job.h>
 
+namespace {
+static tpie::stream_size_type the_block_size=0;
+}
+
 namespace tpie {
 
 void tpie_init(int subsystems) {
@@ -66,6 +70,19 @@ void tpie_finish(int subsystems) {
 
 	if (subsystems & MEMORY_MANAGER)	
 	 	finish_memory_manager();
+}
+
+memory_size_type get_block_size() {
+	if (the_block_size == 0) {
+		const char * v = getenv("TPIE_BLOCK_SIZE");
+		if (v != NULL) the_block_size = atol(v);
+		if (the_block_size == 0) the_block_size=1024*1024*2; //Default block size is 2MB
+	}
+	return the_block_size;
+}
+
+void set_block_size(memory_size_type block_size) {
+	the_block_size=block_size;
 }
 
 }

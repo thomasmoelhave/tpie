@@ -42,12 +42,6 @@
 
 namespace tpie {
 
-#ifndef WIN32
-typedef tpie::file_accessor::stream_accessor<tpie::file_accessor::posix> default_file_accessor;
-#else //WIN32
-typedef tpie::file_accessor::stream_accessor<tpie::file_accessor::win32> default_file_accessor;
-#endif //WIN32
-
 class file_base: public file_base_crtp<file_base> {
 	typedef file_base_crtp<file_base> p_t;
 protected:

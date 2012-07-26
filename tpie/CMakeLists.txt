@@ -91,7 +91,9 @@ set (HEADERS
 set (SOURCES
 	backtrace.cpp
 	cpu_timer.cpp
+	file_base.cpp
 	file_count.cpp
+	file_stream_base.cpp
 	execution_time_predictor.cpp
 	fractional_progress.cpp
 	job.cpp
@@ -104,7 +106,6 @@ set (SOURCES
 	tempname.cpp
 	tpie.cpp
 	tpie_log.cpp
-	file_base.cpp
 	stats.cpp
 	util.cpp
 	unittest.cpp
