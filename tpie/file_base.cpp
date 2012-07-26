@@ -19,6 +19,7 @@
 #include <tpie/portability.h>
 #include <tpie/exception.h>
 #include <tpie/file_base.h>
+#include <tpie/file_stream_base.h>
 #include <tpie/memory.h>
 #include <stdlib.h>
 

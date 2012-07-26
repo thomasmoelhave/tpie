@@ -16,7 +16,9 @@ set (HEADERS
 		err.h
 		file.h
 		file_base.h
+		file_base_crtp.h
 		file_stream.h
+		file_stream_base.h
 		file_accessor/file_accessor.h
 		file_accessor/stream_accessor.h
 		file_accessor/stream_accessor.inl
@@ -61,6 +63,8 @@ set (HEADERS
 		sort_manager.h
 		stack.h
 		stream.h
+		stream_crtp.h
+		stream_item_array_operations.h
 		stream_header.h
 		stream_usage.h
 		sysinfo.h

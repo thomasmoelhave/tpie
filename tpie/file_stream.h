@@ -21,7 +21,8 @@
 #include <tpie/tempname.h>
 #include <tpie/file.h>
 #include <tpie/memory.h>
-#include <tpie/file_base.h>
+#include <tpie/file_stream_base.h>
+#include <tpie/stream_item_array_operations.h>
 ///////////////////////////////////////////////////////////////////////////////
 /// \file file_stream.h
 /// \brief Simple class acting both as a tpie::file and a

@@ -30,6 +30,7 @@
 
 #include <limits>
 #include <tpie/file_base.h>
+#include <tpie/stream_item_array_operations.h>
 namespace tpie {
 
 
