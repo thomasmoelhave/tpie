@@ -43,26 +43,6 @@ public:
 		char * data;
 	};
 
-private:
-	friend class stream_crtp<file_stream_base>;
-	friend struct stream_item_array_operations;
-	file_stream_base & __file() {return *this;}
-	const file_stream_base & __file() const {return *this;}
-	block_t & __block() {return m_block;}
-	const block_t & __block() const {return m_block;}
-	void update_block_core();
-
-protected:
-	file_stream_base(memory_size_type itemSize,
-					 double blockFactor,
-					 file_accessor::file_accessor * fileAccessor);
-
-	inline ~file_stream_base() {
-		close();
-	}
-
-
-public:
 	/////////////////////////////////////////////////////////////////////////
 	/// \brief Close the file and release resources.
 	///
@@ -96,6 +76,14 @@ public:
 	}
 
 protected:
+	file_stream_base(memory_size_type itemSize,
+					 double blockFactor,
+					 file_accessor::file_accessor * fileAccessor);
+
+	inline ~file_stream_base() {
+		close();
+	}
+
 	void swap(file_stream_base & other) {
 		using std::swap;
 		swap(m_index,           other.m_index);
@@ -123,7 +111,7 @@ protected:
 						   memory_size_type userDataSize,
 						   cache_hint cacheHint) throw (stream_exception) {
 		p_t::open_inner(path, accessType, userDataSize, cacheHint);
-		
+
 		m_blockStartIndex = 0;
 		m_nextBlock = std::numeric_limits<stream_size_type>::max();
 		m_nextIndex = std::numeric_limits<memory_size_type>::max();
@@ -133,7 +121,7 @@ protected:
 		m_block.number = std::numeric_limits<stream_size_type>::max();
 		m_block.dirty = false;
 		m_block.data = tpie_new_array<char>(m_blockItems * m_itemSize);
-		
+
 		initialize();
 		seek(0);
 	}
@@ -160,7 +148,7 @@ protected:
 			assert(m_index <= m_blockItems);
 			m_block.size = std::max(m_block.size, m_index);
 			m_size = std::max(m_size, static_cast<stream_size_type>(m_index)+m_blockStartIndex);
-			if (m_tempFile) 
+			if (m_tempFile)
 				m_tempFile->update_recorded_size(m_fileAccessor->byte_size());
 		}
 	}
@@ -176,6 +164,15 @@ protected:
 
 
 	block_t m_block;
+
+private:
+	friend class stream_crtp<file_stream_base>;
+	friend struct stream_item_array_operations;
+	file_stream_base & __file() {return *this;}
+	const file_stream_base & __file() const {return *this;}
+	block_t & __block() {return m_block;}
+	const block_t & __block() const {return m_block;}
+	void update_block_core();
 };
 
 } // namespace tpie
