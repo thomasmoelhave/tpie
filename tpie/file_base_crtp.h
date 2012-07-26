@@ -47,9 +47,6 @@ namespace tpie {
 ///////////////////////////////////////////////////////////////////////////////
 template <typename child_t>
 class file_base_crtp {
-	child_t & self() {return *static_cast<child_t *>(this);}
-	const child_t & self() const {return *static_cast<const child_t *>(this);}
-
 public:
 	////////////////////////////////////////////////////////////////////////////////
 	/// Check if we can read from the file.
@@ -199,24 +196,6 @@ public:
 		return m_fileAccessor->path();
 	}
 
-protected:
-	inline void open_inner(const std::string & path,
-						   access_type accessType,
-						   memory_size_type userDataSize,
-						   cache_hint cacheHint) throw(stream_exception) {
-		m_canRead = accessType == access_read || accessType == access_read_write;
-		m_canWrite = accessType == access_write || accessType == access_read_write;
-		m_fileAccessor->open(path, m_canRead, m_canWrite, m_itemSize, m_blockSize, userDataSize, cacheHint);
-		m_size = m_fileAccessor->size();
-		m_open = true;
-	}
-
-
-	file_base_crtp(memory_size_type itemSize, double blockFactor,
-				   file_accessor::file_accessor * fileAccessor);
-
-
-public:
 	/////////////////////////////////////////////////////////////////////////
 	/// \brief Open a file.
 	///
@@ -278,12 +257,6 @@ public:
 		return m_open;
 	}
 
-protected:
-	template <typename BT>
-	void read_block(BT & b, stream_size_type block);
-	void get_block_check(stream_size_type block);
-
-public:
 	/////////////////////////////////////////////////////////////////////////
 	/// \brief Get the size of the file measured in items.
 	/// If there are streams of this file that have extended the stream length
@@ -297,6 +270,26 @@ public:
 	}
 
 protected:
+	inline void open_inner(const std::string & path,
+						   access_type accessType,
+						   memory_size_type userDataSize,
+						   cache_hint cacheHint) throw(stream_exception) {
+		m_canRead = accessType == access_read || accessType == access_read_write;
+		m_canWrite = accessType == access_write || accessType == access_read_write;
+		m_fileAccessor->open(path, m_canRead, m_canWrite, m_itemSize, m_blockSize, userDataSize, cacheHint);
+		m_size = m_fileAccessor->size();
+		m_open = true;
+	}
+
+
+	file_base_crtp(memory_size_type itemSize, double blockFactor,
+				   file_accessor::file_accessor * fileAccessor);
+
+
+	template <typename BT>
+	void read_block(BT & b, stream_size_type block);
+	void get_block_check(stream_size_type block);
+
 	memory_size_type m_blockItems;
 	memory_size_type m_blockSize;
 	bool m_canRead;
@@ -307,6 +300,10 @@ protected:
 	tpie::auto_ptr<temp_file> m_ownedTempFile;
 	temp_file * m_tempFile;
 	stream_size_type m_size;
+
+private:
+	child_t & self() {return *static_cast<child_t *>(this);}
+	const child_t & self() const {return *static_cast<const child_t *>(this);}
 };
 
 } // namespace tpie
