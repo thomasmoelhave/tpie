@@ -43,12 +43,12 @@ template <typename BT>
 void file_base_crtp<child_t>::read_block(BT & b, stream_size_type block) {
 	b.dirty = false;
 	b.number = block;
-	
+
 	// calculate buffer size
 	b.size = m_blockItems;
 	if (static_cast<stream_size_type>(b.size) + b.number * static_cast<stream_size_type>(m_blockItems) > self().size())
 		b.size = static_cast<memory_size_type>(self().size() - block * m_blockItems);
-	
+
 	// populate buffer data
 	if (b.size > 0 &&
 		m_fileAccessor->read_block(b.data, b.number, b.size) != b.size) {

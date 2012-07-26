@@ -26,7 +26,7 @@ namespace tpie {
 file_stream_base::file_stream_base(memory_size_type itemSize,
 								   double blockFactor,
 								   file_accessor::file_accessor * fileAccessor):
-	file_base_crtp<file_stream_base>(itemSize, blockFactor, fileAccessor) 
+	file_base_crtp<file_stream_base>(itemSize, blockFactor, fileAccessor)
 {
 	m_blockStartIndex = 0;
 	m_nextBlock = std::numeric_limits<stream_size_type>::max();
