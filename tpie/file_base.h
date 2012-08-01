@@ -78,7 +78,6 @@ public:
 		typedef stream_crtp<stream> p_t;
 
 		friend class stream_crtp<stream>;
-		friend struct stream_item_array_operations;
 
 		/** Associated file object. */
 		file_base * m_file;

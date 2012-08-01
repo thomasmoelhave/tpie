@@ -167,7 +167,6 @@ protected:
 
 private:
 	friend class stream_crtp<file_stream_base>;
-	friend struct stream_item_array_operations;
 	file_stream_base & __file() {return *this;}
 	const file_stream_base & __file() const {return *this;}
 	block_t & __block() {return m_block;}

@@ -30,7 +30,6 @@
 
 #include <limits>
 #include <tpie/file_base.h>
-#include <tpie/stream_item_array_operations.h>
 namespace tpie {
 
 
@@ -171,26 +170,24 @@ public:
 		}
 
 		///////////////////////////////////////////////////////////////////////
-		/// \copydoc stream_item_array_operations::write
+		/// \copydoc stream_crtp::write_array
 		/// \sa file_stream<T>::write(const IT & start, const IT & end)
 		///////////////////////////////////////////////////////////////////////
 		template <typename IT>
 		inline void write(const IT & start, const IT & end) {
 			assert(__file().is_open());
-			stream_item_array_operations::write<T>(*this, start, end);
+			write_array(*this, start, end);
 		}
 
 		///////////////////////////////////////////////////////////////////////
-		/// \copydoc stream_item_array_operations::read
+		/// \copydoc stream_crtp::read_array
 		/// \sa file_stream<T>::read(const IT & start, const IT & end)
 		///////////////////////////////////////////////////////////////////////
 		template <typename IT>
 		inline void read(const IT & start, const IT & end) {
 			assert(__file().is_open());
-			stream_item_array_operations::read<T>(*this, start, end);
+			read_array(*this, start, end);
 		}
-
-		friend struct stream_item_array_operations;
  	};
 };
 }

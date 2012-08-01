@@ -22,7 +22,6 @@
 #include <tpie/file.h>
 #include <tpie/memory.h>
 #include <tpie/file_stream_base.h>
-#include <tpie/stream_item_array_operations.h>
 ///////////////////////////////////////////////////////////////////////////////
 /// \file file_stream.h
 /// \brief Simple class acting both as a tpie::file and a
@@ -74,14 +73,14 @@ public:
 	}
 
 	/////////////////////////////////////////////////////////////////////////
-	/// \copybrief stream_item_array_operations::write
-	/// \copydetails stream_item_array_operations::write
+	/// \copybrief stream_crtp::write_array
+	/// \copydetails stream_crtp::write_array
 	/// \sa file<T>::stream::write(const IT & start, const IT & end)
 	/////////////////////////////////////////////////////////////////////////
 	template <typename IT>
 	inline void write(const IT & start, const IT & end) throw(stream_exception) {
 		assert(m_open);
-		stream_item_array_operations::write<T>(*this, start, end);
+		write_array(*this, start, end);
 	}
 
 	/////////////////////////////////////////////////////////////////////////
@@ -101,14 +100,14 @@ public:
 	}
 
 	/////////////////////////////////////////////////////////////////////////
-	/// \copybrief stream_item_array_operations::read
-	/// \copydetails stream_item_array_operations::read
+	/// \copybrief stream_crtp::read_array
+	/// \copydetails stream_crtp::read_array
 	/// \sa file<T>::stream::read(const IT & start, const IT & end)
 	/////////////////////////////////////////////////////////////////////////
 	template <typename IT>
 	inline void read(const IT & start, const IT & end) throw(stream_exception) {
 		assert(m_open);
-		stream_item_array_operations::read<T>(*this, start, end);
+		read_array(*this, start, end);
 	}
 
 	/////////////////////////////////////////////////////////////////////////

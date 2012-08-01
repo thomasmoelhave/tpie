@@ -64,7 +64,6 @@ set (HEADERS
 		stack.h
 		stream.h
 		stream_crtp.h
-		stream_item_array_operations.h
 		stream_header.h
 		stream_usage.h
 		sysinfo.h
