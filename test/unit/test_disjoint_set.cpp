@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2008, The TPIE development team
+// Copyright 2008, 2012, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -20,6 +20,7 @@
 #include "common.h"
 #include <tpie/disjoint_sets.h>
 #include <iostream>
+#include "test_timer.h"
 
 using namespace tpie;
 using namespace std;
@@ -51,8 +52,29 @@ public:
 	virtual size_type claimed_size() {return static_cast<size_type>(disjoint_sets<int>::memory_usage(123456));}
 };
 
+bool stress_test(size_t n) {
+	test_timer t("disjoint_sets");
+	for (int _ = 0; _ < 5; ++_) {
+		t.start();
+		disjoint_sets<int> s1(n);
+		s1.make_set(0);
+		for (int i = 1; i < n; ++i) {
+			s1.make_set(i);
+			s1.union_set(i, i-1);
+		}
+		for (int i = 0; i < n; ++i) {
+			if (s1.find_set(0) != n-1) return false;
+		}
+		tpie::log_info() << fixed << setprecision(6);
+		t.stop();
+		t.output();
+	}
+	return true;
+}
+
 int main(int argc, char **argv) {
 	return tpie::tests(argc, argv)
 		.test(basic_test, "basic")
-		.test(disjointsets_memory_test(), "memory");
+		.test(disjointsets_memory_test(), "memory")
+		.test(stress_test, "stress", "n", 1024);
 }
