@@ -117,9 +117,10 @@ public:
     /// \brief Peeks at the topmost item on the stack.
     ////////////////////////////////////////////////////////////////////
 	inline const T & top() throw(stream_exception) {
-		T item = m_file_stream.read_back();
+		if (m_bufferItems) return m_buffer[m_bufferItems-1];
+		m_buffer[0] = m_file_stream.read_back();
 		m_file_stream.read();
-		return item;
+		return m_buffer[0];
 	}
 
     ////////////////////////////////////////////////////////////////////
