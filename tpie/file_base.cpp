@@ -137,7 +137,7 @@ void file_base::stream::update_block_core() {
 
 file_base::stream::stream(file_base & f, stream_size_type offset):
 	m_file(0) {
-	attach(f);
+	attach_inner(f);
 	if (m_file->m_open)
 		seek(offset);
 }
@@ -150,8 +150,8 @@ void file_base::stream::free() {
 	m_block = 0;
 }
 
-void file_base::stream::attach(file_base & f) {
-	detach();
+void file_base::stream::attach_inner(file_base & f) {
+	detach_inner();
 	m_file = &f;
 	m_blockStartIndex = 0;
 	m_block = &m_file->m_emptyBlock;
@@ -159,7 +159,7 @@ void file_base::stream::attach(file_base & f) {
 	initialize();
 }
 
-void file_base::stream::detach() {
+void file_base::stream::detach_inner() {
 	if (!attached()) return;
 	free();
 	m_file = 0;
