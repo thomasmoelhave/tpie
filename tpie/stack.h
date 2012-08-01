@@ -86,7 +86,7 @@ public:
 
     ////////////////////////////////////////////////////////////////////
     /// \brief Closes the underlying stream and truncates it to the logical
-    /// end of the stack. TODO verify this behavior
+    /// end of the stack.
     ////////////////////////////////////////////////////////////////////
 	~stack() {
 		empty_buffer();
