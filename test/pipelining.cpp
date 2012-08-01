@@ -149,12 +149,6 @@ seen_children:
 			dest.end();
 		}
 
-		void push_successors(std::deque<const pipe_segment *> & q) const {
-			q.push_back(&dest);
-			q.push_back(&byid);
-			q.push_back(&byparent);
-		}
-
 		dest_t dest;
 		byid_t byid;
 		byparent_t byparent;
@@ -192,8 +186,6 @@ struct output_count_t : public pipe_segment {
 		children += node.children;
 		++nodes;
 	}
-
-	void push_successors(std::deque<const pipe_segment *> &) const { }
 };
 
 inline pipe_end<termfactory_0<output_count_t> >
