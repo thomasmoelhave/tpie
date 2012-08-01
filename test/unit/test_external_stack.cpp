@@ -128,6 +128,8 @@ bool stack_test(size_t size) {
 
 	for (size_t i=0; i < size; ++i) {
 		size_t x = 1233+size-i;
+		size_t read1 = s.top();
+		ASSERT(x == read1, "Wrong item on top: Expected " << x << ", got " << read1);
 		size_t read = s.pop();
 		ASSERT(s.size() == size-i-1, "Wrong size after pop");
 		ASSERT(x == read, "Wrong item popped: Expected " << x << ", got " << read);
