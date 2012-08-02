@@ -107,7 +107,6 @@ private:
 	std::vector<size_t> itemsRead;
 	size_t runLength;
 	size_t n;
-	pred_t pred;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
