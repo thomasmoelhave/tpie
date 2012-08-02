@@ -332,10 +332,20 @@ public:
 
 private:
 	inline void calculate_parameters() {
-		// In the run formation phase, our run length is determined by the number of items we can hold in memory.
-		// In the merge phase, our fanout is determined by the size of our merge heap and the stream memory usage.
-		// In the final merge, our fanout is determined by the stream memory usage.
+		// Phase 2 (run formation):
+		// Run length: determined by the number of items we can hold in memory.
+		// Fanout: unbounded
+		//
+		// Phase 3 (merge):
+		// Run length: unbounded
+		// Fanout: determined by the size of our merge heap and the stream memory usage.
+		//
+		// Phase 4 (final merge & report):
+		// Run length: unbounded
+		// Fanout: determined by the stream memory usage.
+
 		memory_size_type streamMemory = file_stream<T>::memory_usage();
+		log_debug() << availableMemory << " b available memory; " << streamMemory << " b for a single stream\n";
 		if (availableMemory < 3*streamMemory) {
 			log_warning() << "Not enough memory for three open streams! (" << availableMemory << " < " << 3*streamMemory << ")\n";
 			availableMemory = 3*streamMemory;
@@ -358,6 +368,7 @@ private:
 				fanout_hi = mid;
 			}
 		}
+		log_debug() << "Calculated merge sort parameters\n";
 		set_parameters(runLength, fanout_lo);
 	}
 
