@@ -18,18 +18,20 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #include "../app_config.h"
 #include "common.h"
+#include <list>
 #include <queue>
 #include <tpie/memory.h>
 
 using namespace tpie;
 
-bool allocator_deque_test() {
+template <template <typename T, typename Allocator> class Container>
+bool allocator_test() {
 	memory_size_type m1, m2, m3;
 	m1 = get_memory_manager().used();
 	typedef int test_t;
 	const test_t N = 100;
 	{
-		std::deque<test_t, allocator<test_t> > d;
+		Container<test_t, allocator<test_t> > d;
 		for (test_t i = 0; i < N; ++i) {
 			d.push_back(i);
 		}
@@ -39,12 +41,13 @@ bool allocator_deque_test() {
 	if (m1 != m3) {
 		log_error() << "Memory leak" << std::endl;
 	}
-	log_info() << "Pushing " << N << " numbers of size " << sizeof(test_t) << " uses " << m2-m1 << std::endl;
+	log_info() << "Pushing " << N << " numbers of size " << sizeof(test_t) << " to a " << typeid(Container<test_t, allocator<test_t> >).name() << " uses " << m2-m1 << std::endl;
 	return m1 != m2;
 }
 
 int main(int argc, char ** argv) {
 	return tests(argc, argv)
-		.test(allocator_deque_test, "deque")
+		.test(allocator_test<std::deque>, "deque")
+		.test(allocator_test<std::list>, "list")
 		;
 }
