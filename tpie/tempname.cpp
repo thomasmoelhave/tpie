@@ -42,9 +42,14 @@ using namespace tpie;
 
 boost::rand48 prng(42);
 
-std::string tempname::default_path;
-std::string tempname::default_base_name; 
-std::string tempname::default_extension;
+namespace {
+
+std::string default_path;
+std::string default_base_name;
+std::string default_extension;
+std::string tpie_mktemp();
+
+}
 
 std::string tempname::get_system_path() {
 #ifdef WIN32
@@ -62,62 +67,40 @@ std::string tempname::get_system_path() {
 #endif
 }
 
-std::string tempname::tpie_name(const std::string& post_base, const std::string& dir, const std::string& ext) 
-{	std::string extension;
+namespace {
+std::string gen_temp(const std::string& post_base, const std::string& dir, const std::string& suffix) {
 	std::string base_name;
 	boost::filesystem::path base_dir;
-	
-	extension = ext;
-	if(extension.empty()) { 
-		extension = default_extension;
-		if(extension.empty())
-			extension = "tpie";
-	}
-	
+
 	base_name = default_base_name;
 	if(base_name.empty())
 		base_name = "TPIE";
-	
+
 	if(!dir.empty())
 		base_dir = dir;
-	else 
+	else
 		base_dir = tempname::get_actual_path();
 
 	boost::filesystem::path p;
 	for(int i=0; i < 42; ++i) {
 		if(post_base.empty())
-			p = base_dir / (base_name + "_" + tpie_mktemp() + "." + extension);
-		else 
-			p = base_dir / (base_name + "_" + post_base + "_" + tpie_mktemp() + "." + extension);
+			p = base_dir / (base_name + "_" + tpie_mktemp() + suffix);
+		else
+			p = base_dir / (base_name + "_" + post_base + "_" + tpie_mktemp() + suffix);
 		if ( !boost::filesystem::exists(p) )
 			return p.file_string();
 	}
 	throw tempfile_error("Unable to find free name for temporary file");
 }
+}
 
-std::string tempname::tpie_dir_name(const std::string& post_base, const std::string& dir) 
-{	std::string base_name;	
-	boost::filesystem::path base_dir;
-		
-	base_name = default_base_name;
-	if(base_name.empty())
-		base_name = "TPIE";
-	
-	if(!dir.empty())
-		base_dir = dir;
-	else 
-		base_dir = tempname::get_actual_path();
+std::string tempname::tpie_name(const std::string& post_base, const std::string& dir, const std::string& ext) {
+	if (ext.empty()) return gen_temp(post_base, dir, ".tpie");
+	else return gen_temp(post_base, dir, "." + ext);
+}
 
-	boost::filesystem::path p;
-	for(int i=0; i < 42; ++i) {
-		if(post_base.empty())
-			p = base_dir / (base_name + "_" + tpie_mktemp());
-		else 
-			p = base_dir / (base_name + "_" + post_base + "_" + tpie_mktemp());
-		if ( !boost::filesystem::exists(p) )
-			return p.file_string();
-	}
-	throw tempfile_error("Unable to find free name for temporary file");
+std::string tempname::tpie_dir_name(const std::string& post_base, const std::string& dir) {
+	return gen_temp(post_base, dir, "");
 }
 
 std::string tempname::get_actual_path() {
@@ -135,7 +118,8 @@ std::string tempname::get_actual_path() {
 	return dir;
 }
 
-std::string tempname::tpie_mktemp()
+namespace {
+std::string tpie_mktemp()
 {
 	const std::string chars[] = 
 	{ "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", 
@@ -160,6 +144,7 @@ std::string tempname::tpie_mktemp()
 	counter = (counter + 1) % (chars_count * chars_count);
 
 	return result;
+}
 }
 
 

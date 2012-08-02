@@ -142,13 +142,6 @@ namespace tpie {
 		/// \return A string containing the path.
 		///////////////////////////////////////////////////////////////////////
 		static std::string get_actual_path();
-
-	private:
-		static std::string default_path;
-		static std::string default_base_name;
-		static std::string default_extension;
-
-		static std::string tpie_mktemp();
 	};
 
 	///////////////////////////////////////////////////////////////////////////
