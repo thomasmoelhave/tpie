@@ -17,6 +17,7 @@ macro(add_fulltest NAME)
   endforeach(TEST)
 endmacro(add_fulltest)
 
+add_unittest(allocator deque)
 add_unittest(ami_stream basic truncate)
 add_unittest(array basic iterators auto_ptr memory segmented memory_segmented bit_basic bit_iterators bit_memory  copyempty arrayarray frontback)
 add_unittest(disjoint_set basic memory)
