@@ -64,8 +64,8 @@ std::string tempname::get_system_path() {
 
 std::string tempname::tpie_name(const std::string& post_base, const std::string& dir, const std::string& ext) 
 {	std::string extension;
-	std::string base_name;	
-	std::string base_dir;
+	std::string base_name;
+	boost::filesystem::path base_dir;
 	
 	extension = ext;
 	if(extension.empty()) { 
@@ -83,12 +83,12 @@ std::string tempname::tpie_name(const std::string& post_base, const std::string&
 	else 
 		base_dir = tempname::get_actual_path();
 
-	boost::filesystem::path p = base_dir;
+	boost::filesystem::path p;
 	for(int i=0; i < 42; ++i) {
 		if(post_base.empty())
-			p = p / (base_name + "_" + tpie_mktemp() + "." + extension);
+			p = base_dir / (base_name + "_" + tpie_mktemp() + "." + extension);
 		else 
-			p = p / (base_name + "_" + post_base + "_" + tpie_mktemp() + "." + extension);
+			p = base_dir / (base_name + "_" + post_base + "_" + tpie_mktemp() + "." + extension);
 		if ( !boost::filesystem::exists(p) )
 			return p.file_string();
 	}
