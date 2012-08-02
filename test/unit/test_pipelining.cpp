@@ -405,6 +405,53 @@ bool execution_order() {
 	return false;
 }
 
+struct merger_memory : public memory_test {
+	typedef int test_t;
+	size_t n;
+	array<file_stream<test_t> > inputs;
+	merger<test_t, std::less<test_t> > m;
+
+	inline merger_memory(size_t n)
+		: n(n)
+		, m(std::less<test_t>())
+	{
+		inputs.resize(n);
+		for (size_t i = 0; i < n; ++i) {
+			inputs[i].open();
+			inputs[i].write(static_cast<test_t>(n-i));
+			inputs[i].seek(0);
+		}
+	}
+
+	virtual void alloc() {
+		m.reset(inputs, 1);
+	}
+
+	virtual void free() {
+		m.reset();
+	}
+
+	virtual void use() {
+		test_t prev = m.pull();
+		for (size_t i = 1; i < n; ++i) {
+			test_t it = m.pull();
+			if (prev > it) {
+				log_error() << "Merger returns items out of order in memory test" << std::endl;
+			}
+			prev = it;
+		}
+	}
+
+	virtual size_type claimed_size() {
+		return static_cast<size_type>(merger<test_t, std::less<test_t> >::memory_usage(n));
+	}
+};
+
+bool merger_memory_test(size_t n) {
+	merger_memory m(n);
+	return m();
+}
+
 int main(int argc, char ** argv) {
 	return tpie::tests(argc, argv)
 	.setup(setup_test_vectors)
@@ -422,5 +469,6 @@ int main(int argc, char ** argv) {
 	.test(memory_test, "memory")
 	.test(fork_test, "fork")
 	.test(execution_order, "execorder")
+	.test(merger_memory_test, "merger_memory", "n", static_cast<size_t>(10))
 	;
 }
