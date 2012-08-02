@@ -42,7 +42,7 @@ struct sort_parameters {
 template <typename T, typename pred_t>
 struct merger {
 	inline merger(pred_t pred)
-		: pq(predwrap(pred))
+		: pq(0, predwrap(pred))
 	{
 	}
 
@@ -51,12 +51,14 @@ struct merger {
 	}
 
 	inline T pull() {
+		tp_assert(can_pull(), "pull() while !can_pull()");
 		T el = pq.top().first;
 		size_t i = pq.top().second;
-		pq.pop();
 		if (in[i].can_read() && itemsRead[i] < runLength) {
-			pq.push(std::make_pair(in[i].read(), i));
+			pq.pop_and_push(std::make_pair(in[i].read(), i));
 			++itemsRead[i];
+		} else {
+			pq.pop();
 		}
 		if (!can_pull()) {
 			reset();
@@ -66,6 +68,7 @@ struct merger {
 
 	inline void reset() {
 		in.resize(0);
+		pq.resize(0);
 	}
 
 	inline void reset(array<file_stream<T> > & inputs, size_t runLength) {
@@ -73,20 +76,30 @@ struct merger {
 		tp_assert(pq.empty(), "Reset before we are done");
 		n = inputs.size();
 		in.swap(inputs);
+		pq.resize(n);
 		for (size_t i = 0; i < n; ++i) {
-			pq.push(std::make_pair(in[i].read(), i));
+			pq.unsafe_push(std::make_pair(in[i].read(), i));
 		}
-		itemsRead.resize(0);
+		pq.make_safe();
 		itemsRead.resize(n, 1);
 	}
 
 	inline static stream_size_type memory_usage(stream_size_type fanout) {
-		return array<file_stream<T> >::memory_usage(0)
-			+ fanout*file_stream<T>::memory_usage(); // in
+		return sizeof(merger)
+			- sizeof(internal_priority_queue<std::pair<T, size_t>, predwrap>) // pq
+			+ internal_priority_queue<std::pair<T, size_t>, predwrap>::memory_usage(fanout) // pq
+			- sizeof(array<file_stream<T> >) // in
+			+ array<file_stream<T> >::memory_usage(fanout) // in
+			- sizeof(array<size_t>) // itemsRead
+			+ array<size_t>::memory_usage(fanout) // itemsRead
+			;
 	}
 
 	struct predwrap {
 		typedef std::pair<T, size_t> item_type;
+		typedef item_type first_argument_type;
+		typedef item_type second_argument_type;
+		typedef bool result_type;
 
 		predwrap(pred_t pred)
 			: pred(pred)
@@ -94,7 +107,7 @@ struct merger {
 		}
 
 		inline bool operator()(const item_type & lhs, const item_type & rhs) {
-			return pred(rhs.first, lhs.first);
+			return pred(lhs.first, rhs.first);
 		}
 
 	private:
@@ -102,9 +115,9 @@ struct merger {
 	};
 
 private:
-	std::priority_queue<std::pair<T, size_t>, std::vector<std::pair<T, size_t> >, predwrap> pq;
+	internal_priority_queue<std::pair<T, size_t>, predwrap> pq;
 	array<file_stream<T> > in;
-	std::vector<size_t> itemsRead;
+	array<size_t> itemsRead;
 	size_t runLength;
 	size_t n;
 };
