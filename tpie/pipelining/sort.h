@@ -160,10 +160,10 @@ struct merge_sorter {
 	inline void set_parameters(size_t runLength, size_t fanout) {
 		p.runLength = runLength;
 		p.fanout = fanout;
-		TP_LOG_DEBUG_ID("Set merge sort parameters");
-		TP_LOG_DEBUG("Memory available = " << availableMemory << '\n');
-		TP_LOG_DEBUG("Run length =       " << p.runLength << " (uses memory " << (p.runLength*sizeof(T) + file_stream<T>::memory_usage()) << ")\n");
-		TP_LOG_DEBUG("Fanout =           " << p.fanout << " (uses memory " << fanout_memory_usage(p.fanout) << ")" << std::endl);
+		log_debug() << "Set merge sort parameters\n";
+		log_debug() << "Memory available = " << availableMemory << '\n';
+		log_debug() << "Run length =       " << p.runLength << " (uses memory " << (p.runLength*sizeof(T) + file_stream<T>::memory_usage()) << ")\n";
+		log_debug() << "Fanout =           " << p.fanout << " (uses memory " << fanout_memory_usage(p.fanout) << ")" << std::endl;
 	}
 
 	inline void set_available_memory(memory_size_type m) {
@@ -175,7 +175,7 @@ struct merge_sorter {
 	/// \brief Initiate phase 2: Formation of input runs.
 	///////////////////////////////////////////////////////////////////////////
 	inline void begin() {
-		TP_LOG_DEBUG_ID("Start forming input runs");
+		log_debug() << "Start forming input runs\n";
 		m_currentRunItems.resize(p.runLength);
 		m_runFiles->resize(p.fanout*2);
 		m_currentRunItemCount = 0;
@@ -202,12 +202,12 @@ struct merge_sorter {
 		if (m_finishedRuns == 0) {
 			m_reportInternal = true;
 			m_itemsPulled = 0;
-			TP_LOG_DEBUG_ID("Got " << m_currentRunItemCount << " items. Internal reporting mode.");
+			log_debug() << "Got " << m_currentRunItemCount << " items. Internal reporting mode.\n";
 		} else {
 			m_reportInternal = false;
 			empty_current_run();
 			m_currentRunItems.resize(0);
-			TP_LOG_DEBUG_ID("Got " << m_finishedRuns << " runs. External reporting mode.");
+			log_debug() << "Got " << m_finishedRuns << " runs. External reporting mode.\n";
 		}
 	}
 
@@ -235,9 +235,9 @@ private:
 	// postcondition: m_currentRunItemCount = 0
 	inline void empty_current_run() {
 		if (m_finishedRuns < 10)
-			TP_LOG_DEBUG("Write " << m_currentRunItemCount << " items to run file " << m_finishedRuns << std::endl);
+			log_debug() << "Write " << m_currentRunItemCount << " items to run file " << m_finishedRuns << std::endl;
 		else if (m_finishedRuns == 10)
-			TP_LOG_DEBUG("..." << std::endl);
+			log_debug() << "..." << std::endl;
 		file_stream<T> fs;
 		open_run_file_write(fs, 0, m_finishedRuns);
 		for (size_t i = 0; i < m_currentRunItemCount; ++i) {
@@ -283,15 +283,15 @@ private:
 		size_t mergeLevel = 0;
 		size_t runCount = m_finishedRuns;
 		while (runCount > p.fanout) {
-			TP_LOG_DEBUG_ID("Merge " << runCount << " runs in merge level " << mergeLevel);
+			log_debug() << "Merge " << runCount << " runs in merge level " << mergeLevel << '\n';
 			size_t newRunCount = 0;
 			for (size_t i = 0; i < runCount; i += p.fanout) {
 				size_t n = std::min(runCount-i, p.fanout);
 
 				if (newRunCount < 10)
-					TP_LOG_DEBUG("Merge " << n << " runs starting from #" << i << std::endl);
+					log_debug() << "Merge " << n << " runs starting from #" << i << std::endl;
 				else if (newRunCount == 10)
-					TP_LOG_DEBUG("..." << std::endl);
+					log_debug() << "..." << std::endl;
 
 				merge_runs(mergeLevel, i, std::min(runCount-i, p.fanout));
 				++newRunCount;
@@ -299,7 +299,7 @@ private:
 			++mergeLevel;
 			runCount = newRunCount;
 		}
-		TP_LOG_DEBUG_ID("Final merge level " << mergeLevel << " has " << runCount << " runs");
+		log_debug() << "Final merge level " << mergeLevel << " has " << runCount << " runs\n";
 		initialize_merger(mergeLevel, 0, runCount);
 
 		pull_prepared = true;
@@ -337,7 +337,7 @@ private:
 		// In the final merge, our fanout is determined by the stream memory usage.
 		memory_size_type streamMemory = file_stream<T>::memory_usage();
 		if (availableMemory < 3*streamMemory) {
-			TP_LOG_WARNING_ID("Not enough memory for three open streams! (" << availableMemory << " < " << 3*streamMemory << ")");
+			log_warning() << "Not enough memory for three open streams! (" << availableMemory << " < " << 3*streamMemory << ")\n";
 			availableMemory = 3*streamMemory;
 		}
 		const size_t runLength = (availableMemory - streamMemory)/sizeof(T);
