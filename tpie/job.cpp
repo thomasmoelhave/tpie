@@ -107,7 +107,9 @@ private:
 
 void init_job() {
 	the_job_manager = tpie_new<job_manager>();
-	the_job_manager->init_pool(boost::thread::hardware_concurrency());
+	size_t workers = boost::thread::hardware_concurrency();
+	if (workers > 3) --workers; // spare a CPU for the UI
+	the_job_manager->init_pool(workers);
 }
 
 void finish_job() {
