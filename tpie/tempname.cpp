@@ -97,7 +97,7 @@ std::string tempname::tpie_name(const std::string& post_base, const std::string&
 
 std::string tempname::tpie_dir_name(const std::string& post_base, const std::string& dir) 
 {	std::string base_name;	
-	std::string base_dir;
+	boost::filesystem::path base_dir;
 		
 	base_name = default_base_name;
 	if(base_name.empty())
@@ -108,12 +108,12 @@ std::string tempname::tpie_dir_name(const std::string& post_base, const std::str
 	else 
 		base_dir = tempname::get_actual_path();
 
-	boost::filesystem::path p = base_dir;
+	boost::filesystem::path p;
 	for(int i=0; i < 42; ++i) {
 		if(post_base.empty())
-			p = p / (base_name + "_" + tpie_mktemp());
+			p = base_dir / (base_name + "_" + tpie_mktemp());
 		else 
-			p = p / (base_name + "_" + post_base + "_" + tpie_mktemp());
+			p = base_dir / (base_name + "_" + post_base + "_" + tpie_mktemp());
 		if ( !boost::filesystem::exists(p) )
 			return p.file_string();
 	}
