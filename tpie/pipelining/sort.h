@@ -46,11 +46,6 @@ struct merger {
 	{
 	}
 
-	inline merger(const merger & other) {
-		tp_assert(!other.in.size(), "Cannot copy ongoing merger");
-		unused(other);
-	}
-
 	inline bool can_pull() {
 		return !pq.empty();
 	}
