@@ -353,12 +353,7 @@ private:
 		const size_t runLength = (availableMemory - streamMemory)/sizeof(T);
 
 		memory_size_type fanout_lo = 2;
-		memory_size_type fanout_hi = 4;
-		// exponential search
-		while (fanout_memory_usage(fanout_hi) < availableMemory) {
-			fanout_lo = fanout_hi;
-			fanout_hi = fanout_hi*2;
-		}
+		memory_size_type fanout_hi = 251; // arbitrary. TODO: run experiments to find threshold
 		// binary search
 		while (fanout_lo < fanout_hi - 1) {
 			memory_size_type mid = fanout_lo + (fanout_hi-fanout_lo)/2;
