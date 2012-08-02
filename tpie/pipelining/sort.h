@@ -371,7 +371,8 @@ private:
 	/// calculate_parameters helper
 	///////////////////////////////////////////////////////////////////////////
 	inline stream_size_type fanout_memory_usage(memory_size_type fanout) {
-		return merger<T, pred_t>::memory_usage(fanout) + file_stream<T>::memory_usage();
+		return merger<T, pred_t>::memory_usage(fanout) // accounts for the `fanout' open streams
+			+ file_stream<T>::memory_usage(); // output stream
 	}
 
 	///////////////////////////////////////////////////////////////////////////
