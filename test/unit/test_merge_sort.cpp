@@ -125,8 +125,8 @@ bool external_report_test() {
 	return sort_test(20,20,20,50);
 }
 
-bool small_final_fanout_test() {
-	return sort_test(100,100,7,500);
+bool small_final_fanout_test(size_t mb) {
+	return sort_test(5,14,7,mb);
 }
 
 int main(int argc, char ** argv) {
@@ -134,6 +134,6 @@ int main(int argc, char ** argv) {
 		.test(internal_report_test, "internal_report")
 		.test(one_run_external_report_test, "one_run_external_report")
 		.test(external_report_test, "external_report")
-		.test(small_final_fanout_test, "small_final_fanout")
+		.test(small_final_fanout_test, "small_final_fanout", "mb", 300)
 		;
 }
