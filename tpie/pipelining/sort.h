@@ -423,23 +423,8 @@ private:
 	/// \param m4 Memory available for phase 4
 	///////////////////////////////////////////////////////////////////////////
 	inline void calculate_parameters(memory_size_type m2, memory_size_type m3, memory_size_type m4) {
-		// Phase 2 (run formation):
-		// Run length: determined by the number of items we can hold in memory.
-		// Fanout: unbounded
-
-		memory_size_type streamMemory = file_stream<T>::memory_usage();
-
-		log_debug() << "Phase 2: " << m2 << " b available memory; " << streamMemory << " b for a single stream\n";
-		memory_size_type min_m2 = sizeof(T) + streamMemory;
-		if (m2 < min_m2) {
-			log_warning() << "Not enough phase 2 memory for an item and an open stream! (" << m2 << " < " << min_m2 << ")\n";
-			m2 = min_m2;
-		}
-		p.runLength = (m2 - streamMemory)/sizeof(T);
-
-		p.internalReportThreshold = std::min(m2, std::min(m3, m4))/sizeof(T);
-		if (p.internalReportThreshold > p.runLength)
-			p.internalReportThreshold = p.runLength;
+		// We must set aside memory for temp_files in m_runFiles.
+		// m_runFiles contains fanout*2 temp_files, so calculate fanout before run length.
 
 		// Phase 3 (merge):
 		// Run length: unbounded
@@ -464,6 +449,25 @@ private:
 			log_debug() << "Not enough memory for fanout " << p.finalFanout << "! (" << m4 << " < " << fanout_memory_usage(p.finalFanout) << ")\n";
 			m4 = fanout_memory_usage(p.finalFanout);
 		}
+
+		// Phase 2 (run formation):
+		// Run length: determined by the number of items we can hold in memory.
+		// Fanout: unbounded
+
+		memory_size_type streamMemory = file_stream<T>::memory_usage();
+		memory_size_type tempFileMemory = 2*p.fanout*sizeof(temp_file);
+
+		log_debug() << "Phase 2: " << m2 << " b available memory; " << streamMemory << " b for a single stream; " << tempFileMemory << " b for temp_files\n";
+		memory_size_type min_m2 = sizeof(T) + streamMemory + tempFileMemory;
+		if (m2 < min_m2) {
+			log_warning() << "Not enough phase 2 memory for an item and an open stream! (" << m2 << " < " << min_m2 << ")\n";
+			m2 = min_m2;
+		}
+		p.runLength = (m2 - streamMemory - tempFileMemory)/sizeof(T);
+
+		p.internalReportThreshold = (std::min(m2, std::min(m3, m4)) - tempFileMemory)/sizeof(T);
+		if (p.internalReportThreshold > p.runLength)
+			p.internalReportThreshold = p.runLength;
 
 		p.memoryPhase2 = m2;
 		p.memoryPhase3 = m3;
@@ -499,7 +503,8 @@ private:
 	///////////////////////////////////////////////////////////////////////////
 	static inline stream_size_type fanout_memory_usage(memory_size_type fanout) {
 		return merger<T, pred_t>::memory_usage(fanout) // accounts for the `fanout' open streams
-			+ file_stream<T>::memory_usage(); // output stream
+			+ file_stream<T>::memory_usage() // output stream
+			+ 2*sizeof(temp_file); // merge_sorter::m_runFiles
 	}
 
 	///////////////////////////////////////////////////////////////////////////
