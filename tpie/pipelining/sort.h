@@ -35,8 +35,32 @@ namespace tpie {
 namespace pipelining {
 
 struct sort_parameters {
+	/** Memory available while forming sorted runs. */
+	memory_size_type memoryPhase2;
+	/** Memory available while merging runs. */
+	memory_size_type memoryPhase3;
+	/** Memory available during output phase. */
+	memory_size_type memoryPhase4;
+	/** Run length, subject to memory restrictions during phase 2. */
 	memory_size_type runLength;
+	/** Maximum item count for internal reporting, subject to memory
+	 * restrictions in all phases. Less or equal to runLength. */
+	memory_size_type internalReportThreshold;
+	/** Fanout of merge tree during phase 3. */
 	memory_size_type fanout;
+	/** Fanout of merge tree during phase 4. Less or equal to fanout. */
+	memory_size_type finalFanout;
+
+	void dump(std::ostream & out) const {
+		out << "Merge sort parameters\n"
+			<< "Phase 2 memory:              " << memoryPhase2 << '\n'
+			<< "Run length:                  " << runLength << '\n'
+			<< "Phase 3 memory:              " << memoryPhase3 << '\n'
+			<< "Fanout:                      " << fanout << '\n'
+			<< "Phase 4 memory:              " << memoryPhase4 << '\n'
+			<< "Final merge level fanout:    " << finalFanout << '\n'
+			<< "Internal report threshold:   " << internalReportThreshold << '\n';
+	}
 };
 
 template <typename T, typename pred_t>
@@ -71,6 +95,11 @@ struct merger {
 		pq.resize(0);
 	}
 
+	// Initialize merger with given sorted input runs. Each file stream is
+	// assumed to have a stream offset pointing to the first item in the run,
+	// and runLength items are read from each stream (unless end of stream
+	// occurs earlier).
+	// Precondition: !can_pull()
 	inline void reset(array<file_stream<T> > & inputs, size_t runLength) {
 		this->runLength = runLength;
 		tp_assert(pq.empty(), "Reset before we are done");
@@ -90,6 +119,8 @@ struct merger {
 			+ internal_priority_queue<std::pair<T, size_t>, predwrap>::memory_usage(fanout) // pq
 			- sizeof(array<file_stream<T> >) // in
 			+ array<file_stream<T> >::memory_usage(fanout) // in
+			- fanout*sizeof(file_stream<T>) // in file_streams
+			+ fanout*file_stream<T>::memory_usage() // in file_streams
 			- sizeof(array<size_t>) // itemsRead
 			+ array<size_t>::memory_usage(fanout) // itemsRead
 			;
@@ -139,18 +170,13 @@ template <typename T, typename pred_t = std::less<T> >
 struct merge_sorter {
 	typedef boost::shared_ptr<merge_sorter> ptr;
 
-	inline merge_sorter(memory_size_type mem, pred_t pred = pred_t())
-		: m_merger(pred)
+	inline merge_sorter(pred_t pred = pred_t())
+		: m_parametersSet(false)
+		, m_merger(pred)
 		, m_runFiles(new array<temp_file>())
 		, pull_prepared(false)
 		, pred(pred)
 	{
-		if (mem == 0)
-			availableMemory = tpie::get_memory_manager().available();
-		else
-			availableMemory = mem;
-
-		calculate_parameters();
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -158,24 +184,38 @@ struct merge_sorter {
 	/// purposes).
 	///////////////////////////////////////////////////////////////////////////
 	inline void set_parameters(size_t runLength, size_t fanout) {
-		p.runLength = runLength;
-		p.fanout = fanout;
-		log_debug() << "Set merge sort parameters\n";
-		log_debug() << "Memory available = " << availableMemory << '\n';
+		p.runLength = p.internalReportThreshold = runLength;
+		p.fanout = p.finalFanout = fanout;
+		m_parametersSet = true;
+		log_debug() << "Manually set merge sort run length and fanout\n";
 		log_debug() << "Run length =       " << p.runLength << " (uses memory " << (p.runLength*sizeof(T) + file_stream<T>::memory_usage()) << ")\n";
 		log_debug() << "Fanout =           " << p.fanout << " (uses memory " << fanout_memory_usage(p.fanout) << ")" << std::endl;
 	}
 
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Calculate parameters from given memory amount.
+	/// \param m Memory available for phase 2, 3 and 4
+	///////////////////////////////////////////////////////////////////////////
 	inline void set_available_memory(memory_size_type m) {
-		availableMemory = m;
-		calculate_parameters();
+		calculate_parameters(m, m, m);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Calculate parameters from given memory amount.
+	/// \param m2 Memory available for phase 2
+	/// \param m3 Memory available for phase 3
+	/// \param m4 Memory available for phase 4
+	///////////////////////////////////////////////////////////////////////////
+	inline void set_available_memory(memory_size_type m2, memory_size_type m3, memory_size_type m4) {
+		calculate_parameters(m2, m3, m4);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Initiate phase 2: Formation of input runs.
 	///////////////////////////////////////////////////////////////////////////
 	inline void begin() {
-		log_debug() << "Start forming input runs\n";
+		tp_assert(m_parametersSet, "Parameters not set");
+		log_debug() << "Start forming input runs" << std::endl;
 		m_currentRunItems.resize(p.runLength);
 		m_runFiles->resize(p.fanout*2);
 		m_currentRunItemCount = 0;
@@ -186,6 +226,7 @@ struct merge_sorter {
 	/// \brief Push item to merge sorter during phase 2.
 	///////////////////////////////////////////////////////////////////////////
 	inline void push(const T & item) {
+		tp_assert(m_parametersSet, "Parameters not set");
 		if (m_currentRunItemCount >= p.runLength) {
 			sort_current_run();
 			empty_current_run();
@@ -198,16 +239,17 @@ struct merge_sorter {
 	/// \brief End phase 2.
 	///////////////////////////////////////////////////////////////////////////
 	inline void end() {
+		tp_assert(m_parametersSet, "Parameters not set");
 		sort_current_run();
-		if (m_finishedRuns == 0) {
+		if (m_finishedRuns == 0 && m_currentRunItemCount <= p.internalReportThreshold) {
 			m_reportInternal = true;
 			m_itemsPulled = 0;
-			log_debug() << "Got " << m_currentRunItemCount << " items. Internal reporting mode.\n";
+			log_debug() << "Got " << m_currentRunItemCount << " items. Internal reporting mode." << std::endl;
 		} else {
 			m_reportInternal = false;
 			empty_current_run();
 			m_currentRunItems.resize(0);
-			log_debug() << "Got " << m_finishedRuns << " runs. External reporting mode.\n";
+			log_debug() << "Got " << m_finishedRuns << " runs. External reporting mode." << std::endl;
 		}
 	}
 
@@ -216,6 +258,7 @@ struct merge_sorter {
 	/// the last one.
 	///////////////////////////////////////////////////////////////////////////
 	inline void calc() {
+		tp_assert(m_parametersSet, "Parameters not set");
 		if (!m_reportInternal) {
 			prepare_pull();
 		} else {
@@ -252,32 +295,74 @@ private:
 	/// (runNumber+runCount)'th run in mergeLevel.
 	///////////////////////////////////////////////////////////////////////////
 	inline void initialize_merger(size_t mergeLevel, size_t runNumber, size_t runCount) {
+		// Open files and seek to the first item in the run.
 		array<file_stream<T> > in(runCount);
 		for (size_t i = 0; i < runCount; ++i) {
 			open_run_file_read(in[i], mergeLevel, runNumber+i);
 		}
-		size_t runLength = p.runLength;
-		for (size_t i = 0; i < mergeLevel; ++i) {
-			runLength *= p.fanout;
-		}
+		size_t runLength = calculate_run_length(p.runLength, p.fanout, mergeLevel);
+		// Pass file streams with correct stream offsets to the merger
 		m_merger.reset(in, runLength);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// Prepare m_merger for merging the runCount runs in finalMergeLevel.
+	///////////////////////////////////////////////////////////////////////////
+	inline void initialize_final_merger(size_t finalMergeLevel, size_t runCount) {
+		if (runCount > p.finalFanout) {
+			log_debug() << "Run count in final level (" << runCount << ") is greater than the final fanout (" << p.finalFanout << ")\n";
+			size_t runNumber;
+			{
+				size_t i = p.finalFanout-1;
+				size_t n = runCount-(p.finalFanout-1);
+				log_debug() << "Merge " << n << " runs starting from #" << i << std::endl;
+				runNumber = merge_runs(finalMergeLevel, i, n);
+			}
+			array<file_stream<T> > in(p.finalFanout);
+			for (size_t i = 0; i < p.finalFanout-1; ++i) {
+				open_run_file_read(in[i], finalMergeLevel, i);
+				log_debug() << "Run " << i << " is at offset " << in[i].offset() << " and has size " << in[i].size() << std::endl;
+			}
+			open_run_file_read(in[p.finalFanout-1], finalMergeLevel+1, runNumber);
+			log_debug() << "Special large run is at offset " << in[p.finalFanout-1].offset() << " and has size " << in[p.finalFanout-1].size() << std::endl;
+			size_t runLength = calculate_run_length(p.runLength, p.fanout, finalMergeLevel+1);
+			log_debug() << "Run length " << runLength << std::endl;
+			m_merger.reset(in, runLength);
+		} else {
+			log_debug() << "Run count in final level (" << runCount << ") is less or equal to the final fanout (" << p.finalFanout << ")" << std::endl;
+			initialize_merger(finalMergeLevel, 0, runCount);
+		}
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// initialize_merger helper.
+	///////////////////////////////////////////////////////////////////////////
+	static inline size_t calculate_run_length(size_t initialRunLength, size_t fanout, size_t mergeLevel) {
+		size_t runLength = initialRunLength;
+		for (size_t i = 0; i < mergeLevel; ++i) {
+			runLength *= fanout;
+		}
+		return runLength;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// Merge the runNumber'th to the (runNumber+runCount)'th in mergeLevel
 	/// into mergeLevel+1.
+	/// \returns The run number in mergeLevel+1 that was written to.
 	///////////////////////////////////////////////////////////////////////////
-	inline void merge_runs(size_t mergeLevel, size_t runNumber, size_t runCount) {
+	inline size_t merge_runs(size_t mergeLevel, size_t runNumber, size_t runCount) {
 		initialize_merger(mergeLevel, runNumber, runCount);
 		file_stream<T> out;
-		open_run_file_write(out, mergeLevel+1, runNumber/p.fanout);
+		size_t nextRunNumber = runNumber/p.fanout;
+		open_run_file_write(out, mergeLevel+1, nextRunNumber);
 		while (m_merger.can_pull()) {
 			out.write(m_merger.pull());
 		}
+		return nextRunNumber;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// Merge all runs and initialize merger for public pulling.
+	/// Phase 3: Merge all runs and initialize merger for public pulling.
 	///////////////////////////////////////////////////////////////////////////
 	inline void prepare_pull() {
 		size_t mergeLevel = 0;
@@ -293,14 +378,14 @@ private:
 				else if (newRunCount == 10)
 					log_debug() << "..." << std::endl;
 
-				merge_runs(mergeLevel, i, std::min(runCount-i, p.fanout));
+				merge_runs(mergeLevel, i, n);
 				++newRunCount;
 			}
 			++mergeLevel;
 			runCount = newRunCount;
 		}
-		log_debug() << "Final merge level " << mergeLevel << " has " << runCount << " runs\n";
-		initialize_merger(mergeLevel, 0, runCount);
+		log_debug() << "Final merge level " << mergeLevel << " has " << runCount << " runs" << std::endl;
+		initialize_final_merger(mergeLevel, runCount);
 
 		pull_prepared = true;
 	}
@@ -331,27 +416,70 @@ public:
 	}
 
 private:
-	inline void calculate_parameters() {
+	///////////////////////////////////////////////////////////////////////////
+	/// \brief Calculate parameters from given memory amount.
+	/// \param m2 Memory available for phase 2
+	/// \param m3 Memory available for phase 3
+	/// \param m4 Memory available for phase 4
+	///////////////////////////////////////////////////////////////////////////
+	inline void calculate_parameters(memory_size_type m2, memory_size_type m3, memory_size_type m4) {
 		// Phase 2 (run formation):
 		// Run length: determined by the number of items we can hold in memory.
 		// Fanout: unbounded
-		//
+
+		memory_size_type streamMemory = file_stream<T>::memory_usage();
+
+		log_debug() << "Phase 2: " << m2 << " b available memory; " << streamMemory << " b for a single stream\n";
+		memory_size_type min_m2 = sizeof(T) + streamMemory;
+		if (m2 < min_m2) {
+			log_warning() << "Not enough phase 2 memory for an item and an open stream! (" << m2 << " < " << min_m2 << ")\n";
+			m2 = min_m2;
+		}
+		p.runLength = (m2 - streamMemory)/sizeof(T);
+
+		p.internalReportThreshold = std::min(m2, std::min(m3, m4))/sizeof(T);
+		if (p.internalReportThreshold > p.runLength)
+			p.internalReportThreshold = p.runLength;
+
 		// Phase 3 (merge):
 		// Run length: unbounded
 		// Fanout: determined by the size of our merge heap and the stream memory usage.
-		//
+		log_debug() << "Phase 3: " << m3 << " b available memory\n";
+		p.fanout = calculate_fanout(m3);
+		if (fanout_memory_usage(p.fanout) > m3) {
+			log_debug() << "Not enough memory for fanout " << p.fanout << "! (" << m3 << " < " << fanout_memory_usage(p.fanout) << ")\n";
+			m3 = fanout_memory_usage(p.fanout);
+		}
+
 		// Phase 4 (final merge & report):
 		// Run length: unbounded
 		// Fanout: determined by the stream memory usage.
+		log_debug() << "Phase 4: " << m4 << " b available memory\n";
+		p.finalFanout = calculate_fanout(m4);
 
-		memory_size_type streamMemory = file_stream<T>::memory_usage();
-		log_debug() << availableMemory << " b available memory; " << streamMemory << " b for a single stream\n";
-		if (availableMemory < 3*streamMemory) {
-			log_warning() << "Not enough memory for three open streams! (" << availableMemory << " < " << 3*streamMemory << ")\n";
-			availableMemory = 3*streamMemory;
+		if (p.finalFanout > p.fanout)
+			p.finalFanout = p.fanout;
+
+		if (fanout_memory_usage(p.finalFanout) > m4) {
+			log_debug() << "Not enough memory for fanout " << p.finalFanout << "! (" << m4 << " < " << fanout_memory_usage(p.finalFanout) << ")\n";
+			m4 = fanout_memory_usage(p.finalFanout);
 		}
-		const size_t runLength = (availableMemory - streamMemory)/sizeof(T);
 
+		p.memoryPhase2 = m2;
+		p.memoryPhase3 = m3;
+		p.memoryPhase4 = m4;
+
+		m_parametersSet = true;
+
+		log_debug() << "Calculated merge sort parameters\n";
+		p.dump(log_debug());
+		log_debug() << std::endl;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// calculate_parameters helper
+	///////////////////////////////////////////////////////////////////////////
+	static inline memory_size_type calculate_fanout(memory_size_type availableMemory) {
 		memory_size_type fanout_lo = 2;
 		memory_size_type fanout_hi = 251; // arbitrary. TODO: run experiments to find threshold
 		// binary search
@@ -363,14 +491,13 @@ private:
 				fanout_hi = mid;
 			}
 		}
-		log_debug() << "Calculated merge sort parameters\n";
-		set_parameters(runLength, fanout_lo);
+		return fanout_lo;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// calculate_parameters helper
 	///////////////////////////////////////////////////////////////////////////
-	inline stream_size_type fanout_memory_usage(memory_size_type fanout) {
+	static inline stream_size_type fanout_memory_usage(memory_size_type fanout) {
 		return merger<T, pred_t>::memory_usage(fanout) // accounts for the `fanout' open streams
 			+ file_stream<T>::memory_usage(); // output stream
 	}
@@ -402,6 +529,7 @@ private:
 	}
 
 	sort_parameters p;
+	bool m_parametersSet;
 
 	merger<T, pred_t> m_merger;
 
@@ -417,13 +545,11 @@ private:
 	size_t m_currentRunItemCount;
 
 	bool m_reportInternal;
-	
+
 	// when doing internal reporting: the number of items already reported
 	size_t m_itemsPulled;
 
 	bool pull_prepared;
-
-	memory_size_type availableMemory;
 
 	pred_t pred;
 };
@@ -556,14 +682,14 @@ struct sort_t : public pipe_segment {
 	}
 
 	inline sort_t(const dest_t & dest)
-		: sorter(new sorter_t(0))
+		: sorter(new sorter_t())
 		, calc(*this, sorter)
 		, output(dest, calc, sorter)
 	{
 	}
 
 	inline void begin() {
-		sorter->set_available_memory(this->get_available_memory());
+		sorter->set_available_memory(this->get_available_memory(), calc.get_available_memory(), output.get_available_memory());
 		sorter->begin();
 	}
 
@@ -596,10 +722,11 @@ struct passive_sorter {
 	typedef sort_pull_output_t<item_type, pred_t> output_t;
 
 	inline passive_sorter()
-		: sorter(new sorter_t(0))
+		: sorter(new sorter_t())
 		, calc(input_token, sorter)
 		, m_output(calc, sorter)
 	{
+		// XXX: we need to call sorter->set_available_memory at some point
 	}
 
 	inline pipe_end<termfactory_2<input_t, sorterptr, const segment_token &> > input() {
