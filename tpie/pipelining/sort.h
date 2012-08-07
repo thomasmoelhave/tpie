@@ -530,7 +530,7 @@ private:
 	inline void open_run_file_read(file_stream<T> & fs, size_t mergeLevel, size_t runNumber) {
 		size_t idx = run_file_index(mergeLevel, runNumber);
 		fs.open(m_runFiles->at(idx), file_stream_base::read);
-		fs.seek(p.runLength * (runNumber / p.fanout), file_stream<T>::beginning);
+		fs.seek(calculate_run_length(p.runLength, p.fanout, mergeLevel) * (runNumber / p.fanout), file_stream<T>::beginning);
 	}
 
 	sort_parameters p;
