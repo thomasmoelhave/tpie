@@ -86,6 +86,8 @@ set (HEADERS
 		pipelining/graph.h
 		pipelining/helpers.h
 		pipelining/merge.h
+		pipelining/merger.h
+		pipelining/merge_sorter.h
 		pipelining/numeric.h
 		pipelining/pipe_segment.h
 		pipelining/plotter.h

@@ -18,7 +18,8 @@
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 
 #include "common.h"
-#include <tpie/pipelining/sort.h>
+#include <tpie/pipelining/merge_sorter.h>
+#include <tpie/parallel_sort.h>
 #include <tpie/sysinfo.h>
 #include <boost/random.hpp>
 
