@@ -91,7 +91,8 @@ void test(testparams & p) {
 
 		getTestRealtime(start);
 
-		merge_sorter<test_t> m(p.memoryLimit);
+		merge_sorter<test_t> m;
+		m.set_available_memory(p.memoryLimit);
 		if (p.runLength) {
 			m.set_parameters(p.runLength, p.fanout);
 		}
