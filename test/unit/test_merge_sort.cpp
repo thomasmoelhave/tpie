@@ -67,12 +67,12 @@ private:
 bool sort_test(memory_size_type m2,
 			   memory_size_type m3,
 			   memory_size_type m4,
-			   stream_size_type mb_data)
+			   double mb_data)
 {
 	m2 *= 1024*1024;
 	m3 *= 1024*1024;
 	m4 *= 1024*1024;
-	stream_size_type items = mb_data*1024/sizeof(test_t)*1024;
+	stream_size_type items = static_cast<stream_size_type>(mb_data*1024/sizeof(test_t)*1024);
 	log_debug() << "sort_test with " << items << " items\n";
 	boost::rand48 rng;
 	relative_memory_usage m;
@@ -126,8 +126,8 @@ bool external_report_test() {
 	return sort_test(20,20,20,50);
 }
 
-bool small_final_fanout_test(size_t mb) {
-	return sort_test(5,14,7,mb);
+bool small_final_fanout_test(double mb) {
+	return sort_test(3,10,7,mb);
 }
 
 int main(int argc, char ** argv) {
@@ -135,6 +135,6 @@ int main(int argc, char ** argv) {
 		.test(internal_report_test, "internal_report")
 		.test(one_run_external_report_test, "one_run_external_report")
 		.test(external_report_test, "external_report")
-		.test(small_final_fanout_test, "small_final_fanout", "mb", 300)
+		.test(small_final_fanout_test, "small_final_fanout", "mb", 8.99707)
 		;
 }
