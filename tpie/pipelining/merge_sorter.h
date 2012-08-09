@@ -57,7 +57,7 @@ struct merge_sorter {
 	/// \brief  Enable setting run length and fanout manually (for testing
 	/// purposes).
 	///////////////////////////////////////////////////////////////////////////
-	inline void set_parameters(size_t runLength, size_t fanout) {
+	inline void set_parameters(stream_size_type runLength, memory_size_type fanout) {
 		p.runLength = p.internalReportThreshold = runLength;
 		p.fanout = p.finalFanout = fanout;
 		m_parametersSet = true;
@@ -157,7 +157,7 @@ private:
 			log_debug() << "..." << std::endl;
 		file_stream<T> fs;
 		open_run_file_write(fs, 0, m_finishedRuns);
-		for (size_t i = 0; i < m_currentRunItemCount; ++i) {
+		for (memory_size_type i = 0; i < m_currentRunItemCount; ++i) {
 			fs.write(m_currentRunItems[i]);
 		}
 		m_currentRunItemCount = 0;
@@ -168,13 +168,16 @@ private:
 	/// Prepare m_merger for merging the runNumber'th to the
 	/// (runNumber+runCount)'th run in mergeLevel.
 	///////////////////////////////////////////////////////////////////////////
-	inline void initialize_merger(size_t mergeLevel, size_t runNumber, size_t runCount) {
+	inline void initialize_merger(memory_size_type mergeLevel, memory_size_type runNumber, memory_size_type runCount) {
+		// runCount is a memory_size_type since we must be able to have that
+		// many file_streams open at the same time.
+
 		// Open files and seek to the first item in the run.
 		array<file_stream<T> > in(runCount);
-		for (size_t i = 0; i < runCount; ++i) {
+		for (memory_size_type i = 0; i < runCount; ++i) {
 			open_run_file_read(in[i], mergeLevel, runNumber+i);
 		}
-		size_t runLength = calculate_run_length(p.runLength, p.fanout, mergeLevel);
+		stream_size_type runLength = calculate_run_length(p.runLength, p.fanout, mergeLevel);
 		// Pass file streams with correct stream offsets to the merger
 		m_merger.reset(in, runLength);
 	}
@@ -182,24 +185,24 @@ private:
 	///////////////////////////////////////////////////////////////////////////
 	/// Prepare m_merger for merging the runCount runs in finalMergeLevel.
 	///////////////////////////////////////////////////////////////////////////
-	inline void initialize_final_merger(size_t finalMergeLevel, size_t runCount) {
+	inline void initialize_final_merger(memory_size_type finalMergeLevel, memory_size_type runCount) {
 		if (runCount > p.finalFanout) {
 			log_debug() << "Run count in final level (" << runCount << ") is greater than the final fanout (" << p.finalFanout << ")\n";
-			size_t runNumber;
+			memory_size_type runNumber;
 			{
-				size_t i = p.finalFanout-1;
-				size_t n = runCount-(p.finalFanout-1);
+				memory_size_type i = p.finalFanout-1;
+				memory_size_type n = runCount-i;
 				log_debug() << "Merge " << n << " runs starting from #" << i << std::endl;
 				runNumber = merge_runs(finalMergeLevel, i, n);
 			}
 			array<file_stream<T> > in(p.finalFanout);
-			for (size_t i = 0; i < p.finalFanout-1; ++i) {
+			for (memory_size_type i = 0; i < p.finalFanout-1; ++i) {
 				open_run_file_read(in[i], finalMergeLevel, i);
 				log_debug() << "Run " << i << " is at offset " << in[i].offset() << " and has size " << in[i].size() << std::endl;
 			}
 			open_run_file_read(in[p.finalFanout-1], finalMergeLevel+1, runNumber);
 			log_debug() << "Special large run is at offset " << in[p.finalFanout-1].offset() << " and has size " << in[p.finalFanout-1].size() << std::endl;
-			size_t runLength = calculate_run_length(p.runLength, p.fanout, finalMergeLevel+1);
+			stream_size_type runLength = calculate_run_length(p.runLength, p.fanout, finalMergeLevel+1);
 			log_debug() << "Run length " << runLength << std::endl;
 			m_merger.reset(in, runLength);
 		} else {
@@ -211,9 +214,9 @@ private:
 	///////////////////////////////////////////////////////////////////////////
 	/// initialize_merger helper.
 	///////////////////////////////////////////////////////////////////////////
-	static inline size_t calculate_run_length(size_t initialRunLength, size_t fanout, size_t mergeLevel) {
-		size_t runLength = initialRunLength;
-		for (size_t i = 0; i < mergeLevel; ++i) {
+	static inline stream_size_type calculate_run_length(stream_size_type initialRunLength, memory_size_type fanout, memory_size_type mergeLevel) {
+		stream_size_type runLength = initialRunLength;
+		for (memory_size_type i = 0; i < mergeLevel; ++i) {
 			runLength *= fanout;
 		}
 		return runLength;
@@ -224,10 +227,10 @@ private:
 	/// into mergeLevel+1.
 	/// \returns The run number in mergeLevel+1 that was written to.
 	///////////////////////////////////////////////////////////////////////////
-	inline size_t merge_runs(size_t mergeLevel, size_t runNumber, size_t runCount) {
+	inline memory_size_type merge_runs(memory_size_type mergeLevel, memory_size_type runNumber, memory_size_type runCount) {
 		initialize_merger(mergeLevel, runNumber, runCount);
 		file_stream<T> out;
-		size_t nextRunNumber = runNumber/p.fanout;
+		memory_size_type nextRunNumber = runNumber/p.fanout;
 		open_run_file_write(out, mergeLevel+1, nextRunNumber);
 		while (m_merger.can_pull()) {
 			out.write(m_merger.pull());
@@ -239,13 +242,13 @@ private:
 	/// Phase 3: Merge all runs and initialize merger for public pulling.
 	///////////////////////////////////////////////////////////////////////////
 	inline void prepare_pull() {
-		size_t mergeLevel = 0;
-		size_t runCount = m_finishedRuns;
+		memory_size_type mergeLevel = 0;
+		memory_size_type runCount = m_finishedRuns;
 		while (runCount > p.fanout) {
 			log_debug() << "Merge " << runCount << " runs in merge level " << mergeLevel << '\n';
-			size_t newRunCount = 0;
-			for (size_t i = 0; i < runCount; i += p.fanout) {
-				size_t n = std::min(runCount-i, p.fanout);
+			memory_size_type newRunCount = 0;
+			for (memory_size_type i = 0; i < runCount; i += p.fanout) {
+				memory_size_type n = std::min(runCount-i, p.fanout);
 
 				if (newRunCount < 10)
 					log_debug() << "Merge " << n << " runs starting from #" << i << std::endl;
@@ -419,16 +422,23 @@ private:
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Figure out the index in m_runFiles of the given run.
+	/// \param mergeLevel  Distance from leaves of merge tree.
+	/// \param runNumber  Index in current merge level.
 	///////////////////////////////////////////////////////////////////////////
-	inline size_t run_file_index(size_t mergeLevel, size_t runNumber) {
+	inline memory_size_type run_file_index(memory_size_type mergeLevel, memory_size_type runNumber) {
+		// runNumber is a memory_size_type since it is used as an index into
+		// m_runFiles.
+
 		return (mergeLevel % 2)*p.fanout + (runNumber % p.fanout);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Open a new run file and seek to the end.
 	///////////////////////////////////////////////////////////////////////////
-	inline void open_run_file_write(file_stream<T> & fs, size_t mergeLevel, size_t runNumber) {
-		size_t idx = run_file_index(mergeLevel, runNumber);
+	inline void open_run_file_write(file_stream<T> & fs, memory_size_type mergeLevel, memory_size_type runNumber) {
+		// see run_file_index comment about runNumber
+
+		memory_size_type idx = run_file_index(mergeLevel, runNumber);
 		if (runNumber < p.fanout) m_runFiles->at(idx).free();
 		fs.open(m_runFiles->at(idx), file_stream_base::read_write);
 		fs.seek(0, file_stream<T>::end);
@@ -437,8 +447,10 @@ private:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Open an existing run file and seek to the correct offset.
 	///////////////////////////////////////////////////////////////////////////
-	inline void open_run_file_read(file_stream<T> & fs, size_t mergeLevel, size_t runNumber) {
-		size_t idx = run_file_index(mergeLevel, runNumber);
+	inline void open_run_file_read(file_stream<T> & fs, memory_size_type mergeLevel, memory_size_type runNumber) {
+		// see run_file_index comment about runNumber
+
+		memory_size_type idx = run_file_index(mergeLevel, runNumber);
 		fs.open(m_runFiles->at(idx), file_stream_base::read);
 		fs.seek(calculate_run_length(p.runLength, p.fanout, mergeLevel) * (runNumber / p.fanout), file_stream<T>::beginning);
 	}
@@ -451,18 +463,20 @@ private:
 	boost::shared_ptr<array<temp_file> > m_runFiles;
 
 	// number of runs already written to disk.
-	size_t m_finishedRuns;
+	stream_size_type m_finishedRuns;
 
 	// current run buffer. size 0 before begin(), size runLength after begin().
 	array<T> m_currentRunItems;
 
-	// number of items in current run buffer.
-	size_t m_currentRunItemCount;
+	// Number of items in current run buffer.
+	// Used to index into m_currentRunItems, so memory_size_type.
+	memory_size_type m_currentRunItemCount;
 
 	bool m_reportInternal;
 
-	// when doing internal reporting: the number of items already reported
-	size_t m_itemsPulled;
+	// When doing internal reporting: the number of items already reported
+	// Used in comparison with m_currentRunItemCount
+	memory_size_type m_itemsPulled;
 
 	bool pull_prepared;
 
