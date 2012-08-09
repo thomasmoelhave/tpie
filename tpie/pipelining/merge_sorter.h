@@ -289,6 +289,20 @@ public:
 		}
 	}
 
+	static memory_size_type memory_usage_phase_2(const sort_parameters & params) {
+		return params.runLength * sizeof(T)
+			+ file_stream<T>::memory_usage()
+			+ 2*params.fanout*sizeof(temp_file);
+	}
+
+	static memory_size_type memory_usage_phase_3(const sort_parameters & params) {
+		return fanout_memory_usage(params.fanout);
+	}
+
+	static memory_size_type memory_usage_phase_4(const sort_parameters & params) {
+		return fanout_memory_usage(params.finalFanout);
+	}
+
 private:
 	///////////////////////////////////////////////////////////////////////////
 	/// \brief Calculate parameters from given memory amount.
@@ -296,32 +310,36 @@ private:
 	/// \param m3 Memory available for phase 3
 	/// \param m4 Memory available for phase 4
 	///////////////////////////////////////////////////////////////////////////
-	inline void calculate_parameters(memory_size_type m2, memory_size_type m3, memory_size_type m4) {
+	inline void calculate_parameters(const memory_size_type m2, const memory_size_type m3, const memory_size_type m4) {
+		p.memoryPhase2 = m2;
+		p.memoryPhase3 = m3;
+		p.memoryPhase4 = m4;
+
 		// We must set aside memory for temp_files in m_runFiles.
 		// m_runFiles contains fanout*2 temp_files, so calculate fanout before run length.
 
 		// Phase 3 (merge):
 		// Run length: unbounded
 		// Fanout: determined by the size of our merge heap and the stream memory usage.
-		log_debug() << "Phase 3: " << m3 << " b available memory\n";
-		p.fanout = calculate_fanout(m3);
-		if (fanout_memory_usage(p.fanout) > m3) {
-			log_debug() << "Not enough memory for fanout " << p.fanout << "! (" << m3 << " < " << fanout_memory_usage(p.fanout) << ")\n";
-			m3 = fanout_memory_usage(p.fanout);
+		log_debug() << "Phase 3: " << p.memoryPhase3 << " b available memory\n";
+		p.fanout = calculate_fanout(p.memoryPhase3);
+		if (fanout_memory_usage(p.fanout) > p.memoryPhase3) {
+			log_debug() << "Not enough memory for fanout " << p.fanout << "! (" << p.memoryPhase3 << " < " << fanout_memory_usage(p.fanout) << ")\n";
+			p.memoryPhase3 = fanout_memory_usage(p.fanout);
 		}
 
 		// Phase 4 (final merge & report):
 		// Run length: unbounded
 		// Fanout: determined by the stream memory usage.
-		log_debug() << "Phase 4: " << m4 << " b available memory\n";
-		p.finalFanout = calculate_fanout(m4);
+		log_debug() << "Phase 4: " << p.memoryPhase4 << " b available memory\n";
+		p.finalFanout = calculate_fanout(p.memoryPhase4);
 
 		if (p.finalFanout > p.fanout)
 			p.finalFanout = p.fanout;
 
-		if (fanout_memory_usage(p.finalFanout) > m4) {
-			log_debug() << "Not enough memory for fanout " << p.finalFanout << "! (" << m4 << " < " << fanout_memory_usage(p.finalFanout) << ")\n";
-			m4 = fanout_memory_usage(p.finalFanout);
+		if (fanout_memory_usage(p.finalFanout) > p.memoryPhase4) {
+			log_debug() << "Not enough memory for fanout " << p.finalFanout << "! (" << p.memoryPhase4 << " < " << fanout_memory_usage(p.finalFanout) << ")\n";
+			p.memoryPhase4 = fanout_memory_usage(p.finalFanout);
 		}
 
 		// Phase 2 (run formation):
@@ -331,27 +349,45 @@ private:
 		memory_size_type streamMemory = file_stream<T>::memory_usage();
 		memory_size_type tempFileMemory = 2*p.fanout*sizeof(temp_file);
 
-		log_debug() << "Phase 2: " << m2 << " b available memory; " << streamMemory << " b for a single stream; " << tempFileMemory << " b for temp_files\n";
+		log_debug() << "Phase 2: " << p.memoryPhase2 << " b available memory; " << streamMemory << " b for a single stream; " << tempFileMemory << " b for temp_files\n";
 		memory_size_type min_m2 = sizeof(T) + streamMemory + tempFileMemory;
-		if (m2 < min_m2) {
-			log_warning() << "Not enough phase 2 memory for an item and an open stream! (" << m2 << " < " << min_m2 << ")\n";
-			m2 = min_m2;
+		if (p.memoryPhase2 < min_m2) {
+			log_warning() << "Not enough phase 2 memory for an item and an open stream! (" << p.memoryPhase2 << " < " << min_m2 << ")\n";
+			p.memoryPhase2 = min_m2;
 		}
-		p.runLength = (m2 - streamMemory - tempFileMemory)/sizeof(T);
+		p.runLength = (p.memoryPhase2 - streamMemory - tempFileMemory)/sizeof(T);
 
-		p.internalReportThreshold = (std::min(m2, std::min(m3, m4)) - tempFileMemory)/sizeof(T);
+		p.internalReportThreshold = (std::min(p.memoryPhase2,
+											  std::min(p.memoryPhase3,
+													   p.memoryPhase4))
+									 - tempFileMemory)/sizeof(T);
 		if (p.internalReportThreshold > p.runLength)
 			p.internalReportThreshold = p.runLength;
-
-		p.memoryPhase2 = m2;
-		p.memoryPhase3 = m3;
-		p.memoryPhase4 = m4;
 
 		m_parametersSet = true;
 
 		log_debug() << "Calculated merge sort parameters\n";
 		p.dump(log_debug());
 		log_debug() << std::endl;
+
+		log_debug() << "Merge sort phase 2: "
+			<< m2 << " b available, " << memory_usage_phase_2(p) << " b expected" << std::endl;
+		if (memory_usage_phase_2(p) > m2) {
+			log_warning() << "Merge sort phase 2 exceeds the alloted memory usage: "
+				<< m2 << " b available, but " << memory_usage_phase_2(p) << " b expected" << std::endl;
+		}
+		log_debug() << "Merge sort phase 3: "
+			<< m3 << " b available, " << memory_usage_phase_3(p) << " b expected" << std::endl;
+		if (memory_usage_phase_3(p) > m3) {
+			log_warning() << "Merge sort phase 3 exceeds the alloted memory usage: "
+				<< m3 << " b available, but " << memory_usage_phase_3(p) << " b expected" << std::endl;
+		}
+		log_debug() << "Merge sort phase 4: "
+			<< m4 << " b available, " << memory_usage_phase_4(p) << " b expected" << std::endl;
+		if (memory_usage_phase_4(p) > m4) {
+			log_warning() << "Merge sort phase 4 exceeds the alloted memory usage: "
+				<< m4 << " b available, but " << memory_usage_phase_4(p) << " b expected" << std::endl;
+		}
 	}
 
 	///////////////////////////////////////////////////////////////////////////
