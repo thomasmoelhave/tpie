@@ -235,7 +235,7 @@ bool merge_test() {
 
 bool reverse_test() {
 
-	reverser<size_t> r(inputvector.size());
+	reverser<test_t> r(inputvector.size());
 
 	pipeline p1 = input_vector(inputvector) | r.sink();
 	pipeline p2 = r.source() | output_vector(outputvector);
