@@ -78,16 +78,16 @@ struct merger {
 		itemsRead.resize(n, 1);
 	}
 
-	inline static stream_size_type memory_usage(stream_size_type fanout) {
+	inline static memory_size_type memory_usage(memory_size_type fanout) {
 		return sizeof(merger)
 			- sizeof(internal_priority_queue<std::pair<T, size_t>, predwrap>) // pq
-			+ internal_priority_queue<std::pair<T, size_t>, predwrap>::memory_usage(fanout) // pq
+			+ static_cast<memory_size_type>(internal_priority_queue<std::pair<T, size_t>, predwrap>::memory_usage(fanout)) // pq
 			- sizeof(array<file_stream<T> >) // in
-			+ array<file_stream<T> >::memory_usage(fanout) // in
+			+ static_cast<memory_size_type>(array<file_stream<T> >::memory_usage(fanout)) // in
 			- fanout*sizeof(file_stream<T>) // in file_streams
 			+ fanout*file_stream<T>::memory_usage() // in file_streams
 			- sizeof(array<size_t>) // itemsRead
-			+ array<size_t>::memory_usage(fanout) // itemsRead
+			+ static_cast<memory_size_type>(array<size_t>::memory_usage(fanout)) // itemsRead
 			;
 	}
 

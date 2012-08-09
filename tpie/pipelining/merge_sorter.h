@@ -414,7 +414,7 @@ private:
 	///////////////////////////////////////////////////////////////////////////
 	/// calculate_parameters helper
 	///////////////////////////////////////////////////////////////////////////
-	static inline stream_size_type fanout_memory_usage(memory_size_type fanout) {
+	static inline memory_size_type fanout_memory_usage(memory_size_type fanout) {
 		return merger<T, pred_t>::memory_usage(fanout) // accounts for the `fanout' open streams
 			+ file_stream<T>::memory_usage() // output stream
 			+ 2*sizeof(temp_file); // merge_sorter::m_runFiles
