@@ -119,7 +119,7 @@ bool internal_report_test() {
 }
 
 bool one_run_external_report_test() {
-	return sort_test(100,20,20,50);
+	return sort_test(100,7,7,7);
 }
 
 bool external_report_test() {
