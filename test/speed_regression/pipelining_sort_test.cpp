@@ -23,7 +23,6 @@
 #include <tpie/pipelining/sort.h>
 #include <tpie/prime.h>
 #include <vector>
-#include <err.h>
 #include "stat.h"
 #include "testinfo.h"
 #include "testtime.h"
@@ -32,7 +31,7 @@ using namespace tpie;
 using namespace tpie::test;
 using namespace tpie::pipelining;
 
-typedef uint64_t test_t;
+typedef tpie::uint64_t test_t;
 
 struct testparams {
 	stream_size_type elements;
@@ -106,7 +105,10 @@ void test(testparams & p) {
 			}
 		}
 		m.end();
-		if (pushed != p.elements) errx(101, "Wut");
+		if (pushed != p.elements) {
+			log_error() << "Didn't push the right number of elements" << std::endl;
+			return;
+		}
 
 		getTestRealtime(end);
 		stats(testRealtimeDiff(start, end));
