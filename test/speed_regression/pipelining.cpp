@@ -29,9 +29,9 @@ using namespace tpie;
 using namespace tpie::pipelining;
 using namespace tpie::test;
 
-const size_t count_default=1024*1024*1024/sizeof(uint64_t);
+typedef tpie::uint64_t test_t;
 
-typedef uint64_t test_t;
+const size_t count_default=1024*1024*1024/sizeof(test_t);
 
 static std::string prog;
 
