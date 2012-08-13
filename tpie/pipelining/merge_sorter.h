@@ -191,7 +191,7 @@ public:
 	}
 
 	inline void evacuate_before_reporting() {
-		if (m_state == stReport && m_itemsPulled == 0) evacuate();
+		if (m_state == stReport && (!m_reportInternal || m_itemsPulled == 0)) evacuate();
 	}
 
 private:
