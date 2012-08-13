@@ -45,6 +45,7 @@ struct sort_input_t : public pipe_segment {
 		: pipe_segment(token)
 		, sorter(sorter)
 	{
+		set_minimum_memory(sorter_t::minimum_memory_phase_1());
 	}
 
 	inline void begin() {
@@ -79,12 +80,14 @@ struct sort_calc_t : public pipe_segment {
 		: sorter(sorter)
 	{
 		add_dependency(input);
+		set_minimum_memory(sorter_t::minimum_memory_phase_2());
 	}
 
 	inline sort_calc_t(const pipe_segment & input, const sorterptr & sorter)
 		: sorter(sorter)
 	{
 		add_dependency(input);
+		set_minimum_memory(sorter_t::minimum_memory_phase_2());
 	}
 
 	inline void go() {
@@ -113,6 +116,7 @@ struct sort_output_t : public pipe_segment {
 	{
 		add_dependency(calc);
 		add_push_destination(dest);
+		set_minimum_memory(sorter_t::minimum_memory_phase_3());
 	}
 
 	void go() {
@@ -144,6 +148,7 @@ struct sort_pull_output_t : public pipe_segment {
 		: sorter(sorter)
 	{
 		add_dependency(calc);
+		set_minimum_memory(sorter_t::minimum_memory_phase_3());
 	}
 
 	inline void begin() {
@@ -185,6 +190,7 @@ struct sort_t : public pipe_segment {
 		, calc(other.calc)
 		, output(other.output)
 	{
+		set_minimum_memory(sorter_t::minimum_memory_phase_1());
 	}
 
 	inline sort_t(const dest_t & dest)
@@ -192,6 +198,7 @@ struct sort_t : public pipe_segment {
 		, calc(*this, sorter)
 		, output(dest, calc, sorter)
 	{
+		set_minimum_memory(sorter_t::minimum_memory_phase_1());
 	}
 
 	inline void begin() {
