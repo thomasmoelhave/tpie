@@ -124,7 +124,7 @@ protected:
 		m_minimumMemory = minimumMemory;
 	}
 
-	inline void set_available_memory(memory_size_type availableMemory) {
+	virtual void set_available_memory(memory_size_type availableMemory) {
 		m_availableMemory = availableMemory;
 	}
 
