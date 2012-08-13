@@ -172,17 +172,17 @@ struct output_count_t : public pipe_segment {
 	}
 
 	inline void begin() {
-		std::cout << "Begin output" << std::endl;
+		log_info() << "Begin output" << std::endl;
 	}
 
 	inline void end() {
-		std::cout << "End output" << std::endl;
-		std::cout << "We saw " << nodes << " nodes and " << children << " children" << std::endl;
+		log_info() << "End output" << std::endl;
+		log_info() << "We saw " << nodes << " nodes and " << children << " children" << std::endl;
 	}
 
 	inline void push(const node_output & node) {
-		if (nodes < 32) std::cout << node << std::endl;
-		else if (nodes == 32) std::cout << "..." << std::endl;
+		if (nodes < 32) log_info() << node << std::endl;
+		else if (nodes == 32) log_info() << "..." << std::endl;
 		children += node.children;
 		++nodes;
 	}
@@ -194,17 +194,24 @@ output_count() {
 }
 
 int main(int argc, char ** argv) {
-	tpie_init();
-	size_t nodes = 1 << 20;
-	if (argc > 1) std::stringstream(argv[1]) >> nodes;
+	tpie_init(ALL & ~DEFAULT_LOGGING);
+
 	{
+		stderr_log_target stderr_target(LOG_DEBUG);
+		get_log().add_target(&stderr_target);
+
+		get_memory_manager().set_limit(13*1024*1024);
+
+		size_t nodes = 1 << 20;
+		if (argc > 1) std::stringstream(argv[1]) >> nodes;
 		passive_sorter<node, sort_by_id> byid;
 		passive_sorter<node, sort_by_parent> byparent;
 		pipeline p1 = input_nodes(nodes) | fork(byid.input()) | byparent.input();
 		pipeline p2 = count(byid.output(), byparent.output()) | output_count();
 		p1.plot();
 		p1();
+		get_log().remove_target(&stderr_target);
 	}
-	tpie_finish();
+	tpie_finish(ALL & ~DEFAULT_LOGGING);
 	return 0;
 }
