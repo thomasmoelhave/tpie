@@ -173,13 +173,16 @@ public:
 	inline void evacuate() {
 		tp_assert(m_state == stMerge || m_state == stReport, "Wrong phase");
 		if (m_reportInternal) {
+			log_debug() << "Evacuate merge_sorter (" << this << ") in internal reporting mode" << std::endl;
 			m_reportInternal = false;
 			empty_current_run();
 			m_currentRunItems.resize(0);
 			initialize_final_merger(0, 1);
 		} else if (m_state == stMerge) {
+			log_debug() << "Evacuate merge_sorter (" << this << ") before merge in external reporting mode (noop)" << std::endl;
 			return;
 		}
+		log_debug() << "Evacuate merge_sorter (" << this << ") before reporting in external reporting mode" << std::endl;
 		m_merger.reset();
 	}
 
