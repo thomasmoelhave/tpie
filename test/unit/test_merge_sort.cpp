@@ -43,16 +43,20 @@ struct relative_memory_usage {
 		get_memory_manager().set_limit(m_startMemory + m_threshold);
 	}
 
-	inline bool below() {
-		if (used() > m_threshold) {
-			report_overusage();
+	inline bool below(memory_size_type threshold) {
+		if (used() > threshold) {
+			report_overusage(threshold);
 			return false;
 		}
 		return true;
 	}
 
-	void report_overusage() {
-		log_error() << "Memory usage " << used() << " exceeds threshold " << m_threshold << std::endl;
+	inline bool below() {
+		return below(m_threshold);
+	}
+
+	void report_overusage(memory_size_type threshold) {
+		log_error() << "Memory usage " << used() << " exceeds threshold " << threshold << std::endl;
 	}
 
 private:
@@ -90,11 +94,19 @@ bool sort_test(memory_size_type m2,
 	s.end();
 	if (!m.below()) return false;
 
+	s.evacuate();
+	log_debug() << "MEMORY USED: " << m.used() << '/' << s.evacuated_memory_usage() << std::endl;
+	if (!m.below(s.evacuated_memory_usage())) return false;
+
 	log_debug() << "Begin phase 3" << std::endl;
 	m.set_threshold(m3);
 	if (!m.below()) return false;
 	s.calc();
 	if (!m.below()) return false;
+
+	s.evacuate();
+	log_debug() << "MEMORY USED: " << m.used() << '/' << s.evacuated_memory_usage() << std::endl;
+	if (!m.below(s.evacuated_memory_usage())) return false;
 
 	log_debug() << "Begin phase 4" << std::endl;
 	m.set_threshold(m4);
@@ -110,6 +122,9 @@ bool sort_test(memory_size_type m2,
 		}
 		prev = read;
 	}
+
+	log_debug() << "MEMORY USED: " << m.used() << '/' << s.evacuated_memory_usage() << std::endl;
+	if (!m.below(s.evacuated_memory_usage())) return false;
 
 	return true;
 }
