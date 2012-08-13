@@ -45,6 +45,7 @@ struct merge_sorter {
 
 	inline merge_sorter(pred_t pred = pred_t())
 		: m_state(stParameters)
+		, p()
 		, m_parametersSet(false)
 		, m_merger(pred)
 		, pred(pred)
@@ -81,6 +82,33 @@ struct merge_sorter {
 	///////////////////////////////////////////////////////////////////////////
 	inline void set_available_memory(memory_size_type m1, memory_size_type m2, memory_size_type m3) {
 		calculate_parameters(m1, m2, m3);
+	}
+
+private:
+	// set_phase_?_memory helper
+	inline void maybe_calculate_parameters() {
+		if (p.memoryPhase1 > 0 &&
+			p.memoryPhase2 > 0 &&
+			p.memoryPhase3 > 0)
+			calculate_parameters(p.memoryPhase1,
+								 p.memoryPhase2,
+								 p.memoryPhase3);
+	}
+
+public:
+	inline void set_phase_1_memory(memory_size_type m1) {
+		p.memoryPhase1 = m1;
+		maybe_calculate_parameters();
+	}
+
+	inline void set_phase_2_memory(memory_size_type m2) {
+		p.memoryPhase2 = m2;
+		maybe_calculate_parameters();
+	}
+
+	inline void set_phase_3_memory(memory_size_type m3) {
+		p.memoryPhase3 = m3;
+		maybe_calculate_parameters();
 	}
 
 	///////////////////////////////////////////////////////////////////////////

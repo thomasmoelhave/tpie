@@ -48,7 +48,6 @@ struct sort_input_t : public pipe_segment {
 	}
 
 	inline void begin() {
-		sorter->set_available_memory(this->get_available_memory());
 		sorter->begin();
 	}
 
@@ -58,6 +57,12 @@ struct sort_input_t : public pipe_segment {
 
 	inline void end() {
 		sorter->end();
+	}
+
+protected:
+	void set_available_memory(memory_size_type availableMemory) {
+		pipe_segment::set_available_memory(availableMemory);
+		sorter->set_phase_1_memory(availableMemory);
 	}
 
 private:
@@ -85,6 +90,13 @@ struct sort_calc_t : public pipe_segment {
 	inline void go() {
 		sorter->calc();
 	}
+
+protected:
+	void set_available_memory(memory_size_type availableMemory) {
+		pipe_segment::set_available_memory(availableMemory);
+		sorter->set_phase_2_memory(availableMemory);
+	}
+
 private:
 	sorterptr sorter;
 };
@@ -110,6 +122,13 @@ struct sort_output_t : public pipe_segment {
 		}
 		dest.end();
 	}
+
+protected:
+	void set_available_memory(memory_size_type availableMemory) {
+		pipe_segment::set_available_memory(availableMemory);
+		sorter->set_phase_3_memory(availableMemory);
+	}
+
 private:
 	dest_t dest;
 	sorterptr sorter;
@@ -141,6 +160,12 @@ struct sort_pull_output_t : public pipe_segment {
 	inline void end() {
 	}
 
+protected:
+	void set_available_memory(memory_size_type availableMemory) {
+		pipe_segment::set_available_memory(availableMemory);
+		sorter->set_phase_3_memory(availableMemory);
+	}
+
 private:
 	sorterptr sorter;
 };
@@ -170,7 +195,6 @@ struct sort_t : public pipe_segment {
 	}
 
 	inline void begin() {
-		sorter->set_available_memory(this->get_available_memory(), calc.get_available_memory(), output.get_available_memory());
 		sorter->begin();
 	}
 
@@ -180,6 +204,12 @@ struct sort_t : public pipe_segment {
 
 	inline void end() {
 		sorter->end();
+	}
+
+protected:
+	void set_available_memory(memory_size_type availableMemory) {
+		pipe_segment::set_available_memory(availableMemory);
+		sorter->set_phase_1_memory(availableMemory);
 	}
 
 private:
@@ -207,7 +237,6 @@ struct passive_sorter {
 		, calc(input_token, sorter)
 		, m_output(calc, sorter)
 	{
-		// XXX: we need to call sorter->set_available_memory at some point
 	}
 
 	inline pipe_end<termfactory_2<input_t, sorterptr, const segment_token &> > input() {
