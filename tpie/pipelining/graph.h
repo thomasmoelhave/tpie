@@ -230,6 +230,12 @@ struct graph_traits {
 		return m_phases;
 	}
 
+	void go_all() {
+		for (phaseit i = m_phases.begin(); i != m_phases.end(); ++i) {
+			i->go();
+		}
+	}
+
 private:
 	const segment_map & map;
 	phases_t m_phases;
