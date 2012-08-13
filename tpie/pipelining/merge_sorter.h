@@ -49,6 +49,7 @@ struct merge_sorter {
 		, m_parametersSet(false)
 		, m_merger(pred)
 		, pred(pred)
+		, m_evacuated(false)
 		, m_finalMergeInitialized(false)
 	{
 	}
@@ -184,6 +185,7 @@ public:
 		}
 		log_debug() << "Evacuate merge_sorter (" << this << ") before reporting in external reporting mode" << std::endl;
 		m_merger.reset();
+		m_evacuated = true;
 	}
 
 	inline void evacuate_before_merging() {
@@ -279,6 +281,7 @@ public:
 		} else {
 			initialize_merger(m_finalMergeLevel, 0, m_finalRunCount);
 		}
+		m_evacuated = false;
 	}
 
 private:
@@ -346,7 +349,10 @@ public:
 	inline bool can_pull() {
 		tp_assert(m_state == stReport, "Wrong phase");
 		if (m_reportInternal) return m_itemsPulled < m_currentRunItemCount;
-		else return m_merger.can_pull();
+		else {
+			if (m_evacuated) reinitialize_final_merger();
+			return m_merger.can_pull();
+		}
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -359,6 +365,7 @@ public:
 			if (!can_pull()) m_currentRunItems.resize(0);
 			return el;
 		} else {
+			if (m_evacuated) reinitialize_final_merger();
 			return m_merger.pull();
 		}
 	}
@@ -588,6 +595,7 @@ private:
 
 	pred_t pred;
 
+	bool m_evacuated;
 	bool m_finalMergeInitialized;
 	memory_size_type m_finalMergeLevel;
 	memory_size_type m_finalRunCount;
