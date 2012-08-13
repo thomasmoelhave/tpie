@@ -90,6 +90,8 @@ public:
 			return sizeof(stream) + block_size(blockFactor) +  sizeof(block_t);
 		}
 
+		stream() {}
+
 		stream(file_type & file, stream_size_type offset=0):
 			file_base::stream(file, offset) {}
 
@@ -102,10 +104,10 @@ public:
 		/// \copydetails file<T>::stream::read()
 		///////////////////////////////////////////////////////////////////////
  		inline item_type & read_mutable() {
-			assert(m_file.m_open);
+			assert(__file().is_open());
 			if (m_index >= m_block->size) {
 				update_block();
-				if (offset() >= m_file.size()) {
+				if (offset() >= __file().size()) {
 					throw end_of_stream_exception();
 				}
 			}
@@ -144,7 +146,7 @@ public:
 		/// \returns The item read from the stream.
 		///////////////////////////////////////////////////////////////////////
 		inline const item_type & read_back() {
-			assert(m_file.m_open);
+			assert(__file().is_open());
 			seek(-1, current);
 			const item_type & i = read();
 			seek(-1, current);
@@ -157,9 +159,9 @@ public:
 		/// \param item The item to write to the stream.
 		/////////////////////////////////////////////////////////////////////////
  		inline void write(const item_type& item) throw(stream_exception) {
-			assert(m_file.m_open);
+			assert(__file().is_open());
 #ifndef NDEBUG
-			if (!m_file.is_writable())
+			if (!__file().is_writable())
 				throw io_exception("Cannot write to read only stream");
 #endif
 			if (m_index >= block_items()) update_block();
@@ -167,85 +169,38 @@ public:
 			write_update();
 		}
 
-		/////////////////////////////////////////////////////////////////////////
-		/// \brief Write several items to the stream.
-		///
-		/// Implementation note: If your iterator type is efficiently copyable
-		/// with std::copy, then this will also write efficiently into the
-		/// internal TPIE buffer.
-		///
-		/// \tparam IT The type of Random Access Iterators used to supply the
-		/// items.
-		/// \param start Iterator to the first item to write.
-		/// \param end Iterator past the last item to write.
-		/////////////////////////////////////////////////////////////////////////
+		///////////////////////////////////////////////////////////////////////
+		/// \copydoc stream_crtp::write_array
+		/// \sa file_stream<T>::write(const IT & start, const IT & end)
+		///////////////////////////////////////////////////////////////////////
 		template <typename IT>
 		inline void write(const IT & start, const IT & end) {
-			assert(m_file.m_open);
-			IT i = start;
-			while (i != end) {
-				if (m_index >= block_items()) update_block();
-
-				IT blockmax = i + (block_items()-m_index);
-
-				T * dest = reinterpret_cast<T*>(m_block->data) + m_index;
-
-				IT till = std::min(end, blockmax);
-
-				std::copy(i, till, dest);
-
-				m_index += till - i;
-				write_update();
-				i = till;
-			}
+			assert(__file().is_open());
+			write_array(*this, start, end);
 		}
 
 		///////////////////////////////////////////////////////////////////////
-		/// \brief Reads several items from the stream.
-		///
-		/// Implementation note: If your iterator type is efficiently copyable
-		/// with std::copy, then this will also read efficiently from the
-		/// internal TPIE buffer.
-		///
-		/// \tparam IT The type of Random Access Iterators used to supply the
-		/// items.
-		/// \param start Iterator to the first spot to write to.
-		/// \param end Iterator past the last spot to write to.
-		///
-		/// \throws end_of_stream_exception If there are not enough elements in
-		/// the stream to fill all the spots between start and end.
+		/// \copydoc stream_crtp::read_array
+		/// \sa file_stream<T>::read(const IT & start, const IT & end)
 		///////////////////////////////////////////////////////////////////////
 		template <typename IT>
 		inline void read(const IT & start, const IT & end) {
-			assert(m_file.m_open);
-			IT i = start;
-			while (i != end) {
-				if (m_index >= block_items()) {
-					// check to make sure we have enough items in the stream
-					stream_size_type offs = offset();
-					if (offs >= m_file.size()
-						|| offs + (end-i) > m_file.size()) {
+			assert(__file().is_open());
+			read_array(*this, start, end);
+		}
 
-						throw end_of_stream_exception();
-					}
+		///////////////////////////////////////////////////////////////////////
+		/// \brief Attach to the given tpie::file. If necessary, detach first.
+		///////////////////////////////////////////////////////////////////////
+		inline void attach(file & f) {
+			attach_inner(f);
+		}
 
-					// fetch next block from disk
-					update_block();
-				}
-
-				T * src = reinterpret_cast<T*>(m_block->data) + m_index;
-
-				// either read the rest of the block or until `end'
-				memory_size_type count = std::min(block_items()-m_index, static_cast<memory_size_type>(end-i));
-
-				std::copy(src, src + count, i);
-
-				// advance output iterator
-				i += count;
-
-				// advance input position
-				m_index += count;
-			}
+		///////////////////////////////////////////////////////////////////////
+		/// \brief Detach from a tpie::file.
+		///////////////////////////////////////////////////////////////////////
+		inline void detach() {
+			detach_inner();
 		}
  	};
 };

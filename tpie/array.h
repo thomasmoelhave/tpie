@@ -33,7 +33,16 @@
 namespace tpie {
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \internal
+/// \brief A CRTP base class implementing auxiliary array operations.
+///
+/// Operations include element lookup via at() or operator[],
+/// getting iterators begin() and end(),
+/// checking for element-by-element equality using operator==,
+/// the assignment operator.
+///
+/// All these operations are implemented using get_iter() and friends, which
+/// are implemented in array_base<T, true> (segmented) and array_base<T, false>
+/// (non-segmented).
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename child_t, typename T, template <typename, bool> class iter_base>

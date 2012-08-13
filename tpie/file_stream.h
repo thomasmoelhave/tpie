@@ -21,7 +21,7 @@
 #include <tpie/tempname.h>
 #include <tpie/file.h>
 #include <tpie/memory.h>
-#include <tpie/file_base.h>
+#include <tpie/file_stream_base.h>
 ///////////////////////////////////////////////////////////////////////////////
 /// \file file_stream.h
 /// \brief Simple class acting both as a tpie::file and a
@@ -57,7 +57,8 @@ public:
 
 	
 	/////////////////////////////////////////////////////////////////////////
-	/// \copydoc file<T>::stream::write(const item_type & item)
+	/// \copybrief file<T>::stream::write(const item_type & item)
+	/// \copydetails file<T>::stream::write(const item_type & item)
 	/// \sa file<T>::stream::write(const item_type & item)
 	/////////////////////////////////////////////////////////////////////////
 	inline void write(const item_type & item) throw(stream_exception) {
@@ -72,33 +73,19 @@ public:
 	}
 
 	/////////////////////////////////////////////////////////////////////////
-	/// \copydoc file<T>::stream::write(const IT & start, const IT & end)
+	/// \copybrief stream_crtp::write_array
+	/// \copydetails stream_crtp::write_array
 	/// \sa file<T>::stream::write(const IT & start, const IT & end)
 	/////////////////////////////////////////////////////////////////////////
 	template <typename IT>
 	inline void write(const IT & start, const IT & end) throw(stream_exception) {
 		assert(m_open);
-		IT i = start;
-		while (i != end) {
-			if (m_index >= m_blockItems) update_block();
-
-			size_t streamRemaining = end - i;
-			size_t blockRemaining = m_blockItems-m_index;
-
-			IT till = (blockRemaining < streamRemaining) ? (i + blockRemaining) : end;
-
-			T * dest = reinterpret_cast<item_type*>(m_block.data) + m_index;
-
-			std::copy(i, till, dest);
-
-			m_index += static_cast<memory_size_type>(till - i);
-			write_update();
-			i = till;
-		}
+		write_array(*this, start, end);
 	}
 
 	/////////////////////////////////////////////////////////////////////////
-	/// \copydoc file<T>::stream::read()
+	/// \copybrief file<T>::stream::read()
+	/// \copydetails file<T>::stream::read()
 	/// \sa file<T>::stream::read()
 	/////////////////////////////////////////////////////////////////////////
 	inline const item_type & read() throw(stream_exception) {
@@ -113,44 +100,19 @@ public:
 	}
 
 	/////////////////////////////////////////////////////////////////////////
-	/// \copydoc file<T>::stream::read(const IT & start, const IT & end)
+	/// \copybrief stream_crtp::read_array
+	/// \copydetails stream_crtp::read_array
 	/// \sa file<T>::stream::read(const IT & start, const IT & end)
 	/////////////////////////////////////////////////////////////////////////
 	template <typename IT>
 	inline void read(const IT & start, const IT & end) throw(stream_exception) {
 		assert(m_open);
-		IT i = start;
-		while (i != end) {
-			if (m_index >= m_blockItems) {
-				// check to make sure we have enough items in the stream
-				stream_size_type offs = offset();
-				if (offs >= size()
-					|| offs + (end-i) > size()) {
-
-					throw end_of_stream_exception();
-				}
-
-				// fetch next block from disk
-				update_block();
-			}
-
-			T * src = reinterpret_cast<item_type*>(m_block.data) + m_index;
-
-			// either read the rest of the block or until `end'
-			memory_size_type count = std::min(m_blockItems-m_index, static_cast<memory_size_type>(end-i));
-
-			std::copy(src, src + count, i);
-
-			// advance output iterator
-			i += count;
-
-			// advance input position
-			m_index += count;
-		}
+		read_array(*this, start, end);
 	}
 
 	/////////////////////////////////////////////////////////////////////////
-	/// \copydoc file<T>::stream::read_back()
+	/// \copybrief file<T>::stream::read_back()
+	/// \copydetails file<T>::stream::read_back()
 	/// \sa file<T>::stream::read_back()
 	/////////////////////////////////////////////////////////////////////////
 	inline const item_type & read_back() throw(stream_exception) {
@@ -183,6 +145,8 @@ public:
 	void swap(file_stream<T> & other) {
 		file_stream_base::swap(other);
 	}
+
+	friend struct stream_item_array_operations;
 };
 
 } // namespace tpie

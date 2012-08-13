@@ -107,15 +107,31 @@ public:
 	/// \param t The element of which to find the set representative
 	/// \return The representative.
 	/////////////////////////////////////////////////////////
-
-	// TODO: Should we be more fancy about this?
 	inline value_t find_set(value_t t) {
+		// If t sits in depth d, we halve the depth of d/2 nodes in the tree,
+		// including t.
 		while (true) {
+			// Set t to point to its grandparent.
 			value_t x = m_elements[m_elements[t]];
 			if (x == t) return t;
 			m_elements[t] = x;
 			t = x;
 		}
+
+		// The textbook implementation below is faster for some adversarial
+		// inputs, but is cache inefficient on ordinary input.
+
+		//value_t r = m_elements[t];
+		//if (r == t)
+		//	return r;
+		//while (r != m_elements[r])
+		//	r = m_elements[r];
+		//while (t != r) {
+		//	value_t next = m_elements[t];
+		//	m_elements[t] = r;
+		//	t = next;
+		//}
+		//return r;
 	}
 
 	/////////////////////////////////////////////////////////

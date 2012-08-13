@@ -45,4 +45,8 @@ typedef stream_accessor<posix> file_accessor;
 
 #endif // WIN32
 
+namespace tpie {
+typedef file_accessor::file_accessor default_file_accessor;
+} // namespace tpie
+
 #endif //__tpie_file_accessor_file_accossor_h__

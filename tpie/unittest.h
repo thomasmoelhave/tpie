@@ -137,6 +137,17 @@ public:
 
 	template <typename T, typename T1>
 	tests & multi_test(T fct, const std::string & name, const std::string & p1_name, T1 p1_default);
+	
+	template <typename T, typename T1, typename T2>
+	tests & multi_test(T fct, const std::string & name,
+			const std::string & p1_name, T1 p1_default,
+			const std::string & p2_name, T2 p2_default);
+
+	template <typename T, typename T1, typename T2, typename T3>
+	tests & multi_test(T fct, const std::string & name,
+			const std::string & p1_name, T1 p1_default,
+			const std::string & p2_name, T2 p2_default,
+			const std::string & p3_name, T3 p3_default);
 
 
 	operator int();
@@ -306,7 +317,8 @@ T tests::get_arg(const std::string & name, T def) const {
 	
 template <typename T>
 std::string tests::arg_str(const std::string & name, T def) const {
-	return std::string(" [")+name+" = "+magic_cast<std::string>(def)+"]";
+	std::string dashes((name.size() == 1) ? 1 : 2, '-');
+	return std::string(" [")+dashes+name+" ARG (= "+magic_cast<std::string>(def)+")]";
 }
 
 template <typename T>
@@ -428,6 +440,47 @@ tests & tests::multi_test(T fct, const std::string & name, const std::string & p
 		start_test(name);
 		teststream ts;
 		fct(ts, get_arg(p1_name, p1_default));
+		end_test(ts.success()); 
+	}
+	return *this;
+}
+
+template <typename T, typename T1, typename T2>
+tests & tests::multi_test(T fct, const std::string & name,
+			const std::string & p1_name, T1 p1_default,
+			const std::string & p2_name, T2 p2_default) {
+	m_tests.push_back(name+ 
+		arg_str(p1_name, p1_default) +
+		arg_str(p2_name, p2_default));
+
+	if (testAll || name == test_name) {
+		start_test(name);
+		teststream ts;
+		fct(ts,
+			get_arg(p1_name, p1_default),
+			get_arg(p2_name, p2_default));
+		end_test(ts.success()); 
+	}
+	return *this;
+}
+
+template <typename T, typename T1, typename T2, typename T3>
+tests & tests::multi_test(T fct, const std::string & name,
+			const std::string & p1_name, T1 p1_default,
+			const std::string & p2_name, T2 p2_default,
+			const std::string & p3_name, T3 p3_default) {
+	m_tests.push_back(name+ 
+		arg_str(p1_name, p1_default) +
+		arg_str(p2_name, p2_default) +
+		arg_str(p3_name, p3_default));
+
+	if (testAll || name == test_name) {
+		start_test(name);
+		teststream ts;
+		fct(ts,
+			get_arg(p1_name, p1_default),
+			get_arg(p2_name, p2_default),
+			get_arg(p3_name, p3_default));
 		end_test(ts.success()); 
 	}
 	return *this;

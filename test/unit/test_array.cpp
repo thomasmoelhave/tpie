@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2008, The TPIE development team
+// Copyright 2008, 2012, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -25,6 +25,28 @@
 #include <tpie/array.h>
 #include <tpie/concepts.h>
 using namespace tpie;
+
+// Method coverage of tpie::array
+//
+// Method           Covered by unit test
+//
+// ctor(sz)         basic
+// ctor(sz, el)     basic
+// operator[]       basic
+// at               TODO
+// back             frontback
+// begin            iterator
+// empty            basic
+// end              iterator
+// find             iterator
+// front            frontback
+// get              TODO
+// rbegin           iterator
+// rend             iterator
+// resize(sz)       basic
+// resize(sz, el)   basic
+// size             basic
+// swap             TODO
 
 bool basic_test() {
 	array<size_t> hat;

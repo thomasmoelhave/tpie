@@ -384,7 +384,7 @@ private:
 	stream<T>::stream(const std::string& path_name, stream_type st) :
 		m_temp(path_name, true), m_stream(block_factor()), m_status(STREAM_STATUS_INVALID) {
 		try {
-			m_stream.open(m_temp, st==READ_STREAM ? file_stream_base::read: file_stream_base::read_write);
+			m_stream.open(m_temp, st==READ_STREAM ? access_read: access_read_write);
 			if (st == APPEND_STREAM) m_stream.seek(0, file_stream_base::end);
 		} catch(const stream_exception &e) {
 			TP_LOG_FATAL_ID("Open failed: " <<  e.what());

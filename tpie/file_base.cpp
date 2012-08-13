@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; eval: (progn (c-set-style "stroustrup") (c-set-offset 'innamespace 0)); -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2009, 2010, The TPIE development team
+// Copyright 2009, 2010, 2012, The TPIE development team
 //
 // This file is part of TPIE.
 //
@@ -17,101 +17,16 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with TPIE.  If not, see <http://www.gnu.org/licenses/>
 #include <tpie/portability.h>
-
 #include <tpie/exception.h>
 #include <tpie/file_base.h>
+#include <tpie/file_stream_base.h>
 #include <tpie/memory.h>
+#include <stdlib.h>
+#include <tpie/file_base_crtp.inl>
+#include <tpie/stream_crtp.inl>
 
 namespace tpie {
 
-/*************************> file_base_crtp <*******************************/ 
-template <typename child_t>
-file_base_crtp<child_t>::file_base_crtp(
-	memory_size_type itemSize, double blockFactor,
-	file_accessor::file_accessor * fileAccessor) {
-	m_size = 0;
-	m_itemSize = itemSize;
-	m_open = false;
-	if (fileAccessor == 0)
-		fileAccessor = new default_file_accessor();
-	m_fileAccessor = fileAccessor;
-
-	m_blockSize = block_size(blockFactor);
-	m_blockItems = m_blockSize/m_itemSize;
-	m_tempFile = 0;
-}
-
-template <typename child_t>
-template <typename BT>
-void file_base_crtp<child_t>::read_block(BT & b, stream_size_type block) {
-	b.dirty = false;
-	b.number = block;
-	
-	// calculate buffer size
-	b.size = m_blockItems;
-	if (static_cast<stream_size_type>(b.size) + b.number * static_cast<stream_size_type>(m_blockItems) > self().size())
-		b.size = static_cast<memory_size_type>(self().size() - block * m_blockItems);
-	
-	// populate buffer data
-	if (b.size > 0 &&
-		m_fileAccessor->read_block(b.data, b.number, b.size) != b.size) {
-		throw io_exception("Incorrect number of items read");
-	}
-}
-
-template <typename child_t>
-void file_base_crtp<child_t>::get_block_check(stream_size_type block) {
-	// If the file contains n full blocks (numbered 0 through n-1), we may
-	// request any block in {0, 1, ... n}
-
-	// If the file contains n-1 full blocks and a single non-full block, we may
-	// request any block in {0, 1, ... n-1}
-
-	// We capture this restraint with the assertion:
-	if (block * static_cast<stream_size_type>(m_blockItems) > self().size()) {
-		throw end_of_stream_exception();
-	}
-}
-
-/*********************************> stream_crtp <*******************************/
-template <typename child_t>
-void stream_crtp<child_t>::update_block() {
-	if (m_nextBlock == std::numeric_limits<stream_size_type>::max()) {
-		m_nextBlock = self().__block().number+1;
-		m_nextIndex = 0;
-	}
-	self().update_block_core();
-	m_blockStartIndex = m_nextBlock*static_cast<stream_size_type>(self().__file().m_blockItems);
-	m_index = m_nextIndex;
-	m_nextBlock = std::numeric_limits<stream_size_type>::max();
-	m_nextIndex = std::numeric_limits<memory_size_type>::max();
-}
-
-
-/*******************************> file_stream_base <******************************/
-file_stream_base::file_stream_base(memory_size_type itemSize,
-								   double blockFactor,
-								   file_accessor::file_accessor * fileAccessor):
-	file_base_crtp<file_stream_base>(itemSize, blockFactor, fileAccessor) 
-{
-	m_blockStartIndex = 0;
-	m_nextBlock = std::numeric_limits<stream_size_type>::max();
-	m_nextIndex = std::numeric_limits<memory_size_type>::max();
-	m_index = std::numeric_limits<memory_size_type>::max();
-	m_block.data = 0;
-}
-
-void file_stream_base::get_block(stream_size_type block) {
-	get_block_check(block);
-	read_block(m_block, block);
-}
-
-void file_stream_base::update_block_core() {
-	flush_block();
-	get_block(m_nextBlock);
-}
-
-/***********************************> file_base <*********************************/
 file_base::file_base(memory_size_type itemSize,
 					 double blockFactor,
 					 file_accessor::file_accessor * fileAccessor):
@@ -198,6 +113,12 @@ void file_base::free_block(block_t * block) {
 	m_free.push_front(*block);
 }
 
+void file_base::close() {
+	assert(m_free.empty());
+	assert(m_used.empty());
+	p_t::close();
+}
+
 file_base::~file_base() {
 	assert(m_free.empty());
 	assert(m_used.empty());
@@ -206,41 +127,47 @@ file_base::~file_base() {
 
 /*************************> file_base::stream <*******************************/
 void file_base::stream::update_block_core() {
-	if (m_block != &m_file.m_emptyBlock) {
-		m_file.free_block(m_block);
-		m_block = &m_file.m_emptyBlock; // necessary if get_block below throws
+	if (m_block != &m_file->m_emptyBlock) {
+		m_file->free_block(m_block);
+		m_block = &m_file->m_emptyBlock; // necessary if get_block below throws
 	}
-	m_block = m_file.get_block(m_nextBlock);
+	m_block = m_file->get_block(m_nextBlock);
 }
 
 
 file_base::stream::stream(file_base & f, stream_size_type offset):
-	m_file(f) {
-	m_blockStartIndex = 0;
-	m_nextBlock = std::numeric_limits<stream_size_type>::max();
-	m_nextIndex = std::numeric_limits<memory_size_type>::max();
-	m_index = std::numeric_limits<memory_size_type>::max();;
-	m_block = &m_file.m_emptyBlock;
-	m_file.create_block();
-	if (m_file.m_open)
+	m_file(0) {
+	attach_inner(f);
+	if (m_file->m_open)
 		seek(offset);
 }
 
 void file_base::stream::free() {
 	if (m_block) {
-		if (m_block != &m_file.m_emptyBlock) m_file.free_block(m_block);
-		m_file.delete_block();
+		if (m_block != &m_file->m_emptyBlock) m_file->free_block(m_block);
+		m_file->delete_block();
 	}
 	m_block = 0;
 }
 
+void file_base::stream::attach_inner(file_base & f) {
+	detach_inner();
+	m_file = &f;
+	m_blockStartIndex = 0;
+	m_block = &m_file->m_emptyBlock;
+	m_file->create_block();
+	initialize();
+}
+
+void file_base::stream::detach_inner() {
+	if (!attached()) return;
+	free();
+	m_file = 0;
+}
+
 file_base::block_t file_base::m_emptyBlock;
 
-
-template class stream_crtp<file_stream_base>;
 template class stream_crtp<file_base::stream>;
-template class file_base_crtp<file_stream_base>;
 template class file_base_crtp<file_base>;
 
 } //namespace tpie
-

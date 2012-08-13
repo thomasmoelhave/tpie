@@ -3,6 +3,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS On)
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/sysinfo.cpp.in" "${CMAKE_CURRENT_BINARY_DIR}/sysinfo.cpp" @ONLY)
 
 set (HEADERS
+		access_type.h
 		ami.h
 		backtrace.h
 		cache_hint.h
@@ -15,7 +16,9 @@ set (HEADERS
 		err.h
 		file.h
 		file_base.h
+		file_base_crtp.h
 		file_stream.h
+		file_stream_base.h
 		file_accessor/file_accessor.h
 		file_accessor/stream_accessor.h
 		file_accessor/stream_accessor.inl
@@ -56,9 +59,11 @@ set (HEADERS
 		queue.h
 		serialization.h
 		sort.h
+		sort_deprecated.h
 		sort_manager.h
 		stack.h
 		stream.h
+		stream_crtp.h
 		stream_header.h
 		stream_usage.h
 		sysinfo.h
@@ -104,7 +109,9 @@ set (HEADERS
 set (SOURCES
 	backtrace.cpp
 	cpu_timer.cpp
+	file_base.cpp
 	file_count.cpp
+	file_stream_base.cpp
 	execution_time_predictor.cpp
 	fractional_progress.cpp
 	job.cpp
@@ -117,7 +124,6 @@ set (SOURCES
 	tempname.cpp
 	tpie.cpp
 	tpie_log.cpp
-	file_base.cpp
 	stats.cpp
 	util.cpp
 	unittest.cpp

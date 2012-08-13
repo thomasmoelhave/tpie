@@ -36,9 +36,9 @@ teststream_buf::teststream_buf() {
 int teststream_buf::overflow(int) {return 0;}
 
 void teststream_buf::stateAlign() {
-	if (pptr() - m_line < tests::lineLength-8) sputc(' ');
-	while (pptr() - m_line < tests::lineLength-9) sputc('.');
-	if (pptr() - m_line < tests::lineLength-8) sputc(' ');
+	if (pptr() - m_line < static_cast<ptrdiff_t>(tests::lineLength)-8) sputc(' ');
+	while (pptr() - m_line < static_cast<ptrdiff_t>(tests::lineLength)-9) sputc('.');
+	if (pptr() - m_line < static_cast<ptrdiff_t>(tests::lineLength)-8) sputc(' ');
 }
 
 int teststream_buf::sync() {
@@ -228,19 +228,27 @@ void tests::build_information(std::ostream & o) {
 
 void tests::show_usage(std::ostream & o) {
 	o << "Usage: " << exe_name << " [TEST_NAME] [OPTION]..." << std::endl;
+	o << "Run the given unit test.\n\n";
 	o << "Available tests:" << std::endl;
 	for (size_t i = 0; i < m_tests.size(); ++i) {
 		o << "  " << m_tests[i] << std::endl;
 	}
-	o << "Run unit test" << std::endl;
+	o << '\n';
+	o << "Mandatory arguments to long options are mandatory for short options too.\n";
 	o << "  -h, --help                         Show this help message" << std::endl;
 	o << "  -l, --log-level LEVEL              Output log to standard output" << std::endl;
 	o << "  -e, --log-level-on-error LEVEL     Output log when a test fails" << std::endl;
 	o << "  -v, --verbose                      Alias of --log-level info" << std::endl;
 	o << "  -d, --debug                        Alias of --log-level debug" << std::endl;
 	o << "  -V, --version                      Show version information" << std::endl;
-	o << "      --memory SIZE                  Set memory limit (default: "
-	  << memory_limit << ")" << std::endl;
+	o << "      --memory MB                    Set memory limit (default: "
+	  << memory_limit << " MB)\n\n";
+
+	o << "LEVEL may be one of the following:\n";
+	o << "fatal, error, warn, info, app_debug, debug, mem_debug\n\n";
+
+	o << "When TEST_NAME is \"all\", all tests are run, and log level defaults to \"error\".\n";
+	o << "When running just a single test, the default log level is \"info\".\n";
 }
 
 tests::operator int() {

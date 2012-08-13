@@ -5,6 +5,7 @@ set (COMMON_DEPS
 		getopts.h
 		parse_args.cpp
 		parse_args.h
+		test_portability.h
 	)
 
 add_library(test_common ${COMMON_DEPS})
@@ -40,3 +41,7 @@ target_link_libraries(test_parallel_sort_threshold tpie)
 add_executable(test_job_overhead test_job_overhead.cpp)
 set_target_properties(test_job_overhead PROPERTIES FOLDER tpie/test)
 target_link_libraries(test_job_overhead tpie)
+
+add_executable(queue queue.cpp)
+set_target_properties(queue PROPERTIES FOLDER tpie/test)
+target_link_libraries(queue tpie)

@@ -47,7 +47,7 @@ public:
 		, m_buffer(buffer_size(blockFactor))
 		, m_bufferItems(0)
 	{
-		m_file_stream.open();
+		m_file_stream.open(static_cast<memory_size_type>(0), access_normal);
 	}
 
     ////////////////////////////////////////////////////////////////////
@@ -61,7 +61,7 @@ public:
 		, m_buffer(buffer_size(block_factor))
 		, m_bufferItems(0)
 	{
-		m_file_stream.open(path);
+		m_file_stream.open(path, access_read_write, static_cast<memory_size_type>(0), access_normal);
 		
 		m_file_stream.seek(0, file_stream_base::end);
 	}
@@ -77,7 +77,8 @@ public:
 		, m_buffer(buffer_size(block_factor))
 		, m_bufferItems(0)
 	{
-		m_file_stream.open(tempFile);
+		m_file_stream.open(tempFile, access_read_write, 
+						   static_cast<memory_size_type>(0), access_normal);
 		
 		m_file_stream.seek(0, file_stream_base::end);
 	}
@@ -85,7 +86,7 @@ public:
 
     ////////////////////////////////////////////////////////////////////
     /// \brief Closes the underlying stream and truncates it to the logical
-    /// end of the stack. TODO verify this behavior
+    /// end of the stack.
     ////////////////////////////////////////////////////////////////////
 	~stack() {
 		empty_buffer();
@@ -116,9 +117,10 @@ public:
     /// \brief Peeks at the topmost item on the stack.
     ////////////////////////////////////////////////////////////////////
 	inline const T & top() throw(stream_exception) {
-		T item = m_file_stream.read_back();
+		if (m_bufferItems) return m_buffer[m_bufferItems-1];
+		m_buffer[0] = m_file_stream.read_back();
 		m_file_stream.read();
-		return item;
+		return m_buffer[0];
 	}
 
     ////////////////////////////////////////////////////////////////////
