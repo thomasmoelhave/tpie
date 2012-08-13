@@ -58,6 +58,7 @@ struct merger {
 	inline void reset() {
 		in.resize(0);
 		pq.resize(0);
+		itemsRead.resize(0);
 	}
 
 	// Initialize merger with given sorted input runs. Each file stream is
