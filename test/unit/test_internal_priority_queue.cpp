@@ -1,6 +1,6 @@
 // -*- mode: c++; tab-width: 4; indent-tabs-mode: t; c-file-style: "stroustrup"; -*-
 // vi:set ts=4 sts=4 sw=4 noet :
-// Copyright 2008, The TPIE development team
+// Copyright 2008, 2012, The TPIE development team
 // 
 // This file is part of TPIE.
 // 
@@ -20,6 +20,24 @@
 #include <tpie/internal_priority_queue.h>
 #include <vector>
 #include "priority_queue.h"
+
+// Method coverage of tpie::internal_priority_queue
+//
+// Method                    Covered by unit test
+// ctor(max_size)            basic
+// ctor(max_size, IT, IT)    TODO
+// clear                     TODO
+// empty                     TODO
+// get_array                 TODO
+// insert                    TODO
+// make_safe                 TODO
+// pop                       basic
+// pop_and_push              TODO
+// push                      basic
+// resize                    TODO
+// size                      basic
+// top                       basic
+// unsafe_push               TODO
 
 using namespace tpie;
 
