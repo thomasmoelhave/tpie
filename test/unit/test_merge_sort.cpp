@@ -112,6 +112,7 @@ bool sort_test(memory_size_type m2,
 	m.set_threshold(m4);
 	if (!m.below()) return false;
 	test_t prev = std::numeric_limits<test_t>::min();
+	memory_size_type itemsRead = 0;
 	while (s.can_pull()) {
 		if (!m.below()) return false;
 		test_t read = s.pull();
@@ -121,6 +122,11 @@ bool sort_test(memory_size_type m2,
 			return false;
 		}
 		prev = read;
+		++itemsRead;
+	}
+	if (itemsRead != items) {
+		log_error() << "Read the wrong number of items. Got " << itemsRead << ", expected " << items << std::endl;
+		return false;
 	}
 
 	log_debug() << "MEMORY USED: " << m.used() << '/' << s.evacuated_memory_usage() << std::endl;
