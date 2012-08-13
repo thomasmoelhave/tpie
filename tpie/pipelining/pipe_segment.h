@@ -68,6 +68,9 @@ struct pipe_segment {
 		throw not_initiator_segment();
 	}
 
+	virtual void evacuate() {
+	}
+
 protected:
 	inline pipe_segment()
 		: token(this)

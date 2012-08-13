@@ -97,6 +97,12 @@ struct phase {
 		m_initiator->go();
 	}
 
+	inline void evacuate_all() const {
+		for (size_t i = 0; i < m_segments.size(); ++i) {
+			m_segments[i]->evacuate();
+		}
+	}
+
 	inline double memory_fraction() const {
 		return m_memoryFraction;
 	}

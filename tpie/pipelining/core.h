@@ -90,8 +90,13 @@ struct pipeline_impl : public pipeline_virtual {
 		for (it i = phases.begin(); i != phases.end(); ++i) {
 			i->assign_memory(1024*1024*50);
 		}
+		it a;
+		it p;
 		for (it i = phases.begin(); i != phases.end(); ++i) {
 			i->go();
+			if (a != it()) a->evacuate_all();
+			a = p;
+			p = i;
 		}
 	}
 	inline operator gen_t() {
