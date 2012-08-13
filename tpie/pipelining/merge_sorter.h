@@ -183,6 +183,14 @@ public:
 		m_merger.reset();
 	}
 
+	inline void evacuate_before_merging() {
+		if (m_state == stMerge) evacuate();
+	}
+
+	inline void evacuate_before_reporting() {
+		if (m_state == stReport && m_itemsPulled == 0) evacuate();
+	}
+
 private:
 	///////////////////////////////////////////////////////////////////////////
 	// Phase 1 helpers.

@@ -60,6 +60,10 @@ struct sort_input_t : public pipe_segment {
 		sorter->end();
 	}
 
+	void evacuate() {
+		sorter->evacuate_before_merging();
+	}
+
 protected:
 	void set_available_memory(memory_size_type availableMemory) {
 		pipe_segment::set_available_memory(availableMemory);
@@ -92,6 +96,10 @@ struct sort_calc_t : public pipe_segment {
 
 	inline void go() {
 		sorter->calc();
+	}
+
+	void evacuate() {
+		sorter->evacuate_before_reporting();
 	}
 
 protected:
