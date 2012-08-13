@@ -528,7 +528,7 @@ private:
 
 		memory_size_type idx = run_file_index(mergeLevel, runNumber);
 		if (runNumber < p.fanout) m_runFiles[idx].free();
-		fs.open(m_runFiles[idx], file_stream_base::read_write);
+		fs.open(m_runFiles[idx], access_read_write);
 		fs.seek(0, file_stream<T>::end);
 	}
 
@@ -539,7 +539,7 @@ private:
 		// see run_file_index comment about runNumber
 
 		memory_size_type idx = run_file_index(mergeLevel, runNumber);
-		fs.open(m_runFiles[idx], file_stream_base::read);
+		fs.open(m_runFiles[idx], access_read);
 		fs.seek(calculate_run_length(p.runLength, p.fanout, mergeLevel) * (runNumber / p.fanout), file_stream<T>::beginning);
 	}
 
