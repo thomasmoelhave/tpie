@@ -49,6 +49,7 @@ struct merge_sorter {
 		, m_parametersSet(false)
 		, m_merger(pred)
 		, pred(pred)
+		, m_finalMergeInitialized(false)
 	{
 	}
 
@@ -169,6 +170,19 @@ public:
 		m_state = stReport;
 	}
 
+	inline void evacuate() {
+		tp_assert(m_state == stMerge || m_state == stReport, "Wrong phase");
+		if (m_reportInternal) {
+			m_reportInternal = false;
+			empty_current_run();
+			m_currentRunItems.resize(0);
+			initialize_final_merger(0, 1);
+		} else if (m_state == stMerge) {
+			return;
+		}
+		m_merger.reset();
+	}
+
 private:
 	///////////////////////////////////////////////////////////////////////////
 	// Phase 1 helpers.
@@ -215,31 +229,48 @@ private:
 	/// Prepare m_merger for merging the runCount runs in finalMergeLevel.
 	///////////////////////////////////////////////////////////////////////////
 	inline void initialize_final_merger(memory_size_type finalMergeLevel, memory_size_type runCount) {
+		if (m_finalMergeInitialized) {
+			reinitialize_final_merger();
+			return;
+		}
+
+		m_finalMergeInitialized = true;
+		m_finalMergeLevel = finalMergeLevel;
+		m_finalRunCount = runCount;
 		if (runCount > p.finalFanout) {
 			log_debug() << "Run count in final level (" << runCount << ") is greater than the final fanout (" << p.finalFanout << ")\n";
-			memory_size_type runNumber;
-			{
-				memory_size_type i = p.finalFanout-1;
-				memory_size_type n = runCount-i;
-				log_debug() << "Merge " << n << " runs starting from #" << i << std::endl;
-				runNumber = merge_runs(finalMergeLevel, i, n);
-			}
+
+			memory_size_type i = p.finalFanout-1;
+			memory_size_type n = runCount-i;
+			log_debug() << "Merge " << n << " runs starting from #" << i << std::endl;
+			m_finalMergeSpecialRunNumber = merge_runs(finalMergeLevel, i, n);
+		} else {
+			log_debug() << "Run count in final level (" << runCount << ") is less or equal to the final fanout (" << p.finalFanout << ")" << std::endl;
+			m_finalMergeSpecialRunNumber = std::numeric_limits<memory_size_type>::max();
+		}
+		reinitialize_final_merger();
+	}
+
+public:
+	inline void reinitialize_final_merger() {
+		tp_assert(m_finalMergeInitialized, "reinitialize_final_merger while !m_finalMergeInitialized");
+		if (m_finalMergeSpecialRunNumber != std::numeric_limits<memory_size_type>::max()) {
 			array<file_stream<T> > in(p.finalFanout);
 			for (memory_size_type i = 0; i < p.finalFanout-1; ++i) {
-				open_run_file_read(in[i], finalMergeLevel, i);
+				open_run_file_read(in[i], m_finalMergeLevel, i);
 				log_debug() << "Run " << i << " is at offset " << in[i].offset() << " and has size " << in[i].size() << std::endl;
 			}
-			open_run_file_read(in[p.finalFanout-1], finalMergeLevel+1, runNumber);
+			open_run_file_read(in[p.finalFanout-1], m_finalMergeLevel+1, m_finalMergeSpecialRunNumber);
 			log_debug() << "Special large run is at offset " << in[p.finalFanout-1].offset() << " and has size " << in[p.finalFanout-1].size() << std::endl;
-			stream_size_type runLength = calculate_run_length(p.runLength, p.fanout, finalMergeLevel+1);
+			stream_size_type runLength = calculate_run_length(p.runLength, p.fanout, m_finalMergeLevel+1);
 			log_debug() << "Run length " << runLength << std::endl;
 			m_merger.reset(in, runLength);
 		} else {
-			log_debug() << "Run count in final level (" << runCount << ") is less or equal to the final fanout (" << p.finalFanout << ")" << std::endl;
-			initialize_merger(finalMergeLevel, 0, runCount);
+			initialize_merger(m_finalMergeLevel, 0, m_finalRunCount);
 		}
 	}
 
+private:
 	///////////////////////////////////////////////////////////////////////////
 	/// initialize_merger helper.
 	///////////////////////////////////////////////////////////////////////////
@@ -355,6 +386,10 @@ public:
 
 	static memory_size_type minimum_memory_phase_3() {
 		return fanout_memory_usage(calculate_fanout(0));
+	}
+
+	inline memory_size_type evacuated_memory_usage() const {
+		return 2*p.fanout*sizeof(temp_file);
 	}
 
 private:
@@ -541,6 +576,11 @@ private:
 	memory_size_type m_itemsPulled;
 
 	pred_t pred;
+
+	bool m_finalMergeInitialized;
+	memory_size_type m_finalMergeLevel;
+	memory_size_type m_finalRunCount;
+	memory_size_type m_finalMergeSpecialRunNumber;
 };
 
 } // namespace pipelining
