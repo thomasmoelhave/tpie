@@ -71,7 +71,9 @@ private:
 bool sort_test(memory_size_type m2,
 			   memory_size_type m3,
 			   memory_size_type m4,
-			   double mb_data)
+			   double mb_data,
+			   bool evacuateBeforeMerge = false,
+			   bool evacuateBeforeReport = false)
 {
 	m2 *= 1024*1024;
 	m3 *= 1024*1024;
@@ -94,9 +96,11 @@ bool sort_test(memory_size_type m2,
 	s.end();
 	if (!m.below()) return false;
 
-	s.evacuate();
-	log_debug() << "MEMORY USED: " << m.used() << '/' << s.evacuated_memory_usage() << std::endl;
-	if (!m.below(s.evacuated_memory_usage())) return false;
+	if (evacuateBeforeMerge) {
+		s.evacuate();
+		log_debug() << "MEMORY USED: " << m.used() << '/' << s.evacuated_memory_usage() << std::endl;
+		if (!m.below(s.evacuated_memory_usage())) return false;
+	}
 
 	log_debug() << "Begin phase 3" << std::endl;
 	m.set_threshold(m3);
@@ -104,9 +108,11 @@ bool sort_test(memory_size_type m2,
 	s.calc();
 	if (!m.below()) return false;
 
-	s.evacuate();
-	log_debug() << "MEMORY USED: " << m.used() << '/' << s.evacuated_memory_usage() << std::endl;
-	if (!m.below(s.evacuated_memory_usage())) return false;
+	if (evacuateBeforeReport) {
+		s.evacuate();
+		log_debug() << "MEMORY USED: " << m.used() << '/' << s.evacuated_memory_usage() << std::endl;
+		if (!m.below(s.evacuated_memory_usage())) return false;
+	}
 
 	log_debug() << "Begin phase 4" << std::endl;
 	m.set_threshold(m4);
@@ -151,11 +157,21 @@ bool small_final_fanout_test(double mb) {
 	return sort_test(3,10,7,mb);
 }
 
+bool evacuate_before_merge_test() {
+	return sort_test(20,20,20,10, true, false);
+}
+
+bool evacuate_before_report_test() {
+	return sort_test(20,20,20,50, false, true);
+}
+
 int main(int argc, char ** argv) {
 	return tests(argc, argv)
 		.test(internal_report_test, "internal_report")
 		.test(one_run_external_report_test, "one_run_external_report")
 		.test(external_report_test, "external_report")
 		.test(small_final_fanout_test, "small_final_fanout", "mb", 8.99707)
+		.test(evacuate_before_merge_test, "evacuate_before_merge")
+		.test(evacuate_before_report_test, "evacuate_before_report")
 		;
 }
