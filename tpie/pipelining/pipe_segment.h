@@ -64,7 +64,7 @@ struct pipe_segment {
 	}
 
 	virtual void go() {
-		TP_LOG_WARNING("pipe_segment subclass " << typeid(*this).name() << " is not an initiator segment" << std::endl);
+		log_warning() << "pipe_segment subclass " << typeid(*this).name() << " is not an initiator segment" << std::endl;
 		throw not_initiator_segment();
 	}
 
